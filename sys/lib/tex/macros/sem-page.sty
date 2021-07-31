@@ -1,0 +1,85 @@
+%% BEGIN sem-page.sty
+\def\fileversion{1.0}
+\def\filedate{93/04/01}
+%%
+%% Contains the page parameters for the `seminar' LaTeX document style.
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See seminar.sty or seminar.doc for copying restrictions.
+%%
+\def\slideleftmargin{.6in}
+\def\sliderightmargin{.6in}
+\def\slidetopmargin{.6in}
+\def\slidebottommargin{.6in}
+\ifarticle
+  \ifportrait
+    \twocolumn
+    \sloppy
+    \topmargin 0pt
+    \headheight 15pt
+    \headsep 25pt
+    \footskip 30pt
+    \footheight 15pt
+    \textheight\paperwidth\relax
+    \advance\textheight -1in
+    \advance\textheight -\headsep
+    \advance\textheight -\headheight
+    \advance\textheight -\footskip
+    \advance\textheight -\footheight
+    \advance\textheight -.5in
+    \textwidth\paperheight\relax
+    \advance\textwidth by -2in
+    \oddsidemargin 0pt
+    \evensidemargin 0pt
+    \leftmargini 2em
+    \leftmarginv .5em
+    \leftmarginvi .5em
+    \columnsep  40pt
+    \marginparwidth 0pt
+    \marginparsep 0pt
+  \else
+    \textwidth 5.5in
+    \oddsidemargin\paperwidth\relax
+    \advance\oddsidemargin -\textwidth
+    \divide\oddsidemargin 2
+    \advance\oddsidemargin -1in
+    \evensidemargin\oddsidemargin
+    \if@twoside
+      \advance\oddsidemargin -18pt
+      \advance\evensidemargin 18pt
+    \fi
+    \topmargin -20pt
+    \headheight 15pt
+    \headsep 25pt
+    \footskip 33pt
+    \footheight 15pt
+    \textheight\paperheight\relax
+    \advance\textheight -1in
+    \advance\textheight -\topmargin
+    \advance\textheight -\headsep
+    \advance\textheight -\headheight
+    \advance\textheight -\footskip
+    \advance\textheight -.5in
+  \fi
+\else
+  \oddsidemargin 0pt
+  \evensidemargin 0pt
+  \marginparwidth 0pt
+  \marginparsep 0pt
+  \ifportrait
+    \textwidth\paperwidth\relax
+    \textheight\paperheight\relax
+  \else
+    \textwidth\paperheight\relax
+    \textheight\paperwidth\relax
+  \fi
+  \advance\textwidth by -2in
+  \topmargin -1in
+  \headheight .5in
+  \headsep .5in
+  \advance\textheight by -2in
+  \footskip .75in
+  \footheight .25in
+\fi
+\endinput
+%% END sem-page.sty

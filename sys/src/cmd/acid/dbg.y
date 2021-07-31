@@ -395,8 +395,10 @@ name		: Tid
 		}
 		;
 
-args		: zexpr
-		| args ','  zexpr
+args		:
+		{ $$ = 0; }
+		| expr
+		| expr ',' args
 		{
 			$$ = an(OLIST, $1, $3);
 		}

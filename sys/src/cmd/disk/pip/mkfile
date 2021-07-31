@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+TARG=pip
+OFILES=\
+	9660.$O\
+	disk.$O\
+	scsi.$O\
+	phil.$O\
+	tosh.$O\
+	plex.$O\
+	nec.$O\
+	main.$O\
+	sub.$O\
+	probe.$O\
+	file.$O\
+
+HFILES=\
+	all.h\
+
+BIN=/$objtype/bin/disk
+</sys/src/cmd/mkone

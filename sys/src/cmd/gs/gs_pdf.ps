@@ -1,0 +1,169 @@
+%    Copyright (C) 1994 Aladdin Enterprises.  All rights reserved.
+
+% gs_pdf.ps
+% ProcSet for PostScript files created by the PDF to PostScript converter.
+
+% This ProcSet is designed so that it can be used either to execute PDF
+% (the default) or to convert PDF to PostScript.  It records "operator"
+% names in a dictionary with their argument counts, so that they can
+% easily be redefined later to write PostScript in addition to
+% (or instead of) being executed.
+%
+% Currently, the ProcSet requires a Level 2 interpreter.  This is only
+% needed for the general case of image and imagemask; all other
+% Level 2 constructs revert to Level 1 equivalents if needed.
+
+% Level 2 patches:
+/currentglobal false
+/setglobal { pop } bind
+/packedarray { array astore readonly } bind
+3 { 1 index where { pop pop pop } { def } ifelse } repeat
+
+currentglobal true setglobal
+
+% Define pdfmark if needed.  Don't allow it to be bound in.
+systemdict wcheck { systemdict } { userdict } ifelse
+/pdfmark { cleartomark } bind put
+
+userdict /GS_PDF_ProcSet 100 dict dup begin
+
+% Abbreviations:
+/bdef
+ { bind def
+ } bind def
+
+% Operator execution:
+/numargsdict 100 dict def
+/!		% <procname> <proc> <numargs> ! -
+ { //numargsdict 3 index 3 -1 roll put def
+ } bdef
+/~		% <procname> <opname> <numargs> ~ -
+ { exch load 1 packedarray cvx exch !
+ } bdef
+
+% Graphics state operations:
+/q /gsave 0 ~ 
+/Q /grestore 0 ~
+/d /setdash 2 ~
+/i /setflat 1 ~
+/j /setlinejoin 1 ~
+/J /setlinecap 1 ~
+/M /setmiterlimit 1 ~
+/w /setlinewidth 1 ~
+/g /setgray 1 ~
+/rg /setrgbcolor 3 ~
+/k /setcmykcolor where
+ { pop /setcmykcolor 4 ~
+ }
+ { { 1 exch sub
+     4 -1 roll 1 exch sub 1 index mul
+     4 -1 roll 1 exch sub 2 index mul
+     4 -2 roll exch 1 exch sub mul
+     setrgbcolor
+   } 4 !
+ }
+ifelse
+
+% Transformations:
+/ct /translate 2 ~
+/cs /scale 2 ~
+/cm /concat 1 ~
+
+% Path creation:
+/m /moveto 2 ~
+/l /lineto 2 ~
+/c /curveto 6 ~
+/h /closepath 0 ~
+/v { currentpoint 6 2 roll curveto } 4 !
+/y { 2 copy curveto } 4 !
+/re
+ { 4 2 roll moveto  exch dup 0 rlineto  0 3 -1 roll rlineto  neg 0 rlineto
+   closepath
+ } 4 !
+
+% Path painting:
+/S_ { stroke } bdef		% don't allow S_ to get bound in
+/S { S_ } 0 !
+/f /fill 0 ~
+/f* /eofill 0 ~
+/n_ { newpath } bdef		% don't allow n_ to get bound in
+/n { n_ } 0 !
+/s { closepath S_ } 0 !
+/B_ { gsave fill grestore S_ } bdef
+/B /B_ load 0 !
+/b { closepath B_ } 0 !
+/B*_ { gsave eofill grestore S_ } bdef
+/B* /B*_ load 0 !
+/b* { closepath B*_ } 0 !
+
+% Clipping:
+/Wdict 4 dict dup begin
+/S_ { gsave stroke grestore n_ } bdef
+/f { gsave fill grestore n_ } 0 !
+/f* { gsave eofill grestore n_ } 0 !
+/n_ { end clip newpath } bdef
+end readonly def
+/W { //Wdict begin } 0 !
+/W*dict 4 dict dup begin
+/S_ { gsave stroke grestore n_ } bdef
+/f { gsave fill grestore n_ } 0 !
+/f* { gsave eofill grestore n_ } 0 !
+/n_ { end eoclip newpath } bdef
+end readonly def
+/W* { //W*dict begin } 0 !
+
+% Images:
+% We mustn't bind these now, since they are Level 2 operators.
+/Is		% <imagedict> Is <imagedict> <datasource>
+ { dup /DataSource get string
+   currentfile /ASCII85Decode filter /RunLengthDecode filter exch
+    { readstring pop }
+   aload length 2 add packedarray cvx
+ } bdef
+/Ie { } def	% placeholder, only needed when writing PostScript
+/I	% <colorspace> <imagedict> I -
+ { exch setcolorspace Is 1 index /DataSource 3 -1 roll put
+   /image cvx exec Ie
+ } 2 !
+/Im	% <imagedict> Im -
+ { Is 1 index /DataSource 3 -1 roll put
+   /imagemask cvx exec Ie
+ } 1 !
+
+% Text control:
+/Tmatrix matrix def
+/BT { //Tmatrix currentmatrix pop 0 0 moveto } 0 !
+/ti { //Tmatrix setmatrix } 0 !
+/z { 0 0 moveto } 0 !
+/Tf { exch dup type /dicttype ne { findfont } if exch scalefont setfont } 2 !
+/ET { //Tmatrix setmatrix } 0 !
+
+% Text painting:
+/t /show 1 ~
+/t1		% <xchar> <string> t1 -
+ { 0 exch ashow
+ } 2 !
+/t2		% <xword> <string> t2 -
+ { 0 exch 32 exch widthshow
+ } 2 !
+/t3		% <xword> <xchar> <string> t3 -
+ { 0 32 4 2 roll 0 exch awidthshow
+ } 3 !
+/T { false charpath } 1 !
+/T3		% <xword> <xchar> <string> T3 -
+ {	% Implement the combination of t3 and false charpath.
+   0 1 2 index length 1 sub
+    { 2 copy 1 getinterval false charpath
+      4 copy get 32 eq { add } { exch pop } ifelse 0 rmoveto
+    }
+   for pop pop pop
+ } 3 !
+/tf { currentpoint fill moveto } 0 !
+/tS { currentpoint stroke moveto } 0 !
+/tB { currentpoint gsave fill grestore stroke moveto } 0 !
+/tn { currentpoint newpath moveto } 0 !
+/x { 0 rmoveto } 1 !
+
+end readonly put		% GS_PDF_ProcSet
+
+setglobal

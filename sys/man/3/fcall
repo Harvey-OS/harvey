@@ -1,0 +1,37 @@
+.TH FCALL 3 
+.SH NAME
+fcall \- recreate packet delimiters
+.SH SYNOPSIS
+.nf
+.B
+Fctlfd = open(".../ctl", ORDWR);
+.B
+Fwrite(ctlfd, "push fcall", 10);
+.fi
+.SH DESCRIPTION
+.PP
+.B Fcall is a
+.I stream module
+(see
+.IR stream (3))
+that can be pushed onto a connection to a 9P file server. The function
+of the module is to recreate packet delimiters lost in transmission.
+The 9P protocol demands that network connections preserve delimiters between
+messages written to the file server.
+Stream based protocols, like TCP, are unable to preserve
+delimiters. The delimiters must be recreated by the receiver before a packet
+is read by a file system.
+.PP
+.I Fcall
+examines a data stream and identifies 9P messages from their type. The length
+of the message is computed from the header.
+Data is collected and buffered by the stream module until an entire 9P message
+has been assembled. A single message is then delimited and sent upstream to be read
+by a file server.
+.SH "SEE ALSO"
+.IR stream (3),
+.IR ip (3),
+.IR exportfs (4),
+.IR srv (4)
+.SH SOURCE
+.B /sys/src/9/port/stfcall.c

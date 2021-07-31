@@ -205,8 +205,8 @@ dotlb(ulong vaddr)
 	tlb.tlbent[lnrand(tlb.tlbsize)] = vaddr;
 }
 
-void*
-vaddr1(ulong addr)
+void *
+vaddr(ulong addr)
 {
 	Segment *s, *es;
 	int off, foff, l, n;
@@ -255,31 +255,7 @@ vaddr1(ulong addr)
 			}
 		}
 	}
-	return 0;
-}
-
-void*
-vaddr(ulong addr)
-{
-	void *v;
-
-	v = vaddr1(addr);
-	if(v == 0) {
-		Bprint(bioout, "User TLB miss vaddr 0x%.8lux\n", addr);
-		longjmp(errjmp, 0);
-	}
-	return v;
-}
-
-int
-badvaddr(ulong addr, int n)
-{
-	void *v;
-
-	if(addr & (n-1))
-		return 1;
-	v = vaddr1(addr);
-	if(v == 0)
-		return 1;
-	return 0;
+	Bprint(bioout, "User TLB miss vaddr 0x%.8lux\n", addr);
+	longjmp(errjmp, 0);
+	return 0;		/*to stop compiler whining*/
 }

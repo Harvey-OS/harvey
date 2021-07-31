@@ -1,0 +1,134 @@
+%% 
+%% This is file `czech.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% czech.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "1.3c",
+%%%     date            = "26 June 1994",
+%%%     time            = "01:44:32 MET",
+%%%     filename        = "czech.doc",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "36325 295 1403 11239",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, czech",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the czech language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsczech
+\else
+  \selectlanguage{czech}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{czech.sty}[1994/06/26 v1.3d
+         Czech support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@czech
+    \@nopatterns{Czech}
+    \adddialect\l@czech0\fi
+\addto\captionsczech{%
+  \def\prefacename{P\v redmluva}%
+  \def\refname{Reference}%
+  \def\abstractname{Abstrakt}%
+  \def\bibname{Literatura}%
+  \def\chaptername{Kapitola}%
+  \def\appendixname{Dodatek}%
+  \def\contentsname{Obsah}%
+  \def\listfigurename{Seznam obr\'azk\w{u}}% \def\w#1{\accent'27 #1}
+  \def\listtablename{Seznam tabulek}%
+  \def\indexname{Index}%
+  \def\figurename{Obr\'azek}%
+  \def\tablename{Tabulka}%
+  \def\partname{\v{C}\'ast}%
+  \def\enclname{P\v{r}\'{\i}loha}%
+  \def\ccname{cc}%
+  \def\headtoname{Komu}%
+  \def\pagename{Strana}%
+  \def\seename{viz}%
+  \def\alsoname{viz tek\'e}}%
+\def\dateczech{%
+\def\today{\number\day.~\ifcase\month\or
+  ledna\or \'unora\or b\v{r}ezna\or dubna\or kv\v{e}tna\or \v{c}ervna\or
+  \v{c}ervence\or srpna\or z\'a\v{r}\'{\i}\or \v{r}\'{\i}jna\or
+  listopadu\or prosince\fi
+  \space \number\year}}
+\addto\extrasczech{\babel@save\q\let\q\czech@q}
+\addto\extrasczech{\babel@save\w\let\w\czech@w}
+\addto\extrasczech{%
+  \ifnum\the\sfcode`\.=\@m
+    \frenchspacing
+    \addto\noextrasczech{\nonfrenchspacing}%
+  \fi}
+\def\czech@q#1{#1\kern-2pt\char'47}%
+\def\czech@w#1{\accent'23 #1}%
+\selectlanguage{czech}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `czech.sty'.

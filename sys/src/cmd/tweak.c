@@ -1,25 +1,32 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include <cursor.h>
-#include <event.h>
+#include <libg.h>
 #include <bio.h>
+
+/*
+ * This program keeps the system's and the application's bitmap and
+ * subfont structures consistent, but that is really not necessary;
+ * in fact it isn't even necessary to hold the subfonts in the system
+ * at all.  Doing it this way makes it easy to do I/O on subfonts.
+ * Even so, edits to individual character's Fontchars are not passed
+ * to the system.
+ */
 
 typedef struct	Thing	Thing;
 
 struct Thing
 {
-	Image	*b;
-	Subfont 	*s;
-	char		*name;	/* file name */
-	int		face;		/* is 48x48 face file or cursor file*/
+	Bitmap	*b;
+	Subfont *s;
+	char	*name;		/* file name */
+	int	face;		/* is 48x48 face file or cursor file*/
 	Rectangle r;		/* drawing region */
 	Rectangle tr;		/* text region */
 	Rectangle er;		/* entire region */
-	long		c;		/* character number in subfont */
-	int		mod;	/* modified */
-	int		mag;		/* magnification */
-	Rune		off;		/* offset for subfont indices */
+	long	c;		/* character number in subfont */
+	int	mod;		/* modified */
+	int	mag;		/* magnification */
+	Rune	off;		/* offset for subfont indices */
 	Thing	*parent;	/* thing of which i'm an edit */
 	Thing	*next;
 };
@@ -27,17 +34,10 @@ struct Thing
 enum
 {
 	Border	= 1,
-	Up		= 1,
+	Up	= 1,
 	Down	= 0,
-	Mag		= 4,
+	Mag	= 4,
 	Maxmag	= 10,
-};
-
-enum
-{
-	NORMAL	=0,
-	FACE	=1,
-	CURSOR	=2
 };
 
 enum
@@ -47,25 +47,19 @@ enum
 	Mwrite,
 	Mcopy,
 	Mchar,
-	Mpixels,
 	Mclose,
 	Mexit,
 };
 
-enum
-{
-	Blue	= 54,
-};
 
 char	*menu3str[] = {
-	[Mopen]	"open",
-	[Mread]	"read",
+	[Mopen]		"open",
+	[Mread]		"read",
 	[Mwrite]	"write",
-	[Mcopy]	"copy",
-	[Mchar]	"char",
-	[Mpixels]	"pixels",
+	[Mcopy]		"copy",
+	[Mchar]		"char",
 	[Mclose]	"close",
-	[Mexit]	"exit",
+	[Mexit]		"exit",
 	0,
 };
 
@@ -109,18 +103,6 @@ Cursor sight = {
 	 0x21, 0x84, 0x31, 0x8C, 0x0F, 0xF0, 0x00, 0x00,}
 };
 
-Cursor pixel = {
-	{-7, -7},
-	{0x1f, 0xf8, 0x3f, 0xfc,  0x7f, 0xfe,  0xf8, 0x1f,
-	0xf0, 0x0f,  0xe0, 0x07, 0xe0, 0x07, 0xfe, 0x7f, 
-	0xfe, 0x7f, 0xe0, 0x07, 0xe0, 0x07, 0xf0, 0x0f, 
-	0x78, 0x1f, 0x7f, 0xfe, 0x3f, 0xfc, 0x1f, 0xf8, },
-	{0x00, 0x00, 0x0f, 0xf0, 0x31, 0x8c, 0x21, 0x84, 
-	0x41, 0x82, 0x41, 0x82, 0x41, 0x82, 0x40, 0x02, 
-	0x40, 0x02, 0x41, 0x82, 0x41, 0x82, 0x41, 0x82, 
-	0x21, 0x84, 0x31, 0x8c, 0x0f, 0xf0, 0x00, 0x00, }
-};
-
 Cursor busy = {
 	{-7, -7},
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -145,6 +127,26 @@ Cursor skull = {
 	 0xC3, 0xC3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}
 };
 
+char	*fns[] = {
+	"0",      "Zero",		0,
+	"~(S|D)", "~(D|S)", "DnorS",	0,
+	"~S&D",   "D&~S",   "DandnotS",	0,
+	"~S",     "notS",		0,
+	"S&~D",   "~D&S",   "notDandS",	0,
+	"~D",     "notD",		0,
+	"S^D",    "D^S",    "DxorS",	0,
+	"~(S&D)", "~(D&S)", "DnandS",	0,
+	"S&D",    "D&S",    "DandS",	0,
+	"~(S^D)", "~(D^S)", "DxnorS",	0,
+	"D",				0,
+	"~S|D",   "D|~S",   "DornotS",	0,
+	"S",				0,
+	"S|~D",   "~D|S",   "notDorS",	0,
+	"S|D",    "D|S",    "DorS",	0,
+	"F",				0,
+	0
+};
+
 Rectangle	cntlr;		/* control region */
 Rectangle	editr;		/* editing region */
 Rectangle	textr;		/* text region */
@@ -154,51 +156,50 @@ char		hex[] = "0123456789abcdefABCDEF";
 jmp_buf		err;
 char		*file;
 int		mag;
-int		but1val = 0;
-int		but2val = 255;
-int		invert = 0;
-Image		*values[256];
-Image		*greyvalues[256];
+uint		copyfn = S;
+uint		but1fn = S;
+uint		but2fn = 0;
+Bitmap		*values;
+ulong		val = ~0;
 uchar		data[8192];
 
 Thing*	tget(char*);
 void	mesg(char*, ...);
-void	drawthing(Thing*, int);
+void	draw(Thing*, int);
 void	select(void);
 void	menu(void);
-void	error(Display*, char*);
+void	error(char*);
 void	buttons(int);
+char	*fntostr(uint);
+int	strtofn(char*);
 void	drawall(void);
 void	tclose1(Thing*);
 
 void
 main(int argc, char *argv[])
 {
-	int i;
+	int i, j;
 	Event e;
 	Thing *t;
 
 	mag = Mag;
-	if(initdraw(error, 0, "tweak") < 0){
-		fprint(2, "tweak: initdraw failed: %r\n");
-		exits("initdraw");
-	}
-	for(i=0; i<256; i++){
-		values[i] = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, cmap2rgba(i));
-		greyvalues[i] = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, (i<<24)|(i<<16)|(i<<8)|0xFF);
-		if(values[i] == 0 || greyvalues[i] == 0)
-			drawerror(display, "can't allocate image");
-	}
+	binit(error, 0, "tweak");
+	values = balloc(Rect(0, 0, 256*Maxmag, Maxmag), screen.ldepth);
+	if(values == 0)
+		berror("can't balloc");
+	for(i=0; i<256; i++)
+		for(j=0; j<Maxmag; j++)
+			segment(values, Pt(i*Maxmag, j), Pt((i+1)*Maxmag, j), i, S);
 	einit(Emouse|Ekeyboard);
-	eresized(0);
+	ereshaped(screen.r);
 	i = 1;
 	setjmp(err);
 	for(; i<argc; i++){
 		file = argv[i];
 		t = tget(argv[i]);
 		if(t)
-			drawthing(t, 1);
-		flushimage(display, 1);
+			draw(t, 1);
+		bflush();
 	}
 	file = 0;
 	setjmp(err);
@@ -218,7 +219,7 @@ main(int argc, char *argv[])
 }
 
 void
-error(Display*, char *s)
+error(char *s)
 {
 	if(file)
 		mesg("can't read %s: %s: %r", file, s);
@@ -236,40 +237,42 @@ redraw(Thing *t)
 	Point p;
 
 	if(thing==0 || thing==t)
-		draw(screen, editr, display->white, nil, ZP);
+		bitblt(&screen, editr.min, &screen, editr, 0);
 	if(thing == 0)
 		return;
 	if(thing != t){
 		for(nt=thing; nt->next!=t; nt=nt->next)
 			;
-		draw(screen, Rect(screen->r.min.x, nt->er.max.y, editr.max.x, editr.max.y),
-			display->white, nil, ZP);
+		bitblt(&screen, Pt(screen.r.min.x, nt->er.max.y), &screen,
+			Rect(screen.r.min.x, nt->er.max.y, editr.max.x, editr.max.y), 0);
 	}
 	for(nt=t; nt; nt=nt->next){
-		drawthing(nt, 0);
+		draw(nt, 0);
 		if(nt->next == 0){
 			p = Pt(editr.min.x, nt->er.max.y);
-			draw(screen, Rpt(p, editr.max), display->white, nil, ZP);
+			bitblt(&screen, p, &screen, Rpt(p, editr.max), 0);
 		}
 	}
 	mesg("");
 }
 
 void
-eresized(int new)
+ereshaped(Rectangle r)
 {
-	if(new && getwindow(display, Refnone) < 0)
-		error(display, "can't reattach to window");
-	cntlr = insetrect(screen->clipr, 1);
+	USED(r);
+
+	screen.r = bscreenrect(&screen.clipr);
+	cntlr = inset(screen.clipr, 1);
 	editr = cntlr;
 	textr = editr;
 	textr.min.y = textr.max.y - font->height;
 	cntlr.max.y = cntlr.min.y + font->height;
 	editr.min.y = cntlr.max.y+1;
 	editr.max.y = textr.min.y-1;
-	draw(screen, screen->clipr, display->white, nil, ZP);
-	draw(screen, Rect(editr.min.x, editr.max.y, editr.max.x+1, editr.max.y+1), display->black, nil, ZP);
-	replclipr(screen, 0, editr);
+	bitblt(&screen, screen.clipr.min, &screen, screen.clipr, 0);
+	segment(&screen, Pt(editr.min.x, editr.max.y),
+			 Pt(editr.max.x+1, editr.max.y), ~0, F);
+	clipr(&screen, editr);
 	drawall();
 }
 
@@ -282,24 +285,24 @@ mesgstr(Point p, int line, char *s)
 	r.min.y += line*font->height;
 	r.max.y = r.min.y+font->height;
 	r.max.x = editr.max.x;
-	c = screen->clipr;
-	replclipr(screen, 0, r);
-	draw(screen, r, values[0xDD], nil, ZP);
+	c = screen.clipr;
+	clipr(&screen, r);
+	bitblt(&screen, r.min, &screen, r, 0);
 	r.min.x++;
-	string(screen, r.min, display->black, ZP, font, s);
-	replclipr(screen, 0, c);
-	flushimage(display, 1);
+	p = string(&screen, r.min, font, s, S);
+	r.max.x = p.x + 1;
+	r.min.x--;
+	bitblt(&screen, r.min, &screen, r, ~D);
+	clipr(&screen, c);
+	bflush();
 }
 
 void
 mesg(char *fmt, ...)
 {
 	char buf[1024];
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	mesgstr(textr.min, 0, buf);
 }
 
@@ -307,11 +310,8 @@ void
 tmesg(Thing *t, int line, char *fmt, ...)
 {
 	char buf[1024];
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	mesgstr(t->tr.min, line, buf);
 }
 
@@ -319,7 +319,14 @@ tmesg(Thing *t, int line, char *fmt, ...)
 void
 scntl(char *l)
 {
-	sprint(l, "mag: %d  but1: %d  but2: %d  invert-on-copy: %c", mag, but1val, but2val, "ny"[invert]);
+	char vals[16];
+
+	if(val & 0x80000000)
+		sprint(vals, "~%lux", ~val);
+	else
+		sprint(vals, "%lux", val);
+	sprint(l, "mag: %d val(hex): %s but1: %s but2: %s copy: %s",
+		mag, vals, fntostr(but1fn), fntostr(but2fn), fntostr(copyfn));
 }
 
 void
@@ -338,8 +345,8 @@ stext(Thing *t, char *l0, char *l1)
 	char buf[256];
 
 	l1[0] = 0;
-	sprint(buf, "depth:%d r:%d %d  %d %d ", 
-		t->b->depth, t->b->r.min.x, t->b->r.min.y,
+	sprint(buf, "ldepth:%d r:%d %d  %d %d ", 
+		t->b->ldepth, t->b->r.min.x, t->b->r.min.y,
 		t->b->r.max.x, t->b->r.max.y);
 	if(t->parent)
 		sprint(buf+strlen(buf), "mag: %d ", t->mag);
@@ -348,7 +355,7 @@ stext(Thing *t, char *l0, char *l1)
 		fc = &t->parent->s->info[t->c];
 		sprint(l1, "c(hex): %x c(char): %C x: %d "
 			   "top: %d bottom: %d left: %d width: %d iwidth: %d",
-			(int)(t->c+t->parent->off), (int)(t->c+t->parent->off),
+			t->c+t->parent->off, t->c+t->parent->off,
 			fc->x, fc->top, fc->bottom, fc->left,
 			fc->width, Dx(t->b->r));
 	}else if(t->s)
@@ -374,22 +381,22 @@ drawall(void)
 
 	cntl();
 	for(t=thing; t; t=t->next)
-		drawthing(t, 0);
+		draw(t, 0);
 }
 
 int
-value(Image *b, int x)
+value(Bitmap *b, int x)
 {
 	int v, l, w;
 	uchar mask;
 
-	w = b->depth;
-	if(w > 8){
+	l = b->ldepth;
+	if(l > 3){
 		mesg("ldepth too large");
 		return 0;
 	}
-	l = log2[w];
-	mask = (1<<w)-1;		/* ones at right end of word */
+	w = 1<<l;
+	mask = (2<<w)-1;		/* ones at right end of word */
 	x -= b->r.min.x&~(7>>l);	/* adjust x relative to first pixel */
 	v = data[x>>(3-l)];
 	v >>= ((7>>l)<<l) - ((x&(7>>l))<<l);	/* pixel at right end of word */
@@ -398,30 +405,26 @@ value(Image *b, int x)
 }
 
 int
-bvalue(int v, int d)
+bvalue(int v, int l)
 {
-	v &= (1<<d)-1;
-	if(d > screen->depth)
-		v >>= d - screen->depth;
+	v &= (1<<(1<<l))-1;
+	if(l > screen.ldepth)
+		v >>= (1<<l) - (1<<screen.ldepth);
 	else
-		while(d < screen->depth && d < 8){
-			v |= v << d;
-			d <<= 1;
+		while(l < screen.ldepth){
+			v |= v << (1<<l);
+			l++;
 		}
-	if(v<0 || v>255){
-		mesg("internal error: bad color");
-		return Blue;
-	}
-	return v;
+	return v*Maxmag;
 }
 
 void
-drawthing(Thing *nt, int link)
+draw(Thing *nt, int link)
 {
 	int nl, nf, i, x, y, sx, sy, fdx, dx, dy, v;
 	Thing *t;
 	Subfont *s;
-	Image *b, *col;
+	Bitmap *b;
 	Point p, p1, p2;
 
 	if(link){
@@ -464,59 +467,49 @@ drawthing(Thing *nt, int link)
 	if(nt->er.max.x > editr.max.x)
 		nt->er.max.x = editr.max.x;
 	nt->er.max.y = nt->er.min.y + Border + nf*(dy+Border);
-	nt->r = insetrect(nt->er, Border);
+	nt->r = inset(nt->er, Border);
 	nt->er.max.x = editr.max.x;
-	draw(screen, nt->er, display->white, nil, ZP);
+	bitblt(&screen, nt->er.min, &screen, nt->er, 0);
 	for(i=0; i<nf; i++){
 		p1 = Pt(nt->r.min.x-1, nt->r.min.y+i*(Border+dy));
 		/* draw portion of bitmap */
 		p = Pt(p1.x+1, p1.y);
 		if(nt->mag == 1)
-			draw(screen, Rect(p.x, p.y, p.x+fdx+Dx(b->r), p.y+Dy(b->r)),
-				b, nil, Pt(b->r.min.x+i*fdx, b->r.min.y));
+			bitblt(&screen, p, b,
+				Rect(b->r.min.x+i*fdx, b->r.min.y,
+				     b->r.max.x+(i+1)*fdx, b->r.max.y), S);
 		else{
 			for(y=b->r.min.y; y<b->r.max.y; y++){
 				sy = p.y+(y-b->r.min.y)*nt->mag;
-				unloadimage(b, Rect(b->r.min.x, y, b->r.max.x, y+1), data, sizeof data);
+				rdbitmap(b, y, y+1, data);
 				for(x=b->r.min.x+i*(fdx/nt->mag); x<b->r.max.x; x++){
 					sx = p.x+(x-i*(fdx/nt->mag)-b->r.min.x)*nt->mag;
 					if(sx >= nt->r.max.x)
 						break;
-					v = bvalue(value(b, x), b->depth);
-					if(v == 255)
-						continue;
-					if(b->chan == GREY8)
-						draw(screen, Rect(sx, sy, sx+nt->mag, sy+nt->mag),
-							greyvalues[v], nil, ZP);
-					else
-						draw(screen, Rect(sx, sy, sx+nt->mag, sy+nt->mag),
-							values[v], nil, ZP);
+					v = bvalue(value(b, x), b->ldepth);
+					if(v)
+						bitblt(&screen, Pt(sx, sy),
+							values,
+							Rect(v, 0, v+nt->mag, nt->mag), S);
 				}
 
 			}
 		}
 		/* line down left */
-		if(i == 0)
-			col = display->black;
-		else
-			col = display->white;
-		draw(screen, Rect(p1.x, p1.y, p1.x+1, p1.y+dy+Border), col, nil, ZP);
+		segment(&screen, p1, Pt(p1.x, p1.y+dy+Border+1), i==0? ~0 : 0, S);
 		/* line across top */
-		draw(screen, Rect(p1.x, p1.y-1, nt->r.max.x+Border, p1.y), display->black, nil, ZP);
+		segment(&screen, Pt(p1.x, p1.y-1), Pt(nt->r.max.x+Border, p1.y-1), ~0, F);
 		p2 = p1;
-		if(i == nf-1){
+		if(i == nf-1)
 			p2.x += 1 + dx%fdx;
-			col = display->black;
-		}else{
+		else
 			p2.x = nt->r.max.x;
-			col = display->white;
-		}
 		/* line down right */
-		draw(screen, Rect(p2.x, p2.y, p2.x+1, p2.y+dy+Border), col, nil, ZP);
+		segment(&screen, p2, Pt(p2.x, p2.y+dy+1), i==nf-1? ~0 : 0, S);
 		/* line across bottom */
 		if(i == nf-1){
 			p1.y += Border+dy;
-			draw(screen, Rect(p1.x, p1.y-1, p2.x,p1.y), display->black, nil, ZP);
+			segment(&screen, Pt(p1.x, p1.y-1), Pt(p2.x, p1.y-1), ~0, F);
 		}
 	}
 	nt->tr.min.x = editr.min.x;
@@ -541,8 +534,8 @@ tohex(int c)
 Thing*
 tget(char *file)
 {
-	int i, j, fd, face, x, y, c, chan;
-	Image *b;
+	int i, j, fd, face, x, y, c, ld;
+	Bitmap *b, *tb;
 	Subfont *s;
 	Thing *t;
 	Dir d;
@@ -567,62 +560,17 @@ tget(char *file)
 		close(fd);
 		goto Err;
 	}
-	if(read(fd, buf, 11) != 11){
+	if(read(fd, buf, 2) != 2){
 		mesg("can't read %s: %r", file);
 		close(fd);
 		goto Err;
 	}
 	seek(fd, 0, 0);
-	data = (char*)buf;
-	if(*data == '{')
-		data++;
-	if(memcmp(data, "0x", 2)==0 && data[4]==','){
-		/*
-		 * cursor file
-		 */
-		face = CURSOR;
-		s = 0;
-		data = malloc(d.length+1);
-		if(data == 0){
-			mesg("can't malloc buffer: %r");
-			close(fd);
-			goto Err;
-		}
-		data[d.length] = 0;
-		if(read(fd, data, d.length) != d.length){
-			mesg("can't read cursor file %s: %r", file);
-			close(fd);
-			goto Err;
-		}
-		b = allocimage(display, Rect(0, 0, 16, 32), GREY1, 0, DNofill);
-		if(b == 0){
-			mesg("image alloc failed file %s: %r", file);
-			free(data);
-			close(fd);
-			goto Err;
-		}
-		i = 0;
-		for(x=0;x<64; ){
-			if((c=data[i]) == '\0')
-				goto ill;
-			if(c=='0' && data[i+1] == 'x'){
-				i += 2;
-				continue;
-			}
-			if(strchr(hex, c)){
-				buf[x++] = (tohex(c)<<4) | tohex(data[i+1]);
-				i += 2;
-				continue;
-			}
-			i++;
-		}
-		loadimage(b, Rect(0, 0, 16, 32), buf, sizeof buf);
-		free(data);
-	}else if(memcmp(buf, "0x", 2)==0){
+	if(buf[0]=='0' && buf[1]=='x'){
 		/*
 		 * face file
 		 */
-		face = FACE;
+		face = 1;
 		s = 0;
 		data = malloc(d.length+1);
 		if(data == 0){
@@ -668,21 +616,21 @@ tget(char *file)
 		default:
 			goto ill;
 		case 1:
-			chan = GREY1;
+			ld = 0;
 			break;
 		case 2:
-			chan = GREY2;
+			ld = 1;
 			break;
 		case 4:
-			chan = GREY4;
+			ld = 2;
 			break;
 		case 8:
-			chan = CMAP8;
+			ld = 3;
 			break;
 		}
-		b = allocimage(display, Rect(0, 0, y, y), chan, 0, -1);
+		b = balloc(Rect(0, 0, y, y), ld);
 		if(b == 0){
-			mesg("image alloc failed file %s: %r", file);
+			mesg("balloc failed file %s: %r", file);
 			free(data);
 			close(fd);
 			goto Err;
@@ -690,32 +638,47 @@ tget(char *file)
 		i = 0;
 		for(j=0; j<y; j++){
 			for(x=0; (c=data[i])!='\n'; ){
+				if(strchr(" \t,{}", c)){
+					i++;
+					continue;
+				}
 				if(c=='0' && data[i+1] == 'x'){
 					i += 2;
 					continue;
 				}
 				if(strchr(hex, c)){
-					buf[x++] = ~((tohex(c)<<4) | tohex(data[i+1]));
+					buf[x++] = (tohex(c)<<4) | tohex(data[i+1]);
 					i += 2;
 					continue;
 				}
-				i++;
 			}
 			i++;
-			loadimage(b, Rect(0, j, y, j+1), buf, sizeof buf);
+			wrbitmap(b, j, j+1, buf);
 		}
 		free(data);
 	}else{
-		face = NORMAL;
+		/*
+		 * plain bitmap file
+		 */
+		face = 0;
 		s = 0;
-		b = readimage(display, fd, 0);
+		b = rdbitmapfile(fd);
 		if(b == 0){
 			mesg("can't read bitmap file %s: %r", file);
 			close(fd);
 			goto Err;
 		}
-		if(seek(fd, 0, 1) < d.length)
-			s = readsubfonti(display, file, fd, b, 0);
+		if(seek(fd, 0, 1) < d.length){
+			/* rdsubfontfile drops bitmap; must make a copy */
+			tb = balloc(b->r, b->ldepth);
+			if(tb == 0){
+				mesg("can't balloc bitmap for file %s: %r", file);
+				close(fd);
+				goto Err;
+			}
+			bitblt(tb, tb->r.min, b, b->r, S);
+			s = rdsubfontfile(fd, tb);
+		}
 	}
 	close(fd);
 	t = malloc(sizeof(Thing));
@@ -723,9 +686,8 @@ tget(char *file)
    nomem:
 		mesg("malloc failed: %r");
 		if(s)
-			freesubfont(s);
-		else
-			freeimage(b);
+			subffree(s);
+		bfree(b);
 		goto Err;
 	}
 	t->name = strdup(file);
@@ -757,7 +719,7 @@ atline(int x, Point p, char *line, char *buf)
 	word = 0;
 	for(s=line; *s; s+=w){
 		w = chartorune(&r, s);
-		x += runestringnwidth(font, &r, 1);
+		x += charwidth(font, r);
 		if(wasblank && r!=' ')
 			word = s;
 		wasblank = 0;
@@ -797,7 +759,7 @@ type(char *buf, char *tag)
 	Rune r;
 	char *p;
 
-	esetcursor(&busy);
+	cursorswitch(&busy);
 	p = buf;
 	for(;;){
 		*p = 0;
@@ -806,7 +768,7 @@ type(char *buf, char *tag)
 		switch(r){
 		case '\n':
 			mesg("");
-			esetcursor(0);
+			cursorswitch(0);
 			return p-buf;
 		case 0x15:	/* control-U */
 			p = buf;
@@ -827,12 +789,11 @@ textedit(Thing *t, char *tag)
 {
 	char buf[256];
 	char *s;
-	Image *b;
+	Bitmap *b;
 	Subfont *f;
 	Fontchar *fc, *nfc;
 	Rectangle r;
-	ulong chan;
-	int i, ld, d, w, c, doredraw, fdx, x;
+	int i, ld, w, c, doredraw, fdx, x;
 	Thing *nt;
 
 	buttons(Up);
@@ -855,6 +816,7 @@ textedit(Thing *t, char *tag)
 				free(nt->name);
 				nt->name = strdup(buf);
 				if(nt->name == 0){
+	nomem:
 					mesg("malloc failed: %r");
 					return;
 				}
@@ -862,51 +824,45 @@ textedit(Thing *t, char *tag)
 			}
 		return;
 	}
-	if(strcmp(tag, "depth") == 0){
-		if(buf[0]<'0' || '9'<buf[0] || (d=atoi(buf))<0 || d>8 || log2[d]<0){
+	if(strcmp(tag, "ldepth") == 0){
+		if(buf[0]<'0' || '9'<buf[0] || (ld=atoi(buf))<0 || ld>3){
 			mesg("illegal ldepth");
 			return;
 		}
-		if(d == t->b->depth)
+		if(ld == t->b->ldepth)
 			return;
 		if(t->parent)
 			t->parent->mod = 1;
 		else
 			t->mod = 1;
-		if(d == 8)
-			chan = CMAP8;
-		else
-			chan = CHAN1(CGrey, d);
 		for(nt=thing; nt; nt=nt->next){
 			if(nt!=t && nt!=t->parent && nt->parent!=t)
 				continue;
-			b = allocimage(display, nt->b->r, chan, 0, 0);
+			b = balloc(nt->b->r, ld);
 			if(b == 0){
 	nobmem:
-				mesg("image alloc failed: %r");
+				mesg("balloc failed: %r");
 				return;
 			}
-			draw(b, b->r, nt->b, nil, nt->b->r.min);
-			freeimage(nt->b);
+			bitblt(b, b->r.min, nt->b, nt->b->r, S);
+			bfree(nt->b);
 			nt->b = b;
 			if(nt->s){
-				b = allocimage(display, nt->b->r, chan, 0, -1);
+				b = balloc(nt->b->r, ld);
 				if(b == 0)
 					goto nobmem;
-				draw(b, b->r, nt->b, nil, nt->b->r.min);
-				f = allocsubfont(t->name, nt->s->n, nt->s->height, nt->s->ascent, nt->s->info, b);
+				bitblt(b, b->r.min, nt->b, nt->b->r, S);
+				f = subfalloc(nt->s->n, nt->s->height, nt->s->ascent,
+					nt->s->info, b, ~0, ~0);
 				if(f == 0){
 	nofmem:
-					freeimage(b);
 					mesg("can't make subfont: %r");
 					return;
 				}
-				nt->s->info = 0;	/* prevent it being freed */
-				nt->s->bits = 0;
-				freesubfont(nt->s);
+				subffree(nt->s);
 				nt->s = f;
 			}
-			drawthing(nt, 0);
+			draw(nt, 0);
 		}
 		return;
 	}
@@ -919,39 +875,6 @@ textedit(Thing *t, char *tag)
 			return;
 		t->mag = ld;
 		redraw(t);
-		return;
-	}
-	if(strcmp(tag, "r") == 0){
-		if(t->s){
-			mesg("can't change rectangle of subfont\n");
-			return;
-		}
-		s = buf;
-		r.min.x = strtoul(s, &s, 0);
-		r.min.y = strtoul(s, &s, 0);
-		r.max.x = strtoul(s, &s, 0);
-		r.max.y = strtoul(s, &s, 0);
-		if(Dx(r)<=0 || Dy(r)<=0){
-			mesg("illegal rectangle");
-			return;
-		}
-		if(t->parent)
-			t = t->parent;
-		for(nt=thing; nt; nt=nt->next){
-			if(nt->parent==t && !rectinrect(nt->b->r, r))
-				tclose1(nt);
-		}
-		b = allocimage(display, r, t->b->chan, 0, 0);
-		if(b == 0)
-			goto nobmem;
-		draw(b, r, t->b, nil, r.min);
-		freeimage(t->b);
-		t->b = b;
-		b = allocimage(display, r, t->b->chan, 0, 0);
-		if(b == 0)
-			goto nobmem;
-		redraw(t);
-		t->mod = 1;
 		return;
 	}
 	if(strcmp(tag, "ascent") == 0){
@@ -1033,23 +956,23 @@ textedit(Thing *t, char *tag)
 		r = t->b->r;
 		if(w < f->n)
 			r.max.x = f->info[w].x;
-		b = allocimage(display, r, t->b->chan, 0, 0);
+		b = balloc(r, t->b->ldepth);
 		if(b == 0)
 			goto nobmem;
-		draw(b, b->r, t->b, nil, r.min);
+		bitblt(b, b->r.min, t->b, r, S);
 		fdx = Dx(editr) - 2*Border;
 		if(Dx(t->b->r)/fdx != Dx(b->r)/fdx)
 			doredraw = 1;
-		freeimage(t->b);
+		bfree(t->b);
 		t->b = b;
-		b = allocimage(display, r, t->b->chan, 0, 0);
+		b = balloc(r, t->b->ldepth);
 		if(b == 0)
 			goto nobmem;
-		draw(b, b->r, t->b, nil, r.min);
+		bitblt(b, b->r.min, t->b, r, S);
 		nfc = malloc((w+1)*sizeof(Fontchar));
 		if(nfc == 0){
 			mesg("malloc failed");
-			freeimage(b);
+			bfree(b);
 			return;
 		}
 		fc = f->info;
@@ -1060,17 +983,16 @@ textedit(Thing *t, char *tag)
 		x = fc[f->n].x;
 		for(; i<=w; i++)
 			nfc[i].x = x;
-		f = allocsubfont(t->name, w, f->height, f->ascent, nfc, b);
+		f = subfalloc(w, f->height, f->ascent, nfc, b, ~0, ~0);
 		if(f == 0)
 			goto nofmem;
-		t->s->bits = nil;	/* don't free it */
-		freesubfont(t->s);
+		subffree(t->s);
 		f->info = nfc;
 		t->s = f;
 		if(doredraw)
 			redraw(thing);
 		else
-			drawthing(t, 0);
+			draw(t, 0);
 		t->mod = 1;
 		return;
 	}
@@ -1087,43 +1009,43 @@ textedit(Thing *t, char *tag)
 		c = t->c;
 		t = t->parent;
 		f = t->s;
-		b = allocimage(display, r, t->b->chan, 0, 0);
+		b = balloc(r, t->b->ldepth);
 		if(b == 0)
 			goto nobmem;
 		fc = &f->info[c];
-		draw(b, Rect(b->r.min.x, b->r.min.y,
-				b->r.min.x+(fc[1].x-t->b->r.min.x), b->r.min.y+Dy(t->b->r)),
-				t->b, nil, t->b->r.min);
-		draw(b, Rect(fc[1].x+w, b->r.min.y, w+t->b->r.max.x, b->r.min.y+Dy(t->b->r)),
-			t->b, nil, Pt(fc[1].x, t->b->r.min.y));
+		bitblt(b, b->r.min, t->b,
+			Rect(t->b->r.min.x, t->b->r.min.y,
+			fc[1].x, t->b->r.max.y), S);
+		bitblt(b, Pt(fc[1].x+w, b->r.min.y), t->b,
+			Rect(fc[1].x, t->b->r.min.y,
+			t->b->r.max.x, t->b->r.max.y), S);
 		fdx = Dx(editr) - 2*Border;
 		doredraw = 0;
 		if(Dx(t->b->r)/fdx != Dx(b->r)/fdx)
 			doredraw = 1;
-		freeimage(t->b);
+		bfree(t->b);
 		t->b = b;
-		b = allocimage(display, r, t->b->chan, 0, 0);
+		b = balloc(r, t->b->ldepth);
 		if(b == 0)
 			goto nobmem;
-		draw(b, b->r, t->b, nil, t->b->r.min);
+		bitblt(b, b->r.min, t->b, t->b->r, S);
 		fc = &f->info[c+1];
 		for(i=c+1; i<=f->n; i++, fc++)
 			fc->x += w;
-		f = allocsubfont(t->name, f->n, f->height, f->ascent,
-			f->info, b);
+		f = subfalloc(f->n, f->height, f->ascent,
+			f->info, b, ~0, ~0);
 		if(f == 0)
 			goto nofmem;
 		/* t->s and f share info; free carefully */
 		fc = f->info;
-		t->s->bits = nil;
 		t->s->info = 0;
-		freesubfont(t->s);
+		subffree(t->s);
 		f->info = fc;
 		t->s = f;
 		if(doredraw)
 			redraw(t);
 		else
-			drawthing(t, 0);
+			draw(t, 0);
 		/* redraw all affected chars */
 		for(nt=thing; nt; nt=nt->next){
 			if(nt->parent!=t || nt->c<c)
@@ -1133,14 +1055,14 @@ textedit(Thing *t, char *tag)
 			r.min.y = nt->b->r.min.y;
 			r.max.x = fc[1].x;
 			r.max.y = nt->b->r.max.y;
-			b = allocimage(display, r, nt->b->chan, 0, 0);
+			b = balloc(r, nt->b->ldepth);
 			if(b == 0)
 				goto nobmem;
-			draw(b, r, t->b, nil, r.min);
+			bitblt(b, r.min, t->b, r, S);
 			doredraw = 0;
 			if(Dx(nt->b->r)/fdx != Dx(b->r)/fdx)
 				doredraw = 1;
-			freeimage(nt->b);
+			bfree(nt->b);
 			nt->b = b;
 			if(c != nt->c)
 				text(nt);
@@ -1148,7 +1070,7 @@ textedit(Thing *t, char *tag)
 				if(doredraw)
 					redraw(nt);
 				else
-					drawthing(nt, 0);
+					draw(nt, 0);
 			}
 		}
 		t->mod = 1;
@@ -1161,7 +1083,9 @@ void
 cntledit(char *tag)
 {
 	char buf[256];
+	char *p, *q;
 	ulong l;
+	int i, inv;
 
 	buttons(Up);
 	if(type(buf, tag) == 0)
@@ -1175,28 +1099,38 @@ cntledit(char *tag)
 		cntl();
 		return;
 	}
-	if(strcmp(tag, "but1")==0
-	|| strcmp(tag, "but2")==0){
-		if(buf[0]<'0' || '9'<buf[0] || (l=atoi(buf))<0 || l>255){
-			mesg("illegal value");
+	if(strcmp(tag, "val(hex)") == 0){
+		inv = 0;
+		p = buf;
+		if(*p == '~'){
+			p++;
+			inv = 1;
+		}
+		l = strtoul(p, &q, 16);
+		if(l==0 && q==p){
+			mesg("illegal magnification");
 			return;
 		}
-		if(strcmp(tag, "but1") == 0)
-			but1val = l;
-		else if(strcmp(tag, "but2") == 0)
-			but2val = l;
+		if(inv)
+			l = ~l;
+		val = l;
 		cntl();
 		return;
 	}
-	if(strcmp(tag, "invert-on-copy")==0){
-		if(buf[0]=='y' || buf[0]=='1')
-			invert = 1;
-		else if(buf[0]=='n' || buf[0]=='0')
-			invert = 0;
-		else{
-			mesg("illegal value");
+	if(strcmp(tag, "but1")==0
+	|| strcmp(tag, "but2")==0
+	|| strcmp(tag, "copy")==0){
+		i = strtofn(buf);
+		if(i < 0){
+			mesg("unknown function");
 			return;
 		}
+		if(strcmp(tag, "but1") == 0)
+			but1fn = i;
+		else if(strcmp(tag, "but2") == 0)
+			but2fn = i;
+		else
+			copyfn = i;
 		cntl();
 		return;
 	}
@@ -1210,83 +1144,30 @@ buttons(int ud)
 		mouse = emouse();
 }
 
-Point
-screenpt(Thing *t, Point realp)
-{
-	int fdx, n;
-	Point p;
-
-	fdx = Dx(editr)-2*Border;
-	if(t->mag > 1)
-		fdx -= fdx%t->mag;
-	p = mulpt(subpt(realp, t->b->r.min), t->mag);
-	if(fdx < Dx(t->b->r)*t->mag){
-		n = p.x/fdx;
-		p.y += n * (Dy(t->b->r)*t->mag+Border);
-		p.x -= n * fdx;
-	}
-	p = addpt(p, t->r.min);
-	return p;
-}
-
-Point
-realpt(Thing *t, Point screenp)
-{
-	int fdx, n, dy;
-	Point p;
-
-	fdx = (Dx(editr)-2*Border);
-	if(t->mag > 1)
-		fdx -= fdx%t->mag;
-	p.y = screenp.y-t->r.min.y;
-	p.x = 0;
-	if(fdx < Dx(t->b->r)*t->mag){
-		dy = Dy(t->b->r)*t->mag+Border;
-		n = (p.y/dy);
-		p.x = n * fdx;
-		p.y -= n * dy;
-	}
-	p.x += screenp.x-t->r.min.x;
-	p = addpt(divpt(p, t->mag), t->b->r.min);
-	return p;
-}
-
 int
-sweep(int but, Rectangle *r)
+sweep(int butmask, Rectangle *r)
 {
-	Thing *t;
-	Point p, q, lastq;
+	Point p;
 
-	esetcursor(&sweep0);
+	cursorswitch(&sweep0);
 	buttons(Down);
-	if(mouse.buttons != (1<<(but-1))){
+	if(mouse.buttons != butmask){
 		buttons(Up);
-		esetcursor(0);
+		cursorswitch(0);
 		return 0;
 	}
 	p = mouse.xy;
-	for(t=thing; t; t=t->next)
-		if(ptinrect(p, t->r))
-			break;
-	if(t)
-		p = screenpt(t, realpt(t, p));
+	cursorswitch(&box);
 	r->min = p;
 	r->max = p;
-	esetcursor(&box);
-	lastq = ZP;
-	while(mouse.buttons == (1<<(but-1))){
-		edrawgetrect(insetrect(*r, -Borderwidth), 1);
+	while(mouse.buttons == butmask){
+		border(&screen, *r, -2, ~D);
+		bflush();
 		mouse = emouse();
-		edrawgetrect(insetrect(*r, -Borderwidth), 0);
-		q = mouse.xy;
-		if(t)
-			q = screenpt(t, realpt(t, q));
-		if(eqpt(q, lastq))
-			continue;
-		*r = canonrect(Rpt(p, q));
-		lastq = q;
+		border(&screen, *r, -2, ~D);
+		*r = rcanon(Rpt(p, mouse.xy));
 	}
-	esetcursor(0);
+	cursorswitch(0);
 	if(mouse.buttons){
 		buttons(Up);
 		return 0;
@@ -1304,10 +1185,6 @@ openedit(Thing *t, Point pt, int c)
 	Fontchar *fc;
 	Thing *nt;
 
-	if(t->b->depth > 8){
-		mesg("image has depth %d; can't handle >8", t->b->depth);
-		return;
-	}
 	br = t->b->r;
 	if(t->s == 0){
 		c = -1; 
@@ -1317,7 +1194,7 @@ openedit(Thing *t, Point pt, int c)
 		else{
 			if(!sweep(1, &r))
 				return;
-			r = rectaddpt(r, subpt(br.min, t->r.min));
+			r = raddp(r, sub(br.min, t->r.min));
 			if(!rectclip(&r, br))
 				return;
 			if(Dx(br) <= 8){
@@ -1343,7 +1220,7 @@ openedit(Thing *t, Point pt, int c)
 	}else{
 		/* just point at character */
 		fc = t->s->info;
-		p = addpt(pt, subpt(br.min, t->r.min));
+		p = add(pt, sub(br.min, t->r.min));
 		x = br.min.x;
 		y = br.min.y;
 		for(c=0; c<t->s->n; c++,fc++){
@@ -1376,21 +1253,21 @@ openedit(Thing *t, Point pt, int c)
 	}
 	memset(nt, 0, sizeof(Thing));
 	nt->c = c;
-	nt->b = allocimage(display, r, t->b->chan, 0, DNofill);
+	nt->b = balloc(r, t->b->ldepth);
 	if(nt->b == 0){
 		free(nt);
 		goto nomem;
 	}
-	draw(nt->b, r, t->b, nil, r.min);
+	bitblt(nt->b, r.min, t->b, r, S);
 	nt->name = strdup(t->name);
 	if(nt->name == 0){
-		freeimage(nt->b);
+		bfree(nt->b);
 		free(nt);
 		goto nomem;
 	}
 	nt->parent = t;
 	nt->mag = mag;
-	drawthing(nt, 1);
+	draw(nt, 1);
 }
 
 void
@@ -1399,7 +1276,7 @@ ckinfo(Thing *t, Rectangle mod)
 	int i, j, k, top, bot, n, zero;
 	Fontchar *fc;
 	Rectangle r;
-	Image *b;
+	Bitmap *b;
 	Thing *nt;
 
 	if(t->parent)
@@ -1418,21 +1295,21 @@ ckinfo(Thing *t, Rectangle mod)
 			continue;
 		if(b==0 || Dx(b->r)<Dx(r)){
 			if(b)
-				freeimage(b);
-			b = allocimage(display, rectsubpt(r, r.min), t->b->chan, 0, 0);
+				bfree(b);
+			b = balloc(rsubp(r, r.min), t->b->ldepth);
 			if(b == 0){
-				mesg("can't alloc image");
+				mesg("can't balloc");
 				break;
 			}
 		}
-		draw(b, b->r, display->white, nil, ZP);
-		draw(b, b->r, t->b, nil, r.min);
+		bitblt(b, b->r.min, b, b->r, 0);
+		bitblt(b, b->r.min, t->b, r, S);
 		top = 100000;
 		bot = 0;
-		n = 2+((Dx(r)/8)*t->b->depth);
+		n = 2+(Dx(r)/8<<t->b->ldepth);
 		for(j=0; j<b->r.max.y; j++){
 			memset(data, 0, n);
-			unloadimage(b, Rect(b->r.min.x, j, b->r.max.x, j+1), data, sizeof data);
+			rdbitmap(b, j, j+1, data);
 			zero = 1;
 			for(k=0; k<n; k++)
 				if(data[k]){
@@ -1456,29 +1333,66 @@ ckinfo(Thing *t, Rectangle mod)
 		}
 	}
 	if(b)
-		freeimage(b);
+		bfree(b);
+}
+
+Point
+screenpt(Thing *t, Point realp)
+{
+	int fdx, n;
+	Point p;
+
+	fdx = Dx(editr)-2*Border;
+	if(t->mag > 1)
+		fdx -= fdx%t->mag;
+	p = mul(sub(realp, t->b->r.min), t->mag);
+	if(fdx < Dx(t->b->r)*t->mag){
+		n = p.x/fdx;
+		p.y += n * (Dy(t->b->r)*t->mag+Border);
+		p.x -= n * fdx;
+	}
+	p = add(p, t->r.min);
+	return p;
+}
+
+Point
+realpt(Thing *t, Point screenp)
+{
+	int fdx, n, dy;
+	Point p;
+
+	fdx = (Dx(editr)-2*Border);
+	if(t->mag > 1)
+		fdx -= fdx%t->mag;
+	p.y = screenp.y-t->r.min.y;
+	p.x = 0;
+	if(fdx < Dx(t->b->r)*t->mag){
+		dy = Dy(t->b->r)*t->mag+Border;
+		n = (p.y/dy);
+		p.x = n * fdx;
+		p.y -= n * dy;
+	}
+	p.x += screenp.x-t->r.min.x;
+	p = add(div(p, t->mag), t->b->r.min);
+	return p;
 }
 
 void
 twidpix(Thing *t, Point p, int set)
 {
-	Image *b, *v;
-	int c;
+	Bitmap *b;
+	int v, c;
 
+	c = but1fn;
+	if(!set)
+		c = but2fn;
 	b = t->b;
 	if(!ptinrect(p, b->r))
 		return;
-	if(set)
-		c = but1val;
-	else
-		c = but2val;
-	if(b->chan == GREY8)
-		v = greyvalues[c];
-	else
-		v = values[c];
-	draw(b, Rect(p.x, p.y, p.x+1, p.y+1), v, nil, ZP);
+	point(b, p, val, c);
+	v = bvalue(val, b->ldepth);
 	p = screenpt(t, p);
-	draw(screen, Rect(p.x, p.y, p.x+t->mag, p.y+t->mag), v, nil, ZP);
+	bitblt(&screen, p, values, Rect(v, 0, v+t->mag, t->mag), c);
 }
 
 void
@@ -1486,7 +1400,7 @@ twiddle(Thing *t)
 {
 	int set;
 	Point p, lastp;
-	Image *b;
+	Bitmap *b;
 	Thing *nt;
 	Rectangle mod;
 
@@ -1496,8 +1410,8 @@ twiddle(Thing *t)
 	}
 	set = mouse.buttons==1;
 	b = t->b;
-	lastp = addpt(b->r.min, Pt(-1, -1));
-	mod = Rpt(addpt(b->r.max, Pt(1, 1)), lastp);
+	lastp = add(b->r.min, Pt(-1, -1));
+	mod = Rpt(add(b->r.max, Pt(1, 1)), lastp);
 	while(mouse.buttons){
 		p = realpt(t, mouse.xy);
 		if(!eqpt(p, lastp)){
@@ -1576,7 +1490,7 @@ twrite(Thing *t)
 
 	if(t->parent)
 		t = t->parent;
-	esetcursor(&busy);
+	cursorswitch(&busy);
 	fd = create(t->name, OWRITE, 0666);
 	if(fd < 0){
 		mesg("can't write %s: %r", t->name);
@@ -1584,18 +1498,16 @@ twrite(Thing *t)
 	}
 	if(t->face){
 		r = t->b->r;
-		ld = log2[t->b->depth];
+		ld = t->b->ldepth;
 		/* This heuristic reflects peculiarly different formats */
 		ws = 4;
-		if(t->face == 2)	/* cursor file */
+		if(Dx(r) == 16)	/* probably cursor file */
 			ws = 1;
 		else if(Dx(r)<32 || ld==0)
 			ws = 2;
 		Binit(&buf, fd, OWRITE);
-		if(t->face == CURSOR)
-			Bprint(&buf, "{");
 		for(y=r.min.y; y<r.max.y; y++){
-			unloadimage(t->b, Rect(r.min.x, y, r.max.x, y+1), data, sizeof data);
+			rdbitmap(t->b, y, y+1, data);
 			j = 0;
 			for(x=r.min.x; x<r.max.x; j+=ws,x+=ws*8>>ld){
 				Bprint(&buf, "0x");
@@ -1603,64 +1515,17 @@ twrite(Thing *t)
 					Bprint(&buf, "%.2x", data[i+j]);
 				Bprint(&buf, ", ");
 			}
-			if(t->face == CURSOR){
-				switch(y){
-				case 3: case 7: case 11: case 19: case 23: case 27:
-					Bprint(&buf, "\n ");
-					break;
-				case 15:
-					Bprint(&buf, "},\n{");
-					break;
-				case 31:
-					Bprint(&buf, "}\n");
-					break;
-				}
-			}else
-				Bprint(&buf, "\n");
+			Bprint(&buf, "\n");
 		}
 		Bterm(&buf);
-	}else
-		if(writeimage(fd, t->b, 0)<0 || (t->s && writesubfont(fd, t->s)<0)){
-			close(fd);
-			mesg("can't write %s: %r", t->name);
-		}
+	}else{
+		wrbitmapfile(fd, t->b);
+		if(t->s)
+			wrsubfontfile(fd, t->s);
+	}
 	t->mod = 0;
 	close(fd);
 	mesg("wrote %s", t->name);
-}
-
-void
-tpixels(void)
-{
-	Thing *t;
-	Point p, lastp;
-
-	esetcursor(&pixel);
-	for(;;){
-		buttons(Down);
-		if(mouse.buttons != 4)
-			break;
-		for(t=thing; t; t=t->next){
-			lastp = Pt(-1, -1);
-			if(ptinrect(mouse.xy, t->r)){
-				while(ptinrect(mouse.xy, t->r) && mouse.buttons==4){
-					p = realpt(t, mouse.xy);
-					if(!eqpt(p, lastp)){
-						if(p.y != lastp.y)
-							unloadimage(t->b, Rect(t->b->r.min.x, p.y, t->b->r.max.x, p.y+1), data, sizeof data);
-						mesg("[%d,%d] = %d=0x%ux", p.x, p.y, value(t->b, p.x), value(t->b, p.x));
-						lastp = p;
-					}
-					mouse = emouse();
-				}
-				goto Continue;
-			}
-		}
-		mouse = emouse();
-    Continue:;
-	}
-	buttons(Up);
-	esetcursor(0);
 }
 
 void
@@ -1683,9 +1548,8 @@ tclose1(Thing *t)
 			}
 	while(nt);
 	if(t->s)
-		freesubfont(t->s);
-	else
-		freeimage(t->b);
+		subffree(t->s);
+	bfree(t->b);
 	free(t->name);
 	free(t);
 }
@@ -1733,7 +1597,7 @@ tread(Thing *t)
 	for(nt=thing; nt; nt=nt->next)
 		if(nt->parent == t){
 			if(!rectinrect(nt->b->r, new->b->r)
-			|| new->b->depth!=nt->b->depth){
+			|| new->b->ldepth!=nt->b->ldepth){
     closeit:
 				nclosed++;
 				nt->parent = 0;
@@ -1756,7 +1620,8 @@ tread(Thing *t)
 					goto closeit;
 			}
 			nt->parent = new;
-			draw(nt->b, nt->b->r, new->b, nil, nt->b->r.min);
+			bitblt(nt->b, nt->b->r.min, new->b,
+				nt->b->r, S);
 		}
 	new->next = t->next;
 	if(t == thing)
@@ -1767,15 +1632,14 @@ tread(Thing *t)
 		nt->next = new;
 	}
 	if(t->s)
-		freesubfont(t->s);
-	else
-		freeimage(t->b);
+		subffree(t->s);
+	bfree(t->b);
 	free(t->name);
 	free(t);
 	for(nt=thing; nt; nt=nt->next)
 		if(nt==new || nt->parent==new)
 			if(nclosed == 0)
-				drawthing(nt, 0);	/* can draw in place */
+				draw(nt, 0);	/* can draw in place */
 			else{
 				redraw(nt);	/* must redraw all below */
 				break;
@@ -1790,11 +1654,8 @@ tchar(Thing *t)
 	ulong c, d;
 
 	if(t->s == 0){
-		t = t->parent;
-		if(t==0 || t->s==0){
-			mesg("not a subfont");
-			return;
-		}
+		mesg("not a subfont");
+		return;
 	}
 	if(type(buf, "char (hex or character or hex-hex)") == 0)
 		return;
@@ -1835,7 +1696,7 @@ apply(void (*f)(Thing*))
 {
 	Thing *t;
 
-	esetcursor(&sight);
+	cursorswitch(&sight);
 	buttons(Down);
 	if(mouse.buttons == 4)
 		for(t=thing; t; t=t->next)
@@ -1845,25 +1706,7 @@ apply(void (*f)(Thing*))
 				break;
 			}
 	buttons(Up);
-	esetcursor(0);
-}
-
-int
-complement(Image *t)
-{
-	int i, n;
-	uchar *buf;
-
-	n = Dy(t->r)*bytesperline(t->r, t->depth);
-	buf = malloc(n);
-	if(buf == 0)
-		return 0;
-	unloadimage(t, t->r, buf, n);
-	for(i=0; i<n; i++)
-		buf[i] = ~buf[i];
-	loadimage(t, t->r, buf, n);
-	free(buf);
-	return 1;
+	cursorswitch(0);
 }
 
 void
@@ -1871,11 +1714,10 @@ copy(void)
 {
 	Thing *st, *dt, *nt;
 	Rectangle sr, dr, fr;
-	Image *tmp;
 	Point p1, p2;
 	int but, up;
 
-	if(!sweep(3, &sr))
+	if(!sweep(4, &sr))
 		return;
 	for(st=thing; st; st=st->next)
 		if(rectXrect(sr, st->r))
@@ -1898,36 +1740,40 @@ copy(void)
 	sr.max = p2;
 	fr.min = screenpt(st, sr.min);
 	fr.max = screenpt(st, sr.max);
-	p1 = subpt(p2, p1);	/* diagonal */
-	if(p1.x==0 || p1.y==0)
+	border(&screen, fr, -3, ~D);
+	p1 = sub(p2, p1);	/* diagonal */
+	if(p1.x==0 || p1.y==0){
+    Return:
+		border(&screen, fr, -3, ~D);
 		return;
-	border(screen, fr, -1, values[Blue], ZP);
-	esetcursor(&box);
+	}
+	cursorswitch(&box);
 	up = 0;
 	for(; mouse.buttons==0; mouse=emouse()){
 		for(dt=thing; dt; dt=dt->next)
 			if(ptinrect(mouse.xy, dt->er))
 				break;
 		if(up)
-			edrawgetrect(insetrect(dr, -Borderwidth), 0);
+			border(&screen, dr, -2, ~D);
 		up = 0;
 		if(dt == 0)
 			continue;
 		dr.max = screenpt(dt, realpt(dt, mouse.xy));
-		dr.min = subpt(dr.max, mulpt(p1, dt->mag));
+		dr.min = sub(dr.max, mul(p1, dt->mag));
 		if(!rectXrect(dr, dt->r))
 			continue;
-		edrawgetrect(insetrect(dr, -Borderwidth), 1);
+		border(&screen, dr, -2, ~D);
 		up = 1;
 	}
 	/* if up==1, we had a hit */
-	esetcursor(0);
+	cursorswitch(0);
 	if(up)
-		edrawgetrect(insetrect(dr, -Borderwidth), 0);
+		border(&screen, dr, -2, ~D);
 	but = mouse.buttons;
+	border(&screen, fr, -3, ~D);
 	buttons(Up);
 	if(!up || but!=4)
-		goto Return;
+		return;
 	dt = 0;
 	for(nt=thing; nt; nt=nt->next)
 		if(rectXrect(dr, nt->r)){
@@ -1938,7 +1784,7 @@ copy(void)
 			dt = nt;
 		}
 	if(dt == 0)
-		goto Return;
+		return;
 	p1 = realpt(dt, dr.min);
 	p2 = realpt(dt, Pt(dr.min.x, dr.max.y));
 	if(p1.x != p2.x)
@@ -1946,37 +1792,19 @@ copy(void)
 	p2 = realpt(dt, dr.max);
 	dr.min = p1;
 	dr.max = p2;
-
-	if(invert){
-		tmp = allocimage(display, dr, dt->b->chan, 0, 255);
-		if(tmp == 0){
-    nomem:
-			mesg("can't allocate temporary");
-			goto Return;
-		}
-		draw(tmp, dr, st->b, nil, sr.min);
-		if(!complement(tmp))
-			goto nomem;
-		draw(dt->b, dr, tmp, nil, dr.min);
-		freeimage(tmp);
-	}else
-		draw(dt->b, dr, st->b, nil, sr.min);
+	bitblt(dt->b, dr.min, st->b, sr, copyfn);
 	if(dt->parent){
-		draw(dt->parent->b, dr, dt->b, nil, dr.min);
+		bitblt(dt->parent->b, dr.min, dt->b, dr, S);
 		dt = dt->parent;
 	}
-	drawthing(dt, 0);
+	draw(dt, 0);
 	for(nt=thing; nt; nt=nt->next)
 		if(nt->parent==dt && rectXrect(dr, nt->b->r)){
-			draw(nt->b, dr, dt->b, nil, dr.min);
-			drawthing(nt, 0);
+			bitblt(nt->b, dr.min, dt->b, dr, S);
+			draw(nt, 0);
 		}
 	ckinfo(dt, dr);
 	dt->mod = 1;
-
-Return:
-	/* clear blue box */
-	drawthing(st, 0);
 }
 
 void
@@ -1987,13 +1815,13 @@ menu(void)
 	int sel;
 	char buf[256];
 
-	sel = emenuhit(3, &mouse, &menu3);
+	sel = menuhit(3, &mouse, &menu3);
 	switch(sel){
 	case Mopen:
 		if(type(buf, "file")){
 			t = tget(buf);
 			if(t)
-				drawthing(t, 1);
+				draw(t, 1);
 		}
 		break;
 	case Mwrite:
@@ -2007,9 +1835,6 @@ menu(void)
 		break;
 	case Mcopy:
 		copy();
-		break;
-	case Mpixels:
-		tpixels();
 		break;
 	case Mclose:
 		apply(tclose);
@@ -2025,14 +1850,46 @@ menu(void)
 			mesg("%s modified", mod);
 			break;
 		}
-		esetcursor(&skull);
+		cursorswitch(&skull);
 		buttons(Down);
 		if(mouse.buttons == 4){
 			buttons(Up);
 			exits(0);
 		}
 		buttons(Up);
-		esetcursor(0);
+		cursorswitch(0);
 		break;
 	}
+}
+
+char*
+fntostr(uint f)
+{
+	char **s;
+	int i;
+
+	f &= F;
+	s = fns;
+	for(i=0; i<f; i++)
+		do; while(*s++);
+	return *s;
+}
+
+int
+strtofn(char *str)
+{
+	char **s;
+	int i;
+
+	s = fns;
+	i = 0;
+	while(i <= F){
+		if(*s == 0)
+			i++;
+		else
+			if(strcmp(str, *s) == 0)
+				return i;
+		s++;
+	}
+	return -1;
 }

@@ -1,0 +1,48 @@
+%% 
+%% This is file `doc.hyp', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% hyper.dtx  (with options: `doc')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file hyper.dtx .
+%% 
+%% File: hyper.dtx Copyright (C) 1995 Michael Mehlich
+\def\fileversion{V2.3}
+\def\filedate{1995/02/12}
+\def\docdate{1995/02/12}
+%%
+%% \CharacterTable 
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z 
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z 
+%%  Digits        \0\1\2\3\4\5\6\7\8\9 
+%%  Exclamation   \!     Double quote  \"     Hash (number) \# 
+%%  Dollar        \$     Percent       \%     Ampersand     \& 
+%%  Acute accent  \'     Left paren    \(     Right paren   \) 
+%%  Asterisk      \*     Plus          \+     Comma         \, 
+%%  Minus         \-     Point         \.     Solidus       \/ 
+%%  Colon         \:     Semicolon     \;     Less than     \< 
+%%  Equals        \=     Greater than  \>     Question mark \? 
+%%  Commercial at \@     Left bracket  \[     Backslash     \\ 
+%%  Right bracket \]     Circumflex    \^     Underscore    \_ 
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \| 
+%%  Right brace   \}     Tilde         \~} 
+%% 
+\let\hyper@index@prologue\index@prologue
+\def\index@prologue{%
+  \let\hyper@markboth@ip\markboth%
+  \def\markboth##1##2{%
+    \xdef\hyper@tmpa{\refcurrent{##1}}%
+    \xdef\hyper@tmpb{\refcurrent{##2}}%
+    \hyper@markboth@ip{\hyper@tmpa}{\hyper@tmpb}%
+    \let\markboth\hyper@markboth@ip%
+  }%
+  \hyper@index@prologue%
+}
+\endinput
+%% 
+%% End of file `doc.hyp'.

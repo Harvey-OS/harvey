@@ -1,2 +1,2 @@
 #!/bin/rc
-exec /$objtype/bin/ape/cc $*
+exec /$cputype/bin/ape/cc $*

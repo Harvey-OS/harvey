@@ -1,0 +1,3 @@
+root=plgroup(0,0);
+pllabel(root, PACKW, "Type here: ");
+plentry(root, PACKW, 140, "/dev/null", 0);

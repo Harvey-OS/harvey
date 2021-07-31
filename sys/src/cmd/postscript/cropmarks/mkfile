@@ -1,6 +1,7 @@
 </$objtype/mkfile
 
-<../config
+POSTLIB=$ROOT/sys/lib/postscript/prologues
+POSTBIN=$ROOT/sys/lib/postscript/bin
 
 all:V:	cropmarks
 

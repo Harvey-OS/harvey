@@ -1,4 +1,5 @@
 #include	"all.h"
+extern void *malloc(ulong);
 
 #define	DSIZE		546000
 #define	MAXDEPTH	100
@@ -13,8 +14,8 @@ static	long	fstart;
 static	long	fsize;
 static	long	nfiles;
 static	long	maxq;
-static	char*	fence;
-static	char*	fencebase;
+static	char*	calloc;
+static	char*	callocbase;
 static	Device	dev;
 static	long	ndup;
 static	long	nused;
@@ -65,11 +66,11 @@ dalloc(ulong n)
 {
 	char *p;
 
-	if(fencebase == 0)
-		fence = fencebase = zalloc(MAXDEPTH*sizeof(Dentry));
-	p = fence;
-	fence += n;
-	if(fence > fencebase+MAXDEPTH*sizeof(Dentry))
+	if(callocbase == 0)
+		calloc = callocbase = zalloc(MAXDEPTH*sizeof(Dentry));
+	p = calloc;
+	calloc += n;
+	if(calloc > callocbase+MAXDEPTH*sizeof(Dentry))
 		panic("dalloc too much memory\n");
 	return p;
 }
@@ -85,9 +86,9 @@ check(Filsys *fs, long flag)
 	wlock(&mainlock);
 	dev = fs->dev;
 	flags = flag;
-	fence = fencebase;
+	calloc = callocbase;
 
-	sizqbits = ((1<<18) + 7) / 8;		/* botch */
+	sizqbits = ((1<<16) + 7) / 8;		/* botch */
 	qbits = zalloc(sizqbits);
 
 	sizname = 4000;
@@ -146,7 +147,7 @@ check(Filsys *fs, long flag)
 		if(fsck(d))
 			modd(raddr, 0, d);
 		depth--;
-		fence -= sizeof(Dentry);
+		calloc -= sizeof(Dentry);
 		if(depth)
 			cprint("depth not zero on return\n");
 	}
@@ -233,7 +234,7 @@ checkdir(long a, long qpath)
 			dmod++;
 		}
 		depth--;
-		fence -= sizeof(Dentry);
+		calloc -= sizeof(Dentry);
 		name[ns] = 0;
 	}
 	name[ns] = 0;

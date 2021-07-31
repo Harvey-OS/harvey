@@ -2,7 +2,7 @@
 
 struct
 {
-	RWLock	uidlock;
+	RWlock	uidlock;
 	Iobuf*	uidbuf;
 	int	flen;
 	int	find;
@@ -138,10 +138,12 @@ admusers[] = {
 	-1,	"adm",	-1,
 	 0,	"none",	-1,
 	 1,	"tor",	1,
-	 2,	"glenda",	2,
 	10000,	"sys",	0,
-	10001,	"upas",	10001,
-	10002,	"bootes",	10002,
+	10001,	"map",	10001,
+	10002,	"doc",	0,
+	10003,	"upas",	10003,
+	10004,	"font",	0,
+	10005,	"bootes",	10005,
 	0,	0,	0,
 };
 

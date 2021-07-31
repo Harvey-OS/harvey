@@ -1,8 +1,7 @@
-typedef	unsigned long	ulong;
-typedef	unsigned int	uint;
-typedef	unsigned short	ushort;
-typedef	unsigned char	uchar;
-typedef	signed char	schar;
+typedef	unsigned long ulong;
+typedef	unsigned char uchar;
+typedef	unsigned short ushort;
+typedef	signed char schar;
 
 #define	SIGN(n)	(1UL<<(n-1))
 
@@ -27,6 +26,19 @@ struct	Vlong
 };
 
 void	abort(void);
+
+void
+_addv(Vlong *r, Vlong a, Vlong b)
+{
+	ulong lo, hi;
+
+	lo = a.lo + b.lo;
+	hi = a.hi + b.hi;
+	if(lo < a.lo)
+		hi++;
+	r->lo = lo;
+	r->hi = hi;
+}
 
 void
 _subv(Vlong *r, Vlong a, Vlong b)
@@ -85,7 +97,7 @@ _d2v(Vlong *y, double d)
 			yhi = d;	/* causes something awful */
 		}
 	}
-	if(x.hi & SIGN(32)) {
+	if(x.hi & 0x80000000) {
 		if(ylo != 0) {
 			ylo = -ylo;
 			yhi = ~yhi;
@@ -107,7 +119,7 @@ _f2v(Vlong *y, float f)
 double
 _v2d(Vlong x)
 {
-	if(x.hi & SIGN(32)) {
+	if(x.hi & 0x80000000) {
 		if(x.lo) {
 			x.lo = -x.lo;
 			x.hi = ~x.hi;
@@ -124,54 +136,65 @@ _v2f(Vlong x)
 	return _v2d(x);
 }
 
-ulong	_div64by32(Vlong, ulong, ulong*);
-void	_mul64by32(Vlong*, Vlong, ulong);
-
 static void
-dodiv(Vlong num, Vlong den, Vlong *qp, Vlong *rp)
+dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 {
-	ulong n;
-	Vlong x, q, r;
+	ulong numlo, numhi, denhi, denlo, quohi, quolo, t;
+	int i;
 
-	if(den.hi > num.hi || (den.hi == num.hi && den.lo > num.lo)){
-		if(qp) {
-			qp->hi = 0;
-			qp->lo = 0;
-		}
-		if(rp) {
-			rp->hi = num.hi;
-			rp->lo = num.lo;
-		}
-		return;
+	numhi = num.hi;
+	numlo = num.lo;
+	denhi = den.hi;
+	denlo = den.lo;
+
+	/*
+	 * get a divide by zero
+	 */
+	if(denlo==0 && denhi==0) {
+		numlo = numlo / denlo;
 	}
 
-	if(den.hi != 0){
-		q.hi = 0;
-		n = num.hi/den.hi;
-		_mul64by32(&x, den, n);
-		if(x.hi > num.hi || (x.hi == num.hi && x.lo > num.lo)){
-			n--;
-			_mul64by32(&x, den, n);
-		}
-		q.lo = n;
-		_subv(&r, num, x);
+	/*
+	 * set up the divisor and find the number of iterations needed
+	 */
+	if(numhi >= SIGN(32)) {
+		quohi = SIGN(32);
+		quolo = 0;
 	} else {
-		if(num.hi >= den.lo){
-			q.hi = n = num.hi/den.lo;
-			num.hi -= den.lo*n;
-		} else {
-			q.hi = 0;
+		quohi = numhi;
+		quolo = numlo;
+	}
+	i = 0;
+	while(denhi < quohi || (denhi == quohi && denlo < quolo)) {
+		denhi = (denhi<<1) | (denlo>>31);
+		denlo <<= 1;
+		i++;
+	}
+
+	quohi = 0;
+	quolo = 0;
+	for(; i >= 0; i--) {
+		quohi = (quohi<<1) | (quolo>>31);
+		quolo <<= 1;
+		if(numhi > denhi || (numhi == denhi && numlo >= denlo)) {
+			t = numlo;
+			numlo -= denlo;
+			if(numlo > t)
+				numhi--;
+			numhi -= denhi;
+			quolo |= 1;
 		}
-		q.lo = _div64by32(num, den.lo, &r.lo);
-		r.hi = 0;
+		denlo = (denlo>>1) | (denhi<<31);
+		denhi >>= 1;
 	}
-	if(qp) {
-		qp->lo = q.lo;
-		qp->hi = q.hi;
+
+	if(q) {
+		q->lo = quolo;
+		q->hi = quohi;
 	}
-	if(rp) {
-		rp->lo = r.lo;
-		rp->hi = r.hi;
+	if(r) {
+		r->lo = numlo;
+		r->hi = numhi;
 	}
 }
 
@@ -396,10 +419,8 @@ _mmv(Vlong *l, Vlong *r)
 void
 _vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 {
-	Vlong t, u;
+	Vlong t;
 
-	u.lo = 0;
-	u.hi = 0;
 	switch(type) {
 	default:
 		abort();
@@ -408,76 +429,51 @@ _vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 	case 1:	/* schar */
 		t.lo = *(schar*)lv;
 		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(schar*)lv = u.lo;
+		fn(ret, t, rv);
+		*(schar*)lv = ret->lo;
 		break;
 
 	case 2:	/* uchar */
 		t.lo = *(uchar*)lv;
 		t.hi = 0;
-		fn(&u, t, rv);
-		*(uchar*)lv = u.lo;
+		fn(ret, t, rv);
+		*(uchar*)lv = ret->lo;
 		break;
 
 	case 3:	/* short */
 		t.lo = *(short*)lv;
 		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(short*)lv = u.lo;
+		fn(ret, t, rv);
+		*(short*)lv = ret->lo;
 		break;
 
 	case 4:	/* ushort */
 		t.lo = *(ushort*)lv;
 		t.hi = 0;
-		fn(&u, t, rv);
-		*(ushort*)lv = u.lo;
-		break;
-
-	case 9:	/* int */
-		t.lo = *(int*)lv;
-		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(int*)lv = u.lo;
-		break;
-
-	case 10:	/* uint */
-		t.lo = *(uint*)lv;
-		t.hi = 0;
-		fn(&u, t, rv);
-		*(uint*)lv = u.lo;
+		fn(ret, t, rv);
+		*(ushort*)lv = ret->lo;
 		break;
 
 	case 5:	/* long */
 		t.lo = *(long*)lv;
 		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(long*)lv = u.lo;
+		fn(ret, t, rv);
+		*(long*)lv = ret->lo;
 		break;
 
 	case 6:	/* ulong */
 		t.lo = *(ulong*)lv;
 		t.hi = 0;
-		fn(&u, t, rv);
-		*(ulong*)lv = u.lo;
+		fn(ret, t, rv);
+		*(ulong*)lv = ret->lo;
 		break;
 
 	case 7:	/* vlong */
 	case 8:	/* uvlong */
-		fn(&u, *(Vlong*)lv, rv);
-		*(Vlong*)lv = u;
+		fn(ret, *(Vlong*)lv, rv);
+		*(Vlong*)lv = *ret;
 		break;
 	}
-	*ret = u;
-}
-
-void
-_p2v(Vlong *ret, void *p)
-{
-	long t;
-
-	t = (ulong)p;
-	ret->lo = t;
-	ret->hi = 0;
 }
 
 void
@@ -496,26 +492,6 @@ _ul2v(Vlong *ret, ulong ul)
 	long t;
 
 	t = ul;
-	ret->lo = t;
-	ret->hi = 0;
-}
-
-void
-_si2v(Vlong *ret, int si)
-{
-	long t;
-
-	t = si;
-	ret->lo = t;
-	ret->hi = t >> 31;
-}
-
-void
-_ui2v(Vlong *ret, uint ui)
-{
-	long t;
-
-	t = ui;
 	ret->lo = t;
 	ret->hi = 0;
 }
@@ -601,20 +577,6 @@ _v2sl(Vlong rv)
 
 long
 _v2ul(Vlong rv)
-{
-
-	return rv.lo;
-}
-
-long
-_v2si(Vlong rv)
-{
-
-	return rv.lo;
-}
-
-long
-_v2ui(Vlong rv)
 {
 
 	return rv.lo;

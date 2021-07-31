@@ -11,13 +11,10 @@ typedef struct Objtype {
 } Objtype;
 
 Objtype objtype[] = {
-	{"mips2",	"4c", "4l", "4", "4.out"},
 	{"mips",	"vc", "vl", "v", "v.out"},
 	{"68020",	"2c", "2l", "2", "2.out"},
 	{"sparc",	"kc", "kl", "k", "k.out"},
 	{"386",		"8c", "8l", "8", "8.out"},
-	{"alpha",	"7c", "7l", "7", "7.out"},
-	{"power",	"qc", "ql", "q", "q.out"},
 };
 
 enum {
@@ -32,7 +29,7 @@ typedef struct List {
 
 List	srcs, objs, cpp, cc, ld, ldargs;
 int	cflag, vflag, Eflag, Pflag;
-char	*allos = "2478kqv";
+char	*allos = "28kvz";
 
 void	append(List *, char *);
 char	*changeext(char *, char *);
@@ -75,11 +72,7 @@ main(int argc, char *argv[])
 		case 'B':
 		case 'N':
 		case 'S':
-		case 'V':
 			append(&cc, str("-%c", ARGC()));
-			break;
-		case 's':
-			append(&cc, str("-s%s", ARGF()));
 			break;
 		case 'D':
 		case 'I':
@@ -162,11 +155,8 @@ main(int argc, char *argv[])
 		for(i = 0; i < objs.n; i++)
 			append(&ld, objs.strings[i]);
 		doexec(str("/bin/%s", ot->ld), &ld);
-		if(objs.n == 1){
-			/* prevent removal of a library */
-			if(strstr(objs.strings[0], ".a") == 0)
-				remove(objs.strings[0]);
-		}
+		if(objs.n == 1)
+			remove(objs.strings[0]);
 	}
 
 	exits(0);
@@ -313,11 +303,8 @@ str(char *fmt, ...)
 {
 	char *s;
 	char buf[1000];
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, &buf[sizeof buf], fmt, arg);
-	va_end(arg);
+	doprint(buf, &buf[sizeof buf], fmt, ((long *)&fmt)+1);
 	s = malloc(strlen(buf)+1);
 	strcpy(s, buf);
 	return s;

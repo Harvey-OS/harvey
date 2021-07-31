@@ -103,7 +103,7 @@ brchain(Prog *p)
 	for(i=0; i<20; i++) {
 		if(p == P || p->as != AJMP)
 			return p;
-		p = p->pcond;
+		p = p->cond;
 	}
 	return P;
 }
@@ -135,7 +135,7 @@ loop:
 	if(p->as == ATEXT)
 		curtext = p;
 	if(p->as == AJMP)
-	if((q = p->pcond) != P) {
+	if((q = p->cond) != P) {
 		p->mark = 1;
 		p = q;
 		if(p->mark == 0)
@@ -168,7 +168,7 @@ loop:
 			case APOPFW:
 				goto brk;
 			}
-			if(q->pcond == P || q->pcond->mark)
+			if(q->cond == P || q->cond->mark)
 				continue;
 			if(a == ACALL || a == ALOOP)
 				continue;
@@ -182,12 +182,12 @@ loop:
 				q->mark = 1;
 				lastp->link = q;
 				lastp = q;
-				if(q->as != a || q->pcond == P || q->pcond->mark)
+				if(q->as != a || q->cond == P || q->cond->mark)
 					continue;
 
 				q->as = relinv(q->as);
-				p = q->pcond;
-				q->pcond = q->link;
+				p = q->cond;
+				q->cond = q->link;
 				q->link = p;
 				xfol(q->link);
 				p = q->link;
@@ -202,7 +202,7 @@ loop:
 		q->line = p->line;
 		q->to.type = D_BRANCH;
 		q->to.offset = p->pc;
-		q->pcond = p;
+		q->cond = p;
 		p = q;
 	}
 	p->mark = 1;
@@ -211,19 +211,19 @@ loop:
 	a = p->as;
 	if(a == AJMP || a == ARET || a == AIRETL)
 		return;
-	if(p->pcond != P)
+	if(p->cond != P)
 	if(a != ACALL) {
 		q = brchain(p->link);
 		if(q != P && q->mark)
 		if(a != ALOOP) {
 			p->as = relinv(a);
-			p->link = p->pcond;
-			p->pcond = q;
+			p->link = p->cond;
+			p->cond = q;
 		}
 		xfol(p->link);
-		q = brchain(p->pcond);
+		q = brchain(p->cond);
 		if(q->mark) {
-			p->pcond = q;
+			p->cond = q;
 			return;
 		}
 		p = q;
@@ -330,18 +330,18 @@ patch(void)
 			diag("branch out of range in %s\n%P\n", TNAME, p);
 			p->to.type = D_NONE;
 		}
-		p->pcond = q;
+		p->cond = q;
 	}
 
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
 		p->mark = 0;	/* initialization for follow */
-		if(p->pcond != P) {
-			p->pcond = brloop(p->pcond);
-			if(p->pcond != P)
+		if(p->cond != P) {
+			p->cond = brloop(p->cond);
+			if(p->cond != P)
 			if(p->to.type == D_BRANCH)
-				p->to.offset = p->pcond->pc;
+				p->to.offset = p->cond->pc;
 		}
 	}
 }
@@ -387,11 +387,11 @@ brloop(Prog *p)
 	Prog *q;
 
 	c = 0;
-	for(q = p; q != P; q = q->pcond) {
+	for(q = p; q != P; q = q->cond) {
 		if(q->as != AJMP)
 			break;
 		c++;
-		if(c >= 5000)
+		if(c >= 100)
 			return P;
 	}
 	return q;
@@ -544,7 +544,7 @@ dostkoff(void)
 		p = appendp(p);
 		p->as = AJMP;
 		p->to = q->to;
-		p->pcond = q->pcond;
+		p->cond = q->cond;
 
 		q->as = AADJSP;
 		q->from = zprg.from;

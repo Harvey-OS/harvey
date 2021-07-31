@@ -1,0 +1,58 @@
+objtype=mips
+</$objtype/mkfile
+
+OFILES=\
+	l.$O\
+	main.$O\
+	screen.$O\
+	devscc.$O\
+	print.$O\
+	kbd.$O\
+	queue.$O\
+	chat.$O\
+	bio.$O\
+	devscsi.$O\
+	trap.$O\
+	fblt.$O\
+	defont0.$O\
+
+HFILES=\
+	all.h\
+	dat.h\
+	fns.h\
+	io.h\
+	lib.h\
+	mem.h\
+	u.h\
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+all:V:		partboot
+install:V:	partboot
+installall:V:	partboot
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+%.$O:	$HFILES
+
+bstrip.$O:	mips.out.h dvh.h
+main.$O trap.$O:	/$objtype/include/ureg.h
+
+partboot: boot $cpuobjtype.bstrip
+	$cpuobjtype.bstrip boot >$target
+
+boot:	$OFILES
+	$LD -o $target -l -R4 -H1 -T0x80600000 $prereq -lgnot -lg -lc
+
+$cpuobjtype.bstrip:	bstrip.$cpuobjtype
+	$cpuobjtype^l -o $target bstrip.$cpuobjtype
+
+bstrip.$cpuobjtype:	bstrip.c
+	$cpuobjtype^c -w bstrip.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].bstrip boot

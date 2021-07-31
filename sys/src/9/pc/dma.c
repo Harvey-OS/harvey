@@ -4,19 +4,37 @@
 #include	"dat.h"
 #include	"fns.h"
 
+/*
+ *  headland chip set for the safari.
+ */
 typedef struct DMAport	DMAport;
 typedef struct DMA	DMA;
 typedef struct DMAxfer	DMAxfer;
+
+enum
+{
+	/*
+	 *  the byte registers for DMA0 are all one byte apart
+	 */
+	Dma0=		0x00,
+	Dma0status=	Dma0+0x8,	/* status port */
+	Dma0reset=	Dma0+0xD,	/* reset port */
+
+	/*
+	 *  the byte registers for DMA1 are all two bytes apart (why?)
+	 */
+	Dma1=		0xC0,
+	Dma1status=	Dma1+2*0x8,	/* status port */
+	Dma1reset=	Dma1+2*0xD,	/* reset port */
+};
 
 /*
  *  state of a dma transfer
  */
 struct DMAxfer
 {
-	ulong	bpa;		/* bounce buffer physical address */
-	void*	bva;		/* bounce buffer virtual address */
-	int	blen;		/* bounce buffer length */
-	void*	va;		/* virtual address destination/src */
+	Page	pg;		/* page used by dma */
+	void	*va;		/* virtual address destination/src */
 	long	len;		/* bytes to be transferred */
 	int	isread;
 };
@@ -63,55 +81,26 @@ DMA dma[2] = {
 };
 
 /*
- *  DMA must be in the first 16MB.  This gets called early by the
- *  initialisation routines of any devices which require DMA to ensure
- *  the allocated bounce buffers are below the 16MB limit.
+ *  DMA must be in the first 16 meg.  This gets called early by main() to
+ *  ensure that.
  */
-int
-dmainit(int chan, int maxtransfer)
+void
+dmainit(void)
 {
+	int i, chan;
 	DMA *dp;
 	DMAxfer *xp;
-	static int once;
 
-	if(once == 0){
-		if(ioalloc(0x00, 0x10, 0, "dma") < 0
-		|| ioalloc(0x80, 0x10, 0, "dma") < 0
-		|| ioalloc(0xd0, 0x10, 0, "dma") < 0)
-			panic("dmainit");
-		once = 1;
+	for(i = 0; i < 2; i++){
+		dp = &dma[i];
+		for(chan = 0; chan < 4; chan++){
+			xp = &dp->x[chan];
+			xp->pg.pa = (ulong)xspanalloc(BY2PG, BY2PG, 0);
+			xp->pg.va = KZERO|xp->pg.pa;
+			xp->len = 0;
+			xp->isread = 0;
+		}
 	}
-
-	if(maxtransfer > 64*1024)
-		maxtransfer = 64*1024;
-
-	dp = &dma[(chan>>2)&1];
-	chan = chan & 3;
-	xp = &dp->x[chan];
-	if(xp->bva != nil){
-		if(xp->blen < maxtransfer)
-			return 1;
-		return 0;
-	}
-
-	xp->bva = xspanalloc(maxtransfer, BY2PG, 64*1024);
-	if(xp->bva == nil)
-		return 1;
-	xp->bpa = PADDR(xp->bva);
-	if(xp->bpa >= 16*MB){
-		/*
-		 * This will panic with the current
-		 * implementation of xspanalloc().
-		xfree(xp->bva);
-		 */
-		xp->bva = nil;
-		return 1;
-	}
-	xp->blen = maxtransfer;
-	xp->len = 0;
-	xp->isread = 0;
-
-	return 0;
 }
 
 /*
@@ -128,9 +117,9 @@ long
 dmasetup(int chan, void *va, long len, int isread)
 {
 	DMA *dp;
+	DMAxfer *xp;
 	ulong pa;
 	uchar mode;
-	DMAxfer *xp;
 
 	dp = &dma[(chan>>2)&1];
 	chan = chan & 3;
@@ -138,24 +127,21 @@ dmasetup(int chan, void *va, long len, int isread)
 
 	/*
 	 *  if this isn't kernel memory or crossing 64k boundary or above 16 meg
-	 *  use the bounce buffer.
+	 *  use the allocated low memory page.
 	 */
 	pa = PADDR(va);
 	if((((ulong)va)&0xF0000000) != KZERO
 	|| (pa&0xFFFF0000) != ((pa+len)&0xFFFF0000)
-	|| pa >= 16*MB) {
-		if(xp->bva == nil)
-			return -1;
-		if(len > xp->blen)
-			len = xp->blen;
+	|| pa > 16*MB){
+		if(len > BY2PG)
+			len = BY2PG;
 		if(!isread)
-			memmove(xp->bva, va, len);
+			memmove((void*)(xp->pg.va), va, len);
 		xp->va = va;
 		xp->len = len;
 		xp->isread = isread;
-		pa = xp->bpa;
-	}
-	else
+		pa = xp->pg.pa;
+	} else
 		xp->len = 0;
 
 	/*
@@ -163,7 +149,7 @@ dmasetup(int chan, void *va, long len, int isread)
 	 */
 	ilock(dp);
 	mode = (isread ? 0x44 : 0x48) | chan;
-	outb(dp->mode, mode);	/* single mode dma (give CPU a chance at mem) */
+	outb(dp->mode, mode);		/* single mode dma (give CPU a chance at mem) */
 	outb(dp->page[chan], pa>>16);
 	outb(dp->cbp, 0);		/* set count & address to their first byte */
 	outb(dp->addr[chan], pa>>dp->shift);		/* set address */
@@ -174,17 +160,6 @@ dmasetup(int chan, void *va, long len, int isread)
 	iunlock(dp);
 
 	return len;
-}
-
-int
-dmadone(int chan)
-{
-	DMA *dp;
-
-	dp = &dma[(chan>>2)&1];
-	chan = chan & 3;
-
-	return inb(dp->cmd) & (1<<chan);
 }
 
 /*
@@ -217,21 +192,6 @@ dmaend(int chan)
 	/*
 	 *  copy out of temporary page
 	 */
-	memmove(xp->va, xp->bva, xp->len);
+	memmove(xp->va, (void*)(xp->pg.va), xp->len);
 	xp->len = 0;
 }
-
-/*
-int
-dmacount(int chan)
-{
-	int     retval;
-	DMA     *dp;
- 
-	dp = &dma[(chan>>2)&1];
-	outb(dp->cbp, 0);
-	retval = inb(dp->count[chan]);
-	retval |= inb(dp->count[chan]) << 8;
-	return((retval<<dp->shift)+1);
-}
- */

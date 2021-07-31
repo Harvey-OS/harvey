@@ -10,7 +10,7 @@ cgen(Node *n, int result, Node *nn)
 
 	if(n == Z || n->type == T)
 		return;
-	if(typesuv[n->type->etype]) {
+	if(typesu[n->type->etype] || typev[n->type->etype]) {
 		sugen(n, result, nn, n->type->width);
 		return;
 	}
@@ -21,26 +21,16 @@ cgen(Node *n, int result, Node *nn)
 			print("result = %R\n", result);
 		prtree(n, "cgen");
 	}
-	l = n->left;
-	r = n->right;
-	o = n->op;
 	if(n->addable >= INDEXED) {
-		if(result == D_NONE) {
-			switch(o) {
-			default:
-				nullwarn(Z, Z);
-				break;
-			case OINDEX:
-				nullwarn(l, r);
-				break;
-			}
-			return;
-		}
-		gmove(n->type, nn->type, D_TREE, n, result, nn);
+		if(result != D_NONE)
+			gmove(n->type, nn->type, D_TREE, n, result, nn);
 		return;
 	}
 
 	v = 0; /* set */
+	l = n->left;
+	r = n->right;
+	o = n->op;
 	switch(o) {
 	default:
 		diag(n, "unknown op in cgen: %O", o);
@@ -124,7 +114,7 @@ cgen(Node *n, int result, Node *nn)
 
 	bitas:
 		n = l->left;
-		rg = regalloc(tfield, result);
+		rg = regalloc(types[TFIELD], result);
 		if(l->complex >= r->complex) {
 			lg = regaddr(D_NONE);
 			lcgen(n, lg, Z);
@@ -325,7 +315,7 @@ cgen(Node *n, int result, Node *nn)
 
 	asbitop:
 		rg = regaddr(D_NONE);
-		lg = regalloc(tfield, D_NONE);
+		lg = regalloc(types[TFIELD], D_NONE);
 		if(l->complex >= r->complex) {
 			g = bitload(l, lg, rg, result, nn);
 			xg = regalloc(r->type, D_NONE);
@@ -339,9 +329,9 @@ cgen(Node *n, int result, Node *nn)
 		if(!typefd[n->type->etype]) {
 			if(o == OASLDIV || o == OASDIV) {
 				yg = regpair(result);
-				gmove(tfield, n->type, g, l, yg, n);
+				gmove(types[TFIELD], n->type, g, l, yg, n);
 				gopcode(o, n->type, xg, r, yg, n);
-				gmove(n->type, tfield, yg, n, g, l);
+				gmove(n->type, types[TFIELD], yg, n, g, l);
 				regfree(yg);
 				regfree(yg+1);
 
@@ -351,9 +341,9 @@ cgen(Node *n, int result, Node *nn)
 			}
 			if(o == OASLMOD || o == OASMOD) {
 				yg = regpair(result);
-				gmove(tfield, n->type, g, l, yg, n);
+				gmove(types[TFIELD], n->type, g, l, yg, n);
 				gopcode(o, n->type, xg, r, yg, n);
-				gmove(n->type, tfield, yg+1, n, g, l);
+				gmove(n->type, types[TFIELD], yg+1, n, g, l);
 				regfree(yg);
 				regfree(yg+1);
 
@@ -364,9 +354,9 @@ cgen(Node *n, int result, Node *nn)
 		}
 
 		yg = regalloc(n->type, result);
-		gmove(tfield, n->type, g, l, yg, n);
+		gmove(types[TFIELD], n->type, g, l, yg, n);
 		gopcode(o, n->type, xg, r, yg, n);
-		gmove(n->type, tfield, yg, n, g, l);
+		gmove(n->type, types[TFIELD], yg, n, g, l);
 		regfree(yg);
 
 		regfree(xg);
@@ -509,7 +499,7 @@ cgen(Node *n, int result, Node *nn)
 
 	case OAND:
 		if(r->op == OCONST)
-		if(typeil[n->type->etype])
+		if(typel[n->type->etype])
 		if(l->op == OCAST) {
 			if(typec[l->left->type->etype])
 			if(!(r->vconst & ~0xff)) {
@@ -528,7 +518,7 @@ cgen(Node *n, int result, Node *nn)
 		if(result == D_TOS)
 		if(r->addable >= INDEXED)
 		if(l->op == OCONST)
-		if(typeil[l->type->etype]) {
+		if(typel[l->type->etype]) {
 			v = l->vconst;
 			if(v > -32768 && v < 32768) {
 				rg = regaddr(D_NONE);
@@ -545,7 +535,7 @@ cgen(Node *n, int result, Node *nn)
 		if(result == D_TOS)
 		if(l->addable >= INDEXED)
 		if(r->op == OCONST)
-		if(typeil[r->type->etype]) {
+		if(typel[r->type->etype]) {
 			v = r->vconst;
 			if(v > -32768 && v < 32768) {
 				if(n->op == OSUB)
@@ -799,7 +789,7 @@ cgen(Node *n, int result, Node *nn)
 
 	bitinc:
 		rg = regaddr(D_NONE);
-		lg = regalloc(tfield, D_NONE);
+		lg = regalloc(types[TFIELD], D_NONE);
 		if(result != D_NONE && (o == OPOSTINC || o == OPOSTDEC)) {
 			g = bitload(l, lg, rg, D_NONE, nn);
 			if(nn != Z)
@@ -1247,7 +1237,7 @@ sugen(Node *n, int result, Node *nn, long w)
 			nod.xoffset = t->offset - o;
 			gopcode(OAS, types[TIND], lg, Z, D_TOS, Z);
 			s = argoff;
-			if(typesuv[t->etype]) {
+			if(typesu[t->etype] || typev[t->etype]) {
 				sugen(l, D_TREE, nodrat, t->width);
 				adjsp(s - argoff);
 				gopcode(OAS, types[TIND], D_TOS, Z, lg, Z);
@@ -1374,9 +1364,9 @@ copy:
 	} else
 		diag(n, "unknown su result: %R", result);
 
-	if(w % SZ_LONG)
-		diag(Z, "sucopy width not 0%%%d", SZ_LONG);
-	v = w / SZ_LONG;
+	if(w % SU_PAD)
+		diag(Z, "sucopy width not 0%%%d", SU_PAD);
+	v = w / SU_PAD;
 	if(v & 1) {
 		gopcode(OAS, types[TLONG], rg|I_INDINC, n, lg|I_INDINC, n);
 		v--;

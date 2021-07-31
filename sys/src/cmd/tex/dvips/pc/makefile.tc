@@ -1,0 +1,282 @@
+#
+#   Makefile for dvips.  Edit this first part of the file.
+#
+#   First, the things that absolutely must be edited for your system.
+
+# modified for Borland C 3.1 on MS-DOS by rjl@monu1.cc.monash.edu.au
+# 17th February 1994
+
+# compiler directory
+CCDIR = c:\borlandc
+# compiler and linker
+CC = $(CCDIR)\bin\bcc
+LINK = $(CCDIR)\bin\tlink
+INCLUDE = $(CCDIR)\include
+LIB =$(CCDIR)\lib
+# For Windows application WIN = win
+# Note that printf("%f",d) didn't work on Windows 3.0, BCC 3.0, 286 & 287
+# and is fixed in BCC 3.1.
+#WIN = win
+
+
+# All DIRs must use a single \ as a directory separator.
+# All PATHs must use \\\\ as a directory separator and must use \; not ;
+DRIVE = c:
+TEXDIR = $(DRIVE)\emtex
+TEXPATH = $(DRIVE)\\\\emtex
+
+# the default path to search for TFM files 
+# (this usually is identical to TeX's defaultfontpath, which omits `.')
+# (private fonts are given an explicit directory, which overrides the path)
+# TFMPATH = c:\\\\emtex\\\\tfm
+TFMPATH = $(TEXPATH)\\\\tfm
+
+# the default path to search for PK files (usually omits `.')
+# Don't forget to add the directory that
+# MakeTeXPK puts the files!  (In this case, /LocalLibrary/Fonts...)
+# PKPATH = c:\\\\texfonts\\\\pixel.lj\\\\%ddpi\\\\%f.%p
+PKPATH = $(TEXPATH)\\\\pixel.lj\\\\%ddpi\\\\%f.%p
+
+# the default path to search for VF files (usually omits `.')
+# VFPATH = c:\\\\texfonts\\\\vf
+VFPATH = $(TEXPATH)\\\\vf
+
+# additional directories in which to search for subdirectories to find
+# both tfm and pk files
+FONTSUBDIRPATH = 
+
+# where the config files go
+# CONFIGDIR = c:\emtex\ps
+CONFIGDIR = $(TEXDIR)\ps
+
+# the default path to search for config files
+# CONFIGPATH = .\;c:\\\\emtex\\\\ps
+CONFIGPATH = .\;$(TEXPATH)\\\\ps
+
+# the name of your config file
+# CONFIGFILE = config.ps
+CONFIGFILE = config.ps
+
+# where the header PS files go
+# HEADERDIR = c:\emtex\ps
+HEADERDIR = $(TEXDIR)\ps
+
+# the default path to search for header files
+# HEADERPATH = .\;c:\\\\emtex\\\\ps
+HEADERPATH = .\;$(TEXPATH)\\\\ps
+
+# where epsf.tex and rotate.tex go (usually the TeX macros directory)
+# TEXMACRODIR = c:\emtex\texinput
+TEXMACROPARENTDIR = $(TEXDIR)\texinput
+TEXMACRODIR = $(TEXDIR)\texinput\dvips
+
+# the default path to search for epsf and psfiles
+# (usually the same as TeX's defaultinputpath)
+# FIGPATH = .\;..\;c:\\\\emtex\\\\texinput
+FIGPATH = .\;..\;$(TEXPATH)\\\\texinput
+
+# the default path to search for emTeX font libraries
+# FLIPATH = c:\\\\texfonts
+FLIPATH = $(DRIVE)\\\\texfonts
+
+# the names of emTeX font libraries
+# FLINAME = lj_0\;lj_h\;lj_1\;lj_2\;lj_3\;lj_4\;lj_5a\;lj_5b\;lj_sli
+FLINAME = lj_0\;lj_h\;lj_1\;lj_2\;lj_3\;lj_4\;lj_5a\;lj_5b\;lj_sli
+
+# change -DDEFRES=300 or whatever is required
+#    if the default resolution is not 300 dpi,
+# add -DDEBUG to turn on debugging capability
+# add -DTPIC for tpic support
+# add -DFONTLIB to search font libraries
+# add -DSEARCH_SUBDIRECTORIES to search the FONTSUBDIRPATH.
+# add -DHAVE_GETCWD if you have getcwd (relevant only for subdir searching)
+# add -DCREATIONDATE if your system has a working time() and you want dated files
+#   If you define FONTLIB, make sure to also give definitions to
+#   FLIPATH and FLINAME.
+#
+DEFS= -DTPIC -DDEBUG -DDEFRES=300 -DFONTLIB -DHAVE_GETCWD -DCREATIONDATE
+
+# these options to produce debug map
+OPT = -M -y -v
+#OPT = 
+  
+LINKOPT = /l /m /s /v /c
+#LINKOPT = /c /x
+
+# If you are compiling dvips for suid or other privileges, you will
+# definitely want to define the following symbol; else don't.
+# SECURE = -DSECURE
+
+# If you want EMTEX specials, define the following.
+EMTEX = -DEMTEX
+
+# for SYSV (and friends which use <string.h> instead of <strings.h>)
+# define the c-compiler flag
+# -DMSDOS for MS-DOS systems
+SYS = -DMSDOS
+
+# where the installed binary goes
+# BINDIR = c:\emtex
+BINDIR = $(DRIVE)\emtex
+
+# where the manual page goes
+# MANDIR = c:\emtex\doc
+MANDIR = $(DRIVE)\emtex\doc
+
+#MSDOS sets all paths in turboc.cfg
+CFLAGS = $(DEFS) $(OPT) $(SYS) $(SECURE) $(EMTEX) $(DEFPFMT)
+
+SRC = dospecial.c dviinput.c fontdef.c loadfont.c dvips.c tfmload.c \
+	download.c prescan.c scanpage.c skippage.c output.c scalewidth.c \
+	dosection.c dopage.c resident.c search.c unpack.c drawPS.c \
+	header.c makefont.c repack.c virtualfont.c dpicheck.c finclude.c \
+	pprescan.c papersiz.c flib.c color.c bbox.c emspecial.c
+
+OBJ = dospecial.obj dviinput.obj fontdef.obj loadfont.obj dvips.obj \
+        tfmload.obj download.obj prescan.obj scanpage.obj skippage.obj \
+        output.obj scalewidth.obj dosection.obj dopage.obj resident.obj \
+        search.obj unpack.obj drawPS.obj header.obj makefont.obj repack.obj \
+        virtualfont.obj dpicheck.obj finclude.obj papersiz.obj flib.obj \
+        pprescan.obj color.obj bbox.obj emspecial.obj
+
+all : afm2tfm.exe dvips$(WIN).exe tex.pro texps.pro texc.pro special.pro \
+      finclude.pro color.pro crop.pro
+
+# default rules
+
+.c.obj:  
+!if $d(WIN)
+	$(CC) -c -ml -w-pro -W { $< }
+!else
+	$(CC) -c -f -ml -w-pro { $< }
+!endif
+
+dvips.exe : $(OBJ)
+	$(LINK) $(LINKOPT) @&&!
+$(LIB)\C0l +
+$(OBJ) +
+,dvips ,dvips, +
+$(LIB)\emu +
+$(LIB)\mathl +
+$(LIB)\cl 
+!
+
+winmain.obj: pc\winmain.c
+	$(CC) -c -ml -w-pro -W -owinmain.obj pc\winmain.c
+
+dvipswin.exe : $(OBJ) winmain.obj pc\dvipswin.rc pc\dvipswin.def
+	$(LINK) /Twe $(LINKOPT) @&&!
+$(LIB)\C0wl +
+winmain.obj +
+$(OBJ) +
+,dvipswin ,dvipswin, +
+$(LIB)\mathwl +
+$(LIB)\import +
+$(LIB)\cwl, + 
+pc\dvipswin.def
+!
+	$(CCDIR)\bin\brc -30 -i$(INCLUDE) pc\dvipswin.rc dvipswin.exe
+
+afm2tfm.exe: afm2tfm.c turboc.cfg
+	$(CC) -mc -w-pro -w-pia afm2tfm.c 
+
+turboc.cfg: pc\makefile.tc
+	echo -I$(INCLUDE) > turboc.cfg
+	echo -L$(LIB) >> turboc.cfg
+	echo $(CFLAGS) >> turboc.cfg
+	echo -DTFMPATH="$(TFMPATH)" >> turboc.cfg
+	echo -DPKPATH="$(PKPATH)" >> turboc.cfg
+	echo -DVFPATH="$(VFPATH)" >> turboc.cfg
+	echo -DHEADERPATH="$(HEADERPATH)" >> turboc.cfg
+	echo -DCONFIGPATH="$(CONFIGPATH)" >> turboc.cfg
+	echo -DCONFIGFILE="$(CONFIGFILE)" >> turboc.cfg
+	echo -DFONTSUBDIRPATH="$(FONTSUBDIRPATH)" >> turboc.cfg
+	echo -DFIGPATH="$(FIGPATH)" >> turboc.cfg
+	echo -DFLIPATH="$(FLIPATH)" >> turboc.cfg
+	echo -DFLINAME="$(FLINAME)" >> turboc.cfg
+
+$(OBJ) : dvips.h debug.h paths.h turboc.cfg
+
+squeeze.exe : squeeze.c turboc.cfg
+	$(CC) -mc -w-pro squeeze.c 
+
+tex.pro : tex.lpr squeeze.exe
+	squeeze tex.lpro  tex.pro
+
+texc.pro: texc.lpr squeeze.exe
+	squeeze texc.lpro texc.pro
+
+texc.lpr: tex.lpr
+	@echo This does "texc.scr tex.lpr texc.lpr" on Unix
+	@echo For MSDOS, copy tex.lpr to texc.lpr
+	@echo then edit texc.lpr to remove the code
+        @echo for uncompressed fonts, and uncomment the
+        @echo code for unpacking compressed fonts
+
+texps.pro : texps.lpr squeeze.exe
+	squeeze texps.lpro texps.pro
+
+special.pro : special.lpr squeeze.exe
+	squeeze special.lpr special.pro
+
+finclude.pro: finclude.lpr squeeze.exe
+	squeeze finclude.lpr finclude.pro
+
+color.pro: color.lpr squeeze.exe
+	squeeze color.lpr color.pro
+
+crop.pro: crop.lpr squeeze.exe
+	squeeze crop.lpr crop.pro
+
+install : afm2tfm.exe dvips$(WIN).exe pc/maketexp.bat \
+	tex.pro texc.pro texps.pro special.pro finclude.pro color.pro crop.pro \
+	pc/config.ps psfonts.map epsf.tex epsf.sty rotate.tex rotate.sty \
+	dvips.tex dvipsmac.tex colordvi.sty colordvi.tex blackdvi.sty \
+	blackdvi.tex pc/dvips.doc pc/afm2tfm.doc
+	mkdir $(BINDIR)
+	mkdir $(HEADERDIR)
+	mkdir $(CONFIGDIR)
+	mkdir $(MANDIR)
+	mkdir $(TEXMACROPARENTDIR)
+	mkdir $(TEXMACRODIR)
+	copy afm2tfm.exe $(BINDIR)\afm2tfm.exe
+	copy dvips$(WIN).exe $(BINDIR)\dvips$(WIN).exe
+ 	copy pc\maketexp.bat $(BINDIR)\maketexp.bat
+	copy tex.pro $(HEADERDIR)
+	copy texc.pro $(HEADERDIR)
+  	copy texps.pro $(HEADERDIR)
+	copy special.pro $(HEADERDIR)
+	copy finclude.pro $(HEADERDIR)
+	copy color.pro $(HEADERDIR)
+	copy crop.pro $(HEADERDIR)
+	copy pc\config.ps $(CONFIGDIR)\$(CONFIGFILE)
+	copy psfonts.map $(CONFIGDIR)
+	copy epsf.tex $(TEXMACRODIR)
+	copy epsf.sty $(TEXMACRODIR)
+	copy rotate.tex $(TEXMACRODIR)
+	copy rotate.sty $(TEXMACRODIR)
+	copy colordvi.sty $(TEXMACRODIR)
+	copy colordvi.tex $(TEXMACRODIR)
+	copy blackdvi.sty $(TEXMACRODIR)
+	copy blackdvi.tex $(TEXMACRODIR)
+	copy dvips.tex $(TEXMACRODIR)
+	copy dvipsmac.tex $(TEXMACRODIR)
+	copy pc\dvips.doc $(MANDIR)
+	copy pc\afm2tfm.doc $(MANDIR)
+
+
+veryclean : clean
+	del dvips.exe
+	del dvipswin.exe
+	del afm2tfm.exe
+	del *.pro
+	del turboc.cfg
+
+clean :
+	del *.obj
+	del squeeze.exe
+        del afm2tfm.map
+        del dvips.map
+        del dvipswin.map
+        del squeeze.map
+	del turboc.cfg

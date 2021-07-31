@@ -1,0 +1,66 @@
+%Filename: OT1pad.fd
+%Created by: tex 19847adobegar
+%Created using fontinst v1.331
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pad}{}
+
+\DeclareFontShape{OT1}{pad}{sb}{n}{
+   <-> pads7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{sb}{sc}{
+   <-> padsc7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{sb}{it}{
+   <-> padsi7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{sb}{sl}{
+   <-> padso7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{b}{n}{
+   <-> padb7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{b}{sc}{
+   <-> padbc7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{b}{it}{
+   <-> padbi7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{b}{sl}{
+   <-> padbo7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{m}{n}{
+   <-> padr7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{m}{sc}{
+   <-> padrc7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{m}{it}{
+   <-> padri7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{m}{sl}{
+   <-> padro7t
+}{}
+
+\DeclareFontShape{OT1}{pad}{sb}{ui}{<->sub * pad/sb/it}{}
+\DeclareFontShape{OT1}{pad}{b}{ui}{<->ssub * pad/sb/ui}{}
+\DeclareFontShape{OT1}{pad}{bx}{ui}{<->ssub * pad/b/ui}{}
+\DeclareFontShape{OT1}{pad}{bx}{n}{<->ssub * pad/b/n}{}
+\DeclareFontShape{OT1}{pad}{bx}{sc}{<->ssub * pad/b/sc}{}
+\DeclareFontShape{OT1}{pad}{bx}{it}{<->ssub * pad/b/it}{}
+\DeclareFontShape{OT1}{pad}{bx}{sl}{<->ssub * pad/b/sl}{}
+\DeclareFontShape{OT1}{pad}{m}{ui}{<->sub * pad/m/it}{}
+
+\endinput

@@ -1,0 +1,112 @@
+Thu May 14 19:22:23 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Thu May  7 07:29:59 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (tex9.[co]): new targets (not used in our dist).
+        
+Sat Apr 25 08:56:54 1992  Karl Berry  (karl@hayley)
+
+        * convert: sync after the pipeline.
+
+        * Makefile (distclean): new target.
+
+        * Makefile (amstex.fmt): don't use &./tex.
+        (amslatex.fmt): be more explicit about AMSLaTeX's horrible
+        installation scheme.
+
+Thu Apr 23 12:04:49 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (initex, virtex): changes from Andreas to reflect
+          reality; fix clean targets.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Sat Apr 11 09:19:41 1992  Karl Berry  (karl@hayley)
+
+        * tex.ch (pack_file_name, pack_buffered_name): don't fill the
+          name_of_file array completely.
+
+Fri Apr 10 17:03:41 1992  Karl Berry  (karl@hayley)
+
+        * tex.ch: new file for configure to make ctex.ch from.
+        * Makefile (mostlyclean): remove ctex.ch.
+
+        * Makefile (default): make it `all'.
+
+Fri Apr  3 09:55:55 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Mon Mar 30 07:59:29 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (triptex): use $(MAKE), not make.
+
+Sun Mar 29 15:44:30 1992  Karl Berry  (karl at hayley)
+
+        * ini_to_trip: change additional constants.
+
+        * tex.web: new version from dek.
+        * tex.ch: update version number.
+
+Sat Mar 21 11:09:06 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (pool_name): define to be `TEX_POOL_NAME', instead of
+          hardwiring `tex.pool'.
+
+Fri Mar 20 15:29:22 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+        * ctex.ch (4.51): set name_length to the strlen of pool_name.
+
+Sun Mar  1 07:09:28 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (font_mem_size): increase to 100,000.
+
+Fri Jan 24 07:41:25 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+        * ctex.ch (\input, \openin): don't try .tex if the filename is
+          already the maximal length; otherwise foo.aux gets found
+          as foo.aux.tex under system V, when foo is 14 characters long.
+
+Tue Jan 21 17:20:17 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (pool_size): increase to 124,000.
+        (string_vacancies): to 100,000.
+
+Wed Jan 15 10:12:30 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (\input, \openin): if cur_ext=".tex", don't append .tex,
+          and reset it before trying without suffix.
+
+        * ctex.ch (max_strings): increase to 15000.
+
+Tue Jan 14 08:52:24 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (\input, \openin): try to find foo.tex before foo.
+          (From bent@ragged.dartmouth.edu.)
+
+        * Makefile (*.fmt): do not remove the \font lines from the output
+          via grep, as then prompts do not appear.
+
+Sun Jan 12 09:17:40 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (memory structure): include "texmfmem.h", omitting the
+          ../common.
+
+        * Makefile (fileioh): no longer exists.
+
+Tue Jan  7 15:51:28 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (opening input files): do `name_length + 5 <
+          file_name_size', not `name_length < file_name_size + 5'.  From
+          tony@marcam.dsir.govt.nz.

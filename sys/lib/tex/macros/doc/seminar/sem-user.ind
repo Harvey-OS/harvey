@@ -1,0 +1,189 @@
+\begin{theindex}
+
+  \item {\tt 2up} (option), \main{13}
+
+  \indexspace
+
+  \item {\tt a4} (option), \main{37}
+  \item \verb*+\addtoartlength+, \main{18}
+  \item \verb*+\addtoslidelength+, \main{6}
+  \item \verb*+\addtoslidelist+, \main{17}
+  \item \verb*+\addtoslidereset+, \main{12}
+  \item {\tt allversions} (environment), \main{17}
+  \item {\tt allversions*} (environment), \usage{16}, \main{17},
+    \usage{26}
+  \item {\tt article} (option), \usage{7}, \main{13}, \usage{13, 14},
+    \usage{18}, \usage{25}, \usage{28}, \usage{33}
+  \item \verb*+\articlemag+, \main{13}, \usage{14}, \usage{18}
+
+  \indexspace
+
+  \item \verb*+\centerslidesfalse+, \main{2}
+  \item \verb*+\centerslidestrue+, \main{2}
+  \item \verb*+\colorlayers+, \main{21}
+  \item counters:
+    \subitem {\tt overlay}, \main{22}
+    \subitem {\tt slide}, \main{12}
+  \item \verb*+\currlayer+, \main{22}
+
+  \indexspace
+
+  \item environments:
+    \subitem {\tt allversions*}, \usage{16}, \main{17}, \usage{26}
+    \subitem {\tt allversions}, \main{17}
+    \subitem {\tt note}, \main{16}, \usage{16, 17}
+    \subitem {\tt slide*}, \usage{iii}, \main{1}, \usage{1}
+    \subitem {\tt slide}, \usage{iii}, \main{1}, \usage{1}
+  \item \verb*+\espfslidesize+, \main{25}
+  \item \verb*+\everyslide+, \main{15}
+  \item \verb*+\extraslideheight+, \main{3}
+
+  \indexspace
+
+  \item {\tt fancybox} (option), \usage{10, 11}
+
+  \indexspace
+
+  \item \verb*+\ifarticle+, \usage{19}, \main{27}
+  \item \verb*+\ifnotes+, \main{27}
+  \item \verb*+\ifnotesonly+, \main{27}
+  \item \verb*+\ifportrait+, \main{27}
+  \item \verb*+\ifslidesonly+, \main{27}
+
+  \indexspace
+
+  \item \verb*+\landscapeonly+, \main{1}
+  \item \verb*+\layerframe+, \main{23}
+  \item \verb*+\layerlabel+, \main{22}
+  \item \verb*+\layerpagestyle+, \main{22}
+  \item \verb*+\layersfalse+, \main{22}
+  \item \verb*+\layerstrue+, \main{22}
+  \item \verb*+\leftsliderotation+, \main{36}
+
+  \indexspace
+
+  \item \verb*+\newpagestyle+, \main{26}
+  \item \verb*+\newslide+, \main{3}, \usage{12}
+  \item \verb*+\newslideframe+, \main{10}
+  \item {\tt note} (environment), \main{16}, \usage{16, 17}
+  \item {\tt notes} (option), \main{15}, \usage{18, 19}
+  \item {\tt notesonly} (option), \main{15}, \usage{18, 19}
+  \item {\tt notesonly*} (option), \main{19}
+  \item \verb*+\notslides+, \main{12}
+  \item \verb*+\noxcomment+, \main{16}, \usage{17}
+
+  \indexspace
+
+  \item \verb*+\onlynotestoo+, \main{16}, \usage{31}
+  \item \verb*+\onlyslides+, \main{12}, \usage{31}
+  \item options:
+    \subitem {\tt 2up}, \main{13}
+    \subitem {\tt a4}, \main{37}
+    \subitem {\tt article}, \usage{7}, \main{13}, \usage{13, 14},
+    \usage{18}, \usage{25}, \usage{28}, \usage{33}
+    \subitem {\tt fancybox}, \usage{10, 11}
+    \subitem {\tt notesonly*}, \main{19}
+    \subitem {\tt notesonly}, \main{15}, \usage{18, 19}
+    \subitem {\tt notes}, \main{15}, \usage{18, 19}
+    \subitem {\tt portrait}, \usage{iii}, \main{1}, \usage{1},
+    \usage{13, 14}, \usage{18, 19}
+    \subitem {\tt semcolor}, \usage{10, 11}, \usage{20}, \usage{27},
+    \usage{31}, \usage{35}, \main{36}, \usage{36, 37}
+    \subitem {\tt semhelv}, \main{33}
+    \subitem {\tt semlayer}, \main{20}, \usage{20}, \usage{31},
+    \usage{35}, \usage{37}
+    \subitem {\tt semlcmss}, \main{33}
+    \subitem {\tt semrot}, \main{36}, \usage{36}
+    \subitem {\tt slidesonly}, \main{15}, \usage{26}
+    \subitem {\tt slides}, \usage{18}
+  \item \verb*+\overlay+, \main{21}, \usage{21}
+  \item {\tt overlay} (counter), \main{22}
+  \item \verb*+\overlayframe+, \main{23}
+  \item \verb*+\overlaylabel+, \usage{22}
+  \item \verb*+\overlaypagestyle+, \main{22}
+  \item \verb*+\overlaysfalse+, \main{22}
+  \item \verb*+\overlaystrue+, \main{22}
+
+  \indexspace
+
+  \item \verb*+\paperheight+, \usage{5}
+  \item \verb*+\paperwidth+, \usage{5}
+  \item {\tt portrait} (option), \usage{iii}, \main{1}, \usage{1},
+    \usage{13, 14}, \usage{18, 19}
+  \item \verb*+\portraitonly+, \main{1}
+  \item \verb*+\printlandscape+, \main{35}
+  \item \verb*+\ptsize+, \main{8}, \usage{32}
+
+  \indexspace
+
+  \item \verb*+\raggedslides+, \main{2}, \usage{2}, \usage{24}
+  \item \verb*+\renewpagestyle+, \main{26}
+  \item \verb*+\rightsliderotation+, \main{36}
+  \item \verb*+\rotateheadersfalse+, \main{36}
+  \item \verb*+\rotateheaderstrue+, \main{36}
+
+  \indexspace
+
+  \item \verb*+\semcm+, \usage{5}, \main{6}
+  \item {\tt semcolor} (option), \usage{10, 11}, \usage{20},
+    \usage{27}, \usage{31}, \usage{35}, \main{36},
+    \usage{36, 37}
+  \item {\tt semhelv} (option), \main{33}
+  \item \verb*+\semin+, \usage{5}, \main{6}
+  \item {\tt semlayer} (option), \main{20}, \usage{20}, \usage{31},
+    \usage{35}, \usage{37}
+  \item {\tt semlcmss} (option), \main{33}
+  \item {\tt semrot} (option), \main{36}, \usage{36}
+  \item \verb*+\setartlength+, \main{18}
+  \item {\tt slide} (counter), \main{12}
+  \item {\tt slide} (environment), \usage{iii}, \main{1}, \usage{1}
+  \item {\tt slide*} (environment), \usage{iii}, \main{1}, \usage{1}
+  \item \verb*+\slidearraystretch+, \main{8}
+  \item \verb*+\slidebottommargin+, \main{5}, \usage{5}
+  \item \verb*+\slideclearpagetrue+, \main{19}
+  \item \verb*+\slidefonts+, \main{15}
+  \item \verb*+\slidefootfont+, \main{20}
+  \item \verb*+\slidefootnotesep+, \main{8}
+  \item \verb*+\slideframe+, \main{10}, \usage{10, 11}
+  \item \verb*+\slideframesep+, \usage{5}, \main{10}
+  \item \verb*+\slideframewidth+, \usage{5}, \main{10}
+  \item \verb*+\slidefuzz+, \usage{4}
+  \item \verb*+\slideheadfont+, \main{20}
+  \item \verb*+\slideheight+, \main{2}, \usage{5}, \usage{14}
+  \item \verb*+\slideitemsep+, \main{8}
+  \item \verb*+\slidelabel+, \main{14}, \usage{14}
+  \item \verb*+\slidelabelsep+, \main{8}
+  \item \verb*+\slideleftmargin+, \main{5}, \usage{5}
+  \item \verb*+\slideleftmargini+, \main{8}
+  \item \verb*+\slideleftmarginii+, \main{8}
+  \item \verb*+\slideleftmarginiii+, \main{8}
+  \item \verb*+\slidepagestyle+, \main{16}
+  \item \verb*+\slideparindent+, \main{8}
+  \item \verb*+\slideparskip+, \main{8}
+  \item \verb*+\slidepartopsep+, \main{8}
+  \item \verb*+\slideplacement+, \main{18}
+  \item \verb*+\slidereset+, \main{12}
+  \item \verb*+\sliderightmargin+, \main{5}, \usage{5}
+  \item \verb*+\sliderotation+, \main{36}
+  \item {\tt slides} (option), \usage{18}
+  \item \verb*+\slidesep+, \main{19}, \usage{19}
+  \item \verb*+\slideshrink+, \main{9}, \usage{9}
+  \item \verb*+\slideskip+, \main{9}, \usage{9}
+  \item \verb*+\slidesmag+, \main{6}, \usage{14}, \usage{24}
+  \item {\tt slidesonly} (option), \main{15}, \usage{26}
+  \item \verb*+\slidestretch+, \main{8}, \usage{9}, \usage{24}
+  \item \verb*+\slidestyle+, \main{14}
+  \item \verb*+\slidetopmargin+, \main{5}, \usage{5}
+  \item \verb*+\slidewidth+, \main{2}, \usage{5}, \usage{14}
+
+  \indexspace
+
+  \item \verb*+\thelayer+, \main{22}
+  \item \verb*+\theoverlay+, \main{22}
+  \item \verb*+\theslide+, \main{12}, \usage{12}
+  \item \verb*+\theslidefootnote+, \main{12}
+  \item \verb*+\truepagenumbers+, \main{25}
+  \item \verb*+\twoup+, \main{13}, \usage{13, 14}, \usage{25},
+    \usage{32}
+
+\end{theindex}

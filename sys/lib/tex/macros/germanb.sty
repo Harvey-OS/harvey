@@ -1,0 +1,259 @@
+%% 
+%% This is file `germanb.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% germanb.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Bernd Raichle",
+%%%     author-2        = "Braams J.L.",
+%%%     version         = "2.5c",
+%%%     date            = "26 June 1994",
+%%%     time            = "00:38:56 MET",
+%%%     filename        = "germanb.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone-2     = "(70) 3325051",
+%%%     FAX-2           = "(70) 3326477",
+%%%     checksum        = "29603 839 3842 33542",
+%%%     email-1         = "raichle@azu.Informatik.Uni-Stuttgart.de",
+%%%     email-2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, german",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the german language specific
+%%%                        definitions for the babel system.
+%%%                        It is based on german.tex 2.3e.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsgerman
+\else
+  \selectlanguage{german}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{germanb.sty}[1994/06/26 v2.5c
+         German support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty\fi
+\originalTeX
+\ifx\undefined\l@german
+  \@nopatterns{German}
+  \adddialect\l@german0
+\fi
+\adddialect\l@austrian\l@german
+\addto\captionsgerman{%
+  \def\prefacename{Vorwort}%
+  \def\refname{Literatur}%
+  \def\abstractname{Zusammenfassung}%
+  \def\bibname{Literaturverzeichnis}%
+  \def\chaptername{Kapitel}%
+  \def\appendixname{Anhang}%
+  \def\contentsname{Inhaltsverzeichnis}%    % oder nur: Inhalt
+  \def\listfigurename{Abbildungsverzeichnis}%
+  \def\listtablename{Tabellenverzeichnis}%
+  \def\indexname{Index}%
+  \def\figurename{Abbildung}%
+  \def\tablename{Tabelle}%                  % oder: Tafel
+  \def\partname{Teil}%
+  \def\enclname{Anlage(n)}%                 % oder: Beilage(n)
+  \def\ccname{Verteiler}%                   % oder: Kopien an
+  \def\headtoname{An}%
+  \def\pagename{Seite}%
+  \def\seename{siehe}%
+  \def\alsoname{siehe auch}}
+\let\captionsaustrian\captionsgerman
+\def\month@german{\ifcase\month\or
+  Januar\or Februar\or M\"arz\or April\or Mai\or Juni\or
+  Juli\or August\or September\or Oktober\or November\or Dezember\fi}
+\def\dategerman{\def\today{\number\day.~\month@german
+  \space\number\year}}
+\def\dateaustrian{\def\today{\number\day.~\ifnum1=\month
+  J\"anner\else \month@german\fi \space\number\year}}
+\addto\extrasgerman{\babel@add@special\"}
+\addto\noextrasgerman{\babel@remove@special\"}
+\addto\extrasgerman{\babel@savevariable{\catcode`\"}\babel@save\active@dq
+  \catcode`\"\active \let\active@dq\german@active@dq}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \addto\extrasgerman{\babel@save"\let"\german@@active@dq}}
+\x
+\addto\extrasgerman{\babel@savevariable{\lccode`\^^Y}%
+  \lccode`\^^Y`\^^Y}
+\addto\extrasgerman{\babel@save\3\let\3\ss}
+\addto\extrasgerman{\babel@save\"\umlautlow}
+\addto\extrasgerman{\babel@savevariable\lefthyphenmin
+  \babel@savevariable\righthyphenmin
+  \lefthyphenmin\tw@\righthyphenmin\tw@}
+\let\extrasaustrian\extrasgerman
+\let\noextrasaustrian\noextrasgerman
+\def\umlauthigh{\let\"\dieresis}
+\def\umlautlow{\def\"{\protect\newumlaut}}
+\def\highumlaut#1{\leavevmode\allowhyphens
+  \dieresis{#1}\allowhyphens}
+\expandafter\ifx\csname U@D\endcsname\relax
+  \csname newdimen\endcsname\U@D
+\fi
+\def\newumlaut#1{\leavevmode\allowhyphens
+  {\U@D 1ex%
+  {\setbox\z@\hbox{\char127}\dimen@ -.45ex\advance\dimen@\ht\z@
+  \ifdim 1ex<\dimen@ \fontdimen5\font\dimen@ \fi}%
+  \accent127\fontdimen5\font\U@D #1}\allowhyphens}
+\def\glqq{\protect\@glqq}
+\def\@glqq{\save@sf@q{\set@low@box{''}\box\z@\kern-.04em\allowhyphens}}
+\def\grqq{\protect\@grqq}
+\def\@grqq{\save@sf@q{\kern-.07em``\kern.07em}}
+\def\glq{\protect\@glq}
+\def\@glq{\save@sf@q{\set@low@box{'}\box\z@\kern-.04em\allowhyphens}}
+\def\grq{\protect\@grq}
+\def\@grq{\save@sf@q{\kern-.07em`\kern.07em}}
+\def\flqq{\protect\@flqq}
+\def\@flqq{\relax \ifmmode \ll \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \ll $}}\fi}
+\def\frqq{\protect\@frqq}
+\def\@frqq{\relax \ifmmode \gg \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \gg $}}\fi}
+\def\flq{\protect\@flq}
+\def\@flq{\relax \ifmmode <\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle <$}}\fi}
+\def\frq{\protect\@frq}
+\def\@frq{\relax \ifmmode >\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle >$}}\fi}
+\begingroup \catcode`\"12
+\def\x{\endgroup
+  \def\@UMLAUT{\"}
+  \def\@MATHUMLAUT{\mathaccent"707F }
+  \def\@SS{\mathchar"7019 }
+  \def\dq{"}}
+\x
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \ifx"\undefined \let"\dq \fi
+  \let\active@dq\dq}
+\x
+\let\dieresis=\"
+\def\german@dqmacro#1{\csname g@dq@\string #1@dq@\endcsname}
+\def\german@@active@dq#1{\expandafter\expandafter\expandafter
+  \ifx\german@dqmacro{#1}\relax \expandafter\normal@dq
+  \else \expandafter\german@@@active@dq \fi {#1}}
+\def\normal@dq#1{\dq #1}
+\def\german@@@active@dq#1{%
+  \ifx\protect\relax \else \expandafter\protect \fi
+  \active@dq{#1\empty}}
+\def\german@active@dq#1{%
+  \csname german@dq@\ifmmode second\else first\fi
+    \expandafter\expandafter\expandafter\expandafter
+    \expandafter\expandafter\expandafter
+  \endcsname
+  \german@dqmacro{#1}}
+\def\german@dq@first#1#2{#1}
+\def\german@dq@second#1#2{#2}
+\def\def@german@dqmacro#1#2#3{\expandafter\expandafter\expandafter
+  \def\german@dqmacro{#1}{{#2}{#3}}}
+\def\let@german@dqmacro#1#2{\begingroup
+  \edef\x{\endgroup \let
+    \expandafter\expandafter\expandafter\noexpand\german@dqmacro{#1}%
+    \expandafter\expandafter\expandafter\noexpand\german@dqmacro{#2}}%
+  \x}
+\def\german@dq@disc#1#2{%
+  \allowhyphens\discretionary{#2-}{}{#1}\allowhyphens}
+\def@german@dqmacro{a}{\@UMLAUT a}{\@MATHUMLAUT a}
+\def@german@dqmacro{o}{\@UMLAUT o}{\@MATHUMLAUT o}
+\def@german@dqmacro{u}{\@UMLAUT u}{\@MATHUMLAUT u}
+\def@german@dqmacro{A}{\@UMLAUT A}{\@MATHUMLAUT A}
+\def@german@dqmacro{O}{\@UMLAUT O}{\@MATHUMLAUT O}
+\def@german@dqmacro{U}{\@UMLAUT U}{\@MATHUMLAUT U}
+\def@german@dqmacro{e}{\highumlaut e}{\@MATHUMLAUT a}
+\def@german@dqmacro{E}{\highumlaut E}{\@MATHUMLAUT E}
+\def@german@dqmacro{i}{\highumlaut\i{}}{\@MATHUMLAUT\imath}
+\def@german@dqmacro{I}{\highumlaut I}{\@MATHUMLAUT I}
+\def@german@dqmacro{s}{\ss{}}{\@SS{}}
+\def@german@dqmacro{S}{SS}{SS}
+\def@german@dqmacro{`}{\glqq{}}{\glqq{}}
+\def@german@dqmacro{'}{\grqq{}}{\grqq{}}
+\def@german@dqmacro{<}{\flqq{}}{\flqq{}}
+\def@german@dqmacro{>}{\frqq{}}{\frqq{}}
+\def@german@dqmacro{c}{\german@dq@disc ck}{c}
+\def@german@dqmacro{C}{\german@dq@disc CK}{C}
+\def@german@dqmacro{f}{\german@dq@disc f{ff}}{f}
+\def@german@dqmacro{F}{\german@dq@disc F{FF}}{F}
+\def@german@dqmacro{l}{\german@dq@disc l{ll}}{l}
+\def@german@dqmacro{L}{\german@dq@disc L{LL}}{L}
+\def@german@dqmacro{m}{\german@dq@disc m{mm}}{m}
+\def@german@dqmacro{M}{\german@dq@disc M{MM}}{M}
+\def@german@dqmacro{n}{\german@dq@disc n{nn}}{n}
+\def@german@dqmacro{N}{\german@dq@disc N{NN}}{N}
+\def@german@dqmacro{p}{\german@dq@disc p{pp}}{p}
+\def@german@dqmacro{P}{\german@dq@disc P{PP}}{P}
+\def@german@dqmacro{t}{\german@dq@disc t{tt}}{t}
+\def@german@dqmacro{T}{\german@dq@disc T{TT}}{T}
+\def@german@dqmacro{-}{\allowhyphens\-\allowhyphens}%
+               {\allowhyphens\-\allowhyphens}
+\def@german@dqmacro{|}{\discretionary{-}{}{\kern.03em}}{}
+\def@german@dqmacro{"}{\hskip\z@skip}{\hskip\z@skip}
+\def@german@dqmacro{\empty}{{}}{{}}
+\let@german@dqmacro{\active@dq{}}{"}
+\def\mdqon{\catcode`\"\active}
+\def\mdqoff{\catcode`\"12 }
+\def\ck{\allowhyphens\discretionary{k-}{k}{ck}\allowhyphens}
+\selectlanguage{german}
+\catcode`\@=\atcatcode
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `germanb.sty'.

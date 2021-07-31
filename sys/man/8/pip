@@ -1,0 +1,283 @@
+.TH PIP 8
+.SH NAME
+pip \- CD-ROM workbench
+.SH SYNOPSIS
+.B disk/pip
+.SH DESCRIPTION
+.I Pip
+is a SCSI I/O program centered around a
+SCSI disk of files called tracks.
+Various commands will load and store tracks
+from and to various CD-ROM readers, writers, and files.
+.I Pip
+was written to be run on a stand-alone
+workstation so that the
+I/O data rates required for CD-audio can be sustained.
+.PP
+When
+.I pip
+starts,
+it probes the SCSI bus and
+looks for one of the following disks.
+The table in the program should be
+extended to include your favorite disk.
+The program does not recognize just
+.I any
+disk because it might scribble on precious data.
+.EX
+	SEAGATE ST42400N
+	SEAGATE ST41520N
+	SEAGATE ST410800N
+.EE
+.I Pip
+looks for the following device
+for the CD ROM writer.
+.EX
+	IMS     CDD521/10
+.EE
+.I Pip
+looks for one of the following devices
+for the CD ROM reader.
+The Philips will not read
+.B cdda
+format and
+the NEC does not work
+well with
+.IR pip .
+The Toshiba does not accurately
+seek on
+.B cdda
+media.
+We recommend the Plextor.
+The first column is the
+.I device
+name that should be given in
+the interactive commands.
+.EX
+	plex PLEXTOR CD-ROM PX-4XCS
+	tosh TOSHIBA CD-ROM DRIVE:XM
+	phil IMS     CDD521/10
+	nec  NEC     CD-ROM DRIVE:5001.0
+	nec  NEC     CD-ROM DRIVE:8411.0
+.EE
+.PP
+The following commands are recognized.
+.TF "remove track
+.TP
+.B help
+Print a one line description of each command.
+.TP
+.BI load " device track format disktrack"
+A track is copied from the
+.I device
+to the designated
+.I track
+on the disk.
+The track is a number or
+.BR * ,
+designating all tracks.
+If the copy completes normally,
+the old data on that disk track is lost.
+.I format
+is either
+.B cdda
+or
+.BR cdrom .
+.TP
+.BI verif " device track format disktrack"
+This is the same as
+.B  load
+except that
+the data is not copied,
+but compared to the data on the disk.
+The compare allows a slip of multiples of
+four bytes as might occur copying an audio
+CD with imprecise seek.
+.TP
+.BI store " track file"
+The disk track
+is written to a regular Plan 9 file.
+The
+.I track
+may be a number or
+.BR * .
+If the track is
+.BR * ,
+then the string
+.I file
+is prefixed to the track number
+for every track.
+.TP
+.BR toc " [\f2device\f1]
+Will print the table of contents of the specified
+.IR device .
+If no device is given,
+then the track table of contents of the disk is given.
+.TP
+.B cleartoc
+All tracks on the disk are deleted.
+.TP
+.BI remove " track
+The specified
+.I track
+on the disk is deleted.
+.TP
+.BI sum " track
+The specified disk
+.I track
+is read and checksummed.
+.TP
+.BI publish " track
+The specified disk
+.I track
+is copied to the next track
+on the Philips CD writer.
+The format of the data is not specified until
+the table of contents is written.
+Although it is not required,
+it is usual that all tracks are the same format.
+.TP
+.BI fixate " format
+Issue a
+.B fixate
+command to the Philips CD writer.
+.I Format
+is either
+.B cdda
+or
+.BR cdrom .
+This makes the table of contents permanent.
+.TP
+.BI session " format
+Issue a
+.B session
+command to the Philips CD writer.
+This is the same as
+.B fixate
+except that
+a second session is opened
+and more data may be put on the CD.
+Most readers can only see the table of contents
+from the first session.
+.TP
+.BI 9660 " proto track"
+A filesystem description is read from the
+.I proto
+file in
+.IR mkfs (8)
+format.
+The file system is converted to ISO 9660 format and written
+on the specified disk track.
+.PP
+The first line of the proto file for the
+.B 9660
+command is parsed for options.
+The following options are recognized.
+.TF "-n file
+.TP
+.B -c
+Convert all file names in the file system
+so that they conform to 9660 standards.
+(Roughly this is eight or fewer single case
+alphanumerics followed by an optional
+period and three or fewer single case alphanumerics.)
+File names that conform are converted from
+lower case letters in the input
+file system to upper case
+in the output file system.
+Names that do not conform 
+are renamed to
+.BI F number
+and directories are renamed
+.BI D number\f1.
+A file named
+.B _CONFORM.MAP
+is created in the root of the
+output file system with old-name
+new-name pairs of all converted files.
+.TP
+.B -e
+Add a
+.I system-use
+field to every directory record that
+contains the name, uid, gid, and mode
+of the file.
+With or without this extension,
+directory records conform to the 9660
+standard and should be able to be read
+on other systems.
+.TP
+.BI -a " file
+Places the named file in
+the abstract field of the primary volume descriptor.
+The file must be in the root directory.
+.TP
+.BI -b " file
+Places the named file in
+the bibliographic field of the primary volume descriptor.
+The file must be in the root directory.
+.TP
+.BI -n " file
+Places the named file in
+the copyright field of the primary volume descriptor.
+The file must be in the root directory.
+.TP
+.BI -s " dir
+Prefix the directory name
+.I dir
+to the names of files in the proto file.  This permits a file tree to be assembled
+cleanly under a special directory, to be then copied into the new file system at the root.
+.TP
+.B -v
+Print each file name as it is copied.
+.PD
+.PP
+All dates in the output file system are set to
+the date the command was executed.
+The volume identifier field of the primary
+volume descriptor is set to the last
+component of the
+.I proto
+file name.
+The system identifier field of the primary
+volume descriptor is set to
+.BR "PLAN 9" ,
+and should be keyed to the interpretation
+of the system-use fields of the directory
+records.
+.SH Example
+To cut your own audio CD with your favorite
+CDs:
+.PP
+.EX
+cleartoc
+load plex 5 cdda 1  # read track 5 from an audio CD
+load plex 2 cdda 2  # read track 2 from an audio CD
+load ...            # etc.
+publish *           # write all tracks to Philips CD writer
+fixate cdda         # write table of contents
+.EE
+.PP
+To cut your own 9660 CD-ROM:
+.PP
+.EX
+mount /srv/bootes /n/bootes	# make a clean, bind-free tree
+9660 mkfs 4         # make a 9660 image from a mkfs specification
+                    # for the Plan 9 distribution
+                    # the first line of mkfs is
+                    # -s /n/bootes -c -e -n notice
+publish 4           # write 9660 image to Philips CD writer
+fixate cdrom        # write table of contents
+.EE
+.SH SOURCE
+.B /sys/src/cmd/disk/pip
+.SH "SEE ALSO"
+.IR mkfs (8)
+.SH BUGS
+The program only knows about
+a few devices.
+The tables and device code
+must be extended to be more
+comprehensive.
+The industry has not adopted
+a standard way to read and write audio.

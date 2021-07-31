@@ -29,7 +29,7 @@ codgen(Node *n, Node *nn)
 	 * isolate first argument
 	 */
 	if(REGARG) {
-		if(typesuv[thisfn->link->etype]) {
+		if(typesu[thisfn->link->etype] || typev[thisfn->link->etype]) {
 			nod1 = *nodret->left;
 			nodreg(&nod, &nod1, REGARG);
 			gopcode(OAS, &nod, Z, &nod1);
@@ -38,7 +38,8 @@ codgen(Node *n, Node *nn)
 			nod1 = *nodret->left;
 			nod1.sym = firstarg;
 			nod1.type = firstargtype;
-			nod1.xoffset = align(0, firstargtype, Aarg1);
+			if(firstargtype->width < tint->width)
+				nod1.xoffset += endian(firstargtype->width);
 			nod1.etype = firstargtype->etype;
 			nodreg(&nod, &nod1, REGARG);
 			gopcode(OAS, &nod, Z, &nod1);
@@ -102,7 +103,7 @@ loop:
 			gbranch(ORETURN);
 			break;
 		}
-		if(typesuv[n->type->etype]) {
+		if(typesu[n->type->etype] || typev[n->type->etype]) {
 			sugen(l, nodret, n->type->width);
 			noretval(3);
 			gbranch(ORETURN);
@@ -311,29 +312,29 @@ loop:
 
 	case OSET:
 	case OUSED:
-		usedset(n->left, o);
-		break;
-	}
-}
-
-void
-usedset(Node *n, int o)
-{
-	if(n->op == OLIST) {
-		usedset(n->left, o);
-		usedset(n->right, o);
-		return;
-	}
-	complex(n);
-	switch(n->op) {
-	case OADDR:	/* volatile */
-		gins(ANOP, n, Z);
-		break;
-	case ONAME:
-		if(o == OSET)
-			gins(ANOP, Z, n);
-		else
-			gins(ANOP, n, Z);
+		n = n->left;
+		for(;;) {
+			if(n->op == OLIST) {
+				l = n->right;
+				n = n->left;
+				complex(l);
+				if(l->op == ONAME) {
+					if(o == OSET)
+						gins(ANOP, Z, l);
+					else
+						gins(ANOP, l, Z);
+				}
+			} else {
+				complex(n);
+				if(n->op == ONAME) {
+					if(o == OSET)
+						gins(ANOP, Z, n);
+					else
+						gins(ANOP, n, Z);
+				}
+				break;
+			}
+		}
 		break;
 	}
 }
@@ -441,7 +442,7 @@ xcom(Node *n)
 		if(v >= 0) {
 			n->op = OASASHL;
 			r->vconst = v;
-			r->type = types[TINT];
+			r->type = tint;
 		}
 		break;
 
@@ -453,7 +454,7 @@ xcom(Node *n)
 		if(v >= 0) {
 			n->op = OASHL;
 			r->vconst = v;
-			r->type = types[TINT];
+			r->type = tint;
 		}
 		v = vlog(l);
 		if(v >= 0) {
@@ -463,7 +464,7 @@ xcom(Node *n)
 			r = l;
 			l = n->left;
 			r->vconst = v;
-			r->type = types[TINT];
+			r->type = tint;
 		}
 		break;
 
@@ -474,7 +475,7 @@ xcom(Node *n)
 		if(v >= 0) {
 			n->op = OASLSHR;
 			r->vconst = v;
-			r->type = types[TINT];
+			r->type = tint;
 		}
 		break;
 
@@ -485,7 +486,7 @@ xcom(Node *n)
 		if(v >= 0) {
 			n->op = OLSHR;
 			r->vconst = v;
-			r->type = types[TINT];
+			r->type = tint;
 		}
 		break;
 

@@ -1,0 +1,14 @@
+Fri Mar 20 16:53:52 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Fri Jan 24 09:21:15 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Sun Jan 12 12:53:24 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (CFLAGS): include config, two levels up.

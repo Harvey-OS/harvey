@@ -1,0 +1,39 @@
+%% 
+%% This is file `OT1lcmtt.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% slides.fdd  (with options: `lcmtt,fd')
+%% 
+%% Copyright (C) 1994-1994 LaTeX3 Project, Frank Mittelbach. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% If you want to customize the definitions in this file we recommend 
+%% that you copy the relevant portions of the original source file 
+%% slides.fdd into a private .fdd file and generate the the customized 
+%% file from this source. 
+%% 
+\ProvidesFile{OT1lcmtt.fd}
+        [1994/05/12 v2.1h Standard LaTeX slide font definitions]
+\DeclareFontFamily{OT1}{lcmtt}{\hyphenchar\font\m@ne}{}
+\DeclareFontShape{OT1}{lcmtt}{m}{n}{%
+      <13.82><16.59><19.91><23.89><28.66><34.4><41.28>cmtt8
+      }{}
+\DeclareFontShape{OT1}{lcmtt}{m}{In}{%
+      <13.82><16.59><19.91><23.89><28.66><34.4><41.28>icmtt8
+      }{}
+\DeclareFontShape{OT1}{lcmtt}{m}{it}{%
+      <13.82><16.59><19.91><23.89><28.66><34.4><41.28>cmitt10
+      }{}
+\endinput
+%% 
+%% End of file `OT1lcmtt.fd'.

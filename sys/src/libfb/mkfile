@@ -1,0 +1,30 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libfb.a
+OFILES=getcmap.$O\
+	getflags.$O\
+	pic.601.$O\
+	pic.bit.$O\
+	pic.dmp.$O\
+	pic.pco.$O\
+	pic.pl9.$O\
+	pic.run.$O\
+	picclose.$O\
+	picconf.$O\
+	picgetprop.$O\
+	picopen_r.$O\
+	picopen_w.$O\
+	picpack.$O\
+	picputprop.$O\
+	picunpack.$O\
+	rdpicfile.$O\
+	wrpicfile.$O\
+
+HFILES=/sys/include/fb.h
+
+</sys/src/cmd/mksyslib
+
+CFILES=${OFILES:%.c=%.$O}
+
+listing:V:
+	pr mkfile $CFILES|lp -du

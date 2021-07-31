@@ -4,7 +4,7 @@ long	balloc(Device, int, long);
 void	bfree(Device, long, int);
 int	byname(void*, void*);
 int	byuid(void*, void*);
-int	Cconv(va_list*, Fconv*);
+int	Cconv(Op*);
 int	checkname(char*);
 int	checktag(Iobuf*, int, long);
 void 	cmd_user(void);
@@ -32,21 +32,19 @@ void	cprint(char*, ...);
 int	crack(File*, Fcall*);
 void	datestr(char*, long);
 void	dbufread(Iobuf*, Dentry*, long);
-int	Dconv(va_list*, Fconv*);
+int	Dconv(Op*);
 int	devcmp(Device, Device);
 Iobuf*	dnodebuf(Iobuf*, Dentry*, long, int);
 void	dofilter(Filter*);
 int	doremove(File *, int);
 void	dtrunc(Iobuf*, Dentry*);
 void	exit(void);
-int	FFconv(va_list*, Fconv*);
+int	Fconv(Op*);
 ulong	fakeqid(Dentry*);
 Float	famd(Float, int, int, int);
-int	fcallconv(va_list*, Fconv*);
 int	fchar(void);
 ulong	fdf(Float, int);
 void	fileinit(Chan*);
-void	sublockinit(void);
 File*	filep(Chan*, int, int);
 int	fname(char*);
 void	formatinit(void);
@@ -71,11 +69,10 @@ void	f_walk(Chan*, Fcall*, Fcall*);
 void	f_clwalk(Chan*, Fcall*, Fcall*);
 void	f_write(Chan*, Fcall*, Fcall*);
 void	f_wstat(Chan*, Fcall*, Fcall*);
-int	Gconv(va_list*, Fconv*);
+int	Gconv(Op*);
 Iobuf*	getbuf(Device, long, int);
 Dentry*	getdir(Iobuf*, int);
 long	getraddr(Device);
-Wpath*	getwp(Wpath*);
 void	hexdump(void*, int);
 int	iaccess(File*, Dentry*, int);
 long	indfetch(Iobuf*, Dentry*, long, long , int, int);
@@ -90,7 +87,6 @@ void	p9fcall(Chan*, Fcall*, Fcall*);
 void	panic(char*, ...);
 int	prime(long);
 void	putbuf(Iobuf*);
-void	putwp(Wpath*);
 void	rootream(Device, long);
 void	settag(Iobuf*, int, long);
 void	strrand(void*, int);
@@ -100,17 +96,9 @@ int	superok(Device, long, int);
 void	superream(Device, long);
 void	sync(char*);
 int	syncblock(void);
-int	Tconv(va_list*, Fconv*);
+int	Tconv(Op*);
+long	time(void);
 Tlock*	tlocked(Iobuf*, Dentry*);
+long	toytime(void);
 void	uidtostr(char*,int);
 void	uidtostr1(char*,int);
-
-#pragma varargck	argpos	cprint	1
-#pragma varargck	argpos	panic	1
-
-#pragma varargck	type	"C"	Chan*
-#pragma varargck	type	"D"	Device
-#pragma varargck	type "F"	Filta
-#pragma varargck	type	"G"	int
-#pragma varargck	type	"T"	long
-#pragma varargck	type	"A"	Fcall*

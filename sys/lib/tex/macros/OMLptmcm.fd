@@ -1,0 +1,15 @@
+%Filename: OMLptmcm.fd
+%Created by: tex fontptcm
+%Created using fontinst v1.331
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OML}{ptmcm}{\skewchar \font =127}
+
+\DeclareFontShape{OML}{ptmcm}{m}{it}{
+   <-> zptmcmrm
+}{}
+
+\DeclareFontShape{OML}{ptmcm}{m}{ui}{<->sub * ptmcm/m/it}{}
+
+\endinput

@@ -17,7 +17,6 @@ OFILES=scat.$O\
 
 HFILES=sky.h
 
-LIB=/$objtype/lib/libdraw.a
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 

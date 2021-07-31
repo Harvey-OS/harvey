@@ -326,11 +326,8 @@ void
 fatal(int syserr, char *fmt, ...)
 {
 	char buf[ERRLEN], *s;
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	s = "ki: %s\n";
 	if(syserr)
 		s = "ki: %s: %r\n";
@@ -342,11 +339,8 @@ void
 itrace(char *fmt, ...)
 {
 	char buf[128];
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	Bprint(bioout, "%8lux %.8lux %s\n", reg.pc, reg.ir, buf);	
 }
 

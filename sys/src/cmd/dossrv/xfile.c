@@ -8,41 +8,21 @@
 
 static Xfs	*xhead;
 static Xfile	*xfiles[FIDMOD], *freelist;
-static MLock	xlock, xlocks[FIDMOD], freelock;
+static Lock	xlock, xlocks[FIDMOD], freelock;
+
+int	client;
 
 Xfs *
 getxfs(char *name)
 {
 	int fd; Dir dir; Xfs *xf, *fxf;
-	char *p, *q;
-	long offset;
 
-	if(name==nil || name[0]==0)
+	if(name==0 || name[0]==0)
 		name = deffile;
-	if(name == nil){
+	if(name == 0){
 		errno = Enofilsys;
 		return 0;
 	}
-
-	/*
-	 * If the name passed is of the form 'name:offset' then
-	 * offset is used to prime xf->offset. This allows accessing
-	 * a FAT-based filesystem anywhere within a partition.
-	 * Typical use would be to mount a filesystem in the presence
-	 * of a boot manager programme at the beginning of the disc.
-	 */
-	offset = 0;
-	if(p = strrchr(name, ':')){
-		*p++ = 0;
-		offset = strtol(p, &q, 0);
-		chat("name %s, offset %ld\n", p, offset);
-		if(offset < 0 || p == q){
-			errno = Enofilsys;
-			return 0;
-		}
-		offset *= Sectorsize;
-	}
-
 	fd = open(name, ORDWR);
 	if(fd < 0){
 		errno = Enonexist;
@@ -53,7 +33,7 @@ getxfs(char *name)
 		close(fd);
 		return 0;
 	}
-	mlock(&xlock);
+	lock(&xlock);
 	for(fxf=0,xf=xhead; xf; xf=xf->next){
 		if(xf->ref == 0){
 			if(fxf == 0)
@@ -66,21 +46,19 @@ getxfs(char *name)
 			continue;
 		if(devcheck(xf) < 0) /* look for media change */
 			continue;
-		if(offset && xf->offset != offset)
-			continue;
 		chat("incref \"%s\", dev=%d...", xf->name, xf->dev);
 		++xf->ref;
-		unmlock(&xlock);
+		unlock(&xlock);
 		close(fd);
 		return xf;
 	}
-	if(fxf == nil){
+	if(fxf==0){
 		fxf = malloc(sizeof(Xfs));
-		if(fxf == nil){
-			unmlock(&xlock);
+		if(fxf==0){
+			unlock(&xlock);
 			close(fd);
 			errno = Enomem;
-			return nil;
+			return 0;
 		}
 		fxf->next = xhead;
 		xhead = fxf;
@@ -91,17 +69,16 @@ getxfs(char *name)
 	fxf->qid = dir.qid;
 	fxf->dev = fd;
 	fxf->fmt = 0;
-	fxf->offset = offset;
-	fxf->ptr = nil;
-	fxf->isfat32 = 0;
-	unmlock(&xlock);
+	fxf->offset = 0;
+	fxf->ptr = 0;
+	unlock(&xlock);
 	return fxf;
 }
 
 void
 refxfs(Xfs *xf, int delta)
 {
-	mlock(&xlock);
+	lock(&xlock);
 	xf->ref += delta;
 	if(xf->ref == 0){
 		chat("free \"%s\", dev=%d...", xf->name, xf->dev);
@@ -113,24 +90,19 @@ refxfs(Xfs *xf, int delta)
 			xf->dev = -1;
 		}
 	}
-	unmlock(&xlock);
+	unlock(&xlock);
 }
 
 Xfile *
 xfile(int fid, int flag)
 {
-	Xfile **hp, *f, *pf;
-	int k;
+	int k = ((ulong)fid^(ulong)client)%FIDMOD;
+	Xfile **hp=&xfiles[k], *f, *pf;
 
-	k = ((ulong)fid) % FIDMOD;
-	hp = &xfiles[k];
-	mlock(&xlocks[k]);
-	pf = nil;
-	for(f=*hp; f; f=f->next){
-		if(f->fid == fid)
+	lock(&xlocks[k]);
+	for(f=*hp,pf=0; f; pf=f, f=f->next)
+		if(f->fid == fid && f->client == client)
 			break;
-		pf = f;
-	}
 	if(f && pf){
 		pf->next = f->next;
 		f->next = *hp;
@@ -140,47 +112,44 @@ xfile(int fid, int flag)
 	default:
 		panic("xfile");
 	case Asis:
-		unmlock(&xlocks[k]);
-		return (f && f->xf && f->xf->dev < 0) ? nil : f;
+		unlock(&xlocks[k]);
+		return (f && f->xf && f->xf->dev < 0) ? 0 : f;
 	case Clean:
 		break;
 	case Clunk:
 		if(f){
 			*hp = f->next;
-			unmlock(&xlocks[k]);
+			unlock(&xlocks[k]);
 			clean(f);
-			mlock(&freelock);
+			lock(&freelock);
 			f->next = freelist;
 			freelist = f;
-			unmlock(&freelock);
+			unlock(&freelock);
 		} else
-			unmlock(&xlocks[k]);
-		return nil;
+			unlock(&xlocks[k]);
+		return 0;
 	}
-	unmlock(&xlocks[k]);
+	unlock(&xlocks[k]);
 	if(f)
 		return clean(f);
-	mlock(&freelock);
+	lock(&freelock);
 	if(f = freelist){	/* assign = */
 		freelist = f->next;
-		unmlock(&freelock);
+		unlock(&freelock);
 	} else {
-		unmlock(&freelock);
+		unlock(&freelock);
 		f = malloc(sizeof(Xfile));
-		if(f == nil){
-			errno = Enomem;
-			return nil;
-		}
 	}
-	mlock(&xlocks[k]);
+	lock(&xlocks[k]);
 	f->next = *hp;
 	*hp = f;
-	unmlock(&xlocks[k]);
+	unlock(&xlocks[k]);
 	f->fid = fid;
+	f->client = client;
 	f->flags = 0;
 	f->qid = (Qid){0,0};
-	f->xf = nil;
-	f->ptr = nil;
+	f->xf = 0;
+	f->ptr = 0;
 	return f;
 }
 
@@ -189,38 +158,45 @@ clean(Xfile *f)
 {
 	if(f->ptr){
 		free(f->ptr);
-		f->ptr = nil;
+		f->ptr = 0;
 	}
 	if(f->xf){
 		refxfs(f->xf, -1);
-		f->xf = nil;
+		f->xf = 0;
 	}
+	f->xf = 0;
 	f->flags = 0;
 	f->qid = (Qid){0,0};
 	return f;
 }
 
-/*
- * the file at <addr, offset> has moved
- * relocate the dos entries of all fids in the same file
- */
-void
-dosptrreloc(Xfile *f, Dosptr *dp, ulong addr, ulong offset)
+int
+xfspurge(void)
 {
-	int i;
-	Xfile *p;
-	Dosptr *xdp;
+	Xfile **hp, *f, *pf, *nf;
+	int k, count=0;
 
-	for(i=0; i < FIDMOD; i++){
-		for(p = xfiles[i]; p != nil; p = p->next){
-			xdp = p->ptr;
-			if(p != f && p->xf == f->xf
-			&& xdp != nil && xdp->addr == addr && xdp->offset == offset){
-				memmove(xdp, dp, sizeof(Dosptr));
-				xdp->p = nil;
-				xdp->d = nil;
-				p->qid.path = QIDPATH(xdp);
+	for(k=0; k<FIDMOD; k++){
+		lock(&xlocks[k]);
+		hp=&xfiles[k];
+		for(f=*hp,pf=0; f; f=nf){
+			nf = f->next;
+			if(f->client != client){
+				pf = f;
+				continue;
 			}
+			if (pf)
+				pf->next = f->next;
+			else
+				*hp = f->next;
+			clean(f);
+			lock(&freelock);
+			f->next = freelist;
+			freelist = f;
+			unlock(&freelock);
+			++count;
 		}
+		unlock(&xlocks[k]);
 	}
+	return count;
 }

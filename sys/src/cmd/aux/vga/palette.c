@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 
 #include "vga.h"
 
@@ -31,9 +30,11 @@ setcolour(uchar p[3], ulong r, ulong g, ulong b)
  * Vga colour palette.
  */
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	int i;
+
+	verbose("%s->snarf\n", ctlr->name);
 
 	vga->pixmask = vgai(Pixmask);
 	vga->pstatus = vgai(Pstatus);
@@ -48,11 +49,13 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 	uchar *p;
 	ulong x;
+
+	verbose("%s->init\n", ctlr->name);
 
 	memset(vga->palette, 0, sizeof(vga->palette));
 	vga->pixmask = 0xFF;
@@ -77,9 +80,11 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	int i;
+
+	verbose("%s->load\n", ctlr->name);
 
 	vgao(Pixmask, vga->pixmask);
 	vgao(PaddrW, 0x00);
@@ -93,18 +98,18 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 
 	printitem(ctlr->name, "palette");
 	for(i = 0; i < Pcolours; i++){
 		if(i && (i%6) == 0)
-			Bprint(&stdout, "\n%-20s", "");
-		Bprint(&stdout, " %2.2X/%2.2X/%2.2X", vga->palette[i][Red],
+			print("\n%-20s", "");
+		print(" %2.2X/%2.2X/%2.2X", vga->palette[i][Red],
 			vga->palette[i][Green], vga->palette[i][Blue]);
 	}
-	Bprint(&stdout, "\n");
+	print("\n");
 }
 
 Ctlr palette = {

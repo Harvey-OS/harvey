@@ -272,6 +272,7 @@ strtod(char *s00, char **se)
 	rv.d = y;
 	if(k > 9)
 		rv.d = tens[k - 9] * rv.d + z;
+	bd0 = 0;
 	if(nd <= DBL_DIG && FLT_ROUNDS == 1){
 		if(!e)
 			goto ret;
@@ -306,6 +307,8 @@ strtod(char *s00, char **se)
 			if(e1 > DBL_MAX_10_EXP){
  ovfl:
 				rv.d = DBL_MAX;
+				if (bd0)
+					goto retfree;
 				goto ret;
 			}
 			if(e1 >>= 4){
@@ -334,6 +337,8 @@ strtod(char *s00, char **se)
 			rv.d /= tens[i];
 		if(e1 &= ~15){
 			e1 >>= 4;
+			if (e1 >= 1 << n_bigtens)
+				goto undfl;
 			for(j = 0; e1 > 1; j++, e1 >>= 1)
 				if(e1 & 1)
 					rv.d *= tinytens[j];
@@ -346,6 +351,8 @@ strtod(char *s00, char **se)
 				if(rv.d == 0){
  undfl:
 					rv.d = 0.;
+					if (bd0)
+						goto retfree;
 					goto ret;
 				}
 				word0(rv) = Tiny0;
@@ -577,6 +584,7 @@ strtod(char *s00, char **se)
 		Bfree(bs);
 		Bfree(delta);
 	}
+ retfree:
 	Bfree(bb);
 	Bfree(bd);
 	Bfree(bs);

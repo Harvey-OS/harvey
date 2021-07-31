@@ -3,7 +3,6 @@
  */
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 
 #include "vga.h"
 
@@ -35,61 +34,59 @@ static ulong index[NIndex] = {
 };
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	int f;
 	ulong d, dmax, fmin, n;
 
+	verbose("%s->init\n", ctlr->name);
 	if(ctlr->flag & Finit)
 		return;
 
-	if(vga->f[0] == 0)
-		vga->f[0] = vga->mode->frequency;
-
-	if(vga->mode->z > 8)
-		error("depth %d not supported\n", vga->mode->z);
+	if(vga->f == 0)
+		vga->f = vga->mode->frequency;
 
 	/*
 	 * Post-VCO divisor. Constraint:
 	 * 	50MHz <= vga->f <= 120MHz
 	 */
-	for(vga->p[0] = 0; vga->f[0] <= 50000000; vga->p[0]++)
-		vga->f[0] <<= 1;
+	for(vga->p = 0; vga->f <= 50000000; vga->p++)
+		vga->f <<= 1;
 
 	/*
 	 * Determine index.
 	 */
-	for(vga->i[0] = NIndex-1; vga->f[0] < index[vga->i[0]] && vga->i[0]; vga->i[0]--)
+	for(vga->i = NIndex-1; vga->f < index[vga->i] && vga->i; vga->i--)
 		;
 
 	/*
 	 * Denominator. Constraints:
-	 *	200KHz <= RefFreq/d <= 1MHz
+	 *	200KHz <= Frequency/d <= 1MHz
 	 * and
 	 *	3 <= d <= 129
 	 *
 	 * Numerator. Constraint:
 	 *	4 <= n <= 130
 	 */
-	d = RefFreq/1000000 > 3 ? RefFreq/1000000: 3;
-	dmax = RefFreq/200000 < 129 ? RefFreq/200000: 129;
+	d = Frequency/1000000 > 3 ? Frequency/1000000: 3;
+	dmax = Frequency/200000 < 129 ? Frequency/200000: 129;
 
 	/*
 	 * Now look for values of p and q that give
 	 * the least error for
-	 *	vga->f = (Prescale*RefFreq*n/d);
+	 *	vga->f = (Prescale*Frequency*n/d);
 	 */
-	vga->d[0] = d;
-	vga->n[0] = 4;
-	for(fmin = vga->f[0]; d <= dmax; d++){
+	vga->d = d;
+	vga->n = 4;
+	for(fmin = vga->f; d <= dmax; d++){
 		for(n = 4; n <= 130; n++){
-			f = vga->f[0] - (Prescale*RefFreq*n/d);
+			f = vga->f - (Prescale*Frequency*n/d);
 			if(f < 0)
 				f = -f;
 			if(f < fmin){
 				fmin = f;
-				vga->d[0] = d;
-				vga->n[0] = n;
+				vga->d = d;
+				vga->n = n;
 			}
 		}
 	}
@@ -99,10 +96,11 @@ init(Vga* vga, Ctlr* ctlr)
 	 *	(2<<21)|(vga->i<<17)|((vga->n)<<10)|(vga->p<<7)|vga->d
 	 * Always select ICD2061A REG2.
 	 */
-	vga->f[0] = (Prescale*RefFreq*vga->n[0]/vga->d[0]);
-	vga->d[0] -= 2;
-	vga->n[0] -= 3;
+	vga->f = (Prescale*Frequency*vga->n/vga->d);
+	vga->d -= 2;
+	vga->n -= 3;
 
+	verbose("%s->init done - %lud\n", ctlr->name, vga->f);
 	ctlr->flag |= Finit;
 }
 

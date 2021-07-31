@@ -1,0 +1,24 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+TARG=Acid
+OFILES=acid.$O\
+		awin.$O\
+		util.$O\
+		win.$O
+
+HFILES=dat.h\
+	fns.h\
+
+BIN=../$objtype
+</sys/src/cmd/mkone
+
+syms:V:
+	val -a acid.l	>syms
+	val -aa *.l 	>>syms
+
+2.out:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+../68020/$TARG:Q:	2.out
+	;

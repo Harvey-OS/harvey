@@ -13,10 +13,8 @@ authorize(dest *dp)
 
 	dp->authorized = 1;
 	pp = proc_start(s_to_c(dp->repl1), (stream *)0, (stream *)0, outstream(), 1, 0);
-	if (pp == 0){
-		dp->status = d_noforward;
+	if (pp == 0)
 		return;
-	}
 	errstr = s_new();
 	while(s_read_line(pp->std[2]->fp, errstr))
 		;

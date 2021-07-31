@@ -20,8 +20,6 @@ struct tap {
 int	tapefile;
 char	buffer[8192];
 long	cvtime(unsigned char *);
-extern	int verbose;
-extern	int newtap;
 
 void
 populate(char *name)
@@ -41,10 +39,8 @@ populate(char *name)
 		for (j=0; j<32; j++, sp+=2)
 			cksum += sp[0] + (sp[1]<<8);
 		cksum &= 0xFFFF;
-		if (cksum!=0) {
-			print("cksum failure\n");
+		if (cksum!=0)
 			continue;
-		}
 		if (tpp->name[0]=='\0')
 			continue;
 		f.addr = (void *)(tpp->taddress[0] + (tpp->taddress[1]<<8));
@@ -55,8 +51,6 @@ populate(char *name)
 		f.mode = tpp->mode[0]&0777;
 		isabs = tpp->name[0]=='/';
 		f.name = (char *)tpp->name+isabs;
-		if (verbose)
-			print("%s mode %o, %s", f.name, f.mode, ctime(f.mdate));
 		poppath(f, 1);
 	}
 }
@@ -65,10 +59,8 @@ long
 cvtime(unsigned char *tp)
 {
 	unsigned long t = (tp[1]<<24)+(tp[0]<<16)+(tp[3]<<8)+(tp[2]<<0);
-	if (!newtap) {
-		t /= 60;
-		t += 3*365*24*3600;
-	}
+	t /= 60;
+	t += 2*365*24*3600;
 	return t;
 }
 

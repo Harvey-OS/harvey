@@ -64,10 +64,8 @@ hfopen(Ndb *db, char *attr)
 	|| db->qid.vers != d.qid.vers){
 		if(ndbreopen(db) < 0)
 			return 0;
-	}
-
-	if(db->nohash)
-		return 0;
+	};
+	db->length = d.length;
 
 	/* see if a hash file exists for this attribute */
 	for(hf = db->hf; hf; hf= hf->next){
@@ -79,7 +77,6 @@ hfopen(Ndb *db, char *attr)
 	hf = (Ndbhf*)malloc(sizeof(Ndbhf));
 	if(hf == 0)
 		return 0;
-	memset(hf, 0, sizeof(Ndbhf));
 
 	/* compare it to the database file */
 	strncpy(hf->attr, attr, sizeof(hf->attr)-1);

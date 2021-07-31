@@ -1,0 +1,20 @@
+#!/bin/rc
+
+site=installation
+sysname=unknown
+/bin/bind -a '#H' /dev >/dev/null >[2=1]
+/bin/bind -a '#w' /dev >/dev/null >[2=1]
+/bin/bind -a '#w1' /dev >/dev/null >[2=1]
+/bin/bind -a '#w2' /dev >/dev/null >[2=1]
+/bin/bind -a '#w3' /dev >/dev/null >[2=1]
+/bin/bind -a '#w4' /dev >/dev/null >[2=1]
+/bin/bind -a '#w5' /dev >/dev/null >[2=1]
+/bin/bind -a '#w6' /dev >/dev/null >[2=1]
+/bin/bind -a '#w7' /dev >/dev/null >[2=1]
+/bin/bind -a '#f' /dev >/dev/null >[2=1]
+/bin/bind -a '#t' /dev >/dev/null >[2=1]
+/fs
+if( ! /bin/mount -c /srv/dos /n/c /dev/hd0disk > /dev/null >[2=1])
+	/bin/mount -c /srv/dos /n/c /dev/sd0disk > /dev/null >[2=1]
+
+exec /bin/build

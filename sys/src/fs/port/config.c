@@ -5,86 +5,14 @@ struct
 {
 	char*	icharp;
 	char*	charp;
+	int	loc;
 	int	error;
 	int	newconf;	/* clear befor start */
 	int	modconf;	/* write back when done */
 	int	nextiter;
 	int	lastiter;
-	int	diriter;
 	int	ipauthset;
-	Device*	lastcw;
-	Device*	devlist;
 } f;
-
-int
-devcmpr(Device *d1, Device *d2)
-{
-
-loop:
-	if(d1 == d2)
-		return 0;
-	if(d1 == 0 || d2 == 0 || d1->type != d2->type)
-		return 1;
-
-	switch(d1->type) {
-	default:
-		print("cant compare dev: %D\n", d1);
-		panic("devcmp");
-		break;
-
-	case Devmcat:
-	case Devmlev:
-		d1 = d1->cat.first;
-		d2 = d2->cat.first;
-		while(d1 && d2) {
-			if(devcmpr(d1, d2))
-				return 1;
-			d1 = d1->link;
-			d2 = d2->link;
-		}
-		goto loop;
-
-	case Devnone:
-		return 0;
-
-	case Devro:
-		d1 = d1->ro.parent;
-		d2 = d2->ro.parent;
-		goto loop;
-
-	case Devjuke:
-	case Devcw:
-		if(devcmpr(d1->cw.c, d2->cw.c))
-			break;
-		d1 = d1->cw.w;
-		d2 = d2->cw.w;
-		goto loop;
-
-	case Devfworm:
-		d1 = d1->fw.fw;
-		d2 = d2->fw.fw;
-		goto loop;
-
-	case Devwren:
-	case Devworm:
-	case Devlworm:
-		if(d1->wren.ctrl == d2->wren.ctrl)
-		if(d1->wren.targ == d2->wren.targ)
-		if(d1->wren.lun == d2->wren.lun)
-			return 0;
-		break;
-
-	case Devpart:
-		if(d1->part.base == d2->part.base)
-		if(d1->part.size == d2->part.size) {
-			d1 = d1->part.d;
-			d2 = d2->part.d;
-			goto loop;
-		}
-		break;
-	}
-	return 1;
-}
 
 void
 cdiag(char *s, int c1)
@@ -105,11 +33,11 @@ cnumb(void)
 	c = *f.charp++;
 	if(c == '<') {
 		n = f.nextiter;
-		if(n >= 0) {
-			f.nextiter = n+f.diriter;
-			if(n == f.lastiter) {
-				f.nextiter = -1;
-				f.lastiter = -1;
+		if(n) {
+			f.nextiter = n+1;
+			if(n >= f.lastiter) {
+				f.nextiter = 0;
+				f.lastiter = 0;
 			}
 			for(;;) {
 				c = *f.charp++;
@@ -128,11 +56,8 @@ cnumb(void)
 			cdiag("> expected", f.charp[-1]);
 			return 0;
 		}
+		f.nextiter = n+1;
 		f.lastiter = c;
-		f.diriter = 1;
-		if(n > c)
-			f.diriter = -1;
-		f.nextiter = n+f.diriter;
 		return n;
 	}
 	if(c < '0' || c > '9') {
@@ -148,51 +73,56 @@ cnumb(void)
 	return n;
 }
 
-Device*
+Device
 config1(int c)
 {
-	Device *d, *t;
-	int m;
+	Device d, dl[200];
+	int i, m;
 
-	d = ialloc(sizeof(Device), 0);
-	for(;;) {
-		t = config();
-		if(d->cat.first == 0)
-			d->cat.first = t;
-		else
-			d->cat.last->link = t;
-		d->cat.last = t;
+	for(i=0;; i++) {
+		dl[i] = config();
 		if(f.error)
 			goto bad;
 		m = *f.charp;
-		if(c == '(' && m == ')') {
-			d->type = Devmcat;
+		if(c == '(' && m == ')')
 			break;
-		}
-		if(c == '[' && m == ']') {
-			d->type = Devmlev;
+		if(c == '[' && m == ']')
 			break;
-		}
 	}
 	f.charp++;
-	if(d->cat.first == d->cat.last)
-		d = d->cat.first;
+	if(i == 0)
+		return dl[0];
+
+	d.type = Devmcat;
+	d.ctrl = 0;
+	if(c == '[')
+		d.type = Devmlev;
+	d.unit = f.loc;
+	for(m=0; m<=i; m++)
+		cwdevs[f.loc+m] = dl[m];
+	f.loc += m;
+	d.part = f.loc;
 	return d;
 
 bad:
-	return devnone;
+	d.type = Devnone;
+	return d;
 }
 
-Device*
+Device
 config(void)
 {
 	int c, m;
-	Device *d;
+	Device d, d1, d2;
 	char *icp;
 
 	if(f.error)
 		goto bad;
-	d = ialloc(sizeof(Device), 0);
+
+	d.type = 0;
+	d.ctrl = 0;
+	d.unit = 0;
+	d.part = 0;
 
 	c = *f.charp++;
 	switch(c) {
@@ -202,88 +132,74 @@ config(void)
 
 	case '(':	/* (d+) one or multiple cat */
 	case '[':	/* [d+] one or multiple interleave */
-		return config1(c);
-
-	case 'f':	/* fd fake worm */
-		d->type = Devfworm;
-		d->fw.fw = config();
+		d = config1(c);
 		break;
 
-	case 'n':
-		d->type = Devnone;
+	case 'f':	/* fd fake worm */
+		d.type = Devfworm;
+		d1 = config();
+		cwdevs[f.loc] = d1;
+		d.part = f.loc;
+		f.loc++;
 		break;
 
 	case 'w':	/* w[#.]# wren [ctrl] unit [part] */
 	case 'r':	/* r[#.]#[.#] worm [ctrl] unit [part] */
-	case 'l':	/* r[#.]#[.#] worm [ctrl] unit [part] */
 		icp = f.charp;
-		d->type = Devwren;
-		d->wren.ctrl = 0;
-		d->wren.targ = cnumb();
-		d->wren.lun = 0;
+		d.type = Devwren;
+		if(c == 'r')
+			d.type = Devworm;
+		d.ctrl = 0;
+		d.unit = cnumb();
+		d.part = 0;
 		m = *f.charp;
 		if(m == '.') {
 			f.charp++;
-			d->wren.lun = cnumb();
+			d.part = cnumb();
 			m = *f.charp;
 			if(m == '.') {
 				f.charp++;
-				d->wren.ctrl = d->wren.targ;
-				d->wren.targ = d->wren.lun;
-				d->wren.lun = cnumb();
+				d.ctrl = d.unit;
+				d.unit = d.part;
+				d.part = cnumb();
 			}
 		}
-		if(f.nextiter >= 0)
+		if(f.nextiter)
 			f.charp = icp-1;
-		if(c == 'r') {	/* worms are virtual and not uniqued */
-			d->type = Devworm;
-			break;
-		}
-		if(c == 'l') {
-			d->type = Devlworm;
-			break;
-		}
 		break;
 
 	case 'o':	/* ro part of last cw */
-		if(f.lastcw == 0) {
-			cdiag("no cw to match", c);
-			goto bad;
-		}
-		return f.lastcw->cw.ro;
-
-	case 'j':	/* jukebox */
-		d->type = Devjuke;
-		d->j.j = config();
-		d->j.m = config();
+		d.type = Devro;	/* the rest is filled in in devinit */
 		break;
 
-	case 'c':	/* cache/worm */
-		d->type = Devcw;
-		d->cw.c = config();
-		d->cw.w = config();
-		d->cw.ro = ialloc(sizeof(Device), 0);
-		d->cw.ro->type = Devro;
-		d->cw.ro->ro.parent = d;
-		f.lastcw = d;
+	case 'c':	/* cdd cache/worm */
+		d.type = Devcw;
+		d1 = config();
+		d2 = config();
+		cwdevs[f.loc+0] = d1;
+		cwdevs[f.loc+1] = d2;
+		d.part = f.loc;
+		f.loc += 2;
 		break;
 
 	case 'p':	/* pd#.# partition base% size% */
-		d->type = Devpart;
-		d->part.d = config();
-		d->part.base = cnumb();
+		d.type = Devpart;
+		d1 = config();
+		cwdevs[f.loc] = d1;
+		d.ctrl = f.loc;
+		f.loc++;
+		d.unit = cnumb();
 		c = *f.charp++;
 		if(c != '.')
 			cdiag("dot expected", c);
-		d->part.size = cnumb();
+		d.part = cnumb();
 		break;
 	}
-	d->dlink = f.devlist;
-	f.devlist = d;
 	return d;
 
 bad:
-	return devnone;
+	d.type = Devnone;
+	return d;
 }
 
 char*
@@ -298,13 +214,11 @@ strdup(char *s)
 	return s1;
 }
 
-Device*
+Device
 iconfig(char *s)
 {
-	Device *d;
+	Device d;
 
-	f.nextiter = -1;
-	f.lastiter = -1;
 	f.error = 0;
 	f.icharp = s;
 	f.charp = f.icharp;
@@ -319,31 +233,12 @@ iconfig(char *s)
 int
 testconfig(char *s)
 {
+	int savfl;
 
+	savfl = f.loc;
 	iconfig(s);
+	f.loc = savfl;
 	return f.error;
-}
-
-int
-astrcmp(char *a, char *b)
-{
-	int n, c;
-
-	n = strlen(b);
-	if(memcmp(a, b, n))
-		return 1;
-	c = a[n];
-	if(c == 0) {
-		aindex = 0;
-		return 0;
-	}
-	if(a[n+1])
-		return 1;
-	if(c >= '0' && c <= '9') {
-		aindex = c - '0';
-		return 0;
-	}
-	return 1;
 }
 
 void
@@ -371,6 +266,20 @@ line:
 			strcpy(service, word);
 		goto loop;
 	}
+	if(strcmp(word, "ip") == 0) {
+		cp = getwd(word, cp);
+		if(!nzip(sysip))
+			if(chartoip(sysip, word))
+				goto bad;
+		goto loop;
+	}
+	if(strcmp(word, "ipgw") == 0) {
+		cp = getwd(word, cp);
+		if(!nzip(defgwip))
+			if(chartoip(defgwip, word))
+				goto bad;
+		goto loop;
+	}
 	if(strcmp(word, "ipauth") == 0) {
 		cp = getwd(word, cp);
 		if(!f.ipauthset)
@@ -378,24 +287,10 @@ line:
 				goto bad;
 		goto loop;
 	}
-	if(astrcmp(word, "ip") == 0) {
+	if(strcmp(word, "ipmask") == 0) {
 		cp = getwd(word, cp);
-		if(!nzip(ipaddr[aindex].sysip))
-			if(chartoip(ipaddr[aindex].sysip, word))
-				goto bad;
-		goto loop;
-	}
-	if(astrcmp(word, "ipgw") == 0) {
-		cp = getwd(word, cp);
-		if(!nzip(ipaddr[aindex].defgwip))
-			if(chartoip(ipaddr[aindex].defgwip, word))
-				goto bad;
-		goto loop;
-	}
-	if(astrcmp(word, "ipmask") == 0) {
-		cp = getwd(word, cp);
-		if(!nzip(ipaddr[aindex].defmask))
-			if(chartoip(ipaddr[aindex].defmask, word))
+		if(!nzip(defmask))
+			if(chartoip(defmask, word))
 				goto bad;
 		goto loop;
 	}
@@ -425,41 +320,25 @@ void
 sysinit(void)
 {
 	Filsys *fs;
-	int error, i;
-	Device *d;
+	int i, error;
+	Device d;
 	Iobuf *p;
 
-	dofilter(u->time+0, C0a, C0b, 1);
-	dofilter(u->time+1, C1a, C1b, 1);
-	dofilter(u->time+2, C2a, C2b, 1);
-	dofilter(cons.work+0, C0a, C0b, 1);
-	dofilter(cons.work+1, C1a, C1b, 1);
-	dofilter(cons.work+2, C2a, C2b, 1);
-	dofilter(cons.rate+0, C0a, C0b, 1000);
-	dofilter(cons.rate+1, C1a, C1b, 1000);
-	dofilter(cons.rate+2, C2a, C2b, 1000);
-	dofilter(cons.bhit+0, C0a, C0b, 1);
-	dofilter(cons.bhit+1, C1a, C1b, 1);
-	dofilter(cons.bhit+2, C2a, C2b, 1);
-	dofilter(cons.bread+0, C0a, C0b, 1);
-	dofilter(cons.bread+1, C1a, C1b, 1);
-	dofilter(cons.bread+2, C2a, C2b, 1);
-	dofilter(cons.brahead+0, C0a, C0b, 1);
-	dofilter(cons.brahead+1, C1a, C1b, 1);
-	dofilter(cons.brahead+2, C2a, C2b, 1);
-	dofilter(cons.binit+0, C0a, C0b, 1);
-	dofilter(cons.binit+1, C1a, C1b, 1);
-	dofilter(cons.binit+2, C2a, C2b, 1);
+	dofilter(&u->time);
+	dofilter(&cons.work);
+	dofilter(&cons.rate);
+	dofilter(&cons.bhit);
+	dofilter(&cons.bread);
+	dofilter(&cons.brahead);
+	dofilter(&cons.binit);
 	cons.chan = chaninit(Devcon, 1);
 
-start:
 	/*
 	 * part 1 -- read the config file
 	 */
-	devnone = iconfig("n");
-
+start:
+	f.loc = 0;
 	print("config %s\n", nvr.config);
-
 	d = iconfig(nvr.config);
 	devinit(d);
 	p = getbuf(d, 0, Bread);
@@ -480,15 +359,10 @@ start:
 			if(fs->conf)
 				sprint(strchr(p->iobuf, 0),
 					"filsys %s %s\n", fs->name, fs->conf);
+		sprint(strchr(p->iobuf, 0), "ip %I\n", sysip);
+		sprint(strchr(p->iobuf, 0), "ipgw %I\n", defgwip);
 		sprint(strchr(p->iobuf, 0), "ipauth %I\n", authip);
-		for(i=0; i<10; i++) {
-			sprint(strchr(p->iobuf, 0),
-				"ip%d %I\n", i, ipaddr[i].sysip);
-			sprint(strchr(p->iobuf, 0),
-				"ipgw%d %I\n", i, ipaddr[i].defgwip);
-			sprint(strchr(p->iobuf, 0),
-				"ipmask%d %I\n", i, ipaddr[i].defmask);
-		}
+		sprint(strchr(p->iobuf, 0), "ipmask %I\n", defmask);
 		putbuf(p);
 		f.modconf = 0;
 		f.newconf = 0;
@@ -497,15 +371,11 @@ start:
 	}
 	putbuf(p);
 
-	print("service    %s\n", service);
-	print("ipauth  %I\n", authip);
-	for(i=0; i<10; i++) {
-		if(nzip(ipaddr[i].sysip)) {
-			print("ip%d     %I\n", i, ipaddr[i].sysip);
-			print("ipgw%d   %I\n", i, ipaddr[i].defgwip);
-			print("ipmask%d %I\n", i, ipaddr[i].defmask);
-		}
-	}
+	print("service %s\n", service);
+	print("ip     %I\n", sysip);
+	print("ipgw   %I\n", defgwip);
+	print("ipauth %I\n", authip);
+	print("ipmask %I\n", defmask);
 
 loop:
 	/*
@@ -526,11 +396,14 @@ loop:
 	error = 0;
 	for(fs=filsys; fs->name; fs++) {
 		print("filsys %s %s\n", fs->name, fs->conf);
+		i = f.loc;
 		fs->dev = iconfig(fs->conf);
 		if(f.error) {
 			error = 1;
 			continue;
 		}
+		for(; i<f.loc; i++)
+			print("	%2d %D\n", i, cwdevs[i]);
 	}
 	if(error)
 		panic("fs config");
@@ -541,7 +414,7 @@ loop:
 	for(fs=filsys; fs->name; fs++) {
 		print("sysinit: %s\n", fs->name);
 		if(fs->flags & FREAM)
-			devream(fs->dev, 1);
+			devream(fs->dev);
 		if(fs->flags & FRECOVER)
 			devrecover(fs->dev);
 		devinit(fs->dev);
@@ -585,7 +458,6 @@ arginit(void)
 		print("\n\n ** NVR key checksum is incorrect  **\n");
 		print(" ** set password to allow attaches **\n\n");
 		memset(nvr.authkey, 0, sizeof(nvr.authkey));
-		goto loop;
 	}
 	csum = nvcsum(nvr.config, sizeof(nvr.config));
 	if(csum != nvr.configsum) {
@@ -607,14 +479,36 @@ loop:
 	cp = getwd(word, line);
 	if(strcmp(word, "end") == 0)
 		return;
-	if(strcmp(word, "halt") == 0)
-		exit();
 
+/*** temp macros for spindle configuration ***/
+	if(strcmp(word, "x0") == 0) {
+		strcpy(line, "config p(w0)50.1");
+		cp = getwd(word, line);
+	}
+	if(strcmp(word, "x1") == 0) {
+		strcpy(line, "filsys main cp(w0)50.25f[p(w0)0.25p(w0)25.25p(w0)75.25]");
+		cp = getwd(word, line);
+	}
+
+/*** temp macros for bootes configuration ***/
+	if(strcmp(word, "z0") == 0) {
+		strcpy(line, "config w1.4.0");
+		cp = getwd(word, line);
+	}
+	if(strcmp(word, "z1") == 0) {
+		strcpy(line, "filsys main c[w1.4.0w1.5.0w1.6.0](r0.2.<0-44>r0.2.<50-94>)");
+		cp = getwd(word, line);
+	}
+	if(strcmp(word, "z2") == 0) {
+		strcpy(line, "filsys other w1.3.0");
+		cp = getwd(word, line);
+	}
 	if(strcmp(word, "allow") == 0) {
 		wstatallow = 1;
 		writeallow = 1;
 		goto loop;
 	}
+/*** temp ***/
 
 	if(strcmp(word, "noauth") == 0) {
 		noauth = !noauth;
@@ -673,20 +567,20 @@ loop:
 		f.modconf = 1;
 		goto loop;
 	}
+	if(strcmp(word, "ip") == 0) {
+		verb = 0;
+		goto ipname;
+	}
+	if(strcmp(word, "ipgw") == 0) {
+		verb = 1;
+		goto ipname;
+	}
 	if(strcmp(word, "ipauth") == 0) {
 		f.ipauthset = 1;
 		verb = 2;
 		goto ipname;
 	}
-	if(astrcmp(word, "ip") == 0) {
-		verb = 0;
-		goto ipname;
-	}
-	if(astrcmp(word, "ipgw") == 0) {
-		verb = 1;
-		goto ipname;
-	}
-	if(astrcmp(word, "ipmask") == 0) {
+	if(strcmp(word, "ipmask") == 0) {
 		verb = 3;
 		goto ipname;
 	}
@@ -702,20 +596,16 @@ ipname:
 	}
 	switch(verb) {
 	case 0:
-		memmove(ipaddr[aindex].sysip, localip,
-			sizeof(ipaddr[aindex].sysip));
+		memmove(sysip, localip, sizeof(sysip));
 		break;
 	case 1:
-		memmove(ipaddr[aindex].defgwip, localip,
-			sizeof(ipaddr[aindex].defgwip));
+		memmove(defgwip, localip, sizeof(defgwip));
 		break;
 	case 2:
-		memmove(authip, localip,
-			sizeof(authip));
+		memmove(authip, localip, sizeof(authip));
 		break;
 	case 3:
-		memmove(ipaddr[aindex].defmask, localip,
-			sizeof(ipaddr[aindex].defmask));
+		memmove(defmask, localip, sizeof(defmask));
 		break;
 	}
 	f.modconf = 1;

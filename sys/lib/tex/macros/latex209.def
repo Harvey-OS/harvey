@@ -1,0 +1,310 @@
+%% 
+%% This is file `latex209.def', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% latex209.dtx  (with options: `head')
+%% oldlfont.dtx  (with options: `latex209')
+%% latex209.dtx  (with options: `tail')
+%% 
+%% Copyright (C) 1994, 1994 LaTeX3 project and Alan Jeffrey. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. 
+%% 
+%% No permission is granted to modify this file. 
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesFile{latex209.def}[1994/11/28 v0.39 Standard LaTeX file]
+\typeout{Entering LaTeX 2.09 compatibility mode.}
+\@compatibilitytrue
+\def\@tempa#1#2{%
+   \expandafter\let\csname @@\string#1\endcsname#1%
+   \edef#1{%
+      \noexpand\@latex@e@error{\noexpand#2}%
+      \expandafter\noexpand\csname @@\string#1\endcsname
+   }%
+}
+\@tempa\usepackage\usepackage
+\@tempa\listfiles\listfiles
+\@tempa\ensuremath\ensuremath
+\@tempa\lrbox{\begin{lrbox}}%
+\@tempa\@xargdef{\newcommand{cmd}[args][def]}%
+\let\@latex@e@error\@gobble
+\def\@latex@e@error@#1{%
+      \@latexerr{%
+         LaTeX2e command \string#1\space in LaTeX 2.09 document%
+      }{%
+         This is a LaTeX 2.09 document, but it contains
+         \string#1.^^J%
+         If you want to use the new features of LaTeX2e,
+         your document^^J%
+         should begin with \string\documentclass\space
+         rather than \string\documentstyle
+      }%
+}
+\let\@old@ifdefinable\@ifdefinable
+\long\def\@ifdefinable#1{%
+   \def\@tempa##1#1##2#1##3#1##4\@tempa{%
+      \def\@latex@e@commands{##1##2}%
+      ##3% ##3 will either be \iftrue or \iffalse
+         \expandafter\@firstofone
+      \else
+         \expandafter\@old@ifdefinable\expandafter#1%
+      \fi
+   }%
+   \expandafter\@tempa\@latex@e@commands#1\iftrue#1\iffalse#1\@tempa%
+}
+\let\@@ifdefinable\@ifdefinable
+\def\@latex@e@commands{%
+   \usepackage\listfiles\ensuremath\LaTeXe\lrbox
+   \th\dh\ng\dj\TH\DH\NG\DJ\k\SS
+   \guillemotleft\guillemotright\guilsinglleft
+   \guilsinglright\quotedblbase\quotesinglbase
+}
+\def\@documentclasshook{%
+   \def\@tempa{\@normalsize}%
+   \def\@tempb{\@undefinedfonterror{size}\normalsize}%
+   \ifx\normalsize\@tempa
+      \let\normalsize\@tempb
+   \fi
+   \ifx\@normalsize\@undefined
+      \let\@normalsize\normalsize
+   \fi
+   \ifx\normalsize\@tempb
+      \let\normalsize\@normalsize
+   \fi
+   \RequirePackage{\@unusedoptionlist}%
+   \let\@unusedoptionlist\@empty
+   \let\@latex@e@error\@latex@e@error@
+}
+\@ifundefined{saved@missingfileerror}{
+   \let\saved@missingfileerror=\@missingfileerror
+}{}
+\def\@missingfileerror#1#2{%
+   \ifx#2\@clsextension
+      \InputIfFileExists{#1.\@pkgextension}{%
+         \wlog{Compatibility mode: loading #1.\@pkgextension
+            \space rather than #1.#2.}%
+      }{%
+         \saved@missingfileerror{#1}{#2}%
+      }%
+   \else
+      \saved@missingfileerror{#1}{#2}%
+   \fi
+}
+\def\@obsoletefile#1#2{%
+   \expandafter\let\csname opt@#1\expandafter\endcsname
+      \csname opt@\@currname.\@currext\endcsname
+   \wlog{Compatibility mode: inputting `#1'
+      instead of obsolete `#2'.}%
+}
+\newdimen\footheight
+\newdimen\@maxsep
+\newdimen\@dblmaxsep
+\mark{{}{}}
+\def\sloppy{\tolerance \@M \hfuzz .5\p@ \vfuzz .5\p@}
+\def\@finalstrut#1{\unskip\strut}
+\def\@marginparreset{\global\@minipagefalse}
+\let\@floatboxreset\@marginparreset
+\def\verb{%
+   \begingroup
+      \@noligs
+      \verbatim@font
+      \let\do\@makeother \dospecials
+      \@ifstar{\@sverb}{\@verb}%
+}
+\def\@sverb#1{%
+   \def\@tempa ##1#1{\leavevmode\null##1\endgroup}%
+   \@tempa
+}
+\def\verbatim@nolig@list{\do\`}
+\def\@lquote{\leavevmode{\kern\z@}`}
+\catcode0=9
+\@tempcnta=1
+\loop\ifnum\@tempcnta<32
+   \catcode\@tempcnta=12
+   \advance\@tempcnta by 1
+\repeat%
+\catcode`\^^I=10\relax%
+\catcode`\^^L=13\relax%
+\catcode`\^^M=5\relax%
+\catcode127=15
+\@tempcnta=128
+\loop\ifnum\@tempcnta<256
+   \catcode\@tempcnta=12
+   \advance\@tempcnta by 1
+\repeat
+\DeclareRobustCommand{\SLiTeX}{{%
+   \normalfont S\kern -.06em
+   {\scshape l\kern -.035emi}\kern -.06em
+   \TeX
+}}
+\let\+\@empty
+\def\ProvidesPackage#1{%
+  \xdef\@gtempa{#1}%
+  \ifx\@gtempa\@currname\else
+    \wlog{Compatibility mode: \@cls@pkg\space`\@currname' requested,
+       but `#1' provided.}%
+  \fi
+  \@ifnextchar[\@pr@videpackage{\@pr@videpackage[]}}%]
+\let\ProvidesClass=\ProvidesPackage
+%% File `oldlfont.dtx'.
+%% Copyright (C) 1989-1994 Frank Mittelbach and Rainer Sch\"opf,
+%% all rights reserved.
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\let\math@bgroup\@empty
+\let\math@egroup\@empty
+\let \@@math@bgroup \math@bgroup
+\let \@@math@egroup \math@egroup
+\RequirePackage[errorshow]{tracefnt}
+\DeclareSymbolFont{bold}{OT1}{cmr}{bx}{n}
+\DeclareSymbolFont{sans}{OT1}{cmss}{m}{n}
+\DeclareSymbolFont{typewriter}{OT1}{cmtt}{m}{n}
+\DeclareSymbolFont{italic}{OT1}{cmr}{m}{it}
+\DeclareSymbolFont{smallcaps}{OT1}{cmr}{m}{sc}
+\DeclareSymbolFont{slanted}{OT1}{cmr}{m}{sl}
+\DeclareSymbolFontAlphabet\mathbf{bold}
+\DeclareSymbolFontAlphabet\mathsf{sans}
+\DeclareSymbolFontAlphabet\mathtt{typewriter}
+\DeclareSymbolFontAlphabet\mathsc{smallcaps}
+\DeclareSymbolFontAlphabet\mathsl{slanted}
+\let\mit\undefined
+\let\cal\undefined
+\let\mathit\undefined
+\DeclareSymbolFontAlphabet\mathit{italic}
+\DeclareSymbolFontAlphabet{\mit}{letters}
+\DeclareSymbolFontAlphabet{\cal}{symbols}
+\DeclareRobustCommand\rm{\normalfont\rmfamily\mathgroup\symoperators}
+\DeclareRobustCommand\sf{\normalfont\sffamily\mathgroup\symsans}
+\DeclareRobustCommand\sl{\normalfont\slshape\mathgroup\symslanted}
+\DeclareRobustCommand\bf{\normalfont\bfseries\mathgroup\symbold}
+\DeclareRobustCommand\sc{\normalfont\scshape\mathgroup\symsmallcaps}
+\DeclareRobustCommand\it{\normalfont\itshape\mathgroup\symitalic}
+\DeclareRobustCommand\tt{\normalfont\ttfamily\mathgroup\symtypewriter}
+\DeclareRobustCommand\em{%
+  \@nomath\em
+  \ifdim \fontdimen\@ne\font>\z@\rm\else\it\fi}
+\def\@setfontsize#1#2#3{\@nomath#1%
+    \ifx\protect\@typeset@protect
+      \let\@currsize#1%
+    \fi
+    \fontsize{#2}{#3}\normalfont}
+\let\not@math@alphabet\@gobbletwo
+\RequirePackage{latexsym}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\def\ds@oldlfont{%
+   \@no@font@optfalse
+   \let\math@bgroup\@empty
+   \let\math@egroup\@empty
+   \let\@@math@bgroup\math@bgroup
+   \let\@@math@egroup\math@egroup
+}
+\def\ds@newlfont{%
+   \@no@font@optfalse
+   \OptionNotUsed
+}
+\def\ds@margid{%
+  \@no@font@optfalse
+  \let\math@bgroup\bgroup
+  \def\math@egroup##1{##1\egroup}%
+  \let \@@math@bgroup \math@bgroup
+  \let \@@math@egroup \math@egroup
+}
+\let\ds@nomargid\ds@oldlfont
+\@onlypreamble\ds@oldfont
+\@onlypreamble\ds@newfont
+\@onlypreamble\ds@margid
+\@onlypreamble\ds@nomargid
+\renewcommand{\encodingdefault}{OT1}
+\expandafter\font\csname cmex/m/n/10\endcsname=cmex10
+\def\normalsize{\@normalsize}
+\def\normalshape{\fontshape\shapedefault\selectfont}
+\def\mediumseries{\fontseries\seriesdefault\selectfont}
+\def \DeclareOldFontCommand #1#2#3{%
+  \wlog{Compatibility mode: definition
+        of \string#1\space ignored.}%
+}
+\def\@halfmag{ scaled \magstephalf}
+\def\@magscale#1{ scaled \magstep#1 }
+\def\@ptscale#1{ scaled #100 }
+\fontencoding{OT1} \fontfamily{cmr}
+\fontsize{10}{12} \fontseries{m} \fontshape{n}
+\selectfont
+\let\load\@gobbletwo
+\DeclareMathDelimiter{\lgroup} % extensible ( with sharper tips
+     {\mathopen}{bold}{"28}{largesymbols}{"3A}
+\DeclareMathDelimiter{\rgroup} % extensible ) with sharper tips
+     {\mathclose}{bold}{"29}{largesymbols}{"3B}
+\DeclareMathDelimiter{\bracevert} % the vertical bar that extends braces
+     {\mathord}{typewriter}{"7C}{largesymbols}{"3E}
+\let\bffam\symbold
+\let\sffam\symsans
+\let\itfam\symitalic
+\let\ttfam\symtypewriter
+\let\scfam\symsmallcaps
+\let\slfam\symslanted
+\let\rmfam\symoperators
+\newcommand\vpt   {\edef\f@size{\@vpt}\rm}
+\newcommand\vipt  {\edef\f@size{\@vipt}\rm}
+\newcommand\viipt {\edef\f@size{\@viipt}\rm}
+\newcommand\viiipt{\edef\f@size{\@viiipt}\rm}
+\newcommand\ixpt  {\edef\f@size{\@ixpt}\rm}
+\newcommand\xpt   {\edef\f@size{\@xpt}\rm}
+\newcommand\xipt  {\edef\f@size{\@xipt}\rm}
+\newcommand\xiipt {\edef\f@size{\@xiipt}\rm}
+\newcommand\xivpt {\edef\f@size{\@xivpt}\rm}
+\newcommand\xviipt{\edef\f@size{\@xviipt}\rm}
+\newcommand\xxpt  {\edef\f@size{\@xxpt}\rm}
+\newcommand\xxvpt {\edef\f@size{\@xxvpt}\rm}
+\InputIfFileExists{latex209.cfg}{}{}
+\endinput
+%% 
+%% End of file `latex209.def'.

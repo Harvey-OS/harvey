@@ -1,0 +1,33 @@
+%% 
+%% This is file `fontenc.sty', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% ltoutenc.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 LaTeX3 project, Frank Mittelbach, Rainer Schoepf 
+%% and Alan Jeffrey. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. 
+%% 
+%% No permission is granted to modify this file. 
+%% 
+%%% File: ltoutenc
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fontenc}[1994/12/14 v1.7f Standard LaTeX package]
+\DeclareOption*{%
+   \let\encodingdefault\CurrentOption
+   \InputIfFileExists{\CurrentOption enc.def}{}{%
+      \@warning{Encoding file `\CurrentOption enc.def' not found}%
+   }%
+}
+\ProcessOptions*
+\fontencoding\encodingdefault\selectfont
+\endinput
+%% 
+%% End of file `fontenc.sty'.

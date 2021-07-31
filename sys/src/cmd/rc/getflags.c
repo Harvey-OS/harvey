@@ -8,11 +8,11 @@ char **flag[NFLAG];
 char cmdline[NCMDLINE+1];
 char *cmdname;
 static char *flagarg="";
-static void reverse(char**, char**);
+static reverse(char**, char**);
 static scanflag(int, char*);
-static void errn(char*, int);
-static void errs(char*);
-static void errc(int);
+static errn(char*, int);
+static errs(char*);
+static errc(int);
 static int reason;
 #define	RESET	1
 #define	FEWARGS	2
@@ -79,7 +79,7 @@ int getflags(int argc, char *argv[], char *flags, int stop)
 	}
 	return argc;
 }
-static void reverse(char **p, char **q)
+static reverse(char **p, char **q)
 {
 	char *t;
 	for(;p<q;p++,--q){ t=*p; *p=*q; *q=t; }
@@ -198,17 +198,17 @@ void usage(char *tail)
 	errs("\n");
 	Exit("bad flags");
 }
-static void errn(char *s, int count)
+static errn(char *s, int count)
 {
 	while(count){ errc(*s++); --count; }
 }
-static void errs(char *s)
+static errs(char *s)
 {
 	while(*s) errc(*s++);
 }
 #define	NBUF	80
 static char buf[NBUF], *bufp=buf;
-static void errc(int c){
+static errc(int c){
 	*bufp++=c;
 	if(bufp==&buf[NBUF] || c=='\n'){
 		Write(2, buf, bufp-buf);

@@ -3,8 +3,7 @@
  */
 #include "iolib.h"
 #include <stdlib.h>
-
-char *_IO_sclose(FILE *f){
+char *sclose(FILE *f){
 	switch(f->state){
 	default:	/* ERR CLOSED */
 		if(f->buf && f->flags&BALLOC)

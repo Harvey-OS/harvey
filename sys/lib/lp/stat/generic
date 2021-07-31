@@ -1,5 +1,4 @@
 #!/bin/rc
-if (! ~ $DEBUG '') flag x +
 
 if (~ $THIS_HOST $DEST_HOST) {
 	if (test -f $LPLIB/log/$LPDEST^.st) {

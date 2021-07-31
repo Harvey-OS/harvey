@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 		rflag = 1;
 		break;
 	default:
-		fprint(2, "usage: prof [-dr] [8.out] [prof.out]\n");
+		fprint(2, "usage: prof [-dr] [v.out] [prof.out]\n");
 		exits("usage");
 	}ARGEND
 	Binit(&bout, 1, OWRITE);
@@ -91,19 +91,16 @@ swapdata(Data *dp)
 }
 
 int
-acmp(void *va, void *vb)
+acmp(Acc *a, Acc *b)
 {
-	Acc *a, *b;
-	ulong ua, ub;
+	ulong va, vb;
 
-	a = va;
-	b = vb;
-	ua = a->ms;
-	ub = b->ms;
+	va = ((Acc*)a)->ms;
+	vb = ((Acc*)b)->ms;
 
-	if(ua > ub)
+	if(va > vb)
 		return 1;
-	if(ua < ub)
+	if(va < vb)
 		return -1;
 	return 0;
 }
@@ -179,7 +176,7 @@ graph(int ind, ulong i, Pc *pc)
 	Pc lpc;
 
 	if(i >= ndata){
-		fprint(2, "prof: index out of range %ld [max %ld]\n", i, ndata);
+		fprint(2, "prof: index out of range %d [max %d]\n", i, ndata);
 		return;
 	}
 	count = data[i].count;
@@ -238,7 +235,7 @@ sum(ulong i)
 	long j, dtime, time;
 
 	if(i >= ndata){
-		fprint(2, "prof: index out of range %ld [max %ld]\n", i, ndata);
+		fprint(2, "prof: index out of range %d [max %d]\n", i, ndata);
 		return 0;
 	}
 	time = data[i].time;
@@ -280,7 +277,7 @@ plot(void)
 		ms = 1;
 	while (--nsym >= 0) {
 		if(acc[nsym].calls)
-			Bprint(&bout, "%4.1f%8.3f %8lud\t%s\n",
+			Bprint(&bout, "%4.1f%8.3f %8d\t%s\n",
 				(100.0*acc[nsym].ms)/ms,
 				acc[nsym].ms/1000.0,
 				acc[nsym].calls,
@@ -304,14 +301,11 @@ indent(int ind)
 
 char*	trans[] =
 {
-	"386",		"8.out",
-	"68020",		"2.out",
-	"alpha",		"7.out",
-	"arm",		"5.out",
 	"mips",		"v.out",
-	"power",		"q.out",
-	"sparc",		"k.out",
-	"spim",		"0.out",
+	"sparc",	"k.out",
+	"68020",	"2.out",
+	"386",		"8.out",
+	"960",		"6.out",
 	0,0
 };
 

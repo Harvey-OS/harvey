@@ -1,0 +1,422 @@
+% docultex.tex 12-11-92, Documentation for siamltex macro package
+%
+
+\documentstyle[twoside]{siamltex}
+
+\title{USING SIAM'S \LaTeX\ MACROS\thanks{This work was
+supported by the Society for Industrial and Applied
+Mathematics}} 
+
+\author{Paul Duggan\thanks{Society for Industrial and
+Applied Mathematics, Philadelphia, Pennsylvania. 
+({\tt duggan@siam. org}). Questions, comments, or corrections
+to this document may be directed to that email address.}}
+
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+This file is documentation for the SIAM \LaTeX\ macros, and
+provides instruction for submission of your files.
+
+To accommodate authors who electronically typeset their manuscripts,
+SIAM supports the use of \TeX. To ensure quality typesetting according
+to SIAM style standards, SIAM provides a \TeX\ macro style file.
+Using \TeX\ to format a manuscript should simplify the editorial process
+and lessen the author's proofreading burden. It is still necessary to 
+proofread with care.
+
+Electronic files should not be submitted until the paper has been
+accepted, and then not until requested to do so by someone in the SIAM
+office. Once an article is slated for an issue,
+someone from the SIAM office will contact the author about any or all
+of the following: editorial and stylistic queries; 
+supplying the source files (and any supplementary macros)
+for the properly formatted article; and handling figures.
+
+Electronic submissions (to {\tt tex@siam.org}) should be clearly
+designated as to the journal and author. Authors are responsible for ensuring 
+that the paper generated from the source files exactly matches the paper that
+was accepted for publication by the review editor. If it does not,
+that should be indicated in the transmission of the file.
+When submitting a file, please be sure to include any additional
+macros (other than those provided by SIAM) that will be needed to run
+the paper.
+
+Once the files are corrected here at SIAM, we will send back the revised 
+proofs to be read against the original edited manuscript. We are not
+set up to shuttle back and forth varying electronic versions of each
+paper, so we must rely on hard copy. The author's proofreading
+is an important but easily overlooked step. Even if SIAM were not
+to introduce a single editorial change into your manuscript, there
+would still be a need to check line and page breaks as the encoding
+of Times Roman fonts would change the page makeup of a Computer
+Modern file.
+ 
+
+A sample file is included with this distribution to
+demonstrate the standard use of SIAM's macro package. To
+provide an incentive for the use of \TeX\ in paper
+preparation, SIAM provides 100 free reprints of journal
+articles but only to those who have made use of the SIAM
+macro in proper fashion. To qualify for free reprints the
+following criteria must be met:
+\begin{remunerate}
+\item The appropriate document style line must appear at
+the beginning of the source file.
+\item All top matter information (key words, affiliation, etc.) must
+be present and correctly tagged. The only exception to the rule will be
+the AMS subject classification.
+\item All tagging conventions, as described in this documentation
+and used in the example file, must be followed.
+\item The format of the bibliography must strictly adhere to SIAM
+guidelines. The appropriate tags must be used for all entries. All names
+are to be keyed initial upper case cap and small caps. Only the first
+and middle initials, followed by the last name, are to be used.
+Last names should never be listed first. There will be no exceptions
+to this requirement. An improperly prepared bibliography will,
+in all cases, prevent an author from receiving free reprints
+\end{remunerate}
+
+
+The distribution contains the following items: {\tt
+siamltex.sty}, the main macro package, based on {\tt
+article.sty}; {\tt siam10.sty} and {\tt siam11.sty}, files
+included by {\tt siamltex} depending on the point
+size of the document; {\tt numinsec.sty}, a file
+useable at the author's option that causes equation numbers, 
+theorem-environment numbering, and figure and table numbering 
+to be reset with the start of each section. Equation numbers shift from
+single digit form (n) to decimal form (n.m). {\tt subeqn.sty}
+is another style option for equation numbering (see \S3 for
+an explanation) {\tt siam.bst}
+is the style file for use with Bib\TeX. {\tt fixup.sty}, a 
+separate file in previous distributions, has been
+incorporated into {\tt siamltex}. Also included are this
+file {\tt docultex.tex} and a sample file {\tt lexample.tex}.
+
+The sample file is representative of the standard way to
+apply the macros. The rest of this paper will emphasize
+some aspects of this, as well as point out options and
+special cases, and describe SIAM style standards for
+authors to conform to.
+
+
+\section{Headings}
+The top matter of a journal paper falls into a standard
+format. It begins of course with the \verb|\documentstyle| command
+
+\begin{verbatim}
+
+\documentstyle[twoside]{siamltex}
+
+\end{verbatim}
+
+Other style options (such as {\tt numinsec}) can be included
+in the bracketed argument of the command, separated by commas.
+SIAM publishes articles at 10 point size, and {\tt siamltex}
+will do so automaticlly. If a preliminary version
+at 11 point size is desired, put {\tt siam11} in the optional
+argument. But when the file is submitted it must be back in
+10 point size.
+
+The title and author parts are formatted using the
+\verb|\title| and \verb|\author| commands. The \verb|\date|
+command is not used. \verb|\maketitle| produces the actual
+output of the commands.
+
+The addresses and support acknowledgments are put into the
+\verb|\author| commands via \verb|\thanks|. If support is
+overall for the authors, the support acknowledgment should
+be put in a \verb|\thanks| command in the \verb|\title|.
+Specific support should go following the addresses of the
+individual authors in the same \verb|\thanks| command.
+
+Sometimes authors have support or addresses in common which
+necessitates having multiple \verb|\thanks| commands for
+each author. Unfortunately \LaTeX\ does not normally allow this, 
+so a special procedure must be used. An example of this procedure
+follows. Grant information can also be run into both authors' 
+footnotes.
+
+\begin{verbatim}
+
+\title{TITLE OF PAPER}
+
+\author{A.~U. Thorone\footnotemark[2]\ \footnotemark[5]
+\and A.~U. Thortwo\footnotemark[3]\ \footnotemark[5]
+\and A.~U. Thorthree\footnotemark[4]}
+
+\begin{document}
+\maketitle
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\footnotetext[2]{Address of A.~U. Thorone}
+\footnotetext[3]{Address of A.~U. Thortwo}
+\footnotetext[4]{Address of A.~U. Thorthree}
+\footnotetext[5]{Support in common for the first and second
+authors.}
+
+\renewcommand{\thefootnote}{\arabic{footnote}}
+
+\end{verbatim}
+
+Notice that the footnote marks begin with {\tt [2]}
+because the first mark (the asterisk) will be used in the
+title for date-received information by SIAM, even if not
+already used for support data. This is just one example;
+other situations follow a similar pattern.
+
+Following the author and title is the abstract, key words
+listing, and AMS subject classification number(s),
+designated using the \verb|{abstract}|, \verb|{keywords}|,
+and \verb|{AMS}| environments. If
+there is only one AMS number, the commands
+\verb|\begin{AM}| and \verb|\end{AM}| are used
+instead of \verb|{AMS}|. This causes the heading to be
+in the singular. Authors are responsible for providing AMS numbers.
+They can be found in the Annual Index of Math Reviews, or
+through {\tt e-Math} ({\tt telnet@e-math.ams.com}; login
+and password are both {\tt e-math}).   
+
+Left and right running heads should be provided in the
+following way.
+
+\begin{verbatim}
+
+\pagestyle{myheadings}
+\thispagestyle{plain}
+\markboth{A.~U. THORONE AND A.~U. THORTWO}{SHORTER PAPER
+TITLE} 
+
+\end{verbatim}
+
+\section{Equations}
+
+One advantage of \LaTeX\ is that it can automatically number
+equations and refer to these equation numbers in text. While plain \TeX's
+method of equation numbering (explicit numbering using
+\verb|\leqno|) works in the SIAM macro, it is not preferred
+except in certain cases. SIAM style guidelines call for
+aligned equations in many circumstances, and \LaTeX's 
+\verb|{eqnarray}| environment is not compatible with
+\verb|\leqno| and \LaTeX\ is not compatible with the plain
+\TeX\ command \verb|\eqalign| and \verb|\leqalignno|. Since
+SIAM may have to alter or make aligned certain groups of
+equations, it is necessary to use the \LaTeX\ system of
+automatic numbering.
+
+Sometimes it is desirable to designate subequations of a larger
+equation number. The subequations are designated with
+(roman font) letters appended after the number. SIAM has
+supplemented its macros with the {\tt subeqn.sty} style which
+defines the environment \verb|{subequations}|.
+
+\begin{verbatim}
+
+\begin{subequations}
+\begin{equation}
+ y_k =  B  y_{k-1} +  f, \qquad k=1,2,3,\ldots  \label{EXk}
+\end{equation}
+for  any initial vector $ y_0$.   Then 
+\begin{equation}
+ y_k\rightarrow  u \mbox{\quad iff\quad} \rho( B)<1.
+\end{equation}
+\end{subequations}
+
+\end{verbatim}
+
+All equations within the \verb|{subequations}| environment
+will keep the same overall number, but the letter
+designation will increase.
+
+
+\section{Special fonts}
+
+SIAM supports the use of the AMS-\TeX\ fonts (version 2.0
+and later). As described in the manual for these fonts,
+they can be included by \verb|\input{amssym.def}| and
+\verb|\input{amssym.tex}|. The blackboard bold font in this
+font package is can be used for designating number sets. 
+This is preferable to other methods of combining letters
+(such as I and R for the real numbers) to produce pseudo-bold
+letters but this is tolerable as well. Typographicly speaking,
+number sets may simply be designated using regular bold letters; 
+the blackboard bold typeface was designed in response to a desire
+to simulate the limitations of a chalkboard in type.
+
+SIAM's style macros are not yet updated to make full use of the New
+Font Selection Scheme (NFSS) of Mittelbach and Sch\"opf. The macros
+are generally compatible with the NFSS if using the {\tt oldlfont}
+style option. {\bf Note:} lines 339, 340, 348, 349, and 351 of
+{\tt siamltex.sty} need to be commented out to run under the
+NFSS. Those lines add additional font capability in a manner
+incompatible with and redundant to the NFSS. Line 351 calls
+in the {\tt cmcsc8} font, which is unanvailable in some installations.
+The small caps font, along with other AMS fonts, is available from the 
+American Mathematical Society.
+
+
+\subsection{Punctuation}
+All standard punctuation and all numerals should be set in Roman type
+(upright) whether bold or plain. The only exceptions are periods and 
+commas. They may be set to match the surrounding text.
+
+\subsection{Text formatting}
+
+SIAM style preferences do not make regular use of the \verb|{enumerate}|
+and \verb|{itemize}| environments. Instead,
+{\tt siamltex.sty} includes definitions of two alternate list
+environments, \verb|{remunerate}| and \verb|{romannum}|.
+Unlike the standard itemized lists, these environments do
+not indent the secondary lines of text. The labels, whether
+the defaults or optional user-defined, are always aligned
+flush right.
+
+The \verb|{remunerate}| environment consecutively numbers
+each item with an arabic numeral followed by a period. This
+number is always upright, even in slanted
+environments.\footnote{For those wondering at the unusual
+naming of this environment, it comes from Seroul and Levy's
+\cite{SerLev} definition of a similar macro for plain \TeX: 
+{\tt \char"5C meti} which is {\tt \char"5C item} spelled backwards. Thus
+\verb|{remunerate}|, a portion of \verb|{enumerate}|
+spelled backwards.}
+
+The \verb|{romannum}| environment consecutively numbers
+each item with a lower-case roman numeral enclosed in
+parentheses. This number will always be upright within
+slanted environments (as in theorems).
+
+
+\section{Theorems and Lemmas}
+Theorems, lemmas, corollaries, and propositions are covered
+in the SIAM macros by the theorem-environments
+\verb|{theorem}|, \verb|{lemma}|, \verb|{corollary}|, and
+\verb|{proposition}|. These are all numbered in the same
+sequence and produce labels in small caps with an italic
+body. Other environments may be specified by the
+\verb|\newtheorem| command.
+
+Proofs are handled with the \verb|\begin{proof}|
+\verb|\end{proof}| environment. A ``QED'' box is created
+automatically by \verb|\end{proof}|, but this should be
+preceded with a \verb|\qquad|.
+
+Named proofs, if used, must be done independently by the
+authors. SIAM style specifies that proofs which end with
+displayed equations should have the QED box on line with
+the equation flush right. Below is an example of how this
+can be done:
+
+\begin{verbatim}
+
+{\em Proof}. Proof of the previous theorem 
+                .
+                .
+                .
+thus,
+$$
+a^2 + b^2 = c^2 \eqno\endproof
+$$
+
+\end{verbatim}
+
+Note that the above will not work if the equation is in an
+\verb|{eqnarray}| or numbered. In those instances, just include the
+\verb|\endproof| command and SIAM will handle making the box
+flush right in production. 
+
+
+\section{Figures and tables}
+Figures and tables sometimes require special consideration.
+Tables in SIAM style should be in eight point size, and
+written so that they do not extend beyond the text margins. Use
+\verb|\footnotesize| in the body of the table to get eight
+point type.
+
+SIAM style requires that no figures or tables  appear in the
+references section of the paper. \LaTeX\ is notorious for
+making figure placement difficult, so it is important to
+pay particular attention to figure placement near the
+references in the text. All figures and tables should
+be referred to in the text.
+
+SIAM supports the use of {\tt psfig} for including {\sc PostScript}
+figures. All {\sc Post\-Script} figures to be included should be sent in
+separate files. See the {\tt psfig} documentation for more
+details on the use of this style option. It is a good idea
+to submit hardcopy of all {\sc PostScript} figures just in case
+there is difficulty in reproducing the figures.
+
+Hardcopy for non-{\sc PostScript} figures should be included in
+the submission of the hardcopy of the manuscript. Space
+should be left in the \verb|{figure}| command for the
+hardcopy to be inserted in production.
+
+\section{Bibliography and Bib\TeX}
+
+If using Bib\TeX, authors need not submit the {\tt .bib} file for
+their papers. Merely submit the completed {\tt .bbl} file, having used
+{\tt siam.bst} as their bibliographic style file. {\tt siam.bst}
+only works with Bib\TeX\ version 99i and later. The use of
+Bib\TeX\ and the preparation of a {\tt .bib} file is
+described in greater detail in \cite{Lamport}.
+
+If not using Bib\TeX, SIAM bibliographic references follow
+the format of the following examples:
+
+\begin{verbatim}
+
+\bibitem{AuTh1} {\sc A.~U. Thorone}, {\em Title of paper
+with lower case letters}, SIAM J. Abbrev. Correctly, 2
+(1992), pp.~000--000.
+
+\bibitem{A1A2} {\sc A.~U. Thorone and A.~U. Thortwo}, {\it
+Title of paper appearing in book}, in Book Title: With All
+Initial Caps, Publisher, Location, 1992.
+
+\bibitem{A1A22} \sameauthor, % generates the 3 em rule
+{\em Title of Book{\rm :} Note Initial Caps and {\rm ROMAN
+TYPE} for Punctuation and Acronyms}, Publisher,
+Location, pp.~000--000, 1992.
+
+\bibitem{AuTh3} {\sc A.~U. Thorthree}, {\em Title of paper
+that's not published yet}, SIAM. J. Abbrev. Correctly, to appear.
+
+\end{verbatim}
+
+Other types of references fall into the same general
+pattern. See the sample file or any SIAM journal for other
+examples. Authors must correctly format their bibliography to
+be considered as having used the macros correctly. An incorrectly 
+formatted bibliography is not only time-consuming but very
+likely to have errors introduced into it by keyboarders/copy editors.
+
+As an alternative to the above style of reference, an alphanumeric
+code may be used in place of the number (e.g., [AUTh90]). The same
+commands are used, but \verb|\bibitem| takes an optional argument
+containing the desired alphanumeric code. 
+
+Another alternative is no number, simply the authors' names and
+the year of publication following in parentheses. The rest of the
+format is identical. The macros do not support this alternative
+directly, but modifications to the macro definition are possible
+if this reference style is preferred.
+
+
+
+\begin{thebibliography}{1}
+\bibitem{Lamport} {\sc L. Lamport}, \LaTeX: {\em A Document
+Preparation System}, Addison Wesley, Reading, MA, 1986.
+
+\bibitem{SerLev} {\sc R. Seroul and S. Levy}, {\em A
+Beginner's Book of} \TeX, Springer-Verlag, Berlin, New
+York, 1991.
+\end{thebibliography}
+
+
+\end{document}

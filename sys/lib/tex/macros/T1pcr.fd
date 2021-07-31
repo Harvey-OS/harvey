@@ -1,0 +1,43 @@
+%Filename: T1pcr.fd
+%Created by: tex 16138courier
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pcr}{\hyphenchar \font =-1}
+
+\DeclareFontShape{T1}{pcr}{b}{n}{
+   <-> pcrbq
+}{}
+
+\DeclareFontShape{T1}{pcr}{b}{sc}{
+   <-> pcrbcq
+}{}
+
+\DeclareFontShape{T1}{pcr}{b}{sl}{
+   <-> pcrboq
+}{}
+
+\DeclareFontShape{T1}{pcr}{m}{n}{
+   <-> pcrrq
+}{}
+
+\DeclareFontShape{T1}{pcr}{m}{sc}{
+   <-> pcrrcq
+}{}
+
+\DeclareFontShape{T1}{pcr}{m}{sl}{
+   <-> pcrroq
+}{}
+
+\DeclareFontShape{T1}{pcr}{bx}{n}{<->ssub * pcr/b/n}{}
+\DeclareFontShape{T1}{pcr}{bx}{sc}{<->ssub * pcr/b/sc}{}
+\DeclareFontShape{T1}{pcr}{bx}{sl}{<->ssub * pcr/b/sl}{}
+\DeclareFontShape{T1}{pcr}{b}{it}{<->ssub * pcr/b/sl}{}
+\DeclareFontShape{T1}{pcr}{bx}{it}{<->ssub * pcr/b/it}{}
+\DeclareFontShape{T1}{pcr}{b}{ui}{<->sub * pcr/b/it}{}
+\DeclareFontShape{T1}{pcr}{bx}{ui}{<->ssub * pcr/b/ui}{}
+\DeclareFontShape{T1}{pcr}{m}{it}{<->ssub * pcr/m/sl}{}
+\DeclareFontShape{T1}{pcr}{m}{ui}{<->sub * pcr/m/it}{}
+
+\endinput

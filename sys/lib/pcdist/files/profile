@@ -1,0 +1,25 @@
+bind -a $home/bin/rc /bin >[2] /dev/null
+bind -a $home/bin/$cputype /bin >[2] /dev/null
+font = /lib/font/bit/pelm/euro.8.font
+switch($service){
+case terminal
+	prompt=('term% ' '	')
+	fn term%{ $* }
+	if(! ~ `{cat '#v/vgactl'} 'type: cga'*){
+		echo -n 'Start window system (y/n)? '
+		x=`{read}
+		switch($x){
+		case y*
+			exec 8½ -i /usr/none/lib/windows
+		}
+	}
+case cpu
+	bind -b /mnt/term/mnt/8½ /dev
+	prompt=('cpu% ' '	')
+	echo -n $sysname > /dev/label
+	fn cpu%{ $* }
+	news
+case con
+	prompt=('cpu% ' '	')
+	news
+}

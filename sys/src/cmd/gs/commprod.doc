@@ -1,0 +1,210 @@
+   Copyright (C) 1993, 1994 Aladdin Enterprises.  All rights reserved.
+ 
+Permission to copy and distribute this document unmodified for any
+purpose is hereby granted without fee, provided that the above
+copyright notice and this permission notice appear in all copies.
+ 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
+This file, commprod.doc, sets forth the conditions under which Ghostscript
+may be distributed in a commercial context: under a written license from
+Artifex Software Inc., Aladdin Enterprises' exclusive commercial licensing
+partner, or under certain other very limited conditions.
+ 
+For an overview of Ghostscript and a list of the documentation files, see
+the README file in the Ghostscript fileset.
+ 
+ 
+	The Use of the Public Access "Free" Version of Ghostscript
+	----------------------------------------------------------
+ 
+Ghostscript is a copyrighted work whose copyright is owned by Aladdin
+Enterprises.  Some versions of Ghostscript are distributed freely under the
+name Aladdin Ghostscript; these versions are always distributed with a
+license, called the Aladdin Ghostscript Free Public License (also known as
+the AGFPL), which permits Aladdin Ghostscript to be redistributed freely
+under certain conditions.  These conditions will almost always be met
+easily by individuals in their personal use of Aladdin Ghostscript.
+Aladdin Ghostscript may be *used* freely, including by commercial entities
+for evaluation or unsupported internal use.  However, *distribution* for
+commercial purposes of Ghostscript, or anything containing or derived from
+Ghostscript in whole or in part, requires a written commercial license from
+Artifex Software Inc., the sole entity authorized by Aladdin Enterprises to
+grant such licenses.  More specifically, the AGFPL states:
+
+   Distribution of the Program or any work based on the Program by a
+   commercial organization to any third party is prohibited if any payment is
+   made in connection with such distribution, whether directly (as in payment
+   for a copy of the Program) or indirectly (as in payment for some service
+   related to the Program); provided, however, that the fact that the Program
+   is posted on a public access information storage and retrieval service for
+   which a fee is received (such as an on-line service) shall not in and of
+   itself be a violation of this restriction.
+
+The "in connection with" wording in the first clause prohibits including
+Aladdin Ghostscript "free" in a package containing anything for which a
+charge is being made.  The intent of the exception provided in the second
+clause is to allow commercial organizations operating an FTP server or a
+bulletin board to distribute Aladdin Ghostscript freely from it, provided
+that:
+
+	(1) the organization complies with the other provisions of the
+AGFPL, which include among other things a requirement to distribute the
+full source code of Aladdin Ghostscript and of any derived work, and to
+distribute the AGFPL itself along with Aladdin Ghostscript;
+
+	(2) the only charge for downloading Aladdin Ghostscript is a charge
+based on the distribution service and not one based on the content of the
+information being retrieved (i.e., the charge would be the same for
+retrieving a random collection of bits of the same size);
+
+	(3) the server or BBS is accessible to the general public, i.e.,
+the phone number or IP address is not kept secret, and anyone may obtain
+access to the information (possibly by paying a subscription or access fee
+that is not dependent on or related to purchasing anything else).
+
+If you want to distribute software in a commercial context that
+incorporates Ghostscript and you do *not* want to meet these conditions,
+you should contact Artifex Software to find out about commercial licensing.
+Commercial licenses involve a (negotiated) payment, and include support and
+other benefits.  These are the only ways you legally can distribute
+Ghostscript or anything containing Ghostscript: either by distributing
+Aladdin Ghostscript under the requirements of the AGFPL, or by getting a
+commercial license from Artifex Software.
+
+For commercial licensing, please contact:
+
+	In the U.S. and all parts of the world except Europe:
+
+		Miles Jones
+		Director of Marketing
+		Artifex Software Inc.
+		454 Las Gallinas Ave., suite 108
+		San Rafael, CA 94903  U.S.A.
+		voice +1-415-492-9861
+		fax +1-415-492-9862
+		e-mail: dir.mktg@arsoft.com
+
+	In Europe, as a representative of Artifex Software:
+
+		quick System Service
+		Christoph Strozyk
+		Sprockhoeveler Str. 55
+		58455 Witten
+		Germany
+		Tel. +49-2302-28133-0
+		Fax. +49-2302-28133-6
+		e-mail: chris@quicksys.net
+
+	(quickSyS also provides commercial support for the free versions.)
+ 
+If you have any questions about any of the information in this document,
+please contact:
+		Aladdin Enterprises
+		P.O. box 60264
+		Palo Alto, CA 94306
+		U.S.A.
+		voice phone +1-415-322-0103
+		fax +1-415-322-1734
+		ghost@aladdin.com
+
+Appendix: The GNU General Public License
+----------------------------------------
+
+Older versions of Ghostscript (version 2.6.1 and previous) were distributed
+with a license called the GNU General Public License (also known as the
+"GNU License", the "GPL", or the "copyleft"), which allowed distribution
+with commercial products under certain conditions.  Aladdin Enterprises may
+choose to distribute other versions of Ghostscript with the GPL in the
+future; however, these versions will be identified as "GNU Ghostscript."
+The remainder of this Appendix applies only to versions identified
+explicitly as GNU Ghostscript versions; the generic name Ghostscript, when
+applied to versions above 2.6.1, refers to Aladdin Ghostscript, which is
+governed by the Aladdin Ghostscript Free Public License, not the GPL.
+ 
+For those unfamiliar with the GPL, we now summarize its provisions.  The
+full GPL is included under the name COPYING in the fileset that comprises
+GNU Ghostscript, and can also be obtained from the Free Software
+Foundation (FSF), 675 Mass Ave., Cambridge, MA 02139 (U.S.A.).  In case of
+doubt or conflict, the contents of the COPYING file or the document
+obtained from the FSF, not this summary, are authoritative.
+ 
+	1. Anyone may copy and distribute GNU Ghostscript (both source and
+object code), but they must distribute the source code as well as the
+object code (or, if they distribute only the object code, they must
+include an offer in writing to provide the source code at no more than
+reproduction cost), keep all copyright and other notices, and include the
+GPL with the copies.  (Note that this allows anyone receiving such a copy
+to distribute it freely as well.)
+ 
+	2. Anyone may modify GNU Ghostscript, but the provisions of #1
+apply to modified or derived works as well.
+ 
+	3. GNU Ghostscript may be "aggregated" with another program; in
+this case, #1 and #2 do not apply to the other program, but only to GNU
+Ghostscript.
+	                                   
+Provision #1 makes it much harder to have a commercial business based only
+on selling copies of GNU Ghostscript (as distributed with the GPL) or
+products that contain GNU Ghostscript, since any customer is free to make
+as many copies as they want for any purpose.  Provision #2 effectively
+prevents the development of proprietary commercial products that
+incorporate GNU Ghostscript without a commercial license as a part, since
+these are "derived works" in the legal sense.
+ 
+Questions have arisen at times in particular cases regarding provision #3
+as to whether GNU Ghostscript is "aggregated" with other parts of a
+commercial product, or whether the product has become a "derived work."
+Normally, combining GNU Ghostscript with another piece of software creates
+a "derived work"; we consider GNU Ghostscript to be "aggregated" with
+another piece of software, which we will refer to as "the application",
+only if all of the following conditions are met:
+ 
+	- The code and documentation for GNU Ghostscript are physically
+	separated from the code and documentation for the application.
+	For electronic form, it is both necessary and sufficient to put
+	the GNU Ghostscript code and documentation in their own directory
+	tree(s).
+ 
+	- GNU Ghostscript, as delivered with the application, is usable
+	independently of the application.  More precisely, if a user
+	deletes from the computer system all files delivered with the
+	application except those in the GNU Ghostscript directories, the
+	user will still be able to use GNU Ghostscript as described in
+	GNU Ghostscript's documentation.  Among other things, this
+	requires that GNU Ghostscript not call any routines in the
+	application, and not require any data or other files supplied as
+	part of the application.
+	                                   
+	- The application calls GNU Ghostscript in a way that allows an
+	ordinary user to substitute another program for GNU Ghostscript.
+	(Typically this requires use of a shell script or batch file, or a
+	system call like `exec'.)  More precisely, if the user deletes
+	from the computer system all the files in the GNU Ghostscript
+	directories, and replaces the GNU Ghostscript executable with
+	another program with the same name and conforming to the same
+	documentation, the application will continue to work with it.  One
+	implication of this is that the GNU Ghostscript documentation must
+	specify all properties of GNU Ghostscript on which the application
+	relies; for example, if GNU Ghostscript has been modified by the
+	addition of command line switches or language elements such as new
+	operators, the documentation must describe any such additions that
+	the application uses.
+ 
+	- The conditions of the GPL are met with respect to GNU
+	Ghostscript, including the requirement for propagation of the GPL
+	and the requirement for delivering (or an offer to deliver) source
+	code.
+ 
+Regarding this last point, the GPL clearly intends that if the distributor
+only offers to provide the GNU Ghostscript source code (as opposed to
+actually distributing the source code with every copy of the application),
+then they must deliver the source code in a timely way to anyone
+requesting it.
+ 
+The GPL makes it clear that if someone receives GNU Ghostscript only in
+its GPL-licensed form, they only have a right to distribute it if they
+comply with the GPL.  Aladdin Enterprises, as the copyright holder, takes
+this requirement very seriously, and will, if necessary, take legal action
+to ensure that anyone distributing GNU Ghostscript with the GPL complies
+with the conditions set forth above.

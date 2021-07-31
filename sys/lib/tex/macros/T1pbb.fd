@@ -1,0 +1,46 @@
+%Filename: T1pbb.fd
+%Created by: tex 8587bembo
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pbb}{}
+
+\DeclareFontShape{T1}{pbb}{b}{n}{
+   <-> pbbbq
+}{}
+
+\DeclareFontShape{T1}{pbb}{b}{sc}{
+   <-> pbbbcq
+}{}
+
+\DeclareFontShape{T1}{pbb}{b}{sl}{
+   <-> pbbboq
+}{}
+
+\DeclareFontShape{T1}{pbb}{b}{it}{
+   <-> pbbbiq
+}{}
+
+\DeclareFontShape{T1}{pbb}{m}{n}{
+   <-> pbbrq
+}{}
+
+\DeclareFontShape{T1}{pbb}{m}{sc}{
+   <-> pbbrcq
+}{}
+
+\DeclareFontShape{T1}{pbb}{m}{sl}{
+   <-> pbbroq
+}{}
+
+\DeclareFontShape{T1}{pbb}{m}{it}{
+   <-> pbbriq
+}{}
+
+\DeclareFontShape{T1}{pbb}{bx}{n}{<->ssub * pbb/b/n}{}
+\DeclareFontShape{T1}{pbb}{bx}{sc}{<->ssub * pbb/b/sc}{}
+\DeclareFontShape{T1}{pbb}{bx}{sl}{<->ssub * pbb/b/sl}{}
+\DeclareFontShape{T1}{pbb}{bx}{it}{<->ssub * pbb/b/it}{}
+
+\endinput

@@ -1,6 +1,6 @@
 .TH PCMCIA 8
 .SH NAME
-pcmcia \- identify a PCMCIA card
+aux/pcmcia \- identify a PCMCIA card
 .SH SYNOPSIS
 .B aux/pcmcia
 [

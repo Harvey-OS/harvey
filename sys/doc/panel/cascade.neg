@@ -1,0 +1,12 @@
+Panel *m1, *m2, *m3, *menu, *pop;
+m1=plmenu(0, 0, menu1, PACKN|FILLX, 0);
+m2=plmenu(0, 0, menu2, PACKN|FILLX, 0);
+m3=plmenu(0, 0, menu3, PACKN|FILLX, 0);
+menu=plgroup(0,0);
+plpulldown(menu, PACKN|FILLX, "panic >", m1, PACKE);
+plpulldown(menu, PACKN|FILLX, "edit  >", m2, PACKE);
+plpulldown(menu, PACKN|FILLX, "file  >", m2, PACKE);
+root=plframe(0, EXPAND);
+pop=plpopup(root, EXPAND, 0, menu, 0);
+pledit(pop, EXPAND, Pt(0,0),
+	L"How now, brown cow?", 19, 0);

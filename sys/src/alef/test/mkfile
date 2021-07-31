@@ -1,0 +1,45 @@
+</$objtype/mkfile
+
+TARG=\
+	pstest\
+	sieve\
+	test\
+	test2\
+	test3\
+	test4\
+	test6\
+	test7\
+	test9\
+	test12\
+	test13\
+	test14\
+	test15\
+	test16\
+	test17\
+	test18\
+	test19\
+	tstbio\
+
+</sys/src/cmd/mkmany
+
+ps.$O:	ps.h
+$O.pstest:	ps.$O
+
+stack.$O:	stack.h
+$O.test18:	stack.$O
+
+clean nuke:V:	xx-clean
+
+xx-clean:
+	rm -f xx*
+
+#	compiler tests - should result in compiler diagnostics
+
+$O.test5:	test5.$O
+
+$O.test8:	test8.$O
+
+$O.test10:	test10.$O
+
+$O.test11:	test11.$O
+

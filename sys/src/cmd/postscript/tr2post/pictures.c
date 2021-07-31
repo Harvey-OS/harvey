@@ -116,7 +116,8 @@ picture(Biobufhdr *inp, char *buf) {
 
 	flags[0] = '\0';			/* just to be safe */
 
-	nfields = getfields(buf, fields, MAXGETFIELDS, 0, ":\n");
+	setfields(":\n");
+	nfields = getfields(buf, fields, MAXGETFIELDS);
 	if (nfields < 6) {
 		error(WARNING, "too few arguments to specify picture");
 		return;
@@ -130,7 +131,8 @@ picture(Biobufhdr *inp, char *buf) {
 	if (nfields >= 6)
 		strncpy(flags, fields[7], sizeof(flags));
 
-	nfields = getfields(buf, fields, MAXGETFIELDS, 0, "()");
+	setfields("()");
+	nfields = getfields(buf, fields, MAXGETFIELDS);
 	if (nfields == 2) {
 		strncpy(name, fields[0], sizeof(name));
 		page = atoi(fields[1]);

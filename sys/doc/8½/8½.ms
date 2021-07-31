@@ -2,7 +2,7 @@
 8½, the Plan 9 Window System
 .AU
 Rob Pike
-rob@plan9.bell-labs.com
+rob@plan9.att.com
 .AB
 .FS
 Originally appeared, in a slightly different form, in
@@ -10,13 +10,7 @@ Originally appeared, in a slightly different form, in
 Proc. of the Summer 1991 USENIX Conf.,
 .R
 pp. 257-265,
-Nashville.
-Note that
-.CW 8½
-has been replaced by
-.CW rio
-(see
-.I rio (1)).
+Nashville
 .FE
 The Plan 9 window system, 8½, is a modest-sized program of novel design.
 It provides textual I/O and bitmap graphic services to both

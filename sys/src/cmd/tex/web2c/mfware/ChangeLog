@@ -1,0 +1,42 @@
+Thu May 14 19:22:10 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Fri Apr 10 15:13:27 1992  Karl Berry  (karl@hayley)
+
+        * gftopk.ch (81--83): don't add anything to the font comment.
+
+Fri Apr  3 09:55:42 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Thu Mar 26 07:00:04 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (clean): don't remove *.h, as gftodmem.h goes away.
+
+Fri Mar 20 16:27:15 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Sun Feb  2 07:56:16 1992  Karl Berry  (karl at hayley)
+
+        * gftodvi.ch (argument_is): use `long_options' instead of
+          `option_table'.
+
+Fri Jan 24 09:21:12 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Sun Jan 12 07:50:30 1992  Karl Berry  (karl at hayley)
+
+        * gftopk.ch, gftype.ch: `cwd_test_read_access' is gone.
+
+        * Makefile (vftovp.o, vptovf.o): remove the -Dlink, as it is now
+          in common.h.

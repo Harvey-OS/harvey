@@ -85,20 +85,21 @@ loop:
 		setobj(&ostar.point[i]);
 
 	occult(&omoon, &ostar, 0);
-	if(occ.t1 >= 0 || occ.t5 >= 0) {
+	if(occ.t3 >= 0) {
 		i = PTIME;
 		if(mag > 2)
 			i |= DARK;
 		if(mag < 5)
 			i |= SIGNIF;
-		if(occ.t1 >= 0 && occ.e1 >= 0)
+		if(occ.t1 >= 0)
 			event("Occultation of SAO %s begins at ",
 				saop, "", occ.t1, i);
-		if(occ.t5 >= 0 && occ.e5 >= 0)
+		if(occ.t5 >= 0)
 			event("Occultation of SAO %s ends at ",
 				saop, "", occ.t5, i);
-		while(*saop++)
-			;
+		if(occ.t1 >= 0 || occ.t5 >= 0)
+			while(*saop++)
+				;
 	}
 	goto loop;
 }

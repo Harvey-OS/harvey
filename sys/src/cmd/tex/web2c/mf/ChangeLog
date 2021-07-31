@@ -1,0 +1,82 @@
+Thu May 14 19:21:57 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Sat Apr 25 09:36:23 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (distclean): new target.
+
+        * convert: sync after the pipeline.
+
+Thu Apr 23 12:05:51 1992  Karl Berry  (karl@hayley)
+
+        * Makefile: fix clean targets, fix inimf/virmf/etc. to reflect
+          reality.  From Andreas.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Sat Apr 11 09:18:59 1992  Karl Berry  (karl@hayley)
+
+        * mf.ch (pack_file_name, pack_buffered_name): don't fill the
+          name_of_file array completely.
+
+Fri Apr 10 17:25:07 1992  Karl Berry  (karl@hayley)
+
+        * mf.ch: new file for configure to make cmf.ch from.
+        * Makefile (mostlyclean): remove cmf.ch.
+
+Fri Apr  3 09:55:30 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Mon Mar 30 07:57:08 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (clean, mostlyclean, windowlib, trapmf): use $(MAKE),
+          not `make'.
+
+Sun Mar 29 17:06:04 1992  Karl Berry  (karl at hayley)
+
+        * ini_to_trap: change some more constants.
+
+        * mf.web: new verion from dek.
+        * cmf.ch: update version number.
+
+Sun Mar 22 06:33:42 1992  Karl Berry  (karl at fosse)
+
+        * Makefile (makeargs): don't bother to pass variables for linking.
+
+Sat Mar 21 10:40:57 1992  Karl Berry  (karl at hayley)
+
+        * cmf.ch (38.789): check for the extension being irrelevant.
+
+Fri Mar 20 15:30:00 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+        * cmf.ch (4.51): set name_length to strlen pool_name.
+
+Fri Jan 24 09:21:17 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Wed Jan 15 12:59:29 1992  Karl Berry  (karl at hayley)
+
+        * cmf.ch (input): same changes as in TeX.
+
+Sun Jan 12 09:18:03 1992  Karl Berry  (karl at hayley)
+
+        * cmf.ch (memory structure): include "texmfmem.h", omitting the
+          ../common.
+
+        * Makefile (fileioh): no longer exists.
+
+Tue Jan  7 15:52:24 1992  Karl Berry  (karl at hayley)
+
+        * ctex.ch (opening input files): do `name_length + 5 <
+          file_name_size', not `name_length < file_name_size + 5'.  From
+          tony@marcam.dsir.govt.nz.

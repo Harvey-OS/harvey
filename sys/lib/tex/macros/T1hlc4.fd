@@ -1,0 +1,57 @@
+%Filename: T1hlc4.fd
+%Created by: tex 2931lucfax
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlc4.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlc4.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlc4}{}
+
+\DeclareFontShape{T1}{hlc4}{db}{n}{
+ <->s * [\LucidaScale]hlcd4q
+}{}
+
+\DeclareFontShape{T1}{hlc4}{db}{sc}{
+ <->s * [\LucidaScale]hlcd4cq
+}{}
+
+\DeclareFontShape{T1}{hlc4}{db}{it}{
+ <->s * [\LucidaScale]hlcdi4q
+}{}
+
+\DeclareFontShape{T1}{hlc4}{db}{sl}{
+ <->s * [\LucidaScale]hlcdo4q
+}{}
+
+\DeclareFontShape{T1}{hlc4}{m}{n}{
+ <->s * [\LucidaScale]hlcr4q
+}{}
+
+\DeclareFontShape{T1}{hlc4}{m}{sc}{
+ <->s * [\LucidaScale]hlcr4cq
+}{}
+
+\DeclareFontShape{T1}{hlc4}{m}{it}{
+ <->s * [\LucidaScale]hlcri4q
+}{}
+
+\DeclareFontShape{T1}{hlc4}{m}{sl}{
+ <->s * [\LucidaScale]hlcro4q
+}{}
+
+\DeclareFontShape{T1}{hlc4}{b}{n}{<->ssub * hlc4/db/n}{}
+\DeclareFontShape{T1}{hlc4}{bx}{n}{<->ssub * hlc4/b/n}{}
+\DeclareFontShape{T1}{hlc4}{b}{sc}{<->ssub * hlc4/db/sc}{}
+\DeclareFontShape{T1}{hlc4}{bx}{sc}{<->ssub * hlc4/b/sc}{}
+\DeclareFontShape{T1}{hlc4}{b}{it}{<->ssub * hlc4/db/it}{}
+\DeclareFontShape{T1}{hlc4}{bx}{it}{<->ssub * hlc4/b/it}{}
+\DeclareFontShape{T1}{hlc4}{db}{ui}{<->sub * hlc4/db/it}{}
+\DeclareFontShape{T1}{hlc4}{b}{ui}{<->ssub * hlc4/db/ui}{}
+\DeclareFontShape{T1}{hlc4}{bx}{ui}{<->ssub * hlc4/b/ui}{}
+\DeclareFontShape{T1}{hlc4}{b}{sl}{<->ssub * hlc4/db/sl}{}
+\DeclareFontShape{T1}{hlc4}{bx}{sl}{<->ssub * hlc4/b/sl}{}
+\DeclareFontShape{T1}{hlc4}{m}{ui}{<->sub * hlc4/m/it}{}
+
+\endinput

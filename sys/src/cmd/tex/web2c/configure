@@ -1,0 +1,689 @@
+#!/bin/sh
+# Guess values for system-dependent variables and create Makefiles.
+# Generated automatically using autoconf.
+# Copyright (C) 1991, 1992 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+# Usage: configure [--srcdir=DIR] [--host=HOST] [--gas] [--nfp]
+#        [--prefix=PREFIX] [--exec_prefix=PREFIX] [--with-PROGRAM] [TARGET]
+# Ignores all args except --srcdir, --prefix, and --exec_prefix.
+
+trap 'rm -f conftest* core; exit 1' 1 3 15
+
+for arg in $*; do
+  # Handle --exec_prefix with a space before the argument.
+  if test x$next_exec_prefix = xyes; then exec_prefix=$arg; next_exec_prefix=
+  # Handle --host with a space before the argument.
+  elif test x$next_host = xyes; then next_host=
+  # Handle --prefix with a space before the argument.
+  elif test x$next_prefix = xyes; then prefix=$arg; next_prefix=
+  # Handle --srcdir with a space before the argument.
+  elif test x$next_srcdir = xyes; then srcdir=$arg; next_srcdir=
+  else
+    case $arg in
+     -exec_prefix=* | --exec_prefix=* | --exec_prefi=* | --exec_pref=* | --exec_pre=* | --exec_pr=* | --exec_p=* | --exec_=* | --exec=* | --exe=* | --ex=* | --e=*)
+	exec_prefix=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -exec_prefix | --exec_prefix | --exec_prefi | --exec_pref | --exec_pre | --exec_pr | --exec_p | --exec_ | --exec | --exe | --ex | --e)
+	next_exec_prefix=yes ;;
+
+     -gas | --gas | --ga | --g) ;;
+
+     -host=* | --host=* | --hos=* | --ho=* | --h=*) ;;
+     -host | --host | --hos | --ho | --h)
+	next_host=yes ;;
+
+     -nfp | --nfp | --nf | --n) ;;
+
+     -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
+	prefix=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -prefix | --prefix | --prefi | --pref | --pre | --pr | --p)
+	next_prefix=yes ;;
+
+     -srcdir=* | --srcdir=* | --srcdi=* | --srcd=* | --src=* | --sr=* | --s=*)
+	srcdir=`echo $arg | sed 's/[-a-z_]*=//'` ;;
+     -srcdir | --srcdir | --srcdi | --srcd | --src | --sr | --s)
+	next_srcdir=yes ;;
+
+     -with-* | --with-*) ;;
+
+     *) ;;
+    esac
+  fi
+done
+
+rm -f conftest*
+compile='${CC-cc} $DEFS conftest.c -o conftest $LIBS >/dev/null 2>&1'
+
+# A filename unique to this package, relative to the directory that
+# configure is in, which we can look for to find out if srcdir is correct.
+unique_file=tex/tex.web
+
+# Makefile rules whose targets are searched for in VPATH need to use $<.
+# However, old makes do not support it, so we use a combination
+# construction in Makefile.in: `$file<'.
+# If srcdir is `.', we use sed to change that to `file' for old makes.
+# Otherwise, we use sed to change it to `$<'.
+# vpsub is the sed program, which changes `$file<' to one or the other.
+vpsub='s,\$([\-./a-zA-Z0-9_][\-./a-zA-Z0-9_]*)<,\1,g'
+
+# Find the source files, if location was not specified.
+if test -z "$srcdir"; then
+  srcdirdefaulted=yes; srcdir=.
+  if test ! -r $unique_file; then srcdir=..; fi
+fi
+if test ! -r $srcdir/$unique_file; then
+  if test x$srcdirdefaulted = xyes; then
+    echo "configure: Can not find sources in \`.' or \`..'." 1>&2
+  else
+    echo "configure: Can not find sources in \`${srcdir}'." 1>&2
+  fi
+  exit 1
+fi
+if test $srcdir != .; then
+  case $srcdir in
+    /*|~*) ;;
+    *) srcdir=`pwd`/$srcdir ;; # Make relative path absolute.
+  esac
+  vpsub='s,\$([\-./a-zA-Z0-9_][\-./a-zA-Z0-9_]*)<,\$<,g'
+fi
+
+
+# The Bourne shell writes "command not found" to /dev/tty, so if we get
+# a usage message on stderr, we have the program.
+#
+# ksh and zsh write "command not found" to stderr, but test -n does not
+# want any output if there is no program.  So we use the `type' builtin
+# instead for them (and bash).
+if test "$RANDOM" = "$RANDOM"; then
+  checkfor='test -n "`$checkprog $checkargs 2>&1`"'
+else
+  checkfor='type $checkprog >/dev/null 2>&1'
+fi
+
+
+
+compile='rm -f conftest.t;
+  mv conftest.c conftest.t;
+  echo "$DEFS" > conftest.c;
+  cat conftest.t >> conftest.c;
+  rm -f conftest.t;
+  ${CC-cc} conftest.c -o conftest $LIBS >/dev/null 2>&1'
+
+
+# Make sure they've decided on their preferences.
+sitedir=$srcdir/lib
+siteh=$sitedir/site.h
+if test ! -r $siteh
+then
+  echo "Please copy $sitedir/site.h.in to $siteh, and edit it."
+  echo "Then run configure again."
+  exit 1
+fi
+
+echo checking for tex to derive installation directory prefix
+if test -z "$prefix"
+then
+  saveifs="$IFS"; IFS="$IFS:"
+  for dir in $PATH; do
+    test -z "$dir" && dir=.
+    if test $dir != . && test -f $dir/tex; then
+      # Not all systems have dirname.
+      prefix=`echo $dir|sed 's,/[^/][^/]*$,,'`
+      break
+    fi
+  done
+  IFS="$saveifs"
+fi
+
+
+echo checking for gcc
+checkprog=gcc checkargs=''
+test -z "$CC" && eval $checkfor && CC='gcc '
+CC=${CC-cc}
+
+cat <<EOF > conftest.c
+main() {
+#ifdef __GNUC__
+  exit(0);
+#else
+  exit(1);
+#endif
+}
+EOF
+eval $compile
+if test -s conftest && (./conftest) 2>/dev/null; then
+  GCC=1 # For later tests.
+  CC="$CC -g"
+else
+  :
+fi
+rm -f conftest*
+
+echo checking how to run the C preprocessor
+if test -z "$CPP"; then
+  CPP='${CC-cc} -E'
+  cat <<EOF > conftest.c
+#include <stdio.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  :
+else
+  CPP=/lib/cpp
+fi
+rm -f conftest*
+fi
+
+if test -n "$GCC"; then
+  echo checking whether -traditional is needed
+  prog=
+cat <<EOF > conftest.c
+#include <termio.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  prog='#include <sys/types.h>
+#include <termio.h>
+main() {
+  struct termio t;
+  exit(ioctl(0, TCGETA, &t) == 0);
+}'
+else
+  :
+fi
+rm -f conftest*
+if test -z "$prog"; then
+cat <<EOF > conftest.c
+#include <sgtty.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  prog='#include <sys/types.h>
+#include <sgtty.h>
+main() {
+  struct sgttyb t;
+  exit(ioctl(0, TIOCGETP, &t) == 0);
+}'
+else
+  :
+fi
+rm -f conftest*
+fi
+if test -n "$prog"; then
+  cat <<EOF > conftest.c
+$prog
+EOF
+eval $compile
+if test -s conftest && (./conftest) 2>/dev/null; then
+  CC="$CC -traditional"
+else
+  :
+fi
+rm -f conftest*
+fi
+fi
+
+echo checking for install
+# Make sure to not get the incompatible SysV /etc/install and
+# /usr/sbin/install, which might be in PATH before a BSD-like install.
+if test -z "$INSTALL"; then
+  saveifs="$IFS"; IFS="$IFS:"
+  for dir in $PATH; do
+    test -z "$dir" && dir=.
+    case $dir in
+    /etc|/usr/sbin) ;;
+    *)
+      if test -f $dir/install; then
+	INSTALL="$dir/install -c"
+	INSTALL_PROGRAM='$(INSTALL)'
+	INSTALL_DATA='$(INSTALL) -m 644'
+	break
+      fi
+      ;;
+    esac
+  done
+  IFS="$saveifs"
+fi
+INSTALL=${INSTALL-cp}
+INSTALL_PROGRAM=${INSTALL_PROGRAM-'$(INSTALL)'}
+INSTALL_DATA=${INSTALL_DATA-'$(INSTALL)'}
+
+echo checking for ranlib
+checkprog=ranlib checkargs='/dev/null'
+test -z "$RANLIB" && eval $checkfor && RANLIB='ranlib '
+RANLIB=${RANLIB-true}
+
+echo checking for bison
+checkprog=bison checkargs=''
+test -z "$YACC" && eval $checkfor && YACC='bison -y'
+YACC=${YACC-yacc}
+
+echo checking for flex
+checkprog=flex checkargs='conftest'
+test -z "$LEX" && eval $checkfor && LEX='flex '
+LEX=${LEX-lex}
+
+if test -z "$LEXLIB"
+then
+  case "$LEX" in
+  flex*)
+    if test -r /usr/local/lib/libfl.a
+    then LEXLIB=/usr/local/lib/libfl.a
+    elif test -r ${prefix}/lib/libfl.a
+    then LEXLIB=${prefix}/lib/libfl.a
+    else LEXLIB="-lfl"
+    fi
+    ;;
+  *) LEXLIB="-ll" ;;
+  esac
+fi
+echo checking how to run the C preprocessor
+if test -z "$CPP"; then
+  CPP='${CC-cc} -E'
+  cat <<EOF > conftest.c
+#include <stdio.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  :
+else
+  CPP=/lib/cpp
+fi
+rm -f conftest*
+fi
+
+echo checking how to declare yytext
+# Figure out what yytext is by creating a minimal parser and
+# examining the (preprocessed, in case macros are used) output.
+if test -z "$DECLARE_YYTEXT"
+then
+  echo "%%" | $LEX
+  DECLARE_YYTEXT=`eval $CPP lex.yy.c \
+    | sed -n '/extern.*yytext/s/^.*extern/extern/p'`
+  rm -f lex.yy.c
+fi
+DEFS="${DEFS}#define DECLARE_YYTEXT "$DECLARE_YYTEXT"
+"
+echo checking for ln -s
+rm -f conftestdata
+if ln -s X conftestdata 2>/dev/null
+then
+  rm -f conftestdata
+  LN_S="ln -s"
+else
+  LN_S=ln
+fi
+
+
+
+echo checking for POSIXized ISC
+if test -d /etc/conf/kconfig.d &&
+  grep _POSIX_VERSION /usr/include/sys/unistd.h >/dev/null 2>&1
+then
+  ISC=1 # If later tests want to check for ISC.
+  DEFS="${DEFS}#define _POSIX_SOURCE 1
+"
+  if test -n "$GCC"; then
+    CC="$CC -posix"
+  else
+    CC="$CC -Xp"
+  fi
+fi
+
+
+echo checking for directory library header
+echo checking for dirent.h
+cat <<EOF > conftest.c
+#include <dirent.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  DEFS="${DEFS}#define DIRENT 1
+" dirheader=dirent.h
+else
+  :
+fi
+rm -f conftest*
+
+if test -z "$dirheader"; then
+echo checking for sys/ndir.h
+cat <<EOF > conftest.c
+#include <sys/ndir.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  DEFS="${DEFS}#define SYSNDIR 1
+" dirheader=sys/ndir.h
+else
+  :
+fi
+rm -f conftest*
+
+fi
+test -z "$dirheader" && dirheader=sys/dir.h
+
+echo checking for closedir return value
+cat <<EOF > conftest.c
+#include <$dirheader>
+int closedir(); main(){exit (0);}
+EOF
+eval $compile
+if test -s conftest && (./conftest) 2>/dev/null; then
+  :
+else
+  DEFS="${DEFS}#define VOID_CLOSEDIR 1
+"
+fi
+rm -f conftest*
+
+echo checking for limits.h
+cat <<EOF > conftest.c
+#include <limits.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  : 
+else
+  DEFS="${DEFS}#define LIMITS_H_MISSING 1
+"
+fi
+rm -f conftest*
+
+echo checking for float.h
+cat <<EOF > conftest.c
+#include <float.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  : 
+else
+  DEFS="${DEFS}#define FLOAT_H_MISSING 1
+"
+fi
+rm -f conftest*
+
+echo "checking for memcpy in string.h"
+echo '#include <string.h>' > conftest.c
+eval "$CPP conftest.c > conftest.out 2>&1"
+if egrep 'memcpy' conftest.out >/dev/null 2>&1; then
+  :
+else 
+  echo checking for memory.h
+cat <<EOF > conftest.c
+#include <memory.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  DEFS="${DEFS}#define NEED_MEMORY_H 1
+"
+else
+  :
+fi
+rm -f conftest*
+
+fi
+rm -f conftest*
+
+
+echo checking for ANSI C header files
+cat <<EOF > conftest.c
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  DEFS="${DEFS}#define STDC_HEADERS 1
+"
+else
+  :
+fi
+rm -f conftest*
+
+echo checking for unistd.h
+cat <<EOF > conftest.c
+#include <unistd.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  DEFS="${DEFS}#define HAVE_UNISTD_H 1
+"
+else
+  :
+fi
+rm -f conftest*
+
+echo checking for BSD string and memory functions
+echo "#include <strings.h>
+main() { exit(0); } t() { rindex(0, 0); bzero(0, 0); }" > conftest.c
+eval $compile
+if test -s conftest && (./conftest) 2>/dev/null; then
+  :
+else
+  DEFS="${DEFS}#define USG 1
+"
+fi
+rm -f conftest*
+
+
+echo "checking for (void|sighandler_t).*signal in signal.h"
+echo '#include <signal.h>' > conftest.c
+eval "$CPP conftest.c > conftest.out 2>&1"
+if egrep '(void|sighandler_t).*signal' conftest.out >/dev/null 2>&1; then
+  :
+else 
+  DEFS="${DEFS}#define RETSIGTYPE int
+"
+fi
+rm -f conftest*
+
+
+
+echo checking for unsigned characters
+cat <<EOF > conftest.c
+/* volatile prevents gcc2 from optimizing the test away on sparcs.  */
+#if !__STDC__
+#define volatile
+#endif
+main() {
+#ifdef __CHAR_UNSIGNED__
+  exit(1); /* No need to redefine it.  */
+#else
+  volatile char c = 255; exit(c < 0);
+#endif
+}
+EOF
+eval $compile
+if test -s conftest && (./conftest) 2>/dev/null; then
+  DEFS="${DEFS}#define __CHAR_UNSIGNED__ 1
+"
+else
+  :
+fi
+rm -f conftest*
+
+echo checking byte ordering
+cat <<EOF > conftest.c
+main () {
+  /* Are we little or big endian?  From Harbison&Steele.  */
+  union
+  {
+    long l;
+    char c[sizeof (long)];
+  } u;
+  u.l = 1;
+  exit (u.c[sizeof (long) - 1] == 1);
+}
+EOF
+eval $compile
+if test -s conftest && (./conftest) 2>/dev/null; then
+  :
+else
+  DEFS="${DEFS}#define WORDS_BIGENDIAN 1
+"
+fi
+rm -f conftest*
+
+echo checking for window system libraries
+# Figure out window system libraries by inspecting site.h.
+if grep -s define.*SUNWIN $siteh
+then wlibs="$wlibs -lsuntool -lsunwindow -lpixrect"
+fi
+if grep -s define.*X11WIN $siteh
+then wlibs="$wlibs -lXt -lX11"
+elif grep define.*X10WIN $siteh
+then wlibs="$wlibs -lX"
+fi
+echo checking for ISC X window libraries
+if test -n "$ISC"
+then wlibs="$wlibs -lnsl_s -linet"
+fi
+
+echo checking for X11 headers and libraries
+dir=""
+cat <<EOF > conftest.c
+#include <X11/Xaw/Box.h>
+EOF
+err=`eval "$CPP conftest.c 2>&1 >/dev/null"`
+if test -z "$err"; then
+  :
+else
+  if test -r /usr/local/include/X11/Xaw/Box.h
+  then dir=/usr/local/include
+  elif test -r /usr/lpp/X11/Xamples/include/Box.h
+  then dir=/usr/lpp/X11/Xamples/include
+  fi
+
+fi
+rm -f conftest*
+if test -n "$dir"
+then xincludedir=-I$dir
+     
+fi
+# Now check for the libraries.
+dir1=""
+if test -r /usr/local/lib/libXaw.a
+then dir1=/usr/local/lib
+elif test -r /usr/lpp/X11/Xamples/lib/Xaw/libXaw.a
+then dir1=/usr/lpp/X11/Xamples/lib/Xaw
+fi
+dir2=""
+if test -r /usr/lpp/X11/Xamples/lib/Xmu/libXmu.a
+then dir2=/usr/lpp/X11/Xamples/lib/Xmu
+fi
+test -n "$dir1" && xlibdir=-L$dir1
+test -n "$dir2" && xlibdir="$xlibdir -L$dir2"
+
+
+echo setting up TeX/MF/BibTeX change files
+(cd tex; rm -f ctex.ch; cp tex.ch ctex.ch)
+if test -n "`grep '#define.*SMALLTeX' $siteh`"
+then
+  (cd tex; patch ctex.ch small.diff)
+  DEFS="${DEFS}#define GLUERATIO_TYPE float
+"
+fi
+# Similarly for Metafont.
+(cd mf; rm -f cmf.ch; cp mf.ch cmf.ch)
+if test -n "`grep '#define.*SMALLMF' $siteh`"
+then (cd mf; patch cmf.ch small.diff)
+fi
+# And similarly for BibTeX.
+(cd bibtex; rm -f cbibtex.ch; cp bibtex.ch cbibtex.ch)
+if test -n "`grep '#define.*SMALLBibTeX' $siteh`"
+then (cd bibtex; patch cbibtex.ch small.diff)
+fi
+
+
+trap 'rm -f ./Makefile config.status lib/c-auto.h; exit 1' 1 3 15
+
+if test -n "$prefix"; then
+  test -z "$exec_prefix" && exec_prefix='$(prefix)'
+  prsub="s,^prefix[ 	]*=.*$,prefix = $prefix,"
+fi
+if test -n "$exec_prefix"; then
+  prsub="$prsub
+s,^exec_prefix[ 	]*=.*$,exec_prefix = $exec_prefix,"
+fi
+
+for file in ./Makefile; do
+  # Not all systems have dirname.
+  dir=`echo $file|sed 's,/[^/][^/]*$,,'`
+  test "$dir" != "$file" && test ! -d $dir && mkdir $dir
+  echo creating $file
+  rm -f $file
+  echo "# Generated automatically from `basename $file`.in by configure." > $file
+  sed -e "
+$vpsub
+$prsub
+s,@CC@,$CC,
+s,@CPP@,$CPP,
+s,@INSTALL@,$INSTALL,
+s,@INSTALL_PROGRAM@,$INSTALL_PROGRAM,
+s,@INSTALL_DATA@,$INSTALL_DATA,
+s,@RANLIB@,$RANLIB,
+s,@YACC@,$YACC,
+s,@LEX@,$LEX,
+s,@LEXLIB@,$LEXLIB,
+s,@LN_S@,$LN_S,
+s,@wlibs@,$wlibs,
+s,@xincludedir@,$xincludedir,
+s,@xlibdir@,$xlibdir,
+s,@LIBS@,$LIBS,
+s,@srcdir@,$srcdir,
+" $srcdir/${file}.in >> $file
+echo "
+# Prevent GNU make v3 from overflowing arg limit on SysV.
+.NOEXPORT:" >> $file
+done
+
+echo creating lib/c-auto.h
+rm -f lib/c-auto.h
+echo "/* lib/c-auto.h.  Generated automatically by configure.  */" > lib/c-auto.h
+echo "$DEFS
+/* END_OF_DEFS */" |
+awk '
+# The escaped newlines are to work around a bug in GNU m4 0.99
+# in quoting more than 2 arguments in a single line.
+BEGIN { filenum = 1 }
+filenum == 1 && $1 == "#define" \
+{ defs[$2] = $3
+  for (i = 4; i <= NF; i++)
+    defs[$2] = defs[$2] " " $i
+}
+/END_OF_DEFS/ { filenum = 2; next }
+filenum == 2 && $1 == "#define" && \
+defs[$2] != "" {
+  $3 = defs[$2]
+  print; next
+}
+filenum == 2 && $1 == "#undef" && \
+defs[$2] != "" {
+  $1 = "#define"
+  $2 = $2 " " defs[$2]
+  print; next
+}
+filenum == 2 { print }
+' - $srcdir/lib/c-auto.h.in >> lib/c-auto.h
+
+echo creating config.status
+rm -f config.status
+echo "#!/bin/sh
+# Generated automatically by configure.
+# Run this file to recreate the current configuration.
+$0 $*" > config.status
+chmod +x config.status
+

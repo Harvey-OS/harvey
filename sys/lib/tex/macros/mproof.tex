@@ -1,0 +1,15 @@
+% To produce proof sheets from MetaPost output:
+% tex mproof <MetaPost output file names>
+
+\input epsf
+\font\textt=cmtex10
+\def\okbreak{\vfil\penalty2000\vfilneg}
+
+\def\munch#1 {#1$$\epsfbox{#1}$$\par\okbreak\munch}
+
+\def\\{\let\munch=\relax\def\\{}}
+
+\everypar{\everypar{}\munchline}
+
+\obeylines\def\munchline#1
+{\catcode`\^^M=5 \munch#1\\ \vfill\end}%

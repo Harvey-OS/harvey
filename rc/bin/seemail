@@ -1,4 +1,0 @@
-#!/bin/rc
-
-if(~ $1 -i) exec faces -hi
-if not exec faces -h

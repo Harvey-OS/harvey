@@ -4,14 +4,11 @@
 #include "dat.h"
 #include "fns.h"
 
-int readonly;
-
 static int
 deverror(char *name, Xfs *xf, long addr, long n, long nret)
 {
 	char errbuf[ERRLEN];
 
-	errno = Eio;
 	if(nret < 0){
 		errstr(errbuf);
 		chat("%s errstr=\"%s\"...", name, errbuf);
@@ -20,9 +17,9 @@ deverror(char *name, Xfs *xf, long addr, long n, long nret)
 		/*if(strcmp(errbuf, "disk changed") == 0)*/
 			return -1;
 	}
-	fprint(2, "dev %d sector %ld, %s: %ld, should be %ld\n",
+	fprint(2, "dev %d sector %d, %s: %d, should be %d\n",
 		xf->dev, addr, name, nret, n);
-//	panic(name);
+	panic(name);
 	return -1;
 }
 
@@ -49,9 +46,6 @@ devwrite(Xfs *xf, long addr, void *buf, long n)
 /*
  *	chat("devwrite %d,%d...", p->dev, p->addr);
  */
-	if(readonly)
-		return -1;
-
 	if(xf->dev < 0)
 		return -1;
 	seek(xf->dev, xf->offset+addr*Sectorsize, 0);

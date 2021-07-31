@@ -1,0 +1,632 @@
+.TH PLINIT 2
+.SH NAME
+Panel, Rtext, plpack, plmove, pldraw, plfree, plgrabkb, plkeyboard, plmouse, plscroll, plentryval, plsetbutton, plsetslider, pleget, plelen, plegetsel, plepaste, plesel, plescroll, plgetscroll, plsetscroll, plplacelabel, plrtstr, plrtbitmap, plrtpanel, plrtfree, plgetpostextview, plsetpostextview \- Panel manipulation functions
+.SH SYNOPSIS
+.nf
+.B #include <u.h>
+.br
+.B #include <libg.h>
+.br
+.B #include <panel.h>
+.PP
+.B
+int plinit(int ldepth)
+.PP
+.B
+int plpack(Panel *p, Rectangle r)
+.PP
+.B
+void plmove(Panel *p, Point loc)
+.PP
+.B
+void pldraw(Panel *p, Bitmap *b)
+.PP
+.B
+void plfree(Panel *p)
+.PP
+.B
+void plgrabkb(Panel *p)
+.PP
+.B
+void plkeyboard(Rune c)
+.PP
+.B
+void plmouse(Panel *p, Mouse m)
+.PP
+.B
+void plscroll(Panel *scrollee, Panel *xscroller, Panel *yscroller)
+.PP
+.B
+char *plentryval(Panel *entry)
+.PP
+.B
+void plsetbutton(Panel *button, int value)
+.PP
+.B
+void plsetslider(Panel *slider, int value, int range)
+.PP
+.B
+Rune *pleget(Panel *edit)
+.PP
+.B
+int plelen(Panel *edit)
+.PP
+.B
+void plegetsel(Panel *edit, int *start, int *end)
+.PP
+.B
+void plepaste(Panel *edit, Rune *text, int ntext)
+.PP
+.B
+void plesel(Panel *edit, int start, int end)
+.PP
+.B
+void plescroll(Panel *edit, int index)
+.PP
+.B
+Scroll plgetscroll(Panel *p)
+.PP
+.B
+void plsetscroll(Panel *p, Scroll s)
+.PP
+.B
+void plplacelabel(Panel *p, int loc)
+.PP
+.B
+Rtext *plrtstr(Rtext **head, int space, int indent,
+.B
+	          Font *font, char *str, int hot, void *user)
+.PP
+.B
+Rtext *plrtbitmap(Rtext **head, int space, int indent,
+.B
+	             Bitmap *image, int hot, void *user)
+.PP
+.B
+Rtext *plrtpanel(Rtext **head, int space, int indent,
+.B
+	            Panel *panel, int hot, void *user)
+.PP
+.B
+void plrtfree(Rtext *text)
+.PP
+.B
+Rtext *plgetpostextview(Panel *view)
+.PP
+.B
+void plsetpostextview(Panel *view, Rtext *text)
+.SH DESCRIPTION
+The panel library assists in making simple graphical control panels for interactive
+applications.
+As drawn on the screen, a panel is a collection of nested rectangles with
+things drawn in them, representing labels, buttons, editable text displays,
+scroll bars, and other user interface features.  Corresponding to the nest
+of boxes is a tree of
+.B Panel
+structures.
+A node's children are drawn nested inside their parent.
+The publicly visible part of a
+.B Panel
+structure looks like this
+.IP
+.EX
+typedef struct Panel Panel;
+struct Panel{
+	Point ipad, pad; /* extra space inside and outside */
+	Point fixedsize; /* size of Panel, if FIXED */
+	int user;        /* available for user */
+	void *userp;     /* available for user */
+	Rectangle r;     /* where the Panel goes */
+	...              /* more private fields follow */
+};
+.EE
+.PP
+.B Rectangle
+.B r
+is the box containing this
+.B Panel
+node and its children.  Its value is computed by
+.IR plpack .
+The
+.B user
+and
+.B userp
+fields are not used by the panel library.  They are provided so that
+user code can attach data to a
+.B Panel
+node.  The
+.BR Point s
+.BR ipad ,
+.BR pad ,
+and
+.B fixedsize
+may be set by user code and are examined by
+.IR plpack .
+.PP
+This manual page catalogs those panel library functions not directly concerned
+with creating or reinitializing
+.B Panel
+data structures.  See
+.IR plbutton (2)
+and
+.IR plinitbutton (2)
+for those.  The Panel library memo
+in Volume 2 of this manual contains a more detailed description of
+these functions, illustrated with examples.
+.PP
+The
+.I plinit
+function initializes panel library data structures.  Its argument is
+the
+.B ldepth
+of the bitmaps on which panels will be drawn.  The panel library draws
+things differently on one-bit and multi-bit-per-pixel displays.
+.PP
+There is usually no need to specify exact sizes and screen locations of
+.B Panel
+nodes.
+.PP
+Screen layout is computed by
+.IR plpack ,
+whose arguments are a pointer to a
+.B Panel
+tree and a
+.B Rectangle
+in which the layout should fit.
+.I Plpack
+returns 1 if it could fit everything into the rectangle, and 0 if it could not.
+Briefly,
+.I plpack
+processes a
+.B Panel
+tree in two passes.  The first, bottom-up pass computes the amount of space
+required to house the children of each panel.  The second pass proceeds top-down
+and divides the space available to each panel among its children.
+Every
+.B Panel
+has some minimum space requirement \(em for example, a button must be
+big enough to fit its label inside its border, and a group must be
+large enough to hold its children.  Space is allocated to a
+.BR Panel 's
+children in eldest to youngest order by slicing an appropriately sized piece off
+one of the four sides of the available rectangle.  Each
+.B Panel
+has a flag word (specified when the
+.B Panel
+is created \(em see
+.IR plbutton (2)),
+one of whose fields can have the value
+.BR PACKN ,
+.BR PACKE ,
+.B PACKS
+or
+.B PACKW
+(default
+.BR PACKN ),
+specifying from which side to cut the piece.
+Other flags are:
+.TP
+.B FILLX FILLY
+The rectangle that
+.I plpack
+slices off for a
+.B Panel
+may be larger than the
+.B Panel
+needs.  For example, if a small button with
+.B PACKW
+set is packed inside a large rectangle,
+.I plpack
+will slice off a piece that fits snugly in the
+.I x
+direction, but that will likely be too
+big in the
+.I y
+direction.  Specifying instead
+.B PACKW|FILLY
+will grow the button in the
+.B y
+direction to fill the extra space.
+.TP
+.B "PLACECEN PLACES PLACEE PLACEW PLACEN
+.PD 0
+.TP
+.B "PLACENE PLACENW PLACESE PLACESW
+.PD
+If a
+.B Panel
+is not expanded to fill the slack, these flags can specify
+where in the available space to place it.  The default is
+.BR PLACECEN ,
+which centers the panel in the space allocated for it.
+The other
+.B PLACE
+flags place the
+.B Panel
+at one of the eight compass points.
+.TP
+.B FIXED FIXEDX FIXEDY
+A user's code can override whatever size calculation
+.I plpack
+performs by setting the
+.B FIXED
+flag and storing a value in the
+.BR Panel 's
+.B fixedsize
+field.
+.B FIXED
+is the conjunction of
+.B FIXEDX
+and
+.BR FIXEDY ,
+which fix a
+.BR Panel 's
+horizontal and vertical extent independently.
+.TP
+.B MAXX MAXY
+If either of these flags is set, the
+.BR Panel 's
+.I x
+or
+.I y
+size requirement is increased to be equal to that of its largest sibling.
+.PP
+Once a
+.B Panel
+tree is packed, it can be moved to a different location by calling
+.IR plmove ,
+whose arguments are the panel to be moved and the upper left-hand
+corner of its destination.
+.PP
+.I Pldraw
+displays its
+.B Panel
+argument in the given
+.BR Bitmap .
+Since each
+.BR Panel 's
+children are drawn nested inside it, programs can do
+partial screen updates by calling
+.I pldraw
+on interior nodes of a
+.B Panel
+tree.  For example, after calling
+.I plinitlabel
+to change the text of a label, calling
+.I pldraw
+on the label will redisplay it, without having
+to update the rest of the display.
+An application that wishes to discard a
+.B Panel
+tree should pass it to
+.I plfree
+to release the storage.
+.PP
+Three functions control how a
+.B Panel
+processes mouse and keyboard input:
+.TF plkeyboard
+.TP
+.I plmouse
+takes two arguments, a
+.B Panel
+pointer and a
+.B Mouse
+structure as returned by
+.B emouse
+(see
+.IR event (2)).
+.I Plmouse
+determines which node of the
+.B Panel
+tree should receive the mouse event
+and calls panel-specific code to
+process the event.  That code may in turn
+call back to user-supplied functions to register
+button hits, slider movement, etc.  Hit routines
+are generally specified when panel-creation functions
+are called.
+.TP
+.I plgrabkb
+takes one argument, a pointer to a
+.B Panel
+to which keyboard input should be directed.  We say
+that this panel ``has the keyboard focus.''  Passing
+a null pointer to
+.I plgrabkb
+causes subsequent keyboard input to be ignored.
+.TP
+.I plkeyboard
+takes one argument, a
+.BR Rune ,
+presumably obtained from
+.B ekbd
+or its equivalent and sends it to the panel that
+has the keyboard focus, if any.
+.PD
+.PP
+Programs that use scroll bars created with
+.IR plscrollbar
+to control scrollable panels (currently
+.IR pledit ,
+.IR pllist ,
+and
+.I pltextview
+panels) must call
+.I plscroll
+to indicate to the panel library which scroll
+bar adjusts which panel.  Its arguments are three
+pointers to panels: the panel to be scrolled,
+the panel that scrolls it in the
+.I x
+direction, and the panel that scrolls it in the
+.I y
+direction.  Either of the latter two may be null, indicating
+no control in that direction.  Currently no panel responds to scrolling in
+.IR x ;
+that option is for future expansion.
+.PP
+The rest of the functions test or set values hidden in
+certain
+.B Panel
+types or perform other miscellaneous manipulations such as saving and
+restoring scroll points.
+.PP
+The
+.I plentryval
+entry returns a pointer to the string entered into a
+.I plentry
+panel (q.v.).  Its argument is the panel in question.
+.PP
+.I Plsetbutton
+takes two arguments.  The first must point to a
+.I plcheckbutton
+or
+.I plradiobutton
+panel.  The function sets or clears the button's
+checkmark, depending on whether its second argument
+is 0 or 1.
+.PP
+.I Plsetslider
+adjusts the position of the slider, its first argument.
+The
+.I value
+argument gives the setting, in units such that the
+.I range
+argument gives full scale.  For example
+.IP
+.EX
+plsetslider(s, 50, 100);
+plsetslider(s, 1, 2);
+plsetslider(s, 17, 34);
+.EE
+.PP
+each set slider
+.B s
+to the 50% mark.
+.PP
+The following functions all manipulate the editable text panels
+created by
+.IR pledit .
+The first argument of each is a pointer to the edit panel.
+.TF plegetsel
+.TP
+.I pleget
+returns a pointer to an array of
+.B Runes
+containing the edit window's text.
+.TP
+.I plelen
+returns the number of
+.BR Rune s
+in the text.
+.TP
+.I plegetsel
+stores in
+.I *start
+and
+.I *end
+the endpoints of the edit window's current selection.
+.TP
+.I plepaste
+replaces the current selection with the text pointed to by
+.IR text ,
+whose length is
+.I ntext
+.BR Runes .
+.TP
+.I plesel
+sets the endpoints of the selection to
+.I start
+and
+.IR end .
+.TP
+.I plescroll
+scrolls the edit window so that the line containing the
+.I Rune
+with the given
+.I index
+is at the top of the screen.
+.PD
+.PP
+The arguments of
+.I plplacelabel
+are a pointer to a
+.I pllabel
+panel and one of the flags
+.BR PLACECEN ,
+.BR PLACES ,
+.BR PLACEE ,
+.BR PLACEW ,
+.BR PLACEN ,
+.BR PLACENE ,
+.BR PLACENW ,
+.BR PLACESE ,
+or
+.BR PLACESW .
+This function indicates where in the space allocated for the label
+the label's text should be drawn.  The text is centered by default.
+.PP
+The argument of
+.I plgetscroll
+should point to a scrollable
+.BR Panel .
+The return value is a magic cookie (of type
+.BR Scroll )
+that indicates where it is scrolled to.
+When the panel pointer and the cookie are passed to
+.IR plsetscroll ,
+it will scroll the panel back to the place it was at when
+.I plgetscroll
+was called.  The magic cookie encodes the scroll position on
+a percentage basis, so all bets are off if the contents of the panel are
+different at the calls to
+.I plgetscroll
+and
+.IR plsetscroll .
+.PP
+.I Plgetpostextview
+and
+.I plsetpostextview
+perform a similar function, but they only work on
+.I pltextview
+panels.  However, since
+.I plgetpostextview
+returns a pointer to the
+.B Rtext
+that is displayed in the upper left-hand
+corner of the panel and
+.I plsetpostextview
+scrolls the given
+.B Rtext
+back to the upper left-hand corner, the caveat mentioned above does not apply.
+.PP
+Finally, there is a group of functions that create the
+.B Rtext
+lists that are displayed by
+.I pltextview
+panels.  Line breaks can occur only between the members of an
+.B Rtext
+list.  An individual
+.B Rtext
+structure describes a bitmap, or a string of text to be drawn
+in a single call to
+.B string
+(see
+.IR bitblt (2)),
+or a
+.B Panel
+to be drawn inline.
+The publicly visible parts of an
+.B Rtext
+look like this:
+.IP
+.EX
+typedef struct Rtext Rtext;
+struct Rtext{
+	int hot;     /* responds to hits? */
+	void *user;  /* user data */
+	int space;   /* how much space before, if no break */
+	int indent;  /* how much space before, after a break */
+	Bitmap *b;   /* what to display, if nonzero */
+	Panel *p;    /* what to display, if nonzero and b==0 */
+	Font *font;  /* font in which to draw text */
+	char *text;  /* what to display, if b==0 and p==0 */
+	Rtext *next; /* next piece */
+	...          /* more private fields follow */
+};
+.EE
+.PP
+The fields are:
+.TF indent
+.TP
+.B hot
+indicates whether or not this
+.B Rtext
+is sensitive to mouse hits.
+.TP
+.B user
+points to user data not used by the panel library.  User code
+may use this pointer to annotate an
+.BR Rtext .
+.TP
+.B space
+how much space to leave to the left of this
+.B Rtext
+if it appears on the same line as the previous one.
+To allow the display of words with internal font changes, if
+.B space
+is zero, there will never be a line break between this
+.B Rtext
+and the previous one.
+.TP
+.B indent
+How much space to leave between this
+.B Rtext
+and the left margin, if it is the first one on the line.
+.TP
+.B b
+a bitmap to be displayed, if non-null.
+.TP
+.B p
+a panel to be displayed, if non-null and
+.BR b==0 .
+.TP
+.B font
+the font in which
+.B text
+is to be drawn.
+.TP
+.B text
+the string to be displayed, if
+.B b==0
+and
+.BR p==0 .
+.TP
+.B next
+the next
+.B Rtext
+on the list.
+.PD
+.PP
+The functions
+.IR plrtstr ,
+.IR plrtbitmap ,
+and
+.I plrtpanel
+create nodes in an
+.B Rtext
+list, returning a pointer to the newly created node.
+For all three functions, the
+.IR space ,
+.IR indent ,
+.IR hot ,
+and
+.I user
+arguments initialize the corresponding field of the
+.BR Rtext ,
+and
+.I head
+points to a pointer to the head of the list, which the
+functions will update appropriately.  The pointer in
+.BI * head
+should
+be initialized to a null pointer
+before the first call to any of these functions.
+.PP
+The
+.I plrtfree
+function will dispose of a
+.B Rtext
+list that is no longer needed.  The user's code is responsible for
+discarding any strings, bitmaps, panels, or user data that the list
+may point to.
+.SH SOURCE
+.B /sys/src/libpanel
+.SH SEE ALSO
+.IR plbutton (2),
+.IR plinitbutton (2),
+.IR graphics (2)
+.br
+Tom Duff,
+``A quick introduction to the panel library''.

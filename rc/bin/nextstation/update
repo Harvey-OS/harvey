@@ -1,0 +1,4 @@
+#!/bin/rc
+9fs bootes
+cputype=68020 disk/mkfs -s /n/bootes /lib/proto/portproto
+disk/ksync

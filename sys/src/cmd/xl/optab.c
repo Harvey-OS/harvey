@@ -1,0 +1,189 @@
+#include	"l.h"
+
+Optab	optab[] =
+{
+	{ ATEXT,	C_LEXT,	C_NONE,	C_NONE,	C_NONE,	C_LCON, 	 0,  0, 0, 0 },
+	{ ATEXT,	C_LEXT,	C_NONE,	C_NONE,	C_REG,	C_LCON, 	 0,  0, 0, 0 },
+	{ ANOP,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_NONE, 	 0,  0, 0, 0 },
+	{ ADOEND,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_LBRA, 	 0,  0, 0, 0 },
+
+	{ AMOVW,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 1,  4, 1, 0 },
+	{ AMOVH,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 1,  4, 1, 0 },
+	{ AMOVHU,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 1,  4, 1, 0 },
+	{ AMOVB,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 1,  4, 1, 0 },
+	{ AMOVBU,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 1,  4, 1, 0 },
+	{ AMOVHB,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 1,  4, 1, 0 },
+
+	{ AMOVW,	C_SEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 2,  4, 1, 0 },
+	{ AMOVH,	C_SEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 2,  4, 1, 0 },
+	{ AMOVHU,	C_SEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 2,  4, 1, 0 },
+	{ AMOVB,	C_SEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 2,  4, 1, 0 },
+	{ AMOVBU,	C_SEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 2,  4, 1, 0 },
+	{ AMOVHB,	C_SEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 2,  4, 1, 0 },
+
+	{ AMOVW,	C_MEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 3,  8, 1, 0 },
+	{ AMOVH,	C_MEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 3,  8, 1, 0 },
+	{ AMOVHU,	C_MEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 3,  8, 1, 0 },
+	{ AMOVB,	C_MEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 3,  8, 1, 0 },
+	{ AMOVBU,	C_MEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 3,  8, 1, 0 },
+	{ AMOVHB,	C_MEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 3,  8, 1, 0 },
+
+	{ AMOVW,	C_LEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 4, 12, 1, 0 },
+	{ AMOVH,	C_LEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 4, 12, 1, 0 },
+	{ AMOVHU,	C_LEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 4, 12, 1, 0 },
+	{ AMOVB,	C_LEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 4, 12, 1, 0 },
+	{ AMOVBU,	C_LEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 4, 12, 1, 0 },
+	{ AMOVHB,	C_LEXT,	C_NONE,	C_NONE,	C_NONE,	C_REG,		 4, 12, 1, 0 },
+
+	{ AMOVW,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		 5,  4, 0, 0 },
+	{ AMOVH,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		 5,  4, 0, 0 },
+	{ AMOVHU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		 5,  4, 0, 0 },
+	{ AMOVB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		 5,  4, 0, 0 },
+	{ AMOVBU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		 5,  4, 0, 0 },
+	{ AMOVHB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		 5,  4, 0, 0 },
+
+	{ AMOVW,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SEXT,		 6,  4, 0, 0 },
+	{ AMOVH,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SEXT,		 6,  4, 0, 0 },
+	{ AMOVHU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SEXT,		 6,  4, 0, 0 },
+	{ AMOVB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SEXT,		 6,  4, 0, 0 },
+	{ AMOVBU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SEXT,		 6,  4, 0, 0 },
+	{ AMOVHB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SEXT,		 6,  4, 0, 0 },
+
+	{ AMOVW,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_MEXT,		 7,  8, 0, 0 },
+	{ AMOVH,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_MEXT,		 7,  8, 0, 0 },
+	{ AMOVHU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_MEXT,		 7,  8, 0, 0 },
+	{ AMOVB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_MEXT,		 7,  8, 0, 0 },
+	{ AMOVBU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_MEXT,		 7,  8, 0, 0 },
+	{ AMOVHB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_MEXT,		 7,  8, 0, 0 },
+
+	{ AMOVW,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LEXT,		 8, 12, 0, 0 },
+	{ AMOVH,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LEXT,		 8, 12, 0, 0 },
+	{ AMOVHU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LEXT,		 8, 12, 0, 0 },
+	{ AMOVB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LEXT,		 8, 12, 0, 0 },
+	{ AMOVBU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LEXT,		 8, 12, 0, 0 },
+	{ AMOVHB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LEXT,		 8, 12, 0, 0 },
+
+	{ AMOVH,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_CREG,		 9,  4, 1, 0 },
+	{ AMOVB,	C_IND,	C_NONE,	C_NONE,	C_NONE,	C_CREG,		 9,  4, 1, 0 },
+
+	{ AMOVH,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_CREG,		10,  4, 1, 0 },
+	{ AMOVB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_CREG,		10,  4, 1, 0 },
+
+	{ AMOVH,	C_CREG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		11,  4, 1, 0 },
+	{ AMOVB,	C_CREG,	C_NONE,	C_NONE,	C_NONE,	C_IND,		11,  4, 1, 0 },
+
+	{ AMOVH,	C_CREG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		12,  4, 1, 0 },
+	{ AMOVB,	C_CREG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		12,  4, 1, 0 },
+
+	{ AMOVW,	C_REGPC,C_NONE,	C_NONE,	C_NONE,	C_REG,		13,  4, 0, 0 },
+	{ AMOVH,	C_REGPC,C_NONE,	C_NONE,	C_NONE,	C_REG,		13,  4, 0, 0 },
+	{ AMOVHU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		14,  4, 0, 0 },
+	{ AMOVB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		15, 12, 0, 0 },
+	{ AMOVBU,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		16,  8, 0, 0 },
+	{ AMOVHB,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		16,  8, 0, 0 },
+
+	{ AMOVW,	C_SCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		17,  4, 0, 0 },
+	{ AMOVW,	C_SACON,C_NONE,	C_NONE,	C_NONE,	C_REG,		17,  4, 0, REGSP },
+	{ AMOVW,	C_MCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		18,  4, 0, 0 },
+	{ AMOVW,	C_LCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		19,  8, 0, 0 },
+	{ AMOVW,	C_LACON,C_NONE,	C_NONE,	C_NONE,	C_REG,		20, 12, 0, REGSP },
+
+	{ AOR,		C_HCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		21,  4, 0, 0 },
+	{ AOR,		C_HCON,	C_NONE,	C_NONE,	C_REG,	C_REG,		21,  4, 0, 0 },
+
+	{ AADD,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		30,  4, 0, 0 },
+	{ AADD,		C_REG,	C_NONE,	C_NONE,	C_REG,	C_REG,		30,  4, 0, 0 },
+	{ AOR,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		30,  4, 0, 0 },
+	{ AOR,		C_REG,	C_NONE,	C_NONE,	C_REG,	C_REG,		30,  4, 0, 0 },
+	{ AXOR,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		30,  4, 0, 0 },
+	{ AXOR,		C_REG,	C_NONE,	C_NONE,	C_REG,	C_REG,		30,  4, 0, 0 },
+
+	{ AADD,		C_SCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		31,  4, 0, 0 },
+	{ AADD,		C_SCON,	C_NONE,	C_NONE,	C_REGPC,C_REG,		31,  4, 0, 0 },
+	{ AOR,		C_SCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		32,  4, 0, 0 },
+	{ AXOR,		C_SCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		32,  4, 0, 0 },
+
+	{ AOR,		C_MCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		33,  8, 0, 0 },
+	{ AXOR,		C_MCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		33,  8, 0, 0 },
+	{ AOR,		C_LCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		34, 12, 0, 0 },
+	{ AXOR,		C_LCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		34, 12, 0, 0 },
+
+	{ AADD,		C_MCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		35,  8, 0, 0 },
+	{ AADD,		C_MCON,	C_NONE,	C_NONE,	C_REG,	C_REG,		35,  8, 0, 0 },
+	{ AADD,		C_LCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		36, 12, 0, 0 },
+	{ AADD,		C_LCON,	C_NONE,	C_NONE,	C_REGPC,C_REG,		36, 12, 0, 0 },
+
+	{ ACMP,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		37,  4, 0, 0 },
+	{ ACMP,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SCON,		38,  4, 0, 0 },
+	{ ACMP,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_MCON,		40,  8, 0, 0 },
+	{ ACMP,		C_MCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		41,  8, 0, 0 },
+	{ ACMP,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LCON,		42, 12, 0, 0 },
+	{ ACMP,		C_LCON,	C_NONE,	C_NONE,	C_NONE,	C_REG,		43, 12, 0, 0 },
+
+	{ AROR,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_REG,		44,  4, 0, 0 },
+
+	{ AJMP,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_SOREG,	50,  4, 1, 0 },
+	{ ABRA,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_SOREG,	50,  4, 1, 0 },
+	{ AJMP,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_SBRA,		50,  4, 1, 0 },
+	{ ABRA,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_SBRA,		50,  4, 1, 0 },
+
+	{ AJMP,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_MOREG,	51,  4, 1, 0 },
+	{ AJMP,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_MBRA,		51,  4, 1, 0 },
+	{ ABRA,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_LOREG,	52, 12, 1, 0 },
+	{ AJMP,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_LOREG,	52, 12, 1, 0 },
+	{ ABRA,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_MBRA,		53, 12, 1, 0 },
+	{ ABRA,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_LBRA,		54, 16, 1, 0 },
+	{ AJMP,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_LBRA,		54, 16, 1, 0 },
+
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_REG,	C_SOREG,	55,  4, 1, 0 },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_SOREG,	55,  4, 1, REGLINK },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_REG,	C_SBRA,		55,  4, 1, 0 },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_SBRA,		55,  4, 1, REGLINK },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_REG,	C_MBRA,		57,  4, 1, 0 },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_MBRA,		57,  4, 1, REGLINK },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_REG,	C_LOREG,	58, 12, 1, 0 },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_LOREG,	58, 12, 1, REGLINK },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_REG,	C_LBRA,		59,  8, 1, 0 },
+	{ ACALL,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_LBRA,		59,  8, 1, REGLINK },
+
+	{ ADBRA,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SOREG,	60,  4, 1, 0 },
+	{ ADBRA,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SBRA,		61,  4, 1, 0 },
+	{ ADBRA,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LOREG,	62,  4, 1, 0 },
+	{ ADBRA,	C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LBRA,		63, 12, 1, 0 },
+
+	{ ADO,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_SCON,		64,  4, 0, 0 },
+	{ ADO,		C_SCON,	C_NONE,	C_NONE,	C_NONE,	C_SCON,		65,  4, 0, 0 },
+	{ ADO,		C_REG,	C_NONE,	C_NONE,	C_NONE,	C_LBRA,		66,  4, 0, 0 },
+	{ ADO,		C_SCON,	C_NONE,	C_NONE,	C_NONE,	C_LBRA,		67,  4, 0, 0 },
+
+	{ ASFTRST,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_NONE,		70,  4, 0, 0 },
+	{ AWAITI,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_NONE,		70,  4, 0, 0 },
+	{ AIRET,	C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_NONE,		71,  4, 0, 0 },
+	{ AWORD,	C_LCON,	C_NONE,	C_NONE,	C_NONE,	C_NONE,		72,  4, 0, 0 },
+
+	{ AFRND,	C_FOP,	C_NONE,	C_NONE,	C_REG,	C_FST,		80,  4, 3, 0 },
+	{ AFDSP,	C_INDF,	C_NONE,	C_NONE,	C_REG,	C_FST,		80,  4, 3, 0 },
+
+	{ AFADD,	C_FOP,	C_FOP,	C_NONE,	C_REG,	C_FST,		81,  4, 3, 0 },
+	{ AFADDT,	C_FOP,	C_FOP,	C_NONE,	C_REG,	C_INDF,		82,  4, 3, 0 },
+	{ AFMUL,	C_FOP,	C_FOP,	C_NONE,	C_REG,	C_FST,		83,  4, 3, 0 },
+	{ AFMULT,	C_FOP,	C_FOP,	C_NONE,	C_REG,	C_INDF,		84,  4, 3, 0 },
+	{ AFMADD,	C_FOP,	C_FREG,	C_FREG,	C_REG,	C_FST,		85,  4, 3, 0 },
+	{ AFMADD,	C_FOP,	C_INDF,	C_FREG,	C_REG,	C_FST,		85,  4, 3, 0 },
+	{ AFMADD,	C_FOP,	C_FREG,	C_INDF,	C_REG,	C_FST,		86,  4, 3, 0 },
+	{ AFMADD,	C_FREG,	C_INDF,	C_INDF,	C_REG,	C_FST,		87,  4, 3, 0 },
+	{ AFMADDT,	C_FOP,	C_FOP,	C_FREG,	C_REG,	C_INDF,		88,  4, 3, 0 },
+
+	/*
+	 * moves made convient for the compiliers notation in noop.c
+	 */
+	{ AFMOVF,	C_FOP,	C_NONE,	C_NONE,	C_REG,	C_FST,		95,  4, 3, 0 },
+
+	/*
+	 * block move
+	 */
+	{ ABMOVW,	C_SCON,	C_INDF,	C_NONE,	C_NONE,	C_INDF,		98,  8, 3, 0 },
+	{ ABMOVW,	C_REG,	C_INDF,	C_NONE,	C_NONE,	C_INDF,		99,  8, 3, 0 },
+
+	{ AXXX,		C_NONE,	C_NONE,	C_NONE,	C_NONE,	C_NONE,		 0,  4, 0, 0 },
+};

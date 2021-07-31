@@ -1,0 +1,50 @@
+APE=/sys/src/ape
+< $APE/config
+CFLAGS=
+ALL=bibtex delatex detex dvips dviselect latex mf tex tpic
+SRCDIRS=web2c dvips misc tpic
+
+none:QV:
+	echo usage: mk all, install, installall, compile, or program-name
+
+compile:V:	$ALL
+
+all:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS all
+	}
+
+install:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS install
+	}
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+test:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS test
+	}
+
+clean:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS clean
+	}
+
+nuke:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS nuke
+	}
+
+bibtex latex mf tex:V:
+	cd web2c; mk $MKFLAGS $target
+
+delatex detex dviselect:V:
+	cd misc; mk $MKFLAGS $target
+
+dvips:V:
+	cd dvips; mk $MKFLAGS $target
+
+tpic:V:
+	cd tpic; mk $MKFLAGS $target

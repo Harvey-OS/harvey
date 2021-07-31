@@ -63,7 +63,6 @@ typedef enum
 	/* internal */
 	NGCN,
 	PatchC,
-	NONGC,
 }Type;
 
 enum
@@ -134,9 +133,9 @@ enum
 #define	UNKNOWNMAG	32767
 
 typedef float	Angle;	/* in radians */
-typedef long	DAngle;	/* on disk: in units of milliarcsec */
+typedef	long	DAngle;	/* on disk: in units of milliarcsec */
 typedef short	Mag;	/* multiplied by 10 */
-typedef long	Key;	/* known to be 4 bytes, unfortunately */
+typedef	long	Key;	/* known to be 4 bytes, unfortunately */
 
 /*
  * All integers are stored in little-endian order.
@@ -276,8 +275,8 @@ struct	Header
 };
 typedef	long	Pix;
 
-typedef struct	Img Img;
-struct	Img
+typedef struct	Image	Image;
+struct	Image
 {
 	int	nx;
 	int	ny;	/* ny is the fast-varying dimension */
@@ -317,7 +316,6 @@ struct Picture
 	uchar	*data;
 };
 
-typedef struct Image Image;
 
 extern	double	PI_180;
 extern	double	TWOPI;
@@ -348,7 +346,7 @@ extern char*ms(Angle);
 extern char*hm(Angle);
 extern char*dm(Angle);
 extern long dangle(Angle);
-extern Angle angle(DAngle);
+extern float angle(int);
 extern void prdesc(char*, char*(*)[2], short*);
 extern double	xsqrt(double);
 extern Angle	dist(Angle, Angle, Angle, Angle);
@@ -361,7 +359,7 @@ extern void	traneqstd(Header*, Angle, Angle);
 extern Angle	getra(char*);
 extern Angle	getdec(char*);
 extern void	getplates(void);
-extern Img*	dssread(char*);
+extern Image*	dssread(char*);
 extern void	hinv(Pix*, int, int);
 extern int	input_bit(Biobuf*);
 extern int	input_nbits(Biobuf*, int);
@@ -370,9 +368,7 @@ extern	int	input_nybble(Biobuf*);
 extern void	qtree_decode(Biobuf*, Pix*, int, int, int, int);
 extern void	start_inputing_bits(void);
 extern Picture*	image(Angle, Angle, Angle, Angle);
-extern char*	dssmount(int);
 extern int	dogamma(Pix);
-extern void displaypic(Picture*);
-extern void displayimage(Image*);
+extern void display(Picture*);
 
 #define	NINDEX	400

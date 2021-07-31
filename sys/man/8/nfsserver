@@ -67,10 +67,6 @@ flag dynamically.)
 Debug: show all RPC messages (at a lower level than
 .BR -v ).
 This flag may be repeated to get more detail.
-.TP
-.B -C
-Turn off caching: do not answer RPC requests using the
-RPC reply cache.
 .PP
 The
 .I nfs-options
@@ -109,11 +105,8 @@ password file), and a file of group id's (same format).
 .PP
 NFS clients must be in the Plan 9
 .B /lib/ndb
-database.  
-The machine name is deduced from the IP address via 
-.BR ndb/query .
-The machine name specified in the NFS Unix credentials 
-is completely ignored.
+database.  The machine name and IP address given in the NFS mount
+request must match the entry in the database.
 .PP
 .I Pcnfsd
 is a toy program that authorizes PC-NFS clients.  All clients
@@ -132,7 +125,7 @@ Debug flag.
 Authenticate to the file system at
 .I root
 (default
-.BR /n/emelie ).
+.BR /n/bootes ).
 .TP
 .B -d
 Delete the authorization for
@@ -193,18 +186,9 @@ List of uid/gid maps.
 .B /sys/log/nfs
 Log file.
 .SH SOURCE
-.B /sys/src/cmd/9nfs
+.B /sys/src/cmd/service/nfs
 .br
-.B /sys/src/cmd/9nfs/9auth.c
-.SH BUGS
-.B 9auth
-.I user
-does not work if the Unix uid running
-.B 9auth
-is not the uid corresponding to 
-.I user 
-in the password file specified by
-.BR /lib/ndb/nfs .
+.B /sys/src/cmd/unix/9auth.c
 .SH SEE ALSO
 .I Netkey
 in

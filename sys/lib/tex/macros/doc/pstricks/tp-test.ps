@@ -1,0 +1,666 @@
+%!PS-Adobe-2.0
+%%Creator: dvips 5.491 Copyright 1986, 1992 Radical Eye Software
+%%Title: tp-test.dvi
+%%Pages: 1 1
+%%BoundingBox: 0 0 612 792
+%%DocumentFonts: Times-Roman
+%%EndComments
+%DVIPSCommandLine: dvips -Pport tp-test -o
+%%BeginProcSet: tex.pro
+%!
+/TeXDict 250 dict def TeXDict begin /N{def}def /B{bind def}N /S{exch}N /X{S N}
+B /TR{translate}N /isls false N /vsize 11 72 mul N /@rigin{isls{[0 -1 1 0 0 0]
+concat}if 72 Resolution div 72 VResolution div neg scale isls{Resolution hsize
+-72 div mul 0 TR}if Resolution VResolution vsize -72 div 1 add mul TR matrix
+currentmatrix dup dup 4 get round 4 exch put dup dup 5 get round 5 exch put
+setmatrix}N /@landscape{/isls true N}B /@manualfeed{statusdict /manualfeed
+true put}B /@copies{/#copies X}B /FMat[1 0 0 -1 0 0]N /FBB[0 0 0 0]N /nn 0 N
+/IE 0 N /ctr 0 N /df-tail{/nn 8 dict N nn begin /FontType 3 N /FontMatrix
+fntrx N /FontBBox FBB N string /base X array /BitMaps X /BuildChar{
+CharBuilder}N /Encoding IE N end dup{/foo setfont}2 array copy cvx N load 0 nn
+put /ctr 0 N[}B /df{/sf 1 N /fntrx FMat N df-tail}B /dfs{div /sf X /fntrx[sf 0
+0 sf neg 0 0]N df-tail}B /E{pop nn dup definefont setfont}B /ch-width{ch-data
+dup length 5 sub get}B /ch-height{ch-data dup length 4 sub get}B /ch-xoff{128
+ch-data dup length 3 sub get sub}B /ch-yoff{ch-data dup length 2 sub get 127
+sub}B /ch-dx{ch-data dup length 1 sub get}B /ch-image{ch-data dup type
+/stringtype ne{ctr get /ctr ctr 1 add N}if}B /id 0 N /rw 0 N /rc 0 N /gp 0 N
+/cp 0 N /G 0 N /sf 0 N /CharBuilder{save 3 1 roll S dup /base get 2 index get
+S /BitMaps get S get /ch-data X pop /ctr 0 N ch-dx 0 ch-xoff ch-yoff ch-height
+sub ch-xoff ch-width add ch-yoff setcachedevice ch-width ch-height true[1 0 0
+-1 -.1 ch-xoff sub ch-yoff .1 add]{ch-image}imagemask restore}B /D{/cc X dup
+type /stringtype ne{]}if nn /base get cc ctr put nn /BitMaps get S ctr S sf 1
+ne{dup dup length 1 sub dup 2 index S get sf div put}if put /ctr ctr 1 add N}
+B /I{cc 1 add D}B /bop{userdict /bop-hook known{bop-hook}if /SI save N @rigin
+0 0 moveto /V matrix currentmatrix dup 1 get dup mul exch 0 get dup mul add
+.99 lt{/FV}{/RV}ifelse load def pop}N /eop{SI restore showpage userdict
+/eop-hook known{eop-hook}if}N /@start{userdict /start-hook known{start-hook}
+if /VResolution X /Resolution X 1000 div /DVImag X /IE 256 array N 0 1 255{IE
+S 1 string dup 0 3 index put cvn put}for 65781.76 div /vsize X 65781.76 div
+/hsize X}N /p{show}N /RMat[1 0 0 -1 0 0]N /BDot 260 string N /rulex 0 N /ruley
+0 N /v{/ruley X /rulex X V}B /V{}B /RV statusdict begin /product where{pop
+product dup length 7 ge{0 7 getinterval dup(Display)eq exch 0 4 getinterval
+(NeXT)eq or}{pop false}ifelse}{false}ifelse end{{gsave TR -.1 -.1 TR 1 1 scale
+rulex ruley false RMat{BDot}imagemask grestore}}{{gsave TR -.1 -.1 TR rulex
+ruley scale 1 1 false RMat{BDot}imagemask grestore}}ifelse B /FV{gsave
+transform round exch round exch itransform moveto rulex 0 rlineto 0 ruley neg
+rlineto rulex neg 0 rlineto fill grestore}B /a{moveto}B /delta 0 N /tail{dup
+/delta X 0 rmoveto}B /M{S p delta add tail}B /b{S p tail}B /c{-4 M}B /d{-3 M}
+B /e{-2 M}B /f{-1 M}B /g{0 M}B /h{1 M}B /i{2 M}B /j{3 M}B /k{4 M}B /w{0
+rmoveto}B /l{p -4 w}B /m{p -3 w}B /n{p -2 w}B /o{p -1 w}B /q{p 1 w}B /r{p 2 w}
+B /s{p 3 w}B /t{p 4 w}B /x{0 S rmoveto}B /y{3 2 roll p a}B /bos{/SS save N}B
+/eos{SS restore}B end
+%%EndProcSet
+%%BeginProcSet: pstricks.pro
+%!
+% PostScript prologue for pstricks.tex.
+% Created 1993/3/12. Source file was pstricks.doc
+% Version 0.93a, 93/03/12.
+% For use with Rokicki's dvips.
+/tx@Dict 200 dict def tx@Dict begin
+/ADict 25 dict def
+/CM { matrix currentmatrix } bind def
+/SLW /setlinewidth load def
+/CLW /currentlinewidth load def
+/CP /currentpoint load def
+/ED { exch def } bind def
+/L /lineto load def
+/T /translate load def
+/Atan { /atan load stopped { pop pop 0 } if } def
+/Div { dup 0 eq { pop } { div } ifelse } def
+/NET { neg exch neg exch T } def
+/Pyth { dup mul exch dup mul add sqrt } def
+/PtoC { 2 copy cos mul 3 1 roll sin mul } def
+/PathLength@ { /z z y y1 sub x x1 sub Pyth add def /y1 y def /x1 x def }
+def
+/PathLength { flattenpath /z 0 def { /y1 ED /x1 ED /y2 y1 def /x2 x1 def
+} { /y ED /x ED PathLength@ } {} { /y y2 def /x x2 def PathLength@ }
+pathforall z } def
+/STP { .996264 dup scale } def
+/STV { SDict begin normalscale end STP  } def
+/DashLine { dup 0 gt { /a .5 def PathLength exch div } { pop /a 1 def
+PathLength } ifelse /b ED /x ED /y ED /z y x add def b a .5 sub 2 mul y
+mul sub z Div round z mul a .5 sub 2 mul y mul add b exch Div dup y mul
+/y ED x mul /x ED x 0 eq y 0 eq and { /x 1 def /y 1 def } if [ y x ] 1 a
+sub y mul setdash stroke } def
+/DotLine { /b PathLength def /a ED /z ED /y CLW def /z y z add def a 0 gt
+{ /b b a div def } { a 0 eq { /b b y sub def } { a -3 eq { /b b y add
+def } if } ifelse } ifelse [ 0 b b z Div round Div dup 0 le { pop 1 } if
+] a 0 gt { 0 } { y 2 div a -2 gt { neg } if } ifelse setdash 1
+setlinecap stroke } def
+/LineFill { abs CLW add /a ED gsave clip pathbbox a Div ceiling /y2 ED
+/x2 ED a Div floor /y1 ED /x1 ED /n y2 y1 sub 1 add cvi def /y1 a y1 mul
+def newpath 2 setlinecap n { currentstrokeadjust == x1 y1 moveto x2 y1 L
+stroke /y1 y1 a add def } repeat grestore } def
+/LineFill { abs CLW add /a ED gsave clip pathbbox a Div ceiling /y2 ED
+/x2 ED a Div floor /y1 ED /x1 ED /n y2 y1 sub 1 add cvi def /y1 a y1 mul
+def newpath 2 setlinecap systemdict /currentstrokeadjust known {
+currentstrokeadjust } { false } ifelse { /t { } def } { /t { transform
+0.25 sub round 0.25 add exch 0.25 sub round 0.25 add exch itransform }
+bind def } ifelse n { x1 y1 t moveto x2 y1 t L stroke /y1 y1 a add def }
+repeat grestore } def
+/BeginArrow { ADict begin /@mtrx CM def gsave 2 copy T 2 index sub neg
+exch 3 index sub exch Atan rotate newpath } def
+/EndArrow { @mtrx setmatrix CP grestore end } def
+/Arrow { CLW mul add dup 2 div /w ED mul dup /h ED mul /a ED { 0 h T 1 -1
+scale } if w neg h moveto 0 0 L w h L w neg a neg rlineto gsave fill
+grestore } def
+/Tbar { CLW mul add /z ED z -2 div CLW 2 div moveto z 0 rlineto stroke 0
+CLW moveto } def
+/Bracket { CLW mul add dup CLW sub 2 div /x ED mul CLW add /y ED /z CLW 2
+div def x neg y moveto x neg CLW 2 div L x CLW 2 div L x y L stroke 0
+CLW moveto } def
+/RoundBracket { CLW mul add dup 2 div /x ED mul /y ED /mtrx CM def 0 CLW
+2 div T x y mul 0 ne { x y scale } if 1 1 moveto .85 .5 .35 0 0 0
+curveto -.35 0 -.85 .5 -1 1 curveto mtrx setmatrix stroke 0 CLW moveto }
+def
+/Shadow { [ { /moveto load } { /lineto load } { /curveto load } {
+/closepath load } pathforall ] cvx newpath 3 1 roll T exec } def
+/SD { 0 360 arc fill } def
+/SQ { /r ED r r moveto r r neg L r neg r neg L r neg r L fill } def
+/ST { /y ED /x ED x y moveto x neg y L 0 x L fill } def
+/SP { /r ED gsave 0 r moveto 4 { 72 rotate 0 r L } repeat fill grestore }
+def
+/NArray { aload length 2 div dup dup cvi eq not { exch pop } if /n exch
+cvi def } def
+/NArray { /f ED counttomark 2 div dup cvi /n ED n eq not { exch pop } if
+f { ] aload /Points ED } { n 2 mul 1 add -1 roll pop } ifelse } def
+/Line { NArray n 0 eq not { n 1 eq { 0 0 /n 2 def } if ArrowA /n n 2 sub
+def n { Lineto } repeat CP 4 2 roll ArrowB L pop pop } if } def
+/Arcto { /a [ 6 -2 roll ] cvx def a r /arcto load stopped { 5 } { 4 }
+ifelse { pop } repeat a } def
+/CheckClosed { dup n 2 mul 1 sub index eq 2 index n 2 mul 1 add index eq
+and { pop pop /n n 1 sub def } if } def
+/Polygon { NArray n 2 eq { 0 0 /n 3 def } if n 3 lt { n { pop pop }
+repeat } { n 3 gt { CheckClosed } if n 2 mul -2 roll /y0 ED /x0 ED /y1
+ED /x1 ED x1 y1 /x1 x0 x1 add 2 div def /y1 y0 y1 add 2 div def x1 y1
+moveto /n n 2 sub def n { Lineto } repeat x1 y1 x0 y0 6 4 roll Lineto
+Lineto pop pop closepath } ifelse } def
+/CCA { /y ED /x ED 2 copy y sub /dy1 ED x sub /dx1 ED /l1 dx1 dy1 Pyth
+def } def
+/CCA { /y ED /x ED 2 copy y sub /dy1 ED x sub /dx1 ED /l1 dx1 dy1 Pyth
+def } def
+/CC { /l0 l1 def /x1 x dx sub def /y1 y dy sub def /dx0 dx1 def /dy0 dy1
+def CCA /dx dx0 l1 c exp mul dx1 l0 c exp mul add def /dy dy0 l1 c exp
+mul dy1 l0 c exp mul add def /m dx0 dy0 Atan dx1 dy1 Atan sub 2 div cos
+abs b exp a mul dx dy Pyth Div 2 div def /x2 x l0 dx mul m mul sub def
+/y2 y l0 dy mul m mul sub def /dx l1 dx mul m mul neg def /dy l1 dy mul
+m mul neg def } def
+/IC { /c c 1 add def c 0 lt { /c 0 def } { c 3 gt { /c 3 def } if }
+ifelse /a a 2 mul 3 div 45 cos b exp div def CCA /dx 0 def /dy 0 def }
+def
+/BOC { IC CC x2 y2 x1 y1 ArrowA CP 4 2 roll x y curveto } def
+/NC { CC x1 y1 x2 y2 x y curveto } def
+/EOC { x dx sub y dy sub 4 2 roll ArrowB 2 copy curveto } def
+/BAC { IC CC x y moveto CC x1 y1 CP ArrowA } def
+/NAC { x2 y2 x y curveto CC x1 y1 } def
+/EAC { x2 y2 x y ArrowB curveto pop pop } def
+/OpenCurve { NArray n 3 lt { n { pop pop } repeat } { BOC /n n 3 sub def
+n { NC } repeat EOC } ifelse } def
+/AltCurve { { false NArray n 2 mul 2 roll [ n 2 mul 3 sub 1 roll ] aload
+/Points ED n 2 mul -2 roll } { false NArray } ifelse n 4 lt { n { pop
+pop } repeat } { BAC /n n 4 sub def n { NAC } repeat EAC } ifelse } def
+/ClosedCurve { NArray n 3 lt { n { pop pop } repeat } { n 3 gt {
+CheckClosed } if 6 copy n 2 mul 6 add 6 roll IC CC x y moveto n { NC }
+repeat closepath pop pop } ifelse } def
+/EndDot { { /z DS def } { /z 0 def } ifelse /b ED 0 z DS SD b { 0 z DS
+CLW sub SD } if 0 DS z add CLW 4 div sub moveto } def
+/Rect { x1 y1 y2 add 2 div moveto x1 y2 lineto x2 y2 lineto x2 y1 lineto
+x1 y1 lineto closepath } def
+/OvalFrame { x1 x2 eq y1 y2 eq or { pop pop x1 y1 moveto x2 y2 L } { y1
+y2 sub abs x1 x2 sub abs 2 copy gt { exch pop } { pop } ifelse 2 div
+exch { dup 3 1 roll mul exch } if 2 copy lt { pop } { exch pop } ifelse
+/b ED x1 y1 y2 add 2 div moveto x1 y2 x2 y2 b arcto x2 y2 x2 y1 b arcto
+x2 y1 x1 y1 b arcto x1 y1 x1 y2 b arcto 16 { pop } repeat closepath }
+ifelse } def
+/Frame { CLW mul /a ED 3 -1 roll 2 copy gt { exch } if a sub /y2 ED a add
+/y1 ED 2 copy gt { exch } if a sub /x2 ED a add /x1 ED 1 index 0 eq {
+pop pop Rect } { OvalFrame } ifelse } def
+/Parab { /y0 exch def /x0 exch def /y1 exch def /x1 exch def /dx x0 x1
+sub 3 div def /dy y0 y1 sub 3 div def x0 dx sub y0 dy add x1 y1 ArrowA
+x0 dx add y0 dy add x0 2 mul x1 sub y1 ArrowB curveto /Points [ x1 y1 x0
+y0 x0 2 mul x1 sub y1 ] def } def
+/Grid { /a 4 string def /b ED /d ED /n ED cvi dup 1 lt { pop 1 } if /c ED
+c div dup 0 eq { pop 1 } if /cy ED c div dup 0 eq { pop 1 } if /cx ED cy
+div cvi /y ED cx div cvi /x ED cy div cvi /y2 ED cx div cvi /x2 ED cy
+div cvi /y1 ED cx div cvi /x1 ED /h y2 y1 sub 0 gt { 1 } { -1 } ifelse
+def /w x2 x1 sub 0 gt { 1 } { -1 } ifelse def b 0 gt { /z1 b 4 div CLW 2
+div add def /Helvetica findfont b scalefont setfont /b b .95 mul CLW 2
+div add def } if gsave n 0 gt { 1 setlinecap [ 0 cy n div ] 0 setdash }
+{ 2 setlinecap } ifelse /c x1 def /i 500 w mul x1 add def /e y cy mul
+def /f y1 cy mul def /g y2 cy mul def x1 cx mul 0 T { newpath 0 e moveto
+b 0 gt { gsave d c a cvs dup stringwidth pop /z2 ED w 0 gt {z1} {z1 z2
+add neg} ifelse h 0 gt {b neg} {z1} ifelse rmoveto show grestore } if 0
+f moveto 0 g L stroke cx w mul 0 T c x2 eq c i eq or {exit} if /c c w
+add def } loop grestore gsave n 0 gt { 1 setlinecap [ 0 cx n div ] 0
+setdash } { 2 setlinecap } ifelse /c y1 def /i 500 h mul y1 add def /e x
+cx mul def /f x1 cx mul def /g x2 cx mul def 0 y1 cy mul T { newpath e 0
+moveto b 0 gt { gsave d c a cvs dup stringwidth pop /z2 ED w 0 gt {z1 z2
+add neg} {z1} ifelse h 0 gt {z1} {b neg} ifelse rmoveto show grestore }
+if f 0 moveto g 0 L stroke 0 cy h mul T c y2 eq c i eq or {exit} if /c c
+h add def } loop grestore } def
+/ArcArrow { /d ED /b ED /a ED gsave newpath 0 -1000 moveto clip newpath 0
+1 0 0 b grestore c mul /e ED pop pop pop r a e d PtoC y add exch x add
+exch r a PtoC y add exch x add exch b pop pop pop pop a e d CLW 8 div c
+mul neg d } def
+/Ellipse { /mtrx CM def T scale 0 0 1 5 3 roll arc mtrx setmatrix } def
+/Rot { CP CP translate 3 -1 roll neg rotate NET  } def
+/PutCoor { gsave CP T CM STV exch exec moveto setmatrix CP grestore } def
+/PutBegin { /lmtrx [ tx@Dict /lmtrx known { lmtrx aload pop } if CM ] def
+CP 4 2 roll T moveto } def
+/PutEnd { CP /lmtrx [ lmtrx aload pop setmatrix ] def moveto } def
+/Uput { /a ED add 2 div /h ED 2 div /w ED /s a sin def /c a cos def /b s
+abs c abs 2 copy gt dup /q ED { pop } { exch pop } ifelse def /w1 c b
+div w mul def /h1 s b div h mul def q { w1 abs w sub dup c mul abs } {
+h1 abs h sub dup s mul abs } ifelse } def
+/UUput { /z ED abs /y ED /x ED q { x s div c mul abs y gt } { x c div s
+mul abs y gt } ifelse { x x mul y y mul sub z z mul add sqrt z add } { q
+{ x s div } { x c div } ifelse abs } ifelse a PtoC h1 add exch w1 add
+exch } def
+/BeginOL { dup (all) eq exch TheOL eq or { IfVisible not { CP OLUnit T
+moveto /IfVisible true def } if } { IfVisible { CP OLUnit NET moveto
+/IfVisible false def } if } ifelse } def
+/InitOL { /OLUnit [ gsave CM STV 2890.79999 dup moveto setmatrix CP
+grestore ] cvx def /BOL { BeginOL } def /IfVisible true def } def
+end
+%%EndProcSet
+%%BeginProcSet: textpath.pro
+%!
+% PostScript header file textpath.pro
+% For putting text along curve with textpath.tex and PSTricks
+% Version: 0.93a
+% Date:    93/03/12
+% For copying restrictions, see pstricks.doc or pstricks.tex.
+
+/tx@TextPathDict 40 dict def
+tx@TextPathDict begin
+
+/PathPosition
+{ /targetdist exch def
+  /pathdist 0 def
+  /continue true def
+  /X { newx } def /Y { newy } def /Angle 0 def
+  gsave
+    flattenpath
+    { movetoproc }  { linetoproc } { curvetoproc } { closepathproc }
+    pathforall
+  grestore
+} def
+
+/movetoproc { continue { @movetoproc } { pop pop } ifelse } def
+
+/@movetoproc
+{ /newy exch def /newx exch def
+  /firstx newx def /firsty newy def
+} def
+
+/linetoproc { continue { @linetoproc } { pop pop } ifelse } def
+
+/@linetoproc
+{
+  /oldx newx def /oldy newy def
+  /newy exch def /newx exch def
+  /dx newx oldx sub def
+  /dy newy oldy sub def
+  /dist dx dup mul dy dup mul add sqrt def
+  /pathdist pathdist dist add def
+  pathdist targetdist ge
+  { pathdist targetdist sub dist div dup
+    dy mul neg newy add /Y exch def
+    dx mul neg newx add /X exch def
+    /Angle dy dx atan def
+    /continue false def
+  } if
+} def
+
+/curvetoproc { (ERROR: No curveto's after flattenpath!) print } def
+
+/closepathproc { firstx firsty linetoproc } def
+
+/TextPathShow
+{ /String exch def
+  /CharCount 0 def
+  String length
+  { String CharCount 1 getinterval ShowChar
+    /CharCount CharCount 1 add def
+  } repeat
+} def
+
+/InitTextPath
+{ gsave
+    currentpoint
+    /Y exch def /X exch def
+    10000000 PathPosition
+    pathdist X Hoffset sub sub mul
+    Voffset Hoffset sub add
+    neg X add /Hoffset exch def
+    /Voffset Y def
+  grestore
+} def
+
+/Transform
+{ PathPosition
+  dup
+  Angle cos mul Y add exch
+  Angle sin mul neg X add exch
+  translate
+  Angle rotate
+} def
+
+/ShowChar
+{ /Char exch def
+  gsave
+    Char end stringwidth
+    tx@TextPathDict begin
+    2 div /Sy exch def 2 div /Sx exch def
+    currentpoint
+    Voffset sub Sy add exch
+    Hoffset sub Sx add
+    Transform
+    Sx neg Sy neg moveto
+    Char end tx@TextPathSavedShow
+    tx@TextPathDict begin
+  grestore
+  Sx 2 mul Sy 2 mul rmoveto
+} def
+
+end
+% End textpath.pro
+%%EndProcSet
+%%BeginProcSet: texps.pro
+%!
+TeXDict begin /rf{findfont dup length 1 add dict begin{1 index /FID ne 2 index
+/UniqueID ne and{def}{pop pop}ifelse}forall[1 index 0 6 -1 roll exec 0 exch 5
+-1 roll VResolution Resolution div mul neg 0 0]/Metrics exch def dict begin
+Encoding{exch dup type /integertype ne{pop pop 1 sub dup 0 le{pop}{[}ifelse}{
+FontMatrix 0 get div Metrics 0 get div def}ifelse}forall Metrics /Metrics
+currentdict end def[2 index currentdict end definefont 3 -1 roll makefont
+/setfont load]cvx def}def /ObliqueSlant{dup sin S cos div neg}B /SlantFont{4
+index mul add}def /ExtendFont{3 -1 roll mul exch}def /ReEncodeFont{/Encoding
+exch def}def end
+%%EndProcSet
+%%BeginProcSet: special.pro
+%!
+TeXDict begin /SDict 200 dict N SDict begin /@SpecialDefaults{/hs 612 N /vs
+792 N /ho 0 N /vo 0 N /hsc 1 N /vsc 1 N /ang 0 N /CLIP 0 N /rwiSeen false N
+/rhiSeen false N /letter{}N /note{}N /a4{}N /legal{}N}B /@scaleunit 100 N
+/@hscale{@scaleunit div /hsc X}B /@vscale{@scaleunit div /vsc X}B /@hsize{/hs
+X /CLIP 1 N}B /@vsize{/vs X /CLIP 1 N}B /@clip{/CLIP 2 N}B /@hoffset{/ho X}B
+/@voffset{/vo X}B /@angle{/ang X}B /@rwi{10 div /rwi X /rwiSeen true N}B /@rhi
+{10 div /rhi X /rhiSeen true N}B /@llx{/llx X}B /@lly{/lly X}B /@urx{/urx X}B
+/@ury{/ury X}B /magscale true def end /@MacSetUp{userdict /md known{userdict
+/md get type /dicttype eq{userdict begin md length 10 add md maxlength ge{/md
+md dup length 20 add dict copy def}if end md begin /letter{}N /note{}N /legal{
+}N /od{txpose 1 0 mtx defaultmatrix dtransform S atan/pa X newpath clippath
+mark{transform{itransform moveto}}{transform{itransform lineto}}{6 -2 roll
+transform 6 -2 roll transform 6 -2 roll transform{itransform 6 2 roll
+itransform 6 2 roll itransform 6 2 roll curveto}}{{closepath}}pathforall
+newpath counttomark array astore /gc xdf pop ct 39 0 put 10 fz 0 fs 2
+F/|______Courier fnt invertflag{PaintBlack}if}N /txpose{pxs pys scale ppr
+aload pop por{noflips{pop S neg S TR pop 1 -1 scale}if xflip yflip and{pop S
+neg S TR 180 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0
+get neg sub neg TR}if xflip yflip not and{pop S neg S TR pop 180 rotate ppr 3
+get ppr 1 get neg sub neg 0 TR}if yflip xflip not and{ppr 1 get neg ppr 0 get
+neg TR}if}{noflips{TR pop pop 270 rotate 1 -1 scale}if xflip yflip and{TR pop
+pop 90 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0 get
+neg sub neg TR}if xflip yflip not and{TR pop pop 90 rotate ppr 3 get ppr 1 get
+neg sub neg 0 TR}if yflip xflip not and{TR pop pop 270 rotate ppr 2 get ppr 0
+get neg sub neg 0 S TR}if}ifelse scaleby96{ppr aload pop 4 -1 roll add 2 div 3
+1 roll add 2 div 2 copy TR .96 dup scale neg S neg S TR}if}N /cp{pop pop
+showpage pm restore}N end}if}if}N /normalscale{Resolution 72 div VResolution
+72 div neg scale magscale{DVImag dup scale}if 0 setgray}N /psfts{S 65781.76
+div N}N /startTexFig{/psf$SavedState save N userdict maxlength dict begin
+/magscale false def normalscale currentpoint TR /psf$ury psfts /psf$urx psfts
+/psf$lly psfts /psf$llx psfts /psf$y psfts /psf$x psfts currentpoint /psf$cy X
+/psf$cx X /psf$sx psf$x psf$urx psf$llx sub div N /psf$sy psf$y psf$ury
+psf$lly sub div N psf$sx psf$sy scale psf$cx psf$sx div psf$llx sub psf$cy
+psf$sy div psf$ury sub TR /showpage{}N /erasepage{}N /copypage{}N /p 3 def
+@MacSetUp}N /doclip{psf$llx psf$lly psf$urx psf$ury currentpoint 6 2 roll
+newpath 4 copy 4 2 roll moveto 6 -1 roll S lineto S lineto S lineto closepath
+clip newpath moveto}N /endTexFig{end psf$SavedState restore}N /@beginspecial{
+SDict begin /SpecialSave save N gsave normalscale currentpoint TR
+@SpecialDefaults count /ocount X /dcount countdictstack N}N /@setspecial{CLIP
+1 eq{newpath 0 0 moveto hs 0 rlineto 0 vs rlineto hs neg 0 rlineto closepath
+clip}if ho vo TR hsc vsc scale ang rotate rwiSeen{rwi urx llx sub div rhiSeen{
+rhi ury lly sub div}{dup}ifelse scale llx neg lly neg TR}{rhiSeen{rhi ury lly
+sub div dup scale llx neg lly neg TR}if}ifelse CLIP 2 eq{newpath llx lly
+moveto urx lly lineto urx ury lineto llx ury lineto closepath clip}if
+/showpage{}N /erasepage{}N /copypage{}N newpath}N /@endspecial{count ocount
+sub{pop}repeat countdictstack dcount sub{end}repeat grestore SpecialSave
+restore end}N /@defspecial{SDict begin}N /@fedspecial{end}B /li{lineto}B /rl{
+rlineto}B /rc{rcurveto}B /np{/SaveX currentpoint /SaveY X N 1 setlinecap
+newpath}N /st{stroke SaveX SaveY moveto}N /fil{fill SaveX SaveY moveto}N
+/ellipse{/endangle X /startangle X /yrad X /xrad X /savematrix matrix
+currentmatrix N TR xrad yrad scale 0 0 1 startangle endangle arc savematrix
+setmatrix}N end
+%%EndProcSet
+TeXDict begin 40258431 52099146 1000 300 300 @start /Fa 81[55
+56[50 28 1[33 50 1[50 50 1[28 2[28 50 2[44 50 44 1[44 13[55
+66 3[72 10[66 67[{}18 99.520683 /Times-Roman rf /Fb 2 34 df<0001FF0000000E00E0
+00003000180000C00006000100000100020000008006000000C009000001201080000210104000
+041020200004082020000808401000100440080020044004004004400200800480010100028000
+820002800044000280002800028000100002800028000280004400028000820002800101000240
+020080044004004004400800200440100010042020000808202000040810400004101080000210
+090000012006000000C00200000080010000010000C00006000030001800000E00E0000001FF00
+0027297DA22E>10 D<000000000030000000000000300000000000003000000000000018000000
+0000000C0000000000000C000000000000060000000000000300000000000001C07FFFFFFFFFFF
+E0FFFFFFFFFFFFF87FFFFFFFFFFFE0000000000001C00000000000030000000000000600000000
+00000C0000000000000C0000000000001800000000000030000000000000300000000000003000
+35157D983C>33 D E /Fc 138[29 16 22 19 2[29 29 1[16 2[16 2[19
+25 29 25 29 25 30[38 19[14 46[{}16 57.600342 /Times-Roman rf
+/Fd 4 62 df<0007FC0000003C07800000F001E00003C00078000780003C000F80003E001F0000
+1F003E00000F803E00000F807E00000FC07C000007C0FC000007E0FC000007E0FC000007E0FC00
+0007E0FC000007E0FC000007E0FC000007E07C000007C07C000007C07E00000FC03E00000F803E
+00000F801F00001F001F00001F000F00001E000F00001E000780003C0003800038000380003800
+01C000700000C000600080C0006020806000C020406000C0404020008040402000804060300180
+C07FF001FFC03FF001FF803FF001FF803FF001FF80232A7DA92A>10 D<00040008001000200040
+00C0018003000300060006000E000C001C00180038003800380030007000700070007000F000F0
+00E000E000E000E000E000E000E000E000E000E000E000F000F000700070007000700030003800
+3800380018001C000C000E000600060003000300018000C0004000200010000800040E3D7BAC17
+>40 D<800040002000100008000C000600030003000180018001C000C000E00060007000700070
+00300038003800380038003C003C001C001C001C001C001C001C001C001C001C001C001C003C00
+3C00380038003800380030007000700070006000E000C001C0018001800300030006000C000800
+10002000400080000E3D7DAC17>I<FFFFFFFFFEFFFFFFFFFE7FFFFFFFFE000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000000000007FFFFF
+FFFEFFFFFFFFFEFFFFFFFFFE270F7D952E>61 D E /Fe 2 13 df<00F800030C000E06041C0704
+380308300388700390700390E003A0E003A0E003C0E00380E00380E00380600780600B88307190
+0F80E016127E911B>11 D<0001F000061800080C00100C00200E00400E00800E00801C01001C01
+0018010038020FF00210C0020FE002003004003004003004003804003808007008007008007008
+00E01800E01801C0140180140300230E0020F80020000020000040000040000040000040000080
+000080000017257F9C17>I E /Ff 5 84 df<00FC000403FE000407FF00080FFF80081C038010
+3800C0102000402040006020400020408000204080002080000010800000110000001100000012
+000000120000001200000014000000140000001800000018000000180000001000000010000000
+1000000030000000300000002000000060000000600000006000000060000000C0000000C00000
+00C0000000C0000001800000018000000100001E277F991E>13 D<0003C0000C30001818003018
+00701C00E01C00C01C01C01C03801C03801E07001E07001E0F001E0E001E1E001C1E001C1C003C
+3C003C3C003C3C003C7FFFF87FFFF8780078780078F000F0F000F0F000F0F001E0F001E0E001C0
+E003C0E00380E00380E00700E00700E00E00601C0060180070300030600010C0000F0000172A7D
+A91B>18 D<78FCFCFEFE7A02020202040404081010204007127B8510>59
+D<003FFFFFE000003FFFFFF8000001F8007C000001F0003E000001F0001F000001F0000F000001
+F0000F800003E0000F800003E0000F800003E0000F800003E0000F800007C0000F000007C0001F
+000007C0001E000007C0003E00000F80007C00000F8000F800000F8003E000000F800F8000001F
+FFFE0000001F0007C000001F0001E000001F0000F000003E0000F800003E00007800003E00007C
+00003E00007C00007C00007C00007C00007C00007C00007C00007C00007C0000F80000F80000F8
+0000F80000F80001F00000F80003E00001F00003E00001F0000FC00001F0001F000003F000FE00
+007FFFFFF80000FFFFFFC0000029297EA82C>66 D<00003F80400000FFE0400003C078C0000700
+19C0000E000F80001800078000380003800070000380006000030000E000030000E000030000E0
+00030001E000020001E000020001F000000000F000000000F800000000FF000000007FF0000000
+3FFF0000001FFF8000000FFFE0000001FFE00000001FF000000003F800000000F8000000007800
+000000780000000038001000003800100000380010000038003000007000300000700030000060
+00300000E000700001C00078000180007C0007000066000E0000C3C03C0000C0FFF00000803FC0
+0000222B7DA924>83 D E /Fg 52 126 df<00600000E00000E00000E00000E00003F8000FFE00
+1FFF803CE7C078E1C070E0E0E0E0E0E0E1E0E0E1E0E0E0C070E00078E0003FE0001FF00007FC00
+00FF0000EF8000E3C000E1C000E0E0F0E0E0F0E0E0F0E0E0E0E0E070E1C078E3C03CEF801FFF00
+0FFE0003F00000E00000E00000E00000600013277DA21A>36 D<1800C03C01E07E01E07E03E0E7
+03C0E703C0E707C0E70780E70F80E70F00E70F007E1F007E1E003C1E00183E00003C00007C0000
+780000780000F80000F00000F00001F00001E00003E00003C00003C0C007C3F00783F00787380F
+87380F07381F07381E07381E07383E07383C03F03C03F01800C015277EA21A>I<0038007800F0
+01E003C007800F000E001C001C0038003800700070007000E000E000E000E000E000E000E000E0
+00E000E000700070007000380038001C001C000E000F00078003C001E000F8007800380D2878A2
+1A>40 D<6000F00078003C001E000F000780038001C001C000E000E00070007000700038003800
+38003800380038003800380038003800700070007000E000E001C001C0038007800F001E003C00
+7800F00060000D287CA21A>I<183E7E7F3F1F070E0E1CFCF8E0080D77851A>44
+D<3078FCFC7830060676851A>46 D<01F00007FC000FFE001F1F001C07003803803803807001C0
+7001C07001C0E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0F001E07001C0
+7001C07803C03803803C07801C07001F1F000FFE0007FC0001F000131E7D9D1A>48
+D<00C001C001C003C007C00FC07FC0FDC071C001C001C001C001C001C001C001C001C001C001C0
+01C001C001C001C001C001C001C001C07FFF7FFF7FFF101E7B9D1A>I<03F0000FFC001FFF003C
+0F807803C07001C0E000E0F000E0F000E06000E00000E00000E00001C00001C000038000078000
+0F00000E00003C00007C0000F00001E00003C0000780000F00001E00E03C00E07FFFE0FFFFE07F
+FFE0131E7D9D1A>I<01FC0007FF001FFF801E03C03C01C03C00E03C00E00000E00000E00001C0
+0003C000078001FF0001FF0001FFC00003E00000F0000070000078000038000038600038F00038
+F00078E000707000F07E03E03FFFC00FFF0001FC00151E7E9D1A>I<000F80001F80003B80003B
+8000738000F38000E38001C38003C3800383800783800F03800E03801E03803C03803803807803
+80F00380FFFFFEFFFFFEFFFFFE000380000380000380000380000380000380003FF8007FFC003F
+F8171E7F9D1A>I<3FFFC07FFFC07FFFC070000070000070000070000070000070000070000070
+000071F8007FFE007FFF007E07807803C03001C00001C00000E00000E00000E06000E0F000E0F0
+01C0E001C07003807C0F803FFF000FFC0003F000131E7D9D1A>I<007E0001FF8003FFC00781E0
+0F01E01E01E03C00C0380000700000700000700000E1F800E7FE00FFFF00FE0780F803C0F001C0
+F000E0F000E0E000E0F000E07000E07000E07001C03801C03C03801E0F800FFF0007FC0001F000
+131E7D9D1A>I<E00000FFFFF8FFFFF8FFFFF0E000E0E001C00003C0000780000F00000E00001C
+00001C0000380000380000700000700000E00000E00000E00001C00001C00001C00001C0000380
+00038000038000038000038000038000038000038000151F7E9E1A>I<01FC0007FF001FFFC01F
+07C03C01E07800F07000707000707000707800F03800E01E03C00FFF8003FE0007FF001F8FC03C
+01E07800F0700070E00038E00038E00038E00038F000787000707800F03E03E01FFFC007FF0001
+FC00151E7E9D1A>I<01F00007FC001FFE003E0F003807807003807001C0E001C0E001C0E001E0
+E000E0E000E0E001E07001E07803E03C0FE01FFFE00FFCE003F0E00001C00001C00001C0000380
+600380F00700F00F00F03E007FFC003FF0000FC000131E7D9D1A>I<7FFFF0FFFFF8FFFFF87FFF
+F00000000000000000000000007FFFF0FFFFF8FFFFF87FFFF0150C7E941A>61
+D<FFFE00FFFF80FFFFC01C03E01C00E01C00F01C00701C00701C00701C00701C00E01C01E01C07
+C01FFF801FFF801FFFC01C01E01C00F01C00701C00381C00381C00381C00381C00381C00781C00
+F01C01F0FFFFE0FFFFC0FFFF00151E7E9D1A>66 D<007C3801FF3807FFF80F83F81E00F81C0078
+380078380038700038700038700000E00000E00000E00000E00000E00000E00000E00000E00000
+7000007000387000383800383800381C00701E00F00F83E007FFC001FF80007C00151E7E9D1A>
+I<FE03FEFF03FEFF03FE1D80701D80701DC0701CC0701CC0701CE0701CE0701C60701C70701C70
+701C30701C38701C38701C18701C1C701C1C701C0C701C0E701C0E701C06701C06701C07701C03
+701C0370FF81F0FF81F0FF80F0171E7F9D1A>78 D<0FFE003FFF807FFFC07C07C07001C0F001E0
+E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0E000E0
+E000E0E000E0E000E0E000E0F001E0F001E07001C07C07C07FFFC03FFF800FFE00131E7D9D1A>
+I<FFFC00FFFF00FFFF801C07C01C01E01C00F01C00701C00701C00701C00701C00F01C01E01C07
+C01FFF801FFF001FFF801C07C01C01C01C00E01C00E01C00E01C00E01C00E01C00E21C00E71C00
+E71C00E7FF807EFF807EFF8038181E7F9D1A>82 D<03F1C00FFDC03FFFC07C0FC07003C0E003C0
+E001C0E001C0E001C0E000007000007800003F00001FF00007FE0000FF00000F800003C00001C0
+0000E00000E06000E0E000E0E000E0E001C0F001C0FC0780FFFF80EFFE00E3F800131E7D9D1A>
+I<FFF8FFF8FFF8E000E000E000E000E000E000E000E000E000E000E000E000E000E000E000E000
+E000E000E000E000E000E000E000E000E000E000E000E000E000E000E000E000E000FFF8FFF8FF
+F80D2776A21A>91 D<600000F00000F00000F800007800007C00003C00003E00001E00001E0000
+1F00000F00000F800007800007C00003C00003C00003E00001E00001F00000F00000F800007800
+007800007C00003C00003E00001E00001F00000F00000F00000F800007800007C00003C00003E0
+0001E00001E00000C013277DA21A>I<FFF8FFF8FFF80038003800380038003800380038003800
+380038003800380038003800380038003800380038003800380038003800380038003800380038
+00380038003800380038FFF8FFF8FFF80D277EA21A>I<7FFFC0FFFFE0FFFFE07FFFC013047D7E
+1A>95 D<1FF0003FFC007FFE00780F00300700000380000380007F8007FF801FFF803F83807803
+80700380E00380E00380E00380700780780F803FFFFC1FFDFC07F0FC16157D941A>97
+D<FE0000FE0000FE00000E00000E00000E00000E00000E00000E00000E3E000EFF800FFFE00FC1
+F00F80700F00380E00380E001C0E001C0E001C0E001C0E001C0E001C0E001C0F00380F00780F80
+F00FC1E00FFFC00EFF80063E00161E7F9D1A>I<00FF8003FFC00FFFE01F01E03C00C078000070
+0000700000E00000E00000E00000E00000E000007000007000007800703C00701F01F00FFFE003
+FFC000FE0014157D941A>I<001FC0001FC0001FC00001C00001C00001C00001C00001C00001C0
+01F1C007FDC00FFFC01E0FC03C07C07803C07001C0E001C0E001C0E001C0E001C0E001C0E001C0
+E001C07003C07003C03807C03E0FC01FFFFC07FDFC01F1FC161E7E9D1A>I<01F80007FF000FFF
+801E07C03C01C07800E07000E0E00070E00070FFFFF0FFFFF0FFFFF0E000007000007000007800
+703C00701F01F00FFFE003FFC000FE0014157D941A>I<0007E0001FF0003FF800787800F03000
+E00000E00000E00000E0007FFFF0FFFFF0FFFFF000E00000E00000E00000E00000E00000E00000
+E00000E00000E00000E00000E00000E00000E00000E00000E0003FFF807FFFC03FFF80151E7F9D
+1A>I<01F87C07FFFE0FFFFE1E078C1C03803801C03801C03801C03801C03801C01C03801E0780
+1FFF001FFE0039F8003800003800001C00001FFF801FFFE03FFFF878007C70001CE0000EE0000E
+E0000EE0000E70001C78003C3E00F81FFFF007FFC001FF0017217F941A>I<FE0000FE0000FE00
+000E00000E00000E00000E00000E00000E00000E3E000EFF800FFFC00FC1C00F80E00F00E00E00
+E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E0FFE3FEFFE7
+FEFFE3FE171E7F9D1A>I<00C00001E00001E00000C00000000000000000000000000000000000
+00007FE0007FE0007FE00000E00000E00000E00000E00000E00000E00000E00000E00000E00000
+E00000E00000E00000E00000E00000E0007FFF80FFFFC07FFF80121F7C9E1A>I<FFE000FFE000
+FFE00000E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000E000
+00E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000E000FFFFE0
+FFFFE0FFFFE0131E7D9D1A>108 D<7CE0E000FFFBF8007FFFF8001F1F1C001E1E1C001E1E1C00
+1C1C1C001C1C1C001C1C1C001C1C1C001C1C1C001C1C1C001C1C1C001C1C1C001C1C1C001C1C1C
+001C1C1C001C1C1C007F1F1F00FF9F9F807F1F1F00191580941A>I<FE3E00FEFF80FFFFC00FC1
+C00F80E00F00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00
+E00E00E0FFE3FEFFE7FEFFE3FE17157F941A>I<01F00007FC001FFF003E0F803C07807803C070
+01C0E000E0E000E0E000E0E000E0E000E0E000E0F001E07001C07803C03C07803E0F801FFF0007
+FC0001F00013157D941A>I<FE3E00FEFF80FFFFE00FC1F00F80700F00380E00380E001C0E001C
+0E001C0E001C0E001C0E001C0E001C0F00380F00780F80F00FC1E00FFFC00EFF800E3E000E0000
+0E00000E00000E00000E00000E00000E00000E0000FFE000FFE000FFE00016207F941A>I<01F8
+E007FEE00FFFE01E07E03C03E07801E07001E0E000E0E000E0E000E0E000E0E000E0E000E0E001
+E07001E07803E03C03E01E0FE00FFFE007FCE001F0E00000E00000E00000E00000E00000E00000
+E00000E00000E0000FFE000FFE000FFE17207E941A>I<7F83F0FF8FF87FBFFC03FC3C03F01803
+E00003C00003C0000380000380000380000380000380000380000380000380000380000380007F
+FF00FFFF007FFF0016157E941A>I<07FB801FFF807FFF80780780E00380E00380E00380780000
+7FC0003FFC0007FE00003F800007806001C0E001C0E001C0F003C0FC0780FFFF00EFFE00E3F800
+12157C941A>I<00C00001C00001C00001C00001C00001C00001C0007FFFE0FFFFE0FFFFE001C0
+0001C00001C00001C00001C00001C00001C00001C00001C00001C00001C07001C07001C07001C0
+7000E0E000FFE0007FC0001F00141C7F9B1A>I<FE0FE0FE0FE0FE0FE00E00E00E00E00E00E00E
+00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E00E01E00F03E007FFFE03
+FFFE00FCFE17157F941A>I<7F83FCFFC7FE7F83FC0E00E00E00E00E00E00701C00701C00701C0
+03838003838003838001C70001C70001C70000EE0000EE0000EE00007C00007C0000380017157F
+941A>I<FF83FEFFC7FEFF83FE3800383800381C00701C00701C00701C38701C7C701C7C700E6C
+E00E6CE00EEEE00EEEE00EEEE00EC6E006C6C007C7C007C7C003838017157F941A>I<7FC7F87F
+CFFC7FC7F80703C003838003C70001EF0000FE00007C00007800003800007C0000EE0001EE0001
+C7000383800783C00F01C07FC7FCFFC7FE7FC7FC17157F941A>I<7FC3FCFFC7FE7FC3FC0E00E0
+0E00E00700E00701C00781C00381C003838003C38001C38001C70000E70000E70000E600006600
+006E00003C00003C00003C0000380000380000380000700000700030700078E00071E0007FC000
+3F80001E000017207F941A>I<0007E0001FE0003FE000780000F00000E00000E00000E00000E0
+0000E00000E00000E00000E00000E00000E00000E00001E00003C000FF8000FF0000FF800003C0
+0001E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000F0
+00007800003FE0001FE00007E013277DA21A>123 D<7C0000FF0000FF800003C00001E00000E0
+0000E00000E00000E00000E00000E00000E00000E00000E00000E00000E00000F000007800003F
+E0001FE0003FE000780000F00000E00000E00000E00000E00000E00000E00000E00000E00000E0
+0000E00000E00001E00003C000FF8000FF00007C000013277DA21A>125
+D E /Fh 81[27 52[24 24 35 24 24 13 19 16 1[24 24 24 37 13 24
+1[13 24 2[21 24 21 24 21 12[29 10[16 23[24 2[12 16 12 4[16
+39[{}29 48.000336 /Times-Roman rf end
+%%EndProlog
+%%BeginSetup
+%%Feature: *Resolution 300dpi
+TeXDict begin
+
+%%EndSetup
+%%Page: 1 1
+0 bop 73 50 a Fh(The)12 b(\256rst)g(sample)g(shows)f(that)h(math)h(works.)j
+(I)c(let)h(the)f(line)h(be)f(drawn)f(to)i(make)f(the)h(sample)f(clearer)m(.)
+77 152 y Fg(\\large)103 212 y(\\pstextpa)o(th)o([c])o(\045)154
+272 y({\\pscurve)o([li)o(nec)o(olo)o(r=)o(gra)o(y]\()o(0,1)o(\)\()o(4,3)o
+(\)\(6)o(,2)o(\)\(9)o(,0\))o(\(12)o(,1)o(\)\(1)o(5,1)o(\)}\045)154
+332 y({$S_\\alph)o(a=\\)o(Ome)o(ga\()o(\\g)o(amm)o(a_\\)o(bet)o(a\))o($)23
+b(is)i(a)g(connected)d(snarf)i(and)154 392 y($B=\(\\otim)o(es,)o(\\ri)o(ght)o
+(ar)o(row)o(,\\t)o(het)o(a\))o($)f(is)i(Boolean)e(left)h(subideal.})73
+907 y
+ tx@Dict begin /mtrxc CM def STV CP translate newpath 0.8 SLW 0.5 setgray
+ /ArrowA { moveto } def /ArrowB { } def [ 426.79115 28.45274 341.43292
+28.45274 256.07469 0.0 170.71646 56.90549 113.81097 85.35823 0.0 28.45274
+ 1. 0.1 0.  /c ED /b ED /a ED false OpenCurve  gsave 0.8 SLW 0.5 setgray
+0 setlinecap stroke  grestore  mtrxc setmatrix 0 setgray end
+ -1725 907 a
+ tx@TextPathDict begin currentpoint pop /Hoffset exch def end
+ -1725 907 a
+ tx@TextPathDict begin currentpoint pop /Voffset exch def end
+ 73 907 a
+ tx@TextPathDict begin .5 InitTextPath end /tx@TextPathSavedShow /show
+load def /show { tx@TextPathDict begin TextPathShow end } def
+ 18 x Ff(S)109 934 y
+Fe(\013)155 925 y Fd(=)16 b(\012\()p Ff(\015)312 934 y Fe(\014)340
+925 y Fd(\))e Fc(is)h(a)f(connected)h(snarf)g(and)g Ff(B)20
+b Fd(=)c(\()p Fb(\012)p Ff(;)10 b Fb(!)p Ff(;)g(\022)r Fd(\))k
+Fc(is)h(Boolean)g(left)f(subideal.)1871 907 y
+ currentpoint newpath moveto /show /tx@TextPathSavedShow load def
+ 103 1086 a Fg(\\psset{li)o(ne)o
+(sty)o(le=)o(non)o(e})103 1146 y(\\pstextpa)o(th)o([c])o({\\p)o(sar)o(cn)o
+(\(0,)o(0\){)o(73p)o(t})o({18)o(0}{)o(0})o(}\045)154 1206 y({Centre)23
+b(National)g(de)h(la})103 1266 y(\\pstextpa)o(th)o([c])o({\\p)o(sar)o(c\()o
+(0,0)o(\){7)o(3pt)o(}{)o(180)o(}{0)o(}})o(\045)154 1326 y({Recherch)o(e)f
+(Scientifi)o(que)o(})975 1741 y
+ tx@Dict begin /mtrxc CM def STV CP translate newpath 0.8 SLW 0. setgray
+ /ArrowA { moveto } def /ArrowB { } def 0.0 0.0 /y ED /x ED /r 73.0
+def /c 57.2957 r Div def /angleA 180. 0.0 c mul 2 div sub def /angleB
+0. 0.0 c mul 2 div add def x y r angleA angleB arcn   mtrxc setmatrix
+0 setgray end
+ 130 1741 a
+ tx@TextPathDict begin currentpoint pop /Hoffset exch def end
+ 130 1741 a
+ tx@TextPathDict begin currentpoint pop /Voffset exch def end
+ 975 1741
+a
+ tx@TextPathDict begin .5 InitTextPath end /tx@TextPathSavedShow /show
+load def /show { tx@TextPathDict begin TextPathShow end } def
+ 31 x Fa(Centre)h(National)e(de)j(la)1820 1741 y
+ currentpoint newpath moveto /show /tx@TextPathSavedShow load def
+ 975 1741
+a
+ tx@Dict begin /mtrxc CM def STV CP translate newpath 0.8 SLW 0. setgray
+ /ArrowA { moveto } def /ArrowB { } def 0.0 0.0 /y ED /x ED /r 73.0
+def /c 57.2957 r Div def /angleA 180. 0.0 c mul 2 div add def /angleB
+0. 0.0 c mul 2 div sub def x y r angleA angleB arc   mtrxc setmatrix
+0 setgray end
+ 58 1741 a
+ tx@TextPathDict begin currentpoint pop /Hoffset exch def end
+ 58 1741 a
+ tx@TextPathDict begin currentpoint pop /Voffset exch def end
+ 975 1741 a
+ tx@TextPathDict begin .5 InitTextPath end /tx@TextPathSavedShow /show
+load def /show { tx@TextPathDict begin TextPathShow end } def
+ 31 x Fa(Recherche)f(Scienti\256que)1892
+1741 y
+ currentpoint newpath moveto /show /tx@TextPathSavedShow load def
+ 975 2092 a
+ tx@Dict begin /mtrxc CM def STV CP translate newpath 0.8 SLW 0. setgray
+ /ArrowA { moveto } def /ArrowB { } def 0.0 -170.71646 /y ED /x ED
+/r 113.81097 def /c 57.2957 r Div def /angleA 180. 0.0 c mul 2 div
+sub def /angleB 0. 0.0 c mul 2 div add def x y r angleA angleB arcn
+  mtrxc setmatrix 0 setgray end
+ -75 2092 a
+ tx@TextPathDict begin currentpoint pop /Hoffset exch def end
+ -75 2092 a
+ tx@TextPathDict begin currentpoint pop /Voffset exch def end
+ 975 2092 a
+ tx@TextPathDict begin .5 InitTextPath end /tx@TextPathSavedShow /show
+load def /show { tx@TextPathDict begin TextPathShow end } def
+ -57 x Fh(In)16
+b(principle,)j(it)d(is)h(possible)f(to)g(use)g(parbox,)h(but)g(let')m(s)g
+(see)975 2095 y(what)9 b(really)g(happens.)16 b(It)9 b(seems)f(hard)g(to)h
+(believe)h(that)f(some-)975 2155 y(one)j(would)g(want)f(to)i(do)e(this.)2025
+2092 y
+ currentpoint newpath moveto /show /tx@TextPathSavedShow load def
+ 963 2825 a Fh(1)p eop
+%%Trailer
+end
+userdict /end-hook known{end-hook}if
+%%EOF

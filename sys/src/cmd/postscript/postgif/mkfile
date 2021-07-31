@@ -1,6 +1,9 @@
 </$objtype/mkfile
 
-<../config
+SYSTEM=plan9
+VERSION=3.3.1
+
+POSTLIB=/sys/lib/postscript/prologues
 
 TARG=postgif
 OFILES=postgif.$O\
@@ -12,7 +15,7 @@ HFILES=$COMMONDIR/comments.h\
 	$COMMONDIR/gen.h\
 	$COMMONDIR/path.h\
 
-BIN=$POSTBIN
+BIN=/$objtype/bin/aux
 LIB=$COMMONDIR/com.a$O
 
 </sys/src/cmd/mkone

@@ -1,0 +1,42 @@
+dev
+	root	/
+	cons	c
+	env	e
+	dup	d
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	incon	i
+	dk	k
+	scc	t
+	bit	b
+	lance	l
+	arp	a
+	iproute	P
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	rtc	r
+	scsi	S	scsi scsibuf
+	wren	w
+
+stream
+	async
+	urp
+	ip
+	fcall
+
+misc
+	cfs.root
+	kfs.root
+
+port
+	int cpuserver = 0;
+	void consdebug(void){}
+	void kproftimer(ulong pc){USED(pc);}
+
+boot
+	local
+	9600	"#t/eia1"
+	19200	"#t/eia1"
+	il
+	tcp

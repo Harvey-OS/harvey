@@ -1,10 +1,10 @@
-#include <string.h>
+#include	<u.h>
+#include	<libc.h>
 
 void*
 memmove(void *a1, const void *a2, size_t n)
 {
 	char *s1, *s2;
-	extern void abort(void);
 
 	if((long)n < 0)
 		abort();

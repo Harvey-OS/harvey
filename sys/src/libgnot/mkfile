@@ -1,0 +1,41 @@
+</$objtype/mkfile
+
+LENDIAN=`{if(~ $objtype 386 || ~ $objtype hobbit) echo 1; if not echo 0}
+
+LIB=/$objtype/lib/libgnot.a
+OFILES=\
+	defont0.$O\
+	gaddr.$O\
+	gballoc.$O\
+	gbitblt.$O\
+	gbitbltclip.$O\
+	gpoint.$O\
+	gsegment.$O\
+	gsubfstring.$O\
+	gsubfstrwidth.$O\
+	gtexture.$O\
+	bbmalloc.$O\
+	tabs.$O
+
+HFILES=/sys/include/gnot.h
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-w -DT$objtype -DLENDIAN'='$LENDIAN
+
+gbitblt.$O:	bb$O.h tabs.h
+
+testbb:V:
+	$CC $CFLAGS -DT$objtype -DTEST gbitblt.c
+	$LD gbitblt.$O
+	rm -f gbitblt.$O
+
+testbbc:V:
+	$CC -w -DTEST gbitblt.c
+	$LD gbitblt.$O tabs.$O
+	rm -f gbitblt.$O
+
+segtest:V:
+	$CC $CFLAGS segtest.c
+	$LD -o segtest segtest.$O
+	rm -f segtest.$O

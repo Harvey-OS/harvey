@@ -1,0 +1,299 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{119}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "1.2d",
+%%%     date            = "26 June 1994",
+%%%     time            = "02:04:49 MET",
+%%%     filename        = "romanian.doc",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "03081 266 1236 10289",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, romanian",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the romanian language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{romanian.dtx}
+% \def\fileversion{v1.2d}
+% \def\filedate{1994/06/26}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source code for
+%    the Romanian language-specific file.
+%    A contribution was made by Umstatter Horst (hhu@cernvm.cern.ch)
+%    and Robert Juhasz (robertj@uni-paderborn.de)
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{romanian.dtx}
+\end{document}
+%</filedriver>
+%\fi
+% \changes{romanian-1.0a}{15 july 91}{Renamed babel.sty in babel.com}
+% \changes{romanian-1.1}{16 feb 92}{Brought up-to-date with babel 3.2a}
+% \changes{romanian-1.2}{1994/02/27}{Update for LaTeX2e}
+% \changes{romanian-1.2d}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved identification after the loading of babel.def}
+%
+%  \section{The Romanian language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion\ and was last revised on
+%    \filedate.  A contribution was made by Umstatter Horst ({\tt
+%    hhu@cernvm.cern.ch}).}  defines all the language-specific macros
+%    for the Romanian language.
+%
+%    For this language currently no special definitions are needed or
+%    available.
+%
+% \StopEventually{}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionsromanian| is
+%    already defined, so we can stop processing. If this command is
+%    undefined we proceed with the various definitions and first show
+%    the current version of this file.
+%
+% \changes{romanian-1.0a}{15 july 91}{Added reset of catcode of @
+%    before {\tt\bsl endinput}.}
+% \changes{romanian-1.0b}{29 okt 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{romanian-1.1.2}{5 nov 93}{Added translations}
+%    \begin{macrocode}
+\ifx\undefined\captionsromanian
+\else
+  \selectlanguage{romanian}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \changes{romanian-1.0b}{29 okt 91}{Removed code to load {\tt
+%    latexhax.com}}
+%
+% \begin{macro}{\atcatcode}
+%    This file, \file{romanian.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read.  We save the category code of the @-sign in |\atcatcode|
+%    and make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%
+% \changes{romanian-1.0a}{15 july 91}{Modified handling of catcode of
+%    @ again.}
+% \changes{romanian-1.0b}{29 okt 91}{Removed use of {\tt\bsl
+%    makeatletter} and hence the need to load {\tt latexhax.com}}
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt romanian} is the first language option
+%    to be processed. In that case we need to read \file{babel.def}
+%    right here before we continue.
+%
+% \changes{romanian-1.1}{16 feb 92}{Added {\tt\bsl relax} after the
+%    argument of {\tt\bsl input}}
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{romanian.sty}[1994/06/26 v1.2d
+         Romanian support from the babel system]
+%    \end{macrocode}
+%
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+% \changes{romanian-1.0a}{15 july 91}{Added {\tt\bsl let\bsl
+%    originalTeX% \bsl relax} to test for existence}
+% \changes{romanian-1.1}{16 feb 92}{{\tt\bsl originalTeX} should be
+%    expandable, {\tt\bsl let} it to {\tt\bsl empty}}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by the |\usepackage|
+%    command, {\tt romanian} will be an `unknown' language in which
+%    case we have to make it known. So we check for the existence of
+%    |\l@romanian| to see whether we have to do something here.
+%
+% \changes{romanian-1.0b}{29 okt 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{romanian-1.1}{16 feb 92}{Added a warning when no
+%    hyphenation patterns were loaded.}
+% \changes{romanian-1.2d}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@romanian
+    \@nopatterns{Romanian}
+    \adddialect\l@romanian0\fi
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the Romanian language.
+%
+% \begin{macro}{\captionsromanian}
+%    The macro |\captionsromanian| defines all strings used in the
+%    four standard documentlasses provided with \LaTeX.
+% \changes{romanian-1.1}{16 feb 92}{Added {\tt\bsl seename}, {\tt\bsl
+%    alsoname} and {\tt\bsl prefacename}}
+% \changes{romanian-1.1}{17 feb 92}{Translation errors found by Robert
+%    Juhasz fixed}
+% \changes{romanian-1.1}{15 jul 93}{`headpagename should be `pagename}
+%    \begin{macrocode}
+\addto\captionsromanian{%
+  \def\prefacename{Prefa\c{t}\u{a}}%
+  \def\refname{Bibliografie}%
+  \def\abstractname{Rezumat}%
+  \def\bibname{Bibliografie}%
+  \def\chaptername{Capitolul}%
+  \def\appendixname{Anexa}%
+  \def\contentsname{Cuprins}%
+  \def\listfigurename{List\u{a} de figuri}%
+  \def\listtablename{List\u{a} de tabele}%
+  \def\indexname{Glosar}%
+  \def\figurename{Figura}%    % sau Plan\c{s}a
+  \def\tablename{Tabela}%
+  \def\partname{Partea}%
+  \def\enclname{Anex\u{a}}%   % sau Anexe
+  \def\ccname{Copie}%
+  \def\headtoname{Pentru}%
+  \def\pagename{Pagina}%
+  \def\seename{Vezi}%
+  \def\alsoname{Vezi de asemenea}}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateromanian}
+%    The macro |\dateromanian| redefines the command |\today| to
+%    produce Romanian dates.
+% \changes{romanian-1.1}{17 feb 92}{Translation errors found by Robert
+%    Juhasz fixed}
+%    \begin{macrocode}
+\def\dateromanian{%
+\def\today{\number\day~\ifcase\month\or
+  ianuarie\or februarie\or martie\or aprilie\or mai\or iunie\or
+  iulie\or august\or septembrie\or octombrie\or noiembrie\or decembrie\fi
+  \space \number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasromanian}
+% \begin{macro}{\noextrasromanian}
+%    The macro |\extrasromanian| will perform all the extra
+%    definitions needed for the Romanian language. The macro
+%    |\noextrasromanian| is used to cancel the actions of
+%    |\extrasromanian| For the moment these macros are empty but they
+%    are defined for compatibility with the other language-specific
+%    files.
+%
+%    \begin{macrocode}
+\addto\extrasromanian{}
+\addto\noextrasromanian{}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%    Our last action is to activate the commands we have just defined,
+%    by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{romanian}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+% \changes{romanian-1.0a}{15 july 91}{Modified handling of catcode of
+%    @-sign.}
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

@@ -1,0 +1,34 @@
+%% 
+%% This is file `Ulasy.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% latexsym.dtx  (with options: `fd')
+%% 
+%% Copyright 1994 by Frank Mittelbach. All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% We recommend that you copy the relevant portions of the original 
+%% source file into a private .fdd instead of modifying this file 
+%% directly. Otherwise any new release of LaTeX2e may clobber your 
+%% customizations. 
+%% 
+\ProvidesFile{Ulasy.fd}
+             [1994/09/25 v2.1f
+              LaTeX symbol font definitions]
+\DeclareFontFamily{U}{lasy}{}
+\DeclareFontShape{U}{lasy}{m}{n}{ <5> <6> <7> <8> <9> gen * lasy
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>lasy10  }{}
+\DeclareFontShape{U}{lasy}{b}{n}{ <-10> ssub * lasy/m/n
+     <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>lasyb10  }{}
+\endinput
+%% 
+%% End of file `Ulasy.fd'.

@@ -1,10 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include <thread.h>
-#include <cursor.h>
-#include <mouse.h>
-#include <keyboard.h>
+#include <libg.h>
 #include <frame.h>
 #include "flayer.h"
 #include "samterm.h"
@@ -24,7 +20,6 @@ enum Menu2
 	Cut,
 	Paste,
 	Snarf,
-	Plumb,
 	Look,
 	Exch,
 	Search,
@@ -37,7 +32,7 @@ enum Menu3
 {
 	New,
 	Zerox,
-	Resize,
+	Reshape,
 	Close,
 	Write,
 	NMENU3
@@ -47,16 +42,15 @@ char	*menu2str[] = {
 	"cut",
 	"paste",
 	"snarf",
-	"plumb",
 	"look",
-	"<rio>",
+	"<8½>",
 	0,		/* storage for last pattern */
 };
 
 char	*menu3str[] = {
 	"new",
 	"zerox",
-	"resize",
+	"reshape",
 	"close",
 	"write",
 };
@@ -72,10 +66,8 @@ menu2hit(void)
 	int w = which-t->l;
 	int m;
 
-	if(hversion==0 || plumbfd<0)
-		menu2str[Plumb] = "(plumb)";
-	m = menuhit(2, mousectl, t==&cmd? &menu2c : &menu2, nil);
-	if(hostlock || t->lock)
+	m = menuhit(2, &mouse, t==&cmd? &menu2c : &menu2);
+	if(lock || t->lock)
 		return;
 
 	switch(m){
@@ -91,13 +83,7 @@ menu2hit(void)
 		snarf(t, w);
 		break;
 
-	case Plumb:
-		if(hversion > 0)
-			outTsll(Tplumb, t->tag, which->p0, which->p1);
-		break;
-
 	case Exch:
-		snarf(t, w);
 		outT0(Tstartsnarf);
 		setlock();
 		break;
@@ -127,33 +113,33 @@ menu3hit(void)
 	Text *t;
 
 	mw = -1;
-	switch(m = menuhit(3, mousectl, &menu3, nil)){
+	switch(m = menuhit(3, &mouse, &menu3)){
 	case -1:
 		break;
 
 	case New:
-		if(!hostlock)
+		if(!lock)
 			sweeptext(1, 0);
 		break;
 
 	case Zerox:
-	case Resize:
-		if(!hostlock){
-			setcursor(mousectl, &bullseye);
+	case Reshape:
+		if(!lock){
+			cursorswitch(&bullseye);
 			buttons(Down);
-			if((mousep->buttons&4) && (l = flwhich(mousep->xy)) && getr(&r))
-				duplicate(l, r, l->f.font, m==Resize);
+			if((mouse.buttons&4) && (l = flwhich(mouse.xy)) && getr(&r))
+				duplicate(l, r, l->f.font, m==Reshape);
 			else
-				setcursor(mousectl, cursor);
+				cursorswitch(cursor);
 			buttons(Up);
 		}
 		break;
 
 	case Close:
-		if(!hostlock){
-			setcursor(mousectl, &bullseye);
+		if(!lock){
+			cursorswitch(&bullseye);
 			buttons(Down);
-			if((mousep->buttons&4) && (l = flwhich(mousep->xy)) && !hostlock){
+			if((mouse.buttons&4) && (l = flwhich(mouse.xy)) && !lock){
 				t=(Text *)l->user1;
 				if (t->nwin>1)
 					closeup(l);
@@ -162,20 +148,20 @@ menu3hit(void)
 					setlock();
 				}
 			}
-			setcursor(mousectl, cursor);
+			cursorswitch(cursor);
 			buttons(Up);
 		}
 		break;
 
 	case Write:
-		if(!hostlock){
-			setcursor(mousectl, &bullseye);
+		if(!lock){
+			cursorswitch(&bullseye);
 			buttons(Down);
-			if((mousep->buttons&4) && (l = flwhich(mousep->xy))){
+			if((mouse.buttons&4) && (l = flwhich(mouse.xy))){
 				outTs(Twrite, ((Text *)l->user1)->tag);
 				setlock();
 			}else
-				setcursor(mousectl, cursor);
+				cursorswitch(cursor);
 			buttons(Up);
 		}
 		break;
@@ -191,7 +177,7 @@ menu3hit(void)
 						i = 0;
 				while(i!=t->front && t->l[i].textfn==0);
 			current(&t->l[i]);
-		}else if(!hostlock)
+		}else if(!lock)
 			sweeptext(0, tag[m-NMENU3]);
 		break;
 	}
@@ -208,7 +194,7 @@ sweeptext(int new, int tag)
 		memset((void*)t, 0, sizeof(Text));
 		current((Flayer *)0);
 		flnew(&t->l[0], gettext, 0, (char *)t);
-		flinit(&t->l[0], r, font, maincols);	/*bnl*/
+		flinit(&t->l[0], r, font);	/*bnl*/
 		t->nwin = 1;
 		rinit(&t->rasp);
 		if(new)
@@ -297,7 +283,7 @@ genmenu2(int n)
 	if(n>=NMENU2+(menu2str[Search]!=0))
 		return 0;
 	p = menu2str[n];
-	if(!hostlock && !t->lock || n==Search || n==Look)
+	if(!lock && !t->lock || n==Search || n==Look)
 		return p;
 	return paren(p);
 }
@@ -312,7 +298,7 @@ genmenu2c(int n)
 		p="send";
 	else
 		p = menu2str[n];
-	if(!hostlock && !t->lock)
+	if(!lock && !t->lock)
 		return p;
 	return paren(p);
 }
@@ -328,7 +314,7 @@ genmenu3(int n)
 		return 0;
 	if(n < NMENU3){
 		p = menu3str[n];
-		if(hostlock)
+		if(lock)
 			p = paren(p);
 		return p;
 	}

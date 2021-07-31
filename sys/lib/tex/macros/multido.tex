@@ -1,0 +1,294 @@
+%% BEGIN multido.tex/multido.sty
+%%
+\def\fileversion{1.4}
+\def\filedate{93/01/14}
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% DESCRIPTION:
+%%   multido.tex/multido.sty contains a loop macro, \multido, that supports
+%%   fixed-point addition and has a nice interface. Among other things, it
+%%   is useful for pictures and putting numbers on axes. multido.tex
+%%   is compatible with most TeX macro packages, including Plain TeX, LaTeX,
+%%   AmSTeX, and Ams-LaTeX.
+%%
+%% INSTALLATION:
+%%   Put this file where your TeX looks for inputs, under the name multido.tex.
+%%   Name a copy multido.sty to use as a LaTeX style option, or create a file
+%%   multido.sty with the lines:
+%%     \input multido.tex
+%%     \endinput
+%%
+%% DOCUMENTATION:
+%%   See multido.doc, which might be appended to this file.
+%%
+%% COPYING:
+%%   Copying of part or all of this file is allowed under the following
+%%   conditions only:
+%%   (1) You may freely distribute unchanged copies of the file. Please
+%%       include the documentation when you do so.
+%%   (2) You may modify a renamed copy of the file, but only for personal
+%%       use or use within an organization.
+%%   (3) You may copy fragments from the file, for personal use or for
+%%       distribution, as long as credit is given where credit is due.
+%%
+%%   You are NOT ALLOWED to take money for the distribution or use of
+%%   this file or modified versions or fragments thereof, except for
+%%   a nominal charge for copying etc.
+%%
+%% CODE:
+% These macros use TeX primitives, plus the Plain TeX commands:
+%   \dimen@, \dimen@i, \count@, \newcount, \newtoks, \@ne, \tw@, \@z@.
+%
+% Check if file is loaded, announce file on terminal, and take care of @:
+%
+
+
+\message{ v\fileversion, \filedate\space <tvz>}
+
+\csname MultidoLoaded\endcsname
+\let\MultidoLoaded\endinput
+
+\edef\TheAtCode{\the\catcode`\@}
+\catcode`\@=11
+
+% These are some useful hacks. "\multido@dimtonum" strips the value of "#1", a
+% dimension register, of the "pt", and assigns the result to "#2", a command
+% sequence.
+
+\def\@empty{}
+\def\@nnil{\@nil}
+\def\multido@dimtonum#1#2{\edef#2{\multido@@dimtonum#1}}
+\def\multido@@dimtonum#1{\expandafter\multido@@@dimtonum\the#1}
+\edef\next{%
+  \noexpand\def\noexpand\multido@@@dimtonum##1\string p\string t{##1}}
+\next
+
+% "\multido@count" stores the number of repetitions. "\multidocount" keeps
+% track of the iteration. These are also used locally as scratch counters by
+% "\FPadd@". "\multido@stuff" is used to store the <stuff> that is to be
+% repeated.
+
+\newcount\multido@count
+\newcount\multidocount
+\newtoks\multido@stuff
+
+\def\multido{\multido@{}{\begingroup}{\endgroup}}
+\def\mmultido{\multido@{\multido@stepvar}{\begingroup}{\endgroup}}
+\def\Multido{\multido@{}{}{}}
+\def\MMultido{\multido@{\multido@stepvar}{}{}}
+
+% "\multido@initvar" processes the variable declarations, initializing the
+% value of the variables and defining "\multido@stepvar" to increment the
+% variables with each repetition. "\multido@count" is set to the number of
+% repetitions.
+
+\long\def\multido@#1#2#3#4#5#6{%
+  #2%
+    \multido@count=#5\relax
+    \ifnum\multido@count=\z@\else\multido@@{#1}{#4}{#6}\fi
+  #3%
+  \ignorespaces}
+\def\multido@@#1#2#3{%
+  \def\multido@stepvar{}%
+  \def\do{\noexpand\do\noexpand}%
+  \multido@initvar#2,\@nil,%
+  \let\do\noexpand
+  \edef\multido@stepvar{\multido@stepvar}%
+  \ifnum\multido@count<\z@\multido@count=-\multido@count\fi
+  \multidocount=1\relax
+  #1%
+  \multido@stuff{#3}%
+  \multido@loop}
+\def\multido@loop{%
+  \the\multido@stuff
+  \ifnum\multidocount<\multido@count
+    \advance\multidocount\@ne
+    \multido@stepvar
+    \expandafter\multido@loop
+  \fi}
+\def\multidostop{\multidocount=\multido@count}
+\def\multido@badvar{%
+  \multido@count=0
+  \errhelp{\multido command will be skipped.}%
+  \errmessage{Bad \string\multido\space variable declaration}}
+\def\multido@initvar#1,{%
+  \def\multido@temp{#1}%
+  \ifx\multido@temp\@nnil\else
+    \ifx\multido@temp\@empty\else
+      \multido@@initvar#1\@nil=+\@nil\relax
+    \fi
+    \expandafter\multido@initvar
+  \fi}
+\def\multido@@initvar#1=#2+#3\@nil#4\relax{%
+  \ifx\@empty#4\@empty
+    \multido@badvar
+  \else
+    \multido@vartype#1\@empty
+    \ifx\multido@temp\relax
+      \multido@badvar
+    \else
+      \multido@temp{#2}{#3}#1%
+    \fi
+  \fi}
+\def\multido@vartype#1{%
+  \ifcat\noexpand\@nil\noexpand#1%
+     \expandafter\multido@@vartype\string#1\@nil
+  \else
+    \let\multido@temp\relax
+  \fi}
+\def\multido@@vartype#1#2#3\@nil{%
+  \expandafter\let\expandafter\multido@temp
+    \csname multido@init@#2\endcsname}
+\def\MultidoCheckNames{%
+  \let\multido@@@vartype\multido@vartype
+  \def\multido@vartype##1{%
+    \ifx\undefined##1%
+      \multido@@@vartype{##1}%
+    \else
+      \errhelp{\multido command will be skipped.}%
+      \errmessage{Multido variable \string##1 already defined}%
+      \let\multido@temp\relax
+    \fi}}
+
+% For each variable type, we must now define \multido@init<vartype>. The
+% syntax of these macros is:
+%
+%   \multido@init@<vartype>{initial value}{increment}{variable}
+%
+% and the outcome should be:
+%
+% 1. Set <variable> to the initial value.
+% 2. Invoke \multido@addtostep{step stuff}, where <step stuff> is whatever
+% should be done to increment the variable. <step stuff> is expanded first,
+% with expansion suppressed by "\do".
+
+\def\multido@addtostep#1{\edef\multido@stepvar{\multido@stepvar#1}}
+
+% Variable type for dimensions ("d", "D"):
+
+\def\multido@init@d#1#2#3{%
+  \expandafter\ifx\csname pssetlength\endcsname\relax
+    \dimen@=#1\relax\dimen@i=#2\relax
+  \else
+    \pssetlength\dimen@{#1}\pssetlength\dimen@i{#2}%
+  \fi
+  \edef#3{\number\dimen@ sp}%
+  \ifnum\multido@count<\z@\dimen@i=-\dimen@i\fi
+  \multido@addtostep{\do\multido@step@d{\do#3}{\number\dimen@i sp}}}
+\def\multido@step@d#1#2{%
+  \dimen@=#1\advance\dimen@#2
+  \edef#1{\number\dimen@ sp}}%
+\def\multido@init@D{\multido@init@d}
+
+% Variable type for integers ("i", "I"):
+
+\def\multido@init@i#1#2#3{%
+  \count@=#1\relax
+  \edef#3{\the\count@}%
+  \count@=#2\relax
+  \ifnum\multido@count<\z@\count@=-\count@\fi
+  \multido@addtostep{\do\multido@step@i{\do#3}{\the\count@}}}
+\def\multido@step@i#1#2{%
+  \count@=#1\advance\count@ by #2
+  \edef#1{\the\count@}}
+\def\multido@init@I{\multido@init@i}
+
+% Variable type for reals ("r", "R").
+
+\def\multido@init@r#1#2#3{%
+  \dimen@=#1pt
+  \multido@dimtonum\dimen@#3%
+  \dimen@=#2pt
+  \ifnum\multido@count<\z@\dimen@=-\dimen@\fi
+  \multido@addtostep{\do\multido@step@r{\do#3}{\number\dimen@ sp}}}
+\def\multido@step@r#1#2{%
+  \dimen@=#1pt\advance\dimen@#2
+  \multido@dimtonum\dimen@#1}
+\def\multido@init@R{\multido@init@r}
+
+% Variable type for numbers ("n", "N").
+
+\def\multido@init@n#1#2#3{%
+  \edef#3{#1}%
+  \ifnum\multido@count<\z@\expandafter\FPsub\else\expandafter\FPadd\fi
+  {0}{#2}\multido@temp
+  \multido@addtostep{\do\FPadd{\do#3}{\multido@temp}{\do#3}}}
+\def\multido@init@N{\multido@init@n}
+
+% Simple fixed-point addition couldn't be harder. "\dimen@" and "\dimen@i" are
+% used as scratch {\em counters} (to avoid creating a new counter). "\count@",
+% "\multido@count" and "\multidocount" are also used as scratch counters.
+
+% This is probably pretty close to optimal, given the requirements that
+% leading and trailing spaces be OK in the arguments, and that there need not
+% be any numbers to the left of the decimal.
+
+\def\FPadd#1#2#3{%
+  \edef\multido@temp{#1..\noexpand\@nil#2}%
+  \expandafter\FPadd@\multido@temp..\@nil
+  \let#3\multido@temp}
+\def\FPsub#1#2{%
+  \edef\multido@temp{\noexpand\FPsub@#2\noexpand\@empty}%
+  \FPadd{#1}{\multido@temp}}
+\def\FPsub@#1{\ifx-#1\else-#1\fi}
+\def\FPadd@#1.#2.#3\@nil#4.#5.#6\@nil{%
+  \begingroup
+    \def\multido@temp{\let\next\relax}%
+    \let\next\z@
+    \afterassignment\multido@temp\count@=#1\next
+    \dimen@i=0#2sp\relax
+    \let\next\z@
+    \afterassignment\multido@temp\multido@count=#4\next
+    \multidocount=0#5\relax
+    \dimen@=\number\count@ sp
+    \count@=\@ne
+    \FPadd@@@#500000000\@nil
+    \ifnum#11<\z@
+      \count@=-\tw@
+      \dimen@=-\dimen@
+    \fi
+    \ifnum#41<\z@
+      \count@=-\count@
+      \multido@count=-\multido@count
+    \fi
+    \ifnum\count@>\z@
+      \advance\multido@count\dimen@
+      \advance\multidocount\dimen@i
+      \ifnum\multidocount<\multido@temp\relax
+        \advance\multidocount\multido@temp\relax
+      \else
+        \advance\multido@count\@ne
+      \fi
+      \advance\count@-3
+    \else
+      \advance\multido@count-\dimen@
+      \advance\multidocount-\dimen@i
+      \ifnum\multido@count<\z@
+        \multido@count=-\multido@count
+        \multidocount=-\multidocount
+        \advance\count@\@ne
+      \else
+        \ifnum\multido@count=\z@
+          \ifnum\multidocount<\z@
+            \multidocount=-\multidocount
+            \advance\count@\@ne
+          \fi
+        \fi
+      \fi
+      \ifnum\multidocount<\z@
+        \advance\multidocount\multido@temp
+        \advance\multido@count-\@ne
+      \fi
+      \advance\multidocount\multido@temp\relax
+    \fi
+    \expandafter\FPadd@@\the\multidocount\@empty\@nil
+  \endgroup}
+\def\FPadd@@#1#2#3\@nil{\xdef\multido@temp{%
+  \ifnum\count@=-1-\fi
+  \the\multido@count\ifx#2\@empty\else.#2#3\fi}}
+\def\FPadd@@@#1#2#3#4#5#6#7#8#9\@nil{\def\multido@temp{1#9}}
+
+\catcode`\@=\TheAtCode\relax
+\endinput
+%% END multido.tex/multido.sty

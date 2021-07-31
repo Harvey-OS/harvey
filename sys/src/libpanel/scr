@@ -1,0 +1,1058 @@
+button.c:	bp=p->data;
+button.c:	r=pl_box(b, p->r, p->state);
+button.c:	switch(bp->btype){
+button.c:		r=pl_check(b, r, bp->check);
+button.c:		r=pl_radio(b, r, bp->check);
+button.c:	pl_drawicon(b, r, PLACECEN, p->flags, bp->icon);
+button.c:	bp=p->data;
+button.c:	oldstate=p->state;
+button.c:	if(m->buttons&OUT){
+button.c:		p->state=UP;
+button.c:	else if(m->buttons&7){
+button.c:		p->state=DOWN;
+button.c:		bp->buttons=m->buttons;
+button.c:		hitme=p->state==DOWN;
+button.c:		p->state=UP;
+button.c:	if(hitme) switch(bp->btype){
+button.c:		if(hitme) bp->check=!bp->check;
+button.c:		if(bp->check) bp->check=0;
+button.c:			for(sib=p->parent->child;sib;sib=sib->next)
+button.c:				if(((Button *)sib->data)->btype==RADIO
+button.c:				&& ((Button *)sib->data)->check){
+button.c:					((Button *)sib->data)->check=0;
+button.c:			bp->check=1;
+button.c:	if(hitme || oldstate!=p->state) pldraw(p, b);
+button.c:	if(hitme && bp->hit){
+button.c:		bp->hit(p, bp->buttons, bp->check);
+button.c:		p->state=UP;
+button.c:	bp=p->data;
+button.c:	s=pl_iconsize(p->flags, bp->icon);
+button.c:	if(bp->btype!=BUTTON){
+button.c:	return pl_boxsize(s, p->state);
+button.c:	bp=v->data;
+button.c:	v->flags=flags|LEAF;
+button.c:	v->state=UP;
+button.c:	v->draw=pl_drawbutton;
+button.c:	v->hit=pl_hitbutton;
+button.c:	v->type=pl_typebutton;
+button.c:	v->getsize=pl_getsizebutton;
+button.c:	v->childspace=pl_childspacebutton;
+button.c:	bp->btype=btype;
+button.c:	bp->check=0;
+button.c:	bp->hit=hit;
+button.c:	bp->icon=icon;
+button.c:	case BUTTON: v->kind="button"; break;
+button.c:	case CHECK:  v->kind="checkbutton"; break;
+button.c:	case RADIO:  v->kind="radiobutton"; break;
+button.c:	if(((Button *)p->data)->pl_buttonhit) ((Button *)p->data)->pl_buttonhit(p, buttons);
+button.c:	((Button *)p->data)->pl_buttonhit=hit;
+button.c:	((Button *)p->data)->menuhit(buttons, ((Button *)p->data)->index);
+button.c:	v->flags=flags;
+button.c:	v->kind="menu";
+button.c:	if(v->child){
+button.c:		plfree(v->child);
+button.c:		v->child=0;
+button.c:		((Button *)b->data)->menuhit=hit;
+button.c:		((Button *)b->data)->index=i;
+button.c:	((Button *)p->data)->check=val;
+canvas.c:	hit=((Canvas *)p->data)->hit;
+canvas.c:	v->flags=flags;
+canvas.c:	v->draw=pl_drawcanvas;
+canvas.c:	v->hit=pl_hitcanvas;
+canvas.c:	v->type=pl_typecanvas;
+canvas.c:	v->getsize=pl_getsizecanvas;
+canvas.c:	v->childspace=pl_childspacecanvas;
+canvas.c:	v->kind="canvas";
+canvas.c:	((Canvas *)v->data)->hit=hit;
+draw.c:		ff=(1<<(1<<ldepth))-1;
+draw.c:		texture(pl_dark, pl_black->r, pl_white, S);
+draw.c:	texture(b, Rect(r.min.x, r.max.y-wid, r.max.x, r.max.y), lr, S); /* bottom */
+draw.c:	texture(b, Rect(r.max.x-wid, r.min.y, r.max.x, r.max.y), lr, S); /* right */
+draw.c:	for(x=0;x!=wid;x++) for(y=wid-1-x;y!=wid;y++){
+draw.c:		texture(b, raddp(Rect(0,0,1,1), Pt(x+r.max.x-wid, y+r.min.y)), lr, S);
+draw.c:		texture(b, raddp(Rect(0,0,1,1), Pt(x+r.min.x, y+r.max.y-wid)), lr, S);
+draw.c:	if(b->ldepth==0) switch(style){
+draw.c:	save=b->clipr;
+draw.c:	if(flags&BITMAP) bitblt(b, ul, (Bitmap *)s, ((Bitmap *)s)->r, S);
+draw.c: * Caller must guarantee that r.max.x-r.min.x>=r.max.y-r.min.y!
+draw.c:	r.max.x=r.min.x+r.max.y-r.min.y;
+draw.c:	if(b->ldepth==0)
+draw.c:	r.max.x=r.min.x+r.max.y-r.min.y;
+draw.c:	if(b->ldepth==0)
+draw.c:		segment(b, Pt(r.min.x,   r.min.y+1), Pt(r.max.x-1, r.max.y  ), ~0, S);
+draw.c:		segment(b, Pt(r.min.x+1, r.min.y  ), Pt(r.max.x,   r.max.y-1), ~0, S);
+draw.c:		segment(b, Pt(r.min.x  , r.max.y-2), Pt(r.max.x-1, r.min.y-1), ~0, S);
+draw.c:		segment(b, Pt(r.min.x,   r.max.y-1), Pt(r.max.x,   r.min.y-1), ~0, S);
+draw.c:		segment(b, Pt(r.min.x+1, r.max.y-1), Pt(r.max.x,   r.min.y  ), ~0, S);
+draw.c:	if(p->flags&INVIS) return;
+draw.c:	p->draw(p, b);
+draw.c:	for(p=p->child;p;p=p->next) pldraw(p, b);
+draw.c:	for(;p;p=p->next){
+draw.c:		if(v) p->flags|=INVIS; else p->flags&=~INVIS;
+draw.c:		pl_invis(p->child, v);
+draw.c:	if(flags&BITMAP) return sub(((Bitmap *)p)->r.max, ((Bitmap *)p)->r.min);
+edit.c: *		set the selection -- adjusts hiliting
+edit.c:	ep=p->data;
+edit.c:	if(ep->t==0){
+edit.c:		ep->t=twnew(b, font, ep->text, ep->ntext);
+edit.c:		if(ep->t==0){
+edit.c:	twreshape(ep->t, p->r);
+edit.c:	twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:	sb=p->yscroller;
+edit.c:	if(sb && sb->setscrollbar)
+edit.c:		sb->setscrollbar(sb, b, ep->t->top, ep->t->bot, ep->t->etext-ep->t->text);
+edit.c: * Should do double-clicks:
+edit.c: *	If ep->sel0==ep->sel1 on entry and the
+edit.c:	if(m->buttons&7){
+edit.c:		ep=p->data;
+edit.c:		twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:		twselect(ep->t, m);
+edit.c:		ep->sel0=ep->t->sel0;
+edit.c:		ep->sel1=ep->t->sel1;
+edit.c:		if(ep->hit) ep->hit(p);
+edit.c:	ep=p->data;
+edit.c:	t=ep->t;
+edit.c:		nline=(t->r.max.y-t->r.min.y)/t->hgt*num/den;
+edit.c:		index=t->top;
+edit.c:			if(t->text[--index]=='\n') --nline;
+edit.c:		index=(t->etext-t->text)*num/den;
+edit.c:			Pt(t->r.min.x, t->r.min.y+(t->r.max.y-t->r.min.y)*num/den));
+edit.c:	while(index!=0 && t->text[index-1]!='\n') --index;
+edit.c:	if(index!=t->top){
+edit.c:		twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:		p->scr.pos.y=t->top;
+edit.c:		twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:		sb=p->yscroller;
+edit.c:		if(sb && sb->setscrollbar)
+edit.c:			sb->setscrollbar(sb, b, t->top, t->bot, t->etext-t->text);
+edit.c:	ep=p->data;
+edit.c:	t=ep->t;
+edit.c:	twhilite(t, ep->sel0, ep->sel1, F&~D);
+edit.c:		if(ep->sel0!=0) --ep->sel0;
+edit.c:		twreplace(t, ep->sel0, ep->sel1, 0, 0);
+edit.c:	case '\025':	/* ctrl-u */
+edit.c:		while(ep->sel0!=0 && t->text[ep->sel0-1]!='\n') --ep->sel0;
+edit.c:		twreplace(t, ep->sel0, ep->sel1, 0, 0);
+edit.c:	case '\027':	/* ctrl-w */
+edit.c:		while(ep->sel0!=0 && !pl_idchar(t->text[ep->sel0-1])) --ep->sel0;
+edit.c:		while(ep->sel0!=0 && pl_idchar(t->text[ep->sel0-1])) --ep->sel0;
+edit.c:		twreplace(t, ep->sel0, ep->sel1, 0, 0);
+edit.c:		twreplace(t, ep->sel0, ep->sel1, &c, 1);
+edit.c:		++ep->sel0;
+edit.c:	ep->sel1=ep->sel0;
+edit.c:	twhilite(t, ep->sel0, ep->sel1, F&~D);
+edit.c:	return pl_boxsize(((Edit *)p->data)->minsize, p->state);
+edit.c:	ep=v->data;
+edit.c:	v->flags=flags|LEAF;
+edit.c:	v->state=UP;
+edit.c:	v->draw=pl_drawedit;
+edit.c:	v->hit=pl_hitedit;
+edit.c:	v->type=pl_typeedit;
+edit.c:	v->getsize=pl_getsizeedit;
+edit.c:	v->childspace=pl_childspaceedit;
+edit.c:	ep->hit=hit;
+edit.c:	ep->minsize=minsize;
+edit.c:	ep->text=text;
+edit.c:	ep->ntext=ntext;
+edit.c:	if(ep->t!=0) twfree(ep->t);
+edit.c:	ep->t=0;
+edit.c:	ep->sel0=-1;
+edit.c:	ep->sel1=-1;
+edit.c:	v->scroll=pl_scrolledit;
+edit.c:	v->scr.pos=Pt(0,0);
+edit.c:	v->scr.size=Pt(ntext,0);
+edit.c:	((Edit *)v->data)->t=0;
+edit.c:	twscroll(((Edit *)p->data)->t, top);
+edit.c:	ep=p->data;
+edit.c:	*sel0=ep->sel0;
+edit.c:	*sel1=ep->sel1;
+edit.c:	t=((Edit *)p->data)->t;
+edit.c:	return t->etext-t->text;
+edit.c:	return ((Edit *)p->data)->t->text;
+edit.c:	ep=p->data;
+edit.c:	twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:	ep->sel0=sel0;
+edit.c:	ep->sel1=sel1;
+edit.c:	twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:	ep=p->data;
+edit.c:	twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:	twreplace(ep->t, ep->sel0, ep->sel1, text, ntext);
+edit.c:	ep->sel1=ep->sel0+ntext;
+edit.c:	twhilite(ep->t, ep->sel0, ep->sel1, F&~D);
+edit.c:	p->scr.size.y=ep->t->etext-ep->t->text;
+edit.c:	p->scr.pos.y=ep->t->top;
+entry.c:	ep=p->data;
+entry.c:	r=pl_box(b, p->r, p->state);
+entry.c:	if(strwidth(font, ep->entry)<=r.max.x-r.min.x)
+entry.c:		pl_drawicon(b, r, PLACEW, 0, ep->entry);
+entry.c:		pl_drawicon(b, r, PLACEE, 0, ep->entry);
+entry.c:	oldstate=p->state;
+entry.c:	if(m->buttons&OUT)
+entry.c:		p->state=UP;
+entry.c:	else if(m->buttons&7)
+entry.c:		p->state=DOWN;
+entry.c:		if(p->state==DOWN) plgrabkb(p);
+entry.c:		p->state=UP;
+entry.c:	if(p->state!=oldstate) pldraw(p, b);
+entry.c:	ep=p->data;
+entry.c:		*ep->entp='\0';
+entry.c:		if(ep->hit) ep->hit(p, ep->entry);
+entry.c:	case 025:	/* ctrl-u */
+entry.c:		ep->entp=ep->entry;
+entry.c:		*ep->entp='\0';
+entry.c:		while(ep->entp!=ep->entry && !pl_rune1st(ep->entp[-1])) *--ep->entp='\0';
+entry.c:		if(ep->entp!=ep->entry) *--ep->entp='\0';
+entry.c:	case 027:	/* ctrl-w */
+entry.c:		while(ep->entp!=ep->entry && !pl_idchar(ep->entp[-1]))
+entry.c:			--ep->entp;
+entry.c:		while(ep->entp!=ep->entry && pl_idchar(ep->entp[-1]))
+entry.c:			--ep->entp;
+entry.c:		*ep->entp='\0';
+entry.c:		ep->entp+=runetochar(ep->entp, &c);
+entry.c:		if(ep->entp>ep->eent){
+entry.c:			n=ep->entp-ep->entry;
+entry.c:			ep->entry=realloc(ep->entry, n+100+SLACK);
+entry.c:			if(ep->entry==0){
+entry.c:			ep->entp=ep->entry+n;
+entry.c:			ep->eent=ep->entp+100;
+entry.c:	strcpy(ep->entp, "◀");
+entry.c:	return pl_boxsize(((Entry *)p->data)->minsize, p->state);
+entry.c:	free(((Entry *)p->data)->entry);
+entry.c:	ep=v->data;
+entry.c:	v->flags=flags|LEAF;
+entry.c:	v->state=UP;
+entry.c:	v->draw=pl_drawentry;
+entry.c:	v->hit=pl_hitentry;
+entry.c:	v->type=pl_typeentry;
+entry.c:	v->getsize=pl_getsizeentry;
+entry.c:	v->childspace=pl_childspaceentry;
+entry.c:	ep->minsize=Pt(wid, font->height);
+entry.c:	v->free=pl_freeentry;
+entry.c:	ep->entry=pl_emalloc(elen+SLACK);
+entry.c:	ep->eent=ep->entry+elen;
+entry.c:		strcpy(ep->entry, str);
+entry.c:	else ep->entry[0]='\0';
+entry.c:	ep->entp=ep->entry+strlen(ep->entry);
+entry.c:	strcat(ep->entry, "◀");
+entry.c:	ep->hit=hit;
+entry.c:	v->kind="entry";
+entry.c:	ep=p->data;
+entry.c:	*ep->entp='\0';
+entry.c:	return ep->entry;
+event.c:		pl_kbfocus->type(pl_kbfocus, c, b);
+event.c:	for(;g;g=g->next) if(ptinrect(p, g->r)){
+event.c:		if(g->flags&HITME) return g;
+event.c:		v=pl_ptinpanel(p, g->child);
+event.c:	if(g->flags&REMOUSE)
+event.c:		hit=g->lastmouse;
+event.c:		last=g->lastmouse;
+event.c:			last->hit(last, &mouse, b);
+event.c:		if(hit->hit(hit, &mouse, b))
+event.c:			g->flags|=REMOUSE;
+event.c:			g->flags&=~REMOUSE;
+event.c:		g->lastmouse=hit;
+frame.c:	pl_box(b, p->r, FRAME);
+frame.c:	v->flags=flags;
+frame.c:	v->draw=pl_drawframe;
+frame.c:	v->hit=pl_hitframe;
+frame.c:	v->type=pl_typeframe;
+frame.c:	v->getsize=pl_getsizeframe;
+frame.c:	v->childspace=pl_childspaceframe;
+frame.c:	v->kind="frame";
+group.c:	v->flags=flags;
+group.c:	v->draw=pl_drawgroup;
+group.c:	v->hit=pl_hitgroup;
+group.c:	v->type=pl_typegroup;
+group.c:	v->getsize=pl_getsizegroup;
+group.c:	v->childspace=pl_childspacegroup;
+group.c:	v->kind="group";
+label.c:	pl_drawicon(b, pl_box(b, p->r, PASSIVE),
+label.c:		PLACECEN, p->flags, ((Label *)p->data)->icon);
+label.c:	return pl_boxsize(pl_iconsize(p->flags, ((Label *)p->data)->icon), PASSIVE);
+label.c:	v->flags=flags|LEAF;
+label.c:	((Label *)v->data)->icon=icon;
+label.c:	v->draw=pl_drawlabel;
+label.c:	v->hit=pl_hitlabel;
+label.c:	v->type=pl_typelabel;
+label.c:	v->getsize=pl_getsizelabel;
+label.c:	v->childspace=pl_childspacelabel;
+label.c:	v->kind="label";
+list.c:	lp=p->data;
+list.c:	hi=lp->lo+(lp->listr.max.y-lp->listr.min.y)/font->height;
+list.c:	if(lp->lo<=sel && sel<hi && sel<lp->len){
+list.c:		r=lp->listr;
+list.c:		r.min.y+=(sel-lp->lo)*font->height;
+list.c:		r.max.y=r.min.y+font->height;
+list.c:	lp=p->data;
+list.c:	for(i=lo;i!=hi && (s=lp->gen(i));i++){
+list.c:		r.max.y=r.min.y+font->height;
+list.c:		r.min.y+=font->height;
+list.c:	if(lo<=lp->sel && lp->sel<hi) pl_listsel(p, b, lp->sel);
+list.c:	sb=p->yscroller;
+list.c:	if(sb && sb->setscrollbar)
+list.c:		sb->setscrollbar(sb, b, lp->lo,
+list.c:			lp->lo+(lp->listr.max.y-lp->listr.min.y)/font->height, lp->len);
+list.c:	lp=p->data;
+list.c:	lp->listr=pl_box(b, p->r, UP);
+list.c:	pl_liststrings(p, b, lp->lo, lp->lo+(lp->listr.max.y-lp->listr.min.y)/font->height,
+list.c:		lp->listr);
+list.c:	lp=p->data;
+list.c:	ul=p->r.min;
+list.c:	size=sub(p->r.max, p->r.min);
+list.c:	pl_interior(p->state, &ul, &size);
+list.c:	oldsel=lp->sel;
+list.c:	if(m->buttons&OUT){
+list.c:		p->state=UP;
+list.c:		if(m->buttons&~OUT) lp->sel=-1;
+list.c:	else if(p->state==DOWN || m->buttons&7){
+list.c:		lp->sel=(m->xy.y-ul.y)/font->height+lp->lo;
+list.c:		if(m->buttons&7){
+list.c:			lp->buttons=m->buttons;
+list.c:			p->state=DOWN;
+list.c:			p->state=UP;
+list.c:	if(oldsel!=lp->sel){
+list.c:		pl_listsel(p, b, lp->sel);
+list.c:	if(hitme && 0<=lp->sel && lp->sel<lp->len && lp->hit)
+list.c:		lp->hit(p, lp->buttons, lp->sel);
+list.c:	lp=p->data;
+list.c:	ul=p->r.min;
+list.c:	size=sub(p->r.max, p->r.min);
+list.c:	pl_interior(p->state, &ul, &size);
+list.c:	nlist=size.y/font->height;
+list.c:	oldlo=lp->lo;
+list.c:	case 1: lp->lo-=nlist*val/len; break;
+list.c:	case 2: lp->lo=lp->len*val/len; break;
+list.c:	case 4:	lp->lo+=nlist*val/len; break;
+list.c:	if(lp->lo<0) lp->lo=0;
+list.c:	if(lp->lo>=lp->len) lp->lo=lp->len-1;
+list.c:	if(lp->lo==oldlo) return;
+list.c:	p->scr.pos.y=lp->lo;
+list.c:	r=lp->listr;
+list.c:	nline=(r.max.y-r.min.y)/font->height;
+list.c:	hi=lp->lo+nline;
+list.c:	if(hi<=oldlo || lp->lo>=oldlo+nline){
+list.c:		pl_liststrings(p, b, lp->lo, hi, r);
+list.c:	else if(lp->lo<oldlo){
+list.c:		y=r.min.y+(oldlo-lp->lo)*font->height;
+list.c:			Rect(r.min.x, r.min.y, r.max.x, r.min.y+(hi-oldlo)*font->height),
+list.c:		pl_liststrings(p, b, lp->lo, oldlo, r);
+list.c:		bitblt(b, r.min, b, Rect(r.min.x, r.min.y+(lp->lo-oldlo)*font->height,
+list.c:		r.min.y=r.min.y+(oldlo+nline-lp->lo)*font->height;
+list.c:	return pl_boxsize(((List *)p->data)->minsize, p->state);
+list.c:	lp=v->data;
+list.c:	v->flags=flags|LEAF;
+list.c:	v->state=UP;
+list.c:	v->draw=pl_drawlist;
+list.c:	v->hit=pl_hitlist;
+list.c:	v->type=pl_typelist;
+list.c:	v->getsize=pl_getsizelist;
+list.c:	v->childspace=pl_childspacelist;
+list.c:	lp->gen=gen;
+list.c:	lp->hit=hit;
+list.c:	for(lp->len=0;gen(lp->len);lp->len++);
+list.c:	lp->minsize=Pt(0, nlist*font->height);
+list.c:	lp->sel=-1;
+list.c:	lp->lo=0;
+list.c:	v->scroll=pl_scrolllist;
+list.c:	v->scr.pos=Pt(0,0);
+list.c:	v->scr.size=Pt(0,lp->len);
+list.c:	v->kind="list";
+mem.c:	fprint(2, "%s called unexpectedly (%s %8x)\n", rou, g->kind, g);
+mem.c:	if(parent && parent->flags&LEAF){
+mem.c:		fprint(2, "newpanel: can't create child of %s %x\n", parent->kind, parent);
+mem.c:	v->r=Rect(0,0,0,0);
+mem.c:	v->flags=0;
+mem.c:	v->ipad=Pt(0,0);
+mem.c:	v->pad=Pt(0,0);
+mem.c:	v->size=Pt(0,0);
+mem.c:	v->sizereq=Pt(0,0);
+mem.c:	v->lastmouse=0;
+mem.c:	v->next=0;
+mem.c:	v->child=0;
+mem.c:	v->echild=0;
+mem.c:	v->scrollee=0;
+mem.c:	v->xscroller=0;
+mem.c:	v->yscroller=0;
+mem.c:	v->parent=parent;
+mem.c:	v->scr.pos=Pt(0,0);
+mem.c:	v->scr.size=Pt(0,0);
+mem.c:		if(parent->child==0)
+mem.c:			parent->child=v;
+mem.c:			parent->echild->next=v;
+mem.c:		parent->echild=v;
+mem.c:	v->draw=pl_drawerror;
+mem.c:	v->hit=pl_hiterror;
+mem.c:	v->type=pl_typeerror;
+mem.c:	v->getsize=pl_getsizeerror;
+mem.c:	v->childspace=pl_childspaceerror;
+mem.c:	v->scroll=pl_scrollerror;
+mem.c:	v->setscrollbar=pl_setscrollbarerror;
+mem.c:	v->free=0;
+mem.c:		v->data=pl_emalloc(ndata);
+mem.c:		v->data=0;
+mem.c:	for(cp=p->child;cp;cp=ncp){
+mem.c:		ncp=cp->next;
+mem.c:	if(p->free) p->free(p);
+mem.c:	if(p->data) free(p->data);
+message.c:	wid=r.max.x-r.min.x;
+message.c:		where.y+=font->height;
+message.c:		size.y+=font->height;
+message.c:	pl_textmsg(b, pl_box(b, p->r, PASSIVE), font, ((Message *)p->data)->text);
+message.c:	mp=p->data;
+message.c:	return pl_boxsize(pl_foldsize(font, mp->text, mp->minsize.x), PASSIVE);
+message.c:	mp=v->data;
+message.c:	v->flags=flags|LEAF;
+message.c:	v->draw=pl_drawmessage;
+message.c:	v->hit=pl_hitmessage;
+message.c:	v->type=pl_typemessage;
+message.c:	v->getsize=pl_getsizemessage;
+message.c:	v->childspace=pl_childspacemessage;
+message.c:	mp->text=msg;
+message.c:	mp->minsize=Pt(wid, font->height);
+message.c:	v->kind="message";
+pack.c:	s=pl_sizesibs(p->next);
+pack.c:	switch(p->flags&PACK){
+pack.c:		s.x=pl_max(s.x, p->sizereq.x);
+pack.c:		s.y+=p->sizereq.y;
+pack.c:		s.x+=p->sizereq.x;
+pack.c:		s.y=pl_max(s.y, p->sizereq.y);
+pack.c:	for(cp=p->child;cp;cp=cp->next){
+pack.c:		if(cp->sizereq.x>maxsize.x) maxsize.x=cp->sizereq.x;
+pack.c:		if(cp->sizereq.y>maxsize.y) maxsize.y=cp->sizereq.y;
+pack.c:	for(cp=p->child;cp;cp=cp->next){
+pack.c:		if(cp->flags&MAXX) cp->sizereq.x=maxsize.x;
+pack.c:		if(cp->flags&MAXY) cp->sizereq.y=maxsize.y;
+pack.c:	p->childreq=pl_sizesibs(p->child);
+pack.c:	p->sizereq=add(add(p->getsize(p, p->childreq), p->ipad), p->pad);
+pack.c:	if(p->flags&FIXEDX) p->sizereq.x=p->fixedsize.x;
+pack.c:	if(p->flags&FIXEDY) p->sizereq.y=p->fixedsize.y;
+pack.c:	share=pl_getshare(p->next);
+pack.c:	if(p->flags&EXPAND) switch(p->flags&PACK){
+pack.c:	p->size=sub(p->sizereq, p->pad);
+pack.c:	ul=add(ul, div(p->pad, 2));
+pack.c:	avail=sub(avail, p->pad);
+pack.c:	if(p->size.x>avail.x || p->size.y>avail.y){
+pack.c:	if(p->flags&(FILLX|EXPAND)) p->size.x=avail.x;
+pack.c:	if(p->flags&(FILLY|EXPAND)) p->size.y=avail.y;
+pack.c:	switch(p->flags&PLACE){
+pack.c:	case PLACECEN:	ul.x+=(avail.x-p->size.x)/2; ul.y+=(avail.y-p->size.y)/2; break;
+pack.c:	case PLACES:	ul.x+=(avail.x-p->size.x)/2; ul.y+= avail.y-p->size.y   ; break;
+pack.c:	case PLACEE:	ul.x+= avail.x-p->size.x   ; ul.y+=(avail.y-p->size.y)/2; break;
+pack.c:	case PLACEW:	                             ul.y+=(avail.y-p->size.y)/2; break;
+pack.c:	case PLACEN:	ul.x+=(avail.x-p->size.x)/2;                              break;
+pack.c:	case PLACENE:	ul.x+= avail.x-p->size.x   ;                              break;
+pack.c:	case PLACESE:	ul.x+= avail.x-p->size.x   ; ul.y+= avail.y-p->size.y   ; break;
+pack.c:	case PLACESW:                                ul.y+= avail.y-p->size.y   ; break;
+pack.c:	p->r=Rpt(ul, add(ul, p->size));
+pack.c:	space=p->size;
+pack.c:	p->childspace(p, &ul, &space);
+pack.c:	slack=sub(space, p->childreq);
+pack.c:	share=pl_getshare(p->child);
+pack.c:	for(c=p->child;c;c=c->next){
+pack.c:		if(c->flags&EXPAND){
+pack.c:			switch(c->flags&PACK){
+pack.c:				c->sizereq.x+=slack.x;
+pack.c:				c->sizereq.y+=l;
+pack.c:				slack.y-=l;
+pack.c:				--share.y;
+pack.c:				c->sizereq.x+=l;
+pack.c:				slack.x-=l;
+pack.c:				--share.x;
+pack.c:				c->sizereq.y+=slack.y;
+pack.c:		switch(c->flags&PACK){
+pack.c:			newul=Pt(ul.x, ul.y+c->sizereq.y);
+pack.c:			newspace=Pt(space.x, space.y-c->sizereq.y);
+pack.c:			if(!pl_setrect(c, ul, Pt(space.x, c->sizereq.y))) return 0;
+pack.c:			newul=Pt(ul.x+c->sizereq.x, ul.y);
+pack.c:			newspace=Pt(space.x-c->sizereq.x, space.y);
+pack.c:			if(!pl_setrect(c, ul, Pt(c->sizereq.x, space.y))) return 0;
+pack.c:			newspace=Pt(space.x, space.y-c->sizereq.y);
+pack.c:			if(!pl_setrect(c, Pt(ul.x, ul.y+space.y-c->sizereq.y),
+pack.c:				Pt(space.x, c->sizereq.y))) return 0;
+pack.c:			newspace=Pt(space.x-c->sizereq.x, space.y);
+pack.c:			if(!pl_setrect(c, Pt(ul.x+space.x-c->sizereq.x, ul.y),
+pack.c:				Pt(c->sizereq.x, space.y))) return 0;
+pack.c: * move an already-packed panel so that p->r=raddp(p->r, d)
+pack.c:	p->r=raddp(p->r, d);
+pack.c:	for(p=p->child;p;p=p->next) plmove(p, d);
+popup.c:	pp=g->data;
+popup.c:	if(g->state==UP){
+popup.c:		switch(m->buttons&7){
+popup.c:		case 0: p=g->child; break;
+popup.c:		case 1:	p=pp->pop[0]; g->state=DOWN1; break;
+popup.c:		case 2: p=pp->pop[1]; g->state=DOWN2; break;
+popup.c:		case 4: p=pp->pop[2]; g->state=DOWN3; break;
+popup.c:			p=g->child;
+popup.c:			g->state=DOWN;
+popup.c:		else if(g->state!=UP){
+popup.c:			plpack(p, g->r);
+popup.c:			if(p->lastmouse)
+popup.c:				d=sub(m->xy, div(add(p->lastmouse->r.min,
+popup.c:						     p->lastmouse->r.max), 2));
+popup.c:				d=sub(m->xy, div(add(p->r.min, p->r.max), 2));
+popup.c:			if(p->r.min.x+d.x<g->r.min.x) d.x=g->r.min.x-p->r.min.x;
+popup.c:			if(p->r.max.x+d.x>g->r.max.x) d.x=g->r.max.x-p->r.max.x;
+popup.c:			if(p->r.min.y+d.y<g->r.min.y) d.y=g->r.min.y-p->r.min.y;
+popup.c:			if(p->r.max.y+d.y>g->r.max.y) d.y=g->r.max.y-p->r.max.y;
+popup.c:			pp->save=balloc(p->r, b->ldepth);
+popup.c:			if(pp->save!=0) bitblt(pp->save, p->r.min, b, p->r, S);
+popup.c:		switch(g->state){
+popup.c:		case DOWN1: p=pp->pop[0]; break;
+popup.c:		case DOWN2: p=pp->pop[1]; break;
+popup.c:		case DOWN3: p=pp->pop[2]; break;
+popup.c:		case DOWN:  p=g->child;  break;
+popup.c:		if((m->buttons&7)==0){
+popup.c:			if(g->state!=DOWN){
+popup.c:				if(pp->save!=0){
+popup.c:					bitblt(b, p->r.min, pp->save, p->r, S);
+popup.c:					bfree(pp->save);
+popup.c:			g->state=UP;
+popup.c:	pp=v->data;
+popup.c:	v->flags=flags|HITME;
+popup.c:	v->state=UP;
+popup.c:	v->draw=pl_drawpopup;
+popup.c:	v->hit=pl_hitpopup;
+popup.c:	v->type=pl_typepopup;
+popup.c:	v->getsize=pl_getsizepopup;
+popup.c:	v->childspace=pl_childspacepopup;
+popup.c:	pp->pop[0]=pop0;
+popup.c:	pp->pop[1]=pop1;
+popup.c:	pp->pop[2]=pop2;
+popup.c:	pp->save=0;
+popup.c:	v->kind="popup";
+print.c:	write(1, buf, doprint(buf+indent, buf+sizeof(buf), fmt, &fmt+1)-buf);
+print.c:	pl_iprint(n, "%s (0x%.8x)\n", p->kind, p);
+print.c:		p->r.min.x, p->r.min.y, p->r.max.x, p->r.max.y);
+print.c:	switch(p->flags&PACK){
+print.c:	switch(p->flags&PLACE){
+print.c:		p->flags&FILLX?" fill x":"",
+print.c:		p->flags&FILLY?" fill y":"",
+print.c:		p->flags&EXPAND?" expand":"",
+print.c:		p->flags&FIXED?" fixed":"");
+print.c:	if(!eqpt(p->pad, Pt(0, 0))) pl_iprint(n, "  pad=%d,%d)\n", p->pad.x, p->pad.y);
+print.c:	if(!eqpt(p->ipad, Pt(0, 0))) pl_iprint(n, "  ipad=%d,%d)\n", p->ipad.x, p->ipad.y);
+print.c:		p->size.x, p->size.y, p->sizereq.x, p->sizereq.y);
+print.c:	for(c=p->child;c;c=c->next)
+pulldown.c:	pl_drawicon(b, pl_box(b, p->r, p->state), PLACECEN,
+pulldown.c:		p->flags, ((Pulldown *)p->data)->icon);
+pulldown.c:	pp=g->data;
+pulldown.c:	oldstate=g->state;
+pulldown.c:	p=pp->pull;
+pulldown.c:	switch(g->state){
+pulldown.c:		if(!ptinrect(m->xy, g->r))
+pulldown.c:			g->state=UP;
+pulldown.c:		else if(m->buttons&7){
+pulldown.c:			r=b->r;
+pulldown.c:			p->flags&=~PLACE;
+pulldown.c:			switch(pp->side){
+pulldown.c:				r.min.x=g->r.min.x;
+pulldown.c:				r.max.y=g->r.min.y;
+pulldown.c:				p->flags|=PLACESW;
+pulldown.c:				r.min.x=g->r.min.x;
+pulldown.c:				r.min.y=g->r.max.y;
+pulldown.c:				p->flags|=PLACENW;
+pulldown.c:				r.min.x=g->r.max.x;
+pulldown.c:				r.min.y=g->r.min.y;
+pulldown.c:				p->flags|=PLACENW;
+pulldown.c:				r.max.x=g->r.min.x;
+pulldown.c:				r.min.y=g->r.min.y;
+pulldown.c:				p->flags|=PLACENE;
+pulldown.c:				r.min=g->r.min;
+pulldown.c:				p->flags|=PLACENW;
+pulldown.c:			pp->save=balloc(p->r, b->ldepth);
+pulldown.c:			if(pp->save!=0) bitblt(pp->save, p->r.min, b, p->r, S);
+pulldown.c:			g->state=DOWN;
+pulldown.c:		if(!ptinrect(m->xy, g->r)){
+pulldown.c:			switch(pp->side){
+pulldown.c:			case PACKN: passon=m->xy.y<g->r.min.y; break;
+pulldown.c:			case PACKS: passon=m->xy.y>=g->r.max.y; break;
+pulldown.c:			case PACKE: passon=m->xy.x>=g->r.max.x; break;
+pulldown.c:			case PACKW: passon=m->xy.x<g->r.min.x; break;
+pulldown.c:				if((m->buttons&7)==0) g->state=UP;
+pulldown.c:			else	g->state=UP;
+pulldown.c:		else if((m->buttons&7)==0) g->state=UP;
+pulldown.c:		if(g->state!=DOWN && pp->save){
+pulldown.c:			bitblt(b, p->r.min, pp->save, p->r, S);
+pulldown.c:			bfree(pp->save);
+pulldown.c:			pp->save=0;
+pulldown.c:	if(g->state!=oldstate) pldraw(g, b);
+pulldown.c:	return g->state==DOWN;
+pulldown.c:	return pl_boxsize(pl_iconsize(p->flags, ((Pulldown *)p->data)->icon), p->state);
+pulldown.c:	pp=v->data;
+pulldown.c:	v->flags=flags|LEAF;
+pulldown.c:	v->draw=pl_drawpulldown;
+pulldown.c:	v->hit=pl_hitpulldown;
+pulldown.c:	v->type=pl_typepulldown;
+pulldown.c:	v->getsize=pl_getsizepulldown;
+pulldown.c:	v->childspace=pl_childspacepulldown;
+pulldown.c:	pp->pull=pullthis;
+pulldown.c:	pp->side=side;
+pulldown.c:	pp->icon=icon;
+pulldown.c:	v->kind="pulldown";
+pulldown.c:	v->state=UP;
+pulldown.c:	((Pulldown *)v->data)->save=0;
+pulldown.c:	v->kind="menubar";
+rtext.c:	new->user=user;
+rtext.c:	new->space=space;
+rtext.c:	new->indent=indent;
+rtext.c:	new->b=b;
+rtext.c:	new->font=f;
+rtext.c:	new->text=s;
+rtext.c:	new->next=0;
+rtext.c:		(*t)->last->next=new;
+rtext.c:	(*t)->last=new;
+rtext.c:		next=t->next;
+rtext.c:		space=t->indent;
+rtext.c:			if(tp->b){
+rtext.c:				a=tp->b->r.max.y-tp->b->r.min.y+2;
+rtext.c:				w=tp->b->r.max.x-tp->b->r.min.x+4;
+rtext.c:				a=tp->font->ascent;
+rtext.c:				d=tp->font->height-a;
+rtext.c:				w=tp->wid=strwidth(tp->font, tp->text);
+rtext.c:			tp=tp->next;
+rtext.c:			space=tp->space;
+rtext.c:			eline=t->next;
+rtext.c:		p.x=t->indent;
+rtext.c:			t->topy=topy;
+rtext.c:			t->r.min.x=p.x;
+rtext.c:			if(t->b){
+rtext.c:				t->r.max.y=p.y;
+rtext.c:				t->r.min.y=p.y-(t->b->r.max.y-t->b->r.min.y);
+rtext.c:				p.x+=t->b->r.max.x-t->b->r.min.x+2;
+rtext.c:				t->r=raddp(t->r, Pt(2, 2));
+rtext.c:				t->r.min.y=p.y-t->font->ascent;
+rtext.c:				t->r.max.y=t->r.min.y+t->font->height;
+rtext.c:				p.x+=t->wid;
+rtext.c:			t->r.max.x=p.x;
+rtext.c:			t->nextline=eline;
+rtext.c:			t=t->next;
+rtext.c:			p.x+=t->space;
+rtext.c:	bitblt(b, r.min, b, b->r, Zero);
+rtext.c:	offs=sub(r.min, Pt(0, t->topy));
+rtext.c:		dr=raddp(t->r, offs);
+rtext.c:		if(t->b){
+rtext.c:			bitblt(b, dr.min, t->b, t->b->r, S|D);
+rtext.c:			if(t->user) border(b, inset(dr, -2), 1, F);
+rtext.c:			string(b, dr.min, t->font, t->text, S|D);
+rtext.c:			if(t->user)
+rtext.c:				segment(b, Pt(dr.min.x, dr.max.y-1),
+rtext.c:					Pt(dr.max.x, dr.max.y-1), ~0, S|D);
+rtext.c:		t=t->next;
+rtext.c:	p.x-=ul.x;
+rtext.c:	p.y+=t->topy-ul.y;
+rtext.c:	while(t->nextline && t->nextline->topy<=p.y) t=t->nextline;
+rtext.c:	for(;t!=0;t=t->next){
+rtext.c:		if(t->topy>p.y) return 0;
+rtext.c:		if(ptinrect(p, t->r)) return t;
+rtext.c:	case 1:		/* left -- top moves to pointer */
+rtext.c:		if(top->nextline) y=top->nextline->topy-pos;
+rtext.c:			y=top->r.max.y;
+rtext.c:			for(tp=top;tp;tp=tp->next) if(tp->r.max.y>y) y=tp->r.max.y;
+rtext.c:			y-=pos;
+rtext.c:	case 2:		/* middle -- absolute index of file */
+rtext.c:		for(tp=t;tp;tp=tp->next) if(tp->r.max.y>bot) bot=tp->r.max.y;
+rtext.c:	case 4:		/* right -- line pointed at moves to top */
+rtext.c:		y=top->topy+pos;
+rtext.c:	for(tp=t;tp->nextline!=0;tp=tp->nextline) if(tp->nextline->topy>y) break;
+scroll.c:	scrollee->xscroller=xscroller;
+scroll.c:	scrollee->yscroller=yscroller;
+scroll.c:	if(xscroller) xscroller->scrollee=scrollee;
+scroll.c:	if(yscroller) yscroller->scrollee=scrollee;
+scroll.c:	return p->scr;
+scroll.c:	if(p->scroll){
+scroll.c:		if(s.size.x) p->scroll(p, b, HORIZ, 2, s.pos.x, s.size.x);
+scroll.c:		if(s.size.y) p->scroll(p, b, VERT, 2, s.pos.y, s.size.y);
+scrollbar.c:	sp=p->data;
+scrollbar.c:	sp->interior=pl_outline(b, p->r, p->state);
+scrollbar.c:	pl_sliderupd(b, sp->interior, sp->dir, sp->lo, sp->hi);
+scrollbar.c:	sp=g->data;
+scrollbar.c:	ul=g->r.min;
+scrollbar.c:	size=sub(g->r.max, g->r.min);
+scrollbar.c:	pl_interior(g->state, &ul, &size);
+scrollbar.c:	oldstate=g->state;
+scrollbar.c:	if(m->buttons&OUT && m->buttons&7){
+scrollbar.c:		if(m->xy.y<g->r.min.y) m->xy.y=g->r.min.y;
+scrollbar.c:		if(m->xy.y>=g->r.max.y) m->xy.y=g->r.max.y-1;
+scrollbar.c:		if(ptinrect(m->xy, g->r))
+scrollbar.c:			m->buttons&=~OUT;
+scrollbar.c:	if(sp->dir==HORIZ){
+scrollbar.c:		pos=m->xy.x-ul.x;
+scrollbar.c:		pos=m->xy.y-ul.y;
+scrollbar.c:	if(m->buttons&7){
+scrollbar.c:		g->state=DOWN;
+scrollbar.c:		if(g->r.min.x<=m->xy.x && m->xy.x<g->r.max.x){
+scrollbar.c:			sp->buttons=m->buttons;
+scrollbar.c:			switch(m->buttons){
+scrollbar.c:				dy=pos*(sp->hi-sp->lo)/len;
+scrollbar.c:				pl_sliderupd(b,sp->interior, sp->dir, sp->lo-dy, sp->hi-dy);
+scrollbar.c:				if(g->scrollee && g->scrollee->scroll)
+scrollbar.c:					g->scrollee->scroll(g->scrollee, b, sp->dir,
+scrollbar.c:						m->buttons, pos, len);
+scrollbar.c:				dy=pos*(sp->hi-sp->lo)/len;
+scrollbar.c:				pl_sliderupd(b,sp->interior, sp->dir, sp->lo+dy, sp->hi+dy);
+scrollbar.c:		if(g->state==DOWN && g->scrollee && g->scrollee->scroll)
+scrollbar.c:			g->scrollee->scroll(g->scrollee, b, sp->dir, sp->buttons, pos, len);
+scrollbar.c:		g->state=UP;
+scrollbar.c:	if(oldstate!=g->state) pldraw(g, b);
+scrollbar.c:	return g->state==DOWN;
+scrollbar.c:	return pl_boxsize(((Scrollbar *)p->data)->minsize, p->state);
+scrollbar.c:	sp=p->data;
+scrollbar.c:	ul=p->r.min;
+scrollbar.c:	size=sub(p->r.max, p->r.min);
+scrollbar.c:	pl_interior(p->state, &ul, &size);
+scrollbar.c:	mylen=sp->dir==HORIZ?size.x:size.y;
+scrollbar.c:	sp->lo=lo*mylen/len;
+scrollbar.c:	sp->hi=hi*mylen/len;
+scrollbar.c:	if(sp->lo<0) sp->lo=0;
+scrollbar.c:	if(sp->lo>=mylen) sp->hi=mylen-1;
+scrollbar.c:	if(sp->hi<=sp->lo) sp->hi=sp->lo+1;
+scrollbar.c:	if(sp->hi>mylen) sp->hi=mylen;
+scrollbar.c:	sp=v->data;
+scrollbar.c:	v->flags=flags|LEAF;
+scrollbar.c:	v->state=UP;
+scrollbar.c:	v->draw=pl_drawscrollbar;
+scrollbar.c:	v->hit=pl_hitscrollbar;
+scrollbar.c:	v->type=pl_typescrollbar;
+scrollbar.c:	v->getsize=pl_getsizescrollbar;
+scrollbar.c:	v->childspace=pl_childspacescrollbar;
+scrollbar.c:	v->setscrollbar=pl_setscrollbarscrollbar;
+scrollbar.c:		sp->dir=HORIZ;
+scrollbar.c:		sp->minsize=Pt(0, SBWID);
+scrollbar.c:		v->flags|=FILLX;
+scrollbar.c:		sp->dir=VERT;
+scrollbar.c:		sp->minsize=Pt(SBWID, 0);
+scrollbar.c:		v->flags|=FILLY;
+scrollbar.c:	sp->lo=0;
+scrollbar.c:	sp->hi=0;
+scrollbar.c:	v->kind="scrollbar";
+slider.c:	sp=p->data;
+slider.c:	r=pl_box(b, p->r, UP);
+slider.c:	switch(sp->dir){
+slider.c:	case HORIZ: pl_sliderupd(b, r, sp->dir, 0, sp->val); break;
+slider.c:	case VERT:  pl_sliderupd(b, r, sp->dir, r.max.y-sp->val, r.max.y); break;
+slider.c:	sp=p->data;
+slider.c:	ul=p->r.min;
+slider.c:	size=sub(p->r.max, p->r.min);
+slider.c:	pl_interior(p->state, &ul, &size);
+slider.c:	oldstate=p->state;
+slider.c:	oldval=sp->val;
+slider.c:	if(m->buttons&OUT)
+slider.c:		p->state=UP;
+slider.c:	else if(m->buttons&7){
+slider.c:		p->state=DOWN;
+slider.c:		sp->buttons=m->buttons;
+slider.c:		if(sp->dir==HORIZ){
+slider.c:			sp->val=m->xy.x-ul.x;
+slider.c:			sp->val=ul.y+size.y-m->xy.y;
+slider.c:		if(sp->val<0) sp->val=0;
+slider.c:		else if(sp->val>len) sp->val=len;
+slider.c:		p->state=UP;
+slider.c:	if(oldval!=sp->val || oldstate!=p->state) pldraw(p, b);
+slider.c:	if(oldval!=sp->val && sp->hit) sp->hit(p, sp->buttons, sp->val, len);
+slider.c:	return pl_boxsize(((Slider *)p->data)->minsize, p->state);
+slider.c:	sp=v->data;
+slider.c:	v->flags=flags|LEAF;
+slider.c:	v->state=UP;
+slider.c:	v->draw=pl_drawslider;
+slider.c:	v->hit=pl_hitslider;
+slider.c:	v->type=pl_typeslider;
+slider.c:	v->getsize=pl_getsizeslider;
+slider.c:	v->childspace=pl_childspaceslider;
+slider.c:	sp->minsize=size;
+slider.c:	sp->dir=size.x>size.y?HORIZ:VERT;
+slider.c:	sp->hit=hit;
+slider.c:	v->kind="slider";
+slider.c:	sp=p->data;
+slider.c:	if(sp->dir==HORIZ) sp->val=value*(p->r.max.x-p->r.min.x)/range;
+slider.c:	else sp->val=value*(p->r.max.y-p->r.min.y)/range;
+text.c:		nextt=t->next;
+text.c:		for(w=t->word;w;w=nextw){
+text.c:			nextw=w->next;
+text.c:			for(f=w->frag;f;f=nextf){
+text.c:				nextf=f->next;
+text.c:			if(w->link) free(w->link);
+text.c:	for(;t;t=t->next){
+text.c:		for(w=t->word;w;w=w->next){
+text.c:			for(f=w->frag;f;f=f->next){
+text.c:				if(f->font->ascent>ascent) ascent=f->font->ascent;
+text.c:				fdescent=f->font->height-f->font->ascent;
+text.c:				f->width=strwidth(f->font, f->text);
+text.c:				width+=f->width;
+text.c:			w->ascent=ascent;
+text.c:			w->descent=descent;
+text.c:			w->width=width;
+text.c:			w->space=0;
+text.c:		t->word->space=t->space;
+text.c:	for(t=whole;t;t=t->next){
+text.c:		for(w=t->word;w;w=w->next){
+text.c:			if(lastline) lastline->nextline=w;
+text.c:			p.x=w->indent+w->width;
+text.c:			while(w->next){
+text.c:				p.x+=w->next->pad+w->next->width;
+text.c:				w=w->next;
+text.c:	if(lastline) lastline->nextline=0;
+text.c:	for(l=whole->word;l;l=l->nextline){
+text.c:		p.y+=l->space;
+text.c:		for(w=l;w && w!=l->nextline;w=w->next){
+text.c:			if(w->ascent>ascent) ascent=w->ascent;
+text.c:			if(w->descent>descent) descent=w->descent;
+text.c:		l->ytop=p.y;
+text.c:		p.x=l->indent-l->pad;
+text.c:		l->baseline=p.y;
+text.c:		for(w=l;w && w!=l->nextline;w=w->next){
+text.c:			p.x+=w->pad;
+text.c:			w->bbox=Rect(p.x, p.y-w->ascent, p.x+w->width, p.y+w->descent);
+text.c:			p.x+=w->width;
+text.c:		l->ybot=p.y;
+text.c:	p.y+=line->ytop;
+text.c:	for(;line;line=line->nextline){
+text.c:		if(line->ytop>p.y) break;
+text.c:		if(p.y<line->ybot){
+text.c:			for(w=line;w && w!=line->nextline;w=w->next)
+text.c:				if(ptinrect(p, w->bbox)) return w;
+text.c:	save=b->clipr;
+text.c:		offs=Pt(r.min.x, r.min.y-line->ytop);	/* add this to get screen coords */
+text.c:		for(;line && line->ybot+offs.y<=r.max.y;line=line->nextline){
+text.c:			p.x=line->indent-line->pad+offs.x;
+text.c:			for(w=line;w!=0 && w!=line->nextline;w=w->next){
+text.c:				p.x+=w->pad;
+text.c:				for(f=w->frag;f;f=f->next){
+text.c:					p.y=line->baseline-f->font->ascent+offs.y;
+text.c:					string(b, p, f->font, f->text, S|D);
+text.c:					p.x+=f->width;
+text.c:	for(line=whole->word;line->nextline;line=line->nextline);
+text.c:	height=line->ybot;
+text.c:	topc=top?top->ytop:height;
+text.c:	case 1:			/* down -- top line moves to mouse position */
+text.c:		y=topc-num;
+text.c:	case 2:			/* absolute -- scroll bar indexes whole text */
+text.c:	case 4:			/* up -- line at mouse position moves to top */
+text.c:	v=whole->word;
+text.c:	for(line=whole->word;line;line=line->nextline)
+text.c:		if(y>=line->ytop-line->space)
+textview.c:	tp=p->data;
+textview.c:	ul=p->r.min;
+textview.c:	size=sub(p->r.max, p->r.min);
+textview.c:	if(tp->top)			/* is this right? */
+textview.c:		ul.y-=tp->top->topy;
+textview.c:	r=raddp(w->r, ul);
+textview.c:	tp=p->data;
+textview.c:	back=balloc(p->r, b->ldepth);
+textview.c:	r=pl_box(back, p->r, p->state);
+textview.c:	twid=r.max.x-r.min.x;
+textview.c:	if(twid!=tp->twid){
+textview.c:		tp->twid=twid;
+textview.c:		tp->thgt=pl_rtfmt(tp->text, tp->twid);
+textview.c:	tp->bot=pl_rtdraw(back, r, tp->top);
+textview.c:	pl_hiliteword(p, tp->hitword, back);
+textview.c:	lo=tp->top?tp->top->topy:tp->thgt;
+textview.c:	hi=tp->bot?tp->bot->topy:tp->thgt;	/* wrong! */
+textview.c:	sb=p->yscroller;
+textview.c:		bitblt(b, back->r.min, back, back->r, S);
+textview.c:	if(sb && sb->setscrollbar) sb->setscrollbar(sb, b, lo, hi, tp->thgt);
+textview.c:	tp=p->data;
+textview.c:	oldhitword=tp->hitword;
+textview.c:	if(m->buttons&OUT)
+textview.c:		p->state=UP;
+textview.c:	else if(m->buttons&7){
+textview.c:		tp->buttons=m->buttons;
+textview.c:		p->state=DOWN;
+textview.c:		ul=p->r.min;
+textview.c:		size=sub(p->r.max, p->r.min);
+textview.c:		pl_interior(p->state, &ul, &size);
+textview.c:		tp->hitword=pl_rthit(tp->top, m->xy, ul);
+textview.c:		if(tp->hitword!=0 && tp->hitword->user==0) tp->hitword=0;
+textview.c:		if(p->state==DOWN) hitme=1;
+textview.c:		p->state=UP;
+textview.c:	if(tp->hitword!=oldhitword){
+textview.c:		pl_hiliteword(p, tp->hitword, b);
+textview.c:	if(hitme && tp->hit && tp->hitword) tp->hit(p, tp->buttons, tp->hitword);
+textview.c:	tp=p->data;
+textview.c:	ul=p->r.min;
+textview.c:	size=sub(p->r.max, p->r.min);
+textview.c:	pl_interior(p->state, &ul, &size);
+textview.c:	top=pl_rtscroll(tp->text, tp->top, buttons, num*size.y/den, size.y);
+textview.c:	if(top!=tp->top){
+textview.c:		tp->top=top;
+textview.c:	return pl_boxsize(((Textview *)p->data)->minsize, p->state);
+textview.c:	tp=v->data;
+textview.c:	v->flags=flags|LEAF;
+textview.c:	v->state=UP;
+textview.c:	v->draw=pl_drawtextview;
+textview.c:	v->hit=pl_hittextview;
+textview.c:	v->type=pl_typetextview;
+textview.c:	v->getsize=pl_getsizetextview;
+textview.c:	v->childspace=pl_childspacetextview;
+textview.c:	tp->hit=hit;
+textview.c:	tp->minsize=minsize;
+textview.c:	tp->text=t;
+textview.c:	tp->top=t;
+textview.c:	tp->bot=0;
+textview.c:	tp->hitword=0;
+textview.c:	v->scroll=pl_scrolltextview;
+textview.c:	tp->twid=-1;
+textwin.c: *		set t->sel0, t->sel1 from mouse input.
+textwin.c:	return a.y<b.y || a.y<b.y+t->hgt && a.x<b.x;
+textwin.c: * Return the character index indicated by point p, or -1
+textwin.c: * if its off-screen.  The screen must be up-to-date.
+textwin.c:	el=t->loc+(t->bot-t->top);
+textwin.c:	for(lp=t->loc;lp!=el;lp++)
+textwin.c:			if(lp==t->loc) return t->top;
+textwin.c:			return lp-t->loc+t->top-1;
+textwin.c:	return t->bot;
+textwin.c:	if(i<t->top) return t->r.min;
+textwin.c:	if(i>t->bot) return t->r.max;
+textwin.c:	return t->loc[i-t->top];
+textwin.c: * Store p at t->loc[l], extending t->loc if necessary
+textwin.c:	if(l>t->eloc-t->loc){
+textwin.c:		t->loc=realloc(t->loc, nloc*sizeof(Point));
+textwin.c:		if(t->loc==0){
+textwin.c:		t->eloc=t->loc+nloc;
+textwin.c:	t->loc[l]=p;
+textwin.c:	er=t->text+last;
+textwin.c:	for(r=t->text+first,lp=first-t->top;r!=er && ul.y+t->hgt<=t->r.max.y;r++,lp++){
+textwin.c:			ul.x=t->r.min.x;
+textwin.c:			ul.y+=t->hgt;
+textwin.c:			x=ul.x-t->r.min.x+t->mintab+t->tabstop;
+textwin.c:			x-=x%t->tabstop;
+textwin.c:			ul.x=x+t->r.min.x;
+textwin.c:			if(ul.x>t->r.max.x){
+textwin.c:				ul.x=t->r.min.x;
+textwin.c:				ul.y+=t->hgt;
+textwin.c:				if(ul.y+t->hgt>t->r.max.y) return r-t->text;
+textwin.c:				ul.x+=+t->tabstop;
+textwin.c:			dt=strwidth(t->font, buf);
+textwin.c:			if(ul.x>t->r.max.x){
+textwin.c:				ul.x=t->r.min.x;
+textwin.c:				ul.y+=t->hgt;
+textwin.c:				if(ul.y+t->hgt>t->r.max.y) return r-t->text;
+textwin.c:	return r-t->text;
+textwin.c: * Bug -- saving up multiple characters would
+textwin.c:	if(first<t->top) first=t->top;
+textwin.c:	if(last>t->bot) last=t->bot;
+textwin.c:	er=t->text+last;
+textwin.c:	for(r=t->text+first,lp=t->loc+(first-t->top);r!=er;r++,lp++){
+textwin.c:		if(lp->y+t->hgt>t->r.max.y){
+textwin.c:				*r, lp-t->loc, t->bot-t->top, lp->x, lp->y);
+textwin.c:				ul=Pt(t->r.min.x, lp[1].y);
+textwin.c:			bitblt(t->b, ul, t->b, Rpt(ul, Pt(lp[1].x, ul.y+t->hgt)), Zero);
+textwin.c:			ur=string(t->b, *lp, t->font, buf, S);
+textwin.c:			bitblt(t->b, ur, t->b, Rpt(*lp, Pt(t->r.max.x, ur.y+t->hgt)),
+textwin.c:		bitblt(t->b, ul, t->b, Rpt(ul, Pt(ur.x, ur.y+t->hgt)), fc);
+textwin.c:		y=ul.y+t->hgt;
+textwin.c:		bitblt(t->b, ul, t->b, Rpt(ul, Pt(t->r.max.x, y)), fc);
+textwin.c:		ul=Pt(t->r.min.x, y);
+textwin.c:		bitblt(t->b, ul, t->b, Rpt(ul, Pt(t->r.max.x, ur.y)), fc);
+textwin.c:		ul=Pt(t->r.min.x, ur.y);
+textwin.c:		bitblt(t->b, ul, t->b, Rpt(ul, Pt(ur.x, ur.y+t->hgt)), fc);
+textwin.c:	if(sel1<t->top || t->bot<sel0) return;
+textwin.c:	if(sel0<t->top) sel0=t->top;
+textwin.c:	if(sel1>t->bot) sel1=t->bot;
+textwin.c:	ul=t->loc[sel0-t->top];
+textwin.c:		ur=t->loc[sel1-t->top];
+textwin.c: * Set t->sel[01] from mouse input.
+textwin.c:	sel0=sel1=twpt2rune(t, m->xy);
+textwin.c:		if(m->buttons==0) break;
+textwin.c:		newsel=twpt2rune(t, m->xy);
+textwin.c:		t->sel0=sel0;
+textwin.c:		t->sel1=sel1;
+textwin.c:		t->sel0=sel1;
+textwin.c:		t->sel1=sel0;
+textwin.c:	tw_hilitep(t, t->loc[t->bot-t->top], sub(t->r.max, Pt(0, t->hgt)), Zero);
+textwin.c:	if(urs.y!=uls.y) urs=Pt(t->r.max.x, uls.y);
+textwin.c:	if(urd.y!=uld.y) urd=Pt(t->r.max.x, uld.y);
+textwin.c:	sw=uls.x-urs.x;
+textwin.c:	dw=uld.x-urd.x;
+textwin.c:		d=dw-sw;
+textwin.c:		bitblt(t->b, Pt(urd.x-d, urd.y), t->b,
+textwin.c:			Rect(urd.x-d, urd.y, urd.x, urd.y+t->hgt), Zero);
+textwin.c:	bitblt(t->b, uld, t->b, Rpt(uls, Pt(uls.x+dw, uls.y+t->hgt)), S);
+textwin.c: *	If we get to a point where source and destination are x-aligned,
+textwin.c: *	they will remain x-aligned for the rest of the block.
+textwin.c: *	Then, if they are y-aligned, they're already in the right place.
+textwin.c:	while(sp!=esp && sp->x!=dp->x){
+textwin.c:		while(sp!=esp && sp->y==uls.y && dp->y==uld.y && sp->x-uls.x==dp->x-uld.x){
+textwin.c:	if(sp==esp || esp->y==dp->y) return;
+textwin.c:	if(esp->y==sp->y){	/* one line only */
+textwin.c:		bitblt(t->b, *dp, t->b, Rpt(*sp, Pt(esp->x, sp->y+t->hgt)), S);
+textwin.c:	y=sp->y+t->hgt;
+textwin.c:	bitblt(t->b, *dp, t->b, Rpt(*sp, Pt(t->r.max.x, y)), S);
+textwin.c:	bitblt(t->b, Pt(t->r.min.x, dp->y+t->hgt),
+textwin.c:		t->b, Rect(t->r.min.x, y, t->r.max.x, esp->y), S);
+textwin.c:	y=dp->y+esp->y-sp->y;
+textwin.c:	bitblt(t->b, Pt(t->r.min.x, y),
+textwin.c:		t->b, Rect(t->r.min.x, esp->y, esp->x, esp->y+t->hgt), S);
+textwin.c:	dp+=esp-bsp;
+textwin.c:	dy=dp->y-sp->y;
+textwin.c:	while(sp!=bsp && dp[-1].x==sp[-1].x){
+textwin.c:		--dp;
+textwin.c:		--sp;
+textwin.c:		if(sp->y==esp->y)
+textwin.c:			bitblt(t->b, *dp, t->b,
+textwin.c:				Rect(sp->x, sp->y, esp->x, esp->y+t->hgt), S);
+textwin.c:			bitblt(t->b, Pt(t->r.min.x, sp->x+dy), t->b,
+textwin.c:				Rect(t->r.min.x, sp->y, esp->x, esp->y+t->hgt), S);
+textwin.c:			bitblt(t->b, Pt(t->r.min.x, dp->y+t->hgt), t->b,
+textwin.c:				Rect(t->r.min.x, sp->y+t->hgt, t->r.max.x, esp->y), S);
+textwin.c:			bitblt(t->b, *dp, t->b,
+textwin.c:				Rect(sp->x, sp->y, t->r.max.x, sp->y+t->hgt), S);
+textwin.c:		while(sp!=bsp && sp[-1].y==sp[0].y && dp[-1].y==dp[0].y
+textwin.c:		   && sp[-1].x-sp[0].x==dp[-1].x-dp[0].x){
+textwin.c:			--sp;
+textwin.c:			--dp;
+textwin.c: * Start and end must both index characters that are initially on-screen.
+textwin.c:	if(first<t->top || last<first || t->bot<last) return;
+textwin.c:	nbyte=(last-first+1)*sizeof(Point);
+textwin.c:	memmove(srcloc, &t->loc[first-t->top], nbyte);
+textwin.c:		tw_moveup(t, t->loc+first-t->top, srcloc, srcloc+(last-first));
+textwin.c:		tw_movedn(t, t->loc+first-t->top, srcloc, srcloc+(last-first));
+textwin.c: * Replace the runes with indices from r0 to r1-1 with the text
+textwin.c: *	Open up a hole in t->text, t->loc.
+textwin.c:	olen=t->etext-t->text;
+textwin.c:	nlen=olen+r0-r1+nins;
+textwin.c:	tlen=t->eslack-t->text;
+textwin.c:		memmove(ntext, t->text, r0*sizeof(Rune));
+textwin.c:		memmove(ntext+r0+nins, t->text+r1, (olen-r1)*sizeof(Rune));
+textwin.c:		t->text=ntext;
+textwin.c:		t->eslack=ntext+tlen;
+textwin.c:		memmove(t->text+r0+nins, t->text+r1, (olen-r1)*sizeof(Rune));
+textwin.c:		memmove(t->text+r0, ins, nins*sizeof(Rune));
+textwin.c:	t->etext=t->text+nlen;
+textwin.c:	if(r0>t->bot)		/* insertion is completely below visible text */
+textwin.c:	if(r1<t->top){		/* insertion is completely above visible text */
+textwin.c:		dtop=nlen-olen;
+textwin.c:		t->top+=dtop;
+textwin.c:		t->bot+=dtop;
+textwin.c:	if(1 || t->bot<=r0+nins){	/* no useful text on screen below r0 */
+textwin.c:		if(r0<=t->top)	/* no useful text above, either */
+textwin.c:			t->top=r0;
+textwin.c:		t->bot=tw_setloc(t, r0, nlen, t->loc[r0-t->top]);
+textwin.c:		tw_draw(t, r0, t->bot);
+textwin.c:	while(top!=0 && t->text[top-1]!='\n') --top;
+textwin.c:	t->top=top;
+textwin.c:	t->bot=tw_setloc(t, top, t->etext-t->text, t->r.min);
+textwin.c:	tw_draw(t, t->top, t->bot);
+textwin.c:	t->r=r;
+textwin.c:	t->bot=tw_setloc(t, t->top, t->etext-t->text, t->r.min);
+textwin.c:	tw_draw(t, t->top, t->bot);
+textwin.c:	t->text=malloc((ntext+100)*sizeof(Rune));
+textwin.c:	if(t->text==0){
+textwin.c:	t->loc=malloc(100*sizeof(Point));
+textwin.c:	if(t->loc==0){
+textwin.c:		free(t->text);
+textwin.c:	t->eloc=t->loc+100;
+textwin.c:	t->etext=t->text+ntext;
+textwin.c:	t->eslack=t->etext+100;
+textwin.c:	if(ntext) memmove(t->text, text, ntext*sizeof(Rune));
+textwin.c:	t->top=0;
+textwin.c:	t->bot=0;
+textwin.c:	t->sel0=0;
+textwin.c:	t->sel1=0;
+textwin.c:	t->b=b;
+textwin.c:	t->font=f;
+textwin.c:	t->hgt=f->height;
+textwin.c:	t->mintab=strwidth(f, "0");
+textwin.c:	t->tabstop=8*t->mintab;
+textwin.c:	free(t->loc);
+textwin.c:	free(t->text);
+utf.c:	|| utfrune("!\"#$%&'()*+,-./:;<=>?@`[\\]^{|}~", c))

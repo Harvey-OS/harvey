@@ -1,0 +1,89 @@
+%% 
+%% This is file `subeqn.tex', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% subeqnarray.dtx  (with options: `sample')
+%% 
+%% This file is part of the subeqnarray package. 
+%% --------------------------------------------- 
+%% 
+%% Copyright (C) 1988--1994 Johannes Braams. All rights reserved. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% Run this file through LaTeX to demonstrate the features 
+%% of the subeqnarray package. 
+%% 
+\def\fileversion{2.1}
+\def\filedate{1994/02/10}
+\def\docdate{1994/02/09}
+%%% ====================================================================
+%%%  @LaTeX-package-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "2.1",
+%%%     date            = "10 February 1994",
+%%%     time            = "01:27:31 MET",
+%%%     filename        = "subeqnarray.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "13995 400 1471 13429",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "",
+%%%     supported       = "yes",
+%%%     abstract        = "This package defines the subeqnarray
+%%%                        and subeqnarray* environments, which behave
+%%%                        like the eqnarray environment, except that
+%%%                        the lines are numbered like 1a 1b 1c etc.
+%%%                        To refer to these numbers an extra label
+%%%                        command \slabel has been defined
+%%%
+%%%                        The equations and their numbers adhere to
+%%%                        the standard LaTeX options leqno and fleqn.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\documentclass[fleqn]{article}
+\usepackage{subeqnarray}
+\begin{document}
+This document shows an example of the use of the \emph{subeqnarray}
+environment. Here is one:
+\begin{subeqnarray}
+\label{eqw}
+\slabel{eq0}
+ x & = & a \times b \\
+\slabel{eq1}
+ & = & z + t\\
+\slabel{eq2}
+ & = & z + t
+\end{subeqnarray}
+The first equation is number~\ref{eq0}, the last is~\ref{eq2}. The
+equation as a whole can be referred to as equation~\ref{eqw}.
+
+To show that equation numbers behave normally, here's an
+\emph{eqnarray} environment.
+\begin{eqnarray}
+\label{eq10}
+ x & = & a \times b \\
+\label{eq11}
+ & = & z + t\\
+\label{eq12}
+ & = & z + t
+\end{eqnarray}
+
+These are equations~\ref{eq10},~\ref{eq11} and~\ref{eq12}.
+\end{document}
+\endinput
+%% 
+%% End of file `subeqn.tex'.

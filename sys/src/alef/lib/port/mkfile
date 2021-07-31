@@ -1,0 +1,64 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libA.a
+OFILES=\
+	abs.$O\
+	alloc.$O\
+	arg.$O\
+	asin.$O\
+	atan.$O\
+	atan2.$O\
+	atexit.$O\
+	atoi.$O\
+	crypt.$O\
+	doprint.$O\
+	exp.$O\
+	fabs.$O\
+	fatal.$O\
+	floor.$O\
+	fmod.$O\
+	hypot.$O\
+	log.$O\
+	malloc.$O\
+	pow.$O\
+	pow10.$O\
+	print.$O\
+	qsort.$O\
+	rand.$O\
+	readn.$O\
+	ref.$O\
+	rune.$O\
+	sin.$O\
+	sinh.$O\
+	sqrt.$O\
+	strcat.$O\
+	strdup.$O\
+	strlen.$O\
+	strncat.$O\
+	strncmp.$O\
+	strncpy.$O\
+	strrchr.$O\
+	strstr.$O\
+	strtof.$O\
+	strtoi.$O\
+	strtoui.$O\
+	tan.$O\
+	tanh.$O\
+	tokenize.$O\
+	utflen.$O\
+	utfrrune.$O\
+	utfrune.$O\
+	utfutf.$O\
+
+AFILES=${OFILES:%.$O=%.l}
+</sys/src/cmd/mksyslib
+
+acid:V:
+	val -aa $AFILES > acid.$objtype
+
+/68020/lib/alef/libA.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'
+
+crypt.$O:	crypt.$O.save
+	cp crypt.$O.save crypt.$O

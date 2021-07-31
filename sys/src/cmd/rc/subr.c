@@ -18,12 +18,8 @@ extern int lastword, lastdol;
 void yyerror(char *m)
 {
 	pfmt(err, "rc: ");
-	if(runq->cmdfile && !runq->iflag)
-		pfmt(err, "%s:%d: ", runq->cmdfile, runq->lineno);
-	else if(runq->cmdfile)
-		pfmt(err, "%s: ", runq->cmdfile);
-	else if(!runq->iflag)
-		pfmt(err, "line %d: ", runq->lineno);
+	if(runq->cmdfile) pfmt(err, "file %s: ", runq->cmdfile);
+	if(!runq->iflag) pfmt(err, "line %d: ", runq->lineno);
 	if(tok[0] && tok[0]!='\n') pfmt(err, "token %q: ", tok);
 	pfmt(err, "%s\n", m);
 	flush(err);
@@ -31,7 +27,6 @@ void yyerror(char *m)
 	lastdol=0;
 	while(lastc!='\n' && lastc!=EOF) advance();
 	nerror++;
-	setvar("status", newword(m, (word *)0));
 }
 char *bp;
 void iacvt(int n){
@@ -43,7 +38,7 @@ void iacvt(int n){
 		iacvt(n/10);
 	*bp++=n%10+'0';
 }
-void itoa(char *s, long n)
+void itoa(char *s, int n)
 {
 	bp=s;
 	iacvt(n);

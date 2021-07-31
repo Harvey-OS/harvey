@@ -1,0 +1,46 @@
+%Filename: OT1pgs.fd
+%Created by: tex 6649gillsans
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pgs}{}
+
+\DeclareFontShape{OT1}{pgs}{b}{n}{
+   <-> pgsb7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{b}{sc}{
+   <-> pgsbc7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{b}{sl}{
+   <-> pgsbo7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{b}{it}{
+   <-> pgsbi7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{m}{n}{
+   <-> pgsr7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{m}{sc}{
+   <-> pgsrc7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{m}{sl}{
+   <-> pgsro7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{m}{it}{
+   <-> pgsri7t
+}{}
+
+\DeclareFontShape{OT1}{pgs}{bx}{n}{<->ssub * pgs/b/n}{}
+\DeclareFontShape{OT1}{pgs}{bx}{sc}{<->ssub * pgs/b/sc}{}
+\DeclareFontShape{OT1}{pgs}{bx}{sl}{<->ssub * pgs/b/sl}{}
+\DeclareFontShape{OT1}{pgs}{bx}{it}{<->ssub * pgs/b/it}{}
+
+\endinput

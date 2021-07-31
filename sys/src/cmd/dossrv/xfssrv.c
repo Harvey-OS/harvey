@@ -16,7 +16,6 @@ int	errno;
 void	rmservice(void);
 char	srvfile[64];
 char	*deffile;
-int	doabort;
 
 void
 usage(void)
@@ -33,9 +32,6 @@ main(int argc, char **argv)
 
 	stdio = 0;
 	ARGBEGIN{
-	case 'r':
-		readonly = 1;
-		break;
 	case 'v':
 		++chatty;
 		break;
@@ -44,9 +40,6 @@ main(int argc, char **argv)
 		break;
 	case 's':
 		stdio = 1;
-		break;
-	case 'p':
-		doabort = 1;
 		break;
 	default:
 		usage();
@@ -76,11 +69,11 @@ main(int argc, char **argv)
 		close(pipefd[0]);
 		close(srvfd);
 		atexit(rmservice);
-		fprint(2, "%s: serving %s\n", argv0, srvfile);
+		fprint(2, "%s %d: serving %s\n", argv0, getpid(), srvfile);
 	}
 	srvfd = pipefd[1];
 
-	switch(rfork(RFNOWAIT|RFNOTEG|RFFDG|RFPROC|RFNAMEG)){
+	switch(rfork(RFNOWAIT|RFNOTEG|RFFDG|RFPROC)){
 	case -1:
 		panic("fork");
 	default:

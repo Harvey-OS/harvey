@@ -1,6 +1,9 @@
 </$objtype/mkfile
 
-<../config
+SYSTEM=plan9
+VERSION=3.3.1
+
+POSTLIB=/sys/lib/postscript/prologues
 
 all:VQ:
 	;

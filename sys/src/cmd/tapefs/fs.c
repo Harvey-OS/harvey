@@ -15,8 +15,6 @@ ulong	path;
 Idmap	*uidmap;
 Idmap	*gidmap;
 int	replete;
-int	verbose;
-int	newtap;		/* tap with time in sec */
 
 Fid *	newfid(int);
 void	ramstat(Ram*, char*);
@@ -86,12 +84,6 @@ main(int argc, char *argv[])
 		break;
 	case 'g':			/* group file */
 		gidmap = getpass(ARGF());
-		break;
-	case 'v':
-		verbose++;
-
-	case 'n':
-		newtap++;
 		break;
 	default:
 		usage();
@@ -428,6 +420,7 @@ ramstat(Ram *r, char *buf)
 	dir.qid = r->qid;
 	dir.mode = r->perm;
 	dir.length = r->ndata;
+	dir.hlength = 0;
 	strcpy(dir.uid, r->user);
 	strcpy(dir.gid, r->group);
 	dir.atime = r->atime;
@@ -519,10 +512,15 @@ io(void)
 int
 perm(Fid *f, Ram *r, int p)
 {
-	USED(r); USED(f);
-	if (p==Pwrite)
+	if (p==Pwrite && dopermw(r)==0)
 		return 0;
-	return 1;
+	if((p*Pother) & r->perm)
+		return 1;
+	if(strcmp(f->user, r->group)==0 && ((p*Pgroup) & r->perm))
+		return 1;
+	if(strcmp(f->user, r->user)==0 && ((p*Powner) & r->perm))
+		return 1;
+	return 0;
 }
 
 void
@@ -537,7 +535,7 @@ void *
 emalloc(ulong n)
 {
 	void *p;
-	p = mallocz(n, 1);
+	p = malloc(n);
 	if(!p)
 		error("out of memory");
 	return p;

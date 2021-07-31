@@ -6,7 +6,7 @@
 #define BIGN (BUFSIZ/2)
 
 long fread(void *p, long recl, long nrec, FILE *f){
-	char *s;
+	char *s, *es;
 	int n, d, c;
 
 	s=(char *)p;

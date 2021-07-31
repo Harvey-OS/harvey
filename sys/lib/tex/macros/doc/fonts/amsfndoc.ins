@@ -1,0 +1,885 @@
+%%% ====================================================================
+%%%  @TeX-file{
+%%%     filename        = "amsfndoc.tex",
+%%%     version         = "2.2",
+%%%     date            = "4-JAN-1995",
+%%%     author          = "American Mathematical Society",
+%%%     copyright       = "Copyright (C) 1994 American Mathematical Society,
+%%%                        all rights reserved.  Copying of this file is
+%%%                        authorized only if either:
+%%%                        (1) you make absolutely no changes to your copy,
+%%%                        including name; OR
+%%%                        (2) if you do make changes, you first rename it
+%%%                        to some other name.",
+%%%     address         = "American Mathematical Society,
+%%%                        Technical Support,
+%%%                        Electronic Products and Services,
+%%%                        P. O. Box 6248,
+%%%                        Providence, RI 02940,
+%%%                        USA",
+%%%     telephone       = "401-455-4080 or (in the USA and Canada)
+%%%                        800-321-4AMS (321-4267)",
+%%%     FAX             = "401-331-3842",
+%%%     checksum = "57927 885 5945 40171"       ,
+%%%     email           = "tech-support@math.ams.org (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "amsfonts, msam, msbm, eufm, eusm, Euler,
+%%%                        blackboard bold, fraktur",
+%%%     supported       = "yes",
+%%%     abstract        = "This is part of the AMSFonts distribution,
+%%%                        It is the plain TeX source file for the
+%%%                        AMSFonts user's guide.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+
+%    If these installation instructions are processed by themselves, we
+%    will add a bit of extra information \InstName in the appendix titles.
+\ifx\undefined\InstName
+  \let\InstName\relax \input amsfndoc.def \def\InstName{ for AMSFonts 2.2}%
+\fi
+
+\appendix{A}{PC Installation Guide\InstName}
+
+\instsec Introduction
+
+AMSFonts are a set of fonts which were developed at the American Mathematical
+Society (except the cyrillic fonts, which were developed at the University of
+Washington), for use with the \TeX\ typesetting system. These fonts were
+intended for use with the \AmSTeX\ or \AmS-\LaTeX\ macro packages, but they can
+be used with plain \TeX, independently of these packages.
+
+AMSFonts can be used with any full implementation of \TeX . The
+installation procedure automatically installs the fonts on your IBM PC or
+compatible machine. In this guide, it is assumed that you have \TeX\ installed
+on your PC, and that you have at least some familiarity with it.
+
+\instsec If you have AMSFonts 2.2 but not \AmSTeX{}
+
+If you obtained AMSFonts without the \AmSTeX\ 2.0+ macro
+package,\footnote*{\AmSTeX\ 2.0+ refers to any release of \AmSTeX\ from
+version 2.0 forward.} then you
+will first need to place the diskette labeled {\tt AMSFonts 2.2 TFM files} into
+drive A (or drive B, in which case you will substitute ``b'' for ``a'' in the
+following command), and copy the TFM files into the directory where your other
+TFM files are stored. The name of that directory will vary depending on the
+implementation of \TeX\ which you are using. For example, if you are using 
+PC\TeX, then you would enter 
+
+\usertype{copy a:\tbs tfm\ \ c:\tbs pctex\tbs textfms}
+
+\noindent to copy the \TeX\ font metric (TFM) files to your hard disk.  If you
+are using an implementation of \TeX\ other than PC\TeX, you will substitute the
+name of your TFM directory for {\tt \tbs pctex\tbs textfms}, and
+if you have \TeX\ installed on a drive other than C, you will substitute its
+drive name for ``c:'' in the above command. After copying the TFM files,
+proceed with Section 
+\OtherSec{2}.
+
+\goodbreak
+
+\instsec If you have \AmSTeX\ 2.0+
+
+The TFM files are installed automatically as part of the installation of
+\AmSTeX\ 2.0+. If you have not yet installed \AmSTeX\ 2.0+, you should
+either install it or perform step 
+\OtherSec{-1} 
+\ above before you proceed with section 
+\OtherSec{1}.
+
+\instsec How much disk space do you need?
+
+The amount of disk space required for installation of the AMSFonts depends on
+the resolution of your output device and on which families of fonts you choose
+to install. The fonts have been divided into five families for the
+installation, and you may choose any or all of these families to install. 
+Also, you may choose to install all of the magnifications or only
+magnifications 100\%, 109.5\% and 120\% (\TeX\ magsteps 0, $1\over 2$ and 1).
+For a more complete description of these families and magnifications, please
+see the appropriate sections of the {\it AMSFonts 2.2 User's Guide\/}. (Note:
+If you do not have a printed copy of the {\it User's Guide\/}, you may use the
+files {\tt amsfndoc.*} on the TFM disk to produce it with \TeX. However, you
+will not be able to print the entire document correctly until after you have 
+installed AMSFonts.)
+
+The following table lists all of the families and the disk
+space required for their installation. Before you begin the installation,
+decide which fonts and which magnifications you will choose, and make sure that
+you have enough disk space available.
+
+
+%%%%%%%%%%%%%%%%%%% this is the table of required disk space
+\bigskip
+
+\centerline{\bf Approximate Disk Space Required for AMSFonts
+		Installation}
+\bigskip
+\vbox{\leavevmode\hskip0pt\hfill\vbox{\parindent0pt
+{\font\eightrm=cmr9
+\eightrm
+\def\dropentry#1{\lower.5\baselineskip\hbox{#1}}
+\settabs\+400dpi\ &100\% thru 120\%\ \ &\hskip3pc&\hskip3pc
+        &\hskip3pc&\hskip3pc&\hskip3pc&\hskip3pc&\cr
+\newbox\tablerulebox
+\setbox\tablerulebox=\vbox{\+400dpi\ &100\% thru 120\%\ \ &\hskip3pc
+					&\hskip3pc&\hskip3pc&\hskip3pc&\hskip3pc&\hskip3pc&\cr}
+\def\tablerule{\smallskip\hrule width 1\wd\tablerulebox \smallskip}
+
+\+&&\hss Extra\hss&\hss Euler\hss&\hss Other\hss&\hss Extra\hss&\hss 
+                                       \hss&\hss All\hss&\cr
+\+&&\hss CM\hss&\hss Fraktur\hss&\hss Euler\hss&\hss Symbols\hss&\hss 
+                                       Cyrillic\hss&\hss Fonts\hss&\cr
+\tablerule
+
+\+\dropentry{118dpi}&100\% thru 120\%\hss&\hss\ 200K\hss&\hss\ 150K\hss&\hss\ 
+        350K\hss&\hss\ 150K\hss&\hss\ 250K\hss&\hss 1100K\hss&\cr
+\+&all mags\hss&\hss\ 550K\hss&\hss\ 350K\hss&\hss\ 850K\hss&\hss\ 
+        450K\hss&\hss\ 750K\hss&\hss 2950K\hss&\cr
+\tablerule
+
+\+\dropentry{180dpi}&100\% thru 120\%\hss&\hss\ 250K\hss&\hss\ 150K\hss&\hss\ 
+           350K\hss&\hss\ 200K\hss&\hss\ 300K\hss&\hss 1250K\hss&\cr
+\+&all mags\hss&\hss\ 750K\hss&\hss\ 450K\hss&\hss\ 950K\hss&\hss\ 
+           650K\hss&\hss 1000K\hss&\hss 3800K\hss&\cr
+\tablerule
+\+\dropentry{240dpi}&100\% thru 120\%\hss&\hss\ 300K\hss&\hss\ 150K\hss&\hss\ 
+           350K\hss&\hss\ 250K\hss&\hss\ 400K\hss&\hss 1450K\hss&\cr
+\+&all mags\hss&\hss\ 900K\hss&\hss\ 500K\hss&\hss 1000K\hss&\hss\ 
+        800K\hss&\hss 1200K\hss&\hss 4400K\hss&\cr
+\tablerule
+
+\+\dropentry{300dpi}&100\% thru 120\%\hss&\hss\ 350K\hss&\hss\ 200K\hss&\hss\ 
+        450K\hss&\hss\ 350K\hss&\hss\ 500K\hss&\hss 1850K\hss&\cr
+\+&all mags\hss&\hss 1100K\hss&\hss\ 700K\hss&\hss 1300K\hss&\hss\ 
+        1000K\hss&\hss 1500K\hss&\hss 5600K\hss&\cr
+\tablerule
+
+\+\dropentry{400dpi}&100\% thru 120\%\hss&\hss\ 450K\hss&\hss\ 250K\hss&\hss\ 
+        500K\hss&\hss\ 400K\hss&\hss\ 550K\hss&\hss 2150K\hss&\cr
+\+&all mags\hss&\hss 1450K\hss&\hss\ 825K\hss&\hss 1625K\hss&\hss 
+        1250K\hss&\hss 1850K\hss&\hss 7000K\hss&\cr
+\tablerule
+}
+}\hfill\hskip1pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%% end of table
+
+\instsec Where do you put the fonts?
+
+Now you will need to copy the .pk files which are the actual raster images for
+the fonts. These are spread over several disks (the actual number depends on
+the resolution of the output device), in seven directories. These seven
+directories represent the fonts at seven different magnifications available in
+\TeX: \tbs magstep 0, $1\over2$, 1, 2, 3, 4, and 5. The directories are labeled
+{\tt \tbs amsfonts\tbs dpiXXX}, where {\tt XXX} is the resolution of the output
+device multiplied by the magnification. (The number is rounded to the nearest
+integer.) For example, the subdirectory containing raster images for 300 dot
+per inch output at \tbs magstep1 (120\%) will be called {\tt \tbs dpi360}, since
+300 multiplied by 1.2 equals 360.
+
+To install the fonts, find where the .pk files for your other fonts are stored
+on your hard disk.
+This is determined by the needs of the device driver which will read the fonts.
+If you are installing these fonts for screen previewing they should go
+where your previewer will find them. If you are installing the fonts for
+printing they should go where your printer driver can find them.
+
+If you are using a device driver from Personal \TeX, Inc., then most likely
+your other \TeX\ fonts are stored in subdirectories of {\tt \tbs pctex\tbs
+pixel}. If you are using a device driver from ArborText, then most likely your
+other \TeX\ fonts are stored in subdirectories of {\tt\tbs texpixel\tbs cmpixel}. 
+If your device driver is made by someone other
+than these two companies you will need to consult the documentation of
+that device driver in order to find the directory where it looks for .pk files
+of the fonts which it uses.
+
+\instsec Running the installation procedure
+
+When you have determined where you are going to put the fonts, insert the first
+of the disks labeled {\tt AMSFonts 2.2 XXXdpi} (where {\tt XXX} is the
+resolution of your output device) into drive A or drive B, and type the
+following commands (if you put the disk in drive B, you will substitute `b' for
+`a' in the first command):
+
+\usertype{a:
+
+install} 
+
+You will be asked a number of questions. First, you will have to give the name
+of the hard drive on which you will install the fonts. Then, you will be asked
+for  the name of the directory where you want the fonts to be placed. Next, you
+will be asked whether you wish to install all of the magnifications or only the
+magnifications 100\%, 109.5\%, and 120\%.  Finally, you will be asked whether
+you wish to install all of the families of fonts or only certain families. (If
+you skipped Section 
+\OtherSec{-2}
+\ above, please go back and read it.)
+
+Once you have answered all of the questions, you will be prompted to insert the
+remaining disks of the distribution. The .pk files will be placed in
+subdirectories of the specified font directory, named {\tt \tbs dpiXXX}, where 
+{\tt XXX} again represents the resolution multiplied by the magnification. 
+
+\instsec Font definition files for \LaTeX{}
+
+If you intend to use the AMSFonts collection with \LaTeX{} then you will
+need to copy all the provided \fn{.fd} files to your \LaTeX{} input
+files area. The \fn{.fd} files are font definition files that set up the
+correspondence between external font names and the naming scheme that is
+used internally by \LaTeX{}.
+
+Note that there are two sets of font definition files provided. The
+files that contain \fn{57} in their names are tailored to a PostScript
+version of the AMSFonts collection produced jointly by Y\&Y and Blue Sky
+Research. In that version, font sizes 6,8,9 are produced by
+interpolation from neighboring sizes instead of having separate font
+metric files. Selection of the PostScript or non-PostScript \fn{.fd}
+files for individual documents is handled through the \LaTeX{} package
+option mechanism, as described in \S3 {\bf How to use AMSFonts with
+\LaTeX{}}.
+
+\instsec Additional notes for users of AMSFonts
+
+The device driver with which you are using these fonts may have a font table
+which needs to be updated in order for the driver to recognize the fonts. For
+instance, the \TeX\ Preview software provided by ArborText has a file called
+{\tt preview.fnt} which contains the names of all fonts which the Preview
+program is expected to find, and the effective resolutions (resolution
+multiplied by  magnification) at which to find them. In order to use AMSFonts
+with this, or any other software which uses such a table, you must enter the
+names of each of the fonts in the AMSFonts package and the effective
+resolutions at which you have them installed.  The file {\tt amsfonts.lst} on
+the first distribution disk contains a list of all of the font names and all of
+the resolutions contained in your distribution. You may have to alter the
+format of this file to make it conform to your driver's needs or to reflect
+installation of only some of the fonts,  but it provides you with the necessary
+data. See the documentation for your device driver to see what format is
+required. If your device driver does not depend on such a table, this step is
+not necessary.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix{B}{\Textures{} / Macintosh Installation Guide\InstName}
+
+\instsec Introduction
+
+AMSFonts are a set of fonts which were developed at the American Mathematical
+Society (except the cyrillic fonts, which were developed at the University of
+Washington), for use with the \TeX{} typesetting system. These fonts were
+intended for use with the \AmSTeX{} or \AmS-\LaTeX{} macro packages, but 
+they can be used with plain \TeX, independently of these packages.
+
+This distribution is designed for use with the \Textures{} software on
+the Macintosh computer. These fonts require \Textures{} version 1.2 or
+higher.  If you have an earlier release of \Textures, you must upgrade
+before using these fonts. To upgrade \Textures, contact the
+manufacturer: Blue Sky Research, 534 SW Third Ave., Portland, OR
+97204; (800) 622-8398.  In this guide, it is assumed that you have a
+recent version of \Textures{} installed on your Macintosh, and that
+you have at least some familiarity with it and with {\it The \TeX
+book}.
+
+\ifExtendedExists
+You have received either the standard distribution or the extended
+distribution. The standard distribution contains fonts in resolutions and
+magnifications corresponding to those included in the standard \Textures{}
+distribution of Computer Modern fonts. The standard distribution is contained
+on three diskettes and has a fairly simple installation procedure. The extended
+distribution includes the fonts at several larger magnifications, in addition
+to the magnifications included in the standard distribution. That distribution
+is contained on six high-density (1.4M) diskettes, and its installation will
+require some decisions on your part.
+\fi
+
+Before you begin the installation you should first backup to diskette
+all files from previous releases of AMSFonts that are on your hard
+disk.  Once you are sure that you have backed up all files containing
+previous releases of AMSFonts, delete them from your hard disk. You
+may have serious font ID conflicts if you do not do this. (See
+Section 
+\ifExtendedExists\OtherSec{4}\else\OtherSec{3}\fi
+.2 for an explanation.)
+
+\instsec \ifExtendedExists Installation of the Standard Distribution
+            \else Installation Procedure\fi
+
+\subsection{\instsecno.1} What is on the diskettes?
+
+The distribution contains three diskettes.  
+The first disk contains a folder with some \Textures{} files, the file
+{\tt AMSFonts 2.2 metrics}, and the cyrillic text fonts.
+The {\tt Textures files} folder contains eight files. Most of these 
+files are explained in the {\it AMSFonts 2.2 User's Guide}. 
+The \TeX{} source for the user's guide is in the files {\tt amsfndoc.*}
+in the {\tt Textures files} folder.
+The file {\tt amsfndoc.ins} is the \TeX\ source for the
+installation guide you are now reading.
+
+The second disk contains the extra CM fonts and the AMS Symbol fonts
+(MSAM and MSBM). The third disk contains the Euler fonts: Euler Fraktur
+(EUFB and EUFM), Euler Roman (EURB and EURM), Euler Script (EUSB and
+EUSM), and Euler Extension (EUEX).
+
+\subsection{\instsecno.2} How much space do you need?
+
+Fonts take up lots of disk space. AMSFonts includes 89 fonts, each at
+either four or six resolutions (see Section 
+\ifExtendedExists\OtherSec{3}\else\OtherSec{2}\fi
+.1 for an explanation).
+\ifExtendedExists This standard 
+\else The \fi
+distribution takes up nearly four megabytes when
+installed.  The table below shows the disk space required for each font
+suitcase file in this distribution. Consult it to make sure that you
+have enough space on your hard disk to install the fonts you need.
+
+\medskip
+\centerline{\bf Approximate Disk Storage Requirements 
+             \ifExtendedExists (Standard)\fi}
+\vskip-6pt
+$$\vcenter{\halign{\hfill#\qquad&#\hfill\cr
+	1600K	&Extra CM fonts and AMS Symbol fonts\cr
+	 288K	&Euler Fraktur fonts\cr
+	1150K	&All other Euler fonts\cr
+	 986K	&Cyrillic fonts\cr
+}}$$
+
+\long\def\InstallSteps#1{%
+Since you will be installing new fonts it would be wise to review the
+portions of the \Textures{} manual relating to fonts.  \Textures{} has a
+complex method of including fonts and you should understand it before
+attempting to install or use AMSFonts. You may also wish to read the
+{\it AMSFonts 2.2 User's Guide} to decide which families
+of fonts you need to install. If you retrieved this distribution
+electronically and have no printed copy of the user's guide,
+you can find the \TeX\ source for that document in the files
+{\tt amsfndoc.*} in the {\tt Textures files} folder on the
+first distribution disk.
+
+\subsection{#1.3} Installing the fonts.
+
+\parindent\normalparindent
+\item{1.}Copy the file {\tt AMSFonts 2.2 metrics} from the first
+distribution disk to the {\tt TeX Fonts} folder inside the {\tt Textures}
+ folder on your hard disk.
+
+\item{2.}Decide which families of fonts you want to install on your
+system. For a full description of these families, see the appropriate
+section of the {\it AMSFonts 2.2 User's Guide.} 
+
+\item{3.}Make sure you have enough space on your hard disk for the
+families which you wish to install. See the table above for the amount
+of space required.
+
+\item{4.}Extract the font files from the compressed files for each of
+the families which are to be installed.  This is done in the following
+way.
+
+\itemitem{4.1}Double-click on the icon for the compressed file.
+
+\itemitem{4.2}In the dialog box which appears, click the ``Drive''
+button so that the name of your hard disk appears at the top.
+
+\itemitem{4.3}Double-click on the name of your {\tt Textures} folder
+in the scroll box.
+
+\itemitem{4.4}Double-click on the name of the {\tt TeX Fonts} folder in the
+scroll box.
+
+\itemitem{4.5}Click ``Install''. When the AutoUnStuffIt installer
+finishes, there will be a new font suitcase file in your {\tt Tex Fonts}
+folder. 
+
+\medskip
+
+You are now able to use AMSFonts in \Textures.  However, please read the
+sections ``Customizing Your Installation'' and ``Questions and Further 
+Information'' before attempting to use AMSFonts in \Textures.
+
+} % end of definition of \InstallSteps
+
+\InstallSteps{\instsecno}
+
+\ifExtendedExists
+\instsec Installation of the Extended distribution
+
+\subsection{\instsecno.1} What is on the diskettes?
+
+The distribution contains six high-density diskettes.  
+The first disk contains a folder with some \Textures{} files, the file
+{\tt AMSFonts 2.2 metrics}, and the AMS Symbol (MSAM and MSBM) fonts.
+The {\tt Textures files} folder contains eight files. Most of these 
+files are explained in the {\it AMSFonts 2.2 User's Guide}. 
+The \TeX{} source for the user's guide is in the files {\tt amsfndoc.*}
+in the {\tt Textures files} folder.
+The file {\tt amsfndoc.ins} is the \TeX\ source for the
+installation guide you are now reading.
+
+The other disks include the other AMSFonts, as indicated on their
+diskette labels:
+
+\vskip-6pt
+$$\vcenter{\halign{#&#\cr
+Disk 2\quad &Extra CM Fonts (CMBSY, CMCSC, CMEX, CMMIB)\hfill\cr
+Disk 3\quad &Euler Fraktur and Extension (EUF and EUEX)\hfill\cr
+Disk 4\quad &Euler Roman and Script (EUR and EUS)\hfill\cr
+Disk 5\quad &Cyrillic Upright and Italic (WNCYR and WNCYI)\hfill\cr
+Disk 6\quad &Cyrillic Bold, Sans-Serif and Cap-small-cap\hfill\cr
+\quad       &(WNCYB, WNCYSS, WNCYSC)\hfill\cr
+}}$$
+
+\subsection{\instsecno.2} How much space do you need?
+
+Fonts take up lots of disk space. AMSFonts includes 89 fonts, each at
+either nine or eleven resolutions (see Section 
+\OtherSec{2}%
+.1 for an explanation).
+This extended distribution takes up over 20 megabytes of disk space. The
+table below shows the disk space required for each font family.  Consult
+it to make sure that you have enough space on your hard disk to install
+the fonts you need.
+
+
+\medskip
+\settabs2\columns
+
+\centerline{\bf Approximate Disk Storage Requirements (Extended)}
+$$\vcenter{\halign{\hfill#\qquad&#\hfill\cr
+	5500K	&Extra CM fonts\cr
+	3200K	&Euler Fraktur and Extension fonts\cr
+	2700K	&Euler Roman and Script fonts\cr
+	4000K	&AMS Symbol fonts\cr
+	5500K	&Cyrillic fonts\cr
+}}$$
+\medskip
+
+\InstallSteps{\instsecno}
+\else
+\fi
+
+\instsec Customizing Your Own Installation
+
+\subsection{\instsecno.1} Defining macros for the symbol fonts.
+
+The files {\tt amssym.def} and {\tt amssym.tex} are included in the
+{\tt Textures files} folder on the first disk of your distribution. 
+These files are for use with the AMS symbol fonts (MSAM and MSBM).  If
+you will be using these fonts you should place both of these files in
+the {\tt TeX inputs} folder within your {\tt Textures} folder.
+
+The use of these files is described in the {\it AMSFonts 2.2 User's Guide\/}. 
+
+\subsection{\instsecno.2} Adding fonts for display and printing.
+
+As is explained in the \Textures{} manual, the Show Fonts command
+displays those fonts whose font metrics are currently available to
+\Textures.  Additionally, when a font is selected the two scroll boxes in
+the Show Fonts dialog box display the point sizes available for display
+or printing.  When \Textures{} has opened {\tt AMSFonts 2.2 metrics}, this
+permits \TeX\ to run without errors on files with references to
+AMSFonts.  However, it does not enable their display or printing.  To
+enable display and printing you may use Add Fonts to bring in raster
+information from any of the font suitcases which you created by
+unstuffing the files in the distribution.
+
+It is not necessary to keep using the menu item Add Fonts to import
+AMSFonts. You will probably determine through your own use which fonts
+you frequently use.  By opening a font suitcase file in the Finder and
+dragging its contents into another font suitcase file, you can combine
+fonts from different suitcases into a single suitcase file. (If you are
+unsure how to do this, consult the documentation for your Macintosh system.)
+Place the combined file in the {\tt TeX fonts} folder inside your {\tt
+Textures} folder, making sure that the file {\tt AMSFonts 2.2 metrics} is
+also in this folder.
+
+\subsection{\instsecno.4} Consolidating AMSFonts suitcase files.
+
+AMSFonts were distributed in several different suitcase files so they
+would fit on individual disks for distribution and installation.
+\Textures{} and the Macintosh system will have a much easier time if
+you open fewer files.  You should use your Macintosh system
+conventions for moving fonts between font suitcase files to create a
+new file which includes the contents of several of the font suitcases
+which were provided in the distribution.
+
+\ifExtendedExists
+{\bf If you have the Standard Distribution,} you 
+\else You \fi
+may consolidate all
+three of the distribution suitcase files into one.  Another alternative
+would be to simply not install some of the suitcases. The file on disk
+2 (which includes extra CM fonts and AMS symbol fonts), along with Euler
+Fraktur from disk 3, are all that the majority of users of AMSFonts will
+need.
+
+\ifExtendedExists
+{\bf If you have the Extended Distribution,} you should consolidate
+the font suitcases as much as possible. If, like many users of AMSFonts,
+you use only the AMS Symbols, Euler Fraktur, and Extra CM fonts, you can
+consolidate all of these into a single suitcase file. If you use all of
+the fonts, you will need to use at least two suitcases to contain the entire
+distribution.
+\par
+\fi
+
+Users who have not upgraded to System 7, please read Section 
+\OtherSec{1}%
+.3 for important
+information about {\it Font/DA Mover}.
+
+\instsec Font definition files for \LaTeX{}
+
+If you intend to use the AMSFonts collection with \LaTeX{} then you will
+need to copy all the provided \fn{.fd} files to your \LaTeX{} input files
+folder. The \fn{.fd} files are font definition files that set up the
+correspondence between external font names and the naming scheme that is
+used internally by \LaTeX{}.
+
+There are two sets of font definition files provided. The
+files that contain \fn{57} in their names are tailored to a PostScript
+version of the AMSFonts collection produced jointly by Y\&Y and Blue Sky
+Research. In that version, font sizes 6,8,9 are produced by
+interpolation from neighboring sizes instead of having separate font
+metric files. Selection of the PostScript or non-PostScript \fn{.fd}
+files for individual documents is handled through the \LaTeX{} package
+option mechanism, as described in \S3 {\bf How to use AMSFonts with
+\LaTeX{}}.
+
+\instsec  Questions and Further Information
+
+\subsection{\instsecno.1} Why are some fonts included at fewer sizes?
+
+You may have noticed that all of the AMSFonts (except the extra CM
+fonts), are included at two fewer magnifications than the \Textures{}
+distribution fonts. This is because several AMSFonts do not give good
+results when run through \MF\ at very low resolutions, such as the 72dpi
+Macintosh screen resolution.
+
+Because of the way in which the Macintosh system scales fonts when it
+doesn't have a font in the exact size it wants, the magnifications
+included in the distribution give the best combination of screen
+previewing and ImageWriter output for the AMSFonts.  LaserWriter output
+is not affected in any way by this.  LaserWriter output is always
+determined from the fonts at 417\% and higher, which are handled in the
+same manner for all AMSFonts.
+
+\subsection{\instsecno.2} Help! The font doesn't display correctly!
+
+The Macintosh system has a very ingenious way of handling fonts.
+Unfortunately, this ingenious and complex system sometimes leads to
+problems. There is a resource ID number for every point size of every
+font. For NFNT resources  (the kind used for AMSFonts 2.2), these ID
+numbers are assigned arbitrarily by Macintosh software when a resource
+is moved into a font suitcase file. Within a single file, the Macintosh
+software prevents any duplication of these ID numbers.
+
+Conflicts of ID numbers can (and occasionally will) occur
+when you have many different suitcase files open at the same time. This
+is one of the reasons for the instructions in Section 
+\OtherSec{-1}%
+.4 --- the fewer
+suitcases you have, the less likelihood of conflicts.
+
+When a font ID conflict does occur, a font which you didn't want will be
+substituted for the font you wanted, at only a single point size at a
+single magnification. If all other sizes and magnifications of that font
+are the correct font, and if the font displays correctly when you View
+the document on the screen at a different magnification, it is a font ID
+conflict. To remedy this problem, do the following:
+
+\medskip
+\item{A.}If you {\bf have} upgraded to System 7:
+
+\itemitem{1.}Create a temporary folder on your hard disk.
+
+\itemitem{2.}Double-click on the icon for the font suitcase file containing
+the font which you were not able to display.
+
+\itemitem{3.}In the new window showing the contents of that file, 
+select all sizes of the problem font and drag them into the temporary folder
+which you created.
+
+\itemitem{4.}Open a window showing the contents of the temporary folder,
+select all of the contents, and drag them back into the font suitcase file.
+When asked if you want to replace existing ones, answer OK.
+
+\itemitem{5.}Delete the temporary folder.
+
+\medskip
+\item{B.}If you {\bf have not} upgraded to System 7:
+
+\itemitem{1.}Double-click on the icon for the font suitcase file
+containing the font which you were not able to display. 
+
+\itemitem{2.}When {\it Font/DA Mover\/} starts, open a new temporary
+file on the right-hand side of the window.
+
+\itemitem{3.}Copy all sizes of the problem font from the original
+file into the temporary file, and remove them from the original file.
+
+\itemitem{4.}Copy the fonts back into the original file.
+
+\itemitem{5.}Quit {\it Font/DA Mover\/}, and delete the temporary file
+which you created.
+
+\medskip
+
+These steps will cause the Macintosh system software to assign new arbitrary
+numbers to the NFNT resources in question and should clear up the
+conflict.
+
+\subsection{\instsecno.3} Important information about {\it Font/DA Mover}.
+
+If you are not using System 7, please take note of the following:
+
+\item{1.} You must have {\it Font/DA Mover\/} Version 3.8 or later. 
+Previous  releases will not recognize font resources of the type used
+for AMSFonts 2.2.
+
+\item{2.} Even Version 3.8 of {\it Font/DA Mover\/} has a bug of which
+you should be aware. If you copy a font of the type used for AMSFonts 2.2
+into a file more than once, you will very likely end up with two
+copies of the font in that file. If you notice that this has occurred,
+simply delete one occurrence.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix{C}{Unix Installation Guide\InstName}
+
+\instsec Introduction
+
+AMSFonts are a set of fonts which were developed at the American Mathematical
+Society (except the cyrillic fonts, which were developed at the University of
+Washington), for use with the \TeX\ typesetting system. These fonts were
+intended for use with the \AmSTeX\ or \AmS-\LaTeX\ macro packages, but they can
+be used with plain \TeX, independently of these packages.
+
+AMSFonts can be used with any full implementation of \TeX . 
+In this guide, it is assumed that you have \TeX\ installed
+on your Unix system, and that you have at least some familiarity with it.
+
+\instsec If you have AMSFonts 2.2 but not \AmSTeX{}
+
+If you obtained AMSFonts but have not obtained (or have not yet
+installed) the \AmSTeX\ 2.0+ macro package,\footnote*{\AmSTeX\ 2.0+
+refers to any release of \AmSTeX\ from version 2.0 forward.} then you
+must place the \filename{.tfm} files for AMSFonts 2.2 into the
+directory where your other TFM files are stored. The name of that
+directory will vary depending on the local installation of \TeX\ which
+you are using.
+
+If you are using the standard
+Unix \TeX\ distribution, then it would probably be a directory in the
+path indicated
+by the environment variable \filename{TEXFONTS} or one of the subdirectories
+in the path indicated by the environment variable \filename{TEXFONTS\_SUBDIR}.
+For example, if \filename{TEXFONTS} indicates only the directory 
+\filename{/usr/lib/tex/fonts/tfm}, and if \filename{TEXFONTS\_SUBDIR} has no
+definition, then you would copy the \filename{.tfm} files into 
+\filename{/usr/lib/tex/fonts/tfm}. If your environment is set up differently,
+then you will have to determine the correct directory in which to place 
+them. After copying the TFM files, proceed with Section 
+\OtherSec{2}.
+
+\goodbreak
+
+\instsec If you have \AmSTeX\ 2.0+
+
+The TFM files were installed as part of the installation of
+\AmSTeX\ 2.0+. If you have not yet installed \AmSTeX\ 2.0+, you should
+either install it or perform step 
+\OtherSec{-1} 
+\ above before you proceed with section 
+\OtherSec{1}.
+
+\instsec How much disk space do you need?
+
+The amount of disk space required for installation of the AMSFonts depends on
+the resolution of your output device and on which families of fonts you choose
+to install. The fonts have been divided into five families for the
+installation, and you may choose any or all of these families to install. 
+Also, you may choose to install all of the magnifications or only
+magnifications 100\%, 109.5\% and 120\% (\TeX\ magsteps 0, $1\over 2$ and 1).
+For a more complete description of these families and magnifications, please
+see the appropriate sections of the {\it AMSFonts 2.2 User's Guide\/}. (Note:
+If you do not have a printed copy of the {\it User's Guide\/}, you may use the
+files {\tt amsfndoc.*} on the TFM disk to produce it with \TeX. However, you
+will not be able to print the entire document correctly until after you have 
+installed AMSFonts.)
+
+
+The installation guide for AMSFonts 2.2 in DOS includes a table which shows
+the approximate amount of space required for various families and sizes.
+These estimates are accurate for Unix also.
+
+\instsec Where do you put the fonts?
+
+Now you will need to install the \filename{.pk} files 
+which are the actual raster images for the fonts. You should
+place them in the directory where your device drivers (printer drivers
+and screen previewers) look for \filename{.pk} files. The name of the 
+environment variable which points to that directory or directories varies
+from one driver to another. Please check the documentation for your drivers
+to find where they look for \filename{.pk} files. (For example, xdvi looks
+at an environment variable \filename{XDVIFONTS}, while some drivers look
+at \filename{TEXPKS} or yet another variable name.)
+
+These files are named according to a convention which indicates the name
+of the font in the filename and the resolution multiplied by the magnification
+in the extension. For example, \filename{eufm10} at 100\% on a 300dpi printer
+would require a file named \filename{eufm10.300pk}, while 120\% would require
+a file named \filename{eufm10.360pk}. 
+Each font is supplied at the seven standard magnifications commonly used in
+\TeX: \tbs magstep 0, $1\over2$, 1, 2, 3, 4, and 5. 
+
+{\bf If you obtained the files from an Internet archive or other Unix-like 
+source, } the files have the correct names for use in Unix. All you need do
+is place them in the directory where your drivers will find them (described
+above).
+
+{\bf If you purchased the files on DOS diskettes, } you will need to 
+manipulate the filenames to make them compatible with Unix implementations
+of \TeX-related device drivers. On the DOS diskettes, the extension on the
+filename is limited to no more than three characters, which means that 
+something like \filename{eufm10.300pk} is not allowed. The convention for
+accomodating this limitation in the \TeX\ community is to give all such files
+the extension \filename{.pk} and divide them up into different directories.
+
+On the AMSFonts DOS diskette distribution, the directories are labeled
+{\tt \tbs amsfonts\tbs dpiXXX}, where {\tt XXX} is the resolution of the output
+device multiplied by the magnification (the number in the Unix filename
+extension described above). Once you have transferred the entire directory
+tree over to your Unix environment, you will need to rename the \filename{.pk}
+files in each directory to the extension \filename{.XXXpk}, where 
+\filename{XXX} is the number in the directory \filename{dpiXXX} in which 
+the file is located. Once you have thus renamed all of the files, you may
+place them all together in the directory where your drivers will find
+them (described above).
+
+\instsec Font definition files for \LaTeX{}
+
+If you intend to use the AMSFonts collection with \LaTeX{} then you will
+need to copy all the provided \fn{.fd} files to your \LaTeX{} input
+files area. The \fn{.fd} files are font definition files that set up the
+correspondence between external font names and the naming scheme that is
+used internally by \LaTeX{}.
+
+Note that there are two sets of font definition files provided. The
+files that contain \fn{57} in their names are tailored to a PostScript
+version of the AMSFonts collection produced jointly by Y\&Y and Blue Sky
+Research. In that version, font sizes 6,8,9 are produced by
+interpolation from neighboring sizes instead of having separate font
+metric files. Selection of the PostScript or non-PostScript \fn{.fd}
+files for individual documents is handled through the \LaTeX{} package
+option mechanism, as described in \S3 {\bf How to use AMSFonts with
+\LaTeX{}}.
+
+\instsec Additional notes for users of AMSFonts
+
+The device driver with which you are using these fonts may have a font table
+which needs to be updated in order for the driver to recognize the fonts. For
+instance, the preview software provided by ArborText has a file 
+which contains the names of all fonts which the preview
+program is expected to find, and the effective resolutions (resolution
+multiplied by  magnification) at which to find them. In order to use AMSFonts
+with this, or any other software which uses such a table, you must enter the
+names of each of the fonts in the AMSFonts package and the effective
+resolutions at which you have them installed.  The file {\tt amsfonts.lst},
+which appears on the first distribution disk or at the top 
+\filename{/amsfonts} level in Unix archive distributinos, 
+contains a list of all of the font names and all of
+the resolutions contained in your distribution. You may have to alter the
+format of this file to make it conform to your driver's needs or to reflect
+installation of only some of the fonts,  but it provides you with the necessary
+data. See the documentation for your device driver to see what format is
+required. If your device driver does not depend on such a table, this step is
+not necessary.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix{D}{For further information}
+
+The AMSFonts collection was implemented and packaged by the Society's
+Department of Electronic Products and Services.
+Questions or suggestions for improvements should be directed to that
+group at the following address:
+\begingroup
+\smallskip
+\parskip=0pt
+\TextAddr Technical Support
+  Electronic Products and Services
+  \AMS{}
+  \POBox 6248
+  Providence, RI 02940
+  \smallskip Phone: 800-321-4AMS\quad or\quad 401-455-4080
+  Internet: tech-support@math.ams.org<
+\endgroup
+
+\smallskip
+
+The cyrillic fonts included in the AMSFonts collection were developed
+at the Humanities and Arts Computing Center of the University of Washington.
+Questions regarding these cyrillic fonts should be directed to:
+\begingroup
+\smallskip
+\parskip=0pt
+\TextAddr Director
+  Humanities and Arts Computing Center
+  DR-10
+  University of Washington
+  Seattle, WA 98195
+  \smallskip Phone: 206-543-4218<
+\endgroup
+
+\smallskip
+
+Questions or comments concerning \Textures{} can be directed to:
+\begingroup
+\smallskip\parskip0pt
+\TextAddr
+Blue Sky Research
+534 Southwest Third Avenue
+Portland, OR 97204
+\smallskip
+Phone: 800-622-8398 \quad or \quad 503-222-9571<
+\endgroup
+
+\smallskip
+
+The \TUG{} is a good source of general information about fonts for use
+with \TeX.  Inquiries can be directed to:
+\begingroup
+\smallskip
+\parskip=0pt
+\TextAddr \TUG{}
+  \POBox 869
+  Santa Barbara, CA 93102-0869
+  \smallskip Phone: 805-963-1338
+  Internet: tug@tug.org<
+\endgroup
+
+
+\section{D.1} Obtaining the \MF{} source files
+
+The AMSFonts collection has been prepared for a number of different
+resolutions suitable for use on what the AMS staff has determined to be
+the most popular devices currently being used to prepare \TeX{} output.
+More such devices continue to appear, many of them with characteristics
+different from the devices that are currently supported.
+
+Users of unsupported devices who have access to an operating version of
+\MF{} and have some experience with generating \MF{} fonts may also wish to
+obtain the \MF{} source files for the AMSFonts collection. \MF{} source files
+are available on diskette from the Society, as well as via anonymous FTP from
+the Internet node e-MATH.ams.org.
+
+\MF{} source files for the cyrillic fonts in the AMSFonts collection can
+be obtained either from the Society or directly from the University of
+Washington.  The sources available from Washington also include other
+fonts in different layouts.  Information can be obtained from the
+director of the Academic Computing Center at the address given above.
+
+\bye

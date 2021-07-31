@@ -1,0 +1,78 @@
+Thu May 14 19:21:10 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Sat Apr 25 09:18:17 1992  Karl Berry  (karl@hayley)
+
+        * convert: sync after the pipe.
+
+        * Makefile (libs): new var to abbreviate `../libs.a $(LIBS)'.
+        (bibtex): use it.
+
+        * Makefile (distclean): new target.
+
+Thu Apr 23 12:07:32 1992  Karl Berry  (karl@hayley)
+
+        * Makefile: fix clean targets (from Andreas).
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Sun Apr 12 11:46:24 1992  Karl Berry  (karl@hayley)
+
+        * bibtex.ch: use BSTINPUTS to look for the BST file instead of
+          TEXINPUTS.
+
+Sat Apr 11 10:31:57 1992  Karl Berry  (karl@hayley)
+
+        * bibtex.ch (388): remove mutually exclusive test, instead of
+          fixing it.
+
+Fri Apr 10 17:26:30 1992  Karl Berry  (karl@hayley)
+
+        * small.diff: remake this so it works properly.
+
+        * Makefile (mostlyclean): remove cbibtex.ch.
+        (.ch.p): tangle with cbibtex.ch.
+
+Fri Apr  3 09:53:25 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Mon Mar 30 11:20:11 1992  Karl Berry  (karl at hayley)
+
+        * bibtex.ch (388): fix mutually exclusive tests.
+
+Fri Mar 20 16:14:05 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Fri Jan 24 09:08:31 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+        * bibtex.ch (max_ent_strs): reduce to 10000, as the previous value
+          allocated 2.5MB (even this allocates 1MB).
+
+Sun Jan 12 09:16:54 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (bibtex.o): remove -Dbswap=bswapp.  Why did I do this?
+
+        * Makefile (fileioh): no longer exists.
+
+        * convert (../common): now ../lib.
+
+Sat Jan 11 16:53:05 1992  Karl Berry  (karl at hayley)
+
+        * bibtex.ch (FILENAMESIZE): rename to `PATH_MAX'.
+
+        * Makefile: redo for new configuration.
+
+Tue Jan  7 16:09:55 1992  Karl Berry  (karl at hayley)
+
+        * bibtex.ch (10/main program): exit with bad status if history >
+          warning_message.

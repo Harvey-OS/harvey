@@ -58,7 +58,7 @@ and reports the results.
 	echo start > /dev/kpctl
 	runtest
 	echo stop > /dev/kpctl
-	kprof /386/9pcdisk /dev/kpdata
+	kprof /mips/9power /dev/kpdata
 .EE
 .SH SOURCE
 .B /sys/src/9/port/devkprof.c

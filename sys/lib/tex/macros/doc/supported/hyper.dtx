@@ -1,0 +1,1961 @@
+% \iffalse
+%% File: hyper.dtx Copyright (C) 1995 Michael Mehlich
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{tabularx}
+\makeatletter
+\let\TX@vwarn\relax
+\makeatother
+\IfFileExists{hyper.sty}{%
+  \message{*** Generating hypertext documentation ***}
+  \usepackage{hyper}%
+}{%
+  \def\hyperURL##1##2##3##4{##4}
+}
+\def\AmS{{\protect\usefont{OMS}{cmsy}{m}{n}%
+  A\kern-.1667em\lower.5ex\hbox{M}\kern-.125emS}}
+\def\amslatex{{\protect\AmS-\protect\LaTeXe}}
+%</driver>
+\def\fileversion{V2.3}
+\def\filedate{1995/02/12}
+\def\docdate{1995/02/12}
+%<*driver>
+\begin{document}
+  \title{HyperText Documents with \LaTeXe\\\fileversion}
+  \author{Michael Mehlich}
+  \date{\filedate}
+  \maketitle
+  \tableofcontents
+  \DocInput{hyper.dtx}
+\end{document}
+%</driver>
+% \fi
+% \CheckSum{2040}
+%%
+%% \CharacterTable
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%  Digits        \0\1\2\3\4\5\6\7\8\9
+%%  Exclamation   \!     Double quote  \"     Hash (number) \#
+%%  Dollar        \$     Percent       \%     Ampersand     \&
+%%  Acute accent  \'     Left paren    \(     Right paren   \)
+%%  Asterisk      \*     Plus          \+     Comma         \,
+%%  Minus         \-     Point         \.     Solidus       \/
+%%  Colon         \:     Semicolon     \;     Less than     \<
+%%  Equals        \=     Greater than  \>     Question mark \?
+%%  Commercial at \@     Left bracket  \[     Backslash     \\
+%%  Right bracket \]     Circumflex    \^     Underscore    \_
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%  Right brace   \}     Tilde         \~}
+%%
+% \MakeShortVerb{|}
+%
+% \title{Hyper\LaTeXe}
+% \maketitle
+%
+% \section{Introduction}
+% Traditional texts only have a linear structure given by its series of
+% characters. But this is not sufficient for any kind of documents one
+% may think of. Thus, recently the number of documents using a more
+% complex graphical structure (called ``hyper text'' documents) have 
+% increased.
+% 
+% This package provides the generation of such documents based on the
+% already given structure of \LaTeXe{}-documents without the document
+% writer having to consider new commands.
+%
+% \section{Usage}
+% 
+% Just insert |\usepackage{hyper}| in the preamble of your
+% \LaTeX2e--document as the last package to be loaded.\par
+% If you want to get an index or a glossary you have to
+% use the macros |\makeindex| resp.\ |\makeglossary| before loading
+% this package.\par
+% If you use the theorem package define the theorems via
+% |\newtheorem| after inserting the hyper package.\medskip
+% 
+% You may also give some options for the package, i.e.\ instead of 
+% the command above you may use |\usepackage[<option list>]{hyper}| 
+% in your preamble.\medskip
+%
+% \noindent Currently the following options are known:
+% \begin{itemize}
+%   \item |yes|, |no| 
+%			determine whether the hypertext marks are inserted
+%                       or not (default is |yes|)
+%   \item |black|, |gray|, |color|  
+%		        determine the colors anchors and references
+%                       are printed in (default is |black|)
+%   \item |amsart|, |amsbook|, |amsdtx|, |amsldoc|, |amsproc|, |article|,
+%	  |book|, |letter|, |ltxdoc|, |ltxguide|, |ltnews|, |proc|, 
+%	  |report|, |slides|
+%			determine the document class for which the
+%                       modifications are loaded
+%                       (default is the document class given via 
+%                       |\documentclass| if it can be derived)
+%   \item |leqno|     
+%			adds modifications for the document class option
+%			|leqno| (will be used automatically for known 
+%			document classes)
+%   \item |amsmath|, |amsthm|, |doc|, |ftnright|, |longtable|, |theorem|,
+%	  |upref| 
+%			add modifications for the corresponding package
+%                       (will be used automatically)
+%   \item |amstex|
+%			gives an error message as amslatex is supported only
+%			in native mode
+%			(will be used automatically)
+%   \item |xr|
+%			adds modifications for the package |xr| and
+%			redefines it's internal macro |\externaldocument|
+%			addint a new parameter determining the URL--address
+%			of the document for the cross references used
+%			(will be used automatically)
+%   \item |<other>|   
+%			adds a modification file |<other>.hyp| that has to
+%                       be provided by yourself
+% \end{itemize}
+%
+% \section{Macros Provided}
+% The following macros are defined by the package and may be used:
+% \begin{itemize}
+%    \item |\hyperanchor#1#2|
+%		lets |#1| being the hypertext anchor for |#2|
+%		(|#1| may neither be a natural number nor beginning
+%		 with |page.| or |fn.|)
+%    \item |\blindhyperanchor#1|
+%		lets |#1| being a hypertext anchor
+%		(|#1| may neither be a natural number nor beginning
+%		 with |page.| or |fn.|)
+%    \item |\hyperreference#1#2|
+%		lets |#2| being a reference to the anchor |#1|,
+%		(|#1| may not start with a |[|)
+%    \item |\hyperURL#1#2#3#4|
+%		lets |#4| be a reference to an external URL
+%		with type |#1|, domain |#2|, and document |#3|, i.e.\
+%		to the URL |#1://#2/#3|
+%    \item |\labeltext#1#2| 
+%		lets |#1| being the reference to the text |#2|
+%		and prints |#2|
+%    \item |\noref[#1]#2| 
+%		lets |#1| being a hypertext reference to the
+%		anchor |#2| without printing the reference
+%		(|#1| is not optional!)
+%    \item |\ref[#1]#2|
+%		is the same as \LaTeXe's original |#1~\ref{#2}| except that
+%		the hypertext reference is provided from the complete
+%		|#1~\ref{#2}| instead of |\ref{#2}| only
+%    \item |\pageref[#1]#2|
+%		is the same as |\ref| execpt that we get a reference to the
+%	  	page number 
+%    \item |\refcurrent#1|
+%		lets |#1| being a hypertext reference to the actual anchor
+%    \item |\refnext#1|
+%		lets |#1| being a hypertext reference to the next anchor
+%		that will be generated
+% \end{itemize}
+%
+% \noindent The following macros are redefined when using the 
+% corresponding packages:
+% \begin{itemize}
+%   \item for |xr|:
+%     \begin{itemize}
+%       \item |\externaldocument(#1)[#2]#3|, |\externaldocument[#1](#2)#3|
+%		are equivalent to the original |\externaldocument| of the
+%		|xr|--package except for the additional parameter surrounded
+%		by |(||)| determining the URL--address of the external
+%		document (the URL--type |file:| is added automatically)
+%		(default is |#3.dvi|)
+%     \end{itemize}    
+% \end{itemize}
+%
+% \section{How to View Hyper\LaTeXe--documents?}
+%
+% See URL
+% \hyperURL{http}{xxx.lanl.gov}{hypertex/}{|http://xxx.lanl.gov/hypertex/|} 
+% for this.
+%
+% \section{Bugs}
+% Currently there is only one known bug. Unfortunately it is one
+% that cannot be avoided. You have to care about this:
+% \begin{itemize}
+%   \item In indexing commands you may not use |]| without surrounding braces.
+%         If you do, \TeX{} will parse the command in a wrong way.
+%         To get the sorting of the index right you therefore should use
+%         |\index{A[zzzzB@A{]}B}| instead of |\index{A]B}|.
+% \end{itemize}
+%
+% \noindent Other bugs are not known by now. But surely there are some. 
+% Thus, if you detect one please report it with the package version and
+% a small example to\medskip
+%
+% |      Michael Mehlich|\par
+% |      mehlich@informatik.uni-muenchen.de|
+%
+% \clearpage
+% \section{History}
+% \leavevmode
+% \begin{tabularx}{\textwidth}{|c|l|X|r@{.}l|}
+% \hline
+% When & By & What & \multicolumn{2}{|c|}{V}
+% \\ \hline\hline
+% 1995/02/12 & Michael Mehlich &
+% support for package |xr| added\newline
+% handling of options improved
+% & 2&3
+% \\ \hline
+% 1995/02/11 & Michael Mehlich &
+% definition of |\label| corrected (bug introduced at 1995/01/31)
+% & 2&2b
+% \\ \hline
+% 1995/02/02 & Michael Mehlich &
+% macros for |amsthm| changed according to new definition in amslatex
+% & 2&2a
+% \\ \hline
+% 1995/02/01 & Michael Mehlich &
+% support for package |amslatex| added\newline
+% support for package |longtable| added
+% & 2&2
+% \\ \hline
+% 1995/01/31 & Michael Mehlich &
+% support for package |theorem| added\newline
+% catcodes of \verb+|+, |@|, and |!| for parsing the parameters of
+% |\index| and |\glossary| changed\newline
+% |\@makecaption| modified\newline
+% hypertext references in |eqnarray| corrected\newline
+% redefinition of |\label| changed
+% & 2&1
+% \\ \hline
+% 1995/01/30 & Michael Mehlich &
+% handling of series of page numbers for index/glossary added\newline
+% |\protected@write| stopped from inserting an extra space
+% & 2&0b
+% \\ \hline
+% 1995/01/29 & Michael Mehlich &
+% references from headers to sections for bibliography, index, glossary, and 
+% table of contents added
+% & 2&0a
+% \\ \hline
+% 1995/01/26 & Michael Mehlich & 
+% options to be handled are determined automatically know\newline
+% protected the anchor and reference adding macros instead of {\tt"}\newline
+% some internal algorithms changed\newline
+% some macro--names changed
+% & 2&0
+% \\ \hline
+% 1995/01/25 & Michael Mehlich & handling of index and glossary added & 1&3
+% \\ \hline
+% 1995/01/24 & Michael Mehlich & 
+% handling of options changed\newline 
+% color support for anchors and references added
+% & 1&2
+% \\ \hline
+% 1995/01/24 & Michael Mehlich & 
+% |\noref| added\newline 
+% bug in writing wrong page numbers to auxiliary files removed 
+% & 1&1
+% \\ \hline
+% 1995/01/20 & Michael Mehlich & 
+% protected {\tt"} for compatibility with the package |german.sty|
+% & 1&0g 
+% \\ \hline
+% 1995/01/12 & Michael Mehlich & 
+% initial version
+% & 1&0 
+% \\ \hline
+% \end{tabularx}
+% \StopEventually{}
+%
+% \clearpage
+% \section{The Realization}
+%
+% \subsection{The Package Header}
+% We need a version of \LaTeX2e{} dated with December 1, 1994 or newer. 
+% Thus, we just demand it.
+%    \begin{macrocode}
+%<*hyper>
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+%    \end{macrocode}
+% Now we introduce us.
+%    \begin{macrocode}
+\ProvidesPackage{hyper}[\filedate\space HyperLaTeX2e extension]
+%    \end{macrocode}
+%
+% \subsection{Special Characters}
+% First of all let us reserve some characters which are important and are
+% not preserved by every other package.
+%    \begin{macrocode}
+\bgroup
+  \catcode`\!00\relax
+  \catcode`\"12\relax
+  !catcode`!\12!relax
+  !gdef!hyper@quote{"}
+  !gdef!hyper@backslash{\}
+  !global!edef!hyper@hash{!string#} 
+!egroup
+%    \end{macrocode}
+% For compatibility with other packages this may need to be extended.
+% But for now we suppose this being sufficient.
+%
+% \subsection{The Basic Anchor/Reference-Entries}
+% We have to define some macros that allow us to insert the hypertext marks
+% for anchors and references into the resulting dvi-file. This can be
+% done by using the |\special|--macro.
+% But we have to be careful as we will write them to files. Hence, they
+% are fragile commands.\newline
+% The macro |\hyperreference| inserts a html-reference to an internal
+% label except when the first parameter begins with |[|. Then the 
+% parameter must have the form |[#1][#2]| where |#1| is an external URL and
+% |#2| an anchor within this URL. This is used when generating cross references
+% between documents.
+%    \begin{macrocode}
+\bgroup
+  \catcode`\<12\catcode`\>12\relax%
+  \catcode`\:12\catcode`\=12\catcode`\/12\relax%
+  \gdef\hyper{%
+    \def\set@fragilehyperreference##1##2{%
+      \ifvmode\leavevmode\fi%
+      \special{%
+        html:<a href=\hyper@quote##1\hyper@quote>%
+      }%
+        \hyper@ref@color{##2}%
+      \special{html:</a>}%
+    }%
+    \def\f@hyper@ref@ext[##1][##2]\end@hyper@ref{%
+      \set@fragilehyperreference{##1\hyper@hash##2}%
+    }
+    \def\f@hyper@ref@int##1\end@hyper@ref{%
+      \set@fragilehyperreference{\hyper@hash##1}%
+    }
+    \def\f@hyper@ref{%
+      \@ifnextchar[{\f@hyper@ref@ext}{\f@hyper@ref@int}%
+    }
+    \def\fragilehyperreference##1{%
+      \expandafter\expandafter\expandafter\f@hyper@ref##1\end@hyper@ref%
+    }
+    \def\fragilehyperanchor##1##2{%
+      \ifvmode\leavevmode\fi%
+      \special{%
+        html:<a name=\hyper@quote##1\hyper@quote>%
+      }%
+        \hyper@anchor@color{##2}%
+      \special{html:</a>}%
+    }
+    \def\fragileblindhyperanchor##1{%
+      \special{%
+        html:<a name=\hyper@quote##1\hyper@quote></a>%
+      }%
+    }
+    \def\fragilehyperURL##1##2##3##4{%
+      \ifvmode\leavevmode\fi%
+      \special{html:<a href=\hyper@quote##1://##2/##3\hyper@quote>}%
+        {##4}%
+      \special{html:</a>}%
+    }
+  }
+\egroup
+\hyper
+%    \end{macrocode}
+% Sometimes we need this package without being allowed to insert
+% the hypertext marks into the dvi--file.
+%    \begin{macrocode}
+\def\nohyper{%
+  \def\fragilehyperreference##1##2{\ifvmode\leavevmode\fi##2}%
+  \def\fragilehyperanchor##1##2{\ifvmode\leavevmode\fi##2}%
+  \def\fragileblindhyperanchor##1{}%
+  \def\fragilehyperURL##1##2##3##4{\ifvmode\leavevmode\fi##4}%
+}
+%    \end{macrocode}
+% Now lets protect the fragile commands.
+%    \begin{macrocode}
+\def\hyperreference{\protect\fragilehyperreference}
+\def\hyperanchor{\protect\fragilehyperanchor}
+\def\blindhyperanchor{\protect\fragileblindhyperanchor}
+\def\hyperURL{\protect\fragilehyperURL}
+%    \end{macrocode}
+%
+% \subsection{Colored Anchors/References}
+% Above we have used two macros |\hyper@ref@color| and |\hyper@anchor@color|
+% with which we can modify the text that is printed to the document.
+% As their name indicates we want to use them to color the anchors resp.\
+% references. Hence we should define some variants of these macros.\par
+% \noindent The first variant prints the text in different colors.
+%    \begin{macrocode}
+\def\hyper@color{%
+  \definecolor{refcolor}{rgb}{1,0,0}%
+  \definecolor{anchorcolor}{rgb}{0,1,0}%
+  \def\hyper@ref@color##1{\textcolor{refcolor}{##1}}%
+  \def\hyper@anchor@color##1{\textcolor{anchorcolor}{##1}}%
+}
+%    \end{macrocode}
+% If we do not have colors we may use gray text instead.
+%    \begin{macrocode}
+\def\hyper@gray{%
+  \definecolor{refcolor}{gray}{0.666}%
+  \definecolor{anchorcolor}{gray}{0.333}%
+  \def\hyper@ref@color##1{\textcolor{refcolor}{##1}}%
+  \def\hyper@anchor@color##1{\textcolor{anchorcolor}{##1}}%
+}
+%    \end{macrocode}
+% In ready to print documents we should not use these options but print
+% the text in ordinary black. This is also the default definition.
+%    \begin{macrocode}
+\def\hyper@black{%
+  \def\hyper@ref@color##1{##1}%
+  \def\hyper@anchor@color##1{##1}%
+}
+\hyper@black
+%    \end{macrocode} 
+%
+% \subsection{Automatic Generation of Anchor Names}
+% As we want to insert hypertext marks automatically we need a service that
+% provides new names for anchors. The simplest solution is to let the 
+% name be a natural number.\par
+% \noindent Thus we need an initialization for providing them.
+%    \begin{macrocode} 
+\newcount\hypercount
+\hypercount=0\relax
+\def\@currenthyper{}
+%    \end{macrocode}
+% Now we can compute the next anchor from the last one generated.
+%    \begin{macrocode}
+\def\hyper@setcurrent{%
+  \global\advance\hypercount1\relax%
+  \edef\@currenthyper{\the\hypercount}%
+}%
+%    \end{macrocode}
+% The automatic generation of anchor names leads to a little problem.
+% We have to ensure that |\@currenthyper| is expanded at an appropriate
+% time. Thus we define a macro that allow us to get an expanded
+% hypertext reference that is inserted after a not yet expanded
+% token list.
+%    \begin{macrocode}
+\def\hyper@ref@toggle#1#2#3{#3[\hyperreference{#1}{#2}]}
+\def\ref@by@expanded@hyper#1\end@hyper{{#1}}
+\def\callwithexpandedhyperref#1#2{%
+  \expandafter\expandafter\expandafter\hyper@ref@toggle%
+    \expandafter\ref@by@expanded@hyper\@currenthyper\end@hyper%
+  {#2}{#1}%
+}
+%    \end{macrocode}
+%
+% \subsection{HyperText Cross--Referencing for \LaTeXe}
+% For a replacement of \LaTeXe's cross--referencing features we need to
+% redefine the commands |\label| and |\ref|.\par
+% \noindent Let us first define a label command for writing the current
+% hypertext reference to the |.aux|--file. It must print three components 
+% of a label: the hypertext--anchor, the \LaTeXe--anchor, and the
+% \LaTeXe--page. This is due to the fact that we need to know not only 
+% the stuff we reference to but also the internal name of the anchor.
+%    \begin{macrocode}
+\def\hyperlabel#1{\@bsphack
+  \protected@write\@auxout{}%
+         {\string\newlabel{#1}%
+	   {{\@currenthyper}{\@currentlabel}{\hyper@thepage}}}%
+  \@esphack}
+%    \end{macrocode}
+% Now we need some auxiliary macros to be able to select each of the three
+% parts of the second argument of |\newlabel| that has been written to the
+% |.aux|--file
+%    \begin{macrocode}
+\def\@firstofthree#1#2#3{#1}
+\def\@secondofthree#1#2#3{#2}
+\def\@thirdofthree#1#2#3{#3}
+%    \end{macrocode}
+% When setting a reference to an anchor we also have to add the corresponding
+% hypertext link into the dvi-file.
+%    \begin{macrocode}
+\def\hyper@setref#1#2#3#4{%
+  \ifx#1\relax%
+     \protect\G@refundefinedtrue%
+     #4\nfss@text{\reset@font\bfseries ??}%
+     \@latex@warning{Reference `#3' on page \thepage \space undefined}%
+  \else%
+    \ifx#2\@firstofthree%
+      \hyperreference{\expandafter\@firstofthree#1}{#4}\null%
+    \else\ifx#2\@secondofthree%
+      \hyperreference%
+        {\expandafter\@firstofthree#1}%
+        {#4\expandafter#2#1\null}\null%
+    \else%
+      \hyperreference%
+        {page.\expandafter\@thirdofthree#1}%
+        {#4\expandafter#2#1\null}\null%
+    \fi\fi%
+  \fi%
+}
+%    \end{macrocode}
+% Outgoing from this we can define three macros |\hypernoref|, |\hyperref|, 
+% and |\hyperpageref| that correspond to the same \LaTeXe--macros where the
+% hyper does not occur. But we want to do a little bit more. Thus an
+% additional optional argument may be given to these macros to allow
+% the user to reference from a whole text and not only from the number 
+% to the anchor.
+%    \begin{macrocode}
+\def\@@hypernoref[#1]#2{%
+  \expandafter\hyper@setref\csname r@#2\endcsname%
+    \@firstofthree{#2}{#1}%
+}
+\def\@hypernoref[#1]{\@@hypernoref[#1]}
+\def\hypernoref{\@ifnextchar[{\@hypernoref}{\@@hypernoref[]}}
+\def\@@hyperref[#1]#2{%
+  \expandafter\hyper@setref\csname r@#2\endcsname%
+    \@secondofthree{#2}{#1}%
+}
+\def\@hyperref[#1]{\@@hyperref[#1~]}
+\def\hyperref{\@ifnextchar[{\@hyperref}{\@@hyperref[]}}
+\def\@@hyperpageref[#1]#2{%
+   \expandafter\hyper@setref\csname r@#2\endcsname%
+     \@thirdofthree{#2}{#1}%
+}
+\def\@hyperpageref[#1]{\@@hyperpageref[#1~]}
+\def\hyperpageref{\@ifnextchar[{\@hyperpageref}{\@@hyperpageref[]}}
+%    \end{macrocode}
+% Now let's patch \LaTeXe's ref/label-system:
+%    \begin{macrocode}
+\let\label\hyperlabel
+\let\noref\hypernoref
+\let\ref\hyperref
+\let\pageref\hyperpageref
+%    \end{macrocode}
+% Up to now we only can reference to anchors but haven't yet defined some.
+% This will be done in many of the following subsections.
+% \subsection{Other Cross--Referencing Features}
+% Though \LaTeXe{} has a very good reference mechanism this is not enough
+% for hypertext documents. The user should be able to add an anchor to
+% a text of his own choice.
+%    \begin{macrocode}
+\def\labeltext#1#2{%
+  \hyper@setcurrent%
+  \bgroup%
+    \def\@currentlabel{#2}%
+    \label{#1}%
+    \hyperanchor{\@currenthyper}{#2}%
+  \egroup%
+}
+%    \end{macrocode}
+% But that is not enought. Some of the macros of this package define anchors 
+% which cannot be caught by a |\label| command. But then it is the current or 
+% the next anchor generated. The following macros will allow us to reference 
+% to them:
+%    \begin{macrocode}
+\def\refcurrent#1{\hyperreference{\@currenthyper}{#1}}
+\def\hyper@next#1#2{\bgroup%
+  \hypercount=#1\relax\advance\hypercount1\relax%
+  \hyperreference{\the\hypercount}{#2}%
+\egroup}
+\def\refnext#1{\protect\hyper@next{\the\hypercount}{#1}}
+%    \end{macrocode}
+% But wait, there is more. \LaTeXe{} not only uses |\ref| and |\label|
+% for it's referencing mechanism but also |\refstepcounter| to determine
+% to what the next |\label| should reference.
+% This has to be reflected for the hypertext stuff.
+%    \begin{macrocode}
+\let\hyper@refstepcounter\refstepcounter
+\def\refstepcounter{\hyper@setcurrent\hyper@refstepcounter}
+%    \end{macrocode}
+% This is especially usefull for inserting links from the table of contents
+% to an unnumbered section like e.g.\ the references of a document.\par
+% \noindent As we will patch some latex internals below we also need
+% a macro that allow us to forget the next |\refstepcounter|.
+%    \begin{macrocode}
+\def\ignore@next@refstepcounter{%
+  \def\refstepcounter##1{%
+    \def\refstepcounter{\hyper@setcurrent\hyper@refstepcounter}%
+  }%
+}
+%    \end{macrocode}
+%
+% \subsection{Handling Page Numbers}
+% In documents many page numbers are given. Normally you can find one on
+% each page of the text. We want to reference to them from every other
+% place they can be found. Thus we define our own |\thepage| command 
+% dependent on the environment we are in.\par
+% \noindent At first we define the standard way to expand |\thepage|
+% that is |\thepage| references to the corresponding page.
+%     \begin{macrocode}
+\let\hyper@thepage\thepage
+\def\hyper@ref@page#1{\hyperreference{page.#1}{#1}}
+\def\hyper@refpage{\hyper@ref@page\hyper@thepage}
+\let\thepage\hyper@refpage
+%    \end{macrocode}
+% This definition has to be changed if we change the style used to
+% number the pages, e.g.\ roman, arabic, ...
+%    \begin{macrocode}
+\let\hyper@pagenumbering\pagenumbering
+\def\pagenumbering#1{%
+  \hyper@pagenumbering{#1}%
+  \global\let\hyper@thepage\thepage%
+  \global\let\thepage\hyper@refpage%
+}
+%    \end{macrocode}
+% But we do not want them to be printed into the auxiliary files
+% |.toc|, |.idx|, or |.glo|. Therefore we have to redefine the corresponding
+% macros.\par
+% \noindent For the |.toc| file we need to modify |\addcontentsline|.
+%    \begin{macrocode}
+\def\addcontentsline#1#2#3{%
+  \bgroup%
+    \protected@write\@auxout
+        {\let\label\@gobble \let\index\@gobble \let\glossary\@gobble }%
+        {\string\@writefile{#1}%
+           {\protect\contentsline{#2}{#3}{\hyper@thepage}}}%
+  \egroup%
+}
+%    \end{macrocode}
+% For indices the macro to patch is |\@wrindex|.
+%    \begin{macrocode}
+\def\@wrindex#1{%
+   \protected@write\@indexfile{}%
+      {\string\indexentry{#1}{\hyper@thepage}}%
+ \endgroup
+ \@esphack
+}
+%    \end{macrocode}
+% As sometimes glossaries will be printed also |\@wrglossary| has to be
+% changed.
+%    \begin{macrocode}
+\def\@wrglossary#1{%
+   \protected@write\@glossaryfile{}%
+      {\string\glossaryentry{#1}{\hyper@thepage}}%
+ \endgroup
+ \@esphack
+}
+%    \end{macrocode}
+% Unfortunately this is not enough to ensure the page numbers printed
+% into the toc file. Up to now we sometimes would get wrong numbers.
+% To resolve this problem we also have to patch |\protected@write|.
+%    \begin{macrocode}
+\let\hyper@protected@write\protected@write
+\def\protected@write#1#2#3{%
+  \begingroup%
+    \let\hyper@thepage\relax%
+    \hyper@protected@write{#1}{#2}{#3}%
+  \endgroup%
+}
+%    \end{macrocode}
+% But wait, we want to refer from the pages in the table of contents
+% to the corresponding page. Thus we have to recall the necessary
+% information when printing the table.
+%    \begin{macrocode}
+\let\hyper@contentsline\contentsline
+\def\contentsline#1#2#3{%
+  \hyper@contentsline{#1}{#2}{\hyper@ref@page{#3}}%
+}
+%    \end{macrocode}
+% The same is valid for indices and glossaries. But they are more
+% problematic. Hence we will handle them in a subsection of its own.\par
+% \noindent So far the result is a couple of references from page numbers
+% to pages. But we haven't defined the anchors they refer to.\par
+% \noindent To resolve this we have to modify headers and footers of
+% a page. This can be done for an arbitrary page style when we change
+% |\@shipoutsetup|.
+%    \begin{macrocode}
+\def\hyper@anchorpage{\hyperanchor{page.\hyper@thepage}{\hyper@thepage}}
+\let\hyper@shipoutsetup\@shipoutsetup
+\def\hyper@evenhead{\bgroup%
+  \let\thepage\hyper@anchorpage\@evenhead%
+\egroup}
+\def\hyper@oddhead{\bgroup%
+  \let\thepage\hyper@anchorpage\@oddhead%
+\egroup}
+\def\hyper@evenfoot{\bgroup%
+  \let\thepage\hyper@anchorpage\@evenfoot%
+\egroup}
+\def\hyper@oddfoot{\bgroup%
+  \let\thepage\hyper@anchorpage\@evenfoot%
+\egroup}
+\def\@shipoutsetup{%
+  \hyper@shipoutsetup%
+     \if@twoside%
+       \ifodd\count\z@%
+         \let\@thehead\hyper@oddhead%
+         \let\@thefoot\hyper@oddfoot%
+         \let\@themargin\oddsidemargin%
+       \else%
+         \let\@thehead\hyper@evenhead%
+         \let\@thefoot\hyper@evenfoot%
+         \let\@themargin\evensidemargin%
+       \fi%
+     \else%
+       \let\@thehead\hyper@oddhead%
+       \let\@thefoot\hyper@oddfoot%
+     \fi%
+}
+%    \end{macrocode}
+% Hopefully we do not use a page number twice.\par
+% \noindent But there is more to do. Testing the macros we have written
+% we would get \LaTeXe--warnings where page numbers contain the whole
+% reference information. This should be avoided.
+%    \begin{macrocode}
+\let\hyper@latex@warning\@latex@warning
+\def\@latex@warning#1{%
+  \bgroup%
+    \let\thepage\hyper@thepage%
+    \hyper@latex@warning{#1}%
+  \egroup%
+}
+%    \end{macrocode}
+%
+% \subsection{Table of Contents}
+% In the subsection ``Handling of Pages'' we already have inserted
+% references from the page number to the corresponding page.
+% Now we want to add further references from the title of an entrie
+% in the table of contents to the corresponding text within the
+% document.\par
+% \noindent To do that we have to modify the corresponding sectioning commands.
+%     \begin{macrocode}
+\let\hyper@sect\@sect
+\def\@sect#1#2#3#4#5#6[#7]#8{%
+  \ifnum #2>\c@secnumdepth%
+    \hyper@setcurrent%
+  \else%
+    \refstepcounter{#1}%
+    \ignore@next@refstepcounter%
+  \fi%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref%
+    {\hyper@sect{#1}{#2}{#3}{#4}{#5}{#6}}%
+    {#7}%
+    {\hyperanchor{\@currenthyper}{#8}}
+}
+\let\hyper@ssect\@ssect
+\def\@ssect#1#2#3#4#5{%
+  \hyper@setcurrent%
+  \global\let\@currenthyper\@currenthyper%
+  \hyper@ssect{#1}{#2}{#3}{#4}{\hyperanchor{\@currenthyper}{#5}}%
+}
+%</hyper>
+%    \end{macrocode}
+% The classes |book| and |report| additionally define a |\chapter| command.
+% Unfortunately they do it in a different way. But the differences are fairly
+% small. Thus we will use nearly the same definition.  
+%    \begin{macrocode}
+%<*book,report>
+\let\hyper@chapter\@chapter
+\let\hyper@schapter\@schapter
+\def\@chapter[#1]#2{%
+  \ifnum\c@secnumdepth>\m@ne%
+%</book,report>
+%<*book>
+    \if@mainmatter%
+%</book>
+%<*book,report>
+      \refstepcounter{chapter}%
+      \ignore@next@refstepcounter%
+%</book,report>
+%<*book>
+    \else%
+      \hyper@setcurrent%
+    \fi%
+%</book>
+%<*book,report>
+  \else%
+    \hyper@setcurrent%
+  \fi%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref%
+    {\hyper@chapter}%
+    {#1}%
+    {\hyperanchor{\@currenthyper}{#2}}%
+}
+\def\@schapter#1{%
+  \hyper@setcurrent%
+  \global\let\@currenthyper\@currenthyper%
+  \hyper@schapter{\hyperanchor{\@currenthyper}{#1}}%
+}
+%</book,report>
+%    \end{macrocode}
+% There is also a |\part|--macro defined in the classes |article|, |book|,
+% |ltnews|, |ltxdoc|, |ltxguide|, |proc|, and |report|.
+% Unfortunately there are two different definitions we have to modify.
+% But they differ only in a constant in a conditional expression.
+% Thus we can use a nearly common definition.
+%    \begin{macrocode}
+%<*article,book,ltnews,ltxdoc,ltxguide,proc,report>
+\let\hyper@part\@part
+\def\@part[#1]#2{%
+  \ifnum\c@secnumdepth>%
+%</article,book,ltnews,ltxdoc,ltxguide,proc,report>
+%<*article,ltnews,ltxdoc,ltxguide,proc>
+-1\relax%
+%</article,ltnews,ltxdoc,ltxguide,proc>
+%<*book,report>
+-2\relax%
+%</book,report>
+%<*article,book,ltnews,ltxdoc,ltxguide,proc,report>
+      \refstepcounter{part}%
+      \ignore@next@refstepcounter%
+  \else%
+    \hyper@setcurrent%
+  \fi%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref%
+    {\hyper@part}%
+    {#1}%
+    {\hyperanchor{\@currenthyper}{#2}}%
+}
+\let\hyper@spart\@spart
+\def\@spart#1{%
+  \hyper@setcurrent%
+  \global\let\@currenthyper\@currenthyper%
+  \hyper@spart{\hyperanchor{\@currenthyper}{#1}}%
+}
+%</article,book,ltnews,ltxdoc,ltxguide,proc,report>
+%    \end{macrocode}
+% Now we do not only get references from the table of contents to the
+% corresponding sections but also from the headers and footers to them.
+% There is only one exception these references are not inserted:
+% If we used the |*|--ed variants of the sectioning commands the marks
+% are not inserted in the headers.\par
+% \noindent For bibliography, glossary, index, and table of contents 
+% this can be changed by modifying |\@mkboth|.
+%    \begin{macrocode}
+%<*article,book,ltnews,ltxdoc,ltxguide,proc,report>
+\def\hyper@mkboth@do[#1][#2]{%
+  \markboth{#1}{#2}%
+}
+\def\hyper@mkboth#1#2{%
+  \callwithexpandedhyperref%
+    {\callwithexpandedhyperref{\hyper@mkboth@do}{#1}}%
+    {#2}%
+}
+%    \end{macrocode}
+% As marks are only inserted when using the pagestyle ``headings'',
+% the corresponding macro has to be modified to get the desired result.
+%    \begin{macrocode}
+\let\hyper@ps@headings\ps@headings
+\def\ps@headings{%
+  \hyper@ps@headings%
+  \let\@mkboth\hyper@mkboth%
+}
+%</article,book,ltnews,ltxdoc,ltxguide,proc,report>
+%    \end{macrocode}
+% Last but not least set the new page style.
+%    \begin{macrocode}
+%<*book,report>
+\pagestyle{headings}
+%</book,report>
+%    \end{macrocode}
+% Unfortunately, the package |doc.sty| modifies the |theindex| environment
+% in a way that the above changes do not work correctly with it.
+% Hence, we have to modify this environment to resolve this.
+%    \begin{macrocode}
+%<*doc>
+\let\hyper@index@prologue\index@prologue
+\def\index@prologue{%
+  \let\hyper@markboth@ip\markboth%
+  \def\markboth##1##2{%
+    \xdef\hyper@tmpa{\refcurrent{##1}}%
+    \xdef\hyper@tmpb{\refcurrent{##2}}%
+    \hyper@markboth@ip{\hyper@tmpa}{\hyper@tmpb}%
+    \let\markboth\hyper@markboth@ip%
+  }%
+  \hyper@index@prologue%
+}
+%</doc>
+%    \end{macrocode}
+%
+% \subsection{Bibliography}
+% We want to reference from citation points within the text,
+% given by |\cite|, to the corresponding entry in the bibliography.
+% To realize this we only have to modify the |\bibitem|--macro.
+%    \begin{macrocode}
+%<*hyper>
+\def\@lbibitem[#1]#2{%
+  \hyper@setcurrent%
+  \item[\@biblabel{\hyperanchor{\@currenthyper}{#1}}\hfill]%
+  \if@filesw%
+      {\let\protect\@unexpandable@protect%
+       \immediate%
+       \write\@auxout{%
+         \string\bibcite{#2}{\hyperreference{\@currenthyper}{#1}}%
+       }%
+      }%
+  \fi%
+  \ignorespaces%
+}
+\def\@bibitem{%
+  \stepcounter{\@listctr}%
+  \@lbibitem[\the\value{\@listctr}]%
+}
+%    \end{macrocode}
+%
+% \subsection{Equations}
+% The goal is to reference to the equation number in equations and
+% arrays of equations. This is really simple to do.
+%    \begin{macrocode}
+\def\@eqnnum{%
+  \hyperanchor{\@currenthyper}{\reset@font\rmfamily (\theequation)}%
+}
+\let\hyper@eqnarray\eqnarray
+\def\eqnarray{%
+  \hyper@setcurrent%
+  \def\@currenthyper{\the\hypercount}%
+  \hyper@eqnarray%
+}
+\let\hyper@eqncr\@eqncr
+\def\@eqncr{\hyper@eqncr\hyper@setcurrent}
+%</hyper>
+%    \end{macrocode}
+% There is a document class option |leqno| that has to be redefined for us.
+%    \begin{macrocode}
+%<*leqno>
+\def\@eqnnum{%
+  \hbox to .01\p@{}%
+  \rlap{\reset@font\rmfamily%
+        \hskip -\displaywidth%
+	\hyperanchor{\@currenthyper}{\reset@font\rmfamily (\theequation)}%
+       }%
+}
+%</leqno>
+%    \end{macrocode}
+%
+% \subsection{Float Captions}
+% What do you think we want to do here? Simply using |\caption| to define
+% an anchor that may be used to refer to the current float.
+%     \begin{macrocode}
+%<*hyper>
+\long\def\@caption#1[#2]#3{\par%
+  \addcontentsline%
+    {\csname ext@#1\endcsname}%
+    {#1}%
+    {\protect\numberline{\csname the#1\endcsname}%
+     {\ignorespaces \hyperreference{\@currenthyper}{#2}}%
+    }%
+  \begingroup%
+    \@parboxrestore%
+    \normalsize%
+    \@makecaption{\csname fnum@#1\endcsname}{\ignorespaces #3}\par%
+  \endgroup%
+}
+%</hyper>
+%    \end{macrocode}
+% Obviously we need to modify |\@makecaption| to define the anchor. 
+% As this macro is defined only for the classes |article|, |book|, 
+% |ltnews|, |ltxdoc|, |ltxguide|, |proc|,  and |report| we redefine 
+% it only for them.
+%    \begin{macrocode}
+%<*article,book,ltnews,ltxdoc,ltxguide,proc,report>
+\let\hyper@makecaption\@makecaption
+\long\def\@makecaption#1#2{%
+  \hyper@makecaption{\hyperanchor{\@currenthyper}{#1}}{#2}%
+}
+%</article,book,ltnews,ltxdoc,ltxguide,proc,report>
+%    \end{macrocode}
+%
+% \subsection{Footnotes}
+% Here we want to handle references from footnotemarks to footnotes
+% at the bottom of the page.\par
+% \noindent At first modify the standard definition of |\@makefnmark| to
+% refer to a footnote.
+%    \begin{macrocode}
+%<*hyper>
+\def\@makefnmark{%
+  \hbox{$^{\hyperreference%
+             {fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage}%
+             {\@thefnmark}%
+          }\m@th$%
+       }%
+}
+%</hyper>
+%    \end{macrocode}
+% Unfortunately, the definition of |\@makefntext| is dependent of the 
+% document class we use.\par
+% \noindent For |article|, |book|, |ltnews|, |ltxdoc|, |ltxguide|, |proc|, 
+% and |report| we have to use the following hypertext--variant.
+%    \begin{macrocode}
+%<*article,book,ltnews,ltxproc,ltxguide,proc,report>
+\long\def\@makefntext#1{%
+  \bgroup%
+    \edef\@currenthyper{%
+       fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+    }%
+    \parindent 1em%
+    \noindent%
+    \hbox to 1.8em%
+      {\hss$^{\hyperanchor{\@currenthyper}{\@thefnmark}}\m@th$}#1%
+  \egroup%
+}
+%</article,book,ltnews,ltxproc,ltxguide,proc,report>
+%    \end{macrocode}
+%For |letter| we need the following.
+%    \begin{macrocode}
+%<*letter>
+\long\def\@makefntext#1{%
+  \bgroup%
+    \edef\@currenthyper{%
+       fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+    }%
+    \noindent%
+    \hangindent 5\p@%
+    \hbox to5\p@{$^{\hyperanchor{\@currenthyper}{\@thefnmark}}\m@th$}#1%
+  \egroup%
+}
+%</letter>
+%    \end{macrocode}
+% And last but not least the definition for |slides| follows.
+%    \begin{macrocode}
+%<*slides>
+\long\def\@makefntext#1{%
+  \bgroup%
+    \edef\@currenthyper{%
+       fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+    }%
+    \noindent%
+    \hangindent 10\p@%
+    \hbox to10\p@{%
+      $^{\hyperanchor{\@currenthyper}{\@thefnmark}}\m@th$%
+    }#1%
+  \egroup%
+}
+%</slides>
+%    \end{macrocode}
+% There are also footnotes within minipages. Therefore we should handle them.
+%    \begin{macrocode}
+%<*hyper>
+\newcount\hyper@minipage@cnt
+\hyper@minipage@cnt=0
+\edef\hyper@minipage@label{}
+\let\hyper@minipage\minipage
+\let\hyper@endminipage\endminipage
+\def\minipage{%
+  \bgroup%
+    \global\advance\hyper@minipage@cnt1\relax%
+    \edef\hyper@minipage@label{\the\hyper@minipage@cnt}%
+    \hyper@minipage%
+}
+\def\endminipage{%
+    \hyper@endminipage%
+  \egroup%
+}
+%</hyper>
+%    \end{macrocode}
+% Note, that there exists only one level of minipages the footnotes 
+% are handled correctly by \LaTeXe. Thus we haven't to do more.\par
+% \noindent Unfortunately there is another problem. The footnote--macros
+% are redefined by the |\maketitle|--macro in some classes.\par
+% \noindent Thus we need the following changes for the classes
+% |\article|, |\book|, |ltxdoc|, |ltxguide|, and |\report|.
+%    \begin{macrocode}
+%<*article,book,ltxdoc,ltxguide,report>
+\if@titlepage\else
+\renewcommand\maketitle{\par
+  \begingroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \def\@makefnmark{%
+      \hbox to\z@{%
+        $\m@th^{%
+           \hyperreference{%
+              fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+           }%
+           {\@thefnmark}%
+         }$\hss}%
+    }%
+    \long\def\@makefntext##1{%
+      \bgroup%
+        \edef\@currenthyper{%
+           fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+        }%
+        \parindent 1em%
+        \noindent%
+        \hbox to1.8em%
+          {\hss$\m@th^{\hyperanchor{\@currenthyper}{\@thefnmark}}$}##1%
+       \egroup%
+    }%
+    \if@twocolumn
+      \ifnum \col@number=\@ne
+        \@maketitle
+      \else
+        \twocolumn[\@maketitle]%
+      \fi
+    \else
+      \newpage
+      \global\@topnum\z@
+      \@maketitle
+    \fi
+    \thispagestyle{plain}\@thanks
+  \endgroup
+  \setcounter{footnote}{0}%
+  \let\thanks\relax
+  \let\maketitle\relax\let\@maketitle\relax
+  \gdef\@thanks{}\gdef\@author{}\gdef\@title{}}
+\fi
+%</article,book,ltxdoc,ltxguide,report>
+%    \end{macrocode}
+% For the class |proc| another redefinition is needed.
+%    \begin{macrocode}
+%<*proc>
+\def\maketitle{\par
+ \begingroup
+   \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \def\@makefnmark{%
+      \hbox to\z@{%
+         $\m@th^{%
+            \hyperreference{%
+               fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+            }%
+            {\@thefnmark}%
+          }$\hss
+      }%
+    }%
+   \twocolumn[\@maketitle]%
+   \@thanks
+ \endgroup
+ \setcounter{footnote}{0}%
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+%</proc>
+%    \end{macrocode}
+%
+% \subsection{Lists}
+% Some lists have enumerated items which may be referenced to by the
+% label command. Hence we have to set the corresponding anchors.
+%    \begin{macrocode}
+%<*hyper>
+\let\hyper@item\@item
+\def\@item[#1]{%
+  \if@noitemarg%
+    \if@nmbrlist%
+      \hyper@item[\hyperanchor{\@currenthyper}{#1}]%
+    \else%
+      \hyper@item[#1]%
+    \fi%
+  \else%
+    \hyper@item[#1]%
+  \fi%
+}
+%    \end{macrocode}
+%
+% \subsection{Index and Glossary}
+% As already have been said, we don't write the page number together with a 
+% reference to |.idx|-- resp.\ |.glo|--files. |makeindex| wouldn't accept
+% such informations. But that means that we have to think of a way to get
+% back the references after |makeindex| has generated the index resp.\
+% glossary.\par
+% \noindent We only want to insert this stuff if we really have to produce 
+% an index or a glossary.
+%    \begin{macrocode}
+\ifnum%
+  \ifx\@indexfile\@undefined0\else1\fi%
+  \ifx\@glossaryfile\@undefined0\else1\fi%
+  >0\relax
+%    \end{macrocode}
+% \noindent For the following definition we need the |defpattern|-package.
+%    \begin{macrocode}
+\RequirePackage{defpattern}
+%    \end{macrocode}
+% Now we can define hypertext variants of the macros |\index| and
+% |\glossary|.\par
+% \noindent First of all we handle series of page numbers and ranges.
+%    \begin{macrocode}
+\defpattern\hyper@page@range[#2]{\hyper@ref@page{#2}}
+\defpattern\hyper@page@range[#2--#3]{%
+  \hyper@ref@page{#2}--\hyper@ref@page{#3}%
+}
+\defpattern\hyper@page@range[#2, #3]{%
+  \hyper@page@range[#2], \hyper@page@range[#3]%
+}
+%    \end{macrocode}
+% Based on this we can define a macro |\hyperpage| with an optional executable 
+% macro as provided by the indexing system to surround a page number.
+%    \begin{macrocode}
+\def\hyper@page@cmd[#1]#2{#1{\hyper@page@range[#2]}}
+\def\hyper@page@nocmd#1{\hyper@page@range[#1]}
+\def\hyperpage{\@ifnextchar[{\hyper@page@cmd}{\hyper@page@nocmd}}
+%    \end{macrocode}
+% After saving the original meaning of |\index| and |\glossary|
+%    \begin{macrocode}
+\let\hyper@index\index
+\let\hyper@glossary\glossary
+%    \end{macrocode}
+% we can insert the page number surrounding command for |makeindex| by
+%    \begin{macrocode}
+\defpattern\hyper@ig@pat[#2|#3]{#2{#3|hyperpage}}
+\defpattern\hyper@ig@pat[#2|#3|#4]{%
+  #2{#3|hyperpage[\hyper@backslash#4]}%
+}
+\defpattern\hyper@ig@pat[#2|#3|(#4]{%
+  #2{#3|(hyperpage[\hyper@backslash#4]}%
+}
+\defpattern\hyper@ig@pat[#2|#3|)#4]{%
+  #2{#3|)hyperpage[\hyper@backslash#4]}%
+}
+\defpattern\hyper@ig@pat[#2|#3|(]{#2{#3|(hyperpage}}
+\defpattern\hyper@ig@pat[#2|#3|)]{#2{#3|)hyperpage}}
+%    \end{macrocode}
+% and define the new |\index|-- and |\glossary|--macros as follows.
+%    \begin{macrocode}
+\def\hyper@ig{%
+  \bgroup%
+    \catcode`\|12\catcode`\@12\catcode`\!12\relax%
+    \hyper@ig@%
+}
+\def\hyper@ig@#1#2{%
+    \hyper@ig@pat[#1|#2]%
+  \egroup%
+}
+\def\index{\hyper@ig\hyper@index}
+\def\glossary{\hyper@ig\hyper@glossary}
+%    \end{macrocode}
+% We have reached the end of the conditional part
+%    \begin{macrocode}
+\fi
+%    \end{macrocode}
+%
+% \subsection{Theorems}
+% Theorems, Lemmatas, Corollaries, Examples, etc.\ are often refered to. Hence
+% they have to introduce an anchor for these references.
+%    \begin{macrocode}
+\let\hyper@begintheorem\@begintheorem%
+\def\@begintheorem#1#2{\trivlist%
+   \item[\hskip%
+         \labelsep{\hyperanchor{\@currenthyper}{\bfseries #1\ #2}}%
+        ]\itshape%
+}
+\def\@opargbegintheorem#1#2#3{\trivlist%
+      \item[\hskip%
+            \labelsep%
+               {\hyperanchor{\@currenthyper}{\bfseries #1\ #2}\ (#3)}%
+           ]\itshape%
+}
+%</hyper>
+%    \end{macrocode}
+% These definitions are changed by the theorem--package. Hence, we have to
+% give hypertext definitions for them in future.
+%
+% \subsection{Additional Patches}
+% The Hyper\TeX--previewer for NeXTSTEP can't handle multiple pages with the
+% same name correctly. It supposes that each link on a page number 1 is on 
+% the first page with the number one. This is a problem for the title page
+% often having the same number as one of the following pages. Hence we patch
+% the page number of the title page from 1 to -1. 
+%    \begin{macrocode}
+%<*article,book,ltnews,ltxdoc,ltxguide,proc,report>
+\let\hyper@titlepage\titlepage
+\def\titlepage{%
+  \hyper@titlepage%
+  \if@compatibility%
+     \global\setcounter{page}{0}%
+  \else%
+     \global\setcounter{page}{-1}%
+  \fi%
+}
+%</article,book,ltnews,ltxdoc,ltxguide,proc,report>
+%    \end{macrocode}
+%
+% \subsection{Handling Options}
+% At first let us define some macros to collect and detect mutually 
+% excluding options.
+%    \begin{macrocode}
+%<*hyper>
+\def\hyper@set@option#1#2#3{%
+  \ifx#1\@undefined%
+    \def#1{#2}%
+  \else%
+    \errmessage{#3}%
+  \fi}
+\def\set@hyper@class#1{%
+  \hyper@set@option\hyper@class{#1}%
+    {Only one class is allowed in option list}%
+}
+\def\set@hyper@do#1{%
+  \hyper@set@option\hyper@do{#1}%
+    {Excluding options 'yes' and 'no' in option list found}%
+}
+\def\set@hyper@color#1{%
+  \hyper@set@option\hyper@this@color{#1}%
+    {Multiple color options in option list found}%
+}
+%    \end{macrocode}
+% We suppose each other option given being an additional package.
+% They are collected without regarding multiple occurrences.
+%    \begin{macrocode}
+\def\hyper@packages{}
+\def\add@hyper@package#1{%
+  \edef\hyper@packages{\hyper@packages(#1)}%
+}
+%    \end{macrocode}
+% Now we define the options known to distribute them between the macros
+% given above.\par
+% \noindent The document classes known by the package are the following.
+%    \begin{macrocode}
+\DeclareOption{article}{\set@hyper@class{article}}
+\DeclareOption{book}{\set@hyper@class{book}}
+\DeclareOption{letter}{\set@hyper@class{letter}}
+\DeclareOption{ltxdoc}{\set@hyper@class{ltxdoc}}
+\DeclareOption{ltxguide}{\set@hyper@class{ltxguide}}
+\DeclareOption{ltnews}{\set@hyper@class{ltnews}}
+\DeclareOption{proc}{\set@hyper@class{proc}}
+\DeclareOption{report}{\set@hyper@class{report}}
+\DeclareOption{slides}{\set@hyper@class{slides}}
+\DeclareOption{amsart}{\set@hyper@class{amsart}}
+\DeclareOption{amsproc}{\set@hyper@class{amsproc}}
+\DeclareOption{amsbook}{\set@hyper@class{amsbook}}
+\DeclareOption{amsdtx}{\set@hyper@class{amsdtx}}
+\DeclareOption{amsldoc}{\set@hyper@class{amsldoc}}
+%    \end{macrocode}
+% There are two options determining whether we want to insert the 
+% hypertext--marks into the dvi--file.
+%    \begin{macrocode}
+\DeclareOption{yes}{\set@hyper@do{\hyper}}
+\DeclareOption{no}{\set@hyper@do{\nohyper}}
+%    \end{macrocode}
+% In the subsection ``Colored Anchors/References'' we have introduced 
+% three variants of colors the anchors resp.\ references may be printed in.
+%    \begin{macrocode}
+\DeclareOption{color}{\set@hyper@color{\hyper@color}}
+\DeclareOption{gray}{\set@hyper@color{\hyper@gray}}
+\DeclareOption{black}{\set@hyper@color{\hyper@black}}
+%    \end{macrocode}
+% All other options to be given are considered as packages.
+%    \begin{macrocode}
+\DeclareOption*{\add@hyper@package{\CurrentOption}}
+%    \end{macrocode}
+% Now let's collect the options given.
+%    \begin{macrocode}
+\ProcessOptions
+%    \end{macrocode}
+% So far now we know the options the user has send to us.\par
+% \noindent If no option determining a document class has been given we should 
+% try to determine which class the document is of.
+%    \begin{macrocode}
+\ifx\hyper@class\@undefined
+  \@ifclassloaded{slides}{\def\hyper@class{slides}}{}
+  \@ifclassloaded{report}{\def\hyper@class{report}}{}
+  \@ifclassloaded{letter}{\def\hyper@class{letter}}{}
+  \@ifclassloaded{book}{\def\hyper@class{book}}{}
+  \@ifclassloaded{article}{\def\hyper@class{article}}{}
+  \@ifclassloaded{proc}{\def\hyper@class{proc}}{}
+  \@ifclassloaded{ltnews}{\def\hyper@class{ltnews}}{}
+  \@ifclassloaded{ltxguide}{\def\hyper@class{ltxguide}}{}
+  \@ifclassloaded{ltxdoc}{\def\hyper@class{ltxdoc}}{}
+  \@ifclassloaded{amsart}{\def\hyper@class{amsart}}{}
+  \@ifclassloaded{amsproc}{\def\hyper@class{amsproc}}{}
+  \@ifclassloaded{amsbook}{\def\hyper@class{amsbook}}{}
+  \@ifclassloaded{amsdtx}{\def\hyper@class{amsdtx}}{}
+  \@ifclassloaded{amsldoc}{\def\hyper@class{amsldoc}}{}
+\fi
+%    \end{macrocode}
+% If there is a document class load the corresponding |.hyp|--file
+% otherwise give an error message.
+%    \begin{macrocode}
+\ifx\hyper@class\@undefined
+  \errmessage{Document class can't be determined. %
+              Please add one to the option list.%
+	     }
+\else
+  \InputIfFileExists{\hyper@class.hyp}{}%
+    {\errmessage{\hyper@class.hyp not found. %
+                 Please reinstall the complete package%
+                }%
+    }%
+\fi
+%    \end{macrocode}
+% If we want to print the anchors resp.\ references in colors we have to 
+% load the |color|-package and defined the appropriate macros.
+%    \begin{macrocode}
+\ifx\hyper@this@color\@undefined
+\else
+  \expandafter\ifx\hyper@this@color\hyper@gray
+    \RequirePackage{color}
+  \else\expandafter\ifx\hyper@this@color\hyper@color
+    \RequirePackage{color}
+  \fi\fi
+  \hyper@this@color
+\fi
+%    \end{macrocode}
+% Afterwards we have to load modifications.\par
+% \noindent At first we just handle the document class option |leqno|
+% if it can be found in the option list.
+%    \begin{macrocode}
+\@ifclasswith\hyper@class{leqno}%
+  {\InputIfFileExists{leqno.hyp}{}%
+     {\errmessage{leqno.hyp not found. %
+                  Please reinstall the complete package%
+                 }%
+     }%
+  }%
+  {}
+%    \end{macrocode}
+% We may have to handle some known packages, i.e.\ we need to load
+% some modifications for them.\par
+% \noindent As there is a common way to do this let us first define 
+% a generic macro.
+%    \begin{macrocode}
+\def\hyper@loadpackage#1{%
+  \@ifpackageloaded{#1}%
+    {\InputIfFileExists{#1.hyp}%
+       {\expandafter\edef\csname hyper@loaded@#1\endcsname{#1.hyp}}%
+       {\errmessage{#1.hyp not found. %
+                    Please reinstall the complete package%
+                   }%
+       }%
+    }%
+    {}
+}
+%    \end{macrocode}
+% Now we can call this macro for each package known.
+%    \begin{macrocode}
+\hyper@loadpackage{amsmath}
+\hyper@loadpackage{amstex}
+\hyper@loadpackage{amsthm}
+\hyper@loadpackage{doc}
+\hyper@loadpackage{ftnright}
+\hyper@loadpackage{longtable}
+\hyper@loadpackage{theorem}
+\hyper@loadpackage{upref}
+\hyper@loadpackage{xr}
+%    \end{macrocode}
+% Afterwards we add each package the user has told us to do.
+%    \begin{macrocode}
+\def\@hyper@load@pkg(#1){%
+  \expandafter\ifx\csname hyper@loaded@#1\endcsname\relax%
+    \IfFileExists{#1.hyp}%
+      {\RequirePackage{#1}%
+       \input{#1.hyp}%
+       \expandafter\edef\csname hyper@loaded@#1\endcsname{#1.hyp}%
+      }%
+      {\errmessage{Modification file #1.hyp not found}}%
+  \fi%
+  \hyper@loadpackage%
+}
+\def\hyper@loadpackage{\@ifnextchar({\@hyper@load@pkg}{}}
+\expandafter\hyper@loadpackage\hyper@packages\relax
+%    \end{macrocode}
+% Last but not least we have to decide whether we really want the 
+% hypertext--marks being inserted into the dvi--file.
+%    \begin{macrocode}
+\ifx\hyper@do\@undefined\else\hyper@do\fi
+%</hyper>
+%    \end{macrocode}
+%
+% \clearpage
+% \section{Supported Packages}
+%
+% \subsection{\amslatex}
+% \subsubsection{The Classes}
+% First of all let us modify the \amslatex--classes.\par
+% \noindent We change |amsart.cls|, |amsproc.cls|, and |amsbook.cls| 
+% in the following way.
+%    \begin{macrocode}
+%<*amsart,amsproc,amsbook>
+\let\hyper@makecaption\@makecaption
+\def\@makecaption#1#2{%
+  \hyper@makecaption{\hyperanchor{\@currenthyper}{#1}}{#2}%
+}
+\def\@makefnmark{%
+  \hbox{$\m@th^{\hyperreference%
+                  {fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage}%
+                  {\@thefnmark}%
+               }$%
+       }%
+}
+\def\@makefntext{\indent%
+  \hbox{$\m@th^{\hyperanchor%
+                  {fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage}%
+                  {\@thefnmark}%
+               }$%
+       }%
+}
+\let\hyper@tocwriteb\@tocwriteb
+\def\hyper@tocwriteb@def[#1]{%
+    \def\@tocwriteb##1##2##3{%
+       \hyper@tocwriteb{##1}{##2}{#1}%
+       \let\@tocwriteb\hyper@tocwriteb%
+    }%
+}
+\def\@sect#1#2#3#4#5#6[#7]#8{%
+  \ifnum#2>\c@secnumdepth%
+    \hyper@setcurrent%
+  \else%
+    \refstepcounter{#1}%
+    \ignore@next@refstepcounter%
+  \fi%
+  \ifnum#2>\@m\else%
+    \callwithexpandedhyperref{\hyper@tocwriteb@def}{#8}%
+  \fi%
+  \callwithexpandedhyperref%
+    {\hyper@sect{#1}{#2}{#3}{#4}{#5}{#6}}%
+    {#7}%
+    {\hyperanchor{\@currenthyper}{#8}}%
+}
+%</amsart,amsproc,amsbook>
+%    \end{macrocode}
+% For |amsbook.cls| we need some additional modifications for parts and chapters.
+%    \begin{macrocode}
+%<*amsbook>
+\let\hyper@chapter\@chapter
+\def\@chapter[#1]#2{%
+  \refstepcounter{chapter}%
+  \ignore@next@refstepcounter%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref{\hyper@tocwriteb@def}{#2}%
+  \hyper@chapter[#1]{\hyperanchor{\@currenthyper}{#2}}%
+}
+\let\hyper@chaptermark\chaptermark
+\def\hyper@chaptermark@def[#1]{%
+    \def\chaptermark##1{%
+       \hyper@chaptermark{#1}%
+       \let\chaptermark\hyper@chaptermark%
+    }%
+}
+\let\hyper@schapter\@schapter
+\def\@schapter#1{%
+  \hyper@setcurrent%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref{\hyper@tocwriteb@def}{#1}%
+  \callwithexpandedhyperref{\hyper@chaptermark@def}{#1}%
+  \hyper@schapter{\hyperanchor{\@currenthyper}{#1}}%
+}
+\let\hyper@part\@part
+\def\@part[#1]#2{%
+  \ifnum\c@secnumdepth>-2\relax%
+    \refstepcounter{part}%
+    \ignore@next@refstepcounter%
+  \else%
+    \hyper@setcurrent%
+  \fi%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref%
+    {\hyper@part}%
+    {#1}%
+    {\hyperanchor{\@currenthyper}{#2}}%
+}
+\def\hyper@add@part[#1]{%
+  \addcontentsline{toc}{part}{\protect\noindent#1}%
+}
+\def\@spart#1{%
+  \hyper@setcurrent%
+  \callwithexpandedhyperref{\hyper@add@part}{#1}%
+  \begingroup\centering
+  \fontsize{\@xxpt}{25}\bfseries
+     \hyperanchor{\@currenthyper}{#1}%
+     \vfil\vfil\endgroup \newpage\thispagestyle{empty}}
+%</amsbook>
+%    \end{macrocode}
+% |amsdtx.cls| has to be modified as follows.
+%    \begin{macrocode}
+%<*amsdtx>
+\input{book.hyp}
+\renewcommand\maketitle{\par
+  \begingroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \def\@makefnmark{%
+      \hbox to\z@{%
+        $\m@th^{%
+           \hyperreference{%
+              fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+           }%
+           {\@thefnmark}%
+         }$\hss}%
+    }%
+    \long\def\@makefntext##1{%
+      \bgroup%
+        \edef\@currenthyper{%
+           fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+        }%
+        \parindent 1em%
+        \noindent%
+        \hbox to1.8em%
+          {\hss$\m@th^{\hyperanchor{\@currenthyper}{\@thefnmark}}$}##1%
+       \egroup%
+    }%
+    \if@twocolumn
+      \ifnum \col@number=\@ne
+        \@maketitle
+      \else
+        \twocolumn[\@maketitle]%
+      \fi
+    \else
+      \newpage
+      \global\@topnum\z@
+      \@maketitle
+    \fi
+    \thispagestyle{plain}\@thanks
+  \endgroup
+  \setcounter{footnote}{0}%
+  \let\thanks\relax
+  \let\maketitle\relax\let\@maketitle\relax
+  \gdef\@thanks{}\gdef\@author{}\gdef\@title{}}
+%</amsdtx>
+%    \end{macrocode}
+% For |amsldoc.cls| we need the following changes.
+%    \begin{macrocode}
+%<*amsldoc>
+\input{book.hyp}
+\let\hyper@theindex\theindex
+\def\theindex{%
+  \bgroup%
+    \let\hyper@makeschapterhead\@makeschapterhead%
+    \def\@makeschapterhead##1{%
+      \hyper@setcurrent%
+      \global\let\@currenthyper\@currenthyper%
+      \hyper@makeschapterhead{\hyperanchor{\@currenthyper}{##1}}%
+    }
+    \hyper@theindex%
+  \egroup%
+  \let\autoindex\@gobble%
+  \let\item\@idxitem%
+}
+%</amsldoc>
+%    \end{macrocode}
+% \subsubsection{The Packages}
+% Currently (may be even for ever) we do not support the
+% compatibility mode |amstex|.
+%    \begin{macrocode}
+%<*amstex>
+\errmessage{Compatibility mode amstex not supported. %
+            Try native mode amsmath instead.%
+	   }
+%</amstex>
+%    \end{macrocode}
+% To add the hypertext--capability to |amsmath| some macros of it
+% has to be modified.\par
+% \noindent As we have redefined |\@eqnnum| and we need another
+% definition for |amsmath| let us set the macro to its |amsmath|--default.
+%    \begin{macrocode}
+%<*amsmath>
+\iftagsleft@
+  \def\@eqnnum{\hbox to1sp{}\rlap{\normalfont\normalcolor
+    \hskip -\displaywidth\tagform@\theequation}}
+\else
+  \def\@eqnnum{{\normalfont\normalcolor \tagform@\theequation}}
+\fi
+%    \end{macrocode}
+% |amsmath| temporary redefines |\label| but needs the original definition
+% that is hold in |\ltx@label|.
+%    \begin{macrocode}
+\let\ltx@label\label
+%    \end{macrocode}
+% Now let us define a blind anchor for referencing a couple of equations 
+% bound together.
+%    \begin{macrocode}
+\let\hyper@subequations\subequations
+\def\subequations{%
+  \hyper@setcurrent%
+  \blindhyperanchor{\@currenthyper}%
+  \hyper@subequations%
+}
+%    \end{macrocode}
+% To allow the references pointing to an equation number we have to define an
+% appropriate anchor.
+%    \begin{macrocode}
+\let\hyper@tagform@\tagform@
+\def\tagform@#1{%
+  \maketag@@@{\hyperanchor{\@currenthyper}{(\ignorespaces#1\unskip)}}%
+}
+%    \end{macrocode}
+% For user defined tags it is necessary to generate a new hypertext number.
+%    \begin{macrocode}
+\let\hyper@make@display@tag\make@display@tag
+\def\make@display@tag{%
+  \if@eqnsw\else\iftag@%
+    \hyper@setcurrent%
+  \fi\fi%
+  \hyper@make@display@tag%
+}
+%    \end{macrocode}
+% We should not use an anchor when using |\eqref|
+%    \begin{macrocode}
+\def\eqref#1{\textup{\hyper@tagform@{\ref{#1}}}}
+%</amsmath>
+%    \end{macrocode}
+% To get hypertext references to theorems, lemmas, etc.\ |amsthm| has to
+% be modified.
+%    \begin{macrocode}
+%<*amsthm>
+\let\@begintheorem\hyper@begintheorem
+\def\thmhead@plain#1#2#3{%
+  \hyperanchor{\@currenthyper}{\thmname{#1}\thmnumber{ #2}}%
+  \thmnote{ {\the\theoremnotefont(#3)}}%
+}
+\let\thmhead\thmhead@plain
+\def\swappedhead#1#2#3{%
+  \hyperanchor{\@currenthyper}{\thmnumber{#2}\thmname{. #1}}%
+  \thmnote{ {\the\theoremnotefont(#3)}}%
+}
+%</amsthm>
+%    \end{macrocode}
+% For |upref| working correct it is sufficient to modify |\hyper@setref|.
+%    \begin{macrocode}
+%<*upref>
+\def\hyper@setref#1#2#3#4{%
+  \ifx#1\relax%
+     \protect\G@refundefinedtrue%
+     #4\nfss@text{\reset@font\bfseries ??}%
+     \@latex@warning{Reference `#3' on page \thepage \space undefined}%
+  \else%
+    \ifx#2\@firstofthree%
+      \hyperreference{\expandafter\@firstofthree#1}{#4}\null%
+    \else\ifx#2\@secondofthree%
+      \hyperreference%
+        {\expandafter\@firstofthree#1}%
+        {#4\protect\textup{\expandafter#2#1\hbox{}}}\null%
+    \else%
+      \hyperreference%
+        {page.\expandafter\@thirdofthree#1}%
+        {#4\protect\textup{\expandafter#2#1\hbox{}}}\null%
+    \fi\fi%
+  \fi%
+}
+%</upref>
+%    \end{macrocode}
+% 
+% \subsection{Cross References between Documents}
+% The package |xr| adds the capability of generating cross--references
+% between different \LaTeXe--documents. It is a nice feature to support
+% this by hypertext links. Thus we have to modify |xr| appropriately.\newline
+% At first let us provide an additional parameter to |\externaldocument|
+% giving the URL--address of the document we use references to. It has to
+% be given with surrounding |(||)|. The default value is given by
+% |documentname.dvi|.
+%    \begin{macrocode}
+%<*xr>
+\def\externaldocument{%
+  \@ifnextchar(%
+    {\hyper@externaldocument}%
+    {\hyper@externaldocument()}%
+}
+\def\hyper@externaldocument(#1){%
+  \@ifnextchar[%
+    {\hyper@@externaldocument(#1)}%
+    {\hyper@@externaldocument(#1)[]}%
+}
+\def\hyper@@externaldocument(#1)[#2]#3{%
+  \def\hyper@XR@docprefix{#1}%
+  \ifx\hyper@XR@docprefix\@empty%
+    \def\hyper@XR@docprefix{#3.dvi}%
+  \fi%
+  \XR@[#2]{#3}%
+}
+%    \end{macrocode}
+% Now we have to modify the anchors we refer to from their local definition
+% in the documents |.aux|--file to its external URL--definitions.
+%    \begin{macrocode}
+\def\hyper@xr@newlabel#1#2#3#4{%
+    \newlabel%
+      {\XR@prefix#4}%
+      {{[file:\hyper@XR@docprefix][#1]}{#2}{[hyper@XR@docprefix][#3]}}%
+}
+\long\def\XR@test#1#2#3#4\XR@{%
+  \ifx#1\newlabel%
+    \expandafter\hyper@xr@newlabel#3{#2}%
+  \else\ifx#1\@input%
+     \edef\XR@list{\XR@list#2\relax}%
+  \fi\fi%
+  \ifeof%
+    \@inputcheck\expandafter\XR@aux%
+  \else%
+    \expandafter\XR@read%
+  \fi%
+}
+%</xr>
+%    \end{macrocode}
+%
+% \subsection{Long Tables}
+% The package |longtable| uses a definition of |\caption| for it's own.
+% Thus we have to modify this to reflect the hypertext needs.
+%    \begin{macrocode}
+%<*longtable>
+\let\hyper@LT@array\LT@array
+\def\LT@array{%
+  \refstepcounter{table}\ignore@next@refstepcounter%
+  \def\@currenthyper{\the\hypercount}%
+  \hyper@LT@array%
+}
+\def\LT@caption{%
+  \noalign\bgroup\hyper@setcurrent%
+  \@ifnextchar[{\egroup\LT@c@ption}{\LT@capti@n}%
+}
+\def\LT@c@ption[#1]#2{%
+  \LT@mkcaption{\hyperanchor{\@currenthyper}{\fnum@table}: #2}%
+  \def\@tempa{#1}\ifx\@tempa\empty\else%
+       {\let\\\space%
+          \addcontentsline{lot}{table}%
+            {\protect\numberline{\thetable}%
+               {\hyperreference{\@currenthyper}{#1}}%
+            }%
+      }%
+  \fi%
+}
+\def\LT@@c@ption#1{%
+  \LT@mkcaption{\hyperanchor{\@currenthyper}{\fnum@table}: #1}%
+  {\let\\\space
+     \addcontentsline{lot}{table}%
+       {\protect\numberline{\thetable}%
+          {\hyperreference{\@currenthyper}{#1}}%
+       }%
+  }%
+}
+%</longtable>
+%    \end{macrocode}
+%
+% \subsection{Right Column Footnotes in Double Column Documents}
+% |ftnright.sty| redefines the macro |\@makefntext|. Thus we have to 
+% modify it's definition when needed.
+%    \begin{macrocode}
+%<*ftnright>
+\long\def\@makefntext#1{%
+  \bgroup%
+    \edef\@currenthyper{%
+       fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+    }%
+    \parindent 1em%
+    \noindent\hbox to 2em{}%
+    \llap{${\hyperanchor{\@currenthyper}{\@thefnmark}}.\;\;$}#1%
+  \egroup%
+}
+%</ftnright>
+%    \end{macrocode}
+%
+% \subsection{The Theorem Package}
+% Analoguous to the theorem environment of \LaTeXe{} we have to modify
+% the different theorem styles of the theorem package.
+%    \begin{macrocode}
+%<*theorem>
+%plain
+\gdef\th@plain{\normalfont\itshape%
+  \def\@begintheorem##1##2{%
+     \item[\hskip\labelsep%
+           \hyperanchor{\@currenthyper}{\theorem@headerfont ##1\ ##2}%
+          ]%
+  }%
+  \def\@opargbegintheorem##1##2##3{%
+     \item[\hskip\labelsep%
+           \hyperanchor%
+             {\@currenthyper}%
+             {\theorem@headerfont ##1\ ##2}\ (##3)%
+          ]%
+  }%
+}
+%break
+\gdef\th@break{\normalfont\slshape%
+  \def\@begintheorem##1##2{%
+     \item[\rlap{\vbox{\hbox{\hskip \labelsep%
+             \hyperanchor{\@currenthyper}{\theorem@headerfont ##1\ ##2}%
+	   }\hbox{\strut}}}%
+          ]%
+  }%
+  \def\@opargbegintheorem##1##2##3{%
+    \item[\rlap{\vbox{\hbox{\hskip \labelsep%
+            \hyperanchor%
+              {\@currenthyper}%
+              {\theorem@headerfont ##1\ ##2}\ (##3)%
+          }\hbox{\strut}}}%
+         ]%
+  }%
+}
+%marginbreak
+\gdef\th@marginbreak{\normalfont\slshape%
+  \def\@begintheorem##1##2{%
+    \item[\rlap{\vbox{\theorem@headerfont%
+            \hbox{\llap{##2}\hskip\labelsep%
+                  \hyperanchor{\@currenthyper}{##1}%
+                 }%
+          \hbox{\strut}}}%
+         ]%
+  }%
+  \def\@opargbegintheorem##1##2##3{%
+    \item[\rlap{\vbox{\theorem@headerfont%
+            \hbox{\llap{##2}\hskip\labelsep%
+                  \hyperanchor{\@currenthyper}{##1}\ (##3)
+                 }%
+          \hbox{\strut}}}%
+         ]%
+  }%
+}
+%changebreak
+\gdef\th@changebreak{\normalfont\slshape%
+  \def\@begintheorem##1##2{%
+    \item[\rlap{\vbox{\hbox{\hskip\labelsep%
+            \hyperanchor{\@currenthyper}{\theorem@headerfont ##2\ ##1}%
+          }\hbox{\strut}}}%
+         ]%
+  }%
+  \def\@opargbegintheorem##1##2##3{%
+    \item[\rlap{\vbox{\hbox{\hskip\labelsep%
+            \hyperanchor%
+              {\@currenthyper}%
+              {\theorem@headerfont ##2\ ##1}\ (##3)%
+          }\hbox{\strut}}}%
+         ]%
+  }%
+}
+%change
+\gdef\th@change{\normalfont\slshape%
+  \def\@begintheorem##1##2{%
+    \item[\hskip\labelsep%
+          \hyperanchor{\@currenthyper}{\theorem@headerfont ##2\ ##1}%
+         ]%
+  }%
+  \def\@opargbegintheorem##1##2##3{%
+    \item[\hskip\labelsep%
+          \hyperanchor%
+            {\@currenthyper}%
+            {\theorem@headerfont ##2\ ##1}\ (##3)%
+         ]%
+  }%
+}
+%margin
+\gdef\th@margin{\normalfont\slshape%
+  \def\@begintheorem##1##2{%
+    \item[\theorem@headerfont \llap{##2}\hskip\labelsep%
+          \hyperanchor{\@currenthyper}{##1}%
+         ]%
+  }%
+  \def\@opargbegintheorem##1##2##3{%
+    \item[\theorem@headerfont \llap{##2}\hskip\labelsep%
+          \hyperanchor{\@currenthyper}{##1}\ (##3)%
+         ]%
+  }%
+}
+%</theorem>
+%    \end{macrocode}
+%
+% \clearpage
+% \section{Needed Packages (Part of this Distribution)}
+%
+% \subsection{Pattern--Like Definition of Macros}
+% For the index and glossary definitions we have used the package |defpattern| 
+% that is already part of the fp--package on |CTAN:macros/latex/contrib/other/fp|.
+% This is a very usefull macro allowing the definition of other macros by
+% pattern matching rules.\par
+% \noindent The package has been adapted from Alan Jeffrey's |\howto| that can be
+% found in ``\TeX and TUG NEWS 2(2)''.
+%    \begin{macrocode}
+%<*defpattern>
+\ProvidesPackage{defpattern}
+\message{%
+  `\string\defpattern-macro %
+   (adapted from \string\howto\space%
+    (Alan Jeffrey in TeX and TUG NEWS 2(2))%
+   )%
+  '%
+}
+\def\xcs#1#2{\expandafter#1\csname#2\endcsname}
+\newcount\actioncount
+\def\defpattern#1[#2]#3{%
+  \xcs\ifx{\expandafter\gobble\string#1}\relax
+  \def#1{\erroraction#1}\fi
+  \advance\actioncount by 1\relax
+  \expandafter\defaction\expandafter{#1}{#3}{#2}%
+  \def\temp##1##2##3##4##5##6##7##8##9{\def\temp{[#2]}}%
+  \temp\empty\empty\empty\empty\empty\empty\empty\empty\empty
+  \edef#1{\noexpand\doaction\xcs\noexpand
+    {action-\the\actioncount}\temp}}
+\def\defaction#1#2#3{%
+  \xcs\def{action-\the\actioncount}##1[#3]{\applyto{#1}{#2}}}
+\def\gobble#1{}
+\def\applyto#1#2#3{#3{#1}{#2}}
+\def\doaction#1[#2][#3]{#1[#3]\success[#2]\failure[#3]}
+\def\success#1#2[#3]\failure[#4]{#2}
+\def\failure#1#2{#1}
+\def\erroraction#1[#2]{%
+   \errmessage{I don't know how to \string#1[#2]}}
+%</defpattern>
+%    \end{macrocode}
+%
+% \Finale

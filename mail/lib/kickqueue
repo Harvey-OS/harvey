@@ -1,3 +1,0 @@
-#!/bin/rc
-
-/bin/upas/runq -E /mail/queue /mail/lib/remotemail</dev/null>/dev/null >[2=1]

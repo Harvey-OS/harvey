@@ -1,0 +1,10 @@
+#!/bin/rc
+#whoami service net dir
+user=`{cat $3/ruser}
+remote=`{cat $3/remote}
+src=`{echo $remote|sed 's/\..*//'}
+line=`{echo $remote|sed 's/^[^.]*\.//'}
+if(~ $#line 0)
+	echo 'sysname='$sysname 'source='$src 'user='$user
+if not
+	echo 'sysname='$sysname 'source='$src 'user='$user 'line='$line

@@ -1,0 +1,69 @@
+Notes on the Computer Modern parameters
+
+Dimensions are mostly in units of 1/36pt, because I originally worked
+on graph paper with 36 pixels per point (in 1977). This experience made
+me familiar with such units, so I later decided to make METAFONT produce
+proofmode output at the same scale.
+
+The basic fonts cmr5--cmr17 scale proportionately in most vertical
+dimensions (e.g., the x_height in 5pt is half that in 10pt), but
+horizontally the smaller fonts are more extended and have relatively
+heavier weight (especially in hairlines).
+
+The slanted fonts cmsl8--cmsl12 are identical to their unslanted
+counterparts except that they have slant=1/6.
+
+Font cmdunh10 is the same as cmr10 except that body_height, asc_height,
+cap_height, and fig_height have been drastically increased.
+
+The bold fonts cmbx5--cmbx12 have similar vertical dimensions to the ordinary
+roman (except that the x_height is a bit taller and bar_height is lower);
+they use bolder pen strokes, of course, and they are rather more extended.
+Font cmb10 is like cmbx10 except not extended (i.e., 1em=10pt in cmb10,
+but 1em=11.5pt in cmbx10); it also has slightly shorter cap serifs.  Font
+cmbxsl10 is like cmbx10 but slanted.
+
+The typewriter fonts cmtt8--cmtt12 have the same x_heights as their
+roman counterparts, but they have shorter ascenders and longer descenders.
+Their math_axis is based on ascenders only. The stroke weights are
+almost all identical to the corresponding roman stem weight.
+Font cmsltt10 is a slanted version of cmtt10; cmvtt10 is non-monospaced.
+
+The sans serif fonts cmss8--cmss17 are analogous to cmr8--cmr17; they have
+slanted counterparts with slant of 12 degrees.  A few other isolated sans
+serif fonts appear in the standard set, as demonstrations of how other
+varieties could be made:  There's a demibold condensed version, cmssdc10,
+and a bold extended version, cmssbx10. (The title pages in The TeXbook use
+cmssdc10 at 40pt and a magnified version of cmssbx10 called cminch; to
+save font storage space, cminch is restricted to digits and uppercase
+letters only.)  Finally, there's a pair of fonts called cmssq8 and cmssqi8;
+these are in a rather different style (extended, with short ascenders
+and descenders), used for the end-of-chapter quotations in The TeXbook.
+
+The font cmfib8 is another `demonstration' of parameters; it's a serifed
+font whose proportions are based on Fibonacci numbers. Also, the font
+cmff10 is a weird concoction of little use except for testing.
+
+The text italic fonts cmti7--cmti12 have parameters like their roman
+cousins, except that they are more condensed and slightly lighter.
+The math italic fonts cmmi5--cmmi12 are not condensed and not
+quite as light.
+
+Four special italic fonts are provided as demonstrations of further
+possibilities: cmbxti10 is a bold extended text italic; cmmib10 is
+a bold math italic; cmit10 is an italic typewriter font; cmu10 is
+an unslanted italic with the same stem weights as cmr10.
+
+The math symbol fonts, cmsy5--cmsy10, have the same parameters
+as the corresponding math italic; these fonts also have special
+parameters of their own. There's a bold math symbols font for
+demonstration purposes: cmbsy10.
+
+The math extension font, cmex10, has the parameters of cmr10.
+
+The extended ASCII font, cmtex10, has the parameters of cmtt10, except
+that the slant is positive (for a few characters that will be slanted).
+
+And finally there are two caps-and-small-caps fonts, cmcsc10 (to match cmr10)
+and cmtcsc10 (to match cmtt10). These fonts are unusual in having two
+sets of parameters, one for the upper uppercase and one for the lower uppercase.

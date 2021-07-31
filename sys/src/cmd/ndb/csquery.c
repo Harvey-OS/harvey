@@ -3,19 +3,14 @@
 #include <bio.h>
 
 void
-main(int argc, char **argv)
+main(void)
 {
 	Biobuf in;
 	char *p;
 	int fd;
 	int n;
 	char buf[128];
-	char *server;
 
-	if(argc > 1)
-		server = argv[1];
-	else
-		server = "/net/cs";
 
 	Binit(&in, 0, OREAD);
 	for(;;close(fd)){
@@ -23,9 +18,9 @@ main(int argc, char **argv)
 		p = Brdline(&in, '\n');
 		if(p == 0)
 			break;
-		fd = open(server, ORDWR);
+		fd = open("/net/cs", ORDWR);
 		if(fd < 0)
-			exits(server);
+			exits("/net/cs");
 		p[Blinelen(&in)-1] = 0;
 		if(write(fd, p, strlen(p)) <= 0){
 			perror(p);

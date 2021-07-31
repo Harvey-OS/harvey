@@ -1,0 +1,35 @@
+#define MESGSIZE 16384
+#define PRBUFSIZ 8192
+
+enum pr_state {
+	PR_INIT,
+	PR_IDLE,
+	PR_BUSY,
+	PR_WAIT,
+	PR_PRINT,
+	PR_PRINTERR,
+	PR_ERROR,
+	PR_FLUSH,
+	PR_EOJ,
+	PR_UNKNOWN
+};
+
+enum prog_states {
+	START,
+	IDLE,
+	REQ_STAT,
+	REQD_STAT,
+	SEND_DATA,
+	SENT_DATA,
+	SEND_EOD,
+	WAIT_FOR_EOJ,
+	END_OF_JOB,
+	FATAL_ERROR,
+	WAIT_FOR_IDLE,
+	OVER_AND_OUT
+};
+
+aggr ackpack {
+	int ack;
+	int pc;
+};

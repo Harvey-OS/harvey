@@ -1,0 +1,1250 @@
+%% BEGIN fancybox.doc
+%%
+%% COPYRIGHT 1992, by Timothy Van Zandt, tvz@Princeton.EDU.
+%% For copying restrictions, see fancybox.sty.
+%%
+%% Documentation for fancybox.sty.
+%% Run through LaTeX, with or without the NFSS.
+%%
+\def\FileVersion{1.0}
+\def\FileDate{93/02/10}
+%%
+%% This creates two temporary files: \jobname.ex1 and \jobname.tmp
+
+\documentstyle[12pt]{article}
+
+\makeatletter
+
+%% INPUT FANCYBOX.STY HERE TO CHECK FILE VERSION.
+
+\input fancybox.sty
+
+\ifx\FileVersion\fileversion\else
+  \@latexerr{Fancybox style file and documentation do not have the same
+    version}\@ehd
+\fi
+
+%% DATES, VERSIONS AND TITLES:
+
+\def\expanddate#1/#2/#3/{\year=19#1 \month=#2 \day=#3}
+\begingroup
+  \expandafter\expanddate\filedate/
+  \xdef\thefiledate{\today}
+\endgroup
+
+\title{Documentation for fancybox.sty:\\
+  Box tips and tricks for \LaTeX}
+\author{Timothy Van Zandt\\ tvz@Princeton.EDU}
+\date{Version \fileversion\\ \thefiledate}
+
+\def\@maketitle{%
+ \begin{center}
+   {\Large\bf \@title \par}
+   \vskip 1.2em {\lineskip .5em
+   \begin{tabular}[t]{c}\@author\end{tabular}\par}
+   \vskip .8em {\@date}%
+  \end{center}
+  \par
+  \vskip .5em}
+
+%% PAGE STYLE:
+
+\pagestyle{myheadings}
+\if@twoside
+  \markboth{Documentation for fancybox.sty}%
+    {Version \fileversion, \thefiledate}%
+\else
+  \markright{fancybox.sty, Version \fileversion}
+\fi
+
+%% PAGE PARAMETERS:
+
+% Paragraphs are marked by large space rather than indentation:
+\parindent 0pt
+\parskip 7pt plus 1pt minus 1pt
+
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{12pt}        % height of running head
+\setlength{\headsep}{30pt}           % distance between header and text
+\setlength{\textheight}{8.2in}        % height of text on page
+
+%% TABLE OF CONTENTS
+
+\newskip\myskip
+
+\def\tableofcontents{%
+  \par\vfill
+  \begin{quote}
+    \begin{center} \Large\bf Contents \end{center}
+    \def\numberline##1{\hbox to 0pt{\hss##1\hskip 1em}}%
+    \let\oldaddvspace\addvspace
+    \def\addvspace##1{%
+      \myskip##1\relax
+      \oldaddvspace{.5\myskip}}
+    \@starttoc{toc}%
+  \end{quote}
+  \thispagestyle{empty}
+  \vfill
+  \clearpage}
+
+
+%% VERBATIM HACKS:
+
+\VerbatimFootnotes
+
+% Short meta (works in verbatim. Can't use < for other purposes.
+\catcode`\<=13 \def<#1>{{\rm\it #1\/}}    % <meta> (works in verbatim)
+
+% Short verbatim. " can appear in verbatim environments.
+\def\temp{\Verb"}
+\expandafter\def\expandafter\dospecials\expandafter{\dospecials\do\"}
+\catcode`\"=13
+\let"\temp
+
+% Verbatim item:
+\newcommand{\vitem}{\SaveVerb[{\def\bf{}\item[\UseVerb{\MyTemp}]}]{\MyTemp}}
+
+%% EXAMPLES:
+
+\setlength{\fboxsep}{6pt}
+
+\begin{VerbatimOut}{\jobname.ex1}
+% 1. Save example verbatim to \jobname.tmp,
+% 2. Input verbatim with \catcode`\"=14 (" is a comment).
+% 3. Input again with \catcode\`"=9 (" is ignored).
+
+\renewcommand{\EveryVerbatimLine}[2]{}
+
+\renewcommand{\EveryVerbOutLine}[2]{}
+
+\newcommand{\BeginExample}{%
+  \VerbatimEnvironment\begin{VerbatimOut}{\jobname.tmp}}
+
+\newcommand{\EndExample}{%
+  \end{VerbatimOut}%.
+  \renewcommand{\EveryVerbatimLine}{}%
+  \renewcommand{\EveryVerbatimCodes}{\catcode`\"=14}%
+  \LVerbatimInput{\jobname.tmp}%
+  \catcode`\"=9}
+
+\newenvironment{example}{\BeginExample}{\EndExample
+  \begin{center}\input{\jobname.tmp}\end{center}}
+
+\newenvironment{example*}{\BeginExample}%
+  {\EndExample \input{\jobname.tmp}}
+
+\newenvironment{example**}{\BeginExample}%
+  {\EndExample \globaldefs=1 \input{\jobname.tmp}}
+
+\end{VerbatimOut}
+
+\input{\jobname.ex1}
+
+%% END PREAMBLE:
+\makeatother
+
+\begin{document}
+\setcounter{page}{0}
+\maketitle
+\begin{quote}
+"fancybox.sty", together with its documentation, gives extensive answers to
+and solutions for many questions about how to frame or rotate this or that in
+\LaTeX. It also contains commands for shadow, double and oval frames.
+\end{quote}
+
+\tableofcontents
+
+\section{Fancy frames}
+
+"fancybox.sty" has five variants of \LaTeX's "\fbox" command:
+\begin{quote}\raggedright
+"\shadowbox", "\doublebox", "\ovalbox" (with "\thinlines") and "\Ovalbox"
+(with "\thicklines").
+\end{quote}
+Here are examples:\footnote{In this documentation, the default value of
+"\fboxsep" has been changed from 3pt to 6pt.}
+\begin{example}
+  \shadowbox{\large\bf New Glarus Birdwatch}
+\end{example}
+\begin{example}
+  \doublebox{\large\bf New Glarus Birdwatch}
+\end{example}
+\begin{example}
+  \ovalbox{\large\bf New Glarus Birdwatch}
+\end{example}
+\begin{example}
+  \Ovalbox{\large\bf New Glarus Birdwatch}
+\end{example}
+
+The distance between the box and the frame is "\fboxsep", as with \LaTeX's
+"\fbox" command. The commands use other parameters as well:
+\begin{description}
+\vitem"\shadowbox" The width of the frame is "\fboxrule" (the same as with
+"\fbox"). The width of the shadow is "\shadowsize" (default: "4pt").
+
+\vitem"\doublebox" The width of the inner frame is .75"\fboxrule", and the
+width of the outer frame is 1.5"\fboxrule". The distance between the two
+frames is 1.5"\fboxrule" plus .5pt.
+
+\vitem"\ovalbox" The width of the frame is set by the "\thinlines"
+declaration. The diameter of the corner arcs is set with the "\cornersize"
+command.
+\begin{LVerbatim}
+  \cornersize{<num>}
+\end{LVerbatim}
+sets the diameter of the corners arcs to <num> times the lessor of the width
+and height of the box.
+\begin{LVerbatim}
+  \cornersize*{<dim>}
+\end{LVerbatim}
+sets the diameter of the corner arcs to <dim>. This is all approximate,
+because \LaTeX\ has a limited range of arc sizes to choose from. The default
+is
+\begin{LVerbatim}
+  \cornersize{.5}
+\end{LVerbatim}
+
+\vitem"\Ovalbox" This is like "\ovalbox", except that the width of the lines
+is set by the "\thicklines" declaration.
+\end{description}
+
+There are no analogs to \LaTeX's "\framebox" command, which has various
+optional arguments not supported by "\fbox". You can get the exact same
+functionality by putting the argument of the above framing commands in a
+"\makebox".
+
+There is also a variant "\fancyoval" of \LaTeX's "\oval" picture object. The
+difference is that "\oval" always makes the diameter of the corner arcs as
+large as possible, and "\fancyoval" uses the "\cornersize" command to set the
+diameter.
+
+\section{A short course on boxes}
+
+\begingroup\sloppy
+The "\shadowbox", "\doublebox", "\ovalbox" and "\Ovalbox" commands described
+in the previous section are examples of LR-box commands, meaning that their
+argument is processed in LR mode. \LaTeX\ LR-box commands include "\mbox",
+"\makebox", "\fbox", "\framebox", "\sbox" and "\savebox". All the PSTricks
+commands whose argument is text are LR-box commands, including, e.g, the
+framing, rotating, scaling and positioning commands, and some of the node
+commands. Any rotation command is an LR-box command.
+
+\endgroup
+
+The purpose of the rest of this documentation is to provide answers to, and
+solutions for, frequently asked questions about using LR-box commands with
+\LaTeX. I will use "\fbox" for the leading example of a box framing
+command,\footnote{In the examples using "\fbox", be aware that the default
+value of "\fboxsep" has been changed in this documentation from 3pt to 6pt.}
+and "\rotateleft" for the leading example of a box rotation command.
+("fancybox.sty" does not contain a "\rotateleft" command, as this must be
+implemented via "\special"'s, but there are numerous box-rotation style files
+around.) However, most of what is said here applies to any LR-box command.
+
+In each LR-box command, the text is processed in restricted horizontal mode,
+which is referred to as ``LR-mode'' in Lamport's {\em \LaTeX: User's Guide and
+Reference Manual}. In restricted horizontal mode, the input, consisting of
+regular characters and boxes, is made into one (long or short) line. There is
+no line-breaking, nor can there be vertical mode material such as an entire
+displayed equation. However, the fact that you can include another box means
+that this isn't really a restriction.
+
+For one thing, alignment environments such as \LaTeX's "tabular" are just
+boxes, and thus present no problem. Picture environments and the LR-box
+commands themselves are also just boxes. Entire paragraphs or other vertical
+mode material such as displayed equations can be nested in a "\parbox" or
+"minipage".
+
+\section{Defining LR-box environments}
+
+To frame a "minipage", you have to write
+\begin{LVerbatim}
+  \fbox{%
+    \begin{minipage}{3in}
+      blah
+    \end{minipage}}
+\end{LVerbatim}
+You might want to define an environment "fminipage" that frames its contents,
+but you can't use
+\begin{LVerbatim}
+  \newenvironment{fminipage}%
+    {\fbox{\begin{minipage}}%
+    {\end{minipage}}}
+\end{LVerbatim}
+because the braces are not balanced in the definition.
+
+"fancybox.sty" contains an "Sbox" environment that makes it easy to define
+your own LR-box environments. It is a variant of \LaTeX's "\sbox" command that
+saves the contents of the environment in a storage bin that can be retrieved
+with the command "\TheSbox".\footnote{The difference between
+\begin{LVerbatim}
+  \begin{Sbox}
+    blah
+  \end{Sbox}
+  \TheSbox
+\end{LVerbatim}
+and
+\begin{LVerbatim}
+  \newsavebox{\mybox}
+  \sbox{\mybox}{blah}
+  \usebox{\mybox}
+\end{LVerbatim}
+is that "Sbox" saves the contents globally, and "\TheSbox" erases the contents
+globally.}
+For example, here is a framed minipage:
+\begin{LVerbatim}
+  \begin{Sbox}
+    \begin{minipage}{3in}
+      blah
+    \end{minipage}
+  \end{Sbox}
+  \fbox{\TheSbox}
+\end{LVerbatim}
+and here is an "fminipage" environment that works:
+\begin{example**}
+  \newenvironment{fminipage}%
+    {\begin{Sbox}\begin{minipage}}%
+    {\end{minipage}\end{Sbox}\fbox{\TheSbox}}
+\end{example**}
+Let's see that it really works:
+\begin{example}
+  \begin{fminipage}{2in}
+    Since the former doesn't use braces to delimit
+    the contents of the box, $\ldots$
+  \end{fminipage}
+\end{example}
+
+
+\section{Math}
+
+In-line math, or pieces of a displayed equation (as opposed to a whole
+equation), are horizontal mode material, but most LR-box commands switch out
+of math mode when they occur in math mode. Thus, you have to explicitly switch
+back in to math mode when desired.\footnote{This is {\em not} true for the
+PSTricks LR-box commands.}
+For example:
+\begin{example}
+  $x + y = \fbox{$\Omega$}$
+\end{example}
+
+You also have to explicitly write
+\begin{quote}
+  "\scriptstyle", "\scriptscriptstyle" or "\displaystyle"
+\end{quote}
+if you want one of these special math styles. For example, here I will frame
+an equation, but not the equation number:
+\begin{example*}
+  \begin{equation}
+    \fbox{$\displaystyle
+      \int_{\Omega_0} \zeta(\omega) d\omega
+      \geq \bar{r}$}
+  \end{equation}
+\end{example*}
+
+Entire displayed equations or "eqnarray" environments work differently because
+they are vertical mode material. Thus, they have to go inside a "\parbox" or
+"minipage". E.g.,
+\begin{example*}
+  \newlength{\mylength}
+  \[
+    \setlength{\fboxsep}{15pt}
+    \setlength{\mylength}{\linewidth}
+    \addtolength{\mylength}{-2\fboxsep}
+    \addtolength{\mylength}{-2\fboxrule}
+    \fbox{%
+      \parbox{\mylength}{
+        \setlength{\abovedisplayskip}{0pt}
+        \setlength{\belowdisplayskip}{0pt}
+        \begin{equation}
+          x + y = z
+        \end{equation}}}
+  \]
+\end{example*}
+The outer "\[" "\]" are just used to display the boxed equation, rather than
+actually switch into math mode. Note how I set the width of the "\parbox" so
+that the displayed box would exactly have width "\linewidth".\footnote{That is
+what "\mylength" is for. It is better to define a single scratch length that
+you reuse rather than creating a new one each time.}
+
+ I also set the display skips to "0pt" and increased the size of "\fboxsep" so
+that I would have the same distance all around between the equation and the
+frame.
+
+This is again a mouthful, and so I might instead define:\footnote{The reason
+for using "\minipage" instead of "\begin{minipage}", and so on, is that with
+AmS-\LaTeX, "\begin" and "\end" cannot appear in the definition of a new
+equation environment.}
+\begin{example**}
+  \newenvironment{FramedEqn}%
+    {\setlength{\fboxsep}{15pt}
+      \setlength{\mylength}{\linewidth}%
+      \addtolength{\mylength}{-2\fboxsep}%
+      \addtolength{\mylength}{-2\fboxrule}%
+      \Sbox
+      \minipage{\mylength}%
+         \setlength{\abovedisplayskip}{0pt}%
+         \setlength{\belowdisplayskip}{0pt}%
+         \equation}%
+    {\endequation\endminipage\endSbox
+      \[\fbox{\TheSbox}\]}
+\end{example**}
+"fancybox.sty" doesn't bother defining any such environments, because there
+are too many possible designs. But let's see if the one above works:
+\begin{example*}
+  \begin{FramedEqn}
+    \Rightarrow P\sim\xi(P_\gamma)- \frac{1}{3}
+  \end{FramedEqn}
+\end{example*}
+
+"fancybox.sty" contains a "Beqnarray" environment, which is like the
+"eqnarray" environment but it is not vertical mode material. Instead, it
+produces a box just large enough to hold all the equations. For example:
+\begin{example}
+  \fbox{%
+    \begin{Beqnarray*}
+      x & = & y\\
+      y & > & x \\
+      \int_4^5 f(x)dx & = & \sum_{i\in F} x_i
+    \end{Beqnarray*}}
+\end{example}
+The unstarred version produces standard equation numbers on the right (even
+with the "leqno" style option and AmS-\LaTeX). It might not work with special
+equation numbering macros.
+
+
+\section{Floats}\label{floats}
+
+A common mistake is to put a whole "table", "figure" or other float
+environment inside an LR-box command. Instead, you should put everything that
+is {\em inside} the environment (including the "\caption", if you want that
+boxed too) inside a "minipage" of the desired width, and then put the
+"minipage" inside the LR-box command.
+
+For example:
+\begin{example*}
+  \begin{table}[h]
+    \begin{center}
+      \fbox{%
+        \begin{minipage}{.8\textwidth}
+          \begin{center}
+            \begin{tabular}{rl}
+              foo & bar
+            \end{tabular}
+          \end{center}
+          \caption{A table of foo and bar.}
+        \end{minipage}}
+    \end{center}
+  \end{table}
+\end{example*}
+Note how I had to use "center" twice: once to center the framed box, and again
+to center the stuff inside the box.
+
+That is a mouthful, and so I might define a "FramedTable" environment like the
+following, which sets the size of the "minipage" so that the framed box is
+exactly the width of the page (no need for the first "center" environment this
+time):
+\begin{example**}
+  \newenvironment{FramedTable}%
+    {\begin{table}[h]
+      \begin{Sbox}%
+      \setlength{\mylength}{\textwidth}%
+      \addtolength{\mylength}{-2\fboxsep}%
+      \addtolength{\mylength}{-2\fboxrule}%
+      \begin{minipage}{\mylength}}%
+    {\end{minipage}\end{Sbox}\fbox{\TheSbox}\end{table}}%
+\end{example**}
+Now let's see if it works:
+\begin{example*}
+  \begin{FramedTable}
+    \begin{center}
+      \begin{tabular}{rl}
+        foo & bar
+      \end{tabular}
+    \end{center}
+    \caption{A table of foo and bar.}
+  \end{FramedTable}
+\end{example*}
+
+The most common reason to want to rotate an entire float, caption and all, is
+to put it on a page by itself in landscape mode, centered both horizontally
+and vertically. Compared to the table framing we did above, we just have to
+replace "\fbox" by our box rotation command (e.g., "\rotateleft" or whatever),
+set the width of the minipage to "\textheight" (if you want to use the full
+size of the page), and use the float position specifier "[p]". "fancybox.sty"
+contains an environment,
+\begin{LVerbatim}
+  \begin{landfloat}{<float>}{<rotation command>}
+    ...
+  \end{landfloat}
+\end{LVerbatim}
+that automates this. It has two arguments: the name of the floating
+environment, and your rotation command. For example, if "\rotateleft{foo}"
+rotates "foo" by 90 degrees, and you want a landscape mode "table", then try
+\begin{LVerbatim}
+  \begin{landfloat}{table}{\rotateleft}
+    ...
+  \end{landfloat}
+\end{LVerbatim}
+If the whole document is in landscape mode, then "landfloat" gives you a
+portrait-mode float---good for a table that is too tall to fit in landscape
+mode.
+
+If you don't add a caption to a float, it doesn't matter much what floating
+environment you use (e.g., "table", "figure" or whatever). Thus, you can put
+anything in a landscape float. For example, suppose I have a very wide
+equation. Then I can write:
+\begin{LVerbatim}
+  \begin{landfloat}{table}{\rotateleft}
+    \begin{equation}
+      ...
+    \end{equation}
+  \end{landfloat}
+\end{LVerbatim}
+"fancybox.sty" defines a generic caption, "\GenericCaption", that doesn't
+affect the numbering of floats, doesn't make an entry in a list of floats, and
+doesn't add anything to the argument you give. I could have used this if I
+wanted to add a caption to the previous example.
+
+\section{Center, flushleft and flushright}
+
+There are two ways to box a "center", "flushleft" or "flushright" environment.
+If you have long lines and you want \TeX\ to do the line breaking, then put
+the environment inside a "minipage".\footnote{List and other such environments
+work best inside a "minipage" environment rather than a "\parbox".} If you
+have short lines and you want the frame to adjust itself to the size of the
+longest line, then use "fancybox.sty"'s
+\begin{quote}
+  "Bcenter", "Bflushleft" or "Bflushright"
+\end{quote}
+environment instead.
+
+These are basically just "tabular" environments with a single column, and so
+each line should end with "\\", or "\\["<dim>"]" to insert extra space, and
+the text on each line must be balanced. Also, each line is sitting in its own
+group, and so, e.g., if you want to change the font for the whole environment,
+you should do this before the environment rather than after.
+Like the "tabular" environment, the box that is produced has the baseline at
+the center, unless you include an optional argument "[t]" to align the box
+with the top line or "[b]" to align the box with the bottom line.
+
+For example:
+\begin{example}
+  \setlength{\fboxsep}{10pt}%
+  \fbox{%
+    \begin{Bcenter}
+      Love of life\\
+      and other short stories\\
+      by Policarpa Salabarrieta
+  \end{Bcenter}}
+\end{example}
+Compare this with:
+\begin{example}
+  \setlength{\fboxsep}{10pt}%
+  \fbox{%
+    \begin{minipage}{6cm}
+    \begin{center}
+      Love of life and other short stories
+      by Policarpa Salabarrieta
+    \end{center}
+    \end{minipage}}
+\end{example}
+
+In either case, if we want the resulting framed box centered, we have to
+include it inside another "center" environment.
+
+Here is another example:
+\begin{example}
+  My list: \fbox{%
+    \begin{Bflushleft}[b]
+      Galanga root\\
+      Coconut\\
+      Tempeh
+    \end{Bflushleft}}
+\end{example}
+
+
+\section{Lists}
+
+There are again two ways to box a list environment such as
+\begin{quote}
+  "itemize", "enumerate" or "description".
+\end{quote}
+You can put it in a "minipage" of pre-determined size and let \TeX\ do the
+line breaking, or you can use
+\begin{quote}
+  "Bitemize", "Benumerate" or "Bdescription"
+\end{quote}
+instead, and let the box adjust to the size of the longest line.
+
+For example.
+\begin{example}
+  \fbox{%
+    \begin{Bitemize}
+      \item Groceries
+      \item Clean hamster cages
+      \item Pick up Peter
+    \end{Bitemize}}
+\end{example}
+
+ Most of the usual list parameters are irrelevant except for "\itemsep" and
+"\labelsep". These environments are also based on the "tabular" environment,
+and so each item should be balanced text. You can't write "\vspace{4pt}"
+either, but you can insert an extra amount of space before an item by writing
+"\item(4pt)" (or "\item(4pt)[label]" if you have a label). Also, you can break
+lines within an item using "\\" or "\\[<dim>]". For example:
+\begin{example}
+  \fbox{%
+    \begin{Bdescription}
+      \item[David] Groceries
+      \item[Eli]  Hamster cages\\
+                  Surreal numbers
+      \item(3pt)[Doris] Pick up Peter
+    \end{Bdescription}}
+\end{example}
+
+These environments also have an optional argument, "[t]" to align the box with
+the top line, and "[b]" to align the box with the bottom line.
+\begin{example}
+  To do:
+  \fbox{\setlength{\itemsep}{0pt}%
+    \begin{Benumerate}[t]
+      \item Groceries
+      \item Hamster cages
+      \item Pick up Peter
+    \end{Benumerate}}
+\end{example}
+
+There is also a generic "\Blist" command that is analogous to \LaTeX's
+"\list".  It has the same two obligatory arguments, plus a third optional
+"[t]" or "[b]" argument for changing the alignment.
+
+\section{Superimposing boxes}
+
+The command
+\begin{LVerbatim}
+  \boxput*(<x>,<y>){<LR stuff1>}{<LR stuff2>}
+\end{LVerbatim}
+puts <LR stuff1> either behind (the default) or in front of (with the "*") <LR
+stuff2>.\footnote{You will only notice the difference between "\boxput" and
+"\boxput*" if you are using color implemented by "\special"'s} The resulting
+box has the dimensions of <LR stuff2>.
+
+The coordinates "(<x>,<y>)" determine where the center of <LR stuff1> is
+positioned. For example, "(0,0)" puts it at the center of <LR stuff2>, "(0,1)"
+puts it at the center-top, and "(-1,-1)" puts it in the bottom-left corner.
+
+More generally, the origin of the coordinate system is at the center of <LR
+stuff2>, one unit in the vertical direction is half the vertical size of <LR
+stuff2>, and one unit in the horizontal direction is half the width of <LR
+stuff2>. Thus, <x> and <y> should always be numbers (without units such as
+"pt" or "cm"), with one exception: If <y> is "b" or "B", <LR stuff1> is
+positioned vertically at the baseline of <LR stuff2>. "(<x>,<y>)" is
+optional---the default is "(0,0)".
+
+Except for the funny coordinate system, "\boxput" is like the "\put" command
+in a "picture". In particular, you can use "\makebox" in <LR stuff1> to
+fine-tune the positioning, and <LR-stuff1> can contain a "picture"
+environment.
+
+You might use "\boxput" to put a ``water mark'' in the background of a box, or
+to put a label next to a box, when you don't want this label to take up any
+space. Here is a lazy example:
+\begin{example}
+  \boxput{\makebox(0,0){\Huge Censored!}}{\parbox{3in}{%
+    The origin of the coordinate system is at the center of
+    {\em LR stuff2}, and one unit in the x-direction
+    is half the width of {\em LR stuff2}.}}
+\end{example}
+
+This would be a lot more interesting using PSTricks, with ``Censored!'' in the
+foreground, rotated 30 degrees, and red:
+\begin{LVerbatim}
+  \boxput*{\rput{30}{\Huge\red Censored}}{\parbox{3in}{%
+    blah blah}}
+\end{LVerbatim}
+
+Here is another example using PSTricks:
+\begin{LVerbatim}
+  \newcommand{\titledframe}[2]{%
+    \boxput*(0,1){\psframebox*{#1}}%
+      {\psframebox[framesep=12pt]{#2}}}
+\end{LVerbatim}
+\newcommand{\titledframe}[2]{%
+  \boxput*(0,1){#1}%
+    {\fboxsep=12pt \fbox{#2}}}
+The following example illustrated roughly how it works, but ``My title'' does
+not blot out the frame behind it because this documentation does not use
+PSTricks.
+\begin{example}
+  \titledframe{My title}{%
+    \parbox{2in}{The title is superimposed
+      on the top part of the frame.}}
+\end{example}
+
+\section{Framing a whole page}
+
+The commands
+\begin{LVerbatim}
+  \fancyput*(<x>,<y>){<LR stuff>}
+  \thisfancyput*(<x>,<y>){<LR stuff>}
+\end{LVerbatim}
+are pretty much like "\put" commands in a \LaTeX\ picture environment whose
+origin is 1 inch down and to the right from the top left corner of the
+page.\footnote{Don't blame me for \TeX's peculiar 1 inch margins.} The only
+differences are that (i) that any LR-mode material is permitted (including
+\LaTeX\ "picture" environment, of course), (ii) the coordinate is optional
+"(0pt,0pt)" is substituted by default), and (iii) if the coordinate is
+included, you {\em must} specify the units.
+
+"\thisfancyput" affects only the current page, and is a global declaration
+(analogous to "\thispagestyle").
+
+If you include the optional "*", then the command adds to, rather than
+replaces, other things that have been inserted with "\fancyput" or
+"\thisfancyput".
+
+These commands are particularly useful for framing a page, because you can get
+a frame that is, e.g., 1 inch from each side of the physical page without
+having to worry about what margins you are using for the document. Here is an
+example:
+\begin{example*}
+  \thisfancyput(3.25in,-4.5in){%
+    \setlength{\unitlength}{1in}\fancyoval(7,9.5)}
+\end{example*}
+You could also use "\fancyput" to add some kind of ``watermark'' or background
+image (e.g., a light gray ``DRAFT'').
+
+There are other commands that directly frame or in some other way box the page
+of text:
+\begin{LVerbatim}
+  \fancypage{<cmds1>}{<cmds2>}
+  \thisfancypage{<cmds1>}{<cmds2>}
+\end{LVerbatim}
+
+Each finished page, before adding the headers and footers, (and thus having
+width and height "\textwidth" and "\textheight", is boxed with
+\begin{LVerbatim}
+  <cmds1>{<pagebox>}
+\end{LVerbatim}
+Thus, <cmds1> should be, or should end with, a command whose argument can be a
+box, such as "\fbox" or "\rotateleft".
+
+Then the headers and footers are added, using the new width of the page, and
+this is boxed with
+\begin{LVerbatim}
+  <cmds2>{<pagebox>}
+\end{LVerbatim}
+The same rules apply to <cmds2> as to <cmds1>.
+
+Here is an example:
+\begin{example*}
+  \thisfancypage{%
+    \setlength{\fboxsep}{8pt}%
+    \setlength{\shadowsize}{8pt}%
+    \shadowbox}{}
+\end{example*}
+
+{\bf Warning:} The commands described in this section change \LaTeX's output
+routine, and may not work with document styles that do the same. Also, bad
+arguments can cause serious errors with uninformative error messages.
+
+\section{Switching to landscape mode midstream}
+
+The most common reason to switch to landscape mode midstream is to rotate a
+float, such as a table or figure. This was discussed in Section \ref{floats}.
+
+If you want to rotate one or more pages, without rotating the headers and
+footers, use the
+\begin{LVerbatim}
+  \begin{LandScape}{<cmd>}
+    ...
+  \end{LandScape}
+\end{LVerbatim}
+environment. <cmd> should be the command for rotating the page 90 degrees to
+the left or right. (E.g., "\rotateleft", or "\rotate[l]".)
+
+If you want to rotate the headers, footers and margins as well, use the
+\begin{LVerbatim}
+  \begin{Landscape}{<paperwidth>}{<paperheight>}{<cmd>}
+    ...
+  \end{Landscape}
+\end{LVerbatim}
+environment (the small "s" makes the difference) to rotate the pages left
+(counterclockwise), and use the "Landscape*" environment (same arguments) to
+rotate the pages right (clockwise). The three arguments are the width of the
+paper, the height of the paper, and the rotation command you are using. For
+example, if I have a portrait mode document using the US 8.5in by 11in paper,
+and if "\rotateleft{foo}" rotates "foo" 90 degrees counterclockwise, then I
+can write
+\begin{LVerbatim}
+  \begin{Landscape}{8.5in}{11in}{\rotateleft}
+\end{LVerbatim}
+
+You can use "\LandScape", "\Landscape" and "\Landscape*", rather then the
+"LandScape", "Landscape" and "Landscape*" environments, if you want the rest
+of the document to be in landscape mode.
+
+If your document is being printed in landscape mode, then these environments 
+switch to portrait mode.
+
+For example, suppose I have a landscape mode document, and I want to switch to
+portrait mode for the rest of the document, rotating the pages to the
+``right'' with "\rotateright". Then I would write
+\begin{LVerbatim}
+  \Landscape*{11in}{8.5in}{\rotateright}
+\end{LVerbatim}
+
+These environments switch the text width and height, leaving the margins
+exactly as they were before. It is quite possible that you want to make other
+changes to the page parameters after switching to landscape mode, but as
+Lamport points out the \LaTeX\ {\em User's Guide and Reference Manual}, this
+generally doesn't work right in the middle of the document. "fancybox.sty" has
+a command "\UsePageParameters" which gets around this. It should be used right
+after you change the page parameters (and the page parameter changes should
+come right after the beginning of the landscape environment, or "\clearpage").
+
+{\bf Warning:} The commands and environments described in this section change
+\LaTeX's output routine, and may not work with document styles that do the
+same. Also, bad arguments can cause serious errors with uninformative error
+messages.
+
+\section{Verbatim}
+
+If you try to frame some verbatim text by typing
+\begin{LVerbatim}
+  \fbox{%
+    \begin{minipage}{5cm}
+      \begin{verbatim}
+        \My \Program \Listing
+        if { foo } { bar } fi
+      \end{verbatim}
+    \end{minipage}}
+\end{LVerbatim}
+you will get nonsense at best. This is because the argument to "\fbox" is read
+before the "\begin{verbatim}" is processed. But then it is too late for \TeX\
+to go back and interpret the contents of the verbatim environment literally
+rather than as special \TeX\ commands and characters.
+
+One solution is to use the "Sbox" environment:
+\begin{example}
+  \begin{Sbox}
+  \begin{minipage}{5cm}
+  \begin{verbatim}
+  \My \Program \Listing
+  if { foo } { bar } fi
+  \end{verbatim}
+  \end{minipage}
+  \end{Sbox}
+  \setlength{\fboxsep}{8pt}
+  \fbox{\TheSbox}
+\end{example}
+
+"fancybox.sty" also contains a command that ``fixes'' \LaTeX's LR-box commands
+for use with verbatim text:
+\begin{LVerbatim}
+  \VerbBox{<cmd>}{<LR stuff>}
+\end{LVerbatim}
+This is like
+\begin{LVerbatim}
+  <cmd>{<LR stuff>}
+\end{LVerbatim}
+but <LR stuff> can contain verbatim text.\footnote{Or other tricks that
+involve "\catcode" changes, as occurs with some foreign language macros.} For
+example:
+\begin{example}
+  \VerbBox{\fbox}{\verb+\foo{bar}+}
+\end{example}
+
+For footnotes, put the command "\VerbatimFootnotes" in the preamble, and then
+you can use verbatim commands or environments in the argument of "\footnote".
+This is an optional feature because it might conflict with somebody else's
+modification of the footnote system.
+
+If you try to define your own framed verbatim environment with
+\begin{LVerbatim}
+  \newenvironment{FramedVerb}%
+    {\begin{Sbox}\begin{minipage}{5in}\begin{verbatim}}
+    {\end{verbatim}\end{minipage}\end{Sbox}
+      \setlength{\fboxsep}{8pt}\fbox{\TheSbox}}
+\end{LVerbatim}
+and then type
+\begin{LVerbatim}
+  \begin{FramedVerb}
+    if { foo } { bar } fi
+  \end{FramedVerb}
+\end{LVerbatim}
+you will again run into trouble because after the "\begin{verbatim}", \LaTeX\
+is searching for the literal string "\end{verbatim}" as the end of the
+verbatim text. It just skips right over the "\end{FramedVerb}" and may well
+continue to the end of the file or until it throws up.
+
+"fancybox.sty" contains some verbatim environments that get around this
+problem and that have other advantages for LR-boxing verbatim listings, when
+compared to the standard \LaTeX\ "verbatim" environment. Admittedly, many of
+their special features have nothing to do with boxes.
+
+Here are the basic verbatim environments:
+\begin{description}
+  \vitem"Verbatim" Works pretty much like \LaTeX's "verbatim".
+  \vitem"LVerbatim" Like "Verbatim", but "list" rather than "trivlist" is used
+to display the listing, and so it is indented from the left margin. (This is
+what I am using for verbatim listings in this document.)
+  \vitem"BVerbatim[<pos>]" Produces a box with the same width as the longest
+verbatim line. The baseline is in the center, unless you include the optional
+argument "[t]" for alignment with the top line or "[b]" for alignment with the
+bottom line.
+  \vitem"VerbatimOut{<file>}" Writes the verbatim text to <file>.
+  \vitem"SaveVerbatim{<cmd>}" Saves the verbatim text as <cmd>. <cmd> is
+defined globally, without checking whether <cmd> is already defined. Use
+obviously innocuous names like "\MyTemp".
+\end{description}
+
+{\bf Important:} For any of these verbatim environments, or new verbatim
+environments you define yourself (see below), nothing should come after
+"\begin{Verbatim}" or before "\end{Verbatim}" on the same line --- not even
+spaces!%
+  \footnote{If you need to allow something to come before "\end{Verbatim}",
+then you have two options:
+  \begin{itemize}
+  \item Put the command "\AltGetVerbatim" in the preamble. This switches to a
+scheme where anything preceding "\end{Verbatim}" is simply ignored. This can
+cause problems if you do really weird things with active characters or other
+commands within the verbatim environment (e.g., active conditionals that are
+not balanced within a line of verbatim text), but in this case you are
+probably a good enough hacker to use the next option.
+  \item "\EndVerbatimTokens" is a token register that you can set to the
+tokens that should precede "\end{Verbatim}" on the same line, with their
+verbatim "\catcode"'s.
+  \end{itemize}}
+If you put something after "\begin{Verbatim}" on the same line, it is simply
+ignored. However, if you put something after "\end{Verbatim}" on the same
+line, or if you misspell "\end{Verbatim}", you will get an error such as
+\begin{LVerbatim}
+  ! File ended while scanning use of \Verbatim.
+\end{LVerbatim}
+and the document will end at that point.
+
+You can define new verbatim environments using "\newenvironment". You just
+have to start the definition with
+\begin{LVerbatim}
+  \VerbatimEnvironment
+\end{LVerbatim}
+ For example, here is the framed verbatim environment we tried earlier:
+\begin{example**}
+  \newenvironment{FramedVerb}%
+    {\VerbatimEnvironment
+      \begin{Sbox}\begin{minipage}{5cm}\begin{Verbatim}}%
+    {\end{Verbatim}\end{minipage}\end{Sbox}
+      \setlength{\fboxsep}{8pt}\fbox{\TheSbox}}
+\end{example**}
+Let's give it a try:
+\begin{example}
+  \begin{FramedVerb}
+  if { foo } { bar } fi
+  \end{FramedVerb}
+\end{example}
+
+Here are three commands for inputting a whole file verbatim. The file must end
+with a new line.
+\begin{description}
+  \vitem"\VerbatimInput{<file>}" Like "\Verbatim".
+  \vitem"\LVerbatimInput{<file>}" Like "\LVerbatim".
+  \vitem"\BVerbatimInput[<pos>]{<file>}" Like "\BVerbatim".
+\end{description}
+
+Here are three commands for making use of verbatim text that has been saved to
+a command:
+\begin{description}
+  \vitem"\UseVerbatim{<cmd>}" Like "\Verbatim".
+  \vitem"\LUseVerbatim{<cmd>}" Like "\LVerbatim".
+  \vitem"\BUseVerbatim[<pos>]{<cmd>}" Like "\BVerbatim".
+\end{description}
+The "SaveVerbatim" environment and the "\UseVerbatim" commands are useful for 
+including verbatim text in the argument of "\marginpar", "\fbox" and other
+commands. For example, here is another way to define the "FramedVerb"
+environment:
+\begin{LVerbatim}
+  \newenvironment{FramedVerb}%
+    {\VerbatimEnvironment
+      \begin{SaveVerbatim}{\MyTemp}}%
+    {\end{SaveVerbatim}%
+      \setlength{\fboxsep}{8pt}%
+      \fbox{\begin{minipage}{5cm}\UseVerbatim{\MyTemp}
+        \end{minipage}}}
+\end{LVerbatim}
+
+Here are some verbatim commands for short-pieces of (in-line) verbatim text:
+\begin{description}
+  \vitem"\Verb<char> <literal> <char>" \ \\
+  Like \LaTeX's "\verb" command, but it will complain if it encounters a new
+line in <literal>.\footnote{Be careful that your word processing does not
+insert one for you.} For example:
+\begin{example*}
+  "\begin{quote}
+  The main use for the \Verb+SaveVerbatim+
+  environment and the \Verb+\UseVerbatim+
+  commands is to include $\ldots$
+  "\end{quote}
+\end{example*}
+  \vitem"\UseVerb{<cmd>}" Like "\UseVerbatim", but without any particular
+formatting. It is intended for including short pieces of literal text saved
+with "\SaveVerb" (below).\footnote{But it can also be used for multiple lines
+saved with the "SaveVerbatim" environment if you want to do the formatting
+yourself. E.g., try this in a tabbing environment with "\VerbatimTab"
+appropriately defined.}
+  \vitem"\SaveVerb[<whatever>]{<cmd>}<char> <literal> <char>"\ \\
+  This is like "\Verb", but it saves <literal> as <cmd>, and then returns to
+the optional argument <whatever>. Like the "SaveVerbatim" environment, it
+defines <cmd> globally without checking whether <cmd> is already defined.
+Without the optional argument, the most common use is for including verbatim
+text in a "\marginpar", "\section" or other command argument.
+
+  The optional argument can be used for special tricks. For example, all the
+listings of commands in this documentation use "\vitem" in a "description"
+environment, where "\vitem" is defined by:\footnote{The braces enclosing the
+optional argument of "\SaveVerb" prevent the "]" inside the argument from
+being mistaken for the end of the argument.}
+\begin{LVerbatim}
+  \newcommand{\vitem}%
+    {\SaveVerb[{\item[\UseVerb{\MyTemp}]}]{\MyTemp}}
+\end{LVerbatim}
+Whereas
+\begin{LVerbatim}
+  \item[\Verb"\foo"]
+\end{LVerbatim}
+would not work because after "\item" reads its argument it is too late to
+interpret "\foo" literally,
+\begin{LVerbatim}
+  \vitem"foo"
+\end{LVerbatim}
+does work because it is equivalent to
+\begin{LVerbatim}
+  \SaveVerb{\MyTemp}"foo"\item[\UseVerb{\MyTemp}]
+\end{LVerbatim}
+\end{description}
+
+
+These environments and commands use various parameters that make it easy to
+customize their behavior. However, until you want to find the need for such
+customization, you might as well ignore the rest of this section.
+
+Internally, "fancybox.sty" separates the reading and formatting of verbatim
+text. Most of the environments and commands perform both functions, but
+"SaveVerbatim" and "\SaveVerb" only read the text, while "UseVerbatim" (and
+company) and "\UseVerb" only format the text. "VerbatimOut" gets special
+treatment. The parameters that apply to each class of verbatim environment or
+command is listed in Table \ref{verbtable}.
+
+\begin{table}
+\begin{center}
+\renewcommand{\arraystretch}{0}
+\setlength{\tabcolsep}{7pt}
+\newcommand{\vs}{& \\[\tabcolsep]}
+\newcommand{\VS}{\\ \vs \hline \vs}
+\begin{tabular}{|l|l|}
+\hline \vs
+{\em Where} & {\em What}
+\\ \vs \hline
+\hline \vs
+  \begin{Bflushleft}
+    Environments\\
+    that format
+  \end{Bflushleft}
+&
+  \begin{Bflushleft}
+    "\VerbatimSpace"\\
+    "\VerbatimTab"\\
+    "\VerbatimFont"\\
+    "\VerbatimFuzz"\\
+    "\EveryVerbatimLine"\\
+    "\EveryVerbatim"\\
+    "\ThisVerb"
+  \end{Bflushleft}
+\VS
+  \begin{Bflushleft}
+    Environments\\
+    that read
+  \end{Bflushleft}
+&
+  \begin{Bflushleft}
+    "\EveryVerbatimCodes"\\
+    "\ThisVerbCodes"
+  \end{Bflushleft}
+\VS
+  \begin{Bflushleft}
+    "\Verb" and\\
+    "\UseVerb"
+  \end{Bflushleft}
+&
+  \begin{Bflushleft}
+    "\VerbSpace"\\
+    "\VerbTab"\\
+    "\VerbFont"\\
+    "\EveryVerb"\\
+    "\ThisVerb"
+  \end{Bflushleft}
+\VS
+  \begin{Bflushleft}
+    "\Verb" and\\
+    "\SaveVerb"
+  \end{Bflushleft}
+&
+  \begin{Bflushleft}
+    "\EveryVerbCodes"\\
+    "\ThisVerbCodes"
+  \end{Bflushleft}
+\VS
+  \begin{Bflushleft}
+    "VerbatimOut"
+  \end{Bflushleft}
+&
+  \begin{Bflushleft}
+    "\EveryVerbOutCodes"\\
+    "\ThisVerbCodes"\\
+    "\EveryVerbOutLine"\\
+    "\ThisVerb"
+  \end{Bflushleft}
+\\ \vs \hline
+\end{tabular}
+\caption{Parameters for the verbatim environments and
+commands.\label{verbtable}}
+\end{center}
+\end{table}
+
+All the parameters, including "\VerbatimFuzz", are ordinary commands, and
+should be changed with "\renewcommand".
+
+Here is a description of each of the parameters for environments that format
+the verbatim text:
+\begin{description}
+  \vitem"\VerbatimSpace" The insertion text for spaces. The default is "\ ",
+which produces a blank space. Change it to "\ttspace" to get \ttspace.
+  \vitem"\VerbatimTab" The insertion text for tabs. The default is
+\begin{LVerbatim}
+  \ \ \ \ \ \ \ \
+\end{LVerbatim}
+  \vitem"\VerbatimFont" The font to use for verbatim text. The default is
+"\tt"
+  \vitem"\VerbatimFuzz" This is the amount by which lines can be too long in a
+"Verbatim" or "LVerbatim" environment before you get overfull "\hbox"
+warnings. This threshold is usually .1pt, but the default definition of
+"\VerbatimFuzz" is "2pt" because verbatim lines won't break and are therefore
+often too long.
+  \vitem"\EveryVerbatimLine" This is inserted at the beginning of each line of
+verbatim environments or verbatim files. By default it does nothing. I like to
+indent each line in the verbatim environment in the input file by 2 spaces, so
+I define
+\begin{LVerbatim}
+  \renewcommand{\EveryVerbatimLine}[2]{}
+\end{LVerbatim}
+to eat those spaces. (But I have to remember to put in two spaces or space
+markers for blank lines too.) You might also use it to number the lines. For
+example:
+\begin{example}
+  \newcounter{VerbLineNo}
+  \renewcommand{\EveryVerbatimLine}%
+    {\makebox[10pt][r]{%
+       \stepcounter{VerbLineNo}%
+       \tiny\rm\arabic{VerbLineNo}}%
+    \hspace{10pt}}
+  \renewcommand{\EveryVerbatim}%
+    {\setcounter{VerbLineNo}{0}}
+  \begin{SaveVerbatim}{\MyTemp}
+  \setlength{\fboxsep}{15pt}
+  \setlength{\mylength}{\linewidth}
+  \end{SaveVerbatim}
+  \fbox{\BUseVerbatim{\MyTemp}}
+\end{example}
+  \vitem"\EveryVerbatim" Whatever else you want to say before formatting the
+verbatim text. By default, it does nothing.
+  \vitem"\ThisVerb" This is executed before any of the commands above, and
+then its value is cleared. Use this to customize a single verbatim formatting
+environment.
+\end{description}
+
+Here is a description of the parameters for environments that read the
+verbatim text:
+\begin{description}
+  \vitem"\EveryVerbatimCodes" This command is inserted just before reading the
+verbatim text. Use it to play with "\catcode"'s (see the {\em \TeX book}). For
+example, I might type
+\begin{LVerbatim}
+  \renewcommand{\EveryVerbatimCodes}{\catcode`\"=14}
+\end{LVerbatim}
+if I want to use \Verb+"+ as a comment character in verbatim text.%
+%% The use of SaveVerbatim and \SaveVerb is not necessary here because
+%% \VerbatimFootnotes is in effect. This is just a test.
+\begin{SaveVerbatim}{\MyTemp}
+  \def\MyQuote{"}    % \MyQuote is now the character ",
+  \def\temp{\Verb"}  %    in case I need it.
+  \catcode`\"=13     % Now " is like a command.
+  \let"\temp         % Now "foo" is like \Verb"foo"
+  \def\do{\noexpand\do\noexpand}      % Now " can be used in verbatim
+  \edef\dospecials{\dospecials\do\"}  % environments anyway.
+\end{SaveVerbatim}\SaveVerb{\Foo}+"+\SaveVerb{\FFoo}+\Verb"foo"+%
+\footnote{Here is another "\catcode" trick. We make \UseVerb{\Foo} a short
+verbatim command, so that we can say \UseVerb{\Foo foo\Foo} instead of
+\UseVerb{\FFoo}:
+\LUseVerbatim{\MyTemp}}
+  \vitem"\ThisVerbCodes" This command is executed before "\EveryVerbCodes",
+and then it is cleared. Use this to fool with the "\catcode"`s of a single
+verbatim environment.
+\end{description}
+
+The parameters for "\Verb", "\UseVerb" and "\SaveVerb" and the "VerbatimOut"
+environment are analogous to the similar commands for other environments.
+
+Here is an example of the use of "\ThisVerb" to define a variant of "\Verb"
+that uses \ttspace\ to mark spaces:
+\begin{LVerbatim}
+  \newcommand{\SVerb}{%
+    \renewcommand{\ThisVerb}%
+      {\renewcommand{\VerbatimSpace}{\ttspace}}%
+    \Verb}
+\end{LVerbatim}
+
+Finally, without further comment, here are the definitions of the "example"
+and "example*" environments that were used for the examples in this document:
+{\renewcommand{\EveryVerbatimLine}{}\LVerbatimInput{\jobname.ex1}}
+
+\section{Changes}
+\raggedright
+
+\paragraph*{Version 0.9, November 23, 1992} First release.
+
+\paragraph*{Version 0.91, November 25, 1992}
+\begin{enumerate}
+  \item "\shadowsize" is now a length, to be set with "\setlength" or
+"\addtolength".
+  \item "\fancypage" split into "\fancypage" and "\fancyput"
+\end{enumerate}
+
+\paragraph*{Version 0.92, December 20, 1992}
+\begin{enumerate}
+  \item New "\boxput" command for superimposing boxes.
+  \item New "\VerbatimFootnotes" command.
+  \item New "\VerbBox" command for verbatim boxes.
+  \item New "Sbox" environment. Makes "\beginsbox" and "\endsbox"
+    obsolete, but the latter have been retained for compatibility.
+\end{enumerate}
+
+\paragraph{Version 0.93, January 20, 1993}
+\begin{enumerate}
+  \item New "\EndVerbatimTokens" for tokens that precede "\end{Verbatim}".
+  \item New "\AltGetVerbatim", to allow any tokens to precede
+"\end{Verbatim}".
+  \item Fixed bug in "\BVerbatimInput" that caused second line to be repeated.
+  \item New "LandScape" environment, for rotating pages without rotating
+headers and footers.
+  \item Slide frames "Oval", "oval", "shadow" and "double" are defined when
+"seminar.sty" v0.93 (and maybe later) is loaded.
+\end{enumerate}
+
+\paragraph{Version 1.0, February 10, 1993}
+\begin{enumerate}
+  \item Fixed bugs in "\boxput".
+  \item New "Beqnarray" environment.
+\end{enumerate}
+
+\end{document}
+%% END fancybox.doc

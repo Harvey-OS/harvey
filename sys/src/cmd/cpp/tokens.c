@@ -10,7 +10,7 @@ static char *wbp = wbuf;
  * 1 for tokens that don't need whitespace when they get inserted
  * by macro expansion
  */
-static char wstab[] = {
+static const char wstab[] = {
 	0,	/* END */
 	0,	/* UNCLASS */
 	0,	/* NAME */
@@ -72,6 +72,15 @@ static char wstab[] = {
 	0,	/* DEFINED */
 	0,	/* UMINUS */
 };
+
+void
+clearwstab(void)
+{
+	int i;
+
+	for (i = 0; i < sizeof(wstab); i++)
+		wstab[i] = 0;
+}
 
 void
 maketokenrow(int size, Tokenrow *trp)

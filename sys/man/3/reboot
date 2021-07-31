@@ -1,0 +1,38 @@
+.TH REBOOT 3 
+.SH NAME
+reboot \- reboot CPU after loss of file server connection
+.SH SYNOPSIS
+.nf
+.B
+write(cfd, "push reboot", 11);
+.sp
+.B
+fd = open("#↑/deltat", OWRITE);
+.B
+fprint(fd, "%d", delaytime);
+.fi
+.SH DESCRIPTION
+.PP
+This is a combined device and stream module (see
+.IR stream (3)).
+The bootstrap program
+.IR boot (8)
+pushes the module onto the file server connection of
+a CPU server.  The system will then reboot automatically
+if the connection hangs up.  The reboot may be
+postponed by
+.I delaytime
+milliseconds by writing the decimal value of
+.I delaytime
+to
+.LR #↑/deltat .
+Conventionally, this is done by
+.BR /rc/bin/cpurc
+(see
+.IR cpurc (8)).
+This mechanism may be used to cause the machines at a particular
+site to come up in a fixed order, such as after a power failure.
+.SH "SEE ALSO"
+.IR stream (3)
+.SH SOURCE
+.B /sys/src/9/port/devreboot.c

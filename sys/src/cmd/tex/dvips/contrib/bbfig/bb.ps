@@ -1,0 +1,579 @@
+%!
+% bb.ps --
+%
+% Prints a file, but keeps track of bounding box info, and prints the box at
+% the end (around the figure.)
+%
+% $Header: bb.ps,v 1.14 91/03/21 13:04:02 cosell Exp $
+% RCS log info at end
+
+50 dict /$BoundingBox exch def
+
+$BoundingBox begin
+
+/xdef {
+	exch def
+} def
+
+/xstore {
+	exch store
+} def
+
+/addcoords {
+	exch
+	4 -1 roll add
+	3 1 roll add
+} def
+
+%
+% Stubs of old functions.
+%
+
+/-stroke /stroke load def
+/-fill /fill load def
+/-eofill /eofill load def
+/-image /image load def
+/-show /show load def
+/-awidthshow /awidthshow load def
+/-showpage /showpage load def
+/-restore  /restore load def
+/-imagemask /imagemask load def
+
+end % $BoundingBox
+
+%
+% New Functions.   --- These go into the user dict to intercept the calls
+%
+
+/stroke {
+        $BoundingBox begin
+	gsave
+	initmatrix
+	(stroke called\n) traceprint %%DEBUG
+	{
+	 	strokepath	% Make sure to take line width into account.
+		0 setlinejoin
+		flattenpath
+	} stopped {		% strokepath often hits a limitcheck.
+		(Can't set up a strokepath\n) traceprint % DEBUG
+		grestore	% Restore the original path
+		gsave
+	} if
+	includepath			% Accumulate it into our box.
+	grestore
+
+	-stroke
+	end % $BoundingBox
+} def
+
+/fill {
+        $BoundingBox begin
+	gsave
+	(fill called\n) traceprint %%DEBUG
+	includepath
+	grestore
+
+	-fill
+	end % $BoundingBox
+} def
+
+/eofill {
+        $BoundingBox begin
+	gsave
+	(eofill called\n) traceprint %%DEBUG
+	includepath
+	grestore
+
+	-eofill
+	end % $BoundingBox
+} def
+
+%
+% Text is implemented by reducing everything to an `awidthshow'.
+%
+
+/show {
+        $BoundingBox begin
+	(show called\n) traceprint %%DEBUG
+	0 0 0 0 0		% Extra parameters for awidthshow
+	6 -1 roll		% Bring the string back up
+	awidthshow
+	end % $BoundingBox
+} def
+
+/widthshow {
+        $BoundingBox begin
+        (widthshow called\n) traceprint %%DEBUG
+	0 0			% Extra parameters for awidthshow
+	3 -1 roll		% Bring the string back up.
+	awidthshow
+	end % $BoundingBox
+} def
+
+/ashow {
+        $BoundingBox begin
+        (ashow called\n) traceprint %%DEBUG
+	0 0 0
+	6 3 roll
+	awidthshow
+	end % $BoundingBox
+} def
+
+
+% This does all of the work of the text-rendering operators
+%   What it does, is compute, basically brute force, what 'charpath'
+%   would have given us virtually for free, if 'show' were the only
+%   operator that we needed to do.
+
+/awidthshow {
+	$BoundingBox begin
+	gsave
+	6 (awidthshow:) debug %%DEBUG
+	currentpoint
+	2 copy /@starty xdef /@startx xdef
+	2 index stringwidth	% Get the natural length of the string
+	addcoords			% Add to the start to get the end.
+
+	2 index length		% How many characters?
+
+	dup			% Add the offsets to each character
+	6 index mul
+	exch 5 index mul
+	addcoords
+
+	5 index 3 index
+	chcount		% How many padding characters?
+
+	dup			% Add the offsets for each pad.
+	9 index mul
+	exch 8 index mul
+	addcoords
+
+	/@endy xdef /@endx xdef
+
+	% We now have the left and right edges (in user coords)
+	% of the text.  Now we need only correct for the vertical
+	% displacements needed for the font and we can get the
+	% top and bottom edges of the enclosing box
+
+	fontheight		% Get the height and depth of the current font.
+
+	@startx @starty addcoords
+	/@starty xdef /@startx xdef
+	@endx @endy addcoords
+	/@endy xdef /@endx xdef
+	newpath
+	@startx @starty moveto
+	@endx @starty lineto
+	@endx @endy lineto
+	@startx @endy lineto
+	closepath
+        includepath
+	grestore
+
+	-awidthshow
+	end % $BoundingBox
+} def
+
+%
+% `image':
+%
+% Assume here that the image lands in the unit square.
+%
+
+/image {
+        $BoundingBox begin
+        (image called\n) traceprint %%DEBUG
+	gsave
+	newpath
+	0 0 moveto
+	1 0 rlineto
+	1 1 rlineto
+	-1 0 rlineto
+	closepath
+	includepath
+	grestore
+
+	-image
+	end % $BoundingBox
+} def
+
+/imagemask
+{
+    $BoundingBox begin
+    (imagemask called\n) traceprint %%DEBUG
+    gsave
+    newpath
+    0 0 moveto
+    1 0 rlineto
+    1 1 rlineto
+    -1 0 rlineto
+    closepath
+    includepath
+    grestore
+
+    -imagemask
+    end % $BoundingBox
+} def
+
+% Just define this one out of existence
+/framedevice { pop pop pop pop } def
+
+% Handle restoring VM --- this is all OK, except that we have to
+% hang onto the bb info we collected while in the about-to-be-discarded
+% environment
+
+/restore
+{
+    $BoundingBox begin
+    (restore called\n) traceprint %%DEBUG
+    tracedump  %% HACK, but the only way I see right now to get this stuff!
+    bbox-llx bbox-lly bbox-urx bbox-ury
+    5 -1 roll
+    -restore
+    /bbox-ury xstore /bbox-urx xstore
+    /bbox-lly xstore /bbox-llx xstore
+    end % $BoundingBox
+} def
+
+
+%
+% `showpage':
+%
+% Just draw the box around the figure and print the page, and then initialize
+% the bounding box variables again.
+%
+
+$BoundingBox begin
+/temp-string 10 string def
+end % $BoundingBox
+
+/showpage {
+	$BoundingBox begin
+	initgraphics
+
+        (showpage\n) traceprint % DEBUG
+	dump-bbox  % DEBUG
+
+        /bbox-llx round_down
+	/bbox-lly round_down
+	/bbox-ury round_up
+	/bbox-urx round_up
+
+	bbox-llx bbox-lly moveto		% Make the box
+	bbox-llx bbox-ury lineto
+	bbox-urx bbox-ury lineto
+	bbox-urx bbox-lly lineto
+	closepath
+
+	bwstroke			% Draw the box.
+
+% Print the size of the bounding box both above and below the actual box
+	0 setgray
+	/Courier findfont 10 scalefont setfont
+	bbox-llx 36 max bbox-lly 12 sub 36 max moveto
+	(%%BoundingBox: ) -show
+	bbox-llx temp-string cvs -show ( ) -show
+	bbox-lly temp-string cvs -show ( ) -show
+	bbox-urx temp-string cvs -show ( ) -show
+	bbox-ury temp-string cvs -show
+
+	bbox-llx 36 max bbox-ury 12 add 740 min moveto
+	(%%BoundingBox: ) -show
+	bbox-llx temp-string cvs -show ( ) -show
+	bbox-lly temp-string cvs -show ( ) -show
+	bbox-urx temp-string cvs -show ( ) -show
+	bbox-ury temp-string cvs -show
+
+	init
+	-showpage
+	tracedump        %% DEBUG
+	end % $BoundingBox
+} def
+
+%
+% BoundingBox functions:
+%
+% We accumulate the information about the bounding box into four variables.
+% The data is stored in default coordinates.
+%
+
+$BoundingBox begin
+
+/init {
+	/bbox-llx 99999 store
+	/bbox-lly 99999 store
+	/bbox-urx -99999 store
+	/bbox-ury -99999 store
+} def
+
+/bbox-llx 0 def
+/bbox-lly 0 def
+/bbox-urx 0 def
+/bbox-ury 0 def
+
+%
+% - `includepath' -
+%
+% Incorporates the bounding box of the path into the bounding box info.
+%   ... Gets the bounding box in default coords
+
+/includepath {
+        (Adding a path: ) traceprint %%DEBUG
+	gsave
+        initmatrix
+	{
+		0 setlinejoin
+		flattenpath
+	} stopped {
+		(Couldn't flatten the path\n) traceprint % DEBUG
+		grestore
+		gsave
+		initmatrix
+	} if
+	{ pathbbox } stopped not
+	{
+            4 2 roll    % Just so we get lower-left first
+	    2 copy dump-coord %%DEBUG
+	    dup bbox-lly lt {
+		    /bbox-lly xstore
+	    } {
+		    pop
+	    } ifelse
+	    dup bbox-llx lt {
+		    /bbox-llx xstore
+	    } {
+		    pop
+	    } ifelse
+
+	    (; ) traceprint 2 copy dump-coord (\n) traceprint %%DEBUG
+	    dup bbox-ury gt {
+		    /bbox-ury xstore
+	    } {
+		    pop
+	    } ifelse
+	    dup bbox-urx gt {
+		    /bbox-urx xstore
+	    } {
+		    pop
+	    } ifelse
+	    dump-bbox  %%DEBUG
+	} if
+	grestore
+} def
+
+%
+% A nice black-and white line drawing function.
+%
+
+/bwstroke {
+	0 setlinewidth			% Thinnest possible lines
+	1 setgray			% White first
+	[5] 0 setdash			% Only half the line
+	gsave -stroke grestore
+	0 setgray			% Then black
+	[5] 5 setdash			% On the other half
+	-stroke
+} def
+
+%
+% Stuff for text.
+%
+
+%
+% char-code string `chcount' occurs
+%
+% Counts the number of times a character appears in a string.
+%
+
+/chcount {
+	0 exch
+	{
+		2 index eq {
+			1 add
+		} if
+	} forall
+	exch pop
+} def
+
+%
+% - `fontheight' heightx heighty depthx depthy
+%
+% Returns the offsets to the lowest point and highest point in the current
+% font.
+%
+
+/fontheight {
+	currentfont begin
+	/FontBBox load aload pop
+	exch pop 0 exch
+	FontMatrix transform
+	4 2 roll
+	exch pop 0 exch
+	FontMatrix transform
+	end
+} def
+
+% key round_{down|up} -  These will round the value of the given key
+%                         up or down, as appropriate, to the nearest integer
+/round_up   { dup load ceiling cvi store } def
+/round_down { dup load floor   cvi store } def
+
+% key binddefinition - this will do a 'bind' on the procedure given by 'key'
+/binddefinition
+{
+    dup where
+    {
+        exch
+        2 copy
+        get bind put
+    }
+    { undefined } ifelse
+} def
+
+% Given two numbers on the stack, return with just the smallest
+/min { 2 copy ge { exch } if pop } def
+
+% Dito for the largest of the pair
+/max { 2 copy lt { exch } if pop } def
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%
+%   Debugging utilities
+%
+
+/$tracedict where
+{  % Trace package loaded... do the tracing
+    pop
+% This is a debugging function to print out what is going on.
+%  Format <argn> <argn-1> ... <arg1> n <string> debug <argn> ... <arg1>
+%    (that is, the 'n' args will be *left* on the stack!)
+/debug
+{
+    traceprint (\n) traceprint
+    dup 1 add   % Now total number of args (including arg count)
+    copy
+    {
+        (    ) traceprint
+	trace=
+        (\n) traceprint
+    } repeat
+    pop    % Remove the extra copy of the arg count
+} def
+
+% Print out a coordinate on the stack:  x y ---
+/dump-coord
+{
+    (\() traceprint exch trace= (, ) traceprint trace= (\)) traceprint
+} def
+
+% Print out bb's current notion of its bounding box
+
+/dump-bbox
+{
+    (Bounding Box: ) traceprint
+    bbox-llx bbox-lly dump-coord
+    (; ) traceprint
+    bbox-urx bbox-ury dump-coord
+    (\n) traceprint
+} def
+
+tracebegin %% DEBUG
+
+}
+{ % No trace package loaded, so don't trace.  Stub out the various calls
+
+/traceprint { pop } def
+/dump-coord { pop pop } def
+/dump-bbox { } def
+/debug { pop  pop } def
+/tracedump { } def
+
+} ifelse
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+% Bind everything
+
+/xdef binddefinition
+/xstore binddefinition
+/addcoords binddefinition
+/stroke binddefinition
+/fill binddefinition
+/eofill binddefinition
+/show binddefinition
+/widthshow binddefinition
+/ashow binddefinition
+/awidthshow binddefinition
+/image binddefinition
+/showpage binddefinition
+/init binddefinition
+/includepath binddefinition
+/bwstroke binddefinition
+/chcount binddefinition
+/fontheight binddefinition
+
+/debug binddefinition
+/dump-coord binddefinition
+/dump-bbox binddefinition
+
+% Start it up.
+
+init
+
+end % $BoundingBox
+
+%  end of bb.ps
+
+% $Log:	bb.ps,v $
+% Revision 1.14  91/03/21  13:04:02  cosell
+% Relocated the position of the constrained BBox info
+%
+% Revision 1.13  91/03/21  12:21:04  cosell
+% Forced the %BoundingBox info to stay within the page boundaries
+%
+% Revision 1.12  91/03/21  12:15:17  cosell
+% Added a tracing hook to bridge restores.
+%
+% Revision 1.11  90/07/02  08:48:40  cosell
+% bbfig now correctly copes with empty paths
+%
+% Revision 1.10  90/06/27  10:47:22  cosell
+% Added a bunch of improvements from Joe Pallas at stanford.
+%
+% Revision 1.9  90/06/26  10:50:20  cosell
+% Stack got botched in the 'debug' stub
+%
+% Revision 1.8  90/06/25  09:34:51  cosell
+% Minor bug in 'restore'
+%
+% Revision 1.7  90/06/25  09:29:58  cosell
+% Added code to catch and deal with 'restore'.  Thanks to Frank
+% Jensen for finding this one
+%
+% Revision 1.6  90/06/25  09:23:26  cosell
+% Small bugfix in the text-handling stuff
+%
+% Revision 1.5  90/06/10  09:04:02  cosell
+% Changed the printed string to explictly say "%%BoundingBox"
+%
+% Revision 1.4  90/06/10  08:55:39  cosell
+% Added 'bind' machinery to insulate this package from later redefinitions
+% of things we need from the systemdict.
+%
+% Revision 1.3  90/06/10  08:28:53  cosell
+% Added debugging hooks.  They don't affect anything (and don't do
+% anything) in the normal use of bbfig.  But if the 'trace' package
+% is loaded ahead of this, it'll print out some helpful info.  Probably
+% I'll end up removing all of this if/when I really get the package
+% up to snuff.
+%
+% Revision 1.2  90/05/25  12:08:24  cosell
+% Major improvements and tuneups:  fixed it to really use its private
+% discionary, and the most importnat: it now computes the bounding box
+% in *default* coords
+%
+% Revision 1.1  90/05/23  08:18:54  cosell
+% Initial revision
+%   This is Ned Bachelder's original version

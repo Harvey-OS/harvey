@@ -1,0 +1,46 @@
+</$objtype/mkfile
+
+TARG=twig
+OFILES=sym.$O\
+	path.$O\
+	machine.$O\
+	trees.$O\
+	lex.$O\
+	code.$O\
+	io.$O\
+	mem.$O\
+	y.tab.$O\
+
+YFILES=twig.y\
+
+HFILES=common.h\
+	code.h\
+	sym.h\
+	machine.h\
+	mem.h\
+	machcomm.h\
+	y.tab.h\
+
+WFILES=walker.stdio\
+	walker.libc\
+	walker.ansi\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+YFLAGS=-d
+CFLAGS=-w
+
+default:V:	$WFILES
+
+walker.%: machcomm.h walker.h rawwalker.%
+	cat machcomm.h walker.h rawwalker.$stem >walker.$stem
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+	mk $WFILES
+	cp $WFILES /sys/lib/twig
+
+nuke:V:
+	mk clean
+	rm -f $WFILES

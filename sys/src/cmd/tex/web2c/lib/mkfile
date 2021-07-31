@@ -1,0 +1,67 @@
+APE=/sys/src/ape
+< $APE/config
+
+# We don't make `openinout.o' or `texmf.o', since TeX and Metafont need
+# to use different routine names, hence they need different .o files.
+
+LIB=lib.a$O
+OFILES=alloca.$O\
+	concat.$O\
+	concat3.$O\
+	dir-p.$O\
+	eofeoln.$O\
+	file-p.$O\
+	fprintreal.$O\
+	getopt.$O\
+	getopt1.$O\
+	inputint.$O\
+	main.$O\
+	ourpaths.$O\
+	pathsrch.$O\
+	strpascal.$O\
+	uexit.$O\
+	xfopen-pas.$O\
+	xmalloc.$O\
+	xopendir.$O\
+	xrealloc.$O\
+	xstat.$O\
+	xstrdup.$O\
+	zround.$O
+
+HFILES=c-auto.h\
+	c-errno.h\
+	c-fopen.h\
+	c-limits.h\
+	c-memstr.h\
+	c-minmax.h\
+	c-namemx.h\
+	c-pathch.h\
+	c-pathmx.h\
+	c-proto.h\
+	c-seek.h\
+	c-std.h\
+	common.h\
+	config.h\
+	dirio.h\
+	getopt.h\
+	lib.h\
+	osite.h\
+	ourpaths.h\
+	pascal.h\
+	paths.h\
+	pathsrch.h\
+	site.h\
+	texmf.h\
+	texmfmem.h\
+	types.h\
+	xstat.h
+
+</sys/src/cmd/mklib
+
+CFLAGS=-B -D_POSIX_SOURCE -c
+
+clean:V:
+	rm -f *.[$OS]
+
+nuke:V:
+	rm -f *.[$OS] lib.a*

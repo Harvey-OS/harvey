@@ -35,10 +35,9 @@ struct	Prefix
 char	buf[100];
 int	digval;
 Biobuf*	fi;
-Biobuf	linebuf;
 Var*	fund[Ndim];
 Rune	line[1000];
-ulong	lineno;
+int	lineno;
 int	linep;
 int	nerrors;
 Node	one;
@@ -52,7 +51,6 @@ int	vflag;
 
 extern	void	add(Node*, Node*, Node*);
 extern	void	div(Node*, Node*, Node*);
-extern	int	specialcase(Node*, Node*, Node*);
 extern	double	fadd(double, double);
 extern	double	fdiv(double, double);
 extern	double	fmul(double, double);
@@ -66,14 +64,11 @@ extern	void	printdim(char*, int, int);
 extern	int	ralpha(int);
 extern	int	readline(void);
 extern	void	sub(Node*, Node*, Node*);
-extern	int	Uconv(va_list*, Fconv*);
+extern	int	Uconv(void*, Fconv*);
 extern	void	xpn(Node*, Node*, int);
 extern	void	yyerror(char*, ...);
 extern	int	yylex(void);
 extern	int	yyparse(void);
-
-typedef	Node*	indnode;
-#pragma	varargck	type	"U"	indnode
 
 %}
 %union
@@ -129,10 +124,12 @@ prog:
 	}
 |	'?' expr
 	{
+		retnode2 = retnode1;
 		retnode1 = $2;
 	}
 |	'?'
 	{
+		retnode2 = retnode1;
 		retnode1 = one;
 	}
 
@@ -315,8 +312,7 @@ main(int argc, char *argv[])
 	 * print ratio of pairs
 	 */
 	Bterm(fi);
-	fi = &linebuf;
-	Binit(fi, 0, OREAD);
+	Binit(fi, 0, OREAD);	/* probably not wise */
 	lineno = 0;
 	for(;;) {
 		if(lineno & 1)
@@ -331,16 +327,11 @@ main(int argc, char *argv[])
 		if(nerrors)
 			continue;
 		if(lineno & 1) {
-			if(specialcase(&retnode, &retnode2, &retnode1))
-				print("\tis %U\n", &retnode);
-			else {
-				div(&retnode, &retnode2, &retnode1);
-				print("\t* %U\n", &retnode);
-				div(&retnode, &retnode1, &retnode2);
-				print("\t/ %U\n", &retnode);
-			}
-		} else
-			retnode2 = retnode1;
+			div(&retnode, &retnode2, &retnode1);
+			print("\t* %U\n", &retnode);
+			div(&retnode, &retnode1, &retnode2);
+			print("\t/ %U\n", &retnode);
+		}
 		lineno++;
 	}
 	print("\n");
@@ -354,24 +345,37 @@ main(int argc, char *argv[])
 int
 ralpha(int c)
 {
+
+	if(c < 0177) {
+		if(c >= 'A' && c <= 'Z')
+			return 1;
+		if(c >= 'a' && c <= 'z')
+			return 1;
+		if(c >= '0' && c <= '9')
+			return 1;
+		switch(c) {
+		case 0:
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+		case '[':
+		case ']':
+		case '(':
+		case ')':
+		case '^':
+		case ':':
+		case '?':
+		case ' ':
+		case '\t':
+		case '.':
+		case '|':
+		case '#':
+			return 0;
+		}
+		return 1;
+	}
 	switch(c) {
-	case 0:
-	case '+':
-	case '-':
-	case '*':
-	case '/':
-	case '[':
-	case ']':
-	case '(':
-	case ')':
-	case '^':
-	case ':':
-	case '?':
-	case ' ':
-	case '\t':
-	case '.':
-	case '|':
-	case '#':
 	case L'¹':
 	case L'²':
 	case L'³':
@@ -383,9 +387,11 @@ ralpha(int c)
 }
 
 int
-gdigit(void*)
+gdigit(void *a)
 {
 	int c;
+
+	USED(a);
 
 	c = digval;
 	if(c) {
@@ -398,20 +404,17 @@ gdigit(void*)
 }
 
 void
-yyerror(char *fmt, ...)
+yyerror(char *a, ...)
 {
-	va_list arg;
 
 	/*
 	 * hack to intercept message from yaccpar
 	 */
-	if(strcmp(fmt, "syntax error") == 0) {
+	if(strcmp(a, "syntax error") == 0) {
 		yyerror("syntax error, last name: %S", sym);
 		return;
 	}
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);	/* ugly */
 	print("%ld: %S\n\t%s\n", lineno, line, buf);
 	nerrors++;
 	if(nerrors > 5) {
@@ -483,48 +486,6 @@ xpn(Node *c, Node *a, int b)
 		mul(c, c, a);
 }
 
-int
-specialcase(Node *c, Node *a, Node *b)
-{
-	int i, d, d1, d2;
-
-	d1 = 0;
-	d2 = 0;
-	for(i=1; i<Ndim; i++) {
-		d = a->dim[i];
-		if(d) {
-			if(d != 1 || d1)
-				return 0;
-			d1 = i;
-		}
-		d = b->dim[i];
-		if(d) {
-			if(d != 1 || d2)
-				return 0;
-			d2 = i;
-		}
-	}
-	if(d1 == 0 || d2 == 0)
-		return 0;
-
-	if(memcmp(fund[d1]->name, L"°C", 3*sizeof(Rune)) == 0 &&
-	   memcmp(fund[d2]->name, L"°F", 3*sizeof(Rune)) == 0 &&
-	   b->val == 1) {
-		memcpy(c->dim, b->dim, sizeof(c->dim));
-		c->val = a->val * 9. / 5. + 32.;
-		return 1;
-	}
-
-	if(memcmp(fund[d1]->name, L"°F", 3*sizeof(Rune)) == 0 &&
-	   memcmp(fund[d2]->name, L"°C", 3*sizeof(Rune)) == 0 &&
-	   b->val == 1) {
-		memcpy(c->dim, b->dim, sizeof(c->dim));
-		c->val = (a->val - 32.) * 5. / 9.;
-		return 1;
-	}
-	return 0;
-}
-
 void
 printdim(char *str, int d, int n)
 {
@@ -552,13 +513,14 @@ printdim(char *str, int d, int n)
 }
 
 int
-Uconv(va_list *arg, Fconv *fp)
+Uconv(void *v, Fconv *fp)
 {
 	char str[200];
 	Node *n;
 	int f, i, d;
 
-	n = va_arg(*arg, Node*);
+	n = *(Node**)v;
+
 	sprint(str, "%g", n->val);
 
 	f = 0;
@@ -608,26 +570,23 @@ readline(void)
 Var*
 lookup(int f)
 {
-	int i;
+	int h, i;
 	Var *v, *w;
 	double p;
-	ulong h;
 
 	h = 0;
 	for(i=0; sym[i]; i++)
 		h = h*13 + sym[i];
-	h %= nelem(vars);
 
+	if(h < 0)
+		h = ~h;
+	h = h % nelem(vars);
 	for(v=vars[h]; v; v=v->link)
 		if(memcmp(sym, v->name, sizeof(sym)) == 0)
 			return v;
 	if(f)
 		return 0;
-	v = malloc(sizeof(*v));
-	if(v == nil) {
-		fprint(2, "out of memory\n");
-		exits("mem");
-	}
+	v = malloc(sizeof(Var));
 	memset(v, 0, sizeof(*v));
 	memcpy(v->name, sym, sizeof(sym));
 	v->link = vars[h];
@@ -657,7 +616,6 @@ Prefix	prefix[] =
 	1e-12,	L"pico",
 	1e-9,	L"nano",
 	1e-6,	L"micro",
-	1e-6,	L"μ",
 	1e-3,	L"milli",
 	1e-2,	L"centi",
 	1e-1,	L"deci",
@@ -736,7 +694,7 @@ fmul(double a, double b)
 		return 1;
 	}
 	if(l < -Maxe) {
-		yyerror("underflow in multiply");
+		yyerror("undeflow in multiply");
 		return 0;
 	}
 	return a*b;
@@ -768,7 +726,7 @@ fdiv(double a, double b)
 		return 1;
 	}
 	if(l < -Maxe) {
-		yyerror("underflow in divide");
+		yyerror("undeflow in divide");
 		return 0;
 	}
 	return a/b;

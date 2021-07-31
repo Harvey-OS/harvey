@@ -1,0 +1,6 @@
+%% BEGIN filetest.raw
+% test of \rawfile, with testfile.tex
+0 0 moveto
+100 100 lineto
+100 0 lineto
+%% END filetest.raw

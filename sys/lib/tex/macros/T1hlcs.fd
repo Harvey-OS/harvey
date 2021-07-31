@@ -1,0 +1,69 @@
+%Filename: T1hlcs.fd
+%Created by: tex 3827lucsans
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlcs.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlcs.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlcs}{}
+
+\DeclareFontShape{T1}{hlcs}{db}{n}{
+ <->s * [\LucidaScale]hlcdsq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{db}{sc}{
+ <->s * [\LucidaScale]hlcdscq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{db}{it}{
+ <->s * [\LucidaScale]hlcdisq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{db}{sl}{
+ <->s * [\LucidaScale]hlcdosq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{b}{n}{
+ <->s * [\LucidaScale]hlcbsq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{b}{sc}{
+ <->s * [\LucidaScale]hlcbscq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{b}{it}{
+ <->s * [\LucidaScale]hlcbisq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{b}{sl}{
+ <->s * [\LucidaScale]hlcbosq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{m}{n}{
+ <->s * [\LucidaScale]hlcrsq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{m}{sc}{
+ <->s * [\LucidaScale]hlcrscq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{m}{it}{
+ <->s * [\LucidaScale]hlcrisq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{m}{sl}{
+ <->s * [\LucidaScale]hlcrosq
+}{}
+
+\DeclareFontShape{T1}{hlcs}{db}{ui}{<->sub * hlcs/db/it}{}
+\DeclareFontShape{T1}{hlcs}{b}{ui}{<->ssub * hlcs/db/ui}{}
+\DeclareFontShape{T1}{hlcs}{bx}{ui}{<->ssub * hlcs/b/ui}{}
+\DeclareFontShape{T1}{hlcs}{bx}{n}{<->ssub * hlcs/b/n}{}
+\DeclareFontShape{T1}{hlcs}{bx}{sc}{<->ssub * hlcs/b/sc}{}
+\DeclareFontShape{T1}{hlcs}{bx}{it}{<->ssub * hlcs/b/it}{}
+\DeclareFontShape{T1}{hlcs}{bx}{sl}{<->ssub * hlcs/b/sl}{}
+\DeclareFontShape{T1}{hlcs}{m}{ui}{<->sub * hlcs/m/it}{}
+
+\endinput

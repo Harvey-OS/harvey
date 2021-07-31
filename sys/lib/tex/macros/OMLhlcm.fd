@@ -1,0 +1,23 @@
+%% 
+%% This is file `OMLhlcm.fd', generated 
+%% on <1995/2/23> with the docstrip utility (1.1).
+%% 
+%% The original source files were:
+%% 
+%% lucida.dtx  (with options: `lucidascale,OMLhlcm')
+%% Copyright (C) 1993 Sebastian Rahtz. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{3.2}
+\def\filedate{1995/01/27}
+\def\docdate {1995/01/27}
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}
+\DeclareFontFamily{OML}{hlcm}{\skewchar\font=127}
+\DeclareFontShape{OML}{hlcm}{m}{it}{<->s * [\LucidaScale]hlcrbma}{}
+\DeclareFontShape{OML}{hlcm}{b}{it}{<->s * [\LucidaScale]hlcdbma}{}
+\endinput
+%% 
+%% End of file `OMLhlcm.fd'.

@@ -1,11 +1,8 @@
 .TH KILL 1
 .SH NAME
-kill, slay, broke \- print commands to kill processes
+kill, broke \- print commands to kill processes
 .SH SYNOPSIS
 .B kill
-.I name
-.PP
-.B slay
 .I name
 .PP
 .B broke
@@ -17,7 +14,7 @@ and owned by the current user to be terminated.
 Use the
 .B send
 command of
-.IR rio (1),
+.IR 8½ (1),
 or pipe the output of
 .I kill
 into
@@ -35,9 +32,6 @@ file (see
 is a surer, if heavy handed, kill,
 but is necessary if the offending process is
 ignoring notes.
-The
-.I slay
-command prints commands to do this.
 .PP
 .I Broke
 prints commands that will cause all processes
@@ -60,5 +54,4 @@ the broken processes.
 .SH "SEE ALSO"
 .IR ps (1),
 .IR stop (1),
-.IR notify (2),
 .IR proc (3)

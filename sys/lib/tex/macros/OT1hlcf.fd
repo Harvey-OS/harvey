@@ -1,0 +1,27 @@
+%Filename: OT1hlcf.fd
+%Created by: tex 3092lucblack
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{OT1hlcf.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for OT1/hlcf.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{OT1}{hlcf}{}
+
+\DeclareFontShape{OT1}{hlcf}{m}{n}{
+ <->s * [\LucidaScale]hlcrf7t
+}{}
+
+\DeclareFontShape{OT1}{hlcf}{m}{sc}{
+ <->s * [\LucidaScale]hlcrfc7t
+}{}
+
+\DeclareFontShape{OT1}{hlcf}{m}{sl}{
+ <->s * [\LucidaScale]hlcrof7t
+}{}
+
+\DeclareFontShape{OT1}{hlcf}{m}{it}{<->ssub * hlcf/m/sl}{}
+\DeclareFontShape{OT1}{hlcf}{m}{ui}{<->sub * hlcf/m/it}{}
+
+\endinput

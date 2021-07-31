@@ -31,7 +31,7 @@ settime(int islocal)
 			close(f);
 		}else do{
 			strcpy(dirbuf, "yymmddhhmm[ss]");
-			outin("\ndate/time ", dirbuf, sizeof(dirbuf));
+			outin(cpuflag, "\ndate/time ", dirbuf, sizeof(dirbuf));
 		}while((timeset=lusertime(dirbuf)) <= 0);
 	}
 	if(timeset == 0){
@@ -41,24 +41,31 @@ settime(int islocal)
 		f = open(timeserver, ORDWR);
 		if(f < 0)
 			return;
-		if(mount(f, "/mnt", MREPL, "") < 0){
-			warning("settime mount");
+		if(mount(f, "/n/boot", MREPL, "") < 0){
+warning("settime mount");
 			close(f);
 			return;
 		}
 		close(f);
-		if(stat("/mnt", dirbuf) < 0)
+		if(stat("/n/boot", dirbuf) < 0)
 			fatal("stat");
 		convM2D(dirbuf, &dir);
 		sprint(dirbuf, "%ld", dir.atime);
-		unmount(0, "/mnt");
+		unmount(0, "/n/boot");
+		/*
+		 *  set real time clock if there is one
+		 */
+		f = open("#r/rtc", ORDWR);
+		if(f > 0){
+			write(f, dirbuf, strlen(dirbuf));
+			close(f);
+		}
 	}
 
 	f = open("#c/time", OWRITE);
 	if(write(f, dirbuf, strlen(dirbuf)) < 0)
 		warning("can't set #c/time");
 	close(f);
-	print("\n");
 }
 
 #define SEC2MIN 60L
@@ -91,10 +98,9 @@ static	int	ldmsize[] =
  *  return the days/month for the given year
  */
 static int *
-yrsize(int y)
+yrsize(int yr)
 {
-
-	if((y%4) == 0 && ((y%100) != 0 || (y%400) == 0))
+	if((yr % 4) == 0)
 		return ldmsize;
 	else
 		return dmsize;

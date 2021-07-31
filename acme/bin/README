@@ -1,3 +1,0 @@
-The source directory should be called ./src instead of ./source,
-but this directory is bound into /bin and there is a command called
-src that the local directory would hide.

@@ -10,10 +10,8 @@ struct Node
 	Node	*sibs;
 	Node	*children;
 	File	*fp;
-	char	*longname;
 	short	depth;
-	char	chdirunknown;	/* true if CHDIR bit of files in this dir is unknown */
-	int	opens;
+	char	*longname;
 };
 
 /* OS types */
@@ -47,11 +45,14 @@ void	filedirty(Node*);
 void	fileclean(Node*);
 int	fileisdirty(Node*);
 
+/* time conversion */
+ulong	tm2sec(Tm);
+
 /* ftp protocol */
 void	hello(char*);
 void	quit(void);
 void	preamble(char*);
-void	rlogin(void);
+void	login(void);
 void	clogin(char *, char *);
 void	nop(void);
 int	readdir(Node*);

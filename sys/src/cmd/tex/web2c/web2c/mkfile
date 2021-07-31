@@ -1,0 +1,50 @@
+# Makefile for TeX to C conversion programs.
+#
+APE=/sys/src/ape
+< $APE/config
+SHELL=/bin/rc
+
+TARG=fixwrites splitup regfix web2c
+
+OFILES=
+
+HFILES=../lib/config.h
+
+YFILES=web2c.yacc
+
+LFILES=web2c.lex
+
+LIB=../lib/lib.a$O /$objtype/lib/ape/libl.a
+
+</sys/src/cmd/mkmany
+
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
+# -S is for stdio printf
+YFLAGS=-S -d
+LEX=lex
+
+$O.web2c:	web2cy.$O web2cl.$O
+
+web2cl.$O:	web2c.h web2cy.h
+web2cy.$O:	web2c.h
+web2c.$O:	web2cy.h
+
+web2cl.c:	$LFILES
+		$LEX -t $prereq > $target
+
+web2cy.c:	y.tab.c
+		mv $prereq $target
+
+web2cy.h:	y.tab.h
+		$SHELL -c 'if (! cmp -s web2cy.h y.tab.h) cp y.tab.h web2cy.h'
+
+nuke:V:
+		mk clean
+		rm -f web2cy.c web2cl.c web2cy.h y.tab.h lex.yy.c
+		#rm -f '#'*'#' *~ *.bak
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..

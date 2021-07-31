@@ -10,12 +10,13 @@
  */
 static void	bootdump(Dosboot*);
 static void	setname(Dosfile*, char*);
+long		dosreadseg(Dosfile*, long, long);
 
 /*
  *  debugging
  */
-#define chatty	0
-#define chat	if(chatty)print
+int chatty;
+#define chat if(chatty)print
 
 /*
  *  block io buffers
@@ -79,11 +80,11 @@ getclust(Dos *dos, long sector)
 	 *  read in the cluster
 	 */
 	chat("getclust addr %d\n", (sector+dos->start)*dos->sectsize);
-	if((*dos->seek)(dos, (sector+dos->start)*dos->sectsize) < 0){
+	if((*dos->seek)(dos->dev, (sector+dos->start)*dos->sectsize) < 0){
 		chat("can't seek block\n");
 		return 0;
 	}
-	if((*dos->read)(dos, p->iobuf, size) != size){
+	if((*dos->read)(dos->dev, p->iobuf, size) != size){
 		chat("can't read block\n");
 		return 0;
 	}
@@ -116,8 +117,6 @@ fatwalk(Dos *dos, int n)
 		k = (3*n)/2; break;
 	case 16:
 		k = 2*n; break;
-	case 32:
-		k = 4*n; break;
 	default:
 		return -1;
 	}
@@ -132,27 +131,16 @@ fatwalk(Dos *dos, int n)
 		p = getclust(dos, sect+dos->clustsize);
 		o = 0;
 	}
-	k |= p->iobuf[o++]<<8;
+	k |= p->iobuf[o]<<8;
 	if(dos->fatbits == 12){
 		if(n&1)
 			k >>= 4;
 		else
 			k &= 0xfff;
 		if(k >= 0xff8)
-			k = -1;
+			k |= 0xf000;
 	}
-	else if (dos->fatbits == 32){
-		if(o >= dos->sectsize*dos->clustsize){
-			p = getclust(dos, sect+dos->clustsize);
-			o = 0;
-		}
-		k |= p->iobuf[o++]<<16;
-		k |= p->iobuf[o]<<24;
-		if (k >= 0xfffffff8)
-			k = -1;
-	}
-	else
-		k = k < 0xfff8 ? k : -1;
+	k = k < 0xfff8 ? k : -1;
 	chat("fatwalk %d -> %d\n", n, k);
 	return k;
 }
@@ -169,9 +157,9 @@ fileaddr(Dosfile *fp, long ltarget)
 
 	chat("fileaddr %8.8s %d\n", fp->name, ltarget);
 	/*
-	 *  root directory is contiguous and easy (unless FAT32)
+	 *  root directory is contiguous and easy
 	 */
-	if(fp->pstart == 0 && dos->rootsize != 0) {
+	if(fp->pstart == 0){
 		if(ltarget*dos->sectsize*dos->clustsize >= dos->rootsize*sizeof(Dosdir))
 			return -1;
 		l = dos->rootaddr + ltarget*dos->clustsize;
@@ -289,8 +277,6 @@ doswalk(Dosfile *file, char *name)
 		}
 		file->attr = d.attr;
 		file->pstart = GSHORT(d.start);
-		if (file->dos->fatbits == 32)
-			file->pstart |= GSHORT(d.highstart) << 16;
 		file->length = GLONG(d.length);
 		file->pcurrent = 0;
 		file->lcurrent = 0;
@@ -300,20 +286,27 @@ doswalk(Dosfile *file, char *name)
 	return n >= 0 ? 0 : -1;
 }
 
+
 /*
  *  instructions that boot blocks can start with
  */
 #define	JMPSHORT	0xeb
 #define JMPNEAR		0xe9
 
+/*
+ *  read dos file system properties
+ */
 int
 dosinit(Dos *dos)
 {
-	Clustbuf *p;
 	Dosboot *b;
 	int i;
+	Clustbuf *p;
+	Dospart *dp;
+
 
 	/* defaults till we know better */
+	dos->start = 0;
 	dos->sectsize = 512;
 	dos->clustsize = 1;
 
@@ -323,64 +316,70 @@ dosinit(Dos *dos)
 		chat("can't read boot block\n");
 		return -1;
 	}
-
 	p->dos = 0;
+
+	/* if a hard disk format, look for an active partition */
 	b = (Dosboot *)p->iobuf;
 	if(b->magic[0] != JMPNEAR && (b->magic[0] != JMPSHORT || b->magic[2] != 0x90)){
-		chat("no dos file system %x %x %x %x\n",
-			b->magic[0], b->magic[1], b->magic[2], b->magic[3]);
+		if(p->iobuf[0x1fe] != 0x55 || p->iobuf[0x1ff] != 0xaa){
+			/*print("no dos file system or partition table\n");*/
+			return -1;
+		}
+		dp = (Dospart*)&p->iobuf[0x1be];
+		for(i = 0; i < 4; i++, dp++)
+			if(dp->type && dp->flag == 0x80)
+				break;
+		if(i == 4)
+			return -1;
+		dos->start = GLONG(dp->start);
+		p = getclust(dos, 0);
+		if(p == 0){
+			chat("can't read boot block\n");
+			return -1;
+		}
+		p->dos = 0;
+	}
+
+	b = (Dosboot *)p->iobuf;
+	if(b->magic[0] != JMPNEAR && (b->magic[0] != JMPSHORT || b->magic[2] != 0x90)){
+		print("no dos file system\n");
 		return -1;
 	}
 
 	if(chatty)
-		bootdump(b);
+		bootdump(b);/**/
 
 	/*
 	 *  determine the systems' wondersous properties
 	 */
-	dos->fatbits = 0;
 	dos->sectsize = GSHORT(b->sectsize);
 	dos->clustsize = b->clustsize;
 	dos->clustbytes = dos->sectsize*dos->clustsize;
 	dos->nresrv = GSHORT(b->nresrv);
 	dos->nfats = b->nfats;
-	dos->fatsize = GSHORT(b->fatsize);
 	dos->rootsize = GSHORT(b->rootsize);
 	dos->volsize = GSHORT(b->volsize);
 	if(dos->volsize == 0)
 		dos->volsize = GLONG(b->bigvolsize);
 	dos->mediadesc = b->mediadesc;
-	if(dos->fatsize == 0) {
-		chat("fat32\n");
-		dos->rootsize = 0;
-		dos->fatsize = GLONG(b->bigfatsize);
-		dos->fatbits = 32;
-	}
+	dos->fatsize = GSHORT(b->fatsize);
 	dos->fataddr = dos->nresrv;
-	if (dos->rootsize == 0) {
-		dos->rootaddr = 0;
-		dos->rootclust = GLONG(b->rootdirstartclust);
-		dos->dataaddr = dos->fataddr + dos->nfats*dos->fatsize;
-	} else {
-		dos->rootaddr = dos->fataddr + dos->nfats*dos->fatsize;
-		i = dos->rootsize*sizeof(Dosdir) + dos->sectsize - 1;
-		i = i/dos->sectsize;
-		dos->dataaddr = dos->rootaddr + i;
-	}
+	dos->rootaddr = dos->fataddr + dos->nfats*dos->fatsize;
+	i = dos->rootsize*sizeof(Dosdir) + dos->sectsize - 1;
+	i = i/dos->sectsize;
+	dos->dataaddr = dos->rootaddr + i;
 	dos->fatclusters = 2+(dos->volsize - dos->dataaddr)/dos->clustsize;
-	if(dos->fatbits != 32) {
-		if(dos->fatclusters < 4087)
-			dos->fatbits = 12;
-		else
-			dos->fatbits = 16;
-	}
+	if(dos->fatclusters < 4087)
+		dos->fatbits = 12;
+	else
+		dos->fatbits = 16;
 	dos->freeptr = 2;
 
 	/*
 	 *  set up the root
 	 */
 	dos->root.dos = dos;
-	dos->root.pstart = dos->rootsize == 0 ? dos->rootclust : 0;
+	dos->root.pstart = 0;
 	dos->root.pcurrent = dos->root.lcurrent = 0;
 	dos->root.offset = 0;
 	dos->root.attr = DDIR;
@@ -392,8 +391,6 @@ dosinit(Dos *dos)
 static void
 bootdump(Dosboot *b)
 {
-	if(chatty == 0)
-		return;
 	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x\n",
 		b->magic[0], b->magic[1], b->magic[2]);
 	print("version: \"%8.8s\"\n", b->version);
@@ -409,13 +406,11 @@ bootdump(Dosboot *b)
 	print("nheads: %d\n", GSHORT(b->nheads));
 	print("nhidden: %d\n", GLONG(b->nhidden));
 	print("bigvolsize: %d\n", GLONG(b->bigvolsize));
-/*
 	print("driveno: %d\n", b->driveno);
 	print("reserved0: 0x%2.2x\n", b->reserved0);
 	print("bootsig: 0x%2.2x\n", b->bootsig);
 	print("volid: 0x%8.8x\n", GLONG(b->volid));
 	print("label: \"%11.11s\"\n", b->label);
-*/
 }
 
 /*
@@ -460,38 +455,19 @@ dosstat(Dos *dos, char *path, Dosfile *f)
 }
 
 /*
- *  read in a segment
- */
-long
-dosreadseg(Dosfile *fp, void *va, long len)
-{
-	char *a;
-	long n, sofar;
-
-	a = va;
-	for(sofar = 0; sofar < len; sofar += n){
-		n = 8*1024;
-		if(len - sofar < n)
-			n = len - sofar;
-		n = dosread(fp, a + sofar, n);
-		if(n <= 0)
-			break;
-		print(".");
-	}
-	return sofar;
-}
-
-/*
  *  boot
  */
 int
-dosboot(Dos *dos, char *path, Boot *b)
+dosboot(Dos *dos, char *path)
 {
 	Dosfile file;
 	long n;
-	static char buf[8192];
+	long addr;
+	Exec *ep;
+	void (*b)(void);
 
 	switch(dosstat(dos, path, &file)){
+
 	case -1:
 		print("error walking to %s\n", path);
 		return -1;
@@ -504,13 +480,76 @@ dosboot(Dos *dos, char *path, Boot *b)
 		break;
 	}
 
-	while((n = dosreadseg(&file, buf, sizeof buf)) > 0) {
-		if(bootpass(b, buf, n) != MORE)
-			break;
+	/*
+	 *  read header
+	 */
+	ep = (Exec*)ialloc(sizeof(Exec), 0);
+	n = sizeof(Exec);
+	if(dosreadseg(&file, n, (ulong) ep) != n){
+		print("premature EOF\n");
+		return -1;
+	}
+	if(GLLONG(ep->magic) != I_MAGIC){
+		print("bad magic 0x%lux not a plan 9 executable!\n", GLLONG(ep->magic));
+		return -1;
 	}
 
-	bootpass(b, nil, 0);	/* tries boot */
-	return -1;
+	/*
+	 *  read text
+	 */
+	addr = PADDR(GLLONG(ep->entry));
+	n = GLLONG(ep->text);
+	print("+%d", n);
+	if(dosreadseg(&file, n, addr) != n){
+		print("premature EOF\n");
+		return -1;
+	}
+
+	/*
+	 *  read data (starts at first page after kernel)
+	 */
+	addr = PGROUND(addr+n);
+	n = GLLONG(ep->data);
+	print("+%d", n);
+	if(dosreadseg(&file, n, addr) != n){
+		print("premature EOF\n");
+		return -1;
+	}
+
+	/*
+	 *  bss and entry point
+	 */
+	print("+%d\nstart at 0x%lux\n", GLLONG(ep->bss), GLLONG(ep->entry));
+
+	/*
+	 *  Go to new code. It's up to the program to get its PC relocated to
+	 *  the right place.
+	 */
+	b = (void (*)(void))(PADDR(GLLONG(ep->entry)));
+	(*b)();
+	return 0;
+}
+
+/*
+ *  read in a segment
+ */
+long
+dosreadseg(Dosfile *fp, long len, long addr)
+{
+	char *a;
+	long n, sofar;
+
+	a = (char *)addr;
+	for(sofar = 0; sofar < len; sofar += n){
+		n = 8*1024;
+		if(len - sofar < n)
+			n = len - sofar;
+		n = dosread(fp, a + sofar, n);
+		if(n <= 0)
+			break;
+		print(".");
+	}
+	return sofar;
 }
 
 /*

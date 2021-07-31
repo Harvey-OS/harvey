@@ -1,0 +1,308 @@
+.TH ART 1
+.	\" /*% troff -man % | lp -du
+.CT 1 graphics
+.SH NAME
+art, art2pic \- edit line-art
+.SH SYNOPSIS
+.B art
+[
+.B -f
+.I font
+]
+[
+.B -b
+.I picture
+]
+.PP
+.B art2pic
+.I file
+.SH DESCRIPTION
+.I Art
+is an interactive program to create precise line-art in the style of
+.IR pic (1).
+It is mostly mouse-operated, with a few commands entered from the keyboard.
+It divides its window into four areas:
+a menu bar at the top,
+a one-line rectangle immediately below for echoing typed-in characters,
+another one-line rectangle below that for printing messages,
+and a large area at the bottom for displaying the drawing.
+The
+.B -b
+option displays the specified
+.I picture
+(in the format of
+.IR picfile (9.6))
+as a background for the drawing.
+.PP
+A small caret, whose apex is the
+.IR "current point" ,
+appears on the screen.
+The lines, arcs, and other elements of a drawing are
+constructed by placing the caret at each of a sequence of points that define the
+item.  When the caret moves, two other markers (a square and a cross) trail it,
+showing its previous positions.  Items on the screen
+near the caret attract it.  Important points on items, like endpoints or
+intersections, pull harder than more mundane points, making precise
+alignment easy.
+.PP
+On request,
+.I art
+will automatically construct alignment lines and circles,
+which it displays more faintly than items in the drawing.
+Certain lines and points in a drawing are
+.IR hot .
+.I Art
+constructs circles of given radii and lines of given slopes
+at hot points, and parallels at given distances from hot lines
+and lines at given angles to their endpoints.
+Menus pulled down from the menu bar
+control what alignment items are constructed.
+Items are automatically heated when added to the drawing
+and will be heated or cooled on command.
+.PP
+The `important points' on a line segment to which the
+caret preferentially gravitates are its endpoints and midpoint.
+On a circle, the center is important.
+On an arc, the endpoints are important.
+On a box, the corners, the midpoints of the sides and the center are important.
+Likewise, on a piece of text, the corners, midpoints and center of its bounding
+box are important.
+On a spline, the control points are important,
+and in a group, the important points of the group members are important.
+.PP
+Whenever button 1 is pressed, the caret follows the mouse cursor.
+On release, the item the caret is touching, if any, is
+selected and highlighted.  If more than one item touches the caret, clicking button
+1 repeatedly will cycle through them.
+.PP
+Pressing button 2 pops up a menu of commands that add new items to the drawing.
+Every item is described by several
+.IR "control points" :
+a line by its endpoints, a circular arc by its endpoints and a third point on the arc,
+and so forth.  A new item is specified by moving the caret in turn to each
+control point but the last, selecting a menu entry with button two, then using
+button 1 to place the caret
+on the last control point.
+(Buttons 2 and 3 will cancel the command.)
+While the caret is being dragged to the last control point,
+.I art
+displays and updates the item on the screen (``rubber-banding'').
+In all cases, after making an addition to the drawing, the new item becomes the
+current selection.
+The button 2 menu operations are
+.TF parallels
+.TP
+.B line
+Add a line segment to the drawing.  The two control points are the segment's endpoints.
+.TP
+.B circle
+Add a circle to the drawing.  The first control point is the center.
+The second is a point on the circumference.
+.TP
+.B arc
+Add a circular arc to the drawing.  The endpoints are the first and third control points.
+The second control point is an interior point of the arc.
+.TP
+.B box
+Add a rectangle to the drawing.  The box's sides are vertical and horizontal.  The
+two control points are two diagonally opposite corners.
+.TP
+.B spline
+Add a spline curve to the drawing, or extend an existing spline.
+Splines are a little more complicated than other items because they may have any
+number of control points.
+If the current selection is not a spline, there are two control points \(em
+the ends of a new spline.  When a spline is selected, the
+.B spline
+button adds a new control point to the end of the spline closest to the selected point.
+.TP
+.B group
+Add a group to the drawing.  The two control points are the diagonally opposite
+corners of a rectangle.
+Any item partially or completely contained in the rectangle is made part of the group.
+Henceforth the group acts as a monolithic item and may be moved, deleted or copied
+as a unit.  The
+.BR open ,
+.B close
+and
+.B flatten
+commands (on button 3) allow manipulation of the items within a group.
+Groups may be nested within other groups.
+.PP
+Button 3's menu has commands to manipulate the current selection.
+.TF parallels
+.TP
+.B delete
+Remove the selection from the drawing.  If the whole drawing is selected,
+.I art
+asks for confirmation by pressing mouse button 3.  Buttons 1 and 2 cancel the command.
+.TP
+.B heat
+Heat the selected item.
+.TP
+.B copy
+Create a duplicate of the selected item.  The duplicate must be dragged to its intended
+position using button 1.  Buttons 2 and 3 cancel the command.
+.TP
+.B edit
+Change the indicated point of the selected item.  Button 1 adjusts the point.
+Buttons 2 and 3 cancel the command.  This command's behavior depends on the
+kind of item and the point at which it is selected.
+.IP
+If a line is selected near an endpoint, that endpoint moves and the other remains
+fixed.  Both endpoints of a line selected near its midpoint move\(emits length and
+slope do not change.
+.IP
+If a circle selected at its center, it translates without changing its radius.
+If selected on its circumference, its radius changes but its center remains fixed.
+.IP
+The control point of an arc or spline nearest the selection point is modified.
+.IP
+If a box is selected near a corner, that corner moves and the other remains fixed.
+If selected near the middle of an edge, the edge moves, but the opposite edge remains
+fixed.  If selected near its center, the whole box moves without changing its size
+or shape.
+.IP
+A group or a piece of text translates, regardless of the selection point.
+.TP
+.B open
+The selection must be a group.  All commands now operate on the members of the
+group.
+.TP
+.B close
+The most-recently opened group is closed.
+Any changes made while it was open are propagated to other copies.
+.TP
+.B flatten
+The selection must be a group.
+The items in the group are inserted in its place in the drawing.
+This undoes the effect of the
+.B group
+command.  Other copies of the group are unaffected.
+.PP
+Keyboard commands:
+.TF parallels
+.TP
+.B "t text
+Add text to the drawing.  The text is in the current font and is drawn centered
+on the caret.
+.TP
+.BI "f " name
+Set the current typeface.
+.I Name
+is the name of a font file.
+Subdirectories of
+.B /lib/font/bit
+contain many appropriate fonts.
+.TP
+.B D
+Redraw the display.
+.TP
+.B q
+Quit.
+.I Art
+exits, without asking for confirmation.
+.TP
+.BR "w " [ \f2file\f1 ]
+Write the drawing into a file in
+.I art
+format.
+.I File
+defaults to the last file mentioned in a read or write command.
+.I Art
+files may be converted to
+.IR pic (1)
+format by the
+.I art2pic
+command.
+.TP
+.BR "r " [ \f2file\f1 ]
+Read a drawing from a file.
+.I File
+defaults to the last file mentioned in a read or write command.
+.TP
+.B c
+Cool everything.  Every hot item is cooled.
+.TP
+.B a
+Select all items.  The entire drawing is selected.
+.TP
+.B d
+Drop anchor.  The
+.I anchor
+is the fixed point for the not-yet-implemented rotate and scale commands.
+.PP
+Menus pulled down from the menu bar contain commands that alter how
+.IR art
+responds to user interaction.
+.TF parallels
+.TP
+.B slopes
+Most of the entries in this menu are numbers, representing angles in degrees.
+Those that are marked with a star are the inclination from horizontal of alignment
+lines constructed at each hot point of the drawing.  Selecting a number toggles
+the star on and off.  The
+.B measure
+button measures the slope of the line connecting the most recent two points selected
+with the caret.  The measurement is printed, and a corresponding new entry is made
+in the menu.
+.TP
+.B angles
+This menu behaves much like the
+.B slopes
+menu.  Items marked with a star are angles at which alignment lines are drawn
+through the endpoints of hot lines.  The
+.B measure
+button measures the angle indicated by the most recent three points selected with the caret.
+.TP
+.B parallels
+Items marked with a star are distances at which alignment lines are drawn parallel
+to hot lines.  The
+.B measure
+button measures the distance between the most recent two points selected with the caret.
+Distances are nominally in inches, but the program believes the display pitch to be
+100 pixels per inch.
+.TP
+.B circles
+Items marked with a star are radii of alignment circles drawn with centers at
+hot points.  The
+.B measure
+button measures the distance between the most recent two points selected with the caret.
+.TP
+.B grid
+Items in this menu activate a rectangular grid of gravitating points.
+They have labels like
+.BR 0,0+.1,.1 .
+The first pair of numbers is the coordinate of a point on the grid; the other
+pair is the
+.I x
+and
+.I y
+displacements of other points.
+The
+.B off
+item disables the grid (the default situation).
+.B Measure
+creates a custom-measured grid using the last two positions of the caret as
+diagonally adjacent grid-points.
+.TP
+.B gravity
+The starred entry on this menu is the maximum distance that the caret will move from
+the mouse cursor to snap to an item on the screen.
+.TP
+.B heating
+The
+.B "heat new
+button toggles whether objects are automatically heated when created or modified.
+The item is marked with a star if set, as it is initially.
+.SH SOURCE
+.B /sys/src/cmd/art
+.SH "SEE ALSO"
+.IR tweak (1)
+.SH BUGS
+Needs two or more bits per pixel.
+Doesn't compute intersections of splines with circles or arcs.
+No filled regions, line styles or arrowheads.
+Doesn't save construction lines in files.
+Because it draws in xor mode when rubber-banding, lines can momentarily disappear.
+Tracks slowly in large drawings.

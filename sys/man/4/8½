@@ -1,0 +1,206 @@
+.TH 8½ 4
+.SH NAME
+8½ \- window system files
+.SH SYNOPSIS
+.B 8½
+[
+.B -i
+.BI ' cmd '
+]
+[
+.B -s
+]
+[
+.B -f
+.I font
+]
+.SH DESCRIPTION
+The window system
+.I 8½
+serves a variety of files for reading, writing, and controlling
+windows.
+Some of them are virtual versions of system files for dealing
+with the display, keyboard, and mouse; others control operations
+of the window system itself.
+.I 8½
+posts its service in the
+.B /srv
+directory, using a
+name constructed from a catenation of the user ID
+and a process id; the environment variable
+.BR $8½srv
+is set to this service name within processes running under the control
+of each invocation of
+.IR 8½ .
+.PP
+A
+.I mount
+(see
+.IR bind (1))
+of that file causes
+.I 8½
+to create a new window; the attach specifier in the
+.I mount
+gives the coordinates of the created window.
+The syntax of the specifier is
+.IP
+.B N
+.I pid minx miny maxx maxy
+.PP
+where
+.I pid
+is the process id of a process in the note group
+(see
+.IR fork (2))
+to receive
+.B interrupt
+and
+.B hangup
+notes in that window.
+The list of coordinates may be separated by blanks or commas.
+.PP
+When a window is created either by
+the
+.I window
+command
+(see
+.IR 8½ (1))
+or by using the menu supplied by
+.IR 8½ ,
+this server is mounted on
+.BR /mnt/8½
+and also
+.BR /dev ;
+the files mentioned here
+appear in both those directories.
+.PP
+Some of these files supply virtual versions of services available from the underlying
+environment, in particular the character terminal files
+.IR cons (3),
+and all the bit devices
+.IR bit (3),
+each specific to the window.
+Other files are unique to
+.IR 8½ .
+.TP
+.B bitblt
+is a virtual version of the
+.B bitblt
+file within the current window;
+see
+.IR bit (3),
+.IR graphics (2).
+All operations are clipped to the current window.
+The coordinate system is absolute; it refers to the real screen.
+.TP
+.B cons
+is a virtual version of the standard terminal file
+.IR cons (3).
+.I 8½
+supplies extra editing features and a scroll bar
+(see
+.IR 8½ (1)).
+.TP
+.B consctl
+controls interpretation of keyboard input.
+Writing strings on it sets these modes:
+.B rawon
+turns on raw mode;
+.B rawoff
+turns off raw mode;
+.B holdon
+turns on hold mode;
+.B holdoff
+turns off hold mode.
+Closing the file makes the window revert to default state
+(raw off, hold off).
+.TP
+.B kbd
+This file intercepts the path between the keyboard and
+.IR cons .
+Reading from it gathers characters typed towards the associated
+window; writing to it inserts characters into the input stream
+of that window.
+.TP
+.B label
+initially contains a string with the process ID of the lead process
+in the window and the command being executed there.
+It may be written and is used as a tag when the window is hidden.
+.TP
+.B mouse
+is a virtual version of the standard mouse file (see
+.IR bit (3)).
+Opening it turns off scrolling, editing, and
+.IR 8½ -supplied
+menus in the associated
+window.
+The 0x80 bit in the buttons byte of a returned record indicates that
+the window has been reshaped.
+Reading this file blocks until the mouse moves or a button changes.
+Mouse movements or button changes are invisible when the mouse cursor
+is located outside the window.
+.TP
+.B nbmouse
+is a non-blocking version of
+.BR mouse ;
+it always returns the current state.
+Its use is discouraged.
+.TP
+.B select
+returns the selected text in the designated window.
+It may not be written.
+.TP
+.B snarf
+returns the string currently in the snarf buffer.
+Writing this file sets the contents of the snarf buffer.
+.TP
+.B text
+returns the full contents of the window.
+It may not be written.
+.TP
+.B winid
+returns the unique and unchangeable ID for the window;
+it is a string of digits.
+.TP
+.B window
+is the virtual version of
+.BR /dev/screen ;
+see
+.IR bit (3).
+It contains the depth, coordinates, and bitmap corresponding to the associated
+window.
+.TP
+.B windows
+is a directory containing a subdirectory for each window, named
+by the unique ID for that window.  Within each subdirectory
+are entries corresponding to several of the special files associated
+with that window:
+.BR bitblt ,
+.BR cons ,
+.BR consctl ,
+.BR label ,
+etc.
+.SH EXAMPLES
+Cause a window to be created in the upper left corner,
+and the word
+.L hi
+to be printed there.
+.IP
+.EX
+mount $8½srv /tmp N$pid' 0 0 128 64'
+echo hi > /tmp/cons
+.EE
+.PP
+Print the bitmap of window number 123.
+.IP
+.EX
+lp /dev/windows/123/window
+.EE
+.SH SOURCE
+.B /sys/src/cmd/8½
+.SH SEE ALSO
+.IR 8½ (1),
+.IR bit (3),
+.IR cons (3),
+.IR event (2),
+.IR graphics (2).

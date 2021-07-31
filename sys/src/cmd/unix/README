@@ -13,9 +13,10 @@ programs are supplied:
 	tcs.shar.Z - a compressed version of the Unix source for the
 		character set converter.
 
-	spin - on-the-fly verification program for concurrent systems.
+	9auth - authentication for Unix machines using NFS to see Plan 9.
+		See nfsserver(8).
 
-	9pfreebsd - IL and 9FS for FreeBSD 3.2.
+	spin - on-the-fly verification program for concurrent systems.
 
 A README file in each subdirectory further explains each
 program.

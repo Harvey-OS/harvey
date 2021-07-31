@@ -1,0 +1,46 @@
+%Filename: T1pnb.fd
+%Created by: tex 6502newbaske
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pnb}{}
+
+\DeclareFontShape{T1}{pnb}{b}{n}{
+   <-> pnbbq
+}{}
+
+\DeclareFontShape{T1}{pnb}{b}{sc}{
+   <-> pnbbcq
+}{}
+
+\DeclareFontShape{T1}{pnb}{b}{sl}{
+   <-> pnbboq
+}{}
+
+\DeclareFontShape{T1}{pnb}{b}{it}{
+   <-> pnbbiq
+}{}
+
+\DeclareFontShape{T1}{pnb}{m}{n}{
+   <-> pnbrq
+}{}
+
+\DeclareFontShape{T1}{pnb}{m}{sc}{
+   <-> pnbrcq
+}{}
+
+\DeclareFontShape{T1}{pnb}{m}{sl}{
+   <-> pnbroq
+}{}
+
+\DeclareFontShape{T1}{pnb}{m}{it}{
+   <-> pnbriq
+}{}
+
+\DeclareFontShape{T1}{pnb}{bx}{n}{<->ssub * pnb/b/n}{}
+\DeclareFontShape{T1}{pnb}{bx}{sc}{<->ssub * pnb/b/sc}{}
+\DeclareFontShape{T1}{pnb}{bx}{sl}{<->ssub * pnb/b/sl}{}
+\DeclareFontShape{T1}{pnb}{bx}{it}{<->ssub * pnb/b/it}{}
+
+\endinput

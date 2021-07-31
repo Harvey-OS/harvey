@@ -1,0 +1,53 @@
+.TH PKTYPE 1 "7 Jan 92"
+.SH NAME
+pktype - translate a packed font file for humans to read
+.SH SYNTAX
+.B pktype
+pk_file_name [output_file_name]
+.SH DESCRIPTION
+The
+.I pktype
+program translates a packed font file (PK) (output by, for example,
+.BR gftopk (1)
+to a file that humans can read. It also serves as a PK
+file-validating program (i.e., if
+.I pktype
+can read it, it's correct) and as an example of a PK-reading
+program for other software that wants to read PK files.
+.PP
+The
+.I pk_file_name
+on the command line must be complete. Because
+the resolution is part of the extension, it would not make
+sense to add on a default extension as is done with TeX or
+DVI-reading software. If no
+.I output_file_name
+is specified, the
+output goes to the 
+.IR stdout .
+.PP
+The output file gives a compact encoding of the packed encoding, using
+conventions described in the source code. Run lengths of black pixels
+alternate with parenthesized run lengths of white pixels, and brackets
+are used to indicate when a row should be repeated.
+.SH ENVIRONMENT
+.I pktype
+looks for
+.I pk_file_name 
+first in the current directory.  If it is not present there, it uses the
+environment variable PKFONTS.  If that is not set, it uses the variable
+TEXPKS.  If that is not set, it uses TEXFONTS.  If this is not set, it uses the
+system defaults:
+.br
+TEXFONTS:
+.BR @TEXFONTS@ ,
+.br
+See
+.BR tex (1)
+for the details of the searching.
+.SH "SEE ALSO"
+dvitype(1), gftype(1)
+.SH AUTHORS
+Tomas Rokicki wrote the program.
+Donald Knuth originally ported it to Unix.
+Pierre MacKay adapted it for compilation with web2c.

@@ -1,0 +1,15 @@
+% Driver file for the METAFONT logo
+if unknown logobase: input logobase fi
+
+mode_setup; font_setup;
+input METAFON
+
+ligtable "T": "A" kern -.5u#;
+ligtable "F": "O" kern -u#;
+
+font_quad:=18u#+2s#;
+font_normal_space:=6u#+2s#;
+font_normal_stretch:=3u#;
+font_normal_shrink:=2u#;
+font_identifier:="MFLOGO" if slant<>0: & "SL" fi;
+font_coding_scheme:="AEFMNOT only";

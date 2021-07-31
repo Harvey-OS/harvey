@@ -5,6 +5,11 @@
 int	tas(int*);
 
 void
+lockinit(void)
+{
+}
+
+void
 lock(Lock *lk)
 {
 	while(tas(&lk->val))

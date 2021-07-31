@@ -1,0 +1,124 @@
+%% 
+%% This is file `amsbook.hyp', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% hyper.dtx  (with options: `amsbook')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file hyper.dtx .
+%% 
+%% File: hyper.dtx Copyright (C) 1995 Michael Mehlich
+\def\fileversion{V2.3}
+\def\filedate{1995/02/12}
+\def\docdate{1995/02/12}
+%%
+%% \CharacterTable 
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z 
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z 
+%%  Digits        \0\1\2\3\4\5\6\7\8\9 
+%%  Exclamation   \!     Double quote  \"     Hash (number) \# 
+%%  Dollar        \$     Percent       \%     Ampersand     \& 
+%%  Acute accent  \'     Left paren    \(     Right paren   \) 
+%%  Asterisk      \*     Plus          \+     Comma         \, 
+%%  Minus         \-     Point         \.     Solidus       \/ 
+%%  Colon         \:     Semicolon     \;     Less than     \< 
+%%  Equals        \=     Greater than  \>     Question mark \? 
+%%  Commercial at \@     Left bracket  \[     Backslash     \\ 
+%%  Right bracket \]     Circumflex    \^     Underscore    \_ 
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \| 
+%%  Right brace   \}     Tilde         \~} 
+%% 
+\let\hyper@makecaption\@makecaption
+\def\@makecaption#1#2{%
+  \hyper@makecaption{\hyperanchor{\@currenthyper}{#1}}{#2}%
+}
+\def\@makefnmark{%
+  \hbox{$\m@th^{\hyperreference%
+                  {fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage}%
+                  {\@thefnmark}%
+               }$%
+       }%
+}
+\def\@makefntext{\indent%
+  \hbox{$\m@th^{\hyperanchor%
+                  {fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage}%
+                  {\@thefnmark}%
+               }$%
+       }%
+}
+\let\hyper@tocwriteb\@tocwriteb
+\def\hyper@tocwriteb@def[#1]{%
+    \def\@tocwriteb##1##2##3{%
+       \hyper@tocwriteb{##1}{##2}{#1}%
+       \let\@tocwriteb\hyper@tocwriteb%
+    }%
+}
+\def\@sect#1#2#3#4#5#6[#7]#8{%
+  \ifnum#2>\c@secnumdepth%
+    \hyper@setcurrent%
+  \else%
+    \refstepcounter{#1}%
+    \ignore@next@refstepcounter%
+  \fi%
+  \ifnum#2>\@m\else%
+    \callwithexpandedhyperref{\hyper@tocwriteb@def}{#8}%
+  \fi%
+  \callwithexpandedhyperref%
+    {\hyper@sect{#1}{#2}{#3}{#4}{#5}{#6}}%
+    {#7}%
+    {\hyperanchor{\@currenthyper}{#8}}%
+}
+\let\hyper@chapter\@chapter
+\def\@chapter[#1]#2{%
+  \refstepcounter{chapter}%
+  \ignore@next@refstepcounter%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref{\hyper@tocwriteb@def}{#2}%
+  \hyper@chapter[#1]{\hyperanchor{\@currenthyper}{#2}}%
+}
+\let\hyper@chaptermark\chaptermark
+\def\hyper@chaptermark@def[#1]{%
+    \def\chaptermark##1{%
+       \hyper@chaptermark{#1}%
+       \let\chaptermark\hyper@chaptermark%
+    }%
+}
+\let\hyper@schapter\@schapter
+\def\@schapter#1{%
+  \hyper@setcurrent%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref{\hyper@tocwriteb@def}{#1}%
+  \callwithexpandedhyperref{\hyper@chaptermark@def}{#1}%
+  \hyper@schapter{\hyperanchor{\@currenthyper}{#1}}%
+}
+\let\hyper@part\@part
+\def\@part[#1]#2{%
+  \ifnum\c@secnumdepth>-2\relax%
+    \refstepcounter{part}%
+    \ignore@next@refstepcounter%
+  \else%
+    \hyper@setcurrent%
+  \fi%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref%
+    {\hyper@part}%
+    {#1}%
+    {\hyperanchor{\@currenthyper}{#2}}%
+}
+\def\hyper@add@part[#1]{%
+  \addcontentsline{toc}{part}{\protect\noindent#1}%
+}
+\def\@spart#1{%
+  \hyper@setcurrent%
+  \callwithexpandedhyperref{\hyper@add@part}{#1}%
+  \begingroup\centering
+  \fontsize{\@xxpt}{25}\bfseries
+     \hyperanchor{\@currenthyper}{#1}%
+     \vfil\vfil\endgroup \newpage\thispagestyle{empty}}
+\endinput
+%% 
+%% End of file `amsbook.hyp'.

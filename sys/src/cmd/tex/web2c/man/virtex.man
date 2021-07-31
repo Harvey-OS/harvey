@@ -1,0 +1,68 @@
+.TH VIRTEX 1 "21 Oct 1991"
+.ie t .ds TX \fRT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds TX TeX\" for nroff
+.\" to use, type \*(TX
+.SH NAME
+virtex \- virgin \*(TX
+.SH DESCRIPTION
+.I virtex
+is a version of the \*(TX program that has no
+preloaded macro packages, but is capable of
+loading a special preformatted binary file, called
+a
+.I format 
+.RI ( .fmt )
+file produced by the
+.IR initex (1)
+program.
+.PP
+Preprocessing of large macro files and font
+definitions by 
+.I initex
+makes it possible to rapidly load complex
+packages, like plain \*(TX, AMS\*(TX, or La\*(TX,
+without the overhead of macro parsing and file
+opening that would otherwise be experienced.
+.PP
+.I virtex
+can be invoked directly, providing it with a name
+of a format file specially prefixed by an
+ampersand:
+.nf
+
+.I virtex '&plain' filename
+
+.fi
+This causes it to load the binary file named
+.I plain.fmt
+from a directory in the standard TEXINPUTS search
+path, and then load the text file
+.I "filename"
+and process it.
+.PP
+Because this need occurs frequently, UNIX 
+.I virtex
+provides a convenient shorthand.  If it is invoked
+under a name other than 
+.IR virtex ,
+such as 
+.IR footex ,
+it will behave as if it had been invoked as
+.I "virtex '&footex'"
+and first load a file named
+.IR footex.fmt .
+Thus, 
+.IR amstex ,
+.IR lamstex ,
+.IR latex ,
+.IR slitex ,
+.IR tex ,
+.IR texinfo ,
+and others can all be file system links to 
+.IR virtex ,
+without requiring additional disk space.
+.SH "SEE ALSO"
+.nf
+initex (1)
+tex (1)
+.fi

@@ -1,21 +1,18 @@
 </$objtype/mkfile
 
 TARG=exsort\
-	fdisk\
 	format\
 	kfscmd\
-	mbr\
 	mkext\
 	mkfs\
-	mk9660\
+	prep\
 
 DIRS=kfs\
-	prep\
+	pip\
 
 OFILES=
 
 BIN=/$objtype/bin/disk
-
 </sys/src/cmd/mkmany
 
 all:V:	all-kfs
@@ -36,5 +33,3 @@ installall:V:	installall-kfs
 
 ksync:
 	touch $BIN/ksync
-
-$O.format: /$objtype/lib/libdisk.a

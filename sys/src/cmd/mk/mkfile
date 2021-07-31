@@ -2,10 +2,8 @@
 
 TARG=mk
 OFILES=arc.$O\
-	archive.$O\
 	bufblock.$O\
-	env.$O\
-	file.$O\
+	dir.$O\
 	graph.$O\
 	job.$O\
 	lex.$O\
@@ -13,12 +11,14 @@ OFILES=arc.$O\
 	match.$O\
 	mk.$O\
 	parse.$O\
-	rc.$O\
 	recipe.$O\
 	rule.$O\
 	run.$O\
 	shprint.$O\
 	symtab.$O\
+	t_ar.$O\
+	t_driver.$O\
+	t_file.$O\
 	var.$O\
 	varsub.$O\
 	word.$O\

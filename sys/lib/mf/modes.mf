@@ -1,0 +1,1758 @@
+% (Changed at AT&T: see local defs below)
+% Compiled 1991, 92, 93, 94 by Karl Berry.  This file is not copyrighted
+% and may be used freely.  You can retrieve the latest version by ftp as
+% {\tt ftp.cs.umb.edu:pub/tex/modes.mf}. 
+%
+% You can run this file through {\tt mft} to generate a \TeX\
+% file, if you like reading typeset output instead of computer screens.
+%
+% Feel free to change the definitions of |localfont|, |screen_cols|, and
+% |screen_rows| at the end of file (see explanations below).
+% 
+% If you make a new |mode_def|, please send it to {\tt karl@cs.umb.edu}.
+% Please mention what fonts at what sizes you tested it on.  This will
+% help other people wondering where particular values came from.
+% Ideally, you would try normal, bold, and italic variants, at sizes
+% around 5$\,$pt, 10$\,$pt and 15$\,$pt.
+%
+%%% def mode_def
+%%% addto font_size coding_scheme font_face_byte landscape landscape_
+%
+% @mffile{
+%   author = "The Metafont community",
+%   version = "2.2",
+%   date = "Wed Jan  4 12:55:14 EST 1995"
+%   filename = "modes.mf",
+%   contact = "Karl Berry",
+%   email = "karl@cs.umb.edu"
+%   address = "135 Center Hill Rd. // Plymouth, MA 02360"
+%   checksum = "1749    8487   62424",
+%   codetable = "ISO/ASCII",
+%   supported = "yes",
+%   docstring = "
+%   
+% This file is a collection of (putatively) all extant \MF\ modes.
+% 
+% If you have a device which is not mentioned in this file, the best
+% thing to do is try to find a device with similar resolution (search
+% for the appropriate lines), and see if that suits (a list of fonts to
+% try is given above). Otherwise, methods for fiddling with the
+% parameters are described in detail below.
+% 
+% Unfortunately, the number of modes eats up a lot of memory; if your
+% \MF\ has not increased the table sizes, you may need to remove some of
+% the modes from this file (please name it something else then, e.g.,
+% {\tt local.mf}). If you can suggest a way to redefine |mode_def|
+% and/or |mode_setup|, even better; right now, the amount of memory used
+% is approximately four times the length of the |mode_def| names.
+% 
+% The primary names are all eight characters or less, and strictly
+% lowercase. This makes it feasible to use them for portable directory
+% names. The synonyms are historical equivalents.
+% 
+% It also makes definitions to put specials identifying the mode
+% in the \MF\ GF output, and to put the coding scheme and other
+% so-called Xerox-world information in the TFM output.
+% 
+% It also defines a macro |landscape| that inverts |aspect_ratio| and
+% changes |pixels_per_inch|, so you can say {\tt mode := whatever;
+% landscape; ...} to get landscape fonts.  But I can't think of any
+% reasonable way to reflect the |landscape| in the directory name, so
+% there are also |mode_def|'s for the devices with non-square aspect
+% ratios in landscape mode.
+% 
+% Finally, it has some code to handle write-white devices better; this
+% code comes into play if a |mode_def| includes the statement
+% |mode_write_white_setup_;|.  This only works for those fonts which
+% follow Computer Modern's conventions for using |font_setup|.  For
+% further discussion of write/white and white/black devices, see the
+% file ftp.cs.umb.edu:pub/tex/write-white, and also Pierre MacKay's
+% article in the proceedings of the 1991 Raster Imaging and Digital
+% Typography conference:
+% 
+% \begingroup \tt
+% @String{proc-RIDT91 = "Raster Imaging and Digital Typography II"}
+% @String{pub-CUP = "Cambridge University Press"}
+% 
+% @Inproceedings{Mackay:RIDT91-205,
+%   author =       "Pierre A. MacKay",
+%   title =        "Looking at the Pixels: Quality Control for 300 dpi
+%                  Laser Printer Fonts, especially {\MF}s ",
+%   pages =        "205--215",
+%   crossref =     "Morris:RIDT91",
+% }
+% 
+% @Proceedings{Morris:RIDT91,
+%   title =        proc-RIDT91,
+%   booktitle =    proc-RIDT91,
+%   year =         "1991",
+%   editor =       "Robert A. Morris and Jacques Andr{\'e}",
+%   publisher =    pub-CUP,
+%   address =      pub-CUP:adr,
+%   acknowledgement = ack-kb,
+% }
+% \endgroup
+% 
+% This file is typically loaded when making a \MF\ base; for example,
+% the command line 
+% {\tt inimf plain input modes dump} 
+% makes a file {\tt plain.base} (or {\tt plain.bas}, or something like
+% that) with all the modes herein defined (plain itself defines modes
+% called |proof|, |smoke|, and |lowres|.)
+%
+% You can make the Computer Modern base with the command line:
+% {\tt inimf plain input modes input cmbase dump}
+% 
+% On Unix systems, you then install the base file in the system
+% directory (/usr/local/lib/texmf/ini as distributed) as {\tt mf.base}.
+% TeX and Metafont use the name they were invoked as to determine the
+% format or base file to read; thus running {\tt mf} reads {\tt
+% mf.base}, running {\tt cmmf} reads {\tt cmmf.base}, and so on.  {\tt
+% plain.base} and {\tt mf.base} should be the same file (i.e., a hard
+% link is ok), so the examples in the {\sl Metafontbook} work properly.
+% 
+% A user selects a particular mode when s/he runs \MF, by assigning to
+% the variable |mode|.  For example,
+% {\tt \char`\\mode:=cx; input cmr10}
+% sets up values appropriate for the CanonCX engine.
+%
+% If no mode is assigned, the default is |proof| mode, as stated in {\sl
+% The \MF book}.  This is the cause of the ``{\tt .2602gf}'' files which
+% are the subject of periodic questions.  The remedy is simply to assign
+% a different mode---|localfont|, for example.
+% 
+% Every site should define the mode |localfont| to be a synonym for the
+% mode most commonly used.  This file defines |localfont| to be |cx|.
+% The values for |screen_rows| and |screen_cols|, which determine how
+% big \MF's window for online output is, should perhaps also be changed;
+% certainly individual users should change them to their own tastes.
+%
+% This file defines {\tt ?} to type out a list of all the known
+% |mode_def|s (once only).
+% 
+% Technically, a |mode_def| is a \MF\ definition that typically consists
+% of a series of assignments to various device-specific variables,
+% either primitive or defined in plain.  These variables include the
+% following (page numbers refer to {\sl The \MF book\/}:
+%
+% |aspect_ratio|: the ratio of the vertical resolution to the horizontal
+%   resolution (page 94).
+%
+% |blacker|: a correction added to the width of stems and similar
+%   features, to account for devices which would otherwise make them too
+%   light (page 93).  (Write-white devices are best handled by a more
+%   sophisticated method than merely adding to |blacker|, as explained above.)
+%
+% |fillin|: a correction factor for diagonals and other features which
+%   would otherwise be ``filled in'' (page 94).  An ideal device would
+%   have |fillin=0| (page 94).  Negative values for |fillin| typically
+%   have either gross effects or none at all, and should be avoided.
+%
+% |fontmaking|: if nonzero at the end of the job, \MF\ writes a TFM file
+%   (page 315).
+%
+% |o_correction|: a correction factor for the ``overshoot'' of curves
+%   beyond the baseline or x-height.  High resolution curves look better
+%   with overshoot, so such devices should have |o_correction=1|; but at
+%   low resolutions, the overshoot appears to simply be a distortion
+%   (page 93).  Here some additional comments about |o_correction|,
+%   courtesy of Pierre MacKay (edited by Karl):
+%
+%   At present, I find that |o_correction| works nicely at 80 pixels per
+%   em, and gets increasingly disturbing as you move down towards 50
+%   pixels per em. Below that I do not think it ought to happen at all.
+%
+%   The problem, of course, is that full |o_correction| is supposed to
+%   occur only at the zenith and nadir of the curve of `o', which is a
+%   small region at high resolution, but may be a long line of
+%   horizontal pixels at medium resolution.  The full |o_correction|
+%   does not change a 300$\,$dpi {\tt cmr10}, but it changes a 21-pixel
+%   high {\tt cmr12} to be 23 pixels high.  The extra height and depth
+%   is seen along a line of seven pixels at the bottom and five at the
+%   top.  This is a pronounced overshoot indeed.
+%
+%   For high-resolution devices, such as phototypesetters, the values
+%   for |blacker|, |fillin|, and |o_correction| don't matter all that
+%   much, so long as the values are within their normal ranges: between
+%   0 and 1, with the values approaching 0, 0, and 1 respectively.
+%
+% |pixels_per_inch|: the horizontal resolution; the \MF\ primitive
+%   |hppp| (which is what determines the extension on the GF filename,
+%   as among other things) is computed from this (page 94).  (An
+%   ``inch'' is 72.27\thinspace pt in the \TeX\ world.)
+%   
+%   To be more precise, you can determine the resolution of a font given a
+%   |mode_def| and a magnification |m| by simply multiplying
+%   |pixels_per_inch| for that |mode_def| by |m|.  (Your results may
+%   differ from \MF's if you don't use equivalent fixed-point
+%   arithmetic.)  Then you can determine the number used in the name of
+%   the GF font output by rounding.  For example, a font generated at
+%   |magstep(.5)| (which is $\sqrt{1.2}$, which \MF computes as 1.09544)
+%   for a printer with |pixels_per_inch=300| will have a resolution of
+%   328.63312 dots per inch, and the GF filename will include the number
+%   {\tt 329}.
+%
+% |proofing|: says whether to put additional specials in the GF file for
+%   use in making proofsheets via, e.g., the utility program {\tt
+%   GFtoDVI} (page 323--4).
+%
+% |tracingtitles|: if nonzero, strings that appear as \MF\ statements
+%   are typed on the terminal (page 187).
+%
+% Neenie Billawala's article in the April 1987 issue of {\sl TUGboat}
+% describes how to test your printer for the best set of values for the
+% magic numbers above.  Here are some brief comments on the subject,
+% courtesy of Rocky Bernstein, again edited by Karl:
+%
+% For medium-to-low resolution devices, you can first set the |blacker|
+% and |o_correction| to~0 and decide on a |fillin| value by looking at
+% the diagonal of a lowercase `z' in {\tt cmtt10}, or various
+% lines in LaTeX's line10 font. The diagonal should be the same
+% thickness as the horizontal bars of the `z'. Then I decide on the
+% |blacker| value, generally by checking the smaller fonts for too much
+% filling in.  Finally, you can set the |o_correction| using the
+% guidelines suggested above.
+%"
+% }
+
+% Identify ourselves in the format file.
+base_version := base_version & "/modes 2.2";
+
+
+% Here are useful macros (also called definitions) we use throughout.
+
+% First, some comments about how the |mode_defs| are constructed (from
+% {\tt rocky@panix.com}).  In the past, |mode_defs| unconditionally
+% assigned a value to the various mode-dependent parameters. For
+% example, they contained an assignment |fontmaking:=1|, which tells
+% \MF\ to write a TFM file.
+%
+% But suppose you want to generate a font using all of the setup for
+% some mode |m|, but do not want to generate a TFM? One could create
+% another mode that doesn't have the assignment, but this seems a bit
+% wasteful since the rest of the code in the mode would be duplicated.
+% Furthermore, given the way the mode definitions were written, it was
+% not possible to change the mode parameters.  To see why, I review how
+% a \MF\ run typically works.
+%
+% First, \MF\ is invoked with some base file to load.  Then you might
+% want give additional instructions, such as |scrollmode|, or |mode:=cx|.
+% Next, you input a parameter file, say {\tt cmr10}.  The parameter file
+% calls a driver file, such as {\tt roman}, with the command |generate
+% roman|.  Finally, the driver finished by saying |bye| or |end|.  Thus,
+% any additional commands you give after the input of the parameter file
+% are ignored.
+%
+% Usually, one of the first things a driver file does is to call
+% |mode_setup|. It is here that the mode parameters are set.  (In our
+% hypothetical mode, it would be here that |fontmaking| is assigned.)
+%
+% To allow a flexible setting of |fontmaking|, we can make a simple
+% change: in the |mode_def|, first test to see if a value has been
+% defined prior and only make the assignment if not. That is:
+% |if unknown fontmaking: fontmaking := 1; fi|.
+% 
+% Alas, this doesn't work.  Primitives, like |fontmaking|, are always
+% |known|.  So instead we create ``guard'' variables, specifically,
+% |mode_guard_.fontmaking|; we set the guard when we assign the
+% parameter.  Then we test whether the guard is |known| before we
+% actually do an assignment.  This allows more flexible definitions: you
+% can specify some of the parameters, and keep the defaults for others.
+%
+% It is also possible to write a program that creates a |mode_def| on
+% the fly. Although useful, this has a slightly different focus than
+% starting with an existing |mode_def| and changing a couple of
+% parameters. In particular, one still has to peek inside the
+% file to see what the old values were and set them again (in the
+% new context). Also, such on-the-fly |mode_def| generation programs are
+% inherently less machine-independent than a scheme that does
+% everything in \MF\ itself.
+% 
+% The upshot of all this is the following: we say, e.g.,
+% |mode_param (fontmaking, 1)| below, instead of using the assignment
+% primitive directly.  The name (``|mode_param|'') is kept somewhat
+% short because you can also use this to override a mode assignment on
+% the command line or in response to the {\tt **} prompt.
+% 
+def mode_param (suffix v) (expr e) =
+  if unknown mode_guard_.v:
+    v := e;
+    mode_guard_.v := 1;
+  fi
+enddef;
+
+% This macro is invoked by all the modes, after |pixels_per_inch|
+% has been defined, thus saving some space and time.
+def mode_common_setup_ =
+  mode_param (proofing, 0);
+  mode_param (fontmaking, 1);
+  mode_param (tracingtitles, if pixels_per_inch > 700: 1 else: 0 fi);
+enddef;
+
+
+% In a similar spirit, here are definitions to change to ``landscape''
+% mode.  You just say {\tt mode := whatever; landscape; ...}, and when
+% |mode_setup| is executed, the |aspect_ratio| will be inverted, and
+% |pixels_per_inch| changed.
+def landscape =
+  extra_setup := extra_setup & "landscape_;"
+enddef;
+
+def landscape_ =
+  begingroup
+    interim warningcheck := 0;
+    pixels_per_inch := aspect_ratio * pixels_per_inch;
+    aspect_ratio := 1 / aspect_ratio;
+    fix_units; % Too bad we can't do this after any |extra_setup|.
+  endgroup
+enddef;
+
+
+% Here are macros to add specials with mode information to the GF file.
+%
+% Specifically, we add the |pixels_per_inch|, |o_correction|,
+% |aspect_ratio| (if not 1), |mag|, |fillin|, and |mode_def| name.  This
+% information can be used to automatically verify that a font file name
+% matches the specification within the file.  For example, you could
+% check that the number in the filename matches |mag*pixels_per_inch|.
+% Or, if the |mode_def| name is part of the font directory path (e.g.,
+% you put fonts in {\tt $\ldots$/tex/fonts/CanonCX}), that all of the
+% bitmap files in the directory have the expected |mode_def| name.
+def mode_special_ (suffix $) =
+  string s, d;
+  s := str $;
+  d := decimal scantokens s;
+  special s & "=" & d;
+enddef;
+
+def mode_output_specials_ =
+  begingroup
+    save d, s, p, p_p_i;
+    string p;
+
+    interim warningcheck := 0; % In case |pixels_per_inch>4096|.
+
+    % We need the old |pixels_per_inch| to compute the true device
+    % resolution.
+    p_p_i = pixels_per_inch / mag;
+
+    % But now we want to change |pixels_per_inch|, so |save| the old value.
+    save pixels_per_inch;
+    pixels_per_inch := p_p_i;
+
+    special "jobname=" & jobname;
+    mode_special_ (mag);
+
+    p := if string mode:
+           mode
+         else:
+           substring (0, length (mode_name[mode]) - 1) of mode_name[mode]
+         fi;
+    special "mode=" & p;
+
+    mode_special_ (pixels_per_inch);
+    if aspect_ratio <> 1:
+      mode_special_ (aspect_ratio);
+    fi;
+    mode_special_ (blacker);
+    mode_special_ (fillin);
+    mode_special_ (o_correction);
+  endgroup
+enddef;
+
+
+% Here are macros for Xerox-world font info, which can be useful even
+% if you never use a Xerox printer.  For instance, {\tt crudetype} uses
+% the |coding_scheme| and it is nice to have the font family on record.
+% This goes into both the TFM file (as |headerbyte| information), and
+% into the GF file (as a |special|).
+
+% Make the string |s| be |n| bytes long.
+def BCPL_string (expr s, n) =
+  for l := if length (s) >= n: n-1 else: length (s) fi: l
+    for k := 1 upto l: , substring (k - 1, k) of s endfor
+    for k := l + 2 upto n: , 0 endfor
+  endfor
+enddef;
+
+% The string |s| names the encoding scheme, e.g., {\tt TeX text}.
+def coding_scheme expr s =
+  headerbyte 9: BCPL_string (s, 40);
+  special "codingscheme=" & s
+enddef;
+
+% The string |s| names the font family, e.g., {\tt CMR}.
+def font_family expr s =
+  headerbyte 49: BCPL_string (s, 20);
+  special "fontid=" & s
+enddef;
+
+% The integer |x| gives the family member number, which should be
+% between 0 and 255.
+def font_face_byte expr x =
+  headerbyte 72: x;
+  special "fontfacebyte";
+  numspecial x
+enddef;
+
+% So users can say |if known Xerox_world: $\ldots$ fi|, per the {\sl MFbook}.
+Xerox_world := 1;
+
+% Redefine |end| to put the extra information above in the GF and TFM
+% files.  This code is based on that on page 321.
+inner end;
+let primitive_end_ = end;
+def end =
+  if fontmaking > 0:
+    font_family font_identifier_;
+    coding_scheme font_coding_scheme_;
+    font_face_byte max (0, 254 - round 2designsize);
+    mode_output_specials_;
+  fi;
+  primitive_end_.
+enddef;
+
+% The {\sl \MF book} gives |bye| two different definitions (on pages 278
+% and 321). The first is used in {\tt plain.mf} and is merely a synoynym
+% for the primitive |end|.  The second, which is not part of {\tt
+% plain.mf}, is similar to the code given above. We want the extra
+% information to get into the output files regardless of whether the
+% \MF\ source used |end| or |bye|.  The above changed |end|; now we have
+% to redefine |bye| again (as on page 278).
+outer end, primitive_end_;
+let bye = end;
+
+
+% Here are macros to handle write-white devices.
+%
+% The basic correction for write-white fonts occurs in the definition of
+% |font_setup|.  This can be used to extend or change the write-black
+% definition in Computer Modern's {\tt cmbase.mf} or other base files
+% based on CM, such as {\tt dxbase.mf}.  This has no effect at 1200$\,$dpi.
+def mode_write_white_setup_ =
+  begingroup
+    let black_setup = font_setup;
+    def font_setup =
+      black_setup;
+      min_Vround:=max(fine.breadth,crisp.breadth,tiny.breadth,2);
+      if min_Vround<vround min_Vround: min_Vround:=vround min_Vround; fi
+      if flare<vround flare: flare:=vround flare; fi
+      forsuffixes $=vair,bar,slab,cap_bar,cap_band,vair',vstem,cap_vstem,bold:
+        if $<min_Vround: $:=min_Vround; fi endfor
+      forsuffixes $=thin_join,hair,curve,flare,dot_size,cap_hair,cap_curve,
+       vair,bar,slab,cap_bar,cap_band,stem',cap_stem',vair',fudged.hair,
+       fudged.stem,fudged.cap_stem: $:=max($,2); endfor
+    enddef;
+  endgroup;
+  %
+  % Only do the above once, in case a font file (unnecessarily) calls
+  % |mode_setup| more than once.
+  let mode_write_white_setup_ = relax
+enddef;
+
+
+% Here are the modes, given mostly in alphabetical order.
+
+% From {\tt cudat@cu.warwick.ac.uk}.
+mode_def agfafzz =                      % AGFA 400PS
+  mode_param (pixels_per_inch, 406);
+  mode_param (blacker, .2);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+enddef;
+AgfaFourZeroZero := agfafzz;
+
+% From {\tt rokicki@neon.stanford.edu}.
+mode_def amiga =                        % Commodore Amiga
+  mode_param (pixels_per_inch, 100);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+
+mode_def aps =                          % Autologic APS-Micro5
+  mode_param (pixels_per_inch, 722.909);
+  mode_param (blacker, .2);
+  mode_param (fillin, .2);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+
+% From {\tt rocky@panix.com}.  Tested on the single APS-6 at IBM Research.
+mode_def apssixhi =                     % Autologic APS-Micro6
+  mode_param (pixels_per_inch, 1016);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+
+% From {\tt ee@dacth51.bitnet}.
+mode_def atariezf =                     % Atari ST SLM 804 printer
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, -.25);
+  mode_param (fillin, .5);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+AtariSLMEightZeroFour := atariezf;
+
+% From {\tt W.Spit@fys.ruu.nl}.  {\tt N.Poppelier@elsevier.nl} says that
+% different previewers use different resolutions (95 dpi, 96 dpi, or 101
+% dpi), but no one seems to know what the real resolution is.
+mode_def atarinf =                      % Atari 95dpi previewer
+  mode_param (pixels_per_inch, 95);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0.1);
+  mode_common_setup_;
+enddef;
+AtariNineFive := atarinf;
+
+mode_def atarins =                      % Atari 96x96 previewer
+  mode_param (pixels_per_inch, 96);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0.1);
+  mode_common_setup_;
+enddef;
+AtariNineSix := atarins;
+
+% From {\tt ee@dacth51.bitnet}.
+mode_def atariotf =                     % Atari ST SM 124 screen
+  mode_param (pixels_per_inch, 101);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .4);
+  mode_common_setup_;
+enddef;
+AtariSMOneTwoFour := atariotf;
+
+mode_def bitgraph =                     % BBN Bitgraph at 118dpi
+  mode_param (pixels_per_inch, 118);
+  mode_param (blacker, .55);
+  mode_param (fillin, .1);
+  mode_param (o_correction, .3);
+  mode_common_setup_;
+enddef;
+
+% From {\tt sjwright@cix.compulink.co.uk}, 9 February 1994.
+mode_def bjtenex =                      % Canon BubbleJet 10ex
+  mode_param (pixels_per_inch, 360);
+  mode_param (blacker, .6);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+enddef;
+
+mode_def boise =                        % HP 2680A
+  mode_param (pixels_per_inch, 180);
+  mode_param (blacker, .55);
+  mode_param (fillin, .1);
+  mode_param (o_correction, .3);
+  mode_common_setup_;
+enddef;
+
+% From {\tt swartz@cs.wisc.edu}, 8 April 1993.  The straightforward mode
+% with |blacker=0|, |fillin=0|, |o_correction=1| seems to work fine for
+% the Canon EX engine inside Apple's LaserWriter Pro 630.  It produces
+% light, clear lines and type. But {\tt ajcarr@ccvax.ucd.ie} sent in the
+% revised values below on 12 December 1993, tested on the major CM fonts
+% at 5, 7, and 10pt and producing slightly better results.
+mode_def canonex =                      % CanonEX in LaserWriter Pro 630
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, .2);
+  mode_param (fillin, .1);
+  mode_param (o_correction, .85);
+  mode_common_setup_;
+enddef;
+CanonEX := canonex;
+
+mode_def canonlbp =                     % e.g., Symbolics LGP-10
+  mode_param (pixels_per_inch, 240);
+  mode_param (blacker, .2);
+  mode_param (fillin, .2);
+  mode_param (o_correction, .4);
+  mode_common_setup_;
+enddef;
+CanonLBPTen := canonlbp;
+
+mode_def cg =                           % Compugraphic 8600
+  mode_param (pixels_per_inch, 1301.5);
+  mode_param (aspect_ratio, 1569 / pixels_per_inch);
+  mode_param (blacker, .2);
+  mode_param (fillin, .2);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+CompugraphicEightSixZeroZero := cg;
+
+mode_def cgl =                          % Compugraphic 8600 landscape
+  cg_;
+  landscape;
+enddef;
+
+% These values from Linotype Linotronic [13]00 modified to 1200dpi.
+% From {\tt wagman\%muse.hepnet@Csa2.LBL.Gov}.
+mode_def cgnszz =                       % Compugraphic 9600
+  mode_param (pixels_per_inch, 1200);
+  mode_param (blacker, .65);
+  mode_param (fillin, -.1);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+enddef;
+CompugraphicNineSixZeroZero := cgnszz;
+
+% This has a resolution of |5333 + 1/3| pixels per inch.
+mode_def crs =                          % Alphatype CRS
+  mode_param (pixels_per_inch, 4000 + 4000/3);
+  mode_param (blacker, 4);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+
+% This applies to the LaserWriter Plus, HP Laserjet, HP Laserjet Plus,
+% and also the Canon LBP-LX engine, in the Laserjet IIP, QMS 410, and
+% Apple Personal LaserWriter, and also to the CanonSX engine, in the
+% LaserWriter II family.  And {\tt hammond@jila02.Colorado.EDU} says it
+% works well for the ``enhanced-resolution'' LaserJet III.
+% {\tt swartz@cs.wisc.edu} is developing a mode for the Canon EX engine
+% inside an Apple Pro 630 printer.
+mode_def cx =                           % Canon CX, SX, LBP-LX
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, 0);
+  mode_param (fillin, .2);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+enddef;
+CanonCX := cx;
+corona := cx;
+dp := cx; % some kind of DataProducts
+hplaser := cx;
+imagen := cx;
+kyocera := cx;
+laserwriter := cx;
+% I have seen a claim the LaserJet II was the Canon SX
+% write-white engine, but I don't think that's right.
+laserjethi := cx;
+laserjet := cx;
+% {\tt ogawa@orion.arc.nasa.gov} says that this is definitely not a
+% write-white engine, despite earlier versions of this file claiming the
+% contrary.  Thus, probably the same parameters as |cx| will do.
+CanonSX := cx;
+CanonLBPLX := cx;
+
+% At least magstep 2 is recommended at this low resolution.
+mode_def datadisc =                     % DataDisc
+  mode_param (pixels_per_inch, 70);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+DD := datadisc;
+
+mode_def newdd =                        % DataDisc with special aspect ratio
+  mode_param (aspect_ratio, 4/3);
+  datadisc_;
+enddef;
+DataDiscNew := newdd;
+
+% From {\tt mcgrant@rascals.stanford.edu}.  True resolution is 98.2236
+% by 102.4.  See comments for |DECsmall| just above.
+mode_def declarge =                     % DEC 19-inch, 1280 x 1024
+  mode_param (pixels_per_inch, 100);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+DEClarge := declarge;
+elvira := declarge;
+
+% From {\tt mcgrant@rascals.stanford.edu}.  True resolution is 78.1069
+% by 86.0612, but a square aspect ratio works better; furthermore,
+% Computer Modern isn't prepared to deal with fractional pixel values.
+mode_def decsmall =                     % DEC 17-inch, 1024 x 768
+  mode_param (pixels_per_inch, 82);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+DECsmall := decsmall;
+
+% From {\tt fieberjr@whitman.bitnet}.
+mode_def deskjet =                      % HP DeskJet 500
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+enddef;
+HPDeskJet := deskjet;
+
+% From {\tt stsmith@ll.mit.edu}, 10 May 93.
+% With |fillin=0|, the diagonal of {\tt cmtt10}'s `z' is too thin.
+% |blacker=.8| too thin, 2 too thick.
+mode_def docutech =                     % Xerox 8790 or 4045
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, 1);
+  mode_param (fillin, .1);
+  mode_param (o_correction, 0.9);
+  mode_common_setup_;
+enddef;
+XeroxDocutech := docutech;
+
+% From {\tt waits.mf}.
+mode_def dover =                        % Xerox Dover
+  mode_param (pixels_per_inch, 384);
+  mode_param (blacker, 1.2);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+enddef;
+
+% From {\tt metcalf@catfish.LCS.MIT.EDU}, 5 Dec 1992.
+mode_def epsdrft =                      % Epson at 120x72dpi
+  mode_param (pixels_per_inch, 120);
+  mode_param (aspect_ratio, 72 / pixels_per_inch);
+  epson_;
+enddef;
+epsdraft := epsdrft;
+
+mode_def epsdrftl =                     % Epson at 120x72dpi landscape
+  epsdrft_;
+  landscape;
+enddef;
+
+% From {\tt metcalf@catfish.LCS.MIT.EDU}, 5 Dec 1992.
+mode_def epsfast =                      % Epson at 60x72dpi
+  mode_param (pixels_per_inch, 60);
+  mode_param (aspect_ratio, 72 / pixels_per_inch);
+  epson_;
+enddef;
+
+mode_def epsfastl =                     % Epson at 60x72dpi landscape
+  epsfast_;
+  landscape;
+enddef;
+
+% These values from Charles Karney, {\sl TUGboat} 8(2), page 133.  This
+% is for the Epson MX/FX family (-85, -286), which are 9-pin printers.
+% The 24-pin LQ family have higher resolutions; no one has sent me
+% definitions for them yet.  Ditto for Epson's laser printer.  (Thanks
+% to {\tt cargo@escargot.cray.com} for all this information.)
+mode_def epson =                        % 9-pin Epson MX/FX family
+  mode_param (pixels_per_inch, 240);
+  mode_param (aspect_ratio, 216 / pixels_per_inch);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+EpsonMXFX := epson;
+epshi := epson;
+epsonfx := epson;
+
+mode_def epsonl =                       % 9-pin Epson MX/FX family landscape
+  epson_;
+  landscape;
+enddef;
+
+% From {\tt sdh@po.cwru.edu}, 6 September 93.
+% The modes |cx| and |HPLaserJetIIISi| are too spindly.
+% This works (not awesome, o's and e's are slightly taller than they
+% should be in large pt. fonts) on my Epson Action Laser 1500 with
+% LaserJetIIIsi emulation and RITech (Epson's Resolution
+% Enhancement).  It might work for the model 1000 or some HP's.
+mode_def epsonact =                     % Epson Action Laser 1500
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .8);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0.95);
+  mode_common_setup_;
+enddef;
+EpsonAction := epsonact;
+
+% Corrected to 216 dpi vertically, 5 Dec 1992.  From {\tt
+% metcalf@catfish.LCS.MIT.EDU}.
+mode_def epsonlo =                      % Epson at 120x216dpi
+  mode_param (pixels_per_inch, 120);
+  mode_param (aspect_ratio, 216 / pixels_per_inch);
+  epson_;
+enddef;
+epslo := epsonlo;
+
+mode_def epsonlol =                     % Epson at 120x216dpi landscape
+  epsonlo_;
+  landscape;
+enddef;
+
+% From {\tt drstrip@intvax.uucp}.
+% Revised by {\tt dak@pool.informatik.rwth-aachen.de}, 24 May 1994.
+mode_def gtfax =                        % 204 x 196dpi G3fax
+  mode_param (pixels_per_inch, 204);
+  mode_param (aspect_ratio, 196 / pixels_per_inch);
+  mode_param (blacker, 0);
+  mode_param (fillin, .2);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+GThreefax := gtfax;
+gtfaxhi := GThreefax;
+
+mode_def gtfaxl =                       % 204 x 196dpi G3fax landscape
+  gtfax_;
+  landscape;
+enddef;
+
+% From {\tt dak@pool.informatik.rwth-aachen.de}, 24 May 1994.
+mode_def gtfaxlo =                      % 204 x 98dpi G3fax
+  mode_param (pixels_per_inch, 204);
+  mode_param (aspect_ratio, 98 / pixels_per_inch);
+  gtfax_;
+enddef;
+
+mode_def gtfaxlol =                     % 204 x 98dpi G3fax landscape
+  gtfaxlo_;
+  landscape;
+enddef;
+
+% {\tt brumski+@osu.edu}, 27 August 1993.
+mode_def hprugged =                     % HP RuggedWriter 480
+  mode_param (pixels_per_inch, 180);
+  mode_param (blacker, .55);
+  mode_param (fillin, .1);
+  mode_param (o_correction, .3);
+  mode_common_setup_;
+enddef;
+
+% Some general comments on the IBM printers, courtesy of {\tt rocky@panix.com}.
+%
+% IBM 3820's, 3825's, 3827's and 3835's have some sort of corner imaging
+% or shading that the IBM 3812's and 3816's don't.  The latter two
+% models may get this feature in the future.
+%
+% The IBM 3827 is made by Kodak, the rest are IBM engines.
+%
+% Some of the other printers have a knob that allows a service engineer
+% to set one of up to ten levels of darkness.  At IBM Research, we run
+% very black.  The service engineer sets the level by running a
+% completely black page and then two completely blank ones. The black
+% page must be black and the following two must be completely white.
+%
+% Thanks to Jim Hafner ({\tt hafner@ibm.com}) for experimenting with
+% |blacker|, and Paul Dantzig for information about these printers.
+
+% From {\tt ARNALDO@RIOSC.bitnet}.  This is for the 3820, but can be
+% used for 3812, 3816, 3825, 3837 3800 and 3827 printers (these are all
+% 240 pels IBM printers that use the same font format when driven by
+% PSF/VM).
+mode_def ibm_a =                        % IBM 38xx (\#1)
+  mode_param (pixels_per_inch, 240);
+  mode_param (blacker, .35);
+  mode_param (fillin, -.2);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+
+% From {\tt rocky@panix.com}.  For the typewriter, slanted, and italic
+% fonts, |blacker=0| makes the `M's and `W's more legible.  But then the
+% weight of the font does not match the others.
+mode_def ibmd =                         % IBM 38xx (\#2)
+  mode_param (pixels_per_inch, 240);
+  mode_param (blacker, .3);
+  mode_param (fillin, .4);
+  mode_param (o_correction, .75);
+  mode_common_setup_;
+enddef;
+
+% These values from {\tt melvin@math.psu.edu}.
+mode_def ibmega =                       % IBM EGA monitor
+  mode_param (pixels_per_inch, 96);
+  mode_param (aspect_ratio, .841);
+  mode_param (blacker, .3);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+
+mode_def ibmegal =                      % IBM EGA monitor landscape
+  ibmega_;
+  landscape;
+enddef;
+
+% From {\tt sperber@provence.informatik.uni-tuebingen.de}, 30 October 1993.
+% The difference of 0.1 in |blacker| really does make a difference.
+mode_def ibmfzon =                      % IBM 4019
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .1);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .75);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+IBMFourZeroOneNine := ibmfzon;
+
+% From {\tt rocky@panix.com}.  The print engine is made by Lexmar or
+% whatever that offshoot of IBM in Lexington, Kentucky is called. The
+% printing person I asked, Paul Dantzig, says that the print quality of
+% the 4019 is fairly regular. Unlike the IBM 4216's, to his knowledge
+% only there is only one print engine by Lexmar has been ever used in
+% the 4019. And unlike the IBM 4029, there are not knobs on the inside
+% that would permit one to adjust the blacker to ones taste.
+% 
+% While both RicohA and cx modes settings are acceptable, it looks
+% to me that the RicohA fonts are superior.  I base this judgement on
+% tops and bottoms of curves on {\tt cmr10} such as `S', `U' `e' `o' and
+% the apostrophes. This effect is especially noticeable in a small font
+% like cmr6.
+% 
+% If you want to experiment with another setting, I'd start with
+% |RicohA| and set |blacker| to .1 or 0 instead of .2 but definitely keep
+% |mode_write_white_setup_|; I'd leave |fillin| and |o_correction| unchanged.
+
+% From {\tt vumalki\%weizmann.weizmann.ac.il@taunivm.tau.ac.il} 
+% and {\tt plotkin@theory.stanford.edu}.
+mode_def ibmfztn =                      % IBM 4029-30, 4250
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, .05);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .75);
+  mode_common_setup_;
+enddef;
+IBMFourZeroTwoNine := ibmfztn;
+IBMFourTwoThreeZero := ibmfztn;
+IBMFourTwoFiveZero := ibmfztn;
+
+% From Rick Simpson via {\tt erikjan@icce.rug.nl}.
+mode_def ibmpp =                        % IBM ProPrinter
+  mode_param (pixels_per_inch, 240);
+  mode_param (aspect_ratio, 216 / pixels_per_inch);
+  mode_param (blacker, 0);
+  mode_param (fillin, .2);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+IBMProPrinter := ibmpp;
+proprinter := IBMProPrinter;
+
+mode_def ibmppl =                       % IBM ProPrinter landscape
+  ibmpp_;
+  landscape;
+enddef;
+
+% From Rick Simpson via {\tt erikjan@icce.rug.nl}.  Also gave values of
+% zero for |blacker|, |fillin|, and |o_correction|.
+mode_def ibmsoff =                      % IBM 6154 display
+  mode_param (pixels_per_inch, 118);
+  mode_param (blacker, .8);
+  mode_param (fillin, .2);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+IBMSixOneFiveFour := ibmsoff;
+
+% From {\tt rocky@panix.com}.  This is an old, untested definition.
+mode_def sherpa =                       % IBM 6670 (Sherpa)
+  mode_param (pixels_per_inch, 240);
+  mode_param (blacker, 1);
+  mode_param (fillin, 1);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+IBMSixSixSevenZero := sherpa;
+
+% From {\tt vumalki\%weizmann.weizmann.ac.il@taunivm.tau.ac.il}.
+mode_def ibmteot =                      % IBM 3812
+  mode_param (pixels_per_inch, 240);
+  mode_param (blacker, .6);
+  mode_param (fillin, .4);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+IBMThreeEightOneTwo := ibmteot;
+IBMUlfHolleberg := IBMThreeEightOneTwo;
+
+% These values from {\tt d\_webb@chcc.harwell.aea-technology.uk}.
+mode_def ibmtetz =                      % IBM 3820
+  mode_param (pixels_per_inch, 240);
+  mode_param (blacker, .78);
+  mode_param (fillin, .25);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+enddef;
+IBMThreeEightTwoZero := ibmtetz;
+
+% From {\tt x92@vm.urz-uni-heidelberg.de} via {\tt schoepf@sc.zib-berlin.de}.
+mode_def ibmtont =                      % IBM 3193 screen
+  mode_param (pixels_per_inch, 100);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+IBMThreeOneNineThree := ibmtont;
+
+% From {\tt x92@vm.urz-uni-heidelberg.de} via {\tt schoepf@sc.zib-berlin.de}.
+mode_def ibmtosn =                      % IBM 3179 screen
+  mode_param (pixels_per_inch, 87);
+  mode_param (aspect_ratio, 0.75);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+IBMThreeOneSevenNine := ibmtosn;
+
+mode_def ibmtosnl =                     % IBM 3179 screen landscape
+  ibmtosn_;
+  landscape;
+enddef;
+
+% These values from {\tt d\_webb@chcc.harwell.aea-technology.uk}.
+% {\tt melvin@math.psu.edu} thinks |pixels_per_inch=96| might be better.
+mode_def ibmvga =                       % IBM VGA monitor
+  mode_param (pixels_per_inch, 110);
+  mode_param (blacker, .3);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+
+% The Chelgraph IBX is the machine introduced to North American \TeX\
+% users by Type~2000 in Mill Valley, California; telephone
+% (415)~388-8873.  Since the machine's stated output resolution is only
+% 2000\thinspace dpi this truly spectacular 9600\thinspace dpi must be
+% used for translation to an outline font description.  This
+% This has been tested and used in a publication of the University
+% of Washington Press.  These values from Pierre MacKay, based on Lance
+% Carnes' crs values, at magstep~1.8.
+mode_def ibx =                          % Chelgraph IBX
+  mode_param (pixels_per_inch, 4000 + 4000 + 1600);
+  mode_param (blacker, 4);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+ChelgraphIBX := ibx;
+
+% From {\tt local.mf} via {\tt cudat@cu.warwick.ac.uk}.
+mode_def itoh =                         % CItoh 8510A
+  mode_param (pixels_per_inch, 160);
+  mode_param (aspect_ratio, 144 / pixels_per_inch);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .1);
+  mode_common_setup_;
+enddef;
+CItohEightFiveOneZero := itoh;
+
+mode_def itohl =                        % CItoh 8510A landscape
+  itoh_;
+  landscape;
+enddef;
+
+% From {\tt rokicki@cs.umb.edu}.
+mode_def itohtoz =                      % CItoh 310
+  mode_param (pixels_per_inch, 240);
+  mode_param (aspect_ratio, 144 / pixels_per_inch);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+citohtoz := itohtoz;
+CItohThreeOneZero := itohtoz;
+cthreeten := itohtoz;
+
+mode_def itohtozl =                     % CItoh 310 landscape
+  itohtoz_;
+  landscape;
+enddef;
+
+% Perhaps the value for |fillin| should be 0.
+mode_def iw =                           % Apple ImageWriter
+  mode_param (pixels_per_inch, 144);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0.3);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+imagewriter := iw;
+
+% From {\tt stsmith@ll.mit.edu}, 20 August 93.
+% The mode |cx| is too spindly.
+mode_def jetiiisi =                     % HP Laser Jet IIISi
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .2);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .7);
+  mode_common_setup_;
+enddef;
+HPLaserJetIIISi := jetiiisi;
+
+% From John Sauter.
+mode_def lasf =                         % DEC LA75
+  mode_param (pixels_per_inch, 144);
+  mode_param (blacker, .3);
+  mode_param (fillin, -.1);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+LASevenFive := lasf;
+
+mode_def linolo =                       % Linotype Linotronic [13]00 at 635dpi
+  mode_param (pixels_per_inch, 635);
+  linoone_;
+enddef;
+LinotypeOneZeroZeroLo := linolo;
+linohalf := LinotypeOneZeroZeroLo;
+
+% These values from {\tt d\_webb@chcc.harwell.aea-technology.uk}.  The
+% `a' in {\tt cmr5} looks better with |blacker=.3|.  Values of .2 for
+% both |blacker| and |fillin| have also been used.
+mode_def linoone =                      % Linotype Linotronic [13]00 at 1270dpi
+  mode_param (pixels_per_inch, 1270);
+  mode_param (blacker, .65);
+  mode_param (o_correction, 1);
+  mode_param (fillin, -.1);
+  mode_common_setup_;
+enddef;
+LinotypeOneZeroZero := linoone;
+linohi := LinotypeOneZeroZero;
+linothreelo := LinotypeOneZeroZero;
+
+% These values from {\tt d\_webb@chcc.harwell.aea-technology.uk}.
+mode_def linotzzh =                     % Linotype Linotronic 300 at 2540dpi
+  mode_param (pixels_per_inch, 2540);
+  mode_param (blacker, .2);                % Copied from |aps|---conjectural.
+  mode_param (fillin, .2);                 % (ditto)
+  mode_param (o_correction, 1);            % (ditto)
+  mode_common_setup_;
+enddef;
+linothree := linotzzh;
+LinotypeThreeZeroZeroHi := linotzzh;
+linosuper := linotzzh;
+
+% There have been many modes for the LaserJet 4. The current values were
+% found by me ({\tt kb@cs.umb.edu}) to be reasonable on a LaserJet 4MP
+% (at the default density setting, with resolution enhacement
+% enabled). I don't intend to change them again (unless someone
+% convinces me that they are truly mistaken in some way), although I
+% would consider adding different modes for other LaserJet 4 printers,
+% if people contribute them.
+% 
+% ({\tt cthiele@ccs.carleton.ca} gets better results with the density
+% setting on the printer at 4, instead of 3.)
+% 
+% The first LaserJet 4 mode came from {\tt tonnie@ctrl.phys.tue.nl}, 13
+% January 1993, with |blacker=0|, |fillin=0|, and |o_correction=.6|.
+% (This definition was forwarded to me by Barbara Beeton, and was
+% intended to be preliminary.)
+% 
+% {\tt fj@iesd.auc.dk} says that |IBMFourZeroTwoNine| works fine.
+% 
+% {\tt mbr@research.nj.nec.com} supplied another set of values:
+% |blacker=.6|, |fillin=0|, and |o_correction=1|.  He writes:
+% I've tested it extensively at 10pt and 12pt in both roman, italic, and
+% bold, and I've checked all the standard smaller sizes (5, 6, 7, 8, and
+% 9pt).  Works reasonably well on both the LaserJet 4 and the 4si,
+% although characters come out somewhat lighter on the 4si.  Assumes
+% that the density controls are set to their default values and that the
+% resolution enhancement feature is enabled.  The |blacker| value was
+% chosen to make 12pt text look good; for 10pt text, set |blacker=.66|.
+% 
+% I felt the output with |blacker=.6| was too dark; Computer Modern was
+% never intended to be as dark as it appears on 300dpi printers. So I've
+% decreased |blacker| to the value below. The other parameters don't
+% seem to matter much. (Even |blacker| doesn't matter all {\it that} much.)
+mode_def ljfour =                       % 600dpi HP LaserJet 4
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, .25);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+laserjetfour := ljfour;
+% {\tt fn@junior.mathtok.polymtl.ca} uses this for the QMS-860.
+qmsesz := ljfour;
+% {\tt pete@lovelace.thi.informatik.uni-frankfurt.de} uses this for the
+% Apple Laserwriter Select 360, with a Fuji Xerox Xerographic engine.
+aselect := ljfour;
+
+% From {\tt ST-TeX.MF} via {\tt braams@pttrnl.nl}.  (The 300dpi LaserJet
+% is another |cx|.)
+mode_def ljlo =                         % HP LaserJet at 150dpi
+  mode_param (pixels_per_inch, 150);
+  mode_param (blacker, 0);
+  mode_param (fillin, .1);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+laserjetlo := ljlo;
+
+% From {\tt mackay@cs.washington.edu}, 13 January 1993.  The actual
+% machine resolution of this machine is $1000 \times 400$, but it is
+% adjusted with the aid of software so that a $1000 \times 1000$ pk file
+% is used.  The |o_correction|, however, seems grossly overdone if the
+% expected value of at or near unity is applied (on the grounds that a
+% 1000\thinspace dpi font should be able to do full o-correction).
+% Apparently the 400\thinspace dpi physical resolution has some effect
+% here.  In any case, |o_correction=0.4| looks better, and lines up with
+% about the right optical adjustment on curves.  Tested at American
+% School of Classical Studies Publications on 18 July, 1992.
+mode_def lmaster =                      % 1000dpi LaserMaster
+  mode_param (pixels_per_inch, 1000);
+  mode_param (blacker, 0.2);
+  mode_param (fillin, 0.0);
+  mode_param (o_correction, 0.4);
+  mode_common_setup_;
+enddef;
+lasermaster := lmaster;
+
+% From Richard Watson at the Queensland Institute of Technology.  This
+% printer is said to have some kind of Xerox engine, but I don't know which.
+mode_def lnzo =                         % DEC LN01
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .9);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+LNZeroOne := lnzo;
+
+% From {\tt oxtex@vax.oxford.ac.uk}.
+mode_def lps =                          % DEC LPS40
+  mode_write_white_setup_;
+  lnzo_;
+enddef;
+LPSFourZero := lps;
+
+% From {\tt hammond@jila.Colorado.EDU}, 21 January 1993.  Modified from
+% |qms|.  Prints exactly like the QMS fonts from Northlake Software.
+mode_def lpstz =                        % DEC lps20
+  mode_param (pixels_per_inch, 300);      
+  mode_param (blacker, .6);               
+  mode_param (fillin, -.3);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+enddef;
+LPSTwoZero := lpstz;
+ 
+mode_def lqlores =                      % Epson LQ-500, 180x180dpi
+  mode_param (pixels_per_inch, 180);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .1);
+  mode_common_setup_;
+enddef;
+EpsonLQFiveZeroZeroLo := lqlores;
+
+% This and |EpsonLQFiveZeroZeroLo| also work for a Mannesmann 300 (from
+% {\tt cudat@csv.warwick.ac.uk}, 4 September 1991).  The $360\times360$
+% modes for these printers fails for {\tt cudat}, however.
+mode_def lqmed =                        % Epson LQ-500, 360x180dpi
+  mode_param (pixels_per_inch, 360);
+  mode_param (aspect_ratio, 180 / pixels_per_inch);
+  mode_param (blacker, 0); % 0.3 avoids `holes'.
+  mode_param (fillin, 0);
+  mode_param (o_correction, .1);
+  mode_common_setup_;
+enddef;
+lqmredres := lqmed;
+EpsonLQFiveZeroZeroMed := lqmed;
+
+mode_def lqmedl =                       % Epson LQ-500, 360x180dpi landscape
+  lqmed_;
+  landscape;
+enddef;
+
+% These values from {\tt karl@cs.umb.edu}.  |blacker = .8| or more
+% thickens dots, to their detriment.  |blacker = .6| produces two-pixel
+% stems, which looks pretty good for {\tt cmr}, but it's a little dark
+% for {\tt cmti}, and {\tt cmbx} and {\tt cmr} then turn out the same.
+% |o_correction = 1| made no difference.  |fillin = 1| made no
+% difference.
+mode_def lview =                        % Sigma L-View monitor
+  mode_param (pixels_per_inch, 118.06);
+  mode_param (aspect_ratio, 109.25 / pixels_per_inch);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+
+% This is untested.
+mode_def macmag =                       % Mac screens at magstep 1
+  mode_param (pixels_per_inch, 86.4);
+  mode_param (blacker, .35);
+  mode_param (fillin, .1);
+  mode_param (o_correction, .3);
+  mode_common_setup_;
+enddef;
+
+% From the VMS distribution tape (except {\tt karl@cs.umb.edu} changed
+% the |o_correction| to zero).
+mode_def mactrue =                      % Mac screens at 72dpi
+  mode_param (pixels_per_inch, 72);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+MacTrueSize := mactrue;
+
+% From {\tt mcgrant@rascals.stanford.edu}, 17 December 1992.  Various
+% other values made little difference.
+mode_def ncd =                          % NCD 19-inch
+  mode_param (pixels_per_inch, 95);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+
+% From {\tt rokicki@neon.stanford.edu}.
+mode_def nec =                          % NEC
+  mode_param (pixels_per_inch, 180);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+
+% This is the same as |cx|, except for the resolution.
+mode_def nechi =                        % NEC-P6 at 360x360dpi
+  mode_param (pixels_per_inch, 360);
+  cx_;
+enddef;
+lqhires := nechi;
+
+% From {\tt rokicki@neon.stanford.edu}.
+mode_def nexthi =                       % NeXT 400dpi, Newgen
+  mode_param (pixels_per_inch, 400);
+  cx_;
+enddef;
+NeXTprinter := nexthi;
+Newgen := nexthi; % From {\tt lambert@silver.cs.umanitoba.ca}.
+
+% From {\tt rokicki@neon.stanford.edu}.
+mode_def nextscrn =                     % 100dpi NeXT monitor
+  mode_param (pixels_per_inch, 100);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+NeXTscreen := nextscrn;
+nextscreen := nextscrn;
+
+% From {\tt jbotz@mtholyoke.edu}, 21 April 1993.
+% Make TFM files only.
+mode_def nullmode =                     % TFM files only
+  % The resolution is irrelevant, but MF always ships out characters, so
+  % don't use the default huge |proof| resolution.
+  mode_param (pixels_per_inch, 101);
+  mode_param (proofing, -1);
+  mode_param (fontmaking, 1);
+enddef;
+
+% From {\tt deby@cs.utwente.nl} and {\tt issue@vax.oxford.ac.uk}.
+mode_def ocessfz =                      % OCE 6750-PS
+  mode_param (pixels_per_inch, 508);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .7);
+  mode_common_setup_;
+enddef;
+OCESixSevenFiveZeroPS := ocessfz;
+
+% From {\tt rokicki@neon.stanford.edu}.
+mode_def okidata =                      % Okidata
+  mode_param (pixels_per_inch, 240);
+  mode_param (aspect_ratio, 288 / pixels_per_inch);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+okihi := okidata;
+
+mode_def okidatal =                     % Okidata landscape
+  okidata_;
+  landscape;
+enddef;
+
+% From {\tt AMSmodes.def}.
+mode_def pcscreen =                     % also, e.g., high-resolution Suns
+  mode_param (pixels_per_inch, 118);
+  mode_param (blacker, .35);
+  mode_param (fillin, .1);
+  mode_param (o_correction, .3);
+  mode_common_setup_;
+enddef;
+
+% Tektronix Color PostScript printer, from {\tt craig@sunspot@noao.edu}
+% on 14 January 1993. He writes: This is a thermal wax paper printer.
+% The values were determined using the {\tt cmr10} and {\tt cmti10}
+% fonts.  The generated fonts look reasonable, although vertical lines
+% and things like the |[|, |]|, and |/| characters are pretty thin.
+mode_def phaser =                       % Tektronix Phaser PXi
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, 1.1);            
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+
+% This is a write-white PostScript laser-setter, made by a Xerox
+% subsidiary.  Its true aspect ratio is 1200$\,$dpi horizontally and
+% 600$\,$dpi vertically, but {\tt mis@apsedoff.bitnet} says that the
+% printer hides this, and PostScript programs should treat it as having
+% a square aspect ratio.  But {\tt george@trevnx.bio.dfo.ca} says that
+% using the nonsquare aspect ratio produces identical output and uses
+% only half the disk space.  He also says the fonts are much too dark in
+% general, and produce invisible diagonals in the CM typewriter
+% fonts---but other changes either produce errors or dark output.
+% 
+% Printware's headquarters is in Minnesota; telephone (612) 456-1400.
+mode_def prntware =                     % Printware 720IQ
+  mode_param (pixels_per_inch, 1200);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+PrintwareSevenTwoZeroIQ := prntware;
+printware := prntware;
+
+% From John Gourlay.  See {\sl TUGboat} 8(2), page 133.
+mode_def qms =                          % QMS (Xerox engine)
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .6);
+  mode_param (fillin, -.3);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+
+% From {\tt Boris.Hemkemeier@HRZ.Uni-Bielefeld.De}, 24 June 1993.
+% With the QMSOneSevenZeroZero mode, the left stem of "M" in cmr10
+% vanishes completely.
+mode_def qmsostf =                      % QMS 1725
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, 1);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+QMSOneSevenTwoFive := qmsostf;
+
+% From {\tt queinnec@geant.cenatls.cena.dgac.fr}, 24 March 1993.
+% {\tt k316670@aearn.bitnet} says this print has a CanonNX engine
+% switchable between 300 and 600 dpi.
+mode_def qmsoszz =                      % QMS 1700
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, .2);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+QMSOneSevenZeroZero := qmsoszz;
+
+% These values from Stan Osborne, {\sl TUGboat} 8(2), page 134.
+mode_def ricoh =                        % e.g., TI Omnilaser
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .2);
+  mode_param (fillin, -.2);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+RicohFourZeroEightZero := ricoh;
+RicohFortyEighty := ricoh;
+
+% From {\tt Martin.Ward@durham.ac.uk}.  Apparently the engine is
+% different from the Ricoh 4080.  With a larger value of |blacker|,
+% characters like the `e' in {\tt cmtt8} look bad.
+mode_def ricoha =                       % e.g., IBM 4216
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .2);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .75);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+RicohA := ricoha;
+IBMFourTwoOneSix := ricoha;
+
+% From John Sauter.
+mode_def ricohlp =                      % e.g., DEC LN03
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .65);
+  mode_param (fillin, -.2);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+RicohLP := ricohlp;
+LNOthree := ricohlp;
+LNZeroThree := ricohlp;
+
+% From {\tt dickson@eeserv.ee.umanitoba.ca}.  {\tt gil.cc.gatech.edu}
+% has different values; {\tt img@ai.edinburgh.ac.uk} sets |blacker=.1|.
+% Corrected by {\tt andy@vlsi.cs.caltech.edu}, 28 August 1991.  The
+% darkness knob on the printer has a much larger effect than any of
+% these parameters.  {\tt carlos@snfep1.if.usp.br} points out that the
+% printer can operate at either 300$\,$dpi or 400$\,$dpi, and if your
+% fonts don't match the setting, naturally they won't look very good.
+% He says the following works in Dvips' {\tt config.ps} file to set
+% 400\thinspace dpi:
+% 
+% \begingroup\tt /SetResolution {
+%     /setres where {
+%         /setres get exec
+%     }{
+%         pop
+%     } ifelse
+% } def
+% %%BeginFeature *SetResolution 400
+% 400 SetResolution
+% %%EndFeature
+% %%EndSetup
+% \endgroup
+% 
+% (This is the file {\tt resolution400.ps} supplied with NeWSprint.)
+% {\tt simpson@math.psu.edu} only got this work by downloading the code
+% via an extra header file, i.e., having this in the Dvips config file:
+% \begingroup \tt M sparcptr
+% D 400
+% h resolution400.ps
+% \endgroup
+mode_def sparcptr =                     % Sun SPARCprinter
+  mode_param (pixels_per_inch, 400);
+  mode_param (blacker, .25);
+  mode_param (fillin, .2);
+  mode_param (o_correction, .6);
+  mode_common_setup_;
+enddef;
+SparcPrinter := sparcptr;
+
+% From {\tt ee@dacth51.bitnet}.
+mode_def starnlt =                      % Star NL-10
+  mode_param (pixels_per_inch, 240);
+  mode_param (aspect_ratio, 216 / pixels_per_inch);
+  mode_param (blacker, -.6);
+  mode_param (fillin, .2);
+  mode_param (o_correction, .4);
+  mode_common_setup_;
+enddef;
+StarNLOneZero := starnlt;
+
+mode_def starnltl =                     % Star NL-10 landscape
+  starnlt_;
+  landscape;
+enddef;
+
+% From {\tt grunwald@foobar.colorado.edu}.  Sun monitors have several
+% different resolutions, but this seems the most common of the lot.
+% Use |pcscreen| for high-resolution monitors.
+mode_def sun =                          % Sun and BBN Bitgraph at 85dpi
+  mode_param (pixels_per_inch, 85);
+  mode_param (blacker, .35);
+  mode_param (fillin, .1);
+  mode_param (o_correction, .3);
+  mode_common_setup_;
+enddef;
+
+mode_def supre =                        % Ultre*setter at 2400dpi
+  mode_param (pixels_per_inch, 2400);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+
+mode_def toshiba =                      % Toshiba 13XX, EpsonLQ
+  mode_param (pixels_per_inch, 180);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .2);
+  mode_common_setup_;
+enddef;
+epsonlq := toshiba;
+
+mode_def ultre =                        % Ultre*setter at 1200dpi
+  mode_param (pixels_per_inch, 1200);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+Prism := ultre;
+
+% From {\tt Martin.Ward@durham.ac.uk}.
+mode_def vs =                           % VAXstation monitor
+  mode_param (pixels_per_inch, 78);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0);
+  mode_common_setup_;
+enddef;
+VAXstation := vs;
+gpx := vs;
+
+% From {\tt erikjan@icce.rug.nl}, 23 August 1991.
+mode_def vtftzz =                       % Varityper 4200 B-P
+  mode_param (pixels_per_inch, 1800);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+VarityperFourTwoZeroZero := vtftzz;
+
+% From {\tt mjm@as.arizona.edu}, 26 February 1992.
+mode_def vtftzzhi =                     % Varityper 4300P at 2400dpi
+  mode_param (pixels_per_inch, 2400);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+VarityperFourThreeZeroZeroHi := vtftzzhi;
+
+% From {\tt mjm@as.arizona.edu}, 26 February 1992.
+mode_def vtftzzlo =                     % Varityper 4300P at 1200dpi
+  mode_param (pixels_per_inch, 1200);
+  mode_param (blacker, 3.5);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+VarityperFourThreeZeroZeroLo := vtftzzlo;
+
+% From {\tt rocky@panix.com}.  This can also be used for the Autologic's
+% APS6 cut sheet dry process printer.  For that printer, perhaps
+% |blacker=0.8| is better. For the Varityper, though, at |blacker=0.8|
+% the dots of the umlaut start to fill in.  For |blacker<0.6|, the tops
+% and bottoms of lowercase g's and s's in {\tt cmr5} drop out.
+mode_def vtfzszw =                      % Varitype 5060W, APS 6
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, .7);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+VarityperFiveZeroSixZeroW := vtfzszw;
+APSSixMed := vtfzszw;
+
+% The worst problem is toner irregularity.  This may be the same printer
+% as the IBM 4250.
+mode_def vtszz =                        % Varityper Laser 600
+  mode_param (pixels_per_inch, 600);
+  mode_param (blacker, 0);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 1);
+  mode_common_setup_;
+enddef;
+VarityperSixZeroZero := vtszz;
+VTSix := vtszz;
+varityper := vtszz;
+
+% Some information about Xerox printers, from {\tt siemsen@barnard.usc.edu}:
+% The Docutech system and the 4135 have the same engine.
+% The 4050, 4075 and 4090 have the same engine.
+% The 4650 has a unique engine.
+% The 4850 has a unique engine.
+
+% From {\tt u12570@uicvm.uic.edu}.  These values are mostly guesses.
+mode_def xrxesnz =                      % Xerox 8790 or 4045
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, 0.4);
+  mode_param (fillin, 0);
+  mode_param (o_correction, 0.2);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+XeroxEightSevenNineZero := xrxesnz;
+
+% From {\tt u12570@uicvm.uic.edu}.  Many variations for different fonts.
+% {\tt bart@cs.tamu.edu} says this works for the Xerox 4700, also.
+mode_def xrxfzfz =                      % Xerox 4050/4075/4090/4700
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .7);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+enddef;
+XeroxFourZeroFiveZero := xrxfzfz;
+
+% From {\tt u12570@uicvm.uic.edu}.  He sent many variations of this,
+% for different fonts.  I don't know a reasonable way to put them in
+% yet, so this is just the basic entry.
+mode_def xrxnszz =                      % Xerox 9700
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .7);
+  mode_param (fillin, 0);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+enddef;
+XeroxNineSevenZeroZero := xrxnszz;
+
+% From {\tt lee@sq.com}.  These values may be improvable.
+mode_def xrxtszz =                      % Xerox 3700
+  mode_param (pixels_per_inch, 300);
+  mode_param (blacker, .85);
+  mode_param (fillin, -.1);
+  mode_param (o_correction, .5);
+  mode_common_setup_;
+  mode_write_white_setup_;
+enddef;
+XeroxThreeSevenZeroZero := xrxtszz;
+
+% AT&T local defs
+canon :=  cx;
+gnot := amiga;
+fax := gtfax;
+lino := linoone;
+xante := cgnszz;
+
+mode_def help =                         % What modes are defined?
+ for i = 1 upto number_of_modes:
+   message mode_name[i];
+ endfor;
+ % Doesn't make sense to be able to do this twice, so forget this
+ % definition after it's been used.
+ save ?;
+enddef;
+
+let ? = help_;
+
+% These variables determine the size of \MF's (window system) window for
+% online output.  These numbers should match whatever the window system
+% is told, or bizarre positioning of the output in the window results.
+% Properly implemented online device drivers will use these values as
+% the default size.  The defaults here are from {\tt plain.mf}.
+screen_cols := 400;
+screen_rows := 500;
+
+% The mode most commonly used to make fonts here.
+localfont := cx;
+
+%%\bye
+%%%% Local variables:
+%%%% page-delimiter: "^% here are"
+%%%% End:
+

@@ -1,0 +1,623 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989--1993 by Frank Mittelbach, Rainer Schoepf.
+% All rights reserved.
+% 
+% This file is part of the NFSS2 (New Font Selection Scheme) package.
+% 
+%  This package is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme files.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.  You may however copy
+% this file to a file with a different name and then change the copy
+% if you obey the restrictions on file changes described in
+% readme.mz.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in readme.mz8.
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+
+\def\filename{euler}
+\def\fileversion{v2.2 (TEST)}
+\def\filedate{94/02/23}
+
+%\iffalse
+%
+%% File `euler.dtx'.
+%% Copyright (C) 1992 Frank Jensen, all rights reserved.
+%% Copyright (C) 1993, 1994 Frank Jensen and Mittelbach,
+%%                                  all rights reserved.
+%
+% Please send error reports and suggestions for improvements to:
+%
+%                          Frank Jensen
+%                          Aalborg University
+%                          DK-9220 Aalborg \O
+%                          Denmark
+%               Internet:  <fj@iesd.auc.dk>
+%
+%\fi
+% \CheckSum{432}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+% \def\betonname{beton}
+%
+% \title{The \texttt{\filename} package}
+% \author{Frank Jensen\thanks{Updates by Frank Mittelbach.}}
+%
+% \maketitle
+%
+% \MakeShortVerb\|
+%
+% \section{Introduction}
+%
+% This package provides a setup for using the AMS Euler family of
+% fonts for math in \LaTeX\ documents.  The AMS Euler family was
+% designed by Hermann Zapf, commissioned by the American Mathematical
+% Society.  ``The underlying philosophy of Zapf's Euler design was to
+% capture the flavor of mathematics as it might be written by a
+% mathematician with excellent handwriting.'' \cite{concrete-tug}
+%
+% This package is based on Knuth's macros for the book ``Concrete
+% Mathematics''~\cite{concrete}.  Knuth's macros can be found through
+% anonymous ftp to \texttt{labrea.stanford.edu}: look for the file
+% \texttt{gkpmac.tex} in directory \texttt{pub/tex/local/lib}.  The
+% Euler fonts can be found through anonymous ftp to
+% \texttt{e-math.ams.org}: look in directory \texttt{ams/amsfonts}.
+%
+% The purpose of this package is to provide the math part of the look
+% of~\cite{concrete}.  The other part (text fonts) is provided by the
+% \texttt{\betonname} package.  The reason for creating two packages
+% is to make it easy to use the Euler math fonts together with other
+% text fonts (in particular, it appears that the Euler fonts match
+% many of the popular PostScript fonts pretty well).
+%
+% Basically, this package does the same (the same definitions, math
+% codes, etc.)\ as \texttt{gkpmac.tex} does with respect to the Euler
+% fonts.  However, Knuth~\cite{concrete-tug} admits that the macros
+% were written for one specific project, namely to typeset the
+% ``Concrete Mathematics'' book~\cite{concrete}.  So the
+% \texttt{\filename} package actually does a little more than
+% \texttt{gkpmac.tex}: for example, some `exotic' symbols, present in
+% CM math italic, are missing from the Euler fonts; this package takes
+% care of this (whereas \texttt{gkpmac.tex} does not).
+%
+% This package defines two new math alphabet identifiers, |\scr|
+% (Euler Script) and |\frak| (Euler Fraktur); |\oldstyle| is provided
+% as an alias for |\frak| (since the Euler oldstyle digits are located
+% in the Euler Fraktur fonts).  The original meaning of |\mathcal| is
+% preserved, but the user can convert all calligraphic letters to
+% Euler Script by giving the following command in the preamble:
+% $$ \hbox{|\renewcommand{\mathcal}{\scr}|}
+% $$
+%
+% The use of this package requires a lot of care when entering the
+% manuscript, since the \texttt{\filename} package will cause math 
+% numerals to come from the Euler Roman fonts; these numerals are
+% easily distinguished from the normal text numerals.  This implies
+% that sloppy typing is clearly exposed: imagine how
+% ``|$x$ is either 1 or $-1$|'' will appear when typeset!  In general, 
+% the typist will in each case have to decide whether an input fragment
+% is a math or a non-math entity.  This holds true even for the
+% tiniest details, such as punctuation characters (parentheses,
+% colons, semicolons, commas, and periods).
+%
+% In \cite{concrete}, the space around relations was increased in
+% displays (from `5mu plus 5mu' to `10mu minus 3mu').  This package
+% does not change this space, since this is (for most cases)
+% controlled by the \LaTeX\ \texttt{eqnarray} environment.  Also,
+% in~\cite{concrete}, displays are left justified with a suitable
+% indentation; we leave such matters to the general layout.
+%
+% Finally, a few words about the technical quality of the fonts (there
+% are no doubts about their artistic quality): The fonts are not tuned
+% for low resolution rendering: I recommend at least 600dpi.  The
+% fonts employ none of the tuning machinery of CM: e.g., they don't
+% use the `blacker' parameter specified in each Metafont mode
+% definition, indicating that they might look somewhat light on
+% printers that normally require a large `blacker' value. 
+%
+% \StopEventually{
+% \begin{thebibliography}{1}
+%    \bibitem{concrete}  {\sc R. L. Graham, D. E. Knuth, and O.
+%    Patashnik}. {\it Concrete Mathematics}, Addison-Wesley, 1989.
+%    \bibitem{concrete-tug} {\sc D. E. Knuth}. Typesetting Concrete
+%    Mathematics.  {\sl TUGboat\/} 10(1):31--36, 1989.
+% \end{thebibliography}
+% }
+%
+% \section{Hello world}
+%
+% First, we announce the package.
+%    \begin{macrocode}
+%<*package>
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{\filename}[\filedate\space\fileversion]
+\typeout{Package: `\filename' \fileversion\space <\filedate>
+                  (FJ and FMi)}
+%    \end{macrocode}
+%
+% \section{Font and other definitions}
+%
+% The AMS Euler family consists of: Euler Roman (medium and bold),
+% Euler Fraktur (medium and bold), Euler Script (medium and bold), and
+% Euler Extension (medium only). The \texttt{.fd} files for them are
+% defined in the \texttt{amsfonts.fdd} file.
+%
+% The Euler Roman fonts replace the CM Math Italic fonts; this is math
+% symbol font `letters':
+%    \begin{macrocode}
+\DeclareSymbolFont{letters}{U}{eur}{m}{n}
+\SetSymbolFont{letters}{bold}{U}{eur}{b}{n}
+%    \end{macrocode}
+%
+% In math mode, digits should come from the Euler Roman fonts. We make
+% them type |\mathalpha| which means that they will vary with math
+% alphabets. The reason for this is that footnote numbers are set in
+% math mode, and we want these numbers to come from the text font;
+% this is accomplished by setting the \TeX\ primitive |\fam| to zero.
+% (See Section~\ref{footnotes} below.)
+%    \begin{macrocode}
+\DeclareMathSymbol{0}\mathalpha{letters}{"30}
+\DeclareMathSymbol{1}\mathalpha{letters}{"31}
+\DeclareMathSymbol{2}\mathalpha{letters}{"32}
+\DeclareMathSymbol{3}\mathalpha{letters}{"33}
+\DeclareMathSymbol{4}\mathalpha{letters}{"34}
+\DeclareMathSymbol{5}\mathalpha{letters}{"35}
+\DeclareMathSymbol{6}\mathalpha{letters}{"36}
+\DeclareMathSymbol{7}\mathalpha{letters}{"37}
+\DeclareMathSymbol{8}\mathalpha{letters}{"38}
+\DeclareMathSymbol{9}\mathalpha{letters}{"39}
+%    \end{macrocode}
+% The uppercase greek letters are also taken from the Euler Roman
+% fonts (we make them ordinary symbols as opposed to Knuth who made
+% them vary according to |\fam|):
+%    \begin{macrocode}
+\DeclareMathSymbol\Gamma  \mathord{letters}{"00}
+\DeclareMathSymbol\Delta  \mathord{letters}{"01}
+\DeclareMathSymbol\Theta  \mathord{letters}{"02}
+\DeclareMathSymbol\Lambda \mathord{letters}{"03}
+\DeclareMathSymbol\Xi     \mathord{letters}{"04}
+\DeclareMathSymbol\Pi     \mathord{letters}{"05}
+\DeclareMathSymbol\Sigma  \mathord{letters}{"06}
+\DeclareMathSymbol\Upsilon\mathord{letters}{"07}
+\DeclareMathSymbol\Phi    \mathord{letters}{"08}
+\DeclareMathSymbol\Psi    \mathord{letters}{"09}
+\DeclareMathSymbol\Omega  \mathord{letters}{"0A}
+%    \end{macrocode}
+% Euler doesn't have the special variants of |\sigma| and |\rho|:
+%    \begin{macrocode}
+\let\varsigma=\sigma
+\let\varrho=\rho
+%    \end{macrocode}
+%
+% \subsection{Euler Fraktur}
+%
+% \begin{macro}{\frak}\begin{macro}{\oldstyle}
+% The Euler Fraktur fonts get their own math symbol font and alphabet.
+% We define the math alphabet identifier |\frak|.  We also redefine
+% the |\oldtyle| macro: it now produces Euler oldstyle digits but {\em
+% only in math mode!\/}  It doesn't work in text mode anymore.
+%    \begin{macrocode}
+\DeclareSymbolFont{eulerfraktur}{U}{euf}{m}{n}
+\SetSymbolFont{eulerfraktur}{bold}{U}{euf}{b}{n}
+\DeclareSymbolFontAlphabet\frak{eulerfraktur}
+\let\oldstyle=\frak
+%    \end{macrocode}
+% \end{macro}\end{macro}
+% The following characters come from the Euler Fraktur symbol font (as
+% defined in \texttt{gkpmac.tex}):
+%    \begin{macrocode}
+\DeclareMathSymbol{!}\mathord  {eulerfraktur}{"21}
+\DeclareMathSymbol{(}\mathopen {eulerfraktur}{"28} 
+\DeclareMathSymbol{)}\mathclose{eulerfraktur}{"29} 
+\DeclareMathSymbol{+}\mathbin  {eulerfraktur}{"2B}
+\DeclareMathSymbol{-}\mathbin  {eulerfraktur}{"2D}
+\DeclareMathSymbol{=}\mathrel  {eulerfraktur}{"3D}
+\DeclareMathSymbol{[}\mathopen {eulerfraktur}{"5B}
+\DeclareMathSymbol{]}\mathclose{eulerfraktur}{"5D}
+%    \end{macrocode}
+% There is a curious detail here: The type of `!' is `Closing' in
+% \texttt{plain.tex} but `Ordinary' in \texttt{gkpmac.tex'}.  The
+% reason for this 
+% is probably that one should not use Euler punctuation characters as
+% part of the text,\footnote{In particular, one should
+% watch out for punctuation characters in displays: Is, e.g., an
+% exclamation point part of a formula or part of the text? (With CM,
+% it didn't really matter, but it does matter with Euler!)} and
+% punctuation characters in math are usually operators.  E.g., in
+% CSP (Communicating Sequential Processes), `!'~denotes an output
+% operation, a tightly binding binary operator; there is usually no
+% space around this operator (to indicate the high precedence).
+%
+% The Euler Fraktur symbol font contains more punctuation characters
+% than defined above.  We want to use these characters as they look
+% better when they appear in math formulas (there are some strange
+% looking formulas in~\cite{concrete}).  Even if one may argue that,
+% e.g., semicolon is most often used in the text sense (in displays),
+% it is more consistent and easier to remember if everything in math
+% mode is Euler.
+%    \begin{macrocode}
+\DeclareMathSymbol{"}\mathord  {eulerfraktur}{"7D}
+\DeclareMathSymbol{&}\mathord  {eulerfraktur}{"26}
+\DeclareMathSymbol{:}\mathrel  {eulerfraktur}{"3A}
+\DeclareMathSymbol{;}\mathpunct{eulerfraktur}{"3B}
+\DeclareMathSymbol{?}\mathord  {eulerfraktur}{"3F}
+\DeclareMathSymbol{^}\mathord  {eulerfraktur}{"5E}
+\DeclareMathSymbol{`}\mathord  {eulerfraktur}{"22}
+%    \end{macrocode}
+% Here, we also changed the type of `?' to `Ordinary' to be consistent
+% with the type of~`!'.  Regarding the math codes assigned by
+% \texttt{INITEX}: The Euler fonts do not have the glyphs for |\#|, |\$|,
+% |\%|, and \texttt{@}, so these glyphs are still taken from the text fonts.
+%
+%    \begin{macrocode}
+\DeclareMathDelimiter{(}{eulerfraktur}{"28}{largesymbols}{"00}
+\DeclareMathDelimiter{)}{eulerfraktur}{"29}{largesymbols}{"01}
+\DeclareMathDelimiter{[}{eulerfraktur}{"5B}{largesymbols}{"02}
+\DeclareMathDelimiter{]}{eulerfraktur}{"5D}{largesymbols}{"03}
+%    \end{macrocode}
+%
+% \subsection{Euler Script}
+%
+% \begin{macro}{\scr}
+% The Euler Script fonts also get their own symbol font group:
+%    \begin{macrocode}
+\DeclareSymbolFont{eulerscript}{U}{eus}{m}{n}
+\SetSymbolFont{eulerscript}{bold}{U}{eus}{b}{n}
+\DeclareSymbolFontAlphabet\scr{eulerscript}
+%    \end{macrocode}
+% \end{macro}
+% The following is equivalent to the definitions in \texttt{gkpmac.tex}
+% concerning the Euler Script fonts:
+%    \begin{macrocode}
+\DeclareMathSymbol\aleph\mathord{eulerscript}{"40}
+%\DeclareMathSymbol\equiv\mathrel{eulerscript}{"11}
+%\let\cong=\equiv % lowres bars weren't spaced right
+%\DeclareMathSymbol\leq \mathrel{eulerscript}{"14} 
+%\let\le=\leq % seems to have been eliminated
+%\DeclareMathSymbol\geq \mathrel{eulerscript}{"15} 
+%\let\ge=\geq % ditto
+\DeclareMathSymbol\Re   \mathord{eulerscript}{"3C}
+\DeclareMathSymbol\Im   \mathord{eulerscript}{"3D}
+%    \end{macrocode}
+% Knuth used a slightly different version of the Euler Script fonts
+% that had special `$\le$' and `$\ge$' glyphs.  Actually, the source
+% for the AMS Euler Script medium (but not the bold) font also
+% contains these glyphs; however,
+% they are commented out (no explanation is given).  The definitions of
+% |\equiv| and |\cong| are 
+% also commented out in \texttt{gkpmac.tex} (with the reason as given
+% above, i.e., problems with low resolution rendering).
+%    \begin{macrocode}
+\DeclareMathDelimiter\vert
+                 \mathord{eulerscript}{"6A}{largesymbols}{"0C}
+\DeclareMathDelimiter\backslash
+                 \mathord{eulerscript}{"6E}{largesymbols}{"0F}
+%    \end{macrocode}
+%
+% The Euler Script fonts constitute a partial replacement for the CM
+% `symbols' symbol fonts.  (None of the remaining definitions in this
+% section were included in \texttt{gkpmac.tex}.)
+%    \begin{macrocode}
+%\DeclareMathSymbol{-}\mathbin{eulerscript}{"00} % already done
+\DeclareMathSymbol{|}\mathord{eulerscript}{"6A}
+\DeclareMathDelimiter{|}{eulerscript}{"6A}{largesymbols}{"0C}
+%    \end{macrocode}
+% (The minus signs in the Euler Fraktur and Script fonts are
+% identical, i.e., the sources are identical.)
+%    \begin{macrocode}
+\DeclareMathSymbol\neg     \mathord{eulerscript}{"3A}
+\let\lnot=\neg
+\DeclareMathSymbol\wedge   \mathbin{eulerscript}{"5E}
+\let\land=\wedge
+\DeclareMathSymbol\vee     \mathbin{eulerscript}{"5F}
+\let\lor=\vee
+\DeclareMathSymbol\setminus\mathbin{eulerscript}{"6E}
+\DeclareMathSymbol\sim     \mathrel{eulerscript}{"18}
+\DeclareMathSymbol\mid     \mathrel{eulerscript}{"6A}
+\DeclareMathDelimiter\arrowvert
+        \mathord{eulerscript}{"6A}{largesymbols}{"3C} % ???
+%    \end{macrocode}
+% (There are no |\approx| or |\simeq| to go with |\sim|.)  In Plain
+% \TeX\null, the characters |{|, |\|, and~|}| are assigned math codes
+% (and |\| is also given a delimiter code); these are the only visible
+% ASCII (7-bit) characters that we don't give a math code (we don't
+% give any of the other characters math codes as well).
+%
+% The Euler Script fonts also contain a section sign~(\S), but since
+% this is not a math entity, it would be wrong to redefine the |\S|
+% macro.
+%
+% \subsection{Euler Extension}
+%
+% We allocate a new symbol font group for this font:
+%    \begin{macrocode}
+\DeclareSymbolFont{eulerextension}{U}{euex}{m}{n}
+%    \end{macrocode}
+% This font contains some alternative versions of some Computer Modern
+% symbols.  The strange construction in the first three lines is due
+% to the fact that AMS-\TeX\ defines |\coprod|, |\prod|, and |\sum| as
+% commands (macros); however, some warnings will surely be suppressed!
+% We want this to work even if the AMS styles are read in {\em
+% after\/} the \texttt{\filename} package.
+%    \begin{macrocode}
+\DeclareMathSymbol\coprod@\mathop {eulerextension}{"60}
+\let\coprod=\coprod@
+\DeclareMathSymbol\prod@  \mathop {eulerextension}{"51}
+\let\prod=\prod@
+\DeclareMathSymbol\sum@   \mathop {eulerextension}{"50}
+\let\sum=\sum@
+%    \end{macrocode}
+%    \begin{macrocode}
+\DeclareMathSymbol\intop  \mathop {eulerextension}{"52}
+\DeclareMathSymbol\ointop \mathop {eulerextension}{"48}
+\DeclareMathSymbol\braceld\mathord{eulerextension}{"7A} 
+\DeclareMathSymbol\bracerd\mathord{eulerextension}{"7B}
+\DeclareMathSymbol\bracelu\mathord{eulerextension}{"7C} 
+\DeclareMathSymbol\braceru\mathord{eulerextension}{"7D}
+\DeclareMathSymbol\infty  \mathord{eulerextension}{"31}
+%    \end{macrocode}
+%    \begin{macrocode}
+\DeclareMathSymbol\nearrow\mathrel{eulerextension}{"25}
+\DeclareMathSymbol\searrow\mathrel{eulerextension}{"26}
+\DeclareMathSymbol\nwarrow\mathrel{eulerextension}{"2D}
+\DeclareMathSymbol\swarrow\mathrel{eulerextension}{"2E}
+%    \end{macrocode}
+%    \begin{macrocode}
+\DeclareMathSymbol\Leftrightarrow\mathrel{eulerextension}{"2C}
+\DeclareMathSymbol\Leftarrow     \mathrel{eulerextension}{"28}
+\DeclareMathSymbol\Rightarrow    \mathrel{eulerextension}{"29}
+\DeclareMathSymbol\leftrightarrow\mathrel{eulerextension}{"24}
+\DeclareMathSymbol\leftarrow     \mathrel{eulerextension}{"20} 
+\let\gets=\leftarrow
+\DeclareMathSymbol\rightarrow    \mathrel{eulerextension}{"21} 
+\let\to=\rightarrow
+%    \end{macrocode}
+%    \begin{macrocode}
+\DeclareMathDelimiter\uparrow
+              \mathrel{eulerextension}{"22}{largesymbols}{"78}
+\DeclareMathDelimiter\downarrow
+              \mathrel{eulerextension}{"23}{largesymbols}{"79}
+\DeclareMathDelimiter\updownarrow
+              \mathrel{eulerextension}{"6C}{largesymbols}{"3F}
+\DeclareMathDelimiter\Uparrow
+              \mathrel{eulerextension}{"2A}{largesymbols}{"7E}
+\DeclareMathDelimiter\Downarrow
+              \mathrel{eulerextension}{"2B}{largesymbols}{"7F}
+\DeclareMathDelimiter\Updownarrow
+              \mathrel{eulerextension}{"6D}{largesymbols}{"77}
+%    \end{macrocode}
+%    \begin{macrocode}
+\DeclareMathSymbol\leftharpoonup   \mathrel{eulerextension}{"18}
+\DeclareMathSymbol\leftharpoondown \mathrel{eulerextension}{"19}
+\DeclareMathSymbol\rightharpoonup  \mathrel{eulerextension}{"1A}
+\DeclareMathSymbol\rightharpoondown\mathrel{eulerextension}{"1B}
+%    \end{macrocode}
+%
+% Here is funny mixture of the Euler Script and Extension fonts:
+%    \begin{macrocode}
+\DeclareMathDelimiter\lbrace
+              \mathopen{eulerscript}{"66}{eulerextension}{"08}
+\let\{=\lbrace
+\DeclareMathDelimiter\rbrace
+             \mathclose{eulerscript}{"67}{eulerextension}{"09}
+\let\}=\rbrace
+%    \end{macrocode}
+%
+% \section{More math}
+%
+%
+% \begin{macro}{\Relbar}
+% Actually, we also need the CMR family: we need the equals sign for
+% (horizontal) double arrows!
+%
+% We use OT1 encoding, even though T1 encoding may be the default for
+% the users system.
+%    \begin{macrocode}
+\DeclareSymbolFont{cmrgroup}{OT1}{cmr}{m}{n}
+\let\Relbar=\undefined   % Why is \Relbar defined in plain as a macro?
+\DeclareMathSymbol\Relbar\mathrel{cmrgroup}{"3D}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\relbar}
+% \begin{macro}{\leftarrowfill}\begin{macro}{\rightarrowfill}
+% We have changed the math code for the minus sign~(`\texttt{-}'), so
+% that it is now taken from the Euler Fraktur (or Script) fonts.  Some
+% of the math macros of Plain \TeX\ use a minus sign to make long or
+% extensible (horizontal) single arrows; these macros do not work
+% properly, if the Euler minus is used.  The reasons are that the
+% Euler minus is a little lower than the CM minus, and that the Euler
+% minus is too light (due to rendering problems) at low resolutions.
+% This means that the |\relbar| and some ``arrow-filling'' macros must
+% be redefined.
+% 
+% We declare |\cm@minus| to be a CM minus; |\cm@minus| is only used in
+% |\leftarrowfill| and |\rightarrowfill|, so we declare it being of
+% type `ord' (instead of type `bin') and save a few |\mathord| tokens 
+% (compared to the definitions in \texttt{plain.tex}).
+%
+% In \texttt{plain.tex}, |\relbar| is only used in the definition of
+% the long left and right arrows.  Since the Euler arrows do not come
+% in bold, we force |\cm@minus| to always be a normal version minus.
+%    \begin{macrocode}
+\DeclareMathAlphabet\cm@minus@alphabet{OMS}{cmsy}{m}{n}
+\def\cm@minus{{\cm@minus@alphabet{\mathchar"7000}}}
+\def\relbar{\mathrel{\smash\cm@minus}}
+          % \smash, because - has the same height as +
+\def\leftarrowfill
+   {$\m@th\mathord\leftarrow\mkern-6mu%
+     \cleaders\hbox{$\mkern-2mu\cm@minus\mkern-2mu$}\hfill
+     \mkern-6mu\cm@minus$}
+\def\rightarrowfill
+   {$\m@th\cm@minus\mkern-6mu%
+     \cleaders\hbox{$\mkern-2mu\cm@minus\mkern-2mu$}\hfill
+     \mkern-6mu\mathord\rightarrow$}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+% All Euler arrows come from the Euler Extension font.  Since there is
+% no bold version of this font, we have a problem with long/extensible
+% arrows, when the `bold' math version is selected: the arrow heads
+% will be of medium weight (i.e., the same as the `normal' math
+% version), but the extensible parts (composed of minus signs) will be
+% of bold weight.  One way to repair this is to explicitly set the
+% `bold' version of the `symbols' symbol font to the same as the
+% `normal' version.  But then we cannot get bold symbols anymore!
+%
+% Note that we don't have this problem with the double arrows: we only
+% need the equals sign from the CMR font, so there was no reason to
+% assign a special `bold' version to the `cmrgroup' symbol font.
+%
+% Next: There are a few symbols in the original CM Math Italic
+% fonts that are not present in the Euler Roman fonts.  We simply take
+% them from the CM fonts.
+%    \begin{macrocode}
+\DeclareSymbolFont{cmmigroup}{OML}{cmm}{m}{it}
+\SetSymbolFont{cmmigroup}{bold}{OML}{cmm}{b}{it}
+\DeclareMathAccent\vec          \mathord{cmmigroup}{"7E}
+\DeclareMathSymbol\triangleleft \mathbin{cmmigroup}{"2F}
+\DeclareMathSymbol\triangleright\mathbin{cmmigroup}{"2E}
+\DeclareMathSymbol\star         \mathbin{cmmigroup}{"3F}
+\DeclareMathSymbol\lhook        \mathrel{cmmigroup}{"2C}
+\DeclareMathSymbol\rhook        \mathrel{cmmigroup}{"2D}
+\DeclareMathSymbol\flat         \mathord{cmmigroup}{"5B}
+\DeclareMathSymbol\natural      \mathord{cmmigroup}{"5C}
+\DeclareMathSymbol\sharp        \mathord{cmmigroup}{"5D}
+\DeclareMathSymbol\smile        \mathrel{cmmigroup}{"5E}
+\DeclareMathSymbol\frown        \mathrel{cmmigroup}{"5F}
+%    \end{macrocode}
+% Note that the arrow head of |\vec| is slanted; this looks strange in
+% combination with an upright font such as Euler Roman.  Perhaps it
+% would be better to use a script size arrow from the Euler Extension
+% font?
+%
+% Finally, Knuth wanted a little extra space before the prime
+% superscript (and I agree that it looks better that way):
+%    \begin{macrocode}
+\begingroup
+   \catcode`\'=\active
+   \gdef'{^\bgroup\mskip2mu\prim@s} % more space before '
+\endgroup
+%    \end{macrocode}
+%
+% Open question: the macros |\dots|, |\ldots|, |\ddots|, and |\vdots|
+% currently take the dots (periods) from the text font (the |\cdots|
+% dots come from the `symbols' symbol font).  Should we change these
+% macros to take the dots from the Euler fonts?
+%
+% \section{The `operators' symbol font}
+%
+% Also, we should let math symbol font `operators' be the same as the
+% text fonts.  (It doesn't have to be CMR anymore, since the
+% uppercase greek letters are now taken from the Euler Roman fonts.)
+% This should be done at the end of the preamble ({\em not\/} when the
+% package is being read), so that the user has a fair chance to
+% change |\rmdefault| (e.g., we don't want to depend on packages
+% that set |\rmdefault| be input after the \texttt{\filename} package).
+%    \begin{macrocode}
+\AtBeginDocument
+   {\DeclareSymbolFont{operators}\encodingdefault
+            \rmdefault\mddefault\updefault
+    \SetSymbolFont{operators}{bold}\encodingdefault
+            \rmdefault\bfdefault\updefault}
+%    \end{macrocode}
+%
+% Assumptions about the `operators' symbol font: besides having the
+% lowercase and uppercase letters in the standard positions, it should
+% also have the same set of accents as CMR and in the same positions;
+% otherwise, the following macros should be changed: |\acute|,
+% |\grave|, |\ddot|, |\tilde|, |\bar|, |\breve|, |\check|, |\hat|, and
+% |\dot|.  We could take them from the `cmrgroup' symbol font.  Should
+% we?
+%
+% The Euler fonts actually contain one of these accents, namely the
+% |\hat| accent.  A curious fact is that Knuth devoted a fairly large
+% portion of \texttt{gkpmac.tex} to the construction of a $\phi$ with a
+% hat accent (using the |\widehat| macro).
+%    \begin{macrocode}
+\DeclareMathAccent\hat\mathord{eulerfraktur}{"5E}
+%    \end{macrocode}
+%
+% The |\hbar| macro in \texttt{plain.tex} is composed of the letter
+% `h' from the `letters' symbol font and the macron (`bar') accent
+% from the operators symbol font.  With the `letters' symbol font now
+% being Euler Roman, the bar is no longer positioned correctly.  We
+% choose the following definition (the \texttt{9mu} changed to
+% \texttt{8mu}):
+%    \begin{macrocode}
+\DeclareMathSymbol\euler@hbar\mathord{cmrgroup}{"16}
+\def\hbar{{\euler@hbar\mkern-8muh}}
+%    \end{macrocode}
+%
+% \section{Footnotes}\label{footnotes}
+%
+% \begin{macro}{\@makefnmark}\begin{macro}{\@makefntext}
+% Footnote numbers are not math entities, so they should be produced
+% by digits from the text font.  Since footnote markers (whether they
+% are numbers or symbols) are produced in math mode, we can accomplish
+% this by selecting |\operator@font|; this will cause digits to be
+% taken from the `operators' symbol font (which is the same as the
+% font used for text; see previous section).
+%    \begin{macrocode}
+\def\@makefnmark{\hbox{$\operator@font^{\@thefnmark}\m@th$}}
+\long\def\@makefntext#1{\parindent 1em\noindent
+      \hbox to1.8em{\hss$\operator@font^{\@thefnmark}\m@th$}#1}
+%</package>
+%    \end{macrocode}
+% The definition of the last macro is the same in all the main \LaTeX\
+% classes.  Note, however, that \texttt{letter.sty} and \texttt{slides.sty}
+% define this macro differently, so the use of the \texttt{\filename}
+% package will change the appearance of footnotes in such documents.
+% \end{macro}\end{macro}
+%
+% \DeleteShortVerb\|
+% \Finale
+% \endinput
+%
+% The driver file:
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+
+\EnableCrossrefs         
+%\DisableCrossrefs % Say \DisableCrossrefs if index is ready
+
+%\OnlyDescription  % Comment out for implementation details
+
+\begin{document}
+   \DocInput{euler.dtx}
+\end{document}
+%</driver>
+%    \end{macrocode}
+
+\endinput

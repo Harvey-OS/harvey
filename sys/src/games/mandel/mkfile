@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=mandel
+OFILES=mandel.$O\
+	menuhit.$O\
+
+HFILES=m.h
+
+</sys/src/cmd/mkone
+BIN=/$objtype/bin/games

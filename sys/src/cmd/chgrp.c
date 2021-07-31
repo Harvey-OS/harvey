@@ -1,45 +1,34 @@
 #include <u.h>
 #include <libc.h>
 
-int	readgid(char*);
-int	uflag;
+int	readgid(char *);
 
 void
 main(int argc, char *argv[])
 {
 	int i;
 	Dir dir;
+	char err[ERRLEN];
 	char *group;
 	char *errs;
 
-	ARGBEGIN {
-	default:
-	usage:
-		fprint(2, "usage: chgrp [ -uo ] group file ....\n");
+	if(argc < 2){
+		fprint(2, "usage: chgrp group file ....\n");
 		exits("usage");
-		return;
-	case 'u':
-	case 'o':
-		uflag++;
-		break;
-	} ARGEND
-	if(argc < 1)
-		goto usage;
-
-	group = argv[0];
+	}
+	group = argv[1];
 	errs = 0;
-	for(i=1; i<argc; i++){
-		if(dirstat(argv[i], &dir) == -1) {
-			fprint(2, "chgrp: can't stat %s: %r\n", argv[i]);
+	for(i=2; i<argc; i++){
+		if(dirstat(argv[i], &dir)==-1){
+			errstr(err);
+			fprint(2, "chgrp: can't stat %s: %s\n", argv[i], err);
 			errs = "can't stat";
 			continue;
 		}
-		if(uflag)
-			strncpy(dir.uid, group, sizeof(dir.uid));
-		else
-			strncpy(dir.gid, group, sizeof(dir.gid));
-		if(dirwstat(argv[i], &dir) == -1) {
-			fprint(2, "chgrp: can't wstat %s: %r\n", argv[i]);
+		strncpy(dir.gid, group, sizeof(dir.gid));
+		if(dirwstat(argv[i], &dir)==-1){
+			errstr(err);
+			fprint(2, "chgrp: can't wstat %s: %s\n", argv[i], err);
 			errs = "can't wstat";
 			continue;
 		}

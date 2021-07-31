@@ -1,0 +1,80 @@
+.TH TFTOPL 1 "7 Mar 92"
+.SH NAME
+tftopl - convert font metric (tfm) files to property lists
+.SH SYNOPSIS
+.B tftopl
+[-verbose] [-charcode-format=format] tfm_file_name [pl_file_name]
+.SH DESCRIPTION
+The
+.I tftopl
+program translates a (program-oriented) font metric file to a
+(human-oriented) property list file.  Thus, you can edit the contents of
+the TFM files, if the font designer has not done his or her job
+properly, or if you're encountering strange difficulties, or if you're
+just curious.  It also serves as a TFM-file validating program, i.e., if
+no error messages are given, the input file is correct.
+.PP
+The
+.I pl_file_name
+must be complete. No adding of default extensions or path searching is
+done.  If the
+.I pl_file_name
+is not given, standard output is used. The
+.I tfm_file_name
+must also be complete; the `.tfm' is not added.  But path searching is
+done:
+.I tftopl
+uses the environment variable TEXFONTS.  If this is not set, it uses the
+system default:
+.br
+TEXFONTS:
+.BR @TEXFONTS@ ,
+.br
+See 
+.BR tex (1)
+for the details of the searching.
+.SH OPTIONS
+Without the
+.I -verbose
+option,
+.I tftopl
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+.PP
+The argument
+.I format
+to 
+.I -charcode-format
+specifies how character codes are output in the PL file.  By
+default, only letters and digits are output using the
+.B C
+integer code (i.e., in ASCII); the others are output in octal.  (Unless
+the font's coding scheme starts with
+.B TeX math sy
+or
+.BR TeX math ex ,
+in which case all character codes are output in octal.)  If
+.I format
+is
+.BR ascii ,
+all character codes that correspond to graphic characters, besides the
+left and right parentheses, are output in ASCII.  Finally, if
+.I format
+is
+.BR octal ,
+all character codes are output in octal.
+.PP
+See
+.BR tex (1)
+for the details of specifying options.
+.SH "SEE ALSO"
+pltotf(1)
+.br
+Donald Knuth,
+.I TeXware, The METAFONTbook
+.SH AUTHORS
+Donald Knuth wrote the program. It was published as
+part of the
+.I TeXware
+technical report, available from the TeX Users Group.
+Howard Trickey and Pavel Curtis originally ported it to Unix.

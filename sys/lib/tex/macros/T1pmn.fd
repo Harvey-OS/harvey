@@ -1,0 +1,63 @@
+%Filename: T1pmn.fd
+%Created by: tex minion
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1pmn.fd}
+   [1994/11/12 Fontinst v1.335 font definitions for T1/pmn.]
+
+\DeclareFontFamily{T1}{pmn}{}
+
+\DeclareFontShape{T1}{pmn}{m}{n}{
+   <-14> pmnrq
+   <14-> pmnrdq
+}{}
+
+\DeclareFontShape{T1}{pmn}{m}{it}{
+   <-14> pmnriq
+   <14-> pmnrdiq
+}{}
+
+\DeclareFontShape{T1}{pmn}{m}{sc}{
+   <-14> pmnrcq
+   <14-> pmnrdcq
+}{}
+
+\DeclareFontShape{T1}{pmn}{b}{n}{
+   <-> pmnbq
+}{}
+
+\DeclareFontShape{T1}{pmn}{b}{it}{
+   <-> pmnbiq
+}{}
+
+\DeclareFontShape{T1}{pmn}{b}{sc}{
+   <-> pmnbcq
+}{}
+
+\DeclareFontShape{T1}{pmn}{sb}{n}{
+   <-> pmnsq
+}{}
+
+\DeclareFontShape{T1}{pmn}{sb}{sc}{
+   <-> pmnsiq
+}{}
+
+\DeclareFontShape{T1}{pmn}{sb}{it}{
+   <-> pmnscq
+}{}
+
+\DeclareFontShape{T1}{pmn}{eb}{n}{
+   <-> pmncq
+}{}
+
+\DeclareFontShape{T1}{pmn}{m}{ui}{<->sub * pmn/m/it}{}
+\DeclareFontShape{T1}{pmn}{bx}{n}{<->ssub * pmn/b/n}{}
+\DeclareFontShape{T1}{pmn}{bx}{it}{<->ssub * pmn/b/it}{}
+\DeclareFontShape{T1}{pmn}{b}{ui}{<->sub * pmn/b/it}{}
+\DeclareFontShape{T1}{pmn}{bx}{ui}{<->ssub * pmn/b/ui}{}
+\DeclareFontShape{T1}{pmn}{bx}{sc}{<->ssub * pmn/b/sc}{}
+\DeclareFontShape{T1}{pmn}{sb}{ui}{<->sub * pmn/sb/it}{}
+
+\endinput

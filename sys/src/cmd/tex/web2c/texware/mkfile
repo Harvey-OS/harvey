@@ -1,0 +1,60 @@
+# This file makes the programs published in the TeXware technical
+# report: DVItype, PatGen, PLtoTF, TFtoPL, and POOLtype.
+# 
+# Except that we compile and install PatGen 2.0, the revision of Liang's
+# original program by Peter Breitenlohner for TeX 3.
+
+APE=/sys/src/ape
+< $APE/config
+SHELL=/bin/rc
+
+TARG=patgen pooltype dvitype pltotf tftopl
+
+OFILES=
+
+HFILES=../lib/common.h
+
+LIB=../lib/lib.a$O
+
+</sys/src/cmd/mkmany
+
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
+LDFLAGS=
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+triptrap:V:	$O.dvitype $O.pltotf $O.tftopl
+
+pltotf.$O:	pltotf.c $HFILES
+		$CC $CFLAGS '-Dindex=index_arr' pltotf.c
+
+tftopl.$O:	tftopl.c $HFILES
+		$CC $CFLAGS '-Dindex=index_var' tftopl.c
+
+$O.patgen:	patgen2.$O $LIB
+		$LD $LDFLAGS -o $target $prereq
+
+%.c:		%.p
+		$SHELL ../lib/convert $stem.p $stem.c
+
+%.p:		%.ch %.web ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle $stem.web $stem.ch > /dev/null
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installalll:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+
+nuke:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+		rm -f *.p
+		rm -f dvitype.c patgen.c pltotf.c pooltype.c tftopl.c
+		rm -f dvitype.h patgen.h pltotf.h pooltype.h tftopl.h
+		rm -f '#'*'#' *~ *.bak

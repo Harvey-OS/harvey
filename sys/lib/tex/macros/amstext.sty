@@ -1,0 +1,100 @@
+%% 
+%% This is file `amstext.sty', generated 
+%% on <1995/1/27> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% amstext.dtx 
+%%% ====================================================================
+%%%  @LaTeX-file{
+%%%     filename        = "amstext.dtx",
+%%%     version         = "1.2",
+%%%     date            = "1995/01/25",
+%%%     time            = "12:33:22 EST",
+%%%     checksum        = "55631 310 1545 12182",
+%%%     author          = "American Mathematical Society",
+%%%     copyright       = "Copyright (C) 1995 American Mathematical Society,
+%%%                        all rights reserved.  Copying of this file is
+%%%                        authorized only if either:
+%%%                        (1) you make absolutely no changes to your copy,
+%%%                        including name; OR
+%%%                        (2) if you do make changes, you first rename it
+%%%                        to some other name.",
+%%%     address         = "American Mathematical Society,
+%%%                        Technical Support,
+%%%                        Electronic Products and Services,
+%%%                        P. O. Box 6248,
+%%%                        Providence, RI 02940,
+%%%                        USA",
+%%%     telephone       = "401-455-4080 or (in the USA and Canada)
+%%%                        800-321-4AMS (321-4267)",
+%%%     FAX             = "401-331-3842",
+%%%     email           = "tech-support@math.ams.org (Internet)",
+%%%     supported       = "yes",
+%%%     keywords        = "latex, amslatex, ams-latex",
+%%%     abstract        = "This is part of the AMS-\LaTeX{} distribution.
+%%%                        It is a \LaTeX{} package that defines a
+%%%                        \cn{\text} macro, which makes it easy to
+%%%                        incorporate fragments of text inside a displayed
+%%%                        equation or a sub or superscript. Font sizes
+%%%                        are automatically scaled in sub/superscripts.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{amstext}[1995/01/25 v1.2]
+\RequirePackage{amsgen}
+\DeclareRobustCommand{\text}{%
+  \ifmmode\expandafter\text@\else\expandafter\mbox\fi}
+\let\nfss@text\text
+\def\text@#1{\mathchoice
+  {\textdef@\displaystyle\f@size{#1}}%
+  {\textdef@\textstyle\tf@size{\firstchoice@false #1}}%
+  {\textdef@\textstyle\sf@size{\firstchoice@false #1}}%
+  {\textdef@\textstyle \ssf@size{\firstchoice@false #1}}%
+  \check@mathfonts
+}
+\def\textdef@#1#2#3{\hbox{{%
+                    \everymath{#1}%
+                    \let\f@size#2\selectfont
+                    #3}}}
+\newif\iffirstchoice@
+\firstchoice@true
+\def\stepcounter#1{%
+  \iffirstchoice@
+     \addtocounter{#1}\@ne
+     \begingroup \let\@elt\@stpelt \csname cl@#1\endcsname \endgroup
+  \fi
+}
+\def\addtocounter#1#2{%
+  \iffirstchoice@
+  \@ifundefined {c@#1}{\@nocounterr {#1}}%
+    {\global \advance \csname c@#1\endcsname #2\relax}%
+  \fi}
+\newif\ifmeasuring@
+\let\m@gobble\@empty
+\@xp\let\csname m@gobble4\endcsname\@gobblefour
+\long\@xp\def\csname m@gobble6\endcsname#1#2#3#4#5#6{}
+\toks@{%
+  \csname m@gobble\iffirstchoice@\ifmeasuring@ 4\fi\else 4\fi\endcsname
+  \protect}
+\edef\GenericInfo{\the\toks@
+  \@xp\@nx\csname GenericInfo \endcsname}
+\edef\GenericWarning{\the\toks@
+  \@xp\@nx\csname GenericWarning \endcsname}
+\toks@{%
+  \csname m@gobble\iffirstchoice@\ifmeasuring@ 6\fi\else 6\fi\endcsname
+  \protect}
+\edef\GenericError{\the\toks@
+  \@xp\@nx\csname GenericError \endcsname}
+\begingroup \catcode`\"=12
+\gdef\mathhexbox#1#2#3{\text{$\m@th\mathchar"#1#2#3$}}
+\endgroup
+\endinput
+%% 
+%% End of file `amstext.sty'.

@@ -1,0 +1,63 @@
+%% 
+%% This is file `keyval.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% keyval.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file keyval.dtx .
+%% 
+%% File: keyval.dtx Copyright (C) 1993-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{keyval}
+                 [1994/09/12 v1.08 key=value parser (DPC)]
+\def\setkeys#1#2{%
+  \def\KV@prefix{KV@#1@}%
+  \KV@do#2,\relax,}
+\def\KV@do#1,{%
+ \ifx\relax#1\empty\else
+  \KV@split#1==\relax
+  \expandafter\KV@do\fi}
+\def\KV@split#1=#2=#3\relax{%
+  \KV@@sp@def\@tempa{#1}%
+  \ifx\@tempa\@empty\else
+    \expandafter\let\expandafter\@tempc
+      \csname\KV@prefix\@tempa\endcsname
+    \ifx\@tempc\relax
+      \KV@err{\@tempa\space undefined}%
+    \else
+      \ifx\@empty#3\@empty
+        \KV@default
+      \else
+        \KV@@sp@def\@tempb{#2}%
+        \expandafter\@tempc\expandafter{\@tempb}\relax
+      \fi
+    \fi
+  \fi}
+\def\KV@default{%
+  \expandafter\let\expandafter\@tempb
+    \csname\KV@prefix\@tempa @default\endcsname
+  \ifx\@tempb\relax
+    \KV@err{No value specified for \@tempa}%
+  \else
+    \@tempb\relax
+  \fi}
+\def\KV@err#1{\errmessage{key-val: #1}}
+\def\@tempa#1{%
+\def\KV@@sp@def##1##2{\KV@@sp@b##2\@nil\@nil#1\@nil\relax##1}}
+\@tempa{ }
+\def\KV@@sp@b#1#2 \@nil{\KV@@sp@c#1#2}
+\def\KV@@sp@c#1\@nil#2\relax#3{\def#3{#1}}
+\def\define@key#1#2{%
+  \@ifnextchar[{\KV@def{#1}{#2}}{\@namedef{KV@#1@#2}####1}}
+\def\KV@def#1#2[#3]{%
+  \@namedef{KV@#1@#2@default\expandafter}\expandafter
+    {\csname KV@#1@#2\endcsname{#3}}%
+  \@namedef{KV@#1@#2}##1}
+\endinput
+%% 
+%% End of file `keyval.sty'.

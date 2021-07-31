@@ -1,0 +1,16 @@
+character set mappings:
+
+	tcs embodies what we know about the mapping of character sets
+into 10646/unicode and vice versa. there are three main parts:
+latin? alphabets described in desc.latin (from volume 1 of unicode)
+and encoded in tables in tcs.c, cyrillic described in the subdirectory cyr
+and encoded as tables in tcs.c, and han (chinese-japanese-korean ideographs)
+described in the subdirectory han and encoded in kuten*.c, big5.c, gb.c.
+other mappings are user-contributed.
+
+	examples (and implied regression tests) are export/ex*.ok
+
+	if you want to tweak the han mappings, han/README tells how.
+
+	to make the han bitmap fonts, go to the subdirectory font and say
+mk fonts

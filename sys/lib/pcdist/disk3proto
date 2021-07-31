@@ -1,0 +1,49 @@
+386	d775	sys sys
+	mkfile	664	sys sys
+	bin	d775	sys sys
+		8a	775	sys sys
+		8c	775	sys sys
+		8l	775	sys sys
+		mk	775	sys sys
+		ar	775	sys sys
+		db	775	sys sys
+		acid	775	sys sys
+		netkey	775	sys sys
+		ramfs	775	sys sys
+		9660srv	775	sys sys
+		mothra	775	sys sys
+		fb	d775	sys sys
+			gif2pic	775	sys sys
+			jpg2pic	775	sys sys
+			9v	775	sys sys
+			3to1	775	sys sys
+	include	d775	sys sys
+		*	664	sys sys
+	lib	d775	sys sys
+		libauth.a	664	sys sys
+		libbio.a	664	sys sys
+		libc.a	664	sys sys
+		libfb.a	664	sys sys
+		libframe.a	664	sys sys
+		libg.a	664	sys sys
+		libip.a	664	sys sys
+		liblayer.a	664	sys sys
+		liblock.a	664	sys sys
+		libmach.a	664	sys sys
+		libndb.a	664	sys sys
+		libregexp.a	664	sys sys
+		libstdio.a	664	sys sys
+sys	d775	sys sys
+	lib	d775	sys sys
+		acid	d775	sys sys
+			*	664 sys sys
+		mothra	d775	sys sys
+			help.html	664	sys sys
+			start.html	664	sys sys files/start.html
+		kfsuser	775	sys sys	files/kfsuser
+	include	d775	sys sys
+		*	664 sys sys
+lib	d775	sys sys
+	fb	d775	sys sys
+		cmap	d775	sys sys
+			9	664	sys sys

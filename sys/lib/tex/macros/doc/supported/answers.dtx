@@ -1,0 +1,454 @@
+%    \iffalse meta-comment
+%    \begin{macrocode}
+%<*answers>
+\def\fileversion{2.01}
+\def\filedate{1994/03/30}
+\def\filename{answers.dtx}
+\def\Copyright{Copyright (C) 1990,1994 Mike Piff, University of Sheffield, England}
+%</answers>
+%    \end{macrocode}
+%
+%You are not allowed to change this file.
+%
+%You are NOT ALLOWED to distribute this file alone.  You are NOT
+%ALLOWED to take money for the distribution or use of this
+%file except for a nominal charge for copying etc.
+%
+%Please address any problems to:
+%
+%M.Piff@shef.ac.uk
+%
+%For updates, contact your nearest CTAN site.
+%
+%    \fi
+%
+%    \CheckSum{173}
+%
+% \changes{2.0}{1994/03/25}{First version for LaTeX2e}
+% \changes{2.0}{1994/03/30}{Whoops! |\ProvidesPackage{answers}|,
+%           not |\ProvidesClass{Answers}|!!}
+%
+%
+%    \title{Production of solution sheets in \LaTeXe}
+%    \author{Copyright (C) 1994 by Mike Piff}
+%
+%    \maketitle
+%    \tableofcontents
+%
+%    \section{Introduction}
+%
+%    This package is a modification of the author's previous style option
+%    |answers|, which has been in use for a few years, and was based upon the
+%    \TeX book idea of binding solutions to exercises. I have taken the
+%    opportunity with this revision to alter the format of the solutions,
+%    so that they are now presented as \LaTeX\ environments rather than
+%    being started with a command and ended with the end of the surrounding
+%    environment, a wholely un-\LaTeX y way of doing things!
+%
+%    The other main change is that several files are allowed to be active
+%    at once. This allows some solutions in a book (for instance) to go
+%    to the appendices, and some to go to a separate file, to be printed and
+%    handed to the students as the course progresses.
+%
+%    Finally, any number of solution-types may now be bound to any file, not
+%    just the two old ones, solution and hint.
+%
+%    \section{User interface}
+%
+%    The package needs to be included with the command
+%    \begin{verbatim}
+%             \usepackage{answers}
+%    \end{verbatim}
+%
+%    \DescribeMacro{\Newassociation}
+%    After that, there should be several declarations of the form
+%    \begin{verbatim}
+%        \Newassociation{xxx}{yyy}{zzz}
+%    \end{verbatim}
+%    where |xxx| is an environment in the document, and |yyy| is an
+%    environment which will surround the contents of |xxx| when it is
+%    written to file |zzz.sol|
+%
+%    \DescribeMacro{\solutionextension}
+%    The command |\solutionextension| can be redefined to change |sol| to
+%    some other extension.
+%
+%    \DescribeMacro{\Opensolutionfile}
+%    \DescribeMacro{\Closesolutionfile}
+%    At some point the user types
+%    \begin{verbatim}
+%        \Opensolutionfile{zzz}
+%        ...
+%        \Closesolutionfile{zzz}
+%    \end{verbatim}
+%    to create several files of solutions written by environments |xxx| to
+%    environments |yyy|.
+%
+%    \DescribeMacro{\Writetofile}
+%    In addition, material can be written directly to a file by means of
+%    |\Writetofile|. Its first argument is the file |zzz| and its second is
+%    the line of text to be written, with any control words preceded by
+%    |\protect|.
+%    \DescribeEnv{Filesave}
+%    Alternatively, a block of text can be saved to |zzz| by means of
+%    \begin{verbatim}
+%        \begin{Filesave}{zzz}
+%           ....
+%        \end{Filesave}
+%    \end{verbatim}
+%    around it once |zzz| has been opened.
+%
+%    \DescribeMacro{\Readsolutionfile}
+%    One of the generated files can be read using
+%    \begin{verbatim}
+%        \Readsolutionfile{zzz}
+%    \end{verbatim}
+%    or simply |\input| if preferred.
+%
+%     None of the file operations should have any effect if the file |zzz|
+%     has not been opened.
+%
+%    \section{An example}
+%
+%    The following is an example of the use of package |answers|.
+%    It also uses some of the refinements described later.
+%    \begin{macrocode}
+%<*example>
+\documentclass[12pt,a4paper]{article}
+\usepackage{answers}
+
+\newtheorem{Ex}{Exercise}%% to produce the reference label
+
+\Newassociation{solution}{Soln}{test}
+\renewcommand{\Solnlabel}[1]{\emph{Solution #1}}
+\Newassociation{hint}{Hint}{test}
+\renewcommand{\Hintlabel}[1]{\emph{Hint #1}}
+\Newassociation{Solution}{sSol}{testtwo}
+\renewcommand{\sSollabel}[1]{\emph{Solution to #1}}
+\renewcommand{\sSolparams}{{\Currentlabel(p.\thepage)}}
+
+\begin{document}
+\Opensolutionfile{test}
+\Writetofile{test}{\protect\section{Solutions}}
+\Opensolutionfile{testtwo}
+\Writetofile{testtwo}{\protect\section{Extra Solutions}}
+\section{First}
+\begin{Ex}
+   An exercise with a solution.
+   \begin{solution}
+      This is a solution.
+      \relax{}
+   \end{solution}
+\end{Ex}
+\begin{Ex}
+   An exercise with a hint and a secret solution.
+   \begin{hint}
+      This is a hint.
+   \end{hint}
+   \begin{Solution}
+      This is a secret solution.
+   \end{Solution}
+\end{Ex}
+\begin{Ex}
+   An exercise with a hint.
+   \begin{hint}
+      This is a hint.
+   \end{hint}
+\end{Ex}
+\Closesolutionfile{test}
+\Readsolutionfile{test}
+\clearpage
+\Closesolutionfile{testtwo}
+\Readsolutionfile{testtwo}
+
+\end{document}
+%</example>
+%    \end{macrocode}
+%
+%
+%    \StopEventually{}
+%
+%
+%    \section{Identification}
+%
+%    This package can only be used with \LaTeXe, so
+%    an appropriate message is displayed when another
+%    format is used.
+%    \begin{macrocode}
+%<*answers>
+\NeedsTeXFormat{LaTeX2e}[1994/01/01]
+%    \end{macrocode}
+%
+%
+%    Announce the package name and its version:
+%    \begin{macrocode}
+\ProvidesPackage{answers}[\filedate]
+%    \end{macrocode}
+%
+%     And display it on the terminal (and the log file):
+%    \begin{macrocode}
+\typeout{Package `answers' <\filedate>.}
+\typeout{\Copyright}
+%    \end{macrocode}
+%
+%    As this package now relies heavily on the |verbatim| package, we
+%    ensure that that is loaded.
+%    \begin{macrocode}
+\RequirePackage{verbatim}
+%    \end{macrocode}
+%
+%
+%    \section{File handling}
+%
+%    \begin{macro}{\solutionextension}
+%    The default extension for solution files is defined here.
+%    \begin{macrocode}
+\newcommand{\solutionextension}{sol}
+%    \end{macrocode}
+%    It may be changed with |\renewcommand|.
+%    \end{macro}
+%
+%    \begin{environment}{Filesave}
+%    We define an environment |Filesave| with one parameter, the file name
+%    without extension. It is similar to the example of Sch\"opf in the
+%    description of |verbatim|.
+%    \begin{macrocode}
+\newenvironment{Filesave}[1]{%
+   \@bsphack
+   \def\verbatim@processline{}%
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         \def\verbatim@processline{%
+            \immediate\write\@nameuse{#1@file}{\the\verbatim@line}}%
+      }{}%
+   }%
+   \let\do\@makeother\dospecials
+   \catcode`\^^M\active \catcode`\^^I=12\relax
+   \verbatim@start
+}{\@esphack}
+%    \end{macrocode}
+%    \end{environment}
+%
+%    \begin{macro}{\Writetofile}
+%    It is also useful to have a command to write material to the file.
+%    In this, you need to put |\protect| before any control words in the
+%    argument that might expand prematurely and create havoc.
+%    \begin{macrocode}
+\newcommand{\Writetofile}[2]{%
+   \@bsphack
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         {%
+            \let\protect\string
+            \immediate\write\@nameuse{#1@file}{#2}%
+         }%
+      }{}%
+   }%
+   \@esphack
+}
+%    \end{macrocode}
+%    \end{macro}
+%
+%    \begin{macro}{\Ifopen}
+%    We need to check whether or not a file is already open.
+%    \begin{macrocode}
+\newcommand{\Ifopen}[3]{%
+   \csname if#1open\endcsname#2\else#3\fi}%
+%    \end{macrocode}
+%    \end{macro}
+%
+%    \begin{macro}{\Iffileundefined}
+%    We also need to check whether a file variable has already been defined
+%    for a given filename.
+%    \begin{macrocode}
+\newcommand{\Iffileundefined}[3]{%
+   \csname ifx\expandafter\endcsname\csname #1@file\endcsname\relax#2\else#3\fi}
+%    \end{macrocode}
+%    \end{macro}
+%
+%
+%    \section{The file interface}
+%
+%    \begin{macro}{\Opensolutionfile}
+%    Before we can write solutions, we must open the solution file(s).
+%    The command to do this takes a single parameter, which should be
+%    a file name without extension. Thus it should probably be
+%    restricted to a string of at most 8 letters for portability.
+%    This operation will not truncate any existing open file.
+%    \begin{macrocode}
+\def\Opensolutionfile#1{%
+   \Iffileundefined{#1}{%
+      \expandafter\newwrite\csname #1@file\endcsname
+      \csname newif\expandafter\endcsname\csname if#1open\endcsname
+      \csname #1openfalse\endcsname
+      \@namedef{#1@filename}{#1.\solutionextension}%
+      \@namedef{Open#1hook}##1{}%
+      \@namedef{Close#1hook}##1{}%
+   }{}%
+   \let\Tmp\relax
+   \Ifopen{#1}{}{%
+      \immediate\openout\@nameuse{#1@file}=\@nameuse{#1@filename}%
+      \csname #1opentrue\endcsname
+      \def\Tmp{\@nameuse{Open#1hook}{#1}}%
+   }%
+   \Tmp
+}
+%    \end{macrocode}
+%    \begin{macro}{\Closesolutionfile}
+%    We also have a command to close an already open file.
+%    \begin{macrocode}
+\def\Closesolutionfile#1{%
+   \let\Tmp\relax
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         \immediate\closeout\@nameuse{#1@file}%
+         \csname #1openfalse\endcsname
+         \def\Tmp{\@nameuse{Close#1hook}{#1}}%
+      }{}%
+   }%
+   \Tmp
+}
+%    \end{macrocode}
+%
+%    Note that the two file commands each provide a hook which allows them to
+%    perform extra tasks. For instance, the opening operation could be made to
+%    write extra information to the file by redefining the appropriate hook.
+%    The closing operation could if required do an immediate |\input| of the
+%    solution file contents. For example,
+%    \begin{verbatim}
+%        \renewcommand{\Openxxxhook}[2]{%
+%           \Writetofile{#1}{\protect\section{#2}}%
+%        }%
+%        \renewcommand{\Closexxxhook}[1]{%
+%           \Readsolutionfile{#1}%
+%        }
+%    \end{verbatim}
+%    and then
+%    \begin{verbatim}
+%        \Opensolutionfile{xxx}{Answers to selected problems}
+%        ...
+%        \Closesolutionfile{xxx}
+%    \end{verbatim}
+%    The default behaviour is to ignore the one parameter. Note that if you
+%    redefine their behaviour, you must remember that the first parameter is
+%    always the filename.
+%    \end{macro}
+%    \end{macro}
+%
+%    \begin{macro}{\Readsolutionfile}
+%    The operation of reading the file of solutions can be done with the
+%    following command.
+%    \begin{macrocode}
+\def\Readsolutionfile#1{%
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         \typeout{WARNING: attempt to read open file #1}%
+      }{%
+         \InputIfFileExists{#1.\solutionextension}{}%
+            {\message{File #1.\solutionextension\space not found}}%
+      }%
+   }%
+}
+%    \end{macrocode}
+%    \end{macro}
+%
+%
+%    \section{The solution interface}
+%
+%    \begin{macro}{\Newassociation}
+%    Several solution files may have been defined. You are limited only by the
+%    number that \TeX\ will make available to you. Each solution environment
+%    that is to write to one of these files must know which file to write to,
+%    and also what extra information to write there, apart from its contents.
+%    This is done by setting up an association between the source environment,
+%    the destination environment and the filename.
+%    \begin{macrocode}
+\newcommand{\Newassociation}[3]{%
+   \newsolution{#2}%
+   \newenvironment{#1}{%
+      \let\Tmp\relax
+      \Iffileundefined{#3}{}{%
+         \Ifopen{#3}{%
+            \immediate\write\@nameuse{#3@file}%
+               {\string\begin{#2}\@nameuse{#2params}}%
+            \def\Tmp{\Filesave{#3}}%
+         }{}%
+      }%
+      \Tmp
+   }%
+   {%
+      \Iffileundefined{#3}{}{%
+         \Ifopen{#3}{%
+            \endFilesave%
+            \immediate\write\@nameuse{#3@file}{\string\end{#2}}%
+         }{}%
+      }%
+   }%
+}
+%    \end{macrocode}
+%    \end{macro}
+%
+%    \begin{macro}{\newsolution}
+%    The default destination environment in the solution file is defined to
+%    take a single parameter, a reference number inherited from the source
+%    environment.
+%    \begin{macro}{\Currentlabel}
+%    \begin{macrocode}
+\newcommand{\newsolution}[1]{%
+   \@ifundefined{#1}{%
+      \@namedef{#1params}{{\Currentlabel}}%
+      \newenvironment{#1}[1]{%
+         \trivlist
+         \item[\hskip\itemsep{\@nameuse{#1label}{##1}}]}{\endtrivlist}%
+      \@namedef{#1label}##1{\bfseries##1}%
+   }{\typeout{WARNING: environment #1 already in use}}%
+}
+\newcommand{\Currentlabel}{\@currentlabel}
+%    \end{macrocode}
+%    The format of the label for solution environment |xxx| is governed
+%    by the command |\xxxlabel|, which takes one argument by default.
+%    The argument is passed to it by the command |\xxxparams|,
+%    which expands to |{\Currentlabel}|, a synonym for |{\@currentlabel}|,
+%    and this argument is written automatically by the source environment.
+%    The label appears in boldface by default.
+%    We could easily change the behaviour of this environment by changing
+%    these two commands. For example
+%    \begin{verbatim}
+%        \renewcommand{\xxxlabel}[1]{\emph{Solution to #1}}
+%        \renewcommand{\xxxparams}{{\Currentlabel(p.\thepage)}}
+%    \end{verbatim}
+%    would provide a number and page reference in italic.
+%
+%    More complicated behaviour could be produced by redefining the |xxx|
+%    environment itself to take a different number of parameters. Note
+%    however that |\xxxparams| must be redefined to provide those parameters.
+%    \end{macro}
+%    \end{macro}
+%
+%    Which brings us to the end of the |answers| package.
+%    \begin{macrocode}
+%</answers>
+%    \end{macrocode}
+%
+%
+%    \section{The documentation driver file}
+%
+%    This is the driver file that produces this documentation.
+%    We use the document class provided by the \LaTeXe\ distribution
+%    for producing the documentation.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\RecordChanges              
+\begin{document}
+  \DocInput{answers.dtx}
+  \PrintIndex
+  \PrintChanges
+\end{document}
+%</driver>
+%    \end{macrocode}
+%
+% \Finale
+%
+\endinput
+%

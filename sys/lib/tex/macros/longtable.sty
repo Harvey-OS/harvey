@@ -1,0 +1,298 @@
+%% 
+%% This is file `longtable.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% longtable.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% File: longtable.dtx Copyright (C) 1990-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{longtable}
+         [1994/12/08 v3.13 Multi-page Table package (DPC)]
+
+\def\LT@err{\PackageError{longtable}}
+\def\LT@warn{\PackageWarning{longtable}}
+\DeclareOption{errorshow}{%
+  \def\LT@warn{\PackageInfo{LT}}}
+\DeclareOption{pausing}{%
+  \def\LT@warn##1{\PackageError{LT}{##1}{This is not really an error}}}
+\DeclareOption{set}{%
+  \AtEndOfPackage{\setlongtables\let\setlongtables\relax}}
+\DeclareOption{final}{%
+  \ExecuteOptions{set}}
+\ProcessOptions
+\newskip\LTleft       \LTleft=\fill
+\newskip\LTright      \LTright=\fill
+\newskip\LTpre        \LTpre=\bigskipamount
+\newskip\LTpost       \LTpost=\bigskipamount
+\newcount\LTchunksize \LTchunksize=20
+\let\c@LTchunksize\LTchunksize
+\newdimen\LTcapwidth  \LTcapwidth=4in
+\newbox\LT@head
+\newbox\LT@firsthead
+\newbox\LT@foot
+\newbox\LT@lastfoot
+\newcount\LT@cols
+\newcount\LT@rows
+\newcounter{LT@tables}\relax
+\ifx\c@table\undefined
+  \newcounter{table}
+  \def\fnum@table{\tablename~\thetable}
+\fi
+\ifx\tablename\undefined
+  \def\tablename{Table}
+\fi
+\newtoks\LT@p@ftn
+\mathchardef\LT@end@pen=30000
+\def\longtable{%
+  \par
+  \ifx\multicols\@undefined\else
+     \ifnum\col@number>\@ne\@twocolumntrue\fi\fi
+  \if@twocolumn\LT@err{longtable not in 1-column mode}\@ehc\fi
+  \begingroup
+  \@ifnextchar[\LT@array{\LT@array[x]}}
+\def\LT@array[#1]#2{%
+  \refstepcounter{table}\global\advance\c@LT@tables\@ne
+  \if l#1\LTleft\z@ \LTright\fill
+   \else\if r#1\LTleft\fill \LTright\z@
+     \else\if c#1\LTleft\fill \LTright\fill \fi\fi\fi
+  \global\let\LT@mcw@rn\relax\let\LT@mc\multicolumn
+  \let\\\LT@tabularcr\let\tabularnewline\\%
+  \def\newpage{\noalign{\break}}%
+  \let\hline\LT@hline \let\kill\LT@kill\let\caption\LT@caption
+  \@tempdima\ht\strutbox
+  \ifx\extrarowheight\LT@undef
+    \let\@acol\@tabacol
+    \let\@classz\@tabclassz \let\@classiv\@tabclassiv
+    \def\@startpbox{\vtop\LT@startpbox}\let\LT@LL@FM@cr\@tabularcr
+  \else
+    \advance\@tempdima\extrarowheight
+    \col@sep\tabcolsep
+    \let\@startpbox\LT@startpbox\let\LT@LL@FM@cr\@arraycr
+  \fi
+  \setbox\@arstrutbox\hbox{\vrule
+    \@height \arraystretch \@tempdima
+    \@depth \arraystretch \dp \strutbox
+    \@width \z@}%
+  \let\@sharp##\let\protect\relax
+   \begingroup
+    \@mkpream{#2}%
+    \xdef\LT@bchunk{\global\LT@rows\z@\setbox\z@\vbox\bgroup
+       \tabskip\LTleft\halign to \hsize\bgroup
+      \tabskip\z@ \@arstrut \@preamble \tabskip\LTright \cr}%
+  \endgroup
+  \expandafter\LT@nofcols\LT@bchunk&\LT@nofcols
+  \LT@make@row
+  \let\@endpbox\LT@endpbox
+  \m@th\let\par\@empty
+  \everycr{}\lineskip\z@\baselineskip\z@
+  \LT@bchunk}
+\def\LT@start{%
+  \let\LT@start\endgraf
+  \endgraf\penalty\z@\vskip\LTpre
+  \dimen@\pagetotal
+  \advance\dimen@ \ht\ifvoid\LT@firsthead\LT@head\else\LT@firsthead\fi
+  \advance\dimen@ \dp\ifvoid\LT@firsthead\LT@head\else\LT@firsthead\fi
+  \advance\dimen@ \ht\LT@foot
+  \advance\dimen@ \ht\@arstrutbox
+  \advance\dimen@ \dp\@arstrutbox
+  \advance\dimen@ -\pagegoal
+  \ifdim \dimen@>\z@\vfil\break\fi
+  \ifvoid\LT@foot\else
+    \advance\vsize-\ht\LT@foot
+    \dimen@\pagegoal\advance\dimen@-\ht\LT@foot\pagegoal\dimen@
+    \maxdepth=\z@
+  \fi
+  \ifvoid\LT@firsthead\copy\LT@head\else\box\LT@firsthead\fi
+  \output{\LT@output}}
+\def\endlongtable{%
+  \LT@echunk
+  \LT@start
+  \unvbox\z@
+  \LT@get@widths
+  \if@filesw\immediate\write\@auxout
+    {\gdef\string\LT@\romannumeral\c@LT@tables{\LT@save@row}}\fi
+  \LT@mcw@rn
+  \ifx\LT@save@row\LT@@save@row\else
+    \LT@warn{Column widths have changed\MessageBreak
+             in table \thetable}\fi
+  \endgraf\penalty -\LT@end@pen
+  \endgroup
+  \global\@mparbottom\z@
+  \pagegoal\vsize
+  \endgraf\penalty\z@\addvspace\LTpost
+  \ifvoid\footins\else\insert\footins{}\fi}
+\def\LT@nofcols#1&{\futurelet\LT@next\LT@n@fcols}
+\def\LT@n@fcols{\advance\LT@cols\@ne
+  \ifx\LT@next\LT@nofcols\expandafter\@gobble
+  \else\expandafter\LT@nofcols\fi}
+\def\LT@tabularcr{%
+  \global\advance\LT@rows\@ne \ifnum\LT@rows=\LTchunksize
+  \expandafter\LT@t@bularcr\else\expandafter\LT@LL@FM@cr\fi}
+\def\LT@t@bularcr{{\ifnum0=`}\fi
+  \@ifstar{\LT@xtabularcr}{\LT@xtabularcr}}
+\def\LT@xtabularcr{\@ifnextchar[{\LT@argtabularcr}{\LT@ntabularcr}}
+\def\LT@ntabularcr{%
+  \ifnum0=`{\fi}%
+  \LT@echunk
+  \LT@start
+  \unvbox\z@
+  \LT@get@widths
+  \LT@bchunk}
+\def\LT@argtabularcr[#1]{%
+  \ifnum0=`{\fi}%
+  \ifdim #1>\z@
+  \unskip\@xargarraycr{#1}\else \@yargarraycr{#1}\fi
+  \LT@echunk
+  \LT@start
+  \unvbox\z@
+  \LT@get@widths
+  \LT@bchunk}
+\def\LT@echunk{%
+  \crcr\LT@save@row\cr\egroup
+  \global\setbox\@ne\lastbox
+  \egroup}
+\def\LT@kill{%
+  \LT@echunk
+  \LT@get@widths
+  \expandafter\LT@rebox\LT@bchunk}
+\def\LT@rebox#1\bgroup{#1\bgroup\unvbox\z@\unskip\setbox\z@=\lastbox}%
+
+\def\LT@blank@row{%
+  \let\multicolumn\LTmulticolumn
+    {\xdef\LT@save@row{\omit}%
+    \loop
+    \advance\LT@cols\m@ne
+    \ifnum\LT@cols>\z@
+    \xdef\LT@save@row{\LT@save@row&\omit}%
+    \repeat}}
+\let\LT@make@row\LT@blank@row
+\def\setlongtables{%
+  \LT@warn{%
+    \noexpand\setlongtables is in force.%
+    \MessageBreak
+    If you have edited the file since the last%
+    \MessageBreak
+    LaTeX run, incorrect column widths, or even%
+    \MessageBreak
+    errors, may be produced.%
+    \@gobbletwo}%
+  \def\LT@make@row{%
+    \global\expandafter\let\expandafter\LT@save@row
+      \csname LT@\romannumeral\c@LT@tables\endcsname
+    \ifx\LT@save@row\relax\LT@blank@row\fi}}
+\def\LT@get@widths{%
+  \global\let\LT@save@row\end
+  \setbox\tw@=\hbox{\unhbox\@ne
+    \loop
+    \unskip
+    \setbox\tw@=\lastbox
+    \ifhbox\tw@
+      \LT@def@row
+    \repeat}%
+  \ifx\LT@@save@row\LT@undef\let\LT@@save@row\LT@save@row\fi}
+\def\LT@def@row{\ifx\LT@save@row\end
+  \xdef\LT@save@row{\omit\kern\the\wd\tw@}\else
+  \xdef\LT@save@row{\omit\kern\the\wd\tw@&\LT@save@row}\fi}
+\def\LT@hline{\noalign{\ifnum0=`}\fi
+   \penalty\@M
+   \futurelet\LT@next\LT@@hline}
+\def\LT@@hline{%
+  \ifx\LT@next\hline
+    \global\let\LT@next\@gobble
+    \gdef\LT@sep{\penalty-\@medpenalty\vskip\doublerulesep}%
+  \else
+    \global\let\LT@next\empty
+    \gdef\LT@sep{\penalty-\@lowpenalty\vskip-\arrayrulewidth}%
+  \fi\ifnum0=`{\fi}%
+  \multispan\LT@cols
+     \unskip\leaders\hrule\@height\arrayrulewidth\hfill\cr
+  \noalign{\LT@sep}%
+  \multispan\LT@cols
+     \unskip\leaders\hrule\@height\arrayrulewidth\hfill\cr
+  \noalign{\penalty\@M}%
+  \LT@next}
+\def\LT@caption{\noalign\bgroup
+  \@ifnextchar[{\egroup\LT@c@ption}{\LT@capti@n}}
+\def\LT@c@ption[#1]#2{%
+  \LT@mkcaption{\fnum@table: #2}%
+  \def\@tempa{#1}\ifx\@tempa\empty\else
+     {\let\\\space
+     \addcontentsline{lot}{table}{\protect\numberline{\thetable}{#1}}}%
+  \fi}
+\def\LT@capti@n{\@ifstar{\egroup\LT@mkcaption}{\egroup\LT@@c@ption}}
+\def\LT@@c@ption#1{%
+  \LT@mkcaption{\fnum@table: #1}%
+  {\let\\\space
+   \addcontentsline{lot}{table}{\protect\numberline{\thetable}{#1}}}}
+\def\LT@mkcaption#1{%
+  \LT@mc{\LT@cols}{c}{\hbox to \z@{\hss\parbox[t]{\LTcapwidth}{%
+    \setbox\@tempboxa\hbox{#1}%
+   \ifdim \wd\@tempboxa >\hsize #1
+     \else \hbox to\hsize{\hfil\box\@tempboxa\hfil}\fi
+            \endgraf\vskip\baselineskip}\hss}}}
+\def\LT@output{%
+  \ifnum\outputpenalty <-\@Mi
+    \ifnum\outputpenalty > -\LT@end@pen
+      \LT@err{floats and marginpars not allowed in a longtable}\@ehc
+    \else
+      \setbox\z@\vbox{\unvbox\@cclv}%
+      \ifdim \ht\LT@lastfoot>\ht\LT@foot
+        \dimen@=\pagegoal
+        \advance\dimen@-\ht\LT@lastfoot
+        \ifdim\dimen@<\ht\z@
+          \setbox\@cclv=\vbox{\unvbox\z@\copy\LT@foot\vss}%
+          \@makecol
+          \@outputpage
+          \setbox\z@\vbox{\box\LT@head}%
+        \fi
+      \fi
+      \vbox
+        {\unvbox\z@\box\ifvoid\LT@lastfoot\LT@foot\else\LT@lastfoot\fi}%
+    \fi
+  \else
+    \setbox\@cclv=\vbox{\unvbox\@cclv\copy\LT@foot\vss}%
+    \@makecol
+    \@outputpage
+    \copy\LT@head
+  \fi}
+\def\LT@end@hd@ft#1{%
+  \LT@echunk
+  \ifx\LT@start\endgraf\LT@err
+   {Longtable head or foot not at start of table}%
+   {Increase LTchunksize}\fi
+  \setbox#1\box\z@
+  \LT@get@widths
+  \LT@bchunk}
+\def\endfirsthead{\LT@end@hd@ft\LT@firsthead}
+\def\endhead{\LT@end@hd@ft\LT@head}
+\def\endfoot{\LT@end@hd@ft\LT@foot}
+\def\endlastfoot{\LT@end@hd@ft\LT@lastfoot}
+\def\LTmulticolumn#1#2#3{%
+  \LT@mc{#1}{#2}{#3}\hidewidth\null
+  \global\let\LT@mcw@rn\LT@mcwarn}
+\def\LT@mcwarn{\LT@warn{%
+  \string\multicolumn\space set in draft mode\MessageBreak
+   in table \thetable}}
+\def\LT@startpbox#1{\bgroup
+  \let\@footnotetext\LT@p@ftntext\hsize #1 \@arrayparboxrestore
+  \vrule \@height \ht\@arstrutbox \@width \z@}
+\def\LT@endpbox{\@finalstrut\@arstrutbox\egroup
+       \the\LT@p@ftn\global\LT@p@ftn{}}
+\def\LT@p@ftntext#1{%
+  \edef\@tempa{\the\LT@p@ftn\noexpand\footnotetext[\the\c@footnote]}%
+  \global\LT@p@ftn\expandafter{\@tempa{#1}}}%
+\endinput
+%% 
+%% End of file `longtable.sty'.

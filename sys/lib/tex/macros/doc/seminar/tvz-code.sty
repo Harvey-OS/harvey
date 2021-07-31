@@ -1,0 +1,280 @@
+%% BEGIN tvz-code.sty
+%% 93/04/01
+%% Tim Van Zandt tvz@Princeton.EDU
+%%
+%% Lousy hacks for typesetting the documented code for the
+%% seminar.sty and PSTricks packages.
+
+\input tvz-hax.sty
+\input doc.sty         % Tested with v1.7k
+\input art11.sty
+
+
+%%%%%%%%%%%%%%%%%%% PAGE PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Paragraphs are marked by space rather than indentation:
+\parindent 0pt
+\parskip 4pt plus 1pt minus 1pt
+
+% Textwidth just wide enough for 78 characters of code.
+\setbox\@tempboxa=\hbox{\small\tt f}
+\textwidth 78\wd\@tempboxa
+\oddsidemargin\paperwidth\relax
+\advance\oddsidemargin -\textwidth
+\divide\oddsidemargin 2
+\advance\oddsidemargin -1in
+\setbox\@tempboxa=\hbox{\tiny 999\ }
+\advance\oddsidemargin\wd\@tempboxa
+\evensidemargin\oddsidemargin
+
+\if@twoside
+  \advance\oddsidemargin .3in
+  \advance\evensidemargin -.3in
+\fi
+
+% No headers, 1in top margin
+\topmargin 0pt
+\headheight 0pt
+\headsep 0pt
+
+% Total bottom margin 1in, text height 9in
+\textheight 9in
+\footskip .625in
+
+% Now adjust for different paper size:
+\@tempdima=\paperheight
+\advance\@tempdima-11in
+\divide\@tempdima 2
+\advance\topmargin \@tempdima
+
+% Marginal notes always on left.
+\marginparwidth 3.5cm
+\marginparsep .5cm
+\reversemarginpar
+
+
+%%%%%%%%%%%%%%%%%%% MACROCODE PATCH FOR SHORT META %%%%%%%%%%%
+
+\expandafter\def\expandafter\macrocode\expandafter{%
+  \expandafter\DeleteShortMeta
+  \macrocode}
+
+%%%%%%%%%%%%%%%%%%%% DOC PREAMBLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newbox\junkbox
+\def\DocInput#1{%
+  \MakePercentIgnore
+  \setbox\junkbox=\hbox\bgroup
+    \input{#1}%
+  \MakePercentComment}
+\let\EndDocPreamble\egroup
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% VERBATIM %%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Use fancybox.sty's LVerbatim environment. Each line should contain
+% percent plus three spaces (or other char), including blank lines. E.g.,
+% \begin{LVerbatim}
+%   foo
+%   bar
+% \end{LVerbatim}
+
+\def\EveryVerbatimLine#1#2#3#4{}
+\begingroup
+  \catcode`\%=12
+  \catcode`\ =\active
+  \global\EndVerbatimTokens{% }
+\endgroup
+\AltGetVerbatim
+
+
+%%%%%%%%%%%%%%%%%% INDEXING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Things are faster without \MakeIndex
+
+\def\MakeIndex{\makeindex\EnableCrossrefs}
+\DisableCrossrefs
+
+% Use \codelabel[int]{foo} to label last line of code plus int.
+% E.g., to label first and then last line of some code:
+%  \codelabel[1]{foo}
+%    \begin{macrocode}
+%  foo
+%  bar
+%    \end{macrocode}
+%  \codelabel{foo}
+
+\def\codelabel{\@ifnextchar[{\@codelabel}{\@codelabel[0]}}
+\def\@codelabel[#1]#2{%
+  \@bsphack
+  \begingroup
+    \advance\c@CodelineNo #1
+    \def\@currentlabel{\the\c@CodelineNo}%
+    \label{#2}%
+  \endgroup
+  \@esphack}
+
+% Definitions in code are indexed by page number, but other occurences
+% are indexed by the line of code.
+
+\CodelineIndex
+\def\SpecialMainPageIndex#1{%
+  {\let\special@index\index\SpecialMainIndex{#1}}}
+\renewcommand{\theCodelineNo}{{\rm\tiny\arabic{CodelineNo}}}
+
+% Index numbers for main definitions are set in bold rather than underlined.
+
+\def\main#1{{\bf #1}}
+
+% two column index
+
+\setcounter{IndexColumns}{2}
+
+% Customize index prologue:
+
+\def\index@prologue{%
+  \section*{Index}\markboth{Index}{Index}%
+  \addcontentsline{toc}{section}{Index}%
+  The {\bf bold} numbers denote the pages where the entries are defined,
+  and all other numbers indicate the {\em lines of code} where
+  the entries are used.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%  MACRO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% A change to the macro environment; prints macro names within the margins
+% of the text, instead of as marginal notes. Use one \macro command,
+% with comma separated macro names.
+
+\newif\iffirst@macroname
+\newif\ifnestedmacro
+
+\def\macro{%
+  \ifnum\macro@level=\z@
+    \def\next{\MakePrivateLetters \m@cro@}%
+  \else
+    \def\next{\@latexerr{Nested \string\begin{macro}}\@eha
+    \endgroup\end{macro}\macro@level=\z@\begin{macro}}
+  \fi
+  \next}
+\def\m@cro@#1{%
+  \first@macronametrue
+  \m@@cro@@#1,\@nil,}
+\def\m@@cro@@#1,{%
+  \def\@tempa{#1}\def\@tempb{\@nil}%
+  \ifx\@tempa\@tempb
+    \let\next\finishm@@cro@@
+  \else
+    {\advance\c@CodelineNo\@ne\SpecialMainPageIndex{#1}\nobreak}%
+    \DoNotIndex{#1}%
+    \iffirst@macroname
+      \edef\saved@macronames{\string#1}%
+      \first@macronamefalse
+    \else
+      \def\comma{\noexpand\comma}%
+      \edef\saved@macronames{\saved@macronames\comma\string#1}%
+    \fi
+    \let\next\m@@cro@@
+  \fi
+  \next}
+\def\finishm@@cro@@{%
+  \advance\macro@level\@ne
+  \def\comma{{\rm, }}%
+  \ListMacroNames{\saved@macronames}}
+
+\let\endmacro\relax
+
+\def\ListMacroNames{%
+  \@startsection{subsubsection}{3}{\z@}{-2.25ex plus -.5ex minus-.2ex}%
+    {1.3ex plus.2ex}{\csname reset@font\endcsname\large\tt}*}
+
+\MacroIndent 0pt
+
+\def\MacroFont{\small\tt}
+
+
+%%%%%%%%%%%%%%%%%%%%% DoNot Index %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\DoNotIndex{\ ,\!,\[,\\,\],\^,\`,\{,\},\~}
+\DoNotIndex{\@warning,\active}
+\DoNotIndex{\begingroup,\catcode,\char,\csname,\def,\do}
+\DoNotIndex{\docdate,\dospecials,\edef,\else,\endcsname,\endgroup}
+\DoNotIndex{\expandafter,\fi,\filedate,\fileversion}
+\DoNotIndex{\gdef,\if,\ifcat}
+\DoNotIndex{\ifx,\immediate,\lccode,\let}
+\DoNotIndex{\lowercase,\next,\noexpand}
+\DoNotIndex{\relax,\space,\the}
+\DoNotIndex{\toks@,\typeout,\write}
+\DoNotIndex{\@M,\@arabic,\@author,\@auxout,\@bsphack,\@car,\@date}
+\DoNotIndex{\@dblarg,\@dblfloat,\@eha,\@empty,\@esphack,\@evenfoot}
+\DoNotIndex{\@evenhead,\@float,\@gobble,\@gobbletwo,\@gtempa,\@ifnextchar}
+\DoNotIndex{\@ifundefined,\@ixpt,\@latexerr,\@listI,\@listi,\@listii}
+\DoNotIndex{\@listiii,\@listiv,\@listv,\@listvi,\@makefnmark,\@mkboth}
+\DoNotIndex{\@namedef,\@nameuse,\@mne,\@nil,\@normalsize,\@oddfoot}
+\DoNotIndex{\@oddhead,\@tempa,\@tempb,\@tempc,\@tempd}
+\DoNotIndex{\@tempdima,\@testfalse,\@testtrue,\test@member}
+\DoNotIndex{\@thanks,\@thefnmark,\@title}
+\DoNotIndex{\@topnum,\@viiipt,\@viipt,\@vipt,\@vpt,\@xiipt}
+\DoNotIndex{\@xipt,\@xpt,\@xivpt,\@xviipt,\@xxpt,\@xxvpt}
+\DoNotIndex{\addcontentsline}
+\DoNotIndex{\advance,\aftergroup,\baselinestretch,\begin}
+\DoNotIndex{\belowdisplayshortskip,\belowdisplayskip,\bf,\bgroup}
+\DoNotIndex{\box,\c@@page,\c@page,\c@secnumdepth,\clearpage,\columnsep}
+\DoNotIndex{\columnwidth,\copy,\dimen@,\dimen@i,\dimen@ii,\divide}
+\DoNotIndex{\dp,\ds@article,\ds@notes,\ds@notesonly}
+\DoNotIndex{\ds@slidesonly,\egrou,\end,\end@dblfoloat,\end@float}
+\DoNotIndex{\endinput,\fnsymbol,\footheight,\footnotesep,\footskip}
+\DoNotIndex{\global,\globaldefs,\hbox,\headheight,\headsep,\hfil}
+\DoNotIndex{\hrule,\hskip,\hss,\ht,\Huge,\huge}
+\DoNotIndex{\if@filesw,\if@test,\if@twocolumn,\if@twoside}
+\DoNotIndex{\ifcase,\ifdim,\ifvmode,\ignorespaces}
+\DoNotIndex{\input,\interlinepenalty,\itemsep,\ixpt,\label}
+\DoNotIndex{\labelsep,\labelwidth,\LARGE,\large,\Large}
+\DoNotIndex{\leavevmode,\leftmargin,\leftmargini,\leftmarginii}
+\DoNotIndex{\leftmarginiii,\leftmarginiv,\leftmarginv}
+\DoNotIndex{\leftmarginvi,\leftmark,\leftskip,\lineskip}
+\DoNotIndex{\magstep,\marginparsep,\marginparwidth,\markboth}
+\DoNotIndex{\markright,\medbreak,\multiply,\newbox,\newcount}
+\DoNotIndex{\newcounter,\newdimen,\newif,\newlabel,\newpage}
+\DoNotIndex{\newtoks,\nobreak,\nointerlineskip,\normallineskip}
+\DoNotIndex{\normalsize,\null,\number,\numberline,\oddsidemargin}
+\DoNotIndex{\offinterlineskip,\or,\par,\parbox,\parskip,\partopsep}
+\DoNotIndex{\prevdepth,\protect,\ref,\refstepcounter,\rightmrk}
+\DoNotIndex{\rm,\scriptsize,\section,\sectionmark,\setbox,\setcounter}
+\DoNotIndex{\sl,\small,\stepcounter,\string,\textheight,\textwidth}
+\DoNotIndex{\thefootnote,\thepage,\thesection,\thesubsection}
+\DoNotIndex{\thispagestyle,\tiny,\topmargin,\topsep,\uppercase}
+\DoNotIndex{\vbox,\vfill,\viiipt,\viipt,\vipt,\vpt,\vskip,\vss}
+\DoNotIndex{\wd,\xcommentloaded@,\xdef,\xiipt,\xipt,\xivpt,\xpt}
+\DoNotIndex{\xviipt,\xxpt,\xxvpt,\z@}
+\DoNotIndex{\abovedisplayskip,\abovedisplayshortskip,\@currentlabel}
+\DoNotIndex{\@dottedtocline,\@ne\@setsize,\@starttoc,\@tempboxa,\@}
+\DoNotIndex{\arraystretch,\centerline,\egroup,\end@dblfloat}
+\DoNotIndex{\evensidemargin,\footnotesize,\ifnum,\parindent,\parsep}
+\DoNotIndex{\rightmark,\@afterindenttrue,\@ne,\if@specialpage.\long}
+\DoNotIndex{\fboxrule,\fboxsep,\@for,\vfil}
+\DoNotIndex{\@@fortmp,\@@tempa,\@@tempb,\@ehd,\@for,\@fortmp,\@m}
+\DoNotIndex{\@mparswitchfalse,\@mparswitchtrue,\@nnil,\@spaces}
+\DoNotIndex{\@specialstyle,\@temptokena,\@twosidefalse,\@twosidetrue}
+\DoNotIndex{\@whilenum,\alph,\arabic,\count@,\errhelp,\errmessage}
+\DoNotIndex{\fbox,\index,\minipage,\newcommand,\overfullrule}
+\DoNotIndex{\pagestyle,\raggedright,\ref@stepcounter,renewcommand}
+\DoNotIndex{\semcolor@loaded,today,\@tempcnta,\@tempcntb,\trivlist,\t,\p}
+\DoNotIndex{\today,\item,\@colht,\@currenvir,\@thefoot,\@thehead}
+\DoNotIndex{\@totalleftmargin,\allowbreak,\@captype,\@footnotetext}
+\DoNotIndex{\@listdepth,\@minipagefalse,\@minipagetrue,\@mpfn,\@mpfootins}
+\DoNotIndex{\endtrivlist,\everypar,\hsize,\ifvoid,\lastskip}
+\DoNotIndex{\linewidth,\skip,\thempfn,\thempfootnote,\topskip,\unvbox}
+\DoNotIndex{\@@input,\@@par,\@acci,\@accii,\@acciii,\@cclv,\@height}
+\DoNotIndex{\@maxdepth,\@tempdimb,\@tempg,\@temph,\@texttop,\@twocolumnfalse}
+\DoNotIndex{\@xfloat,\addvspace,\alloc@,\bigskipamount,\botmark,\chardef}
+\DoNotIndex{\closein,\closeout,\count,\countdef,\dimen,\glossary,\goodbreak}
+\DoNotIndex{\insc@unt,\intextsep,\kern,\mag,\marginpar,\maxdepth,\medskip}
+\DoNotIndex{\moveleft,\newinsert,\newskip,\onecolumn,\openin,\openout}
+\DoNotIndex{\read,\renewcommand,\repeat,\rightskip,\strut,\vfuzz,\voffset}
+\DoNotIndex{\vsize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\endinput
+
+%% END tvz-code.sty

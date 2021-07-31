@@ -1,0 +1,18 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+TARG=adict
+
+HFILES=win.h
+
+OFILES=adict.$O\
+	win.$O\
+
+BIN= /acme/bin/$objtype
+</sys/src/cmd/mkone
+
+2.out:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/acme/bin/68020/$TARG:Q:	2.out
+	;

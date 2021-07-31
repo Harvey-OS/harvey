@@ -1,8 +1,6 @@
 #include	<u.h>
 #include	<libc.h>
-#include	<draw.h>
-#include	<cursor.h>
-#include	<event.h>
+#include	<libg.h>
 #include	<bio.h>
 #include	"proof.h"
 
@@ -36,7 +34,7 @@ static void	view_setup(int);
 static Point	scale(Point);
 static void	clearview(Rectangle);
 static int	addpage(int);
-static void	spline(Image *, int, Point *);
+static void	spline(Bitmap *, int, Point *, int);
 static int	skipto(int, int);
 static void	wiggly(int);
 static void	devcntrl(void);
@@ -46,8 +44,8 @@ static int	botpage(int);
 static void	getstr(char *);
 static void	getutf(char *);
 
-#define Do screen->r.min
-#define Dc screen->r.max
+#define Do screen.r.min
+#define Dc screen.r.max
 
 /* declarations and definitions of font stuff are in font.c and main.c */
 
@@ -58,7 +56,7 @@ initpage(void)
 
 	view_setup(nview);
 	for (i = 0; i < nview-1; i++)
-		draw(screen, view[i], screen, nil, view[i+1].min);
+		bitblt(&screen, view[i].min, &screen, view[i+1], S);
 	clearview(view[nview-1]);
 	offset = view[nview-1].min;
 	vpos = 0;
@@ -83,7 +81,7 @@ view_setup(int n)
 	v = 0;
 	for (i = 0; i < r && v < n; i++)
 		for (j = 0; j < c && v < n; j++) {
-			view[v] = screen->r;
+			view[v] = screen.r;
 			view[v].min.x = Do.x + j * dx;
 			view[v].max.x = Do.x + (j+1) * dx;
 			view[v].min.y = Do.y + i * dy;
@@ -95,17 +93,14 @@ view_setup(int n)
 static void
 clearview(Rectangle r)
 {
-	draw(screen, r, display->white, nil, r.min);
+	bitblt(&screen, r.min, &screen, r, 0);
 }
 
-int resized;
-void eresized(int new)
+void ereshaped(Rectangle r)
 {
-	/* this is called if we are resized */
-	if(new && getwindow(display, Refnone) < 0)
-		drawerror(display, "can't reattach to window");
+	/* this is called if we are reshaped */
+	screen.r = r;
 	initpage();
-	resized = 1;
 }
 
 static Point
@@ -113,7 +108,7 @@ scale(Point p)
 {
 	p.x /= DIV;
 	p.y /= DIV;
-	return addpt(xyoffset, addpt(offset,p));
+	return add(xyoffset, add(offset,p));
 }
 
 static int
@@ -126,7 +121,7 @@ addpage(int n)
 			return i;
 	if (npagenums < NPAGENUMS-1) {
 		pagenums[npagenums].num = n;
-		pagenums[npagenums].adr = offsetc();
+		pagenums[npagenums].adr = Boffset(&bin);
 		npagenums++;
 	}
 	return npagenums;
@@ -135,21 +130,22 @@ addpage(int n)
 void
 readpage(void)
 {
-	int c, i, a, alpha, phi;
+	int c, i;
 	static int first = 0;
 	int m, n, gonow = 1;
+	char buf[300];
 	Rune r[32], t;
 	Point p,q,qq;
 
-	offset = screen->clipr.min;
-	esetcursor(&deadmouse);
+	offset = screen.clipr.min;
+	cursorswitch(&deadmouse);
 	while (gonow)
 	{
-		c = getc();
+		c = BGETC(&bin);
 		switch (c)
 		{
 		case -1:
-			esetcursor(0);
+			cursorswitch(0);
 			if (botpage(lastp+1)) {
 				initpage();
 				break;
@@ -159,9 +155,9 @@ readpage(void)
 			lastp = getn();
 			addpage(lastp);
 			if (first++ > 0) {
-				esetcursor(0);
+				cursorswitch(0);
 				botpage(lastp);
-				esetcursor(&deadmouse);
+				cursorswitch(&deadmouse);
 			}
 			initpage();
 			break;
@@ -172,18 +168,18 @@ readpage(void)
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
 			/* two motion digits plus a character */
-			hpos += (c-'0')*10 + getc()-'0';
+			hpos += (c-'0')*10 + BGETC(&bin)-'0';
 
 		/* FALLS THROUGH */
 		case 'c':	/* single ascii character */
-			r[0] = getrune();
+			r[0] = Bgetrune(&bin);
 			r[1] = 0;
 			dochar(r);
 			break;
 
 		case 'C':
 			for(i=0; ; i++){
-				t = getrune();
+				t = Bgetrune(&bin);
 				if(isspace(t))
 					break;
 				r[i] = t;
@@ -199,23 +195,23 @@ readpage(void)
 			break;
 
 		case 'D':	/* draw function */
-			switch (getc())
+			switch (BGETC(&bin))
 			{
 			case 'l':	/* draw a line */
 				n = getn();
 				m = getn();
 				p = Pt(hpos,vpos);
-				q = addpt(p, Pt(n,m));
+				q = add(p, Pt(n,m));
 				hpos += n;
 				vpos += m;
-				line(screen, scale(p), scale(q), 0, 0, 0, display->black, ZP);
+				segment(&screen, scale(p), scale(q), ONES, Mode);
 				break;
 			case 'c':	/* circle */
 				/*nop*/
 				m = getn()/2;
 				p = Pt(hpos+m,vpos);
 				hpos += 2*m;
-				ellipse(screen, scale(p), m/DIV, m/DIV, 0, display->black, ZP);
+				circle(&screen, scale(p), m/DIV, ONES, Mode);
 				/* p=currentpt; p.x+=dmap(m/2);circle bp,p,a,ONES,Mode*/
 				break;
 			case 'e':	/* ellipse */
@@ -224,7 +220,7 @@ readpage(void)
 				n = getn()/2;
 				p = Pt(hpos+m,vpos);
 				hpos += 2*m;
-				ellipse(screen, scale(p), m/DIV, n/DIV, 0, display->black, ZP);
+				ellipse(&screen, scale(p), m/DIV, n/DIV, ONES, Mode);
 				break;
 			case 'a':	/* arc */
 				p = scale(Pt(hpos,vpos));
@@ -238,16 +234,7 @@ readpage(void)
 				hpos += n;
 				vpos += m;
 				qq = scale(Pt(hpos,vpos));
-				/*
-				  * tricky: convert from 3-point clockwise to
-				  * center, angle1, delta-angle counterclockwise.
-				 */
-				a = hypot(qq.x-q.x, qq.y-q.y);
-				phi = atan2(q.y-p.y, p.x-q.x)*180./PI;
-				alpha = atan2(q.y-qq.y, qq.x-q.x)*180./PI - phi;
-				if(alpha < 0)
-					alpha += 360;
-				arc(screen, q, a, a, 0, display->black, ZP, phi, alpha);
+				arc(&screen,q,qq,p,ONES,Mode);
 				break;
 			case '~':	/* wiggly line */
 				wiggly(0);
@@ -290,15 +277,15 @@ readpage(void)
 			devcntrl();
 			break;
 		default:
-			fprint(2, "unknown input character %o %c at offset %lud\n", c, c, offsetc());
+			sprint(buf, "unknown input character %o %c\n", c, c);
 			exits("bad char");
 		}
 	}
-	esetcursor(0);
+	cursorswitch(0);
 }
 
 static void
-spline(Image *b, int n, Point *pp)
+spline(Bitmap *b, int n, Point *pp, int f)
 {
 	long w, t1, t2, t3, fac=1000; 
 	int i, j, steps=10; 
@@ -323,7 +310,7 @@ spline(Image *b, int n, Point *pp)
 				t3*pp[i].x + fac/2) / fac;
 			q.y = (t1*pp[i+2].y + t2*pp[i+1].y + 
 				t3*pp[i].y + fac/2) / fac;
-			line(b, p, q, 0, 0, 0, display->black, ZP);
+			segment(b, p, q, ONES, f);
 			p = q;
 		}
 	}
@@ -340,7 +327,7 @@ skipto(int gotop, int curp)
 		return 1;
 	for (i = 0; i < npagenums; i++)
 		if (pagenums[i].num == gotop) {
-			if (seekc(pagenums[i].adr) == Beof) {
+			if (Bseek(&bin, pagenums[i].adr, 0) == Beof) {
 				fprint(2, "can't rewind input\n");
 				return 0;
 			}
@@ -348,13 +335,13 @@ skipto(int gotop, int curp)
 		}
 	if (gotop <= curp) {
 	    restart:
-		if (seekc(0) == Beof) {
+		if (Bseek(&bin,0,0) == Beof) {
 			fprint(2, "can't rewind input\n");
 			return 0;
 		}
 	}
 	for(;;){
-		p = rdlinec();
+		p = Brdline(&bin, '\n');
 		if (p == 0) {
 			if(gotop>curp){
 				gotop = curp;
@@ -375,20 +362,20 @@ wiggly(int skip)
 {
 	Point p[300];
 	int c,i,n;
-	for (n = 1; (c = getc()) != '\n' && c>=0; n++) {
-		ungetc();
+	for (n = 1; (c = BGETC(&bin)) != '\n' && c>=0; n++) {
+		Bungetc(&bin);
 		p[n].x = getn();
 		p[n].y = getn();
 	}
 	p[0] = Pt(hpos, vpos);
 	for (i = 1; i < n; i++)
-		p[i] = addpt(p[i],p[i-1]);
+		p[i] = add(p[i],p[i-1]);
 	hpos = p[n-1].x;
 	vpos = p[n-1].y;
 	for (i = 0; i < n; i++)
 		p[i] = scale(p[i]);
 	if (!skip)
-		spline(screen,n,p);
+		spline(&screen,n,p,Mode);
 }
 
 static void
@@ -444,11 +431,11 @@ getstr(char *is)
 {
 	uchar *s = (uchar *) is;
 
-	for (*s = getc(); isspace(*s); *s = getc())
+	for (*s = BGETC(&bin); isspace(*s); *s = BGETC(&bin))
 		;
-	for (; !isspace(*s); *++s = getc())
+	for (; !isspace(*s); *++s = BGETC(&bin))
 		;
-	ungetc();
+	Bungetc(&bin);
 	*s = 0;
 }
 
@@ -458,7 +445,7 @@ getutf(char *s)		/* get next utf char, as bytes */
 	int c, i;
 
 	for (i=0;;) {
-		c = getc();
+		c = BGETC(&bin);
 		if (c < 0)
 			return;
 		s[i++] = c;
@@ -475,7 +462,7 @@ eatline(void)
 {
 	int c;
 
-	while ((c=getc()) != '\n' && c >= 0)
+	while ((c=BGETC(&bin)) != '\n' && c >= 0)
 		;
 }
 
@@ -484,19 +471,19 @@ getn(void)
 {
 	int n, c, sign;
 
-	while (c = getc())
+	while (c = BGETC(&bin))
 		if (!isspace(c))
 			break;
 	if(c == '-'){
 		sign = -1;
-		c = getc();
+		c = BGETC(&bin);
 	}else
 		sign = 1;
-	for (n = 0; '0'<=c && c<='9'; c = getc())
+	for (n = 0; '0'<=c && c<='9'; c = BGETC(&bin))
 		n = n*10 + c - '0';
 	while (c == ' ')
-		c = getc();
-	ungetc();
+		c = BGETC(&bin);
+	Bungetc(&bin);
 	return(n*sign);
 }
 
@@ -543,26 +530,19 @@ botpage(int np)	/* called at bottom of page np-1 == top of page np */
 			return skipto(np-1, np);
 		}
 		if (*p == 'p') {
-			if (p[1] == '\0'){	/* bare 'p' */
-				if(skipto(np-1, np))
-					return 1;
-				continue;
-			}
+			if (p[1] == '\0')	/* bare 'p' */
+				return skipto(np-1, np);
 			p++;
 		}
 		if ('0'<=*p && *p<='9') {
 			n = atoi(p);
-			if(skipto(n, np))
-				return 1;
-			continue;
+			return skipto(n, np);
 		}
 		if (*p == '-' || *p == '+') {
 			n = atoi(p);
 			if (n == 0)
 				n = *p == '-' ? -1 : 1;
-			if(skipto(np - 1 + n, np))
-				return 1;
-			continue;
+			return skipto(np - 1 + n, np);
 		}
 		if (*p == 'd') {
 			dbg = 1 - dbg;

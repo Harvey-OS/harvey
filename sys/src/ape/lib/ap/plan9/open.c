@@ -58,7 +58,7 @@ open(const char *path, int flags, ...)
 		if(fi->name)
 			strcpy(fi->name, path);
 		if(fi->oflags&O_APPEND)
-			_OSEEK(n, 0, 2);
+			_SEEK(n, 0, 2);
 	}
 	return n;
 }

@@ -1,0 +1,51 @@
+"American Math Society Symbols 9 point -- 1st extra font";
+% based on "old" Computer Modern
+fontidentifier "MSXM"; ptsize=9;
+pww=7/36; % small hairline width
+puw=10/36; % uppercase hairline width
+pscorr=1/36; % some stems to be this much thinner
+pbow=1/36; % baseline serifs to be bowed by this much
+phcorr=1/36; % some hairlines to be this much thicker
+pdot=35/36; % dots
+pws=10/36; % thickness of serifs and arms
+pwu=10/36; % thickness of uppercase bars (A and H)
+pwb=10/36; % thickness of uppercase bowl bars
+uc=0; % correction to unit measurements on certain characters
+usc=-.25;	% uppercase serif correction
+sqdot=0; % dots to be round
+theta=1/6; % affects super-ness inside bowls
+aspw=8/36; % hairline height
+prt=.38;	% rule thickness for math symbols
+mathspread=.2;	% proportion of spreading for symbols like =
+psmid=25/36;	% thickness of stroke in middle of "s"
+
+ph=225/36; px=140/36; pe=79/36; pd=63/36;
+pb=18/36; po=7/36; ps=18/36; pas=63/36; pa=.5(ph-pd);
+pw=9/36; pwi=24/36; pwii=28/36; pwiii=30/36;
+pwiv=29/36; pwv=33/36; pdel=0; fudge=1.0;
+pu=18.5/36; lcs=1.4; ucs=1.85; sc=0; ls=0;
+slant=0; sqrttwo=sqrt 2; fixwidth=0; crisp=1;
+danger=0;
+phh=ph-pssd; phhh=ph-16.2/36; pssd=.5po; pdd=pd; varg=0; lowast=0; ligs=1.
+input cmbase; call fontbegin;
+input newsympars;
+input xsymbols;
+new prt; prt=.4;	% default rule thickness for 10pt cmathx
+subs=6/9;	% the following spacing intended for 6pt subscripts
+texinfo 0,	% math spacing should be variable
+	pa+3.51prt+36/36+subs.pd,	% numerator baseline in displays
+	pa+1.51prt+30/36,	% numerator baseline in nondisplays, nonatops
+	pa+1.51prt+43/36,	% numerator baseline in nondisplay atops
+	-(pa-3.51prt-subs.phhh-93/36-pb),	% denominator baseline in displays
+	-(pa-1.51prt-subs.phhh-30/36),	% denominator baseline in nondisplays
+	8.49-subs.ph,	% superscript baseline in unmodified displays
+	7.99-subs.ph,	% superscript baseline in unmodified nondisplays
+	93/36,	% superscript baseline in modified styles
+	36/36,	% subscript baseline without superscript
+	-(7.99-subs.ph-3.1prt-subs.ph),	% subscript baseline with superscript
+	subs.ph-1,	% baseline offset for superscripted large boxes
+	18/36,	% baseline offset for subscripted large boxes
+	23.9,	% size of \comb delimiters in displays
+	9.1,	% size of \comb delimiters in nondisplays
+	pa;	% axis height
+end

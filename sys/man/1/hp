@@ -1,0 +1,23 @@
+.TH HP 1 
+.SH NAME
+hp \- emulate an HP 2621 terminal
+.SH SYNOPSIS
+.B hp
+.SH DESCRIPTION
+.I Hp
+replaces an 8½ window with an emulation of an HP 2621 terminal.
+.SH SOURCE
+.B /sys/src/cmd/hp
+.SH BUGS
+.I Hp
+cannot resize a window.  If a 24x80 screen is required, it can draw
+an outline (using a menu item on button 2) and will use only the space
+within the outline,
+but the user is responsible for resizing the window to fit the
+outline.
+.PP
+Use care in setting echo and newline modes when connecting to Unix systems
+via
+.IR con .
+It may also be necessary to set the emulator into raw mode manually (using
+a button 2 menu entry).

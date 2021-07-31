@@ -1,0 +1,203 @@
+.TH FONE 1
+.CT 1 networking
+.SH NAME
+fone \- control
+.SM ISDN
+telephone
+.SH SYNOPSIS
+.B fone
+.RI [ options... ]
+.SH DESCRIPTION
+.PP
+.I Fone
+manages an
+.SM AT&T
+7506
+.SM ISDN
+telephone set.  Program control is supplementary: normal functioning of
+the phone is not affected.  The set must be equipped with the ProPhone1.5
+.SM ROM
+or equivalent.  To initialize after the
+.SM ROM
+is first installed, push the
+.LR Select ,
+then the
+.L Data
+button, and set parameters as follows:
+.nr zz \w'\fL-v\fP \fIname\fP'u/1n+2
+.TP \n(zz
+\&
+.B DATA MODE: B2
+.br
+.B DATA RATE: 19200
+.br
+.B PARITY: SPACE
+.br
+.B LOCAL MODE: AT
+.PP
+.I Fone
+should be run once per terminal session; it accepts commands
+typed in its window.  If the file
+.L call.log
+exists and is writable, it will contain a log of calls.
+A permanent log file may be initialized with:
+.TP \n(zz
+\&
+.B chmod +a call.log >call.log
+.PP
+Options for
+.I fone
+are:
+.nr zz \w'\fL-v\fP \fIname\fP'u/1n+2
+.TP \n(zz
+.BI -f " file"
+The telephone is controlled through
+.I file
+instead of
+.BR /dev/eia0 .
+.TP
+.BI -l " file"
+Calls are logged in
+.I file
+instead of
+.BR call.log .
+.TP
+.B -m
+The mike is not muted when a call is dialed with
+the handset down (see below).
+.TP
+.BI -t " cmd"
+The
+.B t
+command (see below) runs
+.I cmd
+instead of
+.BR /bin/tel .
+.PP
+Commands to
+.I fone
+are read, one per line, from the standard input.
+.TP
+.BI c " string"
+Call telephone number
+.IR string .
+Non-alphanumeric characters are discarded, and
+the appropriate prefix (9, 91, or none) is guessed from the
+length of the result.  (If there is no active call, and
+.I string
+begins with a digit, the initial
+.B c
+may be omitted.)
+.TP
+.BI C " string"
+The alphanumeric characters in
+.I string
+are dialed exactly as given.
+.TP
+.BI d
+Drop the active call, or the last party added to a conference call.
+.TP
+.B h
+Put the active call on hold.
+.TP
+.BI k " string"
+Add a party to a conference call.
+The active call is placed on  hold, and
+.I string
+is parsed and dialed.
+Once the second call is connected, the
+.L k
+command with no argument adds the new call to the previously active
+call appearance.
+If the called party is indisposed, the commands
+.L d
+and
+.L r
+will drop the second call
+and reconnect the first.
+.TP
+.BI q " string"
+Query the local switch for directory entries matching
+.I string
+(a surname preceded by up to two initials, like
+.LR fraser ,
+.LR "a fraser" ,
+.LR "ag fraser" ,
+or 
+.LR "a g fraser" ")."
+.TP
+.BI r " id"
+Reconnect a call on hold and make it the active call.  If the appearance
+.I id
+is omitted, it defaults to that of the lowest numbered call on hold.
+.TP
+.B s
+Show the
+.IR id ,
+.IR state ,
+and
+.I calling
+.I information
+for each call.
+.TP
+.BI t " string"
+Run the
+.IR tel (1)
+command on
+.IR string .
+.TP
+.BI x " string"
+Transfer the active call.
+The active call is placed in limbo (similar to hold), and
+.I string
+is parsed and dialed.
+Once the second call is connected, the
+.L x
+command with no argument bridges the two calls
+together and drops the intermediary (you).
+If the called party is indisposed, the commands
+.L d
+and
+.L r
+will drop the second call
+and reconnect the first.
+.TP
+.BI . " string"
+Transmits the converted Touch-Tone
+.I string
+to the called party; a
+.I string
+that begins with a
+.LR * ,
+.LR # ,
+or a digit doesn't need the preceding
+.LR . .
+(See command
+.B c
+above if no call is active.)
+.TP
+.B ?
+Print a summary of commands.
+.PP
+The
+.L c
+command may be given before or after lifting the handset; if the
+handset is down, the call is placed with the speaker on so you can
+hear what's happening.  The mike is normally muted, but the
+.B -m
+flag (see above) overrides this.
+.SH FILES
+.TF debug.log
+.TP
+.B call.log
+log of calls
+.TP
+.B /dev/eia0
+RS232 line to phone
+.SH SOURCE
+.B /sys/src/cmd/fone
+.SH BUGS
+.PP
+The speaker phone is not really supported.
+.br
+There's still no way to set the clock.

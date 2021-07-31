@@ -3,7 +3,11 @@
 Uid*	uid;
 char*	uidspace;
 short*	gidspace;
-RWLock	mainlock;
+File*	files;
+Wpath*	wpaths;
+Lock	wpathlock;
+Lock	newfplock;
+RWlock	mainlock;
 long	boottime;
 Tlock	*tlocks;
 Conf	conf;
@@ -19,7 +23,7 @@ int	INDPERBUF;
 int	INDPERBUF2;
 int	FEPERBUF;
 
-Filsys	filesys[MAXFILSYS] =
+Filsys	filsys[MAXFILSYS] =
 {
 	{"main",	{Devwren, 0, 0, 0},	0},
 };
@@ -65,7 +69,7 @@ char*	tagnames[] =
 	[Tcache]	"Tcache",
 };
 
-char	*errstring[MAXERR] =
+char	*errstr[MAXERR] =
 {
 	[Ebadspc]	"attach -- bad specifier",
 	[Efid]		"unknown fid",

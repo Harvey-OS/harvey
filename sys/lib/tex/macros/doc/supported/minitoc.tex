@@ -1,0 +1,569 @@
+% minitoc.tex 24
+\documentclass[12pt,a4paper]{book} 
+\usepackage{minitoc}
+\makeatletter % to include some useful commands
+\newcommand{\BibTeX}{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\let\BiBTeX\BibTeX
+% IF YOU NOT HAVE THE manfnt FONT,
+% REPLACE THE NEXT LINES  BY
+% \let\Virage\relax \let\virage\relax
+\newfont{\manfnt}{manfnt}
+\newcommand\virage{\marginpar[\raggedleft
+ {{\manfnt\symbol{'177}}~~}]{\raggedright {~~\manfnt\symbol{'177}}}}
+\def\@Vir{\hbox to12mm{\hbox{}\leaders%
+ \hbox{{\manfnt\char127}\kern2pt}\hfil\hbox{}}}
+\newcommand\Virage{\marginpar[\hfill{\@Vir~~}]{{~~\@Vir}\hfill}}
+%%%%%%%%%%%%%%%%% END OF REPLACE
+% 
+\def\Cat#1{\hbox{$\langle${\it #1\/}$\rangle$}}
+\def\<#1>{\Cat{#1}}
+%%%
+\makeatother
+\parskip=12pt
+\def\bs{{\tt\char'134}}
+\setcounter{minitocdepth}{5}
+\renewcommand{\textfraction}{.0}
+\renewcommand{\topfraction}{.9999}
+\renewcommand{\bottomfraction}{.9999}
+\renewcommand{\floatpagefraction}{.9999}
+\setcounter{totalnumber}{10}
+\setcounter{topnumber}{10}
+\setcounter{bottomnumber}{10}
+\begin{document}
+\dominitoc
+%\dominilof
+\dominilot
+\faketableofcontents
+%\fakelistoffigures
+\fakelistoftables
+\chapter{The {\tt minitoc} package}\label{o+minitoc}
+\pagestyle{headings}
+\minitoc
+%\minilof
+\bigskip
+\minilot
+\section{Introduction}
+This package, initially written by Nigel Ward and Dan Jurafsky, has been
+almost completely redesigned at CERT/ONERA by Jean-Pierre Drucbert.
+It creates a mini-table of contents
+(a ``minitoc''\,\footnote{The \texttt{minitoc} package introduces
+                its own jargon, explained in this note.
+                It should not be too difficult, however, to learn and use.}%
+) at the beginning of each chapter of the document. 
+It is also possible to have a mini-list of
+figures (a ``minilof'') and a mini-list of tables (a ``minilot'').
+The document class should of course define chapters 
+(styles like {\tt book} or {\tt report}) or sections
+(styles like {\tt article}). 
+Thus, this package should not be used with
+document classes without sectioning commands (like {\tt letter}).
+When the document class defines a ``part'' sectionning level 
+(i.e. classes like {\tt book}, {\tt report} and {\tt article}), you can
+create a ``partial'' table of contents
+(a ``parttoc'') at the beginning of each part of the document.
+It is also possible to have a partial list of figures (a ``partlof'')
+and a partial list of tables (a ``partlot''). 
+When the document class has no {\tt\bs chapter} command 
+but has a {\tt\bs section} command, you may use section
+level tables of contents (``secttoc'') at the beginning of each section.
+{\bf Note}\virage: you cannot
+use chapter level and section level table of contents in the same document.
+This restriction is intented to avoid documents full of local
+tables of contents, list of figures and tables at every sectionning level.
+
+The current version of this package is \#24.
+
+\noindent
+{\bf Note}\virage: the commands relative
+to the part level are defined only if the document class defines \verb|\part|.
+The commands relative
+to the section level are defined only if the document class
+does not define \verb|\chapter|.
+
+\section{Usage}
+
+To use the {\tt minitoc} package, you must introduce a command
+\begin{verbatim}
+\usepackage{minitoc}
+\end{verbatim}
+in the preamble of your document.
+The mini-table of contents will appear in the chapter,
+after the \verb|\chapter| command, at the point of the \verb|\minitoc|
+command. The {\tt\bs minitoc} command may occur
+         \emph{anywhere} inside a chapter. Of course, it is better
+         to put it at the beginning of the chapter, eventually
+         after some introductory material. But you can also decide
+         to put it at the end of the chapter. You should use the
+         same conventions in all chapters.
+If you want to add the mini-table of contents for a chapter,
+you must use the sequence given in Table~\ref{mtc+minitoc}
+\begin{table*}[ht]\tt
+\begin{center}
+\fbox{\begin{tabular}{ll}
+\multicolumn{2}{l}{\bs documentclass[...]\{book\}}\\
+\multicolumn{2}{l}{\bs usepackage\{minitoc\}}\\
+\ldots& \\
+\bs setcounter\{minitocdepth\}\{2\} & \emph{default} \\
+\bs setlength\{\bs mtcindent\}\{24pt\} & \emph{default} \\
+\bs renewcommand\{\bs mtcfont\}\{\bs small\bs rm\} & \emph{default} \\
+\bs renewcommand\{\bs mtcSfont\}\{\bs small\bs bf\} & \emph{default} \\
+\ldots& \\
+\bs begin\{document\}& \\
+\ldots& \\
+\bs dominitoc& \\
+\bs dominilof& \\
+\bs dominilot& \\
+\bs tableofcontents & \emph{or} \bs faketableofcontents \\
+\bs listoffigures & \emph{or} \bs fakelistoffigures \\
+\bs listoftables & \emph{or} \bs fakelistoftables \\
+\ldots& \\
+\bs chapter\{...\}& \\
+\bs minitoc & \emph{if you want one} \\
+\bs minilof & \emph{if you want one} \\
+\bs minilot & \emph{if you want one} \\
+\ldots& \\
+\end{tabular}}
+\end{center}
+\caption{Commands for a {\tt minitoc}}\label{mtc+minitoc}
+\end{table*}
+For each mini-table of contents, an auxiliary file will be
+created with a name of the form \<document>\verb|.mtc|\<N>,
+where \<N> is the absolute chapter number.
+``Absolute'' means that this number is unique,
+and increasing from the first chapter.
+The suffix is \verb|.mlf|\<N> for mini-lists of figures and
+is \verb|.mlt|\<N> for mini-lists of tables.
+(If you are under MS-DOS or any operating system with short
+extensions to filenames, see Section~\ref{MS-DOS}).
+
+The section-level table of contents will appear in the section,
+after the \verb|\section| command, at the point of the \verb|secttoc|
+command. The {\tt\bs secttoc} command may occur
+         \emph{anywhere} inside a section. Of course, it is better
+         to put it at the beginning of the section, eventually
+         after some introductory material. You should use the
+         same conventions in all sections.
+If you want to add the section-level table of contents for a section,
+you must use the sequence given in Table~\ref{mtcsecttoc}
+\begin{table*}[ht]\tt
+\begin{center}
+\fbox{\begin{tabular}{ll}
+\multicolumn{2}{l}{\bs documentclass[...]\{article\}}\\
+\multicolumn{2}{l}{\bs usepackage\{minitoc\}}\\
+\ldots& \\
+\bs setcounter\{\bs secttocdepth\}\{2\} & \emph{default} \\
+\bs setlength\{\bs stcindent\}\{24pt\} & \emph{default} \\
+\bs renewcommand\{\bs stcfont\}\{\bs small\bs rm\} & \emph{default} \\
+\bs renewcommand\{\bs stcSSfont\}\{\bs small\bs bf\} & \emph{default} \\
+\ldots& \\
+\bs begin\{document\}& \\
+\ldots& \\
+\bs dosecttoc& \\
+\bs dosectlof& \\
+\bs dosectlot& \\
+\bs tableofcontents & \emph{or} \bs faketableofcontents \\
+\bs listoffigures & \emph{or} \bs fakelistoffigures \\
+\bs listoftables & \emph{or} \bs fakelistoftables \\
+\ldots& \\
+\bs chapter\{...\}& \\
+\bs secttoc & \emph{if you want one} \\
+\bs sectlof & \emph{if you want one} \\
+\bs sectlot & \emph{if you want one} \\
+\ldots& \\
+\end{tabular}}
+\end{center}
+\caption{Commands for a {\tt secttoc}}\label{mtcsecttoc}
+\end{table*}
+For each section-level table of contents, an auxiliary file will be
+created with a name of the form \<document>\verb|.stc|\<N>,
+where \<N> is the absolute section number.
+The suffix is \verb|.slf|\<N> for section-level lists of figures and
+is \verb|.slt|\<N> for section-level lists of tables.
+(If you are under MS-DOS or any operating system with short
+extensions to filenames, see Section~\ref{MS-DOS}).
+
+If you want to add the partial table of contents for a part,
+you must use the sequence given in Table~\ref{mtc+parttoc}.
+\begin{table*}[ht]\tt
+\begin{center}
+\fbox{\begin{tabular}{ll}
+\multicolumn{2}{l}{\bs documentclass[...]\{book\}}\\
+\multicolumn{2}{l}{\bs usepackage\{minitoc\}}\\
+\ldots& \\
+\bs setcounter\{parttocdepth\}\{2\} & \emph{default} \\
+\bs setlength\{\bs ptcindent\}\{0pt\} & \emph{default} \\
+\bs renewcommand\{\bs ptcfont\}\{\bs normalsize\bs rm\} & \emph{default} \\
+\bs renewcommand\{\bs ptcCfont\}\{\bs normalsize\bs bf\} & \emph{default} \\
+\bs renewcommand\{\bs ptcSfont\}\{\bs normalsize\bs rm\} & \emph{default} \\
+\ldots& \\
+\bs begin\{document\}& \\
+\ldots& \\
+\bs doparttoc& \\
+\bs dopartlof& \\
+\bs dopartlot& \\
+\bs tableofcontents & \emph{or} \bs faketableofcontents \\
+\bs listoffigures & \emph{or} \bs fakelistoffigures \\
+\bs listoftables & \emph{or} \bs fakelistoftables \\
+\ldots& \\
+\bs part\{...\}& \\
+\bs parttoc & \emph{if you want one} \\
+\bs partlof & \emph{if you want one} \\
+\bs partlot & \emph{if you want one} \\
+\ldots& \\
+\end{tabular}}
+\end{center}
+\caption{Commands for a {\tt parttoc}}\label{mtc+parttoc}
+\end{table*}
+For each partial table of contents, an auxiliary file will be
+created with a name of the form \<document>\verb|.ptc|\<N>,
+where \<N> is the part number.
+The suffix is \verb|.plf|\<N> for partial lists of figures and
+is \verb|.plt|\<N> for partial lists of tables.
+(If you are under MS-DOS or any operating system with short
+extensions to filenames, see Section~\ref{MS-DOS}).
+
+\noindent
+{\bf Note}\virage: the user is responsible of requiring or not requiring
+a mini-toc (lof or lot) for some chapter. Asking a minilof for a
+chapter without any figure will result in an empty and ugly mini
+list of figures (i.e. the title and two horizontal rules).
+He is also responsible of requiring or not requiring
+a partial toc (lof or lot) for some part. Asking a partlof for a
+part without any figure will result in an empty and ugly part
+list of figures (i.e. the title alone on a page). Analogous remarks
+apply to section-level tables of contents (secttoc, sectlof and sectlot).
+
+By default, the mini-tables and partial tables of contents
+contain only references to sections and
+subsections. The {\tt minitocdepth} and {\tt parttocdepth}
+counters, similar to {\tt tocdepth},
+allows the user to modify this behaviour. Mini or partial
+lists of figures or tables are not affected by the value of
+these counters.
+
+\noindent
+{\bf Note}\virage: if you are using \verb|\chapter*| and a
+\begin{quote}
+\verb|\addcontentsline{toc}{chapter}{...}|
+\end{quote}
+command to add something in the
+table of contents, the numbering of minitoc files would be altered.
+To avoid that problem, say
+\begin{quote}
+\verb|\addcontentsline{toc}{starchapter}{...}|
+\end{quote}
+You \emph{should not} use \verb|\minitoc| in a \verb|\chapter*|.
+Similar remarks apply to the part and section level.
+
+\subsection{Fonts and Titles}
+
+The mini and partial tables and lists are typeset
+in a {\tt verse}-like environment, and
+can be split over pages.
+The mini-table of contents
+is typeset in the {\tt\bs mtcfont}
+font, which is \verb|\small\rm| by default. Section entries are typeset
+in the {\tt\bs mtcSfont} font, which is \verb|\small\bf| by default.
+For subsections, subsubsections, paragraphs and subparagraphs, the
+commands \verb|\mtcSSfont|, \verb|\mtcSSSfont|, \verb|\mtcPfont| and
+\verb|\mtcSPfont| are available (by default, \verb|\small\rm|)
+to enable the use of various fonts. Mini lists of figures and tables are
+typeset in the fonts \verb|\mlffont| and \verb|\mltfont|, which are
+\verb|\small\rm| by default.
+
+Titles are typeset in the {\tt\bs mtifont} (\verb|\large\bf| by
+default) font and the texts of the titles are defined by
+{\tt\bs mtctitle}, {\tt\bs mlftitle} and {\tt\bs mlttitle}, which
+are the strings ``Contents'', ``Figures'' and ``Tables'' by default.
+These commands should be redefined by {\tt\bs renewcommand} for
+languages other than english. The option files
+{\tt mtcfrench.sty} and {\tt mtcenglish.sty}
+(and others\,\footnote{The strings defined in
+             these option files were taken from the {\bf Babel}
+             system of Johannes Braams and some were
+             adapted. Other languages are welcome.\label{fo+lang}}%
+) are available.
+You can easily prepare a similar style for your preferred language.
+
+The partial table of contents
+is typeset in the {\tt\bs ptcfont}
+font, which is defined as \verb|\normalsize\rm| by default.
+Chapter entries are typeset in the {\tt\bs ptcCfont} font,
+which is \verb|\normalsize\bf| by default.
+Section entries are typeset in the {\tt\bs ptcSfont} font,
+which is \verb|\normalsize\rm| by default.
+For subsections, subsubsections, paragraphs and subparagraphs, the
+commands \verb|\ptcSSfont|, \verb|\ptcSSSfont|, \verb|\ptcPfont| and
+\verb|\ptcSPfont| are available (by default, \verb|\normalsize\rm|) if you
+want to use various fonts. Partial lists of figures and tables are
+typeset in the fonts \verb|\mlffont| and \verb|\mltfont|, which are
+\verb|\normalsize\rm| by default.
+
+Titles are typeset in the {\tt\bs ptifont} (\verb|\Huge\bf| by
+default) font and the texts of the titles are defined by
+{\tt\bs ptctitle}, {\tt\bs plftitle} and {\tt\bs plttitle}, which
+are the strings ``Table of Contents'',
+``List of Figures'' and ``List of Tables'' by default.
+These commands should be redefined by {\tt\bs renewcommand} for
+languages other than english.
+The option files
+{\tt mtcfrench.sty} and {\tt mtcenglish.sty} (and others, see
+footnote~\ref{fo+lang} above) are available.
+You can easily prepare a similar style for your preferred language.
+
+The section-level table of contents
+is typeset in the {\tt\bs stcfont}
+font, which is defined as \verb|\normalsize\rm| by default.
+Subsection entries are typeset in the {\tt\bs stcSSfont} font,
+which is \verb|\normalsize\bf| by default.
+Subsubsection entries are typeset in the {\tt\bs stcSSSfont} font,
+which is \verb|\normalsize\rm| by default.
+For subsubsections, paragraphs and subparagraphs, the
+commands \verb|\stcSSSfont|, \verb|\stcPfont| and
+\verb|\stcSPfont| are available (by default, \verb|\normalsize\rm|) if you
+want to use various fonts. Partial lists of figures and tables are
+typeset in the fonts \verb|\slffont| and \verb|\sltfont|, which are
+\verb|\normalsize\rm| by default.
+
+Titles are typeset in the {\tt\bs stifont} (\verb|\normalsize\bf| by
+default) font and the texts of the titles are defined by
+{\tt\bs stctitle}, {\tt\bs slftitle} and {\tt\bs slttitle}, which
+are the strings ``Contents'',
+``Figures'' and ``Tables'' by default.
+These commands should be redefined by {\tt\bs renewcommand} for
+languages other than english.
+The option files
+{\tt mtcfrench.sty} and {\tt mtcenglish.sty} (and others, see
+footnote~\ref{fo+lang} above) are available.
+You can easily prepare a similar style for your preferred language.
+
+By default, titles are on the left. The commands \verb|\dominitoc|,
+\verb|\dominilof| and \verb|\dominilot| accept an optional argument
+to change the default position of the
+corresponding title: {\tt [l]} for left (default), {\tt [c]} for center,
+{\tt [r]} for right, or {\tt [e]} (or {\tt[n]}) for empty (no title).
+The change is global for all the document.
+
+If you want to change the position of the title for only one minitoc
+(or minilof or minilof), just use such an optional argument with the
+command \verb|\minitoc| (or \verb|\minilof| or \verb|\minilot|).
+
+By default, titles are on the left. The commands \verb|\doparttoc|,
+\verb|\dopartlof| and \verb|\dopartlot| accept an optional argument
+to change the default position of the
+corresponding title: {\tt [l]} for left (default), {\tt [c]} for center,
+{\tt [r]} for right, or {\tt [e]} (or {\tt[n]})for empty (no title).
+The change is global for all the document.
+
+By default, titles are on the left. The commands \verb|\dosecttoc|,
+\verb|\dosectlof| and \verb|\dosectlot| accept an optional argument
+to change the default position of the
+corresponding title: {\tt [l]} for left (default), {\tt [c]} for center,
+{\tt [r]} for right, or {\tt [e]} (or {\tt[n]}) for empty (no title).
+The change is global for all the document.
+
+If you want to change the position of the title for only one secttoc
+(or sectlof or sectlof), just use such an optional argument with the
+command \verb|\secttoc| (or \verb|\sectlof| or \verb|\sectlot|).
+
+The mini-tables and lists, as partial and section-level tables and lists,
+are using some space on the first pages on each chapter, part or section,
+thus the page numbers are altered. After the first \LaTeX\ run, the
+mini-tables and lists, partial tables and lists
+and section-level tables and lists
+will be empty; after the second run, they appear,
+but because they modify the page numbering, page numbers
+are wrong; after the third \LaTeX\ run, the mini, partial and section-level
+tables and lists should be correct.
+
+\subsection{Special Features}
+\subsubsection{Horizontal Rules}
+By default, most of minitocs and siblings have horizontal rules after their
+titles and at their ends. The exception is the ``partoc'' in a book- or
+report-like document (i.e. when \verb|\chapter| is defined). To activate
+or desactivate these rules, the following commands are available:
+\begin{center}
+\begin{tabular}{llllccc}
+&&&&\multicolumn{3}{c}{defaults for}\\
+&rules in&&no rules in&\tt book&\tt report&\tt article\\\hline
+\verb|\ptcrule|&parttocs&\verb|\noptcrule|&parttocs&{\bf N}&{\bf N}&{\bf Y}\\
+\verb|\mtcrule|&minitocs&\verb|\nomtcrule|&minitocs&{\bf Y}&{\bf Y}&{\bf N-A}\\
+\verb|\stcrule|&secttocs&\verb|\nostcrule|&secttocs%
+&{\bf N-A}&{\bf N-A}&{\bf Y}\\
+\end{tabular}
+\end{center}
+\subsubsection{Page Numbers}
+By default, the page numbers are listed in each minitoc, minilof, etc.
+Some authors want only the section titles (with the section numbers),
+but not the page numbers. Hence the obvious declarations below are available:
+\begin{quote}\tt\begin{tabular}{|ll|lc|l|}
+\hline
+{\bf Type}&&{\vphantom{$P^2_3$}\hfill\bf Page numbers (Default)\hfill}&&%
+{\hfill\bf No page numbers\hfill}\\\hline
+\rm minitoc&&\bs mtcpagenumbers&\qquad&\bs nomtcpagenumbers\\
+\rm secttoc&&\bs stcpagenumbers&\qquad&\bs nostcpagenumbers\\
+\rm parttoc&&\bs ptcpagenumbers&\qquad&\bs noptcpagenumbers\\
+\rm minilof&&\bs mlfpagenumbers&\qquad&\bs nomlfpagenumbers\\
+\rm sectlof&&\bs slfpagenumbers&\qquad&\bs noslfpagenumbers\\
+\rm partlof&&\bs plfpagenumbers&\qquad&\bs noplfpagenumbers\\
+\rm minilot&&\bs mltpagenumbers&\qquad&\bs nomltpagenumbers\\
+\rm sectlot&&\bs sltpagenumbers&\qquad&\bs nosltpagenumbers\\
+\rm partlot&&\bs pltpagenumbers&\qquad&\bs nopltpagenumbers\\
+\hline
+\end{tabular}\end{quote}
+
+\subsubsection{The ``Chapter 0'' Problem}
+Some documents do not begin with chapter number one, but with chapter
+number zero (or even a weirder number). To make the {\tt minitoc}
+option work with such documents, you must insert the command
+\begin{quote}
+\tt\bs firstchapteris\{\<N>\}
+\end{quote}
+before the \verb|\dominitoc| and analogous commands. \<N> is the number
+of your first chapter. This command {\em does not\/}
+modify the numbering of chapters, you must use a
+\verb|\addtocounter{chapter}{-1}| command to get a first chapter
+numbered~0. The \verb|\firstpartis| and \verb|\firstsectionis|
+commands are analogous for parts and sections with a non standard numbering.
+
+Since\virage{} version \#17c, these commands are obsolete, as this
+problem has been solved. Thus they just give a harmless warning.
+
+\subsection{Usage with MS-DOS}\label{MS-DOS}
+Under\Virage{} MS-DOS (and other PC oriented operating systems),
+the filename extensions are
+limited to 3 characters. Thus, it is olnl necessary to edit very
+slightly the file {\tt minitoc.sty}. You have just to uncomment
+the line where \verb|\SHORTEXT| is defined. All other modifications
+will be done automatically.
+The {\tt.mtc\<N>}
+suffix will become {\tt.M\<N>}, where \<N> is the absolute chapter
+number.
+The suffixes \verb|.mlf|\<N> and \verb|.mlt|\<N> become
+\verb|.F|\<N> and \verb|.T|\<N>.
+The {\tt.ptc\<N>}
+suffix will become {\tt.P\<N>}, where \<N> is the part
+number.
+The suffixes \verb|.plf|\<N> and \verb|.plt|\<N> become
+\verb|.G|\<N> and \verb|.U|\<N>.
+The {\tt.stc\<N>}
+suffix will become {\tt.S\<N>}, where \<N> is the absolute section
+number.
+The suffixes \verb|.slf|\<N> and \verb|.slt|\<N> become
+\verb|.H|\<N> and \verb|.V|\<N>.
+Of course, this implies a limit of 99~chapters in a
+document, but do you really need so many chapters (or sections in an
+article)? The limit of 99~parts does not seem too serious.
+
+\section{The {\tt minitocoff} package}\label{o+minitocoff}
+When a document has been prepared with the {\tt minitoc} package,
+it contains many {\tt minitoc} specific commands, most of them being
+\verb|\faketableofcontents| and \verb|\minitoc| commands (and their
+equivalents for lists of figures and tables).
+If you want to typeset
+this document without any mini-table, you have just to replace the
+{\tt minitoc} package by the {\tt minitocoff} package, and all these
+commands will be ignored. At least two \LaTeX\ runs will be necessary
+to get a correct page numbering and correct cross references.
+%\end{document}
+\chapter{Frequently Asked Questions}
+%%%%%%%%%%%%%%%%%% extracted from minitoc.bug
+Here is a list of problems and frequently asked questions about
+{\tt minitoc.sty}. If your version has a number less than~24, please upgrade to
+version~\#24.
+
+\begin{enumerate}
+\item
+How avoid a page break near the rules before and after
+the minitoc?\hfill\null\\
+\emph{This problem seemed solved since version~\#8, but version~\#12
+adds better fixes.}
+\item
+How about implementing others layouts for the minitoc? Suggestions are welcome.
+\item\relax
+\verb|\\|  in a contents line makes an error.\hfill\null\\
+\emph{Use} \verb|\protect\linebreak|.
+\item
+If you reorder chapters, havoc follows\ldots\ minitocs
+going in wrong chapters.\hfill\null\\
+\emph{The best way seems to make one run with the {\tt minitocoff}
+package replacing the {\tt minitoc} package, then restore
+the\/ {\tt minitoc} package and re-execute \LaTeX\ three times
+(yes, it is time consuming\ldots).
+Running with the {\tt minitocoff} package ensures that auxiliary 
+are cleared from ``spurious'' commands introduced by {\tt minitoc}.}
+%\item
+%Compatible with {\tt toch.sty}, but the {\tt minitoc} package must come
+%\emph{after} the {\tt toch} package (is it a bug or a ``feature''?).
+\item This option creates auxiliary files with extensions like {\tt.mtc\<N>}.
+Some operating
+systems allow only 3~letters extensions. What to do?\hfill\null\\
+\emph{If you have an operating system which tolerates only
+short file name extensions
+(of 3~characters, like with MS-DOS), you must edit the file {\tt minitoc.sty}:
+find the line containing} ``\/\verb|%\def\SHORTEXT|'' \emph{and remove
+the leading percent sign. No other modification is needed: all is automatic!}
+\item
+Do not cheat with the ``{\tt chapter}'' counter, i.e.~do not
+write horrible things like \verb|\setcounter{chapter}{6}|. The mechanism
+would break. It is better to add {\tt\bs chapter} commands,
+to create empty (but numbered in a legal way) chapters.
+Since version~\#10, {\tt minitoc.sty} works with appendices.
+Version \#19 allows to begin with a chapter other that number~1.
+%\item % obsolete
+%(8)  minitoc.sty is restricted to document styles which define
+%     chapters in the standard way, like `book' and `report'.
+%     Do not ask me to make minitocs for sections in articles.
+%     There are ``parttocs'' if the document style defines
+%     the \part command.
+%\item %obsolete
+%(9)  Some users have failed to make minitoc to work. They got
+%     a message like:
+%       Undefined command ... \@inputcheck ...
+%     or:
+%       Undefined command ... \reset@font ...
+%     The \reset@font command has been added to latex.tex
+%     on 29 September 1991 and the \@inputcheck command 
+%     on 18 March 1992 and this version of latex.tex has been
+%     released on 25 March 1992. If you have this message, you
+%     have an old version of latex.tex. Get a recent one from
+%     the archives and regenerate a latex format via initex.
+\item
+Some demanding users want to have minilof, minilot and
+minibbl. First, minibbl is an other problem, strongly
+related to the \BibTeX's dealing with {\tt.aux} files. Look
+at {\tt chapterbib.sty}.  Version~\#13 has implemented basic minilofs
+and minilots. Minibbls are not the aim of this package.
+\item
+This package creates a lot of auxiliary files and some users
+argue that it is too many. A deep redesign would be
+necessary to avoid that. Using only one big auxiliary file
+(or one for all minitocs, one for all minilofs, \ldots)
+would make the reading of such file very slow, and it would
+be read for each {\tt\bs miniXXX} macro!
+\item
+How to do minitocs (minilofs and minilots) at levels other
+than chapter? Here also, some redesign is needed.
+From version~\#15, there are parttocs, partlofs and
+partlots for the part level in book-like and article-like documents,
+secttocs, sectlofs and sectlots for the section level in article-like
+documents. Note that you can not have minitocs features at chapter
+and section level in the same document, because doing so would make
+an unreadable monster. The user must choose the main style of
+the document accordingly to the size of it (e.g. do not write an article
+of more than 130~sections: this is a report, or even a book!).
+
+\begin{center}\tt
+\begin{tabular}{|l|c|c|c|}
+\hline
+&\bf part&\bf chapter&\bf section\vphantom{\Large Pj}\\\hline
+\tt book&$*$&$*$&\vphantom{\Large Pj}\\\hline
+\tt report&$*$&$*$&\vphantom{\Large Pj}\\\hline
+\tt article&$*$&&$*$\vphantom{\Large Pj}\\\hline
+\end{tabular}
+\end{center}
+\item Since version \#23, works with document classes resetting
+     chapter (or section) number at each part.
+\end{enumerate}
+\end{document}

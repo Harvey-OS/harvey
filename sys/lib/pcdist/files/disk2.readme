@@ -1,0 +1,12 @@
+You have completed the Installation Process. If you want
+to tune the device configuration saved in C:\PLAN9\PLAN9.INI
+by the installation, save C:\PLAN9\PLAN9.INI to a safe place
+in the DOS file system, reboot from Disk 1 and select the
+the "Reconfigure the system" option from the first menu.
+If you build a configuration that does not boot copy back
+the saved version and try again.
+
+To halt the system cleanly, type: disk/kfscmd halt
+
+Welcome to Plan 9.
+This is rc.

@@ -1,0 +1,150 @@
+.TH FILTERS 9.1
+.SH NAME
+adapt, ahe, crispen, laplace, edge, edge2, edge3, extremum, median, nonoise, smooth, shadepic \- image neighborhood operators
+.SH SYNOPSIS
+.B fb/adapt
+[
+.I input
+]
+.PP
+.B fb/ahe
+[
+.I input
+]
+.PP
+.B fb/crispen
+[
+.I input
+]
+.PP
+.B fb/laplace
+[
+.I input
+]
+.PP
+.B fb/edge
+[
+.I input
+]
+.PP
+.B fb/edge2
+[
+.I input
+]
+.PP
+.B fb/edge3
+[
+.I input
+]
+.PP
+.B fb/extremum
+[
+.I input
+]
+.PP
+.B fb/median
+[
+.I input
+]
+.PP
+.B fb/nonoise
+[
+.I input
+]
+.PP
+.B fb/smooth
+[
+.I input
+]
+.PP
+.B fb/shadepic
+[
+.BI -l "x y z
+] [
+.I input
+]
+.SH DESCRIPTION
+Gathered here are descriptions of programs that compute the pixels of an output image by
+performing some operation on a neighborhood of each pixel of their input image (default
+standard input).
+Each program writes the output image on standard output.
+The programs process multi-channel inputs by treating each channel independently.
+.PP
+.I Adapt
+performs adaptive contrast enhancement by
+examining the 7\(mu7 region centered on each input pixel,
+remapping the center pixel linearly in a way that would send the neighborhood's
+maximum value to 255 and its minimum to 0.
+To avoid divide checks, no mapping is done if all pixels in the region have the same value.
+.PP
+.I Ahe
+performs adaptive histogram equalization by
+examining the 17\(mu17 region centered on each input pixel, counting the number of pixels whose
+value is less than the center pixel. (It counts ½ for each pixel equal to the center
+value.)  Output pixel values are 255 times the count divided by the window size.
+.PP
+.I Crispen
+examines the 3\(mu3 region surrounding each input pixel,
+computing 9 times the center pixel minus the sum
+of its eight neighbors.
+This is a fairly extreme high-pass filter and sharpens edges substantially.
+.PP
+.I Laplace
+computes 5 times the center pixel minus the sum
+of its four vertical and horizontal neighbors.
+This adds a 3\(mu3 discrete Laplacian to the original image,
+and is a less extreme high-pass filter than
+.IR crispen .
+.PP
+.IR Edge ,
+.IR edge2 ,
+and
+.I edge3
+detect edges in various ways.
+.I Edge
+examines the 3\(mu3 region surrounding each input pixel,
+outputting 8 times the center value minus the sum of its eight neighbors. 
+.PP
+.I Edge2
+applies a Sobel operator to the input image.  It approximates the image's gradient
+by finite differences on a 3\(mu3 neighborhood, outputting
+the vector length of the gradient approximation.
+.PP
+.I Edge3
+likewise approximates the gradient of the input image.  The output is roughly
+the phase angle of the gradient approximation, scaled between 0 and 255.
+.PP
+.I Extremum
+examines the 3\(mu3 region surrounding each input pixel,
+outputting the value that differs most
+from the center value.  In case of a tie, the larger candidate is chosen.
+.PP
+.I Median
+does noise reduction by
+replacing each pixel of the input image
+by the median of the 3\(mu3 region surrounding it.
+.PP
+.I Nonoise
+implements the Bayer-Powell noise reduction filter.
+It computes the average value of the eight neighbors of each pixel
+of the input image, and substitutes it for the pixel value if the
+two differ by more than 64.
+.PP
+.I Smooth
+low-pass filters its input image by convolution with a Bartlett window.
+.PP
+.I Shadepic
+treats its input image as an array of elevations.  At each pixel it approximates
+the normal vector to the height-field by finite differences on a 3\(mu3
+neighborhood and outputs 255 times its dot product
+with the unit vector in the light-source direction specified by option
+.B -l
+(default 1,-1,1).
+If the dot product is negative, it is clamped at zero.
+(This computation is just Lambertian diffuse reflection.)
+.SH SOURCE
+.B /sys/src/fb
+.SH "SEE ALSO
+.IR picfile (9.6)
+.SH BUGS
+There are too many weird wired-in sizes.

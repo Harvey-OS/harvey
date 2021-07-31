@@ -127,7 +127,7 @@ varreg(void)
 		l = mkvar(r->rname);
 		v = l->v;
 		v->set = 1;
-		v->ival = r->roffs;
+		v->ival = mach->kbase+r->roffs;
 		v->fmt = r->rformat;
 		v->type = TINT;
 
@@ -178,27 +178,19 @@ loadvars(void)
 	l->v->type = TLIST;
 }
 
-vlong
+ulong
 rget(Map *map, char *reg)
 {
 	Lsym *s;
 	long x;
-	vlong v;
-	int ret;
 
 	s = look(reg);
 	if(s == 0)
 		fatal("rget: %s\n", reg);
 
-	if(s->v->fmt == 'W')
-		ret = get8(map, (long)s->v->ival, &v);
-	else {
-		ret = get4(map, (long)s->v->ival, &x);
-		v = x;
-	}
-	if(ret < 0)
+	if (get4(map, s->v->ival, &x) < 0)
 		error("can't get register %s: %r\n", reg);
-	return v;
+	return x;
 }
 
 String*

@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+dspprog.$O: dspprog.h
+
+dspprog.h: ../indigo3k/hdsp.lod $cpuobjtype.dspl
+	$cpuobjtype.dspl -C ../indigo3k/hdsp.lod >$target
+
+$cpuobjtype.dspl:	../indigo3k/dspl.c
+	objtype=$cputype
+	mk -f ../indigo3k/indigomkfile dspl.$cputype
+
+dspl.$cputype:V:	../indigo3k/dspl.c
+	$CC $CFLAGS ../indigo3k/dspl.c
+	$LD -o $O.dspl dspl.$O
+
+clean:V:	cleanprogs
+
+cleanprogs:V:
+	rm -f [$OS].dspl dspprog.h

@@ -1,0 +1,1405 @@
+#
+#   files comprising the database
+#
+database=
+	file=/lib/ndb/local
+	file=/lib/ndb/common
+	file=/lib/ndb/global
+
+
+#
+#  telephones
+#
+sys=guard
+	telco=,1800,3340436
+sys=teltest1
+	telco=4646720
+sys=teltest2
+	telco=4646626
+sys=fax
+	telco=5824417
+
+#
+#  1127 domain servers, the soa= means that this is the local domain.
+#
+dom=research.att.com soa=
+	mb=ches.research.att.com
+	ns=research.research.att.com
+
+#
+#  internal AT&T domain servers
+#
+dom= dom=att.net dom=att.com dom=ncr.com dom=paradyne.com
+	ns=mhnoc.mh.att.com
+	ns=hodns.ho.att.com
+	ns=hoccme.ho.att.com
+	ns=whnoc.wh.att.com
+	ns=ihang.ih.att.com
+	ns=ihdns.ih.att.com
+	ns=cbfsb.cb.att.com
+	ns=cbjjn.cb.att.com
+	ns=bigfoot.dr.att.com
+	ns=burgundy.cnet.att.com
+	ns=columbo.cnet.att.com
+
+#
+# 1127's ip network
+#
+ipnet=mh-astro ip=135.104.0.0 ipmask=255.255.255.0
+	fs=bootes.research.att.com
+	auth=1127auth
+
+#
+#	the rbone
+#
+ipnet=mh-rbone ip=135.104.1.0
+	ipgw=135.104.1.1
+ip=135.104.1.1 sys=nyquist-rbone
+	dom=nyquist-rbone.research.att.com
+ip=135.104.1.2 sys=rbone-1122
+	dom=rbone-1122.research.att.com
+ip=135.104.1.6 sys=keeper-rbone
+	dom=keeper-rbone.research.att.com
+ip=135.104.1.7 sys=hubble-rbone
+	dom=hubble-rbone.research.att.com
+ip=135.104.1.12 sys=nb-pik
+	dom=nb-pik.research.att.com
+ip=135.104.1.13 sys=mhgate-rbone
+	dom=mhgate-rbone.research.att.com
+
+#
+#  inside subnet for the Internet gateway.
+#
+ipnet=mh-gatenet ip=135.104.2.0
+ip=135.104.2.1 sys=hubble-g
+	dom=hubble-g.research.att.com
+ip=135.104.2.2 sys=proxy
+	dom=proxy.research.att.com
+ip=135.104.2.3 sys=choke
+	dom=choke.research.att.com
+ip=135.104.2.4 sys=stile
+	dom=stile.research.att.com
+ip=135.104.2.10 sys=goat
+	dom=goat.research.att.com
+
+#
+#	plan9 ether
+#
+ipnet=mh-astro9 ip=135.104.9.0
+	ipgw=135.104.9.1
+ip=135.104.9.1 sys=hubble-9
+	dom=hubble-9.research.att.com
+ip=135.104.9.6 ether=00006b8244f0 sys=musca
+	dom=musca.research.att.com
+	bootf=/mips/9magnumcpu
+	dk=nj/astro/musca
+	proto=il
+	gate=/net
+ip=135.104.9.7 ether=08006907401c sys=valdez
+	dom=valdez.research.att.com
+	boof=/mips/indigo4k
+	proto=il
+ip=135.104.9.8 ether=0020f8000063 sys=goldenventure
+	dom=goldenventure.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.9 ether=00608c002a5b sys=astro2
+	dom=astro2.research.att.com
+	bootf=/386/9pc
+	proto=il
+ip=135.104.9.15 sys=tempel
+	dom=tempel.research.att.com
+	dk=nj/astro/tempel
+ip=135.104.9.16 ether=0020f800005f sys=centaur
+	dom=centaur.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.30 ether=0800690214ee sys=bootes
+	dom=bootes.research.att.com
+	ipmask=255.255.255.0
+	ipgw=135.104.9.1
+	dk=nj/astro/bootes
+	proto=il
+ip=135.104.9.31 ether=0800690228c8 sys=helix sys=netlib
+	dom=helix.research.att.com
+	dom=netlib.att.com
+	bootf=/mips/9power
+	dk=nj/astro/helix
+	proto=il
+	gate=/net
+ip=135.104.9.32 ether=08006902182c sys=spindle
+	dom=spindle.research.att.com
+	bootf=/mips/bch
+	fs=fornax
+	dk=nj/astro/spindle
+	proto=il
+ip=135.104.9.33 ether=00007701D2ba sys=fornax
+	dom=fornax.research.att.com
+	bootf=/mips/96280fs
+	ipmask=255.255.255.0
+	ipgw=135.104.9.1
+	proto=il
+ip=135.104.9.34 ether=00006b8244f4 sys=p9auth
+	dom=p9auth.research.att.com
+	bootf=/mips/9magnumcpu
+	dk=nj/astro/p9auth
+	proto=il
+ip=135.104.9.35 ether=080069023fcd sys=thresher
+	dom=thresher.research.att.com
+	bootf=/mips/bch
+	fs=fornax
+	ipmask=255.255.255.0
+	proto=il
+ip=135.104.9.36 ether=0020f8000023 sys=canyon
+	dom=canyon.research.att.com
+	ipmask=255.255.255.0
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.37 ether=0800201b10a8 sys=offal
+	dom=offal.research.att.com
+	bootf=/sparc/9ss10cpu
+	proto=il
+ip=135.104.9.38 ether=0020f8000025 sys=cadiz
+	dom=cadiz.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.39 ether=08005abf0c7f sys=ethel
+	dom=ethel.research.att.com
+	bootf=/386/9pcmcia
+	#fs=fornax
+	proto=il
+ip=135.104.9.40 ether=0800690243ee sys=maryrose
+	dom=maryrose.research.att.com
+	bootf=/mips/bch
+	fs=fornax
+	proto=il
+ip=135.104.9.41 ether=0020f8000055 sys=celeste
+	dom=celeste.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.43 ether=00006b813192 sys=lusitania
+	dom=lusitania.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.9.44 ether=0020f8000032 sys=bismarck
+	dom=bismarck.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.45 ether=0020f8000067 sys=grafspee
+	dom=grafspee.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.46 ether=0020f8000065 sys=hood
+	dom=hood.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.9.101 ether=0020af0c2c05 sys=pt109
+	dom=pt109.research.att.com
+	bootf=/386/bpc
+	fs=fornax
+	proto=il
+ip=135.104.9.109 ether=00608c001a42 sys=sheffield
+	dom=sheffield.research.att.com
+	bootf=/386/bpcatm
+	fs=fornax
+	proto=il
+ip=135.104.9.110 ether=08002002dea2 sys=scree
+	dom=scree.research.att.com
+	bootf=/sparc/9ss
+	proto=il
+ip=135.104.9.111 ether=00006b81363e sys=astro1
+	dom=astro1.research.att.com
+	bootf=/mips/bmagnum
+	fs=fornax
+	proto=il
+ip=135.104.9.112 ether=00000f00821e sys=astro3
+	dom=astro3.research.att.com
+	bootf=/68020/9nextstation
+	proto=il
+ip=135.104.9.116 sys=astro7
+	dom=astro7.research.att.com
+ip=135.104.9.117 ether=00006b824534 sys=astro6
+	dom=astro6.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.9.118 ether=00000f00ae64 sys=astro14
+	dom=astro14.research.att.com
+	bootf=/68020/9nextstation
+	proto=il
+ip=135.104.9.119 ether=00006b81351c sys=astro19
+	dom=astro19.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.9.120 ether=00000f00acf7 sys=astro13
+	dom=astro13.research.att.com
+	bootf=/68020/9nextstation
+	proto=il
+ip=135.104.9.121 ether=08002002c5f2 sys=astro16
+	dom=scree.research.att.com
+	bootf=/sparc/9ss
+	proto=il
+ip=135.104.9.122 ether=080020116136 sys=talus
+	dom=talus.research.att.com
+	bootf=/sparc/9sscpu
+	proto=il
+ip=135.104.9.123 ether=7 sys=howard
+	dom=howard.research.att.com
+	bootf=/mips/bcarrera
+	proto=il
+ip=135.104.9.124 ether=00006b8241de sys=td
+	dom=td.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+	fs=bootes
+ip=135.104.9.125 ether=00608cf2325b sys=pg
+	dom=pg.research.att.com
+	bootf=/386/bpc
+	fs=fornax
+	proto=il
+ip=135.104.9.128 ether=08006a190b0c sys=saturn
+	dom=saturn.research.att.com
+	bootf=/mips/planet
+ip=135.104.52.185 ether=08006a190b0d sys=venus
+	dom=venus.research.att.com
+	bootf=/mips/planet
+ip=135.104.9.129 ether=00006b813af0 sys=andy
+	dom=andy.research.att.com
+	bootf=/mips/bmagnum
+	proto=il
+ip=135.104.9.130 ether=08006a190b09 sys=jupiter
+	dom=jupiter.research.att.com
+	bootf=/mips/planet
+ip=135.104.9.131 ether=08006a190b0e sys=mercury
+	dom=mercury.research.att.com
+	bootf=/mips/planet
+ip=135.104.9.200 ether=08001701a25d sys=nomad
+	dom=nomad.research.att.com
+	# first mobile interface
+	ip=135.104.53.209 ether=08001701a25d
+	ip=135.104.117.205 ether=08001701a25d
+	# second mobile interface
+	ip=135.104.9.201 ether=080017042704
+	ip=135.104.117.208 ether=080017042704
+	ip=135.104.51.168 ether=080017042704
+	proto=il 
+	bootf=/386/9nomad
+	fs=fornax
+ip=135.104.9.201	# see 135.104.9.200
+ip=135.104.9.202 ether=0080c7f65909 sys=ehg9
+	dom=ehg9.research.att.com
+ip=135.104.9.203 ether=0020af0c4b49 sys=howard-pc
+	dom=howard-pc.research.att.com
+	bootf=/386/9pcdisk
+	proto=il
+	fs=fornax
+ip=135.104.9.204 ether=0000a71195d5 sys=x2c501
+	dom=x2c501.research.att.com
+ip=135.104.9.213 ether=08001701f4b8 sys=jpslap
+	dom=jpslap.research.att.com
+	bootf=/386/9nomad
+	proto=il
+ip=135.104.9.214 ether=00c0ec020220 sys=dauphin
+	dom=dauphin.research.att.com
+	bootf=/386/9pcdisk
+	proto=il
+ip=135.104.9.215 ether=08001704277a sys=kahrs-pc
+	dom=kahrs-pc.research.att.com
+	bootf=/386/9pcdisk
+	proto=il
+ip=135.104.9.254 sys=demo ether=00608c66a1f0
+	bootf=/386/9pcdisk
+	dom=demo.research.att.com
+
+#
+#  micro-annex
+#
+ipnet=mh-poolnet ip=135.104.24.0
+	ipgw=135.104.24.1
+ip=135.104.24.2 sys=pool
+	dom=pool.research.att.com 
+ip=135.104.24.4 sys=pool-presotto
+	dom=pool-presotto.research.att.com
+	proto=il
+ip=135.104.24.6 sys=pool-13
+	dom=pool-13.research.att.com 
+ip=135.104.24.7 sys=pool-14
+	dom=pool-14.research.att.com 
+
+#
+#  koenig's sun network
+#
+ipnet=mh-astrocplus ip=135.104.43.0
+	ipgw=135.104.43.1
+ip=135.104.43.1 sys=hubble-cpp
+	dom=hubble-cpp.research.att.com
+ip=135.104.43.10 sys=terminus
+	dom=terminus.research.att.com
+ip=135.104.43.12 sys=europa
+	dom=europa.research.att.com
+	dom=europa.att.com
+ip=135.104.43.16 sys=fudge111
+	dom=fudge111.research.att.com
+ip=135.104.43.17 sys=sundance
+	dom=sundance.research.att.com
+ip=135.104.43.18 sys=tinker
+	dom=tinker.research.att.com
+	dom=tinker.att.com
+
+#
+#	third floor ether
+#
+ipnet=mh-astro3 ip=135.104.51.0
+	ipgw=135.104.51.1
+ip=135.104.51.1 sys=hubble-3
+	dom=hubble-3.research.att.com
+ip=135.104.51.2 ether=0020af118c58 sys=idontcare
+	dom=idontcare.research.att.com
+	bootf=/386/bpc
+	proto=il
+	fs=fornax
+ip=135.104.51.10 sys=starkad
+	dom=starkad.research.att.com
+ip=135.104.51.11 sys=anand
+	dom=anand.research.att.com
+ip=135.104.51.12 ether=08006906262e sys=bran
+	dom=bran.research.att.com
+	bootf=/mips/9indigo3k
+	proto=il
+ip=135.104.51.100 sys=astro8
+	dom=astro8.research.att.com
+ip=135.104.51.101 sys=astro9
+	dom=astro9.research.att.com
+ip=135.104.51.102 sys=astro10
+	dom=astro10.research.att.com
+ip=135.104.51.103 sys=astro11
+	dom=astro11.research.att.com
+	bootf=/mips/9magnum ether=00006b8244f8
+	proto=il
+ip=135.104.51.104 sys=astro12
+	dom=astro12.research.att.com
+ip=135.104.51.105 sys=ejs-isdn
+	dom=ejs-idsn.research.att.com
+ip=135.104.51.106 sys=adb-h
+	dom=adb-h.research.att.com
+	bootf=/386/bpcdisk
+	proto=il
+ip=135.104.51.107 sys=reingold-x
+	dom=reingold-x.research.att.com
+ip=135.104.51.109 sys=stu1-x
+	dom=stu1-x.research.att.com
+ip=135.104.51.111 sys=ts
+	dom=ts.research.att.com
+	dk=nj/astro/ts
+ip=135.104.51.112 sys=2c312-x
+	dom=2c312-x.research.att.com
+ip=135.104.51.113 sys=stu5-x
+	dom=stu5-x.research.att.com
+ip=135.104.51.114 sys=stu6-x
+	dom=stu6-x.research.att.com
+ip=135.104.51.115 sys=hsb-x
+	dom=hsb-x.research.att.com
+ip=135.104.51.116 sys=stu7-x
+	dom=stu7-x.research.att.com
+ip=135.104.51.117 sys=stu8-x
+	dom=stu8-x.research.att.com
+ip=135.104.51.118 sys=tappan-x
+	dom=tappan-x.research.att.com
+ip=135.104.51.119 sys=jhc-x
+	dom=jhc-x.research.att.com
+ip=135.104.51.120 sys=cwf-x
+	dom=cwf-x.research.att.com
+ip=135.104.51.121 sys=stu12-x
+	dom=stu12-x.research.att.com
+ip=135.104.51.122 sys=cowsar-x
+	dom=cowsar-x.research.att.com
+ip=135.104.51.126 sys=pommy-x
+	dom=pommy-x.research.att.com
+ip=135.104.51.127 sys=ryan-x
+	dom=ryan-x.research.att.com
+ip=135.104.51.128 sys=quinton-x
+	dom=quinton-x.research.att.com
+ip=135.104.51.133 sys=2c312a-x
+	dom=2c312a-x.research.att.com
+ip=135.104.51.134 sys=stu15-x
+	dom=stu15-x.research.att.com
+ip=135.104.51.135 sys=grossgla-x
+	dom=grossgla-x.research.att.com
+ip=135.104.51.136 sys=stu17-x
+	dom=stu17-x.research.att.com
+ip=135.104.51.137 sys=stu18-x
+	dom=stu18-x.research.att.com
+ip=135.104.51.138 sys=stu19-x
+	dom=stu19-x.research.att.com
+ip=135.104.51.139 sys=patrice-x
+	dom=patrice-x.research.att.com
+ip=135.104.51.140 sys=hsb3s-x
+	dom=hsb3s-x.research.att.com
+ip=135.104.51.141 sys=eupectic
+	dom=eupectic.research.att.com
+ip=135.104.51.148 sys=bwk-home
+	dom=bwk-home.research.att.com
+ip=135.104.51.149 sys=gerard-home
+	dom=gerard-home.research.att.com
+ip=135.104.51.150 sys=dmg-home
+	dom=dmg-home.research.att.com
+ip=135.104.51.151 sys=bwk-pc
+	dom=bwk-pc.research.att.com
+ip=135.104.51.152 sys=mihalis-x
+	dom=mihalis-x.research.att.com
+ip=135.104.51.153 sys=karger-x
+	dom=karger-x.research.att.com
+ip=135.104.51.158 sys=cwf-pc
+	dom=cwf-pc.research.att.com
+ip=135.104.51.163 sys=stua-x
+	dom=stua-x.research.att.com
+ip=135.104.51.164 sys=stub-x
+	dom=stub-x.research.att.com
+ip=135.104.51.165 sys=stuc-x
+	dom=stuc-x.research.att.com
+ip=135.104.51.167 sys=bsb-home3-x
+	dom=bsb-home3-x.research.att.com
+ip=135.104.51.168	# see 135.104.9.200
+ip=135.104.51.169 sys=adb-x
+	bootf=/386/9pc
+	dom=adb-x.research.att.com
+ip=135.104.51.170 sys=dimitri-x
+	dom=dimitri-x.research.att.com
+ip=135.104.51.171 sys=dwyer-pc
+	dom=dwyer-pc.research.att.com
+ip=135.104.51.185 sys=qyz
+	ether=00006b8244fa
+	dom=qyz.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.51.189 sys=xpl99
+	dom=xpl99.research.att.com
+ip=135.104.51.190 ether=0800201110f8 sys=psp-ss2
+        dom=psp-ss2.research.att.com
+        bootf=/sparc/9ss
+        proto=il
+ip=135.104.51.191 sys=psp-x
+	dom=psp-x.research.att.com
+ip=135.104.51.200 sys=adb
+	dom=adb.research.att.com
+ip=135.104.51.201 sys=gjm-amiga
+	dom=gjm-amiga.research.att.com
+ip=135.104.51.202 sys=gjm-pc
+	dom=gjm-pc.research.att.com
+ip=135.104.51.203 sys=dji-x
+	dom=dji-x.research.att.com
+ip=135.104.51.204 ether=08001701f4b8 sys=jpspc
+	bootf=/386/9pcdisk
+	dom=jpspc.research.att.com
+
+#
+#	fourth floor ether
+#
+ipnet=mh-astro4 ip=135.104.52.0
+	ipgw=135.104.52.1
+ip=135.104.52.1 sys=hubble-4
+	dom=hubble-4.research.att.com
+ip=135.104.52.8 ether=08006a190b0b sys=sty
+	dom=sty.research.att.com
+	bootf=/usr/td/ir/mon/etherboot
+ip=135.104.52.9 ether=08006a190b0a sys=hangnail
+	dom=hangnail.research.att.com
+	bootf=/usr/crk/hw/base/download/xildboot
+ip=135.104.52.11 sys=sxu1
+	dom=sxu1.research.att.com
+ip=135.104.52.12 sys=sxu2
+	dom=sxu2.research.att.com
+	dk=nj/astro/sxu2
+ip=135.104.52.13 sys=sxu3
+	dom=sxu3.research.att.com
+ip=135.104.52.14 sys=sxu4
+	dom=sxu4.research.att.com
+ip=135.104.52.16 sys=sxu6
+	dom=sxu6.research.att.com
+ip=135.104.52.17 sys=sxu7
+	dom=sxu7.research.att.com
+ip=135.104.52.18 sys=sxu8
+	dom=sxu8.research.att.com
+ip=135.104.52.19 sys=sxu9
+	dom=sxu9.research.att.com
+ip=135.104.52.20 sys=sxu10
+	dom=sxu10.research.att.com
+ip=135.104.52.21 sys=sxu11
+	dom=sxu11.research.att.com
+ip=135.104.52.22 sys=sxu12
+	dom=sxu12.research.att.com
+ip=135.104.52.23 sys=sxu13
+	dom=sxu13.research.att.com
+ip=135.104.52.24 sys=sxu14
+	dom=sxu14.research.att.com
+ip=135.104.52.25 sys=sxu15
+	dom=sxu15.research.att.com
+ip=135.104.52.26 sys=sxu16
+	dom=sxu16.research.att.com
+ip=135.104.52.28 sys=berlin
+	dom=berlin.research.att.com
+ip=135.104.52.29 sys=wilson
+	dom=wilson.research.att.com
+ip=135.104.52.30 sys=ches-x
+	dom=ches-x.research.att.com
+ip=135.104.52.31 ether=00006b823fb8 sys=dogfish
+	dom=dogfish.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.52.32 sys=kanakia-ind2
+	dom=kanakia-ind2.research.att.com
+ip=135.104.52.33 sys=freund-indy
+	dom=freund-indy.research.att.com
+ip=135.104.52.34 sys=jmead-ind2
+	dom=jmead-ind2.research.att.com
+ip=135.104.52.36 sys=va-sparc
+	dom=va-sparc.research.att.com
+ip=135.104.52.37 dom=gate-fiber1.research.att.com ether=0800690694e6 sys=gate-fiber1
+	bootf=/mips/9indigo4k
+	proto=il
+ip=135.104.52.39 ether=0800690695b1 sys=oats
+	dom=oats.research.att.com
+	bootf=/mips/9indigo4k
+	proto=il
+ip=135.104.52.40 ether=08006a190b08 sys=hobreak
+	dom=hobreak.research.att.com
+	bootf=/hobbit/9cpu
+	dk=nj/astro/hobreak
+	proto=il
+ip=135.104.52.41 ether=02608cdc8424 sys=mfjpc
+	dom=mfjpc.research.att.com
+ip=135.104.52.42 ether=0020af03f6d6 sys=tirpitz
+	dom=tirpitz.research.att.com
+	bootf=/386/bpcdisk
+	fs=fornax
+	proto=il
+ip=135.104.52.43 sys=gate-gucci-ind2
+	dom=gate-gucci-ind2.research.att.com
+ip=135.104.52.44 sys=blue8
+	dom=blue8.research.att.com
+ip=135.104.52.90 ether=080009728e93 sys=ps2c468
+	dom=ps2c468.research.att.com
+	bootf=/dev/null
+ip=135.104.52.100 sys=utu
+	dom=utu.research.att.com
+ip=135.104.52.101 sys=ra
+	dom=ra.research.att.com
+ip=135.104.52.104 sys=lck-x
+	dom=lck-x.research.att.com
+ip=135.104.52.105 sys=bsb-x
+	dom=bsb-x.research.att.com
+ip=135.104.52.106 sys=rafael-x
+	dom=rafael-x.research.att.com
+ip=135.104.52.109 sys=nls-x
+	dom=nls-x.research.att.com
+ip=135.104.52.110 sys=tgs-x
+	dom=tgs-x.research.att.com
+ip=135.104.52.111 sys=mhw-x
+	dom=mhw-x.research.att.com
+ip=135.104.52.112 sys=freund-x
+	dom=freund-x.research.att.com
+ip=135.104.52.113 sys=dmg-x
+	dom=dmg-x.research.att.com
+ip=135.104.52.114 sys=ovidlab-x
+	dom=ovidlab-x.research.att.com
+ip=135.104.52.116 sys=lee-x
+	dom=lee-x.research.att.com
+ip=135.104.52.119 sys=math18
+	dom=math18.research.att.com
+ip=135.104.52.120 sys=math19
+	dom=math19.research.att.com
+ip=135.104.52.121 sys=gucci-x
+	dom=gucci-x.research.att.com
+ip=135.104.52.122 sys=roto-x
+	dom=roto-x.research.att.com
+ip=135.104.52.123 sys=router-x
+	dom=router-x.research.att.com
+ip=135.104.52.124 ether=00006b82585e sys=boofhead
+	dom=boofhead.research.att.com
+	bootf=/68020/9magnum
+	proto=il
+ip=135.104.52.125 sys=asg-x
+	dom=asg-x.research.att.com
+ip=135.104.52.126 sys=sjm-x
+	dom=sjm-x.research.att.com
+ip=135.104.52.127 ether=00006b824478 sys=cowboys
+	dom=cowboys.research.att.com
+	bootf=/mips/9magnum
+	ipgw=135.104.52.1
+	proto=il
+ip=135.104.52.128 sys=jhk-x
+	dom=jhk-x.research.att.com
+ip=135.104.52.129 sys=jf-x
+	dom=jf-x.research.att.com
+ip=135.104.52.130 sys=beigel-x
+	dom=beigel-x.research.att.com
+ip=135.104.52.131 ether=00006b8261d0 sys=astro20
+	dom=astro20.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.52.132 sys=gucci-y
+	dom=gucci-y.research.att.com
+ip=135.104.52.134 sys=mfj-x
+	dom=mfj-x.research.att.com
+ip=135.104.52.135 sys=dmg-pc
+	dom=dmg-pc.research.att.com
+ip=135.104.52.136 sys=sjf-x
+	dom=sjf-x.research.att.com
+ip=135.104.52.137 sys=gucci-z
+	dom=gucci-z.research.att.com
+ip=135.104.52.138 sys=r471-x
+	dom=r471-x.research.att.com
+ip=135.104.52.139 sys=hemant-x
+	dom=hemant-x.research.att.com
+ip=135.104.52.140 sys=pl22
+	dom=pl22.research.att.com
+ip=135.104.52.141 sys=mac-bart
+        dom=mac-bart.research.att.com
+ip=135.104.52.142 ether=00006b824468 sys=pager
+	dom=pager.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.52.143 sys=shoji-x
+	dom=shoji-x.research.att.com
+ip=135.104.52.144 ether=00000f007e0d sys=astro5
+	dom=astro5.research.att.com
+	bootf=/68020/9nextstation
+	proto=il
+ip=135.104.52.145 sys=x-2c471
+	dom=x-2c471.research.att.com
+ip=135.104.52.146 sys=vuong-x
+	dom=vuong-x.research.att.com
+ip=135.104.52.150 ether=0800201074ae sys=mike-ss2
+	dom=mike-ss2.research.att.com
+	bootf=/sparc/9ss
+	proto=il
+ip=135.104.52.151 sys=ftg-ind
+	dom=ftg-ind.research.att.com
+ip=135.104.52.152 ether=080020106aac sys=pcl-ss2
+	dom=pcl-ss2.research.att.com
+	bootf=/sparc/9ss
+	proto=il
+ip=135.104.52.178 ether=0020f8000079 sys=samia600dead
+	dom=samia600dead.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.52.179 ether=0020f800002c sys=herald
+	dom=herald.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.52.180 ether=0020f8000024 sys=gucci
+	dom=gucci.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.52.181 ether=0020f800007d sys=vector
+	dom=vector.research.att.com
+	bootf=/mips/bcarrera
+	fs=fornax
+	proto=il
+ip=135.104.52.182 sys=pl21
+	dom=pl21.research.att.com
+ip=135.104.52.200 ether=0020af0f8a48 sys=avignon
+	dom=avignon.research.att.com
+	bootf=/386/9pc
+	proto=il
+ip=135.104.52.201 ether=00608c38d303 sys=braer
+	dom=braer.research.att.com
+	bootf=/386/bpc
+	fs=fornax
+	proto=il
+ip=135.104.52.202 ether=0000c0e3602c sys=mobro
+	dom=mobro.research.att.com
+ip=135.104.52.203 ether=0020af37e247 sys=roro
+	dom=roro.research.att.com
+	bootf=/386/bpc
+	fs=bootes
+	proto=il
+#
+#	fifth floor ether
+#
+ipnet=mh-astro5 ip=135.104.53.0
+	ipgw=135.104.53.1
+ip=135.104.53.1 sys=hubble-5
+	dom=hubble-5.research.att.com
+ip=135.104.53.9 sys=fustigator
+	dom=fustigator.research.att.com
+ip=135.104.53.10 sys=blau
+	dom=blau.research.att.com
+ip=135.104.53.11 sys=pyxis
+	dom=pyxis.research.att.com
+ip=135.104.53.14 ether=00006b8244c2 sys=numbat
+	dom=numbat.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.53.15 sys=ehg-x
+	dom=ehg-x.research.att.com
+ip=135.104.53.16 sys=rwilson
+	dom=rwilson.research.att.com
+ip=135.104.53.19 sys=mona
+	dom=mona.research.att.com
+ip=135.104.53.21 ether=0800690677fb sys=troy-ind
+	dom=troy-ind.research.att.com
+	bootf=/mips/9indigo3k
+	proto=il
+ip=135.104.53.22 sys=crk-ind
+	dom=crk-ind.research.att.com
+ip=135.104.53.23 sys=sol
+	dom=sol.research.att.com
+ip=135.104.53.27 sys=marlin
+	dom=marlin.research.att.com
+ip=135.104.53.33 sys=blue1
+	dom=blue1.research.att.com
+ip=135.104.53.34 ether=0800690689ac sys=blue2
+	dom=blue2.research.att.com
+	bootf=/mips/9indigo4k
+	proto=il
+ip=135.104.53.35 ether=0800690683af sys=blue3
+	dom=blue3.research.att.com
+	bootf=/mips/9indigo4k
+	proto=il
+ip=135.104.53.36 sys=blue4
+	dom=blue4.research.att.com
+ip=135.104.53.37 sys=ethel-x
+	dom=ethel-x.research.att.com
+ip=135.104.53.38 ether=08006a190b03 sys=hobart
+	dom=hobart.research.att.com
+	bootf=/hobbit/9cpu
+	dk=nj/mercury/hobo
+	proto=il
+	ipmask=255.255.255.0
+	ipgw=135.104.53.1
+	proto=il
+	bootf=/mips/9indigo4k
+	proto=il
+ip=135.104.53.39 ether=0800690695de sys=cataract
+	dom=cataract.research.att.com
+	bootf=/mips/9indigo4k
+        proto=il
+ip=135.104.53.40 sys=gate-gr-indy
+	dom=gate-gr-indy.research.att.com
+ip=135.104.53.41 sys=blue5
+	dom=blue5.research.att.com
+ip=135.104.53.42 sys=blue6
+	dom=blue6.research.att.com
+ip=135.104.53.43 sys=blue7
+	dom=blue7.research.att.com
+ip=135.104.53.44 sys=keshav-ind2
+	dom=keshav-ind2.research.att.com
+ip=135.104.53.45 sys=dt-pc
+	dom=dt-pc.research.att.com
+ip=135.104.53.46 sys=pl39
+	dom=pl39.research.att.com
+ip=135.104.53.47 sys=wmc-pc
+	dom=wmc-pc.research.att.com
+ip=135.104.53.48 sys=bwko-pc
+	dom=bwko-pc.research.att.com
+ip=135.104.53.49 sys=ravi-pc
+	dom=ravi-pc.research.att.com
+ip=135.104.53.100 sys=keshav-x
+	dom=keshav-x.research.att.com
+ip=135.104.53.111 sys=math21
+	dom=math21.research.att.com
+ip=135.104.53.112 sys=gl1-x
+	dom=gl1-x.research.att.com
+ip=135.104.53.114 sys=wombat
+	dom=wombat.research.att.com
+ip=135.104.53.115 sys=astro15
+	dom=astro15.research.att.com
+ip=135.104.53.116 sys=red-x
+	dom=red-x.research.att.com
+ip=135.104.53.119 sys=llc-x
+	dom=llc-x.research.att.com
+ip=135.104.53.120 sys=gam-x
+	dom=gam-x.research.att.com
+ip=135.104.53.122 sys=bk-x
+	dom=bk-x.research.att.com
+ip=135.104.53.123 sys=bwk-x
+	dom=bwk-x.research.att.com
+ip=135.104.53.124 sys=ocr-x
+	dom=ocr-x.research.att.com
+ip=135.104.53.125 sys=ocr1-x
+	dom=ocr1-x.research.att.com
+ip=135.104.53.126 sys=burnr-x
+	dom=burnr-x.research.att.com
+ip=135.104.53.127 sys=green-x
+	dom=green-x.research.att.com
+ip=135.104.53.128 sys=astro-17
+	dom=astro-17.research.att.com
+ip=135.104.53.129 sys=kanga-x
+	dom=kanga-x.research.att.com
+ip=135.104.53.130 sys=throne1-x
+	dom=throne1-x.research.att.com
+ip=135.104.53.131 sys=throne2-x
+	dom=throne2-x.research.att.com
+ip=135.104.53.132 sys=throne3-x
+	dom=throne3-x.research.att.com
+ip=135.104.53.133 sys=throne4-x
+	dom=throne4-x.research.att.com
+ip=135.104.53.134 sys=sec1-x
+	dom=sec1-x.research.att.com
+ip=135.104.53.135 sys=sec2-x
+	dom=sec2-x.research.att.com
+ip=135.104.53.136 sys=lil-x
+	dom=lil-x.research.att.com
+ip=135.104.53.137 sys=ejs-x
+	dom=ejs-x.research.att.com
+ip=135.104.53.139 sys=sec4-x
+	dom=sec4-x.research.att.com
+ip=135.104.53.140 sys=sec5-x
+	dom=sec5-x.research.att.com
+ip=135.104.53.142 sys=hsb-cx
+	dom=hsb-cx.research.att.com
+ip=135.104.53.143 sys=spare-cx
+	dom=spare-cx.research.att.com
+ip=135.104.53.146 sys=temp-cx
+	dom=temp-cx.research.att.com
+ip=135.104.53.147 sys=bsb-home
+	dom=bsb-home.research.att.com
+ip=135.104.53.149 sys=rae-x
+	dom=rae-x.research.att.com
+ip=135.104.53.170 sys=sharon-x
+	dom=sharon-x.research.att.com
+ip=135.104.53.171 sys=pjw-x
+	dom=pjw-x.research.att.com
+ip=135.104.53.172 sys=pjw-pc
+        dom=pjw-pc.research.att.com
+ip=135.104.53.173 sys=cooper-x
+	dom=cooper-x.research.att.com
+ip=135.104.53.174 sys=h.saran-x
+	dom=h.saran-x.research.att.com
+ip=135.104.53.176 sys=ravi-x
+	dom=ravi-x.research.att.com
+ip=135.104.53.180 ether=08006906262e sys=gr-bran
+	dom=gr-bran.research.att.com
+	bootf=/mips/9indigo3k
+	proto=il
+ip=135.104.53.185 sys=sec3-x
+	dom=sec3-x.research.att.com
+ip=135.104.53.186 sys=red-ind
+	dom=red-ind.research.att.com
+ip=135.104.53.187 sys=agf-notebook
+	dom=agf-notebook.research.att.com
+ip=135.104.53.193 sys=agf-x
+	dom=agf-x.research.att.com
+ip=135.104.53.200 sys=pam
+	dom=pam.research.att.com
+ip=135.104.53.201 sys=court
+	dom=court.research.att.com
+ip=135.104.53.202 sys=judy
+	dom=judy.research.att.com
+ip=135.104.53.203 sys=yvette
+	dom=yvette.research.att.com
+ip=135.104.53.204 sys=neera
+	dom=neera.research.att.com
+ip=135.104.53.205 sys=fancy-mac
+	dom=fancy-mac.research.att.com
+ip=135.104.53.207 ether=00608cf2104a sys=wtm-pc
+	dom=wtm-pc.research.att.com
+	bootf=/386/9pc
+	proto=il
+ip=135.104.53.208 sys=toaster
+	dom=toaster.research.att.com
+ip=135.104.53.209 	# see 135.104.9.200
+ip=135.104.53.210 ether=0080c7f65909 sys=ehg53
+	dom=ehg53.research.att.com
+ip=135.104.51.210 ether=0080c7f65909 sys=ehg51
+	dom=ehg51.research.att.com
+ip=135.104.53.211 sys=ruth-mac
+	dom=ruth-mac.research.att.com
+ip=135.104.53.212 sys=wmc53
+	dom=wmc53.research.att.com
+ip=135.104.53.240 sys=geri
+	dom=geri.research.att.com
+ip=135.104.53.241 sys=vkr
+	dom=vkr.research.att.com
+ip=135.104.53.242 sys=agf
+	dom=agf.research.att.com
+ip=135.104.53.243 sys=agf-home
+	dom=agf-home.research.att.com
+ip=135.104.53.244 sys=keshav-pc
+	dom=keshav-pc.research.att.com
+ip=135.104.53.245 sys=pjw-nt
+	dom=pjw-nt.research.att.com
+ip=135.104.53.250 sys=temp-x
+	dom=temp-x.research.att.com
+ip=135.104.53.251 sys=gpager
+	dom=gpager.research.att.com
+
+#
+#	ATM network
+#
+ipnet=mh-atm ip=135.104.61.0
+	ipgw=135.104.61.10
+ip=135.104.61.10 sys=foresw-atm
+	dom=foresw-atm.research.att.com
+ip=135.104.61.100 sys=atm-gucci-ind2
+	dom=atm-gucci-ind2.research.att.com
+ip=135.104.61.101 sys=kjmsgi-atm
+	dom=kjmsgi-atm.research.att.com
+ip=135.104.61.102 sys=atm-kanakia-ind2
+	dom=atm-kanakia-ind2.research.att.com
+ip=135.104.61.103 sys=atm-keshav-ind2
+	dom=atm-keshav-ind2.research.att.com
+
+#
+#	Inet's inside net, simulated by r70. 135.104.'i'
+#
+ipnet=mh-astroinet ip=135.104.69.0
+	ipgw=135.104.69.1
+ip=135.104.69.1 sys=inet
+	dom=inet.research.att.com
+	ip=192.20.225.2
+
+#
+#	plexus fddi ring
+#
+ipnet=mh-astrof ip=135.104.70.0
+	ipgw=135.104.70.9
+ip=135.104.70.1 sys=hubble-f
+	dom=hubble-f.research.att.com
+ip=135.104.70.8 sys=mh-hub
+	dom=mh-hub.research.att.com
+ip=135.104.70.9 sys=slocum
+	dom=slocum.research.att.com
+ip=135.104.70.10 sys=gr-indy
+	dom=gr-indy.research.att.com
+ip=135.104.70.11 sys=pl11
+	dom=pl11.research.att.com
+ip=135.104.70.12 sys=pl12
+	dom=pl12.research.att.com
+ip=135.104.70.13 sys=pl13
+	dom=pl13.research.att.com
+ip=135.104.70.14 sys=pl14
+	dom=pl14.research.att.com
+ip=135.104.70.15 sys=pl15
+	dom=pl15.research.att.com
+ip=135.104.70.16 sys=pl16
+	dom=pl16.research.att.com
+ip=135.104.70.17 sys=pl17
+	dom=pl17.research.att.com
+ip=135.104.70.18 sys=pl18
+	dom=pl18.research.att.com
+ip=135.104.70.19 sys=pl19
+	dom=pl19.research.att.com
+ip=135.104.70.20 sys=pl20
+	dom=pl20.research.att.com
+ip=135.104.70.21 sys=fddi-pl21
+	dom=fddi-pl21.research.att.com
+ip=135.104.70.22 sys=fddi-pl22
+	dom=fddi-pl22.research.att.com
+ip=135.104.70.23 sys=pl23
+	dom=pl23.research.att.com
+ip=135.104.70.24 sys=pl24
+	dom=pl24.research.att.com
+ip=135.104.70.25 sys=pl25
+	dom=pl25.research.att.com
+ip=135.104.70.26 sys=pl26
+	dom=pl26.research.att.com
+ip=135.104.70.27 sys=pl27
+	dom=pl27.research.att.com
+ip=135.104.70.28 sys=pl28
+	dom=pl28.research.att.com
+ip=135.104.70.29 sys=wimsey
+	dom=wimsey.research.att.com
+ip=135.104.70.30 sys=pl30
+	dom=pl30.research.att.com
+ip=135.104.70.31 sys=pl31
+	dom=pl31.research.att.com
+ip=135.104.70.32 sys=pl32
+	dom=pl32.research.att.com
+ip=135.104.70.33 sys=saw
+	dom=saw.research.att.com
+ip=135.104.70.34 sys=knife
+	dom=knife.research.att.com
+ip=135.104.70.35 sys=rice-fddi
+	dom=rice-fddi.research.att.com
+ip=135.104.70.36 sys=grumpy
+	dom=grumpy.research.att.com
+	dk=nj/mercury/grumpy
+ip=135.104.70.37 sys=fiber1
+	dom=fiber1.research.att.com
+ip=135.104.70.38 sys=wait-fddi
+	dom=wait-fddi.research.att.com
+ip=135.104.70.39 sys=gucci-ind2
+	dom=gucci-ind2.research.att.com
+ip=135.104.200.2 sys=chesppp
+        dom=chesppp.research.att.com
+
+#
+#	wmc's & ehg's experimental fiber
+#
+ipnet=mh-astroblue ip=135.104.85.0
+	ipgw=135.104.85.10
+ip=135.104.85.9 sys=fddi-blue-slocum
+	dom=fddi-blue-slocum.research.att.com
+ip=135.104.85.11 sys=fddi-blue-pyxis
+	dom=fddi-blue-pyxis.research.att.com
+ip=135.104.85.12 sys=fddi-hydra
+	dom=fddi-hydra.research.att.com
+ip=135.104.85.13 sys=fddi-blue1
+	dom=fddi-blue1.research.att.com
+ip=135.104.85.14 sys=fddi-blue2
+	dom=fddi-blue2.research.att.com
+ip=135.104.85.15 sys=fddi-blue3
+	dom=fddi-blue3.research.att.com
+ip=135.104.85.16 sys=fddi-blue4
+	dom=fddi-blue4.research.att.com
+ip=135.104.85.18 sys=fddi-blue5
+	dom=fddi-blue5.research.att.com
+ip=135.104.85.20 sys=ctron-conc
+	dom=ctron-conc.research.att.com
+ip=135.104.85.21 sys=ods-conc
+	dom=ods-conc.research.att.com
+ip=135.104.85.24 sys=fddi-blue6
+	dom=fddi-blue6.research.att.com
+ip=135.104.85.25 sys=fddi-blue7
+	dom=fddi-blue7.research.att.com
+ip=135.104.85.26 sys=fddi-blue8
+	dom=fddi-blue8.research.att.com
+
+#
+#	Crayette's
+#
+ipnet=mh-astrocray ip=135.104.89.0
+ip=135.104.89.1 sys=ows-3k-vme
+	dom=ows-3k-vme.research.att.com
+ip=135.104.89.5 sys=pik
+	dom=pik.research.att.com
+
+#
+#	The Cray's net is reached through a Cray-supplied netblazer
+#	nb-pik, which is also connected to the rbone.
+#
+ipnet=mh-craybone ip=135.104.90.0
+	ipgw=135.104.90.1
+ip=135.104.90.1	sys=hubble-cray
+	dom=hubble-cray.research.att.com
+ip=135.104.90.10 sys=ows-pik
+	dom=ows-pik.research.att.com
+ip=135.104.90.11 sys=mws-pik
+	dom=mws-pik.research.att.com
+ip=135.104.90.12 sys=nbc-pik
+	dom=nbc-pik.research.att.com
+
+#
+#  plan 9 ppp network
+#
+ipnet=mh-p9ppp ip=135.104.99.0
+	ipgw=135.104.99.1
+ip=135.104.99.1 sys=p9ppp1
+	dom=p9ppp1.research.att.com
+	bootf=/386/bpcdisk
+	fs=fornax
+ip=135.104.99.2 sys=p9ppp2
+	dom=p9ppp2.research.att.com
+	bootf=/386/bpcdisk
+	fs=fornax
+ip=135.104.99.3 sys=p9ppp3
+	dom=p9ppp3.research.att.com
+	bootf=/386/bpcdisk
+	fs=fornax
+
+
+#
+#	machine room network
+#
+ipnet=mh-astrou ip=135.104.117.0
+	ipgw=135.104.117.1
+ip=135.104.117.1 sys=hubble-u
+	dom=hubble-u.research.att.com
+ip=135.104.117.2 sys=r70
+	dom=r70.research.att.com
+	dk=nj/astro/r70
+ip=135.104.117.3 sys=nyquist-u
+	dom=nyquist-u.research.att.com
+ip=135.104.117.5 sys=research
+	proto=tcp
+	dom=research.att.com
+	dom=research.research.att.com
+ip=135.104.117.9 sys=astrogator
+	dom=astrogator.research.att.com
+ip=135.104.117.10 sys=hydra
+	dom=hydra.research.att.com
+ip=135.104.117.14 sys=tuttle
+	dom=tuttle.research.att.com
+	dk=nj/astro/tuttle
+ip=135.104.117.16 sys=vilson
+	dom=vilson.research.att.com
+ip=135.104.117.18 sys=dubiago
+	dom=dubiago.research.att.com
+ip=135.104.117.19 sys=nakamura
+	dom=nakamura.research.att.com
+ip=135.104.117.20 sys=npn
+	dom=npn.research.att.com
+ip=135.104.117.21 sys=alice
+	dom=alice.research.att.com
+ip=135.104.117.21 sys=nalice
+	dom=nalice.research.att.com
+ip=135.104.117.22 sys=cetus
+	dom=cetus.research.att.com
+ip=135.104.117.24 ether=00608c53c134 sys=dinar
+	dom=dinar.research.att.com
+	bootf=/386/bpccpudisk
+	fs=fornax
+	proto=il
+ip=135.104.117.25 sys=boojum
+	dom=boojum.research.att.com
+	dk=nj/astro/boojum
+ip=135.104.117.26 ether=00006b82420c sys=dj
+	dom=dj.research.att.com
+	bootf=/mips/9magnumcpu
+	proto=il
+ip=135.104.117.28 sys=colour
+	dom=colour.research.att.com
+	bootf=/mips/9magnum ether=00006b8243b2
+	proto=il
+ip=135.104.117.29 sys=u-slocum
+	dom=u-slocum.research.att.com
+ip=135.104.117.30 sys=trauma
+	dom=trauma.research.att.com
+ip=135.104.117.32 sys=foresw-ether
+	dom=foresw-ether.research.att.com
+ip=135.104.117.31 ether=00006b824314 sys=merrimack
+	dom=merrimack.research.att.com
+	bootf=/mips/9magnum
+	proto=il
+ip=135.104.53.52 sys=bnl2
+	dom=bnl2.research.att.com
+ip=135.104.117.35 sys=dauphor
+	dom=dauphor.research.att.com
+ip=135.104.53.53 sys=sabl
+	dom=sabl.research.att.com
+ip=135.104.117.100 sys=x-mh
+	dom=x-mh.research.att.com
+ip=135.104.117.101 sys=unix-bwk
+	dom=unix-bwk.research.att.com
+ip=135.104.117.102 sys=unix-mhw
+	dom=unix-mhw.research.att.com
+ip=135.104.117.103 sys=unix-kanakia
+	dom=unix-kanakia.research.att.com
+ip=135.104.117.104 sys=unix-dmg
+	dom=unix-dmg.research.att.com
+ip=135.104.117.107 sys=topaz
+	dom=topaz.research.att.com
+ip=135.104.117.109 sys=koala
+	dom=koala.research.att.com
+ip=135.104.117.135 sys=unix-gerard
+	dom=unix-gerard.research.att.com
+ip=135.104.117.200 sys=u
+	dom=u.research.att.com
+ip=135.104.117.201 ether=0000c0ca2151 sys=pc486
+	dom=pc486.research.att.com
+	bootf=/386/9pc
+	proto=il
+ip=135.104.117.202 ether=0800097271db sys=fn
+	dom=fn.research.att.com
+	bootf=/dev/null
+ip=135.104.117.203 ether=0000c071e452 sys=doom
+	dom=doom.research.att.com
+	bootf=/386/9pc
+	fs=fornax
+	proto=il
+ip=135.104.117.204 sys=granny
+	dom=granny.research.att.com
+ip=135.104.117.205	# see 135.104.9.200
+ip=135.104.117.206 sys=petter
+	dom=petter.research.att.com
+ip=135.104.117.207 sys=bsb-home-x
+	dom=bsb-home-x.research.att.com
+ip=135.104.117.208	# see 135.104.9.200
+ip=135.104.117.209 ether=0080c7f65909 sys=ehg117
+	dom=ehg117.research.att.com
+ip=135.104.117.210 sys=lda-annex
+	dom=lda-annex.research.att.com
+ip=135.104.117.211 sys=presotto-annex
+	bootf=/386/9pcdisk
+	dom=presotto-annex.research.att.com
+ip=135.104.117.213 sys=smb-annex
+	dom=smb-annex.research.att.com
+ip=135.104.117.214 sys=pg-annex
+	dom=pg-annex.research.att.com
+ip=135.104.117.215 sys=ejs-annex
+	dom=ejs-annex.research.att.com
+ip=135.104.117.216 sys=tk-annex
+	dom=tk-annex.research.att.com
+ip=135.104.117.240 sys=gator-0
+	dom=gator-0.research.att.com
+ip=135.104.117.241 sys=gator-1
+	dom=gator-1.research.att.com
+ip=135.104.117.242 sys=gator-2
+	dom=gator-2.research.att.com
+ip=135.104.117.243 sys=gator-3
+	dom=gator-3.research.att.com
+ip=135.104.117.244 sys=gator-4
+	dom=gator-4.research.att.com
+ip=135.104.117.245 sys=gator-5
+	dom=gator-5.research.att.com
+ip=135.104.117.251 sys=noname
+	dom=noname.research.att.com
+ip=135.104.117.252 ether=00c0757b7b98 sys=psu
+	dom=psu.research.att.com
+	bootf=/dev/null
+ip=135.104.117.254 ether=02608c44e264 sys=pc386a
+	dom=pc386a.research.att.com
+	bootf=/386/9pc
+	proto=il
+
+#
+#	network ches-home
+#
+ipnet=mh-astroches ip=135.104.200.0
+ip=135.104.200.1 ether=00006b8244f0 sys=chesret
+	dom=chesret.research.att.com
+ip=135.104.200.2 sys=ches
+	dom=ches.research.att.com
+ip=135.104.200.11 ether=00001B3E5D45 sys=chespc
+	dom=chespc.research.att.com
+ip=135.104.200.12 sys=chesmac
+	dom=chesmac.research.att.com
+#
+#	network wtm-home
+#
+ipnet=mh-astrowtm ip=135.104.201.0
+#
+#	network bent-home
+#
+ipnet=mh-astrowtm ip=135.104.202.0
+
+#
+# math center machines we trust, and need to be in hosts.equiv
+#
+ip=135.104.11.10 sys=rice
+	proto=tcp
+	dom=rice.research.att.com
+ip=135.104.11.11 sys=slepian
+	dom=slepian.research.att.com
+ip=135.104.11.12 sys=fry
+	dom=fry.research.att.com
+ip=135.104.11.117 sys=pg-home
+	dom=pg-home.research.att.com
+ip=135.104.12.101 sys=pg-isdn
+	dom=pg-isdn.research.att.com
+	bootf=/386/bpcdisk
+	proto=il
+
+#
+#	network mh-speech-net
+#
+ipnet=mh-speech-net ip=192.11.86.0
+	fs=bootes.research.att.com
+	auth=1127auth
+ip=192.11.86.50 sys=tiberius
+	dom=tiberius.research.att.com
+
+# **** Anything after here does not appear in the hosts or hosts.equiv distribution.
+#
+#	consoles and reset lines
+#
+sys=Cspindle dk=nj/astro/Cspindle flavor=console
+sys=Rspindle dk=nj/astro/Rspindle flavor=console
+sys=Cthresher dk=nj/astro/Cthresher flavor=console
+sys=Rthresher dk=nj/astro/Rthresher flavor=console
+sys=Chelix dk=nj/astro/Chelix flavor=console
+sys=Cbootes dk=nj/astro/Cbootes flavor=console
+sys=Cfornax dk=nj/astro/Cfornax flavor=console
+sys=Rfornax dk=nj/astro/Rfornax flavor=console
+sys=Cmusca dk=nj/astro/Cmusca flavor=console
+sys=C9net dk=nj/astro/C9net flavor=console
+sys=Cp9auth dk=nj/astro/Cp9auth flavor=console
+sys=Crobs dk=nj/astro/Crobs flavor=console
+
+#
+#	NCR file server
+#
+ip=153.78.17.236 sys=ncr
+
+#
+#	bart's network at ogi
+#
+ipnet=ogi-net ip=129.95.50.0
+	ipmask=255.255.255.0
+	ipgw=129.95.50.54
+	auth=amoc
+ip=129.95.50.247 ether=00006b8244e6 sys=tor
+	dom=tor.cse.ogi.edu
+	bootf=/mips/9magnum
+	fs=teni
+	proto=il
+ip=129.95.58.2 sys=amoc
+	dom=amoc.cse.ogi.edu
+	proto=il
+
+#
+#	non-1127 systems
+#
+sys=stuck
+	dom=stuck.ih.att.com
+	bootf=/mips/9magnumdisk
+	ip=135.1.152.66
+sys=crux
+	dom=crux.research.att.com
+	bootf=/hobbit/9cpu
+	ip=192.11.85.96 ether=08006a190b02
+	dk=nj/mercury/hobo
+	proto=il
+	ipmask=255.255.255.0
+	ipgw=135.104.53.1
+	proto=il
+sys=hobble
+	dom=hobble.research.att.com
+	bootf=/hobbit/9cpu
+	ip=192.11.85.98 ether=08006a190b04
+	proto=il
+	ipmask=255.255.255.0
+sys=hobnob
+	dom=hobnob.research.att.com
+	bootf=/hobbit/9cpu
+	ip=192.11.85.99 ether=08006a190b05
+	dk=nj/mercury/hobo
+	proto=il
+	ipmask=255.255.255.0
+	ipgw=192.11.85.1
+	proto=il
+sys=pcrux
+	ip=200.200.200.96 ether=08006a190b07
+	dom=pcrux.research.att.com
+	bootf=/hobbit/9cpu
+	dk=nj/mercury/hobo
+	proto=il
+	ipmask=255.255.255.0
+	proto=il
+sys=phobble
+	ip=200.200.200.98 ether=08006a190b06
+	dom=phobble.research.att.com
+	bootf=/hobbit/9cpu
+	proto=il
+	ipmask=255.255.255.0
+
+#
+#	network rehor
+#
+ipnet=rehor ip=135.1.0.0
+	auth=1127auth
+	fs=bootes.research.att.com
+
+#
+#  the gateway to the external internet.  we need the ethernet entry so
+#  9net can identify itself before deciding which ndb file to use.
+#  typical chicken and egg solution.
+#
+sys=9net
+	dom=9net.research.att.com
+	bootf=/mips/9magnumcpu
+	dk=nj/astro/9net
+	ether=00006b825012
+	gate=/net.ext

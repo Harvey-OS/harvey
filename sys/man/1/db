@@ -98,20 +98,21 @@ commands.
 .TP
 .BI -m machine
 Assume instructions are for the given CPU type
-(any standard architecture name, such as
-.B alpha
-or
+(one of
+.BR 3210 ,
 .BR 386 ,
-plus
-.B mipsco
-and
-.BR sunsparc ,
-which cause disassembly to the manufacturer's syntax)
+.BR 68020 ,
+.BR 960 ,
+.BR mips ,
+.BR mipsco ,
+.BR sparc ,
+or
+.BR sunsparc )
 instead of using the magic number to select
 the CPU type.
 .PP
 Most
-.I db
+.I  db
 commands have the following form:
 .IP
 .RI [ address ]
@@ -226,7 +227,7 @@ in
 The address of the variable
 .I name
 in the specified
-C routine.
+C or ALEF routine.
 Both
 .I routine
 and
@@ -358,7 +359,7 @@ print it,
 and advance (a local copy of) dot
 by the number of bytes fetched.
 The total number of bytes in a format becomes the
-.IR current increment .
+.I current increment\f1.
 .ta 2.5n .5i
 .RS
 .TP
@@ -381,20 +382,11 @@ Print two-byte integer in decimal.
 .B D
 Print four-byte integer in decimal.
 .TP
-.B V
-Print eight-byte integer in decimal.
-.TP
-.B Z
-Print eight-byte integer in unsigned decimal.
-.TP
 .B x
 Print two-byte integer in hexadecimal.
 .TP
 .B X
 Print four-byte integer in hexadecimal.
-.TP
-.B Y
-Print eight-byte integer in hexadecimal.
 .TP
 .B u
 Print two-byte integer in unsigned decimal.
@@ -442,14 +434,10 @@ the escape convention (see
 above).
 .TP
 .B r
-Print as
-.SM UTF
-the addressed two-byte integer (rune).
+Print as UTF the addressed two-byte integer (rune).
 .TP
 .B R
-Print as
-.SM UTF
-the addressed two-byte integers as runes
+Print as UTF the addressed two-byte integers as runes
 until a zero rune is reached.
 Advance dot
 by the length of the string,

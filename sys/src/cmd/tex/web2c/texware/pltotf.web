@@ -1,0 +1,2512 @@
+% This program by D. E. Knuth is not copyrighted and can be used freely.
+% Version 0 was implemented in January 1982.
+% In February 1982 a new restriction on ligature steps was added.
+% In June 1982 the routines were divided into smaller pieces for IBM people.
+% Hex was added in September 1982, and the result became "Version 1".
+% Version 1.1 fixed a bug in section 28 (since eoln is undefined after eof).
+% Slight changes were made in October, 1982, for version 0.6 of TeX.
+% Version 1.2 fixed a bug in section 115 (TOP, MID, and BOT can be zero)
+% Version 1.3 (April 1983) blanked out unused BCPL header bytes
+% Version 2 (July 1983) was released with TeX version 0.999.
+% Version 2.1 (September 1983) changed TEXINFO to FONTDIMEN.
+% Version 2.2 (May 1985) added checksum computation to match METAFONT.
+% Version 2.3 (August 1985) introduced `backup' to fix a minor bug.
+% Version 3 (October 1989) introduced extended ligature features.
+% Version 3.1 (November 1989) fixed two bugs (notably min_nl:=0).
+% Version 3.2 (December 1989) improved `shorten', increased max_letters.
+% Version 3.3 (September 1990) fixed `nonexistent char 0' (John Gourlay).
+% Version 3.4 (March 1991) has more robust `out_scaled' (Wayne Sullivan).
+
+% Here is TeX material that gets inserted after \input webmac
+\def\hang{\hangindent 3em\indent\ignorespaces}
+\font\ninerm=cmr9
+\let\mc=\ninerm % medium caps for names like SAIL
+\def\PASCAL{Pascal}
+\font\logo=logo10 % for the METAFONT logo
+\def\MF{{\logo METAFONT}}
+
+\def\(#1){} % this is used to make section names sort themselves better
+\def\9#1{} % this is used for sort keys in the index
+
+\def\title{PL\lowercase{to}TF}
+\def\contentspagenumber{301}
+\def\topofcontents{\null
+  \def\titlepage{F} % include headline on the contents page
+  \def\rheader{\mainfont\hfil \contentspagenumber}
+  \vfill
+  \centerline{\titlefont The {\ttitlefont PLtoTF} processor}
+  \vskip 15pt
+  \centerline{(Version 3.4, March 1991)}
+  \vfill}
+\def\botofcontents{\vfill
+  \centerline{\hsize 5in\baselineskip9pt
+    \vbox{\ninerm\noindent
+    The preparation of this report
+    was supported in part by the National Science
+    Foundation under grants IST-8201926 and MCS-8300984,
+    and by the System Development Foundation. `\TeX' is a
+    trademark of the American Mathematical Society.}}}
+\pageno=\contentspagenumber \advance\pageno by 1
+
+@* Introduction.
+The \.{PLtoTF} utility program converts property-list (``\.{PL}'')
+files into equivalent \TeX\ font metric (``\.{TFM}'') files. It also
+makes a thorough check of the given \.{PL} file, so that the \.{TFM}
+file should be acceptable to \TeX.
+
+The first \.{PLtoTF} program was designed by Leo Guibas in the summer of
+1978. Contributions by Frank Liang, Doug Wyatt, and Lyle Ramshaw
+also had a significant effect on the evolution of the present code.
+
+Extensions for an enhanced ligature mechanism were added by the author in 1989.
+
+The |banner| string defined here should be changed whenever \.{PLtoTF}
+gets modified.
+
+@d banner=='This is PLtoTF, Version 3.4' {printed when the program starts}
+
+@ This program is written entirely in standard \PASCAL, except that
+it has to do some slightly system-dependent character code conversion
+on input. Furthermore, lower case letters are used in error messages;
+they could be converted to upper case if necessary. The input is read
+from |pl_file|, and the output is written on |tfm_file|; error messages and
+other remarks are written on the |output| file, which the user may
+choose to assign to the terminal if the system permits it.
+@^system dependencies@>
+
+The term |print| is used instead of |write| when this program writes on
+the |output| file, so that all such output can be easily deflected.
+
+@d print(#)==write(#)
+@d print_ln(#)==write_ln(#)
+
+@p program PLtoTF(@!pl_file,@!tfm_file,@!output);
+const @<Constants in the outer block@>@/
+type @<Types in the outer block@>@/
+var @<Globals in the outer block@>@/
+procedure initialize; {this procedure gets things started properly}
+  var @<Local variables for initialization@>@/
+  begin print_ln(banner);@/
+  @<Set initial values@>@/
+  end;
+
+@ The following parameters can be changed at compile time to extend or
+reduce \.{PLtoTF}'s capacity.
+
+@<Constants...@>=
+@!buf_size=60; {length of lines displayed in error messages}
+@!max_header_bytes=100; {four times the maximum number of words allowed in
+  the \.{TFM} file header block, must be 1024 or less}
+@!max_param_words=30; {the maximum number of \.{fontdimen} parameters allowed}
+@!max_lig_steps=5000;
+  {maximum length of ligature program, must be at most $32767-257=32510$}
+@!max_kerns=500; {the maximum number of distinct kern values}
+@!hash_size=5003; {preferably a prime number, a bit larger than the number
+  of character pairs in lig/kern steps}
+
+@ Here are some macros for common programming idioms.
+
+@d incr(#) == #:=#+1 {increase a variable by unity}
+@d decr(#) == #:=#-1 {decrease a variable by unity}
+@d do_nothing == {empty statement}
+
+@* Property list description of font metric data.
+The idea behind \.{PL} files is that precise details about fonts, i.e., the
+facts that are needed by typesetting routines like \TeX, sometimes have to
+be supplied by hand. The nested property-list format provides a reasonably
+convenient way to do this.
+
+A good deal of computation is necessary to parse and process a
+\.{PL} file, so it would be inappropriate for \TeX\ itself to do this
+every time it loads a font. \TeX\ deals only with the compact descriptions
+of font metric data that appear in \.{TFM} files. Such data is so compact,
+however, it is almost impossible for anybody but a computer to read it.
+The purpose of \.{PLtoTF} is to convert from a human-oriented file of text
+to a computer-oriented file of binary numbers.
+
+@<Glob...@>=
+@!pl_file:text;
+
+@ @<Set init...@>=
+reset(pl_file);
+
+@ A \.{PL} file is a list of entries of the form
+$$\.{(PROPERTYNAME VALUE)}$$
+where the property name is one of a finite set of names understood by
+this program, and the value may itself in turn be a property list.
+The idea is best understood by looking at an example, so let's consider
+a fragment of the \.{PL} file for a hypothetical font.
+$$\vbox{\halign{\.{#}\hfil\cr
+(FAMILY NOVA)\cr
+(FACE F MIE)\cr
+(CODINGSCHEME ASCII)\cr
+(DESIGNSIZE D 10)\cr
+(DESIGNUNITS D 18)\cr
+(COMMENT A COMMENT IS IGNORED)\cr
+(COMMENT (EXCEPT THIS ONE ISN'T))\cr
+(COMMENT (ACTUALLY IT IS, EVEN THOUGH\cr
+\qquad\qquad IT SAYS IT ISN'T))\cr
+(FONTDIMEN\cr
+\qquad   (SLANT R -.25)\cr
+\qquad   (SPACE D 6)\cr
+\qquad   (SHRINK D 2)\cr
+\qquad   (STRETCH D 3)\cr
+\qquad   (XHEIGHT R 10.55)\cr
+\qquad   (QUAD D 18)\cr
+\qquad   )\cr
+(LIGTABLE\cr
+\qquad   (LABEL C f)\cr
+\qquad   (LIG C f O 200)\cr
+\qquad   (SKIP D 1)\cr
+\qquad   (LABEL O 200)\cr
+\qquad   (LIG C i O 201)\cr
+\qquad   (KRN O 51 R 1.5)\cr
+\qquad   (/LIG C ? C f)\cr
+\qquad   (STOP)\cr
+\qquad   )\cr
+(CHARACTER C f\cr
+\qquad   (CHARWD D 6)\cr
+\qquad   (CHARHT R 13.5)\cr
+\qquad   (CHARIC R 1.5)\cr
+\qquad   )\cr}}$$
+This example says that the font whose metric information is being described
+belongs to the hypothetical
+\.{NOVA} family; its face code is medium italic extended;
+and the characters appear in ASCII code positions. The design size is 10 points,
+and all other sizes in this \.{PL} file are given in units such that 18 units
+equals the design size. The font is slanted with a slope of $-.25$ (hence the
+letters actually slant backward---perhaps that is why the family name is
+\.{NOVA}). The normal space between words is 6 units (i.e., one third of
+the 18-unit design size), with glue that shrinks by 2 units or stretches by 3.
+The letters for which accents don't need to be raised or lowered are 10.55
+units high, and one em equals 18 units.
+
+The example ligature table is a bit trickier. It specifies that the
+letter \.f followed by another \.f is changed to code @'200, while
+code @'200 followed by \.i is changed to @'201; presumably codes @'200
+and @'201 represent the ligatures `ff' and `ffi'.  Moreover, in both cases
+\.f and @'200, if the following character is the code @'51 (which is a
+right parenthesis), an additional 1.5 units of space should be inserted
+before the @'51.  (The `\.{SKIP}~\.D~\.1' skips over one \.{LIG} or
+\.{KRN} command, which in this case is the second \.{LIG}; in this way
+two different ligature/kern programs can come together.)
+Finally, if either \.f or @'200 is followed by a question mark,
+the question mark is replaced by \.f and the ligature program is
+started over. (Thus, the character pair `\.{f?}' would actually become
+the ligature `ff', and `\.{ff?}' or `\.{f?f}' would become `fff'. To
+avoid this restart procedure, the \.{/LIG} command could be replaced
+by \.{/LIG>}; then `\.{f?} would become `f\kern0ptf' and `\.{f?f}'
+would become `f\kern0ptff'.)
+
+Character \.f itself is 6 units wide and 13.5 units tall, in this example.
+Its depth is zero (since \.{CHARDP} is not given), and its italic correction
+is 1.5 units.
+
+@ The example above illustrates most of the features found in \.{PL} files.
+Note that some property names, like \.{FAMILY} or \.{COMMENT}, take a
+string as their value; this string continues until the first unmatched
+right parenthesis. But most property names, like \.{DESIGNSIZE} and \.{SLANT}
+and \.{LABEL}, take a number as their value. This number can be expressed in
+a variety of ways, indicated by a prefixed code; \.D stands for decimal,
+\.H for hexadecimal, \.O for octal, \.R for real, \.C for character, and
+\.F for ``face.''  Other property names, like \.{LIG}, take two numbers as
+their value.  And still other names, like \.{FONTDIMEN} and \.{LIGTABLE} and
+\.{CHARACTER}, have more complicated values that involve property lists.
+
+A property name is supposed to be used only in an appropriate property
+list.  For example, \.{CHARWD} shouldn't occur on the outer level or
+within \.{FONTDIMEN}.
+
+The individual property-and-value pairs in a property list can appear in
+any order. For instance, `\.{SHRINK}' precedes `\.{STRETCH}' in the above
+example, although the \.{TFM} file always puts the stretch parameter first.
+One could even give the information about characters like `\.f' before
+specifying the number of units in the design size, or before specifying the
+ligature and kerning table. However, the \.{LIGTABLE} itself is an exception
+to this rule; the individual elements of the \.{LIGTABLE} property list
+can be reordered only to a certain extent without changing the meaning
+of that table.
+
+If property-and-value pairs are omitted, a default value is used. For example,
+we have already noted that the default for \.{CHARDP} is zero. The default
+for {\sl every\/} numeric value is, in fact, zero, unless otherwise stated
+below.
+
+If the same property name is used more than once, \.{PLtoTF} will not notice
+the discrepancy; it simply uses the final value given. Once again, however, the
+\.{LIGTABLE} is an exception to this rule; \.{PLtoTF} will complain if there
+is more than one label for some character. And of course many of the
+entries in the \.{LIGTABLE} property list have the same property name.
+
+From these rules, you can guess (correctly) that \.{PLtoTF} operates in four
+main steps. First it assigns the default values to all properties; then it scans
+through the \.{PL} file, changing property values as new ones are seen; then
+it checks the information and corrects any problems; and finally it outputs
+the \.{TFM} file.
+
+@ Instead of relying on a hypothetical example, let's consider a complete
+grammar for \.{PL} files. At the outer level, the following property names
+are valid:
+
+\yskip\hang\.{CHECKSUM} (four-byte value). The value, which should be a
+nonnegative integer less than $2^{32}$, is used to identify a particular
+version of a font; it should match the check sum value stored with the font
+itself. An explicit check sum of zero is used to bypass
+check sum testing. If no checksum is specified in the \.{PL} file,
+\.{PLtoTF} will compute the checksum that \MF\ would compute from the
+same data.
+
+\yskip\hang\.{DESIGNSIZE} (numeric value, default is 10). The value, which
+should be a real number in the range |1.0<=x<2048|, represents the default
+amount by which all quantities will be scaled if the font is not loaded
+with an `\.{at}' specification. For example, if one says
+`\.{\\font\\A=cmr10 at 15pt}' in \TeX\ language, the design size in the \.{TFM}
+file is ignored and effectively replaced by 15 points; but if one simply
+says `\.{\\font\\A=cmr10}' the stated design size is used. This quantity is
+always in units of printer's points.
+
+\yskip\hang\.{DESIGNUNITS} (numeric value, default is 1). The value
+should be a positive real number; it says how many units equals the design
+size (or the eventual `\.{at}' size, if the font is being scaled). For
+example, suppose you have a font that has been digitized with 600 pixels per
+em, and the design size is one em; then you could say `\.{(DESIGNUNITS R 600)}'
+if you wanted to give all of your measurements in units of pixels.
+
+\yskip\hang\.{CODINGSCHEME} (string value, default is `\.{UNSPECIFIED}').
+The string should not contain parentheses, and its length must be less than 40.
+It identifies the correspondence between the numeric codes and font characters.
+(\TeX\ ignores this information, but other software programs make use of it.)
+
+\yskip\hang\.{FAMILY} (string value, default is `\.{UNSPECIFIED}').
+The string should not contain parentheses, and its length must be less than 20.
+It identifies the name of the family to which this font belongs, e.g.,
+`\.{HELVETICA}'.  (\TeX\ ignores this information; but it is needed, for
+example, when converting \.{DVI} files to \.{PRESS} files for Xerox
+equipment.)
+
+\yskip\hang\.{FACE} (one-byte value). This number, which must lie between
+0 and 255 inclusive, is a subsidiary ident\-ifi\-ca\-tion of the font within its
+family. For example, bold italic condensed fonts might have the same family name
+as light roman extended fonts, differing only in their face byte.  (\TeX\
+ignores this information; but it is needed, for example, when converting
+\.{DVI} files to \.{PRESS} files for Xerox equipment.)
+
+\yskip\hang\.{SEVENBITSAFEFLAG} (string value, default is `\.{FALSE}'). The
+value should start with either `\.T' (true) or `\.F' (false). If true, character
+codes less than 128 cannot lead to codes of 128 or more via ligatures or
+charlists or extensible characters. (\TeX82 ignores this flag, but older
+versions of \TeX\ would only accept \.{TFM} files that were seven-bit safe.)
+\.{PLtoTF} computes the correct value of this flag and gives an error message
+only if a claimed ``true'' value is incorrect.
+
+\yskip\hang\.{HEADER} (a one-byte value followed by a four-byte value).
+The one-byte value should be between 18 and a maximum limit that can be
+raised or lowered depending on the compile-time setting of |max_header_bytes|.
+The four-byte value goes into the header word whose index is the one-byte
+value; for example, to set |header[18]:=1|, one may write
+`\.{(HEADER D 18 O 1)}'. This notation is used for header information that
+is presently unnamed. (\TeX\ ignores it.)
+
+\yskip\hang\.{FONTDIMEN} (property list value). See below for the names
+allowed in this property list.
+
+\yskip\hang\.{LIGTABLE} (property list value). See below for the rules
+about this special kind of property list.
+
+\yskip\hang\.{BOUNDARYCHAR} (one-byte value). If this character appears in
+a \.{LIGTABLE} command, it matches ``end of word'' as well as itself.
+If no boundary character is given and no \.{LABEL} \.{BOUNDARYCHAR} occurs
+within \.{LIGTABLE}, word boundaries will not affect ligatures or kerning.
+
+\yskip\hang\.{CHARACTER}. The value is a one-byte integer followed by
+a property list. The integer represents the number of a character that is
+present in the font; the property list of a character is defined below.
+The default is an empty property list.
+
+@ Numeric property list values can be given in various forms identified by
+a prefixed letter.
+
+\yskip\hang\.C denotes an ASCII character, which should be a standard visible
+character that is not a parenthesis. The numeric value will therefore be
+between @'41 and @'176 but not @'50 or @'51.
+
+\yskip\hang\.D denotes a decimal integer, which must be nonnegative and
+less than 256. (Use \.R for larger values or for negative values.)
+
+\yskip\hang\.F denotes a three-letter Xerox face code; the admissible codes
+are \.{MRR}, \.{MIR}, \.{BRR}, \.{BIR}, \.{LRR}, \.{LIR}, \.{MRC}, \.{MIC},
+\.{BRC}, \.{BIC}, \.{LRC}, \.{LIC}, \.{MRE}, \.{MIE}, \.{BRE}, \.{BIE},
+\.{LRE}, and \.{LIE}, denoting the integers 0 to 17, respectively.
+
+\yskip\hang\.O denotes an unsigned octal integer, which must be less than
+$2^{32}$, i.e., at most `\.{O 37777777777}'.
+
+\yskip\hang\.H denotes an unsigned hexadecimal integer, which must be less than
+$2^{32}$, i.e., at most `\.{H FFFFFFFF}'.
+
+\yskip\hang\.R denotes a real number in decimal notation, optionally preceded
+by a `\.+' or `\.-' sign, and optionally including a decimal point. The
+absolute value must be less than 2048.
+
+@ The property names allowed in a \.{FONTDIMEN} property list correspond to
+various \TeX\ parameters, each of which has a (real) numeric value. All
+of the parameters except \.{SLANT} are in design units. The admissible
+names are \.{SLANT}, \.{SPACE}, \.{STRETCH}, \.{SHRINK}, \.{XHEIGHT},
+\.{QUAD}, \.{EXTRASPACE}, \.{NUM1}, \.{NUM2}, \.{NUM3}, \.{DENOM1},
+\.{DENOM2}, \.{SUP1}, \.{SUP2}, \.{SUP3}, \.{SUB1}, \.{SUB2}, \.{SUPDROP},
+\.{SUBDROP}, \.{DELIM1}, \.{DELIM2}, and \.{AXISHEIGHT}, for parameters
+1~to~22. The alternate names \.{DEFAULTRULETHICKNESS},
+\.{BIGOPSPACING1}, \.{BIGOPSPACING2}, \.{BIGOPSPACING3},
+\.{BIGOPSPACING4}, and \.{BIGOPSPACING5}, may also be used for parameters
+8 to 13.
+
+The notation `\.{PARAMETER} $n$' provides another way to specify the
+$n$th parameter; for example, `\.{(PARAMETER} \.{D 1 R -.25)}' is another way
+to specify that the \.{SLANT} is $-0.25$. The value of $n$ must be positive
+and less than |max_param_words|.
+
+@ The elements of a \.{CHARACTER} property list can be of six different types.
+
+\yskip\hang\.{CHARWD} (real value) denotes the character's width in
+design units.
+
+\yskip\hang\.{CHARHT} (real value) denotes the character's height in
+design units.
+
+\yskip\hang\.{CHARDP} (real value) denotes the character's depth in
+design units.
+
+\yskip\hang\.{CHARIC} (real value) denotes the character's italic correction in
+design units.
+
+\yskip\hang\.{NEXTLARGER} (one-byte value), specifies the character that
+follows the present one in a ``charlist.'' The value must be the number of a
+character in the font, and there must be no infinite cycles of supposedly
+larger and larger characters.
+
+\yskip\hang\.{VARCHAR} (property list value), specifies an extensible character.
+This option and \.{NEXTLARGER} are mutually exclusive; i.e., they cannot
+both be used within the same \.{CHARACTER} list.
+
+\yskip\noindent
+The elements of a \.{VARCHAR} property list are either \.{TOP}, \.{MID},
+\.{BOT} or \.{REP}; the values are integers, which must be zero or the number
+of a character in the font. A zero value for \.{TOP}, \.{MID}, or \.{BOT} means
+that the corresponding piece of the extensible character is absent. A nonzero
+value, or a \.{REP} value of zero, denotes the character code used to make
+up the top, middle, bottom, or replicated piece of an extensible character.
+
+@ A \.{LIGTABLE} property list contains elements of four kinds, specifying a
+program in a simple command language that \TeX\ uses for ligatures and kerns.
+If several \.{LIGTABLE} lists appear, they are effectively concatenated into
+a single list.
+
+\yskip\hang\.{LABEL} (one-byte value) means that the program for the
+stated character value starts here. The integer must be the number of a
+character in the font; its \.{CHARACTER} property list must not have a
+\.{NEXTLARGER} or \.{VARCHAR} field. At least one \.{LIG} or \.{KRN} step
+must follow.
+
+\yskip\hang\.{LABEL} \.{BOUNDARYCHAR} means that the program for
+beginning-of-word ligatures starts here.
+
+\yskip\hang\.{LIG} (two one-byte values). The instruction `\.{(LIG} $c$ $r$\.)'
+means, ``If the next character is $c$, then insert character~$r$ and
+possibly delete the current character and/or~$c$;
+otherwise go on to the next instruction.''
+Characters $r$ and $c$ must be present in the font. \.{LIG} may be immediately
+preceded or followed by a slash, and then immediately followed by \.>
+characters not exceeding the number of slashes. Thus there are eight
+possible forms:
+$$\hbox to .8\hsize{\.{LIG}\hfil\.{/LIG}\hfil\.{/LIG>}\hfil
+\.{LIG/}\hfil\.{LIG/>}\hfil\.{/LIG/}\hfil\.{/LIG/>}\hfil\.{/LIG/>>}}$$
+The slashes specify retention of the left or right original character; the
+\.> signs specify passing over the result without further ligature processing.
+
+\yskip\hang\.{KRN} (a one-byte value and a real value). The instruction
+`\.{(KRN} $c$ $r$\.)' means, ``If the next character is $c$, then insert
+a blank space of width $r$ between the current character character and $c$;
+otherwise go on to the next intruction.'' The value of $r$, which is in
+units of the design size, is often negative. Character code $c$ must exist
+in the font.
+
+\yskip\hang\.{STOP} (no value). This instruction ends a ligature/kern program.
+It must follow either a \.{LIG} or \.{KRN} instruction, not a \.{LABEL}
+or \.{STOP} or \.{SKIP}.
+
+\yskip\hang\.{SKIP} (value in the range |0..127|). This instruction specifies
+continuation of a ligature/kern program after the specified number of \.{LIG}
+or \.{KRN} has been skipped over. The number of subsequent \.{LIG} and \.{KRN}
+instructions must therefore exceed this specified amount.
+
+@ In addition to all these possibilities, the property name \.{COMMENT} is
+allowed in any property list. Such comments are ignored.
+
+@ So that is what \.{PL} files hold. The next question is, ``What about
+\.{TFM} files?'' A complete answer to that question appears in the
+documentation of the companion program, \.{TFtoPL}, so it will not
+be repeated here. Suffice it to say that a \.{TFM} file stores all of the
+relevant font information in a sequence of 8-bit bytes. The number of
+bytes is always a multiple of 4, so we could regard the \.{TFM} file
+as a sequence of 32-bit words; but \TeX\ uses the byte interpretation,
+and so does \.{PLtoTF}. Note that the bytes are considered to be unsigned
+numbers.
+
+@<Glob...@>=
+@!tfm_file:packed file of 0..255;
+
+@ On some systems you may have to do something special to write a
+packed file of bytes. For example, the following code didn't work
+when it was first tried at Stanford, because packed files have to be
+opened with a special switch setting on the \PASCAL\ that was used.
+@^system dependencies@>
+
+@<Set init...@>=
+rewrite(tfm_file);
+
+@* Basic input routines.
+For the purposes of this program, a |byte| is an unsigned eight-bit quantity,
+and an |ASCII_code| is an integer between @'40 and @'177. Such ASCII codes
+correspond to one-character constants like \.{"A"} in \.{WEB} language.
+
+@<Types...@>=
+@!byte=0..255; {unsigned eight-bit quantity}
+@!ASCII_code=@'40..@'177; {standard ASCII code numbers}
+
+@ One of the things \.{PLtoTF} has to do is convert characters of strings
+to ASCII form, since that is the code used for the family name and the
+coding scheme in a \.{TFM} file. An array |xord| is used to do the
+conversion from |char|; the method below should work with little or no change
+on most \PASCAL\ systems.
+@^system dependencies@>
+
+@d first_ord=0 {ordinal number of the smallest element of |char|}
+@d last_ord=127 {ordinal number of the largest element of |char|}
+
+@<Global...@>=
+@!xord:array[char] of ASCII_code; {conversion table}
+
+@ @<Local variables for init...@>=
+@!k:integer; {all-purpose initialization index}
+
+@ Characters that should not appear in \.{PL} files (except in comments)
+are mapped into @'177.
+
+@d invalid_code=@'177 {code deserving an error message}
+
+@<Set init...@>=
+for k:=first_ord to last_ord do xord[chr(k)]:=invalid_code;
+xord[' ']:=" "; xord['!']:="!"; xord['"']:=""""; xord['#']:="#";
+xord['$']:="$"; xord['%']:="%"; xord['&']:="&"; xord['''']:="'";
+xord['(']:="("; xord[')']:=")"; xord['*']:="*"; xord['+']:="+"; xord[',']:=",";
+xord['-']:="-"; xord['.']:="."; xord['/']:="/"; xord['0']:="0"; xord['1']:="1";
+xord['2']:="2"; xord['3']:="3"; xord['4']:="4"; xord['5']:="5"; xord['6']:="6";
+xord['7']:="7"; xord['8']:="8"; xord['9']:="9"; xord[':']:=":"; xord[';']:=";";
+xord['<']:="<"; xord['=']:="="; xord['>']:=">"; xord['?']:="?";
+xord['@@']:="@@"; xord['A']:="A"; xord['B']:="B"; xord['C']:="C";
+xord['D']:="D"; xord['E']:="E"; xord['F']:="F"; xord['G']:="G"; xord['H']:="H";
+xord['I']:="I"; xord['J']:="J"; xord['K']:="K"; xord['L']:="L"; xord['M']:="M";
+xord['N']:="N"; xord['O']:="O"; xord['P']:="P"; xord['Q']:="Q"; xord['R']:="R";
+xord['S']:="S"; xord['T']:="T"; xord['U']:="U"; xord['V']:="V"; xord['W']:="W";
+xord['X']:="X"; xord['Y']:="Y"; xord['Z']:="Z"; xord['[']:="["; xord['\']:="\";
+xord[']']:="]"; xord['^']:="^"; xord['_']:="_"; xord['`']:="`"; xord['a']:="a";
+xord['b']:="b"; xord['c']:="c"; xord['d']:="d"; xord['e']:="e"; xord['f']:="f";
+xord['g']:="g"; xord['h']:="h"; xord['i']:="i"; xord['j']:="j"; xord['k']:="k";
+xord['l']:="l"; xord['m']:="m"; xord['n']:="n"; xord['o']:="o"; xord['p']:="p";
+xord['q']:="q"; xord['r']:="r"; xord['s']:="s"; xord['t']:="t"; xord['u']:="u";
+xord['v']:="v"; xord['w']:="w"; xord['x']:="x"; xord['y']:="y"; xord['z']:="z";
+xord['{']:="{"; xord['|']:="|"; xord['}']:="}"; xord['~']:="~";
+
+@ In order to help catch errors of badly nested parentheses, \.{PLtoTF}
+assumes that the user will begin each line with a number of blank spaces equal
+to some constant times the number of open parentheses at the beginning of
+that line. However, the program doesn't know in advance what the constant
+is, nor does it want to print an error message on every line for a user
+who has followed no consistent pattern of indentation.
+
+Therefore the following strategy is adopted: If the user has been consistent
+with indentation for ten or more lines, an indentation error will be
+reported. The constant of indentation is reset on every line that should
+have nonzero indentation.
+
+@<Glob...@>=
+@!line:integer; {the number of the current line}
+@!good_indent:integer; {the number of lines since the last bad indentation}
+@!indent: integer; {the number of spaces per open parenthesis, zero if unknown}
+@!level: integer; {the current number of open parentheses}
+
+@ @<Set init...@>=
+line:=0; good_indent:=0; indent:=0; level:=0;
+
+@ The input need not really be broken into lines of any maximum length, and
+we could read it character by character without any buffering. But we shall
+place it into a small buffer so that offending lines can be displayed in error
+messages.
+
+@<Glob...@>=
+@!left_ln,@!right_ln:boolean; {are the left and right ends of the buffer
+  at end-of-line marks?}
+@!limit:0..buf_size; {position of the last character present in the buffer}
+@!loc:0..buf_size; {position of the last character read in the buffer}
+@!buffer:array[1..buf_size] of char;
+@!input_has_ended:boolean; {there is no more input to read}
+
+@ @<Set init...@>=
+limit:=0; loc:=0; left_ln:=true; right_ln:=true; input_has_ended:=false;
+
+@ Just before each  \.{CHARACTER} property list is evaluated, the character
+code is printed in octal notation. Up to eight such codes appear on a line;
+so we have a variable to keep track of how many are currently there.
+
+@<Glob...@>=
+@!chars_on_line:0..8; {the number of characters printed on the current line}
+
+@ @<Set init...@>=
+chars_on_line:=0;
+
+@ The following routine prints an error message and an indication of
+where the error was detected. The error message should not include any
+final punctuation, since this procedure supplies its own.
+
+@d err_print(#)==begin if chars_on_line>0 then print_ln(' ');
+  print(#); show_error_context;
+  end
+
+@p procedure show_error_context; {prints the current scanner location}
+var k:0..buf_size; {an index into |buffer|}
+begin print_ln(' (line ',line:1,').');
+if not left_ln then print('...');
+for k:=1 to loc do print(buffer[k]); {print the characters already scanned}
+print_ln(' ');
+if not left_ln then print('   ');
+for k:=1 to loc do print(' '); {space out the second line}
+for k:=loc+1 to limit do print(buffer[k]); {print the characters yet unseen}
+if right_ln then print_ln(' ')@+else print_ln('...');
+chars_on_line:=0;
+end;
+
+@ Here is a procedure that does the right thing when we are done
+reading the present contents of the buffer. It keeps |buffer[buf_size]|
+empty, in order to avoid range errors on certain \PASCAL\ compilers.
+
+An infinite sequence of right parentheses is placed at the end of the
+file, so that the program is sure to get out of whatever level of nesting
+it is in.
+
+On some systems it is desirable to modify this code so that tab marks
+in the buffer are replaced by blank spaces. (Simply setting
+|xord[chr(@'11)]:=" "| would not work; for example, two-line
+error messages would not come out properly aligned.)
+@^system dependencies@>
+
+@p procedure fill_buffer;
+begin left_ln:=right_ln; limit:=0; loc:=0;
+if left_ln then
+  begin if line>0 then read_ln(pl_file);
+  incr(line);
+  end;
+if eof(pl_file) then
+  begin limit:=1; buffer[1]:=')'; right_ln:=false; input_has_ended:=true;
+  end
+else  begin while (limit<buf_size-1)and(not eoln(pl_file)) do
+    begin incr(limit); read(pl_file,buffer[limit]);
+    end;
+  buffer[limit+1]:=' '; right_ln:=eoln(pl_file);
+  if left_ln then @<Set |loc| to the number of leading blanks in
+    the buffer, and check the indentation@>;
+  end;
+end;
+
+@ The interesting part about |fill_buffer| is the part that learns what
+indentation conventions the user is following, if any.
+
+@d bad_indent(#)==begin if good_indent>=10 then err_print(#);
+  good_indent:=0; indent:=0;
+  end
+
+@<Set |loc|...@>=
+begin while (loc<limit)and(buffer[loc+1]=' ') do incr(loc);
+if loc<limit then
+  begin if level=0 then
+    if loc=0 then incr(good_indent)
+    else bad_indent('Warning: Indented line occurred at level zero')
+@.Warning: Indented line...@>
+  else if indent=0 then
+    if loc mod level=0 then
+      begin indent:=loc div level; good_indent:=1;
+      end
+    else good_indent:=0
+  else if indent*level=loc then incr(good_indent)
+  else bad_indent('Warning: Inconsistent indentation; ',
+@.Warning: Inconsistent indentation...@>
+    'you are at parenthesis level ',level:1);
+  end;
+end
+
+@* Basic scanning routines.
+The global variable |cur_char| holds the ASCII code corresponding to the
+character most recently read from the input buffer, or to a character that
+has been substituted for the real one.
+
+@<Global...@>=
+@!cur_char:ASCII_code; {we have just read this}
+
+@ Here is a procedure that sets |cur_char| to an ASCII code for the
+next character of input, if that character is a letter or digit or slash
+or \.>. Otherwise
+it sets |cur_char:=" "|, and the input system will be poised to reread the
+character that was rejected, whether or not it was a space.
+Lower case letters are converted to upper case.
+
+@p procedure get_keyword_char;
+begin while (loc=limit)and(not right_ln) do fill_buffer;
+if loc=limit then cur_char:=" " {end-of-line counts as a delimiter}
+else  begin cur_char:=xord[buffer[loc+1]];
+  if cur_char>="a" then cur_char:=cur_char-@'40;
+  if ((cur_char>="0")and(cur_char<="9")) then incr(loc)
+  else if ((cur_char>="A")and(cur_char<="Z")) then incr(loc)
+  else if cur_char="/" then incr(loc)
+  else if cur_char=">" then incr(loc)
+  else cur_char:=" ";
+  end;
+end;
+
+@ The following procedure sets |cur_char| to the next character code,
+and converts lower case to upper case. If the character is a left or
+right parenthesis, it will not be ``digested''; the character will
+be read again and again, until the calling routine does something
+like `|incr(loc)|' to get past it. Such special treatment of parentheses
+insures that the structural information they contain won't be lost in
+the midst of other error recovery operations.
+
+@d backup==begin if (cur_char>")")or(cur_char<"(") then decr(loc);
+  end {undoes the effect of |get_next|}
+
+@p procedure get_next; {sets |cur_char| to next, balks at parentheses}
+begin while loc=limit do fill_buffer;
+incr(loc); cur_char:=xord[buffer[loc]];
+if cur_char>="a" then
+  if cur_char<="z" then cur_char:=cur_char-@'40 {uppercasify}
+  else  begin if cur_char=invalid_code then
+      begin err_print('Illegal character in the file');
+@.Illegal character...@>
+      cur_char:="?";
+      end;
+    end
+else if (cur_char<=")")and(cur_char>="(") then decr(loc);
+end;
+
+@ The next procedure is used to ignore the text of a comment, or to pass over
+erroneous material. As such, it has the privilege of passing parentheses.
+It stops after the first right parenthesis that drops the level below
+the level in force when the procedure was called.
+
+@p procedure skip_to_end_of_item;
+var l:integer; {initial value of |level|}
+begin l:=level;
+while level>=l do
+  begin while loc=limit do fill_buffer;
+  incr(loc);
+  if buffer[loc]=')' then decr(level)
+  else if buffer[loc]='(' then incr(level);
+  end;
+if input_has_ended then err_print('File ended unexpectedly: No closing ")"');
+@.File ended unexpectedly...@>
+cur_char:=" "; {now the right parenthesis has been read and digested}
+end;
+
+@ Sometimes we merely want to skip past characters in the input until we
+reach a left or a right parenthesis. For example, we do this whenever we
+have finished scanning a property value and we hope that a right parenthesis
+is next (except for possible blank spaces).
+
+@d skip_to_paren==repeat get_next@;@+ until (cur_char="(")or(cur_char=")")
+@d skip_error(#)==begin err_print(#); skip_to_paren;
+  end {this gets to the right parenthesis if something goes wrong}
+@d flush_error(#)==begin err_print(#); skip_to_end_of_item;
+  end {this gets past the right parenthesis if something goes wrong}
+
+@ After a property value has been scanned, we want to move just past the
+right parenthesis that should come next in the input (except for possible
+blank spaces).
+
+@p procedure finish_the_property; {do this when the value has been scanned}
+begin while cur_char=" " do get_next;
+if cur_char<>")" then err_print('Junk after property value will be ignored');
+@.Junk after property value...@>
+skip_to_end_of_item;
+end;
+
+@* Scanning property names.
+We have to figure out the meaning of names that appear in the \.{PL} file,
+by looking them up in a dictionary of known keywords. Keyword number $n$
+appears in locations |start[n]| through |start[n+1]-1| of an array called
+|dictionary|.
+
+@d max_name_index=88 {upper bound on the number of keywords}
+@d max_letters=600 {upper bound on the total length of all keywords}
+
+@<Global...@>=
+@!start:array[1..max_name_index] of 0..max_letters;
+@!dictionary:array[0..max_letters] of ASCII_code;
+@!start_ptr:0..max_name_index; {the first available place in |start|}
+@!dict_ptr:0..max_letters; {the first available place in |dictionary|}
+
+@ @<Set init...@>=
+start_ptr:=1; start[1]:=0; dict_ptr:=0;
+
+@ When we are looking for a name, we put it into the |cur_name| array.
+When we have found it, the corresponding |start| index will go into
+the global variable |name_ptr|.
+
+@d longest_name=20 {length of \.{DEFAULTRULETHICKNESS}}
+
+@<Glob...@>=
+@!cur_name:array[1..longest_name] of ASCII_code; {a name to look up}
+@!name_length:0..longest_name; {its length}
+@!name_ptr:0..max_name_index; {its ordinal number in the dictionary}
+
+@ A conventional hash table with linear probing (cf.\ Algorithm 6.4L
+in {\sl The Art of Computer Pro\-gram\-ming\/}) is used for the dictionary
+operations. If |nhash[h]=0|, the table position is empty, otherwise |nhash[h]|
+points into the |start| array.
+
+@d hash_prime=101 {size of the hash table}
+
+@<Glob...@>=
+@!nhash:array[0..hash_prime-1] of 0..max_name_index;
+@!cur_hash:0..hash_prime-1; {current position in the hash table}
+
+@ @<Local...@>=
+@!h:0..hash_prime-1; {runs through the hash table}
+
+@ @<Set init...@>=
+for h:=0 to hash_prime-1 do nhash[h]:=0;
+
+@ Since there is no chance of the hash table overflowing, the procedure
+is very simple. After |lookup| has done its work, |cur_hash| will point
+to the place where the given name was found, or where it should be inserted.
+
+@p procedure lookup; {finds |cur_name| in the dictionary}
+var k:0..longest_name; {index into |cur_name|}
+@!j:0..max_letters; {index into |dictionary|}
+@!not_found:boolean; {clumsy thing necessary to avoid |goto| statement}
+begin @<Compute the hash code, |cur_hash|, for |cur_name|@>;
+not_found:=true;
+while not_found do
+  begin if cur_hash=0 then cur_hash:=hash_prime-1@+else decr(cur_hash);
+  if nhash[cur_hash]=0 then not_found:=false
+  else  begin j:=start[nhash[cur_hash]];
+    if start[nhash[cur_hash]+1]=j+name_length then
+      begin not_found:=false;
+      for k:=1 to name_length do
+      if dictionary[j+k-1]<>cur_name[k] then not_found:=true;
+      end;
+    end;
+  end;
+name_ptr:=nhash[cur_hash];
+end;
+
+@ @<Compute the hash...@>=
+cur_hash:=cur_name[1];
+for k:=2 to name_length do
+  cur_hash:=(cur_hash+cur_hash+cur_name[k]) mod hash_prime
+
+@ The ``meaning'' of the keyword that begins at |start[k]| in the
+dictionary is kept in |equiv[k]|. The numeric |equiv| codes are given
+symbolic meanings by the following definitions.
+
+@d comment_code=0
+@d check_sum_code=1
+@d design_size_code=2
+@d design_units_code=3
+@d coding_scheme_code=4
+@d family_code=5
+@d face_code=6
+@d seven_bit_safe_flag_code=7
+@d header_code= 8
+@d font_dimen_code=9
+@d lig_table_code=10
+@d boundary_char_code=11
+@d character_code=12
+@d parameter_code=20
+@d char_info_code=50
+@d width=1
+@d height=2
+@d depth=3
+@d italic=4
+@d char_wd_code=char_info_code+width
+@d char_ht_code=char_info_code+height
+@d char_dp_code=char_info_code+depth
+@d char_ic_code=char_info_code+italic
+@d next_larger_code=55
+@d var_char_code=56
+@d label_code=70
+@d stop_code=71
+@d skip_code=72
+@d krn_code=73
+@d lig_code=74
+
+@<Glo...@>=
+@!equiv:array[0..max_name_index] of byte;
+@!cur_code:byte; {equivalent most recently found in |equiv|}
+
+@ We have to get the keywords into the hash table and into the dictionary in
+the first place (sigh). The procedure that does this has the desired
+|equiv| code as a parameter. In order to facilitate \.{WEB} macro writing
+for the initialization, the keyword being initialized is placed into the
+last positions of |cur_name|, instead of the first positions.
+
+@p procedure enter_name(v:byte); {|cur_name| goes into the dictionary}
+var k:0..longest_name;
+begin for k:=1 to name_length do
+  cur_name[k]:=cur_name[k+longest_name-name_length];
+{now the name has been shifted into the correct position}
+lookup; {this sets |cur_hash| to the proper insertion place}
+nhash[cur_hash]:=start_ptr; equiv[start_ptr]:=v;
+for k:=1 to name_length do
+  begin dictionary[dict_ptr]:=cur_name[k]; incr(dict_ptr);
+  end;
+incr(start_ptr); start[start_ptr]:=dict_ptr;
+end;
+
+@ Here are the macros to load a name of up to 20 letters into the
+dictionary. For example, the macro |load5| is used for five-letter keywords.
+
+@d tail(#)==enter_name(#)
+@d t20(#)==cur_name[20]:=#;tail
+@d t19(#)==cur_name[19]:=#;t20
+@d t18(#)==cur_name[18]:=#;t19
+@d t17(#)==cur_name[17]:=#;t18
+@d t16(#)==cur_name[16]:=#;t17
+@d t15(#)==cur_name[15]:=#;t16
+@d t14(#)==cur_name[14]:=#;t15
+@d t13(#)==cur_name[13]:=#;t14
+@d t12(#)==cur_name[12]:=#;t13
+@d t11(#)==cur_name[11]:=#;t12
+@d t10(#)==cur_name[10]:=#;t11
+@d t9(#)==cur_name[9]:=#;t10
+@d t8(#)==cur_name[8]:=#;t9
+@d t7(#)==cur_name[7]:=#;t8
+@d t6(#)==cur_name[6]:=#;t7
+@d t5(#)==cur_name[5]:=#;t6
+@d t4(#)==cur_name[4]:=#;t5
+@d t3(#)==cur_name[3]:=#;t4
+@d t2(#)==cur_name[2]:=#;t3
+@d t1(#)==cur_name[1]:=#;t2
+@d load3==name_length:=3;t18
+@d load4==name_length:=4;t17
+@d load5==name_length:=5;t16
+@d load6==name_length:=6;t15
+@d load7==name_length:=7;t14
+@d load8==name_length:=8;t13
+@d load9==name_length:=9;t12
+@d load10==name_length:=10;t11
+@d load11==name_length:=11;t10
+@d load12==name_length:=12;t9
+@d load13==name_length:=13;t8
+@d load14==name_length:=14;t7
+@d load15==name_length:=15;t6
+@d load16==name_length:=16;t5
+@d load17==name_length:=17;t4
+@d load18==name_length:=18;t3
+@d load19==name_length:=19;t2
+@d load20==name_length:=20;t1
+
+@ (Thank goodness for keyboard macros in the text editor used to create this
+\.{WEB} file.)
+
+@<Enter all of the names and their equivalents, except the parameter names@>=
+equiv[0]:=comment_code; {this is used after unknown keywords}
+load8("C")("H")("E")("C")("K")("S")("U")("M")(check_sum_code);@/
+load10("D")("E")("S")("I")("G")("N")("S")("I")("Z")("E")(design_size_code);@/
+load11("D")("E")("S")("I")("G")("N")
+  ("U")("N")("I")("T")("S")(design_units_code);@/
+load12("C")("O")("D")("I")("N")("G")
+  ("S")("C")("H")("E")("M")("E")(coding_scheme_code);@/
+load6("F")("A")("M")("I")("L")("Y")(family_code);@/
+load4("F")("A")("C")("E")(face_code);@/
+load16("S")("E")("V")("E")("N")("B")("I")("T")@/@t\hskip2em@>
+  ("S")("A")("F")("E")("F")("L")("A")("G")(seven_bit_safe_flag_code);@/
+load6("H")("E")("A")("D")("E")("R")(header_code);@/
+load9("F")("O")("N")("T")("D")("I")("M")("E")("N")(font_dimen_code);@/
+load8("L")("I")("G")("T")("A")("B")("L")("E")(lig_table_code);@/
+load12("B")("O")("U")("N")("D")("A")("R")("Y")("C")("H")("A")("R")
+  (boundary_char_code);@/
+load9("C")("H")("A")("R")("A")("C")("T")("E")("R")(character_code);@/
+load9("P")("A")("R")("A")("M")("E")("T")("E")("R")(parameter_code);@/
+load6("C")("H")("A")("R")("W")("D")(char_wd_code);@/
+load6("C")("H")("A")("R")("H")("T")(char_ht_code);@/
+load6("C")("H")("A")("R")("D")("P")(char_dp_code);@/
+load6("C")("H")("A")("R")("I")("C")(char_ic_code);@/
+load10("N")("E")("X")("T")("L")("A")("R")("G")("E")("R")(next_larger_code);@/
+load7("V")("A")("R")("C")("H")("A")("R")(var_char_code);@/
+load3("T")("O")("P")(var_char_code+1);@/
+load3("M")("I")("D")(var_char_code+2);@/
+load3("B")("O")("T")(var_char_code+3);@/
+load3("R")("E")("P")(var_char_code+4);@/
+load3("E")("X")("T")(var_char_code+4); {compatibility with older \.{PL} format}
+load7("C")("O")("M")("M")("E")("N")("T")(comment_code);@/
+load5("L")("A")("B")("E")("L")(label_code);@/
+load4("S")("T")("O")("P")(stop_code);@/
+load4("S")("K")("I")("P")(skip_code);@/
+load3("K")("R")("N")(krn_code);@/
+load3("L")("I")("G")(lig_code);@/
+load4("/")("L")("I")("G")(lig_code+2);@/
+load5("/")("L")("I")("G")(">")(lig_code+6);@/
+load4("L")("I")("G")("/")(lig_code+1);@/
+load5("L")("I")("G")("/")(">")(lig_code+5);@/
+load5("/")("L")("I")("G")("/")(lig_code+3);@/
+load6("/")("L")("I")("G")("/")(">")(lig_code+7);@/
+load7("/")("L")("I")("G")("/")(">")(">")(lig_code+11);@/
+
+@ @<Enter the parameter names@>=
+load5("S")("L")("A")("N")("T")(parameter_code+1);@/
+load5("S")("P")("A")("C")("E")(parameter_code+2);@/
+load7("S")("T")("R")("E")("T")("C")("H")(parameter_code+3);@/
+load6("S")("H")("R")("I")("N")("K")(parameter_code+4);@/
+load7("X")("H")("E")("I")("G")("H")("T")(parameter_code+5);@/
+load4("Q")("U")("A")("D")(parameter_code+6);@/
+load10("E")("X")("T")("R")("A")("S")("P")("A")("C")("E")(parameter_code+7);@/
+load4("N")("U")("M")("1")(parameter_code+8);@/
+load4("N")("U")("M")("2")(parameter_code+9);@/
+load4("N")("U")("M")("3")(parameter_code+10);@/
+load6("D")("E")("N")("O")("M")("1")(parameter_code+11);@/
+load6("D")("E")("N")("O")("M")("2")(parameter_code+12);@/
+load4("S")("U")("P")("1")(parameter_code+13);@/
+load4("S")("U")("P")("2")(parameter_code+14);@/
+load4("S")("U")("P")("3")(parameter_code+15);@/
+load4("S")("U")("B")("1")(parameter_code+16);@/
+load4("S")("U")("B")("2")(parameter_code+17);@/
+load7("S")("U")("P")("D")("R")("O")("P")(parameter_code+18);@/
+load7("S")("U")("B")("D")("R")("O")("P")(parameter_code+19);@/
+load6("D")("E")("L")("I")("M")("1")(parameter_code+20);@/
+load6("D")("E")("L")("I")("M")("2")(parameter_code+21);@/
+load10("A")("X")("I")("S")("H")("E")("I")("G")("H")("T")(parameter_code+22);@/
+load20("D")("E")("F")("A")("U")("L")("T")("R")("U")("L")("E")@/@t\hskip2em@>
+  ("T")("H")("I")("C")("K")("N")("E")("S")("S")(parameter_code+8);@/
+load13("B")("I")("G")("O")("P")
+  ("S")("P")("A")("C")("I")("N")("G")("1")(parameter_code+9);@/
+load13("B")("I")("G")("O")("P")
+  ("S")("P")("A")("C")("I")("N")("G")("2")(parameter_code+10);@/
+load13("B")("I")("G")("O")("P")
+  ("S")("P")("A")("C")("I")("N")("G")("3")(parameter_code+11);@/
+load13("B")("I")("G")("O")("P")
+  ("S")("P")("A")("C")("I")("N")("G")("4")(parameter_code+12);@/
+load13("B")("I")("G")("O")("P")
+  ("S")("P")("A")("C")("I")("N")("G")("5")(parameter_code+13);@/
+
+@ When a left parenthesis has been scanned, the following routine
+is used to interpret the keyword that follows, and to store the
+equivalent value in |cur_code|.
+
+@p procedure get_name;
+begin incr(loc); incr(level); {pass the left parenthesis}
+cur_char:=" ";
+while cur_char=" " do get_next;
+if (cur_char>")")or(cur_char<"(") then decr(loc); {back up one character}
+name_length:=0; get_keyword_char; {prepare to scan the name}
+while cur_char<>" " do
+  begin if name_length=longest_name then cur_name[1]:="X" {force error}
+  else incr(name_length);
+  cur_name[name_length]:=cur_char;
+  get_keyword_char;
+  end;
+lookup;
+if name_ptr=0 then err_print('Sorry, I don''t know that property name');
+@.Sorry, I don't know...@>
+cur_code:=equiv[name_ptr];
+end;
+
+@* Scanning numeric data.
+The next thing we need is a trio of subroutines to read the one-byte,
+four-byte, and real numbers that may appear as property values.
+These subroutines are careful to stick to numbers between $-2^{31}$
+and $2^{31}-1$, inclusive, so that a computer with two's complement
+32-bit arithmetic will not be interrupted by overflow.
+
+@ The first number scanner, which returns a one-byte value, surely has
+no problems of arithmetic overflow.
+
+@p function get_byte:byte; {scans a one-byte property value}
+var acc:integer; {an accumulator}
+@!t:ASCII_code; {the type of value to be scanned}
+begin repeat get_next;
+until cur_char<>" "; {skip the blanks before the type code}
+t:=cur_char; acc:=0;
+repeat get_next;
+until cur_char<>" "; {skip the blanks after the type code}
+if t="C" then @<Scan an ASCII character code@>
+else if t="D" then @<Scan a small decimal number@>
+else if t="O" then @<Scan a small octal number@>
+else if t="H" then @<Scan a small hexadecimal number@>
+else if t="F" then @<Scan a face code@>
+else skip_error('You need "C" or "D" or "O" or "H" or "F" here');
+@.You need "C" or "D" ...here@>
+cur_char:=" "; get_byte:=acc;
+end;
+
+@ The |get_next| routine converts lower case to upper case, but it leaves
+the character in the buffer, so we can unconvert it.
+
+@<Scan an ASCII...@>=
+if (cur_char>=@'41)and(cur_char<=@'176)and
+ ((cur_char<"(")or(cur_char>")")) then
+  acc:=xord[buffer[loc]]
+else skip_error('"C" value must be standard ASCII and not a paren')
+@:C value}\.{"C" value must be...@>
+
+@ @<Scan a small dec...@>=
+begin while (cur_char>="0")and(cur_char<="9") do
+  begin acc:=acc*10+cur_char-"0";
+  if acc>255 then
+    begin skip_error('This value shouldn''t exceed 255');
+@.This value shouldn't...@>
+    acc:=0; cur_char:=" ";
+    end
+  else get_next;
+  end;
+backup;
+end
+
+@ @<Scan a small oct...@>=
+begin while (cur_char>="0")and(cur_char<="7") do
+  begin acc:=acc*8+cur_char-"0";
+  if acc>255 then
+    begin skip_error('This value shouldn''t exceed ''377');
+@.This value shouldn't...@>
+    acc:=0; cur_char:=" ";
+    end
+  else get_next;
+  end;
+backup;
+end
+
+@ @<Scan a small hex...@>=
+begin while ((cur_char>="0")and(cur_char<="9"))or
+   ((cur_char>="A")and(cur_char<="F")) do
+  begin if cur_char>="A" then cur_char:=cur_char+"0"+10-"A";
+  acc:=acc*16+cur_char-"0";
+  if acc>255 then
+    begin skip_error('This value shouldn''t exceed "FF');
+@.This value shouldn't...@>
+    acc:=0; cur_char:=" ";
+    end
+  else get_next;
+  end;
+backup;
+end
+
+@ @<Scan a face...@>=
+begin if cur_char="B" then acc:=2
+else if cur_char="L" then acc:=4
+else if cur_char<>"M" then acc:=18;
+get_next;
+if cur_char="I" then incr(acc)
+else if cur_char<>"R" then acc:=18;
+get_next;
+if cur_char="C" then acc:=acc+6
+else if cur_char="E" then acc:=acc+12
+else if cur_char<>"R" then acc:=18;
+if acc>=18 then
+  begin skip_error('Illegal face code, I changed it to MRR');
+@.Illegal face code...@>
+  acc:=0;
+  end;
+end
+
+@ The routine that scans a four-byte value puts its output into |cur_bytes|,
+which is a record containing (yes, you guessed it) four bytes.
+
+@<Types...@>=
+@!four_bytes=record @!b0:byte;@+@!b1:byte;@+@!b2:byte;@+@!b3:byte;@+end;
+
+@ @d c0==cur_bytes.b0
+@d c1==cur_bytes.b1
+@d c2==cur_bytes.b2
+@d c3==cur_bytes.b3
+
+@<Glob...@>=
+@!cur_bytes:four_bytes; {a four-byte accumulator}
+
+@ Since the |get_four_bytes| routine is used very infrequently, no attempt
+has been made to make it fast; we only want it to work.
+
+@p procedure get_four_bytes; {scans an octal constant and sets |four_bytes|}
+var c:integer; {leading byte}
+@!r:integer; {radix}
+@!q:integer; {|256/r|}
+begin repeat get_next;
+until cur_char<>" "; {skip the blanks before the type code}
+r:=0; c0:=0; c1:=0; c2:=0; c3:=0; {start with the accumulator zero}
+if cur_char="H" then r:=16
+else if cur_char="O" then r:=8
+else skip_error('An octal ("O") or hex ("H") value is needed here');
+@.An octal ("O") or hex ("H")...@>
+if r>0 then
+  begin q:=256 div r;
+  repeat get_next;
+  until cur_char<>" "; {skip the blanks after the type code}
+  while ((cur_char>="0")and(cur_char<="9"))or@|
+      ((cur_char>="A")and(cur_char<="F")) do
+    @<Multiply by |r|, add |cur_char-"0"|, and |get_next|@>;
+  end;
+end;
+
+@ @<Multiply by |r|...@>=
+begin if cur_char>="A" then cur_char:=cur_char+"0"+10-"A";
+c:=(r*c0)+(c1 div q);
+if c>255 then
+  begin c0:=0; c1:=0; c2:=0; c3:=0;
+  if r=8 then
+    skip_error('Sorry, the maximum octal value is O 37777777777')
+@.Sorry, the maximum octal...@>
+  else skip_error('Sorry, the maximum hex value is H FFFFFFFF');
+@.Sorry, the maximum hex...@>
+  end
+else if cur_char>="0"+r then skip_error('Illegal digit')
+@.Illegal digit@>
+else  begin c0:=c;
+  c1:=(r*(c1 mod q))+(c2 div q);
+  c2:=(r*(c2 mod q))+(c3 div q);
+  c3:=(r*(c3 mod q))+cur_char-"0";
+  get_next;
+  end;
+end
+
+@ The remaining scanning routine is the most interesting. It scans a real
+constant and returns the nearest |fix_word| approximation to that constant.
+A |fix_word| is a 32-bit integer that represents a real value that
+has been multiplied by $2^{20}$. Since \.{PLtoTF} restricts the magnitude
+of reals to 2048, the |fix_word| will have a magnitude less than $2^{31}$.
+
+@d unity==@'4000000 {$2^{20}$, the |fix_word| 1.0}
+
+@<Types...@>=
+@!fix_word=integer; {a scaled real value with 20 bits of fraction}
+
+@ When a real value is desired, we might as well treat `\.D' and `\.R'
+formats as if they were identical.
+
+@p function get_fix:fix_word; {scans a real property value}
+var negative:boolean; {was there a minus sign?}
+@!acc:integer; {an accumulator}
+@!int_part:integer; {the integer part}
+@!j:0..7; {the number of decimal places stored}
+begin repeat get_next;
+until cur_char<>" "; {skip the blanks before the type code}
+negative:=false; acc:=0; {start with the accumulators zero}
+if (cur_char<>"R")and(cur_char<>"D") then
+  skip_error('An "R" or "D" value is needed here')
+@.An "R" or "D" ... needed here@>
+else  begin @<Scan the blanks and/or signs after the type code@>;
+  while (cur_char>="0") and (cur_char<="9") do
+    @<Multiply by 10, add |cur_char-"0"|, and |get_next|@>;
+  int_part:=acc; acc:=0;
+  if cur_char="." then @<Scan the fraction part and put it in |acc|@>;
+  if (acc>=unity)and(int_part=2047) then
+    skip_error('Real constants must be less than 2048')
+@.Real constants must be...@>
+  else acc:=int_part*unity+acc;
+  end;
+if negative then get_fix:=-acc@+else get_fix:=acc;
+end;
+
+@ @<Scan the blanks...@>=
+repeat get_next;
+if cur_char="-" then
+  begin cur_char:=" "; negative:=true;
+  end
+else if cur_char="+" then cur_char:=" ";
+until cur_char<>" "
+
+@ @<Multiply by 10...@>=
+begin acc:=acc*10+cur_char-"0";
+if acc>=2048 then
+  begin skip_error('Real constants must be less than 2048');
+@.Real constants must be...@>
+  acc:=0; cur_char:=" ";
+  end
+else get_next;
+end
+
+@ To scan the fraction $.d_1d_2\ldots\,$, we keep track of up to seven
+of the digits $d_j$. A correct result is obtained if we first compute
+$f^\prime=\lfloor 2^{21}(d_1\ldots d_j)/10^j\rfloor$, after which
+$f=\lfloor(f^\prime+1)/2\rfloor$. It is possible to have $f=1.0$.
+
+@<Glob...@>=
+@!fraction_digits:array[1..7] of integer; {$2^{21}$ times $d_j$}
+
+@ @<Scan the frac...@>=
+begin j:=0; get_next;
+while (cur_char>="0")and(cur_char<="9") do
+  begin if j<7 then
+    begin incr(j); fraction_digits[j]:=@'10000000*(cur_char-"0");
+    end;
+  get_next;
+  end;
+acc:=0;
+while j>0 do
+  begin acc:=fraction_digits[j]+(acc div 10); decr(j);
+  end;
+acc:=(acc+10) div 20;
+end
+
+@* Storing the property values.
+When property values have been found, they are squirreled away in a bunch
+of arrays. The header information is unpacked into bytes in an array
+called |header_bytes|. The ligature/kerning program is stored in an array
+of type |four_bytes|.
+Another |four_bytes| array holds the specifications of extensible characters.
+The kerns and parameters are stored in separate arrays of |fix_word| values.
+
+Instead of storing the design size in the header array, we will keep it
+in a |fix_word| variable until the last minute. The number of units in the
+design size is also kept in a |fix_word|.
+
+@<Glob...@>=
+@!header_bytes:array[header_index] of byte; {the header block}
+@!header_ptr:header_index; {the number of header bytes in use}
+@!design_size:fix_word; {the design size}
+@!design_units:fix_word; {reciprocal of the scaling factor}
+@!seven_bit_safe_flag:boolean; {does the file claim to be seven-bit-safe?}
+@!lig_kern:array[0..max_lig_steps] of four_bytes; {the ligature program}
+@!nl:0..32767; {the number of ligature/kern instructions so far}
+@!min_nl:0..32767; {the final value of |nl| must be at least this}
+@!kern:array[0..max_kerns] of fix_word; {the distinct kerning amounts}
+@!nk:0..max_kerns; {the number of entries of |kern|}
+@!exten:array[0..255] of four_bytes; {extensible character specs}
+@!ne:0..256; {the number of extensible characters}
+@!param:array[1..max_param_words] of fix_word; {\.{FONTDIMEN} parameters}
+@!np:0..max_param_words; {the largest parameter set nonzero}
+@!check_sum_specified:boolean; {did the user name the check sum?}
+@!bchar:0..256; {the right boundary character, or 256 if unspecified}
+
+@ @<Types...@>=
+@!header_index=0..max_header_bytes;
+@!indx=0..@'77777;
+
+@ @<Local...@>=
+@!d:header_index; {an index into |header_bytes|}
+
+@ We start by setting up the default values.
+
+@d check_sum_loc=0
+@d design_size_loc=4
+@d coding_scheme_loc=8
+@d family_loc=coding_scheme_loc+40
+@d seven_flag_loc=family_loc+20
+@d face_loc=seven_flag_loc+3
+
+@<Set init...@>=
+for d:=0 to 18*4-1 do header_bytes[d]:=0;
+header_bytes[8]:=11; header_bytes[9]:="U";
+header_bytes[10]:="N";
+header_bytes[11]:="S";
+header_bytes[12]:="P";
+header_bytes[13]:="E";
+header_bytes[14]:="C";
+header_bytes[15]:="I";
+header_bytes[16]:="F";
+header_bytes[17]:="I";
+header_bytes[18]:="E";
+header_bytes[19]:="D";
+@.UNSPECIFIED@>
+for d:=family_loc to family_loc+11 do header_bytes[d]:=header_bytes[d-40];
+design_size:=10*unity; design_units:=unity; seven_bit_safe_flag:=false;@/
+header_ptr:=18*4; nl:=0; min_nl:=0; nk:=0; ne:=0; np:=0;@/
+check_sum_specified:=false; bchar:=256;
+
+@ Most of the dimensions, however, go into the |memory| array. There are
+at most 257 widths, 257 heights, 257 depths, and 257 italic corrections,
+since the value 0 is required but it need not be used. So |memory| has room
+for 1028 entries, each of which is a |fix_word|. An auxiliary table called
+|link| is used to link these words together in linear lists, so that
+sorting and other operations can be done conveniently.
+
+We also add four ``list head'' words to the |memory| and |link| arrays;
+these are in locations |width| through |italic|, i.e., 1 through 4.
+For example, |link[height]| points to the smallest element in
+the sorted list of distinct heights that have appeared so far, and
+|memory[height]| is the number of distinct heights.
+
+@d mem_size=1028+4 {number of nonzero memory addresses}
+
+@<Types...@>=
+@!pointer=0..mem_size; {an index into memory}
+
+@ The arrays |char_wd|, |char_ht|, |char_dp|, and |char_ic| contain
+pointers to the |memory| array entries where the corresponding dimensions
+appear. Two other arrays, |char_tag| and |char_remainder|, hold
+the other information that \.{TFM} files pack into a |char_info_word|.
+
+@d no_tag=0 {vanilla character}
+@d lig_tag=1 {character has a ligature/kerning program}
+@d list_tag=2 {character has a successor in a charlist}
+@d ext_tag=3 {character is extensible}
+@d bchar_label==char_remainder[256]
+  {beginning of ligature program for left boundary}
+
+@<Glob...@>=
+@!memory:array[pointer] of fix_word; {character dimensions and kerns}
+@!mem_ptr:pointer; {largest |memory| word in use}
+@!link:array[pointer] of pointer; {to make lists of |memory| items}
+@!char_wd:array[byte] of pointer; {pointers to the widths}
+@!char_ht:array[byte] of pointer; {pointers to the heights}
+@!char_dp:array[byte] of pointer; {pointers to the depths}
+@!char_ic:array[byte] of pointer; {pointers to italic corrections}
+@!char_tag:array[byte] of no_tag..ext_tag; {character tags}
+@!char_remainder:array[0..256] of 0..65535; {pointers to ligature labels,
+  next larger characters, or extensible characters}
+
+@ @<Local...@>=
+@!c:byte; {runs through all character codes}
+
+@ @<Set init...@>=
+bchar_label:=@'77777;
+for c:=0 to 255 do
+  begin char_wd[c]:=0; char_ht[c]:=0; char_dp[c]:=0; char_ic[c]:=0;@/
+  char_tag[c]:=no_tag; char_remainder[c]:=0;
+  end;
+memory[0]:=@'17777777777; {an ``infinite'' element at the end of the lists}
+memory[width]:=0; link[width]:=0; {width list is empty}
+memory[height]:=0; link[height]:=0; {height list is empty}
+memory[depth]:=0; link[depth]:=0; {depth list is empty}
+memory[italic]:=0; link[italic]:=0; {italic list is empty}
+mem_ptr:=italic;
+
+@ As an example of these data structures, let us consider the simple
+routine that inserts a potentially new element into one of the dimension
+lists. The first parameter indicates the list head (i.e., |h=width| for
+the width list, etc.); the second parameter is the value that is to be
+inserted into the list if it is not already present.  The procedure
+returns the value of the location where the dimension appears in |memory|.
+The fact that |memory[0]| is larger than any legal dimension makes the
+algorithm particularly short.
+
+We do have to handle two somewhat subtle situations. A width of zero must be
+put into the list, so that a zero-width character in the font will not appear
+to be nonexistent (i.e., so that its |char_wd| index will not be zero), but
+this does not need to be done for heights, depths, or italic corrections.
+Furthermore, it is necessary to test for memory overflow even though we
+have provided room for the maximum number of different dimensions in any
+legal font, since the \.{PL} file might foolishly give any number of
+different sizes to the same character.
+
+@p function sort_in(@!h:pointer;@!d:fix_word):pointer; {inserts into list}
+var p:pointer; {the current node of interest}
+begin if (d=0)and(h<>width) then sort_in:=0
+else begin p:=h;
+  while d>=memory[link[p]] do p:=link[p];
+  if (d=memory[p])and(p<>h) then sort_in:=p
+  else if mem_ptr=mem_size then
+    begin err_print('Memory overflow: more than 1028 widths, etc');
+@.Memory overflow...@>
+    print_ln('Congratulations! It''s hard to make this error.');
+    sort_in:=p;
+    end
+  else  begin incr(mem_ptr); memory[mem_ptr]:=d;
+    link[mem_ptr]:=link[p]; link[p]:=mem_ptr; incr(memory[h]);
+    sort_in:=mem_ptr;
+    end;
+  end;
+end;
+
+@ When these lists of dimensions are eventually written to the \.{TFM}
+file, we may have to do some rounding of values, because the \.{TFM} file
+allows at most 256 widths, 16 heights, 16 depths, and 64 italic
+corrections. The following procedure takes a given list head |h| and a
+given dimension |d|, and returns the minimum $m$ such that the elements of
+the list can be covered by $m$ intervals of width $d$.  It also sets
+|next_d| to the smallest value $d^\prime>d$ such that the covering found
+by this procedure would be different.  In particular, if $d=0$ it computes
+the number of elements of the list, and sets |next_d| to the smallest
+distance between two list elements. (The covering by intervals of width
+|next_d| is not guaranteed to have fewer than $m$ elements, but in practice
+this seems to happen most of the time.)
+
+@<Glob...@>=
+@!next_d:fix_word; {the next larger interval that is worth trying}
+
+@ Once again we can make good use of the fact that |memory[0]| is ``infinite.''
+
+@p function min_cover(@!h:pointer;@!d:fix_word):integer;
+var p:pointer; {the current node of interest}
+@!l:fix_word; {the least element covered by the current interval}
+@!m:integer; {the current size of the cover being generated}
+begin m:=0; p:=link[h]; next_d:=memory[0];
+while p<>0 do
+  begin incr(m); l:=memory[p];
+  while memory[link[p]]<=l+d do p:=link[p];
+  p:=link[p];
+  if memory[p]-l<next_d then next_d:=memory[p]-l;
+  end;
+min_cover:=m;
+end;
+
+@ The following procedure uses |min_cover| to determine the smallest $d$
+such that a given list can be covered with at most a given number of
+intervals.
+
+@p function shorten(@!h:pointer;m:integer):fix_word; {finds best way to round}
+var d:fix_word; {the current trial interval length}
+@!k:integer; {the size of a minimum cover}
+begin if memory[h]>m then
+  begin excess:=memory[h]-m;
+  k:=min_cover(h,0); d:=next_d; {now the answer is at least |d|}
+  repeat d:=d+d; k:=min_cover(h,d);
+  until k<=m; {first we ascend rapidly until finding the range}
+  d:=d div 2; k:=min_cover(h,d); {now we run through the feasible steps}
+  while k>m do
+    begin d:=next_d; k:=min_cover(h,d);
+    end;
+  shorten:=d;
+  end
+else shorten:=0;
+end;
+
+@ When we are nearly ready to output the \.{TFM} file, we will set
+|index[p]:=k| if the dimension in |memory[p]| is being rounded to the
+|k|th element of its list.
+
+@<Glob...@>=
+@!index:array[pointer] of byte;
+@!excess:byte; {number of words to remove, if list is being shortened}
+
+@ Here is the procedure that sets the |index| values. It also shortens
+the list so that there is only one element per covering interval;
+the remaining elements are the midpoints of their clusters.
+
+@p procedure set_indices(@!h:pointer;@!d:fix_word); {reduces and indexes a list}
+var p:pointer; {the current node of interest}
+@!q:pointer; {trails one step behind |p|}
+@!m:byte; {index number of nodes in the current interval}
+@!l:fix_word; {least value in the current interval}
+begin q:=h; p:=link[q]; m:=0;
+while p<>0 do
+  begin incr(m); l:=memory[p]; index[p]:=m;
+  while memory[link[p]]<=l+d do
+    begin p:=link[p]; index[p]:=m; decr(excess);
+    if excess=0 then d:=0;
+    end;
+  link[q]:=p; memory[p]:=l+(memory[p]-l) div 2; q:=p; p:=link[p];
+  end;
+memory[h]:=m;
+end;
+
+@* The input phase.
+We're ready now to read and parse the \.{PL} file, storing property
+values as we go.
+
+@<Glob...@>=
+@!c:byte; {the current character or byte being processed}
+
+@ @<Read all the input@>=
+cur_char:=" ";
+repeat while cur_char=" " do get_next;
+if cur_char="(" then @<Read a font property value@>
+else if (cur_char=")")and not input_has_ended then
+  begin err_print('Extra right parenthesis');
+  incr(loc); cur_char:=" ";
+  end
+@.Extra right parenthesis@>
+else if not input_has_ended then junk_error;
+until input_has_ended
+
+@ The |junk_error| routine just referred to is called when something
+appears in the forbidden area between properties of a property list.
+
+@p procedure junk_error; {gets past no man's land}
+begin err_print('There''s junk here that is not in parentheses');
+@.There's junk here...@>
+skip_to_paren;
+end;
+
+@ For each font property, we are supposed to read the data from the
+left parenthesis that is the current value of |cur_char| to the right
+parenthesis that matches it in the input. The main complication is
+to recover with reasonable grace from various error conditions that might arise.
+
+@<Read a font property value@>=
+begin get_name;
+if cur_code=comment_code then skip_to_end_of_item
+else if cur_code>character_code then
+  flush_error('This property name doesn''t belong on the outer level')
+@.This property name doesn't belong...@>
+else  begin @<Read the font property value specified by |cur_code|@>;
+  finish_the_property;
+  end;
+end
+
+@ @<Read the font property value spec...@>=
+case cur_code of
+check_sum_code: begin check_sum_specified:=true; read_four_bytes(check_sum_loc);
+  end;
+design_size_code: @<Read the design size@>;
+design_units_code: @<Read the design units@>;
+coding_scheme_code: read_BCPL(coding_scheme_loc,40);
+family_code: read_BCPL(family_loc,20);
+face_code:header_bytes[face_loc]:=get_byte;
+seven_bit_safe_flag_code: @<Read the seven-bit-safe flag@>;
+header_code: @<Read an indexed header word@>;
+font_dimen_code: @<Read font parameter list@>;
+lig_table_code: read_lig_kern;
+boundary_char_code: bchar:=get_byte;
+character_code: read_char_info;
+end
+
+@ The |case| statement just given makes use of two subroutines that we
+haven't defined yet. The first of these puts a 32-bit octal quantity
+into four specified bytes of the header block.
+
+@p procedure read_four_bytes(l:header_index);
+begin get_four_bytes;
+header_bytes[l]:=c0;
+header_bytes[l+1]:=c1;
+header_bytes[l+2]:=c2;
+header_bytes[l+3]:=c3;
+end;
+
+@ The second little procedure is used to scan a string and to store it in
+the ``{\mc BCPL} format'' required by \.{TFM} files. The string is supposed
+to contain at most |n| bytes, including the first byte (which holds the
+length of the rest of the string).
+
+@p procedure read_BCPL(l:header_index;n:byte);
+var k:header_index;
+begin k:=l;
+while cur_char=" " do get_next;
+while (cur_char<>"(")and(cur_char<>")") do
+  begin if k<l+n then incr(k);
+  if k<l+n then header_bytes[k]:=cur_char;
+  get_next;
+  end;
+if k=l+n then
+  begin err_print('String is too long; its first ',n-1:1,
+@.String is too long...@>
+    ' characters will be kept'); decr(k);
+  end;
+header_bytes[l]:=k-l;
+while k<l+n-1 do {tidy up the remaining bytes by setting them to nulls}
+  begin incr(k); header_bytes[k]:=0;
+  end;
+end;
+
+@ @<Read the design size@>=
+begin next_d:=get_fix;
+if next_d<unity then
+  err_print('The design size must be at least 1')
+@.The design size must...@>
+else design_size:=next_d;
+end
+
+@ @<Read the design units@>=
+begin next_d:=get_fix;
+if next_d<=0 then
+  err_print('The number of units per design size must be positive')
+@.The number of units...@>
+else design_units:=next_d;
+end
+
+@ @<Read the seven-bit-safe...@>=
+begin while cur_char=" " do get_next;
+if cur_char="T" then seven_bit_safe_flag:=true
+else if cur_char="F" then seven_bit_safe_flag:=false
+else err_print('The flag value should be "TRUE" or "FALSE"');
+@.The flag value should be...@>
+skip_to_paren;
+end
+
+@ @<Read an indexed header word@>=
+begin c:=get_byte;
+if c<18 then skip_error('HEADER indices should be 18 or more')
+@.HEADER indices...@>
+else if 4*c+4>max_header_bytes then
+  skip_error('This HEADER index is too big for my present table size')
+@.This HEADER index is too big...@>
+else  begin while header_ptr<4*c+4 do
+    begin header_bytes[header_ptr]:=0; incr(header_ptr);
+    end;
+  read_four_bytes(4*c);
+  end;
+end
+
+@ The remaining kinds of font property values that need to be read are
+those that involve property lists on higher levels. Each of these has a
+loop similar to the one that was used at level zero. Then we put the
+right parenthesis back so that `|finish_the_property|' will be happy;
+there is probably a more elegant way to do this.
+
+@d finish_inner_property_list==begin decr(loc); incr(level); cur_char:=")";
+  end
+
+@<Read font parameter list@>=
+begin while level=1 do
+  begin while cur_char=" " do get_next;
+  if cur_char="(" then @<Read a parameter value@>
+  else if cur_char=")" then skip_to_end_of_item
+  else junk_error;
+  end;
+finish_inner_property_list;
+end
+
+@ @<Read a parameter value@>=
+begin get_name;
+if cur_code=comment_code then skip_to_end_of_item
+else if (cur_code<parameter_code)or(cur_code>=char_wd_code) then
+  flush_error('This property name doesn''t belong in a FONTDIMEN list')
+@.This property name doesn't belong...@>
+else  begin if cur_code=parameter_code then c:=get_byte
+  else c:=cur_code-parameter_code;
+  if c=0 then flush_error('PARAMETER index must not be zero')
+@.PARAMETER index must not...@>
+  else if c>max_param_words then
+    flush_error('This PARAMETER index is too big for my present table size')
+@.This PARAMETER index is too big...@>
+  else  begin while np<c do
+      begin incr(np); param[np]:=0;
+      end;
+    param[c]:=get_fix;
+    finish_the_property;
+    end;
+  end;
+end
+
+@ @<Read ligature/kern list@>=
+begin while level=1 do
+  begin while cur_char=" " do get_next;
+  if cur_char="(" then @<Read a ligature/kern command@>
+  else if cur_char=")" then skip_to_end_of_item
+  else junk_error;
+  end;
+finish_inner_property_list;
+end
+
+@ @<Read a ligature/kern command@>=
+begin get_name;
+if cur_code=comment_code then skip_to_end_of_item
+else if cur_code<label_code then
+  flush_error('This property name doesn''t belong in a LIGTABLE list')
+@.This property name doesn't belong...@>
+else  begin case cur_code of
+  label_code:@<Read a label step@>;
+  stop_code:@<Read a stop step@>;
+  skip_code:@<Read a skip step@>;
+  krn_code:@<Read a kerning step@>;
+  lig_code,lig_code+1,lig_code+2,lig_code+3,lig_code+5,lig_code+6,lig_code+7,
+    lig_code+11:@<Read a ligature step@>;
+  end; {there are no other cases |>=label_code|}
+  finish_the_property;
+  end;
+end
+
+@ When a character is about to be tagged, we call the following
+procedure so that an error message is given in case of multiple tags.
+
+@p procedure check_tag(c:byte); {print error if |c| already tagged}
+begin case char_tag[c] of
+no_tag: do_nothing;
+lig_tag: err_print('This character already appeared in a LIGTABLE LABEL');
+@.This character already...@>
+list_tag: err_print('This character already has a NEXTLARGER spec');
+ext_tag: err_print('This character already has a VARCHAR spec');
+end;
+end;
+
+@ @<Read a label step@>=
+begin while cur_char=" " do get_next;
+if cur_char="B" then
+  begin bchar_label:=nl; skip_to_paren; {\.{LABEL BOUNDARYCHAR}}
+  end
+else begin backup; c:=get_byte;
+  check_tag(c); char_tag[c]:=lig_tag; char_remainder[c]:=nl;
+  end;
+if min_nl<=nl then min_nl:=nl+1;
+lk_step_ended:=false;
+end
+
+@ @d stop_flag=128 {value indicating `\.{STOP}' in a lig/kern program}
+@d kern_flag=128 {op code for a kern step}
+
+@<Globals...@>=
+@!lk_step_ended:boolean;
+  {was the last \.{LIGTABLE} property \.{LIG} or \.{KRN}?}
+@!krn_ptr:0..max_kerns; {an index into |kern|}
+
+@ @<Read a stop step@>=
+if not lk_step_ended then
+  err_print('STOP must follow LIG or KRN')
+@.STOP must follow LIG or KRN@>
+else begin lig_kern[nl-1].b0:=stop_flag; lk_step_ended:=false;
+  end
+
+@ @<Read a skip step@>=
+if not lk_step_ended then
+  err_print('SKIP must follow LIG or KRN')
+@.SKIP must follow LIG or KRN@>
+else begin c:=get_byte;
+  if c>=128 then err_print('Maximum SKIP amount is 127')
+@.Maximum SKIP amount...@>
+  else if nl+c>=max_lig_steps then
+    err_print('Sorry, LIGTABLE too long for me to handle')
+@.Sorry, LIGTABLE too long...@>
+  else begin lig_kern[nl-1].b0:=c;
+    if min_nl<=nl+c then min_nl:=nl+c+1;
+    end;
+  lk_step_ended:=false;
+  end
+
+@ @<Read a ligature step@>=
+begin lig_kern[nl].b0:=0;
+lig_kern[nl].b2:=cur_code-lig_code;
+lig_kern[nl].b1:=get_byte;
+lig_kern[nl].b3:=get_byte;
+if nl>=max_lig_steps-1 then
+  err_print('Sorry, LIGTABLE too long for me to handle')
+@.Sorry, LIGTABLE too long...@>
+else incr(nl);
+lk_step_ended:=true;
+end
+
+@ @<Read a kerning step@>=
+begin lig_kern[nl].b0:=0; lig_kern[nl].b1:=get_byte;
+kern[nk]:=get_fix; krn_ptr:=0;
+while kern[krn_ptr]<>kern[nk] do incr(krn_ptr);
+if krn_ptr=nk then
+  begin if nk<max_kerns then incr(nk)
+  else  begin err_print('Sorry, too many different kerns for me to handle');
+@.Sorry, too many different kerns...@>
+    decr(krn_ptr);
+    end;
+  end;
+lig_kern[nl].b2:=kern_flag+(krn_ptr div 256);
+lig_kern[nl].b3:=krn_ptr mod 256;
+if nl>=max_lig_steps-1 then
+  err_print('Sorry, LIGTABLE too long for me to handle')
+@.Sorry, LIGTABLE too long...@>
+else incr(nl);
+lk_step_ended:=true;
+end
+
+@ Finally we come to the part of \.{PLtoTF}'s input mechanism
+that is used most, the processing of individual character data.
+
+@<Read character info list@>=
+begin c:=get_byte; {read the character code that is being specified}
+@<Print |c| in octal notation@>;
+while level=1 do
+  begin while cur_char=" " do get_next;
+  if cur_char="(" then @<Read a character property@>
+  else if cur_char=")" then skip_to_end_of_item
+  else junk_error;
+  end;
+if char_wd[c]=0 then char_wd[c]:=sort_in(width,0); {legitimatize |c|}
+finish_inner_property_list;
+end
+
+@ @<Read a character prop...@>=
+begin get_name;
+if cur_code=comment_code then skip_to_end_of_item
+else if (cur_code<char_wd_code)or(cur_code>var_char_code) then
+  flush_error('This property name doesn''t belong in a CHARACTER list')
+@.This property name doesn't belong...@>
+else  begin case cur_code of
+  char_wd_code:char_wd[c]:=sort_in(width,get_fix);
+  char_ht_code:char_ht[c]:=sort_in(height,get_fix);
+  char_dp_code:char_dp[c]:=sort_in(depth,get_fix);
+  char_ic_code:char_ic[c]:=sort_in(italic,get_fix);
+  next_larger_code:begin check_tag(c); char_tag[c]:=list_tag;
+    char_remainder[c]:=get_byte;
+    end;
+  var_char_code:@<Read an extensible recipe for |c|@>;
+  end;@/
+  finish_the_property;
+  end;
+end
+
+@ @<Read an extensible r...@>=
+begin if ne=256 then
+  err_print('At most 256 VARCHAR specs are allowed')
+@.At most 256 VARCHAR specs...@>
+else  begin check_tag(c); char_tag[c]:=ext_tag; char_remainder[c]:=ne;@/
+  exten[ne].b0:=0; exten[ne].b1:=0; exten[ne].b2:=0; exten[ne].b3:=0;
+  while level=2 do
+    begin while cur_char=" " do get_next;
+    if cur_char="(" then @<Read an extensible piece@>
+    else if cur_char=")" then skip_to_end_of_item
+    else junk_error;
+    end;
+  incr(ne);
+  finish_inner_property_list;
+  end;
+end
+
+@ @<Read an extensible p...@>=
+begin get_name;
+if cur_code=comment_code then skip_to_end_of_item
+else if (cur_code<var_char_code+1)or(cur_code>var_char_code+4) then
+  flush_error('This property name doesn''t belong in a VARCHAR list')
+@.This property name doesn't belong...@>
+else  begin case cur_code-(var_char_code+1) of
+  0:exten[ne].b0:=get_byte;
+  1:exten[ne].b1:=get_byte;
+  2:exten[ne].b2:=get_byte;
+  3:exten[ne].b3:=get_byte;
+  end;@/
+  finish_the_property;
+  end;
+end
+
+@ The input routine is now complete except for the following code,
+which prints a progress report as the file is being read.
+
+@p procedure print_octal(c:byte); {prints three octal digits}
+begin print('''',(c div 64):1,((c div 8) mod 8):1,(c mod 8):1);
+end;
+
+@ @<Print |c| in octal...@>=
+begin if chars_on_line=8 then
+  begin print_ln(' '); chars_on_line:=1;
+  end
+else  begin if chars_on_line>0 then print(' ');
+  incr(chars_on_line);
+  end;
+print_octal(c); {progress report}
+end
+
+@* The checking and massaging phase.
+Once the whole \.{PL} file has been read in, we must check it for consistency
+and correct any errors. This process consists mainly of running through
+the characters that exist and seeing if they refer to characters that
+don't exist. We also compute the true value of |seven_unsafe|; we make sure
+that the charlists and ligature programs contain no loops; and we
+shorten the lists of widths, heights, depths, and italic corrections,
+if necessary, to keep from exceeding the required maximum sizes.
+
+@<Glob...@>=
+@!seven_unsafe:boolean; {do seven-bit characters generate eight-bit ones?}
+
+@ @<Correct and check the information@>=
+if nl>0 then @<Make sure the ligature/kerning program ends appropriately@>;
+seven_unsafe:=false;
+for c:=0 to 255 do if char_wd[c]<>0 then
+    @<For all characters |g| generated by |c|,
+    make sure that |char_wd[g]| is nonzero, and
+    set |seven_unsafe| if |c<128<=g|@>;
+if bchar_label<@'77777 then
+  begin c:=256; @<Check ligature program of |c|@>;
+  end;
+if seven_bit_safe_flag and seven_unsafe then
+  print_ln('The font is not really seven-bit-safe!');
+@.The font is not...safe@>
+@<Check for infinite ligature loops@>;
+@<Doublecheck the lig/kern commands and the extensible recipes@>;
+for c:=0 to 255 do
+  @<Make sure that |c| is not the largest element of a charlist cycle@>;
+@<Put the width, height, depth, and italic lists into final form@>
+
+@ The checking that we need in several places is accomplished by three
+macros that are only slightly tricky.
+
+@d existence_tail(#)==begin char_wd[g]:=sort_in(width,0);
+    print(#,' '); print_octal(c);
+    print_ln(' had no CHARACTER spec.');
+    end;
+  end
+@d check_existence_and_safety(#)==begin g:=#;
+  if (g>=128)and(c<128) then seven_unsafe:=true;
+  if char_wd[g]=0 then existence_tail
+@d check_existence(#)==begin g:=#;
+  if char_wd[g]=0 then existence_tail
+
+@<For all characters |g| generated by |c|...@>=
+case char_tag[c] of
+no_tag: do_nothing;
+lig_tag: @<Check ligature program of |c|@>;
+list_tag: check_existence_and_safety(char_remainder[c])
+  ('The character NEXTLARGER than');
+@.The character NEXTLARGER...@>
+ext_tag:@<Check the pieces of |exten[c]|@>;
+end
+
+@ @<Check the pieces...@>=
+begin if exten[char_remainder[c]].b0>0 then
+  check_existence_and_safety(exten[char_remainder[c]].b0)
+    ('TOP piece of character');
+@.TOP piece of character...@>
+if exten[char_remainder[c]].b1>0 then
+  check_existence_and_safety(exten[char_remainder[c]].b1)
+    ('MID piece of character');
+@.MID piece of character...@>
+if exten[char_remainder[c]].b2>0 then
+  check_existence_and_safety(exten[char_remainder[c]].b2)
+    ('BOT piece of character');
+@.BOT piece of character...@>
+check_existence_and_safety(exten[char_remainder[c]].b3)
+    ('REP piece of character');
+@.REP piece of character...@>
+end
+
+@ @<Make sure that |c| is not the largest element of a charlist cycle@>=
+if char_tag[c]=list_tag then
+  begin g:=char_remainder[c];
+  while (g<c)and(char_tag[g]=list_tag) do g:=char_remainder[g];
+  if g=c then
+    begin char_tag[c]:=no_tag;
+    print('A cycle of NEXTLARGER characters has been broken at ');
+@.A cycle of NEXTLARGER...@>
+    print_octal(c); print_ln('.');
+    end;
+  end
+
+@ @<Glob...@>=
+@!delta:fix_word; {size of the intervals needed for rounding}
+
+@ @d round_message(#)==if delta>0 then print_ln('I had to round some ',
+@.I had to round...@>
+  #,'s by ',(((delta+1) div 2)/@'4000000):1:7,' units.')
+
+@<Put the width, height, depth, and italic lists into final form@>=
+delta:=shorten(width,255); set_indices(width,delta); round_message('width');@/
+delta:=shorten(height,15); set_indices(height,delta); round_message('height');@/
+delta:=shorten(depth,15); set_indices(depth,delta); round_message('depth');@/
+delta:=shorten(italic,63); set_indices(italic,delta);
+  round_message('italic correction');
+
+@ @d clear_lig_kern_entry== {make an unconditional \.{STOP}}
+  lig_kern[nl].b0:=255; lig_kern[nl].b1:=0;
+  lig_kern[nl].b2:=0; lig_kern[nl].b3:=0
+
+@<Make sure the ligature/kerning program ends...@>=
+begin if bchar_label<@'77777 then {make room for it}
+  begin clear_lig_kern_entry; incr(nl);
+  end; {|bchar_label| will be stored later}
+while min_nl>nl do
+  begin clear_lig_kern_entry; incr(nl);
+  end;
+if lig_kern[nl-1].b0=0 then lig_kern[nl-1].b0:=stop_flag;
+end
+
+@ It's not trivial to check for infinite loops generated by repeated
+insertion of ligature characters. But fortunately there is a nice
+algorithm for such testing, copied here from the program \.{TFtoPL}
+where it is explained further.
+
+@d simple=0 {$f(x,y)=z$}
+@d left_z=1 {$f(x,y)=f(z,y)$}
+@d right_z=2 {$f(x,y)=f(x,z)$}
+@d both_z=3 {$f(x,y)=f(f(x,z),y)$}
+@d pending=4 {$f(x,y)$ is being evaluated}
+
+
+@ @<Glo...@>=
+@!lig_ptr:0..max_lig_steps; {an index into |lig_kern|}
+@!hash:array[0..hash_size] of 0..66048; {$256x+y+1$ for $x\le257$ and $y\le255$}
+@!class:array[0..hash_size] of simple..pending;
+@!lig_z:array[0..hash_size] of 0..257;
+@!hash_ptr:0..hash_size; {the number of nonzero entries in |hash|}
+@!hash_list:array[0..hash_size] of 0..hash_size; {list of those nonzero entries}
+@!h,@!hh:0..hash_size; {indices into the hash table}
+@!tt:indx; {temporary register}
+@!x_lig_cycle,@!y_lig_cycle:0..256; {problematic ligature pair}
+
+@ @<Set init...@>=
+hash_ptr:=0; y_lig_cycle:=256;
+for k:=0 to hash_size do hash[k]:=0;
+
+@ @d lig_exam==lig_kern[lig_ptr].b1
+@d lig_gen==lig_kern[lig_ptr].b3
+
+@<Check lig...@>=
+begin lig_ptr:=char_remainder[c];
+repeat if hash_input(lig_ptr,c) then
+  begin if lig_kern[lig_ptr].b2<kern_flag then
+    begin if lig_exam<>bchar then
+      check_existence(lig_exam)('LIG character examined by');
+@.LIG character examined...@>
+    check_existence(lig_gen)('LIG character generated by');
+@.LIG character generated...@>
+    if lig_gen>=128 then if(c<128)or(c=256) then
+      if(lig_exam<128)or(lig_exam=bchar) then seven_unsafe:=true;
+    end
+  else if lig_exam<>bchar then
+    check_existence(lig_exam)('KRN character examined by');
+@.KRN character examined...@>
+  end;
+if lig_kern[lig_ptr].b0>=stop_flag then lig_ptr:=nl
+else lig_ptr:=lig_ptr+1+lig_kern[lig_ptr].b0;
+until lig_ptr>=nl;
+end
+
+@ The |hash_input| procedure is copied from \.{TFtoPL}, but it is made
+into a boolean function that returns |false| if the ligature command
+was masked by a previous one.
+
+@p function hash_input(@!p,@!c:indx):boolean;
+ {enter data for character |c| and command in location |p|, unless it isn't new}
+label 30; {go here for a quick exit}
+var @!cc:simple..both_z; {class of data being entered}
+@!zz:0..255; {function value or ligature character being entered}
+@!y:0..255; {the character after the cursor}
+@!key:integer; {value to be stored in |hash|}
+@!t:integer; {temporary register for swapping}
+begin if hash_ptr=hash_size then
+  begin hash_input:=false; goto 30;@+end;
+@<Compute the command parameters |y|, |cc|, and |zz|@>;
+key:=256*c+y+1; h:=(1009*key) mod hash_size;
+while hash[h]>0 do
+  begin if hash[h]<=key then
+    begin if hash[h]=key then
+      begin hash_input:=false; goto 30; {unused ligature command}
+      end;
+    t:=hash[h]; hash[h]:=key; key:=t; {do ordered-hash-table insertion}
+    t:=class[h]; class[h]:=cc; cc:=t; {namely, do a swap}
+    t:=lig_z[h]; lig_z[h]:=zz; zz:=t;
+    end;
+  if h>0 then decr(h)@+else h:=hash_size;
+  end;
+hash[h]:=key; class[h]:=cc; lig_z[h]:=zz;
+incr(hash_ptr); hash_list[hash_ptr]:=h;
+hash_input:=true;
+30:end;
+
+@ @<Compute the command param...@>=
+y:=lig_kern[p].b1; t:=lig_kern[p].b2; cc:=simple;
+zz:=lig_kern[p].b3;
+if t>=kern_flag then zz:=y
+else begin case t of
+  0,6:do_nothing; {\.{LIG},\.{/LIG>}}
+  5,11:zz:=y; {\.{LIG/>}, \.{/LIG/>>}}
+  1,7:cc:=left_z; {\.{LIG/}, \.{/LIG/>}}
+  2:cc:=right_z; {\.{/LIG}}
+  3:cc:=both_z; {\.{/LIG/}}
+  end; {there are no other cases}
+  end
+
+@ (More good stuff from \.{TFtoPL}.)
+
+@p function f(@!h,@!x,@!y:indx):indx; forward;@t\2@>
+  {compute $f$ for arguments known to be in |hash[h]|}
+function eval(@!x,@!y:indx):indx; {compute $f(x,y)$ with hashtable lookup}
+var @!key:integer; {value sought in hash table}
+begin key:=256*x+y+1; h:=(1009*key) mod hash_size;
+while hash[h]>key do
+  if h>0 then decr(h)@+else h:=hash_size;
+if hash[h]<key then eval:=y {not in ordered hash table}
+else eval:=f(h,x,y);
+end;
+
+@ Pascal's beastly convention for |forward| declarations prevents us from
+saying |function f(h,x,y:indx):indx| here.
+
+@p function f;
+begin case class[h] of
+simple: do_nothing;
+left_z: begin class[h]:=pending; lig_z[h]:=eval(lig_z[h],y); class[h]:=simple;
+  end;
+right_z: begin class[h]:=pending; lig_z[h]:=eval(x,lig_z[h]); class[h]:=simple;
+  end;
+both_z: begin class[h]:=pending; lig_z[h]:=eval(eval(x,lig_z[h]),y);
+  class[h]:=simple;
+  end;
+pending: begin x_lig_cycle:=x; y_lig_cycle:=y; lig_z[h]:=257; class[h]:=simple;
+  end; {the value 257 will break all cycles, since it's not in |hash|}
+end; {there are no other cases}
+f:=lig_z[h];
+end;
+
+@ @<Check for infinite...@>=
+if hash_ptr<hash_size then for hh:=1 to hash_ptr do
+  begin tt:=hash_list[hh];
+  if class[tt]>simple then {make sure $f$ is well defined}
+  tt:=f(tt,(hash[tt]-1)div 256,(hash[tt]-1)mod 256);
+  end;
+if(hash_ptr=hash_size)or(y_lig_cycle<256) then
+  begin if hash_ptr<hash_size then
+    begin print('Infinite ligature loop starting with ');
+@.Infinite ligature loop...@>
+    if x_lig_cycle=256 then print('boundary')@+else print_octal(x_lig_cycle);
+    print(' and '); print_octal(y_lig_cycle); print_ln('!');
+    end
+  else print_ln('Sorry, I haven''t room for so many ligature/kern pairs!');
+@.Sorry, I haven't room...@>
+  print_ln('All ligatures will be cleared.');
+  for c:=0 to 255 do if char_tag[c]=lig_tag then
+    begin char_tag[c]:=no_tag; char_remainder[c]:=0;
+    end;
+  nl:=0; bchar:=256; bchar_label:=@'77777;
+  end
+
+@ The lig/kern program may still contain references to nonexistent characters,
+if parts of that program are never used. Similarly, there may be extensible
+characters that are never used, because they were overridden by
+\.{NEXTLARGER}, say. This would produce an invalid \.{TFM} file; so we
+must fix such errors.
+
+@d double_check_tail(#)==@t\1@>if char_wd[0]=0
+      then char_wd[0]:=sort_in(width,0);
+    print('Unused ',#,' refers to nonexistent character ');
+    print_octal(c); print_ln('!');
+    end;
+  end
+@d double_check_lig(#)==begin c:=lig_kern[lig_ptr].#;
+  if char_wd[c]=0 then if c<>bchar then
+    begin lig_kern[lig_ptr].#:=0; double_check_tail
+@d double_check_ext(#)==begin c:=exten[g].#;
+  if c>0 then if char_wd[c]=0 then
+    begin exten[g].#:=0; double_check_tail
+@d double_check_rep(#)==begin c:=exten[g].#;
+  if char_wd[c]=0 then
+    begin exten[g].#:=0; double_check_tail
+
+@<Doublecheck...@>=
+if nl>0 then for lig_ptr:=0 to nl-1 do
+  if lig_kern[lig_ptr].b2<kern_flag then
+    begin if lig_kern[lig_ptr].b0<255 then
+      begin double_check_lig(b1)('LIG step'); double_check_lig(b3)('LIG step');
+      end;
+    end
+  else double_check_lig(b1)('KRN step');
+@.Unused LIG step...@>
+@.Unused KRN step...@>
+if ne>0 then for g:=0 to ne-1 do
+  begin double_check_ext(b0)('VARCHAR TOP');
+  double_check_ext(b1)('VARCHAR MID');
+  double_check_ext(b2)('VARCHAR BOT');
+  double_check_rep(b3)('VARCHAR REP');
+@.Unused VARCHAR...@>
+  end
+
+@* The output phase.
+Now that we know how to get all of the font data correctly stored in
+\.{PLtoTF}'s memory, it only remains to write the answers out.
+
+First of all, it is convenient to have an abbreviation for output to the
+\.{TFM} file:
+
+@d out(#)==write(tfm_file,#)
+
+@ The general plan for producing \.{TFM} files is long but simple:
+
+@<Do the output@>=
+@<Compute the twelve subfile sizes@>;
+@<Output the twelve subfile sizes@>;
+@<Output the header block@>;
+@<Output the character info@>;
+@<Output the dimensions themselves@>;
+@<Output the ligature/kern program@>;
+@<Output the extensible character recipes@>;
+@<Output the parameters@>
+
+@ A \.{TFM} file begins with 12 numbers that tell how big its subfiles are.
+We already know most of these numbers; for example, the number of distinct
+widths is |memory[width]+1|, where the $+1$ accounts for the zero width that
+is always supposed to be present. But we still should compute the beginning
+and ending character codes (|bc| and |ec|), the number of header words (|lh|),
+and the total number of words in the \.{TFM} file (|lf|).
+
+@<Gl...@>=
+@!bc:byte; {the smallest character code in the font}
+@!ec:byte; {the largest character code in the font}
+@!lh:byte; {the number of words in the header block}
+@!lf:0..32767; {the number of words in the entire \.{TFM} file}
+@!not_found:boolean; {has a font character been found?}
+@!temp_width:fix_word; {width being used to compute a check sum}
+
+@ It might turn out that no characters exist at all. But \.{PLtoTF} keeps
+going and writes the \.{TFM} anyway. In this case |ec| will be~0 and |bc|
+will be~1.
+
+@<Compute the twelve...@>=
+lh:=header_ptr div 4;@/
+not_found:=true; bc:=0;
+while not_found do
+  if (char_wd[bc]>0)or(bc=255) then not_found:=false
+  else incr(bc);
+not_found:=true; ec:=255;
+while not_found do
+  if (char_wd[ec]>0)or(ec=0) then not_found:=false
+  else decr(ec);
+if bc>ec then bc:=1;
+incr(memory[width]); incr(memory[height]); incr(memory[depth]);
+incr(memory[italic]);@/
+@<Compute the ligature/kern program offset@>;
+lf:=6+lh+(ec-bc+1)+memory[width]+memory[height]+memory[depth]+
+memory[italic]+nl+lk_offset+nk+ne+np;
+
+@ @d out_size(#)==out((#) div 256); out((#) mod 256)
+
+@<Output the twelve subfile sizes@>=
+out_size(lf); out_size(lh); out_size(bc); out_size(ec);
+out_size(memory[width]); out_size(memory[height]);
+out_size(memory[depth]); out_size(memory[italic]);
+out_size(nl+lk_offset); out_size(nk); out_size(ne); out_size(np);
+
+@ The routines that follow need a few temporary variables of different types.
+
+@<Gl...@>=
+@!j:0..max_header_bytes; {index into |header_bytes|}
+@!p:pointer; {index into |memory|}
+@!q:width..italic; {runs through the list heads for dimensions}
+@!par_ptr:0..max_param_words; {runs through the parameters}
+
+@ The header block follows the subfile sizes. The necessary information all
+appears in |header_bytes|, except that the design size and the seven-bit-safe
+flag must still be set.
+
+@<Output the header block@>=
+if not check_sum_specified then @<Compute the check sum@>;
+header_bytes[design_size_loc]:=design_size div @'100000000;
+  {this works since |design_size>0|}
+header_bytes[design_size_loc+1]:=(design_size div @'200000) mod 256;
+header_bytes[design_size_loc+2]:=(design_size div 256) mod 256;
+header_bytes[design_size_loc+3]:=design_size  mod 256;
+if not seven_unsafe then header_bytes[seven_flag_loc]:=128;
+for j:=0 to header_ptr-1 do out(header_bytes[j]);
+
+@ @<Compute the check sum@>=
+begin c0:=bc; c1:=ec; c2:=bc; c3:=ec;
+for c:=bc to ec do if char_wd[c]>0 then
+  begin temp_width:=memory[char_wd[c]];
+  if design_units<>unity then
+    temp_width:=round((temp_width/design_units)*1048576.0);
+  temp_width:=temp_width + (c+4)*@'20000000; {this should be positive}
+  c0:=(c0+c0+temp_width) mod 255;
+  c1:=(c1+c1+temp_width) mod 253;
+  c2:=(c2+c2+temp_width) mod 251;
+  c3:=(c3+c3+temp_width) mod 247;
+  end;
+header_bytes[check_sum_loc]:=c0;
+header_bytes[check_sum_loc+1]:=c1;
+header_bytes[check_sum_loc+2]:=c2;
+header_bytes[check_sum_loc+3]:=c3;
+end
+
+@ The next block contains packed |char_info|.
+
+@<Output the character info@>=
+index[0]:=0;
+for c:=bc to ec do
+  begin out(index[char_wd[c]]);
+  out(index[char_ht[c]]*16+index[char_dp[c]]);
+  out(index[char_ic[c]]*4+char_tag[c]);
+  out(char_remainder[c]);
+  end
+
+@ When a scaled quantity is output, we may need to divide it by |design_units|.
+The following subroutine takes care of this, using floating point arithmetic
+only if |design_units<>1.0|.
+
+@p procedure out_scaled(x:fix_word); {outputs a scaled |fix_word|}
+var @!n:byte; {the first byte after the sign}
+@!m:0..65535; {the two least significant bytes}
+begin if abs(x/design_units)>=16.0 then
+  begin print_ln('The relative dimension ',x/@'4000000:1:3,
+    ' is too large.');
+@.The relative dimension...@>
+  print('  (Must be less than 16*designsize');
+  if design_units<>unity then print(' =',design_units/@'200000:1:3,
+      ' designunits');
+  print_ln(')'); x:=0;
+  end;
+if design_units<>unity then x:=round((x/design_units)*1048576.0);
+if x<0 then
+  begin out(255); x:=x+@'100000000;
+  if x<=0 then x:=1;
+  end
+else begin out(0);
+  if x>=@'100000000 then x:=@'77777777;
+  end;
+n:=x div @'200000; m:=x mod @'200000;
+out(n); out(m div 256); out(m mod 256);
+end;
+
+@ We have output the packed indices for individual characters.
+The scaled widths, heights, depths, and italic corrections are next.
+
+@<Output the dimensions themselves@>=
+for q:=width to italic do
+  begin out(0); out(0); out(0); out(0); {output the zero word}
+  p:=link[q]; {head of list}
+  while p>0 do
+    begin out_scaled(memory[p]);
+    p:=link[p];
+    end;
+  end;
+
+@ One embarrassing problem remains: The ligature/kern program might be very
+long, but the starting addresses in |char_remainder| can be at most~255.
+Therefore we need to output some indirect address information; we want to
+compute |lk_offset| so that addition of |lk_offset| to all remainders makes
+all but |lk_offset| distinct remainders less than~256.
+
+For this we need a sorted table of all relevant remainders.
+
+@<Glob...@>=
+@!label_table:array[0..256] of record
+  @!rr: -1..@'77777; {sorted label values}
+  @!cc: byte; {associated characters}
+  end;
+@!label_ptr:0..256; {index of highest entry in |label_table|}
+@!sort_ptr:0..256; {index into |label_table|}
+@!lk_offset:0..256; {smallest offset value that might work}
+@!t:0..@'77777; {label value that is being redirected}
+@!extra_loc_needed:boolean; {do we need a special word for |bchar|?}
+
+@ @<Compute the ligature/kern program offset@>=
+@<Insert all labels into |label_table|@>;
+if bchar<256 then
+  begin extra_loc_needed:=true; lk_offset:=1;
+  end
+else begin extra_loc_needed:=false; lk_offset:=0;
+  end;
+@<Find the minimum |lk_offset| and adjust all remainders@>;
+if bchar_label<@'77777 then
+  begin lig_kern[nl-1].b2:=(bchar_label+lk_offset)div 256;
+  lig_kern[nl-1].b3:=(bchar_label+lk_offset)mod 256;
+  end
+
+@ @<Insert all labels...@>=
+label_ptr:=0; label_table[0].rr:=-1; {sentinel}
+for c:=bc to ec do if char_tag[c]=lig_tag then
+  begin sort_ptr:=label_ptr; {there's a hole at position |sort_ptr+1|}
+  while label_table[sort_ptr].rr>char_remainder[c] do
+    begin label_table[sort_ptr+1]:=label_table[sort_ptr];
+    decr(sort_ptr); {move the hole}
+    end;
+  label_table[sort_ptr+1].cc:=c;
+  label_table[sort_ptr+1].rr:=char_remainder[c];
+  incr(label_ptr);
+  end
+
+@ @<Find the minimum |lk_offset| and adjust all remainders@>=
+begin sort_ptr:=label_ptr; {the largest unallocated label}
+if label_table[sort_ptr].rr+lk_offset > 255 then
+  begin lk_offset:=0; extra_loc_needed:=false; {location 0 can do double duty}
+  repeat char_remainder[label_table[sort_ptr].cc]:=lk_offset;
+  while label_table[sort_ptr-1].rr=label_table[sort_ptr].rr do
+    begin decr(sort_ptr); char_remainder[label_table[sort_ptr].cc]:=lk_offset;
+    end;
+  incr(lk_offset); decr(sort_ptr);
+  until lk_offset+label_table[sort_ptr].rr<256;
+    {N.B.: |lk_offset=256| satisfies this when |sort_ptr=0|}
+  end;
+if lk_offset>0 then while sort_ptr>0 do
+  begin char_remainder[label_table[sort_ptr].cc]:=
+    char_remainder[label_table[sort_ptr].cc]+lk_offset;
+  decr(sort_ptr);
+  end;
+end
+
+@ @<Output the ligature/kern program@>=
+if extra_loc_needed then {|lk_offset=1|}
+  begin out(255); out(bchar); out(0); out(0);
+  end
+else for sort_ptr:=1 to lk_offset do {output the redirection specs}
+  begin t:=label_table[label_ptr].rr;
+  if bchar<256 then
+    begin out(255); out(bchar);
+    end
+  else begin out(254); out(0);
+    end;
+  out_size(t+lk_offset);
+  repeat decr(label_ptr); until label_table[label_ptr].rr<t;
+  end;
+if nl>0 then for lig_ptr:=0 to nl-1 do
+  begin out(lig_kern[lig_ptr].b0);
+  out(lig_kern[lig_ptr].b1);
+  out(lig_kern[lig_ptr].b2);
+  out(lig_kern[lig_ptr].b3);
+  end;
+if nk>0 then for krn_ptr:=0 to nk-1 do out_scaled(kern[krn_ptr])
+
+@ @<Output the extensible character recipes@>=
+if ne>0 then for c:=0 to ne-1 do
+  begin out(exten[c].b0);
+  out(exten[c].b1);
+  out(exten[c].b2);
+  out(exten[c].b3);
+  end;
+
+@ For our grand finale, we wind everything up by outputting the parameters.
+
+@<Output the parameters@>=
+for par_ptr:=1 to np do
+  begin if par_ptr=1 then
+    @<Output the slant (|param[1]|) without scaling@>
+  else out_scaled(param[par_ptr]);
+  end
+
+@ @<Output the slant...@>=
+begin if param[1]<0 then
+  begin param[1]:=param[1]+@'10000000000;
+  out((param[1] div @'100000000)+256-64);
+  end
+else out(param[1] div @'100000000);
+out((param[1] div @'200000) mod 256);
+out((param[1] div 256) mod 256);
+out(param[1] mod 256);
+end
+
+@* The main program.
+The routines sketched out so far need to be packaged into separate procedures,
+on some systems, since some \PASCAL\ compilers place a strict limit on the
+size of a routine. The packaging is done here in an attempt to avoid some
+system-dependent changes.
+
+@p procedure param_enter;
+begin @<Enter the parameter names@>;
+end;
+@#
+procedure name_enter; {enter all names and their equivalents}
+begin @<Enter all of the names...@>;
+param_enter;
+end;
+@#
+procedure read_lig_kern;
+var @!krn_ptr:0..max_kerns; {an index into |kern|}
+@!c:byte; {runs through all character codes}
+begin @<Read ligature/kern list@>;
+end;
+@#
+procedure read_char_info;
+var @!c:byte; {the char}
+begin @<Read character info list@>;
+end;
+@#
+procedure read_input;
+var @!c:byte; {header or parameter index}
+begin @<Read all the input@>;
+end;
+@#
+procedure corr_and_check;
+var @!c:0..256; {runs through all character codes}
+@!hh:0..hash_size; {an index into |hash_list|}
+@!lig_ptr:0..max_lig_steps; {an index into |lig_kern|}
+@!g:byte; {a character generated by the current character |c|}
+begin @<Correct and check the information@>
+end;
+
+@ Here is where \.{PLtoTF} begins and ends.
+
+@p begin initialize;@/
+name_enter;@/
+read_input; print_ln('.');@/
+corr_and_check;@/
+@<Do the output@>;
+end.
+
+@* System-dependent changes.
+This section should be replaced, if necessary, by changes to the program
+that are necessary to make \.{PLtoTF} work at a particular installation.
+It is usually best to design your change file so that all changes to
+previous sections preserve the section numbering; then everybody's version
+will be consistent with the printed program. More extensive changes,
+which introduce new sections, can be inserted here; then only the index
+itself will get a new section number.
+@^system dependencies@>
+
+@* Index.
+Pointers to error messages appear here together with the section numbers
+where each ident\-i\-fier is used.

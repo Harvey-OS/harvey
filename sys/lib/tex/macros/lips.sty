@@ -1,0 +1,111 @@
+% \iffalse
+% $Id: lips.sty,v 1.1 1995/01/28 07:41:08 swift Exp $
+
+%   lips.sty              LaTeX2e code for better text ellipses
+
+%   Copyright (C) 1994 Matt Swift <swift@bu.edu>
+
+% In the near future this code will become part of a larger package called
+% "scholar" that I will release also under the GPL.  I want to make certain
+% useful parts of the package available before the whole package is released
+% because I don't see any reason to withhold them.  This is in lieu of a beta
+% release that would only be frustrating because I will not have time to
+% maintain it until May 1995.  If you find this code useful, look for the whole
+% package about that time.  I welcome comments, suggestions, etc.
+
+%   This program is free software; you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation; either version 2 of the License, or
+%   (at your option) any later version.
+
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+
+%   You should have received a copy of the GNU General Public License
+%   along with this program; if not, write to the Free Software
+%   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+% \fi
+
+% \date{1995/01/27}
+% \author{Matt Swift \texttt{<swift@bu.edu>}}
+% \title{The \texttt{lips} package for better text ellipses}
+% \maketitle
+
+% \section{Introduction}
+% \DescribeMacro{\lips}
+% The macro |\lips| should be used for all text ellipses, that is, those that
+% are not part of a mathematical expression.  
+
+% Here are examples of correct usage: 
+% \begin{verbatim*}
+%   Hello\lips. And
+%   \par \lips and
+%   Hello \lips and
+%   Hello!\lips And    % (also `?', `.', `:', `,' and `:')
+%   Hello\lips and
+%   Hello! \lips And   % (also `?', `.', `:', `,' and `:')
+%   Hello \lips and
+%  \end{verbatim*}
+% In the first two examples, |\ldots| would do exactly the same thing as
+% |\lips|.  In the rest of the examples, |\lips| is different and superior than
+% |\ldots| or |\ldots| plus any simple fix like \verb*"\ ".  My model as usual
+% has been \emph{The Chicago Manual}, 13th ed.
+
+% For a visual demonstrate the differences, see the scholar-prerelease test
+% file, |sptest.tex|.  
+
+% \section{Implementation}
+% \StopEventually{}
+
+% This code should work fine with 2.09.
+%    \begin{macrocode}
+\ProvidesPackage{lips}[1995/01/26 v1.0 improved text ellipses]
+%    \end{macrocode}
+
+% |\DeclareRobustCommand| only warns in the log if the argument is already
+% defined.  
+
+% \begin{macro}{\lips}
+% If |\lips| is followed by other than a period, we need to perform a check for
+% vertical mode. 
+%    \begin{macrocode}
+\newcommand\lips{}  
+\DeclareRobustCommand\lips
+  {\@ifnextchar .%
+      {\sc@lips}
+    {\sc@lipscheck}}
+%    \end{macrocode}
+% \begin{macro}{\sc@lips}
+% This is the actual ellipsis.  
+%    \begin{macrocode}
+\newcommand{\sc@lips}
+  {$\m@th\mathinner{\ldotp}$~$\m@th
+  \mathinner{\ldotp}$~$\m@th\mathinner{\ldotp}$~}
+
+\newcommand\sc@lipscheck{}  
+\DeclareRobustCommand{\sc@lipscheck}
+  {\ifvmode\else\unskip~\fi
+  \sc@lips}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+
+% You might want to compare the \LaTeX\ version, which is
+% \begin{verbatim}
+% \DeclareTextCommandDefault{\textellipsis}{%
+%   .\kern\fontdimen3\font
+%   .\kern\fontdimen3\font
+%   .\kern\fontdimen3\font
+% }
+% \def\mathellipsis{\mathinner{\ldotp\ldotp\ldotp}}
+% \DeclareRobustCommand{\dots}{%
+%   \ifmmode\mathellipsis\else\textellipsis\fi
+% }
+% \let\ldots\dots
+% \end{verbatim}
+    
+% \Finale
+\endinput

@@ -1,0 +1,105 @@
+%
+%
+% \title{\textsf{pstcol} package}
+% \author{David Carlisle}
+% \date{1994/10/27}
+%
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+\begin{document}
+\DocInput{pstcol.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \maketitle
+% \begin{abstract}
+% Hopefully temporary package modifying PSTricks colour interface to
+% work with standard LaTeX colours.
+% \end{abstract}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% Require PSTricks
+%%%%%%%%%%%%%%%%%%
+%    \begin{macrocode}
+\let\saved@gray\color@gray
+\RequirePackage{pstricks}
+\let\color@gray\saved@gray
+%    \end{macrocode}
+%
+% Require Colour
+%%%%%%%%%%%%%%%%
+%    \begin{macrocode}
+\DeclareOption*{\PassOptionsToPackage\CurrentOption{color}}
+\ProcessOptions
+\RequirePackage{color}
+%    \end{macrocode}
+%
+% Redefine PST access functions in terms of color.sty
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    \begin{macrocode}
+\def\pst@getcolor#1#2{%
+\@ifundefined{\string\color@#1}%
+{\@pstrickserr{Color `#1' not defined}\@eha}%
+ {\edef#2{\expandafter\expandafter\expandafter
+         \c@lor@to@ps\csname\string\color @#1\endcsname\@@}}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\pst@usecolor#1{#1\space}
+%    \end{macrocode}
+%
+% Redefine some predefined colors that are in pst but not in color.sty
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    \begin{macrocode}
+\definecolor{darkgray}{gray}{.25}
+\definecolor{gray}{gray}{.5}
+\definecolor{lightgray}{gray}{.75}
+\definecolor{gradbegin}{rgb}{0,1,1}
+\definecolor{gradend}{rgb}{0,.1,.95}
+%    \end{macrocode}
+%
+% Redeclare the default colours with the new definitions.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    \begin{macrocode}
+\psset@bordercolor{white}
+\psset@doublecolor{white}
+\psset@linecolor{black}
+\psset@fillcolor{white}
+\psset@hatchcolor{black}
+\psset@gridcolor{black}
+\psset@gridlabelcolor{black}
+\psset@shadowcolor{darkgray}
+\psset@subgridcolor{gray}
+%    \end{macrocode}
+%
+%
+% Redefine the PST user-definition commands in terms of |\definecolor|
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    \begin{macrocode}
+\def\newgray#1{%
+  \definecolor{#1}{gray}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\newrgbcolor#1#2{%
+  \newrgbcolorx{#1}#2\@@}
+\def\newrgbcolorx#1#2 #3 #4\@@{%
+  \definecolor{#1}{rgb}{#2,#3,#4}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\newcmykcolor#1#2{%
+  \newcmykcolorx{#1}#2\@@}
+\def\newcmykcolorx#1#2 #3 #4 #5\@@{%
+  \definecolor{#1}{cmyk}{#2,#3,#4,#5}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+

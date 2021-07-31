@@ -24,7 +24,7 @@ It can inspect one or more processes that share an address space.
 A program to be debugged may be specified by the process id of
 a running or defunct process,
 or by the name of the program's text file 
-.RB ( 8.out
+.RB ( v.out
 by default).
 At the prompt,
 .I acid
@@ -47,25 +47,22 @@ Assume instructions are for the given CPU type
 (one of
 .BR 3210 ,
 .BR 386 ,
-etc., as listed in
-.IR 2c (1),
+.BR 68020 ,
+.BR 960 ,
+.BR mips ,
+.BR mipsco ,
+.BR sparc ,
 or
-.B sunsparc
-or
-.B mipsco
-for the  manufacturer-defined instruction notation for those processors)
+.BR sunsparc )
 instead of using the magic number to select
 the CPU type.
-.TP
-.BI -k
-Debug the kernel state for the process, rather than the user state.
 .PP
 At startup,
 .I acid
 obtains standard function definitions from the library file
-.BR /sys/lib/acid/port ,
+.BR /lib/acid/port ,
 architecture-dependent functions from
-.BR /sys/lib/acid/$objtype ,
+.BR /lib/acid/$objtype ,
 user-specified functions from
 .BR $home/lib/acid ,
 and further functions from 
@@ -77,6 +74,8 @@ If the function
 is defined, it will be invoked after all modules have been loaded.
 See
 .IR 2c (1)
+and
+.IR alef (1)
 for information about creating
 .I acid
 functions for examining data structures.
@@ -105,9 +104,9 @@ Lists are sequences of expressions surrounded by
 .BR {\^} 
 and separated by commas.
 .PP
-Expressions are much as in C,
+Expressions are much as in C or Alef,
 but yield both a value and a format.
-Casts to complex types are allowed.
+Alef-style casts to complex types are allowed.
 Lists admit the following operators, with
 subscripts counted from 0.
 .IP
@@ -286,8 +285,8 @@ set some breakpoints; run up to the first one:
 .EX
 % acid /bin/ls
 /bin/ls: mips plan 9 executable
-/sys/lib/acid/port
-/sys/lib/acid/mips
+/lib/acid/port
+/lib/acid/mips
 acid: new()
 70094: system call	_main	ADD	$-0x14,R29
 70094: breakpoint	main+0x4	MOVW	R31,0x0(R29)
@@ -343,9 +342,9 @@ notation)
 .br
 .B /proc/*/note
 .br
-.B /sys/lib/acid/$objtype
+.B /lib/acid/$objtype
 .br
-.B /sys/lib/acid/port
+.B /lib/acid/port
 .br
 .B $home/lib/acid
 .SH SOURCE
@@ -354,6 +353,7 @@ notation)
 .IR 2a (1),
 .IR 2c (1),
 .IR 2l (1),
+.IR alef (1),
 .IR mk (1),
 .IR db (1)
 .br

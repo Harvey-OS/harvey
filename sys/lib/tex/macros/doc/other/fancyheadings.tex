@@ -1,0 +1,1467 @@
+\documentclass{article}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage{makeidx}
+\makeindex
+\title{Page headers and footers in \LaTeX}
+\author{Piet van Oostrum\thanks{A considerable part of this article was
+    written by  George
+    Gr\"atzer (University of Manitoba) in \emph{Notices Amer. Math. Soc.}
+    Thanks, George!}\\
+  Dept.\ of Computer Science\\
+  Utrecht University}
+\def\latex/{\protect\LaTeX{}}
+\def\tex/{\TeX}
+\def\ams/{\protect\pAmS}
+\def\pAmS{{\the\textfont2
+        A\kern-.1667em\lower.5ex\hbox{M}\kern-.125emS}}
+\def\amslatex/{\ams/-\latex/}
+\newcommand{\PSNFSS}{{\sf
+    PSNFSS}}
+\newcommand{\bs}{\symbol{'134}}
+\newcommand{\CmdIndex}[1]{\index{#1@\texttt{\bs#1}}}
+\newcommand{\TTindex}[1]{\index{#1@\texttt{#1}}}
+\newcommand{\PSindex}[1]{\index{page style!#1@\texttt{#1}}}
+\floatstyle{ruled}
+\restylefloat{figure}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\makeatletter
+\renewcommand\l@section      {\@dottedtocline{1}{1.5em}{2.3em}}
+\makeatother
+\begin{document}
+\maketitle
+\begin{abstract}
+  Standard \latex/ offers the page styles \textsf{empty}, \textsf{plain},
+  \textsf{headings} and \textsf{myheadings}. For simple page layouts these
+  suffice, but they are rather rigid. A more flexible page layout may be
+  obtained by using the  \textsf{fancyheadings} package.
+  This article describes how to create advanced page headers and footers
+  in \latex/ documents by using this package. Some of the techniques
+  described are also applicable with other page styles.
+\end{abstract}
+\tableofcontents
+
+\section{What is \textsf{fancyheadings}}
+The \textsf{fancyheadings} macro package allows you to customize
+in \latex/ your page headers and footers in an easy way.  You can
+define:
+\begin{itemize}
+\item three-part headers and footers
+\item decorative lines in headers and footers
+\item headers and footers wider than the width of the text
+\item multi-line headers and footers
+\item separate headers and footers for even and odd pages
+\item different headers and footers for chapter pages
+\end{itemize}
+
+Of course, you also have complete control over fonts, uppercase
+and lowercase displays, etc.
+
+\section{Where to get it?}\label{get}
+You only need the file \verb|fancyheadings.sty| which you can find at the
+\index{ftp}
+CTAN sites: \verb|ftp.shsu.edu| (U.S.), \verb|ftp.tex.ac.uk| (U.K.), and
+\verb|ftp.dante.de| (Germany).
+You will find it in the directory\\
+\verb|/tex-archive/macros/latex209/contrib/fancyheadings|. Although
+\textsf{fancyheadings}
+is a \latex/ 2.09 style file, it will work with \LaTeXe{}. Also this
+\TTindex{fixmarks.sty}
+\TTindex{extramarks.sty}
+article and the two packages \texttt{fixmarks} and \texttt{extramarks} can
+be found there. (The code for these packages given in this article is a
+simplified version.)
+
+
+\section{Use of \textsf{fancyheadings}}  To use this package in a
+\LaTeXe\ document, place the file \verb|fancyheadings.sty| in a
+directory/folder where \tex/ can find it (normally in the input
+directory/folder), and include in the preamble of your document
+after
+
+\begin{verbatim}
+\documentclass{...}
+\end{verbatim}
+the commands:
+
+\PSindex{fancy}
+\begin{verbatim}
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\end{verbatim}
+
+We can visualize the page layout we can create with \textsf{fancyheadings}
+as follows:
+
+\begin{samepage}
+\vspace{8pt}
+\noindent\makebox[\textwidth]{LeftHeader\hfill
+CenteredHeader\hfill RightHeader}
+\noindent\makebox[\textwidth]{\hrulefill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hfill page body\hfill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hrulefill}
+\noindent\makebox[\textwidth]{LeftFooter\hfill
+CenteredFooter\hfill RightFooter}
+
+\end{samepage}
+
+
+\vspace{8pt}
+
+The LeftHeader and LeftFooter are left justified; the
+CenteredHeader and CenteredFooter are centered; the
+RightHeader and RightFooter are right justified.
+
+We define each of the six ``fields'' and the two decorative lines
+separately.
+
+\section{A simple example}  K. Grant is writing a report to Dean
+A. Smith, on ``The performance of new graduates'' with the
+following page layout:
+
+\begin{samepage}
+\vspace{8pt}
+\noindent\makebox[\textwidth]{\hfill\bfseries The performance of new
+graduates}
+\noindent\makebox[\textwidth]{\hrulefill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hfill page body\hfill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hrulefill}
+\noindent\makebox[\textwidth]{From: K. Grant\phantom{3}\hfill
+To: Dean A. Smith\hfill \phantom{From: K. Grant}3}
+
+\end{samepage}
+
+\vspace{8pt}
+
+\noindent where ``3'' is the page number.  The title: ``The
+performance of new graduates'' is bold.
+
+This is accomplished by these commands following
+\verb|\pagestyle{fancy}|:
+\CmdIndex{lhead}
+\CmdIndex{rhead}
+\CmdIndex{chead}
+\CmdIndex{lfoot}
+\CmdIndex{rfoot}
+\CmdIndex{cfoot}
+\CmdIndex{headrulewidth}
+\CmdIndex{footrulewidth}
+\begin{verbatim}
+\lhead{}
+\chead{}
+\rhead{\bfseries The performance of new graduates}
+\lfoot{From: K. Grant}
+\cfoot{To: Dean A. Smith}
+\rfoot{\thepage}
+\setlength{\headrulewidth}{0.4pt}
+\setlength{\footrulewidth}{0.4pt}
+\end{verbatim}
+(The \verb|\thepage| macro displays the current page number.
+\verb|\bfseries| is the \LaTeXe's way of selecting bold face.)
+
+This is now fine, except that the first page does not need
+all these headers and footers.  To eliminate all but the
+centered page number, issue the command
+
+\CmdIndex{thispagestyle}
+\begin{verbatim}
+\thispagestyle{plain}
+\end{verbatim}
+after the
+\verb|\begin{document}|
+and the
+\CmdIndex{maketitle}
+\verb|\maketitle|
+commands.
+
+Alternatively, issue
+\begin{verbatim}
+\thispagestyle{empty}
+\end{verbatim}
+if you do not want any headers or footers.
+
+In fact the standard \latex/ classes have the command \verb|\maketitle|
+defined in such a way that a \verb|\thispagestyle{plain}| is automatically
+issued. So if you \emph{do} want the fancy layout on a page containing
+\verb|\maketitle| you must issue a \verb|\thispagestyle{fancy}| after the
+\verb|\maketitle|.
+
+\section{An example of two-sided printing}\label{two-sided}
+
+\TTindex{twoside}
+Some document classes, such as \verb|book.cls|, print two-sided: the even
+pages and the odd pages have different layouts; other document classes
+use the \verb|twoside| option to print two-sided.
+
+Now let us print the report two-sided.  Let the above page
+layout be used for the odd (right-side) pages, and the
+following for the even (left-side) pages:
+
+\begin{samepage}
+
+\vspace{8pt}
+\noindent\makebox[\textwidth]{\bfseries The performance of new
+graduates\hfill}
+\noindent\makebox[\textwidth]{\hrulefill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hfill page body\hfill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hrulefill}
+\noindent\makebox[\textwidth]{4\phantom{To: Dean A. Smith}\hfill
+ From: K. Grant\hfill \phantom{4}To: Dean A. Smith}
+
+\vspace{8pt}
+
+\end{samepage}
+\noindent where ``4'' is the page number.
+
+Here are the commands:
+
+\begin{verbatim}
+\lhead[]{\bfseries The performance of new graduates}
+\chead{}
+\rhead[\bfseries The performance of new graduates]{}
+\lfoot[\thepage]{From: K. Grant}
+\cfoot[From: K. Grant]{To: Dean A. Smith}
+\rfoot[To: Dean A. Smith]{\thepage}
+\setlength{\headrulewidth}{0.4pt}
+\setlength{\footrulewidth}{0.4pt}
+\end{verbatim}
+
+As you see, the values of the fields for the even (left-side)
+pages are given in the square brackets.  Again, you may
+use  \verb|\thispagestyle{plain}| for a simple page layout for
+page~1.
+
+\section{Redefining plain style}
+
+Some \latex/ commands, like \verb|\chapter|, use the \verb|\thispagestyle|
+command to automatically switch to the \texttt{plain} page style, thus
+ignoring the page style currently in effect. To customize even such
+pages use the \texttt{fancyplain} page style.  This page style sets up
+\texttt{fancy} for normal pages and in addition redefines the page style
+\texttt{plain} to conform more to the page style \texttt{fancy}.
+\PSindex{plain}
+\PSindex{fancyplain}
+For instance, if
+all the page numbers are bold, you may want this on the first page also.
+You do this with the command
+
+\PSindex{fancyplain}
+\begin{verbatim}
+\pagestyle{fancyplain}
+\end{verbatim}
+\noindent
+Note that this does not issue a \verb|\pagestyle{plain}| or
+\verb|\thispagestyle{plain}| command.  This is either done by \latex/ (for
+instance, for the first page of a chapter in the \verb|book| class), or you
+have to do it explicitly with the
+
+\begin{verbatim}
+\thispagestyle{plain}
+\end{verbatim}
+command.
+
+The redefinition of the plain style is done with the command
+
+\begin{verbatim}
+\fancyplain{plain_value}{normal_value}
+\end{verbatim}
+inserted into all the appropriate arguments.  As an example, let us
+redefine the plain style for the report in Section~\ref{two-sided} by
+making the page number bold.
+
+The leftheader definition:
+
+\begin{verbatim}
+\lhead[]{\bfseries The performance of new graduates}
+\end{verbatim}
+changes to
+
+\begin{verbatim}
+\lhead[\fancyplain{}{}]{\fancyplain{}{\bfseries The
+   performance of new graduates}}
+\end{verbatim}
+Note that the first argument of both \verb|\fancyplain| commands is
+empty, since the redefined plain style has an empty leftheader. (The
+\verb|\fancyplain{}{}| is superfluous but for symmetry reasons it is given
+in this example.)
+
+The left- and rightfooter definitions change more.  For instance, the
+leftfooter definition changes from
+
+\begin{verbatim}
+\lfoot[\thepage]{From: K. Grant}
+\end{verbatim}
+to
+\begin{verbatim}
+\lfoot[\fancyplain{}{\bfseries \thepage}]
+      {\fancyplain{}{From: K. Grant}}
+\end{verbatim}
+
+Carrying out these changes for all six fields, we get the code:
+
+\label{complicated}
+\begin{verbatim}
+\lhead[\fancyplain{}{}]{\fancyplain{}{\bfseries The
+   performance of new graduates}}
+\chead{\fancyplain{}{}}
+\rhead[\fancyplain{}{\bfseries The performance of new
+   graduates}]{\fancyplain{}{}}
+\lfoot[\fancyplain{}{\thepage}]{\fancyplain{}{From: K. Grant}}
+\cfoot[\fancyplain{\bfseries \thepage}{From: K.
+   Grant}]{\fancyplain{\bfseries \thepage}{To: Dean A. Smith}}
+\rfoot[\fancyplain{}{To: Dean A. Smith}]{\fancyplain{}%
+   {\bfseries \thepage}}
+\setlength{\headrulewidth}{0.4pt}
+\setlength{\footrulewidth}{0.4pt}
+\end{verbatim}
+
+\PSindex{fancyplain}
+For the ``fancy plain'' page style, the thickness of the lines
+is defined by
+\begin{center}
+\CmdIndex{plainheadrulewidth}
+\CmdIndex{plainfootrulewidth}
+\verb|\plainheadrulewidth| and \verb|\plainfootrulewidth|
+\end{center}
+\noindent(both default to 0pt).  Observe that you may have
+different ``fancy plain'' page styles for even and odd pages.
+
+To use the ``fancy plain'' page style, define these macros; in
+the preamble, include
+
+\begin{verbatim}
+\usepackage{fancyheadings}
+\pagestyle{fancyplain}
+\end{verbatim}
+and invoke the page style ``fancy plain'' with
+
+\begin{verbatim}
+\thispagestyle{plain}
+\end{verbatim}
+where desired.
+
+\section{The default layout}\label{default}
+Let us use the \verb|book.cls| documentclass and the default settings for
+\textsf{fancyheadings}; so we only issue the commands
+
+\begin{verbatim}
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\end{verbatim}
+and let \textsf{fancyheadings} take care of everything.  On the
+pages where new chapters start, we get a centered page number in
+the footer; there is no header, and there are no decorative lines.
+
+On an even page, we get the layout:
+
+\begin{samepage}
+\vspace{8pt}
+\noindent\makebox[\textwidth]{\sl 1.2  EVALUATION\hfill
+ CHAPTER 1. INTRODUCTION}
+\noindent\makebox[\textwidth]{\hrulefill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hfill page body\hfill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hrulefill}
+\noindent\makebox[\textwidth]{\hfill4\hfill}
+
+\end{samepage}
+
+\vspace{8pt}
+
+On an odd page, we get the layout:
+
+\begin{samepage}
+\vspace{8pt}
+\noindent\makebox[\textwidth]{\sl CHAPTER 1. INTRODUCTION\hfill
+ 1.2  EVALUATION}
+\noindent\makebox[\textwidth]{\hrulefill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hfill page body\hfill}\\[\baselineskip]
+\noindent\makebox[\textwidth]{\hrulefill}
+\noindent\makebox[\textwidth]{\hfill
+3\hfill }
+
+\end{samepage}
+
+
+\vspace{8pt}
+\noindent where the header text is slanted uppercase.
+
+This default layout is produced by the following commands:
+\CmdIndex{rightmark}
+\CmdIndex{leftmark}
+\begin{verbatim}
+\lhead[\fancyplain{}{\slshape \rightmark}]{\fancyplain{}%
+   {\slshape \leftmark}}
+\chead{}
+\rhead[\fancyplain{}{\slshape \leftmark}]{\fancyplain{}%
+   {\slshape \rightmark}}
+\lfoot{}
+\cfoot{\rmfamily \thepage}
+\rfoot{}
+\end{verbatim}
+
+The following settings are used for the decorative lines:
+
+\begin{tabbing}
+\CmdIndex{headrulewidth}
+\noindent \verb|\headrulewidth|\qquad \qquad \qquad \=0.4\=pt\\
+\CmdIndex{footrulewidth}
+\verb|\footrulewidth|\>0\>pt\\
+\CmdIndex{plainheadrulewidth}
+\verb|\plainheadrulewidth|\>0\>pt\\
+\CmdIndex{plainfootrulewidth}
+\verb|\plainfootrulewidth| \>0\>pt
+\end{tabbing}
+
+The header text is turned into all uppercase in \verb|book.cls|.
+
+\section{The scoop on \latex/'s marks}\label{sec:custom}
+Usually, for documents of class \verb|book| and \verb|report|, you may
+want to use chapter and section information in the headings (chapter only
+for one-sided printing), and for documents of class \verb|article|,
+section and subsection information (section only for one-sided
+printing).  \latex/ uses a marker mechanism to remember the chapter and
+section (section and subsection) information for a page; this is
+discussed in detail in the
+\latex/ \emph{Companion}, Section 4.3.1.
+
+There are two ways you can use and change the higher- and lower-level
+sectioning information available to you.  The macros:
+\CmdIndex{rightmark}
+\CmdIndex{leftmark}
+\verb|\leftmark|
+(higher-level) and \verb|\rightmark| (lower-level) contain the information
+processed by \latex/, and you can use them directly as shown in 
+Section~\ref{default}.
+
+The \verb|\leftmark| contains the left argument of the \emph{last}
+\verb|\markboth| on the page, the \verb|\rightmark| contains the right
+argument of the \emph{first} \verb|\markboth| or the only argument of the
+\emph{first} \verb|\markright| on the page. If no marks are present on a
+page they are ``inherited'' from the previous page.
+
+You can influence how chapter, section, and subsection
+information (only two of them!) is displayed by redefining the
+\CmdIndex{chaptermark}
+\verb|\chaptermark|,
+\CmdIndex{sectionmark}
+\CmdIndex{subsectionmark}
+\verb|\sectionmark|, and \verb|\subsectionmark| commands\footnote{There are
+  similar commands for \texttt{paragraph} and \texttt{subparagraph} but
+  they are seldom used.}. You must put the redefinition
+after the first call of \verb|\pagestyle{fancy}| as this
+sets up the defaults.
+
+Let us illustrate this with chapter info. It is made up of three parts:
+\begin{itemize}
+\CmdIndex{thechapter}
+\item  the number (say, 2), displayed by the macro \verb|\thechapter|
+\item  the name (in English, Chapter), displayed by the macro
+\CmdIndex{chaptername}
+   \verb|\chaptername|
+\item  the title, contained in the first argument of
+   \verb|\markboth|.
+\end{itemize}
+
+Figure~\ref{fig:markers} shows some variants for ``Chapter 2.\ Do it now''
+(the last example is appropriate in some non-English languages).
+
+\begin{figure}[tb]
+\CmdIndex{chaptermark}
+\CmdIndex{uppercase}
+\setlength{\columnsep}{20pt}\small
+\begin{multicols}{2}
+\noindent Code:\\
+\mbox{}\\
+\verb|\renewcommand{\chaptermark}[1]{|\\
+\verb| \markboth{\chaptername\ |\\
+\verb| \thechapter.\ #1}{}}|\\
+\mbox{}\\
+\verb|\renewcommand{\chaptermark}[1]{|\\
+\verb| \markboth{\uppercase{|\\
+\verb| \chaptername}\ \thechapter.|\\
+\verb| \ #1}{}}|\\
+\mbox{}\\
+\verb|\renewcommand{\chaptermark}[1]{|\\
+\verb| \markboth{\uppercase{|\\
+\verb| \chaptername\ \thechapter.|\\
+\verb| \ #1}}{}}|\\
+\mbox{}\\
+\verb|\renewcommand{\chaptermark}[1]{|\\
+\verb| \markboth{#1}{}}|\\
+\mbox{}\\
+\verb|\renewcommand{\chaptermark}[1]{|\\
+\verb| \markboth{\thechapter.\ #1}{}}|\\
+\mbox{}\\
+\verb|\renewcommand{\chaptermark}[1]{|\\
+\verb| \markboth{\thechapter.\ |\\
+\verb| \chaptername.\ #1}{}}|\\
+Prints:\\
+\mbox{}\\
+Chapter 2.\ Do it now\\
+\mbox{}\\
+\mbox{}\\
+\mbox{}\\
+CHAPTER 2.\ Do it now\\
+\mbox{}\\
+\mbox{}\\
+\mbox{}\\
+\mbox{}\\
+CHAPTER 2.\ DO IT NOW\\
+\mbox{}\\
+\mbox{}\\
+\mbox{}\\
+\mbox{}\\
+Do it now\\
+\mbox{}\\
+\mbox{}\\
+2.\ Do it now\\
+\mbox{}\\
+\mbox{}\\
+2.\ Chapter.\ Do it now\\
+\mbox{}\\
+\end{multicols}
+\caption{Marker variants}\label{fig:markers}
+\end{figure}
+
+
+For the lower-level sectioning information, do the same with
+\verb|\markright|.
+
+So if ``Section 2.2.\ First steps'' is the current section,
+then
+
+\begin{verbatim}
+\renewcommand{\sectionmark}[1]{
+   \markright{\thesection.\ #1}}
+\end{verbatim}
+will give
+   ``2.2.\ First steps''
+
+Redefining the \verb|\chaptermark| and \verb|\sectionmark| commands may
+not eliminate all uppercaseness. E.g.\ the bibliography will have a title
+\CmdIndex{uppercase}
+\index{BIBLIOGRAPHY}
+of \textsc{bibliography} in the header, as the \verb|\uppercase| is
+explicitly given in the definition of \verb|\thebibliography|. Similar for
+\index{INDEX}
+\textsc{index} etc.\ If you don't want to redefine these commands, you can
+use an ugly hack like the following:
+
+\begin{verbatim}
+\lhead{\let\uppercase\relax\rightmark}
+\rhead{\let\uppercase\relax\leftmark}
+\end{verbatim}
+
+
+It should be noted that the \latex/ marking mechanism works fine with
+chapters (which always start on a new page) and sections (which are
+reasonably long).  It does not work quite as well with short sections and
+subsections.  This is a problem with \latex/, not with
+\textsf{fancyheadings}.
+
+As an example let's take a page layout where the leftmarks are generated by
+the sections and the rightmarks by the subsections (as is default in the
+\texttt{article} class). Take a page with some short sections, e.g. 
+
+\begin{samepage}
+\noindent Section 1.\\
+subsection 1.1\\
+subsection 1.2\\
+Section 2.  
+\end{samepage}
+
+As the leftmark contains the \emph{last} mark of the page it will be
+``Section 2.'', and the rightmark will be ``subsection 1.1'' as it will be
+the \emph{first} mark of the page. So the page header info will combine 
+section 2 with subsection 1.1 which isn't very nice.
+The best you can do in these cases is use only the \verb|\rightmark|s and
+redefine \verb|\sectionmark| accordingly. A \latex/ command
+\CmdIndex{firstleftmark}
+\verb|\firstleftmark| would also be a nice addition (see the 
+\texttt{extramarks} package in section~\ref{sec:xmarks}).
+
+Another problem with the marks in the standard \latex/ classes is that the
+higher level sectioning commands (e.g. \verb|\chapter|) call
+\verb|\markboth| with an empty right argument. This means that on the first
+page of a chapter (or a section in article style) the \verb|\rightmark|
+will be empty. If this is a problem you must manually insert extra
+\verb|\markright| commands or redefine the \verb|\chaptermark|
+(\verb|\sectionmark|) commands to issue a \verb|\markboth| command with
+two decent parameters.
+
+As a final remark you should also note that the \verb|*| forms of the
+\verb|\chapter| etc.\ commands do \emph{not} call the mark commands. So if
+you want your preface to set the header info but not be numbered nor be put in
+the table of contents, you must issue the \verb|\markboth| command
+yourself, e.g.
+
+\begin{verbatim}
+\chapter*{Preface\markboth{Preface}{}}
+\end{verbatim}
+
+Entering the \verb|\markboth| command inside the \verb|\chapter*| insures
+that the mark will not be separated from the title by a page break. Of
+course with \verb|\chapter| this wouldn't be  a problem if you put the mark
+command after the chapter title, as the \verb|\chapter| command starts at a
+new page. However with a \verb|\section*| it could be dangerous to say:
+
+\begin{verbatim}
+\section*{Preface}
+\markboth{Preface}{}
+\end{verbatim}
+as a page break may occur between the two commands.
+
+\section{Dictionary style headers}
+
+\index{dictionary}
+\index{concordance}
+Dictionaries and concordances usually have a header containing the first
+word defined on the page or both the first and the last words. This can
+easily be accomplished with \textsf{fancyheadings} and \latex/'s
+\texttt{mark} mechanism. Of course if you use the marks for dictionary
+style headers, you cannot use them for chapter and section information, so
+if there are also chapters and sections present, you must redefine the
+\verb|\chaptermark| and \verb|\sectionmark| to make them harmless:
+
+\begin{verbatim}
+\renewcommand{\chaptermark}[1]{}
+\renewcommand{\sectionmark}[1]{}
+\end{verbatim}
+
+Now you do a \verb|\markboth{#1}{#1}| for each dictionary or concordance
+entry \verb|#1| and use \verb|\rightmark| for the first entry defined on
+the page and \verb|\leftmark| for the last one.
+
+If you want to use a header entry of the form \textsf{firstword--lastword}
+it would be nice if this would be reduced to just the form
+\textsf{firstword} if both are the same. This could happen if there is just
+one entry on the page. In this case a test must be made to check if the
+marks are the same.  However, \tex/'s marks are strange beasts, which
+cannot be compared out of the box with the plain \tex/ \verb|\if| commands.
+\TTindex{ifthen}
+Fortunately the \texttt{ifthen} package works well:
+
+\begin{verbatim}
+\newcommand{\mymarks}{
+  \ifthenelse{\equal{\leftmark}{\rightmark}}
+    {\rightmark}
+    {\rightmark--\leftmark}}
+\lhead[\rm \mymarks]{\rm \thepage}
+\rhead[\rm \thepage]{\rm \mymarks}
+\end{verbatim}
+
+Dictionaries are often done with two columns. Unfortunately there is a bug
+in \latex/'s twocolumn option which causes some marks to be lost. If you
+use the  package in figure~\ref{fig:fixmarks}, this will be
+solved\footnote{This is a simplification of the  actual code. Get the real
+  package from the CTAN sites.}\footnote{The
+  \texttt{multicol} package uses a similar technique.}. 
+
+\begin{figure}[tb]
+\small
+\TTindex{fixmarks.sty}
+\begin{verbatim}
+% fixmarks.sty:
+% Patch LaTeX's output routine to handle marks correctly with two columns.
+% Joe Pallas <pallas@edu.stanford.neon>
+% Corrected by Piet van Oostrum <piet@cs.ruu.nl> on Feb 5, 1993, Oct 5, 1994
+
+\def\@outputdblcol{\if@firstcolumn \global\@firstcolumnfalse
+% Remember the marks from the first column
+    \global\setbox\@leftcolumn\copy\@outputbox
+    \splitmaxdepth=\maxdimen \cbaddness=10000
+    \setbox\@outputbox\vsplit\@outputbox to\maxdimen
+    \xdef\@firstcoltopmark{\topmark}%
+    \xdef\@firstcolfirstmark{\splitfirstmark}%
+    \ifx\@firstcolfirstmark\empty\global\let\@setmarks\relax\else
+      \gdef\@setmarks{\let\firstmark\@firstcolfirstmark
+        \let\topmark\@firstcoltopmark}%
+    \fi
+% End of change
+  \else \global\@firstcolumntrue
+    \setbox\@outputbox\vbox{\hbox to\textwidth{\hbox to\columnwidth
+      {\box\@leftcolumn \hss}\hfil \vrule width\columnseprule\hfil
+       \hbox to\columnwidth{\box\@outputbox \hss}}}\@combinedblfloats
+% Override current first and top with those of first column if necessary
+       \@setmarks
+% End of change
+       \@outputpage \begingroup \@dblfloatplacement \@startdblcolumn
+       \@whilesw\if@fcolmade \fi{\@outputpage\@startdblcolumn}\endgroup
+    \fi}
+\end{verbatim}
+
+  \caption{Fix marks in twocolumn style}
+  \label{fig:fixmarks}
+\end{figure}
+
+\section{Fancy layouts}
+
+\index{multi-line}
+You can make a multi-line field with the \verb|\\| command.  It is also
+possible to put extra space in a field with the \verb|\vspace| command.
+Note that if you do this you will probably have to increase the height of
+\CmdIndex{headheight}
+\CmdIndex{footskip}
+the header (\verb|\headheight|) or of the footer (\verb|\footskip|),
+\index{Overfull \verb|\vbox| \ldots}
+otherwise you may get error messages ``Overfull \verb|\vbox| \ldots has occurred while \verb|\output| is active''.
+See Section 4.1 of the \latex/ \emph{Companion} for detail.
+
+For instance, the following code will place  the section title and the
+subsection title of an article in two lines in the upper right hand
+corner:
+
+\begin{verbatim}
+\documentclass{article}
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\addtolength{\headheight}{\baselineskip}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+\renewcommand{\subsectionmark}[1]{\markright{#1}}
+\rhead{\leftmark\\\rightmark}
+\end{verbatim}
+
+You can customize the decorative lines.  You can make the decorative
+line in the header quite thick with
+
+\CmdIndex{headrulewidth}
+\begin{verbatim}
+\setlength{\headrulewidth}{0.6pt}
+\end{verbatim}
+or you can make the decorative line in the footer disappear with
+\CmdIndex{footrulewidth}
+\begin{verbatim}
+\setlength{\footrulewidth}{0pt}
+\end{verbatim}
+
+The decorative lines, themselves, are defined in the two macros
+\verb|\headrule| and \verb|\footrule|.  For instance,
+if you want a dotted line rather than a solid line in the header,
+redefine the command \verb|\headrule|:
+
+\begin{verbatim}
+\renewcommand{\headrule}{\vbox to 0pt{\hbox
+    to\headwidth{\dotfill}\vss}}
+\end{verbatim}
+
+\section{Two book examples}
+The following definitions give an approximation of the style
+used in L. Lamport's \latex/ book.
+
+Lamport's header overhangs the outside margin.  This is done as follows.
+
+The width of headers and footers is \verb|\headwidth|, which by default
+equals the width of the text: \verb|\textwidth|. You can make the width
+\CmdIndex{headwidth}
+wider (or narrower) by redefining \verb|\headwidth| with the
+\verb|\setlength| and \verb|\addtolength| commands.
+To overhang the outside margin where the marginal notes are
+\CmdIndex{marginparsep}
+\CmdIndex{marginparwidth}
+printed, add both \verb|\marginparsep| and \verb|\marginparwidth| to
+\verb|\headwidth| with the commands:
+
+\begin{verbatim}
+\addtolength{\headwidth}{\marginparsep}
+\addtolength{\headwidth}{\marginparwidth}
+\end{verbatim}
+
+\begin{flushleft}
+You must issue these commands \emph{after} the first
+\verb|\pagestyle{fancy}| or \verb|\pagestyle{fancyplain}| command as this
+will establish the default for \verb|\headwidth|.
+\end{flushleft}
+
+And now a complete definition of Lamport's book style:
+
+\begin{verbatim}
+\documentclass{book}
+\usepackage{fancyheadings}
+\pagestyle{fancyplain}
+\addtolength{\headwidth}{\marginparsep}
+\addtolength{\headwidth}{\marginparwidth}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\lhead[\fancyplain{}{\bfseries\thepage}]
+   {\fancyplain{}{\bfseries\rightmark}}
+\rhead[\fancyplain{}{\bfseries\leftmark}]
+   {\fancyplain{}{\bfseries\thepage}}
+\cfoot{}
+\end{verbatim}
+
+Notice that the \verb|\chaptermark| and \verb|\sectionmark| commands have
+been redefined to eliminate the chapter numbers and the uppercaseness.
+
+For the second example, we take the \amslatex/ book.% \cite{gG93B}.
+
+Chapter pages have no headers or footers.  So we declare
+
+\begin{verbatim}
+\thispagestyle{empty}
+\end{verbatim}
+for every chapter page, and we do not need fancyplain.
+
+Chapter and section titles appear in the form: 2.\ DO IT NOW, so we have
+to redefine \verb|\chaptermark| and \verb|\sectionmark| as follows (see
+Section~\ref{sec:custom}):
+
+\begin{verbatim}
+\renewcommand{\chaptermark}[1]%
+   {\markboth{\uppercase{\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]%
+   {\markright{\uppercase{\thesection.\ #1}}}
+\end{verbatim}
+
+In an even-header, the page number is printed as the LeftHeader and
+the chapter info as the RightHeader; in an odd-header, the section info
+is printed as the LeftHeader and the page number as the RightHeader.  The
+CenteredHeaders are empty.  There are no footers.
+
+There is a decorative line in the header.  It is 0.5pt wide, so we need
+the commands:
+
+\begin{verbatim}
+\setlength{\headrulewidth}{0.5pt}
+\setlength{\footrulewidth}{0pt}
+\end{verbatim}
+
+The font used in the headers is 9 pt bold Helvetica.  The \PSNFSS\ system
+by Sebastian Rahtz uses the short (Karl Berry) name \verb|phv| for
+Helvetica, so this font is selected with the commands:
+\begin{verbatim}
+\fontfamily{phv}\fontseries{b}\fontsize{9}{11}\selectfont
+\end{verbatim}
+(See Sections 7.6.1 and 11.9.1 of the \latex/ \emph{Companion}.)
+Let us define a shorthand for this:
+\begin{verbatim}
+\newcommand{\helv}{%
+   \fontfamily{phv}\fontseries{b}\fontsize{9}{11}\selectfont}
+\end{verbatim}
+
+Now we are ready for the page layout:
+
+\begin{verbatim}
+\lhead[\helv \thepage]{\helv \rightmark}
+\rhead[\helv \leftmark]{\helv \thepage}
+\cfoot{}
+\end{verbatim}
+
+Putting this all together:
+\begin{verbatim}
+\documentclass{book}
+\usepackage{fancyheadings}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]%
+   {\markboth{\uppercase{\thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]%
+   {\markright{\uppercase{\thesection.\ #1}}}
+\setlength{\headrulewidth}{0.5pt}
+\setlength{\footrulewidth}{0pt}
+\newcommand{\helv}{%
+   \fontfamily{phv}\fontseries{b}\fontsize{9}{11}\selectfont}
+\lhead[\helv \thepage]{\helv \rightmark}
+\rhead[\helv \leftmark]{\helv \thepage}
+\cfoot{}
+\end{verbatim}
+
+
+\section{Special page layout for float pages}
+\label{sec:float}
+
+\index{float page}
+Some people want to have a special layout for float pages (pages only
+containing floats). As these pages
+are generated autonomically by \latex/, the user doesn't have any control
+over them. There is no \verb|\thispagestyle| for float pages and any change
+of the page style will at least also affect the page before the float page.
+With fancyheadings you can give the following definition in your
+preamble\footnote{If you have \textsf{fancyheadings} version 1.5 or higher
+  the commands described in this section are already included}:
+
+\begin{verbatim}
+\makeatletter
+\def\iffloatpage#1#2{\if@fcolmade #1\else #2\fi}
+\makeatother
+\end{verbatim}
+\CmdIndex{iffloatpage}
+
+In each of
+the header- or footer fields you can now specify
+
+\verb|\iffloatpage{|value for float page\verb|}{|value for other pages\verb|}|
+
+You can even use this to get rid of the decorative line on float pages only
+by defining:
+
+\begin{verbatim}
+\renewcommand{\headrulewidth}{\iffloatpage{0pt}{0.4pt}}
+\end{verbatim}
+
+Note that \verb|\renewcommand| is used rather than the usual
+\verb|\setlength| command to change the \verb|\headrulewidth|. Changing it
+with \verb|\setlength| will not work\footnote{It was probably a dumb
+decision to define the width parameters as lengths. There is no need to and
+I may change this in a future version of \textsf{fancyheadings}}.
+
+\begin{sloppy}
+After this \verb|\renewcommand| it will no longer be possible to change the
+parameter \verb|\headrulewidth| with \verb|\setlength|, you will have to use
+\verb|\renewcommand| in the rest of the document.
+\end{sloppy}
+
+Sometimes you may want to change the layout also for pages that contain a
+float on the top of the page or a float on the bottom of the page.
+
+Enter the following definitions in a style file (or between
+\verb|\makeatletter| and  \verb|\makeatother| in your preamble:
+
+\begin{verbatim}
+\let\latex@makecol\@makecol
+\def\@makecol{\let\topfloat\@toplist\let\botfloat\@botlist\latex@makecol}
+\def\iftopfloat#1#2{\ifx\topfloat\empty #2\else #1\fi}
+\def\ifbotfloat#1#2{\ifx\botfloat\empty #2\else #1\fi}
+\end{verbatim}
+\CmdIndex{iftopfloat}
+\CmdIndex{ifbotfloat}
+
+You can then use the commands \verb|\iftopfloat| and  \verb|\ifbotfloat|
+similar to
+ \verb|\iffloatpage|.
+
+Note: Marks in floats will not be visible in \latex/'s output routine, so
+it is not useful to put marks in floats. So there is currently no way to
+let a float (e.g.\ a figure caption) influence the page header or footer.
+
+\section{Those blank pages}
+\label{sec:blank}
+
+In the \texttt{book} class when the \texttt{openany} option is not given or
+in the \texttt{report} class when the \texttt{openright} option is given,
+chapters start at odd-numbered pages, half of the time causing a blank page
+to be inserted. Some people prefer this page to be completely empty, i.e.\ 
+without headers and footers. This cannot be done with \verb|\thispagestyle|
+as this command would have to be issued on the \emph{previous} page. There
+is, however, no magic necessary to get this done:
+
+\PSindex{empty}
+\CmdIndex{clearpage}
+\CmdIndex{cleardoublepage}
+\begin{verbatim}
+\clearpage{\pagestyle{empty}\cleardoublepage}
+\end{verbatim}
+
+As the \verb|\pagestyle{empty}| is enclosed in a group it only affects the
+page that may be generated by the \verb|\cleardoublepage|.  You can of
+course put the above in a private command. If you want to have this done
+automatically at each chapter start or when you want some other text on the
+page then you must redefine the \verb|\cleardoublepage| command.
+\index{blank page}
+\begin{verbatim}
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
+  \hbox{}
+  \vspace*{\fill}
+  \begin{center}
+    This page intentionally contains only this sentence.
+  \end{center}
+  \vspace{\fill}
+  \thispagestyle{empty}
+  \newpage
+  \if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+\end{verbatim}
+
+\section{\textsf{N} of \textsf{M} style page numbers}
+\label{sec:nofm}
+
+Some document writers prefer the pages to be numbered as \textsf{n} of
+\textsf{m} where \textsf{m} is the number of pages in the document. There
+\TTindex{nofm.sty}
+is a package \texttt{nofm.sty} available, but some versions of it are
+defective, and most don't work with fancyheadings because they take over the
+\TTindex{lastpage.sty}
+complete page layout. For \LaTeXe{} there is a package \texttt{lastpage}
+available which you can use with \textsf{fancyheadings} as follows:
+
+\begin{verbatim}
+\usepackage{lastpage}
+...
+\cfoot{\thepage\ of \pageref{LastPage}}
+\end{verbatim}
+
+If you are still using \latex/2.09 and you are not able to switch to
+\LaTeXe{} you can define a \latex/2.09 compatible \texttt{lastpage.sty} as
+follows:
+
+\begin{verbatim}
+\let\origenddocument=\enddocument
+\def\enddocument{\clearpage\if@filesw
+  {\addtocounter{page}{-1} \immediate\write\@mainaux
+    {\string\newlabel{LastPage}{{}{\thepage}}}}\origenddocument}
+\end{verbatim}
+
+With some trickery\footnote{If you have a recent version of the
+  \texttt{ifthen} package the tricks are not necessary. You can then test
+  the \texttt{\char`\\pageref\char`\{LastPage\char`\}} directly.}
+ the value of the \texttt{LastPage} label can be used to
+make different headers or footers on the last page of a document. E.g.\ if
+you want the footer of every odd page, except if it is the last one, to
+contain the text ``please turn over'', this can be done as follows:
+
+\begin{verbatim}
+\usepackage{lastpage}
+\usepackage{ifthen}
+...
+\makeatletter
+\def\LastPagenum{\@ifundefined{r@LastPage}{0}{\expandafter
+    \expandafter\expandafter\@cdr
+    \csname r@LastPage\endcsname\@nil\null} }
+\makeatother
+\rfoot{\ifthenelse{\isodd{\value{page}} \and \not
+    \value{page}=\LastPagenum}{please turn over}{}}
+\end{verbatim}
+
+
+\section{When to change the headers and footers?}
+
+Sometimes you want to change the header or footer layout in the course of a
+document. Some of these changes can be accomplished by using the mark
+mechanism as may be seen in section~\ref{sec:custom} and \ref{sec:xmarks}.
+However, sometimes we want a more drastic change, e.g to change the page
+numbering from roman to arabic (with \verb|\pagenumbering|), to change one of
+\index{page style!changes}
+the \textsf{fancyheadings} fields or to change to another page style.
+Sometimes you may be surprised to find the change to occur too early. In
+general the above mentioned changes take effect immediately, i.e.\ on the
+page that is currently being built. If you want the change to take effect
+at the next page you must make sure that the current page is finished. In
+\CmdIndex{clearpage}
+most cases this can be done by issuing a \verb|\clearpage| command before
+any of the above mentioned changes. If this is not possible you can use the 
+\TTindex{afterpage.sty}
+\texttt{afterpage} package with:\\
+\verb|\afterpage{\lhead{new value}}| or
+\CmdIndex{pagenumbering}
+\verb|\afterpage{\pagenumbering{roman}}|. You cannot use \verb|\afterpage|
+to change the \verb|\pagestyle| as the commands issued by \verb|\afterpage|
+are local in a group, and the \verb|\pagestyle| command makes only local
+changes. The \verb|\pagenumbering| and the \textsf{fancyheadings} commands
+make global changes so they will work, as will the \verb|\thispagestyle|
+command. 
+
+It should be noted that although the \textsf{fancyheadings} commands like
+\verb|\lhead| take effect immediately, this does not mean that any
+``variables'' used in these commands get the value they have at the place
+where these commands are given. E.g.\ if \verb|\cfoot{\thepage}| is given
+the page number that will be inserted in the footer is not the page number
+of the page where this command is given, but rather the page number of
+the actual page where the footer is constructed. Of course for the page
+number this is what you expect, but it is also true for other commands.
+
+So if you have a book where each chapter is written by a different author
+and you want the name of the author in the lower left-hand corner you can
+use the following commands:
+
+\begin{verbatim}
+\newcommand{\TheAuthor}{}
+\newcommand{\Author}[1]{\renewcommand{\TheAuthor}{#1}}
+\lfoot{\TheAuthor}
+\end{verbatim}
+
+\noindent and start each chapter with the command 
+\verb|\Author{Real Name}|.
+ If however, the author name would be changed before a page is
+completed the wrong author could come in the footer. This would be the case
+if you gave the above command \emph{before} the \verb|\chapter| command
+rather than after it. 
+Another source of problems is the fact that \tex/'s output routine processes
+commands ahead, so it may already have processed some commands that produce
+text that will appear on the next page. See the next section for an example.
+
+\section{Headers and footers induced by the text}
+\label{sec:xmarks}
+
+We have seen how we can use \LaTeX's marks to get information from the
+document contents to the headers and footers. The marks mechanism is the
+only reliable mechanism that you can use to get changing information to the
+headers or footers. This is because \latex/ may be processing your document
+ahead before deciding to break the page. 
+
+Sometimes the two marks that \latex/ offers are not enough. An example is
+the following:
+\begin{quote}
+ If a solution to an exercise goes across a page break, then I would like
+ to have ``(Continued on next page\ldots)'' at the bottom of the
+\index{Continued\ldots}
+ first page and ``(Continued\ldots)'' at the top in the margin of the next page.
+\end{quote}
+
+You cannot use \latex/'s mark mechanisms for this if you also want to use
+chapter and section information.
+
+The code from figure~\ref{fig:xmarks} constitutes a package that gives you
+two extra marks that can be used in this situation\footnote{After I made
+  this package I discovered a package \texttt{secret.sty} that does a
+  similar thing to mark confidential paragraphs if they cross a page
+  boundary. It does it, however, by changing the output routine.}.
+\begin{figure}[tb]\small
+\CmdIndex{extramarks}
+\begin{verbatim}
+% extramarks.sty
+\def\@leftmark#1#2#3#4{#1}
+\def\@rightmark#1#2#3#4{#2}
+
+\def\markboth#1#2{{\def\protect{\noexpand\protect\noexpand}
+     \let\label\relax \let\index\relax \let\glossary\relax
+     \expandafter\@markboth\@themark{#1}{#2}
+     \mark{\@themark}}\if@nobreak\ifvmode\nobreak\fi\fi}
+\def\markright#1{{\def\protect{\noexpand\protect\noexpand}
+     \let\label\relax \let\index\relax \let\glossary\relax
+     \expandafter\@markright\@themark
+     {#1}\mark{\@themark}}\if@nobreak\ifvmode\nobreak\fi\fi}
+\def\@markright#1#2#3#4#5{\gdef\@themark{{#1}{#5}{#3}{#4}}}
+\def\@markboth#1#2#3#4#5#6{\gdef\@themark{{#5}{#6}{#3}{#4}}}
+\def\leftmark{\expandafter\@leftmark\botmark{}{}{}{}}
+\def\rightmark{\expandafter\@rightmark\firstmark{}{}{}{}}
+\def\firstleftmark{\expandafter\@leftmark\firstmark{}{}{}{}}
+\def\lastrightmark{\expandafter\@rightmark\botmark{}{}{}{}}
+
+\def\@themark{{}{}{}{}}
+
+\def\extramarks#1#2{{\def\protect{\noexpand\protect\noexpand}
+     \let\label\relax \let\index\relax \let\glossary\relax
+     \expandafter\@markextra\@themark{#1}{#2}
+     \mark{\@themark}}\if@nobreak\ifvmode\nobreak\fi\fi}
+\def\@markextra#1#2#3#4#5#6{\gdef\@themark{{#1}{#2}{#5}{#6}}}
+\def\firstxmark{\expandafter\@firstxmark\firstmark{}{}{}{}}
+\def\topxmark{\expandafter\@firstxmark\topmark{}{}{}{}}
+\def\lastxmark{\expandafter\@lastxmark\botmark{}{}{}{}}
+\def\@firstxmark#1#2#3#4{#3}
+\def\@lastxmark#1#2#3#4{#4}
+\end{verbatim}
+  \caption{Package for extra marks in \latex/}
+  \label{fig:xmarks}
+\end{figure}
+Here is a way to use this package:
+
+\begin{verbatim}
+\usepackage{extramarks}
+...
+\pagestyle{fancy}
+\lhead{\firstxmark}
+\rfoot{\lastxmark}
+...
+\extramarks{}{Continued on next page\ldots}
+Some text that may or may not cross a page boundary...
+\extramarks{Continued\ldots}{}
+\end{verbatim}
+
+\CmdIndex{extramarks}
+Note that the \verb|\extramarks| command must be close to the text, i.e no
+empty lines (paragraph boundaries) should intervene. Otherwise the page may
+be broken at that boundary and the extramarks would come on the wrong page.
+
+There are two new marks that can be used in the page layout with this
+package: If commands of the form
+\verb|\extramarks{|$m_1$\verb|}{|$m_2$\verb|}| are given
+\verb|\firstxmark| gives you the first $m_1$ value and
+\verb|\lastxmark| gives you the last $m_2$ value
+of the current page.
+\CmdIndex{firstleftmark}
+\CmdIndex{lastrightmark}
+It also gives you the \verb|\firstleftmark| and \verb|\lastrightmark|
+commands that complement the standard \latex/ marks.
+
+To stress the point that marks are the correct way to do this, let me
+give you a ``solution'' that will not work\footnote{Actually there is
+  another way but it requires two \latex/ passes: you can put \texttt{\char`\\label}
+  commands before and after the text and compare the \texttt{\char`\\pageref}s.}:
+
+\begin{verbatim}
+\lhead{Continued}
+\rfoot{Continued on next page\ldots}
+Some text that may or may not cross a page boundary...
+\lhead{}
+\rfoot{}
+\end{verbatim}
+
+You may be tempted to think that the first \verb|\lhead| and \verb|\rfoot|
+will be in effect when \tex/ breaks the page in the middle of the text,
+and the last ones when the page breaks after the text. This is not true as
+the whole paragraph (including the last definitions) will be processed
+\index{page break}
+before \tex/ considers the page break, so at the time of the page break the
+last definitions are effective, whether the page break occurs inside the text
+or outside of it. Putting a paragraph boundary between the
+text and the last definitions will not work either, because you don't want
+the first definitions to be in effect when \tex/ decides to break the page
+exactly at this boundary. Actually the marks mechanism was invented to get
+rid of these kinds of problems.
+
+In the above example the text ``Continued'' appears in the page header. It
+\index{margin}
+may be nicer to put it in the  margin. This can be easily
+accomplished by positioning it at a fixed place relative to the page header.
+In plain \tex/ you would use a concoction of \verb|\hbox to 0pt|,
+\verb|\vbox to 0pt|, \verb|\hskip|,\verb|\vskip|, \verb|\hss| and
+\verb|\vss| but fortunately 
+\latex/'s \texttt{picture} environment gives a much cleaner way to do this.
+In order not to disturb the normal header layout we put the text in a zero-sized
+\texttt{picture}. Generally this is the best way to position things on fixed
+places on the page. You can then also use the normal headings. See also
+section~\ref{sec:thumb} for another example of 
+this technique.
+
+\TTindex{picture}
+\begin{verbatim}
+\setlength{\unitlength}{\baselineskip}
+\lhead{\begin{picture}(0,0)
+  \put(-2,-3){\makebox(0,0)[r]{\firstxmark}}
+  \end{picture}\leftmark}
+\end{verbatim}
+
+This solution can of course also be used for the footer. Be sure to put the
+\texttt{picture} as the first thing in left-handside entries and last in right-handside
+ones.
+
+Finally you may want to put ``(Continued\ldots)'' in the \emph{text}
+rather than in the header or the margin. Then you have to use the
+\TTindex{afterpage.sty}
+\texttt{afterpage} package. We also decide to make a separate
+environment for it.
+
+\begin{verbatim}
+\newenvironment{continued}{\par
+  \extramarks{}{Continued on next page\ldots}
+  \afterpage{\noindent\firstxmark\vspace{1ex}}
+  }{\extramarks{(Continued\ldots)}{}\par}
+\end{verbatim}
+
+It is a bit dangerous to use \verb|\firstxmark| outside the page layout
+routine, but apparently with \verb|\afterpage| this works. If you would
+need the information further on in the page you must remember the state of
+the marks in your own variable. You can do this in one of the
+\textsf{fancyheadings} fields. For example if you want to add something
+\emph{after} the broken piece of text you can use the following:
+
+\begin{verbatim}
+\newcommand{\mysaved}{}
+
+\newenvironment{continued}{\par
+  \extramarks{}{Continued on next page\ldots}
+  }{\extramarks{(Continued\ldots)}{}\par\vspace{1ex}\mysaved}
+\lhead{\leftmark}
+\chead{\ifthenelse{\equal{\lastxmark}{}}
+  {\gdef\mysaved{}}
+  {\gdef\mysaved{\noindent[Continued from previous page]}}}
+\end{verbatim}
+
+If you want to include one of the marks or other varying information in the
+saved text, you must use \verb|\xdef| rather than \verb|\gdef|.
+
+
+\section{A movie}
+
+\index{movie}
+\TTindex{picture}
+If you put at each page on the same place a picture that slightly changes
+from page to page you can get a movie-like effect by flipping through the
+pages. You can create such a movie easily with fancyheadings. For
+simplicity we assume that each picture is in a postscript (EPS) file called
+\texttt{pic}$\langle n\rangle$.\texttt{ps} where $\langle n\rangle$ is the page number and that we use
+the \texttt{epsf} package. 
+\TTindex{epsf}
+To put the movie in the  righthandside bottom corner the following will work:
+
+\begin{verbatim}
+\rfoot{\setlength{\unitlength}{1mm}\setlength{\epsfxsize}{2cm}
+  \begin{picture}(0,0)
+    \put(5,0){\epsfbox{pic\thepage.ps}}
+  \end{picture}}
+\end{verbatim}
+
+Notice that the \verb|\unitlength| and \verb|\epsfxsize| parameter should
+be set locally in the fancyheadings field in order to avoid unwanted
+interference from their values in the text.
+
+\section{Thumb-indexes}
+\label{sec:thumb}
+
+\index{bible}
+Some railroad guides and expensive bibles have so called
+\index{thumb-index}
+\emph{thumb-indexes}, i.e.\ there are marks on the sides of the pages that
+indicate where the chapters are. You can create these by printing black
+blobs in the margin of the pages. The vertical position should be
+determined by the chapter number or some other counter. As the position is
+independent of the contents of the page, we print these blobs as part of
+the header in a zero-sized \texttt{picture} as described in the previous
+section.
+
+Of course we have to take care of two-sided printing, and we may want to
+have an index page with all the blobs in the correct position. The solution
+requires some hand-tuning to get the blobs nicely spaced out vertically.
+For the application that I had there were 12 sections, so I made the blobs
+18 mm apart, i.e. 9~mm blob separated by 9~mm whitespace. In order to avoid
+calculations they are set in a \texttt{picture} environment with the
+\verb|\unitlength| set to 18~mm. Page numbers are set in the headers at the
+outer sides, and the blobs are attached to these. In this example the
+section numbers are used to position the blobs, but you can replace this
+with any numeric value. See figure~\ref{fig:overview} for the resulting
+overview page and figure~\ref{fig:thumb} for the code.
+
+\begin{figure}[htb]
+\setlength{\unitlength}{9mm}
+\newcommand{\blob}{\rule[-.2\unitlength]{1\unitlength}{.5\unitlength}}
+\newcounter{line}
+\newcommand{\secname}[1]{\addtocounter{line}{1}%
+  \put(1,-\value{line}){\blob}
+  \put(-7.5,-\value{line}){\arabic{line}}
+  \put(-7,-\value{line}){#1}}
+
+\newcommand{\overview}{1
+  \begin{picture}(0,0)
+    \secname{Introduction}
+    \secname{The first year}
+    \secname{Specialisation}
+  \end{picture}}
+ 
+  \begin{center}
+    \leavevmode
+    \begin{picture}(11.3,5)
+      \put(0,0){\framebox(11.3,5)[tr]{}}
+      \put(9,4.5){\overview}
+    \end{picture}
+  \end{center}
+  \caption{Thumb-index overview page}
+  \label{fig:overview}
+\end{figure}
+
+\begin{figure}[tb]\small
+\begin{verbatim}
+\setlength{\unitlength}{18mm}
+\newcommand{\blob}{\rule[-.2\unitlength]{2\unitlength}{.5\unitlength}}
+
+\newcommand\rblob{\thepage
+  \begin{picture}(0,0)
+    \put(1,-\value{section}){\blob}
+  \end{picture}}
+
+\newcommand\lblob{%
+  \begin{picture}(0,0)
+    \put(-3,-\value{section}){\blob}
+  \end{picture}%
+  \thepage}
+
+\pagestyle{fancy}
+\cfoot{}
+
+\newcounter{line}
+\newcommand{\secname}[1]{\addtocounter{line}{1}%
+  \put(1,-\value{line}){\blob}
+  \put(-7.5,-\value{line}){\Large \arabic{line}}
+  \put(-7,-\value{line}){\Large #1}}
+
+\newcommand{\overview}{\thepage
+  \begin{picture}(0,0)
+    \secname{Introduction}
+    \secname{The first year}
+    \secname{Specialisation}
+...etc...
+  \end{picture}}
+
+\begin{document}
+\rhead{\overview}\mbox{}\newpage % This produces the overview page
+\rhead{} % Front matter may follow here
+\clearpage
+\rhead[\rightmark]{\rblob} \lhead[\lblob]{\leftmark}
+...
+\end{verbatim}
+  \caption{Thumb-index code}
+  \label{fig:thumb}
+\end{figure}
+
+
+\section{Final Remarks}
+
+The commands to specify the headers and footers are quite complicated when
+even- and odd-numbered pages have different layout and we want also to
+redefine the \texttt{plain} page style. Therefore for version 2 of
+\textsf{fancyheadings} I will create an easier user interface (the old
+commands will still work). To give you the opportunity to comment, here is
+a preview:
+
+The \verb|*head| and \verb|*foot| commands will be replaced by commands
+\verb|\fancyhead| and \verb|\fancyfoot|. These will have an optional
+argument that selects which fields to change, e.g. L for the left field, E
+for even pages, etc. See figure~\ref{fig:sel}. Selectors can be combined so
+\verb|\fancyhead[LE,RO]{text}|
+will define the field for both the left header on even pages and the right
+header on odd pages.
+\begin{figure}[tb]
+  \begin{center}
+    \leavevmode
+    \begin{tabular}{|l|l|}
+      \hline
+      E & Even page         \\
+      O & Odd page          \\
+      \hline
+      L & Left field        \\
+      C & Center field      \\
+      R & Right field       \\
+      \hline
+      T & float at Top      \\
+      B & float at Bottom   \\
+      F & Float page         \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Selectors}
+  \label{fig:sel}
+\end{figure}
+There will also be a new command \verb|\fancypagestyle| that allows you to
+(re)define page styles. One use for this is to redefine the page style
+\PSindex{plain}
+\PSindex{fancyplain}
+\texttt{plain} so the \verb|\fancyplain| stuff is no longer necessary.
+Another use is to allow special page styles to be used with
+\verb|thispagestyle| or maybe for float pages.
+
+The complicated example in section~\ref{complicated} will then become:
+
+\begin{verbatim}
+\fancyhead{} % clear all fields
+\fancyhead[LE,RO]{\bfseries The performance of new graduates}}
+\fancyfoot[LO,CE]{From: K. Grant}
+\fancyfoot[RE,CO]{To: Dean A. Smith}
+\fancyfoot[RO,LE]{\bfseries \thepage}
+\setlength{\headrulewidth}{0.4pt}
+\setlength{\footrulewidth}{0.4pt}
+
+\fancypagestyle{plain}{%
+\fancyhead{}
+\fancyfoot[C]{\bfseries \thepage}}
+\end{verbatim}
+
+As you can see this is much less complicated.
+
+If you want to comment please use e-mail or regular mail to:\\
+Piet van Oostrum\\
+Dept.\ of Computer Science\\
+Utrecht University\\
+P.O. Box 80.089\\
+3508 TB Utrecht, The Netherlands\\
+Telephone: +31 30 531806 Telefax: +31 30 513791\\
+Internet: piet@cs.ruu.nl 
+
+\printindex
+
+\end{document}
+
+
+% Local Variables:
+% mode: latex
+% TeX-master: t
+% End:

@@ -7,6 +7,8 @@
 #define	DIRREC		116		/* size of a directory ascii record */
 #define	NAMELEN		28		/* size of names */
 #define	NDBLOCK		6		/* number of direct blocks in Dentry */
+#define	RACHUNK		100		/* 600k read-ahead */
+#define	RAOVERLAP	10		/* plus 60k overlap read-ahead */
 #define	MAXDAT		8192		/* max allowable data message */
 #define	MAXMSG		128		/* max size protocol message sans data */
 #define	OFFMSG		60		/* offset of msg in buffer */
@@ -14,12 +16,6 @@
 #define NTLOCK		200		/* number of active file Tlocks */
 #define	LRES		3		/* profiling resolution */
 #define NATTID		10		/* the last 10 ID's in attaches */
-#define	C0a		59		/* time constants for filters */
-#define	C0b		60
-#define	C1a		599
-#define	C1b		600
-#define	C2a		5999
-#define	C2b		6000
 
 /*
  *  more wonderful constants for authentication
@@ -36,7 +32,9 @@
 #define FEPERBUF	((BUFSIZE-sizeof(Super1)-sizeof(long))/sizeof(long))
 #define	SMALLBUF	(MAXMSG)
 #define	LARGEBUF	(MAXMSG+MAXDAT+256)
-#define	RAGAP		(300*1024)/BUFSIZE		/* readahead parameter */
+#define	CDEV(dev)	cwdevs[(dev).part]
+#define	WDEV(dev)	cwdevs[(dev).part+1]
+
 
 typedef	struct	Vmedevice Vmedevice;	/* not defined here */
 
@@ -54,7 +52,6 @@ typedef	struct	Fbuf	Fbuf;
 typedef	struct	Super1	Super1;
 typedef	struct	Superb	Superb;
 typedef	struct	Filsys	Filsys;
-typedef	struct	Startsb	Startsb;
 typedef	struct	Dentry	Dentry;
 typedef	struct	Tag	Tag;
 typedef struct  Talarm	Talarm;
@@ -74,6 +71,7 @@ typedef	struct	Hiob	Hiob;
 typedef	struct	RWlock	RWlock;
 typedef	struct	Msgbuf	Msgbuf;
 typedef	struct	Queue	Queue;
+typedef	struct	Drive	Drive;
 typedef	struct	Command	Command;
 typedef	struct	Flag	Flag;
 typedef	struct	Bp	Bp;
@@ -84,12 +82,12 @@ typedef	struct	Rendez	Rendez;
 typedef	struct	Filter	Filter;
 typedef		ulong	Float;
 typedef	struct	Tlock	Tlock;
+typedef	struct	Filta	Filta;
 typedef	struct	Enpkt	Enpkt;
 typedef	struct	Arppkt	Arppkt;
 typedef	struct	Ippkt	Ippkt;
 typedef	struct	Ilpkt	Ilpkt;
 typedef	struct	Udppkt	Udppkt;
-typedef	struct	Icmppkt	Icmppkt;
 typedef	struct	Ifc	Ifc;
 
 struct	Lock
@@ -109,10 +107,13 @@ struct	Filter
 {
 	ulong	count;			/* count and old count kept separate */
 	ulong	oldcount;		/*	so interrput can read them */
-	int	c1;			/* time const multiplier */
-	int	c2;			/* time const divider */
-	int	c3;			/* scale for printing */
-	Float	filter;			/* filter */ 
+	Float	filter[3];		/* filters for 1m 10m 100m */ 
+};
+
+struct	Filta
+{
+	Filter*	f;
+	int	scale;
 };
 
 struct	QLock
@@ -156,52 +157,10 @@ struct	Tag
 
 struct	Device
 {
-	uchar	type;
-	uchar	init;
-	Device*	link;			/* link for mcat/mlev */
-	Device*	dlink;			/* link all devices */
-	void*	private;
-	long	size;
-	union
-	{
-		struct			/* worm wren */
-		{
-			int	ctrl;
-			int	targ;
-			int	lun;
-		} wren;
-		struct			/* mcat mlev */
-		{
-			Device*	first;
-			Device*	last;
-			int	ndev;
-		} cat;
-		struct			/* cw */
-		{
-			Device*	c;
-			Device*	w;
-			Device*	ro;
-		} cw;
-		struct			/* juke */
-		{
-			Device*	j;
-			Device*	m;
-		} j;
-		struct			/* ro */
-		{
-			Device*	parent;
-		} ro;
-		struct			/* fworm */
-		{
-			Device*	fw;
-		} fw;
-		struct			/* part */
-		{
-			Device*	d;
-			long	base;
-			long	size;
-		} part;
-	};
+	char	type;
+	char	ctrl;
+	char	unit;
+	char	part;
 };
 
 struct	Rabuf
@@ -210,7 +169,7 @@ struct	Rabuf
 	{
 		struct
 		{
-			Device*	dev;
+			Device	dev;
 			long	addr;
 		};
 		Rabuf*	link;
@@ -240,15 +199,13 @@ typedef
 struct
 {
 	Queue*	reply;		/* ethernet output */
+	uchar	ea[Easize];	/* my ether address */
+	uchar	ipmy[Pasize];	/* my ip address (index) */
 	uchar	iphis[Pasize];	/* his ip address (index) */
-	uchar	ipgate[Pasize];	/* his ip/gateway address */
+	uchar	ipgate[Pasize];	/* his gateway address */
+	int	usegate;	/* flag set if not on this subnet */
 	Chan*	link;		/* list of il channels */
 } Enp;
-
-enum
-{
-	Nqt=	8,
-};
 
 typedef
 struct	Ilp
@@ -257,7 +214,7 @@ struct	Ilp
 
 	int	alloc;		/* 1 means allocated */
 	int	srcp;		/* source port (index) */
-	int	dstp;		/* dest port (index) */
+	int	dstp;		/* source port (index) */
 	int	state;		/* connection state */
 
 	Msgbuf*	unacked;
@@ -269,43 +226,78 @@ struct	Ilp
 	ulong	recvd;		/* last packet received */
 	ulong	start;		/* local start id */
 	ulong	rstart;		/* remote start id */
-	ulong	acksent;	/* Last packet acked */
 
-	ulong	lastxmit;	/* time of last xmit */
-	ulong	lastrecv;	/* time of last recv */
-	ulong	timeout;	/* time out counter */
-	ulong	acktime;	/* acknowledge timer */
-	ulong	querytime;	/* Query timer */
+	int	timeout;	/* time out counter */
+	int	slowtime;	/* slow time counter */
+	int	fasttime;	/* retransmission timer */
+	int	acktime;	/* acknowledge timer */
+	int	querytime;	/* Query timer */
+	int	deathtime;	/* Time to kill connection */
 
-	ulong	delay;		/* Average of the fixed rtt delay */
-	ulong	rate;		/* Average byte rate */
-	ulong	mdev;		/* Mean deviation of predicted to real rtt */
-	ulong	maxrtt;		/* largest rtt seen */
-	ulong	rttack;		/* The ack we are waiting for */
-	int	rttlen;		/* Length of rttack packet */
-	ulong	rttstart;	/* Time we issued rttack packet */
-	ulong	unackedbytes;
-	int	rexmit;		/* number of rexmits of *unacked */
-
-	ulong	qt[Nqt+1];	/* state table for query messages */
-	int	qtx;		/* ... index into qt */
+	int	rtt;		/* average round trip time */
+	ulong	rttack;		/* the ack we are waiting for */
+	ulong	ackms;		/* time we issued */
 
 	int	window;		/* maximum receive window */
 
 	Rendez	syn;		/* connect hang out */
 } Ilp;
 
+typedef
+struct	Fchan
+{
+	Chan*	link;		/* list of fil channels */
+
+	char*	msg;		/* pointer to channel error message */
+	Rendez*	cr;		/* Conenct rendezvous */
+
+	void*	ifaddr;		/* Hardware address */
+
+	int	alloc;		/* 1 means allocated */
+	ulong	laddress;	/* Local and remote address */
+	ulong	raddress;
+	ushort	lport;		/* Local and remote port */
+	ushort	rport;
+
+	int	state;		/* Connection state */
+	Lock	ackq;		/* Unacknowledged queue */
+	Msgbuf*	unacked;
+	Msgbuf*	unackedtail;
+	ulong	unackedbytes;	/* Number of bytes in unacked queue */
+	ulong	need;
+	ulong	sndwindow;
+	Rendez	flowr;
+	QLock	txq;
+
+	Lock	outo;		/* Out of order packet queue */
+	Msgbuf*	outoforder;
+
+	ulong	next;		/* Id of next to send */
+	ulong	recvd;		/* Last packet received */
+	ulong	start;		/* Local start id */
+	ulong	rstart;		/* Remote start id */
+
+	int	timeout;	/* Time out counter */
+	int	slowtime;	/* Slow time counter */
+	int	fasttime;	/* Retransmission timer */
+	int	acktime;	/* Acknowledge timer */
+	int	querytime;	/* Query timer */
+	int	deathtime;	/* Time to kill connection */
+	int	rtt;		/* Average round trip time */
+	ulong	rttack;		/* The ack we are waiting for */
+	ulong	ackms;		/* Time we issued */
+	int	window;		/* Maximum receive window */
+} Fchan;
+
 struct	Chan
 {
-	char	type;			/* major driver type i.e. Dev* */
+	char	type;			/* major driver type ie Devdk */
 	char	whochan[50];
 	char	whoname[NAMELEN];
 	ulong	flags;
 	int	chan;			/* overall channel number, mostly for printing */
 	int	nmsgs;			/* outstanding messages, set under flock -- for flush */
-	ulong	whotime;
-	Filter	work;
-	Filter	rate;
+	long	whotime;
 	int	nfile;			/* used by cmd_files */
 	RWlock	reflock;
 	Chan*	next;			/* link list of chans */
@@ -316,14 +308,62 @@ struct	Chan
 	Lock	idlock;
 	ulong	idoffset;		/* offset of id vector */
 	ulong	idvec;			/* vector of acceptable id's */
-
-	Ifc*	ifc;
 	union
 	{
 		/*
 		 * il ether circuit structure
 		 */
 		Ilp	ilp;
+
+		/*
+		 * fil fiber circuit structure
+		 */
+		Fchan	filp;
+
+		/*
+		 * data kit circuit structure
+		 */
+		struct
+		{
+			QLock;
+			Msgbuf*	inmsg;		/* input message */
+			Msgbuf*	outmsg;		/* output messages */
+			Msgbuf*	ccmsg;		/* messages for CCCHAN */
+			long	urptimeout;
+			long	timeout;
+			int	pokeflg;
+
+			int	cno;		/* channel number  */
+			int	repw;		/* write ptr */
+			int	repr;		/* read ptr */
+
+			int	icc;		/* input character pointer */
+			int	gcc;		/* good characters */
+			int	bot;		/* #bytes at BOT */
+			int	last;		/* which BOT is seen */
+			int	ack;
+			int	ec;
+			int	rej;
+
+			int	urpstate;
+			int	dkstate;
+			int	calltimeout;
+			int	seq;
+			int	maxout;
+			int	mlen;
+			int	nout;
+			int	mout;
+			int	mcount;
+
+			char	repchar[20];	/* list of echo characters */
+		} dkp;
+		/*
+		 * hotrod fiber uart
+		 */
+		struct
+		{
+			void*	bitp;
+		} hot;
 	};
 };
 
@@ -331,22 +371,16 @@ struct	Filsys
 {
 	char*	name;			/* name of filsys */
 	char*	conf;			/* symbolic configuration */
-	Device*	dev;			/* device that filsys is on */
+	Device	dev;			/* device that filsys is on */
 	int	flags;
 		#define	FREAM		(1<<0)	/* mkfs */
 		#define	FRECOVER	(1<<1)	/* install last dump */
 		#define	FEDIT		(1<<2)	/* modified */
 };
 
-struct	Startsb
-{
-	char*	name;
-	long	startsb;
-};
-
 struct	Time
 {
-	ulong	lasttoy;
+	long	lasttoy;
 	long	bias;
 	long	offset;
 };
@@ -356,8 +390,8 @@ struct	Time
  */
 struct	Tlock
 {
-	Device*	dev;
-	ulong	time;
+	Device	dev;
+	long	time;
 	long	qpath;
 	File*	file;
 };
@@ -392,12 +426,12 @@ struct	Cons
 	long	nwrenwe;	/* disk write errors */
 	long	nreseq;		/* cache bucket resequence */
 
-	Filter	work[3];	/* thruput in messages */
-	Filter	rate[3];	/* thruput in bytes */
-	Filter	bhit[3];	/* getbufs that hit */
-	Filter	bread[3];	/* getbufs that miss and read */
-	Filter	brahead[3];	/* messages to readahead */
-	Filter	binit[3];	/* getbufs that miss and dont read */
+	Filter	work;		/* thruput in messages */
+	Filter	rate;		/* thruput in bytes */
+	Filter	bhit;		/* getbufs that hit */
+	Filter	bread;		/* getbufs that miss and read */
+	Filter	brahead;	/* messages to readahead */
+	Filter	binit;		/* getbufs that miss and dont read */
 };
 
 struct	P9call
@@ -420,7 +454,7 @@ struct	File
 	long	addr;
 	long	slot;
 	long	lastra;		/* read ahead address */
-	ushort	fid;
+	short	fid;
 	short	uid;
 	char	open;
 		#define	FREAD	1
@@ -439,7 +473,7 @@ struct	Wpath
 struct	Iobuf
 {
 	QLock;
-	Device*	dev;
+	Device	dev;
 	Iobuf*	next;		/* for hash */
 	Iobuf*	fore;		/* for lru */
 	Iobuf*	back;		/* for lru */
@@ -515,7 +549,7 @@ struct	Superb
 struct	Fcall
 {
 	char	type;
-	ushort	fid;
+	short	fid;
 	short	err;
 	short	tag;
 	union
@@ -546,7 +580,7 @@ struct	Fcall
 		{
 			char	name[NAMELEN];	/* T-Walk, T-Clwalk, T-Create, T-Remove */
 			long	perm;		/* T-Create */
-			ushort	newfid;		/* T-Clone, T-Clwalk */
+			short	newfid;		/* T-Clone, T-Clwalk */
 			char	mode;		/* T-Create, T-Open */
 		};
 		struct
@@ -598,24 +632,13 @@ struct	Conf
 	ulong	nalarm;		/* alarms */
 	ulong	nuid;		/* distinct uids */
 	ulong	nserve;		/* server processes */
+	ulong	nrahead;	/* read ahead processes */
 	ulong	nfile;		/* number of fid -- system wide */
 	ulong	nwpath;		/* number of active paths, derrived from nfile */
 	ulong	gidspace;	/* space for gid names -- derrived from nuid */
 	ulong	nlgmsg;		/* number of large message buffers */
 	ulong	nsmmsg;		/* number of small message buffers */
 	ulong	wcpsize;	/* memory for worm copies */
-	ulong	recovcw;	/* recover addresses */
-	ulong	recovro;
-	ulong	firstsb;
-	ulong	recovsb;
-	uchar	nodump;		/* no periodic dumps */
-	uchar	ripoff;
-	uchar	dumpreread;	/* read and compare in dump copy */
-
-	ulong	npage0;		/* total physical pages of memory */
-	ulong	npage1;		/* total physical pages of memory */
-	ulong	base0;		/* base of bank 0 */
-	ulong	base1;		/* base of bank 1 */
 };
 
 /*
@@ -643,10 +666,20 @@ struct	Msgbuf
 enum
 {
 	Mxxx		= 0,
+	Mbbit,
 	Mbreply1,
 	Mbreply2,
 	Mbreply3,
 	Mbreply4,
+	Mbdkxpmesg,
+	Mbdkxpcall,
+	Mbdksrlisten1,
+	Mbdksrlisten2,
+	Mbdkinput,
+	Mbcycl1,
+	Mbcycl2,
+	Mbcycl3,
+	Mbcycl4,
 	Mbarp1,
 	Mbarp2,
 	Mbip1,
@@ -657,13 +690,7 @@ enum
 	Mbil3,
 	Mbil4,
 	Mbilauth,
-	Maeth1,
-	Maeth2,
-	Maeth3,
-	Mbeth1,
-	Mbeth2,
-	Mbeth3,
-	Mbeth4,
+	Mbfil,
 	MAXCAT,
 };
 
@@ -695,7 +722,7 @@ struct	User
 	void	(*start)(void);	/* startup function */
 	char*	text;		/* name of this process */
 	void*	arg;
-	Filter	time[3];	/* cpu time used */
+	Filter	time;		/* cpu time used */
 	int	exiting;
 	int	pid;
 	int	state;
@@ -721,6 +748,20 @@ struct
 	int	machs;
 	int	exiting;
 } active;
+
+struct	Drive
+{
+	Device	dev;
+	char	status;
+	char	qnum;
+	char	fflag;
+	long	block;			/* size of a block -- from config */
+	long	nblock;			/* number of blocks -- from config */
+	long	mult;			/* multiplier to get physical blocks */
+	long	max;			/* number of logical blocks */
+	Filter	work;
+	Filter	rate;
+};
 
 struct	Command
 {
@@ -761,10 +802,15 @@ struct	Rtc
 };
 
 /*
- * scsi i/o
+ * Drive status
  */
 enum
 {
+	Dunavail,
+	Dready,
+	Dnready,
+	Dself,
+
 	SCSIread = 0,
 	SCSIwrite = 1,
 };
@@ -910,11 +956,13 @@ enum
 {
 	Devnone 	= 0,
 	Devcon,			/* console */
+	Devdk,			/* datakit norm chan */
+	Devdkcc,		/* datakit common control chan */
+	Devdksr,		/* datakit service request chan */
+	Devdkck,		/* datakit clock chan */
 	Devwren,		/* scsi disk drive */
 	Devworm,		/* scsi video drive */
-	Devlworm,		/* scsi video drive (labeled) */
 	Devfworm,		/* fake read-only device */
-	Devjuke,		/* jukebox */
 	Devcw,			/* cache with worm */
 	Devro,			/* readonly worm */
 	Devcycl,		/* cyclone fiber uart */
@@ -924,6 +972,7 @@ enum
 	Devpart,		/* partition */
 	Devfloppy,		/* floppy drive */
 	Devide,			/* IDE drive */
+	Devfil,			/* fiber interface */
 	MAXDEV
 };
 
@@ -985,13 +1034,8 @@ enum
 
 	Arptype		= 0x0806,
 	Iptype		= 0x0800,
-
-	Icmpproto	= 1,
-	Igmpproto	= 2,
-	Tcpproto	= 6,
-	Udpproto	= 17,
 	Ilproto		= 40,
-
+	Udpproto	= 17,
 	Nqueue		= 20,
 	Nfrag		= 6,		/* max number of non-contig ip fragments */
 	Nrock		= 20,		/* number of partial ip assembly stations */
@@ -1113,44 +1157,20 @@ struct	Udppkt
 	uchar	udpsum[2];		/* Checksum including header */
 };
 
-struct	Icmppkt
-{
-	uchar	d[Easize];		/* ether header */
-	uchar	s[Easize];
-	uchar	type[2];
-
-	uchar	vihl;			/* ip header */
-	uchar	tos;
-	uchar	length[2];
-	uchar	id[2];
-	uchar	frag[2];
-	uchar	ttl;
-	uchar	proto;
-	uchar	cksum[2];
-	uchar	src[Pasize];
-	uchar	dst[Pasize];
-
-	uchar	icmptype;		/* Src port */
-	uchar	icmpcode;		/* Dst port */
-	uchar	icmpsum[2];		/* Checksum including header */
-
-	uchar	icmpbody[10];		/* Depends on type */
-};
-
 struct	Ifc
 {
 	Lock;
 	Queue*	reply;
-	Filter	work[3];
-	Filter	rate[3];
+	Filter	work;
+	Filter	rate;
 	ulong	rcverr;
 	ulong	txerr;
 	ulong	sumerr;
 	ulong	rxpkt;
 	ulong	txpkt;
-	uchar	ea[Easize];		/* my ether address */
-	uchar	ipa[Pasize];		/* my ip address, pulled from netdb */
-	uchar	netgate[Pasize];	/* my ip gateway, pulled from netdb */
+	uchar	ea[Easize];		/* our ether address */
+	uchar	ipa[Pasize];		/* our ip address, pulled from netdb */
+	uchar	netgate[Pasize];	/* ip gateway, pulled from netdb */
 	ulong	ipaddr;
 	ulong	mask;
 	ulong	cmask;
@@ -1164,9 +1184,3 @@ extern  Talarm		talarm;
 Conf	conf;
 Cons	cons;
 #define	MACHP(n)	((Mach*)(MACHADDR+n*BY2PG))
-
-#pragma	varargck	type	"D"	Device*
-#pragma	varargck	type	"T"	ulong
-#pragma	varargck	type	"I"	uchar*
-#pragma	varargck	type	"E"	uchar*
-#pragma	varargck	type	"F"	Filter*

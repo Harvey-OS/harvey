@@ -1,0 +1,15 @@
+changes for plan9--
+
+makefont.c: different quote for call to MakeTeXPK
+
+/usr... -> /sys in mkfile and config.* files
+
+getenv("HOME") -> getenv("home") in search.c
+
+strcpy decls removed from dvips.c, resident.c
+
+floor decl removed from dopage.c
+
+MakeTeXPK, texc.script in rc
+
+lots of changes in mkfile (see old version)

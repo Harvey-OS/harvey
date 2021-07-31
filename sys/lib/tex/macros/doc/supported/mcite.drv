@@ -1,0 +1,81 @@
+%% 
+%% This is file `mcite.drv', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% mcite.dtx  (with options: `driver')
+%% 
+%% Copyright (C) 1994 by Thorsten.Ohl@Physik.TH-Darmstadt.de 
+%% 
+%% This file is NOT the source for mcite, because almost all comments 
+%% have been stripped from it. It is NOT the preferred form of mcite 
+%% for making modifications to it. 
+%% 
+%% Therefore you can NOT redistribute and/or modify THIS file. You can 
+%% however redistribute the complete source (mcite.dtx and mcite.ins) 
+%% and/or modify it under the terms of the GNU General Public License as 
+%% published by the Free Software Foundation; either version 2, or (at 
+%% your option) any later version. 
+%% 
+%% Mcite is distributed in the hope that it will be useful, but 
+%% WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+%% GNU General Public License for more details. 
+%% 
+%% You should have received a copy of the GNU General Public License 
+%% along with this program; if not, write to the Free Software 
+%% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \CheckSum{206}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[a4paper]{article}
+\usepackage{doc}
+\usepackage{mcite}
+\EnableCrossrefs
+\RecordChanges
+\CodelineIndex
+\makeatletter
+\def\bitem#1{\item[\@biblabel{#1}]}
+\makeatother
+\def\MCITE/{\texttt{mcite}}
+\DoNotIndex{\\,\advance,\baselineskip,\batchmode,\begin,\catcode,\char}
+\DoNotIndex{\CodelineIndex,\csname,\def,\divide,\docdate,\DocInput}
+\DoNotIndex{\documentclass,\else,\emph,\EnableCrossrefs,\end,\endcsname}
+\DoNotIndex{\errmessage,\errorstopmode,\expandafter,\fbox,\fi,\filedate}
+\DoNotIndex{\filename,\fileversion,\font,\fontencoding,\fontfamily}
+\DoNotIndex{\fontseries,\fontshape,\fontsize,\gdef,\goodbreak,\hfil}
+\DoNotIndex{\hoffset,\hskip,\ifcase,\ifx,\InputIfFileExists,\item,\let}
+\DoNotIndex{\line,\LoadClass,\makebox,\mbox,\multiply,\NeedsTeXFormat}
+\DoNotIndex{\newdimen,\newenvironment,\newif,\nobreak,\normalfont}
+\DoNotIndex{\normalsize,\nullfont,\or,\oval,\pagestyle,\par,\parbox}
+\DoNotIndex{\parindent,\parskip,\PassOptionsToClass,\ProcessOptions}
+\DoNotIndex{\ProvidesClass,\put,\quad,\raisebox,\RecordChanges,\relax,\rule}
+\DoNotIndex{\selectfont,\space,\ss,\texttt,\textwidth,\the,\thispagestyle}
+\DoNotIndex{\topmargin,\usepackage,\voffset,\vskip,\vspace,\wlog}
+\begin{document}
+  \bibliographystyle{unsrt}%%%{physics}
+  \DocInput{mcite.dtx}
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput
+%% 
+%% End of file `mcite.drv'.

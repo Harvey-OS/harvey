@@ -66,23 +66,15 @@ A directory containing mount points for applications.
 A directory containing mount points for file trees imported from
 remote systems.
 .TP
-.B /29000
+.B /68020
 .TP
 .B /386
 .TP
-.B /68000
-.TP
-.B /68020
+.B /sparc
 .TP
 .B /960
 .TP
-.B /alpha
-.TP
-.B /arm
-.TP
 .B /mips
-.TP
-.B /sparc
 Each CPU architecture supported by Plan 9 has a directory in the root containing
 architecture-specific files, to be selected according to
 .B $objtype
@@ -93,50 +85,50 @@ or
 and
 .IR init (8)).
 Here we list only those for
-.BR /386 .
+.BR /mips .
 .TP
-.B /386/init
+.B /mips/init
 The initialization program used during bootstrapping; see
 .IR init (8).
 .TP
-.B /386/bin
-Directory containing binaries for the Intel x86 architecture.
+.B /mips/bin
+Directory containing binaries for the MIPS architecture.
 .TP
-.B "/386/bin/aux
+.B "/mips/bin/aux
 .TP
-.B /386/bin/ip
+.B /mips/bin/games
 .TP
 etc.
 Subdirectories of
-.B /386/bin
+.B /mips/bin
 containing auxiliary tools and collecting related programs.
 .TP
-.B /386/lib
+.B /mips/lib
 Directory of object code libraries as used by
-.B 8l
+.B vl
 (see
 .IR 2l (1)).
 .TP
-.B /386/include
-Directory of x86-specific C include files.
+.B /mips/include
+Directory of MIPS-specific C include files.
 .TP
-.B /386/9*
+.B /mips/9*
 The files in
-.B /386
+.B /mips
 beginning with a
 .B 9
 are binaries of the operating system.
 .TP
-.B /386/mkfile
+.B /mips/mkfile
 Selected by
 .IR mk (1)
 when
 .B $objtype
 is
-.BR 386 ,
+.BR mips ,
 this file configures
 .B mk
-to compile for the Intel x86 architecture.
+to compile for the MIPS architecture.
 .TP
 .B /rc
 Isomorphic to the architecture-dependent directories, this holds executables
@@ -156,7 +148,10 @@ Startup code for
 .B /lib
 Collections of data, generally not parts of programs.
 .TP
-.B /lib/mammals
+.B /lib/bible
+The King James edition
+.TP
+.B /lib/chess
 .TP
 .B /lib/sky
 .TP
@@ -188,6 +183,9 @@ System software.
 .TP
 .B /sys/include
 Directory of machine-independent C include files.
+.TP
+.B /sys/include/alef
+Directory of ALEF include files.
 .TP
 .B /sys/lib
 Pieces of programs not easily held in the various
@@ -233,6 +231,16 @@ Source to the operating system for file servers.
 .TP
 .B /sys/src/lib*
 Source to the libraries.
+.TP
+.B /sys/src/alef
+Source for
+.SM ALEF
+compilers and libraries.
+.TP
+.B /sys/src/alef/lib
+Source for
+.SM ALEF
+libraries.
 .TP
 .B /mail
 Directory of electronic mail; see
@@ -296,11 +304,11 @@ for the current architecture.
 Mounted here is a union directory containing I/O devices such as the
 console
 .RI ( cons (3)),
-the interface to the raster display
-.RI ( draw (3)),
+the bitmap display
+.RI ( bit (3)),
 etc.
 The window system,
-.IR rio (1),
+.IR 8½ (1),
 prefixes
 this directory with its own version,
 overriding many device
@@ -322,12 +330,6 @@ The communications point for the connection server,
 (see
 .IR ndb (8)).
 .TP
-.B /net/dns
-The communications point for the Domain Name Server,
-.B ndb/dns
-(see
-.IR ndb (8)).
-.TP
 .B /net/il
 .TP
 .B /net/tcp
@@ -336,6 +338,11 @@ The communications point for the Domain Name Server,
 Directories holding the IP protocol devices
 (see
 .IR ip (3)).
+.TP
+.B /net/dk
+A directory holding the Datakit protocol devices
+(see
+.IR dk (3)).
 .TP
 .B /proc
 Mounted here is the process device,
@@ -355,7 +362,7 @@ which holds connections to file servers.
 .B /srv/boot
 The communication channel to the main file server for the machine.
 .TP
-.B /mnt/wsys
+.B /mnt/8½
 Mount point for the window system.
 .TP
 .B /mnt/term

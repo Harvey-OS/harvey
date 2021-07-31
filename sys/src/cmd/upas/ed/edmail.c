@@ -6,13 +6,11 @@
 
 /* global to this file */
 static int reverse=0; 		/* ordering of mail messages */
-int interrupted;
+static int interrupted;
 int fflg;
-int iflg;
 int mflg;
 int pflg;
 int eflg;
-int Dflg;
 int Pflg = 1;
 int writeable;
 
@@ -48,7 +46,7 @@ main(int ac, char *av[])
 	Binit(&out, 1, OWRITE);
 
 	logname = getlog();
-	if(logname == nil){
+	if(logname == 0){
 		fprint(2, "cannot determine login name\n");
 		exits(0);
 	}
@@ -61,7 +59,7 @@ main(int ac, char *av[])
 	if(eflg){
 		int r = check_mbox(mailfile);
 		V();
-		exit(!r);
+		exit(r);
 	}
 	if(read_mbox(mailfile, reverse)<0 || mlist == 0){
 		fprint(2, "No mail\n");
@@ -82,61 +80,43 @@ main(int ac, char *av[])
 }
 
 /*  create a mailbox  */
-static String*
-creatembox(char *user, char *folder)
+static void
+creatembox(char *file, char *user)
 {
-	char *p;
+	char *cp;
 	Biobuf *fp;
-	String *mailfile;
-	char buf[512];
 
-	p = getenv("upasname");
-	if(p)
-		user = p;
-
-	mailfile = s_new();
-	if(folder == 0)
-		mboxname(user, mailfile);
-	else {
-		snprint(buf, sizeof(buf), "%s/mbox", folder);
-		mboxpath(buf, user, mailfile, 0);
-	}
 	/*
 	 *  don't destroy an existing mail box
 	 */
-	if(sysexist(s_to_c(mailfile))){
+	if(sysexist(file)){
 		fprint(2, "mailbox already exists\n");
-		return mailfile;
+		return;
 	}
 	fprint(2, "creating new mbox\n");
 
 	/*
-	 *  make sure preceding levels exist
+	 *  make sure one level up exists
 	 */
-	for(p = s_to_c(mailfile); p; p++) {
-		if(*p == '/')	/* skip leading or consecutive slashes */
-			continue;
-		p = strchr(p, '/');
-		if(p == 0)
-			break;
-		*p = 0;
-		if(!sysexist(s_to_c(mailfile))){
-			if(sysmkdir(s_to_c(mailfile), 0711)<0)
-				fprint(2, "couldn't create %s\n", s_to_c(mailfile));
-			syschgrp(s_to_c(mailfile), user);
+	cp = strrchr(file, '/');
+	if(cp){
+		*cp = 0;
+		if(!sysexist(file)){
+			if(sysmkdir(file, 0711)<0)
+				fprint(2, "couldn't create %s\n", file);
+			syschgrp(file, user);
 		}
-		*p = '/';
+		*cp = '/';
 	}
 
 	/*
 	 *  create the file
 	 */
-	fp = sysopen(s_to_c(mailfile), "larc", MBOXMODE);
+	fp = sysopen(file, "larc", MBOXMODE);
 	if(fp == 0)
-		fprint(2, "couldn't create %s\n", s_to_c(mailfile));
+		fprint(2, "couldn't create %s\n", file);
 	else
 		sysclose(fp);
-	return mailfile;
 }
 
 /*  parse arguments  */
@@ -148,11 +128,10 @@ doargs(int argc, char **argv, char *user)
 
 	/* process args */
 	mailfile = s_new();
-	mboxname(user, mailfile);
+	mboxpath("mbox", user, mailfile, 0);
 	ARGBEGIN{
 	case 'c':
-		s_free(mailfile);
-		mailfile = creatembox(user, ARGF());
+		creatembox(s_to_c(mailfile), user);
 		break;
 	case 'r':
 		reverse = 1;
@@ -165,12 +144,6 @@ doargs(int argc, char **argv, char *user)
 		break;
 	case 'e':
 		eflg = 1;
-		break;
-	case 'i':
-		iflg = 1;
-		break;
-	case 'D':
-		Dflg = 1;
 		break;
 	case 'f':
 		fflg = 1;
@@ -203,9 +176,8 @@ check_mbox(char *mf)
 	int len;
 
 	/* if file doesn't exist, no mail */
-	fp = sysopen(mf, "r", 0);
-	if(fp == 0)
-		return 0;
+	if((fp = sysopen(mf, "r", 0)) == 0)
+		return 1;
 	len = sysfilelen(fp);
 	sysclose(fp);
 	return len > 0;
@@ -214,10 +186,7 @@ check_mbox(char *mf)
 int
 complain(char *msg, void *x)
 {
-	char buf[512];
-
-	snprint(buf, sizeof(buf), msg, x);
-	fprint(2, "!%s\n", buf);
+	fprint(2, "!%s\n", msg, x);
 	return -1;
 }
 
@@ -232,11 +201,31 @@ dumpmail(void)
 	Bflush(&out);
 }
 
+void
+catchint(void *a, char *msg)
+{
+	extern Lock *readingl;
+	char buf[256];
+
+	USED(a);
+
+	if(strcmp(msg, "interrupt") == 0
+	|| strncmp(msg, "sys: write on closed pipe", 25) == 0){
+		sprint(buf, "!!%s!!\n", msg);
+		write(2, buf, strlen(buf));
+		interrupted = 1;
+		noted(NCONT);
+	}
+	if(strstr(msg, "alarm")){
+		alarmed = 1;
+		noted(NCONT);
+	}
+	noted(NDFLT);
+}
+
 static int
 notatnl(char *cp)
 {
-	while(*cp == ' ' && *cp == '\t')
-		cp++;
 	if(*cp=='\n')
 		return complain("argument expected", 0);
 	return 0;
@@ -269,7 +258,7 @@ zero(message *mp)
 static void
 renew(void)
 {
-	extern Mlock *readingl;
+	extern Lock *readingl;
 
 	if(readingl == 0)
 		return;
@@ -338,7 +327,7 @@ edmail(char *mailfile, int reverse)
 			Binit(&out, 1, OWRITE);		/* dump current output */
 			Bprint(&out, "\n");
 		}
-		atnotify(notecatcher, 1);		/* install normal note handler */
+		notify(catchint);
 
 		/*
 		 *  print next message unless told not to
@@ -382,20 +371,10 @@ edmail(char *mailfile, int reverse)
 			del = 1;
 			cmdc = *cmd->ptr++;
 		}
+		cp = cmd->ptr;
 
 		for(; extent!=0 && !abort; extent=extent->extent){
-			cp = strdup(cmd->ptr);
 			switch(cmdc){
-			case 'a':
-				abort = zero(extent)||atnl(cp)||replyall(extent, 0)
-					||(del&&delete(extent));
-				nopr = abort||mflg||!del;
-				break;
-			case 'A':
-				abort = zero(extent)||atnl(cp)||replyall(extent, 1)
-					||(del&&delete(extent));
-				nopr = abort||mflg||!del;
-				break;
 			case 'b':
 				abort = atnl(cp)||(del&&delete(extent));
 				if(!abort)
@@ -445,7 +424,7 @@ edmail(char *mailfile, int reverse)
 				nopr = abort||mflg||!del;
 				break;
 			case 'M':
-				abort = notatnl(cp)||zero(extent)||notatnl(cp)
+				abort = atblank(cp)||zero(extent)||notatnl(cp)
 					||remail(extent, cp, 1)
 					||(del&&delete(extent));
 				nopr = abort||mflg||!del;
@@ -487,7 +466,6 @@ edmail(char *mailfile, int reverse)
 				    ||(del&&(zero(extent)||delete(extent)));
 				if(abort)
 					break;
-				free(cp);
 				return 1;
 			case '|':
 				abort = zero(extent)||notatnl(cp)
@@ -510,11 +488,7 @@ edmail(char *mailfile, int reverse)
 				abort = zero(extent)||atnl(cp)||undelete(extent);
 				break;
 			case 'x':
-				abort = atnl(cp);
-				if(abort == 0){
-					free(cp);
-					return 0;
-				}
+				return 0;
 			case '?':
 				abort = atnl(cp)
 					||del&&(zero(extent)||delete(extent));
@@ -536,7 +510,6 @@ edmail(char *mailfile, int reverse)
 				nopr = abort = 1;
 				break;
 			}
-			free(cp);
 			if(!abort && change && extent!=0)
 				dot = extent;
 		}

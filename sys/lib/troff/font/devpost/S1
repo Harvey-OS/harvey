@@ -1,0 +1,27 @@
+# Times-Roman special font
+name S1
+fontname Times-Roman
+named in prologue
+special
+charset
+ru	50	0	95
+ff	60	2	1
+Fi	84	2	1
+Fl	84	2	1
+14	75	2	1
+12	75	2	1
+34	75	2	1
+bx	50	2	1
+ob	38	2	1
+ci	75	0	1
+sq	50	2	1
+Sl	50	2	1
+L1	110	1	2
+smiley	70	1	1
+LA	110	1	2
+LV	110	3	2
+LH	210	1	2
+lh	100	0	2
+rh	100	0	2
+PC	220	2	1
+DG	185	2	1

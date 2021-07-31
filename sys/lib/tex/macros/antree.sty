@@ -1,0 +1,174 @@
+% antree.sty -- annotated node trees
+% Copyright 1994 -- Peter Williams (peterw@arch.su.edu.au)
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{antree}[1994/06/22]
+\RequirePackage{calc}
+\RequirePackage{ifthen}
+\RequirePackage{epic}
+\RequirePackage{eepic}
+\RequirePackage{toklist}
+
+\newlength{\ANhspace}
+\setlength{\ANhspace}{4pt}
+\newlength{\ANvspace}
+\setlength{\ANvspace}{30pt}
+\newlength{\ANesep}
+\setlength{\ANesep}{12pt}
+\newlength{\ANespace}
+\setlength{\ANespace}{1pt}
+\newlength{\AN@ehsp}
+\newlength{\AN@evsp}
+\newlength{\AN@a}
+\newlength{\AN@b}
+\newlength{\AN@c}
+\newlength{\AN@stw}
+\newlength{\AN@sth}
+\newsavebox{\leaf@content}
+\newsavebox{\link@content}
+\newsavebox{\link@label}
+\newsavebox{\node@content}
+\newboolean{AN@firstlink}
+
+\endlinechar=-1\relax
+
+{\catcode`\p=12 \catcode`\t=12
+\gdef\AN@rmd#1pt{#1}}
+
+\newenvironment{antree}[2][\null]{%
+\newcommand{\leaf}[2][\null]{%
+  \sbox{\leaf@content}{##2}
+  \settowidth{\AN@a}{\usebox{\leaf@content}}%
+  \settoheight{\AN@b}{\usebox{\leaf@content}}%
+  \settodepth{\AN@c}{\usebox{\leaf@content}}%
+  \addtolength{\AN@b}{\AN@c}%
+  \begin{picture}(\AN@Xpos,\AN@Ypos)%
+    \settodepth{\AN@c}{\usebox{\leaf@content}}%
+    \put(0,\AN@Zpos){\usebox{\leaf@content}}%
+    \put(\AN@Xpos,\AN@Ypos){##1}%
+  \end{picture}%}%}
+  \ignorespaces%
+}%
+%
+\newcommand{\link}[2][\null]{%
+  \TOKL@append##1\to\AN@indices%
+  \sbox{\link@content}{##2}
+  \settowidth{\AN@a}{\usebox{\link@content}}%
+  \addtolength{\AN@stw}{0.5\AN@a}%
+  \ifthenelse{\boolean{AN@firstlink}}%
+    {\setboolean{AN@firstlink}{false}}%
+    {\hspace*{\ANhspace}\addtolength{\AN@stw}{\ANhspace}}%
+  \TOKL@appendv\expandafter\AN@rmd\the\AN@stw\to\AN@xlist%
+  \addtolength{\AN@stw}{0.5\AN@a}%
+  \settoheight{\AN@b}{\usebox{\link@content}}
+  \settodepth{\AN@c}{\usebox{\link@content}}
+  \raisebox{0pt}{\vtop{\null\hbox{\usebox{\link@content}}}}
+  \ignorespaces%
+}%
+%
+\def\AN@Xpos{\expandafter\AN@rmd\the\AN@a}%
+\def\AN@Ypos{\expandafter\AN@rmd\the\AN@b}%
+\def\AN@Zpos{\expandafter\AN@rmd\the\AN@c}%
+%
+\newenvironment{node}[2][\null]{%
+  \leavevmode\hbox\bgroup%
+  \endlinechar=-1
+  \sbox{\node@content}{\leaf[##1]{##2}}
+  \def\AN@xlist{}%
+  \def\AN@indices{}%
+  \setlength{\unitlength}{\p@}%
+  \setlength{\AN@stw}{\z@}%
+  \setlength{\AN@sth}{\z@}%
+  \setboolean{AN@firstlink}{true}
+  \ignorespaces%
+}{\ignorespaces%
+  \setlength{\AN@sth}{\ANvspace}%
+  \settoheight{\AN@a}{\usebox{\node@content}}%
+  \addtolength{\AN@sth}{\AN@a}%
+  \settodepth{\AN@a}{\usebox{\node@content}}%
+  \addtolength{\AN@sth}{\AN@a}%
+  \hspace*{-\AN@stw}%
+  \setlength{\AN@a}{0.5\AN@stw}%
+  \edef\AN@nodex{\expandafter\AN@rmd\the\AN@a}%
+  \edef\AN@nodey{\expandafter\AN@rmd\the\ANvspace}%
+  \edef\AN@picx{\expandafter\AN@rmd\the\AN@stw}%
+  \edef\AN@picy{\expandafter\AN@rmd\the\AN@sth}%
+  \begin{picture}(\AN@picx,\AN@picy)%
+    \whiledo{\equal{\TOK@empty\AN@xlist}{false}}{%
+      \TOKL@lop\AN@xlist\to\AN@x
+      \TOKL@lop\AN@indices\to\AN@elabel
+      \settowidth{\AN@ehsp}{\AN@elabel}%
+      \setlength{\AN@ehsp}{0.5\AN@ehsp+\ANespace}%
+      \settoheight{\AN@evsp}{\AN@elabel}%
+      \setlength{\AN@evsp}{0.5\AN@evsp+\ANespace}%
+      \ifthenelse{\equal{\AN@elabel}{\null}}{%
+        \drawline(\AN@nodex,\AN@nodey)(\AN@x,0)%
+      }{%
+        \ifthenelse{\lengthtest{\ANesep<\AN@evsp}}{%
+          \setlength{\AN@b}{2\AN@evsp}%
+          \drawline(\AN@nodex,\AN@nodey)(\AN@x,\AN@Ypos)%
+          \put(\AN@x,\AN@evsp){\makebox(0,0){\AN@elabel}}%
+        }{%
+          \ifthenelse{\lengthtest{\AN@x\p@=\AN@nodex\p@}}{%
+            \setlength{\AN@b}{\ANesep-\AN@evsp}%
+            \drawline(\AN@x,\AN@Ypos)(\AN@x,0)%
+            \setlength{\AN@b}{\ANesep+\AN@evsp}%
+            \drawline(\AN@nodex,\AN@nodey)(\AN@x,\AN@Ypos)%
+            \setlength{\AN@a}{\AN@x\p@}%
+          }{%
+            \setlength{\AN@c}{100pt*\ratio{\AN@ehsp}{\AN@evsp}}%
+            \ifthenelse{\lengthtest{\AN@x\p@ > \AN@nodex\p@}}{%
+              \setlength{\AN@a}{100pt*\ratio{\AN@x\p@-\AN@nodex\p@}{\AN@nodey\p@}}%
+              \ifthenelse{\lengthtest{\AN@a < \AN@c}}{%
+                \setlength{\AN@b}{\ANesep-\AN@evsp}%
+                \setlength{\AN@a}{\AN@x\p@-\AN@b*\ratio{\AN@x\p@-\AN@nodex\p@}{\AN@nodey\p@}}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@x,0)%
+                \setlength{\AN@b}{\ANesep+\AN@evsp}%
+                \setlength{\AN@a}{\AN@x\p@-\AN@b*\ratio{\AN@x\p@-\AN@nodex\p@}{\AN@nodey\p@}}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@nodex,\AN@nodey)%
+              }{%
+                \setlength{\AN@a}{\ANesep*\ratio{\AN@x\p@-\AN@nodex\p@}{\AN@nodey\p@}-(\AN@ehsp)}%
+                \setlength{\AN@b}{\AN@a*\ratio{\AN@nodey\p@}{\AN@x\p@-\AN@nodex\p@}}%
+                \setlength{\AN@a}{\AN@x\p@-\AN@a}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@x,0)%
+                \setlength{\AN@a}{\ANesep*\ratio{\AN@x\p@-\AN@nodex\p@}{\AN@nodey\p@}+(\AN@ehsp)}%
+                \setlength{\AN@b}{\AN@a*\ratio{\AN@nodey\p@}{\AN@x\p@-\AN@nodex\p@}}%
+                \setlength{\AN@a}{\AN@x\p@-\AN@a}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@nodex,\AN@nodey)%
+              }%
+              \setlength{\AN@a}{\AN@x\p@-\ANesep*\ratio{\AN@x\p@-\AN@nodex\p@}{\AN@nodey\p@}}%
+            }{%
+              \setlength{\AN@a}{100pt*\ratio{\AN@nodex\p@-\AN@x\p@}{\AN@nodey\p@}}%
+              \ifthenelse{\lengthtest{\AN@a < \AN@c}}{%
+                \setlength{\AN@b}{\ANesep-\AN@evsp}%
+                \setlength{\AN@a}{\AN@x\p@+\AN@b*\ratio{\AN@nodex\p@-\AN@x\p@}{\AN@nodey\p@}}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@x,0)%
+                \setlength{\AN@b}{\ANesep+\AN@evsp}%
+                \setlength{\AN@a}{\AN@x\p@+\AN@b*\ratio{\AN@nodex\p@-\AN@x\p@}{\AN@nodey\p@}}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@nodex,\AN@nodey)%
+              }{%
+                \setlength{\AN@a}{\ANesep*\ratio{\AN@nodex\p@-\AN@x\p@}{\AN@nodey\p@}-(\AN@ehsp)}%
+                \setlength{\AN@b}{\AN@a*\ratio{\AN@nodey\p@}{\AN@nodex\p@-\AN@x\p@}}%
+                \setlength{\AN@a}{\AN@x\p@+\AN@a}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@x,0)%
+                \setlength{\AN@a}{\ANesep*\ratio{\AN@nodex\p@-\AN@x\p@}{\AN@nodey\p@}+(\AN@ehsp)}%
+                \setlength{\AN@b}{\AN@a*\ratio{\AN@nodey\p@}{\AN@nodex\p@-\AN@x\p@}}%
+                \setlength{\AN@a}{\AN@x\p@+\AN@a}%
+                \drawline(\AN@Xpos,\AN@Ypos)(\AN@nodex,\AN@nodey)%
+              }%
+              \setlength{\AN@a}{\AN@x\p@+\ANesep*\ratio{\AN@nodex\p@-\AN@x\p@}{\AN@nodey\p@}}%
+            }%
+          }%
+          \put(\AN@Xpos,\expandafter\AN@rmd\the\ANesep){\makebox(0,0){\AN@elabel}}%
+        }%
+      }%
+    }%
+    \put(\AN@nodex,\AN@nodey){\makebox(0,0)[bc]{\usebox{\node@content}}}%
+  \end{picture}%
+  \egroup%
+}
+\begin{tabular}[t]{c}\begin{node}[#1]{#2}}
+{\end{node}\end{tabular}}
+
+\endlinechar=13\relax
+
+\endinput

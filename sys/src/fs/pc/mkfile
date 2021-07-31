@@ -1,0 +1,101 @@
+objtype=386
+</$objtype/mkfile
+
+TARG=9pcfs
+
+ETHER=\
+	ether.$O\
+	ether2000.$O\
+	ether509.$O\
+	ether8003.$O\
+	ether8390.$O\
+
+OBJ=\
+	l.$O\
+	8250.$O\
+	8253.$O\
+	arp.$O\
+	auth.$O\
+	cga.$O\
+	chk.$O\
+	clock.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	cw.$O\
+	data.$O\
+	dentry.$O\
+	devcons.$O\
+	dma.$O\
+	dosfs.$O\
+	$ETHER\
+	fcall.$O\
+	fcmd.$O\
+	fibif.$O\
+	fil.$O\
+	floppy.$O\
+	fs.$O\
+	fworm.$O\
+	hard.$O\
+	il.$O\
+	iobuf.$O\
+	ip.$O\
+	iproute.$O\
+	kbd.$O\
+	lock.$O\
+	main.$O\
+	malloc.$O\
+	mmu.$O\
+	mworm.$O\
+	nvr.$O\
+	pc.$O\
+	print.$O\
+	proc.$O\
+	scsi.$O\
+	scsi14f.$O\
+	scsi1542.$O\
+	scsi4201.$O\
+	sub.$O\
+	time.$O\
+	toy.$O\
+	trap.$O\
+	uidgid.$O\
+	worm.$O\
+	wren.$O\
+
+HFILES=\
+	../port/all.h\
+	../port/lib.h\
+	../port/portdat.h\
+	../port/portfns.h\
+	./dat.h\
+	./fns.h\
+	./io.h\
+	./mem.h\
+	/$objtype/include/u.h\
+	/$objtype/include/ureg.h\
+
+CFLAGS=-w -I. -I../port
+
+all:V:	$TARG
+
+<../port/mkfile
+
+$TARG:	$OBJ $TARG.$O
+	$LD -o $target -l -T0x80100020 $prereq -lauth -lc
+	size $target
+
+installall:V:	install
+install:V:	$TARG
+	cp $TARG /$objtype/$TARG
+
+push:V:	$TARG
+	9fs cetus
+	cp $TARG /n/cetus/usr/local/boot
+
+$TARG.$O:	$TARG.c
+	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c
+
+$ETHER:	ether.h
+
+9pcfs.$O dosfs.$O nvr.$O:	dosfs.h

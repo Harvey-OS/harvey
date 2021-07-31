@@ -1,0 +1,162 @@
+%% 
+%% This is file `verbtest.tex', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% verbatim.dtx  (with options: `testdriver')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% Package `verbatim' to use with LaTeX2e
+%% Copyright (C) 1989--1994 by Rainer Schoepf. All rights reserved.
+\documentclass{article}
+
+\usepackage{verbatim}
+
+\newenvironment{myverbatim}%
+   {\endgraf\noindent MYVERBATIM:\endgraf\verbatim}%
+   {\endverbatim}
+
+\makeatletter
+
+\newenvironment{verbatimlisting}[1]%
+ {\def\verbatim@startline{\input{#1}%
+    \def\verbatim@startline{\verbatim@line{}}%
+    \verbatim@startline}%
+  \verbatim}{\endverbatim}
+
+\newwrite\verbatim@out
+
+\newenvironment{verbatimwrite}[1]%
+ {\@bsphack
+  \immediate\openout \verbatim@out #1
+  \let\do\@makeother\dospecials\catcode`\^^M\active
+  \def\verbatim@processline{%
+    \immediate\write\verbatim@out{\the\verbatim@line}}%
+  \verbatim@start}%
+ {\immediate\closeout\verbatim@out\@esphack}
+
+\makeatother
+
+\addtolength{\textwidth}{30pt}
+
+\begin{document}
+
+\typeout{}
+\typeout{===> Expect ``characters dropped''
+         warning messages in this test! <====}
+\typeout{}
+
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+  \begin{verbatim}
+    test
+    \end{verbatim*}
+    test
+    \end{verbatim
+    test of ligatures: <`!`?`>
+    \endverbatim
+    test
+    \end  verbatim
+    test
+    test of end of line:
+    \end
+    {verbatim}
+  \end{verbatim} Further text to be typeset: $\alpha$.
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+  \begin{verbatim*}
+    test
+    test
+  \end {verbatim*}
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+  \begin{verbatim*}  bla bla
+    test
+    test
+  \end {verbatim*}
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+
+First of Chris Rowley's fiendish tests:
+\begin{verbatim}
+the double end test<text>
+\end\end{verbatim}  or even \end \end{verbatim}
+
+Another of Chris' devils:
+\begin{verbatim}
+the single brace test<text>
+\end{not the end\end{verbatim}
+Back to my own tests:
+  \begin{myverbatim}
+    test
+    test
+  \end {myverbatim} rest of line
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+
+Test of empty verbatim:
+\begin{verbatim}
+\end{verbatim}
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+  \begin {verbatimlisting}{verbtest.tex}
+    Additonal verbatim text
+      ...
+  \end{verbatimlisting}
+And here for listing a file:
+  \verbatiminput{verbtest.tex}
+And again, with explicit spaces:
+  \verbatiminput*{verbtest.tex}
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+  \begin{comment}
+    test
+    \end{verbatim*}
+    test
+    \end {comment
+    test
+    \endverbatim
+    test
+    \end  verbatim
+    test
+  \end {comment} Further text to be typeset: $\alpha$.
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+  \begin{comment}  bla bla
+    test
+    test
+  \end {comment}
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+Text Text Text Text Text Text Text Text Text Text Text
+
+\begin{verbatimwrite}{verbtest.txt}
+asfa<fa<df
+sdfsdfasd
+asdfa<fsa
+\end{verbatimwrite}
+
+\end{document}
+\endinput
+%% 
+%% End of file `verbtest.tex'.

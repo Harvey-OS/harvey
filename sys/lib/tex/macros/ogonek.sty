@@ -1,0 +1,247 @@
+% This is a beta version of ogonek package
+% by Janusz S.Bie\'n (JSBien@plearn.edu.pl)
+% and Dirk H\"ubel (Hubel@bull.mimuw.edu.pl).
+%
+% The work on it (and on the upgrade of PLHB.STY)
+% will be resumed in October 1994.
+% In particular, the package will be improved and simplified
+% by using \DeclareTextCommand.
+%
+% Not yet tested with LaMeX2e!
+%
+% Consult OGONEK.DOC for documentation.
+
+\def\fileversion{v0.41}
+\def\filedate{94/08/08}
+\def\docdate {94/08/08}
+
+\NeedsTeXFormat{LaTeX2e}
+
+{\catcode`\#=0 #catcode`#\=12 #gdef#@k{\k}}
+\ProvidesPackage{ogonek}[\filedate\space\fileversion\space
+                     (JSB and DH) provides \@k\space macro for ogonek]
+
+\immediate
+ \write\sixt@@n{Package: `ogonek'
+ \fileversion\space <\filedate>  (JSB and DH)}
+\immediate
+ \write\sixt@@n{English Documentation
+ \@spaces <\docdate>  (JSB and DH)}
+
+
+\DeclareOption{PL}{
+% we will accept only Polish letters
+  \def\@testogonekletter##1{%
+	\ifx a##1\else
+	\ifx A##1\else
+	\ifx e##1\else
+	\ifx E##1\else
+        \PackageWarning{ogonek}%
+        {In Polish ogonek is used only with a/A and e/E}\fi
+	\fi \fi \fi
+  }
+}
+
+\DeclareOption{LT}{
+% we will accept only Lithuanian letters
+  \def\@testogonekletter##1{%
+	\ifx a##1\else
+	\ifx A##1\else
+	\ifx e##1\else
+	\ifx E##1\else
+	\ifx i##1\else
+	\ifx I##1\else
+	\ifx u##1\else
+	\ifx U##1\else
+        \PackageWarning{ogonek}%
+       {In Lithuanian ogonek is used only with a/A, e/E, i/I and u/U}\fi 
+	\fi \fi \fi \fi \fi \fi \fi
+% if there have been specified both options, that means PL and LT, 
+% all four letters will be allowed	
+    }
+}
+
+
+% The following text comes from:
+%
+% PLHB.STY
+%
+% This is a modification of Leszek Holenderski's PLFONTS.STY,
+% restituting the input conventions of my PL.STY,
+% i.e. "r means z with dot and "z means z accent
+%                                 (J. S. Bie"n, 89-10-17)
+% PLFONTS.STY is a ``Polish fonts'' substyle to be used, as an option,
+% with LaTeX's document styles. This version differs from the previous
+% style for Polish fonts (designed by Janusz Bie"n) in that it does not
+% need this huge number of parameters controlling different placement
+% of Polish diacritic signs in different font sizes. Moreover, the present
+% style does not require any modification to the LFONTS.TEX file, as has
+% been the case with the previous style.             (L. Holenderski IIUW)
+%
+% This is the ``macro'' version.
+%
+% This version is for CM 300dpi.
+
+\dimendef\pl@left=0 \dimendef\pl@down=1 \dimendef\pl@right=2 \dimendef\pl@temp=3
+
+% typeset `ogonek' box
+\def\sob#1#2#3#4#5{%parameters: letter and fractions hl,ho,vl,vo
+\setbox0\hbox{#1}\setbox1\hbox{$_\mathchar'454$}\setbox2\hbox{p}%
+\pl@right=#2\wd0 \advance\pl@right by-#3\wd1
+\pl@down=#5\ht1 \advance\pl@down by-#4\ht0
+\pl@left=\pl@right \advance\pl@left by\wd1
+\pl@temp=-\pl@down \advance\pl@temp by\dp2 \dp1=\pl@temp
+\kern\pl@right\lower\pl@down\box1\kern-\pl@left #1}
+
+% `ogonek' boxes (first horizontal then vertical; first letter then `ogonek')
+\def\aob{\sob a{.66}{.20}{0}{.90}}
+\def\Aob{\sob A{.80}{.50}{0}{.90}}
+\def\eob{\sob e{.50}{.35}{0}{.93}}
+\def\Eob{\sob E{.60}{.35}{0}{.90}}
+\def\iob{\sob i{.66}{.20}{0}{.90}}
+\def\Iob{\sob I{.80}{.50}{0}{.90}}
+\def\uob{\sob u{.66}{.20}{0}{.90}}
+\def\Uob{\sob U{.60}{.35}{0}{.90}}
+
+
+% some useful definitions
+\def\@corkencoding{T1}
+\def\@oldfontsencoding{OT1}
+\def\@plencoding{OT1P}
+\def\@plfourencoding{OT4}
+\def\@unknownencoding{U}
+\def\@gonekaccent #1{%
+        \setbox\z@\hbox {#1}\ifdim\ht\z@=1ex\accent12 #1%
+	\else {\ooalign{\unhbox\z@\crcr\hidewidth\char12\hidewidth}}\fi}
+
+{%TeXbook p. 45
+% any catcode will do to input the characters
+\catcode`\^^a1=11
+\catcode`\^^81=11
+\catcode`\^^a6=11
+\catcode`\^^86=11
+\global\def\@corkogonek#1{%
+	\ifx a#1^^a1\else
+	\ifx A#1^^81\else
+	\ifx e#1^^a6\else
+	\ifx E#1^^86\else\@gonekaccent #1\fi 
+	\fi \fi \fi 
+}
+\global\def\@oldfontsogonek#1{%
+	\ifx a#1\aob\else
+	\ifx A#1\Aob\else
+	\ifx e#1\eob\else
+	\ifx E#1\Eob\else
+	\ifx i#1\iob\else
+	\ifx I#1\Iob\else
+	\ifx u#1\uob\else
+	\ifx U#1\Uob\else\sob #1{.50}{.35}{0}{.90}\fi 
+	\fi \fi \fi \fi \fi \fi \fi 
+}
+\global\def\@plogonek#1{%
+	\ifx a#1^^a1\else
+	\ifx A#1^^81\else
+	\ifx e#1^^a6\else
+	\ifx E#1^^86\else
+	\ifx i#1\iob\else
+	\ifx I#1\Iob\else
+	\ifx u#1\uob\else
+	\ifx U#1\Uob\else\sob #1{.50}{.35}{0}{.90}\fi 
+	\fi \fi \fi \fi \fi \fi \fi 
+}}
+
+\def\@checkandtypeset#1{%
+  \ifx \@corkencoding     \f@encoding\@corkogonek{#1}\else
+  \ifx \@oldfontsencoding \f@encoding\@oldfontsogonek{#1}\else
+  \ifx \@plencoding       \f@encoding\@plogonek{#1}\else
+  \ifx \@plfourencoding   \f@encoding\@plogonek{#1}\else
+	\PackageWarning{ogonek}%
+        {Ogonek accent skipped,
+	because a not supported encoding was detected}#1\fi
+  \fi \fi \fi
+}
+
+
+\DeclareOption{T1}{
+% Cork encoding
+  \ifx \@corkencoding \f@encoding 
+  \else
+    \PackageWarningNoLine{ogonek}%
+    {T1 encoding specified but not active while loading OGONEK.STY \MessageBreak
+     Active encoding: \f@encoding, let's hope you knowwhat you're doing.}\fi
+  \def\@typesetogonekletter##1{\@corkogonek{##1}}
+}
+
+\DeclareOption{OT1}{
+% old fonts
+  \@ifundefined{@typesetogonekletter}{
+    \ifx \@oldfontsencoding \f@encoding
+    \else
+      \PackageWarningNoLine{ogonek}%
+      {OT1 encoding specified but not active while loading OGONEK.STY! \MessageBreak
+       Active encoding: \f@encoding, let's hope you know what you're doing.}\fi
+    \def\@typesetogonekletter##1{\@oldfontsogonek{##1}}
+  }{\PackageWarningNoLine{ogonek}%
+   {You should specify only one encoding, not more! Option OT1 ignored.}%
+}}
+
+\DeclareOption{OT1P}{
+% pl fonts
+  \@ifundefined{@typesetogonekletter}{
+    \ifx \@plencoding \f@encoding
+    \else
+      \PackageWarningNoLine{ogonek}%
+      {OT1P encoding specified but not active while loading OGONEK.STY! 
+      Active encoding: \f@encoding, let's hope you know what you're doing.}\fi
+    \def\@typesetogonekletter##1{\@plogonek{##1}}
+  }{\PackageWarning{ogonek}%
+    {You should specify only one encoding, not more! Option OT1P ignored.}%
+}}
+
+\DeclareOption{OT4}{
+% pl fonts, the same as OT1P
+  \@ifundefined{@typesetogonekletter}{
+    \ifx \@plfourencoding \f@encoding
+    \else
+      \PackageWarning{ogonek}%
+      {OT4 encoding specified but not active while loading OGONEK.STY! \MessageBreak
+       Active encoding: \f@encoding, let's hope you know what you're doing.}\fi
+    \def\@typesetogonekletter##1{\@plogonek{##1}}
+  }{\PackageWarning{ogonek}%
+   {You should specify only one encoding, not more! Option OT4 ignored.}%
+}}
+
+\DeclareOption{U}{
+% dynamic checking for active font encoding
+  \@ifundefined{@typesetogonekletter}{
+    \def\@typesetogonekletter##1{\@checkandtypeset{##1}}
+  }{\PackageWarning{ogonek}%
+   {You should specify only one encoding, not more! Option U ignored.}%
+}}
+
+
+\ProcessOptions
+
+
+% if no language was specified, then we accept all letters
+\@ifundefined{@testogonekletter}
+  {\def\@testogonekletter#1{}}{}
+
+% if no encoding was specified,
+% then we detect the active encoding dynamicly
+\@ifundefined{@typesetogonekletter}{
+%  \PackageWarningNoLine{ogonek}%
+% message removed by JSB on 1994-08-08
+%  {Specify an encoding option if possible.}
+% typo corrected below by JSB on 1994-07-12
+  \def\@typesetogonekletter#1{\@checkandtypeset{#1}}
+  }{}
+
+
+
+\def\k#1{\relax\leavevmode\@testogonekletter{#1}\@typesetogonekletter{#1}}
+
+\endinput
+%% 
+%% End of file `ogonek.sty'.
+

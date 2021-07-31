@@ -1,0 +1,219 @@
+%!
+% Common definitions for the Hershey fonts.
+ 
+/makeHersheyFontGS993 where
+ { pop 80 string
+    { currentfile 1 index readline pop
+       (%END) eq { exit } if
+    } loop pop
+ } if
+
+userdict begin
+/HersheyBuildDict 10 dict def
+
+/BuildHersheyChar {
+	exch begin
+		PenWidth setlinewidth
+		Encoding exch get
+		dup CharData exch known not { pop /.notdef } if
+		CharData exch get
+	end
+	/cd exch def
+
+	/llx 99 def /lly 99 def /urx -99 def /ury -99 def
+	true
+
+	cd 2 get {
+		exch {
+			dup 32 eq {
+				pop true
+			} {
+				82 sub cd 0 get sub
+
+				dup llx lt {
+					dup /llx exch def
+				} if
+				dup urx gt {
+					dup /urx exch def
+				} if
+				pop false
+			} ifelse
+		} {
+			neg 91 add
+
+			dup lly lt {
+				dup /lly exch def
+			} if
+			dup ury gt {
+				dup /ury exch def
+			} if
+			pop true
+		} ifelse
+	} forall pop
+
+	cd 1 get cd 0 get sub 0 llx 1 sub lly 1 sub urx 1 add ury 1 add
+	setcachedevice
+
+	/domove true def
+	true
+
+	cd 2 get {
+		exch {
+			dup 32 eq {
+				pop true
+				/domove true def
+			} {
+				82 sub cd 0 get sub
+				false
+			} ifelse
+		} {
+			neg 91 add
+			domove {
+				moveto
+				/domove false def
+			} {
+				lineto
+			} ifelse
+			true
+		} ifelse
+	} forall pop
+
+	1 setmiterlimit 1 setlinejoin 1 setlinecap
+	stroke
+} bind def
+
+/makeHersheyFontGS993 {
+	10 dict begin
+	/Encoding exch def
+	/ItalicAngle exch def
+	/PenWidth exch def
+	/XUID exch def
+	/UniqueID exch def
+	/FontName exch def
+	/CharData exch def
+
+	/FontType 3 def
+	/FontMatrix 
+		[1 33 div
+		0
+		ItalicAngle neg dup sin exch cos div 33 div
+		1 33 div
+		0 0] def
+	/BuildChar {HersheyBuildDict begin BuildHersheyChar end} def
+	/FontBBox {-10 -10 30 30} def
+
+	FontName currentdict end definefont pop
+} bind def
+end		% userdict
+%END
+
+150 dict dup begin
+/A [-8 9 (RFJ[ RFZ[ MTWT)] def
+/B [-10 10 (KFK[ KFTFWGXHYJYLXNWOTP KPTPWQXRYTYWXYWZT[K[)] def
+/C [-9 11 (ZKYIWGUFQFOGMILKKNKSLVMXOZQ[U[WZYXZV)] def
+/D [-10 10 (KFK[ KFRFUGWIXKYNYSXVWXUZR[K[)] def
+/E [-9 9 (LFL[ LFYF LPTP L[Y[)] def
+/F [-9 8 (LFL[ LFYF LPTP)] def
+/G [-9 11 (ZKYIWGUFQFOGMILKKNKSLVMXOZQ[U[WZYXZVZS USZS)] def
+/H [-10 11 (KFK[ YFY[ KPYP)] def
+/I [-3 4 (RFR[)] def
+/J [-7 8 (VFVVUYTZR[P[NZMYLVLT)] def
+/K [-10 10 (KFK[ YFKT POY[)] def
+/L [-9 7 (LFL[ L[X[)] def
+/M [-11 12 (JFJ[ JFR[ ZFR[ ZFZ[)] def
+/N [-10 11 (KFK[ KFY[ YFY[)] def
+/O [-10 11 (PFNGLIKKJNJSKVLXNZP[T[VZXXYVZSZNYKXIVGTFPF)] def
+/P [-10 10 (KFK[ KFTFWGXHYJYMXOWPTQKQ)] def
+/Q [-10 11 (PFNGLIKKJNJSKVLXNZP[T[VZXXYVZSZNYKXIVGTFPF SWY])] def
+/R [-10 10 (KFK[ KFTFWGXHYJYLXNWOTPKP RPY[)] def
+/S [-9 10 (YIWGTFPFMGKIKKLMMNOOUQWRXSYUYXWZT[P[MZKX)] def
+/T [-8 8 (RFR[ KFYF)] def
+/U [-11 11 (KFKULXNZQ[S[VZXXYUYF)] def
+/V [-9 10 (JFR[ ZFR[)] def
+/W [-13 12 (HFM[ RFM[ RFW[ \\FW[)] def
+/X [-10 10 (KFY[ YFK[)] def
+/Y [-9 9 (JFRPR[ ZFRP)] def
+/Z [-10 10 (YFK[ KFYF K[Y[)] def
+/a [-8 10 (XMX[ XPVNTMQMONMPLSLUMXOZQ[T[VZXX)] def
+/b [-9 9 (LFL[ LPNNPMSMUNWPXSXUWXUZS[P[NZLX)] def
+/c [-8 9 (XPVNTMQMONMPLSLUMXOZQ[T[VZXX)] def
+/d [-8 10 (XFX[ XPVNTMQMONMPLSLUMXOZQ[T[VZXX)] def
+/e [-8 9 (LSXSXQWOVNTMQMONMPLSLUMXOZQ[T[VZXX)] def
+/f [-4 7 (WFUFSGRJR[ OMVM)] def
+/g [-8 10 (XMX]W`VaTbQbOa XPVNTMQMONMPLSLUMXOZQ[T[VZXX)] def
+/h [-8 10 (MFM[ MQPNRMUMWNXQX[)] def
+/i [-3 4 (QFRGSFREQF RMR[)] def
+/j [-4 5 (RFSGTFSERF SMS^RaPbNb)] def
+/k [-8 8 (MFM[ WMMW QSX[)] def
+/l [-3 4 (RFR[)] def
+/m [-14 15 (GMG[ GQJNLMOMQNRQR[ RQUNWMZM\\N]Q][)] def
+/n [-8 10 (MMM[ MQPNRMUMWNXQX[)] def
+/o [-8 10 (QMONMPLSLUMXOZQ[T[VZXXYUYSXPVNTMQM)] def
+/p [-9 9 (LMLb LPNNPMSMUNWPXSXUWXUZS[P[NZLX)] def
+/q [-8 10 (XMXb XPVNTMQMONMPLSLUMXOZQ[T[VZXX)] def
+/r [-6 7 (OMO[ OSPPRNTMWM)] def
+/s [-7 9 (XPWNTMQMNNMPNRPSUTWUXWXXWZT[Q[NZMX)] def
+/t [-5 7 (RFRWSZU[W[ OMVM)] def
+/u [-8 10 (MMMWNZP[S[UZXW XMX[)] def
+/v [-7 8 (LMR[ XMR[)] def
+/w [-11 11 (JMN[ RMN[ RMV[ ZMV[)] def
+/x [-7 9 (MMX[ XMM[)] def
+/y [-7 8 (LMR[ XMR[P_NaLbKb)] def
+/z [-7 9 (XMM[ MMXM M[X[)] def
+/zero [-10 10 (QFNGLJKOKRLWNZQ[S[VZXWYRYOXJVGSFQF)] def
+/one [-10 10 (NJPISFS[)] def
+/two [-10 10 (LKLJMHNGPFTFVGWHXJXLWNUQK[Y[)] def
+/three [-10 10 (MFXFRNUNWOXPYSYUXXVZS[P[MZLYKW)] def
+/four [-10 10 (UFKTZT UFU[)] def
+/five [-10 10 (WFMFLOMNPMSMVNXPYSYUXXVZS[P[MZLYKW)] def
+/six [-10 10 (XIWGTFRFOGMJLOLTMXOZR[S[VZXXYUYTXQVOSNRNOOMQLT)] def
+/seven [-10 10 (YFO[ KFYF)] def
+/eight [-10 10 (PFMGLILKMMONSOVPXRYTYWXYWZT[P[MZLYKWKTLRNPQOUNWMXKXIWGTFPF)] def
+/nine [-10 10 (XMWPURRSQSNRLPKMKLLINGQFRFUGWIXMXRWWUZR[P[MZLX)] def
+/period [-5 5 (RYQZR[SZRY)] def
+/comma [-5 5 (SZR[QZRYSZS\\R^Q_)] def
+/colon [-5 5 (RMQNROSNRM RYQZR[SZRY)] def
+/semicolon [-5 5 (RMQNROSNRM SZR[QZRYSZS\\R^Q_)] def
+/exclam [-7 7 (RFRT RYQZR[SZRY)] def
+/question [-9 9 (LKLJMHNGPFTFVGWHXJXLWNVORQRT RYQZR[SZRY)] def
+/quotedbl [-8 8 (NFNM VFVM)] def
+/ring [-7 7 (QFOGNINKOMQNSNUMVKVIUGSFQF)] def
+/dollar [-10 10 (PBP_ TBT_ YIWGTFPFMGKIKKLMMNOOUQWRXSYUYXWZT[P[MZKX)] def
+/fraction [-11 11 ([BIb)] def
+/parenleft [-7 5 (VBTDRGPKOPOTPYR]T`Vb)] def
+/parenright [-5 7 (NBPDRGTKUPUTTYR]P`Nb)] def
+/bar [-4 4 (RBRb)] def
+/hyphen [-13 13 (IR[R)] def
+/plus [-13 13 (RIR[ IR[R)] def
+/equal [-13 13 (IO[O IU[U)] def
+/periodcentered [-5 5 (RQQRRSSRRQ)] def
+/quoteleft [-5 5 (SFRGQIQKRLSKRJ)] def
+/quoteright [-5 5 (RHQGRFSGSIRKQL)] def
+/numbersign [-10 11 (SBLb YBRb LOZO KUYU)] def
+/ampersand [-13 13 (\\O\\N[MZMYNXPVUTXRZP[L[JZIYHWHUISJRQNRMSKSIRGPFNGMIMKNNPQUXWZY[[[\\Z\\Y)] def
+/bullet [-2 2 (QPPQPSQTSTTSTQSPQP RQQRRSSRRQ)] def
+/slash [-7 7 (K^YF)] def
+/backslash [-7 7 (KFY^)] def
+/underscore [-8 8 (J]Z])] def
+/tilde [-8 8 (LTLRMPOPUSWSXR LRMQOQUTWTXRXP)] def
+/bracketleft [-7 7 (OBOb PBPb OBVB ObVb)] def
+/bracketright [-7 7 (TBTb UBUb NBUB NbUb)] def
+/braceleft [-7 7 (TBRCQDPFPHQJRKSMSOQQ RCQEQGRISJTLTNSPORSTTVTXSZR[Q]Q_Ra QSSUSWRYQZP\\P^Q`RaTb)] def
+/braceright [-7 7 (PBRCSDTFTHSJRKQMQOSQ RCSESGRIQJPLPNQPURQTPVPXQZR[S]S_Ra SSQUQWRYSZT\\T^S`RaPb)] def
+/asterisk [-8 8 (RFRR MIWO WIMO)] def
+/less [-12 12 (ZIJRZ[)] def
+/greater [-12 12 (JIZRJ[)] def
+/asciitilde [-12 12 (IUISJPLONOPPTSVTXTZS[Q ISJQLPNPPQTTVUXUZT[Q[O)] def
+/asciicircum [-11 11 (JTROZT JTRPZT)] def
+/breve [-10 10 (KFLHNJQKSKVJXHYF KFLINKQLSLVKXIYF)] def
+/percent [-12 12 ([FI[ NFPHPJOLMMKMIKIIJGLFNFPGSHVHYG[F WTUUTWTYV[X[ZZ[X[VYTWT)] def
+/at [-13 14 (WNVLTKQKOLNMMPMSNUPVSVUUVS QKOMNPNSOUPV WKVSVUXVZV\\T]Q]O\\L[JYHWGTFQFNGLHJJILHOHRIUJWLYNZQ[T[WZYYZX XKWSWUXV)] def
+/section [-8 8 (UITJUKVJVIUGSFQFOGNINKOMQOVR OMTPVRWTWVVXTZ PNNPMRMTNVPXU[ NVSYU[V]V_UaSbQbOaN_N^O]P^O_)] def
+/dagger [-8 8 (RFQHRJSHRF RFRb RQQTRbSTRQ LMNNPMNLLM LMXM TMVNXMVLTM)] def
+/daggerdbl [-8 8 (RFQHRJSHRF RFRT RPQRSVRXQVSRRP RTRb R^Q`RbS`R^ LMNNPMNLLM LMXM TMVNXMVLTM L[N\\P[NZL[ L[X[ T[V\\X[VZT[)] def
+/space [-4 4 ()] def
+/quotesingle [-4 5 (SFRGRM SGRM SFTGRM)] def
+/.notdef [ 0 0 () ] def		% not defined
+end
+/Hershey-Plain-Simplex 5066560 [107 0 5066560]
+  0.8 0 StandardEncoding makeHersheyFontGS993

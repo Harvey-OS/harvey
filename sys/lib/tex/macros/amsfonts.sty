@@ -1,0 +1,180 @@
+%% 
+%% This is file `amsfonts.sty', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% amsfonts.dtx 
+%%% ====================================================================
+%%%  @LaTeX-file{
+%%%     filename        = "amsfonts.dtx",
+%%%     version         = "2.2b",
+%%%     date            = "1995/02/01",
+%%%     time            = "11:12:55 EST",
+%%%     author          = "American Mathematical Society",
+%%%     copyright       = "Copyright (C) 1995 American Mathematical Society,
+%%%                        all rights reserved.  Copying of this file is
+%%%                        authorized only if either:
+%%%                        (1) you make absolutely no changes to your copy,
+%%%                        including name; OR
+%%%                        (2) if you do make changes, you first rename it
+%%%                        to some other name.",
+%%%     address         = "American Mathematical Society,
+%%%                        Technical Support,
+%%%                        Electronic Products and Services,
+%%%                        P. O. Box 6248,
+%%%                        Providence, RI 02940,
+%%%                        USA",
+%%%     telephone       = "401-455-4080 or (in the USA and Canada)
+%%%                        800-321-4AMS (321-4267)",
+%%%     FAX             = "401-331-3842",
+%%%     checksum        = "60492 437 2050 17848",
+%%%     email           = "tech-support@math.ams.org (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "latex, amslatex, ams-latex, amsfonts, msam,
+%%%                        msbm, eufm, blackboard bold",
+%%%     supported       = "yes",
+%%%     abstract        = "This is part of the AMSFonts distribution,
+%%%                        It provides easy access to certain math fonts
+%%%                        for extra math symbols, fraktur letters, and
+%%%                        blackboard bold letters."
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{amsfonts}[1995/02/01 v2.2b]
+\DeclareOption{psamsfonts}{%
+  \ifnum\cmex@opt=7 \def\cmex@opt{10}%
+  \else \def\cmex@opt{0}\fi
+  \input{Umsa57.fd}\input{Umsb57.fd}\input{Ueuf57.fd}}
+\@ifundefined{cmex@opt}{\def\cmex@opt{1}}{}
+\ProcessOptions\relax
+\ifnum\cmex@opt=1 \relax
+  \catcode`\ =9
+  \DeclareFontShape{OMX}{cmex}{m}{n}{%
+    <-8> cmex7%
+    <8> cmex8%
+    <9> cmex9%
+    <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>cmex10%
+  }{}%
+  \expandafter\let\csname OMX/cmex/m/n/10\endcsname\relax
+  \catcode`\ =10
+\else
+  \ifnum\cmex@opt=10 % need to override cmex7 fontdef from amsmath
+    \input{OMXcmex.fd}%
+    \expandafter\let\csname OMX/cmex/m/n/10\endcsname\relax
+    \def\cmex@opt{0}%
+  \fi
+\fi
+\@ifundefined{@mathmeasure}{%
+  \def\@mathmeasure#1#2#3{\setbox#1\hbox{\frozen@everymath\@emptytoks
+    \m@th$#2#3$}}
+}{}
+\@ifundefined{@emptytoks}{% \newtoks is still outer in LaTeX2e---why?
+  \csname newtoks\endcsname\@emptytoks
+}{}
+\DeclareSymbolFont{AMSa}{U}{msa}{m}{n}
+\DeclareSymbolFont{AMSb}{U}{msb}{m}{n}
+\@ifundefined{yen}{%
+  \edef\yen{\noexpand\mathhexbox{\hexnumber@\symAMSa}55}
+}{}
+\@ifundefined{checkmark}{%
+  \edef\checkmark{\noexpand\mathhexbox{\hexnumber@\symAMSa}58}
+}{}
+\@ifundefined{circledR}{%
+  \edef\circledR{\noexpand\mathhexbox{\hexnumber@\symAMSa}72}
+}{}
+\@ifundefined{maltese}{%
+  \edef\maltese{\noexpand\mathhexbox{\hexnumber@\symAMSa}7A}
+}{}
+\begingroup \catcode`\"=12
+\DeclareMathDelimiter\ulcorner{\mathopen} {AMSa}{"70}{AMSa}{"70}
+\DeclareMathDelimiter\urcorner{\mathclose}{AMSa}{"71}{AMSa}{"71}
+\DeclareMathDelimiter\llcorner{\mathopen} {AMSa}{"78}{AMSa}{"78}
+\DeclareMathDelimiter\lrcorner{\mathclose}{AMSa}{"79}{AMSa}{"79}
+\xdef\widehat#1{\noexpand\@mathmeasure\z@\textstyle{#1}%
+  \noexpand\ifdim\noexpand\wd\z@>\tw@ em%
+  \mathaccent"0\hexnumber@\symAMSb 5B{#1}%
+  \noexpand\else\mathaccent"0362{#1}\noexpand\fi}
+\xdef\widetilde#1{\noexpand\@mathmeasure\z@\textstyle{#1}%
+  \noexpand\ifdim\noexpand\wd\z@>\tw@ em%
+  \mathaccent"0\hexnumber@\symAMSb 5D{#1}%
+  \noexpand\else\mathaccent"0365{#1}\noexpand\fi}
+\DeclareMathSymbol\dabar@{\mathord}{AMSa}{"39}
+\xdef\dashrightarrow{\mathrel{\dabar@\dabar@
+                              \mathchar"0\hexnumber@\symAMSa 4B}}%
+\xdef\dashleftarrow{\mathrel{\mathchar"0\hexnumber@\symAMSa 4C\dabar@
+                              \dabar@}}%
+\global\let\dasharrow\dashrightarrow
+\global\let\rightleftharpoons\undefined
+\DeclareMathSymbol\rightleftharpoons{\mathrel}{AMSa}{"0A}
+\global\let\angle\undefined
+\DeclareMathSymbol\angle            {\mathord}{AMSa}{"5C}
+\global\let\hbar\undefined
+\DeclareMathSymbol\hbar             {\mathord}{AMSb}{"7E}
+\global\let\sqsubset\undefined
+\DeclareMathSymbol\sqsubset         {\mathrel}{AMSa}{"40}
+\global\let\sqsupset\undefined
+\DeclareMathSymbol\sqsupset         {\mathrel}{AMSa}{"41}
+\global\let\mho\undefined
+\DeclareMathSymbol\mho              {\mathord}{AMSb}{"66}
+\endgroup
+\DeclareMathAlphabet\mathfrak{U}{euf}{m}{n}
+\SetMathAlphabet\mathfrak{bold}{U}{euf}{b}{n}
+\DeclareSymbolFontAlphabet{\mathbb}{AMSb}
+\DeclareFontEncodingDefaults{\relax}{\def\accentclass@{7}}
+\def\frak{\@subst@obsolete{amsfonts}\frak\mathfrak}
+\def\Bbb{\@subst@obsolete{amsfonts}\Bbb\mathbb}
+\def\bold{\@subst@obsolete{amsfonts}\bold\mathbf}
+\begingroup \catcode`\"=12 \relax
+\gdef\newsymbol#1#2#3#4#5{%
+  \@obsolete{amsfonts}\newsymbol\DeclareMathSymbol
+  \@ifdefinable#1{%
+     \edef\next@
+       {\ifcase #2 \or
+          \hexnumber@\symAMSa\or
+          \hexnumber@\symAMSb\fi}%
+     \ifx\next@\@empty
+       \PackageError{amsfonts}{\Invalid@@\newsymbol}\@ehd%
+     \else
+      \global\mathchardef#1"#3\next@#4#5
+     \fi}}
+\endgroup
+\long\def\@gobblethree#1#2#3{}
+\if@compatibility
+  \let\@obsolete\@gobblethree
+\else
+  \def\@obsolete#1#2#3{\PackageWarning{#1}{%
+    Obsolete command \protect#2; \protect#3 should be used instead}}%
+\fi
+\def\@subst@obsolete#1#2#3{\@obsolete{#1}#2#3\gdef#2{#3}#2}
+\if@compatibility \else \endinput \fi
+\begingroup \catcode`\"=12
+\DeclareMathSymbol\square           {\mathord}{AMSa}{"03}
+\DeclareMathSymbol\lozenge          {\mathord}{AMSa}{"06}
+\DeclareMathSymbol\vartriangleright {\mathrel}{AMSa}{"42}
+\DeclareMathSymbol\vartriangleleft  {\mathrel}{AMSa}{"43}
+\DeclareMathSymbol\trianglerighteq  {\mathrel}{AMSa}{"44}
+\DeclareMathSymbol\trianglelefteq   {\mathrel}{AMSa}{"45}
+\DeclareMathSymbol\rightsquigarrow  {\mathrel}{AMSa}{"20}
+\def\@tempa{\not@base\lhd}
+\ifx\lhd\@tempa
+ \global\let\lhd\vartriangleleft
+ \global\let\unlhd\trianglelefteq
+ \global\let\rhd\vartriangleright
+ \global\let\unrhd\trianglerighteq
+ \global\let\Box\square
+ \global\let\Diamond\lozenge
+ \global\let\leadsto\rightsquigarrow
+\xdef\Join{\mathrel{\mathchar"0\hexnumber@\symAMSb 6F\mkern-13.8mu%
+  \mathchar"0\hexnumber@\symAMSb 6E}}
+\fi
+\endgroup
+\endinput
+%% 
+%% End of file `amsfonts.sty'.

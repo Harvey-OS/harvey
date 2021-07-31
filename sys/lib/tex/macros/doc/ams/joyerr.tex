@@ -1,0 +1,512 @@
+%% @texfile{
+%%     filename="joyerr.tex",
+%%     version="2.1",
+%%     date="8-MAY-1991",
+%%     filetype="AMS-TeX: user documentation",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Department,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksumtype="line count",
+%%     checksum="512",
+%%     keywords="amstex, ams-tex, tex",
+%%     abstract="This file contains errata to The Joy of TeX, 
+%%            1986 edition. It must be run with AMSTEX and AMSPPT
+%%            2.0+; it is incompatible with previous versions.
+%%            It also requires the file AMSSYM.TEX and the fonts
+%%            MSAM10 and MSBM10."
+%%     }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input amstex
+\documentstyle{amsppt}
+
+\define\lastupdate{15 October 89}
+
+\pagewidth{29pc}
+\raggedbottom
+\tenpoint
+
+\def\JoT{{\sl The Joy of \TeX}}
+
+%  Support verbatim listing of TeX source, as defined in TeXbook, p. 421;
+%  lifted from MANMAC.TEX, and modified slightly for narrower columns.
+\catcode`\@=11
+
+\chardef\other=12
+\def\ttverbatim{\begingroup \catcode`\\=\other
+  \catcode`\{=\other \catcode`\}=\other \catcode`\$=\other
+  \catcode`\&=\other \catcode`\#=\other \catcode`\%=\other
+  \catcode`\~=\other \catcode`\_=\other \catcode`\^=\other
+  \catcode`\"=\other
+  \obeyspaces \obeylines \hyphenpenalty=10000 \tt}
+
+\newskip\ttglue
+{\tenpoint\tt \global\ttglue=.5em plus .25em minus .15em}
+% this should be installed in each font
+
+%  From David Eppstein's ``Trees'' paper (TUGboat 6#1), preserve initial
+%  spaces.
+{\obeyspaces\gdef {\ifvmode\indent\fi\space}}
+
+%  Permissible overhang beyond right margin.
+\newdimen\ttrightskip
+\ttrightskip=5pc
+   
+%  Although | is ordinarily an escape character within verbatim mode,
+%  provide a method for letting it instead be the character itself
+%  within a display verbatim listing, as needed; this is based on
+%  a technique developed by Michael Ferguson.  Note that within one
+%  \begintt...\endtt block, | can be only one of:
+%       the printing | character, or
+%       active (the escape character)
+%  It cannot perform both functions at the same time.
+\newif\ifttVertChar     \ttVertCharfalse
+{\catcode`\|=\active \gdef\VertChar{\def|{\char"7C }}}
+
+%  Other non-tt elements that may be embedded within \begintt...\endtt .
+\def\MTH{$}
+\def\sb{_}
+\def\sp{^}
+\def\SP{{\tt\char"20 }}         % "visible" space
+\chardef\bs=`\\
+\def\vrt{{\tt\char`\|}}
+
+\catcode`\|=\active
+{\obeylines \gdef\activatettbar{\global\catcode`\|=\active %
+  \gdef|{\ttverbatim \spaceskip\ttglue \xspaceskip\ttglue %
+         \let^^M=\  \let|=\endgroup}}}
+\activatettbar
+
+\catcode`\@=13
+
+\def\ttindent{\noindent\kern3\parindent\hangindent3\parindent}
+
+%  This definition is stolen from the file of TeXbook errata.
+\def\bugonpage#1(#2) \par{\bigbreak\tenpoint
+  \hrule width\hsize
+  \line{\lower3.5pt\vbox to13pt{}Page #1\hfil(#2)}\hrule width\hsize
+  \nobreak\medskip}
+
+%  Some definitions for setting particular Joy notation.
+\def\CR{$\langle$carriage-return$\rangle$}
+\def\tab{{\smc tab}}
+
+\NoBlackBoxes
+
+\topmatter
+\title Errata to \JoT{} prior to \AmSTeX{} 2.0\endtitle
+\endtopmatter
+
+\document
+
+\noindent
+This list of corrections to \JoT, 1986 edition, includes all known
+corrections that preceded the release of \AmSTeX{} Version 2.0.
+Reprints with corrections may already incorporate some or all of
+these changes.
+
+The printing date of each copy of \JoT\ is identified on the reverse
+of the title page.  The list below will permit you to determine
+which corrections have not already been incorporated in your copy of \JoT.
+
+\smallskip
+\halign{\kern 30pt #\hfil\qquad&#\hfil\cr
+First printing, 1986 & all changes\cr
+Second printing with corrections, 1986 & changes after 11/25/86\cr
+Third printing with corrections, 1987 & changes after 5/12/87\cr}
+\smallskip
+
+For differences between earlier versions of \AmSTeX{} and Version 2.0,
+see the {\bf User's Guide to \AmSTeX{} 2.0}.
+The second edition of \JoT{}, 1990, contains all changes in this list
+as well as new material for \AmSTeX{} 2.0.
+
+(This errata list was last updated \lastupdate.)
+
+
+\bugonpage 12, line 12 (11/11/86)
+
+\noindent
+What output is produced by |\$\|\SP|\|\SP|1.00| and by |\$|\SP|\|\SP|1.00|?
+
+\bugonpage 22, line 28 (11/24/86)
+
+\line{will be some surprises in it---so you should go pick it up
+as soon as possible.\hfil}
+
+\bugonpage 26, line 9 (10/15/89)
+
+\line{uptight when you encounter an error message, because
+\TeX\ can always be coaxed}
+
+\bugonpage 39, line 4 (10/15/89)
+
+\line{words as evenly as possible.  But everyone knows that such
+bland perfection isn't}
+
+\bugonpage 39, line $-4$ (12/12/89)
+
+\line{allowed here also, to accommodate threesomes, foursomes, and
+even more perverse}
+
+\bugonpage 44, line $-10$ (12/12/89)
+
+\line{their own papers might prefer to leave these details to someone
+else, and even}
+
+\bugonpage 81, line 13 (10/25/89)
+
+\line{But don't use |\,| before an expression like $\dsize \frac{dy}{dx}$
+or before the $dx$ in $dy/dx$.}
+
+\bugonpage 88, line $-5$ (5/11/87)
+
+\centerline{\indent We derive the quadratic formula by
+``completing the square'':}
+
+\bugonpage 90, line $-4$ (10/15/89)
+
+\line{to the old style that they may be discomforted by the
+``improvements''.\hfil}
+
+\bugonpage 99, lines 15--16 (8/6/86)
+
+{\baselineskip 18pt
+\ttindent
+|$\varinjlim$                           |$\varinjlim$\newline
+|$\varprojlim$                          |$\varprojlim$\endgraf
+}%      end extra \baselineskip
+
+\bugonpage 108, line 11 (11/11/86)
+
+\ttindent
+|  &=(a+b)(a+b)^n=(a+b)|
+
+\bugonpage 109, line 6 (12/12/89)
+
+\line{when tags are set on the right.  What input do you think you
+should use?\hfill}
+
+\bugonpage 109, line $-14$ (10/15/89)
+
+\line{so that the |=\bigl[| is aligned with the invisible |\qquad|.
+Notice, again, that such}
+
+\bugonpage 113, line 1 (4/10/86)
+
+\line{And there's |\bmatrix...\endbmatrix| to get brackets
+  |\left[...\right]| around}
+
+\bugonpage 127, line 11 (7/13/87)
+
+\line{\indent If you're an experienced mathematical typist you've
+probably already begun to}
+
+\bugonpage 129, lines 14--15 (10/15/89)
+
+\def\vector#1#2{(#1_1,\dots,#1_{#2})}
+\begingroup
+\hyphenpenalty=10000
+\noindent
+with things like $\vector xm$,
+$\vector y{n+1}$ as well.  Explain how to define |\vector| so that we can
+type these as |$\vector xm$| and |$\vector y{n+1}$|.
+
+\endgroup
+
+\bugonpage 129, last 3 lines (10/15/89)
+
+\noindent
+In Exercise 19.20 we defined |\vector| so that
+|$\vector xn$| produces $\vector xn$, etc.  But perhaps you don't like this, 
+perhaps you'd prefer to type |$\vector nx$|, with the `|n|'
+first, and the `|x|' second.  How can you arrange this?
+
+\bugonpage 131, lines 10--11 (10/15/89)
+
+\begingroup
+\noindent
+How would you |\define| the control sequence |\vector| so that
+you type |$\vector x,n.$| to get $\vector xn$, and |$\vector y,m+1.$| to get
+$\vector y{m+1}$, etc.
+
+\endgroup
+
+\bugonpage 144, line 16 (10/15/89)
+
+\line{\indent This command is ``global''---it affects everything
+that follows, even if it is in-}
+
+\bugonpage 162, line $-6$ (5/11/87)
+
+\line{if you typed |\footnote""{...}| then you  would get no marker
+at all, just a note}
+
+\bugonpage 171, line $-7$ (10/15/89)
+
+\line{too much, and only |\linebreak| will force \TeX\ to overcome
+its reluctance.\hfil}
+
+\bugonpage 176, line 4 (12/12/89)
+
+\line{about it, and an |&| is tolerated only in special situations.
+So you should remember}
+
+%  This feature has been reinstated in AMS-TeX 2.0.
+%\bugonpage 178, PAGE NUMBERS (11/14/86)
+%
+%Warning: |\nopagenumbers| does not at present work as advertised
+%with the |amsppt| style.  Consequently, this paragraph has been
+%deleted.
+
+%\bugonpage 178, between lines $-5$ and $-6$ (10/15/89)
+%
+%\line{\bf PAGE NUMBERS\hfil}
+%\vskip 2pt
+%\noindent If you are using the |amsppt| style and you type
+%|\nopagenumbers| at the beginning of the document (after the
+%|\documentstyle| line), the page numbers at the bottom of the page
+%will disappear.  Other styles probably will ignore |\nopagenumbers|.
+
+\bugonpage 179, line 4 (10/15/89)
+
+\line{change its position on the 8$\frac12$ by 11 sheet of paper.
+Typing\hfil}
+
+\bugonpage 180, lines 5--6 (10/15/89)
+
+\ttindent
+|   &=f'(x) = \frac1{2\sqrt x}\qquad|\newline
+|    \foldedtext\foldedwidth{2in}{for some $x$ in $(k, k+1)$,|
+
+\bugonpage 181, line $-$4 (10/15/89)
+
+\line{should be included at the end of that displayed formula.\hfil}
+
+\bugonpage 182, line $-2$ (12/12/89)
+
+\line{argument'' feature of |\roster| (again compare with
+{\bf footnote}).  If you type}
+
+\bugonpage 186, line 13 (10/15/89)
+
+\line{commands are ``global''---they affect everything
+that follows even if used in a group}
+
+\bugonpage 189, line 21 (12/12/89)
+
+\line{will first be divided into lines of a certain length
+(3 inches less than the width}
+
+\bugonpage 195, lines 4, 11 (7/13/87)
+
+Change\qquad ``In addition to''\qquad to\qquad ``First we have''.
+
+\bugonpage 195, line $-1$ (12/12/89)
+
+\ttindent
+|... in a bibliography''.|
+
+\bugonpage 202, line $-6$ (12/12/89)
+
+\line{If `|etc.|' were typed instead of `|etc\.|' there would be a
+larger space after the}
+
+\bugonpage 208, line 12 (12/12/89)
+
+\line{it does in ordinary text.\hfil}
+
+\bugonpage 210, line 4 (12/12/89)
+
+\line{you'll get the two equations $a+b=c$ and $A+B=C$ displayed
+separately.}
+
+\bugonpage 212, line 6 (12/12/89)
+
+\line{If you press \CR, \TeX\ will continue merrily, and you will get
+$a^b{}^c$}
+
+\bugonpage 218, line $-6$ (7/13/87)
+
+\line{Of course, you weren't supposed to anticipate such after-the-fact
+corrections.\hfil}
+
+\bugonpage 222, answer to {\bf 14.11}, line 1 (10/15/89)
+
+\ttindent
+|We derive the quadratic formula by|
+
+\bugonpage 229, answer to {\bf 15.19}, lines 2--3 (10/15/89)
+
+\ttindent
+|$\operatorname{\text{\sl SO}}(n)$       |%
+        $\operatorname{\text{\sl SO}}(n)$\newline
+|$\operatorname{\text{\bf SO}}(n)$       |%
+        $\operatorname{\text{\bf SO}}(n)$
+
+\bugonpage 230, answer to {\bf 16.3}, lines 6--9 (10/25/89)
+
+\noindent
+to suppress any extra space that \TeX\ might put in.  (Actually,
+|...\tag{$**$}$$| happens to work correctly, but |...\tag{$***$}$$|
+would give the tag ($***$); rather than worrying about why this
+happens, just type |...\tag{${*}{*}$}$$|\linebreak
+and |...\tag{${*}{*}{*}$}$$| to be on the safe side.)
+
+\bugonpage 230, answer to {\bf 16.4}, line 3 (7/13/87)
+
+\ttindent
+|Q^l&=Q_1\biggl\{\sum_k(-1)^k(PQ_1-I)^k\biggr\}|
+
+\bugonpage 230, answer to {\bf 16.4}, line 6 (10/25/89)
+
+\ttindent
+|    Q_1\tag 1{${}_r$}|
+
+\bugonpage 231, answer to {\bf 16.6} (10/25/89)
+
+\noindent Line 2:
+
+\ttindent
+|\align \alpha_4&=\sqrt{\dfrac12}\\|
+
+\noindent Line 6:
+
+\ttindent
+|\text{etc.}|
+
+\bugonpage 233, answer to {\bf 17.4}, line 6 (5/13/86)
+
+\ttindent
+|        \dots, $b_{3k}$.}\endmultline|
+
+\bugonpage 234, answer to {\bf 18.4} (5/13/86)
+
+\noindent Line 6:
+
+\ttindent
+|\pmatrix \format\r&\quad\r\\|
+
+\noindent Line 10:
+
+\ttindent
+|=\pmatrix \format\r&\quad\r\\|
+
+\bugonpage 239, answer to {\bf 19.13} (10/15/89)
+
+\gdef\vector#1{(#1_1,\dots,#1_n)}%
+\ttindent
+|\define\vector#1{(#1_1,\dots,#1_n)}|
+\medskip
+\noindent
+and then use |$\vector x| to get $\vector x$ and |$\vector y$| to get
+$\vector y$, etc.
+
+\bugonpage 240, answer to {\bf 19.14} (10/15/89)
+
+\ttindent
+|$\vector\alpha$| and |$\vector{x'}$|.
+
+\bugonpage 240, answer to {\bf 19.15} (10/15/89)
+
+\noindent{\bf 19.15.}
+You can get $\vector{{x'}}$ by typing |$\vector{{x'}}$|; now the argument is
+|{x'}| and |{x'}_1| gives ${x'}_1$, etc.  On the other hand,
+ you can't get the formula $(x_1{}',\dots,x_n{}')$ using |\vector|---you'd
+just have to type it out in full.
+
+\bugonpage 240, answer to {\bf 19.20} (10/15/89)
+
+\ttindent
+|\define\vector#1#2{(#1_1,\dots,#1_{#2})}|
+
+\bugonpage 242, answer to {\bf 19.23} (10/15/89)
+
+\ttindent
+|\define\vector#1#2{(#2_1,\dots,#2_{#1})}|
+\medskip
+\noindent
+Although |#1| and |#2| must appear in that order after the 
+|\define\vector|, they can appear in any order within
+the definition itself.
+
+\bugonpage 242, answer to {\bf 19.24} (10/15/89)
+
+\ttindent
+|\define\vector#1,#2.{(#1_1,\dots,#1_{#2})}|
+
+\bugonpage 242, answer to {\bf 19.27}, line 1 (7/13/87) % Francis O. McGuinness
+
+\line{{\bf 19.27.} This is a perfectly acceptable |\define|, but you are
+{\sl not\/} defining a new}
+
+\bugonpage 251, line 1 (10/25/89)
+
+\line{is supplied as a synonym for |\thickspace|. In |plain|, the thick
+space |\;| can}
+
+\bugonpage 252, line 6 (11/11/86)
+
+\ttindent
+|$f''^2$|
+
+\bugonpage 261, after line 12 (6/22/87)
+
+Add\qquad $\eqsim$\quad|\eqsim|
+
+\bugonpage 261, line 15 (6/22/87)
+
+Change\qquad $\ncong$\quad|\napprox|\qquad to\qquad $\ncong$\quad|\ncong|
+
+\bugonpage 262, line 15 (11/14/86)
+
+Change\qquad $\eth$\quad|\thorn|\qquad to\qquad $\eth$\quad|\eth|
+
+\bugonpage 264, line 1 (11/11/86)
+
+\centerline{\bf Appendix G: $\{$\TeX\ Users$\}$}
+
+\bugonpage 265, line 6 (11/11/86)
+
+\line{you might want to look back at Appendix G\null.
+  Perhaps someone in TUG has}
+
+\bugonpage 275, column 1 (11/14/86)
+
+Add entry\newline
+|\eth| ($\eth$),\quad 262
+
+\bugonpage 279, column 1 (12/12/89)
+
+\noindent
+|\lesssim| ($\lesssim$),\quad 260
+
+\bugonpage 281, column 1 (6/22/86)
+
+Remove entry for\quad |\napprox|
+
+Add entry\newline
+|\ncong| ($\ncong$),\quad 261
+
+\bugonpage 284, column 1 (12/12/89)
+
+\noindent
+|\Psi| ($\Psi$),\quad 255
+
+\bugonpage 288, column 2 (11/14/86)
+
+Delete entry for\quad |\thorn|
+
+\enddocument

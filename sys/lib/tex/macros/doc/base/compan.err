@@ -1,0 +1,1769 @@
+Copyright (C) Michel Goossens, Frank Mittelbach
+
+Errata list for:
+
+@book(A-W:GMS94,
+   author = {Michel Goossens and Frank Mittelbach and
+             Alexander Samarin},
+   title = {The {\LaTeX} Companion},
+   publisher = {Addison-Wesley},
+   address   = {Reading, Massachusetts},
+   year = 1994,
+   pagenums = {530 + 30},
+   bibliography = {yes},
+   index = {yes},
+   isbn = {0-201-54199-8},
+)
+
+If you find further errors please send them to
+
+  mittelbach@mzdmza.zdv.uni-mainz.de
+
+
+Version: 10 Dec 1994
+--------------------
+
+***********************************
+*                                 *
+*   Errors in second printing     *
+*                                 *
+***********************************
+
+
+========== General   ==============
+
+-* Page i, last line (KSe)
+   Replace "Signapore" with "Singapore"
+
+========== Front matter ===========
+
+========== Chapter 1 ==============
+
+-* Page 2, 3rd paragraph (FMi)
+   Replace "in the public domain" with "free of charge"
+   as TeX is copyrighted by Donald E. Knuth and *NOT* public domain.
+
+-* Page 2, 4th paragraph (UVi)
+   In the book title `TeX and METAFONT ...', the METAFONT logo should
+   be in italic.
+
+-* Page 7, last line (MGo)
+   "International Standards Organization" should be
+   "International Organization for Standardization".
+
+========== Chapter 2 ==============
+
+-* Page 14, l. 8 (CKr)
+   Add missing "be":  it will be assumed to the
+
+-* Page 14 (FMi)
+   Replace last para with:
+Finally, when the \LBEG{document} is reached, all global options are
+checked to see whether each of them has been used by any package; if
+not, you will get a warning message. It is usually a spelling mistake
+if your option name is never used; another possibility is the removal
+of a \Lmcs{usepackage} command loading a package that used this
+option.
+
+-* Page 17. (JSa)
+   Last sentence of 2.1.2 is unclear.
+   MGo: Replace with:
+ If a document is too large to process in a single run,
+ it can be sub-divided into sub-parts that can be run separately.
+ However, in this case, they must be processed
+ \emph{in the correct sequence} to ensure that the
+ cross-references and page numbers are correct.
+
+-* Page 18, second para (FMi)
+   In the front matter the so-called \emph{starred form} of the
+sectioning commands is normally used.
+
+-* Page 23, the footnote (UVi)
+   there is a spurious space between TeX and book.
+
+-* Page 31, Table 2.3 (GSa)
+   \refname (default References) should appear in the table
+
+-* Page 35,  (FMi)
+   Explanation of \addtocontents and addcontentsline arguments:
+   file argument contains toc lof or lot (eg without . in front)!
+
+-* Page 37, l.6 below Table (FMi)
+   A new version of the package now supports ``short'' extensions for
+use in operating systems  like DOS.
+
+-* Page 41 (FMi)
+   Remove the \label{before} in the example since it does not serve
+any purpose.
+
+-* Page 41 (JSa)
+   Last paragraph starting with ``\vref will produce a \ref only
+      when...'' is ambiguous or misleading.
+   MGo: Replace with:
+ The command \Lmcs{vref} is like \Lmcs{ref} when reference and
+ \Lmcs{label} are on the same page.  If label and reference differ by
+ one, \Lmcs{vref} creates one of the strings: ``on the facing page,''
+ ``on the preceding page,'' or ``on the following page''; the word
+ ``facing'' is used when label and reference both fall onto a double
+ spread.  When the difference is larger than one page, \Lmcs{vref}
+ produces both \Lcs{ref} and \Lcs{pageref}.
+
+-* Page 42 footnote (FMi)
+   flafter is a package not an option!
+
+-* Page 43 before: Language Support (FMi,JAd)
+   Add: If the space added by \vpageref turns out to be wrong, as in
+               (\vpageref[here]{ex:foo})
+   use the variant with two optional arguments and put all text up to
+   the preceding blank (in this case just the open parentheses) into both
+   optional arguments, ie
+               \vpageref[(here][(]{ex:foo})
+
+
+========== Chapter 3 ==============
+
+-* Page 48, third para (FMi)
+   Add the following sentence: Note, that accented characters have to be
+   surrounded by braces like this: \verb={\"a}=.
+
+-* Page 50, first para (FMi)
+   Remove this sentence "They are optional features ..." since
+   the new version of ulem activates them automatically.
+
+-* Page 50, example (RBa)
+   Replace: "The \USA has 50 states." with "\GB was unified in 1707."
+
+-* Page 61, first example (FMi)
+   Finish line with a percent:
+      \setlength{\rightmargin}{\leftmargin}}%
+
+-* Page 64, last l. (FMi)
+   Replace: "(forcing a new line)" by
+            "followed by a forced line break"
+
+-* Page 68 (PvO)
+   \verbatiminput should be \verbatimtabinput (in the box)
+
+-* Page 69 (PvO)
+   \begin{listing}: I find that confusing, although I guess it is just
+   the way the package works. The problem is that the required
+   argument is NOT the first number that you see, but the first number
+   you see = req.arg+opt.arg-1. Maybe the description can include a
+   warning about this.
+   MGo proposes the following text:
+ An optional argument \Larg{step} specifies
+ the step between numbered lines (its default value is 1,
+ and it corresponds to all lines being numbered), while
+ the required argument \Larg{firstline}
+ is the number of the first line.
+ If \Larg{step} is different from ``\Lit{1},'' then the first number
+ shown will be ``\Larg{step}$+$\Larg{firstline}$-1$,'' for instance
+ if the \Lmenv{listing} environment is invoked by the command
+ \verb!\begin{listing}[2]{3}!, each second line
+ will be numbered, starting with the number $2+3-1$, \ie $4$.
+
+-* Page 71, figure 3.7 (PvO)
+   \skip\footins is missing in the figure
+
+-* Page 74, l.11 (FMi)
+   Replace "may not match" by "will not match"
+
+-* Page 75, 2 para (FMi)
+   Replace "accumulated in memory" by "accumulated in the external file"
+
+-* Page 75, 3 para (FMi)
+   Drop "in memory" since the text is stored externally.
+
+-* Page 80, last two paras from 3.5.5 (FMi)
+   Since ftnright.sty is now updated for LaTeX2e the last two paragraphs
+   can be dropped.
+
+-* Page 82, 2nd paragraph after boxed \excludeversion (MGo)
+   "\Larg{tag} is a name..." should read "\Larg{tagname} is a name..."
+
+========== Chapter 4 ==============
+
+-* Page 89, l 6 (FMi)
+   the vpage.sty package is now available under a new name with extended
+   functionality: vmargin.sty
+
+-* Page 89, l. 10 (FMi)
+   portrait and landscape should be in typewriter font since they are actual
+   keywords for the optional "orient" argument of \setpapersize
+
+-* Page 92 l. 1 (FMi)
+   The first three are used ...
+
+-* Page 92 para 4, l. 4 (CKr)
+   replace: "styles is concerned" with "styles are concerned"
+
+-* Page 93 last line (FMi)
+   ... the commands \chaptermark, \sectionmark, and so on.
+   FMi adds:
+These commands are executed automatically by the corresponding
+heading commands. They have one argument in which they receive the
+heading text or its short form from the optional argument of the
+heading command.
+
+-* Page 95 l. 9 (FMi)
+   Replace: by defining the commands \markboth ...
+   by:      by using the commands \mathboth ...
+
+-* Page 97 1th para (FMi)
+   Replace last sentence with:
+Note that in this case the length \headheight and perhaps
+\footskip might have to be increased.
+
+
+========== Chapter 5 ==============
+
+-* Page 103, 2nd line of 4th para (FMi)
+  replace "previous tabstop" with "following tabstop"
+
+-* Page 104 (JPe)
+   The example actually shows an ALGOL68 program (not a Pascal one)
+
+-* Page 106 (TMa,FMi)
+  Last line before footnote, in the > command:
+  The 4th `{' should be a `}'
+
+-* Page 106, footnote (FMi)
+  ... in case of p, m, or b, the ...
+
+-* Page 108 (WLe)
+  Replace first sentence with:
+When you have a narrow column, you must not only make sure that the
+first word can be hyphenated (see page~\pageref{sec:allowhyphenation})
+but consider that short texts are easier to typeset in ragged right
+mode (without being aligned at the right margin).
+
+-* Page 108 l. 5 (FMi)
+   Replace "environment" by "command"
+
+-* Page 108 example (FGo)
+   Replace "superconciousness" by "superconsciousness" 
+
+-* Page 109 l. 3 of text (FMi)
+   Replace "vertical column separator" by "column separator"
+
+-* Page 113, very end of paragraph 5.3.4 (UJa)
+   a closing curly brace is missing, ie  ...\fill}}}
+
+-* Page 115 example (FGo)
+   Replace "superconciousness" by "superconsciousness" 
+
+-* Page 116 l. 3 bottom (FMi)
+   Replace: "`c' columns" by "`c', `r', or `l' columns"
+
+-* Page 120 following (FPo)
+   Shouldn't  Table 5.3, 5.4, 5.5 and 5.7 (and perhaps others) better be
+   Figures, like a lot of other examples presenting tabulated LaTeX output?
+  MGo: I have renamed all example "tables", namely 5.2, 5.3, 5.4, 5.5,
+   and 5.7 into figures
+
+-* Page 122 (FMi)
+   It could be helpful to explicitly mention that one shouldn't use \nofiles
+   together with longable since longtable needs to write to the aux file.
+   It would be even better if longtable would dectect this problem.
+MGo added footnote:
+This means that the \Lcs{nofiles} command, that suppresses
+writing of all but the \Lfn{dvi} and \Lfn{log} files,
+should not be used together with the \Lmpack{longtable} package.}
+
+-* Page 128 (FMi)
+   Replace:
+    \LTchunksize   (20) Number of rows per chunk (TeX counter)
+   with
+     LTchunksize   (20) Number of rows per chunk (LaTeX counter)
+   Both is correct but why mention the TeX version?
+
+-* Page 129, text l.4 bottom (FMi)
+   Replace: "output file" by "output"
+
+-* Page 133, 1st l. of 5.6.3
+   Replace: "in narrow" with "between narrow"
+
+-* Page 135 (MGo) first para of multirow section
+   The author of the multirow package is no longer unknown; it is
+   Jerry Leichter.
+
+-* Page 137 (FMi)
+   \firsthline and \lasthline will be part of array.sty with the next
+   release.
+
+========== Chapter 6 ==============
+
+-* Page 143, l8 from bottom (MOh)
+   It should read "you can prevent" instead of "you can prevents"
+
+-* Page 144, example (UJa)
+   Better use \renewcommand, since new command is only correct if you
+   design a class file from scratch.
+
+-* Page 145 l.11 (TMa)
+  `ignoreed' should be `ignored'
+
+-* Page 148 (WLe)
+   Fig 6.1: The left and right sides do not correspond in detail
+
+-* Page 153, para 2, l.3 (KCr)
+   Replace: (defined by default as (\alph{subfigure})\space}
+   with:    , defined by default as (\alph{subfigure})\space,
+
+-* Page 155, \@makecaption and \@isucaption example (JvM,FMi)
+   In both cases is a closing brace missing:
+   \ifthenelse{\lengthtest{\wd\tempbox > \linewidth}}%
+                                            %%%     ^ closing brace
+
+========== Chapter 7 ==============
+
+-* Page 164  Figure 7.6 (TMa)
+  The 10pt font is actually Lucida Bright and the  magnified
+  one Computer Modern 5 pt, so it whould be better to use CMR twice
+
+-* Page 167 (PAp)
+   If you used ... should read: If you use ...
+
+ * Page 174 third para (UVi)
+   Computer Modern Typewriter has not even bold extended series only
+   medium.
+
+-* Page 174 fourth para (CMi)
+   Replace by:
+   An example in which some default values are changed can be found in
+the chapter about PostScript (section 11.9.6 on page 339).
+
+-* Page 182 (FJe)
+   Table 7.6 is incomplete. Nowadays there is the following set of fonts
+   available from labrea.stanford.edu:
+Concrete Roman medium: ccr5 ccr6 ccr7 ccr8 ccr9 ccr10
+Concrete Roman medium italic: ccti10
+Concrete Roman medium slanted: ccsl9 ccsl10
+Concrete Roman medium caps and small caps: cccsc10
+Concrete Roman condensed slanted: ccslc9
+Concrete Math medium italic: ccmi10
+Concrete Math condensed italic: ccmic9
+
+-* Page 182 (WLe)
+   Table 7.7: Examples of Pandora fonts are incorrect:
+Pandora Roman bold      is typeset in     (again) Pandora Roman medium
+Pandora Sans            is typeset in     Pandora Roman slanted
+Pandora Sans bold       is typeset in     Pandora Roman bold
+
+ * Page 184 (FMi)
+   The packages euscript and eufrak have been moved into the amsfonts
+   distribution. euscript is now considered obsolete (but available)
+   and the following is provided:
+
+\usepackage{eufrak}     defines \mathfrak (and \EuFrak for compatibility)
+\usepackage{eucal}      or
+\usepackage[mathcal]{eucal}     changes \mathcal to use euler script fonts
+\usepackage[mathscr]{eucal}     defines \mathscr to use euler script fonts
+                                and leaves \mathcal alone
+\usepackage{euscript}   defines \EuScript (considered obsolete)
+
+ * Page 185, l.4 (CMi)
+   Replace chose by choose
+
+ * Page 196, second para from bottom (CMi)
+   Since a size function can have both an optional and a mandatory argument
+   this para should speak about arguments in plural (two occasions)
+
+ * Page 200, l 8. (FMi)
+   ... with a font family as a whole.
+
+ * Page 203 (FMi)
+   The starting letters T, O, M, and S are reserved for standard encodings
+                                 ^^^^^
+ * Page 206, top (FMi)
+   Replace the sentence: In fact, only the \DeclareFontEncoding ....
+   by: If the encoding of the font is unknown to NFSS it must be first
+       declared with \DeclareFontEncoding in the package file. The
+       other two declaration can, in fact, alternatively be placed
+       into a .fd file.
+
+ * Page 208, l.6 (CMi)
+   Replace: "you can define them"  by  "you can define it"
+   since the math alphabet and not the letters are defined.
+
+ * Page 209 (FMi)
+   The following declaration is also part of the default setup:
+      \SetSymbolFont{symbols}{bold}{OMS}{cmsy}{b}{n}
+
+ * Page 211 (FMi)
+   In explanation for "Checking defaults for <cdp>/<font shape>
+   replace \DeclareFontEncoding by \DeclareFontSubstitution.
+
+========== Chapter 8 ==============
+
+-* Page 214 (FMi)
+   Remove second reference to Graetzer's book ([95]).
+
+-* Page 217 (GSa)
+   Note that the Companion uses Lucida math fonts which contain the
+   standard LaTeX and AmS symbols but with different shapes compared
+   to the Computer Modern math fonts.
+
+ * Page 218 (FMi)
+   In amslatex release 1.2:
+   \Bbb, \frak are OBSOLETE. Use \mathbb, \mathfrak.
+
+ * Page 219 table 8.5 (JPe)
+   Put a comma between \leq and \le.
+   Also show that the "greater equal sign" can be produced by \geq and \ge.
+   
+ * Page 224 (FMi)
+   In amslatex release 1.2:
+   \accentedsymbol was moved to package amsxtra.
+
+ * Page 225 (FMi)
+   In amslatex release 1.2:
+   All supercripted accents \sphat, etc. were moved to package amsxtra.
+
+ * Page 228 (FMi)
+   In amslatex release 1.2:
+   \operatornamewithlimits is OBSOLETE: new name is \operatorname*.
+
+ * Page 229 (FMi)
+   We should add a line with \bmod to the first example.
+
+ * Page 229 (FMi)
+   In amslatex release 1.2:
+   \fracwithdelims was moved to package amsxtra.
+
+ * Page 230 (FMi)
+   In amslatex release 1.2:
+   \lcfrac, \rcfrac are OBSOLETE. New syntax is \cfrac{...}{...} or
+   \cfrac[l]{...}{...} to get left-positioned numerators or \cfrac[r]...
+
+ * Page ??? (FMi)
+   In amslatex release 1.2:
+   New subequations environment, for example
+   \begin{subequations}{a}
+   ...
+   \end{subequations}
+   causes all numbered equation environments within that scope to be
+   numbered (4.9a) (4.9b) (4.9c) etc. if the preceding numbered
+   equation was 4.8. The argument can be a,A,i,I,1,f for the standard
+   LaTeX numbering types: \alph, \Alph, \roman, \Roman, \arabic,
+   \fnsymbol.  A \label command immediately after
+   \begin{subequations}{...} will produce a \ref of the parent number
+   "4.9", not "4.9a". The counters used by the subequations environment
+   are `parentequation' and `equation' and standard uses of
+   \addtocounter, \setcounter, etc. are possible with those counter
+   names.
+
+-* Page 236, l.2 bottom (FMi)
+   Start a new sentence at:  Each one is ...
+
+-* Page 241 (FMi)
+   Say that righttag is an option to the amstex package.
+
+ * Page 241 (FMi)
+   The errata above is probably already obsolete again, option is now
+   reqno/leqno and default isn't any longer on the left.
+
+-* Page 243 (GGr,FMi)
+   To the entries for amscd and amssymb add:
+   This package is not automatically included by the amstex package.
+
+ * Page 243 (FMi)
+   In amslatex release 1.2:
+   New packages have been added:
+     amsxtra            for seldom used commands
+     amsthm             theorem code for classes
+     amsintsm           special integral syntax
+   New options have been added to classes:
+     8pt,9pt            sizes
+     fleqn              is now supported
+     nomath             don't load amstex package
+   New options to amstex package:
+     psamsfonts         (also amsfonts package)
+                        load different .fd file set for PostScript
+                        Type 1 versions of amsfonts
+     intlimits/nointlimits      put (no) limits on \int signs
+     sumlimits/nosumlimits      put (no) limits on \sum signs
+     namelimits/nonamelimits    put (no) limits on operator names
+     leqno/reqno        tags on the left (right)
+     centertags/tbtags  tags centered on split
+
+-* Page 250 (TMa)
+  Just before Section 8.7.6: `align*' should be `align'
+  like it says in the text.
+
+ * Page 256 (FMi)
+   Since amstex 1.2 will place the formula number now by default to the
+   right the last paragraph needs correction.
+
+-* Page 256 (FMi)
+   Replace: All these parameters are expressed as lengths ...
+   with: All these are length parameters ...
+
+========== Chapter 9 ==============
+
+-* Page 260 (RPo)
+   A truly international TeX also need support for different
+   typesetting directions, ie TeX-XeT.
+
+-* Page 261 (FMi)
+   "to the 256-bit DC-font glyphs" should better read:
+   "to the 256 glyphs of a DC-font"
+
+-* Page 264 (WLe)
+   Bottom of page: The example at the end "Drucker bzw. Druk-ker" etc.
+   are not very useful, since they don't show the commands.
+
+-* Page 264 (PvO)
+   The footnote text is confusing (I have to read it twice to
+   understand). I suggest that it says: Note that the original package
+   is incompatible..
+
+-* Page 265 (FMi)
+   \adddialect{dialect-name}{language}
+
+-* Page 267, table 9.2 (JBr)
+   Macro \alsoseename is actually called \alsoname in BABEL
+
+-* Page 267, table 9.2 (RdB)
+   Macro \headpagename is actually called \pagename in BABEL
+
+ * Page 270 (FMi)
+   My version of epsfig doesn't support textures with eps files,
+   so i guess that example is not correct (but i may not have latest
+   graphics)
+
+-* Page 270, caption (FMi)
+   Example using babel's option french (output on the facing page)
+
+-* Page 273 (JPe)
+   The , after \begin{order} should be replaced by a blank
+
+-* Page 274, l. 6 (FMi)
+   Replace: ...associated with their names
+   by:      ...associated with them
+
+========== Chapter 10 =============
+
+-* Page 275, footnote (FMi)
+   Remove the colon in the citation text.
+  
+-Page 275, 1st para(FMi)
+   Add a footnote like this:
+In certain situations it is possible for the \special command to
+change the formatting because it can produce an additional break point
+and it might prevent LaTeX from noticing spaces.
+
+-* Page 277 (PvO)
+   Better use \setlength{\sdim}{1.5\sboxsep}.
+   Also show in the example that you don't use the default of 10pt.
+
+-* Page 277 (FMi)
+   In the first printing we used some modified version of the shadow
+   package (with unofficial names). In the second printing we somehow
+   got it wrong  again (the last shadow box is suposed to have a
+   larger shadow), sigh. it Should read:
+\setlength{\sdim}{3\fboxsep}
+   in the example.
+
+-* Page 278, description of \ovalbox (FMi)
+   Replace with:
+The width of the frame is defined by the \Lcs{thinlines} command. The
+diameter of the corner arcs is set with a \Lmcs{cornersize} command.
+The form \Lmcs{cornersize}\Largb{num} sets the diameter to \Larg{num}
+$\times$ minimum(width of box, height of box); the form
+\Lmcs{cornersize*}\Largb{len} sets the diameter to \Larg{len}.  The
+default is \Lmcs{cornersize}\verb={0.5}=.
+
+-* Page 282 (FMi)
+   In the syntax box for \root(x-.... show the space after the )
+   better explicitly.  It is needed!
+
+-* Page 293 (MGo) Start of 3rd para of section 10.2.7: clarification
+   A set of electronic circuit symbols developed by
+   \Author{Adrian Johnstone} is available (on CTAN) as part of his 
+   \texttt{lcircuit} system to be used with the \TeX{}cad program
+   (see figure~\vref{fig:lcircuit}).
+
+-* Page 294, bottom (JPe)
+   Logically item 3 + 4 needs exchanging
+
+-* Page 295, l. 2 (FMi)
+   Replace: "shortest line" by "shortest available line"
+
+-* Page 296, l. 6 (FMi)
+   Replace: than the equivalent "$n_1$" \multiput statements,
+   with:    than multiple \multiput statements.
+
+-* Page 306, l. 3 bottom (FMi)
+   Replace: for subsequent \draw commands
+   by:      for subsequent \match commands
+
+-* Page 307, def. of \drawwith (FMi)
+   Argument should be named "draw-command" since it can contain only
+   a single command
+
+========== Chapter 11 =============
+
+-* Page 316, table 11.1 (FMi)
+   Mention -pp\# (single page) and -pp\#$_1$:\#$_2$ (page range).
+
+-* Page 318 (FMi)
+   Remove the double quotes around clip= and the quotes around = in
+   the explanation of the clip parameter.
+
+-* Page 321 (FPo)
+   The caption for figure 11.4 could use some negative space between
+   "Pre-" and "1991".
+
+-* Page 321, code for figure 11-x (VSc)
+    The nineth line should be unindented:
+     6 \begin{minipage}
+     7    \centering\epsfig
+     8    \caption{Central
+     9 ...\end{minipage}
+
+-* Page 321 (RSt)
+   Perhaps we should learn about history better: make the caption
+   of figure 11.4:  Pre-1990 Europe
+
+-* Page 321 (PKr)
+   It would be better to show that the example is coded as a figure by
+   surrounding the code with \begin{figure} ... \end{figure}.
+
+-* Page 328, description of \cbstart (MOh)
+   ...the beginning of the region, which has to be flagged...
+                                 ^no comma needed here
+
+-* Page 331 (BBe)
+  first figure using \psboxit, the dashes formed by
+    ...--%
+    -- ...
+  segment into an emdash and a hyphen; just a tad peculiar looking.
+
+-* Page 335, last line of 11.9.2 (CMi)
+   Replace Symbols by Symbol since that is the name of the font.
+
+-* Page 335, last line of 11.9.2 (FMi)
+   Remove forward reference since it is to the next(!) section.
+
+-* Page 337 (FMi)
+   Replace "Style" by "Package" in heading.
+
+-* Page 338 (WLe)
+   Greek example, why not better use ... ALFA\quad ...
+
+-* Page 340, l -3 in 11.9.7 (FMi)
+   use plural:
+   ... typesetting your complete document with these font families.
+
+========== Chapter 12 =============
+
+-* Page 350, first examples (FMi)
+   The last line of the first examples should read
+      \index{tabbing|)textit}
+   otherwise MakeIndex would complain about it.
+
+-* Page 350, l. 4 from bottom (FMi)
+   Replace {\it rose} with \textit{rose}. Not wrong but better.
+
+-* Page 351, l. 2 (FMi)
+   Replace: of the definition of the \Prog program.
+   with:    of the definition of the \Prog command.
+
+-* Page 352, l. 2+3  (FMi)
+   Replace:
+For example, you can define the command \Index, whose argument enters
+its argument at the same time in the text and in the index.
+   with:
+For example, you can define the command \Index, whose argument is
+entered at the same time in the text and in the index.
+
+-* Page 353-354 (FMi,MGo)
+   The figures shown in the makeindex processing example are not
+   reflecting what is in the source on p354 (one index entry was dropped
+   there). 
+   Correction: Add in section "Preparing the Index" an index
+   entry \index{include index} as follows:
+     \texttt{idx} file has to be transformed by an external
+     program, like \Prog{makeindex}.\index{include index}
+
+-* Page 354 (PvO)
+   The example should show a \makeindex command.
+
+ * Page 354 (FMi)
+   The lefthand side of the example should use the verbatim environment
+   not the verbatimcmd environment which is only defined when the moreverb
+   package is used. Also the example should show
+   \renewenvironment{theindex}{..}{..}
+
+-* Page 354 (FMi)
+   The right hand side shows an index entry "include index" which
+   isn't any longer in the source :-(
+
+-* Page 355 (FMi)
+   It should say (in one line):
+   makeindex [-ciglqr]
+      [-o \Larg{ind}] [-p \Larg{no}] [-s \Larg{sty}] [-t \Larg{log}]
+      [\Larg{idx0} \Larg{idx1} ...]
+   with \Larg giving italics indicating variable names
+
+ * Page 355 description of -g (FMi)
+   Not an error in the book but in the program: work correctly only in
+   version 2.13 of Makeindex (2.12 dies with larger files).
+
+-* Page 355 (PvO)
+   It should say:
+   -o \emph{ind}        Take the file \emph{ind} as the output index file.
+
+-* Page 355 description of -p no(FMi)
+   "no" should always be in italics not typewriter.
+   the words "any", "odd", and "even" should be always in typewriter.
+
+-* Page 356 (FMi)
+   It should say:
+   -s \emph{sty}        Take the file \emph{sty} as the index style file.
+
+-* Page 356 (PvO)
+   It should say:
+   -t \emph{log}        Use \emph{log} as the transcript file.
+
+-* Page 356 (FMi)
+   It should say:
+     Extra `@' at position ...
+
+-* Page 357 Inconsistent page ...(FMi)
+   Replace: \index{cat|iv}   by:  \index{cat|see{animals}}
+
+
+-* Page 358 (PvO)
+   The description of escape is very confusing.
+   (FMi:) agreed, what about (FMi, MGo):
+   quote     symbol that escapes the character following it.
+   escape    symbol without special meaning unless followed by 
+             the quote character in which case that character 
+             looses its special function and both will be printed.
+
+-* Page 358 (FMi)
+   Replace
+    (s) signals an attribute of type string, (c) of type char
+   with
+    (s) attribute of type string, (c) of type char (surround with single or
+    double quotes, respectively)
+
+-* Page 358, end of first para (FMi)
+   Add: Makeindex uses UNIX string syntax in the style file. For this
+   reason one has to enter \\ to get a single \ in the output.
+
+ * Page 359 (PvO)
+   Description of delim_t is missing.
+
+-* Page 359, delim_0 (FMi)
+   Replace: entry-page number delimiter at level 0
+   by:      delimiter between entry and first page number at level 0
+   (because the original is not understandable)
+
+-* Page 359, encap_suffix (FMi)
+   Remove surplus dot in default:   "}"
+
+-* Page 359 (SMi)
+   In Makeindex 2.12 and higher up
+   page_precedence(s) is  "rnaRA"
+   Therefore the examples on page 363 should be the other way around.
+
+ * Page 364 (RWo)
+   Remind the reader how to use a file not ending with .idx with
+   Makeindex.
+
+-* Page 364+365 (FMi)
+   The redefinition of theindex environment should set \parindent to zero
+   otherwise one ends up with all entries except the first being indented.
+
+-* Page 365 (WLe)
+    According to the text on page 365, The index in the example should
+    have three columns instead of two.
+FMi: change this sentence to something like this:
+    ... we have used a redefined theindex environment similar to the one
+    shown in section 12.5 but with two columns and without the \newpage.
+
+-* Page 366 fig 12.8 (FMi)
+   This looks like the "spot the ten differences pictures:
+     Replace: \renewcommand[2]{\printindex}{%
+         by : the correct order of arguments :-(
+     Add a \ in front of textbf in definition of \printindex
+     Add a proper definition of \Prog and \Com, they are not the same
+         as in fig 12.8.
+     Outline that \renewenvironment{theindex}{...}{...}
+     Indent \input{#1.ind}   (this is cosmetics)
+     and don't use \begin{center} use \section*   (cosmetics too)
+
+-* Page 367 item 5 (FMi)
+   Replace: \renewcommand{\indexproofstyle}{\footnotesize\itshape}
+   by:      \indexproofstyle{\footnotesize\itshape}
+
+========== Chapter 13 =============
+
+-* Page 373 l. -2 (FMi)
+   Replace  sentence (was not correct) with:
+ The punctuation characters (.,;:) will be moved in front of the
+ superscript which might be incorrect in case the \Lcs{cite}
+ immediately follows a quotation, e.g.,
+     \verb=``The \TeX book''\cite{Knuth}.=  
+ gives ``The \TeX book''.$^5$
+
+
+ * Page 378 (UVi)
+   The table of .bst files list some styles named phxxx.bst, where xxx
+   stands for abbreviations like aip, nf, pf, ppcf etc. On CTAN these
+   styles are now located in a subdirectory phy-bstyles and they no
+   longer carry the prefix ph in their name. It would be a good idea
+   to update this in the Companion, because otherwise people looking
+   for the names with the famous 'quote site index' might not find
+   them. (MGo: in fact they are there onder both names)
+Comment (FMi): I'm right now reluctant to change anything since i wonder
+whether those names will stay. It seems wrong to me that the names
+(prefix) have changed.
+
+ * Page 378 (UVi)
+   (ph)ppcf.bst is described as ``a physics version of the apalike
+   BibTeX style''.  This might be true somehow, but a better
+   describtion would be ``BibTeX style for Plasma Physics and
+   Controlled Fusion'', since that is the name of the journal the
+   abbreviation ppcf stands for (see physjabb).
+   (ph)report.bst is described as ``BibTeX style for internal
+   reports''.  It might be a good idea to add some hint that this
+   probably refers to the Princeton Plasma Physics Lab or Princeton
+   University.
+   (MGo: Perhaps in a future edition).
+
+-* Page 385, line 7 (PvO)
+  "only works without modifications on UNIX" is probably a bit too
+   harsh: It is meant that modifications are necessary for systems
+   such as MS-DOS that have file names with strict length limits. 
+   By the way should UNIX not be typeset with small capitals?
+   MGo: No, ATT (and most publishers) spell it all uppercase.
+
+-* Page 386 l.3 of 13.3.2 (FMi)
+   Replace "style" by "package".
+
+-* Page 387 l.1  (FMi)
+   The root file should be called chapterbibexa.tex (as in the
+   formatting example on page 385)
+
+-* Page 388, caption (RSt)
+   For "advisable precedure" read "advisable procedure".
+
+-* Page 392, 4th para (CMi)
+   The argument of the \bibliography command must ...
+
+-* Page 392, after example (FMi)
+   Add: ... after the BibTeX run unless the bibliography entries
+        themselves contain citations to other entries
+        (eg note = {reviewed in \cite{..}}).
+
+-* Page 393, bibextract (FMi)
+   the regular expression must (!) contain only lowercase chars (even
+   when looking for words like "Adobe") otherwise nothing will be found.
+   Thus our examples should read:
+bibextract "" "postscript" bibfile(s) > new-bibfile
+bibextract "author|organisation" "adobe" bibfile(s) > new-bibfile
+
+-* Page 393, bibextract (FMi)
+   Another restriction: 
+   one might have to clean the .bib files using
+   bibclean before bibextract finds correct entries.
+
+-* Page 393, l. 6. bottom (FMi)
+   while the next command will only extract those entries containing
+   Adobe in the author or organization field.
+
+-* Page 393, last para, 394 first para (FMi,Mgo)
+   replace "citefind.sh" by "citefind"
+   replace "citetags.sh" by "citetags"
+
+-* Page 394, l. 4 (CMi)
+   For "styles" read "files".
+
+-* Page 403 (MOl)
+   A comma is missing after:   @article(tub-87,
+
+-* Page 403, 1st para (CMi)
+   Replace all ".bib style" with ".bib file".
+
+-* Page 404, 1st example (FMi)
+   Use \providecommand instead of \newcommand now that it is available.
+
+-* Page 413, add.period (PvO)
+   Should read: adds dot to string unless that string ends with `.',
+   `?', or `!'
+
+========== Chapter 14 =============
+
+-* Page 424 (FMi)
+   Add \Finale to the box with \StopEventually{final text} since they
+   belong together.
+
+-* Page 426, figure 14.1 (FMi)
+   It should be \DocInput{docexam.doc} because .dtx is reserved for
+   files whose documentation can be produced by simply running them
+   through LaTeX.
+
+-* Page 426, line 4 of section 14.2.7. (PAp)
+   You should run the file thought ...
+should read:
+   You should run the file through ...
+
+-* Page 427, figure 14.2 (FMi)
+   The \item in the definition of "docsampleenv" should be removed.
+   Also: the documentation of "docsampleenv" is incorrect.
+
+-* Page 429 (FMi)
+   Replace the heading: Document structure and validation support
+   by: Document structure commands
+
+-* Page 433, 6 para (FMi)
+   Not only NFSS2 but the whole LaTeX (2e) is now distributed using
+   the doc system.
+
+ * Page 433, Section 14.3.1 (Msc,FMi)
+   Mention that \preamble ...\endpreamble is meant for straight text and
+   that nearly no command will work between. One can use \string\foo to
+   put out a command name literally.
+
+-* Page 434, l. 10 (FMi)
+   Replace: \batchfile Batch file commands can be ...
+   with:    Batch file commands, like \generateFile, can be ...
+
+-* Page 434, l. -9 (FMi)
+   Replace the sentence: Note that these tags must ...
+   By:  The tags must be placed at the beginning of the line
+        preceded by a %, e.g.,
+
+-* Page 437+438 (ASc)
+   In the second last code line the \@@end should be replaced by
+   \csname @@end\endcsname since otherwise \@@end isn't recognised
+   in most situations. This also means that the checksum changes to 15.
+
+========== Appendix A =============
+
+-* Page 440, second example (FMi)
+   It should better be: \newcommand{\PsI}{\Ps\index{PostScript}}
+
+-* Page 440 (RWo)
+   Use the same formula in the last two examples to show the advantage
+   of \ensuremath better.
+
+-* Page 476 (FMi)
+   Add to the description of \newcounter:
+   It also defines \thenewctr to be \arabic{newctr}.
+
+-* Page 447 (MSc)
+   A counter can't be larger than 9 if used with \fnsymbol.
+
+-* Page 477 (FMi)
+   All the \the... commands in the examples should be defined with
+   \renewcommand.
+
+-* Page 450, table A.2 (FMi)
+   \hfill is better described as a "rubber space" not a rubber length.
+
+ * Page 456, last para (FMi)
+   Replace: "In the case below" by "In the next case" since the next
+   example is on the following page.
+
+-* Page 459 (FMi)
+   Add "x333x" after \usebox{\myboxb} in the example (just cosmetics).
+
+-* Page 461, table A.4 (WLe)
+   For \Requirepackage read \RequirePackage in the explanation of
+   \LoadClass.
+
+-* Page 470, 5 text l. from bottom (FMi)
+   Replace "(real or integer)" by "integer". They can't be real!
+
+-* Page 470 following (CRo)
+   In the description of the ifthen package, no clear distinction is
+   made between those commands which can be used only in a
+   {test}-argument, and those which are for other uses.
+
+-* Page 472 (RWo)
+   The index entries in the .idx file would actually look like this
+   (remove the surplus "page:AAAA1" in the middle of them):
+        \indexentry{AAAA!both}{472}
+        \indexentry{AAAA!indexentry}{472}
+        \indexentry{AAAA!indexonly}{472}
+
+========== Appendix B =============
+
+ * Page 475 (FMi)
+   Maybe rename the heading to "TeX Software and User Group information"
+
+ * Page 475 (FMi)
+   Add information about the possibility to get the CTAN software on CD:
+     \bibitem{primetime:VBr94}
+     Vicki Brown, editor.
+     \newblock {\em Prime Time {\TeX}cetera}, volume~1.
+     \newblock Prime Time Freeware, Sunnyvale, CA, 1994.
+     \newblock Contains CD with CTAN software.
+
+ * Page 477, l 13 (FMi)
+   should read: contents of the morebin zip archive on your local node.
+                                        ^^^            ^
+
+ * Page 479 (BBe) under b.2 mail servers
+   i am irked by the difference in the depth of the underline under
+   "end" right after "send help";
+   maybe you could be persuaded to use a strut? (BBe)
+
+========== Bibliography ===========
+
+ * Page 491 (RWo)
+   The name is Peter Vollenweider; somebody inverted the `w'---mea culpa.
+
+========== Index ==================
+
+   (BBe)
+   i was a little surprised to find the listing for "tex users group"
+   where one would expect to find "tug" in the index, although "tug"
+   doesn't appear in the entry.  i also would have expected to see
+   p.260 listed with that entry, considering the reference there to
+   the twgmlc and the portland meeting.
+
+   the people who were acknowledged in the preface don't show up in
+   the index.  although it's not necessary, of course, knuth did
+   include his acknowledgees and sources of quotes in the texbook
+   index, so there's a precedent.
+
+ * (FMi)
+   There should be entries for all encodings, OT1, T1, OML, OMS, OMX,
+   at least to page 192, perhaps to others.
+
+ * Page 493 (FMi)
+   The two funny looking entries of the form "\, 220"  actually should
+   be     \{, 220
+          \}, 220
+
+-* Page 497 (GGr)
+   Add entry for "Blackboard bold" pointing to page 218
+   Also add one pointing to page 208  (MPi)
+   And add a similar entry for \Bbb   (MPi)
+
+ * Page 500 (FMi)
+   \cornersize is incorrecly indexed as "rigid length"
+
+ * Page 501 (FMi)
+   \DeclareFontSubstitution should have bold entry to page 203.
+
+-* Page 506 (CRo)
+   Add index entry for "Fragile command" and "Commands, fragile"
+   to point to 246 and 471
+
+-* Page 508 (FMi)
+   Index entry for \IndexMin should be a "rigid length"
+
+ * Page 509 (PvO,FMi)
+   Reference 249 for \left should be 248. (This is probably true for
+   other entries pointing to the example section of chapter 8, because
+   index entries to the examples are placed after the example.)
+
+-* Page 519 (FMi)
+   environment supertabular is incorrectly indexed under \supertabular.
+
+ * Page 520 (PvO)
+   Reference 249 for \right should be 248.
+
+-* Page 527 (FMi)
+   \unitlength is incorrecly indexed as as a command
+
+========== Production Notes =======
+
+
+
+**********************************
+*                                *
+*    Errors in first printing    *
+*                                *
+**********************************
+
+
+
+========== General   ===========
+
+* Some source files in the LaTeX2e distribution have got new names,
+for example latex.tex -> lt....dtx (many files). The final
+distribution is still under construction.
+
+
+========== Front matter ===========
+
+-* Title Page
+  Drop IPS, from affiliation of Samarin (just leave ISO)
+
+-* Copyright page
+  Add second printing
+
+-* Table of Contents, Page xviii
+  10.5 should read "Packages Based on epic
+
+-* Table of Contents, Page xxi
+  Page number of Bibliography should be 481
+
+-* Table of Contents, Page xxiii
+  5.8 A comparison (not A Comparison)
+
+
+========== Chapter 1 ===========
+
+-* Page 3 last para (SKi)
+  files containing the structures and layout definitions (extension
+  .sty) should also include extension .cls
+
+-* Page 4 (JSa)
+  Add clo to LaTeX layout & structure file extensions
+
+-* Page 5 third par (GGr)
+  In Textures, the transcript file has no extension.
+
+
+========== Chapter 2 ===========
+
+-* Page 13 (PHa)
+  4th bullet item:  define your own   (not OUR own)
+
+-* Page 15 (JSa)
+  1994/08/02 should also be 1994/08/01
+
+-* Page 29 (NPo)
+  fig 2.9: braces round argument `title' and `toc_entry' missing.
+  (very strange this)
+
+-* Page 37, l.6 below Table (GGr)
+  Extension .mtc<N> will not work in DOS (Windows).
+
+-* Page 44 (JSa,FMi)
+  The default for \reftextfaraway was missing.
+  Also changed the local adaption example to use \RequirePackage
+with a reference to Appendix A.
+
+========== Chapter 3 ===========
+
+-* Page 48 (LLa)
+  The paragraph above the example unfortunately doesn't describe the
+example any longer, it describes an old version of it.
+
+-* Page 52 (OBa)
+  \fuzzy should be \fussy (3 lines above title 3.1.5...)
+
+-* Page 52 (SKi)
+  The multispace package was written by Stephen (not Stephan) Page.
+
+-* Page 59 (FMi)
+  The representation of \labelitemiv is missing. This seems to be
+a``correction'' of the printer people since the dot is in the
+PostScript file!
+
+-* Page 62 (MGo)
+  More general (and more correct) description of general list
+parameters. Especially the relation between the \labelwidth and
+\itemindent lengths are made clearer.
+
+-* Page 65 (DCa)
+  The labels in the Mentry env are aligned on the top of their *boxes*
+not on their first baselines. (A buggy \parbox[t] implementation on
+the way to LaTeX2e)
+
+-* Page 67 (NPo)
+  \begin{verbatimtab}[...] instead of \verbatimtab[...]  since we
+describe an environment
+
+-* Page 70 (FMi)
+  verbatimwrite is incorrectly mentioned as a command but it is an
+environment. Also correct index entry.
+
+-* Page 71 (DCa)
+  stepping the mpfootnote counter
+should be
+  stepping the footnote counter
+
+
+========== Chapter 4 ===========
+
+-* Page 86 (FMi)
+  testpage.tex in LaTeX2e now asks interactively for the paper your
+printer uses so there isn't any need to use testa4.tex any longer.
+
+-* Page 94-95 (FMi)
+   Replace para starting at the bottom with:
+The marking commands work reasonably well for right markers ``numbered
+within'' left markers (for example, when the left marker is changed by
+a \Lcs{chapter} command and the right marker is changed by a
+\Lcs{section} command).  However, it produces somewhat anomalous
+results if a \Lcs{markboth} command is preceded by some other mark
+command on the same page---see the page receiving \texttt{L5 R3.2} in
+Figure~\vref{fig:pagemarkers}. This figure shows schematically which
+left and right markers are generated for pages being shipped out.
+
+-* Page 95 (FMi)
+   Replace the last four lines in figure 4.3 with the following five
+   lines:
+\markboth{L4}{}                   {L4}{}
+\markboth{L5}{}                   {L5}{}
+\newpage%    ----page break ----                   L5      R3.2
+\markright{R5.1}                  {L5}{R5.1}
+\end{document}                                     L5      R5.1
+
+
+
+-* Page 97 (GGr,FMi)
+  Replace begin of second para with:
+
+Some \LaTeX{} commands, like \Lcs{chapter}, use a \Lcs{thispagestyle}
+command to automatically switch to the \Psty{plain} page style, thus
+overriding the page style currently in effect.  To customize such
+pages use the \Pmsty{fancyplain} page style.  This page style sets up
+\Psty{fancy} for normal pages and in addition ...
+
+-* Page 98 (EPi)
+  \usestylefile{fancyheadings}   (in bottom example)
+should be
+  \usepackage{fancyheadings}
+
+-* Page 99 (EPi)
+  \usestylefile{fancyheadings}   (in figure 4.6)
+should be
+  \usepackage{fancyheadings}
+
+-* Page 99 (FMi)
+  \samepage is considered obsolete in LaTeX2e and will not be
+documented by Leslie Lamport in his book; the relevant paragraph has
+been rephrased.
+
+
+========== Chapter 5 ===========
+
+-* Page 111 (OBa)
+   "substracting" should be "subtracting" (12th line from top)
+
+-* Page 120 (DKre,FPo)
+   Bring Example text and table 5.3 in synch
+
+-* Page 121 (DKre,FPo)
+   Bring Example text and table 5.4 in synch
+
+-* Page 123 (FMi,FPo)
+   Bring Example text and table 5.5 in synch
+
+-* Page 127 (FPo)
+   The bottom left figure seems to have a quote before Tsonga
+This is a printing artefact.
+
+-* Page 127 (PvO)
+   Bottom left figure, there is also some spurious ink before
+   Croatian.
+
+-* Page 127 Table 5.7 (FPo)
+  In the last `page' the code for Tsonga appears as 'ts, with a quote
+in front of it. It might be a blob of ink, but it looks very much like
+a quote. (It is a blob of extra ink, and this was missed by the
+printer, compare p59.  FMi:-)
+
+-* Page 128 (FMi)
+  Lowercase word "comparison" in caption for table 5.8
+  Also correct lot entry page xxiii.
+
+-* Page 133 (MGo)
+  In table 5.9 URW is misspelled as URM
+
+
+========== Chapter 6 ===========
+
+-* Page 151 (MGo)
+  Figure 6.2, the vertical lines of the box surrounding the map
+  are partly invisible (printing problem)
+
+
+========== Chapter 7 ===========
+
+-* Page 170 l. 9, f.b. (GGr)
+  Change sentence to: Font metric files (i.e., .tfm files) are loaded
+for all intermediate typefaces, even if these fonts are never used.
+
+-* Page 171 caption (GGr)
+  Change
+          easy memorable
+  to
+          easily memorizable
+
+-* Page 171 (FMi,LLa)
+  The default for \nocorrlist was changed to
+\newcommand{\nocorrlist}{,.}
+  in the LaTeX distribution because :; do not look right with the
+default LaTeX fonts from the Computer Modern families.
+
+-* Page 177 (FMi,LLa)
+  The example shows that \mathnormal produces italic numbers. This is
+only true for the Lucida Math Fonts used in the Companion. Thus, the
+following footnote should be added to the expanation:
+  \footnote{With the default setup of \LaTeXe{} using Computer Modern
+math fonts, \Lmcs{mathnormal} will produce old style numerals, not the
+italic ones shown in the example, where Lucida is used.}
+
+-* Page 180 in 7.5, l. 3 (GGr)
+  section B should be Appendix B
+
+-* Page 180 l. 3 f.b.  (GGr,FMi)
+  `Consequentially' should be `Consequently';
+   in the same sentence change `used' to `uses'.
+
+-* Page 186 l. 8 f.b. (GGr)
+   Add space before `This'
+
+-* Page 187 last line (GGr)
+   Captialize: new font selection scheme
+
+ * Page 199 top (FMi)
+   NFSS now doesn't load math fonts until unless it encounters
+   a formula in the new size. So the first para needs alteration.
+
+-* Page 191 last line (FMi)
+   Add: For this to work the encoding OT2 must be declared in the
+preamble or a package file.
+
+-* Page 194 (FMi)
+  \cmdunh10.tfm
+should be
+  cmdunh10.tfm
+
+-* Page 195, 197 (FMi)
+  Again all .tfm files shouldn't have \ in front of their names
+
+-* Page 201 (MGo)
+  substract should be subtract on second line explaining \fontdimen4
+
+-* Page 202 (FMi)
+  For peamble read preamble
+
+-* Page 204 (GGr)
+  fontdef.tex was renamed to fontdef.ltx in the final distribution
+  (also correct index entry)
+
+-* Page 205, last para (SMi)
+ [...], you first have make the typeface [...]
+should be
+ [...], you first have to make the typeface [...]
+
+-* Page 211 (FMi)
+  Warning message "Check substitution defaults for ..." was changed to
+"Checking defaults for ...". Also change \DeclareFontEncoding to
+\DeclareFontSubstitution in last sentence of explanation for this
+message.
+
+-* Page 211 (FMi)
+  The message "Don't use ..." was changed to "Command ... invalid in
+math mode".
+
+-* Page 211 (FMi)
+  The message "Encoding scheme <name> changed to <new name> in ..."
+has changed to "Encoding <name> has changed to <new name> for ..."
+
+-* Page 213 (FMi)
+  New message added:
+
+\erritem{Overwriting \m{something} in version \m{name} ...}
+
+A declaration, like \Lcs{SetSymbolFont} or \Lcs{DeclareMathAlphabet},
+has changed the assignment of font shapes to \m{something} (a symbol
+font or a math alphabet) in the math version \m{name}.
+
+-* Page 214 (FMi)
+  New message added:
+
+\erritem{Size substitutions with differences up to \m{size} have occured}
+
+This message will appear at the end of the run in case \NFSS{}
+selected at least one significantly different size because the
+requested size was not available.  The \m{size} is the maximum
+deviation that was needed.
+
+-* Page 214 (FMi)
+  New message added:
+
+\erritem{Some font shapes were not available, defaults substituted}
+
+This message will appear at the end of the run in case \NFSS{}
+had to use automatic font substitution for some font shapes.
+
+
+========== Chapter 8 ===========
+
+-* Page 215 (FMi,MGo)
+   Added a reference to George~Gr\"atzer's book on AmSLaTeX.
+   Also add bibliography [95] (see bibliography section later)
+
+-* Page 218 (DCa)
+   \o
+   should be
+   o
+
+-* Page 219 (DCa)
+  `blank' \rown
+      should be
+   /-\    \frown   (didnt this one create a TeX error :-)
+                   (FMi no because of TeX's \csname bug :-( )
+
+
+-* Page 219, 222 (DRo,FMi)
+  The \varnothing and \emptyset do show the wrong
+character, ie need exchanging.
+
+-* Page 220 (DCa)
+  { should be \{
+  } should be \}
+
+-* Page 220, Table 8.13. (LLa)
+   Is that \digamma right?  It looks an awful lot like a slanted
+   F to me.
+This is unfortunately true. The Lucida Fonts do not contain that
+character and we overlooked that the font setup simply points to the
+slanted F.
+
+-* Page 222, Table 8.20 (FMi)
+  The characters \Game \Finv \Bbbk \diagdown \diagup are now part of
+amssymb.sty
+
+-* Page 231 (DCa)
+  The \biggl( in the scope of \begin{large} is *smaller* than the
+normalsize one!
+
+-* Page 238 (DCa)
+  The examples of split environment with and without the ctagsplt
+option do not work as the linewidth is too narrow, so in both cases
+the tag apears on the line before the display.
+
+-* Page 241 (PHa)
+  The typeset equation just before (8.41') should have a tag: '
+  (This is once more a printer problem. the tag ' is in the PS file
+and must have been removed by somebody manually)
+To avoid this problem the example was changed to show $*$ twice.
+
+-* Page 243 (FMi)
+Replace fist sentence of 8.6.5 with:
+  A few options are recognized by the amstex package and the class
+  files coming with AmS-LaTeX.
+(but this is still only true for the 2e version)
+
+-* Page 244 ... 251 (FMi)
+  The vertical lines in the examples (mentioned on this page) are all
+missing on the final printout. Another printing problem.
+
+-* Page 250 (MGo)
+  section 8.7.6: some space (\thinspace) should be inserted in
+  front of the semicolon (;) at the end of formula 8.57 and its
+  unnumbered equivalent (fourth line from bottom).
+
+========== Chapter 9 ===========
+
+-* Page 270 (BNa)
+  8th line of example should read
+  \\\today\end{center} instead of \\\today{center}
+
+-* Pages 272 and 274 (BGa, MGo)
+  Use correct (Lucida, not poor man's) guillemets
+  \symb{13}, \symb{14} for French
+
+========== Chapter 10 ===========
+
+-* Several pages have index entries added (MGo)
+
+-* Page 277 (LWi)
+  In CTAN version of shadow.sty \shadowbox is called \shadox
+  In example replace also \shadowdim by \sdim. (Unfortunately we used
+  one of the many variants of this package.)
+
+-* Page 278 (DCa)
+  This is a ovalbox
+should be
+  This is an ovalbox
+
+-* Page 280-281 (MGo,FMi)
+  Describe new command \qbezier, and replace old bezier
+  style and command with \qbezier commands in examples.
+
+-* Page 303 (FMi)
+  Change section heading 10.5 to "Packages Based on epic"
+  Change also table of contents on page xviii
+
+-* Page 305 (FMi)
+  The lower picture should be turned 180 degrees.
+
+-* Page 307 (DCa)
+  A tree graph ican bedrawn
+     should be
+  A tree graph can be drawn
+
+========== Chapter 11 ===========
+
+-* Page 314 (MGo)
+  Figure 11.1: some of the dotted vertical and horizontal lines
+  indicating the coordinate system are part invisible
+  (printing problem)
+
+-* Page 318 (DKu)
+  first line of boxed description of \epsfig command,
+  rotate=angle,% should be angle=degrees,%
+
+-* Page 321 (MGo)
+  Figure 11.5 The vertical lines at the right-hand side of the
+  is invisible (printing problem)
+
+-* Page 333 (PHa)
+  Footnote in Table 11.6:  ZapfChancery (not ZaptChancery)
+  Tag entries for Sans Serif fonts as sl (slanted) instead
+  of it (italic)  (FPo)
+
+-* Page 333 last line (GGr)
+  Change to: The mapping between the layout in a PostScript font and
+the font encoding needed by TeX ...
+
+-* Page 340 (PHa)
+  6th line before the end of 11.9.7: Hyphen missing in AMS-TeX
+
+-* Page 340 (DKra,FMi)
+   para 4, line 5: ... (see tables 8.2 to 8.20 beginning in page 218)
+
+========== Chapter 12 ===========
+
+-* Page 359 (DCa)
+  postamble command preceeding the index
+     should be
+  postamble command following the index
+
+-* Page 360 (PHa)
+  last line of 12.4.2: the correct page reference is 355, not 353.
+
+========== Chapter 13 ===========
+
+-* Page 393, middle of page (KML)
+  Utah Univeristy should read Utah University
+
+-* Page 401, 5th line from bottom (SMi}
+   left braces missing in {G{\"o}}del}, should be {G{\"{o}}del}
+
+========== Chapter 14 ===========
+
+-* Pages 435-438 (FMi)
+  By convention .dtx files are files that can be directly processed by
+LaTeX (by making the `driver code' the first docstrip module)
+
+========== Appendix A ===========
+
+-* Page 446 (DCa)
+(\stepcounter description)
+  oldcr
+should be
+  oldctr
+
+-* Pages 448 and 449 (MGo)
+  All occurrences of the string "\cmd", representing the LaTeX
+  lengths parameters should not have the \ (backslash) to
+  be compatible with the syntax used in Lamport and the rest
+  of the Companion (Lamport assumes that cmd implicitly implies
+  the backslash).
+
+-* Page 458, 2 para (MGo)
+  innner-pos should be inner-pos
+
+-* Page 459 (DCa, MGo)
+You use `cmd' for \sbox, but `\cmd' for lrbox.
+Should be 'cmd' throughout to be compatible with Lamport's syntax.
+
+-* Page 461 (FMi)
+  Add \ProvidesFile to table.
+  \PassOptionsToClass{option-list}{release} should read
+  \PassOptionsToClass{option-list}{class}
+
+-* Page 462 (FMi)
+  Describe \ProvidesFile. This is like \ProvidesPackage but you need
+  to give the full file name including extension. It is meant for
+  files that are neither packages nor classes but want to identify
+  themselves too.
+
+-* Page 467 (War)
+  \PassOptionsToClass{option-list}{release} should read
+  \PassOptionsToClass{option-list}{class}
+
+-* Page 468, second line of example (DOs)
+  \NeedsTeXformat{LaTeX2e} should read \NeedsTeXFormat{LaTeX2e}
+
+-* Page 474 (DCa)
+  \ifodd
+should be
+  \isodd
+also correct index entries
+
+========== Appendix B ===========
+
+-* Page 475 (PHa)
+  line -3: where Jones' TeX-index
+                      ^ (insert apostrophe)
+
+-* Page 476 (NPo)
+   - CTAN host in Germany has changed to ftp.dante.de
+   - correct location of TeX-index file on ftp.dante.de (MGo)
+
+-* Page 479 (MGo) update for Dante
+   - their mail server is at ftpmail@dante.de,
+   - send a message containing the word "help" to get instructions.
+
+-* Page 480 (EPi,MGo)
+   UKTeX gets Chair instead of Chairman
+   Group francophone should read Groupe francophone
+   Email address for Dante is now dante@dante.de (MGo)
+
+========== Bibliography ===========
+
+-* Pages 482 and following (BBe)
+    TUGboat should have a small "b"; occurs about a zillion times in
+    both references and text. why don't you just use \TUB for it:
+    \def\TUB{{\tubfont TUGboat\/}}
+
+-* Page 482, [11] last line (BBe)
+   "bowles" should be "bowls"
+
+-* Page 485, (BBe) [31] last line (BBe)
+    "Script Mathematical Formula Processor -- SMFF"
+    maybe that should be "SMFP"?, No, it should be (MGo) :+{
+    "Script Mathematical Formula Formatter -- SMFF"
+
+-* Page 485, [33]--[35] (BBe)
+    omit "Technical Report" from before the ISO numbers.
+    the ISO document system also has technical reports, which have "TR"
+    in their number designations; these are quite different from the
+    standards, which is what is being referred to here.
+    also in [35] you should refer to "ISO/IEC 10646, ISO Geneva, 1993."
+    this was approved as a formal standard last year, so the "draft" is
+    no longer appropriate.  and it's joint with the International
+    Electrotechnical Commission, no longer just ISO.
+
+-* Page 486, [37] (BBe)
+    publication location is not Stanford, but Bedford, MA.
+
+-* Page 491, [85] (BBe)
+    reference should be to ISO/IEC 10646, not "ISO-10656".
+    (you can leave out the "iec" in this context, but do fix the number.)
+
+-* Page 492, [88] (BBe)
+    not sure where crc press is located, but "Ann Horbor" isn't likely it.
+    possibly "Ann Arbor"? Yes, it is (MGo)
+
+-* Page 492, [90] (BBe)
+    is there a reason why in "\LaTeX{} Kompaktf"uhrer"
+    the latex part is italic and the kompaktf"uhrer is upright?  i'd
+    have made both italic, and knowing leslie's predilection about the
+    latex logo, ...
+-* Page 492, (MGo)
+    Add new reference [95]
+    George Gr"atzer.
+    Math into TeX: A Simple Introduction to AmSLaTeX.
+    Birkh"auser, Boston, 1993.
+         The first part of the book provides the novice user of
+         AmSLaTeX with a simple approach, based on many examples,
+         a formula gallery, sample files, and templates.
+         The second part contains a systematic discussion with
+         detailed examples and rules of all aspects of AmSLaTeX,
+         while the final part looks at more advanced customization issues.
+
+
+
+========== Index ===========
+
+-* Page 493ff (FMi)
+  all font-size functions need to be indexed under their names pointing
+to Size-function
+
+-* Page 495-6 (FMi)
+  \baselineskip is indexed once as command (not rubber length)
+
+-* Page 501 (LLa)
+  The main entry for DOCSTRIP (page 432ff) is missing.
+
+-* Page 505 (LLa)
+  Add entry:
+Font substitution
+   defaults             193,210-211  (and perhaps other places)
+
+-* Page 508 (PHa,FMi)
+  the page range for the entries
+           index package  and    Index
+  should only be 367-370  and    345-370
+
+-* Page 517 (DCa)
+  All the page number styles are double printed, eg AlphAlph
+
+-* Page 519 (FPo)
+  Double entry for pt (Point)
+
+========== Production Notes ===========
+
+-* Page 529 (FMi)
+  State that cover art of Companion was done by Toni Saint-Regis.
+
+
+
+---------------
+
+ASc     Andreas Schwab
+BBe     Barbara Beeton
+BGa     Bernard Gaulle
+BNa     Blaise Nkwenti-Azeh
+CKr     Claudia Kraft
+CMi     Christel Mittelbach
+CRo     Chris Rowley
+DCa     David Carlisle
+DKra    Dieter Kraft
+DKre    Dieter Kreft
+DKu     David Kustrin
+DOs     David Osborne
+DRo     Denis Roegel
+EPi     Eric Picheral
+Fgo     Frans Goddijn
+FJe     Frank Jensen
+FMi     Frank Mittelbach
+FPo     Frank Poppe
+GGr     George Graetzer
+GSa     Gernot Salzer
+JAd     Jeff Adler
+JBr     Johannes Braams
+JHa     Jay Hammond             (Corrections to this file)
+JPe     Joachim Pense
+JSa     Julio Sanchez
+JvM     Jan Van Mieghem
+KML     Kathleen M. Lyle
+KSe     Karl Seybold
+LLa     Leslie Lamport
+LWi     Linda Wilson
+MGo     Michel Goossens
+MPi     Mike Piff
+MOh     Marcus W. Ohlhaut
+MSc     Martin Schr"oder
+NPo     Nico Poppelier
+OBa     Oeyvind Bakke
+PAp     Pedro Aphalo
+PHa     Paul Hafner
+PKr     Peter Kruijt
+PvO     Piet van Oostrum
+RBa     Rosemary Bailey
+RdB     Rob den Braasem
+RPo     Rama Porrat
+RSt     Rebecca Stiels
+RWo     Reinhard Wonneberger
+SKi     Steve King
+SMi     Stefan Mintert
+TMa     Torsten Martinsen
+UJa     Ulrich Jahnz
+UVi     Ulrik Vieth
+VSc     Volker RW Schaa
+War     Warwick Conference (March 21-22 1994)
+WLe     Werner Lemberg
+
+Many other people send us corrections for errors already found.
+Thanks to all of you

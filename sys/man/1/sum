@@ -55,7 +55,7 @@ summed.
 .SH SOURCE
 .B /sys/src/cmd/sum.c
 .br
-.B /sys/src/cmd/md5sum.c
+.B /sys/src/cmd/md5sum.l
 .SH "SEE ALSO"
 .IR cmp (1),
 .IR wc (1)

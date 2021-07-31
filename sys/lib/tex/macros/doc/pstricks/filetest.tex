@@ -1,0 +1,84 @@
+%% BEGIN filetest.tex
+%
+% This is test file for some of the PSTricks commands that
+% read from and write to files.
+%
+% Run with plain tex.
+%
+% You must have the epsf.tex macros, which are distributed with
+% Rokicki's dvips, and change the reference to \epsf below.
+%
+% This inputs filetest.raw, filetest.dat and filetest.eps.
+% It also write filetest.eps.
+%
+% If  using Rokicki's dvips v5.47 or later, try
+%
+%   dvips filetest -E-o
+%
+% to create an eps file filetest.ps from the whole picture.
+
+\input pstricks
+\input pst2eps
+\input pst-plot
+\input epsf
+
+\TeXtoEPS   % Make an EPS picture out of .dvi file, with dvips -E.
+  \pspicture(-5,-10)(10,10)
+
+    % Test two similar ways to use data from a file:
+    % \fileplot
+    \AltClipMode
+    \psclip{\psframe[linestyle=none](0,-10)(10,10)}
+      \pscustom{%
+        \fileplot{filetest.dat}
+        \gsave
+          \lineto(100,100)
+          \lineto(0,100)
+          \closedshadow
+        \grestore}
+    \endpsclip
+
+    \psaxes(0,0)(-5,-10)(10,10)
+
+    % And \readdata and \dataplot:
+    \readdata\mydata{filetest.dat}
+    \dataplot[plotstyle=dots,swapaxes=true]{\mydata}
+
+    % Save some data:
+
+    \savedata{\total}[
+      {{0,163},{1,187},{2,166},{3,232},{4,237},{5,201},{6,196},{7,203}}]
+    \savedata{\general}[
+      {7,193}{6,182}{5,167}{4,153}{3,129}{2,108}{1,101}{0,104}]
+
+    % Now make an EPS file from the graphics objects:
+    \PSTtoEPS[bbury=5cm,bburx=10.5cm,
+      bblly=2cm,bbllx=0cm,makeeps=all]{filetest.eps}{%
+
+      % Now when I concatenate \total and \general, I get the points that
+      % delineate the boundary for the area you want to fill.
+
+      \psyunit=.02cm
+      \psxunit=1.5cm
+
+      \pscustom[plotstyle=curve,linestyle=none,fillstyle=solid,
+        fillcolor=gray]{\listplot{\general}\listplot[liftpen=1]{\total}}
+      \psset{plotstyle=curve,showpoints=true,dotscale=1.5}
+      \listplot[dotstyle=pentagon*]{\total}
+      \listplot[dotstyle=triangle]{\general}
+    } % end \PSTtoEPS
+
+    % Now use the EPS file just created:
+    \rput[bl](-1,-10){\psdblframebox{\epsffile{filetest.eps}}}
+
+    % Now try inputting raw ps code with \pscustom:
+    \pscustom[shadowsize=5pt,origin={5,4}]{%
+      \file{filetest.raw}
+      \closepath
+      \closedshadow}
+
+  \endpspicture
+\endTeXtoEPS
+
+\bye
+%% END filetest.tex

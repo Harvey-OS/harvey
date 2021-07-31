@@ -1,14 +1,14 @@
 #include "mplot.h"
 #define pSMALL    0.5
 struct penvir  E[9] = {
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite},
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite},
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite},
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite},
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite},
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite},
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite},
-{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, DBlack, DWhite}
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE},
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE},
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE},
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE},
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE},
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE},
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE},
+{ 0., 1024., 0., 0., 1., -1.,1024., -1024., 0., 0., pSMALL, 1., 1, 0.,1, ZERO, WHITE}
 };
 struct penvir *e0 = E, *e1 = &E[1], *esave;
 bcolor(char *s){
@@ -20,26 +20,23 @@ bcolor(char *s){
 			c=0;
 			while('0'<=*s && *s<='9')
 				c=c*10+*s++-'0';
-			if(c < 0)
-				return DBlack;
-			return cmap2rgba(c);
-		case 'k':  case 'z':	/* zero was old name for kblack */
-			return(DBlack);
-		case 'r':
-print("RED");
-			return(DRed);
+			return c<0?0:c;
+		case 'z': 
+			return(ZERO);
+		case 'r': 
+			return(RED);
 		case 'g': 
-			return(DGreen);
+			return(GREEN);
 		case 'b': 
-			return(DBlue);
+			return(BLUE);
 		case 'm': 
-			return(DMagenta);
+			return(MAGENTA);
 		case 'y': 
-			return(DYellow);
+			return(YELLOW);
 		case 'c': 
-			return(DCyan);
+			return(CYAN);
 		case 'w': 
-			return(DWhite);
+			return(WHITE);
 		case 'R': 
 			return(atoi(s + 1));
 		case 'G': 
@@ -55,7 +52,7 @@ print("RED");
 				break;
 			}
 	}
-	return DBlack;
+	return(-1);
 }
 void sscpy(struct penvir *a, struct penvir *b){ /* copy 'a' onto 'b' */
 	b->left = a->left; 

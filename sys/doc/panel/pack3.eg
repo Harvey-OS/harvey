@@ -1,0 +1,5 @@
+root=plgroup(0,0);
+plbutton(root, PACKN, "placement", 0);
+plbutton(root, PACKN|PLACEE, "east", 0);
+plbutton(root, PACKN|PLACEW, "west", 0);
+plbutton(root, PACKN|PLACEN, "north", 0);

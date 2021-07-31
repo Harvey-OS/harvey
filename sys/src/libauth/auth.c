@@ -41,10 +41,8 @@ auth(int fd)
 	}
 	rv = _asgetticket(afd, trbuf, tbuf);
 	close(afd);
-	if(rv < 0){
-		werrstr("getticket: %r");
+	if(rv)
 		return -1;
-	}
 
 	/* get authenticator */
 	afd = open("/dev/authenticator", ORDWR);
@@ -53,16 +51,13 @@ auth(int fd)
 		return -1;
 	}
 	if(write(afd, tbuf, TICKETLEN) < 0){
-		close(afd);
 		werrstr("writing /dev/authenticator: %r");
 		return -1;
 	}
 	if(read(afd, tbuf+2*TICKETLEN, AUTHENTLEN) < 0){
-		close(afd);
 		werrstr("reading /dev/authenticator: %r");
 		return -1;
 	}
-	close(afd);
 
 	/* write server ticket to server */
 	if(write(fd, tbuf+TICKETLEN, TICKETLEN+AUTHENTLEN) < 0){

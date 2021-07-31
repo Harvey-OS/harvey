@@ -2,7 +2,7 @@
 Adding Application Support for a New Architecture in Plan 9
 .AU
 Bob Flandrena
-bobf@plan9.bell-labs.com
+bobf@plan9.att.com
 .SH
 Introduction
 .LP
@@ -66,8 +66,7 @@ is correct, change the
 .CW OS
 and
 .CW CPUS
-variables in the
-.CW /sys/src/mkfile.proto
+entries in the mkfiles of all existing architectures
 to reflect the addition of the new architecture.
 .SH
 Headers
@@ -78,26 +77,30 @@ where
 .I m
 is the name of the architecture (e.g.,
 .CW mips ).
-Two header files are required:
-.CW u.h 
+Three header files are required:
+.CW u.h ,
+.CW ureg.h ,
 and
-.CW ureg.h .
-The first defines fundamental data types,
-bit settings for the floating point
-status and control registers, and
-.CW va_list
-processing which depends on the stack
-model for the architecture.  This file
-is best built by copying and modifying the
-.CW u.h
-file from an architecture
-with a similar stack model.
+.CW stdarg.h .
+The first defines fundamental data types
+and bit settings for the floating point
+status and control registers.  It
+can usually be constructed by modifying an
+existing
+.CW u.h .
 The
 .CW ureg.h
 file
 contains a structure describing the layout
 of the saved register set for
 the architecture; it is defined by the kernel.
+The
+.CW stdarg.h
+file
+contains macros for addressing the elements
+of a variable length argument list.  This
+header can usually be copied from an architecture
+with a similar stack model.
 .LP
 Header file
 .CW /sys/include/a.out.h
@@ -105,7 +108,7 @@ contains the definitions of the magic
 numbers used to identify executables for
 each architecture.  When support for a new
 architecture is added, the magic number
-for the architecture must be added to this file.
+for the architecture must be defined in this file.
 .LP
 The header format of a bootable executable is defined by
 each manufacturer.  Header file
@@ -142,7 +145,7 @@ is convoluted and subtle.  The portable boot code
 is compiled into a library for each architecture.  An architecture-specific
 main program is loaded with the appropriate library and the resulting
 executable is compiled into the kernel where it is executed as
-a user process during the final stages of kernel initialization.  The boot process
+a user process in the final stages of kernel initialization.  The boot process
 performs authentication, attaches the name space root to the appropriate
 file system and starts the
 .CW init
@@ -151,10 +154,10 @@ process.
 The organization of the portable kernel source code differs from that
 of most other architecture-specific code.
 Instead of storing the portable code in a library
-and loading it with the architecture-specific
-code, the portable code is compiled directly into
-the directory containing the architecture-specific code
-and linked with the object files built from the source in that directory.
+dedicated to the architecture and loading the architecture-specific
+code with that library, the portable code is compiled into
+the directory associated with the architecture and linked with the
+architecture-specific object files stored there.
 .LP
 .SH
 Compilers and Loaders
@@ -175,6 +178,33 @@ is stored in a subdirectory of
 .CW /sys/src/cmd
 with the same name as the compiler (e.g.,
 .CW /sys/src/cmd/vc ).
+.LP
+The source code for the
+Alef
+compilers,
+.CW val ,
+.CW kal ,
+and
+.CW 8al ,
+is organized in a similar manner.
+The
+.CW port
+subdirectory of
+.CW /sys/src/alef
+contains the portable code;
+subdirectories
+.CW v ,
+.CW k ,
+and
+.CW 8
+contain the architecture-dependent portion of each compiler.
+However, the build procedure for the
+Alef
+compilers is similar to that of the kernel; the
+build is run from the architecture-specific
+directory and the portable source is compiled
+into object files in the build directory, where
+it is loaded with the architecture-specific object files.
 .LP
 There is no portable code shared by the loaders.
 Each directory of loader source
@@ -227,6 +257,20 @@ script in this
 .CW mkfile
 must be modified to support a new architecture.
 .LP
+The source code for the
+Alef
+libraries, stored
+in
+.CW /sys/src/alef/lib ,
+is organized similarly except
+that directory
+.CW 9syscall
+is named
+.CW sys .
+Alef uses a different parameter passing
+convention so its system call interface code
+differs from that of the C compilers.
+.LP
 .SH
 Applications
 .LP
@@ -235,10 +279,10 @@ information: executable images and intermediate object files.
 Almost all processing is on executable files.
 System library
 .CW libmach
-provides functions that convert
+provides functions to convert
 architecture-specific data
-to a portable format so application programs
-can process this data independent of its
+to a portable format.  Application programs
+then process this data independent of its
 underlying representation.
 Further, when a new architecture is implemented
 almost all code changes
@@ -322,7 +366,7 @@ functions identify and
 decode the intermediate files for the processor.
 The application indirectly
 invokes a classification function to identify
-the architecture of the object code and to select the
+the architecture of the object code and select the
 appropriate decoding function.  Subsequent calls
 then use that function to decode each record.  Again,
 the layer of indirection allows the application code
@@ -334,7 +378,7 @@ between the
 and
 .CW Machdata
 data structures
-allows applications to choose
+allows an application to select
 an appropriate level of service.  Even though an application
 does not directly reference the architecture-specific data structures,
 it must load the
@@ -390,7 +434,7 @@ The symbol table processing
 uses the data in the
 .CW Fhdr
 structure to decode the symbol table.
-A variety of symbol table access functions then support
+A variety of symbol table access functions support
 queries on the reformatted table.
 .IP "Debugger Support\ -\ "
 Files named
@@ -482,7 +526,7 @@ support for a new architecture.
 We assume
 the kernel, compilers, loaders and system libraries
 for the new architecture are already in place.  This
-implies that a code-character has been assigned and
+implies that a code character has been assigned and
 that the architecture-specific headers have been
 updated.
 With the exception of two programs,
@@ -525,7 +569,7 @@ and
 .CW Mach
 data structures with values defining
 the register set and various system parameters.
-The source file for a similar architecture
+The source file for another architecture
 can serve as template.
 Most of the fields of the
 .CW Mach
@@ -608,10 +652,11 @@ which precedes it in the
 .RE
 .LP
 .IP 3.
-Add an entry to the initialization of the
+Update the initialization of the
 .CW ExecTable
 data structure at the beginning of file
-.CW /sys/src/libmach/executable.c .
+.CW /sys/src/libmach/executable.c
+with data for the new architecture.
 Most architectures
 require two entries: one for
 a normal executable and
@@ -705,7 +750,7 @@ Implement the required debugger support functions and
 initialize the parameters and jump table of the
 .CW Machdata
 data structure for the architecture.
-This code is conventionally stored in
+Conventionally, this code is stored in
 a file named
 .CW /sys/src/libmach/\fIm\fPdb.c
 where

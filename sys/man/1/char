@@ -1,0 +1,110 @@
+.TH CHAR 1
+.SH NAME
+char, ½char, rschar \- browse the Unicode Standard
+.SH SYNOPSIS
+.B char
+[
+.I font
+]
+.br
+.B ½char
+[
+.B -s
+.I file
+]
+[
+.I font
+]
+.br
+.B rschar
+[
+.B -bgj
+]
+[
+.B -s
+.I file
+]
+[
+.I font
+]
+.SH DESCRIPTION
+.I Char
+displays two square arrays of characters on the screen.  The left square shows
+the first character of each 256-character page of the Unicode Standard.
+The right square
+shows the contents of one page.
+Using button 1 or 2 to select a character in the
+left square changes the right square to display the corresponding page and
+displays the offset and name of the page in the upper left corner of the screen.
+Selecting a character in the right square displays its hexadecimal value and
+name.
+In addition, any characters selected with
+button 2 are added to the end of 8½'s snarf buffer.  Button 3 pops up a menu containing an
+.I exit
+button, whose selection must be confirmed by pressing button 3 again
+and a
+.I clear snarf
+button that empties the snarf buffer.
+.PP
+The optional argument indicates which font to use (default
+.BR $font ).
+.PP
+.I ½char
+is intended for a smaller window and displays only a single
+256-character panel.  Clicking button 1 on a character displays its
+code and, if possible, description; button 2 works similarly, but also
+writes the character to
+.IR file ,
+default
+.B /dev/snarf
+(8½'s snarf buffer), which it displays near the bottom of the
+window.  Clicking button 3 selects the page corresponding to
+the cursor position in the panel.  Typed characters are added to the
+file, except:
+backspace
+deletes the last character;
+control-U
+clears the buffer;
+control-D
+exits.
+.PP
+.I Rschar
+is the radical/stroke chart from Volume 2 of the Unicode Standard.
+Flags can be used to restrict the display to one or more Asian
+character sets:
+.TP
+.B -b
+Big Five (traditional Chinese).
+.TP
+.B -g
+GB 2312-80 (simplified Chinese).
+.TP
+.B -j
+JIS X 0208-1990 (Japanese).
+.PP
+By default, all characters are shown.
+Button 3 controls a menu to change flag selections.
+Radicals are shown in a panel on the left side
+of the window.  Clicking on a radical with button 1 or 2 brings up, on
+the right, a panel of characters ordered by stroke count.  If the
+window is too small to contain them all, one may scroll through
+successive panels by clicking on arrows that appear at the top.
+Clicking on a character with button 1 displays its code; clicking with
+button 2 adds the character to the snarf buffer.  Typed characters
+behave as in
+.IR ½char .
+.SH FILES
+.B /lib/unicode
+contains the names of the unicode characters.  Many characters have no name.
+.SH SOURCE
+.B /sys/src/cmd/char.c
+.br
+.B /sys/src/cmd/½char.c
+.br
+.B /sys/src/cmd/rschar
+.SH "SEE ALSO"
+8½(1), 8½(4)
+.SH BUGS
+.I Char
+needs a largish window to work properly and doesn't complain if it doesn't
+get it.

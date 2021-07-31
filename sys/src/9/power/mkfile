@@ -1,0 +1,71 @@
+#
+# for making a boot file for a MIPS use:
+#  CONF=powerboot
+CONF=power
+CONFLIST=power powerboot
+
+objtype=mips
+</$objtype/mkfile
+CFLAGS=-w
+
+DEV=`{rc ../port/mkdevlist $CONF}
+STREAM=`{rc ../port/mkstreamlist $CONF}
+MISC=`{rc ../port/mkmisclist $CONF}
+
+OBJ=\
+	l.$O\
+	alarm.$O\
+	alloc.$O\
+	chan.$O\
+	clock.$O\
+	dev.$O\
+	queue.$O\
+	fault.$O\
+	segment.$O\
+	swap.$O\
+	faultmips.$O\
+	fptrap.$O\
+	latin1.$O\
+	lock.$O\
+	main.$O\
+	mmu.$O\
+	net.$O\
+	page.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qlock.$O\
+	sysfile.$O\
+	sysproc.$O\
+	trap.$O\
+	$DEV\
+	$MISC $STREAM\
+	boot$CONF.root.$O\
+	stream.$O\
+	auth.$O\
+#	debugger.$O\
+
+loadaddr=`{if(~ $CONF *boot)echo 0x80200000; if not echo 0x80020000}
+
+default:V: 9$CONF
+
+9$CONF:	$OBJ $CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	vl -o $target -l -R4 -H1 -T$loadaddr $OBJ $CONF.$O -lauth -lc
+
+conf.h:	mkconf dat.h
+	rc mkconf dat.h > conf.h
+
+main.$O: conf.h
+
+clock.$O faultmips.$O fptrap.$O:	/$objtype/include/ureg.h
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	va initcode
+	vl -l -o init.out -H2 -T4128 -R4 initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+<../port/portmkfile

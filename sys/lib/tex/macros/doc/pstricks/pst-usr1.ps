@@ -1,0 +1,2146 @@
+%!PS-Adobe-2.0
+%%Creator: dvips 5.491 Copyright 1986, 1992 Radical Eye Software
+%%Title: pst-user.dvi
+%%Pages: 24 1
+%%BoundingBox: 0 0 612 792
+%%DocumentFonts: Times-Bold Times-Roman Times-Italic Helvetica Helvetica-Bold
+%%+ Symbol Helvetica-Oblique Helvetica-BoldOblique
+%%EndComments
+%DVIPSCommandLine: dvips pst-user.dvi -Pport -o pst-usr1.ps -l20
+%%BeginProcSet: tex.pro
+%!
+/TeXDict 250 dict def TeXDict begin /N{def}def /B{bind def}N /S{exch}N /X{S N}
+B /TR{translate}N /isls false N /vsize 11 72 mul N /@rigin{isls{[0 -1 1 0 0 0]
+concat}if 72 Resolution div 72 VResolution div neg scale isls{Resolution hsize
+-72 div mul 0 TR}if Resolution VResolution vsize -72 div 1 add mul TR matrix
+currentmatrix dup dup 4 get round 4 exch put dup dup 5 get round 5 exch put
+setmatrix}N /@landscape{/isls true N}B /@manualfeed{statusdict /manualfeed
+true put}B /@copies{/#copies X}B /FMat[1 0 0 -1 0 0]N /FBB[0 0 0 0]N /nn 0 N
+/IE 0 N /ctr 0 N /df-tail{/nn 8 dict N nn begin /FontType 3 N /FontMatrix
+fntrx N /FontBBox FBB N string /base X array /BitMaps X /BuildChar{
+CharBuilder}N /Encoding IE N end dup{/foo setfont}2 array copy cvx N load 0 nn
+put /ctr 0 N[}B /df{/sf 1 N /fntrx FMat N df-tail}B /dfs{div /sf X /fntrx[sf 0
+0 sf neg 0 0]N df-tail}B /E{pop nn dup definefont setfont}B /ch-width{ch-data
+dup length 5 sub get}B /ch-height{ch-data dup length 4 sub get}B /ch-xoff{128
+ch-data dup length 3 sub get sub}B /ch-yoff{ch-data dup length 2 sub get 127
+sub}B /ch-dx{ch-data dup length 1 sub get}B /ch-image{ch-data dup type
+/stringtype ne{ctr get /ctr ctr 1 add N}if}B /id 0 N /rw 0 N /rc 0 N /gp 0 N
+/cp 0 N /G 0 N /sf 0 N /CharBuilder{save 3 1 roll S dup /base get 2 index get
+S /BitMaps get S get /ch-data X pop /ctr 0 N ch-dx 0 ch-xoff ch-yoff ch-height
+sub ch-xoff ch-width add ch-yoff setcachedevice ch-width ch-height true[1 0 0
+-1 -.1 ch-xoff sub ch-yoff .1 add]{ch-image}imagemask restore}B /D{/cc X dup
+type /stringtype ne{]}if nn /base get cc ctr put nn /BitMaps get S ctr S sf 1
+ne{dup dup length 1 sub dup 2 index S get sf div put}if put /ctr ctr 1 add N}
+B /I{cc 1 add D}B /bop{userdict /bop-hook known{bop-hook}if /SI save N @rigin
+0 0 moveto /V matrix currentmatrix dup 1 get dup mul exch 0 get dup mul add
+.99 lt{/FV}{/RV}ifelse load def pop}N /eop{SI restore showpage userdict
+/eop-hook known{eop-hook}if}N /@start{userdict /start-hook known{start-hook}
+if /VResolution X /Resolution X 1000 div /DVImag X /IE 256 array N 0 1 255{IE
+S 1 string dup 0 3 index put cvn put}for 65781.76 div /vsize X 65781.76 div
+/hsize X}N /p{show}N /RMat[1 0 0 -1 0 0]N /BDot 260 string N /rulex 0 N /ruley
+0 N /v{/ruley X /rulex X V}B /V{}B /RV statusdict begin /product where{pop
+product dup length 7 ge{0 7 getinterval dup(Display)eq exch 0 4 getinterval
+(NeXT)eq or}{pop false}ifelse}{false}ifelse end{{gsave TR -.1 -.1 TR 1 1 scale
+rulex ruley false RMat{BDot}imagemask grestore}}{{gsave TR -.1 -.1 TR rulex
+ruley scale 1 1 false RMat{BDot}imagemask grestore}}ifelse B /FV{gsave
+transform round exch round exch itransform moveto rulex 0 rlineto 0 ruley neg
+rlineto rulex neg 0 rlineto fill grestore}B /a{moveto}B /delta 0 N /tail{dup
+/delta X 0 rmoveto}B /M{S p delta add tail}B /b{S p tail}B /c{-4 M}B /d{-3 M}
+B /e{-2 M}B /f{-1 M}B /g{0 M}B /h{1 M}B /i{2 M}B /j{3 M}B /k{4 M}B /w{0
+rmoveto}B /l{p -4 w}B /m{p -3 w}B /n{p -2 w}B /o{p -1 w}B /q{p 1 w}B /r{p 2 w}
+B /s{p 3 w}B /t{p 4 w}B /x{0 S rmoveto}B /y{3 2 roll p a}B /bos{/SS save N}B
+/eos{SS restore}B end
+%%EndProcSet
+%%BeginProcSet: pstricks.pro
+%!
+% PostScript prologue for pstricks.tex.
+% Created 1993/3/12. Source file was pstricks.doc
+% Version 0.93a, 93/03/12.
+% For use with Rokicki's dvips.
+/tx@Dict 200 dict def tx@Dict begin
+/ADict 25 dict def
+/CM { matrix currentmatrix } bind def
+/SLW /setlinewidth load def
+/CLW /currentlinewidth load def
+/CP /currentpoint load def
+/ED { exch def } bind def
+/L /lineto load def
+/T /translate load def
+/Atan { /atan load stopped { pop pop 0 } if } def
+/Div { dup 0 eq { pop } { div } ifelse } def
+/NET { neg exch neg exch T } def
+/Pyth { dup mul exch dup mul add sqrt } def
+/PtoC { 2 copy cos mul 3 1 roll sin mul } def
+/PathLength@ { /z z y y1 sub x x1 sub Pyth add def /y1 y def /x1 x def }
+def
+/PathLength { flattenpath /z 0 def { /y1 ED /x1 ED /y2 y1 def /x2 x1 def
+} { /y ED /x ED PathLength@ } {} { /y y2 def /x x2 def PathLength@ }
+pathforall z } def
+/STP { .996264 dup scale } def
+/STV { SDict begin normalscale end STP  } def
+/DashLine { dup 0 gt { /a .5 def PathLength exch div } { pop /a 1 def
+PathLength } ifelse /b ED /x ED /y ED /z y x add def b a .5 sub 2 mul y
+mul sub z Div round z mul a .5 sub 2 mul y mul add b exch Div dup y mul
+/y ED x mul /x ED x 0 eq y 0 eq and { /x 1 def /y 1 def } if [ y x ] 1 a
+sub y mul setdash stroke } def
+/DotLine { /b PathLength def /a ED /z ED /y CLW def /z y z add def a 0 gt
+{ /b b a div def } { a 0 eq { /b b y sub def } { a -3 eq { /b b y add
+def } if } ifelse } ifelse [ 0 b b z Div round Div dup 0 le { pop 1 } if
+] a 0 gt { 0 } { y 2 div a -2 gt { neg } if } ifelse setdash 1
+setlinecap stroke } def
+/LineFill { abs CLW add /a ED gsave clip pathbbox a Div ceiling /y2 ED
+/x2 ED a Div floor /y1 ED /x1 ED /n y2 y1 sub 1 add cvi def /y1 a y1 mul
+def newpath 2 setlinecap n { currentstrokeadjust == x1 y1 moveto x2 y1 L
+stroke /y1 y1 a add def } repeat grestore } def
+/LineFill { abs CLW add /a ED gsave clip pathbbox a Div ceiling /y2 ED
+/x2 ED a Div floor /y1 ED /x1 ED /n y2 y1 sub 1 add cvi def /y1 a y1 mul
+def newpath 2 setlinecap systemdict /currentstrokeadjust known {
+currentstrokeadjust } { false } ifelse { /t { } def } { /t { transform
+0.25 sub round 0.25 add exch 0.25 sub round 0.25 add exch itransform }
+bind def } ifelse n { x1 y1 t moveto x2 y1 t L stroke /y1 y1 a add def }
+repeat grestore } def
+/BeginArrow { ADict begin /@mtrx CM def gsave 2 copy T 2 index sub neg
+exch 3 index sub exch Atan rotate newpath } def
+/EndArrow { @mtrx setmatrix CP grestore end } def
+/Arrow { CLW mul add dup 2 div /w ED mul dup /h ED mul /a ED { 0 h T 1 -1
+scale } if w neg h moveto 0 0 L w h L w neg a neg rlineto gsave fill
+grestore } def
+/Tbar { CLW mul add /z ED z -2 div CLW 2 div moveto z 0 rlineto stroke 0
+CLW moveto } def
+/Bracket { CLW mul add dup CLW sub 2 div /x ED mul CLW add /y ED /z CLW 2
+div def x neg y moveto x neg CLW 2 div L x CLW 2 div L x y L stroke 0
+CLW moveto } def
+/RoundBracket { CLW mul add dup 2 div /x ED mul /y ED /mtrx CM def 0 CLW
+2 div T x y mul 0 ne { x y scale } if 1 1 moveto .85 .5 .35 0 0 0
+curveto -.35 0 -.85 .5 -1 1 curveto mtrx setmatrix stroke 0 CLW moveto }
+def
+/Shadow { [ { /moveto load } { /lineto load } { /curveto load } {
+/closepath load } pathforall ] cvx newpath 3 1 roll T exec } def
+/SD { 0 360 arc fill } def
+/SQ { /r ED r r moveto r r neg L r neg r neg L r neg r L fill } def
+/ST { /y ED /x ED x y moveto x neg y L 0 x L fill } def
+/SP { /r ED gsave 0 r moveto 4 { 72 rotate 0 r L } repeat fill grestore }
+def
+/NArray { aload length 2 div dup dup cvi eq not { exch pop } if /n exch
+cvi def } def
+/NArray { /f ED counttomark 2 div dup cvi /n ED n eq not { exch pop } if
+f { ] aload /Points ED } { n 2 mul 1 add -1 roll pop } ifelse } def
+/Line { NArray n 0 eq not { n 1 eq { 0 0 /n 2 def } if ArrowA /n n 2 sub
+def n { Lineto } repeat CP 4 2 roll ArrowB L pop pop } if } def
+/Arcto { /a [ 6 -2 roll ] cvx def a r /arcto load stopped { 5 } { 4 }
+ifelse { pop } repeat a } def
+/CheckClosed { dup n 2 mul 1 sub index eq 2 index n 2 mul 1 add index eq
+and { pop pop /n n 1 sub def } if } def
+/Polygon { NArray n 2 eq { 0 0 /n 3 def } if n 3 lt { n { pop pop }
+repeat } { n 3 gt { CheckClosed } if n 2 mul -2 roll /y0 ED /x0 ED /y1
+ED /x1 ED x1 y1 /x1 x0 x1 add 2 div def /y1 y0 y1 add 2 div def x1 y1
+moveto /n n 2 sub def n { Lineto } repeat x1 y1 x0 y0 6 4 roll Lineto
+Lineto pop pop closepath } ifelse } def
+/CCA { /y ED /x ED 2 copy y sub /dy1 ED x sub /dx1 ED /l1 dx1 dy1 Pyth
+def } def
+/CCA { /y ED /x ED 2 copy y sub /dy1 ED x sub /dx1 ED /l1 dx1 dy1 Pyth
+def } def
+/CC { /l0 l1 def /x1 x dx sub def /y1 y dy sub def /dx0 dx1 def /dy0 dy1
+def CCA /dx dx0 l1 c exp mul dx1 l0 c exp mul add def /dy dy0 l1 c exp
+mul dy1 l0 c exp mul add def /m dx0 dy0 Atan dx1 dy1 Atan sub 2 div cos
+abs b exp a mul dx dy Pyth Div 2 div def /x2 x l0 dx mul m mul sub def
+/y2 y l0 dy mul m mul sub def /dx l1 dx mul m mul neg def /dy l1 dy mul
+m mul neg def } def
+/IC { /c c 1 add def c 0 lt { /c 0 def } { c 3 gt { /c 3 def } if }
+ifelse /a a 2 mul 3 div 45 cos b exp div def CCA /dx 0 def /dy 0 def }
+def
+/BOC { IC CC x2 y2 x1 y1 ArrowA CP 4 2 roll x y curveto } def
+/NC { CC x1 y1 x2 y2 x y curveto } def
+/EOC { x dx sub y dy sub 4 2 roll ArrowB 2 copy curveto } def
+/BAC { IC CC x y moveto CC x1 y1 CP ArrowA } def
+/NAC { x2 y2 x y curveto CC x1 y1 } def
+/EAC { x2 y2 x y ArrowB curveto pop pop } def
+/OpenCurve { NArray n 3 lt { n { pop pop } repeat } { BOC /n n 3 sub def
+n { NC } repeat EOC } ifelse } def
+/AltCurve { { false NArray n 2 mul 2 roll [ n 2 mul 3 sub 1 roll ] aload
+/Points ED n 2 mul -2 roll } { false NArray } ifelse n 4 lt { n { pop
+pop } repeat } { BAC /n n 4 sub def n { NAC } repeat EAC } ifelse } def
+/ClosedCurve { NArray n 3 lt { n { pop pop } repeat } { n 3 gt {
+CheckClosed } if 6 copy n 2 mul 6 add 6 roll IC CC x y moveto n { NC }
+repeat closepath pop pop } ifelse } def
+/EndDot { { /z DS def } { /z 0 def } ifelse /b ED 0 z DS SD b { 0 z DS
+CLW sub SD } if 0 DS z add CLW 4 div sub moveto } def
+/Rect { x1 y1 y2 add 2 div moveto x1 y2 lineto x2 y2 lineto x2 y1 lineto
+x1 y1 lineto closepath } def
+/OvalFrame { x1 x2 eq y1 y2 eq or { pop pop x1 y1 moveto x2 y2 L } { y1
+y2 sub abs x1 x2 sub abs 2 copy gt { exch pop } { pop } ifelse 2 div
+exch { dup 3 1 roll mul exch } if 2 copy lt { pop } { exch pop } ifelse
+/b ED x1 y1 y2 add 2 div moveto x1 y2 x2 y2 b arcto x2 y2 x2 y1 b arcto
+x2 y1 x1 y1 b arcto x1 y1 x1 y2 b arcto 16 { pop } repeat closepath }
+ifelse } def
+/Frame { CLW mul /a ED 3 -1 roll 2 copy gt { exch } if a sub /y2 ED a add
+/y1 ED 2 copy gt { exch } if a sub /x2 ED a add /x1 ED 1 index 0 eq {
+pop pop Rect } { OvalFrame } ifelse } def
+/Parab { /y0 exch def /x0 exch def /y1 exch def /x1 exch def /dx x0 x1
+sub 3 div def /dy y0 y1 sub 3 div def x0 dx sub y0 dy add x1 y1 ArrowA
+x0 dx add y0 dy add x0 2 mul x1 sub y1 ArrowB curveto /Points [ x1 y1 x0
+y0 x0 2 mul x1 sub y1 ] def } def
+/Grid { /a 4 string def /b ED /d ED /n ED cvi dup 1 lt { pop 1 } if /c ED
+c div dup 0 eq { pop 1 } if /cy ED c div dup 0 eq { pop 1 } if /cx ED cy
+div cvi /y ED cx div cvi /x ED cy div cvi /y2 ED cx div cvi /x2 ED cy
+div cvi /y1 ED cx div cvi /x1 ED /h y2 y1 sub 0 gt { 1 } { -1 } ifelse
+def /w x2 x1 sub 0 gt { 1 } { -1 } ifelse def b 0 gt { /z1 b 4 div CLW 2
+div add def /Helvetica findfont b scalefont setfont /b b .95 mul CLW 2
+div add def } if gsave n 0 gt { 1 setlinecap [ 0 cy n div ] 0 setdash }
+{ 2 setlinecap } ifelse /c x1 def /i 500 w mul x1 add def /e y cy mul
+def /f y1 cy mul def /g y2 cy mul def x1 cx mul 0 T { newpath 0 e moveto
+b 0 gt { gsave d c a cvs dup stringwidth pop /z2 ED w 0 gt {z1} {z1 z2
+add neg} ifelse h 0 gt {b neg} {z1} ifelse rmoveto show grestore } if 0
+f moveto 0 g L stroke cx w mul 0 T c x2 eq c i eq or {exit} if /c c w
+add def } loop grestore gsave n 0 gt { 1 setlinecap [ 0 cx n div ] 0
+setdash } { 2 setlinecap } ifelse /c y1 def /i 500 h mul y1 add def /e x
+cx mul def /f x1 cx mul def /g x2 cx mul def 0 y1 cy mul T { newpath e 0
+moveto b 0 gt { gsave d c a cvs dup stringwidth pop /z2 ED w 0 gt {z1 z2
+add neg} {z1} ifelse h 0 gt {z1} {b neg} ifelse rmoveto show grestore }
+if f 0 moveto g 0 L stroke 0 cy h mul T c y2 eq c i eq or {exit} if /c c
+h add def } loop grestore } def
+/ArcArrow { /d ED /b ED /a ED gsave newpath 0 -1000 moveto clip newpath 0
+1 0 0 b grestore c mul /e ED pop pop pop r a e d PtoC y add exch x add
+exch r a PtoC y add exch x add exch b pop pop pop pop a e d CLW 8 div c
+mul neg d } def
+/Ellipse { /mtrx CM def T scale 0 0 1 5 3 roll arc mtrx setmatrix } def
+/Rot { CP CP translate 3 -1 roll neg rotate NET  } def
+/PutCoor { gsave CP T CM STV exch exec moveto setmatrix CP grestore } def
+/PutBegin { /lmtrx [ tx@Dict /lmtrx known { lmtrx aload pop } if CM ] def
+CP 4 2 roll T moveto } def
+/PutEnd { CP /lmtrx [ lmtrx aload pop setmatrix ] def moveto } def
+/Uput { /a ED add 2 div /h ED 2 div /w ED /s a sin def /c a cos def /b s
+abs c abs 2 copy gt dup /q ED { pop } { exch pop } ifelse def /w1 c b
+div w mul def /h1 s b div h mul def q { w1 abs w sub dup c mul abs } {
+h1 abs h sub dup s mul abs } ifelse } def
+/UUput { /z ED abs /y ED /x ED q { x s div c mul abs y gt } { x c div s
+mul abs y gt } ifelse { x x mul y y mul sub z z mul add sqrt z add } { q
+{ x s div } { x c div } ifelse abs } ifelse a PtoC h1 add exch w1 add
+exch } def
+/BeginOL { dup (all) eq exch TheOL eq or { IfVisible not { CP OLUnit T
+moveto /IfVisible true def } if } { IfVisible { CP OLUnit NET moveto
+/IfVisible false def } if } ifelse } def
+/InitOL { /OLUnit [ gsave CM STV 2890.79999 dup moveto setmatrix CP
+grestore ] cvx def /BOL { BeginOL } def /IfVisible true def } def
+end
+%%EndProcSet
+%%BeginProcSet: pst-node.pro
+%!
+% PostScript prologue for pst-node.tex.
+% Created 1993/3/12. Source file was pst-node.doc
+% Version 0.93a, 93/03/12.
+% For use with Rokicki's dvips.
+/tx@NodeDict 200 dict def tx@NodeDict begin
+/NewNode { gsave /next ED dict dup 3 -1 roll ED begin tx@Dict begin STV
+CP T exec end /NodeMtrx CM def next end grestore } def
+/InitPnode { /Y ED /X ED /NodePos { Nodesep Cos mul Nodesep Sin mul } def
+} def
+/InitCnode { /r ED /Y ED /X ED /NodePos { Nodesep r add dup Cos mul exch
+Sin mul } def } def
+/GetRnodePos { Cos 0 gt { /dx r Nodesep add def } { /dx l Nodesep sub def
+} ifelse Sin 0 gt { /dy u Nodesep add def } { /dy d Nodesep sub def }
+ifelse dx Sin mul abs dy Cos mul abs gt { dy Cos mul Sin div dy } { dx
+dup Sin mul Cos Div } ifelse } def
+/InitRnode { /r ED r mul neg /l ED /r r l add def /X l neg def { neg /d
+ED /u ED /Y 0 def } { neg /Y ED Y sub /u ED u mul neg /d ED /u u d add
+def /Y Y d sub def } ifelse /NodePos { GetRnodePos } def } def
+/InitRNode { /Y ED /X ED /r ED /X r 2 div X add def /r r X sub def /l X
+neg def Y add neg /d ED Y sub /u ED /NodePos { GetRnodePos } def } def
+/GetOnodePos { /ww w Nodesep add def /hh h Nodesep add def Sin ww mul Cos
+hh mul Atan dup cos ww mul exch sin hh mul } def
+/GetCenter { begin X Y NodeMtrx transform CM itransform end } def
+/GetAngle { nodeA GetCenter nodeB GetCenter 3 -1 roll sub 3 1 roll sub
+neg Atan  } def
+/GetEdge { begin /Nodesep ED dup 1 0 NodeMtrx dtransform CM idtransform
+exch atan sub dup sin /Sin ED cos /Cos ED NodePos Y add exch X add exch
+NodeMtrx transform CM itransform end 4 2 roll 1 index 0 eq { pop pop } {
+2 copy 5 2 roll cos mul add 4 1 roll sin mul sub exch } ifelse } def
+/GetPos { OffsetA AngleA NodesepA nodeA GetEdge /y1 ED /x1 ED OffsetB
+AngleB NodesepB nodeB GetEdge /y2 ED /x2 ED } def
+/InitNC { /nodeB ED /nodeA ED /NodesepB ED /NodesepA ED /OffsetB ED
+/OffsetA ED tx@NodeDict nodeA known tx@NodeDict nodeB known and dup {
+/nodeA nodeA load def /nodeB nodeB load def } if } def
+/LineMP { 4 copy 1 t sub mul exch t mul add 3 1 roll 1 t sub mul exch t
+mul add exch 6 2 roll sub 3 1 roll sub Atan  } def
+/NCCoor { GetAngle /AngleA ED /AngleB AngleA 180 add def GetPos /LPutVar
+[ x2 x1 y2 y1 ] cvx def /LPutPos { LPutVar LineMP } def x1 y1 x2 y2 }
+def
+/NCLine { NCCoor tx@Dict begin ArrowB 4 2 roll ArrowA lineto end } def
+/BezierMidpoint { /y3 ED /x3 ED /y2 ED /x2 ED /y1 ED /x1 ED /y0 ED /x0 ED
+/t ED /cx x1 x0 sub 3 mul def /cy y1 y0 sub 3 mul def /bx x2 x1 sub 3
+mul cx sub def /by y2 y1 sub 3 mul cy sub def /ax x3 x0 sub cx sub bx
+sub def /ay y3 y0 sub cy sub by sub def ax t 3 exp mul bx t t mul mul
+add cx t mul add x0 add ay t 3 exp mul by t t mul mul add cy t mul add
+y0 add 3 ay t t mul mul mul 2 by t mul mul add cy add 3 ax t t mul mul
+mul 2 bx t mul mul add cx add atan } def
+/GetArms { /x1a armA AngleA cos mul x1 add def /y1a armA AngleA sin mul
+y1 add def /x2a armB AngleB cos mul x2 add def /y2a armB AngleB sin mul
+y2 add def } def
+/NCCurve { GetPos x1 x2 sub y1 y2 sub Pyth 2 div dup 3 -1 roll mul /armA
+ED mul /armB ED GetArms x1a y1a x1 y1 tx@Dict begin ArrowA end x2a y2a
+x2 y2 tx@Dict begin ArrowB end curveto /LPutVar [ x1 y1 x1a y1a x2a y2a
+x2 y2 ] cvx def /LPutPos { t LPutVar BezierMidpoint } def } def
+/AnglesMP { LPutVar t 3 gt { /t t 3 sub def } { t 2 gt { /t t 2 sub def
+10 -2 roll } { t 1 gt { /t t 1 sub def 10 -4 roll } { 10 4 roll } ifelse
+} ifelse } ifelse 6 { pop } repeat 3 -1 roll exch LineMP  } def
+/NCAngles { GetPos GetArms /mtrx AngleA matrix rotate def x1a y1a mtrx
+transform pop x2a y2a mtrx transform exch pop mtrx itransform /y0 ED /x0
+ED mark armB 0 ne { x2 y2 } if x2a y2a x0 y0 x1a y1a armA 0 ne { x1 y1 }
+if tx@Dict begin false Line end /LPutVar [ x2 y2 x2a y2a x0 y0 x1a y1a
+x1 y1 ] cvx def /LPutPos { AnglesMP } def } def
+/NCAngle { GetPos /x2a armB AngleB cos mul x2 add def /y2a armB AngleB
+sin mul y2 add def /mtrx AngleA matrix rotate def x2a y2a mtrx transform
+pop x1 y1 mtrx transform exch pop mtrx itransform /y0 ED /x0 ED mark
+armB 0 ne { x2 y2 } if x2a y2a x0 y0 x1 y1 tx@Dict begin false Line end
+/LPutVar [ x2 y2 x2 y2 x2a y2a x0 y0 x1 y1 ] cvx def /LPutPos { AnglesMP
+} def } def
+/NCBar { GetPos GetArms /mtrx AngleA matrix rotate def x1a y1a mtrx
+transform pop x2a y2a mtrx transform pop sub dup 0 mtrx itransform 3 -1
+roll 0 gt { /y2a exch y2a add def /x2a exch x2a add def } { /y1a exch
+neg y1a add def /x2a exch neg x2a add def } ifelse mark x2 y2 x2a y2a
+x1a y1a x1 y1 tx@Dict begin false Line end /LPutVar [ x2 y2 x2 y2 x2a
+y2a x1a y1a x1 y1 ] cvx def /LPutPos { LPutVar AnglesMP } def } def
+/NCDiag { GetPos GetArms mark x2 y2 x2a y2a x1a y1a x1 y1 tx@Dict begin
+false Line end /LPutVar [ x2 y2 x2 y2 x2a y2a x1a y1a x1 y1 ] cvx def
+/LPutPos { AnglesMP } def } def
+/NCDiagg { OffsetA AngleA NodesepA nodeA GetEdge /y1 ED /x1 ED /x1a armA
+AngleA cos mul x1 add def /y1a armA AngleA sin mul y1 add def nodeB
+GetCenter y1a sub exch x1a sub Atan 180 add /AngleB ED OffsetB AngleB
+NodesepB nodeB GetEdge /y2 ED /x2 ED mark x2 y2 x1a y1a x1 y1 tx@Dict
+begin false Line end /LPutVar [ x2 y2 x2 y2 x2 y2 x1a y1a x1 y1] cvx def
+/LPutPos { AnglesMP } def } def
+/LoopMP { /t t abs def [ LPutVar ] length 2 div 1 sub dup t lt { /t ED }
+{ pop } ifelse mark LPutVar t cvi { /t t 1 sub def pop pop } repeat
+counttomark 1 add 4 roll cleartomark 3 -1 roll exch LineMP  } def
+/NCLoop { GetPos GetArms /mtrx AngleA matrix rotate def x1a y1a mtrx
+transform loopsize add /y1b ED /x1b ED /x2b x2a y2a mtrx transform pop
+def x2b y1b mtrx itransform /y2b ED /x2b ED x1b y1b mtrx itransform /y1b
+ED /x1b ED mark armB 0 ne { x2 y2 } if x2a y2a x2b y2b x1b y1b x1a y1a
+armA 0 ne { x1 y1 } if tx@Dict begin false Line end /LPutVar [ x2 y2 x2a
+y2a x2b y2b x1b y1b x1a y1a x1 y1 ] cvx def /LPutPos { LoopMP } def }
+def
+/NCCircle { nodeA GetCenter 0 0 NodesepA nodeA GetEdge pop 3 1 roll /Y ED
+/X ED X sub 2 div dup 2 exp r r mul sub abs sqrt atan 2 mul /a ED r
+AngleA 90 add PtoC Y add exch X add exch 2 copy /LPutVar [ 4 2 roll r a
+] def /LPutPos { LPutVar aload pop t 360 mul add dup 5 1 roll 90 sub
+PtoC 3 -1 roll add 3 1 roll add exch 3 -1 roll } def r AngleA 90 sub a
+add AngleA 270 add a sub tx@Dict begin /angleB ED /angleA ED /r ED /c
+57.2957 r Div def /y ED /x ED } def
+/LPutCoor { tx@NodeDict /LPutPos known { gsave LPutPos tx@Dict begin
+/langle ED CM 3 1 roll STV CP 3 -1 roll sub neg 3 1 roll sub exch moveto
+setmatrix CP end grestore } { 0 0 tx@Dict /langle 0 def end } ifelse }
+def
+end
+%%EndProcSet
+%%BeginProcSet: pst-coil.pro
+%!
+% PostScript prologue for pst-coil.tex.
+% Created 1993/3/12. Source file was pst-coil.doc
+% Version 0.93a, 93/03/12.
+% For use with Rokicki's dvips.
+/tx@CoilDict 40 dict def tx@CoilDict begin
+/CoilLoop { /t ED t sin AspectSin mul t 180 div AspectCos mul add t cos
+lineto } def
+/Coil { /Inc ED dup sin /AspectSin ED cos /AspectCos ED /ArmB ED /ArmA ED
+/h ED /w ED /y1 ED /x1 ED /y0 ED /x0 ED x0 y0 translate y1 y0 sub x1 x0
+sub 2 copy Pyth /TotalLength ED Atan rotate /BeginAngle ArmA AspectCos
+Div w h mul Div 360 mul def /EndAngle TotalLength ArmB sub AspectCos Div
+w h mul Div 360 mul def 1 0 0 0 ArrowA ArmA 0 lineto /mtrx CM def w h
+mul 2 Div w 2 Div scale BeginAngle Inc EndAngle { CoilLoop } for
+EndAngle CoilLoop mtrx setmatrix TotalLength ArmB sub 0 lineto CP
+TotalLength 0 ArrowB lineto } def
+/AltCoil { /Inc ED dup sin /AspectSin ED cos /AspectCos ED /h ED /w ED
+/EndAngle ED /BeginAngle ED /mtrx CM def w h mul 2 Div w 2 Div scale
+BeginAngle sin AspectSin mul BeginAngle 180 div AspectCos mul add
+BeginAngle cos /lineto load stopped { moveto } if BeginAngle Inc
+EndAngle { CoilLoop } for EndAngle CoilLoop mtrx setmatrix } def
+/ZigZag { /ArmB ED /ArmA ED 2 div /w ED w mul /h ED /y1 ED /x1 ED /y0 ED
+/x0 ED x1 y1 translate y0 y1 sub x0 x1 sub 2 copy Pyth /TotalLength ED
+Atan rotate TotalLength ArmA sub ArmB sub dup h div cvi /n ED n h mul
+sub 2 div dup ArmA add /ArmA ED ArmB add /ArmB ED /x ArmB h 2 div add
+def mark 0 0 ArmB 0 n { x w /w w neg def /x x h add def } repeat
+TotalLength ArmA sub 0 TotalLength 0 } def
+end
+%%EndProcSet
+%%BeginProcSet: texps.pro
+%!
+TeXDict begin /rf{findfont dup length 1 add dict begin{1 index /FID ne 2 index
+/UniqueID ne and{def}{pop pop}ifelse}forall[1 index 0 6 -1 roll exec 0 exch 5
+-1 roll VResolution Resolution div mul neg 0 0]/Metrics exch def dict begin
+Encoding{exch dup type /integertype ne{pop pop 1 sub dup 0 le{pop}{[}ifelse}{
+FontMatrix 0 get div Metrics 0 get div def}ifelse}forall Metrics /Metrics
+currentdict end def[2 index currentdict end definefont 3 -1 roll makefont
+/setfont load]cvx def}def /ObliqueSlant{dup sin S cos div neg}B /SlantFont{4
+index mul add}def /ExtendFont{3 -1 roll mul exch}def /ReEncodeFont{/Encoding
+exch def}def end
+%%EndProcSet
+%%BeginProcSet: special.pro
+%!
+TeXDict begin /SDict 200 dict N SDict begin /@SpecialDefaults{/hs 612 N /vs
+792 N /ho 0 N /vo 0 N /hsc 1 N /vsc 1 N /ang 0 N /CLIP 0 N /rwiSeen false N
+/rhiSeen false N /letter{}N /note{}N /a4{}N /legal{}N}B /@scaleunit 100 N
+/@hscale{@scaleunit div /hsc X}B /@vscale{@scaleunit div /vsc X}B /@hsize{/hs
+X /CLIP 1 N}B /@vsize{/vs X /CLIP 1 N}B /@clip{/CLIP 2 N}B /@hoffset{/ho X}B
+/@voffset{/vo X}B /@angle{/ang X}B /@rwi{10 div /rwi X /rwiSeen true N}B /@rhi
+{10 div /rhi X /rhiSeen true N}B /@llx{/llx X}B /@lly{/lly X}B /@urx{/urx X}B
+/@ury{/ury X}B /magscale true def end /@MacSetUp{userdict /md known{userdict
+/md get type /dicttype eq{userdict begin md length 10 add md maxlength ge{/md
+md dup length 20 add dict copy def}if end md begin /letter{}N /note{}N /legal{
+}N /od{txpose 1 0 mtx defaultmatrix dtransform S atan/pa X newpath clippath
+mark{transform{itransform moveto}}{transform{itransform lineto}}{6 -2 roll
+transform 6 -2 roll transform 6 -2 roll transform{itransform 6 2 roll
+itransform 6 2 roll itransform 6 2 roll curveto}}{{closepath}}pathforall
+newpath counttomark array astore /gc xdf pop ct 39 0 put 10 fz 0 fs 2
+F/|______Courier fnt invertflag{PaintBlack}if}N /txpose{pxs pys scale ppr
+aload pop por{noflips{pop S neg S TR pop 1 -1 scale}if xflip yflip and{pop S
+neg S TR 180 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0
+get neg sub neg TR}if xflip yflip not and{pop S neg S TR pop 180 rotate ppr 3
+get ppr 1 get neg sub neg 0 TR}if yflip xflip not and{ppr 1 get neg ppr 0 get
+neg TR}if}{noflips{TR pop pop 270 rotate 1 -1 scale}if xflip yflip and{TR pop
+pop 90 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0 get
+neg sub neg TR}if xflip yflip not and{TR pop pop 90 rotate ppr 3 get ppr 1 get
+neg sub neg 0 TR}if yflip xflip not and{TR pop pop 270 rotate ppr 2 get ppr 0
+get neg sub neg 0 S TR}if}ifelse scaleby96{ppr aload pop 4 -1 roll add 2 div 3
+1 roll add 2 div 2 copy TR .96 dup scale neg S neg S TR}if}N /cp{pop pop
+showpage pm restore}N end}if}if}N /normalscale{Resolution 72 div VResolution
+72 div neg scale magscale{DVImag dup scale}if 0 setgray}N /psfts{S 65781.76
+div N}N /startTexFig{/psf$SavedState save N userdict maxlength dict begin
+/magscale false def normalscale currentpoint TR /psf$ury psfts /psf$urx psfts
+/psf$lly psfts /psf$llx psfts /psf$y psfts /psf$x psfts currentpoint /psf$cy X
+/psf$cx X /psf$sx psf$x psf$urx psf$llx sub div N /psf$sy psf$y psf$ury
+psf$lly sub div N psf$sx psf$sy scale psf$cx psf$sx div psf$llx sub psf$cy
+psf$sy div psf$ury sub TR /showpage{}N /erasepage{}N /copypage{}N /p 3 def
+@MacSetUp}N /doclip{psf$llx psf$lly psf$urx psf$ury currentpoint 6 2 roll
+newpath 4 copy 4 2 roll moveto 6 -1 roll S lineto S lineto S lineto closepath
+clip newpath moveto}N /endTexFig{end psf$SavedState restore}N /@beginspecial{
+SDict begin /SpecialSave save N gsave normalscale currentpoint TR
+@SpecialDefaults count /ocount X /dcount countdictstack N}N /@setspecial{CLIP
+1 eq{newpath 0 0 moveto hs 0 rlineto 0 vs rlineto hs neg 0 rlineto closepath
+clip}if ho vo TR hsc vsc scale ang rotate rwiSeen{rwi urx llx sub div rhiSeen{
+rhi ury lly sub div}{dup}ifelse scale llx neg lly neg TR}{rhiSeen{rhi ury lly
+sub div dup scale llx neg lly neg TR}if}ifelse CLIP 2 eq{newpath llx lly
+moveto urx lly lineto urx ury lineto llx ury lineto closepath clip}if
+/showpage{}N /erasepage{}N /copypage{}N newpath}N /@endspecial{count ocount
+sub{pop}repeat countdictstack dcount sub{end}repeat grestore SpecialSave
+restore end}N /@defspecial{SDict begin}N /@fedspecial{end}B /li{lineto}B /rl{
+rlineto}B /rc{rcurveto}B /np{/SaveX currentpoint /SaveY X N 1 setlinecap
+newpath}N /st{stroke SaveX SaveY moveto}N /fil{fill SaveX SaveY moveto}N
+/ellipse{/endangle X /startangle X /yrad X /xrad X /savematrix matrix
+currentmatrix N TR xrad yrad scale 0 0 1 startangle endangle arc savematrix
+setmatrix}N end
+%%EndProcSet
+TeXDict begin 40258431 52099146 1000 300 300 @start /Fa 136[25
+2[9 17 2[19 19 19 4[8 19 1[9 9[9 92[{}10 34.166969 /Helvetica
+rf /Fb 67[58 188[{}1 57.899727 /Symbol rf /Fc 134[25 25 35
+25 27 1[25 16 1[27 27 27 41 11 6[27 3[27 35[29 10[27 27 27
+48[{}18 49.200378 /Helvetica-Oblique rf /Fd 130[16 1[16 29[14
+1[14 46[14 1[19 16 16 40[{}8 49.200378 /Helvetica rf /Fe 139[12
+21 14 1[23 10[21 2[23 5[10 5[25 86[{}8 37.412769 /Helvetica-Bold
+rf /Ff 81[30 52[27 27 1[27 30 16 27 19 1[30 30 30 44 14 2[14
+1[30 16 27 30 27 30 27 30[35 35 3[29 8[27 27 27 27 27 14 47[{}30
+49.200378 /Helvetica-BoldOblique rf /Fg 135[19 1[19 21 11 19
+13 1[21 21 21 30 7[19 1[19 21 19 4[9 92[{}15 34.166969 /Helvetica-Bold
+rf /Fh 133[18 20 20 29 20 20 11 16 13 20 20 20 20 31 11 20
+11 11 20 20 13 18 20 18 20 18 10[29 1[24 22 27 1[22 3[24 2[13
+29 6[29 18[10 13 10 44[{}38 40.000278 /Times-Roman rf /Fi 203[14
+14 14 14 49[{}4 28.000196 /Times-Roman rf /Fj 203[16 16 16
+16 49[{}4 32.000225 /Times-Roman rf /Fk 130[20 1[20 1[29 3[33
+16 29 20 2[33 2[13 2[13 33 33 16 33 33 1[33 33 4[16 7[36 37[16
+46[{}20 59.040516 /Helvetica rf /Fl 134[39 2[39 43 24 39 27
+1[43 43 43 63 20 2[20 43 43 1[39 43 39 1[39 13[47 2[47 3[43
+4[55 2[51 51 51 51 7[39 39 39 39 39 39 39 39 39 39 3[20 44[{}37
+70.862267 /Helvetica-Bold rf /Fm 182[102 73[{}1 368.041595
+/Helvetica-Bold rf /Fn 81[25 51[20 23 23 32 23 25 14 23 16
+1[25 25 25 36 11 2[11 25 25 14 23 25 23 25 23 4[11 7[25 27
+2[27 7[29 2[27 1[29 29 29 2[24 24 24 6[23 23 6[14 2[16 42[{}40
+41.000366 /Helvetica-Bold rf /Fo 134[23 1[32 23 25 14 23 16
+25 25 25 25 1[11 2[11 25 1[14 23 25 23 25 23 17[32 6[29 5[29
+4[24 12[23 2[14 45[{}26 41.000366 /Helvetica-BoldOblique rf
+/Fp 81[20 52[20 20 1[20 23 11 20 14 23 23 23 23 34 9 2[9 1[23
+1[23 23 20 23 23 17[32 6[29 5[27 27 12[23 23 23 23 23 2[14
+45[{}31 41.000366 /Helvetica-Oblique rf /Fq 67[48 4[22 183[{}2
+48.249817 /Symbol rf /Fr 81[30 48[19 1[19 25 27 27 38 27 30
+16 27 19 30 30 30 30 44 14 27 1[14 30 30 16 27 30 27 30 27
+3[16 14 16 24[35 35 3[29 4[27 2[27 27 2[27 27 1[14 16 14 1[19
+16 16 40[{}45 49.200378 /Helvetica-Bold rf /Fs 139[28 47 33
+1[52 52 52 75 24 47 24 24 52 52 1[47 1[47 52 47 9[80 2[52 56
+2[56 10[56 2[61 66[{}23 85.007408 /Helvetica-Bold rf /Ft 81[27
+51[21 24 24 35 24 27 16 19 21 1[27 24 27 40 13 27 16 13 27
+24 16 21 27 21 27 24 12[32 27 35 1[29 37 35 45 32 2[19 1[37
+29 32 35 35 32 35 7[24 24 24 24 24 24 24 24 24 24 3[12 44[{}53
+48.000336 /Times-Bold rf /Fu 139[23 27 3[34 38 8[31 33[50 67[{}6
+69.120476 /Times-Bold rf /Fv 133[19 3[19 21 10 19 12 1[21 21
+21 31 8 19 8 8 21 21 10 21 21 19 21 21 9[35 1[27 23 25 2[25
+8[29 1[25 27 27 25 25 38 6[21 21 21 21 21 21 21 21 21 21 1[10
+1[10 44[{}46 37.412769 /Helvetica rf /Fw 81[24 52[22 2[22 22
+12 17 15 1[22 22 22 34 3[12 22 1[15 19 22 19 22 19 11[32 27
+24 2[24 1[32 3[17 15 3[27 32 2[32 6[12 1[22 2[22 22 1[22 22
+22 1[11 15 11 4[15 39[{}40 43.800289 /Times-Roman rf /Fx 134[29
+4[16 22 19 2[29 29 45 3[16 29 2[25 29 25 1[25 6[35 3[41 1[35
+6[51 19[29 5[29 29 29 29 1[14 46[{}23 57.600342 /Times-Roman
+rf /Fy 81[20 48[14 11 14 20 20 20 29 20 23 11 20 14 23 23 23
+23 34 9 20 1[9 23 23 11 23 23 20 23 23 3[11 11 11 5[29 1[27
+2[27 7[29 1[25 2[29 27 1[41 1[24 24 24 11 1[23 23 23 23 23
+23 23 23 23 23 1[11 14 11 24 16 14 14 9 1[36 3[11 33[{}64 41.000366
+/Helvetica rf /Fz 55[16 78[21 21 32 21 24 13 19 19 1[24 24
+24 35 13 21 1[13 24 24 13 21 24 21 24 24 7[27 29 40 1[35 27
+24 29 1[29 1[32 40 27 4[35 1[29 1[32 1[29 6[16 11[12 16 12
+4[16 5[16 33[{}45 48.000336 /Times-Italic rf /FA 135[29 2[32
+19 22 25 1[32 29 32 48 16 32 19 16 32 29 19 25 32 25 32 29
+8[41 57 41 1[38 32 2[35 1[41 54 3[22 45 45 1[38 41 41 38 7[19
+1[29 29 1[29 29 29 29 29 29 1[14 46[{}46 57.600342 /Times-Bold
+rf /FB 47[48 21[21 11[27 3[21 45[10 1[21 24 24 35 24 24 13
+19 16 24 24 24 24 37 13 24 13 13 24 24 16 21 24 21 24 21 7[35
+35 45 35 35 29 27 32 1[27 35 35 43 29 35 1[16 35 35 27 29 35
+32 32 35 3[27 1[13 13 24 24 24 24 24 24 24 24 24 24 13 12 16
+12 1[24 16 16 16 5[16 33[{}76 48.000336 /Times-Roman rf /FC
+138[46 1[32 37 6[46 1[23 3[37 46 37 13[60 55 46 2[50 8[64 31[28
+39[{}14 82.960571 /Times-Bold rf end
+%%EndProlog
+%%BeginSetup
+%%Feature: *Resolution 300dpi
+TeXDict begin
+
+%%EndSetup
+%%Page: 0 1
+0 bop 808 392 a FC(PST)-6 b(ricks)p FB(:)539 473 y FA(PostScript)15
+b(macr)o(os)g(for)g(Generic)h(T)-5 b(eX.)314 1210 y @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  0 360 11.38092 34.14276
+.5 CLW mul dup 3 1 roll sub 3 1 roll sub exch 91.04736 79.66644 Ellipse
+closepath gsave 1.0 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 1. setgray  0. true 72.83781 73.97598
+91.04736 85.3569 .5 Frame  gsave 1. setgray fill  grestore gsave 0.8
+SLW 1. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 45.52368 85.3569 91.04736 85.3569 91.04736 91.04736
+ /r 3.4143 def /Lineto { Arcto } def false Line  gsave 1.0 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  34.14276 85.3569 45.52368 85.3569 ArrowA 34.14276
+73.97598 34.14276 62.59506 ArrowB curveto gsave 1.0 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 56.9046 73.97598 91.04736 73.97598 91.04736 68.28552
+ /r 3.4143 def /Lineto { Arcto } def false Line  gsave 1.0 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  45.52368 73.97598 56.9046 73.97598 ArrowA 45.52368
+73.97598 45.52368 62.59506 ArrowB curveto gsave 1.0 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 45.52368 62.59506 34.14276 62.59506  /Lineto /lineto
+load def false Line  gsave 1.0 SLW 0. setgray 0 setlinecap stroke
+grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 68.28552 85.3569 68.28552 91.04736 56.9046 91.04736
+56.9046 85.3569  /r 3.4143 def /Lineto { Arcto } def false Line  gsave
+1.0 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  0. true 60.31891 91.04736
+64.8712 99.01396 .5 Frame  gsave 1.0 SLW 0. setgray 0 setlinecap stroke
+ grestore end
+
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 1.0 SLW 0. setgray  1. true 45.52368 99.01396
+79.66644 102.42828 .5 Frame  gsave 1. setgray fill  grestore gsave
+1.0 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 479 983
+a @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.5 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  2.84523 -4.55229 0.0 0.0 ArrowA -2.84523 -4.55229
+0.0 0.0 ArrowB curveto gsave 0.5 SLW 0. setgray 0 setlinecap stroke
+ grestore end
+
+@endspecial 48 x @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.5 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  2.84523 -4.55229 0.0 0.0 ArrowA -2.84523 -4.55229
+0.0 0.0 ArrowB curveto gsave 0.5 SLW 0. setgray 0 setlinecap stroke
+ grestore end
+
+@endspecial 47 x @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.5 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  2.84523 -4.55229 0.0 0.0 ArrowA -2.84523 -4.55229
+0.0 0.0 ArrowB curveto gsave 0.5 SLW 0. setgray 0 setlinecap stroke
+ grestore end
+
+@endspecial
+47 x @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.5 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  2.84523 -4.55229 0.0 0.0 ArrowA -2.84523 -4.55229
+0.0 0.0 ArrowB curveto gsave 0.5 SLW 0. setgray 0 setlinecap stroke
+ grestore end
+
+@endspecial 417 1242 a FB(Dripping)12
+b(Faucet)1188 974 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 1. setgray  [ 45.52368 51.21414
+45.52368 45.52368 11.38092 45.52368 11.38092 51.21414  /Lineto /lineto
+load def false Polygon  gsave 90 rotate 45. rotate 0.8 SLW 0. setgray
+2.27614 LineFill  grestore gsave 0.8 SLW 1. setgray 0 setlinecap stroke
+ grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 45.52368 45.52368 11.38092 45.52368  /Lineto /lineto
+load def false Line  gsave 2.0 SLW 0. setgray 0 setlinecap stroke
+grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 1.5 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 28.4523 6.82861 28.4523 12.51907 23.9 14.79523 33.0046
+19.34752 23.9 23.9 33.0046 28.4523 23.9 33.0046 33.0046 37.55707 28.4523
+39.83322 28.4523 45.52368  /Lineto /lineto load def false Line  gsave
+1.5 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 1.5 SLW 0. setgray  0. true 20.48569 -11.38092
+36.4189 6.82861 .5 Frame  gsave 0.75 setgray fill  grestore gsave 1.5
+SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 1285 999
+a Fz(M)1188 974 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  moveto } def /ArrowB { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  } def [ 42.10936 5.69046 42.10936
+-10.24275  /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 1.5 SLW 0. setgray  0. true 20.48569 -39.83322
+36.4189 -21.62367 .5 Frame  gsave 0.75 setgray fill  grestore gsave
+1.5 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 1288 1112 a(m)1188 974 y @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { BeginArrow false 0.4 1.4 2.0 3. Arrow  EndArrow  } def [
+56.9046 -11.38092 56.9046 11.38092  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 1447 979 a(g)1188 974 y @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { BeginArrow false 0.4 1.4 2.0 3. Arrow  EndArrow  } def [
+42.10936 -38.69505 42.10936 -22.76184  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 1072 1195 a FB(Mathematical)i(Model)e(for)1133
+1242 y(a)g(Dripping)g(Faucet)904 1068 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 22.76184 5.69046 0.0 5.69046  /Lineto /lineto load
+def false Line  gsave 2.0 SLW 0. setgray 0 setlinecap stroke  grestore
+end
+
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 22.76184 -5.69046 0.0 -5.69046  /Lineto /lineto load
+def false Line  gsave 2.0 SLW 0. setgray 0 setlinecap stroke  grestore
+end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 17.07138 -11.38092 28.4523 0.0 17.07138 11.38092
+ /Lineto /lineto load def false Line  gsave 2.0 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 243 1210 a @beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0.5 setgray  0.05 true 0.0 -28.4523
+352.80853 136.57104 .5 Frame  gsave 2.0 SLW 0.5 setgray 0 setlinecap
+stroke  grestore end
+
+
+@endspecial 243 986 a
+ tx@Dict begin 90. Rot  end
+ 243 986 a
+ tx@Dict begin { 5.0 39.93105 7.21277 2.15988 180 90.  sub Uput UUput
+} PutCoor PutBegin  end
+ 160 996 a Fy(leecheng)243
+986 y
+ tx@Dict begin PutEnd  end
+ 243 986 a
+ tx@Dict begin 90. neg Rot  end
+ 745 1547 a FC(User)q(')m(s)20 b(Guide)751 1780
+y Fx(T)n(imothy)13 b(V)-6 b(an)15 b(Zandt)800 1956 y(12)e(March)j(1993)817
+2024 y(V)-6 b(ersion)15 b(0.93a)296 2342 y Fw(Author)r(')n(s)8
+b(address:)296 2399 y(Department)j(of)f(Economics,)h(Princeton)g(University)m
+(,)296 2455 y(Princeton,)g(NJ)f(08544-1021,)f(USA.)h(Internet:)16
+b Fv(tvz@Princeton.EDU)p eop
+%%Page: 1 2
+1 bop 1138 50 a Fu(Contents)712 161 y FA(W)m(elcome)16 b(to)e(PST)l(ricks)565
+b(1)712 271 y(Part)15 b(I)92 b(The)15 b(Essentials)498 b(3)641
+376 y Ft(1)47 b(Arguments)11 b(and)g(delimiters)557 b(3)641
+481 y(2)47 b(Color)974 b(4)641 586 y(3)47 b(Setting)12 b(graphics)f
+(parameters)514 b(5)641 691 y(4)47 b(Dimensions,)11 b(coordinates)g(and)g
+(angles)365 b(7)641 796 y(5)47 b(Basic)12 b(graphics)g(parameters)548
+b(8)712 907 y FA(Part)15 b(II)70 b(Basic)15 b(graphics)g(objects)279
+b(10)641 1011 y Ft(6)47 b(Lines)12 b(and)f(polygons)672 b(10)641
+1116 y(7)47 b(Ar)o(cs,)12 b(cir)o(cles)h(and)e(ellipses)575
+b(1)m(1)641 1221 y(8)47 b(Curves)920 b(13)641 1326 y(9)47 b(Dots)973
+b(15)617 1431 y(10)47 b(Grids)950 b(17)619 1536 y(1)m(1)48
+b(Plots)966 b(19)712 1647 y FA(Part)15 b(III)48 b(Mor)o(e)15
+b(graphics)g(parameters)169 b(24)617 1751 y Ft(12)47 b(Coordinate)12
+b(systems)665 b(24)617 1856 y(13)47 b(Line)12 b(styles)850
+b(24)617 1961 y(14)47 b(Fill)14 b(styles)873 b(27)617 2066
+y(15)47 b(Arr)o(owheads)11 b(and)g(such)620 b(28)617 2171 y(16)47
+b(Custom)11 b(styles)783 b(31)712 2282 y FA(Part)15 b(IV)51
+b(Custom)14 b(graphics)405 b(32)617 2387 y Ft(17)47 b(The)12
+b(basics)852 b(32)617 2491 y(18)47 b(Parameters)831 b(32)617
+2596 y(19)47 b(Graphics)12 b(objects)722 b(33)591 2828 y Fv(T)l(able)9
+b(of)h(contents)1055 b(1)p eop
+%%Page: 2 3
+2 bop 617 50 a Ft(20)47 b(Safe)12 b(tricks)850 b(36)617 155
+y(21)47 b(Pr)o(etty)13 b(safe)f(tricks)719 b(39)617 260 y(22)47
+b(For)13 b(hackers)e(only)721 b(39)712 370 y FA(Part)15 b(V)73
+b(Pictur)o(e)15 b(T)-5 b(ools)500 b(41)617 475 y Ft(23)47 b(Pictur)o(es)901
+b(41)617 580 y(24)47 b(Placing)13 b(and)e(r)o(otating)h(whatever)449
+b(42)617 685 y(25)47 b(Repetition)854 b(46)617 790 y(26)47
+b(Axes)968 b(47)712 901 y FA(Part)15 b(VI)51 b(T)-5 b(ext)14
+b(T)l(ricks)546 b(52)617 1005 y Ft(27)47 b(Framed)12 b(boxes)778
+b(52)617 1110 y(28)47 b(Clipping)888 b(54)617 1215 y(29)47
+b(Rotation)11 b(and)g(scaling)h(boxes)520 b(55)712 1326 y FA(Part)15
+b(VII)29 b(Nodes)15 b(and)f(Node)h(Connections)105 b(58)617
+1431 y Ft(30)47 b(Nodes)941 b(59)617 1536 y(31)47 b(Node)12
+b(connections)708 b(60)617 1641 y(32)47 b(Attaching)11 b(labels)h(to)g(node)f
+(connections)322 b(66)712 1751 y FA(Part)15 b(VIII)7 b(Special)14
+b(T)l(ricks)477 b(70)617 1856 y Ft(33)47 b(Coils)12 b(and)f(zigzags)716
+b(70)617 1961 y(34)47 b(Special)13 b(coordinates)671 b(71)617
+2066 y(35)47 b(Overlays)884 b(73)617 2171 y(36)47 b(The)12
+b(gradient)g(\256ll)g(style)632 b(74)617 2276 y(37)47 b(Adding)11
+b(color)h(to)g(tables)616 b(75)617 2381 y(38)47 b(T)l(ypesetting)12
+b(text)g(along)g(a)f(path)477 b(76)617 2485 y(39)47 b(Str)o(oking)12
+b(and)f(\256lling)h(character)g(paths)338 b(77)617 2590 y(40)47
+b(Importing)11 b(EPS)h(\256les)665 b(78)591 2828 y Fv(T)l(able)9
+b(of)h(contents)1055 b(2)p eop
+%%Page: 3 4
+3 bop 617 50 a Ft(41)47 b(Exporting)12 b(EPS)f(\256les)668
+b(79)712 161 y FA(Help)939 b(82)630 266 y Ft(A)47 b(Boxes)947
+b(82)633 370 y(B)47 b(T)o(ips)12 b(and)f(Mor)o(e)i(T)l(ricks)624
+b(85)630 475 y(C)47 b(Including)11 b(PostScript)h(code)540
+b(86)630 580 y(D)47 b(T)l(r)o(oubleshooting)733 b(87)591 2828
+y Fv(T)l(able)9 b(of)h(contents)1055 b(3)p eop
+%%Page: 1 5
+4 bop 591 61 a Fs(W)n(elcome)23 b(to)h(PST)-5 b(ricks)591 387
+y FB(PST)n(ricks)15 b(is)i(a)f(collection)i(of)e(PostScript-based)g(T)1486
+397 y(E)1509 387 y(X)g(macros)g(that)h(is)g(com-)591 447 y(patible)j(with)g
+(most)f(T)978 458 y(E)1002 447 y(X)g(macro)h(packages,)h(including)g(Plain)e
+(T)1742 458 y(E)1766 447 y(X,)g(L)1844 441 y(a)1858 447 y(T)1879
+462 y(E)1902 447 y(X,)591 507 y(AMST)717 518 y(E)739 507 y(X,)d(and)h(AMS-L)
+1021 501 y(a)1035 507 y(T)1056 522 y(E)1078 507 y(X.)g(PST)n(ricks)g(gives)g
+(you)g(color)n(,)h(graphics,)h(rota-)591 567 y(tion,)d(trees)g(and)f
+(overlays.)28 b(PST)n(ricks)15 b(puts)g(the)h(icing)g(\(PostScript\))f(on)g
+(your)591 627 y(cake)d(\(T)727 638 y(E)751 627 y(X\)!)591 717
+y(T)m(o)j(install)h(PST)n(ricks,)f(follow)g(the)h(instructions)g(in)f(the)h
+(\256le)f Fy(read-me.pst)f FB(that)591 777 y(comes)g(with)h(the)f(PST)n
+(ricks)h(package.)25 b(Even)14 b(if)h(PST)n(ricks)f(has)g(already)i(been)591
+837 y(installed)d(for)e(you,)h(give)g Fy(read-me.pst)f FB(a)h(look)g(over)m
+(.)591 926 y(This)d Fz(User)r(')-6 b(s)7 b(Guide)i FB(ver)o(ges)f(on)h(being)
+h(a)f(reference)h(manual,)g(meaning)g(that)f(it)h(is)591 986
+y(not)e(designed)g(to)h(be)f(read)h(linearly)m(.)17 b(Here)8
+b(is)g(a)h(recommended)g(strategy:)16 b(Finish)591 1047 y(reading)h(this)g
+(brief)g(overview)g(of)g(the)g(features)g(in)h(PST)n(ricks.)31
+b(Then)18 b(thumb)591 1107 y(through)d(the)h(entire)g Fz(User)r(')-6
+b(s)14 b(Guide)h FB(to)h(get)f(your)h(own)e(overview)m(.)28
+b(Return)16 b(to)591 1167 y(Part)11 b(I)h(\(Essentials\))g(and)g(read)g(it)h
+(carefully)m(.)18 b(Refer)12 b(to)g(the)g(remaining)h(sections)591
+1227 y(as)e(the)i(need)f(arises.)591 1316 y(When)d(you)f(cannot)h(\256gure)g
+(out)g(how)f(to)h(do)g(something)g(or)f(when)h(trouble)g(arises,)591
+1377 y(check)16 b(out)g(the)h(appendices)f(\(Help\).)30 b(Y)-5
+b(ou)15 b(just)i(might)f(be)g(lucky)h(enough)f(to)591 1437
+y(\256nd)c(a)h(solution.)20 b(There)13 b(is)g(also)f(a)h(L)1202
+1431 y(a)1216 1437 y(T)1237 1452 y(E)1261 1437 y(X)f(\256le)h
+Fy(samples.pst)h FB(of)f(samples)f(that)i(is)591 1497 y(distributed)e(with)g
+(PST)n(ricks.)17 b(Look)12 b(to)g(this)g(\256le)g(for)g(further)g
+(inspiration.)591 1586 y(This)17 b(documentation)j(is)d(written)i(with)f(L)
+1314 1580 y(a)1328 1586 y(T)1349 1601 y(E)1372 1586 y(X.)g(Some)g(examples)g
+(use)g(L)1856 1580 y(a)1870 1586 y(T)1891 1601 y(E)1914 1586
+y(X)591 1646 y(speci\256c)f(constructs)g(and)g(some)g(don')o(t.)34
+b(However)n(,)17 b(there)h(is)f(nothing)h(L)1856 1640 y(a)1870
+1646 y(T)1891 1661 y(E)1914 1646 y(X)591 1707 y(speci\256c)8
+b(about)h(any)f(of)h(the)g(macros,)g(nor)f(is)h(there)g(anything)g(that)g
+(does)f(not)h(work)591 1767 y(with)j(L)700 1761 y(a)714 1767
+y(T)735 1782 y(E)759 1767 y(X.)g(This)g(package)h(has)g(been)g(tested)g(with)
+f(Plain)h(T)1617 1778 y(E)1641 1767 y(X,)f(L)1712 1761 y(a)1726
+1767 y(T)1747 1782 y(E)1770 1767 y(X,)g(AMS-)591 1827 y(L)603
+1821 y(a)617 1827 y(T)638 1842 y(E)661 1827 y(Xand)j(AMST)906
+1838 y(E)928 1827 y(X,)g(and)g(should)g(work)g(with)g(other)g(T)1565
+1838 y(E)1589 1827 y(X)g(macro)h(packages)591 1887 y(as)11
+b(well.)591 1976 y(The)18 b(main)g(macro)g(\256le)g(is)g Fy(pstricks.tex)p
+FB(/)p Fy(pstricks)q(.s)q(ty)p FB(.)38 b(Each)18 b(of)g(the)g(PST)n(ricks)325
+2000 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 31.29819 -15.6491
+31.29819 14.22636 -6.25954 14.22636 -6.25954 18.4941 -25.03864 18.4941
+-25.03864 14.22636 -31.29819 14.22636 -31.29819 -15.6491  /r 2.0 def
+/Lineto { Arcto } def false Polygon  gsave 3.0 45. PtoC Shadow 0.25
+setgray gsave fill grestore stroke grestore gsave 1. setgray gsave
+fill grestore stroke grestore gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 231 2018 a Fr(pstricks)591
+2037 y FB(macro)c(\256les)h(comes)f(with)h(a)f Fy(.tex)i FB(extension)e(and)h
+(a)f Fy(.sty)i FB(extension;)h(these)d(are)591 2097 y(equivalent,)19
+b(but)e(the)h Fy(.sty)g FB(extension)f(means)h(that)f(you)g(can)g(include)h
+(the)g(\256le)591 2157 y(name)12 b(as)g(a)g(L)803 2151 y(a)817
+2157 y(T)838 2172 y(E)862 2157 y(X)f(document)i(style)f(option.)591
+2246 y(There)18 b(are)h(numerous)e(supplementary)i(macro)g(\256les.)35
+b(A)18 b(\256le,)h(like)g(the)g(one)591 2306 y(above)13 b(and)g(the)h(left,)h
+(is)e(used)g(in)g(this)h Fz(User)r(')-6 b(s)11 b(Guide)j FB(to)f(remind)h
+(you)f(that)h(you)591 2367 y(must)e(input)g(a)g(\256le)g(before)g(using)g
+(the)g(macros)g(it)h(contains.)591 2456 y(For)h(most)g(PST)n(ricks)h(macros,)
+g(even)g(if)g(you)g(misuse)f(them,)i(you)e(will)i(not)e(get)591
+2516 y(PostScript)g(errors)h(in)g(the)g(output.)27 b(However)n(,)15
+b(it)h(is)e(recommended)i(that)g(you)591 2576 y(resolve)h(any)f(T)852
+2587 y(E)876 2576 y(X)g(errors)h(before)g(attempting)h(to)f(print)g(your)g
+(document.)32 b(A)591 2637 y(few)14 b(PST)n(ricks)h(macros)g(pass)g(on)g
+(PostScript)f(errors)h(without)g(warning.)26 b(Use)591 2828
+y Fv(W)o(elcome)10 b(to)g(PST)o(ricks)982 b(1)p eop
+%%Page: 2 6
+5 bop 591 50 a FB(these)10 b(with)h(care,)h(especially)f(if)g(you)g(are)g
+(using)f(a)h(networked)f(printer)n(,)h(because)591 110 y(PostScript)g(errors)
+g(can)h(cause)g(a)g(printer)h(to)f(bomb.)17 b(Such)11 b(macros)h(are)g
+(pointed)591 170 y(out)g(in)g(strong)f(terms,)h(using)g(a)g(warning)g(like)h
+(this)f(one:)297 359 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  0.0 0.0 28.0 .5 CLW
+mul sub 0 360 arc closepath gsave 0.5 setgray fill  grestore gsave
+0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+297 359 a
+ tx@Dict begin 45. Rot  end
+ 210 415 a
+ tx@Dict begin CP CP T 3.55672 3.55672 scale NET  end
+ FB(PS)210 415 y
+ tx@Dict begin CP CP T 1 3.55672 div 1 3.55672 div scale NET  end
+ 297 359 a
+ tx@Dict begin 45. neg Rot  end
+ @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  0 360 7.0 1.39998 .5
+CLW mul dup 3 1 roll sub 3 1 roll sub exch 0.0 26.60002 Ellipse closepath
+gsave 0. setgray fill  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  0 360 7.0 1.39998 .5
+CLW mul dup 3 1 roll sub 3 1 roll sub exch 0.0 38.5 Ellipse closepath
+gsave 0. setgray fill  grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  0. true -7.0 26.60002
+7.0 38.5 .5 Frame  gsave 0. setgray fill  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  0.0 49.0 0.0 38.5 ArrowA 7.0 56.0 24.5 56.0 ArrowB
+curveto gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 127 a
+ tx@Dict begin 0.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 0.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 40.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 40.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 80.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 80.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 120.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 120.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 160.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 160.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 200.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 200.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 240.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 240.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 280.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 280.0 neg Rot  end
+ 399 127 a
+ tx@Dict begin 320.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+399 127 a
+ tx@Dict begin 320.0 neg Rot  end
+ 712 330 a Fz(W)l(arning:)47 b(Use)18 b(macr)n(os)f(that)h(do)g(not)
+h(check)g(for)f(PostScript)712 390 y(err)n(ors)13 b(with)h(car)n(e.)22
+b(PostScript)14 b(err)n(ors)e(can)h(cause)h(a)f(printer)h(to)712
+450 y(bomb!)591 594 y FB(Keep)i(in)i(mind)f(the)g(following)g(typographical)h
+(conventions)g(in)f(this)g(User)r(')m(s)591 654 y(Guide.)665
+785 y Fq(\267)25 b FB(All)11 b(literal)g(input)g(characters,)g(i.e.,)g(those)
+f(that)h(should)e(appear)i(verbatim)712 845 y(in)16 b(your)f(input)g(\256le,)
+h(appear)g(in)f(upright)g Fy(Helvetica)h FB(and)g Fy(Helvetica-Bold)712
+905 y FB(fonts.)665 1007 y Fq(\267)25 b FB(Meta)11 b(ar)o(guments,)g(for)f
+(which)g(you)f(are)i(supposed)e(to)h(substitute)h(a)f(value)712
+1067 y(\(e.g.,)22 b Fp(angle)q FB(\))c(appear)i(in)f(slanted)h
+Fp(Helvetica-Oblique)f FB(and)h Fo(Helvetica-)712 1127 y(BoldOblique)13
+b FB(fonts.)665 1229 y Fq(\267)25 b FB(The)18 b(main)g(entry)g(for)g(a)f
+(macro)h(or)g(parameter)g(that)h(states)e(its)h(syntax)712
+1289 y(appears)e(in)g(a)f(lar)o(ge)h(bold)g(font,)g Fz(except)h(for)e(the)h
+(optional)g(ar)n(guments,)712 1349 y(which)e(ar)n(e)f(in)g(medium)f(weight)p
+FB(.)21 b(This)13 b(is)g(how)f(you)h(can)h(recognize)f(the)712
+1409 y(optional)g(ar)o(guments.)665 1511 y Fq(\267)25 b FB(References)16
+b(to)g(PST)n(ricks)e(commands)i(and)f(parameters)h(within)g(para-)712
+1571 y(graphs)c(are)g(set)g(in)h Fn(Helvetica-Bold)p FB(.)591
+2828 y Fv(W)o(elcome)d(to)g(PST)o(ricks)982 b(2)p eop
+%%Page: 3 7
+6 bop 393 265 a Fm(I)591 182 y Fs(The)23 b(Essentials)366 585
+y Fl(1)70 b(Arguments)21 b(and)f(delimiters)591 706 y FB(Here)14
+b(is)h(some)g(nitty-gritty)h(about)f(ar)o(guments)g(and)g(delimiters)h(that)f
+(is)g(really)591 766 y(important)d(to)h(know)m(.)591 855 y(The)f(PST)n(ricks)
+g(macros)g(use)f(the)i(following)f(delimiters:)1264 989 y(Curly)g(braces)50
+b Fy({)p Fp(arg)r Fy(})764 1061 y FB(Brackets)12 b(\(only)g(for)g(optional)g
+(ar)o(guments\))51 b Fy([)p Fp(arg)r Fy(])728 1133 y FB(Parentheses)12
+b(and)g(commas)h(for)e(coordinates)51 b Fy(\()p Fp(x)s Fy(,)t
+Fp(y)t Fy(\))1089 1205 y(=)12 b FB(and)g Fy(,)g FB(for)g(parameters)51
+b Fp(par1)p Fy(=)p Fp(val1)p Fy(,)12 b Fq(\274)591 1332 y FB(Spaces)i(and)h
+(commas)g(are)h(also)e(used)h(as)g(delimiters)h(within)f(ar)o(guments,)h(but)
+591 1392 y(in)c(this)g(case)g(the)g(ar)o(gument)h(is)e(expanded)i(before)f
+(looking)g(for)f(the)i(delimiters.)591 1481 y(Always)f(use)i(a)g(period)g
+(rather)g(than)g(a)g(comma)g(to)g(denote)g(the)g(decimal)i(point,)591
+1541 y(so)11 b(that)i(PST)n(ricks)e(doesn')o(t)h(mistake)h(the)f(comma)h(for)
+f(a)g(delimiter)m(.)591 1630 y(The)f(easiest)g(mistake)h(to)f(make)g(with)g
+(the)g(PST)n(ricks)g(macros)g(is)f(to)h(mess)g(up)f(the)591
+1690 y(delimiters.)21 b(This)13 b(may)g(generate)h(complaints)g(from)f(T)1532
+1701 y(E)1556 1690 y(X)f(or)h(PST)n(ricks)g(about)591 1751
+y(bad)f(ar)o(guments,)g(or)g(other)g(unilluminating)h(errors)f(such)g(as)f
+(the)i(following:)615 1879 y Fy(!)f(Use)g(of)f(\\get@coor)g(doesn't)g(match)h
+(its)g(de\256nition.)615 1960 y(!)g(Paragraph)d(ended)h(before)g
+(\\pst@addcoor)h(was)h(complete.)615 2041 y(!)g(Forbidden)d(control)i
+(sequence)f(found)h(while)g(scanning)g(use)g(of)h(\\check@arrow)n(.)615
+2121 y(!)g(File)f(ended)f(while)h(scanning)g(use)g(of)h(\\lput.)591
+2250 y FB(Delimiters)e(are)f(generally)h(the)g(\256rst)e(thing)i(to)f(check)h
+(when)f(you)g(get)g(errors)g(with)591 2310 y(a)j(PST)n(ricks)f(macro.)591
+2399 y(Since)i(PST)n(ricks)g(macros)h(can)g(have)f(many)h(ar)o(guments,)g(it)
+g(is)g(useful)f(to)h(know)591 2459 y(that)g(you)f(can)i(leave)f(a)g(space)g
+(or)g(new)f(line)i(between)f(any)g(ar)o(guments,)g(except)591
+2520 y(between)j(ar)o(guments)h(enclosed)f(in)h(curly)f(braces.)33
+b(If)17 b(you)g(need)h(to)f(insert)h(a)591 2580 y(new)c(line)i(between)g(ar)o
+(guments)f(enclosed)h(in)f(curly)g(braces,)h(put)f(a)h(comment)591
+2640 y(character)d Fy(\045)f FB(at)g(the)h(end)f(of)g(the)g(line.)591
+2828 y Fv(The)d(Essentials)1092 b(3)p eop
+%%Page: 4 8
+7 bop 591 50 a FB(As)13 b(a)h(general)g(rule,)h(the)f(\256rst)f(non-space)h
+(character)h(after)g(a)f(PST)n(ricks)f(macro)591 110 y(should)f(not)g(be)h(a)
+g Fy([)g FB(or)f Fy(\()p FB(.)19 b(Otherwise,)12 b(PST)n(ricks)g(might)h
+(think)g(that)g(the)g Fy([)g FB(or)g Fy(\()f FB(is)591 170
+y(actually)h(part)f(of)g(the)h(macro.)18 b(Y)-5 b(ou)12 b(can)g(always)g(get)
+g(around)g(this)h(by)e(inserting)591 230 y(a)h(pair)g Fy({})f
+FB(of)h(braces)g(somewhere)g(between)g(the)h(macro)f(and)g(the)g
+Fy([)h FB(or)f Fy(\()p FB(.)366 427 y Fl(2)70 b(Color)591 549
+y FB(The)12 b(grayscales)712 680 y Fy(black)p FB(,)h Fy(darkgray)p
+FB(,)e Fy(gray)p FB(,)g Fy(lightgray)p FB(,)g(and)h Fy(white)p
+FB(,)591 810 y(and)g(the)g(colors)712 941 y Fy(red)p FB(,)f
+Fy(green)p FB(,)g Fy(blue)p FB(,)g Fy(cyan)p FB(,)h Fy(magenta)p
+FB(,)f(and)h Fy(yellow)591 1072 y FB(are)g(prede\256ned)g(in)g(PST)n(ricks.)
+591 1161 y(This)g(means)g(that)h(these)g(names)f(can)h(be)f(used)g(with)g
+(the)h(graphics)f(objects)h(that)591 1221 y(are)e(described)g(in)h(later)g
+(sections.)17 b(This)11 b(also)g(means)g(that)h(the)g(command)f
+Fn(\\gray)591 1282 y FB(\(or)g Fn(\\red)p FB(,)h(etc.\))18
+b(can)12 b(be)g(used)g(much)g(like)h Fy(\\rm)f FB(or)g Fy(\\tt)p
+FB(,)h(as)e(in)591 1361 y
+ 0.5 setgray
+ 712 1443 a Fk({\\gray)16 b(This)h(stuf)o(f)g
+(should)f(be)g(gray)l(.})591 1498 y
+ 0 setgray
+ 76 x FB(The)e(commands)g
+Fn(\\gray)p FB(,)g Fn(\\red)p FB(,)h(etc.)24 b(can)14 b(be)g(nested)g(like)h
+(the)g(font)f(commands)591 1634 y(as)e(well.)20 b(There)13
+b(are)g(a)g(few)f(important)i(ways)e(in)h(which)g(the)g(color)g(commands)591
+1695 y(dif)o(fer)f(from)g(the)g(font)g(commands:)652 1825 y(1.)24
+b(The)12 b(color)g(commands)g(can)f(be)h(used)f(in)g(and)h(out)f(of)h(math)g
+(mode)f(\(there)712 1886 y(are)i(no)f(restrictions,)g(other)g(than)h(proper)e
+(T)1441 1896 y(E)1465 1886 y(X)g(grouping\).)652 1987 y(2.)24
+b(The)10 b(color)g(commands)f(af)o(fect)h(whatever)g(is)f(in)g(their)h(scope)
+f(\(e.g.,)h(lines\),)712 2047 y(not)j(simply)f(characters.)652
+2149 y(3.)24 b(The)13 b(scope)f(of)f(the)i(color)f(commands)g(does)g(not)g
+(extend)g(across)g(pages.)652 2251 y(4.)24 b(The)16 b(color)f(commands)g(are)
+h(not)f(as)g(robust)f(as)h(font)g(commands)g(when)712 2311
+y(used)e(inside)h(box)f(macros.)22 b(See)13 b(page)h(89)f(for)g(details.)22
+b(Y)-5 b(ou)13 b(can)h(avoid)712 2371 y(most)f(problems)g(by)f(explicitly)i
+(grouping)e(color)h(commands)g(\(e.g.,)g(en-)712 2431 y(closing)e(the)f
+(scope)g(in)g(braces)g Fy({})p FB(\))g(whenever)g(these)g(are)g(in)h(the)f
+(ar)o(gument)712 2492 y(of)i(another)h(command.)1120 2474 y
+Fj(1)p 591 2526 544 2 v 646 2557 a Fi(1)662 2572 y Fh(However)n(,)8
+b(this)e(is)h(not)g(necessary)f(with)h(the)g(PST)o(ricks)g(LR-box)g
+(commands,)f(expect)h(when)591 2622 y Fg(\\psverbboxtrue)i
+Fh(is)h(in)g(ef)o(fect.)k(See)c(Section)f(A.)591 2828 y Fv(Color)1248
+b(4)p eop
+%%Page: 5 9
+8 bop 591 50 a FB(Y)-5 b(ou)17 b(can)i(de\256ne)f(or)h(rede\256ne)f
+(additional)i(colors)e(and)g(grayscales)h(with)f(the)591 110
+y(following)12 b(commands.)18 b(In)12 b(each)h(case,)f Fp(numi)j
+FB(is)d(a)h(number)f(between)h(0)f(and)g(1.)591 170 y(Spaces)h(are)h(used)f
+(as)g(delimiters\320don')o(t)i(add)e(any)h(extraneous)f(spaces)h(in)f(the)591
+230 y(ar)o(guments.)591 364 y Fr(\\newgray{)p Ff(color)5 b
+Fr(}{)p Ff(num)q Fr(})712 444 y Fp(num)j FB(is)g(the)g(gray)g(scale)g
+(speci\256cation,)h(to)f(be)g(set)g(by)g(PostScript')m(s)g
+Fy(setgray)712 504 y FB(operator)m(.)18 b(0)12 b(is)g(black)h(and)f(1)g(is)f
+(white.)18 b(For)11 b(example:)820 604 y Fy(\\newgray{darkgray}{.25})591
+703 y Fr(\\newrgbcolor{)p Ff(color)5 b Fr(}{)p Ff(num1)13 b(num2)g(num3)s
+Fr(})712 783 y Fp(num1)h(num2)g(num3)i FB(is)g(a)g Fz(r)n(ed-gr)n(een-blue)f
+FB(speci\256cation,)j(to)e(be)f(set)h(by)712 843 y(PostScript')m(s)c
+Fy(setrgbcolor)f FB(operator)m(.)18 b(For)11 b(example,)820
+943 y Fy(\\newrgbcolor{green})o({0)19 b(1)k(0})591 1042 y Fr(\\newhsbcolor{)p
+Ff(color)5 b Fr(}{)p Ff(num1)13 b(num2)g(num3)s Fr(})712 1122
+y Fp(num1)i(num2)h(num3)i FB(is)f(an)g Fz(hue-saturation-brightness)f
+FB(speci\256cation,)712 1183 y(to)d(be)f(set)g(by)g(PostScript')m(s)f
+Fy(sethsbcolor)h FB(operator)m(.)18 b(For)11 b(example,)820
+1282 y Fy(\\newhsbcolor{mycolor}{.3)21 b(.7)i(.9})591 1382
+y Fr(\\newcmykcolor{)p Ff(color)5 b Fr(}{)p Ff(num1)13 b(num2)g(num3)h(num4)r
+Fr(})712 1462 y Fp(num1)j(num2)g(num3)f(num4)j FB(is)g(a)g
+Fz(cyan-magenta-yellow-black)i FB(speci-)712 1522 y(\256cation,)h(to)d(be)h
+(set)f(by)g(PostScript')m(s)g Fy(newcmykcolor)h FB(operator)m(.)39
+b(For)712 1582 y(example,)820 1682 y Fy(\\newcmykcolor{hercolor}{.5)21
+b(1)i(0)f(.5})591 1815 y FB(For)d(de\256ning)g(new)h(colors,)h(the)f
+Fz(rbg)g FB(model)g(is)g(a)g(sure)f(thing.)41 b Fz(hsb)19 b
+FB(is)h(not)591 1875 y(recommended.)d Fz(cmyk)11 b FB(is)f(not)g(supported)g
+(by)g(all)h(Level)g(1)f(implementations)i(of)591 1936 y(PostScript,)7
+b(although)g(it)g(is)g(best)g(for)g(c)q(olor)g(printi)q(ng.)18
+b(For)7 b(more)g(information)g(on)591 1996 y(color)12 b(models)g(and)g(color)
+g(speci\256cations,)g(consult)g(the)g Fz(PostScript)h(Language)591
+2056 y(Refer)n(ence)g(Manual)p FB(,)f(2nd)f(Edition)i(\(Red)f(Book\),)f(and)h
+(a)h(color)f(guide.)591 2144 y Fw(Driver)d(notes:)44 b(The)11
+b(command)g Fe(\\pstV)n(erb)g Fw(must)g(be)g(de\256ned.)366
+2339 y Fl(3)70 b(Setting)19 b(graphics)i(parameters)591 2459
+y FB(PST)n(ricks)12 b(uses)h(a)g(key-value)g(system)g(of)g(graphics)g
+(parameters)h(to)f(customize)591 2520 y(the)i(macros)h(that)g(generate)g
+(graphics)g(\(e.g.,)g(lines)f(and)h(circles\),)h(or)e(graphics)591
+2580 y(combined)h(with)g(text)g(\(e.g.,)g(framed)h(boxes\).)27
+b(Y)-5 b(ou)16 b(can)g(change)g(the)g(default)591 2640 y(values)c(of)f
+(parameters)i(with)f(the)h(command)f Fn(\\psset)p FB(,)f(as)h(in)591
+2828 y Fv(Setting)e(graphics)f(parameters)871 b(5)p eop
+%%Page: 6 10
+9 bop 712 50 a Fy(\\psset{\256llcolor=yellow})712 110 y
+(\\psset{linecolor=blue,framearc=.3,dash=3pt)21 b(6pt})591
+241 y FB(The)12 b(general)h(syntax)e(is:)712 386 y Fr(\\psset{)p
+Ff(par1=value1)p Fd(,)p Fc(par2=value2)p Fd(,)q Fb(\274)s Fr(})591
+517 y FB(As)i(illustrated)i(in)f(the)g(examples)h(above,)f(spaces)g(are)h
+(used)e(as)h(delimiters)h(for)591 577 y(some)f(of)g(the)h(values.)26
+b(Additional)15 b(spaces)f(are)h(allowed)g(only)g(following)f(the)591
+637 y(comma)c(that)f(separates)h Fp(par)t Fy(=)p Fp(value)f
+FB(pairs)g(\(which)g(is)g(thus)g(a)g(good)g(place)h(to)f(start)591
+697 y(a)i(new)g(line)g(if)h(there)f(are)h(many)f(parameter)i(changes\).)j
+(E.g.,)c(the)f(\256rst)g(example)591 758 y(is)g(acceptable,)j(but)e(the)h
+(second)e(is)h(not:)712 888 y Fy(\\psset{\256llcolor=yellow)n(,)24
+b(linecolor=blue})712 949 y(\\psset{\256llcolor=)g(yellow)n(,linecolor)e
+(=blue)g(})591 1079 y FB(The)12 b(parameters)h(are)f(described)h(throughout)f
+(this)g Fz(User)r(')-6 b(s)10 b(Guide)p FB(,)i(as)g(they)g(are)591
+1139 y(needed.)591 1229 y(Nearly)h(every)h(macro)g(that)h(makes)f(use)f(of)g
+(graphics)h(parameters)h(allows)e(you)591 1289 y(to)18 b(include)i(changes)f
+(as)f(an)h(optional)h(\256rst)e(ar)o(gument,)j(enclosed)e(in)g(square)591
+1349 y(brackets.)e(For)11 b(example,)712 1480 y Fy
+(\\psline[linecolor=green,linestyle=dotted]\(8,7\))591 1611
+y FB(draws)g(a)h(dotted,)g(green)h(line.)k(It)c(is)e(roughly)h(equivalent)h
+(to)712 1741 y Fy({\\psset{linecolor=green,linestyle=dotted}\\psline\(8,7\)})
+591 1872 y FB(For)i(many)i(parameters,)h(PST)n(ricks)e(processes)f(the)i
+(value)f(and)h(stores)e(it)i(in)g(a)591 1932 y(peculiar)d(form,)f(ready)g
+(for)g(PostScript)g(consumption.)20 b(For)13 b(others,)g(PST)n(ricks)591
+1993 y(stores)e(the)i(value)f(in)g(a)h(form)f(that)g(you)g(would)g(expect.)18
+b(In)12 b(the)g(latter)h(case,)g(this)591 2053 y Fz(User)r(')-6
+b(s)12 b(Guide)i FB(will)h(mention)h(the)f(name)g(of)f(the)h(command)g(where)
+f(the)h(value)591 2113 y(is)e(stored.)20 b(This)14 b(is)f(so)f(that)i(you)f
+(can)h(use)f(the)g(value)h(to)f(set)h(other)f(parameters.)591
+2173 y(E.g.,)712 2304 y Fy(\\psset{linecolor=\\ps\256llcolor)n
+(,doublesep=.5\\pslinewidth})591 2435 y FB(However)n(,)d(even)h(for)g(these)g
+(parameters,)g(PST)n(ricks)g(may)g(do)g(some)f(processing)591
+2495 y(and)j(error)o(-checking,)h(and)f(you)g(should)g(always)g(set)g(them)h
+(using)f Fn(\\psset)f FB(or)h(as)591 2555 y(optional)f(parameter)h(changes,)e
+(rather)h(than)g(rede\256ning)g(the)g(command)g(where)591 2615
+y(the)g(value)g(is)g(stored.)591 2828 y Fv(Setting)e(graphics)f(parameters)
+871 b(6)p eop
+%%Page: 7 11
+10 bop 366 51 a Fl(4)70 b(Dimensions,)20 b(coordinates)h(and)f(angles)591
+170 y FB(Whenever)13 b(an)g(ar)o(gument)g(of)g(a)g(PST)n(ricks)f(macro)i(is)e
+(a)h(dimension,)h(the)f(unit)g(is)591 230 y(optional.)18 b(The)12
+b(default)h(unit)f(is)g(set)g(by)g(the)712 345 y Fr(unit=)p
+Ff(dim)712 b FA(Default:)20 b Fr(1cm)591 461 y FB(parameter)m(.)28
+b(For)14 b(example,)j(with)e(the)h(default)g(value)f(of)g Fy(1cm)p
+FB(,)h(the)g(following)591 521 y(are)c(equivalent:)712 636
+y Fy(\\psset{linewidth=.5cm})712 696 y(\\psset{linewidth=.5})591
+811 y FB(By)d(never)i(explicitly)g(giving)g(units,)f(you)g(can)g(scale)h
+(graphics)f(by)g(changing)g(the)591 871 y(value)i(of)g Fn(unit)p
+FB(.)591 958 y(Y)-5 b(ou)14 b(can)g(use)g(the)h(default)g(coordinate)h(when)e
+(setting)h(non-PST)n(ricks)e(dimen-)591 1019 y(sions)e(as)h(well,)g(using)f
+(the)i(commands)712 1148 y Fr(\\pssetlength{)p Ff(cmd)t Fr(}{)p
+Ff(dim)q Fr(})712 1223 y(\\psaddtolength{)p Ff(cmd)t Fr(}{)p
+Ff(dim)q Fr(})591 1338 y FB(where)g Fp(cmd)18 b FB(is)c(a)g(dimension)g
+(register)g(\(in)g(L)1346 1332 y(a)1360 1338 y(T)1381 1353
+y(E)1404 1338 y(X)g(parlance,)h(a)f(\252length\272\),)h(and)591
+1398 y Fp(dim)21 b FB(is)f(a)h(length)h(with)e(optional)i(unit.)43
+b(These)21 b(are)g(analogous)g(to)g(L)1824 1392 y(a)1838 1398
+y(T)1859 1413 y(E)1882 1398 y(X')m(s)591 1458 y Fy(\\setlength)12
+b FB(and)g Fy(\\addtolength)p FB(.)591 1546 y(Coordinate)20
+b(pairs)g(have)g(the)g(form)g Fy(\()p Fp(x)s Fy(,)t Fp(y)t
+Fy(\))p FB(.)42 b(The)20 b(origin)g(of)g(the)g(coordinate)591
+1606 y(system)7 b(is)h(at)h(T)835 1616 y(E)858 1606 y(X')m(s)f(currentpoint.)
+16 b(The)9 b(command)f Fn(\\SpecialCoor)h FB(lets)f(you)g(use)591
+1666 y(polar)13 b(coordinates,)g(in)g(the)g(form)g Fy(\()p
+Fp(r)t Fy(;)p Fp(a)q Fy(\))p FB(,)e(where)i Fp(r)j FB(is)d(the)g(radius)g
+(\(a)g(dimension\))591 1726 y(and)f Fp(a)h FB(is)g(the)g(angle)g(\(see)f
+(below\).)19 b(Y)-5 b(ou)12 b(can)h(still)h(use)e(Cartesian)h(coordinates.)
+591 1786 y(For)e(a)h(complete)h(description)g(of)f Fn(\\SpecialCoor)p
+FB(,)g(see)g(Section)h(34.)591 1873 y(The)f Fn(unit)g FB(parameter)h
+(actually)g(sets)f(the)g(following)g(three)h(parameters:)712
+1988 y Fr(xunit=)p Ff(dim)685 b FA(Default:)20 b Fr(1cm)712
+2049 y(yunit=)p Ff(dim)685 b FA(Default:)20 b Fr(1cm)712 2109
+y(runit=)p Ff(dim)693 b FA(Default:)20 b Fr(1cm)591 2224 y
+FB(These)g(are)g(the)h(default)f(units)h(for)e(x-coordinates,)k
+(y-coordinates,)f(and)e(all)591 2284 y(other)10 b(coordinates,)h
+(respectively)m(.)17 b(By)10 b(setting)h(these)f(independently)m(,)i(you)d
+(can)591 2344 y(scale)15 b(the)h(x)f(and)h(y)f(dimensions)g(in)g(Cartesian)h
+(coordinate)h(unevenly)m(.)27 b(After)591 2404 y(changing)12
+b Fn(yunit)f FB(to)i Fy(1pt)p FB(,)e(the)i(two)e Fn(\\psline)p
+FB(')m(s)i(below)e(are)i(equivalent:)712 2520 y Fy(\\psset{yunit=1pt})712
+2580 y(\\psline\(0cm,20pt\)\(5cm,80pt\))712 2640 y(\\psline\(0,20\)\(5,80\))
+591 2828 y Fv(Dimensions,)c(coordinates)g(and)h(angles)735
+b(7)p eop
+%%Page: 8 12
+11 bop 591 50 a FB(The)18 b(values)g(of)g(the)g Fn(runit)p
+FB(,)h Fn(xunit)e FB(and)h Fn(yunit)g FB(parameters)g(are)h(stored)e(in)h
+(the)591 110 y(dimension)12 b(registers)g Fn(\\psunit)p FB(\(also)g
+Fn(\\psrunit)p FB(\),)f Fn(\\psxunit)h FB(and)g Fn(\\psyunit)p
+FB(.)591 199 y(Angles,)h(in)h(polar)g(coordinates)g(and)g(other)g(ar)o
+(guments,)g(should)f(be)h(a)g(number)591 259 y(giving)g(the)g(angle)h(in)f
+(degrees,)h(by)f(default.)24 b(Y)-5 b(ou)13 b(can)i(also)f(change)g(the)h
+(units)591 320 y(used)c(for)h(angles)g(with)g(the)g(command)712
+465 y Fr(\\degrees)p Fd([)p Fc(num)q Fd(])591 596 y Fp(num)g
+FB(should)g(be)h(the)g(number)f(of)g(units)h(in)f(a)h(circle.)20
+b(For)12 b(example,)h(you)f(might)591 656 y(use)712 787 y Fy(\\degrees[100])
+591 917 y FB(to)f(make)h(a)f(pie)h(chart)f(when)g(you)g(know)f(the)i(shares)f
+(in)g(percentages.)18 b Fn(\\degrees)591 978 y FB(without)12
+b(the)g(ar)o(gument)h(is)f(the)g(same)g(as)712 1108 y Fy(\\degrees[360])591
+1239 y FB(The)g(command)712 1384 y Fr(\\radians)591 1515 y
+FB(is)f(short)h(for)712 1646 y Fy(\\degrees[6.28319])591 1777
+y Fn(\\SpecialCoor)g FB(lets)h(you)e(specify)h(angles)g(in)h(other)f(ways)f
+(as)h(well.)366 1974 y Fl(5)70 b(Basic)20 b(graphics)h(parameters)591
+2095 y FB(The)12 b(width)g(and)g(color)g(of)g(lines)g(is)g(set)g(by)g(the)g
+(parameters:)712 2226 y Fr(linewidth=)p Ff(dim)600 b FA(Default:)20
+b Fr(.8pt)712 2286 y(linecolor=)p Ff(color)538 b FA(Default:)19
+b Fr(black)591 2417 y FB(The)14 b Fn(linewidth)h FB(is)f(stored)g(in)h(the)g
+(dimension)f(register)h Fn(\\pslinewidth)p FB(,)g(and)f(the)591
+2477 y Fn(linecolor)e FB(is)g(stored)f(in)i(the)f(command)h
+Fn(\\pslinecolor)p FB(.)591 2566 y(The)e(regions)g(delimited)i(by)e(open)g
+(and)g(closed)g(curves)g(can)h(be)f(\256lled,)g(as)g(deter)o(-)591
+2627 y(mined)h(by)g(the)g(parameters:)591 2828 y Fv(Basic)d(graphics)g
+(parameters)896 b(8)p eop
+%%Page: 9 13
+12 bop 712 50 a Fn(\256llstyle=)p Fo(style)712 110 y Fn(\256llcolor=)p
+Fo(color)591 241 y FB(When)10 b Fn(\256llstyle=none)p FB(,)f(the)h(regions)g
+(are)g(not)g(\256lled.)17 b(When)10 b Fn(\256llstyle=solid)p
+FB(,)g(the)591 301 y(regions)g(are)h(\256lled)g(with)g Fn(\256llcolor)p
+FB(.)17 b(Other)10 b Fn(\256llstyle)p FB(')m(s)h(are)g(described)g(in)f
+(Section)591 361 y(14.)591 450 y(The)j(graphics)g(objects)h(all)g(have)f(a)h
+(starred)f(version)g(\(e.g.,)h Fn(\\psframe)p FB(*\))e(which)591
+511 y(draws)f(a)h(solid)g(object)h(whose)e(color)h(is)g Fn(linecolor)p
+FB(.)17 b(For)12 b(example,)354 714 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  0 360 28.45274 14.22636
+.5 CLW mul dup 3 1 roll sub 3 1 roll sub exch 28.45274 14.22636 Ellipse
+closepath gsave 0. setgray fill  grestore end
+
+
+@endspecial 712 665 a Fy(\\psellipse*\(1,.5\)\(1,.5\))591
+845 y FB(Open)f(curves)h(can)g(have)g(arrows,)f(according)i(to)f(the)712
+975 y Fn(arrows=)p Fo(arrows)591 1106 y FB(parameter)m(.)39
+b(If)19 b Fn(arrows=-)p FB(,)f(you)h(get)g(no)g(arrows.)37
+b(If)18 b Fn(arrows=<->)p FB(,)h(you)f(get)591 1166 y(arrows)g(on)h(both)h
+(ends)f(of)g(the)h(curve.)39 b(Y)-5 b(ou)19 b(can)h(also)g(set)f
+Fn(arrows=->)f FB(and)591 1226 y Fn(arrows=<-)p FB(,)e(if)i(you)f(just)g
+(want)h(an)f(arrow)g(on)g(the)h(end)f(or)h(beginning)f(of)g(the)591
+1287 y(curve,)j(respectively)m(.)38 b(W)n(ith)19 b(the)g(open)f(curves,)i
+(you)e(can)h(also)g(specify)f(the)591 1347 y(arrows)e(as)h(an)h(optional)g
+(ar)o(gument)g(enclosed)g(in)g Fy({})f FB(brackets.)34 b(This)17
+b(should)591 1407 y(come)12 b(after)h(the)f(optional)h(parameters)g(ar)o
+(gument.)k(E.g.,)354 1610 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  moveto } def /ArrowB { } def
+[ 56.90549 28.45274  /Lineto /lineto load def false Line  gsave 2.0
+SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial
+712 1562 a Fy(\\psline[linewidth=2pt]{<-}\(2,1\))591 1741 y
+FB(Other)11 b(arrow)h(styles)g(are)g(described)g(in)g(Section)h(15)591
+1830 y(If)e(you)h(set)g(the)712 1961 y Fr(showpoints=)p Ff(true/false)387
+b FA(Default:)20 b Fr(false)591 2092 y FB(parameter)f(to)g
+Fy(true)p FB(,)h(then)f(most)g(of)g(the)g(graphics)g(objects)g(will)g(put)g
+(dots)f(at)591 2152 y(the)d(appropriate)g(coordinates)g(or)g(control)g
+(points)f(of)h(the)g(object.)1723 2134 y Fj(2)1767 2152 y FB(Section)g(9)591
+2212 y(describes)c(how)h(to)g(change)g(the)h(dot)f(style.)p
+591 2594 544 2 v 646 2625 a Fi(2)662 2640 y Fh(The)e(parameter)f(value)h(is)f
+(stored)h(in)g(the)f(conditional)h Fa(\\ifshowpoints)p Fh(.)591
+2828 y Fv(Basic)f(graphics)g(parameters)896 b(9)p eop
+%%Page: 10 14
+13 bop 291 265 a Fm(II)591 182 y Fs(Basic)23 b(graphics)g(objects)366
+585 y Fl(6)70 b(Lines)20 b(and)h(polygons)591 707 y FB(The)12
+b(objects)g(in)g(this)h(section)f(also)g(use)g(the)g(following)g(parameters:)
+591 837 y Fr(linearc=)p Ff(dim)789 b FA(Default:)20 b Fr(0pt)712
+918 y FB(The)12 b(radius)e(of)h(arcs)g(drawn)f(at)h(the)g(corners)g(of)g
+(lines)g(by)f(the)i Fn(\\psline)f FB(and)712 978 y Fn(\\pspolygon)h
+FB(graphics)g(objects.)18 b Fp(dim)13 b FB(should)e(be)h(positive.)591
+1080 y Fr(framearc=)p Ff(num)772 b FA(Default:)20 b Fr(0)712
+1161 y FB(In)c(the)h Fn(\\psframe)e FB(and)h(the)h(related)g(box)f(framing)g
+(macros,)h(the)g(radius)712 1221 y(of)f(rounded)f(corners)g(is)g(set,)h(by)g
+(default,)h(to)e(one-half)h Fp(num)f FB(times)h(the)712 1281
+y(width)g(or)e(height)i(of)f(the)h(frame,)g(whichever)f(is)g(less.)27
+b Fp(num)15 b FB(should)g(be)712 1342 y(between)e(0)f(and)g(1.)591
+1443 y Fr(cornersize=)p Ff(relative/absolute)306 b FA(Default:)20
+b Fr(relative)712 1524 y FB(If)14 b Fn(cornersize)f FB(is)h
+Fy(relative)p FB(,)g(then)g(the)g Fn(framearc)e FB(parameter)j(determines)712
+1584 y(the)10 b(radius)f(of)f(the)i(rounded)f(corners)f(for)h
+Fn(\\psframe)p FB(,)g(as)f(described)i(above)712 1645 y(\(and)22
+b(hence)f(the)h(radius)f(depends)g(on)g(the)h(size)g(of)f(the)g(frame\).)46
+b(If)712 1705 y Fn(cornersize)13 b FB(is)f Fy(absolute)p FB(,)g(then)h(the)h
+Fn(linearc)e FB(parameter)i(determines)f(the)712 1765 y(radius)g(of)f(the)h
+(rounded)g(corners)f(for)g Fn(\\psframe)g FB(\(and)h(hence)g(the)g(radius)712
+1825 y(is)f(of)g(constant)g(size\).)591 1956 y(Now)e(here)j(are)f(the)g
+(lines)h(and)f(polygons:)591 2087 y Fr(\\psline)p Fd(*[)p Fc(par)p
+Fd(]{)p Fc(arrows)q Fd(}\()p Fc(x0)r Fd(,)p Fc(y0)r Fd(\))p
+Fr(\()p Ff(x1)p Fr(,)p Ff(y1)p Fr(\))q Fb(\274)s Fd(\()p Fc(xn)q
+Fd(,)p Fc(yn)q Fd(\))712 2168 y FB(This)g(draws)g(a)g(line)g(through)g(the)h
+(list)f(of)g(coordinates.)18 b(For)11 b(example:)118 2481 y
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 113.81097 56.90549 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { BeginArrow false 0.4 1.4 2.0 3. Arrow  EndArrow  } def [
+56.90549 0.0 0.0 28.45274 113.81097 56.90549  /r 7.11317 def /Lineto
+{ Arcto } def false Line  gsave 2.0 SLW 0. setgray 0 setlinecap stroke
+ grestore end
+
+
+@endspecial 712 2373 a Fy
+(\\psline[linewidth=2pt,linearc=.25]{->}\(4,2\)\(0,1\)\()o(2,0\))591
+2603 y Fr(\\qline\()p Ff(coor0)p Fr(\)\()p Ff(coor1)p Fr(\))591
+2828 y Fv(Basic)e(graphics)g(objects)945 b(10)p eop
+%%Page: 11 15
+14 bop 712 50 a FB(This)10 b(is)g(a)g(streamlined)h(version)f(of)f
+Fn(\\psline)i FB(that)f(does)g(not)g(pay)f(attention)712 110
+y(to)20 b(the)f Fn(arrows)f FB(parameter)n(,)k(and)d(that)h(can)f(only)g
+(draw)g(a)g(single)g(line)712 170 y(segment.)24 b(Note)14 b(that)g(both)g
+(coordinates)g(are)h(obligatory)m(,)g(and)e(there)i(is)712
+230 y(no)j(optional)h(ar)o(gument)f(for)g(setting)g(parameters)h(\(use)e
+Fn(\\psset)g FB(if)h(you)712 291 y(need)13 b(to)f(change)g(the)h
+Fn(linewidth)p FB(,)f(or)f(whatever\).)18 b(For)11 b(example:)354
+467 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 56.90549 28.45274 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  0.0 0.0 moveto 56.90549
+28.45274 L 0 setlinecap stroke  end
+
+@endspecial 712 419 a Fy(\\qline\(0,0\)\(2,1\))591
+572 y Fr(\\pspolygon)p Fd(*[)p Fc(par)p Fd(]\()p Fc(x0)r Fd(,)p
+Fc(y0)r Fd(\))p Fr(\()p Ff(x1)p Fr(,)p Ff(y1)p Fr(\)\()p Ff(x2)t
+Fr(,)p Ff(y2)t Fr(\))q Fb(\274)r Fd(\()p Fc(xn)q Fd(,)p Fc(yn)q
+Fd(\))712 650 y FB(This)f(is)g(similar)h(to)f Fn(\\psline)p
+FB(,)h(but)f(it)h(draws)e(a)h(closed)g(path.)17 b(For)10 b(example:)118
+945 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 113.81097 56.90549 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 1.5 SLW 0. setgray  [ 28.45274 56.90549
+0.0 56.90549  /Lineto /lineto load def false Polygon  gsave 1.5 SLW
+0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0.25 setgray  [ 113.81097 56.90549
+113.81097 0.0 28.45274 56.90549 28.45274 0.0  /r 5.69046 def /Lineto
+{ Arcto } def false Polygon  gsave 0.25 setgray fill  grestore end
+
+@endspecial
+712 807 a Fy(\\pspolygon[linewidth=1.5pt]\(0,2\)\(1,2\))712
+868 y(\\pspolygon*[linearc=.2,linecolor=darkgray]\(1,0\)\(1)o(,2\)\(4)o
+(,0\)\(4)o(,2\))591 1049 y Fr(\\psframe)p Fd(*[)p Fc(par)p
+Fd(]\()p Fc(x0)r Fd(,)p Fc(y0)r Fd(\))p Fr(\()p Ff(x1)p Fr(,)p
+Ff(y1)p Fr(\))712 1128 y Fn(\\psframe)19 b FB(draws)f(a)h(rectangle)i(with)e
+(opposing)f(corners)h Fy(\()p Fp(x0)r Fy(,)t Fp(y0)r Fy(\))g
+FB(and)712 1188 y Fy(\()p Fp(x1)p Fy(,)t Fp(y1)p Fy(\))p FB(.)f(For)11
+b(example:)118 1483 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 113.81097 56.90549 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  0.3 true 0.0 0.0 113.81097
+56.90549 .5 Frame  gsave 0.75 setgray fill  grestore gsave 2.0 SLW
+0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 1. setgray  0. true 28.45274 14.22636
+56.90549 42.67911 .5 Frame  gsave 1. setgray fill  grestore end
+
+
+@endspecial 712 1315 a Fy
+(\\psframe[linewidth=2pt,framearc=.3,\256llstyle=solid,)758
+1375 y(\256llcolor=lightgray]\(4,2\))712 1435 y
+(\\psframe*[linecolor=white]\(1,.5\)\(2,1.5\))366 1675 y Fl(7)70
+b(Arcs,)21 b(circles)f(and)g(ellipses)591 1785 y Fr(\\pscircle)p
+Fd(*[)p Fc(par)p Fd(]\()p Fc(x0)r Fd(,)p Fc(y0)r Fd(\))p Fr({)p
+Ff(radius)r Fr(})712 1864 y FB(This)13 b(draws)f(a)h(circle)g(whose)f(center)
+h(is)g(at)g Fy(\()p Fp(x0)r Fy(,)t Fp(y0)r Fy(\))f FB(and)g(that)i(has)e
+(radius)712 1924 y Fp(radius)q FB(.)17 b(For)11 b(example:)354
+2219 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+-28.45274 -28.45274 56.90549 56.90549 -28.45274 -28.45274 28.45274
+28.45274 1 10 { 0. setgray } 7.0 Grid grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  14.22636 14.22636 42.67911
+.5 CLW mul sub 0 360 arc closepath gsave 2.0 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 712 2170 a Fy
+(\\pscircle[linewidth=2pt]\(.5,.5\){1.5})591 2441 y Fr(\\qdisk\()p
+Ff(coor)p Fr(\){)p Ff(radius)r Fr(})712 2520 y FB(This)19 b(is)g(a)g
+(streamlined)h(version)e(of)h Fn(\\pscircle*)p FB(.)37 b(Note)18
+b(that)i(the)f(two)712 2580 y(ar)o(guments)d(are)f(obligatory)g(and)g(there)h
+(is)e(no)h(parameters)h(ar)o(guments.)712 2640 y(T)m(o)c(change)h(the)f
+(color)g(of)g(the)g(disks,)g(you)f(have)i(to)f(use)f Fn(\\psset)p
+FB(:)591 2828 y Fv(Arcs,)f(circles)g(and)f(ellipses)911 b(1)m(1)p
+eop
+%%Page: 12 16
+15 bop 343 404 a @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0.5 setgray  56.90549 85.35823 4.0
+SD  end
+
+@endspecial 712
+30 a Fy(\\psset{linecolor=gray})712 90 y(\\qdisk\(2,3\){4pt})591
+213 y Fr(\\pswedge)p Fd(*[)p Fc(par)p Fd(]\()p Fc(x0)r Fd(,)p
+Fc(y0)r Fd(\))p Fr({)p Ff(radius)r Fr(}{)p Ff(angle1)p Fr(}{)p
+Ff(angle2)t Fr(})712 292 y FB(This)18 b(draws)e(a)h(wedge)g(whose)f(center)i
+(is)f(at)h Fy(\()p Fp(x0)r Fy(,)t Fp(y0)r Fy(\))p FB(,)f(that)h(has)f(radius)
+712 352 y Fp(radius)q FB(,)12 b(and)h(that)g(extends)g(counterclockwise)g
+(from)g Fp(angle1)e FB(to)i Fp(angle2)s FB(.)712 413 y(The)g(angles)f(must)g
+(be)g(speci\256ed)g(in)g(degrees.)17 b(For)12 b(example:)354
+717 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 56.90549 56.90549 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0.5 setgray  0.0 0.0 2 copy moveto
+56.90549 .5 CLW mul sub 0. 70. arc closepath gsave 1. setgray fill
+ grestore gsave 2.0 SLW 0.5 setgray 0 setlinecap stroke  grestore end
+
+@endspecial 712 609 a Fy(\\pswedge[linecolor=gray)m
+(,linewidth=2pt,\256llstyle=solid]{2}{0}{70})591 830 y Fr(\\psellipse)p
+Fd(*[)p Fc(par)p Fd(]\()p Fc(x0)r Fd(,)p Fc(y0)r Fd(\))p Fr(\()p
+Ff(x1)p Fr(,)p Ff(y1)p Fr(\))712 910 y Fy(\()p Fp(x0)r Fy(,)t
+Fp(y0)r Fy(\))e FB(is)f(the)h(center)h(of)e(the)i(ellipse,)g(and)e
+Fp(x1)h FB(and)g Fp(y1)g FB(are)g(the)g(horizontal)712 970
+y(and)i(vertical)i(radii,)e(respectively)m(.)19 b(For)11 b(example:)354
+1156 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+-28.45274 -42.67911 56.90549 28.45274 -28.45274 -42.67911 28.45274
+28.45274 1 10 { 0. setgray } 7.0 Grid grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  0 360 42.67911 28.45274
+.5 CLW mul dup 3 1 roll sub 3 1 roll sub exch 14.22636 0.0 Ellipse
+closepath gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 712 1196 a Fy
+(\\psellipse[\256llcolor=lightgray]\(.5,0\)\(1.5,1\))591 1446
+y Fr(\\psarc)p Fd(*[)p Fc(par)p Fd(]{)p Fc(arrows)q Fd(}\()p
+Fc(x)t Fd(,)t Fc(y)t Fd(\))p Fr({)p Ff(radius)r Fr(}{)p Ff(angleA)p
+Fr(}{)p Ff(angleB)r Fr(})712 1526 y FB(This)d(draws)g(an)g(arc)g(from)g
+Fp(angleA)f FB(to)h Fp(angleB)r FB(,)f(going)h(counter)h(clockwise,)712
+1586 y(for)f(a)h(circle)g(of)f(radius)g Fp(radius)g FB(and)g(centered)h(at)g
+Fy(\()p Fp(x)s Fy(,)t Fp(y)t Fy(\))p FB(.)16 b(Y)-5 b(ou)8
+b(must)g(include)712 1646 y(either)13 b(the)g(arrows)e(ar)o(gument)i(or)e
+(the)i Fy(\()p Fp(x)s Fy(,)t Fp(y)t Fy(\))f FB(ar)o(gument.)18
+b(For)12 b(example:)236 1950 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 85.35823 56.90549 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def 42.67911 42.67911 /y ED /x ED /r 42.67911 def /c 57.2957
+r Div def /angleA 215. 0.0 c mul 2 div add def /angleB 0. 0.0 c mul
+2 div sub def gsave newpath x y moveto x y r 215. 0. arc closepath
+CLW 2 div SLW [ 5.0 3.0  ] 0 setdash stroke grestore x y r angleA angleB
+arc  gsave 0. setgray fill  grestore end
+
+@endspecial 712 1843 a Fy
+(\\psarc*[showpoints=true]\(1.5,1.5\){1.5}{215}{0})712 2064
+y FB(See)g(how)e Fn(showpoints=true)f FB(draws)i(a)g(dashed)g(line)h(from)f
+(the)h(center)g(to)712 2124 y(the)h(arc;)g(this)f(is)f(useful)h(when)g
+(composing)g(pictures.)712 2204 y Fn(\\psarc)g FB(also)g(uses)f(the)h
+(parameters:)712 2303 y Fr(arcsepA=)p Ff(dim)634 b FA(Default:)20
+b Fr(0pt)820 2372 y Fp(angleA)12 b FB(is)g(adjusted)h(so)f(that)i(the)f(arc)g
+(would)f(just)h(touch)g(a)g(line)g(of)820 2432 y(width)k Fp(dim)h
+FB(that)f(extended)h(from)f(the)h(center)g(of)f(the)g(arc)h(in)f(the)820
+2492 y(direction)c(of)f Fp(angleA)p FB(.)712 2571 y Fr(arcsepB=)p
+Ff(dim)634 b FA(Default:)20 b Fr(0pt)820 2640 y FB(This)12
+b(is)g(like)g Fn(arcsepA)p FB(,)f(but)h Fp(angleB)h FB(is)f(adjusted.)591
+2828 y Fv(Arcs,)e(circles)g(and)f(ellipses)908 b(12)p eop
+%%Page: 13 17
+16 bop 712 50 a Fr(arcsep=)p Ff(dim)716 b FA(Default:)20 b
+Fr(0)820 120 y FB(This)12 b(just)g(sets)g(both)f Fn(arcsepA)h
+FB(and)g Fn(arcsepB)p FB(.)712 222 y(These)g(parameters)g(make)f(it)h(easy)f
+(to)g(draw)g(two)f(intersecting)i(lines)g(and)712 282 y(then)j(use)e
+Fn(\\psarc)g FB(with)h(arrows)f(to)h(indicate)h(the)f(angle)g(between)g
+(them.)712 342 y(For)e(example:)118 774 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 113.81097 85.35823 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 113.81097 10. PtoC 0.0 0.0 113.81097 50. PtoC  /Lineto
+/lineto load def false Line  gsave 2.0 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { BeginArrow false 0.4 1.4 2.0 3. Arrow  EndArrow  } def 0.0
+0.0 /y ED /x ED /r 85.35823 def /c 57.2957 r Div def /angleA 10. 0.0
+c mul 2 div add def /angleB 50. 2.0 c mul 2 div sub def x y r angleA
+angleB { ArrowB } { sub } ArcArrow arc  gsave 0.8 SLW 0. setgray 0
+setlinecap stroke  grestore end
+
+@endspecial 712 547 a Fy(\\SpecialCoor)712 607
+y(\\psline[linewidth=2pt]\(4;50\)\(0,0\)\(4;10\))712 667 y
+(\\psarc[arcsepB=2pt]{->}{3}{10}{50)o(})591 896 y Fr(\\psarcn)p
+Fd(*[)p Fc(par)p Fd(]{)p Fc(arrows)q Fd(}\()p Fc(x)t Fd(,)t
+Fc(y)t Fd(\))p Fr({)p Ff(radius)r Fr(}{)p Ff(angleA)p Fr(}{)p
+Ff(angleB)r Fr(})712 977 y FB(This)21 b(is)f(like)g Fn(\\psarc)p
+FB(,)i(but)e(the)g(arc)h(is)f(drawn)f Fz(clockwise)p FB(.)43
+b(Y)-5 b(ou)19 b(can)712 1037 y(achieve)i(the)e(same)g(ef)o(fect)i(using)d
+Fn(\\psarc)h FB(by)f(switching)i Fp(angleA)e FB(and)712 1097
+y Fp(angleB)13 b FB(and)f(the)h(arrows.)1148 1079 y Fj(3)366
+1294 y Fl(8)70 b(Curves)591 1408 y Fr(\\psbezier)p Fd(*[)p
+Fc(par)p Fd(]{)p Fc(arrows)q Fd(}\()p Fc(x0)r Fd(,)p Fc(y0)r
+Fd(\))p Fr(\()p Ff(x1)p Fr(,)p Ff(y1)p Fr(\)\()p Ff(x2)t Fr(,)p
+Ff(y2)t Fr(\)\()p Ff(x3)s Fr(,)p Ff(y3)s Fr(\))712 1488 y Fn(\\psbezier)14
+b FB(draws)e(a)h(bezier)h(curve)g(with)f(the)g(four)g(control)h(points.)20
+b(The)712 1549 y(curve)14 b(starts)f(at)g(the)h(\256rst)e(coordinate,)i
+(tangent)g(to)f(the)g(line)h(connecting)712 1609 y(to)e(the)f(second)g
+(coordinate.)17 b(It)11 b(ends)g(at)g(the)h(last)f(coordinate,)h(tangent)g
+(to)712 1669 y(the)h(line)g(connecting)h(to)e(the)h(third)g(coordinate.)19
+b(The)13 b(second)f(and)g(third)712 1729 y(coordinates,)h(in)f(addition)g(to)
+g(determining)h(the)f(tangency)h(of)e(the)i(curve)712 1789
+y(at)j(the)f(endpoints,)g(also)g(\252pull\272)h(the)f(curve)g(towards)f
+(themselves.)26 b(For)712 1850 y(example:)118 2399 y @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 2.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { BeginArrow false 0.4 1.4 2.0 3. Arrow  EndArrow  } def gsave
+0.0 0.0 28.45274 113.81097 56.90549 28.45274 113.81097 99.5846 newpath
+moveto L L L CLW 2 div SLW [ 5.0 3.0  ] 0 setdash stroke grestore /Points
+[0.0 0.0 28.45274 113.81097 56.90549 28.45274 113.81097 99.5846 ] def
+ 28.45274 113.81097 0.0 0.0 ArrowA 56.90549 28.45274 113.81097 99.5846
+ArrowB curveto gsave 2.0 SLW 0. setgray 0 setlinecap stroke  grestore
+gsave /DS 0.5 2.5 CLW mul add 2 div def /Dot { 0 0 DS SD } def /TheDot
+{ gsave T Dot grestore } def newpath Points aload length 2 div 2 sub
+cvi /N ED N 0 ge { TheDot N { TheDot } repeat pop pop } { N 2 mul {
+pop } repeat } ifelse grestore end
+
+@endspecial 712 2173 a Fy
+(\\psbezier[linewidth=2pt,showpoints=true]{->}\(0,0\)\(1,4\)\(2)o(,1\)\(4)o
+(,3.5\))p 591 2433 544 2 v 646 2463 a Fi(3)662 2478 y Fh(However)n(,)14
+b(with)f Fg(\\pscustom)h Fh(graphics)e(object,)i(described)e(in)i(Part)f(IV,)
+h Fg(\\psarcn)g Fh(is)f(not)591 2528 y(redundant.)591 2828
+y Fv(Curves)1197 b(13)p eop
+%%Page: 14 18
+17 bop 712 50 a Fn(showpoints=true)10 b FB(puts)h(dots)h(in)g(all)g(the)g
+(control)g(points,)g(and)f(connects)712 110 y(them)h(by)f(dashed)f(lines,)i
+(which)e(is)h(useful)g(when)f(adjusting)h(your)g(bezier)712
+170 y(curve.)591 272 y Fr(\\parabola)p Fd(*[)p Fc(par)p Fd(]{)p
+Fc(arrows)q Fd(})p Fr(\()p Ff(x0)s Fr(,)t Ff(y0)s Fr(\)\()p
+Ff(x1)p Fr(,)t Ff(y1)q Fr(\))712 353 y FB(Starting)25 b(at)f
+Fy(\()p Fp(x0)r Fy(,)t Fp(y0)r Fy(\))p FB(,)i Fn(\\parabola)e
+FB(draws)e(the)j(parabola)f(that)h(passes)712 413 y(through)11
+b Fy(\()p Fp(x0)r Fy(,)t Fp(y0)r Fy(\))g FB(and)g(whose)f(maximum)i(or)f
+(minimum)h(is)f Fy(\()p Fp(x1)p Fy(,)t Fp(y1)p Fy(\))p FB(.)16
+b(For)712 473 y(example:)118 904 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 113.81097 85.35823 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def 28.45274 28.45274 56.90549 85.35823 Parab  gsave 0.
+setgray fill  grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  moveto } def /ArrowB { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  } def 113.74512 85.35823 56.87256
+0.0 Parab  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 712 677 a Fy(\\parabola*\(1,1\)\(2,3\))712
+738 y(\\psset{xunit=.01})712 798 y(\\parabola{<->}\(40)o(0,3\)\()o(200,0\))
+591 1048 y FB(The)k(next)g(three)g(graphics)g(objects)g(interpolate)h(an)f
+(open)g(or)g(closed)g(curve)591 1108 y(through)11 b(the)i(given)f(points.)17
+b(The)c(curve)f(at)h(each)f(interior)h(point)f(is)g(perpendic-)591
+1168 y(ular)i(to)g(the)g(line)h(bisecting)g(the)f(angle)h(ABC,)e(where)h(B)g
+(is)f(the)i(interior)g(point,)591 1228 y(and)f(A)g(and)g(C)g(are)h(the)g
+(neighboring)f(points.)24 b(Scaling)15 b(the)f(coordinates)h
+Fz(does)591 1288 y(not)d FB(cause)g(the)g(curve)g(to)h(scale)f
+(proportionately)m(.)591 1378 y(The)g(curvature)g(is)g(controlled)h(by)f(the)
+g(following)g(parameter:)591 1508 y Fr(curvature=)p Ff(num1)i(num2)f(num3)344
+b FA(Default:)20 b Fr(1)14 b(.1)g(0)712 1589 y FB(Y)-5 b(ou)19
+b(have)h(to)g(just)f(play)h(around)f(with)g(this)h(parameter)g(to)g(get)g
+(what)712 1649 y(you)15 b(want.)25 b(Individual)15 b(values)f(outside)h(the)g
+(range)g(-1)f(to)h(1)f(are)h(either)712 1710 y(ignored)c(or)g(are)g(for)g
+(entertainment)i(only)m(.)k(Below)10 b(is)h(an)g(explanation)h(of)712
+1770 y(what)k(each)g(number)f(does.)28 b(A,)15 b(B)g(and)g(C)h(refer)f(to)h
+(three)g(consecutive)712 1830 y(points.)712 1911 y(Lower)c(values)g(of)g
+Fp(num1)f FB(make)i(the)f(curve)g(tighter)m(.)712 1992 y(Lower)h(values)g(of)
+f Fp(num2)i FB(tighten)g(the)f(curve)g(where)f(the)h(angle)g(ABC)f(is)712
+2052 y(greater)h(than)f(45)g(degrees,)g(and)g(loosen)g(the)g(curve)h
+(elsewhere.)712 2133 y Fp(num3)19 b FB(determines)f(the)g(slope)f(at)h(each)g
+(point.)34 b(If)17 b Fp(num3)r FB(=0,)h(then)f(the)712 2193
+y(curve)c(is)f(perpendicular)i(at)e(B)h(to)f(the)h(bisection)g(of)f(ABC.)g
+(If)g Fp(num3)r FB(=-1,)712 2253 y(then)g(the)f(curve)g(at)g(B)g(is)f
+(parallel)i(to)f(the)h(line)f(AC.)f(W)n(ith)i(this)f(value)g(\(and)712
+2314 y(only)h(this)f(value\),)h(scaling)g(the)g(coordinates)g(causes)f(the)h
+(curve)g(to)f(scale)712 2374 y(proportionately)m(.)31 b(However)n(,)17
+b(positive)f(values)h(can)f(look)h(better)g(with)712 2434 y(irregularly)11
+b(spaced)f(coordinates.)17 b(V)-5 b(alues)10 b(less)f(than)h(-1)g(or)g
+(greater)g(than)712 2494 y(2)i(are)h(converted)f(to)g(-1)g(and)g(2,)g
+(respectively)m(.)591 2625 y(Here)f(are)i(the)f(three)h(curve)f
+(interpolation)h(macros:)591 2828 y Fv(Curves)1197 b(14)p eop
+%%Page: 15 19
+18 bop 591 50 a Fr(\\pscurve)p Fd(*[)p Fc(par)p Fd(]{)p Fc(arrows)q
+Fd(})p Fr(\()p Ff(x1)p Fr(,)t Ff(y1)p Fr(\))r Fb(\274)t Fd(\()p
+Fc(xn)q Fd(,)t Fc(yn)q Fd(\))712 131 y FB(This)12 b(interpolates)g(an)f(open)
+g(curve)h(through)f(the)g(points.)17 b(For)11 b(example:)118
+444 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 113.81097 56.90549 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  moveto } def /ArrowB { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  } def [ 11.38092 11.38092 113.81097
+45.52455 93.89413 14.22636 19.91682 51.21501 0.0 36.98865  1. 0.1 0.
+ /c ED /b ED /a ED true OpenCurve  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore gsave /DS 0.5 2.5 CLW mul add 2 div def /Dot { 0 0
+DS SD } def /TheDot { gsave T Dot grestore } def newpath Points aload
+length 2 div 2 sub cvi /N ED N 0 ge { pop pop N { TheDot } repeat pop
+pop } { N 2 mul { pop } repeat } ifelse grestore end
+
+@endspecial 712 306 a Fy
+(\\pscurve[showpoints=true]{<->}\(0,1.3\)\(0.7,1.8\))758 366
+y(\(3.3,0.5\)\(4,1.6\)\(0.4,0.4\))712 566 y FB(Note)f(the)h(use)e(of)h
+Fn(showpoints=true)e FB(to)i(see)g(the)g(points.)17 b(This)10
+b(is)f(helpful)712 626 y(when)j(constructing)g(a)h(curve.)591
+728 y Fr(\\psecurve)p Fd(*[)p Fc(par)p Fd(]{)p Fc(arrows)q
+Fd(})p Fr(\()p Ff(x1)p Fr(,)t Ff(y1)p Fr(\))r Fb(\274)t Fd(\()p
+Fc(xn)q Fd(,)t Fc(yn)q Fd(\))p Fr(])712 809 y FB(This)e(is)f(like)i
+Fn(\\pscurve)p FB(,)e(but)g(the)h(curve)g(is)f(not)h(extended)g(to)g(the)g
+(\256rst)f(and)712 869 y(last)15 b(points.)22 b(This)14 b(gets)f(around)h
+(the)g(problem)g(of)g(trying)g(to)g(determine)712 929 y(how)k(the)g(curve)g
+(should)f(join)h(the)g(\256rst)f(and)h(last)g(points.)35 b(The)18
+b Fy(e)f FB(has)712 990 y(something)c(to)f(do)g(with)g(\252endpoints\272.)17
+b(For)12 b(example:)118 1539 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 -25.60728 113.81097 113.81097 0.0 -25.60728 28.45274 28.45274 1
+10 { 0. setgray } 7.0 Grid grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 227.62195 3.55658 113.81097 7.11317 56.90549 14.22636
+28.45274 28.45274 14.22636 56.90549 7.11317 113.81097 3.55658 227.62195
+ 1. 0.1 0.  /c ED /b ED /a ED true AltCurve  gsave 0.8 SLW 0. setgray
+0 setlinecap stroke  grestore gsave /DS 0.5 2.5 CLW mul add 2 div def
+/Dot { 0 0 DS SD } def /TheDot { gsave T Dot grestore } def newpath
+Points aload length 2 div 2 sub cvi /N ED N 0 ge { TheDot N { TheDot
+} repeat TheDot } { N 2 mul { pop } repeat } ifelse grestore end
+
+@endspecial 712 1336 a Fy
+(\\psecurve[showpoints=true]\(.125,8\)\(.25,4\)\(.5,2\))758
+1396 y(\(1,1\)\(2,.5\)\(4,.25\)\(8,.125)o(\))591 1768 y Fr(\\psccurve)p
+Fd(*[)p Fc(par)p Fd(]{)p Fc(arrows)q Fd(})p Fr(\()p Ff(x1)p
+Fr(,)t Ff(y1)p Fr(\))r Fb(\274)t Fd(\()p Fc(xn)q Fd(,)t Fc(yn)q
+Fd(\))712 1848 y FB(This)i(interpolates)h(a)f(closed)g(curve)g(through)g(the)
+g(points.)23 b Fy(c)14 b FB(stands)f(for)712 1909 y(\252closed\272.)18
+b(For)12 b(example:)118 2104 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+0.0 0.0 113.81097 28.45274 0.0 0.0 28.45274 28.45274 1 10 { 0. setgray
+} 7.0 Grid grestore end
+
+@endspecial
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 14.22636 28.45274
+99.5846 0.0 99.5846 28.45274 14.22636 0.0  1. 0.1 0.  /c ED /b ED /a
+ED true ClosedCurve  gsave 0.8 SLW 0. setgray 0 setlinecap stroke
+grestore Points aload length 2 div cvi /N ED /DS 0.5 2.5 CLW mul add
+2 div def /Dot { 0 0 DS SD } def newpath n { gsave T Dot grestore }
+repeat end
+
+@endspecial 712 2025 a Fy
+(\\psccurve[showpoints=true])758 2085 y(\(.5,0\)\(3.5,1\)\(3.5,0\)\(.5,1\))
+366 2301 y Fl(9)70 b(Dots)591 2422 y FB(The)12 b(graphics)g(object)712
+2567 y Fr(\\psdots)p Fd(*[)p Fc(par)5 b Fd(])p Fr(\()p Ff(x1)p
+Fr(,)p Ff(y1)p Fr(\))p Fd(\()p Fc(x2)s Fd(,)p Fc(y2)s Fd(\))q
+Fb(\274)s Fd(\()p Fc(xn)q Fd(,)p Fc(yn)q Fd(\))591 2828 y Fv(Dots)1239
+b(15)p eop
+%%Page: 16 20
+19 bop 591 50 a FB(puts)13 b(a)g(dot)g(at)h(each)g(coordinate.)22
+b(What)14 b(a)f(\252dot\272)h(is)f(depends)g(on)g(the)h(value)g(of)591
+110 y(the)712 215 y Fr(dotstyle=)p Ff(style)671 b FA(Default:)20
+b Fr(*)591 319 y FB(parameter)m(.)d(This)7 b(also)g(determines)g(the)g(dots)g
+(you)g(get)g(when)g Fn(showpoints=true)p FB(.)591 380 y(The)12
+b(dot)g(styles)g(are)g(also)g(pretty)h(intuitive:)761 489 y
+Fz(Style)79 b(Example)799 570 y Fy(*)117 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /Dot { 0 0 DS SD } def newpath n { gsave
+T Dot grestore } repeat end
+
+
+@endspecial 796 642 a(o)c @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r2 DS CLW sub def /Dot { 0 0 DS SD 1.
+setgray 0 0 r2 SD } def newpath n { gsave T Dot grestore } repeat end
+
+@endspecial
+795 714 a(+)g @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /DS DS 1.253 mul def /Dot { DS 0 moveto
+DS neg 0 L stroke 0 DS moveto 0 DS neg L stroke } def newpath n { gsave
+T Dot grestore } repeat end
+
+@endspecial 740 786
+a(triangle)57 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /y1 DS .778 mul neg def /x1 y1 1.732
+mul neg def /y2 y1 CLW add def /x2 y2 1.732 mul neg def /Dot { x1 y1
+ST 1. setgray x2 y2 ST } def newpath n { gsave T Dot grestore } repeat
+end
+
+@endspecial 732
+858 a(triangle*)49 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /y1 DS .778 mul neg def /x1 y1 1.732
+mul neg def /Dot { x1 y1 ST } def newpath n { gsave T Dot grestore
+} repeat end
+
+@endspecial
+1381 489 a Fz(Style)98 b(Example)1365 570 y Fy(square)80 b
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r1 DS .886 mul def /r2 r1 CLW sub def
+/Dot { r1 SQ 1. setgray r2 SQ } def newpath n { gsave T Dot grestore
+} repeat end
+
+@endspecial 1358 642 a(square*)71
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r1 DS .886 mul def /Dot { r1 SQ } def
+newpath n { gsave T Dot grestore } repeat end
+
+@endspecial 1343 714 a(pentagon)56
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def DS .93 mul dup 1.236 mul /r1 ED CLW sub
+1.236 mul /r2 ED /Dot { r1 SP 1. setgray r2 SP } def newpath n { gsave
+T Dot grestore } repeat end
+
+@endspecial 1335 786 a(pentagon*)48
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r1 DS 1.149 mul def /Dot { r1 SP } def
+newpath n { gsave T Dot grestore } repeat end
+
+@endspecial 1423 858 a(|)137 b
+@beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def 2.0 5. CLW mul add 2 div /DS ED /Dot
+{ 0 DS moveto 0 DS neg L stroke } def newpath n { gsave T Dot grestore
+} repeat end
+
+@endspecial 591 961 a FB(As)11 b(with)h(arrows,)f
+(there)h(is)g(a)g(parameter)h(for)f(scaling)h(the)f(dots:)712
+1066 y Fr(dotscale=)p Ff(num1)i(num2)487 b FA(Default:)20 b
+Fr(1)591 1170 y FB(The)d(dots)f(are)h(scaled)h(horizontally)f(by)g
+Fp(num1)f FB(and)h(vertically)h(by)f Fp(num2)s FB(.)30 b(If)591
+1231 y(you)15 b(only)h(include)g(one)g(number)n(,)h(the)f(arrows)f(are)h
+(scaled)h(the)f(same)g(in)g(both)591 1291 y(directions.)591
+1376 y(There)c(is)g(also)g(a)g(parameter)h(for)f(rotating)h(the)f(dots:)712
+1481 y Fr(dotangle=)p Ff(angle)629 b FA(Default:)20 b Fr(0)591
+1586 y FB(Thus,)15 b(e.g.,)h(by)f(setting)h Fn(dotangle=45)p
+FB(,)e(the)i Fy(+)f Fn(dotstyle)e FB(gives)i(you)g(an)g Fy(x)p
+FB(,)i(and)591 1646 y(the)f Fy(square)f Fn(dotstyle)g FB(gives)i(you)f(a)g
+(diamond.)31 b(Note)16 b(that)h(the)g(dots)f(are)g(\256rst)591
+1706 y(scaled)c(and)g(then)g(rotated.)591 1791 y(The)7 b(unscaled)g(size)g
+(of)g(the)1030 1780 y Fz(\310)1039 1791 y FB(|)g(dot)g(style)h(is)f(controll)
+q(ed)g(by)g(the)h Fn(tbarsize)i FB(parameter)n(,)591 1852 y(and)16
+b(the)h(unscaled)f(size)h(of)f(the)g(remaining)i(dot)e(styles)g(is)g
+(controlled)h(by)f(the)591 1912 y Fn(dotsize)p FB(.)24 b(These)14
+b(are)h(described)f(in)h(Section)g(15.)24 b(The)14 b(radius)h(as)f
+(determined)591 1972 y(by)e(the)h(value)h(of)e Fn(dotsize)h
+FB(is)f(the)i(radius)e(of)h(solid)g(or)f(open)h(circles.)20
+b(The)14 b(other)591 2032 y(types)d(of)h(dots)g(are)g(of)g(similar)h(size.)
+1200 2014 y Fj(4)591 2118 y FB(The)18 b(dot)f(sizes)h(are)g(allowed)g(to)g
+(depend)g(on)f(the)h Fn(linewidth)g FB(because)g(of)f(the)591
+2178 y Fn(showpoints)6 b FB(parameter)h(.)17 b(However)n(,)8
+b(you)f(can)g(set)g(the)g(dot)g(sizes)g(to)g(an)g(a)q(bsolute)591
+2238 y(dimension)13 b(by)g(setting)h(the)g(second)f(number)g(in)g(the)h
+Fn(dotsize)f FB(parameter)i(to)e(0.)591 2298 y(E.g.,)712 2403
+y Fy(\\psset{dotsize=3pt)24 b(0})591 2508 y FB(sets)11 b(the)i(size)f(of)g
+(the)g(dots)g(to)g Fy(3pt)p FB(,)g(independent)g(of)g(the)h(value)f(of)g
+Fn(linewidth)p FB(.)p 591 2545 544 2 v 646 2575 a Fi(4)662
+2590 y Fh(The)f(polygons)f(are)g(sized)g(to)h(have)f(the)g(same)g(area)g(as)g
+(the)h(circles.)16 b(A)10 b(diamond)g(is)h(just)f(a)591 2640
+y(rotated)f(square.)591 2828 y Fv(Dots)1239 b(16)p eop
+%%Page: 17 21
+20 bop 366 53 a Fl(10)71 b(Grids)591 173 y FB(PST)n(ricks)11
+b(has)h(a)g(powerful)g(macro)g(for)g(making)g(grids)g(and)g(graph)g(paper:)
+712 308 y Fr(\\psgrid)p Fd(\()p Fc(x0)r Fd(,)p Fc(y0)r Fd(\)\()p
+Fc(x1)p Fd(,)p Fc(y1)p Fd(\)\()p Fc(x2)s Fd(,)p Fc(y2)s Fd(\))591
+428 y Fn(\\psgrid)17 b FB(draws)g(a)g(grid)h(with)f(opposing)g(corners)g
+Fy(\()p Fp(x1)p Fy(,)t Fp(y1)p Fy(\))g FB(and)h Fy(\()p Fp(x2)s
+Fy(,)t Fp(y2)s Fy(\))p FB(.)32 b(The)591 488 y(intervals)13
+b(are)g(numbered,)g(with)f(the)h(numbers)g(positioned)f(at)h
+Fp(x0)i FB(and)e Fp(y0)r FB(.)18 b(The)591 549 y(coordinates)12
+b(are)g(always)g(interpreted)h(as)f(Cartesian)g(coordinates.)18
+b(For)11 b(exam-)591 609 y(ple:)236 920 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.4 SLW 0.5 setgray
+-28.45274 -28.45274 85.35823 56.90549 0.0 0.0 28.45274 28.45274 5 0
+{} 0 Grid grestore gsave 0.8 SLW 0. setgray -28.45274 -28.45274 85.35823
+56.90549 0.0 0.0 28.45274 28.45274 1 0 { 0. setgray } 10.0 Grid grestore
+end
+
+
+@endspecial 712 871 a Fy(\\psgrid\(0,0\)\(-1,-1\)\(3,2\))591
+1158 y FB(\(Note)h(that)i(the)f(coordinates)h(and)f(label)g(positioning)g
+(work)g(the)g(same)g(as)g(with)591 1218 y Fn(\\psaxes)p FB(.\))591
+1306 y(The)e(main)g(grid)g(divisions)g(occur)g(on)g(multiples)h(of)e
+Fn(xunit)h FB(and)g Fn(yunit)p FB(.)16 b(Subdivi-)591 1366
+y(sions)10 b(are)i(allowed)f(as)g(well.)18 b(Generally)m(,)11
+b(the)h(coordinates)f(would)g(be)h(given)f(as)591 1427 y(integers,)h(without)
+g(units.)591 1514 y(If)18 b(the)g Fy(\()p Fp(x0)r Fy(,)t Fp(y0)r
+Fy(\))g FB(coordinate)h(is)f(omitted,)j Fy(\()p Fp(x1)p Fy(,)t
+Fp(y1)p Fy(\))d FB(is)h(used.)35 b(The)19 b(default)g(for)591
+1575 y Fy(\()p Fp(x1)p Fy(,)t Fp(y1)p Fy(\))11 b FB(is)g Fy(\(0,0\))p
+FB(.)16 b(If)11 b(you)g(don')o(t)h(give)f(any)h(coordinates)f(at)h(all,)g
+(then)g(the)g(coordi-)591 1635 y(nates)h(of)f(the)i(current)f
+Fn(\\pspicture)f FB(environment)h(are)h(used)e(or)h(a)g(10x10)f(grid)h(is)591
+1695 y(drawn.)20 b(Thus,)13 b(you)g(can)h(include)g(a)g Fn(\\psgrid)f
+FB(command)h(without)f(coordinates)591 1755 y(in)18 b(a)g Fn(\\pspicture)f
+FB(environment)h(to)h(get)f(a)g(grid)g(that)h(will)f(help)g(you)g(position)
+591 1815 y(objects)12 b(in)g(the)h(picture.)591 1903 y(The)f(main)g(grid)g
+(divisions)f(are)i(numbered,)f(with)f(the)i(numbers)e(drawn)g(next)i(to)591
+1963 y(the)g(vertical)i(line)f(at)g Fp(x0)h FB(\(away)e(from)h
+Fp(x2)s FB(\))f(and)g(next)h(to)f(the)h(horizontal)g(line)g(at)591
+2023 y Fp(x1)i FB(\(away)h(from)f Fp(y2)s FB(\).)31 b Fy(\()p
+Fp(x1)p Fy(,)t Fp(y1)p Fy(\))17 b FB(can)g(be)f(any)h(corner)g(of)f(the)h
+(grid,)h(as)e(long)h(as)591 2084 y Fy(\()p Fp(x2)s Fy(,)t Fp(y2)s
+Fy(\))c FB(is)h(the)g(opposing)g(corner)n(,)h(you)f(can)g(position)g(the)h
+(labels)g(on)f(any)g(side)591 2144 y(you)d(want.)17 b(For)12
+b(example,)h(compare)118 2337 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.4 SLW 0.5 setgray
+0.0 0.0 113.81097 28.45274 0.0 0.0 28.45274 28.45274 5 0 {} 0 Grid
+grestore gsave 0.8 SLW 0. setgray 0.0 0.0 113.81097 28.45274 0.0 0.0
+28.45274 28.45274 1 0 { 0. setgray } 10.0 Grid grestore end
+
+@endspecial
+712 2288 a Fy(\\psgrid\(0,0\)\(4,1\))591 2457 y FB(and)118
+2640 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.4 SLW 0.5 setgray
+113.81097 28.45274 0.0 0.0 113.81097 28.45274 28.45274 28.45274 5 0
+{} 0 Grid grestore gsave 0.8 SLW 0. setgray 113.81097 28.45274 0.0
+0.0 113.81097 28.45274 28.45274 28.45274 1 0 { 0. setgray } 10.0 Grid
+grestore end
+
+@endspecial 712 2591 a Fy
+(\\psgrid\(4,1\)\(0,0\))591 2828 y Fv(Grids)1227 b(17)p eop
+%%Page: 18 22
+21 bop 591 50 a FB(The)12 b(following)g(parameters)h(apply)f(only)g(to)g
+Fn(\\psgrid)p FB(:)591 181 y Fr(gridwidth=)p Ff(dim)713 b FA(Default:)20
+b Fr(.8pt)712 262 y FB(The)13 b(width)f(of)f(grid)h(lines.)591
+363 y Fr(gridcolor=)p Ff(color)651 b FA(Default:)19 b Fr(black)712
+444 y FB(The)13 b(color)f(of)g(grid)g(lines.)591 546 y Fr(griddots=)p
+Ff(num)782 b FA(Default:)20 b Fr(0)712 627 y FB(If)d Fp(num)h
+FB(is)f(positive,)h(the)g(grid)f(lines)g(are)h(dotted,)h(with)e
+Fp(num)g FB(dots)g(per)712 687 y(division.)591 789 y Fr(gridlabels=)p
+Ff(dim)688 b FA(Default:)20 b Fr(10pt)712 870 y FB(The)13 b(size)f(of)g(the)g
+(numbers)g(used)g(to)g(mark)g(the)g(grid.)591 971 y Fr(gridlabelcolor=)p
+Ff(color)539 b FA(Default:)19 b Fr(black)712 1052 y FB(The)13
+b(color)f(of)g(the)g(grid)g(numbers.)591 1154 y Fr(subgriddiv=)p
+Ff(int)771 b FA(Default:)20 b Fr(5)712 1235 y FB(The)13 b(number)f(of)g(grid)
+g(subdivisions.)591 1337 y Fr(subgridwidth=)p Ff(dim)626 b
+FA(Default:)20 b Fr(.4pt)712 1418 y FB(The)13 b(width)f(of)f(subgrid)h
+(lines.)591 1519 y Fr(subgridcolor=)p Ff(color)585 b FA(Default:)20
+b Fr(gray)712 1600 y FB(The)13 b(color)f(of)g(subgrid)f(lines.)591
+1702 y Fr(subgriddots=)p Ff(num)695 b FA(Default:)20 b Fr(0)712
+1783 y FB(Like)13 b Fn(griddots)p FB(,)e(but)h(for)g(subdivisions.)591
+1914 y(Here)e(is)g(a)g(familiar)i(looking)e(grid)h(which)f(illustrates)h
+(some)f(of)g(the)h(parameters:)236 2117 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  gsave 0.8 SLW 0. setgray
+-28.45274 -28.45274 85.35823 28.45274 -28.45274 -28.45274 28.45274
+28.45274 1 10 { 0. setgray } 7.0 Grid grestore end
+
+
+@endspecial 712 2127 a Fy(\\psgrid[subgriddiv=1,griddots=10,gridlabels=7p)o
+(t]\(-1,-1\))o(\(3,1\))591 2366 y FB(Note)18 b(that)g(the)h(values)f(of)g
+Fn(xunit)g FB(and)g Fn(yunit)g FB(are)g(important)h(parameters)g(for)591
+2426 y Fn(\\psgrid)p FB(,)10 b(because)h(they)g(determine)g(the)g(spacing)g
+(of)f(the)h(divisions.)16 b(E.g.,)11 b(if)f(the)591 2486 y(value)i(of)g
+(these)g(is)g Fy(1pt)p FB(,)g(and)g(then)g(you)g(type)712 2617
+y Fy(\\psgrid\(0,0\)\(10in,10in\))591 2828 y Fv(Grids)1227
+b(18)p eop
+%%Page: 19 23
+22 bop 591 50 a FB(you)18 b(will)i(get)g(a)f(grid)g(with)g(723)g(main)h
+(divisions)f(and)g(3615)g(subdivisions!)591 110 y(\(Actually)m(,)12
+b Fn(\\psgrid)g FB(allows)f(at)h(most)g(500)g(divisions)f(or)h(subdivisions,)
+f(to)g(limit)591 170 y(the)f(damage)h(done)f(by)g(this)g(kind)g(of)g
+(mistake.\))17 b(Probably)10 b(you)g(want)g(to)g(set)g Fn(unit)591
+230 y FB(to)i Fy(.5in)g FB(or)f Fy(1in)p FB(,)h(as)f(in)712
+361 y Fy(\\psgrid[unit=.5in]\(0,0\)\(20,20\))366 558 y Fl(1)l(1)71
+b(Plots)591 680 y FB(The)7 b(plotting)g(commands)g(described)g(in)g(this)g
+(part)g(are)h(de\256ned)f(in)g Fy(pst-plot.t)q(ex)p FB(/)p
+Fy(pst)q(-)325 704 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 31.29819 -15.6491
+31.29819 14.22636 -6.25954 14.22636 -6.25954 18.4941 -25.03864 18.4941
+-25.03864 14.22636 -31.29819 14.22636 -31.29819 -15.6491  /r 2.0 def
+/Lineto { Arcto } def false Polygon  gsave 3.0 45. PtoC Shadow 0.25
+setgray gsave fill grestore stroke grestore gsave 1. setgray gsave
+fill grestore stroke grestore gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial
+235 721 a Fr(pst-plot)591 740 y Fy(plot.sty)p FB(,)13 b(which)f(you)f(must)h
+(load)h(\256rst.)591 829 y(The)k Fn(\\psdots)p FB(,)h Fn(\\psline)p
+FB(,)g Fn(\\pspolygon)p FB(,)h Fn(\\pscurve)p FB(,)e Fn(\\psecurve)f
+FB(and)h Fn(\\psccurve)591 889 y FB(graphics)d(objects)h(let)h(you)e(plot)h
+(data)g(in)g(a)g(variety)g(of)g(ways.)24 b(However)n(,)14 b(\256rst)591
+949 y(you)d(have)h(to)g(generate)g(the)g(data)g(and)g(enter)g(it)g(as)g
+(coordinate)g(pairs)g Fy(\()p Fp(x)s Fy(,)t Fp(y)t Fy(\))p
+FB(.)17 b(The)591 1010 y(plotting)e(macros)g(in)g(this)g(section)g(give)g
+(you)g(other)g(ways)f(to)h(get)g(and)g(use)f(the)591 1070 y(data.)j
+(\(Section)c(26)f(tells)g(you)g(how)f(to)h(generate)h(axes.\))591
+1159 y(T)m(o)e(parameter)712 1290 y Fr(plotstyle=)p Ff(style)592
+b FA(Default:)19 b Fr(line)591 1421 y FB(determines)10 b(what)g(kind)g(of)g
+(plot)g(you)g(get.)17 b(V)-5 b(alid)9 b(styles)h(are)h Fy(dots)p
+FB(,)f Fy(line)p FB(,)g Fy(polygon)p FB(,)591 1481 y Fy(curve)p
+FB(,)16 b Fy(ecurve)p FB(,)g Fy(ccurve)p FB(.)28 b(E.g.,)17
+b(if)f(the)g Fn(plotstyle)e FB(is)i Fy(polygon)p FB(,)f(then)h(the)g(macro)
+591 1541 y(becomes)c(a)g(variant)h(of)f(the)g Fn(\\pspolygon)g
+FB(object.)591 1630 y(Y)-5 b(ou)13 b(can)h(use)f(arrows)g(with)g(the)h(plot)g
+(styles)g(that)g(are)g(open)g(curves,)g(but)f(there)591 1690
+y(is)f(no)h(optional)g(ar)o(gument)h(for)e(specifying)h(the)g(arrows.)19
+b(Y)-5 b(ou)12 b(have)h(to)g(use)f(the)591 1751 y Fn(arrows)e
+FB(parameter)k(instead.)297 2100 y @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  0.0 0.0 28.0 .5 CLW
+mul sub 0 360 arc closepath gsave 0.5 setgray fill  grestore gsave
+0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 297 2100 a
+ tx@Dict begin 45. Rot  end
+ 210 2157 a
+ tx@Dict begin CP CP T 3.55672 3.55672 scale NET  end
+ FB(PS)210 2157 y
+ tx@Dict begin CP CP T 1 3.55672 div 1 3.55672 div scale NET  end
+ 297 2100
+a
+ tx@Dict begin 45. neg Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  0 360 7.0 1.39998 .5
+CLW mul dup 3 1 roll sub 3 1 roll sub exch 0.0 26.60002 Ellipse closepath
+gsave 0. setgray fill  grestore end
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  0 360 7.0 1.39998 .5
+CLW mul dup 3 1 roll sub 3 1 roll sub exch 0.0 38.5 Ellipse closepath
+gsave 0. setgray fill  grestore end
+
+
+@endspecial @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.0 SLW 0. setgray  0. true -7.0 26.60002
+7.0 38.5 .5 Frame  gsave 0. setgray fill  grestore end
+
+@endspecial @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def  0.0 49.0 0.0 38.5 ArrowA 7.0 56.0 24.5 56.0 ArrowB
+curveto gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+@endspecial 399 1868 a
+ tx@Dict begin 0.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 0.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 40.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 40.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 80.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 80.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 120.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 120.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 160.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 160.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 200.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 200.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 240.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 240.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 280.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 280.0 neg Rot  end
+ 399 1868 a
+ tx@Dict begin 320.0 Rot  end
+ @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 2.79996 0.0 0.0 0.0  /Lineto /lineto load def false
+Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 399 1868 a
+ tx@Dict begin 320.0 neg Rot  end
+ 712 1910 a Fz(W)l(arning:)47 b(No)18
+b(PostScript)g(err)n(or)f(checking)i(is)f(pr)n(ovided)g(for)712
+1970 y(the)h(data)g(ar)n(guments.)35 b(Read)19 b(Appendix)g(C)f(befor)n(e)h
+(including)712 2031 y(PostScript)13 b(code)f(in)g(the)h(ar)n(guments.)712
+2111 y(Ther)n(e)j(ar)n(e)f(system-dependent)h(limits)g(on)f(the)h(amount)f
+(of)h(data)712 2172 y(T)731 2182 y(E)754 2172 y(X)11 b(and)g(PostScript)g
+(can)f(handle.)17 b(Y)l(ou)10 b(ar)n(e)h(much)f(less)g(likely)j(to)712
+2232 y(exceed)h(the)e(PostScript)h(limits)f(when)g(you)h(use)e(the)i
+Fp(line)p Fz(,)f Fp(polygon)712 2292 y Fz(or)g Fp(dots)g Fz(plot)g(style,)g
+(with)g Fo(showpoints=false)p Fz(,)e Fo(linearc=0pt)p Fz(,)g(and)712
+2352 y(no)i(arr)n(ows.)591 2496 y FB(Note)c(that)h(the)g(lists)g(of)f(data)h
+(generated)g(or)g(used)f(by)g(the)h(plot)g(commands)f(cannot)591
+2556 y(contain)k(units.)18 b(The)12 b(values)g(of)g Fn(\\psxunit)f
+FB(and)h Fn(\\psyunit)g FB(are)g(used)g(as)g(the)g(unit.)591
+2828 y Fv(Plots)1233 b(19)p eop
+%%Page: 20 24
+23 bop 591 50 a Fr(\\\256leplot)p Fd(*[)p Fc(par)p Fd(])p Fr({)p
+Ff(\256le)r Fr(})712 131 y Fn(\\plot\256le)14 b FB(is)g(the)g(simplest)f(of)h
+(the)g(plotting)g(functions)f(to)h(use.)22 b(Y)-5 b(ou)13 b(just)712
+191 y(need)f(a)f(\256le)g(that)h(contains)g(a)f(list)g(of)g(coordinates)h
+(\(without)f(units\),)g(such)712 251 y(as)19 b(generated)g(by)g(Mathematica)h
+(or)e(other)h(mathematical)j(packages.)712 311 y(The)d(data)g(can)g(be)f
+(delimited)i(by)e(curly)g(braces)h Fy({)f(})p FB(,)h(parentheses)f
+Fy(\()g(\))p FB(,)712 372 y(commas,)13 b(and/or)f(white)g(space.)18
+b(Bracketing)12 b(all)h(the)f(data)h(with)f(square)712 432
+y(brackets)f Fy([)g(])f FB(will)h(signi\256cantly)g(speed)f(up)h(the)g(rate)g
+(at)g(which)f(the)h(data)g(is)712 492 y(read,)e(but)f(there)g(are)g
+(system-dependent)g(limits)g(on)g(how)g(much)g(data)g(T)1891
+503 y(E)1914 492 y(X)712 552 y(can)15 b(read)f(like)g(this)g(in)g(one)g
+(chunk.)22 b(\(The)14 b Fy([)g Fz(must)f FB(go)h(at)g(the)h(beginning)712
+612 y(of)i(a)g(line.\))33 b(The)18 b(\256le)f(should)f(not)h(contain)h
+(anything)f(else)h(\(not)f(even)712 672 y Fy(\\endinput)p FB(\),)11
+b(except)i(for)f(comments)g(marked)h(with)f Fy(\045)p FB(.)712
+753 y Fn(\\plot\256le)21 b FB(only)f(recognizes)h(the)f Fy(line)p
+FB(,)i Fy(polygon)d FB(and)h Fy(dots)g FB(plot)h(styles,)712
+814 y(and)e(it)f(ignores)g(the)h Fn(arrows)p FB(,)f Fn(linearc)g
+FB(and)g Fn(showpoints)f FB(parameters.)712 874 y(The)d Fn(\\listplot)f
+FB(command,)h(described)f(below)m(,)g(can)g(also)g(plot)g(data)h(from)712
+934 y(\256le,)21 b(without)e(these)f(restrictions)i(and)e(with)h(faster)g(T)
+1656 945 y(E)1679 934 y(X)f(processing.)712 994 y(However)n(,)e(you)g(are)g
+(less)g(likely)g(to)g(exceed)h(PostScript')m(s)e(memory)h(or)712
+1054 y(operand)c(stack)h(limits)g(with)f Fn(\\plot\256le)p
+FB(.)712 1135 y(If)18 b(you)e(\256nd)h(that)h(it)g(takes)f(T)1211
+1146 y(E)1235 1135 y(X)f(a)i(long)f(time)h(to)g(process)e(your)h
+Fn(\\plot-)712 1196 y(\256le)i FB(command,)i(you)e(may)g(want)g(to)g(use)f
+(the)h Fn(\\PSTtoEPS)h FB(command)712 1256 y(described)c(on)g(page)f(80.)28
+b(This)16 b(will)g(also)f(reduce)h(T)1615 1266 y(E)1639 1256
+y(X')m(s)f(memory)h(re-)712 1316 y(quirements.)591 1418 y Fr(\\dataplot)p
+Fd(*[)p Fc(par)p Fd(])p Fr({)p Ff(commands)r Fr(})712 1499
+y Fn(\\dataplot)d FB(is)g(also)g(for)g(plotting)h(lists)f(of)g(data)h
+(generated)g(by)f(other)g(pro-)712 1559 y(grams,)22 b(but)d(you)h(\256rst)f
+(have)g(to)h(retrieve)h(the)f(data)g(with)f(one)h(of)f(the)712
+1619 y(following)12 b(commands:)820 1735 y Fr(\\savedata{)p
+Ff(command)t Fr(}[)p Ff(data)q Fr(])820 1810 y(\\readdata{)p
+Ff(command)t Fr(}{)p Ff(\256le)r Fr(})712 1912 y Fp(data)e
+FB(or)f(the)h(data)g(in)f Fp(\256le)i FB(should)e(conform)g(to)h(the)g(rules)
+f(described)h(above)712 1972 y(for)g(the)f(data)i(in)e Fn(\\\256leplot)h
+FB(\(with)f Fn(\\savedata)p FB(,)f(the)i(data)g(must)g(be)f(delimited)712
+2032 y(by)g Fy([)g(])p FB(,)h(and)e(with)h Fn(\\readdata)p
+FB(,)f(bracketing)i(the)f(data)g(with)g Fy([)g(])g FB(speeds)f(things)712
+2092 y(up\).)17 b(Y)-5 b(ou)12 b(can)g(concatenate)i(and)e(reuse)g(lists,)g
+(as)g(in)820 2194 y Fy(\\readdata{\\foo}{foo.data})820 2254
+y(\\readdata{\\bar}{b)o(ar)m(.data})820 2314 y(\\dataplot{\\foo\\bar})820
+2374 y(\\dataplot[origin=\(0,1\)]{\\bar})712 2476 y FB(The)18
+b Fn(\\readdata)e FB(and)h Fn(\\dataplot)f FB(combination)i(is)f(faster)g
+(than)h Fn(\\\256leplot)712 2536 y FB(if)f(you)f(reuse)g(the)h(data.)31
+b Fn(\\\256leplot)16 b FB(uses)g(less)g(of)g(T)1585 2547 y(E)1608
+2536 y(X')m(s)g(memory)g(than)712 2597 y Fn(\\readdata)11 b
+FB(and)h Fn(\\dataplot)f FB(if)h(you)g(are)g(also)g(use)g Fn(\\PSTtoEPS)p
+FB(.)591 2828 y Fv(Plots)1233 b(20)p eop
+%%Trailer
+end
+userdict /end-hook known{end-hook}if
+%%EOF

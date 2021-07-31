@@ -1,0 +1,58 @@
+% ALGORITHMIC STYLE -- Released 5 May 1994
+%    for LaTeX version 2e
+% Copyright -- 1994 Peter Williams
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{algorithmic}
+\typeout{Document Style `algorithmic' - environment}
+%
+\RequirePackage{ifthen}
+\newboolean{ALC@noend}
+\setboolean{ALC@noend}{false}
+%
+\DeclareOption{noend}{\setboolean{ALC@noend}{true}}
+%
+\ProcessOptions
+%
+% ALGORITHMIC
+%
+\newenvironment{algorithmic}{
+  \newenvironment{ALC@g}{
+    \begin{list}{}{\itemsep\z@ \itemindent\z@ \listparindent\z@
+    \topsep\z@ \partopsep\z@ \parskip\z@\parsep\z@
+    \leftmargin 1em}\item[]
+  }
+  {\end{list}}
+  \newenvironment{ALC@if}{\begin{ALC@g}}{\end{ALC@g}}
+  \newenvironment{ALC@for}{\begin{ALC@g}}{\end{ALC@g}}
+  \newenvironment{ALC@whl}{\begin{ALC@g}}{\end{ALC@g}}
+  \newenvironment{ALC@loop}{\begin{ALC@g}}{\end{ALC@g}}
+  \newenvironment{ALC@rpt}{\begin{ALC@g}}{\end{ALC@g}}
+  \renewcommand{\\}{\@centercr}
+  \newcommand{\IF}[1]{\mbox{\bf if }##1 \mbox{\bf then}\begin{ALC@if}}
+  \newcommand{\ELSE}{\end{ALC@if}\mbox{\bf else}\begin{ALC@if}}
+  \newcommand{\ELSIF}[1]{\end{ALC@if}\mbox{\bf else if }##1 \mbox{\bf then}\begin{ALC@if}}
+  \newcommand{\FOR}[1]{\mbox{\bf for }##1 \mbox{\bf do}\begin{ALC@for}}
+  \newcommand{\FORALL}[1]{\mbox{\bf for all }##1 \mbox{\bf do}\begin{ALC@for}}
+  \newcommand{\WHILE}[1]{\mbox{\bf while }##1 \mbox{\bf do}\begin{ALC@whl}}
+  \newcommand{\LOOP}{\mbox{\bf loop}\begin{ALC@loop}}
+  \newcommand{\REPEAT}{\mbox{\bf repeat}\begin{ALC@rpt}}
+  \newcommand{\UNTIL}[1]{\end{ALC@rpt}\mbox{\bf until }##1\@centercr}
+  \ifthenelse{\boolean{ALC@noend}}{
+    \newcommand{\ENDIF}{\end{ALC@if}}
+    \newcommand{\ENDFOR}{\end{ALC@for}}
+    \newcommand{\ENDWHILE}{\end{ALC@whl}}
+    \newcommand{\ENDLOOP}{\end{ALC@loop}}
+  }{
+    \newcommand{\ENDIF}{\end{ALC@if}\mbox{\bf end if}\@centercr}
+    \newcommand{\ENDFOR}{\end{ALC@for}\mbox{\bf end for}\@centercr}
+    \newcommand{\ENDWHILE}{\end{ALC@whl}\mbox{\bf end while}\@centercr}
+    \newcommand{\ENDLOOP}{\end{ALC@loop}\mbox{\bf end loop}\@centercr}
+  } 
+  \renewcommand{\@toodeep}{}
+  \begin{list}{}{%
+    \itemsep\z@ \itemindent\z@ \listparindent\z@%
+    \partopsep\z@ \parskip\z@ \parsep\z@%
+    \leftmargin 1em \topsep 0.2em%
+  }\item[]
+}
+{\end{list}}

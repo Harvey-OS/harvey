@@ -1,3 +1,2 @@
-broke|rc    kill program|rc
 Acid pid
-Acid -l thread -l acidfile pid
+Acid -l alef -l symsfile pid

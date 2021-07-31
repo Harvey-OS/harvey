@@ -45,11 +45,8 @@ readspec(void)
 	while (c = get1char()) {
 		switch (c) {
 		default:
-			if (c != tab) {
-				char buf[64];
-				sprint(buf, "bad table specification character %c", c);
-				error(buf);
-			}
+			if (c != tab)
+				error("bad table specification character");
 		case ' ': /* note this is also case tab */
 			continue;
 		case '\n':

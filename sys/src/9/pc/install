@@ -1,0 +1,75 @@
+dev
+	root	/
+	cons	c
+	env	e
+	mnt	M
+	uart	t
+	pipe	|
+	floppy	f
+	ata	H
+	srv	s
+	dup	d
+	proc	p
+	rtc	r
+	ether	l
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	iproute	P
+	vga	v
+	scsi	S	scsi adaptec ultrastor
+	wren	w
+	cdrom	R
+	audio	A
+	sbcd	m
+	i82365	y
+	reboot	↑
+
+link
+	stfcall
+	stip
+	ether509
+	ether8003	ether8390
+	ether4100	ether8390
+	ether2000	ether8390
+	vgaclgd542x
+	vgaet4000
+	vgamach32
+	vgas3
+	vgabt485
+	vgatvp3020
+
+misc
+	dossrv.root
+
+port
+	int cpuserver = 0;
+	void consdebug(void){}
+	long cfslen = 0; ulong cfscode[1];
+
+	/*
+	 * Stubs to satisfy vga if devbit isn't included.
+	 */
+	#include <libg.h>
+	#include <gnot.h>
+	void bitdebug(void){};
+	void bitdepth(void){};
+	int cursoron(int){return 0;};
+	void cursoroff(int){};
+	int m3mouseputc(IOQ*, int){return 0;};
+	void mouseclock(void){};
+	int mouseputc(IOQ*, int){return 0;};
+	void mousetrack(int, int, int){};
+	void pixreverse(uchar*, int, int){};
+	Cursor arrow;
+	GBitmap	set, clr;
+	int flipD[16];
+	uchar revtab0[256];
+	Cursor curs;
+	int mouseshifted;
+	int mousetype;
+	int mouseswap;
+	int islittle;
+	int hwcurs;
+
+boot dosboot #H/hd0
+	local

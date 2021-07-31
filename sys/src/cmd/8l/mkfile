@@ -9,7 +9,6 @@ OFILES=\
 	span.$O\
 	list.$O\
 	enam.$O\
-	compat.$O\
 
 HFILES=\
 	l.h\
@@ -17,9 +16,6 @@ HFILES=\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-
-# no -F because %X takes two arguments, which varargck can't represent
-CFLAGS=-Vw
 
 enam.$O:	../8c/enam.c
 	$CC $CFLAGS ../8c/enam.c

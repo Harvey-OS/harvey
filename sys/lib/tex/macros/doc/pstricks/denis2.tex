@@ -1,0 +1,36 @@
+%% BEGIN denis2.tex
+%  PSTricks sample that combines
+%   \pscharpath and \psclip.
+
+% Run with Plain TeX.
+
+\hsize 9in
+\vsize 6.5in
+\special{landscape}  % works with Rokicki's dvips.
+
+\input pstricks
+\input charpath
+
+% phvb should be name of Helvetica-Bold tfm or vf file:
+\font\bighelv=phvb at 5.5in
+\font\smallrm=ptmr at 10pt
+
+\newcount\mycount
+\parindent 0pt
+
+\vglue 1in
+
+\pscharclip[linewidth=2pt]{\rput[tl](0,0){\bighelv DG}}
+  \rput[t]{45}(0,0){\vbox{%
+    \hsize 12in
+    \smallrm
+    \mycount=1000
+    \loop
+    \advance\mycount -1
+    \ifnum\mycount>0
+      Denis Girou
+    \repeat}}
+\endpscharclip
+
+\bye
+%% END denis2.tex

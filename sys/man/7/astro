@@ -4,20 +4,10 @@ astro \- print astronomical information
 .SH SYNOPSIS
 .B astro
 [
-.B -dlpsatokm
+.B -dlepsatokm
 ]
 [
-.B -c
-n
-]
-[
-.B -C
-d
-]
-[
-.B -e
-.I obj1
-.I obj2
+.BI -c n
 ]
 .SH DESCRIPTION
 .I Astro
@@ -42,19 +32,8 @@ Report for
 .I n
 (default 1) successive days.
 .TP
-.B C
-Used with
-.BR -c ,
-set the interval to
-.B d
-days (or fractions of days).
-.TP
 .B e
-Report distance between the centers of
-objects, in arc seconds, during eclipses or occultations involving
-.I obj1
-and
-.IR obj2 .
+Report fractional overlap during eclipses.
 .TP
 .B p
 Print the positions of objects at the
@@ -65,7 +44,7 @@ the right ascension (hours, minutes, seconds),
 declination (degrees, minutes, seconds),
 azimuth (degrees),
 elevation (degrees),
-and semidiameter (arc seconds).
+and semidiameter (arc minutes).
 For the sun and moon, the magnitude is also printed.
 .TP
 .B s
@@ -101,7 +80,7 @@ environment variable.
 Includes a single comet in the list of objects.
 This is modified (in the source) to refer to an approaching comet
 but in steady state
-usually refers to the last interesting comet (currently Hale-Bopp, C/1995 O1).
+usually refers to the last interesting comet (currently Levy, 1990c).
 .SH FILES
 .TF /lib/sky/estartab
 .TP

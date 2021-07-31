@@ -1,0 +1,149 @@
+\def\fileversion{1.3}
+\def\filedate{1994/06/07}
+\def\docdate {1994/06/07}
+%
+% \iffalse
+%
+%% epsfig.dtx Copyright (C) 1994 Sebastian Rahtz
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+%<*driver>
+% \CheckSum{599}
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+\documentclass{ltxdoc}
+\begin{document}
+ \title{The \textsf{epsfig} package\thanks{This file
+        has version number \fileversion, last
+        revised \filedate.}}
+ \author{Sebastian Rahtz\\spqr@ftp.tex.ac.uk}
+ \date{\filedate}
+ \maketitle
+ \DocInput{epsfig.dtx}
+\end{document}
+%</driver>
+% \fi
+% \section{Preface}
+%    \begin{macrocode}
+%<*package>
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{epsfig}[\filedate\space\fileversion\space(SPQR)]
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{graphicx}}
+\PassOptionsToPackage{dvips}{graphics}
+\ProcessOptions
+\RequirePackage{graphicx}
+%    \end{macrocode}
+% \subsection{Emulation of `psfig' syntax}
+% Emulate "epsfig.sty", and most varieties of psfig
+% \begin{macro}{\psfig,\epsfig}
+%    \begin{macrocode}
+\def\psfig#1{%
+ \def\Gin@ewidth{!}\let\Gin@eheight\Gin@ewidth
+ \def\Gin@req@sizes{%
+   \def\Gin@scalex{1}\def\Gin@scaley{!}%
+   \Gin@req@height\Gin@nat@height
+   \Gin@req@width\Gin@nat@width}%
+   \begingroup
+    \let\Gfigname\relax
+    \@tempswafalse
+    \toks@{\Ginclude@graphics{\Gfigname}}%
+    \setkeys{Gin}{#1}%
+    \Gin@esetsize
+    \ifx\Gfigname\relax\ErrorNoFile\else
+      \the\toks@
+    \fi
+  \endgroup}
+\define@key{Gin}{figure}{\def\Gfigname{#1}}
+\define@key{Gin}{file}{\def\Gfigname{#1}}
+\define@key{Gin}{prolog}{\typeout{epsfig: header files are not needed}}
+\def\psdraft{\Gin@drafttrue}
+\def\psfull{\Gin@draftfalse}
+\def\pssilent{\typeout{epsfig option `silent' ignored}}
+\def\psnoisy{\typeout{epsfig option `noisy' ignored}}
+\let\epsfig\psfig
+\def\psfigdriver#1{\makeatletter\input{#1.def}\makeatother}
+%    \end{macrocode}
+% \end{macro}
+% \subsection{Emulation of `epsf' syntax}
+% Emulate Rokicki's "epsf.tex" supplied with the ever-popular dvips.
+% \begin{macro}{\epsfbox,\epsffile}
+%    \begin{macrocode}
+\newdimen\epsfxsize
+\newdimen\epsfysize
+\epsfysize\z@
+\epsfxsize\z@
+\def\epsfsize#1#2{\epsfxsize}
+\def\epsfbox{%
+ \@ifnextchar[%
+  {\Gin@viewporttrue\epsf@bb@box}%
+  {\Gin@viewportfalse\epsf@box}%
+}
+\def\epsf@bb@box[#1]#2{%
+  \expandafter\Gread@parse@bb#1 \\
+  \epsf@box{#2}%
+}
+\def\epsf@box#1{%
+ \bgroup
+   \def\Gin@req@sizes{%
+        \epsfxsize\epsfsize{\Gin@nat@width}{\Gin@nat@height}%
+	\ifdim\epsfxsize=\z@
+	    \ifdim\epsfysize=\z@
+                \Gin@req@height\Gin@nat@height        
+                \Gin@req@width\Gin@nat@width        
+            \else
+		\def\Gin@scalex{!}%
+		\Gin@req@height\epsfysize
+	        \Gscale@div\Gin@scaley\Gin@req@height\Gin@nat@height
+		\Gin@req@width\Gin@scaley\Gin@nat@width
+	    \fi
+	\else
+	    \Gin@req@width\epsfxsize
+            \Gscale@div\Gin@scalex\Gin@req@width\Gin@nat@width
+	    \ifdim\epsfysize=\z@
+		\def\Gin@scaley{!}%
+		\Gin@req@height\Gin@scalex\Gin@nat@height
+            \else
+		\Gin@req@height\epsfysize
+	        \Gscale@div\Gin@scaley\Gin@req@height\Gin@nat@height
+	    \fi
+	\fi
+      }%
+ \Ginclude@graphics{#1}%
+ \egroup
+ \epsfysize\z@
+ \epsfxsize\z@
+}
+\let\epsffile\epsfbox
+\def\epsfclipon{\Gin@cliptrue}
+\def\epsfclipoff{\Gin@clipfalse}
+\def\epsfverbosetrue{\typeout{epsf verbose option ignored}}
+\def\epsfverbosefalse{\typeout{epsf verbose option ignored}}
+%</package>
+%    \end{macrocode}
+% \end{macro}
+\endinput
+

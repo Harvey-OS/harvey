@@ -1,3 +1,10 @@
+.ds @w Your Institution
+.ds @d Your Division
+.ds @t Your Division\'s Title
+.ds @l Your Location
+.ds @f Your Fax Number
+.ds @v Your Voice Number
+.ds @e Your Email Address
 .LP
 \l'6i'\v'12u'\l'-6i'
 .sp 1.5
@@ -5,39 +12,39 @@
 .vs 12
 .ft HB
 .ce 1
-.tl 'BELL LABS'FAX'\s18\(FA\s0              '
+.tl '\*(@w'FAX''
 .sp -0.5
 .ce 1
 \l'6i'
 .sp
-.tl 'CENTER 1127''COMPUTING SCIENCE RESEARCH'
+.tl '\*(@d''\*(@t'
 .br
 \l'6i'\v'12u'\l'-6i'
 .sp 2
 .nf
 .na
 .ta 2i 4.6i
-Date/time: FAXddd		No.Pages: FAXPPP
+Date/time: ddd		No.Pages: ppp
 .sp 3
-To: FAXTTT
+To: TTT
 .sp
 Location: 
 .sp
-Fax: FAXfff
+Fax: fff
 .sp
 Voice: 
 .sp
 Email: 
 .sp 3
-From: FAXFFF
+From: FFF
 .sp
-Location: Murray Hill
+Location: \*(@l
 .sp
-Fax: +1 908-582-4417
+Fax: \*(@f
 .sp
-Voice: +1 908-582-FAXVVV
+Voice: \*(@v
 .sp
-Email: FAXEEE@research.bell-labs.com
+Email: \*(@e
 .sp 2
 .br
 \l'6i'\v'12u'\l'-6i'
@@ -45,4 +52,3 @@ Email: FAXEEE@research.bell-labs.com
 Comments:
 .sp 12
 \l'6i'\v'12u'\l'-6i'
-

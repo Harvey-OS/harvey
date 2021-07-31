@@ -1,0 +1,332 @@
+\documentclass{article}
+% $Id: sptest.tex,v 1.2 1995/01/28 07:48:54 swift Exp $
+%* preamble
+\usepackage{shortvrb}
+\MakeShortVerb{\|}
+
+\usepackage{tmacros}
+\usepackage{relsize}
+\usepackage{markx}
+\usepackage{includex}
+\usepackage{lips}
+
+\usepackage{alltt}
+
+\makeatletter
+\newcommand\debug[1]
+  {\tracingoutput\@ne
+  \tracingpages\@ne
+  \tracingmacros#1  
+  \tracingcommands#1
+  \showboxbreadth\@M
+  \showboxdepth\@M}
+\makeatother
+
+\setcounter{errorcontextlines}{999}
+
+\begin{document}
+%* Intro
+
+\author{Matt Swift \texttt{<swift@bu.edu>}}
+\date{27 January 1995}
+\title{Pre-release testing of the \texttt{scholar} package}
+\maketitle
+
+
+\section{Ellipses}
+The log file will contain detailed information on the spacings.
+
+The internal code for |\ldots| changed with the December 1994 release;
+I highly doubt there was a visible difference.
+\begin{quote}
+ \debug1
+   Hello\lips. And
+
+   \lips and \\
+   Hello \lips and \\
+   Hello!\lips And  \\  % (also `?', `.', `:', `,' and `:')
+   Hello\lips and \\
+   Hello! \lips And \\  % (also `?', `.', `:', `,' and `:')
+   Hello \lips and
+ \debug0
+\end{quote}
+\begin{center}
+*\quad*\quad*
+\end{center}
+\begin{quote} \let\lips\ldots
+ \debug1
+   Hello\lips. And
+
+   \lips and \\
+   Hello \lips and \\
+   Hello!\lips And  \\  % (also `?', `.', `:', `,' and `:')
+   Hello\lips and \\
+   Hello! \lips And \\  % (also `?', `.', `:', `,' and `:')
+   Hello \lips and
+ \debug0
+\end{quote}
+
+\section{Text and abbreviation macros}
+\newabbrev{uni}{University Professors}{UNI}
+\newbook{worst}{Worstward Ho}
+\newbook{fall}{All That Fall}
+\newbook{nacht}{Nacht und Tr\"aume}
+\newbook{csp}{Collected Shorter Plays \emph{(}CSP\emph{)}}[CSP]
+\newname{joyce}{James Joyce}{Joyce}
+\newname{hill}{Geoffrey Hill}{Hill}
+% \newwork{pricks}{More Pricks Than Kicks}[More Pricks]
+% \newwork{how}{How It Is}
+
+In this example, I will talk a little about my real work that I do when I'm not
+distracting myself with the |scholar| package.  I am getting a Ph.D. at the
+\uni Program at Boston University---that's ``\uni'' for short.  \uni's purpose
+is to bring together a group of faculty (also called the \unilong) and a group
+of students who don't belong in any one department, and free them from the
+beauracracy of departments.  There are some great faculty in our group,
+including \hill, a great poet and scholar, with whom I have been lucky enough
+to work.  I can actually write better English than this (which would distress
+\hill), but I'm trying to test text macros.  I'm presently writing a
+dissertation on Samuel Beckett.  Although there is very little biographical
+material available, it is well known that he spent several years under the wing
+of \joyce, another of the great writers in English this century.  Both \joyce
+and Beckett, it is curious, like other great writers, both had trouble with
+their vision, and were exiles in some sense.  One of my favorite pieces by
+Beckett is \worst, a short work written in the 1980's not long before his
+death: ``Fail again.  Fail better.''  \worst is lyric and exalting to me.  A
+work I feel is underrated is the radio play \fall (all but his three long plays
+are collected in \csp).  It's extremely funny, and very touchingly
+compassionate.  Because it is a radio play, it looses less from performance to
+reading.  I would recommend \fall to anyone.  His later plays (and fiction) are
+famously enigmatic, but with a little practice, it is not hard to see the same
+lyric beauty and compassion.  Take the brief television play \nacht (in \csp of
+course), which has no dialogue, only a few murmured bars of the Schubert song,
+also brief, and also called \nacht---it's one of the most hauntingly beautiful
+few minutes of music I've ever heard, and I particularly recommend Cheryl
+Studer's recording on Deutsche Grammophone.  Every other recording I've heard
+plays too fast.
+
+\ResetAbbrevs
+
+It's funny, but though I think the \unishort Program is great, I can't wait to
+leave, and move on to something else.  I guess it isn't the greatest thing
+around, though I will miss the inspiration of my advisor, and some other of the
+\uni like \hill.
+
+\section{Relative sizing}
+
+This test won't be as literary as the last, sorry.  Just three great words in
+three sentences (by Beckett, of course).
+
+\makeatletter
+\newcommand\checks[1]
+  {\quad$\the\rs@size = #1$?\par}
+\makeatother
+
+Heaven.  Hell.  Helen.  \checks4 \smaller
+Heaven.  Hell.  Helen.  \checks3 \smaller[1]
+Heaven.  Hell.  Helen.  \checks2 \smaller[-1]
+Heaven.  Hell.  Helen.  \checks3 \smaller[2]
+Heaven.  Hell.  Helen.  \checks1 \relsize{-1}
+Heaven.  Hell.  Helen.  \checks0 \smaller
+Heaven.  Hell.  Helen.  \checks0 \relsize{5}
+Heaven.  Hell.  Helen.  \checks5 \larger
+Heaven.  Hell.  Helen.  \checks6 \larger[1]
+Heaven.  Hell.  Helen.  \checks7 \larger[-1]
+Heaven.  Hell.  Helen.  \checks6 \larger[2]
+Heaven.  Hell.  Helen.  \checks8 \larger
+Heaven.  Hell.  Helen.  \checks9 \larger
+Heaven.  Hell.  Helen.  \checks9 \normalsize
+
+\section{New ways to include}
+
+This will take several pages. 
+
+First, check that we can |\include| as usual, so the rest of this page should
+be blank, and the Melville quote should be alone on the next page.
+
+\include{sptest-aux}
+
+This should be on a new page.  Now we include the same thing, but it should
+come immediately here because we use |\include*|:
+
+\include*{sptest-aux}
+
+And this paragraph should immediately follow the Melville.  Now, we check
+|\includedoc| and |\includedoc*| in a similar manner.  The included file is
+going to use the |alltt| environment.  We have loaded the package in the parent
+file.  The |\usepackage| command in the included file should be disabled; if
+not, there will be an error when it tries to redefine the environment.  Also,
+we disable several commands that will produce an error if they are not. This
+should be the last text on this page.
+
+\newcommand\tdisable{\typeout{Error with \protect\tdisable.}}
+\newcommand\tdisableone[1]{\typeout{Error with \protect\tdisableone.}}
+\newcommand\tdisableopt[2][]{\typeout{Error with \protect\tdisableopt.}}
+\newcommand\tdisabletwo[2]{\typeout{Error with \protect\tdisabletwo.}}
+
+\disable{\let\tdisable\relax}
+\disable{\let\tdisableone\gobble}
+\disable{\let\tdisableopt\gobbleopt}
+\disable{\let\tdisabletwo\gobbletwo}
+
+\makeatletter
+\newcommand\checkp
+  {\@ifundefined{preamblecmd}
+      {%
+%      \typeout{Preamblecmd undefined.}%
+      }
+    {%
+%    \typeout{Preamblecmd is: (\preamblecmd).}%
+%    \let\preamblecmd\relax
+    }}
+\makeatother
+\checkp
+
+\includedoc{sptest-aux1}
+
+\checkp
+
+And this should be on a new page.  The first line should have said it
+comes from the preamble. 
+
+The |\includedoc| family of commands puts the included file into a group.  So
+|\preamblecmd| is not defined now.
+
+Now we do the same thing over, but the file should appear immediately.  
+
+\includedoc*{sptest-aux1}
+
+\checkp
+
+And this paragraph should immediately follow the Beckett.  Finally, we have to
+check |\includedocskip| and |\includedocskip*|.  The difference will be that
+the first line will say it comes from the parent.  This should be the last text
+on the page.
+
+\newcommand\preamblecmd
+  {This def of preamblecmd comes from the parent.}
+
+\includedocskip{sptest-aux1}
+
+\checkp
+This should be on a new page.  And once again, the quote should follow
+immediately here:
+
+\includedocskip*{sptest-aux1}
+
+\checkp
+
+And this text should immediately follow the quote. 
+
+%* end
+
+\end{document}
+
+
+\section{Extra marks}
+
+See the discussion in the source about how these marks are \emph{not} really
+independent.  This test file is a good way to see the mess you can get into. 
+
+This too will take a bunch of pages to check.  I'm using the table on page~258
+of the \TeX book instead of bothering to make up my own test example.   I don't
+test the macros |\FreeXMarkTwo| and |\ClaimXMarkTwo|. 
+
+\makeatletter
+\newcommand\ps@mcheck
+  {\renewcommand\@oddfoot
+    {\raisebox{0pt}[10pt][0pt]{\parbox[b]{\textwidth}{\markchecks}}}}
+\newcommand\domark[1]
+  {#1 \printmark{#1} makes the mark (\sc@themark)\par}
+\makeatother
+
+\newcommand\printmark[1]
+  {d}
+
+\newcommand{\markchecks}{}
+\newcommand\cmark[2]
+  {#1xmark#2 is (\csname #1xmark#2\endcsname)}
+\newcommand\cmarks
+  {\thispagestyle{mcheck}
+  \renewcommand{\markchecks}
+    {
+      \cmark{top}{one}\\
+      \cmark{top}{two}\\
+      \cmark{first}{one}\\
+      \cmark{first}{two}\\
+      \cmark{bot}{one}\\
+      \cmark{bot}{two}\\
+      leftmark is (\leftmark)\\
+      rightmark is (\rightmark)\\
+      topmark is (\topmark)\\
+      firstmark is (\firstmark)\\
+      botmark is (\botmark)
+    }
+
+ \begin{quotation} 
+      A road still carriageable climbs over the high moorland.  It cuts across
+  vast turfbogs, a thousand feet above sealevel, two thousand if you prefer.
+  It leads to nothing any more.  A few ruined forts, a few ruined dwellings.
+  The sea is not far, just visible beyond the valleys dipping eastward, pale
+  plinth as pale as the pale wall of sky.  Tarns lie hidden in the folds of the
+  moor, invisible from the road, reached by faint paths, under high overhanging
+  crags.  All seems flat, or gently undulating, and there at a stone's throw
+  these high crags, all unsuspected by the wayfarer.  Of granite what is more.
+  In the west the chain is at its highest, its peaks exalt even the most
+  downcast eyes, peaks commanding the vast champaign land, the celebrated
+  pastures, the golden vale.  Before the travellers, as far as eye can reach,
+  the road winds on into the south, uphill, but imperceptibly.  None ever pass
+  this way but beauty-spot hogs and fanatical trampers.  Under its heather mass
+  the quag allures, with an allurement not all mortals can resist.  Then it
+  swallows them up or the mist comes down.  The city is not far either, from
+  certain points its lights can be seen by night, its light rather, and by day
+  its haze.  Even the piers of the harbour can be distinguished, on very clear
+  days, of the two harbours, tiny arms in the glassy sea outflung, known flat,
+  seen raised.  And the islands and promontories, one has only to stop and turn
+  at the right place, and of course by night the beacon lights, both flashing
+  and revolving.  It is here one would lie down, in a hollow bedded with dry
+  heather, and fall asleep, for the last time, on an afternoon, in the sun,
+  head down among the minute life of stems and bells, and fast fall asleep,
+  fast farewell to charming things.  It's a birdless sky, the odd raptor, no
+  song.  End of descriptive passage.
+\end{quotation}
+\begin{center}
+  \emph{Mercier and Camier}\\
+  section~VII (beginning)\\
+    Samuel Beckett
+\end{center}
+  \clearpage}
+
+\clearpage
+
+\domark{\markboth{1}{one}}
+
+\cmarks
+
+\domark{\markright{Two}}
+\domark{\markboth{2}{two}}
+\domark{\xmarkone{A}}
+\domark{\xmarktwo{a}}
+
+\cmarks
+
+\domark{\markboth{3}{three}}
+\domark{\markright{Three}}
+
+\cmarks
+
+\domark{\markboth{4}{four}}
+\domark{\xmarkone{B}}
+\domark{\xmarktwo{b}}
+\domark{\xmarkone{C}}
+\domark{\xmarktwo{c}}
+
+\cmarks
+
+\domark{\markboth{5}{five}}
+\domark{\xmarkone{D}}
+\domark{\xmarktwo{d}}
+
+\cmarks
+
+\cmarks

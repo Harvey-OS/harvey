@@ -1,0 +1,30 @@
+#!/bin/rc
+bind -a '#H' /dev || bind -a '#w' /dev
+
+echo creating partitions
+echo bignose > /dev/hd0partition
+disk/prep /dev/hd0 > /dev/null <<EOF
+
+
+
+swap
+
+20480
+boot
+
+2048
+cache
+
+20480
+fs
+
+
+*
+y
+EOF
+bind -a '#H' /dev || bind -a '#w' /dev
+
+echo making file system
+disk/kfs -rf/dev/hd0fs
+
+safari/update

@@ -8,8 +8,6 @@
 
 static int fsize[] =
 {
-	['A'] 4,
-	['B'] 4,
 	['C'] 1,
 	['D'] 4,
 	['F'] 8,
@@ -19,11 +17,8 @@ static int fsize[] =
 	['R'] 4,
 	['S'] 4,
 	['U'] 4,
-	['V'] 8,
 	['X'] 4,
-	['Y'] 8,
-	['W'] 8,
-	['Z'] 8,
+	['Y'] 4,
 	['a'] 4,
 	['b'] 1,
 	['c'] 1,
@@ -36,6 +31,8 @@ static int fsize[] =
 	['s'] 4,
 	['u'] 2,
 	['x'] 2,
+	['A'] 4,
+	['B'] 4,
 };
 
 int
@@ -547,7 +544,7 @@ orsh(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type >>");
-	res->ival = (unsigned)l.ival>>r.ival;
+	res->ival = l.ival>>r.ival;
 }
 
 void

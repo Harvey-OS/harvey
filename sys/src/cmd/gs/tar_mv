@@ -1,0 +1,4 @@
+if ( test -f $1 ) then
+	rm -f $2
+	mv $1 $2
+fi

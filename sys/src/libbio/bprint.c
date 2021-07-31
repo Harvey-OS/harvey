@@ -2,32 +2,28 @@
 #include	<libc.h>
 #include	<bio.h>
 
+#define	DOTDOT	(&fmt+1)
 int	printcol;
 
 int
 Bprint(Biobufhdr *bp, char *fmt, ...)
 {
-	va_list arg;
-	int n, pcol;
 	char *ip, *ep, *out;
+	int n, pcol;
 
-	va_start(arg, fmt);
 	ep = (char*)bp->ebuf;
 	ip = ep + bp->ocount;
 	pcol = printcol;
-	out = doprint(ip, ep, fmt, arg);
-	if(out >= ep-UTFmax-1) {
+	out = doprint(ip, ep, fmt, DOTDOT);
+	if(out >= ep-5) {
 		Bflush(bp);
 		ip = ep + bp->ocount;
 		printcol = pcol;
-		out = doprint(ip, ep, fmt, arg);
-		if(out >= ep-UTFmax-1) {
-			va_end(arg);
+		out = doprint(ip, ep, fmt, DOTDOT);
+		if(out >= ep-5)
 			return Beof;
-		}
 	}
 	n = out-ip;
 	bp->ocount += n;
-	va_end(arg);
 	return n;
 }

@@ -1,0 +1,30 @@
+%% 
+%% This is file `vector.drv', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% vector.dtx  (with options: `driver')
+%% 
+%% Copyright (C) 1994 by Nick Efford 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+\documentclass{ltxdoc}
+\usepackage{array, vector}
+\GetFileInfo{vector.sty}
+\begin{document}
+  \title{The \textsf{vector} package\thanks{This file is
+         \fileversion, last revised \filedate.}}
+  \author{Nick Efford\thanks{Address: School of Computer Studies,
+          University of Leeds, Leeds LS2 9JT, United Kingdom}\\
+          \texttt{\small nde@dcre.leeds.ac.uk}}
+  \date{\filedate}
+  \maketitle
+  \DocInput{vector.dtx}
+\end{document}
+\endinput
+%% 
+%% End of file `vector.drv'.

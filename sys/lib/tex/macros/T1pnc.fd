@@ -1,0 +1,49 @@
+%Filename: T1pnc.fd
+%Created by: tex 16969newcentu
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pnc}{}
+
+\DeclareFontShape{T1}{pnc}{b}{n}{
+   <-> pncbq
+}{}
+
+\DeclareFontShape{T1}{pnc}{b}{sc}{
+   <-> pncbcq
+}{}
+
+\DeclareFontShape{T1}{pnc}{b}{it}{
+   <-> pncbiq
+}{}
+
+\DeclareFontShape{T1}{pnc}{b}{sl}{
+   <-> pncboq
+}{}
+
+\DeclareFontShape{T1}{pnc}{m}{n}{
+   <-> pncrq
+}{}
+
+\DeclareFontShape{T1}{pnc}{m}{sc}{
+   <-> pncrcq
+}{}
+
+\DeclareFontShape{T1}{pnc}{m}{it}{
+   <-> pncriq
+}{}
+
+\DeclareFontShape{T1}{pnc}{m}{sl}{
+   <-> pncroq
+}{}
+
+\DeclareFontShape{T1}{pnc}{bx}{n}{<->ssub * pnc/b/n}{}
+\DeclareFontShape{T1}{pnc}{bx}{sc}{<->ssub * pnc/b/sc}{}
+\DeclareFontShape{T1}{pnc}{bx}{it}{<->ssub * pnc/b/it}{}
+\DeclareFontShape{T1}{pnc}{b}{ui}{<->sub * pnc/b/it}{}
+\DeclareFontShape{T1}{pnc}{bx}{ui}{<->ssub * pnc/b/ui}{}
+\DeclareFontShape{T1}{pnc}{bx}{sl}{<->ssub * pnc/b/sl}{}
+\DeclareFontShape{T1}{pnc}{m}{ui}{<->sub * pnc/m/it}{}
+
+\endinput

@@ -1,0 +1,22 @@
+.TH LATEX 1 "7 Jan 92"
+.SH NAME
+latex \- structured text formatting and typesetting
+.SH SYNOPSIS
+.B latex
+[ first line ]
+.SH DESCRIPTION
+The LaTeX language is described in
+.IR LaTeX \- A Document Preparation System ,
+by Leslie Lamport, published by Addison-Wesley.  LaTeX is a TeX macro
+package, not a modification to the TeX source program, so all the
+capabilities described in
+.BR tex (1)
+are present.
+.PP
+The LaTeX macros encourage writers to think about the content of their
+documents, rather than the form.  The ideal, not always realized, is to
+have no formatting commands (like ``switch to italic'' or ``skip 2
+picas'') in the document at all; instead, everything is done
+by specific markup instructions: ``emphasize'', ``start a section''.
+.SH "SEE ALSO"
+slitex(1), tex(1)

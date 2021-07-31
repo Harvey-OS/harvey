@@ -1,0 +1,431 @@
+% \iffalse % mcite.dtx - multiple citations on one key
+% Copyright (C) 1994 by Thorsten.Ohl@Physik.TH-Darmstadt.de
+% /home/sources/ohl/tex/mcite/mcite.dtx,v 1.5 1994/08/18 14:22:26 ohl Exp
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Mcite is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by 
+% the Free Software Foundation; either version 2, or (at your option)
+% any later version.
+%
+% Mcite is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \fi
+%
+%% \CheckSum{206}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \MakeShortVerb{\|}
+%
+% \title{%
+%   \MCITE/: \\
+%   Multiple Citations on One Key}
+%
+% \author{%
+%   Thorsten Ohl\thanks{e-mail:
+%     \texttt{Thorsten.Ohl@Physik.TH-Darmstadt.de}}\\
+%   \hfil \\
+%   Technische Hochschule Darmstadt \\
+%   Schlo\ss gartenstr. 9 \\
+%   D-64289 Darmstadt \\
+%   Germany}
+%
+% \maketitle
+%
+% \begin{abstract}
+%   This \LaTeXe{} package provides support for collapsing multiple
+%   citations into one, as custumoary in physics journals.
+% \end{abstract}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \tableofcontents
+% \unitlength=1mm
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Introduction}
+%
+% Imagine we want to refer to the standard
+% model~\cite{Glashow,*Salam,*Weinberg} of particle physics.  Instead
+% of the standard \BibTeX{}~\cite{btxdoc,*btxhak} format
+% \begin{itemize}
+%   \bitem{1} Sheldon Glashow. Partial symmetries of weak interactions.
+%     {\em Nucl.~Phys.}, 22:579, 1961.
+%   \bitem{2} Abdus Salam. Weak and electromagnetic interactions.
+%     In W.~Svartholm, editor, {\em Elementary Particle Theory}, page 367,
+%     Stockholm, 1968. Almquist and Wiksell.
+%   \bitem{3} Steven Weinberg.  A model of leptons.
+%     {\em Phys.~Rev.~Lett.}, 19:1264, 1967.
+% \end{itemize}
+% it is customary in physics journals to collapse such references into one
+% \begin{itemize}
+%   \bitem{1} Sheldon Glashow, Nucl.~Phys.~\textbf{22} (1961) 579; 
+%     Abdus Salam, in: W.~Svartholm (ed.), \textit{Elementary
+%     Particle Theory}, p.~367, Stockholm, 1968;
+%     Steven Weinberg, Phys.~Rev.~Lett.~\textbf{19} (1967) 1264.
+% \end{itemize}
+% The slight typographyical changes are easily taken care of by
+% changing the \BibTeX{} style, i.e.~by using |phaip.bst|.  The hard
+% part is to convince \BibTeX{} to collapse the entries.  \MCITE/
+% takes care of that.
+%
+% \DescribeMacro{\cite}
+% This package overloads the \LaTeX{}~\cite{latex,*latex-companion}
+% |\cite| command.  All keys starting with a |*| (which should be
+% sufficiently unlikely in a \BibTeX{} key) will be added to the
+% previous item.  For example the following
+% reference~\cite{texbook,latex,*latex-companion,Glashow,*Salam,*Weinberg}
+% was created by
+% |\cite{texbook,latex,*latex-companion,Glashow,*Salam,*Weinberg}|.
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection*{Hacking the \BibTeX{} Style}
+%
+% With the standard \BibTeX{} styles, it is almost impossible to
+% provide proper punctuation (i.e.~``|;|'' between collapsed items).
+% In principle one could play tricks with an active ``|.|'', but there
+% are too many special cases in real life \BibTeX{} entries that can go
+% wrong.  Fortunately, it is fairly easy to customize \BibTeX{} styles
+% for our purposes.
+%
+% Almost all \BibTeX{} styles known to (wo)mankind contain a function
+% \begin{verbatim}
+% FUNCTION {fin.entry}
+% { add.period$
+%   write$
+%   newline$
+% }
+% \end{verbatim}
+% removing the |add.period$| and escaping the |newline$| with |\relax|
+% will take care of the paragraph breaks and allow \MCITE/ to provide
+% the proper punctuation:
+% \begin{verbatim}
+% FUNCTION {fin.entry}
+% { write$
+%   "\relax" write$
+%   newline$
+%   "\relax" write$
+% }
+% \end{verbatim}
+% Note that |%| would be almost as good as |\relax| but the latter
+% also works if the |\catcode| of |%| has been changed.
+%
+% In the function |begin.bib|, the |\begin{thebibliography}| should be
+% replaced by |\begin{mcbibliography}|.  Similary, in |end.bib| the
+% |\end{thebibliography}| by |\end{mcbibliography}|.  The
+% |mcbibliography| environment will inform \MCITE/ that it has to
+% provide the punctuation.
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection*{Bugs and Deficiencies}
+%
+% The following bugs and deficiencies are known:
+% \begin{enumerate}
+%   \item{} \MCITE/ only works with unsorted bibliography styles.
+%     Without modifications to \BibTeX, it seems impossible to support
+%     sorted bibliography styles.
+%   \item{} \MCITE/'s |\cite| is less forgiving about bogus spaces.
+%     This can be fixed.
+% \end{enumerate}
+%
+% \StopEventually{}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Implementation}
+%
+% It's is good practice to identify this version of this package.
+% We do this by parsing an RCS |Id| string and storing the
+% result in the conventional \TeX{} control sequences:
+%    \begin{macrocode}
+%<*package>
+\NeedsTeXFormat{LaTeX2e}
+{\def\RCS#1#2\endRCS{%
+  \ifx$#1%
+    \@RCS $#2 \endRCS
+  \else
+    \@RCS $*: #1#2$ \endRCS
+  \fi}%
+ \def\@RCS $#1: #2,v #3 #4 #5 #6$ \endRCS{%
+   \gdef\filename{#2}%
+   \gdef\fileversion{v#3}%
+   \gdef\filedate{#4}%
+   \gdef\docdate{#4}}%
+\RCS mcite.dtx,v 1.5 1994/08/18 14:22:26 ohl Exp \endRCS}%
+%    \end{macrocode}
+%
+% And now the standard procedure:
+%    \begin{macrocode}
+\ProvidesPackage{mcite}[\filedate\space multiple citations]
+\typeout{Package: `mcite'
+   \fileversion\space <\filedate> (tho) PRELIMINARY TEST RELEASE}
+\wlog{English documentation \@spaces<\docdate> (tho)}
+%    \end{macrocode}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Collecting Information}
+%
+%    \begin{macrocode}
+\def\@enamedef#1{\expandafter\edef\csname #1\endcsname}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\mc@single#1{\global\@enamedef{mc*sg*#1}{}}
+\def\mc@head#1#2{\global\@enamedef{mc*hd*#1}{#2}}
+\def\mc@tail#1#2{\global\@enamedef{mc*tl*#1}{#2}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\mc@ifsingle#1#2#3{\@ifundefined{mc*sg*#1}{#3}{#2}}
+\def\mc@ifhead#1#2#3{\@ifundefined{mc*hd*#1}{#3}{#2}}
+\def\mc@iftail#1#2#3{\@ifundefined{mc*tl*#1}{#3}{#2}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\mc@thehead#1{\@nameuse{mc*tl*#1}}
+\def\mc@thetail#1{\@nameuse{mc*hd*#1}}
+%    \end{macrocode}
+%
+% \begin{macro}{\cite}
+% We are overloading the original |\cite| command such that
+% |\cite{latex,*latex-companion,texbook}| will give
+% ``\cite{latex,*latex-companion,texbook}''.
+%    \begin{macrocode}
+\let\orig@cite\cite
+\def\cite{%
+  \@ifnextchar[%
+    {\PackageWarning{mcite}%
+       {optional argument to \protect\cite\space not supported}%
+     \@tempswatrue
+     \expandafter\mc@citex\mc@gobbleopt}%
+    {\@tempswatrue
+     \mc@cite}}
+%    \end{macrocode}
+% \end{macro}
+% Gobble up all optional arguments
+%    \begin{macrocode}
+\def\mc@gobbleopt[#1]{}
+%    \end{macrocode}
+%
+% \begin{macro}{\mc@cite}
+% First of all: expand the argument: 
+%    \begin{macrocode}
+\def\mc@cite#1{%
+  \edef\mc@temp{#1}%
+  \expandafter\mc@cite@\expandafter{\mc@temp}}
+%    \end{macrocode}
+% Here we do the actual ``preprocessing'' of the |\cite| keys.
+%    \begin{macrocode}
+\def\mc@cite@#1{%
+  \mc@firsttrue
+  \@for\mc@@@:=#1\do{%
+%    \end{macrocode}
+% It the key starts with a |*|, mark it as tail.  Otherwise mark it as
+% head.
+%    \begin{macrocode}
+    \expandafter\mc@ifstar\mc@@@\sentinel%
+      {\ifmc@first
+         \PackageWarning{mcite}%
+           {tail `\mc@key' appears as first item in \protect\mcite}%
+         \mc@dohead
+       \else
+         \mc@dotail
+       \fi}%
+      {\mc@dohead}%
+%    \end{macrocode}
+% Write a |\citation| command to the |.aux| file in any case.  This
+% gives some duplication but keeps things in order.
+%    \begin{macrocode}
+    \if@filesw
+      \immediate\write\@auxout{\string\citation{\mc@key}}%
+    \fi}%
+  \expandafter\orig@cite\expandafter{\mc@list}}
+%    \end{macrocode}
+% \end{macro}
+%    \begin{macrocode}
+\def\mc@dohead{%
+  \mc@iftail{\mc@key}%
+    {\PackageWarning{mcite}%
+       {head `\mc@key' already used as tail of `\mc@thehead{\mc@key}'}}%
+    {}%
+  \mc@head{\mc@key}{}%
+  \edef\mc@curhead{\mc@key}%
+  \ifmc@first
+    \mc@firstfalse
+    \edef\mc@list{\mc@key}%
+  \else
+    \edef\mc@list{\mc@list,\mc@key}%
+  \fi}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\mc@dotail{%
+  \mc@ifhead{\mc@key}%
+    {\PackageWarning{mcite}%
+       {tail `\mc@key' already used as head}}%
+    {}%
+  \mc@tail{\mc@key}{\mc@curhead}}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\mc@ifstar#1#2\sentinel#3#4{%
+  \ifx*#1%
+    \def\mc@key{#2}%
+    #3%
+  \else
+    \def\mc@key{#1#2}%
+    #4%
+  \fi}
+%    \end{macrocode}
+%    \begin{macrocode}
+\newif\ifmc@first
+%    \end{macrocode}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \subsection{Producing the Output}
+%
+% The simplest approach is to just drop the |\@bibitem| if we're
+% processing a continuation (it is just an |\item| with associated
+% |.aux| file action):
+%    \begin{macrocode}
+\let\orig@bibitem\@bibitem
+\def\@bibitem#1{%
+%    \end{macrocode}
+% If the \BibTeX{} style supports \MCITE/, we have to provide
+% punctuation ourselves.
+%    \begin{macrocode}
+  \ifmc@bstsupport
+    \mc@iftail{#1}%
+      {;\space\ignorespaces}%
+      {\ifmc@first\else.\fi\orig@bibitem{#1}}
+    \mc@firstfalse
+  \else
+    \mc@iftail{#1}%
+      {\ignorespaces}%
+      {\orig@bibitem{#1}}%
+  \fi}%
+%    \end{macrocode}
+%    \begin{macrocode}
+\newif\ifmc@bstsupport
+\mc@bstsupportfalse
+%    \end{macrocode}
+% We can't handle |\bibitem|s with an optional argument; tell the user.
+%    \begin{macrocode}
+\def\@lbibitem[#1]#2{%
+  \PackageError{mcite}%
+    {You can't use the optional argument of \protect\bibitem}%
+    {Hey, *I* have to fool around with the labels!}%
+  \@bibitem{#2}}
+%    \end{macrocode}
+% The |mcbibliography| environment instructs \MCITE/ to provide its
+% own punctuation.
+%    \begin{macrocode}
+\def\mcbibliography{%
+  \mc@bstsupporttrue
+  \mc@firsttrue
+  \thebibliography}
+\def\endmcbibliography{%
+  .%
+  \endthebibliography}
+%    \end{macrocode}
+%
+% That's it!
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \Finale
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \bibliography{mcite}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \PrintIndex
+% \PrintChanges
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \appendix
+% \section{Driver File}
+%
+% In general we will of course format this documentation with itself.
+%    \begin{macrocode}
+%<*driver>
+\documentclass[a4paper]{article}
+\usepackage{doc}
+\usepackage{mcite}
+\EnableCrossrefs
+\RecordChanges
+\CodelineIndex
+\makeatletter
+\def\bitem#1{\item[\@biblabel{#1}]}
+\makeatother
+\def\MCITE/{\texttt{mcite}}
+\DoNotIndex{\\,\advance,\baselineskip,\batchmode,\begin,\catcode,\char}
+\DoNotIndex{\CodelineIndex,\csname,\def,\divide,\docdate,\DocInput}
+\DoNotIndex{\documentclass,\else,\emph,\EnableCrossrefs,\end,\endcsname}
+\DoNotIndex{\errmessage,\errorstopmode,\expandafter,\fbox,\fi,\filedate}
+\DoNotIndex{\filename,\fileversion,\font,\fontencoding,\fontfamily}
+\DoNotIndex{\fontseries,\fontshape,\fontsize,\gdef,\goodbreak,\hfil}
+\DoNotIndex{\hoffset,\hskip,\ifcase,\ifx,\InputIfFileExists,\item,\let}
+\DoNotIndex{\line,\LoadClass,\makebox,\mbox,\multiply,\NeedsTeXFormat}
+\DoNotIndex{\newdimen,\newenvironment,\newif,\nobreak,\normalfont}
+\DoNotIndex{\normalsize,\nullfont,\or,\oval,\pagestyle,\par,\parbox}
+\DoNotIndex{\parindent,\parskip,\PassOptionsToClass,\ProcessOptions}
+\DoNotIndex{\ProvidesClass,\put,\quad,\raisebox,\RecordChanges,\relax,\rule}
+\DoNotIndex{\selectfont,\space,\ss,\texttt,\textwidth,\the,\thispagestyle}
+\DoNotIndex{\topmargin,\usepackage,\voffset,\vskip,\vspace,\wlog}
+\begin{document}
+  \bibliographystyle{unsrt}%%%{physics}
+  \DocInput{mcite.dtx}
+\end{document}
+%</driver>
+%    \end{macrocode}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Copying}
+% \label{sec:GPL}
+%
+% \MCITE/ is free software; you can redistribute it and/or modify it
+% under the terms of the GNU General Public License as published by 
+% the Free Software Foundation; either version 2, or (at your option)
+% any later version.
+%
+% \MCITE/ is distributed in the hope that it will be useful, but
+% \emph{without any warranty}; without even the implied warranty of
+% \emph{merchantability} or \emph{fitness for a particular purpose}.
+% See the GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput
+Local Variables:
+mode:LaTeX
+fill-prefix:"% "
+page-delimiter:"^%%%%%%%%%%%*\n"
+End:

@@ -44,15 +44,7 @@ cmd:				{$$=0;}
 				{$$=mung2($1, $2, $4);}
 |	IF NOT {skipnl();} cmd	{$$=mung1($2, $4);}
 |	FOR '(' word IN words ')' {skipnl();} cmd
-	/*
-	 * if ``words'' is nil, we need a tree element to distinguish between 
-	 * for(i in ) and for(i), the former being a loop over the empty set
-	 * and the latter being the implicit argument loop.  so if $5 is nil
-	 * (the empty set), we represent it as "()".  don't parenthesize non-nil
-	 * functions, to avoid growing parentheses every time we reread the
-	 * definition.
-	 */
-				{$$=mung3($1, $3, $5 ? $5 : tree1(PAREN, $5), $8);}
+				{$$=mung3($1, $3, tree1(PAREN, $5), $8);}
 |	FOR '(' word ')' {skipnl();} cmd
 				{$$=mung3($1, $3, (struct tree *)0, $6);}
 |	WHILE paren {skipnl();} cmd
@@ -75,7 +67,7 @@ simple:	first
 |	simple redir		{$$=tree2(ARGLIST, $1, $2);}
 first:	comword	
 |	first '^' word		{$$=tree2('^', $1, $3);}
-word:	keyword			{lastword=1; $1->type=WORD;}
+word:	keyword			{$1->type=WORD;}
 |	comword
 |	word '^' word		{$$=tree2('^', $1, $3);}
 comword: '$' word		{$$=tree1('$', $2);}
@@ -87,5 +79,5 @@ comword: '$' word		{$$=tree1('$', $2);}
 |	'(' words ')'		{$$=tree1(PAREN, $2);}
 |	REDIR brace		{$$=mung1($1, $2); $$->type=PIPEFD;}
 keyword: FOR|IN|WHILE|IF|NOT|TWIDDLE|BANG|SUBSHELL|SWITCH|FN
-words:				{$$=(struct tree*)0;}
+words:				{$$=0;}
 |	words word		{$$=tree2(WORDS, $1, $2);}

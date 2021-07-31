@@ -1,10 +1,10 @@
 #include	"all.h"
 #include	"mem.h"
 
-ulong
+long
 toytime(void)
 {
-	return mktime + TK2SEC(MACHP(0)->ticks);
+	return mktime + MACHP(0)->ticks / (1000/MS2HZ);
 }
 
 #define SEC2MIN 60L
@@ -27,10 +27,9 @@ int	rtldmsize[] =
  *  return the days/month for the given year
  */
 int*
-yrsize(int y)
+yrsize(int yr)
 {
-
-	if((y%4) == 0 && ((y%100) != 0 || (y%400) == 0))
+	if((yr%4) == 0)
 		return rtldmsize;
 	else
 		return rtdmsize;
@@ -68,7 +67,7 @@ sec2rtc(ulong secs, Rtc *rtc)
 		for(d = 1970; day >= *yrsize(d); d++)
 			day -= *yrsize(d);
 	else
-		for(d = 1970; day < 0; d--)
+		for (d = 1970; day < 0; d--)
 			day += *yrsize(d-1);
 	rtc->year = d;
 
@@ -82,10 +81,10 @@ sec2rtc(ulong secs, Rtc *rtc)
 	rtc->mon = d;
 }
 
-ulong
+long
 rtc2sec(Rtc *rtc)
 {
-	ulong secs;
+	long secs;
 	int i, *d2m;
 
 	secs = 0;
@@ -113,11 +112,10 @@ rtc2sec(Rtc *rtc)
 	return secs;
 }
 
-ulong
+long
 time(void)
 {
-	ulong t;
-	long dt;
+	long t, dt;
 
 	t = toytime();
 	while(tim.bias != 0) {				/* adjust at rate 1 sec/min */
@@ -137,7 +135,7 @@ time(void)
 }
 
 void
-settime(ulong nt)
+settime(long nt)
 {
 	long dt;
 
@@ -153,7 +151,7 @@ settime(ulong nt)
 void
 prdate(void)
 {
-	ulong t;
+	long t;
 
 	t = time();
 	if(tim.bias >= 0)
@@ -162,11 +160,12 @@ prdate(void)
 		print("%T - %ld\n", t, -tim.bias);
 }
 
+
 static	int	sunday(Tm *t, int d);
 static	int	dysize(int);
 static	void	ct_numb(char*, int);
-void		localtime(ulong, Tm*);
-void		gmtime(ulong, Tm*);
+void		localtime(long tim, Tm *ct);
+void		gmtime(long tim, Tm *ct);
 
 static	char	dmsize[12] =
 {
@@ -203,10 +202,10 @@ static struct
 };
 
 void
-localtime(ulong tim, Tm *ct)
+localtime(long tim, Tm *ct)
 {
 	int daylbegin, daylend, dayno, i;
-	ulong copyt;
+	long copyt;
 
 	copyt = tim - timezone.minuteswest*60L;
 	gmtime(copyt, ct);
@@ -241,7 +240,7 @@ sunday(Tm *t, int d)
 }
 
 void
-gmtime(ulong tim, Tm *ct)
+gmtime(long tim, Tm *ct)
 {
 	int d0, d1;
 	long hms, day;
@@ -277,17 +276,18 @@ gmtime(ulong tim, Tm *ct)
 	 * year number
 	 */
 	if(day >= 0)
-		for(d1 = 1970; day >= dysize(d1); d1++)
+		for(d1 = 70; day >= dysize(d1); d1++)
 			day -= dysize(d1);
 	else
-		for(d1 = 1970; day < 0; d1--)
+		for (d1 = 70; day < 0; d1--)
 			day += dysize(d1-1);
-	ct->year = d1-1900;
+	ct->year = d1;
 	ct->yday = d0 = day;
 
 	/*
 	 * generate month
 	 */
+
 	if(dysize(d1) == 366)
 		dmsize[1] = 29;
 	for(d1 = 0; d0 >= dmsize[d1]; d1++)
@@ -299,7 +299,7 @@ gmtime(ulong tim, Tm *ct)
 }
 
 void
-datestr(char *s, ulong t)
+datestr(char *s, long t)
 {
 	Tm tm;
 
@@ -312,10 +312,10 @@ Tconv(Op *o)
 {
 	char s[30];
 	char *cp;
-	ulong t;
+	long t;
 	Tm tm;
 
-	t = *(ulong*)o->argp;
+	t = *(long*)o->argp;
 	if(t == 0) {
 		strcpy(s, "The Epoch");
 		goto out;
@@ -373,8 +373,8 @@ ct_numb(char *cp, int n)
  * day in bitpattern --
  * for automatic dumps
  */
-ulong
-nextime(ulong t, int hr, int day)
+long
+nextime(long t, int hr, int day)
 {
 	Tm tm;
 	int nhr;

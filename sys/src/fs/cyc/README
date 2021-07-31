@@ -1,0 +1,99 @@
+
+Cyclone VME fiber link
+----------------------
+
+This directory contains the microcode for the Cyclone point to point fiber
+communications card.
+The CVME961 card consists of an INTEL 960 processor, 4MB of RAM and a VME
+interface. A set of connectors on the card allow application specific
+modules to be connected to the 960 memory bus. The SQFBR squall module
+provides a fiber link between two CVME961 cards. The squall module consists
+of a pair of TAXI fiber tranceivers, 5K of receiver fifo and an interface to
+the 960 processor. 
+
+We use the fiber links for high speed communications between file and CPU servers.
+The code in the system has only been tested between SGI 4D series multiprocessors,
+however it should be possible to link any pair of computers with VME buses.
+
+The link is asymmetric. The file server driver is not the same as the CPU server
+driver. The link is designed to perform RPC from the CPU server to the file
+server. The code in the CVME card is the same on both sides of the link and the
+drivers change their mode of operation depending on the host driver.
+It is not possible to connect two cpu servers using the driver and microcode as is.
+RPC's are performed by a split transaction. The write of the RPC request to the 
+file server is cached by the CVME card in the CPU server.
+The write completes immediately and no data is transmitted to the file 
+server. The read of the reply by the CPU server is matched with the previous write
+and transmitted to the file server. Data passing between the machines is copied
+directly from host memory to fiber and from fifo to host memory. Data is not buffered
+in the CVME961 card.
+
+The 960 C compiler has only been tested on this program - If you have problems
+the compiler should be on the list of suspects.
+
+Making the ROM
+--------------
+
+An EPROM of the microcode can be produced by typing:
+
+	mk rom
+
+The file produced is a Motorola S3 record image of the ROM ready for downloading
+to an EPROM blower. The code fits in either a 27256 or 27128. If a 27128 is used
+the jumpers on the cyclone card must be altered accordingly. (Page 7 of the CVME961
+manual) The Eprom replaces the NINDY monitor rom.
+The microcode prints a sign-on message to serial port A if the rom is installed
+correctly.
+
+To prototype software under the NINDY monitor the REGION control registers must be
+set from the monitor. The process is described in the SQFBR manual. Code can
+be downloaded from con using the xms (Xmodem send) program. The program must be loaded
+with the loader option -H4 to generate the correct coff binary format for NINDY.
+Code for roms should be linked as a Plan9 binary. Examples of both are provided
+in the mkfile.
+
+VME Considerations
+------------------
+
+The Cyclone comes wired to act as a VME system controller. You must remove the
+system controller jumpers for the card to operate correctly in an SGI machine.
+
+The current microcode assumes the card is dual ported with the memory of the host
+computer. The code is currently set up for a window at VME address 0x40000000 into
+the host memory. Accesses are all performed with a USER address modifier due to
+a limitation in the SGI VME implementation. (SGI only responds to DMA in AM9).
+To change to supervisor mode remove the switch to 960 user mode from main.c.
+All VME accesses by the host and CVME card are either 32bit or block mode cycles.
+so the VME bus must support full A32 mode addressing. The CVME card must be
+able to perform A32 cycles to the whole of physical memory.
+
+The code in l.s of the microcode can do block copies over the VME bus if the host
+computer supports this. A bug in the earlier cyclone boards prevents block mode
+due to a failure of LWORD* during 32bit VME cycles. Check with Cyclone you get
+fixed boards.
+
+Rebooting the Cyclone
+---------------------
+
+The operating system can be booted over the cyclone by specifying cyc as the boot
+device. If the link fails it can be restarted by resetting the cyclone card in each
+machine and typing:
+
+	cyc reboot
+
+at the file system console. The message 'reboot did not issue', on the file system
+console  indicates all is well! The message 'buffer n did not issue' indicates the
+card in the file server is not ready or broken.
+
+The cards can be ordered from:
+
+	Cyclone Microsystems
+	15 Science Park
+	New Haven
+	CT 06511
+	(203) 786-5536
+
+The parts required are:
+
+	2x	CVME961
+	2x	SQFBR

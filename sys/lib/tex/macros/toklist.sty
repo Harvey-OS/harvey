@@ -1,0 +1,25 @@
+% Impliment token list macros from pages 378-379 of "The TeXbook" by D.E. Knuth
+% ISBN 0-201-13448-9
+
+\newtoks\TOKL@ta
+\newtoks\TOKL@tb
+\long\def\TOKL@prepend#1\to#2{\TOKL@ta={\\{#1}}\TOKL@tb=\expandafter{#2}%
+  \edef#2{\the\TOKL@ta\the\TOKL@tb}}
+\long\def\TOKL@prependv#1\to#2{\TOKL@ta={\\}\TOKL@tb=\expandafter{#2}%
+  \edef#2{\the\TOKL@ta{#1}\the\TOKL@tb}}
+\long\def\TOKL@append#1\to#2{\TOKL@ta={\\{#1}}\TOKL@tb=\expandafter{#2}%
+  \edef#2{\the\TOKL@tb\the\TOKL@ta}}
+\long\def\TOKL@appendv#1\to#2{\TOKL@ta={\\}\TOKL@tb=\expandafter{#2}%
+  \edef#2{\the\TOKL@tb\the\TOKL@ta{#1}}}
+\def\TOK@concat#1=#2&#3{\TOK@ta=\expandafter{#2}\TOK@tb=\expandafter{#3}%
+  \edef#1{\the\TOKL@ta\the\TOKL@tb}}
+
+\def\TOKL@lop#1\to#2{\expandafter\TOKL@lopoff#1\TOKL@lopoff#1#2}
+\long\def\TOKL@lopoff\\#1#2\TOKL@lopoff#3#4{\def#4{#1}\def#3{#2}}
+
+\def\TOK@card#1\to#2{#2=0 \long\def\\##1{\advance#2 by 1 }#1}
+
+\def\TOK@select#1\of#2\to#3{\def#3{\outofrange}%
+  \long\def\\##1{\advance#1-1 \ifnum#1=0 \def#3{##1}\fi}#2}
+
+\def\TOK@empty#1{\ifx#1\empty true\else false\fi}

@@ -1,8 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include <mp.h>
-#include <libsec.h>
 #include "authsrv.h"
 
 char	authkey[DESKEYLEN];
@@ -38,13 +36,11 @@ main(int argc, char *argv[])
 	/* get original key */
 	if(usepass){
 		print("enter password file is encoded with\n");
-		getpass(authkey, nil, 0);
+		getpass(authkey, 0);
 	} else
 		getauthkey(authkey);
-	if(!verb){
-		print("enter password to reencode with\n");
-		getpass(key, nil, 0);
-	}
+	print("enter password to reencode with\n");
+	getpass(key, 0);
 
 	fd = open(file, ORDWR);
 	if(fd < 0)
@@ -66,67 +62,22 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-void
-randombytes(uchar *p, int len)
-{
-	int i, fd;
-
-	fd = open("/dev/random", OREAD);
-	if(fd < 0){
-		fprint(2, "can't open /dev/random, using rand()\n");
-		srand(time(0));
-		for(i = 0; i < len; i++)
-			p[i] = rand();
-		return;
-	}
-	read(fd, p, len);
-	close(fd);
-}
-
-void
-oldCBCencrypt(char *key7, char *p, int len)
-{
-	uchar ivec[8];
-	uchar key[8];
-	DESstate s;
-
-	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
-	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uchar*)p, len, &s);
-}
-
-void
-oldCBCdecrypt(char *key7, char *p, int len)
-{
-	uchar ivec[8];
-	uchar key[8];
-	DESstate s;
-
-	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
-	setupDESstate(&s, key, ivec);
-	desCBCdecrypt((uchar*)p, len, &s);
-
-}
-
 int
 convert(char *p, char *key, int len)
 {
 	int i;
 
-	len -= KEYDBOFF;
 	if(len % KEYDBLEN){
 		fprint(2, "file odd length; not converting %d bytes\n", len % KEYDBLEN);
 		len -= len % KEYDBLEN;
 	}
-	len += KEYDBOFF;
-	oldCBCdecrypt(authkey, p, len);
-	if(verb)
-		for(i = KEYDBOFF; i < len; i += KEYDBLEN)
+	for(i = 0; i < len; i += KEYDBLEN){
+		decrypt(authkey, &p[i], KEYDBLEN);
+		if(verb)
 			print("%s\n", &p[i]);
-	randombytes((uchar*)p, 8);
-	oldCBCencrypt(key, p, len);
+		else
+			encrypt(key, &p[i], KEYDBLEN);
+	}
 	return len;
 }
 

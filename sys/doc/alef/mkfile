@@ -1,0 +1,9 @@
+</sys/doc/fonts
+
+all:V:	alef.ps ug.ps
+
+alef.ps:D: ref.ms
+	{echo $FONTS; cat ref.ms} | tbl | troff -ms | lp -dstdout >alef.ps
+
+ug.ps:D:	ug.ms
+	{echo $FONTS; cat ug.ms} | pic | tbl | troff -ms | lp -dstdout >ug.ps

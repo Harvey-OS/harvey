@@ -1,0 +1,11 @@
+#!/bin/rc
+switch($terminal){
+case NCR* 'AT&TNSX'*
+	mount -a /srv/telco /net >/dev/null >[2=1] || {
+		rm -f /srv/telco
+		telco -s 19200 /dev/eia1
+	}
+	con -l telco!$1
+case *
+	con -s -l dk!dial!$1
+}

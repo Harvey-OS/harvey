@@ -1,0 +1,134 @@
+%% 
+%% This is file `answers.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% answers.dtx  (with options: `answers')
+%% 
+%% Copyright (C) 1990,1994 Mike Piff, University of Sheffield, England 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of this 
+%% file except for a nominal charge for copying etc. 
+%% 
+%% Please address any problems to: 
+%% 
+%% M.Piff@shef.ac.uk 
+%% 
+%% For updates, contact your nearest CTAN site. 
+%% 
+\def\fileversion{2.01}
+\def\filedate{1994/03/30}
+\def\filename{answers.dtx}
+\def\Copyright{Copyright (C) 1990,1994 Mike Piff, University of Sheffield, England}
+\NeedsTeXFormat{LaTeX2e}[1994/01/01]
+\ProvidesPackage{answers}[\filedate]
+\typeout{Package `answers' <\filedate>.}
+\typeout{\Copyright}
+\RequirePackage{verbatim}
+\newcommand{\solutionextension}{sol}
+\newenvironment{Filesave}[1]{%
+   \@bsphack
+   \def\verbatim@processline{}%
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         \def\verbatim@processline{%
+            \immediate\write\@nameuse{#1@file}{\the\verbatim@line}}%
+      }{}%
+   }%
+   \let\do\@makeother\dospecials
+   \catcode`\^^M\active \catcode`\^^I=12\relax
+   \verbatim@start
+}{\@esphack}
+\newcommand{\Writetofile}[2]{%
+   \@bsphack
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         {%
+            \let\protect\string
+            \immediate\write\@nameuse{#1@file}{#2}%
+         }%
+      }{}%
+   }%
+   \@esphack
+}
+\newcommand{\Ifopen}[3]{%
+   \csname if#1open\endcsname#2\else#3\fi}%
+\newcommand{\Iffileundefined}[3]{%
+   \csname ifx\expandafter\endcsname\csname #1@file\endcsname\relax#2\else#3\fi}
+\def\Opensolutionfile#1{%
+   \Iffileundefined{#1}{%
+      \expandafter\newwrite\csname #1@file\endcsname
+      \csname newif\expandafter\endcsname\csname if#1open\endcsname
+      \csname #1openfalse\endcsname
+      \@namedef{#1@filename}{#1.\solutionextension}%
+      \@namedef{Open#1hook}##1{}%
+      \@namedef{Close#1hook}##1{}%
+   }{}%
+   \let\Tmp\relax
+   \Ifopen{#1}{}{%
+      \immediate\openout\@nameuse{#1@file}=\@nameuse{#1@filename}%
+      \csname #1opentrue\endcsname
+      \def\Tmp{\@nameuse{Open#1hook}{#1}}%
+   }%
+   \Tmp
+}
+\def\Closesolutionfile#1{%
+   \let\Tmp\relax
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         \immediate\closeout\@nameuse{#1@file}%
+         \csname #1openfalse\endcsname
+         \def\Tmp{\@nameuse{Close#1hook}{#1}}%
+      }{}%
+   }%
+   \Tmp
+}
+\def\Readsolutionfile#1{%
+   \Iffileundefined{#1}{}{%
+      \Ifopen{#1}{%
+         \typeout{WARNING: attempt to read open file #1}%
+      }{%
+         \InputIfFileExists{#1.\solutionextension}{}%
+            {\message{File #1.\solutionextension\space not found}}%
+      }%
+   }%
+}
+\newcommand{\Newassociation}[3]{%
+   \newsolution{#2}%
+   \newenvironment{#1}{%
+      \let\Tmp\relax
+      \Iffileundefined{#3}{}{%
+         \Ifopen{#3}{%
+            \immediate\write\@nameuse{#3@file}%
+               {\string\begin{#2}\@nameuse{#2params}}%
+            \def\Tmp{\Filesave{#3}}%
+         }{}%
+      }%
+      \Tmp
+   }%
+   {%
+      \Iffileundefined{#3}{}{%
+         \Ifopen{#3}{%
+            \endFilesave%
+            \immediate\write\@nameuse{#3@file}{\string\end{#2}}%
+         }{}%
+      }%
+   }%
+}
+\newcommand{\newsolution}[1]{%
+   \@ifundefined{#1}{%
+      \@namedef{#1params}{{\Currentlabel}}%
+      \newenvironment{#1}[1]{%
+         \trivlist
+         \item[\hskip\itemsep{\@nameuse{#1label}{##1}}]}{\endtrivlist}%
+      \@namedef{#1label}##1{\bfseries##1}%
+   }{\typeout{WARNING: environment #1 already in use}}%
+}
+\newcommand{\Currentlabel}{\@currentlabel}
+\endinput
+%% 
+%% End of file `answers.sty'.

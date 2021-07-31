@@ -1,0 +1,46 @@
+%Filename: T1pgs.fd
+%Created by: tex 6649gillsans
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pgs}{}
+
+\DeclareFontShape{T1}{pgs}{b}{n}{
+   <-> pgsbq
+}{}
+
+\DeclareFontShape{T1}{pgs}{b}{sc}{
+   <-> pgsbcq
+}{}
+
+\DeclareFontShape{T1}{pgs}{b}{sl}{
+   <-> pgsboq
+}{}
+
+\DeclareFontShape{T1}{pgs}{b}{it}{
+   <-> pgsbiq
+}{}
+
+\DeclareFontShape{T1}{pgs}{m}{n}{
+   <-> pgsrq
+}{}
+
+\DeclareFontShape{T1}{pgs}{m}{sc}{
+   <-> pgsrcq
+}{}
+
+\DeclareFontShape{T1}{pgs}{m}{sl}{
+   <-> pgsroq
+}{}
+
+\DeclareFontShape{T1}{pgs}{m}{it}{
+   <-> pgsriq
+}{}
+
+\DeclareFontShape{T1}{pgs}{bx}{n}{<->ssub * pgs/b/n}{}
+\DeclareFontShape{T1}{pgs}{bx}{sc}{<->ssub * pgs/b/sc}{}
+\DeclareFontShape{T1}{pgs}{bx}{sl}{<->ssub * pgs/b/sl}{}
+\DeclareFontShape{T1}{pgs}{bx}{it}{<->ssub * pgs/b/it}{}
+
+\endinput

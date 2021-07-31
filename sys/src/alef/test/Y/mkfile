@@ -1,0 +1,25 @@
+BUILTINS=
+</$objtype/mkfile
+
+OFILE	=	main.$O\
+		files.$O\
+		wmgr.$O\
+		client.$O\
+		text.$O\
+		bitblt.$O\
+		menu.$O\
+
+$O.out:	$OFILE
+	$LD -o $target $prereq
+
+%.$O:	%.l y.h
+	$ALEF -w -c $stem.l
+
+clean:V:
+	rm -f [$OS].out *.[$OS] y.tab.?
+
+install:	$O.out
+		cp $O.out $home/bin/$objtype/Y
+
+installall:
+	for(objtype in mips 68020 386 sparc) mk install

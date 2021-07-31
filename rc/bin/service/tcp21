@@ -1,2 +1,2 @@
 #!/bin/rc
-exec /bin/ip/ftpd $*
+exec /bin/aux/ftp -n/lib/namespace.ftp.att $*

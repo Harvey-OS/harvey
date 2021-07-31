@@ -15,14 +15,10 @@ grep \- search a file for a pattern
 searches the input
 .I files\^
 (standard input default)
-for lines that match the
+for lines (with newlines excluded) that match the
 .IR pattern ,
 a regular expression as defined in
-.IR regexp (6)
-with the addition of a newline character as an alternative
-(substitute for
-.BR | )
-with lowest precedence.
+.IR regexp (6).
 Normally, each line matching the pattern is `selected',
 and each selected line is copied to the standard output.
 The options are
@@ -33,13 +29,6 @@ Print only a count of matching lines.
 .TP
 .B -h
 Do not print file name tags (headers) with output lines.
-.TP
-.B -e
-The following argument is taken as a
-.IR pattern .
-This option makes it easy to specify patterns that
-might confuse argument parsing, such as
-.BR -n .
 .TP
 .B -i
 Ignore alphabetic case distinctions.  The implementation
@@ -62,10 +51,6 @@ Produce no output, but return status.
 .TP
 .B -v
 Reverse: print lines that do not match the pattern.
-.TP
-.B -f
-The pattern argument is the name of a file containing regular
-expressions one per line.
 .PD
 .PP
 Output lines are tagged by file name when there is more than one
@@ -84,11 +69,8 @@ it is safest to enclose the
 entire expression
 in single quotes
 .BR \&\|' \|.\|.\|.\| ' .
-An expression starting with '*'
-will treat the rest of the expression
-as literal characters.
 .SH SOURCE
-.B /sys/src/cmd/grep
+.B /sys/src/cmd/grep.c
 .SH SEE ALSO
 .IR ed (1),
 .IR awk (1),

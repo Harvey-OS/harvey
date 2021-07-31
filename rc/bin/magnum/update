@@ -1,0 +1,5 @@
+#!/bin/rc
+cp -z /mips/9magnumdisk /dev/null
+cputype=mips disk/mkfs /lib/proto/portproto /lib/proto/usrproto
+rm -fr /n/kfs/lib/rc
+dd  -bs 4096 -conv sync < /mips/9magnumdisk > /dev/sd0boot

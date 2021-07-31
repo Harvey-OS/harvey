@@ -3,31 +3,34 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
+#include	"io.h"
 
 Alarms	alarms;
 Rendez	alarmr;
 Talarm	talarm;
 
 void
-alarmkproc(void*)
+alarmkproc(void *arg)
 {
 	Proc *rp;
 	ulong now;
 
+	USED(arg);
+
 	for(;;){
 		now = MACHP(0)->ticks;
 		qlock(&alarms);
-		while((rp = alarms.head) && rp->alarm <= now){
-			if(rp->alarm != 0L){
-				if(canqlock(&rp->debug)){
-					if(!waserror()){
-						postnote(rp, 0, "alarm", NUser);
-						poperror();
-					}
-					qunlock(&rp->debug);
-					rp->alarm = 0L;
-				}else
+		while((rp = alarms.head) && rp->alarm <= now) {
+			if(rp->alarm != 0L) {
+				if(!canqlock(&rp->debug))
 					break;
+
+				if(!waserror()) {
+					postnote(rp, 0, "alarm", NUser);
+					poperror();
+				}
+				qunlock(&rp->debug);
+				rp->alarm = 0L;
 			}
 			alarms.head = rp->palarm;
 		}
@@ -52,7 +55,7 @@ checkalarms(void)
 	if(p && p->alarm <= now)
 		wakeup(&alarmr);
 
-	if(talarm.list == 0 || !canlock(&talarm))
+	if(talarm.list == 0 || canlock(&talarm) == 0)
 		return;
 
 	for(;;) {
@@ -78,15 +81,16 @@ checkalarms(void)
 ulong
 procalarm(ulong time)
 {
-	Proc **l, *f;
+	Proc **l, *f, *p;
 	ulong when, old;
 
-	if(up->alarm)
-		old = TK2MS(up->alarm - MACHP(0)->ticks);
+	p = u->p;
+	if(p->alarm)
+		old = TK2MS(p->alarm - MACHP(0)->ticks);
 	else
 		old = 0;
 	if(time == 0) {
-		up->alarm = 0;
+		p->alarm = 0;
 		return old;
 	}
 	when = MS2TK(time)+MACHP(0)->ticks;
@@ -94,31 +98,31 @@ procalarm(ulong time)
 	qlock(&alarms);
 	l = &alarms.head;
 	for(f = *l; f; f = f->palarm) {
-		if(up == f){
+		if(p == f){
 			*l = f->palarm;
 			break;
 		}
 		l = &f->palarm;
 	}
 
-	up->palarm = 0;
+	p->palarm = 0;
 	if(alarms.head) {
 		l = &alarms.head;
 		for(f = *l; f; f = f->palarm) {
 			if(f->alarm > when) {
-				up->palarm = f;
-				*l = up;
+				p->palarm = f;
+				*l = p;
 				goto done;
 			}
 			l = &f->palarm;
 		}
-		*l = up;
+		*l = p;
 	}
 	else
-		alarms.head = up;
+		alarms.head = p;
 done:
-	up->alarm = when;
+	p->alarm = when;
 	qunlock(&alarms);
 
-	return old;
+	return old;			
 }

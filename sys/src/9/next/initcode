@@ -1,0 +1,35 @@
+#include "/sys/src/libc/9syscall/sys.h"
+
+TEXT	main(SB),$0
+
+	MOVW	$a6base(SB), A6
+	PEA	4(A7)
+	MOVL	$boot(SB), -(A7)
+	MOVL	$0, -(A7)
+	MOVL	$EXEC, R0
+	TRAP	$0
+	ADDL	$12, A7
+
+	MOVL	$(1<<4), -(A7)
+	MOVL	$RFORK, R0
+	TRAP	$0
+	MOVL	$RFORK, R0
+	TRAP	$0
+	MOVL	$RFORK, R0
+	TRAP	$0
+
+	CLRL	-(A7)
+again:
+	ADDL	$1234, (A7)
+	MOVL	$0, -(A7)
+	MOVL	$0, R0
+	TRAP	$0
+	ADDL	$4, A7
+	MOVL	$5000000, R3
+foo:
+	SUBL	$1, R3
+	BNE	foo
+	BRA	again
+
+DATA	boot+0(SB)/5,$"/boot"
+GLOBL	boot+0(SB),$6

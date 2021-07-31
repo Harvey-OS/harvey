@@ -372,7 +372,7 @@ brloop(Prog *p)
 		if(q->as != AB)
 			break;
 		c++;
-		if(c >= 5000)
+		if(c >= 100)
 			return P;
 	}
 	return q;

@@ -1,5 +1,7 @@
 #include	"all.h"
 
+#define	DSIZE		546000
+
 static	char*	abits;
 static	long	sizabits;
 static	char*	qbits;
@@ -11,7 +13,7 @@ static	long	fsize;
 static	long	nfiles;
 static	long	maxq;
 static	char*	calloc;
-static	Device*	dev;
+static	Device	dev;
 static	long	ndup;
 static	long	nused;
 static	long	nfdup;
@@ -32,8 +34,8 @@ static	int	fsck(Dentry*);
 static	void	ckfreelist(Superb*);
 static	void	mkfreelist(Superb*);
 static	void	trfreelist(Superb*);
-static	void	xaddfree(Device*, long, Superb*, Iobuf*);
-static	void	xflush(Device*, Superb*, Iobuf*);
+static	void	xaddfree(Device, long, Superb*, Iobuf*);
+static	void	xflush(Device, Superb*, Iobuf*);
 static	Dentry*	maked(long, int, long);
 static	void	modd(long, int, Dentry*);
 static	void	xread(long, long);
@@ -122,8 +124,8 @@ cmd_check(int argc, char *argv[])
 	fs = cons.curfs;
 
 	dev = fs->dev;
-	ronly = (dev->type == Devro);
-	cwflag = (dev->type == Devcw) | (dev->type == Devro);
+	ronly = (dev.type == Devro);
+	cwflag = (dev.type == Devcw) | (dev.type == Devro);
 	if(!ronly)
 		wlock(&mainlock);		/* check */
 	calloc = (char*)ialloc(0, 1) + 100000;
@@ -459,9 +461,8 @@ struct
 	long	addr[XFEN];
 } Xfree;
 
-static
 void
-xaddfree(Device *dev, long a, Superb *sb, Iobuf *p)
+xaddfree(Device dev, long a, Superb *sb, Iobuf *p)
 {
 	Xfree *x;
 
@@ -481,9 +482,8 @@ xaddfree(Device *dev, long a, Superb *sb, Iobuf *p)
 	addfree(dev, a, sb);
 }
 
-static
 void
-xflush(Device *dev, Superb *sb, Iobuf *p)
+xflush(Device dev, Superb *sb, Iobuf *p)
 {
 	int i;
 	Xfree *x;

@@ -48,10 +48,10 @@ Xflush(Fsrpc *r)
 
 	for(t = Workq; t < e; t++) {
 		if(t->work.tag == r->work.oldtag) {
-			DEBUG(DFD, "\tQ busy %d pid %d can %d\n", t->busy, t->pid, t->canint);
+			DEBUG(2, "\tQ busy %d pid %d can %d\n", t->busy, t->pid, t->canint);
 			if(t->busy && t->pid) {
 				t->flushtag = r->work.tag;
-				DEBUG(DFD, "\tset flushtag %d\n", r->work.tag);
+				DEBUG(2, "\tset flushtag %d\n", r->work.tag);
 				if(t->canint)
 					postnote(PNPROC, t->pid, "flush");
 				r->busy = 0;
@@ -61,7 +61,7 @@ Xflush(Fsrpc *r)
 	}
 
 	reply(&r->work, &thdr, 0);
-	DEBUG(DFD, "\tflush reply\n");
+	DEBUG(2, "\tflush reply\n");
 	r->busy = 0;
 }
 
@@ -79,7 +79,6 @@ Xattach(Fsrpc *r)
 	}
 
 	f->f = root;
-	f->f->ref++;
 	thdr.qid = f->f->qid;
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
@@ -110,13 +109,12 @@ Xclone(Fsrpc *r)
 			fatal("inconsistent fids2");
 	}
 	n->f = f->f;
-	n->f->ref++;
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 }
 
-int
-XXwalk(Fsrpc *r)
+void
+Xwalk(Fsrpc *r)
 {
 	char err[ERRLEN];
 	Fcall thdr;
@@ -127,23 +125,20 @@ XXwalk(Fsrpc *r)
 	if(f == 0) {
 		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
-		return -1;
+		return;
 	}
 
 	if(strcmp(r->work.name, "..") == 0) {
-		if(f->f->parent == nil) {
+		if(f->f->parent == 0) {
 			reply(&r->work, &thdr, e[Exmnt]);
 			r->busy = 0;
-			return -1;
+			return;
 		}
-		nf = f->f->parent;
-		nf->ref++;
-		freefile(f->f);
 		f->f = f->f->parent;
 		thdr.qid = f->f->qid;
 		reply(&r->work, &thdr, 0);
 		r->busy = 0;
-		return 0;
+		return;
 	}
 
 	nf = file(f->f, r->work.name);
@@ -151,21 +146,13 @@ XXwalk(Fsrpc *r)
 		errstr(err);
 		reply(&r->work, &thdr, err);
 		r->busy = 0;
-		return -1;
+		return;
 	}
-
-	freefile(f->f);
+		
 	f->f = nf;
 	thdr.qid = nf->qid;
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
-	return 0;
-}
-
-void
-Xwalk(Fsrpc *r)
-{
-	XXwalk(r);
 }
 
 void
@@ -254,7 +241,6 @@ Xcreate(Fsrpc *r)
 	}
 
 	f->mode = r->work.mode;
-	freefile(f->f);
 	f->f = nf;
 	f->offset = 0;
 	thdr.qid = f->f->qid;
@@ -278,7 +264,7 @@ Xremove(Fsrpc *r)
 	}
 
 	makepath(path, f->f, "");
-	DEBUG(DFD, "\tremove: %s\n", path);
+	DEBUG(2, "\tremove: %s\n", path);
 	if(remove(path) < 0) {
 		errstr(err);
 		reply(&r->work, &thdr, err);
@@ -286,7 +272,6 @@ Xremove(Fsrpc *r)
 		return;
 	}
 
-	f->f->inval = 1;
 	if(f->fid >= 0)
 		close(f->fid);
 	freefid(r->work.fid);
@@ -347,15 +332,8 @@ Xclwalk(Fsrpc *r)
 		return;
 	}
 	n->f = f->f;
-	n->f->ref++;
 	r->work.fid = r->work.newfid;
-
-	/* If the walk fails, there is an implicit clunk of newfid. -- clwalk(5) */
-	if(XXwalk(r) < 0) {
-		if(n->fid >= 0)
-			close(n->fid);
-		freefid(r->work.newfid);
-	}
+	Xwalk(r);
 }
 
 int
@@ -467,7 +445,7 @@ blockingslave(void)
 		if((int)p == ~0)			/* Interrupted */
 			continue;
 
-		DEBUG(DFD, "\tslave: %d %F b %d p %d\n", pid, &p->work, p->busy, p->pid);
+		DEBUG(2, "\tslave: %d %F b %d p %d\n", pid, &p->work, p->busy, p->pid);
 		if(p->flushtag != NOTAG)
 			goto flushme;
 
@@ -555,7 +533,6 @@ rdmount(Fid *f, Fsrpc *p)
 		strcpy(mcall.ename, e[Enopsmt]);
 		goto repl;
 	}
-	mfid->f = nf;
 
 	fd = dup(f->fid, -1);
 	p->canint = 1;
@@ -563,12 +540,13 @@ rdmount(Fid *f, Fsrpc *p)
 	p->canint = 0;
 	if(n < 0) {
 		close(fd);
+		freefid(mcall.fid);
 		mcall.type = Rerror;
 		mcall.ename[0] = 0;
 		errstr(mcall.ename);
-		freefid(mcall.fid);
 	}
 	else {
+		mfid->f = nf;
 		mcall.type = Rattach;
 		mcall.qid = nf->qid;
 		mcall.qid.path &= ~CHDIR;
@@ -601,7 +579,7 @@ slaveopen(Fsrpc *p)
 	}
 	
 	makepath(path, f->f, "");
-	DEBUG(DFD, "\topen: %s %d\n", path, work->mode);
+	DEBUG(2, "\topen: %s %d\n", path, work->mode);
 
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
@@ -615,7 +593,7 @@ slaveopen(Fsrpc *p)
 		return;
 	}
 
-	DEBUG(DFD, "\topen: fd %d\n", f->fid);
+	DEBUG(2, "\topen: fd %d\n", f->fid);
 	f->mode = work->mode;
 	f->offset = 0;
 	thdr.qid = f->f->qid;
@@ -659,7 +637,7 @@ slaveread(Fsrpc *p)
 		return;
 	}
 
-	DEBUG(DFD, "\tread: fd=%d %d bytes\n", f->fid, r);
+	DEBUG(2, "\tread: fd=%d %d bytes\n", f->fid, r);
 
 	f->offset += r;
 	thdr.data = data;
@@ -698,7 +676,7 @@ slavewrite(Fsrpc *p)
 		return;
 	}
 
-	DEBUG(DFD, "\twrite: %d bytes fd=%d\n", n, f->fid);
+	DEBUG(2, "\twrite: %d bytes fd=%d\n", n, f->fid);
 
 	f->offset += n;
 	thdr.count = n;
@@ -719,7 +697,7 @@ fileseek(Fid *f, ulong offset)
 			n = (nbytes > DIRCHUNK) ? DIRCHUNK : nbytes;
 			r = read(f->fid, chunk, n);
 			if(r <= 0) {
-				DEBUG(DFD,"\tdir seek error\n");
+				DEBUG(2,"\tdir seek error\n");
 				return;
 			}
 			f->offset += r;

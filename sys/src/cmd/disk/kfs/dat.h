@@ -15,7 +15,7 @@ struct	Chan
 	long	whotime;
 	File*	flist;			/* base of file structures */
 	Lock	flock;			/* manipulate flist */
-	RWLock	reflock;		/* lock for Tflush */
+	RWlock	reflock;		/* lock for Tflush */
 };
 
 /*
@@ -23,7 +23,7 @@ struct	Chan
  */
 enum
 {
-	Fchat	= (1<<0),	/* print out filesys rpc traffic */
+	Fchat	= (1<<0),	/* print out filsys rpc traffic */
 	Fuid	= (1<<2),	/* print out uids */
 				/* debugging flags for drivers */
 };
@@ -128,14 +128,18 @@ enum
 extern	Uid*	uid;
 extern	char*	uidspace;
 extern	short*	gidspace;
-extern	char*	errstring[MAXERR];
+extern	File*	files;
+extern	Wpath*	wpaths;
+extern	Lock	wpathlock;
+extern	char*	errstr[MAXERR];
 extern	void	(*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*);
 extern	Chan*	chans;
-extern	RWLock	mainlock;
+extern	RWlock	mainlock;
+extern	Lock	newfplock;
 extern	long	boottime;
 extern	Tlock	*tlocks;
 extern	Device	devnone;
-extern	Filsys	filesys[];
+extern	Filsys	filsys[];
 extern	char	service[];
 extern	char*	tagnames[];
 extern	Conf	conf;

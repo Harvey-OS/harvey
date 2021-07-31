@@ -6,12 +6,8 @@
 
 typedef struct Date	Date;
 struct Date {
-	Reprog *p;	/* an RE to match this date */
-	Date *next;	/* pointer to next in list */
-};
-
-enum{
-	Secondsperday = 24*60*60
+	Reprog *p;
+	Date *next;
 };
 
 Biobuf in;
@@ -19,12 +15,11 @@ int debug;
 
 Date *dates(Date**, Tm*);
 void upper2lower(char*, char*, int);
-void *alloc(unsigned int);
 
 void
 main(int argc, char *argv[])
 {
-	int i, fd;
+	int fd;
 	long now;
 	char *line;
 	Tm *tm;
@@ -35,54 +30,45 @@ main(int argc, char *argv[])
 	case 'd':
 		debug = 1;
 		break;
-	default:
-		fprint(2, "usage: calendar [-d] [files ...]\n");
-		exits("usage");
 	}ARGEND;
+
+	if(argv[0])
+		strcpy(buf, argv[0]);
+	else
+		snprint(buf, sizeof(buf), "/usr/%s/lib/calendar", getuser());
+	fd = open(buf, OREAD);
+	if(fd < 0){
+		fprint(2, "calendar: can't open %s: %r\n", buf);
+		exits("open");
+	}
+	Binit(&in, fd, OREAD);
 
 	/* make a list of dates */
 	now = time(0);
 	tm = localtime(now);
 	first = dates(&last, tm);
-	now += Secondsperday;
-	tm = localtime(now);
+	tm = localtime(now+24*60*60);
 	dates(&last, tm);
 	if(tm->wday == 6){
-		now += Secondsperday;
-		tm = localtime(now);
+		tm = localtime(now+2*24*60*60);
 		dates(&last, tm);
 	}
 	if(tm->wday == 0){
-		now += Secondsperday;
-		tm = localtime(now);
+		tm = localtime(now+3*24*60*60);
 		dates(&last, tm);
 	}
 
-	for(i=0; i<argc || (i==0 && argc==0); i++){
-		if(i==0 && argc==0)
-			snprint(buf, sizeof(buf),
-				"/usr/%s/lib/calendar", getuser());
-		else
-			strcpy(buf, argv[i]);
-		fd = open(buf, OREAD);
-		if(fd<0 || Binit(&in, fd, OREAD)<0){
-			fprint(2, "calendar: can't open %s: %r\n", buf);
-			exits("open");
-		}
-
-		/* go through the file */
-		while(line = Brdline(&in, '\n')){
-			line[Blinelen(&in) - 1] = 0;
-			upper2lower(buf, line, sizeof buf);
-			for(d=first; d; d=d->next)
-				if(regexec(d->p, buf, 0, 0)){
-					print("%s\n", line);
-					break;
-				}
-		}
-		close(fd);
+	/* go through the file */
+	while(line = Brdline(&in, '\n')){
+		line[Blinelen(&in) - 1] = 0;
+		upper2lower(line, buf, sizeof buf);
+		for(d = first; d; d = d->next)
+			if(regexec(d->p, buf, 0, 0)){
+				print("%s\n", line);
+				break;
+			}
 	}
-	exits("");
+	exits(0);
 }
 
 char *months[] = 
@@ -101,11 +87,6 @@ char *months[] =
 	"december"
 };
 
-/*
- * Generate two Date structures.  First has month followed by day;
- * second has day followed by month.  Link them into list after
- * last, and return the first.
- */
 Date*
 dates(Date **last, Tm *tm)
 {
@@ -118,23 +99,27 @@ dates(Date **last, Tm *tm)
 			months[tm->mon], months[tm->mon]+3);
 	else
 		sprint(mo, "%3.3s", months[tm->mon]);
-	snprint(buf, sizeof buf,
-		"(^| |\t)((%s( |\t)+)|(%d/))%d( |\t|$)",
-		mo, tm->mon+1, tm->mday);
+	snprint(buf, sizeof buf, "(^| |\t)((%s( |\t)+)|(%d/))%d( |\t|$)", mo, tm->mon+1, tm->mday);
 	if(debug)
 		print("%s\n", buf);
-
-	first = alloc(sizeof(Date));
+	first = malloc(sizeof(Date));
+	if(first == 0){
+		fprint(2, "calendar: out of memory\n");
+		exits("memory");
+	}
 	if(*last)
 		(*last)->next = first;
 	first->p = regcomp(buf);	
 
-	snprint(buf, sizeof buf,
-		"(^| |\t)%d( |\t)+(%s)( |\t|$)",
+	snprint(buf, sizeof buf, "(^| |\t)%d( |\t)+(%s)( |\t|$)",
 		tm->mday, mo);
 	if(debug)
 		print("%s\n", buf);
-	nd = alloc(sizeof(Date));
+	nd = malloc(sizeof(Date));
+	if(nd == 0){
+		fprint(2, "calendar: out of memory\n");
+		exits("memory");
+	}
 	nd->p = regcomp(buf);	
 	nd->next = 0;
 	first->next = nd;
@@ -143,29 +128,15 @@ dates(Date **last, Tm *tm)
 	return first;
 }
 
-/*
- * Copy 'from' to 'to', converting to lower case
- */
 void
-upper2lower(char *to, char *from, int len)
+upper2lower(char *from, char *to, int len)
 {
-	while(--len>0 && *from!='\0')
-		*to++ = tolower(*from++);
-	*to = 0;
-}
+	int c;
 
-/*
- * Call malloc and check for errors
- */
-void*
-alloc(unsigned int n)
-{
-	void *p;
-
-	p = malloc(n);
-	if(p == 0){
-		fprint(2, "calendar: malloc failed: %r\n");
-		exits("malloc");
+	while(--len > 0){
+		c = *to++ = tolower(*from++);
+		if(c == 0)
+			return;
 	}
-	return p;
+	*to = 0;
 }

@@ -1,3 +1,0 @@
-#!/bin/rc
-
-exec /bin/ip/imap4d >[2]/sys/log/imap4d

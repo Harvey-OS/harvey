@@ -1,0 +1,37 @@
+RTFILES =alef.l\
+	chan.l\
+	exec.l\
+	par.l\
+	proc.l\
+	recv.l\
+	recvflt.l\
+	recvmem.l\
+	rendez.l\
+	sched.l\
+	select.l\
+	send.l\
+	sendflt.l\
+	sendmem.l\
+	task.l\
+
+OFILES =\
+	${AFILES:%.l=%.$O}\
+	${RTFILES:%.l=%.$O}\
+	${SFILES:%.s=%.$O}\
+
+</sys/src/cmd/mksyslib
+CFLAGS=-w -I../$objtype
+
+(.*)\.[vk8]'$':R:	../rt/\1.l
+	$ALEF $CFLAGS ../rt/$stem1.l
+
+installall:V:
+	mk install
+
+%.all:V:
+	mk $stem
+
+acid:V:
+	$ALEF $CFLAGS -a acidlibs > acid
+	$ALEF $CFLAGS -aa $AFILES >> acid
+	$ALEF $CFLAGS -aa ../rt/^($RTFILES) >> acid

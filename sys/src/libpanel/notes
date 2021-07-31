@@ -1,0 +1,21 @@
+What about allowing cut & paste in entries, etc.?
+
+Should be able to specify the background color for messages (and other things, I guess)?
+
+initmenubar is missing
+
+Should init functions should allow you to change the kind of a panel?
+	(I think this is too hard.)
+Should init functions work even when the button is active?
+	(Maybe not.)
+
+textwin.c needs some work.
+Real bugs:
+	tw_setloc	to locate newlines compatibly with the frame library
+Efficiency problems:
+	twpt2rune	use binary search instead of linear
+	tw_draw		collapse calls to string, where possible
+	twreplace	make use of onscreen text below the insertion
+	twscroll	do something other than redraw the whole screen
+	tw_moveup	not tested
+	tw_movedn	not tested

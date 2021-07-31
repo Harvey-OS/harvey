@@ -1,0 +1,66 @@
+{This files defines symbols in addition to those in `common.defines',
+ for use in the TeX and the Metafont change files.}
+
+@define const MFBASEPATH;
+@define const MFBASEPATHBIT;
+@define const MFPOOLPATH;
+@define const MFPOOLPATHBIT;
+@define const TEXFORMATPATH;
+@define const TEXFORMATPATHBIT;
+@define const TEXPOOLPATH;
+@define const TEXPOOLPATHBIT;
+
+@define @field b0;
+@define @field b1;
+@define @field b2;
+@define @field b3;
+@define @field gr;
+@define @field hh;
+@define @field hhfield;
+@define @field int;
+@define @field lh;
+@define @field lhfield;
+@define @field rh;
+{`qqqq' is already defined, in ./common.defines, because of gftodvi.}
+
+@define function bopenin ();
+@define function bopenout ();
+@define function initscreen;
+@define function inputln ();
+@define function wopenin ();
+@define function wopenout ();
+
+@define procedure bclose ();
+@define procedure blankrectangle ();
+@define procedure bwrite2bytes();
+@define procedure bwrite4bytes();
+@define procedure bwritebyte();
+@define procedure calledit ();
+@define procedure clearterminal;
+@define procedure dateandtime ();
+@define procedure dumpcore;
+@define procedure dumphh ();
+@define procedure dumpint ();
+@define procedure dumpqqqq ();
+@define procedure dumpthings ();
+@define procedure dumpwd ();
+@define procedure paintrow ();
+@define procedure topenin;
+@define procedure undumphh ();
+@define procedure undumpint ();
+@define procedure undumpqqqq ();
+@define procedure undumpthings ();
+@define procedure undumpwd ();
+@define procedure updatescreen;
+@define procedure wakeupterminal;
+@define procedure wclose ();
+@define procedure writedvi ();
+@define procedure writegf ();
+
+@define type bytefile;
+@define type fourquarters;
+@define type twohalves;
+@define type wordfile;
+
+@define var eqtb;
+@define var mem;

@@ -1,0 +1,27 @@
+This is a re-release of the 2nd Edition of Plan 9 from Bell Labs.
+
+2nd Edition was originally released by AT&T in 1995. It was made
+available to several universities and was available for purchase for
+non-commercial use; it was never released as Open Source. The 2nd
+Edition represents a continuous improvement from the first and while
+it looks mostly the same in terms of interface, the implementation is
+generally much more solid. The original release notes for this edition
+can be found at /sys/doc/release2.ms.
+
+Given its age, this release is mostly for educational and research
+purposes, although given the inclination and appropriate hardware we
+believe you should be able to run it. Note, however, that the 9p
+protocol and authentication mechanism have changed between this
+release and modern Plan 9, so interoperability might be tricky.
+
+The only changes between this release and the original 2nd Edition
+release are the notice, license, and readme files and moving the
+original notice file. In particular, any copyright notices attributing
+things to AT&T or Bell Labs, or notices on restrictions of their use,
+should be read as historical; all such rights have been transferred to
+the Plan 9 Foundation and released as open source. Parts (notably, the
+fonts) maintain trademark and copyright to their respective parties
+(such as Bigelow & Holmes Inc.) and were included in Plan 9 by
+permission; those copyrights are unaffected by the transfer to Plan 9
+Foundation and remain in effect per the terms found in this
+distribution.

@@ -1,3 +1,4 @@
+#pragma	lib	"../cc/cc.a$O"
 
 typedef	struct	Sym	Sym;
 typedef	struct	Ref	Ref;
@@ -6,7 +7,6 @@ typedef	struct	Io	Io;
 typedef	struct	Hist	Hist;
 typedef	struct	Gen2 	Gen2;
 
-#define	MAXALIGN	7
 #define	FPCHIP		1
 #define	NSYMB		500
 #define	BUFSIZ		8192
@@ -149,7 +149,7 @@ void	newfile(char*, int);
 Sym*	slookup(char*);
 Sym*	lookup(void);
 void	syminit(Sym*);
-long	yylex(void);
+int	yylex(void);
 int	getc(void);
 int	getnsc(void);
 void	unget(int);
@@ -181,25 +181,11 @@ void	linehist(char*, int);
 void	gethunk(void);
 void	yyerror(char*, ...);
 int	yyparse(void);
-void	setinclude(char*);
-int	assemble(char*);
 
 /*
- *	system-dependent stuff from ../cc/compat.c
+ *	compat
  */
-enum	/* keep in synch with ../cc/cc.h */
-{
-	Plan9	= 1<<0,
-	Unix	= 1<<1,
-	Windows	= 1<<2,
-};
-int	mywait(int*);
+int	mywait(void*);
 int	mycreat(char*, int);
-int	systemtype(int);
-int	pathchar(void);
-char*	mygetwd(char*, int);
-int	myexec(char*, char*[]);
-int	mydup(int, int);
-int	myfork(void);
-int	mypipe(int*);
-void*	mysbrk(ulong);
+char*	myerrstr(int);
+int	unix(void);

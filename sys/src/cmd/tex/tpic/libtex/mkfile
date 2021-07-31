@@ -1,0 +1,11 @@
+APE=/sys/src/ape
+< $APE/config
+
+OFILES=arc.$O box.$O circle.$O closepl.$O disc.$O erase.$O frame.$O line.$O move.$O \
+	openpl.$O range.$O rmove.$O rvec.$O sbox.$O vec.$O
+LIB=lib.a$O
+HFILES=
+YFILES=
+
+</sys/src/cmd/mklib
+CFLAGS=-c -B

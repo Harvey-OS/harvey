@@ -1,14 +1,10 @@
 </$objtype/mkfile
 
-<../config
+BIN=/$objtype/bin/aux
 
 TARG=g3p9bit
-
 OFILES=g3p9bit.$O
-
 HFILES=wtab btab
 
-BIN=$POSTBIN
-
-</sys/src/cmd/mkone
+< /sys/src/cmd/mkone
 

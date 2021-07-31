@@ -1,0 +1,35 @@
+dev
+	root	/
+	cons	c
+	env	e
+	proc	p
+	lance	l
+	mnt	M
+	hs	h
+	incon	i
+	dk	k
+	iproute	P
+	arp	a
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	scsi	S	scsi scsibuf
+	scc	t
+	boot	B
+	bit	b
+
+stream
+	urp
+	ip
+	fcall
+
+port
+	int cpuserver = 1;
+	void consdebug(void){}
+	void kproftimer(ulong pc){ USED(pc); }
+	long fslen = 0; ulong fscode[1];
+	long cfslen = 0; ulong cfscode[1];
+	long rtctime(void){return 0;}
+boot bboot
+	il
+	hs "config 4 256 restart dk"
+	incon "config 1 16 restart dk"
+	tcp

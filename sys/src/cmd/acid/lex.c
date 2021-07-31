@@ -159,13 +159,13 @@ popio(void)
 }
 
 int
-Lconv(va_list *arg, Fconv *f)
+Lconv(void *oa, Fconv *f)
 {
 	int i;
 	char buf[1024];
 	IOstack *e;
 
-	USED(arg);
+	USED(oa);
 	USED(f);
 	e = lexio;
 	if(e) {
@@ -493,8 +493,6 @@ numsym(char first)
 				sel = "01234567890abcdefABCDEF";
 			else if(isbin)
 				sel = "01";
-			else if(isfloat)
-				sel = "01234567890eE-+";
 
 			if(strchr(sel, c) == 0) {
 				unlexc(c);

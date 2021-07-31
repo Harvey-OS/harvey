@@ -1,0 +1,124 @@
+%% 
+%% This is file `mailing.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% mailing.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 by Johannes Braams. 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy 
+%% this file to a file with a different name and then change the copy. 
+%% 
+%% You are allowed to distribute this file under the condition that it 
+%% is accompanied by mailing.dtx, its source. 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%% 
+%% For error reports in case of UNCHANGED versions see subeqnarray.dtx. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mailing}
+    [1994/09/07 v1.0a Send letters to multiple addresses]
+\newcommand{\addressfile}[1]{%
+  \def\M@filename{#1}}
+\long\def\mailingtext#1{\global\mailing@text={#1}}
+\def\makemailing{%
+  \M@openadrfile
+  \loop
+    \read@info
+    \if@notready
+      \begin{letter}{\M@toname\\\M@toaddress}%
+        \opening{\M@opening}%
+        \vskip\baselineskip
+        \the\mailing@text
+      \end{letter}
+    \fi
+    \if@notready
+  \repeat}
+\newread\M@adrfile
+\newtoks\mailing@text
+\newif\if@notready
+\newif\if@notemptyoreof
+\def\M@openadrfile{%
+  \openin\M@adrfile\M@filename\relax
+  \ifeof\M@adrfile
+    \loop
+      %\PackageWarning{mailing}{I can't find the file \M@filename}
+      \typeout{I can't find the file \M@filename!}
+      \closein\M@adrfile
+      \typein[\M@filename]{Enter a new name}
+      \openin\M@adrfile\M@filename
+      \ifeof\M@adrfile
+    \repeat
+  \fi}
+\def\read@info{%
+  \skip@empty@lines
+  \if@notready
+    \let\M@toname\M@line
+    \read\M@adrfile to\M@toaddress
+    \read\M@adrfile to\M@opening
+    \test@eof
+    \if@notready\read@defs\fi
+  \fi
+  }
+\def\read@defs{%
+  \def\M@defns{}%
+  {\loop
+    \endlinechar=-1
+    \read\M@adrfile to\M@line
+    \endlinechar=`\^^M
+    \expandafter\toks@\expandafter\expandafter
+      \expandafter{\expandafter\M@defns\M@line}%
+    \xdef\M@defns{\the\toks@}%
+    \test@emptyoreof
+    \if@notemptyoreof
+    \repeat}%
+  \M@defns
+  }
+\def\test@eof{%
+  \ifeof\M@adrfile
+    \@notreadyfalse
+  \else
+    \@notreadytrue
+  \fi}
+\def\test@emptyoreof{%
+  \@notemptyoreoftrue
+  \ifx\M@line\@empty
+    \global\@notemptyoreoffalse
+  \fi
+  \ifeof\M@adrfile
+    \global\@notemptyoreoffalse
+    \global\@notreadyfalse
+  \fi}
+\def\skip@empty@lines{%
+  {\loop
+    \endlinechar=-1
+    \ifeof\M@adrfile
+      \global\@notreadyfalse
+      \@tempswafalse
+    \else
+      \global\@notreadytrue
+      \global\read\M@adrfile to\M@line
+      \ifx\M@line\@empty
+        \@tempswatrue
+      \else
+        \@tempswafalse
+      \fi
+    \fi
+    \if@tempswa
+    \repeat}%
+  }
+\endinput
+%% 
+%% End of file `mailing.sty'.

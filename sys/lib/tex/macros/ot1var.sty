@@ -1,0 +1,123 @@
+%% 
+%% This is file `ot1var.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% psfonts.dtx  (with options: `OT1var')
+%% 
+%% Copyright (C) 1994 Sebastian Rahtz 
+%% All rights reserved. 
+%% 
+%% This file is part of the PSNFSS2e package. 
+%% ----------------------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+\def\fileversion{4.2}
+\def\filedate{94/11/11}
+\def\docdate {94/11/06}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ot1var}[\filedate\space\fileversion\space
+OT1var PSNFSS2e package]
+\def\TexturesExtras{% by Constantin Kahn (kahn@math.uni-hannover.de)
+\chardef\pounds='243
+\def\H##1{{\accent"07D ##1}}%
+\def\.##1{{\accent"05F ##1}}%
+\chardef\aa='214
+\chardef\AA='201
+\chardef\ae='032
+\chardef\oe='033
+\chardef\o='034
+\chardef\AE='035
+\chardef\OE='036
+\chardef\O='037
+\chardef\ss='031
+\chardef\copyright='251
+\let\l=\undefined % missing from Macintosh character set
+\let\L=\undefined % missing from Macintosh character set
+\let\j=\undefined % missing from PS fonts
+\def\pldots{\relax\ifmmode\@ldots\else\char'311 \fi}%
+\def\@lb{\relax\ifmmode\lbrace\else\char`\{\fi}%
+\def\@rb{\relax\ifmmode\rbrace\else\char`\}\fi}%
+\def\ps@mathhexbox##1##2##3##4##5##6{\ifmmode\mathhexbox##1##2##3\else
+  \leavevmode\char'##4##5##6 \fi}%
+\def\S{\protect\ps@mathhexbox278244}%
+\def\P{\protect\ps@mathhexbox27B246}%
+\def\dag{\protect\ps@mathhexbox279240}%
+\def\ddag{\protect\ps@mathhexbox27A340}%
+\chardef\cent="0A2
+\chardef\yen="0B4
+\chardef\currency="0DB
+\chardef\quotesingle="00D
+\chardef\guillemotleft="0C7
+\chardef\guilsinglleft="0DC
+\chardef\guilsinglright="0DD
+\chardef\quotesinglbase="0E2
+\chardef\quotedblbase="0E3
+\chardef\guillemotright="0C8
+\def\backslash{\protect\b@ckslash}%
+\def\b@ckslash{\ifmmode \delimiter"26E30F \else \char`\\\fi}%
+\chardef\perthousand='344
+\chardef\ordfeminine='273
+\chardef\ordmasculine='274
+}
+\def\RokickiExtras{%
+\chardef\pounds='243
+\def\H##1{{\accent"0CD ##1}}%
+\def\.##1{{\accent"0C7 ##1}}%
+\chardef\aa='230
+\chardef\AA='310
+\chardef\ae='032
+\chardef\oe='033
+\chardef\o='034
+\chardef\AE='035
+\chardef\OE='036
+\chardef\O='037
+\chardef\ss='031
+\chardef\l='370
+\chardef\L='350
+\let\j=\undefined % missing from PS fonts
+\def\pldots{\relax\ifmmode\@ldots\else\char'274 \fi}%
+\def\@lb{\relax\ifmmode\lbrace\else\char`\{\fi}%
+\def\@rb{\relax\ifmmode\rbrace\else\char`\}\fi}%
+\def\ps@mathhexbox##1##2##3##4##5##6{\ifmmode\mathhexbox##1##2##3\else
+  \leavevmode\char'##4##5##6 \fi}%
+\def\S{\protect\ps@mathhexbox278247}%
+\def\P{\protect\ps@mathhexbox27B266}%
+\def\dag{\protect\ps@mathhexbox279262}%
+\def\ddag{\protect\ps@mathhexbox27A263}%
+\chardef\cent="0A2
+\chardef\yen="0A5
+\chardef\currency="0A8
+\chardef\quotesingle="00D
+\chardef\guillemotleft="0AB
+\chardef\guilsinglleft="0AC
+\chardef\guilsinglright="0AD
+\chardef\quotesinglbase="0B8
+\chardef\quotedblbase="0B9
+\chardef\guillemotright="0BB
+\chardef\<=`<%
+\chardef\>=`>%
+\def\backslash{\protect\b@ckslash}%
+\def\b@ckslash{\ifmmode \delimiter"26E30F \else \char`\\\fi}%
+\chardef\vbar=`\|%
+\chardef\perthousand='275
+\chardef\ordfeminine='343
+\chardef\ordmasculine='353
+\chardef\asciitilde=`~%
+\chardef\underscore=`_%
+}
+\DeclareOption{dvips}{%
+  \AtBeginDocument{\RokickiExtras}%
+}
+\DeclareOption{textures}{%
+  \AtBeginDocument{\TexturesExtras}%
+}
+\ExecuteOptions{dvips} 
+\ProcessOptions
+\endinput
+%% 
+%% End of file `ot1var.sty'.

@@ -1,0 +1,964 @@
+%% @metafontfile{
+%%     filename="ebigop.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "18125 964 3335 44527"
+%%     keywords="amsfonts, tex, metafont , euler ",
+%%     abstract="This is the driver file for use with 
+%%            the euler extension font in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The Computer Modern Math-Extension family (by D. E. Knuth, 1979--1985)
+% Special version for characters redesigned to blend with Euler
+
+% This is the driver file for EUEX fonts
+font_coding_scheme:="euler substitutions only";
+mode_setup; font_setup;
+
+def t_ = transformed currenttransform enddef; 
+transform skewit; skewit=identity;  % 5/24/91 NGB
+
+def bulb(suffix $,$$,$$$) =
+ z$$$r=z$$r;
+%pair trueup; (z5+trueup)t_=z5+(0,y$$r-y$r);
+pair trueup; (z5+trueup) transformed skewit=z5+(0,y$$r-y$r); %5/24/91 NGB
+ path_.l:=z$l{x$$r-x$r,0}...{trueup}z$$l;
+{{less_tense;
+ filldraw path_.l--z$$r{-trueup}...{x$r-x$$r,0}z$r--cycle}}; % link
+ path_.r:=z$$$l{-trueup}..z$$$r{trueup}; % near-circle
+ filldraw subpath(0,xpart(path_.r intersectiontimes path_.l)) of path_.r
+  --z$$r{trueup}..cycle; % bulb
+ enddef;
+
+% characters modified from BIGOP
+charlist oct"110": oct"111";  % contour integral signs
+charlist oct"122": oct"132";  % integral signs
+charlist oct"120": oct"130";  % summation signs
+charlist oct"121": oct"131";  % product signs
+charlist oct"140": oct"141";  % coproduct signs
+
+% characters modified from BIGDEL (braces in different positions)
+charlist oct"010": oct"012": oct"014": oct"016": oct"070";  % left braces
+charlist oct"011": oct"013": oct"015": oct"017": oct"071";  % right braces
+extensible oct"070": oct"070",oct"074",oct"072",oct"076";  % left brace
+extensible oct"071": oct"071",oct"075",oct"073",oct"076";  % right brace
+extensible oct"072": oct"070",0,oct"072",oct"076";  % sharp left parenthesis
+extensible oct"073": oct"071",0,oct"073",oct"076";  % sharp right parenthesis
+extensible oct"076": 0,0,0,oct"076";  % brace extension modules only
+extensible oct"100": oct"070",0,oct"073",oct"076";  % left moustache
+extensible oct"101": oct"071",0,oct"072",oct"076";  % right moustache
+% the horizontal braces are included too
+heavy_rule_thickness:=bold+dw; % this is the main change: big braces not so dark
+heavy_rule_thickness#:=curve#+(curve#-stem#);
+
+% arrows (taken from SYMBOL, SYM, and ROMSS, with longer and thicker arrowheads)
+bar:=rule_thickness;  % this makes the arrowheads thicker
+% the half arrows from ROMSS are moved to different font positions
+% infinity (taken from SYMBOL, made heavier)
+
+cmchar "\textstyle integral sign";
+beginchar(oct"122",12u#,0,100/54dh#);
+italcorr 0.5u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(-1u#,-1u#-ic#); pickup fine.nib;
+pos1(dot_size,0); pos2(.75[hair,stem],0); pos3(vair,90); pos4(stem,180);
+pos5(.4[stem,curve],180); pos5'(.4[stem,curve],0); z5'=z5; pos6(stem,0);
+pos7(vair,-90); pos8(.75[hair,stem],-180); pos9(dot_size,-180);
+rt x1r=hround(w-u); x9=w-x1; x7=w-x3=3u;
+x5=.5[x4,x6]; x4-x6=1.2u; lft x5r=hround(.5w-.5stem);
+top y3r=0; bot y7r=-d; y9-.5(.4[stem,curve])=vround(top y7l+.25(.4[stem,curve]));
+y3-y1=y9-y7; y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+transform skewit;
+ z5 transformed skewit=z5; (z5+right) transformed skewit = z5+right;
+ z3 transformed skewit=z3-u*right;
+%% code changed for Version 2.1 to allow for odd aspect ratio. 5/24/91 NGB
+%skewit:=skewit transformed currenttransform;
+%save currenttransform; transform currenttransform; currenttransform:=skewit;
+transform newskew; newskew:=skewit transformed currenttransform;
+save currenttransform; transform currenttransform; currenttransform:=newskew;
+%%%%%%%end of change
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper stem
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower stem
+penlabels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "\displaystyle integral sign";
+beginchar(oct"132",18u#,0,200/54dh#);
+italcorr 2u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(-4u#,-4u#-ic#); pickup fine.nib;
+numeric bulb_size, max_size;
+bulb_size=hround(.8[stem,curve]); max_size=hround(bold+.2dw);
+pos1(bulb_size,0); pos2(.75[hair,stem],0); pos3(vair,90); pos4(.4[stem,curve],180);
+pos5(max_size,180); pos5'(max_size,0); z5'=z5; pos6(.4[stem,curve],0);
+pos7(vair,-90); pos8(.75[hair,stem],-180); pos9(bulb_size,-180);
+rt x1r=hround(w-u); x9=w-x1; x7=w-x3=3u;
+x5=.5[x4,x6]; x4-x6=4.8u; lft x5r=hround(.5w-.5stem);
+top y3r=0; bot y7r=-d;
+y9-.5bulb_size=vround(top y7l+.25bulb_size); y3-y1=y9-y7;
+y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+transform skewit;
+ z5 transformed skewit=z5; (z5+right) transformed skewit = z5+right;
+ z3 transformed skewit=z3-4u*right;
+%% code changed for Version 2.1 to allow for odd aspect ratio. 5/24/91 NGB
+%skewit:=skewit transformed currenttransform;
+%save currenttransform; transform currenttransform; currenttransform:=skewit;
+transform newskew; newskew:=skewit transformed currenttransform;
+save currenttransform; transform currenttransform; currenttransform:=newskew;
+%%%%%%%end of change
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper stem
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower stem
+penlabels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "\textstyle contour integral sign";
+beginchar(oct"110",12u#,0,100/54dh#);
+italcorr 0.5u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(-u#,-u#-ic#); pickup fine.nib;
+begingroup
+pos1(dot_size,0); pos2(.75[hair,stem],0); pos3(vair,90); pos4(stem,180);
+pos5(.4[stem,curve],180); pos5'(.4[stem,curve],0); z5'=z5; pos6(stem,0);
+pos7(vair,-90); pos8(.75[hair,stem],-180); pos9(dot_size,-180);
+rt x1r=hround(w-u); x9=w-x1; x7=w-x3=3u;
+x5=.5[x4,x6]; x4-x6=1.2u; lft x5r=hround(.5w-.5stem);
+top y3r=0; bot y7r=-d; y9-.5(.4[stem,curve])=vround(top y7l+.25(.4[stem,curve]));
+y3-y1=y9-y7; y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+transform skewit;
+ z5 transformed skewit=z5; (z5+right) transformed skewit = z5+right;
+ z3 transformed skewit=z3-u*right;
+%% code changed for Version 2.1 to allow for odd aspect ratio. 5/24/91 NGB
+%skewit:=skewit transformed currenttransform;
+%save currenttransform; transform currenttransform; currenttransform:=skewit;
+transform newskew; newskew:=skewit transformed currenttransform;
+save currenttransform; transform currenttransform; currenttransform:=newskew;
+%%%%%%%end of change
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper stem
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower stem
+endgroup;
+pickup rule.nib; autorounded;
+draw fullcircle scaled .5w shifted z5;  % contour
+penlabels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "\displaystyle contour integral sign";
+beginchar(oct"111",18u#,0,200/54dh#);
+italcorr 2u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(-4u#,-4u#-ic#); pickup fine.nib;
+begingroup
+numeric bulb_size, max_size;
+bulb_size=hround(.8[stem,curve]); max_size=hround(bold+.2dw);
+pos1(bulb_size,0); pos2(.75[hair,stem],0); pos3(vair,90); pos4(.4[stem,curve],180);
+pos5(max_size,180); pos5'(max_size,0); z5'=z5; pos6(.4[stem,curve],0);
+pos7(vair,-90); pos8(.75[hair,stem],-180); pos9(bulb_size,-180);
+rt x1r=hround(w-u); x9=w-x1; x7=w-x3=3u;
+x5=.5[x4,x6]; x4-x6=4.8u; lft x5r=hround(.5w-.5stem);
+top y3r=0; bot y7r=-d;
+y9-.5bulb_size=vround(top y7l+.25bulb_size); y3-y1=y9-y7;
+y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+transform skewit;
+ z5 transformed skewit=z5; (z5+right) transformed skewit = z5+right;
+ z3 transformed skewit=z3-4u*right;
+%% code changed for Version 2.1 to allow for odd aspect ratio. 5/24/91 NGB
+%skewit:=skewit transformed currenttransform;
+%save currenttransform; transform currenttransform; currenttransform:=skewit;
+transform newskew; newskew:=skewit transformed currenttransform;
+save currenttransform; transform currenttransform; currenttransform:=newskew;
+%%%%%%%end of change
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper stem
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower stem
+endgroup;
+pickup rule.nib; autorounded;
+draw fullcircle scaled .5w shifted z5;  % contour
+penlabels(1,2,3,4,5,6,7,8,9); endchar;
+
+
+cmchar "\textstyle summation sign";
+beginchar(oct"120",19u#,0,10/6dh#);
+adjust_fit(0,0); pickup tiny.nib;
+numeric top_arm_thickness, bot_arm_thickness;
+top_arm_thickness=Vround(.7[rule_thickness,bold]);
+bot_arm_thickness=Vround(bold+dw);
+lft x1l=hround 2.2u; x1l=x2l; lft x4l=hround u; x3l-x1l=4/11(w-2u)-1.2u;
+top y1=0; bot y2=-top_arm_thickness-eps; bot y4=-d; y3=-.48d;
+numeric alpha[]; alpha1=((x3l-x1l)++(y2-y3))/(y2-y3);
+penpos1(alpha1*(curve-tiny),0); penpos2(alpha1*(curve-tiny),0);
+penpos3(alpha1*(curve-tiny),0);
+alpha2=diag_ratio(1,rule_thickness+dw-tiny,y3-y4,x3r-x4l);
+penpos4(alpha2*(rule_thickness+dw-tiny),0);
+z0=whatever[z2l,z3l]=z4l+whatever*(z3r-z4r);
+filldraw z1l--z2l--z0--z4l--z4r--z3r--z2r--z1r--cycle;  % diagonals
+pickup crisp.nib; pos5(top_arm_thickness,90); pos6(hair,0);
+top y5r=0; x5=x1; rt x6r=hround(w-3u); y6=good.y(y5l)-eps;
+{{save serifs; boolean serifs; serifs:=false;
+arm(5,6,a,.45,-.25u);    % upper arm and beak
+pos7(bot_arm_thickness,-90); pos8(hair,0);
+bot y7r=-d; z7l=whatever[z4,z3]; x7r:=x4; x8=x6+1.5u; y8=good.y(y7l)+eps;
+arm(7,8,b,.45,.25u);}};  % lower arm and beak
+penlabels(0,1,2,3,4,5,6,7,8); endchar;
+
+cmchar "\displaystyle summation sign";
+beginchar(oct"130",26u#,0,14/6dh#); padded 1/6dh#;
+adjust_fit(0,0); pickup tiny.nib;
+numeric top_arm_thickness, bot_arm_thickness, thick_stem, thin_stem;
+thick_stem=bold+4dw; thin_stem=rule_thickness+2dw;
+top_arm_thickness=Vround(bold-.5dw);
+bot_arm_thickness=Vround(bold+2.5dw);
+lft x1l=hround 3u; x1l=x2l; lft x4l=hround u; x3l-x1l=4/11(w-2u)-2u;
+top y1=0; bot y2=-top_arm_thickness-eps; bot y4=-d; y3=-.48d;
+numeric alpha[]; alpha1=((x3l-x1l)++(y2-y3))/(y2-y3);
+penpos1(alpha1*(thick_stem-tiny),0); penpos2(alpha1*(thick_stem-tiny),0);
+penpos3(alpha1*(thick_stem-tiny),0);
+alpha2=diag_ratio(1,thin_stem-tiny,y3-y4,x3r-x4l);
+penpos4(alpha2*(thin_stem-tiny),0);
+z0=whatever[z2l,z3l]=z4l+whatever*(z3r-z4r);
+filldraw z1l--z2l--z0--z4l--z4r--z3r--z2r--z1r--cycle;  % diagonals
+pickup crisp.nib; pos5(top_arm_thickness,90); pos6(hair,0);
+top y5r=0; x5=x1; rt x6r=hround(w-4u); y6=good.y(y5l)-eps;
+{{save serifs; boolean serifs; serifs:=false;
+arm(5,6,a,.45,-.25u);  % upper arm and beak
+pos7(bot_arm_thickness,-90); pos8(hair,0);
+bot y7r=-d; z7l=whatever[z4,z3]; x7r:=x4; x8=x6+2.5u; y8=good.y(y7l)+eps;
+arm(7,8,b,.45,.25u);}};  % lower arm and beak
+penlabels(0,1,2,3,4,5,6,7,8); endchar;
+
+cmchar "\textstyle product sign";
+beginchar(oct"121",18.5u#,0,10/6dh#);
+adjust_fit(.25u#,.25u#); pickup crisp.nib;
+numeric heavy_stem,light_stem;
+heavy_stem=hround(bold+dw); light_stem=rule_thickness;
+pos1(heavy_stem,0);pos2(heavy_stem,0); pos1'(heavy_stem,0);pos2'(heavy_stem,0);
+pos11(light_stem,90); pos12(light_stem,90); pos22(light_stem,90);
+lft x11=hround u; x1l-x11=x2l-x12=x22-x2r=hround cap_jut;
+x1=x1'=x2=x2';
+top y1=0; bot y2=-d; y11r=y1; y12l=y22l=y2;
+y11l-y1'=y2'-y12r=1.2bracket;
+filldraw z1r--z11r--serif_arc(11l,1'l)--reverse serif_arc(12r,2'l)
+ --z12l--z22l--serif_arc(22r,2'r)--cycle;  % left stem and serifs
+pos3(heavy_stem,0);pos4(heavy_stem,0); pos3'(heavy_stem,0);pos4'(heavy_stem,0);
+pos13(light_stem,90); pos14(light_stem,90); pos24(light_stem,90);
+x3=x3'=x4=x4'=w-x1; x13=x14=w-x11; x24=w-x22;
+y3=y13r=y1; y3'=y1'; y4'=y2'; y4=y14l=y24l=y2;
+filldraw z3l--z13r--serif_arc(13l,3'r)--reverse serif_arc(14r,4'r)
+ --z14l--z24l--serif_arc(24r,4'l)--cycle;  % right stem and serifs
+filldraw stroke z11e--z13e; % bar
+penlabels(1,1',2,2',3,3',4,4',11,12,13,14,22,24); endchar;
+
+cmchar "\displaystyle product sign";
+beginchar(oct"131",25.4u#,0,14/6dh#); padded 1/6dh#;
+adjust_fit(0,0); pickup crisp.nib;
+numeric heavy_stem,light_stem;
+heavy_stem=hround(bold+5dw); light_stem=Vround(rule_thickness+dw);
+pos1(heavy_stem,0);pos2(heavy_stem,0); pos1'(heavy_stem,0);pos2'(heavy_stem,0);
+pos11(light_stem,90); pos12(light_stem,90); pos22(light_stem,90);
+lft x11=hround u; x1l-x11=x2l-x12=x22-x2r=hround 1.6cap_jut;
+x1=x1'=x2=x2';
+top y1=0; bot y2=-d; y11r=y1; y12l=y22l=y2;
+y11l-y1'=y2'-y12r=1.8bracket;
+filldraw z1r--z11r--serif_arc(11l,1'l)--reverse serif_arc(12r,2'l)
+ --z12l--z22l--serif_arc(22r,2'r)--cycle;  % left stem and serifs
+pos3(heavy_stem,0);pos4(heavy_stem,0); pos3'(heavy_stem,0);pos4'(heavy_stem,0);
+pos13(light_stem,90); pos14(light_stem,90); pos24(light_stem,90);
+x3=x3'=x4=x4'=w-x1; x13=x14=w-x11; x24=w-x22;
+y3=y13r=y1; y3'=y1'; y4'=y2'; y4=y14l=y24l=y2;
+filldraw z3l--z13r--serif_arc(13l,3'r)--reverse serif_arc(14r,4'r)
+ --z14l--z24l--serif_arc(24r,4'l)--cycle;  % right stem and serifs
+filldraw stroke z11e--z13e; % bar
+penlabels(1,1',2,2',3,3',4,4',11,12,13,14,22,24); endchar;
+
+cmchar "\textstyle coproduct sign";
+beginchar(oct"140",18.5u#,0,10/6dh#);
+adjust_fit(.25u#,.25u#); pickup crisp.nib;
+numeric heavy_stem,light_stem;
+heavy_stem=hround(bold+dw); light_stem=rule_thickness;
+pos1(heavy_stem,0);pos2(heavy_stem,0); pos1'(heavy_stem,0);pos2'(heavy_stem,0);
+pos11(light_stem,-90); pos12(light_stem,-90); pos22(light_stem,-90);
+lft x11=hround u; x1l-x11=x2l-x12=x22-x2r=hround cap_jut;
+x1=x1'=x2=x2';
+bot y1=-d; top y2=0; y11r=y1; y12l=y22l=y2;
+y1'-y11l=y12r-y2'=1.2bracket;
+filldraw z1r--z11r--serif_arc(11l,1'l)--reverse serif_arc(12r,2'l)
+ --z12l--z22l--serif_arc(22r,2'r)--cycle;  % left stem and serifs
+pos3(heavy_stem,0);pos4(heavy_stem,0); pos3'(heavy_stem,0);pos4'(heavy_stem,0);
+pos13(light_stem,-90); pos14(light_stem,-90); pos24(light_stem,-90);
+x3=x3'=x4=x4'=w-x1; x13=x14=w-x11; x24=w-x22;
+y3=y13r=y1; y3'=y1'; y4'=y2'; y4=y14l=y24l=y2;
+filldraw z3l--z13r--serif_arc(13l,3'r)--reverse serif_arc(14r,4'r)
+ --z14l--z24l--serif_arc(24r,4'l)--cycle;  % right stem and serifs
+filldraw stroke z11e--z13e; % bar
+penlabels(1,1',2,2',3,3',4,4',11,12,13,14,22,24); endchar;
+
+cmchar "\displaystyle coproduct sign";
+beginchar(oct"141",25.4u#,0,14/6dh#); padded 1/6dh#;
+adjust_fit(0,0); pickup crisp.nib;
+numeric heavy_stem,light_stem;
+heavy_stem=hround(bold+5dw); light_stem=Vround(rule_thickness+dw);
+pos1(heavy_stem,0);pos2(heavy_stem,0); pos1'(heavy_stem,0);pos2'(heavy_stem,0);
+pos11(light_stem,-90); pos12(light_stem,-90); pos22(light_stem,-90);
+lft x11=hround u; x1l-x11=x2l-x12=x22-x2r=hround 1.6cap_jut;
+x1=x1'=x2=x2';
+bot y1=-d; top y2=0; y11r=y1; y12l=y22l=y2;
+y1'-y11l=y12r-y2'=1.8bracket;
+filldraw z1r--z11r--serif_arc(11l,1'l)--reverse serif_arc(12r,2'l)
+ --z12l--z22l--serif_arc(22r,2'r)--cycle;  % left stem and serifs
+pos3(heavy_stem,0);pos4(heavy_stem,0); pos3'(heavy_stem,0);pos4'(heavy_stem,0);
+pos13(light_stem,-90); pos14(light_stem,-90); pos24(light_stem,-90);
+x3=x3'=x4=x4'=w-x1; x13=x14=w-x11; x24=w-x22;
+y3=y13r=y1; y3'=y1'; y4'=y2'; y4=y14l=y24l=y2;
+filldraw z3l--z13r--serif_arc(13l,3'r)--reverse serif_arc(14r,4'r)
+ --z14l--z24l--serif_arc(24r,4'l)--cycle;  % right stem and serifs
+filldraw stroke z11e--z13e; % bar
+penlabels(1,1',2,2',3,3',4,4',11,12,13,14,22,24); endchar;
+
+cmchar "\big left curly brace";
+beginchar(oct"010",9u#,rule_thickness#,2dh#-rule_thickness#);
+adjust_fit(.75u#,.75u#); left_curly(hair,stem); endchar;
+
+cmchar "\Big left curly brace";
+beginchar(oct"012",10u#,rule_thickness#,3dh#-rule_thickness#);
+adjust_fit(u#,u#); left_curly(rule_thickness,.3[stem,bold]); endchar;
+
+cmchar "\bigg left curly brace";
+beginchar(oct"014",11u#,rule_thickness#,4dh#-rule_thickness#);
+adjust_fit(1.25u#,1.25u#); left_curly(rule_thickness+.2dw,.7[stem,bold]); endchar;
+
+cmchar "\Bigg left curly brace";
+beginchar(oct"016",11.5u#,rule_thickness#,5dh#-rule_thickness#);
+adjust_fit(1.5u#,1.5u#); left_curly(rule_thickness+.4dw,bold); endchar;
+
+cmchar "Extensible left curly brace---top";
+beginchar(oct"070",12u#,0,1.5dh#);
+adjust_fit(2u#,2u#); pickup fine.nib;
+numeric min_breadth; min_breadth=hround(rule_thickness+.6dw);
+pos1(min_breadth,0); pos1'(min_breadth,0);
+pos2(heavy_rule_thickness,0); pos3(heavy_rule_thickness,0);
+rt x1r=rt x1'r=hround(w-1.5u+.5min_breadth);
+lft x2l=lft x3l=hround(.5w-.5heavy_rule_thickness);
+top y1=h-1; y3=-d-eps; y2=.5[y1,y3]; y1-y1'=min_breadth-fine;
+filldraw z1l{3(x2l-x1l),y2-y1}...z2l---z3l
+ --z3r---z2r...{3(x1r-x2r),y1'-y2}z1'r--z1r--cycle;  % stroke
+penlabels(1,2,3); endchar;
+
+cmchar "Extensible left curly brace---bottom";
+beginchar(oct"072",12u#,0,1.5dh#);
+adjust_fit(2u#,2u#); pickup fine.nib;
+numeric min_breadth; min_breadth=hround(rule_thickness+.6dw);
+pos7(min_breadth,0); pos7'(min_breadth,0);
+pos5(heavy_rule_thickness,0); pos6(heavy_rule_thickness,0);
+rt x7r=rt x7'r=hround(w-1.5u+.5min_breadth);
+lft x5l=lft x6l=hround(.5w-.5heavy_rule_thickness);
+y5=h+eps; bot y7=1-d; y6=.5[y5,y7]; y7'-y7=min_breadth-fine;
+filldraw z5l---z6l...{3(x7l-x6l),y7-y6}z7l
+ --z7r--z7'r{3(x6r-x7r),y6-y7'}...z6r---z5r--cycle;  % stroke
+penlabels(5,6,7); endchar;
+
+cmchar "Extensible left curly brace---middle";
+beginchar(oct"074",12u#,0,3dh#);
+adjust_fit(2u#,2u#); pickup fine.nib;
+numeric min_breadth; min_breadth=hround(rule_thickness+.6dw);
+pos4(min_breadth,0); pos4'(min_breadth,0);
+forsuffixes $=2,3,5,6: pos$(heavy_rule_thickness,0); endfor
+lft x4l=lft x4'l=hround(1.5u-.5min_breadth);
+x2=x3=x5=x6; lft x2l=hround(.5w-.5heavy_rule_thickness);
+y2=h+eps; y6=-d-eps; .5[y4,y4']=.5[y2,y6]=.5[y3,y5];
+y3-y4=(y2-y6)/4; y4-y4'=min_breadth-fine;
+filldraw z2l---z3l...{3(x4l-x3l),y4-y3}z4l
+ --z4'l{3(x5l-x4l),y5-y4'}...z5l---z6l--z6r---z5r
+ ...{3(x4r-x5r),.5[y4,y4']-y5}.5[z4r,z4'r]{3(x3r-x4r),y3-.5[y4,y4']}
+ ...z3r---z2r--cycle;  % stroke
+penlabels(2,3,4,5,6); endchar;
+
+cmchar "Extensible curly brace---extension module";
+beginchar(oct"076",12u#,0,.5dh#);
+adjust_fit(2u#,2u#); pickup fine.nib;
+pos2(heavy_rule_thickness,0); pos3(heavy_rule_thickness,0);
+lft x2l=lft x3l=hround(.5w-.5heavy_rule_thickness); y2=h+eps; y3=-d-eps;
+filldraw stroke z2e--z3e;  % stem
+penlabels(2,3); endchar;
+
+cmchar "\big right curly brace";
+beginchar(oct"011",9u#,rule_thickness#,2dh#-rule_thickness#);
+adjust_fit(.75u#,.75u#); right_curly(hair,stem); endchar;
+
+cmchar "\Big right curly brace";
+beginchar(oct"013",10u#,rule_thickness#,3dh#-rule_thickness#);
+adjust_fit(u#,u#); right_curly(rule_thickness,.3[stem,bold]); endchar;
+
+cmchar "\bigg right curly brace";
+beginchar(oct"015",11u#,rule_thickness#,4dh#-rule_thickness#);
+adjust_fit(1.25u#,1.25u#); right_curly(rule_thickness+.2dw,.7[stem,bold]); endchar;
+
+cmchar "\Bigg right curly brace";
+beginchar(oct"017",11.5u#,rule_thickness#,5dh#-rule_thickness#);
+adjust_fit(1.5u#,1.5u#); right_curly(rule_thickness+.4dw,bold); endchar;
+
+cmchar "Extensible right curly brace---top";
+beginchar(oct"071",12u#,0,1.5dh#);
+adjust_fit(2u#,2u#); pickup fine.nib;
+numeric min_breadth; min_breadth=hround(rule_thickness+.6dw);
+pos1(min_breadth,0); pos1'(min_breadth,0);
+pos2(heavy_rule_thickness,0); pos3(heavy_rule_thickness,0);
+lft x1l=lft x1'l=hround(1.5u-.5min_breadth);
+lft x2l=lft x3l=hround(.5w-.5heavy_rule_thickness);
+top y1=h-1; y3=-d-eps; y2=.5[y1,y3]; y1-y1'=min_breadth-fine;
+filldraw z1r{3(x2r-x1r),y2-y1}...z2r---z3r
+ --z3l---z2l...{3(x1l-x2l),y1'-y2}z1'l--z1l--cycle;  % stroke
+penlabels(1,2,3); endchar;
+
+cmchar "Extensible right curly brace---bottom";
+beginchar(oct"073",12u#,0,1.5dh#);
+adjust_fit(2u#,2u#); pickup fine.nib;
+numeric min_breadth; min_breadth=hround(rule_thickness+.6dw);
+pos7(min_breadth,0); pos7'(min_breadth,0);
+pos5(heavy_rule_thickness,0); pos6(heavy_rule_thickness,0);
+lft x7l=lft x7'l=hround(1.5u-.5min_breadth);
+lft x5l=lft x6l=hround(.5w-.5heavy_rule_thickness);
+y5=h+eps; bot y7=1-d; y6=.5[y5,y7]; y7'-y7=min_breadth-fine;
+filldraw z5r---z6r...{3(x7r-x6r),y7-y6}z7r
+ --z7l--z7'l{3(x6l-x7l),y6-y7'}...z6l---z5l--cycle;  % stroke
+penlabels(5,6,7); endchar;
+
+cmchar "Extensible right curly brace---middle";
+beginchar(oct"075",12u#,0,3dh#);
+adjust_fit(2u#,2u#); pickup fine.nib;
+numeric min_breadth; min_breadth=hround(rule_thickness+.6dw);
+pos4(min_breadth,0); pos4'(min_breadth,0);
+forsuffixes $=2,3,5,6: pos$(heavy_rule_thickness,0); endfor
+rt x4r=rt x4'r=hround(w-1.5u+.5min_breadth);
+x2=x3=x5=x6; lft x2l=hround(.5w-.5heavy_rule_thickness);
+y2=h+eps; y6=-d-eps; .5[y4,y4']=.5[y2,y6]=.5[y3,y5];
+y3-y4=(y2-y6)/4; y4-y4'=min_breadth-fine;
+filldraw z2r---z3r...{3(x4r-x3r),y4-y3}z4r
+ --z4'r{3(x5r-x4r),y5-y4'}...z5r---z6r--z6l---z5l
+ ...{3(x4l-x5l),.5[y4,y4']-y5}.5[z4l,z4'l]{3(x3l-x4l),y3-.5[y4,y4']}
+ ...z3l---z2l--cycle;  % stroke
+penlabels(2,3,4,5,6); endchar;
+
+cmchar "Horizontal curly brace tip---down and left";
+beginchar(oct"172",.75dh#,heavy_rule_thickness#,0);
+adjust_fit(0,0); pickup fine.nib;
+numeric min_breadth; min_breadth=vround(rule_thickness+.6dw);
+pos1(min_breadth,90); pos1'(min_breadth,90);
+pos2(heavy_rule_thickness,90);
+bot y2l=0; bot y1l=bot y1'l=vround(y2-4.5u-.5min_breadth);
+.5[x1,x1']=-eps; x2=w+shrink_fit+eps; x1'-x1=min_breadth-fine;
+filldraw z1r{x2-x1,3(y2r-y1r)}...{right}z2r
+ --z2l{left}...{x1'-x2,3(y1-y2)}z1'l--z1l--cycle;  % stroke
+penlabels(1,2); endchar;
+
+cmchar "Horizontal curly brace tip---down and right";
+beginchar(oct"173",.75dh#,heavy_rule_thickness#,0);
+adjust_fit(0,0); pickup fine.nib;
+numeric min_breadth; min_breadth=vround(rule_thickness+.6dw);
+pos1(min_breadth,90); pos1'(min_breadth,90);
+pos2(heavy_rule_thickness,90);
+bot y2l=0; bot y1l=bot y1'l=vround(y2-4.5u-.5min_breadth);
+.5[x1,x1']=w+shrink_fit+eps; x2=-eps; x1-x1'=min_breadth-fine;
+filldraw z1r{x2-x1,3(y2r-y1r)}...{left}z2r
+ --z2l{right}...{x1'-x2,3(y1-y2)}z1'l--z1l--cycle;  % stroke
+penlabels(1,2); endchar;
+
+cmchar "Horizontal curly brace tip---up and left";
+beginchar(oct"174",.75dh#,heavy_rule_thickness#,0);
+adjust_fit(0,0); pickup fine.nib;
+numeric min_breadth; min_breadth=vround(rule_thickness+.6dw);
+pos1(min_breadth,90); pos1'(min_breadth,90);
+pos2(heavy_rule_thickness,90);
+bot y2l=0; top y1r=top y1'r=vround(y2+4.5u+.5min_breadth);
+.5[x1,x1']=-eps; x2=w+shrink_fit+eps; x1'-x1=min_breadth-fine;
+filldraw z1l{x2-x1,3(y2l-y1l)}...{right}z2l
+ --z2r{left}...{x1'-x2,3(y1-y2)}z1'r--z1r--cycle;  % stroke
+penlabels(1,2); endchar;
+
+cmchar "Horizontal curly brace tip---up and right";
+beginchar(oct"175",.75dh#,heavy_rule_thickness#,0);
+adjust_fit(0,0); pickup fine.nib;
+numeric min_breadth; min_breadth=vround(rule_thickness+.6dw);
+pos1(min_breadth,90); pos1'(min_breadth,90);
+pos2(heavy_rule_thickness,90);
+bot y2l=0; top y1r=top y1'r=vround(y2+4.5u+.5min_breadth);
+.5[x1,x1']=w+shrink_fit+eps; x2=-eps; x1-x1'=min_breadth-fine;
+filldraw z1l{x2-x1,3(y2l-y1l)}...{left}z2l
+ --z2r{right}...{x1'-x2,3(y1-y2)}z1'r--z1r--cycle;  % stroke
+penlabels(1,2); endchar;
+
+cmchar "Leftward arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"040",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90); pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1+.5rule_thickness=hround(w-u); lft x0=hround u;
+y3-y0=y0-y4=.36asc_height+eps; x3=x4=x0+3u+eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r--subpath (t,0) of\\(z3r{z9-z3}..z5r)
+ --z3l{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Rightward arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"041",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90); pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1-.5rule_thickness=hround u; rt x0=hround(w-u);
+y3-y0=y0-y4=.36asc_height+eps; x3=x4=x0-3u-eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r--subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Left-and-right arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"044",18u#,
+ v_center(if monospace:.6asc_height#+fi spread#+rule_thickness#));
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90); pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis if monospace:+vround.3asc_height fi; lft x0=hround u;
+if monospace: x1+.5rule_thickness=hround(w-u) else: x1=.5w fi;
+y3-y0=y0-y4=.36asc_height+eps; x3=x4=x0+3u+eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r--subpath (t,0) of\\(z3r{z9-z3}..z5r)
+ --z3l{z9-z3}..z0 & cycle;  % left arrowhead and stem
+pos11(rule_thickness,90); pos12(rule_thickness,90); pos13(bar,0); pos14(bar,0);
+y10=y11=y12=math_axis if monospace:-vround.3asc_height fi;
+rt x10=hround(w-u);
+if monospace: x11-.5rule_thickness=hround u else: x11=.5w fi;
+y13-y10=y10-y14=.36asc_height+eps; x13=x14=x10-3u-eps;
+pos15(bar,angle(z14-z10)); z15l=z10; pos16(bar,angle(z13-z10)); z16l=z10;
+z19=.381966[.5[z13,z14],z10];
+numeric t; path p; p=z14l{z19-z14}..z16r;
+t=xpart(p intersectiontimes((0,y12l)--(w,y12l))); x12=xpart point t of p;
+filldraw z10..{z14-z19}z14r--subpath (0,t) of\\(z14l{z19-z14}..z16r)
+ --z12l---z11l..z11r---z12r--subpath (t,0) of\\(z13l{z19-z13}..z15r)
+ --z13r{z19-z13}..z10 & cycle;  % right arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9,10,11,12,13,14,15,16,19); endchar;
+
+cmchar "Upward arrow";
+beginchar(oct"042",9u#,asc_height#,asc_depth#);
+italcorr .76asc_height#*slant+.5crisp#-u#;
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,0); pos2(rule_thickness,0);
+pos3(bar,90); pos4(bar,90);
+lft x1l=hround(.5w-.5rule_thickness); y1-.5rule_thickness=-d;
+x0=x1=x2; top y0=h; x0-x3=x4-x0=4u+eps;
+y3=y4=y0-.24asc_height-eps;
+pos5(bar,angle(z4-z0)); z5l=z0;
+pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x2r,-d)--(x2r,h))); y2=ypart point t of p;
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2r---z1r..z1l---z2l--subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Downward arrow";
+beginchar(oct"043",9u#,asc_height#,asc_depth#);
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,0); pos2(rule_thickness,0);
+pos3(bar,90); pos4(bar,90);
+lft x1l=hround(.5w-.5rule_thickness); y1+.5rule_thickness=h;
+x0=x1=x2; bot y0=-d; x0-x3=x4-x0=4u+eps;
+y3=y4=y0+.24asc_height+eps;
+pos5(bar,angle(z4-z0)); z5l=z0;
+pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x2r,-d)--(x2r,h))); y2=ypart point t of p;
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --z2r---z1r..z1l---z2l--subpath (t,0) of\\(z3r{z9-z3}..z5r)
+ --z3l{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Up-and-down arrow";
+beginchar(oct"154",9u#,body_height#,paren_depth#);
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,0); pos2(rule_thickness,0);
+pos3(bar,90); pos4(bar,90);
+lft x1l=hround(.5w-.5rule_thickness); y1=.5[-d,h];
+x0=x1=x2; bot y0=-d-o; x0-x3=x4-x0=4u+eps;
+y3=y4=y0+.24asc_height+eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x2r,-d)--(x2r,h))); y2=ypart point t of p;
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --z2r---z1r..z1l---z2l--subpath (t,0) of\\(z3r{z9-z3}..z5r)
+ --z3l{z9-z3}..z0 & cycle;  % lower arrowhead and stem
+pos11(rule_thickness,0); pos12(rule_thickness,0); z11=z1;
+pos13(bar,90); pos14(bar,90);
+x10=x11=x12; top y10=h+o; x10-x13=x14-x10=4u+eps;
+y13=y14=y10-.24asc_height-eps;
+pos15(bar,angle(z14-z10)); z15l=z10; pos16(bar,angle(z13-z10)); z16l=z10;
+z19=.381966[.5[z13,z14],z10];
+numeric t; path p; p=z14l{z19-z14}..z16r;
+t=xpart(p intersectiontimes((x12r,-d)--(x12r,h))); y12=ypart point t of p;
+filldraw z10..{z14-z19}z14r--subpath (0,t) of\\(z14l{z19-z14}..z16r)
+ --z12r---z11r..z11l---z12l--subpath (t,0) of\\(z13l{z19-z13}..z15r)
+ --z13r{z19-z13}..z10 & cycle;  % upper arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9,10,11,12,13,14,15,16,19); endchar;
+
+cmchar "Leftward top half arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"030",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90); pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1+.5rule_thickness=hround(w-u); lft x0=hround u;
+y3-y0=y0-y4=.36asc_height+eps; x3=x4=x0+3u+eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+numeric t; path p; p=z4r..{2(x0-x4),y0-y4}z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0--(x0,y2l)---z1l..z1r---z2r
+ ..subpath (t,0) of\\(z3r..{2(x0-x3),y0-y3}z5r)
+ --z3l..{2(x0-x3),y0-y3}cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6); endchar;
+
+cmchar "Leftward bottom half arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"031",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90); pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1+.5rule_thickness=hround(w-u); lft x0=hround u;
+y3-y0=y0-y4=.36asc_height+eps; x3=x4=x0+3u+eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+numeric t; path p; p=z4r..{2(x0-x4),y0-y4}z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0{2(x4-x0),y4-y0}..z4l
+ --subpath (0,t) of\\(z4r..{2(x0-x4),y0-y4}z6r)
+ ..z2l---z1l..z1r---(x0,y2r)--cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6); endchar;
+
+cmchar "Rightward top half arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"032",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90); pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1-.5rule_thickness=hround u; rt x0=hround(w-u);
+y3-y0=y0-y4=.36asc_height+eps; x3=x4=x0-3u-eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+numeric t; path p; p=z4l..{2(x0-x4),y0-y4}z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0--(x0,y2l)---z1l..z1r---z2r
+ ..subpath (t,0) of\\(z3l..{2(x0-x3),y0-y3}z5r)
+ --z3r..{2(x0-x3),y0-y3}cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6); endchar;
+
+cmchar "Rightward bottom half arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"033",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90); pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1-.5rule_thickness=hround u; rt x0=hround(w-u);
+y3-y0=y0-y4=.36asc_height+eps; x3=x4=x0-3u-eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+numeric t; path p; p=z4l..{2(x0-x4),y0-y4}z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0{2(x4-x0),y4-y0}..z4r
+ --subpath (0,t) of\\(z4l..{2(x0-x4),y0-y4}z6r)
+ ..z2l---z1l..z1r---(x0,y2r)--cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6); endchar;
+
+cmchar "Northeast arrow";
+beginchar(oct"045",18u#,asc_height#,asc_depth#);
+adjust_fit(0,0); pickup crisp.nib;
+x1-.5rule_thickness=hround u; rt x0=hround(w-u);
+y1-.5rule_thickness=-d; top y0=h;
+numeric theta,delta; theta=angle(z0-z1); delta=3u++.24asc_height;
+if abs(theta-45)<2.5: theta:=45; y1:=y0+x1-x0; fi % near-45$^\circ$ angle
+pos1(rule_thickness,90+theta); pos2(rule_thickness,90+theta);
+pos3(bar,theta); pos4(bar,theta);
+z3-z0=(-3u,.36asc_height) rotated theta;
+z4-z0=(-3u,-.36asc_height) rotated theta;
+pos5(bar,-90); z5l=z0; pos6(bar,-180); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes (z1l--(z1l+2(z0-z1)))); z2l=point t of p;
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r--subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Southeast arrow";
+beginchar(oct"046",18u#,asc_height#,asc_depth#);
+adjust_fit(0,0); pickup crisp.nib;
+x1-.5rule_thickness=hround u; rt x0=hround(w-u);
+y1+.5rule_thickness=h; bot y0=-d;
+numeric theta,delta; theta=angle(z0-z1); delta=3u++.24asc_height;
+if abs(theta+45)<2.5: theta:=-45; y1:=y0+x0-x1; fi % near-45$^\circ$ angle
+pos1(rule_thickness,90+theta); pos2(rule_thickness,90+theta);
+pos3(bar,theta); pos4(bar,theta);
+z3-z0=(-3u,.36asc_height) rotated theta;
+z4-z0=(-3u,-.36asc_height) rotated theta;
+pos5(bar,180); z5l=z0; pos6(bar,90); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes (z1l--(z1l+2(z0-z1)))); z2l=point t of p;
+filldraw z0..{z4-z9}z4r
+ --subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r
+ --subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Northwest arrow";
+beginchar(oct"055",18u#,asc_height#,asc_depth#);
+adjust_fit(0,0); pickup crisp.nib;
+x1+.5rule_thickness=hround(w-u); lft x0=hround u;
+y1-.5rule_thickness=-d; top y0=h;
+numeric theta,delta; theta=angle(z1-z0); delta=3u++.24asc_height;
+if abs(theta+45)<2.5: theta:=-45; y1:=y0+x0-x1; fi % near-45$^\circ$ angle
+pos1(rule_thickness,-90+theta); pos2(rule_thickness,-90+theta);
+pos3(bar,-180+theta); pos4(bar,-180+theta);
+z4-z0=(3u,.36asc_height) rotated theta;
+z3-z0=(3u,-.36asc_height) rotated theta;
+pos5(bar,0); z5l=z0; pos6(bar,-90); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes (z1l--(z1l+2(z0-z1)))); z2l=point t of p;
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r--subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Southwest arrow";
+beginchar(oct"056",18u#,asc_height#,asc_depth#);
+adjust_fit(0,0); pickup crisp.nib;
+x1+.5rule_thickness=hround(w-u); lft x0=hround u;
+y1+.5rule_thickness=h; bot y0=-d;
+numeric theta,delta; theta=angle(z1-z0); delta=3u++.24asc_height;
+if abs(theta-45)<2.5: theta:=45; y1:=y0+x1-x0; fi % near-45$^\circ$ angle
+pos1(rule_thickness,-90+theta); pos2(rule_thickness,-90+theta);
+pos3(bar,-180+theta); pos4(bar,-180+theta);
+z4-z0=(3u,.36asc_height) rotated theta;
+z3-z0=(3u,-.36asc_height) rotated theta;
+pos5(bar,90); z5l=z0; pos6(bar,0); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes (z1l--(z1l+2(z0-z1)))); z2l=point t of p;
+filldraw z0..{z4-z9}z4r
+ --subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r
+ --subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9); endchar;
+
+cmchar "Double leftward arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"050",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup rule.nib;
+lft x7=hround u-eps; x8=x7; x1=x2=w-x7;
+y1=y7; y2=y8; y1-y2=spread; .5[y1,y2]=math_axis;
+draw z1--z7; draw z2--z8;  % bars
+pickup crisp.nib; lft x0=hround u-eps; y0=good.y math_axis;
+pos3(rule_thickness,0); pos4(rule_thickness,0);
+y3-y1=y2-y4=.36asc_height+eps; x3=x4=x0+6u+eps;
+pos5(rule_thickness,angle(z4-z0)); z5l=z0;
+pos6(rule_thickness,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+erase filldraw z0..{z3-z9}z3--(0,y3)
+ --(0,y4)--z4{z9-z4}..z0 & cycle;  % erase excess
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y0)--(w,y0)));
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --subpath (t,0) of\\(z3r{z9-z3}..z5r)--z3l{z9-z3}..z0 & cycle;  % arrowhead
+penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "Double rightward arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"051",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround u-eps; x2=x1; x7=x8=w-x1;
+y1=y7; y2=y8; y1-y2=spread; .5[y1,y2]=math_axis;
+draw z1--z7; draw z2--z8;  % bars
+pickup crisp.nib; rt x0=hround(w-u)+eps; y0=good.y math_axis;
+pos3(rule_thickness,0); pos4(rule_thickness,0);
+y3-y1=y2-y4=.36asc_height+eps; x3=x4=x0-6u-eps;
+pos5(rule_thickness,angle(z4-z0)); z5l=z0;
+pos6(rule_thickness,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+erase filldraw z0..{z3-z9}z3--(w,y3)
+ --(w,y4)--z4{z9-z4}..z0 & cycle;  % erase excess
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y0)--(w,y0)));
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --subpath (t,0) of\\(z3l{z9-z3}..z5r)--z3r{z9-z3}..z0 & cycle;  % arrowhead
+penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "Double upward arrow";
+beginchar(oct"052",12u#,asc_height#,asc_depth#);
+adjust_fit(0,0); pickup rule.nib;
+compute_spread(.45x_height#,.55x_height#);
+bot y1=bot y2=-d-eps; top y7=h; y8=y7;
+x1=x7; x2=x8; x1-x2=spread; .5[x1,x2]=crisp.lft hround(crisp.rt .5w);
+draw z1--z7; draw z2--z8;  % bars
+pickup crisp.nib; top y0=h+eps; x0=good.x .5w;
+pos3(rule_thickness,90); pos4(rule_thickness,90);
+x2-x3=x4-x1=4u+eps; y3=y4=y0-.48asc_height-eps;
+pos5(rule_thickness,angle(z4-z0)); z5l=z0;
+pos6(rule_thickness,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+erase filldraw z0..{z3-z9}z3--(x3,h)
+ --(x4,h)--z4{z9-z4}..z0 & cycle;  % erase excess
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x0,-d)--(x0,h)));
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --subpath (t,0) of\\(z3l{z9-z3}..z5r)--z3r{z9-z3}..z0 & cycle;  % arrowhead
+penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "Double downward arrow";
+beginchar(oct"053",12u#,asc_height#,asc_depth#);
+adjust_fit(0,0); pickup rule.nib;
+compute_spread(.45x_height#,.55x_height#);
+top y1=top y2=h+eps; bot y7=-d; y8=y7;
+x1=x7; x2=x8; x1-x2=spread; .5[x1,x2]=crisp.lft hround(crisp.rt .5w);
+draw z1--z7; draw z2--z8;  % bars
+pickup crisp.nib; bot y0=-d-eps; x0=good.x .5w;
+pos3(rule_thickness,90); pos4(rule_thickness,90);
+x2-x3=x4-x1=4u+eps; y3=y4=y0+.48asc_height-eps;
+pos5(rule_thickness,angle(z4-z0)); z5l=z0;
+pos6(rule_thickness,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+erase filldraw z0..{z3-z9}z3--(x3,-d)
+ --(x4,-d)--z4{z9-z4}..z0 & cycle;  % erase excess
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x0,-d)--(x0,h)));
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --subpath (t,0) of\\(z3r{z9-z3}..z5r)--z3l{z9-z3}..z0 & cycle;  % arrowhead
+penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "Double left-and-right arrow";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(oct"054",18u#,v_center(spread#+rule_thickness#));
+adjust_fit(if monospace: -u#,-u# else: 0,0 fi); pickup rule.nib;
+lft x7=hround u-eps; x8=x7; x1=x2=w-x7;
+y1=y7; y2=y8; y1-y2=spread; .5[y1,y2]=math_axis;
+draw z1--z7; draw z2--z8;  % bars
+pickup crisp.nib; lft x0=hround u-o; y0=good.y math_axis;
+pos3(rule_thickness,0); pos4(rule_thickness,0);
+y3-y1=y2-y4=.36asc_height+eps; x3=x4=x0+5u+eps;
+pos5(rule_thickness,angle(z4-z0)); z5l=z0;
+pos6(rule_thickness,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+erase filldraw z0..{z3-z9}z3--(0,y3)
+ --(0,y4)--z4{z9-z4}..z0 & cycle;  % erase excess at left
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y0)--(w,y0)));
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --subpath (t,0) of\\(z3r{z9-z3}..z5r)
+ --z3l{z9-z3}..z0 & cycle;  % left arrowhead
+rt x10=hround(w-u)+o; y10=good.y math_axis;
+pos13(rule_thickness,0); pos14(rule_thickness,0);
+y13=y3; y14=y4; x13=x14=x10-5u-eps;
+pos15(rule_thickness,angle(z14-z10)); z15l=z10;
+pos16(rule_thickness,angle(z13-z10)); z16l=z10;
+z19=.381966[.5[z13,z14],z10];
+erase filldraw z10..{z13-z19}z13--(w,y13)
+ --(w,y14)--z14{z19-z14}..z10 & cycle;  % erase excess at right
+numeric t; path p; p=z14l{z19-z14}..z16r;
+t=xpart(p intersectiontimes((0,y10)--(w,y10)));
+filldraw z10..{z14-z19}z14r--subpath (0,t) of\\(z14l{z19-z14}..z16r)
+ --subpath (t,0) of\\(z13l{z19-z13}..z15r)
+ --z13r{z19-z13}..z10 & cycle; % right arrowhead
+penlabels(0,1,2,3,4,5,6,7,8,9,10,13,14,15,16,19); endchar;
+
+cmchar "Double up-and-down arrow";
+beginchar(oct"155",12u#,body_height#,paren_depth#);
+adjust_fit(0,0); pickup rule.nib;
+compute_spread(.45x_height#,.55x_height#);
+bot y1=bot y2=-d-eps; top y7=h; y8=y7;
+x1=x7; x2=x8; x1-x2=spread; .5[x1,x2]=crisp.lft hround(crisp.rt .5w);
+draw z1--z7; draw z2--z8;  % bars
+pickup crisp.nib; top y0=h+o; x0=good.x .5w;
+pos3(rule_thickness,90); pos4(rule_thickness,90);
+x2-x3=x4-x1=4u+eps; y3=y4=y0-.4asc_height-eps;
+pos5(rule_thickness,angle(z4-z0)); z5l=z0;
+pos6(rule_thickness,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+erase filldraw z0..{z3-z9}z3--(x3,h)
+ --(x4,h)--z4{z9-z4}..z0 & cycle;  % erase excess at top
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x0,-d)--(x0,h)));
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % top arrowhead
+bot y10=-d-o; x10=good.x .5w;
+pos13(rule_thickness,90); pos14(rule_thickness,90);
+x13=x3; x14=x4; y13=y14=y10+.4asc_height-eps;
+pos15(rule_thickness,angle(z14-z10)); z15l=z10;
+pos16(rule_thickness,angle(z13-z10)); z16l=z10;
+z19=.381966[.5[z13,z14],z10];
+erase filldraw z10..{z13-z19}z13--(x13,-d)
+ --(x14,-d)--z14{z19-z14}..z10 & cycle;  % erase excess at bottom
+numeric t; path p; p=z14r{z19-z14}..z16r;
+t=xpart(p intersectiontimes((x10,-d)--(x10,h)));
+filldraw z10..{z14-z19}z14l--subpath (0,t) of\\(z14r{z19-z14}..z16r)
+ --subpath (t,0) of\\(z13r{z19-z13}..z15r)
+ --z13l{z19-z13}..z10 & cycle;  % bottom arrowhead
+penlabels(0,1,2,3,4,5,6,7,8,9,13,14,15,16,19); endchar;
+
+cmchar "Infinity";
+beginchar(oct"061",18u#,x_height#,0);
+italcorr .7x_height#*slant-.5u#;
+adjust_fit(0,0); pickup fine.nib;
+numeric theta,phi;
+if monospace: phi=-theta=90;
+else: phi=angle(4u,h); theta=angle(6u,-h); fi
+pos1(.2[vair,curve],180); pos2(.6[vair,curve],90+.5theta); pos3(curve,90+theta);
+pos4(curve,90+theta); pos5(.6[vair,curve],90+.5theta);
+pos6(.2[vair,curve],180); pos7(.3[vair,curve],270+.5phi);
+pos8(.35[vair,curve],270+phi); pos9(.3[vair,curve],270+.5phi);
+lft x1r=w-rt x6l=hround u; x2=x9=.4[x1,x8]; x5=x7=.6[x8,x6];
+if monospace: x2l:=x2r; x5r:=x5l; x7r:=x7l; x9l:=x9r; fi
+y1=y6=.5h; top y2r=top y7l=h+oo; bot y5l=bot y9r=-oo;
+x8=.5[x3,x4]=.5w; y8=.5[y3,y4]=.5h;
+y3-y4=h/3; z3-z4=whatever*dir theta;
+filldraw stroke z1e{up}...z2e{right}...z3e---z4e...z5e{right}
+ ...z6e{up}...z7e{left}...{-dir phi}z8e...{left}z9e...z1e{up}; % bowls
+penlabels(1,2,3,4,5,6,7,8,9); endchar;
+
+font_x_height x_height#;
+font_quad 18u#+4letter_fit#;
+% (The calling file should give the other math extension font parameters.)
+
+bye.

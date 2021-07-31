@@ -1,0 +1,46 @@
+%Filename: OT1hlct.fd
+%Created by: tex 2802luctypew
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{OT1hlct.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for OT1/hlct.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{OT1}{hlct}{\hyphenchar \font =-1}
+
+\DeclareFontShape{OT1}{hlct}{b}{n}{
+ <->s * [\LucidaScale]hlcbt7t
+}{}
+
+\DeclareFontShape{OT1}{hlct}{b}{sc}{
+ <->s * [\LucidaScale]hlcbtc7t
+}{}
+
+\DeclareFontShape{OT1}{hlct}{b}{sl}{
+ <->s * [\LucidaScale]hlcbot7t
+}{}
+
+\DeclareFontShape{OT1}{hlct}{m}{n}{
+ <->s * [\LucidaScale]hlcrt7t
+}{}
+
+\DeclareFontShape{OT1}{hlct}{m}{sc}{
+ <->s * [\LucidaScale]hlcrtc7t
+}{}
+
+\DeclareFontShape{OT1}{hlct}{m}{sl}{
+ <->s * [\LucidaScale]hlcrot7t
+}{}
+
+\DeclareFontShape{OT1}{hlct}{bx}{n}{<->ssub * hlct/b/n}{}
+\DeclareFontShape{OT1}{hlct}{bx}{sc}{<->ssub * hlct/b/sc}{}
+\DeclareFontShape{OT1}{hlct}{bx}{sl}{<->ssub * hlct/b/sl}{}
+\DeclareFontShape{OT1}{hlct}{b}{it}{<->ssub * hlct/b/sl}{}
+\DeclareFontShape{OT1}{hlct}{bx}{it}{<->ssub * hlct/b/it}{}
+\DeclareFontShape{OT1}{hlct}{b}{ui}{<->sub * hlct/b/it}{}
+\DeclareFontShape{OT1}{hlct}{bx}{ui}{<->ssub * hlct/b/ui}{}
+\DeclareFontShape{OT1}{hlct}{m}{it}{<->ssub * hlct/m/sl}{}
+\DeclareFontShape{OT1}{hlct}{m}{ui}{<->sub * hlct/m/it}{}
+
+\endinput

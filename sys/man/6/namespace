@@ -29,15 +29,14 @@ or a
 .BR $ .
 .PP
 The known operations and their arguments are:
-.TF 0
 .TP
-.BR mount \ [ -abcC ]\ \fIservename\  old " \fR[\fIspec\fR\^\^]
+.BR mount \ [ -abc ]\ \fIservename\  old " \fR[\fIspec\fR\^\^]
 Mount
 .I servename
 on
 .IR old .
 .TP
-.BR bind \ [ -abcC "]  \fInew old
+.BR bind \ [ -abc "]  \fInew old
 Bind
 .I new
 on
@@ -54,17 +53,6 @@ and attach it to
 .BI cd \ dir
 Change the working directory to
 .IR dir .
-.TP
-.BR unmount \ [ \fInew\fR ]\ \fIold
-Unmount
-.I new
-from
-.IR old ,
-or everything mounted on
-.I old
-if
-.I new
-is missing.
 .PP
 The options for
 .IR bind ,

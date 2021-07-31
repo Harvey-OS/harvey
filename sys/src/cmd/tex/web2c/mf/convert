@@ -1,0 +1,33 @@
+#!/bin/rc
+# Convert Metafont to C.
+# 
+
+# The `volatile's in the second sed below help avoid bugs in the MIPS
+# compiler.
+sed -e '
+	: again
+	/\.$/{
+		N
+		s/\.\n/\
+./
+		t again
+	}
+	s/\.hh/.hhfield/g
+	s/\.lh/.lhfield/g
+' ../lib/common.defines ../lib/texmf.defines mf.p \
+	| ../web2c/$cpuobjtype.web2c -htexmf.h -m \
+	| sed -e '
+	    s/else write/else\
+write/
+	    s/ maxcoef( *[^( ])/ lmaxcoef\1/g
+	    s/ b1/ lb1/g
+	    s/ b2/ lb2/g
+	    s/ b3/ lb3/g
+            /^integer takescaled/,/becareful/s/integer becareful/volatile &/
+	    /^void initbignode/,/halfword q/s/halfword q/volatile &/
+	  ' \
+	| ../web2c/$cpuobjtype.fixwrites \
+	| ../web2c/$cpuobjtype.splitup mf
+
+cat coerce.h fixcoerce.h > xcoerce.h
+mv xcoerce.h coerce.h

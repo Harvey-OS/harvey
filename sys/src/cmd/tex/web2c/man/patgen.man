@@ -1,0 +1,43 @@
+.TH PATGEN 1 "21 Mar 92"
+.SH NAME
+patgen - generate patterns for TeX hyphenation
+.SH SYNOPSIS
+.B patgen
+dictionary_file pattern_file output_file translate_file
+.SH DESCRIPTION
+The
+.IR patgen program reads the
+.I dictionary_file
+and produces the
+.IR pattern_file ,
+writing a transcript of its actions on the
+.IR output_file .
+The
+.I dictionary_file
+should contain a list of hyphenated words and
+previously-generated patterns.
+.PP
+The patterns thus generated can be read by
+.I initex
+for use in hyphenating words. For a (very) long example of
+.IR patgen 's
+output, see 
+.BR @TEXINPUTDIR@/hyphen.tex , which contains the patterns TeX uses for
+English. 
+.PP
+All filenames must be complete.  No adding of default
+extensions or path searching is done.
+.PP
+.SH FILES
+@TEXINPUTDIR@/hyphen.tex    Patterns for English.
+.SH "SEE ALSO"
+Frank Liang, 
+.IR Word hy-phen-a-tion by com-puter , Stanford Ph.D. thesis
+.SH AUTHORS
+Frank Liang wrote the first version of this program.  Peter
+Breitenlohner made a
+substantial revision in 1991 for TeX 3.
+The first version was published as the appendix to the 
+.I TeXware
+technical report, available from the TeX Users Group. Howard Trickey
+originally ported it to Unix.

@@ -1,0 +1,45 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libg.a
+OFILES=\
+	arc.$O\
+	arith.$O\
+	balloc.$O\
+	binit.$O\
+	bitblt.$O\
+	bitbltclip.$O\
+	border.$O\
+	bscreenrect.$O\
+	circle.$O\
+	clipline.$O\
+	clipr.$O\
+	cursorset.$O\
+	cursorswitch.$O\
+	disc.$O\
+	ellipse.$O\
+	font.$O\
+	menu.$O\
+	mkfont.$O\
+	point.$O\
+	rdbitmap.$O\
+	rdbitmapfile.$O\
+	rdcolmap.$O\
+	rdfontfile.$O\
+	rdsubfontfile.$O\
+	rectclip.$O\
+	rgbpix.$O\
+	segment.$O\
+	string.$O\
+	strwidth.$O\
+	subfalloc.$O\
+	texture.$O\
+	wrbitmap.$O\
+	wrbitmapfile.$O\
+	wrcolmap.$O\
+	wrsubfontfile.$O\
+
+</sys/src/cmd/mksyslib
+
+/68020/lib/alef/libg.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'

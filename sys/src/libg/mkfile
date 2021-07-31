@@ -1,0 +1,48 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libg.a
+OFILES=\
+	arc.$O\
+	arith.$O\
+	balloc.$O\
+	binit.$O\
+	bitblt.$O\
+	bitbltclip.$O\
+	border.$O\
+	bscreenrect.$O\
+	circle.$O\
+	clipline.$O\
+	clipr.$O\
+	cursorset.$O\
+	cursorswitch.$O\
+	disc.$O\
+	ellipse.$O\
+	ekbd.$O\
+	emouse.$O\
+	event.$O\
+	font.$O\
+	getrect.$O\
+	menuhit.$O\
+	mkfont.$O\
+	point.$O\
+	polysegment.$O\
+	rdbitmap.$O\
+	rdbitmapfile.$O\
+	rdcolmap.$O\
+	rdfontfile.$O\
+	rdsubfontfile.$O\
+	rectclip.$O\
+	rgbpix.$O\
+	segment.$O\
+	subfalloc.$O\
+	string.$O\
+	strwidth.$O\
+	texture.$O\
+	wrbitmap.$O\
+	wrbitmapfile.$O\
+	wrcolmap.$O\
+	wrsubfontfile.$O\
+
+HFILES=/sys/include/libg.h
+
+</sys/src/cmd/mksyslib

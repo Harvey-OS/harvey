@@ -1,0 +1,69 @@
+%% 
+%% This is file `ssqquote.sty', generated on <1995/2/26> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% ssqquote.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file ssqquote.dtx .
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\def\filename{ssqquote.dtx}
+\def\filedate{1994/05/21}
+\def\fileversion{1.2}
+\ProvidesPackage{ssqquote}[\filedate\space\fileversion\space
+                           Contributed LaTeX2e package]
+\typeout{Package: `ssqquote'
+  \fileversion\space <\filedate> (Ulrik Vieth)}
+\def\ssqfamily{%
+  \fontencoding{\encodingdefault}\fontfamily{cmssq}\selectfont}
+\def\textssq{\protect\ptextssq}
+\def\ptextssq#1{{\ssqfamily #1}}
+\newif\ifbottomquotes \bottomquotesfalse
+\newskip\prechapterquotes
+{\footnotesize \global\prechapterquotes=10\baselineskip\relax}
+\newenvironment{chapterquotes}{%
+  \ifvmode \else \unskip\par \fi
+  \vskip\z@\@plus+\prechapterquotes
+  \penalty\@secpenalty
+  \vskip\z@\@plus-\prechapterquotes
+  \ifbottomquotes \null \fi \vfill
+  \global\@botnum\z@
+  \ifbottomquotes \else \global\@topnum\z@ \fi
+  \begingroup
+    \footnotesize \ssqfamily
+    \bigskipamount=1.0\baselineskip
+    \medskipamount=0.5\baselineskip
+    \smallskipamount=0.25\baselineskip
+    \interlinepenalty\@M
+    \parindent\z@ \parskip\z@ \parfillskip\z@
+    \leftskip\z@\@plus\linewidth \rightskip\z@
+    \def\par{\ifhmode\/\@@par\fi} \obeylines
+    \def\nextquote{\bigskip\slshape}
+    \def\author##1(##2){\medskip\upshape\noindent
+      --- \ignorespaces ##1 \unskip\thinspace (##2)\par}
+    \def\title##1{\textsl{##1}}
+  }{%
+  \endgroup
+  \vfil \pagebreak}
+\endinput
+%% 
+%% End of file `ssqquote.sty'.

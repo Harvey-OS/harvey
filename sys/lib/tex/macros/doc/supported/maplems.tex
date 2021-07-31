@@ -1,0 +1,415 @@
+\documentclass{article}
+\usepackage{maplems,palatino}
+
+\title{Export to \LaTeX{} (for \LaTeX{}2e)}
+\author{Waterloo Maple Software}
+\date{August, 1994}
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Maple V Release 3 introduces the capability of exporting the 
+contents of a Maple worksheet into a file suitable for processing 
+by the \LaTeX{} document formatting system.
+
+The text regions of the Maple worksheet and the various algebraic
+output regions are automatically written to a file along with 
+appropriate latex macros so that the contents of the worksheet 
+can then be formatted and printed using \LaTeX{}.
+Of particular interest is the fact that the math typeset
+regions, including the multi-line displays, are reformatted
+to the user specified column width using Maple's \LaTeX{} math formatting
+capabilities\footnote{
+This is an entirely new mechanism based on Maple's high resolution
+math formatting technology. It is separate from Maple's library
+level {\tt latex(~)} command which can still be used to format
+individual expressions.}.  This feature automatically carries out
+linebreaking of large mathematical formulae in \LaTeX{}.
+
+The automatically generated \LaTeX{} source document (say ``worksheet.tex'') 
+has a structure similar to that shown below.
+
+\begin{verbatim}
+\documentclass{article}
+\usepackage{maplems}
+\begin{document}
+First paragraph of text.
+
+Second paragraph of text. This is a test file.
+\begin{mapleinput}
+(a + b);
+\end{mapleinput}
+\begin{maplelatex}
+\[
+{a} + {b}
+\]
+\end{maplelatex}
+We can display mathematics in a variety of forms.
+\begin{mapleinput}
+Int( 1/(1 + x^4),x);
+\end{mapleinput}
+\begin{maplelatex}
+\[
+{\displaystyle \int} {\displaystyle \frac {1}{1 + {x}^{4}}}\,{d}{
+x}
+\]
+\end{maplelatex}
+\begin{mapleinput}
+value(");
+\end{mapleinput}
+\begin{maplelatex}
+\begin{eqnarray*}
+\lefteqn{{\displaystyle \frac {1}{8}}\,\sqrt {2}\,{\rm ln}
+ \left( {\vrule height0.89em width0em depth0.89em} \right. \,
+{\displaystyle \frac {{x}^{2} + {x}\,\sqrt {2} + 1}{{x}^{2} - {x}
+\,\sqrt {2} + 1}}\, \left. {\vrule 
+height0.89em width0em depth0.89em} \right)  + 
+{\displaystyle \frac {1}{4}}\,\sqrt {2}\,{\rm arctan} \left( 
+{\vrule height0.41em width0em depth0.41em} \right. \,{x}\,\sqrt {
+2} + 1\, \left. {\vrule height0.41em width0em depth0.41em}
+ \right) } \\
+ & & \mbox{} + {\displaystyle \frac {1}{4}}\,\sqrt {2}\,{\rm 
+arctan} \left( {\vrule height0.41em width0em depth0.41em}
+ \right. \,{x}\,\sqrt {2} - 1\, \left. {\vrule 
+height0.41em width0em depth0.41em} \right) \mbox{\hspace{88pt}}
+\end{eqnarray*}
+\end{maplelatex}
+And more...   TTY based output is handled as
+\begin{mapleinput}
+Int((x+a)^3,x=a..b);
+\end{mapleinput}
+\begin{maplettyout}
+                          b
+                          /
+                         |         3
+                         |  (x + a)  dx
+                         |
+                        /
+                        a
+\begin{maplettyout}
+We can even include a plot.
+\mapleplot{worksht.ps1}
+\maplesepline
+\end{document}
+%% End of Maple V Session Output
+\end{verbatim}
+
+Maple's text regions from the original worksheet become ordinary
+\LaTeX{} paragraphs.  Except for embedded graphics, the other regions
+(Maple input, Maple typeset mathematics output, 
+and Maple character based mathematics output)
+are formatted using an appropriate \LaTeX{} environment. 
+
+If you wish the text regions to be processed as is, with no special
+meaning assigned to \LaTeX{} characters such as \verb|_| or \verb|^|, 
+use the package option {\em worksheet} as in
+
+\begin{imaplettyout}
+\usepackage[worksheet]{maplems}
+\end{imaplettyout}
+
+The {\em maplems} style sets up page sizes, headers and footers,
+and then uses the style package {\em mapleenv} to 
+tell \LaTeX how to format each of these special environments.
+Thus, the document can be printed as is.
+The document can also be enhanced by editing
+in standard \LaTeX{} constructs.
+Experienced \LaTeX{} users can redefine these
+style macros to achieve specific effects and
+Most mathematics publishers have their own style macros
+that can be modified to work in conjunction with these
+macros.
+
+\section{Printing or Viewing a Maple \LaTeX{} Document}
+In order to format and print the document {\tt worksht.tex} 
+you need a standard version of \LaTeX{} and the two 
+\LaTeX{} style files {\tt maplems.sty} and {\tt mapleenv.sty}
+that are provided with this document.  Documents which
+are modified by hand to include plots use the {\em epsfig.sty}
+\LaTeX{} style package that is part of \LaTeX2e{}. 
+It uses the package options {\em dvips} and {\em oztex}
+to indicate which postscript driver is being used to handle any
+graphics embedded using the {\em mapleplot} macro.
+
+If these style files are not installed in one of the locations
+automatically searched by your installation of \LaTeX{} then they 
+should appear in the same directory or folder as {\tt worksht.tex}.
+
+To print or view this \LaTeX{} document we first 
+produce a ``.dvi'' file.  
+On a command based system you would normally type a 
+command of the form
+
+{\tt \hspace*{10ex} latex worksht.tex}
+
+On an ``icon'' based system you would start the \LaTeX{} application
+and then use its menus to ``open'' the file ``worksht.tex''.
+
+Finally, the resulting file ``worksht.dvi'' is then processed by 
+another application such as ``dvips'' to send the document 
+to the printer or to preview it on your screen.
+
+\section{How Maple's Export to \LaTeX{} Works}
+
+The content of the original Maple worksheet is 
+a sequence of regions.  These are either {\em plain text}
+regions, {\em Maple input} regions, {\em Maple tty based output}
+(such as error messages) or the 
+{\em typeset mathematical output}.
+
+In addition, each platform dependent user interface
+permits the embedding of native graphics format files in the worksheet.  
+These graphics may be generated by Maple, or by another application.
+
+When a Maple worksheet is ``exported to \LaTeX{}'', the
+text based regions, and the typeset mathematics are exported.
+All the embedded graphics regions of the worksheet are ignored. 
+PostScript graphics can be included directly into your document 
+by hand editing the resulting file to include references to plot files
+using the \LaTeX{} macro \verb|\mapleplot{}| that is provided
+with these styles.
+
+To create a \LaTeX{} version of your Maple worksheet proceed
+as follows:
+
+\begin{enumerate}
+\item
+Open the worksheet from within Maple and ensure that all
+the Maple results are up-to-date.  If your worksheet is designed
+to execute the Maple commands in sequence top to bottom
+you can refresh your worksheet by selecting the {\em Execute
+All} option.  (On the Macintosh version of Maple, simply select
+the entire worksheet and press enter.)
+
+\item
+If your worksheet contains plot commands then re-executing 
+the entire worksheet will regenerate those plots in 
+separate windows.  You can use the {\tt plotsetup}
+command to cause those plot commands to generate plots
+to specific files.  Alternatively, in Windows 
+or with the Motif interface, they can be saved from
+the plot windows in PostScript to files of your choice.
+
+\item
+To add these plots to your \LaTeX{} document,
+use a plain text editor to insert appropriate 
+commands of the form
+
+\begin{verbatim}
+\mapleplot{filename.ps}
+\end{verbatim}
+
+where {\tt filename.ps} is the user chosen name of the
+plot file.  Typically, such commands are added immediately
+following the corresponding plot commands.
+
+\item
+Use a plain text editor to elaborate on the annotations
+that are part of your document.  For example, a new section
+heading ``An Example'' can be added directly to the worksheet simply
+by inserting a \LaTeX{} command line of the form
+
+\begin{verbatim}
+\section{An Example}
+\end{verbatim}
+
+directly into the exported document.
+
+\item
+Process your \LaTeX{} document with \LaTeX{}.
+
+\end{enumerate}
+
+
+\section{\LaTeX{} Styles}
+The style of your document can be changed simply by choosing
+a different \LaTeX{} style.  There are many different available
+styles, and most mathematics publishers can 
+provide you with their own styles.
+
+For example, to define an alternative document ``style'' 
+you simply replace the existing style definition.
+
+\begin{verbatim}
+\documentclass{article}
+\usepackage{maplems}
+\end{verbatim}
+
+\noindent
+by (for example)
+
+\begin{verbatim}
+\documentclass[fullpage]{article}
+\usepackage[mapleenv]
+\end{verbatim}
+
+Here, the standard \LaTeX{} ``article'' style has been modified
+by the contents of the two style files  {\tt fullpage.sty} and
+{\tt mapleenv.sty}.  The style ``mapleenv'' is 
+necessary to provide the basic definitions for the 
+special Maple environments  but does not affect the
+basic page layout.
+
+\subsection{The Maple Style file {\tt maplems.sty}}
+
+The ``Export to \LaTeX'' file is created with the ``article'' style
+further modified by the style ``maplems''.  The effect of
+using ``maplems'' is to define some special
+commands needed by Maple, and to set the default
+page layout settings.
+They are defined by the contents of the file
+\verb|maplems.sty|.  A copy of earlier versions of this file is 
+found in the Maple directory   {\tt maple/etc}, (or the equivalent
+location on DOS and Macintosh platforms.)
+The changes that have been incorporated here are to make the
+change to latex2e.
+
+This file has several sections, each setting a different group
+of style parameters.  By changing these settings you can
+change aspects of the overall style.  
+These can be changed by editing a copy of
+this file, or they can be reset directly in the ``preamble'' of your
+document (i.e., the part between the line 
+beginning {\tt \backslash documentclass...}
+and the line {\tt \backslash begin\{document\}})
+by adding commands such as
+
+\begin{verbatim}
+\setlength{\LeftMapleSkip}{0in}
+\end{verbatim}
+
+\noindent
+(This particular command would cause the indentation of Maple 
+commands to be set to 0 inches.)
+
+
+Portions of these style files are shown below.
+The lines beginning with \% are comments to \TeX and \LaTeX.
+
+\subsubsection{The Page Headings}
+The page headings are set by the following commands.
+Some possible alternative styles are listed as comments.
+
+\begin{verbatim}
+% \pagestyle{noheadings}
+% \pagestyle{plain}
+\pagestyle{myheadings}
+\markright{\protect\rule[-5pt]{\linewidth}{1pt}\hspace{-\linewidth}%
+{\protect\large Maple V\ \  Release 3}}%
+\end{verbatim}
+
+\noindent
+For example, to change to the ``plain'' page style add the line
+{\tt \backslash pagestyle\{plain\}} to the preamble of 
+your document.
+
+\subsubsection{Page Dimensions and spacing}
+Next, some of the main page dimensions are reset.
+
+\begin{verbatim}
+% main document settings  
+%
+\topmargin=     -0.2in
+\textheight=    8.75in
+\textwidth=     6.0in
+\headheight=    2.5ex
+\headsep=       0.17in
+\oddsidemargin= 0.25in
+\evensidemargin=\oddsidemargin
+\parsep=        2ex		  % space between item paragraphs
+\parskip=       1.5ex  		  % space between paragraphs
+\end{verbatim}
+
+\noindent
+To change these, again use {\tt \backslash setlength} in the
+preamble of your document.
+
+\subsubsection{Spacing and Sizes for the Maple Environments}
+Finally the \LaTeX{} macros defining the special Maple environments
+are read in and their user settable parameters are set to
+default values.
+
+\begin{verbatim}
+% parameters controlling the special maple environments
+%
+\input mapleenv.sty
+\MaplePrompttrue      % generate a prompt at start of each line?
+\MaplePromptString =  {\raise 1pt \hbox{$\scriptstyle>$\space}}
+\AboveMapleSkip =     1ex plus 2 pt minus 1 pt
+\BelowMapleSkip =     \AboveMapleSkip
+\LeftMapleSkip  =     5ex
+\AboveMaplePlot =     2\AboveMapleSkip
+\BelowMaplePlot =     2\AboveMapleSkip
+\MaplePlotHeight =    25ex
+\MaplePlotWidth =     1.3\MaplePlotHeight
+\edef\MaplePlotAngle{270}
+\let\MapleSepLineWidth\linewidth  % \let so that it will be redefined 
+				  % properly for narrow environments.
+\MapleSepLineHeight = 1pt
+\let\MapleFont\tt     % font used for input and ttyout
+\let\MapleSize\small  % font size for input and ttyout
+\MapleFirstLinefalse  % hides first \cr of \mapleinput
+\MapleTab = 8	      % spaces used by the tab character.
+\end{verbatim}
+
+\subsection{The Maple Style file {\tt mapleenv.sty}}
+Use the style ``mapleenv'' in conjunction with
+your chosen style when all that you need is the definitions
+of the special regions. In this way, the special Maple environments
+are defined, but the basic page style and layout remains
+unmodified.
+
+{ \parsep=.5ex
+The special Maple environments and macros that are defined are:
+
+\begin{verbatim}
+\begin{mapleinput} ... \end{mapleinput}
+\end{verbatim}
+
+\begin{verbatim}
+\begin{maplettyout} ... \end{maplettyout}
+\end{verbatim}
+
+\begin{verbatim}
+\begin{maplelatex} ... \end{maplelatex}
+\end{verbatim}
+
+\begin{verbatim}
+\maplesepline
+\end{verbatim}
+
+\noindent
+and
+\begin{verbatim}
+\mapleplot{plotfile.ps}
+\end{verbatim}
+}
+
+The definitions for these \LaTeX{} environments are parameterized.
+By changing the parameters (in the same manner as done 
+done in the file {\tt maplems.sty})
+you can affect details such as the amount of space above or below
+the environments, 
+the amount of indentation used, 
+the character used to identify prompts., etc.  
+This can be done in the preamble of your document.
+
+The two text based environments are special versions of 
+\LaTeX{} ``verbatim'' environments while the {\tt maplelatex}
+environment is used to permit control of page breaking 
+and the spacing above and below the environment.
+
+The {\tt \backslash maplesepline} command is used to create separator lines
+such as found in the actual Maple worksheets. It has no arguments.
+
+The {\tt \backslash mapleplot} macro is provided as an example of
+how to include graphs.  It has one argument --- the name of the
+file containing the PostScript description of the plot.
+
+\section{Summary}
+These style files are provided simply as samples of how to define
+such \LaTeX{} environments.  You may use them or 
+modify them, subject to the conditions outlined in each 
+file.  Non-profit redistribution is also permitted.
+
+\end{document}

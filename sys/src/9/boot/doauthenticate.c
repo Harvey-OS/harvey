@@ -1,20 +1,18 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include "../boot/boot.h"
+#include <../boot/boot.h>
 
 static char *pbmsg = "AS protocol botch";
 static char *ccmsg = "can't connect to AS";
 
-long
-readn(int fd, void *buf, long len)
+int
+readn(int fd, char *buf, int len)
 {
 	int m, n;
-	char *p;
 
-	p = buf;
 	for(n = 0; n < len; n += m){
-		m = read(fd, p+n, len-n);
+		m = read(fd, buf+n, len-n);
 		if(m <= 0)
 			return -1;
 	}
@@ -24,37 +22,31 @@ readn(int fd, void *buf, long len)
 static char*
 fromauth(Method *mp, char *trbuf, char *tbuf)
 {
-	int afd;
 	char t;
 	char *msg;
-	static char error[2*ERRLEN];
+	static char error[ERRLEN];
 
-	if(mp->auth == 0)
-		fatal("no method for accessing auth server");
-	afd = (*mp->auth)();
-	if(afd < 0) {
-		sprint(error, "%s: %r", ccmsg);
-		return error;
+	if(afd < 0){
+		if(mp->auth == 0)
+			fatal("no method for accessing auth server");
+		afd = (*mp->auth)();
+		if(afd < 0)
+			return ccmsg;
 	}
-
 	if(write(afd, trbuf, TICKREQLEN) < 0 || read(afd, &t, 1) != 1){
 		close(afd);
-		sprint(error, "%s: %r", pbmsg);
-		return error;
+		afd = -1;
+		return pbmsg;
 	}
 	switch(t){
 	case AuthOK:
 		msg = 0;
-		if(readn(afd, tbuf, 2*TICKETLEN) < 0) {
-			sprint(error, "%s: %r", pbmsg);
-			msg = error;
-		}
+		if(readn(afd, tbuf, 2*TICKETLEN) < 0)
+			msg = pbmsg;
 		break;
 	case AuthErr:
-		if(readn(afd, error, ERRLEN) < 0) {
-			sprint(error, "%s: %r", pbmsg);
-			msg = error;
-		}
+		if(readn(afd, error, ERRLEN) < 0)
+			msg = pbmsg;
 		else {
 			error[ERRLEN-1] = 0;
 			msg = error;
@@ -64,8 +56,6 @@ fromauth(Method *mp, char *trbuf, char *tbuf)
 		msg = pbmsg;
 		break;
 	}
-
-	close(afd);
 	return msg;
 }
 

@@ -1,4 +1,3 @@
-#define EXTERN
 #include "gc.h"
 
 void
@@ -6,47 +5,21 @@ listinit(void)
 {
 
 	fmtinstall('A', Aconv);
-	fmtinstall('B', Bconv);
 	fmtinstall('P', Pconv);
 	fmtinstall('S', Sconv);
+	fmtinstall('X', Xconv);
 	fmtinstall('D', Dconv);
 	fmtinstall('R', Rconv);
+	fmtinstall('B', Bconv);
 }
 
 int
-Bconv(va_list *arg, Fconv *fp)
-{
-	char str[STRINGSZ], ss[STRINGSZ], *s;
-	Bits bits;
-	int i;
-
-	str[0] = 0;
-	bits = va_arg(*arg, Bits);
-	while(bany(&bits)) {
-		i = bnum(bits);
-		if(str[0])
-			strcat(str, " ");
-		if(var[i].sym == S) {
-			sprint(ss, "$%ld", var[i].offset);
-			s = ss;
-		} else
-			s = var[i].sym->name;
-		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
-			break;
-		strcat(str, s);
-		bits.b[i/32] &= ~(1L << (i%32));
-	}
-	strconv(str, fp);
-	return 0;
-}
-
-int
-Pconv(va_list *arg, Fconv *fp)
+Pconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 
-	p = va_arg(*arg, Prog*);
+	p = *(Prog**)o;
 	if(p->as == ADATA)
 		sprint(str, "	%A	%D/%d,%D",
 			p->as, &p->from, p->from.scale, &p->to);
@@ -54,27 +27,39 @@ Pconv(va_list *arg, Fconv *fp)
 		sprint(str, "	%A	%D,%D",
 			p->as, &p->from, &p->to);
 	strconv(str, fp);
-	return 0;
+	return sizeof(Prog*);
 }
 
 int
-Aconv(va_list *arg, Fconv *fp)
+Aconv(void *o, Fconv *fp)
 {
+
+	strconv(anames[*(int*)o], fp);
+	return sizeof(int);
+}
+
+int
+Xconv(void *o, Fconv *fp)
+{
+	char str[20];
 	int i;
 
-	i = va_arg(*arg, int);
-	strconv(anames[i], fp);
-	return 0;
+	str[0] = 0;
+	i = ((int*)o)[0];
+	if(i != D_NONE)
+		sprint(str, "(%R*%d)", i, ((int*)o)[1]);
+	strconv(str, fp);
+	return sizeof(int[2]);
 }
 
 int
-Dconv(va_list *arg, Fconv *fp)
+Dconv(void *o, Fconv *fp)
 {
 	char str[40], s[20];
 	Adr *a;
 	int i;
 
-	a = va_arg(*arg, Adr*);
+	a = *(Adr**)o;
 	i = a->type;
 	if(i >= D_INDIR) {
 		if(a->offset)
@@ -142,17 +127,17 @@ Dconv(va_list *arg, Fconv *fp)
 	}
 brk:
 	if(a->index != D_NONE) {
-		sprint(s, "(%R*%d)", (int)a->index, (int)a->scale);
+		sprint(s, "%X", a->index, a->scale);
 		strcat(str, s);
 	}
 conv:
 	strconv(str, fp);
-	return 0;
+	return sizeof(Adr*);
 }
 
 char*	regstr[] =
 {
-	"AL",	/*[D_AL]*/	
+[D_AL]	"AL",
 	"CL",
 	"DL",
 	"BL",
@@ -161,7 +146,7 @@ char*	regstr[] =
 	"DH",
 	"BH",
 
-	"AX",	/*[D_AX]*/
+[D_AX]	"AX",
 	"CX",
 	"DX",
 	"BX",
@@ -170,7 +155,7 @@ char*	regstr[] =
 	"SI",
 	"DI",
 
-	"F0",	/*[D_F0]*/
+[D_F0]	"F0",
 	"F1",
 	"F2",
 	"F3",
@@ -179,20 +164,20 @@ char*	regstr[] =
 	"F6",
 	"F7",
 
-	"CS",	/*[D_CS]*/
+[D_CS]	"CS",
 	"SS",
 	"DS",
 	"ES",
 	"FS",
 	"GS",
 
-	"GDTR",	/*[D_GDTR]*/
-	"IDTR",	/*[D_IDTR]*/
-	"LDTR",	/*[D_LDTR]*/
-	"MSW",	/*[D_MSW] */
-	"TASK",	/*[D_TASK]*/
+[D_GDTR]"GDTR",
+[D_IDTR]"IDTR",
+[D_LDTR]"LDTR",
+[D_MSW]	"MSW",
+[D_TASK]"TASK",
 
-	"CR0",	/*[D_CR]*/
+[D_CR]	"CR0",
 	"CR1",
 	"CR2",
 	"CR3",
@@ -201,7 +186,7 @@ char*	regstr[] =
 	"CR6",
 	"CR7",
 
-	"DR0",	/*[D_DR]*/
+[D_DR]	"DR0",
 	"DR1",
 	"DR2",
 	"DR3",
@@ -210,7 +195,7 @@ char*	regstr[] =
 	"DR6",
 	"DR7",
 
-	"TR0",	/*[D_TR]*/
+[D_TR]	"TR0",
 	"TR1",
 	"TR2",
 	"TR3",
@@ -219,32 +204,32 @@ char*	regstr[] =
 	"TR6",
 	"TR7",
 
-	"NONE",	/*[D_NONE]*/
+[D_NONE]"NONE",
 };
 
 int
-Rconv(va_list *arg, Fconv *fp)
+Rconv(void *o, Fconv *fp)
 {
 	char str[20];
 	int r;
 
-	r = va_arg(*arg, int);
+	r = *(int*)o;
 	if(r >= D_AL && r <= D_NONE)
 		sprint(str, "%s", regstr[r-D_AL]);
 	else
 		sprint(str, "gok(%d)", r);
 
 	strconv(str, fp);
-	return 0;
+	return sizeof(int);
 }
 
 int
-Sconv(va_list *arg, Fconv *fp)
+Sconv(void *o, Fconv *fp)
 {
 	int i, c;
 	char str[30], *p, *a;
 
-	a = va_arg(*arg, char*);
+	a = *(char**)o;
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
 		c = a[i] & 0xff;
@@ -281,5 +266,5 @@ Sconv(va_list *arg, Fconv *fp)
 	}
 	*p = 0;
 	strconv(str, fp);
-	return 0;
+	return sizeof(char*);
 }

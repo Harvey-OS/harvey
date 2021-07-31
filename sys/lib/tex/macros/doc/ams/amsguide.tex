@@ -1,0 +1,1983 @@
+%% @texfile{
+%%     filename="amsguide.tex",
+%%     version="2.1b",
+%%     date="24-DEC-1991",
+%%     filetype="AMS-TeX: user documentation",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy 
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Department,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksumtype="line count",
+%%     checksum="1983",
+%%     keywords="amstex, ams-tex, tex",
+%%     abstract="This file is the User's Guide describing the use of
+%%       AMS-TeX 2.0+. Installation instructions are found in appendixes
+%%       B and C."
+%%     }
+%
+%      In addition to plain TeX and standard CM fonts, TeXing this file
+%      requires the following files and fonts:
+%
+% AMSTEX.TEX (version 2.1)
+% AMSPPT.STY (version 2.1)
+% AMSSYM.TEX (loaded by AMSPPT.STY)
+% MSAM10
+% MSBM10
+% EUFM10
+% CMEX8
+% CMEX7
+% CMBSY7
+% CMCSC8
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input amstex
+\documentstyle{amsppt}
+
+\font\tenss=cmss10
+
+\long\def\usertype#1{\smallskip \moveright2pc\vbox{\def\par{\crcr}\halign{%
+   \setbox0\hbox{\tt##}%
+   \hbox\ifdim\wd0<10pc to10pc\fi{\unhbox0\hfil}%
+        \kern1pc \it $\langle$return$\rangle$\hss
+   \cr#1\crcr}}%
+  \smallskip}
+\long\def\systype#1{{\rightskip=4pc\leftskip=4pc\noindent\tt #1\par}}
+
+%      Change default dimensions and fonts
+\hfuzz1pc % to suppress reporting of overfull boxes.
+\aboveheadskip=3\bigskipamount
+\belowheadskip=\medskipamount
+\subheadskip=\bigskipamount
+\addto\tenpoint{\abovedisplayskip=6pt plus2pt minus3pt
+    \belowdisplayskip=\abovedisplayskip}
+\loadbold
+%      Prevent hyphenation of "amsppt":
+\hyphenation{amsppt}
+
+%      Macros for text substitution and for presentation of examples.
+%
+\define\Textures{{\it Textures\/}}
+\define\AMS{American Mathematical Society}
+\define\JAMS{{\it Journal of the \AMS}}
+\define\JoT{{\it The Joy of \TeX{}}}
+\define\Joy{{\it Joy}}
+
+%      Notice that the LaTeX name is always roman: it does not change
+%      font if it occurs inside italic text.  This is the way it is
+%      defined by latex.tex.  We substitute a subscript size A instead
+%      of a small caps A, however, to avoid possible font problems for
+%      users who don't happen to have odd sizes or magnifications of
+%      cmcsc10 available.
+\define\LaTeX{{\rm L\kern-.36em\raise.3ex\hbox{\the\scriptfont0 A}\kern-.15em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\def\filnam#1{{\tt\ignorespaces#1\unskip}}
+\hyphenchar\tentt=-1 % to prohibit hyphenation in tt text
+
+\newdimen\exindent   \exindent=2\parindent
+% Add a high penalty to discourage line breaks within an example
+% without absolutely prohibiting them.
+{\obeylines
+ \gdef^^M{\par\penalty9999}%
+ \gdef\beginexample#1{\medskip\bgroup %
+   \def~{\char`\~}%
+   \NoBlackBoxes\tt\frenchspacing %
+   \parindent=0pt#1\leftskip=\exindent\obeylines}
+}%  end \obeylines
+\def\endexample{\endgraf\egroup\medskip}
+\newdimen\exboxwidth
+\exboxwidth=3in
+\def\exbox#1#2{\noindent \hangindent=\exboxwidth
+  \leavevmode\llap{\null\rm#1\unskip\enspace}%
+  \hbox to\exboxwidth{\tt\ignorespaces#2\hss}\rm\ignorespaces}
+\chardef\\=`\\       \chardef\{=`\{       \chardef\}=`\}
+\def\<#1>{{\it$\langle$#1\/$\rangle$}}
+\def\Dimen{\<dimen>}
+
+\catcode`\@=11
+\def\cs#1{\leavevmode
+%      Save the previous skip and put it back after the penalty 0
+%      so that the penalty0 won't cause a blank at the end of a line.
+  \skip@\lastskip\unskip\penalty\z@
+  \ifdim\skip@>\z@ \hskip\skip@\fi
+  {\tt\char`\\\ignorespaces#1\unskip}}
+
+%  Redefine the \subhead macro to be on a line by itself and omit period.
+\outer\def\subhead#1\endsubhead{\par\penaltyandskip@{-100}\subheadskip
+  \noindent{\subheadfont@\ignorespaces#1\unskip\endgraf}\nobreak\noindent}
+
+%  Define macros for presentation of tables of symbols.
+\def\BBB#1{\par\bigbreak
+  \leavevmode\llap{$\bullet$\enspace}{\bf#1}}
+\newdimen\biggest
+\setbox0\hbox{$\dashrightarrow$}\biggest=\wd0
+\def\1#1{\hbox to\biggest{\hfill$\csname#1\endcsname$\hfill}\ \ %
+  \cs{#1}}
+\def\fudge{\hbox to\biggest{}\ \ \hphantom{\tt\char'134 }}
+
+\def\getID@#1{\edef\next@{\expandafter\meaning\csname#1\endcsname}%
+ \expandafter\getID@@\next@0\getID@@}
+\def\getID@@#1"#2#3#4#5#6\getID@@{\def\next@{#6}%
+  \ifx\next@\empty
+   \def\next@{#2}%
+    \ifx\next@\msafam@
+     \def\ID@{10#3#4}%
+    \else
+     \def\ID@{20#3#4}%
+    \fi
+  \else 
+   \def\next@{#3}%
+    \ifx\next@\msafam@
+     \def\ID@{1#2#4#5}%
+    \else
+     \def\ID@{2#2#4#5}%
+    \fi
+  \fi}
+\def\2#1{\hbox to.5\hsize
+  {\hbox to\biggest{\hfill$\csname#1\endcsname$\hfill}\ \ %
+    \getID@{#1}{\tt\ID@}\ \ \cs{#1}\hfill}}
+\def\3#1#2{\hbox to.5\hsize
+  {\hbox to\biggest{\hfil$\csname#1\endcsname$\hfil}\ \ %
+    \getID@{#1}{\tt\ID@}\ \ \cs{#1}, \cs{#2}\hss}}
+\def\4#1{\hbox to.5\hsize
+  {\hbox to\biggest{\hfill$\csname#1\endcsname$\hfill}\ \ %
+    \getID@{#1}{\tt\ID@}\ \ \cs{#1}\ \ {\eightpoint(U)}\hfill}}
+
+\catcode`\@=\active
+
+\define\thismonth{\ifcase\month % case 0 --- impossible!
+  \or January\or February\or March\or April\or May\or June%
+  \or July\or August\or September\or October\or November%
+  \or December\fi}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% TITLE PAGE
+
+\font\fourtn=cmr10 scaled \magstep2
+\font\fourtnsy=cmsy10 scaled \magstep3
+\font\fourtnbf=cmbx10 scaled \magstep3
+\textfont2=\fourtnsy
+
+\shipout\vbox to\vsize{%
+\parindent=0pt 
+\vskip5pc
+\rightline{\fourtnbf User's Guide to \AmSTeX{}}
+\bigskip
+\rightline{\fourtn Version 2.1}
+\medskip
+\rightline{\fourtn August 1991}
+
+\vfill
+
+\tenpoint
+
+This publication was typeset using \AmSTeX{}, the American
+Mathematical\newline \quad Society's \TeX{} macro system.
+
+Copyright \copyright{} 1991 by the \AMS{}.
+
+All rights reserved. Any material in this guide may be reproduced or
+duplicated for personal or educational use.
+
+\medskip
+\begingroup\obeylines
+IBM PC is a registered trademark of International Business Machines, Inc.
+Personal \TeX{} and PC\TeX{} are registered trademarks of Personal \TeX{}, Inc.
+\Textures{} is a trademark of Blue Sky Research.
+Macintosh is a trademark of Apple Computer, Inc.
+\TeX{} is a trademark of the \AMS{}.
+\endgroup
+}% End of vbox being shipped out
+
+%% END TITLE PAGE
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\topmatter
+\title\nofrills User's Guide to \AmSTeX{} Version 2.1\endtitle
+
+\date {\thismonth} {\number\year}\enddate
+
+\toc
+\widestnumber\head{7}
+\head 1. Overview\endhead
+\head 2. Formatting Features\endhead
+\head 3. Mathematical Constructions\endhead
+\head 4. Fonts\endhead
+\head 5. Symbol Names\endhead
+\head 6. Other Things You Ought to Know\endhead
+\head 7. Getting Help\endhead
+\head {} References\endhead
+\head {} Appendix A. Sample Bibliography Input and Output\endhead
+\head {} Appendix B. Installation Procedures -- PC\endhead
+\head {} Appendix C. Installation Procedures -- Macintosh\endhead
+\endtoc
+
+\endtopmatter
+\document
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\head 1. Overview\endhead
+
+\AmSTeX{} is a macro package for \TeX{}, designed to simplify the input
+of mathematical material and format the output according to preset style
+specifications.  Although the \AMS{} holds the copyright for \AmSTeX{},
+its use is not restricted, but is encouraged for the preparation of
+manuscripts intended for publication both in the Society's books and
+journals, and also in other mathematical literature.  In recognition of
+the copyright, the Society requests that published documents prepared
+with \AmSTeX{} include an acknowledgment of its use.  The suggested
+forms for acknowledgments are given in the section {\bf Other Things You
+Ought to Know}.
+
+Version 2.0 of \AmSTeX{} contained numerous minor improvements
+and bug fixes, as well as some major changes involving additional fonts.
+This User's Guide describes all the new and changed features and how
+to use them, with further additions and revisions pertaining
+to version 2.1.  Topics are grouped by type, and then presented in roughly
+the same order as they appear in \JoT{}.
+
+This User's Guide assumes that you already have a copy of \JoT{}. It
+contains references to specific sections that won't help you much if you
+don't have a copy. It also assumes for the most part that you will be
+using the ``preprint style,'' a set of macros that provides features
+specific to the formatting of a document, such as headings, page
+numbers, and the like. If you are planning to use the preprint style,
+you will also need to have a copy of AMSFonts Version~2.1.  \JoT{} and
+AMSFonts 2.1 are available from the \AMS{} and other distributors.
+
+\subhead Files Comprising the \AmSTeX{} Version~2.1 package
+\endsubhead
+
+The following files are contained in the \AmSTeX{} Version~2.1 package
+distributed by the \AMS{}:
+\medskip
+\settabs\+\indent&\filnam{AMSGUIDE.TEX}\qquad&\kern.6\hsize\cr
+\+&\filnam{AMSTEX.TEX}&
+        the \AmSTeX{} Version 2.1 macros\cr
+\+&\filnam{AMSSYM.TEX}&
+        macros defining the symbols in fonts \filnam{msam} and
+       \filnam{msbm}\cr
+\+&\filnam{AMSPPT.STY}&
+       the preprint style for \AmSTeX{} Version 2.1\cr
+\+&\filnam{AMSPPT.DOC}&
+       technical documentation for \filnam{AMSPPT.STY}\cr
+\+&\filnam{AMSGUIDE.TEX}&
+       the source file for this User's Guide\cr
+\+&\filnam{AMSPPT1.TEX}&
+       a backward compatibility file for use with documents\cr
+\+&&   already completed using \AmSTeX{} versions earlier than 2.0\cr
+\+&\filnam{JOYERR.TEX}&
+       errata to \JoT{} (first edition)\cr
+\+&\filnam{*.TFM}     &
+       TFM files for AMSFonts Version 2.1\cr
+\+&\filnam{AMSTEX.INI}&
+       Used in creating format files\cr
+\+&\filnam{AMSTEX.BAT}&
+       DOS installations only\cr
+\medskip
+
+The file \filnam{AMSPPT.DOC} is an {\smc ascii} file, and is
+not intended to be processed with \TeX{}\null.  This  documentation file
+is arranged in the same order as the macro file that it describes, and
+explains the intent and mechanics of the macros in detail.  A separate
+file (\filnam{AMSTEX.DOC}), documenting the file \filnam{AMSTEX.TEX},
+is available on request.
+
+In addition, other files are used during installation from diskettes.
+For instructions on installing the \AmSTeX{} macros and preprint style,
+see Appendixes B and C.  These appendixes describe the
+installation process for two common systems: PC\TeX{} on an IBM PC or
+compatible, and \Textures{} on a Macintosh.  They also give suggestions
+for installation on other systems.
+
+\subhead General Description of Changes\endsubhead
+
+\AmSTeX{} 2.0+, the preprint style, and their technical
+documentation are the result of a joint effort begun by Michael Spivak
+and extended by the Composition Technical Support group of the \AMS{}.
+
+In version 2.0 of \AmSTeX{}, the following changes were made:
+\widestnumber\item{10}
+\roster 
+\item All known bugs were eliminated.
+\item Messages were added identifying the current versions of
+  \filnam{AMSTEX.TEX} and \filnam{AMSPPT.STY}, to be displayed on your
+  terminal screen and in the log file.
+\item Some error and help messages were changed for the sake of
+  clarity or to provide more information.
+\item Refinements were made to conserve memory space.
+\item The CM versions of the Computer Modern fonts were substituted for the
+  older AM versions.
+\item Support for additional fonts was added.
+
+  \itemitem{(a)} \filnam{AMSTEX.TEX} provides the mechanism for accessing
+    the Euler and extra symbol fonts of the AMSFonts collection.
+  \itemitem{(b)} The preprint style assumes that fonts \filnam{msam},
+    \filnam{msbm}, and \filnam{eufm} are installed and available.
+
+\item Changes were made to the preprint style to make it conform
+  more closely to the style of AMS publications, in particular, the \JAMS.
+
+  \itemitem{(a)} Running heads were made automatic; they can be suppressed
+    if desired.
+  \itemitem{(b)} Additional elements are recognized in both the top matter
+    and the body of a document, and the input syntax was regularized.
+  \itemitem{(c)} Footnotes were changed to have normal indentation.%
+       \footnote{Like this.}
+  \itemitem{(d)} The style of the references was changed considerably.
+
+\item The ability to produce roman-numeral page numbers using the
+  plain \TeX{} convention (negative \cs{pageno}) was added.
+\item In the preprint style, mathematics-oriented hyphenation exceptions
+  were added.  (These follow American, not British, rules.)
+\item An option was added in the preprint style that
+  allows documents to be formatted
+  as chapters of a monograph rather than as separate papers.
+\item Finally, some optional formatting features requested by
+  \AmSTeX{} users were added to the preprint style.
+\endroster
+
+\medskip
+In version 2.1, the following changes were made:
+\roster
+\item \cs{curraddr} and \cs{rom} were added.
+\item Additional error conditions were identified and supplied with more
+  informative messages.
+\item A sporadic line-breaking problem in the preprint style references
+  section was remedied.
+\item Some bugs introduced into the preprint style during the
+ version 2.0 changes were found and eliminated.
+\item Use of the Euler fonts other than medium Euler Fraktur was
+  made more convenient.
+\item The ability to use multiple \cs{thanks} commands was added.
+\item The installation instructions were revised and augmented.
+\item The backward compatibility file \filnam{AMSPPT1.TEX} was added.
+\endroster
+
+\subhead This User's Guide\endsubhead
+
+This User's Guide has been prepared using \AmSTeX{} Version~2.1 with the
+preprint style.  Some changes have been made: font and dimension settings
+have been reset, the macros for headings have been redefined to produce a
+result more suited to documentation, and some {\it ad hoc\/} macros have
+been defined to simplify the presentation of particular information.
+However, in general, this document and the file from which it was produced
+illustrate the general appearance and input for a preprint with running
+heads.  Printing the output of \TeX{} for this Guide requires AMSFonts
+Version~2.0 or later
+(users of AMSFonts Version~2.0 are strongly encouraged to upgrade to
+Version~2.1).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\head 2. Formatting Features
+\endhead
+
+Formatting documents prepared with \AmSTeX{} is accomplished by a
+``style file.''  The features described here are part of the preprint
+style.  The \AmSTeX{} preprint style, Version~2.1, will format an input
+file in a manner suitable for a paper in a journal, unless  the style of
+a \cs{Monograph} is explicitly selected.  Unless noted otherwise, 
+the journal style is the style described below.
+
+\setbox1=\hbox{\tt\\dedicatory...\\enddedicatory\ }
+\setbox0=\vbox{\hsize=\wd1\parindent=0pt\tt\obeylines
+  \strut\\title...\\endtitle
+  \\author...\\endauthor
+  \\affil...\\endaffil
+  \\address...\\endaddress
+  \\curraddr...\\endcurraddr
+  \\email...\\endemail
+  \\dedicatory...\\enddedicatory
+  \\date...\\enddate
+  \\thanks...\\endthanks
+  \\translator...\\endtranslator
+  \\keywords...\\endkeywords
+  \\subjclass...\\endsubjclass
+  \strut\\abstract...\\endabstract\endgraf}
+\setbox1=\hbox{$\dsize\left\lbrace\,\vcenter{\vphantom{\copy0}}\right.
+   \nulldelimiterspace=0pt$}%
+\setbox2=\hbox{\kern-\wd1$\dsize\left\lbrace\,\vcenter{\copy0}\right\rbrace$}
+
+\subhead Top Matter\endsubhead
+
+Some commands affect the appearance of a whole document.  Such commands
+should go at the top of your input file, right after the \cs{documentstyle}
+line and before the \cs{topmatter} line.  This area will be referred to as
+the ``preamble.''  Commands that should be in the preamble include 
+\cs{define}, \cs{TagsOnRight} and the like,
+\cs{NoPageNumbers}, \cs{NoRunningHeads}, \cs{Monograph},
+\cs{pagewidth}, \cs{pageheight}, \cs{pageno},
+and commands that load fonts.
+The preamble is relevant to any document, whether paper or monograph.
+
+The beginning of an
+\AmSTeX{} file should look something like this:
+\beginexample{}
+\\input amstex
+\\documentstyle\{...\}
+\medskip
+\<preamble commands, such as \cs{define}, \cs{pageno}, \cs{Monograph}, 
+\leavevmode\hbox to20pt{}\cs{NoRunningHeads}, \cs{loadbold}, etc.>
+\medskip
+\\topmatter
+\indent\box2
+\strut\\endtopmatter
+\\document
+\endexample
+
+If any \cs{end...} tag is omitted (or misspelled), an error message will
+appear at \cs{endtopmatter} or at the next blank line: for example, if
+you misspell \cs{endtitle}, the message will be something like ``{\tt
+!~Paragraph ended before \cs{title} was
+com\discretionary{-}{}{}plete}.'' If you omit \cs{endtopmatter}, there
+won't be any error message, but none of the topmatter material will
+print.{\tolerance2000\par}
+
+If you have documents that were prepared for versions of \AmSTeX{}
+earlier than version 2.0, you may find the file \filnam{amsppt1.tex}
+useful.  By including the line \cs{input amsppt1} immediately after the
+\cs{documentstyle} line, the topmatter commands and the sectioning
+commands that changed in form will work in the original way. Other than
+that, there should be few incompatibility problems with previous
+versions. Note: The use of \filnam{amsppt1.tex} is discouraged except
+for processing preexisting files.
+
+For multi-line titles, affiliations, authors, or dedications (basically
+everywhere that lines are centered individually rather than being set in
+paragraphs), line breaks are obtained by using \cs{\\}.  In other parts
+of the topmatter, which are set in paragraph form, line breaks are
+obtained by \cs{linebreak}.
+
+The title will be set in uppercase.  To turn off the automatic
+uppercasing, use the \cs{nofrills} option:
+\cs{title\\nofrills...\\endtitle}.
+
+Electronic mail addresses can be keyed using \cs{email}\dots\cs{endemail}.
+Every \cs{email} address must be preceded by a regular \cs{address},
+otherwise the e-mail address will not print.
+Multiple \cs{email} addresses may be used, but each
+\cs{email}\dots\cs{endemail} must be paired with the \cs{address}
+of the same author.  The \cs{email} address will be printed at the end
+of the paper, as ``{\it E-mail address:\/} \<net-address>,'' following
+the address with which it is paired.
+
+Normally, the address given in \cs{address} is 
+the address of the author at the time the research
+was being done; if the author's address at the time of
+publication is different, the current address should be
+given in \cs{curraddr}.  This should be entered between
+\cs{address} and \cs{email} in the document file.
+Like \cs{email}, multiple \cs{curraddr}'s can be used, if
+each one is keyed after the \cs{address} of the author to which it
+pertains.  If it is not preceded by an \cs{address}, the
+current address will not print.
+
+The \cs{dedicatory} command is used for such things as
+``Dedicated to Professor X on the occasion of his eightieth birthday.''
+The dedication will appear in italics, before the abstract.
+
+The \cs{thanks} command is provided for acknowledgments of grant support
+and other kinds of support for the author's research, or other general
+information not covered by one of the predefined tags such as
+\cs{keywords} or \cs{subjclass}. The information will be printed as an
+unnumbered footnote at the bottom of the first page.  Like \cs{address},
+\cs{thanks} can be used more than once.
+
+In case a paper has not only an author but a translator, \cs{translator}
+is provided.  This information will be printed at the end of the paper in
+eight-point roman, as ``Translated by'' followed by the translator's name
+in uppercase.
+
+The information for \cs{keywords} and \cs{subjclass} appears as
+unnumbered footnotes at the foot of the first page, as in AMS journals.
+In a monograph chapter they will not print at all, since they should be
+handled separately, as part of the front matter for the monograph.
+
+The abstract heading ``{\eightpoint\smc Abstract.}'' appears in caps
+and small caps, in the same size (eight point) as the abstract itself.
+
+A simple table of contents setup is available.  Tables of contents
+are typed in the topmatter along with everything else (except for
+monographs---see the section {\bf Book Formatting} below), using
+\cs{toc...\\endtoc}.
+\beginexample{}
+\\toc
+\\specialhead...\\endspecialhead
+\\head...\\endhead
+\\subhead...\\endsubhead
+\\subsubhead...\\endsubsubhead
+\\endtoc
+\endexample
+\noindent
+The syntax of the parts is identical to the syntax used
+for headings within the document (see the sections {\bf Headings} and
+{\bf Book Formatting} below), so that for those who wish to do so
+and have a capable text editor, the table of contents can be constructed
+by extracting the relevant lines from the main text.\footnote{But note that
+the original line breaks in multi-line headings would not be appropriate
+for the table of contents, so you'd want to remove any \cs{\\}'s that
+might be present.}
+
+Page numbers aren't usually appropriate for the short table of contents
+that might appear in a journal article, but if desired, page numbers can
+be entered in a manner similar to that for a monograph; see the section
+{\bf Book Formatting} below.
+
+The hanging indentation within a table of contents for \cs{head} and
+\cs{subhead} is preset to accommodate numbers of the form
+``1.''\ and ``1.1.''\ respectively; the amount of indentation can
+be adjusted by using \cs{widestnumber}:
+\beginexample{}
+\\toc
+\\widestnumber\\head\{10\}
+\\widestnumber\\subhead\{10.1\}
+...
+\endexample
+\noindent This can be done more than once within different sections of
+the table of contents, if desired.
+
+If the ``section number'' of a \cs{head} happens to be something like
+``Appendix'' (as actually happens in this User's Guide), a pair
+of empty braces should be entered before it, as follows:
+\beginexample{}
+\\head \{\}\ Appendix. Sample bibliography input ...\\endhead
+\endexample
+\noindent
+Insertion of {\tt\{\}} followed by a space at the beginning of the heading
+text will cause the entire entry to be set flush left as a unit.
+
+If you are preparing a monograph, the format and content of the top matter
+will be different.  See the section below on {\bf Book Formatting} for
+details.
+
+
+\subhead Headings \endsubhead
+
+There are four levels of headings (not counting
+\cs{title}'s):
+\beginexample{}
+\\specialhead...\\endspecialhead
+\\head...\\endhead
+\\subhead...\\endsubhead
+\\subsubhead...\\endsubsubhead
+\endexample
+\noindent The heading of
+this section was typed as
+\beginexample{}
+\\head 2. Formatting Features
+\\endhead
+\endexample
+
+\noindent And the subheading for this subsection was typed as
+\beginexample{}
+\\subhead Headings\\endsubhead
+\endexample
+\noindent
+Ordinarily, subheadings in the preprint style are run into the text, but for
+this User's Guide, the style varies slightly.
+
+\indent\cs{specialhead} is for long articles that need extra divisions at
+a level above the \cs{head} level. In the preprint style
+\cs{specialhead} uses boldface type and is set ragged right; \cs{head}
+is small caps, centered; \cs{subhead} is boldface, flush left,
+run in with the following text; and
+\cs{subsubhead} is italic, indented as for an ordinary paragraph, and run
+into the text.
+
+Explicit line breaks are obtained by a \cs{\\} in a \cs{head} or a
+\cs{specialhead}, but for \cs{subhead} and \cs{subsubhead},
+which are part of their paragraph, just use \cs{linebreak} as
+you would in normal paragraphed text.
+
+If you are preparing a monograph, the styles of headings will be different.
+See the section below on {\bf Book Formatting} for details.
+
+
+\subhead Theorems and Proofs \endsubhead
+
+In addition to the usual proclamations and demonstrations, mathematicians
+may pose other kinds of propositions, which editors may prefer to see
+presented in different styles.  The following have been provided in
+the preprint style.
+\beginexample{}
+\\definition...\\enddefinition
+\\example...\\endexample
+\\remark...\\endremark
+\endexample
+\noindent
+In the preprint style \cs{definition} and \cs{example} have
+the spacing and heading font of \cs{proclaim}, but are in roman.
+\cs{remark} resembles \cs{demo}
+except that extra space added at the end of a proof by \cs{enddemo}
+is not added by \cs{endremark}.
+
+In accordance with the style of the \JAMS, the labels on \cs{proclaim}'s
+and similar constructions are now printed in boldface type (\cs{bf}).
+However, unlike the \JAMS, the preprint style uses slanted type (\cs{sl})
+for the text of a \cs{proclaim}, rather than italic.
+(Most \AMS{} publications currently use Times Roman fonts, for which no
+slanted form was designed.)
+
+It is conventional in mathematical publishing to use roman,  upright
+numbers and punctuation even in the midst of
+italic text, to avoid visual conflicts with numbers and punctuation in
+adjacent math formulas.  Since dedicated ``mathematical text italic''
+fonts containing roman numbers and punctuation are not currently
+available, the \filnam{amsppt} preprint style provides a command
+\cs{rom} to be applied  inside theorems and other stretches of
+italic text, to give the desired results.
+For example, to~produce\-
+
+\proclaim{Proposition 2.5} Let $S_1,\dots,S_m$ be the components
+of a $J$-holomorphic cusp-curve $S$ and suppose that each
+component $S_i$ is \rom(a multiple covering of\rom) a regular
+curve and that Assumption \rom{(1.4a)} is satisfied. \dots
+\endproclaim
+
+\noindent you would use \cs{rom} in the following places:
+\beginexample{}
+each component \$S\char`\_i\$ is \\rom(a multiple covering of\\rom) a
+regular curve and that Assumption \\rom\{(1.4a)\} is satisfied
+\endexample 
+
+As you can see, \cs{rom} is used like the math font command \cs{roman}:
+it applies to the next single character or the next group enclosed in
+braces.
+
+\subhead Other Devices \endsubhead
+
+For a list produced by \cs{roster}, the amount of indentation can be
+adjusted to accommodate wide item numbers.  Just before beginning the
+\cs{roster}, type, for example, \cs{widestnumber\\item\{(viii)\}}.
+This adjustment is temporary.  The default will be reinstated by
+\cs{endroster}.
+
+The command \cs{cite} produces
+a reference citation in roman type, within square brackets: \cite{21}.
+
+A structure \cs{block...}\cs{endblock} is provided for quotations.
+It is intended for use in the middle of a paragraph to quote an
+extract from another source.
+
+
+\subhead Book Formatting \endsubhead
+
+If you are preparing a monograph, several features are available in the
+preprint style that will make your output look like chapters rather than
+individual papers.
+
+First of all, you must signal your intentions by typing \cs{Monograph}
+in the preamble, right after the \cs{documentstyle} line.
+
+A typical topmatter section for a monograph chapter would be typed
+like this:
+\beginexample{}
+\\documentstyle\{amsppt\}
+\\Monograph
+\\topmatter
+\\title\\chapter\{4\} Matrix Algebras\\endtitle
+\\endtopmatter
+\endexample
+\noindent which produces a chapter heading that looks like this:
+\bigskip
+\vbox{
+\centerline{\eightpoint CHAPTER IV}
+\bigskip
+\centerline{\bf MATRIX ALGEBRAS}}
+\bigskip
+\noindent
+Notice that the number is converted automatically to roman numerals and
+the word ``{\eightpoint CHAPTER}'' is added.  For a chapter title that
+needs a different sort of treatment, \cs{nofrills} can be used:
+
+\beginexample{}
+\\topmatter
+\\title\\chapter\\nofrills\{APPENDIX D\} The Poisson Integral\\endtitle
+\\endtopmatter
+\endexample
+\noindent This produces
+\bigskip
+\vbox{
+\centerline{\eightpoint APPENDIX D}
+\bigskip
+\centerline{\bf THE POISSON INTEGRAL}}
+\bigskip
+\noindent The replacement \cs{chapter} text will appear exactly as
+typed.
+
+Finally, for things like a preface or introduction which have no
+pretitle text at all, omit the \cs{chapter} command:
+\beginexample{}
+\\topmatter
+\\title Preface\\endtitle
+\\endtopmatter
+\endexample
+
+In monographs, the table of contents is usually treated as a separate
+chapter.  Start by typing the title ``Contents'' as for a preface or
+introduction, and then use the \cs{toc...\\endtoc} structure as the
+body of the document (rather than putting it in the topmatter, as you
+would for a journal article).
+\beginexample{}
+\\topmatter
+\\title Contents\\endtitle
+\\endtopmatter
+\bigskip
+\\document
+\\toc
+\\title Preface\\page\{vii\}\\endtitle
+\\title\\chapter\{1\} Matrix Algebras\\page\{1\}\\endtitle
+\\head \{\} Continuous complex-valued functions\\page\{1\}\\endhead
+...
+\\title Bibliography\\page\{307\}\\endtitle
+\\endtoc
+\\enddocument
+\endexample
+
+The chapter titles listed in the table of contents are typed in the same
+way as in actual use.  To get page numbers in the table of contents, use
+\cs{page} as shown, just before the ending of an element.  This option
+is available for all levels of headings.
+
+In a monograph using the preprint style, the chapter title is used for
+the left running head and the text of section headings
+(from \cs{head}) appears as the right running head.  
+It's not uncommon for the text of a heading to be too long to fit
+in the running head width; in such a case use \cs{rightheadtext} to
+specify a shortened form of the heading for use in the running heads:
+\beginexample{}
+\\head Fourier coefficients of continuous periodic functions
+of bounded entropy norm\\endhead
+\\rightheadtext\{Fourier coefficients of periodic functions\}
+\endexample
+\noindent This should follow immediately after the \cs{head}, to ensure
+that both take effect on the same page.  If the chapter title is too long
+to fit as a running head, a shortened form can be supplied in a similar
+way with \cs{leftheadtext} immediately after the \cs{title}.
+See also the section~{\bf Running Heads}.
+
+The style for a chapter of a monograph differs in some particulars from the
+style for a paper.  The text of a \cs{head} will be boldface instead of
+small caps; headings of theorems, propositions, definitions, remarks, etc\.
+will be small caps instead of boldface, and indented rather than flush 
+left.
+
+
+\subhead Inserts with Captions \endsubhead
+
+Figures, tables, and some other kinds of objects are often handled as
+inserts.  These objects may be prepared separately from the main document
+and pasted in, in which case space must be left for them.
+These objects usually have captions; a caption may be positioned above (for
+a table) or below (for a figure).
+
+An insert may be specified for the top or ``middle'' of a page, i.e.,
+right where the input for the insert occurs in the text.  These are
+typed as \cs{topinsert} and \cs{midinsert} respectively.
+Furthermore, a caption may be placed at the top or the bottom of the insert,
+using the tags \cs{topcaption} and \cs{botcaption} respectively.
+
+The general structure used to specify an insert with a caption at the top is:
+\beginexample{}
+\\topinsert\quad{\rm or}\quad \\midinsert
+\cs{captionwidth}\{\Dimen\}\quad{\rm(optional)}
+\\topcaption\{\<caption label>\}
+\ \<optional caption text>
+\\endcaption
+\cs{vspace}\{\Dimen\}\quad{\rm or}\quad%
+  \<optional code for the insertion body>
+\\endinsert
+\endexample
+
+Here the notation \Dimen{} means a valid \TeX{} dimension as
+described in the {\bf Dimensions} section of \JoT{}.
+If a bottom caption was desired, \cs{topcaption} would be replaced by
+\cs{botcaption}, and
+the \cs{vspace} command (or the
+optional code for the insertion body) would be moved before the
+\cs{botcaption} macro.
+
+The \cs{vspace\{\Dimen\}} option would be used to leave blank space for
+an object to be pasted into place.  The value of the \Dimen{} should be
+the exact height of the object to be pasted in, because extra space
+around the object and the caption are dependent on the document style,
+and will be provided automatically.
+
+The \cs{captionwidth\{\Dimen\}} option may be used to override the default
+caption width specified by the document style.
+
+The \<caption label> is something like ``Figure~1'' or ``Table~2a.''
+Do not type any final punctuation; it will be provided.  The caption
+label will be set in caps and small caps.
+
+The \<optional caption text> is any descriptive text that may be desired. 
+The preprint style will set this in roman.  Even if there is no text, the
+\cs{endcaption} tag must be present.
+
+If you choose to include the \TeX{} code for a figure, table, or other
+captioned object in the input, then omit the \cs{vspace} command
+and type the code where appropriate (before \cs{botcaption}
+or after the \cs{endcaption} of \cs{topcaption}).
+
+Sometimes a table is small enough that it is not necessary to put it in an
+insert.  If the caption is to appear above it, input can be typed as follows:
+\beginexample{}
+\\topcaption\{\<caption label>\}
+\ \<optional caption text>
+\\endcaption
+\ \<code for the table body>
+\endexample
+\noindent
+The form of the input would be the following if the caption is to appear below:
+\beginexample{}
+\ \<code for the table body>
+\\botcaption\{\<caption label>\}
+\ \<optional caption text>
+\\endcaption
+\endexample
+\noindent
+To avoid page-breaking problems,
+this form of ``insertion'' should be used only for very small objects.
+
+
+\subhead Page Numbers \endsubhead
+
+If you are using the preprint style, page numbers will appear in the running
+heads, at the outside margin, except for the first page, where the running head
+will be omitted and the page number will be centered at the bottom of the page.
+
+If you wish to omit page numbers, type \cs{NoPageNumbers} at the
+beginning of the document (after the \cs{documentstyle} line).
+The running head text will remain; see also {\bf Running Heads}.
+
+You can get roman numeral page numbers, e.g.\ for a table of contents or
+preface, using the normal \TeX{} convention of \cs{pageno} plus
+a negative number.
+
+
+\subhead Page Size \endsubhead
+
+In the preprint style, the default page width is 30pc, and the default
+height is 47.5pc. 
+You can change the size of the page by typing
+\beginexample{}
+\\pagewidth\{\Dimen\}\newline
+\\pageheight\{\Dimen\}
+\endexample
+\noindent using suitable \Dimen{}s, where by this notation we mean a
+valid \TeX{} dimension as described in the {\bf Dimensions} section of
+\JoT{}.
+
+
+\subhead QED \endsubhead
+
+In the preprint style, \cs{qed} gives an open box `$\square$',
+separated from what precedes it by a quad of space.
+
+
+\subhead Running Heads \endsubhead
+
+If you are using the preprint style, running heads similar to those in
+\Joy{} will appear, with text in the center and page numbers to the
+outside.  (On the first page, as usual, the running head is omitted, and
+the page number is placed at the bottom.)
+
+If you do nothing to define the text of the running heads, the author's
+name will be used on the left-hand and the title on the right-hand pages.
+(This is the style for papers; for monographs, see below.)
+If you want some other values, say a shortened title, you
+can redefine the text to appear on left- and right-hand pages by typing
+\beginexample{}
+\\leftheadtext\{\<left running head text>\}
+\\rightheadtext\{\<right running head text>\}
+\endexample
+
+\noindent These instructions can appear anywhere after the
+\cs{documentstyle} command, but the most
+common place to use them is immediately after a \cs{title} or
+\cs{author} or \cs{head} to override the automatic running head text. 
+If \cs{rightheadtext} or \cs{leftheadtext} is specified above the
+topmatter, \cs{title} and \cs{author} will not override them.
+
+If you are doing a monograph rather than a journal article, and use
+the \cs{Monograph} switch, it affects the running heads as follows:
+The chapter title appears in the left-hand running heads, and the text of
+the current section heading (from \cs{head}) appears in the right-hand
+running heads.  In chapters that don't contain any \cs{head}'s---for
+example, a foreword---both the left- and right-hand running heads
+will contain the chapter title.
+
+By default, running heads will be uppercase.  This is a frill that
+can be turned off by \cs{nofrills}, e.g.,
+\beginexample{}
+\\rightheadtext\\nofrills\{Text of Running Head\}
+\endexample
+
+If for some reason you don't want running heads at all, type
+\cs{NoRunningHeads} at the beginning of the document (after the
+\cs{documentstyle} line).  When running heads are omitted, page numbers
+will appear centered at the bottom of the page.  (And even those can be
+turned off using \cs{NoPageNumbers}.)
+
+In a monograph, if you don't want
+the text from the section \cs{head}'s to appear in the running heads
+you must redefine the internal command, \cs{headmark}, that is used
+by \cs{head} to set the right-hand running head. To do this, put the
+following line in your document file, after \cs{Monograph} and
+before \cs{topmatter}:
+\beginexample{}
+\\redefine\\headmark\#1\{\}
+\endexample
+\noindent (where the {\tt\#1} is an argument number as explained in \Joy,
+in the description of \cs{define} and related commands).
+
+\subhead Tables \endsubhead
+
+There are no special macros to support the creation of tables in
+\AmSTeX{}. Plain \TeX{}'s \cs{settabs}
+command and \cs{halign} can also be used (see {\it The \TeX{}book} for
+documentation of their usage). More sophisticated table macro packages
+are available from other sources. See also the section {\bf Inserts with
+Captions} above.
+
+\subhead Bibliographies \endsubhead
+
+The references section of a paper begins with \cs{Refs} and must have
+\cs{endRefs} at the end.  Each entry in the references begins with
+\cs{ref} and ends with \cs{endref}.  The individual elements between
+\cs{ref} and \cs{endref} can be specified in any order. However,
+following \cs{ref} is usually a number or other label identifying the
+particular reference. This label is produced using \cs{key}.
+The format of the labels is determined by the current
+{\it references style}, which is set by the \cs{refstyle}
+command. The preprint documentstyle provides three reference
+styles denoted A, B, and C, corresponding to
+letter labels, no labels, and arabic numbers respectively.
+The form of the \cs{cite} and \cs{key} commands for each
+style, and the output they produce, is as follows:
+$$
+\vbox{\offinterlineskip\def\strut{\vrule depth.35\normalbaselineskip
+  width0pt height.75\normalbaselineskip}\tabskip0pt
+  \halign{{\tt\strut#}\hfil&\quad#\hfil&\quad\vrule\quad{\tt#}\hfil&
+       \quad#\hfil&\quad\vrule\quad{\tt#}\hfil&\quad#\hfil\cr
+\multispan2\strut depth.7\normalbaselineskip\hfil\cs{refstyle\{A\}}\hfil&
+       \multispan2\quad\vrule\hfil\cs{refstyle\{B\}}\hfil&
+              \multispan2\quad\vrule\hfil\cs{refstyle\{C\}}\hfil\cr
+%
+\noalign{\hrule}
+%
+ height1.1\normalbaselineskip\cs{cite\{DK\}}& [DK]&
+       \cs{cite\{Smith 1989\}}& [Smith 1989]&
+              \cs{cite\{19\}}& [19]\cr
+%
+\cs{key DK}& [DK]&
+       \omit\quad\vrule\quad(no key)\hfil & (no label)&
+              \cs{key 19}& 19.\cr
+}}$$
+The \cs{refstyle} command is normally placed in the preamble of
+a document.
+
+The references are set with hanging indentation.  The amount of indentation
+is preset to accommodate the most common case, two-digit numbers.
+It can be increased (or decreased) by specifying the widest
+label used in the references. For example,
+\beginexample{}
+\\widestnumber\\key\{GHMR\} \% refstyle A
+\\widestnumber\\key\{999\} \% refstyle C --- 3 digits
+\endexample
+\noindent
+will increase the indentation to accommodate the key \hbox{[GHMR]}, or a
+three-digit number, respectively.   You could also specify
+\cs{widestnumber}\cs{key\{9\}} to reduce the indentation from two digits'
+worth to one, if your bibliography has fewer than ten entries. As the
+examples show, you do not include square brackets, periods, font
+commands, or other such formatting when using \cs{widestnumber}.  The 
+indentation will be adjusted for these things automatically.
+
+For consecutive references by the same author(s),  \cs{by} is used for
+the first reference, with the author name(s) given in full, and
+\cs{bysame} is used for subsequent ones---just the command \cs{bysame}
+without repetition of the name(s). The horizontal line produced by
+\cs{bysame} has a fixed length of three ems.
+
+Two variations, \cs{ed} and \cs{eds}, are provided for entering editor
+names, as with \cs{page} and \cs{pages}, because the note ``ed.''\ or
+``eds.''\ is part of the automatic formatting.  If \cs{by} is absent,
+the editor name(s) will be used in place of the author name.
+
+For a proceedings volume, the place and date of the meeting can
+be recorded in the \cs{procinfo} field.  Parentheses will be
+added.
+
+There are two options for miscellaneous notes at the end of a reference,
+\cs{finalinfo} and \cs{miscnote}.  \cs{miscnote} differs only by
+automatically adding parentheses; it would typically be used for
+a note such as ``(preprint)'' or ``(submitted)'' or ``(to appear)''.
+Because it's fairly common, the latter has its own command \cs{toappear}
+that is equivalent to \cs{miscnote} {\tt to appear}.
+
+\cs{lang} is used to indicate the original language for papers where
+bibliographic information has been translated or there is some other reason
+to believe that the original language cannot be correctly identified from
+information in the reference.
+
+Sometimes several references are combined into one---for example, parts
+of a long paper that have been published separately.  Another type of
+compound reference is a work cited both in the original and in
+translation.  There are commands \cs{moreref} and \cs{transl} to handle
+such situations.  After \cs{moreref} and \cs{transl}, any of the normal
+reference tags can be used again.
+
+\cs{moreref} is used for citing, e.g., ``part II'' of an article; the
+\cs{moreref} command is followed by the desired additional tags and
+data.  For example:
+\beginexample{}
+...\\moreref\\paper\\rom\{II\}
+\\jour Comm. Pure Appl. Math. \\vol 36
+\\yr 1983 \\pages 571--594\\endref
+\endexample
+
+When using \cs{transl}, a note  that describes the translation is
+normally entered between \cs{transl} and the next tag. The tags and data
+for the translated work then follow. For example: 
+\beginexample
+...\\transl English transl. \\publ Birkh\\"auser 
+\\publaddr Basel \\yr 1985 \\endref
+\endexample
+
+Automatic punctuation will be omitted if the pertinent field was
+included but left blank.  Otherwise, the command \cs{nofrills} can be
+used to keep automatic punctuation from appearing.  For example,
+\cs{bookinfo\\nofrills...}\ suppresses the comma or other punctuation
+that would normally be added at the end of the \cs{bookinfo}
+information. \cs{nofrills} also suppresses other automatic formatting
+such as the word ``eds.'' for \cs{eds}, the word ``vol.'' for book volumes,
+or the parentheses around the year for journal articles. The ending
+period of a reference can be suppressed with
+\cs{finalinfo}\cs{nofrills}.
+
+Some examples will illustrate the use of these tags.  See Appendix~A for
+samples of input and output. See also Appendix~C of \JoT{} (first
+edition: Appendix~B) for more information on references.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\head 3. Mathematical Constructions
+\endhead
+
+\subhead Wide Accents in Math Mode \endsubhead
+
+In version 2.0+ of the AMSFonts,
+there are wider versions of the \cs{widehat} and \cs{widetilde}
+accents; they appear on lines (5) and (6):
+\beginexample{}
+\exbox{(1)}{\$\\hat x, \\tilde x\$} $\hat x, \tilde x$
+\exbox{(2)}{\$\\widehat x, \\widetilde x\$} $\widehat x, \widetilde x$
+\exbox{(3)}{\$\\widehat\{xy\}, \\widetilde\{xy\}\$} %
+  $\widehat{xy}, \widetilde{xy}$
+\exbox{(4)}{\$\\widehat\{xyz\}, \\widetilde\{xyz\}\$} %
+  $\widehat{xyz}, \widetilde{xyz}$
+\exbox{(5)}{\$\\widehat\{xyzu\}, \\widetilde\{xyzu\}\$} %
+  $\widehat{xyzu}, \widetilde{xyzu}$
+\exbox{(6)}{\$\\widehat\{xyzuv\}, \\widetilde\{xyzuv\}\$} %
+  $\widehat{xyzuv}, \widetilde{xyzuv}$
+\endexample
+\noindent
+These wider accents are in the \filnam{msbm} family.  If \filnam{msbm}
+has been loaded, \cs{widehat} and \cs{widetilde} will automatically
+select these wider versions when required; otherwise, the characters
+on line (4) will be the largest available.  If you are using the
+preprint style, \filnam{msbm} is loaded automatically; otherwise,
+see the section entitled {\bf Fonts} for instructions on loading it.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\head 4. Fonts\endhead
+
+\subhead Additional fonts for \AmSTeX{}\endsubhead
+
+A number of fonts were created for use with \AmSTeX{} 2.0+, both
+Computer Modern fonts in sizes not previously available and new fonts
+of alphabets and symbols intended to be used for mathematical notation.
+These fonts are in the collection AMSFonts Version~2.1.  They must be
+installed on your computer before you can use \AmSTeX{}'s preprint style
+or otherwise refer to them.
+Note that AMSFonts Version~2.1 cannot be used with versions of \AmSTeX{}
+earlier than Version~2.0, and \AmSTeX{} Version~2.1 cannot be used with
+versions of AMSFonts earlier than Version~2.0
+(users of AMSFonts Version~2.0 are strongly encouraged to upgrade to
+Version~2.1).
+
+Several of these fonts are loaded automatically by the preprint
+style and others can be loaded on demand.  The fonts available and the
+commands used to load them are described below.
+
+\subsubhead Fonts loaded with the preprint style
+\endsubsubhead
+Several fonts are loaded automatically for general use.
+\roster
+\item"--" \filnam{cmcsc8} is a new size of the Computer Modern small caps font.
+\item"--" \filnam{cmex8} and \filnam{cmex7} are new sizes of the Computer
+        Modern math extension font.  \filnam{cmex8} is used by the preprint
+        style in abstracts and other eight-point environments; \filnam{cmex7}
+        is used for all sub- and superscripts.
+\endroster
+
+
+\subsubhead Math fonts loaded with the preprint style
+\endsubsubhead
+\roster
+\item"--" \filnam{msam} and \filnam{msbm} contain extra symbols.  The symbols
+        and the names that will produce them are shown in the section 
+        {\bf Symbol Names} below.  If you are not using the preprint style,
+        each can be loaded separately by \cs{loadmsam} or \cs{loadmsbm}
+        as appropriate.
+\item"--" \filnam{eufm} is the medium-weight Euler Fraktur (German) font.
+        It can also be loaded by \cs{loadeufm} if the preprint style is not
+        being used.
+\endroster
+
+
+\subsubhead Math fonts loaded by \cs{loadbold}
+\endsubsubhead
+See the sections below on {\bf Bold Characters in Math Mode} and
+{\bf Bold Greek Letters} for details on accessing particular characters
+in these fonts.
+\roster
+\item"--" \filnam{cmmib} is Computer Modern bold math italic.
+        It also contains bold Greek.
+\item"--" \filnam{cmbsy} contains Computer Modern bold math symbols.
+\endroster
+
+
+\subsubhead Additional Euler fonts, for use in math, loaded by
+\cs{loadeu...}\tt\endsubsubhead
+\roster
+\item"--" \filnam{eufb} is bold Fraktur (\cs{loadeufb}).
+\item"--" \filnam{eusm} is medium-weight script (\cs{loadeusm}).
+\item"--" \filnam{eusb} is bold script (\cs{loadeusb}).
+\item"--" \filnam{eurm} is medium-weight ``cursive roman'' (\cs{loadeurm}).
+\item"--" \filnam{eurb} is bold ``cursive roman'' (\cs{loadeurb}).
+\endroster
+
+
+\subsubhead Considerations and warnings\endsubsubhead
+The commands to load these font files should be typed in the preamble area
+between the 
+\cs{documentstyle\{...\}} line and the \cs{topmatter}.
+Each \cs{load...} command loads the pertinent fonts (including
+subscript sizes), assigns a ``math
+family'' for them, and defines a math font command.
+The names of the commands are the same as the font names:
+\cs{eufm}, \cs{eufb}, \cs{eusm}, \cs{eusb}, \cs{eurm}, and
+\cs{eurb}.  These are used in the same way as
+\cs{roman} or \cs{bold}, e.g., \cs{eufb\{M\}} or \cs{eufb M}@.
+\AmSTeX{} also defines a couple of synonyms,
+\cs{frak} and \cs{goth}, for \cs{eufm} (medium Euler Fraktur).
+
+\TeX{} can accommodate only sixteen font families in math mode; eight
+are already defined by plain \TeX{} before \AmSTeX{} begins, and the
+preprint style loads three more (\filnam{msam}, \filnam{msbm}, and
+\filnam{eufm}), for a total of eleven.  For this reason, you should load
+additional fonts with care, requesting only those you know for certain
+you will need.
+
+All the fonts described here, and some others as well, are included in the
+collection AMSFonts Version~2.1, which is available from the AMS and other
+distributors.  The math fonts mentioned here are all supplied in sizes from
+five through ten point, suitable for use in mathematical text.
+
+
+\subhead Bold Characters in Math Mode \endsubhead
+
+Bold letters are obtained by \cs{bold} as described in \Joy{}.
+In addition, bold symbols, italic, and lowercase Greek can be
+obtained once \cs{loadbold} appears in the file (this
+requires version 2.0+ of \AmSTeX{} and AMSFonts).  Two control sequences
+are used for different kinds of bold symbols:
+\beginexample{\exboxwidth=1.25in}
+\exbox{}{\\boldkey} for symbols that actually appear on the keyboard
+\exbox{}{\\boldsymbol} for symbols specified by a single control sequence
+\endexample
+\noindent
+For example,
+$$\hbox{\tt\$\\bold x \\boldsymbol\\in \\boldsymbol\\varGamma\$}$$
+gives
+$$\bold x \boldsymbol\in \boldsymbol\varGamma$$
+[and {\tt\$\\boldsymbol\\lbrack a \\boldsymbol\\rbrack\$} gives
+$\boldsymbol\lbrack a \boldsymbol\rbrack$, if you need to use
+\cs{lbrack} and \cs{rbrack} instead of the {\tt[} and {\tt]} keys].
+
+More precisely, \cs{boldkey} can be used in math formulas in the
+following combinations:
+\roster
+\item"$\bullet$" With any of the symbols
+$$ +\ \ -\ \ =\ \ <\ \ >\ \ (\ \ )\ \ [\ \ ]\ \ |\ \ /\ \ *
+    \ \ .\ \ ,\ \ :\ \ ;\ \ !\ \ ?$$
+to give
+$$
+\boldkey+\ \ \boldkey-\ \ \boldkey=\ \ \boldkey<\ \ \boldkey>\ \ 
+\boldkey(\ \ \boldkey)\ \ \boldkey[\ \ \boldkey]\ \ \boldkey|\ \ 
+\boldkey/\ \ \boldkey*\ \ \boldkey.\ \ \boldkey,\ \ \boldkey:\ \ 
+\boldkey;\ \ \boldkey!\ \ \boldkey?
+$$
+But \cs{bold} cannot be used to get bold versions of these symbols.
+{\tt\$\\bold+\$} will give only the ordinary $+$, etc.
+
+The bold $\boldkey+$ and $\boldkey-$ will be  binary operators,
+like the ordinary $+$ and $-$ symbols;
+the bold $\boldkey=$ will be a binary relation, like the ordinary $=$, etc.
+
+\medskip
+\item"$\bullet$" With letters:
+\beginexample{\exboxwidth=3.75in}
+\exbox{}{\$\\boldkey a\$, ..., \$\\boldkey z\$} %
+        $\boldkey a, \dots, \boldkey z$
+\exbox{}{\$\\boldkey A\$, ..., \$\\boldkey Z\$} %
+        $\boldkey A, \dots, \boldkey Z$
+\endexample
+\noindent
+Notice that these are $\fam\cmmibfam bold\ math\ italic$ letters, as
+opposed to the bold text letters $\bold a, \dots, \bold z$, $\bold A,
+\dots, \bold Z$ that you get by using \cs{bold} in math mode.
+
+\medskip
+\item"$\bullet$" With numbers:
+\beginexample{\exboxwidth=3.75in}
+\exbox{}{\$\\boldkey 0\$, ..., \$\\boldkey 9\$} %
+        $\boldkey 0, \dots, \boldkey 9$
+\endexample
+\noindent
+However, these combinations simply give the same numerals that you get with
+{\tt\$\\bold0\$}, \dots, {\tt\$\\bold9\$}.
+\endroster
+
+\medskip
+The \cs{boldsymbol} construction can be used in any of the following
+combinations:
+\roster
+\item"$\bullet$" With uppercase and lowercase Greek letters
+\beginexample{\exboxwidth=3.75in}
+\exbox{}{\$\\boldsymbol\\Gamma\$, ..., \$\\boldsymbol\\Omega\$} %
+        $\boldsymbol\Gamma$, \dots, $\boldsymbol\Omega$
+\exbox{}{\$\\boldsymbol\\varGamma\$, ..., \$\\boldsymbol\\varOmega\$} %
+        $\boldsymbol\varGamma$, \dots, $\boldsymbol\varOmega$
+\exbox{}{\$\\boldsymbol\\alpha\$, ..., \$\\boldsymbol\\omega\$} %
+        $\boldsymbol\alpha$, \dots, $\boldsymbol\omega$
+\endexample
+\noindent
+In versions of \AmSTeX{} earlier than 2.0, bold unslanted uppercase
+Greek letters $\boldsymbol\Gamma$, \dots, $\boldsymbol\Omega$ were
+specified by \cs{boldGamma}, \dots, \cs{boldOmega}; these control
+sequences have now disappeared. 
+
+\medskip
+\item"$\bullet$"
+For convenience, \cs{boldsymbol} may also be followed by a letter (but
+not by a number or other character), giving the same result as
+\cs{boldkey}.
+  
+\medskip
+\item"$\bullet$"
+You can also apply \cs{boldsymbol} to all the other standard symbols that
+are specified by single control sequences. For example, to get bold primes:
+\beginexample{\exboxwidth=3.75in}
+\exbox{}{\$\\boldsymbol\\prime\$} $\boldsymbol\prime$
+\exbox{}{\$\\boldsymbol A\^{ }\{\\boldsymbol\\prime\}\$} %
+        $\boldsymbol A^{\boldsymbol\prime}$
+\endexample
+\noindent
+(But \cs{boldsymbol'}, using the shorthand notation for \cs{prime},
+won't work.)
+
+\medskip
+\item"$\bullet$"
+You can apply \cs{boldsymbol} to ``delimiters,'' such as
+\beginexample{\exboxwidth=3.75in}
+\exbox{}{\$\\boldsymbol\\\{ ... \\boldsymbol\\\}\$} %
+        $\boldsymbol\{ \dots \boldsymbol\}$
+\exbox{}{\$\\boldsymbol\\langle ... \\boldsymbol\\rangle\$} %
+        $\boldsymbol\langle \dots \boldsymbol\rangle$
+\exbox{}{\$\char`\|, \\boldkey\char`\|, \\\char`\|, \\boldsymbol\\\char`\|\$} %
+        $|,\ \boldkey|,\ \|,\ \boldsymbol\|$
+\exbox{}{\$\\vert, \\boldsymbol\\vert, \\Vert, \\boldsymbol\\Vert\$} %
+        $\vert,\ \boldsymbol\vert,\ \Vert,\ \boldsymbol\Vert$
+\endexample
+\noindent
+However, you can't use \cs{boldsymbol} after \cs{left} and \cs{right}.
+In particular, typing
+\hbox{\tt\\left\\boldsymbol\char`\|\ ...\ \\right\\boldsymbol\char`\|}
+will produce only error messages.
+
+\medskip
+\item"$\bullet$"
+Certain symbols on the bold fonts can't be accessed at all via \cs{boldkey}
+or \cs{boldsymbol}: These include bold versions 
+${\fam\cmbsyfam A}$, \dots, ${\fam\cmbsyfam Z}$
+ of the ``calligraphic letters'' $\Cal A$,~\dots, $\Cal Z$ that you type
+as \cs{Cal A}, \dots, \cs{Cal Z},
+and bold versions {\tencmmib0}, \dots, {\tencmmib9}
+ of the oldstyle numbers
+\oldnos0, \dots, \oldnos9 that you get with \cs{oldnos}.  If 
+you really need to have these symbols, you will have to enlist the aid of a
+\TeX{}nician, or use \cs{pmb}.
+\endroster
+
+
+\subhead Fraktur Font \endsubhead
+
+The German Fraktur font, which is designed for use
+only in math mode, can be made
+available by typing \cs{loadeufm} in the preamble area
+of your paper.  If you are using the preprint style,
+medium-weight Fraktur is loaded automatically.
+To produce a Fraktur letter, type
+\beginexample{\exboxwidth=3.75in}
+\exbox{}{\$\\frak g\$} $\frak g$
+\exbox{}{\$\\frak A\$, \\dots, \$\\frak Z\$} $\frak A$, \dots, $\frak Z$
+\endexample
+
+
+\subhead Blackboard Bold \endsubhead
+
+\AmSTeX{} has a ``blackboard bold'' font, \cs{Bbb}.  Like \cs{Cal},
+it will work only in math mode, and only when applied to uppercase
+letters.  This alphabet is part of the \filnam{msbm} font, and can be
+made available by typing \cs{loadmsbm} at the top of your file.  (It is
+loaded automatically with the preprint style.)
+\beginexample{\exboxwidth=3.75in}
+\exbox{}{\$\\Bbb A, \\Bbb C, \\Bbb R\$, etc.} $\Bbb A, \Bbb C, \Bbb R$, etc.
+\endexample
+
+
+\subhead Poor Man's Bold \endsubhead
+
+\AmSTeX{} now has boldface versions of most math symbols.  However, if you
+need only one or two bold symbols and have run out of \TeX{} capacity for
+new fonts or font families, you can always get a poor man's bold version
+of bold with \cs{pmb}, as described in \Joy{}.
+
+
+\subhead Bold Greek Letters \endsubhead
+
+Bold Greek letters, both lowercase and uppercase, can be obtained by
+using the \cs{boldsymbol} construction, as described in {\bf Bold
+Characters in Math Mode}.  The upright uppercase bold Greek letters are
+part of the ordinary bold font and therefore extra font loading commands
+do not need to be used in order to get them.  However, the lowercase and
+slanted uppercase bold Greek letters are not loaded automatically, so
+you must specify \cs{loadbold} before using them.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\head 5. Symbol Names
+\endhead
+
+The symbols in the \filnam{msam} and \filnam{msbm} fonts have been
+assigned ``standard'' control sequence names as shown below.  All
+the symbol names are loaded automatically by the preprint style; if
+you are not using the preprint style, the command \cs{UseAMSsymbols}
+will have the same effect.
+This will add about 200 new
+control sequences to \TeX{}'s internal table.  If you are short on
+space, or need only a few of the symbols, you can use a different
+approach to access just the ones you need.  See the section {\bf The
+\cs{newsymbol} command} below.
+
+
+\subhead Special Symbols and Blackboard Bold Letters
+\endsubhead
+
+Certain symbols from the \filnam{msam} family can be specified by
+control sequences that will be defined as soon as the command
+\cs{loadmsam} has appeared in the file.
+
+First there are four symbols that are normally used outside of math mode:
+$$\vcenter{\halign to\hsize{\1{#}\hfil\tabskip\centering&
+   \hbox to.5\hsize{\1{#}\hfil}\tabskip0pt\cr
+checkmark&circledR\cr
+maltese&yen\cr}}
+$$
+These symbols, like \P, \S, \dag, and \ddag, can also be used in
+math mode, and will change sizes correctly in subscripts and superscripts.
+
+Next are four symbols that are ``delimiters'' (although there are
+no larger versions obtainable with \cs{left} and \cs{right}), so they
+must be used in math mode:
+$$\vcenter{\halign to\hsize{\1{#}\hfil\tabskip\centering&
+   \hbox to.5\hsize{\1{#}\hfil}\tabskip0pt\cr
+ ulcorner&urcorner\cr
+ llcorner&lrcorner\cr}}$$
+
+Finally, two dashed arrows are constructed from symbols in this family.
+Note that one of them has two names; it can be accessed by either one:
+$$\vcenter{\halign to\hsize{\1{#}\hfil\tabskip\centering&
+   \hbox to.5\hsize{\1{#}\hfil}\tabskip0pt\cr
+ \omit\hbox to.5\hsize{\hbox to\biggest{\hfil$\dashrightarrow$\hfil}\ \ %
+    \cs{dashrightarrow}, \cs{dasharrow}\hss}&dashleftarrow\cr}}$$
+
+The Blackboard Bold letters $\Bbb A, \dots, \Bbb Z$
+appear in the \filnam{msbm} family.  Once \cs{loadmsbm} has appeared
+in the file, they can be typed (in math mode) as \cs{Bbb A}, \dots,
+\cs{Bbb Z}.
+
+The \filnam{msbm} family also contains wider versions of the \cs{widehat}
+and \cs{widetilde} as described in Chapter 20, ``Wide accents in math
+mode.''
+
+
+\subhead The \cs{newsymbol} Command\endsubhead
+
+All other symbols of the \filnam{msam} and \filnam{msbm} fonts must be named
+by control sequences so that they can be used (in math mode only) when the
+fonts are loaded.  This can be done all at once by typing the instruction
+\cs{UseAMSsymbols}, which will load in the file \filnam{AMSSYM.TEX}\null.
+This instruction is included in the preprint style, so the names are
+assigned automatically, which requires over~200 control sequences.
+
+If you are very short on space for control sequence names, and need only
+a few of these symbols, you can omit \cs{UseAMSsymbols}.  Instead,
+assign only the names you will need by using a new \AmSTeX{} control
+sequence \cs{newsymbol} to create a control sequence that will
+properly produce this symbol.  The control sequence can be either the
+``standard'' name, as listed below, or one of your own choosing.
+
+The list of symbols below shows for each symbol the symbol itself, a
+four-character~``ID,'' and the ``standard'' name of the symbol. 
+(The first character of the ID identifies the font family in which a
+symbol resides.  Symbols from the \filnam{msam} family have {\tt1} as the
+first character; symbols from the \filnam{msbm} family have {\tt2} as the
+first character.)
+For example, the symbol $\nleqslant$ appears as
+\medskip
+\noindent\kern2\parindent\2{nleqslant}
+\medskip
+\noindent
+To produce a control sequence with this name, the instruction
+\medskip
+\noindent\kern2\parindent\cs{newsymbol}\cs{nleqslant 230A}
+\medskip
+\noindent
+appears in the file \filnam{AMSSYM.TEX}\null.  This same instruction can
+be typed by a user who is not using the preprint style and has chosen not
+to load all the symbol names by \cs{UseAMSsymbols}.  Thereafter, the
+control sequence \cs{nleqslant} will produce the symbol $\nleqslant$
+(in math mode), and will act properly as a ``binary relation.''
+
+A few symbols in these fonts replace symbols defined in \filnam{PLAIN.TEX}
+by combinations of symbols available in the Computer Modern fonts.  These
+are \cs{angle}~($\angle$) and \cs{hbar}~($\hbar$) from the group
+``Miscellaneous symbols,'' and \cs{rightleftharpoons}~($\rightleftharpoons$)
+from the group ``Arrows'' below (and \Joy, Appendix~F).  The new symbols will
+change sizes correctly in subscripts and superscripts, provided that you
+are using appropriate redefinitions.  In order to use \cs{newsymbol} to
+replace an existing definition, the name must first be ``undefined.''
+Here are the lines you must put in your file if you are not using the
+preprint style or \cs{UseAMSsymbols} (which perform the redefinition
+automatically):
+\medskip
+\begingroup
+\parindent=2\parindent
+\obeylines
+\cs{undefine}\cs{angle}
+\cs{newsymbol}\cs{angle 105C}
+\cs{undefine}\cs{hbar}
+\cs{newsymbol}\cs{hbar 207E}
+\cs{undefine}\cs{rightleftharpoons}
+\cs{newsymbol}\cs{rightleftharpoons 130A}
+\endgroup
+\medskip
+\noindent
+These symbols are flagged in the tables below with a ``{\eightpoint(U)}''
+as a reminder that they must be undefined.
+
+Note in the tables that some symbols are shown with two names.  In such
+cases, either one can be used to access the symbol.
+
+%  since the symbol tables are set in displays, decrease the skip
+%  above, so that the space between a section heading and table is
+%  not so large.
+\abovedisplayskip=3pt plus 3pt minus 0pt
+
+\BBB{Lowercase Greek letters}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+digamma&varkappa\cr}$$
+
+\BBB{Hebrew letters}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+beth&gimel\cr 
+daleth\cr
+}$$
+
+\BBB{Miscellaneous symbols}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+\omit\4{hbar}&backprime\cr
+hslash&varnothing\cr
+vartriangle&blacktriangle\cr
+triangledown&blacktriangledown\cr
+square&blacksquare\cr
+lozenge&blacklozenge\cr
+circledS&bigstar\cr
+\omit\4{angle}&sphericalangle\cr
+measuredangle&\omit\cr
+nexists&complement\cr
+mho&eth\cr
+Finv&diagup\cr
+Game&diagdown\cr
+Bbbk&\omit\cr
+}$$
+
+\BBB{Binary operators}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+dotplus&ltimes\cr
+smallsetminus&rtimes\cr
+\omit\3{Cap}{doublecap}&leftthreetimes\cr
+\omit\3{Cup}{doublecup}&rightthreetimes\cr
+barwedge&curlywedge\cr
+veebar&curlyvee\cr
+doublebarwedge\cr
+boxminus&circleddash\cr
+boxtimes&circledast\cr
+boxdot&circledcirc\cr
+boxplus&centerdot\cr
+divideontimes&intercal\cr}
+$$
+
+\BBB{Binary relations}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+leqq&geqq\cr
+leqslant&geqslant\cr
+eqslantless&eqslantgtr\cr
+lesssim&gtrsim\cr
+lessapprox&gtrapprox\cr
+approxeq\cr
+lessdot&gtrdot\cr
+\omit\3{lll}{llless}&\omit\3{ggg}{gggtr}\cr
+lessgtr&gtrless\cr
+lesseqgtr&gtreqless\cr
+lesseqqgtr&gtreqqless\cr
+\omit\3{doteqdot}{Doteq}&eqcirc\cr
+risingdotseq&circeq\cr
+fallingdotseq&triangleq\cr
+backsim&thicksim\cr
+backsimeq&thickapprox\cr
+subseteqq&supseteqq\cr
+Subset&Supset\cr
+sqsubset&sqsupset\cr
+preccurlyeq&succcurlyeq\cr
+curlyeqprec&curlyeqsucc\cr
+precsim&succsim\cr
+precapprox&succapprox\cr
+vartriangleleft&vartriangleright\cr
+trianglelefteq&trianglerighteq\cr
+vDash&Vdash\cr
+Vvdash\cr
+smallsmile&shortmid\cr
+smallfrown&shortparallel\cr
+bumpeq&between\cr
+Bumpeq&pitchfork\cr
+varpropto&backepsilon\cr
+blacktriangleleft&blacktriangleright\cr
+therefore&because\cr}$$
+\bigbreak
+\BBB{Negated relations}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+nless&ngtr\cr
+nleq&ngeq\cr
+nleqslant&ngeqslant\cr
+nleqq&ngeqq\cr
+lneq&gneq\cr
+lneqq&gneqq\cr
+lvertneqq&gvertneqq\cr
+lnsim&gnsim\cr
+lnapprox&gnapprox\cr
+nprec&nsucc\cr
+npreceq&nsucceq\cr
+precneqq&succneqq\cr
+precnsim&succnsim\cr
+precnapprox&succnapprox\cr
+nsim&ncong\cr
+nshortmid&nshortparallel\cr
+nmid&nparallel\cr
+nvdash&nvDash\cr
+nVdash&nVDash\cr
+ntriangleleft&ntriangleright\cr
+ntrianglelefteq&ntrianglerighteq\cr
+nsubseteq&nsupseteq\cr
+nsubseteqq&nsupseteqq\cr
+subsetneq&supsetneq\cr
+varsubsetneq&varsupsetneq\cr
+subsetneqq&supsetneqq\cr
+varsubsetneqq&varsupsetneqq\cr}$$
+
+\overfullrule=0pt
+
+\BBB{Arrows}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+leftleftarrows&rightrightarrows\cr
+leftrightarrows&rightleftarrows\cr
+Lleftarrow&Rrightarrow\cr
+twoheadleftarrow&twoheadrightarrow\cr
+leftarrowtail&rightarrowtail\cr
+looparrowleft&looparrowright\cr
+leftrightharpoons&\omit\4{rightleftharpoons}\cr
+curvearrowleft&curvearrowright\cr
+circlearrowleft&circlearrowright\cr
+Lsh&Rsh\cr
+upuparrows&downdownarrows\cr
+%      Some fancy tricks to avoid a lot of extra work.  MJD
+upharpoonleft&upharpoonright}\setbox0\lastbox\unhbox0\unskip,\hfill{\cr
+downharpoonleft&\omit\kern7em \cs{restriction}\hfil\cr
+multimap&downharpoonright\cr
+leftrightsquigarrow&rightsquigarrow\cr}$$
+
+\BBB{Negated arrows}
+$$\halign{\hbox to.5\hsize{\2{#}}&\2{#}\cr
+nleftarrow&nrightarrow\cr
+nLeftarrow&nRightarrow\cr
+nleftrightarrow&nLeftrightarrow\cr}$$
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\head 6. Other Things You Ought to Know
+\endhead
+
+\subhead Errata to \JoT{} prior to \AmSTeX{} 2.0
+\endsubhead
+
+The file \filnam{JOYERR.TEX} contains the full list of errata
+for the first edition of \JoT{}, for versions of \AmSTeX{}
+earlier than version 2.0.  A user who
+desires a typeset copy of this file may run it through \TeX{} and print
+out the \filnam{.dvi} file.  This will require Version~2.0+ of \AmSTeX{}
+and \filnam{AMSPPT.STY}, and also AMSFonts Version~2.0+
+(users of AMSFonts Version~2.0 are strongly encouraged to upgrade to
+Version~2.1).
+
+
+\subhead Acknowledging the Use of \AmSTeX{}\endsubhead
+
+The following are suggested as appropriate statements of acknowledgment
+that \AmSTeX{} has been used to format a document for publication.
+
+\penalty-9000 % to encourage a break without absolutely forcing it.
+A single paper should include the following at the bottom of the first
+page:
+\beginexample{}
+\rm{}Typeset by \AmSTeX{}
+\endexample
+\noindent
+(This notation is provided automatically by the \AmSTeX{} preprint style.)
+
+If an entire journal or book is prepared with \AmSTeX{}, the following
+statement should appear on its copyright page:
+\beginexample{}
+\rm{}This [journal/book] was typeset by \AmSTeX{}, the \TeX{} macro %
+system of the \AMS{}.
+\endexample
+
+If only selected papers in a journal or book are set with \AmSTeX{}, these
+papers should be identified as shown above, and the following should
+appear on the copyright page:
+\beginexample{}
+\rm{}\AmSTeX{} is the \TeX{} macro system of the \AMS{}.
+\endexample
+
+
+\head 7. Getting Help
+\endhead
+
+If you should find any bugs in the macros or documentation,
+send a Problem Report to:
+\beginexample{\rm}
+Technical Support Department
+\AMS{}
+P. O. Box 6248
+Providence, RI 02940
+\vskip 2pt %
+Phone: 800-321-4AMS \quad or \quad 401-455-4080
+Internet: tech-support\@Math.AMS.org
+\endexample
+
+A Problem Report should contain the following information:
+\roster
+\item version of \filnam{AMSTEX.TEX} and of \filnam{AMSPPT.STY} with which
+  the problem occurred;
+\item a detailed description of the problem, including the input code for
+  one or more examples that illustrate the problem;
+\item a log file of a \TeX{} session showing the problem.
+\endroster
+
+\head References\endhead
+
+\noindent\hangindent2pc Knuth, Donald E. {\it The \TeX{}book}. Reading:
+Addison Wesley, 1986.
+
+\noindent\hangindent2pc Spivak, Michael D. {\it The Joy of \TeX{}},
+2nd (revised) edition, \AMS{}, Providence, 1990.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+%  Arrange for the sample references to be set broadside, with the output
+%  pasted up next to the corresponding input.  The section heading should
+%  be full-width, and the running heads should be the normal page width.
+%  To accomplish the latter, we must redefine plain's \makeheadline.
+
+\begingroup % This will be ended after the broadside section
+
+% To suppress an unimportant `overfull vbox' message (0.8 points):
+\vfuzz=1pt
+
+\newdimen\headlinewidth
+\headlinewidth=\hsize
+\def\makeheadline{\vbox to0pt{\vskip-22.5pt
+  \hbox to\headlinewidth{\vbox to8.5pt{}\the\headline}\vss}\nointerlineskip}
+
+\head Appendix A.\quad Sample Bibliography Input and Output
+\endhead
+
+\pageheight{30pc}
+
+\pagewidth{23pc}
+\beginexample{\exindent=0pt}
+\\Refs
+\\ref\\key 4 \% assuming \\refstyle\{C\} 
+\\by V. I. Arnol\$'\$d, A. N. Varchenko,
+\ and S. M. Guse\\u\\i n-Zade
+\\book Singularities of differentiable maps.~\\rom I
+\\publ ``Nauka'' \\publaddr Moscow \\yr 1982
+\\lang Russian
+\\endref
+\ {}
+\\ref\\key 5\\bysame 
+\\book Singularities of differentiable maps.~\\rom\{II\}
+\\publ ``Nauka'' \\publaddr Moscow \\yr 1984
+\\lang Russian
+\\endref
+\ {}
+\\ref\\key 6
+\\by O. A. Ladyzhenskaya
+\\book Mathematical problems in the dynamics
+\ of a viscous incompressible fluid 
+\\bookinfo 2nd rev. aug. ed.
+\\publ ``Nauka'' \\publaddr Moscow \\yr 1970
+\\lang Russian
+\\transl English transl. of 1st ed.
+\\book The mathematical theory of viscous
+\ incompressible flow
+\\publ Gordon and Breach \\publaddr New York
+\\yr 1963; rev. 1969
+\\endref
+\endexample
+
+\newpage
+
+\beginexample{\exindent=0pt}
+\\ref\\key 7
+\\by P. D. Lax and C. D. Levermore
+\\paper The small dispersion limit for the
+\ KdV equation.~\\rom I
+\\jour Comm. Pure Appl. Math. \\vol 36 \\yr 1983
+\\pages 253--290 \\finalinfo (overview)
+\\moreref\\paper \\rom\{II\}
+\\jour Comm. Pure Appl. Math. 
+\\vol 36 \\yr 1983 \\pages 571--594
+\\moreref\\paper \\rom\{III\}
+\\jour Comm. Pure Appl. Math. 
+\\vol 36 \\yr 1983 \\pages 809--829 \\endref
+\ {}
+\\ref\\key 10 \\by S. Osher
+\\paper Shock capturing algorithms for equations of
+\ mixed type
+\\inbook Numerical Methods for Partial Differential
+\ Equations \\eds S. I. Hariharan and T. H. Moulton
+\\publ Longman \\publaddr New York \\yr 1986
+\\pages 305--322
+\\endref
+\ {}
+\\ref\\key 17 \\by G. S. Petrov
+\\paper Elliptic integrals and their nonoscillatory
+\ behavior
+\\jour Funktsional. Anal. i Prilozhen.
+\\vol 20 \\yr 1986 \\pages 46--49
+\\transl\\nofrills English transl. in
+\\jour Functional Anal. Appl. \\vol 20\\yr 1986
+\\endref
+\endexample
+
+\newpage
+
+\beginexample{\exindent=0pt}
+\% switch to a different references style
+\\refstyle\{A\}
+\\widestnumber\\key\{GHMR\}
+\ {}
+\\ref\\key C1
+\\by B. Coomes
+\\book Polynomial flows, symmetry groups, and
+\ conditions sufficient for injectivity of maps
+\\bookinfo Ph.D. thesis, Univ. Nebraska--Lincoln
+\\yr 1988
+\\endref
+\ {}
+\\ref\\key C2
+\\bysame \% B. Coomes
+\\paper The Lorenz system does not have a
+\ polynomial flow
+\\jour J. Differential Equations
+\\toappear
+\\endref
+\ {}
+\\ref\\key GHMR
+\\by J. Guckenheimer, P. Holmes, M. Martineau,
+\ and L. P. Robinson
+\\book Nonlinear oscillations, dynamical systems,
+\ and bifurcations of vector fields
+\\bookinfo \% fields can be left blank
+\\publ Springer-Verlag \\publaddr New York
+\\yr 1983
+\\endRefs
+\endexample
+
+\newpage
+
+\begingroup
+\refstyle{C}
+\aboveheadskip=\abovedisplayskip
+
+\Refs
+\ref\key 4 % assuming \refstyle{C}
+\by V. I. Arnol$'$d, A. N. Varchenko, and S. M. Guse\u\i n-Zade
+\book Singularities of differentiable maps.~{\rm I}
+\publ ``Nauka'' \publaddr Moscow
+\yr 1982
+\lang Russian
+\endref
+
+\ref\key 5
+\bysame 
+\book Singularities of differentiable maps.~{\rm II}
+\publ ``Nauka'' \publaddr Moscow
+\yr 1984
+\lang Russian
+\endref
+
+\ref\key 6
+\by O. A. Ladyzhenskaya
+\book Mathematical problems in the dynamics of a
+ viscous incompressible fluid 
+\bookinfo 2nd rev. aug. ed.
+\publ ``Nauka'' \publaddr Moscow
+\yr 1970
+\lang Russian
+\transl English transl. of 1st ed.
+\book The mathematical theory of viscous
+incompressible flow
+\publ Gordon and Breach \publaddr New York
+\yr 1963; rev. 1969
+\endref
+
+\bigskip
+
+\ref\key 7
+\by P. D. Lax and C. D. Levermore
+\paper The small dispersion limit for the KdV equation.~{\rm I}
+\jour Comm. Pure Appl. Math. 
+\vol 36 \yr 1983 \pages 253--290
+\finalinfo (overview)
+\moreref\paper {\rm II}
+\jour Comm. Pure Appl. Math. 
+\vol 36 \yr 1983 \pages 571--594
+\moreref\paper {\rm III}
+\jour Comm. Pure Appl. Math. 
+\vol 36 \yr 1983 \pages 809--829 \endref
+
+\ref\key 10 \by S. Osher
+\paper Shock capturing algorithms for equations of mixed type
+\inbook Numerical Methods for Partial Differential Equations
+\eds S. I. Hariharan and T. H. Moulton
+\publ Longman \publaddr New York \yr 1986 \pages 305--322
+\endref
+
+\ref\key 17 \by G. S. Petrov
+\paper Elliptic integrals and their nonoscillatory behavior
+\jour Funktsional. Anal. i Pri\-lo\-zhen.
+\vol 20 \yr 1986 \pages 46--49
+\transl\nofrills English transl. in \jour Functional Anal. Appl.
+\vol 20\yr 1986
+\endref
+
+\bigskip
+
+% switch to a different references style
+\refstyle{A}
+\widestnumber\key{GHMR}
+
+\ref\key C1
+\by B. Coomes
+\book Polynomial flows, symmetry groups, and conditions
+ sufficient for injectivity of maps
+\bookinfo Ph.D. thesis, Univ. Nebraska--Lincoln
+\yr 1988
+\endref
+
+\ref\key C2
+\bysame % B. Coomes
+\paper The Lorenz system does not have a polynomial flow
+\jour J. Differential Equations
+\toappear
+\endref
+
+\ref\key GHMR
+\by J. Guckenheimer, P. Holmes, M. Martineau, and L. P. Robinson
+\book Nonlinear oscillations, dynamical systems, and
+ bifurcations of vector fields
+\bookinfo % fields can be left blank
+\publ Springer-Verlag \publaddr New York
+\yr 1983
+\endref
+\endRefs
+
+\endgroup       % end special value of \aboveheadskip
+
+
+\newpage
+\endgroup % end broadside section
+
+% Put the page number at the bottom of the page:
+\csname firstpage\string @true\endcsname
+% Turn off the "Typeset by AmSTeX" logo:
+\expandafter\redefine\csname logo\string @\endcsname{}
+
+% Reset the page number because the broadside pages in
+% the previous section will become three pages instead of four.
+% 18-JAN-1991 mjd
+\advance\pageno by -1
+
+%      The following file contains the installation instructions
+\input amstinst.tex
+
+\enddocument
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

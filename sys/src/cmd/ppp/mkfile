@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+CPUS=mips sparc 386
+
+TARG=pppclient	pppserver
+OFILES=ppp.$O\
+	fcs.$O\
+	compress.$O\
+	queue.$O\
+
+HFILES=ppp.h\
+	compress.h\
+	queue.h\
+
+BIN=/$objtype/bin/aux
+
+</sys/src/cmd/mkmany
+
+2.pppclient 2.pppserver:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+	;
+
+/68020/bin/aux/pppclient:Q:	2.pppclient
+	;
+/68020/bin/aux/pppserver:Q:	2.pppserver
+	;

@@ -1,0 +1,523 @@
+   Copyright (C) 1989, 1992, 1993, 1994 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of Aladdin Ghostscript.
+  
+  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+  or distributor accepts any responsibility for the consequences of using it,
+  or for whether it serves any particular purpose or works at all, unless he
+  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+  License (the "License") for full details.
+  
+  Every copy of Aladdin Ghostscript must include a copy of the License,
+  normally in a plain ASCII text file named PUBLIC.  The License grants you
+  the right to copy, modify and redistribute Aladdin Ghostscript, but only
+  under certain conditions described in the License.  Among other things, the
+  License requires that the copyright notice and this notice be preserved on
+  all copies.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+****************************************************
+* This file describes version 3.23 of Ghostscript. *
+****************************************************
+
+********
+******** An overview of Ghostscript ********
+********
+
+Ghostscript is the name of a set of software that provides:
+
+	- An interpreter for the PostScript (TM) language, and
+
+	- A set of C procedures (the Ghostscript library) that implement
+the graphics capabilities that appear as primitive operations in the
+PostScript language.
+
+How is Ghostscript licensed?  Where can I find it?
+--------------------------------------------------
+
+Ghostscript is a copyrighted work (Aladdin Enterprises owns the copyright);
+it is not shareware or in the public domain.  Different versions of it are
+distributed with three different licenses:
+
+	- Versions entitled "Aladdin Ghostscript" are distributed with a
+license called the Aladdin Ghostscript Free Public License that allows free
+use, copying, and distribution by end users, but does not allow commercial
+distribution.  You can always get the current version of Aladdin
+Ghostscript with this license by Internet FTP from
+	ftp.cs.wisc.edu:/pub/ghost/aladdin/ghostscript*NNNN*
+or
+	/afs/cs.wisc.edu/public/pub/ghost/aladdin/ghostscript*NNNN*
+where NNNN is the version number.  If you do not have convenient access to
+the Internet, Aladdin Enterprises can send you Aladdin Ghostscript on
+PC-compatible diskettes for a small fee; please contact Aladdin for more
+information.  The address and phone number are given later on in this
+document.  Please note that this is not "commercial licensing"; you are
+still getting free software, with no support and no warranty.
+
+	- Versions entitled "GNU Ghostscript" are distributed with the GNU
+General Public License, which allows free use, and free copying and
+redistribution under certain conditions (including, in some cases,
+commercial distribution).  GNU Ghostscript versions are released
+approximately a year after the corresponding Aladdin Ghostscript version.
+You can always get the current version of GNU Ghostscript by Internet FTP
+from
+	ftp.cs.wisc.edu:/pub/ghost/gnu/ghostscript*NNNN*
+or
+	/afs/cs.wisc.edu/public/pub/ghost/gnu/ghostscript*NNNN*
+or from any of the GNU distribution sites, such as ftp.uu.net:/systems/gnu
+or gatekeeper.dec.com:/pub/GNU; you can also get GNU Ghostscript on tape
+or CD-ROM from the Free Software Foundation.  For a more complete list of
+sites, including sites outside the U.S., send e-mail to
+gnu@prep.ai.mit.edu.
+
+	- Versions of Ghostscript are also available for commercial
+licensing.  See the next section for details.
+
+Aladdin Ghostscript and GNU Ghostscript come with NO WARRANTY and NO
+SUPPORT.  If you have a question or a bug to report, please see the
+section "If you need help" below for information about what to do.
+
+The Ghostscript source code distribution includes a library written by the
+Independent JPEG Group (IJG).  This library does NOT fall under either the
+GNU License or the Aladdin Ghostscript Free Public License; it comes with
+its own license, which is less restrictive.  For more information, please
+see the README file in the jpeg subdirectory of the Ghostscript source
+code.  The executable versions of Ghostscript are based in part on the
+work of the Independent JPEG Group.
+
+What about commercial use?
+--------------------------
+
+GNU Ghostscript may not be incorporated into commercial products which
+forbid copying or for which customers cannot obtain source code for no
+more than the cost of reproduction, although it may be distributed
+("aggregated") with commercial products; Aladdin Ghostscript may not be
+incorporated into commercial products at all, and may only be distributed
+commercially under extremely limited circumstances.  However, Ghostscript
+is also available for commercial licensing, which in addition to the right
+to incorporate Ghostscript into commercial products includes support, a
+limited warranty, high-quality fonts, and other benefits.  For more
+information about commercial licensing of Ghostscript, please contact
+Aladdin Enterprises' commercial distribution partners, which are the only
+entities legally authorized to distribute Ghostscript per se on any terms
+other than the GNU or Aladdin free licenses:
+
+	In the U.S. and all parts of the world except Europe:
+
+		Miles Jones
+		Director of Marketing
+		Artifex Software Inc.
+		454 Las Gallinas Ave., suite 108
+		San Rafael, CA 94903  U.S.A.
+		voice +1-415-492-9861
+		fax +1-415-492-9862
+		e-mail: dir.mktg@arsoft.com
+
+	In Europe, as a representative of Artifex Software:
+
+		quick System Service
+		Christoph Strozyk
+		Sprockhoeveler Str. 55
+		58455 Witten
+		Germany
+		Tel. +49-2302-28133-0
+		Fax. +49-2302-28133-6
+		e-mail: chris@quicksys.net
+
+Currently, Artifex does not offer commercial support as a separate
+service; support is available only to OEM licensees.  quickSys, however,
+does provide commercial support for Aladdin and GNU Ghostscript in Europe.
+
+What platforms does Ghostscript run on?
+---------------------------------------
+
+Ghostscript is written entirely in C (with some optional assembly-language
+accelerators for MS-DOS platforms), with special care taken to make it run
+properly on systems of either byte order and of various word lengths.
+
+GNU Ghostscript is known to run on the following platform families:
+
+	- A wide variety of Unix systems using X Windows version 11,
+	  release 4 and 5, including Sun-3, Sun-4, Sun-386i, Sun
+	  SPARCStation 1 and 2; generic 80386 machines running 386/ix,
+	  ISC Unix, and SCO Unix; H-P 9000/300 and 9000/800;
+	  DECStation 2100 and 3100; VAX running Ultrix; Sequent Symmetry;
+	  Convex C1 and C2; Tektronix 4300; SGI Iris Indigo;
+
+	- Sun workstations (Sun-3, SPARC, Sun-386i) running SunView;
+
+	- VAX or AXP systems running VMS with X11R4/5 and DEC C or gcc.
+
+Aladdin Ghostscript is known to run on all of the above, and additionally
+the following platform families:
+
+	- IBM PC and compatibles with EGA, VGA, SuperVGA, or compatible
+	  graphics under MS-DOS 3.1, 3.3, 5.0, or 6.22, with or without
+	  Microsoft Windows 3.0 or 3.1;
+
+	- IBM PC and compatibles under DR DOS 6.0;
+
+	- IBM PC and compatibles under OS/2 2.0 and 2.1.
+
+It is very likely that Ghostscript will run under other versions of MS-DOS,
+and other versions of Unix that support X11, but it has not been tested in
+these environments.  (Ghostscript does not run well on PC-compatibles with
+Hercules display cards, since text and graphics output interfere with each
+other, but you can work around this by redirecting the text output to a
+file.)  Versions for Microsoft Windows NT and Windows 95 are under
+development.
+
+Ghostscript has also been ported a number of platforms by users, who are
+willing to be contacted regarding problems on those specific platforms:
+
+	- For information on a port to the Atari ST, contact Tim
+	Gallivan (timg@landau.ph.utexas.edu).
+
+	- For information on a port to the Acorn Archimedes, contact
+	David Elworthy (David.Elworthy@cl.cam.ac.uk).
+
+	- For information on a port to the Apple Macintosh, contact
+	Martin Fong (mwfong@nisc.sri.com).
+
+Aladdin Enterprises is developing its own Macintosh port of Ghostscript,
+which we hope to make available before the end of 1994.
+
+********
+******** Related work
+********
+
+We know of three freely available X Windows screen previewers based on
+Ghostscript: Ghostview, GSPreview, and xpsview.  For information on
+Ghostview, contact Tim Theisen (ghostview@cs.wisc.edu).  For information on
+GSPreview, contact Richard Hesketh (rlh@ukc.ac.uk).  xpsview, which can
+use either Ghostscript or Display PostScript as its imager according to a
+command line switch, is available for anonymous FTP from
+	gatekeeper.dec.com:/pub/DEC/PRL/psview-1.29.tar.Z
+(the version number may be different) and on the Alpha OSF/1 freeware
+CDROM; the author is Francois Bourdoncle (bourdonc@prl.dec.com).
+
+There is a freely available MS Windows screen previewer based on
+Ghostscript, called GSView for Windows, and a similar OS/2 previewer called
+PM GSview.  For technical information on GSview for Windows or PM GSview,
+contact Russell Lang (rjl@eng.monash.edu.au).  These programs are also
+available for commercial licensing from Artifex Software Inc.
+
+A set of additions that provide a usable Kanji capability for Ghostscript
+version 2.4.1 is available for anonymous FTP from
+ftp.cs.titech.ac.jp:GNU/gs241j11.tar.Z.  For more information, please
+contact Mr. Norio Katayama (katayama@nacsis.ac.jp).  Mr. Katayama is
+working on adapting this package for newer Ghostscript versions
+(specifically, for versions 2.6.1 and 3.0), and expects to make the newer
+version of the package available sometime in early 1995.
+
+********
+******** Documentation overview ********
+********
+
+There is a Ghostscript World Wide Web home page at 
+	http://www.cs.wisc.edu/~ghost/index.html
+
+All the file names mentioned in the documentation, except for README,
+are in lower case, which is the usual convention for Unix systems.
+On MS-DOS systems, all file names are actually upper-case.
+
+What should I read first?
+-------------------------
+
+When you receive Ghostscript, you should start by reading:
+
+> README - this file.
+
+> current.doc - information about problems, and major changes and new
+features in the current release.
+
+If you have used a previous release of Ghostscript, you probably
+should also read any more recent sections of:
+
+> NEWS - a complete, detailed history of changes in the most recent
+Ghostscript releases.
+
+What if I'm a new user?
+-----------------------
+
+If you are a new user of Ghostscript, you should read:
+
+> use.doc - information about to install and use Ghostscript.  This
+information is also contained in gs.1 - a `man' page for Ghostscript.
+
+> devices.doc - more detailed information about specific devices that
+Ghostscript knows about.
+
+> ps2epsi.doc, unix-lpr.doc - more detailed information about some of
+the shell scripts and batch files distributed with Ghostscript.
+
+If you are going to compile Ghostscript, rather than just use an
+executable you got from somewhere, you should read:
+
+> make.doc - how to install, compile and link Ghostscript.
+
+If you run into any questions, or if you are going to be using
+Ghostscript extensively, you should at least skim, and probably
+eventually read:
+
+> fonts.doc - information about the fonts distributed with
+Ghostscript, including how to add or replace fonts.
+
+> language.doc - A description of the Ghostscript language, and its
+differences from the documented PostScript language.
+
+> psfiles.doc - information about the .ps files distributed with
+Ghostscript (other than fonts).
+
+There is also a FAQ (Frequently Asked Questions) file available on the
+Internet from smallo.ruhr.de:pub/ghost/gs.faq.
+
+What if I'm a developer?
+------------------------
+
+If you are going to be writing a new driver for Ghostscript, you
+should read:
+
+> drivers.doc - the interface between Ghostscript and device drivers.
+
+> xfonts.doc - the interface between Ghostscript and platform-supplied
+fonts.  (Read drivers.doc first.)
+
+If you are considering distributing Ghostscript (either Aladdin or GNU
+versions) in conjunction with a commercial product, you should read the
+PUBLIC license carefully, and you should also read:
+
+> commprod.doc - additional clarification of the circumstances under which
+Ghostscript can be distributed with a commercial product.
+
+If you intend to use Ghostscript in the form of a DLL under OS/2 or
+Microsoft Windows, you should read:
+
+> dll.doc - documentation on Ghostscript as a DLL.
+
+Other files
+-----------
+
+> devarch.doc - notes on the architecture of device handling in
+Ghostscript 3.0.
+
+> ps2epsi.doc - documentation for the PostScript to EPSI conversion
+utility.
+
+> helpers.doc - a note of thanks to all the people who have helped with
+Ghostscript development.
+
+> hershey.doc - information about the Hershey fonts, which are the
+basis of some of the Ghostscript fonts.
+
+> history*.doc - a history of changes in older Ghostscript releases.
+
+> humor.doc - a humorous comment on Ghostscript contributed by a user.
+
+> lib.doc - information about the Ghostscript library.
+
+> unix-lpr.doc - information about how to integrate Ghostscript with
+Unix printer spooling.
+
+********
+******** If you need help ********
+********
+
+There is a Frequently Asked Questions file available for Internet anonymous
+FTP from
+	ftp.ruhr.de:/pub/ghostscript/gs.faq
+or, if this doesn't work, from
+	ftp.cs.wisc.edu:/pub/ghost/gs.faq-NNN
+or
+	/afs/cs.wisc.edu/public/pub/ghost/gs.faq-NNN
+where NNN is a version number.
+
+Aladdin Enterprises doesn't have the resources to respond to questions
+from users of the freely available versions of Ghostscript.  (Responding
+to questions and bug reports is one of the benefits that Artifex Software
+provides to commercial users in exchange for the licensing fee.)  If you
+have problems with Ghostscript, and you have access to Usenet news, we
+suggest you post your question to one of the following Usenet newsgroups:
+
+	- If your question is about GNU Ghostscript (currently, versions
+2.6.1 and below), post it to gnu.ghostscript.bug.  If you have access to
+Internet mail, but not news, send e-mail to
+bug-ghostscript@prep.ai.mit.edu, which is equivalent to posting to the
+gnu.ghostscript.bug newsgroup.
+
+	- If your question is about Aladdin Ghostscript (currently,
+versions 3.0 and above), post it to comp.lang.postscript.  If you have
+access to Internet mail, but not news, send e-mail to
+comp.lang.postscript.usenet@decwrl.dec.com, which is equivalent to posting
+to the comp.lang.postscript newsgroup.  (We hope to establish a separate
+newsgroup for Aladdin Ghostscript in the future, since
+comp.lang.postscript was not intended for Ghostscript discussion per se.)
+
+There are hundreds of Ghostscript user sites all over the world, and often
+another user will be able to help you. If you are having trouble with
+a specific device driver, look in the file devs.mak and see if it is a
+user-maintained driver.  If so, please contact the person listed there
+directly; please do not contact Aladdin Enterprises regarding
+user-maintained drivers.
+
+Aladdin Enterprises does want Ghostscript to be of high quality, so if you
+have been running Ghostscript and encounter a problem, we encourage you to
+post bugs to the newsgroups mentioned above.  We will consider
+investigating problems reported to those newsgroups if (and only if) the
+posted report meets all the following criteria:
+
+	- You are using the most recent version of Aladdin Ghostscript.
+
+	- You obtained Ghostscript directly from Aladdin Enterprises, or
+	from the FTP or AFS site on the Internet mentioned above (i.e., not
+	from a bulletin board system or a commercial system such as
+	CompuServe or GEnie).
+
+	- You have installed Ghostscript successfully, and used it
+	successfully on other input data.
+
+	- Your problem is reproducible, and you can send us the input
+	data that evokes it (by e-mail, anonymous FTP, or PC diskette).
+	(But please do not send anything unless we ask you for it.)
+
+	- You post the bug report using the following form, completely
+	filled out:
+
+------snip------snip------snip------snip------snip------snip------snip------
+
+Ghostscript version: 
+
+Where you got Ghostscript: 
+
+Hardware you are using: 
+
+Operating system you are using: 
+
+(If you compiled Ghostscript yourself)
+C compiler you are using: 
+
+(Use as much space as you need for the remaining items.)
+Symptoms:
+
+Suggested fix (if any):
+
+Other comments:
+
+------snip------snip------snip------snip------snip------snip------snip------
+
+Bug reports that include suggested fixes are especially welcome.
+
+As time permits, Aladdin Enterprises may also respond to e-mail from the
+following classes of users:
+
+	- Beta testers who have actually given us at least one report on
+	some beta version supplied to them.
+
+	- People developing drivers that are for, or applications that
+	are based on, Ghostscript and that will be made freely available.
+
+	- People who express serious interest in commercial licensing
+	of Ghostscript.
+
+Aladdin Enterprises owns or has access to the following hardware and
+software:
+
+	Pentium and 486 PCs with color SuperVGA displays;
+	  Epson-compatible printer (the printer also is compatible with
+	  the IBM Proprinter); various H-P printers; Canon BubbleJet.
+	  These systems run both MS-DOS 5.0 and 6.22 and Microsoft Windows
+	  3.1 with Borland C++ 3.1 (and several older versions), and Linux
+	  with gcc.
+
+	SPARCstation, SunOS 4.1, cc and gcc, X11R5 and SunView;
+	  both monochrome and color displays.
+
+	DECstation, Ultrix.
+
+	IBM RS/6000, Unix.
+
+	DEC AXP (Alpha), OSF/1.
+
+If your problem turns out to be specific to some other hardware or
+software configuration, it may take longer to track down, since we
+will have to rely on other users to help.
+
+Aladdin's contact information is as follows:
+
+		Aladdin Enterprises
+		P.O. box 60264
+		Palo Alto, CA 94306
+		voice +1-415-322-0103
+		fax +1-415-322-1734
+		ghost@aladdin.com
+
+If you call on the phone, you will usually be talking to an answering
+machine.  In this case, please leave a message with your name and phone
+number and the best time for us to return the call.  Please do not call us
+if all you want is help with the freely distributed versions of
+Ghostscript!  Ghostscript is free, but our time is not.  If you call for
+help, we will tell you politely that we cannot answer your question.
+Ghostscript's documentation, while not of commercial end-user quality, has
+been adequate for thousands of users (for many of whom English is a
+foreign language), so the answer to your question is very likely in it
+somewhere.
+
+********
+******** Things you can do to help ********
+********
+
+There are some projects that users could do that are somewhat
+decoupled from the main body of the code, and that would help improve
+Ghostscript:
+
+	- Someone is needed to take responsibility for texinfo and/or man
+page documentation for Ghostscript.  What this would involve is updating
+this documentation during the beta test period for each release, and
+sending it to Aladdin to be included in the final fileset.  (Aladdin would
+continue to supply the plain-text documentation as it currently exists.)
+
+	- Ghostscript needs some good, free, Type 1 (outline) fonts.  Karl
+Berry is working on this, but it might go faster if he got some
+knowledgeable assistance.  Contact karl@cs.umb.edu if you want to help
+with this.
+
+	- Adobe has donated the specification of the Display PostScript C
+API to the X distribution, as well as the client-side implementation.
+Modifying Ghostscript to interface with this code as a substitute for a
+Display PostScript server might make Ghostscript a lot more useful, since
+it would then be "plug compatible" with Display PostScript in an important
+way.  Contact ghost@aladdin.com if you would like to help with this.
+
+	- Ghostscript should provide compression and decompression filters
+that use the same algorithms as gzip.  This would require restructuring
+gzip to use Ghostscript's buffer-to-buffer model of stream processing, and
+simplifying it so that the compression and decompression code could
+reasonably fit in a single file.  Please contact ghost@aladdin.com if you
+would like to do this.
+
+********
+******** Acknowledgements ********
+********
+
+Ghostscript was originally created, and is primarily developed and
+maintained, by L. Peter Deutsch, President of Aladdin Enterprises.
+
+Special thanks are due to Russell Lang, for the GSview for Windows and PM
+GSview programs and for contributing most of the code for the Microsoft
+Windows and OS/2 environments; to Tim Theisen, for the Ghostview program
+for X Windows and for major contributions to, and ongoing assistance with
+support of, the code for the X Windows environment; and to the Independent
+JPEG Group, for creating the JPEG DCT library that Ghostscript uses.
+
+Special thanks are due to Richard Stallman and the Free Software Foundation
+for originating the GNU License, for originally motivating the creation of
+Ghostscript, and for being the primary distributor of GNU Ghostscript on
+the Internet.
+
+The file helpers.doc contains a list of the many other people who have
+contributed significantly to improving Ghostscript.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+PostScript is a trademark of Adobe Systems, Incorporated.

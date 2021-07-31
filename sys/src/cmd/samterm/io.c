@@ -1,157 +1,93 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include <thread.h>
-#include <mouse.h>
-#include <keyboard.h>
+#include <libg.h>
 #include <frame.h>
 #include "flayer.h"
 #include "samterm.h"
 
 int	cursorfd;
-int	plumbfd = -1;
 int	input;
 int	got;
 int	block;
 int	kbdc;
-int	resized;
+int	reshaped;
 uchar	*hostp;
 uchar	*hoststop;
-uchar	*plumbbase;
-uchar	*plumbp;
-uchar	*plumbstop;
-Channel	*plumbc;
-Channel	*hostc;
-Mousectl	*mousectl;
-Mouse	*mousep;
-Keyboardctl *keyboardctl;
+uchar	*externbase;
+uchar	*externp;
+uchar	*externstop;
 void	panic(char*);
 
 void
 initio(void){
-	threadsetname("main");
-	mousectl = initmouse(nil, display->image);
-	if(mousectl == nil){
-		fprint(2, "samterm: mouse init failed: %r\n");
-		threadexitsall("mouse");
-	}
-	mousep = mousectl;
-	keyboardctl = initkeyboard(nil);
-	if(keyboardctl == nil){
-		fprint(2, "samterm: keyboard init failed: %r\n");
-		threadexitsall("kbd");
-	}
-	hoststart();
-	if(plumbstart() < 0)
-		extstart();
+	einit(Emouse|Ekeyboard);
+	estart(Ehost, 0, 0);
+	extstart();
 }
 
 void
-getmouse(void)
+frgetmouse(void)
 {
-	if(readmouse(mousectl) < 0)
-		panic("mouse");
+	mouse = emouse();
 }
 
 void
 mouseunblock(void)
 {
-	got &= ~(1<<RMouse);
+	got &= ~Emouse;
 }
 
 void
 kbdblock(void)
 {		/* ca suffit */
-	block = (1<<RKeyboard)|(1<<RPlumb);
+	block = Ekeyboard|Eextern;
 }
 
 int
 button(int but)
 {
-	getmouse();
-	return mousep->buttons&(1<<(but-1));
+	frgetmouse();
+	return mouse.buttons&(1<<(but-1));
 }
 
 void
-externload(int i)
+externload(Event *e)
 {
-	plumbbase = malloc(plumbbuf[i].n);
-	if(plumbbase == 0)
+	externbase = malloc(e->n);
+	if(externbase == 0)
 		return;
-	memmove(plumbbase, plumbbuf[i].data, plumbbuf[i].n);
-	plumbp = plumbbase;
-	plumbstop = plumbbase + plumbbuf[i].n;
-	got |= 1<<RPlumb;
+	memmove(externbase, e->data, e->n);
+	externp = externbase;
+	externstop = externbase + e->n;
+	got |= Eextern;
 }
 
 int
 waitforio(void)
 {
-	Alt alts[NRes+1];
-	Rune r;
-	int i;
 	ulong type;
-
-again:
-
-	alts[RPlumb].c = plumbc;
-	alts[RPlumb].v = &i;
-	alts[RPlumb].op = CHANRCV;
-	if((block & (1<<RPlumb)) || plumbc == nil)
-		alts[RPlumb].op = CHANNOP;
-
-	alts[RHost].c = hostc;
-	alts[RHost].v = &i;
-	alts[RHost].op = CHANRCV;
-	if(block & (1<<RHost))
-		alts[RHost].op = CHANNOP;
-
-	alts[RKeyboard].c = keyboardctl->c;
-	alts[RKeyboard].v = &r;
-	alts[RKeyboard].op = CHANRCV;
-	if(block & (1<<RKeyboard))
-		alts[RKeyboard].op = CHANNOP;
-
-	alts[RMouse].c = mousectl->c;
-	alts[RMouse].v = &mousectl->Mouse;
-	alts[RMouse].op = CHANRCV;
-	if(block & (1<<RMouse))
-		alts[RMouse].op = CHANNOP;
-
-	alts[RResize].c = mousectl->resizec;
-	alts[RResize].v = nil;
-	alts[RResize].op = CHANRCV;
-	if(block & (1<<RResize))
-		alts[RResize].op = CHANNOP;
-
-	alts[NRes].op = CHANEND;
+	static Event e;
 
 	if(got & ~block)
 		return got & ~block;
-	flushimage(display, 1);
-	type = alt(alts);
+	type = eread(~(got|block), &e);
 	switch(type){
-	case RHost:
-		hostp = hostbuf[i].data;
-		hoststop = hostbuf[i].data + hostbuf[i].n;
+	case Ehost:
+		hostp = e.data;
+		hoststop = hostp + e.n;
 		block = 0;
 		break;
-	case RPlumb:
-		externload(i);
+	case Eextern:
+		externload(&e);
 		break;
-	case RKeyboard:
-		kbdc = r;
+	case Ekeyboard:
+		kbdc = e.kbdc;
 		break;
-	case RMouse:
+	case Emouse:
+		mouse = e.mouse;
 		break;
-	case RResize:
-		resized = 1;
-		/* do the resize in line if we've finished initializing and we're not in a blocking state */
-		if(hasunlocked && block==0 && RESIZED())
-			resize();
-		goto again;
 	}
-	got |= 1<<type;
+	got |= type;
 	return got; 
 }
 
@@ -160,11 +96,11 @@ rcvchar(void)
 {
 	int c;
 
-	if(!(got & (1<<RHost)))
+	if(!(got & Ehost))
 		return -1;
 	c = *hostp++;
 	if(hostp == hoststop)
-		got &= ~(1<<RHost);
+		got &= ~Ehost;
 	return c;
 }
 
@@ -172,7 +108,7 @@ char*
 rcvstring(void)
 {
 	*hoststop = 0;
-	got &= ~(1<<RHost);
+	got &= ~Ehost;
 	return (char*)hostp;
 }
 
@@ -182,7 +118,7 @@ getch(void)
 	int c;
 
 	while((c = rcvchar()) == -1){
-		block = ~(1<<RHost);
+		block = ~Ehost;
 		waitforio();
 		block = 0;
 	}
@@ -195,11 +131,11 @@ externchar(void)
 	Rune r;
 
     loop:
-	if(got & ((1<<RPlumb) & ~block)){
-		plumbp += chartorune(&r, (char*)plumbp);
-		if(plumbp >= plumbstop){
-			got &= ~(1<<RPlumb);
-			free(plumbbase);
+	if(got & (Eextern & ~block)){
+		externp += chartorune(&r, (char*)externp);
+		if(externp >= externstop){
+			got &= ~Eextern;
+			free(externbase);
 		}
 		if(r == 0)
 			goto loop;
@@ -208,55 +144,24 @@ externchar(void)
 	return -1;
 }
 
-int kpeekc = -1;
-int
-ecankbd(void)
-{
-	Rune r;
-
-	if(kpeekc >= 0)
-		return 1;
-	if(nbrecv(keyboardctl->c, &r) > 0){
-		kpeekc = r;
-		return 1;
-	}
-	return 0;
-}
-
-int
-ekbd(void)
-{
-	int c;
-	Rune r;
-
-	if(kpeekc >= 0){
-		c = kpeekc;
-		kpeekc = -1;
-		return c;
-	}
-	if(recv(keyboardctl->c, &r) < 0){
-		fprint(2, "samterm: keybard recv error: %r\n");
-		panic("kbd");
-	}
-	return r;
-}
-
 int
 kbdchar(void)
 {
-	int c, i;
+	int c;
+	static Event e;
 
 	c = externchar();
 	if(c > 0)
 		return c;
-	if(got & (1<<RKeyboard)){
+	if(got & Ekeyboard){
 		c = kbdc;
 		kbdc = -1;
-		got &= ~(1<<RKeyboard);
+		got &= ~Ekeyboard;
 		return c;
 	}
-	while(plumbc!=nil && nbrecv(plumbc, &i)>0){
-		externload(i);
+	while(ecanread(Eextern)){
+		eread(Eextern, &e);
+		externload(&e);
 		c = externchar();
 		if(c > 0)
 			return c;
@@ -272,14 +177,27 @@ qpeekc(void)
 	return kbdc;
 }
 
-int
-RESIZED(void)
+void
+ereshaped(Rectangle r)
 {
-	if(resized){
-		if(getwindow(display, Refnone) < 0)
-			panic("can't reattach to window");
-		resized = 0;
+	USED(r);
+
+	reshaped = 1;
+}
+
+int
+RESHAPED(void)
+{
+	if(reshaped){
+		screen.r = bscreenrect(&screen.clipr);
+		reshaped = 0;
 		return 1;
 	}
 	return 0;
+}
+
+void
+mouseexit(void)
+{
+	exits(0);
 }

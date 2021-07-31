@@ -1,0 +1,187 @@
+%% 
+%% This is file `graphicx.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% graphicx.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file graphicx.dtx .
+%% 
+%% graphicx.dtx Copyright (C) 1994 David Carlisle Sebastian Rahtz
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{graphicx}
+          [1994/11/29 v0.5a Enhanced LaTeX Graphics (DPC,SPQR)]
+
+
+\DeclareOption*{\PassOptionsToPackage\CurrentOption{graphics}}
+\ProcessOptions
+\RequirePackage{keyval,graphics}
+\define@key{Gin}{bb}
+           {\Gin@viewporttrue\Gread@parse@bb#1 \\}
+\define@key{Gin}{bbllx}
+           {\Gin@viewporttrue\@defaultunits\Gin@llx#1bp\relax\@nnil}
+\define@key{Gin}{bblly}
+           {\Gin@viewporttrue\@defaultunits\Gin@lly#1bp\relax\@nnil}
+\define@key{Gin}{bburx}
+           {\Gin@viewporttrue\@defaultunits\Gin@urx#1bp\relax\@nnil}
+\define@key{Gin}{bbury}
+           {\Gin@viewporttrue\@defaultunits\Gin@ury#1bp\relax\@nnil}
+\define@key{Gin}{natwidth}
+           {\Gin@viewporttrue\@defaultunits\Gin@urx#1bp\relax\@nnil
+            \advance\Gin@urx\Gin@llx}
+\define@key{Gin}{natheight}
+           {\Gin@viewporttrue\@defaultunits\Gin@ury#1bp\relax\@nnil
+            \advance\Gin@ury\Gin@lly}
+\define@key{Gin}{angle}
+           {\Gin@esetsize
+            \@tempswatrue
+            \edef\@tempa{\toks@{\noexpand\rotatebox{#1}{\the\toks@}}}%
+            \@tempa}
+\define@key{Gin}{width}{\def\Gin@ewidth{#1}}
+\define@key{Gin}{height}{\def\Gin@eheight{#1}}
+\define@key{Gin}{scale}{%
+  \if@tempswa
+    \edef\@tempa{\toks@{\noexpand\Gscale@box{#1}[#1]{\the\toks@}}}%
+    \@tempa
+  \else
+    \def\Gin@req@sizes{%
+      \def\Gin@scalex{#1}\def\Gin@scaley{!}%
+      \Gin@req@height\Gin@scalex\Gin@nat@height
+      \Gin@req@width\Gin@scalex\Gin@nat@width}%
+  \fi
+  \@tempswatrue}
+\define@key{Gin}{draft}[true]{%
+  \lowercase{\Gin@boolkey{#1}}{draft}}
+\define@key{Gin}{clip}[true]{%
+  \lowercase{\Gin@boolkey{#1}}{clip}}
+\define@key{Gin}{type}{%
+  \def\Ginclude@graphics##1{%
+    \begingroup
+    \def\Gin@base{##1}%
+    \edef\@tempa{{#1}{\Gin@eread}{\Gin@ecom{##1\Gin@eext}}}%
+    \expandafter\Gin@setfile\@tempa
+    \endgroup}}
+\define@key{Gin}{ext}{\def\Gin@eext{#1}}
+\define@key{Gin}{read}{%
+ \def\Gin@eread{#1}%
+ \def\@tempa{*}\ifx\@tempa\Gin@eread\def\Gin@eread{\Gin@eext}\fi}
+\let\Gin@eread\@empty
+\define@key{Gin}{command}{\def\Gin@ecom##1{#1}}
+\let\Gin@ecom\@firstofone
+\def\Gin@boolkey#1#2{%
+  \csname Gin@#2\ifx\relax#1\relax true\else#1\fi\endcsname}
+\def\Gin@esetsize{%
+  \def\@tempa{!}%
+  \if@tempswa
+    \edef\@tempa{\toks@{\noexpand
+             \resizebox{\Gin@ewidth}{\Gin@eheight}{\the\toks@}}}%
+    \@tempa   
+  \else
+    \ifx\Gin@ewidth\@tempa
+      \ifx\Gin@eheight\@tempa
+      \else
+         \let\Gin@@eheight\Gin@eheight
+         \def\Gin@req@sizes{%
+           \Gscale@div\Gin@scaley\Gin@@eheight\Gin@nat@height
+           \def\Gin@scalex{!}%
+           \Gin@req@height\Gin@@eheight
+           \Gin@req@width\Gin@scaley\Gin@nat@width}%
+      \fi
+    \else
+      \ifx\Gin@eheight\@tempa
+         \let\Gin@@ewidth\Gin@ewidth
+         \def\Gin@req@sizes{%
+           \Gscale@div\Gin@scalex\Gin@@ewidth\Gin@nat@width
+           \def\Gin@scaley{!}%
+           \Gin@req@width\Gin@@ewidth
+           \Gin@req@height\Gin@scalex\Gin@nat@height}%
+      \else
+         \let\Gin@@ewidth\Gin@ewidth
+         \let\Gin@@eheight\Gin@eheight
+         \def\Gin@req@sizes{%
+           \Gscale@div\Gin@scalex\Gin@@ewidth\Gin@nat@width
+           \Gscale@div\Gin@scaley\Gin@@eheight\Gin@nat@height
+           \Gin@req@width\Gin@scalex\Gin@nat@width
+           \Gin@req@height\Gin@scaley\Gin@nat@height}%
+       \fi
+     \fi
+  \fi
+  \def\Gin@ewidth{!}\let\Gin@eheight\Gin@ewidth}
+\newdimen\Gin@req@height
+\newdimen\Gin@req@width
+\let\Gin@outer@scalex\relax
+\let\Gin@outer@scaley\relax
+\let\Gin@angle\relax
+\def\Gin@ewidth{!}\let\Gin@eheight\Gin@ewidth
+\def\Gin@scalex{1}\def\Gin@scaley{!}%
+\def\Gin@i{%
+ \def\Gin@req@sizes{%
+   \Gin@req@height\Gin@nat@height
+   \Gin@req@width\Gin@nat@width}%
+ \@ifnextchar[\Gin@ii{\Gin@ii[]}}
+\def\Gin@ii[#1]#2{%
+    \def\@tempa{[}\def\@tempb{#2}%
+    \ifx\@tempa\@tempb
+      \def\@tempa{\Gin@iii[#1][}%
+      \expandafter\@tempa
+    \else
+     \begingroup
+       \@tempswafalse
+       \toks@{\Ginclude@graphics{#2}}%
+       \setkeys{Gin}{#1}%
+       \Gin@esetsize
+       \the\toks@
+     \endgroup
+     \fi}
+\def\rotatebox{%
+  \@ifnextchar[\Grot@box@kv\Grot@box@std}
+\def\Grot@box@std#1#2{%
+  \Grot@setangle{#1}%
+  \setbox\z@\hbox{{#2}}%
+  \Grot@x\z@
+  \Grot@y\z@
+  \Grot@box}
+\def\Grot@box@kv[#1]#2#3{%
+  \@begin@tempboxa\hbox{#3}%
+    \Grot@x\width \divide\Grot@x\tw@
+    \Grot@y\height \advance\Grot@y-\depth \divide\Grot@y\tw@
+    \setkeys{Grot}{#1}%
+    \setbox\z@\box\@tempboxa
+    \Grot@setangle{#2}%
+    \Grot@box
+  \@end@tempboxa}
+\define@key{Grot}{origin}[c]{%
+ \@tfor\@tempa:=#1\do{%
+    \if l\@tempa \Grot@x\z@\else
+    \if r\@tempa \Grot@x\width\else
+    \if t\@tempa \Grot@y\height\else
+    \if b\@tempa \Grot@y-\depth\else
+    \if B\@tempa \Grot@y\z@\fi\fi\fi\fi\fi}}
+\define@key{Grot}{x}{\setlength\Grot@x{#1}}
+\define@key{Grot}{y}{\setlength\Grot@y{#1}}
+\define@key{Grot}{units}{%
+  \def\Grot@setangle##1{%
+  \dimen@##1\p@
+  \dimen@ii#1\p@
+  \divide\dimen@ii360\relax
+  \divide\dimen@\dimen@ii
+  \edef\Grot@angle{\number\dimen@}}}
+\endinput
+%% 
+%% End of file `graphicx.sty'.

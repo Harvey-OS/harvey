@@ -1,28 +1,30 @@
 // support for acme; acid must be run with /acme/acid/$cputype/Acid
 
-
 defn w(*code)
 {
 	local dir;
 
-	printto("/tmp/acme.acid", eval code);
-	rc("cat /tmp/acme.acid | wnew -d "+"Acid/-stk'("+itoa(pid)+")'");
+	printto(acmesrvfile, "New "+itoa(pid)+"/stk");
+	dir = readfile(acmesrvfile);
+	printto(dir+"/body", eval code);
+	return dir;
 }
 
 defn procstk(pid, name)
 {
 	local dir;
 
-	printto("/tmp/acme.acid", stk());
-	rc("cat /tmp/acme.acid | wnew -d "+"Acid/-"+name+"'("+itoa(pid)+")'");
+	setproc(pid);
+	dir = w(stk());
+	printto(dir+"/tag", " "+name);
 }
 
 defn taskstk(tid, name)
 {
 	local dir;
 
-	printto("/tmp/acme.acid", stk());
-	rc("cat /tmp/acme.acid | wnew -d "+"Acid/-"+name+"'("+itoa(pid)+")'");
+	dir = w(labstk(tid));
+	printto(dir+"/tag", " "+name);
 }
 
 defn _stk(pc, sp, link, dolocals)
@@ -105,5 +107,7 @@ defn procs()			// print status of processes
 	if pid != 0 then
 		setproc(pid);
 }
+
+acmesrvfile = readfile("/env/Acidsrv");
 
 print("/sys/lib/acid/acme");

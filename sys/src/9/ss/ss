@@ -1,0 +1,35 @@
+dev
+	root	/
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	dup	d
+	lance	l
+	scc	t
+	rtc	r
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	bit	b
+	iproute	P
+	scsi	S	scsi scsibuf
+	wren	w
+	kprof	T
+	cdrom	R
+
+stream
+	fcall
+	ip
+	async
+
+port
+	int cpuserver = 0;
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
+	void consdebug(void) {}
+
+boot terminal
+	il
+	tcp

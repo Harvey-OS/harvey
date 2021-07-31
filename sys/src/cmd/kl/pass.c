@@ -487,7 +487,7 @@ brloop(Prog *p)
 		q = p->cond;
 		if(q <= p) {
 			c++;
-			if(q == p || c > 5000)
+			if(q == p || c > 50)
 				break;
 		}
 		p = q;

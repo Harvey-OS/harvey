@@ -1,0 +1,72 @@
+% \changes{v1.0}{10 Oct 94}{First release}
+%
+% \MakeShortVerb{\|}
+%
+% \title{The \textsf{rplain} package}
+% \author{Axel Sommerfeldt\\axel@ang-physik.uni-kiel.de}
+% \date{1994/10/21}
+% \maketitle
+%
+% \begin{abstract}
+% The \textsf{rplain} package redefines the `plain' pagestyle.
+% The page numbers are now in the lower right corner instead of
+% being centered, like in this onesided document. In twosided
+% documents, the page numbers are in the lower left or right corner.
+% \end{abstract}
+%
+% \section{The user interface}
+% To use this package just type
+% \begin{quote}
+% |\usepackage{rplain}|
+% \end{quote}
+% in the preamble of your document.
+%
+% \section{The code}
+%
+% \iffalse
+%<*package>
+% \fi
+%
+% \subsection{Identification}
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{rplain}[1994/10/10 v1.0 rplain package (AS)]
+\typeout{Package: rplain v1.0 <1994/10/10> (Axel Sommerfeldt)}
+%    \end{macrocode}
+%
+% \subsection{Main code}
+% \begin{macro}{\ps@plain}
+% This macro was taken from report.cls (LaTeX2e 94/06/01 patch level 3)
+% and modified.
+%    \begin{macrocode}
+\renewcommand{\ps@plain}{%
+   \renewcommand{\@mkboth}{\@gobbletwo}%
+   \renewcommand{\@oddhead}{}%
+   \renewcommand{\@evenhead}{}%
+   \renewcommand{\@evenfoot}{\reset@font\rmfamily\thepage\hfil}%
+   \renewcommand{\@oddfoot}{\reset@font\rmfamily\hfil\thepage}}
+%    \end{macrocode}
+% \end{macro}
+% Now we have to call |\pagestyle{plain}| (again), so that the above macro
+% will be used.
+%    \begin{macrocode}
+\pagestyle{plain}
+%    \end{macrocode}
+% \iffalse
+%</package>
+% \fi
+%
+% \iffalse
+%<*driver>
+\documentclass{article}
+\usepackage{rplain}
+\usepackage{doc}
+\begin{document}
+  \DocInput{rplain.dtx} % \PrintChanges
+\end{document}
+%</driver>
+% \fi
+%
+% \Finale
+%
+\endinput

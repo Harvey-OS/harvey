@@ -1,0 +1,84 @@
+%% 
+%% This is file `fonttext.ltx', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% fontdef.dtx  (with options: `text')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% This is a generated file. 
+%% 
+%% No permission is granted to modify this file. 
+%% 
+%% To customize the text font definition used in LaTeX2e, install a file 
+%% with the name fonttext.cfg. If the .cfg file can be found it will be 
+%% automatically used and this file will be ignored. See documentation 
+%% for details. 
+%% 
+%% We recommend that you copy the relevant portions of the original 
+%% source file into a private .dtx and produce the .cfg from that source. 
+%% 
+%%% File: fontdef.dtx
+\ProvidesFile{fonttext.ltx}
+           [1994/12/02 v2.2i LaTeX Kernel
+(Text
+           font Setup)]
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\typeout{*** Don't modify this file, use a .cfg file instead ***}
+\input {OMLenc.def}
+\input  {T1enc.def}
+\input {OT1enc.def}       % <- should come after T1 for speed
+\input {OMSenc.def}
+\fontencoding{OT1}
+\DeclareFontEncodingDefaults{}{}
+\DeclareFontSubstitution{T1}{cmr}{m}{n}
+\DeclareFontSubstitution{OT1}{cmr}{m}{n}
+\input  {T1cmr.fd}
+\input  {OT1cmr.fd}
+\input {OT1cmss.fd}
+\input {OT1cmtt.fd}
+\DeclareErrorFont{OT1}{cmr}{m}{n}{10}
+\newcommand\rmdefault{cmr}
+\newcommand\sfdefault{cmss}
+\newcommand\ttdefault{cmtt}
+
+\newcommand\bfdefault{bx}
+\newcommand\mddefault{m}
+
+\newcommand\itdefault{it}
+\newcommand\sldefault{sl}
+\newcommand\scdefault{sc}
+\newcommand\updefault{n}
+
+\newcommand\encodingdefault{OT1}
+\newcommand\familydefault{\rmdefault}
+\newcommand\seriesdefault{\mddefault}
+\newcommand\shapedefault{\updefault}
+\endinput
+%% 
+%% End of file `fonttext.ltx'.

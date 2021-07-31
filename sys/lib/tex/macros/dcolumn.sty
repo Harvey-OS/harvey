@@ -1,0 +1,52 @@
+%% 
+%% This is file `dcolumn.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% dcolumn.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% File: dcolumn.dtx Copyright (C) 1992-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{dcolumn}
+         [1994/03/14 v1.02 decimal alignment package (DPC)]
+\RequirePackage{array}
+\def\DC@#1#2#3{%
+  \uccode`\~=`#1\relax
+  \m@th
+  \ifnum #3 < \z@ \expandafter\DC@centre
+  \else \expandafter\DC@right \fi
+  {#1}{#2}{#3}}
+\def\DC@centre#1#2#3{%
+  \let\DC@end\DC@endcentre
+  \uppercase{\def~}{$\egroup\setbox\tw@=\hbox\bgroup${#2}}%
+  \setbox\tw@=\hbox{${\phantom{{#2}}}$}%
+  \setbox\z@=\hbox\bgroup$\mathcode`#1="8000 }
+\def\DC@endcentre{$\egroup
+    \ifdim \wd\z@>\wd\tw@
+      \setbox\tw@=\hbox to\wd\z@{\unhbox\tw@\hfill}%
+    \else
+      \setbox\z@=\hbox to\wd\tw@{\hfill\unhbox\z@}\fi
+    \box\z@\box\tw@}
+\def\DC@right#1#2#3{%
+  \let\DC@end\DC@endright
+  \uppercase{\def~}{$\egroup\setbox\tw@=\hbox to \dimen@\bgroup${#2}}%
+   \setbox\z@=\hbox{$1$}\dimen@=#3\wd\z@
+   \setbox\z@=\hbox{${#2}$}\advance\dimen@\wd\z@
+   \setbox\tw@=\hbox to \dimen@{}%
+   \setbox\z@=\hbox\bgroup$\mathcode`#1="8000 }
+\def\DC@endright{$\hfil\egroup\hfill\box\z@\box\tw@}
+\newcolumntype{D}[3]{>{\DC@{#1}{#2}{#3}}c<{\DC@end}}
+\endinput
+%% 
+%% End of file `dcolumn.sty'.

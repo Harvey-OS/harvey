@@ -1,6 +1,10 @@
 </$objtype/mkfile
 
-<../config
+SYSTEM=plan9
+VERSION=3.3.1
+
+POSTBIN=/sys/lib/postscript/bin
+POSTLIB=/sys/lib/postscript/prologues
 
 all:V:	hardcopy
 

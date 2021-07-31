@@ -1,0 +1,120 @@
+{This file is concatenated by ./convert to the beginning of the Pascal
+ code that tangle outputs.  The idea is to put all these symbols, which
+ can be defined as macros or functions, or as part of standard C, into
+ web2c's symbol table, so that we can access them from a change file.
+ Some are standard Pascal functions, others are simply used in our
+ implementation.
+
+ web2c.yacc can parse these @define statements.}
+
+{The fields in the memory_word structure, defined in
+ `mfware/gftodmem.h' and `common/texmf.h'.}
+@define @field qqqq;
+@define @field sc;
+
+{These fields are the ones defined by the getopt library.}
+@define @field name;
+@define @field hasarg;
+@define @field flag;
+@define @field val;
+
+@define const false;
+@define const BIBINPUTPATH;
+@define const BIBINPUTPATHBIT;
+@define const BSTINPUTPATH;
+@define const BSTINPUTPATHBIT;
+@define const GFFILEPATH;
+@define const GFFILEPATHBIT;
+@define const MFINPUTPATH;
+@define const MFINPUTPATHBIT;
+@define const PATHMAX;
+@define const PKFILEPATH;
+@define const PKFILEPATHBIT;
+@define const stderr;
+@define const stdin;
+@define const stdout;
+@define const TEXINPUTPATH;
+@define const TEXINPUTPATHBIT;
+@define const TEXPOOLNAME;
+@define const TFMFILEPATH;
+@define const TFMFILEPATHBIT;
+@define const true;
+@define const VFFILEPATH;
+@define const VFFILEPATHBIT;
+
+@define function abs ();
+@define function addressofint ();
+@define function aopenin ();
+@define function aopenout ();
+@define function atof ();
+@define function casttobytepointer ();
+@define function chr ();
+@define function eof ();
+@define function eoln ();
+@define function extensionirrelevantp ();
+@define function fabs ();
+@define function feof ();
+@define function ftell ();
+@define function getc ();
+@define function getoptlongonly ();
+@define function inputint ();
+@define function odd ();
+@define function ord ();
+@define function round ();
+@define function strcmp ();
+@define function strlen ();
+@define function testreadaccess ();
+@define function toint ();
+@define function trunc ();
+@define function xmalloc ();
+@define function xrealloc ();
+
+@define procedure aclose ();
+@define procedure argv ();
+@define procedure checkedfseek ();
+@define procedure decr ();
+@define procedure errprintpascalstring ();
+@define procedure flush ();
+@define procedure fprintreal ();
+@define procedure incr ();
+@define procedure input2ints ();
+@define procedure input3ints ();
+@define procedure parsearguments ();
+@define procedure printpascalstring ();
+@define procedure printreal();
+@define procedure putbyte ();
+@define procedure read ();
+@define procedure readln ();
+@define procedure reset ();
+@define procedure rewrite ();
+@define procedure setpaths ();
+@define procedure vstrcat ();
+@define procedure uexit ();
+@define procedure vgetc ();
+@define procedure vstrcpy ();
+@define procedure write ();
+@define procedure writechunk ();
+@define procedure writeln ();
+
+@define type alphafile;
+@define type boolean = 0..1;
+@define type ccharpointer;
+@define type char = 0..255;
+@define type getoptstruct;
+@define type integer;
+@define type memoryword; {for gftodvi, TeX, and Metafont}
+@define type pointertobyte;
+@define type real;
+@define type text;
+
+@define var argc;
+@define var gargv;
+
+{These are all set by getopt.  optiontable is really _getopt_long_options.}
+@define var optarg;
+@define var optind;
+@define var optiontable;
+
+{These two are needed in BibTeX; see bibtex.ch.}
+@define var standardinput;
+@define var standardoutput;

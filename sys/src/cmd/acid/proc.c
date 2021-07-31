@@ -9,28 +9,49 @@
 
 static void install(int);
 
-void
-nocore(void)
+static void
+fixregs(Map *map)
 {
-	int i;
+	Reglist *rp;
+	Lsym *l;
+	long flen;
 
-	if(cormap == 0)
+	static int doneonce;
+
+	switch(mach->mtype) {
+	default:
+	case MMIPS:
+	case MSPARC:
 		return;
-
-	for (i = 0; i < cormap->nsegs; i++)
-		if (cormap->seg[i].inuse && cormap->seg[i].fd >= 0)
-			close(cormap->seg[i].fd);
-	free(cormap);
-	cormap = 0;
+	case MI386:
+		if (doneonce)
+			return;
+		doneonce = 1;
+		flen = 0;
+		break;
+	case M68020:
+		if (machdata->ufixup(map, &flen) < 0)
+			error("fixregs: %r\n");
+		break;
+	}
+	for (rp = mach->reglist; rp->rname; rp++) {
+		if ((rp->rflags&RFLT))
+			continue;
+		l = look(rp->rname);
+		if(l == 0)
+			print("lost register %s\n", rp->rname);
+		else
+			l->v->ival = mach->kbase+rp->roffs-flen;
+	}
 }
 
 void
 sproc(int pid)
 {
 	Lsym *s;
+	ulong ksp;
 	char buf[64];
-	ulong proctab;
-	int fd, i, fcor;
+	int fd, fcor;
 
 	if(symmap == 0)
 		error("no map");
@@ -40,39 +61,32 @@ sproc(int pid)
 	if(fcor < 0)
 		error("setproc: open %s: %r", buf);
 
-	checkqid(symmap->seg[0].fd, pid);
+	checkqid(symmap->fd, pid);
 
-	if(kernel) {
-		proctab = 0;
-		sprint(buf, "/proc/%d/proc", pid);
-		fd = open(buf, OREAD);
-		if(fd >= 0) {
-			i = read(fd, buf, sizeof(buf));
-			if(i >= 0) {
-				buf[i] = '\0';
-				proctab = strtoul(buf, 0, 0);
-			}
-			close(fd);
-		}
-		s = look("proc");
-		if(s != 0)
-			s->v->ival = proctab;
-	}
+	if(cormap)
+		close(cormap->fd);
 
 	s = look("pid");
 	s->v->ival = pid;
 
-	nocore();
-	cormap = attachproc(pid, kernel, fcor, &fhdr);
+	sprint(buf, "/proc/%d/proc", pid);
+	fd = open(buf, 0);
+	if(fd >= 0){
+		seek(fd, mach->kspoff, 0);
+		if(read(fd, (char *)&ksp, 4L) == 4)
+			mach->kbase = machdata->swal(ksp) & ~(mach->pgsize-1);
+		close(fd);
+	}
+
+	cormap = newmap(cormap, fcor, 3);
 	if (cormap == 0)
 		error("setproc: cant make coremap");
-	i = findseg(cormap, "text");
-	if (i > 0)
-		cormap->seg[i].name = "*text";
-	i = findseg(cormap, "data");
-	if (i > 0)
-		cormap->seg[i].name = "*data";
+
+	setmap(cormap, fhdr.txtaddr, fhdr.txtaddr+fhdr.txtsz, fhdr.txtaddr, "*text");
+	setmap(cormap, fhdr.dataddr, mach->kbase&~mach->ktmask, fhdr.dataddr, "*data");
+	setmap(cormap, mach->kbase, mach->kbase+mach->pgsize, mach->kbase, "*ublock");
 	install(pid);
+	fixregs(cormap);
 }
 
 int
@@ -161,6 +175,8 @@ dostop(int pid)
 	Lsym *s;
 	Node *np, *p;
 
+	fixregs(cormap);
+
 	s = look("stopped");
 	if(s && s->proc) {
 		np = an(ONAME, ZN, ZN);
@@ -197,6 +213,7 @@ install(int pid)
 	fd = open(buf, OWRITE);
 	if(fd < 0)
 		error("pid=%d: open ctl: %r", pid);
+
 	ptab[new].pid = pid;
 	ptab[new].ctl = fd;
 

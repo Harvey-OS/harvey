@@ -1,0 +1,72 @@
+.TH ARP 3 
+.SH NAME
+arp \- Internet Address Resolution Protocol
+.SH SYNOPSIS
+.nf
+.B bind -a #a /net/arp
+.sp
+.B /net/arp/ctl
+.B /net/arp/data
+.B /net/arp/stats
+.fi
+.SH DESCRIPTION
+The
+.I arp
+device provides the means by which the kernel resolves
+IP addresses
+into Ethernet addresses.
+A cache is maintained by the
+.B arp
+device to speed the process.
+.PP
+The
+.B ctl
+file controls the ARP cache maintained by the kernel.
+The
+.B flush
+control message invalidates all entries in the cache.
+The
+.B delete
+.I ipaddr
+control message invalidates a single cache entry.
+All IP addresses passed to the system are in the canonical textual form
+described in
+.IR ip (2).
+The
+.B perm
+.I ipaddr
+control message makes an existing cache entry permanent.
+.PP
+When the kernel boots,
+.B ipconfig
+sets up the IP stream and
+.B arpd
+opens
+.B #a/arp/data
+(see
+.IR ipconfig (8)).
+This establishes the ARP cache
+and enables
+.B arpd
+to receive all ARP packets from the network, which it uses to maintain the cache
+by writing the results of address resolution requests back into the cache.
+The IP stream module uses the cache to translate IP addresses.
+.PP
+Subsequent opens of the
+.B data
+file allow the contents of the cache to be examined.
+Each cache entry consists of an
+IP address, an Ethernet address, and the status of the entry.
+Entries may be
+invalid, permanent, or temporary.
+Permanent entries will never be aged from the cache.
+Temporary entries may be replaced by new addresses entered by the ARP server.
+.PP
+The file
+.B stats
+reports the cache performance.
+.SH SEE ALSO
+.IR ip (3),
+.IR ipconfig (8)
+.SH SOURCE
+.B /sys/src/9/port/devarp.c

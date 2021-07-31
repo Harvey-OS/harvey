@@ -1,6 +1,6 @@
 #include "astro.h"
 
-double	mercfp[] =
+float	mercfp[] =
 {
 	0.013,		0.6807,
 	0.048,		0.6283,

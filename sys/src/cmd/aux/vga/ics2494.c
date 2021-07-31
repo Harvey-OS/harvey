@@ -4,7 +4,6 @@
  */
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 
 #include "vga.h"
 
@@ -29,17 +28,18 @@ static Pattern patterns[] = {
 };
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Pattern *pattern;
 	char *p;
-	int f, index, divisor, maxdivisor;
+	int f, divisor, index;
 
+	verbose("%s->init\n", ctlr->name);
 	if(ctlr->flag & Finit)
 		return;
 
-	if(vga->f[0] == 0)
-		vga->f[0] = vga->mode->frequency;
+	if(vga->f == 0)
+		vga->f = vga->mode->frequency;
 
 	if((p = strchr(ctlr->name, '-')) == 0)
 		error("%s: unknown pattern\n", ctlr->name);
@@ -54,25 +54,22 @@ init(Vga* vga, Ctlr* ctlr)
 	if(pattern->name[0] == 0)
 		error("%s: unknown pattern\n", ctlr->name);
 
-	maxdivisor = 1;
-	if(vga->ctlr && (vga->ctlr->flag & Hclkdiv))
-		maxdivisor = 8;
 	for(index = 0; index < 16; index++){
-		for(divisor = 1; divisor <= maxdivisor; divisor <<= 1){
-			f = vga->f[0] - pattern->frequency[index]/divisor;
+		for(divisor = 1; divisor < 8; divisor <<= 1){
+			f = vga->f - pattern->frequency[index]/divisor;
 			if(f < 0)
 				f = -f;
 			if(f < 1000000){
 				/*vga->f = pattern->frequency[index];*/
-				vga->d[0] = divisor;
-				vga->i[0] = index;
+				vga->d = divisor;
+				vga->i = index;
 
 				ctlr->flag |= Finit;
 				return;
 			}
 		}
 	}
-	error("%s: can't find frequency %ld\n", ctlr->name, vga->f[0]);
+	error("%s: can't find frequency %ld\n", ctlr->name, vga->f);
 }
 
 Ctlr ics2494 = {

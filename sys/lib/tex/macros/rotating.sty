@@ -1,0 +1,161 @@
+%% 
+%% This is file `rotating.sty', generated 
+%% on <1995/2/26> with the docstrip utility (1).
+%% 
+%% The original source files were:
+%% 
+%% rotating.dtx  (with options: `package')
+%% Copyright (C) 1994 Sebastian Rahtz and Leonor Barroca. All 
+%% rights reserved. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+\def\fileversion{2.6}
+\def\filedate{95/01/06}
+\def\docdate {95/01/06}
+%% File: rotating.dtx Copyright (C) 1994 Sebastian Rahtz and Leonor Barroca
+\ProvidesPackage{rotating}[\filedate\space\fileversion\space Rotation package]
+\NeedsTeXFormat{LaTeX2e}
+\newif\if@rot@twoside
+\DeclareOption{clockwise}{% this is for compatibility
+ \AtBeginDocument{\setkeys{Grot}{units=360}}%
+}
+\DeclareOption{counterclockwise}{%
+ \AtBeginDocument{\setkeys{Grot}{units=-360}}%
+}
+\DeclareOption{figuresleft}{%
+  \@rot@twosidefalse 
+  \def\rot@LR{0}%
+}
+\DeclareOption{figuresright}{%
+ \@rot@twosidefalse 
+ \def\rot@LR{-1}%
+}
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{graphics}}
+\PassOptionsToPackage{dvips}{graphics}
+\ExecuteOptions{clockwise}
+\if@twoside 
+  \@rot@twosidetrue
+\else
+  \@rot@twosidefalse
+\fi
+\def\rot@LR{-1}
+\ProcessOptions
+\RequirePackage{graphicx}
+\RequirePackage{ifthen}
+\def\rotdriver#1{\makeatletter\input{#1.def}\makeatother}
+\newcount\r@tfl@t
+\r@tfl@t0
+\def\sideways{%
+  \Grot@setangle{90}%
+  \setbox\z@\hbox\bgroup\ignorespaces}
+\def\endsideways{%
+  \unskip\egroup
+  \Grot@x\z@
+  \Grot@y\z@
+  \Grot@box
+}
+\def\turn#1{%
+  \Grot@setangle{#1}%
+  \setbox\z@\hbox\bgroup\ignorespaces}
+\def\endturn{%
+  \unskip\egroup
+  \Grot@x\z@
+  \Grot@y\z@
+  \Grot@box
+}
+\def\rotate#1{%
+  \Grot@setangle{#1}%
+  \setbox\z@\hbox\bgroup\ignorespaces}
+\def\endrotate{%
+  \unskip\egroup
+  \Grot@x\z@
+  \Grot@y\z@
+  \wd0\z@\dp0\z@\ht0\z@
+  \Grot@box
+}
+\def\turnbox#1#2{%
+  \Grot@setangle{#1}%
+  \setbox\z@\hbox{{#2}}%
+  \Grot@x\z@\Grot@y\z@
+  \wd0\z@\dp0\z@\ht0\z@
+  \Grot@box
+}
+\newsavebox\rot@float@box
+\def\@rotfloat#1{%
+  \@ifnextchar[%
+    {\@xrotfloat{#1}}%
+    {\edef\@tempa{\noexpand\@xrotfloat{#1}[\csname fps@#1\endcsname]}\@tempa}%
+}
+\def\@xrotfloat#1[#2]{%
+  \@float{#1}[#2]%
+  \begin{lrbox}\rot@float@box
+  \begin{minipage}\textheight
+ }
+\def\end@rotfloat{%
+   \end{minipage}\end{lrbox}%
+   \global\advance\r@tfl@t by 1
+   \label{RF\the\r@tfl@t}%
+   \message{Adding sideways figure on }%
+   \def\R@@page{\pageref{RF\the\r@tfl@t}}%
+   \wd\rot@float@box\z@
+   \ht\rot@float@box\z@
+   \dp\rot@float@box\z@
+   \vbox to \textheight{%
+    \setkeys{Grot}{units=360}%
+    \if@rot@twoside
+      \def\R@@page{\pageref{RF\the\r@tfl@t}}%
+    \else
+      \let\R@@page\rot@LR
+    \fi 
+    \ifthenelse{\isodd{\R@@page}}{% 
+    \message{right hand page}%
+    \vfill 
+    \centerline{\rotatebox{90}{\box\rot@float@box}}%
+         }{% 
+    \message{left hand page}% 
+    \centerline{\rotatebox{-90}{\box\rot@float@box}}%
+     \vfill
+         }% 
+ }% 
+   \end@float
+}
+\def\sidewaysfigure{\let\make@caption\make@rcaption
+\@rotfloat{figure}}
+\let\endsidewaysfigure\end@rotfloat
+\def\sidewaystable{\let\make@caption\make@rcaption
+\@rotfloat{table}}
+\let\endsidewaystable\end@rotfloat
+\long\def\@makercaption#1#2{%
+   \vskip 10\p@
+   \setbox\@tempboxa\hbox{#1: #2}%
+   \ifdim \wd\@tempboxa >\vsize
+       #1: #2\par
+     \else
+       \hbox to\vsize{\hfil\box\@tempboxa\hfil}%
+   \fi}%
+\def\rotcaption{\refstepcounter\@captype\@dblarg{\@rotcaption\@captype}}
+\long\def\@rotcaption#1[#2]#3{%
+\addcontentsline{\csname ext@#1\endcsname}{#1}{%
+ \protect\numberline{\csname the#1\endcsname}{\ignorespaces #2}}%
+  \par
+  \begingroup
+    \@parboxrestore
+    \normalsize
+    \@makerotcaption{\csname fnum@#1\endcsname}{#3}%
+  \endgroup}
+\long\def\@makerotcaption#1#2{%
+ \setbox\@tempboxa\hbox{#1: #2}%
+ \ifdim \wd\@tempboxa > .8\vsize
+    \rotatebox{90}{%
+    \begin{minipage}{.8\textheight}#1 #2\end{minipage}%
+    }\par
+ \else%
+    \rotatebox{90}{\box\@tempboxa}%
+ \fi
+ \hspace{12pt}%
+}
+\endinput
+%% 
+%% End of file `rotating.sty'.

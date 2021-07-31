@@ -1,0 +1,229 @@
+.TH MOTO 9.1
+.SH NAME
+moto \- create animation scripts
+.SH SYNOPSIS
+.B fb/moto
+[
+.BI -f "start end
+] [
+.BI -s "skip
+] [
+.I file
+[
+.I arg ...
+] ]
+.SH DESCRIPTION
+.I Moto
+is a command generator tailored for an animator's needs.  Its input is
+a concise description of the animation to be produced; its output is
+a command file suitable for input to
+.I rc
+or some other command interpreter.
+Its arguments are an optional file name containing a
+.I moto
+program (default standard input) and list of numeric parameters
+that are made available to the program.
+.PP
+A
+.I moto
+program consists of a list of groups of commands guarded by a range of frames.
+Groups may contain parameter ranges enclosed in brackets
+.BR [].
+For each frame,
+.I moto
+checks each group and processes those
+whose guards include the current frame number:
+.EX
+	1,6:	clr 128
+	1,4:	clr -w [0,30] [0,30] [100,130] [100,130]
+	3,6:	clr -w [100,70] [100,70] [130,100] [130,100] 255
+.EE
+This generates
+.EX
+	clr 128
+	clr -w 0 0 100 100
+	clr 128
+	clr -w 10 10 110 110
+	clr 128
+	clr -w 20 20 120 120
+	clr -w 100 100 130 130 255
+	clr 128
+	clr -w 30 30 130 130
+	clr -w 90 90 120 120 255
+	clr 128
+	clr -w 80 80 110 110 255
+	clr 128
+	clr -w 70 70 100 100 255
+.EE
+.PP
+Two special guards,
+.B BEGIN
+and
+.BR END ,
+specify actions to be taken before and after processing frames.
+.I Moto
+allows complex computations inside parameter brackets:
+.EX
+	1,10:	clr [127.5*(1-cos([0,360]))]
+.EE
+This generates
+.EX
+	clr 0
+	clr 29.82933350233
+	clr 105.35985734747
+	clr 191.25
+	clr 247.3108091502
+	clr 247.3108091502
+	clr 191.25
+	clr 105.35985734747
+	clr 29.82933350233
+	clr 0
+.EE
+.PP
+Expressions may include constants and variables.
+All values are double-precision floating point numbers.
+The operators
+.BR = ,
+.BR / ,
+.BR + ,
+.B -
+(both unary and binary),
+.BR < ,
+.BR > ,
+.BR <= ,
+.BR >= ,
+.BR == ,
+.BR != ,
+.B ?:
+and
+.BR ! ,
+all with their meanings as in C, except that all results
+are coerced to
+.BR double .
+The result of
+.B a%b
+is
+.BR a-b*(int)(a/b) .
+The result of
+.B a&&b
+is
+.BR a?b:a .
+The result of
+.B a||b
+is
+.BR a?a:b .
+The exponentiation operator is
+.BR ^ ,
+also written
+.BR ** .
+The expression
+.B [a,b]
+varies from
+.B a
+to
+.BR b ,
+linearly as the frame number varies between the guards of the
+group containing the expression.
+The expression
+.B a[b,c]
+has the value
+.BR a*b+(1-a)*c .
+Its value varies from
+.B b
+to
+.B c
+as
+.B a
+varies from 0 to 1.
+The expression
+.BI $ i
+has the value of the
+.IR i 'th
+parameter following the file name on
+.IR moto 's
+command line.
+.PP
+The precedence of operators is, from lowest to highest:
+.EX
+	=
+	? :
+	||
+	&&
+	< <= == != > >=
+	+ -
+	* / %
+	[ ]
+	^ **
+	- \fR(unary)\fP ! $
+.EE
+Expressions may be parenthesized to alter precedence.
+.PP
+The following math functions are available:
+.EX
+	fabs floor ceil sqrt hypot sin cos tan
+	asin acos atan exp log log10 sinh cosh tanh
+.EE
+All math functions are as described in the C library,
+except that angles are measured in degrees rather than
+radians for the trig and inverse trig functions.
+In addition
+.B hypot
+may have two or three arguments,
+.B atan
+may take two arguments instead of one,
+and may also be spelled
+.BR atan2 .
+.PP
+For parameterization, and to allow even more complex
+computations,
+.I moto
+has variables, assignment and computation groups.
+A computation group causes no output; rather its body
+is a group of expressions to be evaluated for their side effects.
+It is distinguished from a command group
+by having a double colon separating the guard and body:
+.EX
+	BEGIN::	n=5
+	1,n::	x=512*sin([0,90])
+	1,n:	pcp -w 0 0 [x] 488 pic.[1,n] %0
+.EE
+This generates
+.EX
+	pcp -w 0 0 0 488 pic.1 %0
+	pcp -w 0 0 195.93391737093 488 pic.2 %0
+	pcp -w 0 0 362.03867196751 488 pic.3 %0
+	pcp -w 0 0 473.02632064578 488 pic.4 %0
+	pcp -w 0 0 512 488 pic.5 %0
+.EE
+.PP
+Upon occasion it is useful to split
+.IR moto 's
+output into several files, under program control.
+A group that is separated from its guards by an at-sign
+.B @
+instead of a colon names a file into which
+subsequent output is to be written.  For example,
+.EX
+	1,5@	file.[1,5]
+	1,5:	This is file.[1,5].
+.EE
+creates 5 files, with names
+.BR file.1 ,
+\&...,
+.BR file.5 .
+Each file's contents will announce its name.
+.PP
+As is true for all sufficiently large programs,
+.I moto
+has a shell escape.  The text of a group separated from its
+guards by an exclamation point
+.B !
+causes a copy of
+.IR rc (1)
+to be started.  The group's text is sent to
+.IR rc 's
+standard input, and its standard output inserted into
+.IR moto 's
+output.
+.SH SOURCE
+.B /sys/src/fb/moto.y

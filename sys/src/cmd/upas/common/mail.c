@@ -2,16 +2,16 @@
 
 /* format of REMOTE FROM lines */
 char *REMFROMRE =
-	"^>?From[ \t]+((\".*\")?[^\" \t]+?(\".*\")?[^\" \t]+?)[ \t]+(.+)[ \t]+remote[ \t]+from[ \t]+(.*)\n$";
+	"^>?From[ \t]+([^ \t]+)[ \t]+(.+)[ \t]+remote[ \t]+from[ \t]+(.*)\n$";
 int REMSENDERMATCH = 1;
-int REMDATEMATCH = 4;
-int REMSYSMATCH = 5;
+int REMDATEMATCH = 2;
+int REMSYSMATCH = 3;
 
 /* format of LOCAL FROM lines */
 char *FROMRE =
-	"^>?From[ \t]+((\".*\")?[^\" \t]+?(\".*\")?[^\" \t]+?)[ \t]+(.+)\n$";
+	"^>?From[ \t]+([^ \t]+)[ \t]+(.+)\n$";
 int SENDERMATCH = 1;
-int DATEMATCH = 4;
+int DATEMATCH = 2;
 
 /* output a unix style local header */
 int

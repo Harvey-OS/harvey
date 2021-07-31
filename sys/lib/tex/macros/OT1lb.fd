@@ -1,0 +1,34 @@
+%% 
+%% This is file `OT1lb.fd', generated 
+%% on <1995/2/23> with the docstrip utility (1.1).
+%% 
+%% The original source files were:
+%% 
+%% lucida.dtx  (with options: `lucidascale,OT1lb')
+%% Copyright (C) 1993 Sebastian Rahtz. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{3.2}
+\def\filedate{1995/01/27}
+\def\docdate {1995/01/27}
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}
+\typeout{File\space OT1lb.fd\space loading \space (Y\&Y names)\space Lucida Bright}%
+\DeclareFontFamily{OT1}{lb}{}%
+\DeclareFontShape{OT1}{lb}{m}{n}{<->s * [\LucidaScale]lbr}{}%
+\DeclareFontShape{OT1}{lb}{m}{it}{<->s * [\LucidaScale]lbi}{}%
+\DeclareFontShape{OT1}{lb}{m}{sl}{<->s * [\LucidaScale]lbsl}{}%
+\DeclareFontShape{OT1}{lb}{b}{n}{<->s * [\LucidaScale]lbd}{}%
+\DeclareFontShape{OT1}{lb}{b}{it}{<->s * [\LucidaScale]lbdi}{}%
+\DeclareFontShape{OT1}{lb}{b}{sl}{<->ssub * lb/b/it}{}%
+\DeclareFontShape{OT1}{lb}{bx}{n}{<->ssub * lb/b/n}{}%
+\DeclareFontShape{OT1}{lb}{bx}{it}{<->ssub * lb/b/it}{}%
+\DeclareFontShape{OT1}{lb}{bx}{sl}{<->ssub * lb/m/sl}{}%
+\DeclareFontShape{OT1}{lb}{m}{sc}{<->s * [\LucidaScale]lbrsc}{}%
+\DeclareFontShape{OT1}{lb}{b}{sc}{<->s * [\LucidaScale]lbdsc}{}%
+\DeclareFontShape{OT1}{lb}{bx}{sc}{<->ssub * lb/b/sc}{}%
+\endinput
+%% 
+%% End of file `OT1lb.fd'.

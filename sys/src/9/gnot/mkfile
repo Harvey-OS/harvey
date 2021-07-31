@@ -1,0 +1,68 @@
+CONF=gnot
+CONFLIST=gnot gnotdisk
+
+objtype=68020
+</$objtype/mkfile
+CFLAGS=-w
+
+DEV=`{rc ../port/mkdevlist $CONF}
+STREAM=`{rc ../port/mkstreamlist $CONF}
+MISC=`{rc ../port/mkmisclist $CONF}
+
+OBJ=\
+	vec.$O\
+	l.$O\
+	alarm.$O\
+	alloc.$O\
+	chan.$O\
+	clock.$O\
+	dev.$O\
+	fault.$O\
+	segment.$O\
+	swap.$O\
+	fault68020.$O\
+	latin1.$O\
+	taslock.$O\
+	main.$O\
+	mmu.$O\
+	net.$O\
+	page.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qlock.$O\
+	queue.$O\
+	screen.$O\
+	sysfile.$O\
+	sysproc.$O\
+	trap.$O\
+	$DEV\
+	stream.$O\
+	boot$CONF.root.$O\
+	$MISC $STREAM\
+	auth.$O\
+	bbmalloc.$O
+
+default:V:	9$CONF
+
+9$CONF:	$OBJ $CONF.c /$objtype/lib/libgnot.a /$objtype/lib/libg.a
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -T0x80002020 -R0x2000 $OBJ $CONF.$O -lgnot -lg -lauth -lc
+	size $target
+
+screen.$O devbit.$O:	/sys/include/gnot.h
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -o init.out -R4 initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O screen.$O fault68020.$O devduart.$O devincon.$O main.$O:	/$objtype/include/ureg.h
+
+<../port/portmkfile
+
+nm:	$OBJ
+	$LD -a -o 9 -l -b 0x80002020 $prereq -lgnot -lc > nm

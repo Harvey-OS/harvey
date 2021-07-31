@@ -1,0 +1,156 @@
+%% 
+%% This is file `babel.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% babel.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%%\iffalse
+%%%  @LaTeX-file{
+%%%     author          = "Johannes L. Braams",
+%%%     version         = "3.4f",
+%%%     date            = "03 July 1994",
+%%%     time            = "23:33:58 MET",
+%%%     filename        = "babel.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "60652 2080 9803 80663",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel",
+%%%     supported       = "yes",
+%%%     docstring       = "This file, babel.dtx contains the core of
+%%%                        the babel system as it was described in
+%%%                        TuGboat Volume 12 no 2 and Volume 14 no 1.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%      }
+%%% \fi
+%%
+%% Copyright (C) 1989-1994 by Johannes Braams,
+%%                            PTT Research Neher Laboratories
+%%                            all rights reserved.
+%% Please report errors to: J.L. Braams
+%%                          J.L.Braams@research.ptt.nl
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{babel}
+                [1994/07/03 v3.4f
+     The Babel package]
+\DeclareOption{american}{%
+  \ifx\l@USenglish\undefined
+  \else
+    \let\l@american\l@USenglish
+  \fi
+  \input{english.sty}%
+  \selectlanguage{american}}
+\DeclareOption{austrian}{\input{germanb.sty}%
+                         \selectlanguage{austrian}}
+\DeclareOption{bahasa}{\input{bahasa.sty}}
+\DeclareOption{brazil}{\input{portuges.sty}\selectlanguage{brazil}}
+\DeclareOption{catalan}{\input{catalan.sty}}
+\DeclareOption{croatian}{\input{croatian.sty}}
+\DeclareOption{czech}{\input{czech.sty}}
+\DeclareOption{danish}{\input{danish.sty}}
+\DeclareOption{dutch}{\input{dutch.sty}}
+\DeclareOption{english}{%
+  \ifx\l@UKenglish\undefined
+  \else
+    \let\l@english\l@UKenglish
+  \fi
+  \input{english.sty}}
+\DeclareOption{esperanto}{\input{esperant.sty}}
+\DeclareOption{finnish}{\input{finnish.sty}}
+\DeclareOption{francais}{%
+  \ifx\l@francais\undefined
+    \let\l@francais\l@french
+  \fi
+  \input{francais.sty}}
+\DeclareOption{french}{%
+  \ifx\l@french\undefined
+    \let\l@french\l@francais
+  \fi
+  \input{francais.sty}%
+  \let\captionsfrench\captionsfrancais
+  \let\datefrench\datefrancais
+  \let\extrasfrench\extrasfrancais
+  \let\noextrasfrench\noextrasfrancais
+  }
+\DeclareOption{galician}{\input{galician.sty}}
+\DeclareOption{german}{\input{germanb.sty}}
+\DeclareOption{germanb}{\input{germanb.sty}}
+\DeclareOption{hungarian}{\input{magyar.sty}}
+\DeclareOption{italian}{\input{italian.sty}}
+\DeclareOption{magyar}{\input{magyar.sty}}
+\DeclareOption{norsk}{\input{norsk.sty}}
+\DeclareOption{nynorsk}{%
+  \input{norsk.sty}%
+  \selectlanguage{nynorsk}}
+\DeclareOption{polish}{\input{polish.sty}}
+\DeclareOption{portuges}{\input{portuges.sty}}
+\DeclareOption{romanian}{\input{romanian.sty}}
+\DeclareOption{spanish}{\input{spanish.sty}}
+\DeclareOption{slovak}{\input{slovak.sty}}
+\DeclareOption{slovene}{\input{slovene.sty}}
+\DeclareOption{swedish}{\input{swedish.sty}}
+\DeclareOption{turkish}{\input{turkish.sty}}
+\ProcessOptions*
+%%\languagespecific{russian.dtx}
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\endinput
+%% 
+%% End of file `babel.sty'.

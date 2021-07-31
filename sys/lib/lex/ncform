@@ -1,4 +1,3 @@
-#pragma lib	"libl.a"
 int yylineno =1;
 # define YYU(x) x
 char yytext[YYLMAX];

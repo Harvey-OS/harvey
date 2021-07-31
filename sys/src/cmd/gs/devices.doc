@@ -1,0 +1,390 @@
+   Copyright (C) 1992, 1993, 1994 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of Aladdin Ghostscript.
+  
+  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+  or distributor accepts any responsibility for the consequences of using it,
+  or for whether it serves any particular purpose or works at all, unless he
+  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+  License (the "License") for full details.
+  
+  Every copy of Aladdin Ghostscript must include a copy of the License,
+  normally in a plain ASCII text file named PUBLIC.  The License grants you
+  the right to copy, modify and redistribute Aladdin Ghostscript, but only
+  under certain conditions described in the License.  Among other things, the
+  License requires that the copyright notice and this notice be preserved on
+  all copies.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+This file, devices.doc, gives more detailed documentation about
+certain specific devices for which Ghostscript can produce output.
+
+For an overview of Ghostscript and a list of the documentation files, see
+README.
+
+Devices for which this file currently contains documentation:
+	SPARCprinter
+	HP DeskJet 520, 540, and 560C
+	HP DeskJet 500C & 550C
+	HP PaintJet, XL, and XL300
+	DEC LJ250
+	Apple Dot Matrix Printer (and Imagewriter)
+
+### ------------------------- The SPARCprinter ------------------------- ###
+
+This section was written by Martin Schulte.
+
+Introduction
+------------
+
+The SPARCprinter is is connected to SPARCStation via a special SBUS card's
+video inferface, the picture is composed on the host and only a bitmap is
+send to the printer unit.
+
+Together with a SPARCprinter, you always buy (as far as I know) software
+that enables you to do postscript-printing on your SPARCPrinter.
+
+So, the need for a Ghostscript-Interface to the SPARCPrinter seems low,
+but on the other hand some Postscript drawings are not correctly printed
+with SUN's software: on some pages occured a thin vertical line of rubbish
+(reproducable), on some Mathematica drawings the text at the axes wasn't
+rotated.
+
+I tried all of these with Ghostscript and always got the expected results.
+
+However, replacing proprietary software should never be a bad idea.
+
+The problem is that there has yet been no effort to make the SPARCPrinter-
+driver behave like a BSD output-filter, I made my tests using the script
+mentioned under Installation.
+
+Installation
+------------
+
+Add sparc.dev to DEVICE_DEVS and compile ghostscript as described in
+make.doc.
+
+Afterwards, you can use the following script (the way of handling standard
+input versus filename-arguments doesn't look very clever, has anyone a
+better idea ?) to print if you substitute <GSPATH> by the place where you
+installed the ghostscript binary:
+
+outcmd1='/vol/local/lib/troff2/psxlate -r'
+outcmd2='<GSPATH> -I/home/schulte/gs252 -sDEVICE=sparc -sOUTPUTFILE=/dev/lpvi0 -'
+
+if [ $# -eq 0 ]
+then
+  $outcmd1 | $outcmd2
+else
+  cat $* | $outcmd1 | $outcmd2
+fi
+
+Problems
+--------
+
+Since /dev/lpvi can only be opened for exclusive use, another job having
+opened it (engine_ctl_sparc or another ghostscript as the most probable
+canidates) will cause to stop ghostscript with "Error: /invalidfileaccess
+in --.outputpage--"
+
+In case of common printer problems like out of paper, a warning describing
+the reason will be printed to stdout, the driver will try to access again
+and again each five seconds.
+
+Due to a problem with the device-driver (in the kernel) the reason of
+printer failure is not always correctly reported to program.  This is the
+case at least if you open the top cover (Error in the display: E5).  Look
+to the display at the printer if a "Printer problem with unknown reason"
+is reported.
+
+Fatal errors will cause the print-job to be terminated.
+
+### ------------------------------ End --------------------------------- ###
+
+### ------------------- H-P color inkjet printers ---------------------- ###
+###  (DeskJet 500C, DeskJet 550C, PaintJet, PaintJet XL, PaintJet XL300  ###
+###  and the DEC LJ250 which can operate in a Paintjet-compatible mode)  ###
+
+This section was written by George Cameron.
+
+Information and tips on usage for the drivers contained in gdevcdj.c
+====================================================================
+
+OVERVIEW:
+
+There are 6 generic drivers contained in the source module:
+
+     1 - cdj500:      HP DeskJet 500C and 540C
+     2 - cdj550:      HP DeskJet 550C and 560C
+     3 - pjxl300:     HP PaintJet XL300 and DeskJet 1200C
+     4 - pjtest:      HP PaintJet
+     5 - pjxltest:    HP PaintJet XL
+     6 - declj250:    DEC LJ250
+
+ All of these drivers have 8-bit (monochrome), 16-bit and 24-bit
+     (colour) and for the DJ 550C 32-bit, (colour, cmyk mode)
+     options in addition to standard colour and mono drivers.
+ It is also possible to set various printer-specific parameters
+     from the gs command line, eg.
+
+  gs -sDEVICE=cdeskjet -dBitsPerPixel=16 -dDepletion=1 -dShingling=2 tiger.ps
+
+NB/ The old names cdeskjet, cdjcolor and cdjmono drivers have been retained;
+    however, their functionality duplicates that available using the above
+    drivers (and cdeskjet is identical to cdj500), ie. we can use:
+
+	gs -sDEVICE=cdj500 -dBitsPerPixel=24 ...	for cdjcolor, and
+	gs -sDEVICE=cdj500 -dBitsPerPixel=1  ...	for cdjmono
+
+
+DEFAULT PAPER SIZE:
+
+ If the preprocessor symbol A4 is defined, the default paper size is the
+ European A4 size; otherwise it is the U.S. letter size (8.5"x11"). Other
+ paper sizes (including A3 for the PaintJet XL and PaintJet XL300) may be
+ specified on the command line as explained in the Ghostscript documentation.
+
+
+DEFAULT BITS-PER-PIXEL:
+
+ If the preprocessor symbol BITSPERPIXEL is defined as an integer (see below
+ for the range of allowable values), this number will be used to define the
+ default bits-per-pixel (ie. bit depth) for the generic drivers. If the
+ symbol is not defined, the default is set to 24 bits per pixel. It is
+ of course still possible to specify the value from the command line, as
+ described below. Note also that the cdeskjet, cdjcolor and cdjmono
+ drivers are unaffected by setting this symbol, as their default settings
+ are predefined to be 1, 3 and 24 respectively.
+
+
+DESKJET PHYSICAL LIMITS:
+
+ Maximum printing width = 2400 dots = 8". The printer manuals say that the
+ maximum recommended printing height on the page is 10.3", but since this
+ is obviously not true for A4 paper, and I have been unable to detect any
+ problems in printing longer page lengths, this would seem to be a rather
+ artificial restriction.
+
+ All Deskjets have 1/2" unprintable bottom margin, due to the mechanical
+ arrangement used to grab the paper. Side margins are approximately 0.25"
+ for US Letter paper, and 0.15" for A4.
+
+
+COMMAND LINE PARAMETERS:
+
+ Several printer 'properties' have been implemented for these printers.
+ Those available so far are all integer quantities, and thus may be
+ specified as eg.
+
+	gs -dBitsPerPixel=32 -dShingling=1 ... 
+
+ which sets the BitsPerPixel parameter to 32 and the Shingling parameter
+ to 1.
+
+
+BITS-PER-PIXEL:
+
+ All of the drivers in gdevcdj.c accept a command line option to set the
+ BitsPerPixel property. This gives considerable flexibility in choosing
+ various trade-offs between speed/quality/colour etc. The valid numbers
+ are:
+
+	1:	This is a standard Ghostscript monochrome driver, and uses
+		black ink (by installing the separate mono cartridge in
+		the case of the DeskJet 500C, or automatically for the
+		other printers)
+
+	3:	A standard Ghostscript colour driver, using internal
+		dithering. This is fast to compute and to print, but
+		the clustered dithering can lose some detail and
+		colour fidelity.
+
+	8:	An 'error-diffusion' monochrome driver which uses
+		Floyd-Steinberg dithering to print greyscale images.
+		The patterns are much more randomised than with the
+		normal clustered dithering, but the data files can
+		be much larger and somewhat slower to print.
+
+	16:	This is a 'cheaper' version of the following (24-bit)
+		driver, which generates a Floyd-Steinberg colour dithered
+		output using the minimum amount of memory (this may be
+		helpful when using IBM PC's when Ghostscript has not
+		been compiled using a 32-bit 386-style compiler). The
+		quality can be almost as good as the 24-bit version.
+
+	24:	A high-quality colour driver using Floyd-Steinberg dithering
+		for maximum detail and colour range. However it is very
+		memory intensive and thus can be slow to compute (and it
+		tends to produce rather larger raw data files, so they
+		can also be slower to print).
+
+	32:	This is for the DeskJet 550C only, which uses the black
+		cartridge and the colour cartridge simultaneously (ie.
+		CMYK printing). This printer can be both faster and give
+		higher quality than the DeskJet 500C, because of the
+		true black ink. (Note that the 24-bit mode also permits
+		CMYK printing on this printer, and uses less memory. Any
+		differences between 24-bit and 32-bit should be very small.)
+
+
+DESKJET PROPERTIES:
+
+ The addional properties available for the DeskJets are:
+
+	BlackCorrect	(int)	  /* Colour correction to give
+				   * better blacks when using the DJ500C
+				   * in colour mode, eg. the default of 4
+				   * reduces the cyan component to 4/5 
+				   * Range accepted: 0 - 9 (0 = none) */
+	Shingling	(int)	  /* Interlaced, multi-pass printing 
+	                           * 0 = none, 1 = 50%, 2 = 25%, 2 is
+				   * best & slowest */
+	Depletion	(int)	  /* 'Intelligent' dot-removal 
+		                   * 0 = none, 1 = 25%, 2 = 50%, 1 best
+				   * for graphics? 
+				   * Use 0 for transparencies */
+
+PAINTJET XL300/PAINTJET XL PROPERTIES:
+
+	PrintQuality	(int)	  /* Mechanical print quality
+				   * -1 = fast, 0 = normal, 1 = presentation
+				   * Fast mode reduces ink usage and uses
+				   * single-pass operation for some media
+				   * types. Presentation uses more ink and
+				   * max number of passes, ie. slowest
+				   * printing for highest quality */
+	RenderType	(int)	  /* 0 = driver does dithering
+				   * 1 = snap to primaries
+				   * 2 = snap black -> white, others to black
+				   * 3 = ordered dither
+				   * 4 = error diffusion
+				   * 5 = monochrome ordered dither
+				   * 6 = monochrome error diffusion
+				   * 7 = cluster ordered dither
+				   * 8 = monochrome cluster ordered dither
+				   * 9 = user-defined dither (not supported)
+				   * 10 = monochrome user-defined dither ns. */
+
+PAINTJET PROPERTIES:
+
+	No additional properties
+
+
+GAMMA CORRECTION:
+
+ One consequence of using Floyd-Steinberg dithering rather than Ghostscript's
+ default clustered ordered dither is that it is much more obvious that the
+ ink dots are rather larger on the page than their nominal 1/180" or 1/300"
+ size (clustering the dots tends to minimise this effect). Thus it is often
+ the case that the printed result is rather too dark. A simple empirical
+ correction for this may be achieved by preceding the actual postscript
+ file to be printed by a short file which effectively sets the gamma for
+ the device, eg.
+
+ gs ... gamma.ps colorpic.ps -c quit
+
+ where gamma.ps is
+
+%!
+{0.333 exp} dup dup currenttransfer setcolortransfer
+
+ This example sets the gamma for r, g, and b to 3, which seems to work
+ reasonably well in practice.
+
+
+GENERAL TIPS:
+
+ For all the above printers, the paper is critically important to the 
+ final results. Smoother, less fibrous paper is generally better (and
+ suggested types are given in the printer manuals). In particular, the
+ special ink-jet paper can make a big difference; the colours are 
+ brighter, but most importantly, there is almost no colour bleed, even 
+ with adjacent areas of very heavy inking. Similarly, the special coated
+ transparencies also work well (and ordinary transparencies do not work
+ at all!)
+
+ The unix-lpr.sh provides one example of setting up a multi-option
+ colour postscript lpr queue on Unix systems, and includes the ability
+ to choose a range of different colour options and printer accounting
+ and error logging.
+
+
+CAVEAT EMPTOR!:
+
+ It is not always easy for me to test all of these drivers, as the only
+ colour printer I have here is the DeskJet 500C. I rely on others testing
+ drivers for the additional machines and reporting their findings back to
+ me. 
+
+HP's 600x300 dpi resolution-enhanced mode for inkjet printers
+=============================================================
+
+This feature is available on HP's more recent inkjet printers,
+including the Deskjet 520 (mono) 540 (mono or colour) and 560C (mono
+and colour).
+
+The colour and monochrome drivers for the HP deskjet 550c are
+(probably) the best you will get for use with ghostscript, for the
+following reasons:
+
+These printers do not offer true 600x300 dpi resolution. Those that
+print in colour are strictly 300x300 dpi in colour mode, while in mono
+mode there is a pseudo 600x300 dot mode, with the restriction that you
+can't print two adjacent dots. Thus, in effect what you have is 600 dpi
+dot positioning, but on average you don't get more dots per line.
+
+What this does give is the possibility to have eg. sharper character
+outlines, as you can place dots on the edges nearer to their ideal
+positions - this is why it is worth doing.
+
+However, HP will not support user-level programming of this
+resolution-enhanced mode, one reason being that (I understand) all the
+dot spacing has to be done by the driver, and if you get it wrong, you
+can actually damage the print head.
+
+To summarise, you may lose a smidgin of (potential) text clarity using
+the 550c drivers (cdj550, cdjcolor, cdjmono etc.), but other than that,
+they are the ones for the job.
+
+### ------------------------------ End --------------------------------- ###
+
+### ------------------- Apple Dot Matrix Printer  ---------------------- ###
+
+This section was written by Mark Wedel.
+
+ The Dot Matrix Driver (DMP) driver is a simple driver I wrote.  It
+could more more efficient, but it seems to print the images fine.
+
+ The Dot Matrix Printer was a parallel predecessor to the Imagewriter
+printer.  As far as I know, the Imagewriter commands are a superset
+to those of the Dot Matrix printer, so the driver should work fine at
+generating output that can be printed on Imagewriters.
+
+ A few notes (from the gdevadmp.c file):
+
+ * To print out images, it sets the printer for unidirection printing
+ * and 15 cpi (120 dpi). IT sets line feed to 1/9 of an inch (72 dpi).
+ * When finished, it sets things back to bidirection print, 1/8" line
+ * feeds, and 12 cpi.  There does not appear to be a way to reset
+ * things to initial values.
+ *
+ * This code does not set for 8 bit characters (which is required). It
+ * also assumes that carriage return/newline is needed, and not just
+ * carriage return.  These are all switch settings on the DMP, and
+ * I have configured them for 8 bit data and cr only.
+ *
+ * You can search for the strings Init and Reset (in devdemp.c) to find the
+ * strings that set up the printer and clear things when finished, and change
+ * them to meet your needs.
+ *
+ * Also, you need to make sure that the printer daemon (assuming unix)
+ * doesn't change the data as it is being printed.  I have set my
+ * printcap file (sunos 4.1.1) with the string:
+ * ms=pass8,-opost
+ * and it works fine.
+
+ Mark Wedel
+master@cats.ucsc.edu
+
+### ------------------------------ End --------------------------------- ###

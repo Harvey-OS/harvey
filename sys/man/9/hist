@@ -1,0 +1,21 @@
+.TH HIST 9.1
+.SH NAME
+hist \- pixel value histogram
+.SH SYNOPSIS
+.B fb/hist
+[
+.I file
+]
+.SH DESCRIPTION
+.I Hist
+reads a picture file and outputs 256 lines, each containing one number for each
+of the picture's channels.
+Line
+.I n
+indicates how many of the picture's pixels have pixel value
+.IR n -1
+in each of its channels.
+.SH SOURCE
+.B /sys/src/fb/hist.c
+.SH "SEE ALSO
+.IR picfile (9.6)

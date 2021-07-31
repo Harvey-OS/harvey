@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 
 #include "vga.h"
 
@@ -44,17 +43,21 @@ commandw(uchar command)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga *vga, Ctlr *ctlr)
 {
+	USED(vga);
+	verbose("%s->options\n", ctlr->name);
+
 	ctlr->flag |= Foptions;
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	ulong pclk;
 	char *p;
 
+	verbose("%s->init\n", ctlr->name);
 	/*
 	 * Part comes in -125, -110, -80, and -66MHz speed-grades.
 	 * Work out the part speed-grade from name.  Name can have,
@@ -69,18 +72,21 @@ init(Vga* vga, Ctlr* ctlr)
 	 * take it from the mode.
 	 * Check it's within range.
 	 */
-	if(vga->f[0] == 0)
-		vga->f[0] = vga->mode->frequency;
-	if(vga->f[0] > pclk)
-		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
+	if(vga->f == 0)
+		vga->f = vga->mode->frequency;
+	if(vga->f > pclk)
+		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f);
 }
 
 static void
-load(Vga*, Ctlr*)
+load(Vga *vga, Ctlr *ctlr)
 {
 	uchar aux, command;
 
+	verbose("%s->load\n", ctlr->name);
+
 	aux = 0x00;
+	USED(vga);
 	/*
 	if(vga->mode->z == 8)
 		aux = 0x01;
@@ -94,10 +100,12 @@ load(Vga*, Ctlr*)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 	uchar command;
+
+	USED(vga);
 
 	printitem(ctlr->name, "command");
 	command = commandr();

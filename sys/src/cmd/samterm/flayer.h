@@ -21,7 +21,6 @@ struct Flayer
 	void		*user1;
 	Rectangle	entire;
 	Rectangle	scroll;
-	Rectangle	lastsr;	/* geometry of scrollbar when last drawn */
 	Vis		visible;
 };
 
@@ -29,13 +28,13 @@ void	flborder(Flayer*, int);
 void	flclose(Flayer*);
 void	fldelete(Flayer*, long, long);
 void	flfp0p1(Flayer*, ulong*, ulong*);
-void	flinit(Flayer*, Rectangle, Font*, Image**);
+void	flinit(Flayer*, Rectangle, Font*);
 void	flinsert(Flayer*, Rune*, Rune*, long);
 void	flnew(Flayer*, Rune *(*fn)(Flayer*, long, ulong*), int, void*);
 int	flprepare(Flayer*);
 Rectangle flrect(Flayer*, Rectangle);
 void	flrefresh(Flayer*, Rectangle, int);
-void	flresize(Rectangle);
+void	flreshape(Rectangle);
 int	flselect(Flayer*);
 void	flsetselect(Flayer*, long, long);
 void	flstart(Rectangle);
@@ -45,6 +44,3 @@ Flayer	*flwhich(Point);
 #define	FLMARGIN	4
 #define	FLSCROLLWID	12
 #define	FLGAP		4
-
-extern	Image	*maincols[NCOL];
-extern	Image	*cmdcols[NCOL];

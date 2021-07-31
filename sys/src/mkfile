@@ -1,51 +1,71 @@
 </$objtype/mkfile
 
-LIBS=lib9p\
-	libauth\
+LIBS=libauth\
 	libbio\
 	libc\
-	libdebugmalloc\
-	libdisk\
-	libdraw\
+	libfb\
 	libframe\
+	libg\
 	libgeometry\
+	libgnot\
 	libip\
+	liblayer\
 	liblex\
+	liblock\
 	libmach\
-	libmemdraw\
-	libmemlayer\
-	libmp\
 	libndb\
-	libplumb\
+	libpanel\
 	libregexp\
-	libsec\
 	libstdio\
-	libthread\
 	ape/lib\
+	libtiff		#special case - must be built after ape libs
 
 CMDS=cmd\
-#	games\
+	games\
+	fb\
 
 SUBSYS=ape\
+	alef\
 	/acme\
 
 none:VQ:
-	echo mk all, install, clean, nuke, release, kernels, or libs
+	echo mk all, install, clean, nuke, restart, release
 
-all install clean nuke:VQ:
+all install:VQ:
 	date
 	for (i in $LIBS $SUBSYS $CMDS) @{
-		cd $i
-		mk $target
+		echo ---$i---
+		flag e -
+		if (! test -e $i/.mk.$objtype){
+			flag e +
+			@{
+				cd $i
+				mk $target
+				touch .mk.$objtype
+			}
+		}
+		flag e +
 	}
 	date
+
+clean nuke:V:
+	for (i in $LIBS $SUBSYS $CMDS) @{
+		cd $i
+		rm -f .mk.*
+		mk $target
+	}
 
 installall:V:
 	echo "installall not supported"
 
+restart:VQ:
+	for (i in $LIBS $SUBSYS $CMDS) {
+		rm -f $i/.mk.*
+
 release:V:
 	mk nuke
 	rm -f /$objtype/lib/ape/*.a
+	rm -f /$objtype/lib/alef/*.a
 	rm -f /$objtype/lib/*.a
 	mk install
 	mk clean
@@ -54,16 +74,6 @@ kernels:V:
 	for (i in 9 fs boot) @{
 		cd $i
 		mk clean
-		mk install
+		mk installall
 		mk clean
 	}
-
-libs:V:
-	date
-	for (i in $LIBS) @{
-		cd $i
-		mk clean
-		mk install
-		mk clean
-	}
-	date

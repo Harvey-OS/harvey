@@ -31,11 +31,7 @@ The options are:
 .TP
 .BI -I dir\^
 Same as in
-.IR 2c "(1): add
-.I dir
-to the search for
-.CW search
-directives.
+.IR 2c (1).
 .PD
 .TP
 .B -M
@@ -47,9 +43,7 @@ Use twice to list files in angle brackets.
 .B -N
 Turn off default include directories.  All must be
 specified with
-.BR -I ,
-or in the environment variable
-.BR include .
+.BR -I .
 Without this option,
 .B /$objtype/include
 and
@@ -62,24 +56,11 @@ is read from the environment.
 .B -V
 Print extra debugging information.
 .TP
-.B -P
-Do not insert
-.RB `` #line ''
-directives into the output.
-.TP
 .B -+
 Understand C++ comments.
-.TP
-.B -i
-Print the list of directories searched when
-.I #include
-is found.
-Last listed are searched first.
 .PD
 .PP
-In the absence of the
-.B -P
-option, the processed text output is sprinkled
+The output file contains processed text sprinkled
 with lines that show the original input line numbering:
 .IP
 .B #line
@@ -87,17 +68,8 @@ with lines that show the original input line numbering:
 .L
 "\fIifile\fP"
 .PP
-The command reads the environment variable
-.IR include
-and adds its (blank-separated) list of directories to
-the standard search path for
-.CW #include
-directives.  They are looked at before any directories specified with
-.BR -I ,
-which are looked at before the default directories.
-.PP
 The input language is as described in the ANSI C standard.
-The standard Plan 9 C compilers do not use
+The C compilers do not use
 .IR cpp ;
 they contain their own simple but adequate preprocessor, so
 .I cpp

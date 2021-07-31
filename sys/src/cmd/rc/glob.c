@@ -14,9 +14,9 @@ void deglob(char *s)
 		*s++=*t;
 	}while(*t++);
 }
-int globcmp(void *s, void *t)
+int globcmp(char **s, char **t)
 {
-	return strcmp(*(char**)s, *(char**)t);
+	return strcmp(*s, *t);
 }
 void globsort(word *left, word *right)
 {
@@ -115,6 +115,7 @@ int equtf(char *p, char *q){
  * not jumping past nuls in broken utf codes!
  */
 char *nextutf(char *p){
+	int u=*p&0xff;
 	if(twobyte(*p)) return p[1]=='\0'?p+1:p+2;
 	if(threebyte(*p)) return p[1]=='\0'?p+1:p[2]=='\0'?p+2:p+3;
 	return p+1;
@@ -123,7 +124,7 @@ char *nextutf(char *p){
  * Convert the utf code at *p to a unicode value
  */
 int unicode(char *p){
-	int u=*p&0xff;
+	int u=*p&0xff, v;
 	if(twobyte(u)) return ((u&0x1f)<<6)|(p[1]&0x3f);
 	if(threebyte(u)) return (u<<12)|((p[1]&0x3f)<<6)|(p[2]&0x3f);
 	return u;

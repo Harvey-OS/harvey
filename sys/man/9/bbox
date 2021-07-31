@@ -1,0 +1,50 @@
+.TH BBOX 9.1
+.SH NAME
+bbox \- compute bounding rectangle
+.SH SYNOPSIS
+.B fb/bbox
+[
+.B -s
+] [
+.BI -c channel
+] [
+.BI -v value
+]
+[
+.I picture
+]
+.SH DESCRIPTION
+.I Bbox
+reads the given picture file (default standard input)
+and prints on its standard output the minimum bounding
+box of the interesting pixels of the image.
+`Interesting' pixels are those for which a given channel,
+specified by the
+.B -c
+option,
+does not have a given value, specified by the
+.B -v
+option.
+.B -v
+defaults to 0, and
+.B -c
+defaults to the α channel (letter 'a' in the CHAN= header line)
+if the image contains one, or the `m' channel otherwise.
+If the image has neither α nor `m', option
+.B -c
+is not optional.
+By default, therefore,
+.I bbox
+prints the bounding box of the visible parts of an image with an α
+channel, or the non-black parts of a monochrome image.
+.PP
+Option
+.B -s
+causes
+.I bbox
+to instead copy its input to standard output, clipping the image
+to the bounding rectangle.
+.SH SOURCE
+.B /sys/src/fb/bbox.c
+.SH "SEE ALSO
+.IR picfile (9.6)

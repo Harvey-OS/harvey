@@ -1,0 +1,1892 @@
+.xx "" "exec, exit, flag, rfork, shift, wait, whatis, .," "~ \- command language" "rc, cd, eval," "rc(1)" 123
+.xx "" "floyd, halftone, hysteresis \- create" "1-bit images by dithering" "" "floyd(9.1)" 506
+.xx "" "hp \- emulate an HP" "2621 terminal" "" "hp(1)" 87
+.xx "" "" "2a, 6a, 8a, ka, va, xa \- assemblers" "" "2a(1)" 4
+.xx "" "" "2c, 6c, 8c, kc, vc, xc \- C compilers" "" "2c(1)" 5
+.xx "" "" "2l, 6l, 8l, kl, vl, xl \- loaders" "" "2l(1)" 7
+.xx "and/" "c++/2c, c++/kc, c++/vc, c++/8c," "2l, c++/kl, c++/vl, c++/8l \- C++ compilers" "" "c++(1)" 34
+.xx "mount archival file systems" "" "32vfs, cpiofs, tapfs, tarfs, tpfs, v6fs, v10fs \-" "" "tapefs(1)" 151
+.xx "" "fff2p3, pdiv4, add4, sub4 \- operations on" "3-d points and planes" "/pn2f3, ppp2f3," "arith3(9.2)" 526
+.xx "" "qball \-" "3-d rotation controller" "" "qball(9.2)" 534
+.xx "picture color compression" "" "3to1, mcut, improve, quantize, dither \-" "" "quantize(9.1)" 521
+.xx "Disclabel \- administration for local file/" "home," "40meg, 80meg, personalize, update," "" "home(8)" 463
+.xx "clock, catclock, fireworks, swar, festoon \-/" "4s," "5s, ana, mandel, plumb, smiley, life, fsim," "" "games(1)" 78
+.xx "" "2a," "6a, 8a, ka, va, xa \- assemblers" "" "2a(1)" 4
+.xx "" "2c," "6c, 8c, kc, vc, xc \- C compilers" "" "2c(1)" 5
+.xx "" "2l," "6l, 8l, kl, vl, xl \- loaders" "" "2l(1)" 7
+.xx "" "" "8½ \- window system files" "" "8½(4)" 356
+.xx "" "" "8½, label, window, wloc \- window system" "" "8½(1)" 9
+.xx "administration for local file/" "home, 40meg," "80meg, personalize, update, Disclabel \-" "" "home(8)" 463
+.xx "" "2a, 6a," "8a, ka, va, xa \- assemblers" "" "2a(1)" 4
+.xx "" "" "8al, kal, val \- ALEF compilers" "" "alef(1)" 20
+.xx "" "2c, 6c," "8c, kc, vc, xc \- C compilers" "" "2c(1)" 5
+.xx "" "c++/vc, c++/8c, c++/2l, c++/kl, c++/vl," "8l \- C++ compilers and loaders" "/c++/kc," "c++(1)" 34
+.xx "" "2l, 6l," "8l, kl, vl, xl \- loaders" "" "2l(1)" 7
+.xx "file systems" "dossrv," "9660srv, a:, b:, c:, eject \- DOS and ISO9660" "" "dossrv(4)" 363
+.xx "" "nfsserver, portmapper, pcnfsd," "9auth \- NFS service" "" "nfsserver(8)" 476
+.xx "service" "srv," "9fs, dk232, dkmodem \- start network file" "" "srv(4)" 376
+.xx "" "intro \- introduction to the Plan 9 File Protocol," "9P" "" "intro(5)" 380
+.xx "" "u9fs \- serve" "9P from Unix" "" "u9fs(4)" 379
+.xx "" "mnt \- attach to" "9P servers" "" "mnt(3)" 341
+.xx "screen" "" "9v, save, flip \- copy picture files to and from" "" "9v(9.1)" 496
+.xx "" "" "abort \- generate a fault" "" "abort(2)" 181
+.xx "" "flush \-" "abort a message" "" "flush(5)" 388
+.xx "" "" "abs, labs \- integer absolute values" "" "abs(2)" 182
+.xx "functions" "fabs, fmod, floor, ceil \-" "absolute value, remainder, floor, ceiling" "" "floor(2)" 226
+.xx "" "consolefs, C \- file system for console" "access" "" "consolefs(4)" 362
+.xx "" "leswal \- machine-independent executable file" "access" "/put2, put4, beswab, beswal, leswab," "mach(2)" 257
+.xx "" "" "access \- determine accessibility of file" "" "access(2)" 183
+.xx "" "getenv, putenv \-" "access environment variables" "" "getenv(2)" 241
+.xx "" "filesym, fileline, fnbound \- symbol table" "access functions" "/textsym, file2pc, fileelem," "symbol(2)" 308
+.xx "" "access \- determine" "accessibility of file" "" "access(2)" 183
+.xx "" "test \- set status" "according to condition" "" "test(1)" 158
+.xx "" "" "acid \- debugger" "" "acid(1)" 12
+.xx "" "" "acme \- control files for text windows" "" "acme(4)" 358
+.xx "" "" "acme, win, awd \- interactive text windows" "" "acme(1)" 15
+.xx "" "sin, cos, tan, asin," "acos, atan, atan2 \- trigonometric functions" "" "sin(2)" 299
+.xx "edge3, extremum, median, nonoise, smooth,/" "" "adapt, ahe, crispen, laplace, edge, edge2," "" "filters(9.1)" 504
+.xx "rshift, inset, rcanon, eqpt, eqrect, ptinrect,/" "" "add, sub, mul, div, raddp, rsubp, rmul, rdiv," "" "add(2)" 184
+.xx "dot3, cross3, len3, dist3, unit3, midpt3,/" "" "add3, sub3, div3, mul3, eqpt3, closept3," "" "arith3(9.2)" 526
+.xx "" "/vdiv3, vrem3, pn2f3, ppp2f3, fff2p3, pdiv4," "add4, sub4 \- operations on 3-d points and/" "" "arith3(9.2)" 526
+.xx "" "newuser \-" "adding a new user" "" "newuser(8)" 475
+.xx "" "arp \- Internet" "Address Resolution Protocol" "" "arp(3)" 315
+.xx "" "ident, matmul, matmulr, determinant," "adjoint, invertmat, xformpoint, xformpointd,/" "" "matrix(9.2)" 530
+.xx "" "intro \- introduction to system" "administration" "" "intro(8)" 442
+.xx "" "kfscmd, ksync \- kfs" "administration" "" "kfscmd(8)" 467
+.xx "" "80meg, personalize, update, Disclabel \-" "administration for local file systems" "/40meg," "home(8)" 463
+.xx "font utilities" "cachechars," "agefont, loadchar, Subfont, Fontchar, Font \-" "" "cachechars(2)" 199
+.xx "extremum, median, nonoise, smooth,/" "adapt," "ahe, crispen, laplace, edge, edge2, edge3," "" "filters(9.1)" 504
+.xx "" "gs \-" "Aladdin Ghostscript (PostScript) interpreter" "" "gs(1)" 83
+.xx "" "sleep," "alarm \- delay, ask for delayed note" "" "sleep(2)" 301
+.xx "" "8al, kal, val \-" "ALEF compilers" "" "alef(1)" 20
+.xx "mail/" "mail, edmail, sendmail, seemail," "aliasmail, smtp, smtpd, to, vwhois, vismon \-" "" "mail(1)" 95
+.xx "" "/wrbitmap, rdbitmapfile, wrbitmapfile \-" "allocating, freeing, reading, writing bitmaps" "" "balloc(2)" 191
+.xx "" "brk, sbrk \- change memory" "allocation" "" "brk(2)" 198
+.xx "" "segbrk \- change memory" "allocation" "" "segbrk(2)" 296
+.xx "" "malloc, free, realloc, calloc \- memory" "allocator" "" "malloc(2)" 259
+.xx "chalreply, newns, authdial, passtokey,/" "auth," "amount, srvauth, authenticate, getchal," "" "auth(2)" 189
+.xx "catclock, fireworks, swar, festoon \-/" "4s, 5s," "ana, mandel, plumb, smiley, life, fsim, clock," "" "games(1)" 78
+.xx "" "lex \- generator of lexical" "analysis programs" "" "lex(1)" 91
+.xx "" "moto \- create" "animation scripts" "" "moto(9.1)" 515
+.xx "make and break network/" "dial, hangup," "announce, listen, accept, reject, netmkaddr \-" "" "dial(2)" 209
+.xx "" "" "a.out \- object file format" "" "a.out(6)" 396
+.xx "" "pcc \-" "APE C compiler driver" "" "pcc(1)" 112
+.xx "" "" "aplot \- isometric plots of data arrays" "" "aplot(9.1)" 497
+.xx "" "" "ar \- archive and library maintainer" "" "ar(1)" 21
+.xx "" "" "ar \- archive (library) file format" "" "ar(6)" 398
+.xx "string,/" "/clipline, point, segment, polysegment," "arc, circle, disc, ellipse, texture, border," "" "bitblt(2)" 196
+.xx "" "cpiofs, tapfs, tarfs, tpfs, v6fs, v10fs \- mount" "archival file systems" "32vfs," "tapefs(1)" 151
+.xx "" "ar \-" "archive and library maintainer" "" "ar(1)" 21
+.xx "" "ar \-" "archive (library) file format" "" "ar(6)" 398
+.xx "" "mkfs, mkext \-" "archive or update a file system" "" "mkfs(8)" 470
+.xx "" "tar \-" "archiver" "" "tar(1)" 152
+.xx "letters from argv" "ARGBEGIN, ARGEND," "ARGC, ARGF, arginit, argopt \- process option" "" "arg(2)" 186
+.xx "" "echo \- print" "arguments" "" "echo(1)" 63
+.xx "" "getflags, usage \- process flag arguments in" "argv" "" "getflags(9.2)" 529
+.xx "" "qinv, qlen, slerp, qmid, qsqrt \- Quaternion" "arithmetic" "/qsub, qneg, qmul, qdiv, qunit," "quaternion(9.2)" 535
+.xx "" "bc \- arbitrary-precision" "arithmetic language" "" "bc(1)" 30
+.xx "" "/rectXrect, rectclip, Dx, Dy, Pt, Rect, Rpt \-" "arithmetic on points and rectangles" "" "add(2)" 184
+.xx "" "" "arp \- Internet Address Resolution Protocol" "" "arp(3)" 315
+.xx "" "ipconfig," "arpd, rip \- Internet configuration and routing" "" "ipconfig(8)" 466
+.xx "" "aplot \- isometric plots of data" "arrays" "" "aplot(9.1)" 497
+.xx "" "" "art, art2pic \- edit line-art" "" "art(1)" 22
+.xx "" "asctime, timezone \- convert date and time to" "ASCII" "ctime, localtime, gmtime," "ctime(2)" 204
+.xx "" "toascii, _toupper, _tolower, toupper, tolower \-" "ASCII character classification" "/iscntrl, isascii," "ctype(2)" 205
+.xx "" "xd \- hex, octal, decimal, or" "ASCII dump" "" "xd(1)" 174
+.xx "" "UTF, Unicode," "ASCII, rune \- character set and format" "" "utf(6)" 422
+.xx "" "ascii, unicode \- interpret" "ASCII, Unicode characters" "" "ascii(1)" 25
+.xx "ASCII" "ctime, localtime, gmtime," "asctime, timezone \- convert date and time to" "" "ctime(2)" 204
+.xx "functions" "sin, cos, tan," "asin, acos, atan, atan2 \- trigonometric" "" "sin(2)" 299
+.xx "" "2a, 6a, 8a, ka, va, xa \-" "assemblers" "" "2a(1)" 4
+.xx "" "\- Personal Computer Memory Card Interface" "Association (PCMCI) device" "i82365" "i82365(3)" 334
+.xx "" "" "astro \- print astronomical information" "" "astro(7)" 427
+.xx "" "" "async \- framing for a serial line to Datakit" "" "async(3)" 316
+.xx "" "notify, noted, atnotify \- handle" "asynchronous process notification" "" "notify(2)" 265
+.xx "" "wren," "ata \- hard disk interface" "" "wren(3)" 354
+.xx "" "sin, cos, tan, asin, acos, atan," "atan2 \- trigonometric functions" "" "sin(2)" 299
+.xx "process cleanup" "exits, _exits, atexit," "atexitdont, terminate \- terminate process," "" "exits(2)" 220
+.xx "notification" "notify, noted," "atnotify \- handle asynchronous process" "" "notify(2)" 265
+.xx "convert text to numbers" "atof," "atoi, atol, charstod, strtod, strtol, strtoul \-" "" "atof(2)" 188
+.xx "" "logo \- convert image into an" "AT&T logo" "" "logo(9.1)" 513
+.xx "activity" "" "attach, session, nop \- messages to initiate" "" "attach(5)" 383
+.xx "" "mnt \-" "attach to 9P servers" "" "mnt(3)" 341
+.xx "" "stat, wstat \- inquire or change file" "attributes" "" "stat(5)" 392
+.xx "" "" "audio \- digital audio input and output" "" "audio(3)" 317
+.xx "" "/hz, swap, key, hostowner, hostdomain," "authenticate, authcheck, authenticator" "" "cons(3)" 323
+.xx "authdial, passtokey,/" "auth, amount, srvauth," "authenticate, getchal, chalreply, newns," "" "auth(2)" 189
+.xx "" "\- Digital Pathways SecureNet Key remote" "authentication box" "securenet" "securenet(8)" 490
+.xx "" "keyfs, warning \-" "authentication database files" "" "keyfs(4)" 369
+.xx "" "status, auth.srv, guard.srv \- maintain" "authentication databases" "/printnetkey," "auth(8)" 443
+.xx "server" "fsession, fauth \- set up" "authentication on a file descriptor to a file" "" "fsession(2)" 240
+.xx "" "ticket \-" "authentication service" "" "auth(6)" 399
+.xx "" "hostdomain, authenticate, authcheck," "authenticator" "/hz, swap, key, hostowner," "cons(3)" 323
+.xx "" "/wrkey, convkeys, printnetkey, status," "auth.srv, guard.srv \- maintain authentication/" "" "auth(8)" 443
+.xx "" "" "aux/mouse \- configure a mouse to a port" "" "mouse(8)" 472
+.xx "" "" "aux/pcmcia \- identify a PCMCIA card" "" "pcmcia(8)" 478
+.xx "" "acme, win," "awd \- interactive text windows" "" "acme(1)" 15
+.xx "processing language" "" "awk \- pattern-directed scanning and" "" "awk(1)" 26
+.xx "" "dossrv, 9660srv, a:," "b:, c:, eject \- DOS and ISO9660 file systems" "" "dossrv(4)" 363
+.xx "regular expressions" "sam," "B, sam.save \- screen editor with structural" "" "sam(1)" 129
+.xx "rdbitmapfile, wrbitmapfile \- allocating,/" "" "balloc, bfree, rdbitmap, wrbitmap," "" "balloc(2)" 191
+.xx "" "" "basename \- strip file name affixes" "" "basename(1)" 29
+.xx "" "" "bbox \- compute bounding rectangle" "" "bbox(9.1)" 498
+.xx "" "Bputc, Bputrune, Bprint, Bwrite, Bflush, Bterm," "Bbuffered \- buffered input/output" "/Blinelen," "bio(2)" 193
+.xx "" "" "bc \- arbitrary-precision arithmetic language" "" "bc(1)" 30
+.xx "" "Point, Rectangle, Bitmap, Cursor, binit," "bclose, berror, bscreenrect, bneed, bflush,/" "" "graphics(2)" 248
+.xx "" "" "b.com \- PC bootstrap program" "" "b.com(8)" 444
+.xx "" "/symoff, fpformat, beieee80ftos, beieeesftos," "beieeedftos, leieee80ftos, leieeesftos,/" "" "debugger(2)" 206
+.xx "" "get1, get2, get4, put1, put2, put4, beswab," "beswal, leswab, leswal \-/" "/loadmap, findseg," "mach(2)" 257
+.xx "" "Blinelen, Bputc, Bputrune, Bprint, Bwrite," "Bflush, Bterm, Bbuffered \- buffered/" "/Bfildes," "bio(2)" 193
+.xx "" "/binit, bclose, berror, bscreenrect, bneed," "bflush, bwrite, bexit, clipr, cursorswitch,/" "" "graphics(2)" 248
+.xx "wrbitmapfile \- allocating, freeing,/" "balloc," "bfree, rdbitmap, wrbitmap, rdbitmapfile," "" "balloc(2)" 191
+.xx "" "Bopen, Binit, Binits, Brdline, Bgetc, Bgetrune," "Bgetd, Bungetc, Bungetrune, Bread, Bseek,/" "" "bio(2)" 193
+.xx "and typesetting" "tex, latex," "bibtex, dvips, dviselect, mf \- text formatting" "" "tex(1)" 159
+.xx "" "strip \- remove symbols from" "binary files" "" "strip(1)" 147
+.xx "" "" "bind, mount, unmount \- change name space" "" "bind(1)" 32
+.xx "" "" "bind, mount, unmount \- change name space" "" "bind(2)" 192
+.xx "bflush,/" "Point, Rectangle, Bitmap, Cursor," "binit, bclose, berror, bscreenrect, bneed," "" "graphics(2)" 248
+.xx "Bungetc, Bungetrune, Bread,/" "Bopen, Binit," "Binits, Brdline, Bgetc, Bgetrune, Bgetd," "" "bio(2)" 193
+.xx "" "" "bit \- screen graphics, mouse" "" "bit(3)" 319
+.xx "" "floyd, halftone, hysteresis \- create" "bit images by dithering" "" "floyd(9.1)" 506
+.xx "" "btrace \- trace" "bitblt protocol" "" "btrace(8)" 453
+.xx "polysegment, arc, circle, disc, ellipse,/" "bitblt," "bitbltclip, clipline, point, segment," "" "bitblt(2)" 196
+.xx "" "" "bitmap \- external format for bitmaps" "" "bitmap(6)" 402
+.xx "" "page \- view FAX," "bitmap, and PostScript files" "" "page(1)" 110
+.xx "bscreenrect, bneed, bflush,/" "Point, Rectangle," "Bitmap, Cursor, binit, bclose, berror," "" "graphics(2)" 248
+.xx "" "showimage \-" "bitmap displayer, colormap changer" "" "showimage(7)" 441
+.xx "" "tweak \- edit" "bitmap files, subfont files, face files, etc." "" "tweak(1)" 166
+.xx "" "rdfontfile, ffree, charwidth, Pconv, Rconv \-" "bitmap graphics" "/cursorswitch, cursorset," "graphics(2)" 248
+.xx "" "\- allocating, freeing, reading, writing" "bitmaps" "/rdbitmapfile, wrbitmapfile" "balloc(2)" 191
+.xx "" "bitmap \- external format for" "bitmaps" "" "bitmap(6)" 402
+.xx "" "/Bungetrune, Bread, Bseek, Boffset, Bfildes," "Blinelen, Bputc, Bputrune, Bprint, Bwrite,/" "" "bio(2)" 193
+.xx "" "sum, md5sum \- sum and count" "blocks in a file" "" "sum(1)" 148
+.xx "" "Cursor, binit, bclose, berror, bscreenrect," "bneed, bflush, bwrite, bexit, clipr,/" "/Bitmap," "graphics(2)" 248
+.xx "" "/Bgetd, Bungetc, Bungetrune, Bread, Bseek," "Boffset, Bfildes, Blinelen, Bputc, Bputrune,/" "" "bio(2)" 193
+.xx "" "tel, iwhois \- look in phone" "book" "" "tel(1)" 157
+.xx "" "" "boot \- connect to the root file server" "" "boot(8)" 446
+.xx "" "cpurc, termrc \-" "boot script" "" "cpurc(8)" 454
+.xx "" "bootp, rarpd, tftpd \- Internet" "booting" "" "bootp(8)" 452
+.xx "" "init \- initialize machine upon" "booting" "" "init(8)" 465
+.xx "" "" "booting \- bootstrapping procedures" "" "booting(8)" 448
+.xx "" "" "bootp, rarpd, tftpd \- Internet booting" "" "bootp(8)" 452
+.xx "" "b.com \- PC" "bootstrap program" "" "b.com(8)" 444
+.xx "" "booting \-" "bootstrapping procedures" "" "booting(8)" 448
+.xx "Bgetd, Bungetc, Bungetrune, Bread, Bseek,/" "" "Bopen, Binit, Binits, Brdline, Bgetc, Bgetrune," "" "bio(2)" 193
+.xx "" "/polysegment, arc, circle, disc, ellipse, texture," "border, string, strsize, strwidth, Fcode \-/" "" "bitblt(2)" 196
+.xx "" "bbox \- compute" "bounding rectangle" "" "bbox(9.1)" 498
+.xx "" "Pathways SecureNet Key remote authentication" "box" "securenet \- Digital" "securenet(8)" 490
+.xx "" "/Boffset, Bfildes, Blinelen, Bputc, Bputrune," "Bprint, Bwrite, Bflush, Bterm, Bbuffered \-/" "" "bio(2)" 193
+.xx "" "/Bread, Bseek, Boffset, Bfildes, Blinelen," "Bputc, Bputrune, Bprint, Bwrite, Bflush, Bterm,/" "" "bio(2)" 193
+.xx "Bungetrune, Bread,/" "Bopen, Binit, Binits," "Brdline, Bgetc, Bgetrune, Bgetd, Bungetc," "" "bio(2)" 193
+.xx "" "getfields, getmfields, setfields, tokenize \-" "break a string into fields" "" "getfields(2)" 244
+.xx "" "listen, accept, reject, netmkaddr \- make and" "break network connections" "/announce," "dial(2)" 209
+.xx "" "" "brk, sbrk \- change memory allocation" "" "brk(2)" 198
+.xx "" "kill," "broke \- print commands to kill processes" "" "kill(1)" 89
+.xx "" "char, ½char, rschar \-" "browse the Unicode Standard" "" "char(1)" 39
+.xx "" "chdb \- chess database" "browser" "" "chdb(7)" 428
+.xx "" "dict \- dictionary" "browser" "" "dict(7)" 430
+.xx "clipr,/" "/Bitmap, Cursor, binit, bclose, berror," "bscreenrect, bneed, bflush, bwrite, bexit," "" "graphics(2)" 248
+.xx "" "/Bgetrune, Bgetd, Bungetc, Bungetrune, Bread," "Bseek, Boffset, Bfildes, Blinelen, Bputc,/" "" "bio(2)" 193
+.xx "" "/Bputc, Bputrune, Bprint, Bwrite, Bflush," "Bterm, Bbuffered \- buffered input/output" "" "bio(2)" 193
+.xx "" "" "btrace \- trace bitblt protocol" "" "btrace(8)" 453
+.xx "" "fseek, rewind, feof, ferror, clearerr \- standard" "buffered input/output package" "/fsetpos," "fopen(2)" 227
+.xx "" "" "bundle \- collect files for distribution" "" "bundle(1)" 33
+.xx "" "/Brdline, Bgetc, Bgetrune, Bgetd, Bungetc," "Bungetrune, Bread, Bseek, Boffset, Bfildes,/" "" "bio(2)" 193
+.xx "" "/bclose, berror, bscreenrect, bneed, bflush," "bwrite, bexit, clipr, cursorswitch, cursorset,/" "" "graphics(2)" 248
+.xx "" "/Bfildes, Blinelen, Bputc, Bputrune, Bprint," "Bwrite, Bflush, Bterm, Bbuffered \- buffered/" "" "bio(2)" 193
+.xx "" "consolefs," "C \- file system for console access" "" "consolefs(4)" 362
+.xx "" "pcc \- APE" "C compiler driver" "" "pcc(1)" 112
+.xx "" "2c, 6c, 8c, kc, vc, xc \-" "C compilers" "" "2c(1)" 5
+.xx "" "c++/8c, c++/2l, c++/kl, c++/vl, c++/8l \-" "C++ compilers and loaders" "/c++/vc," "c++(1)" 34
+.xx "" "dossrv, 9660srv, a:, b:," "c:, eject \- DOS and ISO9660 file systems" "" "dossrv(4)" 363
+.xx "" "cpp \-" "C language preprocessor" "" "cpp(1)" 47
+.xx "" "c++/2c, c++/kc, c++/vc, c++/8c," "c++/2l, c++/kl, c++/vl, c++/8l \- C++/" "" "c++(1)" 34
+.xx "" "cfs \-" "cache file system" "" "cfs(4)" 361
+.xx "Fontchar, Font \- font utilities" "" "cachechars, agefont, loadchar, Subfont," "" "cachechars(2)" 199
+.xx "" "segflush \- flush instruction and data" "caches" "" "segflush(2)" 297
+.xx "" "" "cal \- print calendar" "" "cal(1)" 36
+.xx "" "dc \- desk" "calculator" "" "dc(1)" 56
+.xx "" "" "calendar \- print upcoming events" "" "calendar(1)" 37
+.xx "" "malloc, free, realloc," "calloc \- memory allocator" "" "malloc(2)" 259
+.xx "" "tcp565, tcp566, tcp17007, tcp6000 \- listen for" "calls on a network device" "/tcp515, tcp564," "listen(8)" 468
+.xx "" "lockinit, lock," "canlock, unlock \- shared memory spin lock" "" "lock(2)" 255
+.xx "" "aux/pcmcia \- identify a PCMCIA" "card" "" "pcmcia(8)" 478
+.xx "" "vga \- configure a VGA" "card" "" "vga(8)" 494
+.xx "" "i82365 \- Personal Computer Memory" "Card Interface Association (PCMCI) device" "" "i82365(3)" 334
+.xx "" "" "card, ramp \- create simple color fields" "" "card(9.1)" 499
+.xx "" "" "cat, read \- catenate files" "" "cat(1)" 38
+.xx "" "scat \- sky" "catalogue and Digitized Sky Survey" "" "scat(7)" 439
+.xx "" "ana, mandel, plumb, smiley, life, fsim, clock," "catclock, fireworks, swar, festoon \- time/" "/5s," "games(1)" 78
+.xx "" "cat, read \-" "catenate files" "" "cat(1)" 38
+.xx "whatis, ., ~ \- command language" "rc," "cd, eval, exec, exit, flag, rfork, shift, wait," "" "rc(1)" 123
+.xx "" "cdrom \-" "CD-ROM disk interface" "" "cdrom(3)" 322
+.xx "" "juke \-" "CD-ROM jukebox" "" "juke(7)" 431
+.xx "" "pip \-" "CD-ROM workbench" "" "pip(8)" 479
+.xx "functions" "fabs, fmod, floor," "ceil \- absolute value, remainder, floor, ceiling" "" "floor(2)" 226
+.xx "" "" "cfs \- cache file system" "" "cfs(4)" 361
+.xx "" "auth, amount, srvauth, authenticate, getchal," "chalreply, newns, authdial, passtokey,/" "" "auth(2)" 189
+.xx "" "stat, wstat \- inquire or" "change file attributes" "" "stat(5)" 392
+.xx "" "chgrp \-" "change file group" "" "chgrp(1)" 40
+.xx "" "seek \-" "change file offset" "" "seek(2)" 293
+.xx "" "brk, sbrk \-" "change memory allocation" "" "brk(2)" 198
+.xx "" "segbrk \-" "change memory allocation" "" "segbrk(2)" 296
+.xx "" "chmod \-" "change mode" "" "chmod(1)" 41
+.xx "" "bind, mount, unmount \-" "change name space" "" "bind(1)" 32
+.xx "" "bind, mount, unmount \-" "change name space" "" "bind(2)" 192
+.xx "" "clwalk \- clone, then search a directory, and" "change to a file within it" "" "clwalk(5)" 386
+.xx "" "passwd, netkey \-" "change user password" "" "passwd(1)" 111
+.xx "" "chdir \-" "change working directory" "" "chdir(2)" 202
+.xx "" "showimage \- bitmap displayer, colormap" "changer" "" "showimage(7)" 441
+.xx "status, auth.srv, guard.srv \- maintain/" "" "changeuser, wrkey, convkeys, printnetkey," "" "auth(8)" 443
+.xx "" "pipe \- create an interprocess" "channel" "" "pipe(2)" 271
+.xx "" "char," "½char, rschar \- browse the Unicode Standard" "" "char(1)" 39
+.xx "" "_toupper, _tolower, toupper, tolower \- ASCII" "character classification" "/isascii, toascii," "ctype(2)" 205
+.xx "" "freq \- print histogram of" "character frequencies" "" "freq(1)" 77
+.xx "" "UTF, Unicode, ASCII, rune \-" "character set and format" "" "utf(6)" 422
+.xx "" "tcs \- translate" "character sets" "" "tcs(1)" 155
+.xx "" "ascii, unicode \- interpret ASCII, Unicode" "characters" "" "ascii(1)" 25
+.xx "" "keyboard \- how to type" "characters" "" "keyboard(6)" 405
+.xx "" "tr \- translate" "characters" "" "tr(1)" 164
+.xx "to numbers" "atof, atoi, atol," "charstod, strtod, strtol, strtoul \- convert text" "" "atof(2)" 188
+.xx "utfrrune, utfutf \- rune/UTF/" "runetochar," "chartorune, runelen, fullrune, utflen, utfrune," "" "rune(2)" 292
+.xx "" "/clipr, cursorswitch, cursorset, rdfontfile, ffree," "charwidth, Pconv, Rconv \- bitmap graphics" "" "graphics(2)" 248
+.xx "" "" "chdb \- chess database browser" "" "chdb(7)" 428
+.xx "" "" "chdir \- change working directory" "" "chdir(2)" 202
+.xx "" "" "chgrp \- change file group" "" "chgrp(1)" 40
+.xx "" "cputime, times \- cpu time in this process and" "children" "" "cputime(2)" 203
+.xx "" "" "chmod \- change mode" "" "chmod(1)" 41
+.xx "" "/clipline, point, segment, polysegment, arc," "circle, disc, ellipse, texture, border, string,/" "" "bitblt(2)" 196
+.xx "localaddr, symoff, fpformat, beieee80ftos,/" "" "cisctrace, risctrace, ciscframe, riscframe," "" "debugger(2)" 206
+.xx "" "c++/2c, c++/kc, c++/vc, c++/8c, c++/2l," "c++/kl, c++/vl, c++/8l \- C++ compilers and/" "" "c++(1)" 34
+.xx "" "_tolower, toupper, tolower \- ASCII character" "classification" "/isascii, toascii, _toupper," "ctype(2)" 205
+.xx "" "terminate \- terminate process, process" "cleanup" "exits, _exits, atexit, atexitdont," "exits(2)" 220
+.xx "" "/ftell, fsetpos, fseek, rewind, feof, ferror," "clearerr \- standard buffered input/output/" "" "fopen(2)" 227
+.xx "circle, disc, ellipse, texture,/" "bitblt, bitbltclip," "clipline, point, segment, polysegment, arc," "" "bitblt(2)" 196
+.xx "" "/bscreenrect, bneed, bflush, bwrite, bexit," "clipr, cursorswitch, cursorset, rdfontfile,/" "" "graphics(2)" 248
+.xx "" "exec, execl," "_clock \- execute a file" "" "exec(2)" 218
+.xx "" "rtc \- real-time" "clock and non-volatile RAM" "" "rtc(3)" 347
+.xx "" "4s, 5s, ana, mandel, plumb, smiley, life, fsim," "clock, catclock, fireworks, swar, festoon \-/" "" "games(1)" 78
+.xx "" "cron \-" "clock daemon" "" "cron(8)" 455
+.xx "klog, stats, lights, noise,/" "cons \- console," "clocks, process/process group ids, user, null," "" "cons(3)" 323
+.xx "" "" "clone \- duplicate a fid" "" "clone(5)" 384
+.xx "a file within it" "clwalk \-" "clone, then search a directory, and change to" "" "clwalk(5)" 386
+.xx "create file" "open, create," "close \- open a file for reading or writing," "" "open(2)" 269
+.xx "midpt3,/" "add3, sub3, div3, mul3, eqpt3," "closept3, dot3, cross3, len3, dist3, unit3," "" "arith3(9.2)" 526
+.xx "" "" "clunk \- forget about a fid" "" "clunk(5)" 385
+.xx "change to a file within it" "" "clwalk \- clone, then search a directory, and" "" "clwalk(5)" 386
+.xx "" "" "cmap \- color map format" "" "cmap(9.6)" 537
+.xx "" "" "cmap, remap \- map colors" "" "remap(9.1)" 522
+.xx "" "" "cmp \- compare two files" "" "cmp(1)" 42
+.xx "" "bundle \-" "collect files for distribution" "" "bundle(1)" 33
+.xx "" "3to1, mcut, improve, quantize, dither \- picture" "color compression" "" "quantize(9.1)" 521
+.xx "" "card, ramp \- create simple" "color fields" "" "card(9.1)" 499
+.xx "" "getmap, colors \- manipulate the display's" "color map" "" "getmap(9.1)" 507
+.xx "" "cmap \-" "color map format" "" "cmap(9.6)" 537
+.xx "" "getcmap \- read a" "color map from a file" "" "getcmap(9.2)" 528
+.xx "" "RGB, rgbpix, rdcolmap, wrcolmap \- handle" "color screens" "" "rgbpix(2)" 291
+.xx "" "showimage \- bitmap displayer," "colormap changer" "" "showimage(7)" 441
+.xx "" "cmap, remap \- map" "colors" "" "remap(9.1)" 522
+.xx "" "getmap," "colors \- manipulate the display's color map" "" "getmap(9.1)" 507
+.xx "" "lerp, sub \- linear" "combinations of images" "" "lerp(9.1)" 512
+.xx "" "lam, posit, piccat, picjoin \-" "combine several images" "" "lam(9.1)" 511
+.xx "sorted files" "" "comm \- select or reject lines common to two" "" "comm(1)" 43
+.xx "" "time \- time a" "command" "" "time(1)" 162
+.xx "" "scsi \- SCSI" "command interface" "" "scsi(3)" 349
+.xx "" "exec, exit, flag, rfork, shift, wait, whatis, ., ~ \-" "command language" "rc, cd, eval," "rc(1)" 123
+.xx "" "doctype \- intuit" "command line for formatting a document" "" "doctype(1)" 61
+.xx "" "smtp, smtpd, to, vwhois, vismon \- mail" "commands" "/sendmail, seemail, aliasmail," "mail(1)" 95
+.xx "" "kill, broke \- print" "commands to kill processes" "" "kill(1)" 89
+.xx "" "stop, start \- print" "commands to stop and start processes" "" "stop(1)" 145
+.xx "" "comm \- select or reject lines" "common to two sorted files" "" "comm(1)" 43
+.xx "" "pipe \- two-way interprocess" "communication" "" "pipe(3)" 342
+.xx "" "scc, duart, uart \- serial" "communication control" "" "scc(3)" 348
+.xx "" "stream \- a structure for" "communications" "" "stream(3)" 351
+.xx "" "diff \- differential file" "comparator" "" "diff(1)" 60
+.xx "" "cmp \-" "compare two files" "" "cmp(1)" 42
+.xx "" "pcc \- APE C" "compiler driver" "" "pcc(1)" 112
+.xx "" "yacc \- yet another" "compiler-compiler" "" "yacc(1)" 175
+.xx "" "2c, 6c, 8c, kc, vc, xc \- C" "compilers" "" "2c(1)" 5
+.xx "" "8al, kal, val \- ALEF" "compilers" "" "alef(1)" 20
+.xx "" "c++/2l, c++/kl, c++/vl, c++/8l \- C++" "compilers and loaders" "/c++/vc, c++/8c," "c++(1)" 34
+.xx "" "mcut, improve, quantize, dither \- picture color" "compression" "3to1," "quantize(9.1)" 521
+.xx "" "bbox \-" "compute bounding rectangle" "" "bbox(9.1)" 498
+.xx "" "lum \-" "compute luminance" "" "lum(9.1)" 514
+.xx "(PCMCI) device" "i82365 \- Personal" "Computer Memory Card Interface Association" "" "i82365(3)" 334
+.xx "execution, and XMODEM file transfer" "" "con, telnet, cu, rx, xms, xmr \- remote login," "" "con(1)" 44
+.xx "" "spin \- verification tool for" "concurrent systems" "" "spin(1)" 143
+.xx "" "ipconfig, arpd, rip \- Internet" "configuration and routing" "" "ipconfig(8)" 466
+.xx "" "plan9.ini \-" "configuration file for PC's" "" "plan9.ini(8)" 481
+.xx "" "aux/mouse \-" "configure a mouse to a port" "" "mouse(8)" 472
+.xx "" "vga \-" "configure a VGA card" "" "vga(8)" 494
+.xx "" "dkconfig \-" "configure Datakit interface" "" "dkconfig(8)" 456
+.xx "" "fsconfig \-" "configuring a file server" "" "fsconfig(8)" 461
+.xx "" "boot \-" "connect to the root file server" "" "boot(8)" 446
+.xx "" "reboot \- reboot CPU after loss of file server" "connection" "" "reboot(3)" 345
+.xx "" "cpu \-" "connection to cpu server" "" "cpu(1)" 48
+.xx "" "reject, netmkaddr \- make and break network" "connections" "/announce, listen, accept," "dial(2)" 209
+.xx "" "netstat \- summarize network" "connections" "" "netstat(1)" 106
+.xx "user, null, klog, stats, lights, noise,/" "cons \-" "console, clocks, process/process group ids," "" "cons(3)" 323
+.xx "" "" "consolefs, C \- file system for console access" "" "consolefs(4)" 362
+.xx "" "scc, duart, uart \- serial communication" "control" "" "scc(3)" 348
+.xx "" "scuzz \- SCSI target" "control" "" "scuzz(8)" 487
+.xx "" "acme \-" "control files for text windows" "" "acme(4)" 358
+.xx "" "getfcr, setfcr, getfsr, setfsr \-" "control floating point" "" "getfcr(2)" 242
+.xx "" "fone \-" "control ISDN telephone" "" "fone(1)" 74
+.xx "" "qball \- 3-d rotation" "controller" "" "qball(9.2)" 534
+.xx "" "vgadb \- VGA" "controller and monitor database" "" "vgadb(6)" 423
+.xx "" "vga \- VGA" "controller device" "" "vga(3)" 352
+.xx "" "/convT2M, convM2T, convTR2M, convM2TR," "convA2M, convM2A, convPR2M, convM2PR \-/" "" "auth(2)" 189
+.xx "fcallconv, dirconv,/" "Fcall, convS2M," "convD2M, convM2S, convM2D, getS," "" "fcall(2)" 222
+.xx "" "dk \- Datakit" "conversations" "" "dk(3)" 328
+.xx "" "utflen, utfrune, utfrrune, utfutf \- rune/UTF" "conversion" "/chartorune, runelen, fullrune," "rune(2)" 292
+.xx "" "units \-" "conversion program" "" "units(1)" 170
+.xx "" "dd \-" "convert and copy a file" "" "dd(1)" 58
+.xx "" "ctime, localtime, gmtime, asctime, timezone \-" "convert date and time to ASCII" "" "ctime(2)" 204
+.xx "" "logo \-" "convert image into an AT&T logo" "" "logo(9.1)" 513
+.xx "" "/targa2pic, tiff2pic, utah2pic, xbm2pic \-" "convert other formats to picture files" "" "cvt2pic(9.1)" 502
+.xx "" "pic2ps, pic2gif \-" "convert picture files to other formats" "" "pic2ps(9.1)" 519
+.xx "" "atoi, atol, charstod, strtod, strtol, strtoul \-" "convert text to numbers" "atof," "atof(2)" 188
+.xx "guard.srv \- maintain/" "changeuser, wrkey," "convkeys, printnetkey, status, auth.srv," "" "auth(8)" 443
+.xx "" "/convM2TR, convA2M, convM2A, convPR2M," "convM2PR \- network authentication" "" "auth(2)" 189
+.xx "" "/nvcsum, convT2M, convM2T, convTR2M," "convM2TR, convA2M, convM2A, convPR2M,/" "" "auth(2)" 189
+.xx "getS, fcallconv, dirconv, dirmodeconv \-/" "Fcall," "convS2M, convD2M, convM2S, convM2D," "" "fcall(2)" 222
+.xx "" "dd \- convert and" "copy a file" "" "dd(1)" 58
+.xx "" "cp, mv \-" "copy, move files" "" "cp(1)" 46
+.xx "" "9v, save, flip \-" "copy picture files to and from screen" "" "9v(9.1)" 496
+.xx "" "pcp \-" "copy pictures" "" "pcp(9.1)" 518
+.xx "trigonometric functions" "sin," "cos, tan, asin, acos, atan, atan2 \-" "" "sin(2)" 299
+.xx "" "sinh," "cosh, tanh \- hyperbolic functions" "" "sinh(2)" 300
+.xx "" "wc \- word" "count" "" "wc(1)" 172
+.xx "" "sum, md5sum \- sum and" "count blocks in a file" "" "sum(1)" 148
+.xx "" "" "cp, mv \- copy, move files" "" "cp(1)" 46
+.xx "archival file systems" "32vfs," "cpiofs, tapfs, tarfs, tpfs, v6fs, v10fs \- mount" "" "tapefs(1)" 151
+.xx "" "" "cpp \- C language preprocessor" "" "cpp(1)" 47
+.xx "" "cpr," "cprview \- cheesy polygon renderer and viewer" "" "cpr(9.1)" 500
+.xx "" "" "cpu \- connection to cpu server" "" "cpu(1)" 48
+.xx "" "reboot \- reboot" "CPU after loss of file server connection" "" "reboot(3)" 345
+.xx "" "" "cpurc, termrc \- boot script" "" "cpurc(8)" 454
+.xx "children" "" "cputime, times \- cpu time in this process and" "" "cputime(2)" 203
+.xx "newmap, setmap, unusemap, loadmap,/" "" "crackhdr, machbytype, machbyname," "" "mach(2)" 257
+.xx "or new file" "open," "create \- prepare a fid for I/O on an existing" "" "open(5)" 389
+.xx "" "floyd, halftone, hysteresis \-" "create 1-bit images by dithering" "" "floyd(9.1)" 506
+.xx "" "pipe \-" "create an interprocess channel" "" "pipe(2)" 271
+.xx "" "moto \-" "create animation scripts" "" "moto(9.1)" 515
+.xx "writing, create file" "open," "create, close \- open a file for reading or" "" "open(2)" 269
+.xx "" "card, ramp \-" "create simple color fields" "" "card(9.1)" 499
+.xx "" "plscrollbar, plslider, pltextview \-" "creation functions" "/plradiobutton," "plbutton(2)" 272
+.xx "extremum, median, nonoise,/" "adapt, ahe," "crispen, laplace, edge, edge2, edge3," "" "filters(9.1)" 504
+.xx "" "" "cron \- clock daemon" "" "cron(8)" 455
+.xx "" "add3, sub3, div3, mul3, eqpt3, closept3, dot3," "cross3, len3, dist3, unit3, midpt3, lerp3,/" "" "arith3(9.2)" 526
+.xx "" "ndbfree, ipattr, ipinfo, ndbhash, ndbparse," "csgetval \- network database" "/ndbgetval," "ndb(2)" 263
+.xx "" "query, mkhash, mkdb, cs," "csquery, dns, dnsquery \- network database" "" "ndb(8)" 473
+.xx "convert date and time to ASCII" "" "ctime, localtime, gmtime, asctime, timezone \-" "" "ctime(2)" 204
+.xx "and XMODEM file transfer" "con, telnet," "cu, rx, xms, xmr \- remote login, execution," "" "con(1)" 44
+.xx "" "getwd \- get" "current directory" "" "getwd(2)" 247
+.xx "bneed, bflush,/" "Point, Rectangle, Bitmap," "Cursor, binit, bclose, berror, bscreenrect," "" "graphics(2)" 248
+.xx "" "/bflush, bwrite, bexit, clipr, cursorswitch," "cursorset, rdfontfile, ffree, charwidth, Pconv,/" "" "graphics(2)" 248
+.xx "" "/c++/kc, c++/vc, c++/8c, c++/2l, c++/kl," "c++/vl, c++/8l \- C++ compilers and loaders" "" "c++(1)" 34
+.xx "jpg2pic, nasa2pic, pcx2pic, picopic, sgi2pic,/" "" "cvt2pic, dumppic, ega2pic, face2pic, gif2pic," "" "cvt2pic(9.1)" 502
+.xx "" "" "cyc \- Cyclone fiber interface" "" "cyc(3)" 326
+.xx "" "cron \- clock" "daemon" "" "cron(8)" 455
+.xx "" "prof, kprof \- display profiling" "data" "" "prof(1)" 119
+.xx "" "aplot \- isometric plots of" "data arrays" "" "aplot(9.1)" 497
+.xx "" "segflush \- flush instruction and" "data caches" "" "segflush(2)" 297
+.xx "" "read, write \- transfer" "data from and to a file" "" "read(5)" 390
+.xx "" "ipinfo, ndbhash, ndbparse, csgetval \- network" "database" "/ndbgetval, ndbfree, ipattr," "ndb(2)" 263
+.xx "" "ndb \- Network" "database" "" "ndb(6)" 415
+.xx "" "mkdb, cs, csquery, dns, dnsquery \- network" "database" "query, mkhash," "ndb(8)" 473
+.xx "" "vgadb \- VGA controller and monitor" "database" "" "vgadb(6)" 423
+.xx "" "chdb \- chess" "database browser" "" "chdb(7)" 428
+.xx "" "keyfs, warning \- authentication" "database files" "" "keyfs(4)" 369
+.xx "" "join \- relational" "database operator" "" "join(1)" 88
+.xx "" "auth.srv, guard.srv \- maintain authentication" "databases" "/convkeys, printnetkey, status," "auth(8)" 443
+.xx "" "intro \- introduction to" "databases" "" "intro(7)" 426
+.xx "" "async \- framing for a serial line to" "Datakit" "" "async(3)" 316
+.xx "" "dk \-" "Datakit conversations" "" "dk(3)" 328
+.xx "" "incon, hsvme, hs386 \-" "Datakit interface" "" "datakit(3)" 327
+.xx "" "dkconfig \- configure" "Datakit interface" "" "dkconfig(8)" 456
+.xx "" "" "date \- print the date" "" "date(1)" 49
+.xx "" "gmtime, asctime, timezone \- convert" "date and time to ASCII" "ctime, localtime," "ctime(2)" 204
+.xx "" "touch \- set modification" "date of a file" "" "touch(1)" 163
+.xx "" "" "db \- debugger" "" "db(1)" 50
+.xx "" "" "dc \- desk calculator" "" "dc(1)" 56
+.xx "" "" "dd \- convert and copy a file" "" "dd(1)" 58
+.xx "" "acid \-" "debugger" "" "acid(1)" 12
+.xx "" "db \-" "debugger" "" "db(1)" 50
+.xx "" "ieeesftos, ieeedftos \- machine-independent" "debugger functions" "/leieeesftos, leieeedftos," "debugger(2)" 206
+.xx "" "xd \- hex, octal," "decimal, or ASCII dump" "" "xd(1)" 174
+.xx "" "encrypt," "decrypt, netcrypt \- DES encryption" "" "encrypt(2)" 213
+.xx "" "deroff," "delatex \- remove formatting requests" "" "deroff(1)" 59
+.xx "" "sleep, alarm \-" "delay, ask for delayed note" "" "sleep(2)" 301
+.xx "" "fcall \- recreate packet" "delimiters" "" "fcall(3)" 332
+.xx "" "tail \-" "deliver the last part of a file" "" "tail(1)" 150
+.xx "" "" "deroff, delatex \- remove formatting requests" "" "deroff(1)" 59
+.xx "" "encrypt, decrypt, netcrypt \-" "DES encryption" "" "encrypt(2)" 213
+.xx "" "walk \-" "descend a directory hierarchy" "" "walk(5)" 394
+.xx "" "namespace \- name space" "description file" "" "namespace(6)" 414
+.xx "" "errstr, werrstr \-" "description of last system call error" "" "errstr(2)" 214
+.xx "" "dup \- duplicate an open file" "descriptor" "" "dup(2)" 212
+.xx "" "fsession, fauth \- set up authentication on a file" "descriptor to a file server" "" "fsession(2)" 240
+.xx "" "dc \-" "desk calculator" "" "dc(1)" 56
+.xx "xformpointd,/" "ident, matmul, matmulr," "determinant, adjoint, invertmat, xformpoint," "" "matrix(9.2)" 530
+.xx "" "Memory Card Interface Association (PCMCI)" "device" "i82365 \- Personal Computer" "i82365(3)" 334
+.xx "" "lance \- LANCE Ethernet" "device" "" "lance(3)" 339
+.xx "" "tcp6000 \- listen for calls on a network" "device" "/tcp564, tcp565, tcp566, tcp17007," "listen(8)" 468
+.xx "" "vga \- VGA controller" "device" "" "vga(3)" 352
+.xx "" "intro \- introduction to the Plan 9" "devices" "" "intro(3)" 314
+.xx "netmkaddr \- make and break network/" "" "dial, hangup, announce, listen, accept, reject," "" "dial(2)" 209
+.xx "" "faxsend, fax, telcofax, telcodata \- telephone" "dialer network" "telco, faxreceive," "telco(4)" 377
+.xx "" "" "dict \- dictionary browser" "" "dict(7)" 430
+.xx "" "" "diff \- differential file comparator" "" "diff(1)" 60
+.xx "" "audio \-" "digital audio input and output" "" "audio(3)" 317
+.xx "authentication box" "securenet \-" "Digital Pathways SecureNet Key remote" "" "securenet(8)" 490
+.xx "" "map \-" "digitized map formats" "" "map(6)" 409
+.xx "" "scat \- sky catalogue and" "Digitized Sky Survey" "" "scat(7)" 439
+.xx "" "/convD2M, convM2S, convM2D, getS, fcallconv," "dirconv, dirmodeconv \- interface to Plan 9/" "" "fcall(2)" 222
+.xx "" "awk \-" "directed scanning and processing language" "" "awk(1)" 26
+.xx "" "chdir \- change working" "directory" "" "chdir(2)" 202
+.xx "" "dirread \- read" "directory" "" "dirread(2)" 211
+.xx "" "getwd \- get current" "directory" "" "getwd(2)" 247
+.xx "" "ls, lc \- list contents of" "directory" "" "ls(1)" 94
+.xx "" "mkdir \- make a" "directory" "" "mkdir(1)" 104
+.xx "" "pwd, pbd \- working" "directory" "" "pwd(1)" 122
+.xx "" "clwalk \- clone, then search a" "directory, and change to a file within it" "" "clwalk(5)" 386
+.xx "" "walk \- descend a" "directory hierarchy" "" "walk(5)" 394
+.xx "" "fstat, wstat, fwstat, dirstat, dirfstat, dirwstat," "dirfwstat \- get and put file status" "stat," "stat(2)" 302
+.xx "" "/convM2S, convM2D, getS, fcallconv, dirconv," "dirmodeconv \- interface to Plan 9 File/" "" "fcall(2)" 222
+.xx "" "" "dirread \- read directory" "" "dirread(2)" 211
+.xx "" "stat, fstat, wstat, fwstat, dirstat, dirfstat," "dirwstat, dirfwstat \- get and put file status" "" "stat(2)" 302
+.xx "" "/point, segment, polysegment, arc, circle," "disc, ellipse, texture, border, string, strsize,/" "" "bitblt(2)" 196
+.xx "" "home, 40meg, 80meg, personalize, update," "Disclabel \- administration for local file/" "" "home(8)" 463
+.xx "" "kfs \-" "disk file system" "" "kfs(4)" 371
+.xx "" "cdrom \- CD-ROM" "disk interface" "" "cdrom(3)" 322
+.xx "" "floppy \- floppy" "disk interface" "" "floppy(3)" 333
+.xx "" "wren, ata \- hard" "disk interface" "" "wren(3)" 354
+.xx "" "du \-" "disk usage" "" "du(1)" 62
+.xx "" "prep, format \- prepare hard and floppy" "diskettes" "" "prep(8)" 484
+.xx "" "sysmon, stats \-" "display graphs of system activity" "" "sysmon(8)" 493
+.xx "" "prof, kprof \-" "display profiling data" "" "prof(1)" 119
+.xx "" "showimage \- bitmap" "displayer, colormap changer" "" "showimage(7)" 441
+.xx "" "getmap, colors \- manipulate the" "display's color map" "" "getmap(9.1)" 507
+.xx "" "mul3, eqpt3, closept3, dot3, cross3, len3," "dist3, unit3, midpt3, lerp3, reflect3,/" "/div3," "arith3(9.2)" 526
+.xx "" "hypot \- Euclidean" "distance" "" "hypot(2)" 251
+.xx "" "bundle \- collect files for" "distribution" "" "bundle(1)" 33
+.xx "" "3to1, mcut, improve, quantize," "dither \- picture color compression" "" "quantize(9.1)" 521
+.xx "" "halftone, hysteresis \- create 1-bit images by" "dithering" "floyd," "floyd(9.1)" 506
+.xx "rcanon, eqpt, eqrect, ptinrect,/" "add, sub, mul," "div, raddp, rsubp, rmul, rdiv, rshift, inset," "" "add(2)" 184
+.xx "len3, dist3, unit3, midpt3, lerp3,/" "add3, sub3," "div3, mul3, eqpt3, closept3, dot3, cross3," "" "arith3(9.2)" 526
+.xx "" "" "dk \- Datakit conversations" "" "dk(3)" 328
+.xx "" "srv, 9fs," "dk232, dkmodem \- start network file service" "" "srv(4)" 376
+.xx "" "" "dkconfig \- configure Datakit interface" "" "dkconfig(8)" 456
+.xx "dkexportfs, dkrexexec, dkticket,/" "listen," "dkcpu, dkcpunote, dkdiscard, dkecho," "" "listen(8)" 468
+.xx "dkrexexec, dkticket,/" "listen, dkcpu," "dkcpunote, dkdiscard, dkecho, dkexportfs," "" "listen(8)" 468
+.xx "" "/dkrexexec, dkticket, dkwhoami, dksmtp," "dkdcon, dklogin, dkguard, il7, il9, il565,/" "" "listen(8)" 468
+.xx "dkticket,/" "listen, dkcpu, dkcpunote," "dkdiscard, dkecho, dkexportfs, dkrexexec," "" "listen(8)" 468
+.xx "" "/dkticket, dkwhoami, dksmtp, dkdcon, dklogin," "dkguard, il7, il9, il565, il566, il17005,/" "" "listen(8)" 468
+.xx "" "srv, 9fs, dk232," "dkmodem \- start network file service" "" "srv(4)" 376
+.xx "" "/dkexportfs, dkrexexec, dkticket, dkwhoami," "dksmtp, dkdcon, dklogin, dkguard, il7, il9,/" "" "listen(8)" 468
+.xx "" "query, mkhash, mkdb, cs, csquery, dns," "dnsquery \- network database" "" "ndb(8)" 473
+.xx "a document" "" "doctype \- intuit command line for formatting" "" "doctype(1)" 61
+.xx "" "strconv, Strconv, numbconv, fltconv," "doprint \- print formatted output" "/fmtinstall," "print(2)" 281
+.xx "ISO9660 file systems" "" "dossrv, 9660srv, a:, b:, c:, eject \- DOS and" "" "dossrv(4)" 363
+.xx "" "add3, sub3, div3, mul3, eqpt3, closept3," "dot3, cross3, len3, dist3, unit3, midpt3,/" "" "arith3(9.2)" 526
+.xx "" "graph \-" "draw a graph" "" "graph(1)" 81
+.xx "" "map, mapdemo \-" "draw maps on various projections" "" "map(7)" 433
+.xx "" "grap \- pic preprocessor for" "drawing graphs" "" "grap(1)" 79
+.xx "" "pic, tpic \- troff and tex preprocessors for" "drawing pictures" "" "pic(1)" 113
+.xx "" "pcc \- APE C compiler" "driver" "" "pcc(1)" 112
+.xx "" "" "du \- disk usage" "" "du(1)" 62
+.xx "" "scc," "duart, uart \- serial communication control" "" "scc(3)" 348
+.xx "" "fs \- file server," "dump" "" "fs(4)" 365
+.xx "" "xd \- hex, octal, decimal, or ASCII" "dump" "" "xd(1)" 174
+.xx "" "yesterday \- print file names from the" "dump" "" "yesterday(1)" 177
+.xx "nasa2pic, pcx2pic, picopic, sgi2pic,/" "cvt2pic," "dumppic, ega2pic, face2pic, gif2pic, jpg2pic," "" "cvt2pic(9.1)" 502
+.xx "" "" "dup \- duplicate an open file descriptor" "" "dup(2)" 212
+.xx "" "" "dup \- dups of open files" "" "dup(3)" 330
+.xx "" "clone \-" "duplicate a fid" "" "clone(5)" 384
+.xx "" "dup \-" "duplicate an open file descriptor" "" "dup(2)" 212
+.xx "" "dup \-" "dups of open files" "" "dup(3)" 330
+.xx "typesetting" "tex, latex, bibtex, dvips," "dviselect, mf \- text formatting and" "" "tex(1)" 159
+.xx "" "/ptinrect, rectinrect, rectXrect, rectclip, Dx," "Dy, Pt, Rect, Rpt \- arithmetic on points and/" "" "add(2)" 184
+.xx "" "xpand, picnegate \- adjust" "dynamic range" "" "xpand(9.1)" 525
+.xx "" "/estart, etimer, eread, emouse, ekbd, ecanread," "ecanmouse, ecankbd, ereshaped, getrect,/" "" "event(2)" 215
+.xx "" "httpd," "echo \- HTTP server" "" "httpd(8)" 464
+.xx "" "" "echo \- print arguments" "" "echo(1)" 63
+.xx "" "" "ed \- text editor" "" "ed(1)" 64
+.xx "smooth,/" "adapt, ahe, crispen, laplace, edge," "edge2, edge3, extremum, median, nonoise," "" "filters(9.1)" 504
+.xx "" "tweak \-" "edit bitmap files, subfont files, face files, etc." "" "tweak(1)" 166
+.xx "" "art, art2pic \-" "edit line-art" "" "art(1)" 22
+.xx "" "hed, nohed \-" "edit or remove picture file header" "" "hed(9.1)" 509
+.xx "" "ed \- text" "editor" "" "ed(1)" 64
+.xx "" "sed \- stream" "editor" "" "sed(1)" 134
+.xx "" "emacs \-" "editor macros" "" "emacs(1)" 68
+.xx "" "sam, B, sam.save \- screen" "editor with structural regular expressions" "" "sam(1)" 129
+.xx "smtpd, to, vwhois, vismon \- mail/" "mail," "edmail, sendmail, seemail, aliasmail, smtp," "" "mail(1)" 95
+.xx "pcx2pic, picopic, sgi2pic,/" "cvt2pic, dumppic," "ega2pic, face2pic, gif2pic, jpg2pic, nasa2pic," "" "cvt2pic(9.1)" 502
+.xx "ecanread, ecanmouse, ecankbd,/" "event," "einit, estart, etimer, eread, emouse, ekbd," "" "event(2)" 215
+.xx "myetheraddr, maskip, equivip \- Internet/" "" "eipconv, parseip, parseether, myipaddr," "" "ip(2)" 252
+.xx "" "dossrv, 9660srv, a:, b:, c:," "eject \- DOS and ISO9660 file systems" "" "dossrv(4)" 363
+.xx "" "event, einit, estart, etimer, eread, emouse," "ekbd, ecanread, ecanmouse, ecankbd,/" "" "event(2)" 215
+.xx "" "/point, segment, polysegment, arc, circle, disc," "ellipse, texture, border, string, strsize,/" "" "bitblt(2)" 196
+.xx "" "" "emacs \- editor macros" "" "emacs(1)" 68
+.xx "ecankbd,/" "event, einit, estart, etimer, eread," "emouse, ekbd, ecanread, ecanmouse," "" "event(2)" 215
+.xx "" "hp \-" "emulate an HP 2621 terminal" "" "hp(1)" 87
+.xx "" "" "encrypt, decrypt, netcrypt \- DES encryption" "" "encrypt(2)" 213
+.xx "" "" "env \- environment variables" "" "env(3)" 331
+.xx "" "getenv, putenv \- access" "environment variables" "" "getenv(2)" 241
+.xx "" "time \- time in seconds since" "epoch" "" "time(2)" 311
+.xx "" "" "eqn \- typeset mathematics" "" "eqn(1)" 69
+.xx "unit3, midpt3, lerp3,/" "add3, sub3, div3, mul3," "eqpt3, closept3, dot3, cross3, len3, dist3," "" "arith3(9.2)" 526
+.xx "" "/rsubp, rmul, rdiv, rshift, inset, rcanon, eqpt," "eqrect, ptinrect, rectinrect, rectXrect, rectclip,/" "" "add(2)" 184
+.xx "" "he \- histogram" "equalization" "" "he(9.1)" 508
+.xx "" "parseether, myipaddr, myetheraddr, maskip," "equivip \- Internet protocol" "eipconv, parseip," "ip(2)" 252
+.xx "ecankbd,/" "event, einit, estart, etimer," "eread, emouse, ekbd, ecanread, ecanmouse," "" "event(2)" 215
+.xx "Menu/" "/ekbd, ecanread, ecanmouse, ecankbd," "ereshaped, getrect, menuhit, Event, Mouse," "" "event(2)" 215
+.xx "" "errstr, werrstr \- description of last system call" "error" "" "errstr(2)" 214
+.xx "" "" "error \- return an error" "" "error(5)" 387
+.xx "" "perror, syslog \- system" "error messages" "" "perror(2)" 270
+.xx "" "spell, sprog \- find spelling" "errors" "" "spell(1)" 142
+.xx "error" "" "errstr, werrstr \- description of last system call" "" "errstr(2)" 214
+.xx "" "swap \-" "establish a swap file" "" "swap(8)" 492
+.xx "ecanread, ecanmouse, ecankbd,/" "event, einit," "estart, etimer, eread, emouse, ekbd," "" "event(2)" 215
+.xx "" "lance \- LANCE" "Ethernet device" "" "lance(3)" 339
+.xx "" "snoopy \- spy on" "Ethernet packets" "" "snoopy(8)" 491
+.xx "ecanmouse, ecankbd,/" "event, einit, estart," "etimer, eread, emouse, ekbd, ecanread," "" "event(2)" 215
+.xx "" "hypot \-" "Euclidean distance" "" "hypot(2)" 251
+.xx "., ~ \- command language" "rc, cd," "eval, exec, exit, flag, rfork, shift, wait, whatis," "" "rc(1)" 123
+.xx "" "/ecankbd, ereshaped, getrect, menuhit," "Event, Mouse, Menu \- graphics events" "" "event(2)" 215
+.xx "" "calendar \- print upcoming" "events" "" "calendar(1)" 37
+.xx "\- command language" "rc, cd, eval," "exec, exit, flag, rfork, shift, wait, whatis, ., ~" "" "rc(1)" 123
+.xx "" "exec," "execl, _clock \- execute a file" "" "exec(2)" 218
+.xx "" "beswal, leswab, leswal \- machine-independent" "executable file access" "/put2, put4, beswab," "mach(2)" 257
+.xx "" "size \- print size of" "executable files" "" "size(1)" 138
+.xx "" "exec, execl, _clock \-" "execute a file" "" "exec(2)" 218
+.xx "" "open, create \- prepare a fid for I/O on an" "existing or new file" "" "open(5)" 389
+.xx "" "wait \- wait for a process to" "exit" "" "wait(2)" 313
+.xx "command language" "rc, cd, eval, exec," "exit, flag, rfork, shift, wait, whatis, ., ~ \-" "" "rc(1)" 123
+.xx "terminate process, process cleanup" "" "exits, _exits, atexit, atexitdont, terminate \-" "" "exits(2)" 220
+.xx "" "frexp, ldexp, modf \- split into mantissa and" "exponent" "" "frexp(2)" 236
+.xx "" "exp, log, log10, pow, pow10, sqrt \-" "exponential, logarithm, power, square root" "" "exp(2)" 221
+.xx "" "" "exportfs, srvfs \- network file server plumbing" "" "exportfs(4)" 364
+.xx "" "regsub, rregexec, rregsub, regerror \- regular" "expression" "/regcomplit, regcompnl, regexec," "regexp(2)" 287
+.xx "" "regexp \- regular" "expression notation" "" "regexp(6)" 419
+.xx "" "\- screen editor with structural regular" "expressions" "sam, B, sam.save" "sam(1)" 129
+.xx "" "fs," "exsort \- file server maintenance" "" "fs(8)" 457
+.xx "" "bitmap \-" "external format for bitmaps" "" "bitmap(6)" 402
+.xx "" "font, subfont \-" "external format for fonts and subfonts" "" "font(6)" 404
+.xx "" "strings \-" "extract printable strings" "" "strings(1)" 146
+.xx "" "/ahe, crispen, laplace, edge, edge2, edge3," "extremum, median, nonoise, smooth,/" "" "filters(9.1)" 504
+.xx "remainder, floor, ceiling functions" "" "fabs, fmod, floor, ceil \- absolute value," "" "floor(2)" 226
+.xx "" "" "face \- face files" "" "face(6)" 403
+.xx "" "tweak \- edit bitmap files, subfont files," "face files, etc." "" "tweak(1)" 166
+.xx "" "mugs \- make" "face icons from pictures" "" "mugs(9.1)" 517
+.xx "picopic, sgi2pic,/" "cvt2pic, dumppic, ega2pic," "face2pic, gif2pic, jpg2pic, nasa2pic, pcx2pic," "" "cvt2pic(9.1)" 502
+.xx "large primes" "" "factor, primes \- factor a number, generate" "" "factor(1)" 71
+.xx "" "abort \- generate a" "fault" "" "abort(2)" 181
+.xx "descriptor to a file server" "fsession," "fauth \- set up authentication on a file" "" "fsession(2)" 240
+.xx "" "page \- view" "FAX, bitmap, and PostScript files" "" "page(1)" 110
+.xx "telephone dialer network" "telco," "faxreceive, faxsend, fax, telcofax, telcodata \-" "" "telco(4)" 377
+.xx "" "" "fcall \- recreate packet delimiters" "" "fcall(3)" 332
+.xx "convM2D, getS, fcallconv, dirconv,/" "" "Fcall, convS2M, convD2M, convM2S," "" "fcall(2)" 222
+.xx "" "/convS2M, convD2M, convM2S, convM2D, getS," "fcallconv, dirconv, dirmodeconv \- interface to/" "" "fcall(2)" 222
+.xx "setvbuf,/" "fopen, freopen, fdopen, fileno," "fclose, sopenr, sopenw, sclose, fflush," "" "fopen(2)" 227
+.xx "" "texture, border, string, strsize, strwidth," "Fcode \- graphics functions" "/disc, ellipse," "bitblt(2)" 196
+.xx "sclose, fflush, setvbuf,/" "fopen, freopen," "fdopen, fileno, fclose, sopenr, sopenw," "" "fopen(2)" 227
+.xx "" "/setbuf, fgetpos, ftell, fsetpos, fseek, rewind," "feof, ferror, clearerr \- standard buffered/" "" "fopen(2)" 227
+.xx "" "life, fsim, clock, catclock, fireworks, swar," "festoon \- time wasters" "/plumb, smiley," "games(1)" 78
+.xx "points/" "/pldist3, vdiv3, vrem3, pn2f3, ppp2f3," "fff2p3, pdiv4, add4, sub4 \- operations on 3-d" "" "arith3(9.2)" 526
+.xx "" "/bexit, clipr, cursorswitch, cursorset, rdfontfile," "ffree, charwidth, Pconv, Rconv \- bitmap/" "" "graphics(2)" 248
+.xx "" "/sopenw, sclose, fflush, setvbuf, setbuf," "fgetpos, ftell, fsetpos, fseek, rewind, feof,/" "" "fopen(2)" 227
+.xx "" "/getc, getchar, fputc, putc, putchar, ungetc," "fgets, gets, fputs, puts, fread, fwrite \- Stdio/" "" "fgetc(2)" 224
+.xx "" "cyc \- Cyclone" "fiber interface" "" "cyc(3)" 326
+.xx "" "clone \- duplicate a" "fid" "" "clone(5)" 384
+.xx "" "clunk \- forget about a" "fid" "" "clunk(5)" 385
+.xx "" "open, create \- prepare a" "fid for I/O on an existing or new file" "" "open(5)" 389
+.xx "" "card, ramp \- create simple color" "fields" "" "card(9.1)" 499
+.xx "" "setfields, tokenize \- break a string into" "fields" "getfields, getmfields," "getfields(2)" 244
+.xx "" "access \- determine accessibility of" "file" "" "access(2)" 183
+.xx "" "dd \- convert and copy a" "file" "" "dd(1)" 58
+.xx "" "exec, execl, _clock \- execute a" "file" "" "exec(2)" 218
+.xx "" "fortune \- sample lines from a" "file" "" "fortune(1)" 76
+.xx "" "getcmap \- read a color map from a" "file" "" "getcmap(9.2)" 528
+.xx "" "namespace \- name space description" "file" "" "namespace(6)" 414
+.xx "" "\- open a file for reading or writing, create" "file" "open, create, close" "open(2)" 269
+.xx "" "\- prepare a fid for I/O on an existing or new" "file" "open, create" "open(5)" 389
+.xx "" "pr \- print" "file" "" "pr(1)" 118
+.xx "" "read, readn, write \- read or write" "file" "" "read(2)" 286
+.xx "" "read, write \- transfer data from and to a" "file" "" "read(5)" 390
+.xx "" "remove \- remove a" "file" "" "remove(2)" 289
+.xx "" "sum, md5sum \- sum and count blocks in a" "file" "" "sum(1)" 148
+.xx "" "swap \- establish a swap" "file" "" "swap(8)" 492
+.xx "" "tail \- deliver the last part of a" "file" "" "tail(1)" 150
+.xx "" "touch \- set modification date of a" "file" "" "touch(1)" 163
+.xx "" "uniq \- report repeated lines in a" "file" "" "uniq(1)" 169
+.xx "" "" "file \- determine file type" "" "file(1)" 72
+.xx "" "leswal \- machine-independent executable" "file access" "/put4, beswab, beswal, leswab," "mach(2)" 257
+.xx "" "stat, wstat \- inquire or change" "file attributes" "" "stat(5)" 392
+.xx "" "diff \- differential" "file comparator" "" "diff(1)" 60
+.xx "" "dup \- duplicate an open" "file descriptor" "" "dup(2)" 212
+.xx "" "fsession, fauth \- set up authentication on a" "file descriptor to a file server" "" "fsession(2)" 240
+.xx "" "grep \- search a" "file for a pattern" "" "grep(1)" 82
+.xx "" "plan9.ini \- configuration" "file for PC's" "" "plan9.ini(8)" 481
+.xx "" "open, create, close \- open a" "file for reading or writing, create file" "" "open(2)" 269
+.xx "" "a.out \- object" "file format" "" "a.out(6)" 396
+.xx "" "ar \- archive (library)" "file format" "" "ar(6)" 398
+.xx "" "intro \- introduction to" "file formats" "" "intro(6)" 395
+.xx "" "remove \- remove a" "file from a server" "" "remove(5)" 391
+.xx "" "chgrp \- change" "file group" "" "chgrp(1)" 40
+.xx "" "hed, nohed \- edit or remove picture" "file header" "" "hed(9.1)" 509
+.xx "" "objtraverse, isar, nextar, readar \- object" "file interpretation functions" "/readobj," "object(2)" 267
+.xx "" "split \- split a" "file into pieces" "" "split(1)" 144
+.xx "" "picgetprop, picunpack, picpack \- picture" "file I/O" "/rdpicfile, wrpicfile, picputprop," "picopen(9.2)" 532
+.xx "" "mktemp \- make a unique" "file name" "" "mktemp(2)" 261
+.xx "" "basename \- strip" "file name affixes" "" "basename(1)" 29
+.xx "" "namespace \- structure of conventional" "file name space" "" "namespace(4)" 372
+.xx "" "yesterday \- print" "file names from the dump" "" "yesterday(1)" 177
+.xx "" "seek \- change" "file offset" "" "seek(2)" 293
+.xx "" "dirconv, dirmodeconv \- interface to Plan 9" "File protocol" "/convM2D, getS, fcallconv," "fcall(2)" 222
+.xx "" "intro \- introduction to the Plan 9" "File Protocol, 9P" "" "intro(5)" 380
+.xx "" "boot \- connect to the root" "file server" "" "boot(8)" 446
+.xx "" "fsconfig \- configuring a" "file server" "" "fsconfig(8)" 461
+.xx "" "\- set up authentication on a file descriptor to a" "file server" "fsession, fauth" "fsession(2)" 240
+.xx "" "reboot \- reboot CPU after loss of" "file server connection" "" "reboot(3)" 345
+.xx "" "fs \-" "file server, dump" "" "fs(4)" 365
+.xx "" "fs, exsort \-" "file server maintenance" "" "fs(8)" 457
+.xx "" "exportfs, srvfs \- network" "file server plumbing" "" "exportfs(4)" 364
+.xx "" "users \-" "file server user list format" "" "users(6)" 421
+.xx "" "intro \- introduction to" "file servers" "" "intro(4)" 355
+.xx "" "srv, 9fs, dk232, dkmodem \- start network" "file service" "" "srv(4)" 376
+.xx "" "dirfstat, dirwstat, dirfwstat \- get and put" "file status" "stat, fstat, wstat, fwstat, dirstat," "stat(2)" 302
+.xx "" "cfs \- cache" "file system" "" "cfs(4)" 361
+.xx "" "ftpfs \- file transfer protocol (FT)" "file system" "" "ftpfs(4)" 366
+.xx "" "kfs \- disk" "file system" "" "kfs(4)" 371
+.xx "" "mkfs, mkext \- archive or update a" "file system" "" "mkfs(8)" 470
+.xx "" "ramfs \- memory" "file system" "" "ramfs(4)" 375
+.xx "" "root \- the root" "file system" "" "root(3)" 346
+.xx "" "consolefs, C \-" "file system for console access" "" "consolefs(4)" 362
+.xx "" "iostats \-" "file system to measure I/O" "" "iostats(4)" 368
+.xx "" "9660srv, a:, b:, c:, eject \- DOS and ISO9660" "file systems" "dossrv," "dossrv(4)" 363
+.xx "" "update, Disclabel \- administration for local" "file systems" "/40meg, 80meg, personalize," "home(8)" 463
+.xx "" "tapfs, tarfs, tpfs, v6fs, v10fs \- mount archival" "file systems" "32vfs, cpiofs," "tapefs(1)" 151
+.xx "" "xmr \- remote login, execution, and XMODEM" "file transfer" "con, telnet, cu, rx, xms," "con(1)" 44
+.xx "" "ftpfs \-" "file transfer protocol (FT) file system" "" "ftpfs(4)" 366
+.xx "" "file \- determine" "file type" "" "file(1)" 72
+.xx "" "clone, then search a directory, and change to a" "file within it" "clwalk \-" "clwalk(5)" 386
+.xx "table/" "/localsym, globalsym, textsym, file2pc," "fileelem, filesym, fileline, fnbound \- symbol" "" "symbol(2)" 308
+.xx "setvbuf, setbuf,/" "fopen, freopen, fdopen," "fileno, fclose, sopenr, sopenw, sclose, fflush," "" "fopen(2)" 227
+.xx "" "8½ \- window system" "files" "" "8½(4)" 356
+.xx "" "cat, read \- catenate" "files" "" "cat(1)" 38
+.xx "" "cmp \- compare two" "files" "" "cmp(1)" 42
+.xx "" "\- select or reject lines common to two sorted" "files" "comm" "comm(1)" 43
+.xx "" "cp, mv \- copy, move" "files" "" "cp(1)" 46
+.xx "" "xbm2pic \- convert other formats to picture" "files" "/sgi2pic, targa2pic, tiff2pic, utah2pic," "cvt2pic(9.1)" 502
+.xx "" "dup \- dups of open" "files" "" "dup(3)" 330
+.xx "" "face \- face" "files" "" "face(6)" 403
+.xx "" "keyfs, warning \- authentication database" "files" "" "keyfs(4)" 369
+.xx "" "mk, membername \- maintain (make) related" "files" "" "mk(1)" 100
+.xx "" "mothra \- retrieve World-Wide Web" "files" "" "mothra(1)" 105
+.xx "" "page \- view FAX, bitmap, and PostScript" "files" "" "page(1)" 110
+.xx "" "picinfo \- print information about picture" "files" "" "picinfo(9.1)" 520
+.xx "" "qer, runq \- queues management for spooled" "files" "" "qer(8)" 486
+.xx "" "rm \- remove" "files" "" "rm(1)" 128
+.xx "" "size \- print size of executable" "files" "" "size(1)" 138
+.xx "" "sort \- sort and/or merge" "files" "" "sort(1)" 140
+.xx "" "strip \- remove symbols from binary" "files" "" "strip(1)" 147
+.xx "" "tmpfile, tmpnam \- Stdio temporary" "files" "" "tmpfile(2)" 312
+.xx "" "tweak \- edit bitmap files, subfont" "files, face files, etc." "" "tweak(1)" 166
+.xx "" "bundle \- collect" "files for distribution" "" "bundle(1)" 33
+.xx "" "acme \- control" "files for text windows" "" "acme(4)" 358
+.xx "" "tweak \- edit bitmap" "files, subfont files, face files, etc." "" "tweak(1)" 166
+.xx "" "9v, save, flip \- copy picture" "files to and from screen" "" "9v(9.1)" 496
+.xx "" "pic2ps, pic2gif \- convert picture" "files to other formats" "" "pic2ps(9.1)" 519
+.xx "access/" "/globalsym, textsym, file2pc, fileelem," "filesym, fileline, fnbound \- symbol table" "" "symbol(2)" 308
+.xx "" "plot \- graphics" "filter" "" "plot(1)" 116
+.xx "" "look \-" "find lines in a sorted list" "" "look(1)" 92
+.xx "" "man, lookman \- print or" "find pages of this manual" "" "man(1)" 98
+.xx "" "spell, sprog \-" "find spelling errors" "" "spell(1)" 142
+.xx "" "/newmap, setmap, unusemap, loadmap," "findseg, get1, get2, get4, put1, put2, put4,/" "" "mach(2)" 257
+.xx "" "/textseg, line2addr, lookup, findlocal, getauto," "findsym, localsym, globalsym, textsym,/" "" "symbol(2)" 308
+.xx "" "/plumb, smiley, life, fsim, clock, catclock," "fireworks, swar, festoon \- time wasters" "" "games(1)" 78
+.xx "" "getflags, usage \- process" "flag arguments in argv" "" "getflags(9.2)" 529
+.xx "language" "rc, cd, eval, exec, exit," "flag, rfork, shift, wait, whatis, ., ~ \- command" "" "rc(1)" 123
+.xx "" "9v, save," "flip \- copy picture files to and from screen" "" "9v(9.1)" 496
+.xx "" "getfcr, setfcr, getfsr, setfsr \- control" "floating point" "" "getfcr(2)" 242
+.xx "" "hoc \- interactive" "floating point language" "" "hoc(1)" 86
+.xx "" "fmod, floor, ceil \- absolute value, remainder," "floor, ceiling functions" "fabs," "floor(2)" 226
+.xx "" "" "floppy \- floppy disk interface" "" "floppy(3)" 333
+.xx "" "prep, format \- prepare hard and" "floppy diskettes" "" "prep(8)" 484
+.xx "images by dithering" "" "floyd, halftone, hysteresis \- create 1-bit" "" "floyd(9.1)" 506
+.xx "" "/fmtinstall, strconv, Strconv, numbconv," "fltconv, doprint \- print formatted output" "" "print(2)" 281
+.xx "" "" "flush \- abort a message" "" "flush(5)" 388
+.xx "" "segflush \-" "flush instruction and data caches" "" "segflush(2)" 297
+.xx "floor, ceiling functions" "fabs," "fmod, floor, ceil \- absolute value, remainder," "" "floor(2)" 226
+.xx "" "" "fmt \- ultra-simple text formatter" "" "fmt(1)" 73
+.xx "fltconv, doprint/" "print, fprint, sprint, snprint," "fmtinstall, strconv, Strconv, numbconv," "" "print(2)" 281
+.xx "" "/textsym, file2pc, fileelem, filesym, fileline," "fnbound \- symbol table access functions" "" "symbol(2)" 308
+.xx "" "" "fone \- control ISDN telephone" "" "fone(1)" 74
+.xx "subfonts" "" "font, subfont \- external format for fonts and" "" "font(6)" 404
+.xx "" "cachechars, agefont, loadchar, Subfont," "Fontchar, Font \- font utilities" "" "cachechars(2)" 199
+.xx "sopenw, sclose, fflush, setvbuf, setbuf,/" "" "fopen, freopen, fdopen, fileno, fclose, sopenr," "" "fopen(2)" 227
+.xx "" "" "fork, rfork \- manipulate process resources" "" "fork(2)" 230
+.xx "" "a.out \- object file" "format" "" "a.out(6)" 396
+.xx "" "ar \- archive (library) file" "format" "" "ar(6)" 398
+.xx "" "cmap \- color map" "format" "" "cmap(9.6)" 537
+.xx "" "picfile \- raster graphic image" "format" "" "picfile(9.6)" 538
+.xx "" "users \- file server user list" "format" "" "users(6)" 421
+.xx "" "UTF, Unicode, ASCII, rune \- character set and" "format" "" "utf(6)" 422
+.xx "" "prep," "format \- prepare hard and floppy diskettes" "" "prep(8)" 484
+.xx "" "bitmap \- external" "format for bitmaps" "" "bitmap(6)" 402
+.xx "" "font, subfont \- external" "format for fonts and subfonts" "" "font(6)" 404
+.xx "" "tbl \-" "format tables for nroff or troff" "" "tbl(1)" 153
+.xx "" "intro \- introduction to file" "formats" "" "intro(6)" 395
+.xx "" "map \- digitized map" "formats" "" "map(6)" 409
+.xx "" "pic2ps, pic2gif \- convert picture files to other" "formats" "" "pic2ps(9.1)" 519
+.xx "" "tiff2pic, utah2pic, xbm2pic \- convert other" "formats to picture files" "/sgi2pic, targa2pic," "cvt2pic(9.1)" 502
+.xx "" "fscanf, scanf, sscanf, vfscanf \- scan" "formatted input" "" "fscanf(2)" 237
+.xx "" "printf, sprintf, vfprintf, vprintf, vsprintf \- print" "formatted output" "fprintf," "fprintf(2)" 231
+.xx "" "Strconv, numbconv, fltconv, doprint \- print" "formatted output" "/fmtinstall, strconv," "print(2)" 281
+.xx "" "fmt \- ultra-simple text" "formatter" "" "fmt(1)" 73
+.xx "" "doctype \- intuit command line for" "formatting a document" "" "doctype(1)" 61
+.xx "" "tex, latex, bibtex, dvips, dviselect, mf \- text" "formatting and typesetting" "" "tex(1)" 159
+.xx "" "troff, nroff \- text" "formatting and typesetting" "" "troff(1)" 165
+.xx "" "ms \- macros for" "formatting manuscripts" "" "ms(6)" 412
+.xx "" "deroff, delatex \- remove" "formatting requests" "" "deroff(1)" 59
+.xx "" "" "fortune \- sample lines from a file" "" "fortune(1)" 76
+.xx "" "/ciscframe, riscframe, localaddr, symoff," "fpformat, beieee80ftos, beieeesftos,/" "" "debugger(2)" 206
+.xx "Strconv, numbconv, fltconv, doprint \-/" "print," "fprint, sprint, snprint, fmtinstall, strconv," "" "print(2)" 281
+.xx "vsprintf \- print formatted output" "" "fprintf, printf, sprintf, vfprintf, vprintf," "" "fprintf(2)" 231
+.xx "" "/fputc, putc, putchar, ungetc, fgets, gets," "fputs, puts, fread, fwrite \- Stdio input and/" "" "fgetc(2)" 224
+.xx "" "frselect, frselectp, frselectf, frgetmouse \-" "frames of text" "/frptofchar, frinsert, frdelete," "frame(2)" 234
+.xx "" "async \-" "framing for a serial line to Datakit" "" "async(3)" 316
+.xx "generator" "rand, lrand," "frand, nrand, lnrand, srand \- random number" "" "rand(2)" 285
+.xx "frdelete, frselect, frselectp,/" "frinit, frsetrects," "frclear, frcharofpt, frptofchar, frinsert," "" "frame(2)" 234
+.xx "" "putc, putchar, ungetc, fgets, gets, fputs, puts," "fread, fwrite \- Stdio input and output" "/fputc," "fgetc(2)" 224
+.xx "" "malloc," "free, realloc, calloc \- memory allocator" "" "malloc(2)" 259
+.xx "" "rdbitmapfile, wrbitmapfile \- allocating," "freeing, reading, writing bitmaps" "/wrbitmap," "balloc(2)" 191
+.xx "sopenw, sclose, fflush, setvbuf,/" "fopen," "freopen, fdopen, fileno, fclose, sopenr," "" "fopen(2)" 227
+.xx "frequencies" "" "freq \- print histogram of character" "" "freq(1)" 77
+.xx "exponent" "" "frexp, ldexp, modf \- split into mantissa and" "" "frexp(2)" 236
+.xx "" "frinsert, frdelete, frselect, frselectp, frselectf," "frgetmouse \- frames of text" "/frptofchar," "frame(2)" 234
+.xx "frptofchar, frinsert, frdelete, frselect,/" "" "frinit, frsetrects, frclear, frcharofpt," "" "frame(2)" 234
+.xx "" "/frptofchar, frinsert, frdelete, frselect, frselectp," "frselectf, frgetmouse \- frames of text" "" "frame(2)" 234
+.xx "frinsert, frdelete, frselect, frselectp,/" "frinit," "frsetrects, frclear, frcharofpt, frptofchar," "" "frame(2)" 234
+.xx "" "" "fs \- file server, dump" "" "fs(4)" 365
+.xx "" "" "fs, exsort \- file server maintenance" "" "fs(8)" 457
+.xx "input" "" "fscanf, scanf, sscanf, vfscanf \- scan formatted" "" "fscanf(2)" 237
+.xx "" "" "fsconfig \- configuring a file server" "" "fsconfig(8)" 461
+.xx "file descriptor to a file server" "" "fsession, fauth \- set up authentication on a" "" "fsession(2)" 240
+.xx "" "/sclose, fflush, setvbuf, setbuf, fgetpos, ftell," "fsetpos, fseek, rewind, feof, ferror, clearerr \-/" "" "fopen(2)" 227
+.xx "\-/" "4s, 5s, ana, mandel, plumb, smiley, life," "fsim, clock, catclock, fireworks, swar, festoon" "" "games(1)" 78
+.xx "dirfwstat \- get and put file status" "stat," "fstat, wstat, fwstat, dirstat, dirfstat, dirwstat," "" "stat(2)" 302
+.xx "" "/sclose, fflush, setvbuf, setbuf, fgetpos," "ftell, fsetpos, fseek, rewind, feof, ferror,/" "" "fopen(2)" 227
+.xx "" "" "ftpfs \- file transfer protocol (FT) file system" "" "ftpfs(4)" 366
+.xx "rune/UTF/" "runetochar, chartorune, runelen," "fullrune, utflen, utfrune, utfrrune, utfutf \-" "" "rune(2)" 292
+.xx "" "putchar, ungetc, fgets, gets, fputs, puts, fread," "fwrite \- Stdio input and output" "/fputc, putc," "fgetc(2)" 224
+.xx "get and put file status" "stat, fstat, wstat," "fwstat, dirstat, dirfstat, dirwstat, dirfwstat \-" "" "stat(2)" 302
+.xx "" "move, xform, ixform, persp, look, viewport \-" "Geometric transformations" "/rot, qrot, scale," "matrix(9.2)" 530
+.xx "" "/setmap, unusemap, loadmap, findseg, get1," "get2, get4, put1, put2, put4, beswab, beswal,/" "" "mach(2)" 257
+.xx "" "/pc2line, textseg, line2addr, lookup, findlocal," "getauto, findsym, localsym, globalsym,/" "" "symbol(2)" 308
+.xx "" "auth, amount, srvauth, authenticate," "getchal, chalreply, newns, authdial,/" "" "auth(2)" 189
+.xx "gets, fputs, puts, fread, fwrite \-/" "fgetc, getc," "getchar, fputc, putc, putchar, ungetc, fgets," "" "fgetc(2)" 224
+.xx "" "" "getcmap \- read a color map from a file" "" "getcmap(9.2)" 528
+.xx "variables" "" "getenv, putenv \- access environment" "" "getenv(2)" 241
+.xx "point" "" "getfcr, setfcr, getfsr, setfsr \- control floating" "" "getfcr(2)" 242
+.xx "break a string into fields" "" "getfields, getmfields, setfields, tokenize \-" "" "getfields(2)" 244
+.xx "argv" "" "getflags, usage \- process flag arguments in" "" "getflags(9.2)" 529
+.xx "" "getfcr, setfcr," "getfsr, setfsr \- control floating point" "" "getfcr(2)" 242
+.xx "color map" "" "getmap, colors \- manipulate the display's" "" "getmap(9.1)" 507
+.xx "string into fields" "getfields," "getmfields, setfields, tokenize \- break a" "" "getfields(2)" 244
+.xx "" "getpid," "getppid \- get process ids" "" "getpid(2)" 245
+.xx "" "/ecanread, ecanmouse, ecankbd, ereshaped," "getrect, menuhit, Event, Mouse, Menu \-/" "" "event(2)" 215
+.xx "" "Fcall, convS2M, convD2M, convM2S, convM2D," "getS, fcallconv, dirconv, dirmodeconv \-/" "" "fcall(2)" 222
+.xx "" "/getchar, fputc, putc, putchar, ungetc, fgets," "gets, fputs, puts, fread, fwrite \- Stdio input/" "" "fgetc(2)" 224
+.xx "line2addr, lookup, findlocal,/" "syminit," "getsym, symbase, pc2sp, pc2line, textseg," "" "symbol(2)" 308
+.xx "" "" "getuser \- get user name" "" "getuser(2)" 246
+.xx "" "" "getwd \- get current directory" "" "getwd(2)" 247
+.xx "" "gs \- Aladdin" "Ghostscript (PostScript) interpreter" "" "gs(1)" 83
+.xx "sgi2pic,/" "cvt2pic, dumppic, ega2pic, face2pic," "gif2pic, jpg2pic, nasa2pic, pcx2pic, picopic," "" "cvt2pic(9.1)" 502
+.xx "" "/lookup, findlocal, getauto, findsym, localsym," "globalsym, textsym, file2pc, fileelem, filesym,/" "" "symbol(2)" 308
+.xx "and time to ASCII" "ctime, localtime," "gmtime, asctime, timezone \- convert date" "" "ctime(2)" 204
+.xx "" "setjmp, longjmp, notejmp \- non-local" "goto" "" "setjmp(2)" 298
+.xx "" "road," "gps \- road map of the United States" "" "road(7)" 437
+.xx "" "" "grap \- pic preprocessor for drawing graphs" "" "grap(1)" 79
+.xx "" "" "graph \- draw a graph" "" "graph(1)" 81
+.xx "" "picfile \- raster" "graphic image format" "" "picfile(9.6)" 538
+.xx "" "ffree, charwidth, Pconv, Rconv \- bitmap" "graphics" "/cursorswitch, cursorset, rdfontfile," "graphics(2)" 248
+.xx "" "getrect, menuhit, Event, Mouse, Menu \-" "graphics events" "/ecankbd, ereshaped," "event(2)" 215
+.xx "" "plot \-" "graphics filter" "" "plot(1)" 116
+.xx "" "border, string, strsize, strwidth, Fcode \-" "graphics functions" "/disc, ellipse, texture," "bitblt(2)" 196
+.xx "" "plot \-" "graphics interface" "" "plot(6)" 417
+.xx "" "lalloc, lfree, ltofront, ltoback, lcstring \-" "graphics layers" "" "layer(2)" 253
+.xx "" "bit \- screen" "graphics, mouse" "" "bit(3)" 319
+.xx "" "grap \- pic preprocessor for drawing" "graphs" "" "grap(1)" 79
+.xx "" "sysmon, stats \- display" "graphs of system activity" "" "sysmon(8)" 493
+.xx "" "" "grep \- search a file for a pattern" "" "grep(1)" 82
+.xx "" "chgrp \- change file" "group" "" "chgrp(1)" 40
+.xx "" "postnote \- send a note to a process or process" "group" "" "postnote(2)" 280
+.xx "" "cons \- console, clocks, process/process" "group ids, user, null, klog, stats, lights,/" "" "cons(3)" 323
+.xx "interpreter" "" "gs \- Aladdin Ghostscript (PostScript)" "" "gs(1)" 83
+.xx "" "/wrkey, convkeys, printnetkey, status, auth.srv," "guard.srv \- maintain authentication databases" "" "auth(8)" 443
+.xx "dithering" "floyd," "halftone, hysteresis \- create 1-bit images by" "" "floyd(9.1)" 506
+.xx "" "notify, noted, atnotify \-" "handle asynchronous process notification" "" "notify(2)" 265
+.xx "" "RGB, rgbpix, rdcolmap, wrcolmap \-" "handle color screens" "" "rgbpix(2)" 291
+.xx "netmkaddr \- make and break network/" "dial," "hangup, announce, listen, accept, reject," "" "dial(2)" 209
+.xx "" "prep, format \- prepare" "hard and floppy diskettes" "" "prep(8)" 484
+.xx "" "wren, ata \-" "hard disk interface" "" "wren(3)" 354
+.xx "" "" "he \- histogram equalization" "" "he(9.1)" 508
+.xx "header" "" "hed, nohed \- edit or remove picture file" "" "hed(9.1)" 509
+.xx "" "xd \-" "hex, octal, decimal, or ASCII dump" "" "xd(1)" 174
+.xx "" "walk \- descend a directory" "hierarchy" "" "walk(5)" 394
+.xx "" "" "hist \- pixel value histogram" "" "hist(9.1)" 510
+.xx "" "he \-" "histogram equalization" "" "he(9.1)" 508
+.xx "" "freq \- print" "histogram of character frequencies" "" "freq(1)" 77
+.xx "" "" "hoc \- interactive floating point language" "" "hoc(1)" 86
+.xx "Disclabel \- administration for local file/" "" "home, 40meg, 80meg, personalize, update," "" "home(8)" 463
+.xx "" "stats, lights, noise, sysstat, hz, swap, key," "hostowner, hostdomain, authenticate,/" "/klog," "cons(3)" 323
+.xx "" "keyboard \-" "how to type characters" "" "keyboard(6)" 405
+.xx "" "" "hp \- emulate an HP 2621 terminal" "" "hp(1)" 87
+.xx "" "incon," "hsvme, hs386 \- Datakit interface" "" "datakit(3)" 327
+.xx "" "" "httpd, echo \- HTTP server" "" "httpd(8)" 464
+.xx "" "sinh, cosh, tanh \-" "hyperbolic functions" "" "sinh(2)" 300
+.xx "" "" "hypot \- Euclidean distance" "" "hypot(2)" 251
+.xx "" "floyd, halftone," "hysteresis \- create 1-bit images by dithering" "" "floyd(9.1)" 506
+.xx "" "user, null, klog, stats, lights, noise, sysstat," "hz, swap, key, hostowner, hostdomain,/" "/ids," "cons(3)" 323
+.xx "Interface Association (PCMCI) device" "" "i82365 \- Personal Computer Memory Card" "" "i82365(3)" 334
+.xx "" "mugs \- make face" "icons from pictures" "" "mugs(9.1)" 517
+.xx "invertmat, xformpoint, xformpointd,/" "" "ident, matmul, matmulr, determinant, adjoint," "" "matrix(9.2)" 530
+.xx "" "aux/pcmcia \-" "identify a PCMCIA card" "" "pcmcia(8)" 478
+.xx "" "/leieee80ftos, leieeesftos, leieeedftos," "ieeesftos, ieeedftos \- machine-independent/" "" "debugger(2)" 206
+.xx "" "ip \- TCP, UDP," "IL network protocols over IP" "" "ip(3)" 335
+.xx "" "/dklogin, dkguard, il7, il9, il565, il566, il17005," "il17006, il17007, il17009, tcp2, tcp7, tcp9,/" "" "listen(8)" 468
+.xx "" "rotate, transpose \- re-orient an" "image" "" "transpose(9.1)" 524
+.xx "" "picfile \- raster graphic" "image format" "" "picfile(9.6)" 538
+.xx "" "logo \- convert" "image into an AT&T logo" "" "logo(9.1)" 513
+.xx "" "median, nonoise, smooth, shadepic \-" "image neighborhood operators" "/extremum," "filters(9.1)" 504
+.xx "" "intro \- introduction to raster" "image software" "" "intro(9)" 495
+.xx "" "lam, posit, piccat, picjoin \- combine several" "images" "" "lam(9.1)" 511
+.xx "" "lerp, sub \- linear combinations of" "images" "" "lerp(9.1)" 512
+.xx "" "floyd, halftone, hysteresis \- create 1-bit" "images by dithering" "" "floyd(9.1)" 506
+.xx "system" "" "import \- import a name space from a remote" "" "import(4)" 367
+.xx "compression" "3to1, mcut," "improve, quantize, dither \- picture color" "" "quantize(9.1)" 521
+.xx "" "" "incon, hsvme, hs386 \- Datakit interface" "" "datakit(3)" 327
+.xx "" "/leieeesftos, leieeedftos, ieeesftos, ieeedftos \-" "independent debugger functions" "" "debugger(2)" 206
+.xx "" "put2, put4, beswab, beswal, leswab, leswal \-" "independent executable file access" "/put1," "mach(2)" 257
+.xx "functions" "NaN," "Inf, isNaN, isInf \- not-a-number and infinity" "" "nan(2)" 262
+.xx "" "astro \- print astronomical" "information" "" "astro(7)" 427
+.xx "" "picinfo \- print" "information about picture files" "" "picinfo(9.1)" 520
+.xx "" "" "init \- initialize machine upon booting" "" "init(8)" 465
+.xx "" "attach, session, nop \- messages to" "initiate activity" "" "attach(5)" 383
+.xx "" "fscanf, scanf, sscanf, vfscanf \- scan formatted" "input" "" "fscanf(2)" 237
+.xx "" "audio \- digital audio" "input and output" "" "audio(3)" 317
+.xx "" "fgets, gets, fputs, puts, fread, fwrite \- Stdio" "input and output" "/putc, putchar, ungetc," "fgetc(2)" 224
+.xx "" "Bwrite, Bflush, Bterm, Bbuffered \- buffered" "input/output" "/Bputc, Bputrune, Bprint," "bio(2)" 193
+.xx "" "feof, ferror, clearerr \- standard buffered" "input/output package" "/fseek, rewind," "fopen(2)" 227
+.xx "" "stat, wstat \-" "inquire or change file attributes" "" "stat(5)" 392
+.xx "" "sub, mul, div, raddp, rsubp, rmul, rdiv, rshift," "inset, rcanon, eqpt, eqrect, ptinrect,/" "add," "add(2)" 184
+.xx "" "segflush \- flush" "instruction and data caches" "" "segflush(2)" 297
+.xx "" "vi, ki, xi \-" "instruction simulators" "" "vi(1)" 171
+.xx "" "arp \-" "Internet Address Resolution Protocol" "" "arp(3)" 315
+.xx "" "bootp, rarpd, tftpd \-" "Internet booting" "" "bootp(8)" 452
+.xx "" "ipconfig, arpd, rip \-" "Internet configuration and routing" "" "ipconfig(8)" 466
+.xx "" "myipaddr, myetheraddr, maskip, equivip \-" "Internet protocol" "/parseip, parseether," "ip(2)" 252
+.xx "" "iproute \-" "Internet route table manager" "" "iproute(3)" 337
+.xx "" "ascii, unicode \-" "interpret ASCII, Unicode characters" "" "ascii(1)" 25
+.xx "" "objtraverse, isar, nextar, readar \- object file" "interpretation functions" "objtype, readobj," "object(2)" 267
+.xx "" "pipe \- create an" "interprocess channel" "" "pipe(2)" 271
+.xx "" "pipe \- two-way" "interprocess communication" "" "pipe(3)" 342
+.xx "" "intro \-" "introduction to databases" "" "intro(7)" 426
+.xx "" "intro \-" "introduction to file formats" "" "intro(6)" 395
+.xx "" "intro \-" "introduction to file servers" "" "intro(4)" 355
+.xx "" "intro \-" "introduction to library functions" "" "intro(2)" 178
+.xx "" "intro \-" "introduction to Plan 9" "" "intro(1)" 1
+.xx "" "intro \-" "introduction to raster image software" "" "intro(9)" 495
+.xx "" "intro \-" "introduction to system administration" "" "intro(8)" 442
+.xx "" "intro \-" "introduction to the Plan 9 devices" "" "intro(3)" 314
+.xx "" "intro \-" "introduction to the Plan 9 File Protocol, 9P" "" "intro(5)" 380
+.xx "document" "doctype \-" "intuit command line for formatting a" "" "doctype(1)" 61
+.xx "" "ident, matmul, matmulr, determinant, adjoint," "invertmat, xformpoint, xformpointd,/" "" "matrix(9.2)" 530
+.xx "" "iostats \- file system to measure" "I/O" "" "iostats(4)" 368
+.xx "" "picgetprop, picunpack, picpack \- picture file" "I/O" "/picclose, rdpicfile, wrpicfile, picputprop," "picopen(9.2)" 532
+.xx "" "open, create \- prepare a fid for" "I/O on an existing or new file" "" "open(5)" 389
+.xx "" "" "iostats \- file system to measure I/O" "" "iostats(4)" 368
+.xx "" "" "ip \- TCP, UDP, IL network protocols over IP" "" "ip(3)" 335
+.xx "and routing" "" "ipconfig, arpd, rip \- Internet configuration" "" "ipconfig(8)" 466
+.xx "" "/ndbsnext, ndbgetval, ndbfree, ipattr," "ipinfo, ndbhash, ndbparse, csgetval \- network/" "" "ndb(2)" 263
+.xx "" "" "iproute \- Internet route table manager" "" "iproute(3)" 337
+.xx "functions" "objtype, readobj, objtraverse," "isar, nextar, readar \- object file interpretation" "" "object(2)" 267
+.xx "" "/isspace, ispunct, isprint, isgraph, iscntrl," "isascii, toascii, _toupper, _tolower, toupper,/" "" "ctype(2)" 205
+.xx "isprint, isgraph,/" "isalpha, isupper, islower," "isdigit, isxdigit, isalnum, isspace, ispunct," "" "ctype(2)" 205
+.xx "" "fone \- control" "ISDN telephone" "" "fone(1)" 74
+.xx "ispunct, isprint, isgraph,/" "isalpha, isupper," "islower, isdigit, isxdigit, isalnum, isspace," "" "ctype(2)" 205
+.xx "functions" "NaN, Inf," "isNaN, isInf \- not-a-number and infinity" "" "nan(2)" 262
+.xx "" "dossrv, 9660srv, a:, b:, c:, eject \- DOS and" "ISO9660 file systems" "" "dossrv(4)" 363
+.xx "" "aplot \-" "isometric plots of data arrays" "" "aplot(9.1)" 497
+.xx "isspace, ispunct, isprint, isgraph,/" "isalpha," "isupper, islower, isdigit, isxdigit, isalnum," "" "ctype(2)" 205
+.xx "" "tel," "iwhois \- look in phone book" "" "tel(1)" 157
+.xx "" "/popmat, rot, qrot, scale, move, xform," "ixform, persp, look, viewport \- Geometric/" "" "matrix(9.2)" 530
+.xx "" "" "join \- relational database operator" "" "join(1)" 88
+.xx "" "cvt2pic, dumppic, ega2pic, face2pic, gif2pic," "jpg2pic, nasa2pic, pcx2pic, picopic, sgi2pic,/" "" "cvt2pic(9.1)" 502
+.xx "" "" "juke \- CD-ROM jukebox" "" "juke(7)" 431
+.xx "" "2a, 6a, 8a," "ka, va, xa \- assemblers" "" "2a(1)" 4
+.xx "" "8al," "kal, val \- ALEF compilers" "" "alef(1)" 20
+.xx "c++/vl, c++/8l \- C++ compilers/" "c++/2c," "kc, c++/vc, c++/8c, c++/2l, c++/kl," "" "c++(1)" 34
+.xx "" "2c, 6c, 8c," "kc, vc, xc \- C compilers" "" "2c(1)" 5
+.xx "" "kprof \-" "kernel profiling" "" "kprof(3)" 338
+.xx "" "/klog, stats, lights, noise, sysstat, hz, swap," "key, hostowner, hostdomain, authenticate,/" "" "cons(3)" 323
+.xx "" "securenet \- Digital Pathways SecureNet" "Key remote authentication box" "" "securenet(8)" 490
+.xx "" "" "keyboard \- how to type characters" "" "keyboard(6)" 405
+.xx "" "" "keyfs, warning \- authentication database files" "" "keyfs(4)" 369
+.xx "" "" "kfs \- disk file system" "" "kfs(4)" 371
+.xx "" "" "kfscmd, ksync \- kfs administration" "" "kfscmd(8)" 467
+.xx "" "vi," "ki, xi \- instruction simulators" "" "vi(1)" 171
+.xx "" "" "kill, broke \- print commands to kill processes" "" "kill(1)" 89
+.xx "" "c++/2c, c++/kc, c++/vc, c++/8c, c++/2l," "kl, c++/vl, c++/8l \- C++ compilers and/" "" "c++(1)" 34
+.xx "" "2l, 6l, 8l," "kl, vl, xl \- loaders" "" "2l(1)" 7
+.xx "" "/clocks, process/process group ids, user, null," "klog, stats, lights, noise, sysstat, hz, swap,/" "" "cons(3)" 323
+.xx "" "prof," "kprof \- display profiling data" "" "prof(1)" 119
+.xx "" "" "kprof \- kernel profiling" "" "kprof(3)" 338
+.xx "" "kfscmd," "ksync \- kfs administration" "" "kfscmd(8)" 467
+.xx "" "" "ktrans \- language transliterator" "" "ktrans(1)" 90
+.xx "" "8½," "label, window, wloc \- window system" "" "8½(1)" 9
+.xx "" "abs," "labs \- integer absolute values" "" "abs(2)" 182
+.xx "graphics layers" "" "lalloc, lfree, ltofront, ltoback, lcstring \-" "" "layer(2)" 253
+.xx "images" "" "lam, posit, piccat, picjoin \- combine several" "" "lam(9.1)" 511
+.xx "" "" "lance \- LANCE Ethernet device" "" "lance(3)" 339
+.xx "" "\- pattern-directed scanning and processing" "language" "awk" "awk(1)" 26
+.xx "" "bc \- arbitrary-precision arithmetic" "language" "" "bc(1)" 30
+.xx "" "hoc \- interactive floating point" "language" "" "hoc(1)" 86
+.xx "" "flag, rfork, shift, wait, whatis, ., ~ \- command" "language" "rc, cd, eval, exec, exit," "rc(1)" 123
+.xx "" "twig \- tree-manipulation" "language" "" "twig(1)" 168
+.xx "" "cpp \- C" "language preprocessor" "" "cpp(1)" 47
+.xx "" "ktrans \-" "language transliterator" "" "ktrans(1)" 90
+.xx "median, nonoise,/" "adapt, ahe, crispen," "laplace, edge, edge2, edge3, extremum," "" "filters(9.1)" 504
+.xx "formatting and typesetting" "tex," "latex, bibtex, dvips, dviselect, mf \- text" "" "tex(1)" 159
+.xx "" "ls," "lc \- list contents of directory" "" "ls(1)" 94
+.xx "" "lalloc, lfree, ltofront, ltoback," "lcstring \- graphics layers" "" "layer(2)" 253
+.xx "exponent" "frexp," "ldexp, modf \- split into mantissa and" "" "frexp(2)" 236
+.xx "" "/beieeedftos, leieee80ftos, leieeesftos," "leieeedftos, ieeesftos, ieeedftos \-/" "" "debugger(2)" 206
+.xx "" "" "lerp, sub \- linear combinations of images" "" "lerp(9.1)" 512
+.xx "" "/dot3, cross3, len3, dist3, unit3, midpt3," "lerp3, reflect3, nearseg3, pldist3, vdiv3,/" "" "arith3(9.2)" 526
+.xx "" "/put1, put2, put4, beswab, beswal, leswab," "leswal \- machine-independent executable file/" "" "mach(2)" 257
+.xx "" "ARGC, ARGF, arginit, argopt \- process option" "letters from argv" "ARGBEGIN, ARGEND," "arg(2)" 186
+.xx "" "rendezvous \- user" "level process synchronization" "" "rendezvous(2)" 290
+.xx "" "" "lex \- generator of lexical analysis programs" "" "lex(1)" 91
+.xx "layers" "lalloc," "lfree, ltofront, ltoback, lcstring \- graphics" "" "layer(2)" 253
+.xx "" "ar \- archive" "library) file format" "" "ar(6)" 398
+.xx "" "intro \- introduction to" "library functions" "" "intro(2)" 178
+.xx "" "ar \- archive and" "library maintainer" "" "ar(1)" 21
+.xx "festoon \-/" "4s, 5s, ana, mandel, plumb, smiley," "life, fsim, clock, catclock, fireworks, swar," "" "games(1)" 78
+.xx "hostowner,/" "/group ids, user, null, klog, stats," "lights, noise, sysstat, hz, swap, key," "" "cons(3)" 323
+.xx "" "doctype \- intuit command" "line for formatting a document" "" "doctype(1)" 61
+.xx "" "async \- framing for a serial" "line to Datakit" "" "async(3)" 316
+.xx "" "/getsym, symbase, pc2sp, pc2line, textseg," "line2addr, lookup, findlocal, getauto,/" "" "symbol(2)" 308
+.xx "" "lerp, sub \-" "linear combinations of images" "" "lerp(9.1)" 512
+.xx "" "art, art2pic \- edit" "line-art" "" "art(1)" 22
+.xx "" "comm \- select or reject" "lines common to two sorted files" "" "comm(1)" 43
+.xx "" "fortune \- sample" "lines from a file" "" "fortune(1)" 76
+.xx "" "uniq \- report repeated" "lines in a file" "" "uniq(1)" 169
+.xx "" "look \- find lines in a sorted" "list" "" "look(1)" 92
+.xx "" "ls, lc \-" "list contents of directory" "" "ls(1)" 94
+.xx "" "users \- file server user" "list format" "" "users(6)" 421
+.xx "" "nm \- name" "list (symbol table)" "" "nm(1)" 108
+.xx "break network/" "dial, hangup, announce," "listen, accept, reject, netmkaddr \- make and" "" "dial(2)" 209
+.xx "dkexportfs, dkrexexec, dkticket, dkwhoami,/" "" "listen, dkcpu, dkcpunote, dkdiscard, dkecho," "" "listen(8)" 468
+.xx "" "rand, lrand, frand, nrand," "lnrand, srand \- random number generator" "" "rand(2)" 285
+.xx "utilities" "cachechars, agefont," "loadchar, Subfont, Fontchar, Font \- font" "" "cachechars(2)" 199
+.xx "" "2l, 6l, 8l, kl, vl, xl \-" "loaders" "" "2l(1)" 7
+.xx "" "c++/kl, c++/vl, c++/8l \- C++ compilers and" "loaders" "/c++/kc, c++/vc, c++/8c, c++/2l," "c++(1)" 34
+.xx "" "/machbyname, newmap, setmap, unusemap," "loadmap, findseg, get1, get2, get4, put1,/" "" "mach(2)" 257
+.xx "" "cisctrace, risctrace, ciscframe, riscframe," "localaddr, symoff, fpformat, beieee80ftos,/" "" "debugger(2)" 206
+.xx "" "/line2addr, lookup, findlocal, getauto, findsym," "localsym, globalsym, textsym, file2pc,/" "" "symbol(2)" 308
+.xx "convert date and time to ASCII" "ctime," "localtime, gmtime, asctime, timezone \-" "" "ctime(2)" 204
+.xx "lock" "lockinit," "lock, canlock, unlock \- shared memory spin" "" "lock(2)" 255
+.xx "logarithm, power, square root" "exp, log," "log10, pow, pow10, sqrt \- exponential," "" "exp(2)" 221
+.xx "" "con, telnet, cu, rx, xms, xmr \- remote" "login, execution, and XMODEM file transfer" "" "con(1)" 44
+.xx "" "" "logo \- convert image into an AT&T logo" "" "logo(9.1)" 513
+.xx "" "setjmp," "longjmp, notejmp \- non-local goto" "" "setjmp(2)" 298
+.xx "" "" "look \- find lines in a sorted list" "" "look(1)" 92
+.xx "" "tel, iwhois \-" "look in phone book" "" "tel(1)" 157
+.xx "" "/rot, qrot, scale, move, xform, ixform, persp," "look, viewport \- Geometric transformations" "" "matrix(9.2)" 530
+.xx "" "man," "lookman \- print or find pages of this manual" "" "man(1)" 98
+.xx "" "/symbase, pc2sp, pc2line, textseg, line2addr," "lookup, findlocal, getauto, findsym, localsym,/" "" "symbol(2)" 308
+.xx "" "reboot \- reboot CPU after" "loss of file server connection" "" "reboot(3)" 345
+.xx "" "" "lp \- PostScript preprocessors" "" "lp(8)" 469
+.xx "" "" "lp \- printer output" "" "lp(1)" 93
+.xx "" "" "lpt \- parallel port interface for PC's" "" "lpt(3)" 340
+.xx "number generator" "rand," "lrand, frand, nrand, lnrand, srand \- random" "" "rand(2)" 285
+.xx "" "" "ls, lc \- list contents of directory" "" "ls(1)" 94
+.xx "" "lalloc, lfree," "ltofront, ltoback, lcstring \- graphics layers" "" "layer(2)" 253
+.xx "" "" "lum \- compute luminance" "" "lum(9.1)" 514
+.xx "unusemap, loadmap, findseg, get1,/" "crackhdr," "machbytype, machbyname, newmap, setmap," "" "mach(2)" 257
+.xx "" "who, whois \- who is using the" "machine" "" "who(1)" 173
+.xx "" "init \- initialize" "machine upon booting" "" "init(8)" 465
+.xx "" "/leieeesftos, leieeedftos, ieeesftos, ieeedftos \-" "machine-independent debugger functions" "" "debugger(2)" 206
+.xx "" "/put2, put4, beswab, beswal, leswab, leswal \-" "machine-independent executable file access" "" "mach(2)" 257
+.xx "" "emacs \- editor" "macros" "" "emacs(1)" 68
+.xx "" "mpictures \- picture inclusion" "macros" "" "mpictures(6)" 410
+.xx "" "ms \-" "macros for formatting manuscripts" "" "ms(6)" 412
+.xx "" "mpm, mspe \-" "macros for page makeup" "" "mpm(6)" 411
+.xx "" "man \-" "macros to typeset manual" "" "man(6)" 407
+.xx "smtp, smtpd, to, vwhois, vismon \- mail/" "" "mail, edmail, sendmail, seemail, aliasmail," "" "mail(1)" 95
+.xx "" "rewrite \-" "mail rewrite rules" "" "rewrite(6)" 420
+.xx "" "ar \- archive and library" "maintainer" "" "ar(1)" 21
+.xx "" "fs, exsort \- file server" "maintenance" "" "fs(8)" 457
+.xx "" "mkdir \-" "make a directory" "" "mkdir(1)" 104
+.xx "" "mktemp \-" "make a unique file name" "" "mktemp(2)" 261
+.xx "" "/announce, listen, accept, reject, netmkaddr \-" "make and break network connections" "" "dial(2)" 209
+.xx "" "mugs \-" "make face icons from pictures" "" "mugs(9.1)" 517
+.xx "" "mk, membername \- maintain" "make) related files" "" "mk(1)" 100
+.xx "" "mpm, mspe \- macros for page" "makeup" "" "mpm(6)" 411
+.xx "allocator" "" "malloc, free, realloc, calloc \- memory" "" "malloc(2)" 259
+.xx "" "" "man \- macros to typeset manual" "" "man(6)" 407
+.xx "manual" "" "man, lookman \- print or find pages of this" "" "man(1)" 98
+.xx "" "qer, runq \- queues" "management for spooled files" "" "qer(8)" 486
+.xx "" "iproute \- Internet route table" "manager" "" "iproute(3)" 337
+.xx "catclock, fireworks, swar,/" "4s, 5s, ana," "mandel, plumb, smiley, life, fsim, clock," "" "games(1)" 78
+.xx "" "rdsubfontfile, wrsubfontfile, mkfont \- subfont" "manipulation" "subfalloc, subffree," "subfalloc(2)" 306
+.xx "" "plgetpostextview, plsetpostextview \- Panel" "manipulation functions" "/plrtpanel, plrtfree," "plinit(2)" 275
+.xx "" "twig \-" "manipulation language" "" "twig(1)" 168
+.xx "" "frexp, ldexp, modf \- split into" "mantissa and exponent" "" "frexp(2)" 236
+.xx "" "man, lookman \- print or find pages of this" "manual" "" "man(1)" 98
+.xx "" "man \- macros to typeset" "manual" "" "man(6)" 407
+.xx "" "ms \- macros for formatting" "manuscripts" "" "ms(6)" 412
+.xx "" "getmap, colors \- manipulate the display's color" "map" "" "getmap(9.1)" 507
+.xx "" "" "map \- digitized map formats" "" "map(6)" 409
+.xx "" "cmap, remap \-" "map colors" "" "remap(9.1)" 522
+.xx "" "cmap \- color" "map format" "" "cmap(9.6)" 537
+.xx "" "map \- digitized" "map formats" "" "map(6)" 409
+.xx "" "getcmap \- read a color" "map from a file" "" "getcmap(9.2)" 528
+.xx "" "road, gps \- road" "map of the United States" "" "road(7)" 437
+.xx "" "map," "mapdemo \- draw maps on various projections" "" "map(7)" 433
+.xx "" "segattach, segdetach, segfree \-" "map/unmap a segment in virtual memory" "" "segattach(2)" 294
+.xx "" "parseip, parseether, myipaddr, myetheraddr," "maskip, equivip \- Internet protocol" "eipconv," "ip(2)" 252
+.xx "" "eqn \- typeset" "mathematics" "" "eqn(1)" 69
+.xx "xformpoint, xformpointd,/" "ident, matmul," "matmulr, determinant, adjoint, invertmat," "" "matrix(9.2)" 530
+.xx "" "" "mc \- multicolumn print" "" "mc(1)" 99
+.xx "color compression" "3to1," "mcut, improve, quantize, dither \- picture" "" "quantize(9.1)" 521
+.xx "" "sum," "md5sum \- sum and count blocks in a file" "" "sum(1)" 148
+.xx "" "iostats \- file system to" "measure I/O" "" "iostats(4)" 368
+.xx "" "/laplace, edge, edge2, edge3, extremum," "median, nonoise, smooth, shadepic \- image/" "" "filters(9.1)" 504
+.xx "" "mk," "membername \- maintain (make) related files" "" "mk(1)" 100
+.xx "memset \- memory operations" "memccpy," "memchr, memcmp, memcpy, memmove," "" "memory(2)" 260
+.xx "" "segfree \- map/unmap a segment in virtual" "memory" "segattach, segdetach," "segattach(2)" 294
+.xx "" "brk, sbrk \- change" "memory allocation" "" "brk(2)" 198
+.xx "" "segbrk \- change" "memory allocation" "" "segbrk(2)" 296
+.xx "" "malloc, free, realloc, calloc \-" "memory allocator" "" "malloc(2)" 259
+.xx "device" "i82365 \- Personal Computer" "Memory Card Interface Association (PCMCI)" "" "i82365(3)" 334
+.xx "" "ramfs \-" "memory file system" "" "ramfs(4)" 375
+.xx "" "lockinit, lock, canlock, unlock \- shared" "memory spin lock" "" "lock(2)" 255
+.xx "" "memchr, memcmp, memcpy, memmove," "memset \- memory operations" "memccpy," "memory(2)" 260
+.xx "" "/ecanmouse, ecankbd, ereshaped, getrect," "menuhit, Event, Mouse, Menu \- graphics/" "" "event(2)" 215
+.xx "" "sort \- sort and/or" "merge files" "" "sort(1)" 140
+.xx "" "flush \- abort a" "message" "" "flush(5)" 388
+.xx "" "perror, syslog \- system error" "messages" "" "perror(2)" 270
+.xx "" "attach, session, nop \-" "messages to initiate activity" "" "attach(5)" 383
+.xx "" "tex, latex, bibtex, dvips, dviselect," "mf \- text formatting and typesetting" "" "tex(1)" 159
+.xx "" "/closept3, dot3, cross3, len3, dist3, unit3," "midpt3, lerp3, reflect3, nearseg3, pldist3,/" "" "arith3(9.2)" 526
+.xx "files" "" "mk, membername \- maintain (make) related" "" "mk(1)" 100
+.xx "database" "query, mkhash," "mkdb, cs, csquery, dns, dnsquery \- network" "" "ndb(8)" 473
+.xx "" "" "mkdir \- make a directory" "" "mkdir(1)" 104
+.xx "" "subffree, rdsubfontfile, wrsubfontfile," "mkfont \- subfont manipulation" "subfalloc," "subfalloc(2)" 306
+.xx "" "" "mkfs, mkext \- archive or update a file system" "" "mkfs(8)" 470
+.xx "network database" "query," "mkhash, mkdb, cs, csquery, dns, dnsquery \-" "" "ndb(8)" 473
+.xx "" "" "mktemp \- make a unique file name" "" "mktemp(2)" 261
+.xx "" "" "mnt \- attach to 9P servers" "" "mnt(3)" 341
+.xx "" "chmod \- change" "mode" "" "chmod(1)" 41
+.xx "" "frexp, ldexp," "modf \- split into mantissa and exponent" "" "frexp(2)" 236
+.xx "" "touch \- set" "modification date of a file" "" "touch(1)" 163
+.xx "" "vgadb \- VGA controller and" "monitor database" "" "vgadb(6)" 423
+.xx "" "" "mothra \- retrieve World-Wide Web files" "" "mothra(1)" 105
+.xx "" "" "moto \- create animation scripts" "" "moto(9.1)" 515
+.xx "" "32vfs, cpiofs, tapfs, tarfs, tpfs, v6fs, v10fs \-" "mount archival file systems" "" "tapefs(1)" 151
+.xx "" "bind," "mount, unmount \- change name space" "" "bind(1)" 32
+.xx "" "bind," "mount, unmount \- change name space" "" "bind(2)" 192
+.xx "" "bit \- screen graphics," "mouse" "" "bit(3)" 319
+.xx "" "" "mouse \- configure a mouse to a port" "" "mouse(8)" 472
+.xx "" "ecankbd, ereshaped, getrect, menuhit, Event," "Mouse, Menu \- graphics events" "/ecanmouse," "event(2)" 215
+.xx "" "cp, mv \- copy," "move files" "" "cp(1)" 46
+.xx "" "/xformplane, pushmat, popmat, rot, qrot, scale," "move, xform, ixform, persp, look, viewport \-/" "" "matrix(9.2)" 530
+.xx "" "" "mpictures \- picture inclusion macros" "" "mpictures(6)" 410
+.xx "" "" "ms \- macros for formatting manuscripts" "" "ms(6)" 412
+.xx "" "mpm," "mspe \- macros for page makeup" "" "mpm(6)" 411
+.xx "qinv, qlen, slerp, qmid, qsqrt \-/" "qtom," "mtoq, qadd, qsub, qneg, qmul, qdiv, qunit," "" "quaternion(9.2)" 535
+.xx "" "" "mugs \- make face icons from pictures" "" "mugs(9.1)" 517
+.xx "inset, rcanon, eqpt, eqrect,/" "add, sub," "mul, div, raddp, rsubp, rmul, rdiv, rshift," "" "add(2)" 184
+.xx "dist3, unit3, midpt3, lerp3,/" "add3, sub3, div3," "mul3, eqpt3, closept3, dot3, cross3, len3," "" "arith3(9.2)" 526
+.xx "" "mc \-" "multicolumn print" "" "mc(1)" 99
+.xx "" "cp," "mv \- copy, move files" "" "cp(1)" 46
+.xx "Internet/" "eipconv, parseip, parseether," "myipaddr, myetheraddr, maskip, equivip \-" "" "ip(2)" 252
+.xx "" "getuser \- get user" "name" "" "getuser(2)" 246
+.xx "" "mktemp \- make a unique file" "name" "" "mktemp(2)" 261
+.xx "" "basename \- strip file" "name affixes" "" "basename(1)" 29
+.xx "" "nm \-" "name list (symbol table)" "" "nm(1)" 108
+.xx "" "bind, mount, unmount \- change" "name space" "" "bind(1)" 32
+.xx "" "bind, mount, unmount \- change" "name space" "" "bind(2)" 192
+.xx "" "namespace \- structure of conventional file" "name space" "" "namespace(4)" 372
+.xx "" "namespace \-" "name space description file" "" "namespace(6)" 414
+.xx "" "import \- import a" "name space from a remote system" "" "import(4)" 367
+.xx "" "yesterday \- print file" "names from the dump" "" "yesterday(1)" 177
+.xx "" "" "namespace \- name space description file" "" "namespace(6)" 414
+.xx "name space" "" "namespace \- structure of conventional file" "" "namespace(4)" 372
+.xx "infinity functions" "" "NaN, Inf, isNaN, isInf \- not-a-number and" "" "nan(2)" 262
+.xx "" "/dumppic, ega2pic, face2pic, gif2pic, jpg2pic," "nasa2pic, pcx2pic, picopic, sgi2pic, targa2pic,/" "" "cvt2pic(9.1)" 502
+.xx "" "" "ndb \- Network database" "" "ndb(6)" 415
+.xx "" "/ndbgetval, ndbfree, ipattr, ipinfo, ndbhash," "ndbparse, csgetval \- network database" "" "ndb(2)" 263
+.xx "ndbfree, ipattr, ipinfo,/" "ndbopen, ndbclose," "ndbreopen, ndbsearch, ndbsnext, ndbgetval," "" "ndb(2)" 263
+.xx "" "/len3, dist3, unit3, midpt3, lerp3, reflect3," "nearseg3, pldist3, vdiv3, vrem3, pn2f3,/" "" "arith3(9.2)" 526
+.xx "" "encrypt, decrypt," "netcrypt \- DES encryption" "" "encrypt(2)" 213
+.xx "" "passwd," "netkey \- change user password" "" "passwd(1)" 111
+.xx "" "dial, hangup, announce, listen, accept, reject," "netmkaddr \- make and break network/" "" "dial(2)" 209
+.xx "" "" "netstat \- summarize network connections" "" "netstat(1)" 106
+.xx "" "fax, telcofax, telcodata \- telephone dialer" "network" "telco, faxreceive, faxsend," "telco(4)" 377
+.xx "" "convA2M, convM2A, convPR2M, convM2PR \-" "network authentication" "/convM2TR," "auth(2)" 189
+.xx "" "accept, reject, netmkaddr \- make and break" "network connections" "/announce, listen," "dial(2)" 209
+.xx "" "netstat \- summarize" "network connections" "" "netstat(1)" 106
+.xx "" "ipattr, ipinfo, ndbhash, ndbparse, csgetval \-" "network database" "/ndbgetval, ndbfree," "ndb(2)" 263
+.xx "" "ndb \-" "Network database" "" "ndb(6)" 415
+.xx "" "mkhash, mkdb, cs, csquery, dns, dnsquery \-" "network database" "query," "ndb(8)" 473
+.xx "" "tcp17007, tcp6000 \- listen for calls on a" "network device" "/tcp564, tcp565, tcp566," "listen(8)" 468
+.xx "" "exportfs, srvfs \-" "network file server plumbing" "" "exportfs(4)" 364
+.xx "" "srv, 9fs, dk232, dkmodem \- start" "network file service" "" "srv(4)" 376
+.xx "" "ip \- TCP, UDP, IL" "network protocols over IP" "" "ip(3)" 335
+.xx "" "create \- prepare a fid for I/O on an existing or" "new file" "open," "open(5)" 389
+.xx "" "newuser \- adding a" "new user" "" "newuser(8)" 475
+.xx "" "crackhdr, machbytype, machbyname," "newmap, setmap, unusemap, loadmap,/" "" "mach(2)" 257
+.xx "" "/srvauth, authenticate, getchal, chalreply," "newns, authdial, passtokey, nvcsum,/" "" "auth(2)" 189
+.xx "" "" "news \- print news items" "" "news(1)" 107
+.xx "" "" "newuser \- adding a new user" "" "newuser(8)" 475
+.xx "functions" "objtype, readobj, objtraverse, isar," "nextar, readar \- object file interpretation" "" "object(2)" 267
+.xx "service" "" "nfsserver, portmapper, pcnfsd, 9auth \- NFS" "" "nfsserver(8)" 476
+.xx "" "" "nm \- name list (symbol table)" "" "nm(1)" 108
+.xx "" "hed," "nohed \- edit or remove picture file header" "" "hed(9.1)" 509
+.xx "" "/group ids, user, null, klog, stats, lights," "noise, sysstat, hz, swap, key, hostowner,/" "" "cons(3)" 323
+.xx "" "setjmp, longjmp, notejmp \-" "non-local goto" "" "setjmp(2)" 298
+.xx "" "edge, edge2, edge3, extremum, median," "nonoise, smooth, shadepic \- image/" "/laplace," "filters(9.1)" 504
+.xx "" "rtc \- real-time clock and" "non-volatile RAM" "" "rtc(3)" 347
+.xx "" "attach, session," "nop \- messages to initiate activity" "" "attach(5)" 383
+.xx "" "NaN, Inf, isNaN, isInf \-" "not-a-number and infinity functions" "" "nan(2)" 262
+.xx "" "regexp \- regular expression" "notation" "" "regexp(6)" 419
+.xx "" "sleep, alarm \- delay, ask for delayed" "note" "" "sleep(2)" 301
+.xx "" "postnote \- send a" "note to a process or process group" "" "postnote(2)" 280
+.xx "" "setjmp, longjmp," "notejmp \- non-local goto" "" "setjmp(2)" 298
+.xx "process notification" "" "notify, noted, atnotify \- handle asynchronous" "" "notify(2)" 265
+.xx "generator" "rand, lrand, frand," "nrand, lnrand, srand \- random number" "" "rand(2)" 285
+.xx "" "troff," "nroff \- text formatting and typesetting" "" "troff(1)" 165
+.xx "" "tbl \- format tables for" "nroff or troff" "" "tbl(1)" 153
+.xx "" "/clocks, process/process group ids, user," "null, klog, stats, lights, noise, sysstat, hz,/" "" "cons(3)" 323
+.xx "" "/sprint, snprint, fmtinstall, strconv, Strconv," "numbconv, fltconv, doprint \- print formatted/" "" "print(2)" 281
+.xx "" "NaN, Inf, isNaN, isInf \-" "number and infinity functions" "" "nan(2)" 262
+.xx "" "factor, primes \- factor a" "number, generate large primes" "" "factor(1)" 71
+.xx "" "lrand, frand, nrand, lnrand, srand \- random" "number generator" "rand," "rand(2)" 285
+.xx "" "strtod, strtol, strtoul \- convert text to" "numbers" "atof, atoi, atol, charstod," "atof(2)" 188
+.xx "" "seq \- print sequences of" "numbers" "" "seq(1)" 137
+.xx "" "/getchal, chalreply, newns, authdial, passtokey," "nvcsum, convT2M, convM2T, convTR2M,/" "" "auth(2)" 189
+.xx "" "a.out \-" "object file format" "" "a.out(6)" 396
+.xx "interpretation functions" "objtype, readobj," "objtraverse, isar, nextar, readar \- object file" "" "object(2)" 267
+.xx "" "xd \- hex," "octal, decimal, or ASCII dump" "" "xd(1)" 174
+.xx "" "seek \- change file" "offset" "" "seek(2)" 293
+.xx "existing or new file" "" "open, create \- prepare a fid for I/O on an" "" "open(5)" 389
+.xx "or writing, create file" "" "open, create, close \- open a file for reading" "" "open(2)" 269
+.xx "" "dup \- duplicate an" "open file descriptor" "" "dup(2)" 212
+.xx "" "dup \- dups of" "open files" "" "dup(3)" 330
+.xx "" "smooth, shadepic \- image neighborhood" "operators" "/extremum, median, nonoise," "filters(9.1)" 504
+.xx "" "ARGC, ARGF, arginit, argopt \- process" "option letters from argv" "/ARGEND," "arg(2)" 186
+.xx "" "rotate, transpose \-" "orient an image" "" "transpose(9.1)" 524
+.xx "" "audio \- digital audio input and" "output" "" "audio(3)" 317
+.xx "" "Bwrite, Bflush, Bterm, Bbuffered \- buffered" "output" "/Blinelen, Bputc, Bputrune, Bprint," "bio(2)" 193
+.xx "" "fputs, puts, fread, fwrite \- Stdio input and" "output" "/putc, putchar, ungetc, fgets, gets," "fgetc(2)" 224
+.xx "" "vfprintf, vprintf, vsprintf \- print formatted" "output" "fprintf, printf, sprintf," "fprintf(2)" 231
+.xx "" "lp \- printer" "output" "" "lp(1)" 93
+.xx "" "numbconv, fltconv, doprint \- print formatted" "output" "/snprint, fmtinstall, strconv, Strconv," "print(2)" 281
+.xx "" "proof \- troff" "output interpreter" "" "proof(1)" 120
+.xx "" "" "p \- paginate" "" "p(1)" 109
+.xx "" "clearerr \- standard buffered input/output" "package" "/fsetpos, fseek, rewind, feof, ferror," "fopen(2)" 227
+.xx "" "fcall \- recreate" "packet delimiters" "" "fcall(3)" 332
+.xx "" "snoopy \- spy on Ethernet" "packets" "" "snoopy(8)" 491
+.xx "" "" "page \- view FAX, bitmap, and PostScript files" "" "page(1)" 110
+.xx "" "mpm, mspe \- macros for" "page makeup" "" "mpm(6)" 411
+.xx "" "man, lookman \- print or find" "pages of this manual" "" "man(1)" 98
+.xx "" "p \-" "paginate" "" "p(1)" 109
+.xx "" "/plinitscrollbar, plinitslider, plinittextview \-" "panel reinitialization functions" "" "plinitbutton(2)" 279
+.xx "plgrabkb, plkeyboard, plmouse, plscroll,/" "" "Panel, Rtext, plpack, plmove, pldraw, plfree," "" "plinit(2)" 275
+.xx "" "plscrollbar, plslider, pltextview \-" "panel-creation functions" "/plradiobutton," "plbutton(2)" 272
+.xx "" "lpt \-" "parallel port interface for PC's" "" "lpt(3)" 340
+.xx "maskip, equivip \- Internet protocol" "eipconv," "parseip, parseether, myipaddr, myetheraddr," "" "ip(2)" 252
+.xx "" "/getchal, chalreply, newns, authdial," "passtokey, nvcsum, convT2M, convM2T,/" "" "auth(2)" 189
+.xx "" "" "passwd, netkey \- change user password" "" "passwd(1)" 111
+.xx "authentication box" "securenet \- Digital" "Pathways SecureNet Key remote" "" "securenet(8)" 490
+.xx "" "grep \- search a file for a" "pattern" "" "grep(1)" 82
+.xx "language" "awk \-" "pattern-directed scanning and processing" "" "awk(1)" 26
+.xx "" "pwd," "pbd \- working directory" "" "pwd(1)" 122
+.xx "" "b.com \-" "PC bootstrap program" "" "b.com(8)" 444
+.xx "findlocal, getauto,/" "syminit, getsym, symbase," "pc2sp, pc2line, textseg, line2addr, lookup," "" "symbol(2)" 308
+.xx "" "" "pcc \- APE C compiler driver" "" "pcc(1)" 112
+.xx "" "Computer Memory Card Interface Association" "PCMCI) device" "i82365 \- Personal" "i82365(3)" 334
+.xx "" "" "pcmcia \- identify a PCMCIA card" "" "pcmcia(8)" 478
+.xx "" "nfsserver, portmapper," "pcnfsd, 9auth \- NFS service" "" "nfsserver(8)" 476
+.xx "" "/cursorset, rdfontfile, ffree, charwidth," "Pconv, Rconv \- bitmap graphics" "" "graphics(2)" 248
+.xx "" "" "pcp \- copy pictures" "" "pcp(9.1)" 518
+.xx "" "lpt \- parallel port interface for" "PC's" "" "lpt(3)" 340
+.xx "" "plan9.ini \- configuration file for" "PC's" "" "plan9.ini(8)" 481
+.xx "" "/ega2pic, face2pic, gif2pic, jpg2pic, nasa2pic," "pcx2pic, picopic, sgi2pic, targa2pic, tiff2pic,/" "" "cvt2pic(9.1)" 502
+.xx "" "/pldist3, vdiv3, vrem3, pn2f3, ppp2f3, fff2p3," "pdiv4, add4, sub4 \- operations on 3-d points/" "" "arith3(9.2)" 526
+.xx "" "resample," "pdup \- resample a picture" "" "resample(9.1)" 523
+.xx "" "" "perror, syslog \- system error messages" "" "perror(2)" 270
+.xx "Association (PCMCI) device" "i82365 \-" "Personal Computer Memory Card Interface" "" "i82365(3)" 334
+.xx "administration for/" "home, 40meg, 80meg," "personalize, update, Disclabel \-" "" "home(8)" 463
+.xx "" "popmat, rot, qrot, scale, move, xform, ixform," "persp, look, viewport \- Geometric/" "/pushmat," "matrix(9.2)" 530
+.xx "" "tel, iwhois \- look in" "phone book" "" "tel(1)" 157
+.xx "" "grap \-" "pic preprocessor for drawing graphs" "" "grap(1)" 79
+.xx "drawing pictures" "" "pic, tpic \- troff and tex preprocessors for" "" "pic(1)" 113
+.xx "formats" "" "pic2ps, pic2gif \- convert picture files to other" "" "pic2ps(9.1)" 519
+.xx "" "lam, posit," "piccat, picjoin \- combine several images" "" "lam(9.1)" 511
+.xx "" "" "picfile \- raster graphic image format" "" "picfile(9.6)" 538
+.xx "I/O" "/picclose, rdpicfile, wrpicfile, picputprop," "picgetprop, picunpack, picpack \- picture file" "" "picopen(9.2)" 532
+.xx "" "" "picinfo \- print information about picture files" "" "picinfo(9.1)" 520
+.xx "" "lam, posit, piccat," "picjoin \- combine several images" "" "lam(9.1)" 511
+.xx "" "xpand," "picnegate \- adjust dynamic range" "" "xpand(9.1)" 525
+.xx "" "/face2pic, gif2pic, jpg2pic, nasa2pic, pcx2pic," "picopic, sgi2pic, targa2pic, tiff2pic, utah2pic,/" "" "cvt2pic(9.1)" 502
+.xx "" "wrpicfile, picputprop, picgetprop, picunpack," "picpack \- picture file I/O" "/picclose, rdpicfile," "picopen(9.2)" 532
+.xx "picputprop,/" "picopen_r, picopen_w," "picread, picwrite, picclose, rdpicfile, wrpicfile," "" "picopen(9.2)" 532
+.xx "" "resample, pdup \- resample a" "picture" "" "resample(9.1)" 523
+.xx "" "3to1, mcut, improve, quantize, dither \-" "picture color compression" "" "quantize(9.1)" 521
+.xx "" "hed, nohed \- edit or remove" "picture file header" "" "hed(9.1)" 509
+.xx "" "picputprop, picgetprop, picunpack, picpack \-" "picture file I/O" "/picclose, rdpicfile, wrpicfile," "picopen(9.2)" 532
+.xx "" "utah2pic, xbm2pic \- convert other formats to" "picture files" "/sgi2pic, targa2pic, tiff2pic," "cvt2pic(9.1)" 502
+.xx "" "picinfo \- print information about" "picture files" "" "picinfo(9.1)" 520
+.xx "" "9v, save, flip \- copy" "picture files to and from screen" "" "9v(9.1)" 496
+.xx "" "pic2ps, pic2gif \- convert" "picture files to other formats" "" "pic2ps(9.1)" 519
+.xx "" "mpictures \-" "picture inclusion macros" "" "mpictures(6)" 410
+.xx "" "mugs \- make face icons from" "pictures" "" "mugs(9.1)" 517
+.xx "" "pcp \- copy" "pictures" "" "pcp(9.1)" 518
+.xx "" "tpic \- troff and tex preprocessors for drawing" "pictures" "pic," "pic(1)" 113
+.xx "" "/rdpicfile, wrpicfile, picputprop, picgetprop," "picunpack, picpack \- picture file I/O" "" "picopen(9.2)" 532
+.xx "picputprop,/" "picopen_r, picopen_w, picread," "picwrite, picclose, rdpicfile, wrpicfile," "" "picopen(9.2)" 532
+.xx "" "" "pip \- CD-ROM workbench" "" "pip(8)" 479
+.xx "" "" "pipe \- create an interprocess channel" "" "pipe(2)" 271
+.xx "" "" "pipe \- two-way interprocess communication" "" "pipe(3)" 342
+.xx "" "tee \-" "pipe fitting" "" "tee(1)" 156
+.xx "" "hist \-" "pixel value histogram" "" "hist(9.1)" 510
+.xx "" "intro \- introduction to" "Plan 9" "" "intro(1)" 1
+.xx "" "intro \- introduction to the" "Plan 9 devices" "" "intro(3)" 314
+.xx "" "fcallconv, dirconv, dirmodeconv \- interface to" "Plan 9 File protocol" "/convM2D, getS," "fcall(2)" 222
+.xx "" "intro \- introduction to the" "Plan 9 File Protocol, 9P" "" "intro(5)" 380
+.xx "" "" "plan9.ini \- configuration file for PC's" "" "plan9.ini(8)" 481
+.xx "plframe, plgroup, plidollist, pllabel,/" "plbutton," "plcanvas, plcheckbutton, pledit, plentry," "" "plbutton(2)" 272
+.xx "" "/dist3, unit3, midpt3, lerp3, reflect3, nearseg3," "pldist3, vdiv3, vrem3, pn2f3, ppp2f3, fff2p3,/" "" "arith3(9.2)" 526
+.xx "" "/plscroll, plentryval, plsetbutton, plsetslider," "pleget, plelen, plegetsel, plepaste, plesel,/" "" "plinit(2)" 275
+.xx "" "Panel, Rtext, plpack, plmove, pldraw," "plfree, plgrabkb, plkeyboard, plmouse,/" "" "plinit(2)" 275
+.xx "" "/plrtstr, plrtbitmap, plrtpanel, plrtfree," "plgetpostextview, plsetpostextview \- Panel/" "" "plinit(2)" 275
+.xx "" "/plelen, plegetsel, plepaste, plesel, plescroll," "plgetscroll, plsetscroll, plplacelabel, plrtstr,/" "" "plinit(2)" 275
+.xx "" "Panel, Rtext, plpack, plmove, pldraw, plfree," "plgrabkb, plkeyboard, plmouse, plscroll,/" "" "plinit(2)" 275
+.xx "" "/plcheckbutton, pledit, plentry, plframe," "plgroup, plidollist, pllabel, pllist, plmenu,/" "" "plbutton(2)" 272
+.xx "plinitentry, plinitframe,/" "plinitbutton," "plinitcanvas, plinitcheckbutton, plinitedit," "" "plinitbutton(2)" 279
+.xx "plinitmenu,/" "/plinitedit, plinitentry, plinitframe," "plinitgroup, plinitidollist, plinitlabel, plinitlist," "" "plinitbutton(2)" 279
+.xx "" "/plinitidollist, plinitlabel, plinitlist, plinitmenu," "plinitmessage, plinitpopup, plinitpulldown,/" "" "plinitbutton(2)" 279
+.xx "" "/plinitmessage, plinitpopup, plinitpulldown," "plinitradiobutton, plinitscrollbar, plinitslider,/" "" "plinitbutton(2)" 279
+.xx "" "/plinitradiobutton, plinitscrollbar, plinitslider," "plinittextview \- panel reinitialization/" "" "plinitbutton(2)" 279
+.xx "" "/plentry, plframe, plgroup, plidollist, pllabel," "pllist, plmenu, plmenubar, plmessage,/" "" "plbutton(2)" 272
+.xx "plmouse, plscroll,/" "Panel, Rtext, plpack," "plmove, pldraw, plfree, plgrabkb, plkeyboard," "" "plinit(2)" 275
+.xx "" "" "plot \- graphics filter" "" "plot(1)" 116
+.xx "" "" "plot \- graphics interface" "" "plot(6)" 417
+.xx "" "aplot \- isometric" "plots of data arrays" "" "aplot(9.1)" 497
+.xx "plkeyboard, plmouse, plscroll,/" "Panel, Rtext," "plpack, plmove, pldraw, plfree, plgrabkb," "" "plinit(2)" 275
+.xx "" "/plesel, plescroll, plgetscroll, plsetscroll," "plplacelabel, plrtstr, plrtbitmap, plrtpanel,/" "" "plinit(2)" 275
+.xx "" "/pldraw, plfree, plgrabkb, plkeyboard, plmouse," "plscroll, plentryval, plsetbutton, plsetslider,/" "" "plinit(2)" 275
+.xx "" "/plrtpanel, plrtfree, plgetpostextview," "plsetpostextview \- Panel manipulation/" "" "plinit(2)" 275
+.xx "" "/plepaste, plesel, plescroll, plgetscroll," "plsetscroll, plplacelabel, plrtstr, plrtbitmap,/" "" "plinit(2)" 275
+.xx "" "/plmouse, plscroll, plentryval, plsetbutton," "plsetslider, pleget, plelen, plegetsel, plepaste,/" "" "plinit(2)" 275
+.xx "" "/plpulldown, plradiobutton, plscrollbar," "plslider, pltextview \- panel-creation functions" "" "plbutton(2)" 272
+.xx "fireworks, swar, festoon/" "4s, 5s, ana, mandel," "plumb, smiley, life, fsim, clock, catclock," "" "games(1)" 78
+.xx "" "exportfs, srvfs \- network file server" "plumbing" "" "exportfs(4)" 364
+.xx "" "/reflect3, nearseg3, pldist3, vdiv3, vrem3," "pn2f3, ppp2f3, fff2p3, pdiv4, add4, sub4 \-/" "" "arith3(9.2)" 526
+.xx "" "getfcr, setfcr, getfsr, setfsr \- control floating" "point" "" "getfcr(2)" 242
+.xx "" "hoc \- interactive floating" "point language" "" "hoc(1)" 86
+.xx "" "pppclient, pppserver \- point to" "point protocol" "" "ppp(1)" 117
+.xx "bclose, berror, bscreenrect, bneed, bflush,/" "" "Point, Rectangle, Bitmap, Cursor, binit," "" "graphics(2)" 248
+.xx "ellipse, texture,/" "bitblt, bitbltclip, clipline," "point, segment, polysegment, arc, circle, disc," "" "bitblt(2)" 196
+.xx "" "pppclient, pppserver \-" "point to point protocol" "" "ppp(1)" 117
+.xx "" "fff2p3, pdiv4, add4, sub4 \- operations on 3-d" "points and planes" "/vrem3, pn2f3, ppp2f3," "arith3(9.2)" 526
+.xx "" "rectclip, Dx, Dy, Pt, Rect, Rpt \- arithmetic on" "points and rectangles" "/rectinrect, rectXrect," "add(2)" 184
+.xx "" "cpr, cprview \- cheesy" "polygon renderer and viewer" "" "cpr(9.1)" 500
+.xx "" "bitblt, bitbltclip, clipline, point, segment," "polysegment, arc, circle, disc, ellipse, texture,/" "" "bitblt(2)" 196
+.xx "ixform,/" "/xformpointd, xformplane, pushmat," "popmat, rot, qrot, scale, move, xform," "" "matrix(9.2)" 530
+.xx "" "aux/mouse \- configure a mouse to a" "port" "" "mouse(8)" 472
+.xx "" "lpt \- parallel" "port interface for PC's" "" "lpt(3)" 340
+.xx "" "nfsserver," "portmapper, pcnfsd, 9auth \- NFS service" "" "nfsserver(8)" 476
+.xx "images" "lam," "posit, piccat, picjoin \- combine several" "" "lam(9.1)" 511
+.xx "process group" "" "postnote \- send a note to a process or" "" "postnote(2)" 280
+.xx "" "page \- view FAX, bitmap, and" "PostScript files" "" "page(1)" 110
+.xx "" "gs \- Aladdin Ghostscript" "PostScript) interpreter" "" "gs(1)" 83
+.xx "" "lp \-" "PostScript preprocessors" "" "lp(8)" 469
+.xx "square root" "exp, log, log10, pow," "pow10, sqrt \- exponential, logarithm, power," "" "exp(2)" 221
+.xx "" "/nearseg3, pldist3, vdiv3, vrem3, pn2f3," "ppp2f3, fff2p3, pdiv4, add4, sub4 \-/" "" "arith3(9.2)" 526
+.xx "" "pppclient," "pppserver \- point to point protocol" "" "ppp(1)" 117
+.xx "" "" "pr \- print file" "" "pr(1)" 118
+.xx "" "bc \-" "precision arithmetic language" "" "bc(1)" 30
+.xx "diskettes" "" "prep, format \- prepare hard and floppy" "" "prep(8)" 484
+.xx "" "cpp \- C language" "preprocessor" "" "cpp(1)" 47
+.xx "" "grap \- pic" "preprocessor for drawing graphs" "" "grap(1)" 79
+.xx "" "lp \- PostScript" "preprocessors" "" "lp(8)" 469
+.xx "" "pic, tpic \- troff and tex" "preprocessors for drawing pictures" "" "pic(1)" 113
+.xx "primes" "factor," "primes \- factor a number, generate large" "" "factor(1)" 71
+.xx "" "mc \- multicolumn" "print" "" "mc(1)" 99
+.xx "" "echo \-" "print arguments" "" "echo(1)" 63
+.xx "" "astro \-" "print astronomical information" "" "astro(7)" 427
+.xx "" "cal \-" "print calendar" "" "cal(1)" 36
+.xx "" "kill, broke \-" "print commands to kill processes" "" "kill(1)" 89
+.xx "" "stop, start \-" "print commands to stop and start processes" "" "stop(1)" 145
+.xx "" "pr \-" "print file" "" "pr(1)" 118
+.xx "" "yesterday \-" "print file names from the dump" "" "yesterday(1)" 177
+.xx "" "printf, sprintf, vfprintf, vprintf, vsprintf \-" "print formatted output" "fprintf," "fprintf(2)" 231
+.xx "strconv, Strconv, numbconv, fltconv, doprint/" "" "print, fprint, sprint, snprint, fmtinstall," "" "print(2)" 281
+.xx "" "freq \-" "print histogram of character frequencies" "" "freq(1)" 77
+.xx "" "picinfo \-" "print information about picture files" "" "picinfo(9.1)" 520
+.xx "" "news \-" "print news items" "" "news(1)" 107
+.xx "" "man, lookman \-" "print or find pages of this manual" "" "man(1)" 98
+.xx "" "seq \-" "print sequences of numbers" "" "seq(1)" 137
+.xx "" "size \-" "print size of executable files" "" "size(1)" 138
+.xx "" "date \-" "print the date" "" "date(1)" 49
+.xx "" "calendar \-" "print upcoming events" "" "calendar(1)" 37
+.xx "" "strings \- extract" "printable strings" "" "strings(1)" 146
+.xx "" "lp \-" "printer output" "" "lp(1)" 93
+.xx "print formatted output" "fprintf," "printf, sprintf, vfprintf, vprintf, vsprintf \-" "" "fprintf(2)" 231
+.xx "maintain/" "changeuser, wrkey, convkeys," "printnetkey, status, auth.srv, guard.srv \-" "" "auth(8)" 443
+.xx "" "" "proc \- running processes" "" "proc(3)" 343
+.xx "" "booting \- bootstrapping" "procedures" "" "booting(8)" 448
+.xx "" "cputime, times \- cpu time in this" "process and children" "" "cputime(2)" 203
+.xx "" "atexitdont, terminate \- terminate process," "process cleanup" "exits, _exits, atexit," "exits(2)" 220
+.xx "" "getflags, usage \-" "process flag arguments in argv" "" "getflags(9.2)" 529
+.xx "" "postnote \- send a note to a process or" "process group" "" "postnote(2)" 280
+.xx "lights, noise, sysstat,/" "cons \- console, clocks," "process group ids, user, null, klog, stats," "" "cons(3)" 323
+.xx "" "getpid, getppid \- get" "process ids" "" "getpid(2)" 245
+.xx "" "notify, noted, atnotify \- handle asynchronous" "process notification" "" "notify(2)" 265
+.xx "" "ARGEND, ARGC, ARGF, arginit, argopt \-" "process option letters from argv" "ARGBEGIN," "arg(2)" 186
+.xx "" "postnote \- send a note to a" "process or process group" "" "postnote(2)" 280
+.xx "" "_exits, atexit, atexitdont, terminate \- terminate" "process, process cleanup" "exits," "exits(2)" 220
+.xx "" "fork, rfork \- manipulate" "process resources" "" "fork(2)" 230
+.xx "" "ps, psu \-" "process status" "" "ps(1)" 121
+.xx "" "rendezvous \- user level" "process synchronization" "" "rendezvous(2)" 290
+.xx "" "wait \- wait for a" "process to exit" "" "wait(2)" 313
+.xx "" "kill, broke \- print commands to kill" "processes" "" "kill(1)" 89
+.xx "" "proc \- running" "processes" "" "proc(3)" 343
+.xx "" "stop, start \- print commands to stop and start" "processes" "" "stop(1)" 145
+.xx "" "awk \- pattern-directed scanning and" "processing language" "" "awk(1)" 26
+.xx "stats, lights, noise,/" "cons \- console, clocks," "process/process group ids, user, null, klog," "" "cons(3)" 323
+.xx "" "" "prof, kprof \- display profiling data" "" "prof(1)" 119
+.xx "" "kprof \- kernel" "profiling" "" "kprof(3)" 338
+.xx "" "b.com \- PC bootstrap" "program" "" "b.com(8)" 444
+.xx "" "units \- conversion" "program" "" "units(1)" 170
+.xx "" "lex \- generator of lexical analysis" "programs" "" "lex(1)" 91
+.xx "" "map, mapdemo \- draw maps on various" "projections" "" "map(7)" 433
+.xx "" "" "proof \- troff output interpreter" "" "proof(1)" 120
+.xx "" "arp \- Internet Address Resolution" "Protocol" "" "arp(3)" 315
+.xx "" "btrace \- trace bitblt" "protocol" "" "btrace(8)" 453
+.xx "" "dirconv, dirmodeconv \- interface to Plan 9 File" "protocol" "/convM2D, getS, fcallconv," "fcall(2)" 222
+.xx "" "myetheraddr, maskip, equivip \- Internet" "protocol" "/parseip, parseether, myipaddr," "ip(2)" 252
+.xx "" "pppclient, pppserver \- point to point" "protocol" "" "ppp(1)" 117
+.xx "" "intro \- introduction to the Plan 9 File" "Protocol, 9P" "" "intro(5)" 380
+.xx "" "ftpfs \- file transfer" "protocol (FT) file system" "" "ftpfs(4)" 366
+.xx "" "ip \- TCP, UDP, IL network" "protocols over IP" "" "ip(3)" 335
+.xx "" "ps," "psu \- process status" "" "ps(1)" 121
+.xx "" "/ptinrect, rectinrect, rectXrect, rectclip, Dx, Dy," "Pt, Rect, Rpt \- arithmetic on points and/" "" "add(2)" 184
+.xx "" "/rmul, rdiv, rshift, inset, rcanon, eqpt, eqrect," "ptinrect, rectinrect, rectXrect, rectclip, Dx,/" "" "add(2)" 184
+.xx "" "/xformpoint, xformpointd, xformplane," "pushmat, popmat, rot, qrot, scale, move,/" "" "matrix(9.2)" 530
+.xx "" "dirstat, dirfstat, dirwstat, dirfwstat \- get and" "put file status" "stat, fstat, wstat, fwstat," "stat(2)" 302
+.xx "" "/loadmap, findseg, get1, get2, get4, put1," "put2, put4, beswab, beswal, leswab, leswal \-/" "" "mach(2)" 257
+.xx "fread, fwrite/" "fgetc, getc, getchar, fputc, putc," "putchar, ungetc, fgets, gets, fputs, puts," "" "fgetc(2)" 224
+.xx "" "getenv," "putenv \- access environment variables" "" "getenv(2)" 241
+.xx "" "" "pwd, pbd \- working directory" "" "pwd(1)" 122
+.xx "" "" "qball \- 3-d rotation controller" "" "qball(9.2)" 534
+.xx "files" "" "qer, runq \- queues management for spooled" "" "qer(8)" 486
+.xx "" "qadd, qsub, qneg, qmul, qdiv, qunit, qinv," "qlen, slerp, qmid, qsqrt \- Quaternion/" "/mtoq," "quaternion(9.2)" 535
+.xx "viewport/" "/xformplane, pushmat, popmat, rot," "qrot, scale, move, xform, ixform, persp, look," "" "matrix(9.2)" 530
+.xx "" "" "qsort \- quicker sort" "" "qsort(2)" 284
+.xx "slerp, qmid, qsqrt \-/" "qtom, mtoq, qadd," "qsub, qneg, qmul, qdiv, qunit, qinv, qlen," "" "quaternion(9.2)" 535
+.xx "" "3to1, mcut, improve," "quantize, dither \- picture color compression" "" "quantize(9.1)" 521
+.xx "dnsquery \- network database" "" "query, mkhash, mkdb, cs, csquery, dns," "" "ndb(8)" 473
+.xx "" "qer, runq \-" "queues management for spooled files" "" "qer(8)" 486
+.xx "" "qtom, mtoq, qadd, qsub, qneg, qmul, qdiv," "qunit, qinv, qlen, slerp, qmid, qsqrt \-/" "" "quaternion(9.2)" 535
+.xx "eqpt, eqrect, ptinrect,/" "add, sub, mul, div," "raddp, rsubp, rmul, rdiv, rshift, inset, rcanon," "" "add(2)" 184
+.xx "" "rtc \- real-time clock and non-volatile" "RAM" "" "rtc(3)" 347
+.xx "" "" "ramfs \- memory file system" "" "ramfs(4)" 375
+.xx "" "card," "ramp \- create simple color fields" "" "card(9.1)" 499
+.xx "random number generator" "" "rand, lrand, frand, nrand, lnrand, srand \-" "" "rand(2)" 285
+.xx "" "xpand, picnegate \- adjust dynamic" "range" "" "xpand(9.1)" 525
+.xx "" "bootp," "rarpd, tftpd \- Internet booting" "" "bootp(8)" 452
+.xx "" "picfile \-" "raster graphic image format" "" "picfile(9.6)" 538
+.xx "" "intro \- introduction to" "raster image software" "" "intro(9)" 495
+.xx "whatis, ., ~ \- command language" "" "rc, cd, eval, exec, exit, flag, rfork, shift, wait," "" "rc(1)" 123
+.xx "" "/mul, div, raddp, rsubp, rmul, rdiv, rshift, inset," "rcanon, eqpt, eqrect, ptinrect, rectinrect,/" "" "add(2)" 184
+.xx "" "cursorset, rdfontfile, ffree, charwidth, Pconv," "Rconv \- bitmap graphics" "/clipr, cursorswitch," "graphics(2)" 248
+.xx "freeing,/" "balloc, bfree, rdbitmap, wrbitmap," "rdbitmapfile, wrbitmapfile \- allocating," "" "balloc(2)" 191
+.xx "" "RGB, rgbpix," "rdcolmap, wrcolmap \- handle color screens" "" "rgbpix(2)" 291
+.xx "" "/bwrite, bexit, clipr, cursorswitch, cursorset," "rdfontfile, ffree, charwidth, Pconv, Rconv \-/" "" "graphics(2)" 248
+.xx "" "add, sub, mul, div, raddp, rsubp, rmul," "rdiv, rshift, inset, rcanon, eqpt, eqrect,/" "" "add(2)" 184
+.xx "" "/picopen_w, picread, picwrite, picclose," "rdpicfile, wrpicfile, picputprop, picgetprop,/" "" "picopen(9.2)" 532
+.xx "manipulation" "subfalloc, subffree," "rdsubfontfile, wrsubfontfile, mkfont \- subfont" "" "subfalloc(2)" 306
+.xx "" "cat," "read \- catenate files" "" "cat(1)" 38
+.xx "" "getcmap \-" "read a color map from a file" "" "getcmap(9.2)" 528
+.xx "" "dirread \-" "read directory" "" "dirread(2)" 211
+.xx "" "" "read, readn, write \- read or write file" "" "read(2)" 286
+.xx "" "" "read, write \- transfer data from and to a file" "" "read(5)" 390
+.xx "" "objtype, readobj, objtraverse, isar, nextar," "readar \- object file interpretation functions" "" "object(2)" 267
+.xx "" "open, create, close \- open a file for" "reading or writing, create file" "" "open(2)" 269
+.xx "" "rdbitmapfile, wrbitmapfile \- allocating, freeing," "reading, writing bitmaps" "/wrbitmap," "balloc(2)" 191
+.xx "" "read," "readn, write \- read or write file" "" "read(2)" 286
+.xx "object file interpretation functions" "objtype," "readobj, objtraverse, isar, nextar, readar \-" "" "object(2)" 267
+.xx "" "malloc, free," "realloc, calloc \- memory allocator" "" "malloc(2)" 259
+.xx "" "rtc \-" "real-time clock and non-volatile RAM" "" "rtc(3)" 347
+.xx "connection" "" "reboot \- reboot CPU after loss of file server" "" "reboot(3)" 345
+.xx "" "/rectinrect, rectXrect, rectclip, Dx, Dy, Pt," "Rect, Rpt \- arithmetic on points and/" "" "add(2)" 184
+.xx "" "bbox \- compute bounding" "rectangle" "" "bbox(9.1)" 498
+.xx "berror, bscreenrect, bneed, bflush,/" "Point," "Rectangle, Bitmap, Cursor, binit, bclose," "" "graphics(2)" 248
+.xx "" "/eqpt, eqrect, ptinrect, rectinrect, rectXrect," "rectclip, Dx, Dy, Pt, Rect, Rpt \- arithmetic on/" "" "add(2)" 184
+.xx "" "/dot3, cross3, len3, dist3, unit3, midpt3, lerp3," "reflect3, nearseg3, pldist3, vdiv3, vrem3,/" "" "arith3(9.2)" 526
+.xx "rregexec, rregsub, regerror \-/" "regcomp," "regcomplit, regcompnl, regexec, regsub," "" "regexp(2)" 287
+.xx "" "" "regexp \- regular expression notation" "" "regexp(6)" 419
+.xx "" "srv \- server" "registry" "" "srv(3)" 350
+.xx "" "regcomp, regcomplit, regcompnl, regexec," "regsub, rregexec, rregsub, regerror \- regular/" "" "regexp(2)" 287
+.xx "" "regexp \-" "regular expression notation" "" "regexp(6)" 419
+.xx "" "B, sam.save \- screen editor with structural" "regular expressions" "sam," "sam(1)" 129
+.xx "" "plinitslider, plinittextview \- panel" "reinitialization functions" "/plinitscrollbar," "plinitbutton(2)" 279
+.xx "" "comm \- select or" "reject lines common to two sorted files" "" "comm(1)" 43
+.xx "" "dial, hangup, announce, listen, accept," "reject, netmkaddr \- make and break network/" "" "dial(2)" 209
+.xx "" "join \-" "relational database operator" "" "join(1)" 88
+.xx "" "fabs, fmod, floor, ceil \- absolute value," "remainder, floor, ceiling functions" "" "floor(2)" 226
+.xx "" "cmap," "remap \- map colors" "" "remap(9.1)" 522
+.xx "" "securenet \- Digital Pathways SecureNet Key" "remote authentication box" "" "securenet(8)" 490
+.xx "transfer" "con, telnet, cu, rx, xms, xmr \-" "remote login, execution, and XMODEM file" "" "con(1)" 44
+.xx "" "import \- import a name space from a" "remote system" "" "import(4)" 367
+.xx "" "" "remove \- remove a file" "" "remove(2)" 289
+.xx "" "" "remove \- remove a file from a server" "" "remove(5)" 391
+.xx "" "rm \-" "remove files" "" "rm(1)" 128
+.xx "" "deroff, delatex \-" "remove formatting requests" "" "deroff(1)" 59
+.xx "" "hed, nohed \- edit or" "remove picture file header" "" "hed(9.1)" 509
+.xx "" "strip \-" "remove symbols from binary files" "" "strip(1)" 147
+.xx "" "cpr, cprview \- cheesy polygon" "renderer and viewer" "" "cpr(9.1)" 500
+.xx "synchronization" "" "rendezvous \- user level process" "" "rendezvous(2)" 290
+.xx "" "rotate, transpose \-" "re-orient an image" "" "transpose(9.1)" 524
+.xx "" "uniq \-" "report repeated lines in a file" "" "uniq(1)" 169
+.xx "" "deroff, delatex \- remove formatting" "requests" "" "deroff(1)" 59
+.xx "" "" "resample, pdup \- resample a picture" "" "resample(9.1)" 523
+.xx "" "arp \- Internet Address" "Resolution Protocol" "" "arp(3)" 315
+.xx "" "fork, rfork \- manipulate process" "resources" "" "fork(2)" 230
+.xx "" "mothra \-" "retrieve World-Wide Web files" "" "mothra(1)" 105
+.xx "" "error \-" "return an error" "" "error(5)" 387
+.xx "" "/setvbuf, setbuf, fgetpos, ftell, fsetpos, fseek," "rewind, feof, ferror, clearerr \- standard/" "" "fopen(2)" 227
+.xx "" "" "rewrite \- mail rewrite rules" "" "rewrite(6)" 420
+.xx "" "fork," "rfork \- manipulate process resources" "" "fork(2)" 230
+.xx "language" "rc, cd, eval, exec, exit, flag," "rfork, shift, wait, whatis, ., ~ \- command" "" "rc(1)" 123
+.xx "screens" "RGB," "rgbpix, rdcolmap, wrcolmap \- handle color" "" "rgbpix(2)" 291
+.xx "" "ipconfig, arpd," "rip \- Internet configuration and routing" "" "ipconfig(8)" 466
+.xx "symoff, fpformat, beieee80ftos,/" "cisctrace," "risctrace, ciscframe, riscframe, localaddr," "" "debugger(2)" 206
+.xx "" "" "rm \- remove files" "" "rm(1)" 128
+.xx "ptinrect,/" "add, sub, mul, div, raddp, rsubp," "rmul, rdiv, rshift, inset, rcanon, eqpt, eqrect," "" "add(2)" 184
+.xx "" "" "road, gps \- road map of the United States" "" "road(7)" 437
+.xx "" "cdrom \-" "ROM disk interface" "" "cdrom(3)" 322
+.xx "" "juke \-" "ROM jukebox" "" "juke(7)" 431
+.xx "" "pip \-" "ROM workbench" "" "pip(8)" 479
+.xx "" "sqrt \- exponential, logarithm, power, square" "root" "exp, log, log10, pow, pow10," "exp(2)" 221
+.xx "" "" "root \- the root file system" "" "root(3)" 346
+.xx "" "boot \- connect to the" "root file server" "" "boot(8)" 446
+.xx "" "/xformpointd, xformplane, pushmat, popmat," "rot, qrot, scale, move, xform, ixform, persp,/" "" "matrix(9.2)" 530
+.xx "" "" "rotate, transpose \- re-orient an image" "" "transpose(9.1)" 524
+.xx "" "qball \- 3-d" "rotation controller" "" "qball(9.2)" 534
+.xx "" "iproute \- Internet" "route table manager" "" "iproute(3)" 337
+.xx "" "ipconfig, arpd, rip \- Internet configuration and" "routing" "" "ipconfig(8)" 466
+.xx "" "/rectinrect, rectXrect, rectclip, Dx, Dy, Pt, Rect," "Rpt \- arithmetic on points and rectangles" "" "add(2)" 184
+.xx "" "/regcompnl, regexec, regsub, rregexec," "rregsub, regerror \- regular expression" "" "regexp(2)" 287
+.xx "" "char, ½char," "rschar \- browse the Unicode Standard" "" "char(1)" 39
+.xx "eqrect, ptinrect,/" "add, sub, mul, div, raddp," "rsubp, rmul, rdiv, rshift, inset, rcanon, eqpt," "" "add(2)" 184
+.xx "" "" "rtc \- real-time clock and non-volatile RAM" "" "rtc(3)" 347
+.xx "plgrabkb, plkeyboard, plmouse,/" "Panel," "Rtext, plpack, plmove, pldraw, plfree," "" "plinit(2)" 275
+.xx "" "rewrite \- mail rewrite" "rules" "" "rewrite(6)" 420
+.xx "" "UTF, Unicode, ASCII," "rune \- character set and format" "" "utf(6)" 422
+.xx "utflen, utfrune, utfrrune, utfutf \- rune/UTF/" "" "runetochar, chartorune, runelen, fullrune," "" "rune(2)" 292
+.xx "" "proc \-" "running processes" "" "proc(3)" 343
+.xx "" "qer," "runq \- queues management for spooled files" "" "qer(8)" 486
+.xx "XMODEM file transfer" "con, telnet, cu," "rx, xms, xmr \- remote login, execution, and" "" "con(1)" 44
+.xx "" "fortune \-" "sample lines from a file" "" "fortune(1)" 76
+.xx "regular expressions" "sam, B," "sam.save \- screen editor with structural" "" "sam(1)" 129
+.xx "screen" "9v," "save, flip \- copy picture files to and from" "" "9v(9.1)" 496
+.xx "" "brk," "sbrk \- change memory allocation" "" "brk(2)" 198
+.xx "" "/xformplane, pushmat, popmat, rot, qrot," "scale, move, xform, ixform, persp, look,/" "" "matrix(9.2)" 530
+.xx "" "fscanf," "scanf, sscanf, vfscanf \- scan formatted input" "" "fscanf(2)" 237
+.xx "" "awk \- pattern-directed" "scanning and processing language" "" "awk(1)" 26
+.xx "" "" "scat \- sky catalogue and Digitized Sky Survey" "" "scat(7)" 439
+.xx "control" "" "scc, duart, uart \- serial communication" "" "scc(3)" 348
+.xx "" "/fdopen, fileno, fclose, sopenr, sopenw," "sclose, fflush, setvbuf, setbuf, fgetpos, ftell,/" "" "fopen(2)" 227
+.xx "" "9v, save, flip \- copy picture files to and from" "screen" "" "9v(9.1)" 496
+.xx "expressions" "sam, B, sam.save \-" "screen editor with structural regular" "" "sam(1)" 129
+.xx "" "bit \-" "screen graphics, mouse" "" "bit(3)" 319
+.xx "" "rgbpix, rdcolmap, wrcolmap \- handle color" "screens" "RGB," "rgbpix(2)" 291
+.xx "" "cpurc, termrc \- boot" "script" "" "cpurc(8)" 454
+.xx "" "moto \- create animation" "scripts" "" "moto(9.1)" 515
+.xx "" "" "scsi \- SCSI command interface" "" "scsi(3)" 349
+.xx "" "" "scuzz \- SCSI target control" "" "scuzz(8)" 487
+.xx "it" "clwalk \- clone, then" "search a directory, and change to a file within" "" "clwalk(5)" 386
+.xx "" "grep \-" "search a file for a pattern" "" "grep(1)" 82
+.xx "" "time \- time in" "seconds since epoch" "" "time(2)" 311
+.xx "remote authentication box" "" "securenet \- Digital Pathways SecureNet Key" "" "securenet(8)" 490
+.xx "" "" "sed \- stream editor" "" "sed(1)" 134
+.xx "" "" "seek \- change file offset" "" "seek(2)" 293
+.xx "vismon \- mail/" "mail, edmail, sendmail," "seemail, aliasmail, smtp, smtpd, to, vwhois," "" "mail(1)" 95
+.xx "" "" "segbrk \- change memory allocation" "" "segbrk(2)" 296
+.xx "" "" "segflush \- flush instruction and data caches" "" "segflush(2)" 297
+.xx "memory" "segattach, segdetach," "segfree \- map/unmap a segment in virtual" "" "segattach(2)" 294
+.xx "ellipse,/" "bitblt, bitbltclip, clipline, point," "segment, polysegment, arc, circle, disc," "" "bitblt(2)" 196
+.xx "files" "comm \-" "select or reject lines common to two sorted" "" "comm(1)" 43
+.xx "" "postnote \-" "send a note to a process or process group" "" "postnote(2)" 280
+.xx "vwhois, vismon \- mail/" "mail, edmail," "sendmail, seemail, aliasmail, smtp, smtpd, to," "" "mail(1)" 95
+.xx "" "" "seq \- print sequences of numbers" "" "seq(1)" 137
+.xx "" "scc, duart, uart \-" "serial communication control" "" "scc(3)" 348
+.xx "" "async \- framing for a" "serial line to Datakit" "" "async(3)" 316
+.xx "" "u9fs \-" "serve 9P from Unix" "" "u9fs(4)" 379
+.xx "" "boot \- connect to the root file" "server" "" "boot(8)" 446
+.xx "" "cpu \- connection to cpu" "server" "" "cpu(1)" 48
+.xx "" "fsconfig \- configuring a file" "server" "" "fsconfig(8)" 461
+.xx "" "up authentication on a file descriptor to a file" "server" "fsession, fauth \- set" "fsession(2)" 240
+.xx "" "httpd, echo \- HTTP" "server" "" "httpd(8)" 464
+.xx "" "remove \- remove a file from a" "server" "" "remove(5)" 391
+.xx "" "reboot \- reboot CPU after loss of file" "server connection" "" "reboot(3)" 345
+.xx "" "fs \- file" "server, dump" "" "fs(4)" 365
+.xx "" "fs, exsort \- file" "server maintenance" "" "fs(8)" 457
+.xx "" "exportfs, srvfs \- network file" "server plumbing" "" "exportfs(4)" 364
+.xx "" "srv \-" "server registry" "" "srv(3)" 350
+.xx "" "users \- file" "server user list format" "" "users(6)" 421
+.xx "" "intro \- introduction to file" "servers" "" "intro(4)" 355
+.xx "" "mnt \- attach to 9P" "servers" "" "mnt(3)" 341
+.xx "" "ticket \- authentication" "service" "" "auth(6)" 399
+.xx "" "nfsserver, portmapper, pcnfsd, 9auth \- NFS" "service" "" "nfsserver(8)" 476
+.xx "" "srv, 9fs, dk232, dkmodem \- start network file" "service" "" "srv(4)" 376
+.xx "" "attach," "session, nop \- messages to initiate activity" "" "attach(5)" 383
+.xx "" "/fclose, sopenr, sopenw, sclose, fflush, setvbuf," "setbuf, fgetpos, ftell, fsetpos, fseek, rewind,/" "" "fopen(2)" 227
+.xx "" "getfields, getmfields," "setfields, tokenize \- break a string into fields" "" "getfields(2)" 244
+.xx "" "getfcr, setfcr, getfsr," "setfsr \- control floating point" "" "getfcr(2)" 242
+.xx "" "" "setjmp, longjmp, notejmp \- non-local goto" "" "setjmp(2)" 298
+.xx "" "crackhdr, machbytype, machbyname, newmap," "setmap, unusemap, loadmap, findseg, get1,/" "" "mach(2)" 257
+.xx "" "/fileno, fclose, sopenr, sopenw, sclose, fflush," "setvbuf, setbuf, fgetpos, ftell, fsetpos, fseek,/" "" "fopen(2)" 227
+.xx "" "lam, posit, piccat, picjoin \- combine" "several images" "" "lam(9.1)" 511
+.xx "" "/gif2pic, jpg2pic, nasa2pic, pcx2pic, picopic," "sgi2pic, targa2pic, tiff2pic, utah2pic, xbm2pic/" "" "cvt2pic(9.1)" 502
+.xx "" "/edge3, extremum, median, nonoise, smooth," "shadepic \- image neighborhood operators" "" "filters(9.1)" 504
+.xx "" "lockinit, lock, canlock, unlock \-" "shared memory spin lock" "" "lock(2)" 255
+.xx "" "rc, cd, eval, exec, exit, flag, rfork," "shift, wait, whatis, ., ~ \- command language" "" "rc(1)" 123
+.xx "changer" "" "showimage \- bitmap displayer, colormap" "" "showimage(7)" 441
+.xx "" "vi, ki, xi \- instruction" "simulators" "" "vi(1)" 171
+.xx "trigonometric functions" "" "sin, cos, tan, asin, acos, atan, atan2 \-" "" "sin(2)" 299
+.xx "" "time \- time in seconds" "since epoch" "" "time(2)" 311
+.xx "" "" "sinh, cosh, tanh \- hyperbolic functions" "" "sinh(2)" 300
+.xx "" "" "size \- print size of executable files" "" "size(1)" 138
+.xx "" "scat \- sky catalogue and Digitized" "Sky Survey" "" "scat(7)" 439
+.xx "" "" "sleep \- suspend execution for an interval" "" "sleep(1)" 139
+.xx "" "" "sleep, alarm \- delay, ask for delayed note" "" "sleep(2)" 301
+.xx "" "/qsub, qneg, qmul, qdiv, qunit, qinv, qlen," "slerp, qmid, qsqrt \- Quaternion arithmetic" "" "quaternion(9.2)" 535
+.xx "swar, festoon \-/" "4s, 5s, ana, mandel, plumb," "smiley, life, fsim, clock, catclock, fireworks," "" "games(1)" 78
+.xx "" "/edge2, edge3, extremum, median, nonoise," "smooth, shadepic \- image neighborhood/" "" "filters(9.1)" 504
+.xx "" "/edmail, sendmail, seemail, aliasmail, smtp," "smtpd, to, vwhois, vismon \- mail commands" "" "mail(1)" 95
+.xx "" "" "snoopy \- spy on Ethernet packets" "" "snoopy(8)" 491
+.xx "numbconv, fltconv,/" "print, fprint, sprint," "snprint, fmtinstall, strconv, Strconv," "" "print(2)" 281
+.xx "" "intro \- introduction to raster image" "software" "" "intro(9)" 495
+.xx "" "fopen, freopen, fdopen, fileno, fclose, sopenr," "sopenw, sclose, fflush, setvbuf, setbuf,/" "" "fopen(2)" 227
+.xx "" "qsort \- quicker" "sort" "" "qsort(2)" 284
+.xx "" "" "sort \- sort and/or merge files" "" "sort(1)" 140
+.xx "" "comm \- select or reject lines common to two" "sorted files" "" "comm(1)" 43
+.xx "" "look \- find lines in a" "sorted list" "" "look(1)" 92
+.xx "" "bind, mount, unmount \- change name" "space" "" "bind(1)" 32
+.xx "" "bind, mount, unmount \- change name" "space" "" "bind(2)" 192
+.xx "" "\- structure of conventional file name" "space" "namespace" "namespace(4)" 372
+.xx "" "namespace \- name" "space description file" "" "namespace(6)" 414
+.xx "" "import \- import a name" "space from a remote system" "" "import(4)" 367
+.xx "" "" "spell, sprog \- find spelling errors" "" "spell(1)" 142
+.xx "" "" "spin \- verification tool for concurrent systems" "" "spin(1)" 143
+.xx "" "lock, canlock, unlock \- shared memory" "spin lock" "lockinit," "lock(2)" 255
+.xx "" "" "split \- split a file into pieces" "" "split(1)" 144
+.xx "" "frexp, ldexp, modf \-" "split into mantissa and exponent" "" "frexp(2)" 236
+.xx "" "qer, runq \- queues management for" "spooled files" "" "qer(8)" 486
+.xx "numbconv, fltconv, doprint \-/" "print, fprint," "sprint, snprint, fmtinstall, strconv, Strconv," "" "print(2)" 281
+.xx "formatted output" "fprintf, printf," "sprintf, vfprintf, vprintf, vsprintf \- print" "" "fprintf(2)" 231
+.xx "" "spell," "sprog \- find spelling errors" "" "spell(1)" 142
+.xx "" "snoopy \-" "spy on Ethernet packets" "" "snoopy(8)" 491
+.xx "root" "exp, log, log10, pow, pow10," "sqrt \- exponential, logarithm, power, square" "" "exp(2)" 221
+.xx "" "rand, lrand, frand, nrand, lnrand," "srand \- random number generator" "" "rand(2)" 285
+.xx "" "" "srv \- server registry" "" "srv(3)" 350
+.xx "service" "" "srv, 9fs, dk232, dkmodem \- start network file" "" "srv(4)" 376
+.xx "newns, authdial, passtokey,/" "auth, amount," "srvauth, authenticate, getchal, chalreply," "" "auth(2)" 189
+.xx "" "exportfs," "srvfs \- network file server plumbing" "" "exportfs(4)" 364
+.xx "" "fscanf, scanf," "sscanf, vfscanf \- scan formatted input" "" "fscanf(2)" 237
+.xx "" "char, ½char, rschar \- browse the Unicode" "Standard" "" "char(1)" 39
+.xx "" "/fsetpos, fseek, rewind, feof, ferror, clearerr \-" "standard buffered input/output package" "" "fopen(2)" 227
+.xx "processes" "stop," "start \- print commands to stop and start" "" "stop(1)" 145
+.xx "" "srv, 9fs, dk232, dkmodem \-" "start network file service" "" "srv(4)" 376
+.xx "dirwstat, dirfwstat \- get and put file status" "" "stat, fstat, wstat, fwstat, dirstat, dirfstat," "" "stat(2)" 302
+.xx "" "" "stat, wstat \- inquire or change file attributes" "" "stat(5)" 392
+.xx "" "road, gps \- road map of the United" "States" "" "road(7)" 437
+.xx "" "sysmon," "stats \- display graphs of system activity" "" "sysmon(8)" 493
+.xx "" "/process/process group ids, user, null, klog," "stats, lights, noise, sysstat, hz, swap, key,/" "" "cons(3)" 323
+.xx "" "ps, psu \- process" "status" "" "ps(1)" 121
+.xx "" "dirfstat, dirwstat, dirfwstat \- get and put file" "status" "stat, fstat, wstat, fwstat, dirstat," "stat(2)" 302
+.xx "" "test \- set" "status according to condition" "" "test(1)" 158
+.xx "" "changeuser, wrkey, convkeys, printnetkey," "status, auth.srv, guard.srv \- maintain/" "" "auth(8)" 443
+.xx "" "ungetc, fgets, gets, fputs, puts, fread, fwrite \-" "Stdio input and output" "/fputc, putc, putchar," "fgetc(2)" 224
+.xx "" "tmpfile, tmpnam \-" "Stdio temporary files" "" "tmpfile(2)" 312
+.xx "processes" "" "stop, start \- print commands to stop and start" "" "stop(1)" 145
+.xx "\-/" "print, fprint, sprint, snprint, fmtinstall," "strconv, Strconv, numbconv, fltconv, doprint" "" "print(2)" 281
+.xx "strpbrk,/" "strcat, strncat, strcmp, strncmp," "strcpy, strncpy, strlen, strchr, strrchr," "" "strcat(2)" 304
+.xx "" "/strncpy, strlen, strchr, strrchr, strpbrk, strspn," "strcspn, strtok, strdup, strstr \- string/" "" "strcat(2)" 304
+.xx "" "" "stream \- a structure for communications" "" "stream(3)" 351
+.xx "" "sed \-" "stream editor" "" "sed(1)" 134
+.xx "" "getmfields, setfields, tokenize \- break a" "string into fields" "getfields," "getfields(2)" 244
+.xx "" "strpbrk, strspn, strcspn, strtok, strdup, strstr \-" "string operations" "/strlen, strchr, strrchr," "strcat(2)" 304
+.xx "" "/arc, circle, disc, ellipse, texture, border," "string, strsize, strwidth, Fcode \- graphics/" "" "bitblt(2)" 196
+.xx "" "" "strings \- extract printable strings" "" "strings(1)" 146
+.xx "" "" "strip \- remove symbols from binary files" "" "strip(1)" 147
+.xx "" "basename \-" "strip file name affixes" "" "basename(1)" 29
+.xx "strlen, strchr, strrchr, strpbrk, strspn,/" "strcat," "strncat, strcmp, strncmp, strcpy, strncpy," "" "strcat(2)" 304
+.xx "" "/arc, circle, disc, ellipse, texture, border, string," "strsize, strwidth, Fcode \- graphics functions" "" "bitblt(2)" 196
+.xx "" "strrchr, strpbrk, strspn, strcspn, strtok, strdup," "strstr \- string operations" "/strlen, strchr," "strcat(2)" 304
+.xx "" "atof, atoi, atol, charstod, strtod," "strtol, strtoul \- convert text to numbers" "" "atof(2)" 188
+.xx "" "sam, B, sam.save \- screen editor with" "structural regular expressions" "" "sam(1)" 129
+.xx "" "stream \- a" "structure for communications" "" "stream(3)" 351
+.xx "" "namespace \-" "structure of conventional file name space" "" "namespace(4)" 372
+.xx "" "disc, ellipse, texture, border, string, strsize," "strwidth, Fcode \- graphics functions" "/circle," "bitblt(2)" 196
+.xx "" "lerp," "sub \- linear combinations of images" "" "lerp(9.1)" 512
+.xx "inset, rcanon, eqpt, eqrect, ptinrect,/" "add," "sub, mul, div, raddp, rsubp, rmul, rdiv, rshift," "" "add(2)" 184
+.xx "cross3, len3, dist3, unit3, midpt3,/" "add3," "sub3, div3, mul3, eqpt3, closept3, dot3," "" "arith3(9.2)" 526
+.xx "" "/vrem3, pn2f3, ppp2f3, fff2p3, pdiv4, add4," "sub4 \- operations on 3-d points and planes" "" "arith3(9.2)" 526
+.xx "\- subfont manipulation" "subfalloc," "subffree, rdsubfontfile, wrsubfontfile, mkfont" "" "subfalloc(2)" 306
+.xx "subfonts" "font," "subfont \- external format for fonts and" "" "font(6)" 404
+.xx "" "tweak \- edit bitmap files," "subfont files, face files, etc." "" "tweak(1)" 166
+.xx "" "cachechars, agefont, loadchar," "Subfont, Fontchar, Font \- font utilities" "" "cachechars(2)" 199
+.xx "" "subffree, rdsubfontfile, wrsubfontfile, mkfont \-" "subfont manipulation" "subfalloc," "subfalloc(2)" 306
+.xx "" "font, subfont \- external format for fonts and" "subfonts" "" "font(6)" 404
+.xx "file" "" "sum, md5sum \- sum and count blocks in a" "" "sum(1)" 148
+.xx "" "scat \- sky catalogue and Digitized Sky" "Survey" "" "scat(7)" 439
+.xx "" "sleep \-" "suspend execution for an interval" "" "sleep(1)" 139
+.xx "" "" "swap \- establish a swap file" "" "swap(8)" 492
+.xx "" "null, klog, stats, lights, noise, sysstat, hz," "swap, key, hostowner, hostdomain,/" "/user," "cons(3)" 323
+.xx "" "smiley, life, fsim, clock, catclock, fireworks," "swar, festoon \- time wasters" "/plumb," "games(1)" 78
+.xx "lookup, findlocal, getauto,/" "syminit, getsym," "symbase, pc2sp, pc2line, textseg, line2addr," "" "symbol(2)" 308
+.xx "" "nm \- name list" "symbol table)" "" "nm(1)" 108
+.xx "" "file2pc, fileelem, filesym, fileline, fnbound \-" "symbol table access functions" "/textsym," "symbol(2)" 308
+.xx "" "strip \- remove" "symbols from binary files" "" "strip(1)" 147
+.xx "textseg, line2addr, lookup, findlocal,/" "" "syminit, getsym, symbase, pc2sp, pc2line," "" "symbol(2)" 308
+.xx "" "/risctrace, ciscframe, riscframe, localaddr," "symoff, fpformat, beieee80ftos, beieeesftos,/" "" "debugger(2)" 206
+.xx "" "rendezvous \- user level process" "synchronization" "" "rendezvous(2)" 290
+.xx "" "" "syscall \- test a system call" "" "syscall(1)" 149
+.xx "" "perror," "syslog \- system error messages" "" "perror(2)" 270
+.xx "activity" "" "sysmon, stats \- display graphs of system" "" "sysmon(8)" 493
+.xx "" "/group ids, user, null, klog, stats, lights, noise," "sysstat, hz, swap, key, hostowner,/" "" "cons(3)" 323
+.xx "" "8½, label, window, wloc \- window" "system" "" "8½(1)" 9
+.xx "" "cfs \- cache file" "system" "" "cfs(4)" 361
+.xx "" "ftpfs \- file transfer protocol (FT) file" "system" "" "ftpfs(4)" 366
+.xx "" "import \- import a name space from a remote" "system" "" "import(4)" 367
+.xx "" "kfs \- disk file" "system" "" "kfs(4)" 371
+.xx "" "mkfs, mkext \- archive or update a file" "system" "" "mkfs(8)" 470
+.xx "" "ramfs \- memory file" "system" "" "ramfs(4)" 375
+.xx "" "root \- the root file" "system" "" "root(3)" 346
+.xx "" "sysmon, stats \- display graphs of" "system activity" "" "sysmon(8)" 493
+.xx "" "intro \- introduction to" "system administration" "" "intro(8)" 442
+.xx "" "syscall \- test a" "system call" "" "syscall(1)" 149
+.xx "" "errstr, werrstr \- description of last" "system call error" "" "errstr(2)" 214
+.xx "" "perror, syslog \-" "system error messages" "" "perror(2)" 270
+.xx "" "8½ \- window" "system files" "" "8½(4)" 356
+.xx "" "consolefs, C \- file" "system for console access" "" "consolefs(4)" 362
+.xx "" "iostats \- file" "system to measure I/O" "" "iostats(4)" 368
+.xx "" "a:, b:, c:, eject \- DOS and ISO9660 file" "systems" "dossrv, 9660srv," "dossrv(4)" 363
+.xx "" "update, Disclabel \- administration for local file" "systems" "home, 40meg, 80meg, personalize," "home(8)" 463
+.xx "" "spin \- verification tool for concurrent" "systems" "" "spin(1)" 143
+.xx "" "tarfs, tpfs, v6fs, v10fs \- mount archival file" "systems" "32vfs, cpiofs, tapfs," "tapefs(1)" 151
+.xx "" "nm \- name list (symbol" "table)" "" "nm(1)" 108
+.xx "" "fileelem, filesym, fileline, fnbound \- symbol" "table access functions" "/textsym, file2pc," "symbol(2)" 308
+.xx "" "iproute \- Internet route" "table manager" "" "iproute(3)" 337
+.xx "" "tbl \- format" "tables for nroff or troff" "" "tbl(1)" 153
+.xx "" "" "tail \- deliver the last part of a file" "" "tail(1)" 150
+.xx "functions" "sin, cos," "tan, asin, acos, atan, atan2 \- trigonometric" "" "sin(2)" 299
+.xx "" "sinh, cosh," "tanh \- hyperbolic functions" "" "sinh(2)" 300
+.xx "" "" "tar \- archiver" "" "tar(1)" 152
+.xx "systems" "32vfs, cpiofs, tapfs," "tarfs, tpfs, v6fs, v10fs \- mount archival file" "" "tapefs(1)" 151
+.xx "" "/jpg2pic, nasa2pic, pcx2pic, picopic, sgi2pic," "targa2pic, tiff2pic, utah2pic, xbm2pic \-/" "" "cvt2pic(9.1)" 502
+.xx "" "scuzz \- SCSI" "target control" "" "scuzz(8)" 487
+.xx "" "" "tbl \- format tables for nroff or troff" "" "tbl(1)" 153
+.xx "" "ip \-" "TCP, UDP, IL network protocols over IP" "" "ip(3)" 335
+.xx "" "/tcp513, tcp515, tcp564, tcp565, tcp566," "tcp17007, tcp6000 \- listen for calls on a/" "" "listen(8)" 468
+.xx "" "/il566, il17005, il17006, il17007, il17009," "tcp2, tcp7, tcp9, tcp21, tcp23, tcp80, tcp25,/" "" "listen(8)" 468
+.xx "" "/tcp2, tcp7, tcp9, tcp21, tcp23, tcp80, tcp25," "tcp513, tcp515, tcp564, tcp565, tcp566,/" "" "listen(8)" 468
+.xx "" "/tcp515, tcp564, tcp565, tcp566, tcp17007," "tcp6000 \- listen for calls on a network device" "" "listen(8)" 468
+.xx "" "/il566, il17005, il17006, il17007, il17009, tcp2," "tcp7, tcp9, tcp21, tcp23, tcp80, tcp25,/" "" "listen(8)" 468
+.xx "" "" "tcs \- translate character sets" "" "tcs(1)" 155
+.xx "" "" "tee \- pipe fitting" "" "tee(1)" 156
+.xx "" "" "tel, iwhois \- look in phone book" "" "tel(1)" 157
+.xx "" "telco, faxreceive, faxsend, fax, telcofax," "telcodata \- telephone dialer network" "" "telco(4)" 377
+.xx "" "fone \- control ISDN" "telephone" "" "fone(1)" 74
+.xx "execution, and XMODEM file transfer" "con," "telnet, cu, rx, xms, xmr \- remote login," "" "con(1)" 44
+.xx "" "tmpfile, tmpnam \- Stdio" "temporary files" "" "tmpfile(2)" 312
+.xx "" "hp \- emulate an HP 2621" "terminal" "" "hp(1)" 87
+.xx "" "exits, _exits, atexit, atexitdont, terminate \-" "terminate process, process cleanup" "" "exits(2)" 220
+.xx "" "cpurc," "termrc \- boot script" "" "cpurc(8)" 454
+.xx "" "" "test \- set status according to condition" "" "test(1)" 158
+.xx "" "syscall \-" "test a system call" "" "syscall(1)" 149
+.xx "formatting and typesetting" "" "tex, latex, bibtex, dvips, dviselect, mf \- text" "" "tex(1)" 159
+.xx "" "pic, tpic \- troff and" "tex preprocessors for drawing pictures" "" "pic(1)" 113
+.xx "" "frselectp, frselectf, frgetmouse \- frames of" "text" "/frptofchar, frinsert, frdelete, frselect," "frame(2)" 234
+.xx "" "ed \-" "text editor" "" "ed(1)" 64
+.xx "" "fmt \- ultra-simple" "text formatter" "" "fmt(1)" 73
+.xx "" "tex, latex, bibtex, dvips, dviselect, mf \-" "text formatting and typesetting" "" "tex(1)" 159
+.xx "" "troff, nroff \-" "text formatting and typesetting" "" "troff(1)" 165
+.xx "" "atol, charstod, strtod, strtol, strtoul \- convert" "text to numbers" "atof, atoi," "atof(2)" 188
+.xx "" "acme, win, awd \- interactive" "text windows" "" "acme(1)" 15
+.xx "" "acme \- control files for" "text windows" "" "acme(4)" 358
+.xx "" "syminit, getsym, symbase, pc2sp, pc2line," "textseg, line2addr, lookup, findlocal, getauto,/" "" "symbol(2)" 308
+.xx "" "/getauto, findsym, localsym, globalsym," "textsym, file2pc, fileelem, filesym, fileline,/" "" "symbol(2)" 308
+.xx "Fcode/" "/polysegment, arc, circle, disc, ellipse," "texture, border, string, strsize, strwidth," "" "bitblt(2)" 196
+.xx "" "bootp, rarpd," "tftpd \- Internet booting" "" "bootp(8)" 452
+.xx "" "" "ticket \- authentication service" "" "auth(6)" 399
+.xx "" "/nasa2pic, pcx2pic, picopic, sgi2pic, targa2pic," "tiff2pic, utah2pic, xbm2pic \- convert other/" "" "cvt2pic(9.1)" 502
+.xx "" "" "time \- time a command" "" "time(1)" 162
+.xx "" "" "time \- time in seconds since epoch" "" "time(2)" 311
+.xx "" "rtc \-" "time clock and non-volatile RAM" "" "rtc(3)" 347
+.xx "" "cputime, times \- cpu" "time in this process and children" "" "cputime(2)" 203
+.xx "" "gmtime, asctime, timezone \- convert date and" "time to ASCII" "ctime, localtime," "ctime(2)" 204
+.xx "" "fsim, clock, catclock, fireworks, swar, festoon \-" "time wasters" "/mandel, plumb, smiley, life," "games(1)" 78
+.xx "" "cputime," "times \- cpu time in this process and children" "" "cputime(2)" 203
+.xx "" "ctime, localtime, gmtime, asctime," "timezone \- convert date and time to ASCII" "" "ctime(2)" 204
+.xx "" "tmpfile," "tmpnam \- Stdio temporary files" "" "tmpfile(2)" 312
+.xx "" "getfields, getmfields, setfields," "tokenize \- break a string into fields" "" "getfields(2)" 244
+.xx "" "/isascii, toascii, _toupper, _tolower, toupper," "tolower \- ASCII character classification" "" "ctype(2)" 205
+.xx "" "spin \- verification" "tool for concurrent systems" "" "spin(1)" 143
+.xx "" "" "touch \- set modification date of a file" "" "touch(1)" 163
+.xx "" "/ispunct, isprint, isgraph, iscntrl, isascii, toascii," "_toupper, _tolower, toupper, tolower \- ASCII/" "" "ctype(2)" 205
+.xx "" "32vfs, cpiofs, tapfs, tarfs," "tpfs, v6fs, v10fs \- mount archival file systems" "" "tapefs(1)" 151
+.xx "pictures" "pic," "tpic \- troff and tex preprocessors for drawing" "" "pic(1)" 113
+.xx "" "" "tr \- translate characters" "" "tr(1)" 164
+.xx "" "btrace \-" "trace bitblt protocol" "" "btrace(8)" 453
+.xx "" "\- remote login, execution, and XMODEM file" "transfer" "con, telnet, cu, rx, xms, xmr" "con(1)" 44
+.xx "" "read, write \-" "transfer data from and to a file" "" "read(5)" 390
+.xx "" "ftpfs \- file" "transfer protocol (FT) file system" "" "ftpfs(4)" 366
+.xx "" "ixform, persp, look, viewport \- Geometric" "transformations" "/qrot, scale, move, xform," "matrix(9.2)" 530
+.xx "" "tcs \-" "translate character sets" "" "tcs(1)" 155
+.xx "" "tr \-" "translate characters" "" "tr(1)" 164
+.xx "" "ktrans \- language" "transliterator" "" "ktrans(1)" 90
+.xx "" "rotate," "transpose \- re-orient an image" "" "transpose(9.1)" 524
+.xx "" "twig \-" "tree-manipulation language" "" "twig(1)" 168
+.xx "" "sin, cos, tan, asin, acos, atan, atan2 \-" "trigonometric functions" "" "sin(2)" 299
+.xx "" "tbl \- format tables for nroff or" "troff" "" "tbl(1)" 153
+.xx "pictures" "pic, tpic \-" "troff and tex preprocessors for drawing" "" "pic(1)" 113
+.xx "" "" "troff, nroff \- text formatting and typesetting" "" "troff(1)" 165
+.xx "" "proof \-" "troff output interpreter" "" "proof(1)" 120
+.xx "files, etc." "" "tweak \- edit bitmap files, subfont files, face" "" "tweak(1)" 166
+.xx "" "" "twig \- tree-manipulation language" "" "twig(1)" 168
+.xx "" "file \- determine file" "type" "" "file(1)" 72
+.xx "" "keyboard \- how to" "type characters" "" "keyboard(6)" 405
+.xx "" "man \- macros to" "typeset manual" "" "man(6)" 407
+.xx "" "eqn \-" "typeset mathematics" "" "eqn(1)" 69
+.xx "" "dvips, dviselect, mf \- text formatting and" "typesetting" "tex, latex, bibtex," "tex(1)" 159
+.xx "" "troff, nroff \- text formatting and" "typesetting" "" "troff(1)" 165
+.xx "" "" "u9fs \- serve 9P from Unix" "" "u9fs(4)" 379
+.xx "" "scc, duart," "uart \- serial communication control" "" "scc(3)" 348
+.xx "" "ip \- TCP," "UDP, IL network protocols over IP" "" "ip(3)" 335
+.xx "" "fmt \-" "ultra-simple text formatter" "" "fmt(1)" 73
+.xx "" "fgetc, getc, getchar, fputc, putc, putchar," "ungetc, fgets, gets, fputs, puts, fread, fwrite \-/" "" "fgetc(2)" 224
+.xx "" "ascii," "unicode \- interpret ASCII, Unicode characters" "" "ascii(1)" 25
+.xx "format" "UTF," "Unicode, ASCII, rune \- character set and" "" "utf(6)" 422
+.xx "" "char, ½char, rschar \- browse the" "Unicode Standard" "" "char(1)" 39
+.xx "" "" "uniq \- report repeated lines in a file" "" "uniq(1)" 169
+.xx "" "mktemp \- make a" "unique file name" "" "mktemp(2)" 261
+.xx "" "/eqpt3, closept3, dot3, cross3, len3, dist3," "unit3, midpt3, lerp3, reflect3, nearseg3,/" "" "arith3(9.2)" 526
+.xx "" "road, gps \- road map of the" "United States" "" "road(7)" 437
+.xx "" "" "units \- conversion program" "" "units(1)" 170
+.xx "" "u9fs \- serve 9P from" "Unix" "" "u9fs(4)" 379
+.xx "" "lockinit, lock, canlock," "unlock \- shared memory spin lock" "" "lock(2)" 255
+.xx "" "segattach, segdetach, segfree \-" "unmap a segment in virtual memory" "" "segattach(2)" 294
+.xx "" "bind, mount," "unmount \- change name space" "" "bind(1)" 32
+.xx "" "bind, mount," "unmount \- change name space" "" "bind(2)" 192
+.xx "" "/machbytype, machbyname, newmap, setmap," "unusemap, loadmap, findseg, get1, get2,/" "" "mach(2)" 257
+.xx "" "mkfs, mkext \- archive or" "update a file system" "" "mkfs(8)" 470
+.xx "file/" "home, 40meg, 80meg, personalize," "update, Disclabel \- administration for local" "" "home(8)" 463
+.xx "" "init \- initialize machine" "upon booting" "" "init(8)" 465
+.xx "" "du \- disk" "usage" "" "du(1)" 62
+.xx "" "getflags," "usage \- process flag arguments in argv" "" "getflags(9.2)" 529
+.xx "" "newuser \- adding a new" "user" "" "newuser(8)" 475
+.xx "" "rendezvous \-" "user level process synchronization" "" "rendezvous(2)" 290
+.xx "" "users \- file server" "user list format" "" "users(6)" 421
+.xx "" "getuser \- get" "user name" "" "getuser(2)" 246
+.xx "" "/\- console, clocks, process/process group ids," "user, null, klog, stats, lights, noise, sysstat,/" "" "cons(3)" 323
+.xx "" "passwd, netkey \- change" "user password" "" "passwd(1)" 111
+.xx "" "" "users \- file server user list format" "" "users(6)" 421
+.xx "" "who, whois \- who is" "using the machine" "" "who(1)" 173
+.xx "" "/pcx2pic, picopic, sgi2pic, targa2pic, tiff2pic," "utah2pic, xbm2pic \- convert other formats to/" "" "cvt2pic(9.1)" 502
+.xx "format" "" "UTF, Unicode, ASCII, rune \- character set and" "" "utf(6)" 422
+.xx "" "runetochar, chartorune, runelen, fullrune," "utflen, utfrune, utfrrune, utfutf \- rune/UTF/" "" "rune(2)" 292
+.xx "" "loadchar, Subfont, Fontchar, Font \- font" "utilities" "cachechars, agefont," "cachechars(2)" 199
+.xx "" "32vfs, cpiofs, tapfs, tarfs, tpfs," "v6fs, v10fs \- mount archival file systems" "" "tapefs(1)" 151
+.xx "" "2a, 6a, 8a, ka," "va, xa \- assemblers" "" "2a(1)" 4
+.xx "" "8al, kal," "val \- ALEF compilers" "" "alef(1)" 20
+.xx "" "env \- environment" "variables" "" "env(3)" 331
+.xx "" "getenv, putenv \- access environment" "variables" "" "getenv(2)" 241
+.xx "\- C++ compilers and/" "c++/2c, c++/kc," "vc, c++/8c, c++/2l, c++/kl, c++/vl, c++/8l" "" "c++(1)" 34
+.xx "" "2c, 6c, 8c, kc," "vc, xc \- C compilers" "" "2c(1)" 5
+.xx "" "/midpt3, lerp3, reflect3, nearseg3, pldist3," "vdiv3, vrem3, pn2f3, ppp2f3, fff2p3, pdiv4,/" "" "arith3(9.2)" 526
+.xx "" "spin \-" "verification tool for concurrent systems" "" "spin(1)" 143
+.xx "output" "fprintf, printf, sprintf," "vfprintf, vprintf, vsprintf \- print formatted" "" "fprintf(2)" 231
+.xx "" "fscanf, scanf, sscanf," "vfscanf \- scan formatted input" "" "fscanf(2)" 237
+.xx "" "" "vga \- configure a VGA card" "" "vga(8)" 494
+.xx "" "" "vga \- VGA controller device" "" "vga(3)" 352
+.xx "" "" "vgadb \- VGA controller and monitor database" "" "vgadb(6)" 423
+.xx "" "" "vi, ki, xi \- instruction simulators" "" "vi(1)" 171
+.xx "" "page \-" "view FAX, bitmap, and PostScript files" "" "page(1)" 110
+.xx "" "cpr, cprview \- cheesy polygon renderer and" "viewer" "" "cpr(9.1)" 500
+.xx "" "qrot, scale, move, xform, ixform, persp, look," "viewport \- Geometric transformations" "/rot," "matrix(9.2)" 530
+.xx "" "segdetach, segfree \- map/unmap a segment in" "virtual memory" "segattach," "segattach(2)" 294
+.xx "" "seemail, aliasmail, smtp, smtpd, to, vwhois," "vismon \- mail commands" "/edmail, sendmail," "mail(1)" 95
+.xx "" "/c++/kc, c++/vc, c++/8c, c++/2l, c++/kl," "vl, c++/8l \- C++ compilers and loaders" "" "c++(1)" 34
+.xx "" "2l, 6l, 8l, kl," "vl, xl \- loaders" "" "2l(1)" 7
+.xx "" "rtc \- real-time clock and" "volatile RAM" "" "rtc(3)" 347
+.xx "" "/lerp3, reflect3, nearseg3, pldist3, vdiv3," "vrem3, pn2f3, ppp2f3, fff2p3, pdiv4, add4,/" "" "arith3(9.2)" 526
+.xx "" "fprintf, printf, sprintf, vfprintf, vprintf," "vsprintf \- print formatted output" "" "fprintf(2)" 231
+.xx "" "sendmail, seemail, aliasmail, smtp, smtpd, to," "vwhois, vismon \- mail commands" "/edmail," "mail(1)" 95
+.xx "" "" "wait \- wait for a process to exit" "" "wait(2)" 313
+.xx "" "rc, cd, eval, exec, exit, flag, rfork, shift," "wait, whatis, ., ~ \- command language" "" "rc(1)" 123
+.xx "" "" "walk \- descend a directory hierarchy" "" "walk(5)" 394
+.xx "" "keyfs," "warning \- authentication database files" "" "keyfs(4)" 369
+.xx "" "clock, catclock, fireworks, swar, festoon \- time" "wasters" "/mandel, plumb, smiley, life, fsim," "games(1)" 78
+.xx "" "" "wc \- word count" "" "wc(1)" 172
+.xx "" "mothra \- retrieve World-Wide" "Web files" "" "mothra(1)" 105
+.xx "" "errstr," "werrstr \- description of last system call error" "" "errstr(2)" 214
+.xx "" "rc, cd, eval, exec, exit, flag, rfork, shift, wait," "whatis, ., ~ \- command language" "" "rc(1)" 123
+.xx "" "" "who, whois \- who is using the machine" "" "who(1)" 173
+.xx "" "mothra \- retrieve" "Wide Web files" "" "mothra(1)" 105
+.xx "" "acme," "win, awd \- interactive text windows" "" "acme(1)" 15
+.xx "" "8½ \-" "window system files" "" "8½(4)" 356
+.xx "" "8½, label," "window, wloc \- window system" "" "8½(1)" 9
+.xx "" "acme, win, awd \- interactive text" "windows" "" "acme(1)" 15
+.xx "" "acme \- control files for text" "windows" "" "acme(4)" 358
+.xx "" "8½, label, window," "wloc \- window system" "" "8½(1)" 9
+.xx "" "wc \-" "word count" "" "wc(1)" 172
+.xx "" "pip \- CD-ROM" "workbench" "" "pip(8)" 479
+.xx "" "chdir \- change" "working directory" "" "chdir(2)" 202
+.xx "" "pwd, pbd \-" "working directory" "" "pwd(1)" 122
+.xx "" "mothra \- retrieve" "World-Wide Web files" "" "mothra(1)" 105
+.xx "" "/bfree, rdbitmap, wrbitmap, rdbitmapfile," "wrbitmapfile \- allocating, freeing, reading,/" "" "balloc(2)" 191
+.xx "" "RGB, rgbpix, rdcolmap," "wrcolmap \- handle color screens" "" "rgbpix(2)" 291
+.xx "" "" "wren, ata \- hard disk interface" "" "wren(3)" 354
+.xx "" "read, readn," "write \- read or write file" "" "read(2)" 286
+.xx "" "read," "write \- transfer data from and to a file" "" "read(5)" 390
+.xx "" "wrbitmapfile \- allocating, freeing, reading," "writing bitmaps" "/wrbitmap, rdbitmapfile," "balloc(2)" 191
+.xx "" "open, create, close \- open a file for reading or" "writing, create file" "" "open(2)" 269
+.xx "auth.srv, guard.srv \- maintain/" "changeuser," "wrkey, convkeys, printnetkey, status," "" "auth(8)" 443
+.xx "picpack/" "/picread, picwrite, picclose, rdpicfile," "wrpicfile, picputprop, picgetprop, picunpack," "" "picopen(9.2)" 532
+.xx "" "subfalloc, subffree, rdsubfontfile," "wrsubfontfile, mkfont \- subfont manipulation" "" "subfalloc(2)" 306
+.xx "" "stat," "wstat \- inquire or change file attributes" "" "stat(5)" 392
+.xx "dirfwstat \- get and put file status" "stat, fstat," "wstat, fwstat, dirstat, dirfstat, dirwstat," "" "stat(2)" 302
+.xx "" "2a, 6a, 8a, ka, va," "xa \- assemblers" "" "2a(1)" 4
+.xx "" "/picopic, sgi2pic, targa2pic, tiff2pic, utah2pic," "xbm2pic \- convert other formats to picture/" "" "cvt2pic(9.1)" 502
+.xx "" "2c, 6c, 8c, kc, vc," "xc \- C compilers" "" "2c(1)" 5
+.xx "" "" "xd \- hex, octal, decimal, or ASCII dump" "" "xd(1)" 174
+.xx "" "/adjoint, invertmat, xformpoint, xformpointd," "xformplane, pushmat, popmat, rot, qrot,/" "" "matrix(9.2)" 530
+.xx "" "vi, ki," "xi \- instruction simulators" "" "vi(1)" 171
+.xx "" "2l, 6l, 8l, kl, vl," "xl \- loaders" "" "2l(1)" 7
+.xx "file transfer" "con, telnet, cu, rx, xms," "xmr \- remote login, execution, and XMODEM" "" "con(1)" 44
+.xx "" "" "xpand, picnegate \- adjust dynamic range" "" "xpand(9.1)" 525
+.xx "" "" "yacc \- yet another compiler-compiler" "" "yacc(1)" 175
+.xx "" "" "yesterday \- print file names from the dump" "" "yesterday(1)" 177

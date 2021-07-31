@@ -1,0 +1,162 @@
+%% 
+%% This is file `mcite.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% mcite.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 by Thorsten.Ohl@Physik.TH-Darmstadt.de 
+%% 
+%% This file is NOT the source for mcite, because almost all comments 
+%% have been stripped from it. It is NOT the preferred form of mcite 
+%% for making modifications to it. 
+%% 
+%% Therefore you can NOT redistribute and/or modify THIS file. You can 
+%% however redistribute the complete source (mcite.dtx and mcite.ins) 
+%% and/or modify it under the terms of the GNU General Public License as 
+%% published by the Free Software Foundation; either version 2, or (at 
+%% your option) any later version. 
+%% 
+%% Mcite is distributed in the hope that it will be useful, but 
+%% WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+%% GNU General Public License for more details. 
+%% 
+%% You should have received a copy of the GNU General Public License 
+%% along with this program; if not, write to the Free Software 
+%% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \CheckSum{206}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+{\def\RCS#1#2\endRCS{%
+  \ifx$#1%
+    \@RCS $#2 \endRCS
+  \else
+    \@RCS $*: #1#2$ \endRCS
+  \fi}%
+ \def\@RCS $#1: #2,v #3 #4 #5 #6$ \endRCS{%
+   \gdef\filename{#2}%
+   \gdef\fileversion{v#3}%
+   \gdef\filedate{#4}%
+   \gdef\docdate{#4}}%
+\RCS mcite.dtx,v 1.5 1994/08/18 14:22:26 ohl Exp \endRCS}%
+\ProvidesPackage{mcite}[\filedate\space multiple citations]
+\typeout{Package: `mcite'
+   \fileversion\space <\filedate> (tho) PRELIMINARY TEST RELEASE}
+\wlog{English documentation \@spaces<\docdate> (tho)}
+\def\@enamedef#1{\expandafter\edef\csname #1\endcsname}
+\def\mc@single#1{\global\@enamedef{mc*sg*#1}{}}
+\def\mc@head#1#2{\global\@enamedef{mc*hd*#1}{#2}}
+\def\mc@tail#1#2{\global\@enamedef{mc*tl*#1}{#2}}
+\def\mc@ifsingle#1#2#3{\@ifundefined{mc*sg*#1}{#3}{#2}}
+\def\mc@ifhead#1#2#3{\@ifundefined{mc*hd*#1}{#3}{#2}}
+\def\mc@iftail#1#2#3{\@ifundefined{mc*tl*#1}{#3}{#2}}
+\def\mc@thehead#1{\@nameuse{mc*tl*#1}}
+\def\mc@thetail#1{\@nameuse{mc*hd*#1}}
+\let\orig@cite\cite
+\def\cite{%
+  \@ifnextchar[%
+    {\PackageWarning{mcite}%
+       {optional argument to \protect\cite\space not supported}%
+     \@tempswatrue
+     \expandafter\mc@citex\mc@gobbleopt}%
+    {\@tempswatrue
+     \mc@cite}}
+\def\mc@gobbleopt[#1]{}
+\def\mc@cite#1{%
+  \edef\mc@temp{#1}%
+  \expandafter\mc@cite@\expandafter{\mc@temp}}
+\def\mc@cite@#1{%
+  \mc@firsttrue
+  \@for\mc@@@:=#1\do{%
+    \expandafter\mc@ifstar\mc@@@\sentinel%
+      {\ifmc@first
+         \PackageWarning{mcite}%
+           {tail `\mc@key' appears as first item in \protect\mcite}%
+         \mc@dohead
+       \else
+         \mc@dotail
+       \fi}%
+      {\mc@dohead}%
+    \if@filesw
+      \immediate\write\@auxout{\string\citation{\mc@key}}%
+    \fi}%
+  \expandafter\orig@cite\expandafter{\mc@list}}
+\def\mc@dohead{%
+  \mc@iftail{\mc@key}%
+    {\PackageWarning{mcite}%
+       {head `\mc@key' already used as tail of `\mc@thehead{\mc@key}'}}%
+    {}%
+  \mc@head{\mc@key}{}%
+  \edef\mc@curhead{\mc@key}%
+  \ifmc@first
+    \mc@firstfalse
+    \edef\mc@list{\mc@key}%
+  \else
+    \edef\mc@list{\mc@list,\mc@key}%
+  \fi}
+\def\mc@dotail{%
+  \mc@ifhead{\mc@key}%
+    {\PackageWarning{mcite}%
+       {tail `\mc@key' already used as head}}%
+    {}%
+  \mc@tail{\mc@key}{\mc@curhead}}
+\def\mc@ifstar#1#2\sentinel#3#4{%
+  \ifx*#1%
+    \def\mc@key{#2}%
+    #3%
+  \else
+    \def\mc@key{#1#2}%
+    #4%
+  \fi}
+\newif\ifmc@first
+\let\orig@bibitem\@bibitem
+\def\@bibitem#1{%
+  \ifmc@bstsupport
+    \mc@iftail{#1}%
+      {;\space\ignorespaces}%
+      {\ifmc@first\else.\fi\orig@bibitem{#1}}
+    \mc@firstfalse
+  \else
+    \mc@iftail{#1}%
+      {\ignorespaces}%
+      {\orig@bibitem{#1}}%
+  \fi}%
+\newif\ifmc@bstsupport
+\mc@bstsupportfalse
+\def\@lbibitem[#1]#2{%
+  \PackageError{mcite}%
+    {You can't use the optional argument of \protect\bibitem}%
+    {Hey, *I* have to fool around with the labels!}%
+  \@bibitem{#2}}
+\def\mcbibliography{%
+  \mc@bstsupporttrue
+  \mc@firsttrue
+  \thebibliography}
+\def\endmcbibliography{%
+  .%
+  \endthebibliography}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\endinput
+%% 
+%% End of file `mcite.sty'.

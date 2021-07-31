@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+TARG=8½	
+OFILES=main.$O\
+	bit.$O\
+	click.$O\
+	file.$O\
+	menuhit.$O\
+	proc.$O\
+	scroll.$O\
+	term.$O\
+
+HFILES=dat.h\
+	fns.h\
+	/sys/include/layer.h\
+	/sys/include/frame.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG *.db
+
+syms:V:
+	vc -a main.c	>syms
+	vc -aa ????.c 	>>syms

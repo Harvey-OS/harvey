@@ -1,0 +1,400 @@
+\def\fileversion{2.1}
+\def\filedate{1994/02/10}
+\def\docdate{1994/02/09}
+% \CheckSum{271}
+%\iffalse
+%%% ====================================================================
+%%%  @LaTeX-package-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "2.1",
+%%%     date            = "10 February 1994",
+%%%     time            = "01:27:31 MET",
+%%%     filename        = "subeqnarray.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "13995 400 1471 13429",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "",
+%%%     supported       = "yes",
+%%%     abstract        = "This package defines the subeqnarray
+%%%                        and subeqnarray* environments, which behave
+%%%                        like the eqnarray environment, except that
+%%%                        the lines are numbered like 1a 1b 1c etc.
+%%%                        To refer to these numbers an extra label
+%%%                        command \slabel has been defined
+%%%
+%%%                        The equations and their numbers adhere to
+%%%                        the standard LaTeX options leqno and fleqn.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+%
+% Subeqnarray package to use with LaTeX2e
+%
+% Copyright (C) 1988--1994 by Johannes Braams, PTT Research
+%                          all rights resserved
+%
+% Copying of this file is authorized only if either
+% (1) you make absolutely no changes to your copy, including name, or
+% (2) if you do make changes, you name it something other than
+%     subeqnaray.dtx.
+%
+% Error reports please to: J. Braams
+%                          PTT Research
+%                          St. Paulusstraat 4
+%                          2264 XZ Leidschendam
+%                          The Netherlands
+%                  Email:  <J.L.Braams@research.ptt.nl>
+%
+% \section{Producing the documentation}
+%
+%    A short driver is provided that can be extracted if necessary by
+%    the \textsf{DocStrip} program provided with \LaTeXe.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+
+\pagestyle{myheadings}
+\EnableCrossrefs
+
+\RecordChanges
+
+\newcommand\Lopt[1]{\textsf{#1}}
+\makeatletter
+\renewenvironment{theglossary}{%
+    \glossary@prologue%
+    \GlossaryParms \let\item\@idxitem \ignorespaces}%
+   {}
+\makeatother
+\begin{document}
+
+\DocInput{subeqnarray.dtx}
+\newpage
+\PrintIndex
+\PrintChanges
+\end{document}
+%</driver>
+%    \end{macrocode}
+%\fi
+%
+%
+% \title{Numbering individual lines of equation array's}
+%
+% \author{Johannes Braams\\
+%         PTT Research\\
+%         Sint Paulusstraat 4\\
+%         2264 XZ Leidschendam\\
+%         The Netherlands\\
+%         Internet: \texttt{J.L.Braams@research.ptt.nl}}
+%
+% \date{February 9, 1994}
+%
+% \markboth
+%      {subeqnarray package version \fileversion as of \filedate}
+%      {subeqnarray package version \fileversion as of \filedate}
+%
+% \maketitle
+%
+%
+%    This package defines the \texttt{subeqnarray} and
+%    \texttt{subeqnarray*} environments, which behave like the
+%    equivalent \texttt{eqnarray} and \texttt{eqnarray*} environments,
+%    except that the individual lines are numbered like 1a, 1b, 1c,
+%    etc.
+%
+%    To refer to these numbers an extra label command |\slabel|
+%    has been defined.
+%
+%    Many of this code was taken from \texttt{latex.tex} and modified
+%    for  this purpose.
+%
+% \StopEventually{}
+%
+% \changes{1.1}{1988/12/22}{Fixed bug in subeqnarray* environment}
+% \changes{2.0}{1993/11/02}{Added support for the leqno option}
+% \changes{2.0}{1993/11/02}{Added support for the fleqn  option}
+% \changes{2.1}{1994/02/09}{Upgrade for LaTeX2e}
+%
+% \section{Identification}
+%
+%    The first thing to do is identify this package to \LaTeX\
+%    \begin{macrocode}
+%<*package>
+\ProvidesPackage{subeqnarray}[\filedate\space subeqnarray package]
+%    \end{macrocode}
+%
+%    and write a note in the log file.
+%    \begin{macrocode}
+\wlog{Package `subeqnarray' version \fileversion\space<\filedate> (JLB)}
+\wlog{English documentation\space\space\space<\docdate> (JLB)}
+%    \end{macrocode}
+%
+% \section{Initial Code}
+%
+% \begin{macro}{\c@subequation}
+%    We need to allocate a new counter for the \texttt{subequation}
+%    environment. It is reset by the \texttt{equation} counter.
+%    \begin{macrocode}
+\newcounter{subequation}[equation]
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\thesubequation}
+%    The representation o the counter \texttt{subequation} includes
+%    the \texttt{equation} counter
+%    \begin{macrocode}
+\def\thesubequation{\theequation\alph{subequation}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{Option Handling}
+%
+%    The standard \LaTeX\ options \Lopt{leqno} and \Lopt{fleqn} are
+%    recognised by this package.
+%    \begin{macrocode}
+%
+%    When \Lopt{leqno} is used the equation numbers should appear on
+%    the left side of the equation. The numbers are generated by
+%    |\@subeqnnum| which needs a different definition to acheive this
+%    effect.
+%    \begin{macrocode}
+\DeclareOption{leqno}{%
+  \def\@subeqnnum{\hbox to .01\p@{}\rlap{\reset@font\rmfamily
+        \hskip -\displaywidth(\thesubequation)}}}
+%    \end{macrocode}
+%    The default definition of |\@subeqnnum|.
+%    \begin{macrocode}
+\DeclareOption{reqno}{%
+  \def\@subeqnnum{{\reset@font\rmfamily (\thesubequation)}}}
+%    \end{macrocode}
+%
+%    When the option \Lopt{fleqn} is used, the equations have to be
+%    printed flush left, with an indent of |\mathindent|; the
+%    equations are seperated from the surrounding text by |\topsep|
+%    (plus |\partopsep| if necessary) and the width of the display is
+%    |\linewidth|.
+%    \begin{macrocode}
+\DeclareOption{fleqn}{%
+  \def\subeqn@start{%
+    \tabskip\mathindent
+    \abovedisplayskip\topsep
+    \ifvmode\advance\abovedisplayskip\partopsep\fi
+    \belowdisplayskip\abovedisplayskip
+    \belowdisplayshortskip\abovedisplayskip
+    \abovedisplayshortskip\abovedisplayskip
+    $$\everycr{}\halign to \linewidth}}% $$
+%    \end{macrocode}
+%
+%    The default will be to have displayed equations to the width of
+%    |\displaywidth|.
+%    \begin{macrocode}
+\DeclareOption{deqn}{%
+  \def\subeqn@start{%
+    \tabskip\@centering
+    $$\everycr{}\halign to \displaywidth}}% $$
+%    \end{macrocode}
+%
+%    We don't support any other options
+%    \begin{macrocode}
+\DeclareOption*{\OptionNotUsed}
+%    \end{macrocode}
+%
+% \section{Executing Options}
+%
+%    Make sure the |\@eqnnum| is defined by specifying \Lopt{reqno} as
+%    a default option. Specifying \Lopt{deqn} as a default option
+%    defines |\subeqn@start|.
+%    \begin{macrocode}
+\ExecuteOptions{reqno,deqn}
+%    \end{macrocode}
+%
+%    Now see if the use specified any options.
+%    \begin{macrocode}
+\ProcessOptions
+%    \end{macrocode}
+%
+% \section{The main code}
+%
+% \begin{macro}{\slabel}
+%    A new label command to refer to subequations. It works
+%    like the |\label| command and was taken from \texttt{latex.tex}.
+%
+%  |\slabel{FOO}| writes the following on file |\@auxout|
+%
+%  |\newlabel{FOO}{{eval(\@currentlabel)}{eval(\thepage)}}|
+%
+%    \begin{macrocode}
+\newcommand\slabel[1]{%
+  \@bsphack
+  \if@filesw
+    {\let\thepage\relax
+     \def\protect{\noexpand\noexpand\noexpand}%
+     \edef\@tempa{\write\@auxout{\string
+        \newlabel{#1}{{\thesubequation}{\thepage}}}}%
+     \expandafter}\@tempa
+     \if@nobreak \ifvmode\nobreak\fi\fi
+  \fi\@esphack}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{environment}{subeqnarray}
+%    The \texttt{subeqnarray} environment steps the equation counter,
+%    sets the subequation counter equal to 1 and behaves much like the
+%    \texttt{eqnarray} environment. Note the |\@currentlabel| is
+%    defined to use the equation counter. This is done so that an
+%    entire array an be referred to using the value of the equation
+%    counter. Hence the need for the |\slabel| command.
+%
+%    \begin{macrocode}
+\newenvironment{subeqnarray}%
+   {\stepcounter{equation}%
+    \def\@currentlabel{\p@equation\theequation}%
+    \global\c@subequation\@ne
+    \global\@eqnswtrue\m@th
+    \global\@eqcnt\z@\let\\\@subeqncr
+    \subeqn@start
+     \bgroup\hskip\@centering
+      $\displaystyle\tabskip\z@skip{##}$\@eqnsel
+      &\global\@eqcnt\@ne \hskip \tw@\arraycolsep \hfil${##}$\hfil
+      &\global\@eqcnt\tw@ \hskip \tw@\arraycolsep
+         $\displaystyle{##}$\hfil \tabskip\@centering
+      &\global\@eqcnt\thr@@
+         \hbox to\z@\bgroup\hss##\egroup\tabskip\z@skip\cr}
+   {\@@subeqncr\egroup $$\global\@ignoretrue}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{macro}{\@subeqncr}
+%    These macros handle the user command |\\|; they are adapted from
+%    the ones used or the \texttt{eqnarray} environment.
+%
+%    First the presence of a \texttt{*} detected and the right penalty
+%    selected.
+%    \begin{macrocode}
+\def\@subeqncr{{\ifnum0=`}\fi\@ifstar{\global\@eqpen\@M
+    \@ysubeqncr}{\global\@eqpen\interdisplaylinepenalty \@ysubeqncr}}
+%    \end{macrocode}
+%
+% \begin{macro}{@ysubeqncr}
+%    This macro is called by |\@subeqncr| and checks if the user
+%    requested any extra vertical space. It calls |\@xsubeqncr| with
+%    the wanted amount of space as its argument.
+%    \begin{macrocode}
+\def\@ysubeqncr{\@ifnextchar [{\@xsubeqncr}{\@xsubeqncr[\z@skip]}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@xsubeqncr}
+%    This macro calls |\@@subeqncr| to put in extra |&|'s if needed,
+%    generating an error if the number of columns is too large. Then
+%    the penalty selected earlier and the white space requested are
+%    inserted.
+%    \begin{macrocode}
+\def\@xsubeqncr[#1]{\ifnum0=`{\fi}\@@subeqncr
+   \noalign{\penalty\@eqpen\vskip\jot\vskip #1\relax}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@@subeqncr}
+%    Ceck the number of columns, and insert extra |&| if needed. If
+%    there appear to be more than 3 columns an error is signalled.
+%    \begin{macrocode}
+\def\@@subeqncr{\let\@tempa\relax
+    \ifcase\@eqcnt \def\@tempa{& & &}\or \def\@tempa{& &}
+      \or \def\@tempa{&}\else
+       \let\@tempa\@empty
+       \@latexerr{Too many columns in subeqnarray environment}\@ehc\fi
+     \@tempa \if@eqnsw\@subeqnnum\refstepcounter{subequation}\fi
+     \global\@eqnswtrue\global\@eqcnt\z@\cr}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{environment}{subeqnarray*}
+%    This environment is basically the same as the \texttt{eqnarray}
+%    environment, but it is provided just or completeness.
+%    \begin{macrocode}
+\newenvironment{subeqnarray*}%
+  {\def\@subeqncr{\nonumber\@ssubeqncr}\subeqnarray}
+  {\global\advance\c@equation\m@ne\nonumber\endsubeqnarray}
+%    \end{macrocode}
+% \end{environment}
+%
+% \begin{macro}{\@ssubeqncr}
+%    This is used in the \texttt{esubqnarray*} environment.
+%    \begin{macrocode}
+\let\@ssubeqncr\@subeqncr
+%</package>
+%<*sample>
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{An example of the use of this package}
+%
+%    When you run the following document through \LaTeX\ you will see
+%    the differene between the \texttt{subeqnarray} and
+%    \texttt{eqnarray} environments.
+%    \begin{macrocode}
+%<*sample>
+\documentclass[fleqn]{article}
+\usepackage{subeqnarray}
+\begin{document}
+This document shows an example of the use of the \emph{subeqnarray}
+environment. Here is one:
+\begin{subeqnarray}
+\label{eqw}
+\slabel{eq0}
+ x & = & a \times b \\
+\slabel{eq1}
+ & = & z + t\\
+\slabel{eq2}
+ & = & z + t
+\end{subeqnarray}
+The first equation is number~\ref{eq0}, the last is~\ref{eq2}. The
+equation as a whole can be referred to as equation~\ref{eqw}.
+
+To show that equation numbers behave normally, here's an
+\emph{eqnarray} environment.
+\begin{eqnarray}
+\label{eq10}
+ x & = & a \times b \\
+\label{eq11}
+ & = & z + t\\
+\label{eq12}
+ & = & z + t
+\end{eqnarray}
+
+These are equations~\ref{eq10},~\ref{eq11} and~\ref{eq12}.
+\end{document}
+%</sample>
+%    \end{macrocode}
+%
+% \Finale
+\endinput
+%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%

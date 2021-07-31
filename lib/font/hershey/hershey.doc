@@ -1,0 +1,126 @@
+This file provides a brief description of the contents of the Occidental
+Hershey Font Files. For a complete listing of the fonts in hard copy, order
+NBS Special Publication 424, "A contribution to computer typesetting 
+techniques: Tables of Coordinates for Hershey's Repertory of Occidental
+Type Fonts and Graphic Symbols". You can get it from NTIS (phone number is
++1 703 487 4763) for less than twenty dollars US.
+
+Basic Glyph (symbol) data:
+
+        hersh.oc1       - numbers 1 to 1199
+        hersh.oc2       - numbers 1200 to 2499
+        hersh.oc3       - numbers 2500 to 3199
+        hersh.oc4       - numbers 3200 to 3999
+
+        These four files contain approximately 19 different fonts in
+the A-Z alphabet plus greek and cyrillic, along with hundreds of special
+symbols, described generically below.
+
+        There are also four files of Oriental fonts (hersh.or[1-4]). These
+files contain symbols from three Japanese alphabets (Kanji, Hiragana, and
+Katakana). It is unknown what other symbols may be contained therein, nor
+is it known what order the symbols are in (I don't know Japanese!).
+
+        Back to the Occidental files:
+
+Fonts:
+        Roman: Plain, Simplex, Duplex, Complex Small, Complex, Triplex
+        Italic: Complex Small, Complex, Triplex
+        Script: Simplex, Complex
+        Gothic: German, English, Italian
+        Greek: Plain, Simplex, Complex Small, Complex
+        Cyrillic: Complex
+
+Symbols:
+        Mathematical (227-229,232,727-779,732,737-740,1227-1270,2227-2270,
+                        1294-1412,2294-2295,2401-2412)
+        Daggers (for footnotes, etc) (1276-1279, 2276-2279)
+        Astronomical (1281-1293,2281-2293)
+        Astrological (2301-2312)
+        Musical (2317-2382)
+        Typesetting (ffl,fl,fi sorts of things) (miscellaneous places)
+        Miscellaneous (mostly in 741-909, but also elsewhere):
+                - Playing card suits
+                - Meteorology
+                - Graphics (lines, curves)
+                - Electrical
+                - Geometric (shapes)
+                - Cartographic
+                - Naval
+                - Agricultural
+                - Highways
+                - Etc...
+
+
+ASCII sequence translation files:
+
+        The Hershey glyphs, while in a particular order, are not in an
+        ASCII sequence. I have provided translation files that give the
+        sequence of glyph numbers that will most closely approximate the
+        ASCII printing sequence (from space through ~, with the degree
+        circle tacked on at the end) for each of the above fonts:
+
+        File names are made up of fffffftt.hmp,
+
+                where ffffff is the font style, one of:
+                        roman   Roman
+                        greek   Greek
+                        italic  Italic
+                        script  Script
+                        cyril   Cyrillic (some characters not placed in
+                                           the ASCII sequence)
+                        gothgr  Gothic German
+                        gothgb  Gothic English
+                        gothit  Gothic Italian
+
+                and tt is the font type, one of:
+                    p       Plain (very small, no lower case)
+                    s       Simplex (plain, normal size, no serifs)
+                    d       Duplex (normal size, no serifs, doubled lines)
+                    c       Complex (normal size, serifs, doubled lines)
+                    t       Triplex (normal size, serifs, tripled lines)
+                    cs      Complex Small (Complex, smaller than normal size)
+
+The three sizes are coded with particular base line (bottom of a capital
+        letter) and cap line (top of a capital letter) values for 'y':
+
+        Size            Base Line       Cap Line
+
+        Very Small         -5              +4 
+        Small              -6              +7
+        Normal             -9              +12
+
+        (Note: some glyphs in the 'Very Small' fonts are actually 'Small')
+
+The top line and bottom line, which are normally used to define vertical
+        spacing, are not given. Maybe somebody can determine appropriate
+        values for these!
+
+The left line and right line, which are used to define horizontal spacing,
+        are provided with each character in the database.
+
+-----------------------------------------------------------------------------
+
+Format of Hershey glyphs:
+
+5 bytes	- glyphnumber
+3 bytes	- length of data  length in 16-bit words including left&right numbers
+1 byte	- x value of left margin
+1 byte	- x value of right margin
+(length*2)-2 bytes	- stroke data
+
+left&right margins and stroke data are biased by the value of the letter 'R'
+Subtract the letter 'R' to get the data.
+
+e.g. if the data byte is 'R', the data is 0
+     if the data byte is 'T', the data is +2
+     if the data byte is 'J', the data is -8
+
+and so on...
+
+The coordinate system is x-y, with the origin (0,0) in the center of the
+glyph.  X increases to the right and y increases *down*.
+
+The stroke data is pairs of bytes, one byte for x followed by one byte for y.
+
+A ' R' in the stroke data indicates a 'lift pen and move' instruction.

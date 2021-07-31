@@ -1,0 +1,25 @@
+</$objtype/mkfile
+
+TARG=plumb
+OFILES=plumb.$O
+HFILES=
+
+</sys/src/cmd/mkone
+BIN=/$objtype/bin/games
+CFLAGS=
+
+CFILES=plumb.c
+PLIB=/sys/games/lib/plumb
+
+install:V: pieces
+
+pieces:V:  $PLIB/pieces.1 $PLIB/pieces.2 $PLIB/pieces.3 $PLIB/pieces.4
+
+$PLIB/pieces.%:	pieces.%x
+	cp pieces.$stem^x $PLIB/pieces.$stem
+
+clean:V:
+	rm -f plumb.[$OS] [$OS].* y.tab.? y.debug y.output $TARG
+
+listing:V:
+	pr mkfile levels $HFILES $CFILES|lp -du

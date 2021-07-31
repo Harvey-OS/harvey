@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
+#include <lock.h>
 
 #define LOGFILE "telco"
 
@@ -251,7 +252,6 @@ int	pulsed;
 int	verbose;
 int	maxspeed = 56000;
 char	*srcid = "plan9";
-int	answer = 1;
 
 Fid	*newfid(int);
 void	devstat(Dir*, char*);
@@ -348,9 +348,6 @@ main(int argc, char *argv[])
 	case 's':
 		maxspeed = atoi(ARGF());
 		break;
-	case 'n':
-		answer = 0;
-		break;
 	default:
 		usage();
 	}ARGEND
@@ -388,7 +385,9 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	dev = mallocz(argc*sizeof(Dev), 1);
+	lockinit();
+
+	dev = malloc(argc*sizeof(Dev));
 	for(ndev = 0; ndev < argc; ndev++){
 		d = &dev[ndev];
 		d->path = argv[ndev];
@@ -418,7 +417,7 @@ devstat(Dir *dir, char *buf)
 	if(t != Qlvl3)
 		strcpy(dir->name, names[t]);
 	else
-		sprint(dir->name, "%lud", DEV(dir->qid));
+		sprint(dir->name, "%d", DEV(dir->qid));
 	dir->mode = 0755;
 	strcpy(dir->uid, user);
 	if(t >= Qlvl3){
@@ -431,6 +430,7 @@ devstat(Dir *dir, char *buf)
 	if(dir->qid.path & CHDIR)
 		dir->mode |= CHDIR;
 	strcpy(dir->gid, user);
+	dir->hlength = 0;
 	if(t == Qdata){
 		d = &dev[DEV(dir->qid)];
 		dir->length = d->wp - d->rp;
@@ -717,7 +717,7 @@ rread(Fid *f)
 		}
 		break;
 	case Qctl:
-		i = sprint(num, "%lud", DEV(f->qid));
+		i = sprint(num, "%d", DEV(f->qid));
 		if(off < i){
 			n = cnt;
 			if(off + n > i)
@@ -728,7 +728,7 @@ rread(Fid *f)
 		break;
 	case Qdata:
 		d = &dev[DEV(f->qid)];
-		r = mallocz(sizeof(Request), 1);
+		r = malloc(sizeof(Request));
 		r->tag = rhdr.tag;
 		r->count = rhdr.count;
 		r->fid = f;
@@ -965,7 +965,7 @@ emalloc(ulong n)
 {
 	void *p;
 
-	p = mallocz(n, 1);
+	p = malloc(n);
 	if(!p)
 		error("out of memory");
 	return p;
@@ -1192,7 +1192,7 @@ monitor(Dev *d)
 				*(p+1) = 0;
 				if(verbose)
 					syslog(0, LOGFILE, "<:-%s", d->rp);
-				if(answer && strncmp(d->rp, "RING", 4) == 0){
+				if(strncmp(d->rp, "RING", 4) == 0){
 					receiver(d);
 					continue;
 				}
@@ -1311,7 +1311,8 @@ dialout(Dev *d, char *number)
 	speed = maxspeed;
 	fax = Failure;
 
-	m = getfields(number, field, 5, 1, "!");
+	setfields("!");
+	m = getmfields(number, field, 5);
 	for(i = 1; i < m; i++){
 		if(field[i][0] >= '0' && field[i][0] <= '9')
 			speed = atoi(field[i]);
@@ -1320,8 +1321,6 @@ dialout(Dev *d, char *number)
 		else if(strcmp(field[i], "fax") == 0)
 			fax = Ok;
 	}
-
-	syslog(0, LOGFILE, "dialing %s speed=%d %s", number, speed, fax==Ok?"fax":"");
 	
 	err = modemtype(d, speed, fax == Ok);
 	if(err)
@@ -1345,10 +1344,8 @@ dialout(Dev *d, char *number)
 	sprint(dialstr, "ATD%c%s\r", pulsed ? 'P' : 'T', number);
 	if(send(d, dialstr) < 0)
 		return Edial;
-
 	if(fax == Ok)
 		return 0;		/* fax sender worries about the rest */
-
 	switch(readmsg(d, 120, 0)){
 	case Success:
 		break;
@@ -1393,7 +1390,7 @@ receiver(Dev *d)
 		close(fd);
 
 		/* open connection through the file system interface */
-		sprint(file, "/net/telco/%ld/data", d - dev);
+		sprint(file, "/net/telco/%d/data", d - dev);
 		fd = open(file, ORDWR);
 		if(fd < 0){
 			syslog(0, LOGFILE, "can't open %s: %r", file);

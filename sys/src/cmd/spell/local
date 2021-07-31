@@ -60,7 +60,6 @@ axisymmetric	a
 Babbage	n,nopref
 Bachenko	n,nopref
 backslash	n
-backsolve	v
 backtrace	n
 Backus	pc,nopref
 BAL	pc,nopref
@@ -207,9 +206,7 @@ Denning	n,nopref
 Denville	pc,nopref
 dequeue	v
 Derr	n,nopref
-descramble	v,er
 Desiato	n,nopref
-deskew	v
 Deutsch	pc,nopref
 Devanbu	pc,nopref
 Dewayne	pc,nopref
@@ -224,8 +221,7 @@ DMTS	n,nopref
 Dolotta	n,nopref
 Dom	pc,nopref
 downline	n,v
-downlink	n
-download	v,er,va
+download	v,er
 DPCM	pc,nopref
 DSP	n,nopref
 Dunellen	pc,nopref
@@ -240,7 +236,6 @@ EIA	pc,nopref
 eigensystem	n
 Eindhoven	pc,nopref
 EISPACK	pc,nopref
-elementwise	d
 Elko	pc,nopref
 Emlin	pc,nopref
 EOF	n,nopref
@@ -347,7 +342,6 @@ INRIA	pc,nopref
 Inst	pc,nopref
 Intel	pc,nopref
 Intelsat	pc,nopref
-IP	d,nopref
 IPA	pc,nopref
 IPC	d,nopref
 IRCAM	pc,nopref
@@ -484,7 +478,6 @@ Melchner	pc,nopref
 memoryless	a
 Mendham	pc,nopref
 Mergenthaler	pc,nopref
-meromorphic	a
 Mersenne	pc,nopref
 MERT	pc,nopref
 mg	d
@@ -733,7 +726,6 @@ Talkin	n,nopref
 Tandy	pc
 Tarjan	pc,nopref
 Tarski	pc,nopref
-TCP	d,nopref
 Teaneck	pc,nopref
 Technion	pc,nopref
 Telefonica	pc
@@ -769,7 +761,6 @@ Ulam	pc,nopref
 Unibus	n,nopref
 Unisys	pc,nopref
 Univ	pc,nopref
-uplink	n
 Usenet	pc
 Usenix	pc
 userid	n

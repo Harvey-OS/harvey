@@ -37,14 +37,14 @@ void
 lookorigin(File *f, Posn p0, Posn ls)
 {
 	int nl, nc, c;
-	Posn p, oldp0;
+	Posn oldp0;
 
-	if(p0 > f->nc)
-		p0 = f->nc;
+	if(p0 > f->nrunes)
+		p0 = f->nrunes;
 	oldp0 = p0;
-	p = p0;
+	Fgetcset(f, p0);
 	for(nl=nc=c=0; c!=-1 && nl<ls && nc<ls*CHARSHIFT; nc++)
-		if((c=filereadc(f, --p)) == '\n'){
+		if((c=Fbgetc(f)) == '\n'){
 			nl++;
 			oldp0 = p0-nc;
 		}
@@ -78,27 +78,17 @@ alnum(int c)
 }
 
 int
-clickmatch(File *f, int cl, int cr, int dir, Posn *p)
+clickmatch(File *f, int cl, int cr, int dir)
 {
 	int c;
 	int nest = 1;
 
-	for(;;){
-		if(dir > 0){
-			if(*p >= f->nc)
-				break;
-			c = filereadc(f, (*p)++);
-		}else{
-			if(*p == 0)
-				break;
-			c = filereadc(f, --(*p));
-		}
+	while((c=(dir>0? Fgetc(f) : Fbgetc(f))) > 0)
 		if(c == cr){
 			if(--nest==0)
 				return 1;
 		}else if(c == cl)
 			nest++;
-	}
 	return cl=='\n' && nest==1;
 }
 
@@ -124,50 +114,54 @@ doubleclick(File *f, Posn p1)
 {
 	int c, i;
 	Rune *r, *l;
-	Posn p;
 
-	if(p1 > f->nc)
+	if(p1 > f->nrunes)
 		return;
 	f->dot.r.p1 = f->dot.r.p2 = p1;
 	for(i=0; left[i]; i++){
 		l = left[i];
 		r = right[i];
 		/* try left match */
-		p = p1;
-		if(p1 == 0)
+		if(p1 == 0){
+			Fgetcset(f, p1);
 			c = '\n';
-		else
-			c = filereadc(f, p - 1);
-		if(strrune(l, c)){
-			if(clickmatch(f, c, r[strrune(l, c)-l], 1, &p)){
+		}else{
+			Fgetcset(f, p1-1);
+			c = Fgetc(f);
+		}
+		if(c!=-1 && strrune(l, c)){
+			if(clickmatch(f, c, r[strrune(l, c)-l], 1)){
 				f->dot.r.p1 = p1;
-				f->dot.r.p2 = p-(c!='\n');
+				f->dot.r.p2 = f->getcp-(c!='\n');
 			}
 			return;
 		}
 		/* try right match */
-		p = p1;
-		if(p1 == f->nc)
+		if(p1 == f->nrunes){
+			Fbgetcset(f, p1);
 			c = '\n';
-		else
-			c = filereadc(f, p);
-		if(strrune(r, c)){
-			if(clickmatch(f, c, l[strrune(r, c)-r], -1, &p)){
-				f->dot.r.p1 = p;
-				if(c!='\n' || p!=0 || filereadc(f, 0)=='\n')
+		}else{
+			Fbgetcset(f, p1+1);
+			c = Fbgetc(f);
+		}
+		if(c!=-1 && strrune(r, c)){
+			if(clickmatch(f, c, l[strrune(r, c)-r], -1)){
+				f->dot.r.p1 = f->getcp;
+				if(c!='\n' || f->getcp!=0 ||
+				   (Fgetcset(f, (Posn)0),Fgetc(f))=='\n')
 					f->dot.r.p1++;
-				f->dot.r.p2 = p1+(p1<f->nc && c=='\n');
+				f->dot.r.p2 = p1+(p1<f->nrunes && c=='\n');
 			}
 			return;
 		}
 	}
 	/* try filling out word to right */
-	p = p1;
-	while(p < f->nc && alnum(filereadc(f, p++)))
+	Fgetcset(f, p1);
+	while((c=Fgetc(f))!=-1 && alnum(c))
 		f->dot.r.p2++;
 	/* try filling out word to left */
-	p = p1;
-	while(--p >= 0 && alnum(filereadc(f, p)))
+	Fbgetcset(f, p1);
+	while((c=Fbgetc(f))!=-1 && alnum(c))
 		f->dot.r.p1--;
 }
 

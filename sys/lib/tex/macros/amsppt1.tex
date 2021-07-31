@@ -1,0 +1,129 @@
+%% @texfile{
+%%     filename="amsppt1.tex",
+%%     version="2.1b",
+%%     date="2-AUG-1991",
+%%     filetype="AMS-TeX: option",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Department,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksumtype="line count",
+%%     checksum="129",
+%%     keywords="amstex, ams-tex, tex",
+%%     abstract="This is a a conversion file that makes documents
+%%            prepared for AMSPPT version 1 compatible with AMSPPT
+%%            version 2.0+.  The statement
+%%              \input amsppt1
+%%            needs to be added after the \documentstyle line in each
+%%            document to be converted."
+%%     }
+%
+%      We start by testing the control sequence \amsppt1.tex so that we
+%      can prevent accidentally loading this file twice.
+\expandafter\ifx\csname amsppt1.tex\endcsname\relax
+ \else\endinput\fi
+%      Now we define \amsppt1.tex to handle catcoding of the @ sign.
+\expandafter\edef\csname amsppt1.tex\endcsname{%
+  \catcode`\noexpand\@=\the\catcode`\@\space}
+\catcode`\@=11
+%
+
+\let\ad@\address \def\address#1{\ad@#1\endaddress}
+\let\da@\date \def\date#1{\da@#1\enddate}
+\let\tk@\thanks \def\thanks#1{\tk@#1\endthanks}
+\let\kw@\keywords \def\keywords#1{\kw@#1\endkeywords}
+\let\su@\subjclass \def\subjclass#1{\su@#1\endsubjclass}
+\let\ab@\abstract \long\def\abstract#1{\ab@#1\endabstract}
+%
+%      If we assume that documents that use amsppt1.tex will not be
+%      intended for submission to the AMS, then it's better to revert to
+%      the old page dimensions:
+%
+\parindent10\p@ \hsize26pc \vsize42pc
+\captionwidth@\hsize \advance\captionwidth@-1.5in
+%
+\def\nologo{\let\logo@\empty}
+%
+%      Backward compatibility for \subheading and \heading are already
+%      provided in AMSPPT 2.0 because (unlike the topmatter items) there
+%      is no name conflict.
+%
+%      In AMSPPT version 2.0+ \endRefs is expected at the end of the
+%      References section.  We install a test in \enddocument
+%      to let us know if \endRefs needs to be added.
+%      Just in case someone has amsppt1.tex but not amsppt.sty vers. 2.1
+%      we first make the change in the older version of \enddocument
+%      and then use a test to prevent the newer version from being
+%      read.
+\outer\def\enddocument{%
+ \runaway@{proclaim}%
+%      To test whether we are inside a \Refs section, we check
+%      the \sfcode of the period. Just in case someone has
+%      used \frenchspacing, we also check the \sfcode of the
+%      comma as well.
+  \ifnum\sfcode`\.=\@m % if sfcode of period = 1000, we must be in \Refs ...
+  \ifnum\sfcode`\,=\@m\else % unless comma also has sfcode 1000, which
+                            % means \frenchspacing was used.
+   \message{Note: For \styname\space version 2 compatibility, add
+       \string\endRefs\space at end of
+       \expandafter\eat@\string\\Refs section}%
+   \endRefs
+ \fi\fi
+\ifmonograph@ % do nothing
+\else
+ \nobreak
+ \thetranslator@
+ \count@\z@ \loop\ifnum\count@<\addresscount@\advance\count@\@ne
+ \csname address\number\count@\endcsname
+ \csname email\number\count@\endcsname
+ \repeat
+\fi
+ \vfill\supereject\end}
+
+%      If \add@missing is undefined, let's quit here.
+\expandafter\ifx\csname add@missing\endcsname\relax \endinput\fi
+
+\outer\def\enddocument{\par% \par will do a runaway check for \endref
+  \expandafter\ifx\envir@end\endRefs
+    \message{Note: For \styname\space version 2 compatibility, add
+       \string\endRefs\space at end of
+       \expandafter\eat@\string\\Refs section}%
+   \endRefs
+ \fi
+%      Repeat these in case an article (or book chapter!) doesn't
+%      have a references section:
+  \add@missing\endroster \add@missing\endproclaim \add@missing\enddefinition 
+  \add@missing\enddemo \add@missing\endremark \add@missing\endexample
+%      In a monograph we expect the translator name and author addresses
+%      to be handled in the front matter rather than at the end of the
+%      individual chapters:
+ \ifmonograph@ % do nothing
+ \else
+%      No break between the References and the final matter.
+ \nobreak
+ \thetranslator@
+%      Print all the \address's, including e-mail addresses if present.
+%      If any of the \email's are undefined the \csname will just evaluate
+%      to \relax.
+ \count@\z@ \loop\ifnum\count@<\addresscount@\advance\count@\@ne
+ \csname address\number\count@\endcsname
+ \csname email\number\count@\endcsname
+ \repeat
+\fi
+ \vfill\supereject\end}
+%
+%      Restore the old catcode of the @ character:
+\csname amsppt1.tex\endcsname
+\endinput

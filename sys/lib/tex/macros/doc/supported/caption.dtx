@@ -1,0 +1,426 @@
+% \iffalse
+% caption.dtx - The caption package
+% (c) 1994-95 Harald Axel Sommerfeldt (Harald_Sommerfeldt@w.maus.de)
+%
+%<*driver>
+\documentclass{ltxdoc}
+\setlength{\parindent}{0pt}
+\usepackage[hang,small,sf]{caption}[1995/01/09]
+\setlength{\captionmargin}{20pt}
+\begin{document}
+  \DocInput{caption.dtx}
+\end{document}
+%</driver>
+% \fi
+
+% \changes{v1.0}{27 Oct 94}{First release}
+% \changes{v1.2}{28 Nov 94}{Works now with the `figure*' and `table*' environments, too}
+%
+% \CheckSum{303}
+% \providecommand{\LaTeXcomp}{The \LaTeX{} Companion}
+% \newcommand{\purerm}[1]{{\upshape\mdseries\rmfamily #1}}
+% \newcommand{\puresf}[1]{{\upshape\mdseries\sffamily #1}}
+%
+% \title{The \puresf{caption} package}
+% \author{Harald Axel Sommerfeldt\\Harald\_Sommerfeldt@w.maus.de}
+% \date{1995/01/12}
+% \maketitle
+%
+% \begin{abstract}
+% The \textsf{caption} package provides many ways to customise the captions
+% in floating environments such |figure| and |table|.
+% The |\rotcaption| command and the |sidewaysfigure| and |sidewaystable|
+% environments provided by the \textsf{rotating} package from S.~Rahtz and
+% L.~Barroca are also supported.
+% The \textsf{caption} package also cooperates with the \textsf{float}
+% package written by A.~Lingnau and the \textsf{subfigure} package written by
+% S.D.~Cochran.
+% \end{abstract}
+%
+%\newenvironment{Options}[1]%
+%  {\begin{list}{}{\renewcommand{\makelabel}[1]{\texttt{##1}\hfil}%
+%     \settowidth{\labelwidth}{\texttt{#1\ }}%
+%     \setlength{\leftmargin}{\labelwidth}%
+%     \addtolength{\leftmargin}{\labelsep}}}%
+%  {\end{list}}
+%
+% \section{The user interface}
+% To use this package just type
+% \begin{quote}
+% |\usepackage[|\textit{options}|]{caption}|
+% \end{quote}
+% in the preamble of your document,
+% where the following options are supported:
+% \begin{quote}\begin{Options}{scriptsize\purerm{, \ldots,\ }Large}
+% \item[normal]
+%   provides `normal' captions, this is the default
+% \item[hang \purerm{or} isu]
+%   provides captions with hanging indention
+% \item[center]
+%   provides captions where each line is centered
+% \item[centerlast]
+%   provides captions where the last line of the paragraph is centered
+% \item[scriptsize\purerm{, \ldots,\ }Large]
+%   sets the font size of the captions
+% \item[\vbox{\hbox{up{\rm,} it{\rm,} sl{\rm,} sc{\rm,}}
+%       \hbox{md{\rm,} bf{\rm,} rm{\rm,} sf \textrm{or} tt}}]
+%   sets the font attributes of the caption labels
+% \item[ruled] supports ruled floats of the \textsf{float} package, see
+%   section \ref{sec:float} for details
+% \end{Options}\end{quote}
+%
+% \DescribeMacro{\captionsize}
+% \DescribeMacro{\captionlabelfont}
+% To setup the font size and attributes of the captions, this package also provides
+% the commands |\captionsize| and |\captionlabelfont| to allow a more
+% flexible way to customize the captions than the above options could do.
+% |\captionsize| is called before each caption, |\captionlabelfont| is
+% called just before the label of the caption.
+% Note that these commands are used by the options, e.g.\ the options
+% |small| and |sf| are identical to
+% \begin{quote} |\renewcommand{\captionsize}{\small}| and\\
+%               |\renewcommand{\captionlabelfont}{\sffamily}|. \end{quote}
+%
+% \DescribeMacro{\captionmargin}
+% Furthermore there is a new length |\captionmargin| to setup an extra left and
+% right margin for the captions, e.g.\ the command
+% \begin{quote} |\setlength{\captionmargin}{10pt}| \end{quote}
+% sets this margin to 10pt.
+%
+% \subsection{The \puresf{rotating}, \puresf{float} and \puresf{subfigure} package}
+% \label{sec:float}
+% If you want to use this package together with the \textsf{rotating}\cite{rotating},
+% \textsf{float}\cite{float} and/or the \textsf{subfigure} package, you have to
+% input this package \emph{after} the other ones, like
+% \begin{quote}
+% |\usepackage{float,rotating,subfigure}|\\
+% |\usepackage[centerlast,small,sc]{caption}|
+% \end{quote}
+% The \textsf{caption} package now redefines the |sidewaysfigure| and
+% |sidewaystable| environments and the |\rotcaption| command provided
+% by the \textsf{rotating} package from S.~Rahtz and L.~Barroca.
+% Note that the |\captionmargin| does not affect the |\rotcaption| command.
+%
+% It also redefines the captions of the |plain| and |boxed| styled floats
+% provided by the \textsf{float} package from A.~Lingnau.
+% |ruled| floats are not supported by default, but you can change this via
+% setting the option |ruled|.
+% Note that the |\captionmargin| is not supported in ruled floats.
+%
+% If the \textsf{subfigure} package from S.D.~Cochran is detected, the options
+% |scriptsize|, \ldots, |large| will redefine |\subcapsize| in an adequate way.
+% If you redefine |\captionsize| by yourself and use the \textsf{subfigure}
+% package, you also have to redefine |\subcapsize| by yourself.
+% Also the commands |\@thesubfigure| and |\@thesubtable| will be redefined to
+% use the |\captionlabelfont| command, please take this into consideration if
+% you redefine |\@thesubfigure| or |\@thesubtable| by yourself.
+% E.g.\ a adequate version of the second example in |subfigure.sty| will be:
+% \begin{verbatim}
+% \renewcommand{\thesubfigure}{\thefigure.\arabic{subfigure}}
+% \makeatletter
+%   \renewcommand{\@thesubfigure}{{\captionlabelfont\thesubfigure:}\space}
+%   \renewcommand{\p@subfigure}{}
+% \makeatother
+% ...
+% \end{verbatim}
+%
+% This package cooperates with the versions 2.0 (1994/04/15) and 2.5 (1994/11/11)
+% of the \textsf{rotating} package, version 1.2 (1994/06/20) of the \textsf{float}
+% package and version 1.6 (1993/05/13) of the \textsf{subfigure} package,
+% but will hopefully work with future versions, too.
+%
+% \section{Example}
+% Here's an example figure which was produced with the following code in the
+% preamble of this document:
+% \begin{quote}
+% |\usepackage[hang,small,sf]{caption}|\\
+% |\setlength{\captionmargin}{20pt}|
+% \end{quote}
+% \begin{figure}[!ht]
+% \centerline{EXAMPLE FIGURE}
+% \caption[Huba]{This is an example caption with a small font and a sans serif label.
+%                The hang option was used. There is a left and right margin of 20pt.}
+% \end{figure}
+%
+% \StopEventually{
+% \begin{thebibliography}{9}
+% \bibitem{rotating}
+% Sebastian Rahtz and Leonor Barroca:
+% \emph{A style option for rotated objects in \LaTeX},
+% 1994/08/26
+% \bibitem{float}
+% Anselm Lingnau:
+% \emph{An Improved Environment for Floats},
+% 1994/06/20
+% \bibitem{A-W:GMS94}
+% Michel Goossens, Frank Mittelbach and Alexander Samarin:
+% \newblock {\em The {\LaTeX} Companion},
+% \newblock Addison-Wesley, Reading, Massachusetts, 1994.
+% \bibitem{Anne}
+% Anne Br\"uggemann-Klein:
+% \emph{Einf\"uhrung in die Dokumentverarbeitung},
+% B.G. Teubner, Stuttgart, 1989
+% \bibitem{Kopka-E}
+% Helmut Kopka:
+% \emph{\LaTeX -- Erweiterungsm\"oglichkeiten},
+% 3. \"uberarbeitete Auf\/lage, Addison-Wesley, Bonn, 1991
+% \end{thebibliography}
+% }
+%
+% \section{The code}
+% \iffalse
+%<*package>
+% \fi
+%
+% \subsection{Identification}
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{caption}[1995/01/09 v1.3 caption package (AS)]
+\typeout{Package: caption v1.3 <1995/01/09> (Axel Sommerfeldt)}
+%    \end{macrocode}
+%
+% \subsection{Initial code}
+% \begin{macro}{\captionsize}
+% \begin{macro}{\captionlabelfont}
+% \begin{macro}{\captionmargin}
+%    \begin{macrocode}
+\newcommand{\captionsize}{}
+\newcommand{\captionlabelfont}{}
+\newlength{\captionmargin}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% Here are the different basic types of captions implemented:
+% \begin{macro}{\as@normalcaption}
+% The `normal' caption
+%    \begin{macrocode}
+\newcommand{\as@normalcaption}[2]{%
+  #1 #2}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\as@isucaption}
+% The `iso' or `hang' caption;
+% this code was taken from \LaTeXcomp\cite[p155]{A-W:GMS94} and modified
+%    \begin{macrocode}
+\newcommand{\as@isucaption}[2]{%
+  \sbox{\as@captionbox}{#1\ }%
+  \addtolength{\as@captionwidth}{-\wd\as@captionbox}%
+  \usebox{\as@captionbox}\parbox[t]{\as@captionwidth}{#2}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\as@centercaption}
+% The `center' caption
+%    \begin{macrocode}
+\newcommand{\as@centercaption}[2]{%
+  \parbox[t]{\as@captionwidth}{\begin{center}#1 #2\end{center}}}
+%    \end{macrocode}
+% \end{macro}
+% \changes{v1.1}{3 Nov 94}{New captiontype: `centerlast'}
+% \begin{macro}{\as@annecaption}
+% The `centerlast' caption; the idea how to do this was taken from Br\"uggemann-Klein\cite{Anne},
+% it is also mentioned in Kopka\cite[p227]{Kopka-E}
+%    \begin{macrocode}
+\newcommand{\as@annecaption}[2]{%
+  \addtolength{\leftskip}{0pt plus 1fil}%
+  \addtolength{\rightskip}{0pt plus -1fil}%
+  \setlength{\parfillskip}{0pt plus 2fil}%
+  #1 #2}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Detection of the \puresf{subfigure} package}
+% \changes{v1.3}{8 Jan 95}{Support of `captionlabelfont' in subcaptions}
+% \begin{macro}{\as@subcapsize}
+% \begin{macro}{\@thesubfigure}
+% \begin{macro}{\@thesubtable}
+% If the \textsf{subfigure} package is loaded, a little message will be typeout
+% and |\as@subcapsize| -- which sets the size of the subcaptions -- will be
+% defined. Also |\@thesubfigure| and |\@thesubtable| will be redefined here to
+% support the |\captionlabelfont| in subcaptions, too (thanks to Kevin Ruland for
+% this idea!).
+% If you don't like this behaviour, just load the |caption| package \emph{after}
+% the |subfigure| package (and eventually redefine the |\subcapsize| by yourself)
+% or redefine |\@thesubfigure| and |\@thesubtable| after loading the |caption|
+% package as shown in the documentation of the \textsf{subfigure} package.
+%    \begin{macrocode}
+\ifx\thesubfigure\undefined
+  \newcommand{\as@subcapsize}[1]{}
+\else%
+  \typeout{\space\space\space\space\space\space\space\space\space
+           `subfigure' package detected}
+  \let\as@subcapsize\subcapsize
+  \renewcommand{\@thesubfigure}{{\captionlabelfont\thesubfigure}\space}
+  \renewcommand{\@thesubtable}{{\captionlabelfont\thesubtable}\space}
+\fi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Declaration of options}
+% There are four different types of captions supported: |normal|,
+% |isu|, |center| and |centerlast|. |hang| is exactly the same as |isu|.
+%    \begin{macrocode}
+\DeclareOption{normal}{\let\as@caption\as@normalcaption}
+\DeclareOption{isu}{\let\as@caption\as@isucaption}
+\DeclareOption{hang}{\ExecuteOptions{isu}}
+\DeclareOption{center}{\let\as@caption\as@centercaption}
+\DeclareOption{anne}{\let\as@caption\as@annecaption}
+\DeclareOption{centerlast}{\ExecuteOptions{anne}}
+%    \end{macrocode}
+% There are options for six different font sizes available, they also
+% redefine the |\subcapsize| provided by the \textsf{subfigure} package
+% (if detected).
+%    \begin{macrocode}
+\DeclareOption{scriptsize}{%
+  \renewcommand{\captionsize}{\scriptsize}
+  \as@subcapsize{\scriptsize}}
+\DeclareOption{footnotesize}{%
+  \renewcommand{\captionsize}{\footnotesize}
+  \as@subcapsize{\scriptsize}}
+\DeclareOption{small}{%
+  \renewcommand{\captionsize}{\small}
+  \as@subcapsize{\footnotesize}}
+\DeclareOption{normalsize}{%
+  \renewcommand{\captionsize}{\normalsize}
+  \as@subcapsize{\footnotesize}}
+\DeclareOption{large}{%
+  \renewcommand{\captionsize}{\large}
+  \as@subcapsize{\normalsize}}
+\DeclareOption{Large}{%
+  \renewcommand{\captionsize}{\Large}
+  \as@subcapsize{\large}}
+%    \end{macrocode}
+% There are nine options available to set the font attributes of the caption labels.
+%    \begin{macrocode}
+\DeclareOption{up}{\renewcommand{\captionlabelfont}{\upshape}}
+\DeclareOption{it}{\renewcommand{\captionlabelfont}{\itshape}}
+\DeclareOption{sl}{\renewcommand{\captionlabelfont}{\slshape}}
+\DeclareOption{sc}{\renewcommand{\captionlabelfont}{\scshape}}
+\DeclareOption{md}{\renewcommand{\captionlabelfont}{\mdseries}}
+\DeclareOption{bf}{\renewcommand{\captionlabelfont}{\bfseries}}
+\DeclareOption{rm}{\renewcommand{\captionlabelfont}{\rmfamily}}
+\DeclareOption{sf}{\renewcommand{\captionlabelfont}{\sffamily}}
+\DeclareOption{tt}{\renewcommand{\captionlabelfont}{\ttfamily}}
+%    \end{macrocode}
+% If the option |ruled| is set, the captions of ruled floats provided
+% by the \textsf{float} package will also be supported.
+%    \begin{macrocode}
+\DeclareOption{ruled}{\newcommand\as@ruled{}}
+%    \end{macrocode}
+%
+% \subsection{Execution of options}
+% The `normal' type of caption is preselected.
+%    \begin{macrocode}
+\ExecuteOptions{normal}
+\ProcessOptions
+%    \end{macrocode}
+%
+% \subsection{Main code}
+% \begin{macro}{\as@captionbox}
+% \begin{macro}{\as@captionwidth}
+% \begin{macro}{\as@makecaption}
+% \begin{macro}{\@makecaption}
+% The new |\@makecaption| code
+%    \begin{macrocode}
+\newsavebox{\as@captionbox}
+\newlength{\as@captionwidth}
+\newcommand{\as@makecaption}[2]{%
+  \setlength{\leftskip}{\captionmargin}%
+  \setlength{\rightskip}{\captionmargin}%
+  \addtolength{\as@captionwidth}{-2\captionmargin}%
+  \captionsize%
+  \sbox{\as@captionbox}{{\captionlabelfont #1:} #2}%
+  \ifdim \wd\as@captionbox >\as@captionwidth
+    \as@caption{{\captionlabelfont #1:}}{#2}\par%
+  \else%
+    \begin{center}\usebox{\as@captionbox}\end{center}%
+  \fi}
+\renewcommand{\@makecaption}[2]{%
+  \vskip\abovecaptionskip%
+  \setlength{\as@captionwidth}{\linewidth}%
+  \as@makecaption{#1}{#2}%
+  \vskip\belowcaptionskip}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Support of the \puresf{rotating} package}
+% \begin{macro}{\@makercaption}
+% \begin{macro}{\@makerotcaption}
+% If the \textsf{rotating} package is loaded, the commands |\@makerotcaption|
+% (for support of |\rotcaption|) and |\@makercaption|,
+% furthermore the environments |sidewaysfigure| and |sidewaystable| will be
+% redefined here. The code was taken from the \textsf{rotating} package
+% \cite{rotating} itself and adapted.
+%    \begin{macrocode}
+\ifx\@makercaption\undefined
+\else
+  \typeout{\space\space\space\space\space\space\space\space\space
+           `rotating' package detected}
+  \renewcommand{\@makercaption}[2]{%
+    \vskip 10\p@%
+    \setlength{\as@captionwidth}{\textheight}%
+    \as@makecaption{#1}{#2}}
+  \renewcommand{\@makerotcaption}[2]{%
+    \captionsize%
+    \sbox{\as@captionbox}{{\captionlabelfont #1:} #2}%
+    \ifdim \wd\as@captionbox > .8\vsize
+      \rotatebox{90}{%
+        \setlength{\as@captionwidth}{.8\textheight}%
+        \begin{minipage}{\as@captionwidth}%
+          \as@caption{{\captionlabelfont #1:}}{#2}%
+        \end{minipage}}\par
+    \else%
+      \rotatebox{90}{\usebox{\as@captionbox}}%
+    \fi
+    \hspace{12pt}}
+  \renewcommand{\sidewaysfigure}{%
+    \let\@makecaption\@makercaption\@rotfloat{figure}}
+  \renewcommand{\sidewaystable}{%
+    \let\@makecaption\@makercaption\@rotfloat{table}}
+\fi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \changes{v1.2}{28 Nov 94}{Support of the `float' package}
+% \subsection{Support of the \puresf{float} package}
+% \begin{macro}{\floatc@plain}
+% \begin{macro}{\floatc@ruled}
+% If the \textsf{float} package is loaded, the command |\floatc@plain|
+% (and the command |\floatc@ruled| if the option |ruled| is given)
+% will be redefined here.
+% \changes{v1.3}{8 Jan 95}{Better support of `ruled' floats}
+%    \begin{macrocode}
+\ifx\floatc@plain\undefined
+\else
+  \typeout{\space\space\space\space\space\space\space\space\space
+           `float' package detected}
+  \renewcommand\floatc@plain[2]{%
+    \setlength{\as@captionwidth}{\linewidth}%
+    \as@makecaption{#1}{#2}}
+  \ifx\as@ruled\undefined
+  \else
+    \renewcommand\floatc@ruled[2]{%
+      \setlength{\as@captionwidth}{\linewidth}%
+      \captionsize%
+      \as@caption{{\captionlabelfont #1:}}{#2}\par}
+  \fi
+\fi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \iffalse
+%</package>
+% \fi
+%
+% \Finale
+%
+\endinput
+

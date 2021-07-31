@@ -209,24 +209,19 @@ void
 fromnet(int net)
 {
 	int c;
-	int crnls = 0, freenl = 0, eofs;
+	int crnls = 0, freenl = 0;
 	Biobuf ib, ob;
 
 	Binit(&ib, net, OREAD);
-	Binit(&ob, 1, OWRITE);
-	eofs = 0;
+	Binit(&ob, 1, OWRITE); 
 	for(;; Bbuffered(&ib) == 0 ? Bflush(&ob) : 0){
 		if(interrupted){
 			interrupted = 0;
 			send2(net, Iac, Interrupt);
 		}
 		c = Bgetc(&ib);
-		if(c < 0){
-			if(eofs++ >= 2)
-				return;
-			continue;
-		}
-		eofs = 0;
+		if(c < 0)
+			return;
 		switch(c){
 		case '\n':	/* skip nl after string of cr's */
 			if(!opt[Binary].local && !comm->returns){
@@ -285,7 +280,7 @@ rawon(void)
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
 	if(consctl < 0){
-		fprint(2, "can't open consctl: %r\n");
+		fprint(2, "can't open consctl\n");
 		return;
 	}
 	write(consctl, "rawon", 5);
@@ -302,7 +297,7 @@ rawoff(void)
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
 	if(consctl < 0){
-		fprint(2, "can't open consctl: %r\n");
+		fprint(2, "can't open consctl\n");
 		return;
 	}
 	write(consctl, "rawoff", 6);

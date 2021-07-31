@@ -1,0 +1,444 @@
+%%% ====================================================================
+%%% @LaTeX-file{
+%%%   filename  = "diff12.tex",
+%%%   version   = "1.2",
+%%%   date      = "27-Jan-1995",
+%%%   time      = "16:33:11 EST",
+%%%   checksum  = "03031 442 3003 21900",
+%%%   author    = "American Mathematical Society",
+%%%   copyright = "Copyright (C) 1995 American Mathematical Society,
+%%%                all rights reserved.  Copying of this file is
+%%%                authorized only if either:
+%%%                (1) you make absolutely no changes to your copy,
+%%%                including name; OR
+%%%                (2) if you do make changes, you first rename it
+%%%                to some other name.",
+%%%   address   = "American Mathematical Society,
+%%%                Technical Support,
+%%%                Electronic Products and Services,
+%%%                P. O. Box 6248,
+%%%                Providence, RI 02940,
+%%%                USA",
+%%%   telephone = "401-455-4080 or (in the USA and Canada)
+%%%                800-321-4AMS (321-4267)",
+%%%   FAX       = "401-331-3842",
+%%%   email     = "tech-support@math.ams.org (Internet)",
+%%%   supported = "yes",
+%%%   keywords  = "amslatex, ams-latex",
+%%%   abstract  = "This is part of the AMS-\LaTeX{} distribution. It
+%%%                describes the differences between versions 1.1 and 1.2.",
+%%%   docstring = "The checksum field above contains a CRC-16 checksum
+%%%                as the first value, followed by the equivalent of
+%%%                the standard UNIX wc (word count) utility output of
+%%%                lines, words, and characters.  This is produced by
+%%%                Robert Solovay's checksum utility.",
+%%% }
+%%% ====================================================================
+\documentclass{amsdtx}
+\usepackage{amsmath}
+
+\title{Differences between \amslatex/ version 1.1 and \amslatex/
+version 1.2}
+\author{American Mathematical Society (Michael Downes)}
+\date{January 1995}
+
+\MakeShortVerb{\|}
+
+%    Fake article-style maketitle since ams-doc-article class doesn't
+%    exist yet
+\makeatletter
+\def\maketitle{\chapter*{\large\@title}%
+  \section*{\large\normalfont\@author\\\@date}%
+  \markboth{DIFFERENCES BETWEEN VERSIONS 1.1 AND 1.2}%
+    {DIFFERENCES BETWEEN VERSIONS 1.1 AND 1.2}%
+  \mbox{}% get some extra blank space
+  \thispagestyle{plain}}
+\makeatother
+
+\renewcommand{\labelenumi}{(\theenumi)}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+\subsection{Transition to \LaTeXe{}}
+
+Version 1.1 of \amslatex/ was designed to work with \latex/2.09, which
+became obsolete as of June 1994; version 1.2 of \amslatex/ is designed
+to work with the new \latex/, aka \LaTeXe{}. Generally speaking,
+pre-existing documents that were written for \latex/2.09 can be
+processed by current \latex/ through a `compatibility mode' that is
+automatically entered when a document uses \cn{documentstyle} instead of
+\cn{documentclass} (see below).
+
+For generic \latex/ the emulation provided by \latex/'s compatibility
+mode is extremely good---at least for well-formed documents that avoided
+commands not documented in the \latex/ manual; the most common point of
+failure is due to use of internal font commands such as \cn{fivrm} or
+\cn{tenrm}, or to the loading of an option file that uses old internal
+commands (font-related or otherwise). For third-party extensions such as
+\amslatex/ the quality of the emulation in compatibility mode varies; at
+the time of writing (18-Jan-1995) the emulation is fairly good for AMS
+packages such as \pkg{amstex} or \pkg{amssymb}, but less good for the
+AMS documentstyles \cls{amsart} and \cls{amsbook}; work to improve the
+accuracy of the emulation is on-going.
+
+In general, version 1.2 of \amslatex/ adheres as faithfully as possible
+to the \latex/ conventions and command set described in the second
+edition of \emph{\latex/: A document preparation system} (Lamport,
+1994). For end users the changes lie primarily in the use of
+\cn{documentclass} and \cn{usepackage} instead of \cn{documentstyle}
+plus options, and in the changed syntax of font commands---e.g.,
+|\textbf{...}| and |\mathbf{...}| instead of |{\bf...}|.
+
+For example, to use the \pkg{amsbsy} package with a general document
+class such as \cls{article}, you should no longer write
+\begin{verbatim}
+\documentstyle[amsbsy]{article}% obsolete
+\end{verbatim}
+but write instead
+\begin{verbatim}
+\documentclass{article}
+\usepackage{amsbsy}
+\end{verbatim}
+
+For pre-existing documents running in compatibility mode the old forms
+\cn{bf}, \cn{it}, etc., for the standard font commands now behave as
+described in the first edition of the \latex/ manual. Depending on the
+installation options used for your copy of \amslatex/ version 1.1, this
+may be the `right' behavior for your existing \amslatex/ 1.1 documents;
+if not, you will need to update the options list of the
+\cn{documentstyle} command by adding \opt{newlfont}, for example:
+\begin{verbatim}
+\documentstyle[newlfont]{amsart}
+\end{verbatim}
+
+Internally the changes in version 1.2 of \amslatex/ were somewhat more
+extensive; various parts were rewritten to take advantage of the most
+recent version of the font selection scheme, for example, as well as the
+new methods for managing packages and document classes, for defining
+robust commands, for writing technical commentary in typesettable form,
+and for providing installation scripts. In other words this version of
+\amslatex/ is thoroughly integrated with current \latex/, not just
+jury-rigged.
+
+The user's guide for \amslatex/ 1.2 describes only the current behavior;
+it doesn't attempt to describe the ways in which current behavior
+differs from the behavior of previous versions (that's the purpose of
+this document).
+
+\subsection{Packages \pkg{amsfonts}, \pkg{amssymb} moved to the AMSFonts
+distribution}
+
+In version 1.2, \latex/ support for the use of fonts in the AMSFonts
+distribution was moved out of the \amslatex/ distribution and into the
+AMSFonts distribution, where it more properly belong. This means the
+packages \pkg{amsfonts}, \pkg{amssymb}, \pkg{euscript}, and
+\pkg{eufrak}, as well as associated font definition files. Please note
+that certain Computer Modern fonts that were formerly found only%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\footnote{Here `only' is an oversimplification, in light of the
+availability of (for example) the Sauter versions of the CM Metafont
+source files.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+in the AMSFonts distribution are considered standard in \LaTeXe{}:
+\fn{cmmib} and \fn{cmbsy} in sizes 5--9, and \fn{cmex} in sizes 7--9.
+I.e., when you get a copy of \LaTeXe{} (and you cannot use \amslatex/
+otherwise), those fonts should be included. If they are not, please
+inquire to the source where you obtained \LaTeXe{}. If you obtained
+\LaTeXe{} from CTAN, you can get Metafont source files for those fonts
+in the directory \fn{/tex-archive/fonts/latex/mf}.
+
+As \fn{.fd} files for those particular fonts are provided in the basic
+\latex/ distribution, the AMSFonts distribution does not redundantly
+provide them.
+
+\subsection{Package \pkg{amstex} renamed to \pkg{amsmath}}
+
+The \pkg{amstex} package has been renamed \pkg{amsmath}. The old name
+`amstex' came from the fact that version 1.0 was a more or less straight
+port into \latex/ of selected portions from the macro package \AmS-\tex/
+written by Michael Spivak, but the historical origins of the package are
+likely of less interest to the general usership---especially looking to
+the future---than a straightforward declaration in the name `amsmath' of
+the sort of features that are provided.
+
+Another important reason for the name change was to make possible some
+progress that would be out of the question (because of the impact on
+existing documents) if the name `amstex' were retained. For example,
+unlike \pkg{amstex}, \pkg{amsmath} doesn't automatically load the
+\pkg{amsfonts} package, as that package was moved out to the AMSFonts
+distribution as described above. If this change were not accompanied by
+a name change, many existing documents would have to be updated by hand
+(adding |\usepackage{amsfonts}|) in order to run without error. A frozen
+version of \fn{amstex.sty} is provided for processing pre-existing
+documents; it won't have active maintainence henceforth except for bug
+fixes. For new documents authors should use the \pkg{amsmath} package
+(not just because we advise it, but because it's a better package than
+its predecessor in a number of ways).
+
+\subsection{New documentclass \cls{amsproc}}
+
+A new documentclass \cls{amsproc} for collections of articles, such as
+the proceedings of a conference, is now provided in addition to
+\cls{amsart} and \cls{amsbook}.
+
+\section{Differences in the \pkg{amsmath} package}
+
+Here we describe differences that users will see in the \pkg{amsmath}
+package, as the successor of \pkg{amstex} version 1.1. In general,
+commands and options that were dropped during the creation of the
+\pkg{amsmath} package are retained in the frozen version of \pkg{amstex}
+that is provided for compatibility mode use.
+
+\begin{enumerate}
+
+\item The options \opt{intlim}, \opt{nosumlim}, \opt{nonamelm},
+\opt{righttag}, \opt{ctagsplt} for the \pkg{amstex} package are
+superseded by more intelligible names \opt{intlimits},
+\opt{nosumlimits}, \opt{nonamelimits}, \opt{reqno}, \opt{centertags} for
+the \pkg{amsmath} package.
+
+\item The \qc{\@} character is no longer used as a special command
+prefix, except for the \pkg{amscd} package, and then only within the
+\env{CD} environment. Practically speaking, this means primarily that it
+is no longer necessary to use doubled |@@| to get a single printed @
+character (e.g., in e-mail addresses).
+
+\item The extensible arrow commands |@>>>| and |@<<<| are no longer
+available outside of the \env{CD} environment of the \pkg{amscd}
+package; alternative commands \cn{xleftarrow} and \cn{xrightarrow} are
+provided by the \pkg{amsmath} package. The sub and superscripts are
+given through an optional resp. mandatory argument, for example
+\begin{ctab}{ll}
+|X\xleftarrow[a]{b}Y|& $X\xleftarrow[a]{b}Y$\\
+|X'\xrightarrow[\alpha]{\beta}Y'|& $X'\xrightarrow[\alpha]{\beta}Y'$
+\end{ctab}
+
+\item The command \cn{bold} has been superseded by the command
+\cn{mathbf}, as the latter is now the standard name provided by \latex/
+for this purpose.
+
+\item The commands \cn{newsymbol}, \cn{frak}, \cn{Bbb} are no longer
+available because the \pkg{amsfonts} package is not loaded by
+\pkg{amsmath}. (In any case those commands now have new names---see the
+\pkg{amsfonts} documentation for details.)
+
+\item The \pkg{amsmath} package provides \cn{lvert} and \cn{rvert} for
+$\vert$ symbols when they act as delimiters (compare \cn{langle},
+\cn{rangle} for $\langle\ldots\rangle$ delimiters). This is to address
+the problem that the \qc{\|} character is overloaded to represent
+several different notations with \emph{different typographical
+treatment}. Although this overloading is handled easily enough in
+reading by the discriminatory powers of the knowledgeable reader, it
+presents more difficult obstacles to the processing of electronic
+documents by various computer tools. Commands \cn{lVert} and \cn{rVert}
+are likewise provided in stead of \cn{\|} for paired-delimiter use of
+the $\|$ symbol. Further discussion is found in the \amslatex/ user's
+guide (\fn{amsldoc.tex}).
+
+\item The \qc{\~} command is left unchanged by \pkg{amsmath}; the change
+that makes it remove a redundant preceding or following space character
+is now done only by AMS documentclasses (in version 1.1 this was done by
+the \pkg{amstex} package).
+
+\item The following rarely used commands are gone: \cn{accentedsymbol},
+\cn{sphat}, \cn{spcheck}, \cn{sptilde}, \cn{spdot}, \cn{spddot},
+\cn{spdddot}, \cn{spbreve}, \cn{@)))}, \cn{@(((}. They can be obtained
+through the \pkg{amsxtra} package if necessary.
+
+\item The six generalized fraction commands \cn{over},
+\cn{overwithdelims}, \cn{atop}, \cn{atopwithdelims}, \cn{above},
+\cn{abovewithdelims} are expressly forbidden by the \pkg{amsmath}
+package; use of the recommended forms \cn{frac}, \cn{binom}, and
+variants is now required, instead of merely recommended, and a new
+command \cn{genfrac} has been added to fill in the access gaps that used
+to exist. Use of the \cn{genfrac} command is discussed in the \amslatex/
+user's guide (\fn{amsldoc.tex}).
+
+Not only is the unusual syntax of the primitive \tex/ fraction commands
+rather out of place in \latex/, but furthermore that syntax seems to be
+solely responsible for one of the most significant flaws in \tex/'s
+mathematical typesetting capabilities: the fact that the current
+mathstyle at any given point in a math formula cannot be determined
+until the end of the formula, because of the possibility that a
+following generalized fraction command will change the mathstyle of the
+\emph{preceding} material. As the side effects are a bit technical in
+nature, they are discussed in \fn{technote.tex} rather than here.
+
+\item The \cn{fracwithdelims} command is gone, as \cn{genfrac} provides
+equivalent functionality (and a little more).
+
+\item The optional argument of \cn{frac} that allowed changing the
+thickness of the fraction line is gone. That functionality is now
+provided only through \cn{genfrac}: the need to change the line
+thickness is so rare in practice that it seems better not to burden the
+ubiquitous \cn{frac} command with the somewhat time-consuming look-ahead
+process required for an optional argument. I.e., this change will
+contribute in a small way to making your documents run faster.
+
+\item The commands \cn{lcfrac} and \cn{rcfrac} for left or right
+alignment of continued fraction numerators are gone; they are replaced
+by an optional argument of the \cn{cfrac} command.
+
+\item A new command \cn{DeclareMathOperator} is provided for defining
+new operator names:
+\begin{verbatim}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator*{\xlim}{x-lim}
+\end{verbatim}
+The |*| form makes the operator name produce limit-style sub and
+superscripts, like \cn{max} or \cn{lim}. This is now the preferred
+method, instead of using the old command \cn{operatorname} (which is,
+however, retained for now). The command \cn{operatornamewithlimits} has
+been renamed \cn{operatorname*}. These commands now can also be obtained
+through a separate package \pkg{amsopn}, so it's not necessary to load
+the entire \pkg{amsmath} package just to get that feature.
+
+\item The environments \env{Sb} and \env{Sp} for multiline subscripts
+have been replaced by a single command \cn{substack}, used as follows:
+\begin{verbatim}
+\sum_{\substack{first line\\second line}}
+\end{verbatim}
+This command can be used equally well in a subscript or superscript, and
+provides better vertical positioning (as compared to \env{Sb}, \env{Sp})
+if a multiline subscript is placed on the side, as perhaps for an
+integral. There is also a slightly generalized alternative, an
+environment \env{subarray} that allows you to specify either centering
+or left alignment for the contents:
+\begin{verbatim}
+\sum_{\begin{subarray}{l}first line\\second line\end{subarray}}
+\end{verbatim}
+
+\item A command \cn{nobreakdash} is provided to suppress the possibility
+of a linebreak after the following hyphen or dash. For example, if you
+write `pages 1--9' as |pages 1\nobreakdash--9| then a linebreak will
+never occur between the dash and the 9. You can also use
+\cn{nobreakdash} to prevent undesirable hyphenations in combinations
+like |$p$-adic|. For frequent use, it's advisable to make abbreviations,
+e.g.,
+\begin{verbatim}
+\newcommand{\p}{$p$\nobreakdash}% for "\p-adic"
+\newcommand{\Ndash}{\nobreakdash--}% for "pages 1\Ndash 9"
+\end{verbatim}
+
+\item The \env{[xx]align[at]} family of environments has been thoroughly
+revised: now the \env{xalignat} environment is gone, as its function has
+been merged into the \env{align} environment (it's no longer necessary
+to specify how many side-by-side structures, as was required for
+\env{xalignat}, because \env{align} automatically handles any number of
+them). Similarly, the \env{xxalignat} environment has been replaced by
+an environment \env{flalign} that doesn't require you to specify how
+many side-by-side structures will be needed. Certain numbering problems
+(presence of an equation number when it should be absent, or vice versa)
+have also been cleared up.
+
+\item The placement of equation numbers has been substantially improved
+for \env{align}, \env{gather}, and \env{split}. Numbers will now
+\emph{never} overlap on top of the equation body (as far as we can
+ascertain), and they are much less likely to be shifted up or down
+unnecessarily when there is actually adequate space to leave the number
+in the normal place. In a few remaining cases, an equation number will
+be shifted unnecessarily because technical complications make accurate
+measurement of the available room too difficult; for those cases a
+\cn{raisetag} command is provided that allows you to manually adjust the
+vertical position of the equation number. (Thanks to David M. Jones for
+his substantial [volunteer] work behind this change and the preceding
+one.)
+
+\item The seldom-used command \cn{oldnos} is gone; if you need it, you
+should consult the \latex/ documentation on using fonts (e.g.,
+\fn{fntguide.tex}) to find out how to construct an equivalent command.
+
+\item A new \env{subequations} environment causes all numbered equation
+environments within its scope to be numbered (4.9a) (4.9b) (4.9c) etc.,
+if the preceding numbered equation was 4.8. A \cn{label} command
+immediately after |\begin{subequations}| will produce a \cn{ref} of the
+parent number `4.9', not `4.9a'. The counters used by the
+\env{subequations} environment are |parentequation| and |equation| and
+standard uses of \cn{addtocounter}, \cn{setcounter}, etc., are possible
+with those counter names.
+
+\item The \pkg{amsmath} package (unlike \pkg{amstex}) respects the
+setting provided by the documentclass for putting equation numbers on
+the right or the left. [Technical note: a documentclass that has
+\opt{leqno} as the default should explicitly pass that option to the
+\pkg{amsmath} package with \cn{PassOptionsToPackage} in order for it to
+be effective.]
+
+\item The \opt{fleqn} option for left-aligned instead of centered
+equations is now supported (thanks to David M. Jones).
+
+\end{enumerate}
+
+\section{Differences in the \cls{amsart} and \cls{amsbook} document
+classes}
+
+\begin{enumerate}
+
+\item As mentioned earlier, a companion document class \cls{amsproc} is
+now provided for books that consist of a collection of articles, such as
+the proceedings of a conference.
+
+\item As the AMS document classes automatically load the \pkg{amsmath}
+package, all changes described above for the \pkg{amsmath} package
+affect the AMS classes also. Note in particular that the \qc{\@}
+character is no longer a special command prefix, so to produce a printed
+\qc{\@} in an e-mail address you should now write simply \qc{\@} instead
+of |@@|.
+
+\item The nonbreaking dash commands |@-|, |@--|, |@---| are no longer
+available because \qc{\@} as a special command prefix has disappeared.
+An alternative \cn{nobreakdash} command is provided in the \pkg{amsmath}
+package, as described above.
+
+\item The AMS document classes now take an option \opt{nomath} that
+suppresses the automatic loading of the \pkg{amsmath} package. This is
+sometimes helpful in converting a pre-existing document to AMS style if
+you only want to do a quick conversion without attempting to
+deal with any of the math.
+
+\item The old environments \env{pf}, \env{pf*} are superseded by a
+single \env{proof} environment. It takes an optional argument to specify
+an alternative heading text.
+
+\item Formerly \cn{small} produced the same typesize as
+\cn{footnotesize} (8pt). Now they produce different sizes, normally 9
+and 8 respectively. Furthermore, documentclass options \verb'8pt',
+\verb'9pt', \verb'11pt', \verb'12pt' are now offered in addition to the
+default \verb'10pt'. Also the range of typesize-changing commands is
+filled out to include, below \cn{normalsize}, the following: \cn{small},
+\cn{Small}, \cn{SMALL}, \cn{tiny}, \cn{Tiny}. \cn{footnotesize} and
+\cn{scriptsize} are retained as synonyms of \cn{Small} and \cn{SMALL}
+respectively. As it stands \cn{tiny} no longer produces the same
+typesize as it did before (now 6 instead of 5), except in compatibility
+mode. This might affect some existing documents if they are updated to
+use \cn{documentclass} instead of \cn{documentstyle}. Similarly,
+\cn{large} now produces 11pt if the base size is 10pt, where formerly it
+produced 12pt. Finally, new commands \cn{larger} and \cn{smaller} are
+provided for changing the typesize relative to the current size. These
+commands take an optional integer argument to specify how many steps to
+go up or down: \verb'\larger[2]' means go up two sizes, and
+\verb'\larger' without an optional argument is the same as
+\verb'\larger[1]'. The list of sizes is a standard progression of type
+sizes and associated linespacing values as defined by the documentclass.
+If you need finer control over type size or linespacing, consult the
+\latex/ documentation about the \cn{fontsize} command.
+
+\item The \cn{qed} symbol is now an open square, not a filled black
+square, and it is positioned at the right margin, instead of at a fixed
+horizontal distance from the preceding text.
+
+\item The command \cn{rom}, for making numbers and punctuation
+roman/upright in italic text, has been renamed \cn{upn} ``upright
+punctuation or number''. It will in most cases suffice to leave this
+refinement undone until a document is sent to a publisher for final
+typesetting, and furthermore, certain publications at the AMS now use
+special in-house italic fonts that have upright numbers and punctuation
+built in, making the use of \cn{upn} unnecessary even then. For general
+preprint-type use, this refinement is one that most users probably won't
+care to bother with.
+
+\end{enumerate}
+
+\end{document}

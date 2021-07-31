@@ -1,0 +1,168 @@
+.TH PICFILE 9.6
+.SH NAME
+picfile \- raster graphic image format
+.SH DESCRIPTION
+Files in this format store images represented as two-dimensional
+arrays of multiple-channel pixels.
+A
+.I picfile
+consists of an
+textual
+header followed by binary data encoding the pixels
+in row-major order.
+The header is a list of attribute/value pairs
+separated by newlines, terminated by an
+empty line.
+Each header line has the form
+.IB name = value\f1.
+The name may not contain an
+.SM ASCII
+NUL,
+newline, or
+.LR = ;
+the value may not contain NUL or newline.
+The last line of a header is empty.
+.PP
+The standard attributes are described below; all but
+.BR TYPE
+and
+.BR WINDOW
+are optional.
+.B TYPE
+must come first; otherwise order is irrelevant.
+As any unrecognized attribute is passed over uninterpreted by all standard software,
+applications are welcome to include arbitrary annotations, such as
+.BR SHOESIZE=10½ ,
+if they wish.
+.TP
+.BI TYPE= type
+How the pixels are encoded.
+Standard types are
+.PD 0
+.RS
+.TF runcode
+.TP
+.B runcode
+A run-length encoding.
+The data are a sequence of
+.RI ( nchan +1)-byte
+records each containing a count
+.I k
+and
+.I nchan
+bytes giving a pixel value to be repeated
+.IR k +1
+times.
+A run may not span scanlines.
+.TP
+.B dump
+A two-dimensional array of
+.IR nchan -byte
+records in row major order.
+.TP
+.B bitmap
+One-bit pixels, packed into bytes high bit leftmost.
+Zero bits are white, one bits are black.
+Rows are padded with zeros to a multiple of 16 bits.
+.TP
+.B ccitt-g4
+A black-and-white image under CCITT FAX Group 4 compression.
+This format is highly compressive on images of text and line art.
+Similarly,
+.L ccitt-g31
+and
+.L ccitt-g32
+for Group 3, 1-D and 2-D.
+.TP
+.B pico
+A sequence of
+.I nchan
+two-dimensional arrays of single bytes.
+.TP
+.B ccir601
+Pixels are in dump order, 2 bytes per pixel
+encoded according to the IEEE digital component video standard.
+.RE
+.TP
+.BI WINDOW= "x0 y0 x1 y1
+The 
+.I x,y
+coordinates of the upper left corner and
+the point just diagonally outside the lower right corner,
+.I x
+increasing to the right,
+.I y
+down.
+.TP
+.BI NCHAN= nchan
+The number of channels, default 1.
+.TP
+.BI CHAN= channels
+The names of the channels.
+.I Channels
+should be
+.I nchan
+characters long.  Certain substrings of
+.I channels
+are conventionally understood by most programs that read and write picture files:
+.B m
+is a monochrome image channel,
+.B rgb
+is a full-color image,
+.B a
+is an alpha channel, and
+.B z...
+is a floating point (four-byte, single precision)
+.I z
+value.
+Some very old monochrome pictures have
+.BR CHAN=r .
+This usage is deprecated but still recognized by some programs.
+.TP
+.BI RES= "x y
+The digitizing resolution horizontally and vertically, in pixels/inch.
+.PD
+.TP
+.B CMAP=
+(The value is empty.)
+A color map, a 256\(mu3-byte translation table for
+color values, follows the header.
+In a full-color picture, each color-map row maps pixel
+values of the corresponding channel.
+In a monochrome picture, pixel values index
+the color map to yield red, green and blue, like this:
+.IP
+.EX
+uchar cmap[256][3];
+red = cmap[pixel][0];
+green = cmap[pixel][1];
+blue = cmap[pixel][2];
+.EE
+.SH EXAMPLES
+.TP
+.B sed '/^$/q' image
+Print a header.
+A sample header follows.
+.LP
+.EX
+.ps -1
+TYPE=dump
+WINDOW=0 0 512 512
+NCHAN=1
+CHAN=m
+RES=300 300
+CMAP=
+COMMAND= antiquantize 'halftone CLASSIC' 512.halftone LIBERTY.anticlassic
+COMMAND=  halftone CLASSIC 512.liberty 512.halftone 1.75 512.halftone 
+COMMAND=   transpose IN OUT 
+COMMAND=    resample 512 IN OUT 
+COMMAND=     transpose IN OUT 
+COMMAND=      resample 512 IN OUT 
+COMMAND=       clip 400 400 LIBERTY OUT
+.ps
+.EE
+.SH "SEE ALSO"
+.IR bitmap (6)
+.br
+Tom Duff,
+``Raster Graphics in Plan 9''

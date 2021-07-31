@@ -1,0 +1,41 @@
+dev
+	root	/
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	dup	d
+	bit	b
+	ether	l
+	scc	t
+	scsi	S	scsi scsibuf
+	nextfloppy	f
+	iproute	P
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	rtc	r
+	dk	k
+	audio	A
+	kprof	T
+	icmp	Q
+stream
+	urp
+	async
+	ip
+	fcall
+port
+	int cpuserver = 0;
+	void consdebug(void){}
+	/*
+	 *  port interrupts just generate traps
+	 */
+	void devportintr(void *ur)
+	{
+		extern void trap(void*);
+		trap(ur);
+	}
+boot terminal #w1/sd1
+	il
+	tcp

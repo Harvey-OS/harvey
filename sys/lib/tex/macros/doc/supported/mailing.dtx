@@ -1,0 +1,278 @@
+% \CheckSum{157}
+%
+%\iffalse
+%<*dtx>
+\ProvidesFile{mailing.dtx}
+%</dtx>
+\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{mailing}
+%<driver>\ProvidesFile{mailing.drv}
+%\fi
+%\ProvidesFile{mailing}
+    [1994/09/07 v1.0a Send letters to multiple addresses]
+%\iffalse
+%<*driver>
+\documentclass{ltxdoc}
+\begin{document}
+\pagestyle{myheadings}
+\DocInput{mailing.dtx}
+\end{document}
+%</driver>
+%\fi
+%
+% \GetFileInfo{mailing}
+% \title{Creating a mailing}
+% \author{Johannes Braams}
+% \date{september 7, 1994}
+% \maketitle
+%
+% \markboth
+%      {mailing package version \fileversion\space as of \filedate}
+%      {mailing package version \fileversion\space as of \filedate}
+%
+% \section{Introduction}
+%
+%    This package is intended to be used when you want to send a large
+%    number of letters, all with (almost) the same text.
+%
+%    This package is based on the former style option \texttt{merge}
+%    by Graeme McKinstry, but is is a reimplementation with a
+%    different user interface.
+%
+% \section{The user interface}
+%
+%  \DescribeMacro{\addressfile}
+%    The commands |\addressfile| takes a filename as its argument.
+%    When the file can't be found by \LaTeX, the user will be asked to
+%    supply a different name.
+%
+%    The address file should have the following format:
+% \begin{verbatim}
+%Name of addressee
+%Street\\town
+%Opening text of the letter
+%(optional definitions)
+%<blank line>
+%Name of addressee
+%Street\\town
+%Opening text of the letter
+%(optional definitions)
+%<blank line>
+%...
+% \end{verbatim}
+%    The various addresses are separated by a blank line in the file
+%    (multiple blank lines in between addresses are allowed).
+%    It is also possible to have multiple lines with definitions; they
+%    will all be executed.
+%
+%  \DescribeMacro{\mailingtext}
+%    The text of the mailing is entered as the argument of
+%    |\mailingtext|. A difference with the original \texttt{merge.sty}
+%    is that this package allows control sequences in the argument of
+%    |\mailingtext|. These control sequences should then be defined in
+%    the file with the address information.
+%
+%  \DescribeMacro{\makemailing}
+%    When |\makemailing| is called the letters are produced, combining
+%    the information found in the address file with the text of the
+%    mailing. 
+%
+% \StopEventually{}
+%
+%  \section{The implementation}
+%
+%  \subsection{User interface}
+%
+%  \begin{macro}{\addressfile}
+%    The argument to |\adressfile| is the name of the file with the
+%    address information.
+%    \begin{macrocode}
+\newcommand{\addressfile}[1]{%
+  \def\M@filename{#1}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\mailingtext}
+%    The argument to this macro contains the entire text of the
+%    mailing. The text may contain control sequences to be able to
+%    make variations in the text.
+%    \begin{macrocode}
+\long\def\mailingtext#1{\global\mailing@text={#1}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\makemailing}
+%    The command |\makemailing| will produce the mailing, reading
+%    addresses, openings and optional definitions of variable text
+%    parts from an external file.
+%    \begin{macrocode}
+\def\makemailing{%
+  \M@openadrfile
+  \loop
+    \read@info
+    \if@notready
+      \begin{letter}{\M@toname\\\M@toaddress}%
+        \opening{\M@opening}%
+        \vskip\baselineskip
+        \the\mailing@text
+      \end{letter}
+    \fi
+    \if@notready
+  \repeat}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \subsection{Allocations}
+%
+%  \begin{macro}{\M@adrfile}
+%    We need to allocate an input stream for the file with the address
+%    information. 
+%    \begin{macrocode}
+\newread\M@adrfile
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\mailing@text}
+%    The contents of the letter are stored in a token register
+%    \begin{macrocode}
+\newtoks\mailing@text
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\if@notready}
+%    A switch which indicates if the file |\M@adrfile| has been
+%    exhausted. 
+%    \begin{macrocode}
+\newif\if@notready
+\newif\if@notemptyoreof
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \subsection{Internal macros}
+%
+%  \begin{macro}{\M@openadrfile}
+%    The macro |\M@openadrfile| tries to open |\M@filename|. It that
+%    doesn't succeed it asks the user to supply a new name. This is
+%    done untill a file is found.
+%    \begin{macrocode}
+\def\M@openadrfile{%
+  \openin\M@adrfile\M@filename\relax
+  \ifeof\M@adrfile
+    \loop
+      %\PackageWarning{mailing}{I can't find the file \M@filename}
+      \typeout{I can't find the file \M@filename!}
+      \closein\M@adrfile
+      \typein[\M@filename]{Enter a new name}
+      \openin\M@adrfile\M@filename
+      \ifeof\M@adrfile
+    \repeat
+  \fi}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\read@info}
+%    The macro |\read@info| takes care of the reading of all the
+%    information from |\M@adrfile|, needed to format another letter.
+%    \begin{macrocode}
+\def\read@info{%
+  \skip@empty@lines
+%    \end{macrocode}
+%    The macro |\skip@empty@lines| leaves the non-empty line it found
+%    in |\M@lines|. If it found an end of file condition the
+%    |\if@notready| flag will be set to |\iffalse|.
+%    \begin{macrocode}
+  \if@notready
+    \let\M@toname\M@line
+    \read\M@adrfile to\M@toaddress
+    \read\M@adrfile to\M@opening
+    \test@eof
+    \if@notready\read@defs\fi
+  \fi
+  }
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\read@defs}
+%    Reads definitions of control sequences from the file |\M@adrfile|
+%    until either an empty line is found or the end of file is
+%    reached. Each line is stored in a control sequence and it is
+%    executed after all definitions are read.
+%    \begin{macrocode}
+\def\read@defs{%
+  \def\M@defns{}%
+  {\loop
+    \endlinechar=-1
+    \read\M@adrfile to\M@line
+    \endlinechar=`\^^M
+%    \end{macrocode}
+%    We need to get the expansion of |\M@line| into the definition of
+%    |\M@defns|, not |\M@line| itself. Therefore |\M@line| is expanded
+%    before |\M@defns|.
+%    \begin{macrocode}
+    \expandafter\toks@\expandafter\expandafter
+      \expandafter{\expandafter\M@defns\M@line}%
+    \xdef\M@defns{\the\toks@}%
+    \test@emptyoreof
+    \if@notemptyoreof
+    \repeat}%
+  \M@defns
+  }
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\test@eof}
+%    The macro |\test@eof| tests the status of of the input file. 
+%    \begin{macrocode}
+\def\test@eof{%
+  \ifeof\M@adrfile
+    \@notreadyfalse
+  \else
+    \@notreadytrue
+  \fi}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\test@emptyoreof}
+%    The macro |\test@emptyoreof| checks whether we reached an empty
+%    line \emph{or} the end of the file.
+%    \begin{macrocode}
+\def\test@emptyoreof{%
+  \@notemptyoreoftrue
+  \ifx\M@line\@empty
+    \global\@notemptyoreoffalse
+  \fi
+  \ifeof\M@adrfile
+    \global\@notemptyoreoffalse
+    \global\@notreadyfalse
+  \fi}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\skip@empty@lines}
+%    This macro skips empty lines until it finds either a non-empty
+%    line or the end of the file. If necessary it sets the
+%    |\if@notready| flag. The last line read is left in |\M@line|.
+%    \begin{macrocode}
+\def\skip@empty@lines{%
+  {\loop
+    \endlinechar=-1
+    \ifeof\M@adrfile
+      \global\@notreadyfalse
+      \@tempswafalse
+    \else
+      \global\@notreadytrue
+      \global\read\M@adrfile to\M@line
+      \ifx\M@line\@empty
+        \@tempswatrue
+      \else
+        \@tempswafalse
+      \fi
+    \fi
+    \if@tempswa
+    \repeat}%
+  }
+%    \end{macrocode}
+%  \end{macro}
+%
+% \Finale
+\endinput

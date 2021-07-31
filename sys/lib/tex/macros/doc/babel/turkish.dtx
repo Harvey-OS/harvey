@@ -1,0 +1,367 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{279}
+%%% \iffalse ===========================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Mustafa Burc",
+%%%     author-2        = "Braams J.L.",
+%%%     version         = "1.2b",
+%%%     date            = "26 June 1994",
+%%%     time            = "02:11:18 MET",
+%%%     filename        = "turkish.doc",
+%%%     address-1       = "Hamburg
+%%%                        Germany",
+%%%     address-2       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone-1     = "(40) 2503476",
+%%%     telephone-2     = "(70) 3325051",
+%%%     FAX-2           = "(70) 3326477",
+%%%     checksum        = "54850 334 1418 12575",
+%%%     email-1         = "rz6001@rziris01.rrz.uni-hamburg.de",
+%%%     email-2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, turkish",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the turkish language
+%%%                        specific definitions for the babel system.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{turkish.dtx}
+% \def\fileversion{v1.2b}
+% \def\filedate{1994/06/04}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source
+%    code for the Turkish language-specific file.
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{turkish.dtx}
+\end{document}
+%</filedriver>
+%\fi
+% \changes{turkish-1.2}{1994/02/27}{Update for LaTeX2e}
+% \changes{turkish-1.2c}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved identification after the loading of babel.def}
+%
+%  \section{The Turkish language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion\ and was last revised on
+%    \filedate.}  defines all the language-specific macros for the
+%    Turkish language\footnote{Mustafa Burc, {\tt
+%    rz6001@rziris01.rrz.uni-hamburg.de} provided the code for this
+%    file. It is based on the work by Pierre Mackay}.
+%
+%    Turkish typographic rules specify that a little `white space'
+%    should be added before the characters `{\tt:}', `{\tt!}' and
+%    `{\tt=}'. In order to insert this white space automatically these
+%    characters are made `active'. Also |\frenhspacing| is set.
+%
+% \StopEventually{}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionsturkish| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+%    \begin{macrocode}
+\ifx\undefined\captionsturkish
+\else
+  \selectlanguage{turkish}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \begin{macro}{\atcatcode}
+%    This file, \file{turkish.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read.  We save the category code of the @-sign in |\atcatcode|
+%    and make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt turkish} is the first language option
+%    to be processed. In that case we need to read \file{babel.def}
+%    right here before we continue.
+%
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{turkish.sty}[1994/06/26 v1.2c
+         Turkish support from the babel system]
+%    \end{macrocode}
+%
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it.
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty\fi
+\originalTeX
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by the |\usepackage|
+%    command, {\tt turkish} could be an `unknown' language in which
+%    case we have to make it known. So we check for the existence of
+%    |\l@turkish| to see whether we have to do something here.
+%
+% \changes{turkish-1.2c}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@turkish
+  \@nopatterns{Turkish}
+  \adddialect\l@turkish0\fi
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the Turkish language.
+%
+% \begin{macro}{\captionsturkish}
+%    The macro |\captionsturkish| defines all strings used in the four
+%    standard documentclasses provided with \LaTeX.
+% \changes{turkish-1.1}{15 jul 93}{`headpagename should be `pagename}
+% \changes{turkish-1.2b}{1994/06/04}{Added braces behind \cs{i} in
+%    strings}
+%    \begin{macrocode}
+\addto\captionsturkish{%
+  \def\prefacename{Preface}% <-- This needs translation!!
+  \def\refname{Ba\c svurulan Kitaplar}%
+  \def\abstractname{Konu}%
+  \def\bibname{Bibliografi}%
+  \def\chaptername{Anab\"ol\"um}%
+  \def\appendixname{Appendix}%
+  \def\contentsname{\.I\c cindekiler}%
+  \def\listfigurename{\c Sekiller Listesi}%
+  \def\listtablename{Tablolar\i{}n Listesi}%
+  \def\indexname{\.Index}%
+  \def\figurename{\c Sekiller}%
+  \def\tablename{Tablo}%
+  \def\partname{B\"ol\"um}%
+  \def\enclname{Ekler}%
+  \def\ccname{G\"onderen}%
+  \def\headtoname{Al\i{}c\i}%
+  \def\pagename{Sayfa}%
+  \def\subjectname{To}% <-- This needs translation!!
+  \def\seename{see}% <-- This needs translation!!
+  \def\alsoname{see also}% <-- This needs translation!!
+}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateturkish}
+%    The macro |\dateturkish| redefines the command |\today| to
+%    produce Turkish dates.
+% \changes{turkish-1.2b}{1994/06/04}{Added braces behind \cs{i} in
+%    strings}
+%    \begin{macrocode}
+\def\dateturkish{%
+  \def\today{\number\day.~\ifcase\mont\or
+    Ocak\or \c Subat\or Mart\or Nisan\or May\i{}s\or Haziran\or
+    Temmuz\or A\u gustos\or Eyl\"ul\or Ekim\or Kas\i{}m\or
+    Aral\i{}k\fi
+    \space\number\year}}
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasturkish}
+% \begin{macro}{\noextrasturkish}
+%    The macro |\extrasturkish| will perform all the extra definitions
+%    needed for the Turkish language. The macro |\noextrasturkish| is
+%    used to cancel the actions of |\extrasturkish|.
+%
+%    Turkish typographic rules specify that a little `white space'
+%    should be added before the characters `{\tt:}', `{\tt!}' and
+%    `{\tt=}'. In order to insert this white space automatically these
+%    characters are made `active', so they have to be treated in a
+%    special way.
+%    \begin{macrocode}
+\addto\extrasturkish{%
+  \babel@add@special\:%
+  \babel@add@special\!%
+  \babel@add@special\=}
+%    \end{macrocode}
+%    When |\noextrasturkish| is executed they are no longer `special'.
+%    \begin{macrocode}
+\addto\noextrasturkish{%
+  \babel@remove@special\:%
+  \babel@remove@special\!%
+  \babel@remove@special\=}
+%    \end{macrocode}
+%
+%    Before the category codes of these characters can be changed ,
+%    their current category code needs to be stored, in order to
+%    restore them later.
+%    \begin{macrocode}
+\addto\extrasturkish{%
+  \babel@savevariable{\catcode`\:}\babel@save\active@co
+  \babel@savevariable{\catcode`\!}\babel@save\active@em
+  \babel@savevariable{\catcode`\=}\babel@save\active@es
+}
+%    \end{macrocode}
+%    Now that the category codes are stored we can assign new category
+%    codes to these characters.
+% \changes{turkish-1.1}{11 jul 93}{When active characters are defined
+%    they should be active. Redid the coding.}
+%    \begin{macrocode}
+\addto\extrasturkish{\catcode`\:\active\catcode`\!\active
+                     \catcode`\=\active}
+%    \end{macrocode}
+%    And they can be defined.
+%    \begin{macrocode}
+\begingroup
+  \catcode`\:\active
+  \catcode`\!\active
+  \catcode`\=\active
+  \def\x{\endgroup
+    \addto\extrasturkish{%
+      \babel@save:\babel@save!\babel@save=%
+      \def:{\protect\active@co}\let\active@co\turkish@active@co
+      \def!{\protect\active@em}\let\active@em\turkish@active@em
+      \def={\protect\active@es}\let\active@es\turkish@active@es}}
+\x
+%    \end{macrocode}
+%    For Turkish texts |\frenchspacing| should be in effect. We
+%    make sure this is the case and reset it if necessary.
+%    \begin{macrocode}
+\addto\extrasturkish{%
+  \ifnum\the\sfcode`\.=\@m
+    \frenchspacing
+    \addto\noextrasturkish{\nonfrenchspacing}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\turkish@active@co}
+% \begin{macro}{\turksih@active@em}
+% \begin{macro}{\turkish@active@es}
+%    The definitions for the three active characters were made using
+%    intermediate macros. These are defined now. The insertion of
+%    extra `white space' should only happen outside math mode, hence
+%    the check |\ifmmode| in the macros.
+%    \begin{macrocode}
+\turkish@active@co{\ifmmode\string:\else\relax
+    \ifhmode\ifdim\lastskip>\z@
+    \unskip\penalty\@M\thinspace\fi\fi\string:\fi}
+\def\turkish@active@em{\ifmmode\string!\else\relax
+     \ifhmode\ifdim\lastskip>\z@
+    \unskip\penalty\@M\thinspace\fi\fi\string!\fi}
+\def\turkish@active@es{\ifmmode\string=\else\relax
+    \ifhmode\ifdim\lastskip>\z@
+    \unskip\kern\fontdimen2\font
+     \kern-1.4\fontdimen3\font
+    \fi\fi
+    \string=\fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+%    Our last action is to activate the commands we have just defined,
+%    by calling the macro |\selectlanguage|.  Next the \babel{} macro
+%    |\selectlanguage| is used to activate the definitions for
+%    Turkish.
+%    \begin{macrocode}
+\selectlanguage{turkish}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+%    \begin{macrocode}
+\catcode`\@\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

@@ -4,10 +4,8 @@
 #include "diff.h"
 
 static int
-itemcmp(void *v1, void *v2)
+itemcmp(char **d1, char **d2)
 {
-	char **d1 = v1, **d2 = v2;
-
 	return strcmp(*d1, *d2);
 }
 
@@ -81,13 +79,13 @@ diffdir(char *f, char *t, int level)
 		else
 			res = strcmp(from, to);
 		if (res < 0) {
-			if (mode == 0 || mode == 'n')
+			if (mode == 0)
 				Bprint(&stdout, "Only in %s: %s\n", f, from);
 			df++;
 			continue;
 		}
 		if (res > 0) {
-			if (mode == 0 || mode == 'n')
+			if (mode == 0)
 				Bprint(&stdout, "Only in %s: %s\n", t, to);
 			dt++;
 			continue;

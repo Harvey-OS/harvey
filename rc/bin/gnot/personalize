@@ -1,0 +1,26 @@
+#!/bin/rc
+
+switch($#*){
+case 1
+case *
+	echo usage: $0 usrname >[1=2]
+	exit usage
+}
+
+disk/kfscmd allow
+rm -fr /n/kfs/usr/*
+cat > /tmp/person.$1 <<EOF
+usr
+	$1
+		tmp
+		lib
+			+
+		bin
+			68020
+				+
+			rc
+				+
+EOF
+disk/mkfs /tmp/person.$1
+rm /tmp/person.$1
+disk/kfscmd allowoff

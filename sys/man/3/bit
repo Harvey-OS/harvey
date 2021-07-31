@@ -1,0 +1,595 @@
+.TH BIT 3 
+.SH NAME
+bit \- screen graphics, mouse
+.SH SYNOPSIS
+.nf
+.B bind -a #b /dev
+
+.B /dev/bitblt
+.B /dev/mouse
+.B /dev/mousectl
+.B /dev/screen
+
+.ft L
+#include <u.h>
+#include <libg.h>
+
+.ta \w'ushort 'u
+ushort	BGSHORT(uchar *p)
+ulong	BGLONG(uchar *p)
+void	BPSHORT(uchar *p, ushort v)
+void	BPLONG(uchar *p, ulong v)
+.ft P
+.fi
+.SH DESCRIPTION
+The
+.I bit
+device provides the files
+.BR bitblt ,
+.BR mouse ,
+.BR mousectl ,
+and
+.B screen
+on machines with a bitmapped screen
+and a mouse.
+The device is exclusive use.
+.PP
+The
+.I bit
+device provides, through the
+.B bitblt
+file, access to
+.IR bitmaps ,
+.IR fonts ,
+and
+.I subfonts
+in its private storage,
+as described in
+.IR graphics (2).
+Each object is identified by a short, its
+.IR id .
+The bitmap with id zero is special: it represents the visible display.
+The subfont with id zero is also special: it is initialized to
+a default subfont that is always available.
+There is no default font.
+There is also a cursor associated with the screen;
+it is always displayed at the current mouse position.
+A process can write messages to
+.B bitblt
+to allocate and free bitmaps, fonts, and subfonts,
+read or write portions of the bitmaps,
+and draw line segments,
+textures, and character strings in the bitmaps.
+All graphics requests are clipped to their bitmaps.
+Some messages return a response
+to be recovered by reading
+.BR bitblt .
+.PP
+The format of
+messages written to
+.B bitblt
+is a single lower case letter
+followed by binary parameters;
+multibyte integers are transmitted with the low order byte first.
+The
+.B BPSHORT
+and
+.B BPLONG
+macros place correctly formatted two- and four-byte integers into a character
+buffer.
+Some messages return a response formatted the same way;
+it usually starts with the upper case version of the request character.
+.B BGSHORT
+and
+.B BGLONG
+retrieve values from a character buffer.
+Points are two four-byte numbers:
+.IR x ,
+.IR y .
+Rectangles are four four-byte numbers: min 
+.IR x ,
+min
+.IR y ,
+max
+.IR x ,
+and max
+.IR y .
+.PP
+The following requests are accepted by the
+.B bitblt
+file.
+The numbers in brackets give the length in bytes of the parameters.
+.HP .5i
+.B a
+.IR ldepth [1]
+.IR rect [16]
+.br
+Allocate a bitmap.
+.I Ldepth
+is the log base 2 of the number of bits per pixel.
+.I Rect
+is a Rectangle giving the extent of the bitmap.
+The bitmap is cleared to all zeros.
+The id of the allocated bitmap is returned on a subsequent
+.I read
+from
+.BR bitblt ,
+returning the three bytes:
+.L A
+followed by the id.
+.HP
+.B b
+.IR dstid [2]
+.IR dstpt [8]
+.IR srcid [2]
+.IR srcrect [16]
+.IR code [2]
+.br
+Bit-block transfer
+.RB ( bitblt )
+from a rectangle in the bitmap identified by
+.I srcid
+to a congruent
+rectangle at Point
+.B dstpt
+in the bitmap identified by
+.IR dstid .
+The rectangle is clipped against both
+source and destination bitmaps. See
+.IR bitblt (2).
+.HP
+.B c
+[
+.IR pt [8]
+.IR clr [32]
+.IR set [32]
+]
+.br
+Switch mouse cursor.
+See the description of
+.B Cursors
+in
+.IR graphics (2)
+for the meaning of the
+.I pt
+(the offset),
+.IR set ,
+and
+.I clr
+arguments.
+If only
+.L c
+is provided \(em that is, if the message is one byte long \(em
+the cursor changes to the default, typically an arrow.
+.HP
+.B e
+.IR id [2]
+.IR pt [8]
+.IR value [1]
+.IR code [2]
+.IR n [2]
+.IR pts [ n *2]
+.br
+Join the
+.IR n +1
+points
+.I pt
+and
+.I pts
+with
+.I n
+segments, exactly as for the
+.I l
+operator.  The
+.I pts
+are specified by pairs of signed bytes
+holding offsets from the previous point in the list.
+.HP
+.B f
+.IR id [2]
+.br
+Free the resources associated with the allocated bitmap
+identified by
+.IR id .
+.HP
+.B g
+.IR id [2]
+.br
+Free the resources associated with the allocated subfont identified by
+.IR id ,
+including its bitmap.
+If the subfont is cached,
+the associated data may be recoverable even after it has
+been freed; see below.
+.HP
+.B h
+.IR id [2]
+.br
+Free the resources associated with the allocated font identified by
+.IR id .
+.HP
+.B i
+.br
+Initialize the device.
+The next operation on
+.B bitblt
+should be a
+.IR read (2).
+A read of length 34 returns information about the display:
+.RS 1i
+.B I
+.IR ldepth [1]
+.IR rect [16]
+.IR cliprect [16].
+.RE
+.IP
+If the read count is large enough, the above information is followed
+by the header and character information of the default
+.BR Subfont ,
+in the format expected by
+.I rdsubfontfile
+(see
+.IR subfalloc (2)
+and
+.IR font (6)).
+`Large enough' is 36 +
+.RI 6 n ,
+where
+.I n
+is the number of characters in the subfont.
+The ids of the screen bitmap and default subfont are both zero.
+.HP
+.B j
+.IR q0 [4]
+.IR q1 [4]
+.br
+Check to see whether a subfont with tags
+.I q0
+and
+.I q1
+is in the cache.
+If it is not, the write of the
+.B j
+message will draw an error.
+If it is, the next read of
+.B bitblt
+will return
+.RS 1i
+.B J
+.IR id [2]
+.RE
+.IP
+followed by the subfont information in the same format
+as returned by an init message; the subfont will then be available
+for use.
+.HP
+.B k
+.IR n [2]
+.IR height [1]
+.IR ascent [1]
+.IR bitmapid [2]
+.IR q0 [4]
+.IR q1 [4]
+.IR info [6*( n +1)]
+.br
+Allocate subfont.
+The parameters are as described in
+.IR subfalloc (2),
+with
+.I info
+in external subfont file format.
+.I Bitmapid
+identifies a previously allocated bitmap containing the character images.
+.I Q0
+and
+.I q1
+are used as labels for the subfont in the cache; if all ones,
+the subfont will not be cached and hence shared with other applications.
+The id of the allocated subfont is recovered by reading
+from
+.B bitblt
+the three bytes:
+.L K
+followed by the id.
+Henceforth, the bitmap with id
+.I bitmapid
+is unavailable to the application; in effect, it has been freed.
+.HP
+.B l
+.IR id [2]
+.IR pt1 [8]
+.IR pt2 [8]
+.IR value [1]
+.IR code [2]
+.br
+Draw a line segment from Point
+.I pt1
+to Point
+.IR pt2 ,
+using
+.I code
+for the drawing function, and
+.I value
+as the source pixel. See
+.I segment
+in
+.IR bitblt (2).
+.I Id
+identifies the destination bitmap.
+.HP
+.B m
+.IR id [2]
+.br
+Read the colormap associated with the bitmap with the specified
+.IR id .
+The next read of
+.B bitblt
+will return
+.if t 12×2\u\s-2\fIn\fP\s+2\d
+.if n 12*2^\fIn\fP
+bytes of colormap data where
+.I n
+is the number of bits per pixel in the bitmap.
+.HP
+.B n
+.IR height [1]
+.IR ascent [1]
+.IR ldepth [2]
+.IR ncache [2]
+.br
+Allocate a font with the given
+.IR height ,
+.IR ascent ,
+and
+.IR ldepth .
+The id of the allocated font is recovered by reading
+from
+.B bitblt
+the three bytes:
+.L N
+followed by the id.
+The initial cache associated with the font will have
+.I ncache
+character entries of zero width.
+.HP
+.B p
+.IR id [2]
+.IR pt [8]
+.IR value [1]
+.IR code [2]
+.br
+Change the pixel at Point
+.I pt
+using
+.I code
+for the drawing function, and
+.I value
+as the source pixel. See
+.I point
+in
+.IR bitblt (2).
+.HP
+.B q
+.IR id [2]
+.IR rect [16]
+.br
+Set the clipping rectangle for the bitmap with specified
+.I id
+to the given rectangle, which will itself be clipped to the
+bitmap's image rectangle.
+.HP
+.B r
+.IR id [2]
+.IR miny [4]
+.IR maxy [4]
+.br
+Read rows
+.IR ymin ,
+.IR ymin "+1, ..."
+.IR ymax \-1
+of the bitmap with the given bitmap id.
+See the description of
+.I rdbitmap
+in
+.IR balloc (2).
+A subsequent read of
+.B bitblt
+will return the requested rows of pixels.
+Note: in this case, the response does not begin with an
+.LR R ,
+to simplify the reading of large bitmaps.
+Also, the reply may be too large to fit in a single 9P message (see
+.IR read (5)),
+so multiple reads may be necessary; each read will return
+only complete rows.
+.HP
+.B s
+.IR id [2]
+.IR pt [8]
+.IR fontid [2]
+.IR code [2]
+.IR n [2]
+.IR indices [2* n ]
+.br
+Draw using code
+.I code
+in the bitmap identified by
+.I id
+the text string
+specified by the
+.I n
+cache
+.I indices
+in font
+.IR fontid ,
+starting with the upper left corner at
+.IR pt .
+.HP
+.B t
+.IR dstid [2]
+.IR rect [16]
+.IR srcid [2]
+.IR code [2]
+.br
+Texture the given rectangle in the bitmap
+identified by
+.I dstid
+by overlaying a tiling
+of the bitmap identified by
+.I srcid
+(aligning (0,0) in the two bitmaps), and using
+.I code
+as a drawing code for
+.IR bitblt ;
+see
+.I texture
+in
+.IR bitblt (2).
+.HP
+.B v
+.IR id [2]
+.IR ncache [2]
+.IR width [2]
+.br
+Reset, resize, and clear the cache for font
+.IR id ;
+the maximum width of the
+.I ncache
+characters the cache may hold is set to
+.IR width .
+Must be done before the first load of a cache slot.
+If the cache cannot be resized, the write of this message
+will fail but the cache will be unaffected.
+.HP
+.B w
+.IR id [2]
+.IR miny [4]
+.IR maxy [4]
+.IR data [ n ]
+.br
+Replace rows
+.IR ymin ,
+.IR ymin "+1, ..."
+.IR ymax \-1
+of the bitmap with the given bitmap
+.I id
+with the values in
+.IR data .
+See the description of
+.I wrbitmap
+in
+.IR balloc (2).
+.HP
+.B x
+.IR x [4]
+.IR y [4]
+.br
+Move the cursor so its origin is at
+.RI ( x , y ).
+.HP
+.B y
+.IR id [2]
+.IR cacheindex [2]
+.IR subfontid [2]
+.IR subfontindex [2]
+.br
+Load the description and image of character
+.I subfontindex
+in subfont
+.I subfontid
+into slot
+.I cacheindex
+of font
+.IR id .
+.HP
+.B z
+.IR id [2]
+.IR map [ m ]
+.br
+Replace the colormap associated with bitmap
+.I id
+with
+.IR map ,
+which contains
+.if t \fIm\fP=12\(mu2\u\s-2\fIn\fP\s+2\d
+.if n \fIm\fP=12*2^\fIn\fP
+bytes of colormap data (see
+.IR rgbpix (2)
+for the format).
+.PP
+A read of the
+.B mouse
+file returns the mouse status: its position and button state.
+The read blocks until the state has changed since the last read.
+The read returns 14 bytes:
+.RS
+.B m
+.IR buttons [1]
+.IR x [4]
+.IR y [4]
+.IR msec [4]
+.RE
+where
+.I x
+and
+.I y
+are the mouse coordinates in the screen bitmap,
+.I msec
+is a time stamp, in units of milliseconds, and
+.I buttons
+has set the 1, 2, and 4 bits when the mouse's left, middle, and right
+buttons, respectively, are down.
+.PP
+Writing to the
+.B mousectl
+file configures and controls the mouse.
+The messages are:
+.IP
+.B serial \fIn\fR
+sets serial port
+.I n
+to be the mouse port.
+.IP
+.B ps2
+sets the PS2 port to be the mouse port.
+.IP
+.B accelerated
+turns on mouse acceleration.
+.IP
+.B linear
+turns off mouse acceleration
+.IP
+.B res \fIn\fR
+sets mouse resolution to a setting between 0 and
+3 inclusive.
+.IP
+.B swap
+swaps the left and right buttons on the mouse.
+.br
+Which messages are implemented is machine-dependent.
+.PP
+The
+.B screen
+file contains the screen bitmap in the format described in
+.IR bitmap (6).
+.SH SOURCE
+.B /sys/src/9/port/devbit.c
+.SH DIAGNOSTICS
+Most messages to
+.B bitblt
+can return errors;
+these can be detected by a system call error
+on the
+.IR write (see
+.IR read (2))
+of the data containing the erroneous message.
+The most common error is a failure to allocate
+because of insufficient free resources.  Most other errors occur
+only when the protocol is mishandled by the application.
+.IR Errstr (2)
+will report details.
+.SH BUGS
+Because each message must fit in a single 9P message,
+subfonts are limited to about 1300 characters.
+.br
+Can only change the color map of bitmap 0.

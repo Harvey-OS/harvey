@@ -1,0 +1,108 @@
+.TH APLOT 9.1
+.SH NAME
+aplot \- isometric plots of data arrays
+.SH SYNOPSIS
+.B fb/aplot
+[
+.B -a
+]
+[
+.BI -l lightfile
+] [
+.BI -t type
+] [
+.BI -r range
+] [
+.B -w
+.I x0 y0 x1 y1
+]
+.I file
+.SH DESCRIPTION
+.I Aplot
+draws an anti-aliased isometric perspective plot of the square array of elevations that it
+reads from
+.IR file .
+The output is a picture file, written on standard output.
+.PP
+Option
+.B -t
+specifies the type of the data in the binary file.  Possible
+.I types
+are
+.IP
+.EX
+s	short
+i	int
+l	long
+f	float
+d	double
+c	char
+u	unsigned char
+.EE
+.PP
+The default is
+.BR "-t f" .
+.PP
+Option
+.B -w
+sets the
+.B WINDOW=
+attribute of the output image.
+By default, the image is drawn in a 640\(mu512 window.
+.PP
+Normally, the data is scaled to make the plot fill the window.
+This default scaling can be overridden by option
+.BR -r ,
+in which case the data is scaled so that
+.I range
+is the magnitude of data values that would make a plot that just
+fills the window vertically.
+.PP
+Option
+.B -l
+gives the name of a file describing how to shade the surface and how
+shiny the surface is.
+By default, a not-at-all shiny surface is lit from above by a single light source.
+The
+.I lightfile
+contains lines of the following forms:
+.TP
+.BI light " x y z brightness
+specifies light source of the given brightness shining in direction
+.RI ( x , y , z\f1).
+There can be up to 16 light sources.
+The default light is in direction (2,3,9) and has brightness 1.
+.TP
+.BI ambient " brightness
+specifies the brightness of then ambient (non-directional) light.
+The default is 0.02.
+.TP
+.BI diff " reflectance
+sets the amount of diffuse reflection from the surface.
+The default is 0.98.
+.TP
+.BI spec " reflectance
+sets the amount of specular reflection from the surface.
+The default is 0.
+.TP
+.BI bump " height
+sets the width of the specular reflection bump.  Larger numbers
+produce tighter (less diffuse) bumps.  The default is 80.
+.PP
+Option
+.B -a
+suppresses writing an
+.I alpha
+channel into the output file.
+By default, the output has
+.BR CHAN=ma .
+.SH SOURCE
+.B /sys/src/fb/aplot.c
+.SH "SEE ALSO
+.IR picfile (9.6),
+.IR filters (9.1)
+.SH BUGS
+Input files are assumed to use native byte order and
+floating point format, and so are not transportable,
+except under option
+.BR "-t u" .

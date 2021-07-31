@@ -1,0 +1,154 @@
+%!
+%%BoundingBox: 126 246 486 546
+% Cookbook Example Program from First Printing, Revised 7 Jan 1985
+% Program: Drawing a Pie Chart     Number: 18
+%-----------------------------------------------------------------------------
+%
+/PieDict 24 dict def                        % Local storage for
+					    % ``DrawPieChart'' and its related
+					    % procedures.
+PieDict begin
+  /DrawSlice                                % DrawSlice draws an outlined and
+    { /grayshade exch def                   % filled-in pie slice. It takes
+      /endangle exch def                    % four operands: the label for
+      /startangle exch def                  % this particular pie slice, the
+      /thelabel exch def                    % starting angle for the slice,
+					    % the ending angle for the slice
+					    % and the shade of gray the slice
+					    % should be.
+							
+      newpath                               % Create a path which will draw a
+					    % pie slice.
+	0 0 moveto
+	0 0 radius startangle endangle arc
+      closepath
+	       
+      1.415 setmiterlimit                   % This guarantees that when we
+					    % outline the pie slices with a
+					    % stroke that we will not get a
+					    % spike on the interior angles.
+      gsave grayshade setgray fill grestore % Fill the pie slice path with the
+      stroke                                % appropriate gray color. By using
+					    % gsave and grestore we don't lose
+					    % the current path. Since
+					    % PostScript paints color onto the
+					    % page, it is very important that
+					    % we fill the pie slice first and
+					    % then outline it with a stroke.
+      gsave                                 % Draw the tick mark and place the
+					    % label:
+	startangle endangle add 2 div       % Find the center of the pie slice
+	  rotate                            % and rotate so that the x-axis
+					    % coincides with this center.
+	radius 0 translate                  % Translate the origin out to the
+					    % circumference.
+	newpath
+	  0 0 moveto labelps .8 mul 0 lineto% Draw the tick-mark.
+	stroke
+	labelps 0 translate                 % Move the origin out a little
+					    % beyond the circumference.
+	0 0 transform                       % Next we wish to place the label
+      grestore                              % at the current origin. If we
+      itransform                            % simply draw the text on the page
+      /y exch def /x exch def               % now, it would come out rotated.
+      x y moveto                            % Since this is not desired we
+					    % avoid it by returning to the
+					    % previous unrotated coordinate
+					    % system. Before returning,
+					    % though, we would like to
+      x 0 lt                                % remember the position of the
+	{ thelabel stringwidth pop neg      % current origin on the printed
+	    0 rmoveto                       % page. We will accomplish this by
+	} if                                % using the transform and
+					    % itransform operators. Performing
+					    % a transform on the origin pushes
+					    % the coordinates of the origin in
+					    % device space onto the operand
+					    % stack. Performing a grestore
+					    % returns us to the previous
+					    % unrotated coordinate system.
+					    % Next we perform an itransform on
+					    % the two device coordinates left
+					    % on the stack to determine where
+					    % we are in the current coordinate
+					    % system.
+      y 0 lt { 0 labelps neg rmoveto } if   % Make some adjustments so that
+      thelabel show                         % the label text won't collide
+    } def                                   % with the pie slice.
+  /findgray                                 % Procedure findgray calculates
+    { /i exch def /n exch def               % the gray value for a slice. It
+      i 2 mod 0 eq                          % takes two arguments: the total
+	{ i 2 div n 2 div round add n div } % number of slices and the current
+	{ i 1 add 2 div n div }             % slice number (Given that there
+	ifelse                              % are n pie slices, the slices are
+    } def                                   % ``numbered'' from 1 to n). The
+end                                         % gray values for the pie slices
+					    % range evenly from white to black
+					    % (i.e. - the values provided to
+					    % setgray range from (n/n, n-1/n,
+					    % ..., 1/n)). Since we don't want
+					    % similar values of gray next to
+					    % each other, findgray
+					    % ``shuffles'' the possible
+					    % combinations of gray.
+								   
+/DrawPieChart                               % DrawPieChart takes seven
+  { PieDict begin                           % arguments: the title of the pie
+      /radius exch def                      % chart, the point size to print
+      /ycenter exch def /xcenter exch def   % the title in, the point size to
+      /PieArray exch def                    % print the labels for each slice
+      /labelps exch def /titleps exch def   % in, a special array (described
+      /title exch def                       % below where DrawPieChart is
+					    % called), the (x,y) center of the
+					    % pie chart and the radius of the
+					    % pie chart.
+							
+      gsave
+	xcenter ycenter translate           % Translate the coordinate system
+					    % origin to center of pie chart.
+	/Helvetica findfont titleps         % Print the title of the pie chart
+	  scalefont setfont                 % in Helvetica.
+	title stringwidth pop 2 div neg     % Center the title below the pie
+					    % chart.
+	  radius neg titleps 3 mul sub
+	  moveto title show
+	/Helvetica findfont labelps         % Print the individual pie slice
+	  scalefont setfont                 % labels in Helvetica
+	/numslices PieArray length def
+	/slicecnt 0 def
+	/curangle 0 def                     % A ``loop'' variable that keeps
+					    % track of the angle of arc to
+					    % begin each pie slice at.
+	PieArray                            % Repeat the following for each
+					    % element in the PieArray.
+	  { /slicearray exch def
+	    slicearray aload pop            % Push the label and percentage
+					    % onto the stack.
+	    /percent exch def
+	    /label exch def
+	    /perangle percent 360 mul def   % Convert the percentage into
+					    % degrees of angle.
+	    /slicecnt slicecnt 1 add def
+	    label curangle
+	      curangle perangle add
+	      numslices slicecnt findgray
+	      DrawSlice
+	    /curangle curangle perangle add % Update the current starting
+					    % angle.
+	      def
+	  } forall
+      grestore
+    end
+  } def
+       
+() 18 9
+  [ [(Blueberry) .12 ]                      % The pie array is an array of
+    [(Cherry) .30 ]                         % arrays. Each array in the pie
+    [(Apple) .26 ]                          % array contains a string denoting
+    [(Boston Cream) .16 ]                   % the label to be printed next to
+    [(Other) .04 ]                          % the pie slice followed by a real
+    [(Vanilla Cream) .12 ]                  % number indicating the percentage
+  ] 306 396 100 DrawPieChart                % of the pie represented by this
+					    % particular slice.
+showpage
+

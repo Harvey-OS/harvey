@@ -1,0 +1,297 @@
+% \iffalse meta-comment
+%
+% Copyright 1994 the LaTeX3 project and the individual authors.
+% All rights reserved. For further copyright information see the file
+% legal.txt, and any other copyright indicated in this file.
+% 
+% This file is part of the LaTeX2e system.
+% ----------------------------------------
+% 
+%  This system is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see bugs.txt.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+ 
+\documentclass{ltxguide}[1994/11/20]
+
+\newcommand{\filesection}[1]{\subsection{\sffamily#1}}
+\newcommand{\iniTeX}{ini\TeX}
+
+\title{Configuration options for \LaTeXe}
+ 
+\author{\copyright~Copyright 1994, \LaTeX3 Project Team.\\
+   All rights reserved.}
+ 
+\date{13 December 1994}
+ 
+\begin{document}
+ 
+\maketitle
+ 
+\tableofcontents
+
+\newpage
+ 
+\section{Configuring \LaTeX}
+
+Since one of the main aims of the new standard \LaTeX{} is to provide
+a highly portable document format, the number of configuration
+possibilities is strictly limited.  An important consequence of this
+is that any document that relies on any extension package must declare
+this package within the document file; this helps to ensure that the
+document will work at a different site, where the \LaTeX{} system may
+be configured differently.
+
+Local configuration options are, by convention, placed in
+`configuration files', which have extension |cfg|. This file lists the
+possibilities for configuration in the most recent release of \LaTeX.
+
+\section{System configuration}
+
+\filesection{texsys.cfg}
+
+This is the only configuration file that \emph{must} be present.
+During installation, if \LaTeX\ can not find a file with this name
+then a default file |texsys.cfg|, consisting entirely of comments, is
+written out and used. Note that, until this file has been read,
+\LaTeX{} is not able to test reliably whether a given file exists on
+the system.
+
+The contents of the file |texsys.cfg| allow \LaTeX{} to cope with
+various differences between the behaviour of different \TeX{} systems,
+mainly in relation to file handling.  The default version of this file
+contains, in its comments, possible settings that may be needed for a
+range of \TeX{} systems.  For more information, typeset the file
+|ltdirchk.dtx|.
+
+If you have copied your \LaTeX{} installation from a computer that
+used a different operating system then you may well have a version of
+|texsys.cfg| that will make it difficult to create the \LaTeX{} format
+on your system.  If this happens then start the process again with an
+empty |texsys.cfg| file; this will produce a format that should always
+`work' and, at least, allow you to typeset the documentation.  However,
+it is possible be that \LaTeX{} can find only those files that are in
+the current directory.  In that case you must set the macro
+|\input@path| correctly for your system.
+
+
+
+\section{Configuring the \LaTeX\ format}
+
+There are four configuration files to control personal preferences
+that may be incorporated into the \LaTeX{} format file, |latex.fmt|.
+The range of preferences that can be configured by these files is
+strictly limited to ensure document portability.
+
+All four files work in the same way: if the file \m{file}|.cfg| is
+found, it will be input by \iniTeX; otherwise a default file
+\m{file}|.ltx| will be input instead. Thus providing one of these
+|.cfg| files completely overrides any settings in the corresponding
+standard |.ltx| file.
+
+\filesection{fonttext.cfg}
+
+The file |fonttext.cfg| contains declarations relating to the use of
+fonts in text modes.
+
+It defines which font shapes are normally used in text mode, as well
+as the behavior of font attribute commands such as |\textbf| etc. It
+can be used, for example, to produce a \LaTeX\ format that by default
+typesets documents in Times.
+
+Please note that use of this configuration file has the following
+consequences.
+   \begin{itemize}
+   \item Documents are portable only in the sense of being processable
+     at a different site---the actual formatting will not be the same
+     if different fonts are used.
+   \item The \LaTeX3 project team will not be able to support you in
+     diagnosing problems if these cannot be reproduced with a format
+     that does not use this configuration file.
+   \end{itemize}
+   
+The default file |fonttext.ltx| comes from the documented file
+|fontdef.dtx| so this file should be consulted for further
+information.
+
+\filesection{fontmath.cfg}
+
+The file |fontmath.cfg| contains declarations relating to the use of
+fonts in math mode.
+
+It defines which font shapes are used in math mode.  It also defines
+all the math mode commands that `are likely to' depend on the choice
+of math fonts used (e.g.~commands that depend on the position of a
+glyph in a math font).
+
+The main reason for the existence of this file is to provide for future
+updates when a standard math font encoding is available. Right now we
+do \emph{not} encourage the use of this configuration file other than
+for special applications. Writing a proper configuration file for math
+mode needs expert knowledge!
+
+Please note that use of this configuration file has the following
+consequences.
+   \begin{itemize}
+   \item Since the content of this configuration file is likely to
+     change in the future, anyone writing such a file must be prepared
+     to update it for use with future releases.
+   \item Documents are portable only in the sense of being processable
+     at a different site---the actual formatting will not be the same
+     if different fonts are used.
+   \item The \LaTeX3 project team will not be able to support you in
+     diagnosing problems if these cannot be reproduced with a format
+     that does not use this configuration file.
+   \end{itemize}
+
+The default file |fontmath.ltx| comes from the documented file
+|fontdef.dtx| so this file should be consulted for further
+information.
+
+\filesection{preload.cfg}
+
+The contents of the file |preload.cfg| control the preloading of
+commonly used fonts.  Preloading fonts speeds up the processing of
+documents but, because fonts can not be `unloaded', you should not
+preload too many; otherwise you may be unable to process documents
+requiring unusual font families.
+
+The default file |preload.ltx| is produced from |preload.dtx|.  It
+loads only a few fonts and these are a good choice if you normally use
+documents at the default, 10\,pt, size. If you normally use 11\,pt or
+12\,pt then the time for \LaTeX\ to startup may be noticeably
+decreased if you preload the corresponding fonts for the sizes you
+use.  Similarly, if you normally use a different font family, for
+example Times Roman, |ptm|, then you may want to preload fonts in this
+family rather than the default Computer Modern fonts.
+
+\filesection{hyphen.cfg}
+
+The contents of the file |hyphen.cfg| control which hyphenation
+patterns are loaded.  Since patterns can be loaded only by \iniTeX,
+this choice must be made when the format is created.  The `babel'
+collection contains many examples of setting up a multi-lingual
+\LaTeX\ format.
+
+The default file |hyphen.ltx| is produced from the file |lthyphen.dtx|.
+
+\section{Configuring Compatibility mode}
+
+When processing documents that begin with |\documentstyle|, \LaTeXe{}
+tries to emulate the old \LaTeX\,2.09 system as far as possible.
+
+\filesection{latex209.cfg}
+
+The \LaTeX\,2.09 set-up allowed the format itself to be customised.
+When making the format with \iniTeX, the process ended with this
+request.
+   \begin{quote}
+   \tt  Input any local modifications here.
+   \end{quote}
+If your site did input any modifications at that point, the \LaTeXe\
+`compatibility mode' will not fully emulate \LaTeX\,2.09 \emph{as
+installed at your site}.
+
+In this case you should put all these `local modifications' into a file
+called |latex209.cfg| and put this file in the default input path at
+your site.  These `local modifications', although not stored in the
+format, will then be loaded before any old-style document is processed.
+This should ensure that you can continue to process any old documents
+that made use of this local customisation.
+
+\section{Configuration files for standard packages and classes}
+
+Most of the packages in the distribution do not have any associated
+configuration files. The exceptions are listed here.
+
+\filesection{sfonts.cfg}
+
+This file is used to customise the fonts used in the slides class.
+If it exists, it is read instead of the file |sfonts.def|.
+
+\filesection{ltxdoc.cfg}
+
+The file |ltxdoc.cfg| is used to customise some aspects of the
+behaviour of the \textsf{ltxdoc} class; this class is used to typeset
+the documented code in the |.dtx| files.  If this file is present then
+it is read in at the beginning of the file |ltxdoc.cls|.
+
+As this file is read before the \textsf{article} class is loaded, you
+may pass options to \textsf{article}. For example the following line
+might be added to |ltxdoc.cfg| to format the documentation for A4 paper
+instead of the default US letter paper size.
+\begin{quote}
+|\PassOptionsToClass{a4paper}{article}|
+\end{quote}
+You should note however, that even if paper size options are specified,
+the \textsf{ltxdoc} class always sets the |\textwidth| parameter to
+355\,pt, to enable 72 columns of text to appear in the verbatim code
+listings. If you really need to over-ride this you could use:
+\begin{quote}
+|\AtEndOfClass{\setlength{\textwidth}{  }}|
+\end{quote}
+To set the |\textwidth| to your desired value at the end of the
+\textsf{ltxdoc} class.
+
+By default, most of the |.dtx| documented code files in the
+distribution will produce a `description' section followed by full
+source listing of the package.  If you wish to suppress the source
+listings you may add the following line to |ltxdoc.cfg|
+\begin{quote}
+|\AtBeginDocument{\OnlyDescription}|
+\end{quote}
+
+The documentation of the \textsf{ltxdoc} package, which may be typeset
+from the file |ltxdoc.dtx|, contains more examples of the use of this
+configuration file.
+
+\filesection{ltxguide.cfg}
+
+The class \textsf{ltxguide} is used by the `guide' documents, such as
+this document, in the \LaTeX\ distribution. A configuration file,
+|ltxguide.cfg|, may be used with this class in a way very similar to
+the customisation of the \textsf{ltxdoc} class described in the previous
+section.
+  
+\section{Configuration in other supported packages}
+
+The `graphics' bundle of packages needs two configuration files,
+primarily to specify the driver used to process the |.dvi| file that
+\LaTeX{} produces. More documentation on these files comes with the
+graphics bundle but we mention them here for completeness.
+
+\filesection{graphics.cfg}
+   Normally this file just specifies a default option, by calling
+   |\ExecuteOptions|, for example |\ExecuteOptions{dvips}| or
+   |\ExecuteOptions{textures}|.
+
+   This file is read by the \textsf{graphics} package, and so affects
+   all the packages in the bundle that are based on \textsf{graphics}:
+   \textsf{graphicx}, \textsf{epsfig}, \textsf{lscape}.
+
+\filesection{color.cfg}
+   Normally this file is identical to |graphics.cfg|. It specifies the
+   default driver option for the colour package.
+
+\end{document}

@@ -4,81 +4,72 @@
  * multiple cat devices
  */
 void
-mcatinit(Device *d)
+mcatinit(Device dev)
 {
-	Device *x, **list;
+	int lb, hb;
 
-	d->cat.ndev = 0;
-	for(x=d->cat.first; x; x=x->link) {
-		devinit(x);
-		d->cat.ndev++;
-	}
-
-	list = ialloc(d->cat.ndev*sizeof(Device*), 0);
-	d->private = list;
-	for(x=d->cat.first; x; x=x->link) {
-		*list++ = x;
-		x->size = devsize(x);
+	print("mcat init\n");
+	lb = dev.unit;
+	hb = dev.part;
+	while(lb < hb) {
+		devinit(cwdevs[lb]);
+		lb++;
 	}
 }
 
 long
-mcatsize(Device *d)
+mcatsize(Device dev)
 {
-	Device *x;
-	long l, m;
+	int lb, hb;
+	long l;
 
+	lb = dev.unit;
+	hb = dev.part;
 	l = 0;
-	for(x=d->cat.first; x; x=x->link) {
-		m = x->size;
-		if(m == 0) {
-			m = devsize(x);
-			x->size = m;
-		}
-		l += m;
+	while(lb < hb) {
+		l += devsize(cwdevs[lb]);
+		lb++;
 	}
 	return l;
 }
 
 int
-mcatread(Device *d, long b, void *c)
+mcatread(Device dev, long b, void *c)
 {
-	Device *x;
+	int lb, hb;
 	long l, m;
 
+	lb = dev.unit;
+	hb = dev.part;
 	l = 0;
-	for(x=d->cat.first; x; x=x->link) {
-		m = x->size;
-		if(m == 0) {
-			m = devsize(x);
-			x->size = m;
-		}
+	while(lb < hb) {
+		m = devsize(cwdevs[lb]);
 		if(b < l+m)
-			return devread(x, b-l, c);
+			return devread(cwdevs[lb], b-l, c);
 		l += m;
+		lb++;
 	}
-	print("mcatread %ld %ld\n", b, l);
+	print("mcatread %ld %ld", b, lb);
 	return 1;
 }
 
 int
-mcatwrite(Device *d, long b, void *c)
+mcatwrite(Device dev, long b, void *c)
 {
-	Device *x;
+	int lb, hb;
 	long l, m;
 
+	lb = dev.unit;
+	hb = dev.part;
 	l = 0;
-	for(x=d->cat.first; x; x=x->link) {
-		m = x->size;
-		if(m == 0) {
-			m = devsize(x);
-			x->size = m;
-		}
+	while(lb < hb) {
+		m = devsize(cwdevs[lb]);
 		if(b < l+m)
-			return devwrite(x, b-l, c);
+			return devwrite(cwdevs[lb], b-l, c);
 		l += m;
+		lb++;
 	}
-	print("mcatwrite %ld %ld\n", b, l);
+	print("mcatwrite %ld %ld", b, lb);
 	return 1;
 }
 
@@ -86,110 +77,119 @@ mcatwrite(Device *d, long b, void *c)
  * multiple interleave devices
  */
 void
-mlevinit(Device *d)
+mlevinit(Device dev)
 {
-	Device *x;
+	int lb, hb;
 
-	mcatinit(d);
-	for(x=d->cat.first; x; x=x->link)
-		x->size = devsize(x);
+	print("mlev init\n");
+	lb = dev.unit;
+	hb = dev.part;
+	while(lb < hb) {
+		devinit(cwdevs[lb]);
+		lb++;
+	}
 }
 
 long
-mlevsize(Device *d)
+mlevsize(Device dev)
 {
-	Device *x;
-	int n;
-	long m, min;
+	int lb, hb, n;
+	long l, min;
 
+	lb = dev.unit;
+	hb = dev.part;
+	n = hb-lb;
 	min = 0;
-	n = 0;
-	for(x=d->cat.first; x; x=x->link) {
-		m = x->size;
-		if(m == 0) {
-			m = devsize(x);
-			x->size = m;
-		}
-		if(min == 0 || m < min)
-			min = m;
-		n++;
+	while(lb < hb) {
+		l = devsize(cwdevs[lb]);
+		if(min == 0 || l < min)
+			min = l;
+		lb++;
 	}
 	return n * min;
 }
 
 int
-mlevread(Device *d, long b, void *c)
+mlevread(Device dev, long b, void *c)
 {
-	int n;
-	Device **list;
+	int lb, hb, n;
 
-	n = d->cat.ndev;
-	list = d->private;
-	return devread(list[b%n], b/n, c);
+	lb = dev.unit;
+	hb = dev.part;
+	n = hb-lb;
+	return devread(cwdevs[lb+b%n], b/n, c);
 }
 
 int
-mlevwrite(Device *d, long b, void *c)
+mlevwrite(Device dev, long b, void *c)
 {
-	int n;
-	Device **list;
+	int lb, hb, n;
 
-	n = d->cat.ndev;
-	list = d->private;
-	return devwrite(list[b%n], b/n, c);
+	lb = dev.unit;
+	hb = dev.part;
+	n = hb-lb;
+	return devwrite(cwdevs[lb+b%n], b/n, c);
 }
 
 /*
  * partition device
  */
 void
-partinit(Device *d)
+partinit(Device dev)
 {
+	Device d;
 
-	devinit(d->part.d);
-	d->part.d->size = devsize(d->part.d);
+	print("part init\n");
+	d = cwdevs[dev.ctrl];
+	devinit(d);
 }
 
 long
-partsize(Device *d)
+partsize(Device dev)
 {
 	long size, l;
+	Device d;
 
-	l = d->part.d->size / 100;
-	size = d->part.size * l;
+	d = cwdevs[dev.ctrl];
+	l = devsize(d) / 100;
+	size = dev.part * l;
 	if(size == 0)
 		size = l*100;
 	return size;
 }
 
 int
-partread(Device *d, long b, void *c)
+partread(Device dev, long b, void *c)
 {
 	long base, size, l;
+	Device d;
 
-	l = d->part.d->size / 100;
-	base = d->part.base * l;
-	size = d->part.size * l;
+	d = cwdevs[dev.ctrl];
+	l = devsize(d) / 100;
+	base = dev.unit * l;
+	size = dev.part * l;
 	if(size == 0)
 		size = l*100;
 	if(b < size)
-		return devread(d->part.d, base+b, c);
+		return devread(d, base+b, c);
 	print("partread %ld %ld\n", b, size);
 	return 1;
 }
 
 int
-partwrite(Device *d, long b, void *c)
+partwrite(Device dev, long b, void *c)
 {
 	long base, size, l;
+	Device d;
 
-	l = d->part.d->size / 100;
-	base = d->part.base * l;
-	size = d->part.size * l;
+	d = cwdevs[dev.ctrl];
+	l = devsize(d) / 100;
+	base = dev.unit * l;
+	size = dev.part * l;
 	if(size == 0)
 		size = l*100;
 	if(b < size)
-		return devwrite(d->part.d, base+b, c);
+		return devwrite(d, base+b, c);
 	print("partwrite %ld %ld\n", b, size);
 	return 1;
 }

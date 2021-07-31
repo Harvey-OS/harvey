@@ -1,0 +1,56 @@
+%% 
+%% This is file `euler.drv', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% euler.dtx  (with options: `driver')
+%% 
+%% Copyright (C) 1993 Frank Jensen, 
+%% Frank Mittelbach and Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% This file is part of the NFSS2 package. 
+%% --------------------------------------- 
+%% 
+%% Permission is granted to modify this file for producing a different 
+%% layout. However, no permission is granted to distribute a modified 
+%% version of this file under its original name. 
+%% 
+
+\def\filename{euler}
+\def\fileversion{v2.2 (TEST)}
+\def\filedate{94/02/23}
+
+%% File `euler.dtx'.
+%% Copyright (C) 1992 Frank Jensen, all rights reserved.
+%% Copyright (C) 1993, 1994 Frank Jensen and Mittelbach,
+%%                                  all rights reserved.
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\documentclass{ltxdoc}
+
+\EnableCrossrefs         
+
+
+\begin{document}
+   \DocInput{euler.dtx}
+\end{document}
+
+\endinput
+%% 
+%% End of file `euler.drv'.

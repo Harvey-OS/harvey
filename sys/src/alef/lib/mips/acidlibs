@@ -1,0 +1,9 @@
+/*
+ * This is a dummy source file to pick up the relevant
+ * include for acid
+ *
+ * It is not part of the library
+ */
+#include <alef.h>
+#include "run.h"
+#include <fcall.h>

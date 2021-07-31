@@ -7,6 +7,7 @@
  * 68020-specific debugger interface
  */
 
+static	int	m68020ufix(Map*, long*);
 static	char	*m68020excep(Map*, Rgetter);
 
 static	int	m68020foll(Map*, ulong, Rgetter, ulong*);
@@ -21,9 +22,9 @@ Machdata m68020mach =
 
 	beswab,			/* convert short to local byte order */
 	beswal,			/* convert long to local byte order */
-	beswav,			/* convert vlong to local byte order */
 	cisctrace,		/* C traceback */
 	ciscframe,		/* frame finder */
+	m68020ufix,		/* base of ublock with fixup applied */
 	m68020excep,		/* print exception */
 	0,			/* breakpoint fixup */
 	beieeesftos,
@@ -91,7 +92,7 @@ struct ftype{
 };
 
 static int
-m68020ufix(Map *map)
+m68020ufix(Map *map, long *val)
 {
 	struct ftype *ft;
 	int i, size, vec;
@@ -106,6 +107,7 @@ m68020ufix(Map *map)
 		 * uses 0xf8xxxxxx to 0xffxxxxxx.
 		 */
 	m68020vec = 0;
+	*val = 0;
 
 	if (get4(map, mach->kbase, (&l)) < 0)
 		return -1;
@@ -133,12 +135,15 @@ m68020ufix(Map *map)
 			for(ft=ftype; ft->name; ft++) {
 				if(ft->fmt == ((fvo>>12) & 0xF)){
 					m68020vec = vec;
+					*val = size+ft->len-8;
 					return 1;
 				}
 			}
 			break;
 		}
 	}
+	*val = size;
+	werrstr("can't crack exception frame");
 	return -1;
 }
 
@@ -148,11 +153,10 @@ m68020excep(Map *map, Rgetter rget)
 	ulong pc;
 	uchar buf[4];
 
-	if (m68020ufix(map) < 0)
-		return "bad exception frame";
-
+	USED(map, rget);
 	if(excep[m68020vec] == 0)
 		return "bad exeception type";
+
 
 	if(m68020vec == BPTTRAP) {
 		pc = (*rget)(map, "PC");
@@ -1297,11 +1301,7 @@ instruction(Inst *ip)
 static void
 bprint(Inst *i, char *fmt, ...)
 {
-	va_list arg;
-
-	va_start(arg, fmt);
-	i->curr = doprint(i->curr, i->end, fmt, arg);
-	va_end(arg);
+	i->curr = doprint(i->curr, i->end, fmt, (&fmt+1));
 }
 
 static	char	*regname[] =

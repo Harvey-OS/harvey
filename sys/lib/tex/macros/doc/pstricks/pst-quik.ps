@@ -1,0 +1,1012 @@
+%!PS-Adobe-2.0
+%%Creator: dvips 5.491 Copyright 1986, 1992 Radical Eye Software
+%%Title: pst-user.dvi
+%%Pages: 8 1
+%%BoundingBox: 0 0 612 792
+%%DocumentFonts: Helvetica-Bold Times-Bold Helvetica-BoldOblique Helvetica
+%%+ Helvetica-Oblique Symbol Times-Italic Times-Roman Times-BoldItalic
+%%EndComments
+%DVIPSCommandLine: dvips pst-user.dvi -Pport -o pst-quik.ps -p1.2
+%%BeginProcSet: tex.pro
+%!
+/TeXDict 250 dict def TeXDict begin /N{def}def /B{bind def}N /S{exch}N /X{S N}
+B /TR{translate}N /isls false N /vsize 11 72 mul N /@rigin{isls{[0 -1 1 0 0 0]
+concat}if 72 Resolution div 72 VResolution div neg scale isls{Resolution hsize
+-72 div mul 0 TR}if Resolution VResolution vsize -72 div 1 add mul TR matrix
+currentmatrix dup dup 4 get round 4 exch put dup dup 5 get round 5 exch put
+setmatrix}N /@landscape{/isls true N}B /@manualfeed{statusdict /manualfeed
+true put}B /@copies{/#copies X}B /FMat[1 0 0 -1 0 0]N /FBB[0 0 0 0]N /nn 0 N
+/IE 0 N /ctr 0 N /df-tail{/nn 8 dict N nn begin /FontType 3 N /FontMatrix
+fntrx N /FontBBox FBB N string /base X array /BitMaps X /BuildChar{
+CharBuilder}N /Encoding IE N end dup{/foo setfont}2 array copy cvx N load 0 nn
+put /ctr 0 N[}B /df{/sf 1 N /fntrx FMat N df-tail}B /dfs{div /sf X /fntrx[sf 0
+0 sf neg 0 0]N df-tail}B /E{pop nn dup definefont setfont}B /ch-width{ch-data
+dup length 5 sub get}B /ch-height{ch-data dup length 4 sub get}B /ch-xoff{128
+ch-data dup length 3 sub get sub}B /ch-yoff{ch-data dup length 2 sub get 127
+sub}B /ch-dx{ch-data dup length 1 sub get}B /ch-image{ch-data dup type
+/stringtype ne{ctr get /ctr ctr 1 add N}if}B /id 0 N /rw 0 N /rc 0 N /gp 0 N
+/cp 0 N /G 0 N /sf 0 N /CharBuilder{save 3 1 roll S dup /base get 2 index get
+S /BitMaps get S get /ch-data X pop /ctr 0 N ch-dx 0 ch-xoff ch-yoff ch-height
+sub ch-xoff ch-width add ch-yoff setcachedevice ch-width ch-height true[1 0 0
+-1 -.1 ch-xoff sub ch-yoff .1 add]{ch-image}imagemask restore}B /D{/cc X dup
+type /stringtype ne{]}if nn /base get cc ctr put nn /BitMaps get S ctr S sf 1
+ne{dup dup length 1 sub dup 2 index S get sf div put}if put /ctr ctr 1 add N}
+B /I{cc 1 add D}B /bop{userdict /bop-hook known{bop-hook}if /SI save N @rigin
+0 0 moveto /V matrix currentmatrix dup 1 get dup mul exch 0 get dup mul add
+.99 lt{/FV}{/RV}ifelse load def pop}N /eop{SI restore showpage userdict
+/eop-hook known{eop-hook}if}N /@start{userdict /start-hook known{start-hook}
+if /VResolution X /Resolution X 1000 div /DVImag X /IE 256 array N 0 1 255{IE
+S 1 string dup 0 3 index put cvn put}for 65781.76 div /vsize X 65781.76 div
+/hsize X}N /p{show}N /RMat[1 0 0 -1 0 0]N /BDot 260 string N /rulex 0 N /ruley
+0 N /v{/ruley X /rulex X V}B /V{}B /RV statusdict begin /product where{pop
+product dup length 7 ge{0 7 getinterval dup(Display)eq exch 0 4 getinterval
+(NeXT)eq or}{pop false}ifelse}{false}ifelse end{{gsave TR -.1 -.1 TR 1 1 scale
+rulex ruley false RMat{BDot}imagemask grestore}}{{gsave TR -.1 -.1 TR rulex
+ruley scale 1 1 false RMat{BDot}imagemask grestore}}ifelse B /FV{gsave
+transform round exch round exch itransform moveto rulex 0 rlineto 0 ruley neg
+rlineto rulex neg 0 rlineto fill grestore}B /a{moveto}B /delta 0 N /tail{dup
+/delta X 0 rmoveto}B /M{S p delta add tail}B /b{S p tail}B /c{-4 M}B /d{-3 M}
+B /e{-2 M}B /f{-1 M}B /g{0 M}B /h{1 M}B /i{2 M}B /j{3 M}B /k{4 M}B /w{0
+rmoveto}B /l{p -4 w}B /m{p -3 w}B /n{p -2 w}B /o{p -1 w}B /q{p 1 w}B /r{p 2 w}
+B /s{p 3 w}B /t{p 4 w}B /x{0 S rmoveto}B /y{3 2 roll p a}B /bos{/SS save N}B
+/eos{SS restore}B end
+%%EndProcSet
+%%BeginProcSet: pstricks.pro
+%!
+% PostScript prologue for pstricks.tex.
+% Created 1993/3/12. Source file was pstricks.doc
+% Version 0.93a, 93/03/12.
+% For use with Rokicki's dvips.
+/tx@Dict 200 dict def tx@Dict begin
+/ADict 25 dict def
+/CM { matrix currentmatrix } bind def
+/SLW /setlinewidth load def
+/CLW /currentlinewidth load def
+/CP /currentpoint load def
+/ED { exch def } bind def
+/L /lineto load def
+/T /translate load def
+/Atan { /atan load stopped { pop pop 0 } if } def
+/Div { dup 0 eq { pop } { div } ifelse } def
+/NET { neg exch neg exch T } def
+/Pyth { dup mul exch dup mul add sqrt } def
+/PtoC { 2 copy cos mul 3 1 roll sin mul } def
+/PathLength@ { /z z y y1 sub x x1 sub Pyth add def /y1 y def /x1 x def }
+def
+/PathLength { flattenpath /z 0 def { /y1 ED /x1 ED /y2 y1 def /x2 x1 def
+} { /y ED /x ED PathLength@ } {} { /y y2 def /x x2 def PathLength@ }
+pathforall z } def
+/STP { .996264 dup scale } def
+/STV { SDict begin normalscale end STP  } def
+/DashLine { dup 0 gt { /a .5 def PathLength exch div } { pop /a 1 def
+PathLength } ifelse /b ED /x ED /y ED /z y x add def b a .5 sub 2 mul y
+mul sub z Div round z mul a .5 sub 2 mul y mul add b exch Div dup y mul
+/y ED x mul /x ED x 0 eq y 0 eq and { /x 1 def /y 1 def } if [ y x ] 1 a
+sub y mul setdash stroke } def
+/DotLine { /b PathLength def /a ED /z ED /y CLW def /z y z add def a 0 gt
+{ /b b a div def } { a 0 eq { /b b y sub def } { a -3 eq { /b b y add
+def } if } ifelse } ifelse [ 0 b b z Div round Div dup 0 le { pop 1 } if
+] a 0 gt { 0 } { y 2 div a -2 gt { neg } if } ifelse setdash 1
+setlinecap stroke } def
+/LineFill { abs CLW add /a ED gsave clip pathbbox a Div ceiling /y2 ED
+/x2 ED a Div floor /y1 ED /x1 ED /n y2 y1 sub 1 add cvi def /y1 a y1 mul
+def newpath 2 setlinecap n { currentstrokeadjust == x1 y1 moveto x2 y1 L
+stroke /y1 y1 a add def } repeat grestore } def
+/LineFill { abs CLW add /a ED gsave clip pathbbox a Div ceiling /y2 ED
+/x2 ED a Div floor /y1 ED /x1 ED /n y2 y1 sub 1 add cvi def /y1 a y1 mul
+def newpath 2 setlinecap systemdict /currentstrokeadjust known {
+currentstrokeadjust } { false } ifelse { /t { } def } { /t { transform
+0.25 sub round 0.25 add exch 0.25 sub round 0.25 add exch itransform }
+bind def } ifelse n { x1 y1 t moveto x2 y1 t L stroke /y1 y1 a add def }
+repeat grestore } def
+/BeginArrow { ADict begin /@mtrx CM def gsave 2 copy T 2 index sub neg
+exch 3 index sub exch Atan rotate newpath } def
+/EndArrow { @mtrx setmatrix CP grestore end } def
+/Arrow { CLW mul add dup 2 div /w ED mul dup /h ED mul /a ED { 0 h T 1 -1
+scale } if w neg h moveto 0 0 L w h L w neg a neg rlineto gsave fill
+grestore } def
+/Tbar { CLW mul add /z ED z -2 div CLW 2 div moveto z 0 rlineto stroke 0
+CLW moveto } def
+/Bracket { CLW mul add dup CLW sub 2 div /x ED mul CLW add /y ED /z CLW 2
+div def x neg y moveto x neg CLW 2 div L x CLW 2 div L x y L stroke 0
+CLW moveto } def
+/RoundBracket { CLW mul add dup 2 div /x ED mul /y ED /mtrx CM def 0 CLW
+2 div T x y mul 0 ne { x y scale } if 1 1 moveto .85 .5 .35 0 0 0
+curveto -.35 0 -.85 .5 -1 1 curveto mtrx setmatrix stroke 0 CLW moveto }
+def
+/Shadow { [ { /moveto load } { /lineto load } { /curveto load } {
+/closepath load } pathforall ] cvx newpath 3 1 roll T exec } def
+/SD { 0 360 arc fill } def
+/SQ { /r ED r r moveto r r neg L r neg r neg L r neg r L fill } def
+/ST { /y ED /x ED x y moveto x neg y L 0 x L fill } def
+/SP { /r ED gsave 0 r moveto 4 { 72 rotate 0 r L } repeat fill grestore }
+def
+/NArray { aload length 2 div dup dup cvi eq not { exch pop } if /n exch
+cvi def } def
+/NArray { /f ED counttomark 2 div dup cvi /n ED n eq not { exch pop } if
+f { ] aload /Points ED } { n 2 mul 1 add -1 roll pop } ifelse } def
+/Line { NArray n 0 eq not { n 1 eq { 0 0 /n 2 def } if ArrowA /n n 2 sub
+def n { Lineto } repeat CP 4 2 roll ArrowB L pop pop } if } def
+/Arcto { /a [ 6 -2 roll ] cvx def a r /arcto load stopped { 5 } { 4 }
+ifelse { pop } repeat a } def
+/CheckClosed { dup n 2 mul 1 sub index eq 2 index n 2 mul 1 add index eq
+and { pop pop /n n 1 sub def } if } def
+/Polygon { NArray n 2 eq { 0 0 /n 3 def } if n 3 lt { n { pop pop }
+repeat } { n 3 gt { CheckClosed } if n 2 mul -2 roll /y0 ED /x0 ED /y1
+ED /x1 ED x1 y1 /x1 x0 x1 add 2 div def /y1 y0 y1 add 2 div def x1 y1
+moveto /n n 2 sub def n { Lineto } repeat x1 y1 x0 y0 6 4 roll Lineto
+Lineto pop pop closepath } ifelse } def
+/CCA { /y ED /x ED 2 copy y sub /dy1 ED x sub /dx1 ED /l1 dx1 dy1 Pyth
+def } def
+/CCA { /y ED /x ED 2 copy y sub /dy1 ED x sub /dx1 ED /l1 dx1 dy1 Pyth
+def } def
+/CC { /l0 l1 def /x1 x dx sub def /y1 y dy sub def /dx0 dx1 def /dy0 dy1
+def CCA /dx dx0 l1 c exp mul dx1 l0 c exp mul add def /dy dy0 l1 c exp
+mul dy1 l0 c exp mul add def /m dx0 dy0 Atan dx1 dy1 Atan sub 2 div cos
+abs b exp a mul dx dy Pyth Div 2 div def /x2 x l0 dx mul m mul sub def
+/y2 y l0 dy mul m mul sub def /dx l1 dx mul m mul neg def /dy l1 dy mul
+m mul neg def } def
+/IC { /c c 1 add def c 0 lt { /c 0 def } { c 3 gt { /c 3 def } if }
+ifelse /a a 2 mul 3 div 45 cos b exp div def CCA /dx 0 def /dy 0 def }
+def
+/BOC { IC CC x2 y2 x1 y1 ArrowA CP 4 2 roll x y curveto } def
+/NC { CC x1 y1 x2 y2 x y curveto } def
+/EOC { x dx sub y dy sub 4 2 roll ArrowB 2 copy curveto } def
+/BAC { IC CC x y moveto CC x1 y1 CP ArrowA } def
+/NAC { x2 y2 x y curveto CC x1 y1 } def
+/EAC { x2 y2 x y ArrowB curveto pop pop } def
+/OpenCurve { NArray n 3 lt { n { pop pop } repeat } { BOC /n n 3 sub def
+n { NC } repeat EOC } ifelse } def
+/AltCurve { { false NArray n 2 mul 2 roll [ n 2 mul 3 sub 1 roll ] aload
+/Points ED n 2 mul -2 roll } { false NArray } ifelse n 4 lt { n { pop
+pop } repeat } { BAC /n n 4 sub def n { NAC } repeat EAC } ifelse } def
+/ClosedCurve { NArray n 3 lt { n { pop pop } repeat } { n 3 gt {
+CheckClosed } if 6 copy n 2 mul 6 add 6 roll IC CC x y moveto n { NC }
+repeat closepath pop pop } ifelse } def
+/EndDot { { /z DS def } { /z 0 def } ifelse /b ED 0 z DS SD b { 0 z DS
+CLW sub SD } if 0 DS z add CLW 4 div sub moveto } def
+/Rect { x1 y1 y2 add 2 div moveto x1 y2 lineto x2 y2 lineto x2 y1 lineto
+x1 y1 lineto closepath } def
+/OvalFrame { x1 x2 eq y1 y2 eq or { pop pop x1 y1 moveto x2 y2 L } { y1
+y2 sub abs x1 x2 sub abs 2 copy gt { exch pop } { pop } ifelse 2 div
+exch { dup 3 1 roll mul exch } if 2 copy lt { pop } { exch pop } ifelse
+/b ED x1 y1 y2 add 2 div moveto x1 y2 x2 y2 b arcto x2 y2 x2 y1 b arcto
+x2 y1 x1 y1 b arcto x1 y1 x1 y2 b arcto 16 { pop } repeat closepath }
+ifelse } def
+/Frame { CLW mul /a ED 3 -1 roll 2 copy gt { exch } if a sub /y2 ED a add
+/y1 ED 2 copy gt { exch } if a sub /x2 ED a add /x1 ED 1 index 0 eq {
+pop pop Rect } { OvalFrame } ifelse } def
+/Parab { /y0 exch def /x0 exch def /y1 exch def /x1 exch def /dx x0 x1
+sub 3 div def /dy y0 y1 sub 3 div def x0 dx sub y0 dy add x1 y1 ArrowA
+x0 dx add y0 dy add x0 2 mul x1 sub y1 ArrowB curveto /Points [ x1 y1 x0
+y0 x0 2 mul x1 sub y1 ] def } def
+/Grid { /a 4 string def /b ED /d ED /n ED cvi dup 1 lt { pop 1 } if /c ED
+c div dup 0 eq { pop 1 } if /cy ED c div dup 0 eq { pop 1 } if /cx ED cy
+div cvi /y ED cx div cvi /x ED cy div cvi /y2 ED cx div cvi /x2 ED cy
+div cvi /y1 ED cx div cvi /x1 ED /h y2 y1 sub 0 gt { 1 } { -1 } ifelse
+def /w x2 x1 sub 0 gt { 1 } { -1 } ifelse def b 0 gt { /z1 b 4 div CLW 2
+div add def /Helvetica findfont b scalefont setfont /b b .95 mul CLW 2
+div add def } if gsave n 0 gt { 1 setlinecap [ 0 cy n div ] 0 setdash }
+{ 2 setlinecap } ifelse /c x1 def /i 500 w mul x1 add def /e y cy mul
+def /f y1 cy mul def /g y2 cy mul def x1 cx mul 0 T { newpath 0 e moveto
+b 0 gt { gsave d c a cvs dup stringwidth pop /z2 ED w 0 gt {z1} {z1 z2
+add neg} ifelse h 0 gt {b neg} {z1} ifelse rmoveto show grestore } if 0
+f moveto 0 g L stroke cx w mul 0 T c x2 eq c i eq or {exit} if /c c w
+add def } loop grestore gsave n 0 gt { 1 setlinecap [ 0 cx n div ] 0
+setdash } { 2 setlinecap } ifelse /c y1 def /i 500 h mul y1 add def /e x
+cx mul def /f x1 cx mul def /g x2 cx mul def 0 y1 cy mul T { newpath e 0
+moveto b 0 gt { gsave d c a cvs dup stringwidth pop /z2 ED w 0 gt {z1 z2
+add neg} {z1} ifelse h 0 gt {z1} {b neg} ifelse rmoveto show grestore }
+if f 0 moveto g 0 L stroke 0 cy h mul T c y2 eq c i eq or {exit} if /c c
+h add def } loop grestore } def
+/ArcArrow { /d ED /b ED /a ED gsave newpath 0 -1000 moveto clip newpath 0
+1 0 0 b grestore c mul /e ED pop pop pop r a e d PtoC y add exch x add
+exch r a PtoC y add exch x add exch b pop pop pop pop a e d CLW 8 div c
+mul neg d } def
+/Ellipse { /mtrx CM def T scale 0 0 1 5 3 roll arc mtrx setmatrix } def
+/Rot { CP CP translate 3 -1 roll neg rotate NET  } def
+/PutCoor { gsave CP T CM STV exch exec moveto setmatrix CP grestore } def
+/PutBegin { /lmtrx [ tx@Dict /lmtrx known { lmtrx aload pop } if CM ] def
+CP 4 2 roll T moveto } def
+/PutEnd { CP /lmtrx [ lmtrx aload pop setmatrix ] def moveto } def
+/Uput { /a ED add 2 div /h ED 2 div /w ED /s a sin def /c a cos def /b s
+abs c abs 2 copy gt dup /q ED { pop } { exch pop } ifelse def /w1 c b
+div w mul def /h1 s b div h mul def q { w1 abs w sub dup c mul abs } {
+h1 abs h sub dup s mul abs } ifelse } def
+/UUput { /z ED abs /y ED /x ED q { x s div c mul abs y gt } { x c div s
+mul abs y gt } ifelse { x x mul y y mul sub z z mul add sqrt z add } { q
+{ x s div } { x c div } ifelse abs } ifelse a PtoC h1 add exch w1 add
+exch } def
+/BeginOL { dup (all) eq exch TheOL eq or { IfVisible not { CP OLUnit T
+moveto /IfVisible true def } if } { IfVisible { CP OLUnit NET moveto
+/IfVisible false def } if } ifelse } def
+/InitOL { /OLUnit [ gsave CM STV 2890.79999 dup moveto setmatrix CP
+grestore ] cvx def /BOL { BeginOL } def /IfVisible true def } def
+end
+%%EndProcSet
+%%BeginProcSet: texps.pro
+%!
+TeXDict begin /rf{findfont dup length 1 add dict begin{1 index /FID ne 2 index
+/UniqueID ne and{def}{pop pop}ifelse}forall[1 index 0 6 -1 roll exec 0 exch 5
+-1 roll VResolution Resolution div mul neg 0 0]/Metrics exch def dict begin
+Encoding{exch dup type /integertype ne{pop pop 1 sub dup 0 le{pop}{[}ifelse}{
+FontMatrix 0 get div Metrics 0 get div def}ifelse}forall Metrics /Metrics
+currentdict end def[2 index currentdict end definefont 3 -1 roll makefont
+/setfont load]cvx def}def /ObliqueSlant{dup sin S cos div neg}B /SlantFont{4
+index mul add}def /ExtendFont{3 -1 roll mul exch}def /ReEncodeFont{/Encoding
+exch def}def end
+%%EndProcSet
+%%BeginProcSet: special.pro
+%!
+TeXDict begin /SDict 200 dict N SDict begin /@SpecialDefaults{/hs 612 N /vs
+792 N /ho 0 N /vo 0 N /hsc 1 N /vsc 1 N /ang 0 N /CLIP 0 N /rwiSeen false N
+/rhiSeen false N /letter{}N /note{}N /a4{}N /legal{}N}B /@scaleunit 100 N
+/@hscale{@scaleunit div /hsc X}B /@vscale{@scaleunit div /vsc X}B /@hsize{/hs
+X /CLIP 1 N}B /@vsize{/vs X /CLIP 1 N}B /@clip{/CLIP 2 N}B /@hoffset{/ho X}B
+/@voffset{/vo X}B /@angle{/ang X}B /@rwi{10 div /rwi X /rwiSeen true N}B /@rhi
+{10 div /rhi X /rhiSeen true N}B /@llx{/llx X}B /@lly{/lly X}B /@urx{/urx X}B
+/@ury{/ury X}B /magscale true def end /@MacSetUp{userdict /md known{userdict
+/md get type /dicttype eq{userdict begin md length 10 add md maxlength ge{/md
+md dup length 20 add dict copy def}if end md begin /letter{}N /note{}N /legal{
+}N /od{txpose 1 0 mtx defaultmatrix dtransform S atan/pa X newpath clippath
+mark{transform{itransform moveto}}{transform{itransform lineto}}{6 -2 roll
+transform 6 -2 roll transform 6 -2 roll transform{itransform 6 2 roll
+itransform 6 2 roll itransform 6 2 roll curveto}}{{closepath}}pathforall
+newpath counttomark array astore /gc xdf pop ct 39 0 put 10 fz 0 fs 2
+F/|______Courier fnt invertflag{PaintBlack}if}N /txpose{pxs pys scale ppr
+aload pop por{noflips{pop S neg S TR pop 1 -1 scale}if xflip yflip and{pop S
+neg S TR 180 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0
+get neg sub neg TR}if xflip yflip not and{pop S neg S TR pop 180 rotate ppr 3
+get ppr 1 get neg sub neg 0 TR}if yflip xflip not and{ppr 1 get neg ppr 0 get
+neg TR}if}{noflips{TR pop pop 270 rotate 1 -1 scale}if xflip yflip and{TR pop
+pop 90 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0 get
+neg sub neg TR}if xflip yflip not and{TR pop pop 90 rotate ppr 3 get ppr 1 get
+neg sub neg 0 TR}if yflip xflip not and{TR pop pop 270 rotate ppr 2 get ppr 0
+get neg sub neg 0 S TR}if}ifelse scaleby96{ppr aload pop 4 -1 roll add 2 div 3
+1 roll add 2 div 2 copy TR .96 dup scale neg S neg S TR}if}N /cp{pop pop
+showpage pm restore}N end}if}if}N /normalscale{Resolution 72 div VResolution
+72 div neg scale magscale{DVImag dup scale}if 0 setgray}N /psfts{S 65781.76
+div N}N /startTexFig{/psf$SavedState save N userdict maxlength dict begin
+/magscale false def normalscale currentpoint TR /psf$ury psfts /psf$urx psfts
+/psf$lly psfts /psf$llx psfts /psf$y psfts /psf$x psfts currentpoint /psf$cy X
+/psf$cx X /psf$sx psf$x psf$urx psf$llx sub div N /psf$sy psf$y psf$ury
+psf$lly sub div N psf$sx psf$sy scale psf$cx psf$sx div psf$llx sub psf$cy
+psf$sy div psf$ury sub TR /showpage{}N /erasepage{}N /copypage{}N /p 3 def
+@MacSetUp}N /doclip{psf$llx psf$lly psf$urx psf$ury currentpoint 6 2 roll
+newpath 4 copy 4 2 roll moveto 6 -1 roll S lineto S lineto S lineto closepath
+clip newpath moveto}N /endTexFig{end psf$SavedState restore}N /@beginspecial{
+SDict begin /SpecialSave save N gsave normalscale currentpoint TR
+@SpecialDefaults count /ocount X /dcount countdictstack N}N /@setspecial{CLIP
+1 eq{newpath 0 0 moveto hs 0 rlineto 0 vs rlineto hs neg 0 rlineto closepath
+clip}if ho vo TR hsc vsc scale ang rotate rwiSeen{rwi urx llx sub div rhiSeen{
+rhi ury lly sub div}{dup}ifelse scale llx neg lly neg TR}{rhiSeen{rhi ury lly
+sub div dup scale llx neg lly neg TR}if}ifelse CLIP 2 eq{newpath llx lly
+moveto urx lly lineto urx ury lineto llx ury lineto closepath clip}if
+/showpage{}N /erasepage{}N /copypage{}N newpath}N /@endspecial{count ocount
+sub{pop}repeat countdictstack dcount sub{end}repeat grestore SpecialSave
+restore end}N /@defspecial{SDict begin}N /@fedspecial{end}B /li{lineto}B /rl{
+rlineto}B /rc{rcurveto}B /np{/SaveX currentpoint /SaveY X N 1 setlinecap
+newpath}N /st{stroke SaveX SaveY moveto}N /fil{fill SaveX SaveY moveto}N
+/ellipse{/endangle X /startangle X /yrad X /xrad X /savematrix matrix
+currentmatrix N TR xrad yrad scale 0 0 1 startangle endangle arc savematrix
+setmatrix}N end
+%%EndProcSet
+TeXDict begin 40258431 52099146 1000 300 300 @start /Fa 135[24
+3[13 19 19 1[24 24 27 37 13 2[13 1[24 1[21 24 21 1[24 27[32
+35 32 1[32 65[{}19 48.000336 /Times-BoldItalic rf /Fb 136[41
+2[16 22 19 2[29 29 45 16 2[16 1[29 1[25 1[25 29 25 20[35 7[41
+21[14 46[{}17 57.600342 /Times-Roman rf /Fc 139[14 3[27 62[27
+27 48[{}4 49.200378 /Helvetica rf /Fd 80[29 58[16 22 22 1[29
+29 29 1[16 2[16 3[25 1[25 1[29 10[35 13[41 3[41 68[{}15 57.600342
+/Times-Italic rf /Fe 80[27 54[24 35 24 24 13 19 16 24 24 24
+24 1[13 24 1[13 24 2[21 24 21 24 21 12[29 27 32 3[35 7[27 29
+35 32 1[35 18[12 16 12 44[{}33 48.000336 /Times-Roman rf /Ff
+135[16 9[16 25 3[9 7[14 97[{}5 32.000225 /Times-Roman rf /Fg
+134[21 21 2[24 13 3[24 2[35 13 6[21 3[24 10[29 2[24 4[32 8[29
+69[{}13 48.000336 /Times-Italic rf /Fh 134[20 20 29 20 23 11
+20 14 1[23 23 23 34 9 2[9 1[23 11 23 23 1[23 23 35[24 10[23
+23 23 48[{}24 41.000366 /Helvetica-Oblique rf /Fi 130[14 11
+14 5[23 11 20 14 23 23 23 23 1[9 2[9 1[23 1[23 1[20 1[23 3[11
+1[11 23[29 4[24 1[24 13[11 14 11 24 16 14 14 40[{}29 41.000366
+/Helvetica rf /Fj 81[25 48[16 1[16 1[23 23 32 23 25 14 23 16
+1[25 25 25 36 11 1[11 11 25 25 14 23 25 23 25 23 30[29 29 3[24
+8[23 23 23 23 23 11 2[11 2[14 14 40[{}38 41.000366 /Helvetica-BoldOblique
+rf /Fk 81[25 48[16 11 16 20 23 23 32 23 25 14 23 16 25 25 25
+25 36 11 23 11 11 25 25 14 23 25 23 25 23 3[14 11 14 2[27 3[25
+27 29 1[27 32 29 1[25 6[27 1[29 29 29 3[24 1[14 1[23 23 23
+23 23 23 23 23 23 23 1[11 14 11 1[16 14 14 6[14 33[{}64 41.000366
+/Helvetica-Bold rf /Fl 136[35 24 27 16 19 21 1[27 24 27 40
+13 2[13 1[24 16 21 27 21 27 24 13[27 35 1[29 11[35 35 1[35
+6[16 24 24 24 24 24 24 24 24 24 24 1[12 4[16 16 40[{}39 48.000336
+/Times-Bold rf /Fm 81[36 51[29 33 33 46 33 36 20 33 23 1[36
+36 36 52 16 33 16 16 36 36 20 33 36 33 36 33 12[36 39 42 1[39
+46 42 49 36 2[16 1[46 36 39 42 42 42 42 20[16 44[{}43 59.040516
+/Helvetica-Bold rf /Fn 134[27 27 38 1[30 16 27 19 1[30 30 30
+44 14 27 1[14 1[30 16 27 30 27 30 27 10[33 1[30 33 35 38 33
+38 5[14 4[35 2[35 3[29 61[{}32 49.200378 /Helvetica-Bold rf
+/Fo 67[48 188[{}1 48.249817 /Symbol rf end
+%%EndProlog
+%%BeginSetup
+%%Feature: *Resolution 300dpi
+TeXDict begin
+
+%%EndSetup
+%%Page: 1 1
+0 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1145
+b(I)-75 2828 y Fm(Color)22 2933 y Fl(5)40 b Fk(\\newgray)o({)p
+Fj(color)t Fk(}{)p Fj(num)q Fk(})22 3009 y Fl(5)g Fk(\\newrgbcolor{)p
+Fj(color)t Fk(}{)p Fj(num1)11 b(num2)g(num3)r Fk(})22 3086
+y Fl(5)40 b Fk(\\newhsbcolor{)p Fj(color)t Fk(}{)p Fj(num1)10
+b(num2)i(num3)r Fk(})22 3163 y Fl(5)40 b Fk(\\newcmykcolor)o({)p
+Fj(color)t Fk(}{)p Fj(num1)11 b(num2)h(num3)f(num4)r Fk(})-75
+3332 y Fm(Setting)16 b(graphics)f(parameters)22 3436 y Fl(6)40
+b Fk(\\psset)o({)p Fj(par1=value1)p Fi(,)p Fh(par2=value2)p
+Fi(,)q Fo(\274)o Fk(})-75 3605 y Fm(Dimensions,)17 b(coordinates)e(and)h
+(angles)22 3710 y Fl(7)40 b Fk(unit=)p Fj(dim)704 b Fl(Default:)15
+b Fk(1cm)22 3786 y Fl(7)40 b Fk(\\pssetlength)o({)p Fj(cmd)t
+Fk(}{)p Fj(dim)q Fk(})22 3863 y Fl(7)g Fk(\\psaddtolength)o({)p
+Fj(cmd)t Fk(}{)p Fj(dim)q Fk(})22 3940 y Fl(7)g Fk(xunit=)p
+Fj(dim)681 b Fl(Default:)15 b Fk(1cm)22 4017 y Fl(7)40 b Fk(yunit=)p
+Fj(dim)681 b Fl(Default:)15 b Fk(1cm)22 4094 y Fl(7)40 b Fk(runit=)p
+Fj(dim)688 b Fl(Default:)15 b Fk(1cm)22 4170 y Fl(8)40 b Fk(\\degrees)o
+Fi([)p Fh(num)q Fi(])22 4247 y Fl(8)g Fk(\\radians)-75 4416
+y Fm(Basic)16 b(graphics)g(parameters)22 4520 y Fl(8)40 b Fk(linewidth=)p
+Fj(dim)611 b Fl(Default:)15 b Fk(.8pt)22 4597 y Fl(8)40 b Fk(linecolor=)p
+Fj(color)558 b Fl(Default:)15 b Fk(black)22 4674 y Fl(9)40
+b Fk(showpoints=)p Fj(true/false)428 b Fl(Default:)15 b Fk(false)1400
+2828 y Fm(Lines)h(and)f(polygons)1472 2933 y Fl(10)41 b Fk(linearc=)p
+Fj(dim)667 b Fl(Default:)15 b Fk(0pt)1472 3009 y Fl(10)41 b
+Fk(framearc=)p Fj(num)649 b Fl(Default:)15 b Fk(0)1472 3086
+y Fl(10)41 b Fk(cornersize=)p Fj(relative/absolute)260 b Fl(Default:)15
+b Fk(relative)1472 3163 y Fl(10)41 b Fk(\\psline)p Fi(*[)p
+Fh(par)p Fi(]{)p Fh(arrows)q Fi(}\()p Fh(x0)r Fi(,)p Fh(y0)r
+Fi(\))p Fk(\()p Fj(x1)p Fk(,)p Fj(y1)p Fk(\))p Fo(\274)o Fi(\()p
+Fh(xn)q Fi(,)p Fh(yn)q Fi(\))1472 3240 y Fl(10)g Fk(\\qline\()p
+Fj(coor0)p Fk(\)\()p Fj(coor1)p Fk(\))1475 3317 y Fl(1)m(1)g
+Fk(\\pspolygon)p Fi(*[)p Fh(par)p Fi(]\()p Fh(x0)r Fi(,)p Fh(y0)r
+Fi(\))p Fk(\()p Fj(x1)p Fk(,)p Fj(y1)p Fk(\)\()p Fj(x)o(2)s
+Fk(,)p Fj(y2)s Fk(\))p Fo(\274)o Fi(\()p Fh(xn)q Fi(,)p Fh(yn)q
+Fi(\))1475 3393 y Fl(1)m(1)g Fk(\\psframe)o Fi(*[)p Fh(par)p
+Fi(]\()p Fh(x0)r Fi(,)p Fh(y0)r Fi(\))p Fk(\()p Fj(x1)p Fk(,)p
+Fj(y1)p Fk(\))1400 3562 y Fm(Arcs,)16 b(circles)g(and)g(ellipses)1475
+3667 y Fl(1)m(1)41 b Fk(\\pscircle)p Fi(*[)p Fh(par)p Fi(]\()p
+Fh(x0)r Fi(,)p Fh(y0)r Fi(\))p Fk({)p Fj(radius)q Fk(})1475
+3743 y Fl(1)m(1)g Fk(\\qdisk\()p Fj(coor)p Fk(\){)p Fj(radius)q
+Fk(})1472 3820 y Fl(12)g Fk(\\pswedge)o Fi(*[)p Fh(par)p Fi(]\()p
+Fh(x0)r Fi(,)p Fh(y0)r Fi(\))p Fk({)p Fj(radius)q Fk(}{)p Fj(angle1)p
+Fk(}{)p Fj(angle2)s Fk(})1472 3897 y Fl(12)g Fk(\\psellipse)p
+Fi(*[)p Fh(par)p Fi(]\()p Fh(x0)r Fi(,)p Fh(y0)r Fi(\))p Fk(\()p
+Fj(x1)p Fk(,)p Fj(y1)p Fk(\))1472 3974 y Fl(12)g Fk(\\psarc)o
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(}\()p Fh(x)s Fi(,)t
+Fh(y)t Fi(\))p Fk({)p Fj(radius)q Fk(}{)p Fj(angleA)p Fk(}{)p
+Fj(angleB)r Fk(})1472 4051 y Fl(12)g Fk(arcsepA=)p Fj(dim)637
+b Fl(Default:)15 b Fk(0pt)1472 4127 y Fl(12)41 b Fk(arcsepB=)p
+Fj(dim)637 b Fl(Default:)15 b Fk(0pt)1472 4204 y Fl(13)41 b
+Fk(arcsep=)p Fj(dim)704 b Fl(Default:)15 b Fk(0)1472 4281 y
+Fl(13)41 b Fk(\\psarcn)o Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q
+Fi(}\()p Fh(x)s Fi(,)t Fh(y)t Fi(\))p Fk({)p Fj(radius)q Fk(}{)p
+Fj(angleA)p Fk(}{)p Fj(angleB)r Fk(})1400 4450 y Fm(Curves)1472
+4554 y Fl(13)g Fk(\\psbezier)p Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q
+Fi(}\()p Fh(x0)r Fi(,)p Fh(y0)r Fi(\))p Fk(\()p Fj(x1)o Fk(,)p
+Fj(y1)p Fk(\)\()o Fj(x2)s Fk(,)p Fj(y2)r Fk(\)\()p Fj(x)o(3)r
+Fk(,)p Fj(y3)r Fk(\))1472 4631 y Fl(14)g Fk(\\parabola)o Fi(*[)p
+Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x0)r Fk(,)t
+Fj(y0)r Fk(\)\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\))1472 4708 y
+Fl(14)g Fk(curvature=)p Fj(num1)9 b(num2)i(num3)295 b Fl(Default:)15
+b Fk(1)c(.1)g(0)0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Page: 2 2
+1 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1132
+b(II)-2 2828 y Fl(15)40 b Fk(\\pscurve)o Fi(*[)p Fh(par)p Fi(]{)p
+Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\))q Fo(\274)o
+Fi(\()p Fh(xn)q Fi(,)t Fh(yn)q Fi(\))-2 2905 y Fl(15)g Fk(\\psecurve)o
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p
+Fk(,)t Fj(y1)p Fk(\))q Fo(\274)n Fi(\()p Fh(xn)q Fi(,)t Fh(yn)q
+Fi(\))p Fk(])-2 2982 y Fl(15)g Fk(\\psccurve)o Fi(*[)p Fh(par)p
+Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\))q
+Fo(\274)n Fi(\()p Fh(xn)q Fi(,)t Fh(yn)q Fi(\))-75 3151 y Fm(Dots)-2
+3255 y Fl(15)g Fk(\\psdots)p Fi(*[)p Fh(par)t Fi(])p Fk(\()p
+Fj(x1)p Fk(,)p Fj(y1)p Fk(\))p Fi(\()p Fh(x2)s Fi(,)p Fh(y2)s
+Fi(\))q Fo(\274)n Fi(\()p Fh(xn)q Fi(,)p Fh(yn)q Fi(\))-2 3332
+y Fl(16)g Fk(dotstyle=)p Fj(style)664 b Fl(Default:)16 b Fk(*)496
+3463 y Fn(Dot)e(styles)126 3545 y Fg(Style)79 b(Example)164
+3625 y Fi(*)117 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /Dot { 0 0 DS SD } def newpath n { gsave
+T Dot grestore } repeat end
+
+@endspecial 161
+3697 a(o)c @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r2 DS CLW sub def /Dot { 0 0 DS SD 1.
+setgray 0 0 r2 SD } def newpath n { gsave T Dot grestore } repeat end
+
+@endspecial 160 3770
+a(+)g @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /DS DS 1.253 mul def /Dot { DS 0 moveto
+DS neg 0 L stroke 0 DS moveto 0 DS neg L stroke } def newpath n { gsave
+T Dot grestore } repeat end
+
+@endspecial 105 3842 a(triangle)57
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /y1 DS .778 mul neg def /x1 y1 1.732
+mul neg def /y2 y1 CLW add def /x2 y2 1.732 mul neg def /Dot { x1 y1
+ST 1. setgray x2 y2 ST } def newpath n { gsave T Dot grestore } repeat
+end
+
+@endspecial 97 3914 a(triangle*)49
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /y1 DS .778 mul neg def /x1 y1 1.732
+mul neg def /Dot { x1 y1 ST } def newpath n { gsave T Dot grestore
+} repeat end
+
+@endspecial 702 3545 a Fg(Style)98
+b(Example)686 3625 y Fi(square)80 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r1 DS .886 mul def /r2 r1 CLW sub def
+/Dot { r1 SQ 1. setgray r2 SQ } def newpath n { gsave T Dot grestore
+} repeat end
+
+
+@endspecial 678 3697 a(square*)72 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r1 DS .886 mul def /Dot { r1 SQ } def
+newpath n { gsave T Dot grestore } repeat end
+
+
+@endspecial 664 3770 a(pentagon)56 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def DS .93 mul dup 1.236 mul /r1 ED CLW sub
+1.236 mul /r2 ED /Dot { r1 SP 1. setgray r2 SP } def newpath n { gsave
+T Dot grestore } repeat end
+
+
+@endspecial 656 3842 a(pentagon*)48 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def /r1 DS 1.149 mul def /Dot { r1 SP } def
+newpath n { gsave T Dot grestore } repeat end
+
+
+@endspecial 744 3914 a(|)137 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  [ 54.06003 5.161 41.25638
+5.161 28.45274 5.161 15.6491 5.161 2.84544 5.161  false NArray /DS
+0.5 2.5 CLW mul add 2 div def 2.0 5. CLW mul add 2 div /DS ED /Dot
+{ 0 DS moveto 0 DS neg L stroke } def newpath n { gsave T Dot grestore
+} repeat end
+
+@endspecial
+-2 4044 a Fl(16)40 b Fk(dotscale=)p Fj(num1)10 b(num2)515 b
+Fl(Default:)15 b Fk(1)-2 4121 y Fl(16)40 b Fk(dotangle=)p Fj(angle)632
+b Fl(Default:)15 b Fk(0)-75 4290 y Fm(Grids)-2 4394 y Fl(17)40
+b Fk(\\psgrid)p Fi(\()p Fh(x0)r Fi(,)p Fh(y0)r Fi(\)\()p Fh(x1)p
+Fi(,)p Fh(y1)p Fi(\)\()p Fh(x2)s Fi(,)p Fh(y2)s Fi(\))-2 4471
+y Fl(18)g Fk(gridwidth=)p Fj(dim)604 b Fl(Default:)15 b Fk(.8pt)-2
+4548 y Fl(18)40 b Fk(gridcolor=)p Fj(color)551 b Fl(Default:)15
+b Fk(black)-2 4625 y Fl(18)40 b Fk(griddots=)p Fj(num)660 b
+Fl(Default:)15 b Fk(0)-2 4701 y Fl(18)40 b Fk(gridlabels=)p
+Fj(dim)583 b Fl(Default:)15 b Fk(10pt)1472 2828 y Fl(18)41
+b Fk(gridlabelcolor=)p Fj(color)457 b Fl(Default:)16 b Fk(black)1472
+2905 y Fl(18)41 b Fk(subgriddiv=)p Fj(int)650 b Fl(Default:)15
+b Fk(5)1472 2982 y Fl(18)41 b Fk(subgridwidth=)p Fj(dim)530
+b Fl(Default:)15 b Fk(.4pt)1472 3059 y Fl(18)41 b Fk(subgridcolor=)p
+Fj(color)496 b Fl(Default:)15 b Fk(gray)1472 3135 y Fl(18)41
+b Fk(subgriddots=)p Fj(num)586 b Fl(Default:)15 b Fk(0)1400
+3304 y Fm(Plots)1472 3409 y Fl(19)41 b Fk(plotstyle=)p Fj(style)598
+b Fl(Default:)16 b Fk(line)1472 3485 y Fl(20)41 b Fk(\\\256leplot)p
+Fi(*[)p Fh(par)p Fi(])p Fk({)p Fj(\256le)q Fk(})1472 3562 y
+Fl(20)g Fk(\\dataplot)o Fi(*[)p Fh(par)p Fi(])p Fk({)p Fj(commands)q
+Fk(})1472 3639 y Fl(20)g Fk(\\savedata)n({)p Fj(command)t Fk(}[)p
+Fj(data)q Fk(])1472 3716 y Fl(20)g Fk(\\readdata)n({)p Fj(command)t
+Fk(}{)p Fj(\256le)q Fk(})1472 3793 y Fl(21)g Fk(\\listplot)p
+Fi(*[)p Fh(par)p Fi(])p Fk({)p Fj(list)s Fk(})1472 3869 y Fl(21)g
+Fk(\\psplot)p Fi(*[)p Fh(par)p Fi(])p Fk({)p Fg(x)1830 3876
+y Ff(min)1881 3869 y Fk(}{)p Fg(x)1934 3876 y Ff(max)1991 3869
+y Fk(}{)p Fj(function)q Fk(})1472 3946 y Fl(22)g Fk(\\parametricplot)o
+Fi(*[)p Fh(par)p Fi(])p Fk({)p Fg(t)1983 3953 y Ff(min)2034
+3946 y Fk(}{)p Fg(t)2079 3953 y Ff(max)2136 3946 y Fk(}{)p
+Fj(function)q Fk(})1472 4023 y Fl(22)g Fk(plotpoints=)p Fj(int)638
+b Fl(Default:)16 b Fk(50)1400 4192 y Fm(Coordinate)f(systems)1472
+4296 y Fl(24)41 b Fk(origin=)p Fj({coor})564 b Fl(Default:)15
+b Fk(0pt,0pt)1472 4373 y Fl(24)41 b Fk(swapaxes=)p Fj(true)566
+b Fl(Default:)15 b Fk(false)1400 4542 y Fm(Line)h(styles)1472
+4646 y Fl(24)41 b Fk(linestyle=)p Fj(style)578 b Fl(Default:)16
+b Fk(solid)1472 4723 y Fl(25)41 b Fk(dash=)p Fj(dim1)11 b(dim2)501
+b Fl(Default:)15 b Fk(5pt)c(3pt)0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Page: 3 3
+2 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1118
+b(III)-2 2828 y Fl(25)40 b Fk(dotsep=)p Fj(dim)664 b Fl(Default:)15
+b Fk(3pt)-2 2905 y Fl(25)40 b Fk(border=)p Fj(dim)669 b Fl(Default:)15
+b Fk(0pt)-2 2982 y Fl(25)40 b Fk(bordercolor=)p Fj(color)498
+b Fl(Default:)15 b Fk(white)-2 3059 y Fl(25)40 b Fk(doubleline=)p
+Fj(true/false)452 b Fl(Default:)15 b Fk(false)-2 3135 y Fl(25)40
+b Fk(doublesep=)p Fj(dim)340 b Fl(Default:)15 b Fk(1.25\\pslinewidth)-2
+3212 y Fl(26)40 b Fk(doublecolor=)p Fj(color)494 b Fl(Default:)15
+b Fk(white)-2 3289 y Fl(26)40 b Fk(shadow=)p Fj(true/false)503
+b Fl(Default:)15 b Fk(false)-2 3366 y Fl(26)40 b Fk(shadowsize=)p
+Fj(dim)569 b Fl(Default:)15 b Fk(3pt)-2 3442 y Fl(26)40 b Fk(shadowangle=)p
+Fj(angle)506 b Fl(Default:)15 b Fk(-45)-2 3519 y Fl(26)40 b
+Fk(shadowcolor=)p Fj(color)407 b Fl(Default:)15 b Fk(darkgray)-2
+3596 y Fl(26)40 b Fk(dimen=)p Fj(outer/inner/middle)354 b Fl(Default:)15
+b Fk(outer)-75 3765 y Fm(Fill)i(styles)-2 3869 y Fl(27)40 b
+Fk(\256llstyle=)p Fj(style)600 b Fl(Default:)15 b Fk(none)-2
+3946 y Fl(27)40 b Fk(\256llcolor=)p Fj(color)581 b Fl(Default:)15
+b Fk(white)-2 4023 y Fl(27)40 b Fk(hatchwidth=)p Fj(dim)571
+b Fl(Default:)15 b Fk(.8pt)-2 4100 y Fl(27)40 b Fk(hatchsep=)p
+Fj(dim)618 b Fl(Default:)15 b Fk(4pt)-2 4177 y Fl(27)40 b Fk(hatchcolor=)p
+Fj(color)518 b Fl(Default:)15 b Fk(black)-2 4253 y Fl(27)40
+b Fk(hatchangle=)p Fj(rot)615 b Fl(Default:)15 b Fk(45)-75
+4422 y Fm(Arrowheads)g(and)h(such)-2 4527 y Fl(28)40 b Fk(arrows=)p
+Fj(style)690 b Fl(Default:)15 b Fk(-)528 4657 y Fn(Arrows)1612
+2829 y Fg(V)-5 b(alue)51 b(Example)37 b(Name)1658 2909 y Fi(-)97
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { moveto } def
+/ArrowB { } def [ 36.98865 5.161 0.0 5.161  /Lineto /lineto load def
+false Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore
+end
+
+@endspecial 204 w Fe(None)1635
+2982 y Fi(<->)72 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  moveto } def /ArrowB { BeginArrow
+false 0.4 1.4 2.0 3. Arrow  EndArrow  } def [ 36.98865 5.161 0.0 5.161
+ /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 204
+w Fe(Arrowheads.)1635 3054 y Fi(>-<)g @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+true 0.4 1.4 2.0 3. Arrow  EndArrow  moveto } def /ArrowB { BeginArrow
+true 0.4 1.4 2.0 3. Arrow  EndArrow  } def [ 36.98865 5.161 0.0 5.161
+ /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+
+@endspecial 204 w Fe(Reverse)12 b(arrowheads.)1611 3126 y
+Fi(<<->>)48 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+false 0.4 1.4 2.0 3. Arrow 0 h T gsave newpath false 0.4 1.4 2.0 3.
+Arrow CP grestore CP newpath moveto 2 copy L stroke moveto EndArrow
+ moveto } def /ArrowB { BeginArrow false 0.4 1.4 2.0 3. Arrow 0 h T
+gsave newpath false 0.4 1.4 2.0 3. Arrow CP grestore CP newpath moveto
+2 copy L stroke moveto EndArrow  } def [ 36.98865 5.161 0.0 5.161
+/Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 204 w
+Fe(Double)12 b(arrowheads.)1611 3198 y Fi(>>-<<)48 b @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+true 0.4 1.4 2.0 3. Arrow CP newpath moveto 0 a neg L stroke 0 h neg
+T false 0.4 1.4 2.0 3. Arrow  EndArrow  moveto } def /ArrowB { BeginArrow
+true 0.4 1.4 2.0 3. Arrow CP newpath moveto 0 a neg L stroke 0 h neg
+T false 0.4 1.4 2.0 3. Arrow  EndArrow  } def [ 36.98865 5.161 0.0
+5.161  /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+@endspecial 204 w Fe(Double)12 b(reverse)g(arrowheads.)1648
+3271 y Fi(|-|)85 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+2.0 5. Tbar  EndArrow  moveto } def /ArrowB { BeginArrow 2.0 5. Tbar
+ EndArrow  } def [ 36.98865 5.161 0.0 5.161  /Lineto /lineto load def
+false Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke  grestore
+end
+
+@endspecial 204
+w Fe(T)l(-bars,)11 b(\257ush)g(to)h(endpoints.)1632 3343 y
+Fi(|*-|*)69 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+0 CLW -2 div T 2.0 5. Tbar  EndArrow  moveto } def /ArrowB { BeginArrow
+0 CLW -2 div T 2.0 5. Tbar  EndArrow  } def [ 36.98865 5.161 0.0 5.161
+ /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 204 w
+Fe(T)l(-bars,)11 b(centered)i(on)f(endpoints.)1647 3415 y Fi([-])86
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+0.15 2.0 5. Bracket  EndArrow  moveto } def /ArrowB { BeginArrow 0.15
+2.0 5. Bracket  EndArrow  } def [ 36.98865 5.161 0.0 5.161  /Lineto
+/lineto load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 204 w Fe(Square)12
+b(brackets.)1645 3487 y Fi(\(-\))82 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+0.15 2.0 5. RoundBracket  EndArrow  moveto } def /ArrowB { BeginArrow
+0.15 2.0 5. RoundBracket  EndArrow  } def [ 36.98865 5.161 0.0 5.161
+ /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+
+@endspecial 204 w Fe(Rounded)11 b(brackets.)1636 3559 y Fi(o-o)73
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+{1. setgray true} false /DS 0.5 2.5 CLW mul add 2 div def EndDot  EndArrow
+ moveto } def /ArrowB { BeginArrow {1. setgray true} false /DS 0.5
+2.5 CLW mul add 2 div def EndDot  EndArrow  } def [ 36.98865 5.161
+0.0 5.161  /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+@endspecial 204 w Fe(Circles,)12
+b(centered)h(on)f(endpoints.)1642 3632 y Fi(*-*)81 b @beginspecial
+@setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+{false} false /DS 0.5 2.5 CLW mul add 2 div def EndDot  EndArrow  moveto
+} def /ArrowB { BeginArrow {false} false /DS 0.5 2.5 CLW mul add 2
+div def EndDot  EndArrow  } def [ 36.98865 5.161 0.0 5.161  /Lineto
+/lineto load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap
+stroke  grestore end
+
+@endspecial 204 w Fe(Disks,)11 b(centered)i(on)e(endpoints.)1613
+3704 y Fi(oo-oo)50 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+{1. setgray true} true /DS 0.5 2.5 CLW mul add 2 div def EndDot  EndArrow
+ moveto } def /ArrowB { BeginArrow {1. setgray true} true /DS 0.5 2.5
+CLW mul add 2 div def EndDot  EndArrow  } def [ 36.98865 5.161 0.0
+5.161  /Lineto /lineto load def false Line  gsave 0.8 SLW 0. setgray
+0 setlinecap stroke  grestore end
+
+@endspecial
+204 w Fe(Circles,)12 b(\257ush)f(to)h(endpoints.)1627 3776
+y Fi(**-**)64 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+{false} true /DS 0.5 2.5 CLW mul add 2 div def EndDot  EndArrow  moveto
+} def /ArrowB { BeginArrow {false} true /DS 0.5 2.5 CLW mul add 2 div
+def EndDot  EndArrow  } def [ 36.98865 5.161 0.0 5.161  /Lineto /lineto
+load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke
+grestore end
+
+@endspecial 204
+w Fe(Disks,)11 b(\257ush)g(to)h(endpoints.)1638 3848 y Fi(c-c)77
+b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+1 setlinecap 0 0 moveto 0 CLW 2 div L stroke 0 0 moveto EndArrow  moveto
+} def /ArrowB { BeginArrow 1 setlinecap 0 0 moveto 0 CLW 2 div L stroke
+0 0 moveto EndArrow  } def [ 36.98865 5.161 0.0 5.161  /Lineto /lineto
+load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke
+grestore end
+
+@endspecial 204 w Fe(Extended,)12
+b(rounded)g(ends.)1618 3921 y Fi(cc-cc)57 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+0 CLW 2 div T 1 setlinecap 0 0 moveto 0 CLW 2 div L stroke 0 0 moveto
+EndArrow  moveto } def /ArrowB { BeginArrow 0 CLW 2 div T 1 setlinecap
+0 0 moveto 0 CLW 2 div L stroke 0 0 moveto EndArrow  } def [ 36.98865
+5.161 0.0 5.161  /Lineto /lineto load def false Line  gsave 0.8 SLW
+0. setgray 0 setlinecap stroke  grestore end
+
+
+@endspecial 204 w Fe(Flush)11 b(round)h(ends.)1629 3993 y
+Fi(C-C)68 b @beginspecial @setspecial
+ tx@Dict begin STP newpath 0.8 SLW 0. setgray  /ArrowA { BeginArrow
+2 setlinecap 0 0 moveto 0 CLW 2 div L stroke 0 0 moveto EndArrow  moveto
+} def /ArrowB { BeginArrow 2 setlinecap 0 0 moveto 0 CLW 2 div L stroke
+0 0 moveto EndArrow  } def [ 36.98865 5.161 0.0 5.161  /Lineto /lineto
+load def false Line  gsave 0.8 SLW 0. setgray 0 setlinecap stroke
+grestore end
+
+@endspecial 204 w Fe(Extended,)12
+b(square)g(ends.)1472 4123 y Fl(30)41 b Fk(arrowsize=)p Fj(dim)11
+b(num)478 b Fl(Default:)16 b Fk(2pt)10 b(3)1472 4200 y Fl(30)41
+b Fk(arrowlength=)p Fj(num)554 b Fl(Default:)15 b Fk(1.4)1472
+4277 y Fl(30)41 b Fk(arrowinset=)p Fj(num)604 b Fl(Default:)15
+b Fk(.4)1472 4353 y Fl(30)41 b Fk(tbarsize=)p Fj(dim)11 b(num)512
+b Fl(Default:)16 b Fk(2pt)10 b(5)1472 4430 y Fl(30)41 b Fk(bracketlength=)p
+Fj(num)519 b Fl(Default:)15 b Fk(.15)1472 4507 y Fl(30)41 b
+Fk(rbracketlength=)p Fj(num)503 b Fl(Default:)15 b Fk(.15)1472
+4584 y Fl(30)41 b Fk(dotsize=)p Fj(dim)11 b(num)481 b Fl(Default:)15
+b Fk(.5pt)c(2.5)1472 4660 y Fl(30)41 b Fk(arrowscale=)p Fj(arrowsca)o
+(le=num1)9 b(num2)229 b Fl(Default:)15 b Fk(1)0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Page: 4 4
+3 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1113
+b(IV)-75 2828 y Fm(Custom)16 b(styles)-2 2933 y Fl(31)40 b
+Fk(\\newpsobject)o({)p Fj(name)q Fk(}{)p Fj(object)s Fk(}{)p
+Fj(par1=value1)p Fi(,)q Fo(\274)o Fk(})-2 3009 y Fl(31)g Fk(\\newpsstyle)o({)
+p Fj(name)q Fk(}{)p Fj(par1=value1)p Fi(,)q Fo(\274)p Fk(})-75
+3178 y Fm(The)16 b(basics)-2 3283 y Fl(32)40 b Fk(\\pscustom)p
+Fi(*[)p Fh(par)t Fi(])p Fk({)p Fj(commands)q Fk(})-75 3451
+y Fm(Parameters)-2 3556 y Fl(33)g Fk(linetype=)p Fj(int)705
+b Fl(Default:)15 b Fk(0)-75 3725 y Fm(Graphics)g(objects)-2
+3829 y Fl(35)40 b Fk(liftpen=)p Fj(0/1/2)696 b Fl(Default:)15
+b Fk(0)-75 3998 y Fm(Safe)h(tricks)-2 4103 y Fl(36)40 b Fk(\\newpath)-2
+4179 y Fl(36)g Fk(\\moveto\()p Fj(coor)p Fk(\))-2 4256 y Fl(36)g
+Fk(\\closepath)-2 4333 y Fl(36)g Fk(\\stroke)o Fi([)p Fh(par)t
+Fi(])-2 4410 y Fl(37)g Fk(\\\256ll)q Fi([)p Fh(par)t Fi(])-2
+4486 y Fl(37)g Fk(\\gsave)-2 4563 y Fl(37)g Fk(\\grestore)-2
+4640 y Fl(38)g Fk(\\translate)o(\()p Fj(coor)p Fk(\))-2 4717
+y Fl(38)g Fk(\\scale{)p Fj(num1)11 b Fh(num2)s Fk(})1472 2828
+y Fl(38)41 b Fk(\\rotate)o({)p Fj(angle)q Fk(})1472 2902 y
+Fl(38)g Fk(\\swapaxes)1472 2976 y Fl(38)g Fk(\\msave)1472 3050
+y Fl(38)g Fk(\\mrestore)1472 3123 y Fl(38)g Fk(\\openshadow)o
+Fi([)p Fh(par)t Fi(])1472 3197 y Fl(38)g Fk(\\closedshadow)o
+Fi([)p Fh(par)t Fi(])1472 3271 y Fl(38)g Fk(\\movepath)o(\()p
+Fj(coor)p Fk(\))1400 3434 y Fm(Pretty)15 b(safe)g(tricks)1472
+3535 y Fl(39)41 b Fk(\\lineto\()p Fj(coor)p Fk(\))1472 3609
+y Fl(39)g Fk(\\rlineto\()p Fj(coor)p Fk(\))1472 3683 y Fl(39)g
+Fk(\\curveto)o(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\)\()p Fj(x2)s
+Fk(,)t Fj(y2)s Fk(\)\()o Fj(x3)r Fk(,)t Fj(y3)r Fk(\))1472
+3757 y Fl(39)g Fk(\\rcurveto)o(\()p Fj(x1)p Fk(,)t Fj(y1)p
+Fk(\)\()p Fj(x2)s Fk(,)t Fj(y2)s Fk(\)\()o Fj(x3)r Fk(,)t Fj(y3)r
+Fk(\))1400 3920 y Fm(For)16 b(hackers)e(only)1472 4021 y Fl(39)41
+b Fk(\\code)o({)p Fj(code)q Fk(})1472 4095 y Fl(39)g Fk(\\dim)q({)p
+Fj(dim)q Fk(})1472 4169 y Fl(39)g Fk(\\coor\()p Fj(x1)p Fk(,)t
+Fj(y1)p Fk(\))p Fi(\()p Fh(x2)s Fi(,)t Fh(y2)s Fi(\)...\()p
+Fh(xn)q Fi(,)t Fh(yn)q Fi(\))1472 4243 y Fl(40)g Fk(\\rcoor\()p
+Fj(x1)p Fk(,)t Fj(y1)p Fk(\))p Fi(\()p Fh(x2)s Fi(,)t Fh(y2)s
+Fi(\)...\()p Fh(xn)q Fi(,)t Fh(yn)q Fi(\))1472 4316 y Fl(40)g
+Fk(\\\256le{)p Fj(\256le)q Fk(})1472 4390 y Fl(40)g Fk(\\arrows)o({)p
+Fj(arrows)q Fk(})1472 4464 y Fl(40)g Fk(\\setcolor)o({)p Fj(color)t
+Fk(})1400 4627 y Fm(Pictures)1472 4728 y Fl(41)g Fk(\\pspicture)o
+Fi(*[)p Fh(baseline)q Fi(]\()p Fh(x0)r Fi(,)p Fh(y0)r Fi(\))p
+Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\))0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Page: 5 5
+4 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1126
+b(V)-2 2828 y Fl(41)40 b Fk(\\endpspicture)-75 2996 y Fm(Placing)17
+b(and)f(rotating)f(whatever)-2 3099 y Fl(43)40 b Fk(\\rput)p
+Fi(*[)p Fh(refpoint)t Fi(]{)p Fh(rotation)q Fi(})p Fk(\()p
+Fj(x)t Fk(,)t Fj(y)t Fk(\){)o Fj(stuf)n(f)5 b Fk(})-2 3176
+y Fl(44)40 b Fk(\\uput)p Fi(*{)p Fh(labelsep)q Fi(})p Fk([)p
+Fj(refangle)q Fk(])p Fi({)p Fh(r)o(otation)q Fi(})o(\()p Fh(x)s
+Fi(,)t Fh(y)t Fi(\))p Fk({)p Fj(stuf)o(f)5 b Fk(})-2 3252 y
+Fl(44)40 b Fk(\\pslabelsep)-2 3328 y Fl(44)g Fk(labelsep=)p
+Fj(dim)635 b Fl(Default:)15 b Fk(5pt)-75 3496 y Fm(Repetition)-2
+3599 y Fl(46)40 b Fk(\\multirput)q Fi(*[)p Fh(refpoint)t Fi(]{)p
+Fh(angle)q Fi(}\()p Fh(x0)r Fi(,)t Fh(y0)r Fi(\))p Fk(\()o
+Fj(x1)p Fk(,)t Fj(y1)p Fk(\))o({)p Fj(int)s Fk(}{)p Fj(st)o(uf)o(f)5
+b Fk(})-2 3676 y Fl(46)40 b Fk(\\multips)q Fi({)p Fh(angle)q
+Fi(}\()p Fh(x0)r Fi(,)t Fh(y0)r Fi(\))p Fk(\()p Fj(x1)p Fk(,)t
+Fj(y1)o Fk(\){)p Fj(int)s Fk(}{)p Fj(grap)o(hics)q Fk(})-75
+3843 y Fm(Axes)-2 3947 y Fl(48)g Fk(\\psaxes)o Fi(*[)p Fh(par)t
+Fi(]{)p Fh(arrows)q Fi(}\()p Fh(x0)r Fi(,)t Fh(y0)r Fi(\)\()p
+Fh(x1)p Fi(,)t Fh(y1)p Fi(\))p Fk(\()p Fj(x2)s Fk(,)t Fj(y2)s
+Fk(\))353 4072 y Fn(Axes)14 b(label)g(parameters)p 56 4105
+1114 2 v 55 4203 2 98 v 81 4167 a Fd(Horitontal)p 347 4203
+V 58 w(V)-6 b(ertical)p 594 4203 V 60 w(D\257t)p 730 4203 V
+50 w(Description)p 1169 4203 V 55 4292 2 90 v 103 4265 a Fn(Ox=num)p
+347 4292 V 72 w(Oy=num)p 594 4292 V 79 w Fc(0)p 730 4292 V
+79 w Fb(Label)15 b(at)g(origin.)p 1169 4292 V 55 4382 V 104
+4355 a Fn(Dx=num)p 347 4382 V 75 w(Dy=num)p 594 4382 V 81 w
+Fc(1)p 730 4382 V 79 w Fb(Label)g(increment.)p 1169 4382 V
+55 4472 V 115 4445 a Fn(dx=dim)p 347 4472 V 96 w(oy=dim)p 594
+4472 V 70 w Fc(0pt)p 730 4472 V 59 w Fb(Dist)g(btwn)f(labels.)p
+1169 4472 V 56 4473 1114 2 v -2 4576 a Fl(50)40 b Fk(labels=)p
+Fj(all/x/y/none)549 b Fl(Default:)15 b Fk(all)-2 4652 y Fl(50)40
+b Fk(showorigin=)p Fj(true/false)454 b Fl(Default:)15 b Fk(true)-2
+4728 y Fl(50)40 b Fk(ticks=)p Fj(all/x/y/none)571 b Fl(Default:)15
+b Fk(all)1472 2828 y Fl(50)41 b Fk(tickstyle=)p Fj(full/top/bottom)420
+b Fl(Default:)15 b Fk(full)1472 2905 y Fl(50)41 b Fk(ticksize=)p
+Fj(dim)651 b Fl(Default:)15 b Fk(3pt)1472 2982 y Fl(51)41 b
+Fk(\\psxlabel)1472 3059 y Fl(51)g Fk(\\psylabel)1472 3135 y
+Fl(51)g Fk(axesstyle=)p Fj(axes)o(/frame/none)332 b Fl(Default:)15
+b Fk(axes)1400 3304 y Fm(Framed)g(boxes)1472 3409 y Fl(52)41
+b Fk(framesep=)p Fj(dim)616 b Fl(Default:)15 b Fk(3pt)1472
+3485 y Fl(52)41 b Fk(boxsep=)p Fj(true/false)528 b Fl(Default:)15
+b Fk(true)1472 3562 y Fl(52)41 b Fk(\\psframebox)o Fi(*[)p
+Fh(par)p Fi(])p Fk({)p Fj(stuf)o(f)5 b Fk(})1472 3639 y Fl(53)41
+b Fk(\\psdblframebox)o Fi(*[)p Fh(par)p Fi(])p Fk({)p Fj(stuf)o(f)5
+b Fk(})1472 3716 y Fl(53)41 b Fk(\\psshadowbox)o Fi(*[)p Fh(par)p
+Fi(])p Fk({)p Fj(stuf)o(f)5 b Fk(})1472 3793 y Fl(53)41 b Fk(\\pscirclebox)o
+Fi(*[)p Fh(par)p Fi(])p Fk({)p Fj(stuf)o(f)5 b Fk(})1472 3869
+y Fl(53)41 b Fk(\\cput)o Fi(*[)p Fh(par)p Fi(])p Fj({angle)q(}\(x)t(,)t(y)t
+(\))q Fk({)p Fj(stuf)o(f)5 b Fk(})1472 3946 y Fl(54)41 b Fk(\\psovalbox)o
+Fi(*[)p Fh(par)p Fi(])p Fk({)p Fj(stuf)o(f)5 b Fk(})1400 4115
+y Fm(Clipping)1472 4219 y Fl(54)41 b Fk(\\clipbox)p Fi([)p
+Fh(dim)q Fi(])p Fk({)p Fj(stuf)o(f)5 b Fk(})1472 4296 y Fl(54)41
+b Fk(\\psclip{)p Fj(graphics)q Fk(})12 b Fo(\274)h Fk(\\endpsclip)1400
+4465 y Fm(Rotation)i(and)h(scaling)g(boxes)1472 4570 y Fl(55)41
+b Fk(\\rotateleft)n({)p Fj(stuf)o(f)5 b Fk(})1472 4646 y Fl(55)41
+b Fk(\\rotateright)n({)p Fj(stuf)o(f)5 b Fk(})1472 4723 y Fl(56)41
+b Fk(\\rotatedown)n({)p Fj(stuf)o(f)5 b Fk(})0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Page: 6 6
+5 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1113
+b(VI)-2 2828 y Fl(56)40 b Fk(\\scalebox)o({)p Fj(num1)12 b
+Fh(num2)s Fk(}{)p Fj(stuf)o(f)5 b Fk(})-2 2904 y Fl(56)40 b
+Fk(\\scaleboxto)o(\()p Fj(x)t Fk(,)t Fj(y)t Fk(\){)p Fj(stuf)o(f)5
+b Fk(})-75 3070 y Fm(Nodes)-2 3173 y Fl(59)40 b Fk(\\rnode)p
+Fi([)p Fh(refpoint)t Fi(])p Fk({)p Fj(name)q Fk(}{)p Fj(stuf)o(f)5
+b Fk(})-2 3249 y Fl(59)40 b Fk(\\Rnode)q Fi(\()p Fh(x)s Fi(,)t
+Fh(y)t Fi(\))p Fk({)p Fj(name)q Fk(}{)p Fj(stuf)o(f)5 b Fk(})-2
+3325 y Fl(59)40 b Fk(\\RnodeRef)-2 3400 y Fl(60)g Fk(\\pnode)p
+Fi(\()p Fh(x)s Fi(,)t Fh(y)t Fi(\))p Fk({)p Fj(name)q Fk(})-2
+3476 y Fl(60)g Fk(\\cnode)p Fi(*[)p Fh(par)p Fi(]\()p Fh(x)s
+Fi(,)t Fh(y)t Fi(\))p Fk({)p Fj(radius)q Fk(}{)p Fj(name)q
+Fk(})-2 3551 y Fl(60)g Fk(\\circlenode)p Fi(*[)p Fh(par)p Fi(])p
+Fk({)p Fj(name)q Fk(}{)p Fj(stuf)o(f)5 b Fk(})-2 3627 y Fl(60)40
+b Fk(\\cnodeput)o Fi(*[)p Fh(par)p Fi(]{)p Fh(angle)q Fi(}\()p
+Fh(x)s Fi(,)t Fh(y)t Fi(\))p Fk({)p Fj(name)q Fk(}{)p Fj(stuf)o(f)5
+b Fk(})-2 3703 y Fl(60)40 b Fk(\\ovalnode)p Fi(*[)p Fh(par)p
+Fi(])p Fk({)p Fj(name)q Fk(}{)p Fj(stuf)o(f)5 b Fk(})-75 3869
+y Fm(Node)16 b(connections)-2 3972 y Fl(61)40 b Fk(nodesep=)p
+Fj(dim)669 b Fl(Default:)15 b Fk(0)-2 4048 y Fl(61)40 b Fk(offset=)p
+Fj(dim)725 b Fl(Default:)15 b Fk(0)-2 4123 y Fl(61)40 b Fk(arm=)p
+Fj(dim)701 b Fl(Default:)15 b Fk(10pt)-2 4199 y Fl(61)40 b
+Fk(angle=)p Fj(angle)696 b Fl(Default:)15 b Fk(0)-2 4275 y
+Fl(61)40 b Fk(arcangle=)p Fj(angle)634 b Fl(Default:)15 b Fk(8)-2
+4350 y Fl(61)40 b Fk(ncurv=)p Fj(num)677 b Fl(Default:)16 b
+Fk(.67)-2 4426 y Fl(62)40 b Fk(loopsize=)p Fj(dim)616 b Fl(Default:)15
+b Fk(1cm)-2 4501 y Fl(62)40 b Fk(\\ncline)q Fi(*[)p Fh(par)p
+Fi(]{)p Fh(arrows)q Fi(})p Fk({)p Fj(nodeA)p Fk(}{)p Fj(nodeB)r
+Fk(})-2 4577 y Fl(62)g Fk(\\ncLine)p Fi(*[)p Fh(par)p Fi(]{)p
+Fh(arrows)q Fi(})p Fk({)p Fj(nodeA)p Fk(}{)p Fj(nodeB)r Fk(})-2
+4653 y Fl(62)g Fk(\\nccurve)o Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q
+Fi(})p Fk({)p Fj(nodeA)p Fk(}{)p Fj(nodeB)r Fk(})-2 4728 y
+Fl(63)g Fk(\\ncarc)p Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p
+Fk({)p Fj(nodeA)p Fk(}{)p Fj(nodeB)r Fk(})1472 2828 y Fl(63)h
+Fk(\\ncbar)o Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk({)p
+Fj(nodeA)p Fk(}{)p Fj(nodeB)r Fk(})1472 2904 y Fl(63)g Fk(\\ncdiag)p
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk({)p Fj(nodeA)p
+Fk(}{)p Fj(nodeB)r Fk(})1472 2979 y Fl(64)g Fk(\\ncdiagg)p
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk({)p Fj(nodeA)p
+Fk(}{)p Fj(nodeB)r Fk(})1472 3055 y Fl(64)g Fk(\\ncangle)p
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk({)p Fj(nodeA)p
+Fk(}{)p Fj(nodeB)r Fk(})1472 3131 y Fl(64)g Fk(\\ncangles)o
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk({)p Fj(nodeA)p
+Fk(}{)p Fj(nodeB)r Fk(})1472 3206 y Fl(65)g Fk(\\ncloop)p Fi(*[)p
+Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk({)p Fj(nodeA)p Fk(}{)p
+Fj(nodeB)r Fk(})1472 3282 y Fl(65)g Fk(\\nccircle)p Fi(*[)p
+Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk({)p Fj(node)q Fk(}{)p
+Fj(radius)q Fk(})1472 3357 y Fl(65)g Fk(\\pcline)p Fi(*[)p
+Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p Fk(,)t
+Fj(y1)p Fk(\)\()p Fj(x)o(2)s Fk(,)t Fj(y2)s Fk(\))1472 3433
+y Fl(65)g Fk(\\pccurve)o Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q
+Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\)\()o Fj(x2)s Fk(,)t
+Fj(y2)r Fk(\))1472 3509 y Fl(65)g Fk(\\pcarc)o Fi(*[)p Fh(par)p
+Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\)\()p
+Fj(x)o(2)s Fk(,)t Fj(y2)s Fk(\))1472 3584 y Fl(65)g Fk(\\pcbar)o
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p
+Fk(,)t Fj(y1)p Fk(\)\()p Fj(x2)r Fk(,)t Fj(y2)s Fk(\))1472
+3660 y Fl(65)g Fk(\\pcdiag)p Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q
+Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\)\()o Fj(x2)s Fk(,)t
+Fj(y2)r Fk(\))1472 3735 y Fl(66)g Fk(\\pcangle)p Fi(*[)p Fh(par)p
+Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\))o(\()p
+Fj(x2)r Fk(,)t Fj(y2)s Fk(\))1472 3811 y Fl(66)g Fk(\\pcloop)p
+Fi(*[)p Fh(par)p Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p
+Fk(,)t Fj(y1)p Fk(\)\()o Fj(x2)s Fk(,)t Fj(y2)s Fk(\))1400
+3977 y Fm(Attaching)15 b(labels)h(to)g(node)g(connections)1472
+4081 y Fl(67)41 b Fk(\\lput)p Fi(*[)p Fh(refpoint)t Fi(]{)p
+Fh(rotation)q Fi(})p Fk(\()p Fj(pos)p Fk(\))o({)p Fj(stuf)n(f)5
+b Fk(})1472 4156 y Fl(68)41 b Fk(\\aput)o Fi(*[)p Fh(labelsep)q
+Fi(]{)p Fh(angle)q Fi(})p Fk(\()p Fj(pos)p Fk(\){)p Fj(stuf)n(f)5
+b Fk(})1472 4232 y Fl(68)41 b Fk(\\bput)p Fi(*[)p Fh(labelsep)q
+Fi(]{)p Fh(angle)q Fi(})p Fk(\()p Fj(pos)p Fk(\){)p Fj(s)o(tuf)n(f)5
+b Fk(})1472 4307 y Fl(68)41 b Fk(\\mput)p Fi(*[)p Fh(refpoint)t
+Fi(])p Fk({)p Fj(stuf)o(f)5 b Fk(})1472 4383 y Fl(68)41 b Fk(\\Aput)p
+Fi(*[)p Fh(labelsep)q Fi(])p Fk({)p Fj(stuf)o(f)5 b Fk(})1472
+4459 y Fl(68)41 b Fk(\\Bput)p Fi(*[)p Fh(labelsep)q Fi(])p
+Fk({)p Fj(stuf)o(f)5 b Fk(})1400 4625 y Fm(Coils)17 b(and)f(zigzags)1472
+4728 y Fl(70)41 b Fk(\\pscoil)p Fi(*[)p Fh(par)t Fi(]{)p Fh(arrows)q
+Fi(}\()p Fh(x0)r Fi(,)t Fh(y0)r Fi(\))p Fk(\()p Fj(x1)p Fk(,)t
+Fj(y1)p Fk(\))0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Page: 7 7
+6 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1099
+b(VII)-2 2828 y Fl(70)40 b Fk(\\psCoil)q Fi(*[)p Fh(par)t Fi(])p
+Fk({)p Fj(angle1)p Fk(}{)p Fj(angle2)s Fk(})-2 2905 y Fl(70)g
+Fk(\\pszigzag)q Fi(*[)p Fh(par)t Fi(]{)p Fh(arrows)q Fi(}\()p
+Fh(x0)r Fi(,)t Fh(y0)r Fi(\))p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p
+Fk(\))-2 2982 y Fl(70)g Fk(coilwidth=)p Fj(dim)602 b Fl(Default:)15
+b Fk(1cm)-2 3059 y Fl(70)40 b Fk(coilheight=)p Fj(num)631 b
+Fl(Default:)15 b Fk(1)-2 3135 y Fl(70)40 b Fk(coilarm=)p Fj(dim)622
+b Fl(Default:)15 b Fk(.5cm)-2 3212 y Fl(70)40 b Fk(coilaspect=)p
+Fj(angle)579 b Fl(Default:)15 b Fk(45)-2 3289 y Fl(70)40 b
+Fk(coilinc=)p Fj(angle)651 b Fl(Default:)15 b Fk(10)-2 3366
+y Fl(71)40 b Fk(\\nccoil)q Fi(*[)p Fh(par)t Fi(]{)p Fh(arrows)q
+Fi(})p Fk({)p Fj(nodeA)p Fk(}{)p Fj(nodeB)r Fk(})-2 3442 y
+Fl(71)g Fk(\\nczigzag)q Fi(*[)p Fh(par)t Fi(]{)p Fh(arrows)q
+Fi(})p Fk({)p Fj(nodeA)p Fk(}{)p Fj(nodeB)r Fk(})-2 3519 y
+Fl(71)g Fk(\\pccoil)q Fi(*[)p Fh(par)t Fi(]{)p Fh(arrows)q
+Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\)\()o Fj(x2)s Fk(,)t
+Fj(y2)r Fk(\))-2 3596 y Fl(71)g Fk(\\pczigzag)q Fi(*[)p Fh(par)t
+Fi(]{)p Fh(arrows)q Fi(})p Fk(\()p Fj(x1)p Fk(,)t Fj(y1)p Fk(\)\()p
+Fj(x)o(2)s Fk(,)t Fj(y2)s Fk(\))-75 3765 y Fm(Special)16 b(coordinates)-2
+3869 y Fl(72)40 b Fk(\\SpecialCoor)246 4000 y Fn(Special)14
+b(coordinates)g(and)g(angles)p 1530 2780 1115 2 v 1529 2861
+2 81 v 1577 2831 a Fa(Coordinate)p 1843 2861 V 113 w(Example)p
+2153 2861 V 93 w(Description)p 2644 2861 V 1529 2933 2 73 v
+1641 2911 a Fk(\()p Fj(x)t Fk(,)p Fj(y)t Fk(\))p 1843 2933
+V 223 w(\(3,4\))p 2153 2933 V 137 w Fl(Cartesian)d(coordinate.)p
+2644 2933 V 1529 3005 V 1645 2983 a Fk(\()p Fj(r)t Fk(;)p Fj(a)q
+Fk(\))p 1843 3005 V 203 w(\(3;1)n(10\))p 2153 3005 V 113 w
+Fl(Polar)h(coordinate.)p 2644 3005 V 1529 3077 V 1624 3056
+a Fk(\()p Fj(node)q Fk(\))p 1843 3077 V 219 w(\(A\))p 2153
+3077 V 152 w Fl(Center)f(of)h Fj(node)q Fl(.)p 2644 3077 V
+1529 3149 V 1577 3128 a Fk(\([)p Fj(par)t Fk(])p Fj(node)q
+Fk(\))p 1843 3149 V 69 w(\([angle=45]A\))p 2153 3149 V 48 w
+Fl(Relative)g(to)g Fj(node)q Fl(.)p 2644 3149 V 1529 3222 V
+1642 3200 a Fk(\(!)p Fj(ps)q Fk(\))p 1843 3222 V 142 w(\(!5)e(3.3)h(2)h
+(exp\))p 2153 3222 V 55 w Fl(Raw)e(PostScript.)p 2644 3222
+V 1529 3294 V 1555 3272 a Fk(\()p Fj(coor1)p Fk(|)p Fj(coor2)s
+Fk(\))p 1843 3294 V 85 w(\(A|1in;30\))p 2153 3294 V 86 w Fl(Combination.)p
+2644 3294 V 1530 3296 1115 2 v 1530 3305 V 1529 3386 2 81 v
+1629 3356 a Fa(Angle)p 1843 3386 V 165 w(Example)p 2153 3386
+V 93 w(Description)p 2644 3386 V 1529 3458 2 73 v 1643 3437
+a Fj(num)p 1843 3458 V 247 w Fk(45)p 2153 3458 V 157 w Fl(Angle.)p
+2644 3458 V 1529 3530 V 1627 3509 a Fk(\()p Fj(coor)t Fk(\))p
+1843 3530 V 202 w(\(-1,1\))p 2153 3530 V 130 w Fl(Coordinate)h(\(vector\).)p
+2644 3530 V 1529 3603 V 1656 3581 a Fk(!)p Fj(ps)p 1843 3603
+V 207 w Fk(!33)f(sqrt)p 2153 3603 V 106 w Fl(Raw)g(PostScript.)p
+2644 3603 V 1530 3604 1115 2 v 1472 3684 a(73)41 b Fk(\\NormalCoor)1400
+3846 y Fm(Overlays)1472 3948 y Fl(73)g Fk(\\overlaybox)10 b
+Fj(stuf)o(f)5 b Fk(\\endoverlaybox)1472 4022 y Fl(73)41 b Fk(\\psoverlay)o({)
+p Fj(string)r Fk(})1472 4095 y Fl(74)g Fk(\\putoverlaybox)n({)p
+Fj(string)r Fk(})1472 4169 y Fl(74)g Fk(gradbegin=)p Fj(color)436
+b Fl(Default:)16 b Fk(gradbegin)1472 4243 y Fl(74)41 b Fk(gradend=)p
+Fj(color)509 b Fl(Default:)15 b Fk(gradend)1472 4317 y Fl(75)41
+b Fk(gradlines=)p Fj(int)632 b Fl(Default:)15 b Fk(500)1472
+4391 y Fl(75)41 b Fk(gradmidpoint=)p Fj(num)551 b Fl(Default:)15
+b Fk(.9)1472 4464 y Fl(75)41 b Fk(gradangle=)p Fj(angle)606
+b Fl(Default:)15 b Fk(0)1400 4627 y Fm(T)l(ypesetting)f(text)h(along)h(a)g
+(path)1472 4728 y Fl(76)41 b Fk(\\pstextpath)n Fi([)p Fh(pos)q
+Fi(]\()p Fh(x)p Fi(,)p Fh(y)p Fi(\))p Fk({)p Fj(graphics)11
+b(object)s Fk(}{)p Fj(text)s Fk(})0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Page: 8 8
+7 bop 0 2700 a
+ tx@Dict begin 90 Rot  end
+ -88 x Fn(PST)m(ricks)950 b(Quick)13 b(Reference)1085
+b(VIII)-75 2828 y Fm(Stroking)16 b(and)g(\256lling)h(character)d(paths)-2
+2928 y Fl(77)40 b Fk(\\pscharpath)o Fi(*[)p Fh(par)t Fi(])p
+Fk({)p Fj(text)s Fk(})-2 3001 y Fl(78)g Fk(\\pscharclip)p Fi(*[)p
+Fh(par)t Fi(])p Fk({)p Fj(text)s Fk(})10 b(...)17 b(\\endpscharclip)-75
+3162 y Fm(Exporting)f(EPS)h(\256les)-2 3262 y Fl(79)40 b Fk(\\T)m(eXtoEPS)-2
+3335 y Fl(79)g Fk(\\endT)m(eXtoEPS)-2 3407 y Fl(80)g Fk(\\PSTtoEPS)q
+Fi([)p Fh(par)t Fi(])p Fk({)p Fj(\256le)q Fk(}{)p Fj(graphics)11
+b(objects)q Fk(})-2 3480 y Fl(80)40 b Fk(bbllx=)p Fj(dim)690
+b Fl(Default:)16 b Fk(-1pt)-2 3553 y Fl(80)40 b Fk(bblly=)p
+Fj(dim)690 b Fl(Default:)16 b Fk(-1pt)-2 3625 y Fl(80)40 b
+Fk(bburx=)p Fj(dim)685 b Fl(Default:)15 b Fk(1pt)-2 3698 y
+Fl(80)40 b Fk(bbury=)p Fj(dim)685 b Fl(Default:)15 b Fk(1pt)-2
+3771 y Fl(81)40 b Fk(header\256le=)p Fj(\256le)657 b Fl(Default:)15
+b Fk(s)-2 3843 y Fl(81)40 b Fk(headers=)p Fj(none/all/user)425
+b Fl(Default:)15 b Fk(none)-75 4004 y Fm(Boxes)-2 4104 y Fl(83)40
+b Fk(\\psmathboxtrue)-2 4177 y Fl(83)g Fk(\\psmathboxfalse)-2
+4250 y Fl(83)g Fk(\\everypsbox)o({)p Fj(commands)q Fk(})-2
+4322 y Fl(83)g Fk(\\pslongbox{)p Fj(name)q Fk(}{)p Fj(cmd)t
+Fk(})-2 4395 y Fl(84)g Fk(\\psverbboxtrue)-2 4468 y Fl(84)g
+Fk(\\psverbboxfalse)-75 4628 y Fm(T)o(ips)16 b(and)g(More)g(T)m(ricks)-2
+4728 y Fl(85)40 b Fk(\\PST)n(ricksOff)1400 2828 y Fm(Including)16
+b(PostScript)g(code)1472 2933 y Fl(87)41 b Fk(\\pslbrace)1472
+3009 y Fl(87)g Fk(\\psrbrace)0 2700 y
+ tx@Dict begin -90 Rot  end
+ eop
+%%Trailer
+end
+userdict /end-hook known{end-hook}if
+%%EOF

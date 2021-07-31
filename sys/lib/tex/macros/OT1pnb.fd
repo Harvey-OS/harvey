@@ -1,0 +1,46 @@
+%Filename: OT1pnb.fd
+%Created by: tex 6502newbaske
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pnb}{}
+
+\DeclareFontShape{OT1}{pnb}{b}{n}{
+   <-> pnbb7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{b}{sc}{
+   <-> pnbbc7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{b}{sl}{
+   <-> pnbbo7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{b}{it}{
+   <-> pnbbi7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{m}{n}{
+   <-> pnbr7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{m}{sc}{
+   <-> pnbrc7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{m}{sl}{
+   <-> pnbro7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{m}{it}{
+   <-> pnbri7t
+}{}
+
+\DeclareFontShape{OT1}{pnb}{bx}{n}{<->ssub * pnb/b/n}{}
+\DeclareFontShape{OT1}{pnb}{bx}{sc}{<->ssub * pnb/b/sc}{}
+\DeclareFontShape{OT1}{pnb}{bx}{sl}{<->ssub * pnb/b/sl}{}
+\DeclareFontShape{OT1}{pnb}{bx}{it}{<->ssub * pnb/b/it}{}
+
+\endinput

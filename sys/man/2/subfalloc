@@ -1,0 +1,204 @@
+.TH SUBFALLOC 2
+.SH NAME
+subfalloc, subffree, rdsubfontfile, wrsubfontfile, mkfont \- subfont manipulation
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <libg.h>
+.PP
+.ta \w'\fLSubfont* 'u
+.B
+Subfont*	subfalloc(int n, int height, int ascent,
+.br
+.B
+	Fontchar *info, Bitmap *b, ulong q0, ulong q1)
+.PP
+.B
+void	subffree(Subfont *f)
+.PP
+.B
+Subfont*	rdsubfontfile(int fd, Bitmap *b)
+.PP
+.B
+void	wrsubfontfile(int fd, Subfont *f)
+.PP
+.B
+Font*	mkfont(Subfont *f, Rune min);
+.SH DESCRIPTION
+Subfonts are the components of fonts that hold the character images.
+A font comprises an array of subfonts; see
+.IR cachechars (2).
+A new
+.B Subfont
+is allocated and initialized with
+.IR subfalloc .
+See
+.IR cachechars (2)
+for the meaning of
+.IR n ,
+.IR height ,
+.IR ascent ,
+and
+.IR info ,
+and the arrangement of characters in
+bitmap
+.IR b .
+The fields of the returned
+.B Subfont
+structure are set to
+the passed arguments, and the
+.B id
+field is set to the identifying number used by
+.B /dev/bitblt
+(see
+.IR bit (3)).
+After a successful
+.IR subfalloc ,
+.I b
+is attached to the subfont and is unavailable to the application;
+it should not be used.
+.I Subfalloc
+returns 0 on failure.
+.PP
+The
+.I q0
+and
+.I q1
+arguments are used as tags in a cache of subfonts (see below).
+If all ones, they disable caching.
+.PP
+.I Subffree
+frees a subfont and all its associated structure including the
+associated bitmap.
+Since
+.I subffree
+calls
+.I free
+on
+.BR f->info ,
+if
+.B f->info
+was not allocated by
+.IR malloc (2)
+it should be zeroed before calling
+.IR subffree .
+.PP
+A number of subfonts are kept in external files.
+The convention for naming subfont files is:
+.IP
+.B /lib/font/bit/\fIname\fP/\fIclass\fP.\fIsize\fP.\fIldepth
+.PD
+.PP
+where
+.I size
+is approximately the height in pixels of the lower case letters
+(without ascenders or descenders).
+If there is only one version of the subfont, the
+.BI \&. ldepth
+extension is elided.
+.I Class
+describes the range of runes encoded in the subfont:
+.BR ascii ,
+.BR latin1 ,
+.BR greek ,
+etc.
+.PP
+The format of a subfont file is described in
+.IR font (6)).
+Briefly, it contains a bitmap with all the characters in it,
+followed by a subfont header, followed by character information.
+.I Rdsubfontfile
+reads a subfont from the file descriptor
+.IR fd .
+If
+.I b
+is zero,
+.I rdsubfontfile
+reads the bitmap as well as the character information from the file
+and allows the resulting subfont and bitmap to be cached
+in the server for sharing with other applications.
+The first thing such an
+.I rdsubfontfile
+call does is check to see if the subfont can be recovered
+directly from the server: if the qid
+(see
+.IR intro (5))
+of the file pointed to by
+.I fd
+matches
+.B q0
+and
+.B q1
+of a cache entry, the subfont is read from the server instead
+of from
+.IR fd .
+This is the normal use of
+.IR rdsubfontfile .
+.PP
+Unusual applications such as font editors may choose to have
+uncached (hence unshared)
+subfonts or to associate arbitrary bitmaps with the
+character data.  If the
+.I b
+argument to
+.I rdsubfontfile
+is non-null,
+.I rdsubfontfile
+reads only the character information from
+.I fd
+(which must be positioned after the bitmap in the file) and
+the resulting subfont is uncached.
+Nonetheless,
+.I rdsubfontfile
+calls
+.I subfalloc
+with
+.I b
+and hence
+.I b
+is unusable afterwards; make a copy first if necessary.
+.I Rdsubfontfile
+returns 0 on error.
+.PP
+.I Wrsubfontfile
+writes on
+.I fd
+the part of a subfont file that comes after the bitmap.
+Because the bitmap of a cached subfont is
+unavailable to the application, without extraordinary measures
+only uncached subfonts may be written whole to files.
+.PP
+.I Mkfont
+takes as argument a
+.B Subfont
+.I s
+and returns a pointer to a 
+.B Font
+that maps the character images in
+.I s
+into the
+.B Runes
+.I min
+to
+.IB min + s ->n-1\f1.
+.SH FILES
+.TF /lib/font/bit
+.TP
+.B /lib/font/bit
+bitmap font file tree
+.SH SOURCE
+.B /sys/src/libg
+.SH SEE ALSO
+.IR graphics (2),
+.IR balloc (2),
+.IR bitblt (2),
+.IR cachechars (2),
+.IR bitmap (6),
+.IR font (6)
+.SH DIAGNOSTICS
+All of the functions use the graphics error function (see
+.IR graphics (2)).
+.SH BUGS
+Subfonts can contain no more than about 1300 characters.

@@ -26,13 +26,13 @@ struct	Sch
 	Prog	p;
 	Dep	set;
 	Dep	used;
-	long	soffset;
+	long	offset;
 	char	size;
 	char	nop;
 	char	comp;
 };
 
-void	regsused(Sch*, Prog*);
+void	regused(Sch*, Prog*);
 int	depend(Sch*, Sch*);
 int	conflict(Sch*, Sch*);
 int	offoverlap(Sch*, Sch*);
@@ -51,7 +51,7 @@ sched(Prog *p0, Prog *pe)
 	for(p=p0;; p=p->link) {
 		memset(s, 0, sizeof(*s));
 		s->p = *p;
-		regsused(s, p);
+		regused(s, p);
 		if(debug['X']) {
 			Bprint(&bso, "%P%|set", &s->p, 40);
 			dumpbits(s, &s->set);
@@ -116,6 +116,7 @@ sched(Prog *p0, Prog *pe)
 				break;
 		no1:;
 		}
+	no12:;
 	}
 
 	for(s=se; s>=sch; s--) {
@@ -210,7 +211,7 @@ sched(Prog *p0, Prog *pe)
 }
 
 void
-regsused(Sch *s, Prog *realp)
+regused(Sch *s, Prog *realp)
 {
 	int c, ar, ad, ld, sz;
 	ulong m;
@@ -387,7 +388,7 @@ regsused(Sch *s, Prog *realp)
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->to);
+		s->offset = regoff(&p->to);
 
 		m = ANYMEM;
 		if(c == REGSB)
@@ -432,7 +433,7 @@ regsused(Sch *s, Prog *realp)
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->to);
+		s->offset = regoff(&p->to);
 
 		if(ar)
 			s->used.cc |= E_MEMSP;
@@ -445,7 +446,7 @@ regsused(Sch *s, Prog *realp)
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->to);
+		s->offset = regoff(&p->to);
 
 		if(ar)
 			s->used.cc |= E_MEMSB;
@@ -497,7 +498,7 @@ regsused(Sch *s, Prog *realp)
 		if(ld)
 			p->mark |= LOAD;
 		s->size = sz;
-		s->soffset = regoff(&p->from);
+		s->offset = regoff(&p->from);
 
 		m = ANYMEM;
 		if(c == REGSB)
@@ -533,7 +534,7 @@ regsused(Sch *s, Prog *realp)
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->from);
+		s->offset = regoff(&p->from);
 
 		s->used.cc |= E_MEMSP;
 		break;
@@ -545,7 +546,7 @@ regsused(Sch *s, Prog *realp)
 		if(ad)
 			break;
 		s->size = sz;
-		s->soffset = regoff(&p->from);
+		s->offset = regoff(&p->from);
 
 		s->used.cc |= E_MEMSB;
 		break;
@@ -616,12 +617,12 @@ int
 offoverlap(Sch *sa, Sch *sb)
 {
 
-	if(sa->soffset < sb->soffset) {
-		if(sa->soffset+sa->size > sb->soffset)
+	if(sa->offset < sb->offset) {
+		if(sa->offset+sa->size > sb->offset)
 			return 1;
 		return 0;
 	}
-	if(sb->soffset+sb->size > sa->soffset)
+	if(sb->offset+sb->size > sa->offset)
 		return 1;
 	return 0;
 }

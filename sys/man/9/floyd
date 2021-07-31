@@ -1,0 +1,70 @@
+.TH FLOYD 9.1
+.SH NAME
+floyd, halftone, hysteresis \- create 1-bit images by dithering
+.SH SYNOPSIS
+.B fb/floyd
+[
+.I input
+]
+.PP
+.B fb/halftone
+.I screen
+[
+.I input
+]
+.PP
+.B fb/hysteresis
+.I low high
+[
+.I input
+]
+.SH DESCRIPTION
+.I Floyd
+reads a grey-scale input file (default standard input),
+and reduces it to one bit per pixel
+using Floyd-Steinberg error-diffusion dither, as improved by Ulichney.
+The resulting
+.B TYPE=bitmap
+picture file is written to standard output.
+.PP
+Ulichney's algorithm involves randomly varying the Floyd-Steinberg diffusion coefficients.
+As the random number generator is seeded from the clock,
+.I floyd
+may produce different output if rerun on the same input.
+.PP
+.I Halftone
+reduces grey-scale images to one bit per pixel using ordered dither.  The
+.I screen
+argument is the name of a file containing a dither matrix.
+.I Halftone
+searches for screens in
+.BR /lib/fb/screens .
+.PP
+.I Hysteresis
+creates one-bit-per-pixel images by thresholding with hysteresis.
+Any value in the input image less than
+.I low
+is mapped to zero.
+Any input value less than
+.I high
+is mapped to zero if any of its eight neighbors is less than
+.IR low .
+If
+.I low
+and
+.I high
+are equal, this is just an ordinary thresholding operation.
+.PP
+.I Hysteresis
+makes a useful edge-detection operator if used on a high-pass
+filtered image.
+.SH FILES
+.B /lib/fb/screens/*
+.SH SOURCE
+.B /sys/src/fb/floyd.c
+.br
+.B /sys/src/fb/halftone.c
+.br
+.B /sys/src/fb/hysteresis.c
+.SH "SEE ALSO
+.IR picfile (9.6)

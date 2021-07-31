@@ -1,0 +1,372 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{180}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "3.3c",
+%%%     date            = "26 June 1994",
+%%%     time            = "00:40:45 MET",
+%%%     filename        = "english.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "46572 339 1547 13293",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, english",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the english language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{english.dtx}
+% \def\fileversion{v3.3c}
+% \def\filedate{1994/05/26}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2.e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source
+%    code for the English language-specific file.
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{english.dtx}
+\end{document}
+%</filedriver>
+%\fi
+%
+% \changes{english-2.0a}{2 apr 90}{Added checking of format}
+% \changes{english-2.1}{24 apr 90}{Reflect changes in babel 2.1}
+% \changes{english-2.1a}{14 may 90}{Incorporated Nico's comments}
+% \changes{english-2.1b}{14 may 90}{merged USenglish.sty into this file}
+% \changes{english-2.1c}{22 may 90}{fixed typo in definition for american
+%                                   language found by Werenfried Spit
+%                                   (nspit@fys.ruu.nl)}
+% \changes{english-2.1d}{16 july 90}{Fixed some typos}
+% \changes{english-3.0}{23 april 91}{Modified for babel 3.0}
+% \changes{english-3.0a}{29 may 91}{Removed bug found by van der Meer}
+% \changes{english-3.0c}{15 july 91}{Renamed babel.sty in babel.com}
+% \changes{english-3.1}{5 nov 91}{Rewritten parts of the code to use
+%                                 the new features of babel version
+%                                 3.1}
+% \changes{english-3.3}{8 feb 94}{Update or LaTeX2e}
+% \changes{english-3.3c}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved the identification after the loading of babel.def}
+%
+%  \section{The English language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section  has version number \fileversion and was last revised on
+%    \filedate.} defines all the language-specific macros for the
+%    English language as well as for the American version of this
+%    language.
+%
+%    For this language currently no special definitions are needed or
+%    available.
+%
+% \StopEventually{}
+%
+% \changes{english-3.0d}{22 okt 91}{Removed code to load {\tt latexhax.com}}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionsenglish| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+% \changes{english-3.0c}{15 july 91}{Added reset of catcode of @ before
+%                                  {\tt\bsl endinput}.}
+% \changes{english-3.0d}{22 okt 91}{removed use of {\tt\bsl @ifundefined}}
+% \changes{english-3.1a}{11 nov 91}{Moved code to the beginning of the file
+%                       and added {\tt\bsl selectlanguage} call}
+%    \begin{macrocode}
+\ifx\undefined\captionsenglish
+\else
+  \selectlanguage{english}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \begin{macro}{\atcatcode}
+%    This file, \file{english.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read. We save the category code of the @-sign in |\atcatcode| and
+%    make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+% \changes{english-3.0b}{6 june 91}{Made test of catcode of @ more
+%    robust}
+% \changes{english-3.0c}{15 july 91}{Modified handling of catcode of @
+%    again.}
+% \changes{english-3.0d}{22 okt 91}{Removed use of {\tt\bsl
+%    makeatletter} and hence the need to load {\tt latexhax.com}}
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt english} is the first language option
+%    to be processed. In that case we need to read \file{babel.def}
+%    right here before we continue.
+%
+% \changes{english-3.0}{23 april 91}{New check before loading
+%    babel.com}
+% \changes{english-3.1c}{15 feb 92}{Added {\tt\bsl\relax} after the
+%    argument of {\tt\bsl input}}
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{english.sty}[1994/06/26 v3.3c
+         English support from the babel system]
+%    \end{macrocode}
+%
+% \changes{english-3.0a}{29 may 91}{Add a check for existence
+%                                  {\tt\bsl originalTeX}}
+%    Another check that has to be made, is if another language specific
+%    file has been read already. In that case its definitions have
+%    been activated. This might interfere with definitions this file
+%    tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+% \changes{english-3.0c}{15 july 91}%
+%        {Added {\tt\bsl let\bsl originalTeX\bsl relax} to test for
+%         existence}
+% \changes{english-3.1b}{26 jan 92}%
+%        {{\tt\bsl originalTeX} should be expandable, {\tt\bsl let} it
+%         to {\tt\bsl empty}}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty\fi
+\originalTeX
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by
+%    the |\usepackage| command, {\tt english} could be an
+%    `unknown' language in which case we have to make it known.
+%    So we check for the existence of |\l@english| to see whether
+%    we have to do something here.
+%
+% \changes{english-3.0}{23 april 91}{Now use {\tt\bsl adddialect} if
+%    language undefined}
+% \changes{english-3.0d}{22 okt 91}{removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{english-3.3c}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@english
+  \@nopatterns{English}
+  \adddialect\l@english0\fi
+%    \end{macrocode}
+%    For the American version of these definitions we just add a
+%    ``dialect''. Also, the macros |\captionsamerican| and
+%    |\extrasamerican| are |\let| to their English
+%    counterparts when these parts are defined.
+% \changes{english-3.0}{23 april 90}{Now use {\tt\bsl adddialect} for
+%                              american}
+% \changes{english-3.0b}{6 june 91}{Removed {\tt\bsl global}
+%                              definitions}
+%    \begin{macrocode}
+\adddialect\l@american\l@english
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and from)
+%    the English language.
+%
+% \begin{macro}{\captionsenglish}
+%    The macro |\captionsenglish| defines all strings used
+%    in the four standard document classes provided with \LaTeX.
+% \changes{english-3.0b}{6 june 91}{Removed {\tt\bsl global}
+%                              definitions}
+% \changes{english-3.0b}{6 june 91}{{\tt\bsl pagename} should be
+%                                  {\tt\bsl headpagename}}
+% \changes{english-3.1a}{11 nov 91}{added {\tt\bsl seename}
+%                                   and {\tt\bsl alsoname}}
+% \changes{english-3.1b}{26 jan 92}{added {\tt\bsl prefacename}}
+% \changes{english-3.2}{15 jul 93}{`headpagename should be `pagename}
+%    \begin{macrocode}
+\addto\captionsenglish{%
+  \def\prefacename{Preface}%
+  \def\refname{References}%
+  \def\abstractname{Abstract}%
+  \def\bibname{Bibliography}%
+  \def\chaptername{Chapter}%
+  \def\appendixname{Appendix}%
+  \def\contentsname{Contents}%
+  \def\listfigurename{List of Figures}%
+  \def\listtablename{List of Tables}%
+  \def\indexname{Index}%
+  \def\figurename{Figure}%
+  \def\tablename{Table}%
+  \def\partname{Part}%
+  \def\enclname{encl}%
+  \def\ccname{cc}%
+  \def\headtoname{To}%
+  \def\pagename{Page}%
+  \def\seename{see}%
+  \def\alsoname{see also}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\captionsamerican}
+%    The `captions' are the same for both versions of the language, so
+%    we can |\let| the macro |\captionsamerican| be equal to
+%    |\captionsenglish|.
+%    \begin{macrocode}
+\let\captionsamerican\captionsenglish
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateenglish}
+%    The macro |\dateenglish| redefines the command
+%    |\today| to produce English dates.
+% \changes{english-3.0b}{6 june 91}{Removed {\tt\bsl global}
+%                                   definitions}
+%    \begin{macrocode}
+\def\dateenglish{%
+\def\today{\ifcase\day\or
+  1st\or 2nd\or 3rd\or 4th\or 5th\or
+  6th\or 7th\or 8th\or 9th\or 10th\or
+  11th\or 12th\or 13th\or 14th\or 15th\or
+  16th\or 17th\or 18th\or 19th\or 20th\or
+  21st\or 22nd\or 23rd\or 24th\or 25th\or
+  26th\or 27th\or 28th\or 29th\or 30th\or
+  31st\fi~\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space \number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateamerican}
+%    The macro |\dateamerican| redefines the command
+%    |\today| to produce American dates.
+% \changes{english-3.0b}{6 june 91}{Removed {\tt\bsl global}
+%                                   definitions}
+%    \begin{macrocode}
+\def\dateamerican{%
+\def\today{\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space\number\day, \number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasenglish}
+% \begin{macro}{\noextrasenglish}
+%    The macro |\extrasenglish| will perform all the extra definitions
+%    needed for the English language. The macro |\extrasenglish|
+%    is used to cancel the actions of |\extrasenglish|.
+%    For the moment these macros are empty but they are defined for
+%    compatibility with the other language-specific files.
+%
+%    \begin{macrocode}
+\addto\extrasenglish{}
+\addto\noextrasenglish{}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\extrasamerican}
+% \begin{macro}{\noextrasamerican}
+%    Also for the ``american'' variant no extra definitions are needed
+%    at the  moment.
+%    \begin{macrocode}
+\let\extrasamerican\extrasenglish
+\let\noextrasamerican\noextrasenglish
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% Our last action is to activate the commands we have just defined,
+% by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{english}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+% \changes{english-3.0c}{15 july 91}{Modified handling of catcode of
+%                                    @-sign.}
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

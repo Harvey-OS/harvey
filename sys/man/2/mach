@@ -1,8 +1,8 @@
 .TH MACH 2
 .SH NAME
-crackhdr, machbytype, machbyname, newmap, setmap, findseg, unusemap,
-loadmap, attachproc, get1, get2, get4, get8, put1, put2, put4, put8,
-beswab, beswal, beswav, leswab, leswal, leswav \- machine-independent access to executable files
+crackhdr, machbytype, machbyname, newmap, setmap, unusemap,
+loadmap, findseg, get1, get2, get4, put1, put2, put4,
+beswab, beswal, leswab, leswal \- machine-independent executable file access
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -23,16 +23,13 @@ void machbytype(int type)
 int machbyname(char *name)
 .PP
 .B
-Map *newmap(Map *map, int n)
+Map *newmap(Map *map, int fd, int n)
 .PP
 .B
-int setmap(Map *map, int fd, ulong base, ulong end,
+int setmap(Map *map, ulong base, ulong end, ulong foffset,
 .PP
 .B
-            ulong foffset, char *name)
-.PP
-.B
-int findseg(Map *map, char *name)
+           char *name)
 .PP
 .B
 void unusemap(Map *map, int seg)
@@ -41,7 +38,7 @@ void unusemap(Map *map, int seg)
 Map *loadmap(Map *map, int fd, Fhdr *fp)
 .PP
 .B
-int attachproc(int pid, int kflag, int corefd, Fhdr *fp)
+int findseg(Map *map, char *name)
 .PP
 .B
 int get1(Map *map, ulong addr, uchar *buf, int n)
@@ -53,9 +50,6 @@ int get2(Map *map, ulong addr, ushort *val)
 int get4(Map *map, ulong addr, long *val)
 .PP
 .B
-int get8(Map *map, ulong addr, vlong *val)
-.PP
-.B
 int put1(Map *map, ulong addr, uchar *buf, int n)
 .PP
 .B
@@ -65,16 +59,10 @@ int put2(Map *map, ulong addr, ushort val)
 int put4(Map *map, ulong addr, long val)
 .PP
 .B
-int put8(Map *map, ulong addr, vlong val)
-.PP
-.B
 ushort beswab(ushort val)
 .PP
 .B
 long beswal(long val)
-.PP
-.B
-long beswav(vlong val)
 .PP
 .B
 ushort leswab(ushort val)
@@ -83,138 +71,124 @@ ushort leswab(ushort val)
 long leswal(long val)
 .PP
 .B
-long leswav(vlong val)
-.PP
-.B
 extern Mach mach;
 .PP
 .B
 extern Machdata machdata;
 .SH DESCRIPTION
-These functions provide
-a processor-independent interface for accessing
-the executable files or executing images of all
-architectures.
-Related library functions described in
-.IR symbol (2)
+These functions provide machine-independent access to
+an executable file or executing process image.
+The latter is accessed by opening either
+.BR /proc/\fIpid\fP/text
+or
+.B /proc/\fIpid\fP/mem
+as described in
+.IR proc (3).
+.IR Symbol (2)
 and
 .IR object (2)
-provide similar access to symbol tables and object files.
-.PP
-An
-.I executable
-is a file containing an executable program or the
-.B text
-file of the
-.B /proc
-file system associated with an executing process as
-described in
-.IR proc (3).
-After opening an executable, an application
-invokes a library function which parses the
-file header,
-determines the target architecture and
-initializes data structures with parameters
-and pointers to functions appropriate for
-that architecture.  Next, the application
-invokes functions to construct one or more
-.IR maps ,
-data structures that translate references
-in the address space of the executable
-to offsets in the file.  Each
-.I map
-comprises one or more
-.BR segments ,
-each associating a non-overlapping range of 
-memory addresses with a logical section of
-the executable.
-Other library functions then use a map
-and the architecture-specific data structures
-to provide a generic interface to the
-processor-dependent data.
+describe other library functions
+for machine-independent access to symbol tables and object files.
 .PP
 .I Crackhdr
-interprets the header of the executable
-associated with
-the open file descriptor
-.IR fd .
-It loads the data structure
+loads data structure
 .I fp
-with a machine-independent description
-of the header information and
-points global variable
+with a machine-independent description of the
+header of the executable file or image associated
+with the open file descriptor
+.IR fd .
+It also sets global variable
 .I mach
-to the
+pointing to the
 .B Mach
-data structure containing processor-dependent parameters
+data structure containing the machine-dependent parameters
 of the target architecture.
 .PP
 .I Machbytype
-selects architecture-specific data structures and parameter
-values based on
+and
+.I machbyname
+select the data structures and parameter
+values associated with the specified architecture.
+The former selects the architecture based on
 the code stored in the
 field named
 .I type
 in the
 .B Fhdr
-data structure.
-.I Machbyname
-performs the same selection based
-on the name of a processor class; see
-.IR 2c (1)
-for a list of valid names.
-Both functions point global variables
+data structure.  The latter selects a processor
+class by name; one of
+.IR 68020 ,
+.IR mips ,
+.IR mipsco ,
+.IR sparc ,
+.IR sunsparc ,
+.IR 386 ,
+.IR 86 ,
+or
+.IR 960 .
+These functions point the
 .I mach
 and
 .I machdata
-to the
+global variables to the proper
 .I Mach
 and
 .I Machdata
-data structures appropriate for the
-target architecture and load global variable
-.I asstype
-with the proper disassembler type code.
+data structures and load global variable
+.I asstype 
+with the disassembler type code.
+.PP
+A
+.I map
+is a data structure used to
+transform an address in the address space
+of an executable to an offset in a file or
+executing image.  A map comprises one or more
+.BR segments ,
+each associating a range of addresses with an offset
+in the file or memory image.  The range of one segment
+may not overlap the range of another segment in the map.
+Most maps define segments named `text' and `data' to
+map the instruction and initialized data sections of
+an executable file.  When the map is associated with
+the memory image of an executing program, the range of
+the `data' segment is usually extended to include the bss,
+heap, and stack of the process and an additional segment, named `ublock',
+maps the page containing the saved registers and process
+state information.
 .PP
 .I Newmap
-creates an empty map with
+creates a map with
 .I n
-segments.
+segments or recycles a map currently in use.
 If
 .I map
-is zero, the new map is dynamically
+is zero, a new map is dynamically
 allocated, otherwise it is assumed to
 point to an existing dynamically allocated map whose
 size is adjusted, as necessary.
-A zero return value indicates an allocation error.
+The map is associated with the open file
+descriptor
+.I fd 
+and all segments are marked as unused.
+The address of the map is returned.  A zero
+return indicates an allocation error.
 .PP
 .I Setmap
 loads the first unused segment in
 .I map
 with the
 segment mapping parameters.
-.I Fd
-is an open file descriptor associated with
-an executable.
 .I Base
 and
 .I end
 contain the lowest and highest virtual addresses
 mapped by the segment.
 .I Foffset
-is the offset to the start of the segment in the file.
+contains the offset in the executable
+to the start of the segment.
 .I Name
 is a name to be attached to the segment.
-.PP
-.I Findseg
-returns the index of the the
-segment named
-.I name
-in
-.IR map .
-A return of -1 indicates that no
-segment matches
-.IR name .
 .PP
 .I Unusemap
 marks segment number
@@ -225,76 +199,31 @@ unused.  Other
 segments in the map remain unaffected.
 .PP
 .I Loadmap
-initializes a default map containing
-segments named `text' and `data' that
-map the instruction and data segments
-of the executable described in the
+uses the values in a
 .B Fhdr
-structure pointed to by
-.IR fp .
-Usually that structure was loaded by
-.IR crackhdr
-and can be passed to this function without
-modification.
-If
+data structure (usually filled by
+.IR crackhdr )
+to initialize a default map for an executable file or executing
+image.  If
 .I map
-is non-zero, that map, which must have been
-dynamically allocated, is resized to contain two segments;
-otherwise a new map is allocated.
-This function returns zero if allocation fails.
-.I Loadmap
-is usually used to build a map for accessing
-a static executable, for example, an executable
-program file.
-.PP
-.I Attachproc
-constructs a map for accessing a
-running process.  It
-returns the address of a
-.I Map
-containing segments mapping the
-address space of the running process
-whose process ID is
-.BR pid .
-If
-.B kflag
-is non-zero, the process is assumed to be
-a kernel process.
-.B Corefd
-is an file descriptor opened to
-.BR /proc/\fIpid\fP/mem .
-.B Fp
-points to the
+is zero, a new map with two segments is dynamically allocated; otherwise,
+.I map
+is initialized with the appropriate values.  This function
+returns the address of the map if successful,
+zero on failure.  Two segments, named `text' and `data'
+are defined in the map; they map the instruction and
+initialized data sections of the program described by
+the
 .I Fhdr
-structure describing the header
-of the executable.  For most architectures
-the resulting
-.I Map
-contains four segments named `text', `data',
-`regs' and `fpregs'.  The latter two provide access to
-the general and floating point registers, respectively.
-If the executable is a kernel process (indicated by a
-non-zero
-.B kflag
-argument), the data segment extends to the maximum
-supported address, currently 0xffffffff, and the
-register sets are read-only.  In user-level programs,
-the data segment extends to the
-top of the stack or 0x7fffffff if the stack top
-cannot be found, and the register sets are readable
-and writable.
-.I Attachproc
-returns zero if it is unable to build the map
-for the specified process.
+structure.
 .PP
 .IR Get1 ,
 .IR get2 ,
-.IR get4 ,
 and
-.I get8
+.I get4
 retrieve the data stored at address
 .I addr
-in the executable associated
+in the program file or executable image associated
 with
 .IR map .
 .I Get1
@@ -304,40 +233,35 @@ bytes of data beginning at
 .I addr
 into
 .IR buf .
-.IR Get2 ,
-.I get4
+.I Get2
 and
-.I get8
-retrieve 16-bit, 32-bit and 64-bit values respectively,
+.I get4
+retrieve 16-bit and 32-bit values respectively,
 into the location pointed to by
 .IR val .
 The value is byte-swapped if the source
 byte order differs from that of the current architecture.
 This implies that the value returned by
-.IR get2 ,
-.IR get4 ,
-and
-.I get8
-may not be the same as the byte sequences
+.I get4
+may not be the same as the four-byte sequence
 returned by
 .I get1
 when
 .I n
-is two, four or eight; the former may be byte-swapped, the
-latter reflects the byte order of the target architecture.
-If the file descriptor associated with the applicable segment in 
+is four; the former may be byte-swapped, the
+latter is independent of source and target byte order.
+If the file descriptor associated with
 .I map
 is negative, the address itself is placed in the
 return location.  These functions return the number
-of bytes read or a \-1 when there is an error.
+of bytes read.  A \-1 indicates an error condition.
 .PP
 .IR Put1 ,
 .IR put2 ,
-.IR put4 ,
 and
-.I put8
+.I put4
 write to
-the executable associated with
+the file or executing image associated with
 .IR map .
 The address is translated using the
 map parameters and multi-byte quantities are
@@ -347,42 +271,36 @@ transfers
 .I n
 bytes stored at
 .IR buf ;
-.IR put2 ,
-.IR put4 ,
+.I put2
 and
-.I put8
-write the 16-bit, 32-bit or 64-bit quantity contained in
+.I put4
+write the 16-bit and 32-bit quantity contained in
 .IR val ,
 respectively.  The number of bytes transferred is returned.
 A \-1 return value indicates an error.
 .PP
-.IR Beswab ,
-.IR beswal ,
+.I Beswab
 and
-.I beswav
+.I beswal
 return the
-.BR ushort ,
-.BR long ,
+.B ushort
 and
-.B vlong
+.B long
 big-endian representation of
 .IR val ,
 respectively.
-.IR Leswab ,
-.IR leswal ,
+.I Leswab
 and
-.I leswav
+.I leswal
 return the little-endian representation of the
-.BR ushort ,
-.BR long ,
+.B ushort
 and
-.B vlong
+.B long
 contained in
 .IR val .
 .SH SOURCE
 .B /sys/src/libmach
 .SH "SEE ALSO"
-.IR 2c (1),
 .IR symbol (2),
 .IR object (2),
 .IR errstr (2),

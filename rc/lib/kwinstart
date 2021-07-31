@@ -1,0 +1,5 @@
+#!/bin/rc
+eval `{ echo -n window ''''
+ syscall -o read 0 buf 59 < /dev/window >[2] /dev/null |
+  awk '{ printf("%d %d %d %d", $2+5, $5-150, $2+145, $5-5) }'
+ echo '''' /bin/aux/kwindow }

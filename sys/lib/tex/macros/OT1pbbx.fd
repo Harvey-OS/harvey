@@ -1,0 +1,46 @@
+%Filename: OT1pbbx.fd
+%Created by: tex 8836xbembo
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pbbx}{}
+
+\DeclareFontShape{OT1}{pbbx}{b}{n}{
+   <-> pbbbx7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{b}{sc}{
+   <-> pbbbxc7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{b}{sl}{
+   <-> pbbbox7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{b}{it}{
+   <-> pbbbix7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{m}{n}{
+   <-> pbbrx7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{m}{sc}{
+   <-> pbbrxc7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{m}{sl}{
+   <-> pbbrox7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{m}{it}{
+   <-> pbbrix7t
+}{}
+
+\DeclareFontShape{OT1}{pbbx}{bx}{n}{<->ssub * pbbx/b/n}{}
+\DeclareFontShape{OT1}{pbbx}{bx}{sc}{<->ssub * pbbx/b/sc}{}
+\DeclareFontShape{OT1}{pbbx}{bx}{sl}{<->ssub * pbbx/b/sl}{}
+\DeclareFontShape{OT1}{pbbx}{bx}{it}{<->ssub * pbbx/b/it}{}
+
+\endinput

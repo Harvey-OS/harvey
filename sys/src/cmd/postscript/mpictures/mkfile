@@ -1,6 +1,7 @@
 </$objtype/mkfile
 
-<../config
+SYSTEM=plan9
+VERSION=3.3.1
 
 TMACDIR=/sys/lib/tmac
 

@@ -1,0 +1,504 @@
+aggr Notemsg {
+	'a'    0 note;
+};
+
+defn
+Notemsg(addr) {
+	complex Notemsg addr;
+	print("	note	", addr.note, "\n");
+};
+
+union Length {
+	'a'    0 clength;
+	{
+	'D'    0 hlength;
+	'D'    4 length;
+	};
+};
+
+defn
+Length(addr) {
+	complex Length addr;
+	print("	clength	", addr.clength, "\n");
+};
+
+aggr Qid {
+	'U'    0 path;
+	'U'    4 vers;
+};
+
+defn
+Qid(addr) {
+	complex Qid addr;
+	print("	path	", addr.path, "\n");
+	print("	vers	", addr.vers, "\n");
+};
+
+aggr Dir {
+	'a'    0 name;
+	'a'   28 uid;
+	'a'   56 gid;
+	Qid   84 qid;
+	'U'   92 mode;
+	'D'   96 atime;
+	'D'  100 mtime;
+	{
+	'a'  104 clength;
+	{
+	'D'  104 hlength;
+	'D'  108 length;
+	};
+	};
+	'u'  112 type;
+	'u'  114 dev;
+};
+
+defn
+Dir(addr) {
+	complex Dir addr;
+	print("	name	", addr.name, "\n");
+	print("	uid	", addr.uid, "\n");
+	print("	gid	", addr.gid, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	mode	", addr.mode, "\n");
+	print("	atime	", addr.atime, "\n");
+	print("	mtime	", addr.mtime, "\n");
+	print("Length {\n");
+		Length(addr+104);
+	print("}\n");
+	print("	type	", addr.type, "\n");
+	print("	dev	", addr.dev, "\n");
+};
+
+aggr Waitmsg {
+	'a'    0 pid;
+	'a'   12 time;
+	'a'   48 msg;
+};
+
+defn
+Waitmsg(addr) {
+	complex Waitmsg addr;
+	print("	pid	", addr.pid, "\n");
+	print("	time	", addr.time, "\n");
+	print("	msg	", addr.msg, "\n");
+};
+
+aggr Tm {
+	'D'    0 sec;
+	'D'    4 min;
+	'D'    8 hour;
+	'D'   12 mday;
+	'D'   16 mon;
+	'D'   20 year;
+	'D'   24 wday;
+	'D'   28 yday;
+	'a'   32 zone;
+};
+
+defn
+Tm(addr) {
+	complex Tm addr;
+	print("	sec	", addr.sec, "\n");
+	print("	min	", addr.min, "\n");
+	print("	hour	", addr.hour, "\n");
+	print("	mday	", addr.mday, "\n");
+	print("	mon	", addr.mon, "\n");
+	print("	year	", addr.year, "\n");
+	print("	wday	", addr.wday, "\n");
+	print("	yday	", addr.yday, "\n");
+	print("	zone	", addr.zone, "\n");
+};
+
+aggr Arg {
+	'X'    0 arg0;
+	'D'    4 ac;
+	'X'    8 av;
+	'X'   12 p;
+};
+
+defn
+Arg(addr) {
+	complex Arg addr;
+	print("	arg0	", addr.arg0\X, "\n");
+	print("	ac	", addr.ac, "\n");
+	print("	av	", addr.av\X, "\n");
+	print("	p	", addr.p\X, "\n");
+};
+
+aggr Printspec {
+	'X'    0 o;
+	'D'    4 f1;
+	'D'    8 f2;
+	'D'   12 f3;
+	'D'   16 chr;
+	'X'   20 out;
+	'X'   24 eout;
+};
+
+defn
+Printspec(addr) {
+	complex Printspec addr;
+	print("	o	", addr.o\X, "\n");
+	print("	f1	", addr.f1, "\n");
+	print("	f2	", addr.f2, "\n");
+	print("	f3	", addr.f3, "\n");
+	print("	chr	", addr.chr, "\n");
+	print("	out	", addr.out\X, "\n");
+	print("	eout	", addr.eout\X, "\n");
+};
+
+adt Lock {
+	'D'    0 val;
+};
+
+defn
+Lock(addr) {
+	complex Lock addr;
+	print("	val	", addr.val, "\n");
+};
+
+adt QLock {
+	Lock    0 use;
+	'D'    4 used;
+	'X'    8 queue;
+};
+
+defn
+QLock(addr) {
+	complex QLock addr;
+	print("Lock use {\n");
+	Lock(addr.use);
+	print("}\n");
+	print("	used	", addr.used, "\n");
+	print("	queue	", addr.queue\X, "\n");
+};
+
+adt RWlock {
+	{
+	'D'    0 val;
+	};
+	QLock    4 x;
+	QLock   16 k;
+	'D'   28 readers;
+};
+
+defn
+RWlock(addr) {
+	complex RWlock addr;
+	print("Lock {\n");
+		Lock(addr+0);
+	print("}\n");
+	print("QLock x {\n");
+	QLock(addr.x);
+	print("}\n");
+	print("QLock k {\n");
+	QLock(addr.k);
+	print("}\n");
+	print("	readers	", addr.readers, "\n");
+};
+
+adt Ref {
+	Lock    0 l;
+	'D'    4 cnt;
+};
+
+defn
+Ref(addr) {
+	complex Ref addr;
+	print("Lock l {\n");
+	Lock(addr.l);
+	print("}\n");
+	print("	cnt	", addr.cnt, "\n");
+};
+
+adt Biobufhdr {
+	{
+	Lock    0 use;
+	'D'    4 used;
+	'X'    8 queue;
+	};
+	'D'   12 icount;
+	'D'   16 ocount;
+	'D'   20 nrdline;
+	'D'   24 runesize;
+	'D'   28 state;
+	'D'   32 fid;
+	'D'   36 flag;
+	'D'   40 off;
+	'D'   44 bsize;
+	'X'   48 bbuf;
+	'X'   52 ebuf;
+};
+
+defn
+Biobufhdr(addr) {
+	complex Biobufhdr addr;
+	print("QLock {\n");
+		QLock(addr+0);
+	print("}\n");
+	print("	icount	", addr.icount, "\n");
+	print("	ocount	", addr.ocount, "\n");
+	print("	nrdline	", addr.nrdline, "\n");
+	print("	runesize	", addr.runesize, "\n");
+	print("	state	", addr.state, "\n");
+	print("	fid	", addr.fid, "\n");
+	print("	flag	", addr.flag, "\n");
+	print("	off	", addr.off, "\n");
+	print("	bsize	", addr.bsize, "\n");
+	print("	bbuf	", addr.bbuf\X, "\n");
+	print("	ebuf	", addr.ebuf\X, "\n");
+};
+
+adt Biobuf {
+	{
+	{
+	Lock    0 use;
+	'D'    4 used;
+	'X'    8 queue;
+	};
+	'D'   12 icount;
+	'D'   16 ocount;
+	'D'   20 nrdline;
+	'D'   24 runesize;
+	'D'   28 state;
+	'D'   32 fid;
+	'D'   36 flag;
+	'D'   40 off;
+	'D'   44 bsize;
+	'X'   48 bbuf;
+	'X'   52 ebuf;
+	};
+	'a'   56 b;
+};
+
+defn
+Biobuf(addr) {
+	complex Biobuf addr;
+	print("Biobufhdr {\n");
+		Biobufhdr(addr+0);
+	print("}\n");
+	print("	b	", addr.b, "\n");
+};
+
+adt Win {
+	'D'    0 winid;
+	'D'    4 addr;
+	'A' Biobuf    8 body;
+	'D'   12 ctl;
+	'D'   16 data;
+	'D'   20 event;
+	'a'   24 buf;
+	'X'  536 bufp;
+	'D'  540 nbuf;
+};
+
+defn
+Win(addr) {
+	complex Win addr;
+	print("	winid	", addr.winid, "\n");
+	print("	addr	", addr.addr, "\n");
+	print("	body	", addr.body\X, "\n");
+	print("	ctl	", addr.ctl, "\n");
+	print("	data	", addr.data, "\n");
+	print("	event	", addr.event, "\n");
+	print("	buf	", addr.buf, "\n");
+	print("	bufp	", addr.bufp\X, "\n");
+	print("	nbuf	", addr.nbuf, "\n");
+};
+
+adt Mesg {
+	{
+	'D'    0 winid;
+	'D'    4 addr;
+	'A' Biobuf    8 body;
+	'D'   12 ctl;
+	'D'   16 data;
+	'D'   20 event;
+	'a'   24 buf;
+	'X'  536 bufp;
+	'D'  540 nbuf;
+	};
+	'D'  544 id;
+	'X'  548 hdr;
+	'X'  552 realhdr;
+	'X'  556 replyto;
+	'X'  560 text;
+	'A' Mesg  564 next;
+	'D'  568 lhdr;
+	'D'  572 ltext;
+	'A' Box  576 box;
+	'D'  580 isopen;
+};
+
+defn
+Mesg(addr) {
+	complex Mesg addr;
+	print("Win {\n");
+		Win(addr+0);
+	print("}\n");
+	print("	id	", addr.id, "\n");
+	print("	hdr	", addr.hdr\X, "\n");
+	print("	realhdr	", addr.realhdr\X, "\n");
+	print("	replyto	", addr.replyto\X, "\n");
+	print("	text	", addr.text\X, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	lhdr	", addr.lhdr, "\n");
+	print("	ltext	", addr.ltext, "\n");
+	print("	box	", addr.box\X, "\n");
+	print("	isopen	", addr.isopen, "\n");
+};
+
+adt Box {
+	{
+	'D'    0 winid;
+	'D'    4 addr;
+	'A' Biobuf    8 body;
+	'D'   12 ctl;
+	'D'   16 data;
+	'D'   20 event;
+	'a'   24 buf;
+	'X'  536 bufp;
+	'D'  540 nbuf;
+	};
+	'D'  544 nm;
+	'A' Mesg  548 m;
+	'X'  552 file;
+	'A' Biobuf  556 io;
+	'D'  560 clean;
+	'U'  564 len;
+	'X'  568 cdel;
+	'X'  572 cevent;
+	'X'  576 cmore;
+	'X'  580 line;
+	'D'  584 linelen;
+	'X'  588 peekline;
+	'D'  592 peeklinelen;
+};
+
+defn
+Box(addr) {
+	complex Box addr;
+	print("Win {\n");
+		Win(addr+0);
+	print("}\n");
+	print("	nm	", addr.nm, "\n");
+	print("	m	", addr.m\X, "\n");
+	print("	file	", addr.file\X, "\n");
+	print("	io	", addr.io\X, "\n");
+	print("	clean	", addr.clean, "\n");
+	print("	len	", addr.len, "\n");
+	print("	cdel	", addr.cdel, "\n");
+	print("	cevent	", addr.cevent, "\n");
+	print("	cmore	", addr.cmore, "\n");
+	print("	line	", addr.line\X, "\n");
+	print("	linelen	", addr.linelen, "\n");
+	print("	peekline	", addr.peekline\X, "\n");
+	print("	peeklinelen	", addr.peeklinelen, "\n");
+};
+
+aggr Event {
+	'D'    0 c1;
+	'D'    4 c2;
+	'D'    8 q0;
+	'D'   12 q1;
+	'D'   16 flag;
+	'D'   20 nb;
+	'D'   24 nr;
+	'a'   28 b;
+	'a'  126 r;
+};
+
+defn
+Event(addr) {
+	complex Event addr;
+	print("	c1	", addr.c1, "\n");
+	print("	c2	", addr.c2, "\n");
+	print("	q0	", addr.q0, "\n");
+	print("	q1	", addr.q1, "\n");
+	print("	flag	", addr.flag, "\n");
+	print("	nb	", addr.nb, "\n");
+	print("	nr	", addr.nr, "\n");
+	print("	b	", addr.b, "\n");
+	print("	r	", addr.r, "\n");
+};
+
+complex Box mbox;
+complex Dir timeslave:d;
+complex Box mbox;
+complex Box Box_read:b;
+complex Mesg Box_read:m;
+complex Box Box_readmore:b;
+complex Mesg Box_readmore:m;
+complex Box Box_readline:b;
+complex Box Box_unreadline:b;
+complex Box Box_slave:b;
+complex Event Box_slave:e;
+complex Mesg Box_slave:m;
+complex Box Box_event:b;
+complex Event Box_event:e;
+complex Event Box_event:e2;
+complex Event Box_event:ea;
+complex Event Box_event:eq;
+complex Box Box_mopen:b;
+complex Mesg Box_mopen:m;
+complex Box Box_mdel:b;
+complex Mesg Box_mdel:dm;
+complex Mesg Box_mdel:prev;
+complex Mesg Box_mdel:m;
+complex Box Box_command:b;
+complex Mesg Box_command:m;
+complex Box Box_rewrite:b;
+complex Mesg Box_rewrite:m;
+complex Dir Box_rewrite:d;
+complex Box mbox;
+complex Dir timeslave:d;
+complex Box mbox;
+complex Box Mesg_read:b;
+complex Mesg Mesg_read:m;
+complex Box Mesg_mkmail:b;
+complex Mesg Mesg_mkmail:r;
+complex Mesg Mesg_mkreply:m;
+complex Mesg Mesg_mkreply:r;
+complex Mesg Mesg_free:m;
+complex Ref replyid;
+complex Mesg Mesg_open:m;
+complex Mesg Mesg_slave:m;
+complex Event Mesg_slave:e;
+complex Event Mesg_slave:e2;
+complex Event Mesg_slave:ea;
+complex Event Mesg_slave:etoss;
+complex Event Mesg_slave:eq;
+complex Mesg Mesg_command:m;
+complex Mesg Mesg_save:m;
+complex Biobuf Mesg_save:b;
+complex Mesg Mesg_send:m;
+complex Box mbox;
+complex Dir openlockfile:d;
+complex Box mbox;
+complex Win Win_wnew:w;
+complex Win Win_openfile:w;
+complex Win Win_openbody:w;
+complex Win Win_wwritebody:w;
+complex Win Win_wreplace:w;
+complex Win Win_wread:w;
+complex Win Win_wselect:w;
+complex Win Win_wtagwrite:w;
+complex Win Win_ctlwrite:w;
+complex Win Win_wdel:w;
+complex Win Win_wname:w;
+complex Win Win_wclean:w;
+complex Win Win_wdormant:w;
+complex Win Win_getec:w;
+complex Win Win_geten:w;
+complex Win Win_geter:w;
+complex Win Win_wevent:w;
+complex Event Win_wevent:e;
+complex Win Win_wslave:w;
+complex Event Win_wslave:ce;
+complex Event Win_wslave:e;
+complex Win Win_wwriteevent:w;
+complex Event Win_wwriteevent:e;
+complex Win Win_wreadall:w;

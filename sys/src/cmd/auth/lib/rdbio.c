@@ -12,8 +12,6 @@ clrbio(Acctbio *a)
 
 	if(a->user)
 		free(a->user);
-	if(a->postid)
-		free(a->postid);
 	if(a->name)
 		free(a->name);
 	if(a->dept)
@@ -27,32 +25,73 @@ clrbio(Acctbio *a)
 void
 rdbio(char *file, char *user, Acctbio *a)
 {
-	int i,n;
 	Biobuf *b;
-	char *p;
-	char *field[20];
+	char *p, *cp, *next;
+	int ne, ulen;
 
 	memset(a, 0, sizeof(Acctbio));
 	b = Bopen(file, OREAD);
 	if(b == 0)
 		return;
+	ulen = strlen(user);
 	while(p = Brdline(b, '\n')){
-		p[Blinelen(b)-1] = 0;
-		n = getfields(p, field, nelem(field), 0, "|");
-		if(n < 4)
+		if(strncmp(p, user, ulen) != 0)
 			continue;
-		if(strcmp(field[0], user) != 0)
+		if(p[ulen] && p[ulen] != ' ' && p[ulen] != '\t')
 			continue;
 
+		p[Blinelen(b)-1] = 0;
+		p += ulen;
 		clrbio(a);
 
-		a->postid = strdup(field[1]);
-		a->name = strdup(field[2]);
-		a->dept = strdup(field[3]);
-		if(n-4 >= Nemail)
-			n = Nemail-4;
-		for(i = 4; i < n; i++)
-			a->email[i-4] = strdup(field[i]);
+		/* get name */
+		while(*p == ' ' || *p == '\t')
+			p++;
+		for(cp = p; *cp; cp++){
+			if(isdigit(*cp) || *cp == '<'){
+				while(cp > p && *(cp-1) != ' ' && *(cp-1) != '\t')
+					cp--;
+				break;
+			}
+		}
+		next = cp;
+		while(cp > p && (*(cp-1) == ' ' || *(cp-1) == '\t'))
+			cp--;
+		a->name = malloc(cp - p + 1);
+		strncpy(a->name, p, cp - p);
+		a->name[cp - p] = 0;
+		p = next;
+
+		/* get dept */
+		for(cp = p; *cp; cp++){
+			if(*cp == '<')
+				break;
+		}
+		next = cp;
+		while(cp > p && (*(cp-1) == ' ' || *(cp-1) == '\t'))
+			cp--;
+		a->dept = malloc(cp - p + 1);
+		strncpy(a->dept, p, cp - p);
+		a->dept[cp - p] = 0;
+		p = next;
+
+		/* get emails */
+		ne = 0;
+		for(cp = p; *cp && ne < Nemail;){	
+			if(*cp != '<'){
+				cp++;
+				continue;
+			}
+			p = ++cp;
+			while(*cp && *cp != '>')
+				cp++;
+			if(cp == p)
+				break;
+			a->email[ne] = malloc(cp - p + 1);
+			strncpy(a->email[ne], p, cp - p);
+			a->email[ne][cp-p] = 0;
+			ne++;
+		}
 	}
 	a->user = strdup(user);
 	Bterm(b);

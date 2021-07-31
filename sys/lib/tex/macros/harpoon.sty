@@ -1,0 +1,42 @@
+% harpoon.sty
+% by Tobias Kuipers {kuipers@fwi.uva.nl}
+% v1.0 of 1994/11/02
+% See harpoon.tex for documentation
+% If you modify this file, please redistribute it under another name
+% and send me a copy
+%
+% Permission is hereby granted to do anything with this file. No fitness
+% for any purpose is guaranteed or implied. We deny everything
+%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{harpoon}[1994/11/02 Harpoon drawing package by Tobias Kuipers]
+
+\DeclareOption*{%
+	\PassOptionsToPackage{\CurrentOption}{graphics}
+}
+\ProcessOptions
+\RequirePackage{graphics}[1994/05/30]
+
+
+
+\newcommand{\overleftharp}[1]{\overharp{\leftharpoonup}{#1}{.7}}
+\newcommand{\overrightharp}[1]{\overharp{\rightharpoonup}{#1}{.7}}
+\newcommand{\overleftharpdown}[1]{\overharp{\leftharpoondown}{#1}{.9}}
+\newcommand{\overrightharpdown}[1]{\overharp{\rightharpoondown}{#1}{.9}}
+\newcommand{\underleftharp}[1]{\overharp{\leftharpoonup}{#1}{-1}}
+\newcommand{\underrightharp}[1]{\overharp{\rightharpoonup}{#1}{-1}}
+\newcommand{\underleftharpdown}[1]{\overharp{\leftharpoondown}{#1}{-.8}}
+\newcommand{\underrightharpdown}[1]{\overharp{\rightharpoondown}{#1}{-.8}}
+
+\newlength{\argwd}  \newlength{\arght}%-Two variables
+\newcommand{\overharp}[3]{%        -The command name
+  \settowidth{\argwd}{#2}\settoheight{\arght}{#2}%
+  %                                    -Set the variables
+  \raisebox{#3\arght}{%                -Put the harp 6/10 of a line higher
+    \makebox[0pt][l]{%                 -Put everything in a box
+      \resizebox{\argwd}{.8\arght}{$#1$}% 
+      %                                -Set harp to right length
+    }%
+  }%
+#2}%                                   -Print the argument
+

@@ -1,7 +1,6 @@
 #include "all.h"
 
 #define	DEBUG	if(cons.flags&arpcache.flag)print
-#define	ORDER	1	/* 1 send last frag first, faster */
 
 typedef struct	Arpentry	Arpentry;
 typedef struct	Arpstats	Arpstats;
@@ -99,18 +98,6 @@ arpreceive(Enpkt *ep, int l, Ifc *ifc)
 	type = nhgets(p->op);
 	switch(type) {
 	case Arprequest:
-		/* update entry for this source */
-		h = ipahash(p->spa);
-		a = arpcache.abkt[h].arpe;
-		lock(&arpcache);
-		for(i=0; i<Ne; i++,a++) {
-			if(memcmp(a->tpa, p->spa, Pasize) == 0) {
-				memmove(a->tha, p->sha, Easize);
-				break;
-			}
-		}
-		unlock(&arpcache);
-
 		if(memcmp(p->tpa, ifc->ipa, Pasize) != 0)
 			break;
 
@@ -153,27 +140,26 @@ arpreceive(Enpkt *ep, int l, Ifc *ifc)
 		memmove(a->tpa, p->spa, Pasize);
 		memmove(a->tha, p->sha, Easize);
 
+	out:
 		/*
 		 * go thru unresolved queue
 		 */
-	out:
 		t = toytime();
 		mbp = &arpcache.unresol;
 		for(mb = *mbp; mb; mb = *mbp) {
 			if(t >= mb->param) {
 				*mbp = mb->next;
-				unlock(&arpcache);
 				mbfree(mb);
-				lock(&arpcache);
-				goto out;
+				continue;
 			}
-			tpa = mb->chan->ilp.ipgate;
+			tpa = ((Ippkt*)mb->data)->dst;
+			if(mb->chan->ilp.usegate)
+				tpa = mb->chan->ilp.ipgate;
 			if(memcmp(a->tpa, tpa, Pasize) == 0) {
 				*mbp = mb->next;
 				unlock(&arpcache);
 				ipsend(mb);
-				lock(&arpcache);
-				goto out;
+				continue;
 			}
 			mbp = &mb->next;
 		}
@@ -186,19 +172,23 @@ static
 int
 ipahash(uchar *p)
 {
-	ulong h;
+	int h;
 
 	h = p[0];
 	h = h*7 + p[1];
 	h = h*7 + p[2];
 	h = h*7 + p[3];
+	if(h < 0)
+		h = ~h;
 	return h%Nb;
 }
 
 void
-ipsend1(Msgbuf *mb, Ifc *ifc, uchar *ipgate)
+ipsend(Msgbuf *mb)
 {
+	Chan *cp;
 	Msgbuf **mbp, *m;
+	uchar *tpa;
 	Ippkt *p;
 	Arppkt *q;
 	Arpe *a;
@@ -206,49 +196,44 @@ ipsend1(Msgbuf *mb, Ifc *ifc, uchar *ipgate)
 	ulong t;
 
 	p = (Ippkt*)mb->data;
+	cp = mb->chan;
 
-	a = arpcache.abkt[ipahash(ipgate)].arpe;
+	tpa = p->dst;
+	if(cp->ilp.usegate)
+		tpa = cp->ilp.ipgate;
+
+	a = arpcache.abkt[ipahash(tpa)].arpe;
 	lock(&arpcache);
 	for(i=0; i<Ne; i++,a++)
-		if(memcmp(a->tpa, ipgate, Pasize) == 0)
+		if(memcmp(a->tpa, tpa, Pasize) == 0)
 			goto found;
 
 	/*
 	 * queue ip pkt to be resolved later
 	 */
-again:
-	i = 0;		// q length
 	t = toytime();
 	mbp = &arpcache.unresol;
 	for(m = *mbp; m; m = *mbp) {
 		if(t >= m->param) {
 			*mbp = m->next;
-			unlock(&arpcache);
 			mbfree(m);
-			lock(&arpcache);
-			goto again;
+			continue;
 		}
 		mbp = &m->next;
-		i++;
 	}
-	if(mb->chan && i < 10) {
-		mb->param = t + SECOND(10);
-		mb->next = 0;
-		*mbp = mb;
-		unlock(&arpcache);
-	} else {
-		unlock(&arpcache);
-		mbfree(mb);
-	}
+	mb->param = t + SECOND(10);
+	mb->next = 0;
+	*mbp = mb;
 
 	/*
 	 * send an arp request
 	 */
+	unlock(&arpcache);
 
 	m = mballoc(Ensize+Arpsize, 0, Mbarp2);
 	q = (Arppkt*)m->data;
 
-	DEBUG("snd arp req target %I ip dest %I\n", ipgate, p->dst);
+	DEBUG("snd arp req target %I ip dest %I\n", tpa, p->dst);
 
 	memset(q->d, 0xff, Easize);		/* broadcast */
 	hnputs(q->type, Arptype);
@@ -257,12 +242,12 @@ again:
 	q->hln = Easize;
 	q->pln = Pasize;
 	hnputs(q->op, Arprequest);
-	memmove(q->sha, ifc->ea, Easize);
-	memmove(q->spa, ifc->ipa, Pasize);
+	memmove(q->sha, cp->ilp.ea, Easize);
+	memmove(q->spa, cp->ilp.ipmy, Pasize);
 	memset(q->tha, 0, Easize);
-	memmove(q->tpa, ipgate, Pasize);
+	memmove(q->tpa, tpa, Pasize);
 
-	send(ifc->reply, m);
+	send(cp->ilp.reply, m);
 
 	return;
 
@@ -291,12 +276,14 @@ found:
 		p->cksum[1] = 0;
 		hnputs(p->cksum, ipcsum(&p->vihl));
 
-		send(ifc->reply, mb);
+		send(cp->ilp.reply, mb);
 		return;
 	}
 
 	off = 0;
 	len -= Ensize+Ipsize;		/* just ip data */
+
+#define	ORDER	1
 
 	while(len > 0) {
 		dlen = (ETHERMAXTU-(Ensize+Ipsize)) & ~7;
@@ -314,7 +301,7 @@ found:
 			mb->count = (Ensize+Ipsize)+dlen;
 			p = (Ippkt*)mb->data;
 		} else {
-			m = mballoc((Ensize+Ipsize)+dlen, 0, Mbip1);
+			m = mballoc((Ensize+Ipsize)+dlen, cp, Mbip1);
 			p = (Ippkt*)m->data;
 
 			memmove(m->data, mb->data, Ensize+Ipsize);
@@ -332,28 +319,14 @@ found:
 		hnputs(p->cksum, ipcsum(&p->vihl));
 
 		if(m)
-			send(ifc->reply, m);
+			send(cp->ilp.reply, m);
 
 		off += dlen;
 	}
 	if(ORDER)
-		send(ifc->reply, mb);
+		send(cp->ilp.reply, mb);
 	else
 		mbfree(mb);
-}
-
-void
-ipsend(Msgbuf *mb)
-{
-	Chan *cp;
-
-	cp = mb->chan;
-	if(cp == 0) {
-		print("cp = 0\n");
-		mbfree(mb);
-		return;
-	}
-	ipsend1(mb, cp->ifc, cp->ilp.ipgate);
 }
 
 int
@@ -472,7 +445,6 @@ ptclcsum(uchar *addr, int len)
 	return ~losum & 0xffff;
 }
 
-static
 void
 cmd_arp(int argc, char *argv[])
 {

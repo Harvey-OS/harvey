@@ -1,10 +1,6 @@
 #include	"cc.h"
 #include	"y.tab.h"
 
-#ifndef	CPP
-#define	CPP	"/bin/cpp"
-#endif
-
 /*
  * known debug flags
  *	-o file		output file
@@ -18,32 +14,24 @@
  *	-t		print type trees
  *	-L		print every NAME symbol
  *	-i		print initialization
- *	-F		format specification check
  *	-r		print registerization
  *	-v		verbose printing
  *	-X		abort on error
  *	-w		print warnings
  *	-m		print add/sub/mul trees
  *	-s		print structure offsets (with -a or -aa)
- *	-n		print acid to file (%.c=%.acid) (with -a or -aa)
- *	-p		use standard cpp ANSI preprocessor (not on windows)
- *	-V		enable void* conversion warnings
  */
 
 void
 main(int argc, char *argv[])
 {
-	char *defs[50], *p;
-	int nproc, nout, status, i, c, ndef;
+	char ofile[100], incfile[20], *p;
+	int nproc, nout, status, i, c;
 
 	memset(debug, 0, sizeof(debug));
-	tinit();
 	cinit();
 	ginit();
-	arginit();
 
-	tufield = simplet((1L<<tfield->etype) | BUNSIGNED);
-	ndef = 0;
 	outfile = 0;
 	include[ninclude++] = ".";
 	ARGBEGIN {
@@ -59,34 +47,29 @@ main(int argc, char *argv[])
 
 	case 'D':
 		p = ARGF();
-		if(p) {
-			defs[ndef++] = p;
+		if(p)
 			dodefine(p);
-		}
 		break;
 
 	case 'I':
 		p = ARGF();
-		setinclude(p);
+		if(p)
+			include[ninclude++] = p;
 		break;
 	} ARGEND
 	if(argc < 1 && outfile == 0) {
 		print("usage: %cc [-options] files\n", thechar);
 		errorexit();
 	}
-	if(argc > 1 && systemtype(Windows)){
-		print("can't compile multiple files on windows\n");
-		errorexit();
-	}
-	if(argc > 1 && !systemtype(Windows)) {
-		nproc = 1;
-		if(p = getenv("NPROC"))
-			nproc = atol(p);	/* */
+	nproc = 1;
+	if(p = getenv("NPROC"))
+		nproc = atol(p);	/* */
+	if(argc > 1) {
 		c = 0;
 		nout = 0;
 		for(;;) {
 			while(nout < nproc && argc > 0) {
-				i = myfork();
+				i = fork();
 				if(i < 0) {
 					i = mywait(&status);
 					if(i < 0) {
@@ -99,10 +82,8 @@ main(int argc, char *argv[])
 					continue;
 				}
 				if(i == 0) {
-					fprint(2, "%s:\n", *argv);
-					if (compile(*argv, defs, ndef))
-						errorexit();
-					exits(0);
+					print("%s:\n", *argv);
+					goto child;
 				}
 				nout++;
 				argc--;
@@ -120,58 +101,43 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if(argc == 0)
-		c = compile("stdin", defs, ndef);
+child:
+	if(argc < 1)
+		strcpy(ofile, "stdin");
 	else
-		c = compile(argv[0], defs, ndef);
-
-	if(c)
-		errorexit();
-	exits(0);
-}
-
-int
-compile(char *file, char **defs, int ndef)
-{
-	char ofile[100], incfile[20];
-	char *p, *av[100], opt[256];
-	int i, c, fd[2];
-
-	strcpy(ofile, file);
-	p = utfrrune(ofile, pathchar());
-	if(p) {
+		strcpy(ofile, *argv);
+	if(p = utfrrune(ofile, '/')) {
 		include[0] = ofile;
 		*p++ = 0;
 	} else
 		p = ofile;
 	if(outfile == 0) {
 		outfile = p;
-		if(outfile) {
-			if(p = utfrrune(outfile, '.'))
-				if(p[1] == 'c' && p[2] == 0)
-					p[0] = 0;
-			p = utfrune(outfile, 0);
-			if(debug['a'] && debug['n'])
-				strcat(p, ".acid");
-			else {
-				p[0] = '.';
-				p[1] = thechar;
-				p[2] = 0;
-			}
-		} else
-			outfile = "/dev/null";
+		if(p = utfrrune(outfile, '.'))
+			if(p[1] == 'c' && p[2] == 0)
+				p[0] = 0;
+		p = utfrune(outfile, 0);
+		p[0] = '.';
+		p[1] = thechar;
+		p[2] = 0;
 	}
-
-	if(p = getenv("INCLUDE")) {
-		setinclude(p);
+	if(unix()) {
+		strcpy(incfile, "/usr/%include");
+		p = utfrrune(incfile, '%');
+		if(p)
+			*p = thechar;
 	} else {
-		if(systemtype(Plan9)) {
-			sprint(incfile, "/%s/include", thestring);
-			setinclude(strdup(incfile));
-			setinclude("/sys/include");
-		}
+		strcpy(incfile, "/");
+		strcat(incfile, thestring);
+		strcat(incfile, "/include");
 	}
-	if(debug['a'] && !debug['n']) {
+	if(p = getenv("INCLUDE")) {
+		include[ninclude++] = p;
+	} else {
+		include[ninclude++] = incfile;
+		include[ninclude++] = "/sys/include";
+	}
+	if(debug['a']) {
 		outfile = 0;
 		Binit(&outbuf, 1, OWRITE);
 	} else {
@@ -184,61 +150,17 @@ compile(char *file, char **defs, int ndef)
 		Binit(&outbuf, c, OWRITE);
 	}
 	newio();
-
-	/* Use an ANSI preprocessor */
-	if(debug['p']) {
-		if(systemtype(Windows)) {
-			diag(Z, "-p option not supported on windows");
-			errorexit();
-		}
-		if(mypipe(fd) < 0) {
-			diag(Z, "pipe failed");
-			errorexit();
-		}
-		switch(myfork()) {
-		case -1:
-			diag(Z, "fork failed");
-			errorexit();
-		case 0:
-			close(fd[0]);
-			mydup(fd[1], 1);
-			close(fd[1]);
-			av[0] = CPP;
-			i = 1;
-			for(c = 0; c < ndef; c++) {
-				sprint(opt, "-D%s", defs[c]);
-				av[i++] = strdup(opt);
-			}
-			for(c = 0; c < ninclude; c++) {
-				sprint(opt, "-I%s", include[c]);
-				av[i++] = strdup(opt);
-			}
-			if(strcmp(file, "stdin") != 0)
-				av[i++] = file;
-			av[i] = 0;
-			if(debug['p'] > 1) {
-				for(c = 0; c < i; c++)
-					fprint(2, "%s ", av[c]);
-				print("\n");
-			}
-			myexec(av[0], av);
-			fprint(2, "can't exec C preprocessor %s: %r\n", CPP);
-			errorexit();
-		default:
-			close(fd[1]);
-			newfile(file, fd[0]);
-			break;
-		}
-	} else {
-		if(strcmp(file, "stdin") == 0)
-			newfile(file, 0);
-		else
-			newfile(file, -1);
-	}
+	if(argc < 1)
+		newfile("stdin", 0);
+	else
+		newfile(*argv, -1);
 	yyparse();
 	if(!debug['a'])
 		gclean();
-	return nerrors;
+	Bterm(&outbuf);
+	if(nerrors)
+		errorexit();
+	exits(0);
 }
 
 void
@@ -276,7 +198,7 @@ newio(void)
 			yyerror("macro/io expansion too deep");
 			errorexit();
 		}
-		i = alloc(sizeof(*i));
+		ALLOC(i, Io);
 	} else
 		iofree = i->link;
 	i->c = 0;
@@ -289,9 +211,6 @@ newfile(char *s, int f)
 {
 	Io *i;
 
-	if(debug['e'])
-		print("%L: %s\n", lineno, s);
-
 	i = ionext;
 	i->link = iostack;
 	iostack = i;
@@ -299,7 +218,7 @@ newfile(char *s, int f)
 	if(f < 0)
 		i->f = open(s, 0);
 	if(i->f < 0) {
-		yyerror("%cc: %r: %s", thechar, s);
+		yyerror("%cc: %s: %s", thechar, myerrstr(i->f), s);
 		errorexit();
 	}
 	fi.c = 0;
@@ -338,8 +257,15 @@ lookup(void)
 		if(strcmp(s->name, symb) == 0)
 			return s;
 	}
-	s = alloc(sizeof(*s));
-	s->name = alloc(n);
+	ALLOC(s, Sym);
+
+	while(n & 3)
+		n++;
+	while(nhunk < n)
+		gethunk();
+	s->name = hunk;
+	hunk += n;
+	nhunk -= n;
 	memmove(s->name, symb, n);
 
 	strcpy(s->name, symb);
@@ -353,6 +279,7 @@ lookup(void)
 void
 syminit(Sym *s)
 {
+
 	s->lexical = LNAME;
 	s->block = 0;
 	s->offset = 0;
@@ -427,6 +354,9 @@ l1:
 			return LUCONST;
 		}
 		if(c == '"') {
+			cp = hunk;
+			c1 = 0;
+			strcpy(symb, "\"<string>\"");
 			goto caselq;
 		}
 		goto talph;
@@ -460,54 +390,73 @@ l1:
 		break;
 
 	case '"':
-		strcpy(symb, "\"<string>\"");
-		cp = alloc(0);
+		strcpy(symb, "\"L<string>\"");
+		cp = hunk;
 		c1 = 0;
 
+	caseq:
 		/* "..." */
 		for(;;) {
 			c = escchar('"', 0, 1);
 			if(c == EOF)
 				break;
 			if(c & ESC) {
-				cp = allocn(cp, c1, 1);
-				cp[c1++] = c;
+				ALLOCN(cp, c1, 1);
+				cp[c1] = c;
+				c1++;
 			} else {
 				rune = c;
 				c = runelen(rune);
-				cp = allocn(cp, c1, c);
+				ALLOCN(cp, c1, c);
 				runetochar(cp+c1, &rune);
 				c1 += c;
 			}
 		}
-		yylval.sval.l = c1;
+		for(;;) {
+			/* it takes 2 peekc's to skip comments */
+			c = getc();
+			if(isspace(c))
+				continue;
+			if(c == '"')
+				goto caseq;
+			unget(c);
+			break;
+		}
+		lnstring = c1+1;
 		do {
-			cp = allocn(cp, c1, 1);
+			ALLOCN(cp, c1, 1);
 			cp[c1++] = 0;
-		} while(c1 & MAXALIGN);
-		yylval.sval.s = cp;
+		} while(c1 & 3);
+		yylval.sval = cp;
 		return LSTRING;
 
 	caselq:
 		/* L"..." */
-		strcpy(symb, "\"L<string>\"");
-		cp = alloc(0);
-		c1 = 0;
 		for(;;) {
 			c = escchar('"', 1, 0);
 			if(c == EOF)
 				break;
-			cp = allocn(cp, c1, sizeof(ushort));
+			ALLOCN(cp, c1, sizeof(ushort));
 			*(ushort*)(cp + c1) = c;
 			c1 += sizeof(ushort);
 		}
-		yylval.sval.l = c1;
+		for(;;) {
+			/* it takes 2 peekc's to skip comments */
+			c = getc();
+			if(isspace(c))
+				continue;
+			if(c == '"')
+				goto caselq;
+			unget(c);
+			break;
+		}
+		lnstring = c1+sizeof(ushort);
 		do {
-			cp = allocn(cp, c1, sizeof(ushort));
+			ALLOCN(cp, c1, sizeof(ushort));
 			*(ushort*)(cp + c1) = 0;
 			c1 += sizeof(ushort);
-		} while(c1 & MAXALIGN);
-		yylval.sval.s = cp;
+		} while(c1 & 3);
+		yylval.rval = (ushort*)cp;
 		return LLSTRING;
 
 	case '\'':
@@ -523,10 +472,7 @@ l1:
 		vv = c;
 		yylval.vval = convvtox(vv, TUCHAR);
 		if(yylval.vval != vv)
-			yyerror("overflow in character constant: 0x%lx", c);
-		else
-		if(c & 0x80)
-			warn(Z, "sign-extended character constant");
+			yyerror("overflow in character constant: 0x%x", c);
 		yylval.vval = convvtox(vv, TCHAR);
 		return LCONST;
 
@@ -706,6 +652,8 @@ talph:
 			return LCTYPE;
 		return LSTYPE;
 	}
+	if(s->lexical == LNAME)
+		return LNAME;
 	return s->lexical;
 
 tnum:
@@ -755,19 +703,27 @@ dc:
 		goto casee;
 
 ncu:
-	if((c == 'U' || c == 'u') && !(c1 & Numuns)) {
+	*cp = 0;
+	if(c == 'U' || c == 'u') {
 		c = GETC();
 		c1 |= Numuns;
-		goto ncu;
-	}
-	if((c == 'L' || c == 'l') && !(c1 & Numvlong)) {
+		if(c == 'L' || c == 'l') {
+			c = GETC();
+			c1 |= Numlong;
+		}
+	} else
+	if(c == 'L' || c == 'l') {
 		c = GETC();
-		if(c1 & Numlong)
-			c1 |= Numvlong;
 		c1 |= Numlong;
-		goto ncu;
+		if(c == 'U' || c == 'u') {
+			c = GETC();
+			c1 |= Numuns;
+		} else
+		if(c == 'L' || c == 'l') {
+			c = GETC();
+			c1 |= Numvlong;
+		}
 	}
-	*cp = 0;
 	peekc = c;
 	if(mpatov(symb, &yylval.vval))
 		yyerror("overflow in constant");
@@ -803,7 +759,7 @@ ncu:
 		c = LUCONST;
 		goto nret;
 	}
-	yylval.vval = convvtox(yylval.vval, TINT);
+	yylval.vval = convvtox(yylval.vval, tint->etype);
 	if(yylval.vval < 0) {
 		c = LUCONST;
 		goto nret;
@@ -1025,44 +981,42 @@ struct
 {
 	char	*name;
 	ushort	lexical;
-	ushort	type;
 } itab[] =
 {
-	"auto",		LAUTO,		0,
-	"break",	LBREAK,		0,
-	"case",		LCASE,		0,
-	"char",		LCHAR,		TCHAR,
-	"const",	LCONSTNT,	0,
-	"continue",	LCONTINUE,	0,
-	"default",	LDEFAULT,	0,
-	"do",		LDO,		0,
-	"double",	LDOUBLE,	TDOUBLE,
-	"else",		LELSE,		0,
-	"enum",		LENUM,		0,
-	"extern",	LEXTERN,	0,
-	"float",	LFLOAT,		TFLOAT,
-	"for",		LFOR,		0,
-	"goto",		LGOTO,		0,
-	"if",		LIF,		0,
-	"int",		LINT,		TINT,
-	"long",		LLONG,		TLONG,
-	"register",	LREGISTER,	0,
-	"return",	LRETURN,	0,
-	"SET",		LSET,		0,
-	"short",	LSHORT,		TSHORT,
-	"signed",	LSIGNED,	0,
-	"signof",	LSIGNOF,	0,
-	"sizeof",	LSIZEOF,	0,
-	"static",	LSTATIC,	0,
-	"struct",	LSTRUCT,	0,
-	"switch",	LSWITCH,	0,
-	"typedef",	LTYPEDEF,	0,
-	"union",	LUNION,		0,
-	"unsigned",	LUNSIGNED,	0,
-	"USED",		LUSED,		0,
-	"void",		LVOID,		TVOID,
-	"volatile",	LVOLATILE,	0,
-	"while",	LWHILE,		0,
+	"auto",		LAUTO,
+	"break",	LBREAK,
+	"case",		LCASE,
+	"char",		LCHAR,
+	"const",	LCONSTNT,
+	"continue",	LCONTINUE,
+	"default",	LDEFAULT,
+	"do",		LDO,
+	"double",	LDOUBLE,
+	"else",		LELSE,
+	"enum",		LENUM,
+	"extern",	LEXTERN,
+	"float",	LFLOAT,
+	"for",		LFOR,
+	"goto",		LGOTO,
+	"if",		LIF,
+	"int",		LINT,
+	"long",		LLONG,
+	"register",	LREGISTER,
+	"return",	LRETURN,
+	"SET",		LSET,
+	"short",	LSHORT,
+	"signed",	LSIGNED,
+	"sizeof",	LSIZEOF,
+	"static",	LSTATIC,
+	"struct",	LSTRUCT,
+	"switch",	LSWITCH,
+	"typedef",	LTYPEDEF,
+	"union",	LUNION,
+	"unsigned",	LUNSIGNED,
+	"USED",		LUSED,
+	"void",		LVOID,
+	"volatile",	LVOLATILE,
+	"while",	LWHILE,
 	0
 };
 
@@ -1080,13 +1034,21 @@ cinit(void)
 	peekc = IGN;
 	nhunk = 0;
 
+	for(i=0; i<NHASH; i++)
+		hash[i] = S;
+	for(i=0; itab[i].name; i++) {
+		s = slookup(itab[i].name);
+		s->lexical = itab[i].lexical;
+	}
+	blockno = 0;
+	autobn = 0;
+	autoffset = 0;
+
 	types[TXXX] = T;
 	types[TCHAR] = typ(TCHAR, T);
 	types[TUCHAR] = typ(TUCHAR, T);
 	types[TSHORT] = typ(TSHORT, T);
 	types[TUSHORT] = typ(TUSHORT, T);
-	types[TINT] = typ(TINT, T);
-	types[TUINT] = typ(TUINT, T);
 	types[TLONG] = typ(TLONG, T);
 	types[TULONG] = typ(TULONG, T);
 	types[TVLONG] = typ(TVLONG, T);
@@ -1095,20 +1057,11 @@ cinit(void)
 	types[TDOUBLE] = typ(TDOUBLE, T);
 	types[TVOID] = typ(TVOID, T);
 	types[TENUM] = typ(TENUM, T);
-	types[TFUNC] = typ(TFUNC, types[TINT]);
+	types[TFUNC] = typ(TFUNC, types[TLONG]);
 	types[TIND] = typ(TIND, types[TVOID]);
 
-	for(i=0; i<NHASH; i++)
-		hash[i] = S;
-	for(i=0; itab[i].name; i++) {
-		s = slookup(itab[i].name);
-		s->lexical = itab[i].lexical;
-		if(itab[i].type != 0)
-			s->type = types[itab[i].type];
-	}
-	blockno = 0;
-	autobn = 0;
-	autoffset = 0;
+	tint = types[TLONG];			/* assuming long, ginit knows */
+	tuint = types[TULONG];
 
 	t = typ(TARRAY, types[TCHAR]);
 	t->width = 0;
@@ -1122,10 +1075,10 @@ cinit(void)
 	nodproto = new(OPROTO, Z, Z);
 	dclstack = D;
 
-	pathname = allocn(pathname, 0, 100);
-	if(mygetwd(pathname, 99) == 0) {
-		pathname = allocn(pathname, 100, 900);
-		if(mygetwd(pathname, 999) == 0)
+	ALLOCN(pathname, 0, 100);
+	if(getwd(pathname, 99) == 0) {
+		ALLOCN(pathname, 100, 900);
+		if(getwd(pathname, 999) == 0)
 			strcpy(pathname, "/???");
 	}
 
@@ -1151,6 +1104,10 @@ loop:
 	fi.c = read(i->f, i->b, BUFSIZ) - 1;
 	if(fi.c < 0) {
 		close(i->f);
+		while((ulong)hunk & 3) {
+			hunk++;
+			nhunk--;
+		}
 		linehist(0, 0);
 		goto pop;
 	}
@@ -1172,22 +1129,20 @@ pop:
 }
 
 int
-Oconv(va_list *arg, Fconv *fp)
+Oconv(void *o, Fconv *fp)
 {
 	int a;
-	char s[STRINGSZ];
 
-	a = va_arg(*arg, int);
-	if(a < OXXX || a > OEND) {
-		sprint(s, "***badO %d***", a);
-		strconv(s, fp);
-	} else
+	a = *(int*)o;
+	if(a < OXXX || a > OEND)
+		strconv("***badO***", fp);
+	else
 		strconv(onames[a], fp);
-	return 0;
+	return sizeof(a);
 }
 
 int
-Lconv(va_list *arg, Fconv *fp)
+Lconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ], s[STRINGSZ];
 	Hist *h;
@@ -1201,7 +1156,7 @@ Lconv(va_list *arg, Fconv *fp)
 	long l, d;
 	int i, n;
 
-	l = va_arg(*arg, long);
+	l = *(long*)o;
 	n = 0;
 	for(h = hist; h != H; h = h->link) {
 		if(l < h->line)
@@ -1253,27 +1208,21 @@ Lconv(va_list *arg, Fconv *fp)
 	if(n == 0)
 		strcat(str, "<eof>");
 	strconv(str, fp);
-	return 0;
+	return sizeof(l);
 }
 
 int
-Tconv(va_list *arg, Fconv *fp)
+Tconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ+20], s[STRINGSZ+20];
 	Type *t, *t1;
 	int et;
-	long n;
 
 	str[0] = 0;
-	for(t = va_arg(*arg, Type*); t != T; t = t->link) {
+	for(t = *(Type**)o; t != T; t = t->link) {
 		et = t->etype;
 		if(str[0])
 			strcat(str, " ");
-		if(t->garb) {
-			sprint(s, "%s ", gnames[t->garb]);
-			if(strlen(str) + strlen(s) < STRINGSZ)
-				strcat(str, s);
-		}
 		sprint(s, "%s", tnames[et]);
 		if(strlen(str) + strlen(s) < STRINGSZ)
 			strcat(str, s);
@@ -1290,10 +1239,7 @@ Tconv(va_list *arg, Fconv *fp)
 				strcat(str, ")");
 		}
 		if(et == TARRAY) {
-			n = t->width;
-			if(t->link && t->link->width)
-				n /= t->link->width;
-			sprint(s, "[%ld]", n);
+			sprint(s, "[%ld]", t->width);
 			if(strlen(str) + strlen(s) < STRINGSZ)
 				strcat(str, s);
 		}
@@ -1313,32 +1259,32 @@ Tconv(va_list *arg, Fconv *fp)
 		}
 	}
 	strconv(str, fp);
-	return 0;
+	return sizeof(t);
 }
 
 int
-FNconv(va_list *arg, Fconv *fp)
+FNconv(void *o, Fconv *fp)
 {
 	char *str;
 	Node *n;
 
-	n = va_arg(*arg, Node*);
+	n = *(Node**)o;
 	str = "<indirect>";
 	if(n != Z && (n->op == ONAME || n->op == ODOT || n->op == OELEM))
 		str = n->sym->name;
 	strconv(str, fp);
-	return 0;
+	return sizeof(n);
 }
 
 int
-Qconv(va_list *arg, Fconv *fp)
+Qconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ+20], *s;
 	long b;
 	int i;
 
 	str[0] = 0;
-	for(b = va_arg(*arg, long); b;) {
+	for(b = *(long*)o; b;) {
 		i = bitno(b);
 		if(str[0])
 			strcat(str, " ");
@@ -1349,17 +1295,17 @@ Qconv(va_list *arg, Fconv *fp)
 		b &= ~(1L << i);
 	}
 	strconv(str, fp);
-	return 0;
+	return sizeof(b);
 }
 
 int
-VBconv(va_list *arg, Fconv *fp)
+VBconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ];
 	int i, n, t, pc;
 	extern printcol;
 
-	n = va_arg(*arg, int);
+	n = *(int*)o;
 	pc = printcol;
 	i = 0;
 	while(pc < n) {
@@ -1374,21 +1320,19 @@ VBconv(va_list *arg, Fconv *fp)
 	}
 	str[i] = 0;
 	strconv(str, fp);
-	return 0;
+	return sizeof(n);
 }
 
 /*
- * real allocs
+ * fake malloc
  */
 void*
-alloc(long n)
+malloc(long n)
 {
 	void *p;
 
-	while((ulong)hunk & MAXALIGN) {
-		hunk++;
-		nhunk--;
-	}
+	while(n & 3)
+		n++;
 	while(nhunk < n)
 		gethunk();
 	p = hunk;
@@ -1397,50 +1341,30 @@ alloc(long n)
 	return p;
 }
 
-void*
-allocn(void *p, long on, long n)
+void
+free(void *p)
 {
-	void *q;
+	USED(p);
+}
 
-	q = (uchar*)p + on;
-	if(q != hunk || nhunk < n) {
-		while(nhunk < on+n)
-			gethunk();
-		memmove(hunk, p, on);
-		p = hunk;
-		hunk += on;
-		nhunk -= on;
-	}
-	hunk += n;
-	nhunk -= n;
+void*
+calloc(long m, long n)
+{
+	void *p;
+
+	n *= m;
+	p = malloc(n);
+	memset(p, 0, n);
 	return p;
 }
 
-void
-setinclude(char *p)
+void*
+realloc(void *p, long n)
 {
-	int i;
-	char *e;
 
-	while(*p != 0) {
-		e = strchr(p, ' ');
-		if(e != 0)
-			*e = '\0';
-
-		for(i=1; i < ninclude; i++)
-			if(strcmp(p, include[i]) == 0)
-				break;
-
-		if(i >= ninclude)
-			include[ninclude++] = p;
-
-		if(ninclude > nelem(include)) {
-			diag(Z, "ninclude too small %d", nelem(include));
-			exits("ninclude");
-		}
-
-		if(e == 0)
-			break;
-		p = e+1;
-	}
+	USED(p);
+	USED(n);
+	fprint(2, "realloc called\n");
+	abort();
+	return 0;
 }

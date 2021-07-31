@@ -1,0 +1,438 @@
+% \iffalse
+%% File: showkeys.dtx Copyright (C) 1992-1994 David Carlisle
+%
+%<*dtx>
+          \ProvidesFile{showkeys.dtx}
+%</dtx>
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{showkeys}
+%<driver> \ProvidesFile{showkeys.drv}
+% \fi
+%         \ProvidesFile{showkeys.dtx}
+          [1994/09/09 v3.01 Show cite and label keys (DPC)]
+%
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{showkeys}
+\begin{document}
+\DocInput{showkeys.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \GetFileInfo{showkeys.dtx}
+% \title{The \textsf{showkeys} package\thanks{This file
+%         has version number \fileversion, last
+%         revised \filedate.}}
+% \author{David Carlisle\\carlisle@cs.man.ac.uk}
+% \date{\filedate}
+% \maketitle
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \CheckSum{338}
+%
+%
+% \changes{v1.01}{1992/08/25}{Initial version}
+% \changes{v1.02}{1994/01/05}
+%         {Fix incorrect initialisation (FGBDA19@CC1.KULEUVEN.AC.BE)}
+% \changes{v2.00}{1994/01/31}{new version for LaTeX2e}
+% \changes{v2.01}{1994/06/30}{Fix \cs{ProvidesPackage} usage.}
+% \changes{v3.00}{1994/09/07}
+%         {Support harvard, varioref and natbib packages,}
+%
+% \section{Introduction}\label{sec:intro}
+% |showkeys.sty| modifies the |\label|, |\ref|, |\pageref|, |\cite|, and
+% |\bibitem| commands so that the `internal' key is printed. The package
+% tries hard to position these labels so that the formatting of the rest
+% of the document is unchanged. |\label| and |\bibitem| cause the
+% key to appear in a box either in the margin, or in a \TeX\ box of zero
+% width, which may possibly over-print other text. The |\ref|,
+% |\pageref| and |\cite| commands print their arguments in small type,
+% raised just above the line, like this: \ref{sec:intro}.
+% Works with |fleqn.sty|.
+%
+% \changes{v2.00}{1992/01/31}
+%         {leqno or ams* may now be loaded after showkeys}
+%
+% The only other similar package that I could find in the macro index,
+% \cite{DMJ:mi}, was |showlabels.sty|, \cite{GN:sl}. After the first
+% draft of this package was written, I found \cite{anon:sk} on my local
+% installation! I think the current package is more robust than
+% \cite{anon:sk}, but I thought that |showkeys| was rather a good name,
+% so I have stolen it for this file.
+%
+% \begin{enumerate}
+% \item \label{e^1}This has |\label| immediately after |\item|.
+% \item This has the |\label| at the end.\label{e^2}
+% \end{enumerate}
+%
+% \[
+% \mbox{A minipage :- }\left\{
+% \begin{minipage}{3in}
+% Within environments like this |minipage|, We can not use |\marginpar|,
+% so the appearance is slightly different. Here is that |enumerate|
+% environment again:
+%
+% \begin{enumerate}
+% \item \label{m&e^1}This has |\label| immediately after |\item|.
+% \item This has the |\label| at the end.\label{m&e^2}
+% \end{enumerate}
+% \end{minipage}
+% \right.
+% \]
+%
+% Displayed math (without |equation| counter).
+% \[0=0\label{disp}\]
+%
+% Some text refering to the maths on page~\pageref{disp},  and the
+% item~\ref{e^1}.
+%
+% If |showkeys| thinks that the current environment is going to produce
+% an ``equation number'', then it does not show the label where the
+% |\label| command occurs, but tries to put it in the margin, as shown
+% with equation~\ref{eq:xx}.
+% The package `knows' about the standard |equation| and |eqnarray|
+% environments, and also all the numbered alignment environments offered
+% by the AMS\LaTeX\ package, |amstex|.
+%
+% ^^A (|amstex.sty| must be loaded before |showkeys.sty|
+% ^^A for this to work.)
+% \changes{v2.00}{1992/01/31}
+%         {leqno or ams* may now be loaded after showkeys}
+%
+% \begin{equation}
+% 1=1\label{eq:xx}
+% \end{equation}
+%
+% \begin{eqnarray}
+% 2&=&2\label{eqnar:a}\\
+% 3&=&3\nonumber\\
+% 4&=&4\label{eqnar:b}
+% \end{eqnarray}
+%
+% \begin{figure}[h]
+% Within a |figure| environment, the |\label| must not come  before the
+% |\caption| command. If you place |\label| inside the argument of
+% |\caption| the label will be shown like this:
+%
+% \caption{Within the caption argument.\label{cap:a}}
+%
+% If you place |\label| immediately after the |\caption| command it will
+% be shown like this:
+%
+% \caption{Immediately after the caption argument.}\label{cap:b}
+%
+% If you place the |\label| command at some random point after the
+% |\caption| command, it may be shown like:
+%
+% \caption{In vertical mode not immediately after a box.}
+% \vspace{2pt}
+%
+% \label{cap:c}
+% \end{figure}
+%
+%
+% \begin{thebibliography}{9}
+%
+% \bibitem{GN:sl}
+% Gil Neiger, {\em showlabels.sty},
+% Undated package, similar to this one, but shows labels
+% inline, affecting the formating of the document.
+%
+% \bibitem{anon:sk}
+% Annonymous, {\em showkeys.sty},
+% Package, dated 14 May 1988. Very similar to this one,
+% also uses |\marginpar| in outer vertical mode.
+%
+% \bibitem{DMJ:mi}
+% David M. Jones, {\em \TeX\ Macro Index},
+% A catalogue of \TeX\ macros, including \LaTeX\ packages,
+% available from all good \TeX\ archives.
+%
+% \end{thebibliography}
+%
+% \StopEventually{}
+%
+% \section{The Macros}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% \changes{v2.00}{1992/01/31}
+%         {\cmd{reset@font} is now standard}
+%
+% \begin{macro}{\SK@label}
+% \begin{macro}{\SK@bibitem}
+% \begin{macro}{\SK@lbibitem}
+% The saved original definitions
+%    \begin{macrocode}
+\let\SK@label\label
+\let\SK@bibitem\@bibitem
+\let\SK@lbibitem\@lbibitem
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+%
+% \begin{macro}{\label}
+% \begin{macro}{\@bibitem}
+% \begin{macro}{\@lbibitem}
+% The new definition, print the argument, and then do the old
+% definition.
+%    \begin{macrocode}
+\def\label#1{\@bsphack\SK@\SK@@label{#1}\SK@label{#1}\@esphack}
+\def\@bibitem#1{\SK@\SK@@label{#1}\SK@bibitem{#1}\ignorespaces}
+\def\@lbibitem[#1]#2{%
+  \SK@\SK@@label{#2}\SK@lbibitem[#1]{#2}\ignorespaces}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\SK@}
+% Grab hold of |#2| via |\meaning| so characters like |&| and
+% |^| do not cause problems later, and pass the result on to the command
+% |#1|.
+%    \begin{macrocode}
+\def\SK@#1#2{\def\@tempa{#2}\expandafter#1\meaning\@tempa\SK@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\SK@@label}
+% Strip off the initial segment of the |\meaning| output, and then put
+% the rest either in a |\marginpar| or in a box of size 0pt,
+% hopefully not disturbing the surrounding text.
+%    \begin{macrocode}
+\def\SK@@label#1>#2\SK@{%
+%    \end{macrocode}
+% Need to work globally as in some cases like alignments, and |fleqn|,
+% the counter will be printed in a different group to the |\label|
+% command.
+%    \begin{macrocode}
+  \gdef\SK@lab{\smash{\fbox{\reset@font\small\ttfamily#2}}}%
+  \ifvmode
+    \ifinner
+%    \end{macrocode}
+% Because of the contortions of the |list| environment, we might be in
+% inner vertical mode if the |\label| immediately follows an |\item|.
+% The code for inner vertical mode is mainly optimised for the
+% |\caption| command, and would fail miserably here, so use |\mbox| to
+% get into horizontal mode, and to give a \meta{box} for |\lastbox| to
+% get hold of. Did any one say `kludge'?
+%    \begin{macrocode}
+      \if@inlabel
+        \mbox{}\let\@tempa\SK@lab
+                \def\SK@lab{\llap{\@tempa\kern\leftmargin}}%
+        \let\SK@temp\@gobble
+      \else
+        \skip@=\lastskip\unskip
+        \let\SK@temp\vskip
+      \fi
+%    \end{macrocode}
+% In inner vertical mode, attach the label to the right of the
+% immediately preceding box, if it is a box before the current point.
+% Otherwise just put it in a box of zero dimensions, with no interline
+% skip. (This may slightly move the surrounding text.)
+% \changes{v3.00}{1994/09/07}
+%      {Back up over a previous skip because of the new 
+%       \cs{belowcaptionskip}}
+%    \begin{macrocode}
+      \skip@=\lastskip\unskip
+      \setbox\z@=\lastbox
+      \ifvoid\z@
+        \nointerlineskip\SK@labx
+      \else
+        \hbox{\box\z@\SK@labx}%
+      \fi
+      \SK@temp\skip@
+    \else
+%    \end{macrocode}
+% In outer vertical mode, use a |\marginpar|.
+%    \begin{macrocode}
+      \marginpar{\SK@lab}\SK@lab@relax
+    \fi
+  \else
+%    \end{macrocode}
+% If we are in an numbered equation-style environment, do nothing as the
+% code to print the number will also print the label, otherwise just
+% stick the label at the current point, in a box of zero dimensions.
+%    \begin{macrocode}
+    \csname SK@\@currenvir\endcsname
+    \ifSK@equation\else\SK@labx\fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\iftagsleft@}
+% Make sure that this AMS\LaTeX\ command really is an |\if..|
+% \changes{v2.00}{1992/01/31}
+%         {Defer tests to begin document}
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \let\SK@eqnnum\@eqnnum
+  \def\@tempa{\let\iftagsleft@\iffalse}%
+  \ifx\iftagsleft@\undefined\@tempa\fi%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\tag@form@}
+% \begin{macro}{\eqnnum}
+% Perhaps if |leqno| is operative, I should define |\@eqnnum| with the
+% `left' version, but it does not really matter.
+%    \begin{macrocode}
+  \let\SK@tagform@\tagform@
+  \iftagsleft@
+    \def\tagform@#1{\llap{\SK@lab\kern\marginparsep}%
+                     \SK@lab@relax\SK@tagform@{#1}}%
+    \def\@eqnnum{\llap{\SK@lab\kern\displaywidth\kern\marginparsep}%
+                     \SK@lab@relax\SK@eqnnum}%
+  \else
+    \def\tagform@#1{\SK@tagform@{#1}%
+                     \rlap{\kern\marginparsep\SK@lab}\SK@lab@relax}%
+    \def\@eqnnum{\SK@eqnnum\rlap{\kern\marginparsep\SK@lab}%
+                     \SK@lab@relax}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\SK@labx}
+% Print the label, and then globally reset the print command to
+% |\relax|.
+%    \begin{macrocode}
+\def\SK@labx{\rlap\SK@lab\global\let\SK@lab\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\SK@lab@relax}
+% Clear the label.
+% \changes{v1.02}{1994/01/05}{Execute to initialise correctly}
+%    \begin{macrocode}
+\def\SK@lab@relax{\global\let\SK@lab\relax}\SK@lab@relax
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\SK@equation}
+% \begin{macro}{\SK@eqnaray}
+% \begin{macro}{\SK@align}
+% \begin{macro}{\SK@alignat}
+% \begin{macro}{\SK@xalignat}
+% \begin{macro}{\SK@xxalignat}
+% \begin{macro}{\SK@gather}
+% \begin{macro}{\SK@multline}
+% The following environments print an equation number, so |\label|
+% should not print its argument at the point where it appears.
+% Note this will fail to show the label if you are in an |eqnarray|
+% environment, and use |\label| together with |\nonumber| This might
+% just about make sense if you are going to use |\pageref|, but that is
+% too bad\ldots
+%    \begin{macrocode}
+\newif\ifSK@equation
+\let\SK@equation\SK@equationtrue
+\let\SK@eqnarray\SK@equationtrue
+\let\SK@align\SK@equationtrue
+\let\SK@alignat\SK@equationtrue
+\let\SK@xalignat\SK@equationtrue
+\let\SK@xxalignat\SK@equationtrue
+\let\SK@gather\SK@equationtrue
+\let\SK@multline\SK@equationtrue
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+%
+% \begin{macro}{\cite}
+% \begin{macro}{\ref}
+% \begin{macro}{\pageref}
+% Save the redefinition to |\begin{document}| so that this package can
+% work with packages that redefine |\cite|. Tested with harvard and
+% natbib packages. Also add code at this point to support varioref.
+% \changes{v3.00}{1994/09/07}
+%      {Delay \cs{cite} and \cs{ref} redefinition.}
+%    \begin{macrocode}
+\AtBeginDocument{%
+  \let\SK@ref\ref
+  \let\SK@pageref\pageref
+  \DeclareRobustCommand\ref[1]{\SK@\SK@@ref{#1}\SK@ref{#1}}%
+  \DeclareRobustCommand\pageref[1]{\SK@\SK@@ref{#1}\SK@pageref{#1}}%
+  \ifx\vpageref\@undefined\else
+%    \end{macrocode}
+% varioref support.
+%    \begin{macrocode}
+    \let\SK@@@vpageref\@@vpageref
+    \def\@@vpageref#1[#2]#3{{%
+      \let\label\SK@label\let\ref\SK@ref\let\pageref\SK@pageref
+      \leavevmode\unskip\SK@\SK@@ref{#3}\SK@@@vpageref#1[#2]{#3}}}%
+    \DeclareRobustCommand\vref[1]{%
+      \unskip~\ref{#1}%
+      {\let\label\SK@label\let\ref\SK@ref\let\pageref\SK@pageref
+       \SK@@@vpageref\unskip[\unskip\space]{#1}}}%
+  \fi
+  \ifx\HAR@checkdef\@undefined
+%    \end{macrocode}
+% Standard (non-harvard) support, including extra cite commands from
+% natbib.
+% \changes{v3.01}{1994/09/09}
+%         {Add \cs{citefullauthor}}
+%    \begin{macrocode}
+    \let\SK@cite\cite
+    \def\cite#1#{\SK@citea{#1}}%
+    \let\SK@citeauthor\citeauthor
+    \def\citeauthor#1{\SK@\SK@@ref{#1}\SK@citeauthor{#1}}%
+    \let\SK@citefullauthor\citefullauthor
+    \def\citefullauthor#1{\SK@\SK@@ref{#1}\SK@citefullauthor{#1}}%
+    \let\SK@citeyear\citeyear
+    \def\citeyear#1{\SK@\SK@@ref{#1}\SK@citeyear{#1}}%
+  \else
+%    \end{macrocode}
+% In the harvard style do \emph{not} redefine individual cite commands.
+% Just redefine one internal command that is used in all the citation
+% forms.
+%    \begin{macrocode}
+    \let\SK@HAR@checkdef\HAR@checkdef
+    \def\HAR@checkdef#1#2{%
+      \expandafter\SK@\expandafter\SK@@ref\expandafter{#1}%
+      \SK@HAR@checkdef{#1}{#2}}%
+      \expandafter\let\expandafter
+         \SK@HAR@bi\csname\string\harvarditem\endcsname
+      \expandafter\def\csname\string\harvarditem\endcsname[#1]#2#3#4{%
+        \SK@\SK@@label{#4}\SK@HAR@bi[#1]{#2}{#3}{#4}}%
+  \fi}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\SK@citea#1#2{%
+  \SK@\SK@@ref{#2}\SK@cite#1{#2}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\SK@@ref}
+% This is much simpler than the printing of the label, as we know that
+% we can be in horizontal mode.
+%    \begin{macrocode}
+\def\SK@@ref#1>#2\SK@{%
+  \leavevmode\vbox to \z@{\vss
+    \rlap{\vrule\raise .75em
+       \hbox{\underbar{\reset@font\footnotesize\ttfamily#2}}}}}
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+%
+% \Finale
+%
+

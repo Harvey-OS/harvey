@@ -11,28 +11,17 @@
  *  return 0 if not found.
  */
 Ndbtuple*
-csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
+csgetval(char *attr, char *val, char *rattr, char *buf)
 {
 	Ndbtuple *t, *first, *last;
-	int n, linefound;
+	int n, fd, linefound;
 	char line[1024];
-	int fd;
 
 	buf[0] = 0;
-
-	if(netroot)
-		snprint(line, sizeof(line), "%s/cs", netroot);
-	else
-		strcpy(line, "/net/cs");
-	fd = open(line, ORDWR);
+	fd = open("/net/cs", ORDWR);
 	if(fd < 0)
 		return 0;
-	seek(fd, 0, 0);
-	snprint(line, sizeof(line), "!%s=%s", attr, val);
-	if(write(fd, line, strlen(line)) < 0){
-		close(fd);
-		return 0;
-	}
+	fprint(fd, "!%s=%s", attr, val);
 	seek(fd, 0, 0);
 
 	first = last = 0;
@@ -66,6 +55,5 @@ csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 		}
 	}
 	close(fd);
-
 	return first;
 }

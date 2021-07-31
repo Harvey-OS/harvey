@@ -1,11 +1,8 @@
-/* VERSION 1 introduces plumbing
-	2 increases SNARFSIZE from 4096 to 32000
- */
-#define	VERSION	2
+#define	VERSION	0
 
 #define	TBLOCKSIZE 512		  /* largest piece of text sent to terminal */
 #define	DATASIZE  (UTFmax*TBLOCKSIZE+30) /* ... including protocol header stuff */
-#define	SNARFSIZE 32000		/* maximum length of exchanged snarf buffer, must fit in 15 bits */
+#define	SNARFSIZE 4096		/* maximum length of exchanged snarf buffer */
 /*
  * Messages originating at the terminal
  */
@@ -33,7 +30,6 @@ typedef enum Tmesg
 	Tsetsnarf,	/* remember string in snarf buffer */
 	Tack,		/* acknowledge Hack */
 	Texit,		/* exit */
-	Tplumb,		/* send plumb message */
 	TMAX,
 }Tmesg;
 /*
@@ -66,7 +62,6 @@ typedef enum Hmesg
 	Hsnarflen,	/* report length of implicit snarf */
 	Hack,		/* request acknowledgement */
 	Hexit,
-	Hplumb,		/* return plumb message to terminal */
 	HMAX,
 }Hmesg;
 typedef struct Header{

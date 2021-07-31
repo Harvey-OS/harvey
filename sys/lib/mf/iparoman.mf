@@ -1,0 +1,33 @@
+% This is IPAROMAN.MF in text format, as of Jan 13, 1988.
+% The Computer Modern Roman family of fonts (by D. E. Knuth, 1979--1985)
+ 
+mode_setup; font_setup;
+ 
+input iromanl;  % lower case (minuscules)
+input igreekl;  % lower case Greek letters
+input iromanp;  % ampersand, question marks, currency sign
+input iaccent;  % accents common to roman and italic text
+ 
+font_slant slant; font_x_height x_height#;
+ font_normal_space 6u#+2letter_fit#;
+ font_normal_stretch 3u#; font_normal_shrink 2u#;
+ font_quad 18u#+4letter_fit#;
+ font_extra_space 2u#;
+ k#:=-.5u#; kk#:=-1.5u#; kkk#:=-2u#; % three degrees of kerning
+% This is CSC.MF in text format, as of May 13, 1986.
+% Caps and Small Caps in Computer Modern Roman
+font_slant slant; font_x_height x_height#;
+ font_normal_space 6u#+2letter_fit#;
+ font_normal_stretch 3u#; font_normal_shrink 2u#;
+ font_quad 18u#+4letter_fit#;
+ font_extra_space 2u#;
+%%% fine lower
+forsuffixes $= u, width_adj, cap_serif_fit, letter_fit,
+ body_height, cap_height, x_height, bar_height, comma_depth,
+ flare, cap_hair, stem, cap_stem, cap_curve, cap_ess,
+ cap_jut, beak_jut, beak, slab, cap_bar, cap_band, cap_notch_cut,
+ o, apex_o:  $.#:=lower.$.#; endfor
+fudge:=lower.fudge;
+font_setup; % now try again with |lower| settings
+input iromanu;  % majuscules (in lowercase positions)
+bye.

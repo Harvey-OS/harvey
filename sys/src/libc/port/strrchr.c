@@ -2,7 +2,7 @@
 #include <libc.h>
 
 char*
-strrchr(char *s, int c)
+strrchr(char *s, char c)
 {
 	char *r;
 

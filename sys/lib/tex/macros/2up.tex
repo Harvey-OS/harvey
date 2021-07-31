@@ -1,0 +1,386 @@
+%% BEGIN 2up.tex/2up.sty
+%%
+\def\fileversion{1.2}
+\def\filedate{93/01/28}
+%%
+%% COPYRIGHT 1992, 1993 by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% DESCRIPTION:
+%%   2up.tex/2up.sty provides two-up printing for Generic TeX (e.g.,
+%%   Plain, LaTeX, AmSTeX and AmS-LaTeX). It produces a standard dvi file,
+%%   and does not involve an additional dvi or PostScript filter. It has a
+%%   flexible interface for specifying paper size and layout.
+%%
+%% INSTALLATION:
+%%   Put this file where your TeX looks for inputs, under the name 2up.tex.
+%%   Name a copy 2up.sty to use as a LaTeX style option, or create a file
+%%   2up.sty with the lines:
+%%     \input 2up.tex
+%%     \endinput
+%%
+%% DOCUMENTATION:
+%%   Input 2up.tex, or include 2up as a LaTeX style option. There is a
+%%   good chance you will get the desired layout. (But you will probably
+%%   need to generate new font bitmaps to get high quality output.) See
+%%   2up.doc, which might be appended to this file, for detailed
+%%   documentation.
+%%
+%% COPYING:
+%%   Copying of part or all of this file is allowed under the following
+%%   conditions only:
+%%   (1) You may freely distribute unchanged copies of the file. Please
+%%       include the documentation when you do so.
+%%   (2) You may modify a renamed copy of the file, but only for personal
+%%       use or use within an organization.
+%%   (3) You may copy fragments from the file, for personal use or for use
+%%       in a macro package for distribution, as long as credit is given
+%%       where credit is due.
+%%
+%%   You are NOT ALLOWED to take money for the distribution or use of
+%%   this file or modified versions or fragments thereof, except for
+%%   a nominal charge for copying etc.
+%%
+%% CODE:
+%
+\csname TwoUpLoaded\endcsname
+\let\TwoUpLoaded\endinput
+%
+\edef\TheAtCode{\the\catcode`\@}
+\catcode`\@=11\relax
+\message{\space\space v\fileversion\space\space \filedate\space\space <tvz>}
+%
+% Parameter registers:
+\newdimen\@targetwidth
+\newdimen\@targetheight
+\newdimen\@sourcewidth
+\newdimen\@sourceheight
+\newdimen\pageseplength
+\newdimen\pagesepwidth
+\newdimen\pagesepoffset
+\newif\if@sidebyside
+\@sidebysidetrue
+\newif\if@twosided
+%
+% Registers used by output routine.
+\newif\if@leftpage
+\@leftpagetrue
+\newbox\@leftpage
+\newbox\@rightpage
+\newcount\@physicalpage
+%
+% Since pages are shipped out half as often:
+\multiply\maxdeadcycles by 2
+%
+% Registers used only for booklet layout:
+\begingroup
+  \let\newcount\relax
+  \gdef\booklet@registers{%
+    \newcount\bookletpage
+    \bookletpage=0
+    \newcount\leftpagenumber
+    \newcount\rightpagenumber
+    \multiply\maxdeadcycles by 20}
+\endgroup
+%
+% A useful extension of the \magstep macro.
+\def\magstepminus#1{%
+  \ifcase#1 \@m\or 833\or 694\or 579\or 482\or 401\fi\relax}
+%
+% \@targetwidth and \@targetheight are set to the *unmagnified* dimensions
+% of the target page. \inv@targetmag is the inverse of the target
+% magnification.
+{\catcode`\p=12\catcode`\t=12\gdef\@@inv@@mag#1pt#2{\def#2{#1}}}
+\def\target#1#2#3{%
+  \mag #1\relax
+  \@targetwidth=1000pt
+  \divide\@targetwidth by #1\relax
+  \expandafter\@@inv@@mag\the\@targetwidth\inv@targetmag
+  \@targetwidth=#2\relax
+  \@targetwidth=\inv@targetmag\@targetwidth
+  \@targetheight=#3\relax
+  \@targetheight=\inv@targetmag\@targetheight}
+%
+% Like \target, but for the source:
+\def\source#1#2#3{%
+  \@sourcewidth=1000pt
+  \divide\@sourcewidth by #1\relax
+  \expandafter\@@inv@@mag\the\@sourcewidth\inv@sourcemag
+  \@sourcewidth=#2\relax
+  \@sourcewidth=\inv@sourcemag\@sourcewidth
+  \@sourceheight=#3\relax
+  \@sourceheight=\inv@sourcemag\@sourceheight}
+%
+% \targetlayout does a loop that reads the comma separated arguments.
+% There can be no extraneous spaces.
+\def\targetlayout#1{\process@targetlayout#1,stop,}
+\def\process@targetlayout#1,{%
+  \expandafter\let\expandafter\next\csname target@#1\endcsname
+  \ifx\next\relax
+    \begingroup
+      \errhelp{Valid target layouts are "topbottom", "twosided",
+        "booklet", "Booklet" and "dvidvi".}%
+      \errmessage{`#1' is invalid 2up target layout - ignored.}%
+    \endgroup
+    \expandafter\process@targetlayout
+  \else
+    \next
+  \fi}
+\def\target@stop{}
+\def\target@booklet{%
+  \booklet@registers
+  \def\ship@@@leftpage{\save@booklet\@leftpage}%
+  \def\ship@@@rightpage{\save@booklet\@rightpage}%
+  \@leftpagefalse
+  \def\twoup@eject{\twoup@eject@booklet}%
+  \expandafter\process@targetlayout}
+\def\target@Booklet{%
+  \def\booklet@@loop{\Booklet@@loop}%
+  \target@booklet}
+\def\target@twosided{%
+  \@twosidedtrue
+  \expandafter\process@targetlayout}
+\def\target@topbottom{%
+  \def\make@@halfpage{\make@@halftopbottom}%
+  \def\make@fullpage{\make@fulltopbottom}%
+  \@sidebysidefalse
+  \expandafter\process@targetlayout}
+\def\target@dvidvi{%
+  \def\ship@@@leftpage{\ship@dvidvi\@leftpage}%
+  \def\ship@@@rightpage{\ship@dvidvi\@rightpage}%
+  \expandafter\process@targetlayout}
+%
+% TeX's \shipout primitive is saved as \&normal@shipout, and then \shipout
+% is defined to save each page to \@leftpage or \@rightpage and to print out
+% every two. With the twosided layout, filler pages are added when needed.
+\expandafter\let\csname &normal@shipout\endcsname\shipout
+\def\shipout{%
+  \if@leftpage
+    \global\@leftpagefalse
+    \def\next{\afterassignment\ship@leftpage\global\setbox\@leftpage=}%
+    \if@twosided
+      \ifodd\count\z@
+        \global\setbox\@leftpage=\hbox{}%
+        \make@@halfpage\@leftpage\ship@@@leftpage
+        \def\next{\shipout}%
+      \fi
+    \fi
+  \else
+    \global\@leftpagetrue
+    \def\next{\afterassignment\ship@rightpage\global\setbox\@rightpage=}%
+    \if@twosided
+      \ifodd\count\z@
+      \else
+        \global\setbox\@rightpage=\hbox{}%
+        \make@@halfpage\@rightpage\ship@@@rightpage
+        \def\next{\shipout}%
+      \fi
+    \fi
+  \fi
+  \next}
+%
+% The job of \ship@leftpage and \ship@rightpage is to invoke \ship@@leftpage
+% or \ship@@rightpage at the right time. \shipout is followed either
+% (i) by an \hbox, \vbox or \vtop, in which case \ship@leftpage is invoked
+% after the opening {. \@leftpage is void, and \ship@leftpage invokes
+% \ship@@leftpage after the closing }, or
+% (ii) by a \box or \copy, in which case \ship@leftpage is invoked after
+% the full assignment. \@leftpage is not voide, and \ship@leftpage invokes
+% \ship@@leftpage immediately.
+\def\ship@leftpage{%
+  \ifvoid\@leftpage\aftergroup\ship@@leftpage\else\ship@@leftpage\fi}
+\def\ship@rightpage{%
+  \ifvoid\@rightpage\aftergroup\ship@@rightpage\else\ship@@rightpage\fi}
+%
+% \ship@@leftpage/\ship@@rightpage take the output box, and first make it
+% into a fully-size source page (with \make@halfpage) and then this is
+% centered horizontally and vertically in half of a target page (with
+% \make@@halfpage). Then they are shipped individually or together.
+\def\ship@@leftpage{\make@halfpage\@leftpage\ship@@@leftpage}
+\def\ship@@rightpage{\make@halfpage\@rightpage\ship@@@rightpage}
+\def\make@halfpage#1{%
+  \dp#1=\z@
+  \setbox#1=\vbox to\@sourceheight{%
+    \vskip \inv@sourcemag in
+    \vskip \voffset
+    \hbox to\@sourcewidth{\hskip\inv@sourcemag in\hskip\hoffset\box#1\hss}%
+    \vss}%
+  \make@@halfpage#1}
+%
+% The definition of \make@@halfpage depends on the target layout.
+\def\make@@halfsidebyside#1{%
+  \global\setbox#1=\vbox to\@targetheight{\vss
+    \hbox to.5\@targetwidth{\hss\box#1\hss}\vss}}
+\def\make@@halftopbottom#1{%
+  \global\setbox#1=\vbox to.5\@targetheight{\vss
+    \hbox to\@targetwidth{\hss\box#1\hss}\vss}}
+\def\make@@halfpage{\make@@halfsidebyside}
+%
+% The pages are generaly shipped in pairs:
+\def\ship@twoup{%
+  \begingroup
+    \voffset=-\inv@targetmag in
+    \hoffset=\voffset
+    \global\advance\@physicalpage by 1
+    \count\z@=\@physicalpage
+    \csname &normal@shipout\endcsname\make@fullpage
+  \endgroup}
+\let\ship@@@leftpage\relax
+\def\ship@@@rightpage{\ship@twoup}
+%
+% The definition of \make@fullpage depends on the layout:
+\def\make@fullsidebyside{%
+  \hbox{\box\@leftpage\pagesep@sidebyside\box\@rightpage}}
+\def\make@fulltopbottom{%
+  \vbox{\offinterlineskip\box\@leftpage\pagesep@topbottom\box\@rightpage}}
+\def\make@fullpage{\make@fullsidebyside}
+%
+% A vertical or horizontal rule can be inserted. These can be redefined
+% for other tricks:
+\def\pagesep@sidebyside{%
+  \begingroup
+    \advance\pageseplength by \pagesepoffset
+    \pagesepwidth=\inv@targetmag\pagesepwidth
+    \kern -.5\pagesepwidth
+    \vrule height \inv@targetmag\pageseplength
+           depth -\inv@targetmag\pagesepoffset
+           width \pagesepwidth
+    \kern -.5\pagesepwidth
+  \endgroup}
+\def\pagesep@topbottom{%
+  \begingroup
+    \pagesepwidth=\inv@targetmag\pagesepwidth
+    \vskip -.5\pagesepwidth
+    \moveright\inv@targetmag\pagesepoffset\hbox{%
+      \vrule height\pagesepwidth width\inv@targetmag\pageseplength}%
+    \vskip -.5\pagesepwidth
+  \endgroup}
+%
+% With the dvidvi layout, the pages are shipped individually:
+\def\ship@dvidvi#1{%
+  \begingroup
+    \voffset=-\inv@targetmag in
+    \hoffset=\voffset
+    \csname &normal@shipout\endcsname\box#1%
+  \endgroup}
+%
+% With the booklet or Booklet layout, the pages are saved rather than
+% shipped.
+\begingroup
+\let\newbox\relax
+\gdef\save@booklet#1{%
+  \begingroup
+    \globaldefs=1
+    \advance\bookletpage by 1
+    \expandafter\newbox\csname bookletbox\the\bookletpage\endcsname
+    \expandafter\setbox\csname bookletbox\the\bookletpage\endcsname\box#1%
+  \endgroup}
+\endgroup
+%
+% The pages are then printed at the end with the following macros:
+\def\make@bookletpage#1{%
+  \setbox\ifodd#1\@rightpage\else\@leftpage\fi=%
+    \expandafter\box\csname bookletbox\the#1\endcsname}
+\def\booklet@loop{%
+  \count\z@\rightpagenumber
+  \make@bookletpage\leftpagenumber
+  \make@bookletpage\rightpagenumber
+  \ship@twoup
+  \booklet@@loop}
+\def\booklet@@loop{%
+  \advance\rightpagenumber by 2
+  \advance\leftpagenumber by -2
+  \ifnum\leftpagenumber<1\else\expandafter\booklet@loop\fi}
+\def\Booklet@@loop{%
+  \advance\rightpagenumber by 1
+  \advance\leftpagenumber by -1
+  \ifnum\leftpagenumber<\rightpagenumber\else\expandafter\booklet@loop\fi}
+%
+% This one is easy:
+\def\twoupemptypage{\shipout\hbox{}}
+%
+% This clears a whole target page if there is a saved left page. Note that
+% this does not invoke the output routine; i.e., it is not like \clearpage
+% or \supereject. See \twoupclearpage and \twoupeject below.
+\def\twoup@eject{%
+  \if@leftpage\else
+    \global\setbox\@rightpage\hbox{}%
+    \make@@halfpage\@rightpage\ship@@@rightpage
+    \global\@leftpagetrue
+  \fi}
+%
+% This is the definition of \twoup@eject with the booklet option:
+\def\twoup@eject@booklet{%
+  \leftpagenumber\bookletpage
+  \advance\leftpagenumber by 3
+  \divide\leftpagenumber by 4
+  \multiply\leftpagenumber by 4
+  \rightpagenumber=1
+  \ifnum\leftpagenumber>\bookletpage
+    \setbox\@leftpage\hbox{}%
+    \make@@halfpage\@leftpage
+    \loop
+      \setbox\@rightpage\copy\@leftpage
+      \save@booklet\@rightpage
+    \ifnum\leftpagenumber>\bookletpage
+    \repeat
+  \fi
+  \booklet@loop}
+%
+% This modification is needed for \LaTeX in order to get the last page
+% printed out if the final page is a left page (the catcode business is
+% because \enddocument is \let to \bye in amstex):
+\begingroup
+\expandafter\ifx\csname @latexerr\endcsname\relax
+  \catcode`\>=14\else\catcode`\>=9\fi\relax
+>>\gdef\twoupclearpage{\clearpage\twoup@eject}
+>>\expandafter\@temptokena\expandafter{\enddocument}
+>>\xdef\enddocument{\noexpand\twoupclearpage\the\@temptokena}
+\endgroup
+%
+% For most other macro packages we could just leave be and all pages would
+% always be printed because of the way the \end primitive works (except that
+% TeX will go bonkers with the booklet layout). However,
+% sometimes a blank filler page would be printed *with* headings. We prefer
+% the filler page to be truly blank. To achieve this,  we hack the definition
+% of \end. This may cause problems with some macros.
+\expandafter\ifx\csname @latexerr\endcsname\relax
+  \let\twoup@@@end\end
+  \def\end{\twoup@eject\twoup@@@end}
+  \def\twoupeject{\par\vfil\supereject\twoup@eject}
+\fi
+%
+% This is one workaround for the page cross-references problem
+\def\TwoupWrites{%
+  \let\TwoupSaved@write\write
+  \let\TwoupSaved@read\read
+  \let\TwoupSaved@openout\openout
+  \let\TwoupSaved@closeout\closeout
+  \def\write{\TwoupSaved@write-1{}\immediate\TwoupSaved@write}%
+  \def\read{\TwoupSaved@write-1{}\immediate\TwoupSaved@read}%
+  \def\openout{\TwoupSaved@write-1{}\immediate\TwoupSaved@openout}%
+  \def\closeout{\TwoupSaved@write-1{}\immediate\TwoupSaved@closeout}%
+  \let\TwoupWrites\relax}
+%
+% Defaults:
+\def\twouparticle{%
+  \target{\magstepminus1}{11in}{8.5in}%
+  \source{\magstep0}{8.5in}{11in}}
+\def\twoupplain{%
+  \target{\magstepminus2}{11in}{8.5in}%
+  \source{\magstep0}{8.5in}{11in}}
+\def\twouplegaltarget{%
+  \target{\magstepminus1}{14in}{8.5in}%
+  \source{\magstep0}{8.5in}{11in}}%
+\def\twouplandscape{%
+  \target{\magstepminus2}{8.5in}{11in}%
+  \source{\magstep0}{11in}{8.5in}%
+  \targetlayout{topbottom}}
+\expandafter\ifx\csname @latexerr\endcsname\relax
+  \twoupplain\else\twouparticle\fi
+\pagesepwidth 0pt
+\pageseplength 6.5in
+\pagesepoffset 1in
+%
+\expandafter\catcode`\@=\TheAtCode\relax
+\endinput
+%% END 2up.tex/2up.sty

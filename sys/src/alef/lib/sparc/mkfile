@@ -1,0 +1,25 @@
+objtype=sparc
+</$objtype/mkfile
+
+LIB=/$objtype/lib/alef/libA.a
+
+AFILES=frexp.l\
+	lock.l\
+	nan.l\
+
+SFILES =alefasm.s\
+	getfcr.s\
+	main9.s\
+	memccpy.s\
+	memchr.s\
+	memcmp.s\
+	memmove.s\
+	memset.s\
+	muldiv.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+
+HFILES=run.h
+
+<../rt/mkfile

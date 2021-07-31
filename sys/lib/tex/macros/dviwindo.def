@@ -1,0 +1,112 @@
+%% 
+%% This is file `dviwindo.def', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% drivers.dtx  (with options: `dviwindo,colorfix,tiffrules,dosrules,psrules')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file drivers.dtx .
+%% 
+%% drivers.dtx Copyright (C) 1994 David Carlisle Sebastian Rahtz
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+\ProvidesFile{dviwindo.def}
+        [1994/12/12 v2.6 Driver-dependant file (DPC,SPQR)]
+\AtBeginDocument{%
+  \let\@ldc@l@r\color
+  \def\color{\if@inlabel\leavevmode\fi\@ldc@l@r}%
+  \let\@ldtextc@l@r\textcolor
+  \def\textcolor{\if@inlabel\leavevmode\fi\@ldtextc@l@r}%
+  \let\@lduseb@x\usebox
+  \def\usebox#1{\@lduseb@x{#1}\set@color}}
+\def\Ginclude@eps#1{%
+\message{<#1>}%
+  \raise\Gin@req@height\hbox{%    
+      \special{ps::[begin]
+      \number\Gin@req@width\space
+      \number\Gin@req@height\space
+      \number\Gin@llx\space
+      \number\Gin@lly\space
+      \number\Gin@urx\space
+      \number\Gin@ury\space startTexFig}%
+    \special{ps: plotfile #1}%
+    \ifGin@clip\special{ps:: doclip}\fi
+    \special{ps::[end] endTexFig}%
+  }%
+}
+\def\Ginclude@tiff#1{%
+\message{<#1>}%
+ \special{insertimage: #1 \number\Gin@req@width\space
+     \number\Gin@req@height}% 
+}
+\def\set@color{%
+  \special{textcolor: \current@color}%  
+  \special{rulecolor: \current@color}%
+  \aftergroup\reset@color
+}
+\def\reset@color{%
+ \special{textcolor: \current@color}%
+ \special{rulecolor: \current@color}%
+}
+\def\set@page@color{%
+  \c@lor@special\sixt@@n{background color ignored: \current@color}}
+\def\color@RGB#1#2{\c@lor@RGB@#1#2\@@}
+\def\c@lor@RGB@#1#2,#3,#4\@@{%
+  \edef#1{#2 #3 #4}}
+\def\c@lor@rgb@RGB#1{%
+  \dimen@#1\p@
+  \dimen@255\dimen@
+  \@settopoint\dimen@
+  \edef\@tempa{\@tempa,\strip@pt\dimen@}}
+\def\c@lor@rgb#1#2{\c@lor@rgb@#1#2\@@}
+\def\c@lor@rgb@#1#2,#3,#4\@@{%
+  \let\@tempa\@gobble
+  \c@lor@rgb@RGB{#2}%
+  \c@lor@rgb@RGB{#3}%
+  \c@lor@rgb@RGB{#4}%
+  \expandafter\color@RGB\expandafter#1\expandafter{\@tempa}}
+\def\cmyk@rgb#1{%
+  \dimen@#1\p@
+  \advance\dimen@\@tempdima
+  \ifdim\dimen@>\p@
+    \dimen@\z@
+  \else
+    \advance\dimen@-\p@
+    \dimen@-\dimen@
+  \fi
+  \edef\@tempa{\@tempa,\strip@pt\dimen@}}
+\def\color@cmyk#1#2{\c@lor@cmyk@#1#2\@@}
+\def\c@lor@cmyk@#1#2,#2,#3,#4,#5\@@{%
+  \@tempdima#5\p@
+  \let\@tempa\@gobble
+  \cmyk@rgb{#2}%
+  \cmyk@rgb{#3}%
+  \cmyk@rgb{#4}%
+  \expandafter\color@rgb\expandafter#1\expandafter{\@tempa}}
+\def\current@color{0 0 0 }
+\def\Gin@extensions{.eps,.ps}
+\@namedef{Gin@rule@.ps}#1{{eps}{.ps}{#1}}
+\@namedef{Gin@rule@.eps}#1{{eps}{.eps}{#1}}
+\@namedef{Gin@rule@*}#1{{eps}{\Gin@ext}{#1}}
+\def\Gin@extensions{.eps,.ps,.pcx,.bmp}
+\@namedef{Gin@rule@.pcx}#1{{bmp}{}{#1}}
+\@namedef{Gin@rule@.bmp}#1{{bmp}{}{#1}}
+\@namedef{Gin@rule@.msp}#1{{bmp}{}{#1}}
+ \@namedef{Gin@rule@.tif}#1{{tiff}{}{#1}}
+\endinput
+%% 
+%% End of file `dviwindo.def'.

@@ -1,0 +1,307 @@
+# VGA database.
+#
+# ctlr:
+# These entries are used to identify a particular controller.
+# 'numeric offset'="string" identifies the controller by searching
+# the BIOS for "string" at 'offset'. There may be multiple identifier
+# attributes per ctlr.
+# Strings can be found in the BIOS ROM by using the DOS 'debug'
+# command and typing 'd c000:0' to obtain a dump of the first part of
+# the ROM. Note that some machines (e.g. AT&T/NCR laptops) have the
+# ROM mapped at 0xE0000, not 0xC0000.
+# The "clock", "ctlr", "link" and "ramdac"  entries give a chain in order
+# of functions to be called for this controller for initialisation, etc.
+# The "clock", "ctlr", "link" and "ramdac" values can all take an extension following
+# a '-'. This can be used as a speed-grade or subtype; matching is done without
+# the extension.
+#
+ctlr
+	0xC006F="8C801"						# STB PowerGraph X-24
+	link=vga
+	ramdac=att20c491-100
+	hwgc=s3hwgc
+	link=s3clock clock=icd2061a
+	ctlr=s3801 link=ibm8514
+ctlr
+	0xC004F="86C805"					# Orchid Fahrenheit 1280
+	link=vga
+	hwgc=s3hwgc
+	ramdac=sc15025-80
+	link=s3clock clock=ch9294-g
+	ctlr=s3805 link=ibm8514
+ctlr
+	0xC0067="#9GXE"						# #9GXE Level-1[12]
+	link=vga
+	ramdac=bt485-135
+	hwgc=bt485hwgc
+	ctlr=s3928 link=ibm8514
+	clock=icd2061a link=s3clock
+ctlr
+	0xC0064="#9GXE"						# #9GXE Level-16
+	link=vga
+	hwgc=tvp3020hwgc
+	ctlr=s3928 link=ibm8514
+	ramdac=tvp3020-200
+	clock=icd2061a link=s3clock
+ctlr
+	0xC0094="#9-864"					# #9GXE64
+	0xC0044="Phoenix S3 Vision864 (16Bit DAC)"		# GIS Globalyst 550
+	link=vga
+	hwgc=s3hwgc
+	ctlr=vision864 link=ibm8514
+	ramdac=att21c498-135
+	clock=icd2061a link=s3clock
+ctlr
+	0xC0076="Tseng Laboratories, Inc. 01/30/92 V8.00X"	# Cardinal VGA765
+	link=vga
+	ramdac=att20c492-80
+	clock=ics2494a-237
+	ctlr=et4000
+ctlr
+	0xC0076="Tseng Laboratories, Inc. 03/04/94 V8.00N"	# Hercules Dynamite Power
+	link=vga
+	clock=ics2494a-324
+	ramdac=stg1702-135
+	ctlr=et4000-w32p
+	hwgc=et4000hwgc
+ctlr								# CL-GD542x
+	0xC0039="CL-GD540"					# Cirrus Logic BIOS
+	0xC0039="CL-GD542X VGA BIOS"				# NCR 3230
+	0xE0039="CL-GD540x/542x VGA BIOS"			# NCR 3230
+	0xC003B="SpeedStar PRO"					# Diamond SpeedStar Pro
+	0xC00F4="KELVIN 64"					# Orchid Kelvin 64
+	link=vga
+	ctlr=clgd542x
+ctlr
+	0xC008F="ATI ULTRA PRO"					# ATI ULtra Pro
+	link=vga
+	ctlr=mach32
+ctlr
+	0xC0085="ATI MACH64, PCI BIOS"				# AT&T Globalyst 600
+	link=vga
+	ctlr=mach64
+#
+# Don't know enough to do anything other than 640x480 on these.
+# Time someone else did some programming...
+#
+ctlr
+	0xE002D="PARADISE003245-520"				# AT&T 3416
+	0xE0030="PhoenixVIEW(tm) VGA-Compatible BIOS"		# AT&T Safari NSX20
+	0xC008D="Chips 65540 VGA 32KB BIOS"			# ARM TS30
+	ctlr=vga
+
+#
+# mode:
+# These entries specify a monitor operating mode.
+# Attributes are:
+#	clock		the dot clock in MHz
+#	shb		start horizontal blanking
+#	ehb		end horizontal blanking
+#	ht		horizontal total
+#	vrs		vertical refresh start
+#	vre		vertical refresh end
+#	vt		vertical total
+#	hsync		horizontal sync polarity
+#	vsync		vertical sync polarity
+#	interlace	interlace
+# The shb, ehb, ht, vrs, vre and vt attributes specify the horizontal and
+# vertical timing. The x (hde, horizontal display end), y (vde, vertical
+# display end) and z (depth) values are derived from the value of the main
+# attribute (e.g. 640x480x8 -> x=640, y=480, z=8).
+#
+# The clock value 25.175 is known internally as the baseline VGA clock rate.
+#
+# The defaults for hsync, vsync and interlace are 0. Both hsync and vsync
+# must be non-zero if either is to take effect, - and + are valid choices.
+#
+# An attribute 'include=val' means continue using another entry. In this
+# case any non-zero attributes already set will not be overwritten by the
+# jumped-to mode. The x, y and z values are fixed by the first mode.
+#
+# An attribute 'alias=val' means continue using another monitor type. It can
+# be used to chain classes together. (bad explanation, i know).
+#
+include = 640x480@60Hz						# 60Hz, 31.5KHz
+	clock=25.175
+	shb=664 ehb=760 ht=800
+	vrs=491 vre=493 vt=525
+
+include = 640x480@72Hz						# 72Hz, 38.5KHz
+	clock=32
+	shb=664 ehb=704 ht=832
+	vrs=489 vre=492 vt=520 
+
+include = 800x600@60Hz						# 60Hz, 37.9KHz
+	clock=40
+	shb=840 ehb=1000 ht=1056
+	vrs=605 vre=607 vt=633
+
+include = 1024x768i@87Hz					# 87Hz, 35.5KHz (interlaced)
+	clock=44.9
+	shb=1048 ehb=1208 ht=1264
+	vrs=776 vre=784 vt=817
+	interlace=v
+
+include = 1024x768@60Hz						# 60Hz, 48.4KHz
+	clock=65
+	shb=1032 ehb=1176 ht=1344
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+include = 1024x768@70Hz						# 70Hz, 57.2KHz
+	clock=75
+	shb=1128 ehb=1232 ht=1328
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+include = 1280x1024i@87Hz					# 87Hz, 48KHz (interlaced)
+	clock=80
+	shb=1312 ehb=1528 ht=1576
+	vrs=1028 vre=1034 vt=1105
+	interlace=v
+
+include = 1280x1024@74Hz					# 74Hz, 79.6KHz
+	clock=135
+	shb=1376 ehb=1544 ht=1712
+	vrs=1028 vre=1034 vt=1075
+
+include = 1376x1024@70Hz					# 70Hz, 75.3KHz
+	clock=135
+	shb=1440 ehb=1616 ht=1792
+	vrs=1032 vre=1040 vt=1075
+
+#
+# VGA.
+#
+vga = 640x480x1							# 60Hz, 31.5KHz
+	include=640x480@60Hz
+vga = 640x480x8							# 60Hz, 31.5KHz
+	include=640x480@60Hz
+vga = 800x600x1							# 60Hz, 37.9KHz
+	include=800x600@60Hz
+vga = 800x600x8							# 60Hz, 37.9KHz
+	include=800x600@60Hz
+
+#
+# Multisync monitors with video bandwidth up to 65MHz.
+#
+multisync65 = 1024x768x1					# 60Hz, 48.4KHz
+	include=1024x768@60Hz
+multisync65 = 1024x768x8					# 60Hz, 48.4KHz
+	include=1024x768@60Hz
+multisync65 = 1024x768x1i					# 87Hz, 35.5KHz (interlaced)
+	include=1024x768i@87Hz
+multisync65 = 1024x768x8i					# 87Hz, 35.5KHz (interlaced)
+	include=1024x768i@87Hz
+multisync65
+	alias=vga
+
+#
+# Multisync monitors with video bandwidth up to 75MHz.
+#
+multisync75 = 1024x768x1					# 70Hz, 57.2KHz
+	include=1024x768@70Hz
+multisync75 = 1024x768x8					# 70Hz, 57.2KHz
+	include=1024x768@70Hz
+multisync75 = 1280x1024x1i					# 87Hz, 48KHz (interlaced)
+	include=1280x1024i@87Hz
+multisync75 = 1280x1024x8i					# 87Hz, 48KHz (interlaced)
+	include=1280x1024i@87Hz
+multisync75
+	alias=multisync65
+
+#
+# Multisync monitors with video bandwidth up to 135MHz.
+#
+multisync135 = 1280x1024x1					# 74Hz, 79.6KHz
+	include=1280x1024@74Hz
+multisync135 = 1280x1024x8					# 74Hz, 79.6KHz
+	include=1280x1024@74Hz
+multisync135 = 1376x1024x8					# 70Hz, 75.3KHz
+	include=1376x1024@70Hz
+multisync135
+	alias=multisync75
+
+#
+# Viewsonic 17 (model no. 1782)
+# Horizontal timing:
+#	Allowable frequency range: 30.0-82.0KHz
+#	Blanking time: 3.0µs min.
+#	Back porch time: 1.25µs min.
+#	Front porch time: length of back porch time or less
+#	Sync width time: 1.2µs min.
+# Vertical timing:
+#	Allowable frequency range: 50.0-90.0Hz
+#	Blanking time: 0.5ms min.
+#	Back porch time: 0.5ms min.
+#	Sync width time: 0.045ms min.
+#
+vs1782
+	alias=multisync135
+
+#
+# IDEK Vision Master 17 (model no. MF-8617)
+# Horizontal timing:
+#	Allowable frequency range: 23.5-86.0KHz
+# Vertical timing:
+#	Allowable frequency range: 50-120Hz
+# Video bandwidth:
+#	135MHz
+#
+ms8617
+	alias=multisync135
+
+#
+# Nokia Multigraph 445X
+# Horizontal timing:
+#	Allowable frequency range: 30-102KHz
+#	Blanking time: <= 20% of line period min.
+#	Back porch time: 0.6->1.0µs
+# Vertical timing:
+#	Allowable frequency range: 50-120Hz
+#	Sync width time: 0.045ms min. between start of sync
+#			 and start of video
+# Video bandwidth:
+#	200MHz
+#
+445x = 1600x1200x8						# 72Hz, 90.4KHz
+	clock=200
+	shb=1664 ehb=2088 ht=2208
+	vrs=1202 vre=1208 vt=1256
+445x
+	alias=multisync135
+
+#
+# Sony CPD-1304
+# Horizontal timing:
+#	Allowable frequency range: 28-50KHz
+# Vertical timing:
+#	Allowable frequency range: 50-87Hz
+#
+cpd-1304
+	alias=multisync65
+
+#
+# NEC 4FG
+# Horizontal timing:
+#	Allowable frequency range: 27-57KHz
+# Vertical timing:
+#	Allowable frequency range: 55-90Hz
+# Video bandwidth:
+#	75MHz
+#
+nec4fg
+	alias=multisync75
+
+#
+# NEC 5FG
+# Horizontal timing:
+#	Allowable frequency range: 27-79KHz
+# Vertical timing:
+#	Allowable frequency range: 55-90Hz
+# Video bandwidth:
+#	135MHz monitor
+#	75MHz cable
+#
+nec5fg
+	alias=multisync135

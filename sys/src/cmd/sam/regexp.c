@@ -562,10 +562,11 @@ execute(File *f, Posn startp, Posn eof)
 
 	list[0][0].inst = list[1][0].inst = 0;
 	sel.p[0].p1 = -1;
+	Fgetcset(f, startp);
 	/* Execute machine once for each character */
 	for(;;p++){
 	doloop:
-		c = filereadc(f, p);
+		c = Fgetc(f);
 		if(p>=eof || c<0){
 			switch(wrapped++){
 			case 0:		/* let loop run one more click */
@@ -575,6 +576,7 @@ execute(File *f, Posn startp, Posn eof)
 				if(sel.p[0].p1>=0 || eof!=INFINITY)
 					goto Return;
 				list[0][0].inst = list[1][0].inst = 0;
+				Fgetcset(f, (Posn)0);
 				p = 0;
 				goto doloop;
 			default:
@@ -625,10 +627,18 @@ execute(File *f, Posn startp, Posn eof)
 					goto Addinst;
 				break;
 			case BOL:
-				if(p==0 || filereadc(f, p - 1)=='\n'){
+				if(p == 0){
 	Step:
 					inst = inst->next;
 					goto Switchstmt;
+				}
+				if(f->getci > 1){
+					if(f->getcbuf[f->getci-2]=='\n')
+						goto Step;
+				}else{
+					Rune c;
+					if(Fchars(f, &c, p-1, p)==1 && c=='\n')
+						goto Step;
 				}
 				break;
 			case EOL:
@@ -687,10 +697,11 @@ bexecute(File *f, Posn startp)
 
 	list[0][0].inst = list[1][0].inst = 0;
 	sel.p[0].p1= -1;
+	Fgetcset(f, startp);
 	/* Execute machine once for each character, including terminal NUL */
 	for(;;--p){
 	doloop:
-		if((c = filereadc(f, p - 1))==-1){
+		if((c = Fbgetc(f))==-1){
 			switch(wrapped++){
 			case 0:		/* let loop run one more click */
 			case 2:
@@ -700,7 +711,8 @@ bexecute(File *f, Posn startp)
 			case 3:
 					goto Return;
 				list[0][0].inst = list[1][0].inst = 0;
-				p = f->nc;
+				Fgetcset(f, f->nrunes);
+				p = f->nrunes;
 				goto doloop;
 			default:
 				goto Return;
@@ -758,8 +770,14 @@ bexecute(File *f, Posn startp)
 				}
 				break;
 			case EOL:
-				if(p==f->nc || filereadc(f, p)=='\n')
-					goto Step;
+				if(f->getci<f->ngetc-1){
+					if(f->getcbuf[f->getci+1]=='\n')
+						goto Step;
+				}else if(p<f->nrunes-1){
+					Rune c;
+					if(Fchars(f, &c, p, p+1)==1 && c=='\n')
+						goto Step;
+				}
 				break;
 			case CCLASS:
 				if(c>=0 && classmatch(inst->rclass, c, 0))

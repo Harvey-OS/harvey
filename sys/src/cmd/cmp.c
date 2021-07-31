@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 					l++;
 				if(*p != *q){
 					if(!lflag){
-						print("%s %s differ: char %ld",
+						print("%s %s differ: char %d",
 						    name1, name2, nc+i);
 						print(Lflag?" line %d\n":"\n", l);
 						exits("differ");

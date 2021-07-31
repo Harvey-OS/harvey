@@ -1,0 +1,19 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libframe.a
+OFILES=\
+	frbox.$O\
+	frdraw.$O\
+	frdelete.$O\
+	frinit.$O\
+	frinsert.$O\
+	frptofchar.$O\
+	frselect.$O\
+	frstr.$O\
+	frutil.$O\
+
+</sys/src/cmd/mksyslib
+
+/68020/lib/alef/libframe.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'

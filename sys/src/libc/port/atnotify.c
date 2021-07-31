@@ -3,7 +3,6 @@
 
 #define	NFN	33
 static	int	(*onnot[NFN])(void*, char*);
-static	Lock	onnotlock;
 
 static
 void
@@ -30,7 +29,6 @@ atnotify(int (*f)(void*, char*), int in)
 		init = 1;		/* assign = */
 	}
 	ret = 0;
-	lock(&onnotlock);
 	if(in){
 		for(i=0; i<NFN; i++)
 			if(onnot[i] == 0) {
@@ -53,6 +51,5 @@ atnotify(int (*f)(void*, char*), int in)
 			notify(0);
 		}
 	}
-	unlock(&onnotlock);
 	return ret;
 }

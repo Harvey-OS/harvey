@@ -42,11 +42,6 @@ Run
 .IR proof (1)
 on the specified man pages.
 .TP
-.B -P
-Run
-.IR page (1)
-on the specified man pages.
-.TP
 .B -t
 Run
 .I troff

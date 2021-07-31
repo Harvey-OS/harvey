@@ -1,0 +1,104 @@
+%% 
+%% This is file `newlfont.sty', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% newlfont.dtx  (with options: `package')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme files. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in 00readme.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%% File `newlfont.dtx'.
+%% Copyright (C) 1989-1994 Frank Mittelbach and Rainer Sch\"opf,
+%% all rights reserved.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{newlfont}
+          [1994/11/06 v2.2j Standard LaTeX package]
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\let\rm\rmfamily
+\let\sf\sffamily
+\let\tt\ttfamily
+\let\bf\bfseries
+\let\sl\slshape
+\let\sc\scshape
+\let\it\itshape
+\DeclareRobustCommand\em{%
+  \@nomath\em
+  \ifdim \fontdimen\@ne\font >\z@\upshape \else \itshape \fi}
+\let\mediumseries\mdseries
+\let\normalshape\upshape
+\def\@setfontsize#1#2#3{\@nomath#1%
+    \ifx\protect\@typeset@protect
+      \let\@currsize#1%
+    \fi
+    \fontsize{#2}{#3}\selectfont}
+\let\math@bgroup\bgroup
+\def\math@egroup#1{#1\egroup}
+\let \@@math@bgroup \math@bgroup
+\let \@@math@egroup \math@egroup
+\def\not@math@alphabet#1#2{%
+   \relax
+   \ifmmode
+     \@latex@error{Command \noexpand#1invalid in math mode}%
+        {%
+         Please
+         \ifx#2\relax
+            define a new math alphabet^^J%
+            if you want to use a special font in math mode%
+          \else
+            use the math alphabet #2instead of
+            the #1command%
+         \fi
+         .
+        }%
+   \fi}
+\let\pcal\@undefined
+\let\cal\mathcal
+\let\pmit\@undefined
+\let\mit\mathnormal
+\RequirePackage{latexsym}
+\endinput
+%% 
+%% End of file `newlfont.sty'.

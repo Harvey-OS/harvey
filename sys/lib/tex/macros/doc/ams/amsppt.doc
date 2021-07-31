@@ -1,0 +1,3008 @@
+%% @texfile{
+%%     filename="amsppt.sty",
+\def\filename{amsppt.sty}
+%      filename="amsppt.doc",
+%%     version="2.1c",
+\def\fileversion{2.1c}
+%%     date="11-Dec-1992",
+\def\filedate{11-Dec-1992}
+%%     filetype="AMS-TeX: documentstyle",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Department,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "33694 3008 15390 127718",
+%%     keywords="amstex, ams-tex, tex",
+%%     abstract="This file is a documentstyle for use with
+%%       AMS-TeX 2.1. It exists in two forms: amsppt.doc, which
+%%       is the full form containing all technical documentation,
+%%       and amsppt.sty, which is identical except that all lines
+%%       beginning with a single percent sign are removed, to
+%%       make the file more rapid-loading when processed by
+%%       TeX."
+%%     }
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       -0- CONTENTS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       -0- Contents
+%       -1- Preliminary
+%       -2- Utility definitions
+%       -3- Fonts
+%       -4- Page dimensions and other global settings
+%       -5- Top matter definitions
+%       -6- Section headings
+%       -7- Theorem environments and similar structures
+%       -8- Rosters
+%       -9- Footnotes
+%      -10- Tables
+%      -11- Figure spaces and captions
+%      -12- Miscellaneous formatting macros
+%      -13- References/Bibliography
+%      -14- End of document
+%      -15- Output routine
+%      -16- Hyphenation exceptions
+%      -17- Notes
+%      -18- Appendix: Notes on version 2.1
+%      -19- Appendix: Notes on version 2.1a
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       -1- PRELIMINARY
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%      AMSPPT.DOC contains all the code for AMSPPT.STY, with
+%      additional comments. AMSPPT.STY is produced by removing from
+%      AMSPPT.DOC all blank lines and lines beginning with a percent
+%      sign.  This is done to allow it to be loaded faster by TeX.
+%
+%      For the most part the internals of AMSPPT.STY aren't closely
+%      related to AMSTEX.TEX: AMSTEX.TEX handles mathematics,
+%      AMSPPT.STY handles visual design and overall structure of
+%      documents.  But some parts of AMSTEX.DOC are relevant, e.g.,
+%      the standard abbreviations \DN@, \RIfM@, etc., the description
+%      of "compressed format", the remarks about the "K-method", and
+%      the allocation of scratch registers and variables such as
+%      \toks@@.
+%
+%      The style produced by AMSPPT.STY is based on the style of the
+%      Journal of the American Mathematical Society (as of December
+%      1990), but is not intended to reproduce it exactly.  For one
+%      thing, most users of AMSPPT.STY will probably have Computer
+%      Modern fonts, while the Journal of the AMS uses Times Roman
+%      fonts licensed from Autologic, Inc.  This means that line
+%      breaks and page breaks are sure to change when a paper is
+%      submitted to the AMS.  For another thing, preprints naturally
+%      differ in some respects from articles in final published form:
+%      published articles generally have the journal name, volume and
+%      year of publication somewhere on the first page, a ``received
+%      by the editors'' date, subject classification numbers, perhaps
+%      key words and phrases, and an abstract, none of which are
+%      necessary in a preprint (though the last few are sometimes
+%      present).  In addition, the Journal of the AMS has a few
+%      idiosyncrasies such as placement of the abstract at the end of
+%      an article rather than at the beginning, and a non-zero value
+%      of \mathsurround, which were deemed inappropriate for inclusion
+%      in the preprint style (in particular, a non-zero \mathsurround
+%      would require the user to do extra work in certain situations
+%      to cancel unwanted side effects).  Since we are not matching
+%      the style of the Journal of the AMS exactly, we sometimes have
+%      rounded off measurements in AMSPPT.STY to convenient amounts
+%      such as \bigskipamount and \medskipamount or the nearest whole
+%      or half pica.  For example \belowheadskip is 7pt in the Journal
+%      of the AMS, but AMSPPT.STY uses 6pt (half a pica).
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%     Bug in amsppt.sty version 2.1 left \amsppt.sty = \endinput
+%     after the file was loaded. This will fix it if amsppt.sty
+%     was put in the format file.
+%
+\expandafter\ifx\csname amsppt.sty\endcsname\endinput
+  \expandafter\def\csname amsppt.sty\endcsname{2.1 (1-JUL-1991)}\fi
+%
+%    Check to see if this file was previously loaded and, if so,
+%    if the version numbers agree.
+%
+\xdef\fileversiontest{\fileversion\space(\filedate)}
+\expandafter\ifx\csname\filename\endcsname\fileversiontest
+%    Then file is already loaded, and versions agree. Quit here.
+%    \endinput and \fi MUST be on the same line:
+  \message{[already loaded]}\endinput\fi
+%
+%    If the file versions disagree, we generate an error message,
+%    but we don't do an \endinput: maybe the user will want to
+%    continue, inputting the new version, and see what happens.
+%
+\expandafter\ifx\csname\filename\endcsname\relax % file not yet loaded
+  \else\errmessage{Discrepancy in `\filename' file versions:
+     version \csname\filename\endcsname\space already loaded, trying
+     now to load version \fileversiontest}\fi
+%
+%    Since we are about to change the catcode of @, we define
+%    \csname\filename\endcsname to set the catcode back to its previous
+%    value. Furthermore, it then redefines itself to record the file
+%    version number for future reference (e.g., the test above).
+%
+\expandafter\xdef\csname\filename\endcsname{%
+  \catcode`\noexpand\@=\the\catcode`\@
+  \expandafter\gdef\csname\filename\endcsname{%
+     \fileversion\space(\filedate)}}
+%
+%    Enable the use of @ as letter in `private' control sequence names.
+%    Cf. TeXbook, p. 344 (above the \mathcode table).
+%
+\catcode`\@=11
+%
+%    Besides putting the file version on screen, this message also
+%    records it in the transcript/log file (which is useful for
+%    troubleshooting). The file name was already given on screen and in
+%    the transcript file by TeX, as part of the automatic processing
+%    surrounding file input.
+%
+\message{version \fileversion\space(\filedate):}
+%
+%    If another documentstyle inputs amsppt.sty, it should define
+%    \styname and \styversion appropriately. We use an `ifundefined'
+%    test to avoid overriding the definitions, in that case.
+\expandafter\ifx\csname styname\endcsname\relax
+  \def\styname{AMSPPT}\def\styversion{2.1a}
+\fi
+%
+%      In AMSPPT.STY we follow the convention in amstex.tex of
+%      appending @ signs at the end of control sequences, rather than
+%      substituting @ signs for vowels as is frequently done in
+%      plain.tex.
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -2- UTILITY DEFINITIONS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{Loading utility definitions,}
+%
+%      For several macros, e.g., \title, we want to allow the user the
+%      following two options:
+%
+%      \title xxx\endtitle
+%      \title\nofrills xxx\endtitle
+%
+%      In the first case, we want the text of the title to be stored
+%      in a box for later use.  In the second case, we want certain
+%      parts of the typesetting to be omitted when constructing the
+%      box.  Internally this is done by prefixing them with \frills@,
+%      which in the normal cases is simply an identity function
+%      (\let\frills@\identity@), whereas in the nofrills case it
+%      gobbles its argument (\let\frills@\eat@).
+%
+%      In order to test for \nofrills we have to use \futurelet
+%      (because if \nofrills is absent, we don't want to do anything
+%      that might affect the actual text of the title, such as
+%      stripping braces or adding an unwanted extra pair around the
+%      first token or group).
+%
+\def\identity@#1{#1}
+%
+\def\nofrills@@#1{%
+%      This extra step in defining \next@ is a precaution in case #1
+%      might be more than one token.
+ \DN@{#1}%
+ \ifx\next\nofrills \let\frills@\eat@
+   \expandafter\expandafter\expandafter\next@\expandafter\eat@
+  \else \let\frills@\identity@\expandafter\next@\fi}
+%
+\def\nofrillscheck#1{\def\nofrills@{\nofrills@@{#1}}%
+  \futurelet\next\nofrills@}
+%
+%      Typical use: if we want to execute a macro called \title, but
+%      check to see if \nofrills is coming up next, we do this:
+%
+%      ... \nofrillscheck\title
+%
+%      If indeed the next thing is \nofrills, then we will execute
+%      \nofrills@@ before calling \title again.  This involves some
+%      shuffling around in order for us to get back the ``real''
+%      definition of \title afterwards and yet still be able to use a
+%      control sequence named \title to read the argument. This is
+%      important in giving the user a useful error message if they
+%      accidentally omit or misspell the matching \endtitle or
+%      whatever. We could use instead the trick used with \align of
+%      adding a space onto the \csname with which we read the
+%      argument, but that would increase the use of hash size.
+%
+%      We define \usualspace to give a warning message if used in
+%      a place where it's not intended to be used:
+%
+\Invalid@\usualspace
+%
+%      Facility for adding to a token list, providing it was named
+%      with the particular naming convention that we require: an
+%      additional @ sign at the end of the control sequence name.
+%      Usage: \addto\tenpoint{...}
+%
+\def\addto#1#2{\csname \expandafter\eat@\string#1@\endcsname
+  \expandafter{\the\csname \expandafter\eat@\string#1@\endcsname#2}}
+%
+%      Fix Plain's \big, \Big, etc. macros so that they can scale with
+%      size changes.  The relations in \tenpoint are:
+%
+%             total    height above
+%             height   baseline
+%      --------------------------------------------------------------
+%      \big:   12pt    8.5   (12/2 = 6, + 2.5 (height of math axis))
+%      \Big:   18pt    11.5  (18/2 = 9, + 2.5 (height of math axis))
+%      \bigg:  24pt    14.5  (24/2 = 12, + 2.5 (height of math axis))
+%      \Bigg:  30pt    17.5  (30/2 = 15, + 2.5 (height of math axis))
+%
+%      In \tenpoint \bigsize@ will be set to 12pt, the height of an
+%      ordinary parenthesis in the roman font, x 1.2
+\newdimen\bigsize@
+%
+%      Using \vcenter automatically factors the height of the math
+%      axis into our sizing.  We set \nulldelimiterspace to zero,
+%      since we only want the delimiterspace from the \left delimiter.
+%
+\def\big@#1#2{{\hbox{$\left#2\vcenter to#1\bigsize@{}%
+  \right.\nulldelimiterspace\z@\m@th$}}}
+\def\big{\big@\@ne}
+\def\Big{\big@{1.5}}
+\def\bigg{\big@\tw@}
+\def\Bigg{\big@{2.5}}
+%
+%      Definition almost verbatim from TeXbook p. 317.  This is used
+%      in several places, currently (28-DEC-1989) including \head,
+%      \title, \author, \dedicatory, \affil, and \topcaption.
+%
+\def\raggedcenter@{\leftskip\z@ plus.4\hsize \rightskip\leftskip
+ \parfillskip\z@ \parindent\z@ \spaceskip.3333em \xspaceskip.5em
+ \pretolerance9999\tolerance9999 \exhyphenpenalty\@M
+ \hyphenpenalty\@M \let\\\linebreak}
+%
+%      We now define a version of \uppercase that sidesteps any math,
+%      to prevent uppercasing math variables.  In order to be handled
+%      properly the $..$ must be on the outer level (not enclosed in
+%      braces) but this is the usual case in our applications of
+%      \uppercasetext@. Also we increase inter-word space in the
+%      uppercase text. Footnotes are not handled by
+%      \uppercasetext@---a footnote within a \title would have to be
+%      done by using \footnotemark within the title and \footnotetext
+%      after. In most cases footnotes within a title are something for
+%      which the author should use \thanks or \affil or \address
+%      instead.
+%
+%      One other little problem: uppercasing of a few special
+%      characters like the German "ss" and the undotted i and j (\i
+%      and \j), used sometimes with accents.  We do some reassignments
+%      here to handle these.  We don't worry about restoring the
+%      lowercase special characters within math embedded in the text
+%      being uppercased---it's conceivable that someone might want to
+%      use them there, but too unlikely to need providing for.
+%      (Undotted i and j in math would be typed as \imath and \jmath,
+%      not as \i and \j.)
+%
+%      This is what plain.tex has for the special characters:
+%
+% \chardef\ss="19 \chardef\ae="1A \chardef\oe="1B \chardef\o="1C
+% \chardef\AE="1D \chardef\OE="1E \chardef\O="1F
+% \chardef\i="10 \chardef\j="11 % dotless letters
+% \def\aa{\accent23a}
+% \def\AA{\leavevmode\setbox0\hbox{h}\dimen@\ht0\advance\dimen@-1ex%
+%   \rlap{\raise.67\dimen@\hbox{\char'27}}A}
+% \def\l{\char32l}
+% \def\L{\leavevmode\setbox0\hbox{L}\hbox to\wd0{\hss\char32L}}
+%
+\def\uppercasetext@#1{%
+   {\spaceskip1.3\fontdimen2\the\font plus1.3\fontdimen3\the\font
+    \def\ss{SS}\let\i=I\let\j=J\let\ae\AE\let\oe\OE
+    \let\o\O\let\aa\AA\let\l\L
+    \skipmath@#1$\skipmath@$}}
+%
+\def\skipmath@#1$#2${\uppercase{#1}%
+  \ifx\skipmath@#2\else$#2$\expandafter\skipmath@\fi}
+%
+%      Macro to check for missing \endsomething.
+\def\add@missing#1{\expandafter\ifx\envir@end#1%
+  \Err@{You seem to have a missing or misspelled
+  \expandafter\string\envir@end ...}%
+%      It is useful to supply the necessary missing piece, especially
+%      in the case of \endref.
+  \envir@end
+\fi}
+%
+%      \revert@ and \envir@stack are for use by any environments that
+%      don't enclose their text in a group, e.g., \proclaim,
+%      \definition, \roster.
+%
+\newtoks\revert@
+%
+\def\envir@stack#1{\toks@\expandafter{\envir@end}%
+  \edef\next@{\def\noexpand\envir@end{\the\toks@}%
+    \revert@{\the\revert@}}%
+  \revert@\expandafter{\next@}%
+  \def\envir@end{#1}}
+%
+%      Some special trickery is necessary to get around the outerness
+%      of \enddocument
+\begingroup
+\catcode`\ =11
+\gdef\revert@envir#1{\expandafter\ifx\envir@end#1%
+%      restore previous \envir@end:
+\the\revert@%
+%      The space after \enddocument is significant:
+\else\ifx\envir@end\enddocument \Err@{Extra \string#1}%
+\else\expandafter\add@missing\envir@end\revert@envir#1%
+\fi\fi}
+%      This definition can be made here because \enddocument  has not
+%      yet been declared \outer.
+%      The space at the end of \enddocument is necessary:
+\xdef\enddocument {\string\enddocument}%
+%      The space at the end of \enddocument is necessary here also:
+\global\let\envir@end\enddocument %%%%%% don't remove the final space!
+\endgroup\relax
+%
+\def\first@#1#2\end{#1}
+\def\true@{TT}
+\def\false@{TF}
+\def\empty@{}
+%
+%      Test to see whether a given argument is empty or not.  If the
+%      argument = a single space, it will test the same as empty,
+%      which is in fact what we want.
+%
+\begingroup  \catcode`\-=3
+\long\gdef\notempty#1{%
+%      \empty@ is needed if we want the case #1 = {} to work properly:
+  \expandafter\ifx\first@#1-\end-\empty@ \false@\else \true@\fi}
+\endgroup
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -3- FONTS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{more fonts,}
+%      Load some fonts that are not loaded in plain.tex, or only
+%      preloaded (which means that the font information is in TeX's
+%      memory but a control sequence name for the font still needs to
+%      be assigned). plain.tex only loads cmex10, because originally
+%      that was the only size available.  So we load cmex7 and later
+%      cmex8, but we don't load any smaller sizes, in order to
+%      conserve font memory; a need for the extension font in sizes
+%      smaller than 7-point is most unusual.  For subscript sums or
+%      other extension symbols in eightpoint text we will use cmex7
+%      rather than cmex6, to allow us to get away without loading
+%      cmex6.
+%
+%      We use \font@, not simply \font, so that these fonts will be
+%      handled properly by AMS-TeX's syntax check.
+%
+%      Postscript versions by Blue Sky Research of the math fonts from
+%      the AMSFonts package come only in sizes 10, 7 and 5, i.e. sizes
+%      8 and 6 are not included. Therefore we include a switch that
+%      can be set to determine which tfm files are used when loading
+%      the 8 and 6-point size fonts.
+%
+%%\def\PSAMSFonts{TT}%  Blue Sky PS AMS fonts: True
+\def\PSAMSFonts{TF}% Blue Sky PS AMS fonts: False
+%
+\font@\tensmc=cmcsc10 \relax
+\if\PSAMSFonts
+  \font@\sevenex=cmex10 at 7pt
+\else
+  \font@\sevenex=cmex7 \relax
+\fi
+%
+%      We need cmti7 in case \italic is used in a subscript or
+%      superscript. Once again we will conserve font space by not
+%      loading cmti6 or cmti5, and declare the \scriptfont in
+%      \eightpoint to be cmti7 rather than cmti6.  At least until we
+%      know that users actually are using \italic in sub-subscript
+%      size.
+%
+\font@\sevenit=cmti7 \relax
+%
+%      We have to load a lot of other fonts for eight-point text
+%      (footnotes, abstracts, bibliography).  Note that cmti and cmsl
+%      in sizes 5, 6 don't get loaded, since they may not exist (cmti7
+%      is one of the standard 75 Computer Modern fonts, but cmti5 and
+%      cmti6 aren't, nor are any of cmsl5, cmsl6, cmsl7).  AMSPPT
+%      provides for ten-point and eight-point font sets;
+%
+\font@\eightrm=cmr8 \relax % preloaded in plain.tex
+\font@\sixrm=cmr6 \relax % preloaded in plain.tex
+\font@\eighti=cmmi8 \relax     \skewchar\eighti='177 % preloaded
+\font@\sixi=cmmi6 \relax       \skewchar\sixi='177   % preloaded
+\font@\eightsy=cmsy8 \relax    \skewchar\eightsy='60 % preloaded
+\font@\sixsy=cmsy6 \relax      \skewchar\sixsy='60   % preloaded
+\if\PSAMSFonts
+  \font@\eightex=cmex10 at 8pt
+\else
+  \font@\eightex=cmex8 \relax
+\fi
+\font@\eightbf=cmbx8 \relax % preloaded in plain.tex
+\font@\sixbf=cmbx6 \relax   % preloaded in plain.tex
+\font@\eightit=cmti8 \relax % preloaded in plain.tex
+\font@\eightsl=cmsl8 \relax % preloaded in plain.tex
+\if\PSAMSFonts
+  \font@\eightsmc=cmcsc10 at 8pt
+\else
+  \font@\eightsmc=cmcsc8 \relax
+\fi
+\font@\eighttt=cmtt8 \relax % preloaded in plain.tex
+%
+%      NOTE THE DOUBLE PERCENT SIGNS:
+%% Nine-point fonts are not needed but are included here, commented
+%% out, to make it easier for a user to add them if they are needed.
+%
+%%\font@\ninerm=cmr9 \relax
+%%\font@\ninei=cmmi9 \relax   \skewchar\ninei='177
+%%\font@\ninesy=cmsy9 \relax  \skewchar\ninesy='60
+%%\if\PSAMSFONTS
+%%  \font@\nineex=cmex10 at9pt % non-AMSfonts substitute
+%%\else
+%%  \font@\nineex=cmex9 \relax
+%%\fi
+%%\font@\ninebf=cmbx9 \relax
+%%\font@\nineit=cmti9 \relax
+%%\font@\ninesl=cmsl9 \relax
+%%\font@\ninesmc=cmcsc9 \relax
+%%
+%%\font@\ninemsa=msam9 \relax
+%%\font@\ninemsb=msbm9 \relax
+%%\font@\nineeufm=eufm9 \relax
+%
+%      \UseAMSsymbols calls \loadmsam and \loadmsbm, then inputs the
+%      file amssym.tex, which defines all the symbol names of the extra
+%      math symbols in msam and msbm, as well as defining \frak and
+%      \goth for eufm. Exception: if version 2.1 or later of amsppt.sty
+%      is used together with amstex 2.0, \UseAMSsymbols doesn't
+%      automatically load the MSAM and MSBM fonts. Therefore we
+%      call \loadmsam and \loadmsbm in any case, since in version 2.1
+%      the redundant calls inside \UseAMSsymbols are harmless (note
+%      that in version 2.0 redundant calls of \loadxxx macros
+%      wastefully advanced the \newfam allocation counter).
+%
+%      If memory space is tight for control sequence names, the first
+%      thing to do is comment out the line containing "\UseAMSsymbols",
+%      and load special symbols only as needed, with \newsymbol.
+%
+%%     To use amsppt.sty without AMSFonts, comment out the following
+%%     two lines (and refer to the lines above that begin with double
+%%     percent signs); to load extra math symbols only on demand (with
+%%     \newsymbol) comment out the second line.
+\loadeufm \loadmsam \loadmsbm
+\message{symbol names}\UseAMSsymbols\message{,}
+%
+%      Now we define \tenpoint and \eightpoint for regular text and
+%      footnotes, similarly to the TeXbook, p. 414.  We not only
+%      change the \baselineskip, but also change the glue above and
+%      below displayed formulas, in case an abstract or footnote
+%      happens to have them.  We also need to set not only \strutbox,
+%      but also \strutbox@. The height of \strutbox@ is the height of
+%      \strutbox, minus the value of \normallineskiplimit.  And we
+%      will set \ex@ in each case (for \tenpoint it is supposed to be
+%      equivalent to 1pt, while for \eightpoint it will then
+%      presumably be equivalent to .8pt).
+%
+%      When \ifsyntax@ is true, so that we are checking syntax, then
+%      we won't bother specifying fonts (since we would only change
+%      them all to \dummyft@ anyway), and we simply let \big and its
+%      variants gobble up things with the proper syntax, instead of
+%      worrying about getting the right sizes.
+%
+%      \tenpoint@ is a hook where new material can be added.
+%      \topmatter makes use of this.  Note that to change the
+%      baselineskip to say 14pt, one should say
+%
+%      \addto\tenpoint{\normalbaselineskip14pt\normalbaselines}
+%
+%      rather than just \addto\tenpoint{\baselineskip14pt}
+%
+\newtoks\tenpoint@
+%
+\def\tenpoint{\normalbaselineskip12\p@
+ \abovedisplayskip12\p@ plus3\p@ minus9\p@
+ \belowdisplayskip\abovedisplayskip
+ \abovedisplayshortskip\z@ plus3\p@
+ \belowdisplayshortskip7\p@ plus3\p@ minus4\p@
+ \textonlyfont@\rm\tenrm \textonlyfont@\it\tenit
+ \textonlyfont@\sl\tensl \textonlyfont@\bf\tenbf
+ \textonlyfont@\smc\tensmc \textonlyfont@\tt\tentt
+ \ifsyntax@ \def\big##1{{\hbox{$\left##1\right.$}}}%
+  \let\Big\big \let\bigg\big \let\Bigg\big
+ \else
+   \textfont\z@\tenrm  \scriptfont\z@\sevenrm
+       \scriptscriptfont\z@\fiverm
+   \textfont\@ne\teni  \scriptfont\@ne\seveni
+       \scriptscriptfont\@ne\fivei
+   \textfont\tw@\tensy \scriptfont\tw@\sevensy
+       \scriptscriptfont\tw@\fivesy
+   \textfont\thr@@\tenex \scriptfont\thr@@\sevenex
+        \scriptscriptfont\thr@@\sevenex
+   \textfont\itfam\tenit \scriptfont\itfam\sevenit
+        \scriptscriptfont\itfam\sevenit
+   \textfont\bffam\tenbf \scriptfont\bffam\sevenbf
+        \scriptscriptfont\bffam\fivebf
+   \setbox\strutbox\hbox{\vrule height8.5\p@ depth3.5\p@ width\z@}%
+%      The height of \strutbox@ is supposed to be the height of
+%      \strutbox minus \normallineskip.  We take half from the top and
+%      half from the bottom.
+   \setbox\strutbox@\hbox{\lower.5\normallineskiplimit\vbox{%
+        \kern-\normallineskiplimit\copy\strutbox}}%
+%      We set \bigsize@ to the height of a parenthesis, times 1.2.
+%      \bigsize@ controls the height of \big, \Big, \bigg and \Bigg
+%      delimiters.
+   \setbox\z@\vbox{\hbox{$($}\kern\z@}\bigsize@1.2\ht\z@
+  \fi
+%      \ex@ is supposed to come out to 1pt; multiplication factor may
+%      need to be changed if Computer Modern is not being used. \jot,
+%      a dimen register usually used for extra spacing between lines
+%      of a multi-line displayed equation or similar structure, is
+%      reset to 3\ex@ (in plain.tex it is always 3pt, but in AMSPPT it
+%      may be reduced by \eightpoint).
+  \normalbaselines\rm\dotsspace@1.5mu\ex@.2326ex\jot3\ex@
+  \the\tenpoint@}
+%
+%      Like \tenpoint@, \eightpoint@ is a hook where extra material
+%      can be added to the definition of \eightpoint.
+%
+\newtoks\eightpoint@
+%
+\def\eightpoint{\normalbaselineskip10\p@
+ \abovedisplayskip10\p@ plus2.4\p@ minus7.2\p@
+ \belowdisplayskip\abovedisplayskip
+ \abovedisplayshortskip\z@ plus2.4\p@
+ \belowdisplayshortskip5.6\p@ plus2.4\p@ minus3.2\p@
+ \textonlyfont@\rm\eightrm \textonlyfont@\it\eightit
+ \textonlyfont@\sl\eightsl \textonlyfont@\bf\eightbf
+ \textonlyfont@\smc\eightsmc \textonlyfont@\tt\eighttt
+ \ifsyntax@\def\big##1{{\hbox{$\left##1\right.$}}}%
+  \let\Big\big \let\bigg\big \let\Bigg\big
+ \else
+  \textfont\z@\eightrm \scriptfont\z@\sixrm
+       \scriptscriptfont\z@\fiverm
+  \textfont\@ne\eighti \scriptfont\@ne\sixi
+       \scriptscriptfont\@ne\fivei
+  \textfont\tw@\eightsy \scriptfont\tw@\sixsy
+       \scriptscriptfont\tw@\fivesy
+%      The smallest size of the extension font currently available is
+%      7-point.
+  \textfont\thr@@\eightex \scriptfont\thr@@\sevenex
+   \scriptscriptfont\thr@@\sevenex
+  \textfont\itfam\eightit \scriptfont\itfam\sevenit
+   \scriptscriptfont\itfam\sevenit
+  \textfont\bffam\eightbf \scriptfont\bffam\sixbf
+   \scriptscriptfont\bffam\fivebf
+ \setbox\strutbox\hbox{\vrule height7\p@ depth3\p@ width\z@}%
+%      The height of \strutbox@ is supposed to be the height of
+%      \strutbox minus \normallineskip.  We take half from the top and
+%      half from the bottom.
+ \setbox\strutbox@\hbox{\raise.5\normallineskiplimit\vbox{%
+   \kern-\normallineskiplimit\copy\strutbox}}%
+%      We set \bigsize@ to the height of a parenthesis, times 1.2.
+%      \bigsize@ controls the height of \big, \Big, \bigg and \Bigg
+%      delimiters.
+ \setbox\z@\vbox{\hbox{$($}\kern\z@}\bigsize@1.2\ht\z@
+ \fi
+%      \ex@ is supposed to come out to .8pt; multiplication factor may
+%      need to be changed if Computer Modern is not being used. \jot,
+%      a dimen register usually used for extra spacing between lines
+%      of a multi-line displayed equation or similar structure, is
+%      reset to 3\ex@ (in plain.tex it is 3pt).
+ \normalbaselines\eightrm\dotsspace@1.5mu\ex@.2326ex\jot3\ex@
+ \the\eightpoint@}
+%
+%      \linespacing command to introduce a factor by which
+%      \normalbaselineskip will be multiplied. Multiplying by the
+%      factor will cause any stretch or shrink to be lost; normally
+%      that's not a problem.
+\def\linespacing#1{%
+  \addto\tenpoint{\normalbaselineskip=#1\normalbaselineskip
+    \normalbaselines
+%      Reset the strut boxes.
+    \setbox\strutbox=\hbox{\vrule height.7\normalbaselineskip
+      depth.3\normalbaselineskip}%
+    \setbox\strutbox@\hbox{\raise.5\normallineskiplimit
+      \vbox{\kern-\normallineskiplimit\copy\strutbox}}%
+  }%
+  \addto\eightpoint{\normalbaselineskip=#1\normalbaselineskip
+    \normalbaselines
+%      Reset the strut boxes.
+    \setbox\strutbox=\hbox{\vrule height.7\normalbaselineskip
+      depth.3\normalbaselineskip}%
+    \setbox\strutbox@\hbox{\raise.5\normallineskiplimit
+      \vbox{\kern-\normallineskiplimit\copy\strutbox}}%
+  }%
+}
+%
+\if\PSAMSFonts
+  \def\extrafont@#1#2#3{%
+    \font#1=#2%
+%    Concatenate the proper size spec to the preceding letters
+      \ifnum#3=9 10 at9pt%
+      \else\ifnum#3=8 10 at8pt%
+      \else\ifnum#3=6 7 at6pt%
+%      Sizes other than 9, 8 or 6 are not expected, so this branch might
+%      generate an error:
+              \else #3\fi\fi\fi\relax}
+\else
+  \def\extrafont@#1#2#3{\font#1=#2#3\relax}
+\fi
+%
+%      If the user has specified \loadeufb, \loadbold, \loadeusm,
+%      \loadeusm, \loadeurm, \loadeurb, we need to add eightpoint
+%      fonts.  We do this in \topmatter, and the user documentation
+%      instructs the user to include any \load... command between
+%      \documentstyle and \topmatter.
+%
+\def\loadextrasizes@#1#2#3#4#5#6#7{%
+ \ifx\undefined#1%
+ \else \extrafont@{#4}{#2}{8}\extrafont@{#6}{#2}{6}%
+   \ifsyntax@
+   \else
+     \addto\tenpoint{\textfont#1#3\scriptfont#1#5%
+       \scriptscriptfont#1#7}%
+    \addto\eightpoint{\textfont#1#4\scriptfont#1#6%
+       \scriptscriptfont#1#7}%
+   \fi
+ \fi
+}
+%
+\def\loadextrafonts@{%
+  \loadextrasizes@\msafam{msam}%
+    \tenmsa\eightmsa\sevenmsa\sixmsa\fivemsa
+  \loadextrasizes@\msbfam{msbm}%
+    \tenmsb\eightmsb\sevenmsb\sixmsb\fivemsb
+  \loadextrasizes@\eufmfam{eufm}%
+    \teneufm\eighteufm\seveneufm\sixeufm\fiveeufm
+  \loadextrasizes@\eufbfam{eufb}%
+    \teneufb\eighteufb\seveneufb\sixeufb\fiveeufb
+  \loadextrasizes@\eusmfam{eusm}%
+    \teneusm\eighteusm\seveneusm\sixeusm\fiveeusm
+  \loadextrasizes@\eusbfam{eusb}%
+    \teneusb\eighteusb\seveneusb\sixeusb\fiveeusb
+  \loadextrasizes@\eurmfam{eurm}%
+    \teneurm\eighteurm\seveneurm\sixeurm\fiveeurm
+  \loadextrasizes@\eurbfam{eurb}%
+    \teneurb\eighteurb\seveneurb\sixeurb\fiveeurb
+  \loadextrasizes@\cmmibfam{cmmib}%
+    \tencmmib\eightcmmib\sevencmmib\sixcmmib\fivecmmib
+  \loadextrasizes@\cmbsyfam{cmbsy}%
+    \tencmbsy\eightcmbsy\sevencmbsy\sixcmbsy\fivecmbsy
+  \let\loadextrafonts@\empty@
+}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -4- PAGE DIMENSIONS AND OTHER GLOBAL SETTINGS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{page dimension settings,}
+%      First we set up some basic parameters, which are different than
+%      in plain.  These values are the ones currently in use (November
+%      1989) in the Journal of the AMS.
+%
+\parindent1pc
+\newdimen\normalparindent \normalparindent\parindent
+\normallineskiplimit\p@
+%
+%      We use a common indent value for setting left and right margins
+%      for abstract, table of contents, figure captions, and block
+%      environments. The name is chosen as if we are going to have
+%      several levels of indent, called \indenti, \indentii, ...; such
+%      names can be constructed using \csname and \romannumeral with a
+%      count register, which might be useful some time.
+%
+\newdimen\indenti \indenti=2pc
+%
+%      Provide a way to change the page height and width; changing the
+%      page width automatically adjusts the caption width as well.
+%      \pagewidth is in AMSTEX.TEX but it sets the caption width to a
+%      different value than the one we want.
+%
+\def\pageheight#1{\vsize#1\relax}
+\def\pagewidth#1{\hsize#1%
+   \captionwidth@\hsize \advance\captionwidth@-2\indenti}
+%
+%      The height we use here is the height of the ``text block'', not
+%      including the running heads, rather than the the height of the
+%      ``type block'', the total type area on the page. Thus from the
+%      Journal of the AMS type block measurement of 49pc  we subtract
+%      22.5pt for the running head  (see the plain.tex definition of
+%      \makeheadline)  and round to the nearest pica.
+%
+\pagewidth{30pc} \pageheight{47pc}
+%
+%      Change \magnification (from plain.tex) so that it doesn't reset the
+%      page dimensions to 6.5 x 9 true inches.
+\let\magnification=\mag
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -5- TOP MATTER DEFINITIONS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{top matter,}
+%      After it's first called, since
+%      we do not need \topmatter any longer, we define it to be empty,
+%      to release the memory that the definition takes up.
+%
+\def\topmatter{\loadextrafonts@ \let\topmatter\relax}
+%
+%      \chapter is used within \title...\endtitle to produce something
+%      such as "CHAPTER II", centered above the main text of the
+%      chapter title. We do a little trickery with \afterassignment so
+%      that the user can remove not only the word "CHAPTER" but also
+%      the uppercasing and romannumeralizing by \nofrills.   Note that
+%      we can't use \ignorespaces after \chapter@ in the usual way
+%      because it would get in the way of the \count@ assignment.  In
+%      fact spaces will be ignored by the assignment operation, the
+%      only problem would be when \nofrills is used.
+%
+\def\chapterno@{\uppercase\expandafter{\romannumeral\chaptercount@}}
+%
+\newcount\chaptercount@
+%
+%      In order to avoid interfering with \topskip, we put the
+%      \chapter material in the first line of the title, and do some
+%      box and glue tricks to get it in position.
+%
+%      Perhaps need a test to make sure #1 is a number---if the user
+%      does \chapter{IV} instead of \chapter{4} they may not
+%      understand the error message they get.
+%
+%      \chaptercount@ assignment needs to be global because we are
+%      working from inside the first line of \title.
+%
+\def\chapter{\let\savedef@\chapter
+  \def\chapter##1{\let\chapter\savedef@
+  \leavevmode\hskip-\leftskip
+%      Put the \chapter stuff in an \rlap so it doesn't affect
+%      centering of the title, and in an "uplap" so it is placed above
+%      where we want it.
+   \rlap{\vbox to\z@{\vss\centerline{\eightpoint
+%      We do a baselineskip of 2pc from the base of the "CHAPTER"
+%      banner to the base of the first title line.  (The baseline of
+%      the \null will coincide with the baseline of the first title
+%      line.)
+   \frills@{CHAPTER\space\afterassignment\chapterno@
+       \global\chaptercount@=}%
+   ##1\unskip}\baselineskip2pc\null}}\hskip\leftskip}%
+ \nofrillscheck\chapter}
+%
+%      We store the title in a box using a \setbox.  It could also be
+%      done by defining \thetitle@.  One advantage of \setbox is that
+%      syntax errors within the title (say for math) are reported
+%      immediately instead of during the processing of \endtopmatter.
+%      The title box is always put on the page by \endtopmatter, even
+%      if it's empty. (With other pieces of the topmatter we check
+%      first to see whether there's any text to typeset and skip to
+%      the next item if not.) The text of the title is stored up for
+%      the running heads, unless \rightheadtoks is nonempty---then
+%      presumably the user has already used \rightheadtext to set the
+%      right-hand running head, in which case we leave it unchanged.
+%
+%      The default for titles is uppercasing.  From a design
+%      standpoint it might be preferable to do titles in 14-point text
+%      with initial caps, but since titles may potentially contain any
+%      kind of math, doing this would require a full-fledged
+%      \fourteenpoint analogous to \tenpoint.  So to give the title
+%      extra prominence we use uppercasing instead.  The uppercasing
+%      can be removed by \nofrills.
+%
+\newbox\titlebox@
+%
+\def\title{\let\savedef@\title
+%      We use a \vtop here because we want to know the height of the
+%      first line of the title when we start typesetting the
+%      topmatter.  In order to get the correct sinkage from the top of
+%      the page.
+ \def\title##1\endtitle{\let\title\savedef@
+   \global\setbox\titlebox@\vtop{\tenpoint\bf
+   \raggedcenter@
+%      Increased \baselineskip is because of the uppercasing.  We do
+%      it like this instead of putting it inside the \uppercasetext@
+%      macro, because it only applies where an entire paragraph is
+%      made up of uppercase text.
+   \baselineskip1.3\baselineskip
+   \frills@\uppercasetext@{##1}\endgraf}%
+%      Check to see if right and left hand running heads have been
+%      already assigned by the user---if so, don't override.
+ \ifmonograph@ \edef\next{\the\leftheadtoks}%
+    \ifx\next\empty@
+    \leftheadtext{##1}\fi
+ \fi
+ \edef\next{\the\rightheadtoks}\ifx\next\empty@ \rightheadtext{##1}\fi
+ }%
+ \nofrillscheck\title}
+%
+%      Currently \author has no need for a \nofrills option, unlike
+%      \title, since uppercasing is not done.
+%
+\newbox\authorbox@
+\def\author#1\endauthor{\global\setbox\authorbox@
+ \vbox{\tenpoint\smc\raggedcenter@
+ #1\endgraf}\relaxnext@ \edef\next{\the\leftheadtoks}%
+ \ifx\next\empty@\leftheadtext{#1}\fi}
+%
+\newbox\affilbox@
+\def\affil#1\endaffil{\global\setbox\affilbox@
+ \vbox{\tenpoint\raggedcenter@#1\endgraf}}
+%
+%      Since \address can be used any number of times, we have to
+%      store the different addresses in control sequences that we
+%      manufacture as needed. We use \addresscount@ to store the
+%      number of times \address is used.
+%
+\newcount\addresscount@
+\addresscount@\z@
+\def\address#1\endaddress{\global\advance\addresscount@\@ne
+%      The first address is `\address1', the next is `\address2', etc.
+  \expandafter\gdef\csname address\number\addresscount@\endcsname
+%      The unusually large shrinkability in the vskip before the
+%      address is there because we don't want the addresses to fall on
+%      a separate page at the end of a paper, and extra shrinkability
+%      may help them to fit on the previous page in borderline cases.
+  {\nobreak\vskip12\p@ minus6\p@\indent\eightpoint\smc#1\par}}
+%
+%      \curraddr was added in version 2.1.  It uses the address count
+%      without advancing it, to add to the most recent address macro.
+%
+\def\curraddr{\let\savedef@\curraddr
+  \def\curraddr##1\endcurraddr{\let\curraddr\savedef@
+  \toks@\expandafter\expandafter\expandafter{%
+       \csname address\number\addresscount@\endcsname}%
+  \toks@@{##1}%
+  \expandafter\xdef\csname address\number\addresscount@\endcsname
+  {\the\toks@\endgraf\noexpand\nobreak
+    \indent{\noexpand\rm
+    \frills@{{\noexpand\it Current address\noexpand\/}:\space}%
+    \def\noexpand\usualspace{\space}\the\toks@@\unskip}}}%
+  \nofrillscheck\curraddr}
+%
+%      \email uses the same counter as \address, since they should
+%      pair up.
+%
+\def\email{\let\savedef@\email
+  \def\email##1\endemail{\let\email\savedef@
+  \toks@{\def\usualspace{{\it\enspace}}\endgraf\indent\eightpoint}%
+  \toks@@{##1\par}%
+  \expandafter\xdef\csname email\number\addresscount@\endcsname
+  {\the\toks@\frills@{{\noexpand\it E-mail address\noexpand\/}:%
+     \noexpand\enspace}\the\toks@@}}%
+  \nofrillscheck\email}
+%
+\def\thedate@{}
+\def\date#1\enddate{\gdef\thedate@{\tenpoint#1\unskip}}
+%
+\def\thethanks@{}
+\def\thanks#1\endthanks{%
+  \ifx\thethanks@\empty@ \gdef\thethanks@{\eightpoint#1}%
+  \else
+    \expandafter\gdef\expandafter\thethanks@\expandafter{%
+     \thethanks@\endgraf#1}%
+  \fi}
+%
+\def\thekeywords@{}
+\def\keywords{\let\savedef@\keywords
+  \def\keywords##1\endkeywords{\let\keywords\savedef@
+  \toks@{\def\usualspace{{\it\enspace}}\eightpoint}%
+  \toks@@{##1\unskip.}%
+  \edef\thekeywords@{\the\toks@\frills@{{\noexpand\it
+    Key words and phrases.\noexpand\enspace}}\the\toks@@}}%
+ \nofrillscheck\keywords}
+%
+%      \subjclass is exactly analogous.
+%
+\def\thesubjclass@{}
+\def\subjclass{\let\savedef@\subjclass
+ \def\subjclass##1\endsubjclass{\let\subjclass\savedef@
+   \toks@{\def\usualspace{{\rm\enspace}}\eightpoint}%
+   \toks@@{##1\unskip.}%
+   \edef\thesubjclass@{\the\toks@
+     \frills@{{\noexpand\rm1991 {\noexpand\it Mathematics Subject
+       Classification}.\noexpand\enspace}}%
+     \the\toks@@}}%
+  \nofrillscheck\subjclass}
+%
+%      Put the abstract in a box with margins at each side equal to
+%      \indenti, obtained by reducing \hsize within a vbox centered by
+%      $$...$$.  Notice that the \noindent is not erased by \nofrills
+%      and that's what we want.
+%
+\newbox\abstractbox@
+\def\abstract{\let\savedef@\abstract
+ \def\abstract{\let\abstract\savedef@
+  \setbox\abstractbox@\vbox\bgroup\noindent$$\vbox\bgroup
+  \def\envir@end{\endabstract}\advance\hsize-2\indenti
+  \def\usualspace{\enspace}\eightpoint \noindent
+  \frills@{{\smc Abstract.\enspace}}}%
+ \nofrillscheck\abstract}
+%
+%      Finish the box.  The \unskip is here in case the abstract ends
+%      with something that adds vertical space, such as a \proclaim.
+%
+\def\endabstract{\par\unskip\egroup$$\egroup}
+%
+%      \widestnumber used to reset hanging indention in a table of
+%      contents or bibliography.  Other applications may also be added
+%      later.
+%
+%      The outerness of the heading macros causes problems. Therefore
+%      we process \widestnumber in two stages: first, inside a group,
+%      removing the outerness by letting the macros = \relax.  Then,
+%      using an \expandafter\endgroup trick, we read the arguments
+%      while the macros are still nonouter, but process the arguments
+%      after we have exited from the group.
+%
+\def\widestnumber{\begingroup \let\head\relax\let\subhead\relax
+  \let\subsubhead\relax \expandafter\endgroup\setwidest@}
+%
+\def\setwidest@#1#2{%
+   \ifx#1\head\setbox\tocheadbox@\hbox{#2.\enspace}%
+   \else\ifx#1\subhead\setbox\tocsubheadbox@\hbox{#2.\enspace}%
+   \else\ifx#1\subsubhead\setbox\tocsubheadbox@\hbox{#2.\enspace}%
+   \else\ifx#1\key\refstyle A%
+       \setboxz@h{\refsfont@\keyformat{#2}}%
+       \refindentwd\wd\z@
+   \else\ifx#1\no\refstyle C%
+       \setboxz@h{\refsfont@\keyformat{#2}}%
+       \refindentwd\wd\z@
+   \else\ifx#1\page\setbox\z@\hbox{\quad\bf#2}%
+       \pagenumwd\wd\z@
+%      We assume the default form for \item numbers rather than trying
+%      to handle all the variations such as "..."
+   \else\ifx#1\item
+       \setboxz@h{(#2)}\rosteritemwd\wdz@
+   \else\message{\string\widestnumber\space not defined for this
+      option (\string#1)}%
+\fi\fi\fi\fi\fi\fi\fi}
+%
+%      \Monograph is capitalized by analogy with \NoRunningHeads and
+%      \UseAMSsymbols because of its global scope.  We don't use
+%      \global's because if the user puts \Monograph in the preamble
+%      area as instructed it will automatically have global effect,
+%      and in some special applications (e.g. documentation) it may be
+%      nice to be able to localize the effect. \Monograph changes
+%      paragraph indention from none to normal for certain structures
+%      (subhead, proclaim, definition, ...) via \varindent@; it also
+%      changes fonts for \head, \proclaim, \definition, \example,
+%      \demo, and \remark.
+%
+%      The \ifmonograph@ test is used to decide whether to save a \toc
+%      in a box or typeset it immediately, as well as whether to
+%      typeset \thanks, \subjclass, and \keywords footnotes .
+%
+\newif\ifmonograph@
+%
+\def\Monograph{\monograph@true \let\headmark\rightheadtext
+  \let\varindent@\indent \def\headfont@{\bf}\def\proclaimheadfont@{\smc}%
+  \def\remarkheadfont@{\smc}}
+%
+\let\varindent@\noindent
+%
+\newbox\tocheadbox@    \newbox\tocsubheadbox@
+\newbox\tocbox@
+%
+%      Allocate a dimen register for the width of the page number
+%      column in table of contents. The true value of \pagenumwd
+%    is not assigned until \toc is actually called, to avoid
+%    initialization complications.
+\newdimen\pagenumwd
+%
+\def\toc{\toc@{Contents}}
+%
+%      We make a separate macro that just redefines \title, \chapter,
+%      \specialhead, \head, \subhead, \subsubhead, to simplify the
+%      code of \toc.  This also makes it a little easier to work
+%      around the outerness that most of them have.
+%
+\def\newtocdefs{%
+%      The space after "\def" in these redefinitions is a convenience
+%      for someone who wants to look for the main definitions---if
+%      they search for "\def\title" the search will pass over "\def
+%      \title" and find the main definition further down.
+   \def \title##1\endtitle
+       {\penaltyandskip@\z@\smallskipamount
+        \hangindent\wd\tocheadbox@\noindent{\bf##1}}%
+   \def \chapter##1{%
+        Chapter \uppercase\expandafter{%
+              \romannumeral##1.\unskip}\enspace}%
+   \def \specialhead##1\endspecialhead
+       {\par\hangindent\wd\tocheadbox@ \noindent##1\par}%
+   \def \head##1 ##2\endhead
+       {\par\hangindent\wd\tocheadbox@ \noindent
+        \if\notempty{##1}\hbox to\wd\tocheadbox@{\hfil##1\enspace}\fi
+        ##2\par}%
+%      Since \subhead and \subsubhead change the \leftskip, we need to
+%      do a \par before closing the group that localizes the change.
+%      Unlike \head, we do not try to right-align the numbers.
+%
+   \def \subhead##1 ##2\endsubhead
+       {\par\vskip-\parskip {\normalbaselines
+        \advance\leftskip\wd\tocheadbox@
+        \hangindent\wd\tocsubheadbox@ \noindent
+        \if\notempty{##1}%
+              \hbox to\wd\tocsubheadbox@{##1\unskip\hfil}\fi
+         ##2\par}}%
+   \def \subsubhead##1 ##2\endsubsubhead
+       {\par\vskip-\parskip {\normalbaselines
+        \advance\leftskip\wd\tocheadbox@
+        \hangindent\wd\tocsubheadbox@ \noindent
+        \if\notempty{##1}%
+              \hbox to\wd\tocsubheadbox@{##1\unskip\hfil}\fi
+        ##2\par}}}
+%
+\def\toc@#1{\relaxnext@
+ \DN@{\ifx\next\nofrills\DN@\nofrills{\nextii@}%
+      \else\DN@{\nextii@{{#1}}}\fi
+      \next@}%
+ \DNii@##1{%
+%      If we're doing a book table of contents, we avoid setting the
+%      whole thing in a box because if it's several pages long we
+%      might run out of memory.
+\ifmonograph@\bgroup\else\setbox\tocbox@\vbox\bgroup
+   \centerline{\headfont@\ignorespaces##1\unskip}\nobreak
+   \vskip\belowheadskip \fi
+%    Redefine \page (it has another definition normally, for use in
+%    references). The \hfilneg at the end is to cancel the
+%    \parfillskip; the \penalty is to keep the \hfilneg from being
+%    removed (normal processing at the end of a paragraph removes the
+%    last skip).
+   \def\page####1%
+       {\unskip\penalty\z@\null\hfil
+        \rlap{\hbox to\pagenumwd{\quad\hfil####1}}%
+              \hfilneg\penalty\@M}%
+   \setbox\tocheadbox@\hbox{0.\enspace}%
+   \setbox\tocsubheadbox@\hbox{0.0.\enspace}%
+   \leftskip\indenti \rightskip\leftskip
+%      Increase \rightskip to move in the right margin to leave room
+%      for page numbers (which will hang over into the "right margin").
+%      The \bf is for taking into account page numbers for chapter titles,
+%      which are bold.  A little extra width shouldn't hurt for toc's
+%      without chapter titles.
+   \setboxz@h{\bf\quad000}\pagenumwd\wd\z@
+   \advance\rightskip\pagenumwd
+%      Redefine all the heading macros to be their table-of-contents
+%      versions.
+   \newtocdefs
+ }%
+ \FN@\next@}
+%
+%      The \egroup closes the \vbox; or if we're in a monograph, just
+%      matches the beginning \bgroup.
+%
+\def\endtoc{\par\egroup}
+%
+%      \pretitle, ..., \prepaper are entry points between the other
+%      parts of the \topmatter so that users can insert things if
+%      necessary.  If \pretitle is used to put any kind of box on the
+%      page, it will throw off the sinkage of the title and everything
+%      will have to be recalculated.
+%
+\let\pretitle\relax
+\let\preauthor\relax
+\let\preaffil\relax
+\let\predate\relax
+\let\preabstract\relax
+\let\prepaper\relax
+%
+%      Now \dedicatory shows how to make use of the \pre... entry
+%      points defined above.
+%
+\def\dedicatory #1\enddedicatory{\def\preabstract{{\medskip
+  \eightpoint\it \raggedcenter@#1\endgraf}}}
+%
+%      A hook is provided for a translator name, for translations.
+%      \eightpoint is used instead of just \eightrm, to be on the safe
+%      side.  For instance, in transliteration some Russian names have
+%      a ``prime'' symbol to represent the Russian ``soft sign''.  If
+%      we didn't use \eightpoint we'd get a 10-point prime symbol.
+%
+\def\thetranslator@{}
+\def\translator{%
+  \let\savedef@\translator
+  \def\translator##1\endtranslator{\let\translator\savedef@
+    \edef\thetranslator@{\noexpand\nobreak\noexpand\medskip
+      \noexpand\line{\noexpand\eightpoint\hfil
+      \frills@{Translated by \uppercase}{##1}\qquad\qquad}%
+       \noexpand\nobreak}}%
+  \nofrillscheck\translator}
+%
+%      \endtopmatter now puts all of these things together on the
+%      page. We start by checking to see if the left-hand running head
+%      has been defined; if not, presumably it's because \author has
+%      not been used, and presumably that means we are in a book
+%      chapter rather than in an article. So we define it to be the
+%      same as the right-hand running head, which will usually be the
+%      text of the title.
+%
+%      When doing chapters in a book, \subjclass, \keywords and
+%      \thanks should not print at the bottom of the page.
+%
+%      The baseline of the title should always fall at a fixed
+%      distance from the top of the page, so we do the spacing with
+%      \topskip instead of \vskip.
+%
+%      The spacing between elements of the topmatter in AMSPPT is
+%      intended to be the same as in the Journal of the AMS; however
+%      the actual spacing currently used in the latter is the rather
+%      idiosyncratic result of a couple of years of piecemeal changes,
+%      so that rather than follow it blindly we have opted to come as
+%      close as possible by choosing whole or half-pica amounts.  The
+%      situation is further complicated by the fact that the
+%      documentstyle for the Journal of the AMS uses a different
+%      method for putting running heads on the page, so that we cannot
+%      measure distance from the top of the page in the same way; and
+%      the date, affiliation, and abstract are handled differently as
+%      well.
+%
+%      In this diagram the first measurement is from the top of the
+%      type block to the baseline of the first line of the title.  In
+%      the Journal of the AMS the value is 5.5pc rather than 4pc,
+%      because it's measured to the top of the running head (which
+%      extends above the text block). The rest of the measurements are
+%      approximate visual space, done in \endtopmatter by \vskip's;
+%      the effective base-to-base distance is approximately half a
+%      pica more than the amount of the \vskip.
+%
+%      ______________________________ top of type area
+%        |                            (according to \pageheight)
+%        | 4pc baselineskip
+%        |   |----------------------|
+%      __|___|_______ TITLE ________|__
+%            | WHICH MAY BE SEVERAL |
+%            |      LINES LONG      |
+%            |----------------------|
+%                      2.5pc
+%                   |--------|
+%                   | AUTHOR |
+%                   |--------|
+%                       1pc
+%                   |--------|
+%                   | AFFIL  |
+%                   |--------|
+%                       1pc
+%                    |------|
+%                    | DATE |
+%                    |------|
+%                       1pc
+%                 |------------|
+%                 | DEDICATORY |
+%                 |------------|
+%                      1.5pc
+%        |------------------------------|
+%        |           ABSTRACT           |
+%        |------------------------------|
+%                      1.5pc
+%        |------------------------------|
+%        |       TABLE OF CONTENTS      |
+%        |------------------------------|
+%                       2pc
+%      |-----------------------------------|
+%      |           START OF TEXT           |
+%      |                                   |
+%
+%
+%      Make this \outer to catch missing or misspelled \end... in the
+%      topmatter.  It doesn't work with \abstract though because that
+%      uses the \setbox\vbox\bgroup ... \egroup mechanism, so we use
+%      \add@missing to catch missing \endabstract's.
+%
+\outer\def\endtopmatter{\add@missing\endabstract
+ \edef\next{\the\leftheadtoks}\ifx\next\empty@
+  \expandafter\leftheadtext\expandafter{\the\rightheadtoks}\fi
+ \ifmonograph@\else
+   \ifx\thesubjclass@\empty@\else \makefootnote@{}{\thesubjclass@}\fi
+   \ifx\thekeywords@\empty@\else \makefootnote@{}{\thekeywords@}\fi
+%      If \thanks given, treat it as a footnote text (with no footnote
+%      mark).
+   \ifx\thethanks@\empty@\else \makefootnote@{}{\thethanks@}\fi
+ \fi
+%      We want a sinkage of 4pc from the top of the page (= the top of
+%      the text area, not including the running heads) for articles,
+%      and 7pc for monograph chapters.
+  \pretitle
+  \begingroup % to localize variant topskip
+  \ifmonograph@ \topskip7pc \else \topskip4pc \fi
+%      We don't unvbox the titlebox because we don't expect footnotes
+%      to ever appear in the title, so we don't need to worry about
+%      allowing them to migrate to the outer level.  (Some journals
+%      use footnotes in titles to give acknowledgments of research
+%      support; in AMSPPT this is an unnumbered footnote, done with
+%      \thanks, outside of the title.)
+  \box\titlebox@
+  \endgroup
+  \preauthor
+  \ifvoid\authorbox@\else \vskip2.5pcplus1pc\unvbox\authorbox@\fi
+  \preaffil
+  \ifvoid\affilbox@\else \vskip1pcplus.5pc\unvbox\affilbox@\fi
+  \predate
+  \ifx\thedate@\empty@\else
+       \vskip1pcplus.5pc\line{\hfil\thedate@\hfil}\fi
+  \preabstract
+  \ifvoid\abstractbox@\else
+       \vskip1.5pcplus.5pc\unvbox\abstractbox@ \fi
+  \ifvoid\tocbox@\else\vskip1.5pcplus.5pc\unvbox\tocbox@\fi
+  \prepaper
+  \vskip2pcplus1pc\relax
+}
+%
+\def\document{%
+%    We call \loadextrafonts@ here as well as in \topmatter; this is
+%    to allow use of the extra sizes of the fonts in e.g. test documents
+%    that don't include a full topmatter section. If \topmatter was
+%    executed, \loadextrafonts@ will now be a harmless no-op.
+  \loadextrafonts@
+  \let\fontlist@\relax\let\alloclist@\relax
+%      Start out in \tenpoint
+  \tenpoint}
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -6- SECTION HEADINGS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{section heads,}
+%      In accordance with conventional design principles, the space
+%      below headings is not given any stretchability or
+%      shrinkability.
+%
+\newskip\aboveheadskip       \aboveheadskip\bigskipamount
+\newdimen\belowheadskip      \belowheadskip6\p@
+\def\headfont@{\smc}
+%
+%      Since we often want to do a penalty and vskip, and since there
+%      are extra complications involved if there is a preceding vskip
+%      from something else, we define a macro to do it.  Normally it
+%      is used while we're working on the main vertical list, so we
+%      have to use \removelastskip (which does a negative skip) rather
+%      than \unskip (which REALLY removes the last skip).  If the last
+%      thing on the main vertical list is anything other than a vskip,
+%      say a penalty from \pagebreak, the value returned by \lastskip
+%      will be 0, but the potential complications are a whole other
+%      subject.  This macro handles the straightforward cases.
+%
+%      In some cases we may not want to put a penalty at all.
+%      We refrain from doing any penalty if the first argument of
+%      \penaltyandskip@ is 0; the essential effect of an explicit
+%      \penalty0 can be gotten by doing a penalty of 1 instead.
+%
+%      We use \penalty@ instead of \penalty, so that we can redefine
+%      \penalty@ in \nobreak, to prevent page breaks between certain
+%      pairs such as \head \subhead or \head \proclaim or \nopagebreak
+%      \proclaim ---for example, in
+%
+%      "... which leads to this theorem:
+%      \proclaim{Theorem 8.2} ..."
+%
+%      a page break after the colon would be bad, and a user might
+%      want to be able to add a \nopagebreak.
+%
+%      The sequence
+%
+%           \subhead Text...\endsubhead
+%           \subsubhead Text...\endsubsubhead
+%
+%      will still have the weakness of allowing a pagebreak between
+%      the two headings, because \endsubhead doesn't do a \nobreak
+%      (since it's a run-in heading.
+%
+\def\penaltyandskip@#1#2{\par\skip@#2\relax
+  \ifdim\lastskip<\skip@\relax\removelastskip
+      \ifnum#1=\z@\else\penalty@#1\relax\fi\vskip\skip@
+  \else\ifnum#1=\z@\else\penalty@#1\relax\fi\fi}
+%
+\def\nobreak{\penalty\@M
+%      Change the definition of \penalty@ so that the following number
+%      will be gobbled (by assigning it to the scratch register
+%      \count@@@).
+  \ifvmode\gdef\penalty@{\global\let\penalty@\penalty\count@@@}%
+%      If the next piece of the document after \nobreak is something
+%      like \subhead or \proclaim that calls \penaltyandskip@, then
+%      \penalty@ will reset itself in the way that we want.  But if
+%      not, then we still want to reset \penalty@; so we use
+%      \everypar.  There are probably some unusual cases that will
+%      still have problems, but at the moment this is the best
+%      solution we have.
+  \everypar{\global\let\penalty@\penalty\everypar{}}\fi}
+%
+\let\penalty@\penalty
+%
+%      We equate the old form of the headings to the new form, for
+%      backward compatibility.  It's easier to do this now rather than
+%      later because \head and \subhead are going to be outer.
+%
+\def\heading#1\endheading{\head#1\endhead}
+\def\subheading{\DN@{\ifx\next\nofrills
+    \expandafter\subheading@
+  \else \expandafter\subheading@\expandafter\empty@
+  \fi}%
+  \FN@\next@
+}
+\def\subheading@#1#2{\subhead#1#2\endsubhead}
+%
+%      One more heading level, for occasional use.  This is the next
+%      level ABOVE \head.  The default style is ragged right;
+%      otherwise it's the same as \head.
+%
+\def\specialheadfont@{\bf}
+\outer\def\specialhead{%
+  \add@missing\endroster \add@missing\enddefinition
+  \add@missing\enddemo \add@missing\endexample
+  \add@missing\endproclaim
+  \penaltyandskip@{-200}\aboveheadskip
+  \begingroup\interlinepenalty\@M\rightskip\z@ plus\hsize
+  \let\\\linebreak
+  \specialheadfont@\noindent}
+\def\endspecialhead{\par\endgroup\nobreak\vskip\belowheadskip}
+%
+%      penalty-200 is the penalty amount used by plain.tex's
+%      \bigbreak.
+%
+\outer\def\head#1\endhead{%
+  \add@missing\endroster \add@missing\enddefinition
+  \add@missing\enddemo \add@missing\endexample
+  \add@missing\endproclaim
+  \penaltyandskip@{-200}\aboveheadskip
+  {\headfont@\raggedcenter@\interlinepenalty\@M
+  #1\endgraf}\headmark{#1}%
+  \nobreak
+  \vskip\belowheadskip}
+%
+%      \headmark will be redefined to be \rightheadtext by \Monograph.
+%
+\let\headmark\eat@
+%
+%      The purpose of \restoredef@ is to work around problems caused
+%      by the outerness of things like \subhead. \relax at the
+%      beginning prevents the \savedef@ (which may be \outer) from
+%      being read prematurely in certain kinds of expansion.
+%
+\def\restoredef@#1{\relax\let#1\savedef@\let\savedef@\relax}
+%
+%      \subhead and \subsubhead are simpler, though they allow
+%      \nofrills. (\head, being centered, does not have automatic
+%      punctuation put in at the end and so \nofrills doesn't have
+%      anything to do.) The syntax of \subhead is changed from
+%      \subheading{...} (version 1) to \subhead...\endsubhead (version
+%      2). This was done for the following reasons: (1) to be
+%      consistent with \head...\endhead (we could have changed \head
+%      instead of \subhead, but the \x...\endx syntax is the one
+%      currently in  use in AMS production); (2) if someone (perhaps
+%      us) ever wants to do something tricky with the headings, having
+%      the \end... may help them avoid technical complications.
+%
+\newskip\subheadskip       \subheadskip\medskipamount
+\def\subheadfont@{\bf}
+\outer\def\subhead{%
+  \add@missing\endroster \add@missing\enddefinition
+  \add@missing\enddemo \add@missing\endexample
+  \add@missing\endproclaim
+  \let\savedef@\subhead \let\subhead\relax
+  \def\subhead##1\endsubhead{\restoredef@\subhead
+    \penaltyandskip@{-100}\subheadskip
+    \varindent@{\def\usualspace{{\subheadfont@\enspace}}%
+    \subheadfont@\ignorespaces##1\unskip\frills@{.\enspace}}%
+    \ignorespaces}%
+  \nofrillscheck\subhead}
+%
+%      In version 2.0 of amsppt.sty we also add a third level of
+%      heading, \subsubhead.
+%
+\newskip\subsubheadskip       \subsubheadskip\medskipamount
+\def\subsubheadfont@{\it}
+\outer\def\subsubhead{%
+  \add@missing\endroster \add@missing\enddefinition
+  \add@missing\enddemo
+  \add@missing\endexample \add@missing\endproclaim
+  \let\savedef@\subsubhead \let\subsubhead\relax
+  \def\subsubhead##1\endsubsubhead{\restoredef@\subsubhead
+    \penaltyandskip@{-50}\subsubheadskip
+%      Add italic correction in \usualspace, because \subheadfont@ is
+%      italic, in case the substituted punctuation is something tall
+%      like a question mark or exclamation point.
+      {\def\usualspace{\/{\it\enspace}}%
+    \subsubheadfont@##1\unskip\frills@{.\enspace}}}%
+  \nofrillscheck\subsubhead}
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -7- THEOREM ENVIRONMENTS AND SIMILAR STRUCTURES
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{theorems/proofs/definitions/remarks,}
+%
+\def\proclaimheadfont@{\bf}
+%      Make \proclaimfont a non-private control sequence, so that
+%      users can change it back to \sl if desired without
+%      complications.
+\def\proclaimfont{\it}
+%
+\outer\def\proclaim{%
+  \let\savedef@\proclaim \let\proclaim\relax
+  \add@missing\endroster \add@missing\enddefinition
+  \add@missing\endproclaim \envir@stack\endproclaim
+%      penalty-100 is the penalty amount used by plain.tex's
+%      \medbreak.
+ \def\proclaim##1{\restoredef@\proclaim
+   \penaltyandskip@{-100}\medskipamount\varindent@
+   \def\usualspace{{\proclaimheadfont@\enspace}}\proclaimheadfont@
+   \ignorespaces##1\unskip\frills@{.\enspace}%
+  \proclaimfont\ignorespaces}%
+ \nofrillscheck\proclaim}
+%
+%      \endproclaim ends the paragraph, switches back to \rm and adds
+%      spacing. (This means that if, for some strange reason, a whole
+%      section of text happens to be in italics, then the user must
+%      type \it again after each \endproclaim, but that seems too
+%      special a case to need providing for.)  The penalty of 55 is
+%      just the plain.tex penalty for \endproclaim, carried over
+%      without change. Version 2.1 change: removed \outer prefix, to
+%      simplify some programming related to \add@missing and
+%      \revert@envir.
+%
+\def\endproclaim{\revert@envir\endproclaim \par\rm
+  \penaltyandskip@{55}\medskipamount}
+%
+%      In \remark, we take the opportunity again to issue an error
+%      message if a previous \proclaim has no matching \endproclaim.
+%
+\def\remarkheadfont@{\it}
+\def\remark{\let\savedef@\remark \let\remark\relax
+  \add@missing\endroster \add@missing\endproclaim
+  \envir@stack\endremark
+  \def\remark##1{\restoredef@\remark
+    \penaltyandskip@\z@\medskipamount
+  {\def\usualspace{{\remarkheadfont@\enspace}}%
+  \varindent@\remarkheadfont@\ignorespaces##1\unskip%
+  \frills@{.\enspace}}\rm
+  \ignorespaces}\nofrillscheck\remark}
+%
+%      \endremark is easy.
+%
+\def\endremark{\par\revert@envir\endremark}
+%
+\ifx\undefined\square
+  \def\square{\vrule width.6em height.5em depth.1em\relax}\fi
+\def\qed{\ifhmode\unskip\nobreak\fi\quad
+  \ifmmode\square\else$\m@th\square$\fi}
+%
+%      Proofs are the same as Remarks, except there is an additional
+%      \medskip after a Proof.  We don't have a runaway demo or remark
+%      check until \enddocument because proofs within proofs (and
+%      perhaps remarks within remarks) are possible.
+%
+\def\demo{\DN@{\ifx\next\nofrills
+    \DN@####1####2{\remark####1{####2}\envir@stack\enddemo
+      \ignorespaces}%
+  \else
+    \DN@####1{\remark{####1}\envir@stack\enddemo\ignorespaces}%
+  \fi
+  \next@}%
+\FN@\next@}
+
+\def\enddemo{\par\revert@envir\enddemo \endremark\medskip}
+%
+%      \definition uses \proclaimheadfont@ because normally the two
+%      use the same font for the head font, with \definition using \rm
+%      for the text as opposed to the \it used for \proclaim.
+%
+\def\definition{\let\savedef@\definition \let\definition\relax
+  \add@missing\endproclaim \add@missing\endroster
+  \add@missing\enddefinition \envir@stack\enddefinition
+%      \proclaimheadfont@ comes after the period here because
+%      sometimes we want the period to be roman rather than bold, e.g.
+%      when the preceding thing is a math formula or a citation, set
+%      in roman type.
+   \def\definition##1{\restoredef@\definition
+     \penaltyandskip@{-100}\medskipamount
+        {\def\usualspace{{\proclaimheadfont@\enspace}}%
+        \varindent@\proclaimheadfont@\ignorespaces##1\unskip
+        \frills@{.\proclaimheadfont@\enspace}}%
+        \rm \ignorespaces}%
+  \nofrillscheck\definition}
+\def\enddefinition{\revert@envir\enddefinition
+  \par\medskip}
+%
+\def\example{\DN@{\ifx\next\nofrills
+    \DN@####1####2{\definition####1{####2}\envir@stack\endexample
+      \ignorespaces}%
+  \else
+    \DN@####1{\definition{####1}\envir@stack\endexample\ignorespaces}%
+  \fi
+  \next@}%
+\FN@\next@}
+\def\endexample{\revert@envir\endexample \enddefinition }
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -8- ROSTERS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{rosters,}
+%      In version 2 of amsppt we provide a more convenient way of
+%      changing the indention of roster items.
+%
+\newdimen\rosteritemwd
+\rosteritemwd16pt % approximately the width of (iii) in 10 point text
+%
+%      \roster uses \rostercount@ to store the \item number. The first
+%      item is treated specially, because of the extra space before
+%      it, so we need a flag \iffirstitem@ to identify it.
+%
+\newcount\rostercount@
+\newif\iffirstitem@
+%
+%      Since \item in \roster differs from in \plain, we store plain's
+%      \item in \plainitem@, so that we can restore the definition
+%      after the \roster is over.
+%
+\let\plainitem@\item
+%
+%      In order for our \roster's to work, we will also have to be
+%      sure that \everypar is {}.  Just in case \everypar already has
+%      a value, as it might in some format, we store those values in
+%      the token list \everypartoks@, so that we can restore them at
+%      the end.  \par@ does this storing, and sets \everypar{}.
+%
+\newtoks\everypartoks@
+\def\par@{\everypartoks@\expandafter{\the\everypar}\everypar{}}
+%
+\def\leftskip@{}
+%
+\def\roster{%
+  \envir@stack\endroster
+%      We also have to store the \leftskip, since it will be changed.
+ \edef\leftskip@{\leftskip\the\leftskip}%
+ \relaxnext@
+ \rostercount@\z@% Initialize \rostercount@ to 0.
+ \def\item{\FN@\rosteritem@}%      \item, now redefined, has
+%      to look ahead for [ and ", since we allow optional and literal
+%      arguments. \rosteritem@ itself is defined below.  The following
+%      \next@ (in \DN@) is the one called at the very end of this
+%      \def.
+ \DN@{\ifx\next\runinitem\let\next@\nextii@\else
+  \let\next@\nextiii@\fi\next@}%
+%      First we look to see whether \roster is followed by \runinitem,
+%      since this requires different processing.
+ \DNii@\runinitem% If \runinitem occurs, \nextii@ must kill it off.
+  {\unskip% This unskips any space before the original \roster.
+%      Our definition of \nextii@\runinitem itself uses compressed
+%      format and a \futurelet\next\next@, because we still have to
+%      allow [ or " to come next.
+   \DN@{\ifx\next[\let\next@\nextii@\else
+    \ifx\next"\let\next@\nextiii@\else\let\next@\nextiv@\fi\fi\next@}%
+%      The following \nextii@ is the one created by
+%      \nextii@\runinitem; there is no conflict of names, since the
+%      first calls the second.
+   \DNii@[####1]{\rostercount@####1\relax
+    \enspace\therosteritem{\number\rostercount@}~\ignorespaces}%
+%      If [...] comes next, we use (...) but we explicitly do this by
+%      setting \rostercount@ equal to ... so that succeeding \item's
+%      will have the right numbers (use of something other than a
+%      number will give an error message).
+   \def\nextiii@"####1"{\enspace{\rm####1}~\ignorespaces}%
+%      If "..." comes next, we use ... exactly as typed.
+   \def\nextiv@{\enspace\therosteritem1\rostercount@\@ne~}%
+%      Otherwise just use (1).
+   \par@\firstitem@false% Before doing any of this we still change
+%      \everypar, if necessary, which is normally done elsewhere, and
+%      set \firstitem@false, since this \runinitem counts as the
+%      first.
+   \FN@\next@}%      End of definition of \nextii@\runinitem.
+%      The following \nextiii@ will be used if we didn't have
+%      \runinitem.
+ \def\nextiii@{\par\par@% End the present paragraph, change \everypar
+%      if necessary, prohibit a break, add a small skip, but add
+%      something to offset any \parskip, if there is any, which would
+%      be contributed when the next paragraph is begun by the next
+%      \item.
+  \penalty\@m\smallskip\vskip-\parskip
+%      And set \firstitem@true for use with \item.
+  \firstitem@true}
+ \FN@\next@}
+%
+%      Remember that \rosteritem@ is called by
+%      \futurelet\next\rosteritem@.
+%
+\def\rosteritem@{\iffirstitem@\firstitem@false
+  \else\par\vskip-\parskip\fi
+%      Except at the first \item, we end the paragraph (consisting of
+%      the previous \item), and subtract any space that might be added
+%      by the next \item.
+ \leftskip\rosteritemwd \advance\leftskip\normalparindent
+ \advance\leftskip.5em \noindent
+ \DNii@[##1]{\rostercount@##1\relax\itembox@}%
+%      If [...] follows \item, we use ... as the number, again by
+%      setting \rostercount@, so that succeeding \items will have the
+%      right number.
+ \def\nextiii@"##1"{\def\therosteritem@{\rm##1}\itembox@}%
+%      If "..." follows  \item, we use ... exactly as typed.
+ \def\nextiv@{\advance\rostercount@\@ne\itembox@}%
+%      Otherwise we print the \rostercount@ in parentheses.
+ \def\therosteritem@{\therosteritem{\number\rostercount@}}%
+ \ifx\next[\let\next@\nextii@\else\ifx\next"\let\next@\nextiii@\else
+  \let\next@\nextiv@\fi\fi\next@}
+%
+\def\itembox@{\llap{\hbox to\rosteritemwd{\hss
+  \kern\z@ % kern to thwart \unskip in \rom
+  \therosteritem@}\enspace}\ignorespaces}
+%
+%      \therosteritem is just a convenience for the user.
+%
+\def\therosteritem#1{\rom{(\ignorespaces#1\unskip)}}
+%
+%      We want to save \Runinitem for last, but it is relevant even to
+%      the definition of \endroster, since we have to worry whether
+%      \endroster is followed by another \Runinitem.  We will use a
+%      flag \ifnextRunin@ to tell us.
+%
+\newif\ifnextRunin@
+%
+\def\endroster{\relaxnext@
+ \revert@envir\endroster % restore \envir@end
+ \par\leftskip@% End the paragraph, and restore the \leftskip.
+ \global\rosteritemwd16\p@ % restore default value
+ \penalty-50 \vskip-\parskip\smallskip% Add a good break and
+%      subtract any space that will be started by next paragraph, but
+%      add a \smallskip.
+ \DN@{\ifx\next\Runinitem\let\next@\relax
+%      Don't do anything else if \Runinitem comes next.
+  \else\nextRunin@false\let\item\plainitem@% Otherwise, set
+%      \nextRunin@false, and restore \item to its definition in plain;
+   \ifx\next\par% moreover, if \endroster is followed by \par,
+    \DN@\par{\everypar\expandafter{\the\everypartoks@}}%
+%      delete that instruction (since we've already put in a \par),
+%      and restore \everypar,
+   \else% but if the \endroster isn't followed by a new paragraph,
+    \DN@{\noindent\everypar\expandafter{\the\everypartoks@}}%
+%      start the next paragraph unindented, and restore \everypar.
+  \fi\fi\next@}%
+ \FN@\next@}
+%
+%      Finally, for \Runinitem ... \roster\runinitem we have the usual
+%      junk for worrying about [ or " coming next, and then more
+%      interesting things:  We have to find out how many lines of text
+%      we had before the \roster; we will store this in
+%      \rosterhangafter@.
+%
+\newcount\rosterhangafter@
+\def\Runinitem#1\roster\runinitem{\relaxnext@
+  \envir@stack\endroster
+%      Initialize \rostercount@ to 0.
+ \rostercount@\z@
+%      Define \item as before.
+ \def\item{\FN@\rosteritem@}%
+%      Store everything up to the roster in \runinitem@.
+ \def\runinitem@{#1}%
+ \DN@{\ifx\next[\let\next\nextii@\else\ifx\next"\let\next\nextiii@
+  \else\let\next\nextiv@\fi\fi\next}%
+ \DNii@[##1]{\rostercount@##1\relax
+%      If [...] follows \runinitem, we proceed as before, except we
+%      call this first instance \item@, and we let \nextv@, defined
+%      below, take care of everything.
+  \def\item@{\therosteritem{\number\rostercount@}}\nextv@}%
+%      If "..." follows \runinitem, we define \item@ to use it.
+ \def\nextiii@"##1"{\def\item@{{\rm##1}}\nextv@}%
+ \def\nextiv@{\advance\rostercount@\@ne
+%      Otherwise, we use the proper \rostercount@. Now comes \nextv@,
+%      which has to properly typeset things.
+  \def\item@{\therosteritem{\number\rostercount@}}\nextv@}%
+%      First store things in \box0 .
+ \def\nextv@{\setbox\z@\vbox
+%      Start unindented if we have \ifnextRunin@true.  This will
+%      happen only if we had \Runinitem...\endroster right before.
+  {\ifnextRunin@\noindent\fi
+%      Add the stored things in \runinitem@, and then \item@.
+  \runinitem@\unskip\enspace\item@~\par
+%      This sets \rosterhangafter@ to the number of lines in \box0 ,
+%      i.e., of the material so far; see the TeXbook, p. 103. We need
+%      to say \global since this is set  within \box0. Now we're done
+%      with \box0 !
+  \global\rosterhangafter@\prevgraf}%
+  \firstitem@false% Set \firstitem@false for future \item's.
+%      End previous paragraph unless we had \Runinitem ...\endroster
+%      right before. Now comes the good part: we
+%      \hangindent3\parindent, as before, but we do it for
+%      \rosterhangafter@ lines, the number that already appeared in
+%      the material we set in \box0 .
+  \ifnextRunin@\else\par\fi
+  \hangafter\rosterhangafter@\hangindent3\normalparindent
+%      Start unindented if we had a \Runinitem ... \endroster right
+%      before.
+  \ifnextRunin@\noindent\fi
+  \runinitem@\unskip\enspace%  Put in all the stored stuff
+  \item@~\ifnextRunin@\else\par@\fi% and the \item@, and
+%      end the paragraph, unless we had a \Runinitem ... \endroster
+%      before.
+  \nextRunin@true\ignorespaces}%% Here's where we set \nextRunin@true.
+ \FN@\next@}
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -9- FOOTNOTES
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{footnotes,}
+%      \footmarkform@ tells how to treat a general type of footnote
+%      marker.  And \thefootnotemark is for the user, analogous to
+%      \thetag in AMSTEX.TEX.
+%
+\def\footmarkform@#1{$\m@th^{#1}$}
+\let\thefootnotemark\footmarkform@
+%
+%      \makefootnote@ takes care of the general problem of creating a
+%      footnote whose marker is #1 and whose text is #2, so that we
+%      can concentrate separately on the problem of how the marker is
+%      determined.  It is essentially \vfootnote from the TeXbook, p.
+%      363, except that we don't do fancy things to worry about
+%      category code changes, and instead of adding a \strut at the
+%      end, we will just add the lower part of the strut.
+%
+\def\makefootnote@#1#2{\insert\footins
+ {\interlinepenalty\interfootnotelinepenalty
+ \eightpoint\splittopskip\ht\strutbox\splitmaxdepth\dp\strutbox
+ \floatingpenalty\@MM\leftskip\z@skip\rightskip\z@skip
+ \spaceskip\z@skip\xspaceskip\z@skip
+ \leavevmode{#1}\footstrut\ignorespaces#2\unskip\lower\dp\strutbox
+ \vbox to\dp\strutbox{}}}
+%
+%      Before version 2.0 \footmarkcount@ was declared in amstex.tex.
+%
+\newcount\footmarkcount@
+\footmarkcount@\z@
+%
+%      \footnotemark basically just advances \footmarkcount@ by 1 and
+%      then uses \footmarkform@{\number\footmarkcount@}---we still
+%      have to worry about the space factor as in the definition of
+%      \footnote in the TeXbook, p. 363.  However, we are allowing
+%      both an `optional' argument [#1], where we instead use
+%      \footmarkform@{#1}, and a `literal' argument "#1", where we
+%      instead use #1 exactly as typed, so we need to use a \futurelet
+%      to look at the next symbol. Compressed format is used.
+%
+\def\footnotemark{\let\@sf\empty@\relaxnext@
+ \ifhmode\edef\@sf{\spacefactor\the\spacefactor}\/\fi
+ \DN@{\ifx[\next\let\next@\nextii@\else
+  \ifx"\next\let\next@\nextiii@\else
+  \let\next@\nextiv@\fi\fi\next@}%
+ \DNii@[##1]{\footmarkform@{##1}\@sf}%
+ \def\nextiii@"##1"{{##1}\@sf}%
+ \def\nextiv@{\iffirstchoice@\global\advance\footmarkcount@\@ne\fi
+  \footmarkform@{\number\footmarkcount@}\@sf}%
+ \FN@\next@}
+%
+%      \footnotetext essentially applies \makefootnote@ to the next
+%      group, using \footmarkcount@ for the marker that goes before
+%      the footnote text. However, we once again allow optional and
+%      literal arguments.  Compressed format is used.
+%
+\def\footnotetext{\relaxnext@
+ \DN@{\ifx[\next\let\next@\nextii@\else
+  \ifx"\next\let\next@\nextiii@\else
+  \let\next@\nextiv@\fi\fi\next@}%
+ \DNii@[##1]##2{\makefootnote@{\footmarkform@{##1}}{##2}}%
+ \def\nextiii@"##1"##2{\makefootnote@{##1}{##2}}%
+ \def\nextiv@##1{\makefootnote@{\footmarkform@%
+  {\number\footmarkcount@}}{##1}}%
+ \FN@\next@}
+%
+%      Finally, \footnote is basically \footnotemark\footnote, but we
+%      can't write it directly that way because it, too, can take
+%      optional and literal arguments.  Compressed format again.
+%
+\def\footnote{\let\@sf\empty@\relaxnext@
+ \ifhmode\edef\@sf{\spacefactor\the\spacefactor}\/\fi
+ \DN@{\ifx[\next\let\next@\nextii@\else
+  \ifx"\next\let\next@\nextiii@\else
+  \let\next@\nextiv@\fi\fi\next@}%
+ \DNii@[##1]##2{\footnotemark[##1]\footnotetext[##1]{##2}}%
+ \def\nextiii@"##1"##2{\footnotemark"##1"\footnotetext"##1"{##2}}%
+ \def\nextiv@##1{\footnotemark\footnotetext{##1}}%
+ \FN@\next@}
+%
+%      \adjustfootnotemark just allows the user to change
+%      \footmarkcount@.
+%
+\def\adjustfootnotemark#1{\advance\footmarkcount@#1\relax}
+%
+%      We use the definition of \footnoterule provided by plain, but
+%      change its width from 2 truein to 5pc.
+%
+\def\footnoterule{\kern-3\p@
+  \hrule width5pc\kern 2.6\p@}%      the \hrule is .4pt high
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -10- TABLES
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%      At the present time no table macros are provided.  Captions can
+%      be gotten using \topcaption or \botcaption.
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -11- FIGURE SPACES AND CAPTIONS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{figures and captions,}
+\def\captionfont@{\smc}
+%
+%      These captions are designed for use within \topinsert's and
+%      \midinsert's.  \nofrills is not currently an option, though
+%      probably it should be added eventually.
+%
+\def\topcaption#1#2\endcaption{%
+%      The captionwidth may have been changed by the user so we don't
+%      make the assumption that it is equal to \hsize - 2\indenti.
+  {\dimen@\hsize \advance\dimen@-\captionwidth@
+%      \raggedcenter@ uses the em so we set the font before calling
+%      it. \leftskip and \rightskip are changed by \raggedcenter so
+%      the modifications of \leftskip and \rightskip must come after.
+   \rm\raggedcenter@ \advance\leftskip.5\dimen@ \rightskip\leftskip
+  {\captionfont@#1}%
+  \if\notempty{#2}.\enspace\ignorespaces#2\fi
+  \endgraf}\nobreak\bigskip}
+%
+%      For whatever reason, the style in current AMS production has
+%      figure captions (= \botcaption) set in a block while table
+%      captions are set ragged center style.
+%
+\def\botcaption#1#2\endcaption{%
+%      The previous vskip may be blank space for a figure, so we can't
+%      use \penaltyandskip@ here, otherwise the \bigskip would not be
+%      added (assuming the preceding vskip is greater than
+%      \bigskipamount):
+  \nobreak\bigskip
+%      Measure how wide the caption is.  Maybe it's only "Figure 1",
+%      or maybe it's "Figure 1. Blah blah blah ... for 10 lines."  In
+%      the first case center it, in the second case put it in
+%      paragraph form.
+  \setboxz@h{\captionfont@#1\if\notempty{#2}.\enspace\rm#2\fi}%
+  {\dimen@\hsize \advance\dimen@-\captionwidth@
+   \leftskip.5\dimen@ \rightskip\leftskip
+%      long caption---set it in a paragraph
+   \noindent \ifdim\wdz@>\captionwidth@
+%      short caption---add \hfil to balance with \parfillskip.
+   \else\hfil\fi
+  {\captionfont@#1}%
+  \if\notempty{#2}.\enspace\rm#2\fi\endgraf}}
+%
+%      Redefine plain TeX \@ins to add definition of \vspace (locally)
+%      for use with caption macros.  Also \captionwidth.
+%
+\def\@ins{\par\begingroup\def\vspace##1{\vskip##1\relax}%
+  \def\captionwidth##1{\captionwidth@##1\relax}%
+  \setbox\z@\vbox\bgroup} % start a \vbox
+%
+%      CASE 1: \topcaption plus a table typed by the author.
+%
+%      \topinsert
+%      \topcaption{Table 1}This is a table caption.\endcaption
+%      \halign{ ...
+%       ...
+%      }
+%      \endinsert
+%
+%      CASE 2: \topcaption plus some blank space.
+%
+%      \midinsert
+%      \topcaption{Table 2}This is another table caption.\endcaption
+%      \vspace{13pc}
+%      \endinsert
+%
+%      CASE 3: \botcaption plus some blank space.
+%
+%      \topinsert
+%      \vspace{7pc}
+%      \botcaption{Figure 1}\endcaption
+%      \endinsert
+%
+%      Use of \captionwidth:
+%
+%      \topinsert
+%      \captionwidth{14pc}
+%      \topcaption{Table 1}Text ...
+%      \endcaption
+%      \endinsert
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -12- MISCELLANEOUS FORMATTING MACROS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{miscellaneous,}
+%    \block is intended for typing long quotes in a block, indented on
+%    both margins. It is set up so that it can be used in either of two
+%    ways:
+%
+%         $$\block...\endblock\tag1.1$$
+%
+%    or
+%
+%         Normal text.
+%         \block ...  \endblock
+%         Continue with more text.
+%
+%    In the latter case, we use a TeX display to provide spacing above
+%    and below the block. If we're in vertical mode when \block is
+%    called, we use \noindent to avoid getting an extra blank line
+%    before the display. But then we will get the short display skips
+%    instead of the full display skips, so we set \predisplaysize
+%    explicitly to ensure the full display skips.
+%
+\def\block{\RIfMIfI@\nondmatherr@\block\fi
+       \else\ifvmode\noindent$$\predisplaysize\hsize
+         \else$$\fi
+  \def\endblock{\par\egroup$$}\fi
+  \vbox\bgroup\advance\hsize-2\indenti\noindent}
+\def\endblock{\par\egroup}
+%
+%      In version 1 of amsppt \cite did some parsing to locate a comma
+%      in its argument and if one was found the font was switched from
+%      \citefont to \rm.  In version 2 we no longer do this because if
+%      a \cite deviates too much from the expected form we run into
+%      problems:  The expected form was either \cite{13}, or \cite{13,
+%      Theorem 2.2}.  But if for example the user wants to cite two
+%      references together, \cite{13,15}, we don't want to switch off
+%      \citefont after the comma.  And since authors tend to invent
+%      even more imaginative variations than this, we just did away
+%      with the parsing altogether.
+%
+%      \m@th is in case the author uses subscripts in his citation
+%      codes.
+%
+\def\cite#1{\rom{[{\citefont@\m@th#1}]}}
+%
+%      In version 1 of amsppt \citefont was \bf.
+%
+\def\citefont@{\rm}
+%
+%      \rom provides a way for getting roman punctuation and numerals
+%      in italic text. It takes pains to handle italic corrections
+%      reasonably nicely.
+%
+\def\rom#1{\leavevmode
+  \edef\prevskip@{\ifdim\lastskip=\z@ \else\hskip\the\lastskip\relax\fi}%
+  \unskip
+  \edef\prevpenalty@{\ifnum\lastpenalty=\z@ \else
+    \penalty\the\lastpenalty\relax\fi}%
+  \unpenalty \/\prevpenalty@ \prevskip@ {\rm #1}}
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -13- BIBLIOGRAPHY
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{references,}
+%
+\def\refsfont@{\eightpoint}
+%
+%      \refindentwd controls the indention from the left margin of the
+%      ref item numbers or key labels.  The initial setting is to 2
+%      decimal digits; numbers up to 99 will be aligned on the right
+%      within a box the width of \refindentwd.  \key labels will be
+%      aligned on the LEFT within a box of the same width; but when
+%      \key's are being used, the indention may need to be increased
+%      if it's required that the labels remain clear from the text.
+%      The \widestnumber macro can be used to do this:
+%      \widestnumber\key{MNOPQ} will increase \refindentwd to the
+%      width of a box containing "[MNOPQ]\enspace". \widestnumber can
+%      also be used with \no: \widestnumber\no{000} for 3-digit
+%      numbers, \widestnumber\no{0} for 1-digit numbers, and so on.
+%
+\newdimen\refindentwd
+\setboxz@h{\refsfont@ 00.\enspace}
+\refindentwd\wdz@
+%
+\outer\def\Refs{\add@missing\endroster \add@missing\endproclaim
+ \let\savedef@\Refs \let\Refs\relax % because of \outer-ness
+ \def\Refs##1{\restoredef@\Refs
+%      For a monograph where the title of the References section is
+%      done using \title, we want to omit the normal "References"
+%      heading and the vertical skips above and below.  This can be
+%      accomplished using \Refs\nofrills{}.  As long as the vskip at
+%      the end of \endtopmatter is not less than \aboveheadskip and
+%      \belowheadskip, this will be accomplished by the fact that
+%      \penaltyandskip@ doesn't add to a previous larger vskip, and
+%      the ragged center part will simply vanish if #1 is empty.
+   \if\notempty{##1}\penaltyandskip@{-200}\aboveheadskip
+     \begingroup \raggedcenter@\headfont@
+       \ignorespaces##1\endgraf\endgroup
+     \penaltyandskip@\@M\belowheadskip
+   \fi
+   \begingroup\def\envir@end{\endRefs}\refsfont@\sfcode`\.\@m
+   }%
+%      This line here is a little tricky. If a \nofrills is found when
+%      we look ahead, then \frills@ will become equal to \eat@ and it
+%      will eat "References" before \Refs is allowed to read its
+%      argument.  Also we have to use a \csname trick to get around
+%      the outerness of \Refs.  MJD
+ \nofrillscheck{\csname Refs\expandafter\endcsname
+  \frills@{{References}}}}
+%
+\def\endRefs{\par % This will check for a missing \endref, also
+  \endgroup}
+%
+%      These two conditionals are used for handling the logic of
+%      typesetting book versus journal article versus proceedings
+%      article references.
+\newif\ifbook@ \newif\ifprocpaper@
+%
+%      The \else clause here is to handle the case when \nofrills is
+%      used outside of the References section in an unexpected place
+%      (i.e., not immediately after \proclaim, \definition, \head, or
+%      the other things that have a \nofrills option).
+%
+\def\nofrills{%
+%      Are we inside a \ref...\endref pair?  If so, OK to continue.
+  \expandafter\ifx\envir@end\endref
+    \let\do\relax
+    \xdef\nofrills@list{\nofrills@list\do\curbox}%
+  \else\errmessage{\Invalid@@ \string\nofrills}%
+  \fi}%
+%
+\def\defaultreftexts{\gdef\edtext{ed.}\gdef\pagestext{pp.}%
+  \gdef\voltext{vol.}\gdef\issuetext{no.}}
+\defaultreftexts
+%
+\def\ref{\par
+  \begingroup \def\envir@end{\endref}%
+%      Start the reference.
+  \noindent\hangindent\refindentwd
+%      Change \par so that it will supply a (presumably) missing
+%      \endref, with an error message.
+  \def\par{\add@missing\endref}%
+%      \nofrills@list should always be assigned globally, to conserve
+%      save stack.
+  \global\let\nofrills@list\empty@
+%
+%      Change \linebreak and \mathbreak to work properly in the
+%      special ref environment.
+  \refbreaks
+  \procpaper@false \book@false \moreref@false
+%      Start an initial box, to match up properly with the first
+%      upcoming \makerefbox; this will be discarded.
+  \def\curbox{\z@}\setbox\z@\vbox\bgroup
+}
+%
+%      \keyhook@ is used for switching  the style of reference labels
+%      automatically behind the scenes. This is for phasing in,
+%      without loss of backward compatibilty, a \refstyle command to
+%      implement the various reference styles currently used in AMS
+%      production.  [19-MAR-1991] See the definition of \refstyle.
+%
+\let\keyhook@\empty@
+%
+\def\endref{%
+%      To wind up the preceding box it is convenient to call
+%      \makerefbox again; it will also open a new box, however, so we
+%      give it arguments \thr@@ and \endgraf\egroup that will cause
+%      the new box to be closed immediately and discarded. But we must
+%      first make sure box 3 is void or we'll trigger an error
+%      message.  This is done by dumping the current contents of
+%      (global register) box 3 into (local register) box 2; the \box
+%      command always makes its argument globally void.  (Because box
+%      0 is used heavily in \makerefbox, it's easier to just use box 2
+%      here, rather than try to verify that using box 0 would be safe
+%      in all cases.)
+  \setbox\tw@\box\thr@@
+  \makerefbox?\thr@@{\endgraf\egroup}%
+%      Then we call \endref@ to take all the saved material and
+%      combine it into a paragraph, adding punctuation to separate
+%      pieces.
+  \endref@
+%      The \endgraf is done here rather than in \endref@ because in
+%      \moreref or \transl cases \endref@ shouldn't do the \endgraf.
+  \endgraf
+%      Finally, we need to close the group that was started by \ref.
+%      This has the effect of killing the current definition of
+%      \envir@end, among other things.
+  \endgroup
+  \keyhook@
+  \global\let\keyhook@\empty@ % \global to conserve save stack
+}
+%
+\def\key{\gdef\key{\makerefbox\key\keybox@\empty@}\key} \newbox\keybox@
+\def\no{\gdef\no{\makerefbox\no\keybox@\empty@}%
+  \gdef\keyhook@{\refstyle C}\no}
+\def\by{\makerefbox\by\bybox@\empty@} \newbox\bybox@
+\let\manyby\by % for backward compatibility
+\def\bysame{\by\hbox to3em{\hrulefill}\thinspace\kern\z@}
+\def\paper{\makerefbox\paper\paperbox@\it} \newbox\paperbox@
+\def\paperinfo{\makerefbox\paperinfo\paperinfobox@\empty@}%
+  \newbox\paperinfobox@
+\def\jour{\makerefbox\jour\jourbox@
+  {\aftergroup\book@false \aftergroup\procpaper@false}} \newbox\jourbox@
+\def\issue{\makerefbox\issue\issuebox@\empty@} \newbox\issuebox@
+\def\yr{\makerefbox\yr\yrbox@\empty@} \newbox\yrbox@
+\def\pages{\makerefbox\pages\pagesbox@\empty@} \newbox\pagesbox@
+\def\page{\gdef\pagestext{p.}\makerefbox\page\pagesbox@\empty@}
+\def\ed{\makerefbox\ed\edbox@\empty@} \newbox\edbox@
+\def\eds{\gdef\edtext{eds.}\makerefbox\eds\edbox@\empty@}
+%      The \aftergroup\book@true here sets the \ifbook@ switch so that
+%      later (in \endref@) we will know whether we are typesetting a
+%      book, a journal article, or a proceedings article. Could use
+%      \global instead of \aftergroup but avoiding \global is usually
+%      safer when possible.
+\def\book{\makerefbox\book\bookbox@
+  {\it\aftergroup\book@true \aftergroup\procpaper@false}}
+  \newbox\bookbox@
+\def\bookinfo{\makerefbox\bookinfo\bookinfobox@\empty@}%
+  \newbox\bookinfobox@
+\def\publ{\makerefbox\publ\publbox@\empty@} \newbox\publbox@
+\def\publaddr{\makerefbox\publaddr\publaddrbox@\empty@}%
+  \newbox\publaddrbox@
+%      See the above comment for \book about the \aftergroup
+\def\inbook{\makerefbox\inbook\bookbox@
+  {\aftergroup\procpaper@true \aftergroup\book@false}}
+\def\procinfo{\makerefbox\procinfo\procinfobox@\empty@}%
+  \newbox\procinfobox@
+\def\finalinfo{\makerefbox\finalinfo\finalinfobox@\empty@}%
+  \newbox\finalinfobox@
+\def\miscnote{\makerefbox\miscnote\miscnotebox@\empty@}%
+  \newbox\miscnotebox@
+\def\toappear{\miscnote to appear}
+\def\lang{\makerefbox\lang\langbox@\empty@} \newbox\langbox@
+\newbox\morerefbox@
+%
+%      \vol is special because in AMS style it takes a different font
+%      depending on whether it's a journal volume or a book volume.
+%
+\def\vol{\makerefbox\vol\volbox@{\ifbook@ \else
+  \ifprocpaper@\else\bf\fi\fi}}
+\newbox\volbox@
+%
+\newbox\holdoverbox
+%
+%      \makerefbox takes three arguments: the first is the name of
+%      the calling macro, for use in error messages; argument 2
+%      is the box used for storing data (note: some boxes are shared
+%      by more than one calling macro); argument 3 is additional
+%      material (optional---may be empty) that may be used to
+%      affect the contents of the box.
+%
+\def\makerefbox#1#2#3{\endgraf
+%      Set box 0 to the just-completed line of text.
+  \setbox\z@\lastbox
+%      Although \holdoverbox will usually be void it still doesn't
+%      hurt to \unhbox it here in every case, which simplifies the
+%      programming.
+  \global\setbox\@ne\hbox{\unhbox\holdoverbox
+%      \ifvoid test is necessary here to prevent a \linebreak at the
+%      end of a field from being removed by the \unpenalty.
+    \ifvoid\z@\else\unhbox\z@\unskip\unskip\unpenalty\fi}%
+  \egroup
+%      If box 1 is empty (width <= 0pt) then set the current box to
+%      void (it might still have a baselineskip glue or something in
+%      it at this point, for one thing).  Otherwise set it to box 1.
+  \setbox\curbox\box\ifdim\wd\@ne>\z@ \@ne \else\voidb@x\fi
+%    That finishes the previous box.  Now let's start a new one
+%    using the box given as arg 1 of \makerefbox. But first check
+%    to see if it's void and if not give an error message.
+  \ifvoid#2\else\Err@{Redundant \string#1; duplicate use, or
+     mutually exclusive information already given}\fi
+  \def\curbox{#2}\setbox\curbox\vbox\bgroup \hsize\maxdimen \noindent
+  #3}
+%
+\def\refbreaks{%
+  \def\refconcat##1{\setbox\z@\lastbox \setbox\holdoverbox\hbox{%
+       \unhbox\holdoverbox \unhbox\z@\unskip\unskip\unpenalty##1}}%
+  \def\holdover##1{%
+    \RIfM@
+%    Break the current line, adding \null to ensure proper spacing for
+%    a preceding mathrel or mathbin. The blank line containing the
+%    \null will be discarded by later processing.
+      \penalty-\@M\null
+%      Put a temporary ending of the current math formula on the next
+%      line, by itself.
+      \hfil$\clubpenalty\z@\widowpenalty\z@\interlinepenalty\z@
+      \offinterlineskip\endgraf
+%      Now remove that unwanted extra line and the preceding \lineskip
+%      (of 0pt) and any  penalty.  There shouldn't be any penalty,
+%      actually, because the relevant penalties were set to 0 above;
+%      but the \unpenalty is harmless and perhaps there is an
+%      overlooked eventuality that it will catch.
+      \setbox\z@\lastbox\unskip \unpenalty
+      \refconcat{##1}%
+      \noindent
+%      Since we did a temporary end of the current math formula there
+%      remains some more math coming up; therefore we need to shift
+%      into math mode again.  By breaking immediately after the
+%      beginning of the math formula we leave the unwanted extra
+%      \mathon item in a line by itself; this will be ignored because
+%      in the unpacking process we will only take the last line out of
+%      the current \vbox.
+      $\hfil\penalty-\@M
+%      No \null here because we don't need to do anything extra to
+%      affect the math spacing of the following item. (Line breaks
+%      in math formulas always occur after a \mathbin or \mathrel,
+%      not before, according to AMS style.)
+    \else
+      \endgraf\refconcat{##1}\noindent
+    \fi}%
+  \def\break{\holdover{\penalty-\@M}}%
+  \let\vadjust@\vadjust
+  \def\vadjust##1{\holdover{\vadjust@{##1}}}%
+%      It seems unlikely that \newpage will be needed inside of a
+%      \ref...\endref construction (more likely it will occur between
+%      references, if at all).  So we provide only a very simple
+%      alternate version using \vadjust.
+  \def\newpage{\vadjust{\vfill\break}}%
+}
+%
+\def\refstyle#1{\uppercase{%
+  \if#1A\relax \def\keyformat##1{[##1]\enspace\hfil}%
+  \else\if#1B\relax
+    \def\keyformat##1{\aftergroup\kern
+              \aftergroup-\aftergroup\refindentwd}%
+    \refindentwd\parindent
+ \else\if#1C\relax
+   \def\keyformat##1{\hfil##1.\enspace}%
+ \fi\fi\fi}% end of \uppercase
+}
+%
+%      Make letters the default for ref labels. This is chosen over
+%      refstyle C with a view to eventually phasing out \no in favor
+%      of always using \key, with the formatting being determined by
+%      the refstyle setting.
+\refstyle{A}
+%
+%      You might think that \refbreak@ shouldn't be necessary here (it
+%      executes a line break if the user specified \linebreak in the
+%      last field of the reference), but: sometimes there will be a
+%      language after the final period, and conceivably someone might
+%      need to break the line after the period and before the
+%      language.
+\def\finalpunct{\ifnum\lastkern=\m@ne\unkern\else.\fi
+       \refquotes@\refbreak@}%
+\def\continuepunct#1#2#3#4{}%
+%
+%      \endref@ is shared by \endref, \moreref, and \transl, therefore
+%      some of the code needs to be circumspect.
+\def\endref@{%
+%      Change the format of the reference label, if necessary:
+  \keyhook@
+%      This variant definition of \nofrillscheck is embedded in
+%      \endref@ despite the slight cost in extra execution time, in
+%      order to allow, e.g., subheadings within a bibliography section
+%      to have normal \nofrills action.
+  \def\nofrillscheck##1{%
+    \def\do####1{\ifx##1####1\let\frills@\eat@\fi}%
+    \let\frills@\identity@ \nofrills@list}%
+%      If no author name was given, but editor name was given, then
+%      transfer it to the author name box so that it will print at the
+%      beginning of the reference.  This  would normally happen only
+%      in the case of a proceedings volume or other such collection,
+%      cited as a whole.
+  \ifvoid\bybox@
+    \ifvoid\edbox@
+    \else\setbox\bybox@\hbox{\unhbox\edbox@\breakcheck
+      \nofrillscheck\edbox@\frills@{\space(\edtext)}\refbreak@}\fi
+  \fi
+%      \noindent \hangindent\refindentwd was done earlier by \ref, so
+%      at this point we just need to put the reference label on the
+%      page.
+%
+%      Using this \ifvoid test is partly to prevent accessing \keybox@
+%      in the \moreref and \transl cases:
+  \ifvoid\keybox@\else\hbox to\refindentwd{%
+       \keyformat{\unhbox\keybox@}}\fi
+  \ifmoreref@
+%      Even though this reads ``\commaunbox@,'' a semicolon will be
+%      substituted for the comma by the action of \punct@ if
+%      \morerefbox@ is in fact not void.  (And note that both \transl
+%      and \moreref share \morerefbox@.)
+    \commaunbox@\morerefbox@
+  \else
+%      Put in some special kerns to flag the beginning of a reference,
+%      to avoid adding unwanted punctuation and space if \by is omitted.
+    \kern-\tw@ sp\kern\m@ne sp
+  \fi
+  \ppunbox@\empty@\empty@\bybox@\empty@
+  \ifbook@ % Case 1: \book etc.
+    \commaunbox@\bookbox@ \commaunbox@\bookinfobox@
+    \ppunbox@\empty@{ (}\procinfobox@)%
+    \ppunbox@,{ vol.~}\volbox@\empty@
+    \ppunbox@\empty@{ (}\edbox@{, \edtext)}%
+    \commaunbox@\publbox@ \commaunbox@\publaddrbox@
+    \commaunbox@\yrbox@
+    \ppunbox@,{ \pagestext~}\pagesbox@\empty@
+  \else
+    \commaunbox@\paperbox@ \commaunbox@\paperinfobox@
+    \ifprocpaper@ % Case 2: \paper ... \inbook
+      \commaunbox@\bookbox@
+      \ppunbox@\empty@{ (}\procinfobox@)%
+      \ppunbox@\empty@{ (}\edbox@{, \edtext)}%
+      \commaunbox@\bookinfobox@
+      \ppunbox@,{ \voltext~}\volbox@\empty@
+      \commaunbox@\publbox@ \commaunbox@\publaddrbox@
+      \commaunbox@\yrbox@
+      \ppunbox@,{ \pagestext~}\pagesbox@\empty@
+    \else % Case 3: \paper ... \jour
+      \commaunbox@\jourbox@
+      \ppunbox@\empty@{ }\volbox@\empty@
+      \ppunbox@\empty@{ (}\yrbox@)%
+      \ppunbox@,{ \issuetext~}\issuebox@\empty@
+%      Although \publ and \publaddr will rarely be used with a journal
+%      article, it doesn't really hurt to print them if provided, and
+%      certain rare cases may benefit.  E.g.:
+%
+%      \paper \"Uber maximale Monotonie von Operatoren des Typs
+%      $L^\ast \Phi\circ L$ \paperinfo Report 78-24 \publ Math. Inst.,
+%      Univ. K\"oln \yr 1978 \moreref\jour  published as Manuscripta
+%      Math. \vol28 \yr1979\pages 305--316
+%
+      \commaunbox@\publbox@ \commaunbox@\publaddrbox@
+      \commaunbox@\pagesbox@
+    \fi
+  \fi
+  \commaunbox@\finalinfobox@
+  \ppunbox@\empty@{ (}\miscnotebox@)%
+%      The final punctuation (usually a period) here is not part of a
+%      \ppunbox@ clause because it is always inserted even if
+%      \langbox@ is void.
+  \finalpunct\ppunbox@\empty@{ (}\langbox@)%
+%      Restore defaults "ed.", "pp.", etc. in case they were changed.
+  \defaultreftexts
+}
+%
+%      \punct@ is the same as \identity@, but we define it rather than
+%      using \let, just in case the contents of amsppt.sty ever get
+%      shuffled around in such a way that \identity@ is later in the
+%      file.
+\def\punct@#1{#1}
+%      \ppunbox@ takes 4 arguments.  #1 is punctuation that should
+%      precede ending quotes and/or a line breaking penalty, from the
+%      previous item.  #2 is material (usually a word space) that
+%      should come after ending quotes or a penalty.  #3 is the box
+%      containing the next part of the current reference.  #4 is other
+%      material to follow box #3 (e.g., a closing parenthesis, in some
+%      cases).
+%
+\def\ppunbox@#1#2#3#4{\ifvoid#3\else
+  \let\prespace@\relax
+%      If nofrills was specified for the previous item, then it will
+%      have been ended with a kern of -1sp.  If we find such a kern,
+%      we remove it and omit the normal punctuation (arg #1).
+  \ifnum\lastkern=\m@ne \unkern\let\punct@\eat@
+%      A kern of -2sp here means we are at the very beginning of the
+%      reference, after the key or number. In that case we need to
+%      omit not only the punctuation, but also any following space.
+    \ifnum\lastkern=-\tw@ \unkern\let\prespace@\ignorespaces \fi
+  \fi
+  \nofrillscheck#3%
+  \punct@{#1}\refquotes@\refbreak@
+%      Restore normal definition of \punct@:
+  \let\punct@\identity@
+  \prespace@
+%      If \nofrills is not in effect, the \space will be eaten;
+%      otherwise it will be substituted for the normal pre-item
+%      frills.
+  \frills@{#2\eat@}\space
+%      \refquotes@ and \refbreak@ will be emptied by \breakcheck
+%      (unless of course there is a new line breaking penalty present
+%      for next time around).
+  \unhbox#3\breakcheck
+  \frills@{#4\eat@}{\kern\m@ne sp}\fi}
+%
+\def\commaunbox@#1{\ppunbox@,\space{#1}\empty@}
+%
+%      By putting the \ifnum here inside the \edef we get automatic
+%      initialization of \refbreak@ for the next time around, instead
+%      of needing an extra \let\refbreak@\empty@ step after \refbreak@
+%      is used.
+\def\breakcheck{\edef\refbreak@{\ifnum\lastpenalty=\z@\else
+  \penalty\the\lastpenalty\relax\fi}\unpenalty}
+%
+%      For quotes, the complication is that the ending quotes must
+%      fall after a comma or other such punctuation that might come
+%      next (we don't know yet what punctuation will be used, if any).
+%      And in addition we have the usual possibility of a line break
+%      to worry about at the same time.  Therefore the special control
+%      sequence \endquotes is provided, to be used like this, if let's
+%      say you want book titles to appear in quotes:
+%
+%      \ppunbox@,{ ``}\bookbox@\endquotes
+%      \commaunbox@\bookinfobox@
+%
+%      \endquotes defines the control sequence \refquotes@ to add the
+%      ending quotes later, after we find out whether a comma, period,
+%      or no punctuation at all will be added (not to mention maybe a
+%      line breaking penalty that would need to be shuffled around).
+%
+\def\endquotes{\def\refquotes@{''\let\refquotes@\empty@}}
+\let\refquotes@\empty@
+\let\refbreak@\empty@
+%
+%    We need a switch to handle certain complications with the moreref
+%    case.
+%
+\newif\ifmoreref@
+%
+%    \moreref ends the previous setbox operation, does \endref@ to
+%    typeset any information gathered so far, and then prepares to
+%    start the equivalent of a new \ref.
+%
+\def\moreref{%
+%    To wind up the preceding box it is convenient to call
+%    \makerefbox again; it will also open a new box, however, so we
+%    give it arguments \thr@@ and \endgraf\egroup that will cause the
+%    new box to be closed immediately and discarded. But we must first
+%    make sure box 3 is void or we'll trigger an error message.  This
+%    is done by dumping the current contents of (global register) box
+%    3 into (local register) box 2; the \box command always makes its
+%    argument globally void.  (Because box 0 is used heavily in
+%    \makerefbox, it's easier to just use box 2 here, rather than try
+%    to verify that using box 0 would be safe in all cases.)
+  \setbox\tw@\box\thr@@
+  \makerefbox?\thr@@{\endgraf\egroup}%
+%    This saved definition will be lost if something else in \endref@
+%    uses \savedef@.  Currently (14-MAR-1991) that is not the case,
+%    however, so doing it this way allows us to save a bit of memory.
+  \let\savedef@\finalpunct  \let\finalpunct\empty@
+  \endref@
+%    The next time \punct@ is called by \ppunbox, it will change
+%    ",\refquotes@" into "\refquotes@;" or similarly for
+%    \empty@\refquotes@.  Then \punct@ will be restored to its original
+%    definition.  Note that this definition does not need to be
+%    global; it is local inside the \begingroup ...\endgroup of the
+%    current \ref.
+  \def\punct@##1##2{##2;}%
+  \global\let\nofrills@list\empty@ % global, to conserve save stack
+%      Now restore the normal definition of \finalpunct :
+  \let\finalpunct\savedef@
+  \moreref@true
+%    Set any initial text between \moreref and the following
+%    control sequence in \morerefbox@. This is typically used with
+%    \transl to add a note such as "English transl."
+  \def\curbox{\morerefbox@}%
+  \setbox\morerefbox@\vbox\bgroup \hsize\maxdimen \noindent
+}
+%    And \transl, for setting translation information,
+%    doesn't need to be any different than \moreref:
+%
+\def\transl{\moreref}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -14- END OF DOCUMENT
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{end of document,}
+%
+\outer\def\enddocument{\par% \par will do a runaway check for \endref
+  \add@missing\endRefs
+%      Repeat these in case an article (or book chapter!) doesn't have
+%      a references section:
+  \add@missing\endroster \add@missing\endproclaim
+  \add@missing\enddefinition
+  \add@missing\enddemo \add@missing\endremark \add@missing\endexample
+%      In a monograph we expect the translator name and author
+%      addresses to be handled in the front matter rather than at the
+%      end of the individual chapters:
+ \ifmonograph@ % do nothing
+ \else
+%      No break between the References and the final matter.
+ \nobreak
+%      The \address's get printed at the end of the paper.  Also the
+%      translator name, if any.  We don't need to do an
+%      \ifx\thetranslator@\empty@, as we did with \thesubjclass@ and
+%      other items in \endtopmatter, because we're not constructing a
+%      footnote, just slapping the material on the page.
+ \thetranslator@
+%      Print all the \address's, including e-mail addresses if
+%      present. If any of the \email's are undefined the \csname will
+%      just evaluate to \relax.
+ \count@\z@ \loop\ifnum\count@<\addresscount@\advance\count@\@ne
+ \csname address\number\count@\endcsname
+ \csname email\number\count@\endcsname
+ \repeat
+\fi
+ \vfill\supereject\end}
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -15- OUTPUT ROUTINE
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{output routine,}
+%      Extra braces are added in \folio to localize \foliofont@; this
+%      is merely a precaution, since in our basic style it will be
+%      localized anyway by being put in an \llap or \rlap.  We provide
+%      a \foliofont@ separate from \headlinefont@ because it is not
+%      uncommon for documentstyles to have the folios in a different
+%      font, although in our basic style this is not the case.
+%      \foliofont@ is \eightrm instead of \eightpoint merely for
+%      efficiency; we don't expect to need for example math family
+%      assignments in order to typeset the folio.  On the other hand
+%      we need full math capability for \headlinefont@ since running
+%      heads may contain math (from a title or a section head).  From
+%      a design standpoint it might be preferable to have seven-point
+%      running heads (compare a small caps \head that falls at the top
+%      of a page with the running head above it) but it is more
+%      convenient to use the already available \eightpoint macro, and
+%      this saves a bit of overhead.
+%
+\def\folio{{\foliofont@\ifnum\pageno<\z@ \romannumeral-\pageno
+ \else\number\pageno \fi}}
+\def\foliofont@{\eightrm}
+\def\headlinefont@{\eightpoint}
+%
+%      \leftheadline and \rightheadline use the method described in
+%      the TeXbook, p. 260 for selecting different pieces of the
+%      topmark or botmark.  The necessary \else is inserted by
+%      \leftheadtext and \rightheadtext.
+%
+\def\leftheadline{\rlap{\folio}\hfill \iftrue\topmark\fi \hfill}
+\def\rightheadline{\hfill \expandafter\iffalse\botmark\fi
+  \hfill \llap{\folio}}
+%
+\newtoks\leftheadtoks
+\newtoks\rightheadtoks
+%
+%      \leftheadtext and \rightheadtext have a \nofrills option to
+%      turn off uppercasing.  They also set their argument in a box,
+%      during a syntax check, because otherwise syntax errors in the
+%      argument would not be caught (because the output routine, and
+%      hence \headline, is never called during a syntax check).
+%
+\def\leftheadtext{\let\savedef@\leftheadtext
+  \def\leftheadtext##1{\let\leftheadtext\savedef@
+    \leftheadtoks\expandafter{\frills@\uppercasetext@{##1}}%
+    \mark{\the\leftheadtoks\noexpand\else\the\rightheadtoks}
+    \ifsyntax@\setboxz@h{\def\\{\unskip\space\ignorespaces}%
+        \headlinefont@##1}\fi}%
+  \nofrillscheck\leftheadtext}
+%
+\def\rightheadtext{\let\savedef@\rightheadtext
+  \def\rightheadtext##1{\let\rightheadtext\savedef@
+    \rightheadtoks\expandafter{\frills@\uppercasetext@{##1}}%
+    \mark{\the\leftheadtoks\noexpand\else\the\rightheadtoks}%
+    \ifsyntax@\setboxz@h{\def\\{\unskip\space\ignorespaces}%
+        \headlinefont@##1}\fi}%
+  \nofrillscheck\rightheadtext}
+%
+%      In the running heads, we redefine \chapter so that it only does
+%      a roman numeral (via \chapterno@) rather than "CHAPTER " +
+%      roman numeral. In the \nofrills case, however, e.g. for
+%      something like "Appendix A", the given text is printed without
+%      modification.  And we redefine \\ because if the running head
+%      is taken from a title or section head it might possibly contain
+%      a \\ from the line-breaking done in the original text.
+%
+\headline={\def\\{\unskip\space\ignorespaces}\headlinefont@
+  \def\chapter{%
+    \def\chapter##1{%
+      \frills@{\afterassignment\chapterno@ \chaptercount@=}##1.\space}%
+    \nofrillscheck\chapter}%
+  \ifodd\pageno \rightheadline \else \leftheadline\fi}
+%
+%      Capitalization is used to indicate global scope of
+%      \NoRunningHeads and \NoPageNumbers, as is done by amstex.tex
+%      for \TagsOnLeft, etc.
+%
+\def\NoRunningHeads{\global\runheads@false\global\let\headmark\eat@}
+\def\NoPageNumbers{\gdef\folio{}}
+%
+\def\logo@{\baselineskip2pc \hbox to\hsize{\hfil\eightpoint Typeset by
+ \AmSTeX}}
+%
+%      In response to the popular demand, reinstate the
+%      \nologo command removed in version 2.0.
+%
+\def\nologo{\def\logo@{}}
+%
+%      Finally, we are ready for the \output routine. It is based on
+%      the \plainoutput routine, but the first page normally has the
+%      `Typeset by AmS-TeX' logo attached, and we add a switch for
+%      running heads.  The default for running heads is "true".
+%
+\newif\iffirstpage@     \firstpage@true
+\newif\ifrunheads@      \runheads@true
+%
+\output={\output@}
+\def\output@{\shipout\vbox{%
+ \iffirstpage@ \global\firstpage@false
+  \pagebody \logo@ \makefootline%
+ \else \ifrunheads@ \makeheadline \pagebody
+       \else \pagebody \makefootline \fi
+ \fi}%
+ \advancepageno \ifnum\outputpenalty>-\@MM\else\dosupereject\fi}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -16- HYPHENATION EXCEPTIONS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\message{hyphenation exceptions (U.S. English)}
+%      Add some common hyphenation exceptions, from TUGboat files,
+%      20-NOV-1989. For more details see TUGboat vol 10, no 3,
+%      November 1989, pp. 336--341. Many words from the TUGboat list
+%      that seemed less likely to occur in mathematical text have been
+%      omitted because hyphenation exceptions use up memory (most
+%      versions of TeX currently have a limit of 307 on hyphenation
+%      exceptions; each added hyphenation exception uses up something
+%      like 2 extra words of main memory as well).  The list of
+%      hyphenations for proper names could be expanded forever if room
+%      permitted; we restrict ourselves to a rather short, extremely
+%      arbitrary list.
+%
+%      Note: The hyphenation rules of British English differ in some
+%      particulars from the U.S. rules.
+%
+\hyphenation{acad-e-my acad-e-mies af-ter-thought anom-aly anom-alies
+an-ti-deriv-a-tive an-tin-o-my an-tin-o-mies apoth-e-o-ses
+apoth-e-o-sis ap-pen-dix ar-che-typ-al as-sign-a-ble as-sist-ant-ship
+as-ymp-tot-ic asyn-chro-nous at-trib-uted at-trib-ut-able bank-rupt
+bank-rupt-cy bi-dif-fer-en-tial blue-print busier busiest
+cat-a-stroph-ic cat-a-stroph-i-cally con-gress cross-hatched data-base
+de-fin-i-tive de-riv-a-tive dis-trib-ute dri-ver dri-vers eco-nom-ics
+econ-o-mist elit-ist equi-vari-ant ex-quis-ite ex-tra-or-di-nary
+flow-chart for-mi-da-ble forth-right friv-o-lous ge-o-des-ic
+ge-o-det-ic geo-met-ric griev-ance griev-ous griev-ous-ly
+hexa-dec-i-mal ho-lo-no-my ho-mo-thetic ideals idio-syn-crasy
+in-fin-ite-ly in-fin-i-tes-i-mal ir-rev-o-ca-ble key-stroke
+lam-en-ta-ble light-weight mal-a-prop-ism man-u-script mar-gin-al
+meta-bol-ic me-tab-o-lism meta-lan-guage me-trop-o-lis
+met-ro-pol-i-tan mi-nut-est mol-e-cule mono-chrome mono-pole
+mo-nop-oly mono-spline mo-not-o-nous mul-ti-fac-eted mul-ti-plic-able
+non-euclid-ean non-iso-mor-phic non-smooth par-a-digm par-a-bol-ic
+pa-rab-o-loid pa-ram-e-trize para-mount pen-ta-gon phe-nom-e-non
+post-script pre-am-ble pro-ce-dur-al pro-hib-i-tive pro-hib-i-tive-ly
+pseu-do-dif-fer-en-tial pseu-do-fi-nite pseu-do-nym qua-drat-ic
+quad-ra-ture qua-si-smooth qua-si-sta-tion-ary qua-si-tri-an-gu-lar
+quin-tes-sence quin-tes-sen-tial re-arrange-ment rec-tan-gle
+ret-ri-bu-tion retro-fit retro-fit-ted right-eous right-eous-ness
+ro-bot ro-bot-ics sched-ul-ing se-mes-ter semi-def-i-nite
+semi-ho-mo-thet-ic set-up se-vere-ly side-step sov-er-eign spe-cious
+spher-oid spher-oid-al star-tling star-tling-ly sta-tis-tics
+sto-chas-tic straight-est strange-ness strat-a-gem strong-hold
+sum-ma-ble symp-to-matic syn-chro-nous topo-graph-i-cal tra-vers-a-ble
+tra-ver-sal tra-ver-sals treach-ery turn-around un-at-tached
+un-err-ing-ly white-space wide-spread wing-spread wretch-ed
+wretch-ed-ly Brown-ian Eng-lish Euler-ian Feb-ru-ary Gauss-ian
+Grothen-dieck Hamil-ton-ian Her-mit-ian Jan-u-ary Japan-ese Kor-te-weg
+Le-gendre Lip-schitz Lip-schitz-ian Mar-kov-ian Noe-ther-ian
+No-vem-ber Rie-mann-ian Schwarz-schild Sep-tem-ber}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%      We begin with ten-point type.
+%
+\tenpoint
+%
+%      Write an empty line on screen to tidy up:
+\W@{}
+%
+%    Now we restore the catcode for @ that was in effect before this
+%    file. Note that we do not use \filename here, even though we did
+%    at the beginning of this file, because in the absence of a proper
+%    filename stack mechanism, we cannot be sure (taking into account
+%    possible future changes in the contents of amsppt.sty) that an
+%    intervening input file did not change \filename to another value.
+%
+\csname amsppt.sty\endcsname
+%
+%      And that's it.
+\endinput
+%
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -17- NOTES
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ Abbreviations used in this file:
+
+ From plain.tex:
+
+ \p@             1pt, dimen register
+ \z@             0pt, dimen register, can be used also as a number
+ \m@ne           -1, count register
+
+ Chardefs and mathchardefs (these control sequences can be used as
+ numbers):
+
+ \@ne            1
+ \tw@            2
+ \thr@@          3
+ \active         13
+ \sixt@@n        16
+ \@cclv          255
+ \@cclvi         256
+ \@m             1000
+ \@M             10000
+ \@MM            20000
+
+ Scratch registers:
+
+ \countdef\count@=255
+ \dimendef\dimen@=0
+ \dimendef\dimen@i=1  global only
+ \dimendef\dimen@ii=2
+ \skipdef\skip@=0
+ \toksdef\toks@=0
+
+ Other:
+
+ \m@th           sets \mathsurround=0pt
+ \z@skip         0pt plus 0pt minus 0pt, skip register
+ \hideskip       -1000pt plus 1fill, skip register
+ \centering      0pt plus 1000pt minus 1000pt, skip register
+ \voidb@x        permanently void box register
+ \endgraf        same as \par, but will be accepted in arguments where
+                   \par would cause an error.
+
+ \space          a macro whose expansion is a space token
+ \empty@          a defined macro with a null expansion
+ \null           an \hbox with null contents
+
+ From amstex.tex:
+
+ \W@             \immediate\write16
+ \eat@           gobbles next token or group in braces
+ \strip@         gets rid of trailing space from given argument
+ \hashtoks@      token register, containing #
+ \centering@     skip register, 0pt plus 1000pt
+ \rightappend@ ... \to ...       Append to a token list.
+ \space@         a space token (\let equal, not a macro like \space)
+ \relaxnext@     \let\next=\relax
+ \ex@            dimen, related to x-height, roughly equal to 1pt
+ \hexnumber@     convert hex digit from decimal form to hex equivalent
+ \font@          font assignment, like \font but modified to make
+                   syntax check work
+ \macro@@        used for stripping off the first part of the result
+                   of a \meaning command.
+
+ \def\FN@{\futurelet\next}
+ \def\DN@{\def\next@}
+ \def\DNii@{\def\nextii@}
+ \def\RIfM@{\relax\ifmmode}
+ \def\RIfMIfI@{\relax\ifmmode\ifinner}
+ \def\setboxz@h{\setbox\z@\hbox}
+ \def\wdz@{\wd\z@}
+ \def\boxz@{\box\z@}
+ \def\setbox@ne{\setbox\@ne}
+ \def\wd@ne{\wd\@ne}
+
+ More scratch registers:
+
+ \toks@@
+ \count@@
+ \count@@@
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -18- APPENDIX: NOTES ON VERSION 2.1
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+---\curraddr was added, for giving the current address of an author,
+if different from the address given in \address.
+
+---\rom was added, for preventing unwanted italicization of certain
+things such as parentheses or numbers, in theorems and other italic
+passages.  \rom automatically inserts italic corrections.
+
+---The implementation of \nofrills was completely changed, to provide
+better error messages for a missing or misspelled \endkeywords or
+similar end command, when reading a delimited argument. The error
+message is now one of
+
+  ! Forbidden control sequence found while scanning use of \keywords.
+  ! Paragraph ended before \keywords was complete.
+
+Previously the message would have had the same form, but would have
+referred to a mysterious control sequence ``\next@'' instead of
+\keywords.
+
+This change also eliminates a longstanding, very minor bug
+(\usualspace@ didn't work if it was stored in something such as
+\keywords@ for later use, because of its dependence on the
+\ifnofrills@ switch).
+
+---Multiple \thanks commands in the top matter will now produce
+multiple acknowledgment footnotes instead of discarding all but the
+last one. A period is no longer added automatically at the end of a
+\thanks.
+
+---\subjclass was updated to use the date (1991) of the current
+Mathematics Subject Classification scheme.
+
+---\widestnumber\item now works as claimed in the User's Guide.
+
+---The missing \par in \penaltyandskip@ was added.
+
+---Additional checks were added for runaway \proclaim, \definition,
+\ref, \roster, etc.  The internal macro \runaway@ was changed to make
+its usage more consistent and robust; in the process its name was
+changed to \add@missing (and as the name suggests, it now tries to
+recover by adding the  missing \end... command).
+
+---The bibliography macros were substantially modified to correct
+another longstanding bug: line breaks after explicit hyphens,
+mathbins, and mathrels were inhibited. This also involved changing the
+\ref-specific version of \nofrills.  Backward compatibility (with
+version 2.0) is not complete with respect to \nofrills in the
+bibliography macros.  This seems best, however, not only to avoid
+extra implementation difficulties, but also because the user syntax in
+version 2.0 was inferior. \nofrills now should always follow
+immediately after the name of the field to which it applies, e.g.,
+\transl\nofrills, or \paper\nofrills. Note that this is more
+consistent with the usage of \nofrills outside of the references
+section. \nofrills will cause all the "frills" such as the parentheses
+around years in journal article citations, or words like "eds." or
+"vol." that are supplied automatically, to be omitted for the given
+field.  In addition, it will suppress the automatic punctuation at the
+end of the field, if any.
+
+The macro \refdef@ is gone; instead, to define a new reference
+element, you need a definition of the form
+
+  \newbox\jourbox@
+  \def\jour{\makerefbox\jour\jourbox@{\it}}
+
+where \makerefbox is a macro with three arguments: #1 is the name of
+the calling macro (for use in error messages, if need be), #2 is the
+box in which the contents of the \jour field should be stored, and #3
+is formatting information (primarily font changes) to be inserted at
+the beginning of the box. However, as before, punctuation and words
+such as "pp.", "eds.", or "vol." that are to be inserted automatically
+are handled by \endref@.
+
+Therefore, to change such frills, or the ordering of the parts of a
+reference, you need to modify \endref@.  The macros \ppunbox@ and
+\commaunbox@ should normally be used to unpack a box, because they
+automatically take care of complications like \nofrills, closing
+quotes, or line breaks. \ppunbox@ takes four arguments:
+
+       #1: punctuation that should come before a line break or
+           closing quotes of a previous field
+       #2: other material such as "(" or "vol." that should be added
+           at the beginning of the current field
+       #3: the name of the box to be unpacked
+       #4: other material such as ")" that should be added
+           at the end of the current field
+
+For example, the command to unpack the \yr field is:
+
+       \ppunbox@\empty@{ (}\yrbox@)%
+
+Note the use of \empty@ to specify no preceding comma or other
+punctuation.
+
+\commaunbox@ is merely an abbreviation for
+
+       \ppunbox@,\space\xxxbox@\empty@
+
+The switches \ifpaperquotes@ and \ifbookquotes@ are gone.  If quotes
+are to be added around a particular part of a reference, it should be
+done in \endref@ using \ppunbox@ and \endquotes as follows:
+
+       \ppunbox@,{ ``}\xxxbox@\endquotes
+
+\endquotes does not typeset the ending quotes immediately (because we
+don't know yet whether to insert a comma or other punctuation before
+the ending quotes).  Instead, it sets a flag to be used in subsequent
+processing.
+
+---A \refstyle command was added to allow users to specify one of the
+three different reference styles most commonly used in AMS
+publications: letter labels in square brackets; unnumbered; and
+numbered (denoted A, B, and C, respectively). The syntax is
+"\refstyle{A}". Style C, numbered with arabic numerals, is the default
+selected by amsppt.sty. Eventually, phasing in the \refstyle command
+will allow the formatting for cites in the main text to be
+automatically  linked with the corresponding references in the
+bibliography. (Since the bibliography style could also affect the
+style of cites, the \refstyle command should be placed in the preamble
+of a document.) Also, eventually \key could be used for all reference
+labels, and the \no command will be unnecessary, because its current
+use is merely to indicate different formatting for the reference
+number.
+
+---\miscnote was added, and used in the implementation of \toappear,
+so that \toappear and \finalinfo would not be mutually exclusive.
+\miscnote might also be used for things like "preprint" or
+"submitted".  Unlike \finalinfo, \miscnote automatically adds
+parentheses.
+
+---\procinfo was added, to give place and date where the meeting
+took place, for proceedings volumes.
+
+---\eds or \ed information will now be used in place of an author's
+name, if \by is absent.  This would be for collections or proceedings
+volumes that are cited as a whole, instead of citing a single paper
+within the volume.
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      -19- APPENDIX: NOTES ON VERSIONS 2.1a, 2.1b, ...
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Users that have amsppt.sty built into their amstex format file will
+need to rebuild their format file if they get a newer version of
+amsppt.sty.
+
+Version 2.1a:
+
+---Added a test so that amsppt.sty will give an error message if it's
+about to be loaded and a different version of amsppt.sty was preloaded
+in the format file.
+
+---Added code to compensate for a bug in version 2.1 that left
+\amsppt.sty = \endinput. Probably not necessary---unless the error
+message described above is changed in the future to just a warning
+message.
+
+---Added \loadmsam and \loadmsbm before the call to \UseAMSsymbols,
+so that amsppt.sty 2.1 will work even with an AMSTeX 2.0 format file.
+
+---Changed the definition of \magnification (from plain.tex) so that
+it won't reset the page dimensions to 6.5 by 9 true inches if
+it is used but will behave in a way that's more appropriate
+for the amsppt page dimensions.
+
+---Switched to using box 0 instead of \keybox@ for measuring a \key
+given with the \widestnumber command. This prevents a misnumbering
+problem that occurred in rare cases (e.g., an unnumbered reference
+following numbered references).
+
+---Changed erroneous \proclaimfont@ to \proclaimheadfont@ and
+\demofont@ to \remarkheadfont@ in the definition of \Monograph.  Note:
+This means that fonts used for \remark, \demo, \proclaim \definition,
+\example, were wrong for any document that used \Monograph with amsppt
+2.1; switching to amsppt version 2.1a will make the fonts correct
+according to AMS standard monograph style, but with a slight chance of
+changing line breaks.
+
+---Added \pagenumwd and put the table-of-contents definition of
+\page inside the \toc group so that it will not conflict with
+the normal definition of \page if a single document contains
+both \toc (with \widestnumber\page used) and \Refs.
+
+---Added default definition for \leftskip@ to handle rare cases.
+Added \envir@stack\endroster in \Runinitem to prevent spurious
+"missing \endroster" error every time it's used.
+
+---Change handling of \key and \no to better handle the complications
+related to \refstyle and the need to maintain backward compatibility.
+(I.e., \refstyle should automatically be reset to C if \no is used.)
+
+---Added \procpaper@false and \book@false where appropriate in \book,
+\jour, \inbook to handle (rare?) \moreref cases where the additional
+ref is not the same type as the first ref. Switched around \moreref
+and \transl, a cosmetic change but makes the code easier to
+understand. (It seems reasonable for \transl to be based on \moreref,
+but rather odd for \moreref to be based on \transl, as in version
+2.1.)
+
+---Added \ifvoid test in \makerefbox to give an error message
+if the same tag is used twice or mutually exclusive tags (e.g.,
+\book and \inbook) are used.
+
+---Added some code to print out editors and pages information
+if given even when according to AMS style it should normally
+be omitted.
+
+Version 2.1b:
+
+---Restored the old \nologo command by popular demand.
+
+---Added \linespacing command to facilitate changing line spacing
+globally: \linespacing{2.0} increases line spacing by a factor of 2,
+similarly \linespacing{1.5} or \linespacing{2.3} for arbitrary
+factors.
+
+---Italic font is now used instead of slanted throughout (for e.g.
+\proclaim).
+
+---Omitting \by in a \ref is now possible without getting unwanted
+punctuation at the very beginning after the key.
+
+---\rom now handles preceding ~, not just preceding space.
+
+---\subsubheadfont@ added to facilitate font switching.
+
+---\document does some font setup if \topmatter is omitted.
+
+---Fixed a problem with running heads and \chapter\nofrills.
+
+---Eliminated spurious error message from \roster \widestnumber inside
+a \proclaim.
+
+Version 2.1c:
+
+---Fixed a bug introduced in version 2.1b: lost punctuation and space
+at the beginning of a \moreref.
+
+

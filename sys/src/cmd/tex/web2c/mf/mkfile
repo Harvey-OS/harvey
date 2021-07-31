@@ -1,0 +1,137 @@
+# This file makes Metafont in its various incarnations.
+#
+
+APE=/sys/src/ape
+< $APE/config
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
+LDFLAGS=
+SHELL=/bin/rc
+
+COMMONDEFINES=../lib/common.defines ../lib/texmf.defines
+
+# Routines used in both TeX and Metafont.
+EXTRAC=../lib/texmf.c
+EXTRAH=../lib/texmf.h
+EXTRAO=texmf.$O
+
+# Routines used in TeX, Metafont, and BibTeX.
+FILEIOC=../lib/openinout.c
+FILEIOO=openinout.$O
+
+OFILES=mf0.$O\
+	mf1.$O\
+	mf2.$O\
+	mf3.$O\
+	mf4.$O\
+	mf5.$O\
+	mf6.$O\
+	mf7.$O\
+	mf8.$O\
+	mf9.$O
+
+CFILES=${OFILES:%.$O=%.c}
+
+LIB=../lib/lib.a$O
+
+OBJS=$FILEIOO\
+	$OFILES
+
+IOBJS=iextra.$O\
+	inimf.$O\
+	$OBJS
+
+VOBJS=mf-extra.$O\
+	imf.$O\
+	$OBJS
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+all:V:		$O.inimf $O.virmf
+
+triptrap:V:	$O.trapmf
+
+$O.inimf:	$IOBJS $LIB
+		$LD $LDFLAGS -o $target $prereq
+
+$O.virmf:	$VOBJS $LIB
+		$LD $LDFLAGS -o $target $prereq
+
+run-trap:VE:
+		rm -f trap.mf
+		cp MFtrap/trap.mf .
+		. ./trapenv
+		$cpuobjtype.trapmf < MFtrap/trap1.in > /dev/null
+		diff MFtrap/trapin.log trap.log
+		$cpuobjtype.trapmf < MFtrap/trap2.in > trap.fot
+		diff MFtrap/trap.log trap.log
+		diff MFtrap/trap.fot trap.fot
+		../texware/$cpuobjtype.tftopl trap.tfm trap.pl
+		diff MFtrap/trap.pl trap.pl
+		../mfware/$cpuobjtype.gftype -m -i trap.72270gf > trap.typ
+		diff MFtrap/trap.typ trap.typ
+
+# The `ini_to_trap' script changes mfd.h, instead of the change file, so
+# retangling is not necessary.  After changing constants, making a
+# trapmf means making an inimf.
+# 
+$O.trapmf:	stamp-trap
+		mk $O.inimf
+		mv $O.inimf $target
+
+stamp-trap:	stamp-convert
+		rm -f *.$O
+		$SHELL ./ini_to_trap mfd.h
+		touch stamp-trap
+
+# tangle produces mf.p and mf.pool.
+# 
+mf.p:		mf.web cmf.ch ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle mf.web cmf.ch > /dev/null
+
+$CFILES imf.c coerce.h mfd.h:	stamp-convert
+		touch stamp-convert
+
+stamp-convert:	mf.p fixcoerce.h $COMMONDEFINES
+		$SHELL ./convert
+
+# The (hand-coded) file $EXTRAC and the (generated) file imf.c have
+# #ifdefs for INIMF, so we have to compile them differently.
+# 
+iextra.$O:	$EXTRAC mfd.h $EXTRAH
+		$CC $CFLAGS -I. -DINIMF -DINI $EXTRAC
+		mv $EXTRAO $target
+
+inimf.$O:	imf.c mfd.h $EXTRAH
+		cp imf.c inimf.c
+		$CC $CFLAGS -DINIMF inimf.c
+
+mf-extra.$O:	$EXTRAC mfd.h
+		cp $EXTRAC mf-extra.c
+		$CC $CFLAGS -I. mf-extra.c
+
+$FILEIOO: $FILEIOC mfd.h
+		$CC $CFLAGS -I. $FILEIOC
+
+%.$O:		%.c mfd.h
+		$CC $CFLAGS $stem.c
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f stamp-* *.[$OS] [$OS].virmf [$OS].inimf [$OS].trapmf
+		rm -f mfd.h coerce.h *.log *.base
+		rm -f trap.* mf-extra.c
+
+nuke:V:
+		mk clean
+		rm -f mf?.c imf.c mf.p mf.pool *gf *.tfm mfput.*
+		rm -f '#'*'#' *~ *.bak
+

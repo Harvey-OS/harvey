@@ -1,0 +1,11 @@
+objtype=3210
+</3210/mkfile
+
+LIB=/$objtype/lib/libdsp.a
+OFILES=\
+	main9.$O\
+	main9p.$O\
+	profile.$O\
+	dtoa.$O\
+
+</sys/src/cmd/mksyslib

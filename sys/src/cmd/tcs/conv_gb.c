@@ -21,6 +21,7 @@ gbproc(int c, Rune **r, long input_loc)
 	static int lastc;
 	long n, ch, cold = c;
 
+again:
 	switch(state)
 	{
 	case state0:	/* idle state */
@@ -40,7 +41,7 @@ gbproc(int c, Rune **r, long input_loc)
 		else {
 			nerrors++;
 			if(squawk)
-				EPR "%s: bad gb glyph %d (from 0x%x,0x%lx) near byte %ld in %s\n", argv0, c-0xA0, lastc, cold, input_loc, file);
+				EPR "%s: bad gb glyph %d (from 0x%x,0x%x) near byte %ld in %s\n", argv0, c-0xA0, lastc, cold, input_loc, file);
 			if(!clean)
 				emit(BADMAP);
 			state = state0;
@@ -50,7 +51,7 @@ gbproc(int c, Rune **r, long input_loc)
 		if(ch < 0){
 			nerrors++;
 			if(squawk)
-				EPR "%s: unknown gb %ld (from 0x%x,0x%lx) near byte %ld in %s\n", argv0, n, lastc, cold, input_loc, file);
+				EPR "%s: unknown gb %d (from 0x%x,0x%x) near byte %ld in %s\n", argv0, n, lastc, cold, input_loc, file);
 			if(!clean)
 				emit(BADMAP);
 		} else

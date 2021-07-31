@@ -1,0 +1,38 @@
+union Hdr {
+	{
+	'D'    0 magic;
+	'D'    4 text;
+	'D'    8 data;
+	'D'   12 bss;
+	'D'   16 syms;
+	'D'   20 entry;
+	'D'   24 spsz;
+	'D'   28 pcsz;
+	};
+	'a'    0 bmagic;
+};
+
+defn
+Hdr(addr) {
+	complex Hdr addr;
+	print("	bmagic	", addr.bmagic, "\n");
+};
+
+complex Hdr access:h;
+complex Dir convD2M:f;
+complex Dir convM2D:f;
+complex Fcall convM2S:f;
+complex Fcall convS2M:f;
+complex Dir dirfstat:dir;
+complex Dir dirfwstat:dir;
+complex Dir dirstat:dir;
+complex Printspec fcallconv:p;
+complex Dir fcallconv:d;
+complex Fcall fcallconv:f;
+complex Printspec dirconv:p;
+complex Dir fdirconv:d;
+complex Printspec fcallconv:p;
+complex Dir fcallconv:d;
+complex Fcall fcallconv:f;
+complex Printspec dirconv:p;
+complex Dir fdirconv:d;

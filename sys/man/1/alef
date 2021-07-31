@@ -1,0 +1,190 @@
+.TH ALEF 1 
+.SH NAME
+8al, kal, val \- ALEF compilers
+.SH SYNOPSIS
+.B 8al
+[
+.I option ...
+]
+[
+.I file ...
+]
+.br
+.B kal
+[
+.I option ...
+]
+[
+.I file ...
+]
+.br
+.B val
+[
+.I option ...
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+ALEF is a concurrent programming language with a syntax like C's.
+.IR Kal ,
+.I val
+and
+.I 8al
+compile the named ALEF source
+.I files
+into SPARC, MIPS and
+Intel 386 object files.
+Source
+.I files
+have the extension
+.BR .l .
+The ALEF source is passed through
+.IR cpp (1)
+prior to compilation.  Object files have the
+normal extension for each architecture:
+.B .k
+for SPARC,
+.B .v
+for MIPS and
+.B .8
+for 386.
+Up to
+.B $NPROC
+.I files
+will be compiled in parallel.
+.PP
+The compiler options are:
+.TP .7i
+.BI -o " obj"
+Place output in file
+.I obj
+(ignored if there is more than one input file).
+Default is to take the last element of the input pathname,
+strip any trailing
+.BR .l ,
+and append the object file suffix.
+.TP
+.B -a
+Write no object file, but produce an
+.IR acid (1)
+program on standard output, comprising a set of type declarations
+and functions to print those types.
+.TP
+.B -aa
+Like
+.B -a
+but suppress output for types and functions declared in header files.
+.TP
+.B -w
+Print warning messages for non fatal errors.
+.TP
+.B -N
+Do not run the code optimizer.
+.TP
+.B -c
+Do not compile code for
+.B check
+statements.
+.TP
+.B -S
+Produce assembly language instead of object code as output.
+By default, output goes to a file named by the
+last element of the input pathname with
+.B .l
+replaced by
+.BR .s .
+.TP
+.BI -D\*S name=def
+.br
+.ns
+.TP
+.BI -D \*Sname
+Define the
+.I name
+to the preprocessor,
+as if by
+.LR #define .
+If no definition is given, the name is defined as
+.LR 1 .
+.TP
+.BI -I \*Sdir
+.L #include
+files whose names do not begin with 
+.L /
+are always
+sought first in the directory 
+of the
+.I file
+argument,
+then in directories named in 
+.B -I
+options,
+then in
+.BR /sys/include/alef ,
+and finally in
+.BR /$objtype/include/alef.
+.TP
+.BI -d c
+Produce various forms of debugging. The character
+.I c
+is an alphabetic.
+.PP
+The compiler recognizes several
+.B #pragma
+directives.  The first,
+.BR "#pragma lib" ,
+is the same as in
+.IR 2c (1).
+The others have effect only when profiling is turned on by the
+.B -p
+option of the loader (see
+.IR 2l (1)).
+The directive
+.B "#pragma noprofile"
+disables the generation of profiling code for subsequently declared functions;
+.B "#pragma profile"
+enables it again.
+The main use of these directives is
+to avoid the profiling confusion caused by functions that do not explicitly return,
+such as the task-switching functions in the run-time system.
+Nonetheless, without support for profiling multi-process programs,
+it remains difficult to profile Alef programs.
+.SH EXAMPLE
+To compile and run on a SPARC the ALEF program in the current directory:
+.IP
+.EX
+kal -w *.l
+kl *.k
+k.out
+.EE
+.SH FILES
+.TF /$objtype/lib/alef
+.TP
+.B /sys/include/alef
+directory for
+.B #include
+files.
+.TP
+.B /$objtype/lib/alef
+directory for ALEF libraries
+.SH SOURCE
+.TF /sys/src/alef/8,\ etc.
+.TP
+.B /sys/src/alef/port
+machine-independent part
+.TP
+.BR /sys/src/alef/8 ,\ etc.
+machine-dependent parts
+.SH "SEE ALSO"
+.IR acid (1),
+.IR 2a (1),
+.IR 2l (1),
+.IR mk (1),
+.IR nm (1),
+.IR db (1)
+.br
+Phil Winterbottom,
+``Alef Reference Manual'', and
+Bob Flandrena,
+``Alef User's Guide''.

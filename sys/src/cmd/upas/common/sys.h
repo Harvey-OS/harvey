@@ -8,25 +8,23 @@
 #include "../libString/String.h"
 
 /*
- *  for the lock routines in libsys.c
+ *  for the lock foutines in libsys.c
  */
-typedef struct Mlock	Mlock;
-struct Mlock {
+typedef struct Lock	Lock;
+struct Lock {
 	int fd;
-	int pid;
 	String *name;
 };
 
 /*
  *  from config.c
  */
+extern char *LOGROOT;	/* root of log system */
 extern char *MAILROOT;	/* root of mail system */
-extern char *UPASLOG;	/* log directory */
-extern char *UPASLIB;	/* upas library directory */
-extern char *UPASBIN;	/* upas binary directory */
-extern char *UPASTMP;	/* temporary directory */
-extern char *SHELL;	/* path name of shell */
-extern char *POST;	/* path name of post server addresses */
+extern char *UPASROOT;	/* root of upas system */
+extern char *SMTPQROOT; /* root of smtpq directory */
+extern char *SYSALIAS;	/* file system alias files are listed in */
+extern char *USERALIAS;	/* file system alias files are listed in */
 extern int MBOXMODE;	/* default mailbox protection mode */
 
 /*
@@ -35,47 +33,35 @@ extern int MBOXMODE;	/* default mailbox protection mode */
 extern char	*sysname_read(void);
 extern char	*alt_sysname_read(void);
 extern char	*domainname_read(void);
-extern char	**sysnames_read(void);
 extern char	*getlog(void);
 extern char	*thedate(void);
 extern Biobuf	*sysopen(char*, char*, ulong);
-extern int	sysopentty(void);
 extern int	sysclose(Biobuf*);
 extern int	sysmkdir(char*, ulong);
 extern int	syschgrp(char*, char*);
-extern Mlock	*syslock(char *);
-extern void	sysunlock(Mlock *);
-extern void	syslockrefresh(Mlock *);
-extern int	e_nonexistent(void);
+extern Lock	*lock(char *);
+extern void	unlock(Lock *);
+extern int	e_nonexistant(void);
 extern int	e_locked(void);
-extern long	sysfilelen(Biobuf*);
-extern int	sysreaddot(int, Dir*, long);
+extern ulong	sysfilelen(Biobuf*);
 extern int	sysremove(char*);
 extern int	sysrename(char*, char*);
 extern int	sysexist(char*);
 extern int	syskill(int);
-extern int	syskillpg(int);
-extern int	syscreate(char*, int, ulong);
-extern Mlock	*trylock(char *);
+extern int	syscreate(char*, int);
+extern long	sysmtime(char*);
+extern Lock	*trylock(char *);
 extern void	exit(int);
 extern void	pipesig(int*);
 extern void	pipesigoff(void);
+extern void	newprocgroup(void);
+extern void	becomenone(void);
+extern char*	csquery(char*, char*, char*);
 extern int	holdon(void);
 extern void	holdoff(int);
-extern int	syscreatelocked(char*, int, int);
-extern int	sysopenlocked(char*, int);
-extern int	sysunlockfile(int);
-extern int	sysfiles(void);
-extern int 	become(char**, char*);
-extern int	sysdetach(void);
-extern int	sysdirread(int, Dir*, int);
-extern String	*username(String*);
-extern char*	remoteaddr(int, char*);
 
-extern String	*readlock(String*);
-extern char	*homedir(char*);
-extern String	*mboxname(char*, String*);
-extern String	*deadletter(String*);
+extern int nsysfile;
+extern int nofile;
 
 /*
  *  maximum size for a file path

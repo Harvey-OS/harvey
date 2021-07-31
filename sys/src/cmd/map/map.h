@@ -1,6 +1,11 @@
 #include <u.h>
 #include <libc.h>
 #include <stdio.h>
+#ifdef PLOT
+#include PLOT
+#else
+#include "iplot.h"
+#endif
 
 #ifndef PI
 #define PI	3.1415926535897932384626433832795028841971693993751
@@ -73,7 +78,6 @@ int	hlimb(double*, double*, double resolution);
 proj	lagrange(void);
 proj	lambert(double, double);
 proj	laue(void);
-proj	lune(double, double);
 proj	loxodromic(double);	/* not in library */
 proj	mecca(double);
 int	mlimb(double*, double*, double resolution);
@@ -110,7 +114,6 @@ void	invalb(double, double, double *, double *);
 
 void	cdiv(double, double, double, double, double *, double *);
 void	cmul(double, double, double, double, double *, double *);
-void	cpow(double, double, double *, double *, double);
 void	csq(double, double, double *, double *);
 void	csqrt(double, double, double *, double *);
 void	ccubrt(double, double, double *, double *);

@@ -1,0 +1,62 @@
+%% @metafontfile{
+%%     filename="amsyb.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "54349 62 328 2621"
+%%     keywords="amsfonts, tex, metafont , AMSSymbols ",
+%%     abstract="This is the driver file for use with 
+%%            MSBM, the second extra symbol font in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+font_coding_scheme:="TeX math symbols";
+mode_setup; font_setup;
+
+% autorounding:=hair;
+% input calu;  % upper case calligraphic alphabet
+autorounding:=0;
+
+font_slant slant; font_x_height x_height#;
+font_quad 18u# if not monospace:+4letter_fit# fi;
+% (The spacing is zero so that \TeX\ will always add the italic correction.)
+% (The calling file should give the other math symbol font parameters.)
+
+slant:=mono_charic#:=0;  % the remaining characters will not be slanted
+currenttransform:=identity yscaled aspect_ratio scaled granularity;
+input bsymbols;  % the symbols
+input xbbold;   % Neenie's blackboard bold
+%if not monospace:
+% skewchar=oct"060"; skew#=.5u#;
+% ligtable "I": "T": "V": skewchar kern skew#;
+% ligtable "K": skewchar kern 2skew#;
+% ligtable "D": "N": "P": "R": "U": "W": "Y": skewchar kern 3skew#;
+% ligtable "E": "F": "G": "H": "O": "Q": skewchar kern 4skew#;
+% ligtable "B": "C": "L": "M": "S": "X": "Z": skewchar kern 5skew#;
+% ligtable "J": skewchar kern 6skew#;
+% ligtable "A": skewchar kern 7skew#;
+%fi;
+bye.

@@ -120,7 +120,6 @@ fcomp(void)
 {
 
 	uchar	*p, *op, *tp;
-    uchar *address(uchar*);
 	union reptr	*pt, *pt1;
 	int	i;
 	struct label	*lpt;

@@ -1,7 +1,8 @@
-#include <string.h>
+#include	<u.h>
+#include	<libc.h>
 
 void*
-memccpy(void *a1, void *a2, int c, size_t n)
+memccpy(void *a1, void *a2, int c, ulong n)
 {
 	char *s1, *s2;
 

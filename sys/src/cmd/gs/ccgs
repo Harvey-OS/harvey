@@ -1,0 +1,35 @@
+# This file is a hack.  If `make' had macros with parameters,
+# this file would be unnecessary!
+if ( test -n "$6" ) then
+	./ansi2knr $6 _temp_$$.c
+	$1 $2 $3 -c _temp_$$.c
+	rm -f $5
+	mv _temp_$$.o $5
+else
+if ( test -n "$5" ) then
+	./ansi2knr $5 _temp_$$.c
+	$1 $2 -c _temp_$$.c
+	rm -f $4
+	mv _temp_$$.o $4
+else
+if ( test -n "$4" ) then
+	./ansi2knr $4 _temp_$$.c
+	$1 $2 $3 -c _temp_$$.c
+	rm -f `basename $4 .c`.o
+	mv _temp_$$.o `basename $4 .c`.o
+else
+if ( test -n "$3" ) then
+	./ansi2knr $3 _temp_$$.c
+	$1 $2 -c _temp_$$.c
+	rm -f `basename $3 .c`.o
+	mv _temp_$$.o `basename $3 .c`.o
+else
+	./ansi2knr $2 _temp_$$.c
+	$1 -c _temp_$$.c
+	rm -f `basename $2 .c`.o
+	mv _temp_$$.o `basename $2 .c`.o
+fi
+fi
+fi
+fi
+rm -f _temp_$$.c

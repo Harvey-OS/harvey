@@ -277,13 +277,13 @@ acom(Node *n)
 }
 
 int
-acomcmp1(const void *a1, const void *a2)
+acomcmp1(void *a1, void *a2)
 {
 	vlong c1, c2;
 	Term *t1, *t2;
 
-	t1 = (Term*)a1;
-	t2 = (Term*)a2;
+	t1 = a1;
+	t2 = a2;
 	c1 = t1->mult;
 	if(c1 < 0)
 		c1 = -c1;
@@ -308,13 +308,13 @@ acomcmp1(const void *a1, const void *a2)
 }
 
 int
-acomcmp2(const void *a1, const void *a2)
+acomcmp2(void *a1, void *a2)
 {
 	vlong c1, c2;
 	Term *t1, *t2;
 
-	t1 = (Term*)a1;
-	t2 = (Term*)a2;
+	t1 = a1;
+	t2 = a2;
 	c1 = t1->mult;
 	c2 = t2->mult;
 	if(c1 > c2)
@@ -331,7 +331,7 @@ acom2(Node *n, Type *t)
 {
 	Node *l, *r;
 	Term trm[NTERM];
-	int et, nt, i, j;
+	int k, nt, i, j;
 	vlong c1, c2;
 
 	/*
@@ -344,24 +344,24 @@ acom2(Node *n, Type *t)
 	/*
 	 * recur on subtrees
 	 */
-	j = 0;
+	k = 0;
 	for(i=1; i<nt; i++) {
 		c1 = trm[i].mult;
 		if(c1 == 0)
 			continue;
 		l = trm[i].node;
 		if(l != Z) {
-			j = 1;
+			k = 1;
 			acom(l);
 		}
 	}
 	c1 = trm[0].mult;
-	if(j == 0) {
+	if(k == 0) {
 		n->op = OCONST;
 		n->vconst = c1;
 		return;
 	}
-	et = t->etype;
+	k = ewidth[t->etype];
 
 	/*
 	 * prepare constant term,
@@ -406,7 +406,7 @@ acom2(Node *n, Type *t)
 			if(c2 % c1)
 				continue;
 			r = trm[j].node;
-			if(r->type->etype != et) {
+			if(ewidth[r->type->etype] != k) {
 				r = new1(OCAST, r, Z);
 				r->type = t;
 			}
@@ -418,7 +418,7 @@ acom2(Node *n, Type *t)
 				r->right->vconst = c2;
 			}
 			l = trm[i].node;
-			if(l->type->etype != et) {
+			if(ewidth[l->type->etype] != k) {
 				l = new1(OCAST, l, Z);
 				l->type = t;
 			}
@@ -448,7 +448,7 @@ acom2(Node *n, Type *t)
 		if(c1 == 0)
 			continue;
 		r = trm[i].node;
-		if(r->type->etype != et || r->op == OBIT) {
+		if(ewidth[r->type->etype] != k || r->op == OBIT) {
 			r = new1(OCAST, r, Z);
 			r->type = t;
 		}
@@ -539,7 +539,6 @@ acom1(vlong v, Node *n)
 			acom1(v*r->vconst, l);
 			break;
 		}
-		break;
 
 	default:
 		diag(n, "not addo");
@@ -552,7 +551,6 @@ addo(Node *n)
 
 	if(n != Z)
 	if(!typefd[n->type->etype])
-	if(!typev[n->type->etype])
 	switch(n->op) {
 
 	case OCAST:

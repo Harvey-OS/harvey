@@ -79,7 +79,7 @@ printtrace(int modif)
 		break;
 
 	case 'a':
-		attachprocess();
+		attachproc();
 		break;
 
 	case 'k':
@@ -324,8 +324,8 @@ printpc(void)
 		printsource((long)dot);
 		printc(' ');
 		symoff(buf, sizeof(buf), (long)dot, CTEXT);
-		dprint("%s/", buf);
-		if (machdata->das(cormap, dot, 'i', buf, sizeof(buf)) < 0)
+		dprint("%s?", buf);
+		if (machdata->das(symmap, dot, 'i', buf, sizeof(buf)) < 0)
 				error("%r");
 		dprint("%16t%s\n", buf);
 	}
@@ -350,7 +350,7 @@ printlocals(Symbol *fn, ADDR fp)
 }
 
 void
-printparams(Symbol *fn, ADDR fp)
+printparams(Symbol *fn, ulong fp)
 {
 	int i;
 	Symbol s;
@@ -362,9 +362,10 @@ printparams(Symbol *fn, ADDR fp)
 	for (i = 0; localsym(&s, i); i++) {
 		if (s.class != CPARAM)
 			continue;
-		if (first++)
-			dprint(", ");
-		if (get4(cormap, fp+s.value, &v) > 0)
+		if (get4(cormap, fp+s.value, &v) > 0) {
+			if (first++)
+				dprint(", ");
 			dprint("%s=%lux", s.name, v);
+		}
 	}
 }

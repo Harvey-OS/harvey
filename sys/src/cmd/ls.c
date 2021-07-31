@@ -35,11 +35,11 @@ void	dowidths(Dir*);
 void	format(Dir*, char*);
 void	output(void);
 ulong	clk;
-int	swidth;			/* max width of -s size */
-int	qwidth;			/* max width of -q version */
-int	vwidth;			/* max width of dev */
-int	uwidth;			/* max width of userid */
-int	glwidth;		/* max width of groupid and length */
+int	swidth;
+int	qwidth;
+int	vwidth;
+int	uwidth;
+int	glwidth;
 Biobuf	bin;
 
 #define		HUNK	50
@@ -141,6 +141,11 @@ output(void)
 
 	if(!nflag)
 		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void*, void*))compar);
+	swidth = 0;	/* max width of -s size */
+	qwidth = 0;	/* max width of -q version */
+	vwidth = 0;	/* max width of dev */
+	uwidth = 0;	/* max width of userid */
+	glwidth = 0;	/* max width of groupid and length */
 	for(i=0; i<ndir; i++)
 		dowidths(&dirbuf[i]);
 	for(i=0; i<ndir; i++) {
@@ -163,24 +168,27 @@ dowidths(Dir *db)
 	int n;
 
 	if(sflag) {
-		n = sprint(buf, "%llud", (db->length+1023)/1024);
+		sprint(buf, "%ld", (db->length+1023)/1024);
+		n = strlen(buf);
 		if(n > swidth)
 			swidth = n;
 	}
 	if(qflag) {
-		n = sprint(buf, "%lud", db->qid.vers);
+		sprint(buf, "%ld", db->qid.vers);
+		n = strlen(buf);
 		if(n > qwidth)
 			qwidth = n;
 	}
 	if(lflag) {
-		n = sprint(buf, "%ud", db->dev);
+		sprint(buf, "%d", db->dev);
+		n = strlen(buf);
 		if(n > vwidth)
 			vwidth = n;
 		n = strlen(db->uid);
 		if(n > uwidth)
 			uwidth = n;
-		n = sprint(buf, "%llud", db->length);
-		n += strlen(db->gid);
+		sprint(buf, "%ld", db->length);
+		n = strlen(buf) + strlen(db->gid);
 		if(n > glwidth)
 			glwidth = n;
 	}
@@ -202,19 +210,19 @@ void
 format(Dir *db, char *name)
 {
 	if(sflag)
-		Bprint(&bin, "%*llud ",
+		Bprint(&bin, "%*ld ",
 			swidth, (db->length+1023)/1024);
 	if(qflag)
 		Bprint(&bin, "%.8lux %*lud ",
 			db->qid.path,
 			qwidth, db->qid.vers);
 	if(lflag)
-		Bprint(&bin, "%M %C %*ud %*s %s %*llud %s %s\n",
+		Bprint(&bin, "%M %C %*d %*s %s %*ld %s %s\n",
 			db->mode, db->type,
 			vwidth, db->dev,
 			-uwidth, db->uid,
 			db->gid,
-			(int)(glwidth-strlen(db->gid)), db->length,
+			glwidth-strlen(db->gid), db->length,
 			asciitime(uflag? db->atime : db->mtime), name);
 	else
 		Bprint(&bin, "%s%s\n", name, fileflag(db));

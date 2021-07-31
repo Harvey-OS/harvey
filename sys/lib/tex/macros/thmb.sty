@@ -1,0 +1,63 @@
+%% 
+%% This is file `thmb.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% theorem.dtx  (with options: `thmb')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+\def\fileversion{v2.2a}
+\def\filedate{1994/02/03}
+\def\docdate {1994/02/28}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%% 
+%% Package `theorem' to use with LaTeX2e
+%% Copyright (C) 1989-1994 Frank Mittelbach, all rights reserved.
+%%
+%% For error reports for UNCHANGED versions see readme.txt.
+%%   The next few lines define theorem sets which are used
+%%   in the example section of the documentation.
+\begingroup \makeatletter
+\@ifundefined{theorem@style}{\input{theorem.sty}}{}
+\ProvidesFile{thmb.sty}
+             [\filedate\space Theorem layout style \fileversion]
+\wlog{Theorem layout: `theorem-margin-break' \fileversion \space
+         <\filedate>  (FMi)}
+\gdef\th@marginbreak{\normalfont\slshape
+  \def\@begintheorem##1##2{\item
+       [\rlap{\vbox{\theorem@headerfont
+                    \hbox{\llap{##2}\hskip\labelsep ##1}%
+                    \hbox{\strut}}}]}%
+\def\@opargbegintheorem##1##2##3{%
+  \item[\rlap{\vbox{\theorem@headerfont
+                    \hbox{\llap{##2}\hskip\labelsep ##1\ (##3)}%
+                    \hbox{\strut}}}]}}
+\endgroup
+
+\endinput
+%% 
+%% End of file `thmb.sty'.

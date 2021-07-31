@@ -1,0 +1,19 @@
+#!/bin/rc
+
+if(! ~ $#* 1){
+	echo usage: mklinklist file >[2=1]
+	exit 1
+}
+
+fn mkextract{
+	
+	sed '/^$/d; /^#/d' $2 | awk '
+	BEGIN { doprint=0 }
+	doprint && /^[^	]/	{ doprint=0 }
+	doprint			{ print $1 "'.$O'"; for(i=2; i <= NF; i++)
+								print $i "'.$O'"; }
+	$0 ~ field		{ doprint=1; next }
+	' 'field=^'$1 |sort|uniq
+}
+
+mkextract link $1

@@ -3,7 +3,8 @@
 
 enum
 {
-	IDIGIT	= 40,
+	SIZE	= 1024,
+	IDIGIT	= 30,
 	MAXCONV	= 40,
 	FDIGIT	= 30,
 	FDEFLT	= 6,
@@ -14,154 +15,125 @@ enum
 	FMINUS	= 1<<1,
 	FSHARP	= 1<<2,
 	FLONG	= 1<<3,
+	FSHORT	= 1<<4,
 	FUNSIGN	= 1<<5,
 	FVLONG	= 1<<6,
-	FPOINTER= 1<<7,
 };
+
+#define	PTR	sizeof(char*)
+#define	SHORT	sizeof(int)
+#define	INT	sizeof(int)
+#define	LONG	sizeof(long)
+#define	VLONG	sizeof(vlong)
+#define	FLOAT	sizeof(double)
 
 int	printcol;
 
-static struct
+static	int	convcount;
+static	char	fmtindex[MAXFMT];
+
+static	int	noconv(void*, Fconv*);
+static	int	flags(void*, Fconv*);
+
+static	int	cconv(void*, Fconv*);
+static	int	rconv(void*, Fconv*);
+static	int	sconv(void*, Fconv*);
+static	int	percent(void*, Fconv*);
+static	int	column(void*, Fconv*);
+
+int	numbconv(void*, Fconv*);
+int	fltconv(void*, Fconv*);
+
+static
+int	(*fmtconv[MAXCONV])(void*, Fconv*) =
 {
-	Lock;
-	int	convcount;
-	char	index[MAXFMT];
-	int	(*conv[MAXCONV])(va_list*, Fconv*);
-} fmtalloc;
+	noconv
+};
 
-static	int	noconv(va_list*, Fconv*);
-static	int	flags(va_list*, Fconv*);
-
-static	int	cconv(va_list*, Fconv*);
-static	int	rconv(va_list*, Fconv*);
-static	int	sconv(va_list*, Fconv*);
-static	int	percent(va_list*, Fconv*);
-static	int	column(va_list*, Fconv*);
-
-extern	int	numbconv(va_list*, Fconv*);
-extern	int	fltconv(va_list*, Fconv*);
-
-
-static	void
+static
+void
 initfmt(void)
 {
 	int cc;
 
-	lock(&fmtalloc);
-	if(fmtalloc.convcount <= 0) {
-		cc = 0;
-		fmtalloc.conv[cc] = noconv;
-		cc++;
+	cc = 0;
+	fmtconv[cc] = noconv;
+	cc++;
 
-		fmtalloc.conv[cc] = flags;
-		fmtalloc.index['+'] = cc;
-		fmtalloc.index['-'] = cc;
-		fmtalloc.index['#'] = cc;
-		fmtalloc.index['l'] = cc;
-		fmtalloc.index['u'] = cc;
-		cc++;
+	fmtconv[cc] = flags;
+	fmtindex['+'] = cc;
+	fmtindex['-'] = cc;
+	fmtindex['#'] = cc;
+	fmtindex['h'] = cc;
+	fmtindex['l'] = cc;
+	fmtindex['u'] = cc;
+	cc++;
 
-		fmtalloc.conv[cc] = numbconv;
-		fmtalloc.index['d'] = cc;
-		fmtalloc.index['o'] = cc;
-		fmtalloc.index['x'] = cc;
-		fmtalloc.index['X'] = cc;
-		fmtalloc.index['p'] = cc;
-		cc++;
+	fmtconv[cc] = numbconv;
+	fmtindex['d'] = cc;
+	fmtindex['o'] = cc;
+	fmtindex['x'] = cc;
+	fmtindex['X'] = cc;
+	cc++;
 
-		fmtalloc.conv[cc] = fltconv;
-		fmtalloc.index['e'] = cc;
-		fmtalloc.index['f'] = cc;
-		fmtalloc.index['g'] = cc;
-		fmtalloc.index['E'] = cc;
-		fmtalloc.index['G'] = cc;
-		cc++;
+	fmtconv[cc] = fltconv;
+	fmtindex['e'] = cc;
+	fmtindex['f'] = cc;
+	fmtindex['g'] = cc;
+	fmtindex['E'] = cc;
+	fmtindex['G'] = cc;
+	cc++;
 
-		fmtalloc.conv[cc] = cconv;
-		fmtalloc.index['c'] = cc;
-		fmtalloc.index['C'] = cc;
-		cc++;
+	fmtconv[cc] = cconv;
+	fmtindex['c'] = cc;
+	fmtindex['C'] = cc;
+	cc++;
 
-		fmtalloc.conv[cc] = rconv;
-		fmtalloc.index['r'] = cc;
-		cc++;
+	fmtconv[cc] = rconv;
+	fmtindex['r'] = cc;
+	cc++;
 
-		fmtalloc.conv[cc] = sconv;
-		fmtalloc.index['s'] = cc;
-		fmtalloc.index['S'] = cc;
-		cc++;
+	fmtconv[cc] = sconv;
+	fmtindex['s'] = cc;
+	fmtindex['S'] = cc;
+	cc++;
 
-		fmtalloc.conv[cc] = percent;
-		fmtalloc.index['%'] = cc;
-		cc++;
+	fmtconv[cc] = percent;
+	fmtindex['%'] = cc;
+	cc++;
 
-		fmtalloc.conv[cc] = column;
-		fmtalloc.index['|'] = cc;
-		cc++;
+	fmtconv[cc] = column;
+	fmtindex['|'] = cc;
+	cc++;
 
-		fmtalloc.convcount = cc;
-	}
-	unlock(&fmtalloc);
+	convcount = cc;
 }
 
 int
-fmtinstall(int c, int (*f)(va_list*, Fconv*))
+fmtinstall(int c, int (*f)(void*, Fconv*))
 {
 
-	if(fmtalloc.convcount <= 0)
+	if(convcount == 0)
 		initfmt();
-
-	lock(&fmtalloc);
-	if(c < 0 || c >= MAXFMT) {
-		unlock(&fmtalloc);
+	if(c < 0 || c >= MAXFMT)
 		return -1;
-	}
-	if(fmtalloc.convcount >= MAXCONV) {
-		unlock(&fmtalloc);
+	if(convcount >= MAXCONV)
 		return -1;
-	}
-	fmtalloc.conv[fmtalloc.convcount] = f;
-	fmtalloc.index[c] = fmtalloc.convcount;
-	fmtalloc.convcount++;
-
-	unlock(&fmtalloc);
+	fmtconv[convcount] = f;
+	fmtindex[c] = convcount;
+	convcount++;
 	return 0;
 }
 
-static	void
-pchar(Rune c, Fconv *fp)
-{
-	int n;
-
-	n = fp->eout - fp->out;
-	if(n > 0) {
-		if(c < Runeself) {
-			*fp->out++ = c;
-			return;
-		}
-		if(n >= UTFmax || n >= runelen(c)) {
-			n = runetochar(fp->out, &c);
-			fp->out += n;
-			return;
-		}
-		fp->eout = fp->out;
-	}
-}
-
 char*
-doprint(char *s, char *es, char *fmt, va_list argp)
+doprint(char *s, char *es, char *fmt, void *argp)
 {
 	int n, c;
 	Rune rune;
 	Fconv local;
 
-	if(fmtalloc.convcount <= 0)
-		initfmt();
-
-	if(s >= es)
-		return s;
 	local.out = s;
-	local.eout = es-1;
+	local.eout = es-UTFmax-1;
 
 loop:
 	c = *fmt & 0xff;
@@ -189,7 +161,13 @@ loop:
 		goto common;
 
 	common:
-		pchar(c, &local);
+		if(local.out < local.eout)
+			if(c >= Runeself) {
+				rune = c;
+				n = runetochar(local.out, &rune);
+				local.out += n;
+			} else
+				*local.out++ = c;
 		goto loop;
 
 	case '%':
@@ -241,7 +219,8 @@ l1:
 		goto l1;
 	}
 	if(c == '*') {
-		n = va_arg(argp, int);
+		n = *(int*)argp;
+		argp = (char*)argp + INT;
 		if(local.f1 == NONE)
 			local.f1 = n;
 		else
@@ -250,21 +229,23 @@ l1:
 	}
 	n = 0;
 	if(c >= 0 && c < MAXFMT)
-		n = fmtalloc.index[c];
+		n = fmtindex[c];
 	local.chr = c;
-	n = (*fmtalloc.conv[n])(&argp, &local);
+	n = (*fmtconv[n])(argp, &local);
 	if(n < 0) {
 		local.f3 |= -n;
 		goto l0;
 	}
+	argp = (char*)argp + n;
 	goto loop;
 }
 
 int
-numbconv(va_list *arg, Fconv *fp)
+numbconv(void *o, Fconv *fp)
 {
 	char s[IDIGIT];
-	int i, f, n, b, ucase;
+	int i, f, n, r, b, ucase;
+	short h;
 	long v;
 	vlong vl;
 
@@ -280,10 +261,6 @@ numbconv(va_list *arg, Fconv *fp)
 		b = 10;
 		break;
 
-	case 'b':
-		b = 2;
-		break;
-
 	case 'o':
 		b = 8;
 		break;
@@ -293,40 +270,50 @@ numbconv(va_list *arg, Fconv *fp)
 	case 'x':
 		b = 16;
 		break;
-	case 'p':
-		fp->f3 |= FPOINTER|FUNSIGN;
-		b = 16;
-		break;
 	}
 
 	f = 0;
-	switch(fp->f3 & (FVLONG|FLONG|FUNSIGN|FPOINTER)) {
+	switch(fp->f3 & (FVLONG|FLONG|FSHORT|FUNSIGN)) {
 	case FVLONG|FLONG:
-		vl = va_arg(*arg, vlong);
+		vl = *(vlong*)o;
+		r = VLONG;
 		break;
 
 	case FUNSIGN|FVLONG|FLONG:
-		vl = va_arg(*arg, uvlong);
-		break;
-
-	case FUNSIGN|FPOINTER:
-		v = (ulong)va_arg(*arg, void*);
+		vl = *(uvlong*)o;
+		r = VLONG;
 		break;
 
 	case FLONG:
-		v = va_arg(*arg, long);
+		v = *(long*)o;
+		r = LONG;
 		break;
 
 	case FUNSIGN|FLONG:
-		v = va_arg(*arg, ulong);
+		v = *(ulong*)o;
+		r = LONG;
+		break;
+
+	case FSHORT:
+		h = *(int*)o;
+		v = h;
+		r = SHORT;
+		break;
+
+	case FUNSIGN|FSHORT:
+		h = *(int*)o;
+		v = (ushort)h;
+		r = SHORT;
 		break;
 
 	default:
-		v = va_arg(*arg, int);
+		v = *(int*)o;
+		r = INT;
 		break;
 
 	case FUNSIGN:
-		v = va_arg(*arg, unsigned);
+		v = *(unsigned*)o;
+		r = INT;
 		break;
 	}
 	if(fp->f3 & FVLONG) {
@@ -385,13 +372,14 @@ numbconv(va_list *arg, Fconv *fp)
 		s[--i] = '-';
 	fp->f2 = NONE;
 	strconv(s+i, fp);
-	return 0;
+	return r;
 }
 
 void
 Strconv(Rune *s, Fconv *fp)
 {
-	int n, c;
+	int n, c, i;
+	Rune rune;
 
 	if(fp->f3 & FMINUS)
 		fp->f1 = -fp->f1;
@@ -400,7 +388,8 @@ Strconv(Rune *s, Fconv *fp)
 		for(; s[n]; n++)
 			;
 		while(n < fp->f1) {
-			pchar(' ', fp);
+			if(fp->out < fp->eout)
+				*fp->out++ = ' ';
 			printcol++;
 			n++;
 		}
@@ -411,7 +400,13 @@ Strconv(Rune *s, Fconv *fp)
 			break;
 		n++;
 		if(fp->f2 == NONE || fp->f2 > 0) {
-			pchar(c, fp);
+			if(fp->out < fp->eout)
+				if(c >= Runeself) {
+					rune = c;
+					i = runetochar(fp->out, &rune);
+					fp->out += i;
+				} else
+					*fp->out++ = c;
 			if(fp->f2 != NONE)
 				fp->f2--;
 			switch(c) {
@@ -430,7 +425,8 @@ Strconv(Rune *s, Fconv *fp)
 	if(fp->f1 != NONE && fp->f1 < 0) {
 		fp->f1 = -fp->f1;
 		while(n < fp->f1) {
-			pchar(' ', fp);
+			if(fp->out < fp->eout)
+				*fp->out++ = ' ';
 			printcol++;
 			n++;
 		}
@@ -449,7 +445,8 @@ strconv(char *s, Fconv *fp)
 	if(fp->f1 != NONE && fp->f1 >= 0) {
 		n = utflen(s);
 		while(n < fp->f1) {
-			pchar(' ', fp);
+			if(fp->out < fp->eout)
+				*fp->out++ = ' ';
 			printcol++;
 			n++;
 		}
@@ -466,7 +463,13 @@ strconv(char *s, Fconv *fp)
 			break;
 		n++;
 		if(fp->f2 == NONE || fp->f2 > 0) {
-			pchar(c, fp);
+			if(fp->out < fp->eout)
+				if(c >= Runeself) {
+					rune = c;
+					i = runetochar(fp->out, &rune);
+					fp->out += i;
+				} else
+					*fp->out++ = c;
 			if(fp->f2 != NONE)
 				fp->f2--;
 			switch(c) {
@@ -485,18 +488,28 @@ strconv(char *s, Fconv *fp)
 	if(fp->f1 != NONE && fp->f1 < 0) {
 		fp->f1 = -fp->f1;
 		while(n < fp->f1) {
-			pchar(' ', fp);
+			if(fp->out < fp->eout)
+				*fp->out++ = ' ';
 			printcol++;
 			n++;
 		}
 	}
 }
 
-static int
-noconv(va_list*, Fconv *fp)
+static
+int
+noconv(void *o, Fconv *fp)
 {
+	int n;
 	char s[10];
 
+	if(convcount == 0) {
+		initfmt();
+		n = 0;
+		if(fp->chr >= 0 && fp->chr < MAXFMT)
+			n = fmtindex[fp->chr];
+		return (*fmtconv[n])(o, fp);
+	}
 	s[0] = '*';
 	s[1] = fp->chr;
 	s[2] = '*';
@@ -508,10 +521,13 @@ noconv(va_list*, Fconv *fp)
 	return 0;
 }
 
-static int
-rconv(va_list*, Fconv *fp)
+static
+int
+rconv(void *o, Fconv *fp)
 {
 	char s[ERRLEN];
+
+	USED(o);
 
 	s[0] = 0;
 	errstr(s);
@@ -520,73 +536,83 @@ rconv(va_list*, Fconv *fp)
 	return 0;
 }
 
-static int
-cconv(va_list *arg, Fconv *fp)
+static
+int
+cconv(void *o, Fconv *fp)
 {
 	char s[10];
 	Rune rune;
 
-	rune = va_arg(*arg, int);
+	rune = *(int*)o;
 	if(fp->chr == 'c')
 		rune &= 0xff;
 	s[runetochar(s, &rune)] = 0;
 
 	fp->f2 = NONE;
 	strconv(s, fp);
-	return 0;
+	return INT;
 }
 
-static	int
-sconv(va_list *arg, Fconv *fp)
+static
+int
+sconv(void *o, Fconv *fp)
 {
 	char *s;
 	Rune *r;
 
 	if(fp->chr == 's') {
-		s = va_arg(*arg, char*);
+		s = *(char**)o;
 		if(s == 0)
 			s = "<null>";
 		strconv(s, fp);
 	} else {
-		r = va_arg(*arg, Rune*);
+		r = *(Rune**)o;
 		if(r == 0)
 			r = L"<null>";
 		Strconv(r, fp);
 	}
-	return 0;
+	return PTR;
 }
 
-static	int
-percent(va_list*, Fconv *fp)
+static
+int
+percent(void *o, Fconv *fp)
 {
-	pchar('%', fp);
+
+	USED(o);
+	if(fp->out < fp->eout)
+		*fp->out++ = '%';
 	printcol++;
 	return 0;
 }
 
-static	int
-column(va_list *arg, Fconv *fp)
+static
+int
+column(void *o, Fconv *fp)
 {
 	int col, pc;
 
-	col = va_arg(*arg, int);
-	while(printcol < col) {
+	col = *(int*)o;
+	while(fp->out < fp->eout && printcol < col) {
 		pc = (printcol+8) & ~7;
 		if(pc <= col) {
-			pchar('\t', fp);
+			*fp->out++ = '\t';
 			printcol = pc;
 		} else {
-			pchar(' ', fp);
+			*fp->out++ = ' ';
 			printcol++;
 		}
 	}
 	return 0;
 }
 
-static	int
-flags(va_list*, Fconv *fp)
+static
+int
+flags(void *o, Fconv *fp)
 {
 	int f;
+
+	USED(o);
 
 	f = 0;
 	switch(fp->chr) {
@@ -600,6 +626,10 @@ flags(va_list*, Fconv *fp)
 
 	case '#':
 		f = FSHARP;
+		break;
+
+	case 'h':
+		f = FSHORT;
 		break;
 
 	case 'l':
@@ -616,7 +646,7 @@ flags(va_list*, Fconv *fp)
 }
 
 int
-fltconv(va_list *arg, Fconv *fp)
+fltconv(void *o, Fconv *fp)
 {
 	char s1[FDIGIT+10], s2[FDIGIT+10];
 	double f, g, h;
@@ -626,18 +656,18 @@ fltconv(va_list *arg, Fconv *fp)
 	f2 = fp->f2;
 	fp->f2 = NONE;
 
-	f = va_arg(*arg, double);
+	f = *(double*)o;
 	if(isNaN(f)){
 		strconv("NaN", fp);
-		return 0;
+		return FLOAT;
 	}
 	if(isInf(f, 1)){
 		strconv("+Inf", fp);
-		return 0;
+		return FLOAT;
 	}
 	if(isInf(f, -1)){
 		strconv("-Inf", fp);
-		return 0;
+		return FLOAT;
 	}
 	s = 0;
 	if(f < 0) {
@@ -824,5 +854,5 @@ loop:
 	}
 	s2[d] = 0;
 	strconv(s2, fp);
-	return 0;
+	return FLOAT;
 }

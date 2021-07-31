@@ -1,0 +1,167 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1994 Nederlandstalige TeX Gebruikersgroep.
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the NTG document classes distribution
+% ----------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in 00readme.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+\documentclass[10pt]{artikel1} % or just 'article'
+\usepackage{shortvrb}
+\newcommand\Lopt[1]{\textsf{#1}}
+\newcommand\file[1]{\texttt{#1}}
+
+\begin{document}
+
+\title{An introduction to the Dutch \LaTeX\ document
+  classes\thanks{Updated for \LaTeXe\ by Johannes Braams, 6 february
+    1994}}
+\author{Victor Eijkhout}
+\date{3 September 1989}
+\maketitle
+
+\section{Background}
+
+The Dutch \LaTeX\ document classes are an attempt to provide \LaTeX\ 
+users with facilities of the standard distribution document classes
+`article' and `report', but coupled to typography that is geared
+towards Dutch usage.  In order to ensure interchangeability, the new
+styles implemented the commands of the distribution styles.  In
+principle, then, no manual for these styles would be needed.  There
+are a few points, however, that can't go without comment.
+
+Table 1 lists all files connected with the Dutch document classes.
+These files can be found on the \texttt{tex-nl} fileserver
+on the \texttt{hearn} node of Bitnet/Earn and on the \textsc{ctan}.
+Not all of them are necessary, the ones with extension \file{.tex}
+contain just blah.
+
+Remark: there exists a Dutch version of `letter', which is so
+specifically Dutch that I decided not to include it in this list.
+
+\begin{table}[hbtp]
+  \begin{center}
+    \begin{tabular}{|@{\tt\hspace{1em}}r|l|}
+      \hline
+      ntgclass.tex & The \LaTeXe\ source for this text\\
+      ntgclass.dtx & The source for all the class files\\
+      ntgclass.dst & A \textsf{docstrip} program to produce\\
+                   & the class files from the source.\\
+      artikel1.cls  & article compatible, design 1, straightforward \\
+      artikel2.cls  & article compatible, design 2, rather different \\
+      artikel3.cls  & article compatible, design 3, 
+                      parskip instead of indent\\
+      rapport1.cls  & report compatible, design 1 \\
+      rapport3.cls  & report compatible, design 3 \\
+      book.cls      & book compatible, design 1\\
+      ntg10.clo     & 10 point option for all styles \\
+      ntg11.clo     & 11 point option for all styles \\
+      ntg12.clo     & 12 point option for all styles \\
+      artdoc.tex    & the genesis of the `artikel' classes, in Dutch \\
+      briefdoc.tex  & the genesis of the `brief class, also in Dutch \\
+      rapdoc.tex    & the genesis of the `rapport' classes, also in
+                      Dutch.\\
+    \hline
+    \end{tabular}
+  \end{center}
+  \caption{List of files}
+\end{table}
+
+
+\section{Languages}
+
+These styles have been developed bearing in mind suggestions of Hubert
+Partl for making the language of styles switchable.  Thus, on their
+own these styles will produce English captions like `chapter' and
+`table of contents', but specifying the options `dutch' or `german',
+or any language option that follows the directions of Partl, will
+switch these to the language of the option.
+
+\MakeShortVerb{\|}
+
+\section{Design}
+
+At the moment there are styles compatible with `article' and with
+`report'. The Dutch names for these are `artikel' and `rapport'. In
+contrast to the standard styles, however, the user can now choose from
+different visual designs.  Names of the styles are formed by appending
+their number to the name, for instance `rapport3'.
+\begin{enumerate}
+\item Design one is meant to be a universally acceptable style.  It
+  has been kept as uncontroversial as possible.  Under heavy protests
+  of the implementer (me) the one point that has turned out to be
+  controversial, the table of contents, has been made subject to a
+  switch that can restore the old \LaTeX\ layout. Explanation of this
+  follows.
+\item Design two will probably never be heavily used. It is more
+  something of a heroic attempt to be different. At the moment only
+  available in `artikel' form.
+\item Design three meets the wishes of people who like a zero
+  |\parindent| and a positive |\parskip|.  As just setting these
+  parameters within for instance `artikel1' will give some unwanted
+  side effects, I~decided to repair these in a separate style.
+\end{enumerate}
+Credits for the visual design go to one real-life designer and a
+couple of books by designers I consulted.  The full story can be found
+elsewhere.
+
+\subsection{User options}
+
+As was mentioned above, the new layout of the table of contents has
+turned out to be somewhat controversial.  So, in order to ensure wider
+acceptance of these styles I~have incorporated a switch that will
+restore the old layout. Just specify the \Lopt{oldtoc} option.  This is
+available in designs 1 and~3. Number~2 really insists on being
+different.
+
+%I~do no page sizing, so kindly use an option like \texttt{a4}.
+%There is a nice one on the server, which is not the one
+%by John Pavel.
+
+\subsection{Option files}
+
+Like in the standard styles there exist option files for $10/11/12$
+point layout. Until now, however, I~have managed to get away with
+using the same option files for both the `artikel' `rapport', and
+`boek' styles.  The option files then have to have some neutral names.
+Which are at the moment \file{ntg10}, \file{ntg11},
+and~\file{ntg12}. `NTG', of course, stands for Nederlandse \TeX\ 
+Gebruikersgroep, i.e., Dutch \TeX\ Users Group.
+
+When doing the `rapport' styles, I~needed to modify the `\file{titlepag}'
+option file. Thus there is a Dutch version of that, bearing the name
+of `voorwerk' (literal translation: `frontwork').  Probably the
+majority of Dutch \LaTeX\ users don't even know that this is the
+correct term.  You're never too old to learn.
+
+With the \LaTeXe\ version of thes classes the file \file{voorwerk.sty}
+has disappeared. It has been turned into the internal option
+\Lopt{voorwerk}, just like \file{titlpage.sty} has disappeared into
+the internal option \Lopt{titlepage}.
+\end{document}
+

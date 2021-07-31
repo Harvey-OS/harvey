@@ -1,0 +1,147 @@
+#
+#  external internet domain service
+#
+dom=
+	ns=ns.nic.ddn.mil
+	ns=kava.nisc.sri.com
+	ns=aos.brl.mil
+	ns=c.nyser.net
+	ns=terp.umd.edu
+	ns=ns.nasa.gov
+	ns=nic.nordu.net
+dom=ns.nic.ddn.mil ip=192.112.36.4
+dom=kava.nisc.sri.com ip=192.33.33.24
+dom=aos.brl.mil ip=192.5.25.82
+dom=c.nyser.net ip=192.33.4.12
+dom=terp.umd.edu ip=128.8.10.90
+dom=ns.nasa.gov ip=128.102.16.10 ip=192.52.195.10
+dom=nic.nordu.net ip=192.36.148.17
+#
+#  your PC (edit to suit)
+#
+sys = pc
+	dom=pc.research.att.com
+	ip=135.104.9.30 ether=000000000000
+	bootfile=/386/9pcdisk
+	proto=il
+
+#
+#  your ip networks and subnets (edit to suit)
+#
+ipnet=mh-astro-net ip=135.104.0.0 ipmask=255.255.255.0
+	ipgw=135.104.9.1
+	fs=bootes.research.att.com
+	auth=1127auth
+ipnet=third-floor ip=135.104.51.0
+	ipgw=135.104.51.1
+ipnet=fourth-floor ip=135.104.52.0
+	ipgw=135.104.52.1
+
+#
+#  1127 file server
+#
+sys = bootes
+	dom=bootes.research.att.com
+	ip=135.104.9.30
+	proto=il
+
+#
+#  1127 cpu server
+#
+sys = helix
+	dom=helix.research.att.com
+	ip=135.104.9.31
+	proto=il
+
+#
+#   1127 authentication servers
+#
+sys=1127auth
+	ip=135.104.9.34 dk=nj/astro/p9auth
+	ip=135.104.9.6 dk=nj/astro/musca
+	proto=il
+
+tcp=cs port=1
+tcp=echo port=7
+tcp=discard port=9
+tcp=systat port=11
+tcp=daytime port=13
+tcp=netstat port=15
+tcp=chargen port=19
+tcp=ftp-data port=20
+tcp=ftp port=21
+tcp=telnet port=23
+tcp=smtp port=25
+tcp=time port=37
+tcp=whois port=43
+tcp=domain port=53
+tcp=uucp port=64
+tcp=rje port=77
+tcp=finger port=79
+tcp=http port=80
+tcp=link port=87
+tcp=supdup port=95
+tcp=hostnames port=101
+tcp=iso-tsap port=102
+tcp=x400 port=103
+tcp=x400-snd port=104
+tcp=csnet-ns port=105
+tcp=pop-2 port=109
+tcp=sunrpc port=111
+tcp=uucp-path port=117
+tcp=nntp port=119
+tcp=NeWS port=144
+tcp=print-srv port=170
+tcp=z39.50 port=210
+tcp=fsb port=400
+tcp=sysmon port=401
+tcp=proxy port=402
+tcp=proxyd port=404
+tcp=rexec port=512 restricted=
+tcp=login port=513 restricted=
+tcp=shell port=514 restricted=
+tcp=printer port=515
+tcp=courier port=530
+tcp=cscan port=531
+tcp=uucp port=540
+tcp=9fs port=564
+tcp=whoami port=565
+tcp=guard port=566
+tcp=fmclient port=729
+tcp=ingreslock port=1524
+tcp=webster port=2627
+tcp=weather port=3000
+tcp=Xdisplay port=6000
+tcp=face port=32000
+tcp=video port=17028
+tcp=vgen port=17029
+tcp=alefnslook port=17030
+
+il=echo port=7
+il=discard port=9
+il=chargen port=19
+il=whoami port=565
+il=ticket port=566
+il=challbox port=567
+il=cpu port=17005
+il=cpunote port=17006
+il=exportfs port=17007
+il=9fs port=17008
+il=rexexec port=17009
+il=fsauth port=17020
+il=rexauth port=17021
+il=changekey port=17022
+il=chal port=17023
+il=check port=17024
+il=juke port=17026
+il=video port=17028
+il=vgen port=17029
+il=alefnslook port=17030
+
+udp=tftp port=69
+udp=bootpc port=68
+udp=bootp port=67
+udp=dns port=53
+udp=ntp port=123
+udp=rip port=520
+udp=bfs port=2201

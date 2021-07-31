@@ -1,0 +1,246 @@
+rpagk AvantGarde-Book
+rpagko AvantGarde-BookOblique
+rpagd AvantGarde-Demi
+rpagdo AvantGarde-DemiOblique
+rpbkd Bookman-Demi
+rpbkdi Bookman-DemiItalic
+rpbkl Bookman-Light
+rpbkli Bookman-LightItalic
+rpcrb Courier-Bold
+rpcrbo Courier-BoldOblique
+rpcrro Courier-Oblique
+rpcrr Courier
+rphvb Helvetica-Bold
+rphvbo Helvetica-BoldOblique
+rphvbrn Helvetica-Bold ".82 ExtendFont"
+rphvbon Helvetica-BoldOblique ".82 ExtendFont"
+rphvron Helvetica-Oblique ".82 ExtendFont"
+rphvrrn Helvetica ".82 ExtendFont"
+rphvro Helvetica ".167 SlantFont"
+rphvr Helvetica
+rpncb NewCenturySchlbk-Bold
+rpncbi NewCenturySchlbk-BoldItalic
+rpncri NewCenturySchlbk-Italic
+rpncr NewCenturySchlbk-Roman
+rpplb Palatino-Bold
+rpplbi Palatino-BoldItalic
+rpplbu Palatino-BoldItalic "-.1763 SlantFont"
+rpplrrn Palatino-Roman ".82 ExtendFont"
+rpplrre Palatino-Roman "1.2 ExtendFont"
+rpplri Palatino-Italic
+rpplro Palatino-Roman ".167 SlantFont"
+rpplr Palatino-Roman
+rpplru Palatino-Italic "-.1763 SlantFont"
+rpsyr Symbol
+rpsyro Symbol ".167 SlantFont"
+rptmb Times-Bold
+psyr Symbol
+psyro Symbol ".167 SlantFont"
+rptmbi Times-BoldItalic
+rptmrrn Times-Roman ".8 ExtendFont"
+rptmrre Times-Roman "1.2 ExtendFont"
+rptmri Times-Italic
+rptmro Times-Roman ".167 SlantFont"
+rptmr Times-Roman
+rpzcmi ZapfChancery-MediumItalic
+rpzdr ZapfDingbats
+pzdr ZapfDingbats
+rpstrn StoneInformal <StoneInformal.pfb
+rpstrnn StoneInformal-Narrow StoneInformal ".8 ExtendFont"
+rpstrni StoneInformal-Italic <StoneInformal-Italic.pfb
+rpstbn StoneInformal-Bold <StoneInformal-Bold.pfb
+rpstbni StoneInformal-BoldItalic <StoneInformal-BoldItalic.pfb
+rpstsn StoneInformal-Semibold <StoneInformal-Semibold.pfb
+rpstsni StoneInformal-SemiboldItalic <StoneInformal-SemiboldItalic.pfb
+rpstrs StoneSans <StoneSans.pfb
+rpstrso StoneSans ".2126 SlantFont"
+rpstr StoneSerif <StoneSerif.pfb
+rpstri StoneSerif-Italic <StoneSerif-Italic.pfb
+rpsts StoneSerif-Semibold <StoneSerif-Semibold.pfb
+rpstsi StoneSerif-SemiboldItalic <StoneSerif-SemiboldItalic.pfb
+rpstb StoneSerif-Bold <StoneSerif-Bold.pfb
+rpstbi StoneSerif-BoldItalic <StoneSerif-BoldItalic.pfb
+rpopr Optima <Optima.pfb
+rpopro Optima ".1944 SlantFont"
+rpopb Optima-Bold <Optima-Bold.pfb
+rpopbo Optima-Bold ".1944 SlantFont"
+rpoprrn Optima ".82 ExtendFont"
+rpoprre Optima "1.2 ExtendFont"
+rpopra OptimaHR <OptimaHR.pfb
+rpopba OptimaHR-Bold <OptimaHR-Bold.pfb
+rpadr AGaramond-Regular <AGaramond-Regular.pfb
+rpadrx AGaramondExp-Regular <AGaramondExp-Regular.pfb
+rpadra AGaramondAlt-Regular <AGaramondAlt-Regular.pfb
+rpadri AGaramond-Italic <AGaramond-Italic.pfb
+rpadrxi AGaramondExp-Italic <AGaramondExp-Italic.pfb
+rpadrai AGaramondAlt-Italic <AGaramondAlt-Italic.pfb
+rpads AGaramond-Semibold <AGaramond-Semibold.pfb
+rpadsx AGaramondExp-Semibold <AGaramondExp-Semibold.pfb
+rpadsi AGaramond-SemiboldItalic <AGaramond-SemiboldItalic.pfb
+rpadsxi AGaramondExp-SemiboldItalic <AGaramondExp-SemiboldItalic.pfb
+rpadb AGaramond-Bold <AGaramond-Bold.pfb
+rpadbx AGaramondExp-Bold <AGaramondExp-Bold.pfb
+rpadbi AGaramond-BoldItalic <AGaramond-BoldItalic.pfb
+rpadbxi AGaramondExp-BoldItalic <AGaramondExp-BoldItalic.pfb
+rptmr0 Times-Roman
+MTSY <mtsy.pso
+MTEX <mtex.pso
+MTMI <mtmi.pso
+padb0 AGaramond-Bold <padb0.pfb
+padbi0 AGaramond-BoldItalic <padbi0.pfb
+padr0 AGaramond-Regular <padr0.pfb
+padri0 AGaramond-Italic <padri0.pfb
+pads0 AGaramond-Semibold <pads0.pfb
+padsi0 AGaramond-SemiboldItalic <padsi0.pfb
+padbo0 AGaramond-Bold ".167 SlantFont " <padb0.pfb
+padro0 AGaramond-Regular ".167 SlantFont " <padr0.pfb
+padso0 AGaramond-Semibold ".167 SlantFont " <pads0.pfb
+pagd0 AvantGarde-Demi
+pagdo0 AvantGarde-DemiOblique
+pagk0 AvantGarde-Book
+pagko0 AvantGarde-BookOblique
+pbbb0 MBembo-Bold <pbbb0.pfb
+pbbbi0 MBembo-BoldItalic <pbbbi0.pfb
+pbbbx MBemboExpert-Bold <pbbbx.pfb
+pbbr0 MBembo <pbbr0.pfb
+pbbri0 MBembo-Italic <pbbri0.pfb
+pbbrx MBemboExpert <pbbrx.pfb
+pbbbo0 MBembo-Bold ".167 SlantFont " <pbbb0.pfb
+pbbbox MBemboExpert-Bold ".167 SlantFont " <pbbbx.pfb
+pbbro0 MBembo ".167 SlantFont " <pbbr0.pfb
+pbbrox MBemboExpert ".167 SlantFont " <pbbrx.pfb
+pbkd0 Bookman-Demi
+pbkdi0 Bookman-DemiItalic
+pbkl0 Bookman-Light
+pbkli0 Bookman-LightItalic
+pbkdo0 Bookman-Demi ".167 SlantFont" 
+pbklo0 Bookman-Light ".167 SlantFont" 
+pcrb0 Courier-Bold
+pcrbo0 Courier-BoldOblique
+pcrr0 Courier
+pcrro0 Courier-Oblique
+pgsb0 MGillSans-Bold <pgsb0.pfb
+pgsbi0 MGillSans-BoldItalic <pgsbi0.pfb
+pgsr0 MGillSans <pgsr0.pfb
+pgsri0 MGillSans-Italic <pgsri0.pfb
+pgsbo0 MGillSans-Bold ".167 SlantFont " <pgsb0.pfb
+pgsro0 MGillSans ".167 SlantFont " <pgsr0.pfb
+phvb0 Helvetica-Bold
+phvbo0 Helvetica-BoldOblique
+phvbon0 Helvetica-Narrow-BoldOblique
+phvbrn0 Helvetica-Narrow-Bold
+phvr0 Helvetica
+phvro0 Helvetica-Oblique
+phvron0 Helvetica-Narrow-Oblique
+phvrrn0 Helvetica-Narrow
+pmnb0 Minion-Bold <pmnb0.pfb
+pmnb90 Minion-BoldOsF <pmnb90.pfb
+pmnbi0 Minion-BoldItalic <pmnbi0.pfb
+pmnbi90 Minion-BoldItalicOsF <pmnbi90.pfb
+pmnbx MinionExp-Bold <pmnbx.pfb
+pmnbxi MinionExp-BoldItalic <pmnbxi.pfb
+pmnc0 Minion-Black <pmnc0.pfb
+pmnc90 Minion-BlackOsF <pmnc90.pfb
+pmncx MinionExp-Black <pmncx.pfb
+pmnr0 Minion-Regular <pmnr0.pfb
+pmnrc0 Minion-RegularSC <pmnrc0.pfb
+pmnrd0 Minion-DisplayRegular <pmnrd0.pfb
+pmnrdc0 Minion-DisplayRegularSC <pmnrdc0.pfb
+pmnrdci0 Minion-DisplayItalicSC <pmnrdci0.pfb
+pmnrdi0 Minion-DisplayItalic <pmnrdi0.pfb
+pmnri0 Minion-Italic <pmnri0.pfb
+pmnric0 Minion-ItalicSC <pmnric0.pfb
+pmnrp0 Minion-Ornaments <pmnrp0.pfb
+pmnrwdi0 Minion-SwashDisplayItalic <pmnrwdi0.pfb
+pmnrwi0 Minion-SwashItalic <pmnrwi0.pfb
+pmnrx MinionExp-Regular <pmnrx.pfb
+pmnrxd MinionExp-DisplayRegular <pmnrxd.pfb
+pmnrxdi MinionExp-DisplayItalic <pmnrxdi.pfb
+pmnrxi MinionExp-Italic <pmnrxi.pfb
+pmnrxs MinionExp-Semibold <pmnrxs.pfb
+pmnrxsi MinionExp-SemiboldItalic <pmnrxsi.pfb
+pmns0 Minion-Semibold <pmns0.pfb
+pmnsc0 Minion-SemiboldSC <pmnsc0.pfb
+pmnsi0 Minion-SemiboldItalic <pmnsi0.pfb
+pmnsic0 Minion-SemiboldItalicSC <pmnsic0.pfb
+pmnswi0 Minion-SwashSemiboldItalic <pmnswi0.pfb
+pnbb0 NewBaskerville-Bold <pnbb0.pfb
+pnbbi0 NewBaskerville-BoldItalic <pnbbi0.pfb
+pnbr0 NewBaskerville-Roman <pnbr0.pfb
+pnbri0 NewBaskerville-Italic <pnbri0.pfb
+pnbbo0 NewBaskerville-Bold ".167 SlantFont " <pnbb0.pfb
+pnbro0 NewBaskerville-Roman ".167 SlantFont " <pnbr0.pfb
+pncb0 NewCenturySchlbk-Bold
+pncbi0 NewCenturySchlbk-BoldItalic
+pncr0 NewCenturySchlbk-Roman
+pncri0 NewCenturySchlbk-Italic
+pncbo0 NewCenturySchlbk-Bold ".167 SlantFont" 
+pncro0 NewCenturySchlbk-Roman ".167 SlantFont" 
+popb0 Optima-Bold <popb0.pfb
+popbo0 Optima-BoldOblique <popbo0.pfb
+popr0 Optima <popr0.pfb
+popro0 Optima-Oblique <popro0.pfb
+pplb0 Palatino-Bold
+pplbi0 Palatino-BoldItalic
+pplr0 Palatino-Roman
+pplri0 Palatino-Italic
+pplbo0 Palatino-Bold ".167 SlantFont" 
+pplro0 Palatino-Roman ".167 SlantFont" 
+ptmb0 Times-Bold
+ptmbi0 Times-BoldItalic
+ptmr0 Times-Roman
+ptmri0 Times-Italic
+ptmbo0 Times-Bold ".167 SlantFont" 
+ptmro0 Times-Roman ".167 SlantFont" 
+punb0 Univers-Bold <punb0.pfb
+punbo0 Univers-BoldOblique <punbo0.pfb
+punl0 Univers-Light <punl0.pfb
+punlo0 Univers-LightOblique <punlo0.pfb
+punr0 Univers <punr0.pfb
+punro0 Univers-Oblique <punro0.pfb
+pzcmi0 ZapfChancery-MediumItalic
+hlcrf0 LucidaBlackletter <hlcrf0.pfb
+hlcrof0 LucidaBlackletter ".167 SlantFont " <hlcrf0.pfb
+hlcrbmu LucidaNewMath-Roman <hlcrbmu.pfb
+hlcdbm LucidaNewMath-DemiItalic <hlcdbm.pfb
+hlcdbma LucidaNewMath-AltDemiItalic <hlcdbma.pfb
+hlcdby LucidaNewMath-Symbol-Demi <hlcdby.pfb
+hlcrba LucidaNewMath-Arrows <hlcrba.pfb
+hlcrbm LucidaNewMath-Italic <hlcrbm.pfb
+hlcrbma LucidaNewMath-AltItalic <hlcrbma.pfb
+hlcrbv LucidaNewMath-Extension <hlcrbv.pfb
+hlcrby LucidaNewMath-Symbol <hlcrby.pfb
+hlcdb0 LucidaBright-Demi <hlcdb0.pfb
+hlcdib0 LucidaBright-DemiItalic <hlcdib0.pfb
+hlcrb0 LucidaBright <hlcrb0.pfb
+hlcrib0 LucidaBright-Italic <hlcrib0.pfb
+hlcrob0 LucidaBrightSlanted <hlcrob0.pfb
+hlcdob0 LucidaBright-Demi ".167 SlantFont " <hlcdb0.pfb
+hlcrie0 LucidaCalligraphy-Italic <hlcrie0.pfb
+hlcrin0 LucidaCasual-Italic <hlcrin0.pfb
+hlcrn0 LucidaCasual <hlcrn0.pfb
+hlcron0 LucidaCasual ".167 SlantFont " <hlcrn0.pfb
+hlcd40 LucidaFax-Demi <hlcd40.pfb
+hlcdi40 LucidaFax-DemiItalic <hlcdi40.pfb
+hlcr40 LucidaFax <hlcr40.pfb
+hlcri40 LucidaFax-Italic <hlcri40.pfb
+hlcdo40 LucidaFax-Demi ".167 SlantFont " <hlcd40.pfb
+hlcro40 LucidaFax ".167 SlantFont " <hlcr40.pfb
+hlcriw0 LucidaHandwriting-Italic <hlcriw0.pfb
+hlcbis0 LucidaSans-BoldItalic <hlcbis0.pfb
+hlcbs0 LucidaSans-Bold <hlcbs0.pfb
+hlcdis0 LucidaSans-DemiItalic <hlcdis0.pfb
+hlcds0 LucidaSans-Demi <hlcds0.pfb
+hlcris0 LucidaSans-Italic <hlcris0.pfb
+hlcrs0 LucidaSans <hlcrs0.pfb
+hlcbos0 LucidaSans-Bold ".167 SlantFont " <hlcbs0.pfb
+hlcdos0 LucidaSans-Demi ".167 SlantFont " <hlcds0.pfb
+hlcros0 LucidaSans ".167 SlantFont " <hlcrs0.pfb
+hlcbost0 LucidaSans-TypewriterBoldOblique <hlcbost0.pfb
+hlcbst0 LucidaSans-TypewriterBold <hlcbst0.pfb
+hlcrost0 LucidaSans-TypewriterOblique <hlcrost0.pfb
+hlcrst0 LucidaSans-Typewriter <hlcrst0.pfb
+hlcbot0 LucidaTypewriterOblique <hlcbot0.pfb
+hlcbt0 LucidaTypewriterBold <hlcbt0.pfb
+hlcrot0 LucidaTypewriterBoldOblique <hlcrot0.pfb
+hlcrt0 LucidaTypewriter <hlcrt0.pfb

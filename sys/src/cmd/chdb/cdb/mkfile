@@ -1,0 +1,32 @@
+BUILTINS=
+</$objtype/mkfile
+
+OFILES=\
+	cdb.$O\
+	ci.$O\
+	cg.$O\
+	cd.$O\
+
+HFILES=\
+	../gen.h\
+
+$O.out:	$OFILES
+	$LD $prereq
+
+m.out:	$O.out
+	$O.out -o fs-?
+
+%.$O:	%.c $HFILES
+	$CC -w $stem.c
+
+ci.$O:	../ci.c $HFILES
+	$CC -w ../ci.c
+
+cg.$O:	../cg.c $HFILES
+	$CC -w ../cg.c
+
+cd.$O:	../cd.c $HFILES
+	$CC -w ../cd.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out m.out

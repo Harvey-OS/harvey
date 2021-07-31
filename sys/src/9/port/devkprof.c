@@ -5,6 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+#include	"devtab.h"
 
 #define	LRES	3		/* log of PC resolution */
 #define	SZ	4		/* sizeof of count cell; well known as 4 */
@@ -22,44 +23,29 @@ enum{
 	Kprofdirqid,
 	Kprofdataqid,
 	Kprofctlqid,
+	Nkproftab=Kprofctlqid,
+	Kprofmaxqid,
 };
-Dirtab kproftab[]={
+Dirtab kproftab[Nkproftab]={
 	"kpdata",	{Kprofdataqid},		0,	0600,
 	"kpctl",	{Kprofctlqid},		0,	0600,
 };
 
-static void
-_kproftimer(ulong pc)
+void kproftimer(ulong);
+
+void
+kprofreset(void)
 {
-	extern void spldone(void);
-
-	if(kprof.time == 0)
-		return;
-	/*
-	 *  if the pc is coming out of spllo or splx,
-	 *  use the pc saved when we went splhi.
-	 */
-	if(pc>=(ulong)spllo && pc<=(ulong)spldone)
-		pc = m->splpc;
-
-	kprof.buf[0] += TK2MS(1);
-	if(kprof.minpc<=pc && pc<kprof.maxpc){
-		pc -= kprof.minpc;
-		pc >>= LRES;
-		kprof.buf[pc] += TK2MS(1);
-	}else
-		kprof.buf[1] += TK2MS(1);
 }
 
-static void
+void
 kprofinit(void)
 {
 	if(SZ != sizeof kprof.buf[0])
 		panic("kprof size");
-	kproftimer = _kproftimer;
 }
 
-static Chan*
+Chan *
 kprofattach(char *spec)
 {
 	ulong n;
@@ -77,20 +63,25 @@ kprofattach(char *spec)
 	kproftab[0].length = n;
 	return devattach('T', spec);
 }
+Chan *
+kprofclone(Chan *c, Chan *nc)
+{
+	return devclone(c, nc);
+}
 
-static int
+int
 kprofwalk(Chan *c, char *name)
 {
-	return devwalk(c, name, kproftab, nelem(kproftab), devgen);
+	return devwalk(c, name, kproftab, (long)Nkproftab, devgen);
 }
 
-static void
+void
 kprofstat(Chan *c, char *db)
 {
-	devstat(c, db, kproftab, nelem(kproftab), devgen);
+	devstat(c, db, kproftab, (long)Nkproftab, devgen);
 }
 
-static Chan*
+Chan *
 kprofopen(Chan *c, int omode)
 {
 	if(c->qid.path == CHDIR){
@@ -103,33 +94,54 @@ kprofopen(Chan *c, int omode)
 	return c;
 }
 
-static void
-kprofclose(Chan*)
+void
+kprofcreate(Chan *c, char *name, int omode, ulong perm)
 {
+	USED(c, name, omode, perm);
+	error(Eperm);
 }
 
-static long
-kprofread(Chan *c, void *va, long n, vlong off)
+void
+kprofremove(Chan *c)
 {
-	ulong end;
+	USED(c);
+	error(Eperm);
+}
+
+void
+kprofwstat(Chan *c, char *dp)
+{
+	USED(c, dp);
+	error(Eperm);
+}
+
+void
+kprofclose(Chan *c)
+{
+	USED(c);
+}
+
+long
+kprofread(Chan *c, void *va, long n, ulong offset)
+{
+	ulong tabend;
 	ulong w, *bp;
 	uchar *a, *ea;
-	ulong offset = off;
 
 	switch(c->qid.path & ~CHDIR){
 	case Kprofdirqid:
-		return devdirread(c, va, n, kproftab, nelem(kproftab), devgen);
+		return devdirread(c, va, n, kproftab, Nkproftab, devgen);
 
 	case Kprofdataqid:
-		end = kprof.nbuf*SZ;
+		tabend = kprof.nbuf*SZ;
 		if(offset & (SZ-1))
 			error(Ebadarg);
-		if(offset >= end){
+		if(offset >= tabend){
 			n = 0;
 			break;
 		}
-		if(offset+n > end)
-			n = end-offset;
+		if(offset+n > tabend)
+			n = tabend-offset;
 		n &= ~(SZ-1);
 		a = va;
 		ea = a + n;
@@ -150,9 +162,11 @@ kprofread(Chan *c, void *va, long n, vlong off)
 	return n;
 }
 
-static long
-kprofwrite(Chan *c, void *a, long n, vlong)
+long
+kprofwrite(Chan *c, char *a, long n, ulong offset)
 {
+	USED(offset);
+
 	switch((int)(c->qid.path&~CHDIR)){
 	case Kprofctlqid:
 		if(strncmp(a, "startclr", 8) == 0){
@@ -162,6 +176,8 @@ kprofwrite(Chan *c, void *a, long n, vlong)
 			kprof.time = 1;
 		else if(strncmp(a, "stop", 4) == 0)
 			kprof.time = 0;
+		else
+			error(Ebadctl);
 		break;
 	default:
 		error(Ebadusefd);
@@ -169,23 +185,25 @@ kprofwrite(Chan *c, void *a, long n, vlong)
 	return n;
 }
 
-Dev kprofdevtab = {
-	'T',
-	"kprof",
+void
+kproftimer(ulong pc)
+{
+	extern void spldone(void);
 
-	devreset,
-	kprofinit,
-	kprofattach,
-	devclone,
-	kprofwalk,
-	kprofstat,
-	kprofopen,
-	devcreate,
-	kprofclose,
-	kprofread,
-	devbread,
-	kprofwrite,
-	devbwrite,
-	devremove,
-	devwstat,
-};
+	if(kprof.time == 0)
+		return;
+	/*
+	 *  if the pc is coming out of spllo or splx,
+	 *  use the pc saved when we went splhi.
+	 */
+	if(pc>=(ulong)splx && pc<=(ulong)spldone)
+		pc = m->splpc;
+
+	kprof.buf[0] += TK2MS(1);
+	if(kprof.minpc<=pc && pc<kprof.maxpc){
+		pc -= kprof.minpc;
+		pc >>= LRES;
+		kprof.buf[pc] += TK2MS(1);
+	}else
+		kprof.buf[1] += TK2MS(1);
+}

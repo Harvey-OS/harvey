@@ -1,0 +1,111 @@
+% \iffalse
+%% File: xspace.dtx Copyright (C) 1991-1994 David Carlisle
+%
+%<*dtx>
+          \ProvidesFile{xspace.dtx}
+%</dtx>
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{xspace}
+% \fi
+%         \ProvidesFile{xspace.dtx}
+          [1994/11/15 v1.03 Space after command names (DPC)]
+%
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{xspace}
+\begin{document}
+\DocInput{xspace.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \GetFileInfo{xspace.dtx}
+% \title{The \textsf{xspace} package\thanks{This file
+%        has version number \fileversion, last
+%        revised \filedate.}}
+% \author{David Carlisle}
+% \date{\filedate}
+% \maketitle
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \CheckSum{68}
+%
+% \changes{v1.00}{1991/08/30}{Initial version}
+% \changes{v1.01}{1992/06/26}{Re-issue for the new doc and docstrip}
+% \changes{v1.02}{1994/01/31}{Re-issue for LaTeX2e (no change to code)}
+%
+% \begin{abstract}
+% |\xspace| should be used at the end of a macro designed to be used
+% mainly in text. It adds a space unless the macro is followed by
+% certain punctuation characters.
+% \end{abstract}
+%
+% \section{Introduction}
+% After |\newcommand{\gb}{Great Britain\xspace}|\\
+% \newcommand{\gb}{Great Britain\xspace}
+% |\gb is a very nice place to live.|\\
+% \gb is a very nice place to live.\\
+% |\gb, a small island off the coast of France.|\\
+% \gb, a small island off the coast of France.
+%
+% |\xspace| saves the user from having to type \verb*+\ + or |{}| after
+% most occurrences of a macro name in text. However if either of these
+% constructions follows |\xspace|, a space is not added by |\xspace|.
+% This means that it is safe to add |\xspace| to the end of an existing
+% macro without making too many changes in your document.
+%
+% Sometimes |\xspace| may make the wrong decision, and add a space when
+% it is not required. In these cases follow the macro with |{}|, as this
+% has the effect of suppressing the space.
+%
+% Note that this package must be loaded \emph{after} any language (or
+% other) packages that make punctuation characters `active'.
+%
+% \StopEventually{}
+%
+% \section{The Macros}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% \begin{macro}{\xspace}
+% |\xspace| just looks ahead, and then calls |\@xspace|.
+% \changes{v1.03}{1994/11/15}{Make robust}
+%    \begin{macrocode}
+\DeclareRobustCommand\xspace{\futurelet\@let@token\@xspace}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\@xspace}
+% If the next token is one of a specified list of characters, do
+% nothing, otherwise add a space. If you often use a different
+% punctuation character, add the appropriate line (do not forget the
+% |\fi| at the  end!)
+% \changes{v1.03}{1994/11/15}{Add exclamation mark}
+%    \begin{macrocode}
+\def\@xspace{%
+  \ifx\@let@token\bgroup\else
+  \ifx\@let@token\egroup\else
+  \ifx\@let@token\/\else
+  \ifx\@let@token\ \else
+  \ifx\@let@token~\else
+  \ifx\@let@token.\else
+  \ifx\@let@token!\else
+  \ifx\@let@token,\else
+  \ifx\@let@token:\else
+  \ifx\@let@token;\else
+  \ifx\@let@token?\else
+  \ifx\@let@token'\else
+  \ifx\@let@token)\else
+  \ifx\@let@token-\else
+   \space
+   \fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}
+%</package>
+%    \end{macrocode}
+% \end{macro}
+%
+% \Finale
+%
+

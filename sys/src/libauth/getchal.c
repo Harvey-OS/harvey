@@ -15,16 +15,16 @@ getchal(Chalstate *c, char *user)
 	char trbuf[TICKREQLEN];
 
 	/* get ticket request from kernel and add user name */
-	c->asfd = -1;
 	c->afd = open("/dev/authenticate", ORDWR);
 	if(c->afd < 0){
 		werrstr(damsg);
-		goto err;
+		return -1;
 	}
 	n = read(c->afd, trbuf, TICKREQLEN);
 	if(n != TICKREQLEN){
+		close(c->afd);
 		werrstr(damsg);
-		goto err;
+		return -1;
 	}
 	convM2TR(trbuf, &tr);
 	memset(tr.uid, 0, sizeof(tr.uid));
@@ -46,10 +46,8 @@ getchal(Chalstate *c, char *user)
 		goto err;
 	return 0;
 err:
-	if(c->afd >= 0)
-		close(c->afd);
-	if(c->asfd >= 0)
-		close(c->asfd);
+	close(c->afd);
+	close(c->asfd);
 	c->afd = c->asfd = -1;
 	return -1;
 }
@@ -80,10 +78,8 @@ chalreply(Chalstate *c, char *response)
 	c->afd = c->asfd = -1;
 	return 0;
 err:
-	if(c->afd >= 0)
-		close(c->afd);
-	if(c->asfd >= 0)
-		close(c->asfd);
+	close(c->asfd);
+	close(c->afd);
 	c->afd = c->asfd = -1;
 	return -1;
 }

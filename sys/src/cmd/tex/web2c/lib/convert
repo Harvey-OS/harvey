@@ -1,0 +1,24 @@
+#!/bin/rc
+# Convert WEB programs not needing special treatment to C.
+# 
+# $1 is the Pascal file to be converted.
+# $2 is the C file to be created.
+# $3, if present, is extended with .h, and #included in the C file, and
+# extended with .defines, and prepended along with the common
+# definitions.
+
+pascalfile=$1
+basefile=`{ape/basename $pascalfile .p}
+cfile=$2
+hfile=config.h
+defnfile=()
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+if (test $#* -eq 3) {
+  hfile=$3.h
+  defnfile=$3.defines
+}
+
+cat ../lib/common.defines $defnfile $pascalfile \
+	| ../web2c/$cpuobjtype.web2c -h$hfile -c$basefile \
+	| ../web2c/$cpuobjtype.fixwrites $basefile > $cfile

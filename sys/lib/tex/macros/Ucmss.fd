@@ -1,0 +1,70 @@
+%% 
+%% This is file `Ucmss.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% cmfonts.fdd  (with options: `fd,Ucmss')
+%% 
+%% Copyright (C) 1994 LaTeX3 project, Frank Mittelbach and Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% If you want to customize this file, it is best to make a copy of the 
+%% source file cmfonts.fdd under a different name and modify this copy. 
+%% Otherwise your changes might get lost when you install a new release 
+%% of LaTeX2e. 
+%% 
+\ProvidesFile{Ucmss.fd}
+        [1994/12/02 v2.3e Standard LaTeX font definitions]
+\DeclareFontFamily{U}{cmss}{}
+\DeclareFontShape{U}{cmss}{m}{n}
+     {
+      <5><6><7><8>cmss8
+      <9>cmss9
+      <10><10.95>cmss10
+      <12><14.4>cmss12
+      <17.28><20.74><24.88>cmss17
+      }{}
+% Font undefined, therefore substituted
+\DeclareFontShape{U}{cmss}{m}{it}
+      {<->sub*cmss/m/sl}{}
+\DeclareFontShape{U}{cmss}{m}{sl}
+    {
+      <5><6><7><8>cmssi8 <9> cmssi9
+      <10><10.95>cmssi10
+      <12><14.4>cmssi12
+      <17.28><20.74><24.88>cmssi17
+      }{}
+%%%%%%% Font/shape undefined, therefore substituted
+\DeclareFontShape{U}{cmss}{m}{sc}
+       {<->sub*cmr/m/sc}{}
+%%%%%%% Font/shape undefined, therefore substituted
+\DeclareFontShape{U}{cmss}{m}{ui}
+       {<->sub*cmr/m/ui}{}
+%%%%%%%% semibold condensed series
+\DeclareFontShape{U}{cmss}{sbc}{n}
+     {
+      <5> <6> <7> <8> <9> cmssdc10
+       <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>cmssdc10
+       }{}
+
+%%%%%%%%% bold extended series
+\DeclareFontShape{U}{cmss}{bx}{n}
+     {
+      <5> <6> <7> <8> <9> cmssbx10
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmssbx10
+      }{}
+%%%%%%% Font/shape undefined, therefore substituted
+\DeclareFontShape{U}{cmss}{bx}{ui}
+       {<->sub*cmr/bx/ui}{}
+\endinput
+%% 
+%% End of file `Ucmss.fd'.

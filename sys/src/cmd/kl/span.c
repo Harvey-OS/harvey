@@ -61,9 +61,9 @@ long
 regoff(Adr *a)
 {
 
-	instoffset = 0;
+	offset = 0;
 	aclass(a);
-	return instoffset;
+	return offset;
 }
 
 int
@@ -104,35 +104,35 @@ aclass(Adr *a)
 					a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
-			instoffset = a->sym->value + a->offset - BIG;
-			if(instoffset >= -BIG && instoffset < BIG) {
-				if(instoffset & 7)
+			offset = a->sym->value + a->offset - BIG;
+			if(offset >= -BIG && offset < BIG) {
+				if(offset & 7)
 					return C_OSEXT;
 				return C_ESEXT;
 			}
-			if(instoffset & 7)
+			if(offset & 7)
 				return C_OLEXT;
 			return C_ELEXT;
 		case D_AUTO:
-			instoffset = autosize + a->offset;
+			offset = autosize + a->offset;
 			goto dauto;
 
 		case D_PARAM:
-			instoffset = autosize + a->offset + 4L;
+			offset = autosize + a->offset + 4L;
 		dauto:
-			if(instoffset >= -BIG && instoffset < BIG) {
-				if(instoffset & 7)
+			if(offset >= -BIG && offset < BIG) {
+				if(offset & 7)
 					return C_OSAUTO;
 				return C_ESAUTO;
 			}
-			if(instoffset & 7)
+			if(offset & 7)
 				return C_OLAUTO;
 			return C_ELAUTO;
 		case D_NONE:
-			instoffset = a->offset;
-			if(instoffset == 0)
+			offset = a->offset;
+			if(offset == 0)
 				return C_ZOREG;
-			if(instoffset >= -BIG && instoffset < BIG)
+			if(offset >= -BIG && offset < BIG)
 				return C_SOREG;
 			return C_LOREG;
 		}
@@ -147,13 +147,13 @@ aclass(Adr *a)
 		switch(a->name) {
 
 		case D_NONE:
-			instoffset = a->offset;
+			offset = a->offset;
 		consize:
-			if(instoffset == 0)
+			if(offset == 0)
 				return C_ZCON;
-			if(instoffset >= -0x1000 && instoffset <= 0xfff)
+			if(offset >= -0x1000 && offset <= 0xfff)
 				return C_SCON;
-			if((instoffset & 0x3ff) == 0)
+			if((offset & 0x3ff) == 0)
 				return C_UCON;
 			return C_LCON;
 
@@ -169,36 +169,36 @@ aclass(Adr *a)
 				s->type = SDATA;
 			}
 			if(s->type == STEXT || s->type == SLEAF) {
-				instoffset = s->value + a->offset;
+				offset = s->value + a->offset;
 				return C_LCON;
 			}
 			if(s->type == SCONST) {
-				instoffset = s->value + a->offset;
+				offset = s->value + a->offset;
 				goto consize;
 			}
-			instoffset = s->value + a->offset - BIG;
-			if(instoffset >= -BIG && instoffset < BIG && instoffset != 0)
+			offset = s->value + a->offset - BIG;
+			if(offset >= -BIG && offset < BIG && offset != 0)
 				return C_SECON;
-			instoffset = s->value + a->offset + INITDAT;
+			offset = s->value + a->offset + INITDAT;
 /* not sure why this barfs */
 return C_LCON;
-			if(instoffset == 0)
+			if(offset == 0)
 				return C_ZCON;
-			if(instoffset >= -0x1000 && instoffset <= 0xfff)
+			if(offset >= -0x1000 && offset <= 0xfff)
 				return C_SCON;
-			if((instoffset & 0x3ff) == 0)
+			if((offset & 0x3ff) == 0)
 				return C_UCON;
 			return C_LCON;
 
 		case D_AUTO:
-			instoffset = autosize + a->offset;
-			if(instoffset >= -BIG && instoffset < BIG)
+			offset = autosize + a->offset;
+			if(offset >= -BIG && offset < BIG)
 				return C_SACON;
 			return C_LACON;
 
 		case D_PARAM:
-			instoffset = autosize + a->offset + 4L;
-			if(instoffset >= -BIG && instoffset < BIG)
+			offset = autosize + a->offset + 4L;
+			if(offset >= -BIG && offset < BIG)
 				return C_SACON;
 			return C_LACON;
 		}
@@ -333,13 +333,13 @@ cmp(int a, int b)
 }
 
 int
-ocmp(const void *a1, const void *a2)
+ocmp(void *a1, void *a2)
 {
 	Optab *p1, *p2;
 	int n;
 
-	p1 = (Optab*)a1;
-	p2 = (Optab*)a2;
+	p1 = a1;
+	p2 = a2;
 	n = p1->as - p2->as;
 	if(n)
 		return n;

@@ -1,0 +1,47 @@
+/* c-auto.h.in: template for c-auto.h.  */
+
+/* Define to be however your lex declares yytext, including the semicolon.  */
+#undef DECLARE_YYTEXT
+
+/* Define if your system has <dirent.h>.  */
+#undef DIRENT
+
+/* Define if your system has <sys/ndir.h>.  */
+#undef SYSNDIR
+
+/* Define if the directory library header declares closedir as void.  */
+#undef VOID_CLOSEDIR
+
+/* Define if your system lacks <limits.h>.  */
+#undef LIMITS_H_MISSING
+
+/* Likewise, for <float.h>.  */
+#undef FLOAT_H_MISSING
+
+/* Define if <string.h> does not declare memcmp etc., and <memory.h> does.  */
+#undef NEED_MEMORY_H
+
+/* Define if your system has ANSI C header files: <stdlib.h>, etc.  */
+#undef STDC_HEADERS
+
+/* Define if your system has <unistd.h>.  */
+#undef HAVE_UNISTD_H
+
+/* Define if your system lacks rindex, bzero, etc.  */
+#undef USG
+
+/* Define as your system's signal handler return type, if not void.  */
+#undef RETSIGTYPE
+
+/* Define if the C type `char' is unsigned.  We protect this one with
+   #ifndef because the compiler might (should) define it -- and if it
+   is, then we don't want to undefine it.  */
+#ifndef __CHAR_UNSIGNED__
+#undef __CHAR_UNSIGNED__
+#endif
+
+/* Define if words are stored most-significant-byte first.  */
+#undef WORDS_BIGENDIAN
+
+/* Define as `float' if making a ``small'' TeX.  */
+#undef GLUERATIO_TYPE

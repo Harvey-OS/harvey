@@ -1,5 +1,0 @@
-#!/bin/rc
-awk '
-	{ if($2 in a) a[$2] = a[$2] " " $1; else a[$2] = $1; }
-	END { for(i in a) print " " a[i] " " i; }
-'< /sys/lib/man/lookman/index |sed 's/ \/sys\/man\/(.*)\/(.*)/ \2	\1\/\2/' | sort

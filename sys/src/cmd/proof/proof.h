@@ -31,15 +31,8 @@ void	loadfontname(int, char *);
 void	allfree(void);
 void	readpage(void);
 int	isspace(int);
-extern	int	getc(void);
-extern	int	getrune(void);
-extern	void	ungetc(void);
-extern	ulong	offsetc(void);
-extern	ulong	seekc(ulong);
-extern	char*	rdlinec(void);
-
 
 #define	dprint	if (dbg) fprint
 
 extern	int	dbg;
-extern	int	resized;
+extern	Biobuf	bin;

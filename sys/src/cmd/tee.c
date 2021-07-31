@@ -16,7 +16,7 @@ int	intignore(void*, char*);
 void
 main(int argc, char **argv)
 {
-	int i;
+	int i, j;
 	int r, n;
 
 	ARGBEGIN {
@@ -30,13 +30,8 @@ main(int argc, char **argv)
 
 	case 'u':
 		uflag++;
-		/* uflag is ignored and undocumented; it's a relic from Unix */
 		break;
-
-	default:
-		fprint(2, "usage: tee [-ai] [file ...]\n");
-		exits("usage");
-	} ARGEND
+	ARGEND }
 
 	USED(argc);
 	n = 0;
@@ -49,7 +44,8 @@ main(int argc, char **argv)
 		} else
 			openf[n] = create(argv[0], OWRITE, 0666);
 		if(openf[n] < 0) {
-			fprint(2, "tee: cannot open %s: %r\n", argv[0]);
+			fprint(2, "tee: cannot open %s: ", argv[0]);
+			perror("");
 		} else
 			n++;
 		argv++;
@@ -59,7 +55,12 @@ main(int argc, char **argv)
 	for(;;) {
 		r = read(0, in, sizeof in);
 		if(r <= 0)
-			exits(nil);
+			exits(0);
+		if(uflag) {
+			for(j=0; j<r; j++)
+			for(i=0; i<n; i++)
+				write(openf[i], &in[j], 1);
+		} else
 		for(i=0; i<n; i++)
 			write(openf[i], in, r);
 	}

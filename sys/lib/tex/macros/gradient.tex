@@ -1,0 +1,71 @@
+%% BEGIN gradient.tex/gradient.sty
+%%
+%% Defines the gradient fillstyle for PSTricks.
+%%
+\def\fileversion{0.93a}
+\def\filedate{93/03/12}
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See pstricks.tex or pstricks.doc for copying restrictions.
+%%
+%% See the PSTricks User's Guide for description.
+%%
+%% This uses the header file gradient.ps.
+%%
+%% Based on some EPS files by leeweyr!bill@nuchat.sccsi.com (W. R. Lee).
+%
+% This defines a new fill style, "gradient", for use with PSTricks,
+% which has gradiated color. The following parameters are used:
+%
+%    gradbegin=color    : Beginning color.
+%    gradend=color      : Final color.
+%    gradlines=int      : Number of lines to use. The higher the number,
+%                           the slower the rendering.
+%    gradmidpoint=num   : Gradient color goes from gradbegin to gradend,
+%                           and then back to beginning. Midpoint (point
+%                           where "gradend" color appears, is gradmidpoint
+%                           from the top.  (0 <= Gmidpoint <= 1).
+%    gradangle=angle    : Rotate image by angle.
+
+\message{ v\fileversion, \filedate}
+
+\csname GradientLoaded\endcsname
+\let\GradientLoaded\endinput
+
+\ifx\PSTricksLoaded\endinput\else
+  \def\next{\input pstricks.tex }\expandafter\next
+\fi
+
+\edef\TheAtCode{\the\catcode`\@}
+\catcode`\@=11
+
+\pstheader{gradient.pro}
+
+\newrgbcolor{gradbegin}{0 .1 .95}
+\def\psset@gradbegin#1{\pst@getcolor{#1}\psgradbegin}
+\psset@gradbegin{gradbegin}
+
+\newrgbcolor{gradend}{0 1 1}
+\def\psset@gradend#1{\pst@getcolor{#1}\psgradend}
+\psset@gradend{gradend}
+
+\def\psset@gradlines#1{\pst@getint{#1}\psgradlines}
+\psset@gradlines{500}
+
+\def\psset@gradmidpoint#1{\pst@checknum{#1}\psgradmidpoint}
+\psset@gradmidpoint{.9}
+
+\def\psset@gradangle#1{\pst@getangle{#1}\psk@gradangle}
+\psset@gradangle{0}
+
+\def\psfs@gradient{%
+  gsave \pst@usecolor\psgradbegin currentrgbcolor grestore
+  gsave \pst@usecolor\psgradend currentrgbcolor grestore
+  \psgradlines
+  \psgradmidpoint
+  \psk@gradangle
+  tx@GradientDict begin GradientFill end}
+
+\catcode`\@=\TheAtCode\relax
+\endinput
+%% END gradient.tex

@@ -236,54 +236,30 @@ fetch(long *f, int a, int b, Biobuf *bp, char *s)
 void
 change(int a, int b, int c, int d)
 {
-	char verb;
-	char buf[4];
-
 	if (a > b && c > d)
 		return;
 	anychange = 1;
 	if (mflag && firstchange == 0) {
-		if(mode) {
-			buf[0] = '-';
-			buf[1] = mode;
-			buf[2] = ' ';
-			buf[3] = '\0';
-		} else {
-			buf[0] = '\0';
-		}
-		Bprint(&stdout, "diff %s%s %s\n", buf, file1, file2);
+		Bprint(&stdout, "diff %s %s\n", file1, file2);
 		firstchange = 1;
 	}
-	verb = a > b ? 'a': c > d ? 'd': 'c';
-	switch(mode) {
-	case 'e':
+	if (mode != 'f') {
 		range(a, b, ",");
-		Bputc(&stdout, verb);
-		break;
-	case 0:
-		range(a, b, ",");
-		Bputc(&stdout, verb);
-		range(c, d, ",");
-		break;
-	case 'n':
-		Bprint(&stdout, "%s:", file1);
-		range(a, b, ",");
-		Bprint(&stdout, " %c ", verb);
-		Bprint(&stdout, "%s:", file2);
-		range(c, d, ",");
-		break;
-	case 'f':
-		Bputc(&stdout, verb);
+		Bputc(&stdout, a > b ? 'a': c > d ? 'd': 'c');
+		if (mode != 'e')
+			range(c, d, ",");
+	}
+	else {
+		Bputc(&stdout, a > b ? 'a': c > d ? 'd': 'c');
 		range(a, b, " ");
-		break;
 	}
 	Bputc(&stdout, '\n');
-	if (mode == 0 || mode == 'n') {
+	if (mode == 0) {
 		fetch(ixold, a, b, input[0], "< ");
 		if (a <= b && c <= d)
 			Bprint(&stdout, "---\n");
 	}
-	fetch(ixnew, c, d, input[1], mode == 0 || mode == 'n' ? "> ": "");
-	if (mode != 0 && mode != 'n' && c <= d)
+	fetch(ixnew, c, d, input[1], mode == 0 ? "> ": "");
+	if (mode != 0 && c <= d)
 		Bprint(&stdout, ".\n");
 }

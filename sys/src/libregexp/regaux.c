@@ -31,27 +31,19 @@ _renewmatch(Resub *mp, int ms, Resublist *sp)
 extern Relist*
 _renewthread(Relist *lp,	/* _relist to add to */
 	Reinst *ip,		/* instruction to add */
-	int ms,
 	Resublist *sep)		/* pointers to subexpressions */
 {
 	Relist *p;
 
 	for(p=lp; p->inst; p++){
 		if(p->inst == ip){
-			if(sep->m[0].sp < p->se.m[0].sp){
-				if(ms > 1)
-					p->se = *sep;
-				else
-					p->se.m[0] = sep->m[0];
-			}
+			if((sep)->m[0].sp < p->se.m[0].sp)
+				p->se = *sep;
 			return 0;
 		}
 	}
 	p->inst = ip;
-	if(ms > 1)
-		p->se = *sep;
-	else
-		p->se.m[0] = sep->m[0];
+	p->se = *sep;
 	(++p)->inst = 0;
 	return p;
 }
@@ -63,7 +55,6 @@ _renewthread(Relist *lp,	/* _relist to add to */
 extern Relist*
 _renewemptythread(Relist *lp,	/* _relist to add to */
 	Reinst *ip,		/* instruction to add */
-	int ms,
 	char *sp)		/* pointers to subexpressions */
 {
 	Relist *p;
@@ -71,16 +62,14 @@ _renewemptythread(Relist *lp,	/* _relist to add to */
 	for(p=lp; p->inst; p++){
 		if(p->inst == ip){
 			if(sp < p->se.m[0].sp) {
-				if(ms > 1)
-					memset(&p->se, 0, sizeof(p->se));
+				memset(&p->se, 0, sizeof(p->se));
 				p->se.m[0].sp = sp;
 			}
 			return 0;
 		}
 	}
 	p->inst = ip;
-	if(ms > 1)
-		memset(&p->se, 0, sizeof(p->se));
+	memset(&p->se, 0, sizeof(p->se));
 	p->se.m[0].sp = sp;
 	(++p)->inst = 0;
 	return p;
@@ -89,7 +78,6 @@ _renewemptythread(Relist *lp,	/* _relist to add to */
 extern Relist*
 _rrenewemptythread(Relist *lp,	/* _relist to add to */
 	Reinst *ip,		/* instruction to add */
-	int ms,
 	Rune *rsp)		/* pointers to subexpressions */
 {
 	Relist *p;
@@ -97,16 +85,14 @@ _rrenewemptythread(Relist *lp,	/* _relist to add to */
 	for(p=lp; p->inst; p++){
 		if(p->inst == ip){
 			if(rsp < p->se.m[0].rsp) {
-				if(ms > 1)
-					memset(&p->se, 0, sizeof(p->se));
+				memset(&p->se, 0, sizeof(p->se));
 				p->se.m[0].rsp = rsp;
 			}
 			return 0;
 		}
 	}
 	p->inst = ip;
-	if(ms > 1)
-		memset(&p->se, 0, sizeof(p->se));
+	memset(&p->se, 0, sizeof(p->se));
 	p->se.m[0].rsp = rsp;
 	(++p)->inst = 0;
 	return p;

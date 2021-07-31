@@ -1,8 +1,7 @@
-typedef	unsigned long	ulong;
-typedef	unsigned int	uint;
-typedef	unsigned short	ushort;
-typedef	unsigned char	uchar;
-typedef	signed char	schar;
+typedef	unsigned long ulong;
+typedef	unsigned char uchar;
+typedef	unsigned short ushort;
+typedef	signed char schar;
 
 #define	SIGN(n)	(1UL<<(n-1))
 
@@ -98,7 +97,7 @@ _d2v(Vlong *y, double d)
 			yhi = d;	/* causes something awful */
 		}
 	}
-	if(x.hi & SIGN(32)) {
+	if(x.hi & 0x80000000) {
 		if(ylo != 0) {
 			ylo = -ylo;
 			yhi = ~yhi;
@@ -120,7 +119,7 @@ _f2v(Vlong *y, float f)
 double
 _v2d(Vlong x)
 {
-	if(x.hi & SIGN(32)) {
+	if(x.hi & 0x80000000) {
 		if(x.lo) {
 			x.lo = -x.lo;
 			x.hi = ~x.hi;
@@ -432,9 +431,8 @@ _mmv(Vlong *l, Vlong *r)
 void
 _vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 {
-	Vlong t, u;
+	Vlong t;
 
-	u = *ret;
 	switch(type) {
 	default:
 		abort();
@@ -443,76 +441,51 @@ _vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 	case 1:	/* schar */
 		t.lo = *(schar*)lv;
 		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(schar*)lv = u.lo;
+		fn(ret, t, rv);
+		*(schar*)lv = ret->lo;
 		break;
 
 	case 2:	/* uchar */
 		t.lo = *(uchar*)lv;
 		t.hi = 0;
-		fn(&u, t, rv);
-		*(uchar*)lv = u.lo;
+		fn(ret, t, rv);
+		*(uchar*)lv = ret->lo;
 		break;
 
 	case 3:	/* short */
 		t.lo = *(short*)lv;
 		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(short*)lv = u.lo;
+		fn(ret, t, rv);
+		*(short*)lv = ret->lo;
 		break;
 
 	case 4:	/* ushort */
 		t.lo = *(ushort*)lv;
 		t.hi = 0;
-		fn(&u, t, rv);
-		*(ushort*)lv = u.lo;
-		break;
-
-	case 9:	/* int */
-		t.lo = *(int*)lv;
-		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(int*)lv = u.lo;
-		break;
-
-	case 10:	/* uint */
-		t.lo = *(uint*)lv;
-		t.hi = 0;
-		fn(&u, t, rv);
-		*(uint*)lv = u.lo;
+		fn(ret, t, rv);
+		*(ushort*)lv = ret->lo;
 		break;
 
 	case 5:	/* long */
 		t.lo = *(long*)lv;
 		t.hi = t.lo >> 31;
-		fn(&u, t, rv);
-		*(long*)lv = u.lo;
+		fn(ret, t, rv);
+		*(long*)lv = ret->lo;
 		break;
 
 	case 6:	/* ulong */
 		t.lo = *(ulong*)lv;
 		t.hi = 0;
-		fn(&u, t, rv);
-		*(ulong*)lv = u.lo;
+		fn(ret, t, rv);
+		*(ulong*)lv = ret->lo;
 		break;
 
 	case 7:	/* vlong */
 	case 8:	/* uvlong */
-		fn(&u, *(Vlong*)lv, rv);
-		*(Vlong*)lv = u;
+		fn(ret, *(Vlong*)lv, rv);
+		*(Vlong*)lv = *ret;
 		break;
 	}
-	*ret = u;
-}
-
-void
-_p2v(Vlong *ret, void *p)
-{
-	long t;
-
-	t = (ulong)p;
-	ret->lo = t;
-	ret->hi = 0;
 }
 
 void
@@ -531,26 +504,6 @@ _ul2v(Vlong *ret, ulong ul)
 	long t;
 
 	t = ul;
-	ret->lo = t;
-	ret->hi = 0;
-}
-
-void
-_si2v(Vlong *ret, int si)
-{
-	long t;
-
-	t = si;
-	ret->lo = t;
-	ret->hi = t >> 31;
-}
-
-void
-_ui2v(Vlong *ret, uint ui)
-{
-	long t;
-
-	t = ui;
 	ret->lo = t;
 	ret->hi = 0;
 }
@@ -636,20 +589,6 @@ _v2sl(Vlong rv)
 
 long
 _v2ul(Vlong rv)
-{
-
-	return rv.lo;
-}
-
-long
-_v2si(Vlong rv)
-{
-
-	return rv.lo;
-}
-
-long
-_v2ui(Vlong rv)
 {
 
 	return rv.lo;

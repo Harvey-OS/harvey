@@ -1,0 +1,106 @@
+.TH HOME 8
+.SH NAME
+home, 40meg, 80meg, personalize, update, Disclabel \- administration for local file systems
+.SH SYNOPSIS
+.B gnot/home
+.PD 0
+.PP
+.B gnot/personalize
+.PP
+.B gnot/update
+.PD
+.PP
+.PD 0
+.B magnum/home
+.PP
+.B magnum/personalize
+.PP
+.B magnum/update
+.PD
+.PP
+.PD 0
+.B pc/40meg
+.PP
+.B pc/80meg
+.PP
+.B pc/personalize
+.PP
+.B pc/update
+.PD
+.PP
+.PD 0
+.B nextstation/home
+.PP
+.B nextstation/update
+.PD
+.SH DESCRIPTION
+These programs help maintain a file system on a local disk for a private machine.
+.PP
+.I Home
+partitions a disk, copies the appropriate kernel to the disk,
+and makes a new file system on the disk.
+To do this, it overwrites the vendor-supplied software on the disk with a copy of Plan 9.
+.IR 40meg ,
+.IR 80meg ,
+and
+.I 100meg
+configure disks and make file systems for disks of the appropriate size.
+.PP
+.I Update
+copies the current kernel to the disk and updates
+files on the local file system.
+It only updates those files put there by the
+.I home
+program.
+.PP
+.I Personalize
+removes the contents of the
+.B /usr
+directory on the local disk and copies a minimal set of files for
+the user who runs the command.
+.PP
+The file
+.BR /rc/bin/nextstation/Disclabel ,
+despite its name, is not an
+.IR rc (1)
+script.
+It contains the second stage bootstrap program
+for Nextstations booting from local disk.
+Before booting a Plan 9 Nextstation from disk, it should be
+installed in the partition
+.BR /dev/hd1label ;
+this is normally done by
+.IR nexstation/home .
+.SH FILES
+.TP
+.B /lib/proto/portproto
+.BR Mkfs
+prototype files for
+.IR magnum/home ,
+.IR magnum/update ,
+.IR gnot/home ,
+and
+.IR gnot/update .
+.TP
+.B /lib/proto/386proto
+.BR Mkfs
+prototype files for
+.IR pc/40meg ,
+.IR pc/80meg ,
+and
+.IR pc/update .
+.SH SOURCE
+.B /rc/bin/gnot/*
+.br
+.B /rc/bin/magnum/*
+.br
+.B /rc/bin/pc/*
+.br
+.B /rc/bin/nextstation/*
+.SH "SEE ALSO"
+.IR kfs (4),
+.IR mkfs (8),
+.IR prep (8),
+.IR wren (3)
+.br
+``Installing the Plan 9 Distribution''.

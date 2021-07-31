@@ -1,0 +1,40 @@
+%Filename: OT1pop.fd
+%Created by: tex 7879optima
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pop}{}
+
+\DeclareFontShape{OT1}{pop}{b}{n}{
+   <-> popb7t
+}{}
+
+\DeclareFontShape{OT1}{pop}{b}{sc}{
+   <-> popbc7t
+}{}
+
+\DeclareFontShape{OT1}{pop}{b}{sl}{
+   <-> popbo7t
+}{}
+
+\DeclareFontShape{OT1}{pop}{m}{n}{
+   <-> popr7t
+}{}
+
+\DeclareFontShape{OT1}{pop}{m}{sc}{
+   <-> poprc7t
+}{}
+
+\DeclareFontShape{OT1}{pop}{m}{sl}{
+   <-> popro7t
+}{}
+
+\DeclareFontShape{OT1}{pop}{bx}{n}{<->ssub * pop/b/n}{}
+\DeclareFontShape{OT1}{pop}{bx}{sc}{<->ssub * pop/b/sc}{}
+\DeclareFontShape{OT1}{pop}{b}{it}{<->ssub * pop/b/sl}{}
+\DeclareFontShape{OT1}{pop}{bx}{it}{<->ssub * pop/b/it}{}
+\DeclareFontShape{OT1}{pop}{bx}{sl}{<->ssub * pop/b/sl}{}
+\DeclareFontShape{OT1}{pop}{m}{it}{<->ssub * pop/m/sl}{}
+
+\endinput

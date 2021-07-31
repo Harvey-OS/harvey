@@ -1,0 +1,65 @@
+%% 
+%% This is file `defpattern.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% hyper.dtx  (with options: `defpattern')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file hyper.dtx .
+%% 
+%% File: hyper.dtx Copyright (C) 1995 Michael Mehlich
+\def\fileversion{V2.3}
+\def\filedate{1995/02/12}
+\def\docdate{1995/02/12}
+%%
+%% \CharacterTable 
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z 
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z 
+%%  Digits        \0\1\2\3\4\5\6\7\8\9 
+%%  Exclamation   \!     Double quote  \"     Hash (number) \# 
+%%  Dollar        \$     Percent       \%     Ampersand     \& 
+%%  Acute accent  \'     Left paren    \(     Right paren   \) 
+%%  Asterisk      \*     Plus          \+     Comma         \, 
+%%  Minus         \-     Point         \.     Solidus       \/ 
+%%  Colon         \:     Semicolon     \;     Less than     \< 
+%%  Equals        \=     Greater than  \>     Question mark \? 
+%%  Commercial at \@     Left bracket  \[     Backslash     \\ 
+%%  Right bracket \]     Circumflex    \^     Underscore    \_ 
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \| 
+%%  Right brace   \}     Tilde         \~} 
+%% 
+\ProvidesPackage{defpattern}
+\message{%
+  `\string\defpattern-macro %
+   (adapted from \string\howto\space%
+    (Alan Jeffrey in TeX and TUG NEWS 2(2))%
+   )%
+  '%
+}
+\def\xcs#1#2{\expandafter#1\csname#2\endcsname}
+\newcount\actioncount
+\def\defpattern#1[#2]#3{%
+  \xcs\ifx{\expandafter\gobble\string#1}\relax
+  \def#1{\erroraction#1}\fi
+  \advance\actioncount by 1\relax
+  \expandafter\defaction\expandafter{#1}{#3}{#2}%
+  \def\temp##1##2##3##4##5##6##7##8##9{\def\temp{[#2]}}%
+  \temp\empty\empty\empty\empty\empty\empty\empty\empty\empty
+  \edef#1{\noexpand\doaction\xcs\noexpand
+    {action-\the\actioncount}\temp}}
+\def\defaction#1#2#3{%
+  \xcs\def{action-\the\actioncount}##1[#3]{\applyto{#1}{#2}}}
+\def\gobble#1{}
+\def\applyto#1#2#3{#3{#1}{#2}}
+\def\doaction#1[#2][#3]{#1[#3]\success[#2]\failure[#3]}
+\def\success#1#2[#3]\failure[#4]{#2}
+\def\failure#1#2{#1}
+\def\erroraction#1[#2]{%
+   \errmessage{I don't know how to \string#1[#2]}}
+\endinput
+%% 
+%% End of file `defpattern.sty'.

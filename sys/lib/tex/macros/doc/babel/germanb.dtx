@@ -1,0 +1,872 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{581}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Bernd Raichle",
+%%%     author-2        = "Braams J.L.",
+%%%     version         = "2.5c",
+%%%     date            = "26 June 1994",
+%%%     time            = "00:38:56 MET",
+%%%     filename        = "germanb.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone-2     = "(70) 3325051",
+%%%     FAX-2           = "(70) 3326477",
+%%%     checksum        = "29603 839 3842 33542",
+%%%     email-1         = "raichle@azu.Informatik.Uni-Stuttgart.de",
+%%%     email-2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, german",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the german language specific
+%%%                        definitions for the babel system.
+%%%                        It is based on german.tex 2.3e.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{germanb.dtx}
+%\def\fileversion{v2.5c}
+%\def\filedate{1994/06/26}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source code for
+%    the German language-specific file.
+%    This file is based on German.sty version 2.3e
+%                          by Bernd Raichle, Hubert Partl et.al.
+%<*filedriver>
+\documentclass{ltxdoc}
+\font\manual=logo10 % font used for the METAFONT logo, etc.
+\newcommand\MF{{\manual META}\-{\manual FONT}}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{germanb.dtx}
+\end{document}
+%</filedriver>
+%\fi
+%
+% \changes{germanb-1.0a}{14 may 90}{Incorporated Nico's comments}
+% \changes{germanb-1.0b}{22 may 90}{fixed typo in definition for
+%                            austrian language found by Werenfried
+%                            Spit nspit@fys.ruu.nl}
+% \changes{germanb-1.0c}{16 july 90}{Fixed some typos}
+% \changes{germanb-1.1}{30 juli 90}{When using PostScript fonts with the
+%                            Adobe fontencoding, the dieresis-accent
+%                            is located elsewhere, modified code}
+% \changes{germanb-1.1a}{27 august 90}{Modified the documentation
+%                            somewhat}
+% \changes{germanb-2.0}{23 april 91}{Modified for babel 3.0}
+% \changes{germanb-2.0a}{25 may 91}{Removed some problems in change
+%                            log}
+% \changes{germanb-2.1}{29 may 91}{Removed bug found by van der Meer}
+% \changes{germanb-2.2}{11 june 91}{Removed global assignments,
+%                           brought uptodate with german v2.3d}
+% \changes{germanb-2.2a}{15 july 91}{Renamed babel.sty in babel.com}
+% \changes{germanb-2.3}{5 nov 91}{Rewritten parts of the code to use
+%                            the new features of babel version 3.1}
+% \changes{germanb-2.3e}{10 nov 91}{Brought up-to-date with german.sty
+%                        v2.3e (plus some bug fixes) [br]}
+% \changes{germanb-2.5}{8 feb 94}{Update or LaTeX2e}
+% \changes{germanb-2.5c}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved the identification after the loading of babel.def}
+%
+%  \section{The German language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion and was last revised on
+%    \filedate.}
+%    defines all the language-specific macros for the German
+%    language as well as for the Austrian dialect of this
+%    language\footnote{This file is a re-implementation of Hubert Partl's
+%    {\tt german.sty} version 2.3e, see~\cite{HP}.}.
+%
+%    For this language the character |"| is made active. In
+%    table~\ref{tab:german-quote} an overview is given of its
+%    purpose. One of the reasons for this is that in the German
+%    language some character combinations change when a word is broken
+%    between the combination. Also the vertical placement of the
+%    umlaut can be controlled this way.
+%    \begin{table}[htb]
+%     \begin{center}
+%     \begin{tabular}{lp{8cm}}
+%      |"a| & |\"a|, also implemented for the other
+%                  lowercase and uppercase vowels.                  \\
+%      |"s| & to produce the German \ss{} (like |\ss{}|). \\
+%      |"ck|& for |ck| to be hyphenated as |k-k|.    \\
+%      |"ff|& for |ff| to be hyphenated as |ff-f|,
+%                  this is also implemented for certain other
+%                  consonants.                                      \\
+%      |"S| & for |SS| to be |\uppercase{"s}|.       \\
+%      \verb="|= & disable ligature at this position.               \\
+%      |"-| & an explicit hyphen sign, allowing hyphenation
+%                  in the rest of the word.                         \\
+%      |""| & like |"-|, but producing no hyphen sign
+%                  (for compund words with hyphen, e.g.\ |x-""y|). \\
+%      |"`| & for German left double quotes (looks like ,,).   \\
+%      |"'| & for German right double quotes.                  \\
+%      |"<| & for French left double quotes (similar to $<<$). \\
+%      |">| & for French right double quotes (similar to $>>$).\\
+%     \end{tabular}
+%     \caption{The extra definitions made
+%              by \file{german.sty}}\label{tab:german-quote}
+%     \end{center}
+%    \end{table}
+%    The quotes in table~\ref{tab:german-quote} can also be typeset by
+%    using the commands in table~\ref{tab:more-quote}.
+%    \begin{table}[htb]
+%     \begin{center}
+%     \begin{tabular}{lp{8cm}}
+%      |\glqq| & for German left double quotes (looks like ,,).   \\
+%      |\grqq| & for German right double quotes (looks like ``).  \\
+%      |\glq|  & for German left single quotes (looks like ,).    \\
+%      |\grq|  & for German right single quotes (looks like `).   \\
+%      |\flqq| & for French left double quotes (similar to $<<$). \\
+%      |\frqq| & for French right double quotes (similar to $>>$).\\
+%      |\flq|  & for (French) left single quotes (similar to $<$).  \\
+%      |\frq|  & for (French) right single quotes (similar to $>$). \\
+%      |\dq|   & the original quotes character (|"|).        \\
+%     \end{tabular}
+%     \caption{More commands which produce quotes, defined
+%              by \file{german.sty}}\label{tab:more-quote}
+%     \end{center}
+%    \end{table}
+%
+% \StopEventually{}
+%
+% \changes{germanb-2.2d}{27 okt 91}{Removed code to load {\tt
+%                                   latexhax.com}}
+%
+%    As this file, \file{germanb.sty}, needs to be read only once,
+%    we check whether it was read before.
+%    If it was, the command |\captionsgerman| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+% \changes{germanb-2.2a}{15 july 91}{Added reset of catcode of @ before
+%                                  {\tt\bsl endinput}.}
+% \changes{germanb-2.2d}{27 okt 91}{Removed use of {\tt\bsl @ifundefined}}
+% \changes{germanb-2.3e}{10 nov 91}{Moved code to the beginning of the
+%                                   file and added {\tt\bsl
+%                                   selectlanguage} call}
+%    \begin{macrocode}
+\ifx\undefined\captionsgerman
+\else
+  \selectlanguage{german}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \begin{macro}{\atcatcode}
+%    This file, {\tt germanb.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read. We save the category code of the @-sign in |\atcatcode| and
+%    make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%
+% \changes{germanb-2.2}{11 june 91}{Made test of catcode of @ more
+%                                   robust}
+% \changes{germanb-2.2a}{15 july 91}{Modified handling of catcode of @
+%                                    again.}
+% \changes{germanb-2.2d}{27 okt 91}{Removed use of {\tt\bsl makeatletter}
+%                        and hence the need to load {\tt latexhax.com}}
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%
+%    Now we determine whether the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt germanb} is the first language option
+%    to be processed. In that case we need to read \file{babel.def}
+%    right here before we continue.
+%
+% \changes{germanb-2.0}{23 april 91}{New check before loading
+%                                    babel.com}
+% \changes{germanb-2.3g}{15 feb 92}{Added {\tt\bsl relax} after the
+%                                    argument of {\tt\bsl input}}
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{germanb.sty}[1994/06/26 v2.5c
+         German support from the babel system]
+%    \end{macrocode}
+%
+% \changes{germanb-2.1}{29 may 91}{Add a check for existence of
+%    {\tt\bsl originalTeX}}
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+% \changes{germanb-2.2a}{15 july 91}{Added {\tt\bsl let\bsl
+%    originalTeX% \bsl relax} to test for existence}
+% \changes{germanb-2.3f}{25 jan 92}{Set {\tt\bsl originalTeX} to
+%    {\tt\bsl empty}, because it should be expandable.}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty\fi
+\originalTeX
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e., by
+%    the |\usaepackage| command, {\tt german} will be an
+%    `unknown' language, so we have to make it known.
+%    So we check for the existence of |\l@german| to see whether
+%    we have to do something here.
+%
+% \changes{germanb-2.0}{23 april 91}{Now use {\tt\bsl adddialect} if
+%    language undefined}
+% \changes{germanb-2.2d}{27 okt 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{germanb-2.3e}{10 nov 91}{Added warning, if no german
+%    patterns loaded}
+% \changes{germanb-2.5c}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@german
+  \@nopatterns{German}
+  \adddialect\l@german0
+\fi
+%    \end{macrocode}
+%
+%    For the Austrian version of these definitions we just add another
+%    language. Also, the macros |\captionsaustrian| and
+%    |\extrasaustrian| are |\let| to their German
+%    counterparts if these parts are defined.
+% \changes{germanb-2.0}{23 april 91}{Now use {\tt\bsl adddialect} for
+%                                    austrian}
+%    \begin{macrocode}
+\adddialect\l@austrian\l@german
+%    \end{macrocode}
+%
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the German language.
+%
+% \begin{macro}{\captionsgerman}
+%    The macro |\captionsgerman| defines all strings used in the four
+%    standard document classes provided with \LaTeX.
+%
+% \changes{germanb-2.2}{6 june 91}{Removed {\tt\bsl global} definitions}
+% \changes{germanb-2.2}{6 june 91}{{\tt\bsl pagename} should be
+%                                  {\tt\bsl headpagename}}
+% \changes{germanb-2.3e}{10 nov 91}{Added {\tt\bsl prefacename},
+%                       {\tt\bsl seename} and {\tt\bsl alsoname}}
+% \changes{germanb-2.4}{15 jul 93}{`headpagename should be `pagename}
+%    \begin{macrocode}
+\addto\captionsgerman{%
+  \def\prefacename{Vorwort}%
+  \def\refname{Literatur}%
+  \def\abstractname{Zusammenfassung}%
+  \def\bibname{Literaturverzeichnis}%
+  \def\chaptername{Kapitel}%
+  \def\appendixname{Anhang}%
+  \def\contentsname{Inhaltsverzeichnis}%    % oder nur: Inhalt
+  \def\listfigurename{Abbildungsverzeichnis}%
+  \def\listtablename{Tabellenverzeichnis}%
+  \def\indexname{Index}%
+  \def\figurename{Abbildung}%
+  \def\tablename{Tabelle}%                  % oder: Tafel
+  \def\partname{Teil}%
+  \def\enclname{Anlage(n)}%                 % oder: Beilage(n)
+  \def\ccname{Verteiler}%                   % oder: Kopien an
+  \def\headtoname{An}%
+  \def\pagename{Seite}%
+  \def\seename{siehe}%
+  \def\alsoname{siehe auch}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\captionsgerman}
+%    The `captions' are the same for both version of the language, so
+%    we can |\let| the macro |\captionsaustrian| be equal to
+%    |\captionsgerman|.
+%    \begin{macrocode}
+\let\captionsaustrian\captionsgerman
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dategerman}
+%    The macro |\dategerman| redefines the command
+%    |\today| to produce German dates.
+% \changes{germanb-2.3e}{10 nov 91}{Added {\tt\bsl month@german}}
+%    \begin{macrocode}
+\def\month@german{\ifcase\month\or
+  Januar\or Februar\or M\"arz\or April\or Mai\or Juni\or
+  Juli\or August\or September\or Oktober\or November\or Dezember\fi}
+\def\dategerman{\def\today{\number\day.~\month@german
+  \space\number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateaustrian}
+%    The macro |\dateaustrian| redefines the command
+%    |\today| to produce Austrian version of the German dates.
+%    \begin{macrocode}
+\def\dateaustrian{\def\today{\number\day.~\ifnum1=\month
+  J\"anner\else \month@german\fi \space\number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\extrasgerman}
+% \changes{germanb-2.0b}{29 may 91}{added some comment chars to
+%                                   prevent white space}
+% \changes{germanb-2.2}{11 june 91}{Save all redefined macros}
+% \begin{macro}{\noextrasgerman}
+% \changes{germanb-1.1}{30 juli 90}{Added {\tt\bsl dieresis}}
+% \changes{germanb-2.0b}{29 may 91}{added some comment chars
+%                        to prevent white space}
+% \changes{germanb-2.2}{11 june 91}{Try to restore everything to
+%                                    its former state}
+%    The macro |\extrasgerman| will perform all the extra definitions
+%    needed for the German language. The macro |\noextrasgerman|
+%    is used to cancel the actions of |\extrasgerman|.
+%
+%    Because for German (as well as for Dutch) the {\tt "} character
+%    is made active, the \LaTeX\ macros |\dospecials| and
+%    |\@sanitize| have to be redefined to include this character
+%    as well.
+%    \begin{macrocode}
+\addto\extrasgerman{\babel@add@special\"}
+%    \end{macrocode}
+%    Similarly, |\noextrasgerman| should restore them to their
+%    original definition.
+%    \begin{macrocode}
+\addto\noextrasgerman{\babel@remove@special\"}
+%    \end{macrocode}
+%
+%    The {\tt "} character is made active by |\extrasgerman|.
+%    The restore operation for the category change is appended to
+%    |\originalTeX|. Additionally we redefine |\active@dq|,
+%    after we have saved the original meaning.  If written with
+%    |\protect| set accordingly, the active doublequote is written
+%    as this macro. (All languages with the doublequote active
+%    should write it using the same control sequence name.)
+%    \begin{macrocode}
+\addto\extrasgerman{\babel@savevariable{\catcode`\"}\babel@save\active@dq
+  \catcode`\"\active \let\active@dq\german@active@dq}
+%    \end{macrocode}
+%    The simple definition |\def"{\protect\active@dq}| is not usable,
+%    because the |\protect| occurs at the toplevel.  If \TeX\
+%    tries to scan a number in hexadecimal notation (i.\,e., using a
+%    doublequote), the |\protect| with meaning |\relax|
+%    prevents the correct scanning of the number.
+%    \begin{macrocode}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \addto\extrasgerman{\babel@save"\let"\german@@active@dq}}
+\x
+%    \end{macrocode}
+%
+%    In order for \TeX\ to be able to hyphenate German words which
+%    contain `\ss' we have to give the character a nonzero
+%    |\lccode| (see Appendix H, the \TeX book).
+%    \begin{macrocode}
+\addto\extrasgerman{\babel@savevariable{\lccode`\^^Y}%
+  \lccode`\^^Y`\^^Y}
+%    \end{macrocode}
+%    In an older version of {\tt german.sty} |\3| was used as a
+%    shorthand for |\ss|, it is still here for
+%    compatibility.\footnote{The shorthand {\tt\bsl 3} will be gone
+%    in future versions of {\tt german.sty}.}
+%    \begin{macrocode}
+\addto\extrasgerman{\babel@save\3\let\3\ss}
+%    \end{macrocode}
+%    The umlaut accent macro |\"| is changed to lower the umlaut dots.
+%    The redefinition is done with the help of |\umlautlow|.
+%    \begin{macrocode}
+\addto\extrasgerman{\babel@save\"\umlautlow}
+%    \end{macrocode}
+%    The german hyphenation patterns can be used with |\lefthyphenmin|
+%    and |\righthyphenmin| set to~2.
+%    \begin{macrocode}
+\addto\extrasgerman{\babel@savevariable\lefthyphenmin
+  \babel@savevariable\righthyphenmin
+  \lefthyphenmin\tw@\righthyphenmin\tw@}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\extrasaustrian}
+% \begin{macro}{\noextrasaustrian}
+%    For both versions of the language the same special macros are
+%    used, so we can |\let| the austrian macros be equal to their
+%    german counterparts.
+%    \begin{macrocode}
+\let\extrasaustrian\extrasgerman
+\let\noextrasaustrian\noextrasgerman
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%  \begin{macro}{\umlauthigh}
+%    The macro |\umlauthigh| restores the definition of |\"|.
+% \changes{germanb-1.1}{30 juli 90}{{\tt\bsl dieresis} instead of
+%                                    {\tt\bsl accent127}}
+%    \begin{macrocode}
+\def\umlauthigh{\let\"\dieresis}
+%    \end{macrocode}
+%  \end{macro}
+%  \begin{macro}{\umlautlow}
+%    The macro |\umlautlow| redefines the umlaut-accent such that
+%    the dots come nearer to the letter and that the hyphenation is
+%    enabled in the rest of the word.
+%    \begin{macrocode}
+\def\umlautlow{\def\"{\protect\newumlaut}}
+%    \end{macrocode}
+%  \end{macro}
+%  \begin{macro}{\highumlaut}
+%    The macro |\highumlaut| redefines the umlaut-accent such that
+%    the hyphenation is enabled in the rest of the word. The vertical
+%    placement of the dots is the same as with the original |\"|.
+% \changes{germanb-1.1}{30 juli 90}{{\tt\bsl dieresis} instead of
+%                                    {\tt\bsl accent127}}
+% \changes{germanb-2.0b}{29 may 91}{added some comment chars
+%                                  to prevent white space}
+%    \begin{macrocode}
+\def\highumlaut#1{\leavevmode\allowhyphens
+  \dieresis{#1}\allowhyphens}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \changes{germanb-2.3e}{10 nov 91}{Replaced {\tt\bsl newumlaut}
+%                                   routine}
+%
+%  \begin{macro}{\newumlaut}
+%    The macro |\newumlaut|, used in the definition of |\umlautlow|,
+%    lowers the umlaut character nearer to the letter. To do this it
+%    needs an extra dimen register.
+%    \begin{macrocode}
+\expandafter\ifx\csname U@D\endcsname\relax
+  \csname newdimen\endcsname\U@D
+\fi
+%    \end{macrocode}
+%    The following code fools \TeX's {\tt make\_accent} procedure
+%    about the current x-height of the font to force another placement
+%    of the umlaut character.
+%    \begin{macrocode}
+\def\newumlaut#1{\leavevmode\allowhyphens
+%    \end{macrocode}
+%    First we have to save the current x-height of the font, because
+%    we'll change this font dimension and this is always done
+%    globally.
+%    \begin{macrocode}
+  {\U@D 1ex%
+%    \end{macrocode}
+%    Then we compute the new x-height in such a way that the umlaut
+%    character is lowered to the base character.
+%    The value of {\tt .45ex} depends on the \MF\ parameters with
+%    which the fonts were built.  (Just try
+%    out, which value will look best.)
+%    \begin{macrocode}
+  {\setbox\z@\hbox{\char127}\dimen@ -.45ex\advance\dimen@\ht\z@
+%    \end{macrocode}
+%    If the new x-height is too low, it is not changed.
+%    \begin{macrocode}
+  \ifdim 1ex<\dimen@ \fontdimen5\font\dimen@ \fi}%
+%    \end{macrocode}
+%    Finally we call the |\accent| primitive, reset the old x-height
+%    and insert the base character in the argument.
+%    \begin{macrocode}
+  \accent127\fontdimen5\font\U@D #1}\allowhyphens}
+%    \end{macrocode}
+%  \end{macro}
+%
+%    The code above is necessary because we need an extra
+%    active character. This character is then used as indicated in
+%    table~\ref{tab:german-quote}.
+%
+%    To be able to define the function of |"|, we first define a
+%    couple of `support' macros.
+%
+% \changes{germanb-2.3e}{10 nov 91}{Added {\tt\bsl save@sf@q} macro
+%                           and rewrote all quote macros to use it}
+% \changes{germanb-2.3h}{16 feb 91}{moved definition of {\tt\bsl
+%                           allowhyphens},  {\tt\bsl set@low@box} and
+%                           {\tt\bsl save@sf@q} to {\tt babel.com}}
+%
+%  \begin{macro}{\glqq}
+%    The above macro can now be used to define low opening quotes.
+%    Since it may be used in arguments to other macros we protect it.
+%    \begin{macrocode}
+\def\glqq{\protect\@glqq}
+\def\@glqq{\save@sf@q{\set@low@box{''}\box\z@\kern-.04em\allowhyphens}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\grqq}
+%    The German double closing quotes:
+%    \begin{macrocode}
+\def\grqq{\protect\@grqq}
+\def\@grqq{\save@sf@q{\kern-.07em``\kern.07em}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\glq}
+%  \begin{macro}{\grq}
+%    Now follow the single quote versions of the above.
+%    \begin{macrocode}
+\def\glq{\protect\@glq}
+\def\@glq{\save@sf@q{\set@low@box{'}\box\z@\kern-.04em\allowhyphens}}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\grq{\protect\@grq}
+\def\@grq{\save@sf@q{\kern-.07em`\kern.07em}}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\flqq}
+%  \begin{macro}{\frqq}
+%    Another form of quotes used in Germany are the ``guillemets'' or
+%    french quotes. The double guillemets are implemented using the
+%    mathematics symbol~`$\ll$'. The disadvantage is that it doesn't
+%    work properly with all font sizes and styles. A better solution
+%    is still needed.
+%    \begin{macrocode}
+\def\flqq{\protect\@flqq}
+\def\@flqq{\relax \ifmmode \ll \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \ll $}}\fi}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\frqq{\protect\@frqq}
+\def\@frqq{\relax \ifmmode \gg \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \gg $}}\fi}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%  \begin{macro}{\flq}
+%  \begin{macro}{\frq}
+%    Also single ``guillemets'' are provided.  (These quotes are used
+%    in Germany for nested quotations.)
+%    \begin{macrocode}
+\def\flq{\protect\@flq}
+\def\@flq{\relax \ifmmode <\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle <$}}\fi}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\frq{\protect\@frq}
+\def\@frq{\relax \ifmmode >\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle >$}}\fi}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\dq}
+%    We save the original double quote character in |\dq| to keep
+%    it available, the math accent |\"| can now be typed as |"|.
+%    Also we store the original meaning of the command |\"| for
+%    future use.
+%    \begin{macrocode}
+\begingroup \catcode`\"12
+\def\x{\endgroup
+  \def\@UMLAUT{\"}
+  \def\@MATHUMLAUT{\mathaccent"707F }
+  \def\@SS{\mathchar"7019 }
+  \def\dq{"}}
+\x
+%    \end{macrocode}
+%
+%    If an active {\tt "} character gets ``lost'' in a non-german
+%    language it should expand to a {\tt "} with category code `other'
+%    by default. The same applies for the control sequence
+%    |\active@dq|.
+% \changes{germanb-2.2}{11 jun 90}{Added default expansion of active
+%                                  doublequote}
+% \changes{germanb-2.3e}{24 nov 90}{Define default expansion of active
+%                                  doublequote only if it is undefined}
+%    \begin{macrocode}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \ifx"\undefined \let"\dq \fi
+  \let\active@dq\dq}
+\x
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+%  \begin{macro}{\dieresis}
+% \changes{germanb-1.1}{30 juli 90}{Macro added}
+%    The original definition of |\"| is stored as
+%    |\dieresis|, because the definition of |\"| might not
+%    be the default plain \TeX\ one. If the user uses PostScript fonts
+%    with the Adobe fontencoding the {\tt "} character is not in the
+%    same position as in Knuth's fontencoding. In this case |\"|
+%    will not be defined as |\accent"7F #1|, but as
+%    |\accent'310 #1|. For this reason we save the definition of
+%    |\"| and use that in the definition of other macros.
+%    \begin{macrocode}
+\let\dieresis=\"
+%    \end{macrocode}
+%  \end{macro}
+%
+% \changes{germanb-2.3e}{10 nov 91}{German active doublequote
+%                       mechanism rewritten}
+%
+%  \begin{macro}{\german@dq@macro}
+%    For all arguments of an active doublequote which should be treated
+%    in a special way, we define a macro with a name that contains the
+%    argument text.
+%
+%    \begin{macrocode}
+\def\german@dqmacro#1{\csname g@dq@\string #1@dq@\endcsname}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\german@@active@dq}
+%    An active doublequote is |\let| to this macro definition.
+%    First we look if the argument triggers a special macro, then we
+%    expand either to a normal doublequote or indirectly to this macro.
+%    \begin{macrocode}
+\def\german@@active@dq#1{\expandafter\expandafter\expandafter
+  \ifx\german@dqmacro{#1}\relax \expandafter\normal@dq
+  \else \expandafter\german@@@active@dq \fi {#1}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\normal@dq}
+%    The braces around the argument in |\german@@active@dq| are
+%    necessary for empty arguments.  For |\normal@dq| we have to
+%    delete the braces and insert a normal doublequote.
+%    \begin{macrocode}
+\def\normal@dq#1{\dq #1}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\german@@@active@dq}
+%    We have to call |\active@dq|, but this call has to be protected
+%    to inhibit further expansion when it is written to files.
+%    (|\active@dq| is |let| to |\german@active@dq|.)
+%    To allow correct ligatures and kerning, the |\protect| should
+%    expand to nothing, if it is used with meaning |\relax|.
+%    The additional |\empty| in the argument of the |\active@dq|
+%    call is necessary for the correct expansion of |""|.
+%    \begin{macrocode}
+\def\german@@@active@dq#1{%
+  \ifx\protect\relax \else \expandafter\protect \fi
+  \active@dq{#1\empty}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\german@active@dq}
+%    In german mode |\active@dq| is |\let| to this macro.
+%    To get the final expansion of the special action macros, we have
+%    to expand the |\german@dqmacro| three times.  This expansion
+%    consists of two groups containing the action for text and for
+%    math mode. The correct group is selected with the help of two
+%    additional macros.
+%    \begin{macrocode}
+\def\german@active@dq#1{%
+  \csname german@dq@\ifmmode second\else first\fi
+    \expandafter\expandafter\expandafter\expandafter
+    \expandafter\expandafter\expandafter
+  \endcsname
+  \german@dqmacro{#1}}
+\def\german@dq@first#1#2{#1}
+\def\german@dq@second#1#2{#2}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\def@german@dqmacro}
+% \changes{germanb-2.3h}{16 feb 91}{Renamed macro from {\tt\bsl
+%                 def@dqmacro} because of clash with the same macro
+%                 for other languages}
+%  \begin{macro}{\let@german@dqmacro}
+% \changes{germanb-2.3h}{16 feb 91}{Renamed macro from {\tt\bsl
+%                 let@dqmacro} because of clash with the same macro
+%                 for other languages}
+%    To define a doublequote macro we use two macros.
+%    \begin{macrocode}
+\def\def@german@dqmacro#1#2#3{\expandafter\expandafter\expandafter
+  \def\german@dqmacro{#1}{{#2}{#3}}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\let@german@dqmacro#1#2{\begingroup
+  \edef\x{\endgroup \let
+    \expandafter\expandafter\expandafter\noexpand\german@dqmacro{#1}%
+    \expandafter\expandafter\expandafter\noexpand\german@dqmacro{#2}}%
+  \x}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\german@dq@disc}
+%    For the discretionary macros we use this macro:
+%    \begin{macrocode}
+\def\german@dq@disc#1#2{%
+  \allowhyphens\discretionary{#2-}{}{#1}\allowhyphens}
+%    \end{macrocode}
+%  \end{macro}
+%
+%    Now we can define the doublequote macros: the umlauts,
+%    \begin{macrocode}
+\def@german@dqmacro{a}{\@UMLAUT a}{\@MATHUMLAUT a}
+\def@german@dqmacro{o}{\@UMLAUT o}{\@MATHUMLAUT o}
+\def@german@dqmacro{u}{\@UMLAUT u}{\@MATHUMLAUT u}
+\def@german@dqmacro{A}{\@UMLAUT A}{\@MATHUMLAUT A}
+\def@german@dqmacro{O}{\@UMLAUT O}{\@MATHUMLAUT O}
+\def@german@dqmacro{U}{\@UMLAUT U}{\@MATHUMLAUT U}
+%    \end{macrocode}
+%    tremas,
+%    \begin{macrocode}
+\def@german@dqmacro{e}{\highumlaut e}{\@MATHUMLAUT a}
+\def@german@dqmacro{E}{\highumlaut E}{\@MATHUMLAUT E}
+\def@german@dqmacro{i}{\highumlaut\i{}}{\@MATHUMLAUT\imath}
+\def@german@dqmacro{I}{\highumlaut I}{\@MATHUMLAUT I}
+%    \end{macrocode}
+%    german es-zet (sharp s),
+%    \begin{macrocode}
+\def@german@dqmacro{s}{\ss{}}{\@SS{}}
+\def@german@dqmacro{S}{SS}{SS}
+%    \end{macrocode}
+%    german and french quotes,
+%    \begin{macrocode}
+\def@german@dqmacro{`}{\glqq{}}{\glqq{}}
+\def@german@dqmacro{'}{\grqq{}}{\grqq{}}
+\def@german@dqmacro{<}{\flqq{}}{\flqq{}}
+\def@german@dqmacro{>}{\frqq{}}{\frqq{}}
+%    \end{macrocode}
+%    discretionary commands
+%    \begin{macrocode}
+\def@german@dqmacro{c}{\german@dq@disc ck}{c}
+\def@german@dqmacro{C}{\german@dq@disc CK}{C}
+\def@german@dqmacro{f}{\german@dq@disc f{ff}}{f}
+\def@german@dqmacro{F}{\german@dq@disc F{FF}}{F}
+\def@german@dqmacro{l}{\german@dq@disc l{ll}}{l}
+\def@german@dqmacro{L}{\german@dq@disc L{LL}}{L}
+\def@german@dqmacro{m}{\german@dq@disc m{mm}}{m}
+\def@german@dqmacro{M}{\german@dq@disc M{MM}}{M}
+\def@german@dqmacro{n}{\german@dq@disc n{nn}}{n}
+\def@german@dqmacro{N}{\german@dq@disc N{NN}}{N}
+\def@german@dqmacro{p}{\german@dq@disc p{pp}}{p}
+\def@german@dqmacro{P}{\german@dq@disc P{PP}}{P}
+\def@german@dqmacro{t}{\german@dq@disc t{tt}}{t}
+\def@german@dqmacro{T}{\german@dq@disc T{TT}}{T}
+%    \end{macrocode}
+%    and some additional commands:
+%    \begin{macrocode}
+\def@german@dqmacro{-}{\allowhyphens\-\allowhyphens}%
+               {\allowhyphens\-\allowhyphens}
+\def@german@dqmacro{|}{\discretionary{-}{}{\kern.03em}}{}
+\def@german@dqmacro{"}{\hskip\z@skip}{\hskip\z@skip}
+%    \end{macrocode}
+%    We take special care for |""|, if it is expanded only (i.\,e.,
+%    written to a file or used in |\edef|) and |\protect| is
+%    used to protect the expansion of the first active doublequote.
+%    For this case the second doublequote is expanded with |\empty|
+%    as its argument.  To read the complete ``expansion'', we have to
+%    define a macro for the argument |\active@dq{}|.
+%    \begin{macrocode}
+\def@german@dqmacro{\empty}{{}}{{}}
+\let@german@dqmacro{\active@dq{}}{"}
+%    \end{macrocode}
+%
+%
+%  \begin{macro}{\mdqon}
+%  \begin{macro}{\mdqoff}
+%  \begin{macro}{\ck}
+%    All that's left to do now is to  define a couple of commands
+%    for reasons of compatibility with {\tt german.sty}.
+%    \begin{macrocode}
+\def\mdqon{\catcode`\"\active}
+\def\mdqoff{\catcode`\"12 }
+\def\ck{\allowhyphens\discretionary{k-}{k}{ck}\allowhyphens}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%
+% Our last action is to activate the commands we have just defined,
+% by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{german}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value.
+% \changes{germanb-2.2a}{15 july 91}{Modified handling of catcode of
+%                                    @-sign.}
+%    \begin{macrocode}
+\catcode`\@=\atcatcode
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

@@ -1,0 +1,110 @@
+% \iffalse meta-comment
+%
+% Copyright 1994 the LaTeX3 project and the individual authors.
+% All rights reserved. For further copyright information see the file
+% legal.txt, and any other copyright indicated in this file.
+% 
+% This file is part of the LaTeX2e system.
+% ----------------------------------------
+% 
+%  This system is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see bugs.txt.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% LABLST.TEX -- A LaTeX input file for printing label definitions.
+% Copyright (c) 1985, 1994 by Leslie Lamport, Chris Rowley
+% This file created on 5 November 1994
+%
+% Modified December 1994 (DPC) to allow _ ^ etc in label keys and to
+%                              input packages used by the main file.
+
+\typeout{}
+\typeout{LABLST version of 5 December 1994}
+\typeout{}
+\typeout{**************************}
+\typeout{* Enter input file name. *}
+\typein[\inputfilename]{**************************}
+
+
+\def\spaces{\space\space\space\space\space}
+\typeout{}
+\typeout{*********************************************}
+\typeout{* Enter document class used in file \inputfilename.tex, *}
+\typeout{* with no options. \spaces\spaces\spaces\spaces\spaces *}
+\typein[\documentclassname]{*********************************************}
+
+\documentclass{\documentclassname}
+
+% Now ask for packages. The answer should be a comma separated list.
+% In fact only packages that define commands that are used in
+% section titles etc need be loaded. 
+\def\spaces{\space\space\space\space\space}
+\typeout{}
+\typeout{***************************************}
+\typeout{* Enter packages used in file \inputfilename.tex, *}
+\typeout{* with no options.\spaces\spaces\spaces\spaces *}
+\typein[\packages]{***************************************}
+
+\usepackage{\packages}
+
+\nofiles
+\parindent 0pt
+
+\begin{document}
+\makeatletter
+
+\def\@writefile#1#2{%
+  \def\@tempa{#1}%
+  \def\@tempb{toc}%
+  \ifx \@tempa\@tempb
+    \par{#2}\par\nobreak
+    \vspace{3pt}%
+  \fi
+}
+
+% Allow characters like ^ _ to be printed `verbatim'.
+\def\@lablstverb#1{%
+  \def\@tempa{#1}%
+  {\ttfamily\expandafter\strip@prefix\meaning\@tempa}}%
+
+\def\newlabel#1#2{%
+  \par
+  \hbox to \textwidth{%
+    \hfill\makebox[10em][r]{\@lablstverb{#1}}%
+    \hspace{1em}\makebox[4.5em][l]{\@firstoftwo #2}%
+    Page:
+    \makebox[2.5em][r]{\@secondoftwo #2}%
+    \hspace{4em}}\par
+}
+
+\def\bibcite#1#2{\par
+  \hbox to \textwidth{%
+  \hfill\makebox[2in][r]{\@lablstverb{#1}}\hspace{1em}[#2]\hspace{4em}}}
+
+\let \@mlabel \@gobbletwo
+
+\let \protect \relax
+
+\input \inputfilename.aux
+
+\end{document}

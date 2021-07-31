@@ -1,0 +1,129 @@
+.TH 9V 9.1
+.SH NAME
+9v, save, flip \- copy picture files to and from screen
+.SH SYNOPSIS
+.B fb/9v
+[
+.B -mMq
+] [
+.B
+-w
+.I x0 y0 x1 y1
+] [
+.B -c
+.I cenx ceny
+] [
+.I input
+]
+.PP
+.B fb/save
+.PP
+.B fb/flip
+[
+.B -r
+.I fps
+]
+[
+.B -p
+]
+p1 p2 ...
+.SH DESCRIPTION
+.I 9v
+displays its argument picture file (default standard input) in a new window in the middle of an
+.B 8½
+screen.  In addition to the native 
+.IR picfile (9.6)
+format, it tries to read images of many foreign encodings.
+(It guesses which encoding based on the file's name, recognizing suffixes
+.BR .gif ,
+.BR .jpg ,
+.BR .jpeg ,
+.BR .ega ,
+.BR .face ,
+.BR .pcx ,
+.BR .sgi ,
+.BR .tga ,
+.BR .tif ,
+.BR .tiff ,
+.BR .rle ,
+and
+.BR .xbm .
+For a program
+that guesses based on the file's contents, see
+.IR cvt2pic (9.1).)
+On an 8-bit display, it loads an 8-bit image's color map if it contains one.
+Otherwise (if the display is fewer than 8 bits per pixel, or the image is not 8-bit
+color-mapped) it computes the image's luminance, dithered appropriately for the
+available grey shades.
+.PP
+In the
+.I 9v
+window button 1 displays pixel coordinates and values at the top of the window
+and button 3 pops up a menu.  The
+.B "fix cmap
+menu item reloads the color map, in the event that some other program has
+stepped on it.  The
+.B exit
+button exits after confirmation.
+.PP
+The
+.B -c
+flag specifies the window's center coordinates, overriding the default.
+The
+.B -w
+flag specifies the window's minimum and maximum
+.I x
+and
+.I y
+coordinates.
+Flag
+.B -m
+suppresses default loading the color map of images containing one.
+.B -M
+causes
+.I 9v
+to load an image's color map and exit immediately.
+.B -q
+makes
+.I 9v
+exit on receiving any mouse or keyboard event.
+.PP
+.I Save
+writes a picture file containing its window (or screen if
+.B 8½
+is not running)
+onto its standard output.
+.PP
+.I Flip
+displays many picture files in sequence in a loop.  The pictures must be
+the same size, and must fit in memory.
+The pictures are all loaded into main memory and then sent to the display
+as required using
+.B wrbitmap
+(see
+.IR balloc (2)),
+so the machine running
+.I flip
+can be remote; a CPU server
+can be used if there are many large frames.
+The
+.B -r
+option sets the display rate in frames per second.  By default
+.I flip
+displays as fast as it can: 
+about 15 frames per second for a small picture on a Magnum.
+The 
+.B -p
+flag causes a one-second pause at the end of the loop.
+.SH SOURCE
+.B /sys/src/fb/9v.c
+.br
+.B /sys/src/fb/save.c
+.br
+.B /sys/src/fb/flip.c
+.SH BUGS
+.I 9v
+guesses the format of foreign images by looking at
+the filename, not its contents.
+.SH "SEE ALSO
+.IR picfile (9.6)

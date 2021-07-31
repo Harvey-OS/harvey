@@ -1,0 +1,65 @@
+.TH BTRACE 8
+.SH NAME
+btrace \- trace bitblt protocol
+.SH SYNOPSIS
+.B btrace
+[
+.B -d
+[
+.B d
+]] [
+.BI -o " ofile"
+]
+[
+.BI -b " bfile"
+]
+.SH DESCRIPTION
+.PP
+.I Btrace
+eavesdrops on messages to and from
+.BR /dev/bitblt ,
+interprets them as messages in the bit device protocol (see
+.IR bit (3)),
+and prints a readable version of the messages
+on a trace file,
+.B btrace.out
+by default.
+After
+.I btrace
+is started, it runs in the background, tracing all subsequent
+graphics programs run in that window.
+Options for
+.I btrace
+are:
+.TP "\w'\fL-b\fP \fIbfile\fLXX'u"
+.BI -o " ofile"
+Print trace output in
+.I ofile
+instead of
+.BR btrace.out .
+.TP
+.BI -b " bfile"
+Dump each bitmap read or written to
+.IR bfile ,
+using the format of
+.IR bitmap (6).
+Each succeeding bitmap overwrites the previous contents of
+.IR file .
+.IR Tweak (1)
+or
+.IR showimage (7)
+can be used to examine the file.
+.TP
+.B -d
+Increase the level of trace detail.  The maximum level is
+.BR -dd .
+.SH FILES
+.B /dev/bitblt
+.SH SOURCE
+.B /sys/src/cmd/btrace.c
+.SH SEE ALSO
+.IR bit (3),
+.IR bitmap (6),
+.IR graphics (2),
+.IR tweak (1),
+.IR showimage (7)

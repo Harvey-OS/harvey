@@ -49,12 +49,12 @@ connect(int fd, void *a, int alen)
 		lip = (struct sockaddr_in*)&r->addr;
 		if(lip->sin_port)
 			sprintf(msg, "connect %s!%d%s %d",
-				inet_ntoa(rip->sin_addr), ntohs(rip->sin_port),
+				inet_ntoa(rip->sin_addr), rip->sin_port,
 				r->reserved ? "!r" : "",
-				ntohs(lip->sin_port));
+				lip->sin_port);
 		else
 			sprintf(msg, "connect %s!%d%s", inet_ntoa(rip->sin_addr),
-				ntohs(rip->sin_port),
+				rip->sin_port,
 				r->reserved ? "!r" : "");
 		n = write(cfd, msg, strlen(msg));
 		if(n < 0){

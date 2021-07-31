@@ -16,18 +16,39 @@ static void	nsop(int, char*[], int);
 static int	callexport(char*, char*);
 static int	catch(void*, char*);
 
-static int
-buildns(Biobuf *spec, int afd)
+int
+newns(char *user, char *file)
 {
-	char *cmd, *argv[NARG], argbuf[MAXARG*NARG];
+	Biobuf *spec;
+	char home[2*NAMELEN], *cmd;
+	char *argv[NARG], argbuf[MAXARG*NARG];
 	int argc;
+	int afd;
+
+	/* try for authentication server now because later is impossible */
+	if(strcmp(user, "none") == 0)
+		afd = -1;
+	else
+		afd = authdial();
+	if(!file)
+		file = "/lib/namespace";
+	spec = Bopen(file, OREAD);
+	if(spec == 0){
+		werrstr("can't open %s: %r", file);
+		close(afd);
+		return -1;
+	}
+	rfork(RFENVG|RFCNAMEG);
+	setenv("user", user);
+	sprint(home, "/usr/%s", user);
+	setenv("home", home);
 
 	atnotify(catch, 1);
 	while(cmd = Brdline(spec, '\n')){
 		cmd[Blinelen(spec)-1] = '\0';
 		while(*cmd==' ' || *cmd=='\t')
 			cmd++;
-		if(*cmd == '#')
+		if(*cmd == 0 || *cmd == '#')
 			continue;
 		argc = splitargs(cmd, argv, argbuf, NARG);
 		if(argc)
@@ -37,60 +58,6 @@ buildns(Biobuf *spec, int afd)
 	Bterm(spec);
 	close(afd);
 	return 0;
-}
-
-int
-newns(char *user, char *file)
-{
-	Biobuf *spec;
-	char home[4*NAMELEN];
-	int afd;
-
-	/* try for authentication server now because later is impossible */
-	if(strcmp(user, "none") == 0)
-		afd = -1;
-	else
-		afd = authdial();
-	if(!file){
-		/* first look for a namespace file for this system */
-		snprint(home, sizeof(home), "/lib/namespace.%s", sysname());
-		if(access(home, 4) == 0)
-			file = home;
-		else
-			file = "/lib/namespace";
-	}
-	spec = Bopen(file, OREAD);
-	if(spec == 0){
-		werrstr("can't open %s: %r", file);
-		close(afd);
-		return -1;
-	}
-	rfork(RFENVG|RFCNAMEG);
-	setenv("user", user);
-	snprint(home, 2*NAMELEN, "/usr/%s", user);
-	setenv("home", home);
-
-	return buildns(spec, afd);
-}
-
-int
-addns(char *user, char *file)
-{
-	Biobuf *spec;
-	int afd;
-
-	/* try for authentication server now because later is impossible */
-	if(strcmp(user, "none") == 0)
-		afd = -1;
-	else
-		afd = authdial();
-	spec = Bopen(file, OREAD);
-	if(spec == 0){
-		werrstr("can't open %s: %r", file);
-		close(afd);
-		return -1;
-	}
-	return buildns(spec, afd);
 }
 
 static void
@@ -112,9 +79,6 @@ nsop(int argc, char *argv[], int afd)
 	case 'c':
 		flags |= MCREATE;
 		break;
-	case 'C':
-		flags |= MCACHE;
-		break;
 	}ARGEND
 
 	if(!(flags & (MAFTER|MBEFORE)))
@@ -122,20 +86,17 @@ nsop(int argc, char *argv[], int afd)
 
 	if(strcmp(argv0, "bind") == 0 && argc == 2)
 		bind(argv[0], argv[1], flags);
-	else if(strcmp(argv0, "unmount") == 0){
-		if(argc == 1)
-			unmount(nil, argv[0]);
-		else if(argc == 2)
-			unmount(argv[0], argv[1]);
-	}else if(strcmp(argv0, "mount") == 0){
+	if(strcmp(argv0, "mount") == 0){
 		fd = open(argv[0], ORDWR);
 		authenticate(fd, afd);
-		if(argc == 2)
+		if(argc == 2){
 			mount(fd, argv[1], flags, "");
-		else if(argc == 3)
+		}else if(argc == 3){
 			mount(fd, argv[1], flags, argv[2]);
+		}
 		close(fd);
-	} else if(strcmp(argv0, "import") == 0){
+	}
+	if(strcmp(argv0, "import") == 0){
 		fd = callexport(argv[0], argv[1]);
 		authenticate(fd, afd);
 		if(argc == 2)
@@ -143,7 +104,8 @@ nsop(int argc, char *argv[], int afd)
 		else if(argc == 3)
 			mount(fd, argv[2], flags, "");
 		close(fd);
-	} else if(strcmp(argv0, "cd") == 0 && argc == 1)
+	}
+	if(strcmp(argv0, "cd") == 0 && argc == 1)
 		chdir(argv[0]);
 }
 

@@ -1,0 +1,146 @@
+%% BEGIN semlayer.sty
+%%
+%% This is file `semlayer.sty', generated
+%% on <1993/4/2> with the docstrip utility (2.0r).
+%%
+%% The original source files were:
+%%
+%% semlayer.doc
+%%
+\def\fileversion{1.0}
+\def\filedate{93/04/01}
+%%
+%% LaTeX style option `semlayer.sty'.
+%% For use with LaTeX v2.09 and the `seminar' document style.
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See seminar.sty or seminar.doc for copying restrictions.
+%%
+\addto@hook\before@newslide{%
+  \global\def\overlay@list{}%
+  \setcounter{overlay}{0}}
+\newbox\@@slidebox
+\def\process@@slide{%
+  \ifx\overlay@list\@empty
+    \finish@slide
+    \output@slide
+  \else
+    \setbox\@@slidebox\box\@slidebox
+    \make@overlay{0}%
+    \finish@slide
+    \output@slide
+    {\let\theoverlay\theslide\layer@loop{0}}%
+    \overlay@loop
+  \fi}
+\def\overlay@loop{%
+  \begingroup
+    \overlay@prep
+    \c@overlay=1
+    \@whilenum\c@overlay<10
+      \do{%
+        \test@member{\the\c@overlay}{\overlay@list}%
+        \if@test
+          \make@overlay{\the\c@overlay}%
+          \finish@slide
+          \output@slide
+        \fi
+        \layer@loop{\the\c@overlay}%
+        \advance\c@overlay by 1}%
+  \endgroup}
+\def\layer@loop#1{%
+  \begingroup
+    \layer@prep
+    \@for\currlayer:=\layer@list\do{%
+    \test@member{#1-\currlayer}{\overlay@list}%
+      \if@test
+        \make@overlay{#1-\currlayer}%
+        \finish@slide
+        \output@slide
+      \fi}%
+  \endgroup}
+\def\layer@prep{%
+  \ifarticle\pagestyle{\layer@pagestyle}\fi
+  \let\thepage\thelayer
+  \ifx\thelayerframe\@empty\else\let\theslideframe\thelayerframe\fi
+  \let\slidelabel\layerlabel}
+\def\overlay@prep{%
+  \ifarticle\pagestyle{\overlay@pagestyle}\fi
+  \let\thepage\theoverlay
+  \ifx\theoverlayframe\@empty\else\let\theslideframe\theoverlayframe\fi
+  \let\slidelabel\overlaylabel}
+\def\layerframe{\@slideframe{layer}}
+\def\overlayframe{\@slideframe{overlay}}
+\def\thelayerframe{}
+\def\theoverlayframe{}
+\def\overlaylabel{\bf Overlay \theoverlay}
+\def\layerlabel{\bf Layer \thelayer}
+\newcounter{overlay}
+\def\theoverlay{\theslide-\alph{overlay}}
+\def\currlayer{}
+\def\thelayer{\theoverlay-\currlayer}
+\newif\ifoverlays
+\newif\iflayers
+\@ifundefined{@overlay}%
+  {\let\@overlay\relax}%
+  {\ifarticle\else\overlaystrue\layerstrue\fi}
+\def\nooverlays@err{%
+  \@seminarerr{You need to use additional macros for overlays,
+    e.g., semcolor.sty}\@ehd
+  \global\overlaysfalse
+  \global\layersfalse}
+\@ifundefined{@overlay}{}{}
+\def\overlay#1{%
+  \ifoverlays\ifx\@overlay\relax\nooverlays@err\fi\fi
+  \ifslide
+    \@tempcnta=#1
+    \@testfalse
+    \ifnum\@tempcnta>-1 \ifnum\@tempcnta<10 \@testtrue\fi\fi
+    \if@test
+      \c@overlay=\@tempcnta
+      \ifnum\c@overlay=0
+        \advance\c@slide by -1
+        \refstepcounter{slide}%
+      \else
+        \advance\c@overlay by -1
+        \refstepcounter{overlay}%
+        \ifoverlays
+          \xdef\overlay@list{\overlay@list,\the\c@overlay}%
+        \fi
+      \fi
+      \ifoverlays
+        \@overlay{\the\c@overlay}%
+      \fi
+    \else
+      \@seminarerr{\string\overlay\space argument must be
+        an integer between 0 and 9}\@eha
+    \fi
+  \else
+    \@seminarerr{\string\overlay\space can only be used
+      in slide environments}\@eha
+  \fi
+  \ignorespaces}
+\def\colorlayers#1{%
+  \edef\@tempc{#1}%
+  \edef\layer@list{\layer@list,#1}%
+  \def\@tempa##1{%
+    \@namedef{##1}{%
+      \iflayers\ifx\@overlay\relax\nooverlays@err\fi\fi
+      \ifslide
+        \iflayers
+          \xdef\overlay@list{\overlay@list,\the\c@overlay-##1}%
+          \@overlay{\the\c@overlay-##1}%
+        \fi
+      \else
+        \@seminarerr{Color layer `##1' can only be used in
+          slide environments}\@eha
+      \fi}}
+  \@for\@tempb:=\@tempc\do{%
+    \expandafter\@tempa\expandafter{\@tempb}}}
+\def\layer@list{}
+\def\overlaypagestyle#1{\@ifgoodps{#1}{\edef\overlay@pagestyle{#1}}}
+\def\layerpagestyle#1{\@ifgoodps{#1}{\edef\layer@pagestyle{#1}}}
+\overlaypagestyle{}
+\layerpagestyle{}
+\endinput
+%%
+%% End of file `semlayer.sty'.

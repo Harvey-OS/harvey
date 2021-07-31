@@ -1,43 +1,37 @@
 </$objtype/mkfile
 
-TARG=send\
+TARG=sendmail\
 	filter
 
-OFILES=message.$O\
-	dest.$O\
-	log.$O\
-	../smtp/rfc822.tab.$O\
-	skipequiv.$O\
-
-SMOBJ=main.$O\
+SMOBJ=message.$O\
+	main.$O\
 	bind.$O\
 	rewrite.$O\
 	local.$O\
+	dest.$O\
 	translate.$O\
-	authorize.$O\
+	log.$O\
 	gateway.$O\
+	authorize.$O\
 
-LIB=../common/libcommon.av\
-	 ../libString/libString.av\
+FOBJ=filter.$O\
+	message.$O\
+	dest.$O\
+	log.$O\
 
 HFILES=send.h\
-	../common/common.h\
-	../common/sys.h\
 
 LIB=../common/libcommon.a$O\
 	../libString/libString.a$O\
 
 BIN=/$objtype/bin/upas
 </sys/src/cmd/mkmany
-CFLAGS=$CFLAGS -I../common
+CFLAGS=-w -I../common
 
-$O.send: $SMOBJ $OFILES
-	$LD $LDFLAGS -o $target $prereq $LIB
+%.$O:	../common/common.h ../common/sys.h
 
-message.$O:	../smtp/y.tab.h
+$O.sendmail: $SMOBJ
+	$LD -o $target $prereq $LIB
 
-../smtp/y.tab.h ../smtp/rfc822.tab.$O:
-	@{
-		cd ../smtp
-		mk rfc822.tab.$O
-	}
+$O.filter: $FOBJ
+	$LD -o $target $prereq $LIB

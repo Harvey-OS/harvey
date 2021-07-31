@@ -213,18 +213,12 @@ Prog	zprg;
 extern	Optab	optab[];
 extern	char*	anames[];
 
-#pragma	varargck	type	"A"	uint
-#pragma	varargck	type	"D"	Adr*
-#pragma	varargck	type	"P"	Prog*
-#pragma	varargck	type	"R"	int
-#pragma	varargck	type	"S"	char*
-
-int	Aconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Pconv(va_list*, Fconv*);
-int	Rconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
-int	Xconv(va_list*, Fconv*);
+int	Aconv(void*, Fconv*);
+int	Dconv(void*, Fconv*);
+int	Pconv(void*, Fconv*);
+int	Rconv(void*, Fconv*);
+int	Sconv(void*, Fconv*);
+int	Xconv(void*, Fconv*);
 void	addhist(long, int);
 Prog*	appendp(Prog*);
 void	asmb(void);

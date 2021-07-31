@@ -1,0 +1,302 @@
+%!
+% Common definitions for the Hershey fonts.
+ 
+/makeHersheyFontGS993 where
+ { pop 80 string
+    { currentfile 1 index readline pop
+       (%END) eq { exit } if
+    } loop pop
+ } if
+
+userdict begin
+/HersheyBuildDict 10 dict def
+
+/BuildHersheyChar {
+	exch begin
+		PenWidth setlinewidth
+		Encoding exch get
+		dup CharData exch known not { pop /.notdef } if
+		CharData exch get
+	end
+	/cd exch def
+
+	/llx 99 def /lly 99 def /urx -99 def /ury -99 def
+	true
+
+	cd 2 get {
+		exch {
+			dup 32 eq {
+				pop true
+			} {
+				82 sub cd 0 get sub
+
+				dup llx lt {
+					dup /llx exch def
+				} if
+				dup urx gt {
+					dup /urx exch def
+				} if
+				pop false
+			} ifelse
+		} {
+			neg 91 add
+
+			dup lly lt {
+				dup /lly exch def
+			} if
+			dup ury gt {
+				dup /ury exch def
+			} if
+			pop true
+		} ifelse
+	} forall pop
+
+	cd 1 get cd 0 get sub 0 llx 1 sub lly 1 sub urx 1 add ury 1 add
+	setcachedevice
+
+	/domove true def
+	true
+
+	cd 2 get {
+		exch {
+			dup 32 eq {
+				pop true
+				/domove true def
+			} {
+				82 sub cd 0 get sub
+				false
+			} ifelse
+		} {
+			neg 91 add
+			domove {
+				moveto
+				/domove false def
+			} {
+				lineto
+			} ifelse
+			true
+		} ifelse
+	} forall pop
+
+	1 setmiterlimit 1 setlinejoin 1 setlinecap
+	stroke
+} bind def
+
+/makeHersheyFontGS993 {
+	10 dict begin
+	/Encoding exch def
+	/ItalicAngle exch def
+	/PenWidth exch def
+	/XUID exch def
+	/UniqueID exch def
+	/FontName exch def
+	/CharData exch def
+
+	/FontType 3 def
+	/FontMatrix 
+		[1 33 div
+		0
+		ItalicAngle neg dup sin exch cos div 33 div
+		1 33 div
+		0 0] def
+	/BuildChar {HersheyBuildDict begin BuildHersheyChar end} def
+	/FontBBox {-10 -10 30 30} def
+
+	FontName currentdict end definefont pop
+} bind def
+end		% userdict
+%END
+
+189 dict dup begin
+/zero [-10 10 (QFNGLJKOKRLWNZQ[S[VZXWYRYOXJVGSFQF)] def
+/one [-10 10 (NJPISFS[)] def
+/two [-10 10 (LKLJMHNGPFTFVGWHXJXLWNUQK[Y[)] def
+/three [-10 10 (MFXFRNUNWOXPYSYUXXVZS[P[MZLYKW)] def
+/four [-10 10 (UFKTZT UFU[)] def
+/five [-10 10 (WFMFLOMNPMSMVNXPYSYUXXVZS[P[MZLYKW)] def
+/six [-10 10 (XIWGTFRFOGMJLOLTMXOZR[S[VZXXYUYTXQVOSNRNOOMQLT)] def
+/seven [-10 10 (YFO[ KFYF)] def
+/eight [-10 10 (PFMGLILKMMONSOVPXRYTYWXYWZT[P[MZLYKWKTLRNPQOUNWMXKXIWGTFPF)] def
+/nine [-10 10 (XMWPURRSQSNRLPKMKLLINGQFRFUGWIXMXRWWUZR[P[MZLX)] def
+/period [-5 5 (RYQZR[SZRY)] def
+/comma [-5 5 (SZR[QZRYSZS\\R^Q_)] def
+/colon [-5 5 (RMQNROSNRM RYQZR[SZRY)] def
+/semicolon [-5 5 (RMQNROSNRM SZR[QZRYSZS\\R^Q_)] def
+/exclam [-5 5 (RFRT RYQZR[SZRY)] def
+/question [-9 9 (LKLJMHNGPFTFVGWHXJXLWNVORQRT RYQZR[SZRY)] def
+/second [-8 8 (NFNM VFVM)] def
+/degree [-7 7 (QFOGNINKOMQNSNUMVKVIUGSFQF)] def
+/slash [-11 11 ([BIb)] def
+/parenleft [-7 5 (VBTDRGPKOPOTPYR]T`Vb)] def
+/parenright [-5 7 (NBPDRGTKUPUTTYR]P`Nb)] def
+/bar [-4 4 (RBRb)] def
+/numbersign [-10 11 (SBLb YBRb LOZO KUYU)] def
+/ampersand [-13 13 (\\O\\N[MZMYNXPVUTXRZP[L[JZIYHWHUISJRQNRMSKSIRGPFNGMIMKNNPQUXWZY[[[\\Z\\Y)] def
+/perpendicular [-12 12 (RBR[ I[[[)] def
+/angle [-12 12 ([BI[[[)] def
+/therefore [-13 13 (RIQJRKSJRI IYHZI[JZIY [YZZ[[\\Z[Y)] def
+/spade [-12 12 (RHNLKPJSJUKWMXOXQWRU RHVLYPZSZUYWWXUXSWRU RUQYP\\ RUSYT\\ P\\T\\)] def
+/heart [-12 12 (RNQKPINHMHKIJKJOKRLTNWR\\ RNSKTIVHWHYIZKZOYRXTVWR\\)] def
+/diamond [-12 12 (RGPJLOIR RGTJXO[R IRLUPZR] [RXUTZR])] def
+/club [-12 12 (RTTWVXXXZW[U[SZQXPVPSQ SQUOVMVKUISHQHOINKNMOOQQ QQNPLPJQISIUJWLXNXPWRT RTQYP\\ RTSYT\\ P\\T\\)] def
+/bullet [-2 2 (QPPQPSQTSTTSTQSPQP RQQRRSSRRQ)] def
+/lozenge [-6 6 (RHLRR\\XRRH)] def
+/underscore [-8 8 (J]Z])] def
+/minus [-9 9 (LRXR)] def
+/plus [-9 9 (RLRX LRXR)] def
+/infinity [-8 9 (OUMULVLXMYOYPXPVNTMRMONMOLQKTKVLWMXOXRWTUVUXVYXYYXYVXUVU NMPLULWM)] def
+/bracketleft [-7 7 (OBOb PBPb OBVB ObVb)] def
+/bracketright [-7 7 (TBTb UBUb NBUB NbUb)] def
+/braceleft [-7 7 (TBRCQDPFPHQJRKSMSOQQ RCQEQGRISJTLTNSPORSTTVTXSZR[Q]Q_Ra QSSUSWRYQZP\\P^Q`RaTb)] def
+/braceright [-7 7 (PBRCSDTFTHSJRKQMQOSQ RCSESGRIQJPLPNQPURQTPVPXQZR[S]S_Ra SSQUQWRYSZT\\T^S`RaPb)] def
+/Upsilon [-10 11 (KFRQR[ LFSQS[ ZFSQ IFOF VF\\F O[V[)] def
+/Alpha [-11 11 (RFK[ RFY[ RIX[ MUVU I[O[ U[[[)] def
+/Beta [-12 12 (LFL[ MFM[ IFUFXGYHZJZLYNXOUP UFWGXHYJYLXNWOUP MPUPXQYRZTZWYYXZU[I[ UPWQXRYTYWXYWZU[)] def
+/Gamma [-10 10 (NFN[ OFO[ KFZFZLYF K[R[)] def
+/Delta [-11 11 (RFJ[ RFZ[ RIY[ KZYZ J[Z[)] def
+/Epsilon [-12 11 (LFL[ MFM[ SLST IFYFYLXF MPSP I[Y[YUX[)] def
+/Zeta [-11 11 (XFK[ YFL[ LFKLKFYF K[Y[YUX[)] def
+/Eta [-12 12 (QFNGLIKKJOJRKVLXNZQ[S[VZXXYVZRZOYKXIVGSFQF QFOGMILKKOKRLVMXOZQ[ S[UZWXXVYRYOXKWIUGSF OMOT UMUT OPUP OQUQ)] def
+/Theta [-13 13 (QFNGLIKKJOJRKVLXNZQ[S[VZXXYVZRZOYKXIVGSFQF QFOGMILKKOKRLVMXOZQ[ S[UZWXXVYRYOXKWIUGSF OMOT UMUT OPUP OQUQ)] def
+/Iota [-6 7 (RFR[ SFS[ OFVF O[V[)] def
+/Kappa [-13 11 (KFK[ LFL[ YFLS QOY[ POX[ HFOF UF[F H[O[ U[[[)] def
+/Lambda [-11 11 (RFK[ RFY[ RIX[ I[O[ U[[[)] def
+/Mu [-13 14 (KFK[ LFRX KFR[ YFR[ YFY[ ZFZ[ HFLF YF]F H[N[ V[][)] def
+/Nu [-12 13 (LFL[ MFYY MHY[ YFY[ IFMF VF\\F I[O[)] def
+/Xi [-12 12 (KEJJ ZEYJ ONNS VNUS KWJ\\ ZWY\\ KGYG KHYH OPUP OQUQ KYYY KZYZ)] def
+/Omicron [-12 12 (QFNGLIKKJOJRKVLXNZQ[S[VZXXYVZRZOYKXIVGSFQF QFOGMILKKOKRLVMXOZQ[ S[UZWXXVYRYOXKWIUGSF)] def
+/Pi [-13 13 (KFK[ LFL[ XFX[ YFY[ HF\\F H[O[ U[\\[)] def
+/Rho [-12 12 (LFL[ MFM[ IFUFXGYHZJZMYOXPUQMQ UFWGXHYJYMXOWPUQ I[P[)] def
+/Sigma [-11 12 (KFRPJ[ JFQP JFYFZLXF KZXZ J[Y[ZUX[)] def
+/Tau [-10 11 (RFR[ SFS[ LFKLKFZFZLYF O[V[)] def
+/Upsilon1 [-10 11 (KKKILGMFOFPGQIRMR[ KIMGOGQI ZKZIYGXFVFUGTISMS[ ZIXGVGTI O[V[)] def
+/Phi [-11 12 (RFR[ SFS[ PKMLLMKOKRLTMUPVUVXUYTZRZOYMXLUKPK PKNLMMLOLRMTNUPV UVWUXTYRYOXMWLUK OFVF O[V[)] def
+/Chi [-11 11 (KFX[ LFY[ YFK[ IFOF UF[F I[O[ U[[[)] def
+/Psi [-12 13 (RFR[ SFS[ IMJLLMMQNSOTQU JLKMLQMSNTQUTUWTXSYQZM[L TUVTWSXQYM[L\\M OFVF O[V[)] def
+/Omega [-12 12 (JXK[O[MWKSJPJLKIMGPFTFWGYIZLZPYSWWU[Y[ZX MWLTKPKLLINGPF TFVGXIYLYPXTWW KZNZ VZYZ)] def
+/aleph [-10 10 (KILKXWYYY[ LLXX KIKKLMXYY[ PPLTKVKXLZK[ KVMZ LTLVMXMZK[ SSXN VIVLWNYNYLWKVI VIWLYN)] def
+/alpha [-12 13 (QMNNLPKRJUJXKZN[P[RZUWWTYPZM QMONMPLRKUKXLZN[ QMSMUNVPXXYZZ[ SMTNUPWXXZZ[[[)] def
+/beta [-12 11 (TFQGOIMMLPKTJZIb TFRGPINMMPLTKZJb TFVFXGYHYKXMWNTOPO VFXHXKWMVNTO POTPVRWTWWVYUZR[P[NZMYLV POSPURVTVWUYTZR[)] def
+/gamma [-11 11 (IPKNMMOMQNROSRSVRZOb JOLNPNRO ZMYPXRSYP^Nb YMXPWRSY)] def
+/delta [-10 11 (VNTMRMONMQLTLWMYNZP[R[UZWWXTXQWOSJRHRFSEUEWFYH RMPNNQMTMXNZ R[TZVWWTWPVNTKSISGTFVFYH)] def
+/epsilon [-10 10 (XPVNTMPMNNNPPRSS PMONOPQRSS SSNTLVLXMZP[S[UZWX SSOTMVMXNZP[)] def
+/zeta [-10 10 (TFRGQHQIRJUKZKZJWKSMPOMRLULWMYP[S]T_TaSbQbPa ULQONRMUMWNYP[)] def
+/eta [-12 12 (HQIOKMNMONOPNTL[ MMNNNPMTK[ NTPPRNTMVMXNYOYRXWUb VMXOXRWWTb)] def
+/theta1 [-13 12 (GQHOJMMMNNNPMUMXNZO[ LMMNMPLULXMZO[Q[SZUXWUXRYMYIXGVFTFRHRJSMUPWRZT SZUWVUWRXMXIWGVF)] def
+/iota [-7 7 (RMPTOXOZP[S[UYVW SMQTPXPZQ[)] def
+/kappa [-11 11 (NMJ[ OMK[ XMYNZNYMWMUNQROSMS OSQTSZT[ OSPTRZS[U[WZYW)] def
+/lambda [-11 11 (KFMFOGPHQJWXXZY[ MFOHPJVXWZY[Z[ RMJ[ RMK[)] def
+/mu [-13 12 (MMGb NMHb MPLVLYN[P[RZTXVU XMUXUZV[Y[[Y\\W YMVXVZW[)] def
+/xi [-10 9 (TFRGQHQIRJUKXK UKQLOMNONQPSSTVT UKRLPMOOOQQSST STOUMVLXLZN\\S^T_TaRbPb STPUNVMXMZO\\S^)] def
+/omicron [-10 10 (RMONMQLTLWMYNZP[R[UZWWXTXQWOVNTMRM RMPNNQMTMXNZ R[TZVWWTWPVN)] def
+/pi [-12 12 (PNL[ PNM[ VNV[ VNW[ IPKNNM[M IPKONN[N)] def
+/rho [-11 10 (LVMYNZP[R[UZWWXTXQWOVNTMRMONMQLTHb R[TZVWWTWPVN RMPNNQMTIb)] def
+/sigma [-11 12 ([MQMNNLQKTKWLYMZO[Q[TZVWWTWQVOUNSM QMONMQLTLXMZ Q[SZUWVTVPUN UN[N)] def
+/tau [-11 11 (SNP[ SNQ[ JPLNOMZM JPLOONZN)] def
+/upsilon [-11 11 (IQJOLMOMPNPPNVNYP[ NMONOPMVMYNZP[Q[TZVXXUYRYOXMWNXOYR XUYO)] def
+/phi1 [-12 12 (ONMOKQJTJWKYLZN[Q[TZWXYUZRZOXMVMTORSPXMb JWLYNZQZTYWWYU ZOXNVNTPRSPYNb)] def
+/chi [-10 10 (KMMMONPPU_VaWb MMNNOPT_UaWbYb ZMYOWRM]K`Jb)] def
+/nu [-13 12 (UFOb VFNb GQHOJMMMNNNPMUMXOZRZTYWVYS LMMNMPLULXMZO[R[TZVXXUYS[M)] def
+/psi [-14 13 (UFOb VFNb GQHOJMMMNNNPMUMXOZRZTYWVYS LMMNMPLULXMZO[R[TZVXXUYS[M)] def
+/omega [-13 12 (JQLOONNMLNJQITIWJZK[M[OZQWRT IWJYKZMZOYQW QTQWRZS[U[WZYWZTZQYNXMWNYOZQ QWRYSZUZWYYW)] def
+/florin [-7 8 (ZGYHZI[H[GZFXFVGUHTJSMP[O_Na XFVHUJTNRWQ[P^O`NaLbJbIaI`J_K`Ja OMYM)] def
+/theta [-9 10 (TFQGOJNLMOLTLXMZO[Q[TZVWWUXRYMYIXGVFTF TFRGPJOLNOMTMXNZO[ Q[SZUWVUWRXMXIWGVF NPWP)] def
+/phi [-11 11 (UFOb VFNb QMMNKPJSJVKXMZP[S[WZYXZUZRYPWNTMQM QMNNLPKSKVLXNZP[ S[VZXXYUYRXPVNTM)] def
+/sigma1 [-9 9 (TMVNXPXOWNTMQMNNMOLQLSMUOWSZ QMONNOMQMSNUSZT\\T^S_Q_)] def
+/weierstrass [-11 11 (LMKNJPJRKUOYP[ JRKTOXP[P]O`MbLbKaJ_J\\KXMTOQRNTMVMYNZPZTYXWZU[T[SZSXTWUXTY VMXNYPYTXXWZ)] def
+/asteriskmath [-8 8 (RFRR MIWO WIMO)] def
+/angleleft [-7 7 (UBNRUb)] def
+/angleright [-7 7 (OBVROb)] def
+/plusminus [-12 12 (RJR[ JRZR J[Z[)] def
+/multiply [-11 11 (KKYY YKKY)] def
+/dotmath [-5 5 (RQQRRSSRRQ)] def
+/divide [-13 13 (RIQJRKSJRI IR[R RYQZR[SZRY)] def
+/equal [-13 13 (IO[O IU[U)] def
+/notequal [-13 13 (YIK[ IO[O IU[U)] def
+/equivalence [-13 13 (IM[M IR[R IW[W)] def
+/less [-12 12 (ZIJRZ[)] def
+/greater [-12 12 (JIZRJ[)] def
+/lessequal [-12 12 (ZFJMZT JVZV J[Z[)] def
+/greaterequal [-12 12 (JFZMJT JVZV J[Z[)] def
+/proportional [-12 13 ([WYWWVUTRPQOONMNKOJQJSKUMVOVQURTUPWNYM[M)] def
+/similar [-12 12 (IUISJPLONOPPTSVTXTZS[Q ISJQLPNPPQTTVUXUZT[Q[O)] def
+/propersubset [-12 12 (ZJSJOKMLKNJQJSKVMXOYSZZZ)] def
+/union [-12 12 (JJJQKULWNYQZSZVYXWYUZQZJ)] def
+/propersuperset [-12 12 (JJQJUKWLYNZQZSYVWXUYQZJZ)] def
+/intersection [-12 12 (JZJSKOLMNKQJSJVKXMYOZSZZ)] def
+/element [-12 12 (ZJSJOKMLKNJQJSKVMXOYSZZZ JRVR)] def
+/arrowright [-13 13 (XP[RXT UMZRUW IRZR)] def
+/arrowup [-8 8 (PLRITL MORJWO RJR[)] def
+/arrowleft [-13 13 (LPIRLT OMJROW JR[R)] def
+/arrowdown [-8 8 (PXR[TX MURZWU RIRZ)] def
+/partialdiff [-9 10 (XRWOVNTMRMONMQLTLWMYNZP[R[UZWXXUYPYKXHWGUFRFPGOHOIPIPH RMPNNQMTMXNZ R[TZVXWUXPXKWHUF)] def
+/gradient [-10 10 (JFR[ KFRY ZFR[ JFZF KGYG)] def
+/radical [-17 16 (DMIMRY HNR[ b:R[)] def
+/integral [-12 12 ([CZD[E\\D\\C[BYBWCUETGSJRNPZO^N` VDUFTJRVQZP]O_MaKbIbHaH`I_J`Ia)] def
+/percent [-12 12 ([FI[ NFPHPJOLMMKMIKIIJGLFNFPGSHVHYG[F WTUUTWTYV[X[ZZ[X[VYTWT)] def
+/existential [-9 10 (XFX[ KFXF PPXP K[X[)] def
+/circleplus [-14 14 (PFMGJIHLGOGSHVJYM[P\\T\\W[ZY\\V]S]O\\LZIWGTFPF RFR\\ GQ]Q)] def
+/product [-17 17 (HBHb IBIb [B[b \\B\\b DB`B DbMb Wb`b)] def
+/summation [-16 15 (GBQPFb FBPP EBPQ EB\\B^I[B Ga\\a Fb\\b^[[b)] def
+/space [-4 4 ()] def
+/minute [-4 5 (SFRGRM SGRM SFTGRM)] def
+/Ifraktur [-12 13 (PPNPLOKNJLJJKHLGOFQFTGWJYK LHNGRGTHUI JJKIMHQHTIVJYK[K\\J\\H[GYG JXKYJZIYIWJVLVNWPYR\\T^ NXOYQ\\R] LVMWNYP\\Q]S^V^X]Y\\ZZZWYUWRVPVO YXYWVRVQ X]Y[YYXWVTURUPWNYNZOZP)] def
+/Rfraktur [-14 14 (GQGRHSJSLRLOKMIJIHKF KOIK JSKRKPIMHKHIIGKFNFPGQHRJRVQXOZM[K[IZ PHQJQVPX NFOGPJPVOYM[ GVIZ FYJW GVGXFYHYIZIXJWHWGV RISGUFWFYGZH[J\\K YHZJ WFXGYJZK\\K \\KRP TOXYZ[]X UOYX[Z VNZX[Y\\Y)] def
+/universal [-9 9 (R[JF R[ZF MMWM)] def
+/suchthat [-8 9 (MNOMRMUNWPXSXVWYVZS[P[NZ RMUNVPWSWVVYUZS[ WTOT)] def
+/congruent [-12 12 (IUISJPLONOPPTSVTXTZS[Q ISJQLPNPPQTTVUXUZT[Q[O IX[X I[[[)] def
+/radicalex [-10 9 (H:[:)] def
+/omega1 [-12 11 (JQLOONNMLNJQITIWJZK[M[OZQWRT IWJYKZMZOYQW QTQWRZS[U[WZYWZTZQYNXMWNYOZQ QWRYSZUZWYYW IPKNNM[M IPKONN[N)] def
+/fraction [-3 16 (Obb:)] def
+/arrowboth [-13 13 (XP[RXT UMZRUW IR[R LPIRLT OMJROW)] def
+/approxequal [-12 12 (ISJPLONOPPTSVTXTZS[Q ISJQLPNPPQTTVUXUZT[Q IXJULVNTPUTXVYXYZX[V IXJVLUNUPVTYVZXZZX[V)] def
+/ellipsis [-14 14 (KYJZK[LZKY RYQZR[SZRY YYXZY[ZZYY)] def
+/arrowvertex [-8 8 (R3Rk)] def
+/arrowhorizex [-13 13 (ARcR)] def
+/carriagereturn [-13 13 (LPIRLT OMJROW JRYRYE)] def
+/circlemultiply [-14 14 (PFMGJIHLGOGSHVJYM[P\\T\\W[ZY\\V]S]O\\LZIWGTFPF JYZI JIYY)] def
+/emptyset [-14 14 (PFMGJIHLGOGSHVJYM[P\\T\\W[ZY\\V]S]O\\LZIWGTFPF E^^E)] def
+/reflexsuperset [-12 12 (ZJSJOKMLKNJQJSKVMXOYSZZZ J^Z^)] def
+/notsubset [-12 12 (JJQJUKWLYNZQZSYVWXUYQZJZ M^WF)] def
+/reflexsubset [-12 12 (JJQJUKWLYNZQZSYVWXUYQZJZ J^Z^)] def
+/notelement [-12 12 (ZJSJOKMLKNJQJSKVMXOYSZZZ JRVR M^WF)] def
+/registerserif [-8 8 (QENFLHKKKMLPNRQSSSVRXPYMYKXHVFSEQE NPPP NGOGOP OGSGUHUKSLOL RLUP TPVP)] def
+/copyrightserif [-8 8 (QENFLHKKKMLPNRQSSSVRXPYMYKXHVFSEQE UHUISHQHOINKNNOPSQSQUP)] def
+/trademarkserif [-11 13 (MGMP LPNP IHIGQGQH TGUGUP TPVP UGYP ]GYP ^G]G]P \\P^P)] def
+/logicalnot [-12 12 (JMZMZQ)] def
+/logicaland [-12 12 (J[RM Z[RM)] def
+/logicalor [-12 12 (JMR[ ZMR[)] def
+/arrowdblboth [-13 13 (XP[RXT UMZRUW LPXP LTXT LPIRLT OMJROW)] def
+/arrowdblleft [-13 13 (LPIRLT OMJROW LP[P LT[T)] def
+/arrowdblup [-8 8 (PLRITL MORJWO PLP[ TLT[)] def
+/arrowdblright [-13 13 (XP[RXT UMZRUW IPXP ITXT)] def
+/arrowdbldown [-8 8 (PXR[TX MURZWU PIPX TITX)] def
+/registersans [-8 8 (QENFLHKKKMLPNRQSSSVRXPYMYKXHVFSEQE OGOP OGSGUHUKSLOL RLUP)] def
+/copyrightsans [-8 8 (QENFLHKKKMLPNRQSSSVRXPYMYKXHVFSEQE UISHQHOINKNNOPSQSQUP)] def
+/trademarksans [-10 12 (MGMP IGQG UGUP UGYP ]GYP ]G]P)] def
+/parenlefttp [-22 0 (RGPGMHJJHMGPGRGZ)] def
+/bracelefttp [-22 0 (RGPGMHJJHMGPGRGZ)] def
+/parenleftex [-11 11 (R1Rj)] def
+/bracketleftex [-11 11 (R1Rj)] def
+/braceex [-11 11 (R1Rj)] def
+/parenrightex [-11 11 (R1Rj)] def
+/bracketrightex [-11 11 (R1Rj)] def
+/parenleftbt [-22 0 (GAGRGTHWJZM\\P]R])] def
+/braceleftbt [-22 0 (GAGRGTHWJZM\\P]R])] def
+/bracketlefttp [-11 11 (RBRf RB[B)] def
+/bracketleftbt [-11 11 (R>Rb Rb[b)] def
+/braceleftmid [-11 11 (R1RHQLPNNPLQIRLSNTPVQXR[Rj)] def
+/integraltp [-15 15 (]>\\>[?[@\\A]A^@^>]<[;Y;W<U>T@SCRJQZQ`RJR` \\?\\@]@]?\\? U>TASJS`)] def
+/integralex [-15 15 (S6S`R6R`Q6Q`)] def
+/integralbt [-15 15 (S6SHRRQYP\\O^M`KaIaG`F^F\\G[H[I\\I]H^G^ G\\G]H]H\\G\\ QSRRR6Q6QRP[O^)] def
+/parenrighttp [0 22 (]Z]R]P\\MZJWHTGRG)] def
+/bracerighttp [0 22 (]Z]R]P\\MZJWHTGRG)] def
+/parenrightbt [0 22 (R]T]W\\ZZ\\W]T]R]A)] def
+/bracerightbt [0 22 (R]T]W\\ZZ\\W]T]R]A)] def
+/bracketrighttp [-11 11 (RBRf HBRB)] def
+/bracketrightbt [-11 11 (R>Rb HbRb)] def
+/bracerightmid [-11 11 (R1RHSLTNVPWQZRWSVTTVSXR[Rj)] def
+/.notdef [ 0 0 () ] def		% not defined
+end
+/Hershey-Symbol 5066567 [107 0 5066567]
+  1.0 0 SymbolEncoding makeHersheyFontGS993

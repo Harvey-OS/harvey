@@ -1,17 +1,15 @@
 </$objtype/mkfile
 
 
-<../config
+SYSTEM=plan9
 
 COMMONDIR=../common
 
+BIN=/$objtype/bin/aux
+
 TARG=p9bitpost
-OFILES=pslib.$O\
-	p9bitpost.$O\
+OFILES=p9bitpost.$O\
 
-BIN=$POSTBIN
-
-LIB=/$objtype/lib/libmemdraw.a
 < /sys/src/cmd/mkone
 
 CFLAGS=-w -I$COMMONDIR

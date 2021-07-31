@@ -1,6 +1,6 @@
 .TH DATE 1
 .SH NAME
-date, clock \- date and time
+date \- print the date
 .SH SYNOPSIS
 .B date
 [
@@ -8,8 +8,6 @@ date, clock \- date and time
 ] [
 .I seconds
 ]
-.br
-.B clock
 .SH DESCRIPTION
 Print the date, in the format
 .PP
@@ -48,10 +46,5 @@ Default timezone file, copied by
 .IR init (8)
 into
 .BR /env/timezone .
-.PP
-.I Clock
-draws a simple analog clock in its window.
 .SH SOURCE
 .B /sys/src/cmd/date.c
-.br
-.B /sys/src/cmd/clock.c

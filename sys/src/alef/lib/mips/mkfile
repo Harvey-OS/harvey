@@ -1,0 +1,28 @@
+objtype=mips
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libA.a
+
+AFILES=frexp.l\
+	lock.l\
+	nan.l\
+
+SFILES =alefasm.s\
+	alefrt.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memchr.s\
+	memcmp.s\
+	memmove.s\
+	memset.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+	tas.s\
+
+HFILES=run.h
+
+<../rt/mkfile

@@ -1,0 +1,221 @@
+%% 
+%% This is file `stmaryrd.sty', generated on <1995/2/26> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% stmaryrd.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file stmaryrd.dtx .
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{stmaryrd}[1994/03/03 St Mary's Road symbol package]
+\def\stmry@if#1#2{\let#2=\@undefined\iftrue#1#2}
+\DeclareOption{only}{\let\stmry@if=\stmry@only}
+\def\stmry@only#1#2{\ifx#2\relax\let#2=\@undefined#1#2}
+\newif\ifstmry@heavy@
+\stmry@heavy@false
+\DeclareOption{heavycircles}{%
+   \stmry@option{varotimes}\stmry@option{varoast}%
+   \stmry@option{varobar}\stmry@option{varodot}%
+   \stmry@option{varoslash}\stmry@option{varobslash}%
+   \stmry@option{varocircle}\stmry@option{varoplus}%
+   \stmry@option{varominus}\stmry@option{varbigcirc}%
+   \stmry@heavy@true
+}
+\def\stmry@option#1{\expandafter\let\csname#1\endcsname\relax}
+\DeclareOption*{\stmry@option\CurrentOption}
+\DeclareOption{Mapsto}{%
+   \stmry@option{Mapsto}%
+   \stmry@option{Mapstochar}%
+}
+\DeclareOption{mapsfrom}{%
+   \stmry@option{mapsfrom}%
+   \stmry@option{mapsfromchar}%
+}
+\DeclareOption{Mapsfrom}{%
+   \stmry@option{Mapsfrom}%
+   \stmry@option{Mapsfromchar}%
+}
+\DeclareOption{longarrownot}{%
+   \stmry@option{longarrownot}%
+   \stmry@option{arrownot}%
+}
+\DeclareOption{Longarrownot}{%
+   \stmry@option{Longarrownot}%
+   \stmry@option{Arrownot}%
+}
+\DeclareOption{Longmapsto}{%
+   \stmry@option{Longmapsto}%
+   \stmry@option{Mapstochar}%
+}
+\DeclareOption{longmapsfrom}{%
+   \stmry@option{longmapsfrom}%
+   \stmry@option{mapsfromchar}%
+}
+\DeclareOption{Longmapsfrom}{%
+   \stmry@option{Longmapsfrom}%
+   \stmry@option{Mapsfromchar}%
+}
+\ProcessOptions
+\DeclareSymbolFont{stmry}{U}{stmry}{m}{n}
+\SetSymbolFont{stmry}{bold}{U}{stmry}{b}{n}
+\stmry@if\DeclareMathSymbol\shortleftarrow\mathrel{stmry}{"00}\fi
+\stmry@if\DeclareMathSymbol\shortrightarrow\mathrel{stmry}{"01}\fi
+\stmry@if\DeclareMathSymbol\shortuparrow\mathrel{stmry}{"02}\fi
+\stmry@if\DeclareMathSymbol\shortdownarrow\mathrel{stmry}{"03}\fi
+\stmry@if\DeclareMathSymbol\Yup\mathbin{stmry}{"04}\fi
+\stmry@if\DeclareMathSymbol\Ydown\mathbin{stmry}{"05}\fi
+\stmry@if\DeclareMathSymbol\Yleft\mathbin{stmry}{"06}\fi
+\stmry@if\DeclareMathSymbol\Yright\mathbin{stmry}{"07}\fi
+\stmry@if\DeclareMathSymbol\varcurlyvee\mathbin{stmry}{"08}\fi
+\stmry@if\DeclareMathSymbol\varcurlywedge\mathbin{stmry}{"09}\fi
+\stmry@if\DeclareMathSymbol\minuso\mathbin{stmry}{"0A}\fi
+\stmry@if\DeclareMathSymbol\baro\mathbin{stmry}{"0B}\fi
+\stmry@if\DeclareMathSymbol\sslash\mathbin{stmry}{"0C}\fi
+\stmry@if\DeclareMathSymbol\bbslash\mathbin{stmry}{"0D}\fi
+\stmry@if\DeclareMathSymbol\moo\mathbin{stmry}{"0E}\fi
+\stmry@if\DeclareMathSymbol\varotimes\mathbin{stmry}{"0F}\fi
+\stmry@if\DeclareMathSymbol\varoast\mathbin{stmry}{"10}\fi
+\stmry@if\DeclareMathSymbol\varobar\mathbin{stmry}{"11}\fi
+\stmry@if\DeclareMathSymbol\varodot\mathbin{stmry}{"12}\fi
+\stmry@if\DeclareMathSymbol\varoslash\mathbin{stmry}{"13}\fi
+\stmry@if\DeclareMathSymbol\varobslash\mathbin{stmry}{"14}\fi
+\stmry@if\DeclareMathSymbol\varocircle\mathbin{stmry}{"15}\fi
+\stmry@if\DeclareMathSymbol\varoplus\mathbin{stmry}{"16}\fi
+\stmry@if\DeclareMathSymbol\varominus\mathbin{stmry}{"17}\fi
+\stmry@if\DeclareMathSymbol\boxast\mathbin{stmry}{"18}\fi
+\stmry@if\DeclareMathSymbol\boxbar\mathbin{stmry}{"19}\fi
+\stmry@if\DeclareMathSymbol\boxdot\mathbin{stmry}{"1A}\fi
+\stmry@if\DeclareMathSymbol\boxslash\mathbin{stmry}{"1B}\fi
+\stmry@if\DeclareMathSymbol\boxbslash\mathbin{stmry}{"1C}\fi
+\stmry@if\DeclareMathSymbol\boxcircle\mathbin{stmry}{"1D}\fi
+\stmry@if\DeclareMathSymbol\boxbox\mathbin{stmry}{"1E}\fi
+\stmry@if\DeclareMathSymbol\boxempty\mathbin{stmry}{"1F}\fi
+\stmry@if\DeclareMathSymbol\lightning\mathord{stmry}{"20}\fi
+\stmry@if\DeclareMathSymbol\merge\mathbin{stmry}{"21}\fi
+\stmry@if\DeclareMathSymbol\vartimes\mathbin{stmry}{"22}\fi
+\stmry@if\DeclareMathSymbol\fatsemi\mathbin{stmry}{"23}\fi
+\stmry@if\DeclareMathSymbol\sswarrow\mathrel{stmry}{"24}\fi
+\stmry@if\DeclareMathSymbol\ssearrow\mathrel{stmry}{"25}\fi
+\stmry@if\DeclareMathSymbol\curlywedgeuparrow\mathrel{stmry}{"26}\fi
+\stmry@if\DeclareMathSymbol\curlywedgedownarrow\mathrel{stmry}{"27}\fi
+\stmry@if\DeclareMathSymbol\fatslash\mathbin{stmry}{"28}\fi
+\stmry@if\DeclareMathSymbol\fatbslash\mathbin{stmry}{"29}\fi
+\stmry@if\DeclareMathSymbol\lbag\mathbin{stmry}{"2A}\fi
+\stmry@if\DeclareMathSymbol\rbag\mathbin{stmry}{"2B}\fi
+\stmry@if\DeclareMathSymbol\varbigcirc\mathbin{stmry}{"2C}\fi
+\stmry@if\DeclareMathSymbol\leftrightarroweq\mathrel{stmry}{"2D}\fi
+\stmry@if\DeclareMathSymbol\curlyveedownarrow\mathrel{stmry}{"2E}\fi
+\stmry@if\DeclareMathSymbol\curlyveeuparrow\mathrel{stmry}{"2F}\fi
+\stmry@if\DeclareMathSymbol\nnwarrow\mathrel{stmry}{"30}\fi
+\stmry@if\DeclareMathSymbol\nnearrow\mathrel{stmry}{"31}\fi
+\stmry@if\DeclareMathSymbol\leftslice\mathbin{stmry}{"32}\fi
+\stmry@if\DeclareMathSymbol\rightslice\mathbin{stmry}{"33}\fi
+\stmry@if\DeclareMathSymbol\varolessthan\mathbin{stmry}{"34}\fi
+\stmry@if\DeclareMathSymbol\varogreaterthan\mathbin{stmry}{"35}\fi
+\stmry@if\DeclareMathSymbol\varovee\mathbin{stmry}{"36}\fi
+\stmry@if\DeclareMathSymbol\varowedge\mathbin{stmry}{"37}\fi
+\stmry@if\DeclareMathSymbol\talloblong\mathbin{stmry}{"38}\fi
+\stmry@if\DeclareMathSymbol\interleave\mathbin{stmry}{"39}\fi
+\stmry@if\DeclareMathSymbol\obar\mathbin{stmry}{"3A}\fi
+\stmry@if\DeclareMathSymbol\obslash\mathbin{stmry}{"3B}\fi
+\stmry@if\DeclareMathSymbol\olessthan\mathbin{stmry}{"3C}\fi
+\stmry@if\DeclareMathSymbol\ogreaterthan\mathbin{stmry}{"3D}\fi
+\stmry@if\DeclareMathSymbol\ovee\mathbin{stmry}{"3E}\fi
+\stmry@if\DeclareMathSymbol\owedge\mathbin{stmry}{"3F}\fi
+\stmry@if\DeclareMathSymbol\oblong\mathbin{stmry}{"40}\fi
+\stmry@if\DeclareMathSymbol\inplus\mathrel{stmry}{"41}\fi
+\stmry@if\DeclareMathSymbol\niplus\mathrel{stmry}{"42}\fi
+\stmry@if\DeclareMathSymbol\nplus\mathbin{stmry}{"43}\fi
+\stmry@if\DeclareMathSymbol\subsetplus\mathrel{stmry}{"44}\fi
+\stmry@if\DeclareMathSymbol\supsetplus\mathrel{stmry}{"45}\fi
+\stmry@if\DeclareMathSymbol\subsetpluseq\mathrel{stmry}{"46}\fi
+\stmry@if\DeclareMathSymbol\supsetpluseq\mathrel{stmry}{"47}\fi
+\stmry@if\DeclareMathSymbol\Lbag\mathopen{stmry}{"48}\fi
+\stmry@if\DeclareMathSymbol\Rbag\mathclose{stmry}{"49}\fi
+
+\stmry@if\DeclareMathSymbol\llparenthesis\mathopen{stmry}{"4C}\fi
+\stmry@if\DeclareMathSymbol\rrparenthesis\mathclose{stmry}{"4D}\fi
+\stmry@if\DeclareMathSymbol\binampersand\mathopen{stmry}{"4E}\fi
+\stmry@if\DeclareMathSymbol\bindnasrepma\mathclose{stmry}{"4F}\fi
+\stmry@if\DeclareMathSymbol\trianglelefteqslant\mathrel{stmry}{"50}\fi
+\stmry@if\DeclareMathSymbol\trianglerighteqslant\mathrel{stmry}{"51}\fi
+\stmry@if\DeclareMathSymbol\ntrianglelefteqslant\mathrel{stmry}{"52}\fi
+\stmry@if\DeclareMathSymbol\ntrianglerighteqslant\mathrel{stmry}{"53}\fi
+\stmry@if\DeclareMathSymbol\llfloor\mathopen{stmry}{"54}\fi
+\stmry@if\DeclareMathSymbol\rrfloor\mathclose{stmry}{"55}\fi
+\stmry@if\DeclareMathSymbol\llceil\mathopen{stmry}{"56}\fi
+\stmry@if\DeclareMathSymbol\rrceil\mathclose{stmry}{"57}\fi
+\stmry@if\DeclareMathSymbol\arrownot\mathrel{stmry}{"58}\fi
+\stmry@if\DeclareMathSymbol\Arrownot\mathrel{stmry}{"59}\fi
+\stmry@if\DeclareMathSymbol\Mapstochar\mathrel{stmry}{"5A}\fi
+\stmry@if\DeclareMathSymbol\mapsfromchar\mathrel{stmry}{"5B}\fi
+\stmry@if\DeclareMathSymbol\Mapsfromchar\mathrel{stmry}{"5C}\fi
+\stmry@if\DeclareMathSymbol\leftrightarrowtriangle\mathbin{stmry}{"5D}\fi
+\stmry@if\DeclareMathSymbol\leftarrowtriangle\mathrel{stmry}{"5E}\fi
+\stmry@if\DeclareMathSymbol\rightarrowtriangle\mathrel{stmry}{"5F}\fi
+\stmry@if\DeclareMathSymbol\bigtriangledown\mathop{stmry}{"60}\fi
+\stmry@if\DeclareMathSymbol\bigtriangleup\mathop{stmry}{"61}\fi
+\stmry@if\DeclareMathSymbol\bigcurlyvee\mathop{stmry}{"62}\fi
+\stmry@if\DeclareMathSymbol\bigcurlywedge\mathop{stmry}{"63}\fi
+\stmry@if\DeclareMathSymbol\bigsqcap\mathop{stmry}{"64}\fi
+\stmry@if\DeclareMathSymbol\bigbox\mathop{stmry}{"65}\fi
+\stmry@if\DeclareMathSymbol\bigparallel\mathop{stmry}{"66}\fi
+\stmry@if\DeclareMathSymbol\biginterleave\mathop{stmry}{"67}\fi
+\stmry@if\DeclareMathSymbol\bignplus\mathop{stmry}{"70}\fi
+
+\stmry@if\DeclareMathDelimiter\llbracket{\mathopen}{stmry}{"4A}
+  {stmry}{"71}\fi
+\stmry@if\DeclareMathDelimiter\rrbracket{\mathclose}{stmry}{"4B}
+   {stmry}{"79}\fi
+\stmry@if\def\varcopyright
+   {{\ooalign{\hfil\raise.07ex\hbox{c}\hfil\crcr%
+     \mbox{$\m@th\varbigcirc$}}}}\fi
+\stmry@if\def\longarrownot{\mathrel{\mkern5.5mu\arrownot\mkern-5.5mu}}\fi
+\stmry@if\def\Longarrownot{\mathrel{\mkern5.5mu\Arrownot\mkern-5.5mu}}\fi
+\stmry@if\def\Mapsto{\Mapstochar\Rightarrow}\fi
+\stmry@if\def\mapsfrom{\leftarrow\mapsfromchar}\fi
+\stmry@if\def\Mapsfrom{\Leftarrow\Mapsfromchar}\fi
+\stmry@if\def\Longmapsto{\Mapstochar\Longrightarrow}\fi
+\stmry@if\def\longmapsfrom{\longleftarrow\mapsfromchar}\fi
+\stmry@if\def\Longmapsfrom{\Longleftarrow\Mapsfromchar}\fi
+\ifstmry@heavy@
+   \def\@swap#1#2{\let\@tempa#1\let#1#2\let#2\@tempa}
+   \@swap\varotimes\otimes
+   \@swap\varolessthan\olessthan
+   \@swap\varogreaterthan\ogreaterthan
+   \@swap\varovee\ovee
+   \@swap\varowedge\owedge
+   \@swap\varoast\oast
+   \@swap\varobar\obar
+   \@swap\varodot\odot
+   \@swap\varoslash\oslash
+   \@swap\varobslash\obslash
+   \@swap\varocircle\ocircle
+   \@swap\varoplus\oplus
+   \@swap\varominus\ominus
+   \@swap\varbigcirc\bigcirc
+   \@swap\varcopyright\copyright
+\fi
+\endinput
+%% 
+%% End of file `stmaryrd.sty'.

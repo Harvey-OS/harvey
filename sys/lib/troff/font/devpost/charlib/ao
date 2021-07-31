@@ -1,0 +1,7 @@
+/build_ao {
+	pop
+	currentpoint    % save current postion
+	(a) stringwidth pop (\312) stringwidth pop sub 2 div
+	.05 size mul rmoveto
+	(\312) show moveto (a) show
+} def

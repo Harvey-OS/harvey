@@ -1,0 +1,68 @@
+# This file makes TANGLE and WEAVE from their WEB sources.
+#
+APE=/sys/src/ape
+< $APE/config
+SHELL=/bin/rc
+
+TARG=tangle\
+	weave\
+
+OFILES=
+
+HFILES=../lib/common.h
+
+LIB=../lib/lib.a$O
+
+</sys/src/cmd/mkmany
+
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+# Tangle:
+# 
+tangle.c: 	tangle.p
+		$SHELL ../lib/convert tangle.p tangle.c
+
+tangle.p:	tangle.web tangle.ch $cpuobjtype.tangleboot
+		# redirected to stop chatter - remove redirection for debugging
+		$cpuobjtype.tangleboot tangle.web tangle.ch > /dev/null
+# Weave:
+# 
+weave.c:	weave.p
+		$SHELL ../lib/convert weave.p weave.c
+
+weave.p: 	weave.web weave.ch $cpuobjtype.tangleboot
+		# redirected to stop chatter - remove redirection for debugging
+		$cpuobjtype.tangleboot weave.web weave.ch > /dev/null
+# Tangleboot
+#
+$cpuobjtype.tangleboot:	tangleboot.c
+		objtype=$cputype
+		$CC $CFLAGS $prereq
+		$LD $LDFLAGS -o $target tangleboot.$cpuobjtype $LIB
+
+# To make tangleboot.c, we have to assume the presence of a working
+# tangle somewhere in path.
+tangleboot.c tangleboot.h: tangleboot.p
+		$SHELL ../lib/convert tangleboot.p temp.c
+		sed s/tangle.h/tangleboot.h/ < temp.c > tangleboot.c
+		rm -f temp.c
+
+tangleboot.p: tangle.web tangle.ch
+		# redirected to stop chatter - remove redirection for debugging
+		tangle tangle.web tangle.ch > /dev/null
+		mv tangle.p tangleboot.p
+
+install:VQ:
+		echo -n			# no-op
+
+installall:VQ:
+		echo -n			# no-op
+
+clean:V:
+		rm -f *.[$OS] [$OS].tangleboot *.pool coerce.h [$OS].$TARG $TARG
+
+nuke:V:
+		rm -f *.[$OS] [$OS].tangleboot *.pool coerce.h [$OS].$TARG $TARG
+		rm -f weave.c tangle.c weave.h tangle.p weave.p
+		rm -f '#'*'#' *~ *.bak

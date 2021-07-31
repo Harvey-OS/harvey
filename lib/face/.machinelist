@@ -1,4 +1,3 @@
-plan9\.bell-labs\.com	astro
-lucent\.com	astro
-.*research\.bell-labs\.com	astro
+plan9\.att\.com	astro
+.*research\.att\.com	astro
 .*\.oz.au		acsnet

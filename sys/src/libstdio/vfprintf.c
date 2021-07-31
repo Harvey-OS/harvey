@@ -143,14 +143,10 @@ ocvt_x,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
 
 static int nprint;
 
-QLock _stdiolk;
-
 int
 vfprintf(FILE *f, const char *s, va_list args)
 {
 	int flags, width, precision;
-
-	qlock(&_stdiolk);
 
 	nprint = 0;
 	while(*s){
@@ -194,10 +190,7 @@ vfprintf(FILE *f, const char *s, va_list args)
 			nprint++;
 		}
 	}
-
-	qunlock(&_stdiolk);
-
-	return ferror(f)? -1: nprint;
+	return ferror(f)? -1: nprint;;
 }
 
 static int

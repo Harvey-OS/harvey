@@ -1,0 +1,419 @@
+%% @metafontfile{
+%%     filename="eubase.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: base",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "28056 419 2057 14865"
+%%     keywords="amsfonts, tex, metafont , euler ",
+%%     abstract="This is the base file for use with 
+%%            the euler fonts in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% base file for Euler Fonts, by David Siegel and John Hobby
+
+ %def define_euler_pixels(text t) =
+ %forsuffixes $=t: $=$.#*hppp; endfor enddef;
+
+
+
+     pixperem = ptsize*pt;
+
+%  Beginning of change for version 2.1
+%  replaced the next four lines:
+%h#=ptsize/programem;
+%v#=h#*aspect_ratio;
+% define_euler_pixels(h,v);
+%v#:=h#; % DEK (I doubt if aspect_ratio<>1 will work, but this does help)
+
+%    with the following five lines:
+if unknown xscale_factor: xscale_factor := 1; fi
+h# = ptsize * xscale_factor / programem;
+v# = ptsize / programem;
+h = h#*hppp;
+v = v#*vppp;
+
+%    end of change for version 2.1                     4/4/91 NGB
+
+     define_pixels(leftside, rightside);
+%     h = pixperem/programem;
+%     v = pixperem/programem*aspect_ratio;
+
+      dandch = 3.94h;          %     dandch = (pixperem/935);
+      dandcv = 3.94v;         %     dandcv = (pixperem/935);
+
+        nwdh#  = h#*programem/925;     % h*3.784
+        nwdv#  = v#*programem/925;     % v*3.784
+        nwdh   = h*programem/925;
+        nwdv   = v*programem/925;
+% dandc == dan mills and carol twombly; nwd == dave siegel -- DEK
+     adjustx:=  3.92;
+     adjusty:=  3.92;
+
+save_leftside#:=leftside#; save_rightside#:=rightside#; % DEK
+def more_side(expr s_sharp) =
+ leftside#:=save_leftside#+s_sharp; rightside#:=save_rightside#+s_sharp;
+ define_pixels(leftside,rightside);
+enddef;
+
+% ----- Fontbegin, Charbegin -----------------------------------
+% --------------------------------------------------------------
+
+transform rot;
+
+def charbegin(expr c,w_sharp,h_sharp,d_sharp) =
+ begingroup
+  charcode:=if known c: byte c else: 0 fi;
+  W := w_sharp*pt;
+  chardx:=round(W+leftside+rightside);     % desired width of character in pixels
+  charwd:=w_sharp+leftside#+rightside#;    charht:=h_sharp;  chardp:=d_sharp;
+% charic:=0; clearxy; clearit; clearpen; scantokens extra_beginchar;
+% rot := identity;
+  charic:=0; clearxy; clearit; clearpen; % DEK
+  rot := identity; scantokens extra_beginchar;
+  pair tiept[];
+ enddef;
+
+def endchar(expr addwidth_sharp) =
+ scantokens extra_endchar;
+%if proofing>0: makebox(proofrule); fi
+ addwidth:=addwidth_sharp*pt;
+%currentpicture := currentpicture shifted (leftside+addwidth,0);
+xoffset:=leftside+addwidth;
+H:=charht*pt; D:=chardp*pt;
+if known nohashmarks:;
+else:
+ if proofing>0:
+  for y=0,H,-D*pt:
+    proofrule((-xoffset,y),(10-xoffset,y));
+    proofrule((chardx-10-xoffset,y),(chardx-xoffset,y)); endfor % horizontals
+  for x=-xoffset,chardx-xoffset:
+    proofrule((x,10-D),(x,-D)); proofrule((x,H-10),(x,H)); endfor % verticals fi
+ fi
+fi
+shipit;
+%if displaying>0: makebox(screenrule); showit; fi
+endgroup enddef;
+
+def mathcorr(expr subwidth_sharp) = % DEK
+ charic:=subwidth_sharp; charwd:=charwd-charic;
+enddef;
+
+% -----     TeX Information: ----------------------------------------
+
+     fontdimen 1:
+
+     0,               % italic correction     degrees
+     ptsize/3,          % default spacing (3em)     points
+     0,               % stretch          "
+     0,               % shrink          "
+     (lcbody*v#),           % xheight          "
+     ptsize,               % quad               "
+     0,               % math space          
+     (1400*v#),   % num1 baseline raise, for numerators, display style
+     (1000*v#),   % num2 baseline raise, for numerators, non-atop
+     (1100*v#),   % num3 baseline raise, for numerators, atop styles
+     (1400*v#),     % denom1 amount to lower baselines in display style
+     (600*v#),     % denom1 amount to lower baselines in non-display 
+     (1500*v#),     % sup1
+     (1400*v#),     % sup2 guess at superscript raising again
+     (1200*v#),     % sup3
+     (depthy*v#),     % sub1 subscripts with no super
+     (900*v#),     % sub2 maybe this is off by a little.
+     (1500*v#),     % supdrop how much to drop below a large box
+     (100*v#),     % supdrop how much to raise above a large box
+     2.2(programem*v#),     % size of \comb delimiters for display 
+     (programem*v#),     % size of \comb delimiters for non-display 
+     (950*v#);     % axisheight center for fraction line
+
+font_size     ptsize;
+
+
+% Adjusting stems
+% revised by DEK to allow highres adjustments, 11 Aug 87
+
+vardef set_stem_round(expr slo,s,shi,clo,c,chi) =
+ stem_lo:=slo*h; stem_hi:=shi*h; stem_norm:=s*h;
+ curve_lo:=clo*h; curve_hi:=chi*h; curve_norm:=c*h;
+  save a,b;
+  a-b = round (stem_norm - curve_norm);
+  a = round(.5(stem_norm + curve_norm + a - b));
+  stem_norm_corr := a-stem_norm; % a is normal stem width in pixels
+  curve_norm_corr := b-curve_norm; % b is normal curve width in pixels
+enddef;
+
+def no_stem_round = set_stem_round(-1,-1,-1,-1,-1,-1) enddef;
+no_stem_round; % default is to do ordinary rounding
+
+% The |stem_round| macro rounds its argument, forcing numbers that look like
+% stem widths to round near to |stem_norm|, and similarly forcing vertical curve
+% weights to round near to |curve_norm|.
+
+def stem_round primary w = if w<0: -stem_rnd(-w) else: stem_rnd(w) fi enddef;
+
+def stem_rnd(expr w) =
+    round(w
+    if (stem_lo<=w) and (w<=stem_hi): +stem_norm_corr
+    elseif (curve_lo<=w) and (w<=curve_hi): +curve_norm_corr
+    fi)
+enddef;
+
+% Filling cyclic paths with step width adjustment and rounding
+
+% Before calling the |adj_fill| macro, the user should set up an
+% array |t[]| and a nonnegative integer |n| so that |t[1]| through |t[n]|
+% are time values on some cyclic path |p|.  It should be true that |t[i]<t[j]|
+% whenever |i<j|.  Also |t[n]-t[1]| should be less than the length of |p|.
+% The |adj_fill| macro takes four lists of time values given as indices into
+% the |t| array.  The avoids the necessity of writing \MF\ macros to sort
+% the time values.
+% Groups of paths are allowed to have points ``tied together.''  This is
+% implemented by saving coordinates in a special array of type |pair|
+% called |tiept|.  If a path contains a point that is tied to a point in
+% an already computed path, then the adjusted coordinates of that point will
+% be saved in the |tiept| array.  This array should be made unknown before
+% starting a new group of paths; e.g., in |beginchar|.
+
+
+% Make |y'a| and |y'b| rounded versions of |y.a| and |y.b|, so that
+% |y'a-y'b| is as close as possible to |y.a-y.b|.
+% If a time value is given as both fixed and vertical or horizontal then
+% |y'a| or |y'b| or both may already be known.  Then we just round what
+% we can.
+
+vardef rnd_pr_y(suffix a, b) =
+  if known y'a: if unknown y'b: y'b-y'a=round(y.b-y.a); fi
+  elseif known y'b: y'b-y'a=round(y.b-y.a);
+  else:
+    y'a-y'b = round(y.a-y.b);
+    y'a = round(.5(y.a + y.b + y'a - y'b));
+  fi
+enddef;
+
+% Rounding |x| coordinates is similar except we use the special |stem_round|
+% routine.
+
+vardef rnd_pr_x(suffix a, b) =
+% use the next line if you want to see what channel settings are reasonable
+% (also set tracingtitles:=1 in such a case)
+% message decimal t.a&","&decimal t.b&":"&decimal((x.b-x.a)/h);
+  if known x'a: if unknown x'b: x'b-x'a=stem_round(x.b-x.a); fi
+  elseif known x'b: x'b-x'a=stem_round(x.b-x.a);
+  else:
+    x'a-x'b = stem_round(x.a-x.b);
+    x'a = round(.5(x.a + x.b + x'a - x'b));
+  fi
+enddef;
+
+
+
+% Set up a transform |curtx=tx.a| that takes |x.a| into |x'a| and |x.b|
+% into |x'b| without slanting or changing $y$-components.
+
+vardef set_tx(suffix a,b) =
+  save u,v;
+  xypart tx.a = yxpart tx.a = 0;
+  (x.a,0) transformed tx.a = (x'a,0);
+  (u,v) = (x.b,1) transformed tx.a - (x'b,1);
+  if known u: xxpart tx.a = yypart tx.a = 1;
+        else: (u,v)=origin;
+  fi
+  curtx := tx.a
+enddef;
+
+
+% Set up a transform |curty=ty.a| that takes |y.a| into |y'a| and |y.b|
+% into |y'b| without slanting or changing $x$-components.
+
+vardef set_ty(suffix a,b) =
+  save u,v;
+  xypart ty.a = yxpart ty.a = 0;
+  (0,y.a) transformed ty.a = (0,y'a);
+  (u,v) = (1,y.b) transformed ty.a - (1,y'b);
+  if known v: xxpart ty.a = yypart ty.a = 1;
+        else: (u,v)=origin;
+  fi
+  curty := ty.a
+enddef;
+
+
+% The following macros ensure that |x'i| or |y'i| agree with the current
+% transform.  It is important that this be done for all relevant |i| each
+% time |set_tx| or |set_ty| is called.  Since some points may be tied to
+% others, this can affect which |x'j| and |y'j| are known.  Future calls to
+% |set_tx| and |set_ty| should be based on the most up to date possible
+% information.
+
+vardef yset@# = (0,y'@#) = (0,y@#) transformed curty; enddef;
+vardef xset@# = (x'@#,0) = (x@#,0) transformed curtx; enddef;
+
+
+% Apply |set_txy| to each pair indices |a,b| such that |xy'[a]| and |xy'[b]|
+% are known, but |xy'[c] is unknown for all |c| between |a| and |b|.
+% This leaves the appropriate initial transformation in |curtx| or |curty|.
+% The |xyset| parameter is either |xset| or |yset| as explained above.
+
+vardef set_trans(suffix xy, set_txy, xyset) =
+  save previ, firsti;
+  for i=1 upto n: if known xy'[i]:
+      if known firsti:
+     set_txy([previ], [i]);
+     for j=previ+1 upto i-1: xyset[j]; endfor
+      else: firsti = i;
+      fi
+      previ := i;
+  fi endfor     
+  if known firsti:
+    for i=1 upto firsti: if known xy'[i]:
+      set_txy([previ], [i]);
+      if previ>=firsti:
+     for j=previ+1 upto n: xyset[j]; endfor
+     for j=1 upto i-1: xyset[j]; endfor
+      else:
+     for j=previ+1 upto i-1: xyset[j]; endfor
+      fi
+      previ:=i;
+    fi endfor
+  else:
+    for i=1 upto n: xyset[i]; endfor
+  fi
+enddef;
+
+
+
+% Return the transformed $i$th segement of |p_path| as defined by the time
+% values in |t[]|, updating |curtx| and |curty| if appropriate.
+
+vardef new_seg(expr i) =
+  save p; path p;
+  if known tx[i]: curtx:=tx[i]; fi
+  if known ty[i]: curty:=ty[i]; fi
+  p = subpath (t[i],t[i+1]) of p_path transformed (curtx transformed curty);
+  p
+enddef;
+
+
+
+% The following macros are used only when |t| entries are readjusted:
+
+
+% Find the first time on the path |p| where the direction is |dir| or |-dir|.
+
+def extremetime expr dir of p =
+  begingroup save a,b;
+  a = directiontime dir of p; if a<0: a:=infinity; fi
+  b = directiontime -dir of p; if b<0: b:=infinity; fi
+  if a<b: a else: b fi
+  endgroup
+enddef;
+
+
+% Adjust the time value |tt| to the nearest time when the direction of |p_path|
+% is |dir| or |-dir|.
+
+vardef adj_t(suffix tt)(expr dir) =
+  save p, a, b; path p;
+  p = subpath (tt,tt+nn) of p_path & cycle;
+  a = extremetime dir of p;
+  a := if a<1: a[tt,floor tt+1] else: a+floor tt fi;
+  b = extremetime dir of reverse p;
+  b := if b<1: b[tt,ceiling tt-1] else: ceiling tt - b fi;
+  tt := if b+a>2tt: b else: a fi;
+enddef;
+
+
+% Issue an error message when |t[i]>t[i+1]| after the above adjustment process.
+
+vardef bad_order(expr i) =
+  initerim showstopping:=0;
+  show t[i], t[i+1];
+  errmessage "Adjusted t entries "&decimal i&" and "&decimal(i+1)
+          &" are out of order. (See above)";
+enddef;
+
+
+% The |adj_fill| macro performs the entire adjustment and filling based on
+% the following parameters: a list |tfx| of |t| indices for points whose
+% $x$-coordinates should not be moved during the adjustment process, a similar
+% list |tfy| for $y$-coordinates, a list of pairs $(i,j)$ where $i$ is a |t|
+% index and |tiept[j]| is the corresponding tie point, lists |tv| and |th| of
+% pairs of |t| indices that correspond to opposite sides of vertical and
+% horizontal strokes, and finally a cyclic path |p|.  (Note the scaling by |h|
+% and |v|.)
+
+vardef adj_fill@#(text tfx, tfy, tie, tv, th)(expr p) =
+% message str@#; % that's for use with the stem-round message above
+  save p_path, nn, x, y, tx, ty, curtx, curty;
+  path p_path, p_path';
+  transform tx[], ty[], curtx, curty;
+  p_path = p transformed (identity xscaled h yscaled v transformed rot);
+  nn = length p_path;
+  if proofing>1:
+    makelabel(str @#, point 0 of p_path);
+    for i=1 upto nn-1: makelabel(decimal i, point i of p_path); endfor
+  fi
+    forsuffixes i=tfx: x.fix.i=1; endfor          % Prepare for |adj_t| calls.
+    forsuffixes i=tfy: y.fix.i=1; endfor
+    for w=1 tv: if pair w: (x.fix[xpart w],x.fix[ypart w]) = (1,1); fi endfor
+    for w=1 th: if pair w: (y.fix[xpart w],y.fix[ypart w]) = (1,1); fi endfor
+    for i=1 upto n:
+      if t[i]>floor t[i]:
+     if unknown x.fix[i]: adj_t(t[i],right); fi
+     if unknown y.fix[i]: adj_t(t[i],up); fi
+      fi
+    endfor
+    t[n+1] := t1+nn;
+    for i=1 upto n: if t[i]>t[i+1]: bad_order(i); fi endfor
+  for i=1 upto n: z[i] = point t[i] of p_path; endfor
+  forsuffixes i=tfx: x'i =x.i; endfor
+  forsuffixes i=tfy: y'i =y.i; endfor
+  for w=1 tie: if pair w: z'[xpart w] = tiept[ypart w]; fi endfor
+  for w=1 tv: if pair w: rnd_pr_x([xpart w], [ypart w]); fi endfor
+  for w=1 th: if pair w: rnd_pr_y([xpart w], [ypart w]); fi endfor
+  curtx=curty=identity;
+  set_trans(x, set_tx, xset);
+  set_trans(y, set_ty, yset);
+  p_path' = if n=0: p_path else:
+              for i=1 upto n: new_seg(i)-- endfor cycle
+         fi;
+  interim autorounding := 0;
+  interim smoothing := 0;
+  begingroup save currenttransform;
+  transform currenttransform; currenttransform:=identity;
+  if known fillwhite:
+     draw p_path' withpen pencircle scaled 4;     % was scaled 2
+  else:
+    begingroup save pic;               % Now fill
+    picture pic;
+    pic=currentpicture;
+    currentpicture:=nullpicture;
+    interim turningcheck := 0;
+    fill p_path';
+    cull currentpicture dropping origin;
+    addto currentpicture also pic;
+    endgroup;
+  fi
+  endgroup;
+enddef;

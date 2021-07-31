@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 
 #include "vga.h"
 
@@ -46,7 +45,7 @@ enum {
 /*
  * ATI18811-0
  */
-static Pclk ati188110[Npclkx] = {
+Pclk ati188110[Npclkx] = {
 	{  42950000, 0x00, 0x00, 0x00 },
 	{  48770000, 0x00, 0x00, 0x04 },
 	{  92400000, 0x00, 0x00, 0x08 },
@@ -69,7 +68,7 @@ static Pclk ati188110[Npclkx] = {
  * ATI18811-1, ATI18811-2
  * PCLK_TABLE = 0 in Mach64 speak.
  */
-static Pclk ati188111[Npclkx] = {
+Pclk ati188111[Npclkx] = {
 	{ 100000000, 0x00, 0x00, 0x00 },
 	{ 126000000, 0x00, 0x00, 0x04 },
 	{  92400000, 0x00, 0x00, 0x08 },
@@ -95,7 +94,7 @@ static Pclk ati188111[Npclkx] = {
  * (PCLK_TABLE = 1 and PCLK_TABLE = 2 respectively in Mach64
  * speak).
  */
-static Pclk ati18818[Npclkx] = {
+Pclk ati18818[Npclkx] = {
 	{  50350000, 0x00, 0x00, 0x00 },
 	{  56640000, 0x00, 0x00, 0x04 },
 	{  63000000, 0x00, 0x00, 0x08 },
@@ -131,9 +130,10 @@ atixo(uchar index, uchar data)
 }
 
 static void
-atixinit(Vga* vga, Ctlr*)
+atixinit(Vga *vga, Ctlr *ctlr)
 {
 	uchar b;
+	Mach64 *mach64;
 
 	/*
 	 * Set the I/O address and offset for the ATI
@@ -144,6 +144,7 @@ atixinit(Vga* vga, Ctlr*)
 		outportw(Grx, (0x81<<8)|0x51);
 		atix = 0x1CE;
 	}
+	verbose("%s: atix=0x%lux\n", ctlr->name, atix);
 
 	/*
 	 * Unlock the ATI Extended Registers.
@@ -162,14 +163,16 @@ atixinit(Vga* vga, Ctlr*)
 	atixo(0xBE, b|0x09);
 
 	if(vga->private == 0)
-		vga->private = alloc(sizeof(Mach64));
+		vga->private = alloc(sizeof(mach64));
 }
 
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+snarf(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 	Mach64 *mach64;
+
+	verbose("%s->snarf\n", ctlr->name);
 
 	atixinit(vga, ctlr);
 	for(i = 0xA0; i < 0xC0; i++)
@@ -187,27 +190,27 @@ snarf(Vga* vga, Ctlr* ctlr)
 	switch(mach64->memcntl & 0x07){
 
 	case 0:
-		vga->vmz = 512*1024;
+		vga->vmb = 512*1024;
 		break;
 
 	case 1:
-		vga->vmz = 1024*1024;
+		vga->vmb = 1024*1024;
 		break;
 
 	case 2:
-		vga->vmz = 2*1024*1024;
+		vga->vmb = 2*1024*1024;
 		break;
 
 	case 3:
-		vga->vmz = 4*1024*1024;
+		vga->vmb = 4*1024*1024;
 		break;
 
 	case 4:
-		vga->vmz = 6*1024*1024;
+		vga->vmb = 6*1024*1024;
 		break;
 
 	case 5:
-		vga->vmz = 8*1024*1024;
+		vga->vmb = 8*1024*1024;
 		break;
 	}
 
@@ -215,11 +218,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Mode *mode;
 	int f, divisor, index;
 
+	verbose("%s->init\n", ctlr->name);
 	mode = vga->mode;
 
 	/*
@@ -230,8 +234,8 @@ init(Vga* vga, Ctlr* ctlr)
 	if(pclkp == 0)
 		error("%s: can't determine clock chip\n", ctlr->name);
 
-	if(vga->f[0] == 0)
-		vga->f[0] = vga->mode->frequency;
+	if(vga->f == 0)
+		vga->f = vga->mode->frequency;
 
 	/*
 	 * Find a clock frequency close to what we want.
@@ -240,20 +244,19 @@ init(Vga* vga, Ctlr* ctlr)
 	for(divisor = 0, index = 0; index < Npclkx; index++, divisor = 0){
 		divisor = 1;
 		f = pclkp[index].frequency/divisor;
-		if(f < vga->f[0]+1000000 && f >= vga->f[0]-1000000)
+		if(f < vga->f+1000000 && f >= vga->f-1000000)
 			break;
 
 		divisor = 2;
 		f /= divisor;
-		if(f < vga->f[0]+1000000 && f >= vga->f[0]-1000000)
+		if(f < vga->f+1000000 && f >= vga->f-1000000)
 			break;
 	}
 	if(divisor == 0)
-		error("%s: no suitable clock for %lud\n",
-			ctlr->name, vga->f[0]);
+		error("%s: no suitable clock for %d\n", ctlr->name, vga->f);
 
-	vga->d[0] = divisor;
-	vga->i[0] = index;
+	vga->d = divisor;
+	vga->i = index;
 
 	vga->crt[0xB0] &= 0xDA;
 	vga->crt[0xB1] &= 0x87;
@@ -287,11 +290,11 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->crt[0xB9] &= 0xFD;
 	vga->crt[0xBE] &= 0xE5;
 
-	if(vga->d[0] == 2)
+	if(vga->d == 2)
 		vga->crt[0xB8] |= 0x40;
-	vga->crt[0xB9] |= pclkp[vga->i[0]].b9;
-	vga->crt[0xBE] |= pclkp[vga->i[0]].be;
-	vga->misc |= pclkp[vga->i[0]].genmo;
+	vga->crt[0xB9] |= pclkp[vga->i].b9;
+	vga->crt[0xBE] |= pclkp[vga->i].be;
+	vga->misc |= pclkp[vga->i].genmo;
 
 	if(vga->mode->interlace == 'v')
 		vga->crt[0xBE] |= 0x02;
@@ -307,14 +310,16 @@ init(Vga* vga, Ctlr* ctlr)
 	/*
 	 * The Mach64 can only address 1Mb in VGA mode
 	 */
-	vga->vmz = 1*1024*1024;
+	vga->vmb = 1*1024*1024;
 
 	ctlr->flag |= Finit;
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
+	verbose("%s->load\n", ctlr->name);
+
 	/*
 	 * We should probably do something here to make sure we that we
 	 * have access to all the video memory through the 64Kb VGA aperture
@@ -339,7 +344,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
 	Mach64 *mach64;
@@ -352,13 +357,13 @@ dump(Vga* vga, Ctlr* ctlr)
 		return;
 
 	printitem(ctlr->name, "CONFIGCNTL");
-	Bprint(&stdout, "%.8lux\n", mach64->configcntl);
+	print("%.8lux\n", mach64->configcntl);
 	printitem(ctlr->name, "CONFIGSTAT");
-	Bprint(&stdout, "%.8lux\n", mach64->configstat);
+	print("%.8lux\n", mach64->configstat);
 	printitem(ctlr->name, "MEMCNTL");
-	Bprint(&stdout, "%.8lux\n", mach64->memcntl);
+	print("%.8lux\n", mach64->memcntl);
 	printitem(ctlr->name, "SCRATCH1");
-	Bprint(&stdout, "%.8lux\n", mach64->scratch1);
+	print("%.8lux\n", mach64->scratch1);
 }
 
 Ctlr mach64 = {

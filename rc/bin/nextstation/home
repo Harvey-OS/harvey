@@ -1,0 +1,35 @@
+#!/bin/rc
+bind -a '#w1' /dev
+echo asdf > /dev/hd1partition
+disk/prep /dev/hd1 > /dev/null <<EOF
+label
+
+64
+boot
+
+2048
+backup
+
+2048
+cache
+
+81960
+fs
+
+
+*
+y
+EOF
+bind -a '#w1' /dev
+
+echo copying label
+dd -bs 512 -conv sync < /rc/bin/nextstation/Disclabel > /dev/hd1label
+
+echo copying kernel
+dd -bs 512 -conv sync < /68020/9nextstationdisk > /dev/hd1boot
+
+echo making file system
+disk/kfs -rf/dev/hd1fs
+
+echo copying over files
+cputype=68020 disk/mkfs /lib/proto/portproto

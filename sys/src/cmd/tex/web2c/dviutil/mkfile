@@ -1,0 +1,42 @@
+# This file makes DVIcopy.
+APE=/sys/src/ape
+< $APE/config
+SHELL=/bin/rc
+
+TARG=dvicopy
+
+OFILES=dvicopy.$O
+
+HFILES=../lib/common.h
+
+LIB=../lib/lib.a$O
+
+</sys/src/cmd/mkmany
+
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
+LDFLAGS=
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+dvicopy.c:	dvicopy.p ../lib/common.defines
+		$SHELL ../lib/convert dvicopy.p $target
+
+dvicopy.p:	dvicopy.web dvicopy.ch ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle dvicopy.web dvicopy.ch > /dev/null
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output [$OS].$TARG $TARG bibtex.pool
+
+nuke:V:
+		rm -f *.[$OS] [$OS].out [$OS].dvicopy $TARG dvicopy.pool
+		rm -f dvicopy.p dvicopy.c dvicopy.h
+		rm -f '#'*'#' '#' *~ *.bak

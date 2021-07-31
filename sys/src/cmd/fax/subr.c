@@ -7,30 +7,24 @@
 int vflag;
 
 void
-verbose(char *fmt, ...)
+verbose(char *format, ...)
 {
-	va_list arg;
 	char buf[512];
 
 	if(vflag){
-		va_start(arg, fmt);
-		doprint(buf, buf+sizeof(buf), fmt, arg);
-		va_end(arg);
+		doprint(buf, buf+sizeof(buf), format, (&format+1));
 		syslog(0, "fax", buf);
 	}
 }
 
 void
-error(char *fmt, ...)
+error(char *format, ...)
 {
-	va_list arg;
 	char buf[512];
 	int n;
 
 	n = sprint(buf, "%s: ", argv0);
-	va_start(arg, fmt);
-	doprint(buf+n, buf+sizeof(buf)-n, fmt, arg);
-	va_end(arg);
+	doprint(buf+n, buf+sizeof(buf)-n, format, (&format+1));
 	fprint(2, buf);
 	if(vflag)
 		print(buf+n);

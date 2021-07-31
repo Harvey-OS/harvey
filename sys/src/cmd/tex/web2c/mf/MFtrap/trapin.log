@@ -1,0 +1,179 @@
+This is METAFONT, Version 2.71 (INIMF)  25 JAN 1992 08:58
+**\input trap
+(trap.mf
+>> << == >> ::: ||`` ''--!! ??## && @@ $$[[]]{{ }}((5.5 0.5))
+>> ".."
+! Not implemented: (unknown numeric)++(string).
+<to be read again> 
+                   ;
+l.4 ...}} . (( 5.5.5 )) ++ "..";
+                                
+I'm afraid I don't know how to apply that operation to that
+combination of types. Continue, and I'll return the second
+argument (see above) as the result of the operation.
+
+..
+! Missing `=' has been inserted.
+<to be read again> 
+                   ,
+l.5   begingroup save =; let=,
+                              ; save,; newinternal $=,; let )...
+You should have said `let symbol = something'.
+But don't worry; I'll pretend that an equals sign
+was present. The next token I read will be `something'.
+
+> errorstopmode=errorstopmode
+> readstring=readstring
+> 2
+> "2"
+> ,=,
+> (=tag
+> )=,
+<< == >> ::: ||`` ''--!! ??## && @@ $$[[]]{{ }}(([][]))=numeric
+<< == >> ::: ||`` ''--!! ??## && @@ $$[[]]{{ }}((5.5 0.5))=<< == >> ::: 
+||`` ''--!! ??## && @@ $$[[]]{{ }}((5.5 0.5))
+> year=month
+! OK.
+l.6 ...ring,2,"2",,,(,),<<,year;
+                                
+
+! Missing `:' has been inserted.
+<to be read again> 
+                   ;
+l.8 ...not cycle "":1.1 forever;
+                                fi;
+The next thing in this loop should have been a `:'.
+So I'll pretend that a colon was present;
+everything from here to `endfor' will be iterated.
+
+{fi}
+{exitif}
+{[repeat the loop]}
+{false}
+{fi}
+{exitif}
+{[repeat the loop]}
+{(2.1)>(2)}
+{true}
+{tracingcommands:=2.1}
+{showtoken}
+> |=:|>=|=:|>
+! OK.
+l.9 ... endfor; showtoken |=:|>;
+                                
+
+! Arithmetic overflow.
+l.10   tracingedges:=1/.00001
+                             ; tracingequations:=$+1; p~=trac...
+Uh, oh. A little while ago one of the quantities that I was
+computing got too large, so I'm afraid your answers will be
+somewhat askew. You'll probably have to adopt different
+tactics next time. But I shall try to carry on anyway.
+
+{tracingedges:=32767.99998}
+{(0)+(1)}
+{tracingequations:=1}
+{(32767.99998)+(0.00002)}
+! Arithmetic overflow.
+l.10 ... p~=tracingedges+.00001;
+                                
+Uh, oh. A little while ago one of the quantities that I was
+computing got too large, so I'm afraid your answers will be
+somewhat askew. You'll probably have to adopt different
+tactics next time. But I shall try to carry on anyway.
+
+{(p~)=(32767.99998)}
+## p~=32767.99998
+{interim}
+{tracingmacros:=1}
+{tracingoutput:=1}
+{warningcheck:=1}
+{tracingstats:=1}
+{tracingchoices:=1}
+{tracingpens:=1}
+{tracingspecs:=1}
+{ASCII("")}
+{$:=-1}
+{$:=x}
+>> x
+! Internal quantity `$' must receive a known value.
+<to be read again> 
+                   ;
+l.12 ...os:=1; $:=ASCII""; $:=x;
+                                 p~:=p~;
+I can't set an internal quantity to anything but a known
+numeric value, so I'll have to ignore this assignment.
+
+{p~:=32767.99998}
+## p~=32767.99998
+! Value is too large (32767.99998).
+l.12 ...:=ASCII""; $:=x; p~:=p~;
+                                
+The equation I just processed has given some variable
+a value of 4096 or more. Continue and I'll try to cope
+with that big value; but it might be dangerous.
+(Set warningcheck:=0 to suppress this message.)
+
+{delimiters}
+{delimiters}
+{vardef}
+{def}
+
+foo(TEXT2)->begingroup(TEXT2)endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-foo
+(TEXT2)<-interim.proofing:=(-0.5;shipout.nullpicture;special"3"
+{begingroup}
+{interim}
+{-(0.5)}
+! Missing `)' has been inserted.
+<to be read again> 
+                   ;
+<argument> ...m.proofing:=(-0.5;
+                                shipout.nullpicture;special"3"
+foo->begingroup(TEXT2)
+                      endgroup
+l.16 ...ture; special"3" endtext
+                                ;
+I found no right delimiter to match a left one. So I've
+put one in, behind the scenes; this may fix the problem.
+
+{proofing:=-0.5}
+{shipout}
+{nullpicture}
+{special}
+{restoring proofing=0}
+{endgroup}
+{for}
+{showstats}
+Memory usage 291&41 (1922 still untouched)
+String usage 26&83 (895&11534 still untouched)
+! OK.
+l.17 ...ing:fi endfor showstats;
+                                 let!!=skipto;
+
+{let}
+{path}
+{-(15)}
+{-(12)}
+Path at line 18, before choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)
+
+Path at line 18, after choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)
+
+{(unknown path p~)=(path)}
+{everyjob}
+{vardef}
+{let}
+{vardef}
+{def}
+{elseif}
+ )
+Beginning to dump on file trap.base
+ (preloaded base=trap 92.1.25)
+1113 strings of total length 20516
+395 memory locations dumped; current usage is 317&67
+265 symbolic tokens

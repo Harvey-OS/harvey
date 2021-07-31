@@ -94,5 +94,5 @@ struct Netaddr
 {
 	ulong	ip;
 	ushort	port;
-	char	ea[Eaddrlen];
+	char	ea[6];
 };

@@ -1,4 +1,3 @@
-#define	EXTERN
 #include "gc.h"
 
 /*
@@ -100,14 +99,14 @@ bset(Bits a, unsigned n)
 */
 
 int
-Bconv(va_list *arg, Fconv *fp)
+Bconv(void *o, Fconv *fp)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 
 	str[0] = 0;
-	bits = va_arg(*arg, Bits);
+	bits = *(Bits*)o;
 	while(bany(&bits)) {
 		i = bnum(bits);
 		if(str[0])
@@ -123,5 +122,5 @@ Bconv(va_list *arg, Fconv *fp)
 		bits.b[i/32] &= ~(1L << (i%32));
 	}
 	strconv(str, fp);
-	return 0;
+	return sizeof(bits);
 }

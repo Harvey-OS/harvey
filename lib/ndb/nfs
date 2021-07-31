@@ -1,3 +1,0 @@
-#server	client	uidfile	gidfile
-!9fs tcp!kremvax
-.+	[^.]+\.moscow\.edu	/n/kremvax/etc/passwd	/n/kremvax/etc/group

@@ -1,0 +1,22 @@
+.TH POOLTYPE 1 "7 Jan 92"
+.SH NAME
+pooltype - display a WEB pool file
+.SH SYNOPSIS
+.B pooltype
+pool_file_name
+.SH DESCRIPTION
+The
+.I pooltype
+program translates a (program-oriented) string pool file to a
+(human-oriented) text file.
+.PP
+The
+.I pool_file_name
+must be complete. No adding of default extensions or path searching is done.
+.SH "SEE ALSO"
+tangle(1)
+.SH AUTHORS
+Donald Knuth wrote the program and originally ported it to Unix. It was
+published as part of the
+.I TeXware
+technical report, available from the TeX Users Group.

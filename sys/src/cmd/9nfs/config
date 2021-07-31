@@ -1,5 +1,0 @@
-!9fs tcp!nslocum
-
-#server	client	uidfile	gidfile
-
-.+	[^.]+\.research\.bell-labs\.com	/n/nslocum/etc/passwd	/n/nslocum/etc/group

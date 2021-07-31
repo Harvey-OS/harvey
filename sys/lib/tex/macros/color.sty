@@ -1,0 +1,191 @@
+%% 
+%% This is file `color.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% color.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file color.dtx .
+%% 
+%% color.dtx Copyright (C) 1994 David Carlisle
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesPackage{color}
+          [1994/11/22 v0.3h Standard LaTeX Color (DPC)]
+\edef\Gin@codes{%
+ \catcode`\noexpand\^^A\the\catcode`\^^A\relax
+ \catcode`\noexpand\"\the\catcode`\"\relax
+ \catcode`\noexpand\*\the\catcode`\*\relax
+ \catcode`\noexpand\!\the\catcode`\!\relax
+ \catcode`\noexpand\:\the\catcode`\:\relax}
+\catcode`\^^A=\catcode`\%
+\catcode`\"=12
+\catcode`\*=11
+\catcode`\!=12
+\catcode`\:=12
+\providecommand\Gin@driver{}
+\DeclareOption{monochrome}{%
+  \AtEndOfPackage{%
+    \def\set@color{%
+      \c@lor@special\m@ne
+        {color push \current@color}\aftergroup\reset@color}%
+    \def\reset@color{\c@lor@special\m@ne{color pop}}%
+    \def\set@page@color{%
+      \c@lor@special\m@ne{background \current@color}}%
+    \def\define@color##1##2{%
+      \c@lor@special\m@ne{define ##1 ##2}}}}
+\DeclareOption{dvips}{\def\Gin@driver{dvips.def}%
+                      \def\c@lor@namefile{dvipsnam.def}}
+\DeclareOption{xdvi}{\ExecuteOptions{dvips,monochrome}}
+\DeclareOption{dvgt}{\def\Gin@driver{dvgt.def}}
+\DeclareOption{dvi2ps}{\def\Gin@driver{dvi2ps.def}}
+\DeclareOption{dvialw}{\def\Gin@driver{dvialw.def}}
+\DeclareOption{dvilaser}{\def\Gin@driver{dvilaser.def}}
+\DeclareOption{dvipsone}{\def\Gin@driver{dvipsone.def}}
+\DeclareOption{dvitops}{\def\Gin@driver{dvitops.def}}
+\DeclareOption{dviwindo}{\def\Gin@driver{dviwindo.def}}
+\DeclareOption{emtex}{\def\Gin@driver{emtex.def}}
+\DeclareOption{dviwin}{\def\Gin@driver{dviwin.def}}
+\DeclareOption{oztex}{\def\Gin@driver{oztex.def}}
+\DeclareOption{psprint}{\def\Gin@driver{psprint.def}}
+\DeclareOption{pubps}{\def\Gin@driver{pubps.def}}
+\DeclareOption{textures}{\def\Gin@driver{textures.def}}
+\DeclareOption{pctexps}{\def\Gin@driver{pctexps.def}}
+\DeclareOption{pctexwin}{\def\Gin@driver{pctexwin.def}}
+\DeclareOption{pctexhp}{\def\Gin@driver{pctexhp.def}}
+\DeclareOption{dvipsnames}{\def\c@lor@namefile{dvipsnam.def}}
+\DeclareOption{nodvipsnames}{\let\c@lor@namefile\relax}
+\let\c@lor@usename\@gobble
+\DeclareOption{usenames}{%
+  \def\c@lor@usename##1{%
+    \expandafter\color@named\csname\string\color @##1\endcsname{##1}}}
+\DeclareRobustCommand\color{%
+  \@ifnextchar[\@undeclaredcolor\@declaredcolor}
+\def\@undeclaredcolor[#1]#2{%
+  \@ifundefined{color@#1}%
+    {\@latex@error{Undefined color model `#1'}\@ehd}%
+    {\csname color@#1\endcsname\current@color{#2}%
+     \set@color}%
+  \ignorespaces}
+\def\@declaredcolor#1{%
+  \@ifundefined{\string\color @#1}%
+    {\@latex@error{Undefined color `#1'}\@ehd}%
+    {\expandafter\let\expandafter\current@color
+     \csname\string\color @#1\endcsname
+     \set@color}%
+  \ignorespaces}
+\def\textcolor#1#{\@textcolor{#1}}
+\def\@textcolor#1#2#3{{\color#1{#2}#3}}
+\def\pagecolor{%
+  \begingroup
+      \let\ignorespaces\endgroup
+      \let\set@color\set@page@color
+      \color}
+\def\definecolor#1#2#3{%
+  \@ifundefined{color@#2}%
+    {\@latex@error{Undefined color model `#2'}\@ehd}%
+    {\@ifundefined{\string\color @#1}{}%
+      {\PackageInfo{color}{Redefining color #1}}%
+     \csname color@#2\expandafter\endcsname
+         \csname\string\color @#1\endcsname{#3}}}
+\def\DefineNamedColor#1#2#3#4{%
+  \@ifundefined{define@color@#1}%
+    {\@latex@error{Undefined color model `#1'}\@ehd}%
+    {\@ifundefined{color@#3}%
+      {\@latex@error{Undefined color model `#3'}\@ehd}%
+      {\@ifundefined{c@lor@#1@#2}{}%
+        {\PackageInfo{color}{Redefining color #2 in named color model}}%
+      \csname color@#3\endcsname\@tempa{#4}%
+      \csname define@color@#1\endcsname{#2}\@tempa
+      \c@lor@usename{#2}}}}
+\@onlypreamble\DefineNamedColor
+\newif\ifcolors@
+\colors@true
+\def\c@lor@special#1#2{%
+  \edef\@tempa{\write#1{#2}}\@tempa}
+\InputIfFileExists{color.cfg}{}{}
+\ProcessOptions
+\if!\Gin@driver!
+  \PackageError{color}
+    {No driver specified}
+    {You should make a default driver option in a file \MessageBreak
+     color.cfg\MessageBreak
+     eg: \protect\ExecuteOptions{dvips}%
+     }
+\else
+  \PackageInfo{color}{Driver file: \Gin@driver}
+  \@ifundefined{ver@\Gin@driver}{\input{\Gin@driver}}{}
+\fi
+\@ifundefined{c@lor@namefile}{}{\input{\c@lor@namefile}}
+\def\normalcolor{\let\current@color\default@color\set@color}
+\AtBeginDocument{\let\default@color\current@color}
+\def\color@block#1#2#3{%
+  {\set@color\rlap{\ifcolors@\vrule\@width#1\@height#2\@depth#3\fi}}}
+\def\colorbox#1#{\color@box{#1}}
+\def\color@box#1#2{\color@b@x\leavevmode{\color#1{#2}}}
+\def\fcolorbox#1#{\color@fbox{#1}}
+\def\color@fbox#1#2#3{%
+  \color@b@x{\fboxsep\z@\color#1{#2}\fbox}{\color#1{#3}}}
+
+\long\def\color@b@x#1#2#3{%
+ \setbox\z@\hbox{\kern\fboxsep{\set@color#3}\kern\fboxsep}%
+ \dimen@\ht\z@\advance\dimen@\fboxsep\ht\z@\dimen@
+ \dimen@\dp\z@\advance\dimen@\fboxsep\dp\z@\dimen@
+ {#1{#2\color@block{\wd\z@}{\ht\z@}{\dp\z@}%
+      \box\z@}}}
+\def\color@setgroup{\begingroup\set@color}
+\let\color@begingroup\begingroup
+\def\color@endgroup{\endgraf\endgroup}
+\def\color@hbox{\hbox\bgroup\color@begingroup}
+\def\color@vbox{\vbox\bgroup\color@begingroup}
+\def\color@endbox{\color@endgroup\egroup}
+\def\underbar#1{%
+  $\setbox\z@\hbox{\color@begingroup#1\color@endgroup}%
+  \dp\z@\z@\m@th\underline{\box\z@}$}
+\def\showhyphens#1{\setbox0\vbox{%
+  \color@begingroup
+  \parfillskip\z@skip\hsize\maxdimen
+  \reset@font
+  \pretolerance\m@ne\tolerance\m@ne\hbadness0\showboxdepth0\ %
+    #1%
+  \color@endgroup}}
+\ifx\color@gray\@undefined
+  \ifx\color@rgb\@undefined
+  \else
+    \definecolor{black}{rgb}{0,0,0}
+    \definecolor{white}{rgb}{1,1,1}
+  \fi
+\else
+  \definecolor{black}{gray}{0}
+  \definecolor{white}{gray}{1}
+\fi
+\ifx\color@rgb\@undefined\else
+  \definecolor{red}{rgb}{1,0,0}
+  \definecolor{green}{rgb}{0,1,0}
+  \definecolor{blue}{rgb}{0,0,1}
+\fi
+\ifx\color@cmyk\@undefined\else
+  \definecolor{cyan}{cmyk}{1,0,0,0}
+  \definecolor{magenta}{cmyk}{0,1,0,0}
+  \definecolor{yellow}{cmyk}{0,0,1,0}
+\fi
+\Gin@codes
+\let\Gin@codes\relax
+\endinput
+%% 
+%% End of file `color.sty'.

@@ -1,14 +1,8 @@
 </$objtype/mkfile
 
+LIB=../libString/libString.a$O
 TARG = qer\
 	runq\
 
-HFILES=../common/common.h\
-	../common/sys.h\
-
-LIB=../common/libcommon.a$O\
-	../libString/libString.a$O
-
-BIN=/$objtype/bin/upas
+BIN=/$objtype/bin
 </sys/src/cmd/mkmany
-CFLAGS=$CFLAGS -I../common

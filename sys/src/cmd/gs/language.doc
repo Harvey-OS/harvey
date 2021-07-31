@@ -1,0 +1,455 @@
+   Copyright (C) 1989-1992, 1993, 1994 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of Aladdin Ghostscript.
+  
+  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+  or distributor accepts any responsibility for the consequences of using it,
+  or for whether it serves any particular purpose or works at all, unless he
+  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+  License (the "License") for full details.
+  
+  Every copy of Aladdin Ghostscript must include a copy of the License,
+  normally in a plain ASCII text file named PUBLIC.  The License grants you
+  the right to copy, modify and redistribute Aladdin Ghostscript, but only
+  under certain conditions described in the License.  Among other things, the
+  License requires that the copyright notice and this notice be preserved on
+  all copies.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+This file, language.doc, describes the relationship between the
+Ghostscript interpreter and the PostScript language.  This file describes
+version 3.23 of Ghostscript.
+
+For an overview of Ghostscript and a list of the documentation files, see
+README.
+
+The Ghostscript interpreter, except as noted below, is intended to execute
+properly any source program written in the (Level 2) PostScript language as
+defined in the December 1990 printing of the PostScript Language Reference
+Manual (Second Edition) published by Addison-Wesley (ISBN 0-201-18127-4).
+However, the interpreter is configurable in ways that can restrict it to
+various subsets of this language.  Specifically, the base interpreter
+accepts the Level 1 subset of the PostScript language, as defined in the
+first edition of the PostScript Language Reference Manual, ISBN
+0-201-10174-2, Addison-Wesley, 1985, plus the file system, version 25.0
+language, and miscellaneous additions listed in sections A.1.6, A.1.7, and
+A.1.8 of the Second Edition respectively, including allowing a string
+operand for the 'status' operator.  The base interpreter may be configured
+by adding any combination of the following:
+
+	- The ability to process PostScript Type 1 fonts.  This facility is
+normally included in the interpreter.
+
+	- The CMYK color extensions listed in section A.1.4 of the Second
+Edition (including colorimage).  These facilities are only available if the
+color, dps, or level2 feature was selected at the time that Ghostscript was
+compiled and linked.
+
+	- The Display PostScript extensions listed in section A.1.3
+of the Second Edition, but excluding the operators listed in section
+A.1.2.  These facilities are only available if the dps feature or the
+level2 feature was selected at the time that Ghostscript was compiled
+and linked.
+
+	- The composite font extensions listed in section A.1.5 of the
+Second Edition, and the ability to handle Type 0 fonts.  These facilities
+are only available if the compfont feature or the level2 feature was
+selected at the time that Ghostscript was compiled and linked.
+
+	- The PostScript Level 2 "filter" facilities aside from DCTEncode
+and DCTDecode filters.  These facilities are only available if the filter,
+dps, or level2 feature was selected at the time that Ghostscript was
+compiled and linked.
+
+	- The PostScript Level 2 DCTEncode and DCTDecode filters.  These
+facilities are only available if the dct or level2 feature was selected at
+the time that Ghostscript was compiled and linked.
+
+	- All the other PostScript Level 2 operators and facilities listed
+in section A.1.1 of the Second Edition and not listed in any of the other
+A.1.n sections.  These facilities are only available if the level2 feature
+was selected at the time that Ghostscript was compiled and linked.
+
+Adding all of these produces a full Level 2 PostScript language
+interpreter.
+
+Ghostscript also includes a number of operators defined below that are not
+in the PostScript language.
+
+Implementation limits
+=====================
+
+The following implementation limits correspond to those in Table B.1 and
+B.2 of the Second Edition.  Those marked with * are different from the ones
+in the Second Edition.
+
+Architectural limits
+--------------------
+
+integer		32-bit two's complement integer
+real		single-precision IEEE float
+*array
+	On 16-bit systems:	8191 elements
+	On 32-bit systems:	65535 elements
+*dictionary
+	On 16-bit systems:	8190 elements
+	On 32-bit systems:	65534 elements
+*string		approximately 56000 characters
+*name		16383 characters
+filename	100 characters
+*save level	none (capacity of memory)
+*gsave level	none (capacity of memory)
+
+Typical memory limits in Level 1
+--------------------------------
+
+userdict		200
+FontDirectory		100
+*operand stack		800
+dictionary stack	20
+execution stack		250
+*interpreter level	none (capacity of memory)
+*path			none (capacity of memory)
+dash			11
+*VM			capacity of memory
+*file			determined by operating system
+*image			65535 values (samples x components) for 1, 2, 4,
+			  or 8-bit samples; 32767 values for 12-bit samples
+
+Other differences in VM consumption
+-----------------------------------
+
+Packed array elements occupy either 2 bytes or 8 bytes.  The average
+element size is probably about 5 bytes.
+
+Names occupy 12 bytes plus the space for the string.
+
+Ghostscript-specific additions
+==============================
+
+Miscellaneous
+-------------
+
+^Z is counted as whitespace.
+
+run can take either a string or a file as its argument.  In the latter
+case, it just runs the file, closing it at the end, and trapping errors
+just as for the string case.
+
+Mathematical operators
+----------------------
+
+	<number> arccos <number>
+		Computes the arc cosine of a number between -1 and 1.
+
+	<number> arcsin <number>
+		Computes the arc sine of a number between -1 and 1.
+
+String operators
+----------------
+
+	<state> <fromString> <toString> .type1encrypt <newState> <toSubstring>
+		Encrypts fromString according to the algorithm for Adobe
+		  Type 1 fonts, writing the result into toString.
+		  toString must be at least as long as fromString or a
+		  rangecheck error occurs.  state is the initial state of
+		  the encryption algorithm (a 16-bit non-negative
+		  integer); newState is the new state of the algorithm.
+
+	<state> <fromString> <toString> .type1decrypt <newState> <toSubstring>
+		Decrypts fromString according to the algorithm for Adobe
+		  Type 1 fonts, writing the result into toString.  Other
+		  specifications are as for type1encrypt.
+
+Relational operators
+--------------------
+
+	<number|string> <number|string> max <number|string>
+		Returns the larger of two numbers or strings.
+
+	<number|string> <number|string> min <number|string>
+		Returns the smaller of two numbers or strings.
+
+File operators
+--------------
+
+	<string> findlibfile <foundstring> <file> true
+	<string> findlibfile <string> false
+		Opens the file of the given name for reading, searching
+		  through directories as described in use.doc.  If the
+		  search fails, findlibfile simply pushes false on the
+		  stack and returns, rather than causing an error.
+
+	<file> <integer> unread -
+	 	Pushes back the last-read character onto the front of the
+		  file.  If the file is only open for writing, or if the
+		  integer argument is not the same as the last character
+		  read from the file, causes an ioerror error.  May also
+		  cause an ioerror if the last operation on the file was not
+		  a reading operation.
+
+	<file> <device> writeppmfile -
+		Writes the contents of the device, which must be an image
+		  device, onto the file, in Portable PixMap (ppm) format.
+		  Does not close the file.
+
+Path operators
+--------------
+
+	<x> <y> <width> <height> rectappend -
+	<numarray> rectappend -
+	<numstring> rectappend -
+		Appends a rectangle or rectangles to the current path, in
+		  the same manner as rectfill, rectclip, etc.  Only
+		  defined if the dps option is selected.
+
+Filters
+-------
+
+Ghostscript supports all standard filters except DCTEncode and DCTDecode.
+Ghostscript does not support the use of a procedure as a data source or
+sink, only a file or a string.  In addition, Ghostscript supports the
+following non-standard filters:
+
+	<target> <seed_integer> /eexecEncode filter <file>
+		Creates a filter for encrypting data into the
+		  eexec encrypted format described in the
+		  Adobe Type 1 Font Format documentation.  The
+		  seed_integer must be 55665 for proper operation.
+		  This filter produces binary output and does not
+		  include the initial 4 garbage bytes.
+
+	<source> <seed_integer> /eexecDecode filter <file>
+		Creates a filter for decrypting data that has been
+		  encrypted using eexec encryption as described in the
+		  Adobe Type 1 Font Format documentation.  The
+		  seed_integer must be 55665 for proper operation.
+
+	<source> <hex_boolean> /PFBDecode filter <file>
+		Creates a filter that decodes data in .PFB format, the
+		  usual semi-binary representation for Type 1 font files
+		  on IBM PC and compatible systems.  If hex_boolean is true,
+		  binary packets are converted to hex; if false, binary
+		  packets are not converted.
+
+Various versions of Ghostscript may also support other non-standard filters
+for experimental purposes.  The current version includes the following
+non-standard filters, which are not documented further.  No guarantee is
+made that these filters will exist in compatible form, or at all, in future
+versions.
+
+	<target/source> BCPEncode/Decode
+	<target/source> TBCPEncode/Decode
+	<target/source> <dict> BoundedHuffmanEncode/Decode
+		FirstBitLowOrder <bool> false
+		MaxCodeLength <int> 16
+		EndOfData <bool> true
+		EncodeZeroRuns <int> 256
+		Tables <int_array>
+	<target/source> <dict> BWBlockSortEncode/Decode
+		BlockSize <int> 16384
+	<target/source> MoveToFrontEncode/Decode
+
+Ghostscript also supports a non-standard optional dictionary operand for
+the LZWDecode filter, with the following keys (all optional):
+
+	InitialCodeLength <integer>
+		An integer between 2 and 11 specifying the initial number
+of data bits per code.  Note that the actual initial code length is 1
+greater than this, to allow for the reset and end-of-data code values.
+Default value: 8.
+
+	FirstBitLowOrder <boolean>
+		If true, codes appear with their low-order bit first.
+Default value: false.
+
+	BlockData <boolean>
+		If true, the data is broken into blocks in the manner
+specified for the GIF file format.  Default value: false.
+
+	EarlyChange <integer>
+		If 0, codes become one bit longer one code earlier than
+they need to; if 1, codes become one bit longer as specified in the
+PostScript Language Reference Manual.  Default value: 1.
+
+Virtual memory operators
+------------------------
+
+	<save> .forgetsave -
+		Cancels the effect of a save -- makes it as though the
+		  save never happened.
+
+Miscellaneous operators
+-----------------------
+
+	- currenttime <number>
+		Returns the current value of a continuously-running timer,
+		  in minutes.  The initial value of this timer is undefined.
+
+	<string> getenv <string> true
+	<string> getenv false
+		Looks up a name in the shell environment.  If the name is
+		  found, returns the corresponding value and true; if the
+		  name is not found, returns false.
+
+	<name> <array> makeoperator <operator>
+		Constructs and returns a new operator that is actually the
+		  given procedure in disguise.  The name is only used for
+		  printing.  The operator has the executable attribute.
+
+	<string> <boolean> .setdebug -
+		If the Ghostscript interpreter was built with the DEBUG
+		  flag set, sets or resets any subset of the debugging
+		  flags normally controlled by -Z in the command line.
+		  Has no effect otherwise.
+
+	- .oserrno <errno>
+		Returns the error code for the most recent OS error.
+
+	- .oserror <string>
+		Returns the error string for the most recent OS error.
+
+Device operators
+----------------
+
+	<device> copydevice <device>
+		Copies a device.
+
+	<index> .getdevice <device>
+		Returns a device from the set of devices known to the
+		  system.  The first device, which is default, is numbered
+		  0.  If the index is out of range, causes a rangecheck
+		  error.
+
+	<matrix> <width> <height> <palette> makeimagedevice <device>
+		Makes a new device that accumulates an image in memory.
+		  matrix is the initial transformation matrix: it must be
+		  orthogonal (i.e., [a 0 0 b x y] or [0 a b 0 x y]).
+		  palette is a string of 2^N or 3*2^N elements, specifying
+		  how the 2^N possible pixel values will be interpreted.
+		  Each element is interpreted as a gray value, or as RGB
+		  values, multiplied by 255.  For example, if you want
+		  a monochrome image for which 0=white and 1=black, the
+		  palette should be <ff 00>; if you want a 3-bit deep
+		  image with just the primary colors and their complements
+		  (ignoring the fact that 3-bit images are not supported),
+		  the palette might be <000000 0000ff 00ff00 00ffff
+		  ff0000 ff00ff ffff00 ffffff>.  At present, the palette
+		  must contain exactly 2, 4, 16, or 256 entries,
+		  and must contain an entry for black and an entry
+		  for white; if it contains any entries that aren't black,
+		  white, or gray, it must contain at least the six primary
+		  colors (red, green, blue, and their complements cyan,
+		  magenta, and yellow); aside from this, its contents are
+		  arbitrary.
+		Alternatively, palette can be null.  This is interpreted
+		  as 24-bit-per-pixel color, where the four bytes of each
+		  pixel are respectively R, G, and B.
+		Note that one can also make an image device (with the same
+		  palette as an existing image device) by copying a device
+		  using the copydevice operator.
+
+	<device> <index> <string> copyscanlines <substring>
+		Copies one or more scan lines from an image device into a
+		  string, starting at a given scan line in the image.
+		  The data is in the same format as for the image
+		  operator.  Error if the device is not an image device or
+		  if the string is too small to hold at least one complete
+		  scan line.  Always copies an integral number of scan
+		  lines.
+
+	<device> setdevice -
+		Sets the current device to the specified device.  Also
+		  resets the transformation and clipping path to the
+		  initial values for the device.
+
+	- currentdevice <device>
+		Gets the current device from the graphics state.
+
+	<device> getdeviceprops <mark> <name1> <value1> ... <namen> <valuen>
+		Gets all the properties of a device.  Currently defined
+		  names and values for all devices are:
+			HWBitsPerPixel <integer>
+				Number of bits per pixel.
+			HWSize [<integer> <integer>]
+				X and Y size in pixels.
+			InitialMatrix [<6 floats>]
+				Initial transformation matrix.
+			Name <string>
+				Read-only.  The device name.
+				  Currently, same as OutputDevice.
+			Colors, GrayValues, RedValues, GreenValues,
+			  BlueValues, ColorValues
+				As for the 'deviceinfo' operator of
+				  Display PostScript.
+		In addition, the following are defined per Adobe's
+		  documentation for the setpagedevice operator:
+			HWResolution
+			ImagingBBox
+			Margins
+			NumCopies (for printers only)
+			OutputDevice
+			PageSize
+		Some devices may only allow certain values for
+		  HWResolution and PageSize.  The null device ignores
+		  attempts to set PageSize; its size is always [0 0].
+		Red/Green/Blue/ColorValues are only defined if Colors > 1.
+		For printers, the following are also defined:
+			BufferSpace <integer>
+				Buffer space for band lists, if the bitmap
+				  is too big to fit in RAM.
+			MaxBitmap <integer>
+				Maximum space for a full bitmap in RAM.
+			OutputFile <string>
+				() means send to printer directly,
+				  otherwise specifies the file name for
+				  output; a %d is replaced by the page #;
+				  on Unix systems, (|command) writes to a pipe
+			PageCount <integer>
+				Read-only.  Counts the number of pages
+				  printed on the device.
+
+	<mark> <name1> <value1> ... <namen> <valuen> <device>
+	    putdeviceprops <device>
+		Sets properties of a device.  May cause undefined,
+		  typecheck, rangecheck, or limitcheck errors.
+
+	- flushpage -
+		On displays, flushes any buffered output, so that it
+		  is guaranteed to show up on the screen; on printers,
+		  has no effect.
+
+Character operators
+-------------------
+
+	<string> .type1addpath -
+	<string> <lsbx> <lsby> .type1addpath -
+		Adds the description of a character to the current
+		  path.  The string argument is a scalable
+		  description encoded in Adobe Type 1 format.  This
+		  operator, like setcharwidth and setcachedevice, is
+		  only valid in the context of a show operator.  It
+		  uses information from the current font, in addition
+		  to the argument(s).
+		The optional lsbx and lsby arguments are left side
+		  bearing values that override the ones in the
+		  character outline.
+
+	<font> <char> Type1BuildChar -
+		This is not a new operator: rather, it is a name known
+		  specially to the interpreter.  Whenever the interpreter
+		  needs to render a character (during a ...show,
+		  stringwidth, or charpath), it looks up the name
+		  BuildChar in the font dictionary to find a procedure to
+		  run.  If it does not find this name, and if the FontType
+		  is 1, the interpreter instead uses the value (looked up
+		  on the dictionary stack in the usual way) of the name
+		  Type1BuildChar.
+		The standard definition of Type1BuildChar is in gs_fonts.ps.
+		  Users should not need to redefine Type1BuildChar, except
+		  perhaps for tracing or debugging.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+PostScript is a trademark of Adobe Systems, Incorporated.

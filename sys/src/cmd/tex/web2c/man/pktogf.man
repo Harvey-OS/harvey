@@ -1,0 +1,62 @@
+.TH PKTOGF 1 "7 Jan 92"
+.SH NAME
+pktogf - convert packed font files to generic font files
+.SH SYNOPSIS
+.B pktogf
+[-v] pk_file_name [gf_file_name]
+.SH DESCRIPTION
+The 
+.I pktogf
+program converts a packed font file (PK) to a
+generic font file (GF). Packed
+font files are much smaller than the corresponding GF files,
+but some DVI readers only understand GF files.
+.PP
+The 
+.I pk_file_name
+on the command line must be complete. Because
+the resolution is part of the extension, it would not make
+sense to add on a default extension as is done with TeX or
+DVI-reading software. The
+.I gf_file_name
+defaults to the same (stripped) name as
+.I pk_file_name ,
+and it is placed in the current
+working directory with the `gf' suffix replacing `pk'. For
+example, the input file
+.I io.300pk
+would become
+.IR io.300gf .
+.SH OPTIONS
+Unless the
+.I -v
+switch is given,
+.I pktogf
+operates silently.  With 
+.IR -v ,
+the version number of the program and statistics about the
+unpacking are output to
+.IR stdout .
+.SH ENVIRONMENT
+.I pktogf
+looks for
+.I pk_file_name 
+first in the current directory.  If it is not present there, it uses the
+environment variable PKFONTS.  If that is not set, it uses the variable
+TEXPKS.  If that is not set, it uses TEXFONTS.  If this is not set, it
+uses the system defaults:
+.br
+TEXFONTS:
+.BR @TEXFONTS@ ,
+.br
+See
+.BR tex (1)
+for the details of the searching.
+.SH "SEE ALSO"
+gftopk(1), gftype(1), pktype(1)
+.br
+Donald Knuth et al.,
+.I METAFONTware
+.SH AUTHORS
+Tomas Rokicki wrote the program.
+Pierre MacKay adapted it for compilation with web2c.

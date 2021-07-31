@@ -5,7 +5,7 @@
  */
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
+#include <libg.h>
 #include <geometry.h>
 /*
  * Transform point p.

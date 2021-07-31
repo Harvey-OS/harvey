@@ -1,0 +1,60 @@
+%% 
+%% This is file `OT1cmtt.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% cmfonts.fdd  (with options: `fd,OT1cmtt')
+%% 
+%% Copyright (C) 1994 LaTeX3 project, Frank Mittelbach and Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% If you want to customize this file, it is best to make a copy of the 
+%% source file cmfonts.fdd under a different name and modify this copy. 
+%% Otherwise your changes might get lost when you install a new release 
+%% of LaTeX2e. 
+%% 
+\ProvidesFile{OT1cmtt.fd}
+        [1994/12/02 v2.3e Standard LaTeX font definitions]
+\DeclareFontFamily{OT1}{cmtt}{\hyphenchar \font\m@ne}
+\DeclareFontShape{OT1}{cmtt}{m}{n}
+     {
+      <5><6><7><8>cmtt8 <9> cmtt9
+      <10><10.95>cmtt10
+      <12><14.4><17.28><20.74><24.88>cmtt12
+      }{}
+%%%%%% make sure subst shapes are available
+\DeclareFontShape{OT1}{cmtt}{m}{it}
+     {
+      <5> <6> <7> <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmitt10
+      }{}
+\DeclareFontShape{OT1}{cmtt}{m}{sl}
+     {
+      <5> <6> <7> <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmsltt10
+      }{}
+\DeclareFontShape{OT1}{cmtt}{m}{sc}
+     {
+      <5> <6> <7> <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmtcsc10
+      }{}
+\DeclareFontShape{OT1}{cmtt}{m}{ui}
+  {<->sub * cmtt/m/it}{}
+\DeclareFontShape{OT1}{cmtt}{bx}{n}
+  {<->sub * cmtt/m/n}{}
+\DeclareFontShape{OT1}{cmtt}{bx}{it}
+  {<->sub * cmtt/m/it}{}
+\DeclareFontShape{OT1}{cmtt}{bx}{ui}
+  {<->sub * cmtt/m/it}{}
+\endinput
+%% 
+%% End of file `OT1cmtt.fd'.

@@ -1,0 +1,34 @@
+.TH DATAKIT 3 
+.SH NAME
+incon, hsvme, hs386 \- Datakit interface
+.SH SYNOPSIS
+.nf
+.B bind -a #i /dev
+.B bind -a #h /dev
+
+.B #i/data
+.B #i/ctl
+.B #h/data
+.B #h/ctl
+.fi
+.SH DESCRIPTION
+The Datakit interface is a stream directory
+containing a data and a control file.
+Each write to the data file is a structured message.
+The first two bytes of the message are a 9-bit virtual circuit number,
+low order byte first.
+The third byte is a control byte.
+The rest are data bytes.
+The data bytes are sent onto the Datakit virtual circuit, tagged as data, followed
+by the control byte, tagged as control.
+.PP
+Messages coming from Datakit are read from the data file in the same
+format.
+A read terminates at the end of a message.
+The largest possible received message is 1024 + 3 bytes.
+.SH "SEE ALSO
+.IR dk (3)
+.SH SOURCE
+.B /sys/src/9/*/devhs.c
+.br
+.B /sys/src/9/*/devincon.c

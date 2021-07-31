@@ -23,7 +23,7 @@ void pushsrc(int type, char *ptr)	/* new input source */
 		printf("\n%3d ", srcp - src);
 		switch (srcp->type) {
 		case File:
-			printf("push file %s\n", ((Infile *)ptr)->fname);
+			printf("push file\n", ((Infile *)ptr)->fname);
 			break;
 		case Macro:
 			printf("push macro <%s>\n", ptr);
@@ -271,7 +271,7 @@ nextchar(void)
 				ERROR "argfp underflow" FATAL;
 			popsrc();
 			goto loop;
-		} else if (c == '$' && isdigit(*srcp->sp)) {	/* $3 */
+		} else if (c == '$' && isdigit(*srcp->sp)) {
 			int n = 0;
 			while (isdigit(*srcp->sp))
 				n = 10 * n + *srcp->sp++ - '0';
@@ -419,18 +419,15 @@ char	errbuf[200];
 void yyerror(char *s)
 {
 	extern char *cmdname;
-	int ern = errno;	/* cause some libraries clobber it */
 
 	if (synerr)
 		return;
 	fflush(stdout);
 	fprintf(stderr, "%s: %s", cmdname, s);
-	if (ern > 0) {
-		errno = ern;
+	if (errno > 0)
 		perror("???");
-	}
-	fprintf(stderr, " near %s:%d\n",
-		curfile->fname, curfile->lineno+1);
+	fprintf(stderr, " near line %d, file %s\n",
+		curfile->lineno, curfile->fname);
 	eprint();
 	synerr = 1;
 	errno = 0;
@@ -450,13 +447,11 @@ void eprint(void)	/* try to print context around error */
 	fprintf(stderr, " context is\n\t");
 	for (q=ep-1; q>=p && *q!=' ' && *q!='\t' && *q!='\n'; q--)
 		;
-	for (; p < q; p++)
-		if (isprint(*p))
-			putc(*p, stderr);
+	while (p < q)
+		putc(*p++, stderr);
 	fprintf(stderr, " >>> ");
-	for (; p < q; p++)
-		if (isprint(*p))
-			putc(*p, stderr);
+	while (p < ep)
+		putc(*p++, stderr);
 	fprintf(stderr, " <<< ");
 	while (pb >= pbuf)
 		putc(*pb--, stderr);
@@ -554,7 +549,7 @@ char	shellbuf[1000], *shellp;
 void shell_init(void)	/* set up to interpret a shell command */
 {
 	fprintf(tfd, "# shell cmd...\n");
-	sprintf(shellbuf, "rc -c '");
+	sprintf(shellbuf, "sh -c '");
 	shellp = shellbuf + strlen(shellbuf);
 }
 

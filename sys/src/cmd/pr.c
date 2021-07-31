@@ -85,7 +85,6 @@ char	nulls[] = "";
 int	Numw;
 int	Offset = 0;
 int	Outpos;
-int	Padodd;
 int	Page;
 int	Pcolpos;
 int	Plength;
@@ -229,9 +228,6 @@ findopt(int argc, char *argv[])
 				case 'b':
 					Balance = 1;
 					continue;
-				case 'p':
-					Padodd = 1;
-					continue;
 				default:
 					die("bad option");
 				}
@@ -321,14 +317,6 @@ pr(char *name)
 			putspace();
 			Bprint(&bout, HEAD);
 		}
-	}
-	if(Padodd && (Page&1) == 1) {
-		Line = 0;
-		if(Formfeed)
-			put('\f');
-		else
-			while(Line < Len)
-				put('\n');
 	}
 	C = '\0';
 	return 1;

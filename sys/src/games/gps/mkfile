@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=gps
+OFILES=\
+	gps55.$O\
+
+HFILES=\
+
+BIN=/$objtype/bin/games
+</sys/src/cmd/mkone

@@ -1,0 +1,128 @@
+%% 
+%% This is file `showkeys.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% showkeys.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% File: showkeys.dtx Copyright (C) 1992-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{showkeys}
+          [1994/09/09 v3.01 Show cite and label keys (DPC)]
+\let\SK@label\label
+\let\SK@bibitem\@bibitem
+\let\SK@lbibitem\@lbibitem
+\def\label#1{\@bsphack\SK@\SK@@label{#1}\SK@label{#1}\@esphack}
+\def\@bibitem#1{\SK@\SK@@label{#1}\SK@bibitem{#1}\ignorespaces}
+\def\@lbibitem[#1]#2{%
+  \SK@\SK@@label{#2}\SK@lbibitem[#1]{#2}\ignorespaces}
+\def\SK@#1#2{\def\@tempa{#2}\expandafter#1\meaning\@tempa\SK@}
+\def\SK@@label#1>#2\SK@{%
+  \gdef\SK@lab{\smash{\fbox{\reset@font\small\ttfamily#2}}}%
+  \ifvmode
+    \ifinner
+      \if@inlabel
+        \mbox{}\let\@tempa\SK@lab
+                \def\SK@lab{\llap{\@tempa\kern\leftmargin}}%
+        \let\SK@temp\@gobble
+      \else
+        \skip@=\lastskip\unskip
+        \let\SK@temp\vskip
+      \fi
+      \skip@=\lastskip\unskip
+      \setbox\z@=\lastbox
+      \ifvoid\z@
+        \nointerlineskip\SK@labx
+      \else
+        \hbox{\box\z@\SK@labx}%
+      \fi
+      \SK@temp\skip@
+    \else
+      \marginpar{\SK@lab}\SK@lab@relax
+    \fi
+  \else
+    \csname SK@\@currenvir\endcsname
+    \ifSK@equation\else\SK@labx\fi
+  \fi}
+\AtBeginDocument{%
+  \let\SK@eqnnum\@eqnnum
+  \def\@tempa{\let\iftagsleft@\iffalse}%
+  \ifx\iftagsleft@\undefined\@tempa\fi%
+  \let\SK@tagform@\tagform@
+  \iftagsleft@
+    \def\tagform@#1{\llap{\SK@lab\kern\marginparsep}%
+                     \SK@lab@relax\SK@tagform@{#1}}%
+    \def\@eqnnum{\llap{\SK@lab\kern\displaywidth\kern\marginparsep}%
+                     \SK@lab@relax\SK@eqnnum}%
+  \else
+    \def\tagform@#1{\SK@tagform@{#1}%
+                     \rlap{\kern\marginparsep\SK@lab}\SK@lab@relax}%
+    \def\@eqnnum{\SK@eqnnum\rlap{\kern\marginparsep\SK@lab}%
+                     \SK@lab@relax}%
+  \fi}
+\def\SK@labx{\rlap\SK@lab\global\let\SK@lab\relax}
+\def\SK@lab@relax{\global\let\SK@lab\relax}\SK@lab@relax
+\newif\ifSK@equation
+\let\SK@equation\SK@equationtrue
+\let\SK@eqnarray\SK@equationtrue
+\let\SK@align\SK@equationtrue
+\let\SK@alignat\SK@equationtrue
+\let\SK@xalignat\SK@equationtrue
+\let\SK@xxalignat\SK@equationtrue
+\let\SK@gather\SK@equationtrue
+\let\SK@multline\SK@equationtrue
+\AtBeginDocument{%
+  \let\SK@ref\ref
+  \let\SK@pageref\pageref
+  \DeclareRobustCommand\ref[1]{\SK@\SK@@ref{#1}\SK@ref{#1}}%
+  \DeclareRobustCommand\pageref[1]{\SK@\SK@@ref{#1}\SK@pageref{#1}}%
+  \ifx\vpageref\@undefined\else
+    \let\SK@@@vpageref\@@vpageref
+    \def\@@vpageref#1[#2]#3{{%
+      \let\label\SK@label\let\ref\SK@ref\let\pageref\SK@pageref
+      \leavevmode\unskip\SK@\SK@@ref{#3}\SK@@@vpageref#1[#2]{#3}}}%
+    \DeclareRobustCommand\vref[1]{%
+      \unskip~\ref{#1}%
+      {\let\label\SK@label\let\ref\SK@ref\let\pageref\SK@pageref
+       \SK@@@vpageref\unskip[\unskip\space]{#1}}}%
+  \fi
+  \ifx\HAR@checkdef\@undefined
+    \let\SK@cite\cite
+    \def\cite#1#{\SK@citea{#1}}%
+    \let\SK@citeauthor\citeauthor
+    \def\citeauthor#1{\SK@\SK@@ref{#1}\SK@citeauthor{#1}}%
+    \let\SK@citefullauthor\citefullauthor
+    \def\citefullauthor#1{\SK@\SK@@ref{#1}\SK@citefullauthor{#1}}%
+    \let\SK@citeyear\citeyear
+    \def\citeyear#1{\SK@\SK@@ref{#1}\SK@citeyear{#1}}%
+  \else
+    \let\SK@HAR@checkdef\HAR@checkdef
+    \def\HAR@checkdef#1#2{%
+      \expandafter\SK@\expandafter\SK@@ref\expandafter{#1}%
+      \SK@HAR@checkdef{#1}{#2}}%
+      \expandafter\let\expandafter
+         \SK@HAR@bi\csname\string\harvarditem\endcsname
+      \expandafter\def\csname\string\harvarditem\endcsname[#1]#2#3#4{%
+        \SK@\SK@@label{#4}\SK@HAR@bi[#1]{#2}{#3}{#4}}%
+  \fi}
+\def\SK@citea#1#2{%
+  \SK@\SK@@ref{#2}\SK@cite#1{#2}}
+\def\SK@@ref#1>#2\SK@{%
+  \leavevmode\vbox to \z@{\vss
+    \rlap{\vrule\raise .75em
+       \hbox{\underbar{\reset@font\footnotesize\ttfamily#2}}}}}
+
+\endinput
+%% 
+%% End of file `showkeys.sty'.

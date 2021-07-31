@@ -1,0 +1,23 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libbio.a
+OFILES=\
+	bbuffered.$O\
+	bfildes.$O\
+	bflush.$O\
+	bgetrune.$O\
+	bgetc.$O\
+	binit.$O\
+	bprint.$O\
+	bputrune.$O\
+	bputc.$O\
+	brdline.$O\
+	bread.$O\
+	bseek.$O\
+	bwrite.$O\
+
+</sys/src/cmd/mksyslib
+
+/68020/lib/alef/libbio.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'

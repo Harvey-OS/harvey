@@ -1,0 +1,32 @@
+.TH CMAP 9.6
+.SH NAME
+cmap \- color map format
+.SH DESCRIPTION
+A color map is a 256\(mu3-byte translation table for
+color values.
+In a monochrome picture, pixel values index
+the color map to yield red, green and blue, like this:
+.IP
+.EX
+uchar cmap[256][3];
+red = cmap[pixel][0];
+green = cmap[pixel][1];
+blue = cmap[pixel][2];
+.EE
+.PP
+In a full-color picture,
+the color map is, in effect,
+three intensity-compensation
+tables:
+.B cmap[red][0]
+maps red channels,
+.B cmap[green][1]
+maps green channels
+and
+.B cmap[blue][2]
+maps blue channels.
+.PP
+A color map file is just a 768-byte file containing the color map,
+stored in the order implied by the declaration of
+.B cmap
+above.

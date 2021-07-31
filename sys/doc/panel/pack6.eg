@@ -1,0 +1,5 @@
+root=plgroup(0, 0);
+plbutton(root, PACKW|MAXX, "one", 0);
+plbutton(root, PACKW|MAXX, "two", 0);
+plbutton(root, PACKW|MAXX, "three", 0);
+plbutton(root, PACKW|MAXX, "four", 0);

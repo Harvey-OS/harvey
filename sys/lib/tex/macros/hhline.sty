@@ -1,0 +1,77 @@
+%% 
+%% This is file `hhline.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% hhline.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% File: hhline.dtx Copyright (C) 1991-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{hhline}
+         [1994/05/23 v2.03 Table rule package (DPC)]
+\def\HH@box#1#2{\vbox{%
+  \hrule \@height \arrayrulewidth \@width #1
+  \vskip \doublerulesep
+  \hrule \@height \arrayrulewidth \@width #2}}
+\def\HH@add#1{\toks@\expandafter{\the\toks@#1}}
+
+\def\HH@xexpast#1*#2#3#4\@@{%
+   \@tempcnta #2
+   \toks@={#1}\@temptokena={#3}%
+   \let\the@toksz\relax \let\the@toks\relax
+   \def\@tempa{\the@toksz}%
+   \ifnum\@tempcnta >0 \@whilenum\@tempcnta >0\do
+     {\edef\@tempa{\@tempa\the@toks}\advance \@tempcnta \m@ne}%
+       \let \@tempb \HH@xexpast \else
+       \let \@tempb \HH@xexnoop \fi
+   \def\the@toksz{\the\toks@}\def\the@toks{\the\@temptokena}%
+   \edef\@tempa{\@tempa}%
+   \expandafter \@tempb \@tempa #4\@@}
+
+\def\HH@xexnoop#1\@@{}
+\def\hhline#1{\omit\@firstamptrue\@tempswafalse
+\global\setbox\@ne\HH@box\doublerulesep\doublerulesep
+  \xdef\@tempc{\ifx\extrarowheight\HH@undef\hskip-.5\arrayrulewidth\fi}%
+    \HH@xexpast\relax#1*0x\@@\toks@{}\expandafter\HH@let\@tempa`}
+
+\def\HH@let#1{\futurelet\@tempb\HH@loop}
+
+\def\HH@loop{%
+  \ifx\@tempb`\def\next##1{\the\toks@\cr}\else\let\next\HH@let
+  \ifx\@tempb|\if@tempswa\HH@add{\hskip\doublerulesep}\fi\@tempswatrue
+          \HH@add{\@tempc\vline\@tempc}\else
+  \ifx\@tempb:\if@tempswa\HH@add{\hskip\doublerulesep}\fi\@tempswatrue
+      \HH@add{\@tempc\HH@box\arrayrulewidth\arrayrulewidth\@tempc}\else
+  \ifx\@tempb##\if@tempswa\HH@add{\hskip\doublerulesep}\fi\@tempswatrue
+         \HH@add{\@tempc\vline\@tempc\copy\@ne\@tempc\vline\@tempc}\else
+  \ifx\@tempb~\@tempswafalse
+           \if@firstamp\@firstampfalse\else\HH@add{&\omit}\fi
+              \HH@add{\hfil}\else
+  \ifx\@tempb-\@tempswafalse
+           \if@firstamp\@firstampfalse\else\HH@add{&\omit}\fi
+              \HH@add{\leaders\hrule\@height\arrayrulewidth\hfil}\else
+  \ifx\@tempb=\@tempswafalse
+       \if@firstamp\@firstampfalse\else\HH@add{&\omit}\fi
+       \HH@add
+          {\rlap{\copy\@ne}\leaders\copy\@ne\hfil\llap{\copy\@ne}}\else
+  \ifx\@tempb t\HH@add{\rlap{\HH@box\doublerulesep\z@}}\else
+  \ifx\@tempb b\HH@add{\rlap{\HH@box\z@\doublerulesep}}\else
+  \PackageWarning{hhline}%
+      {\meaning\@tempb\space ignored in \noexpand\hhline argument%
+       \MessageBreak}%
+  \fi\fi\fi\fi\fi\fi\fi\fi\fi
+  \next}
+\endinput
+%% 
+%% End of file `hhline.sty'.

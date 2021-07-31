@@ -1,0 +1,109 @@
+% This is WBXIPA11.MF in text format, as of June 10, 1988.
+% Computer Modern Bold Extended IPA 11 point
+if unknown cmbase: input cmbase fi
+ 
+font_identifier:="WBXIPA"; font_size 11pt#;
+ 
+u#:=24.75/36pt#;      % unit width
+width_adj#:=11.9/36pt#;    % width adjustment for certain characters
+serif_fit#:=0pt#;    % extra sidebar near lowercase serifs
+cap_serif_fit#:=7.3/36pt#;  % extra sidebar near uppercase serifs
+letter_fit#:=0pt#;    % extra space added to all sidebars
+ 
+body_height#:=297/36pt#;  % height of tallest characters
+asc_height#:=275/36pt#;    % height of lowercase ascenders
+cap_height#:=271.7/36pt#;  % height of caps
+fig_height#:=255.2/36pt#;  % height of numerals
+x_height#:=176/36pt#;    % height of lowercase without ascenders
+math_axis#:=99/36pt#;    % axis of symmetry for math symbols
+bar_height#:=93.5/36pt#;    % height of crossbar in lowercase e
+comma_depth#:=77/36pt#;    % depth of comma below baseline
+desc_depth#:=77/36pt#;    % depth of lowercase descenders
+ 
+crisp#:=0pt#;      % diameter of serif corners
+tiny#:=13/36pt#;    % diameter of rounded corners
+fine#:=10/36pt#;    % diameter of sharply rounded corners
+thin_join#:=10.38/36pt#;    % width of extrafine details
+hair#:=17.23/36pt#;    % lowercase hairline breadth
+stem#:=41/36pt#;    % lowercase stem breadth
+curve#:=47.66/36pt#;    % lowercase curve breadth
+ess#:=40.33/36pt#;      % breadth in middle of lowercase s
+flare#:=46.75/36pt#;    % diameter of bulbs or breadth of terminals
+dot_size#:=56.83/36pt#;    % diameter of dots
+cap_hair#:=19.7/36pt#;    % uppercase hairline breadth
+cap_stem#:=52.25/36pt#;    % uppercase stem breadth
+cap_curve#:=56/36pt#;    % uppercase curve breadth
+cap_ess#:=54/36pt#;    % breadth in middle of uppercase s
+rule_thickness#:=.61pt#;  % thickness of lines in math symbols
+ 
+dish#:=1/36pt#;      % amount erased at top or bottom of serifs
+bracket#:=11/36pt#;    % vertical distance from serif base to tangent
+jut#:=27.5/36pt#;      % protrusion of lowercase serifs
+cap_jut#:=42/36pt#;    % protrusion of uppercase serifs
+beak_jut#:=11.36/36pt#;    % horizontal protrusion of beak serifs
+beak#:=77/36pt#;    % vertical protrusion of beak serifs
+vair#:=13.11/36pt#;    % vertical diameter of hairlines
+notch_cut#:=11pt#;    % maximum breadth above or below notches
+bar#:=17.04/36pt#;    % lowercase bar thickness
+slab#:=17.04/36pt#;    % serif and arm thickness
+cap_bar#:=17.04/36pt#;    % uppercase bar thickness
+cap_band#:=17.04/36pt#;    % uppercase thickness above/below lobes
+cap_notch_cut#:=11pt#;    % max breadth above/below uppercase notches
+serif_drop#:=3.3/36pt#;    % vertical drop of sloped serifs
+stem_corr#:=2/36pt#;    % for small refinements of stem breadth
+vair_corr#:=1.5/36pt#;    % for small refinements of hairline height
+apex_corr#:=0pt#;    % extra width at diagonal junctions
+ 
+o#:=5/36pt#;      % amount of overshoot for curves
+apex_o#:=3.66/36pt#;    % amount of overshoot for diagonal junctions
+ 
+slant:=0;      % tilt ratio $(\Delta x/\Delta y)$
+fudge:=1;      % factor applied to weights of heavy characters
+math_spread:=.366;    % extra openness of math symbols
+superness:=8/11;    % parameter for superellipses
+superpull:=1/8;      % extra openness inside bowls
+beak_darkness:=.4;    % fraction of triangle inside beak serifs
+ligs:=2;      % level of ligatures to be included
+ 
+square_dots:=false;    % should dots be square?
+hefty:=false;      % should we try hard not to be overweight?
+serifs:=true;      % should serifs and bulbs be attached?
+monospace:=false;    % should all characters have the same width?
+variant_g:=false;    % should an italic-style g be used?
+low_asterisk:=false;    % should the asterisk be centered at the axis?
+math_fitting:=false;    % should math-mode spacing be used?
+ 
+% now come replacements used to set the lowercase caps
+ 
+lower.u#:=18.5/36pt#;    % unit width
+lower.width_adj#:=0pt#;    % width adjustment for certain characters
+lower.cap_serif_fit#:=5.8/36pt#;  % extra sidebar near uppercase serifs
+lower.letter_fit#:=2.6/36pt#;  % extra space added to all sidebars
+ 
+lower.body_height#:=246/36pt#;  % height of tallest characters
+lower.cap_height#:=203/36pt#;  % height of caps
+lower.x_height#:=132/36pt#;  % height of lowercase without ascenders
+lower.bar_height#:=71/36pt#;  % height of crossbar in lowercase e
+lower.comma_depth#:=57/36pt#;  % depth of comma below baseline
+ 
+lower.flare#:=35/36pt#;    % diameter of bulbs or breadth of terminals
+lower.cap_hair#:=16/36pt#;  % uppercase hairline breadth
+lower.stem#:=34/36pt#;    % lowercase stem breadth
+lower.cap_stem#:=41/36pt#;  % uppercase stem breadth
+lower.cap_curve#:=46/36pt#;  % uppercase curve breadth
+lower.cap_ess#:=43/36pt#;  % breadth in middle of uppercase s
+ 
+lower.cap_jut#:=29/36pt#;  % protrusion of uppercase serifs
+lower.beak_jut#:=8/36pt#;  % horizontal protrusion of beak serifs
+lower.beak#:=57/36pt#;    % vertical protrusion of beak serifs
+lower.slab#:=14/36pt#;    % serif and arm thickness
+lower.cap_bar#:=14/36pt#;  % uppercase bar thickness
+lower.cap_band#:=14/36pt#;  % uppercase thickness above/below lobes
+lower.cap_notch_cut#:=11pt#;  % max breadth above/below uppercase notches
+ 
+lower.o#:=3/36pt#;    % amount of overshoot for curves
+lower.apex_o#:=1.8/36pt#;    % amount of overshoot for diagonal junctions
+ 
+lower.fudge:=1;      % factor applied to weights of heavy characters
+ 
+generate iparoman      % switch to the driver file

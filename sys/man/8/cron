@@ -3,9 +3,7 @@
 cron \- clock daemon
 .SH SYNOPSIS
 .B auth/cron
-[
-.B -c
-]
+.RB [ -c ]
 .SH DESCRIPTION
 .I Cron
 executes commands at specified dates and times according

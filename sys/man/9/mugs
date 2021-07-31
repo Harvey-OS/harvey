@@ -1,0 +1,92 @@
+.TH MUGS 9.1
+.SH NAME
+mugs \-  make face icons from pictures
+.SH SYNOPSIS
+.B mugs
+[
+.B -a
+]
+[
+.B -1
+]
+[
+.B -2
+]
+[
+.I file
+]
+.SH DESCRIPTION
+.I Mugs
+interactively converts grey-scale images in
+the form of
+.IR picfile (9.6)
+into 48\(mu48 icons.
+It is designed to run in a pipe, reading the picture from
+standard input unless a single
+.I file
+is given on the call.
+.I Mugs
+displays a large approximation to the original picture
+and a matrix of 48\(mu48 icons of varying contrast and
+brightness.  Button 1 selects one of the icons.
+Button 2 offers the menu entries:
+.TP
+.B in
+Zoom in to a finer contrast/brightness range around the selected
+icon.  
+Repeated
+.BR in s
+will zoom in farther.
+.TP
+.B out
+Opposite of
+.BR in .
+.TP
+.B reset
+Set the brightness/contrast range to the maximum.
+.LP
+Both
+.B in
+and
+.B out
+preserve the brightness/contrast values in the selected icon.
+Button 3 presents a menu with entries:
+.TP
+.B window
+Select a square window in the large picture using button 3.
+Touch down at
+the top and center of the square and slide around to adjust its size.
+Appropriately cropped icons will be displayed.
+.TP
+.B depth
+Toggle between 1- and 2-bit deep icons.
+.TP
+.B write
+Write the selected icon to standard output.  Each write produces
+48 lines of text suitable for initializing an array in C.  1-bit deep
+icons produce three shorts per line; 2-bit depths are written
+as three longs per line.
+.TP
+.B abort
+Terminate 
+.I mugs
+with a non-blank error return.
+.TP
+.B finish
+Terminate with a null status return.
+.PP
+Option
+.B -a
+indicates that picture files have non-square pixels with
+aspect ratio 1.25, as produced by some frame grabbers.
+Normally pixels are assumed to be square.
+.B -1
+and
+.B -2
+select the initial depth of the icons. 
+.B -2
+is default.
+.SH SOURCE
+.B /sys/src/cmd/mugs.c
+.SH SEE ALSO
+.IR picfile (9.6)

@@ -30,8 +30,6 @@ defreadln(char *prompt, char *def, int must, int *changed)
 			return def;
 		default:
 			*changed = 1;
-			if(def)
-				free(def);
 			return strdup(reply);
 		}
 	} while(must);
@@ -53,7 +51,6 @@ querybio(char *file, char *user, Acctbio *a)
 	int changed;
 
 	rdbio(file, user, a);
-	a->postid = defreadln("Post id", a->postid, 0, &changed);
 	a->name = defreadln("User's full name", a->name, 1, &changed);
 	a->dept = defreadln("Department #", a->dept, 1, &changed);
 	a->email[0] = defreadln("User's email address", a->email[0], 1, &changed);

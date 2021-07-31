@@ -1,0 +1,23 @@
+%% 
+%% This is file `rplain.sty', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% rplain.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 Axel Sommerfeldt 
+%% 
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{rplain}[1994/10/10 v1.0 rplain package (AS)]
+\typeout{Package: rplain v1.0 <1994/10/10> (Axel Sommerfeldt)}
+\renewcommand{\ps@plain}{%
+   \renewcommand{\@mkboth}{\@gobbletwo}%
+   \renewcommand{\@oddhead}{}%
+   \renewcommand{\@evenhead}{}%
+   \renewcommand{\@evenfoot}{\reset@font\rmfamily\thepage\hfil}%
+   \renewcommand{\@oddfoot}{\reset@font\rmfamily\hfil\thepage}}
+\pagestyle{plain}
+\endinput
+%% 
+%% End of file `rplain.sty'.

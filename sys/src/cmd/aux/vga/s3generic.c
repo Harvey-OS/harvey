@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 
 #include "vga.h"
 
@@ -8,20 +7,24 @@
  * Generic S3 GUI Accelerator.
  */
 static void
-snarf(Vga* vga, Ctlr* ctlr)
+unlock(void)
 {
-	int i;
-
-	trace("%s->snarf->s3generic\n", ctlr->name);
-
 	/*
-	 * Unlock extended registers.
 	 * 0xA5 ensures Crt36 and Crt37 are also unlocked
 	 * (0xA0 unlocks everything else).
 	 */
 	vgaxo(Crtx, 0x38, 0x48);
 	vgaxo(Crtx, 0x39, 0xA5);
+}
 
+static void
+snarf(Vga *vga, Ctlr *ctlr)
+{
+	int i;
+
+	verbose("%s->snarf->s3generic\n", ctlr->name);
+
+	unlock();
 	/*
 	 * Not all registers exist on all chips.
 	 * Crt3[EF] don't exist on any.
@@ -35,23 +38,23 @@ snarf(Vga* vga, Ctlr* ctlr)
 	switch((vga->crt[0x36]>>5) & 0x07){
 
 	case 0x00:
-		vga->vmz = 4*1024*1024;
+		vga->vmb = 4*1024*1024;
 		break;
 
 	case 0x02:
-		vga->vmz = 3*1024*1024;
+		vga->vmb = 3*1024*1024;
 		break;
 
 	case 0x04:
-		vga->vmz = 2*1024*1024;
+		vga->vmb = 2*1024*1024;
 		break;
 
 	case 0x06:
-		vga->vmz = 1*1024*1024;
+		vga->vmb = 1*1024*1024;
 		break;
 
 	case 0x07:
-		vga->vmz = 512*1024;
+		vga->vmb = 512*1024;
 		break;
 	}
 
@@ -59,35 +62,32 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	Mode *mode;
 	ulong x;
 
-	trace("%s->init->s3generic\n", ctlr->name);
+	verbose("%s->init->s3generic\n", ctlr->name);
 	mode = vga->mode;
 
 	/*
-	 * Is enhanced mode is necessary?
+	 * Do we need to use enhanced mode?
 	 */
 	if((ctlr->flag & (Uenhanced|Henhanced)) == Henhanced){
-		if(mode->z >= 8)
+		if(mode->x >= 1024 && mode->z == 8)
 			resyncinit(vga, ctlr, Uenhanced, 0);
 		else
 			resyncinit(vga, ctlr, 0, Uenhanced|Henhanced);
 	}
-	if((ctlr->flag & Uenhanced) == 0 && mode->x > 1024)
-		error("%s: no support for 1-bit mode > 1024x768x1\n", ctlr->name);
 
 	vga->crt[0x31] = 0x85;
-	vga->crt[0x6A] &= 0xC0;
 	vga->crt[0x32] &= ~0x40;
 
 	vga->crt[0x31] |= 0x08;
 	vga->crt[0x32] |= 0x40;
 
 	vga->crt[0x33] |= 0x20;
-	if(mode->z >= 8)
+	if(mode->z == 8)
 		vga->crt[0x3A] |= 0x10;
 	else
 		vga->crt[0x3A] &= ~0x10;
@@ -105,9 +105,9 @@ init(Vga* vga, Ctlr* ctlr)
 
 	vga->crt[0x40] = (vga->crt[0x40] & 0xF2);
 	vga->crt[0x43] = 0x00;
-	vga->crt[0x45] = 0x00;
 
 	vga->crt[0x50] &= 0x3E;
+	x = 0x00;
 	if(mode->x <= 640)
 		x = 0x40;
 	else if(mode->x <= 800)
@@ -118,7 +118,7 @@ init(Vga* vga, Ctlr* ctlr)
 		x = 0x01;
 	else if(mode->x <= 1280)
 		x = 0xC0;
-	else
+	else if(mode->x <= 1600)
 		x = 0x81;
 	vga->crt[0x50] |= x;
 
@@ -126,21 +126,12 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->crt[0x53] &= ~0x10;
 
 	/*
-	 * Set up linear aperture. For the moment it's 64K at 0xA0000.
-	 * The real base address will be assigned before load is called.
+	 * Set up linear aperture.
+	 * For the moment it's 64K at 0xA0000.
 	 */
 	vga->crt[0x58] = 0x88;
-	if(ctlr->flag & Uenhanced){
+	if(ctlr->flag & Uenhanced)
 		vga->crt[0x58] |= 0x10;
-		if(vga->linear && (ctlr->flag & Hlinear))
-			ctlr->flag |= Ulinear;
-		if(vga->vmz <= 1024*1024)
-			vga->vma = 1024*1024;
-		else if(vga->vmz <= 2*1024*1024)
-			vga->vma = 2*1024*1024;
-		else
-			vga->vma = 8*1024*1024;
-	}
 	vga->crt[0x59] = 0x00;
 	vga->crt[0x5A] = 0x0A;
 
@@ -172,11 +163,9 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
-	ulong l;
-
-	trace("%s->load->s3generic\n", ctlr->name);
+	verbose("%s->load->s3generic\n", ctlr->name);
 
 	vgaxo(Crtx, 0x31, vga->crt[0x31]);
 	vgaxo(Crtx, 0x32, vga->crt[0x32]);
@@ -197,32 +186,17 @@ load(Vga* vga, Ctlr* ctlr)
 	vgaxo(Crtx, 0x53, vga->crt[0x53]);
 	vgaxo(Crtx, 0x54, vga->crt[0x54]);
 	vgaxo(Crtx, 0x55, vga->crt[0x55]);
-
-	if(ctlr->flag & Ulinear){
-		l = vga->vmb>>16;
-		vga->crt[0x59] = (l>>8) & 0xFF;
-		vga->crt[0x5A] = l & 0xFF;
-		if(vga->vmz <= 1024*1024)
-			vga->crt[0x58] |= 0x01;
-		else if(vga->vmz <= 2*1024*1024)
-			vga->crt[0x58] |= 0x02;
-		else
-			vga->crt[0x58] |= 0x03;
-	}
 	vgaxo(Crtx, 0x59, vga->crt[0x59]);
 	vgaxo(Crtx, 0x5A, vga->crt[0x5A]);
 	vgaxo(Crtx, 0x58, vga->crt[0x58]);
-
 	vgaxo(Crtx, 0x5D, vga->crt[0x5D]);
 	vgaxo(Crtx, 0x5E, vga->crt[0x5E]);
-
-	vgaxo(Crtx, 0x6A, vga->crt[0x6A]);
 
 	ctlr->flag |= Fload;
 }
 
 static void
-dump(Vga* vga, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i, interlace, mul;
 	char *name;
@@ -256,7 +230,7 @@ dump(Vga* vga, Ctlr* ctlr)
 
 	/*
 	 * If hde <= 400, assume this is a 928 or Vision964
-	 * and the horizontal values have been divided by 4.
+	 * and the horozontal values have been divided by 4.
 	 */
 	mul = 1;
 	x = vga->crt[0x01];
@@ -268,7 +242,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	x *= mul;
 	printitem(name, "hde");
 	printreg(x);
-	Bprint(&stdout, "%6ud", x);
+	print("%6hud", x);
 
 	shb = vga->crt[0x02];
 	if(vga->crt[0x5D] & 0x04)
@@ -277,7 +251,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	shb *= mul;
 	printitem(name, "shb");
 	printreg(shb);
-	Bprint(&stdout, "%6ud", shb);
+	print("%6hud", shb);
 
 	x = vga->crt[0x03] & 0x1F;
 	if(vga->crt[0x05] & 0x80)
@@ -288,7 +262,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		x += 64;
 	printitem(name, "ehb");
 	printreg(x);
-	Bprint(&stdout, "%6ud", x);
+	print("%6hud", x);
 
 	x = vga->crt[0x00];
 	if(vga->crt[0x5D] & 0x01)
@@ -297,7 +271,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	x *= mul;
 	printitem(name, "ht");
 	printreg(x);
-	Bprint(&stdout, "%6ud", x);
+	print("%6hud", x);
 
 	interlace = vga->crt[0x42] & 0x20;
 	x = vga->crt[0x12];
@@ -312,7 +286,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		x *= 2;
 	printitem(name, "vde");
 	printreg(x);
-	Bprint(&stdout, "%6ud", x);
+	print("%6hud", x);
 
 	vrs = vga->crt[0x10];
 	if(vga->crt[0x07] & 0x04)
@@ -325,7 +299,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		vrs *= 2;
 	printitem(name, "vrs");
 	printreg(vrs);
-	Bprint(&stdout, "%6ud", vrs);
+	print("%6hud", vrs);
 
 	if(interlace)
 		vrs /= 2;
@@ -334,7 +308,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		x *= 2;
 	printitem(name, "vre");
 	printreg(x);
-	Bprint(&stdout, "%6ud", x);
+	print("%6hud", x);
 
 	x = vga->crt[0x06];
 	if(vga->crt[0x07] & 0x01)
@@ -348,7 +322,7 @@ dump(Vga* vga, Ctlr* ctlr)
 		x *= 2;
 	printitem(name, "vt");
 	printreg(x);
-	Bprint(&stdout, "%6ud", x);
+	print("%6hud", x);
 }
 
 Ctlr s3generic = {

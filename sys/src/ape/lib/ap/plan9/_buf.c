@@ -63,6 +63,7 @@ _startbuf(int fd)
 			return -1;
 		}
 		/* segattach has returned zeroed memory */
+		lockinit();
 		atexit(_killmuxsid);
 	}
 

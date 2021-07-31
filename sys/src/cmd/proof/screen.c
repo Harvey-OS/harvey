@@ -1,10 +1,12 @@
 #include <u.h>
+#include <libg.h>
 #include <libc.h>
-#include <draw.h>
-#include <cursor.h>
-#include <event.h>
+#include <stdarg.h>
 #include <bio.h>
 #include "proof.h"
+
+Bitmap	screen;
+Mouse 	mouse;
 
 static	int	checkmouse(void);
 static	int	buttondown(void);
@@ -14,22 +16,17 @@ static	char	*getkbdstr(int);
 extern	Cursor	blot;
 extern	char	*track;
 
-Mouse	mouse;
-
 void
 mapscreen(void)
 {
-	if(initdraw(0, 0, "proof") < 0){
-		fprint(2, "proof: initdraw failed: %r\n");
-		exits("initdraw");
-	}
+	binit(0, 0, "proof");
 	einit(Ekeyboard|Emouse);
 }
 
 void
 clearscreen(void)
 {
-	draw(screen, screen->r, display->black, nil, ZP);
+	bitblt(&screen, screen.r.min, &screen, screen.r, 0);
 }
 
 void
@@ -42,9 +39,10 @@ screenprint(char *fmt, ...)
 	va_start(args, fmt);
 	doprint(buf, &buf[sizeof buf], fmt, args);
 	va_end(args);
-	p = Pt(screen->clipr.min.x+40, screen->clipr.max.y-40);
-	string(screen, p, display->black, ZP, font, buf);
+	p = Pt(screen.clipr.min.x+40, screen.clipr.max.y-40);
+	string(&screen, p, font, buf, S);
 }
+
 
 #define	Viewkey	0xb2
 
@@ -65,10 +63,6 @@ getcmdstr(void)
 	}
 	for (;;) {
 		e = event(&ev);
-		if(resized){
-			resized = 0;
-			return "p";
-		}
 		if ((e & Emouse) && ev.mouse.buttons) {
 			mouse = ev.mouse;
 			return getmousestr();
@@ -76,12 +70,12 @@ getcmdstr(void)
 			return getkbdstr(ev.kbdc);	/* sadly, no way to unget */
 		else if (e & timekey) {
 			if((dirstat(track, &dir) >= 0) && (tracktm < dir.mtime))
-				return "q";
+				return "q\n";
 		}
 	}
 }
 
-static char *
+char *
 getkbdstr(int c0)
 {
 	static char buf[100];
@@ -115,7 +109,7 @@ getkbdstr(int c0)
 
 #define	butcvt(b)	(1 << ((b) - 1))
 
-static int buttondown(void)	/* report state of buttons, if any */
+int buttondown(void)	/* report state of buttons, if any */
 {
 	if (!ecanmouse())	/* no event pending */
 		return 0;
@@ -152,45 +146,42 @@ char *pan(void)
 {
 	Point dd, xy, lastxy, min, max;
 
-	esetcursor(&blot);
+	cursorswitch(&blot);
 	waitdown();
 	xy = mouse.xy;
 	do{
 		lastxy = mouse.xy;
 		mouse = emouse();
-		dd = subpt(mouse.xy, lastxy);
-		min = addpt(screen->clipr.min, dd);
-		max = addpt(screen->clipr.max, dd);
-		draw(screen, rectaddpt(screen->r, subpt(mouse.xy, lastxy)),
-			screen, nil, screen->r.min);
+		dd = sub(mouse.xy, lastxy);
+		min = add(screen.clipr.min, dd);
+		max = add(screen.clipr.max, dd);
+		bitblt(&screen, add(screen.r.min, sub(mouse.xy, lastxy)), &screen, screen.r, S);
 		if(mouse.xy.x < lastxy.x)	/* moved left, clear right */
-			draw(screen, Rect(max.x, screen->r.min.y, screen->r.max.x, screen->r.max.y),
-				display->white, nil, ZP);
+			bitblt(&screen, Pt(max.x, screen.r.min.y), &screen,
+				Rect(max.x, screen.r.min.y, screen.r.max.x, screen.r.max.y), 0);
 		else	/* moved right, clear left*/
-			draw(screen, Rect(screen->r.min.x, screen->r.min.y, min.x, screen->r.max.y),
-				display->white, nil, ZP);
+			bitblt(&screen, screen.r.min, &screen,
+				Rect(screen.r.min.x, screen.r.min.y, min.x, screen.r.max.y), 0);
 		if(mouse.xy.y < lastxy.y)	/* moved up, clear down */
-			draw(screen, Rect(screen->r.min.x, max.y, screen->r.max.x, screen->r.max.y),
-				display->white, nil, ZP);
+			bitblt(&screen, Pt(screen.r.min.x, max.y), &screen,
+				Rect(screen.r.min.x, max.y, screen.r.max.x, screen.r.max.y), 0);
 		else		/* moved down, clear up */
-			draw(screen, Rect(screen->r.min.x, screen->r.min.y, screen->r.max.x, min.y),
-				display->white, nil, ZP);
-		flushimage(display, 1);
+			bitblt(&screen, screen.r.min, &screen,
+				Rect(screen.r.min.x, screen.r.min.y, screen.r.max.x, min.y), 0);
+		bflush();
 	}while(mouse.buttons);
 
-	xyoffset = addpt(xyoffset, subpt(mouse.xy, xy));
+	xyoffset = add(xyoffset, sub(mouse.xy, xy));
 
-	esetcursor(0);
+	cursorswitch(0);
 	return "p";
 }
 
-static char *getmousestr(void)
+char *getmousestr(void)
 {
 	static char buf[20];
 
 	checkmouse();
-	if (last_but == 1)
-		return "p";	/* repaint after panning */
 	if (last_but == 2) {
 		return "c";
 	} else if (last_but == 3) {
@@ -222,7 +213,7 @@ static char *getmousestr(void)
 	}
 }
 
-static int
+int
 checkmouse(void)	/* return button touched if any */
 {
 	int c, b;
@@ -234,13 +225,12 @@ checkmouse(void)	/* return button touched if any */
 	last_hit = -1;
 	c = 0;
 	if (button3(b)) {
-		last_hit = emenuhit(3, &mouse, &mbut3);
+		last_hit = menuhit(3, &mouse, &mbut3);
 		last_but = 3;
 	} else if (button2(b)) {
-		last_hit = emenuhit(2, &mouse, &mbut2);
+		last_hit = menuhit(2, &mouse, &mbut2);
 		last_but = 2;
 	} else {		/* button1() */
-		pan();
 		last_but = 1;
 	}
 	waitup();
@@ -294,9 +284,9 @@ confirm(int but)	/* ask for confirmation if menu item ends with '?' */
 	int c;
 	static int but_cvt[8] = { 0, 1, 2, 0, 3, 0, 0, 0 };
 
-	esetcursor(&skull);
+	cursorswitch(&skull);
 	c = waitdown();
 	waitup();
-	esetcursor(0);
+	cursorswitch(0);
 	return but == but_cvt[c];
 }

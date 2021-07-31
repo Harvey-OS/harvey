@@ -1,0 +1,69 @@
+*** bibtex.ch	Mon Mar 30 11:20:27 1992
+--- smallbibtex.ch	Fri Apr 10 17:32:25 1992
+***************
+*** 119,121 ****
+  @y
+! @!pool_size=512000; {maximum number of characters in strings}
+  @z
+--- 119,121 ----
+  @y
+! @!pool_size=120000; {maximum number of characters in strings}
+  @z
+***************
+*** 122,137 ****
+  @x
+- @!max_strings=4000; {maximum number of strings, including pre-defined;
+-                                                         must be |<=hash_size|}
+- @y
+- @!max_strings=20000; {maximum number of strings, including pre-defined;
+-                                                         must be |<=hash_size|}
+- @z
+- @x
+- @!max_cites=750; {maximum number of distinct cite keys; must be
+-                                                         |<=max_strings|}
+- @y
+- @!max_cites=3000; {maximum number of distinct cite keys; must be
+-                                                         |<=max_strings|}
+- @z
+- @x
+  @!min_crossrefs=2; {minimum number of cross-refs required for automatic
+--- 122,123 ----
+***************
+*** 141,176 ****
+                                                          |cite_list| inclusion}
+- @z
+- 
+- @x
+- @!max_ent_ints=3000; {maximum number of |int_entry_var|s
+-                                         (entries $\times$ |int_entry_var|s)}
+- @y
+- @!max_ent_ints=25000; {maximum number of |int_entry_var|s
+-                                         (entries $\times$ |int_entry_var|s)}
+- @z
+- @x
+- @!max_ent_strs=3000; {maximum number of |str_entry_var|s
+-                                         (entries $\times$ |str_entry_var|s)}
+- @y
+- @!max_ent_strs=10000; {maximum number of |str_entry_var|s
+-                                         (entries $\times$ |str_entry_var|s)}
+- @z
+- @x
+- @!max_fields=17250; {maximum number of fields (entries $\times$ fields,
+-                                         about |23*max_cites| for consistency)}
+- @y
+- @!max_fields=69000; {maximum number of fields (entries $\times$ fields,
+-                                         about |23*max_cites| for consistency)}
+- @z
+- @x
+- @d hash_size=5000       {must be |>= max_strings| and |>= hash_prime|}
+- @y
+- @d hash_size=21000       {must be |>= max_strings| and |>= hash_prime|}
+- @z
+- @x
+- @d hash_prime=4253      {a prime number about 85\% of |hash_size| and |>= 128|
+-                                                 and |< @t$2^{14}-2^6$@>|}
+- @y
+- @d hash_prime=16319      {a prime number about 85\% of |hash_size| and |>= 128|
+-                                                 and |< @t$2^{14}-2^6$@>|}
+  @z
+--- 127,128 ----

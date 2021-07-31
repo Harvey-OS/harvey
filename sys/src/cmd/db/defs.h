@@ -11,7 +11,7 @@
 #include <mach.h>
 
 typedef long WORD;
-typedef vlong ADDR;
+typedef ulong ADDR;
 
 #define	HUGEINT	0x7fffffff	/* enormous WORD */
 
@@ -74,8 +74,7 @@ typedef struct bkpt	BKPT;
  * common globals
  */
 
-extern	WORD	adrval;
-extern	vlong	expv;
+extern	WORD	expv, adrval;
 extern	int	adrflg;
 extern	WORD	cntval;
 extern	int	cntflg;

@@ -1,0 +1,97 @@
+%% 
+%% This is file `amsbsy.sty', generated 
+%% on <1995/1/27> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% amsbsy.dtx 
+%%% ====================================================================
+%%%  @LaTeX-file{
+%%%     filename        = "amsbsy.dtx",
+%%%     version         = "1.2",
+%%%     date            = "1995/01/20",
+%%%     time            = "09:14:55 EST",
+%%%     author          = "American Mathematical Society",
+%%%     copyright       = "Copyright (C) 1995 American Mathematical Society,
+%%%                        all rights reserved.  Copying of this file is
+%%%                        authorized only if either:
+%%%                        (1) you make absolutely no changes to your copy,
+%%%                        including name; OR
+%%%                        (2) if you do make changes, you first rename it
+%%%                        to some other name.",
+%%%     address         = "American Mathematical Society,
+%%%                        Technical Support,
+%%%                        Electronic Products and Services,
+%%%                        P. O. Box 6248,
+%%%                        Providence, RI 02940,
+%%%                        USA",
+%%%     telephone       = "401-455-4080 or (in the USA and Canada)
+%%%                        800-321-4AMS (321-4267)",
+%%%     FAX             = "401-331-3842",
+%%%     checksum        = "58684 247 1223 9811",
+%%%     email           = "tech-support@math.ams.org (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "latex, amslatex, ams-latex, math, amstex, ams-tex",
+%%%     supported       = "yes",
+%%%     abstract        = "This is part of the AMS-\LaTeX{} distribution.
+%%%                        It is a \LaTeX{} option that provides a command
+%%%                        for producing bold math symbols when appropriate
+%%%                        fonts exist, and a `poor man's bold' command that
+%%%                        can be applied when no appropriate bold font
+%%%                        is available.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{amsbsy}[1995/01/20 v1.2]
+\RequirePackage{amsgen}[1995/01/01]
+\DeclareRobustCommand{\boldsymbol}[1]{%
+  \begingroup
+  \let\@nomath\@gobble \mathversion{bold}%
+  \math@atom{#1}{%
+  \mathchoice%
+    {\hbox{$\m@th\displaystyle#1$}}%
+    {\hbox{$\m@th\textstyle#1$}}%
+    {\hbox{$\m@th\scriptstyle#1$}}%
+    {\hbox{$\m@th\scriptscriptstyle#1$}}}%
+  \endgroup}
+\def\math@atom#1#2{%
+   \binrel@{#1}\binrel@@{#2}}
+\DeclareRobustCommand{\pmb}{%
+  \ifmmode\else \expandafter\pmb@@\fi\mathpalette\pmb@}
+\def\pmb@@#1#2#3{\leavevmode\setboxz@h{#3}%
+   \dimen@-\wdz@
+   \kern-.5\ex@\copy\z@
+   \kern\dimen@\kern.25\ex@\raise.4\ex@\copy\z@
+   \kern\dimen@\kern.25\ex@\box\z@
+}
+\newdimen\pmbraise@
+\def\pmb@#1#2{\setbox8\hbox{$\m@th#1{#2}$}%
+  \setboxz@h{$\m@th#1\mkern.5mu$}\pmbraise@\wdz@
+  \binrel@{#2}%
+  \dimen@-\wd8 %
+  \binrel@@{%
+    \mkern-.8mu\copy8 %
+    \kern\dimen@\mkern.4mu\raise\pmbraise@\copy8 %
+    \kern\dimen@\mkern.4mu\box8 }%
+}
+\def\binrel@#1{\begingroup
+  \setboxz@h{\thinmuskip0mu
+    \medmuskip\m@ne mu\thickmuskip\@ne mu
+    \setbox\tw@\hbox{$#1\m@th$}\kern-\wd\tw@
+    ${}#1{}\m@th$}%
+  \edef\@tempa{\endgroup\let\noexpand\binrel@@
+    \ifdim\wdz@<\z@ \mathbin
+    \else\ifdim\wdz@>\z@ \mathrel
+    \else \relax\fi\fi}%
+  \@tempa
+}
+\let\binrel@@\relax
+\endinput
+%% 
+%% End of file `amsbsy.sty'.

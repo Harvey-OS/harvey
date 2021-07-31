@@ -1,0 +1,65 @@
+file: fs:2
+white: Spassky
+black: Fischer
+event: Sveti Stefan (2) 1992
+opening: E80/01 9 ♘ge2
+result: +-+
+ 1. d4		Nf6
+ 2. c4		g6
+ 3. Nc3		Bg7
+ 4. e4		d6
+ 5. f3		c5
+ 6. d:c5	d:c5
+ 7. Q:d8+	K:d8
+ 8. Be3		Nfd7
+ 9. Nge2	b6
+10. O-O-O	Na6
+11. g3		Nc7
+12. f4		e6
+13. Bh3		Ke7
+14. Rhf1	h6
+15. e5		Bb7
+16. g4		Rad8
+17. Ng3		f6
+18. Nce4	f:e5
+19. f5		B:e4
+20. N:e4	g:f5
+21. g:f5	Nf6
+22. Rg1		R:d1+
+23. K:d1	Bf8
+24. N:f6	K:f6
+25. Rf1		e:f5
+26. R:f5+	Kg7
+27. R:e5	Bd6
+28. Re4		B:h2
+29. Ke2		h5
+30. Re7+	Kf6
+31. Rd7		Be5
+32. b3		h4
+33. Kf3		Rg8
+34. Bg4		h3
+35. Rh7		h2
+36. Bf4		Rf8
+37. B:e5+	Kg6+
+38. Ke4		K:h7
+39. B:h2	Re8+
+40. Kf5		Ne6
+41. Kf6		Nd4
+42. Bd6		Re4
+43. Bd7		Re2
+44. a4		Rb2
+45. Bb8		a5
+46. Ba7		R:b3
+47. Ke5		Nf3+
+48. Kd6		Nd2
+49. Be6		Rb4
+50. Kc6		Nb3
+51. Bd5		R:a4
+52. B:b6	Ra1
+53. B:c5	a4
+54. Bb4		a3
+55. c5		Nd4+
+56. Kd7		Rd1
+57. B:a3	Nc2
+58. c6		R:d5+
+59. Bd6

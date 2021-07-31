@@ -1,0 +1,94 @@
+usr
+adm
+	timeconst
+	timezone
+		*
+	users
+	whois
+fd
+lib
+	namespace
+	ndb
+		local
+		common
+	font
+		bit
+			pelm
+				*
+			misc
+				6x10.0
+				6x13.0
+				arrows
+				chart
+				cyrillic.9
+				ding
+				genpunc.8
+				greek.8
+				ipa.8
+				letterlike.8
+				math1
+				math2
+				tech
+				zapf
+	vgadb
+rc
+	+
+mail
+mnt
+	8½
+	help
+	term
+	cons
+		cons
+		consctl
+net
+proc
+srv
+tmp
+$cputype
+	init
+	bin
+		*
+		aux
+			*
+		fb
+			*
+		ndb
+			*
+		disk
+			*
+		games
+			*
+		ip
+			*
+	include
+		*
+	lib
+		*
+	mkfile
+n
+	boot
+	bootes
+	bootesother
+	dump
+	kfs
+	a:
+	c:
+	ftp
+sys
+	games
+		*
+	lib
+		mothra
+			*
+		troff
+			term
+				*
+		newuser
+		samsave
+		tmac
+			+
+		yaccpar
+		yaccpars
+	include
+		*

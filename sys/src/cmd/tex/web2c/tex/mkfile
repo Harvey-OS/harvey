@@ -1,0 +1,133 @@
+# This file makes TeX in its various incarnations.
+#
+
+APE=/sys/src/ape
+< $APE/config
+CFLAGS=-B -DTeX -D_POSIX_SOURCE -I../lib -c
+LDFLAGS=
+SHELL=/bin/rc
+
+COMMONDEFINES=../lib/common.defines ../lib/texmf.defines
+
+# Routines used in both TeX and Metafont.
+EXTRAC=../lib/texmf.c
+EXTRAH=../lib/texmf.h
+EXTRAO=texmf.$O
+
+# Routines used in TeX, Metafont, and BibTeX.
+FILEIOC=../lib/openinout.c
+FILEIOO=openinout.$O
+
+OBJS=$FILEIOO\
+	tex0.$O\
+	tex1.$O\
+	tex2.$O\
+	tex3.$O\
+	tex4.$O\
+	tex5.$O\
+	tex6.$O\
+	tex7.$O\
+	tex8.$O\
+
+CFILES=${OBJS:%.$O=%.c}
+
+LIB=../lib/lib.a$O
+
+IOBJS=iextra.$O\
+	initex.$O\
+	$OBJS
+
+VOBJS=tex-extra.$O\
+	itex.$O\
+	$OBJS
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+all:V:		$O.initex $O.virtex
+
+triptrap:V:	$O.triptex
+
+$O.initex:	$IOBJS $LIB
+		$LD $LDFLAGS -o $target $prereq
+
+$O.virtex:	$VOBJS $LIB
+		$LD $LDFLAGS -o $target $prereq
+
+run-trip:VE:
+		cp TeXtrip/trip.tex .
+		../texware/$cpuobjtype.pltotf TeXtrip/trip.pl trip.tfm
+		. ./tripenv
+		$cpuobjtype.triptex < TeXtrip/trip1.in > /dev/null
+		diff TeXtrip/tripin.log trip.log
+		$cpuobjtype.triptex < TeXtrip/trip2.in > trip.fot
+		diff TeXtrip/trip.log trip.log
+		diff TeXtrip/trip.fot trip.fot
+		../texware/$cpuobjtype.dvitype trip.dvi < TeXtrip/dvitype.in > trip.typ
+		diff TeXtrip/trip.typ trip.typ
+
+# The `ini_to_trip' script changes texd.h, instead of the change file, so
+# retangling is not necessary.  After changing constants, making a
+# triptex means making an initex.
+# 
+$O.triptex:V:	stamp-trip
+		mk $O.initex
+		mv $O.initex $target
+
+stamp-trip:	stamp-convert
+		rm -f *.$O
+		$SHELL ./ini_to_trip texd.h
+		touch stamp-trip
+
+# tangle produces tex.p and tex.pool.
+# 
+tex.p:		tex.web ctex.ch ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle tex.web ctex.ch > /dev/null
+
+# The convert script produces tex[0-8].c, itex.c, coerce.h, and texd.h.
+$CFILES itex.c texd.h:	stamp-convert
+		touch stamp-convert
+ 
+stamp-convert:	tex.p fixcoerce.h $COMMONDEFINES
+		$SHELL ./convert
+
+# The (hand-coded) file $EXTRAC and the (generated) file itex.c have
+# #ifdefs for INITEX, so we compile them differently.
+# 
+iextra.$O:	$EXTRAC texd.h
+		$CC $CFLAGS -I. -DINITEX -DINI $EXTRAC
+		mv $EXTRAO $target
+
+initex.$O:      itex.c texd.h
+		cp itex.c initex.c
+		$CC $CFLAGS -DINITEX initex.c
+
+%.$O:		%.c texd.h
+		$CC $CFLAGS $stem.c
+
+tex-extra.$O: $EXTRAC texd.h
+	rm -f tex-extra.c
+	cp $EXTRAC tex-extra.c
+	$CC $CFLAGS -I. tex-extra.c
+
+$FILEIOO: $FILEIOC texd.h
+	$CC $CFLAGS -I. $prereq
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f stamp-* *.[$OS] [$OS].virtex [$OS].initex [$OS].triptex
+		rm -f texd.h coerce.h *.log *.fmt *.aux
+		rm -f 8terminal.tex trip.* tripos.tex dvitype.out
+		rm -f initex.c tex-extra.c
+
+nuke:V:
+		mk clean
+		rm -f tex?.c itex.c tex.p tex.pool texput.*

@@ -1,0 +1,13 @@
+Should support line styles as in pic:
+	dashed(l) (boxes, lines)
+		dashes of length l (default .05),
+		spacing as close as possible to l
+		but with a dash hitting each end of the line
+	dotted(l) (boxes, lines)
+		dots, separated by as close to l (default .05)
+		as possible while hitting both endpoints
+	arrow(dir, len, count) (lines, arcs)
+		arrow heads ->, <- or <->, default length .1,
+		default count 2
+	fill(value)	(boxes, circles)
+		default fill value is .3

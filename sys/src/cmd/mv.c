@@ -11,7 +11,6 @@ void
 main(int argc, char *argv[])
 {
 	int i;
-	int failed;
 	Dir dirto, dirfrom;
 	char *todir, *toelem;
 
@@ -34,12 +33,9 @@ main(int argc, char *argv[])
 		fprint(2, "mv: %s not a directory\n", argv[argc-1]);
 		exits("bad usage");
 	}
-	failed = 0;
 	for(i=1; i < argc-1; i++)
 		if (mv(argv[i], todir, toelem) < 0)
-			failed++;
-	if(failed)
-		exits("failure");
+			exits("failure");
 	exits(0);
 }
 

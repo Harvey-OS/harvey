@@ -9,8 +9,8 @@
 void
 main(int argc, char *argv[])
 {
-	char *p;
-	int nout, nproc, status, i, c;
+	char ofile[100], incfile[20], *p;
+	int nout, nproc, status, i, c, of;
 
 	thechar = '6';
 	thestring = "960";
@@ -37,26 +37,23 @@ main(int argc, char *argv[])
 
 	case 'I':
 		p = ARGF();
-		setinclude(p);
+		if(p)
+			include[ninclude++] = p;
 		break;
 	} ARGEND
 	if(*argv == 0) {
 		print("usage: %ca [-options] file.s\n", thechar);
 		errorexit();
 	}
-	if(argc > 1 && systemtype(Windows)){
-		print("can't assemble multiple files on windows\n");
-		errorexit();
-	}
-	if(argc > 1 && !systemtype(Windows)) {
-		nproc = 1;
-		if(p = getenv("NPROC"))
-			nproc = atol(p);	/* */
+	nproc = 3;
+	if(p = getenv("NPROC"))
+		nproc = atol(p);
+	if(argc > 1) {
 		c = 0;
 		nout = 0;
 		for(;;) {
 			while(nout < nproc && argc > 0) {
-				i = myfork();
+				i = fork();
 				if(i < 0) {
 					i = mywait(&status);
 					if(i < 0)
@@ -68,9 +65,7 @@ main(int argc, char *argv[])
 				}
 				if(i == 0) {
 					print("%s:\n", *argv);
-					if(assemble(*argv))
-						errorexit();
-					exits(0);
+					goto child;
 				}
 				nout++;
 				argc--;
@@ -87,47 +82,37 @@ main(int argc, char *argv[])
 			nout--;
 		}
 	}
-	if(assemble(argv[0]))
-		errorexit();
-	exits(0);
-}
-int
-assemble(char *file)
-{
-	char ofile[100], incfile[20], *p;
-	int i, of;
 
-	strcpy(ofile, file);
-	p = utfrrune(ofile, pathchar());
-	if(p) {
+child:
+	strcpy(ofile, *argv);
+	if(p = strrchr(ofile, '/')) {
 		include[0] = ofile;
 		*p++ = 0;
 	} else
 		p = ofile;
 	if(outfile == 0) {
 		outfile = p;
-		if(outfile){
-			p = utfrrune(outfile, '.');
-			if(p)
-				if(p[1] == 's' && p[2] == 0)
-					p[0] = 0;
-			p = utfrune(outfile, 0);
-			p[0] = '.';
-			p[1] = thechar;
-			p[2] = 0;
-		} else
-			outfile = "/dev/null";
+		if(p = strrchr(outfile, '.'))
+			if(p[1] == 's' && p[2] == 0)
+				p[0] = 0;
+		p = strrchr(outfile, 0);
+		p[0] = '.';
+		p[1] = thechar;
+		p[2] = 0;
 	}
-	p = getenv("INCLUDE");
-	if(p) {
-		setinclude(p);
+	if(unix()) {
+		strcpy(incfile, "/usr/%include");
+		p = strrchr(incfile, '%');
+		if(p)
+			*p = thechar;
 	} else {
-		if(systemtype(Plan9)) {
-			sprint(incfile,"/%s/include", thestring);
-			setinclude(strdup(incfile));
-		}
+		strcpy(incfile, "/");
+		strcat(incfile, thestring);
+		strcat(incfile, "/include");
 	}
-
+	include[ninclude++] = incfile;
+	if(p = getenv("INCLUDE"))
+		include[ninclude-1] = p;	/* */
 	of = mycreat(outfile, 0664);
 	if(of < 0) {
 		yyerror("%ca: cannot create %s", thechar, outfile);
@@ -136,23 +121,25 @@ assemble(char *file)
 	Binit(&obuf, of, OWRITE);
 
 	pass = 1;
-	pinit(file);
+	pinit(*argv);
 	for(i=0; i<nDlist; i++)
 		dodefine(Dlist[i]);
 	yyparse();
 	if(nerrors) {
 		cclean();
-		return nerrors;
+		errorexit();
 	}
 
 	pass = 2;
 	outhist();
-	pinit(file);
+	pinit(*argv);
 	for(i=0; i<nDlist; i++)
 		dodefine(Dlist[i]);
 	yyparse();
 	cclean();
-	return nerrors;
+	if(nerrors)
+		errorexit();
+	exits(0);
 }
 
 struct
@@ -321,7 +308,6 @@ struct
 	"SYNMOVQ",	LTYPEB, ASYNMOVQ,
 	"SYNMOVV",	LTYPEB, ASYNMOVV,
 	"SYSCTL",	LTYPEB,	ASYSCTL,
-	"END",		LTYPEB,	AEND,
 	"TESTE",	LTYPED, ATESTE,
 	"TESTG",	LTYPED, ATESTG,
 	"TESTGE",	LTYPED, ATESTGE,
@@ -634,27 +620,5 @@ outhist(void)
 	}
 }
 
-void
-praghjdicks(void)
-{
-	while(getnsc() != '\n')
-		;
-}
-
-void
-pragvararg(void)
-{
-	while(getnsc() != '\n')
-		;
-}
-
-void
-pragfpround(void)
-{
-	while(getnsc() != '\n')
-		;
-}
-
 #include "../cc/lexbody"
 #include "../cc/macbody"
-#include "../cc/compat"

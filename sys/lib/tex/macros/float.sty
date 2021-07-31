@@ -1,0 +1,139 @@
+%% 
+%% This is file `float.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% float.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is a stripped version of `float.dtx', 
+%% copyright (c) 1991-4 by Anselm Lingnau (lingnau@math.uni-frankfurt.de). 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file. 
+%% 
+%% Package `float' to use with LaTeX 2e
+%% Copyright (C) 1991-1994 Anselm Lingnau, all rights reserved
+%%
+%% You may use and distribute this file freely, provided that
+%% you don't make any money off it or pretend that you wrote it.
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{float}
+         [1994/06/20 v1.2 Float enhancements (AL)]
+\newcounter{float@type}
+\@ifundefined{c@figure}%
+  {\setcounter{float@type}{1}}%
+  {\setcounter{float@type}{4}}
+\newcommand\floatstyle[1]{\@ifundefined{fs@#1}%
+  {\float@error{#1}}%
+  {\def\float@style{#1}}}
+\newcommand\float@error[1]{\PackageError{float}{%
+  Unknown float style `#1'
+}{\@eha}}
+\newcommand\floatname[2]{\@namedef{fname@#1}{#2}}
+\newcommand\floatplacement[2]{\@namedef{fps@#1}{#2}}
+\newcommand\restylefloat[1]{\expandafter\edef\csname
+  fst@#1\endcsname{\expandafter\noexpand\csname
+    fs@\float@style\endcsname}%
+   \@namedef{#1}{\bgroup\@nameuse{fst@#1}\@float{#1}}%
+   \@namedef{#1*}{\bgroup\@nameuse{fst@#1}\@dblfloat{#1}}%
+   \expandafter\let\csname end#1\endcsname\float@end
+   \expandafter\let\csname end#1*\endcsname\float@dblend}
+\newcommand\newfloat[3]{\@namedef{ext@#1}{#3}
+  \floatplacement{#1}{#2}%
+  \@ifundefined{fname@#1}{\floatname{#1}{#1}}{}
+  \expandafter\edef\csname ftype@#1\endcsname{\value{float@type}}%
+  \addtocounter{float@type}{\value{float@type}}
+  \restylefloat{#1}%
+  \expandafter\edef\csname fnum@#1\endcsname%
+    {\expandafter\noexpand\csname fname@#1\endcsname{}
+       \expandafter\noexpand\csname the#1\endcsname}
+  \@ifnextchar[{\@xnewfloat{#1}}%
+    {\@ifundefined{c@#1}{\newcounter{#1}\@namedef{the#1}{\arabic{#1}}}%
+      {}}}
+\def\@xnewfloat#1[#2]{\@ifundefined{c@#1}{\newcounter{#1}[#2]%
+    \expandafter\edef\csname the#1\endcsname{%
+      \expandafter\noexpand\csname
+        the#2\endcsname.\noexpand\arabic{#1}}}%
+    {\PackageWarning{float}{Can't redefine counter variable for #1.}}}
+\let\@Hxfloat\@xfloat
+\def\@xfloat#1[{\@ifnextchar{H}{\@HHfloat{#1}[}{\@Hxfloat{#1}[}}
+\newsavebox\float@box
+\newif\if@flstyle
+\def\@HHfloat#1[H]{%
+  \expandafter\let\csname end#1\endcsname\float@endH
+  \let\@currbox\float@box
+  \def\@captype{#1}\setbox\@floatcapt=\vbox{}%
+  \expandafter\ifx\csname fst@#1\endcsname\relax
+    \@flstylefalse\else\@flstyletrue\fi
+  \setbox\@currbox=\vbox\bgroup\parindent\z@
+  \ignorespaces}
+\newcommand\float@makebox{%
+  \vbox{\hsize\columnwidth \@parboxrestore
+    \@fs@pre\@fs@iftopcapt
+      \ifvbox\@floatcapt\unvbox\@floatcapt\par\@fs@mid\fi
+      \unvbox\@currbox
+    \else\unvbox\@currbox
+      \ifvbox\@floatcapt\par\@fs@mid\unvbox\@floatcapt\fi
+    \fi\par\@fs@post\vskip\z@}}
+\newcommand\float@end{\egroup
+  \global\setbox\@currbox\float@makebox
+   \ifnum\@floatpenalty <\z@ \@cons\@currlist\@currbox
+     \ifdim \ht\@currbox >\textheight 
+        \ht\@currbox\textheight \fi
+     \ifnum\@floatpenalty < -\@Mii 
+        \penalty -\@Miv \@tempdima\prevdepth
+        \vbox{}\prevdepth \@tempdima \penalty\@floatpenalty
+      \else \vadjust{\penalty -\@Miv
+        \vbox{}\penalty\@floatpenalty}\@Esphack
+     \fi\fi\egroup}
+\newcommand\float@endH{\egroup \vskip\intextsep
+  \if@flstyle\float@makebox\egroup\else\box\@currbox\fi
+  \vskip\intextsep\relax}
+\newcommand\float@dblend{\if@twocolumn
+  \par\vskip\z@\egroup
+  \ifnum\@floatpenalty <\z@ \@cons\@dbldeferlist\@currbox\fi
+    \ifnum \@floatpenalty =-\@Mii \@Esphack\fi\egroup\else\float@end\fi}
+\newsavebox\@floatcapt
+\renewcommand\caption{\refstepcounter\@captype
+  \expandafter\ifx\csname fst@\@captype\endcsname\relax
+      \let\@tempf\@caption
+    \else\let\@tempf\float@caption\fi \@dblarg{\@tempf\@captype}}
+\long\def\float@caption#1[#2]#3{\addcontentsline{\@nameuse{ext@#1}}{#1}%
+   {\protect\numberline{\@nameuse{the#1}}{\ignorespaces #2}}
+  \global\setbox\@floatcapt\vbox\bgroup\@parboxrestore
+    \normalsize\@fs@capt{\@nameuse{fnum@#1}}{\ignorespaces #3}%
+    \@ifnextchar[{\float@ccon}{\egroup}}
+\long\def\float@ccon[#1]{#1\par\egroup}
+\newcommand\listof[2]{%
+  \@ifundefined{ext@#1}{\float@error{#1}}{%
+    \@ifundefined{chapter}{\def\@tempa{\section*}}%
+      {\def\@tempa{\chapter*}}%
+    \@tempa{#2\@mkboth{\uppercase{#2}}{\uppercase{#2}}}%
+    \@namedef{l@#1}{\@dottedtocline{1}{1.5em}{2.3em}}%
+    \@starttoc{\@nameuse{ext@#1}}}}
+\newcommand\floatc@plain[2]{\setbox\@tempboxa\hbox{{\@fs@cfont #1:} #2}%
+  \ifdim\wd\@tempboxa>\hsize {\@fs@cfont #1:} #2\par
+    \else\hbox to\hsize{\hfil\box\@tempboxa\hfil}\fi}
+\newcommand\fs@plain{\def\@fs@cfont{\rmfamily}\let\@fs@capt\floatc@plain
+  \def\@fs@pre{}\def\@fs@post{}\def\@fs@mid{\vspace{10pt}\relax}%
+  \let\@fs@iftopcapt\iffalse}
+\newcommand\floatc@ruled[2]{{\@fs@cfont #1} #2\par}
+\newcommand\fs@ruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
+  \def\@fs@pre{\hrule height.8pt depth0pt \kern2pt}%
+  \def\@fs@post{\kern2pt\hrule\relax}%
+  \def\@fs@mid{\kern2pt\hrule\kern2pt}%
+  \let\@fs@iftopcapt\iftrue}
+\newcommand\fs@boxed{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@plain
+  \def\@fs@pre{\dimen0=\hsize \advance\dimen0 by6.8pt \hbadness10000
+    \moveleft3.4pt\vbox\bgroup\hsize=\dimen0\hrule
+      \hbox to\dimen0\bgroup\vrule\kern3pt\vbox\bgroup\kern3pt}%
+  \def\@fs@mid{\kern3pt\egroup\kern3pt\vrule\egroup
+    \hrule\egroup\kern2pt}%
+  \def\@fs@post{}\let\@fs@iftopcapt\iffalse}
+\floatstyle{plain}
+\endinput
+%% 
+%% End of file `float.sty'.

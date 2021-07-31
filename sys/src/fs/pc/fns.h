@@ -1,0 +1,63 @@
+ulong	strtoul(char*, char**, int);
+
+#include "../port/portfns.h"
+
+void	cgainit(void);
+void	cgascreenputc(int);
+int	cgaprint(char*, ...);
+void	etherinit(void);
+void	etherstart(void);
+int	floppyinit(void);
+void	floppyproc(void);
+long	floppyread(int, void*, long);
+long	floppyseek(int, long);
+long	floppywrite(int, void*, long);
+char*	getconf(char*);
+ulong	getcr0(void);
+ulong	getcr2(void);
+int	getfields(char*, char**, int, char);
+ulong	getstatus(void);
+int	hardinit(void);
+long	hardread(int, void*, long);
+long	hardseek(int, long);
+long	hardwrite(int, void*, long);
+void	i8042a20(void);
+void	i8042reset(void);
+int	inb(int);
+void	insb(int, void*, int);
+ushort	ins(int);
+void	inss(int, void*, int);
+ulong	inl(int);
+void	insl(int, void*, int);
+int	isaconfig(char*, int, ISAConf*);
+void	kbdinit(void);
+int	kbdintr0(void);
+int	kbdgetc(void);
+long*	mapaddr(ulong);
+void	mmuinit(void);
+uchar	nvramread(int);
+void	outb(int, int);
+void	outsb(int, void*, int);
+void	outs(int, ushort);
+void	outss(int, void*, int);
+void	outl(int, ulong);
+void	outsl(int, void*, int);
+void	putgdt(Segdesc*, int);
+void	putidt(Segdesc*, int);
+void	putcr3(ulong);
+void	puttr(ulong);
+void	scsiinit(void);
+long	scsiread(int, void*, long);
+long	scsiseek(int, long);
+long	scsiwrite(int, void*, long);
+int	sethardpart(int, char*);
+int	setscsipart(int, char*);
+void	setvec(int, void (*)(Ureg*, void*), void*);
+int	tas(Lock*);
+void	trapinit(void);
+void	uartspecial(int, void (*)(int), int (*)(void), int);
+int	uartgetc(void);
+void	uartputc(int);
+int	x86(void);
+
+#define PADDR(a)	((ulong)(a)&~KZERO)

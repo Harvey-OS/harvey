@@ -19,7 +19,8 @@ In effect,
 is a bulletin board on which processes may post open file descriptors
 to make them available to other processes.
 .PP
-To install a channel, create
+To install a channel,
+.B create
 a new file such as
 .B /srv/myserv
 and then write a text string (suitable for
@@ -50,11 +51,12 @@ int fd, p[2];
 char buf[32];
 
 pipe(p);
-fd = create("/srv/namedpipe", OWRITE, 0666);
-fprint(fd, "%d", p[0]);
+fd = create("/srv/namedpipe", 1, 0666);
+sprint(buf, "%d", p[0]);
+write(fd, buf, strlen(buf));
 close(fd);
 close(p[0]);
-fprint(p[1], "hello");
+write(p[1], "hello", 5);
 .EE
 .PP
 At this point, any process may open and read
@@ -63,7 +65,7 @@ to receive the
 .B hello
 string.  Data written to
 .B /srv/namedpipe
-can be received by executing
+will be received by executing
 .IP
 .EX
 read(p[1], buf, sizeof buf);

@@ -1,13 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include <thread.h>
-#include <cursor.h>
-#include <mouse.h>
-#include <keyboard.h>
-#include <frame.h>
-#include "flayer.h"
-#include "samterm.h"
+#include <libg.h>
 
 Cursor bullseye={
 	{-7, -7},
@@ -43,10 +36,18 @@ Cursor lockarrow={
 	 0x38, 0x00, 0x70, 0x00, 0xE0, 0xDB, 0xC0, 0xDB,}
 };
 
-Image	*darkgrey;
+uchar darkgreybits[] = {
+	0xDD, 0xDD, 0x77, 0x77, 0xDD, 0xDD, 0x77, 0x77,
+	0xDD, 0xDD, 0x77, 0x77, 0xDD, 0xDD, 0x77, 0x77,
+	0xDD, 0xDD, 0x77, 0x77, 0xDD, 0xDD, 0x77, 0x77,
+	0xDD, 0xDD, 0x77, 0x77, 0xDD, 0xDD, 0x77, 0x77,
+};
+
+Bitmap	*darkgrey;
 
 void
 iconinit(void)
 {
-	darkgrey = allocimage(display, Rect(0, 0, 1, 1), display->chan, 1, 0x444444FF);
+	darkgrey = balloc(Rect(0, 0, 16, 16), 0);
+	wrbitmap(darkgrey, 0, 16, darkgreybits);
 }

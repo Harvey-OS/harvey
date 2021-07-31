@@ -1,0 +1,1 @@
+exec gs -q -sDEVICE=laserjet -r300 -dNOPAUSE -- gslp.ps --heading-center "`date`" "$@"

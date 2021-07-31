@@ -1,0 +1,16 @@
+# Make sure that files will be found in the current directory, so the
+# trip test will run properly.
+# 
+
+# trip.tex.
+TEXINPUTS=.
+
+# trip.tfm.
+TEXFONTS=.
+
+# trip.fmt.
+TEXFORMATS=.
+
+# tex.pool.
+TEXPOOL=.
+

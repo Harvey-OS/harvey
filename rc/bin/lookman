@@ -4,11 +4,15 @@
 index=/sys/lib/man/lookman/index
 t1=/tmp/look1.$pid
 t2=/tmp/look2.$pid
-fn sigexit sigint sighup sigterm{
+fn sigexit {
+	rm -f $t1 $t2
+	exit ''
+}
+fn sigint sighup sigterm{
 	rm -f $t1 $t2
 	exit 1
 }
-*=`{echo $*|tr A-Z a-z|tr -dc 'a-z \012'}	# fold case, delete funny chars
+*=`{echo $*|tr A-Z a-z|tr -dc '+.:a-z0-9½ \012'}	# fold case, delete funny chars
 if(~ $#* 0){
 	echo Usage: lookman key ... >/fd/2
 	exit 1
@@ -26,4 +30,3 @@ for(i in $*){
 }
 sort $t1
 rm -f $t1 $t2
-exit 0

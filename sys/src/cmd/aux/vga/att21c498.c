@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 
 #include "vga.h"
 
@@ -19,10 +18,11 @@ enum {
 	Nir		= 0x06,		/* number of indirect registers */
 };
 
-static void
+static uchar
 attdacio(uchar reg)
 {
 	int i;
+	uchar pixmask;
 
 	/*
 	 * Access to the indirect registers is accomplished by reading
@@ -30,20 +30,22 @@ attdacio(uchar reg)
 	 * indirect registers. Any I/O write to a direct register resets
 	 * the sequence.
 	 */
-	inportb(PaddrW);
+	pixmask = vgai(Pixmask);
+	vgao(Pixmask, pixmask);
 	for(i = 0; i < 4+reg; i++)
-		inportb(Pixmask);
+		vgai(Pixmask);
+	return pixmask;
 }
 
 uchar
 attdaci(uchar reg)
 {
-	uchar r;
+	uchar r, pixmask;
 
-	attdacio(reg);
-	r = inportb(Pixmask);
+	pixmask = attdacio(reg);
+	r = vgai(Pixmask);
 
-	inportb(PaddrW);
+	vgao(Pixmask, pixmask);
 	return r;
 }
 
@@ -51,22 +53,25 @@ void
 attdaco(uchar reg, uchar data)
 {
 	attdacio(reg);
-	outportb(Pixmask, data);
-	inportb(PaddrW);
+	vgao(Pixmask, data);
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga *vga, Ctlr *ctlr)
 {
+	USED(vga);
+	verbose("%s->options\n", ctlr->name);
+
 	ctlr->flag |= Hpclk2x8|Foptions;
 }
 
 static void
-init(Vga* vga, Ctlr* ctlr)
+init(Vga *vga, Ctlr *ctlr)
 {
 	ulong grade, pclk;
 	char *p;
 
+	verbose("%s->init\n", ctlr->name);
 	/*
 	 * Part comes in -170, -130 and -110MHz speed-grades.
 	 * In 8-bit mode the max. PCLK is 80MHz for the -110 part
@@ -96,29 +101,30 @@ init(Vga* vga, Ctlr* ctlr)
 	 * take it from the mode.
 	 * Check it's within range.
 	 */
-	if(vga->f[0] == 0)
-		vga->f[0] = vga->mode->frequency;
+	if(vga->f == 0)
+		vga->f = vga->mode->frequency;
 
 	/*
 	 * Determine whether to use 2x8-bit mode or not.
 	 * If yes and the clock has already been initialised,
 	 * initialise it again.
 	 */
-	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f[0] > 80000000){
-		vga->f[0] /= 2;
+	if(vga->ctlr && (vga->ctlr->flag & Hpclk2x8) && vga->mode->z == 8 && vga->f >= 110000000){
+		vga->f /= 2;
 		resyncinit(vga, ctlr, Upclk2x8, 0);
 	}
-	if(vga->f[0] > pclk)
-		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f[0]);
+	if(vga->f > pclk)
+		error("%s: invalid pclk - %ld\n", ctlr->name, vga->f);
 
 	ctlr->flag |= Finit;
 }
 
 static void
-load(Vga* vga, Ctlr* ctlr)
+load(Vga *vga, Ctlr *ctlr)
 {
 	uchar mode, x;
 
+	verbose("%s->load\n", ctlr->name);
 	/*
 	 * Put the chip to sleep.
 	 */
@@ -141,9 +147,11 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga *vga, Ctlr *ctlr)
 {
 	int i;
+
+	USED(vga);
 
 	printitem(ctlr->name, "");
 	for(i = 0; i < Nir; i++)

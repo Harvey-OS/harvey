@@ -1,0 +1,35 @@
+%% 
+%% This is file `OT1lbt.fd', generated 
+%% on <1995/2/23> with the docstrip utility (1.1).
+%% 
+%% The original source files were:
+%% 
+%% lucida.dtx  (with options: `lucidascale,OT1lbt')
+%% Copyright (C) 1993 Sebastian Rahtz. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{3.2}
+\def\filedate{1995/01/27}
+\def\docdate {1995/01/27}
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}
+\typeout{File\space OT1lbt.fd\space loading \space (Y\&Y names)\space Lucida Bright Typewriter}%
+\DeclareFontFamily{OT1}{lbt}{}%
+\DeclareFontShape{OT1}{lbt}{m}{n}{<->s * [\LucidaScale]lstr}{}%
+\DeclareFontShape{OT1}{lbt}{m}{sc}{<->ssub * lbt/m/n}{}%
+\DeclareFontShape{OT1}{lbt}{m}{it}{<->s * [\LucidaScale]lsto}{}%
+\DeclareFontShape{OT1}{lbt}{m}{sl}{<->ssub * lbt/m/it}{}%
+\DeclareFontShape{OT1}{lbt}{b}{n}{<->s * [\LucidaScale]lstb}{}%
+\DeclareFontShape{OT1}{lbt}{b}{it}{<->s * [\LucidaScale]lstbo}{}%
+\DeclareFontShape{OT1}{lbt}{b}{sc}{<->ssub * lbt/m/sc}{}%
+\DeclareFontShape{OT1}{lbt}{b}{sl}{<->ssub * lbt/b/it}{}%
+\DeclareFontShape{OT1}{lbt}{m}{sl}{<->ssub * lbt/m/it}{}%
+\DeclareFontShape{OT1}{lbt}{bx}{n}{<->ssub * lbt/b/n}{}%
+\DeclareFontShape{OT1}{lbt}{bx}{it}{<->ssub * lbt/b/it}{}%
+\DeclareFontShape{OT1}{lbt}{bx}{sc}{<->ssub * lbt/b/sc}{}%
+\DeclareFontShape{OT1}{lbt}{bx}{sl}{<->ssub * lbt/m/sl}{}%
+\endinput
+%% 
+%% End of file `OT1lbt.fd'.

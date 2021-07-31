@@ -1,0 +1,151 @@
+%% 
+%% This is file `magyar.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% magyar.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author_1        = "Braams, J.L.",
+%%%     author_2        = "Biro, A. ",
+%%%     version         = "1.3b",
+%%%     date            = "26 June 1994",
+%%%     time            = "01:41:33 MET",
+%%%     filename        = "magyar.doc",
+%%%     address_1       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone_1     = "(70) 3325051",
+%%%     FAX_1           = "(70) 3326477",
+%%%     checksum        = "39098 318 1509 12682",
+%%%     email_1         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     email_2         = "",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, hungarian",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the hungarian language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsmagyar
+\else
+  \selectlanguage{magyar}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{magyar.sty}[1994/06/26 v1.3c
+         Magyar support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@magyar
+    \@nopatterns{Magyar}
+    \adddialect\l@magyar0\fi
+\addto\captionsmagyar{%
+  \def\prefacename{El\H osz\'o}%
+  \def\refname{Referenci\'ak}%
+  \def\abstractname{Kivonat}%
+  \def\bibname{Bibliogr\'afia}%
+  \def\chaptername{fejezet}%
+  \def\appendixname{f\"uggel\'ek}%
+  \def\contentsname{Tartalom}%
+  \def\listfigurename{\'Abr\'ak jegyz\'eke}%
+  \def\listtablename{T\'abl\'azatok jegyz\'eke}%
+  \def\indexname{T\'argymutat\'o}%
+  \def\figurename{\'abra}%
+  \def\tablename{t\'abl\'azat}%
+  \def\partname{r\'esz}%
+  \def\enclname{Mell\'eklet}%
+  \def\ccname{K\"orlev\'el--c\'\i mzettek}%
+  \def\headtoname{C\'\i mzett}%
+  \def\pagename{oldal}%
+  \def\seename{L\'asd}%
+  \def\alsoname{L\'asd m\'eg}}%
+\def\datemagyar{%
+  \def\today{\number\year.~\ifcase\month\or
+  janu\'ar\or febru\'ar\or m\'arcius\or
+  \'aprilis\or m\'ajus\or j\'unius\or
+  j\'ulius\or augusztus\or szeptember\or
+  okt\'ober\or november\or december\fi
+    \space\ifcase\day\or
+    1.\or  2.\or  3.\or  4.\or  5.\or
+    6.\or  7.\or  8.\or  9.\or 10.\or
+   11.\or 12.\or 13.\or 14.\or 15.\or
+   16.\or 17.\or 18.\or 19.\or 20.\or
+   21.\or 22.\or 23.\or 24.\or 25.\or
+   26.\or 27.\or 28.\or 29.\or 30.\or
+   31.\fi}}
+\def\ondatemagyar{%
+  \number\year.~\ifcase\month\or
+  janu\'ar\or febru\'ar\or m\'arcius\or
+  \'aprilis\or m\'ajus\or j\'unius\or
+  j\'ulius\or augusztus\or szeptember\or
+  okt\'ober\or november\or december\fi
+    \space\ifcase\day\or
+    1-j\'en\or  2-\'an\or  3-\'an\or  4-\'en\or  5-\'en\or
+    6-\'an\or  7-\'en\or  8-\'an\or  9-\'en\or 10-\'en\or
+   11-\'en\or 12-\'en\or 13-\'an\or 14-\'en\or 15-\'en\or
+   16-\'an\or 17-\'en\or 18-\'an\or 19-\'en\or 20-\'an\or
+   21-\'en\or 22-\'en\or 23-\'an\or 24-\'en\or 25-\'en\or
+   26-\'an\or 27-\'en\or 28-\'an\or 29-\'en\or 30-\'an\or
+   31-\'en\fi}
+\addto\extrasmagyar{\let\ontoday\ondatemagyar}
+\addto\noextrasmagyar{\let\ontoday\undefined}
+\selectlanguage{magyar}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `magyar.sty'.

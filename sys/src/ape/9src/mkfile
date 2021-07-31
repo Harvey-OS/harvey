@@ -2,7 +2,6 @@
 
 TARG = ptyfs\
 	stty\
-	tar\
 
 BIN=/$objtype/bin/ape
 </sys/src/cmd/mkmany

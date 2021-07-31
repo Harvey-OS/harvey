@@ -1,0 +1,425 @@
+% \iffalse
+%% File: printtim.dtx Copyright (C) 1995 Martin Schr\"oder
+%
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{prelim2e}
+%<package>         [1995/01/26 v1.00 Prelim2e Package (MS)]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{prelim2e}
+\GetFileInfo{prelim2e.sty}
+\setcounter{IndexColumns}{2}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\setcounter{IndexColumns}{2}
+\setlength{\IndexMin}{40ex}
+\setlength{\columnseprule}{.4pt}
+\AtBeginDocument{\addtocontents{toc}{\protect\begin{multicols}{2}}}
+\AtEndDocument{\addtocontents{toc}{\protect\end{multicols}}}
+\begin{document}
+\DocInput{prelim2e.dtx}
+\end{document}
+%</driver>
+%
+% Copyright (C) 1995 by Martin Schr\"oder.  All rights reserved.
+%
+% IMPORTANT NOTICE:
+%
+% You are not allowed to change this file.  You may however copy
+% this file to a file with a different name and then change the
+% copy if you obey the restrictions on file changes described in
+% everyshi.ins.
+%
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of this file
+% (or a changed version) except for a nominal charge for copying
+% etc.
+%
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in
+% printtim.ins.
+%
+% If you receive only some of these files from someone, complain!
+%
+% However, if these files are distributed by established suppliers
+% as part of a complete TeX distribution, and the structure of the
+% distribution would make it difficult to distribute the whole set
+% of files, *those parties* are allowed to distribute only some of
+% the files provided that it is made clear that the user will get
+% a complete distribution-set upon request to that supplier (not
+% me).  Notice that this permission is not granted to the end
+% user.
+%
+%
+% For error reports in case of UNCHANGED versions see everyshi.ins
+%
+% \fi
+%
+% \CheckSum{94}
+%
+%% \CharacterTable
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%  Digits        \0\1\2\3\4\5\6\7\8\9
+%%  Exclamation   \!     Double quote  \"     Hash (number) \#
+%%  Dollar        \$     Percent       \%     Ampersand     \&
+%%  Acute accent  \'     Left paren    \(     Right paren   \)
+%%  Asterisk      \*     Plus          \+     Comma         \,
+%%  Minus         \-     Point         \.     Solidus       \/
+%%  Colon         \:     Semicolon     \;     Less than     \<
+%%  Equals        \=     Greater than  \>     Question mark \?
+%%  Commercial at \@     Left bracket  \[     Backslash     \\
+%%  Right bracket \]     Circumflex    \^     Underscore    \_
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%  Right brace   \}     Tilde         \~}
+%%
+%% \iffalse meta-comment
+%% ===================================================================
+%%  @LaTeX-package-file{
+%%    author         = {Martin Schr\"oder},
+%%    version        = "1.00",
+%%    date           = "26 January 1995",
+%%    filename       = "prelim2e.sty",
+%%    address        = {Martin Schr\"oder
+%%                      Friedrich-Humbert-Stra\ss{}e 124
+%%                      D-28759 Bremen},
+%%    telephone      = "++49-421-628813",
+%%    email          = "MS@Dream.HB.North.DE (INTERNET)",
+%%    codetable      = "ISO/ASCII",
+%%    keywords       = "LaTeX2e, preliminary versions, versions",
+%%    dependences    = "everyshi, printtim",
+%%    supported      = "yes",
+%%    docstring      = "LaTeX package which allows the marking of
+%%                      preliminary versions of a document"
+%%                     .
+%%  }
+%% ===================================================================
+%% \fi
+%
+%  \iftrue
+%  \renewcommand*{\PrelimText}{%
+%     \textnormal{%
+%     \footnotesize%
+%     \textsf{prelim2e} package --
+%     Version \fileversion{} --
+%     Documentation \LaTeX{}ed on \today{} at \PrintTime}}
+%  \fi
+%
+%  \changes{v1.00}{1995/01/26}{New}
+%
+%  \IndexPrologue{^^A
+%     \section*{\indexname}^^A
+%     \markboth{\indexname}{\indexname}^^A
+%     Numbers written in \emph{italic} refer to the page where the
+%     corresponding entry is described, the ones
+%     \underline{underlined} to the definition, the rest to the places
+%     where the entry is used.}
+%
+%  \pagestyle{headings}
+%
+% ^^A -----------------------------
+%
+%  \title{\unskip
+%           The \textsf{prelim2e} package^^A
+%           \thanks{^^A
+%              The version number of this file is \fileversion,
+%              last revised \filedate.}^^A
+%        }
+%  \author{Martin Schr\"oder\\[0.5ex]
+%          \normalsize  Friedrich-Humbert-Stra\ss{}e 124\\
+%          \normalsize  D-28759 Bremen\\
+%          \normalsize  MS@Dream.HB.North.DE (INTERNET)}
+%  \date{\filedate}
+%  \maketitle
+%
+% ^^A -----------------------------
+%
+%
+%  \begin{abstract}
+%     This package allows the marking of (preliminary) versions of a
+%     document on the output.
+%  \end{abstract}
+%
+% ^^A -----------------------------
+%
+%  \tableofcontents
+%
+% ^^A -----------------------------
+%
+%  \section{Introduction}
+%  ^^A
+%  This package allows the marking of (preliminary) versions of a
+%  document.
+%  This is achieved using the command \cs{PrelimText}, whose expansion
+%  is added \emph{below the footer} of every page of a document (look
+%  at the bottom of this page for an example).
+%
+% ^^A -----------------------------
+%
+%  \section{Usage}
+%  ^^A
+%  Simply using this package via 
+%  \mbox{\cs{usepackage\{}\textsf{prelim}\texttt{\}}} does produce a
+%  text in the form of ``Preliminary version -- \today{} -- \PrintTime''.
+%
+%  \DescribeMacro{\PrelimText}
+%  The text is produced by the command \cs{PrelimText}, which can be
+%  changed via \cs{renewcommand*} or by setting options at the 
+%  \cs{usepackage} command (see section~\ref{sec:options}).
+%
+% ^^A -----------------------------
+%
+%  \section{Options}
+%  \label{sec:options}
+%  ^^A
+%  The package has the following options:
+%  \nopagebreak
+%  \begin{description}
+%     \item[\normalfont\textsf{draft}]
+%        If this option is used a text appears below the normal 
+%        pagebody.
+%        It is the default.
+%     \item[\normalfont\textsf{final}]
+%        If this option is used \textsf{prelim2e} does produce no text.
+%     \item[\normalfont\textsf{english}]
+%        This sets the text to ``Preliminary version''.
+%        It is the default.
+%     \item[\normalfont\textsf{german}]
+%        This sets the text to ``Vorl\"aufige Version''.
+%        It does not use the \textsf{german} or \textsf{babel} package.
+%  \end{description}
+%
+% ^^A -----------------------------
+%
+%  \section{Required packages}
+%  ^^A
+%  The package requires the following packages:
+%  \begin{description}
+%     \item[\normalfont\textsf{everyshi}]
+%        This package is used to implement the setting of the text below
+%        the normal pagebody.
+%     \item[\normalfont\textsf{printtim}]
+%        This package is used to typeset the current time.
+%  \end{description}
+%
+% ^^A -----------------------------
+%
+%  \StopEventually{^^A
+%     \PrintIndex\PrintChanges
+%     ^^A Make sure that the index is not printed twice
+%     ^^A (ltxdoc.cfg might have a second \PrintIndex command)
+%     \let\PrintChanges\relax
+%     \let\PrintIndex\relax
+%     }
+%
+% ^^A -----------------------------
+%
+%  \section{The implementation}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% ^^A -----------------------------
+%
+%  \subsection{Initial Code}
+%  ^^A
+%  \begin{macro}{\if@prelim@draft}
+%  \cs{if@prelim@draft} is used to flag the use of the \textsf{draft}
+%  or \textsf{final} option.
+%    \begin{macrocode}
+\newif\if@prelim@draft
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\PrelimWords}
+%  \cs{PrelimWords} holds the language-dependend text used in 
+%  \cs{PrelimText}
+%    \begin{macrocode}
+\newcommand*{\PrelimWords}{}
+%    \end{macrocode}
+%  \end{macro}
+%
+% ^^A -----------------------------
+%
+%  \subsection{Declaration of options}
+%
+% ^^A -----------------------------
+%
+%  \subsubsection{\textsf{draft} option}
+%  ^^A
+%  The \textsf{draft} and \textsf{final} option control the behavior
+%  of \textsf{prelim2e}: Only if \textsf{final} is used in 
+%  \cs{documentclass} or 
+%  \mbox{\cs{usepackage\{}\textsf{prelim}\texttt{\}}}, then text is
+%  produced.
+%    \begin{macrocode}
+\DeclareOption{draft}{\@prelim@drafttrue}
+\DeclareOption{final}{\@prelim@draftfalse}
+%    \end{macrocode}
+%
+% ^^A -----------------------------
+%
+%  \subsubsection{Language options}
+%  ^^A
+%  \textsf{english} and \textsf{german} control the content of
+%  \cs{PrelimWords}.
+%    \begin{macrocode}
+\DeclareOption{english}{%
+   \renewcommand*{\PrelimWords}{Preliminary version}}
+\DeclareOption{german}{%
+   \renewcommand*{\PrelimWords}{Vorl\"aufige Version}}
+%    \end{macrocode}
+%
+% ^^A -----------------------------
+%
+%  \subsection{Executing options}
+%  ^^A
+%  The default options are \textsf{draft} and \textsf{english}.
+%    \begin{macrocode}
+\ExecuteOptions{draft,english}
+\ProcessOptions
+%    \end{macrocode}
+%
+% ^^A -----------------------------
+%
+%  \subsection{Loading packages}
+%  ^^A
+%  We need the \textsf{everyshi} and the \textsf{printtim} packages.
+%    \begin{macrocode}
+\RequirePackage{everyshi}[1995/01/25]
+\RequirePackage{printtim}
+%    \end{macrocode}
+%
+%  \subsection{Producing the text}
+%  ^^A
+%  \begin{macro}{\PrelimText}
+%  \cs{PrelimText} produces the text which is put below the page.
+%  It can be changed via \cs{renewcommand*}.
+%  The style of the text is controlled by \cs{PrelimTextStyle}.
+%  We first have to reset the style and size, otherwise the settings in
+%  effect at the point of text where \cs{ouput} is called would be used.
+%    \begin{macrocode}
+\newcommand*{\PrelimText}{%
+   \textnormal{%
+      \footnotesize%
+      \PrelimTextStyle%
+      \PrelimWords{} -- \today{} -- \PrintTime%
+      }%
+   }
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\PrelimTextStyle}
+%  \cs{PrelimTextStyle} controls the style of the text produced by
+%  \cs{PrelimText}.
+%  It's default is empty.
+%    \begin{macrocode}
+\newcommand*{\PrelimTextStyle}{}
+%    \end{macrocode}
+%  \end{macro}
+%
+% ^^A -----------------------------
+%
+%  \subsection{Putting the text below the page}
+%  ^^A
+%  We put the text below the page via \cs{EveryShipout} provided by
+%  the \textsf{everyshi} package.
+%  This is done by \cs{@Prelim@EveryShipout}.
+%
+%  \begin{macro}{\@Prelim@EveryShipout}
+%  \cs{@Prelim@EveryShipout} put the text produced by \cs{PrelimText}
+%  below the page.
+%  To do this we modify \cs{box255}: We append a \cs{vbox} with height
+%  and depth of 0pt and the width of \cs{box255} which contains a 
+%  \cs{hbox} with the width of \cs{box255} in which \cs{PrelimText}
+%  is centered.
+%    \begin{macrocode}
+\newcommand{\@Prelim@EveryShipout}{
+   \bgroup
+%    \end{macrocode}
+%  First we save the dimensions of \cs{box255}: height, width and depth;
+%  and calculate the total height of \cs{box255}.
+%    \begin{macrocode}
+      \dimen\z@=\wd\@cclv
+      \dimen\@ne=\ht\@cclv
+      \dimen\tw@=\dp\@cclv
+      \dimen\thr@@=\dimen1
+      \advance\dimen\thr@@ by \dimen\tw@
+%    \end{macrocode}
+%  Then we set \cs{box255}: 
+%  A \cs{vbox} to the total height of \cs{box255}.
+%  In this a \cs{hbox} to the width of \cs{box255} is included, in which
+%  \cs{box255} is set.
+%    \begin{macrocode}
+      \global\setbox\@cclv\vbox to \dimen\thr@@{%
+         \hbox to \dimen\z@{%
+            \box\@cclv%
+            \hss%
+            }%
+%    \end{macrocode}
+%  To this we append the text produced by \cs{PrelimText}.
+%  It is put in a \cs{vbox} to 0pt in which a \cs{hbox} to the width of 
+%  \cs{box255} is included, in which \cs{PrelimText} is set.
+%  We have to reset \cs{protect} because it is set to \cs{noexpand} by
+%  the output routine.
+%    \begin{macrocode}
+         \vbox to \z@{%
+            \hbox to \dimen\z@{%
+               \let\protect\relax
+               \hfill\PrelimText\hfill%
+               }%
+            \vss%
+            }%
+         \vss%
+         }%
+%    \end{macrocode}
+%  Finally we set the dimensions of \cs{box255} to the values they had
+%  before \cs{@Prelim@EveryShipout}.
+%    \begin{macrocode}
+      \wd\@cclv=\dimen\z@
+      \ht\@cclv=\dimen\@ne
+      \dp\@cclv=\dimen\tw@
+   \egroup
+   }
+%    \end{macrocode}
+%  \end{macro}
+%
+% ^^A -----------------------------
+%
+%  \subsection{Tieing \textsf{prelim} into the system}
+%  ^^A
+%  \cs{@Prelim@EveryShipout} is tied into the system via 
+%  \cs{EveryShipout}.
+%  But only if the \textsf{draft} option is used.
+%    \begin{macrocode}
+\if@prelim@draft
+   \EveryShipout{\@Prelim@EveryShipout}
+\fi
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+%
+% ^^A -----------------------------
+%
+%  \section{Acknowledgements}
+%
+%  The idea of this package is based on \texttt{prelim.sty} for 
+%  \LaTeX2.09 by Robert Tolksdorf.
+%  It provides nearly the same functionality as \textsf{prelim2e}, but 
+%  in a very dirty way: it uses a modified output routine and does not 
+%  work with \LaTeXe.
+%
+%  As usual Rebecca Stiels improved the quality of this documentation.
+%  If you need a translator from English or Fran\c{c}ais to German, send
+%  her an e-mail to \texttt{Rebecca@Andurg.HB.North.DE}.
+%  And if you need a \TeX{}nician or computer scientist, contact \emph{me}:
+%  I'm looking for a job.
+%
+% ^^A -----------------------------
+%
+%  \Finale

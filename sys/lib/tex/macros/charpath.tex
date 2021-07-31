@@ -1,0 +1,81 @@
+%% BEGIN charpath.tex/charpath.sty
+%%
+%% For stroking and filling characters with PSTricks' line and fill styles.
+%%
+\def\fileversion{0.93a}
+\def\filedate{93/03/12}
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See pstricks.tex or pstricks.doc for copying restrictions.
+%%
+%% See the PSTricks User's Guide for description.
+%% See chartest.tex for sample input.
+%% See chartest.ps for sample output.
+%%
+
+\message{ v\fileversion, \filedate}
+
+\csname PSTcharpathLoaded\endcsname
+\let\PSTcharpathLoaded\endinput
+
+\ifx\PSTricksLoaded\endinput\else
+  \def\next{\input pstricks.tex}
+  \expandafter\next
+\fi
+
+\edef\TheAtCode{\the\catcode`\@}
+\catcode`\@=11
+
+\def\tx@CharPathShow{%
+  /tx@CharPathSavedShow /show load def
+  /show {
+    % These 3 lines check whether charpath yields anything interesting.
+    dup gsave newpath 0 0 moveto
+    true charpath pathbbox grestore
+    3 -1 roll eq 3 1 roll eq and
+    % If not, just use show.
+    { tx@CharPathSavedShow }
+    % Otherwise, use charpath.
+    { true charpath }
+    ifelse }
+  def }
+
+\def\pscharpath{\def\pst@par{}\pst@object{pscharpath}}
+\def\pscharpath@i{\pst@makebox\pscharpath@ii}
+\def\pscharpath@ii{%
+  \begingroup
+    \use@par
+    \leavevmode\hbox{%
+      \pstVerb{\tx@CharPathShow}%
+      \box\pst@hbox
+      \def\pst@linetype{1}%
+      \pstVerb{%
+        \pst@dict
+          gsave
+            \tx@STV
+            \pst@number\pslinewidth SLW
+            \pst@usecolor\pslinecolor
+            gsave \@nameuse{psfs@\psfillstyle} grestore
+            \@nameuse{psls@\pslinestyle}%
+          grestore
+          \if@star\else CP newpath moveto \fi
+        end
+        /show /tx@CharPathSavedShow load def}}%
+  \endgroup}
+
+\def\pscharclip{\def\pst@par{}\pst@object{pscharclip}}
+\def\pscharclip@i{\pst@makebox\pscharclip@ii}
+\def\pscharclip@ii{%
+  \leavevmode
+  \begingroup
+    \begin@psclip
+    {\@startrue\pscharpath@ii}%
+    \pstVerb{clip \if@star\else currentpoint newpath moveto\fi}%
+    \def\endpscharclip{\end@psclip\endgroup}%
+    \ignorespaces}
+\def\endpscharclip{\pst@misplaced\endpscharclip}
+
+\catcode`\@=\TheAtCode\relax
+
+\endinput
+%% END charpath.tex/charpath.sty

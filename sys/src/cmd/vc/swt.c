@@ -1,12 +1,12 @@
 #include "gc.h"
 
 int
-swcmp(const void *a1, const void *a2)
+swcmp(void *a1, void *a2)
 {
 	C1 *p1, *p2;
 
-	p1 = (C1*)a1;
-	p2 = (C1*)a2;
+	p1 = a1;
+	p2 = a2;
 	if(p1->val < p2->val)
 		return -1;
 	return  p1->val > p2->val;
@@ -32,7 +32,13 @@ doswit(Node *n)
 		nc++;
 	}
 
-	iq = alloc(nc*sizeof(C1));
+	i = nc*sizeof(C1);
+	while(nhunk < i)
+		gethunk();
+	iq = (C1*)hunk;
+	nhunk -= i;
+	hunk += i;
+
 	q = iq;
 	for(c = cases; c->link != C; c = c->link) {
 		if(c->def)
@@ -43,8 +49,8 @@ doswit(Node *n)
 	}
 	qsort(iq, nc, sizeof(C1), swcmp);
 	if(debug['W'])
-		for(i=0; i<nc; i++)
-			print("case %2ld: = %.8lux\n", i, iq[i].val);
+	for(i=0; i<nc; i++)
+		print("case %2d: = %.8lux\n", i, iq[i].val);
 	if(def == 0)
 		def = breakpc;
 	for(i=0; i<nc-1; i++)
@@ -97,7 +103,7 @@ cas(void)
 {
 	Case *c;
 
-	c = alloc(sizeof(*c));
+	ALLOC(c, Case);
 	c->link = cases;
 	cases = c;
 }
@@ -209,7 +215,7 @@ outlstring(ushort *s, long n)
 	r = nstring;
 	while(n > 0) {
 		c = *s++;
-		if(align(0, types[TCHAR], Aarg1)) {
+		if(endian(0)) {
 			buf[0] = c>>8;
 			buf[1] = c;
 		} else {
@@ -220,6 +226,35 @@ outlstring(ushort *s, long n)
 		n -= sizeof(ushort);
 	}
 	return r;
+}
+
+int
+vlog(Node *n)
+{
+	int s, i;
+	ulong m, v;
+
+	if(n->op != OCONST)
+		goto bad;
+	if(typefd[n->type->etype])
+		goto bad;
+
+	v = n->vconst;
+
+	s = 0;
+	m = MASK(64);
+	for(i=32; i; i>>=1) {
+		m >>= i;
+		if(!(v & m)) {
+			v >>= i;
+			s += i;
+		}
+	}
+	if(v == 1)
+		return s;
+
+bad:
+	return -1;
 }
 
 int
@@ -459,29 +494,21 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char *p, *q, *op, c;
+	char *p, *q, *op;
 	Prog pg;
 	int n;
 
 	pg = zprog;
 	pg.as = AHISTORY;
-	c = pathchar();
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
-		if(p && p[0] != c && h->offset == 0 && pathname){
-			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[2] == c) {
-				op = p;
-				p = pathname+2;
-				*p = '/';
-			} else if(pathname[0] == c){
-				op = p;
-				p = pathname;
-			}
+		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
+			op = p;
+			p = pathname;
 		}
 		while(p) {
-			q = utfrune(p, c);
+			q = utfrune(p, '/');
 			if(q) {
 				n = q-p;
 				if(n == 0)
@@ -615,74 +642,23 @@ ieeedtod(Ieee *ieee, double native)
 	ieee->l |= (long)(fr*f);
 }
 
-long
-align(long i, Type *t, int op)
+int
+endian(int w)
 {
-	long o;
-	Type *v;
-	int w;
 
-	o = i;
-	w = 1;
-	switch(op) {
-	default:
-		diag(Z, "unknown align opcode %d", op);
-		break;
-
-	case Asu2:	/* padding at end of a struct */
-		w = SZ_LONG;
-		break;
-
-	case Ael1:	/* initial allign of struct element */
-		for(v=t; v->etype==TARRAY; v=v->link)
-			;
-		w = ewidth[v->etype];
-		if(w <= 0 || w >= SZ_LONG)
-			w = SZ_LONG;
-		break;
-
-	case Ael2:	/* width of a struct element */
-		o += t->width;
-		break;
-
-	case Aarg0:	/* initial passbyptr argument in arg list */
-		if(typesuv[t->etype]) {
-			o = align(o, types[TIND], Aarg1);
-			o = align(o, types[TIND], Aarg2);
-		}
-		break;
-
-	case Aarg1:	/* initial allign of parameter */
-		w = ewidth[t->etype];
-		if(w <= 0 || w >= SZ_LONG) {
-			w = SZ_LONG;
-			break;
-		}
-		o += SZ_LONG - w;	/* big endian adjustment */
-		w = 1;
-		break;
-
-	case Aarg2:	/* width of a parameter */
-		o += t->width;
-		w = SZ_LONG;
-		break;
-
-	case Aaut3:	/* total allign of automatic */
-		o = align(o, t, Ael1);
-		o = align(o, t, Ael2);
-		break;
-	}
-	o = round(o, w);
-	if(debug['A'])
-		print("align %s %ld %T = %ld\n", bnames[op], i, t, o);
-	return o;
+	return tint->width - w;
 }
 
-long
-maxround(long max, long v)
+int
+passbypointer(int et)
 {
-	v += SZ_LONG-1;
-	if(v > max)
-		max = round(v, SZ_LONG);
-	return max;
+
+	return typesuv[et];
+}
+
+int
+argalign(long typewidth, long offset, int offsp)
+{
+	USED(typewidth,offset,offsp);
+	return 0;
 }

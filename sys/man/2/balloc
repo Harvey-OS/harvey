@@ -1,0 +1,115 @@
+.TH BALLOC 2
+.SH NAME
+balloc, bfree, rdbitmap, wrbitmap, rdbitmapfile, wrbitmapfile \- allocating, freeing, reading, writing bitmaps
+.SH SYNOPSIS
+.nf
+.PP
+.B
+#include <u.h>
+.B
+#include <libc.h>
+.B
+#include <libg.h>
+.PP
+.ta \w'\fLBitmap 'u
+.B
+Bitmap	*balloc(Rectangle r, int ldepth)
+.PP
+.B
+void	bfree(Bitmap *b)
+.PP
+.B
+void	rdbitmap(Bitmap *b, int ymin, int ymax, uchar *data)
+.PP
+.B
+void	wrbitmap(Bitmap *b, int ymin, int ymax, uchar *data)
+.PP
+.B
+Bitmap	*rdbitmapfile(int fd)
+.PP
+.B
+void	wrbitmapfile(int fd, Bitmap *b)
+.SH DESCRIPTION
+A new bitmap is allocated with
+.BR balloc ;
+it will have the extent and
+.I ldepth
+(log base 2 of the number of bits per pixel)
+given by its arguments,
+and will be filled with zeros. The
+.I id
+field will have been set to the identifying number used by
+.B /dev/bitblt
+(see
+.IR bit (3)),
+and the
+.I cache
+field will be zero.
+.I Balloc
+returns 0 if the server has run out of bitmap resources.
+.I Bfree
+frees the resources used by its argument bitmap.
+.PP
+The remaining functions deal with moving groups of pixel
+values between bitmaps and user space or external files.
+There is a fixed format for the exchange and storage of
+bitmap data
+(see
+.IR bitmap (6)).
+.PP
+.I Rdbitmap
+reads rows of pixels from bitmap
+.I b
+into
+.IR data .
+The rows read have
+.IR y = ymin , ymin "+1, ... "
+.IR ymax \-1.
+Those rows must be within the range allowed by
+.IB b .r\f1.
+.PP
+.B Wrbitmap
+replaces the specified rows of pixels in bitmap
+.I b
+with
+.IR data .
+.PP
+.I Rdbitmapfile
+creates a bitmap from data contained an external file (see
+.IR bitmap (6)
+for the file format);
+.I fd
+is a file descriptor obtained by opening such a file for reading.
+The returned bitmap is allocated using
+.IR balloc .
+.PP
+.I Wrbitmapfile
+writes bitmap
+.I b
+onto file descriptor
+.IR fd ,
+which should be open for writing.
+The format is as described for
+.IR rdbitmapfile .
+.PP
+.I Rdbitmapfile
+and
+.I wrbitmapfile
+do not close
+.IR fd .
+.SH SOURCE
+.B /sys/src/libg
+.SH "SEE ALSO"
+.IR graphics (2),
+.IR bitblt (2),
+.IR bit (3),
+.IR bitmap (6)
+.SH DIAGNOSTICS
+These functions return 0 on failure, usually due to insufficient
+memory.
+.PP
+May set
+.IR errstr .
+.SH BUGS
+.B Ldepth
+must be 0, 1, 2, or 3.

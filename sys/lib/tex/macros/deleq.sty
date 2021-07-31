@@ -1,0 +1,100 @@
+%% 
+%% This is file `deleq.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% deleq.dtx  (with options: `paketkod')
+%% 
+%% Copyright (c) 1994 by Mats Dahlgren <matsd@physchem.kth.se>. 
+%% All rights reserved. See the file `deleq.ins' for information 
+%% on how you may (re-)distribute the `deleq' package files. 
+%% 
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{deleq}[1994/12/27 v.4.1 Partial equation numbering]
+\typeout{deleq.sty included, version 4.1 (Dec. 27, 1994).  (c) 1994 by Mats Dahlgren}
+\def\deleqver{\texttt{deleq} version 4.1 (Dec.~27, 1994)}
+\newcounter{deleq}[equation]
+\newcounter{Deleq}
+\newcount\@deqpen
+\newcount\@deqcnt
+\renewcommand{\thedeleq}{\ensuremath{\theequation\mathrm{\aLph{deleq}}}}
+\renewcommand{\theDeleq}{\ensuremath{\mathrm{\aLph{Deleq}}}}
+\def\@deleqnnum{(\thedeleq)}
+\def\aLph#1{\@aLph{\@nameuse{c@#1}}}
+\def\@aLph#1{\ifcase#1\or a\or b\or c\or d\or e\or f\or g\or h\or i\or j\or
+   k\or l\or m\or n\or o\or p\or q\or r\or s\or t\or u\or v\or w\or x\or y\or
+   z\else\@ctrerr\fi}
+\def\@deqncr{{\ifnum0=`}\fi\@ifstar{\global\@deqpen\@M
+    \@ydeqncr}{\global\@deqpen\interdisplaylinepenalty \@ydeqncr}} 
+\def\@ydeqncr{\@ifnextchar [{\@xdeqncr}{\@xdeqncr[\z@]}} 
+\def\@xdeqncr[#1]{\ifnum0=`{\fi}\@@deqncr
+   \noalign{\penalty\@deqpen\vskip\jot\vskip #1\relax}}
+\def\@@deqncr{\let\@tempa\relax
+    \ifcase\@deqcnt \def\@tempa{& & &}\or \def\@tempa{& &}%
+      \else \def\@tempa{&}\fi
+     \@tempa \if@eqnsw\@deleqnnum\stepcounter{deleq}\fi
+     \global\@eqnswtrue\global\@deqcnt\z@\cr}  
+\newcommand{\nydeleqno}{\refstepcounter{equation}\refstepcounter{deleq}
+  \let\@currentlabel\thedeleq \eqno (\thedeleq)}
+\newcommand{\deleqno}{\refstepcounter{deleq} \let\@currentlabel\thedeleq 
+  \eqno (\thedeleq)}
+\newcommand{\reqno}[1]{\setcounter{Deleq}{-1}\refstepcounter{Deleq}
+   \eqno (\ref{#1}) }
+\newcommand{\rdeqno}[1]{\refstepcounter{Deleq}
+   \eqno (\ref{#1}\theDeleq)}
+\newcommand{\rndeqno}[1]{\setcounter{Deleq}{0}\refstepcounter{Deleq}
+   \eqno (\ref{#1}\theDeleq)}
+\newcommand{\nydeqno}{\stepcounter{equation}\stepcounter{deleq}}
+\newcommand{\heqno}{\stepcounter{equation}}
+\def\where{\let\@tempa\relax \def\@tempa{& & &}
+     \@tempa {\hbox to .01\p@{}\rlap{\hskip -\displaywidth where}}\cr}
+\def\rem#1{\let\@tempa\relax \def\@tempa{& & &}
+     \@tempa {\hbox to .01\p@{}\rlap{\hskip -\displaywidth #1}}\cr}
+\newenvironment{deqarr}{\stepcounter{equation}\stepcounter{deleq}
+  \let\@currentlabel\thedeleq
+  \global\@eqnswtrue\m@th
+  \global\@deqcnt\z@\tabskip\@centering\let\\\@deqncr
+  $$\halign to\displaywidth\bgroup\@eqnsel\hskip\@centering
+  $\displaystyle\tabskip\z@{##}$&\global\@deqcnt\@ne
+  \hskip 2\arraycolsep \hfil${##}$\hfil
+  &\global\@deqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+{\@@deqncr\egroup
+      \global\advance\c@deleq\m@ne$$\global\@ignoretrue}
+\newenvironment{ddeqar}{\stepcounter{deleq}
+  \let\@currentlabel\thedeleq
+  \global\@eqnswtrue\m@th
+  \global\@deqcnt\z@\tabskip\@centering\let\\\@deqncr
+  $$\halign to\displaywidth\bgroup\@eqnsel\hskip\@centering
+  $\displaystyle\tabskip\z@{##}$&\global\@deqcnt\@ne
+  \hskip 2\arraycolsep \hfil${##}$\hfil
+  &\global\@deqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr} 
+{\enddeqarr}
+\newenvironment{deqn}{$$\refstepcounter{equation}\stepcounter{deleq} 
+   \let\@currentlabel\thedeleq}
+  {\eqno \hbox{\@deleqnnum} $$\global\@ignoretrue}
+\newenvironment{ddeqn}{$$\refstepcounter{deleq} \let\@currentlabel\thedeleq}
+  {\eqno \hbox{\@deleqnnum} $$\global\@ignoretrue}
+\DeclareOption{leqno}{\typeout{`leqno' implementation in progress.}
+  \def\@deleqnnum{\hbox to .01\p@{}\rlap{\reset@font\rmfamily
+        \hskip -\displaywidth(\thedeleq)}}
+\renewcommand{\nydeleqno}{\refstepcounter{equation}\refstepcounter{deleq}
+  \let\@currentlabel\thedeleq \leqno (\thedeleq)}
+\renewcommand{\deleqno}{\refstepcounter{deleq} \let\@currentlabel\thedeleq 
+  \leqno (\thedeleq)}
+\renewcommand{\reqno}[1]{\setcounter{Deleq}{-1}\refstepcounter{Deleq}
+   \leqno (\ref{##1}) }
+\renewcommand{\rdeqno}[1]{\refstepcounter{Deleq}
+   \leqno (\ref{##1}\theDeleq)}
+\renewcommand{\rndeqno}[1]{\setcounter{Deleq}{0}\refstepcounter{Deleq}
+   \leqno (\ref{##1}\theDeleq)}
+  }
+\DeclareOption*{\typeout{`\CurrentOption '\space has no effect on deleq.}%
+  \OptionNotUsed}
+\ProcessOptions
+\endinput 
+\endinput
+%% 
+%% End of file `deleq.sty'.

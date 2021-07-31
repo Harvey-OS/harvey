@@ -1,0 +1,16 @@
+objtype=386
+</$objtype/mkfile
+
+all:V: inst build
+
+inst: inst.8 ini.8 scsi.8
+	8l -o $target $prereq
+
+build: build.8 ini.8 scsi.8
+	8l -o $target $prereq
+
+%.8:	%.c
+	8c -w $stem.c
+
+clean:V:
+	rm -f *.8

@@ -2,13 +2,15 @@
 #include	"io.h"
 
 void
-cmd_passwd(int, char *[])
+cmd_passwd(int argc, char *argv[])
 {
 	char passwd[32];
 	static char zeros[DESKEYLEN];
 	char nkey1[DESKEYLEN], nkey2[DESKEYLEN];
 	char authid[NAMELEN];
 	char authdom[DOMLEN];
+
+	USED(argc, argv);
 
 	if(memcmp(nvr.authkey, zeros, sizeof(nvr.authkey))) {
 		print("Old password:");
@@ -123,7 +125,7 @@ print("bad challenge\n");
 	bit = 1<<x;
 	if(x < 0 || x > 31 || (bit&cp->idvec)){
 		unlock(&cp->idlock);
-print("id out of range: idoff %ld idvec %lux id %ld\n", cp->idoffset, cp->idvec, a.id);
+print("id out of range: idoff %d idvec %lux id %d\n", cp->idoffset, cp->idvec, a.id);
 		return 0;
 	}
 	cp->idvec |= bit;

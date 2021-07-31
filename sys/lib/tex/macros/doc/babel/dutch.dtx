@@ -1,0 +1,732 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{384}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "3.6c",
+%%%     date            = "26 June 1994",
+%%%     time            = "02:19:03 MET",
+%%%     filename        = "dutch.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "18631 699 3432 28815",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, dutch",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the dutch language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%% ====================================================================
+%%% \fi
+% \def\filename{dutch.dtx}
+% \def\fileversion{v3.6c}
+% \def\filedate{1994/05/26}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2.e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source
+%    code for the Dutch language-specific file.
+%<*filedriver>
+\documentclass{ltxdoc}
+\makeatletter
+\gdef\dlqq{{\setbox\tw@=\hbox{,}\setbox\z@=\hbox{''}%
+  \dimen\z@=\ht\z@ \advance\dimen\z@-\ht\tw@
+  \setbox\z@=\hbox{\lower\dimen\z@\box\z@}\ht\z@=\ht\tw@
+  \dp\z@=\dp\tw@ \box\z@\kern-.04em}}
+\makeatother
+\font\manual=logo10 % font used for the METAFONT logo, etc.
+\newcommand\MF{{\manual META}\-{\manual FONT}}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{dutch.dtx}
+\end{document}
+%</filedriver>
+% \fi
+%
+% \changes{dutch-2.0a}{2 apr 90}{Added checking of format}
+% \changes{dutch-2.0b}{2 apr 90}{Added extrasdutch}
+% \changes{dutch-2.0c}{18 apr 90}{Added grqq macros}
+% \changes{dutch-2.1}{24 apr 90}{reflect change to version 2.1 in babel
+%                          and changes in german v2.3}
+% \changes{dutch-2.1a}{1 may 90}{Incorporated Nico's comments}
+% \changes{dutch-2.1b}{4 july 90}{Incorporated more comments by Nico}
+% \changes{dutch-2.1c}{16 july 90}{Fixed some typos}
+% \changes{dutch-2.2}{16 july 90}{Fixed problem with the use of {\tt "}
+%                          in moving arguments while {\tt "} is active}
+% \changes{dutch-2.3}{30 juli 90}{When using PostScript fonts with the
+%                              Adobe font-encoding, the dieresis-accent
+%                              is located elsewhere, modified code}
+% \changes{dutch-2.3a}{27 aug 90}{Modified the documentation somewhat}
+% \changes{dutch-3.0}{23 april 91}{Modified for babel 3.0}
+% \changes{dutch-3.0a}{25 may 91}{Removed some problems in change log}
+% \changes{dutch-3.1}{29 may 91}{Removed bug found by van der Meer}
+% \changes{dutch-3.2a}{15 july 91}{Renamed babel.sty in babel.com}
+% \changes{dutch-3.3}{31 oct 91}{Rewritten parts of the code to use the
+%                                new features of babel version 3.1}
+% \changes{dutch-3.6}{2 feb 94}{Update or LaTeX2e}
+% \changes{dutch-3.6c}{1994/06/26}{Removed the use of \cs{filedate},
+%    moved identification after the loading of babel.def}
+%
+%  \section{The Dutch language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion, and was last revised on
+%    \filedate.} defines all the language-specific macros for the Dutch
+%    language.
+%
+%    For this language the character |"| is made active. In
+%    table~\ref{tab:dutch-quote} an overview is given of its purpose.
+%    One of the reasons for this is that in the Dutch language a word
+%    with a dieresis can be hyphenated just before the letter with the
+%    umlaut, but the dieresis has to disappear if the word is broken
+%    between the previous letter and the accented letter.
+%
+%    In~\cite{treebus} the quoting conventions for the Dutch language
+%    are discussed. The preferred convention is the single-quote
+%    Anglo-American convention, i.e. `This is a quote'.  An
+%    alternative is the slightly old-fashioned Dutch method with
+%    initial double quotes lowered to the baseline, \dlqq This is a
+%    quote'', which should be typed as {\tt "`This is a quote"'}.
+%
+%    \begin{table}[htb]
+%     \centering
+%     \begin{tabular}{lp{8cm}}
+%      |"a| & |\"a| which hyphenates as |-a|;
+%             also implemented for the other letters.        \\
+%      |"y| & puts a negative kern between {\tt i} and {\tt j}\\
+%      |"Y| & puts a negative kern between {\tt I} and {\tt J}\\
+%      \verb="|= & disable ligature at this position.             \\
+%      |"-| & an explicit hyphen sign, allowing hyphenation
+%             in the rest of the word.                       \\
+%      |"`| & lowered double left quotes (see example below).\\
+%      |"'| & normal double right quotes.                    \\
+%      |\-| & like the old |\-|, but allowing hyphenation
+%             in the rest of the word.
+%     \end{tabular}
+%     \caption{The extra definitions made by {\tt dutch.sty}}
+%     \label{tab:dutch-quote}
+%    \end{table}
+%
+% \StopEventually{}
+%
+% \changes{dutch-3.2c}{22 okt 91}{Removed code to load {\tt
+%                                 latexhax.com}}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionsdutch| is
+%    already defined, so we can stop processing. If this command is
+%    undefined we proceed with the various definitions and first show
+%    the current version of this file.
+%
+% \changes{dutch-3.2a}{15 july 91}{Added reset of catcode of @ before
+%                                  {\tt\bsl endinput}.}
+% \changes{dutch-3.2c}{22 okt 91}{removed use of {\tt\bsl @ifundefined}}
+% \changes{dutch-3.3a}{11 nov 91}{Moved code to the beginning of the
+%                                 file and added {\tt\bsl
+%                                 selectlanguage} call}
+%    \begin{macrocode}
+\ifx\undefined\captionsdutch
+\else
+  \selectlanguage{dutch}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \begin{macro}{\atcatcode}
+%    This file, \file{dutch.sty}, may have been read while \TeX\ is in
+%    the middle of processing a document, so we have to make sure the
+%    category code of {\tt @} is `letter' while this file is being
+%    read. We save the category code of the @-sign in |\atcatcode| and
+%    make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%
+% \changes{dutch-3.1a}{06/06/91}{Made test of catcode of @ more robust}
+% \changes{dutch-3.2a}{15 july 91}{Modified handling of catcode of @
+%                                again.}
+% \changes{dutch-3.2c}{22 okt 91}{Removed use of {\tt\bsl makeatletter}
+%                                and hence the need to load {\tt
+%                                latexhax.com}}
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt dutch} is the first language option to
+%    be processed. In that case we need to read \file{babel.def} right
+%    here before we continue.
+%
+% \changes{dutch-3.0}{23 april 91}{New check before loading babel.com}
+% \changes{dutch-3.4a}{15 feb 92}{Added {\tt\bsl relax} after the
+%                                 argument of {\tt\bsl input}}
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{dutch.sty}[1994/06/26 v3.6c
+         Dutch support from the babel system]
+%    \end{macrocode}
+%
+% \changes{dutch-3.1}{29 may 91}{Add a check for existence
+%                                {\tt\bsl originalTeX}}
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+% \changes{dutch-3.2a}{15 july 91}{Added {\tt\bsl let\bsl originalTeX%
+%                               \bsl relax} to test for existence}
+% \changes{dutch-3.3b}{25 jan 92}{Set {\tt\bsl originalTeX} to
+%                       {\tt\bsl empty}, because it should be
+%                       expandable.}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty \fi
+\originalTeX
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by
+%    the |\usepackage| command, {\tt dutch} could be an
+%    `unknown' language in which case we have to make it known.
+%    So we check for the existence of |\l@dutch| to see whether
+%    we have to do something here.
+%
+% \changes{dutch-3.0}{23 april 91}{Now use {\tt\bsl adddialect} if
+%    language undefined}
+% \changes{dutch-3.2c}{22 okt 91}{removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{dutch-3.3b}{25 jan 92}{Added warning, if no dutch patterns
+%    loaded}
+% \changes{v3.6c}{1994/06/26}{Now use \cs{@nopatterns} to produce the
+%    warning}
+%    \begin{macrocode}
+\ifx\undefined\l@dutch
+  \@nopatterns{Dutch}
+  \adddialect\l@dutch0
+\fi
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the Dutch language.
+%
+% \begin{macro}{\captionsdutch}
+%    The macro |\captionsdutch| defines all strings used
+%    in the four standard document classes provided with \LaTeX.
+% \changes{dutch-3.1a}{6 june 91}{Removed {\tt\bsl global}
+%                                 definitions}
+% \changes{dutch-3.1a}{6 june 91}{{\tt\bsl pagename} should be
+%                                 {\tt\bsl headpagename}}
+% \changes{dutch-3.3a}{11 nov 91}{added {\tt\bsl seename}
+%                                  and {\tt\bsl alsoname}}
+% \changes{dutch-3.3b}{25 jan 92}{added {\tt\bsl prefacename}}
+% \changes{dutch-3.5}{11 jul 93}{`headpagename should be `pagename}
+%    \begin{macrocode}
+\addto\captionsdutch{%
+  \def\prefacename{Voorwoord}%
+  \def\refname{Referenties}%
+  \def\abstractname{Samenvatting}%
+  \def\bibname{Bibliografie}%
+  \def\chaptername{Hoofdstuk}%
+  \def\appendixname{Bijlage}%
+  \def\contentsname{Inhoudsopgave}%
+  \def\listfigurename{Lijst van figuren}%
+  \def\listtablename{Lijst van tabellen}%
+  \def\indexname{Index}%
+  \def\figurename{Figuur}%
+  \def\tablename{Tabel}%
+  \def\partname{Deel}%
+  \def\enclname{Bijlage(n)}%
+  \def\ccname{cc}%
+  \def\headtoname{Aan}%
+  \def\pagename{Pagina}%
+  \def\seename{zie}%
+  \def\alsoname{zie ook}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\datedutch}
+%    The macro |\datedutch| redefines the command
+%    |\today| to produce Dutch dates.
+% \changes{dutch-3.1a}{6 june 91}{Removed {\tt\bsl global}
+%                                 definitions}
+%    \begin{macrocode}
+\def\datedutch{%
+\def\today{\number\day~\ifcase\month\or
+  januari\or februari\or maart\or april\or mei\or juni\or juli\or
+  augustus\or september\or oktober\or november\or december\fi
+  \space \number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasdutch}
+% \changes{dutch-3.0b}{29 may 91}{added some comment chars to
+%                                 prevent white space}
+% \changes{dutch-3.1a}{6 june 91}{Removed {\tt\bsl global}
+%                                 definitions}
+% \changes{dutch-3.2}{2 july 91}{Save all redefined macros}
+% \changes{dutch-3.3}{31 oct 91}{Macro complete rewritten}
+% \changes{dutch-3.3b}{25 jan 92}{modified handling of {\tt\bsl
+%                                 dospecials} and {\tt\bsl @sanitize}}
+%
+% \begin{macro}{\noextrasdutch}
+% \changes{dutch-2.3}{30 juli 90}{Added {\tt\bsl dieresis}}
+% \changes{dutch-3.0b}{29 may 91}{added some comment chars to prevent
+%                                 white space}
+% \changes{dutch-3.1a}{6 june 91}{Removed {\tt\bsl global}
+%                                 definitions}
+% \changes{dutch-3.2}{2 july 91}{Try to restore everything to
+%                                its former state}
+% \changes{dutch-3.3}{31 oct 91}{Macro complete rewritten}
+% \changes{dutch-3.3b}{25 jan 92}{modified handling of {\tt\bsl
+%                                 dospecials}
+%                                 and {\tt\bsl @sanitize}}
+%    The macro |\extrasdutch| will perform all the extra definitions
+%    needed for the Dutch language. The macro |\noextrasdutch|
+%    is used to cancel the actions of |\extrasdutch|.
+%
+%    Because for Dutch (as well as for German) the {\tt "} character
+%    is made active, the \LaTeX\ macros |\dospecials| and
+%    |\@sanitize| have to be redefined to include this character
+%    as well.
+%    \begin{macrocode}
+\addto\extrasdutch{\babel@add@special\"}
+%    \end{macrocode}
+%    Similarly, |\noextrasdutch| should restore them to their
+%    original definition.
+%    \begin{macrocode}
+\addto\noextrasdutch{\babel@remove@special\"}
+%    \end{macrocode}
+%
+%    The {\tt "} character is made active by |\extrasdutch|.
+%    The restore operation for the category change is appended to
+%    |\originalTeX|. Additionally we redefine |\active@dq|,
+%    after we have saved the original meaning.  If written with
+%    |\protect| set accordingly, the active doublequote is written
+%    as this macro. (All languages with the doublequote active
+%    should write it using the same control sequence name.)
+%    \begin{macrocode}
+\addto\extrasdutch{%
+  \babel@savevariable{\catcode`\"}%
+  \babel@save\active@dq
+  \catcode`\"\active \let\active@dq\dutch@active@dq}
+%    \end{macrocode}
+%    The simple definition |\def"{\protect\active@dq}| is not usable,
+%    because the |\protect| occurs at the toplevel.  If \TeX\
+%    tries to scan a number in hexadecimal notation (i.\,e., using a
+%    doublequote), the |\protect| with meaning |\relax|
+%    prevents the correct scanning of the number.
+%    \begin{macrocode}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \addto\extrasdutch{\babel@save"\let"\dutch@@active@dq}}
+\x
+%    \end{macrocode}
+%    The active {\tt "} is written as ``|\active@dq|''.
+%    (All languages with the doublequote active
+%    should write it using the same control sequence name.)
+%    When the command |\"| appears in a moving argument
+%    (i.e. {\tt\ttbs section\{Het re\ttbs"\{e\}le probleem\}}) an error
+%    message might
+%    occur. The reason is that when the argument is written to the
+%    \file{.aux} file macros are expanded. The original definition of
+%    |\"| is:
+%\begin{verbatim}
+%    \def\"#1{{\accent"7F #1}}
+%\end{verbatim}
+%    When the {\tt .aux} file is processed and the {\tt .toc} file is
+%    written while the {\tt "} character is active, the expansion of
+%    {\tt "} will replace it, resulting in a piece of code such as:
+%\begin{verbatim}
+%    ... re\accent \protect\active@dq ele ...
+%\end{verbatim}
+%    When \TeX\ reads this it will protest about a missing number.
+%
+%    To circumvent this, |\"| is redefined, using one of the support
+%    macros for the definition of the active {\tt "}.
+%
+%    The original definition of |\"| has to be saved by
+%    |\extrasdutch| and restored by |\noextrasdutch|.
+%    \begin{macrocode}
+\addto\extrasdutch{\babel@save\"}
+\addto\extrasdutch{\def\"{\protect\dutch@umlaut}}
+%    \end{macrocode}
+%
+%    The dutch hyphenation patterns can be used with |\lefthyphenmin|
+%    set to~2 and |\righthyphenmin| set to~3.
+%    \begin{macrocode}
+\addto\extrasdutch{\babel@savevariable\lefthyphenmin
+  \babel@savevariable\righthyphenmin
+  \lefthyphenmin\tw@\righthyphenmin\thr@@}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%  \begin{macro}{\@umlaut}
+% \changes{dutch-3.3c}{26 jan 91}{added macro, adapted from {\tt\bsl
+%                                 newumlaut} in german.tex}
+%    The macro |\@umlaut|
+%    lowers the umlaut character nearer to the letter. To do this it
+%    needs an extra \meta{dimen} register.
+%    \begin{macrocode}
+\expandafter\ifx\csname U@D\endcsname\relax
+  \csname newdimen\endcsname\U@D
+\fi
+%    \end{macrocode}
+%    The following code fools \TeX's {\tt make\_accent} procedure
+%    about the current x-height of the font to force another placement
+%    of the umlaut character.
+%    \begin{macrocode}
+\def\dutch@umlaut#1{\@umlaut#1\allowhyphens}
+\def\@umlaut#1{%
+%    \end{macrocode}
+%    First we have to save the current x-height of the font, because
+%    we'll change this font dimension and this is always done
+%    globally.
+%    \begin{macrocode}
+  {\U@D 1ex%
+%    \end{macrocode}
+%    Then we compute the new x-height in such a way that the umlaut
+%    character is lowered to the base character.
+%    The value of {\tt .45ex} depends on the \MF\ parameters with
+%    which the fonts were built.  (Just try
+%    out, which value will look best.)
+%    \begin{macrocode}
+  {\setbox\z@\hbox{\char127}\dimen@ -.45ex\advance\dimen@\ht\z@
+%    \end{macrocode}
+%    If the new x-height is too low, it is not changed.
+%    \begin{macrocode}
+  \ifdim 1ex<\dimen@ \fontdimen5\font\dimen@ \fi}%
+%    \end{macrocode}
+%    Finally we call the |\accent| primitive, reset the old x-height
+%    and insert the base character in the argument.
+%    \begin{macrocode}
+  \accent127\fontdimen5\font\U@D #1}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%    The code above is necessary because we need an extra
+%    active character. This character is then used as indicated in
+%    table~\ref{tab:dutch-quote}.
+%
+% \changes{dutch-3.3a}{11 nov 91}{Added {\tt\bsl save@sf@q} macro from
+%                                 germanb and rewrote all quote macros
+%                                 to use it}
+% \changes{dutch-3.4b}{16 feb 91}{moved definition of {\tt\bsl
+%                                 allowhyphens}, {\tt\bsl set@low@box}
+%                                 and {\tt\bsl save@sf@q} to {\tt
+%                                 babel.com}}
+%
+%  \begin{macro}{\dlqq}
+%    The above macro can now be used to define low opening quotes.
+%    Since it may be used in arguments to other macros we protect it.
+%    \begin{macrocode}
+\def\dlqq{\protect\@dlqq}
+\def\@dlqq{\save@sf@q{\set@low@box{''}\box\z@\kern-.04em\allowhyphens}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\drqq}
+%    For reasons of symmetry we also define |"'|. This command
+%    is defined similar to |\dlqq|, except that the quotes aren't
+%    lowered to the baseline.
+%    \begin{macrocode}
+\def\drqq{\protect\@drqq}
+\def\@drqq{\save@sf@q{''}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\dq}
+%    We save the original double quote character in |\dq| to keep
+%    it available, the math accent |\"| can now be typed as |"|.
+%    \begin{macrocode}
+\begingroup \catcode`\"12
+  \def\x{\endgroup
+  \def\@MATHUMLAUT{\mathaccent"707F }
+  \def\dq{"}}
+\x
+%    \end{macrocode}
+%    If an active {\tt "} character gets ``lost'' in a non-dutch
+%    language it should expand to a {\tt "} with category code `other'
+%    by default.
+%    The same applies for the control sequence |\active@dq|.
+% \changes{dutch-3.3a}{11 nov 91}{Added default expansion of active
+%                                  doublequote}
+%    \begin{macrocode}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \let"\dq
+  \let\active@dq\dq}
+\x
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\dieresis}
+% \changes{dutch-2.3}{30 juli 90}{Macro added}
+%    The original definition of |\"| is stored as |\dieresis|, because
+%    the definition of |\"| might not be the default plain \TeX\ one.
+%    If the user uses {\sc PostScript} fonts with the Adobe font
+%    encoding the {\tt "} character is not in the same position as in
+%    Knuth's font encoding. In this case |\"| will not be defined as
+%    |\accent"7F #1|, but as |\accent'310 #1|. For this reason we save
+%    the definition of |\"| and use that in the definition of other
+%    macros.
+%
+% \changes{dutch-3.1a}{6 june 91}{Removed {\tt\bsl global} definitions}
+%    \begin{macrocode}
+\let\dieresis\"
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\@trema}
+%    In the Dutch language vowels with a trema are
+%    treated specially. If a hyphenation occurs before a
+%    vowel-plus-trema, the trema should disappear. To be able to do
+%    this we could first define the hyphenation break behaviour for
+%    the five vowels, both lowercase and uppercase, in terms of
+%    |\discretionary|. But this results in a large |\if|-construct in
+%    the definition of the active |"|. Because we think a user should
+%    not use |"| when he really means something like |''| we chose not
+%    to distinguish between vowels and consonants. Therefore we have
+%    one macro |\@trema| which specifies the hyphenation break
+%    behaviour for all letters.
+%
+% \changes{dutch-2.3}{30 juli 90}{{\tt\bsl dieresis} instead of
+%                                {\tt\bsl accent127}}
+% \changes{dutch-3.3a}{11 nov 91}{renamed {\tt\bsl @umlaut} to
+%                                {\tt\bsl @trema}}
+%    \begin{macrocode}
+\def\@trema#1{%
+  \allowhyphens\discretionary{-}{#1}{\@umlaut #1}\allowhyphens}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \changes{dutch-3.4}{25 jan 92}{Copied dq mechanism from german
+%                                v2.3e}
+%
+%  \begin{macro}{\dutch@dq@macro}
+%    For all arguments of an active doublequote which should be
+%    treated in a special way, we define a macro with a name that
+%    contains the argument text.
+%
+%    \begin{macrocode}
+\def\dutch@dqmacro#1{\csname d@dq@\string #1@dq@\endcsname}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\dutch@@active@dq}
+%    An active doublequote is |\let| to this macro definition.
+%    First we look if the argument triggers a special macro, then we
+%    expand either to a normal doublequote or indirectly to this
+%    macro.
+%    \begin{macrocode}
+\def\dutch@@active@dq#1{\expandafter\expandafter\expandafter
+  \ifx\dutch@dqmacro{#1}\relax \expandafter\normal@dq
+  \else \expandafter\dutch@@@active@dq \fi {#1}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\normal@dq}
+%    The braces around the argument in |\dutch@@active@dq| are
+%    necessary for empty arguments.  For |\normal@dq| we have to
+%    delete the braces and insert a normal doublequote.
+%    \begin{macrocode}
+\def\normal@dq#1{\dq #1}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\dutch@@@active@dq}
+%    We have to call |\active@dq|, but this call has to be protected
+%    to inhibit further expansion when it is written to files.
+%    (|\active@dq| is |\let| to |\dutch@active@dq|.)
+%    To allow correct ligatures and kerning, the |\protect| should
+%    expand to nothing, if it is used with meaning |\relax|.
+%    The additional |\empty| in the argument of the |\active@dq|
+%    call is necessary for the correct expansion of |""|.
+%    \begin{macrocode}
+\def\dutch@@@active@dq#1{%
+  \ifx\protect\relax \else \expandafter\protect \fi
+  \active@dq{#1\empty}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\dutch@active@dq}
+%    In dutch mode |\active@dq| is |\let| to this macro.
+%    To get the final expansion of the special action macros, we have
+%    to expand the |\dutch@dqmacro| three times.  This expansion
+%    results in two groups of code, containing the action for text and
+%    for math mode. The correct group is selected with the help of two
+%    additional macros.
+%    \begin{macrocode}
+\def\dutch@active@dq#1{%
+  \csname dutch@dq@\ifmmode second\else first\fi
+    \expandafter\expandafter\expandafter\expandafter
+    \expandafter\expandafter\expandafter
+  \endcsname
+  \dutch@dqmacro{#1}}
+\def\dutch@dq@first#1#2{#1}
+\def\dutch@dq@second#1#2{#2}
+%    \end{macrocode}
+% \end{macro}
+%
+%  \begin{macro}{\def@dutch@dqmacro}
+% \changes{dutch-3.4b}{16 feb 91}{Renamed macro from {\tt\bsl
+%                                 def@dqmacro} because of clash with
+%                                 the same macro for other languages}
+%  \begin{macro}{\let@dutch@dqmacro}
+% \changes{dutch-3.4b}{16 feb 91}{Renamed macro from {\tt\bsl
+%                                 let@dqmacro} because of clash with
+%                                 the same macro for other languages}
+%    To define a doublequote macro we use two macros.
+%    \begin{macrocode}
+\def\def@dutch@dqmacro#1#2#3{\expandafter\expandafter\expandafter
+  \def\dutch@dqmacro{#1}{{#2}{#3}}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\let@dutch@dqmacro#1#2{\begingroup
+  \edef\x{\endgroup \let
+    \expandafter\expandafter\expandafter\noexpand\dutch@dqmacro{#1}%
+    \expandafter\expandafter\expandafter\noexpand\dutch@dqmacro{#2}}%
+  \x}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+% \changes{dutch-2.3}{30 juli 90}{{\tt\bsl dieresis} instead of
+%                                 {\tt\bsl accent127}}
+% \changes{dutch-3.2}{2 juli 91}{added case for {\tt "y} and {\tt "Y}}
+% \changes{dutch-3.2b}{16 juli 91}{removed typo (allowhpyhens)}
+%     Now we can define the doublequote macros: the tremas,
+%    \begin{macrocode}
+\def@dutch@dqmacro{a}{\@trema a}{\@MATHUMLAUT a}
+\def@dutch@dqmacro{e}{\@trema e}{\@MATHUMLAUT e}
+\def@dutch@dqmacro{i}%
+        {\allowhyphens\discretionary{-}{i}{\dieresis\i}\allowhyphens}%
+        {\@MATHUMLAUT \imath}
+\def@dutch@dqmacro{o}{\@trema o}{\@MATHUMLAUT o}
+\def@dutch@dqmacro{u}{\@trema u}{\@MATHUMLAUT u}
+%    \end{macrocode}
+%    dutch quotes,
+%    \begin{macrocode}
+\def@dutch@dqmacro{`}{\dlqq{}}{\dlqq{}}
+\def@dutch@dqmacro{'}{\drqq{}}{\drqq{}}
+%    \end{macrocode}
+%    and some additional commands:
+%    \begin{macrocode}
+\def@dutch@dqmacro{-}{\allowhyphens-\allowhyphens}%
+                     {\allowhyphens-\allowhyphens}
+\def@dutch@dqmacro{|}{\discretionary{-}{}{\kern.03em}}{}
+\def@dutch@dqmacro{y}{\allowhyphens i\kern-0.06\p@ j\allowhyphens}%
+                     {\@MATHUMLAUT y}
+\def@dutch@dqmacro{Y}{\allowhyphens I\kern-0.06\p@ J\allowhyphens}%
+                     {\@MATHUMLAUT Y}
+%    \end{macrocode}
+%
+%  \begin{macro}{\-}
+%
+%    All that is left now is the redefinition of |\-|. The new version
+%    of |\-| should indicate an extra hyphenation position, while
+%    allowing other hyphenation positions to be generated
+%    automatically. The standard behaviour of \TeX\ in this respect is
+%    very unfortunate for languages such as Dutch and German, where
+%    long compound words are quite normal and all one needs is a means
+%    to indicate an extra hyphenation position on top of the ones that
+%    \TeX\ can generate from the hyphenation patterns.
+%    \begin{macrocode}
+\addto\extrasdutch{\babel@save\-}
+\addto\extrasdutch{\def\-{\allowhyphens
+                          \discretionary{-}{}{}\allowhyphens}}
+%    \end{macrocode}
+%  \end{macro}
+%
+% Our last action is to activate the commands we have just defined,
+% by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{dutch}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+% \changes{dutch-3.2a}{15 july 91}{Modified handling of catcode of
+%                                  @-sign.}
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

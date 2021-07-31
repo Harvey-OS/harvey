@@ -1,0 +1,105 @@
+*** mf.ch	Sun Mar 29 17:10:41 1992
+--- smallmf.ch	Sat Apr 11 09:09:27 1992
+***************
+*** 145,147 ****
+  @<Constants...@>=
+! @!mem_max=262140; {greatest index in \MF's internal |mem| array;
+    must be strictly less than |max_halfword|;
+--- 145,147 ----
+  @<Constants...@>=
+! @!mem_max=60000; {greatest index in \MF's internal |mem| array;
+    must be strictly less than |max_halfword|;
+***************
+*** 148,151 ****
+    must be equal to |mem_top| in \.{INIMF}, otherwise |>=mem_top|}
+! @!max_internal=300; {maximum number of internal quantities}
+! @!buf_size=3000; {maximum number of characters simultaneously present in
+    current lines of open files; must not exceed |max_halfword|}
+--- 148,151 ----
+    must be equal to |mem_top| in \.{INIMF}, otherwise |>=mem_top|}
+! @!max_internal=100; {maximum number of internal quantities}
+! @!buf_size=500; {maximum number of characters simultaneously present in
+    current lines of open files; must not exceed |max_halfword|}
+***************
+*** 157,161 ****
+  @!screen_depth=1200; {number of pixels in each column of screen display}
+! @!stack_size=300; {maximum number of simultaneous input sources}
+! @!max_strings=7500; {maximum number of strings; must not exceed |max_halfword|}
+! @!string_vacancies=74000; {the minimum number of characters that should be
+    available for the user's identifier names and strings,
+--- 157,161 ----
+  @!screen_depth=1200; {number of pixels in each column of screen display}
+! @!stack_size=30; {maximum number of simultaneous input sources}
+! @!max_strings=3000; {maximum number of strings; must not exceed |max_halfword|}
+! @!string_vacancies=10000; {the minimum number of characters that should be
+    available for the user's identifier names and strings,
+***************
+*** 162,164 ****
+    after \MF's own error messages are stored}
+! @!pool_size=100000; {maximum number of characters in strings, including all
+    error messages and help texts, and the names of all identifiers;
+--- 162,164 ----
+    after \MF's own error messages are stored}
+! @!pool_size=32000; {maximum number of characters in strings, including all
+    error messages and help texts, and the names of all identifiers;
+***************
+*** 166,169 ****
+    length of \MF's own strings, which is currently about 22000}
+! @!move_size=20000; {space for storing moves in a single octant}
+! @!max_wiggle=1000; {number of autorounded points per cycle}
+  @!gf_buf_size=16384; {size of the output buffer, must be a multiple of 8}
+--- 166,169 ----
+    length of \MF's own strings, which is currently about 22000}
+! @!move_size=5000; {space for storing moves in a single octant}
+! @!max_wiggle=300; {number of autorounded points per cycle}
+  @!gf_buf_size=16384; {size of the output buffer, must be a multiple of 8}
+***************
+*** 171,174 ****
+    {string of length |file_name_size|; tells where the string pool appears}
+! @!path_size=1000; {maximum number of knots between breakpoints of a path}
+! @!bistack_size=1500; {size of stack for bisection algorithms;
+    should probably be left at this value}
+--- 171,174 ----
+    {string of length |file_name_size|; tells where the string pool appears}
+! @!path_size=300; {maximum number of knots between breakpoints of a path}
+! @!bistack_size=785; {size of stack for bisection algorithms;
+    should probably be left at this value}
+***************
+*** 175,181 ****
+  @!header_size=100; {maximum number of \.{TFM} header words, times~4}
+! @!lig_table_size=15000; {maximum number of ligature/kern steps, must be
+    at least 255 and at most 32510}
+! @!max_kerns=2500; {maximum number of distinct kern amounts}
+  @!max_font_dimen=50; {maximum number of \&{fontdimen} parameters}
+! @!mem_top=262140; {largest index in the |mem| array dumped by \.{INIMF};
+    must be substantially larger than |mem_min|
+--- 175,181 ----
+  @!header_size=100; {maximum number of \.{TFM} header words, times~4}
+! @!lig_table_size=5000; {maximum number of ligature/kern steps, must be
+    at least 255 and at most 32510}
+! @!max_kerns=500; {maximum number of distinct kern amounts}
+  @!max_font_dimen=50; {maximum number of \&{fontdimen} parameters}
+! @!mem_top=60000; {largest index in the |mem| array dumped by \.{INIMF};
+    must be substantially larger than |mem_min|
+***************
+*** 203,207 ****
+    than |min_halfword|}
+! @d hash_size=9500 {maximum number of symbolic tokens,
+    must be less than |max_halfword-3*param_size|}
+! @d hash_prime=7919 {a prime number equal to about 85\pct! of |hash_size|}
+  @d max_in_open=15 {maximum number of input files and error insertions that
+--- 203,207 ----
+    than |min_halfword|}
+! @d hash_size=2100 {maximum number of symbolic tokens,
+    must be less than |max_halfword-3*param_size|}
+! @d hash_prime=1777 {a prime number equal to about 85\pct! of |hash_size|}
+  @d max_in_open=15 {maximum number of input files and error insertions that
+***************
+*** 664,666 ****
+  @d min_halfword==0 {smallest allowable value in a |halfword|}
+! @d max_halfword==262143 {largest allowable value in a |halfword|}
+  @z
+--- 664,666 ----
+  @d min_halfword==0 {smallest allowable value in a |halfword|}
+! @d max_halfword==65535 {largest allowable value in a |halfword|}
+  @z

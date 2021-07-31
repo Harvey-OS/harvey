@@ -1,0 +1,629 @@
+%  
+%  \iffalse  
+% 
+%    The first part is a comment to the reader(s) of `deleq.dtx'.
+%
+%  deleq.dtx    Version 4.1, Dec. 27, 1994
+%  (c) 1994 by Mats Dahlgren  (matsd@physchem.kth.se)
+%
+%  Please see the information in file `deleq.ins' on how you 
+%  may use and (re-)distribute this file.  Run LaTeX on the file 
+%  `deleq.ins' to get a .sty-file, instructions, and an example.
+%
+%  This file may NOT be distributed if not accompanied by 'deleq.ins'.
+%
+%  \fi
+%
+%  \def\filename{deleq.dtx}
+%  \def\fileversion{4.1}
+%  \def\filedate{1994/12/27}\def\docdate{\filedate}
+%  \MakeShortVerb{\|}
+%  \title{\LaTeX{} Macro for Partial Numbering of Equations}
+%  \author{Mats Dahlgren\\ (\texttt{matsd@physchem.kth.se})} 
+%  \maketitle
+%  \begin{abstract}
+%  To enable a more flexible equation numbering, especially 
+%  ``partial'' equation numbers (`3a', `3b' \textit{etc.}), 
+%  the |deleq| package has been developed.  It can produce 
+%  partial equation numbers intermixed with ordinary 
+%  equation numbers also in an |eqnarray|-like environment, 
+%  the intermixing can occur within one environment.  The 
+%  package also provides commands for putting commentatory 
+%  text in an |eqnarray| environment without requiering the 
+%  |amstex| package.\\ \small This file and the package:\
+%  Copyright \copyright\ 1994 by Mats Dahlgren.  All rights
+%  reserved. 
+%  \end{abstract}
+%   
+%  \section{Introduction}
+%  |deleq| is a \LaTeX{} package which makes partial
+%  numbering of equations possible.  It is meant to be used
+%  when numbering such as 3a, 3b, \textit{etc.} is desired.
+%  The default is to give an equation number like `3a'
+%  without period and with the `a' typeset in roman font. 
+%  It can be used in |article| as well as |book| and
+%  |report| document classes.  The examples given below are
+%  valid for the |article| class.  |deleq| is fully
+%  compatible with the |leqno| documentclass option.
+%  Equations can be numbered either 3, 3a, 3b, $\ldots$, or
+%  2, 3a, 3b, $\ldots$. Also, equation numbers within
+%  |eqnarray|-like environments can be numbered 3, 3a, 3b,
+%  $\ldots$ or starting at 3a, which can follow both after
+%  equation 2b or 3.  An |eqnarray|-like environment can have 
+%  its first equation numbered 3b if the nearest previous
+%  equation is 3a.  Within one |eqnarray|-like  environment, 
+%  equations can be numbered 3a, 3b, 4, 4a, 4b, 5a, 5b,
+%  \textit{etc.}, and also not numbered lines are possible
+%  (`|\nonumber|' works). Furthermore, equation numbers can
+%  be ``recycled''.  If equation 3 is repeated after
+%  equation 8, it can still have the numbering set to 3,
+%  and be followed by (a new) equation 9.  ``Recycled''
+%  equation numbers can receive partial numbers (3a, 3b,
+%  $\ldots$); partially numbered equations can also be
+%  ``recycled'' (but at this stage, the latter can not
+%  receive new partial numbers neatly, it will come out
+%  like `3ba' if eqution 3b is the ``recycled'' equation). 
+%  Two commands are supplied which enable the user to write
+%  commnetary tests in |eqnarray|-like environments without
+%  interfering with the alignment. 
+%   
+%  \section{History}
+%  |deleq.sty| was originally written for \LaTeX{} 2.09,
+%  and contained several commands which became obsolete
+%  with the introduction of \LaTeXe.  These commands have
+%  been removed.  The previous release (v.4.0, Oct.~14,
+%  1994) was the first for \LaTeXe. The present release 
+%  (v.4.1) is the first which is compatible with the 
+%  |docstrip| utility of Johannes Braams, Denys Duchier and 
+%  Frank Mittelbach.
+%   
+%  |deleq.sty| version 4.0 has been tested with \LaTeXe%  
+%  /\TeX{} 3.141 under UNIX and \LaTeXe /\TeX{} 3.1415 under
+%  OpenVMS.  Version 4.1 has only been tested on the 
+%  OpenVMS platform.  Please send bug reports (see below),
+%  corrections, additions, suggestions, \textit{etc.}\ to
+%  me at \texttt{matsd@physchem.kth.se}.  (Command names
+%  are a mixture of \LaTeX , Swedish and a bit of the
+%  author's fantasy$\ldots$) With |deleq| v.4.1, the 
+%  commentatory commands |\where| and |\rem| were included.
+%   
+%  \section{Known Problems}
+%  \begin{itemize}
+%  \item  Earlier versions (3.0) of |deleq.sty| had
+%    problems with \LaTeXe   compatibility mode (reported by
+%    Tom Scavo   (\texttt{trscavo@mailbox.syr.edu})).  These
+%    problems are likely to remain.   There are also problems
+%    with the font selections when using older   versions of
+%    |deleq| than 4.0 in \LaTeXe{} native mode.  These error 
+%    messages can be ignored, \LaTeXe{} will produce the
+%    correct output   anyway.  There will not be any attempts
+%    to correct this by the author   of |deleq| in the near
+%    future. 
+%  \item In \LaTeX{} 2.09, the use of |deleq.sty| version
+%    3.0 sometimes caused the   |\em| command not to work
+%    properly in a theorem-like environment   (reported by
+%    Patrick Dan\`es (\texttt{danes@laas.fr})).  This appears
+%    not to be   a problem in \LaTeXe{} with |deleq| version
+%    4.0 and later. 
+%  \end{itemize}
+%   
+%  \section{``Userguide''}
+%  \subsection{Requirements}     
+%  The file |deleq.sty| must be available in the user's
+%  |TEXINPUTS| directories.
+%  It requires \LaTeXe{} of 1994/06/01 (or newer).
+%   
+%  \subsection{Usage}
+%  The package is included by stating\\
+%  |  \usepackage{|$\ldots$|,deleq,|$\ldots$|}| \\
+%  In the document preamble.
+%  The documentclass option |leqno| is fully supported,
+%  no other class or package options have any effect on 
+%  |deleq|.
+%   
+%  \subsection{Environments}     
+%  The package defines the following four environments:
+%  \begin{description}
+%  \item{\texttt{deqn}} environment for automatic numbering of 
+%    the  first equation of type 3a; 
+%  \item{\texttt{ddeqn}} used for automatic numbering of the
+%    equations following the one in |deqn|, see also details
+%    below; 
+%  \item{\texttt{deqarr}} environment for automatic partial equation
+%    numbering used in |eqnarray| environment with 
+%    |deqn| functionality for the first equation;
+%  \item{\texttt{ddeqar}} similar to |deqarr| environment, but 
+%    with |ddeqn| behaviour for the first equation, see details below.
+%  \end{description}
+%   
+%  \subsection{Commands}         
+%  The package defines the following nine user commands:\\
+%  \hspace*{2mm}|\nydeqno|\\
+%  \hspace*{2mm}|\heqno|\\
+%  \hspace*{2mm}|\nydeleqno|\\
+%  \hspace*{2mm}|\deleqno|\\
+%  \hspace*{2mm}|\reqno{FOO}|\\
+%  \hspace*{2mm}|\rndeqno{FOO}|\\
+%  \hspace*{2mm}|\rdeqno{FOO}|\\
+%  \hspace*{2mm}|\where|\\
+%  \hspace*{2mm}|\rem{|\textit{text}|}|\\
+%   
+%  \subsection{Notice}
+%  \begin{enumerate}
+%  \item If you use |\nydeleqno|, |\deleqno|, |\nydeqno|, 
+%  |\heqno|, |\reqno|, |\rndeqno|, or |\rdeqno| in 
+%  combination with |\label{FOO}|, |\label{FOO}| should
+%  appear after the |deleq|-command;
+%  \item If you change the appearance of equation numbers 
+%  (\textit{e.g.}\ use
+%  `[2]' instead of `(2)'),  |deleq|'s commands may not typeset
+%  the partial equation numbers like your ordinary ones.
+%  \end{enumerate}       
+%   
+%  \section{Syntax}
+%  Here follows a more detailed description of the
+%  different environments and commands. \\[1em]
+%  \noindent|\begin{deqn} ... \end{deqn}|\\    
+%  Typesets an equation just like 
+%  |\begin{equation} ... \end{equation}| does, but gives it
+%  a number such as `3a' instead of `3' (always `a'). \\[1em]
+%  \noindent|\begin{ddeqn} ... \end{ddeqn}|\\    
+%  Typesets an equation just like 
+%  |\begin{equation} ... \end{equation}| does, but gives it
+%  a number such as `3b', `3c', $\ldots$ instead of `3',
+%  `4', $\ldots$ when following after another partially
+%  numbered equation.  When following after an ordinarily
+%  numbered equation (`3') it gives a partial equation
+%  number with the last used ordinary equation number,
+%  \textit{e.g.}\  `3a'.  Can be made to produce the result
+%  of |deqn| environment by the use of |\nydeqno| (see 
+%  below). \\[1em]
+%  \noindent|\begin{deqarr} ... \end{deqarr}|\\    
+%  Typesets an equation array just like 
+%  |\begin{eqnarray} ... \end{eqnarray}| does, but gives
+%  the first numbered equation a number like `3a' instead
+%  of `3' (always `a'), and the following `3b', `3c'
+%  \textit{etc.}  The |\nonumber| command works just like
+%  in the |eqnarray| environment. \\[1em]
+%  \noindent|\begin{ddeqar} ... \end{ddeqar}|\\    
+%  Typesets an equation array just like 
+%  |\begin{eqnarray} ... \end{eqnarray}| does, but gives
+%  the equation numbers such as `3a' if following after an
+%  equation numbered `3' (ordinary equation number) and
+%  numbers such as `3c' if following after a partially
+%  numbered equation `3b'. Can be made to produce the
+%  result of |deqarr| environment by the use of |\nydeqno|.
+%  The |\nonumber| command works just like in the
+%  |eqnarray| environment. \\[1em]
+%  \noindent|\nydeqno|\\
+%  Used within |deqarr| and |ddeqar| environments to
+%  step the main equation number by one and reset the 
+%  partial equation number to `a'; thus, |\nydeqno| gives 
+%  equation number `4a' when following after equation `3c'.\\[1em]
+%  \noindent|\heqno|\\
+%  Used within |deqarr| and |ddeqar| 
+%  environments to step the main equation number by one and  
+%  to produce an ordinary equation number; thus, gives 
+%  equation number `4' when following equation `3c'. 
+%  Equations following the |\heqno|-ed will be partially  
+%  numbered with the |\heqno|-ed equation's number as the
+%  main number, \textit{e.g.}\  `4a' (unless it has a |\nydeqno| 
+%  command, which in this case would produce the equation 
+%  number `5a').\\[1em]
+%  \noindent|\nydeleqno|\\
+%  Gives a new partial equation number when used within |$$ ... $$|.
+%  Thus, writing |$$ ...| |\nydeleqno $$| is equivalent to 
+%  writing |\begin{deqn} ... \end{deqn}|.\\[1em]
+%  \noindent|\deleqno|\\
+%  Gives a partial equation number when used within |$$ ... $$|.
+%  Thus, writing |$$ ... \deleqno $$| is equivalent to 
+%  writing |\begin{ddeqn} ... \end{ddeqn}|. \\[1em]
+%  \noindent|\reqno{FOO}|\\
+%  Is used when repeating equations with its original number.
+%  |\reqno| takes the argument |FOO|, which has to be defined
+%  by a |\label{FOO}| in the original equation.  It can
+%  only be used within |$$ ... $$|.  It does not affect the 
+%  equation number counter, nor the partial equation number 
+%  counter.  However, it resets the partial equation number
+%  counter for the |\rndeqno| and |\rdeqno| 
+%  commands.  If used with a |\label{FOOO}| 
+%  command, the |.aux|-file will only contain the page number 
+%  of label |FOOO|. \\[1em]
+%  \noindent|\rndeqno{FOO}|\\
+%  Adds a partial equation number to an old equation number,
+%  specified by the |FOO| label.  If |FOO| refers to equation 
+%  `4', |\rdeqno{FOO}| will result in equation number `4a'
+%  (always `a').  It can only be used within 
+%  |$$ ... $$|.  It does not affect the equation number counter,
+%  nor the partial equation number counter.  However, it
+%  resets the partial equation number counter for the 
+%  |\rndeqno| and  |\rdeqno| commands.
+%  The argument of |\rndeqno| follows the same rules as that of
+%  |\reqno|.  When used with the |\label{FOOO}| command, a
+%  reference to |FOOO| will only return the partial equation
+%  number (and the page number).  To make a complete reference 
+%  to an equation which has a |\rndeqno| command, say 
+%  |\ref{FOO}\ref{FOOO}|. \\[1em]
+%  \noindent|\rdeqno{FOO}|\\
+%  Same as |\rndeqno{FOO}| but without resetting any 
+%  equation number counter and giving consecutive partial
+%  equation numbers (`4b', `4c', \textit{etc.}).
+%  \textbf{Note: } There is nothing preventing the
+%  repeated use of |\rndeqno{FOO}| and |\rdeqno{FOO}| for
+%  the same label |FOO|.  This will result in numbering such
+%  as `3a' (if |FOO| refers to equation `3') occuring several
+%  times. \\[1em]
+%  \noindent|\where|\\
+%  The command |\where| typsets the text ``where'' (in 
+%  the default LR-font) flush left on a seperate row in 
+%  |eqnarray|, |deqarr|, and |ddeqar| environments, and 
+%  preserves the environment's alignment for rows to come. \\[1em]
+%  \noindent|\rem{|\textit{text}|}|\\
+%  The command |\rem{|\textit{text}|}| typsets the text
+%  ``\textit{text}'' (in the default LR-font) flush left on
+%  a seperate row in |eqnarray|, |deqarr|, and |ddeqar|
+%  environments, and preserves the environment's alignment
+%  for rows to come.  |\where| is equivalent to 
+%  |\rem{where}|. \\[1em]
+%  \noindent|\mthref{FOO}|\\
+%  This is not intended as a user command, but is
+%  avaliable.  It is the same as ordinary |\ref{FOO}| but
+%  does not type-set the `??' in |\bfseries| font if
+%  occurring within mathmode. |deleq| makes use of this to
+%  avoid interruptions when \LaTeX -ing documents
+%  containing |\reqno|, |\rndeqno|, or |\rdeqno| with
+%  undefined references.  It can be used also outside
+%  mathmode, and behaves then just like |\ref{FOO}|. 
+%  Warnings are the same as when using |\ref{FOO}|. 
+%   
+%  \section{Example}
+%  After running \LaTeX{} on |deleq.ins|, there is an 
+%  example avaliable in the file |delex.tex|, 
+%  which makes use of all the environments and commands 
+%  defined in the |deleq| package.  Typset it and see with 
+%  your own eyes what the results are!
+%  
+%  
+%  \section{Sending a Bug Report}
+%  |deleq| is most likely to contain bugs.
+%  Reports of bugs in the package are most welcome.  
+%  Before filing a bug report,
+%  please take the following actions:
+%  \begin{enumerate}
+%  \item Ensure your problem is not due to your inputfile;
+%  \item Ensure your problem is not due to 
+%     your own package(s) or class(es);
+%  \item Ensure your problem is not covered in the section 
+%     ''Known Problems'' above;
+%  \item  Try to locate the problem by writing a minimal 
+%     \LaTeX{} input file which reproduces the problem.  
+%     Include the command\\ 
+%     |  \setcounter{errorcontextlines}{999}|\\ 
+%     in your input;
+%  \item Run your file through \LaTeX ;
+%  \item Send a description of your problem, the input file 
+%     and the log file via e-mail to:\\
+%     \hspace*{5mm} \texttt{matsd@physchem.kth.se}.
+%  \end{enumerate}
+%  {\itshape Enjoy your \LaTeX!\raisebox{-\baselineskip}{mats d.}}
+%  
+%  \section{The Code} 
+%  For the interested reader(s), here is a short description 
+%  of the code. \par
+% \iffalse
+%<*paketkod>
+% Part 1: Identification etc.
+% \fi
+%  First, the package is to identify itself.
+%    \begin{macrocode} 
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{deleq}[1994/12/27 v.4.1 Partial equation numbering]
+\typeout{deleq.sty included, version 4.1 (Dec. 27, 1994).  (c) 1994 by Mats Dahlgren}
+\def\deleqver{\texttt{deleq} version 4.1 (Dec.~27, 1994)}
+%    \end{macrocode}
+% \iffalse
+% Part 2: Counters and internal commands, etc.
+% \fi
+%  \par  Then, we need to define the counters used for the partial 
+%  part of the equation number.  The counter |Deleq| is used for 
+%  ``recycled'' equation numbers, hence no dependence on any other 
+%  counter.  Also the lettering of the counters are to be defined.
+%    \begin{macrocode}
+\newcounter{deleq}[equation]
+\newcounter{Deleq}
+\newcount\@deqpen
+\newcount\@deqcnt
+\renewcommand{\thedeleq}{\ensuremath{\theequation\mathrm{\aLph{deleq}}}}
+\renewcommand{\theDeleq}{\ensuremath{\mathrm{\aLph{Deleq}}}}
+\def\@deleqnnum{(\thedeleq)}
+\def\aLph#1{\@aLph{\@nameuse{c@#1}}}
+\def\@aLph#1{\ifcase#1\or a\or b\or c\or d\or e\or f\or g\or h\or i\or j\or
+   k\or l\or m\or n\or o\or p\or q\or r\or s\or t\or u\or v\or w\or x\or y\or
+   z\else\@ctrerr\fi}
+%    \end{macrocode}
+%  The parts making up the |\\| command in the multiline environments 
+%  are extremely similar to those used by the standard environments:
+%    \begin{macrocode}
+\def\@deqncr{{\ifnum0=`}\fi\@ifstar{\global\@deqpen\@M
+    \@ydeqncr}{\global\@deqpen\interdisplaylinepenalty \@ydeqncr}} 
+\def\@ydeqncr{\@ifnextchar [{\@xdeqncr}{\@xdeqncr[\z@]}} 
+\def\@xdeqncr[#1]{\ifnum0=`{\fi}\@@deqncr
+   \noalign{\penalty\@deqpen\vskip\jot\vskip #1\relax}}
+\def\@@deqncr{\let\@tempa\relax
+    \ifcase\@deqcnt \def\@tempa{& & &}\or \def\@tempa{& &}%
+      \else \def\@tempa{&}\fi
+     \@tempa \if@eqnsw\@deleqnnum\stepcounter{deleq}\fi
+     \global\@eqnswtrue\global\@deqcnt\z@\cr}  
+%    \end{macrocode}
+% \iffalse
+% Part 3:  Commands:  \nydeleqno, \deleqno, \reqno, \rndeqno, \rdeqno,  
+%                     \nydeqno, and \heqno
+% \fi
+%  \par Here the definitions of the user commands are.
+%    \begin{macrocode}
+\newcommand{\nydeleqno}{\refstepcounter{equation}\refstepcounter{deleq}
+  \let\@currentlabel\thedeleq \eqno (\thedeleq)}
+\newcommand{\deleqno}{\refstepcounter{deleq} \let\@currentlabel\thedeleq 
+  \eqno (\thedeleq)}
+\newcommand{\reqno}[1]{\setcounter{Deleq}{-1}\refstepcounter{Deleq}
+   \eqno (\ref{#1}) }
+\newcommand{\rdeqno}[1]{\refstepcounter{Deleq}
+   \eqno (\ref{#1}\theDeleq)}
+\newcommand{\rndeqno}[1]{\setcounter{Deleq}{0}\refstepcounter{Deleq}
+   \eqno (\ref{#1}\theDeleq)}
+\newcommand{\nydeqno}{\stepcounter{equation}\stepcounter{deleq}}
+\newcommand{\heqno}{\stepcounter{equation}}
+%    \end{macrocode}
+%  And the two commands |\where| and |\rem| follow suit:
+%    \begin{macrocode}
+\def\where{\let\@tempa\relax \def\@tempa{& & &}
+     \@tempa {\hbox to .01\p@{}\rlap{\hskip -\displaywidth where}}\cr}
+\def\rem#1{\let\@tempa\relax \def\@tempa{& & &}
+     \@tempa {\hbox to .01\p@{}\rlap{\hskip -\displaywidth #1}}\cr}
+%    \end{macrocode}
+% \iffalse
+% Part 4:  Environments: 'deqarr', 'ddeqar', 'deqn', and 'ddeqn'  
+% \fi
+%  \par The four environments are slight modifications of the 
+%  corresponding \LaTeX{} standard environments.  The main difference 
+%  lies in which counter(s) is stepped and which internals are used to 
+%  finish off the lines.
+%    \begin{macrocode}
+\newenvironment{deqarr}{\stepcounter{equation}\stepcounter{deleq}
+  \let\@currentlabel\thedeleq
+  \global\@eqnswtrue\m@th
+  \global\@deqcnt\z@\tabskip\@centering\let\\\@deqncr
+  $$\halign to\displaywidth\bgroup\@eqnsel\hskip\@centering
+  $\displaystyle\tabskip\z@{##}$&\global\@deqcnt\@ne
+  \hskip 2\arraycolsep \hfil${##}$\hfil
+  &\global\@deqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+{\@@deqncr\egroup
+      \global\advance\c@deleq\m@ne$$\global\@ignoretrue}
+\newenvironment{ddeqar}{\stepcounter{deleq}
+  \let\@currentlabel\thedeleq
+  \global\@eqnswtrue\m@th
+  \global\@deqcnt\z@\tabskip\@centering\let\\\@deqncr
+  $$\halign to\displaywidth\bgroup\@eqnsel\hskip\@centering
+  $\displaystyle\tabskip\z@{##}$&\global\@deqcnt\@ne
+  \hskip 2\arraycolsep \hfil${##}$\hfil
+  &\global\@deqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr} 
+{\enddeqarr}
+\newenvironment{deqn}{$$\refstepcounter{equation}\stepcounter{deleq} 
+   \let\@currentlabel\thedeleq}
+  {\eqno \hbox{\@deleqnnum} $$\global\@ignoretrue}
+\newenvironment{ddeqn}{$$\refstepcounter{deleq} \let\@currentlabel\thedeleq}
+  {\eqno \hbox{\@deleqnnum} $$\global\@ignoretrue}
+%    \end{macrocode}
+% \iffalse
+% Part 5:  'leqno' compatibility
+% \fi
+%  \par If the user wants the equation numbers to the left, we have to 
+%  modify some of the commands and internals defined above.  This is 
+%  done in a |\DeclareOption|-call:
+%    \begin{macrocode}
+\DeclareOption{leqno}{\typeout{`leqno' implementation in progress.}
+  \def\@deleqnnum{\hbox to .01\p@{}\rlap{\reset@font\rmfamily
+        \hskip -\displaywidth(\thedeleq)}}
+\renewcommand{\nydeleqno}{\refstepcounter{equation}\refstepcounter{deleq}
+  \let\@currentlabel\thedeleq \leqno (\thedeleq)}
+\renewcommand{\deleqno}{\refstepcounter{deleq} \let\@currentlabel\thedeleq 
+  \leqno (\thedeleq)}
+\renewcommand{\reqno}[1]{\setcounter{Deleq}{-1}\refstepcounter{Deleq}
+   \leqno (\ref{##1}) }
+\renewcommand{\rdeqno}[1]{\refstepcounter{Deleq}
+   \leqno (\ref{##1}\theDeleq)}
+\renewcommand{\rndeqno}[1]{\setcounter{Deleq}{0}\refstepcounter{Deleq}
+   \leqno (\ref{##1}\theDeleq)}
+  }
+%    \end{macrocode}
+%  If other options were asked for, the package should inform the user 
+%  that this has no effect on |deleq|.  Then, last, the option(s) 
+%  is (are) processed.
+%    \begin{macrocode}
+\DeclareOption*{\typeout{`\CurrentOption '\space has no effect on deleq.}%
+  \OptionNotUsed}
+\ProcessOptions
+%    \end{macrocode}
+% \iffalse
+% END of it all!
+%</paketkod>
+%<*driver>
+\documentclass[a4paper]{article}
+\usepackage{doc}
+\textwidth=150mm
+\textheight=210mm
+\topmargin=0mm
+\oddsidemargin=5mm
+\evensidemargin=5mm
+\begin{document}
+  \DocInput{deleq.dtx} 
+  \PrintChanges
+\end{document}
+%</driver>
+%<*exempelkod>
+\documentclass[11pt]{article} %%% add `leqno' if you want left-aligned
+\usepackage{deleq}            %%%                    equation numbers.
+\oddsidemargin=0.5cm
+\evensidemargin=0.5cm
+\topmargin=-5mm           
+\textheight=23.5cm
+\textwidth=15.5cm
+\begin{document}
+  \begin{center}
+  \Large Welcome to the \texttt{deleq} package!
+  \end{center}
+  
+  This is a short document to demonstrate the use of the 
+  \texttt{deleq} package and its commands.  It uses \deleqver .
+  \texttt{deleq} was written by Mats Dahlgren
+  (\texttt{matsd@physchem.kth.se}).  Suggestions for
+  improvements and bug reports are most welcome, see the 
+  documentation.  \texttt{deleq} is fully compatible with the
+  \texttt{leqno} option. 
+  
+  We start this demonstration by a simple and well-known
+  equation to get the equation number counter going: 
+  \begin{equation}  
+    \sin^2\alpha + \cos^2\alpha = 1  
+  \end{equation}
+  The first example will be to make use of the
+  \texttt{deqn} environment to get a partially numbered
+  equation: 
+  \begin{deqn}  
+    \sin (-\alpha) = - \sin \alpha  
+  \end{deqn}
+  This equation has its cosine companion, here written in
+  the \texttt{ddeqn} environment: 
+  \begin{ddeqn}  
+    \cos (-\alpha) = \cos \alpha  
+  \end{ddeqn}
+  Not so exciting, so far. :--)
+  
+  In the next example we introduce the \texttt{deqarr}
+  environment for writing equations: 
+  \begin{deqarr}
+    \sin ( \alpha + \beta ) & = 
+      & \sin \alpha \cos \beta + \sin \beta \cos \alpha \\
+    \sin ( \alpha - \beta ) & = 
+      & \sin \alpha \cos \beta - \sin \beta \cos \alpha 
+    \label{Demo1}
+  \end{deqarr}
+  where we also have put in the label \texttt{Demo1} in
+  the second equation. Next, notice how the environment
+  \texttt{ddeqar} uses the same main equation number as
+  the previous equations: 
+  \begin{ddeqar}
+    \cos ( \alpha + \beta ) & = 
+      & \cos \alpha \cos \beta - \sin \alpha \sin \beta \\
+    \cos ( \alpha - \beta ) & = 
+      & \cos \alpha \cos \beta + \sin \alpha \sin \beta 
+  \end{ddeqar}
+  Now, we will make another \texttt{eqnarray}-like
+  structure, again in the \texttt{ddeqar} environment: 
+  \begin{ddeqar}
+    \sin 2\alpha & = 
+      & 2 \sin \alpha \cos \alpha \heqno \label{Demo2} \\
+    \cos 2\alpha & = 
+      & \cos ^2 \alpha - \sin ^2 \alpha \nydeqno \\
+  \rem{or}
+      & = & 2\cos ^2 \alpha - 1 
+  \end{ddeqar}
+  This example shows the use of \verb$\heqno$ in the first
+  equation, which produces an ordinary equation number. 
+  The first equation is also labelled, with the label
+  \texttt{Demo2}.  The next equation's number was produced
+  by the command \verb$\nydeqno$.  Also, notice the use of
+  \verb+\rem{or}+, which results in the text ``or'' without
+  changing the alignment.
+  
+  To step the equation number counter, we want the
+  following equations typeset in ordinary
+  \texttt{eqnarray} environment: 
+  \begin{eqnarray}
+    \tan ^2 \alpha & = 
+      & \frac{\sin ^2 \alpha}{\cos ^2 \alpha} \label{Demo3} \\
+    \tan \alpha & = 
+      & \frac{\sin \alpha}{\cos \alpha} 
+  \end{eqnarray}
+  The upper equation was given the label \texttt{Demo3}.
+  
+  Now one of the ``recycling'' commands is to be
+  demonstrated.  First of all, let's make an ordinary
+  reference to equation~\ref{Demo2}, and then ``recycle'' it: 
+  $$ \sin 2\alpha = 2 \sin \alpha \cos \alpha \reqno{Demo2} $$
+  This was obtained with \verb#$$ ... $$# with the command
+  \verb#\reqno{Demo2}# at the end.  Also partially
+  numbered equations can be recycled with the
+  \verb#\reqno{FOO}# command, as with
+  equation~\ref{Demo1}: 
+  $$ \sin ( \alpha - \beta ) = \sin \alpha \cos \beta - 
+    \sin \beta \cos \alpha \reqno{Demo1} $$
+  (However, the use of \verb#\rndeqno{FOO}# and
+  \verb#\rdeqno{FOO}# will produce strange results with
+  two (different) partial equation numbers if \texttt{FOO}
+  refers to a partially numbered equation.) 
+  
+  The next equation was written with \verb#$$ ... $$# and
+  a \verb#\deleqno# command at the end: 
+  $$ \tan 2\alpha = \frac{2\tan \alpha}{1 - \tan ^2 \alpha} \deleqno $$
+  Notice how the main equation number counter is still the
+  same, despite that we now are outside of the
+  \texttt{ddeqar} environment. Also, notice how the use of
+  \verb#\reqno# above did not affect the equation number
+  counter. The following equation is also set within
+  \verb#$$ ... $$#, but it uses the command
+  \verb#\nydeleqno# to produce an equation number with a
+  new main number: 
+  $$ \sin ^2 \alpha = 1 - \cos ^2 \alpha \nydeleqno $$
+  
+  Now we will elaborate a little on \verb#\rndeqno{FOO}#
+  and \verb#\rdeqno{FOO}#. Let us use
+  equation~\ref{Demo3}, and see what happens if we use the
+  \verb#\rndeqno{FOO}# command: 
+  $$ \tan ^2 \alpha = \frac{\sin ^2 \alpha}
+    {\cos ^2 \alpha} \rndeqno{Demo3} $$
+  which we rewrite:
+  $$ \tan ^2 \alpha = \frac{\sin ^2 \alpha}
+    {1 - \sin ^2 \alpha} \rdeqno{Demo3}  \label{Demo4} $$
+  with \verb#\rdeqno{Demo3}# at the end.  This is great
+  fun, so why not one more: 
+  $$ \tan ^2 \alpha = \frac{1 - \cos ^2 \alpha}
+    {\cos ^2 \alpha} \rdeqno{Demo3} $$ 
+  Also, the middle form of equation~\ref{Demo3} got a
+  label, \texttt{Demo4}. 
+  
+  There is still one equation to write.  This time we
+  again use the \texttt{deqarr} environment: 
+  \begin{deqarr}
+  \cot \alpha & = & \frac{\cos \alpha}{\sin \alpha} \\
+  \where
+    & = & \frac{1}{\tan \alpha}
+  \end{deqarr}
+  This example also shows the use of the \verb+\where+ 
+  command, which is a special case of the \verb+\rem+ command.
+  Now, the interesting thing of referring to the recycled
+  equations is ahead. If one writes \verb#\ref{Demo4}#,
+  this is what \LaTeX\ will return:~\ref{Demo4}.  That is
+  not too instructive, since the partial equation numbers
+  are quite common in this document.  To make the complete
+  reference, use \verb#\ref{Demo3}\ref{Demo4}#.  The
+  reference~\ref{Demo3}\ref{Demo4} is much more
+  comprehensible, right? (If you get bad line-breaks at
+  such references, put them in an \verb#\mbox{...}#.) 
+  
+  Finally, the $\mathcal{END}$!  If you want your
+  equations left-aligned, just specify the \texttt{leqno}
+  option for the \texttt{documentclass} you are using.  It
+  should work!  If you have any suggestions, corrections
+  or contributions, please contact me. Enjoy \LaTeX ! 
+  
+  {\itshape mats d.}
+\end{document}
+%</exempelkod>  
+% \fi
+%
+% \Finale
+%
+\endinput 

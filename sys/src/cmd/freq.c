@@ -92,18 +92,18 @@ freq(int f, char *s)
 		if(count[i] == 0)
 			continue;
 		if(flag & Fdec)
-			Bprint(&bout, "%3ld ", i);
+			Bprint(&bout, "%3d ", i);
 		if(flag & Foct)
-			Bprint(&bout, "%.3lo ", i);
+			Bprint(&bout, "%.3o ", i);
 		if(flag & Fhex)
-			Bprint(&bout, "%.2lx ", i);
+			Bprint(&bout, "%.2x ", i);
 		if(flag & Fchar) {
 			if(i <= 0x20 ||
 			   i >= 0x7f && i < 0xa0 ||
 			   i > 0xff && !(flag & Frune))
 				Bprint(&bout, "- ");
 			else
-				Bprint(&bout, "%C ", (int)i);
+				Bprint(&bout, "%C ", i);
 		}
 		Bprint(&bout, "%8ld\n", count[i]);
 	}

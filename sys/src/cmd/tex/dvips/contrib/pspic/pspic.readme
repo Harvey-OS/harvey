@@ -1,0 +1,40 @@
+Hello Thomas...
+
+For some time I've been working on a LaTeX-style, which replaces the
+graphic-producing picture objects of LaTeX's picture environment
+(line, vector, circle, circle* etc.)
+  This new implementation of the picture environment is based on your
+`dvips' TeX-driver for PostScript printers. I thought you might
+distribute it with your dvips, as it only works with this specific
+driver (it uses your \special variants ! " and ps: )
+  At the ending of this the entire style is enclosed. A few things
+should be said about compability:
+
+linethickness  when changing the linehickness this affects not only
+	       the horizontal and vertical lines, but also slanted
+	       ones.
+
+line	       The restrictions of wich angles you can make lines are
+	       eliminated. 
+
+vector	       As you may now make vectors at any linethickness I've
+	       made a new definition of the vectorhead, so that the
+	       size of vector heads are proportional to the
+	       linethickness.
+
+circle(*)      In default LaTeX circles can be only of certain sizes
+	       (as they are predefined as graphics). with pspic you
+	       may make circles at any size.
+
+I see all thiese things as improvements in comparison with the old
+style, but you must off course be aware of them while using this style
+(especially with old documents).
+
+You may specify a grayscale using the \shade operator, wich takes one
+argument, a number from 0-100 setting the percentage of black. The
+\scale operator affects all the graphic producing objects.
+
+I've tested this for some time, and there doesn't seem to be any bad
+bugs. I will apreciate any response.
+
+/Kresten

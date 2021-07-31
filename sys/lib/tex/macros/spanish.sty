@@ -1,0 +1,279 @@
+%% 
+%% This is file `spanish.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% spanish.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Julio Sanchez"
+%%%     author-2        = "Braams J.L.",
+%%%     version         = "3.3d",
+%%%     date            = "26 June 1994",
+%%%     time            = "00:58:23 MET",
+%%%     filename        = "spanish.doc",
+%%%     address-1       = "GMV, SA
+%%%                        c/ Isaac Newton 11
+%%%                        PTM - Tres Cantos
+%%%                        E-28760 Madrid
+%%%                        Spain",
+%%%     address-2       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone-1     = "+34 1 807 21 85",
+%%%     telephone-2     = "(70) 3325051",
+%%%     FAX-1           = "+34 1 807 21 99",
+%%%     FAX-2           = "(70) 3326477",
+%%%     checksum        = "37806 861 4587 37084",
+%%%     email-1         = "jsanchez@gmv.es (Internet)",
+%%%     email-2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, spanish",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the spanish language
+%%%                        specific definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsspanish
+\else
+  \selectlanguage{spanish}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{spanish.sty}[1994/06/26 v3.3d
+         Spanish support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@spanish
+  \@nopatterns{Spanish}
+  \adddialect\l@spanish0
+\fi
+\addto\captionsspanish{%
+  \def\prefacename{Prefacio}%
+  \def\refname{Referencias}%
+  \def\abstractname{Resumen}%
+  \def\bibname{Bibliograf\'{\i}a}%
+  \def\chaptername{Cap\'{\i}tulo}%
+  \def\appendixname{Ap\'endice}%
+  \def\contentsname{\'Indice General}%
+  \def\listfigurename{\'Indice de Figuras}%
+  \def\listtablename{\'Indice de Tablas}%
+  \def\indexname{\'Indice de Materias}%
+  \def\figurename{Figura}%
+  \def\tablename{Tabla}%
+  \def\partname{Parte}%
+  \def\enclname{Adjunto}%
+  \def\ccname{Copia a}%
+  \def\headtoname{A}%
+  \def\pagename{P\'agina}%
+  \def\seename{v\'ease}%
+  \def\alsoname{v\'ease tambi\'en}}%
+\def\datespanish{%
+\def\today{\number\day~de\space\ifcase\month\or
+  enero\or febrero\or marzo\or abril\or mayo\or junio\or
+  julio\or agosto\or septiembre\or octubre\or noviembre\or diciembre\fi
+  \space de~\number\year}}
+\addto\extrasspanish{%
+  \babel@add@special\"%
+  \babel@add@special\'%
+  \babel@add@special\~}
+\addto\noextrasspanish{%
+  \babel@remove@special\"%
+  \babel@remove@special\'%
+  \babel@remove@special\~}
+\addto\extrasspanish{%
+  \babel@savevariable{\catcode`\"}\babel@save\active@dq
+  \babel@savevariable{\catcode`\'}\babel@save\active@ac
+  \babel@savevariable{\catcode`\~}\babel@save\active@til
+  \babel@save~}
+\addto\extrasspanish{\catcode`\"\active\catcode`\'\active%
+                     \catcode`\~\active}
+\begingroup \catcode`\"\active \catcode`\~\active \catcode`\'\active
+\def\x{\endgroup
+  \addto\extrasspanish{%
+    \def'{\spanish@@active{ac}}%
+    \def\active@ac{\spanish@active{ac}}%
+    \def~{\spanish@@active{til}}%
+    \def\active@til{\spanish@active{til}}%
+    \def"{\spanish@@active{dq}}%
+    \def\active@dq{\spanish@active{dq}}}}
+\x
+\addto\extrasspanish{%
+    \babel@savevariable\lefthyphenmin
+    \babel@savevariable\righthyphenmin
+    \lefthyphenmin\tw@
+    \righthyphenmin\tw@}
+\addto\extrasspanish{\babel@save\"\babel@save\'%
+                     \babel@save\~\babel@save\a}
+\addto\extrasspanish{\let\a\spanish@a}
+\addto\extrasspanish{\let\"\@umlaut
+                     \let\'\@acute
+                     \let\~\@tilde}
+\def\flqq{\protect\@flqq}
+\def\@flqq{\relax \ifmmode \ll \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \ll $}}\fi}
+\def\frqq{\protect\@frqq}
+\def\@frqq{\relax \ifmmode \gg \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \gg $}}\fi}
+\def\flq{\protect\@flq}
+\def\@flq{\relax \ifmmode <\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle <$}}\fi}
+\def\frq{\protect\@frq}
+\def\@frq{\relax \ifmmode >\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle >$}}\fi}
+\def\spanish@a#1{{\if\string#1'\aftergroup\@acute
+            \else \expandafter\aftergroup\csname a#1\endcsname\fi}}
+\begingroup \catcode`\"12 \catcode`\'12
+\edef\x{\endgroup
+  \def\noexpand\dq{"}
+  \def\noexpand\til{~}
+  \def\noexpand\ac{'}}
+\x
+\let\dieresis\"
+\let\textacute\'
+\let\texttilde\~
+\ifx\undefined\DeclareFontShape
+    \wlog{Warning: You are using an old LaTeX}
+    \wlog{Some word breaks will not be found.}
+    \def\@umlaut#1{\allowhyphens\dieresis{#1}\allowhyphens}
+    \def\@acute#1{\allowhyphens\textacute{#1}\allowhyphens}
+    \def\@tilde#1{\allowhyphens\texttilde{#1}\allowhyphens}
+\else
+    \edef\next{T1}
+    \ifx\f@encoding\next
+        \let\@umlaut\dieresis
+        \let\@acute\textacute
+        \let\@tilde\texttilde
+    \else
+        \wlog{Warning: You are using encoding \f@encoding\space instead of T1.}
+        \wlog{Some word breaks will not be found.}
+        \def\@umlaut#1{\allowhyphens\dieresis{#1}\allowhyphens}
+        \def\@acute#1{\allowhyphens\textacute{#1}\allowhyphens}
+        \def\@tilde#1{\allowhyphens\texttilde{#1}\allowhyphens}
+    \fi
+\fi
+\def\spanish@shorthand#1#2{\csname \languagename @#1@\string #2@#1@\endcsname}
+\def\spanish@@active#1#2{\spanish@@active@@{#1}{#2}}
+\def\spanish@@active@@#1#2{\expandafter\expandafter\expandafter
+     \ifx\spanish@shorthand{#1}{#2}\relax \expandafter\spanish@normal
+     \else \expandafter\spanish@@@active \fi {#1}{#2}}
+\def\spanish@normal#1#2{\csname #1\endcsname #2}
+\def\spanish@@@active#1#2{%
+   \ifx\protect\relax \else \expandafter\protect \fi
+   \csname active@#1\endcsname{#2\empty}}
+\def\spanish@active#1#2{%
+  \csname spanish@choose@\ifmmode second\else first\fi
+    \expandafter\expandafter\expandafter\expandafter
+    \expandafter\expandafter\expandafter
+  \endcsname
+  \spanish@shorthand{#1}{#2}}
+\def\spanish@choose@first#1#2{#1}
+\def\spanish@choose@second#1#2{#2}
+\def\languagename{spanish}
+\def\def@spanish@shorthand#1#2#3#4{\expandafter\expandafter\expandafter
+  \def\spanish@shorthand{#1}{#2}{{#3}{#4}}}
+\def\let@spanish@shorthand#1#2#3{\begingroup
+  \edef\x{\endgroup \let
+    \expandafter\expandafter\expandafter\noexpand\spanish@shorthand{#1}{#2}%
+    \expandafter\expandafter\expandafter\noexpand\spanish@shorthand{#1}{#3}}%
+  \x}
+\def\spanish@disc#1#2{\allowhyphens\discretionary{#2-}{}{#1}\allowhyphens}
+\def@spanish@shorthand{dq}{u}{\@umlaut u}{\@umlaut u}
+\def@spanish@shorthand{dq}{U}{\@umlaut U}{\@umlaut U}
+\def@spanish@shorthand{dq}{<}{\flqq{}}{\flqq{}}
+\def@spanish@shorthand{dq}{>}{\frqq{}}{\frqq{}}
+\def@spanish@shorthand{dq}{o}{\raise1ex\hbox{\underbar{\scriptsize o}}}%
+        {\raise1ex\hbox{\underbar{\scriptsize o}}}
+\def@spanish@shorthand{dq}{a}{\raise1ex\hbox{\underbar{\scriptsize a}}}%
+        {\raise1ex\hbox{\underbar{\scriptsize a}}}
+\def@spanish@shorthand{ac}{a}{\@acute a}{\@acute a}
+\def@spanish@shorthand{ac}{e}{\@acute e}{\@acute e}
+\def@spanish@shorthand{ac}{i}{\@acute \i{}}{\@acute \imath}
+\def@spanish@shorthand{ac}{o}{\@acute o}{\@acute o}
+\def@spanish@shorthand{ac}{u}{\@acute u}{\@acute u}
+\def@spanish@shorthand{ac}{A}{\@acute A}{\@acute A}
+\def@spanish@shorthand{ac}{E}{\@acute E}{\@acute E}
+\def@spanish@shorthand{ac}{I}{\@acute I}{\@acute I}
+\def@spanish@shorthand{ac}{O}{\@acute O}{\@acute O}
+\def@spanish@shorthand{ac}{U}{\@acute U}{\@acute U}
+\def@spanish@shorthand{til}{n}{\@tilde n}{\@tilde n}
+\def@spanish@shorthand{til}{N}{\@tilde N}{\@tilde N}
+\def@spanish@shorthand{dq}{-}{\allowhyphens\-\allowhyphens}%
+               {\allowhyphens\-\allowhyphens}
+\def@spanish@shorthand{dq}{|}{\discretionary{-}{}{\kern.03em}}{}
+\def@spanish@shorthand{dq}{"}{\hskip\z@skip}{\hskip\z@skip}
+\def@spanish@shorthand{ac}{'}{\rq\rq}
+        {^\bgroup\catcode`\'=12\prime\prime\futurelet\next\pr@m@s}
+\def@spanish@shorthand{dq}{\empty}{{}}{{}}
+\let@spanish@shorthand{dq}{\active@dq{}}{"}
+\let@spanish@shorthand{dq}{\active@ac{}}{"}
+\def@spanish@shorthand{ac}{\empty}{{}}{{}}
+\let@spanish@shorthand{ac}{\active@ac{}}{'}
+\def@spanish@shorthand{ac}{$}{\rq $}{^\bgroup\prim@s $}
+\catcode`\{=12 \catcode`\}=12
+\catcode`\[=1  \catcode`\]=2
+\def@spanish@shorthand[ac][{][\rq \bgroup][^\bgroup\prim@s \bgroup]
+\def@spanish@shorthand[ac][}][\rq \egroup][^\bgroup\prim@s \egroup]
+\def@spanish@shorthand[til][{][\til \bgroup][\til \bgroup]
+\def@spanish@shorthand[til][}][\til \egroup][\til \egroup]
+\catcode`\{=1  \catcode`\}=2
+\catcode`\[=12 \catcode`\]=12
+\selectlanguage{spanish}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `spanish.sty'.

@@ -114,8 +114,8 @@ inithdr(int fd)
 	if (!crackhdr(fd, &fhdr))
 		fatal(0, "read text header");
 
-	if(fhdr.type != FMIPS && fhdr.type != FMIPS2BE)
-		fatal(0, "bad magic number: %d %d", fhdr.type, FMIPS);
+	if(fhdr.type != FMIPS)
+		fatal(0, "bad magic number");
 
 	if (syminit(fd, &fhdr) < 0)
 		fatal(0, "%r\n");
@@ -340,11 +340,8 @@ void
 fatal(int syserr, char *fmt, ...)
 {
 	char buf[ERRLEN], *s;
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	s = "vi: %s\n";
 	if(syserr)
 		s = "vi: %s: %r\n";
@@ -356,11 +353,8 @@ void
 itrace(char *fmt, ...)
 {
 	char buf[128];
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	Bprint(bioout, "%8lux %.8lux %s\n", reg.pc, reg.ir, buf);	
 }
 

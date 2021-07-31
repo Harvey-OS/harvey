@@ -1,0 +1,10 @@
+% fat version of METAFONT logo
+font_size 10pt#;  % the "design size" of this font
+ht#:=6pt#;    % height of characters
+xgap#:=2pt#;    % horizontal adjustment
+u#:=4/3pt#;    % unit width
+s#:=-2/3pt#;    % extra space at the left and the right
+o#:=1/9pt#;    % overshoot
+px#:=1/3pt#;    % horizontal thickness of pen
+input logo    % now generate the font
+end      % and stop.

@@ -9,7 +9,6 @@ conv(Biobufhdr *Bp) {
 	long c, n;
 	int r;
 	char special[10];
-	int save;
 
 	inputlineno = 1;
 	if (debug) Bprint(Bstderr, "conv(Biobufhdr *Bp=0x%x)\n", Bp);
@@ -22,9 +21,7 @@ conv(Biobufhdr *Bp) {
 			break;
 		case 'f':	/* set font to postion */
 			Bgetfield(Bp, 'd', &fontpos, 0);
-			save = inputlineno;
 			settrfont();
-			inputlineno = save;	/* ugh */
 			break;
 		case 'c':	/* print rune */
 			r = Bgetrune(Bp);

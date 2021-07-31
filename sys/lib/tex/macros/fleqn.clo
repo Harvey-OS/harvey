@@ -1,0 +1,119 @@
+%% 
+%% This is file `fleqn.clo', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% classes.dtx  (with options: `fleqn')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see bugs.txt. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\ProvidesFile{fleqn.clo}
+              [1994/12/09 v1.2x
+               Standard LaTeX option (flush left equations)]
+\newdimen\mathindent
+\AtEndOfClass{\mathindent\leftmargini}
+\renewcommand{\[}{\relax
+                 \ifmmode\@badmath
+                 \else
+                   \begin{trivlist}%
+                     \@beginparpenalty\predisplaypenalty
+                     \@endparpenalty\postdisplaypenalty
+                     \item[]\leavevmode
+                     \hbox to\linewidth\bgroup $\m@th\displaystyle %$
+                       \hskip\mathindent\bgroup
+                 \fi}
+\renewcommand{\]}{\relax
+                 \ifmmode
+                       \egroup $\hfil% $
+                     \egroup
+                   \end{trivlist}%
+                 \else \@badmath
+                 \fi}
+\renewenvironment{equation}%
+    {\@beginparpenalty\predisplaypenalty
+     \@endparpenalty\postdisplaypenalty
+     \refstepcounter{equation}%
+     \trivlist \item[]\leavevmode
+       \hbox to\linewidth\bgroup $\m@th% $
+         \displaystyle
+         \hskip\mathindent}%
+        {$\hfil % $
+         \displaywidth\linewidth\hbox{\@eqnnum}%
+       \egroup
+     \endtrivlist}
+\renewenvironment{eqnarray}{%
+    \stepcounter{equation}%
+    \def\@currentlabel{\p@equation\theequation}%
+    \global\@eqnswtrue\m@th
+    \global\@eqcnt\z@
+    \tabskip\mathindent
+    \let\\=\@eqncr
+    \setlength{\abovedisplayskip}{\topsep}%
+    \ifvmode
+      \addtolength{\abovedisplayskip}{\partopsep}%
+    \fi
+    \addtolength{\abovedisplayskip}{\parskip}%
+    \setlength{\belowdisplayskip}{\abovedisplayskip}%
+    \setlength{\belowdisplayshortskip}{\abovedisplayskip}%
+    \setlength{\abovedisplayshortskip}{\abovedisplayskip}%
+    $$\everycr{}\halign to\linewidth% $$
+    \bgroup
+      \hskip\@centering
+      $\displaystyle\tabskip\z@skip{##}$\@eqnsel&%
+      \global\@eqcnt\@ne \hskip \tw@\arraycolsep \hfil${##}$\hfil&%
+      \global\@eqcnt\tw@ \hskip \tw@\arraycolsep
+        $\displaystyle{##}$\hfil \tabskip\@centering&%
+      \global\@eqcnt\thr@@
+        \hbox to \z@\bgroup\hss##\egroup\tabskip\z@skip\cr}%
+      {\@@eqncr
+    \egroup
+    \global\advance\c@equation\m@ne$$% $$
+    \global\@ignoretrue
+    }
+\endinput
+%% 
+%% End of file `fleqn.clo'.

@@ -1,10 +1,11 @@
-#include "common.h"
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 #include <ndb.h>
 
 enum
 {
 	Nmx=	16,
-	Maxstring=	256,
 };
 
 typedef struct Mx	Mx;
@@ -14,64 +15,56 @@ struct Mx
 	int pref;
 };
 static Mx mx[Nmx];
-
-typedef struct DS	DS;
-struct DS {
-	/* dist string */
-	char	buf[128];
-	char	*netdir;
-	char	*proto;
-	char	*host;
-	char	*service;
-};
-
 Ndb *db;
-extern int debug;
+int debug;
 
-static int	mxlookup(DS*, char*);
-static int	mxlookup1(DS*, char*);
+static int	mygetfields(char*, char**, int, char);
+static int	mxlookup(char*);
 static int	compar(void*, void*);
-static int	callmx(DS*, char*, char*);
-static void	dial_string_parse(char*, DS*);
-extern int	cistrcmp(char*, char*);
-
-int
-mxdial(char *addr, char *ddomain, char *gdomain)
-{
-	int fd;
-	DS ds;
-	char err[ERRLEN];
-
-	addr = netmkaddr(addr, 0, "smtp");
-	dial_string_parse(addr, &ds);
-
-	/* try connecting to destination or any of it's mail routers */
-	fd = callmx(&ds, addr, ddomain);
-
-	/* try our mail gateway */
-	errstr(err);
-	werrstr(err);
-	if(fd < 0 && gdomain && strstr(err, "can't translate") != 0)
-		fd = dial(netmkaddr(gdomain, 0, "smtp"), 0, 0, 0);
-
-	return fd;
-}
-
+static int	dnlookup(char*, char*);
 /*
  *  take an address and return all the mx entries for it,
  *  most preferred first
  */
-static int
-callmx(DS *ds, char *dest, char *domain)
+int
+mxdial(char *dest, int *diff, char *domain)
 {
+	char *net;
+	char *service;
+	char *host;
 	int fd, i, nmx;
-	char addr[Maxstring];
+	char buf[1024];
+
+	/* parse address */
+	strncpy(buf, dest, sizeof(buf));
+	buf[sizeof(buf) - 1] = 0;
+	net = buf;
+	host = strchr(buf, '!');
+	if(host){
+		*host++ = 0;
+		service = strchr(host, '!');
+		if(service)
+			*service++ = 0;
+	} else {
+		host = buf;
+		net = 0;
+		service = 0;
+	}
+
+	/* get domain name if this isn't one */
+	if(dnlookup(host, domain) < 0){
+		strcpy(domain, host);
+		*diff = 0;
+		return dial(dest, 0, 0, 0);
+	}
 
 	/* get a list of mx entries */
-	nmx = mxlookup(ds, domain);
+	nmx = mxlookup(domain);
 	if(nmx == 0){
 		if(debug)
 			fprint(2, "mxlookup returns nothing\n");
+		strcpy(domain, host);
+		*diff = 0;
 		return dial(dest, 0, 0, 0);
 	}
 
@@ -81,122 +74,80 @@ callmx(DS *ds, char *dest, char *domain)
 
 	/* dial each one in turn */
 	for(i = 0; i < nmx; i++){
-		snprint(addr, sizeof(addr), "%s/%s!%s!%s", ds->netdir, ds->proto,
-			mx[i].host, ds->service);
 		if(debug)
-			fprint(2, "mxdial trying %s\n", addr);
-		fd = dial(addr, 0, 0, 0);
-		if(fd >= 0)
+			fprint(2, "mxdial trying %s\n", mx[i].host);
+		fd = dial(netmkaddr(mx[i].host, net, service), 0, 0, 0);
+		if(fd >= 0){
+			if(strcmp(mx[i].host, domain))
+				*diff = 1;
 			return fd;
+		}
 	}
 	return -1;
 }
 
 /*
- *  call the dns process and have it try to resolve the mx request
- *
- *  this routine knows about the firewall and tries inside and outside
- *  dns's seperately.
+ *  lookup a domain name for host
  */
 static int
-mxlookup(DS *ds, char *domain)
+dnlookup(char *host, char *domain)
 {
-	int n;
+	char *attr;
+	Ndbtuple *t;
+	Ndbs s;
 
-	/* just in case we find no domain name */
-	strcpy(domain, ds->host);
-
-	if(ds->netdir){
-		n = mxlookup1(ds, domain);
-	} else {
-		ds->netdir = "/net";
-		n = mxlookup1(ds, domain);
-		if(n <= 0) {
-			ds->netdir = "/net.alt";
-			n = mxlookup1(ds, domain);
-		}
+	attr = ipattr(host);
+	if(strcmp(attr, "dom") == 0){
+		strcpy(domain, host);
+		return 0;
 	}
-
-	return n;
+	if(db == 0)
+		db = ndbopen(0);
+	if(db == 0)
+		return -1;
+	t = ndbgetval(db, &s, attr, host, "dom", domain);
+	if(t == 0)
+		return -1;
+	ndbfree(t);
+	return 0;
 }
 
+/*
+ *  call the dns process and have it try to resolve the mx request
+ */
 static int
-mxlookup1(DS *ds, char *domain)
+mxlookup(char *host)
 {
+	int fd, n, nmx;
 	char buf[1024];
-	char dnsname[Maxstring];
 	char *fields[4];
-	int n, fd, nmx;
-	char **mynames;
 
-	snprint(dnsname, sizeof dnsname, "%s/dns", ds->netdir);
-
-	fd = open(dnsname, ORDWR);
+	fd = open("/net/dns", ORDWR);
+	if(fd < 0){
+		fd = open("/srv/dns", ORDWR);
+		if(fd < 0)
+			return 0;
+		if(mount(fd, "/net", MAFTER, "") < 0)
+			return 0;
+		fd = open("/net/dns", ORDWR);
+	}
 	if(fd < 0)
 		return 0;
 
 	nmx = 0;
-	snprint(buf, sizeof(buf), "%s mx", ds->host);
+	sprint(buf, "%.*s mx", sizeof(buf)-4, host);
 	if(debug)
-		fprint(2, "sending %s '%s'\n", dnsname, buf);
+		fprint(2, "sending dns '%s'\n", buf);
 	if(write(fd, buf, strlen(buf)) >= 0){
-		/*
-		 *  get any mx entries
-		 */
 		seek(fd, 0, 0);
 		while(nmx < Nmx && (n = read(fd, buf, sizeof(buf)-1)) > 0){
 			buf[n] = 0;
-			n = getfields(buf, fields, 4, 1, " \t");
-			if(n < 4)
+			n = mygetfields(buf, fields, 4, ' ');
+			if(n < 3)
 				continue;
-
-			if(strchr(domain, '.') == 0)
-				strcpy(domain, fields[0]);
-
 			strncpy(mx[nmx].host, fields[3], sizeof(mx[n].host)-1);
 			mx[nmx].pref = atoi(fields[2]);
 			nmx++;
-		}
-	}
-	close(fd);
-
-	if(nmx){
-		/* ignore the mx if we are one of the systems */
-		mynames = sysnames_read();
-		if(mynames == 0)
-			return nmx;
-		for(; nmx && *mynames; mynames++)
-			for(n = 0; n < nmx; n++)
-				if(cistrcmp(*mynames, mx[n].host) == 0)
-					nmx = 0;
-		if(nmx)
-			return nmx;
-	}
-
-
-	/*
-	 *  no mx, look to see if it has an ip address
-	 */
-	fd = open(dnsname, ORDWR);
-	if(fd < 0)
-		return 0;
-	snprint(buf, sizeof(buf), "%s ip", ds->host);
-	if(debug)
-		fprint(2, "sending %s '%s'\n", dnsname, buf);
-	if(write(fd, buf, strlen(buf)) >= 0){
-		seek(fd, 0, 0);
-	
-		if((n = read(fd, buf, sizeof(buf)-1)) > 0){
-			buf[n] = 0;
-			n = getfields(buf, fields, 4, 1, " \t");
-			if(n >= 3){
-				if(strchr(domain, '.') == 0)
-					strcpy(domain, fields[0]);
-	
-				strncpy(mx[nmx].host, fields[0], sizeof(mx[n].host)-1);
-				mx[nmx].pref = 1;
-				nmx++;
-			}
 		}
 	}
 	close(fd);
@@ -205,40 +156,27 @@ mxlookup1(DS *ds, char *domain)
 }
 
 static int
+mygetfields(char *lp, char **fields, int n, char sep)
+{
+	int i;
+	char sep2=0;
+
+	if(sep == ' ')
+		sep2 = '\t';
+	for(i=0; lp && *lp && i<n; i++){
+		if(*lp==sep || *lp==sep2)
+			*lp++ = 0;
+		if(*lp == 0)
+			break;
+		fields[i] = lp;
+		while(*lp && *lp!=sep && *lp!=sep2)
+			lp++;
+	}
+	return i;
+}
+
+static int
 compar(void *a, void *b)
 {
 	return ((Mx*)a)->pref - ((Mx*)b)->pref;
-}
-
-/* break up an address to its component parts */
-static void
-dial_string_parse(char *str, DS *ds)
-{
-	char *p, *p2;
-
-	strncpy(ds->buf, str, sizeof(ds->buf));
-	ds->buf[sizeof(ds->buf)-1] = 0;
-
-	p = strchr(ds->buf, '!');
-	if(p == 0) {
-		ds->netdir = 0;
-		ds->proto = "net";
-		ds->host = ds->buf;
-	} else {
-		if(*ds->buf != '/'){
-			ds->netdir = 0;
-			ds->proto = ds->buf;
-		} else {
-			for(p2 = p; *p2 != '/'; p2--)
-				;
-			*p2++ = 0;
-			ds->netdir = ds->buf;
-			ds->proto = p2;
-		}
-		*p = 0;
-		ds->host = p + 1;
-	}
-	ds->service = strchr(ds->host, '!');
-	if(ds->service)
-		*ds->service++ = 0;
 }

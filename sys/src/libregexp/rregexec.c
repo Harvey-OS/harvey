@@ -73,15 +73,18 @@ rregexec1(Reprog *progp,	/* program to run */
 		nl->inst = 0;
 
 		/* Add first instruction to current list */
-		_rrenewemptythread(tl, progp->startinst, ms, s);
+		_rrenewemptythread(tl, progp->startinst, s);
 
 		/* Execute machine until current list is empty */
 		for(tlp=tl; tlp->inst; tlp++){
+			if(s == j->reol)
+				break;
+
 			for(inst=tlp->inst; ; inst = inst->next){
 				switch(inst->type){
 				case RUNE:	/* regular character */
 					if(inst->r == r)
-						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next, &tlp->se)==nle)
 							return -1;
 					break;
 				case LBRA:
@@ -92,11 +95,11 @@ rregexec1(Reprog *progp,	/* program to run */
 					continue;
 				case ANY:
 					if(r != '\n')
-						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next, &tlp->se)==nle)
 							return -1;
 					break;
 				case ANYNL:
-					if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+					if(_renewthread(nl, inst->next, &tlp->se)==nle)
 							return -1;
 					break;
 				case BOL:
@@ -104,14 +107,14 @@ rregexec1(Reprog *progp,	/* program to run */
 						continue;
 					break;
 				case EOL:
-					if(s == j->reol || r == 0 || r == '\n')
+					if(r == 0 || r == '\n')
 						continue;
 					break;
 				case CCLASS:
 					ep = inst->cp->end;
 					for(rp = inst->cp->spans; rp < ep; rp += 2)
 						if(r >= rp[0] && r <= rp[1]){
-							if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+							if(_renewthread(nl, inst->next, &tlp->se)==nle)
 								return -1;
 							break;
 						}
@@ -122,12 +125,12 @@ rregexec1(Reprog *progp,	/* program to run */
 						if(r >= rp[0] && r <= rp[1])
 							break;
 					if(rp == ep)
-						if(_renewthread(nl, inst->next, ms, &tlp->se)==nle)
+						if(_renewthread(nl, inst->next, &tlp->se)==nle)
 							return -1;
 					break;
 				case OR:
 					/* evaluate right choice later */
-					if(_renewthread(tlp, inst->right, ms, &tlp->se) == tle)
+					if(_renewthread(tlp, inst->right, &tlp->se) == tle)
 						return -1;
 					/* efficiency: advance and re-evaluate */
 					continue;
@@ -141,8 +144,6 @@ rregexec1(Reprog *progp,	/* program to run */
 				break;
 			}
 		}
-		if(s == j->reol)
-			break;
 		checkstart = j->startchar && nl->inst==0;
 		s++;
 	}while(r);

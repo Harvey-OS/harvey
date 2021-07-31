@@ -1,5 +1,0 @@
-#!/bin/rc
-
-if(/sys/lib/lp/bin/lpscratch){
-	exec /$cputype/bin/aux/lpdaemon >>[2] `{cat /env/LPSCRATCH}^/log/lpdaemonl
-}

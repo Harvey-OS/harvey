@@ -1,0 +1,65 @@
+
+
+
+     DVIPS(1)        TeXware    (13 February 1992)          DVIPS(1)
+
+
+
+     NAME
+      dvips - convert a TeX DVI file to PostScript
+
+     SYNOPSIS
+      dvips    [ options ] file[.dvi]
+
+     DESCRIPTION
+      The program dvips converts a DVI file file[.dvi] produced by TeX
+      (or by some other processor like GFtoDVI) and converts it to
+      PostScript, normally sending the result directly to the
+      laserprinter.  The DVI file may be specified without the .dvi
+      extension.  Fonts used may either be resident in the printer or
+      defined as bitmaps in PK files, or a `virtual' combination of
+      both.  If the MakeTeXPK program is installed, dvips will
+      automatically invoke METAFONT to generate fonts that don't
+      already exist.
+
+      For more information, see the manual dvips.tex is in the
+      TEXINPUTS directory.  The manual can be printed with the
+      following commands:  tex dvips dvips dvips -o dvips.ps lpr
+      dvips.ps
+
+     OPTIONS
+      A summary of command line options can be obtained by running
+      dvips without a filename.  For more details refer to dvips.tex.
+
+     SEE ALSO
+      mf(1), afm2tfm(1), tex(1), latex(1), lpr(1)
+
+     NOTES
+      PostScript is a registered trademark of Adobe Systems
+      Incorporated.
+
+     AUTHOR
+      Tomas Rokicki <rokicki@cs.stanford.edu>; extended to virtual
+      fonts by Don Knuth.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 1                         (printed 2/24/92)
+
+
+

@@ -1,0 +1,47 @@
+#
+#	mkfile for TEX bibtex programs
+APE=/sys/src/ape
+< $APE/config
+SHELL=/bin/rc
+
+TARG=bibtex
+
+OFILES=bibtex.$O\
+	openinout.$O
+
+HFILES=../lib/common.h
+
+LIB=../lib/lib.a$O
+
+</sys/src/cmd/mkone
+
+CFLAGS=-B -DBibTeX -D_POSIX_SOURCE -I../lib -c
+LDFLAGS=
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+bibtex.c:	bibtex.p ../lib/common.defines ../lib/texmf.defines
+		$SHELL ./convert bibtex.p $target
+
+bibtex.p:	bibtex.web bibtex.ch ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle bibtex.web bibtex.ch > /dev/null
+
+openinout.$O:	../lib/openinout.c
+		$CC $CFLAGS $prereq
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG bibtex.pool
+
+nuke:V:
+		rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG bibtex.pool
+		rm -f bibtex.p bibtex.c bibtex.h coerce.h
+		rm -f '#'*'#' *~ *.bak

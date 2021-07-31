@@ -1,59 +1,49 @@
 void	aamloop(int);
-void	addconf(char*, ...);
 Alarm*	alarm(int, void (*)(Alarm*), void*);
 void	alarminit(void);
-Block*	allocb(int);
-int	bootp(int, char*, Boot*);
-int	bootpass(Boot*, void*, int);
+int	bootp(int, char*);
 void	cancel(Alarm*);
-void	cgascreenputs(char*, int);
-int	cistrcmp(char*, char*);
-int	cistrncmp(char*, char*, int);
+void	cgainit(void);
+void	cgaputs(IOQ*, char*, int);
 void	checkalarms(void);
 void	clockinit(void);
-int	conschar(void);
-void	consdrain(void);
 void	consinit(void);
-void	consputs(char*, int);
+int	conschar(void);
 void	delay(int);
 uchar*	etheraddr(int);
 int	etherinit(void);
-void	etherinitdev(int, char*);
 int	etherrxpkt(int, Etherpkt*, int);
 int	ethertxpkt(int, Etherpkt*, int, int);
 #define	evenaddr(x)		/* 386 doesn't care */
-int	floppyboot(int, char*, Boot*);
 int	floppyinit(void);
-void	floppyinitdev(int, char*);
-void* floppygetdospart(int, char*);
-void	freeb(Block*);
+long	floppyread(int, void*, long);
+long	floppyseek(int, long);
 char*	getconf(char*);
 ulong	getcr0(void);
 ulong	getcr2(void);
 ulong	getcr3(void);
 int	getfields(char*, char**, int, char);
 int	getstr(char*, char*, int, char*, int);
-int	gunzip(uchar*, int, uchar*, int);
+int	hardinit(void);
+long	hardread(int, void*, long);
+long	hardseek(int, long);
+long	hardwrite(int, void*, long);
 void	i8042a20(void);
 void	i8042reset(void);
 void*	ialloc(ulong, int);
 void	idle(void);
-void	ilock(Lock*);
 int	inb(int);
 ushort	ins(int);
 ulong	inl(int);
 void	insb(int, void*, int);
 void	inss(int, void*, int);
 void	insl(int, void*, int);
-void	iunlock(Lock*);
 int	isaconfig(char*, int, ISAConf*);
 void	kbdinit(void);
 void	kbdchar(int);
 void	machinit(void);
-void	meminit(ulong);
-void	microdelay(int);
+void	meminit(void);
 void	mmuinit(void);
-#define	nelem(x)	(sizeof(x)/sizeof(x[0]))
 uchar	nvramread(int);
 void	outb(int, int);
 void	outs(int, ushort);
@@ -61,45 +51,25 @@ void	outl(int, ulong);
 void	outsb(int, void*, int);
 void	outss(int, void*, int);
 void	outsl(int, void*, int);
+int	plan9boot(int, long (*)(int, long), long (*)(int, void*, int));
 void	panic(char*, ...);
-int	pcicfgr8(Pcidev*, int);
-int	pcicfgr16(Pcidev*, int);
-int	pcicfgr32(Pcidev*, int);
-void	pcicfgw8(Pcidev*, int, int);
-void	pcicfgw16(Pcidev*, int, int);
-void	pcicfgw32(Pcidev*, int, int);
-Pcidev* pcimatch(Pcidev*, int, int);
-void	pcireset(void);
-void	pcisetbme(Pcidev*);
-int	pcmcistuple(int, int, void*, int);
-int	pcmspecial(char*, ISAConf*);
-void	pcmspecialclose(int);
-void	pcmunmap(int, PCMmap*);
 void	putcr3(ulong);
 void	putidt(Segdesc*, int);
 void	qinit(IOQ*);
-void	sdaddconf(int);
-int	sdboot(int, char*, Boot*);
-void*	sdgetdospart(int, char*);
-int	sdinit(void);
-void	sdinitdev(int, char*);
-int	sdsetpart(int, char*);
+int	scsiexec(Scsi*, int);
+int	scsiinit(void);
+long	scsiread(int, void*, long);
+long	scsiseek(int, long);
+Partition* sethardpart(int, char*);
+Partition* setscsipart(int, char*);
 void	setvec(int, void (*)(Ureg*, void*), void*);
 int	splhi(void);
 int	spllo(void);
 void	splx(int);
 void	trapinit(void);
-void	uartdrain(void);
 void	uartspecial(int, void (*)(int), int (*)(void), int);
 void	uartputs(IOQ*, char*, int);
-ulong	umbmalloc(ulong, int, int);
-void	umbfree(ulong, int);
-ulong	umbrwmalloc(ulong, int, int);
-void	warp9(ulong);
-int	x86cpuid(int*, int*);
-
-#define malloc(n)	ialloc(n, 0)
-#define free(v)
+int	x86(void);
 
 #define	GSHORT(p)	(((p)[1]<<8)|(p)[0])
 #define	GLONG(p)	((GSHORT(p+2)<<16)|GSHORT(p))
@@ -108,19 +78,3 @@ int	x86cpuid(int*, int*);
 
 #define KADDR(a)	((void*)((ulong)(a)|KZERO))
 #define PADDR(a)	((ulong)(a)&~KZERO)
-
-#define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
-#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
-
-
-#define xalloc(n)	ialloc(n, 0)
-#define xfree(v)
-#define lock(l)	if(l);else;
-#define unlock(l)	if(l);else;
-
-int	dmacount(int);
-int	dmadone(int);
-void	dmaend(int);
-void	dmainit(int);
-long	dmasetup(int, void*, long, int);
-

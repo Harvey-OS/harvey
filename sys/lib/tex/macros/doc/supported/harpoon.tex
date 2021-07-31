@@ -1,0 +1,40 @@
+\documentclass{article}
+
+\usepackage[dvips]{harpoon}
+
+\title{A First Look at {\tt harpoon.sty}}
+\author{Tobias Kuipers\\ {\tt kuipers@fwi.uva.nl}}
+\date{November 2, 1994}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+This packages provides a number of harpoons to be set over or under
+arbitrary text. The commands are invoked as \verb+\someharp{text}+,
+which will put some harpoon over {\tt text}. {\tt text} is typeset in LR
+mode. If you want text to be typeset in math mode you should type
+\verb+\someharp{$text$}+. 
+
+\section{The Commands}
+
+The package is invoked with 1 option: \verb+\usepackage[xxx]{harpoon}+,
+where {\tt xxx} is your favourite graphics device driver. On most Unix
+machines, this will be {\tt dvips} and on a Macintosh this could be {\tt
+oztex}. Refer to the graphics package for more information.
+
+The commands are
+\begin{itemize}
+	\item \verb+\overleftharp+, which looks like \overleftharp{this}
+	\item \verb+\overrightharp+, which looks like \overrightharp{this}
+	\item \verb+\overleftharpdown+, which looks like \overleftharpdown{this}
+	\item \verb+\overrightharpdown+, which looks like \overrightharpdown{this}
+	\item \verb+\underleftharp+, which looks like \underleftharp{this}
+	\item \verb+\underrightharp+, which looks like \underrightharp{this}
+	\item \verb+\underleftharpdown+, which looks like \underleftharpdown{this}
+	\item \verb+\underrightharpdown+, which looks like \underrightharpdown{this}
+\end{itemize}
+
+\end{document}

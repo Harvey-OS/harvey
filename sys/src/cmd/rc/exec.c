@@ -98,16 +98,16 @@ var *newvar(char *name, var *next)
  * fabricate bootstrap code and start it (*=(argv);. /usr/lib/rcmain $*)
  * start interpreting code
  */
-void main(int argc, char *argv[])
+main(int argc, char *argv[])
 {
 	code bootstrap[17];
 	char num[12];
 	int i;
 	argc=getflags(argc, argv, "srdiIlxepvVc:1[command]", 1);
 	if(argc==-1) usage("[file [arg ...]]");
+	if(argc==1 && Isatty(0)) flag['i']=flagset;
 	if(argv[0][0]=='-') flag['l']=flagset;
-	if(flag['I']) flag['i'] = 0;
-	else if(flag['i']==0 && argc==1 && Isatty(0)) flag['i'] = flagset;
+	if(flag['I']) flag['i']=0;
 	err=openfd(2);
 	kinit();
 	Trapinit();
@@ -201,8 +201,7 @@ void Xappend(void){
 	}
 	file=runq->argv->words->word;
 	if((f=open(file, 1))<0 && (f=Creat(file))<0){
-		pfmt(err, "%s: ", file);
-		Xerror("can't open");
+		Xperror(file);
 		return;
 	}
 	Seek(f, 0L, 2);
@@ -215,13 +214,13 @@ void Xasync(void){
 	int pid;
 	char npid[10];
 	if(null<0){
-		Xerror("Can't open /dev/null\n");
+		Xperror("/dev/null");
 		return;
 	}
 	switch(pid=rfork(RFFDG|RFPROC|RFNOTEG)){
 	case -1:
 		close(null);
-		Xerror("try again");
+		Xperror("rfork");
 		break;
 	case 0:
 		pushredir(ROPEN, null, 0);
@@ -303,8 +302,7 @@ void Xread(void){
 	}
 	file=runq->argv->words->word;
 	if((f=open(file, 0))<0){
-		pfmt(err, "%s: ", file);
-		Xerror("can't open");
+		Xperror(file);
 		return;
 	}
 	pushredir(ROPEN, f, runq->code[runq->pc].i);
@@ -356,8 +354,7 @@ void Xwrite(void){
 	}
 	file=runq->argv->words->word;
 	if((f=Creat(file))<0){
-		pfmt(err, "%s: ", file);
-		Xerror("can't open");
+		Xperror(file);
 		return;
 	}
 	pushredir(ROPEN, f, runq->code[runq->pc].i);
@@ -648,12 +645,12 @@ void Xpipe(void){
 	int rfd=p->code[pc++].i;
 	int pfd[2];
 	if(pipe(pfd)<0){
-		Xerror("can't get pipe");
+		Xperror("can't get pipe");
 		return;
 	}
 	switch(forkid=fork()){
 	case -1:
-		Xerror("try again");
+		Xperror("can't fork");
 		break;
 	case 0:
 		start(p->code, pc+2, runq->local);
@@ -724,7 +721,6 @@ void Xrdcmds(void){
 		}
 	}
 	else{
-		ntrap = 0;	/* avoid double-interrupts during blocked writes */
 		--p->pc;	/* re-execute Xrdcmds after codebuf runs */
 		start(codebuf, 1, runq->local);
 	}
@@ -733,6 +729,12 @@ void Xrdcmds(void){
 void Xerror(char *s)
 {
 	pfmt(err, "rc: %s\n", s);
+	flush(err);
+	while(!runq->iflag) Xreturn();
+}
+void Xperror(char *s)
+{
+	pfmt(err, "rc: %s: %s\n", s, Geterrstr());
 	flush(err);
 	while(!runq->iflag) Xreturn();
 }

@@ -1,0 +1,36 @@
+#include "/sys/src/libc/9syscall/sys.h"
+
+TEXT	main(SB), $12
+
+	MOVW	$setSB(SB), R2
+	MOVW	$bootv(SB), R7
+	MOVW	R7, 8(R1)
+	MOVW	$boot(SB), R7
+	MOVW	R7, 4(R1)
+	MOVW	$EXEC, R7
+	TA	R0
+
+	BA	again
+
+	MOVW	$(1<<4), R7
+	MOVW	R7, 4(R1)
+	MOVW	$RFORK, R0
+	TA	R0
+	MOVW	$RFORK, R0
+	TA	R0
+	MOVW	$RFORK, R0
+	TA	R0
+
+again:
+	MOVW	$SYSR1, R7
+	TA	R0
+foo:
+	MOVW	$1000000, R3
+	SUBCC	$1, R3
+	BNE	foo
+	JMP	again
+
+DATA	boot+0(SB)/5,$"/boot"
+DATA	bootv+0(SB)/4,$boot+1(SB)
+GLOBL	boot+0(SB),$6
+GLOBL	bootv+0(SB),$8

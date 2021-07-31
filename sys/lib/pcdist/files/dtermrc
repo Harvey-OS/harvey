@@ -1,0 +1,34 @@
+#!/bin/rc
+
+site=installation
+sysname=unknown
+
+/bin/bind -a '#H' /dev >/dev/null >[2=1]
+/bin/bind -a '#w' /dev >/dev/null >[2=1]
+/bin/bind -a '#f' /dev >/dev/null >[2=1]
+/bin/bind -a '#t' /dev >/dev/null >[2=1]
+/bin/bind -a '#l' /dev >/dev/null >[2=1]
+/fs
+if( ! /bin/mount -c /srv/dos /n/c: /dev/hd0disk > /dev/null >[2=1])
+	/bin/mount -c /srv/dos /n/c: /dev/sd0disk > /dev/null >[2=1]
+font=/lib/font/bit/pelm/euro.fon
+if(~ $vgasize '') vgasize=640x480x1
+if(~ $monitor '') monitor=vga
+switch($mouseport){
+case ps2 0 1
+	aux/vga -l $vgasize
+	aux/mouse $mouseport
+case *
+	echo -n 'Mouse port is (ps2, 0 (called COM1 in DOS), or 1 (called COM2 in DOS)): '
+	mouseport=`{read}
+	switch($mouseport){
+	case ps2 0 1
+		aux/vga -l $vgasize
+		aux/mouse $mouseport
+	case *
+		echo N.B. edit /rc/bin/termrc to set up the mouse and vga correctly
+	}
+}
+rm /tmp/* > /dev/null >[2=1]
+fn man { for(i in $*)cat /sys/man/$i }
+cat /readme

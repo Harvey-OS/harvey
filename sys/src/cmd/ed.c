@@ -11,7 +11,7 @@ enum
 	FNSIZE	= 128,		/* file name */
 	LBSIZE	= 4096,		/* max line size */
 	BLKSIZE	= 4096,		/* block size in temp file */
-	NBLK	= 8191,		/* max size of temp file */
+	NBLK	= 4095,		/* max size of temp file */
 	ESIZE	= 256,		/* max size of reg exp */
 	GBSIZE	= 256,		/* max size of global command */
 	MAXSUB	= 9,		/* max number of sub reg exp */
@@ -61,7 +61,6 @@ int	subolda;
 Resub	subexp[MAXSUB];
 char*	tfname;
 int	tline;
-int	waiting;
 int	wrapp;
 int*	zero;
 
@@ -664,10 +663,8 @@ rescue(void)
 		addr1 = zero+1;
 		addr2 = dol;
 		io = create("ed.hup", OWRITE, 0666);
-		if(io > 0){
-			Binit(&iobuf, io, OWRITE);
+		if(io > 0)
 			putfile();
-		}
 	}
 	fchange = 0;
 	quit();
@@ -677,7 +674,7 @@ void
 notifyf(void *a, char *s)
 {
 	if(strcmp(s, "interrupt") == 0){
-		if(rescuing || waiting)
+		if(rescuing)
 			noted(NCONT);
 		putchr(L'\n');
 		lastc = '\n';
@@ -905,7 +902,7 @@ browse(void)
 void
 callunix(void)
 {
-	int c, pid;
+	int c;
 	Rune rune;
 	Waitmsg w;
 	char buf[512];
@@ -919,15 +916,11 @@ callunix(void)
 			p += runetochar(p, &rune);
 		}
 	*p = 0;
-	pid = fork();
-	if(pid == 0) {
+	if(fork() == 0) {
 		execl("/bin/rc", "rc", "-c", buf, 0);
 		exits("execl failed");
 	}
-	waiting = 1;
-	while(wait(&w) != pid)
-		;
-	waiting = 0;
+	wait(&w);
 	if(vflag)
 		putst("!");
 }

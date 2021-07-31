@@ -47,6 +47,5 @@ inet_addr(char *from)
 		break;
 	}
 	x = nptohl(to);
-	x = htonl(x);
 	return x;
 }

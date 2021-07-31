@@ -1,9 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include <thread.h>
-#include <mouse.h>
-#include <keyboard.h>
+#include <libg.h>
 #include <frame.h>
 #include "flayer.h"
 #include "samterm.h"

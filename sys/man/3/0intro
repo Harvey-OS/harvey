@@ -56,10 +56,10 @@ or end of string, those characters are passed as parameter
 to the attach.  For example,
 .IP
 .EX
-#I2
+#Itcp
 .EE
 .PP
-identifies the number 2 IP protocol stack
+identifies the implementation of the TCP protocol supplied by the IP device
 (see
 .IR ip (3)).
 .PP

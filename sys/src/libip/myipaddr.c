@@ -1,6 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <ip.h>
+#include "ip.h"
 
 int
 myipaddr(uchar *to, char *dev)
@@ -10,18 +10,12 @@ myipaddr(uchar *to, char *dev)
 	char *ptr;
 
 	/* Opening clone ensures the 0 connection exists */
-	if(*dev == '/')
-		sprint(buf, "%s/clone", dev);
-	else
-		sprint(buf, "/net/%s/clone", dev);
+	sprint(buf, "%s/clone", dev);
 	clone = open(buf, OREAD);
 	if(clone < 0)
 		return -1;
 
-	if(*dev == '/')
-		sprint(buf, "%s/0/local", dev);
-	else
-		sprint(buf, "/net/%s/0/local", dev);
+	sprint(buf, "%s/0/local", dev);
 	fd = open(buf, OREAD);
 	close(clone);
 	if(fd < 0)

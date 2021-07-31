@@ -1,0 +1,30 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libregexp.a
+OFILES=\
+	regcomp.$O\
+	regerror.$O\
+	regexec.$O\
+	regsub.$O\
+	regaux.$O\
+	rregexec.$O\
+	rregsub.$O\
+
+AFILES=${OFILES:%.$O=%.l}
+HFILES=/sys/include/regexp.h\
+	regcomp.h\
+
+</sys/src/cmd/mksyslib
+
+acid:V:
+	$ALEF -aa $AFILES > acid.$objtype
+
+/68020/lib/alef/libregexp.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'
+
+test: test.$O $OFILES
+	$LD -o test $prereq
+
+test2: test2.$O $OFILES
+	$LD -o test2 $prereq

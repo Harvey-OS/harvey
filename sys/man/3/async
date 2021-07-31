@@ -1,0 +1,71 @@
+.TH ASYNC 3 
+.SH NAME
+async \- framing for a serial line to Datakit
+.SH SYNOPSIS
+.nf
+.B
+ctlfd = open(".../ctl", ORDWR);
+.B
+write(ctlfd, "push async", 10);
+.fi
+.SH DESCRIPTION
+.PP
+This is not a device, but rather a
+.I stream module
+(see
+.IR stream (3))
+that can be pushed onto a stream.
+This module provides the framing necessary to treat
+a serial line as a Datakit trunk.
+It is usually pushed onto a stream before the
+.I dkmux
+module.
+The frame includes a CRC.
+Any received frames with an incorrect CRC are
+discarded.
+.PP
+The format of a message upstream of the module is:
+.IP
+channel # low byte
+.br
+channel # high byte
+.br
+control byte (0 means none)
+.br
+data bytes
+.LP
+The format of a frame is:
+.IP
+.B 0x7d	
+.br
+.B 0x7d
+.br
+channel # low byte
+.br
+channel # high byte
+.br
+crc low byte
+.br
+crc high byte
+.br
+.B 0x7d	
+.br
+.B 0x7d
+.LP
+All control bytes in the frame are preceded by a
+.B 0x9d
+byte.
+All
+.B 0x9d
+and
+.B 0x7d
+bytes in the data are followed by a
+.B 0x00
+byte to distinguish them from framing or control
+specifiers.
+.SH "SEE ALSO"
+.IR stream (3),
+.IR cons (3),
+.IR dk (3)
+.SH SOURCE
+.B /sys/src/9/port/stasync.c

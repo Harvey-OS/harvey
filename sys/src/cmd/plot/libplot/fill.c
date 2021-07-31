@@ -36,7 +36,7 @@ static void insert(Edge *ep, Edge **yp){
 	else
 		ep->prev=0;
 }
-static void polygon(int cnt[], double *pts[], Windrule w, int v){
+static void polygon(int cnt[], double *pts[], Windrule w, int v, Fcode f){
 	Edge *edges, *ep, *nextep, **ylist, **eylist, **yp;
 	Point p, q, p0, p1, p10;
 	int i, dy, nbig, y, left, right, wind, nwind, nvert;
@@ -50,9 +50,9 @@ static void polygon(int cnt[], double *pts[], Windrule w, int v){
 		fprintf(stderr, "polygon: no space\n");
 		exits("malloc failed");
 	}
-	ylist=(Edge **)malloc(Dy(screen->r)*sizeof(Edge *));
+	ylist=(Edge **)malloc((screen.r.max.y-screen.r.min.y)*sizeof(Edge *));
 	if(ylist==0) goto NoSpace;
-	eylist=ylist+Dy(screen->r);
+	eylist=ylist+(screen.r.max.y-screen.r.min.y);
 	for(yp=ylist;yp!=eylist;yp++) *yp=0;
 	ep=edges;
 	for(cntp=cnt,ptsp=pts;*cntp;cntp++,ptsp++){
@@ -74,14 +74,14 @@ static void polygon(int cnt[], double *pts[], Windrule w, int v){
 				p1=p;
 				ep->dwind=-1;
 			}
-			if(p1.y<=screen->r.min.y) continue;
-			if(p0.y>=screen->r.max.y) continue;
+			if(p1.y<=screen.r.min.y) continue;
+			if(p0.y>=screen.r.max.y) continue;
 			ep->p=p0;
-			if(p1.y>screen->r.max.y)
-				ep->maxy=screen->r.max.y;
+			if(p1.y>screen.r.max.y)
+				ep->maxy=screen.r.max.y;
 			else
 				ep->maxy=p1.y;
-			p10=subpt(p1, p0);
+			p10=sub(p1, p0);
 			if(p10.x>=0){
 				ep->dx=p10.x/p10.y;
 				ep->dx1=ep->dx+1;
@@ -94,36 +94,35 @@ static void polygon(int cnt[], double *pts[], Windrule w, int v){
 			ep->x=0;
 			ep->num=p10.x%p10.y;
 			ep->den=p10.y;
-			if(ep->p.y<screen->r.min.y){
-				dy=screen->r.min.y-ep->p.y;
+			if(ep->p.y<screen.r.min.y){
+				dy=screen.r.min.y-ep->p.y;
 				ep->x+=dy*ep->num;
 				nbig=ep->x/ep->den;
 				ep->p.x+=ep->dx1*nbig+ep->dx*(dy-nbig);
 				ep->x%=ep->den;
-				ep->p.y=screen->r.min.y;
+				ep->p.y=screen.r.min.y;
 			}
-			insert(ep, ylist+(ep->p.y-screen->r.min.y));
+			insert(ep, ylist+(ep->p.y-screen.r.min.y));
 			ep++;
 		}
 	}
 	left = 0;
-	for(yp=ylist,y=screen->r.min.y;yp!=eylist;yp++,y++){
+	for(yp=ylist,y=screen.r.min.y;yp!=eylist;yp++,y++){
 		wind=0;
 		for(ep=*yp;ep;ep=nextep){
 			nwind=wind+ep->dwind;
 			if(nwind&w){	/* inside */
 				if(!(wind&w)){
 					left=ep->p.x;
-					if(left<screen->r.min.x) left=screen->r.min.x;
+					if(left<screen.r.min.x) left=screen.r.min.x;
 				}
 			}
 			else if(wind&w){
 				right=ep->p.x;
-				if(right>=screen->r.max.x) right=screen->r.max.x;
-#define BART_BUG_FIXED	/* what goes on here?? -rob */
+				if(right>=screen.r.max.x) right=screen.r.max.x;
 #ifdef BART_BUG_FIXED
 				if(right>left)
-					line(screen, Pt(left, y), Pt(right, y), Endsquare, Endsquare, 0, getcolor(v), ZP);
+					segment(&screen, Pt(left, y), Pt(right, y), v, f);
 #else
 				if(right>left){
 					switch(v){
@@ -163,5 +162,5 @@ static void polygon(int cnt[], double *pts[], Windrule w, int v){
 	free((char *)ylist);
 }
 void fill(int num[], double *ff[]){
-	polygon(num, ff, Odd, e1->foregr);
+	polygon(num, ff, Odd, e1->foregr, S);
 }

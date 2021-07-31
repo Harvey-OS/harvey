@@ -1,0 +1,239 @@
+% \iffalse
+%% File: printtim.dtx Copyright (C) 1995 Martin Schr\"oder
+%
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{printtim}
+%<package>         [1995/01/24 v1.00 PrintTime Package (MS)]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{printtim}
+\GetFileInfo{printtim.sty}
+\setcounter{IndexColumns}{2}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\setcounter{IndexColumns}{2}
+\setlength{\IndexMin}{30ex}
+\setlength{\columnseprule}{.4pt}
+\AtBeginDocument{\addtocontents{toc}{\protect\begin{multicols}{2}}}
+\AtEndDocument{\addtocontents{toc}{\protect\end{multicols}}}
+\begin{document}
+\DocInput{printtim.dtx}
+\end{document}
+%</driver>
+%
+% Copyright (C) 1995 by Martin Schr\"oder.  All rights reserved.
+%
+% IMPORTANT NOTICE:
+%
+% You are not allowed to change this file.  You may however copy
+% this file to a file with a different name and then change the
+% copy if you obey the restrictions on file changes described in
+% everyshi.ins.
+%
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of this file
+% (or a changed version) except for a nominal charge for copying
+% etc.
+%
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in
+% printtim.ins.
+%
+% If you receive only some of these files from someone, complain!
+%
+% However, if these files are distributed by established suppliers
+% as part of a complete TeX distribution, and the structure of the
+% distribution would make it difficult to distribute the whole set
+% of files, *those parties* are allowed to distribute only some of
+% the files provided that it is made clear that the user will get
+% a complete distribution-set upon request to that supplier (not
+% me).  Notice that this permission is not granted to the end
+% user.
+%
+%
+% For error reports in case of UNCHANGED versions see everyshi.ins
+%
+% \fi
+%
+% \CheckSum{30}
+%
+%% \CharacterTable
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%  Digits        \0\1\2\3\4\5\6\7\8\9
+%%  Exclamation   \!     Double quote  \"     Hash (number) \#
+%%  Dollar        \$     Percent       \%     Ampersand     \&
+%%  Acute accent  \'     Left paren    \(     Right paren   \)
+%%  Asterisk      \*     Plus          \+     Comma         \,
+%%  Minus         \-     Point         \.     Solidus       \/
+%%  Colon         \:     Semicolon     \;     Less than     \<
+%%  Equals        \=     Greater than  \>     Question mark \?
+%%  Commercial at \@     Left bracket  \[     Backslash     \\
+%%  Right bracket \]     Circumflex    \^     Underscore    \_
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%  Right brace   \}     Tilde         \~}
+%%
+%% \iffalse meta-comment
+%% ===================================================================
+%%  @LaTeX-package-file{
+%%     author          = {Martin Schr\"oder},
+%%     version         = "1.00",
+%%     date            = "24 January 1995",
+%%     filename        = "printtim.sty",
+%%     address         = {Martin Schr\"oder
+%%                        Friedrich-Humbert-Stra\ss{}e 124
+%%                        D-28759 Bremen
+%%     telephone       = "+49-421-628813",
+%%     email           = "MS@Dream.HB.North.DE (INTERNET)",
+%%     codetable       = "ISO/ASCII",
+%%     keywords        = "LaTeX2e, \time",
+%%     supported       = "yes",
+%%     docstring       = "LaTeX package which defines a command
+%%                        \PrintTime which prints the current time".
+%%  }
+%% ===================================================================
+%% \fi
+%
+%  \changes{v1.00}{1995/01/24}{New}
+%
+%  \IndexPrologue{^^A
+%     \section*{\indexname}^^A
+%     \markboth{\indexname}{\indexname}^^A
+%     Numbers written in \emph{italic} refer to the page where the
+%     corresponding entry is described, the ones
+%     \underline{underlined} to the definition, the rest to the places
+%     where the entry is used.}
+%
+% ^^A -----------------------------
+%
+%  \title{\unskip
+%           The \textsf{printtim} package^^A
+%           \thanks{^^A
+%              The version umber of this file is \fileversion,
+%              last revised \filedate.\newline
+%              The name \textsf{printtim} is a tribute to the $8+3$
+%              file-naming convention of certain ``operating
+%              systems''; strictly speaking it should be 
+%              \textsf{printtime}.}^^A
+%        }
+%  \author{Martin Schr\"oder\\[0.5ex]
+%          \normalsize  Friedrich-Humbert-Stra\ss{}e 124\\
+%          \normalsize  D-28759 Bremen\\
+%          \normalsize  MS@Dream.HB.North.DE (INTERNET)}
+%  \date{\filedate}
+%  \maketitle
+%
+% ^^A -----------------------------
+%
+%
+%  \begin{abstract}
+%     This package defines a new command \cs{PrintTime} which prints
+%     out the time the document was processed.
+%  \end{abstract}
+%
+%  \pagestyle{headings}
+%
+% ^^A -----------------------------
+%
+%  \tableofcontents
+%
+% ^^A -----------------------------
+%
+%  \section{Introduction}
+%
+%  This package provides the command \cs{PrintTime} which prints out
+%  the time the document was processed.
+%
+% ^^A -----------------------------
+%
+%  \section{Usage}
+%
+%  \cs{PrintTime} prints out the current time: ``\PrintTime''.
+%
+% ^^A -----------------------------
+%
+%  \section{Options}
+%
+%  The package has no options.
+%
+% ^^A -----------------------------
+%
+%  \section{Required packages}
+%
+%  The package does not require any further packages.
+%
+% ^^A -----------------------------
+%
+%  \StopEventually{^^A
+%     \PrintIndex\PrintChanges
+%     ^^A Make sure that the index is not printed twice
+%     ^^A (ltxdoc.cfg might have a second \PrintIndex command)
+%     \let\PrintChanges\relax
+%     \let\PrintIndex\relax
+%     }
+%
+% ^^A -----------------------------
+%
+%  \section{The implementation}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+%  \begin{macro}{\PrintTime}
+%  \cs{PrintTime} calculates the current hours and minutes out of 
+%  \cs{time}, which is set by \TeX{} at the start of each job and
+%  contains the minutes since midnight.
+%  We use these formulas:
+%  \begin{eqnarray*}
+%     hours    & = & \cs{time}/60 \\
+%     minutes  & = & (hour \times -60) - \cs{time}
+%  \end{eqnarray*}
+%  Since we don't want to allocate a new counter, we use 
+%  \cs{count255}.
+%    \begin{macrocode}
+\newcommand*{\PrintTime}{%
+%    \end{macrocode}
+%  \cs{PrintTime} is \cs{short}, since it has no parameter and contains
+%  no \cs{par}.
+%    \begin{macrocode}
+   \bgroup%
+      \count\@cclv=\time
+      \divide  \count\@cclv by 60\relax
+%    \end{macrocode}
+%  Now we have the hour.
+%    \begin{macrocode}
+      \the\count\@cclv%
+      :%
+      \multiply\count\@cclv by -60\relax
+      \advance \count\@cclv by \time
+%    \end{macrocode}
+%  If the minutes are $<10$ we output a ``0'' to make the minutes a
+%  two-digit number.
+%    \begin{macrocode}
+      \ifnum\count\@cclv<10\relax 0\fi
+      \the\count\@cclv%
+   \egroup%
+   }
+%    \end{macrocode}
+%  \end{macro}
+%
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+%
+% ^^A -----------------------------
+%
+%  \section{Acknowledgements}
+%
+%  As usual Rebecca Stiels improved the quality of this documentation.
+%  If you need a translator from English or Fran\c{c}ais to German, send
+%  her an e-mail to \texttt{Rebecca@Andurg.HB.North.DE}.
+%  And if you need a \TeX{}nician or computer scientist, send me an e-mail;
+%  I'm looking for a job.
+%
+% ^^A -----------------------------
+%
+%  \Finale

@@ -5,11 +5,11 @@
 int vsprintf(char *buf, const char *fmt, va_list args){
 	int n;
 	char *v;
-	FILE *f=_IO_sopenw();
+	FILE *f=sopenw();
 	if(f==NULL)
 		return 0;
 	setvbuf(f, buf, _IOFBF, 100000);
 	n=vfprintf(f, fmt, args);
-	v=_IO_sclose(f);
+	v=sclose(f);
 	return n;
 }

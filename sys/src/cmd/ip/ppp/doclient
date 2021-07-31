@@ -1,3 +1,0 @@
-#!/bin/rc
-bind -a '#I2' /net.alt2
-ndb/cs -x .alt2

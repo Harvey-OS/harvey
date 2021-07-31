@@ -1,4 +1,6 @@
-#include "common.h"
+#include <u.h>
+#include <libc.h>
+#include "../libString/String.h"
 
 typedef struct Qfile Qfile;
 struct Qfile
@@ -8,15 +10,12 @@ struct Qfile
 	char	*tname;
 } *files;
 
-char *user;
-int isnone;
-
 int	copy(Qfile*);
 
 void
 usage(void)
 {
-	fprint(2, "usage: qer [-f file] [-q dir] q-root description reply-to arg-list\n");
+	fprint(2, "usage: qer [-f file] q-root description reply-to arg-list\n");
 	exits("usage");
 }
 
@@ -27,9 +26,9 @@ error(char *f, char *a)
 	char buf[256];
 
 	errstr(err);
-	snprint(buf, sizeof(buf),  f, a);
+	sprint(buf, f, a);
 	fprint(2, "qer: %s: %s\n", buf, err);
-	exits(buf);
+	exits(buf);	
 }
 
 void
@@ -41,12 +40,11 @@ main(int argc, char**argv)
 	char	file[1024];
 	char	buf[1024];
 	long	n;
-	char	*cp, *qdir;
+	char	*cp;
 	int	i;
 	Qfile	*q, **l;
 
 	l = &files;
-	qdir = 0;
 
 	ARGBEGIN {
 	case 'f':
@@ -55,65 +53,37 @@ main(int argc, char**argv)
 		q->next = *l;
 		*l = q;
 		break;
-	case 'q':
-		qdir = ARGF();
-		if(qdir == 0)
-			usage();
-		break;
 	default:
 		usage();
 	} ARGEND;
 
 	if(argc < 3)
 		usage();
-	user = getuser();
-	isnone = (qdir != 0) || (strcmp(user, "none") == 0);
 
-	if(qdir == 0) {
-		qdir = user;
-		if(qdir == 0)
-			error("unknown user", 0);
+	sprint(file, "%s/%s", argv[0], getuser());
+
+	if(dirstat(file, &dir) < 0){
+		if((fd = create(file, OREAD, CHDIR|0774)) < 0)
+			error("can't create directory %s", file);
+		close(fd);
+	} else {
+		if((dir.qid.path&CHDIR)==0)
+			error("not a directory %s", file);
 	}
-	snprint(file, sizeof(file), "%s/%s", argv[0], qdir);
 
 	/*
-	 *  data file name
+	 *  create data file
 	 */
 	f = s_copy(file);
 	s_append(f, "/D.XXXXXX");
 	mktemp(s_to_c(f));
-	cp = utfrrune(s_to_c(f), '/');
-	cp++;
-
-	/*
-	 *  create directory and data file.  once the data file
-	 *  exists, runq won't remove the directory
-	 */
-	fd = -1;
-	for(i = 0; i < 10; i++){
-		int perm;
-
-		if(dirstat(file, &dir) < 0){
-			perm = isnone?0777:0775;
-			if(sysmkdir(file, perm) < 0)
-				continue;
-		} else {
-			if((dir.qid.path&CHDIR)==0)
-				error("not a directory %s", file);
-		}
-		perm = isnone?0664:0660;
-		fd = create(s_to_c(f), OWRITE, perm);
-		if(fd >= 0)
-			break;
-		sleep(250);
-	}
-	if(fd < 0)
-		error("creating data file %s", s_to_c(f));
 
 	/*
 	 *  copy over associated files
 	 */
 	if(files){
+		cp = utfrrune(s_to_c(f), '/');
+		cp++;
 		*cp = 'F';
 		for(q = files; q; q = q->next){
 			q->tname = strdup(s_to_c(f));
@@ -121,20 +91,18 @@ main(int argc, char**argv)
 				error("copying %s to queue", q->name);
 			(*cp)++;
 		}
+		*cp = 'D';
 	}
 
 	/*
 	 *  copy in the data file
 	 */
-	i = 0;
-	while((n = read(0, buf, sizeof(buf)-1)) > 0){
-		if(i++ == 0 && strncmp(buf, "From", 4) != 0){
-			buf[n] = 0;
-			syslog(0, "smtp", "qer usys data starts with %-40.40s\n", buf);
-		}
+	fd = create(s_to_c(f), OWRITE, 0660);
+	if(fd < 0)
+		error("creating data file %s", s_to_c(f));
+	while((n = read(0, buf, sizeof(buf))) > 0)
 		if(write(fd, buf, n) != n)
 			error("writing data file %s", s_to_c(f));
-	}
 /*	if(n < 0)
 		error("reading input"); */
 	close(fd);
@@ -142,8 +110,10 @@ main(int argc, char**argv)
 	/*
 	 *  create control file
 	 */
+	cp = utfrrune(s_to_c(f), '/');
+	cp++;
 	*cp = 'C';
-	fd = syscreatelocked(s_to_c(f), OWRITE, 0664);
+	fd = create(s_to_c(f), OWRITE, CHEXCL|0660);
 	if(fd < 0)
 		error("creating control file %s", s_to_c(f));
 	c = s_new();
@@ -156,11 +126,9 @@ main(int argc, char**argv)
 		s_append(c, " ");
 	}
 	s_append(c, "\n");
-	if(write(fd, s_to_c(c), strlen(s_to_c(c))) < 0) {
-		sysunlockfile(fd);
+	if(write(fd, s_to_c(c), strlen(s_to_c(c))) < 0)
 		error("writing control file %s", s_to_c(f));
-	}
-	sysunlockfile(fd);
+	close(fd);
 	exits(0);
 }
 

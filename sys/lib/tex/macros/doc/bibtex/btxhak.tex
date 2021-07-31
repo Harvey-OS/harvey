@@ -1,0 +1,623 @@
+% Copyright (C) 1988, all rights reserved.
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\title{Designing B\kern-.05em{\large I}\kern-.025em{\large B}\kern-.08em\TeX\
+                                                                        Styles}
+\author{Oren Patashnik}
+\date{February 8, 1988}
+
+\documentstyle{article}
+\begin{document}
+
+\maketitle
+
+\setcounter{section}{4}
+\section{Bibliography-style hacking}
+\label{style}
+
+This document starts (and ends) with Section~\ref{style},
+because in reality it is the final section of ``\BibTeX ing''~\cite{btxdoc},
+the general documentation for \BibTeX.
+But that document was meant for all \BibTeX\ users,
+while this one is just for style designers,
+so the two are physically separate.
+Still, you should be completely familiar with ``\BibTeX ing''$\!$,
+and all references in this document
+to sections and section numbers
+assume that the two documents are one.
+
+This section,
+along with the standard-style documentation file \hbox{\tt btxbst.doc},
+should explain how to modify
+existing style files and to produce new ones.
+If you're a serious style hacker you should be familiar
+with van~Leunen~\cite{van-leunen} for points of style,
+with Lamport~\cite{latex} and Knuth~\cite{texbook} for formatting matters,
+and perhaps with {\em Scribe\/}~\cite{scribe} for compatibility details.
+And while you're at it, if you don't read the great little book by Strunk and
+White~\cite{strunk-and-white}, you should at least look at its
+entries in the database and the reference list
+to see how \BibTeX\ handles multiple names.
+
+To create a new style,
+it's best to start with an existing style that's close to yours,
+and then modify that.
+This is true even if you're simply updating an old style
+for \BibTeX\ version 0.99
+(I've updated four nonstandard styles,
+so I say this with some experience).
+If you want to insert into a new style
+some function you'd written for an old (version 0.98i) style,
+keep in mind that the order of the arguments to
+the assignment ({\tt :=}) function has been reversed.
+When you're finished with your style,
+you may want to try running it on the entire \hbox{\tt XAMPL.BIB} database
+to make sure it handles all the standard entry types.
+
+If you find any bugs in the standard styles,
+or if there are things you'd like to do
+with bibliography-style files but can't,
+please complain to Oren Patashnik.
+
+
+\subsection{General description}
+
+You write bibliography styles in a postfix stack language.  It's
+not too hard to figure out how by looking at the standard-style documentation,
+but this description fills in a few details (it will fill in more
+details if there's a demand for it).
+
+Basically the style file is a program, written in an unnamed language, that
+tells \BibTeX\ how to format the entries that will go in the reference list
+(henceforth ``the entries'' will be ``the entry list''
+or simply ``the list''$\!$, context permitting).
+This programming language has ten commands, described in the next subsection.
+These commands manipulate the language's objects:
+constants, variables, functions, the stack, and the entry list.
+(Warning: The terminology in this documentation,
+chosen for ease of explanation, is slightly different from \BibTeX's.
+For example, this documentation's ``variables'' and ``functions''
+are both ``functions'' to \BibTeX.
+Keep this in mind when interpreting \BibTeX's error messages.)
+
+There are two types of functions: {\it built-in\/} ones that \BibTeX\ provides
+(these are described in Section~\ref{built-in-fns}), and ones you define
+using either the \hbox{\tt MACRO} or \hbox{\tt FUNCTION} command.
+
+Your most time-consuming task, as a style designer,
+will be creating or modifying functions
+using the \hbox{\tt FUNCTION} command
+(actually, becoming familiar with the references listed above will be
+more time consuming, but assume for the moment that that's done).
+
+Let's look at a sample function fragment.
+Suppose you have a string variable named \hbox{\tt label}
+and an integer variable named \hbox{\tt lab.width},
+and suppose you want to append the character `{\tt a}' to \hbox{\tt label}
+and to increment \hbox{\tt lab.width}:
+\begin{verbatim}
+    .  .  .
+    label "a" * 'label :=          % label := label * "a"
+    lab.width #1 + 'lab.width :=   % lab.width := lab.width + 1
+    .  .  .
+\end{verbatim}
+In the first line,
+\hbox{\tt label} pushes that variable's value onto the stack.
+Next, the {\tt "a"} pushes the string constant `{\tt a}' onto the stack.
+Then the built-in function {\tt *} pops the top two strings and
+pushes their concatenation.
+The \hbox{\tt 'label} pushes that variable's name onto the stack.
+And finally, the built-in function {\tt :=} pops
+the variable name and the concatenation and performs the assignment.
+\BibTeX\ treats the stuff following the {\tt \%} as a comment
+in the style file.
+The second line is similar except that it uses {\tt \#1},
+with no spaces intervening between the `{\tt \#}' and the `{\tt 1}'$\!$,
+to push this integer constant.
+
+The nonnull spacing here is arbitrary: multiple spaces, tabs, or newlines
+are equivalent to a single one (except that you're probably better off
+not having blank lines within commands, as explained shortly).
+
+For string constants, absolutely any printing character
+is legal between two consecutive double quotes, but \BibTeX\ here
+(and only here) treats upper- and lower-case equivalents as different.
+Furthermore, spacing {\em is\/} relevant within a string constant,
+and you mustn't split a string constant across lines
+(that is, the beginning and ending double quotes must be on the same line).
+
+Variable and function names may not begin with a numeral and
+may not contain any of the ten restricted characters
+on page~143 of the \LaTeX\ book,
+but may otherwise contain any printing characters.
+Also, \BibTeX\ considers upper- and lower-case equivalents to be the same.
+
+Integers and strings are the only value types for constants and variables
+(booleans are implemented simply as 0-or-1 integers).
+There are three kinds of variables:
+\begin{description}
+
+\item[global variables\hfill] These are either integer- or string-valued,
+declared using an \hbox{\tt INTEGERS} or \hbox{\tt STRINGS} command.
+
+\item[entry variables\hfill] These are either integer- or string-valued,
+declared using the \hbox{\tt ENTRY} command.
+Each has a value for each entry on the list
+(example: a variable \hbox{\tt label} might store
+the label string you'll use for the entry).
+
+\item[fields\hfill] These are string-valued, read-only variables
+that store the information from the database file;
+their values are set by the \hbox{\tt READ} command.
+As with entry variables, each has a value for each entry.
+\end{description}
+
+
+\subsection{Commands}
+
+There are ten style-file commands:
+Five (\hbox{\tt ENTRY}, \hbox{\tt FUNCTION}, \hbox{\tt INTEGERS},
+\hbox{\tt MACRO}, and \hbox{\tt STRINGS})
+declare and define variables and functions;
+one (\hbox{\tt READ}) reads in the database information;
+and four (\hbox{\tt EXECUTE}, \hbox{\tt ITERATE}, \hbox{\tt REVERSE},
+and \hbox{\tt SORT}) manipulate the entries and produce output.
+Although the command names appear here in upper case,
+\BibTeX\ ignores case differences.
+
+Some restrictions:
+There must be exactly one \hbox{\tt ENTRY} and one \hbox{\tt READ} command;
+the \hbox{\tt ENTRY} command, all \hbox{\tt MACRO} commands,
+and certain \hbox{\tt FUNCTION} commands
+(see next subsection's description of \hbox{\tt call.type\$})
+must precede the \hbox{\tt READ} command;
+and the \hbox{\tt READ} command must precede the four that
+manipulate the entries and produce output.
+
+Also it's best (but not essential) to leave at least one blank line
+between commands and to leave no blank lines within a command;
+this helps \BibTeX\ recover from any syntax errors you make.
+
+You must enclose each argument of every command in braces.
+Look at the standard-style documentation
+for syntactic issues not described in this section.
+Here are the ten commands:
+\begin{description}
+
+\item[\hbox{\tt ENTRY}\hfill]
+Declares the fields and entry variables.
+It has three arguments, each a (possibly empty) list of variable names.
+The three lists are of:
+fields, integer entry variables, and string entry variables.
+There is an additional field that \BibTeX\ automatically
+declares, \hbox{\tt crossref}, used for cross referencing.
+And there is an additional string entry variable automatically declared,
+\hbox{\tt sort.key\$}, used by the \hbox{\tt SORT} command.
+Each of these variables has a value for each entry on the list.
+
+\item[\hbox{\tt EXECUTE}\hfill]
+Executes a single function.
+It has one argument, the function name.
+
+\item[\hbox{\tt FUNCTION}\hfill]
+Defines a new function.
+It has two arguments; the first is the function's name and the
+second is its definition.
+You must define a function before using it;
+recursive functions are thus illegal.
+
+\item[\hbox{\tt INTEGERS}\hfill]
+Declares global integer variables.
+It has one argument, a list of variable names.
+There are two such automatically-declared variables,
+\hbox{\tt entry.max\$} and \hbox{\tt global.max\$},
+used for limiting the lengths of string variables.
+You may have any number of these commands, but a variable's declaration
+must precede its use.
+
+\item[\hbox{\tt ITERATE}\hfill]
+Executes a single function, once
+for each entry in the list, in the list's current order
+(initially the list is in citation order, but the \hbox{\tt SORT}
+command may change this).
+It has one argument, the function name.
+
+\item[\hbox{\tt MACRO}\hfill]
+Defines a string macro.
+It has two arguments; the first is the macro's name, which is treated like
+any other variable or function name,
+and the second is its definition, which must be double-quote-delimited.
+You must have one for each three-letter month abbreviation;
+in addition, you should have one for common journal names.
+The user's database may override any definition you define using this command.
+If you want to define a string the user can't touch,
+use the \hbox{\tt FUNCTION} command, which has a compatible syntax.
+
+\item[\hbox{\tt READ}\hfill]
+Dredges up from the database file
+the field values for each entry in the list.
+It has no arguments.
+If a database entry doesn't have a value for a field
+(and probably no database entry will have a value for every field),
+that field variable is marked as missing for the entry.
+
+\item[\hbox{\tt REVERSE}\hfill]
+Exactly the same as the
+\hbox{\tt ITERATE} command except that it executes the function
+on the entry list in reverse order.
+
+\item[\hbox{\tt SORT}\hfill]
+Sorts the entry list using
+the values of the string entry variable \hbox{\tt sort.key\$}.
+It has no arguments.
+
+\item[\hbox{\tt STRINGS}\hfill]
+Declares global string variables.
+It has one argument, a list of variable names.
+You may have any number of these commands, but a variable's declaration
+must precede its use.
+\end{description}
+
+
+\subsection{The built-in functions}
+\label{built-in-fns}
+
+Before we get to the built-in functions,
+a few words about some other built-in objects.
+There is one built-in string entry variable, \hbox{\tt sort.key\$},
+which the style program must set if the style is to do sorting.
+There is one built-in field, \hbox{\tt crossref},
+used for the cross referencing feature
+described in Section~4.
+And there are two built-in integer global variables,
+\hbox{\tt entry.max\$} and \hbox{\tt global.max\$},
+which are set by default to some internal \BibTeX\ constants;
+you should truncate strings to these lengths before
+you assign to string variables,
+so as to not generate any \BibTeX\ warning messages.
+
+There are currently 37 built-in functions.
+Every built-in function with a letter in its name ends with a `{\tt \$}'$\!$.
+In what follows, ``first''$\!$, ``second''$\!$,
+and so on refer to the order popped.
+A ``literal'' is an element on the stack, and it will be either
+an integer value, a string value, a variable or function name,
+or a special value denoting a missing field.
+If any popped literal has an incorrect type, \BibTeX\ complains and pushes
+the integer 0 or the null string, depending on whether the function
+was supposed to push an integer or string.
+\begin{description}
+
+\item[\hbox{\tt >}\hfill]
+Pops the top two (integer) literals,
+compares them, and pushes the integer 1 if the second is greater than
+the first, 0 otherwise.
+
+\item[\hbox{\tt <}\hfill]
+Analogous.
+
+\item[\hbox{\tt =}\hfill]
+Pops the top two (both integer or both string) literals,
+compares them,
+and pushes the integer 1 if they're equal, 0 otherwise.
+
+\item[\hbox{\tt +}\hfill]
+Pops the top two (integer) literals and pushes their sum.
+
+\item[\hbox{\tt -}\hfill]
+Pops the top two (integer) literals and pushes their difference
+(the first subtracted from the second).
+
+\item[\hbox{\tt *}\hfill]
+Pops the top two (string) literals,
+concatenates them (in reverse order, that is, the order in which
+pushed), and pushes the resulting string.
+
+\item[\hbox{\tt :=}\hfill]
+Pops the top two literals and assigns
+to the first (which must be a global or entry variable)
+the value of the second.
+
+\item[\hbox{\tt add.period\$}\hfill]
+Pops the top (string) literal,
+adds a `{\tt .}' to it if the last non`{\tt \}}' character
+isn't a `{\tt .}'$\!$, `{\tt ?}', or `{\tt !}'$\!$,
+and pushes this resulting string.
+
+\item[\hbox{\tt call.type\$}\hfill]
+Executes the function whose name is the entry type of an entry.
+For example if an entry is of type {\tt book}, this function executes
+the {\tt book} function.
+When given as an argument to the \hbox{\tt ITERATE} command,
+\hbox{\tt call.type\$} actually produces the output for the entries.
+For an entry with an unknown type,
+it executes the function \hbox{\tt default.type}.
+Thus you should define (before the \hbox{\tt READ} command) one function
+for each standard entry type as well as a \hbox{\tt default.type} function.
+
+\item[\hbox{\tt change.case\$}\hfill]
+Pops the top two (string) literals;
+it changes the case of the second according to the
+specifications of the first, as follows.  (Note: The word `letters' in
+the next sentence refers only to those at brace-level~0, the top-most
+brace level; no other characters are changed, except perhaps for
+``special characters''$\!$, described in Section~4.)
+If the first literal is the
+string~`{\tt t}'$\!$, it converts to lower case all letters except the very
+first character in the string, which it leaves alone, and except the
+first character following any colon and then nonnull white space,
+which it also leaves alone; if it's the string~`{\tt l}'$\!$, it converts all
+letters to lower case; and if it's the string~`{\tt u}'$\!$, it converts all
+letters to upper case.
+It then pushes this resulting string.  If either
+type is incorrect, it complains and pushes the null string; however,
+if both types are correct but the specification string (i.e., the
+first string) isn't one of the legal ones, it merely pushes the second
+back onto the stack, after complaining.  (Another note: It ignores
+case differences in the specification string; for example, the strings
+{\tt t} and {\tt T} are equivalent for the purposes of this built-in
+function.)
+
+\item[\hbox{\tt chr.to.int\$}\hfill]
+Pops the top (string) literal,
+makes sure it's a single character, converts it to the
+corresponding ASCII integer, and pushes this integer.
+
+\item[\hbox{\tt cite\$}\hfill]
+Pushes the string that was the
+\hbox{\verb|\cite|}-command argument for this entry.
+
+\item[\hbox{\tt duplicate\$}\hfill]
+Pops the top literal from the stack and pushes two copies of it.
+
+\item[\hbox{\tt empty\$}\hfill]
+Pops the top literal and pushes
+the integer 1 if it's a missing field or a string having no
+non-white-space characters, 0 otherwise.
+
+\item[\hbox{\tt format.name\$}\hfill]
+Pops the top three literals
+(they are a string, an integer, and a string literal).
+The last string literal represents a name list (each name
+corresponding to a person), the integer literal specifies which name
+to pick from this list, and the first string literal specifies how to
+format this name, as explained in the next subsection.
+Finally, this function pushes the formatted name.
+
+\item[\hbox{\tt if\$}\hfill]
+Pops the top three literals (they
+are two function literals and an integer literal, in that order);
+if the integer is greater than 0, it executes the second literal,
+else it executes the first.
+
+\item[\hbox{\tt int.to.chr\$}\hfill]
+Pops the top (integer) literal,
+interpreted as the ASCII integer value of a single character,
+converts it to the corresponding single-character string, and pushes
+this string.
+
+\item[\hbox{\tt int.to.str\$}\hfill]
+Pops the top (integer) literal,
+converts it to its (unique) string equivalent, and pushes this string.
+
+\item[\hbox{\tt missing\$}\hfill]
+Pops the top literal and
+pushes the integer 1 if it's a missing field, 0~otherwise.
+
+\item[\hbox{\tt newline\$}\hfill]
+Writes onto the {\tt bbl} file
+what's accumulated in the output buffer.
+It writes a blank line if and only if the output buffer is empty.
+Since \hbox{\tt write\$} does reasonable line breaking, you should use
+this function only when you want a blank line or an explicit line break.
+
+\item[\hbox{\tt num.names\$}\hfill]
+Pops the top (string) literal
+and pushes the number of names the string represents---one plus
+the number of occurrences of the substring ``and'' (ignoring case differences)
+surrounded by nonnull white-space at the top brace level.
+
+\item[\hbox{\tt pop\$}\hfill]
+Pops the top of the stack but
+doesn't print it; this gets rid of an unwanted stack literal.
+
+\item[\hbox{\tt preamble\$}\hfill]
+Pushes onto the stack the concatenation of all the
+\hbox{\tt @PREAMBLE} strings read from the database files.
+
+\item[\hbox{\tt purify\$}\hfill]
+Pops the top (string) literal,
+removes nonalphanumeric characters except for white-space characters and
+hyphens and ties (these all get converted to a space), removes
+certain alphabetic characters contained in the control sequences
+associated with a ``special character''$\!$, and pushes the resulting string.
+
+\item[\hbox{\tt quote\$}\hfill]
+Pushes the string consisting of the double-quote character.
+
+\item[\hbox{\tt skip\$}\hfill]
+Is a no-op.
+
+\item[\hbox{\tt stack\$}\hfill]
+Pops and prints the whole stack;
+it's meant to be used for style designers while debugging.
+
+\item[\hbox{\tt substring\$}\hfill]
+Pops the top three literals
+(they are the two integers literals {\it len\/} and {\it start}, and a
+string literal, in that order).
+It pushes the substring of the (at most) {\it len\/} consecutive characters
+starting at the {\it start\/}th character (assuming 1-based indexing)
+if {\it start\/} is positive, and ending at the $-${\it start\/}th character
+from the end if {\it start\/} is negative
+(where the first character from the end is the last character).
+
+\item[\hbox{\tt swap\$}\hfill]
+Swaps the top two literals on the stack.
+
+\item[\hbox{\tt text.length\$}\hfill]
+Pops the top (string) literal,
+and pushes the number of text characters it contains, where an
+accented character (more precisely, a ``special character''$\!$,
+defined in Section~4)
+counts as a single text character, even if it's missing
+its matching right brace, and where braces don't count as
+text characters.
+
+\item[\hbox{\tt text.prefix\$}\hfill]
+Pops the top two literals
+(the integer literal {\it len\/} and a string literal, in that order).
+It pushes the substring of the (at most) {\it len\/} consecutive text
+characters starting from the beginning of the string.  This function
+is similar to \hbox{\tt substring\$}, but this one considers
+a ``special character''$\!$, even if
+it's missing its matching right brace, to be a single text character
+(rather than however many ASCII characters it actually comprises),
+and this function doesn't consider braces to be text characters;
+furthermore, this function appends any needed matching right braces.
+
+\item[\hbox{\tt top\$}\hfill]
+Pops and prints the top of the stack on the terminal and log file.
+It's useful for debugging.
+
+\item[\hbox{\tt type\$}\hfill]
+Pushes the current entry's type (book, article, etc.),
+but pushes the null string
+if the type is either unknown or undefined.
+
+\item[\hbox{\tt warning\$}\hfill]
+Pops the top (string) literal
+and prints it following a warning message.
+This also increments a count of the number of warning messages issued.
+
+\item[\hbox{\tt while\$}\hfill]
+Pops the top two (function) literals,
+and keeps executing the second as long as the (integer)
+literal left on the stack by executing the first is greater than 0.
+
+\item[\hbox{\tt width\$}\hfill]
+Pops the top (string) literal
+and pushes the integer that represents its width in some relative units
+(currently, hundredths of a point, as specified by the June 1987 version
+of the $cmr10$ font; the only white-space character with nonzero width
+is the space).
+This function takes the literal literally;
+that is, it assumes each character in the string is to be printed as
+is, regardless of whether the character has a special meaning to \TeX,
+except that ``special characters'' (even without their right braces) are
+handled specially.
+This is meant to be used for comparing widths of label strings.
+
+\item[\hbox{\tt write\$}\hfill]
+Pops the top (string) literal
+and writes it on the output buffer (which will result in
+stuff being written onto the {\tt bbl} file when the buffer fills up).
+
+\end{description}
+
+Note that the built-in functions \hbox{\tt while\$} and \hbox{\tt if\$}
+require two function literals on the stack.
+You get them there either by immediately preceding the name of a function
+by a single quote, or, if you don't feel like defining a new function with
+the \hbox{\tt FUNCTION} command,
+by simply giving its definition (that is, giving what would be the second
+argument to the \hbox{\tt FUNCTION} command, including the surrounding braces).
+For example the following function fragment appends the character `{\tt a}'
+if the string variable named \hbox{\tt label} is nonnull:
+\begin{verbatim}
+    .  .  .
+    label "" =
+      'skip$
+      { label "a" * 'label := }
+    if$
+    .  .  .
+\end{verbatim}
+A function whose name you quote needn't be built in
+like \hbox{\tt skip\$} above---it may, for example,
+be a field name or a function you've defined earlier.
+
+
+\subsection{Name formatting}
+
+What's in a name?
+Section~4 pretty much describes this.
+Each name consists of four parts: First, von, Last, and Jr;
+each consists of a list of name-tokens,
+and any list but Last's may be empty for a nonnull name.
+This subsection describes the format string you must supply to
+the built-in function \hbox{\tt format.name\$}.
+
+Let's look at an example of a very long name.
+Suppose a database entry~\cite{prime-number-theorem} has the field
+\begin{verbatim}
+  author = "Charles Louis Xavier Joseph de la Vall{\'e}e Poussin"
+\end{verbatim}
+and suppose you want this formatted ``last name comma initials''$\!$.
+If you use the format string
+\begin{verbatim}
+    "{vv~}{ll}{, jj}{, f}?"
+\end{verbatim}
+\BibTeX\ will produce
+\begin{verbatim}
+    de~la Vall{\'e}e~Poussin, C.~L. X.~J?
+\end{verbatim}
+as the formatted string.
+
+Let's look at this example in detail.
+There are four brace-level~1 {\em pieces\/} to this format string,
+one for each part of a name.
+If the corresponding part of a name isn't present (the Jr part for this name),
+everything in that piece is ignored.
+Anything at brace-level~0 is output verbatim
+(the presumed typo `{\tt ?}' for this name is at brace-level~0),
+but you probably won't use this feature much.
+
+Within each piece a double letter tells \BibTeX\ to use whole tokens, and
+a single letter, to abbreviate them (these letters must be at brace-level~1);
+everything else within the piece is used verbatim
+(well, almost everything---read on).
+The tie at the end of the von part (in \hbox{\verb|{vv~}|})
+is a discretionary tie---\BibTeX\ will output a tie at that point
+if it thinks there's a need for one;
+otherwise it will output a space.
+If you really, really, want a tie there,
+regardless of what \BibTeX\ thinks, use two of them
+(only one will be output); that is, use \hbox{\verb|{vv~~}|}.
+A tie is discretionary only if it's the last character of the piece;
+anywhere else it's treated as an ordinary character.
+
+\BibTeX\ puts default strings {\em between\/} tokens of a name part:
+For whole tokens it uses either a space or a tie,
+depending on which one it thinks is best,
+and for abbreviated tokens it uses a period followed by
+either a space or a tie.
+However it doesn't use this default string after the last token in a list;
+hence there's no period following the `J' for our example.
+You should have used
+\begin{verbatim}
+    "{vv~}{ll}{, jj}{, f.}"
+\end{verbatim}
+to get \BibTeX\ to produce the same formatted string but with the question
+mark replaced by a period.
+Note that the period should go inside the First-name piece,
+rather than where the question mark was, in case a name has no First part.
+
+If you want to override \BibTeX's default between-token strings, you
+must explicitly specify a string.
+For example suppose you want a label to contain the first letter from each
+token in the von and Last parts, with no spaces;
+you should use the format string
+\begin{verbatim}
+    "{v{}}{l{}}"
+\end{verbatim}
+so that \BibTeX\ will produce `{\tt dlVP}' as the formatted string.
+You must give a string for each piece whose default you want overridden
+(the example here uses the null string for both pieces), and this string
+must immediately follow either the single or double letter for the piece.
+You may not have any other letters at brace-level~1 in the format string.
+
+\bibliography{btxdoc}
+\bibliographystyle{plain}
+\end{document}

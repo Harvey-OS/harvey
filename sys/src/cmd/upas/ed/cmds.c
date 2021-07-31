@@ -3,7 +3,6 @@
 #include "print.h"
 
 int holding;
-extern int interrupted, alarmed;
 
 typedef struct Ignorance Ignorance;
 struct Ignorance
@@ -13,40 +12,6 @@ struct Ignorance
 	int	partial;	/* true if not exact match */
 };
 Ignorance *ignore;
-
-static char pipemsg[] = "sys: write on closed pipe";
-
-int
-notecatcher(void *a, char *msg)
-{
-	USED(a);
-	if(strcmp(msg, "interrupt") == 0 
-	|| strncmp(msg, pipemsg, sizeof(pipemsg)-1) == 0){
-		fprint(2, "!!%s!!\n", msg);
-		interrupted = 1;
-		return 1;
-	}
-	if(strstr(msg, "alarm")){
-		alarmed = 1;
-		return 1;
-	}
-	V();
-	return 0;
-}
-
-static int
-pipecatcher(void *a, char *msg)
-{
-	USED(a);
-	if(strcmp(msg, "interrupt") == 0)
-		return 1;
-	if(strncmp(msg, pipemsg, sizeof(pipemsg)-1) == 0) {
-		fprint(2, "!!%s!!\n", msg);
-		return 1;
-	}
-	V();
-	return 0;
-}
 
 /*
  * auxiliary routines used by commands
@@ -88,12 +53,12 @@ header(message *mp)
 	static char hd[128];
 
 	if(mp->subject)
-		snprint(hd, sizeof(hd), "%3d %c %4d %s %.16s \"%.20s\"", mp->pos,
+		sprint(hd, "%3d %c %4d %s %.16s \"%.20s\"", mp->pos,
 			mp->status&DELETED?'d':' ',
 			mp->size, s_to_c(mp->sender),
 			s_to_c(mp->date), s_to_c(mp->subject));
 	else
-		snprint(hd, sizeof(hd), "%3d %c %4d %s %.16s", mp->pos, mp->status&DELETED?'d':' ',
+		sprint(hd, "%3d %c %4d %s %.16s", mp->pos, mp->status&DELETED?'d':' ',
 			mp->size, s_to_c(mp->sender), s_to_c(mp->date));
 	return hd;
 }
@@ -138,34 +103,28 @@ store(message *mp, char *cmd, int header, int dot)
 {
 	static String *mbox;
 	Biobuf *fp;
-	char *u;
 
 	dropnewline(cmd);
 	cmd = dropleadingwhite(cmd);
 	if(*cmd=='\0')
 		cmd = "stored";
 	mbox = s_reset(mbox);
-	u = getlog();
-	if(u == nil){
-		fprint(2, "?cannot determine login name\n");
-		return -1;
-	}
-	mboxpath(cmd, u, mbox, dot);
+	mboxpath(cmd, getlog(), mbox, dot);
 	fp = sysopen(s_to_c(mbox), "cA", 0660);
 	if(fp == 0) {
-		fprint(2, "?can't open %s\n", s_to_c(mbox));
+		fprint(2, "?can't open %s\n", cmd);
 		return -1;
 	}
 	if(header){
 		if(m_store(mp, fp) < 0){
 			sysclose(fp);
-			fprint(2, "?error writing %s\n", s_to_c(mbox));
+			fprint(2, "?error writing %s\n", cmd);
 			return -1;
 		}
 	} else {
 		if(m_print(mp, fp, 0, 0) < 0){
 			sysclose(fp);
-			fprint(2, "?error writing %s\n", s_to_c(mbox));
+			fprint(2, "?error writing %s\n", cmd);
 			return -1;
 		}
 	}
@@ -173,9 +132,22 @@ store(message *mp, char *cmd, int header, int dot)
 	return 0;
 }
 
+static void
+pipeint(void *a, char *msg)
+{
+	char buf[2*ERRLEN];
+
+	USED(a);
+	if(strcmp(msg, "interrupt") && strncmp(msg, "sys: write on closed pipe", 25))
+		noted(NDFLT);
+	sprint(buf, "!!%s!!\n", msg);
+	write(2, buf, strlen(buf));
+	noted(NCONT);
+}
+
 /* pipe a message (and possible tty input) to a command */
 static int
-pipecmd(message *mp, char *cmd, int fromtty, int mailinput, int forward, String *prologue)
+pipecmd(message *mp, char *cmd, int fromtty, int mailinput, String *prologue)
 {
 	int rv=0;
 	int n;
@@ -188,13 +160,13 @@ pipecmd(message *mp, char *cmd, int fromtty, int mailinput, int forward, String 
 		Bflush(&out);
 	}
 
-	p = proc_start(cmd, ins = instream(), 0, 0, 0, "me");
+	p = proc_start(cmd, ins = instream(), 0, 0, 0, 0);
 	if(p == 0) {
+		
 		fprint(2, "?can't exec %s\n", cmd);
 		return -1;
 	}
-	atnotify(notecatcher, 0);		/* special interrupt handler */
-	atnotify(pipecatcher, 1);		/* special interrupt handler */
+	notify(pipeint);	/* special interrupt handler */
 	if(prologue){
 		if(fromtty){
 			Bprint(&out, "%s\n", s_to_c(prologue));
@@ -208,8 +180,6 @@ pipecmd(message *mp, char *cmd, int fromtty, int mailinput, int forward, String 
 			line = Brdline(&in, '\n');
 			if(line == 0)
 				break;
-			if(iflg && strncmp(line, ".\n", 2) == 0)
-				break;
 			n = Blinelen(&in);
 			if(Bwrite(ins->fp, line, n) != n){
 				rv = -1;
@@ -219,10 +189,11 @@ pipecmd(message *mp, char *cmd, int fromtty, int mailinput, int forward, String 
 		}
 		holdoff(holding);
 	}
-	if(forward)
-		Bprint(ins->fp, "\n------ forwarded message follows ------\n\n");
-	if(mailinput)
+	if(mailinput){
+		if(fromtty)
+			Bprint(ins->fp, "\n------ original message follows ------\n\n");
 		m_print(mp, ins->fp, 0, 1);
+	}
 	stream_free(ins);
 	p->std[0] = 0;
 	if(proc_wait(p))
@@ -230,8 +201,7 @@ pipecmd(message *mp, char *cmd, int fromtty, int mailinput, int forward, String 
 	proc_free(p);
 	if(fromtty)
 		Bprint(&out, "!\n");
-	atnotify(pipecatcher, 0);		/* back to normal interrupt handler */
-	atnotify(notecatcher, 1);
+	notify(catchint);	/* back to normal interrupt handler */
 	return rv;
 }
 
@@ -246,7 +216,7 @@ remail(message *mp, char *cmd, int ttyinput)
 		cmdString = s_new();
 	s_append(s_restart(cmdString), "/bin/mail ");
 	s_append(cmdString, cmd);
-	if(pipecmd(mp, s_to_c(cmdString), ttyinput, 1, 1, 0)<0)
+	if(pipecmd(mp, s_to_c(cmdString), ttyinput, 1, 0)<0)
 		return -1;
 	return 0;
 }
@@ -264,7 +234,7 @@ extern int
 pipemail(message *mp, char *cmd, int ttyinput)
 {
 	dropnewline(cmd);
-	if(pipecmd(mp, cmd, ttyinput, 1, 0, 0)<0)
+	if(pipecmd(mp, cmd, ttyinput, 1, 0)<0)
 		return -1;
 	return 0;
 }
@@ -276,17 +246,32 @@ escape(char *cmd)
 	char *cp;
 	process *p;
 
-	atnotify(notecatcher, 0);
-	atnotify(pipecatcher, 1);		/* special interrupt handler */
+	notify(pipeint);	/* special interrupt handler */
 	cp = cmd+strlen(cmd)-1;
 	if(*cp=='\n')
 		*cp = '\0';
-	p = proc_start(cmd, 0, 0, 0, 0, "me");
+	p = proc_start(cmd, 0, 0, 0, 0, 0);
 	proc_wait(p);
 	proc_free(p);
 	Bprint(&out, "!\n");
-	atnotify(pipecatcher, 0);		/* back to normal interrupt handler */
-	atnotify(notecatcher, 1);
+	notify(catchint);	/* back to normal interrupt handler */
+	return 0;
+}
+
+char*
+findaddr(message *mp, int x)
+{
+	Field *f;
+	Node *np;
+
+	for(f = mp->first; f; f = f->next){
+		if(f->node->c == x){
+			for(np = f->node; np; np = np->next){
+				if(np->addr)
+					return s_to_c(np->s);
+			}
+		}
+	}
 	return 0;
 }
 
@@ -298,18 +283,13 @@ cistrncmp(char *s1, char *s2, int n)
 {
 	int c1, c2;
 
-	for(; n > 0; n--){
-		c1 = *s1++;
-		c2 = *s2++;
-		if(isupper(c1))
-			c1 = tolower(c1);
-		if(isupper(c2))
-			c2 = tolower(c2);
-		c2 -= c1;
-		if(c2)
-			return c2;
-		if(c1 == 0)
-			break;
+	for(; *s1; s1++, s2++, n--){
+		if(n <= 0)
+			return 0;
+		c1 = isupper(*s1) ? tolower(*s1) : *s1;
+		c2 = isupper(*s2) ? tolower(*s2) : *s2;
+		if (c1 != c2)
+			return -1;
 	}
 	return 0;
 }
@@ -319,21 +299,21 @@ extern int
 reply(message *mp, int mailinput)
 {
 	String *cmdString;
-	String *raddr;
+	char *raddr;
 	String *prologue;
 
-	raddr = mp->reply_to822;
+	raddr = findaddr(mp, REPLY_TO);
 	if(raddr == 0)
-		raddr = mp->from822;
+		raddr = findaddr(mp, FROM);
 	if(raddr == 0)
-		raddr = mp->sender822;
-	if(raddr == 0)
-		raddr = mp->sender;
+		raddr = findaddr(mp, SENDER);
 
 	cmdString = s_new();
-	s_append(s_restart(cmdString), UPASBIN);
-	s_append(cmdString, "/sendmail '");
-	s_append(cmdString, s_to_c(raddr));
+	s_append(s_restart(cmdString), "/bin/mail '");
+	if(raddr)
+		s_append(cmdString, raddr);
+	else
+		s_append(cmdString, s_to_c(mp->sender));
 	s_append(cmdString, "'");
 
 	if(mp->subject){
@@ -342,11 +322,10 @@ reply(message *mp, int mailinput)
 		if(cistrncmp(s_to_c(mp->subject), "re:", 3) != 0)
 			s_append(prologue, "re: ");
 		s_append(prologue, s_to_c(mp->subject));
-		s_append(prologue, "\n");
 	} else
 		prologue = 0;
 
-	if(pipecmd(mp, s_to_c(cmdString), 1, mailinput, mailinput, prologue)<0)
+	if(pipecmd(mp, s_to_c(cmdString), 1, mailinput, prologue)<0)
 		return -1;
 
 	if(prologue)
@@ -355,108 +334,6 @@ reply(message *mp, int mailinput)
 
 	return 0;
 }
-
-static int
-rcvrseen(message *mp, String *s)
-{
-	Addr *a;
-
-	if(s == mp->sender)
-		return 0;
-
-	if(strcmp(s_to_c(mp->sender), s_to_c(s)) == 0)
-		return 1;
-
-	for(a = mp->addrs; a; a = a->next){
-		if(a->addr == s)
-			return 0;
-		if(strcmp(s_to_c(a->addr), s_to_c(s)) == 0)
-			return 1;
-	}
-	return 0;
-}
-
-static int
-addrcvr(message *mp, String *s, String *cmdString)
-{
-	static String *input;
-	extern Biobuf in;
-	char *cp;
-
-	if(rcvrseen(mp, s))
-		return 0;
-
-	if(input == 0)
-		input = s_new();
-
-	print("reply to %s? ", s_to_c(s));
-	cp = s_read_line(&in, s_restart(input));
-	if(cp == 0 || (*cp != 'y' && *cp != 'Y'))
-		return 0;
-
-	if(strstr(s_to_c(s), "all")){
-		print("are you really sure you want to reply to %s? ",
-			s_to_c(s));
-		cp = s_read_line(&in, s_restart(input));
-	}
-	if(cp == 0 || (*cp != 'y' && *cp != 'Y'))
-		return 0;
-
-	s_append(cmdString, " '");
-	s_append(cmdString, s_to_c(s));
-	s_append(cmdString, "'");
-	return 1;
-}
-
-/* reply to all destiniations */
-extern int
-replyall(message *mp, int mailinput)
-{
-	String *cmdString;
-	String *prologue;
-	int i;
-	Addr *a;
-
-	cmdString = s_new();
-	s_append(s_restart(cmdString), UPASBIN);
-	s_append(cmdString, "/sendmail");
-
-	i = addrcvr(mp, mp->sender, cmdString);
-	if(interrupted)
-		return -1;
-	for(a = mp->addrs; a; a = a->next){
-		if(strcmp(s_to_c(a->addr), s_to_c(mp->sender)) == 0)
-			continue;
-		i += addrcvr(mp, a->addr, cmdString);
-		if(interrupted)
-			return -1;
-	}
-	if(i == 0){
-		s_free(cmdString);
-		fprint(2, "!noone to reply to!\n");
-		return -1;
-	}
-
-	if(mp->subject){
-		prologue = s_new();
-		s_append(prologue, "Subject: ");
-		if(cistrncmp(s_to_c(mp->subject), "re:", 3) != 0)
-			s_append(prologue, "re: ");
-		s_append(prologue, s_to_c(mp->subject));
-		s_append(prologue, "\n");
-	} else
-		prologue = 0;
-
-	if(pipecmd(mp, s_to_c(cmdString), 1, mailinput, mailinput, prologue)<0)
-		return -1;
-
-	if(prologue)
-		s_free(prologue);
-	s_free(cmdString);
-
-	return 0;
-}
-
 
 /*
  *  read the file of headers to ignore 
@@ -464,16 +341,14 @@ replyall(message *mp, int mailinput)
 void
 readignore(void)
 {
-	char *p;
+	char *p, *colon;
 	Ignorance *i;
 	Biobuf *b;
-	char buf[128];
 
 	if(ignore)
 		return;
 
-	snprint(buf, sizeof(buf), "%s/ignore", UPASLIB); 
-	b = Bopen(buf, OREAD);
+	b = Bopen("/mail/lib/ignore", OREAD);
 	if(b == 0)
 		return;
 	while(p = Brdline(b, '\n')){
@@ -485,7 +360,11 @@ readignore(void)
 		i = malloc(sizeof(Ignorance));
 		if(i == 0)
 			break;
-		i->partial = strlen(p);
+		colon = strchr(p, ':');
+		if(colon)
+			*colon = 0;
+		else
+			i->partial = strlen(p);
 		i->str = strdup(p);
 		if(i->str == 0){
 			free(i);
@@ -503,70 +382,46 @@ readignore(void)
 extern int
 seanprintm(message *mp)
 {
-	char *cp, *ep;
-	int n, match;
+	Field *f;
+	Node *p;
+	char *cp;
+	int match;
 	Ignorance *i;
-	char buf[256];
-	static String *dir;
-	char *u;
 
-	/* use unmime if this is a mime message */
-	if(mp->mime){
-		u = getlog();
-		if(u == nil){
-			fprint(2, "?can't determine login name\n");
-			return 0;
-		}
-		dir = s_reset(dir);
-		mboxpath("", u, dir, 0);
-		if(Dflg)
-			sprint(buf, "%s/unmime -D", UPASBIN);
-		else
-			sprint(buf, "%s/unmime -a %s", UPASBIN, s_to_c(dir));
-		pipemail(mp, buf, 0);
-		return 0;
-	}
+	/*
+	 *  print out the parsed header
+	 */
 	readignore();
-	interrupted = 0;
-
-	/*
-	 *  print out the header
-	 */
-	match = 0;
 	print_header(&out, s_to_c(mp->sender), s_to_c(mp->date));
-	for(cp = s_to_c(mp->body); cp && cp < mp->body822; cp = ep){
-		ep = strchr(cp, '\n');
-		if(ep == 0)
-			break;
-		ep++;
-
-		/* continuation lines */
-		if(*cp == ' ' || *cp == '\t'){
-			if(!match)
-				Bwrite(&out, cp, ep-cp);
-			continue;
-		}
-
-		/* start of header */
-		for(i = ignore; i; i = i->next){
-			match = cistrncmp(i->str, cp, i->partial) == 0;
+	for(f = mp->first; f; f = f->next){
+		if(f->node->s){
+			match = 0;
+			for(i = ignore; i; i = i->next){
+				if(i->partial)
+					match = cistrncmp(i->str, s_to_c(f->node->s), i->partial) == 0;
+				else
+					match = cistrcmp(i->str, s_to_c(f->node->s)) == 0;
+				if(match)
+					break;
+			}
 			if(match)
-				break;
+				continue;
 		}
-		if(!match)
-			Bwrite(&out, cp, ep-cp);
-	}
 
-	/*
-	 *  print out the rest
-	 */
-	for(ep = s_to_c(mp->body) + mp->size; !interrupted && cp < ep; cp += n){
-		n = 256;
-		if(n > ep-cp)
-			n = ep-cp;
-		if(Bwrite(&out, cp, n) != n)
-			break;
+		for(p = f->node; p; p = p->next){
+			if(p->s)
+				Bprint(&out, "%s", s_to_c(p->s));
+			else {
+				Bprint(&out, "%c", p->c);
+			}
+			if(p->white){
+				cp = s_to_c(p->white);
+				Bprint(&out, "%s", cp);
+			}
+		}
+		Bprint(&out, "\n");
 	}
+	Bwrite(&out, mp->body822, mp->size - (mp->body822 - s_to_c(mp->body)));
 
 	return 0;
 }
@@ -575,14 +430,11 @@ seanprintm(message *mp)
 extern int
 help(void)
 {
-	String *s;
+	char *user;
 
-	s = s_new();
-	mboxpath("file", getuser(), s, 0);
+	user = getuser();
 	Bprint(&out, "Commands are of the form [range] command [argument].\n");
 	Bprint(&out, "The commmands are:\n");
-	Bprint(&out, "a\treply to all addresses in the header\n");
-	Bprint(&out, "A\treply to all addresses in the header with original message appended\n");
 	Bprint(&out, "b\tprint the next ten headers\n");
 	Bprint(&out, "d\tmark for deletion\n");
 	Bprint(&out, "h\tprint message header (,h to print all headers)\n");
@@ -593,15 +445,14 @@ help(void)
 	Bprint(&out, "q\texit from mail, and save messages not marked for deletion\n");
 	Bprint(&out, "r\treply to sender\n");
 	Bprint(&out, "R\treply to sender with original message appended\n");
-	Bprint(&out, "s file\tappend message to %s\n", s_to_c(s));
+	Bprint(&out, "s file\tappend message to /mail/box/%s/file\n", user);
 	Bprint(&out, "S file\tappend message to file\n");
 	Bprint(&out, "u\tunmark message for deletion\n");
-	Bprint(&out, "w file\tappend message to %s without the From line\n", s_to_c(s));
+	Bprint(&out, "w file\tappend message to /mail/box/%s/file without the From line\n", user);
 	Bprint(&out, "W file\tappend message to file without the From line\n");
 	Bprint(&out, "x\texit without changing mail box\n");
 	Bprint(&out, "| cmd\tpipe mail to command\n");
 	Bprint(&out, "! cmd\tescape to commmand\n");
 	Bprint(&out, "?\tprint this message\n");
-	s_free(s);
 	return 0;
 }

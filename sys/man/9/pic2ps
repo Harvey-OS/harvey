@@ -1,0 +1,75 @@
+.TH PIC2PS 9.1
+.SH NAME
+pic2ps, pic2gif \- convert picture files to other formats
+.SH SYNOPSIS
+.B fb/pic2ps
+[
+.B -c
+]
+[
+.B -h
+.I height
+] [
+.I input
+]
+.PP
+.B fb/pic2gif
+[
+.B -i
+]
+[
+.B -l
+]
+[
+.B -b
+.I depth
+] [
+.I input
+]
+.SH DESCRIPTION
+.I Pic2ps
+converts its input image (default standard input) into encapsulated PostScript, writing
+the result to standard output.  If the input image is full-color,
+its luminance is computed first, except under option
+.BR -c ,
+which produces output suitable for a color PostScript printer.
+Option
+.B -h
+sets the output image height in inches.  The default height is 3", to match
+the default height of the
+.B .BP
+macro in
+.BR "troff -mpictures" .
+.PP
+.I Pic2gif
+converts its input image (default standard input) into a Compuserv GIF format file, writing
+the result to standard output.  It converts only the first channel of the input image,
+which may yield wrong results \(em use
+the
+.B -l
+flag or
+.IR quantize (9.1)
+or some other dithering filter to reduce color images to a single channel.
+Option
+.B -i
+produces an interlaced output file.
+Option
+.B -b
+sets the number of bits per pixel in the output file.
+The default is 8, which is the maximum.
+Option
+.B -l
+makes
+.I pic2gif
+compute the NTSC luminance of its input.
+If
+.IR pic2gif 's
+input contains no color map, it assumes that it is a 256 grey shade monochrome image.
+.SH SOURCE
+.B /sys/src/fb/pic2ps.c
+.br
+.B /sys/src/fb/pic2gif.c
+.SH "SEE ALSO
+.IR mpictures (6),
+.IR picfile (9.6),
+.IR quantize (9.1),

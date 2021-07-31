@@ -2,6 +2,7 @@
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
+#include "stdarg.h"
 int pfmtnest=0;
 void pfmt(io *f, char *fmt, ...){
 	va_list ap;
@@ -24,16 +25,6 @@ void pfmt(io *f, char *fmt, ...){
 		}
 	va_end(ap);
 	if(--pfmtnest==0) flush(f);
-}
-void pchr(io *b, int c)
-{
-	if(b->bufp==b->ebuf) fullbuf(b, c);
-	else *b->bufp++=c;
-}
-int rchr(io *b)
-{
-	if(b->bufp==b->ebuf) return emptybuf(b);
-	return *b->bufp++ & 0xFF;
 }
 void pquo(io *f, char *s)
 {
@@ -152,7 +143,7 @@ io *opencore(char *s, int len)
 	Memcpy(buf, s, len);
 	return f;
 }
-void rewind(io *io)
+rewind(io *io)
 {
 	if(io->fd==-1) io->bufp=io->strp;
 	else{

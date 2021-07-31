@@ -1,12 +1,12 @@
 </$objtype/mkfile
 
-<../config
-
-COMMONDIR=../common
+SYSTEM=plan9
+VERSION=3.3.1
 
 TARG=postreverse
-
 OFILES=postreverse.$O\
+
+COMMONDIR=../common
 
 HFILES=postreverse.h\
 	$COMMONDIR/comments.h\
@@ -14,7 +14,7 @@ HFILES=postreverse.h\
 	$COMMONDIR/gen.h\
 	$COMMONDIR/path.h\
 
-BIN=$POSTBIN
+BIN=/$objtype/bin/aux
 LIB=$COMMONDIR/com.a$O
 
 </sys/src/cmd/mkone

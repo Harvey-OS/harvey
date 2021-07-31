@@ -2,7 +2,7 @@
 
 
 void
-icosadd(double *fp, char *cp)
+icosadd(float *fp, char *cp)
 {
 
 	cafp = fp;

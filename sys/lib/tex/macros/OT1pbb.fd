@@ -1,0 +1,46 @@
+%Filename: OT1pbb.fd
+%Created by: tex 8587bembo
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pbb}{}
+
+\DeclareFontShape{OT1}{pbb}{b}{n}{
+   <-> pbbb7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{b}{sc}{
+   <-> pbbbc7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{b}{sl}{
+   <-> pbbbo7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{b}{it}{
+   <-> pbbbi7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{m}{n}{
+   <-> pbbr7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{m}{sc}{
+   <-> pbbrc7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{m}{sl}{
+   <-> pbbro7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{m}{it}{
+   <-> pbbri7t
+}{}
+
+\DeclareFontShape{OT1}{pbb}{bx}{n}{<->ssub * pbb/b/n}{}
+\DeclareFontShape{OT1}{pbb}{bx}{sc}{<->ssub * pbb/b/sc}{}
+\DeclareFontShape{OT1}{pbb}{bx}{sl}{<->ssub * pbb/b/sl}{}
+\DeclareFontShape{OT1}{pbb}{bx}{it}{<->ssub * pbb/b/it}{}
+
+\endinput

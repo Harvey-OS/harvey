@@ -1,34 +1,27 @@
 #include	"all.h"
 
-typedef	struct	Wren	Wren;
-struct	Wren
-{
-	long	block;			/* size of a block -- from config */
-	long	nblock;			/* number of blocks -- from config */
-	long	mult;			/* multiplier to get physical blocks */
-	long	max;			/* number of logical blocks */
-};
-
 void
-wreninit(Device *d)
+wreninit(Device d)
 {
 	int s;
 	uchar cmd[10], buf[8];
-	Wren *dr;
+	Drive *dr;
 
-	dr = d->private;
-	if(dr)
+	dr = scsidrive(d);
+	if(dr == 0 || dr->status != Dready) {
+		print("	drive %D: not ready\n", d);
 		return;
-	dr = ialloc(sizeof(Wren), 0);
-	d->private = dr;
+	}
 
 loop:
+	if(dr->mult)
+		return;
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = 0x25;					/* read capacity */
-	s = scsiio(d, SCSIread, cmd, sizeof(cmd), buf, sizeof(buf));
+	s = scsiio(dr->dev, SCSIread, cmd, sizeof(cmd), buf, sizeof(buf));
 	if(s) {
 		print("wreninit: %D bad status %.4x\n", d, s);
-		delay(1000);
+		delay(5000);
 		goto loop;
 	}
 	dr->nblock =
@@ -56,35 +49,34 @@ loop:
 }
 
 long
-wrensize(Device *d)
+wrensize(Device a)
 {
-	Wren *dr;
+	Drive *dr;
 
-	dr = d->private;
+	dr = scsidrive(a);
 	return dr->max;
 }
 
 int
-wreniocmd(Device *d, int io, long b, void *c)
+wreniocmd(int io, Device a, long b, void *c)
 {
 	long l, m;
 	uchar cmd[10];
-	Wren *dr;
+	Drive *dr;
 
-	dr = d->private;
-	if(d == 0) {
-		print("wreniocmd: no drive - a=%D b=%ld\n", d, b);
+	if((dr = scsidrive(a)) == 0) {
+		print("wreniocmd: no drive - a=%D b=%ld\n", a, b);
 		return 0x40;
 	}
 	if(b >= dr->max) {
-		print("wreniocmd out of range a=%D b=%ld\n", d, b);
+		print("wreniocmd out of range a=%D b=%ld\n", a, b);
 		return 0x40;
 	}
 
-	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = 0x28;	/* extended read */
 	if(io != SCSIread)
 		cmd[0] = 0x2a;	/* extended write */
+	cmd[1] = 0;
 
 	m = dr->mult;
 	l = b * m;
@@ -92,21 +84,23 @@ wreniocmd(Device *d, int io, long b, void *c)
 	cmd[3] = l>>16;
 	cmd[4] = l>>8;
 	cmd[5] = l;
+	cmd[6] = 0;
 
 	cmd[7] = m>>8;
 	cmd[8] = m;
+	cmd[9] = 0;
 
-	return scsiio(d, io, cmd, sizeof(cmd), c, RBUFSIZE);
+	return scsiio(dr->dev, io, cmd, sizeof(cmd), c, RBUFSIZE);
 }
 
 int
-wrenread(Device *d, long b, void *c)
+wrenread(Device a, long b, void *c)
 {
 	int s;
 
-	s = wreniocmd(d, SCSIread, b, c);
+	s = wreniocmd(SCSIread, a, b, c);
 	if(s) {
-		print("wrenread: %D(%ld) bad status %.4x\n", d, b, s);
+		print("wrenread: %D(%ld) bad status %.4x\n", a, b, s);
 		cons.nwormre++;
 		return 1;
 	}
@@ -114,13 +108,13 @@ wrenread(Device *d, long b, void *c)
 }
 
 int
-wrenwrite(Device *d, long b, void *c)
+wrenwrite(Device a, long b, void *c)
 {
 	int s;
 
-	s = wreniocmd(d, SCSIwrite, b, c);
+	s = wreniocmd(SCSIwrite, a, b, c);
 	if(s) {
-		print("wrenwrite: %D(%ld) bad status %.4x\n", d, b, s);
+		print("wrenwrite: %D(%ld) bad status %.4x\n", a, b, s);
 		cons.nwormwe++;
 		return 1;
 	}

@@ -1,0 +1,64 @@
+.TH LAM 9.1
+.SH NAME
+lam, posit, piccat, picjoin \- combine several images
+.SH SYNOPSIS
+.B fb/lam
+.I input ...
+.PP
+.B fb/posit
+.I input ...
+.PP
+.B fb/piccat
+.I input ...
+.PP
+.B fb/picjoin
+.I input ...
+.SH DESCRIPTION
+.I Lam
+overlays (laminates)
+several picture files, writing the resulting picture file to standard output.
+The output
+.B WINDOW=
+attribute is the smallest rectangle that contains all of the input rectangles.
+Each pixel of the output image takes its value from the last-mentioned input image that covers
+that pixel.  Output pixels not covered by any input image are set to zero.
+.PP
+.I Posit
+performs similarly, except that output pixels are computed by compositing the
+corresponding input pixels, with later input pictures
+.B over
+earlier ones.
+If the input images have no
+α
+channel,
+.I posit
+has the same effect as
+.IR lam .
+.PP
+.I Piccat
+concatenates a list of picture files, each above the next,
+writing the result to standard output.
+The width of the output file will be that of the widest input picture.
+If any of the input pictures are more narrow than that,
+the space to their right will be zero in the output picture.
+.PP
+.I Picjoin
+is similar, but joins the pictures left-to right.
+.SH SOURCE
+.B /sys/src/fb/lam.c
+.br
+.B /sys/src/fb/posit.c
+.br
+.B /sys/src/fb/piccat.c
+.br
+.B /sys/src/fb/picjoin.c
+.SH "SEE ALSO
+.IR picfile (9.6),
+Thomas Porter and Tom Duff,
+``Compositing Digital Images,''
+.I Computer Graphics,
+Vol 18, No. 3 (1984), pp. 253-259
+.SH BUGS
+All pictures must have identical
+.B CHAN=
+attributes.

@@ -1,0 +1,35 @@
+.TH HED 9.1
+.SH NAME
+hed, nohed \- edit or remove picture file header
+.SH SYNOPSIS
+.B fb/hed
+[
+.B -n
+]
+.I sedcommand input
+.PP
+.B fb/nohed
+.I input
+.SH DESCRIPTION
+.I Hed
+runs
+.IR sed (1)
+with the given
+.I sedcommand
+on the input picture file's header.
+The resulting picture file is written on standard output.
+.PP
+.I Nohed
+removes the
+.IR picfile (9.6)
+header from the input image.
+This is useful mostly for turning a
+.B TYPE=dump
+image into a raw bitmap dump.
+.SH SOURCE
+.B /sys/src/fb/hed.r
+.br
+.B /sys/src/fb/nohed.r
+.SH "SEE ALSO
+.IR sed (1),
+.IR picfile (9.6)

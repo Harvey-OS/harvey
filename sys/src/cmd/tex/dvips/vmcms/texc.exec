@@ -1,0 +1,131 @@
+/* TEXC exec: based on the texc.script for Unix.                 */
+/* This is version 2.0 as of 9 Nov. 1992.                        */
+/* Written by Jim Hafner (hafner@almaden.ibm.com).               */
+/*                                                               */
+/* Command is:                                                   */
+/*      TEXC [ifn.[ift [ofn.[oft]]]]                             */
+/* Note: filemodes are not USED in the input and output file     */
+/*       name specification.  They default to '*' and 'A' for    */
+/*       the input and output files, respectively.               */
+/*                                                               */
+/* The defaults:                                                 */
+/*   ifn: TEX     ift: LPRO                                      */
+/*   ofn: TEXC    oft: LPRO                                      */
+
+/* END OF HEADER (this line must be preceded by a blank line)    */
+
+/* This program is part of the VM/CMS version of DVIPS, a TeX dvi to
+ * PostScript driver written by Tom Rokicki.  It is used in the MKDVIPS
+ * procedure to build the TEXC.LPRO file from the TEX.LPRO file.  This is
+ * then followed by SQEEZE to remove the comment lines and pack the files
+ * tighter.
+ *
+ * You are welcome to modify this exec in any way you choose.
+ *
+ * It reads the input file and deletes all the lines between and
+ * including
+ *    % begin code for uncompressed fonts only
+ * and
+ *    % end code for uncompressed fonts only
+ * Then it strips the leading % comment symbol from all the succeeding
+ * lines up to and including the line
+ *    % % end of code for unpacking compressed fonts
+ *
+ * THANKS:
+ *   Many thanks to Ronald Kappert (R.Kappert@uci.kun.nl) for sending
+ *   me many suggestions to enhance the support for this program.
+ *   Also, Michel Goossens (goossens@cernvm.cern.ch) for other ideas
+ *   and helping with the testing.
+ */
+
+parse upper source . . execfn execft execfm .
+parse upper arg ifn'.'ift ofn'.'oft .
+
+default_ifn = 'TEX';  default_ofn = 'TEXC'
+
+default_ift = 'LPRO'; ifm = '*';
+default_oft = 'LPRO'; ofm = 'A1';
+
+if ifn = '?' then signal show_header ;
+
+if ifn = '' then ifn = default_ifn
+if ift = '' then ift = default_ift
+if ofn = '' then ofn = default_ofn
+if oft = '' then oft = default_oft
+upper ofn oft ofm
+
+address 'COMMAND'
+
+'STATE' ifn ift ifm
+if rc^=0 then signal input_state_error
+
+'STATE' ofn oft ofm
+if rc=0 then do
+   say execfn': Output File' ofn oft ofm 'already exists.'
+   say execfn': Will overwrite with new version.'
+   "ERASE "ofn oft ofm
+   end
+else if rc^=28 then signal output_state_error
+
+
+'MAKEBUF'; lev = rc;
+
+outputon = 1
+stripcomment = 0
+
+do forever
+  'EXECIO 1 DISKR' ifn ift ifm '(VAR LINE'
+  if rc ^= 0 then leave
+  parse var line comment text
+  if ( comment = "%" &,
+            delword(text,5) = "begin code for uncompressed" ) then do
+    outputon = 0
+    stripcomment = 0
+    end
+  if (comment = "%" &,
+            delword(text,5) = "% here's the alternate" ) then do
+    stripcomment = 1
+    outputon = 1
+    end
+  if ( outputon == 1 & stripcomment == 1 ) then
+    'EXECIO 1 DISKW' ofn oft ofm '(STRING' text
+  else if ( outputon = 1 & stripcomment == 0 ) then
+    'EXECIO 1 DISKW' ofn oft ofm '(STRING' line
+  if (comment = "%" &,
+            delword(text,7) = "% end of code for unpacking" ) then do
+    stripcomment = 0
+    outputon = 1
+    end
+end
+'DROPBUF' lev
+'FINIS' ifn ift ifm
+'FINIS' ofn oft ofm
+
+exit
+
+
+show_header:
+   index=1
+   line=Sourceline(index)
+   Do While Substr(line,1,2)="/*"
+      parse var line '/*' middle '*/'
+      say middle
+      index=index+1
+      line=Sourceline(index)
+      End
+   Exit
+
+
+input_state_error:
+  if  rc = 28 then say execfn': Input File' ifn ift ifm 'does not exist.'
+  else if rc = 36 then say execfn': Disk' ifm 'not accessed.'
+  else                 say execfn': Error reading 'ifn ift ifm'.'
+  exit rc
+
+output_state_error:
+  if rc = 36 then say execfn': Disk' ofm 'not accessed.'
+  else            say execfn': Error writing to 'ofn oft ofm'.'
+  exit rc
+
+/* exit */
+

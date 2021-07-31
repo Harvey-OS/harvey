@@ -1,0 +1,345 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{133}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "1.2e",
+%%%     date            = "26 June 1994",
+%%%     time            = "00:49:53 MET",
+%%%     filename        = "italian.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "28615 312 1394 12215",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, italian",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the italian language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{italian.dtx}
+% \def\fileversion{v1.2e}
+% \def\filedate{1994/06/26}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2.e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source
+%    code for the Italian language-specific file.
+%    The original version of this file was written by Maurizio
+%    Codogno, (urcm@ur785.cselt.stet.it).
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{italian.dtx}
+\end{document}
+%</filedriver>
+%\fi
+%
+% \changes{italian-0.99}{11 jul 90}{First version, from english.doc}
+% \changes{italian-1.0}{23 april 91}{Modified for babel 3.0}
+% \changes{italian-1.0a}{23 may 91}{removed typo}
+% \changes{italian-1.0b}{29 may 91}{Removed bug found by van der Meer}
+% \changes{italian-1.0e}{15 july 91}{Renamed babel.sty in babel.com}
+% \changes{italian-1.1}{16 feb 92}{Brought up-to-date with babel 3.2a}
+% \changes{italian-1.2}{09 feb 94}{Update for LaTeX2e}
+% \changes{italian-1.2e}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved identification after the loading of babel.def}
+%
+%  \section{The Italian language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion\ and was last revised on
+%    \filedate. The original author is Maurizio Codogno,
+%    ({\tt urcm@ur785.cselt.stet.it}).}
+%    It defines all the language-specific macros for the Italian
+%    language.
+%
+%    For this language the |\clubpenalty|, |\widowpenalty| and
+%    |\finalhyphendemerits| are set to rather high values.
+%
+% \StopEventually{}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionsitalian| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+% \changes{italian-1.0e}{15 july 91}{Added reset of catcode of @
+%                                  before{\tt\bsl endinput}.}
+% \changes{italian-1.0h}{8 okt 91}{Removed use of {\tt\bsl
+%                                  @ifundefined}}
+%    \begin{macrocode}
+\ifx\undefined\captionsitalian
+\else
+  \selectlanguage{italian}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \changes{italian-1.0h}{7 okt 91}{Removed code to load {\tt
+%                                  latexhax.com}}
+%
+% \begin{macro}{\atcatcode}
+%    This file, \file{italian.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read. We save the category code of the @-sign in |\atcatcode| and
+%    make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%
+% \changes{italian-1.0c}{06 june 91}{Made test of catcode of @ more
+%                                robust}
+% \changes{italian-1.0e}{15 july 91}{Modified handling of catcode of @
+%                                again.}
+% \changes{italian-1.0f}{29 aug 91}{fixed typo, missing right brace}
+% \changes{italian-1.0h}{7 okt 91}{Removed use of {\tt\bsl
+%                                  makeatletter} and hence the need
+%                                  to load {\tt latexhax.com}}
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt italian} is the first language option
+%    to be processed. In that case we need to read \file{babel.def}
+%    right here before we continue.
+%
+% \changes{italian-1.0}{23 apr 1991}{New check before loading
+%                                    babel.com}
+% \changes{italian-1.1}{16 feb 92}{Added {\tt\bsl relax} after the
+%                                  argument of  {\tt\bsl input}}
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{italian.sty}[1994/06/26 v1.2e
+         Italian support from the babel system]
+%    \end{macrocode}
+%
+% \changes{italian-1.0b}{29 may 91}{Add a check for existence
+%                                  {\tt\bsl originalTeX}}
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+% \changes{italian-1.0e}{15 july 91}{Added {\tt\bsl let\bsl
+%    originalTeX\bsl relax} to test for existence}
+% \changes{italian-1.1}{16 feb 92}{{\tt\bsl originalTeX} should be
+%    expandable, {\tt\bsl let} it to {\tt\bsl empty}}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty \fi
+\originalTeX
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by
+%    the |\usepackage| command, {\tt italian} will be an
+%    `unknown' language in which case we have to make it known.
+%    So we check for the existence of |\l@italian| to see whether
+%    we have to do something here.
+%
+% \changes{italian-1.0}{23 april 1991}{Now use {\tt\bsl adddialect} if
+%    language undefined}
+% \changes{italian-1.0h}{8 okt 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{italian-1.1}{16 feb 92}{Added a warning when no hyphenation
+%    patterns were loaded.}
+% \changes{italian-1.2e}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@italian
+    \@nopatterns{Italian}
+    \adddialect\l@italian0\fi
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the Italian language.
+%
+% \begin{macro}{\captionsitalian}
+%    The macro |\captionsitalian| defines all strings used
+%    in the four standard documentclasses provided with \LaTeX.
+% \changes{italian-1.0c}{6 june 91}{Removed {\tt\bsl global}
+%    definitions}
+% \changes{italian-1.0c}{6 june 91}{{\tt\bsl pagename} should be
+%    {\tt\bsl headpagename}}
+% \changes{italian-1.0d}{1 july 91}{`contine' substitued by `Allegati'
+%    as suggested by Marco Bozzo ({\tt BOZZO@CERNVM}).}
+% \changes{italian-1.1}{16 feb 92}{Added {\tt\bsl seename}, {\tt\bsl
+%    alsoname} and {\tt\bsl prefacename}}
+% \changes{italian-1.1}{15 jul 93}{`headpagename should be `pagename}
+% \changes{italian-1.2b}{1994/05/19}{Changed some of the words
+%    following suggestions from Claudio Beccari}
+%    \begin{macrocode}
+\addto\captionsitalian{%
+  \def\prefacename{Prefazione}%
+  \def\refname{Riferimenti bibliografici}%
+  \def\abstractname{Sommario}%
+  \def\bibname{Bibliografia}%
+  \def\chaptername{Capitolo}%
+  \def\appendixname{Appendice}%
+  \def\contentsname{Indice}%
+  \def\listfigurename{Elenco delle figure}%
+  \def\listtablename{Elenco delle tabelle}%
+  \def\indexname{Indice analitico}%
+  \def\figurename{Figura}%
+  \def\tablename{Tabella}%
+  \def\partname{Parte}%
+  \def\enclname{Allegati}%
+  \def\ccname{e~p.~c.}%
+  \def\headtoname{Per}%
+  \def\pagename{Pag.}%    % in Italian abbreviation is preferred
+  \def\seename{vedi}%
+  \def\alsoname{vedi anche}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateitalian}
+%    The macro |\dateitalian| redefines the command
+%    |\today| to produce Italian dates.
+% \changes{italian-1.0c}{6 june 91}{Removed {\tt\bsl global}
+%                                   definitions}
+%    \begin{macrocode}
+\def\dateitalian{%
+\def\today{\number\day~\ifcase\month\or
+  gennaio\or febbraio\or marzo\or aprile\or maggio\or giugno\or
+  luglio\or agosto\or settembre\or ottobre\or novembre\or dicembre\fi
+  \space \number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasitalian}
+% \changes{italian-1.2b}{1994/05/19}{Added setting of left and
+%    righthyphenmin according to Claudio Beccari's suggestion}
+% \begin{macro}{\noextrasitalian}
+%
+%    The italian hyphenation patterns can be used with both
+%    |\lefthyphenmin| and |\righthyphenmin| set to~2.
+%
+%    \begin{macrocode}
+\addto\extrasitalian{%
+  \babel@savevariable\lefthyphenmin
+  \babel@savevariable\righthyphenmin
+  \lefthyphenmin\tw@\righthyphenmin\tw@}
+\addto\noextrasitalian{}
+%    \end{macrocode}
+%
+% \changes{italian-1.2b}{1994/05/19}{Added setting of club- and
+%    widowpenalty}
+%    Lower the chance that clubs or widows occur.
+%    \begin{macrocode}
+\addto\extrasitalian{%
+  \babel@savevariable\clubpenalty
+  \babel@savevariable\widowpenalty
+  \clubpenalty3000\widowpenalty3000}
+%    \end{macrocode}
+%
+% \changes{italian-1.2b}{1994/05/19}{Added setting of
+%    finalhyphendemerits}
+%
+%    Never ever break a word between the last two lines of a paragraph
+%    in italian texts.
+%    \begin{macrocode}
+\addto\extrasitalian{%
+  \babel@savevariable\finalhyphendemerits
+  \finalhyphendemerits50000000}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% Our last action is to activate the commands we have just defined,
+% by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{italian}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+% \changes{italian-1.0e}{15 july 91}{Modified handling of catcode of
+%                                    @-sign.}
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

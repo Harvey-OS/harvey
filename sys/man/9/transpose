@@ -1,0 +1,89 @@
+.TH TRANSPOSE 9.1
+.SH NAME
+rotate, transpose \- re-orient an image
+.SH SYNOPSIS
+.B fb/rotate
+.I angle
+[
+.I input
+]
+.PP
+.B fb/transpose
+[
+.B -vhadrlui
+]
+[
+.BI -o "x y
+] [
+.I input
+]
+.SH DESCRIPTION
+.I Rotate
+rotates the image in its
+.I input
+picture file (default standard input)
+clockwise by
+.I angle
+degrees, writing the resulting picture file on standard output.
+.PP
+.I Transpose
+turns its
+.I input
+picture file on its side by reflection through its major
+(descending from left to right) diagonal, writing the resulting picture
+file on standard output.  If no file name is given, the
+picture is read from standard input.
+Options yield all possible symmetries of the square grid:
+.TP
+.B -d
+reflects the image through its descending diagonal (the default).
+.TP
+.B -a
+reflects the image through its ascending diagonal.
+.TP
+.B -v
+reflects the image left-to-right through its vertical center line.
+.TP
+.B -h
+inverts the image top-to-bottom through its horizontal center line.
+.TP
+.B -r
+rotates the image to the right (clockwise) 90 degrees.
+.TP
+.B -l
+rotates the image to the left (counterclockwise) 90 degrees.
+.TP
+.B -u
+rotates the image upside down (180 degrees).
+.TP
+.B -i
+identity transformation (for completeness only.)
+.TP
+.BI -o " x y
+translates by (x,y).
+Without 
+.BR -o ,
+the input and output files have the same upper-left corner.
+.PP
+.I Transpose
+is particularly useful to convince programs that work on the rows of a picture file to
+operate on columns.  For example
+.IP
+.EX
+fb/transpose big |
+	fb/resample 48 |
+	fb/transpose |
+	fb/resample 48 >tiny
+.EE
+.LP
+makes a tiny 48×48 version of a big picture.
+.SH SOURCE
+.B /sys/src/fb/rotate.c
+.br
+.B /sys/src/fb/transpose.c
+.SH "SEE ALSO
+.IR picfile (9.6),
+.IR resample (9.1)
+.SH BUGS
+Very large images may not fit in memory.
+The result of rotate is not anti-aliased.

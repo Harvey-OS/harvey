@@ -1,0 +1,94 @@
+complex Arg nextarg:p;
+complex Arg arginit:p;
+complex Arg argopt:p;
+complex Arg argf:p;
+aggr T {
+	'a'    0 stname;
+	'a'    4 dlname;
+	'D'    8 stdiff;
+	'D'   12 dldiff;
+	'a'   16 dlpairs;
+};
+
+defn
+T(addr) {
+	complex T addr;
+	print("	stname	", addr.stname, "\n");
+	print("	dlname	", addr.dlname, "\n");
+	print("	stdiff	", addr.stdiff, "\n");
+	print("	dldiff	", addr.dldiff, "\n");
+	print("	dlpairs	", addr.dlpairs, "\n");
+};
+
+complex T timezone;
+complex Tm localtime:ct;
+complex Tm xtime;
+complex Tm asctime:t;
+complex Lock printlock;
+complex Printspec doprint:p;
+complex Printspec fstrconv:p;
+complex Printspec numbconv:p;
+complex Printspec strconv:p;
+complex Printspec noconv:p;
+complex Printspec cconv:p;
+complex Printspec rconv:p;
+complex Printspec sconv:p;
+complex Printspec Sconv:p;
+complex Printspec percent:p;
+complex Printspec flags:p;
+complex Printspec fltconv:p;
+complex Arg arg;
+aggr Bucket {
+	'D'    0 size;
+	'D'    4 magic;
+	'X' Bucket    8 next;
+	'a'   12 data;
+};
+
+defn
+Bucket(addr) {
+	complex Bucket addr;
+	print("	size	", addr.size, "\n");
+	print("	magic	", addr.magic, "\n");
+	print("	next	", addr.next, "\n");
+	print("	data	", addr.data, "\n");
+};
+
+aggr Arena {
+	{
+	'D'    0 val;
+	};
+	'a'    4 btab;
+};
+
+defn
+Arena(addr) {
+	complex Arena addr;
+	print("	btab	", addr.btab, "\n");
+};
+
+complex Arena arena;
+complex Bucket ALEFalloc:bp;
+complex Bucket ALEFalloc:nbp;
+complex Bucket free:bp;
+complex Bucket free:l;
+complex Bucket realloc:bp;
+aggr Sort {
+	'X'    0 cmp;
+	'X'    4 swap;
+	'D'    8 es;
+};
+
+defn
+Sort(addr) {
+	complex Sort addr;
+	print("	cmp	", addr.cmp, "\n");
+	print("	swap	", addr.swap, "\n");
+	print("	es	", addr.es, "\n");
+};
+
+complex Sort qsorts:p;
+complex Sort qsort:s;
+complex Ref Ref_inc:r;
+complex Ref Ref_dec:r;
+complex Ref Ref_ref:r;

@@ -3,6 +3,8 @@
 #include <bio.h>
 #include <ip.h>
 
+#define LOG if(debug)syslog
+
 enum
 {
 	Version=	1,
@@ -58,7 +60,7 @@ enum
  */
 enum
 {
-	Nroute=	2048,		/* this has to be smaller than what /ip has */
+	Nroute=	1000,		/* this has to be smaller than what /ip has */
 	Nhash=	256,		/* routing hash buckets */
 	Nifc=	16,
 };
@@ -108,13 +110,15 @@ struct Bnet
 };
 Bnet	*bnets;
 
+char	*logname = "rip";
 int	ripfd;
 long	now;
 int	debug;
-int	readonly;
-char	routefile[256];
-char	netdir[256];
 
+int	nhgets(uchar*);
+long	nhgetl(uchar*);
+void	hnputs(uchar*, int);
+void	hnputl(uchar*, long);
 int	openport(void);
 void	readroutes(void);
 void	readifcs(void);
@@ -123,63 +127,21 @@ void	installroute(Route*);
 void	removeroute(Route*);
 uchar	*getmask(uchar*);
 void	broadcast(void);
-void	timeoutroutes(void);
 
 void
 fatal(int syserr, char *fmt, ...)
 {
 	char buf[ERRLEN], sysbuf[ERRLEN];
-	va_list arg;
 
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
 	if(syserr) {
 		errstr(sysbuf);
-		fprint(2, "routed: %s: %s\n", buf, sysbuf);
+		fprint(2, "rip: %s: %s\n", buf, sysbuf);
 	}
 	else
-		fprint(2, "routed: %s\n", buf);
+		fprint(2, "rip: %s\n", buf);
 	exits(buf);
 }
-
-ulong
-v4parseipmask(uchar *ip, char *p)
-{
-	ulong x;
-	uchar v6ip[IPaddrlen];
-
-	x = parseipmask(v6ip, p);
-	memmove(ip, v6ip+IPv4off, 4);
-	return x;
-}
-
-uchar*
-v4defmask(uchar *ip)
-{
-	uchar v6ip[IPaddrlen];
-
-	v4tov6(v6ip, ip);
-	ip = defmask(v6ip);
-	return ip+IPv4off;
-}
-
-void
-v4maskip(uchar *from, uchar *mask, uchar *to)
-{
-	int i;
-
-	for(i = 0; i < Pasize; i++)
-		*to++ = *from++ & *mask++;
-}
-
-void
-v6tov4mask(uchar *v4, uchar *v6)
-{
-	memmove(v4, v6+IPv4off, 4);
-}
-
-#define equivip(a, b) (memcmp((a), (b), Pasize) == 0)
 
 void
 ding(void *u, char *msg)
@@ -189,13 +151,6 @@ ding(void *u, char *msg)
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
 	noted(NDFLT);
-}
-
-void
-usage(void)
-{
-	fprint(2, "usage: %s [-bnd] [-x netmtpt]\n", argv0);
-	exits("usage");
 }
 
 void
@@ -209,12 +164,7 @@ main(int argc, char *argv[])
 	Bnet *bn, **l;
 	int dobroadcast;
 	char buf[2*1024];
-	long diff;
-	char *p;
-	static long btime;
 
-
-	setnetmtpt(netdir, sizeof(netdir), nil);
 	dobroadcast = 0;
 	ARGBEGIN{
 	case 'b':
@@ -223,17 +173,9 @@ main(int argc, char *argv[])
 	case 'd':
 		debug++;
 		break;
-	case 'n':
-		readonly++;
-		break;
-	case 'x':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		setnetmtpt(netdir, sizeof(netdir), p);
-		break;
 	default:
-		usage();
+		fprint(2, "usage: rip [-b]\n");
+		exits("usage");
 	}ARGEND
 
 	/* specific broadcast nets */
@@ -242,7 +184,7 @@ main(int argc, char *argv[])
 		bn = (Bnet*)malloc(sizeof(Bnet));
 		if(bn == 0)
 			fatal(1, "out of mem");
-		v4parseip(bn->addr, *argv);
+		parseip(bn->addr, *argv);
 		*l = bn;
 		l = &bn->next;
 		argc--;
@@ -251,41 +193,43 @@ main(int argc, char *argv[])
 	}
 
 	/* command returns */
-	if(!debug)
-		switch(rfork(RFNOTEG|RFPROC|RFFDG|RFNOWAIT)) {
-		case -1:
-			fatal(1, "fork");
-		case 0:
-			break;
-		default:
-			exits(0);
-		}
+	switch(rfork(RFNOTEG|RFPROC|RFFDG|RFNOWAIT)) {
+	case -1:
+		fatal(1, "fork");
+	case 0:
+		break;
+	default:
+		exits(0);
+	}
 
 
 	fmtinstall('E', eipconv);
-	fmtinstall('V', eipconv);
+	fmtinstall('I', eipconv);
 
-	snprint(routefile, sizeof(routefile), "%s/iproute", netdir);
-	snprint(buf, sizeof(buf), "%s/iproute", netdir);
+	if(stat("/net/iproute", buf) < 0)
+		bind("#P", "/net", MAFTER);
 
-	now = time(0);
 	readifcs();
 	readroutes();
 
-	notify(ding);
+	if(dobroadcast)
+		notify(ding);
 
 	ripfd = openport();
 	for(;;) {
-		diff = btime - time(0);
-		if(diff <= 0){
-			if(dobroadcast)
-				broadcast();
-			timeoutroutes();
+		if(dobroadcast){
+			long diff;
+			static long btime;
 
-			btime = time(0) + 2*60;
-			diff = 2*60;
+			diff = btime - time(0);
+			if(diff <= 0){
+				broadcast();
+				btime = time(0) + 2*60;
+				diff = 2*60;
+			}
+			alarm(diff*1000);
 		}
-		alarm(diff*1000);
+
 		n = read(ripfd, buf, sizeof(buf));
 		alarm(0);
 		if(n <= 0)
@@ -302,14 +246,14 @@ main(int argc, char *argv[])
 
 		/* ignore our own messages */
 		for(i = 0; i < ialloc.nifc; i++)
-			if(equivip(ialloc.ifc[i].addr, up->raddr))
+			if(equivip(ialloc.ifc[i].addr, up->ipaddr))
 				continue;
 
 		now = time(0);
 		for(r = m->rip; r < &m->rip[n]; r++){
-			memmove(route.gate, up->raddr, Pasize);
+			memmove(route.gate, up->ipaddr, Pasize);
 			memmove(route.mask, getmask(r->addr), Pasize);
-			v4maskip(r->addr, route.mask, route.dest);
+			maskip(r->addr, route.mask, route.dest);
 			route.metric = nhgetl(r->metric) + 1;
 			if(route.metric < 1)
 				continue;
@@ -326,11 +270,10 @@ openport(void)
 	char devdir[40];
 	int ripctl, rip;
 
-	snprint(data, sizeof(data), "%s/udp!*!rip", netdir);
-	ripctl = announce(data, devdir);
+	ripctl = announce("udp!*!rip", devdir);
 	if(ripctl < 0)
 		fatal(1, "can't announce");
-	if(write(ripctl, "headers4", sizeof("headers")) < 0)
+	if(write(ripctl, "headers", sizeof("headers")) < 0)
 		fatal(1, "can't set header mode");
 
 	sprint(data, "%s/data", devdir);
@@ -341,29 +284,37 @@ openport(void)
 	return rip;
 }
 
-Ipifc *ipifcs;
-
 void
 readifcs(void)
 {
-	Ipifc *ipifc;
+	int i, n;
+	char *p;
+	Biobuf *b;
+	char *f[6];
 	Ifc *ip;
 	Bnet *bn;
 	Route route;
-	int i;
 
-	ipifcs = readipifc(netdir, ipifcs);
+	b = Bopen("/net/ipifc", OREAD);
+	if(b == 0)
+		return;
+	setfields(" ");
 	i = 0;
-	for(ipifc = ipifcs; ipifc && i < Nifc; ipifc = ipifc->next){
-		// ignore any interfaces that aren't v4
-		if(memcmp(ipifc->ip, v4prefix, IPaddrlen-IPv4addrlen) != 0)
+	while(p = Brdline(b, '\n')){
+		if(i >= Nifc)
+			break;
+		p[Blinelen(b)-1] = 0;
+		if(strchr(p, ':'))
+			break;			/* error summaries in brazil */
+		n = getmfields(p, f, 6);
+		if(n < 5)
 			continue;
 		ip = &ialloc.ifc[i++];
-		v6tov4(ip->addr, ipifc->ip);
-		v6tov4mask(ip->mask, ipifc->mask);
-		v6tov4(ip->net, ipifc->net);
-		ip->cmask = v4defmask(ip->net);
-		v4maskip(ip->net, ip->cmask, ip->cnet);
+		parseip(ip->addr, f[2]);
+		parseip(ip->mask, f[3]);
+		parseip(ip->net, f[4]);
+		ip->cmask = classmask[CLASS(ip->net)];
+		maskip(ip->net, ip->cmask, ip->cnet);
 		ip->bcast = 0;
 
 		/* add as a route */
@@ -383,6 +334,7 @@ readifcs(void)
 			}
 	}
 	ialloc.nifc = i;
+	Bterm(b);
 }
 
 void
@@ -394,22 +346,22 @@ readroutes(void)
 	char *f[6];
 	Route route;
 
-	b = Bopen(routefile, OREAD);
+	b = Bopen("/net/iproute", OREAD);
 	if(b == 0)
 		return;
 	while(p = Brdline(b, '\n')){
 		p[Blinelen(b)-1] = 0;
-		n = getfields(p, f, 6, 1, " \t");
+		n = getmfields(p, f, 6);
 		if(n < 5)
 			continue;
-		v4parseip(route.dest, f[0]);
-		v4parseipmask(route.mask, f[1]);
-		v4parseip(route.gate, f[2]);
+		parseip(route.dest, f[0]);
+		parseip(route.mask, f[2]);
+		parseip(route.gate, f[4]);
 		route.metric = Infinity;
 		if(equivip(route.dest, ralloc.def.dest)
 		&& equivip(route.mask, ralloc.def.mask))
 			memmove(ralloc.def.gate, route.gate, Pasize);
-		else if(!equivip(route.dest, route.gate) && strchr(f[3], 'i') == 0)
+		else
 			considerroute(&route);
 	}
 	Bterm(b);
@@ -424,7 +376,7 @@ rhash(uchar *d)
 	ulong h;
 	uchar net[Pasize];
 
-	v4maskip(d, v4defmask(d), net);
+	maskip(d, classmask[CLASS(d)], net);
 	h = net[0] + net[1] + net[2];
 	return h % Nhash;
 }
@@ -436,11 +388,11 @@ rhash(uchar *d)
 void
 considerroute(Route *r)
 {
-	ulong h;
-	Route *hp;
+	ulong h, i;
+	Route *hp, **l;
 
 	if(debug)
-		fprint(2, "consider %16V & %16V -> %16V %d\n", r->dest, r->mask, r->gate, r->metric);
+		fprint(2, "consider %16I & %16I -> %16I %d\n", r->dest, r->mask, r->gate, r->metric);
 
 	r->next = 0;
 	r->time = now;
@@ -476,6 +428,22 @@ considerroute(Route *r)
 		if(hp->inuse == 0)
 			break;
 
+	/*
+	 *  look for an old entry
+	 */
+	if(hp == &ralloc.route[Nroute])
+		for(i = 0; hp == 0 && i < Nhash; i++){
+			l = &ralloc.hash[i];
+			for(hp = *l; hp; hp = *l){
+				if(now - hp->time > 10*60){
+					removeroute(hp);
+					*l = hp->next;
+					break;
+				}
+				l = &hp->next;
+			}
+		}
+
 	if(hp == 0)
 		fatal(0, "no more routes");
 
@@ -490,15 +458,14 @@ removeroute(Route *r)
 {
 	int fd;
 
-	fd = open(routefile, ORDWR);
+	fd = open("/net/iproute", ORDWR);
 	if(fd < 0){
-		fprint(2, "can't open oproute\n");
+		fprint(2, "rip: can't open iproute: %r\n");
 		return;
 	}
-	if(!readonly)
-		fprint(fd, "delete %V", r->dest);
+	fprint(fd, "delete %I", r->dest);
 	if(debug)
-		fprint(2, "removeroute %V\n", r->dest);
+		LOG(0, logname, "delete %I", r->dest);
 	close(fd);
 }
 
@@ -514,48 +481,33 @@ installroute(Route *r)
 	Route *hp;
 	uchar net[Pasize];
 
-	/*
-	 *  don't install routes whose gateway is 00000000
-	 */
+	/* don't install routes that already go through the default */
 	if(equivip(r->gate, ralloc.def.dest))
 		return;
 
-	fd = open(routefile, ORDWR);
+	fd = open("/net/iproute", ORDWR);
 	if(fd < 0){
-		fprint(2, "can't open oproute\n");
+		fprint(2, "rip: can't open iproute: %r\n");
 		return;
 	}
 	h = rhash(r->dest);
-
-	/*
-	 *  if the gateway is the same as the default gateway
-	 *  we may be able to avoid a entry in the kernel
-	 */
 	if(equivip(r->gate, ralloc.def.gate)){
-		/*
-		 *  look for a less specific match
-		 */
 		for(hp = ralloc.hash[h]; hp; hp = hp->next){
-			v4maskip(hp->mask, r->dest, net);
+			maskip(hp->mask, r->dest, net);
 			if(equivip(net, hp->dest) && !equivip(hp->gate, ralloc.def.gate))
 				break;
 		}
-		/*
-		 *  if no less specific match, just use the default
-		 */
 		if(hp == 0){
-			if(!readonly)
-				fprint(fd, "delete %V", r->dest);
+			fprint(fd, "delete %I", r->dest);
 			if(debug)
-				fprint(2, "delete %V\n", r->dest);
+				LOG(0, logname, "delete %I", r->dest);
 			close(fd);
 			return;
 		}
 	}
-	if(!readonly)
-		fprint(fd, "add %V %V %V", r->dest, r->mask, r->gate);
+	fprint(fd, "add %I %I %I", r->dest, r->mask, r->gate);
 	if(debug)
-		fprint(2, "add %V & %V -> %V\n", r->dest, r->mask, r->gate);
+		LOG(0, logname, "add %I & %I -> %I", r->dest, r->mask, r->gate);
 	close(fd);
 }
 
@@ -567,7 +519,7 @@ onnet(uchar *dest, uchar *net, uchar *netmask)
 {
 	uchar dnet[Pasize];
 
-	v4maskip(dest, netmask, dnet);
+	maskip(dest, netmask, dnet);
 	return equivip(dnet, net);
 }
 
@@ -597,7 +549,7 @@ getmask(uchar *dest)
 	}
 
 	if(m == 0)
-		m = v4defmask(dest);
+		m = classmask[CLASS(dest)];
 	return m;
 }
 
@@ -615,13 +567,13 @@ sendto(Ifc *ip)
 
 	u = (Udphdr*)mbuf;
 	for(n = 0; n < Pasize; n++)
-		u->raddr[n] = ip->net[n] | ~(ip->mask[n]);
-	hnputs(u->rport, 520);
+		u->ipaddr[n] = ip->net[n] | ~(ip->mask[n]);
+	hnputs(u->port, 520);
 	m = (Ripmsg*)(mbuf+Udphdrsize);
 	m->type = Response;
 	m->vers = Version;
 	if(debug)
-		fprint(2, "to %V\n", u->raddr);
+		fprint(2, "to %I\n", u->ipaddr);
 
 	n = 0;
 	for(h = 0; h < Nhash; h++){
@@ -642,8 +594,8 @@ sendto(Ifc *ip)
 			/*
 			 *  don't tell nets about other net's subnets
 			 */
-			if(!equivip(r->mask, v4defmask(r->dest))
-			&& !equivip(ip->cmask, v4defmask(r->dest)))
+			if(!equivip(r->mask, classmask[CLASS(r->dest)])
+			&& !equivip(ip->cmask, classmask[CLASS(r->dest)]))
 				continue;
 
 			memset(&m->rip[n], 0, sizeof(m->rip[n]));
@@ -655,16 +607,16 @@ sendto(Ifc *ip)
 			hnputs(m->rip[n].family, AF_INET);
 
 			if(debug)
-				fprint(2, " %16V & %16V -> %16V %2d\n", r->dest, r->mask, r->gate, r->metric);
+				fprint(2, " %16I & %16I -> %16I %2d\n", r->dest, r->mask, r->gate, r->metric);
 
-			if(++n == Maxroutes && !readonly){
+			if(++n == Maxroutes){
 				write(ripfd, mbuf, Udphdrsize+4+n*20);
 				n = 0;
 			}
 		}
 	}
 
-	if(n && !readonly)
+	if(n)
 		write(ripfd, mbuf, Udphdrsize+4+n*20);
 }
 void
@@ -680,28 +632,30 @@ broadcast(void)
 
 }
 
-/*
- *  timeout any routes that haven't been refreshed and aren't wired
- */
-void
-timeoutroutes(void)
+int
+nhgets(uchar *p)
 {
-	int h;
-	long now;
-	Route *r, **l;
+	return (p[0]<<8) | p[1];
+}
 
-	now = time(0);
+long
+nhgetl(uchar *p)
+{
+	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
+}
 
-	for(h = 0; h < Nhash; h++){
-		l = &ralloc.hash[h];
-		for(r = *l; r; r = *l){
-			if(r->metric < Infinity && now - r->time > 10*60){
-				removeroute(r);
-				r->inuse = 0;
-				*l = r->next;
-				continue;
-			}
-			l = &r->next;
-		}
-	}
+void
+hnputs(uchar *p, int x)
+{
+	p[0] = x>>8;
+	p[1] = x;
+}
+
+void
+hnputl(uchar *p, long x)
+{
+	p[0] = x>>24;
+	p[1] = x>>16;
+	p[2] = x>>8;
+	p[3] = x;
 }

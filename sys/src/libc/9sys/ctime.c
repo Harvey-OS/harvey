@@ -86,13 +86,7 @@ localtime(long tim)
 			break;
 		}
 	ct = gmtime(t);
-	if(dlflag){
-		strcpy(ct->zone, timezone.dlname);
-		ct->tzoff = timezone.dldiff;
-	} else {
-		strcpy(ct->zone, timezone.stname);
-		ct->tzoff = timezone.stdiff;
-	}
+	strcpy(ct->zone, dlflag? timezone.dlname: timezone.stname);
 	return ct;
 }
 
@@ -134,12 +128,12 @@ gmtime(long tim)
 	 * year number
 	 */
 	if(day >= 0)
-		for(d1 = 1970; day >= dysize(d1); d1++)
+		for(d1 = 70; day >= dysize(d1); d1++)
 			day -= dysize(d1);
 	else
-		for (d1 = 1970; day < 0; d1--)
+		for (d1 = 70; day < 0; d1--)
 			day += dysize(d1-1);
-	xtime.year = d1-1900;
+	xtime.year = d1;
 	xtime.yday = d0 = day;
 
 	/*
@@ -192,7 +186,7 @@ static
 dysize(int y)
 {
 
-	if(y%4 == 0 && (y%100 != 0 || y%400 == 0))
+	if((y%4) == 0)
 		return 366;
 	return 365;
 }

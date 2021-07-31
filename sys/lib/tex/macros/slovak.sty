@@ -1,0 +1,139 @@
+%% 
+%% This is file `slovak.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% slovak.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Chlebikova Jana",
+%%%     author-2        = "Braams J.L.",
+%%%     version         = "1.2d",
+%%%     date            = "30 June 1994",
+%%%     time            = "14:10:13 MET",
+%%%     filename        = "slovak.doc",
+%%%     address-1       = "Department of Artificial Intelligence
+%%%                        Faculty of Mathematics and Physics
+%%%                        Mlynska dolina
+%%%                        84215 Bratislava
+%%%                        Slovakia",
+%%%     address-2       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone-1     = "(42)(7) 720003 l. 835",
+%%%     telephone-2     = "(70) 3325051",
+%%%     FAX-1           = "(42)(7) 725882",
+%%%     FAX-2           = "(70) 3326477",
+%%%     checksum        = "51098 265 1214 10014",
+%%%     email-1         = "chlebikj@mff.uniba.cs (Internet)",
+%%%     email-2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, slovak",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the slovak language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsslovak
+\else
+  \selectlanguage{slovak}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{slovak.sty}[1994/06/30 v1.2d
+         Slovak support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@slovak
+    \@nopatterns{Slovak}
+    \adddialect\l@slovak0\fi
+\addto\captionsslovak{%
+  \def\prefacename{\'Uvod}%
+  \def\refname{Referencia}%
+  \def\abstractname{Abstrakt}%
+  \def\bibname{Literat\'ura}%
+  \def\chaptername{Kapitola}%
+  \def\appendixname{Dodatok}%
+  \def\contentsname{Obsah}%
+  \def\listfigurename{Zoznam obr\'azkov}%
+  \def\listtablename{Zoznam tabuliek}%
+  \def\indexname{Index}%
+  \def\figurename{Obr\'azok}%
+  \def\tablename{Tabu\q lka}%%% special letter l with hook
+  \def\partname{\v{C}as\q t}%%% special letter t with hook
+  \def\enclname{Pr\'{\i}loha}%
+  \def\ccname{CC}%
+  \def\headtoname{Komu}%
+  \def\pagename{Strana}%
+  \def\seename{vi\q d}%%%  Special letter d with hook
+  \def\alsoname{vi\q d tie\v z}}%%%  Special letter d with hook
+\def\dateslovak{%
+\def\today{\number\day.~\ifcase\month\or
+janu\'ara\or febru\'ara\or marca\or apr\'{\i}la\or m\'aja\or j\'una\or
+  j\'ula\or augusat\or septembra\or okt\'obra\or
+  novembra\or decembra\fi
+    \space \number\year}}
+\addto\extrasslovak{\babel@save\q\let\q\slovak@q}
+\addto\extrasdutch{\babel@savevariable\lefthyphenmin
+  \babel@savevariable\righthyphenmin
+  \lefthyphenmin\tw@\righthyphenmin\tw@}
+\def\slovak@q#1{#1\kern-2pt\char'47}%
+\selectlanguage{slovak}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `slovak.sty'.

@@ -160,7 +160,6 @@ void		dumpdreg(void);
 void*		emalloc(ulong);
 void*		erealloc(void*, ulong, ulong);
 void*		vaddr(ulong);
-int		badvaddr(ulong, int);
 void		itrace(char *, ...);
 void		segsum(void);
 void		Ssyscall(ulong);
@@ -226,7 +225,6 @@ Extern		Biobuf *bin;
 Extern		ulong *iprof;
 extern		int datasize;
 Extern		Map *symmap;		
-Extern		int rtrace;
 
 /* Plan9 Kernel constants */
 #define	BY2PG		4096

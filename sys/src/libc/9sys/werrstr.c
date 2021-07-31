@@ -1,19 +1,18 @@
 #include <u.h>
 #include <libc.h>
 
+#define	DOTDOT	(&fmt+1)
+
 void
 werrstr(char *fmt, ...)
 {
 	int psave;
-	va_list arg;
 	char buf[ERRLEN];
 
 	extern int printcol;
 
 	psave = printcol;
-	va_start(arg, fmt);
-	doprint(buf, buf+ERRLEN, fmt, arg);
-	va_end(arg);
+	doprint(buf, buf+ERRLEN, fmt, DOTDOT);
 	errstr(buf);
 	printcol = psave;
 }

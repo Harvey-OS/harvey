@@ -1,7 +1,6 @@
 #!/bin/rc
 
-switch($#*){
-case 1
-	user=$1
-}
-disk/mkfs -s /n/emelie /sys/lib/sysconfig/proto/usrproto
+9fs bootes
+disk/kfscmd allow
+disk/mkfs -s /n/bootes /n/bootes/lib/proto/usrproto
+disk/kfscmd sync

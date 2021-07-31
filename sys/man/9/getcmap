@@ -1,0 +1,51 @@
+.TH GETCMAP 9.2
+.SH NAME
+getcmap \- read a color map from a file
+.SH SYNOPSIS
+.B
+#include <libg.h>
+.PP
+.B
+#include <fb.h>
+.PP
+.B
+int getcmap(char *name, uchar *map)
+.SH DESCRIPTION
+.I Getcmap
+retrieves the named colormap and stores it in
+.IR map .
+Usually
+.I name
+is the name of a colormap file (see
+.IR cmap (9.6))
+or a picfile with a
+.B CMAP=
+attribute.  If the file is not found, it is sought in
+.BR /lib/fb/cmap .
+.PP
+If the
+.I file
+cannot be found, and its name has the form
+.BI gamma number\f1,
+a colormap is fabricated with all three channels of its
+.IR n th
+entry set to
+.RI 255×( n /255)\u\s-21/ number\s+2\d .
+If the name is just
+.BR gamma ,
+.IR number =2.3
+is assumed.
+.PP
+There is no
+.IR putcmap ,
+because
+.B write
+(in
+.IR read (2))
+can do the job.
+.SH SOURCE
+/sys/src/libfb/getcmap.c
+.SH "SEE ALSO
+.IR cmap (9.6),
+.IR picfile (9.6)
+.IR rgbpix (2)

@@ -15,7 +15,8 @@ pipe \- two-way interprocess communication
 .PP
 An
 .IR attach (5)
-of this device allocates two new cross-connected I/O streams.
+of this device allocates two new streams joined at the
+device end.
 .B X/data
 and
 .B x/ctl
@@ -31,9 +32,11 @@ Write boundaries are preserved: each read terminates
 when the read buffer is full or after reading the last byte
 of a write, whichever comes first.
 .PP
-Writes are atomic up to a certain size, typically 32768 bytes,
-that is, each write will be delivered in a single read by the
-recipient, provided the receiving buffer is large enough.
+Written data is buffered in kernel stream blocks.
+The writer will block once the stream is full, typically after
+32768 bytes or 16 writes.
+The writer will resume once the stream is less than
+half full.
 .PP
 If there are multiple writers, each
 .I write

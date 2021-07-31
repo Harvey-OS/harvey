@@ -1,0 +1,115 @@
+
+
+%%%%
+%%%% Patch file for the LaTeX2e kernel dated 1994/12/01
+%%%% (1994/12/01)
+
+\def\fmtversion@topatch{1994/12/01} % This patch will not work with
+                                    % any other release.
+
+\def\patch@level{1}
+
+
+
+%%%
+%%% latex/1275  \it \bf fix for first use in math mode.
+%%%
+
+\def\select@group#1#2#3#4{%
+ \ifx\math@bgroup\bgroup\else\relax\expandafter\@firstofone\fi
+%^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ {%
+ \ifmmode
+  \ifnum\csname c@mv@\math@version\endcsname<\sixt@@n
+     \begingroup
+       \escapechar\m@ne
+       \getanddefine@fonts{\csname c@mv@\math@version\endcsname}#3%
+       \globaldefs\@ne  \math@fonts
+     \endgroup
+     \ifrestore@version
+        \global\restore@versionfalse
+        \xdef\restore@mathversion
+             {\expandafter\noexpand\csname mv@\math@version\endcsname
+              \global\csname c@mv@\math@version\endcsname
+              \number\csname c@mv@\math@version\endcsname\relax}%
+        \aftergroup\dorestore@version
+     \fi
+     \xdef#1{\noexpand\use@mathgroup\noexpand#2%
+             {\number\csname c@mv@\math@version\endcsname}}%
+     \stepcounter{mv@\math@version}%
+   \else
+     \let#1\relax
+     \@latex@error{Too many math alphabets used in
+                   version \math@version}%
+        \@eha
+   \fi
+ \else \expandafter\non@alpherr\fi
+ #1{#4}%
+ }%
+}
+
+\def\document@select@group#1#2#3#4{%
+ \ifx\math@bgroup\bgroup\else\relax\expandafter\@firstofone\fi
+%^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ {%
+ \ifmmode
+   \ifnum\csname c@mv@\math@version\endcsname<\sixt@@n
+     \begingroup
+       \escapechar\m@ne
+       \getanddefine@fonts{\csname c@mv@\math@version\endcsname}#3%
+       \globaldefs\@ne  \math@fonts
+     \endgroup
+     \expandafter\extract@alph@from@version
+         \csname mv@\math@version\expandafter\endcsname
+         \expandafter{\number\csname
+                       c@mv@\math@version\endcsname}%
+          #1%
+     \stepcounter{mv@\math@version}%
+   \else
+     \let#1\relax
+     \@latex@error{Too many math alphabets used
+                   in version \math@version}%
+        \@eha
+  \fi
+ \else \expandafter\non@alpherr\fi
+ #1{#4}%
+ }%
+}
+
+\def \@fontswitch #1#2{%
+  \ifmmode
+     \let \math@bgroup \relax
+     \def \math@egroup {%
+                        \let \math@bgroup \@@math@bgroup
+                        \let \math@egroup \@@math@egroup
+                        }%
+     #2\relax
+%%     ^^^^^^
+  \else
+     #1%
+  \fi
+}
+
+
+
+%%%
+%%% latex/1274: \k{} doesn't produce an ogonek accent
+%%%
+
+\DeclareTextCommand{\k}{T1}[1]
+   {\oalign{\null#1\crcr\hidewidth\char12}}
+\DeclareTextComposite{\k}{T1}{A}{129}
+
+
+
+%%%
+%%% Tracing code accidently left in production format.
+%%%
+\let\@tracemessage\@undefined
+\let\tracefloats\@undefined
+\let\notrace\@undefined
+\let\tr@ce\@undefined
+\let\@traceval\@undefined
+\let\tracefloatvals\@undefined
+
+\endinput

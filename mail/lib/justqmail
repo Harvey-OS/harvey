@@ -1,7 +1,0 @@
-#!/bin/rc
-sender=$1
-shift
-addr=$1
-shift
-upas/qer /mail/queue mail $sender $addr $* || exit 1
-exit 0

@@ -22,20 +22,17 @@ authenticate(int fd, int afd)
 	if(trbuf[0] == 0)
 		return 0;
 
-	/* get a ticket from an auth server */
+	/* try getting to an auth server */
+	if(afd >= 0)
+		return _asgetticket(afd, trbuf, tbuf);
+	afd = authdial();
 	if(afd < 0){
-		afd = authdial();
-		if(afd < 0){
-			werrstr(ccmsg);
-			return -1;
-		}
-		rv = _asgetticket(afd, trbuf, tbuf);
-		close(afd);
-	} else
-		rv = _asgetticket(afd, trbuf, tbuf);
+		werrstr(ccmsg);
+		return -1;
+	}
+	rv = _asgetticket(afd, trbuf, tbuf);
+	close(afd);
 	if(rv < 0)
 		return -1;
-
-	/* pass ticket to kernel */
 	return fauth(fd, tbuf);
 }

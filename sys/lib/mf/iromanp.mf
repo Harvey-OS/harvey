@@ -1,0 +1,150 @@
+% This is IROMANP.MF in text format, as of Jan. 13, 1988.
+% This file contains `\$' and `\&' and `?' in the so-called roman style.
+ 
+% Codes \0044, \0046, and \0077 are generated, as well as code |spanish_query|
+% (for a Spanish question mark) if that code value is known.
+ 
+cmchar "superscript Glottal Stop";
+beginchar(oct"145",8.5u#,asc_height#-desc_depth#,desc_depth#);
+italcorr .8asc_height#*slant;
+adjust_fit(0,0);
+pos7(dot_size,0); pos8(dot_size,90);
+lft x7l=hround(.45w-.25u-.5dot_size); bot y8l=0; z7=z8;  % dot
+numeric bot_width;
+bot_width=if hefty:max(hround .8dot_size,fine.breadth) else: stem fi;
+pickup fine.nib; pos2(vair,90); pos3(stem,0);
+pos4(.75curve,-90); pos5(bot_width,0); pos6(bot_width,0);
+pos14(bot_width,0); z4l=z14;
+x2=x7; rt x3r=hround(w-u); bot y6=1+oo;
+x4=x5=x6=.75[0,x2];
+top y2r=h+oo; y3=.75[y6,y2]; y4=.45[y6,y2]; y5=.1[y6,y2];
+{{interim superness:=more_super;
+filldraw stroke pulled_super_arc.e(2,3)(superpull)
+&pulled_super_arc.e(3,4)(superpull)\\}};
+filldraw stroke z14e--- z5e---z6e;  % arc and stem
+if serifs: pos1(hair,180); pos0(flare,180);
+ lft x1r=hround u; y1=.85[y6,y2];
+ bulb(2,1,0);  % bulb
+else: pos1(Vround 5/7[vair,flare],110);
+ lft x1r=hround u; top y1r=vround .9[y6,top y2r];
+ filldraw stroke term.e(2,1,left,1,4); fi  % terminal
+penlabels(0,1,2,3,4,5,6); endchar;
+ 
+cmchar "Glottal Stop";
+beginchar(oct"142",8.5u#,asc_height#,0);
+italcorr .8asc_height#*slant;
+adjust_fit(0,0);
+pos7(dot_size,0); pos8(dot_size,90);
+lft x7l=hround(.45w-.25u-.5dot_size); bot y8l=0; z7=z8;  % dot
+numeric bot_width;
+bot_width=if hefty:max(hround .8dot_size,fine.breadth) else: stem fi;
+pickup fine.nib; pos2(vair,90); pos3(stem,0);
+pos4(.75curve,-90); pos5(bot_width,0); pos6(bot_width,0);
+pos14(bot_width,0); z4l=z14;
+x2=x7; rt x3r=hround(w-u); bot y6=oo;
+x4=x5=x6=1.05[0,x2];
+top y2r=h+oo; y3=.75[y6,y2]; y4=.5[y6,y2]; y5=.1[y6,y2];
+{{interim superness:=more_super;
+filldraw stroke pulled_super_arc.e(2,3)(superpull)
+&pulled_super_arc.e(3,4)(superpull)\\}};
+filldraw stroke z14e--- z5e---z6e;  % arc and stem
+if serifs: pos1(hair,180); pos0(flare,180);
+ lft x1r=hround .5u; y1=.85[y6,y2];
+ bulb(2,1,0);  % bulb
+ dish_serif(6,5,c,1/3,.8cap_jut,b,1/3,.8cap_jut);   %lower serif
+else: pos1(Vround 5/7[vair,flare],110);
+ lft x1r=hround u; top y1r=vround .9[y6,top y2r];
+ filldraw stroke term.e(2,1,left,1,4); fi  % terminal
+penlabels(0,1,2,3,4,5,6); endchar;
+ 
+cmchar "Reversed Glottal Stop";
+beginchar(oct"143",8.5u#,asc_height#,0);
+italcorr .8asc_height#*slant;
+adjust_fit(0,0);
+pos7(dot_size,0); pos8(dot_size,90);
+lft x7l=hround(.55w+.25u+.5dot_size); bot y8l=0; z7=z8;  % dot
+numeric bot_width;
+bot_width=if hefty:max(hround .8dot_size,fine.breadth) else: stem fi;
+pickup fine.nib; pos2(vair,90); pos3(stem,180);
+pos4(.75curve,-90); pos5(bot_width,0); pos6(bot_width,0);
+pos14(bot_width,0); z4l=z14;
+x2=x7; rt x3r=hround(1.5u); bot y6=oo;
+x4=x5=x6=.9x2;
+top y2r=h+oo; y3=.75[y6,y2]; y4=.5[y6,y2]; y5=.1[y6,y2];
+{{interim superness:=more_super;
+filldraw stroke pulled_super_arc.e(2,3)(superpull)
+&pulled_super_arc.e(3,4)(superpull)\\}};
+filldraw stroke z14e--- z5e---z6e;  % arc and stem
+if serifs: pos1(hair,0); pos0(flare,0);
+ lft x1r=hround w-.5u; y1=.85[y6,y2];
+ bulb(2,1,0);  % bulb
+ dish_serif(6,5,c,1/3,.8cap_jut,b,1/3,.8cap_jut);   %lower serif
+else: pos1(Vround 5/7[vair,flare],110);
+ lft x1r=hround u; top y1r=vround .9[y6,top y2r];
+ filldraw stroke term.e(2,1,left,1,4); fi  % terminal
+penlabels(0,1,2,3,4,5,6); endchar;
+ 
+cmchar "Inverted Glottal Stop";
+beginchar(oct"144",8.5u#,asc_height#,0);
+italcorr .8asc_height#*slant;
+adjust_fit(0,0);
+pos7(dot_size,0); pos8(dot_size,90);
+lft x7l=hround(.55w+.25u+.5dot_size); bot y8l=0; z7=z8;  % dot
+numeric bot_width;
+bot_width=if hefty:max(hround .8dot_size,fine.breadth) else: stem fi;
+pickup fine.nib; pos2(vair,90); pos3(stem,180);
+pos4(.75curve,-90); pos5(bot_width,0); pos6(bot_width,0);
+pos14(bot_width,0); z4l=z14;
+x2=x7; rt x3r=hround(1.5u); bot y6=.1h;
+x4=x5=x6=.85x2;
+top y2r=h+oo; y3=.75[y6,y2]; y4=.5[y6,y2]; y5=.1[y6,y2];
+{{interim superness:=more_super;
+filldraw stroke pulled_super_arc.e(2,3)(superpull)
+&pulled_super_arc.e(3,4)(superpull)\\}};
+ 
+filldraw stroke z14e--- z5e---z6e;  % arc and stem
+if serifs: pos1(hair,0); pos0(flare,0);
+ lft x1r=hround w-.5u; y1=.85[y6,y2];
+ bulb(2,1,0);  % bulb
+else: pos1(Vround 5/7[vair,flare],110);
+ lft x1r=hround u; top y1r=vround .9[y6,top y2r];
+ filldraw stroke term.e(2,1,left,1,4); fi  % terminal
+picture rvchar;
+if slant=0: rvchar=currentpicture rotatedabout((.5w,.5h),180);%
+  else: rvchar=currentpicture rotatedabout((.58w,.5h),180);fi
+currentpicture:= rvchar;
+penlabels(0,1,2,3,4,5,6); endchar;
+ 
+cmchar "superscript reversed Glottal Stop";
+beginchar(oct"146",8.5u#,asc_height#-desc_depth#,desc_depth#);
+italcorr .8asc_height#*slant;
+adjust_fit(0,0);
+pos7(dot_size,180); pos8(dot_size,90);
+rt x7r=hround(.5w+.25u+.5dot_size); bot y8l=0; z7=z8;  % dot
+numeric bot_width;
+bot_width=if hefty:max(hround .8dot_size,fine.breadth) else: stem fi;
+pickup fine.nib; pos2(vair,90); pos3(stem,180);
+pos4(.75curve,-90); pos5(bot_width,0); pos6(bot_width,0);
+pos14(bot_width,0); z4l=z14;
+x2=x7; rt x3r=hround(1.5u); bot y6=1+oo;
+x4=x5=x6=.88x2;
+top y2r=h+oo; y3=.75[y6,y2]; y4=.45[y6,y2]; y5=.1[y6,y2];
+{{interim superness:=more_super;
+filldraw stroke pulled_super_arc.e(2,3)(superpull)
+&pulled_super_arc.e(3,4)(superpull)\\}};
+filldraw stroke z14e--- z5e---z6e;  % arc and stem
+if serifs: pos1(hair,0); pos0(flare,0);
+ lft x1r=hround w-u; y1=.85[y6,y2];
+ bulb(2,1,0);  % bulb
+else: pos1(Vround 5/7[vair,flare],110);
+ lft x1r=hround u; top y1r=vround .9[y6,top y2r];
+ filldraw stroke term.e(2,1,left,1,4); fi  % terminal
+penlabels(0,1,2,3,4,5,6); endchar;
+ 
+cmchar "Click  ";
+beginchar(oct"073",18u#,asc_height#,desc_depth#); autorounded;
+adjust_fit(if monospace:-3u#,-3u# else: 0,0 fi); pickup light_rule.nib;
+lft x6=hround u; x2=w-x6; top y8=h+o; bot y4=-d-o;
+circle_points; draw_circle;  % circle
+fill fullcircle scaled(dot_size+eps) shifted(.5[z4,z8]);  % dot
+labels(1,2,3,4,5,6,7,8); endchar;

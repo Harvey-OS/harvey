@@ -1,4 +1,3 @@
-#define	EXTERN
 #include	"l.h"
 #include	<ar.h>
 
@@ -129,6 +128,7 @@ main(int argc, char *argv[])
 			INITRND = 8192;
 		break;
 	case 3:	/* next boot */
+	case 4:
 		HEADR = 28+124+192+24;
 		if(INITTEXT == -1)
 			INITTEXT = 0x04002000;
@@ -138,17 +138,6 @@ main(int argc, char *argv[])
 			INITRND = 0;
 		if(INITRND == -1)
 			INITRND = 8192L;
-		break;
-	case 4:	/* preprocess pilot */
-		HEADR = 32L;
-		if(INITTEXT == -1)
-			INITTEXT = 0;
-		if(INITDAT == -1)
-			INITDAT = 0;
-		if(INITDAT != 0 && INITRND == -1)
-			INITRND = 0;
-		if(INITRND == -1)
-			INITRND = 32;
 		break;
 	}
 	if(INITDAT != 0 && INITRND != 0)
@@ -166,7 +155,7 @@ main(int argc, char *argv[])
 	maxop = i;
 
 	zprg.link = P;
-	zprg.pcond = P;
+	zprg.cond = P;
 	zprg.back = 2;
 	zprg.as = AGOK;
 	zprg.from.type = D_NONE;
@@ -327,8 +316,8 @@ objfile(char *file)
 		return;
 	}
 
-	l = read(f, &arhdr, SAR_HDR);
-	if(l != SAR_HDR) {
+	l = read(f, &arhdr, sizeof(struct ar_hdr));
+	if(l != sizeof(struct ar_hdr)) {
 		diag("%s: short read on archive file symbol header\n", file);
 		goto out;
 	}
@@ -337,8 +326,8 @@ objfile(char *file)
 		goto out;
 	}
 
-	esym = SARMAG + SAR_HDR + atolwhex(arhdr.size);
-	off = SARMAG + SAR_HDR;
+	esym = SARMAG + sizeof(struct ar_hdr) + atolwhex(arhdr.size);
+	off = SARMAG + sizeof(struct ar_hdr);
 
 	/*
 	 * just bang the whole symbol file into memory
@@ -373,8 +362,8 @@ objfile(char *file)
 			l |= (e[3] & 0xff) << 16;
 			l |= (e[4] & 0xff) << 24;
 			seek(f, l, 0);
-			l = read(f, &arhdr, SAR_HDR);
-			if(l != SAR_HDR)
+			l = read(f, &arhdr, sizeof(struct ar_hdr));
+			if(l != sizeof(struct ar_hdr))
 				goto bad;
 			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
 				goto bad;
@@ -500,10 +489,10 @@ dosym:
 		return c;
 	l = a->offset;
 	for(u=curauto; u; u=u->link) {
-		if(u->asym == s)
+		if(u->sym == s)
 		if(u->type == t) {
-			if(u->aoffset > l)
-				u->aoffset = l;
+			if(u->offset > l)
+				u->offset = l;
 			return c;
 		}
 	}
@@ -516,8 +505,8 @@ dosym:
 
 	u->link = curauto;
 	curauto = u;
-	u->asym = s;
-	u->aoffset = l;
+	u->sym = s;
+	u->offset = l;
 	u->type = t;
 	return c;
 }
@@ -594,9 +583,9 @@ addhist(long line, int type)
 	s = malloc(sizeof(Sym));
 	s->name = malloc(2*(histfrogp+1) + 1);
 
-	u->asym = s;
+	u->sym = s;
 	u->type = type;
-	u->aoffset = line;
+	u->offset = line;
 	u->link = curhist;
 	curhist = u;
 
@@ -847,13 +836,13 @@ loop:
 		s->type = STEXT;
 		s->value = p->pc;
 		pc++;
-		p->pcond = P;
+		p->cond = P;
 		if(textp == P) {
 			textp = p;
 			etextp = p;
 			goto loop;
 		}
-		etextp->pcond = p;
+		etextp->cond = p;
 		etextp = p;
 		goto loop;
 
@@ -1101,7 +1090,7 @@ gethunk(void)
 		if(thunk >= 25L*NHUNK)
 			nh = 25L*NHUNK;
 	}
-	h = mysbrk(nh);
+	h = sbrk(nh);
 	if(h == (char*)-1) {
 		diag("out of memory\n");
 		errorexit();
@@ -1213,7 +1202,7 @@ doprof2(void)
 			p = q;
 			p->as = ABSR;
 			p->to.type = D_BRANCH;
-			p->pcond = ps2;
+			p->cond = ps2;
 			p->to.sym = s2;
 
 			continue;
@@ -1236,7 +1225,7 @@ doprof2(void)
 			p->from = zprg.from;
 			p->to = zprg.to;
 			p->to.type = D_BRANCH;
-			p->pcond = ps4;
+			p->cond = ps4;
 			p->to.sym = s4;
 
 			p = q;
@@ -1355,26 +1344,71 @@ ieeedtof(Ieee *e)
 }
 
 double
-ieeedtod(Ieee *ieeep)
+ieeedtod(Ieee *ieee)
 {
 	Ieee e;
 	double fr;
 	int exp;
 
-	if(ieeep->h & (1L<<31)) {
-		e.h = ieeep->h & ~(1L<<31);
-		e.l = ieeep->l;
+	if(ieee->h & (1L<<31)) {
+		e.h = ieee->h & ~(1L<<31);
+		e.l = ieee->l;
 		return -ieeedtod(&e);
 	}
-	if(ieeep->l == 0 && ieeep->h == 0)
+	if(ieee->l == 0 && ieee->h == 0)
 		return 0;
-	fr = ieeep->l & ((1L<<16)-1L);
+	fr = ieee->l & ((1L<<16)-1L);
 	fr /= 1L<<16;
-	fr += (ieeep->l>>16) & ((1L<<16)-1L);
+	fr += (ieee->l>>16) & ((1L<<16)-1L);
 	fr /= 1L<<16;
-	fr += (ieeep->h & (1L<<20)-1L) | (1L<<20);
+	fr += (ieee->h & (1L<<20)-1L) | (1L<<20);
 	fr /= 1L<<21;
-	exp = (ieeep->h>>20) & ((1L<<11)-1L);
+	exp = (ieee->h>>20) & ((1L<<11)-1L);
 	exp -= (1L<<10) - 2L;
 	return ldexp(fr, exp);
+}
+
+/*
+ * fake malloc
+ */
+void*
+malloc(long n)
+{
+	void *p;
+
+	while(n & 7)
+		n++;
+	while(nhunk < n)
+		gethunk();
+	p = hunk;
+	nhunk -= n;
+	hunk += n;
+	return p;
+}
+
+void
+free(void *p)
+{
+	USED(p);
+}
+
+void*
+calloc(long m, long n)
+{
+	void *p;
+
+	n *= m;
+	p = malloc(n);
+	memset(p, 0, n);
+	return p;
+}
+
+void*
+realloc(void *p, long n)
+{
+	USED(p);
+	USED(n);
+	fprint(2, "realloc called\n");
+	abort();
+	return 0;
 }

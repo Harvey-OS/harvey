@@ -12,3 +12,11 @@ ok:	MOVW	(R1), R29
 	MOVW	4(R1), R31
 	MOVW	R3, R1
 	RET
+
+/*
+ * trampoline functions because the kernel smashes r1
+ * in the uregs given to notejmp
+ */
+TEXT	__noterestore(SB), 1, $-4
+	MOVW	R2, R1
+	JMP	(R3)

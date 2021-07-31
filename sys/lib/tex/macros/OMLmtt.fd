@@ -1,0 +1,22 @@
+%% 
+%% This is file `OMLmtt.fd', generated 
+%% on <1995/2/23> with the docstrip utility (1).
+%% 
+%% The original source files were:
+%% 
+%% mathtime.dtx  (with options: `OMLmtt')
+%% Copyright (C) 1993 Aloysius G. Helminck. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{2}
+\def\filedate{94/04/7}
+\def\docdate {94/04/7}
+%% File: mathtime.dtx Copyright (C) 1994 Aloysius Helminck
+\DeclareFontFamily{OML}{mtt}{\skewchar\font'055}
+\DeclareFontShape{OML}{mtt}{m}{it}{<->mtmi}{}
+\endinput
+%% 
+%% End of file `OMLmtt.fd'.

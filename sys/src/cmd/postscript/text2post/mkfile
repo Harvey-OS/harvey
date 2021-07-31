@@ -1,7 +1,5 @@
 </$objtype/mkfile
 
-<../config
-
 COMMONDIR=../common
 
 TARG=text2post
@@ -11,12 +9,13 @@ OFILES=text2post.$O\
 HFILES=$COMMONDIR/comments.h\
 	$COMMONDIR/path.h\
 
-BIN=$POSTBIN
-</sys/src/cmd/mkone
+POSTLIBDIR=/sys/lib/postscript/prologues
+BIN=/$objtype/bin/aux
+< /sys/src/cmd/mkone
 
 CFLAGS=-c -D'PROGRAMVERSION="0.1"' -D'DOROUND=1' -I$COMMONDIR
 
-install:V:	$POSTLIB/pjw.char.ps
+install:V:	install-pjw
 
-$POSTLIB/pjw.char.ps:	pjw.char.ps
-	cp $prereq $target
+install-pjw:V:
+	cp pjw.char.ps $POSTLIBDIR/pjw.char.ps

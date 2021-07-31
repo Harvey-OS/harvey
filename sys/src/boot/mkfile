@@ -2,7 +2,6 @@ ARCH=\
 	indigo\
 	magnum\
 	pc\
-	carrera\
 
 all:V:
 	for(i in $ARCH)@{

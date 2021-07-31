@@ -1,5 +1,0 @@
-#!/bin/rc
-KILL_CMD=/$cputype/bin/aux/lpdsend -d$LPDEST -k
-
-$LPSPOOL/kill/generic $*
-exit

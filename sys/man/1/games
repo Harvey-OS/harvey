@@ -1,0 +1,176 @@
+.TH GAMES 1
+.SH NAME
+4s, 5s, ana, mandel, plumb, smiley, life, fsim, clock, catclock, fireworks, swar, festoon \- time wasters
+.SH SYNOPSIS
+.B games/4s
+.br
+.B games/5s
+.br
+.B games/ana
+[
+.I fixwords
+]
+.br
+.B games/mandel
+.br
+.B games/plumb
+[
+.I level
+]
+.br
+.B games/smiley
+.br
+.B games/life
+.I startfile
+.br
+.B games/fsim
+.br
+.B games/clock
+.br
+.B games/catclock
+[
+.B -c
+]
+.br
+.B games/fireworks
+.br
+.B games/swar
+.br
+.B games/festoon
+[
+.B -p
+]
+[
+.B -e
+]
+[
+.B -t
+]
+[
+.B -sseed
+]
+[
+.I len
+]
+[
+.I pfn
+]
+.SH DESCRIPTION
+There are a few games in
+.BR /bin/games :
+.TP \w'\fLfireworksXX'u
+.BR 4s , " 5s"
+Try to fill complete rows using 4-square or 5-square tiles.
+Move tiles left or right by moving the mouse.
+Rotate tiles with buttons 1 and 3.
+Drop tiles for more points with button 2 or the space bar.
+.TP
+.B ana
+Find anagrams for words typed on standard input.
+Anagrams can contain several dictionary words.
+The
+.I fixwords
+argument or numbers typed on standard input fix the number of
+words in the output anagrams.
+.TP
+.B mandel
+Compute and display Mandelbrot sets.
+Menus on the mouse buttons control various things.
+.TP
+.B plumb
+Build a plumbing system. Keep ahead of the advancing oil
+and don't waste pipe. The
+.I level
+argument lets you start at a harder level.
+.TP
+.B smiley
+A game of historical importance.
+Type space to shoot, comma to move left, and period to go right.
+.TP
+.B life
+Play the game of life, given an initial position.
+There is a library of interesting initial positions;
+the library is consulted if
+.I startfile
+cannot be found.
+.TP
+.B fsim
+Pretend you're flying a Cessna.
+.TP
+.BR clock , " catclock
+Display analog clocks.  Option
+.B -c
+makes
+.I catclock
+crosseyed.
+.TP
+.B fireworks
+Hoist the fiery blue peter.
+.TP
+.B swar
+Space war for two players called MCI and SPRINT.
+One player types
+.B a
+or
+.B d
+to turn left or right,
+.B s
+to shoot,
+.B x
+to enter hyperspace,
+and
+.B w
+to accelerate.
+The other player uses
+.LR k ,
+.BR ; ,
+.BR l ,
+.BR .
+and
+.BR o .
+AT&T scores whenever either ship shoots itself or otherwise
+causes mayhem.  Hyperspace is occasionally fatal.
+.TP
+.B festoon
+Traditional radical monoarchate qualitativeness. Now produces
+pictures
+.RB ( -p ),
+tables
+.RB ( -t ),
+and equations
+.RB ( -e ).
+The seed can be set to recreate a specific document.
+.B Len
+is sentence length, and 
+.B pfn
+is percent faked nouns (default 0).
+.SH FILES
+.TF /sys/games/lib/plumb/scores
+.TP
+.B /sys/games/lib/4scores
+scores of
+.I 4s
+games
+.TP
+.B /sys/games/lib/5scores
+scores of
+.I 5s
+games
+.TP
+.B /sys/games/lib/plumb/scores
+scores of
+.I plumb
+games
+.TP
+.B /sys/games/lib/anawords
+used by
+.I ana
+.TP
+.B /sys/games/lib/plumb/*
+miscellaneous files used by
+.I plumb
+.TP
+.B /sys/games/lib/life/*
+interesting starting positions
+.SH SOURCE
+.B /sys/src/games

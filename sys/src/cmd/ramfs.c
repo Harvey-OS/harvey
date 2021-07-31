@@ -14,7 +14,6 @@ enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
 	Nram	= 512,
-	Maxsize	= 512*1024*1024,
 };
 
 typedef struct Fid Fid;
@@ -244,8 +243,6 @@ rattach(Fid *f)
 		f->user = strdup(rhdr.uname);
 	else
 		f->user = "none";
-	if(strcmp(user, "none") == 0)
-		strcpy(user, f->user);
 	return 0;
 }
 
@@ -419,8 +416,6 @@ rcreate(Fid *f)
 	f->ram = r;
 	thdr.qid = r->qid;
 	f->open = 1;
-	if(rhdr.mode & ORCLOSE)
-		f->rclose = 1;
 	r->open++;
 	return 0;
 }
@@ -487,7 +482,7 @@ rwrite(Fid *f)
 	cnt = rhdr.count;
 	if(r->qid.path & CHDIR)
 		return "file is a directory";
-	if(off+cnt >= Maxsize)		/* sanity check */
+	if(off > 100*1024*1024)		/* sanity check */
 		return "write too big";
 	if(off+cnt > r->ndata)
 		r->data = erealloc(r->data, off+cnt);
@@ -624,6 +619,7 @@ ramstat(Ram *r, char *buf)
 	dir.qid = r->qid;
 	dir.mode = r->perm;
 	dir.length = r->ndata;
+	dir.hlength = 0;
 	strcpy(dir.uid, r->user);
 	strcpy(dir.gid, r->group);
 	dir.atime = r->atime;
@@ -647,7 +643,7 @@ newfid(int fid)
 		return ff;
 	}
 	f = emalloc(sizeof *f);
-	f->ram = nil;
+	f->ram = 0;
 	f->fid = fid;
 	f->next = fids;
 	fids = f;
@@ -728,7 +724,6 @@ emalloc(ulong n)
 	p = malloc(n);
 	if(!p)
 		error("out of memory");
-	memset(p, 0, n);
 	return p;
 }
 

@@ -1,0 +1,27 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+BIN=../$objtype
+
+TARG=spout\
+	win\
+
+</sys/src/cmd/mkmany
+
+DIRS=adict\
+
+all:V:		dirs-all
+install:V:	dirs-install
+clean:V:	dirs-clean
+nuke:V:		dirs-nuke
+
+dirs-&:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk $stem
+	}
+
+2.spout 2.win:Q:
+	echo 'no alef compiler for 68020'
+../68020/spout ../68020/win:Q:
+	;

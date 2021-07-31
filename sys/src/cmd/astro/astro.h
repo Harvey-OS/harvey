@@ -1,9 +1,6 @@
 #include	<u.h>
 #include	<libc.h>
 
-#pragma	varargck	type	"R"	double
-#pragma	varargck	type	"D"	double
-
 typedef	struct	Obj1	Obj1;
 typedef	struct	Obj2	Obj2;
 typedef	struct	Obj3	Obj3;
@@ -35,22 +32,16 @@ struct	Obj1
 struct	Obj2
 {
 	char*	name;
-	char*	name1;
 	void	(*obj)(void);
 	Obj1	point[NPTS+2];
 };
 struct	Obj3
 {
 	double	t1;
-	double	e1;
 	double	t2;
-	double	e2;
 	double	t3;
-	double	e3;
 	double	t4;
-	double	e4;
 	double	t5;
-	double	e5;
 };
 struct Event
 {
@@ -62,7 +53,7 @@ struct Event
 };
 struct	Moontab
 {
-	double	f;
+	float	f;
 	char	c[4];
 };
 struct	Occ
@@ -78,14 +69,13 @@ struct	Tim
 	char	tz[4];
 };
 
-double	converge;
 
 char	flags[128];
 int	nperiods;
 double	wlong, awlong, nlat, elev;
 double	obliq, phi, eps, tobliq;
 double	dphi, deps;
-double	day, deld, per;
+double	day, deld;
 double	eday, capt, capt2, capt3, gst;
 double	pi, pipi, radian, radsec, deltat;
 double	erad, glat;
@@ -102,7 +92,7 @@ double	az, el;
 
 double	meday, seday, mhp, salph, sdelt, srad;
 
-double*	cafp;
+float*	cafp;
 char*	cacp;
 
 double	rah, ram, ras, dday, dmin, dsec;
@@ -112,21 +102,19 @@ char	line[100];
 Obj2	osun, omoon, oshad, omerc, ovenus,
 		omars, osat, ojup, ostar, ocomet;
 Obj3	occ;
-Obj2*	eobj1;
-Obj2*	eobj2;
 
 char*	startab;
 
 extern	int	dmo[];
 extern	Obj2*	objlst[];
 
-extern	double	venfp[];
+extern	float	venfp[];
 extern	char	vencp[];
-extern	double	sunfp[];
+extern	float	sunfp[];
 extern	char	suncp[];
-extern	double	mercfp[];
+extern	float	mercfp[];
 extern	char	merccp[];
-extern	double	nutfp[];
+extern	float	nutfp[];
 extern	char	nutcp[];
 extern	Moontab moontab[];
 
@@ -147,7 +135,7 @@ extern	void	fstar(void);
 extern	void	fsun(void);
 extern	void	geo(void);
 extern	void	helio(void);
-extern	void	icosadd(double*, char*);
+extern	void	icosadd(float*, char*);
 extern	void	init(void);
 extern	void	jup(void);
 extern	int	lastsun(Tim*, int);
@@ -190,6 +178,6 @@ extern	double	sunel(double);
 extern	void	venus(void);
 extern	int	vis(double, double, double, double);
 extern	void	comet(void);
-extern	int	Rconv(va_list*, Fconv*);
-extern	int	Dconv(va_list*, Fconv*);
+extern	int	Rconv(void*, Fconv*);
+extern	int	Dconv(void*, Fconv*);
 extern	double	etdate(long, int, double);

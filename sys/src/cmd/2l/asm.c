@@ -70,20 +70,20 @@ asmb(void)
 	}
 	cflush();
 	switch(HEADTYPE) {
-	case 0:	/* this is garbage */
+	default:
+		diag("unknown header type %d\n", HEADTYPE);
+	case 0:
 		seek(cout, rnd(HEADR+textsize, 8192), 0);
 		break;
-	case 1:	/* plan9 boot data goes into text */
+	case 1:
 		seek(cout, rnd(HEADR+textsize, INITRND), 0);
 		break;
-	case 2:	/* plan 9 */
+	case 2:
 		seek(cout, HEADR+textsize, 0);
 		break;
-	case 3:	/* next boot */
+	case 3:
+	case 4:
 		seek(cout, HEADR+rnd(textsize, INITRND), 0);
-		break;
-	case 4:	/* preprocess pilot */
-		seek(cout, HEADR+textsize, 0);
 		break;
 	}
 
@@ -101,41 +101,40 @@ asmb(void)
 	symsize = 0;
 	spsize = 0;
 	lcsize = 0;
-
-	Bflush(&bso);
-
-	switch(HEADTYPE) {
-	default:
-		seek(cout, rnd(HEADR+textsize, 8192)+datsize, 0);
-		break;
-	case 1:	/* plan9 boot data goes into text */
-		seek(cout, rnd(HEADR+textsize, INITRND)+datsize, 0);
-		break;
-	case 2:	/* plan 9 */
-		seek(cout, HEADR+textsize+datsize, 0);
-		break;
-	case 3:	/* next boot */
-		seek(cout, HEADR+rnd(textsize, INITRND)+datsize, 0);
-		break;
-	}
 	if(!debug['s']) {
 		if(debug['v'])
 			Bprint(&bso, "%5.2f sym\n", cputime());
-		asmsym();
-	}
-	Bflush(&bso);
-	if(!debug['s']) {
+		Bflush(&bso);
+
+		switch(HEADTYPE) {
+		default:
+		case 0:
+			seek(cout, rnd(HEADR+textsize, 8192)+datsize, 0);
+			break;
+		case 1:
+			seek(cout, rnd(HEADR+textsize, INITRND)+datsize, 0);
+			break;
+		case 2:
+			seek(cout, HEADR+textsize+datsize, 0);
+			break;
+		case 3:
+			seek(cout, HEADR+rnd(textsize, INITRND)+datsize, 0);
+			break;
+		}
+		if(!debug['s'])
+			asmsym();
 		if(debug['v'])
 			Bprint(&bso, "%5.2f sp\n", cputime());
-		asmsp();
-	}
-	Bflush(&bso);
-	if(!debug['s']) {
+		Bflush(&bso);
+		if(!debug['s'])
+			asmsp();
 		if(debug['v'])
 			Bprint(&bso, "%5.2f pc\n", cputime());
-		asmlc();
+		Bflush(&bso);
+		if(!debug['s'])
+			asmlc();
+		cflush();
 	}
-	cflush();
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f headr\n", cputime());
@@ -143,6 +142,7 @@ asmb(void)
 	seek(cout, 0L, 0);
 	switch(HEADTYPE) {
 	default:
+	case 0:	/* garbage */
 		lput(0x160L<<16);		/* magic and sections */
 		lput(0L);			/* time and date */
 		lput(rnd(HEADR+textsize, 4096)+datsize);
@@ -163,7 +163,7 @@ asmb(void)
 		lput(0L);
 		lput(~0L);			/* gp value ?? */
 		break;
-	case 1:	/* plan9 boot data goes into text */
+	case 1:	/* boot */
 		lput(0407);			/* magic */
 		lput(rnd(HEADR+textsize, INITRND)-HEADR+datsize);		/* sizes */
 		lput(0);
@@ -173,7 +173,7 @@ asmb(void)
 		lput(spsize);			/* sp offsets */
 		lput(lcsize);			/* line offsets */
 		break;
-	case 2:	/* plan 9 */
+	case 2:
 		lput(0407);			/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
@@ -183,7 +183,8 @@ asmb(void)
 		lput(spsize);			/* sp offsets */
 		lput(lcsize);			/* line offsets */
 		break;
-	case 3:	/* next boot */
+	case 3:
+	case 4:
 		/* header */
 		lput(0xfeedfaceL);			/* magic */
 		lput(6);				/* 68040 */
@@ -196,7 +197,7 @@ asmb(void)
 		lput(1);				/* command = 'segment' */
 		lput(124);				/* command size */
 		s16put("__TEXT");
-			/* botch?? entryvalue() */
+/* botch?? entryvalue() */
 		lput(INITTEXT);				/* va of start */
 		lput(rnd(textsize, 8192));		/* va size */
 		lput(HEADR);				/* file offset */
@@ -208,7 +209,7 @@ asmb(void)
 		/* text section */
 		s16put("__text");
 		s16put("__TEXT");
-			/* botch?? entryvalue() */
+/* botch?? entryvalue() */
 		lput(INITTEXT);				/* va of start */
 		lput(textsize);				/* va size */
 		lput(HEADR);				/* file offset */
@@ -544,10 +545,10 @@ asmins(Prog *p)
 		a = asmea(p, &p->to);
 		/* hack to turn 3-word bsr into 2-word jsr */
 		if(a == 0xff && p->as == ABSR &&
-		   p->pcond->pc < 32768L && p->pcond->pc >= 0) {
+		   p->cond->pc < 32768L && p->cond->pc >= 0) {
 			op = opa + 1;
 			t = o->opcode1;
-			*op++ = p->pcond->pc;
+			*op++ = p->cond->pc;
 			break;
 		}
 		t |= a;
@@ -752,7 +753,7 @@ asmins(Prog *p)
 	case 15:	/* dec and branch */
 		if(p->to.type != D_BRANCH)
 			goto bad;
-		v = p->pcond->pc - p->pc - 2;
+		v = p->cond->pc - p->pc - 2;
 		if(v < -32768L || v >= 32768L)
 			goto bad;
 		*op++ = v;
@@ -803,7 +804,7 @@ asmins(Prog *p)
 	case 18:	/* floating branchs */
 		if(p->to.type != D_BRANCH)
 			goto bad;
-		v = p->pcond->pc - p->pc - 2;
+		v = p->cond->pc - p->pc - 2;
 		if(v < -32768L || v >= 32768L)
 			goto bad;
 		*op++ = v;
@@ -813,7 +814,7 @@ asmins(Prog *p)
 		if(p->to.type != D_BRANCH)
 			goto bad;
 		*op++ = o->opcode1;
-		v = p->pcond->pc - p->pc - 2;
+		v = p->cond->pc - p->pc - 2;
 		if(v < -32768L || v >= 32768L)
 			goto bad;
 		*op++ = v;
@@ -1056,7 +1057,7 @@ asmins(Prog *p)
 		q = copyp(p);
 		q->as = ADATA;
 		q->to.type = D_CONST;
-		q->to.offset = p->pcond->pc - casepc - 2;
+		q->to.offset = p->cond->pc - casepc - 2;
 		q->from.displace = 2;
 		q->link = datap;
 		datap = q;
@@ -1146,7 +1147,7 @@ asmea(Prog *p, Adr *a)
 		return (2<<3) | 7;			/* (A7) */
 		
 	case D_BRANCH:
-		v = p->pcond->pc - p->pc - 2;
+		v = p->cond->pc - p->pc - 2;
 		if(v < -32768L || v >= 32768L) {
 			*op++ = v>>16;
 			*op++ = v;
@@ -1426,7 +1427,7 @@ datblk(long s, long n)
 					Bprint(&bso, "%lux:%P\n\t\t", l+s+INITDAT, curp);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[fnuxi8[j+4]] & 0xff);
-					Bprint(&bso, "\n");
+					Bprint(&bso, "\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i+4]];
@@ -1439,7 +1440,7 @@ datblk(long s, long n)
 					Bprint(&bso, "%lux:%P\n\t\t", l+s+INITDAT, curp);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[fnuxi8[j]] & 0xff);
-					Bprint(&bso, "\n");
+					Bprint(&bso, "\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
@@ -1454,7 +1455,7 @@ datblk(long s, long n)
 				Bprint(&bso, "%lux:%P\n\t\t", l+s+INITDAT, curp);
 				for(j=0; j<c; j++)
 					Bprint(&bso, "%.2ux", p->to.scon[j] & 0xff);
-				Bprint(&bso, "\n");
+				Bprint(&bso, "\n", curp);
 			}
 			for(; i<c; i++) {
 				buf.dbuf[l] = p->to.scon[i];
@@ -1482,7 +1483,7 @@ datblk(long s, long n)
 					Bprint(&bso, "%lux:%P\n\t\t", l+s+INITDAT, curp);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux",cast[inuxi1[j]] & 0xff);
-					Bprint(&bso, "\n");
+					Bprint(&bso, "\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi1[i]];
@@ -1494,7 +1495,7 @@ datblk(long s, long n)
 					Bprint(&bso, "%lux:%P\n\t\t", l+s+INITDAT, curp);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux",cast[inuxi2[j]] & 0xff);
-					Bprint(&bso, "\n");
+					Bprint(&bso, "\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi2[i]];
@@ -1506,7 +1507,7 @@ datblk(long s, long n)
 					Bprint(&bso, "%lux:%P\n\t\t", l+s+INITDAT, curp);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux",cast[inuxi4[j]] & 0xff);
-					Bprint(&bso, "\n");
+					Bprint(&bso, "\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi4[i]];

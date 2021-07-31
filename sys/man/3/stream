@@ -1,0 +1,73 @@
+.TH STREAM 3 
+.SH NAME
+stream \- a structure for communications
+.SH SYNOPSIS
+.B bind
+.I streamdevice
+.I dir
+.nf
+
+.IB dir /data
+.IB dir /ctl
+.fi
+.SH DESCRIPTION
+.PP
+A
+.I stream
+is not a device per se.
+However, many devices use the
+.I streams
+package in the kernel to implement communications channels.
+The properties described here are common to all such channels.
+.PP
+All streams are represented by two standard files,
+.B ctl
+and
+.BR data ,
+plus any others the particular device wants to add.
+Reading and writing the
+.B data
+file receives and sends data on the channel.
+If the channel is message oriented, each write
+will represent a message and each read will
+return at most one message.
+If the buffer given in a read is smaller than the message,
+subsequent reads will return the remainder of the message.
+.PP
+Writing textual command strings to the
+.B ctl
+file performs control operations on the stream.
+The strings need not be null-terminated.
+Each device may add to the control operations.
+The common control operations are:
+.TP 14
+.B hangup
+Hang up this stream.
+Any subsequent writes will return an error.
+The first subsequent read will return 0.
+All following ones will return an error.
+.TP 14
+.BI push " name
+Push the module 
+.I name
+onto the top of the stream.
+.TP 14
+.B pop
+Pop the top module off the stream
+.LP
+Reading the 
+.B ctl
+file returns a textual identifier for the
+stream.
+This is used by multiplexed devices and its use
+is described with the particular device.
+.SH "SEE ALSO"
+.IR pipe (3),
+.IR dk (3),
+.IR cons (3),
+.IR async (3),
+.IR fcall (3),
+.IR ip (3),
+.IR reboot (3)
+.SH SOURCE
+.B /sys/src/9/port/st*.c

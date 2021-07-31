@@ -1,0 +1,235 @@
+%% The following macro is necessary to place an accent over the
+%% character definitions below. For example, you should say:
+%%                \diatop[\^|\openo]
+%%
+ 
+\def\diatop[#1|#2]{{\setbox1=\hbox{{#1{}}}\setbox2=\hbox{{#2{}}}%
+                    \dimen0=\ifdim\wd1>\wd2\wd1\else\wd2\fi%
+                    \dimen1=\ht2\advance\dimen1by-1ex%
+                    \setbox1=\hbox to1\dimen0{\hss#1\hss}%
+                    \rlap{\raise1\dimen1\box1}%
+                    \hbox to1\dimen0{\hss#2\hss}}}%
+ 
+%% As an alternative, you could uncomment the following two lines:
+%%
+%% \catcode`"=\active
+%% \def"#1#2{\diatop[#1|#2]}
+%%
+%% And then you could place an accent over the ipa character by
+%% calling the macro " which itself calls \diatop. For example, you
+%% would say:
+%%
+%%               "\^\openo
+ 
+%%  THE FOLLOWING macros access the IPA chars from the WSU IPA font
+ 
+\font\ipatwelverm=wsuipa12
+\def\ipa{\ipatwelverm}
+ 
+%% A-type shapes:
+\def\inva{\edef\next{\the\font}\ipa\char'000\next}%
+\def\scripta{\edef\next{\the\font}\ipa\char'001\next}%
+\def\nialpha{\edef\next{\the\font}\ipa\char'002\next}%
+\def\invscripta{\edef\next{\the\font}\ipa\char'003\next}%
+\def\invv{\edef\next{\the\font}\ipa\char'004\next}%
+ 
+%% B-type shapes:
+\def\crossb{\edef\next{\the\font}\ipa\char'005\next}%
+\def\barb{\edef\next{\the\font}\ipa\char'006\next}%
+\def\slashb{\edef\next{\the\font}\ipa\char'007\next}%
+\def\hookb{\edef\next{\the\font}\ipa\char'010\next}%
+\def\nibeta{\edef\next{\the\font}\ipa\char'011\next}%
+ 
+%% C-type shapes:
+\def\slashc{\edef\next{\the\font}\ipa\char'012\next}%
+\def\curlyc{\edef\next{\the\font}\ipa\char'013\next}%
+\def\clickc{\edef\next{\the\font}\ipa\char'014\next}%
+ 
+%% D-type shapes:
+\def\crossd{\edef\next{\the\font}\ipa\char'015\next}%
+\def\bard{\edef\next{\the\font}\ipa\char'016\next}%
+\def\slashd{\edef\next{\the\font}\ipa\char'017\next}%
+\def\hookd{\edef\next{\the\font}\ipa\char'020\next}%
+\def\taild{\edef\next{\the\font}\ipa\char'021\next}%
+\def\dz{\edef\next{\the\font}\ipa\char'022\next}%
+\def\eth{\edef\next{\the\font}\ipa\char'023\next}%
+\def\scd{\edef\next{\the\font}\ipa\char'024\next}%
+ 
+%% E-type shapes:
+\def\schwa{\edef\next{\the\font}\ipa\char'025\next}%
+\def\er{\edef\next{\the\font}\ipa\char'026\next}%
+\def\reve{\edef\next{\the\font}\ipa\char'027\next}%
+\def\niepsilon{\edef\next{\the\font}\ipa\char'030\next}%
+\def\revepsilon{\edef\next{\the\font}\ipa\char'031\next}%
+\def\hookrevepsilon{\edef\next{\the\font}\ipa\char'032\next}%
+\def\closedrevepsilon{\edef\next{\the\font}\ipa\char'033\next}%
+ 
+%% G-type shapes:
+\def\scriptg{\edef\next{\the\font}\ipa\char'034\next}%
+\def\hookg{\edef\next{\the\font}\ipa\char'035\next}%
+\def\scg{\edef\next{\the\font}\ipa\char'036\next}%
+\def\nigamma{\edef\next{\the\font}\ipa\char'037\next}
+\def\ipagamma{\edef\next{\the\font}\ipa\char'040\next}%
+\def\babygamma{\edef\next{\the\font}\ipa\char'041\next}%
+ 
+%% H-type shapes:
+\def\hv{\edef\next{\the\font}\ipa\char'042\next}%
+\def\crossh{\edef\next{\the\font}\ipa\char'043\next}%
+\def\hookh{\edef\next{\the\font}\ipa\char'044\next}%
+\def\hookheng{\edef\next{\the\font}\ipa\char'045\next}%
+\def\invh{\edef\next{\the\font}\ipa\char'046\next}%
+ 
+%% I-type shapes:
+\def\bari{\edef\next{\the\font}\ipa\char'047\next}%
+\def\dlbari{\edef\next{\the\font}\ipa\char'050\next}% ``dotless bar i''
+\def\niiota{\edef\next{\the\font}\ipa\char'051\next}%
+\def\sci{\edef\next{\the\font}\ipa\char'052\next}%
+\def\barsci{\edef\next{\the\font}\ipa\char'053\next}% ``barred small cap i''
+ 
+%% J-type shape:
+\def\invf{\edef\next{\the\font}\ipa\char'054\next}%
+ 
+%% L-type shapes:
+\def\tildel{\edef\next{\the\font}\ipa\char'055\next}%
+\def\barl{\edef\next{\the\font}\ipa\char'056\next}%
+\def\latfric{\edef\next{\the\font}\ipa\char'057\next}%
+\def\taill{\edef\next{\the\font}\ipa\char'060\next}%
+\def\lz{\edef\next{\the\font}\ipa\char'061\next}%
+\def\nilambda{\edef\next{\the\font}\ipa\char'062\next}%
+\def\crossnilambda{\edef\next{\the\font}\ipa\char'063\next}%
+ 
+%% M-type shapes:
+\def\labdentalnas{\edef\next{\the\font}\ipa\char'064\next}%
+\def\invm{\edef\next{\the\font}\ipa\char'065\next}%
+\def\legm{\edef\next{\the\font}\ipa\char'066\next}%
+ 
+%% N-type shapes:
+\def\nj{\edef\next{\the\font}\ipa\char'067\next}%
+\def\eng{\edef\next{\the\font}\ipa\char'070\next}%
+\def\tailn{\edef\next{\the\font}\ipa\char'071\next}%
+\def\scn{\edef\next{\the\font}\ipa\char'072\next}%
+ 
+%% O-type shapes:
+\def\clickb{\edef\next{\the\font}\ipa\char'073\next}%
+\def\baro{\edef\next{\the\font}\ipa\char'074\next}%
+\def\openo{\edef\next{\the\font}\ipa\char'075\next}%
+\def\niomega{\edef\next{\the\font}\ipa\char'076\next}%
+\def\closedniomega{\edef\next{\the\font}\ipa\char'077\next}%
+\def\oo{\edef\next{\the\font}\ipa\char'100\next}%
+ 
+%% P-type shapes:
+\def\barp{\edef\next{\the\font}\ipa\char'101\next}%
+\def\thorn{\edef\next{\the\font}\ipa\char'102\next}%
+\def\niphi{\edef\next{\the\font}\ipa\char'103\next}%
+ 
+%% R-type shapes:
+\def\flapr{\edef\next{\the\font}\ipa\char'104\next}%
+\def\legr{\edef\next{\the\font}\ipa\char'105\next}%
+\def\tailr{\edef\next{\the\font}\ipa\char'106\next}%
+\def\invr{\edef\next{\the\font}\ipa\char'107\next}%
+\def\tailinvr{\edef\next{\the\font}\ipa\char'110\next}%
+\def\invlegr{\edef\next{\the\font}\ipa\char'111\next}%
+\def\scr{\edef\next{\the\font}\ipa\char'112\next}%
+\def\invscr{\edef\next{\the\font}\ipa\char'113\next}%
+ 
+%% S-type shapes:
+\def\tails{\edef\next{\the\font}\ipa\char'114\next}%
+\def\esh{\edef\next{\the\font}\ipa\char'115\next}%
+\def\curlyesh{\edef\next{\the\font}\ipa\char'116\next}%
+\def\nisigma{\edef\next{\the\font}\ipa\char'117\next}%
+ 
+%% T-type shapes:
+\def\tailt{\edef\next{\the\font}\ipa\char'120\next}%
+\def\tesh{\edef\next{\the\font}\ipa\char'121\next}%
+\def\clickt{\edef\next{\the\font}\ipa\char'122\next}%
+\def\nitheta{\edef\next{\the\font}\ipa\char'123\next}%
+ 
+%% U-type shapes:
+\def\baru{\edef\next{\the\font}\ipa\char'124\next}%
+\def\slashu{\edef\next{\the\font}\ipa\char'125\next}%
+\def\niupsilon{\edef\next{\the\font}\ipa\char'126\next}%
+\def\scu{\edef\next{\the\font}\ipa\char'127\next}%
+\def\barscu{\edef\next{\the\font}\ipa\char'130\next}%
+ 
+%% V-type shape:
+\def\scriptv{\edef\next{\the\font}\ipa\char'131\next}%
+ 
+%% W-type shape:
+\def\invw{\edef\next{\the\font}\ipa\char'132\next}%
+ 
+%% X-type shape:
+\def\nichi{\edef\next{\the\font}\ipa\char'133\next}%
+ 
+%% Y-type shapes:
+\def\invy{\edef\next{\the\font}\ipa\char'134\next}%
+\def\scy{\edef\next{\the\font}\ipa\char'135\next}%
+ 
+%% Z-type shapes:
+\def\curlyz{\edef\next{\the\font}\ipa\char'136\next}%
+\def\tailz{\edef\next{\the\font}\ipa\char'137\next}%
+\def\yogh{\edef\next{\the\font}\ipa\char'140\next}%
+\def\curlyyogh{\edef\next{\the\font}\ipa\char'141\next}%
+ 
+%% ?-type shapes:
+\def\glotstop{\edef\next{\the\font}\ipa\char'142\next}%
+\def\revglotstop{\edef\next{\the\font}\ipa\char'143\next}%
+\def\invglotstop{\edef\next{\the\font}\ipa\char'144\next}%
+\def\ejective{\edef\next{\the\font}\ipa\char'145\next}%
+\def\reveject{\edef\next{\the\font}\ipa\char'146\next}%
+ 
+%% AND that should be it, as far as actual characters go.
+%%
+%% THE following is the set of diacritics. Please try to get
+%% the 4 t-bars lined up above the 4 pointers, so you may
+%% have to reshuffle things a bit. Not to worry too much. I
+%% think the diacritics can be grouped more according to
+%% shape, so comma-like things are together, etc.
+%%
+ 
+\def\dental#1{\oalign{#1\crcr
+          \hidewidth{\ipa\char'147}\hidewidth}}
+ 
+\def\upt{\edef\next{\the\font}\ipa\char'154\next}%   These are IPA pointers
+\def\downt{\edef\next{\the\font}\ipa\char'155\next}%
+\def\leftt{\edef\next{\the\font}\ipa\char'156\next}%
+\def\rightt{\edef\next{\the\font}\ipa\char'157\next}%
+ 
+         %  These are American versions of t-bars
+\def\upp{\edef\next{\the\font}\ipa\char'164\next}
+\def\downp{\edef\next{\the\font}\ipa\char'165\next}%
+\def\leftp{\edef\next{\the\font}\ipa\char'166\next}%
+\def\rightp{\edef\next{\the\font}\ipa\char'167\next}%
+ 
+\def\stress{\edef\next{\the\font}\ipa\char'150\next}%     primary stress
+\def\secstress{\edef\next{\the\font}\ipa\char'151\next}%  secondary stress
+ 
+\def\syllabic{\edef\next{\the\font}\ipa\char'152\next}%   syllabic marker
+ 
+\def\corner{\edef\next{\the\font}\ipa\char'153\next}%
+ 
+         % American equivalent: raised dot
+\def\halflength{\edef\next{\the\font}\ipa\char'160\next}
+         %     American equivalent: colon
+\def\length{\edef\next{\the\font}\ipa\char'161\next}
+ 
+\def\underdots{\edef\next{\the\font}\ipa\char'162\next}%
+ 
+         %       ``reversed apostrophe'', p. 216
+\def\ain{\edef\next{\the\font}\ipa\char'163\next}
+ 
+\def\overring{\edef\next{\the\font}\ipa\char'170\next}%
+\def\underring{\edef\next{\the\font}\ipa\char'171\next}%
+ 
+\def\open{\edef\next{\the\font}\ipa\char'172\next}%
+ 
+\def\midtilde{\edef\next{\the\font}\ipa\char'173\next}%
+\def\undertilde{\edef\next{\the\font}\ipa\char'174\next}%
+ 
+\def\underwedge{\edef\next{\the\font}\ipa\char'175\next}%
+ 
+\def\polishhook{\edef\next{\the\font}\ipa\char'176\next}%
+ 
+\def\underarch#1{\oalign{#1\crcr
+          \hidewidth{\ipa\char'177}\hidewidth}}
+ 
+%% AND that's it for the diacritics.

@@ -1,8 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include <thread.h>
-#include <mouse.h>
+#include <libg.h>
 #include <frame.h>
 
 #define	SLOP	25
@@ -14,7 +12,7 @@ _fraddbox(Frame *f, int bn, int n)	/* add n boxes after bn, shift the rest up,
 	int i;
 
 	if(bn > f->nbox)
-		drawerror(f->display, "_fraddbox");
+		berror("_fraddbox");
 	if(f->nbox+n > f->nalloc)
 		_frgrowbox(f, n+SLOP);
 	for(i=f->nbox; --i>=bn; )
@@ -28,7 +26,7 @@ _frclosebox(Frame *f, int n0, int n1)	/* inclusive */
 	int i;
 
 	if(n0>=f->nbox || n1>=f->nbox || n1<n0)
-		drawerror(f->display, "_frclosebox");
+		berror("_frclosebox");
 	n1++;
 	for(i=n1; i<f->nbox; i++)
 		f->box[i-(n1-n0)] = f->box[i];
@@ -39,7 +37,7 @@ void
 _frdelbox(Frame *f, int n0, int n1)	/* inclusive */
 {
 	if(n0>=f->nbox || n1>=f->nbox || n1<n0)
-		drawerror(f->display, "_frdelbox");
+		berror("_frdelbox");
 	_frfreebox(f, n0, n1);
 	_frclosebox(f, n0, n1);
 }
@@ -52,7 +50,7 @@ _frfreebox(Frame *f, int n0, int n1)	/* inclusive */
 	if(n1<n0)
 		return;
 	if(n0>=f->nbox || n1>=f->nbox)
-		drawerror(f->display, "_frfreebox");
+		berror("_frfreebox");
 	n1++;
 	for(i=n0; i<n1; i++)
 		if(f->box[i].nrune >= 0)
@@ -65,7 +63,7 @@ _frgrowbox(Frame *f, int delta)
 	f->nalloc += delta;
 	f->box = realloc(f->box, f->nalloc*sizeof(Frbox));
 	if(f->box == 0)
-		drawerror(f->display, "_frgrowbox");
+		berror("_frgrowbox");
 }
 
 static
@@ -75,10 +73,10 @@ dupbox(Frame *f, int bn)
 	uchar *p;
 
 	if(f->box[bn].nrune < 0)
-		drawerror(f->display, "dupbox");
+		berror("dupbox");
 	_fraddbox(f, bn, 1);
 	if(f->box[bn].nrune >= 0){
-		p = _frallocstr(f, NBYTE(&f->box[bn])+1);
+		p = _frallocstr(NBYTE(&f->box[bn])+1);
 		strcpy((char*)p, (char*)f->box[bn].ptr);
 		f->box[bn+1].ptr = p;
 	}
@@ -106,10 +104,10 @@ void
 truncatebox(Frame *f, Frbox *b, int n)	/* drop last n chars; no allocation done */
 {
 	if(b->nrune<0 || b->nrune<n)
-		drawerror(f->display, "truncatebox");
+		berror("truncatebox");
 	b->nrune -= n;
 	runeindex(b->ptr, b->nrune)[0] = 0;
-	b->wid = stringwidth(f->font, (char *)b->ptr);
+	b->wid = strwidth(f->font, (char *)b->ptr);
 }
 
 static
@@ -117,10 +115,10 @@ void
 chopbox(Frame *f, Frbox *b, int n)	/* drop first n chars; no allocation done */
 {
 	if(b->nrune<0 || b->nrune<n)
-		drawerror(f->display, "chopbox");
+		berror("chopbox");
 	strcpy((char*)b->ptr, (char*)runeindex(b->ptr, n));
 	b->nrune -= n;
-	b->wid = stringwidth(f->font, (char *)b->ptr);
+	b->wid = strwidth(f->font, (char *)b->ptr);
 }
 
 void

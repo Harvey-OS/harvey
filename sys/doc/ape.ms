@@ -5,7 +5,7 @@
 APE \(em The ANSI/POSIX Environment
 .AU
 Howard Trickey
-howard@plan9.bell-labs.com
+howard@plan9.att.com
 .SH
 Introduction
 .PP
@@ -158,9 +158,11 @@ to 2l, etc.
 .PP
 The
 .CW sh
-command is pdksh, a mostly POSIX-compliant public domain Korn Shell.
+command is ksh93, a POSIX-compliant Korn Shell.
 The Plan 9 implementation does not include
 the emacs and vi editing modes.
+Ksh93 is a separate product, so its source code is not included
+in the Plan 9 distribution.
 .PP
 The
 .CW stty

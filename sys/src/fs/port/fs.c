@@ -1,17 +1,21 @@
 #include	"all.h"
 
 void
-f_nop(Chan *cp, Fcall*, Fcall*)
+f_nop(Chan *cp, Fcall *in, Fcall *ou)
 {
 
+	USED(in);
+	USED(ou);
 	if(CHAT(cp))
 		print("c_nop %d\n", cp->chan);
 }
 
 void
-f_flush(Chan *cp, Fcall*, Fcall*)
+f_flush(Chan *cp, Fcall *in, Fcall *ou)
 {
 
+	USED(in);
+	USED(ou);
 	if(CHAT(cp))
 		print("c_flush %d\n", cp->chan);
 	runlock(&cp->reflock);
@@ -24,6 +28,7 @@ void
 f_session(Chan *cp, Fcall *in, Fcall *ou)
 {
 
+	USED(in);
 	if(CHAT(cp))
 		print("c_session %d\n", cp->chan);
 	memmove(cp->rchal, in->chal, sizeof(cp->rchal));
@@ -82,7 +87,6 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 			goto out;
 		}
 	}
-	f->uid = u;
 
 	fs = fsstr(in->aname);
 	if(fs == 0) {
@@ -96,17 +100,18 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Ealloc;
 		goto out;
 	}
-	if(iaccess(f, d, DEXEC)) {
+	if(iaccess(f, d, DREAD)) {
 		ou->err = Eaccess;
 		goto out;
 	}
-	if(f->uid == 0 && fs->dev->type == Devro) {
+	if(u == 0 && fs->dev.type == Devro) {
 		/*
 		 * 'none' not allowed on dump
 		 */
 		ou->err = Eaccess;
 		goto out;
 	}
+	f->uid = u;
 	accessdir(p, d, FREAD, f->uid);
 	f->qid.path = fakeqid(d);
 	f->qid.version = d->qid.version;
@@ -374,17 +379,13 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 	File *f;
 	Tlock *t;
 	Qid qid;
-	int ro, fmod, wok;
+	int ro, fmod;
 
 	if(CHAT(cp)) {
 		print("c_open %d\n", cp->chan);
 		print("	fid = %d\n", in->fid);
 		print("	mode = %o\n", in->mode);
 	}
-
-	wok = 0;
-	if(cp == cons.chan || writeallow)
-		wok = 1;
 
 	p = 0;
 	qid = QID(0,0);
@@ -397,7 +398,7 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 	/*
 	 * if remove on close, check access here
 	 */
-	ro = f->fs->dev->type == Devro;
+	ro = f->fs->dev.type == Devro;
 	if(in->mode & MRCLOSE) {
 		if(ro) {
 			ou->err = Eronly;
@@ -437,14 +438,14 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 	switch(in->mode & 7) {
 
 	case MREAD:
-		if(iaccess(f, d, DREAD) && !wok)
+		if(iaccess(f, d, DREAD) && !writeallow)
 			goto badaccess;
 		fmod = FREAD;
 		break;
 
 	case MWRITE:
 		if((d->mode & DDIR) ||
-		   (iaccess(f, d, DWRITE) && !wok))
+		   (iaccess(f, d, DWRITE) && !writeallow))
 			goto badaccess;
 		if(ro) {
 			ou->err = Eronly;
@@ -455,8 +456,8 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 
 	case MBOTH:
 		if((d->mode & DDIR) ||
-		   (iaccess(f, d, DREAD) && !wok) ||
-		   (iaccess(f, d, DWRITE) && !wok))
+		   (iaccess(f, d, DREAD) && !writeallow) ||
+		   (iaccess(f, d, DWRITE) && !writeallow))
 			goto badaccess;
 		if(ro) {
 			ou->err = Eronly;
@@ -467,7 +468,7 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 
 	case MEXEC:
 		if((d->mode & DDIR) ||
-		   (iaccess(f, d, DEXEC) && !wok))
+		   iaccess(f, d, DEXEC))
 			goto badaccess;
 		fmod = FREAD;
 		break;
@@ -478,7 +479,7 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 	}
 	if(in->mode & MTRUNC) {
 		if((d->mode & DDIR) ||
-		   (iaccess(f, d, DWRITE) && !wok))
+		   (iaccess(f, d, DWRITE) && !writeallow))
 			goto badaccess;
 		if(ro) {
 			ou->err = Eronly;
@@ -526,7 +527,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	Iobuf *p, *p1;
 	Dentry *d, *d1;
 	File *f;
-	int slot, slot1, fmod, wok;
+	int slot, slot1, fmod;
 	long addr, addr1;
 	Qid qid;
 	Tlock *t;
@@ -536,14 +537,10 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		print("c_create %d\n", cp->chan);
 		print("	fid = %d\n", in->fid);
 		print("	name = %s\n", in->name);
-		print("	perm = %lx+%lo\n", (in->perm>>28)&0xf,
+		print("	perm = %x+%o\n", (in->perm>>28)&0xf,
 				in->perm&0777);
 		print("	mode = %d\n", in->mode);
 	}
-
-	wok = 0;
-	if(cp == cons.chan || writeallow)
-		wok = 1;
 
 	p = 0;
 	qid = QID(0,0);
@@ -552,7 +549,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Efid;
 		goto out;
 	}
-	if(f->fs->dev->type == Devro) {
+	if(f->fs->dev.type == Devro) {
 		ou->err = Eronly;
 		goto out;
 	}
@@ -571,7 +568,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Edir2;
 		goto out;
 	}
-	if(iaccess(f, d, DWRITE) && !wok) {
+	if(cp != cons.chan && iaccess(f, d, DWRITE) && !writeallow) {
 		ou->err = Eaccess;
 		goto out;
 	}
@@ -740,7 +737,7 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 		print("c_read %d\n", cp->chan);
 		print("	fid = %d\n", in->fid);
 		print("	offset = %ld\n", in->offset);
-		print("	count = %ld\n", in->count);
+		print("	count = %d\n", in->count);
 	}
 
 	p = 0;
@@ -800,7 +797,10 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 			}
 		}
 		addr = offset / BUFSIZE;
-		f->lastra = dbufread(p, d, addr, f->lastra, f->uid);
+		if(addr == f->lastra) {
+			dbufread(p, d, addr, f->uid);
+			f->lastra = addr + RACHUNK;
+		}
 		o = offset % BUFSIZE;
 		n = BUFSIZE - o;
 		if(n > count)
@@ -891,7 +891,7 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 		print("c_write %d\n", cp->chan);
 		print("	fid = %d\n", in->fid);
 		print("	offset = %ld\n", in->offset);
-		print("	count = %ld\n", in->count);
+		print("	count = %d\n", in->count);
 	}
 
 	offset = in->offset;
@@ -907,7 +907,7 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Eopen;
 		goto out;
 	}
-	if(f->fs->dev->type == Devro) {
+	if(f->fs->dev.type == Devro) {
 		ou->err = Eronly;
 		goto out;
 	}
@@ -989,7 +989,7 @@ out:
 }
 
 int
-doremove(File *f, int wok)
+doremove(File *f, int iscon)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1;
@@ -999,7 +999,7 @@ doremove(File *f, int wok)
 	err = 0;
 	p = 0;
 	p1 = 0;
-	if(f->fs->dev->type == Devro) {
+	if(f->fs->dev.type == Devro) {
 		err = Eronly;
 		goto out;
 	}
@@ -1016,7 +1016,7 @@ doremove(File *f, int wok)
 		err = Ephase;
 		goto out;
 	}
-	if(iaccess(f, d1, DWRITE) && !wok) {
+	if(!iscon && iaccess(f, d1, DWRITE)) {
 		err = Eaccess;
 		goto out;
 	}
@@ -1199,7 +1199,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Efid;
 		goto out;
 	}
-	if(f->fs->dev->type == Devro) {
+	if(f->fs->dev.type == Devro) {
 		ou->err = Eronly;
 		goto out;
 	}
@@ -1233,15 +1233,6 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 		print("	d.uid  = %d\n", xd.uid);
 		print("	d.gid  = %d\n", xd.gid);
 		print("	d.mode = %.4x\n", xd.mode);
-	}
-
-	/*
-	 * if user none,
-	 * cant do anything
-	 */
-	if(f->uid == 0) {
-		ou->err = Eaccess;
-		goto out;
 	}
 
 	/*
@@ -1279,10 +1270,6 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	 */
 	while(strncmp(d->name, xd.name, sizeof(d->name)) != 0) {
 		if(checkname(xd.name) || !d1) {
-			ou->err = Ename;
-			goto out;
-		}
-		if(strcmp(xd.name, ".") == 0 || strcmp(xd.name, "..") == 0) {
 			ou->err = Ename;
 			goto out;
 		}

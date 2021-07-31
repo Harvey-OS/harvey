@@ -19,14 +19,14 @@ Syscall syssegbrk;
 Syscall sysmount;
 Syscall sysopen;
 Syscall sysread;
-Syscall sysoseek;
+Syscall sysseek;
 Syscall syssleep;
 Syscall sysstat;
 Syscall sysrfork;
 Syscall syswrite;
 Syscall syspipe;
 Syscall syscreate;
-Syscall sysfd2path;
+Syscall sys_x3;
 Syscall sysbrk_;
 Syscall sysremove;
 Syscall syswstat;
@@ -40,9 +40,6 @@ Syscall syssegflush;
 Syscall sysrendezvous;
 Syscall sysunmount;
 Syscall syswait;
-Syscall syswrite9p;
-Syscall sysread9p;
-Syscall sysseek;
 Syscall	sysdeath;
 
 Syscall *systab[]={
@@ -62,14 +59,14 @@ Syscall *systab[]={
 	[MOUNT]		sysmount,
 	[OPEN]		sysopen,
 	[READ]		sysread,
-	[OSEEK]		sysoseek,
+	[SEEK]		sysseek,
 	[SLEEP]		syssleep,
 	[STAT]		sysstat,
 	[RFORK]		sysrfork,
 	[WRITE]		syswrite,
 	[PIPE]		syspipe,
 	[CREATE]	syscreate,
-	[FD2PATH]	sysfd2path,
+	[_X3]		sysdeath,
 	[BRK_]		sysbrk_,
 	[REMOVE]	sysremove,
 	[WSTAT]		syswstat,
@@ -83,9 +80,6 @@ Syscall *systab[]={
 	[RENDEZVOUS]	sysrendezvous,
 	[UNMOUNT]	sysunmount,
 	[WAIT]		syswait,
-	[WRITE9P]	syswrite9p,
-	[READ9P]	sysread9p,
-	[SEEK]		sysseek,
 };
 
 char *sysctab[]={
@@ -105,14 +99,14 @@ char *sysctab[]={
 	[MOUNT]		"Mount",
 	[OPEN]		"Open",
 	[READ]		"Read",
-	[OSEEK]		"Oseek",
+	[SEEK]		"Seek",
 	[SLEEP]		"Sleep",
 	[STAT]		"Stat",
 	[RFORK]		"Rfork",
 	[WRITE]		"Write",
 	[PIPE]		"Pipe",
 	[CREATE]	"Create",
-	[FD2PATH]	"Fd2path",
+	[_X3]		"_x3",
 	[BRK_]		"Brk",
 	[REMOVE]	"Remove",
 	[WSTAT]		"Wstat",
@@ -126,9 +120,4 @@ char *sysctab[]={
 	[RENDEZVOUS]	"Rendez",
 	[UNMOUNT]	"Unmount",
 	[WAIT]		"Wait",
-	[WRITE9P]	"Write9p",
-	[READ9P]	"Read9p",
-	[SEEK]		"Seek",
 };
-
-int nsyscall = (sizeof systab/sizeof systab[0]);

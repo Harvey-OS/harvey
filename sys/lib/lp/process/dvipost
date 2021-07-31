@@ -1,29 +1,10 @@
 #!/bin/rc
-if (~ $DEBUG 1) flag x +
 # convert Tex dvi to PostScript
 PATCH='%!PS-Adobe-2.0'
-switch ($LPCLASS) {
-case *hp4simx*;
-	PATCH=$PATCH'
-%% set the default papertray to be the lower tray for HP4siMX printers
-	statusdict begin defaultpapertray end 1 ne {
-		statusdict begin
-			1 setdefaultpapertray
-		end
-	} if'
-}
 for (i in `{echo $IBIN|awk -F, '{ n=split($0, a, ","); for (i=1;i<=n;i++) print a[i]; }'}) {
 	switch ($i) {
-	case man manual manualfeed;
-		PATCH=$PATCH'
-%%BeginFeature: *Select ManualFeed
-[{ systemdict /languagelevel known {languagelevel 1 gt product (HP LaserJet 4Si) ne and} if {
-    << /ManualFeed true >> setpagedevice
-   } {statusdict begin /manualfeed true def end} ifelse
- } stopped cleartomark
-%%EndFeature'
-	case simplex;
-		DUPLEX=0
+	case man manual manualfeed;	PATCH=$PATCH'
+statusdict begin /manualfeed true def end'
 	case [0-9];
 		switch ($LPCLASS) {
 		case *post2*;
@@ -55,22 +36,15 @@ statusdict begin '$i'tray end'
 	}
 }
 if (! ~ $#DUPLEX 0) {
-	switch ($DUPLEX) {
-	case 0;
-		DUPLEX=false
-	case 1;
-		DUPLEX=true
-	}
-	PATCH=$PATCH'
-%%BeginFeature: *Set DuplexMode
-[{ systemdict /languagelevel known {languagelevel 1 gt product (HP LaserJet 4Si) ne and} if {
-    << /Duplex '$DUPLEX'  >> setpagedevice
-  } {statusdict /setduplexmode known {statusdict begin '$DUPLEX' setduplexmode end} if} ifelse
- } stopped cleartomark
-%%EndFeature'
+	if (~ $DUPLEX 1 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin true setduplexmode end} if';
+	if (~ $DUPLEX 0 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin false setduplexmode end} if';
 }
 if (! ~ $#LAND 0 && ~ $LAND 1)
-	LAND='-tlandscape'
+	LAND='-L'
 if (~ $LPCLASS *reverse*) {
 	switch ($REVERSE) {
 	case '';
@@ -80,27 +54,36 @@ if (~ $LPCLASS *reverse*) {
 	}
 }
 switch ($LPCLASS) {
-case *post100*;
-	DPI='-Z -D100'
+case *lino*;
+	TOPT='-Tlino'
 case *600dpi*;
-	DPI='-Z -D600'
+	TOPT='-Tljfour'
+case *100dpi*;
+	TOPT='-Tgnot'
 case *1200dpi*;
-	DPI='-Z -D1200'
+	TOPT='-Txante'
 case *;
-	DPI=''
+	TOPT=''
 }
 if (! ~ $COPIES '' -c*) COPIES=-c^$COPIES
 if (! ~ $OLIST '' '='*) OLIST=`{echo $OLIST | sed 's/-o/=/' | sed 's/-/:/g' }
+if (! ~ $NPAG '' -I*) {
+	NPAG=-I$NPAG
+	if (~ $REVFLAG 1) {
+		echo 'page reversal turned off with -n option' >[1=2]
+		REVFLAG=''
+	}
+}
 switch ($REVFLAG) {
 case 1;
 	echo $PATCH
 	switch ($OLIST) {
 	case '';
-		eval dvips -q -f $DPI -r $LAND $COPIES $1
+		eval dvips -r $LAND $TOPT $COPIES $NPAG $1
 	case *;
 		DVIFILE=/tmp/dv$pid.dvi
 		dviselect -s $OLIST $1 > $DVIFILE
-		eval dvips -q -f $DPI -r $LAND $COPIES $DVIFILE
+		eval dvips -r $LAND $TOPT $COPIES $NPAG $DVIFILE
 		rm -f $DVIFILE
 	}
 	$LPLIB/process/hpost </dev/null
@@ -109,11 +92,11 @@ case '';
 	echo $PATCH
 	switch ($OLIST) {
 	case '';
-		eval dvips -q -f $DPI $LAND $COPIES $1
+		eval dvips -r0 $LAND $TOPT $COPIES $NPAG $1
 	case *;
 		DVIFILE=/tmp/dv$pid.dvi
 		dviselect -s $OLIST $1 > $DVIFILE
-		eval dvips -q -f $DPI $LAND $COPIES $DVIFILE
+		eval dvips -r0 $LAND $TOPT $COPIES $NPAG $DVIFILE
 		rm -f $DVIFILE
 	}
 }

@@ -1,0 +1,38 @@
+.TH LERP 9.1
+.SH NAME
+lerp, sub \- linear combinations of images
+.SH SYNOPSIS
+.B fb/lerp
+.I file fraction
+[
+.I file fraction ...
+]
+.PP
+.B fb/sub
+.I file1 file2
+.SH DESCRIPTION
+.I Lerp
+computes a linear combination of a number of input images.
+Each input
+.I file
+name is followed by a floating-point
+.I fraction
+by which to scale its pixel values.
+The fraction after the last image may be omitted, in which case one minus the sum
+of the other fractions is used.
+The resulting image is written to standard output.
+.PP
+Nothing prevents the fractions from being smaller than zero or larger than one.
+Output pixel values that fall below zero or above 255 are clamped.
+.PP
+.I Sub
+reads two images, which must be the same size and have the same
+number of channels.  Each channel of each pixel of the output
+image is the absolute value of the difference between the
+corresponding input values.
+.SH SOURCE
+.B /sys/src/fb/lerp.c
+.br
+.B /sys/src/fb/sub.c
+.SH "SEE ALSO
+.IR picfile (9.6)

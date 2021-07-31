@@ -29,11 +29,8 @@ void
 dprint(char *z, ...)
 {
 	char buf[BLOCKSIZE];
-	va_list arg;
 
-	va_start(arg, z);
-	doprint(buf, &buf[BLOCKSIZE], z, arg);
-	va_end(arg);
+	doprint(buf, &buf[BLOCKSIZE], z, ((long*)&z)+1);
 	termwrite(buf);
 }
 

@@ -1,0 +1,107 @@
+.TH BOOTP 8
+.SH NAME
+bootp, rarpd, tftpd \- Internet booting
+.SH SYNOPSIS
+.PP
+.B ip/bootp
+.RB [ -d ]
+.PP
+.B ip/rarpd
+.RB [ -d ]
+.RB [ -e
+.IR etherdev ]
+.PP
+.B ip/tftpd
+.RB [ -dr ]
+.RB [ -h
+.IR homedir ]
+.SH DESCRIPTION
+These programs support booting over the Internet.
+They should all be run on the same server to
+allow other systems to be booted.
+.I Bootp
+and
+.I tftpd
+are used to boot everything;
+.I rarpd
+is an extra piece just for Suns.
+.PP
+.I Bootp
+passes to Plan 9 systems their IP address, IP mask, default boot file, default
+file server, default authentication server, and default gateway.
+These come from the network database file attributes
+.BR ip ,
+.BR ipmask ,
+.BR bootf ,
+.BR fs ,
+.BR auth ,
+and
+.B ipgw
+attributes respectively
+(see
+.IR ndb (6)
+and
+.IR ndb (8)).
+The attributes come from the entry for the system, its subnet, and its network
+with the system entry having precedence, subnet next, and network last.
+.I Bootp
+will answer requests only if it has been specifically targeted or if it
+has read access to
+the boot file for the requester.
+The
+.B -d
+option causes debugging to be printed to standard output.
+.PP
+.I Rarpd
+performs the Reverse Address Resolution Protocol, translating
+Ethernet addresses into IP addresses.
+The options are:
+.TP
+.B d
+print debugging to standard output
+.TP
+.B e
+use the Ethernet mounted at
+.BI /net/ etherdev
+.PP
+.I Tftpd
+transfers files to systems that are booting.
+It runs as user
+.B none
+and can only access files with global read permission.
+The options are:
+.TP
+.B d
+print debugging to standard output
+.TP
+.B h
+change directory to
+.IR homedir .
+The default is
+.BR /lib/tftpd .
+All requests for files with non-rooted file names are served starting at this
+directory with the exception of files of the form
+.BR xxxxxxxx.SUNyy .
+These are Sparc kernel boot files where
+.B xxxxxxxx
+is the hex IP address of the machine requesting the kernel and
+.B yy
+is an architecture identifier.
+.I Tftpd
+looks up the file in the network database using
+.I ipinfo
+(see
+.IR ndb (2))
+and responds with the boot file specified for that particular
+machine.
+If no boot file is specified, the transfer fails.
+.I Tftpd
+supports only octet mode.
+.TP
+.B r
+restricts access to only files rooted in the
+.IR homedir .
+.SH SOURCE
+.B /sys/src/cmd/ip
+.SH "SEE ALSO"
+.IR ndb (6)

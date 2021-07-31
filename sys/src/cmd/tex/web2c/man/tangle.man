@@ -1,0 +1,109 @@
+.TH WEB 1 "7 Jan 92"
+.SH NAME
+tangle, weave \- translate WEB to Pascal and/or TeX
+.SH SYNOPSIS
+.B tangle
+webfile[.web] [changefile[.ch]]
+.br
+.B weave
+[-x] webfile[.web] [changefile[.ch]]
+.SH DESCRIPTION
+The
+.I tangle
+program converts a WEB
+source document into a Pascal program that may be compiled in the usual
+way with the on-line Pascal compiler (e.g.,
+.BR pc (1)).
+The output file is all in lower case
+and packed into lines of 72 characters or less, with the only concession
+to readability being the termination of lines at semicolons when this can
+be done conveniently.
+.PP
+The WEB language allows you to prepare a single document containing all
+the information that is needed both to produce a compilable Pascal
+program and to produce a well-formatted document describing the program
+in as much detail as the writer may desire.  The user of WEB must be
+familiar with both TeX and Pascal.  WEB also provides a relatively
+simple, although adequate, macro facility that permits a Pascal program
+to be written in small easily-understood modules.
+.PP
+The command line should have either one or two names on it.
+The first is taken as the WEB file (and 
+.I .web
+is added if there is no
+extension).
+If there is another name, it is a change file (and 
+.I .ch
+is added if there is
+no extension).  The change file overrides parts of the WEB file,
+as described in the WEB system documentation.
+.PP
+The output files are a Pascal file and a string pool file,
+whose names are formed by adding
+.I .p
+and 
+.I .pool
+respectively to the root of the WEB file name.
+.PP
+The 
+.I weave
+program is used to create a TeX file for viewing the WEB program.
+It takes appropriate care of typographic details like page
+layout and the use of indentation, italics, boldface, etc., and it supplies
+extensive cross-index information that it gathers automatically.
+The command line arguments are the same as for
+.I tangle
+except for the option:
+.B \-x
+says to omit the index, module name list, and table of contents pages.
+(A 
+.I CONTENTS.tex
+file will still be written when the TeX file is processed,
+however, unless some macros in
+.I webmac.tex
+are redefined.)
+.PP
+The output TeX file name is formed by adding
+.I .tex
+to the root of the WEB file name.
+.PP
+There are several macros
+that probably should be redefined by
+the programmer at the beginning of the WEB file.
+It is a good idea to set \\title
+to the name of the program.
+And, to cause output of only changed modules, one can say
+\\let\\maybe=\\iffalse (usually as the first change in the
+change file).
+.SH FILES
+@TEXINPUTDIR@/webmac.tex   TeX macros used by weave output.
+.SH "SEE ALSO"
+.I The WEB System of Structured Documentation
+and
+.IR Literate Programming ,
+by D.E. Knuth.
+.br
+.IR Weaving a Program ,
+by Wayne Sewell
+.br
+tex(1), pc(1)
+.br
+pxp(1) (for formatting tangle output when debugging)
+.br
+.I TeX: The Program
+and
+.I METAFONT: The
+.IR Program , volumes B and D in the
+.I Computers and Typesetting
+series, published by Addison-Wesley, are by far the largest extant
+examples of WEB programs.
+.SH AUTHORS
+WEB was designed by Donald E. Knuth, based on an earlier system
+called DOC (implemented by Ignacio Zabala).
+The
+.I tangle
+and
+.I weave
+programs are themselves written in WEB. The system
+was originally ported to Unix at Stanford by Howard Trickey, and at
+Cornell by Pavel Curtis.

@@ -7,7 +7,6 @@ static char *emsg[]={
 	"not in menu:",
 	"changes to",
 	"I/O error:",
-	"can't write while changing:",
 	/* error_c */
 	"unknown command",
 	"no operand for",
@@ -49,8 +48,6 @@ static char *emsg[]={
 	"too many subexpressions",
 	"temporary file too large",
 	"file is append-only",
-	"no destination for plumb message",
-	"internal read error in buffer load",
 };
 static char *wmsg[]={
 	/* warn_s */
@@ -125,11 +122,10 @@ termwrite(char *s)
 	if(downloaded){
 		p = tmpcstr(s);
 		if(cmd)
-			loginsert(cmd, cmdpt, p->s, p->n);
+			Finsert(cmd, p, cmdpt);
 		else
 			Strinsert(&cmdstr, p, cmdstr.n);
 		cmdptadv += p->n;
-		free(p);
 	}else
 		Write(2, s, strlen(s));
 }

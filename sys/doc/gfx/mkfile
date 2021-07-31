@@ -1,0 +1,46 @@
+</$cputype/mkfile
+</sys/doc/fonts
+
+NPROC=1
+ps=`{sed -n '/^\.BP/s/^\.BP[ 	]+([^ 	]+).*/\1/p' gfx.ms}
+gfx.ps:D:	gfx.trout
+	lp -dstdout gfx.trout >gfx.ps
+gfx.trout:D:	gfx.ms $ps
+	{ echo $FONTS; cat gfx.ms } | pic | tbl | troff -ms -mpictures >gfx.trout
+lp:	gfx.ps
+	lp -dfn gfx.ps
+pjw.ps:
+	fb/pic2ps pjw >pjw.ps
+eyes.ps:
+	fb/pcp -w 0 70 320 125 pjw OUT|fb/pic2ps >eyes.ps
+pdup.ps:
+	fb/pcp -w 120 80 153 100 pjw | fb/pdup 8 8 | fb/pic2ps >pdup.ps
+ramp.ps:
+	fb/ramp -v -w 0 0 320 240 | fb/pic2ps >ramp.ps
+neg.ps:
+	fb/xpand pjw 255 0 0 255 | fb/pic2ps >neg.ps
+cmap.ps:
+	fb/pcp -crgb pjw OUT|fb/cmap 5.oclock.shado|fb/pic2ps >cmap.ps
+adapt.ps:
+	fb/adapt pjw|fb/pic2ps >adapt.ps
+ahe.ps:
+	fb/ahe pjw|fb/pic2ps >ahe.ps
+crispen.ps:
+	fb/crispen pjw|fb/pic2ps >crispen.ps
+edge2.ps:
+	fb/edge2 pjw|fb/pic2ps >edge2.ps
+enhance.ps:
+	fb/edge2 pjw|fb/lerp IN .3 pjw|fb/pic2ps >enhance.ps
+smooth.ps:
+	fb/smooth pjw|fb/smooth|fb/smooth|fb/pic2ps >smooth.ps
+floyd.ps:
+	fb/floyd pjw|fb/pic2ps >floyd.ps
+9ball.ps:
+	fb/pcp -crgba pjw OUT | fb/posit 9ball IN|fb/pic2ps >9ball.ps
+
+clean:V:
+	rm -f gfx.trout 9ball.ps adapt.ps ahe.ps cmap.ps crispen.ps edge2.ps \
+		enhance.ps eyes.ps floyd.ps neg.ps pdup.ps pjw.ps ramp.ps smooth.ps
+
+nuke:V:	clean
+	rm -f *.ps

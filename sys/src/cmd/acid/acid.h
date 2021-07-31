@@ -11,8 +11,6 @@ enum
 	Mempergc	= 1024*1024,
 };
 
-#pragma varargck type "L"	void
-
 typedef struct Node	Node;
 typedef struct String	String;
 typedef struct Lsym	Lsym;
@@ -26,7 +24,6 @@ typedef struct Value	Value;
 typedef struct Type	Type;
 typedef struct Frtype	Frtype;
 
-Extern int	kernel;
 Extern int	remote;
 Extern int	text;
 Extern int	silent;
@@ -114,7 +111,7 @@ struct Store
 	char	fmt;
 	Type*	comt;
 	union {
-		vlong	ival;
+		int	ival;
 		double	fval;
 		String*	string;
 		List*	l;
@@ -201,7 +198,7 @@ void*	gmalloc(long);
 void	indir(Map*, ulong, char, Node*);
 void	installbuiltin(void);
 void	kinit(void);
-int	Lconv(va_list*, Fconv*);
+int	Lconv(void*, Fconv*);
 int	listcmp(List*, List*);
 int	listlen(List*);
 List*	listvar(char*, long);
@@ -226,14 +223,13 @@ void	pushstr(Node*);
 ulong	raddr(char*);
 void	readtext(char*);
 void	restartio(void);
-vlong	rget(Map*, char*);
+ulong	rget(Map*, char*);
 String	*runenode(Rune*);
 int	scmp(String*, String*);
 void	sproc(int);
 String*	stradd(String*, String*);
 String*	strnode(char*);
 String*	strnodlen(char*, int);
-char*	system(void);
 void	trlist(Map*, ulong, ulong, Symbol*);
 void	unwind(void);
 void	userinit(void);

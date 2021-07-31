@@ -1,0 +1,69 @@
+CONF=nextstation
+CONFLIST=nextstation nextstationdisk nextstationnofs
+
+objtype=68020
+</$objtype/mkfile
+CFLAGS=-w
+
+DEV=`{rc ../port/mkdevlist $CONF}
+STREAM=`{rc ../port/mkstreamlist $CONF}
+MISC=`{rc ../port/mkmisclist $CONF}
+
+OBJ=\
+	vec.$O\
+	l.$O\
+	alarm.$O\
+	alloc.$O\
+	auth.$O\
+	chan.$O\
+	clock.$O\
+	dev.$O\
+	fault.$O\
+	fault68040.$O\
+	latin1.$O\
+	taslock.$O\
+	main.$O\
+	mmu.$O\
+	net.$O\
+	page.$O\
+	segment.$O\
+	swap.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qlock.$O\
+	queue.$O\
+	screen.$O\
+	sysfile.$O\
+	sysproc.$O\
+	trap.$O\
+	fptrap.$O\
+	$DEV\
+	boot$CONF.root.$O\
+	stream.$O\
+	$MISC $STREAM\
+	bbmalloc.$O
+
+default:V: 9$CONF
+
+9$CONF:	$OBJ $CONF.c /68020/lib/libgnot.a
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -H3 -T0x04000000 -R0x2000 $OBJ $CONF.$O -lgnot -lg -lauth -lc
+	size $target
+
+devbit.$O screen.$O:	/sys/include/gnot.h
+screen.$O:	screen.h keys.h
+clock.$O fault68040.$O screen.$O fptrap.$O main.$O:	/$objtype/include/ureg.h
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -o init.out -R4 initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+<../port/portmkfile
+
+nm:	$OBJ
+	$LD -a -o 9 -l -T0x80002020 $prereq -lgnot -lc > nm

@@ -1,0 +1,137 @@
+%% 
+%% This is file `subeqnarray.sty', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% subeqnarray.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1988--1994 by Johannes Braams. 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy 
+%% this file to a file with a different name and then change the copy. 
+%% 
+%% You are allowed to distribute this file under the condition that it 
+%% is accompanied by subeqnarray.dtx, its source. 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%% 
+%% For error reports in case of UNCHANGED versions see subeqnarray.dtx. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+\def\fileversion{2.1}
+\def\filedate{1994/02/10}
+\def\docdate{1994/02/09}
+%%% ====================================================================
+%%%  @LaTeX-package-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "2.1",
+%%%     date            = "10 February 1994",
+%%%     time            = "01:27:31 MET",
+%%%     filename        = "subeqnarray.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "13995 400 1471 13429",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "",
+%%%     supported       = "yes",
+%%%     abstract        = "This package defines the subeqnarray
+%%%                        and subeqnarray* environments, which behave
+%%%                        like the eqnarray environment, except that
+%%%                        the lines are numbered like 1a 1b 1c etc.
+%%%                        To refer to these numbers an extra label
+%%%                        command \slabel has been defined
+%%%
+%%%                        The equations and their numbers adhere to
+%%%                        the standard LaTeX options leqno and fleqn.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\ProvidesPackage{subeqnarray}[\filedate\space subeqnarray package]
+\wlog{Package `subeqnarray' version \fileversion\space<\filedate> (JLB)}
+\wlog{English documentation\space\space\space<\docdate> (JLB)}
+\newcounter{subequation}[equation]
+\def\thesubequation{\theequation\alph{subequation}}
+\DeclareOption{leqno}{%
+  \def\@subeqnnum{\hbox to .01\p@{}\rlap{\reset@font\rmfamily
+        \hskip -\displaywidth(\thesubequation)}}}
+\DeclareOption{reqno}{%
+  \def\@subeqnnum{{\reset@font\rmfamily (\thesubequation)}}}
+\DeclareOption{fleqn}{%
+  \def\subeqn@start{%
+    \tabskip\mathindent
+    \abovedisplayskip\topsep
+    \ifvmode\advance\abovedisplayskip\partopsep\fi
+    \belowdisplayskip\abovedisplayskip
+    \belowdisplayshortskip\abovedisplayskip
+    \abovedisplayshortskip\abovedisplayskip
+    $$\everycr{}\halign to \linewidth}}% $$
+\DeclareOption{deqn}{%
+  \def\subeqn@start{%
+    \tabskip\@centering
+    $$\everycr{}\halign to \displaywidth}}% $$
+\DeclareOption*{\OptionNotUsed}
+\ExecuteOptions{reqno,deqn}
+\ProcessOptions
+\newcommand\slabel[1]{%
+  \@bsphack
+  \if@filesw
+    {\let\thepage\relax
+     \def\protect{\noexpand\noexpand\noexpand}%
+     \edef\@tempa{\write\@auxout{\string
+        \newlabel{#1}{{\thesubequation}{\thepage}}}}%
+     \expandafter}\@tempa
+     \if@nobreak \ifvmode\nobreak\fi\fi
+  \fi\@esphack}
+\newenvironment{subeqnarray}%
+   {\stepcounter{equation}%
+    \def\@currentlabel{\p@equation\theequation}%
+    \global\c@subequation\@ne
+    \global\@eqnswtrue\m@th
+    \global\@eqcnt\z@\let\\\@subeqncr
+    \subeqn@start
+     \bgroup\hskip\@centering
+      $\displaystyle\tabskip\z@skip{##}$\@eqnsel
+      &\global\@eqcnt\@ne \hskip \tw@\arraycolsep \hfil${##}$\hfil
+      &\global\@eqcnt\tw@ \hskip \tw@\arraycolsep
+         $\displaystyle{##}$\hfil \tabskip\@centering
+      &\global\@eqcnt\thr@@
+         \hbox to\z@\bgroup\hss##\egroup\tabskip\z@skip\cr}
+   {\@@subeqncr\egroup $$\global\@ignoretrue}
+\def\@subeqncr{{\ifnum0=`}\fi\@ifstar{\global\@eqpen\@M
+    \@ysubeqncr}{\global\@eqpen\interdisplaylinepenalty \@ysubeqncr}}
+\def\@ysubeqncr{\@ifnextchar [{\@xsubeqncr}{\@xsubeqncr[\z@skip]}}
+\def\@xsubeqncr[#1]{\ifnum0=`{\fi}\@@subeqncr
+   \noalign{\penalty\@eqpen\vskip\jot\vskip #1\relax}}
+\def\@@subeqncr{\let\@tempa\relax
+    \ifcase\@eqcnt \def\@tempa{& & &}\or \def\@tempa{& &}
+      \or \def\@tempa{&}\else
+       \let\@tempa\@empty
+       \@latexerr{Too many columns in subeqnarray environment}\@ehc\fi
+     \@tempa \if@eqnsw\@subeqnnum\refstepcounter{subequation}\fi
+     \global\@eqnswtrue\global\@eqcnt\z@\cr}
+\newenvironment{subeqnarray*}%
+  {\def\@subeqncr{\nonumber\@ssubeqncr}\subeqnarray}
+  {\global\advance\c@equation\m@ne\nonumber\endsubeqnarray}
+\let\@ssubeqncr\@subeqncr
+\endinput
+%% 
+%% End of file `subeqnarray.sty'.

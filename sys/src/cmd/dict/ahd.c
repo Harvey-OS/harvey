@@ -10,7 +10,6 @@
 static Rune intab[256] = {
 	[0x82] L'é',
 	[0x85] L'à',
-	[0x89] L'ë',
 	[0x8a] L'è',
 	[0xa4] L'ñ',
 	[0xf8] L'°',
@@ -114,7 +113,7 @@ ahdnextoff(long fromoff)
 
 	if(Bseek(bdict, fromoff, 0) < 0)
 		return -1;
-	while((c = Bgetc(bdict)) >= 0){
+	while((c = BGETC(bdict)) >= 0){
 		c ^= (fromoff++>>1)&0xff;
 		if(c != pat[state]){
 			state = 0;

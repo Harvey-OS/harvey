@@ -106,12 +106,5 @@ char*	anames[] =
 	"SUBVU",
 	"DYNT",
 	"INIT",
-	"BCASE",
-	"CASE",
-	"TRUNCFV",
-	"TRUNCDV",
-	"TRUNCFW",
-	"TRUNCDW",
-	"MOVWU",
 	"LAST",
 };

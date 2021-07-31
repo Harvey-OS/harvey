@@ -23,7 +23,7 @@ main(int argc, char *argv[])
 {
 	Reprog *exp;
 	char *pattern = 0;
-	int n = 1000;
+	register n = 1000;
 	char *line;
 	int xflag = 0;
 	int iflag = 0;
@@ -31,7 +31,7 @@ main(int argc, char *argv[])
 	Biobuf *b = &bin;
 	char buf[256];
 
-	ARGBEGIN {
+	ARGBEGIN{
 	case 'n':
 		n=atoi(ARGF());
 		break;
@@ -51,46 +51,40 @@ main(int argc, char *argv[])
 		iflag++;
 		break;
 	default:
-		usage();
-		break;
-
-	} ARGEND;
-
+		goto Usage;
+	}ARGEND;
 	if(argc < 0 || argc > 1)
-		usage();
+    Usage:	usage();
 
-	if(argc != 0) {
-		b = Bopen(argv[0], OREAD);
-		if(b == nil) {
-			fprint(2, "split: can't open %s: %r\n", argv[0]);
-			exits("open");
-		}
-	} else
+	if(argc == 0){
 		Binit(b, 0, OREAD);
-
+	}else{
+		b = Bopen(argv[0], OREAD);
+		if(b == 0)
+			fprint(2, "split: can't open %s: %r\n", argv[0]);
+	}
 	if(pattern) {
 		if(!(exp = regcomp(iflag? fold(pattern,strlen(pattern)): pattern)))
 			badexp();
 		while((line=Brdline(b,'\n')) != 0) {
 			Resub match[2];
-			line[Blinelen(b)-1] = 0;
-			if(regexec(exp,iflag?fold(line,Blinelen(b)-1):line,match,2)) {
+			line[BLINELEN(b)-1] = 0;
+			if(regexec(exp,iflag?fold(line,BLINELEN(b)-1):line,match,2)) {
 				if(matchfile(match) && xflag)
 					continue;
 			} else if(output == 0)
 				nextfile();	/* at most once */
-			Bwrite(output, line, Blinelen(b)-1);
+			Bwrite(output, line, BLINELEN(b)-1);
 			Bputc(output, '\n');
 		}
 	} else {
-		int linecnt = n;
-
+		register linecnt = n;
 		while((line=Brdline(b,'\n')) != 0) {
 			if(++linecnt > n) {
 				nextfile();
 				linecnt = 1;
 			}
-			Bwrite(output, line, Blinelen(b));
+			Bwrite(output, line, BLINELEN(b));
 		}
 
 		/*
@@ -100,7 +94,7 @@ main(int argc, char *argv[])
 		while((n = Bread(b, buf, sizeof(buf))) > 0)
 			Bwrite(output, buf, n);
 	}
-	if(b != nil)
+	if(b != 0)
 		Bterm(b);
 	exits(0);
 }
@@ -142,12 +136,11 @@ openf(void)
 	int fd;
 	Bflush(output);
 	Bterm(output);
-	fd = create(name,OWRITE,0666);
-	if(fd < 0) {
-		fprint(2, "grep: can't create %s: %r\n", name);
-		exits("create");
+	if((fd=create(name,OWRITE,0666)) == -1) {
+		fprint(2, "grep: can't open %s: %r\n", name);
+		exits("open failed");
 	}
-	Binit(output, fd, OWRITE);
+	Binit(output,fd,OWRITE);
 }
 
 char *
@@ -156,12 +149,11 @@ fold(char *s, int n)
 	static char *fline;
 	static int linesize = 0;
 	char *t;
-
 	if(linesize < n+1){
 		fline = realloc(fline,n+1);
 		linesize = n+1;
 	}
-	for(t=fline; *t++ = tolower(*s++); )
+	for(t=fline; *t++=tolower(*s++); )
 		continue;
 		/* we assume the 'A'-'Z' only appear as themselves
 		 * in a utf encoding.
@@ -173,7 +165,7 @@ void
 usage(void)
 {
 	fprint(2, "usage: split [-n num] [-e exp] [-f stem] [-s suff] [-x] [-i] [file]\n");
-	exits("usage");
+	exits("split usage");
 }
 
 void

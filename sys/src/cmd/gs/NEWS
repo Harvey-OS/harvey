@@ -1,0 +1,1969 @@
+   Copyright (C) 1989, 1995 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of Aladdin Ghostscript.
+  
+  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+  or distributor accepts any responsibility for the consequences of using it,
+  or for whether it serves any particular purpose or works at all, unless he
+  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+  License (the "License") for full details.
+  
+  Every copy of Aladdin Ghostscript must include a copy of the License,
+  normally in a plain ASCII text file named PUBLIC.  The License grants you
+  the right to copy, modify and redistribute Aladdin Ghostscript, but only
+  under certain conditions described in the License.  Among other things, the
+  License requires that the copyright notice and this notice be preserved on
+  all copies.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+This file, NEWS, describes the changes in the most recent releases of
+Ghostscript.  Changes in older releases are described in history.doc.
+
+For an overview of Ghostscript and a list of the documentation files, see
+README.
+
+Within each release, news appears in the following order: Documentation,
+Procedures, Utilities, Drivers, Platforms, Fonts, Interpreter, Streams
+(included under Interpreter through release 2.9.9), Library.  Changes
+marked with a * were made available as patches to a previous release.
+
+Version 3.23 (1/5/95)
+============
+
+This is almost entirely a bug fix release.  It also includes a largely working
+PDF reader.
+
+Documentation
+-------------
+
+Fixes bugs:
+	- COPYLEFT, COPYING, NEWS, PUBLIC, README, and the standard Fontmap
+were omitted from the 3.22 fileset.
+
+Documents the use of the -oldc switch to work around a compiler crash on
+the DECstation.
+
+Expands and clarifies the documentation for building the DesqView/X version
+with djgcc.  (make.doc)
+
+Adds documentation on the "600x300" H-P inkjet printers, explaining why
+this alleged higher resolution is not available.  (devices.doc)
+
+Adds to the PUBLIC license a warning that it is not a GNU License, and a
+requirement to include a copy of or a pointer to the License in any written
+material.  (PUBLIC)
+
+Documents the fact that Ghostscript *does* attempt to look up files in the
+current directory first.  (use.doc)
+
+Procedures
+----------
+
+Fixes bugs:
+	- In VMS.MAK, .JPEG should have been changed to .JPEG-5 in a few
+places.  (vms.mak)
+
+Adds the pjxl300 driver to all configurations that include the other color
+DeskJet drivers.  Replaces pjet and pjetxl with pj and pjxl.  (*.mak)
+
+Makes 'run' recognize PDF files if the PDF reader is included.
+(pdf_main.ps)
+
+Utilities
+---------
+
+Fixes bugs:
+	- viewjpeg.ps needed the test for languagelevel = 2 at the
+beginning of the file.  (viewjpeg.ps)
+	- prfont.ps used 'min', which isn't a standard PostScript operator.
+(prfont.ps)
+	- prfont.ps created Encoding vectors that weren't 256 elements
+long.  (prfont.ps)
+
+Adds the gsdj500 script to the installation list.  (unix-end.mak)
+
+Changes the Unix "line printer" shell scripts to add the date to the page
+header.  (gsbj, gsdj, gsdj500, gslj)
+
+Changes ansi2knr so that it will work properly on systems where the ctype
+macros don't handle 8-bit characters correctly.  (ansi2knr.c)
+
+Drivers
+-------
+
+Fixes bugs:
+	- Some compilers don't allow casts in initialization expressions.
+(gdevx.c, gdevxalt.c)
+	- The cdj drivers didn't initialize the color_info structure
+properly.  (gdevcdj.c)
+
+Adds another alternate X Windows driver, x11mono, that is a black-and-white
+device.  (devs.mak, gdevxalt.c)
+
+Adds a user-contributed driver for the Apple Imagewriter LQ.  (devs.mak,
+gdevadmp.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- The VMS MODULES.LIS file had gotten out of sync with the makefile
+(again); GDEVABUF and GSBITOPS were missing.  (modules.lis)
+	- The VMS script file had gotten out of sync with the makefile
+(again).  (vms.mak)
+	- The MS Windows platform code didn't recognize Windows 95 (Windows
+4.0) as equivalent to Windows NT.  (gp_mswin.c)
+	- File name enumeration didn't work on OS/2 or win32.  (gp_ntfs.c,
+gp_os2.c)
+	- -sOutputFile= didn't work under MS Windows.  (gp_mswin.c)
+
+Changes the SCO Unix direct frame buffer driver so it generates in-line
+instructions to access the frame buffer, for a dramatic speed improvement.
+(gdevpcfb.h, gdevsco.c)
+
+Fonts
+-----
+
+Fixes bugs:
+	- If a font couldn't be found in the Fontmap, a recursion loop
+sometimes occurred.  (gs_fonts.ps)
+	- Aliases for global fonts weren't automatically created as global,
+possibly leading to a recursion loop.  (gs_dps1.ps, gs_fonts.ps)
+	- If a font was loaded into global VM within an inner save, the restore
+deleted it from FontDirectory but not from SharedFontDirectory, causing a
+possible recursion loop.  (gs_dps1.ps, gs_fonts.ps, idict.h, idict.c, zdict.c)
+
+Further improves the algorithm for substituting for unknown fonts.
+(gs_fonts.ps)
+
+Interpreter (PostScript)
+------------------------
+
+Fixes bugs:
+	- zcontrol.c had an assignment of const char * to const byte *,
+which some compilers don't like.  (zcontrol.c)
+	- Setting an Indexed color space based on a CIE space caused an
+attempt to free a random block of memory.  (zcsindex.c)
+	- Some compilers don't like mixing conditionals and casts in
+initialization expressions.  (iref.h)
+	- Some calculations of table sizes for string garbage collection
+didn't work if sizeof(long) != 4, leading to smashed strings.  (iastate.h,
+ialloc.c, igcstr.c)
+	- Strings longer than about 7000 bytes smashed their chunk header
+and confused the garbage collector.  (ialloc.c)
+	- Some compilers needed iccfont.c to include strimpl.h.
+(iccfont.c)
+	- The obsolete file zcspace2.c was still included in the fileset.
+	- If the command line included any @-files that required searching
+the library path, a limitcheck would occur.  (zfile.c)
+	- The insideness testing operators caused a memory access error,
+because the procedure vector hadn't been updated to provide a default
+get_alpha_bits procedure.  (zupath.c)
+	- gcheck didn't check for stack underflow.  (zvmem2.c)
+	- cleardictstack could fail to clear the dictionary stack if the
+stack had overflowed into additional blocks.  (zdict.c)
+	- If the '-' switch was selected, resources weren't released
+properly on exit.  (gs.c)
+	- Setting a Pattern color space based on a CIE space caused an
+invalid memory access.  (zcsindex.c)
+	- The garbage collector didn't treat refs properly on machines with
+short ints.  (igcref.c)
+	- Operators with more than 16 arguments could break the
+interpreter.  (interp.h, iinit.c, interp.c)
+	- save/restore didn't restore the setting of the current allocator
+VM (local/global).  (isstate.h, isave.c)
+	- stdpre.h declared exit as an extern, instead of letting gsmain.c
+declare it.  (stdpre.h, gsmain.c)
+	- gs.c used fputs to print help messages rather than fprintf.
+(gs.c)
+	- Interrupts failed to re-execute the operation that was
+interrupted.  (interp.c)
+	- Low-resolution CMYK devices didn't use separate screens for each
+color plane as the default.  (gs_init.ps)
+	- filterdict wasn't getting undef'ed at the end of initialization.
+(gs_init.ps)
+	- gstate operations were broken (bug introduced in 3.02).
+(zdevice2.c)
+	- resourceforall didn't remove the resource dictionary from the
+dictionary stack when calling the client-supplied procedure.  (gs_res.ps)
+	- currentcolor with an Indexed color space returned a real rather
+than an integer.  (zcolor2.c)
+	- setshared / setglobal left the stack in an unobvious state if
+they were given a non-Boolean argument.  (gs_dps1.ps)
+	- sethalftone followed by currenthalftone returned an invalid value.
+(zht2.c)
+	- Empty strings produced spurious garbage collector error messages.
+(gsstruct.h, scommon.h, igc.c, igcstr.c, iname.c)
+	- The garbage collector didn't trace Separation color spaces properly.
+(gscsepr.c)
+
+Changes defineresource so that it does not, by default, make instances
+read-only.  (gs_res.ps)
+
+Adds .{local,global}{array,dict,packedarray,string} operators for creating
+objects in a specific VM space.  (zsysvm.c, gs_dps1.ps)
+
+Adds definitions of setpage and setpageparams to statusdict.  (gs_setpd.ps,
+gs_statd.ps)
+
+Alleviates some performance problems in the garbage collector.  (igc.c)
+
+Interpreter (PDF)
+-----------------
+
+Fixes bugs:
+	- PDF files that used filters with parameters caused a typecheck
+error because the arguments to 'filter' were reversed.  (pdf_base.ps)
+	- The (undocumented) PDF 1.1 ability to specify link and annotation
+destinations indirectly was not supported.  (pdf_main.ps)
+	- The (undocumented) PDF ability to specify a null page in a link
+destination was not supported.  (pdf_main.ps)
+	- The PDF encodings weren't loaded properly in a system with both
+PS Level 2 and PDF features.  (gs_res.ps, gs_init.ps)
+	- If the next line after a stream keyword was blank, the line
+wasn't skipped, which matters for binary data.  (pdf_base.ps)
+	- A Q operator with no matching q operator caused an error.
+(pdf_draw.ps)
+	- The text position wasn't preserved across a fill or stroke
+operator.  (gs_pdf.ps, pdf_draw.ps)
+	- Embedded Type 3 fonts didn't work.  (pdf_base.ps, pdf_draw.ps,
+pdf_main.ps)
+	- Masked images with no Decode value had their polarity inverted.
+(pdf_draw.ps)
+	- Embedded Type 1 fonts referenced from within a stream didn't
+work.  (pdf_font.ps)
+
+Changes the PDF code so that it automatically recognizes PDF files as such.
+(pdf_main.ps)
+
+Splits out the PixelDifference filters as a separate "feature".  (gs.mak)
+
+Streams
+-------
+
+Fixes bugs:
+	- Closing the primary input stream caused an invalid memory access.
+(stream.c)
+	- Increasing the size of a buffer within a save resulted in a
+dangling reference after the restore.  (files.h, sfilter.h, zfile.c,
+zfilter.c)
+	- The garbage collector didn't properly trace streams that referenced
+strings directly.  (stream.h, stream.c, ziodev.c)
+
+Library
+-------
+
+Fixes bugs:
+	- An extraneous \ upset some compilers.  (gdevabuf.c)
+	- Uncolored Patterns that completely filled their bounding box
+caused an invalid memory access.  (gspcolor.c)
+	- If a color image required clipping, black or white pixels might
+be rendered with incorrect (random) colors.  (gxcpath.c)
+	- Reference counts for color spaces were sometimes set too high, so
+they would only be freed by restore or garbage collection.  (gscolor.c)
+	- The character cache could get confused if the Encoding for the
+character wasn't a name.  (gschar.c)
+	- Character outlines were always rendered with flatness = 0,
+causing very bad performance for large characters.  (gzstate.h, gschar.c,
+gsimage.c, gxfill.c, gxstroke.c)
+	- If a device (presumably uninitialized) had a
+color_info.num_components of zero, an invalid memory access could occur.
+(gsdparam.c)
+	- Intersecting clipping paths that are not both rectangular didn't
+properly set the outer box of new clipping path, leading to unnecessary
+computation.  (gxcpath.h, gxacpath.c, gxcpath.c)
+	- A call passed false instead of NULL.  (gschar.c)
+	- On machines where sizeof returns a long, genarch.c failed.
+(genarch.c)
+	- xfonts were consulted, incorrectly, even for stroked characters.
+(gxccman.c)
+	- gstate/currentgstate/setgstate didn't work properly.  (gsline.c,
+gsstate.c)
+	- On CMYK devices needing halftoning, colors with C = M = Y were
+always converted to gray shades.  (gxcmap.c)
+	- Isolated horizontal lines, or the horizontal edges of rectangles,
+could get drawn with one or both end pixels missing.  (gxfill.c)
+
+Changes the character cache back so it oversamples characters at small
+sizes.  (gschar.c)
+
+Changes all occurrences of (void)x to discard(x), and defines discard in
+stdpre.h as a cast to void, to make it possible to pacify compilers that
+don't accept this construct for some kinds of x.  (gpcheck.h, stdpre.h,
+store.h, gdevmswn.c, gp_mswin.c, gscoord.c, gxclread.c, igc.c, sfile.c,
+sfileno.c, zcie.c, zht2.c, ziodev.c, zmisc1.c)
+
+Increases the size of the halftone cache on large-memory machines from 35K
+to 100K.  This substantially improves halftoning performance at higher
+resolutions.  (gxht.c)
+
+Version 3.22 (11/30/94)
+============
+
+This is primarily a bug fix release.  It also includes limited anti-aliased
+graphics capability.
+
+Procedures
+----------
+
+Fixes bugs:
+	- The definition of ghost_h was misplaced, so changes in it or its
+antecedents didn't force recompilation of its dependents.  (gs.mak)
+
+Actually implements the -Z+ switch, for forcing small stack blocks.
+(interp.c)
+
+Makes the -dSAFER switch disable the %pipe syntax for file names, even for
+reading.  (gs_init.ps)
+
+Drivers
+-------
+
+Fixes bugs:
+	- The dfax drivers incorrectly set EncodedByteAlign to false.
+(gdevdfax.c)
+	- softwareValue and dateTimeValue were declared as byte rather than
+char.  (gdevtfax.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- The VMS DEC C compilers declare delete in unixio.h, and doesn't
+declare unlink anywhere.  (stdio_.h)
+	- The VMS compilers declare malloc and free in stdlib.h, which
+wasn't being included in malloc_.h.  (malloc_.h)
+	- The SCO Unix C compiler needs both <sys/time.h> and <time.h>.
+(time_.h)
+	- The VMS compilers declare abs in stdlib.h, which wasn't being
+included anywhere.  (gshtscr.c)
+	- The definition for A4 paper in VMS-AXP.MAK was incorrect.
+(vms-axp.mak)
+
+Renames VMS-AXP.MAK as VMS-DECC.MAK, with some changes that make it
+appropriate for DEC C on both VAX and AXP platforms.  (vms-axp.mak =>
+vms.decc.mak)
+
+Fonts
+-----
+
+Fixes bugs:
+	- gs_kanji.ps got an invalidaccess error.  (gs_kanji.ps)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- An off-by-1 test in the roll operator caused it to smash the
+stack if the operand stack had overflowed into additional blocks.
+(zstack.c)
+	- The default CIE color rendering dictionary didn't assume a
+reasonable intermediate (XYZ) space.  (gs_lev2.ps)
+	- CIE color mapping tables weren't traced properly by the garbage
+collector.  (gscie.h, gscie.c, zcie.c)
+	- If the very last character of a file was a ^M, the scanner
+(incorrectly) signaled a syntaxerror.  (iscan.c)
+	- If an operator could return both a typecheck and a
+stackunderflow, it always returned a stackunderflow, which doesn't match
+the behavior of Adobe interpreters.  (opcheck.h, idparam.c, interp.c,
+iutil.c, z*.c)
+	- astore, dictstack, and execstack could return a spurious
+invalidaccess error (or fail to detect an invalid access) if the operand
+stack had overflowed into additional blocks.  (istack.c)
+	- The garbage collector didn't relocate pointers to names!  (Bug
+introduced in 3.20.)  (iname.h)
+	- If the dictionary stack overflowed into additional blocks, the
+cached value pointer for a name could get set incorrectly, and also not get
+relocated by the garbage collector.  (idict.c)
+	- If the dictionary stack overflowed into additional blocks, the
+post-GC fixup of cached value pointers in names could cause an addressing
+error.  (igc.c)
+	- With the -Z? switch set, the garbage collector could incorrectly
+report that objects or strings weren't in any chunk.  (igc.c)
+	- << /a 1 /a 2 >> /a get gave the value 2 rather than 1.
+(gs_init.ps)
+	- Numbers in binary object sequences and encoded number arrays
+didn't work properly on machines where sizeof(short) != 2 or sizeof(long)
+!= 4.  (ibnum.c)
+	- The put operator for dictionaries allowed null as a key.
+(idict.h, idict.c)
+	- >> didn't give an error if there were an odd number of values on
+the stack above the next mark.  (gs_init.ps)
+	- Operations that explicitly freed ref objects (setting a CIE
+colorspace, resizing a dictionary, popping a block off a stack) could
+corrupt storage.  (ialloc.c)
+	- The -Z@ switch, which fills freed blocks with a recognizable bit
+pattern, could incorrectly overwrite freed blocks in previous save levels,
+causing invalid memory accesses.  (ialloc.c)
+	- Since streams freed by a restore weren't marked as free, they
+could confuse the garbage collector and lead to invalid memory accesses.
+(zfile.c)
+	- If one of the built-in dictionaries overflowed during
+initialization, no error was reported -- entries were simply discarded.
+(iinit.c)
+	- If the level2.dev feature was combined with certain other
+features, the current languagelevel was 2 when some gs_*.ps files were
+loaded, causing them to load incorrectly.  (gs_btokn.ps, gs_setpd.ps)
+	- If readline read a line that ended with only a CR (no LF)
+followed by an end-of-file, it incorrectly closed the stream.  (zfileio.c)
+
+Adds a .cond operator, similar to the Lisp multi-arm conditional.
+(zcontrol.c)
+
+Adds a .makeglobaloperator operator, allowing the definition of operator
+procedures in local VM that turn into global operators, provided the save
+level is zero.  (iref.h, opdef.h, iinit.c, interp.c, zmisc.c)
+
+Note: the fix for returning typecheck vs. stackunderflow requires that all
+operators (or other code) that uses return_error(e_typecheck) to indicate
+an incorrect object type on the operand stack must change this to
+return_op_typecheck(op), where op points to the operand.  THIS IS A
+NON-BACKWARD-COMPATIBLE CHANGE.
+
+Implements string array and name array parameters for parameter lists.
+(gsparam.h, iparam.c)
+
+Brings filterdict inside the INITIAL_DICTIONARIES conditional.  (iinit.c)
+
+Adds a .currentscreenlevels operator that returns the number of
+distinguishable halftone levels.  (zht.c)
+
+Streams
+-------
+
+Fixes bugs:
+	- The 2-D case of CCITTFaxDecode could get confused by an input
+data buffer boundary that fell immediately after a horizontal code.
+(scfd.c)
+	- The LZW decoder didn't detect invalid data unless DEBUG was
+selected at build time.  (slzwd.c)
+
+Library
+-------
+
+Fixes bugs:
+	- The clipping region accumulator could refer to a clipping
+rectangle even after it had been freed.  (No effect on execution unless the
+-Z@ switch was selected.)  (gxacpath.c)
+	- setbbox expanded the bounding box, but didn't place a limit on
+further path elements, if the current path wasn't empty.  (gsdps1.c)
+	- setbbox didn't make sufficient allowance for rounding.
+(gsdps1.c)
+
+Implements the ProcessColorModel parameter (read-only) for all devices.
+(gsdparam.c)
+
+Adds a gs_currentscreenlevels procedure that returns the number of
+distinguishable halftone levels.  (gsht.c)
+
+Version 3.21 (11/17/94)
+============
+
+This is primarily a bug fix release.  It also includes a substantial
+improvement in the Type 1 font hinting algorithms.
+
+Documentation
+-------------
+
+Fixes bugs:
+	- The `man' page referred to gnu.ghostscript.bug rather than
+comp.lang.postscript.  (gs.1)
+
+Documents the special entries in operator definition tables that allow
+switching dictionaries.  (opdef.h)
+
+Procedures
+----------
+
+Moves the definition of JSRCDIR to the individual platform makefiles, to
+make it easier to change on platforms that don't have file links.  (*.mak)
+
+Utilities
+---------
+
+Fixes bugs:
+	- ansi2knr didn't recognize that a line ending with } couldn't be a
+function definition.  (ansi2knr.c)
+	- ps2epsi always returned an empty bounding box.  (ps2epsi,
+ps2epsi.bat)
+
+Drivers
+-------
+
+Fixes bugs:
+	- The bitrgb device had an invalid depth of 3.  (gdevbit.c)
+
+Replaces the color mapping code in the X driver with a much faster
+algorithm, courtesy of Tim Theisen.  (gdevx.h, gdevx.c, gdevxini.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- Two variable names were misspelled.  (gdevpm.c, gp_mswin.c)
+	- It wasn't possible to compile a non-DLL configuration under OS/2.
+(os2.mak)
+	- Compilation under Microsoft C/C++ 8.0 gave errors.  (gp_mswin.h,
+gp_mswin.c, gshtscr.c)
+
+Adds some more devices to the OS/2 makefile.  (os2.mak)
+
+Fonts
+-----
+
+Fixes bugs:
+	- wrfont.ps, and hence bdftops, didn't write out the FontType or
+PaintType.  (Bug introduced since 2.6.1)  (wrfont.ps)
+	- wrfont.ps omitted a 'begin' and 'end', causing -! or -| to be
+undefined when the font was loaded.  (Bug introduced since 2.6.1)
+(wrfont.ps)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- make_tasv_old called make_tasv_new with extra arguments.
+(store.h)
+	- currentcacheparams only returned 2 values instead of 3.
+(zfont.c)
+	- ustroke popped one element too many off the stack if a matrix was
+supplied.  (zupath.c)
+	- inu[eo]fill popped one element too many off the stack.
+(zupath.c)
+	- The color rendering dictionary was initialized to null rather
+than a valid dictionary.  (gs_lev2.ps)
+	- An invalid IODevice resource named "9" got created.  (gs_res.ps)
+	- bytesavailable often caused an error rather than returning -1.
+(zfileio.c, stream.c)
+	- The insideness testing operators always returned true if the
+aperture was defined by a user path rather than a point.  (zupath.c)
+	- If INITIAL_DICTIONARIES was defined in the makefile, the
+definition of the initial_dictionaries array was missing a comma.
+(iinit.c)
+	- Even if userdict appeared in INITIAL_DICTIONARIES, gs_init.ps set
+its maxlength to 200.  (gs_init.ps)
+	- Setting a CIE color space left a garbage value on the stack.
+(zcie.c)
+	- If a file or filter was opened and then closed, opening a file
+subsequently within a 'save' could lead to a memory access error in the
+garbage collector.  (zfile.c)
+	- Setting an Indexed or Separation color space could cause a crash
+either in the garbage collector or when printing out the e-stack.
+(icsmap.h, zcsindex.c, zcssepr.c)
+	- Invoking a filter with an invalid data source or sink could cause
+a memory access error (bug introduced in 3.20).  (zfilter.c)
+	- Invoking stringwidth on a font whose BuildChar procedure did a
+save could cause a memory manager error or infinite loop, because
+stringwidth attempted to use an inapplicable shortcut.  (gschar.c)
+	- The bounding box for rendering stroked Type 1 characters didn't
+take square caps and miter joins into account.  (gs_type1.ps)
+	- Invoking filter with DCTDecode or DCTEncode could cause an
+addressing error if no dictionary argument was supplied.  (zfdctd.c,
+zfdcte.c)
+	- The Generic resource, the Font resource, and half a dozen
+resources with no predefined instances all shared the same Instances
+dictionary.  (gs_res.ps)
+	- The temporary null device allocated for stringwidth was never
+freed.  (gschar.h, gschar.c, zchar.c)
+	- Internal operators, and structures that might be freed on stack
+unwinding, could "escape" from the e-stack.  (zcontrol.c, ztype.c)
+	- makefont and scalefont didn't properly handle a font whose
+Encoding had been changed.  (bfont.h, zfont.c, zfont2.c)
+	- Type 1 fonts with PaintType = 2 incorrectly checked for an xfont.
+(gxfont.h, gschar.c, gsfont.c, zchar1.c, zfont1.c, zfont2.c)
+	- Specifying a string argument with -d...=(...) or -d...=<...>
+would cause an invalidaccess error.  (gs.c)
+	- The environment for encapsulated jobs didn't rebind quit to stop
+in userdict.  (gs_lev2.ps)
+	- restore didn't deal properly with open files on the e-stack.
+(zvmem.c)
+	- Even with the '-' switch, Ghostscript would try to read ahead in
+the input stream rather than processing input character-by-character.
+(ziodev.c)
+	- If an error occurred with a unreadable dictionary on any stack,
+the standard error printer would get into an error loop and exit the
+interpreter.  (gs_init.ps)
+	- The for_roots macro in igc.c used ap rather than mem as its
+second formal parameter.  (This typo had no effect on the executable
+program.)  (igc.c)
+	- If saving the stacks for an error caused a GC request, a value
+could get stored into an improper variable on the C stack, causing havoc.
+(interp.c)
+	- setdash checked to make sure that the distance array had read
+access; Adobe interpreters don't check this.  (zgstate.c)
+	- The roots for gs_run_string and gs_interpret weren't registered
+properly, which could cause a dangling reference in the case of a restore
+whose save had been done earlier.  (gsmain.c, interp.c)
+
+Adds an OpenOutputFile Boolean device parameter for printer devices; if
+true, the device opens the OutputFile at the time the device is opened,
+instead of waiting for the first showpage.  This helps with synchronization
+when the OutputFile is a pipe.  (gdevprn.h, gdevprn.c)
+
+Changes the BEGIN/END_OP_DEFS macros to require an explicit { and } at each
+use.  (gsmain.c, interp.c, z*.c)
+
+Arranges things so that the operators that the interpreter handles
+specially are assigned the first N operator indices [internal change only].
+(interp.h, iinit.c, interp.c)
+
+Changes the operators max and min to .max and .min, to avoid conflicts with
+PostScript programs that use these names for variables and also use 'bind'.
+THIS IS A NON-BACKWARD-COMPATIBLE CHANGE from programs that depend on
+'bind' binding in these operators; however, we have also defined procedures
+max and min that just call the operators, which should take care of any
+ordinary code.  (*.ps, zrelbit.c)
+
+Streams
+-------
+
+Fixes bugs:
+	- The pfb_state pointer in the eexecDecode filter state wasn't
+marked as traceable for the garbage collector.  (sfilter.h)
+	- The eexec decoding filter could access invalid memory or return
+garbage under some conditions.  (Bug introduced in 3.12.)  (zmisc1.c)
+	- The eexec decoding filter would incorrectly ask for more input if
+the output buffer was full.  (seexec.c)
+
+Library
+-------
+
+Fixes bugs:
+	- Some compilers reserve the word 'try'.  (gshtscr.c)
+	- Some compilers don't like line continuations (\) within a
+preprocessor macro formal parameter list.  (gdevprn.h, gxdevice.h)
+	- Memory devices created with an inverted palette (0=white,
+1=black) interchanged white and black in fill operations.  (gdevmem1.c)
+	- The 'bits' variable in mem_mono_copy_mono was unused on
+little-endian machines.  (gdevmem1.c)
+	- Some garbage collector procedures were declared 'private'
+inconsistently.  (gscie.c)
+	- The new anti-aliased text capability accidentally caused all
+characters to be oversampled.  (gschar.c)
+	- Type 1 fonts with PaintType = 2 and StrokeWidth = 0 came out with
+many pixels missing because of oversampling.  (gschar.c)
+	- Type 1 font stem hints were not being processed correctly.
+(gstype1.h, gxtype1.h, gstype1.c, gxhint2.c, gxhint3.c, gxpath.c)
+	- The tracing message for 9/7 composite fonts incorrectly
+identified them as 1/7 fonts.  (gschar0.c)
+	- If a 1/7 or 9/7 composite font was a child of a non-modal font,
+the font number of the child font was computed incorrectly.  (gschar0.c)
+
+Splits up the various memory devices into one file per depth [internal
+change only].  (gdevm*.c)
+
+Version 3.20 (10/31/94)
+============
+
+This version contains some support for a PDF interpreter; however, the PDF
+code itself is not ready for release yet.  It also includes anti-aliased
+text capability.
+
+Documentation
+-------------
+
+Notes that the FAQ has moved to smallo.ruhr.de:pub/ghost/gs.faq.  (readme)
+
+Documents various implementation limits.  (language.doc)
+
+Procedures
+----------
+
+Fixes bugs:
+	- bcp.dev wasn't included in the list of dependencies for
+level1.dev.  (gs.mak)
+
+Changes the printout of version numbers so that it is always A.BC,
+rather than A.B if C is zero.  (gs.c, gs_init.ps)
+
+Utilities
+---------
+
+Fixes bugs:
+	- font2c didn't correctly handle Metrics or Metrics2 dictionaries
+whose entries were arrays rather than scalars.  (font2c.ps, ccfont.h,
+iccfont.c)
+	- font2c didn't handle CDevProc.  (font2c.ps, ccfont.h, iccfont.c)
+	- genconf could get a stack overflow on small machines.
+(genconf.c)
+
+Changes mergeini.ps so it can take arguments on the command line specifying
+the input and output files.  (mergeini.ps)
+
+Adds a gsdj500 shell script to parallel gsdj500.bat.  (gsdj500)
+
+Drivers
+-------
+
+Fixes bugs:
+	- The X driver didn't mask dynamically assigned colors properly, so
+it could request the same color over and over again.  (gdevx.c)
+
+Adds two alternate X Windows drivers, for helping debug drivers with other
+color models:
+	- x11alpha, an RGB device with 4-bit alpha capability (for
+	  copy_alpha only);
+	- x11cmyk, a 1-bit-per-component CMYK device.
+(devs.mak, gdevxalt.c)
+
+Changes the left margin of the lj4dith driver to 0.26".  (gdevcdj.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- If <sys/time.h> didn't exist, time_.h didn't always include
+<time.h>.  (time_.h)
+	- The OS/2 platform wouldn't compile.  (gdevpm.c)
+	- The auxiliary VMS command files sometimes got blank lines
+inserted when going through EOL conversion.  (vms.mak; delete gs_.com)
+	- The VMS makefiles didn't include the Level 1 operators in
+level1.dev.  (vms.mak)
+	- The VMS gcc makefile didn't handle undefined DEVICE_DEVSn
+variables properly.  (vms*.mak)
+	- The VMS makefiles didn't recognize DEVICE_DEVS{1,2,5,7}.
+(vms.mak)
+
+At the request of a Unix expert, changes all the Unix shell scripts to use
+exec gs ... "$@" rather than gs ... $*.  (gsnd, gsbj, gsdj, gslj, gslp)
+
+Modifies the JPEG library so that it uses 4K less of the automatic data
+segment in 16-bit environments.  (bcwin.mak, jpeg.mak, sjpeg.c, sjpegerr.c)
+
+Adds the bmp drivers back into the 16-bit MS Windows executable, since they
+will fit now.  (bcwin.mak)
+
+Fonts
+-----
+
+Makes the font substitution algorithm recognize the word Roman as calling
+for a serif font.  (gs_fonts.ps)
+
+Interpreters
+------------
+
+Fixes bugs:
+	- The fix in 3.13 for the inexact function values at 0 didn't work.
+(zcontrol.c)
+	- Level 1 configurations referenced an undefined procedure
+gs_currenthalftone.  (gsht.c, gsht1.c)
+	- Specifying any device properties (including -r and -g) on the
+command line caused an error.  (gs_init.ps)
+	- The forward declaration of cfont_name_array_create was
+incorrect.  (iccfont.c)
+	- save and restore could get called before the graphics state stack
+had been initialized properly.  (gs_mex_e.ps)
+	- Some encodings weren't loaded properly.  (gs.mak, gs_mex_e.ps,
+gs_mro_e.ps, gs_pdf_e.ps, gs_wan_e.ps)
+	- Zero-height images were allowed, but zero-width images
+weren't.  (zpaint.c)
+	- Neither zero-width nor zero-height images popped their
+arguments from the operand stack.  (zpaint.c)
+	- lib_file_fopen overwrote its file name argument, causing havoc
+with @-files.  (gxiodev.h, gdevpipe.c, gsiodev.c, zfile.c)
+	- The garbage collector got confused if there were any arrays or
+dictionaries with 8K or more elements.  (igcref.c)
+	- >> could leave the stacks in a questionable state if it failed.
+(gs_init.ps)
+	- The Category resource category didn't implement undefineresource.
+(gs_res.ps)
+	- When the token operator read the last token from a string, it
+left an unchanged string on the stack instead of an empty string.
+(stream.c)
+	- noaccess didn't give an invalidaccess error when applied to the
+permanent dictionaries.  (dstack.h, idict.c, ztype.c)
+	- Overflowing the exec stack wasn't handled properly.  (istack.h,
+istack.c)
+	- The garbage collector cleared the cached value pointers in names,
+causing interpretation to slow down substantially.  (idict.c, igc.c,
+iname.c)
+	- 0 dict created a dictionary with a maxlength of 1.  (idict.c)
+
+Changes the default size of the execution stack from 150 to 250, to match
+the Adobe "typical" value.  (interp.c)
+
+Moves the operator definitions out of the automatic data segment.
+(opdef.h, iinit.c, z*.c)
+
+Adds operators that allow creation of objects in system space:
+.systemvmstring, .systemvmarray, .systemvmpackedarray, .systemvmdict,
+.systemvmcheck.  (zsysvm.c)
+
+Renames gcdefs.h as gscdefs.h.
+
+Allocates names in system space rather than global space.  (gsmain.c)
+
+Changes the memory manager so that it allows programs to create objects in
+system space.  (iref.h, iutil.h, ivmspace.h, ...)
+
+Changes the implementation of filters so they appear in their own
+dictionary named filterdict.  (gs_init.ps, z*.c)
+
+Changes the implementation of color spaces so each one has its own
+setcolorspace procedure, defined in a new dictionary named
+colorspacedict.  (gs_lev2.ps, z*.c)
+
+Adds a new debugging switch, $, that always initializes all fields in a
+ref, in order to keep Purify happy.  (store.h)
+
+Library
+-------
+
+Fixes bugs:
+	- The page size for image devices was always set to (0, 0).
+(gsdevice.c)
+	- The PageSize computation in gx_default_put_params could overflow
+on 16-bit machines.  (gsdparam.c)
+	- An omitted 'static' on an initialized array caused a compiler
+error.  (gxccman.c)
+	- If interpolated image rendering was requested but not
+actually carried out, gs_image_cleanup could attempt to free a random
+pointer.  (gsimage.c)
+	- Some compilers only retain 23 characters of procedure names, but
+some procedure names weren't unique in the first 23 characters.  (gscie.c,
+gscolor.c, gscolor1.c, gxcmap.c)
+	- The garbage collector didn't trace device colors properly.
+(gxdcolor.h, gzht.h, gsimage1.c, gspcolor.c, gxcht.c, gxcmap.c, gxdraw.c,
+gxht.c)
+	- For CMYK devices, the transfer functions were being applied to
+the CMYK values rather than the complemented RGBW values.  (gxcmap.c)
+	- Memory devices used their own color mapping procedures rather
+than those of the target; this could cause incorrect colors for patterns on
+devices with more than 1 bit per pixel.  (gxdevmem.h, gdevmem1.c, gdevpm.c,
+gdevprn.c, gdevwdib.c, gschar.c, gsdevice.c, gxccache.c, gxccman.c,
+gxclip2.c, gxclread.c, gxpcmap.c)
+	- The garbage collector didn't trace image enumerators properly in
+the image_render_simple case.  (gsimage.c)
+	- stroke produced different-looking output for thin (zero-width)
+lines depending on whether or not clipping was invoked.  (gxstroke.c)
+	- If a clipping list changed from multiple rectangles to a single
+rectangle, it could fail to clip properly thereafter.  (gxacpath.c)
+
+Adds two new device procedures: alpha_bits and copy_alpha.  This change is
+backward-compatible for all existing devices.  (gdevmem.h, gxdevice.h,
+gsdevice.c, gxclip2.c, gxclist.c, gxcpath.c)
+
+Changes the implementation of color halftones so that, when appropriate, it
+generates a single cell and uses the device tile_rectangle procedure.
+(gzht.h, gsht.c, gxcht.c, gxclist.c, gxclread.c)
+
+Adds partial support for the Orientation page device parameter.
+(gsdevice.c)
+
+Adds support for anti-aliased characters using 2 or 4 bits of alpha.
+(gxfcache.h, gschar.c, gxccache.c)
+
+Version 3.13 (10/3/94)
+============
+
+This release was created for a customer; it was not distributed to the
+public.
+
+Documentation
+-------------
+
+Notes in make.doc that the file names in the IJG archive distributed with
+Ghostscript do not include the gsA.BC/ prefix.  (make.doc)
+
+Adds a cross-reference to make.doc to the Watcom makefiles.  (watc.mak,
+watcwin.mak, wccommon.mak)
+
+Procedures
+----------
+
+Fixes bugs:
+	- The makefile rule for gconfig.h et al had a couple of blank lines
+in the middle of it.  (gs.mak)
+
+Utilities
+---------
+
+Fixes bugs:
+	- wrfont.ps didn't add a lenIV entry to the Private dictionary if
+it was needed.  (wrfont.ps)
+
+Adds a packfile.ps utility that allows compressing multiple files into a
+single file for environments with very little permanent storage.
+(gs_pfile.ps, packfile.ps, wrfont.ps)
+
+Drivers
+-------
+
+Fixes bugs:
+	- The {tiff,fax}{g32d,g4} devices could produce incorrect output.
+See under Streams below.
+	- The dfax drivers referred to the obsolete structure member
+EncodedEOLAlign.  (gdevdfax.c)
+
+Changes the default bit order for TIFF/F output to little-endian, which is
+apparently what the majority of TIFF decoders like best.  The bit order for
+the fax drivers is still big-endian.  (gdevdfax.c, gdevtfax.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- The VMS build script used -a rather than -w for creating
+gconfig_.h.  (vms.mak)
+	- The VMS build script didn't create gconfigv.h.  (vms.mak)
+	- The VMS Fontmap had incorrect entries for the Bitstream Charter
+fonts.  (fontmap.vms)
+	- The VMS MODULES.LIS file assumed the JPEG library files were in
+directory JPEG rather than JPEG-5.  (modules.lis)
+
+Fonts
+-----
+
+Fixes bugs:
+	- Using DISKFONTS resulted in an invalidaccess error.
+(gs_fonts.ps)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- The standard transfer function considered gray values above
+roughly 0.994 equivalent to white; 0.999 is a better value.  (gs_init.ps)
+	- The transfer, black generation, and undercolor removal functions
+gave slightly inexact results for an input value of 0.  (zcolor.c,
+zcontrol.c)
+	- setpagedevice gave an /undefined error if it did not recognize a
+key, rather than ignoring the key.  (zdevice.c, gs_init.ps, gs_lev2.ps,
+gs_setpd.ps)
+
+Changes .putdeviceparams to take an additional argument, a Boolean that
+says whether or not unrecognized keys should be reported as /undefined
+errors.  THIS IS A NON-BACKWARD-COMPATIBLE CHANGE; however, no user-written
+code should be calling .putdeviceparams.  (zdevice.c)
+
+Streams
+-------
+
+Fixes bugs:
+	- The Group 3 2-D and Group 4 fax encoders could emit incorrect
+output.  (scfe.c)
+	- The algorithm for constructing optimal Huffman codes could
+produce invalid codes in some rare cases.  (shcgen.c)
+
+Library
+-------
+
+Fixes bugs:
+	- Rectangles closed with lineto rather than closepath weren't
+recognized as rectangles.  (This only affected performance, not
+functionality.)  (gxpath2.c)
+	- The xfont lookup_font procedure could get called with a matrix
+whose translation components had never been initialized.  (gxccman.c)
+	- Some compilers don't allow \ in the formal argument list of a
+preprocessor macro.  (gdevprn.h, gxdevice.h)
+
+Version 3.12 (9/29/94)
+============
+
+This is another bug fix release, the first Level 2 release that we believe
+is reasonably reliable.
+
+Documentation
+-------------
+
+Adds some text warning about making copies of the makefile.  (make.doc)
+
+Procedures
+----------
+
+Fixes bugs:
+	- There were a number of unnecessary dependencies on $(MAKEFILE) in
+gs.mak, left over from before the existence of gconfigv.h.  (gs.mak)
+	- JPEGSRC was defined in gs.mak rather than in jpeg.mak.  (gs.mak,
+jpeg.mak)
+
+Changes the version numbering scheme back to A.BC, since people seem to be
+adapting to the change, and this allows using the version number directly
+as a MS-DOS directory name.  (gconfig.c, gdevtfax.c, gs.c, gs_init.ps)
+
+Updates the JPEG library to version 5 (official release) of the IJG code.
+(jpeg/*, jpeg.mak)
+
+Drivers
+-------
+
+Fixes bugs:
+	- The TIFF/F driver put out invalid PageNumber and Software
+entries.  (gdevtifs.h, gdevtfax.c)
+	- The TIFF/F and fax Group 3 2-D drivers used K=3 and K=5 instead
+of K=2 and K=4.  (gdevtfax.c)
+	- The TIFF/F and fax Group 3 2-D drivers emitted improperly aligned
+output.  (See under Streams below.)
+	- The MS Windows driver didn't resize the window properly in
+response to changing the device parameters.  (gdevmswn.c)
+
+Because of complementary bugs in various C compilers, changes all the
+non-printer devices to use a different set of macros.  (gdevmem.h,
+gdevpcfb.h, gdevprn.h, gdevsvga.h, gxdevice.h, gdev{3b1, bgi, herc, l256,
+pe, pm, sun, vglb, wddb, wdib, wprn, x}.c, gsdevice.c, gxacpath.c,
+gxclip2.c, gxcpath.c, gxpcmap.c, zupath.c)
+
+Changes the X11 driver to ignore the "margins" specified by Ghostview.
+This is apparently necessary for Ghostview to handle landscape display
+properly.  (gdevxini.c)
+
+Adds a WindowID parameter to the X11 device, to allow setting the window
+for the output.  (gdevx.h, gdevx.c, gdevxini.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- The definition of BEGINFILES in os2.mak occurred too late in the
+file to have the desired effect.  (os2.mak)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- Updating the list of allocated file objects at a restore didn't
+clear the prev pointer of the new head, which could cause the garbage
+collector to encounter an invalid pointer.  (Bug introduced by .forgetsave
+in 3.0.3.)  (zfile.c)
+
+Streams
+-------
+
+Fixes bugs:
+	- The CCITTFaxEncode filter with K > 0 and EncodedByteAlign = true
+incorrectly aligned the 1-D/2-D bit as the last bit of a byte, rather than
+the first bit.  (scfx.h, scfe.c)
+	- eexec could loop indefinitely under certain conditions.
+(seexec.c)
+	- eexec's algorithm for recognizing text vs. binary encoding didn't
+work properly in some cases that don't conform to the Adobe Type 1 Font
+Format documentation.  (seexec.c)
+	- Closing a stream didn't clear out the strm and state pointers,
+which could cause invalid accesses by the garbage collector.  (stream.c)
+
+Library
+-------
+
+Fixes bugs:
+	- fill_loop could loop indefinitely under certain conditions.
+(Introduced by a bug fix in 3.1.)  (gxfill.c)
+	- fill/eofill sometimes failed to paint parts of a region.
+(Introduced by a bug fix in 3.1.1.)  (gxfill.c)
+	- Non-convex clipping paths sometimes omitted thin horizontal
+slivers of the region.  (Probably introduced by the "thin graphics" fix in
+3.1.)  (gxacpath.c)
+
+Version 3.1.1 (9/25/94)
+=============
+
+This is primarily a bug fix release.  It was originally intended for some
+commercial licensees, but beta testers found too many problems with it.
+
+Documentation
+-------------
+
+Fixes bugs:
+	- NEWS didn't indicate that there was a non-backward-compatible
+change in the gx_device structure -- specifically, that l_margin,
+b_margin, r_margin, and t_margin were replaced by macros named
+dev_l_margin(dev), etc.  (news)
+
+Describes the two-phase commit requirement for device put_params
+procedures.  (drivers.doc, gsparam.h)
+
+Procedures
+----------
+
+Fixes bugs:
+	- The new S macro in genarch.c didn't work on compilers that do
+macro substitution within string constants (which is forbidden by the ANSI
+standard).  (genarch.c)
+
+Drivers
+-------
+
+Fixes bugs:
+	- Driver put_params implementations didn't observe a "two-phase
+commit" discipline; this could lead to the current device in the graphics
+state being closed, and other inconsistencies.  (gsparam.h, gxdevice.h,
+iparam.h, gdevbit.c, gdevcdj.c, gdevmswn.c, gdevpcfb.c, gdevpm.c,
+gdevprn.c, gdevx.c, gsdevice.c, gsdparam.c, zdevice.c, ziodev2.c, zmisc2.c)
+THIS IS A NON-BACKWARD-COMPATIBLE CHANGE; however, it only affects
+put_params implementations, of which there are few.
+
+NOTE THE NON-BACKWARD-COMPATIBLE CHANGE IN THE gx_device STRUCTURE UNDER
+'Documentation' ABOVE.  (gdevescp.c, gdevsj48.c, gdevsppr.c, gdevxini.c)
+
+Platforms
+---------
+
+Ensures that the Unix makefiles all include all the variants of TIFF/F and
+fax drivers.  (ansihead.mak, cc-head.mak, gcc-head.mak)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- Most of the contents of statusdict were missing when
+running a Level 2 system in Level 1 mode.  (zmisc2.c)
+
+Version 3.1 (9/20/94)
+===========
+
+This release finally includes a usable subset implementation of
+setpagedevice, including all the machinery needed to address the
+long-standing "margins" problems.
+
+Documentation
+-------------
+
+Fixes bugs:
+	- t_oparray objects weren't identified as behaving differently
+depending on whether they were marked executable.  (iref.h)
+	- drivers.doc had gx_color_value instead of gx_color_index in
+the description of color mapping.  (drivers.doc)
+
+Updates drivers.doc to reflect the change from static_procs to
+std_procs in the gx_device structure.  (drivers.doc)
+
+Procedures
+----------
+
+Fixes bugs:
+	- The commands for building the JPEG library used rm instead
+of rm -f.  (jpeg.mak)
+
+Drivers
+-------
+
+Fixes bugs:
+	- The X Windows driver hadn't been updated to reflect some
+name changes in members of the gx_color_info structure.  (gdevx.h,
+gdevx.c, gdevxini.c)
+
+Changes all non-printer drivers so that they use the new std_device_body
+macros.  (gdev*.c)
+
+Adds a print_page_copies procedure for printer drivers, allowing the
+driver to receive num_copies.  (gdevprn.h, gdevprn.c)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- ref_memory_enum/reloc_ptrs were declared inconsistently.
+(ialloc.c)
+	- If the operand of restore was invalid, the restore did
+nothing, instead of giving a typecheck.  (zvmem.c)
+	- In Level 2, the margins and setmargins compatibility
+operators were defined incorrectly in terms of current/setpagedevice.
+(gs_lev2.ps)
+
+Enables .makeoperator to make local operators as well as global ones.
+(opdef.h, iinit.c, zmisc.c, zpacked.c)
+
+Finishes implementing the TransferFunction entry in halftone
+dictionaries.  (zht1.c, zht2.c)
+
+Adds .set/currentfilladjust operators for access to the fill
+adjustment parameter in the graphics state.  (zgstate.h)
+
+Removes the deviceinitialmatrix operator.  (zdevice.c)
+
+Changes defaultmatrix from a procedure to an operator.  (zmatrix.c)
+
+Sets the fill adjustment to 0.5 for high-resolution devices, effectively
+implementing Adobe's any-part-of-pixel filling rule.  (gs_init.ps)
+
+Implements a small but useful subset of setpagedevice.  (gs_lev2.ps)
+
+Streams
+-------
+
+Fixes bugs:
+	- The eexec decoder incorrectly concluded that its data was
+in hex form if the first data character was whitespace.  (seexec.c)
+
+Library
+-------
+
+Fixes bugs:
+	- Thin graphics (e.g., lines or rectangles) with small angles
+relative to the X axis rendered with many points missing.  (gxdraw.c,
+gxfill.c)
+	- The character cache rejected oversampled characters if the
+scaled-up size was too large, even if the scaled-down size wasn't.
+(gxchar.h, gschar.c, gxccache.c, gxccman.c)
+	- A call on sqrt with an integer argument didn't promote it
+explicitly to double, which is required for non-ANSI compilers.
+(gshtscr.c)
+
+Finishes implementing the TransferFunction entry in halftone
+dictionaries.  (gsht1.c)
+
+Modifies the character oversampler so it can produce gray scale
+output instead of a 1-bit mask.  We don't actually make use of this
+ability yet.  (gxccman.c)
+
+Adds gs_set/currentfilladjust for access to the fill adjustment
+parameter in the graphics state.  (gsstate.h, gsstate.c)
+
+Changes the names of the last few routines beginning with gz_ to
+begin with gx_ instead.  (gzdraw.h => gxdraw.h, gsimage*.c, gxdraw.c,
+gxfill.c, gxstroke.c)
+
+Properly implements the PageSize, Margins, .HWMargins, and ImagingBBox
+device parameters for all devices.  (gscoord.c, gsdparam.c, gspath2.c)
+Implements the NumCopies device parameter for printer devices.
+(gdevprn.c)
+
+Implements std_device_body macros to help insulate statically initialized
+non-printer devices from future changes in the gx_device structure.
+(gxdevice.h, ... many .c files ...)
+
+Version 3.0.3 (9/16/94)
+=============
+
+This is primarily a bug fix release; it also implements most of the
+remaining Level 2 loose ends (except for setpagedevice).
+
+Documentation
+-------------
+
+Changes code that refers to "Ghostscript" to use the correct product
+name from gs_product.  (gs.mak, gdevpbm.c, gdevsun.c, gswppm.c)
+
+Documents the new .forgetsave operator.  (language.doc)
+
+Clarifies the distinction between commercial licensing and single-copy
+end-user sales.  (readme)
+
+Procedures
+----------
+
+Fixes bugs:
+	- The compilation rule for gdevadmp.c was missing from the
+makefile.  (devs.mak)
+
+Changes the version numbering scheme back to A.B.C, since too many
+people got confused by the change to A.BC.  (gconfig.c, gs.c,
+gs_init.ps)
+
+Adds a -dNOGC switch to prevent the garbage collector from being
+enabled.  (gs_init.ps)
+
+Utilities
+---------
+
+Removes the ps2image utility, since the new psmono driver replaces it.
+
+Drivers
+-------
+
+Fixes bugs:
+	- The TIFF drivers incorrectly assumed that short and ulong
+were the same size as TIFF_short and TIFF_ulong, causing problems on
+64-bit systems.  (gdevtfax.c)
+	- The EGA/VGA driver didn't do gray halftones properly if it
+was configured as a monochrome or 8-color device.  (gdevpcfb.h)
+	- The comment in gdevevga.c incorrectly identified the file
+as gdevpcfb.c.  (gdevevga.c)
+
+Changes the PC display drivers to save and restore more of the BIOS
+state.  (gdevpcfb.h, gdevevga.c, gdevpcfb.c, gdevsco.c)
+
+Adds a new psmono driver that does the same thing as ps2image, faster
+and more conveniently.  (gdevpsim.c)
+
+Replaces the X11 driver with the one from 3.01, since the color
+handling rewrite in 3.02 introduced serious bugs.  (gdevx.h, gdevx.c,
+gdevxini.c)
+
+Platforms
+---------
+
+Changes the definition of gx_no_color_index to work around one of the
+bugs in the SGI Irix compiler.  (gxdcolor.h)
+
+Rewrites the installation commands in unix-end.mak so they don't have
+very long lines.  (unix-end.mak)
+
+Fonts
+-----
+
+Fixes bugs:
+	- Fonts that used 2- or 4-element arrays in the Metrics dictionary
+interpreted the width and side bearing interchanged with each other.
+(gs_type1.ps)
+	- Setting FONTPATH on the command line didn't work.  (gs_fonts.ps)
+
+Streams
+-------
+
+Fixes bugs:
+	- The stream position wasn't updated properly if sgets
+crossed a buffer boundary.  (stream.c)
+
+Extends the BoundedHuffman filters so they can encode and decode runs of
+zeros specially, and so they mark and detect EOD.  (sbhc.h, shc.h, sbhc.c,
+zfilter2.c)
+
+Provides an alternate implementation of file streams which doesn't use
+stdio buffering and which works around the System V "interrupted system
+call" problem.  (stream.c, sfile.c, sfileno.c)
+
+Increases the maximum LZW output code from 3000 to 4095.  (slzwe.c)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- Opening a filter on a file of the wrong access type (read
+vs. write) didn't cause an error.  (stream.h, sbasic.c, zfile.c, zfileio.c)
+	- save performed an extra, unnecessary gsave.  (zvmem.c)
+	- sethalftone always gave a /undefined error.  (zht2.c)
+	- eexec decryption read too much data from the input -- in
+Level 2, it isn't allowed to read 512 characters ahead.  (sfilter.h,
+strimpl.h, seexec.c, sstring.c, zfileio.c, zmisc1.c)
+	- The scanner was too aggressive about allocating additional
+space for strings on small machines.  (iscan.c)
+	- The AccurateScreens flag in Type 1 and Type 2 halftone
+dictionaries was being ignored.  (zht2.c)
+	- The Level 2 definition of margins in statusdict didn't
+allow for Margins being undefined in the current page device.
+(gs_lev2.ps)
+	- The Interpolate flag was being ignored in image
+dictionaries.  [implemented in library]
+	- The TransferFunction option was being ignored in halftone
+dictionaries.  (zht2.c)
+	- Type 5 halftones usually didn't work, because they called
+the wrong (or an invalid) spot function.  (zht2.c)
+
+Implements a .forgetsave operator that effectively causes a given save (and
+all more recent saves) to disappear.  (isave.h, stream.h, isave.c, zfile.c,
+zvmem.c)
+
+Library
+-------
+
+Fixes bugs:
+	- In the 1-operand form of the image operator, a Decode value of [1
+0] with 8-bit sample values and a single data source was treated the same
+as [0 1].  (gsimage1.c)
+	- Some Monotype fonts put a callsubr between an OtherSubr call and
+the following 'pop' opcodes (which the Adobe documentation forbids); The
+Type 1 font interpreter gave an invalidfont error rather than allowing
+this.  (gxtype1.h, gstype1.c)
+	- Patterns didn't implement XStep and YStep properly.
+(gxpcolor.h, gspcolor.c, gxclip2.c)
+	- Clipping regions were sometimes 1 pixel too small at the edges;
+this could cause vertical and horizontal lines produced by certain Windows
+drivers to disappear.  (gzpath.h, gxacpath.c, gxcpath.c, gxfill.c)
+	- Oversampling cached rotated characters produced very bad
+results (many dropouts).  (gschar.c)
+	- Rendering a DeviceGray color on a DeviceCMYK device applied
+the transfer function to all 4 components, not just to the K
+component.  (gxcmap.c)
+	- A screen specified with setcolorscreen didn't take effect
+properly on CMYK devices.  (gsht.c)
+
+Implements the Interpolate option for images.  Currently this is only
+implemented for portrait-orientation images (no rotation, skewing, or
+X-reflection).  (gscspace.h, gximage.h, gscie.c, gscolor.c, gscolor1.c,
+gscolor2.c, gspcolor.c, gxcmap.c, gsimage.c, gsimage2.c, gsimage3.c)
+
+Implements AccurateScreens, but only in the form of a larger limit on
+the size of a halftone super-cell.  (gxht.h, gsht.c, gsht1.c)
+
+Starts to implement the TransferFunction option for halftones.
+(gzht.h, gzstate.h, gsht.c, ...too many others to list...)
+
+Version 3.02 (8/30/94)
+============
+
+This is another bug fix release.  It was distributed only to a few people,
+since the new X Windows color mapping code is not reliable yet.
+
+Documentation
+-------------
+
+Fixes bugs:
+	- make.doc, but not unixtail.mak, called for setting PLATFORM=unix_
+on SVR4 platforms.  (unixtail.mak)
+	- drivers.doc contained some wording that suggested that
+Ghostscript always used RGB colors internally.  (drivers.doc)
+	- The definition of gx_device in drivers.doc had gotten out of sync
+with gxdevice.h.  (drivers.doc)
+	- README claimed that Ghostscript is not compatible with the
+VAX/VMS DEC C compiler, which is no longer true.  (readme)
+
+Adds a new section on printer drivers to drivers.doc.  (drivers.doc)
+
+Adds a large number of new display boards to the 800x600 SVGA section of
+use.doc.  (use.doc)
+
+Adds a bug report form to the README file.  (readme)
+
+Notes that OSF/1 AXP systems require changing the definition of INSTALL
+from install to installbsd.  (make.doc)
+
+Procedures
+----------
+
+Removes -Wno-uninitialized from the gcc flags, and fixes all the places (in
+Aladdin's code only) that need to be fixed to pacify gcc after doing this.
+(gcc-head.mak, gdevgif.c, gdevmem2.c, gdevpcl.c, gs.c, gsht1.c, gsimpath.c,
+gsutil.c, gxclread.c, gxpcopy.c, gxstroke.c, idict.c, iscannum.c, stream.c,
+zdevice2.c) (NOT FINISHED YET)
+
+Adds a FAKEFONTS switch that makes fake entries in FontDirectory for
+unloaded fonts, for the benefit of programs that think they can find all
+the available fonts by scanning FontDirectory.  (gs_fonts.ps, gs_init.ps)
+
+Utilities
+---------
+
+Fixes bugs:
+	- ps2epsi didn't work, because setdevice now erases the page.
+(ps2epsi.ps)
+	- ps2epsi didn't work, because -dNODISPLAY installs a null device
+with 0 width and height.  The fix -- to remove the -dNODISPLAY -- is not
+satisfactory, because it opens an unnecessary window.  (ps2epsi)
+
+Drivers
+-------
+
+Fixes bugs:
+	- gdev_fax_open was incorrectly declared static in gdevtfax.c,
+causing the extern reference in the dfax drivers not to be resolved.
+(gdevtfax.c)
+	- devs.mak included a duplicate definition of gdevmswn_h.
+(devs.mak)
+	- The fax drivers didn't link properly in Level 1 systems, because
+shc.c was omitted from their dependency list.  (gs.mak, devs.mak)
+	- The TIFF/F drivers didn't set RowsPerStrip properly.
+(gdevtfax.c)
+	- The TIFF/F drivers didn't byte-align the EOL properly.  (scfx.h,
+gdevdfax.c, gdevtfax.c, scfe.c, zfilter2.c)
+	- The rule for compiling gdevpccm.c incorrectly specified
+dependency on gs.h rather than gx.h.  (devs.mak)
+	- The rule for compiling gdevtfax.c didn't include time_.h as a
+dependency.  (devs.mak)
+	- The mode 2 compression routine for the DeskJet/LaserJet printers
+was broken.  (gdevpcl.c)
+
+Removes the -O0 from the compilation rule for gdevsco.c, since it was
+misplaced to begin with.  (devs.mak)
+
+Adds a maxDynamicColors X resource to control dynamic allocation in the
+color map.  Replaces the X color lookup algorithms with completely new
+ones, for a substantial performance gain.  (gdevx.h, gdevx.c, gdevxini.c)
+
+Adds PageNumber, Software, and DateTime entries to the TIFF/F drivers.
+(gdevtifs.h, gdevtfax.c)
+
+Changes the margins for the LaserJet 4 to 0.  (gdevdjet.c)
+
+Adds a user-contributed LaserJet 4 driver that does Floyd-Steinberg
+dithering.  (gdevcdj.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- The exit codes for Ghostscript should be different on VMS.
+(iastate.h, gs.c, gsmain.c, igc.c, igcref.c)
+	- The VMS DEC C compiler declares malloc and free in stdlib.h, and
+delete and unlink in stdlib.h.  (malloc_.h, stdio_.h)
+	- st_prn_device wasn't defined, which upset the VMS linker even
+though there were no references.  (gdevprn.h)
+	- stdpre.h didn't bring in the right headers when running gcc on
+SCO Unix, causing compilation warnings/errors.  (stdpre.h)
+	- The definition of rename in gp_sysv didn't include const for the
+arguments.  (gp_sysv.c)
+	- The definition of gettimeofday in gp_sysv didn't return any
+value.  (gp_sysv.c)
+	- time_.h didn't work on MS-DOS systems.  (time_.h)
+	- math_.h didn't include <math.h> when compiling with gcc on VMS
+systems.  (math_.h)
+	- DesqView/X doesn't have a 'cat' command, which caused problems in
+the linking step.  (dvx-tail.mak)
+
+Changes the definitions of popen in gdevpipe.c and gp_unix.c so they don't
+specify the argument list.  This is an attempt to get around the fact that
+there is no easy way to detect whether the available header files declare
+popen correctly (with const arguments), incorrectly (with non-const
+arguments), or not at all.  (gdevpipe.c, gp_unix.c)
+
+Replaces VMS.MAK, VMS-CC.MAK, and VMS-AXP.MAK with new versions provided by
+a user.  (vms.mak, vms-cc.mak, vms-axp.mak)
+
+Changes the 16-bit Borland makefiles so their standard configuration is
+Level 1 plus color.dev (CMYK color and colorimage).  (bc.mak, bcwin.mak)
+
+Fonts
+-----
+
+Fixes bugs:
+	- cfonts.mak still referred to some .gsf files that have been
+replaced by .pfa files.  (cfonts.mak)
+	- Compiled fonts got entered into FontDirectory, but didn't get
+registered as resources.  (gs_ccfnt.ps)
+	- The Cyrillic, Kana, Hershey .gsf, and URW fonts didn't include a
+necessary systemdict begin/end, which caused them to fail in badly designed
+environments.  (fonts/f*.gsf, fonts/h*.gsf, fonts/?0*.gsf)
+
+Changes the default target directory in cfonts.mak from fonts/c to .;
+changes the names of the Zapf Chancery compiled font procedures from c* to
+zc*.  (cfonts.mak)
+
+Adds more fonts from the Adobe Type Manager package for MS Windows to
+Fontmap.ATM.  (fontmap.atm)
+
+Adds the entire set of 35 standard fonts to the ccfonts feature in gs.mak;
+removes all the compilation rules for compiled fonts, since these rules are
+in cfonts.mak already.  (gs.mak)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- kshow executed a null, rather than the correct procedure, between
+the characters of the string, and got a typecheck error at the end.
+(zchar.c)
+	- MultiMaster fonts computed their side bearing and width
+incorrectly, producing incorrect output.  (zchar1.c)
+	- There was no structure definition for gs_type1_state, so a GC
+during the execution of an OtherSubrs procedure could scramble pointers in
+the saved state.  (zchar1.c, zfont1.c; also affects library, see below)
+	- kshow didn't work properly if the kerning procedure changed the
+depth of the operand or dictionary stack.  (zchar.c)
+	- If the element count for roll was too large by only 1 or 2, the
+result was a crash rather than a rangecheck.  (zstack.c)
+	- restore didn't undo currentgstate.  (igstate.h, store.h,
+gsstate.c, zdevice2.c, zdps1.c, ztype.c)
+	- The scanner didn't set the local bit properly in a suspended
+state.  (iscan.c)
+	- copypage disregarded #copies.  (gs_init.ps)
+	- An incorrectly declared pointer led to addressing faults on
+16-bit systems.  (zchar1.c)
+	- The cache for Separation colors was allocated with one element
+too few.  (zcsindex.c)
+
+Changes `executive' so that if an error other than EOF occurs in the
+reading of the statement, the interpreter prints the error message, but
+control remains in the executive loop.  (This isn't a very good fix; a
+better one will require refactoring executive / execute / run.)
+(gs_init.ps)
+
+Changes dictionary undo saving to use the new ref_must_save macro [internal
+change only].  (idict.c)
+
+Moves configuration definitions from iinit.c to gconfig.c.  (gcdefs.h,
+interp.h, gconfig.c, gs.c, iinit.c, zmisc2.c, gs.mak)
+
+Moves =string from systemdict to userdict for Adobe compatibility.
+(gs_init.ps)
+
+Starts to implement the Interpolate flag in image dictionaries.  See under
+Library below for restrictions.  (zpaint.c, zimage2.c)
+
+Streams
+-------
+
+Fixes bugs:
+	- stream_compact attempted to compact a read-only string being used
+as the data source of a filter.  (sbasic.c, stream.c)
+
+Adds an EncodedEOLAlign flag to the CCITTFaxEncode stream, to allow direct
+generation of TIFF/F output.  (scfx.h, scfe.c, zfilter2.c)
+
+Library
+-------
+
+Fixes bugs:
+	- There was no structure definition for gs_type1_state, so a GC
+during the execution of an OtherSubrs procedure could scramble pointers in
+the saved state.  (gxfont1.h, gxtype1.h, gstype1.c, gxhint2.c)
+	- A couple of calls had to discard const, but didn't include the
+necessary cast.  (gxpcmap.c)
+	- makeimagedevice refused to accept an empty image.  (gsdevice.c)
+	- The extra parentheses around arguments in memory_.h caused some
+compilers to fail.  (memory_.h)
+	- Floating point overflows during coordinate conversion terminated
+Ghostscript.  (gxfarith.h, gxfixed.h, gsmatrix.c, gsmisc.c)
+	- Accents still weren't getting placed properly on characters
+created with seac.  (gstype1.c, gxhint2.c)
+	- The SGI C compiler couldn't handle the (perfectly legal)
+definitions of dev_init_[open_]misc.  (gxdevice.h)
+	- string_.h caused some problems with gcc on some versions of
+Solaris.  (string_.h)
+	- The halftone levels for color screens were computed incorrectly.
+(gzht.h, gxdither.c)
+	- Color screens sometimes had vertical stripes of solid color
+interspersed.  (gxcht.c)
+	- Colors could get mapped incorrectly if a compiler aggressively
+(and incorrectly) reordered the computation of procedure arguments
+involving the unit_frac macro.  (gxcmap.c)
+	- setcachedevice[2] insisted that the corners of the bounding box
+be given in the correct order, i.e., llx < urx and lly < ury.  (gschar.c)
+	- The image operator gave a limitcheck on unrotated 1-bit-per-pixel
+images whose width in device coordinates exceeded 65529.  (gsimage.c)
+	- The garbage collector didn't trace the input data of an
+in-progress image operator correctly.  (gsimage.c)
+
+Changes the max_rgb and dither_rgb members of gx_device_color_info to
+max_color and dither_colors, since Ghostscript now uses these for CMYK
+devices as well.  Also changes dither_gray to dither_grays.  (gdevmem.h,
+gdevprn.h, gxdevice.h, gdevbit.c, gdevcdj.c, gdevprn.c, gdevxini.c,
+gsdparam.c, gxcht.c, gxcmap.c)
+
+Starts to implement the Interpolate option for images.  Currently this is
+only implemented for image, not imagemask, and only for rotations that are
+multiples of 90 degrees (possibly with reflection).  (gsimage.h,
+gsiscale.h, gximage.h, gsimage.c, gsimage1.c, gsiscale.c)
+
+Starts to implement XStep and YStep in pattern dictionaries.  (gxdcolor.h,
+gxpcolor.h, gspcolor.c, gxpcmap.c)
+
+Version 3.01 (8/14/94)
+============
+
+This is a patch release to fix early problems in release 3.0, and to clean
+up a few known loose ends.
+
+Documentation
+-------------
+
+Fixes bugs:
+	- language.doc still documented the devicename procedure, which has
+been withdrawn.  (language.doc)
+	- drivers.doc didn't specify under what circumstances each
+procedure could be called.  (drivers.doc)
+	- current.doc said that setcachedevice and makeimagedevice wouldn't
+accept packed arrays, but neither of these operators takes any array
+arguments.  (current.doc)
+	- current.doc said that definefont didn't interact properly with
+the resource machinery, which apparently is no longer true.  (current.doc)
+	- make.doc incorrectly gave the name of the DVX makefile as
+dvx-djg.mak rather than dvx-gcc.mak.  (make.doc)
+	- In one place, devices.doc incorrectly used -sBitsPerPixel= rather
+than -dBitsPerPixel=.  (devices.doc)
+
+Notes that a kernel bug in SCO Unix makes Ghostscript not work correctly in
+some circumstances.  (use.doc)
+
+Procedures
+----------
+
+Fixes bugs:
+	- devs.mak incorrectly referred to gdevjetp.c instead of
+gdev3852.c.  (devs.mak)
+	- The obsolete file gsprops.c was accidentally included in the
+fileset.
+
+Changes the version numbering scheme from A.BCC to A.B[C].  E.g., this
+release will be 3.01, not 3.001.  (gs_init.ps, gs.c, iinit.c)
+
+Adds the LaserJet 4 driver to all makefiles that already include the
+LaserJet 3 driver.  (*.mak)
+
+Adds the BJ-200 driver to all makefiles that already included the BJ-10e
+driver.  (*.mak)
+
+Splits the Unix 'install' target into install-exec and install-data.  Moves
+the executable scripts from gsdatadir to a new directory scriptdir, which
+defaults to bindir.  (ansihead.mak, cc-head.mak, gcc-head.mak,
+unix-end.mak)
+
+Utilities
+---------
+
+Fixes bugs:
+	- genconf had fixed buffer sizes built into it, which it could
+overrun its working storage without checking.  (genconf.c)
+
+Removes RCS or SCCS headers from two utility files.  (pj-gs.sh,
+printafm.ps)
+
+Drivers
+-------
+
+Fixes bugs:
+	- The new dfaxhigh and dfaxlow drivers didn't set
+state.EncodedByteAlign to false.  (gdevdfax.c)
+	- The sunview driver assumed that the device would be open before
+map_rgb_color was called.  (gdevsun.c)
+	- The CP50 driver incremented page_count itself, rather than
+letting the core library do it.  (gdevcp50.c)
+	- The GIF driver(s) could loop indefinitely under certain
+circumstances.  (gdevgif.c)
+	- The Group 4 fax drivers incorrectly included end-of-line codes in
+the output.  (gdevtfax.c, gdevdfax.c)
+	- The Group 4 fax drivers could put out an EOB in the middle of the
+data.  (scfe.c)
+	- The DesignJet 650C driver didn't use the correct compression
+mode.  (gdevcdj.c)
+	- The Hercules and EGA/VGA/SVGA drivers computed the page height
+incorrectly according to the A4 switch.  (gdevherc.c, gdevpcfb.h)
+
+Changes the page_count and showpage_count members of the device structure
+from int to long.  (gxdevice.h, gdevprn.c, gsdparam.c)
+
+Changes the faxg3, faxg32d, and faxg4 drivers so that, like the TIFF and
+dfax drivers, they adjust the page size to one of the three CCITT standard
+sizes if this is reasonable.  (gdevtfax.c)
+
+Splits the bit driver into bit, bitrgb, and bitcmyk.  Adds bitrgb and
+bitcmyk to all makefiles that included bit.  (*.mak, devs.mak, gdevbit.c)
+
+Replaces the atiw16, tseng16, and tvga16 SuperVGA drivers with a single
+svga16 driver that allows specifying the display mode number.  (devs.mak,
+gdevpcfb.c)
+
+Platforms
+---------
+
+Fixes bugs:
+	- The MS Windows and OS/2 drivers allocated their terminal input
+buffers in a way that could cause the GC to crash.  (gp_mswin.c, gp_os2.c)
+	- The handling of gettimeofday on SVR4 platforms was incorrect.
+(time_.h, gp_sysv.c, gp_unix.c)
+	- On some platforms, function prototypes were not enabled even if
+__STDC__ was defined.  (stdpre.h)
+	- The VMS build script referred to an obsolete feature lev2only.
+(vms.mak)
+
+Changes the DVX platform so that stdprn is buffered.  This should improve
+printing performance dramatically.  (gp_dvx.c)
+
+Fonts
+-----
+
+Fixes bugs:
+	- Setting DISKFONTS resulted in a reference to FontFileDirectory
+before it was defined.  (gs_type1.ps, gs_fonts.ps)
+	- /Font findresource gave an error rather than doing font
+substitution.  (gs_res.ps)
+	- FontDirectory wasn't rebound to GlobalFontDirectory when global
+VM was current.  (gs_res.ps, zdict.c)
+	- Type 1 fonts weren't loaded into global VM.  (gs_fonts.ps)
+	- In the standard Fontmap, the Utopia fonts had extension .gsf
+rather than .pfa.  (fontmap.gs)
+	- Fonts whose FontBBox was [0 0 0 0] were not displayed, or were
+displayed as tiny dots.  (gs_type1.ps)
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- dict_put could read from the variable pvslot before it was used.
+(This was harmless, since the value was never actually used; it just upset
+Purify.)  (idict.c)
+	- Binary object sequences could cause addressing faults.
+(iscanbin.c)
+	- The attributes on names were set incorrectly in binary object
+sequences.  (iscanbin.c)
+	- gs.c duplicated (in some cases incorrectly) some definitions in
+interp.h.  (gs.c)
+	- gs_lib_paths was declared const in one place and non-const in
+another.  (zfile.c)
+	- file_restore and font_restore had inconsistent const declarations
+for their argument.  (isave.c)
+	- iodev_os_open_file was missing its last formal parameter.
+(ziodev.c)
+	- gs.c declared gs_devicename with an incorrect extern.  (gs.c)
+	- undefinefont didn't interact properly with the resource
+machinery.  (gs_lev2.ps)
+	- The declaration for swap_entry used a typedef name as a formal
+parameter, which upset some compilers.  (zmisc2.c)
+	- Including the ccinit feature could cause the garbage collector to
+make an invalid access.  (stream.c)
+	- The check for t_[a]struct types in ztype.c was incorrect.
+(ztype.c)
+	- After the collection of halftone samples, temporary data
+structures were freed incorrectly.  (gzht.h, gsht1.c, zht.c)
+	- Images with source width between 489 and 492 crashed the
+memory manager.  (iastate.h)
+
+Makes it possible to define SEARCH_HERE_FIRST (gsmain.c) in the makefile.
+(gsmain.c)
+
+Splits the Level 2 resource machinery into a separate file.  (gs_lev2.ps,
+gs_res.ps, gs.mak, unix-end.mak, vms.mak).
+
+Changes the names of the DiffEncode/Decode filters to
+PixelDifferenceEncode/Decode, and splits them off into a separate
+"feature".  (gs.mak, zfilter2.c, zfpdiff.c, spdiff.c, spdiffx.h)
+
+Adds experimental code for filtered image scaling.  DON'T USE THIS CODE.
+(zimage2.c)
+
+Streams
+-------
+
+Fixes bugs:
+	- The CCITTFaxEncode filter could put out an EOB in the middle of
+the data.  (scfe.c)
+
+Splits off the PixelDifferenceEncode/Decode filters into a separate
+"feature".  (gs.mak)
+
+Library
+-------
+
+Fixes bugs:
+	- gs_setcachedevice could return a garbage error code.  (gschar.c)
+	- joins on stroked lines were incorrect if the device coordinate
+system mapped +Y to +Y.  (gxstroke.c)
+	- If gsmisc.c supplied versions of missing library routines, they
+could clash with the names of the real ones if those were present
+unexpectedly.  (memory_.h, gsmisc.c)
+	- The initialization expression for is_open in the
+dev_init_misc_open macro included a cast, which some compilers don't allow.
+(gxdevice.h, gsdevice.c, gxclip2.c, gxpcmap.c)
+	- In Type 1 fonts, character that specified their side bearing and
+width with sbw rather than hsbw gave an invalidfont error.  (gstype1.c)
+	- Some procedures were declared inconsistently with regard to const
+arguments.  (gscie.c, gxpcmap.c, gxacpath.c, gxcmap.c)
+	- A few places still assumed that pointers occupied 4 bytes.
+(gxclist.c)
+	- Rendering a gray halftone on a CMYK device called the device's
+map_rgb_color procedure instead of map_cmyk_color.  (gxdither.c)
+
+Renames gsfile.c as gswppm.c.  (gsfile.c, gswppm.c)
+
+Implements the ability to cache arbitrarily transformed characters.  This
+is currently enabled by a compile-time flag in gschar.c.  (gschar.c)
+
+Version 3.0 (8/1/94)
+===========
+
+This is the first full Level 2 version released to the public.
+Unfortunately, we were not able to include setpagedevice in this release.
+
+Documentation
+-------------
+
+Fixes bugs:
+	- README didn't mention Aladdin's European distributor.
+	- psfiles.doc didn't describe some of the newer gs_*.ps files.
+
+Notes that gcc -O2 (version 2.5.8 of gcc) generates incorrect code for some
+modules on the H-P RISC architecture.
+
+Notes that on AXP platforms running VMS, DEC C V4.0 is required.
+
+Procedures
+----------
+
+Fixes bugs:
+	- 'make clean' didn't delete devs.tr or t.tr.
+	- devs.mak was missing the entry for faxg32d.
+	- unixansi.mak omitted some drivers that were included in
+unix-cc.mak and unix-gcc.mak.
+
+Updates jpeg.mak to reference version 5beta1 of the IJG JPEG code.
+
+Changes the version numbering scheme from A.B.C to A.B[CC].  I.e., the
+first sub-release after 3.0 will be 3.01 or 3.001, not 3.0.1.
+
+Utilities
+---------
+
+Fixes bugs:
+	- ps2ascii didn't do a setglobal.
+
+Adds an option to ansi2knr to convert ... to va_alist/va_dcl.
+
+Drivers
+-------
+
+Fixes bugs:
+	- The newly added faxg32d driver didn't have an entry in devs.mak.
+	- The BMP, GIF, and PCX drivers wrote out an incorrect color
+palette (the blue values were too small).
+	- The vgalib driver had some compilation problems.
+	- The TIFF drivers didn't produce correct multi-page output.
+
+Adds faxg32d and tiffg32d drivers.
+
+Reinstates the DigiFax drivers, which were withdrawn when the new fax
+drivers were added.
+
+Platforms
+---------
+
+Fixes bugs:
+	- gs_btokn.ps and gs_ccfnt.ps weren't installed on Unix platforms.
+	- The VMS module list omitted SBHC, included a non-existent GXDASH,
+and had incorrect names for some of the IJG JPEG files.
+	- The VMS build scripts (vms*.mak) had incorrect "boilerplate".
+	- The VMS script file gssetmod.com had \r characters in it, as well
+as \n characters.
+	- The echogs and genarch utilities didn't return the correct exit
+codes under VMS.
+	- The VMS Fontmap had incorrect entries for the Courier and Charter
+fonts.
+	- When running under Ghostview, Ghostscript didn't drain the input
+pipe.  (We fixed this with a temporary patch in gs.c; this isn't a good
+solution for the longer term.)
+
+Fonts
+-----
+
+Fixes bugs:
+	- The free AvantGarde, Bookman, and Palatino font families had
+incorrect FontBBox values.
+	- The 'f' and 'j' in the free AvantGarde-DemiOblique,
+Bookman-DemiItalic, Bookman-LightItalic, and Palatino-Italic fonts were
+chopped off on the right.  (The bitmaps were chopped off in the original
+BDF fonts from which these fonts were made.)  ****** THIS PROBLEM WAS NOT
+ACTUALLY FIXED. ******
+
+Interpreter
+-----------
+
+Fixes bugs:
+	- gs -h and gs -v didn't print the tertiary version number correctly.
+	- Binary object sequences with no strings or names didn't read in
+correctly.
+	- Binary object sequences that crossed an input buffer boundary
+didn't read in correctly.
+	- Binary object sequences read in as {[e1 .. en] e1 ... en} instead
+of {[e1 ... en]}.  (New bug in 2.9.x.)
+	- setpattern didn't set the current color space correctly if the
+current color space wasn't a Pattern space.
+	- If the current color space was an uncolored Pattern space but the
+current color was a colored Pattern, currentcolor returned extra values on
+the operands stack.
+	- .buildfont1 in gs_type1.ps didn't force binding of the old
+definition, causing ps2ascii to loop endlessly.
+
+Adds a facility for writing and reading dictionaries in binary object
+sequences.  This is experimental and subject to change in the future.
+
+Streams
+-------
+
+Fixes bugs:
+	- gs_run_string and ccinit didn't have any way to mark the string
+as "foreign", which confused the GC.
+
+Library
+-------
+
+Fixes bugs:
+	- gxchar.h had an extra comma after the last element of the
+show_width_status enum, which upset some compilers.
+	- stroke and strokepath didn't correctly skip zero-length segments
+if the line width was less than one pixel, or if there was a closed subpath
+consisting entirely of zero-length segments.
+	- strokepath sometimes incorrectly added a moveto at the end of the
+path.
+
+Versions before 3.0
+===================
+
+See the files history*.doc.

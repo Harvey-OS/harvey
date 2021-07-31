@@ -1,0 +1,74 @@
+.TH SCSI 3 
+.SH NAME
+scsi \- SCSI command interface
+.SH SYNOPSIS
+.nf
+.B bind #S /dev
+
+.B /dev/scsiid
+.B /dev/0/cmd
+.B /dev/0/data
+.B /dev/0/debug
+\&...
+.fi
+.SH DESCRIPTION
+.PP
+The
+.I scsi
+interface is accessed through a two-level directory.
+The
+.B scsiid
+file contains the
+.SM SCSI
+id of the host interface, typically 7, represented textually.
+Some implementations allow this to be changed by writing to the file;
+in many cases, the higher-order bits are hardware specific.
+.PP
+Each
+.SM SCSI
+target
+.I n
+.RI "(0≤" n "≤7)"
+is associated with a subdirectory
+.BI "#S/" n
+containing files
+.BR cmd ,
+.BR data ,
+and
+.BR debug .
+The following steps may be used to execute a
+.SM SCSI
+command:
+.IP
+The command block is written to the
+.B cmd
+file.
+.IP
+The
+.B data
+file is either written or read depending on
+the direction of the transfer.  (A command that involves no data transfer
+is executed with a zero-length write.)
+.IP
+The
+.B cmd
+file is read to retrieve the status of the command,
+returned as a 4-byte big-endian integer.
+.PP
+Writing an
+.SM ASCII
+.L 1
+to the
+.B debug
+file causes tracing information to be written to
+.BR /dev/klog ;
+writing a
+.L 0
+turns the tracing off.
+.PP
+.SH SEE ALSO
+.IR wren (3)
+.SH SOURCE
+.B /sys/src/9/port/devscsi.c
+.br
+.B /sys/src/9/*/scsi.c

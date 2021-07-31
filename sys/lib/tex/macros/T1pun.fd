@@ -1,0 +1,54 @@
+%Filename: T1pun.fd
+%Created by: tex 7991univers
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pun}{}
+
+\DeclareFontShape{T1}{pun}{b}{n}{
+   <-> punbq
+}{}
+
+\DeclareFontShape{T1}{pun}{b}{sc}{
+   <-> punbcq
+}{}
+
+\DeclareFontShape{T1}{pun}{b}{sl}{
+   <-> punboq
+}{}
+
+\DeclareFontShape{T1}{pun}{l}{n}{
+   <-> punlq
+}{}
+
+\DeclareFontShape{T1}{pun}{l}{sc}{
+   <-> punlcq
+}{}
+
+\DeclareFontShape{T1}{pun}{l}{sl}{
+   <-> punloq
+}{}
+
+\DeclareFontShape{T1}{pun}{m}{n}{
+   <-> punrq
+}{}
+
+\DeclareFontShape{T1}{pun}{m}{sc}{
+   <-> punrcq
+}{}
+
+\DeclareFontShape{T1}{pun}{m}{sl}{
+   <-> punroq
+}{}
+
+\DeclareFontShape{T1}{pun}{bx}{n}{<->ssub * pun/b/n}{}
+\DeclareFontShape{T1}{pun}{bx}{sc}{<->ssub * pun/b/sc}{}
+\DeclareFontShape{T1}{pun}{b}{it}{<->ssub * pun/b/sl}{}
+\DeclareFontShape{T1}{pun}{bx}{it}{<->ssub * pun/b/it}{}
+\DeclareFontShape{T1}{pun}{bx}{sl}{<->ssub * pun/b/sl}{}
+\DeclareFontShape{T1}{pun}{l}{it}{<->ssub * pun/l/sl}{}
+\DeclareFontShape{T1}{pun}{m}{it}{<->ssub * pun/l/it}{}
+\DeclareFontShape{T1}{pun}{m}{it}{<->ssub * pun/m/sl}{}
+
+\endinput

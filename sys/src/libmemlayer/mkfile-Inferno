@@ -1,4 +1,0 @@
-#
-#	System dependent objects for Inferno model systems
-#
-SYSFILES=lalloc.$O

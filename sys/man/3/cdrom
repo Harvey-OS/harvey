@@ -1,0 +1,52 @@
+.TH CDROM 3 
+.SH NAME
+cdrom \- CD-ROM disk interface
+.SH SYNOPSIS
+.nf
+.B bind -a #R\f2n\fP /dev
+
+.BI /dev/cd n
+
+.B bind -a #m /dev
+
+.B /dev/cd
+.B /dev/cdctl
+.fi
+.SH DESCRIPTION
+.PP
+The SCSI CD-ROM disk interface
+.RB ( #R )
+serves a one-level directory for a SCSI target
+holding a CD-ROM drive.
+Each drive is represented as a single file named
+.BI #R n /cd n\f1,\fP
+where
+.I n
+is the target number.
+A separate attach is necessary for each drive.
+.PP
+On PCs,
+Panasonic, Matsushita, and Mitsumi CD-ROM drives connected to a
+Sound Blaster 16, Pro, MCD, or ACX card are also supported.
+This interface
+.RB ( #m )
+device serves a data file,
+.BR #m/cd ,
+and a control file,
+.BR #m/cdctl .
+The control file is read-only and contains a string stating the type of drive and
+its port number.
+The driver determines the type of CD-ROM drive by a parameter in
+.BR plan9.ini ;
+see
+.IR plan9.ini (8).
+.SH SOURCE
+.B /sys/src/9/port/devcdrom.c
+.br
+.B /sys/src/9/pc/devsbcd.c
+.SH SEE ALSO
+.I 9660srv
+in
+.IR dossrv (4),
+.IR pip (8)
+

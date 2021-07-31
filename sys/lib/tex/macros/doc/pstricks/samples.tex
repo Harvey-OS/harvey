@@ -1,0 +1,434 @@
+%% samples.pst : PSTricks samples. Run with LaTeX.
+%% Last edited: 93/03/03
+\documentstyle[12pt,pstricks,pst-node,pst-coil]{article}
+
+\topmargin=-.5in
+\textheight=9in
+\advance\oddsidemargin-.5cm
+\advance\textwidth .5cm
+\let\Ldots\ldots
+\def\ldots{\mbox{$\Ldots$}} % In case we're using AmS-LaTeX.
+\makeatletter
+\def\ps@samples{%
+  \def\@oddhead{\bf PSTricks samples \hfill \thepage}%
+  \def\@oddfoot{}}
+\makeatother
+\pagestyle{samples}
+
+\newbox\sample
+
+\def\example{\setbox\sample\vbox\bgroup}
+\def\endexample{%
+  \egroup
+  \vbox{\vskip 1cm
+    \hbox{\psframebox[boxsep=false,linewidth=2pt,linearc=.5cm,framesep=.5cm,
+      cornersize=absolute]{\box\sample}}
+    \vskip 1cm}}
+\def\rquote#1{{\begin{quote}\vskip-\topsep
+  \raggedright\hskip -2em#1\end{quote}}}
+\def\creator#1{\rquote{{\bf Creator:}\hskip 1em#1}}
+\def\title#1{\rquote{{\bf Description:}\hskip 1em#1}}
+
+\def\N#1{{\tt\string#1}}
+
+\begin{document}
+
+\begin{example}
+  \creator{Gisli Ottarsson \tt <gisli@liapunov.eecs.umich.edu>}
+  \title{Calvin and Hobbes}
+
+  $$
+  \pspicture(-3.,29)(3.,38)
+    \def\anglei{5}
+    \def\angleii{-5}
+    \psset{linewidth=1pt,hatchwidth=0.8pt}
+    \def\tower#1{%
+      \psline[linewidth=2pt](0,0)(0,7)
+      \psset{fillstyle=solid,dimen=middle,linewidth=1.5pt}
+      \cnode(0,2){.5}{A#1}
+      \cnode(0,5){.8}{B#1}
+      \cnode(0,7){.5}{C#1}
+      \psset{linestyle=solid,linewidth=1pt}
+      \psline{->}(0,1)(2,1)
+      \SpecialCoor
+      \rput([angle=90]B#1){\psline{->}(2,0)}
+      \rput([angle=90]C#1){\psline{->}(2,0)}}%
+      \pscustom[linewidth=2pt]{%
+      \psarc(0,0){30}{80}{100}
+      \gsave
+        \psarcn(0,0){29.25}{100}{80}
+        \fill[fillstyle=vlines]
+      \grestore}
+    \rput{\anglei}{\rput(0,30){%
+      \psset{fillcolor=lightgray}
+      \tower{1}}}
+    \rput{\angleii}{\rput(0,30){%
+      \psset{linestyle=dashed}
+      \tower{2}}}
+    \psset{linewidth=1.5pt,coilwidth=.45}
+    \nczigzag{B1}{A2}
+    \aput[.25](.85){$k_{c_3}$}
+    \ncline[linecolor=white,linewidth=.6]{A1}{B2}
+    \nczigzag{A1}{B2}
+    \bput[.3](.85){$k_{c_3}$}
+    \nczigzag{A1}{A2}
+    \bput[.3](.5){$k_{c_1}$}
+    \nczigzag{B1}{B2}
+    \aput[.3](.5){$k_{c_2}$}
+  \endpspicture
+  $$
+\end{example}
+
+\begin{example}
+  \creator{\tt{leecheng@liapunov.eecs.umich.edu}}
+  \title{Dripping faucet model.}
+
+  \psset{unit=.4cm}
+  \begin{center}
+    \begin{pspicture}(0,-2)(31,12)
+      \rput(1.5,0){%
+        \psellipse[linewidth=1pt](8,7)(1,3)
+        \psframe[linecolor=white,fillstyle=solid,fillcolor=white]
+          (6.4,6.5)(8,7.5)
+        \psline[linearc=.3,linewidth=1pt](8,8)(8,7.5)(4,7.5)
+        \psbezier[linewidth=1pt](4,7.5)(3,7.5)(3,6.5)(3,5.5)
+        \psline[linearc=.3,linewidth=1pt](8,6)(8,6.5)(5,6.5)
+        \psbezier[linewidth=1pt](5,6.5)(4,6.5)(4,6.5)(4,5.5)
+        \psline[linewidth=1pt](3,5.5)(4,5.5)
+        \psline[linearc=.3,linewidth=1pt](5,7.5)(5,8)(6,8)(6,7.5)
+        \psframe[linewidth=1pt](5.3,8)(5.7,8.7)
+        \psframe[linewidth=1pt,framearc=1,fillstyle=solid,
+          fillcolor=white](4,8.7)(7,9)
+        \multirput(3.5,4.8)(0,-1){4}{%
+          \psbezier[linewidth=.5pt](0,0)(.25,-.4)(-.25,-.4)(0,0)}
+        \rput[t](5.5,0){Dripping Faucet}}
+      \rput(20,5){%
+        \pspolygon[linecolor=white,fillstyle=vlines,
+          fillcolor=darkgray,hatchsep=.2](1,4.5)(1,4)(4,4)(4,4.5)
+        \psline[linewidth=2pt](1,4)(4,4)
+        \psline[linewidth=1.5pt](2.5,4)(2.5,3.5)(2.9,3.3)(2.1,2.9)
+          (2.9,2.5)(2.1,2.1)(2.9,1.7)(2.1,1.3)(2.5,1.1)(2.5,0.6)
+        \psframe[linecolor=black,linewidth=1.5pt,fillstyle=solid,
+          fillcolor=lightgray](1.8,-1)(3.2,.6)
+        \rput(2.5,-.2){$M$}
+        \psline{<->}(3.7,-.9)(3.7,.5)
+        \psframe[linecolor=black,linewidth=1.5pt,fillstyle=solid,
+          fillcolor=lightgray](1.8,-3.5)(3.2,-1.9)
+        \rput(2.5,-2.7){$m$}
+        \psline{->}(5,1)(5,-1)
+        \rput[l](5.5,0){$g$}
+        \psline{->}(3.7,-2)(3.7,-3.4)
+        \rput[t](2.5,-4){Mathematical Model for}
+        \rput[t](2.5,-5){a Dripping Faucet}
+        \rput(-6,-2){%
+          \psset{linewidth=2pt}
+          \psline(0,.5)(2,.5)
+          \psline(0,-.5)(2,-.5)
+          \psline(1.5,1)(2.5,0)(1.5,-1)}}
+      \psframe[linewidth=2pt,framearc=.05,linecolor=gray](0,-2.5)(31,12)
+    \end{pspicture}
+  \end{center}
+\end{example}
+
+\begin{example}
+  \creator{\tt{Christian Schytt <pierre@diku.dk>}}
+  \title{Primal and dual.}
+
+  \hbox to \hsize{%
+    % DUAL
+    \psset{linewidth=0.5pt}
+    \pspicture(-2,-1)(6,5)
+    \psline{->}(5,0)\psline{->}(0,4)
+    %
+    \qdisk(2,0){2pt}
+    \rput(2,0){\pnode{Z}}
+    \uput[dl](2,0){$c_{ij}$}
+    %
+    \uput[d](5,0){$p_i-p_j$}
+    \uput[r](0,4){\parbox{2cm}{Dual cost \\ of arc $(i,j)$}}
+    \uput[l](0,4){$q_{ij}(p_i-p_j)$}
+    %
+    \rput(.5,1.5){\pnode{U}}
+    \rput(2.5,-1.5){\pnode{V}}
+    \ncline{Z}{U}\mput{\pnode{X}}
+    \ncline{Z}{V}\mput{\pnode{Y}}
+    %
+    \rput[b](2,2){\rnode{A}{Slope: ${}-l_{ij}$}}
+    \ncline{->}{A}{X}
+    \rput[b](0,-0.75){\rnode{B}{Slope: ${}-u_{ij}$}}
+    \ncline{->}{B}{Y}
+    \endpspicture\hfill
+    % PRIMAL
+    \pspicture(0,-1)(6,5)
+    \psline{->}(5,0)\psline{->}(0,4)
+    \qdisk(1.5,0){2pt}
+    \qdisk(3.5,0){2pt}
+    \uput[d](1.5,0){$l_{ij}$}
+    \uput[d](3.5,0){$u_{ij}$}
+    \uput[d](5,0){$f_{ij}$}
+    \uput[r](0,4){\parbox{2cm}{\raggedright Primal cost \\ of arc $(i,j)$}}
+    %
+    \rput(1.5,1){\pnode{A}}
+    \rput(3.5,2){\pnode{B}}
+    \ncline{-}{A}{B}\mput{a\pnode{Y}}
+    %
+    \psline[linestyle=dashed]{-}(1.5,0)(1.5,3)
+    \psline[linestyle=dashed]{-}(3.5,0)(3.5,3)
+    %
+    \rput[l](4,1){\rnode{X}{Slope: $c_{ij}$}}
+    \ncline{->}{X}{Y}
+    \endpspicture
+  }\medskip
+\end{example}
+
+\begin{example}
+  \creator{Gisli Ottarsson \tt <gisli@liapunov.eecs.umich.edu>}
+
+  \begin{center}
+    \psset{unit=1in,linewidth=1pt,hatchwidth=0.8pt}
+    \pspicture(1,0)(5.,3)
+      \psline[linewidth=2pt,arrowscale=1.5]{->}(1.5,2.4)(3.5,2.4)
+      \psellipse[fillcolor=darkgray,fillstyle=solid](1.5,1.5)(.5,1.3)
+      \psellipse[fillcolor=white,fillstyle=solid](1.4,1.5)(.5,1.3)
+      \psline(1.5,2.8)(1.4,2.8)
+      \psline(1.5,0.2)(1.4,0.2)
+      \psline[linewidth=1.5pt,linestyle=dashed](1.3,2.4)(1.7,2.4)
+      \pscircle*(1.3,2.4){3pt}
+      \rput(1.3,2.2){$(r_o,\theta_o)$}
+      \rput(3.3,2.65){$u(r_o,\theta_o)$}
+      \psline[linewidth=2pt,arrowscale=1.5]{|->}(2.5,0.65)(4.5,0.65)
+      \rput(4.5,0.85){$w(x_o)$}
+      \psline{<->}(1.93,1.0)(2.5,.65)
+      \rput(2.2,.65){$x_o$}
+      \pscircle[fillcolor=lightgray,fillstyle=solid](1.93,1.2){0.05}
+      \pspolygon[fillcolor=lightgray,fillstyle=solid,linecolor=lightgray]
+        (1.935,1.24)(3.5,.38)(3.5,.22)(1.935,1.16)
+      \pscircle[fillcolor=lightgray,fillstyle=solid](2.53,0.855){0.058}
+      \pscircle[fillcolor=lightgray,fillstyle=solid,linecolor=lightgray]
+        (2.545,0.845){0.056}
+      \pscircle[fillcolor=gray,fillstyle=solid](3.5,.3){0.08}
+      \psline(1.93,1.245)(3.5,.38)
+      \psline(3.5,.22)(1.92,1.156)
+    \endpspicture
+  \end{center}
+\end{example}
+
+
+\begin{example}
+\creator{tvz}
+\title{Another example of \N\pspolygon. The coordinates where determined
+  using \N\psgrid, after making the table.\label{ex-pspolygon}}
+
+\begin{center}
+  \def\arraystretch{2}\tabcolsep=10pt\small\bf
+  {\em Result is true for values in shaded region:}\\[5pt]
+  \pspolygon[linearc=.4,fillcolor=lightgray,fillstyle=solid]
+    (3,2)(5.9,2)(5.9,0)(7.4,0)(7.4,-2)(1.45,-2)(1.45,0)(3,0)
+  \begin{tabular}{cccccc}
+    X11 & X12 & X13 & X14 & X15 & X16\\
+    X21 & X22 & X23 & X24 & X25 & X26\\
+    X31 & X32 & X33 & X34 & X35 & X36\\
+    X41 & X42 & X43 & X44 & X45 & X46
+\end{tabular}
+\end{center}
+
+\end{example}
+
+
+\begin{example}
+  \creator{tvz}
+  \title{Nodes.\label{ex-nodes1}}
+
+  \begin{center}
+    \begin{pspicture}(0,-1)(8,3)
+      \psset{arrows=->, nodesep=6pt}
+      \rput(3,3){\rnode{A}{Returns to Scale}}
+      \rput(1,1){\rnode{B}{Production}}
+      \rput(5,1){\rnode{C}{Managing}}
+      \rput(3,-1){\rnode{D}{Supervision}}
+      \rput(7,-1){\rnode{E}{Information Processing}}
+      \ncline{A}{B} \ncline{A}{C} \ncline{C}{D} \ncline{C}{E}
+    \end{pspicture}
+  \end{center}
+\end{example}
+
+
+\begin{example}
+  \creator{tvz}
+  \title{Another example of nodes.\label{ex-nodes3}}
+
+  \begin{center}
+    \begin{pspicture}(0,-1)(7.5,1)
+      \pnode{a}
+      \cnodeput(1.5,0){b}{0}
+      \cnodeput(3,0){c}{1}
+      \cnodeput(4.5,0){d}{2}
+      \cnodeput(6,0){e}{3}
+      \scriptsize
+      \psset{arrows=->,nodesep=0}
+      \pslabelsep=3pt
+      \ncline{a}{b}\Aput{start}
+      \ncline{b}{c}\Bput{a}
+      \ncline{c}{d}\Aput{b}
+      \ncline{d}{e}\Aput{b}
+      \psset{arm=.6,linearc=.4,angleA=0,angleB=90}
+      \ncangles{b}{b}\Aput{b}
+      \ncangles{e}{b}\Aput{b}
+      \psset{angleB=-90}
+      \ncangles{c}{c}\Bput{a}
+      \ncangles{d}{c}\Bput{a}
+      \ncangles{e}{c}\Bput{a}
+    \end{pspicture}
+  \end{center}
+\end{example}
+
+\begin{example}
+  \creator{tvz}
+  \title{Nonsense examples of nodes.\label{ex-nodes4}}
+
+  The tempestuous \rnode{E}{Maggie} and her alcoholic husband
+  \rnode{A}{Brick} \ldots
+  \vskip 2cm
+  \cnode*{3pt}{D}\hskip 1em  Much Ado about \rnode{B}{Nothing}.
+  \vskip 1in
+  and \rnode{J}{\psframebox{another}} another
+  \rnode{K}{\psframebox{another}} another another \rnode{C}{book}
+  \ncline[linecolor=darkgray,linewidth=1.5pt,nodesep=3pt]{->}{A}{B}
+  \ncline[nodesep=3pt,linestyle=dashed,border=3pt]{->}{C}{E}
+  \ncangle[nodesep=1pt,angleA=-90,angleB=150, armB=3cm]{D}{C}
+  \ncbar[angle=90]{<-oo}{J}{K}
+\end{example}
+
+
+\begin{example}
+  \creator{tvz}
+  \title{More node nonsense.\label{ex-nodes5}}
+
+  \begin{center}
+    \begin{pspicture}(0.4,.2)(9.8,6.2)
+      \rput(2,6){\rnode{G}{\psframebox{GOAT}}}
+      \rput(2,.5){\rnode{I}{\psframebox{GOAT}}}
+      \ncangles[angleA=90, angleB=180, nodesepB=3pt, linearc=3pt,
+        armA=2cm]{<-**}{I}{G}
+      \lput*(2.5){Doom}
+      \bput(.5){Zoom}
+      \SpecialCoor
+      \rput{10}(7;30){\rnode{A}{\psframebox{Polar Coor}}}
+      \rput(5;10){\rnode{B}{\psframebox{Polar Coor}}}
+      \ncline{->}{A}{B}
+      \mput{\pnode{Y}}
+      \cnodeput[linewidth=1.5pt](9.5,6){H}{H}
+      \cnodeput[linewidth=1.5pt](8,1){M}{M}
+      \newpsobject{myarc}{ncarc}{nodesep=3pt,offset=2pt,arrows=->}
+      \myarc{H}{M}\mput*{r}
+      \myarc{M}{H}\mput*{l}\lput(.75){\pnode{Z}}
+      \nccurve[angleA=135, angleB=135, ncurv=1.8]{Z}{Y}\bput{:D}{Doom}
+    \end{pspicture}
+  \end{center}
+\end{example}
+
+\begin{example}
+  \creator{tvz}
+  \title{}
+
+  \[
+      \def\arraystretch{3.5}
+      \arraycolsep .7cm
+      \begin{array}{ccc}
+        \rnode{a}{U}\\
+        & \rnode{b}{X\times_Z Y} & \rnode{c}{X}\\
+        & \rnode{d}{Y} & \rnode{e}{Z}
+      \end{array}
+    \psset{arrows=->,nodesep=3pt}
+    \pslabelsep 3pt
+    \everypsbox{\scriptstyle}
+    \ncLine{a}{b}\Bput{y}
+    \ncLine{a}{c}\Aput{x}
+    \ncLine{b}{d}\Bput{q}
+    \ncLine{b}{c}\Bput{p}
+    \ncLine{c}{e}\Aput{f}
+    \ncLine{d}{e}\Bput{g}
+  \]
+\end{example}
+
+\begin{example}
+  \creator{tvz}
+  \title{Several ways to connect nodes to themselves}
+
+  \def\arrow(#1,#2){\ncline{->}{#1}{#2}}
+  $$
+    \begin{array}{c@{\hskip 1.5cm}c@{\hskip 1.5cm}c}
+      \rnode{a}{\bullet} & \rnode{b}{\bullet} & \rnode{c}{\bullet}\\[1cm]
+    \end{array}
+    \everypsbox{\scriptstyle}
+    \psset{nodesep=5pt,arm=.6,linearc=.4,angleA=0,angleB=90}
+    \ncangles{->}{a}{a}
+    \ncangles{->}{b}{b}
+    \ncangles{->}{c}{c}
+    \arrow(a,b)
+    \arrow(b,c)
+    \ncarc[arcangleA=-30, arcangleB=-30]{->}{a}{c}
+  $$
+  $$
+    \everypsbox{\scriptstyle}
+    \def\cn#1#2{%
+      \cnode*{2pt}{#1}
+      \ncloop[arm=.4,linearc=.39,loopsize=.8,nodesep=5pt,angleB=180]
+        {->}{#1}{#1}
+      \Bput{#2}}
+    \begin{array}{c@{\hskip 1.5cm}c@{\hskip 1.5cm}c}
+      \cn{a}{1} & \cn{b}{2} & \cn{c}{3}\\[1cm]
+    \end{array}
+    \psset{nodesep=5pt,arm=.6,linearc=.4}\arrow(a,b)
+    \arrow(b,c)
+    \ncarc[arcangleA=-30, arcangleB=-30]{->}{a}{c}
+  $$
+  $$
+    \everypsbox{\scriptstyle}
+    \def\cn#1#2{%
+      \cnode*{2pt}{#1}
+      \nccircle[nodesep=5pt]{->}{#1}{.5}
+      \Bput{#2}}
+    \begin{array}{c@{\hskip 1.5cm}c@{\hskip 1.5cm}c}
+      \cn{a}{1} & \cn{b}{2} & \cn{c}{3}\\[1cm]
+    \end{array}
+    \psset{nodesep=5pt,arm=.6,linearc=.4}\arrow(a,b)
+    \arrow(b,c)
+    \ncarc[arcangleA=-30, arcangleB=-30]{->}{a}{c}
+  $$
+\end{example}
+
+\begin{example}
+  \creator{tvz}
+  \title{}
+
+\centerline{%
+  \rnode{a}{\psframebox{\Huge A connection}}%
+  \hskip 1.6cm
+  \rnode{b}{\psframebox{\Huge Unto another}}}
+\ncloop[loopsize=-1cm,arm=.8cm,linearc=.3]{->}{a}{b}
+\end{example}
+
+
+\begin{example}
+  \creator{tvz}
+  \title{}
+
+  \newbox\mybox
+  \setbox\mybox=\hbox{%
+    \psset{unit=4pt}
+    \pspicture(-2.8,0)(2.8,7.75)
+      \psset{linewidth=.1}
+      \psline(-.3,0)(-.3,3)
+      \psline(.3,0)(.3,3)
+      \psline(-2,0)(2,0)
+      \rput{45}(0,2){%
+        \psframe[framearc=.1,fillstyle=solid](0,0)(4,4)
+        \psline[linewidth=.4,linearc=.2](1.5,.4)(.4,2.5)(3.6,1.5)(2.5,3.6)}
+      \psdots[dotstyle=square,dotsize=.4 0](0,7.5)
+    \endpspicture}%
+  \centerline{\copy\mybox\hskip 1pt\copy\mybox}
+\end{example}
+
+\end{document}
+

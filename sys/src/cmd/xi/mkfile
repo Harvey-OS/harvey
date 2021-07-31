@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+TARG=xi
+OFILES=xi.$O\
+	run.$O\
+	alu.$O\
+	mem.$O\
+	stats.$O\
+	symbols.$O\
+	cmd.$O\
+	bpt.$O\
+	float.$O\
+	fpu.$O\
+	convfloat.$O\
+	syscall.$O\
+	itab.$O\
+	utils.$O\
+
+HFILES=3210.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

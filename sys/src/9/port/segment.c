@@ -5,29 +5,22 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-static void	imagereclaim(void);
-static void	imagechanreclaim(void);
+Page *lkpage(Segment*, ulong);
+void lkpgfree(Page*);
+void imagereclaim(void);
 
 /* System specific segattach devices */
 #include "io.h"
 #include "segment.h"
 
-static Lock physseglock;
-
-#define NFREECHAN	64
 #define IHASHSIZE	64
 #define ihash(s)	imagealloc.hash[s%IHASHSIZE]
-static struct
+struct
 {
 	Lock;
 	Image	*free;
 	Image	*hash[IHASHSIZE];
-	QLock	ireclaim;	/* mutex on reclaiming free images */
-
-	Chan	**freechan;	/* free image channels */
-	int	nfreechan;	/* number of free channels */
-	int	szfreechan;	/* size of freechan array */
-	QLock	fcreclaim;	/* mutex on reclaiming free channels */
+	QLock	ireclaim;
 }imagealloc;
 
 void
@@ -40,21 +33,15 @@ initseg(void)
 	for(i = imagealloc.free; i < ie; i++)
 		i->next = i+1;
 	i->next = 0;
-	imagealloc.freechan = malloc(NFREECHAN * sizeof(Chan*));
-	imagealloc.szfreechan = NFREECHAN;
 }
 
 Segment *
 newseg(int type, ulong base, ulong size)
 {
 	Segment *s;
-	int mapsize;
 
 	if(size > (SEGMAPSIZE*PTEPERTAB))
 		error(Enovmem);
-
-	if(swapfull())
-		error(Enoswap);
 
 	s = smalloc(sizeof(Segment));
 	s->ref = 1;
@@ -62,20 +49,6 @@ newseg(int type, ulong base, ulong size)
 	s->base = base;
 	s->top = base+(size*BY2PG);
 	s->size = size;
-
-	mapsize = ROUND(size, PTEPERTAB)/PTEPERTAB;
-	if(mapsize > nelem(s->ssegmap)){
-		mapsize *= 2;
-		if(mapsize > (SEGMAPSIZE*PTEPERTAB))
-			mapsize = (SEGMAPSIZE*PTEPERTAB);
-		s->map = smalloc(mapsize*sizeof(Pte*));
-		s->mapsize = mapsize;
-	}
-	else{
-		s->map = s->ssegmap;
-		s->mapsize = nelem(s->ssegmap);
-	}
-
 	return s;
 }
 
@@ -109,33 +82,28 @@ putseg(Segment *s)
 	if(i)
 		putimage(i);
 
-	emap = &s->map[s->mapsize];
+	emap = &s->map[SEGMAPSIZE];
 	for(pp = s->map; pp < emap; pp++)
 		if(*pp)
 			freepte(s, *pp);
 
 	qunlock(&s->lk);
-	if(s->map != s->ssegmap)
-		free(s->map);
-	if(s->profile != 0)
-		free(s->profile);
 	free(s);
 }
 
 void
 relocateseg(Segment *s, ulong offset)
 {
-	Page **pg, *x;
-	Pte *pte, **p, **endpte;
+	Pte **p, **endpte;
+	Page **pg, **endpages;
 
-	endpte = &s->map[s->mapsize];
+	endpte = &s->map[SEGMAPSIZE];
 	for(p = s->map; p < endpte; p++) {
-		if(*p == 0)
-			continue;
-		pte = *p;
-		for(pg = pte->first; pg <= pte->last; pg++) {
-			if(x = *pg)
-				x->va += offset;
+		if(*p) {
+			endpages = &((*p)->pages[PTEPERTAB]);
+			for(pg = (*p)->pages; pg < endpages; pg++)
+				if(*pg)
+					(*pg)->va += offset;
 		}
 	}
 }
@@ -143,7 +111,7 @@ relocateseg(Segment *s, ulong offset)
 Segment*
 dupseg(Segment **seg, int segno, int share)
 {
-	int i, size;
+	int i;
 	Pte *pte;
 	Segment *n, *s;
 
@@ -151,7 +119,7 @@ dupseg(Segment **seg, int segno, int share)
 	s = seg[segno];
 
 	switch(s->type&SG_TYPE) {
-	case SG_TEXT:		/* New segment shares pte set */
+	case SG_TEXT:			/* New segment shares pte set */
 	case SG_SHARED:
 	case SG_PHYSICAL:
 	case SG_SHDATA:
@@ -160,16 +128,10 @@ dupseg(Segment **seg, int segno, int share)
 
 	case SG_STACK:
 		qlock(&s->lk);
-		if(waserror()){
-			qunlock(&s->lk);
-			nexterror();
-		}
 		n = newseg(s->type, s->base, s->size);
-		poperror();
 		break;
 
-	case SG_BSS:		/* Just copy on write */
-	case SG_MAP:
+	case SG_BSS:			/* Just copy on write */
 		qlock(&s->lk);
 		if(share && s->ref == 1) {
 			s->type = (s->type&~SG_TYPE)|SG_SHARED;
@@ -177,15 +139,10 @@ dupseg(Segment **seg, int segno, int share)
 			qunlock(&s->lk);
 			return s;
 		}
-		if(waserror()){
-			qunlock(&s->lk);
-			nexterror();
-		}
 		n = newseg(s->type, s->base, s->size);
-		poperror();
 		break;
 
-	case SG_DATA:		/* Copy on write plus demand load info */
+	case SG_DATA:			/* Copy on write plus demand load info */
 		if(segno == TSEG)
 			return data2txt(s);
 
@@ -196,12 +153,7 @@ dupseg(Segment **seg, int segno, int share)
 			qunlock(&s->lk);
 			return s;
 		}
-		if(waserror()){
-			qunlock(&s->lk);
-			nexterror();
-		}
 		n = newseg(s->type, s->base, s->size);
-		poperror();
 
 		incref(s->image);
 		n->image = s->image;
@@ -209,14 +161,13 @@ dupseg(Segment **seg, int segno, int share)
 		n->flen = s->flen;
 		break;
 	}
-	size = s->mapsize;
-	for(i = 0; i < size; i++)
+	for(i = 0; i < SEGMAPSIZE; i++)
 		if(pte = s->map[i])
 			n->map[i] = ptecpy(pte);
 
 	n->flushme = s->flushme;
 	qunlock(&s->lk);
-	return n;
+	return n;	
 }
 
 void
@@ -247,15 +198,11 @@ attachimage(int type, Chan *c, ulong base, ulong len)
 {
 	Image *i, **l;
 
-	/* reclaim any free channels from reclaimed segments */
-	if(imagealloc.nfreechan)
-		imagechanreclaim();
-
 	lock(&imagealloc);
 
 	/*
-	 * Search the image cache for remains of the text from a previous
-	 * or currently running incarnation
+	 * Search the image cache for remains of the text from a previous 
+	 * or currently running incarnation 
 	 */
 	for(i = ihash(c->qid.path); i; i = i->hash) {
 		if(c->qid.path == i->qid.path) {
@@ -270,7 +217,7 @@ attachimage(int type, Chan *c, ulong base, ulong len)
 			unlock(i);
 		}
 	}
-
+	
 	/*
 	 * imagereclaim dumps pages from the free list which are cached by image
 	 * structures. This should free some image structures.
@@ -278,7 +225,7 @@ attachimage(int type, Chan *c, ulong base, ulong len)
 	while(!(i = imagealloc.free)) {
 		unlock(&imagealloc);
 		imagereclaim();
-		sched();
+		resrcwait(0);
 		lock(&imagealloc);
 	}
 
@@ -314,89 +261,43 @@ found:
 	return i;
 }
 
-static struct {
-	int	calls;			/* times imagereclaim was called */
-	int	loops;			/* times the main loop was run */
-	uvlong	ticks;			/* total time in the main loop */
-	uvlong	maxt;			/* longest time in main loop */
-} irstats;
-
-static void
+void
 imagereclaim(void)
 {
 	Page *p;
-	uvlong ticks;
 
-	irstats.calls++;
 	/* Somebody is already cleaning the page cache */
 	if(!canqlock(&imagealloc.ireclaim))
 		return;
 
 	lock(&palloc);
-	ticks = fastticks(nil);
 	for(p = palloc.head; p; p = p->next) {
-		if(p->ref == 0 && p->image && canlock(p)) {
+		if(p->image && p->ref == 0 && p->image != &swapimage && canlock(p)) {
 			if(p->ref == 0)
 				uncachepage(p);
 			unlock(p);
 		}
 	}
-	ticks = fastticks(nil) - ticks;
 	unlock(&palloc);
-	irstats.loops++;
-	irstats.ticks += ticks;
-	if(ticks > irstats.maxt)
-		irstats.maxt = ticks;
-	//print("T%llud+", ticks);
 	qunlock(&imagealloc.ireclaim);
-}
-
-/*
- *  since close can block, this has to be called outside of
- *  spin locks.
- */
-static void
-imagechanreclaim(void)
-{
-	Chan *c;
-
-	/* Somebody is already cleaning the image chans */
-	if(!canqlock(&imagealloc.fcreclaim))
-		return;
-
-	/*
-	 * We don't have to recheck that nfreechan > 0 after we
-	 * acquire the lock, because we're the only ones who decrement 
-	 * it (the other lock contender increments it), and there's only
-	 * one of us thanks to the qlock above.
-	 */
-	while(imagealloc.nfreechan > 0){
-		lock(&imagealloc);
-		imagealloc.nfreechan--;
-		c = imagealloc.freechan[imagealloc.nfreechan];
-		unlock(&imagealloc);
-		cclose(c);
-	}
-
-	qunlock(&imagealloc.fcreclaim);
 }
 
 void
 putimage(Image *i)
 {
-	Chan *c, **cp;
+	Chan *c;
 	Image *f, **l;
 
-	if(i->notext)
+	if(i == &swapimage)
 		return;
 
 	lock(i);
 	if(--i->ref == 0) {
 		l = &ihash(i->qid.path);
-		i->qid = (Qid){~0, ~0};
+		i->qid = (Qid){~0, ~0};	
 		unlock(i);
 		c = i->c;
-
+	
 		lock(&imagealloc);
 		for(f = *l; f; f = f->hash) {
 			if(f == i) {
@@ -408,20 +309,9 @@ putimage(Image *i)
 
 		i->next = imagealloc.free;
 		imagealloc.free = i;
-
-		/* defer freeing channel till we're out of spin lock's */
-		if(imagealloc.nfreechan == imagealloc.szfreechan){
-			imagealloc.szfreechan += NFREECHAN;
-			cp = malloc(imagealloc.szfreechan*sizeof(Chan*));
-			if(cp == nil)
-				panic("putimage");
-			memmove(cp, imagealloc.freechan, imagealloc.nfreechan*sizeof(Chan*));
-			free(imagealloc.freechan);
-			imagealloc.freechan = cp;
-		}
-		imagealloc.freechan[imagealloc.nfreechan++] = c;
 		unlock(&imagealloc);
 
+		close(c);
 		return;
 	}
 	unlock(i);
@@ -432,10 +322,9 @@ ibrk(ulong addr, int seg)
 {
 	Segment *s, *ns;
 	ulong newtop, newsize;
-	int i, mapsize;
-	Pte **map;
+	int i;
 
-	s = up->seg[seg];
+	s = u->p->seg[seg];
 	if(s == 0)
 		error(Ebadarg);
 
@@ -446,13 +335,13 @@ ibrk(ulong addr, int seg)
 
 	/* We may start with the bss overlapping the data */
 	if(addr < s->base) {
-		if(seg != BSEG || up->seg[DSEG] == 0 || addr < up->seg[DSEG]->base) {
+		if(seg != BSEG || u->p->seg[DSEG] == 0 || addr < u->p->seg[DSEG]->base) {
 			qunlock(&s->lk);
 			error(Enovmem);
 		}
 		addr = s->base;
 	}
-
+		
 	newtop = PGROUND(addr);
 	newsize = (newtop-s->base)/BY2PG;
 	if(newtop < s->top) {
@@ -462,13 +351,8 @@ ibrk(ulong addr, int seg)
 		return 0;
 	}
 
-	if(swapfull()){
-		qunlock(&s->lk);
-		error(Enoswap);
-	}
-
 	for(i = 0; i < NSEG; i++) {
-		ns = up->seg[i];
+		ns = u->p->seg[i];
 		if(ns == 0 || ns == s)
 			continue;
 		if(newtop >= ns->base && newtop < ns->top) {
@@ -477,18 +361,9 @@ ibrk(ulong addr, int seg)
 		}
 	}
 
-	if(newsize > (SEGMAPSIZE*PTEPERTAB)) {
+	if(newsize > (PTEMAPMEM*SEGMAPSIZE)/BY2PG) {
 		qunlock(&s->lk);
 		error(Enovmem);
-	}
-	mapsize = ROUND(newsize, PTEPERTAB)/PTEPERTAB;
-	if(mapsize > s->mapsize){
-		map = smalloc(mapsize*sizeof(Pte*));
-		memmove(map, s->map, s->mapsize*sizeof(Pte*));
-		if(s->map != s->ssegmap)
-			free(s->map);
-		s->map = map;
-		s->mapsize = mapsize;
 	}
 
 	s->top = newtop;
@@ -497,24 +372,18 @@ ibrk(ulong addr, int seg)
 	return 0;
 }
 
-/*
- *  called with s->lk locked
- */
 void
 mfreeseg(Segment *s, ulong start, int pages)
 {
-	int i, j, size;
+	int i, j;
 	ulong soff;
 	Page *pg;
-	Page *list;
 
 	soff = start-s->base;
 	j = (soff&(PTEMAPMEM-1))/BY2PG;
 
-	size = s->mapsize;
-	list = nil;
-	for(i = soff/PTEMAPMEM; i < size; i++) {
-		if(pages <= 0)
+	for(i = soff/PTEMAPMEM; i < SEGMAPSIZE; i++) {
+		if(pages <= 0) 
 			break;
 		if(s->map[i] == 0) {
 			pages -= PTEPERTAB-j;
@@ -523,36 +392,20 @@ mfreeseg(Segment *s, ulong start, int pages)
 		}
 		while(j < PTEPERTAB) {
 			pg = s->map[i]->pages[j];
-			if(pg){
-				s->map[i]->pages[j] = 0;
-				pg->next = list;
-				list = pg;
+			if(pg) {
+				putpage(pg);
+				s->map[i]->pages[j] = 0;	
 			}
 			if(--pages == 0)
-				goto out;
+				return;
 			j++;
 		}
 		j = 0;
 	}
-out:
-	/* flush this seg in all other processes */
-	i = s->type&SG_TYPE;
-	switch(i){
-	case SG_SHARED:
-	case SG_SHDATA:
-		procflushseg(s);
-		break;
-	}
-
-	/* free the pages */
-	for(pg = list; pg != nil; pg = list){
-		list = list->next;
-		putpage(pg);
-	}
 }
 
-Segment*
-isoverlap(Proc *p, ulong va, int len)
+int
+isoverlap(ulong va, int len)
 {
 	int i;
 	Segment *ns;
@@ -560,50 +413,24 @@ isoverlap(Proc *p, ulong va, int len)
 
 	newtop = va+len;
 	for(i = 0; i < NSEG; i++) {
-		ns = p->seg[i];
+		ns = u->p->seg[i];
 		if(ns == 0)
-			continue;
+			continue;	
 		if((newtop > ns->base && newtop <= ns->top) ||
 		   (va >= ns->base && va < ns->top))
-			return ns;
+			return 1;
 	}
-	return nil;
-}
-
-int
-addphysseg(Physseg* new)
-{
-	Physseg *ps;
-
-	/*
-	 * Check not already entered and there is room
-	 * for a new entry and the terminating null entry.
-	 */
-	lock(&physseglock);
-	for(ps = physseg; ps->name; ps++){
-		if(strcmp(ps->name, new->name) == 0){
-			unlock(&physseglock);
-			return -1;
-		}
-	}
-	if(ps-physseg >= nelem(physseg)-2){
-		unlock(&physseglock);
-		return -1;
-	}
-
-	*ps = *new;
-	unlock(&physseglock);
-
 	return 0;
 }
 
 ulong
 segattach(Proc *p, ulong attr, char *name, ulong va, ulong len)
 {
-	int sno;
-	Segment *s, *os;
+	int i, sno;
+	Segment *s;
 	Physseg *ps;
 
+	USED(p);
 	if(va != 0 && (va&KZERO) == KZERO)	/* BUG: Only ok for now */
 		error(Ebadarg);
 
@@ -611,38 +438,26 @@ segattach(Proc *p, ulong attr, char *name, ulong va, ulong len)
 	vmemchr(name, 0, ~0);
 
 	for(sno = 0; sno < NSEG; sno++)
-		if(p->seg[sno] == nil && sno != ESEG)
+		if(u->p->seg[sno] == 0 && sno != ESEG)
 			break;
 
 	if(sno == NSEG)
 		error(Enovmem);
 
 	len = PGROUND(len);
-	if(len == 0)
-		error(Ebadarg);
 
-	/*
-	 * Find a hole in the address space.
-	 * Starting at the lowest possible stack address - len,
-	 * check for an overlapping segment, and repeat at the
-	 * base of that segment - len until either a hole is found
-	 * or the address space is exhausted.
-	 */
+	/* Find a hole in the address space */
 	if(va == 0) {
 		va = p->seg[SSEG]->base - len;
-		for(;;) {
-			os = isoverlap(p, va, len);
-			if(os == nil)
+		for(i = 0; i < 20; i++) {
+			if(isoverlap(va, len) == 0)
 				break;
-			va = os->base;
-			if(len > va)
-				error(Enovmem);
 			va -= len;
 		}
 	}
 
 	va = va&~(BY2PG-1);
-	if(isoverlap(p, va, len) != nil)
+	if(isoverlap(va, len))
 		error(Esoverlap);
 
 	for(ps = physseg; ps->name; ps++)
@@ -654,12 +469,12 @@ found:
 	if(len > ps->size)
 		error(Enovmem);
 
-	attr &= ~SG_TYPE;		/* Turn off what is not allowed */
+	attr &= ~SG_TYPE;		/* Turn off what we are not allowed */
 	attr |= ps->attr;		/* Copy in defaults */
 
 	s = newseg(attr, va, len/BY2PG);
 	s->pseg = ps;
-	p->seg[sno] = s;
+	u->p->seg[sno] = s;
 
 	return va;
 }
@@ -677,10 +492,10 @@ pteflush(Pte *pte, int s, int e)
 	}
 }
 
+
 long
 syssegflush(ulong *arg)
-{
-	Segment *s;
+{	Segment *s;
 	ulong addr, l;
 	Pte *pte;
 	int chunk, ps, pe, len;
@@ -689,7 +504,7 @@ syssegflush(ulong *arg)
 	len = arg[1];
 
 	while(len > 0) {
-		s = seg(up, addr, 1);
+		s = seg(u->p, addr, 1);
 		if(s == 0)
 			error(Ebadarg);
 
@@ -726,20 +541,4 @@ syssegflush(ulong *arg)
 	}
 	flushmmu();
 	return 0;
-}
-
-void
-segclock(ulong pc)
-{
-	Segment *s;
-
-	s = up->seg[TSEG];
-	if(s == 0 || s->profile == 0)
-		return;
-
-	s->profile[0] += TK2MS(1);
-	if(pc >= s->base && pc < s->top) {
-		pc -= s->base;
-		s->profile[pc>>LRESPROF] += TK2MS(1);
-	}
 }

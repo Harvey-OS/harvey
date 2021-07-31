@@ -1,0 +1,69 @@
+%Filename: OT1hlcs.fd
+%Created by: tex 3827lucsans
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{OT1hlcs.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for OT1/hlcs.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{OT1}{hlcs}{}
+
+\DeclareFontShape{OT1}{hlcs}{db}{n}{
+ <->s * [\LucidaScale]hlcds7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{db}{sc}{
+ <->s * [\LucidaScale]hlcdsc7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{db}{it}{
+ <->s * [\LucidaScale]hlcdis7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{db}{sl}{
+ <->s * [\LucidaScale]hlcdos7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{b}{n}{
+ <->s * [\LucidaScale]hlcbs7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{b}{sc}{
+ <->s * [\LucidaScale]hlcbsc7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{b}{it}{
+ <->s * [\LucidaScale]hlcbis7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{b}{sl}{
+ <->s * [\LucidaScale]hlcbos7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{m}{n}{
+ <->s * [\LucidaScale]hlcrs7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{m}{sc}{
+ <->s * [\LucidaScale]hlcrsc7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{m}{it}{
+ <->s * [\LucidaScale]hlcris7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{m}{sl}{
+ <->s * [\LucidaScale]hlcros7t
+}{}
+
+\DeclareFontShape{OT1}{hlcs}{db}{ui}{<->sub * hlcs/db/it}{}
+\DeclareFontShape{OT1}{hlcs}{b}{ui}{<->ssub * hlcs/db/ui}{}
+\DeclareFontShape{OT1}{hlcs}{bx}{ui}{<->ssub * hlcs/b/ui}{}
+\DeclareFontShape{OT1}{hlcs}{bx}{n}{<->ssub * hlcs/b/n}{}
+\DeclareFontShape{OT1}{hlcs}{bx}{sc}{<->ssub * hlcs/b/sc}{}
+\DeclareFontShape{OT1}{hlcs}{bx}{it}{<->ssub * hlcs/b/it}{}
+\DeclareFontShape{OT1}{hlcs}{bx}{sl}{<->ssub * hlcs/b/sl}{}
+\DeclareFontShape{OT1}{hlcs}{m}{ui}{<->sub * hlcs/m/it}{}
+
+\endinput

@@ -1,0 +1,51 @@
+Thu May 14 19:21:49 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Thu Apr 23 12:06:30 1992  Karl Berry  (karl@hayley)
+
+        * tex.man, mf.man: fix nroff quote problems.
+        * Makefile (sedscript): toss trailing comments.
+        These changes from Andreas.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Sun Apr 12 11:51:58 1992  Karl Berry  (karl@hayley)
+
+        * tex.man: . not searched first anymore.
+
+Fri Apr  3 09:55:14 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Sat Mar 21 09:14:20 1992  Karl Berry  (karl at hayley)
+
+        * patgen.man: update for patgen2.
+
+        * *.man: (ENVIRONMENT VARIABLES): rename to `ENVIRONMENT'; remove
+          references to TEXFONTS_SUBDIR.
+
+        * tex.man (ENVIRONMENT): mention ~.
+
+        * Makefile (sedscript): depend using srcdir, not SITEDIR.
+
+Fri Mar 20 16:43:23 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the stuff.
+
+Sat Feb  1 16:45:54 1992  Karl Berry  (karl at hayley)
+
+        * tex.man: update path searching info.
+
+Sat Jan 11 08:47:26 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (initex.1, virtex.1): new targets.
+
+Tue Jan  7 16:04:29 1992  Karl Berry  (karl at hayley)
+
+        * Use `1 Jan 1992' date format.

@@ -6,9 +6,9 @@ case 0 1
 }
 
 rfork ns
-if(mount $wsys /mnt/wsys N`{{echo $pid $1 }| sed 's/^ //g;s/ +/,/g'}){
+if(mount $8½srv /mnt/8½ N$pid' '$1){
 	shift
-	bind -b /mnt/wsys /dev
+	bind -b /mnt/8½ /dev
 	echo -n `{basename $1} > /dev/label >[2] /dev/null
 	@{
 		echo hang > /proc/^`{cat /dev/ppid}^/ctl

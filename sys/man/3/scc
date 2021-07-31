@@ -1,0 +1,89 @@
+.TH SCC 3 
+.SH NAME
+scc, duart, uart \- serial communication control
+.SH SYNOPSIS
+.nf
+.B bind -a #t /dev
+
+.B /dev/eia0
+.B /dev/eia0ctl
+.B /dev/eia1
+.B /dev/eia1ctl
+.fi
+.SH DESCRIPTION
+.PP
+The serial line devices serve a one-level directory,
+giving access to the serial ports.
+There are several devices serving the same files;
+the particular one used depends on the machine involved.
+.B Eia0
+is a stream data file.
+It can be read and written to use that port.
+Reads will block until at least one character is available.
+.B Eia0ctl
+is a stream control file associated with the port.
+.B Eia1
+and
+.B eia1ctl
+are similar, but for a second serial line.
+.PP
+The
+.B ctl
+file can be used to push stream modules onto the port.
+One can also write one of the following textual commands to a
+.B ctl
+file:
+.TP
+.BI b n
+Set the baud rate to
+.IR n .
+.TP
+.BI d n
+Set DTR if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI k n
+Send a break lasting
+.I n
+milliseconds.
+.TP
+.BI r n
+Set RTS if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI m n
+Obey modem CTS signal if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI p c
+Set parity to odd if
+.I c
+is
+.BR o ,
+to even if
+.I c
+is
+.BR e ;
+else set no parity.
+.TP
+.BI s n
+Set number of stop bits to
+.IR n .
+Legal values are 1 or 2.
+.TP
+.BI l n
+Set number of bits per byte to
+.IR n .
+Legal values are 5, 6, 7, or 8.
+.SH SOURCE
+.B /sys/src/9/port/devscc.c
+.br
+.B /sys/src/9/*/devduart.c
+.br
+.B /sys/src/9/*/devuart.c

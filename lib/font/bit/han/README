@@ -1,0 +1,41 @@
+	All the subfonts in this directory are either based on 
+	characters in the X distribution from MIT or are copyrighted
+	by William Sun.
+	- Rob Pike, AT&T Bell Laboratories
+
+ /*
+ * © 1989 Massachusetts Institute of Technology
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of M.I.T. not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  M.I.T. makes no representations about the
+ * suitability of this software for any purpose.  It is provided "as is"
+ * without express or implied warranty.
+ *
+ * M.I.T. DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL M.I.T.
+ * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ */
+
+Some characters come from chinese fonts copyrighted by william sun
+(cs.anu.edu.au!william).
+They are not in the public domain but can be freely used and distributed
+for non-commercial purposes.
+
+
+The fonts in this directory are merged from the JIS, Big 5, and
+GB-2312 character sets.  Choices are prioritized (from highest
+to lowest) as follows in cases of overlap:
+
+	c.nnnn.16	Big 5, GB-2312, JIS
+	j.nnnn.16	JIS, Big 5, GB-2312
+	c.nnnn.24	GB-2312, JIS
+	j.nnnn.24	JIS, GB-2312

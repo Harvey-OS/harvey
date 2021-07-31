@@ -1,3 +1,0 @@
-#!/bin/rc
-exec ramfs -i
-

@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <plumb.h>
 #include "errors.h"
 
 /*
@@ -26,10 +25,11 @@ typedef	ushort		Mod;		/* modification number */
 typedef struct Address	Address;
 typedef struct Block	Block;
 typedef struct Buffer	Buffer;
-typedef struct Disk	Disk;
+typedef struct Disc	Disc;
 typedef struct Discdesc	Discdesc;
 typedef struct File	File;
 typedef struct List	List;
+typedef struct Mark	Mark;
 typedef struct Range	Range;
 typedef struct Rangeset	Rangeset;
 typedef struct String	String;
@@ -39,6 +39,7 @@ enum State
 	Clean =		' ',
 	Dirty =		'\'',
 	Unread =	'-',
+	Readerr =	'~',
 };
 
 struct Range
@@ -55,13 +56,6 @@ struct Address
 {
 	Range	r;
 	File	*f;
-};
-
-struct String
-{
-	short	n;
-	short	size;
-	Rune	*s;
 };
 
 struct List	/* code depends on a long being able to hold a pointer */
@@ -87,146 +81,149 @@ struct List	/* code depends on a long being able to hold a pointer */
 #define	filepptr	g.filep
 #define	listval		g.listv
 
-enum
-{
-	Blockincr =	256,
-	Maxblock = 	8*1024,
-
-	BUFSIZE = Maxblock,	/* size from fbufalloc() */
-	RBUFSIZE = BUFSIZE/sizeof(Rune),
-};
-
-
-enum
-{
-	Null		= '-',
-	Delete		= 'd',
-	Insert		= 'i',
-	Filename	= 'f',
-	Dot		= 'D',
-	Mark		= 'm',
-};
-
+/*
+ * Block must fit in a long because the list routines manage arrays of
+ * blocks.  Two problems: some machines (e.g. Cray) can't pull this off
+ * -- on them, use bitfields -- and the ushort bnum limits temp file sizes
+ * to about 200 megabytes.  Advantages: small, simple code and small
+ * memory overhead.  If you really want to edit huge files, making BLOCKSIZE
+ * bigger is the easiest way.
+ */
 struct Block
 {
-	uint		addr;	/* disk address in bytes */
-	union
-	{
-		uint	n;	/* number of used runes in block */
-		Block	*next;	/* pointer to next in free list */
-	};
+	ushort	bnum;		/* absolute number on disk */
+	short	nrunes;		/* runes stored in this block */
 };
 
-struct Disk
+struct Discdesc
 {
-	int		fd;
-	uint		addr;	/* length of temp file */
-	Block		*free[Maxblock/Blockincr+1];
+	int	fd;		/* plan 9 file descriptor of temp file */
+	ulong	nbk;		/* high water mark */
+	List	free;		/* array of free block indices */
 };
 
-Disk*		diskinit(void);
-Block*		disknewblock(Disk*, uint);
-void		diskrelease(Disk*, Block*);
-void		diskread(Disk*, Block*, Rune*, uint);
-void		diskwrite(Disk*, Block**, Rune*, uint);
+struct Disc
+{
+	Discdesc *desc;		/* descriptor of temp file */
+	Posn	nrunes;		/* runes on disc file */
+	List	block;		/* list of used block indices */
+};
+
+struct String
+{
+	short	n;
+	short	size;
+	Rune	*s;
+};
 
 struct Buffer
 {
-	uint		nc;
-	Rune		*c;	/* cache */
-	uint		cnc;	/* bytes in cache */
-	uint		cmax;	/* size of allocated cache */
-	uint		cq;	/* position of cache */
-	int		cdirty;	/* cache needs to be written */
-	uint		cbi;	/* index of cache Block */
-	Block		**bl;	/* array of blocks */
-	uint		nbl;	/* number of blocks */
+	Disc	*disc;		/* disc storage */
+	Posn	nrunes;		/* total length of buffer */
+	String	cache;		/* in-core storage for efficiency */
+	Posn	c1, c2;		/* cache start and end positions in disc */
+				/* note: if dirty, cache is really c1, c1+cache.n */
+	int	dirty;		/* cache dirty */
 };
-void		bufinsert(Buffer*, uint, Rune*, uint);
-void		bufdelete(Buffer*, uint, uint);
-uint		bufload(Buffer*, uint, int, int*);
-void		bufread(Buffer*, uint, Rune*, uint);
-void		bufclose(Buffer*);
-void		bufreset(Buffer*);
+
+#define	NGETC	128
 
 struct File
 {
-	Buffer;				/* the data */
-	Buffer		delta;		/* transcript of changes */
-	Buffer		epsilon;	/* inversion of delta for redo */
-	String		name;		/* name of associated file */
-	uint		qidpath;	/* of file when read */
-	uint		mtime;		/* of file when read */
-	int		dev;		/* of file when read */
-	int		unread;		/* file has not been read from disk */
-
-	long		seq;		/* if seq==0, File acts like Buffer */
-	long		cleanseq;	/* f->seq at last read/write of file */
-	int		mod;		/* file appears modified in menu */
-	char		rescuing;	/* sam exiting; this file unusable */
-
-//	Text		*curtext;	/* most recently used associated text */
-//	Text		**text;		/* list of associated texts */
-//	int		ntext;
-//	int		dumpid;		/* used in dumping zeroxed windows */
-
-	Posn		hiposn;		/* highest address touched this Mod */
-	Address		dot;		/* current position */
-	Address		ndot;		/* new current position after update */
-	Range		tdot;		/* what terminal thinks is current range */
-	Range		mark;		/* tagged spot in text (don't confuse with Mark) */
-	List		*rasp;		/* map of what terminal's got */
-	short		tag;		/* for communicating with terminal */
-	char		closeok;	/* ok to close file? */
-	char		deleted;	/* delete at completion of command */
-	Range		prevdot;	/* state before start of change */
-	Range		prevmark;
-	long		prevseq;
-	int		prevmod;
+	Buffer	*buf;		/* cached disc storage */
+	Buffer	*transcript;	/* what's been done */
+	Posn	markp;		/* file pointer to start of latest change */
+	Mod	mod;		/* modification stamp */
+	Posn	nrunes;		/* total length of file */
+	Posn	hiposn;		/* highest address touched this Mod */
+	Address	dot;		/* current position */
+	Address	ndot;		/* new current position after update */
+	Range	tdot;		/* what terminal thinks is current range */
+	Range	mark;		/* tagged spot in text (don't confuse with Mark) */
+	List	*rasp;		/* map of what terminal's got */
+	String	name;		/* file name */
+	short	tag;		/* for communicating with terminal */
+	char	state;		/* Clean, Dirty, Unread, or Readerr*/
+	char	closeok;	/* ok to close file? */
+	char	deleted;	/* delete at completion of command */
+	char	marked;		/* file has been Fmarked at least once; once
+				 * set, this will never go off as undo doesn't
+				 * revert to the dawn of time */
+	long	dev;		/* file system from which it was read */
+	long	qid;		/* file from which it was read */
+	long	date;		/* time stamp of plan9 file */
+	Posn	cp1, cp2;	/* Write-behind cache positions and */
+	String	cache;		/* string */
+	Rune	getcbuf[NGETC];
+	int	ngetc;
+	int	getci;
+	Posn	getcp;
 };
-//File*		fileaddtext(File*, Text*);
-void		fileclose(File*);
-void		filedelete(File*, uint, uint);
-//void		filedeltext(File*, Text*);
-void		fileinsert(File*, uint, Rune*, uint);
-uint		fileload(File*, uint, int, int*);
-void		filemark(File*);
-void		filereset(File*);
-void		filesetname(File*, String*);
-void		fileundelete(File*, Buffer*, uint, uint);
-void		fileuninsert(File*, Buffer*, uint, uint);
-void		fileunsetname(File*, Buffer*);
-void		fileundo(File*, int, int, uint*, uint*, int);
-int		fileupdate(File*, int, int);
 
-int		filereadc(File*, uint);
-File		*fileopen(void);
-void		loginsert(File*, uint, Rune*, uint);
-void		logdelete(File*, uint, uint);
-void		logsetname(File*, String*);
-int		fileisdirty(File*);
-long		undoseq(File*, int);
-long		prevseq(Buffer*);
-
-void		raspload(File*);
-void		raspstart(File*);
-void		raspdelete(File*, uint, uint, int);
-void		raspinsert(File*, uint, Rune*, uint, int);
-void		raspdone(File*, int);
+struct Mark
+{
+	Posn	p;
+	Range	dot;
+	Range	mark;
+	Mod	m;
+	short	s1;
+};
 
 /*
- * acme fns
+ * The precedent to any message in the transcript.
+ * The component structures must be an integral number of Runes long.
  */
-void*	fbufalloc(void);
-void	fbuffree(void*);
-uint	min(uint, uint);
-void	cvttorunes(char*, int, Rune*, int*, int*, int*);
+union Hdr
+{
+	struct _csl
+	{
+		short	c;
+		short	s;
+		long	l;
+	}csl;
+	struct _cs
+	{
+		short	c;
+		short	s;
+	}cs;
+	struct _cll
+	{
+		short	c;
+		long	l;
+		long	l1;
+	}cll;
+	Mark	mark;
+};
 
-#define	runemalloc(a)		(Rune*)emalloc((a)*sizeof(Rune))
-#define	runerealloc(a, b)	(Rune*)realloc((a), (b)*sizeof(Rune))
-#define	runemove(a, b, c)	memmove((a), (b), (c)*sizeof(Rune))
+#define	Fgetc(f)  ((--(f)->ngetc<0)? Fgetcload(f, (f)->getcp) : (f)->getcbuf[(f)->getcp++, (f)->getci++])
+#define	Fbgetc(f) (((f)->getci<=0)? Fbgetcload(f, (f)->getcp) : (f)->getcbuf[--(f)->getcp, --(f)->getci])
 
 int	alnum(int);
+void	Bclean(Buffer*);
+void	Bterm(Buffer*);
+void	Bdelete(Buffer*, Posn, Posn);
+void	Bflush(Buffer*);
+void	Binsert(Buffer*, String*, Posn);
+Buffer	*Bopen(Discdesc*);
+int	Bread(Buffer*, Rune*, int, Posn);
+void	Dclose(Disc*);
+void	Ddelete(Disc*, Posn, Posn);
+void	Dinsert(Disc*, Rune*, int, Posn);
+Disc	*Dopen(Discdesc*);
+int	Dread(Disc*, Rune*, int, Posn);
+void	Dreplace(Disc*, Posn, Posn, Rune*, int);
+int	Fbgetcload(File*, Posn);
+int	Fbgetcset(File*, Posn);
+long	Fchars(File*, Rune*, Posn, Posn);
+void	Fclose(File*);
+void	Fdelete(File*, Posn, Posn);
+int	Fgetcload(File*, Posn);
+int	Fgetcset(File*, Posn);
+void	Finsert(File*, String*, Posn);
+File	*Fopen(void);
+void	Fsetname(File*, String*);
+void	Fstart(void);
+int	Fupdate(File*, int, int);
 int	Read(int, void*, int);
 void	Seek(int, long, int);
 int	plan9(File*, int, String*, int);
@@ -254,12 +251,9 @@ void	error_s(Err, char*);
 int	execute(File*, Posn, Posn);
 int	filematch(File*, String*);
 void	filename(File*);
-void	fixname(String*);
-void	fullname(String*);
-void	getcurwd(void);
 File	*getfile(String*);
 int	getname(File*, String*, int);
-long	getnum(int);
+long	getnum(void);
 void	hiccough(char*);
 void	inslist(List*, int, long);
 Address	lineaddr(Posn, Address, int);
@@ -280,7 +274,7 @@ void	print_ss(char*, String*, String*);
 void	print_s(char*, String*);
 int	rcv(void);
 Range	rdata(List*, Posn, Posn);
-Posn	readio(File*, int*, int, int);
+Posn	readio(File*, int*, int);
 void	rescue(void);
 void	resetcmd(void);
 void	resetsys(void);
@@ -305,7 +299,6 @@ void	Strinit(String*);
 void	Strinit0(String*);
 void	Strinsert(String*, String*, Posn);
 void	Strinsure(String*, ulong);
-int	Strispre(String*, String*);
 void	Strzero(String*);
 int	Strlen(Rune*);
 char	*Strtoc(String*);
@@ -318,9 +311,10 @@ void	freetmpstr(String*);
 void	termcommand(void);
 void	termwrite(char*);
 File	*tofile(String*);
+void	toterminal(File*, int);
 void	trytoclose(File*);
 void	trytoquit(void);
-int	undo(int);
+int	undo(void);
 void	update(void);
 int	waitfor(int);
 void	warn(Warn);
@@ -346,12 +340,6 @@ extern char	RX[];
 extern char	RXPATH[];
 extern char	SAMSAVECMD[];
 
-/*
- * acme globals
- */
-extern long		seq;
-extern Disk		*disk;
-
 extern char	*rsamname;	/* globals */
 extern char	*samterm;
 extern Rune	genbuf[];
@@ -360,8 +348,9 @@ extern int	io;
 extern int	patset;
 extern int	quitok;
 extern Address	addr;
-extern Buffer	snarfbuf;
-extern Buffer	plan9buf;
+extern Buffer	*undobuf;
+extern Buffer	*snarfbuf;
+extern Buffer	*plan9buf;
 extern List	file;
 extern List	tempfile;
 extern File	*cmd;
@@ -371,7 +360,6 @@ extern Mod	modnum;
 extern Posn	cmdpt;
 extern Posn	cmdptadv;
 extern Rangeset	sel;
-extern String	curwd;
 extern String	cmdstr;
 extern String	genstr;
 extern String	lastpat;

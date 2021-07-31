@@ -1,0 +1,61 @@
+CONF=chm
+CONFLIST=chm
+
+objtype=mips
+</$objtype/mkfile
+CFLAGS=-w
+
+DEV=`{rc ../port/mkdevlist $CONF}
+STREAM=`{rc ../port/mkstreamlist $CONF}
+MISC=`{rc ../port/mkmisclist $CONF}
+
+OBJ=\
+	l.$O\
+	alarm.$O\
+	alloc.$O\
+	chan.$O\
+	clock.$O\
+	dev.$O\
+	fault.$O\
+	faultmips.$O\
+	fptrap.$O\
+	taslock.$O\
+	main.$O\
+	mmu.$O\
+	net.$O\
+	page.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qlock.$O\
+	queue.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	trap.$O\
+	$DEV\
+	$MISC\
+	boot$CONF.root.$O\
+	$STREAM\
+	stream.$O\
+	auth.$O\
+
+default:V: 9$CONF
+
+9$CONF:	$OBJ $CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -R8 -H3 -T0x88020000 $OBJ $CONF.$O -lauth -lc
+	size $target
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -o init.out -R4 initcode.v
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O faultmips.$O fptrap.$O:	/$objtype/include/ureg.h
+
+<../port/portmkfile

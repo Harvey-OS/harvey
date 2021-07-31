@@ -12,7 +12,7 @@ static long	round(long, long);
 extern	char	lastc, peekc;
 
 extern	ADDR	ditto;
-vlong	expv;
+WORD	expv;
 
 static WORD
 ascval(void)
@@ -129,22 +129,19 @@ expr(int a)
 
 term(int a)
 {	/* item | monadic item | (expr) | */
-	WORD e;
 
 	switch ((int)readchar()) {
 
 	case '*':
 		term(a|1);
-		if (get4(cormap, (ADDR)expv, &e) < 0)
+		if (get4(cormap, (ADDR)expv, &expv) < 0)
 			error("%r");
-		expv = e;
 		return(1);
 
 	case '@':
 		term(a|1);
-		if (get4(symmap, (ADDR)expv, &e) < 0)
+		if (get4(symmap, (ADDR)expv, &expv) < 0)
 			error("%r");
-		expv = e;
 		return(1);
 
 	case '-':
@@ -163,6 +160,12 @@ term(int a)
 			error("syntax error: `)' expected");
 		return(1);
 
+	case '%':
+		term(a|1);
+		if (get4(cormap, (ADDR)expv+mach->kbase, &expv) < 0)
+			error("%r");
+		return(1);
+
 	default:
 		reread();
 		return(item(a));
@@ -173,7 +176,6 @@ item(int a)
 {	/* name [ . local ] | number | . | ^  | <register | 'x | | */
 	char	*base;
 	char	savc;
-	WORD e;
 	Symbol s;
 	char gsym[MAXSYM], lsym[MAXSYM];
 
@@ -205,9 +207,8 @@ item(int a)
 				readsym(lsym);
 			} else
 				lsym[0] = 0;
-			if (localaddr(cormap, gsym, lsym, &e, rget) < 0)
+			if (localaddr(cormap, gsym, lsym, &expv, rget) < 0)
 				error("%r");
-			expv = e;
 		}
 		else {
 			if (lookup(0, gsym, &s) == 0)
@@ -230,9 +231,8 @@ item(int a)
 				readsym(lsym+1);
 			} else
 				readsym(lsym);
-			if (localaddr(cormap, s.name, lsym, &e, rget) < 0)
+			if (localaddr(cormap, s.name, lsym, &expv, rget) < 0)
 				error("%r");
-			expv = e;
 		}	
 		reread();
 	} else if (lastc=='"') {

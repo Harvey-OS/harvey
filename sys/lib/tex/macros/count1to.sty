@@ -1,0 +1,137 @@
+%% 
+%% This is file `count1to.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% count1to.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 by Martin Schroeder. All rights reserved. 
+%% 
+%% 
+%% This file is part of the Count1to package 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of this file (or a changed 
+%% version) except for a nominal charge for copying etc. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned below. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% Error Reports in case of UNCHANGED versions to 
+%% 
+%% Martin Schr"oder 
+%% Friedrich-Humbert-Strasse 124 
+%% D-28759 Bremen 
+%% Internet: <MS@Dream.HB.North.DE> 
+%% 
+%% File: count1to.dtx Copyright (C) 1994 Martin Schr\"oder 
+\NeedsTeXFormat{LaTeX2e} 
+\ProvidesPackage{count1to} 
+         [1994/12/09 v1.01 Count1to9 Package (MS)] 
+%% \CharacterTable 
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z 
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z 
+%%  Digits        \0\1\2\3\4\5\6\7\8\9 
+%%  Exclamation   \!     Double quote  \"     Hash (number) \# 
+%%  Dollar        \$     Percent       \%     Ampersand     \& 
+%%  Acute accent  \'     Left paren    \(     Right paren   \) 
+%%  Asterisk      \*     Plus          \+     Comma         \, 
+%%  Minus         \-     Point         \.     Solidus       \/ 
+%%  Colon         \:     Semicolon     \;     Less than     \< 
+%%  Equals        \=     Greater than  \>     Question mark \? 
+%%  Commercial at \@     Left bracket  \[     Backslash     \\ 
+%%  Right bracket \]     Circumflex    \^     Underscore    \_ 
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \| 
+%%  Right brace   \}     Tilde         \~} 
+%% 
+%% \iffalse meta-comment 
+%% =================================================================== 
+%%  @LaTeX-style-file{ 
+%%     author          = {Martin Schr\"oder}, 
+%%     version         = "1.01", 
+%%     date            = "9 December 1993", 
+%%     filename        = "count1to.sty", 
+%%     address         = {Martin Schr\"oder 
+%%                        Friedrich-Humbert-Stra\ss{}e 124 
+%%                        D-28759 Bremen 
+%%     telephone       = "+49-421-628813", 
+%%     email           = "MS@Dream.HB.North.DE (INTERNET)", 
+%%     codetable       = "ISO/ASCII", 
+%%     keywords        = "LaTeX, pages", 
+%%     supported       = "yes", 
+%%     docstring       = "LaTeX package which sets count1 to count9, 
+%%                        which can be used to select certain pages 
+%%                        with a driver. 
+%%                        Uses the everyshi package." 
+%%  } 
+%% =================================================================== 
+%% \fi 
+\RequirePackage{everyshi}[1994/12/09] 
+\newif\if@have@part 
+\newif\if@have@chapter 
+\newif\if@have@section 
+\newif\if@have@subsection 
+\newif\if@have@subsubsection 
+\newif\if@have@paragraph 
+\newif\if@have@subparagraph 
+\newcommand{\@countItoIX@ifs}{ 
+   \@ifundefined{c@part}           {}{\@have@parttrue} 
+   \@ifundefined{c@chapter}        {}{\@have@chaptertrue} 
+   \@ifundefined{c@section}        {}{\@have@sectiontrue} 
+   \@ifundefined{c@subsection}     {}{\@have@subsectiontrue} 
+   \@ifundefined{c@subsubsection}  {}{\@have@subsubsectiontrue} 
+   \@ifundefined{c@paragraph}      {}{\@have@paragraphtrue} 
+   \@ifundefined{c@subparagraph}   {}{\@have@subparagraphtrue} 
+   } 
+\AtBeginDocument{\@countItoIX@ifs} 
+\newcommand{\@countItoIX@bugfix}{ 
+   \if@have@part 
+      \@addtoreset{section}      {part} 
+      \@addtoreset{subsection}   {part} 
+      \@addtoreset{subsubsection}{part} 
+      \@addtoreset{paragraph}    {part} 
+      \@addtoreset{subparagraph} {part} 
+   \fi 
+   \if@have@chapter 
+      \@addtoreset{subsection}   {chapter} 
+      \@addtoreset{subsubsection}{chapter} 
+      \@addtoreset{paragraph}    {chapter} 
+      \@addtoreset{subparagraph} {chapter} 
+   \fi 
+   \if@have@section 
+      \@addtoreset{subsubsection}{section} 
+      \@addtoreset{paragraph}    {section} 
+      \@addtoreset{subparagraph} {section} 
+   \fi 
+   \if@have@subsection 
+      \@addtoreset{paragraph}    {subsection} 
+      \@addtoreset{subparagraph} {subsection} 
+   \fi 
+   \if@have@subsubsection 
+      \@addtoreset{subparagraph} {subsubsection} 
+   \fi 
+   } 
+\AtBeginDocument{\@countItoIX@bugfix} 
+\newcommand{\@countItoIX@shipout}{ 
+   \global\advance \count1 by 1 
+   \if@have@part              \count2\value{part}           \fi 
+   \if@have@chapter           \count3\value{chapter}        \fi 
+   \if@have@section           \count4\value{section}        \fi 
+   \if@have@subsection        \count5\value{subsection}     \fi 
+   \if@have@subsubsection     \count6\value{subsubsection}  \fi 
+   \if@have@paragraph         \count7\value{paragraph}      \fi 
+   \if@have@subparagraph      \count8\value{subparagraph}   \fi 
+   \ifodd\count1\count9=1     \else\count9=0                \fi 
+   } 
+\EveryShipout{\@countItoIX@shipout} 
+\endinput
+%% 
+%% End of file `count1to.sty'.

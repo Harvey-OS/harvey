@@ -1,0 +1,28 @@
+.TH GETMAP 9.1
+.SH NAME
+getmap, colors \- manipulate the display's color map
+.SH SYNOPSIS
+.B fb/getmap
+.I name
+.PP
+.B fb/colors
+.SH DESCRIPTION
+.I Getmap
+loads the display's color map.
+See
+.IR getcmap (9.3)
+for details of the interpretation of
+.IR name .
+.PP
+.I Colors
+displays the color map in a newly created window.
+In the window, button 1 displays the color index and 8-bit
+.B rgb
+values and button 3 pops up an
+.I exit
+menu.
+.SH SOURCE
+.B /sys/src/fb/getmap.c
+.SH "SEE ALSO
+.IR getcmap (9.3),
+.IR cmap (9.6)

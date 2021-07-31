@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-#define	PIO2	1.570796326794896619231e0
+#define twoopi 0.636619772367581343075535053
 #define p0      .1357884097877375669092680e8
 #define p1     -.4942908100902844161158627e7
 #define p2      .4401030535375266501944918e6
@@ -30,7 +30,7 @@ sinus(double arg, int quad)
 		x = -x;
 		quad += 2;
 	}
-	x *= 1/PIO2;	/* underflow? */
+	x *= twoopi;	/* underflow? */
 	if(x > 32764) {
 		y = modf(x, &e);
 		e += quad;

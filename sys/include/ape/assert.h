@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-extern void _assert(char *, unsigned);
+extern void _assert(char *f, unsigned l);
 
 #ifdef __cplusplus
 }

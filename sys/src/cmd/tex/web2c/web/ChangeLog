@@ -1,0 +1,53 @@
+Thu May 14 19:22:40 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Wed May 13 10:52:36 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (clean): can't remove *.[pch], since tangleboot goes away.
+
+Sat Apr 25 09:40:18 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (libs): new var.
+        (distclean): new target.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Wed Apr 15 03:59:25 1992  Karl Berry  (karl@fosse)
+
+        * Makefile (mostlyclean): remove tangleboot.
+
+Tue Apr 14 17:25:29 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (tangleboot.[ch]): new targets.
+        (tangleboot): depend on tangleboot.h, not tangle.h.
+        (clean): remove tangle.h.
+
+Mon Apr 13 09:10:07 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (tangle.p): depend on tangleboot; remove the loop.
+        (tangleboot): new target.
+
+Fri Apr  3 09:56:16 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Thu Apr  2 13:48:21 1992  Karl Berry  (karl at ds1.cs.umb.edu)
+
+        * Makefile (clean): don't remove *.c; we need tangleboot.
+
+Sun Mar 29 15:24:51 1992  Karl Berry  (karl at hayley)
+
+        * {tangle,weave}.web: new versions from dek.
+        * {tangle,weave}.ch: update version numbers.
+
+Fri Jan 24 09:20:20 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Tue Jan  7 16:29:30 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (tangle.p): use quotes instead of \'s, for ptx.  (From
+          maddog@sequent.com.)

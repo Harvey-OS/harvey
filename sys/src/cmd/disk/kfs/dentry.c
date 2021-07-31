@@ -18,12 +18,12 @@ accessdir(Iobuf *p, Dentry *d, int f)
 
 	if(p && !isro(p->dev)) {
 		p->flags |= Bmod;
-		t = time(nil);
+		t = time();
 		if(f & (FREAD|FWRITE))
 			d->atime = t;
 		if(f & FWRITE) {
 			d->mtime = t;
-			d->qid.vers++;
+			d->qid.version++;
 		}
 	}
 }

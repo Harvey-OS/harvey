@@ -1,6 +1,8 @@
 </$objtype/mkfile
 
-<../config
+SYSTEM=plan9
+VERSION=3.3.1
+
 TARG=download
 
 OFILES=download.$O
@@ -14,7 +16,7 @@ HFILES=download.h\
 	$COMMONDIR/ext.h\
 
 LIB=$COMMONDIR/com.a$O
-BIN=$POSTBIN
+BIN=/$objtype/bin/aux
 
 </sys/src/cmd/mkone
 CC=pcc

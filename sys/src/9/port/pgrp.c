@@ -24,7 +24,7 @@ pgrpnote(ulong noteid, char *a, long n, int flag)
 	for(; p < ep; p++) {
 		if(p->state == Dead)
 			continue;
-		if(up != p && p->noteid == noteid && p->kp == 0) {
+		if(p != u->p && p->noteid == noteid && p->kp == 0) {
 			qlock(&p->debug);
 			if(p->pid == 0 || p->noteid != noteid){
 				qunlock(&p->debug);
@@ -50,121 +50,56 @@ newpgrp(void)
 	return p;
 }
 
-Rgrp*
-newrgrp(void)
-{
-	Rgrp *r;
-
-	r = smalloc(sizeof(Rgrp));
-	r->ref = 1;
-	return r;
-}
-
-void
-closergrp(Rgrp *r)
-{
-	if(decref(r) == 0)
-		free(r);
-}
-
 void
 closepgrp(Pgrp *p)
 {
 	Mhead **h, **e, *f, *next;
+	
+	if(decref(p) == 0){
+		qlock(&p->debug);
+		p->pgrpid = -1;
 
-	if(decref(p) != 0)
-		return;
-
-	qlock(&p->debug);
-	wlock(&p->ns);
-	p->pgrpid = -1;
-
-	e = &p->mnthash[MNTHASH];
-	for(h = p->mnthash; h < e; h++) {
-		for(f = *h; f; f = next) {
-			wlock(&f->lock);
-			cclose(f->from);
-			mountfree(f->mount);
-			f->mount = nil;
-			next = f->hash;
-			wunlock(&f->lock);
-			putmhead(f);
+		e = &p->mnthash[MNTHASH];
+		for(h = p->mnthash; h < e; h++) {
+			for(f = *h; f; f = next) {
+				close(f->from);
+				mountfree(f->mount);
+				next = f->hash;
+				free(f);
+			}
 		}
+		qunlock(&p->debug);
+		free(p);
 	}
-	wunlock(&p->ns);
-	qunlock(&p->debug);
-	free(p);
 }
 
-void
-pgrpinsert(Mount **order, Mount *m)
-{
-	Mount *f;
-
-	m->order = 0;
-	if(*order == 0) {
-		*order = m;
-		return;
-	}
-	for(f = *order; f; f = f->order) {
-		if(m->mountid < f->mountid) {
-			m->order = f;
-			*order = m;
-			return;
-		}
-		order = &f->order;
-	}
-	*order = m;
-}
-
-/*
- * pgrpcpy MUST preserve the mountid allocation order of the parent group
- */
 void
 pgrpcpy(Pgrp *to, Pgrp *from)
 {
-	int i;
-	Mount *n, *m, **link, *order;
-	Mhead *f, **tom, **l, *mh;
+	Mhead **h, **e, *f, **tom, **l, *mh;
+	Mount *n, *m, **link;
 
-	wlock(&from->ns);
-	order = 0;
+	rlock(&from->ns);
+
+	e = &from->mnthash[MNTHASH];
 	tom = to->mnthash;
-	for(i = 0; i < MNTHASH; i++) {
+	for(h = from->mnthash; h < e; h++) {
 		l = tom++;
-		for(f = from->mnthash[i]; f; f = f->hash) {
-			rlock(&f->lock);
+		for(f = *h; f; f = f->hash) {
 			mh = smalloc(sizeof(Mhead));
 			mh->from = f->from;
-			mh->ref = 1;
 			incref(mh->from);
 			*l = mh;
 			l = &mh->hash;
 			link = &mh->mount;
 			for(m = f->mount; m; m = m->next) {
-				n = smalloc(sizeof(Mount));
-				n->to = m->to;
-				incref(n->to);
-				n->head = mh;
-				n->flag = m->flag;
-				if(m->spec[0] != 0)
-					strncpy(n->spec, m->spec, NAMELEN);
-				m->copy = n;
-				pgrpinsert(&order, m);
+				n = newmount(mh, m->to);
 				*link = n;
-				link = &n->next;
+				link = &n->next;	
 			}
-			runlock(&f->lock);
 		}
 	}
-	/*
-	 * Allocate mount ids in the same sequence as the parent group
-	 */
-	lock(&mountid);
-	for(m = order; m; m = m->order)
-		m->copy->mountid = mountid.ref++;
-	unlock(&mountid);
-	wunlock(&from->ns);
+	runlock(&from->ns);
 }
 
 Fgrp*
@@ -175,26 +110,9 @@ dupfgrp(Fgrp *f)
 	int i;
 
 	new = smalloc(sizeof(Fgrp));
-	if(f == nil){
-		new->fd = smalloc(DELTAFD*sizeof(Chan*));
-		new->nfd = DELTAFD;
-		new->ref = 1;
-		return new;
-	}
-
-	lock(f);
-	/* Make new fd list shorter if possible, preserving quantization */
-	new->nfd = f->maxfd+1;
-	i = new->nfd%DELTAFD;
-	if(i != 0)
-		new->nfd += DELTAFD - i;
-	new->fd = malloc(new->nfd*sizeof(Chan*));
-	if(new->fd == 0){
-		unlock(f);
-		error("no memory for fgrp");
-	}
 	new->ref = 1;
 
+	lock(f);
 	new->maxfd = f->maxfd;
 	for(i = 0; i <= f->maxfd; i++) {
 		if(c = f->fd[i]){
@@ -213,22 +131,18 @@ closefgrp(Fgrp *f)
 	int i;
 	Chan *c;
 
-	if(f == 0)
-		return;
+	if(decref(f) == 0) {
+		for(i = 0; i <= f->maxfd; i++)
+			if(c = f->fd[i])
+				close(c);
 
-	if(decref(f) != 0)
-		return;
-
-	for(i = 0; i <= f->maxfd; i++)
-		if(c = f->fd[i])
-			cclose(c);
-
-	free(f->fd);
-	free(f);
+		free(f);
+	}
 }
 
+
 Mount*
-newmount(Mhead *mh, Chan *to, int flag, char *spec)
+newmount(Mhead *mh, Chan *to)
 {
 	Mount *m;
 
@@ -237,10 +151,6 @@ newmount(Mhead *mh, Chan *to, int flag, char *spec)
 	m->head = mh;
 	incref(to);
 	m->mountid = incref(&mountid);
-	m->flag = flag;
-	if(spec != 0)
-		strncpy(m->spec, spec, NAMELEN);
-
 	return m;
 }
 
@@ -251,8 +161,7 @@ mountfree(Mount *m)
 
 	while(m) {
 		f = m->next;
-		cclose(m->to);
-		m->mountid = 0;
+		close(m->to);
 		free(m);
 		m = f;
 	}
@@ -263,15 +172,14 @@ resrcwait(char *reason)
 {
 	char *p;
 
-	if(up == 0)
-		panic("resrcwait");
-
-	p = up->psstate;
+	p = u->p->psstate;
 	if(reason) {
-		up->psstate = reason;
+		u->p->psstate = reason;
 		print("%s\n", reason);
 	}
+	if(u == 0)
+		panic("resrcwait");
 
-	tsleep(&up->sleep, return0, 0, 300);
-	up->psstate = p;
+	tsleep(&u->p->sleep, return0, 0, 300);
+	u->p->psstate = p;
 }

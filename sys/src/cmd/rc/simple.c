@@ -58,7 +58,7 @@ void Xsimple(void){
 			Updenv();
 			switch(pid=fork()){
 			case -1:
-				Xerror("try again");
+				Xperror("try again");
 				return;
 			case 0:
 				pushword("exec");
@@ -101,6 +101,7 @@ word *searchpath(char *w){
 	return path;
 }
 void execexec(void){
+	word *path;
 	popword();	/* "exec" */
 	if(runq->argv->words==0){
 		Xerror("empty argument list");
@@ -122,18 +123,6 @@ void execfunc(var *func)
 	runq->local->val=starval;
 	runq->local->changed=1;
 }
-int dochdir(char *word){
-	/* report to /dev/wdir if it exists and we're interactive */
-	static int wdirfd = -2;
-	if(chdir(word)<0) return -1;
-	if(flag['i']!=0){
-		if(wdirfd==-2)	/* try only once */
-			wdirfd = open("/dev/wdir", OWRITE|OCEXEC);
-		if(wdirfd>=0)
-			write(wdirfd, word, strlen(word));
-	}
-	return 1;
-}
 void execcd(void){
 	word *a=runq->argv->words;
 	word *cdpath;
@@ -150,7 +139,7 @@ void execcd(void){
 			strcpy(dir, cdpath->word);
 			if(dir[0]) strcat(dir, "/");
 			strcat(dir, a->next->word);
-			if(dochdir(dir)>=0){
+			if(chdir(dir)>=0){
 				if(strlen(cdpath->word)
 				&& strcmp(cdpath->word, ".")!=0)
 					pfmt(err, "%s\n", dir);
@@ -163,7 +152,7 @@ void execcd(void){
 	case 1:
 		a=vlook("home")->val;
 		if(count(a)>=1){
-			if(dochdir(a->word)>=0)
+			if(chdir(a->word)>=0)
 				setstatus("");
 			else
 				pfmt(err, "Can't cd %s\n", a->word);
@@ -304,7 +293,7 @@ void execdot(void){
 	}
 	zero=strdup(p->argv->words->word);
 	popword();
-	fd=-1;
+	strcpy(file, "**No file name**");
 	for(path=searchpath(zero);path;path=path->next){
 		strcpy(file, path->word);
 		if(file[0]) strcat(file, "/");
@@ -316,9 +305,7 @@ void execdot(void){
 		}
 	}
 	if(fd<0){
-		pfmt(err, "%s: ", zero);
-		setstatus("can't open");
-		Xerror(".: can't open");
+		Xperror(file);
 		return;
 	}
 	/* set up for a new command loop */

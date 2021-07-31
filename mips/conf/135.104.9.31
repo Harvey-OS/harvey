@@ -1,0 +1,7 @@
+#
+#  helix == 135.104.9.31
+#
+sysname = helix
+eve = bootes
+nmach = 4
+nproc = 600

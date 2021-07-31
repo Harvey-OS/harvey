@@ -1,0 +1,59 @@
+This is METAFONT, Version 2.71 (INIMF)
+** &trap  trap 
+(trap.mf
+\*//*\trap\pass2!
+! Missing symbolic token inserted.
+<inserted text> 
+                 INACCESSIBLE
+l.21 ...t next=\; delimiters ^~7
+                                ! fi
+! Extra tokens will be flushed.
+<to be read again> 
+                   !
+l.21 ... next=\; delimiters ^~7!
+                                 fi
+! Forbidden token found while scanning to the end of the statement.
+<inserted text> 
+                ;
+<to be read again> 
+                   \
+l.22 next\
+          ; % the second pass will now compute silently; the ...
+
+hello again^^_
+>> pen (see the transcript file)
+>> path (see the transcript file)
+>> path (see the transcript file)
+>> path (see the transcript file)
+f<expr>->let)=];let[=(;show._
+(EXPR0)<-xx
+{let}
+{let}
+{show}
+>> _1
+{showdependencies}
+xpart '=-ypart '-0.66667
+{qq:=pen}
+{showstats}
+Memory usage 1476&588 (104 still untouched)
+String usage 39&162 (821&7731 still untouched)
+{[repeat the loop]}
+! A group begun on line 163 never ended.
+<to be read again> 
+                   endtext
+l.163 ... showstats; bye endtext
+                                
+{endgroup}
+ )
+(end occurred when else on line 93 was incomplete)
+(end occurred when if on line 36 was incomplete)
+(end occurred when elseif on line 21 was incomplete)
+(see the transcript file for additional information)
+(illegal design size has been changed to 128pt)
+(some chardp values had to be adjusted by as much as 0.5pt)
+(local label 0:: was missing)
+(local label 5:: was missing)
+(4 font metric dimensions had to be decreased)
+Font metrics written on trap.tfm.
+Output written on trap.72270gf (5 characters, 1028 bytes).
+Transcript written on trap.log.

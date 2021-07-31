@@ -1,0 +1,225 @@
+%
+% These characters should rather be in an character font than in a
+% symbol font
+%
+
+cmchar "Cent sign";
+beginchar(hex"67",9u#,asc_height#,desc_depth#);
+italcorr x_height#*slant-.2u#;
+adjust_fit(0,0);
+pickup fine.nib; pos2(vair',90); pos4(vair',270);
+x2=x4=.5(w+u); top y2r=vround(x_height+1.5oo); bot y4r=-oo;
+pos3(curve,180); lft x3r=hround max(.6u,1.35u-.5curve); y3=.5x_height;
+if serifs: pos1(hair,0); pos0(flare,0);
+ y1=min(bar_height+.5flare+2vair'+2,.9[bar_height,x_height]-.5flare);
+ rt x1r=hround(w-.7u); bulb(2,1,0);  % bulb
+ pos5(hair,0); rt x5r=hround(w-.5u);
+ y5=max(good.y(.5bar_height-.9),y4l+vair');
+ (x,y4l)=whatever[z4r,z5l]; x4l:=min(x,x4l+.5u);
+ filldraw stroke pulled_super_arc.e(2,3)(.7superpull)
+  & pulled_super_arc.e(3,4)(.5superpull)
+  ..tension .9 and 1..{x5-x4,5(y5-y4)}z5e;  % arc and lower terminal
+else: pos1(4/7[vair',flare],80);
+ rt x1r=hround(w-.6u); top y1r=vround .82[bar_height,top y2r];
+ filldraw stroke term.e(2,1,right,.8,4);  % upper terminal
+ pos5(.6[vair',flare],275); rt x5r=hround(w-.5u);
+ y5r=good.y(y5r+1/3bar_height-y5); y5l:=good.y y5l; x5l:=good.x x5l;
+ forsuffixes e=l,r: path p.e; p.e=z4e{right}..tension .9 and 1..z5e;
+  if angle direction 1 of p.e>75:
+   p.e:=z4e{right}..tension atleast.9 and 1..{dir 75}z5e; fi endfor
+ filldraw stroke pulled_super_arc.e(2,3)(.7superpull)
+  & pulled_super_arc.e(3,4)(.5superpull) & p.e; fi  % arc and lower terminal
+pickup crisp.nib; 
+x6=x7=x8=x9=x2; y7=y2; y8=y4; bot y9=-d; y6-y7 = y8-y9;
+pos6(bar,0); pos7(bar,0);
+pos8(bar,0); pos9(bar,0);
+filldraw stroke z6e--z7e; % upper bar
+filldraw stroke z8e--z9e; % lower bar
+penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
+ 
+cmchar "Upside down e";
+beginchar(hex"55",7.25u#+max(.75u#,.5curve#),x_height#,0);
+italcorr .5[bar_height#,x_height#]*slant+.5min(curve#-1.5u#,0);
+adjust_fit(if monospace: .25u#,.5u# else: 0,0 fi);
+numeric left_curve,right_curve;
+left_curve=right_curve+6stem_corr=curve if not serifs: -3stem_corr fi;
+if right_curve<tiny.breadth: right_curve:=tiny.breadth; fi
+if left_curve<tiny.breadth: left_curve:=tiny.breadth; fi
+pickup tiny.nib; pos1(right_curve,180);
+pos2(vair,270); pos3(left_curve,0);
+y1=good.y (h-bar_height); bot y2r=vround (-1.5oo); y0l=top y1;
+lft x1r=hround max(.5u,u-.5right_curve);
+rt x3r=hround min(w-.5u,w-(1.25u-.5left_curve)); x2=.5w-.25u;
+{{interim superness:=more_super;
+ filldraw stroke super_arc.e(2,1)}};  % left bowl
+y3=.5[y2,y4]; top y4r=h+oo; x4=x2-.25u;
+if serifs: pos4(vair',90); pos5(hair,180);
+ y5=min(good.y(h-(.5bar_height-.9)),y4l-vair); x5r=x1r;
+ (x,y4l)=whatever[z4r,z5]; x4l:=max(x,x4l-.5u);
+ filldraw stroke pulled_arc.e(2,3) & pulled_arc.e(3,4)
+  ...{x5-x4,5(y5-y4)}z5e; % right bowl, arc, and terminal
+else: pos4(vair,90);
+ filldraw stroke super_arc.e(2,3) & super_arc.e(3,4);  % right bowl and arc
+ pickup fine.nib; pos4'(vair,90); z4=z4';
+ pos5(.5[vair,flare],95); lft x5r=hround(.6u);
+ y5r=good.y(y5r-1/3bar_height-y5); y5l:=good.y y5l; x5l:=good.x x5l;
+ filldraw stroke term.e(4',5,left,1,4); fi  % terminal
+path testpath; testpath=super_arc.l(2,3) & super_arc.l(3,4);
+y1'r=y0r=y0l-.6[thin_join,vair]; y1'l=y0l; x1'l=x1'r=x1;
+forsuffixes $=l,r:
+ x0$=xpart(((h,y0$)--(x1,y0$)) intersectionpoint testpath); endfor
+fill stroke z0e--z1'e;  % crossbar
+penlabels(0,1,2,3,4,5); endchar;
+
+cmchar "Phonetic open o";
+beginchar(hex"6C",8.5u#,x_height#,0);
+italcorr x_height#*slant-.2u#;
+adjust_fit(if monospace: .5u#,.5u# else: 0,0 fi);
+pickup fine.nib; pos2(vair',270); pos4(vair',90);
+x2=x4=.5w; top y4r=vround(h+oo); bot y2r=-1.5oo;
+pos3(curve,0); rt x3l=hround (w-max(.6u,1.35u-.5curve)); y3=.5h;
+if serifs: pos1(hair,180); pos0(flare,180);
+ y1=h-.70[bar_height,h]+.5flare;
+ lft x1r=hround(1.0u); bulb(2,1,0);  % bulb
+ pos5(hair,180); lft x5r=hround(1.2u);
+ y5=min(good.y(h+oo-.45bar_height+.9),y4l-vair');
+ (x,y4l)=whatever[z4l,z5r]; x4l:=max(x,x4l-.5u);
+ filldraw stroke pulled_super_arc.e(2,3)(.7superpull)
+  & pulled_super_arc.e(3,4)(.5superpull)
+  ..tension .9 and 1..{x5-x4,5(y5-y4)}z5e;  % arc and upper terminal
+else: pos1(4/7[vair',flare],260);
+ lft x1r=hround(.6u); bot y1r=vround (.82[h-bar_height,bot y2r]);
+ filldraw stroke term.e(2,1,left,.8,4);  % lower terminal
+ pos5(.6[vair',flare],95); lft x5r=hround(1.5u);
+ y5r=good.y(y5l+h-1/3bar_height-y5); y5l:=good.y y5l; x5l:=good.x x5l;
+ forsuffixes e=l,r: path p.e; p.e=z4e{left}..tension .9 and 1..z5e;
+  if angle direction 1 of p.e<255:
+   p.e:=z4e{left}..tension atleast.9 and 1..{dir 255}z5e; fi endfor
+ filldraw stroke pulled_super_arc.e(2,3)(.7superpull)
+  & pulled_super_arc.e(3,4)(.5superpull) & p.e; fi  % arc and upper terminal
+penlabels(0,1,2,3,4,5); endchar;
+ 
+cmchar "The small islandic thorn";
+beginchar(hex"69",10u#+serif_fit#,asc_height#,desc_depth#);
+italcorr .5x_height#*slant+min(.5curve#-.85u#,-.1u#);
+adjust_fit(serif_fit#,0);
+pickup tiny.nib; pos1(stem',0); pos2(stem,0);
+pos0'(stem',0); pos0(stem,0); z0l=z0'l; x0'=x1; x0=x2;
+lft x1l=hround(2.5u-.5stem'); top y1=h if serifs: +min(oo,serif_drop) fi;
+numeric edge; edge=rt x2r;
+pickup fine.nib; pos3(if hefty:thin_join else: hair fi,180);
+pos4(vair',90); pos5(curve,0); pos6(vair,-90); penpos7(x3l-x3r,-180);
+rt x3l=max(rt x3l-(lft x3r-tiny.lft x2l), 1/3[rt x2,edge]);
+y3=1/8[bar_height,x_height];
+x4l=w-.5(w-serif_fit)+.5u; top y4r=x_height+oo;
+rt x5r=hround min(w-1.35u+.5curve,w-.6u); y5=.5x_height;
+x6l=x4l-.2u; bot y6r=-oo;
+x7=x3; y7=min(y3,y6+y4-y3+.6vair);
+(x,y4r)=whatever[z3l,z4l]; x4r:=min(x,.5[x5r,x4]);
+(x',y6r)=whatever[z7l,z6l]; x6r:=min(x',.5[x5r,x6]);
+filldraw stroke z3e{up}...{right}z4e&super_arc.e(4,5)
+ &super_arc.e(5,6)&z6e{left}...{up}z7e;  % bowl
+y0=ypart(((edge,x_height)--(edge,0)) intersectionpoint
+ (z3l{up}...{right}z4l));
+pickup tiny.nib; bot y2=-d;
+filldraw stroke z1e--z0'e--z0e--z2e;  % stem
+pickup crisp.nib; pos8(hair,0); pos7'(stem,0);
+z7'=z2; x8l=x7'l; bot y8=0;
+filldraw stroke z7'e--z8e;  % point
+if serifs: sloped_serif.l(1,0',a,1/3,jut,serif_drop);  % upper serif
+ dish_serif(2,0,b,1/3,jut,c,1/3,jut); fi  % lower serif
+penlabels(0,1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Uppercase Thorn";
+beginchar(hex"6A",12u#,cap_height#,0);
+italcorr .5cap_height#*slant-.5u#;
+adjust_fit(cap_serif_fit#,0);
+pickup tiny.nib; penpos1(cap_stem'-tiny,0); penpos2(cap_stem-tiny,0);
+pos0(cap_stem',0); pos0'(cap_stem,0);
+lft x1l=hround max(2u,3u-.5cap_stem'); top y1=h; bot y2=0;
+x1l=x2l=x0l=x0'l; y0=y0'=y7;
+penpos3(cap_band,90); penpos4(cap_band,90);
+penpos5(cap_curve if hefty:-3stem_corr fi,0);
+penpos6(.5[vair,cap_band],-90); penpos7(.5[vair,cap_band],-90);
+y4=y3; y5=.5[y4l,y6l]; y6=y7;
+x3=x7=x2; x4=x6=.5w+.75u; x5r=hround(w-u);
+y3r=vround(.80h);
+y7r=vround(.20h);
+x4l:=x6l:=x4-.25cap_curve;
+filldraw stroke z1e--z0e--z0'e--z2e; % stem
+fill stroke z3e..pulled_arc.e(4,5) & pulled_arc.e(5,6)..z7e;  % lobe
+if serifs: dish_serif(1,0,a,1/3,cap_jut,b,1/3,cap_jut);  % upper serif
+ dish_serif(2,0',c,1/3,cap_jut,d,1/3,cap_jut); fi  % lower serif
+math_fit(0,ic#-2.5u#); penlabels(0,1,2,3,4,5,6,7); endchar;
+ 
+cmchar "Islandic edh";
+beginchar(hex"6B",9u#,asc_height#,0);
+italcorr .8x_height#*slant;
+adjust_fit(0,0);
+penpos1(vair,90); penpos3(vair',-90);
+penpos1'(hair,0);
+penpos2(curve,180); penpos4(curve,0); penpos4'(curve,0);                                  
+penpos5(curve,0); penpos6(curve,0);
+x2r=hround max(.5u,1.25u-.5curve);
+x4r=w-x2r; x1=x3=.5w; y1r=x_height; y3r=-oo;
+y2=y4=.5(x_height-oo)-vair_corr; y2l:=y4l:=.5x_height;
+y4'=y4+1.5u; x4'=x4;
+top y6 = h; 
+x6= if monospace: 2/3 else: 1/3 fi [x2,x5]; 
+y5=0.66[y4',y6];
+x5=0.60[x4',x6];
+z1' = z4';
+penstroke pulled_arc.e(1',1)
+ & pulled_arc.e(1,2) & pulled_arc.e(2,3)
+ & pulled_arc.e(3,4)..z4'e..z5e---z6e; % bowl and stem
+numeric newstem; newstem = .5[hair,.7stem];
+penpos7(newstem,-45); penpos8(newstem,-45);
+top y8l = h;
+bot y7r = .12[top y1r,h];
+(x8-x7)/(y6-y5) = (y8-y7)/(x5-x6);
+z=.5[z7,z8]; % make bar symmetric
+(y6-y)/(y6-y5) = (x6-x)/(x6-x5);
+penstroke z7e--z8e; % bar
+penlabels(1,2,3,4,5,6,7,8); endchar;
+ 
+cmchar "Permille sign";
+cmchar "Per mille sign";
+beginchar(hex"68",9u#+max(9u#,3fudge*(hair#+stem#)),
+  body_height#,body_height#-asc_height#);
+italcorr if hefty: .4asc_height#*slant-.5u# else: h#*slant-u# fi;
+adjust_fit(0,0); pickup fine.nib;
+numeric left_curve,right_curve;
+left_curve=hround 5/6[fudged.hair,fudged.stem];
+right_curve=max(fine.breadth,hround(fudged.hair if hefty:-2stem_corr fi));
+pos1(vair,90); pos2(left_curve,180); pos3(vair,270); pos4(right_curve,360);
+top y1r=h; lft x2r=hround u; rt x4r=hround(.35w-u);
+bot y3r=floor(if monospace: .7 else: .5 fi\\ asc_height);
+x1=x3=.5[x2,x4]; y2=y4=.5[y1,y3];
+filldraw stroke pulled_super_arc.e(1,2)(superpull)
+ & pulled_super_arc.e(2,3)(superpull);  % left half of upper bowl
+filldraw stroke super_arc.e(3,4) & super_arc.e(4,1); % right half of upper bowl
+pos5(vair,90); pos6(left_curve,180); pos7(vair,270); 
+pos8(right_curve,360);
+bot y7r=-d; rt x8r=hround(.70w-u); x6-x8 = x2-x4;
+top y5r=vround(if monospace: .3 else: .5 fi\\ asc_height);
+x5=x7=.5[x6,x8]; y6=y8=.5[y5,y7];
+filldraw stroke pulled_super_arc.e(5,6)(superpull)
+ & pulled_super_arc.e(6,7)(superpull);  % left half of lower bowl
+filldraw stroke super_arc.e(7,8) & super_arc.e(8,5); % right half of lower bowl
+pos5'(vair,90); pos6'(left_curve,180); pos7'(vair,270); 
+pos8'(right_curve,360);
+bot y7'r=-d; rt x8'r=hround(w-u); x6'-x8' = x6-x8;
+top y5'r=vround(if monospace: .3 else: .5 fi\\ asc_height);
+x5'=x7'=.5[x6',x8']; y6'=y8'=.5[y5',y7'];
+filldraw stroke pulled_super_arc.e(5',6')(superpull)
+ & pulled_super_arc.e(6',7')(superpull);  % left half of lower bowl
+filldraw stroke super_arc.e(7',8') & super_arc.e(8',5'); % right half of lower bowl
+pickup rule.nib; top y9=h; bot y10=-d;
+if hefty: x9=good.x(x5-eps); x10=good.x(x1+eps);
+ draw z9--z10;  % diagonal
+else: rt x9=hround(.67w-2.5u); lft x10=hround 2.5u; draw z9--z10;  % diagonal
+ pickup fine.nib; pos9(rule_thickness,angle(z9-z10)+90);
+ pos11(vair,angle(z1r-z4r)-90); pos12(vair,angle(z9-z10)+90);
+ path p; p=super_arc.r(1,4); z11r=point 2/3 of p; z12r=z9r;
+ filldraw stroke z11e{direction 2/3 of p}...{z9-z10}z12e; fi  % link
+penlabels(1,2,3,4,5,6,7,8,9,10,11,12); endchar;

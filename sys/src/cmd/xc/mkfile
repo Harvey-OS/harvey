@@ -1,0 +1,37 @@
+</$objtype/mkfile
+
+TARG=xc
+OFILES=\
+	bits.$O\
+	cgen.$O\
+	enam.$O\
+	list.$O\
+	sgen.$O\
+	swt.$O\
+	txt.$O\
+	mul.$O\
+	reg.$O\
+	loop.$O\
+	peep.$O\
+	copy.$O\
+	opt.$O\
+
+HFILES=\
+	gc.h\
+	x.out.h\
+	../cc/cc.h\
+
+LIB=../cc/cc.a$O
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+$LIB:
+	cd ../cc
+	mk install
+	mk clean
+
+t:V:	$O.out
+	$O.out -S t
+	$LD -o t.out t.$O
+	t.out

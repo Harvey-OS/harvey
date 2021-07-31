@@ -1,0 +1,76 @@
+% Patch LaTeX's output routine to handle marks correctly with two columns.
+% Version 1.0
+% Joe Pallas <pallas@edu.stanford.neon>
+
+% Version 1.1
+% Corrected by Piet van Oostrum <piet@cs.ruu.nl> on Feb 5, 1993
+% Originally this file was called "fixhead.sty" which doesn't make sense.
+% The original version of this file used a comparison between \firstmark
+% and \topmark to check if a mark was given in the first column. However
+% this fails in the case that a mark is given that is identical to the one
+% on the previous page. Although this can be considered a pathological case
+% I didn't want it. The use of the \vsplit should solve this. The only case
+% that it doesn't solve is if the user inserts empty marks, but LaTeX marks
+% are always of the form {}{}.
+% Note: the \topmarks are generally useless in LaTeX because they are
+% destroyed by the float mechanism.
+% The above comment added Oct 3, 1994.
+
+% Version 1.2
+% Oct 5, 1994: replaced \expandafter's by \xdef, which does the same but
+% looks less complicated.
+
+% Version 1.3
+% Oct 6, 1994: replaced "\global\setbox\@leftcolumn\vsplit\@outputbox
+% to\ht\@outputbox" by the two \setbox's below. This ensures that no
+% anomalies may occur in pathological cases. These can occur if there are
+% large negative glues near the end of the box.
+% Oct 6, 1994: save and restore \split*mark just in case someone was going
+% to use it and got interrupted by us. The code doesn't make a difference
+% between no marks and empty marks, but that difference isn't visible at
+% the user level. The strange way to do this is necessary as the marks
+% don't obey grouping rules. (Actually also \clearpage processing destroys
+% these marks, so the saving/restoring may be of limited value)
+
+% Version 1.4
+% Oct 7, 1994: saving of the \split*marks now done by putting them directly
+% in a box. Added \vbadness=10000 to get rid of underfull vbox warning.
+% Note: we rely on the grouping mechanism to reset various things, as this
+% is about the last thing to happen in the output routine.
+
+% Version 1.5
+% Oct 11, 1994: suppressed unwanted expansion of the marks. This includes
+% undoing the change mentioned in version 1.2.
+
+\def\@outputdblcol{\if@firstcolumn \global\@firstcolumnfalse
+% save the left column
+    \global\setbox\@leftcolumn\copy\@outputbox
+% save the \split*marks
+    \setbox\@tempboxa\vbox{
+      \toks@\expandafter{\splitfirstmark}
+      \mark{\the\toks@}
+      \toks@\expandafter{\splitbotmark} % we don't use \splitbotmark but
+      \mark{\the\toks@}}                % it gets clobbered by the \vsplit below
+% Remember the marks from the first column
+    \splitmaxdepth=\maxdimen \vbadness=10000
+    \setbox\@outputbox\vsplit\@outputbox to\maxdimen
+    \expandafter\gdef\expandafter\@firstcoltopmark\expandafter{\topmark}%
+    \expandafter\gdef\expandafter\@firstcolfirstmark
+                                \expandafter{\splitfirstmark}%
+    \ifx\@firstcolfirstmark\empty\global\let\@setmarks\relax\else
+      \gdef\@setmarks{\let\firstmark\@firstcolfirstmark
+        \let\topmark\@firstcoltopmark}%
+    \fi
+% Restore the \split*marks
+    \setbox\@tempboxa\vsplit\@tempboxa to 0pt % this resets the \split*marks
+% End of change
+  \else \global\@firstcolumntrue
+    \setbox\@outputbox\vbox{\hbox to\textwidth{\hbox to\columnwidth
+      {\box\@leftcolumn \hss}\hfil \vrule width\columnseprule\hfil
+       \hbox to\columnwidth{\box\@outputbox \hss}}}\@combinedblfloats
+% Override current first and top with those of first column if necessary
+       \@setmarks
+% End of change
+       \@outputpage \begingroup \@dblfloatplacement \@startdblcolumn
+       \@whilesw\if@fcolmade \fi{\@outputpage\@startdblcolumn}\endgroup
+    \fi}

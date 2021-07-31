@@ -1,0 +1,76 @@
+objtype=mips
+</$objtype/mkfile
+
+TARG=9magnumfs
+
+OBJ=\
+	l.$O\
+	arp.$O\
+	auth.$O\
+	chk.$O\
+	clock.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	cw.$O\
+	data.$O\
+	dentry.$O\
+	devcons.$O\
+	fcall.$O\
+	fcmd.$O\
+	fs.$O\
+	fworm.$O\
+	il.$O\
+	iobuf.$O\
+	ip.$O\
+	iproute.$O\
+	kbd.$O\
+	lance.$O\
+	lock.$O\
+	magnum.$O\
+	main.$O\
+	malloc.$O\
+	mworm.$O\
+	print.$O\
+	proc.$O\
+	scc.$O\
+	scsi.$O\
+	sub.$O\
+	time.$O\
+	toy.$O\
+	trap.$O\
+	uidgid.$O\
+	worm.$O\
+	wren.$O\
+
+HFILES=\
+	../port/all.h\
+	../port/lib.h\
+	../port/portdat.h\
+	../port/portfns.h\
+	./dat.h\
+	./fns.h\
+	./io.h\
+	./mem.h\
+	/$objtype/include/u.h\
+	/$objtype/include/ureg.h\
+
+CFLAGS=-w -I. -I../port
+
+all:V:	$TARG
+
+<../port/mkfile
+
+$TARG:	$OBJ $TARG.$O
+	$LD -o $target -l -R4 -H1 -T0x80020000 $prereq -lauth -lc
+
+installall:V:	install
+install:V:	$TARG
+	cp $TARG /mips/$TARG
+
+push:V:	$TARG
+	9fs cetus
+	cp $TARG /n/cetus/usr/local/boot
+
+$TARG.$O:	$TARG.c
+	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c

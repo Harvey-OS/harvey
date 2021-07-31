@@ -1,0 +1,395 @@
+% \iffalse
+% $Id: tmacros.sty,v 1.2 1995/01/28 07:48:30 swift Exp $
+
+%   tmacros.sty           
+
+%   Copyright (C) 1994 Matt Swift <swift@bu.edu>
+
+% In the near future this code will become part of a larger package called
+% "scholar" that I will release also under the GPL.  I want to make certain
+% useful parts of the package available before the whole package is released
+% because I don't see any reason to withhold them.  This is in lieu of a beta
+% release that would only be frustrating because I will not have time to
+% maintain it until May 1995.  If you find this code useful, look for the whole
+% package about that time.  I welcome comments, suggestions, etc.
+
+%   This program is free software; you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation; either version 2 of the License, or
+%   (at your option) any later version.
+
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+
+%   You should have received a copy of the GNU General Public License
+%   along with this program; if not, write to the Free Software
+%   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+% \fi
+
+% \date{95/01/26}
+% \author{Matt Swift \texttt{<swift@bu.edu>}}
+% \title{The \texttt{tmacros} package}
+% \maketitle
+
+% \section{Introduction}
+% First a general discussion.
+
+% \textsl{Text macros} expand to a piece of text, and insert the proper space
+% following, depending on context.  If I define a text macro |\foo| to be
+% \meta{text}, I can use |\foo| in place of \meta{text} almost anywhere.  For
+% details of how the spacing is handled, see the macros.  Examples that produce
+% correct formatting:
+% \begin{quote}
+%                    |\newname{ww}{Wordsworth}| \\
+%                    |\newwork{prelude}{The Prelude}            % in italic|
+%
+%                    |The manuscripts of \ww's \prelude differ|\ldots \\
+%                    |Before beginning \prelude, \ww wrote|\ldots
+% \end{quote}
+
+% \textsl{Abbreviation macros} are text macros that expand to something
+% different the first time they are used.  It is expected that the second be
+% an abbreviation of the first, but that need not be the case.  Examples:
+% \begin{quote}
+%  |\newname{nixon}{Richard Milhous Nixon}[Nixon]| \\
+%  |\newname{jekyll}{Dr.~Henry Jekyll}[Jekyll]|\\
+%  |\newname{ama}{American Medical Association (AMA)}[AMA]| \\
+% \end{quote}
+
+% Here are the particular commands.  First the primitive ones.
+
+% \DescribeMacro{\NewTextMacro}
+% |\NewTextMacro|\marg{command}\marg{text} defines |\|\meta{command} to expand
+% to \meta{text} and insert the right space after it, depending on context.  To
+% \DescribeMacro{\spacebeforelist}
+% control behavior explicitly, you can set |\spacebeforelist| analogously to
+% |\nocorrlist|.
+
+% \DescribeMacro{\newabbrev}
+% |\newabbrev|\marg{command}\marg{initial text}\marg{subsequent text} defines
+% |\|\meta{command} to be \meta{initial text} (like a text macro, inserting the
+% right following space) the first time it is used, and \meta{subsequent text}
+% subsequently.  To use one or the other in a particular circumstance, the
+% commands |\|\meta{command}|short| and |\|\meta{command}|long| are also
+% defined.
+% \DescribeMacro{\AbbrevLongSuffix}
+% \DescribeMacro{\AbbrevShortSuffix}
+% (You can change those suffixes by setting |\AbbrevShortSuffix| and
+% |\AbbrevLongSuffix|.)
+
+% \DescribeMacro{\ResetAbbrevs}
+% Calling |\ResetAbbrevs| starts all the abbreviation macros over again; their
+% next occurrence will be the ``first.''  This command could be put in the
+% chapter hook.
+
+% The following user commands are provided.
+
+% \DescribeMacro{\newbook}
+% |\newbook|\marg{command}\marg{text}\oarg[abbrev] defines |\|\meta{command} to
+% be a text macro with emphasized text.  If an optional argument is given, it
+% defines an abbreviation with emphasized text.
+
+% \DescribeMacro{\newwork}
+% |\newwork| is an alias for a |\newbook| at the moment. In the future,
+% ``works'' will be distinguished from books by being listed in a separate
+% bibliography, e.g., of primary works which are referred to by short titles.
+% The defining command will then need to take a Bib\TeX\ key as an argument
+% also.  The first use of the work will serve as a citation to that
+% bibliography, and all uses of the work will generate an index entry. 
+
+% \DescribeMacro{\newname}
+% |\newname|\marg{command}\marg{name}\marg{abbrev} defines |\|\meta{command} to
+% be a plain abbreviation (no style-changing). 
+
+% \section{Implementation}
+% \StopEventually{}
+
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tmacros}[1995/01/26 v1.0 text and abbrev macros]
+\RequirePackage{ifthen}
+%    \end{macrocode}
+
+% \begin{macro}{\AbbrevLongSuffix}
+% \begin{macro}{\AbbrevShortSuffix}
+% When a text macro |\foo| is created, two additional commands with these
+% suffixes are also created. 
+%    \begin{macrocode}
+\newcommand\AbbrevLongSuffix
+  {long}
+\newcommand\AbbrevShortSuffix
+  {short}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{\NewTextMacro}
+% I wrote some really nice code to implement text macros in 2.09 sometime early
+% in '94 when I was beginning work on my thesis.  I thought what I'd done was
+% pretty special.  On December~2, 1994, though, I read Chris and Frank's code
+% for |\DeclareTextFontCommand|, and I have to admit it sure put the chop to
+% what I'd done.  Go boys go.
+
+% The checking that |\sw@slant| does for skips and penalties on the list is
+% going to be superfluous for the applications I imagine.  But we trade that
+% for a more flexible macro. 
+
+% We don't check for |\nocorr| or an empty body;  maybe we should when it's
+% first defined; but I ran into really hairy expansion troubles trying to do
+% that and use |\DeclareRobustCommand|. 
+%    \begin{macrocode}
+\newcommand\NewTextMacro[3] % args: \csname, style, body
+  {\DeclareRobustCommand#1%
+      {\leavevmode
+      {\maybe@ic #2\aftergroup \maybe@ic@space #3}}}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\maybe@ic@space}
+% \begin{macro}{\maybe@ic@space@}
+% When a text macro is followed by a letter or any token in |\spacebeforelist|,
+% a following space is inserted.  |\spacebeforelist| initially contains only
+% |(|, |`|, |[|, |\&|, |\$|, and |\#|, since for all others I can think of
+% situations in which a space is not desirable, and it is more familiar to
+% users to use \verb*"\ " or |{}| than |\unskip|.  It does not make sense to
+% have any item in both |\spacebeforelist| and |\nocorrlist|, since an italic
+% correction should be inserted before a space.  If the same token is in both
+% lists by accident, neither a correction or space will be inserted, i.e., its
+% presence in |\spacebeforelist| will be ignored.
+
+% Because we want to possibly insert a following space, a single macro
+% |\maybe@ic| for both sides of the text is no longer sufficient. 
+%    \begin{macrocode}
+\newcommand\maybe@ic@space
+  {\futurelet\@let@token\maybe@ic@space@}
+%    \end{macrocode}
+% The reason we can use |\test@next| again is that all it is doing is setting
+% the switch false if |\@let@token| is in the list |\spaceafter|. 
+
+% \begin{macro}{\tm@ifnewformat}
+% Here is where a little change occurred in the December release; temporary
+% variable |\@tempa| became |\reserved@a| in |\test@next|.  For the moment, we
+% want to be able to work with both releases, so we define a conditional.
+%    \begin{macrocode}
+\newcommand\tm@ifnewformat
+  {\@ifl@t@r\fmtversion{1994/06/01}}
+%    \end{macrocode}
+% \end{macro}
+
+% Now we define one or the other version, depending.
+% This macro is very similar to |\maybe@ic@|, but we do the checking twice,
+% once for |\nocorrlist| and once for |\spacebeforelist|.  We skip the check
+% through |\spacebeforelist| if the following character is a letter (i.e.,
+% catcode of ``A''); otherwise, we'd have to add all the letters to
+% |\spacebeforelist|.  
+%    \begin{macrocode}
+\tm@ifnewformat
+{\newcommand\maybe@ic@space@             % ifnewformat is TRUE
+  {\ifdim \fontdimen\@ne\font>\z@
+  \else
+    \@tempswatrue
+    \expandafter\@tfor\expandafter\reserved@a\expandafter:\expandafter=%
+        \nocorrlist
+    \do \test@next
+    \if@tempswa 
+      \sw@slant
+      \ifcat\@let@token A\space
+      \else
+        \expandafter\@tfor\expandafter\reserved@a\expandafter:\expandafter=%
+            \spacebeforelist
+        \do \test@next  % sets switch false if we want a space
+        \if@tempswa
+        \else\space
+        \fi
+      \fi
+    \fi
+  \fi}}
+{\newcommand\maybe@ic@space@           % ifnewformat is FALSE
+  {\ifdim \fontdimen\@ne\font>\z@
+  \else
+    \@tempswatrue
+    \expandafter\@tfor\expandafter\@tempa\expandafter:\expandafter=%
+        \nocorrlist
+    \do \test@next
+    \if@tempswa 
+      \sw@slant
+      \ifcat\@let@token A\space
+      \else
+        \expandafter\@tfor\expandafter\@tempa\expandafter:\expandafter=%
+            \spacebeforelist
+        \do \test@next  % sets switch false if we want a space
+        \if@tempswa
+        \else\space
+        \fi
+      \fi
+    \fi
+  \fi}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{\spacebeforelist}
+% Put these in the order of their frequency. 
+% Something to check:  are these going to be the CHARACTERS, or the versions
+% with the special catcodes?  
+%    \begin{macrocode}
+\newcommand\spacebeforelist
+  {(`[\&\$\#}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\newabbrev}
+% This command defines a new abbreviation.  The optional argument is treated as
+% a style-changing command.  
+%    \begin{macrocode}
+\newcommand\newabbrev[1][] % oarg: style
+  {\sc@newabbrev{\NewTextMacro}{#1}}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\ResetAbbrevs}
+% Each time an abbreviation is defined, something will be added to the contents
+% of this command.
+%    \begin{macrocode}
+\newcommand\ResetAbbrevs{}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\newtokens}
+% Here's a silly command to allocate new token registers without stepping on
+% existing names.  |\newtokens| should definitely be |outer|.  Because
+% |\newtoks| is |outer|, we have to fool |\def| into allowing it to be in its
+% argument by using |\csname|\ldots|\endcsname|. 
+
+% |\newtokens| should be |\outer| but for the moment that's a pain because the
+% scholar package is in pieces, and you want to be able to load more than one
+% piece.
+%    \begin{macrocode}
+\@ifundefined{newtokens}
+    {\def\newtokens#1%
+      {\@ifdefinable #1
+      {\csname newtoks\endcsname#1}}}
+  {}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\sc@toks@shortcom}
+% \begin{macro}{\sc@toks@plaincom}
+% \begin{macro}{\sc@toks@longcom}
+% The first three of the following toks registers will expand to the three
+% |\csname|s we are going to define.  The remaining two will be used later.
+%    \begin{macrocode}
+\newtokens\sc@toks@shortcom
+\newtokens\sc@toks@longcom
+\newtokens\sc@toks@plaincom
+\@ifundefined{sc@toks@a}
+    {\newtokens\sc@toks@a}
+  {}
+\@ifundefined{sc@toks@b}
+    {\newtokens\sc@toks@b}
+  {}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+
+% The above are simply holders, to keep what's in them from expanding under the
+% |\xdef| below.  I tried |\noexpand|s, which might have been clearer, but to
+% no avail.  What's below is a pain in the neck, but it works.  Someday I will
+% make another stab at simplifying. 
+
+% \begin{macro}{\sc@newabbrev}
+% Here is the main abbreviation maker.  The first argument is another macro to
+% call.  It's there to make things simpler, but also because I have in mind
+% alternatives to |\NewTextMacro| that are not yet implemented.  The second
+% argument is expected to be a style command, such as |\em|, or empty.  The
+% third argument is the main macro name to be created, and the fourth and fifth
+% arguments are the initial expansion, and the subsequent expansion for the
+% macro. 
+
+% The first part sets our three toks variables to the three command sequences
+% that this macro is going to define. 
+%    \begin{macrocode}
+\newcommand\sc@newabbrev[5] % args: maker style name longtext shorttext
+  {\sc@toks@shortcom=\expandafter{\csname #3\AbbrevShortSuffix\endcsname}
+  \sc@toks@longcom=\expandafter{\csname #3\AbbrevLongSuffix\endcsname}
+  \sc@toks@plaincom=\expandafter{\csname #3\endcsname}
+%    \end{macrocode}
+% The next two lines define the explicitly long version and the explicitly
+% short version.
+%    \begin{macrocode}
+  \expandafter#1\the\sc@toks@longcom{#2}{#4}
+  \expandafter#1\the\sc@toks@shortcom{#2}{#5}
+%    \end{macrocode}
+%  Perhaps the following should be sent out to its own macro.  Would that
+%  simplify this knotty expansion problem?  Anyway, the strategy is to define
+%  the main command to check its own reserved boolean variable to see whether
+%  this macro has been called before, and expand to different things according
+%  to its value.  
+%    \begin{macrocode}
+  \newboolean{#3 mentioned}
+%    \end{macrocode}
+% This next line is a local change; should it be global? 
+%    \begin{macrocode}
+  \addto@macro\ResetAbbrevs{\setboolean{#3 mentioned}{false}}
+%    \end{macrocode}
+% Here's the real screwy part.  To get the expansion right, I put two
+% lines of code into toks registers.
+%    \begin{macrocode}
+  \sc@toks@a={\ifthenelse{\boolean{#3 mentioned}}}
+  \sc@toks@b={\setboolean{#3 mentioned}{true}}
+%    \end{macrocode}
+% And then I use them here.  This code defines the main abbreviation macro to a
+% simple |\ifthenelse|.  The expanded code is given in the comments.
+%    \begin{macrocode}
+  \expandafter\@ifdefinable\the\sc@toks@plaincom
+    {\expandafter\xdef\the\sc@toks@plaincom
+      {\the\sc@toks@a% I.E.:  {\ifthenelse{\boolean{#3 mentioned}}}
+          {\the\sc@toks@shortcom}
+        {\the\sc@toks@b% I.E.:{\setboolean{#3 mentioned}{true}}
+      	\the\sc@toks@longcom}}}}
+%    \end{macrocode}
+% The |\csname|s (either |\foolong| or |\fooshort|) \emph{must} be the very
+% last thing to occur in the definitions, or the |\futurelet| that checks
+% following spacing in |\NewTextMacro| will break.  No space must sneak into
+% the macros!
+% \end{macro}
+
+% From here on out, we are just applying these things to make a few user
+% commands.  
+
+% \begin{macro}{\newname}
+%    \begin{macrocode}
+\newcommand\newname
+  {\newabbrev[]}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\newwork}
+% \begin{macro}{\sc@newworkabbrev}
+%    \begin{macrocode}
+\newcommand\newwork[2]
+  {\@ifnextchar [ 
+      {\sc@newworkabbrev{#1}{#2}}
+    {\expandafter\NewTextMacro\csname #1\endcsname{\em}{#2}}}
+
+\newcommand\sc@newworkabbrev{}  % reserve the cs
+\def\sc@newworkabbrev#1#2[#3]
+  {\sc@newabbrev{\NewTextMacro}{\em}{#1}{#2}{#3}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{\newbook}
+%    \begin{macrocode}
+\newcommand\newbook[2]
+   {\newwork{#1}{#2}} 
+%    \end{macrocode}
+% \end{macro}
+
+% \Finale
+
+\endinput

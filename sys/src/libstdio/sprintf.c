@@ -5,6 +5,7 @@
 int sprintf(char *buf, const char *fmt, ...){
 	int n;
 	va_list args;
+	char *v;
 	FILE *f=sopenw();
 	if(f==NULL)
 		return 0;
@@ -12,6 +13,6 @@ int sprintf(char *buf, const char *fmt, ...){
 	va_start(args, fmt);
 	n=vfprintf(f, fmt, args);
 	va_end(args);
-	sclose(f);
+	v=sclose(f);
 	return n;
 }

@@ -1,0 +1,36 @@
+%% 
+%% This is file `OMSlcmsy.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% slides.fdd  (with options: `lcmsy,fd')
+%% 
+%% Copyright (C) 1994-1994 LaTeX3 Project, Frank Mittelbach. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% If you want to customize the definitions in this file we recommend 
+%% that you copy the relevant portions of the original source file 
+%% slides.fdd into a private .fdd file and generate the the customized 
+%% file from this source. 
+%% 
+\ProvidesFile{OT1lcmsy.fd}
+        [1994/05/12 v2.1h Standard LaTeX slide font definitions]
+\DeclareFontFamily{OMS}{lcmsy}{\skewchar\font'60}
+\DeclareFontShape{OMS}{lcmsy}{m}{n}{%
+     <7><8><10><12><13.82><16.59><19.91><23.89><28.66><34.4><41.28>cmsy8
+      }{}
+\DeclareFontShape{OMS}{lcmsy}{m}{In}{%
+    <7><8><10><12><13.82><16.59><19.91><23.89><28.66><34.4><41.28>icmsy8
+      }{}
+\endinput
+%% 
+%% End of file `OMSlcmsy.fd'.

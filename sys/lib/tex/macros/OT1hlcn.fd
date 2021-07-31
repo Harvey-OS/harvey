@@ -1,0 +1,30 @@
+%Filename: OT1hlcn.fd
+%Created by: tex 3187luccasua
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{OT1hlcn.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for OT1/hlcn.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{OT1}{hlcn}{}
+
+\DeclareFontShape{OT1}{hlcn}{m}{n}{
+ <->s * [\LucidaScale]hlcrn7t
+}{}
+
+\DeclareFontShape{OT1}{hlcn}{m}{sc}{
+ <->s * [\LucidaScale]hlcrnc7t
+}{}
+
+\DeclareFontShape{OT1}{hlcn}{m}{it}{
+ <->s * [\LucidaScale]hlcrin7t
+}{}
+
+\DeclareFontShape{OT1}{hlcn}{m}{sl}{
+ <->s * [\LucidaScale]hlcron7t
+}{}
+
+\DeclareFontShape{OT1}{hlcn}{m}{ui}{<->sub * hlcn/m/it}{}
+
+\endinput

@@ -1,0 +1,90 @@
+fig, a drawing editor, mostly stolen from Gargoyle.
+
+A picture is constructed of objects (polygons and circles).
+Objects are constructed by placing the `current point' at
+each of a sequence of points that define the object.
+
+There is a collection of alignment objects toward which the
+current point gravitates when dragged.
+
+Each object in the scene is an alignment object.
+Additionally, the user can specify a set of points and lines on the
+screen (hot spots) and a set of rules by which alignment
+objects should be created, e.g.:
+	circles of a given radius around each hot point
+	lines of a given slope from each hot point
+	lines a given distance away from each hot line
+	lines of at given angle at the endpoints of each hot line
+	midpoint of each hot line
+
+The user can specify that appropriate pieces (points and lines of a polygon,
+center of a circle) of the current selection be
+made hot if it is being edited, (but not if it's being transformed).
+
+File commands:
+	read/write a file
+	start over
+Selection commands:
+	select a circle/point/line/polygon
+Object creation commands:
+	start a new circle/polygon (selects an empty polygon)
+Object editing commands:
+	change center/radius of selected circle
+	break the selected edge
+	move the selected point
+	close the selected polygon
+	delete the selected object
+Transformation commands:
+	drop anchor
+	translate/rotate/scale the selected object
+Measurement commands:
+	measure/type an angle/distance/slope
+Alignment construction commands:
+	circles of a given radius around each hot point
+	lines of a given slope from each hot point
+	lines a given distance away from each hot line
+	lines at a given angle at the endpoints of each hot line
+	midpoints of hot lines
+Hot spot selection commands:
+	heat/cool the selected object
+	cool everything
+	always/never heat the selection being edited
+
+Global definitions:
+struct object{
+	char type;			/* CIRCLE/POLYGON/CLOSED/POINT/LINE */
+	Point c;			/* center of circle */
+	int r;				/* radius of circle */
+	int nv;				/* number of vertices in polygon */
+	Point *v;			/* polygon/line/point vertices */
+	struct object *container;	/* polygon containing the point or line */
+	struct object *next;		/* next member of list */
+};
+/*
+ * object types
+ */
+#define	CIRCLE	1	/* a circle */
+#define	POLYGON	2	/* an open polygon: first and last vertices unconnected */
+#define	CLOSED	3	/* a closed polygon: last vertex connected to first */
+#define	POINT	4	/* a single point, possibly part of some polygon */
+#define	LINE	5	/* a single line, possibly part of some polygon */
+struct object *scene;	/* the thing being drawn (type in CIRCLE, POLYGON) */
+struct object *align;	/* list of gravitating objects (CIRCLE, POINT, LINE) */
+struct object *hotspot;	/* list of hot spots (POINT, LINE) */
+struct object *select;	/* selected objects (CIRCLE, POLYGON, POINT, LINE) */
+Point current;		/* the current point */
+char hotsel;		/* make selection hot when editing */
+Point anchor;		/* reference point for transformations */
+struct alignrule{
+	char type;	/* PTCIRC/PTANG/LNDIST/LNANG/MIDPT */
+	int v;		/* rule parameter */
+	struct alignrule *next;
+}*rule;
+/*
+ * alignment rule types
+ */
+#define	PTCIRC	1	/* a circle of radius v at each hot point */
+#define	PTANG	2	/* a line at angle v at each hot point */
+#define	LNDIST	3	/* a line at distance v from each hot line */
+#define	LNANG	4	/* a line at angle v from each end of each hot line */
+#define	MIDPT	5	/* the midpoint of each hot line */

@@ -1,55 +1,45 @@
 #include	"l.h"
 
 void
-pagebug(Prog *p)
-{
-	Prog *q;
-
-	switch(p->as) {
-	case ABGEZAL:
-	case ABLTZAL:
-	case AJAL:
-	case ABEQ:
-	case ABGEZ:
-	case ABGTZ:
-	case ABLEZ:
-	case ABLTZ:
-	case ABNE:
-	case ABFPT:
-	case ABFPF:
-	case AJMP:
-		q = prg();
-		*q = *p;
-		p->link = q;
-		p->as = ANOR;
-		p->optab = 0;
-		p->from = zprg.from;
-		p->from.type = D_REG;
-		p->from.reg = REGZERO;
-		p->to = p->from;
-	}
-}
-
-void
 span(void)
 {
 	Prog *p, *q;
 	Sym *setext;
 	Optab *o;
-	int m, bflag;
-	long c, otxt;
+	int m;
+	long c;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f span\n", cputime());
 	Bflush(&bso);
-
-	bflag = 0;
 	c = INITTEXT;
-	otxt = c;
 	for(p = firstp; p != P; p = p->link) {
 		/* bug in early 4000 chips delayslot on page boundary */
-		if((c&(0x1000-1)) == 0xffc)
-			pagebug(p);
+		if((c&(0x1000-1)) == 0xffc) {
+			switch(p->as) {
+			case ABGEZAL:
+			case ABLTZAL:
+			case AJAL:
+			case ABEQ:
+			case ABGEZ:
+			case ABGTZ:
+			case ABLEZ:
+			case ABLTZ:
+			case ABNE:
+			case ABFPT:
+			case ABFPF:
+			case AJMP:
+				q = prg();
+				*q = *p;
+				p->link = q;
+				p->as = ANOR;
+				p->optab = 0;
+				p->from = zprg.from;
+				p->from.type = D_REG;
+				p->from.reg = REGZERO;
+				p->to = p->from;
+			}
+		}
 		p->pc = c;
 		o = oplook(p);
 		m = o->size;
@@ -59,72 +49,12 @@ span(void)
 				autosize = p->to.offset + 4;
 				if(p->from.sym != S)
 					p->from.sym->value = c;
-				/* need passes to resolve branches */
-				if(c-otxt >= 1L<<17)
-					bflag = 1;
-				otxt = c;
 				continue;
 			}
 			diag("zero-width instruction\n%P\n", p);
 			continue;
 		}
 		c += m;
-	}
-
-	/*
-	 * if any procedure is large enough to
-	 * generate a large SBRA branch, then
-	 * generate extra passes putting branches
-	 * around jmps to fix. this is rare.
-	 */
-	while(bflag) {
-		if(debug['v'])
-			Bprint(&bso, "%5.2f span1\n", cputime());
-		bflag = 0;
-		c = INITTEXT;
-		for(p = firstp; p != P; p = p->link) {
-			/* bug in early 4000 chips delayslot on page boundary */
-			if((c&(0x1000-1)) == 0xffc)
-				pagebug(p);
-			p->pc = c;
-			o = oplook(p);
-			if(o->type == 6 && p->cond) {
-				otxt = p->cond->pc - c;
-				if(otxt < 0)
-					otxt = -otxt;
-				if(otxt >= (1L<<17) - 10) {
-					q = prg();
-					q->link = p->link;
-					p->link = q;
-					q->as = AJMP;
-					q->to.type = D_BRANCH;
-					q->cond = p->cond;
-					p->cond = q;
-					q = prg();
-					q->link = p->link;
-					p->link = q;
-					q->as = AJMP;
-					q->to.type = D_BRANCH;
-					q->cond = q->link->link;
-					addnop(p->link);
-					addnop(p);
-					bflag = 1;
-				}
-			}
-			m = o->size;
-			if(m == 0) {
-				if(p->as == ATEXT) {
-					curtext = p;
-					autosize = p->to.offset + 4;
-					if(p->from.sym != S)
-						p->from.sym->value = c;
-					continue;
-				}
-				diag("zero-width instruction\n%P\n", p);
-				continue;
-			}
-			c += m;
-		}
 	}
 	c = rnd(c, 8);
 
@@ -156,9 +86,9 @@ long
 regoff(Adr *a)
 {
 
-	instoffset = 0;
+	offset = 0;
 	aclass(a);
-	return instoffset;
+	return offset;
 }
 
 aclass(Adr *a)
@@ -197,26 +127,26 @@ aclass(Adr *a)
 					a->sym->name, TNAME);
 				a->sym->type = SDATA;
 			}
-			instoffset = a->sym->value + a->offset - BIG;
-			if(instoffset >= -BIG && instoffset < BIG)
+			offset = a->sym->value + a->offset - BIG;
+			if(offset >= -BIG && offset < BIG)
 				return C_SEXT;
 			return C_LEXT;
 		case D_AUTO:
-			instoffset = autosize + a->offset;
-			if(instoffset >= -BIG && instoffset < BIG)
+			offset = autosize + a->offset;
+			if(offset >= -BIG && offset < BIG)
 				return C_SAUTO;
 			return C_LAUTO;
 
 		case D_PARAM:
-			instoffset = autosize + a->offset + 4L;
-			if(instoffset >= -BIG && instoffset < BIG)
+			offset = autosize + a->offset + 4L;
+			if(offset >= -BIG && offset < BIG)
 				return C_SAUTO;
 			return C_LAUTO;
 		case D_NONE:
-			instoffset = a->offset;
-			if(instoffset == 0)
+			offset = a->offset;
+			if(offset == 0)
 				return C_ZOREG;
-			if(instoffset >= -BIG && instoffset < BIG)
+			if(offset >= -BIG && offset < BIG)
 				return C_SOREG;
 			return C_LOREG;
 		}
@@ -238,9 +168,9 @@ aclass(Adr *a)
 					s->name, TNAME);
 				s->type = SDATA;
 			}
-			instoffset = s->value + a->offset + INITDAT;
+			offset = s->value + a->offset + INITDAT;
 			if(s->type == STEXT || s->type == SLEAF)
-				instoffset = s->value + a->offset;
+				offset = s->value + a->offset;
 			return C_LCON;
 		}
 		return C_GOK;
@@ -249,22 +179,22 @@ aclass(Adr *a)
 		switch(a->name) {
 
 		case D_NONE:
-			instoffset = a->offset;
+			offset = a->offset;
 		consize:
-			if(instoffset > 0) {
-				if(instoffset <= 0x7fff)
+			if(offset > 0) {
+				if(offset <= 0x7fff)
 					return C_SCON;
-				if(instoffset <= 0xffff)
+				if(offset <= 0xffff)
 					return C_ANDCON;
-				if((instoffset & 0xffff) == 0)
+				if((offset & 0xffff) == 0)
 					return C_UCON;
 				return C_LCON;
 			}
-			if(instoffset == 0)
+			if(offset == 0)
 				return C_ZCON;
-			if(instoffset >= -0x8000)
+			if(offset >= -0x8000)
 				return C_ADDCON;
-			if((instoffset & 0xffff) == 0)
+			if((offset & 0xffff) == 0)
 				return C_UCON;
 			return C_LCON;
 
@@ -282,28 +212,28 @@ aclass(Adr *a)
 				s->type = SDATA;
 				break;
 			case SCONST:
-				instoffset = s->value + a->offset;
+				offset = s->value + a->offset;
 				goto consize;
 			case STEXT:
 			case SLEAF:
-				instoffset = s->value + a->offset;
+				offset = s->value + a->offset;
 				return C_LCON;
 			}
-			instoffset = s->value + a->offset - BIG;
-			if(instoffset >= -BIG && instoffset < BIG && instoffset != 0L)
+			offset = s->value + a->offset - BIG;
+			if(offset >= -BIG && offset < BIG && offset != 0L)
 				return C_SECON;
-			instoffset = s->value + a->offset + INITDAT;
+			offset = s->value + a->offset + INITDAT;
 			return C_LCON;
 
 		case D_AUTO:
-			instoffset = autosize + a->offset;
-			if(instoffset >= -BIG && instoffset < BIG)
+			offset = autosize + a->offset;
+			if(offset >= -BIG && offset < BIG)
 				return C_SACON;
 			return C_LACON;
 
 		case D_PARAM:
-			instoffset = autosize + a->offset + 4L;
-			if(instoffset >= -BIG && instoffset < BIG)
+			offset = autosize + a->offset + 4L;
+			if(offset >= -BIG && offset < BIG)
 				return C_SACON;
 			return C_LACON;
 		}
@@ -364,8 +294,6 @@ oplook(Prog *p)
 		p->as, a1, a2, a3);
 	if(!debug['a'])
 		prasm(p);
-	o = optab;
-	p->optab = (o-optab)+1;
 	return o;
 }
 
@@ -436,13 +364,13 @@ cmp(int a, int b)
 }
 
 int
-ocmp(const void *a1, const void *a2)
+ocmp(void *a1, void *a2)
 {
 	Optab *p1, *p2;
 	int n;
 
-	p1 = (Optab*)a1;
-	p2 = (Optab*)a2;
+	p1 = a1;
+	p2 = a2;
 	n = p1->as - p2->as;
 	if(n)
 		return n;
@@ -501,8 +429,6 @@ buildop(void)
 			repop[ASGTU] = 1;
 			oprange[AADDU] = oprange[r];
 			repop[AADDU] = 1;
-			oprange[AADDVU] = oprange[r];
-			repop[AADDVU] = 1;
 			break;
 		case AADDF:
 			oprange[ADIVF] = oprange[r];
@@ -546,8 +472,6 @@ buildop(void)
 			oprange[ADIVU] = oprange[r];
 			oprange[AMULU] = oprange[r];
 			oprange[ADIV] = oprange[r];
-			oprange[ADIVVU] = oprange[r];
-			oprange[ADIVV] = oprange[r];
 			break;
 		case ASLL:
 			oprange[ASRL] = oprange[r];
@@ -582,16 +506,16 @@ buildop(void)
 			oprange[AMOVVL] = oprange[r];
 			break;
 		case AMOVW:
-			buildrep(5, AMOVW);
+			buildrep(0, AMOVW);
 			break;
 		case AMOVD:
-			buildrep(6, AMOVD);
+			buildrep(5, AMOVD);
 			break;
 		case AMOVF:
-			buildrep(7, AMOVF);
+			buildrep(6, AMOVF);
 			break;
 		case AMOVV:
-			buildrep(8, AMOVV);
+			buildrep(7, AMOVV);
 			break;
 		case ABREAK:
 		case AWORD:
@@ -599,8 +523,6 @@ buildop(void)
 		case AJAL:
 		case AJMP:
 		case ATEXT:
-		case ACASE:
-		case ABCASE:
 			break;
 		}
 	}

@@ -1,0 +1,99 @@
+%% 
+%% This is file `showlabels.sty', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% showlabels.dtx  (with options: `package')
+%% Style to display labels in the margin 
+\def\filename{showlabels}
+\def\fileversion{v1.0}
+\def\filedate{1994/10/03}
+\def\docdate{1994/10/03}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{showlabels}[\filedate\space\fileversion]
+\typeout{Package: `showlabels' \fileversion\space<\filedate>}
+\wlog{Documentation}
+\let\@@eqnnum=\@eqnnum
+\let\@@makecaption\@makecaption
+\let\@label\label
+\def\@eqnnum{\@@eqnnum
+\ifx\SL@labeln@me\relax
+  \SL@eqnlrtext{???}%
+\else
+  \SL@eqnlrtext{\SL@labeln@me}%
+  \global\def\SL@labeln@me{\relax}%
+\fi}
+\global\def\SL@labeln@me{\relax}
+\def\SL@gobblethree#1#2#3{}
+\def\prlabelname#1{%
+\expandafter\expandafter\expandafter\SL@gobblethree
+    \expandafter\string\csname r@#1\endcsname}
+\long\def\@makecaption#1#2{{\def\label##1{{\small\tt
+\{\prlabelname{##1}\}\space}\@label{##1}}%
+\@@makecaption{#1}{#2}}}
+\def\label#1{\@bsphack\@label{#1}%
+\ifmmode
+  \xdef\SL@labeln@me{\prlabelname{#1}}
+\else
+  {\setbox0=\vbox to 0pt{\vss
+    \hbox to \hsize{\SL@lrtext{#1}}}%
+  \dp0=0pt
+  \ifvmode
+    \nointerlineskip\box0\nobreak
+  \else
+    \vadjust{\box0\nobreak}%
+  \fi}%
+\fi
+\@esphack}
+\def\SL@margintext#1{{\small\sl\{#1\}}}
+\def\SL@righttext#1{\hfill\rlap{\quad\SL@margintext{#1}}}
+\def\SL@lefttext #1{\llap{\SL@margintext{#1}\quad}\hfill}
+\def\SL@alternatetext#1{%
+  \if@outerlabels
+    \ifodd\c@page
+      \SL@righttext{#1}\else
+      \SL@lefttext{#1}\fi
+  \else
+    \ifodd\c@page
+      \SL@lefttext{#1}\else
+      \SL@righttext{#1}\fi
+  \fi}
+\def\SL@eqnrighttext#1{\rlap{\quad\SL@margintext{#1}}}
+\def\SL@eqnlefttext #1{\hbox to 0pt{\kern -\textwidth
+\llap{\SL@margintext{#1}\quad}\hss}}
+\def\SL@eqnalternatetext#1{%
+  \if@outerlabels
+    \ifodd\c@page
+      \SL@eqnrighttext{#1}\else
+      \SL@eqnlefttext{#1}\fi
+  \else
+    \ifodd\c@page
+      \SL@eqnlefttext{#1}\else
+      \SL@eqnrighttext{#1}\fi
+  \fi}
+\newif\if@outerlabels
+\@outerlabelstrue
+\DeclareOption{outer}{\@outerlabelstrue}
+\DeclareOption{inner}{\@outerlabelsfalse}
+\ProcessOptions
+\if@outerlabels
+  \if@twoside
+\let\SL@lrtext\SL@alternatetext
+\let\SL@eqnlrtext\SL@eqnalternatetext
+  \else
+    \let\SL@lrtext\SL@righttext
+    \let\SL@eqnlrtext\SL@eqnrighttext
+  \fi
+\else
+  \if@twoside
+\let\SL@lrtext\SL@alternatetext
+\let\SL@eqnlrtext\SL@eqnalternatetext
+  \else
+    \let\SL@lrtext\SL@lefttext
+    \let\SL@eqnlrtext\SL@eqnlefttext
+  \fi
+\fi
+\endinput
+%% 
+%% End of file `showlabels.sty'.

@@ -73,10 +73,6 @@ extern int errno;
 #define EHOSTUNREACH	59
 #define EGREG		60
 
-/* These added in 1003.1b-1993 */
-#define ECANCELED	61
-#define EINPROGRESS	62
-
 #endif /* _POSIX_SOURCE */
 
 #endif /* __ERRNO */

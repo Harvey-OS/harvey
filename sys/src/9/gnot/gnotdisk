@@ -1,0 +1,39 @@
+dev
+	root	/
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	incon	i
+	dk	k
+	dup	d
+	bit	b
+	port	x
+	scsi	S	scsi scsisubs scsibuf
+	wren	w
+	duart	t
+
+stream
+	urp
+	async
+	fcall
+
+misc
+	cfs.root
+	kfs.root
+
+port
+	int cpuserver = 0;
+	void consdebug(void){}
+	void kproftimer(ulong pc){ USED(pc); }
+	void confinit1(int mul){ USED(mul); }
+	void dspclock(void) {}
+
+boot
+	9600
+	19200
+	local
+	incon "config 1 16 restart dk"
+	hybrid

@@ -1,0 +1,347 @@
+%% 
+%% This is file `supertabular.sty', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% supertabular.doc 
+%% 
+%% Copyright (C) 1988-94 by Theo Jurriens, Johanes Braams (90-94). 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of this file (or a changed 
+%% version) except for a nominal charge for copying etc. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned below. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% Error Reports in case of UNCHANGED versions to either of 
+%% 
+%% J.L. Braams 
+%% PTT Research, dr Neher Laboratorium 
+%% P.O. box 421 
+%% 2260 AK Leidschendam 
+%% The Netherlands 
+%% Internet: <J.L.Braams@research.ptt.nl> 
+%% 
+%% Theo Jurriens 
+%% Rijks Universiteit Groningen 
+%% P.O Box 800, 
+%% 9700 AV Groningen 
+%% The Netherlands 
+%% Internet: <jurriens@fwn.rug.nl> 
+%% 
+%%% ====================================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Braams J.L.",
+%%%     author-2        = "Jurriens, T.",
+%%%     version         = "3.7b",
+%%%     date            = "16 May 1994",
+%%%     time            = "16:11:07 MET",
+%%%     filename        = "supertabular.sty",
+%%%     shortfilename   = "supertab.sty"
+%%%     address-1       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     address-2       = "Rijksuniversiteit Groningen
+%%%                        P.O. Box 800
+%%%                        9700 AV Groningen
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "53924 541 2505 23783",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "",
+%%%     supported       = "yes",
+%%%     abstract        = "A style optioin that implements multi-page
+%%%                        tables. The tables have their natural
+%%%                        widths on the subsequent pages.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\newif\if@topcaption \@topcaptiontrue
+\def\topcaption{\@topcaptiontrue\tablecaption}
+\def\bottomcaption{\@topcaptionfalse\tablecaption}
+\long\def\tablecaption{%
+  \refstepcounter{table} \@dblarg{\@xtablecaption}}
+\long\def\@xtablecaption[#1]#2{%
+  \long\gdef\@process@tablecaption{\@stcaption{table}[#1]{#2}}}
+\global\let\@process@tablecaption\relax
+\long\def\@stcaption#1[#2]#3{\par%
+  \addcontentsline{\csname ext@#1\endcsname}{#1}%
+                  {\protect\numberline{%
+                      \csname the#1\endcsname}{\ignorespaces #2}}
+  \begingroup
+    \@parboxrestore
+    \normalsize
+    \if@topcaption \vskip -10pt \fi
+    \@makecaption{\csname fnum@#1\endcsname}{\ignorespaces #3}\par
+    \if@topcaption \vskip 10pt \fi
+  \endgroup}
+\newcommand\tablehead[1]{\gdef\@tablehead{#1}}
+\tablehead{}
+\newcommand\tablefirsthead[1]{\gdef\@table@first@head{#1}}
+\newcommand\tabletail[1]{%
+  \gdef\@tabletail{%
+    \noalign{%
+      \global\let\@savcr=\\
+      \global\let\\=\cr}%
+    #1%
+    \noalign{\global\let\\=\@savcr}}}
+\tabletail{}
+\newcommand\tablelasttail[1]{\gdef\@table@last@tail{#1}}
+\newdimen\page@left
+\newdimen\actsize            % actual pagesize
+\newdimen\@tailht            % height of table tail (if any)
+\newdimen\parboxheight       % height plus depth of a parbox-argument
+\newdimen\addspace           % stores the value of \\[#1]
+\newdimen\midlineheight      % estimated size of a normal line
+\newdimen\pargcorrection     % to set page height tolerance if p-arg
+\newdimen\computedimens      % computation variable
+\newbox\tabparbox
+\def\@stabularcr{{\ifnum0=`}\fi\@ifstar{\@sxtabularcr}{\@sxtabularcr}}
+\def\@sxtabularcr{%
+  \@ifnextchar[{\@sargtabularcr}{\ifnum0=`{\fi}\cr\nextline}}
+\def\@sargtabularcr[#1]{%
+  \ifnum0=`{\fi}%
+  \ifdim #1>\z@
+    \unskip\@sxargarraycr{#1}
+  \else 
+    \@syargarraycr{#1}%
+  \fi}
+\def\@sxargarraycr#1{%
+  \@tempdima #1\advance\@tempdima \dp \@arstrutbox
+  \vrule \@height\z@ \@depth\@tempdima \@width\z@ \cr
+  \noalign{\global\addspace=#1}\nextline}
+\def\@syargarraycr#1{\cr\noalign{\vskip #1\global\addspace=#1}\nextline}
+\def\@sstartpbox#1{%
+  \global\advance\page@left by -\pargcorrection
+  \global\pargcorrection=0pt
+  \setbox\tabparbox\vtop\bgroup\hsize#1\@arrayparboxrestore}
+\def\@sastartpbox#1{%
+  \bgroup\hsize#1%
+  \global\advance\page@left by -\pargcorrection
+  \global\pargcorrection=0pt
+  \setbox\tabparbox\vtop\bgroup\hsize#1\@arrayparboxrestore}
+\def\@sendpbox{%
+  \unskip\strut\par\egroup
+  \computedimens=\ht\tabparbox
+  \advance\computedimens by \dp\tabparbox
+  \ifnum\parboxheight<\computedimens
+    \global\parboxheight=\computedimens
+  \fi
+  \computedimens=\z@
+  \box\tabparbox\hfil}
+\def\@saendpbox{%
+  \unskip\strut\par\egroup
+  \computedimens=\ht\tabparbox
+  \advance\computedimens by \dp\tabparbox
+  \ifnum\parboxheight<\computedimens
+    \global\parboxheight=\computedimens
+  \fi
+  \computedimens=\z@
+  \unvbox\tabparbox\egroup}
+\def\calmidlineheight{%
+  \midlineheight=\arraystretch \baslineskp
+  \global\advance\midlineheight by 1\p@
+  \global\pargcorrection=4\midlineheight
+  }
+\def\@calfirstpageht{%
+  \global\actsize\pagetotal
+  \global\page@left\@colroom
+  \if@twocolumn
+    \if@firstcolumn
+      \ifnum\actsize > \page@left 
+        \global\maxsize=2\page@left
+        \ifnum\actsize > \page@left
+          \newpage\@calnextpageht
+        \else
+          \global\advance\page@left -\actsize
+          \global\advance\page@left -\@colroom
+        \fi
+      \fi
+    \fi
+  \else
+    \ifnum\actsize > \page@left
+      \newpage\@calnextpageht
+    \else
+      \global\advance\page@left by -\actsize
+      \global\actsize\z@
+    \fi
+  \fi
+  \ifx\empty\@tabletail
+    \@tailht=\z@
+  \else
+    \setbox\@tempboxa=\vbox{\@arrayparboxrestore%
+      \expandafter\tabular\expandafter{\tableformat}
+        \@tabletail\endtabular}
+    \@tailht=\ht\@tempboxa\advance\@tailht\dp\@tempboxa
+  \fi
+  \advance\@tailht by \midlineheight
+}
+                             % Here is the definition of supertabular
+\def\@calnextpageht{%
+  \global\page@left\@colroom
+  \global\pargcorrection=2\midlineheight
+  \global\actsize=\z@
+  }
+\def\supertabular#1 {%
+  \def\tableformat{#1}
+  \global\starfalse
+  \if@topcaption \@process@tablecaption \fi
+  \global\let\@oldcr=\\
+  \def\baslineskp{\baselineskip}%
+  \calmidlineheight
+  \@calfirstpageht
+  \ifx\undefined\@classix
+      \let\@@tabularcr\@tabularcr
+      \let\@tabularcr\@stabularcr
+      \let\@@startpbox=\@sstartpbox
+      \let\@@endpbox=\@sendpbox
+  \else
+      \let\@@tabularcr\@arraycr
+      \let\@arraycr\@stabularcr
+      \let\org@startpbox=\@startpbox
+      \let\org@endpbox=\@endpbox
+      \let\@startpbox=\@sastartpbox
+      \let\@endpbox=\@saendpbox
+  \fi
+    \ifx\@table@first@head\undefined
+        \let\@@tablehead=\@tablehead
+    \else
+        \let\@@tablehead=\@table@first@head
+    \fi
+    \expandafter\tabular\expandafter{\tableformat}
+    \@@tablehead}
+\def\endsupertabular{%
+  \ifx\@table@last@tail\undefined
+    \@tabletail
+  \else
+    \@table@last@tail
+  \fi
+  \endtabular
+  \ifx\undefined\@classix
+    \let\@tabularcr\@@tabularcr
+  \else
+    \let\@arraycr\@@tabularcr
+    \let\@startpbox=\org@startpbox
+    \let\@endpbox=\org@endpbox
+  \fi
+  \if@topcaption
+  \else
+    \@process@tablecaption
+    \@topcaptiontrue
+  \fi
+  \global\let\\=\@oldcr
+  \let\@table@first@head\undefined
+  \let\@table@last@tail\undefined
+  \global\let\@process@tablecaption\relax
+  }
+\newif\ifstar
+\newdimen\tabularwidth
+\@namedef{supertabular*}#1#2 {%
+  \def\tableformat{#2}
+  \tabularwidth=#1
+  \global\startrue
+    \if@topcaption\@process@tablecaption\fi
+  \global\let\@oldcr=\\
+    \def\baslineskp{\baselineskip}%
+    \calmidlineheight
+    \@calfirstpageht
+    \ifx\undefined\@classix
+      \let\@@tabularcr\@tabularcr
+      \let\@tabularcr\@stabularcr
+      \let\@@startpbox=\@sstartpbox
+      \let\@@endpbox=\@sendpbox
+    \else
+      \let\@@tabularcr\@arraycr
+      \let\@arraycr\@stabularcr
+      \let\org@startpbox=\@startpbox
+      \let\org@endpbox=\@endpbox
+      \let\@startpbox=\@sastartpbox
+      \let\@endpbox=\@saendpbox
+    \fi
+    \ifx\@table@first@head\undefined
+        \let\@@tablehead\@tablehead
+    \else
+        \let\@@tablehead\@table@first@head
+    \fi
+    \expandafter\csname tabular*\expandafter\endcsname
+    \expandafter{\expandafter\tabularwidth\expandafter}%
+    \expandafter{\tableformat}%
+    \@@tablehead}%
+\@namedef{endsupertabular*}{%
+  \ifx\@table@last@tail\undefined
+    \@tabletail
+  \else
+    \@table@last@tail
+  \fi
+  \csname endtabular*\endcsname
+  \ifx\undefined\@classix
+    \let\@tabularcr\@@tabularcr
+  \else
+    \let\@arraycr\@@tabularcr
+    \let\@startpbox=\org@startpbox
+    \let\@endpbox=\org@endpbox
+  \fi
+  \if@topcaption
+  \else
+    \@process@tablecaption
+    \@topcaptiontrue
+  \fi
+  \global\let\\=\@oldcr
+  \let\@table@first@head\undefined
+  \let\@table@last@tail\undefined
+  \global\let\@process@tablecaption\relax
+    }
+\def\nextline{%
+  \noalign{%
+    \ifnum\parboxheight<\midlineheight
+      \global\advance\page@left -\midlineheight
+      \global\advance\page@left -\addspace
+    \else
+      \global\advance\page@left -\parboxheight
+      \global\advance\page@left -0.1\parboxheight
+      \global\parboxheight\z@
+    \fi
+    \global\addspace=\z@
+  }
+  \ifnum\page@left<\@tailht
+    \st@newpage
+  \else
+    \noalign{\global\let\st@next\@empty}%
+  \fi\st@next}
+\def\st@newpage{%
+  \@tabletail
+  \ifstar
+    \csname endtabular*\endcsname
+  \else
+    \endtabular
+  \fi
+    \newpage\@calnextpageht
+  \let\st@next\@tablehead
+  \ifstar
+    \expandafter\csname tabular*\expandafter\endcsname
+    \expandafter{\expandafter\tabularwidth\expandafter}%
+    \expandafter{\tableformat}%
+  \else
+    \expandafter\tabular\expandafter{\tableformat}%
+  \fi}
+\endinput
+%% 
+%% End of file `supertabular.sty'.

@@ -210,20 +210,12 @@ send:
 	default:
 		mbfree(mb);
 		break;
+
 	case Ilproto:
 		ilrecv(mb, ifc);
 		break;
 	case Udpproto:
 		udprecv(mb, ifc);
-		break;
-	case Icmpproto:
-		icmprecv(mb, ifc);
-		break;
-	case Igmpproto:
-		igmprecv(mb, ifc);
-		break;
-	case Tcpproto:
-		tcprecv(mb, ifc);
 		break;
 	}
 	return;

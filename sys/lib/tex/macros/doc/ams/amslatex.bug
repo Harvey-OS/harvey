@@ -1,0 +1,270 @@
+amslatex.bug [1-Feb-1995]
+
+This file contains a log of bug fixes and other changes for AMS-LaTeX
+version 1.2.
+
+Please direct bug reports or related questions to the AMS technical
+support address: tech-support@math.ams.org (or by phone: 401-455-4080;
+in the USA or Canada, 1-800-321-4267 ext 4080).
+
+------------------------------------------------------------------------
+Reported bugs not yet dealt with:
+------------------------------------------------------------------------
+
+---\sideset can result in overlapping of the subscript with a
+neighboring symbol.
+
+------------------------------------------------------------------------
+Changes done to date:
+------------------------------------------------------------------------
+1995/02/01 Wednesday
+
+133. amscd.dtx, amsdtx.dtx, amsgen.dtx, amsmath.dtx: Updated \CheckSum
+statements.
+
+132. amsthm.dtx: \theoremnotefont was being ignored because not called
+in \thmnote. Added \the\theoremnotefont in strategic places.
+
+1995/01/31 Tuesday
+
+131. amslatex.ins, amsclass.ins: Moved unpacking statements for amsthm,
+upref from the former to the latter.
+
+130. diff12.tex: Minor wording changes.
+
+129. technote.tex: Update some obsolete references to e.g. \gfrac; add
+missing file header a la diff12.tex.
+
+128. amsldoc.tex: Minor changes, fix a few typos, correct some error
+explanations.
+
+127. amsmath.dtx: Fixed up the handling of some complications with the
+`cmex10' option---sensitive to relative loading order with the amsfonts
+package.
+
+126. amsclass.dtx: Added global init for \@secnumber; added missing
+percent sign after line-ending right brace; updated psamsfonts option to
+pass cmex10 option to amsmath.
+
+125. amsgen.dtx: Changed \newcommand to \def for \@oparg and \@ifempty,
+to avoid error message with certain package loading sequences (e.g.,
+\usepackage{amstex,amsthm}).
+
+1995/01/30 Monday
+
+124. Removed extraneous files from the AMSFonts distrib in the
+amslatex/inputs subdirectory.
+
+123. amsldoc.tex: Removed extra \begin{theindex} line.
+
+122. amscd.dtx: Added missing \begin{macrocode} statement.
+
+------------------------------------------------------------------------
+Version 1.2 released, 27-Jan-1995
+------------------------------------------------------------------------
+1995/01/27 Friday
+
+121. A number of last-minute changes for version 1.2, not individually
+listed.
+
+1995/01/12 Thursday
+
+120. diff12.tex: New name for dif11-12.tex.
+
+119. amsmath.dtx: Changed references to `-' character in \...arrowfill@
+to \relbar (suggested by F. Jensen, to better support use of alternate
+math fonts). Also done in amstex.sty.
+
+1995/01/11 Wednesday
+
+118. amsmath.dtx: `Equation number in split environment was moved to a
+separate line when there was clearly enough room for it to remain
+unmoved': corrected by change 116 below. Also corrected in amstex.sty.
+
+117. amsmath.dtx: `The [t] option of \begin{gathered} doesn't work':
+corrected by change 116 below.
+
+116. amsmath.dtx: Merged in code from David M. Jones for overhauled
+equation structures.
+
+1995/01/10 Tuesday
+
+115. amsmath.dtx: Created substack environment to replace Sb, Sp.
+
+114. amsmath.dtx: Removed \AmSTeX definition (why include it here? this
+is not a package for writing about Spivak's AMS-TeX or even about macro
+packages in general. If anything it might go into amsdtx.cls, but I'm
+not sure it's sufficiently important to make a definition even there.)
+
+113. amsmath.dtx: Took off mandatory arg of subequations environment
+that specified numbering type (only rarely will anything other than
+a,b,c be desired; then you would have to redefine \theequation by
+hand just as you would with other element numbers).
+
+112. amsmath.dtx: Created \gfrac for generalized fractions; disallowed
+primitive \over, \atop, etc.
+
+1994/11/04 Friday
+
+111. amsmath.dtx: Single-letter operatornames improperly positioned below
+the baseline; the zero kern that prevents this phenomenon was misplaced
+during revisions.
+
+110. amstext.dtx: \index inside \begin{align} ... \end{align} caused trouble;
+fixed \endgroup placement in \@wrindex, \@wrglossary.
+
+1994/11/01 Tuesday
+
+109. amsdtx.dtx: Make \cn, \cs work in math mode as well as text mode (by
+calling \mbox if necessary).
+
+108. eufrak.dtx: Add warning if redundant loading of amsfonts + eufrak
+is detected, and prevent error message from \newcommand{\mathfrak}.
+
+107. amscls.dtx: Make \cite robust so that it doesn't cause errors in
+figure captions. Fix erroneous warning about \@sect.
+
+1994/10/31 Monday
+
+106. amscls.dtx: Correction to prevent second \thanks footnote from being
+omitted.
+
+105. amsthm.dtx: Correction to make theorem numbers always upright, never
+italic/slanted. (Previous definition of \nonslanted failed because
+\itdefault, \sldefault are \long.)
+
+104. psamsfnt.ins: Changed name from psamsfonts.ins to psamsfnt.ins to fit
+within 8+3 limitations.
+
+103. amsmath.dtx: Made `centertags' option default as documented. Added old
+option names `intlim', `nosumlim', `nonamelm', `righttag' for
+compatibility mode.
+
+102. amsldoc.tex: More documentation cleanup.
+
+101. amstex.dtx: renamed to amsmath.dtx; removed call to amsfonts package.
+
+100. amsintsm.dtx: renamed to amsintx.dtx; now use longer names \integral,
+\summation, \product, ... instead of changing \int, \sum, ...
+
+------------------------------------------------------------------------
+Here ends version 1.2beta. The changes above appeared in v1.2 or later.
+------------------------------------------------------------------------
+
+1994/10/28 Friday
+
+* dif11-12.tex: Fixed a couple of reported typos.
+
+* amstex.dtx: Fixed \AmS to make it bold if the current fontseries is b
+or bx. Yesterday's change failed because the comparison
+\ifx\f@series\bfdefault fails (\bfdefault is \long).
+
+* amsintsm.dtx: Cleaned up documentation.
+
+1994/10/27 Thursday
+
+* amstex.dtx: Changed \AmS to use the current fontseries (weight/width)
+instead of always using \mdseries. This may produce font substitution
+warnings under some circumstances. But the needed cmbsy fonts are now
+part of the official LaTeX distribution.
+
+* amsgen.dtx: Corrected missing \global in the assignment of \ex@ in
+\every@math@size (but did this in a very complicated way with a new
+nonlinear scaling function!). This fixes wrong vertical spacing in
+commutative diagrams and certain other places.
+
+* amsgen.dtx: In compatibility mode, omit the warning for obsolete
+commands.
+
+* amstex.dtx: Corrected poor vertical spacing in \varinjlim,
+\varprojlim due to changes (some time ago) in \...arrowfill@.
+
+* *.dtx: Cleaned up technical documentation sections so that most of the
+.dtx files are now printable (even if some of the commentary doesn't
+make sense at the moment ...). Exceptions: amstex.dtx and amsintsm.dtx
+still need more work.
+
+1994/10/26 Wednesday
+
+* testmath.tex: More cleanup. Removed references to \bold,
+\fracwithdelims, \lcfrac, \rcfrac, \samepage.
+
+* amscls.dtx: Fixed vertical spacing problem in subjclass, keywords,
+thanks footnotes; added \datename heading to date footnote; fixed
+wrong heading font for theoremstyle{remark}.
+
+1994/10/25 Tuesday
+
+* The following .dtx files can now be printed: amsgen.dtx, amsfonts.dtx,
+euscript.dtx, eufrak.dtx, amscls.dtx, amsdtx.dtx.
+
+* amsgen.sty: Fix bug---$ ... \mbox{\small $...$}...$ made the parent
+formula small as well.
+
+* amsfonts.sty: Made code in \every@math@size hook global, necessary
+with the above change to amsgen.sty. Update documentation.
+
+* amsfonts.ins: Updated to create euscript.sty, eucal.sty, eufrak.sty.
+
+* euscript.dtx: Added, version 2.1d (formerly in the latex/mfnfss area).
+Now produces package eucal.sty which defines \mathcal = Euler script.
+
+* eufrak.dtx: Added, version 2.1d (formerly in the latex/mfnfss area)
+Defines \mathfrak = Euler Fraktur.
+
+* testbook.tex: Suppress overfull hbox message, remove unused definition
+of \square, corrected author, date.
+
+* testart.tex: Remove unused definition of \square, corrected author,
+date.
+
+* testmath.tex: Fixed date, removed some redundant topmatter material.
+
+1994/10/19 Wednesday
+
+* amscls.dtx: In compatibility mode, load xxx.sty instead of giving an
+error message for unrecognized class option `xxx';
+
+* amscls.dtx: Fixed non-working \thanks
+
+* amscls.dtx: Fixed \thebibliography, \theindex, etc. so that running
+heads get proper capitalization.
+
+* amscls.dtx: Changed \, to \thinspace in definition of \bysame to be
+consistent with .bst files. (\, fails outside of math mode if the
+`nomath' option is used).
+
+1994/10/18 Tuesday
+
+* testmath.tex: Changed \operatornamewithlimits (obsolete) to
+\operatorname*; changed some instances of \texttt to \env
+
+1994/10/17 Monday
+
+* amstex.dtx: Added \makeatother line lost in change of 1994/10/14;
+fixed \frac[...]{}{}, \cfrac.
+
+* amsfonts.ins: Added note that amsfonts.fdd is technical documentation,
+not necessary for the average user.
+
+* amsfonts.fdd: Temporary patches to allow printing the .fdd file.
+
+1994/10/14 Friday
+
+* amstex.dtx: Ensure catcode of @ ends up set to 13 at top level
+if amstex is loaded from a document class.
+
+* amstext.dtx: Guard definition of \mathhexbox against active ".
+
+* amstex.dtx: Guard against active " in several spots.
+
+1994/10/13 Thursday
+
+* amsplain.bst, amsalpha.bst: Use \providecommand for \bysame.
+Changed \, to \thinspace in \bysame to avoid error message if 
+not used in conjunction with the amstex package.
+
+* amstex.dtx: Changed equation* environment to make the omission
+of the number work if there is an embedded {split} environment.
+
+* amslatex.ins: Add forgotten entry to generate amssymb.sty

@@ -23,8 +23,7 @@ bytes in the buffer provided.
 .SH SOURCE
 .B /sys/src/libc/9sys/getwd.c
 .SH "SEE ALSO"
-.IR pwd (1),
-.IR fd2path (2)
+.IR pwd (1)
 .SH DIAGNOSTICS
 On error, zero is returned and
 .I buf
@@ -32,8 +31,8 @@ is filled with a diagnostic message.
 .IR Errstr (2)
 may be consulted for more information.
 .SH BUGS
-Although the name returned by
+Because mounts and binds (see
+.IR bind (2))
+may produce multiple names for a directory,
 .I getwd
-is guaranteed to be the path used to reach the directory,
-if the name space has changed underfoot, the name may be
-incorrect.
+might not return the path by which the directory was reached.

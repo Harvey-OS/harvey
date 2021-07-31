@@ -5,46 +5,63 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-static int
-dupgen(Chan *c, Dirtab*, int, int s, Dir *dp)
+#include	"devtab.h"
+
+
+int
+dupgen(Chan *c, Dirtab *tab, int ntab, int s, Dir *dp)
 {
 	char buf[8];
-	Fgrp *fgrp = up->fgrp;
+	Fgrp *fgrp = u->p->fgrp;
 	Chan *f;
 	static int perm[] = { 0400, 0200, 0600, 0 };
 
-	if(s == DEVDOTDOT){
-		devdir(c, c->qid, "#d", 0, eve, 0555, dp);
-		return 1;
-	}
-	if(s > fgrp->maxfd)
+	USED(tab);
+	USED(ntab);
+	if(s >= NFD)
 		return -1;
 	if((f=fgrp->fd[s]) == 0)
 		return 0;
-	sprint(buf, "%d", s);
+	sprint(buf, "%ld", s);
 	devdir(c, (Qid){s, 0}, buf, 0, eve, perm[f->mode&3], dp);
 	return 1;
 }
 
-static Chan*
+void
+dupinit(void)
+{
+}
+
+void
+dupreset(void)
+{
+}
+
+Chan *
 dupattach(char *spec)
 {
 	return devattach('d', spec);
 }
 
-static int
+Chan *
+dupclone(Chan *c, Chan *nc)
+{
+	return devclone(c, nc);
+}
+
+int
 dupwalk(Chan *c, char *name)
 {
 	return devwalk(c, name, (Dirtab *)0, 0, dupgen);
 }
 
-static void
+void
 dupstat(Chan *c, char *db)
 {
 	devstat(c, db, (Dirtab *)0, 0L, dupgen);
 }
 
-static Chan*
+Chan *
 dupopen(Chan *c, int omode)
 {
 	Chan *f;
@@ -58,53 +75,57 @@ dupopen(Chan *c, int omode)
 		return c;
 	}
 	fdtochan(c->qid.path, openmode(omode), 0, 0);	/* error check only */
-	f = up->fgrp->fd[c->qid.path];
-	cclose(c);
+	f = u->p->fgrp->fd[c->qid.path];
+	close(c);
 	incref(f);
 	if(omode & OCEXEC)
 		f->flag |= CCEXEC;
 	return f;
 }
 
-static void
-dupclose(Chan*)
+void
+dupcreate(Chan *c, char *name, int omode, ulong perm)
 {
+	USED(c, name, omode, perm);
+	error(Eperm);
 }
 
-static long
-dupread(Chan *c, void *va, long n, vlong)
+void
+dupremove(Chan *c)
+{
+	USED(c);
+	error(Eperm);
+}
+
+void
+dupwstat(Chan *c, char *dp)
+{
+	USED(c);
+	USED(dp);
+	error(Egreg);
+}
+
+void
+dupclose(Chan *c)
+{
+	USED(c);
+}
+
+long
+dupread(Chan *c, void *va, long n, ulong offset)
 {
 	char *a = va;
 
+	USED(offset);
 	if(c->qid.path != CHDIR)
 		panic("dupread");
 	return devdirread(c, a, n, (Dirtab *)0, 0L, dupgen);
 }
 
-static long
-dupwrite(Chan*, void*, long, vlong)
+long
+dupwrite(Chan *c, void *va, long n, ulong offset)
 {
+	USED(c, va, n, offset);
 	panic("dupwrite");
 	return 0;		/* not reached */
 }
-
-Dev dupdevtab = {
-	'd',
-	"dup",
-
-	devreset,
-	devinit,
-	dupattach,
-	devclone,
-	dupwalk,
-	dupstat,
-	dupopen,
-	devcreate,
-	dupclose,
-	dupread,
-	devbread,
-	dupwrite,
-	devbwrite,
-	devremove,
-	devwstat,
-};

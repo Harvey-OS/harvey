@@ -1,0 +1,1333 @@
+\def\filename{endfloat}
+\def\fileversion{v2.2c}
+\def\filedate{1994/10/15}
+\def\docdate {1994/10/15}
+%
+% \CheckSum{497}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%
+% \iffalse
+%% Description: LaTeX style to put figures and tables at end of article
+%% Keywords: LaTeX, style-option, float, figure, table
+%% Author: James Darrell McCauley <jdm5548@diamond.tamu.edu>
+%% Maintainer: Jeff Goldberg <goldberg@nytud.hu>
+%% Latest Version: Version 2.2 <08 October 1994>
+% \fi
+%
+% \DoNotIndex{\documentclass,\usepackage,\hfuzz,\small,\tt,\begin,\end}
+% \DoNotIndex{\NeedsTeXFormat,\filedate,\fileversion,\DoNotIndex}
+% \DoNotIndex{\def,\edeg,\xdef,\gdef,\let,\divide,\advance,\multiply}
+% \DoNotIndex{\",\-,\H,\',\\,\{,\},\^,\ }
+% \DoNotIndex{\begingroup,\endgroup,\catcode,\global,\relax,\space}
+% \DoNotIndex{\string,\immediate}
+% \DoNotIndex{\normalsize,\large,\Large,\small,\tiny,\bf}
+% \DoNotIndex{\@z}
+% \DoNotIndex{\ifthenelse,\and,\equal,\whiledo,\if,\fi,\else}
+% \DoNotIndex{\CodelineIndex,\EnableCrossrefs,\DisableCrossrefs}
+% \DoNotIndex{\DocInput,\AltMacroFont}
+% \DoNotIndex{\RecordChanges,\OnlyDescription}
+%
+% \changes{v0.1}{1992/02/25}{created by Darrell McCauley (jdm)}
+% \changes{v1.0}{1992/03/01}{cleaned up and released jdm}
+% \changes{v2.0}{1992/06/02}{incorporated changes made by bj (see v1.99). jdm}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% \changes{v2.1c}{1994/07/20}{Modify documentation -jpg}
+%
+% \title{The \texttt{\filename} package\thanks{This file
+%        has version number \fileversion, last
+%        revised \filedate, documentation dated \docdate.}}
+% \author{James Darrell McCauley\thanks{Modifications
+% have been made by others over the years.  Most extensively
+% by Brian Junker (brian@stat.cmu.edu).  Version 2.1 and above
+% include changes by by Jeff Goldberg (goldberg@nytud.hu) who
+% is also acting has current maintainer.}}
+% 
+% \date{\docdate}
+%
+% \maketitle
+%
+% \begin{abstract}
+% The purpose of this style is to put all figures on pages by themselves
+% at the end of an article in a section named Figures. Likewise for tables.
+% Reference can be made in the text of where the figure should have been
+% (only caption appears --- see |markers| [default]
+% and |nomarkers| options below.
+% |\ref| and |\label| always works on the ones at the end). This is
+% usually required when preparing submissions to journals.
+%
+% Loading this package will change the output of \LaTeX.
+% \end{abstract}
+%
+% \section{In many voices}
+%
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% This documentation was put in its current form by Jeff Goldberg,
+% who has tried to indicate when he is (when
+% I am) speaking.   See section~\ref{sec:history} for more details.
+% However, both the original author, Darrell McCauley, and
+% a major contributor, Brian Junker, use the first person
+% singular.  In this version I no longer work to keep it clear
+% who wrote what portions of the documentation and the code, but
+% have allowed things to blend together a little more, since the
+% constant interpolations were hindering readability.  Generally
+% the user documentation was written by Darrell MaCauley (jdm),
+% but anything that refers to \LaTeXe\ features was added
+% by me (jpg).  Also, where you find spelling and typographical
+% errors, you are likely to be reading my text.
+%
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+%
+% \section{Why write this package?}
+% 
+% Many journals require tables and figures to be separated from the text
+% when you submit those ugly doublespaced copies.  They also usually want
+% a list of figures/tables before these sections (capability added in v2.0,
+% control through package options added in v2.2).
+%
+% I am writing a set of styles that look exactly like a journal, but just
+% by adding one style option, I wanted the user to meet the requirements
+% for formatting submissions. I encourage others to do the
+% same.\footnote{The discussion is section~\ref{sec:monoton}, by jpg,
+% makes a contrary proposal and recommendation,
+% but in jdm, working in old \LaTeX209
+% did not have the distinction between class and package and package
+% options available to him at the time he made his comment.  Note that
+% in this paragraph he referred to this package as a `sytle option',
+% a term that is only meaningful with the blurred distinctions that
+% existed in earlier versions of \LaTeX\ that he was working with.}
+%
+% \section{Usage}
+% \subsection{Loading}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% Just include the package in your preamble
+% \begin{verbatim}
+%  \usepackage[...]{endfloat}
+%\end{verbatim}
+% 
+% Note that versions 2.1 and beyond will no longer work with
+% \LaTeX209.  Get your administrator to upgrade your site
+% to the new standard, \LaTeXe.
+%
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%
+% \subsection{What it does}
+%
+% Merely loading the package will get it working.  Loading it will
+% have \LaTeX\ produce two extra files with
+% \texttt{.ttt} and \texttt{.fff} extensions
+% (for tables and figures, respectively).
+%
+% This puts all figures and tables at the end of your document
+% and creates a List of Figures and/or List of Tables section
+% at the end (when appropriate and controlable by options).
+% The floats are processed using |\baselinestrecth{1}| irrespective
+% of what is used in the document as a whole.
+%
+% It also leaves notes in the text (i.e., ``[Figure 4 about here.]'').
+% If you would rather not have these, this can be turned off by
+% using the |nomarkers| options.  If you
+% do not like the look of this marker, you can change
+% it by using |\renewcommand|
+% (see section~\ref{sec:language}).
+%
+% \subsection{Options} \label{sec:options}
+% 
+% Under version 2.2 (and later I presume),
+% the \texttt{endfloat} package uses package options.  The options
+% are summerized in table~\ref{tab:options}.
+%
+% \begin{table}
+% \caption{Options and defaults} \label{tab:options}
+% \smallskip
+% \begin{tabular}{lcll}
+% \hline
+% \multicolumn{1}{c}{Option} &
+% \multicolumn{1}{c}{Default}&
+% \multicolumn{1}{c}{Default implication} &
+% \multicolumn{1}{c}{Descriptions} \\
+% \hline
+% |nofiglist| & off  &		                & no list of figures\\
+% |notablist| & off  &		                & no list of tables\\
+% |nolists|   &      & |nofiglist|, |notablist| & no neither list\\
+% |figlist|   & on   &                          & list of figures\\
+% |tablist|   & on   &                          & list of tables\\
+% |lists|     &      & |figlist|, |tablist|     & list of tables and figures\\
+% |nofighead| & on   &                          & no `Figures' section header\\
+% |notabhead| & on   &                          & no `Tables' section header\\
+% |noheads|   &      & |nofighead|, |notabhead| & neither of the headers\\
+% |fighead|   & off  &                          & `Figures' section header\\
+% |tabhead|   & off  &                          & `tables' section header\\
+% |heads|     &      & |fighead|, |tabhead|     & Both section headers\\
+% |markers|   & on   &		                & Place markers in the text\\
+% |nomarkers| & off  &		                & no markers in text\\
+% |tablesfirst|  & off &	                & Put tables before figures\\
+% |figuresfirst| & on  &		        & Put figures before tables\\
+% \hline
+% \end{tabular}
+% \end{table}
+%
+% The list of tables and figures can be suppressed by using the
+% \texttt{nofiglist} and \texttt{notablist} options.  Both
+% can be suppressed with the \texttt{nolists} option.\footnote{In
+% previous versions the command for turning of the lists turned
+% on the headers (the equivalent of the |heads| option).  That is
+% not the case in this version.  The |lists| and the |heads|
+% options are entirely orthagonal.}
+% The default is \texttt{lists}.
+%
+% A section header for `Tables' and `Figures' can be produced by using
+% the option |tabhead|, |fighead|, respectively, and |heads| for both.
+% These are buggy (see section~\ref{sec:buggyheads}).  The defaults
+% are |notabhead| and |nofighead|.
+%
+% If you want the headers instead of the lists you would need to 
+% use both the |nolists| and the |heads| options.
+%
+% If you want to suppress the markers in the text, use the
+% option \texttt{nomarkers}.  The default is
+% \texttt{markers}.
+%
+% Normally the figures at the end appear before the tables.
+% This can be changed by using the option \texttt{tablesfirst}.
+% The default is \texttt{figuresfirst}.
+% 
+% A typical usage might be something like
+% \begin{verbatim}
+%\documentclass[a4paper,12pt]{article}
+%\usepackage[nolists,tablesfirst]{endfloat}
+%...
+%\begin{document}
+%\end{verbatim}
+% which would suppress the list of tables and figures as well as
+% the corresponding section headers, and would have the tables
+% precede the figures.
+%
+% \subsubsection{Contradictions and dilemmas}
+%
+% It is not recommended that one specify conflicting options, but
+% if you insist, here are the rules at this point, but they may
+% change in future versions.  In table~\ref{tab:options} the third
+% column indicates what other options are implied by default.  That
+% is |heads| turns on |fighead| by default, but that implication
+% can be overruled by explicitly stating the |nofighead| option.
+%
+% Rule~\ref{rule:elsewhere} is the only one of these rules that makes
+% enough sense for me to say will continue in future versions.
+%
+% \begin{enumerate}
+% \item
+%   When two entirely conflicting options are both specified
+%   the one corresponding to the default wins.
+%   (e.g., if both |markers| and |nomarkers| are specified then
+%   |markers| will be in effect).  Here the notion of default is
+%   determined by inspecting the second column of table~\ref{tab:options}.
+% \item \label{rule:elsewhere}
+%   When one option is more specific than the other the more specific
+%   one holds true, and the more general will only partially hold.
+%   So specifying \texttt{fighead} and \texttt{noheads} will be the
+%   same as saying \texttt{fighead} and \texttt{notabhead}.
+%   This is the only one of these rules that seems to make sense,
+%   so this should be preserved in future versions.
+% \item
+%   The order in which the options appear is not relevant.
+% \item
+%   If some of the obsolete commands for these options are used
+%   all bets are off on these interactions.
+% \end{enumerate}
+%
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% 
+% \section{Preparing a foreign language version}\label{sec:language}
+%
+% \changes{v1.0b}{1992/03/10}{adaptions for LaTeX 2.09 and
+%                      international namegiving by Ronald Kappert
+%                      R.Kappert@urc.kun.nl}
+% \DescribeMacro{\tableplace}
+% \DescribeMacro{\figureplace}
+%  Announcements in any language can be generated by 
+%   using |\renewcommand| to redefine |\tableplace| and
+%   |\figureplace|
+%
+%  The defaults are
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \begin{verbatim}
+%\newcommand{\figureplace}{%
+%   \begin{center} 
+%     [\figurename~\thepostfig\ about here.]
+%   \end{center}}
+%\newcommand{\tableplace}{%
+%   \begin{center}
+%      [\tablename~\theposttbl\ about here.]
+%   \end{center}}
+%\end{verbatim}
+%
+%  The name of figures and tables is governed by standard
+%  \LaTeX\ variables |\figurename| and |\tablename|.
+%  The name of the section with the figures can be governed with
+%  a 
+% \begin{verbatim}
+%   \renewcommand{\figuresection}{...Name of Figs. section...}
+%\end{verbatim}
+%  Ditto for |\tablesection|. Default for |\tablesection|
+%  is ``Tables''
+%  and ``Figures'' for |\figuresection|.
+%
+%  [Note: This section is signed \texttt{URC (RJHK)}, 
+%  This must be  Ronald Kappert \texttt{R.Kappert@urc.kun.nl}.
+%  But I (jpg) have only shown the current code, which includes changes
+%  by BJ and jpg]
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v1.0b}{1992/03/10}{adaptions for LaTeX 2.09 and
+%                      international namegiving by Ronald Kappert
+%                      R.Kappert@urc.kun.nl}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+%
+% \section{Obsolete commands}
+%
+% Versions of the package prior to 2.2 had some commands which the
+% user could specify in the preamble to do what \emph{some} of the
+% options do now.  Those commands will be discontinued.  In this
+% version they still function for compatibility, but warning messages
+% are issued recommending the use of the options.  The commands are
+% not documented here.
+% 
+% \section{Warning!}
+%
+% Please note that section~\ref{sec:bugs} contains a list of
+% more serious problems.
+% 
+% \subsection{Extra files}
+% This creates two extra files: \texttt{\meta{jobname}.fff} and
+% \texttt{\meta{jobname}.ttt}.
+% It may also necessitate another \LaTeX\ cycle because of the float
+% movement (when you use |\label| and |\ref|) and \textsf{bibtex}.
+%
+% \subsection{Environment names} \label{sec:envnames}
+%
+% [This subsection written by jpg]
+%
+% Because of how the redefinitions of \texttt{figure} and \texttt{table}
+% are actually implemented, it is crucial that these environment
+% names be used.  That is, you cannot define a new enviroment which
+% calls \texttt{figure} or \texttt{table} since the former must
+% look for the literal string
+% \begin{verbatim}
+% \end{figure}
+%\end{verbatim}
+% in the document, while doing no expansion of control sequences.
+% The latter does the same, but wants |table| instead of
+% |figure|.  This caution generally applies to all `verbatim-like'
+% environments
+%
+% \subsection{The Environment's environment}\label{sec:envenv}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%
+% [This subsection written by jpg]
+%
+% Because no \TeX\ expansion is done while the material in these
+% floats are read in, but is delayed until the floats are
+% processed at the end of the document, it will be the state of
+% \TeX\ at the end which will matter.  For example, a document
+% with something like
+% \begin{verbatim}
+%  \newcommand{\XXX}{YYY}
+%  ...
+%  \begin{table}
+%  ...
+%  ... \XXX ...
+%  ...
+%  \end{table}
+%  ...
+%  \renewcommand{\XXX}{ZZZ}
+%  ...
+%  \end{document}
+%\end{verbatim}
+%  will process the table with |\XXX| expanding to |ZZZ|.
+%
+% Organizing the package so that the floats would be processed by
+% \TeX\ \emph{in situ}, but stored in boxes which are only output
+% into the |.dvi| file at the end would solve this problem (and 
+% also provide an easy way to solve the problem discussed
+% in section \ref{sec:envnames}), but such a move would
+% put a very heavy load on \TeX's memory.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%
+% \subsection{Ordering End Document material}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1}{1994/06/25}{Use AtEndDocument. jpg}
+%
+% [This subsection written by jpg]
+%
+% Version 2.1 uses the \LaTeXe\ directive |\AtEndDocument|.  This
+% makes it \LaTeXe\ specific, but it means that it can be used
+% with other packages that use that directive.  Previous versions
+% of \textsf{endfloat} redefined |\enddocument|.  Now several
+% packages or commands can add stuff at the ends of documents
+% and still work together.  This does mean that \emph{the order
+% of loading packages can be important!}  If you use several
+% packages that may use the |\AtEndDocument| directive and you
+% get funny results, try loading them in a different order.
+% It that doesn't work, complain the the maintainer of the packages
+% so that they will work out a way for the packages to interact
+% correctly. ---jpg
+% \changes{v2.1}{1994/06/25}{Use AtEndDocument. jpg}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% \subsection{General ordering and wish list}\label{sec:order}
+%
+% [This subsection written by jpg]
+%
+% I believe that the output of a \LaTeXe\ run should be independent
+% of the order in which package are loaded.  It would be possible
+% to set this up, but it would take coordiniation of all package
+% writers who use |\AtEndDocument|.  The actual call to |\AtEndDocument|
+% would not occur during package loading, but some new command,
+% like |\ExecuteAtEndDocument| would be called by the user after
+% all such packages are loaded, with tags for each thing in the
+% packages, so something like
+% \begin{verbatim}
+%   \usepackage{lastpage}
+%   \usepackage{endfloat,xyzzy}
+%   \ExecuteAtEndDocument{endfloat,xyzzy,lastpage}
+%\end{verbatim}
+% and the order of End Document material would be the \textsf{endfloat}
+% material, followed by \textsf{xyzzy}, and finally by \textsf{lastpage}.
+% The package \textsf{xyzzy} is fictitious, while the
+% package \textsf{lastpage}\cite{Goldberg:lastpage} exists,
+% it doesn't really matter what these do.
+% 
+% I will have to wait until someone else develops such a system, but
+% I will gladly modify the packages I am responsible for maintaining
+% to comply with it.  Until then
+% I will include a message
+% which begins with \texttt{AED}
+% in every usage of |\AtEndDocument|, and try to minimize any side
+% effects my usage may have.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%
+% \subsection{What are packages for?} \label{sec:monoton}
+% 
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% [This subsection written by jpg]
+%
+% One option is to not have packages like \textsf{endfloat} actually call
+% |\AtEndDocument|, but merely define a user level command which
+% would make the call itself.  This way, the order of those particular
+% commands would matter, but not the ordering of the package loading.
+%
+% Another advantage of this is that packages could easily be things
+% which make commands available, but do not actually entail
+% a change in \texttt{.dvi} output themselves.  It is classes,
+% and options to classes which do that.  That is, the actual
+% loading of packages should have no visable effects, other than
+% making new commands available.  (Typeface changing
+% packages, such as \textsf{times}, are obvious, and principled, exceptions.)
+% The disadvantage is that it leads
+% to two-step modifications (loading and calling) to change
+% a document.
+%
+% It is not clear whether this distinction between package and
+% and class (or option) is actually intended with the new document
+% and file structure of \LaTeXe.  On the one hand,
+% the \textit{Class Guide}\cite{LT3:ClassGuide} says the following:
+% \begin{quotation}
+% \small
+% The first thing to do when you want to put some new \LaTeX{} commands
+% in a file is to decide whether it should be a document class or a
+% package.  The rule of thumb is \emph{if the commands could be used
+% with any document class, then make them a package, and if not, make
+% them a class}.
+% 
+% For example, the |proc| document class changes the appearance of the
+% |article| document class.  It is of no use with any other document
+% class, so we have |proc.cls| rather than |proc.sty|.
+% 
+% The |graphics| package, however, provides commands for including
+% images into a \LaTeX{} document.  Since these commands can be used
+% with any document class, we have |graphics.sty| rather than
+% |graphics.cls|.
+% 
+% \end{quotation}
+%
+% Without stating it explicitly, this appears to presuppose the
+% expectation that packages will provide new commands, and
+% classes (or options to them) will change output by virtue of their
+% being called.  On the otherhand, in the \textit{Companion}\cite{A-W:GMS94},
+% the
+% authors seem happy to describe packages (including \textsf{endfloat}
+% itself) which do change document behavior.
+%
+% I believe that the restriction that packages should not, by virtue
+% of being loaded, change output is nice but too restrictive.
+% Without going into detail why I believe so, it is enough to point
+% out that imposing such a restriction would make the semantics of
+% package loading more uniform, but would place the burden on the user
+% to not only load, but to invoke the package (either through specifying
+% class options or by a command), making the user responsible for remembering
+% which packages are of the `need to be invoked' sort.  So, it seems that
+% we may have a little paradox where the more uniform semantics leads
+% to a less transparent user interface.
+% 
+% As a
+% compromise, I would propose any package (other than typeface changing
+% packages) which changes output instead of merely providing additional
+% commands, should be clearly labelled as doing such in the documentation
+% and in a message.
+% 
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% \section{Bugs} \label{sec:bugs}
+%
+% \subsection{Float position specifiers} \label{sec:gobble}
+%
+% Still needs to gobble float position specifiers. Bug noted March
+% 14, 1992.
+%
+% As of October 1994, this bug remains.
+% It means that the float specifiers are written to the |.fff| and |.ttt|
+% files and will be in effect when those are run.  That wouldn't
+% really be a problem, except that |[p]| specifier can lead to
+% funny results if the |heads| option is used, because a
+% float page can be created for the first float, leaving the
+% header on a page by itself.  I (jpg) have ideas about
+% fixing it, but having had the time is another question.
+%
+% \subsection{Misplaced headers} \label{sec:buggyheads}
+%
+% Version 2.2c contains a partial fix to a problem with the placement
+% of floats around the section headers produced by the |heads| option.
+% There were two varients of the problem.  In one the first float
+% after the header would float above the header.  This has been fixed
+% by using the \LaTeXe\ command |\suppressfloats|.  The other
+% problem is that that the first float may float to a page float
+% after the page with the header on it.
+%
+%  This has been partially fixed, but
+% if users use the |[p]| specification on their floats or if
+% there are large floats, the problem can still
+% show up.  It is recommended that whenever the user wants a |[p]| that
+% an |[hp]| be used instead.  In normal running (without \textsf{endfloat}),
+% this should only rarely effect the document, but it will help avoid
+% the problem with the floating end float.  An |[h]| may also be needed for
+% large floats.  There is only need to be concerned about the first
+% figure and first table.
+%
+% The natural solution to this problem will require that the bug
+% in described in section~\ref{sec:gobble} be resolved.
+%
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%\StopEventually{\PrintIndex\PrintChanges}
+%
+% \section{The documentation driver file}
+%
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% The next bit of code contains the documentation driver file for
+% \TeX{}, i.e., the file that will produce the documentation you are
+% currently reading. It will be extracted from this file by the
+% \texttt{docstrip} program.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\setlength\hfuzz{1pt}    % ignore slight overfulls
+\CodelineIndex
+\EnableCrossrefs
+%\DisableCrossrefs   % Say \DisableCrossrefs if index is ready
+\RecordChanges       % Gather update information
+%\OnlyDescription    % comment out for implementation details
+\begin{document}
+   \DocInput{endfloat.dtx}
+\end{document}
+%</driver>
+%    \end{macrocode}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%
+% \section{The implementation}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \subsection{File and package identification}
+%
+% We start by checking if this file was already loaded. If not we
+% identify the current version.
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e package form. jpg}
+%    \begin{macrocode}
+%<*package>
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{endfloat}[\filedate\space\fileversion\space
+               LaTeX2e package puts figures and tables at end (jdm)]
+%    \end{macrocode}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e package form. jpg}
+%
+% \subsection{How it was written}
+%
+% [this section mostly based on jdm's original text.]
+%
+% Overview: redefine the figure and table environment following 
+% the |comment| environment of
+% \texttt{comment.sty} written by Victor Eijkhout
+% \texttt{eijkhout@csrd.uiuc.edu}.
+%
+% Instead of processing what was between |\begin{...}| and |\end{...}|,
+% every line is written to a file (|\jobname.fff| for figures, |\jobname.ttt|
+% for tables).  Then, when you do an |\end{document}|, the figure section
+% is processed, then the table section is processed.  The |tablesfirst|
+% option changes this order.
+%
+% [The versions upto and including 2.0 redefined |\enddocument|, the
+% current version uses |AtEndDocument|. ---jpg]
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1}{1994/06/25}{Use AtEndDocument. jpg}
+%
+% After initial versions, I [jdm] received much help from Ronald Kappert
+% and Brian Junker (see change log below). \emph{Thanks guys!}
+% If anyone has any bugs/suggestions to report, mail them to
+%				Darrell McCauley at
+% \texttt{jdm5548@diamond.tamu.edu}. 
+% [jdm dates this 02 Jun 1992.  Actually bug reports and suggestions
+% should go to Jeff Goldberg \texttt{goldberg@nytud.hu} ---jpg]
+%
+% \subsection{Define warning message}
+% Since I, JPG, am making the commands options, I want to warn users
+% to use the options, since these commands should be discontinued
+% in future versions.
+%    \begin{macrocode}
+\newcommand{\EF@OldCmd}[2]{\PackageWarning{endfloat}
+  {The command \protect#1 is obsolete and will be\MessageBreak
+   omitted from future releases of the endfloat package.\MessageBreak
+   Use the package option `#2' instead.}}
+%    \end{macrocode}
+% \subsection{Flags}
+% Put all of the newifs for the user options and flags here.
+%    \begin{macrocode}
+\newif\if@domarkers
+\newif\if@tablist                % bj
+\newif\if@figlist                % bj
+\newif\if@tabhead
+\newif\if@fighead
+\newif\if@tablesfirst
+%    \end{macrocode}
+%
+% \subsubsection{Default values}
+% Set default values of all of the flags here.
+%    \begin{macrocode}
+\@domarkerstrue
+\@tablisttrue
+\@figlisttrue
+\@tabheadfalse
+\@figheadfalse
+\@tablesfirstfalse
+%    \end{macrocode}
+%
+% \begin{macro}{\markersintext}
+% \begin{macro}{\nomarkersintext}
+% [First set up flags and defaults.  First set for flagging
+% whether markers appear in text.  ---jpg]
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \changes{v2.2a}{1994/10/07}{Creat new options}
+% Here we make these commands available as options as well.
+%    \begin{macrocode}
+\DeclareOption{nomarkers}{\@domarkersfalse }
+\DeclareOption{markers}{\@domarkerstrue }
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\markersintext{\@domarkerstrue
+   \EF@OldCmd{\markersintext}{markers}}
+\def\nomarkersintext{\@domarkersfalse
+  \EF@OldCmd{\nomarkersintext}{nomarkers}}
+%    \end{macrocode}
+%
+% \end{macro}
+% \end{macro}
+% \begin{macro}{\dotablist}
+% \begin{macro}{\notablist}
+% [Options for creating lists of Tables, \ldots; Added by BJ, ---jpg]
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%
+%    \begin{macrocode}
+\def\dotablist{\@tablisttrue \EF@OldCmd{\dotablist}{tablist}}
+\def\notablist{\@tablistfalse \@tabheadtrue
+   \EF@OldCmd{\notablist}{notablist}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \begin{macro}{\dofiglist}
+% \begin{macro}{\nofiglist}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% [\ldots and Figures ---jpg]
+%    \begin{macrocode}
+\def\dofiglist{\@figlisttrue \EF@OldCmd{\dogfiglist}{figlist}}
+\def\nofiglist{\@figlistfalse \@figheadtrue
+  \EF@OldCmd{\nofiglist}{nofiglist}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% Now we make options |tablist| and |notablist| and |figlist| and
+% |nofiglist|.  Note that options will be processed in order of
+% the |\DeclareOption| commands in this file.  So by placing
+% |list| after |nolist| we ensure that if both are specified, |list|
+% is in effect.
+%
+% First two new options
+%    \begin{macrocode}
+\DeclareOption{nolists}{\@tablistfalse \@figlistfalse }
+\DeclareOption{lists}{\@tablisttrue \@figlisttrue }
+%    \end{macrocode}
+% Now the more specific ones, which must come after the more
+% general options to get the right interactions between semi-conflicting
+% options.
+%    \begin{macrocode}
+\DeclareOption{notablist}{\@tablistfalse }
+\DeclareOption{nofiglist}{\@figlistfalse }
+\DeclareOption{tablist}{\@tablisttrue }
+\DeclareOption{figlist}{\@figlisttrue }
+%    \end{macrocode}
+% 
+% The \texttt{notablist} and \texttt{nofiglist} options still leave
+% a section header at the begining of the tables and figures.
+%
+% Note again the role that order plays, by placing |fighead| after
+% |noheads| it ensures that |fighead| will be in effect if both
+% are specified.
+%    \begin{macrocode}
+\DeclareOption{heads}{\@figheadtrue \@tabheadtrue }
+\DeclareOption{noheads}{\@figheadfalse \@tabheadfalse }
+\DeclareOption{fighead}{\@figheadtrue }
+\DeclareOption{tabhead}{\@tabheadtrue }
+\DeclareOption{nofighead}{\@figheadfalse }
+\DeclareOption{notabhead}{\@tabheadfalse }
+%    \end{macrocode}
+% Also need option for putting tables first
+%    \begin{macrocode}
+\DeclareOption{tablesfirst}{\@tablesfirsttrue }
+\DeclareOption{figuresfirst}{\@tablesfirstfalse }
+%    \end{macrocode}
+% Other option stuff
+%    \begin{macrocode}
+\DeclareOption*{%
+   \PackageWarning{endfloat}{Unknown option `\CurrentOption'}}
+\ProcessOptions
+%    \end{macrocode}
+% \subsection{Other preliminaries}
+%
+% \begin{macro}{postfig}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% [Counters ---jpg]
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+%    \begin{macrocode}
+\newcounter{postfig}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\@openpostfigs}
+% \begin{macro}{\if@postfigsopen}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% [code for opening the |\jobname.fff| ---jpg]
+%    \begin{macrocode}
+\newwrite\@postfigs
+\newif\if@postfigsopen \global\@postfigsopenfalse
+ \def\@openpostfigs{\immediate\openout\@postfigs=\jobname.fff\relax
+      \message{(\jobname.fff)}%
+      \global\@postfigsopentrue}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \begin{macro}{posttbl}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% [Same stuff but for tables ---jpg] 
+%    \begin{macrocode} 
+\newcounter{posttbl}
+\newwrite\@posttbls
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\@openposttbls}
+% \begin{macro}{\if@posttblsopen}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% [commands for opening |\jobname.ttt| ---jpg]
+%    \begin{macrocode}
+\newif\if@posttblsopen \global\@posttblsopenfalse
+\def\@openposttbls{\immediate\openout\@posttbls=\jobname.ttt\relax
+      \message{(\jobname.ttt)}%                                      % bj
+      \global\@posttblsopentrue}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \begin{macro}{\makeinnocent}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% [This command name probably should
+% be made internal by calling it something like
+% |\efloat@makeinnocent|. ---jpg]
+%    \begin{macrocode}
+\def\makeinnocent#1{\catcode`#1=12 }
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\figureplace}
+% \begin{macro}{\tableplace}
+% [JPG's redefinition of BJ's redefinitions of
+% RK's defs of the place markers.  ---jpg]
+% \changes{v1.0b}{1992/03/10}{adaptions for LaTeX 2.09 and
+%                      international namegiving by Ronald Kappert
+%                      R.Kappert@urc.kun.nl}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% 
+% \begin{macro}{\figurename}
+% \begin{macro}{\tablename}
+% Make sure that |\tablenames| and |\figurenames| are defined.
+%    \begin{macrocode}
+\providecommand{\figurename}{Figure}
+\providecommand{\tablename}{Table}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+%    \begin{macrocode}
+\newcommand{\figureplace}{%
+   \begin{center} 
+     [\figurename~\thepostfig\ about here.]
+   \end{center}}
+\newcommand{\tableplace}{%
+   \begin{center}
+      [\tablename~\theposttbl\ about here.]
+   \end{center}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \subsection{Parsing \texttt{figure} and \texttt{table}}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% 
+% [Now we appear to get the utilities for parsing needed to
+% get unmodified code into files. ---jpg]
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+\def\@gobbleuntilnext[#1]{}  % Not used (jpg)
+\let\@bfig\figure             % bj
+\let\@efig\endfigure          % bj
+\let\@btab\table              % bj
+\let\@etab\endtable           % bj
+\let\endfigure\relax          % bj
+\let\endtable\relax           % bj
+%    \end{macrocode}
+%
+% \begin{macro}{\figure}
+% the {blank space } appearing with |\nomarkersintext| was fixed by adding
+% a percent sign (|%|) at strategic locations, determined by setting
+% |\tracingcommands=1| ---Darrell
+% \changes{v2.0}{1992/06/02}{Corrected problem of extra blank spaces in
+%                      the output when nomarkersintext was in effect
+%                      (bug reported by schultz@unixg.ubc.ca).
+%                      jdm}
+% 
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% [As mentionned by the jdm above, the following is based
+% on \texttt{comment.sty}.  It appears that the idea is to
+% turn off all control sequence processing and read in from
+% input each line, until a line is found that looks like
+% |\end{figure}|.  Thus the actual name of the environment
+% is hardcoded into the use of the macros
+% (see section~\ref{sec:envnames}).  ---jpg]
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%
+% In what follows, unlabled documentation is also by jpg.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% \changes{v1.1}{1992/03/13}{verified that floats were
+%               used before a section was
+%               created for them. jdm}
+% \changes{v1.2}{1992/03/14}{corrected typo that may have caused figures not
+%                      to be printed. jdm}
+%
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+\def\figure{%
+%    \end{macrocode}
+% If we have already done one table then the file we write to
+% is already open, and there is nothing to do, else open it up.
+%    \begin{macrocode}
+    \if@postfigsopen \else \@openpostfigs \fi%
+%    \end{macrocode}
+% We have read a |\begin{figure}| to get here.  We need to write that
+% into the file. 
+%
+% I (jpg) would add the |[htb]| parameters to what
+% gets written, but that leaves any float specifiers that had
+% been employed by the user wandering around in the floated material.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+    \immediate\write\@postfigs{\string
+         \begin{figure}}%
+%    \end{macrocode}
+% Since the figures are not actually processed until much later, we don't
+% use \LaTeX's figure numbering machanism, but we use our own.   Also
+% put marker in text (if option set).
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+    \if@domarkers%
+       \addtocounter{postfig}{1}% % bj
+       \figureplace%              % bj
+    \fi%
+%    \end{macrocode}
+% \begin{macro}{\@currenvir}
+% |\@currenvir| (current enviroment) isn't used, but it could provide a
+% hook to solve the problem discussed in section~\ref{sec:envnames}.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+%    \def\@currenvir{figure}%  % not used (jpg)
+%    \end{macrocode}
+% \end{macro}
+% Now we set up catcodes for reading in text without processing
+% things.  But need to make |^^M| special since we want to read
+% line by line.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+    \begingroup%
+    \let\do\makeinnocent \dospecials%
+    \makeinnocent\^^L% and whatever other special cases
+    \endlinechar`\^^M \catcode`\^^M=12 \xfigure}%
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\efloat@foundendfig}
+% \begin{macro}{\efloat@foundendtab}
+% When |\xfigure| is verbatim-like reading the figure it has to
+% do some clean-up after it as found the |\end{figure}| or
+% |\end{figure*}|.  This is it.  [this part written by jpg v2.2]
+%    \begin{macrocode}
+\def\efloat@foundendfig{\def\next{\endgroup\end{figure}%
+          \immediate\write\@postfigs{\string\end{figure}}%
+          \immediate\write\@postfigs{\string\clearpage}%
+          \immediate\write\@postfigs{ }}}%
+%    \end{macrocode}
+% And the same thing of for the end of tables
+%    \begin{macrocode}
+\def\efloat@foundendtab{\def\next{\endgroup\end{table}
+          \immediate\write\@posttbls{\string\end{table}}
+          \immediate\write\@posttbls{\string\clearpage}
+          \immediate\write\@posttbls{ }}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \begin{macro}{\xfigure}
+% |\xfigure| reads line by line, checking whether each line
+% is the |\end{figure}|.  If it is, then write out endstuff
+% to the file.  Otherwise write out read in line to the
+% file and do the |\next| line.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% [I am not happy about things like |\xfigure| being public. ---JPG]
+%    \begin{macrocode}
+{\catcode`\^^M=12 \endlinechar=-1 %
+ \gdef\xfigure#1^^M{\def\test{#1}%
+%    \end{macrocode}
+% Test for |\end{figure}|
+%    \begin{macrocode}
+      \ifx\test\endfiguretest
+           \efloat@foundendfig
+%    \end{macrocode}
+% Test for |\end{figure*}|
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+      \else\ifx\test\enddblfiguretest
+           \efloat@foundendfig
+%    \end{macrocode}
+% Test for |[| and if so, eat until end of line.  I wonder if
+% this will destroy a line within a figure that begins with `|[|'.
+% [skip over float position specifier (fps)   ---jdm?]  Doesn't
+% work, so is being commented out by jpg.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+%      \else\@ifnextchar[%
+%         \@whilesw \ifx\test\CB \fi%
+%	    \@gobble%
+%    \end{macrocode}
+% Finally, if none of the above, we have a line of text in the
+% body of the figure which should be written to the file.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+      \else%
+          \immediate\write\@postfigs{#1}%
+          \let\next\xfigure%
+      \fi \fi \next}%
+}%
+%    \end{macrocode}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \begin{macro}{\CB}
+% \begin{macro}{\endfiguretest}
+% \begin{macro}{\enddblfiguretest}
+% Definitions for |\CB| (Closing Bracket?)\ and strings for
+% |\end{figure}| and |\end{figure*}|.  |\CB| isn't used and
+% is just a hook for working on float eating (jpg).
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+%    \begin{macrocode}
+{\escapechar=-1%
+% \xdef\CB{]}%
+ \xdef\endfiguretest{\string\\end\string\{figure\string\}}%
+ \xdef\enddblfiguretest{\string\\end\string\{figure*\string\}}%
+}%
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \end{macro}
+% \begin{macro}{\table}
+% |\table| is the same as |\figure|.  But I am not going to
+% document it as much.
+% \changes{v2.1b}{1994/07/03}{Modify documentation -jpg}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+\def\table{\if@posttblsopen \else \@openposttbls \fi
+    \immediate\write\@posttbls{\string\begin{table}}%
+    \if@domarkers
+       \addtocounter{posttbl}{1} % bj
+       \tableplace               % bj
+    \fi
+    \def\@currenvir{table}%
+    \begingroup
+    \let\do\makeinnocent \dospecials
+    \makeinnocent\^^L% and whatever other special cases
+    \endlinechar`\^^M \catcode`\^^M=12 \xtable}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\xtable}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+%    \begin{macrocode}
+{\catcode`\^^M=12 \endlinechar=-1 %
+ \gdef\xtable#1^^M{\def\test{#1}
+      \ifx\test\enddbltabletest
+          \efloat@foundendtab
+      \else\ifx\test\endtabletest
+          \efloat@foundendtab
+      \else
+          \immediate\write\@posttbls{#1}%
+          \let\next\xtable
+      \fi \fi \next}
+}
+%    \end{macrocode}
+% \end{macro}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+{\escapechar=-1
+ \xdef\enddbltabletest{\string\\end\string\{table*\string\}}
+ \xdef\endtabletest{\string\\end\string\{table\string\}}
+}
+%    \end{macrocode}
+% end of stuff from comment.sty
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+%\let\figure=\figure
+%\let\table=\table
+\@namedef{figure*}{\figure}
+\@namedef{table*}{\table}
+\def\endfloat{\endfigure}
+%    \end{macrocode}
+% \subsection{Processing Figures and Tables}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+\providecommand{\figuresection}{Figures}
+\providecommand{\tablesection}{Tables}
+%    \end{macrocode}
+% \begin{macro}{\processfigures}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+\def\processfigures{
+  \if@postfigsopen
+  \immediate\closeout\@postfigs \global\@postfigsopenfalse
+  \let\figure\@bfig              % bj
+  \let\endfigure\@efig           % bj
+  \clearpage                                                        % bj
+  \if@figlist                                                       % bj
+    {\normalsize\listoffigures}                                     % bj
+    \clearpage                                                      % bj
+  \fi
+  \if@fighead
+     \section*{\figuresection}                                   % bj
+%    \end{macrocode}
+% See the discussion in section~\ref{sec:place} for what problem
+% the |suppressfloat[t]| is here to solve.  If I understand the
+% \textit{Companion} correctly (page 144), this was not available
+% in previous versions of \LaTeX.
+%    \begin{macrocode}
+     \suppressfloats[t]                                          % jpg
+  \fi
+  \markboth{\uppercase{\figuresection}}{\uppercase{\figuresection}}% bj
+  {\def\baselinestretch{1}\normalsize                                % bj
+  \@input{\jobname.fff}}                                             % bj
+ \fi}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\processtables}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+%    \begin{macrocode}
+\def\processtables{
+\if@posttblsopen
+  \immediate\closeout\@posttbls \global\@posttblsopenfalse
+  \let\table\@btab               % bj
+  \let\endtable\@etab            % bj
+  \clearpage                                                      % bj
+  \if@tablist                                                     % bj
+    {\normalsize\listoftables}                                    % bj
+    \clearpage                                                    % bj
+  \fi
+  \if@tabhead
+      \section*{\tablesection}                                  % bj
+      \suppressfloats[t]                                        % jpg
+  \fi
+  \markboth{\uppercase{\tablesection}}{\uppercase{\tablesection}}% bj
+  {\def\baselinestretch{1}\normalsize                              % bj
+  \@input{\jobname.ttt}}                                           % bj
+ \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Getting float placement correct} \label{sec:place}
+% \begin{macro}{\efloat@setfparams}
+% In versions prior to this attempt (v2.2c), when the |heads| options
+% were used, the float could could either float to the next page, leaving
+% the section header alone, or could float to the top of the page, leaving
+% section header at the bottom of the page.  The idea here is to change the
+% parameters that place floats, to very very strongly
+% encourage floats at the bottom of pages.
+% It also allows for easy top floats.  Thus obviating the need
+% for float pages.
+% The command |\efloat@setfparams| (endfloat set float parameters)
+% will be called at the end of the document before the floats are
+% processed.
+% A |\supressfloats[t]| in the commands
+% that issue the headers will make sure that the floats don't float
+% above the headers.
+%
+%    \begin{macrocode}
+\def\efloat@setfparams{%
+    \renewcommand{\bottomfraction}{1.0}%
+    \renewcommand{\topfraction}{1.0}%
+    \renewcommand{\textfraction}{0.0}}
+%    \end{macrocode}
+% \end{macro}
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+% \changes{v2.1}{1994/06/25}{Use AtEndDocument. jpg}
+%    \begin{macrocode}
+\AtEndDocument{%                                      % jpg
+   \message{AED endfloat: Processing end Figures and Tables}% % jpg
+   \onecolumn
+   \efloat@setfparams
+   \if@tablesfirst
+      \processtables\clearpage\processfigures
+   \else
+      \processfigures\clearpage\processtables
+   \fi} % jpg
+%</package>
+%    \end{macrocode}
+%
+% \section{History}\label{sec:history}
+% \changes{v2.1}{1994/06/25}{Use LaTeX2e documentation form. jpg}
+% \changes{v2.1}{1994/06/25}{Use AtEndDocument. jpg}
+% \changes{v2.1}{1994/06/25}{Modify documentation text. jpg}
+%
+% \subsection{The burden of history}
+%
+% By version 2.2 the file was getting so that most of the bytes
+% were things that had been commented out of previous versions,
+% and changelog messages.  Instead of this making things clearer
+% to the maintainer, it turns out to be clutter.  I (jpg) have started
+% to throw out some of history (it is not really useful to see
+% who corrected what typo or cleaned up what extraneous space
+% with a |%| in 1991.  Although my purge of history is far
+% from complete, it should be noted that I do want to preserve
+% the spirit of the history.  I have already been miscredited
+% with authorship, and wish to make it clear that not only
+% am I (jpg) not the author, I don't fully understand all of the
+% \TeX\ work here.
+%
+% \subsection{Author}
+% The file was written by Darrell McCauley (jdm5548@diamond.tamu.edu)
+% in February and March 1992.   He acknowledges that much of the
+% guts are adapted from
+% \texttt{comment.sty} by Victor Eijkhout (eijkhout@csrd.uiuc.edu).
+% 
+% \subsection{Version 2.2}
+%
+% A user (Kate Hedstrom) pointed out a number of bugs and shortcomings,
+% which led me (jpg) to finally sit down and make some of the changes
+% I had been planing on making.  The effect of the |tablesfirst| option
+% was specifically requested, and also work on the bug dicussed
+% in section~\ref{sec:buggyheads}.  Although my bug fix is partial,
+% version 2.2 includes the means to suppress the headers althogether.
+%
+% \subsubsection{Package options}
+%
+% I, jpg, have used the package option facility of \LaTeXe\
+% to get other options (descibed in section~\ref{sec:options}).
+% I also made some cosmetic changes (breaking up lines to reduce
+% the number of overfull boxes when printing the documentation,
+% line breaks and indentation to make the code more readable.
+% I also replaced some |\def|s with |\newcommand|s and
+% |\providecommand|s.  This are not logged, because I actually
+% found that all of the logging information was hampering my
+% ablity to read and modify the code.
+%
+% \subsubsection{Internal commands}
+%
+% In version 2.2, I also replaced some code internal
+% to |\xfigure| and |\xtable| with |\efloat@foundendfig|
+% and |\efloat@foundendtab|.  This was merely a stylistic
+% change.
+%
+% I also deleted some some definitions
+% which are not used.  These had had probably been left as hooks, but with
+% not enough for them to be useful hooks.  There are some cases where
+% I have left these in when I could see what they could be used for.
+% I have tried to add a note as to their potential use.
+%
+% \subsubsection{Documentation}
+%
+% Massive changes to user documentation, and some to the code
+% documentation.
+%
+% \subsection{Version 2.1}
+%
+% I, Jeffrey Goldberg, in June 1994 wanted to use Darrell McCauley's
+% \texttt{endfloat.sty} with \LaTeXe.  It worked fine until I
+% needed to use the \LaTeXe\ directive |\AtEndDocument| for
+% some other function, and discovered that it was not functioning
+% and that it was because version 2.0 (and earlier) of
+% \texttt{endnotes.sty} redefined |\enddocument|.   The
+% fix that I needed was trival, but it made the file no
+% longer compatible with \LaTeX209.  As a consequence, it seemed
+% that the only way I could make up for this crime was to make
+% it fully compatible with \LaTeXe.
+%
+% \subsection{Minor changes}
+%
+% A series of changes and fixes were made in March 1992.  Many
+% by the original author others by  Ronald Kappert (R.Kappert@urc.kun.nl)
+% who replaced literal strings with |\figurename|, and so on; and
+% by schultz@unixg.ubc.ca who pointed out gobbling bug with
+% |\nomarkersintext|.
+%
+% \subsection{Brian Junker's modifications}
+%
+% Brian Junker (brian@stat.cmu.edu) made a number of fixes.
+% Here are his change comments:
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+%
+% \begin{enumerate}
+%   \item Changed ``comment" to ``figure" and ``komment" to
+%                      ``table" throughout, to avoid collisions with other
+%                      style files' definitions of ``comment".  Also
+%                      fixes |\begin{table}| ends with |\end{komment}|
+%                      error generated by my (older) version of PC\TeX.
+%
+%   \item Fixed gobble of float position specifiers.
+%         There are two ways to do this:
+%         \begin{enumerate}
+%         \item |\write\ifnextchar[{\gobbleuntilnext}{}|
+%                      into every
+%                      environment written to |\jobname.fff|, etc.;
+%          \item save \LaTeX's old def's of |\figure| and |\table|
+%                      and re-use them when processing fig's and tables.
+%                      I chose the latter approach, for maximum
+%                      consistency with \LaTeX, other style files, etc.
+%          \end{enumerate}
+%
+%  \item Added def's of |\tablename| and |\figurename|,
+%                      which my version of PC-\TeX\ seemed to need.
+%                      [backward compatability for earlier versions ---jdm]
+%
+%  \item Moved formatting of figure and table markers to
+%                      |\figureplace| and |\tableplace|.
+%
+%   \item Style change: in-text markers are now
+%                      centered reminders like ``[Figure 4 about here.]".
+%
+%    \item Style change: added list of tables and
+%                      figures to the table and figure sections.
+%                      Change back to old format with |\nofiglist| and
+%                      |\notablist|.
+%
+%    \item Changed default to |\markersintext|.
+%
+%     \item Fixed trivial typo in |\@openposttbls|
+% \changes{v1.99}{1992/05/27}{extensive changes by bj}
+% \end{enumerate}
+%  All changes marked |% bj| at end of line.
+%  ---Brian Junker (brian@stat.cmu.edu)
+%
+% \section{Wish list}
+%
+% I doubt that I will really work on this wish list in the near future
+% but in addition to solving the know bugs, there are two major sorts of
+% changes that I (jpg) would like to see.
+% \begin{enumerate}
+% \item
+%    Updating the verbatim writing by using the tools in the
+%    |verbatim| standard packages, and the |moreverb| package.
+%    Since they provide more generalized an cleaner verbatim code
+%    then this which dates back to the earliest days of \LaTeX.
+% \item
+%    Integrate with the |float| package  which (among other things)
+%    enables the user to define new floating environments. 
+%    |endfloat| v2.2 only allows figures and tables to be placed at
+%    the end, not all types of potential floats.  Nor does it allow
+%    the user to specify which of the two types it does recognize
+%    to be placed at the end.
+% \end{enumerate}
+%
+% \begin{thebibliography}{1}
+% 
+% \bibitem{Goldberg:lastpage}
+% Jeffrey Goldberg.
+% \newblock The \texttt{lastpage} package.
+% \newblock electronic documentation
+% 
+% \bibitem{A-W:GMS94}
+% Michel Goossens, Frank Mittelbach, and Alexander Samarin.
+% \newblock {\em The {\LaTeX} Companion}.
+% \newblock Addison-Wesley, Reading, Massachusetts, 1994.
+%  
+% \bibitem{LT3:ClassGuide}
+% The \LaTeX3 Project.
+% \newblock \emph{\LaTeXe\ for class and package writers}
+% \newblock (Preliminary draft) June 1994.
+% \newblock Electronic Documentation
+%
+% \end{thebibliography}
+%  
+%
+% \Finale
+%
+\endinput

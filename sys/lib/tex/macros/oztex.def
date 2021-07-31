@@ -1,0 +1,51 @@
+%% 
+%% This is file `oztex.def', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% drivers.dtx  (with options: `oztex,macrules')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file drivers.dtx .
+%% 
+%% drivers.dtx Copyright (C) 1994 David Carlisle Sebastian Rahtz
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+\ProvidesFile{oztex.def}
+        [1994/12/12 v2.6 Driver-dependant file (DPC,SPQR)]
+\def\Ginclude@eps{\Oztex@Include{epsf}}
+\def\Ginclude@pntg{\Oztex@Include{pntg}}
+\def\Ginclude@pict{\Oztex@Include{pict}}
+\def\Oztex@Include#1#2{%
+ \ifGin@clip
+  \typeout{No clipping support in OzTeX}%
+ \fi
+ \divide\Gin@req@width by 65781% convert sp to bp
+ \divide\Gin@req@height by 65781%
+ \special{#1=#2\space
+  width=\number\Gin@req@width \space
+  height=\number\Gin@req@height
+ }%
+}
+\def\Gin@extensions{{},.ps,.eps,.pict}
+\@namedef{Gin@rule@.ps}#1{{eps}{.ps}{#1}}
+\@namedef{Gin@rule@.eps}#1{{eps}{.eps}{#1}}
+\@namedef{Gin@rule@.pict}#1{{pict}{}{#1}}
+\@namedef{Gin@rule@.pntg}#1{{pntg}{}{#1}}
+\@namedef{Gin@rule@}#1{{pict}{\relax}{#1}}
+\endinput
+%% 
+%% End of file `oztex.def'.

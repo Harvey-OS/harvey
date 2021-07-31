@@ -1,4 +1,3 @@
-#define	EXTERN
 #include	"l.h"
 #include	<ar.h>
 
@@ -155,7 +154,7 @@ main(int argc, char *argv[])
 		print("warning: -D0x%lux is ignored because of -R0x%lux\n",
 			INITDAT, INITRND);
 	if(debug['v'])
-		Bprint(&bso, "HEADER = -H0x%d -T0x%lux -D0x%lux -R0x%lux\n",
+		Bprint(&bso, "HEADER = -H0x%ld -T0x%lux -D0x%lux -R0x%lux\n",
 			HEADTYPE, INITTEXT, INITDAT, INITRND);
 	Bflush(&bso);
 	zprg.as = AGOK;
@@ -197,7 +196,7 @@ main(int argc, char *argv[])
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
-		loadlib();
+		loadlib(0, libraryp);
 	firstp = firstp->link;
 	if(firstp == P)
 		goto out;
@@ -228,24 +227,18 @@ out:
 }
 
 void
-loadlib(void)
+loadlib(int beg, int end)
 {
-	int i;
-	long h;
-	Sym *s;
+	int i, t;
 
-loop:
-	xrefresolv = 0;
-	for(i=0; i<libraryp; i++) {
+	for(i=end-1; i>=beg; i--) {
+		t = libraryp;
 		if(debug['v'])
 			Bprint(&bso, "%5.2f autolib: %s\n", cputime(), library[i]);
 		objfile(library[i]);
+		if(t != libraryp)
+			loadlib(t, libraryp);
 	}
-	if(xrefresolv)
-	for(h=0; h<nelem(hash); h++)
-	for(s = hash[h]; s != S; s = s->link)
-		if(s->type == SXREF)
-			goto loop;
 }
 
 void
@@ -300,8 +293,8 @@ objfile(char *file)
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f ldlib: %s\n", cputime(), file);
-	l = read(f, &arhdr, SAR_HDR);
-	if(l != SAR_HDR) {
+	l = read(f, &arhdr, sizeof(struct ar_hdr));
+	if(l != sizeof(struct ar_hdr)) {
 		diag("%s: short read on archive file symbol header\n", file);
 		goto out;
 	}
@@ -310,8 +303,8 @@ objfile(char *file)
 		goto out;
 	}
 
-	esym = SARMAG + SAR_HDR + atolwhex(arhdr.size);
-	off = SARMAG + SAR_HDR;
+	esym = SARMAG + sizeof(struct ar_hdr) + atolwhex(arhdr.size);
+	off = SARMAG + sizeof(struct ar_hdr);
 
 	/*
 	 * just bang the whole symbol file into memory
@@ -346,8 +339,8 @@ objfile(char *file)
 			l |= (e[3] & 0xff) << 16;
 			l |= (e[4] & 0xff) << 24;
 			seek(f, l, 0);
-			l = read(f, &arhdr, SAR_HDR);
-			if(l != SAR_HDR)
+			l = read(f, &arhdr, sizeof(struct ar_hdr));
+			if(l != sizeof(struct ar_hdr))
 				goto bad;
 			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
 				goto bad;
@@ -358,7 +351,6 @@ objfile(char *file)
 				errorexit();
 			}
 			work = 1;
-			xrefresolv = 1;
 		}
 	}
 	return;
@@ -453,10 +445,10 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 
 	l = a->offset;
 	for(u=curauto; u; u=u->link)
-		if(u->asym == s)
+		if(u->sym == s)
 		if(u->type == i) {
-			if(u->aoffset > l)
-				u->aoffset = l;
+			if(u->offset > l)
+				u->offset = l;
 			return c;
 		}
 
@@ -468,8 +460,8 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 
 	u->link = curauto;
 	curauto = u;
-	u->asym = s;
-	u->aoffset = l;
+	u->sym = s;
+	u->offset = l;
 	u->type = i;
 	return c;
 }
@@ -547,9 +539,9 @@ addhist(long line, int type)
 	s = malloc(sizeof(Sym));
 	s->name = malloc(2*(histfrogp+1) + 1);
 
-	u->asym = s;
+	u->sym = s;
 	u->type = type;
-	u->aoffset = line;
+	u->offset = line;
 	u->link = curhist;
 	curhist = u;
 
@@ -1038,7 +1030,7 @@ gethunk(void)
 		if(thunk >= 25L*NHUNK)
 			nh = 25L*NHUNK;
 	}
-	h = mysbrk(nh);
+	h = sbrk(nh);
 	if(h == (char*)-1) {
 		diag("out of memory\n");
 		errorexit();
@@ -1266,18 +1258,18 @@ find1(long l, int c)
 }
 
 long
-ieeedtof(Ieee *ieeep)
+ieeedtof(Ieee *ieee)
 {
 	int exp;
 	long v;
 
-	if(ieeep->h == 0)
+	if(ieee->h == 0)
 		return 0;
-	exp = (ieeep->h>>20) & ((1L<<11)-1L);
+	exp = (ieee->h>>20) & ((1L<<11)-1L);
 	exp -= (1L<<10) - 2L;
-	v = (ieeep->h & 0xfffffL) << 3;
-	v |= (ieeep->l >> 29) & 0x7L;
-	if((ieeep->l >> 28) & 1) {
+	v = (ieee->h & 0xfffffL) << 3;
+	v |= (ieee->l >> 29) & 0x7L;
+	if((ieee->l >> 28) & 1) {
 		v++;
 		if(v & 0x800000L) {
 			v = (v & 0x7fffffL) >> 1;
@@ -1287,31 +1279,74 @@ ieeedtof(Ieee *ieeep)
 	if(exp <= -126 || exp >= 130)
 		diag("double fp to single fp overflow\n");
 	v |= ((exp + 126) & 0xffL) << 23;
-	v |= ieeep->h & 0x80000000L;
+	v |= ieee->h & 0x80000000L;
 	return v;
 }
 
 double
-ieeedtod(Ieee *ieeep)
+ieeedtod(Ieee *ieee)
 {
 	Ieee e;
 	double fr;
 	int exp;
 
-	if(ieeep->h & (1L<<31)) {
-		e.h = ieeep->h & ~(1L<<31);
-		e.l = ieeep->l;
+	if(ieee->h & (1L<<31)) {
+		e.h = ieee->h & ~(1L<<31);
+		e.l = ieee->l;
 		return -ieeedtod(&e);
 	}
-	if(ieeep->l == 0 && ieeep->h == 0)
+	if(ieee->l == 0 && ieee->h == 0)
 		return 0;
-	fr = ieeep->l & ((1L<<16)-1L);
+	fr = ieee->l & ((1L<<16)-1L);
 	fr /= 1L<<16;
-	fr += (ieeep->l>>16) & ((1L<<16)-1L);
+	fr += (ieee->l>>16) & ((1L<<16)-1L);
 	fr /= 1L<<16;
-	fr += (ieeep->h & (1L<<20)-1L) | (1L<<20);
+	fr += (ieee->h & (1L<<20)-1L) | (1L<<20);
 	fr /= 1L<<21;
-	exp = (ieeep->h>>20) & ((1L<<11)-1L);
+	exp = (ieee->h>>20) & ((1L<<11)-1L);
 	exp -= (1L<<10) - 2L;
 	return ldexp(fr, exp);
+}
+
+/*
+ * fake malloc
+ */
+void*
+malloc(long n)
+{
+	void *p;
+
+	while(n & 7)
+		n++;
+	while(nhunk < n)
+		gethunk();
+	p = hunk;
+	nhunk -= n;
+	hunk += n;
+	return p;
+}
+
+void
+free(void *p)
+{
+	USED(p);
+}
+
+void*
+calloc(long m, long n)
+{
+	void *p;
+
+	n *= m;
+	p = malloc(n);
+	memset(p, 0, n);
+	return p;
+}
+
+void*
+realloc(void *p, long n)
+{
+	fprint(2, "realloc called\n", p, n);
+	abort();
+	return 0;
 }

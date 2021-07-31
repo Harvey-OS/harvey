@@ -1,0 +1,83 @@
+%% BEGIN tp-test.tex
+%%
+%% LaTeX test file for textpath.tex/textpath.sty.
+%%
+%% To use PostScript fonts with the New Font Selection Scheme:
+%%   - Include the style option "npsfont".
+%%   - You may have to change the font file names given below.
+%%   - "npsfont.sty" is distributed with PSTricks.
+
+\documentstyle[pstricks,textpath,12pt,npsfont]{article}
+
+\textwidth 6.5in
+\oddsidemargin 0pt
+
+\textheight 9in
+\topmargin 0pt
+\headsep 0pt
+\headheight 0pt
+
+\makeatletter
+\@ifundefined{newpsfamily}{\@testfalse}{\@testtrue}
+\if@test
+\newpsfamily[.96]{times}{
+  {m}{n}{ptmr},          %Times
+  {m}{it}{ptmri},        %
+  {m}{sl}{ptmri},        %
+  {bx}{n}{ptmb},         %Times-Bold
+  {bx}{it}{ptmbi},       %
+  {bx}{sl}{ptmbi}}       %
+\renewcommand{\default@family}{times}%
+\renewcommand{\rmdefault}{times}%
+\family\default@family\selectfont
+\fi
+\makeatother
+
+\begin{document}
+The first sample shows that math works. I let the line be drawn to make the sample clearer.
+\begin{verbatim}
+   \large
+    \pstextpath[c]%
+      {\pscurve[linecolor=gray](0,1)(4,3)(6,2)(9,0)(12,1)(15,1)}%
+      {$S_\alpha=\Omega(\gamma_\beta)$ is a connected snarf and
+      $B=(\otimes,\rightarrow,\theta)$ is Boolean left subideal.}
+\end{verbatim}
+
+\vskip 3.5cm
+
+\begin{large}
+    \pstextpath[c]%
+      {\pscurve[linecolor=gray](0,1)(4,3)(6,2)(9,0)(12,1)(15,1)}%
+      {$S_\alpha=\Omega(\gamma_\beta)$ is a connected snarf and
+      $B=(\otimes,\rightarrow,\theta)$ is Boolean left subideal.}
+\end{large}
+
+\vskip 1cm
+
+\begin{verbatim}
+    \psset{linestyle=none}
+    \pstextpath[c]{\psarcn(0,0){73pt}{180}{0}}%
+      {Centre National de la}
+    \pstextpath[c]{\psarc(0,0){73pt}{180}{0}}%
+      {Recherche Scientifique}
+\end{verbatim}
+
+\begin{center}
+    \vskip 2cm
+    \Huge
+    \psset{linestyle=none}
+    \pstextpath[c]{\psarcn(0,0){73pt}{180}{0}}%
+      {Centre National de la}
+    \pstextpath[c]{\psarc(0,0){73pt}{180}{0}}%
+      {Recherche Scientifique}
+    \vskip 2cm
+\end{center}
+
+\begin{center}
+  \pstextpath[c](0,0){\psarcn[linestyle=none](0,-6){4}{180}{0}}%
+    {\parbox{3.5in}{In principle, it is possible to use
+    parbox, but let's see what really happens. It seems
+    hard to believe that someone would want to do this.}}
+\end{center}
+\end{document}
+%% END tp-test.tex

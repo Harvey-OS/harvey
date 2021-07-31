@@ -1,0 +1,164 @@
+%% 
+%% This is file `esperant.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% esperant.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Johannes L. Braams.",
+%%%     version         = "1.4d",
+%%%     date            = "26 June 1994",
+%%%     time            = "00:24:15 MET",
+%%%     filename        = "esperant.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "01262 385 1778 14938",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the esperanto language
+%%%                        specific definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsesperanto
+\else
+  \selectlanguage{esperanto}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{esperant.sty}[1994/06/26 v1.4d
+         Esperanto support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@esperanto
+  \@nopatterns{Esperanto}
+  \adddialect\l@esperanto0\fi
+\addto\captionsesperanto{%
+  \def\prefacename{Anta\u{u}parolo}%
+  \def\refname{Cita\^\j{}oj}%
+  \def\abstractname{Resumo}%
+  \def\bibname{Bibliografio}%
+  \def\chaptername{{\^C}apitro}%
+  \def\appendixname{Apendico}%
+  \def\contentsname{Enhavo}%
+  \def\listfigurename{Listo de figuroj}%
+  \def\listtablename{Listo de tabeloj}%
+  \def\indexname{Indekso}%
+  \def\figurename{Figuro}%
+  \def\tablename{Tabelo}%
+  \def\partname{Parto}%
+  \def\enclname{Aldono(j)}%
+  \def\ccname{Kopie al}%
+  \def\headtoname{Al}%
+  \def\pagename{Pa\^go}%
+  \def\subjectname{Temo}%
+  \def\seename{vidu}%   a^u: vd.
+  \def\alsoname{vidu anka\u{u}}}% a^u vd. anka\u{u}
+\def\dateesperanto{%
+\def\today{\number\day{--a}~de~\ifcase\month\or
+  januaro\or februaro\or marto\or aprilo\or majo\or junio\or
+  julio\or a\u{u}gusto\or septembro\or oktobro\or novembro\or
+  decembro\fi,\space \number\year}}
+\addto\extrasesperanto{\babel@add@special\^}
+\addto\noextrasesperanto{\babel@remove@special\^}
+\addto\extrasesperanto{%
+  \babel@savevariable{\catcode`\^}%
+  \babel@save\active@hat
+  \catcode`\^\active \let\active@hat\esp@active@hat}
+\begingroup \catcode`\^\active
+\def\x{\endgroup
+  \addto\extrasesperanto{\babel@save^\let^\active@hat}}
+\x
+\begingroup \catcode`\^\active
+  \def\x{\endgroup
+    \let^\sp
+    \let\active@hat\sp}
+\x
+\def\esp@active@hat#1{%
+    \ifmmode\sp{#1}%
+    \else\ifx#1u\u u\allowhyphens
+    \else\ifx#1U\u U\allowhyphens
+    \else\ifx#1h{h\llap{\^{}}}\allowhyphens
+    \else\ifx#1j\^\j\allowhyphens
+    \else\ifx#1|\discretionary{-}{}{}\allowhyphens
+    \else\^{#1}\allowhyphens
+    \fi\fi\fi\fi\fi\fi}
+\def\esper#1{\@esper{\@nameuse{c@#1}}}
+\def\Esper#1{\@Esper{\@nameuse{c@#1}}}
+\def\@esper#1{\ifcase#1\or a\or b\or c\or \^c\or d\else\@iesper{#1}\fi}
+\def\@Esper#1{\ifcase#1\or A\or B\or C\or \^C\or D\else\@Iesper{#1}\fi}
+\def\@iesper#1{\ifcase#1\or \or \or \or \or \or e\or f\or g\or \^g\or
+    h\or h\llap{\^{}}\or i\or j\or \^\j\or k\orl\or m\or n\or o\or
+    p\or s\or \^s\or t\or u\or \u{u}\or v\or z\else\@ctrerr\fi}
+\def\@Iesper#1{\ifcase#1\or \or \or \or \or \or E\or F\or G\or \^G\or
+    H\or \^H\or I\or J\or \^\J\or K\or L\or M\or N\or O\or
+    P\or S\or \^S\or T\or U\or \u{U}\or V\or Z\else\@ctrerr\fi}
+\addto\dateesperanto{\def\hodiau{la \today}}
+\def\hodiaun{la \number\day --an~de~\ifcase\month\or
+  januaro\or februaro\or marto\or aprilo\or majo\or junio\or
+  julio\or a\u{u}gusto\or septembro\or oktobro\or novembro\or
+  decembro\fi, \space \number\year}
+\selectlanguage{esperanto}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `esperant.sty'.

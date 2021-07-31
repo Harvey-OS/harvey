@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/liblayer.a
+OFILES=\
+	bitblt.$O\
+	clipr.$O\
+	lalloc.$O\
+	layerop.$O\
+	lcstring.$O\
+	lfree.$O\
+	llist.$O\
+	ltoback.$O\
+	ltofront.$O\
+	lupdate.$O\
+	lvis.$O\
+	point.$O\
+	polysegment.$O\
+	segment.$O\
+	string.$O\
+	texture.$O\
+
+HFILES=/sys/include/layer.h
+
+</sys/src/cmd/mksyslib

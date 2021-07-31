@@ -1,0 +1,748 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{748}
+%%% \iffalse ===========================================================
+%%%  @LaTeX-style-file{
+%%%     author_1        = "Elmar Schalueck",
+%%%     author_2        = "Michael Janich",
+%%%     author_3        = "Johannes L. Braams",
+%%%     version         = "1.1c",
+%%%     date            = "26 June 1994",
+%%%     time            = "01:59:23 MET",
+%%%     filename        = "polish.doc",
+%%%     address_1/2     = "Universitaet-Gesamthochschule Paderborn
+%%%                        Warburger Strasse 100
+%%%                        4790 Paderborn
+%%%                        Germany",
+%%%     address_3       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "63394 715 2911 25329",
+%%%     email_1         = "elmar@uni-paderborn.de",
+%%%     email_2         = "massa@uni-paderborn.de",
+%%%     email_3         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the polish language specific
+%%%                        definitions for the babel system.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{polish.dtx}
+% \def\fileversion{v1.1c}
+% \def\filedate{1994/06/26}
+%
+% \changes{polish-1.1c}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved identification after the loading of babel.def}
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2e
+% Copyright (C) 1989 -- 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source
+%    code for the Polish language-specific file. It was developped out
+%    of Polish.tex, which was written by Elmar Schalueck and Michael
+%    Janich. Polish.tex was based on code by Leszek Holenderski, Jerzy
+%    Ryll and J. S. Bie\'n from Faculty of Mathematics,Informatics and
+%    Mechanics of Warsaw University, exept of Jerzy Ryll
+%    (Instytut Informatyki Uniwersytetu Warszawskiego).
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{polish.dtx}
+\end{document}
+%</filedriver>
+%\fi
+%
+%  \section{The Polish language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion\ and was last revised on
+%    \filedate.}  defines all the language-specific macros for the
+%    Polish language.
+%
+%    For this language the character |"| is made active. In
+%    table~\ref{tab:polish-quote} an overview is given of its purpose.
+%    \begin{table}[htb]
+%     \begin{center}
+%     \begin{tabular}{lp{8cm}}
+%      |"a| & or |\aob|, for tailed-a (like \c{a})\\
+%      |"A| & or |\Aob|, for tailed-A (like \c{A})\\
+%      |"e| & or |\eob|, for tailed-e (like \c{e})\\
+%      |"E| & or |\Eob|, for tailed-E (like \c{E})\\
+%      |"c| & or |\'c|,  for accented c (like \'c),
+%                      same with uppercase letters and n,o,s\\
+%      |"l| & or |\lpb{}|, for l with stroke (like \l)\\
+%      |"L| & or |\Lpb{}|, for L with stroke (like \L)\\
+%      |"r| & or |\zkb{}|, for pointed z (like \.z), cf.
+%      pronounciation\\
+%      |"R| & or |\Zkb{}|, for pointed Z (like \.Z)\\
+%      |"z| & or |\'z|,  for accented z\\
+%      |"Z| & or |\'Z|,  for accented Z\\
+%      \verb="|= & disable ligature at this position.\\
+%      |"-| & an explicit hyphen sign, allowing hyphenation
+%                  in the rest of the word.\\
+%      |""| & like |"-|, but producing no hyphen sign
+%                  (for compund words with hyphen, e.g.\ |x-""y|). \\
+%      |"`| & for German left double quotes (looks like ,,).   \\
+%      |"'| & for German right double quotes.                  \\
+%      |"<| & for French left double quotes (similar to $<<$). \\
+%      |">| & for French right double quotes (similar to $>>$).\\
+%     \end{tabular}
+%     \caption{The extra definitions made by \file{polish.sty}}
+%     \label{tab:polish-quote}
+%     \end{center}
+%    \end{table}
+%
+% \StopEventually{}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionspolish| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+%    \begin{macrocode}
+\ifx\undefined\captionspolish
+\else
+  \selectlanguage{polish}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \begin{macro}{\atcatcode}
+%    This file, \file{polish.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read.  We save the category code of the @-sign in |\atcatcode|
+%    and make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt polish} is the first language option to
+%    be processed. In that case we need to read \file{babel.def} right
+%    here before we continue.
+%
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{polish.sty}[1994/06/26 v1.1c
+         Polish support from the babel system]
+%    \end{macrocode}
+%
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it.
+%    \begin{macrocode}
+\ifx\undefined\originalTeX
+  \let\originalTeX\empty
+\fi
+\originalTeX
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by the |\usepackage|
+%    command, {\tt polish} could be an `unknown' language in which
+%    case we have to make it known. So we check for the existence of
+%    |\l@polish| to see whether we have to do something here.
+%
+% \changes{polish-1.1c}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@polish
+  \@nopatterns{Polish}
+  \adddialect\l@polish0\fi
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the Polish language.
+%
+% \begin{macro}{\captionspolish}
+%    The macro |\captionspolish| defines all strings used in the four
+%    standard documentclasses provided with \LaTeX.
+%    \begin{macrocode}
+\addto\captionspolish{%
+  \def\prefacename{Przedmowa}%
+  \def\refname{Bibliografia}%
+  \def\abstractname{Streszczenie}%
+  \def\bibname{Literatura}%
+  \def\chaptername{Rozdzia\l}%
+  \def\appendixname{Dodatek}%
+  \def\contentsname{Spis rzeczy}%
+  \def\listfigurename{Spis rysunk\'ow}%
+  \def\listtablename{Spis tablic}%
+  \def\indexname{Indeks}%
+  \def\figurename{Rysunek}%
+  \def\tablename{Tablica}%
+  \def\partname{Cz\eob{}\'s\'c}%
+  \def\enclname{Za\l\aob{}cznik}%
+  \def\ccname{Kopie:}%
+  \def\headtoname{Do}%
+  \def\pagename{Strona}%
+  \def\seename{Por\'ownaj}%
+  \def\alsoname{Por\'ownaj tak\.ze}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\datepolish}
+%    The macro |\datepolish| redefines the command |\today| to produce
+%    Polish dates.
+%    \begin{macrocode}
+\def\datepolish{%
+  \def\today{\number\day~\ifcase\month\or
+  stycznia\or lutego\or marca\or kwietnia\or maja\or czerwca\or lipca\or
+  sierpnia\or wrze\'snia\or pa\'zdziernika\or listopada\or grudnia\fi
+  \space\number\year}
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extraspolish}
+% \begin{macro}{\noextraspolish}
+%    The macro |\extraspolish| will perform all the extra definitions
+%    needed for the Polish language. The macro |\noextraspolish| is
+%    used to cancel the actions of |\extraspolish|.
+%
+%    Because for the Polish {\tt "} character is made active, the
+%    \LaTeX\ macros |\dospecials| and |\@sanitize| have to be
+%    redefined to include this character as well.
+%
+%    \begin{macrocode}
+\addto\extraspolish{\babel@add@special\"}
+%    \end{macrocode}
+%    Similarly, |\noextraspolish| should restore them to their
+%    original definition.
+%    \begin{macrocode}
+\addto\noextraspolish{\babel@remove@special\"}
+%    \end{macrocode}
+%
+%    The {\tt "} character is made active by |\extraspolish|.  The
+%    restore operation for the category change is appended to
+%    |\originalTeX|. Additionally we redefine |\active@dq|, after we
+%    have saved the original meaning.  If written with |\protect| set
+%    accordingly, the active doublequote is written as this
+%    macro. (All languages with the doublequote active should write it
+%    using the same control sequence name.)
+%    \begin{macrocode}
+\addto\extraspolish{\babel@savevariable{\catcode`\"}\babel@save\active@dq
+  \catcode`\"\active \let\active@dq\polish@active@dq}
+%    \end{macrocode}
+%    The simple definition |\def"{\protect\active@dq}| is not usable,
+%    because the |\protect| occurs at the toplevel.  If \TeX\ tries to
+%    scan a number in hexadecimal notation (i.\,e., using a
+%    doublequote), the |\protect| with meaning |\relax| prevents the
+%    correct scanning of the number.
+%    \begin{macrocode}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \addto\extraspolish{\babel@save"\let"\polish@@active@dq}}
+\x
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%    The code above is necessary because we need an extra
+%    active character. This character is then used as indicated in
+%    table~\ref{tab:polish-quote}.
+%
+%    If you have problems at the end of a word with a linebreak, use
+%    the other version without hyphenation tricks. Some TeX wizard may
+%    produce a better solution with forcasting another token to decide
+%    whether the character after the double quote is the last in a
+%    word. Do it and let us know.
+%
+%  \begin{macro}{\glqq}
+%  \begin{macro}{\grqq}
+%
+%    In Polish texts the German double quotes are sometimes used,
+%    therefore the following code is copied from \file{germanb.sty}.
+%
+%    \begin{macrocode}
+\def\glqq{\protect\@glqq}
+\def\@glqq{\save@sf@q{\set@low@box{''}\box\z@\kern-.04em\allowhyphens}}
+\def\grqq{\protect\@grqq}
+\def\@grqq{\save@sf@q{\kern-.07em``\kern.07em}}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\glq}
+%  \begin{macro}{\grq}
+%    Also the single quote versions of the above are used.
+%    \begin{macrocode}
+\def\glq{\protect\@glq}
+\def\@glq{\save@sf@q{\set@low@box{'}\box\z@\kern-.04em\allowhyphens}}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\grq{\protect\@grq}
+\def\@grq{\save@sf@q{\kern-.07em`\kern.07em}}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\flqq}
+%  \begin{macro}{\frqq}
+%    Another form of quotes used in Poland are the ``guillemets'' or
+%    french quotes. The double guillemets are implemented using the
+%    mathematics symbol~`$\ll$'. The disadvantage is that it doesn't
+%    work properly with all font sizes and styles. A better solution
+%    is still needed.
+%    \begin{macrocode}
+\def\flqq{\protect\@flqq}
+\def\@flqq{\relax \ifmmode \ll \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \ll $}}\fi}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\frqq{\protect\@frqq}
+\def\@frqq{\relax \ifmmode \gg \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \gg $}}\fi}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\flq}
+%  \begin{macro}{\frq}
+%    Also single ``guillemets'' are provided.
+%    \begin{macrocode}
+\def\flq{\protect\@flq}
+\def\@flq{\relax \ifmmode <\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle <$}}\fi}
+%    \end{macrocode}
+%    \begin{macrocode}
+\def\frq{\protect\@frq}
+\def\@frq{\relax \ifmmode >\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle >$}}\fi}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%    In Polish texts some letters get special diacritical marks.
+%    Leszek Holenderski designed the following code to position the
+%    diacritics correctly for every font in every size. These macros
+%    need a few extra dimension variables.
+%
+%    \begin{macrocode}
+\newdimen\pl@left
+\newdimen\pl@down
+\newdimen\pl@right
+\newdimen\pl@temp
+%    \end{macrocode}
+%
+%  \begin{macro}{\sob}
+%    The macro |\sob| is used to put the `ogonek' in the right
+%    place.
+%
+%    \begin{macrocode}
+\def\sob#1#2#3#4#5{%parameters: letter and fractions hl,ho,vl,vo
+  \setbox0\hbox{#1}\setbox1\hbox{$_\mathchar'454$}\setbox2\hbox{p}%
+  \pl@right=#2\wd0 \advance\pl@right by-#3\wd1
+  \pl@down=#5\ht1 \advance\pl@down by-#4\ht0
+  \pl@left=\pl@right \advance\pl@left by\wd1
+  \pl@temp=-\pl@down \advance\pl@temp by\dp2 \dp1=\pl@temp
+  \kern\pl@right\lower\pl@down\box1\kern-\pl@left #1}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\aob}
+%  \begin{macro}{\Aob}
+%  \begin{macro}{\eob}
+%  \begin{macro}{\Eob}
+%    The ogonek is placed with the letters `a', `A', `e', and `E'.
+%    \begin{macrocode}
+\def\aob{\sob a{.66}{.20}{0}{.90}}
+\def\Aob{\sob A{.80}{.50}{0}{.90}}
+\def\eob{\sob e{.50}{.35}{0}{.93}}
+\def\Eob{\sob E{.60}{.35}{0}{.90}}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\spb}
+%    The macro |\spb| is used to put the `poprzeczka' in the
+%    right place.
+%
+%    \begin{macrocode}
+\def\spb#1#2#3#4#5{%
+  \setbox0\hbox{#1}\setbox1\hbox{\char'023}%
+  \pl@right=#2\wd0 \advance\pl@right by-#3\wd1
+  \pl@down=#5\ht1 \advance\pl@down by-#4\ht0
+  \pl@left=\pl@right \advance\pl@left by\wd1
+  \ht1=\pl@down \dp1=-\pl@down
+  \kern\pl@right\lower\pl@down\box1\kern-\pl@left #1}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\skb}
+%    The macro |\spb| is used to put the `kropka' in the
+%    right place.
+%
+%    \begin{macrocode}
+\def\skb#1#2#3#4#5{%
+  \setbox0\hbox{#1}\setbox1\hbox{\char'056}%
+  \pl@right=#2\wd0 \advance\pl@right by-#3\wd1
+  \pl@down=#5\ht1 \advance\pl@down by-#4\ht0
+  \pl@left=\pl@right \advance\pl@left by\wd1
+  \kern\pl@right\lower\pl@down\box1\kern-\pl@left #1}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\textpl}
+%    For the `poprzeczka' and the `kropka' in text fonts we don't need
+%    any special coding, but we can (almost) use what is already
+%    available.
+%
+%    \begin{macrocode}
+\def\textpl{%
+  \def\lpb{\plll}%
+  \def\Lpb{\pLLL}%
+  \def\zkb{\.z}%
+  \def\Zkb{\.Z}}
+%    \end{macrocode}
+%    Initially we assume that typesetting is done with text fonts.
+% \changes{polish-1.0.2}{5 nov 1993}{Initially execute `textpl}
+%    \begin{macrocode}
+\textpl
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\let\lll=\l \let\LLL=\L
+\def\plll{\lll}
+\def\pLLL{\LLL}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\telepl}
+%    But for the `teletype' font we have to take some special actions,
+%    involving the macros defined above.
+%
+%    \begin{macrocode}
+\def\telepl{%
+  \def\lpb{\spb l{.45}{.5}{.4}{.8}}%
+  \def\Lpb{\spb L{.23}{.5}{.4}{.8}}%
+  \def\zkb{\skb z{.5}{.5}{1.2}{0}}%
+  \def\Zkb{\skb Z{.5}{.5}{1.1}{0}}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%    To activate these codes the font changing commands as they are
+%    defined in \LaTeX\ are modified. The same is done for plain
+%    \TeX's font changing commands.
+%
+%    \begin{macrocode}
+\ifx\prm\undefined
+  \let\@rm=\rm \def\rm{\@rm\textpl}
+\else
+  \def\rm{\protect\pprm}\def\pprm{\prm\textpl}
+\fi
+\ifx\pit\undefined
+  \let\@it\it \def\it{\@it\textpl}
+\else
+  \def\it{\protect\ppit}\def\ppit{\pit\textpl}
+\fi
+\ifx\pbf\undefined
+  \let\@bf\bf \def\bf{\@bf\textpl}
+\else
+  \def\bf{\protect\ppbf}\def\ppbf{\pbf\textpl}
+\fi
+\ifx\psl\undefined
+  \let\@sl\sl \def\sl{\@sl\textpl}
+\else
+  \def\sl{\protect\ppsl}\gdef\ppsl{\psl\textpl}
+\fi
+\ifx\psf\undefined
+\else
+  \def\sf{\protect\ppsf}\def\ppsf{\psf\textpl}
+\fi
+\ifx\psc\undefined
+\else
+  \def\sc{\protect\ppsc}\gdef\ppsc{\psc\textpl}
+\fi
+\ifx\ptt\undefined
+  \let\@tt\tt \def\tt{\@tt\telepl}
+\else
+  \def\tt{\protect\pptt}\def\pptt{\ptt\telepl}
+\fi
+%    \end{macrocode}
+%
+%  \begin{macro}{\dq}
+%    We save the original double quote character in |\dq| to keep
+%    it available, the math accent |\"| can now be typed as |"|.
+%    Also we store the original meaning of the command |\"| for
+%    future use.
+%    \begin{macrocode}
+\begingroup \catcode`\"12
+\def\x{\endgroup
+  \def\@UMLAUT{\"}
+  \def\@MATHUMLAUT{\mathaccent"707F }
+  \def\dq{"}}
+\x
+%    \end{macrocode}
+%
+%    If an active {\tt "} character gets ``lost'' in a non-polish
+%    language it should expand to a {\tt "} with category code `other'
+%    by default.  The same applies for the control sequence
+%    |\active@dq|.
+%    \begin{macrocode}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \ifx"\undefined \let"\dq \fi
+  \let\active@dq\dq}
+\x
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\dieresis}
+%    The original definition of |\"| is stored as |\dieresis|, because
+%    the definition of |\"| might not be the default plain \TeX\
+%    one. If the user uses PostScript fonts with the Adobe
+%    fontencoding the {\tt "} character is not in the same position as
+%    in Knuth's fontencoding. In this case |\"| will not be defined as
+%    |\accent"7F #1|, but as |\accent'310 #1|. For this reason we save
+%    the definition of |\"| and use that in the definition of other
+%    macros.
+%    \begin{macrocode}
+\let\dieresis=\"
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\polish@dq@macro}
+%    For all arguments of an active doublequote which should be
+%    treated in a special way, we define a macro with a name that
+%    contains the argument text.
+%
+%    \begin{macrocode}
+\def\polish@dqmacro#1{\csname p@dq@\string #1@dq@\endcsname}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\polish@@active@dq}
+%    An active doublequote is |\let| to this macro definition.  First
+%    we look if the argument triggers a special macro, then we expand
+%    either to a normal doublequote or indirectly to this macro.
+%    \begin{macrocode}
+\def\polish@@active@dq#1{\expandafter\expandafter\expandafter
+  \ifx\polish@dqmacro{#1}\relax \expandafter\normal@dq
+  \else \expandafter\polish@@@active@dq \fi {#1}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\normal@dq}
+%    The braces around the argument in |\polish@@active@dq| are
+%    necessary for empty arguments.  For |\normal@dq| we have to
+%    delete the braces and insert a normal doublequote.
+%    \begin{macrocode}
+\def\normal@dq#1{\dq #1}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\polish@@@active@dq}
+%    We have to call |\active@dq|, but this call has to be protected
+%    to inhibit further expansion when it is written to files.
+%    (|\active@dq| is |let| to |\polish@active@dq|.)  To allow correct
+%    ligatures and kerning, the |\protect| should expand to nothing,
+%    if it is used with meaning |\relax|.  The additional |\empty| in
+%    the argument of the |\active@dq| call is necessary for the
+%    correct expansion of |""|.
+%    \begin{macrocode}
+\def\polish@@@active@dq#1{%
+  \ifx\protect\relax \else \expandafter\protect \fi
+  \active@dq{#1\empty}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\polish@active@dq}
+%    In polish mode |\active@dq| is |\let| to this macro.  To get the
+%    final expansion of the special action macros, we have to expand
+%    the |\polish@dqmacro| three times.  This expansion consists of
+%    two groups containing the action for text and for math mode. The
+%    correct group is selected with the help of two additional macros.
+%    \begin{macrocode}
+\def\polish@active@dq#1{%
+  \csname polish@dq@\ifmmode second\else first\fi
+    \expandafter\expandafter\expandafter\expandafter
+    \expandafter\expandafter\expandafter
+  \endcsname
+  \polish@dqmacro{#1}}
+\def\polish@dq@first#1#2{#1}
+\def\polish@dq@second#1#2{#2}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\def@polish@dqmacro}
+%    To define a doublequote macro we use two macros.
+%    \begin{macrocode}
+\def\def@polish@dqmacro#1#2#3{\expandafter\expandafter\expandafter
+  \def\polish@dqmacro{#1}{{#2}{#3}}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\let@polish@dqmacro#1#2{\begingroup
+  \edef\x{\endgroup \let
+    \expandafter\expandafter\expandafter\noexpand\polish@dqmacro{#1}%
+    \expandafter\expandafter\expandafter\noexpand\polish@dqmacro{#2}}%
+  \x}
+%    \end{macrocode}
+%  \end{macro}
+%
+%    Now we can define the doublequote macros for diacritics,
+%    \begin{macrocode}
+\def@polish@dqmacro{a}{\aob}{\@MATHUMLAUT a}
+\def@polish@dqmacro{A}{\Aob}{\@MATHUMLAUT A}
+\def@polish@dqmacro{c}{\'c}{\@MATHUMLAUT c}
+\def@polish@dqmacro{C}{\'c}{\@MATHUMLAUT C}
+\def@polish@dqmacro{e}{\eob}{\@MATHUMLAUT e}
+\def@polish@dqmacro{E}{\Eob}{\@MATHUMLAUT E}
+\def@polish@dqmacro{l}{\lpb}{\@MATHUMLAUT l}
+\def@polish@dqmacro{L}{\Lpb}{\@MATHUMLAUT L}
+\def@polish@dqmacro{n}{\'n}{\@MATHUMLAUT n}
+\def@polish@dqmacro{N}{\'N}{\@MATHUMLAUT N}
+\def@polish@dqmacro{o}{\'o}{\@MATHUMLAUT o}
+\def@polish@dqmacro{O}{\'O}{\@MATHUMLAUT O}
+\def@polish@dqmacro{r}{\zkb}{\@MATHUMLAUT r}
+\def@polish@dqmacro{R}{\Zkb}{\@MATHUMLAUT R}
+\def@polish@dqmacro{s}{\'s}{\@MATHUMLAUT s}
+\def@polish@dqmacro{S}{\'S}{\@MATHUMLAUT S}
+\def@polish@dqmacro{z}{\'z}{\@MATHUMLAUT z}
+\def@polish@dqmacro{Z}{\'Z}{\@MATHUMLAUT Z}
+%    \end{macrocode}
+%
+%    and for other purposes.
+%    \begin{macrocode}
+\def@polish@dqmacro{`}{\glqq{}}{\glqq{}}
+\def@polish@dqmacro{'}{\grqq{}}{\grqq{}}
+\def@polish@dqmacro{<}{\flqq{}}{\flqq{}}
+\def@polish@dqmacro{>}{\frqq{}}{\frqq{}}
+\def@polish@dqmacro{-}{\allowhyphens\-\allowhyphens}%
+               {\allowhyphens\-\allowhyphens}
+\def@polish@dqmacro{|}{\discretionary{-}{}{\kern.03em}}{}
+\def@polish@dqmacro{"}{\hskip\z@skip}{\hskip\z@skip}
+%    \end{macrocode}
+%
+%    We take special care for |""|, if it is expanded only (i.\,e.,
+%    written to a file or used in |\edef|) and |\protect| is used to
+%    protect the expansion of the first active doublequote.  For this
+%    case the second doublequote is expanded with |\empty| as its
+%    argument.  To read the complete ``expansion'', we have to define
+%    a macro for the argument |\active@dq{}|.
+%    \begin{macrocode}
+\def@polish@dqmacro{\empty}{{}}{{}}
+\let@polish@dqmacro{\active@dq{}}{"}
+%    \end{macrocode}
+%
+%  \begin{macro}{\mdqon}
+%  \begin{macro}{\mdqoff}
+%    All that's left to do now is to  define a couple of commands
+%    for reasons of compatibility with \file{polish.tex}.
+%    \begin{macrocode}
+\def\mdqon{\catcode`\"\active}
+\def\mdqoff{\catcode`\"12 }
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%    Our last action is to activate the commands we have just defined,
+%    by calling the macro |\selectlanguage|.  Next the \babel{} macro
+%    |\selectlanguage| is used to activate the definitions for Polish.
+%
+%    \begin{macrocode}
+\selectlanguage{polish}
+%    \end{macrocode}
+%
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+%
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

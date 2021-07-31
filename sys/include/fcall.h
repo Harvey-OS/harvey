@@ -31,7 +31,7 @@ struct	Fcall
 			char	mode;		/* Tcreate, Topen */
 		};
 		struct {
-			vlong	offset;		/* Tread, Twrite */
+			long	offset;		/* Tread, Twrite */
 			long	count;		/* Tread, Twrite, Rread */
 			char	*data;		/* Twrite, Rread */
 		};
@@ -41,10 +41,9 @@ struct	Fcall
 	};
 } Fcall;
 
-#define	MAXFDATA	(8*1024)
-#define	MAXRPC		(MAXFDATA+MAXMSG)
+#define	MAXFDATA	8192
 #define	MAXMSG		160	/* max header sans data */
-#define	NOTAG		0xFFFF	/* Dummy tag */
+#define NOTAG		0xFFFF	/* Dummy tag */
 
 enum
 {
@@ -86,7 +85,6 @@ enum
 	Rsession,
 	Tattach =	86,
 	Rattach,
-	Tmax,
 };
 
 int	convM2S(char*, Fcall*, int);
@@ -95,12 +93,9 @@ int	convS2M(Fcall*, char*);
 int	convM2D(char*, Dir*);
 int	convD2M(Dir*, char*);
 
-int	fcallconv(va_list*, Fconv*);
-int	dirconv(va_list*, Fconv*);
-int	dirmodeconv(va_list*, Fconv*);
+int	fcallconv(void *, Fconv*);
+int	dirconv(void *, Fconv*);
+int	dirmodeconv(void *, Fconv*);
 
 char*	getS(int, char*, Fcall*, long*);
 
-#pragma	varargck	type	"F"	Fcall*
-#pragma	varargck	type	"M"	ulong
-#pragma	varargck	type	"D"	Dir*

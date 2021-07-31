@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-int
+long
 utflen(char *s)
 {
 	int c;

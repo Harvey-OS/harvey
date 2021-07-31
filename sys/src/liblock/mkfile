@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/liblock.a
+OFILES=\
+	${objtype}lock.$O\
+	${objtype}tas.$O\
+
+HFILES=/sys/include/lock.h taslock.c
+
+< /sys/src/cmd/mksyslib
+

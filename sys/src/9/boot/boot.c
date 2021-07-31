@@ -1,31 +1,35 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include <fcall.h>
 #include "../boot/boot.h"
 
+#define DEFSYS "bootes"
+typedef struct Net	Net;
+typedef struct Flavor	Flavor;
+
+int	printcol;
+
 char	cputype[NAMELEN];
+char	terminal[NAMELEN];
 char	sys[2*NAMELEN];
 char	username[NAMELEN];
-char 	reply[256];
-int	printcol;
-int	mflag;
-int	fflag;
-int	kflag;
+char	bootfile[3*NAMELEN];
+char	conffile[NAMELEN];
 
-char	*bargv[Nbarg];
-int	bargc;
+int mflag;
+int fflag;
+int kflag;
+int afd = -1;
 
 static void	swapproc(void);
-static void	recover(Method*);
 static Method	*rootserver(char*);
 
 static int
-rconv(va_list *arg, Fconv *fp)
+rconv(void *o, Fconv *fp)
 {
 	char s[ERRLEN];
 
-	USED(arg);
+	USED(o);
 
 	s[0] = 0;
 	errstr(s);
@@ -39,10 +43,9 @@ boot(int argc, char *argv[])
 	int fd;
 	Method *mp;
 	char cmd[64];
-	char rootbuf[64];
 	char flags[6];
 	int islocal, ishybrid;
-	char *rp;
+	char rootdir[3*NAMELEN];
 
 	sleep(1000);
 
@@ -51,15 +54,10 @@ boot(int argc, char *argv[])
 	open("#c/cons", OREAD);
 	open("#c/cons", OWRITE);
 	open("#c/cons", OWRITE);
-	bind("#c", "/dev", MAFTER);
-	bind("#e", "/env", MREPL|MCREATE);
-
-#ifdef DEBUG
-	print("argc=%d\n", argc);
+/*	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)
-		print("%lux %s ", argv[fd], argv[fd]);
-	print("\n");
-#endif DEBUG
+		print("%s ", argv[fd]);
+	print("\n");/**/
 
 	ARGBEGIN{
 	case 'u':
@@ -77,6 +75,8 @@ boot(int argc, char *argv[])
 	}ARGEND
 
 	readfile("#e/cputype", cputype, sizeof(cputype));
+	readfile("#e/terminal", terminal, sizeof(terminal));
+	getconffile(conffile, terminal);
 
 	/*
 	 *  pick a method and initialize it
@@ -84,21 +84,13 @@ boot(int argc, char *argv[])
 	mp = rootserver(argc ? *argv : 0);
 	(*mp->config)(mp);
 	islocal = strcmp(mp->name, "local") == 0;
-	ishybrid = strcmp(mp->name, "hybrid") == 0;
+	ishybrid = (mp->name[0] == 'h' || mp->name[0] == 'H') &&
+			strcmp(&mp->name[1], "ybrid") == 0;
 
 	/*
 	 *  get/set key or password
 	 */
 	(*pword)(islocal, mp);
-
-	switch(rfork(RFPROC|RFNAMEG|RFFDG)) {
-	case -1:
-		print("failed to start recover: %r\n");
-		break;
-	case 0:
-		recover(mp);
-		break;
-	}
 
 	/*
 	 *  connect to the root file system
@@ -106,7 +98,6 @@ boot(int argc, char *argv[])
 	fd = (*mp->connect)();
 	if(fd < 0)
 		fatal("can't connect to file server");
-	nop(fd);
 	if(!islocal && !ishybrid){
 		if(cfs)
 			fd = (*cfs)(fd);
@@ -115,38 +106,23 @@ boot(int argc, char *argv[])
 	srvcreate("boot", fd);
 
 	/*
-	 *  create the name space, mount the root fs
+	 *  create the name space
 	 */
 	if(bind("/", "/", MREPL) < 0)
-		fatal("bind /");
-	rp = getenv("rootspec");
-	if(rp == nil)
-		rp = "";
-	if(mount(fd, "/root", MREPL|MCREATE, rp) < 0)
-		fatal("mount /");
-	rp = getenv("rootdir");
-	if(rp == nil)
-		rp = rootdir;
-	if(bind(rp, "/", MAFTER|MCREATE) < 0){
-		if(strncmp(rp, "/root", 5) == 0){
-			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
-			fatal("second bind /");
-		}
-		snprint(rootbuf, sizeof rootbuf, "/root/%s", rp);
-		rp = rootbuf;
-		if(bind(rp, "/", MAFTER|MCREATE) < 0){
-			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
-			if(strcmp(rootbuf, "/root//plan9") == 0){
-				fprint(2, "**** warning: remove rootdir=/plan9 entry from plan9.ini\n");
-				rp = "/root";
-				if(bind(rp, "/", MAFTER|MCREATE) < 0)
-					fatal("second bind /");
-			}else
-				fatal("second bind /");
-		}
-	}
+		fatal("bind");
+	if(mount(fd, "/", MAFTER|MCREATE, "") < 0)
+		fatal("mount");
 	close(fd);
-	setenv("rootdir", rp);
+
+	/*
+	 *  hack to let us have the logical root in a
+	 *  subdirectory - useful when we're the 'second'
+	 *  OS along with some other like DOS.
+	 */
+	readfile("#e/rootdir", rootdir, sizeof(rootdir));
+	if(rootdir[0])
+		if(bind(rootdir, "/", MREPL|MCREATE) >= 0)
+			bind("#/", "/", MBEFORE);
 
 	/*
 	 *  if a local file server exists and it's not
@@ -167,7 +143,9 @@ boot(int argc, char *argv[])
 	}
 
 	settime(islocal);
+	close(afd);
 	swapproc();
+	remove("#e/password");
 
 	sprint(cmd, "/%s/init", cputype);
 	sprint(flags, "-%s%s", cpuflag ? "c" : "t", mflag ? "m" : "");
@@ -175,111 +153,52 @@ boot(int argc, char *argv[])
 	fatal(cmd);
 }
 
-Method*
-findmethod(char *a)
-{
-	Method *mp;
-	int i, j;
-	char *cp;
-
-	i = strlen(a);
-	cp = strchr(a, '!');
-	if(cp)
-		i = cp - a;
-	for(mp = method; mp->name; mp++){
-		j = strlen(mp->name);
-		if(j > i)
-			j = i;
-		if(strncmp(a, mp->name, j) == 0)
-			break;
-	}
-	if(mp->name)
-		return mp;
-	return 0;
-}
-
 /*
  *  ask user from whence cometh the root file system
  */
-static Method*
+Method*
 rootserver(char *arg)
 {
 	char prompt[256];
+	char reply[64];
 	Method *mp;
-	char *cp;
-	int n;
+	char *cp, *goodarg;
+	int n, j;
 
-	/* make list of methods */
+	goodarg = 0;
 	mp = method;
 	n = sprint(prompt, "root is from (%s", mp->name);
-	for(mp++; mp->name; mp++)
+	if(arg && strncmp(arg, mp->name, strlen(mp->name)) == 0)
+		goodarg = arg;
+	for(mp++; mp->name; mp++){
 		n += sprint(prompt+n, ", %s", mp->name);
+		if(arg && strncmp(arg, mp->name, strlen(mp->name)) == 0)
+			goodarg = arg;
+	}
 	sprint(prompt+n, ")");
 
-	/* create default reply */
-	readfile("#e/bootargs", reply, sizeof(reply));
-	if(reply[0] == 0 && arg != 0)
-		strcpy(reply, arg);
-	if(reply[0]){
-		mp = findmethod(reply);
-		if(mp == 0)
-			reply[0] = 0;
-	}
-	if(reply[0] == 0)
+	if(goodarg)
+		strcpy(reply, goodarg);
+	else {
 		strcpy(reply, method->name);
-
-	/* parse replies */
+	}
 	for(;;){
-		outin(prompt, reply, sizeof(reply));
-		mp = findmethod(reply);
-		if(mp){
-			bargc = getfields(reply, bargv, Nbarg-1, 1, " ");
-			cp = strchr(reply, '!');
-			if(cp)
-				strcpy(sys, cp+1);
-			return mp;
-		}
+		outin(cpuflag, prompt, reply, sizeof(reply));
+		cp = strchr(reply, '!');
+		if(cp)
+			j = cp - reply;
+		else
+			j = strlen(reply);
+		for(mp = method; mp->name; mp++)
+			if(strncmp(reply, mp->name, j) == 0){
+				if(cp)
+					strcpy(sys, cp+1);
+				return mp;
+			}
+		if(mp->name == 0)
+			continue;
 	}
-
 	return 0;		/* not reached */
-}
-
-int
-nop(int fd)
-{
-	int n;
-	Fcall hdr;
-	char buf[128];
-
-	print("boot: nop...");
-	hdr.type = Tnop;
-	hdr.tag = NOTAG;
-	n = convS2M(&hdr, buf);
-	if(write(fd, buf, n) != n){
-		fatal("write nop");
-		return 0;
-	}
-reread:
-	n = read(fd, buf, sizeof buf);
-	if(n <= 0){
-		fatal("read nop");
-		return 0;
-	}
-	if(n == 2)
-		goto reread;
-	if(convM2S(buf, &hdr, n) == 0) {
-		fatal("format nop");
-		return 0;
-	}
-	if(hdr.type != Rnop){
-		fatal("not Rnop");
-		return 0;
-	}
-	if(hdr.tag != NOTAG){
-		fatal("tag not NOTAG");
-		return 0;
-	}
-	return 1;
 }
 
 static void
@@ -294,82 +213,4 @@ swapproc(void)
 	}
 	if(write(fd, "start", 5) <= 0)
 		warning("starting swap kproc");
-	close(fd);
-}
-
-void
-reattach(int rec, Method *amp, char *buf)
-{
-	char *mp;
-	int fd, n, sv[2];
-	char tmp[64], *p;
-
-	mp = strchr(buf, ' ');
-	if(mp == 0)
-		goto fail;
-	*mp++ = '\0';
-
-	p = strrchr(buf, '/');
-	if(p == 0)
-		goto fail;
-
-	*p = '\0';
-
-	sprint(tmp, "%s/remote", buf);
-	fd = open(tmp, OREAD);
-	if(fd < 0)
-		goto fail;
-
-	n = read(fd, tmp, sizeof(tmp));
-	if(n < 0)
-		goto fail;
-
-	close(fd);
-	tmp[n-1] = '\0';
-
-	print("boot: Service %s!%s down, wait...\n", buf, tmp);
-
-	p = strrchr(buf, '/');
-	if(p == 0)
-		goto fail;
-	*p = '\0';
-
-	while(plumb(buf, tmp, sv, 0) < 0)
-		sleep(30);
-
-	nop(sv[1]);
-	doauthenticate(sv[1], amp);
-
-	print("\nboot: Service %s Ok\n", tmp);
-
-	n = sprint(tmp, "%d %s", sv[1], mp);
-	if(write(rec, tmp, n) < 0) {
-		errstr(tmp);
-		print("write recover: %s\n", tmp);
-	}
-	exits(0);
-fail:
-	print("recover fail: %s\n", buf);
-	exits(0);
-}
-
-static void
-recover(Method *mp)
-{
-	int fd, n;
-	char buf[256];
-
-	fd = open("#/./recover", ORDWR);
-	if(fd < 0)
-		exits(0);
-
-	for(;;) {
-		n = read(fd, buf, sizeof(buf));
-		if(n < 0)
-			exits(0);
-		buf[n] = '\0';
-
-		if(fork() == 0)
-			reattach(fd, mp, buf);
-	}
 }

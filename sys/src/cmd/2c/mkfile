@@ -11,6 +11,7 @@ OFILES=\
 	list.$O\
 	enam.$O\
 	mul.$O\
+	bits.$O\
 
 HFILES=\
 	gc.h\

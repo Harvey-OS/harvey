@@ -1,0 +1,17 @@
+# bootes' root
+mount -a #s/boot /
+mount -a #s/fornax /n/fornax
+
+# visible things go here
+bind /n/fornax/sys/doc /usr/none/plan9/doc
+bind /usr/ehg/netlib/pub /usr/none/netlib
+bind /usr/ehg/netlib/800 /usr/none/800
+bind /usr/ehg/netlib/800 /usr/none/dir800
+bind /usr/ehg/netlib/pub/att/cs/home /usr/none/csrc
+
+# need some commands, such as file
+bind /$cputype/bin /usr/none/bin
+bind -a /rc/bin /usr/none/bin
+
+# this cuts off everything not mounted below /usr/none
+bind /usr/none /

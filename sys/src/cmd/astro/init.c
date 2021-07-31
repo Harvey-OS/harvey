@@ -17,19 +17,18 @@ Obj2*	objlst[] =
 struct	idata
 {
 	char*	name;
-	char*	name1;
 	void	(*obj)(void);
 } idata[] =
 {
-	"The sun",	"sun",		fsun,
-	"The moon",	"moon",		moon,
-	"The shadow",	"shadow",	shad,
-	"Mercury",	"mercury",	merc,
-	"Venus",	"venus",	venus,
-	"Mars",		"mars",		mars,
-	"Jupiter",	"jupiter",	jup,
-	"Saturn",	"saturn",	sat,
-	"Comet",	"comet",	comet,
+	"The sun",	fsun,
+	"The moon",	moon,
+	"The shadow",	shad,
+	"Mercury",	merc,
+	"Venus",	venus,
+	"Mars",		mars,
+	"Jupiter",	jup,
+	"Saturn",	sat,
+	"Comet",	comet,
 };
 
 void
@@ -47,7 +46,6 @@ init(void)
 
 	for(i=0; q=objlst[i]; i++) {
 		q->name = idata[i].name;
-		q->name1 = idata[i].name1;
 		q->obj = idata[i].obj;
 	}
 	ostar.obj = fstar;

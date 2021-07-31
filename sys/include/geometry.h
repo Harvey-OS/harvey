@@ -86,4 +86,7 @@ void viewport(Space *, Rectangle, double);
 Point3 xformpoint(Point3, Space *, Space *);
 Point3 xformpointd(Point3, Space *, Space *);
 Point3 xformplane(Point3, Space *, Space *);
+#define	XAXIS	0
+#define	YAXIS	1
+#define	ZAXIS	2
 #define	radians(d)	((d)*.01745329251994329572)

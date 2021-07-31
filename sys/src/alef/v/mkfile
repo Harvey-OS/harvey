@@ -1,0 +1,48 @@
+</$objtype/mkfile
+
+TARG=val
+OFILES=	cinit.$O\
+	code.$O\
+	inst.$O\
+	output.$O\
+	reg.$O\
+	sugen.$O\
+	regopt.$O\
+	peep.$O\
+	main.$O\
+	lex.$O\
+	y.tab.$O\
+	misc.$O\
+	type.$O\
+	type2.$O\
+	type3.$O\
+	tree.$O\
+	decl.$O\
+	func.$O\
+	init.$O\
+	acid.$O\
+	mpatof.$O\
+	mul.$O\
+	pack.$O\
+
+YFILES=../port/parl.y
+
+HFILES=	machdep.h\
+	../port/tcom.h\
+	../port/globl.h\
+	../port/parl.h\
+	../port/y.tab.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+CFLAGS=-w -I../port
+
+../port/y.tab.h:	y.tab.h
+	mv $prereq $target
+
+%.$O:	../port/%.c
+	$CC $CFLAGS ../port/$stem.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG ../port/y.tab.? ../port/*.[$OS]

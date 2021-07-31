@@ -1,0 +1,258 @@
+.TH C++ 1 
+.SH NAME
+c++/2c, c++/kc, c++/vc, c++/8c, c++/2l, c++/kl, c++/vl, c++/8l \- C++ compilers and loaders
+.SH SYNOPSIS
+.PD 0
+.B c++/2c
+.RI [  options ]
+.I file
+\&...
+.PP
+.B c++/8c
+.RI [  options ]
+.I file
+\&...
+.PP
+.B c++/kc
+.RI [  options ]
+.I file
+\&...
+.PP
+.B c++/vc
+.RI [  options ]
+.I file
+\&...
+.PP
+.B c++/2l
+.RI [  options ]
+.I file
+\&...
+.PP
+.B c++/8l
+.RI [  options ]
+.I file
+\&...
+.PP
+.B c++/kl
+.RI [  options ]
+.I file
+\&...
+.PP
+.B c++/vl
+.RI [  options ]
+.I file
+\&...
+.PD
+.SH DESCRIPTION
+The c++
+compilers,
+.IR c++/?c,
+compile the named C++
+.I files
+into object files for the specified architecture
+(see
+.IR 2c (1)).
+They use
+.IR cpp (1)
+as the preprocessor,
+.I cfront
+3.0.1 as the C++ to C translator, and
+the appropriate C compiler such as
+.IR 2c .
+The c++ loaders,
+.IR C++/?l ,
+load object files using
+appropriate object loaders (see
+.IR 2l (1))
+and
+.BR patch ,
+the C++ static constructor initializer.
+.PP
+The compilers and loaders use C++ and APE (ANSI C/POSIX)
+include files and libraries.
+.PP
+Let the first letter of the base name of the compiler or loader be
+.IR O =
+.BR 2 ,
+.BR 8 ,
+.BR k ,
+or
+.BR v .
+.PP
+The compiler options are:
+.TP 1i
+.B -d
+Don't expand inline functions.
+.TP
+.BI -o " obj"
+Place output in file
+.I obj
+(allowed only if there is just one input file).
+Default is to take the last element of the input path name,
+strip any trailing
+.BR .c ,
+and append
+.RI . O .
+.TP
+.B -v
+Print the version number of the compiler
+and the commands as they are executed.
+A second
+.B -v
+causes the commands that would
+be executed to be printed without actually executing them.
+.TP
+.B -w
+Print warning messages.
+.TP
+.BI -x file
+Take cross compiling information from
+.IR file .
+By default, this information is taken from
+.BI /sys/lib/c++/ O .sz \f1.
+.TP
+.B -A
+Complain about functions used without a new-style
+ANSI function prototype.
+.TP
+.B -B
+Turn off the action of the
+.B -A
+flag.
+This option is on by default.
+.TP
+.BI -D name=def
+.br
+.ns
+.TP
+.BI -D name
+Define the
+.I name
+to the preprocessor,
+as if by
+.LR #define .
+If no definition is given, the name is defined as
+.LR 1 .
+.TP
+.B -E
+Print the preprocessed version of the file on standard output.
+.TP
+.B -F
+Print the preprocessed and
+.I cfronted
+version of the file on standard output.
+.TP
+.BI -I dir
+.L #include
+files whose names do not begin with 
+.L /
+are always
+sought first in the directory 
+of the
+.I file
+argument,
+then in directories named in 
+.B -I
+options,
+then in
+.BR /$objtype/include/c++ ,
+.BR /sys/include/c++ ,
+.BR /$objtype/include/ape ,
+and
+.BR /sys/include/ape .
+.TP
+.B -O
+Perform object code optimization.
+This option is on by default.
+.TP
+.B -N
+Turn off the action of the
+.B -O
+flag.
+.TP
+.B -S
+Print an assembly language version of the object code
+on standard output.
+.TP
+.BI -U name
+Remove any initial definition of
+.IR name .
+.TP
+.B -a
+Instead of compiling, print on standard output acid functions (see
+.IR acid (1))
+for examining structures declared in the source files.
+.PP
+The loader options are:
+.TP 1i
+.BI -o " out"
+Place output in file
+.IR out .
+Default is
+.IB O .out\f1.
+.SH EXAMPLE
+To produce a MIPS executable
+.B prog
+from C++ files
+.BR main.c ,
+.BR sub.c ,
+and using the task library:
+.IP
+.EX
+c++/vc main.c sub.c
+c++/vl -o prog main.v sub.v m.v -ltask
+.EE
+.SH FILES
+.TF /$objtype/lib/ape/libap.a
+.TP
+.B /sys/include/c++
+directory for machine-independent
+.B #include
+directives.
+.TP
+.B /sys/include/ape
+directory for machine-independent
+.B #include
+directives.
+.TP
+.B /$objtype/include/c++
+directory for machine-dependent
+.B #include
+directives.
+.TP
+.B /$objtype/include/ape
+directory for machine-dependent
+.B #include
+directives.
+.TP
+.B /$objtype/lib/c++
+C++ libraries.
+.TP
+.B /$objtype/lib/ape/libap.a
+ANSI C/POSIX library.
+.TP
+.BI /sys/lib/c++/ O .sz
+Cross-compilation information for
+.BR cfront .
+.TP
+.B /$cputype/bin/c++/cfront
+C++ to C translator.
+.TP
+.B /$cputype/bin/c++/patch
+C++ static constructor initializer.
+.SH SOURCE
+.B /sys/src/c++
+.SH "SEE ALSO"
+.IR 2c (1),
+.IR 2a (1),
+.IR 2l (1),
+.IR db (1),
+.IR acid (1),
+.IR cpp (1),
+.IR mk (1),
+.IR nm (1),
+.IR pcc (1)
+.SH BUGS
+The task library works only for the MIPS and the SPARC.
+The Interrupt class is not yet supported.
+The source to the translator is not included in the distribution.

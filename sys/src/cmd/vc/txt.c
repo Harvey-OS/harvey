@@ -20,7 +20,16 @@ ginit(void)
 	cases = C;
 	firstp = P;
 	lastp = P;
-	tfield = types[TLONG];
+	tfield = types[TFIELD];
+	if(TINT == TSHORT) {
+		tint = types[TSHORT];
+		tuint = types[TUSHORT];
+		types[TFUNC]->link = tint;
+	}
+	ewidth[TENUM] = ewidth[TINT];
+	types[TENUM]->width = ewidth[TENUM];
+	suround = SU_ALLIGN;
+	supad = SU_PAD;
 
 	zprog.link = P;
 	zprog.as = AGOK;
@@ -51,8 +60,8 @@ ginit(void)
 
 	nodsafe = new(ONAME, Z, Z);
 	nodsafe->sym = slookup(".safe");
-	nodsafe->type = types[TINT];
-	nodsafe->etype = types[TINT]->etype;
+	nodsafe->type = tint;
+	nodsafe->etype = tint->etype;
 	nodsafe->class = CAUTO;
 	complex(nodsafe);
 
@@ -79,12 +88,10 @@ ginit(void)
 
 	com64init();
 
-	for(i=0; i<nelem(reg); i++) {
-		reg[i] = 0;
-		if(i == REGZERO ||
-		  (i >= NREG && ((i-NREG)&1)))
-			reg[i] = 1;
-	}
+	memset(reg, 0, sizeof(reg));
+	for(i=NREG; i<NREG+NREG; i+=2)
+		reg[i+1] = 1;
+	reg[REGZERO] = 1;
 }
 
 void
@@ -125,7 +132,7 @@ void
 nextpc(void)
 {
 
-	p = alloc(sizeof(*p));
+	ALLOC(p, Prog);
 	*p = zprog;
 	p->lineno = nearln;
 	pc++;
@@ -257,7 +264,6 @@ regret(Node *n, Node *nn)
 	reg[r]++;
 }
 
-int
 tmpreg(void)
 {
 	int i;
@@ -280,8 +286,6 @@ regalloc(Node *n, Node *tn, Node *o)
 	case TUCHAR:
 	case TSHORT:
 	case TUSHORT:
-	case TINT:
-	case TUINT:
 	case TLONG:
 	case TULONG:
 	case TIND:
@@ -326,10 +330,10 @@ regalloc(Node *n, Node *tn, Node *o)
 	}
 	diag(tn, "unknown type in regalloc: %T", tn->type);
 err:
-	nodreg(n, tn, 0);
-	return;
+	i = 0;
 out:
-	reg[i]++;
+	if(i)
+		reg[i]++;
 	lasti++;
 	if(lasti >= 5)
 		lasti = 0;
@@ -368,8 +372,13 @@ err:
 void
 regsalloc(Node *n, Node *nn)
 {
-	cursafe = align(cursafe, nn->type, Aaut3);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	long o;
+
+	o = nn->type->width;
+	o += round(o, tint->width);
+	cursafe += o;
+	if(cursafe+curarg > maxargsafe)
+		maxargsafe = cursafe+curarg;
 	*n = *nodsafe;
 	n->xoffset = -(stkoff + cursafe);
 	n->type = nn->type;
@@ -380,25 +389,32 @@ regsalloc(Node *n, Node *nn)
 void
 regaalloc1(Node *n, Node *nn)
 {
-	nodreg(n, nn, REGARG);
-	reg[REGARG]++;
-	curarg = align(curarg, nn->type, Aarg1);
-	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	int r;
+
+	r = REGARG;
+	nodreg(n, nn, r);
+	reg[r]++;
+	curarg += 4;
+	if(cursafe+curarg > maxargsafe)
+		maxargsafe = cursafe+curarg;
 }
 
 void
 regaalloc(Node *n, Node *nn)
 {
-	curarg = align(curarg, nn->type, Aarg1);
+	long o;
+
 	*n = *nn;
 	n->op = OINDREG;
 	n->reg = REGSP;
-	n->xoffset = curarg + SZ_LONG;
+	n->xoffset = curarg + 4;
 	n->complex = 0;
 	n->addable = 20;
-	curarg = align(curarg, nn->type, Aarg2);
-	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+	o = nn->type->width;
+	o += round(o, tint->width);
+	curarg += o;
+	if(cursafe+curarg > maxargsafe)
+		maxargsafe = cursafe+curarg;
 }
 
 void
@@ -652,7 +668,7 @@ gmove(Node *f, Node *t)
 			a = AMOVHU;
 			break;
 		}
-		if(typechlp[ft] && typeilp[tt])
+		if(typechlp[ft] && typelp[tt])
 			regalloc(&nod, t, t);
 		else
 			regalloc(&nod, f, t);
@@ -683,6 +699,7 @@ gmove(Node *f, Node *t)
 		case TFLOAT:
 			a = AMOVF;
 			break;
+		case TVLONG:
 		case TDOUBLE:
 			a = AMOVD;
 			break;
@@ -721,8 +738,6 @@ gmove(Node *f, Node *t)
 			if(ft == TFLOAT)
 				a = AMOVF;
 			break;
-		case TINT:
-		case TUINT:
 		case TLONG:
 		case TULONG:
 		case TIND:
@@ -730,17 +745,6 @@ gmove(Node *f, Node *t)
 		case TUSHORT:
 		case TCHAR:
 		case TUCHAR:
-			if(fproundflg) {
-				/* convert f, t */
-				regalloc(&nod, f, Z);
-				gins(AMOVDW, f, &nod);
-				if(ft == TFLOAT)
-					p->as = AMOVFW;
-				gins(AMOVW, &nod, t);
-				regfree(&nod);
-				gins(AMOVW, t, t);
-				return;
-			}
 			regalloc(&nod1, &regnode, Z);
 			regalloc(&nod2, &regnode, Z);
 
@@ -810,17 +814,15 @@ gmove(Node *f, Node *t)
 			return;
 		}
 		break;
-	case TINT:
-	case TUINT:
-	case TLONG:
 	case TULONG:
+	case TLONG:
 	case TIND:
 		switch(tt) {
 		case TDOUBLE:
 		case TVLONG:
 			gins(AMOVW, f, t);
 			gins(AMOVWD, t, t);
-			if(ft == TULONG || ft == TUINT) {
+			if(ft == TULONG) {
 				regalloc(&nod, t, Z);
 				gins(ACMPGED, t, Z);
 				p->reg = FREGZERO;
@@ -835,7 +837,7 @@ gmove(Node *f, Node *t)
 		case TFLOAT:
 			gins(AMOVW, f, t);
 			gins(AMOVWF, t, t);
-			if(ft == TULONG || ft == TUINT) {
+			if(ft == TULONG) {
 				regalloc(&nod, t, Z);
 				gins(ACMPGEF, t, Z);
 				p->reg = FREGZERO;
@@ -847,8 +849,6 @@ gmove(Node *f, Node *t)
 				regfree(&nod);
 			}
 			return;
-		case TINT:
-		case TUINT:
 		case TLONG:
 		case TULONG:
 		case TIND:
@@ -877,10 +877,8 @@ gmove(Node *f, Node *t)
 			gins(AMOVWF, t, t);
 			regfree(&nod);
 			return;
-		case TINT:
-		case TUINT:
-		case TLONG:
 		case TULONG:
+		case TLONG:
 		case TIND:
 			a = AMOVH;
 			break;
@@ -909,8 +907,6 @@ gmove(Node *f, Node *t)
 			gins(AMOVWF, t, t);
 			regfree(&nod);
 			return;
-		case TINT:
-		case TUINT:
 		case TLONG:
 		case TULONG:
 		case TIND:
@@ -941,8 +937,6 @@ gmove(Node *f, Node *t)
 			gins(AMOVWF, t, t);
 			regfree(&nod);
 			return;
-		case TINT:
-		case TUINT:
 		case TLONG:
 		case TULONG:
 		case TIND:
@@ -973,8 +967,6 @@ gmove(Node *f, Node *t)
 			gins(AMOVWF, t, t);
 			regfree(&nod);
 			return;
-		case TINT:
-		case TUINT:
 		case TLONG:
 		case TULONG:
 		case TIND:
@@ -989,8 +981,6 @@ gmove(Node *f, Node *t)
 		}
 		break;
 	}
-	if(a == AGOK)
-		diag(Z, "bad opcode in gmove %T -> %T", f->type, t->type);
 	if(a == AMOVW || a == AMOVF || a == AMOVD)
 	if(samaddr(f, t))
 		return;
@@ -1078,14 +1068,6 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 
 	case OFUNC:
 		a = AJAL;
-		break;
-
-	case OCOND:
-		a = ASGTU;
-		break;
-
-	case OCOMMA:
-		a = ASGT;
 		break;
 
 	case OASMUL:
@@ -1278,7 +1260,6 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		print("%P\n", p);
 }
 
-int
 samaddr(Node *f, Node *t)
 {
 
@@ -1385,50 +1366,37 @@ exreg(Type *t)
 	return 0;
 }
 
-schar	ewidth[NTYPE] =
+schar	ewidth[XTYPE] =
 {
-	-1,		/* [TXXX] */
-	SZ_CHAR,	/* [TCHAR] */
-	SZ_CHAR,	/* [TUCHAR] */
-	SZ_SHORT,	/* [TSHORT] */
-	SZ_SHORT,	/* [TUSHORT] */
-	SZ_INT,		/* [TINT] */
-	SZ_INT,		/* [TUINT] */
-	SZ_LONG,	/* [TLONG] */
-	SZ_LONG,	/* [TULONG] */
-	SZ_VLONG,	/* [TVLONG] */
-	SZ_VLONG,	/* [TUVLONG] */
-	SZ_FLOAT,	/* [TFLOAT] */
-	SZ_DOUBLE,	/* [TDOUBLE] */
-	SZ_IND,		/* [TIND] */
-	0,		/* [TFUNC] */
-	-1,		/* [TARRAY] */
-	0,		/* [TVOID] */
-	-1,		/* [TSTRUCT] */
-	-1,		/* [TUNION] */
-	SZ_INT,		/* [TENUM] */
+	-1,				/* TXXX */
+	SZ_CHAR,	SZ_CHAR,	/* TCHAR	TUCHAR */
+	SZ_SHORT,	SZ_SHORT,	/* TSHORT	TUSHORT */
+	SZ_LONG,	SZ_LONG,	/* TLONG	TULONG */
+	SZ_VLONG,	SZ_VLONG,	/* TVLONG	TUVLONG */
+	SZ_FLOAT,	SZ_DOUBLE,	/* TFLOAT	TDOUBLE */
+	SZ_IND,		0,		/* TIND		TFUNC */
+	-1,		0,		/* TARRAY	TVOID */
+	-1,		-1,		/* TSTRUCT	TUNION */
+	-1				/* TENUM */
 };
-
-long	ncast[NTYPE] =
+long	ncast[XTYPE] =
 {
-	0,				/* [TXXX] */
-	BCHAR|BUCHAR,			/* [TCHAR] */
-	BCHAR|BUCHAR,			/* [TUCHAR] */
-	BSHORT|BUSHORT,			/* [TSHORT] */
-	BSHORT|BUSHORT,			/* [TUSHORT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TINT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TUINT] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TLONG] */
-	BINT|BUINT|BLONG|BULONG|BIND,	/* [TULONG] */
-	BVLONG|BUVLONG,			/* [TVLONG] */
-	BVLONG|BUVLONG,			/* [TUVLONG] */
-	BFLOAT,				/* [TFLOAT] */
-	BDOUBLE,			/* [TDOUBLE] */
-	BLONG|BULONG|BIND,		/* [TIND] */
-	0,				/* [TFUNC] */
-	0,				/* [TARRAY] */
-	0,				/* [TVOID] */
-	BSTRUCT,			/* [TSTRUCT] */
-	BUNION,				/* [TUNION] */
-	0,				/* [TENUM] */
+	/* TXXX */	0,
+	/* TCHAR */	BCHAR|BUCHAR,
+	/* TUCHAR */	BCHAR|BUCHAR,
+	/* TSHORT */	BSHORT|BUSHORT,
+	/* TUSHORT */	BSHORT|BUSHORT,
+	/* TLONG */	BLONG|BULONG|BIND,
+	/* TULONG */	BLONG|BULONG|BIND,
+	/* TVLONG */	BVLONG|BUVLONG,
+	/* TUVLONG */	BVLONG|BUVLONG,
+	/* TFLOAT */	BFLOAT,
+	/* TDOUBLE */	BDOUBLE,
+	/* TIND */	BLONG|BULONG|BIND,
+	/* TFUNC */	0,
+	/* TARRAY */	0,
+	/* TVOID */	0,
+	/* TSTRUCT */	BSTRUCT,
+	/* TUNION */	BUNION,
+	/* TENUM */	0,
 };

@@ -1,0 +1,7 @@
+#!/bin/rc
+
+echo updating files
+9fs dk!bootes
+disk/kfscmd allow
+cputype=68020 disk/mkfs -s /n/bootes /lib/proto/smallproto
+disk/ksync

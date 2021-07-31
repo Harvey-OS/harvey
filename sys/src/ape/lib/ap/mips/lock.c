@@ -21,17 +21,15 @@ extern	int C_3ktas(int*);
 extern	int C_4ktas(int*);
 extern	int C_fcr0(void);
 
-static void
-lockinit(void)
+void
+lockinit()
 {
 	int n;
 
-	if(arch != 0)
-		return;	/* allow multiple calls */
 	arch = C_fcr0();
 	switch(arch) {
 	case POWER:
-		n = _SEGATTACH(0,  "lock", (void*)Lockaddr, Pagesize);
+		n = _SEGATTACH(0, "lock", (void*)Lockaddr, Pagesize);
 		if(n < 0) {
 			arch = MAGNUM;
 			break;
@@ -54,11 +52,7 @@ lock(Lock *lk)
 	int *hwsem;
 	int hash;
 
-retry:
 	switch(arch) {
-	case 0:
-		lockinit();
-		goto retry;
 	case MAGNUM:
 	case MAGNUMII:
 		while(C_3ktas(&lk->val))
@@ -99,11 +93,7 @@ canlock(Lock *lk)
 	int *hwsem;
 	int hash;
 
-retry:
 	switch(arch) {
-	case 0:
-		lockinit();
-		goto retry;
 	case MAGNUM:
 	case MAGNUMII:
 		if(C_3ktas(&lk->val))
@@ -135,38 +125,4 @@ void
 unlock(Lock *lk)
 {
 	lk->val = 0;
-}
-
-int
-_tas(int *p)
-{
-	int *hwsem;
-	int hash;
-
-retry:
-	switch(arch) {
-	case 0:
-		lockinit();
-		goto retry;
-	case MAGNUM:
-	case MAGNUMII:
-		return C_3ktas(p);
-	case R4K:
-		return C_4ktas(p);
-	case POWER:
-		/* Use low order lock bits to generate hash */
-		hash = ((int)p/sizeof(int)) & (Semperpg-1);
-		hwsem = (int*)Lockaddr+hash;
-
-		if((*hwsem & 1) == 0) {
-			if(*p)
-				*hwsem = 0;
-			else {
-				*p = 1;
-				*hwsem = 0;
-				return 0;
-			}
-		}
-		return 1;
-	}	
 }

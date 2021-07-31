@@ -1,0 +1,45 @@
+file: fs:3
+white: Fischer
+black: Spassky
+event: Sveti Stefan (3) 1992
+opening: C95/17 15 ♗g5
+result: +-+
+ 1. e4		e5
+ 2. Nf3		Nc6
+ 3. Bb5		a6
+ 4. Ba4		Nf6
+ 5. O-O		Be7
+ 6. Re1		b5
+ 7. Bb3		d6
+ 8. c3		O-O
+ 9. h3		Nb8
+10. d4		Nbd7
+11. Nbd2	Bb7
+12. Bc2		Re8
+13. Nf1		Bf8
+14. Ng3		g6
+15. Bg5		h6
+16. Bd2		e:d4
+17. c:d4	c5
+18. Bf4		c:d4
+19. N:d4	Ne5
+20. b3		d5
+21. Qd2		d:e4
+22. N:e4	Nd5
+23. Bg3		Rc8
+24. Re2		f5
+25. B:e5	R:e5
+26. Ng3		R:e2
+27. Ng:e2	Nb4
+28. Rd1		N:c2
+29. N:c2	Q:d2
+30. R:d2	Rc7
+31. Ne3		Kf7
+32. h4		Bc8
+33. Nf4		g5
+34. h:g5	h:g5
+35. Nd3		Bg7
+36. Nd5		Rc6
+37. N5b4	Rc7
+38. Nd5		Rc6
+39. N5b4	Rc7

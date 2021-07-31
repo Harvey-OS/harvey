@@ -1,0 +1,83 @@
+.TH SYSMON 8
+.SH NAME
+sysmon, stats \- display graphs of system activity
+.SH SYNOPSIS
+.B sysmon
+[
+.I machine
+[
+.BI - option
+] ]
+.PP
+.B stats
+[
+.BI - option
+]
+.SH DESCRIPTION
+.I Sysmon
+displays a rolling graph of various statistics collected by the operating
+system.
+The statistics may be from a remote
+.IR machine .
+A sample value is taken
+once per second. The number in the top left corner of the graph
+gives the peak value for the duration of the graph.
+Lines across the
+graph represent 75%, 50%, and 25% of the peak value.
+Clicking a mouse button anywhere
+in the window cycles through the list of parameters to monitor; an
+.I option
+letter sets the initial choice.
+The option letters and parameters are:
+.TF [t]tlbpurge
+.TP
+.RB [ m ] " mem 
+total pages of active memory.
+The memory is displayed as a fraction
+of the machine's total memory.
+.TP
+.B 
+.RB [ e ] " ether
+number of packets sent and received per second.
+.TP
+.RB [ w ] " swap
+number of valid pages on the swap device.
+The swap is displayed as a
+fraction of the number of swap pages configured by the machine.
+.TP
+.RB [ c ] " contxt
+number of process context switches per second.
+.TP
+.RB [ i ] " intr
+number of interrupts per second.
+.TP
+.RB [ f ] " fault
+number of memory faults per second.
+.TP
+.RB [ t ] " tlbmiss
+number of translation look-aside buffer misses per second.
+.TP
+.RB [ p ] " tlbpurge
+number of translation lookaside buffer flushes per second.
+.TP
+.RB [ l ] " load
+system load average.
+The load is computed as a running average of
+the number of processes ready to run multiplied by 1000 to give
+some precision.
+.PP
+The
+.I stats
+program is invoked by
+.I sysmon
+to display the graph.
+.SH FILES
+.B /net/*/[0-n]/stats
+.br
+.B #c/sysstat
+.SH SOURCE
+.B /rc/bin/sysmon
+.br
+.B /sys/src/cmd/stats.c
+.SH BUGS
+Some machines do not have TLB hardware.

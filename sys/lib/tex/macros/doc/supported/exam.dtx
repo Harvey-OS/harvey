@@ -1,0 +1,1825 @@
+% \iffalse
+% ^^A Version and date information needed in doc- and cls-files:
+\def\fileversion{3.13}
+\def\filedate{1994/11/10}
+%
+%% File: exam.dtx Copyright (C) 1993-1994 Hans van der Meer
+%
+%<*driver>
+\documentclass{ltxdoc}
+\IfFileExists{exam.cls}{\def\noexamples{}}%
+    {\ClassWarningNoLine{ltxdoc}{Install exam.cls first}%
+    \def\noexamples{\fbox{\huge Install exam.cls first}\end{document}}}
+    \makeatletter
+    \let\old@maketitle=\maketitle
+    \let\LoadClass=\@gobble
+    \input{exam.cls}%
+    \let\maketitle=\old@maketitle
+    \makeatother
+%
+%  ^^A  We do want an index
+%
+\CodelineNumbered
+%\EnableCrossrefs ^^A comment out if index is ready
+\DisableCrossrefs
+%
+%  ^^A  We also want the full details.
+%
+\RecordChanges        ^^A Gather update information
+%\OnlyDescription\nofiles     ^^A Comment out for implementation details
+%
+\begin{document}
+\title{The \textsf{exam} package\thanks{This file
+        has version number \fileversion, last
+        revised \filedate.}}
+\author{Hans van der Meer\\hansm@fwi.uva.nl}
+\date{\filedate}
+\maketitle
+%
+% \begin{abstract}
+%   This article describes the use and the implementation of the 
+%   \emph{exam class}.
+%   Its purpose is the typesetting of exams.
+%   Exam questions can be multiple choice or free long\slash short
+%   answer questions.
+%   Options are the typesetting of the exam itself, an exam
+%   showing all the answers and a collection of questions and answers.
+%   Questions can be parametrized.
+%   Use of a random generator provides for automatic shuffling
+%   of multiple choice items.
+% \end{abstract}
+%
+\noexamples
+\DocInput{exam.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \changes{3.00}{1994/02/13}{First version for LaTeX2E and docstrip}
+% \changes{3.01}{1994/03/24}{added mbox{} to Copyright (missing item error)}
+% \changes{3.10}{1994/10/19}{updated several features}
+% \changes{3.11}{1994/10/21}{added dumpitemno and ignorespace in SRset}
+% \changes{3.12}{1994/10/25}{changed pagenumbering index}
+% \changes{3.13}{1994/11/10}{help shows class options}
+%
+% \CheckSum{980}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+%  ^^A  We don't want everything to appear in the index
+%
+% \DoNotIndex{\',\.,\@M,\@@input,\@addtoreset,\@arabic,\@badmath}
+% \DoNotIndex{\@centercr,\@cite}
+% \DoNotIndex{\@dotsep,\@empty,\@float,\@gobble,\@gobbletwo,\@ignoretrue}
+% \DoNotIndex{\@input,\@ixpt,\@m}
+% \DoNotIndex{\@minus,\@mkboth,\@ne,\@nil,\@nomath,\@plus,\@set@topoint}
+% \DoNotIndex{\@tempboxa,\@tempcnta,\@tempdima,\@tempdimb}
+% \DoNotIndex{\@tempswafalse,\@tempswatrue,\@viipt,\@viiipt,\@vipt}
+% \DoNotIndex{\@vpt,\@warning,\@xiipt,\@xipt,\@xivpt,\@xpt,\@xviipt}
+% \DoNotIndex{\@xxpt,\@xxvpt,\\,\ ,\addpenalty,\addtolength,\addvspace}
+% \DoNotIndex{\advance,\Alph,\alph}
+% \DoNotIndex{\arabic,\ast,\begin,\begingroup,\bfseries,\bgroup,\box}
+% \DoNotIndex{\bullet}
+% \DoNotIndex{\cdot,\cite,\CodelineIndex,\cr,\day,\DeclareOption}
+% \DoNotIndex{\def,\DisableCrossrefs,\divide,\DocInput,\documentclass}
+% \DoNotIndex{\DoNotIndex,\egroup,\else,\em,\endtrivlist}
+% \DoNotIndex{\EnableCrossrefs,\end,\end@dblfloat,\end@float,\endgroup}
+% \DoNotIndex{\endlist,\everycr,\everypar,\ExecuteOptions,\expandafter}
+% \DoNotIndex{\fbox,\fi}
+% \DoNotIndex{\filedate,\filename,\fileversion,\fontsize,\framebox,\gdef}
+% \DoNotIndex{\global,\halign,\hangindent,\hbox,\hfil,\hfill,\hrule}
+% \DoNotIndex{\hsize,\hskip\hspace,\hss,\if@tempswa,\ifcase,\ifdim}
+% \DoNotIndex{\ifhmode,\ifvmode,\ifnum,\iftrue,\ifx,\input}
+% \DoNotIndex{\jobname,\kern,\leavevmode,\let,\leftmark}
+% \DoNotIndex{\list,\llap,\long,\m@ne,\m@th,\mark,\markboth,\markright}
+% \DoNotIndex{\month,\newcommand,\newcounter,\newenvironment,\newif}
+% \DoNotIndex{\NeedsTeXFormat,\newdimen}
+% \DoNotIndex{\newlength,\newpage,\nobreak,\noindent,\null,\number}
+% \DoNotIndex{\numberline,\OldMakeindex,\OnlyDescription,\or,\p@}
+% \DoNotIndex{\pagestyle,\par,\paragraph,\paragraphmark,\parfillskip}
+% \DoNotIndex{\penalty,\PrintChanges,\PrintIndex,\ProcessOptions}
+% \DoNotIndex{\protect,\ProvidesClass,\raggedbottom,\raggedright}
+% \DoNotIndex{\refstepcounter,\relax,\renewcommand,\reset@font}
+% \DoNotIndex{\rightmargin,\rightmark,\rightskip,\rlap,\rmfamily,\roman}
+% \DoNotIndex{\roman,\secdef,\selectfont,\setbox,\setcounter,\setlength}
+% \DoNotIndex{\settowidth,\sfcode,\skip,\sloppy,\slshape,\space}
+% \DoNotIndex{\symbol,\the,\trivlist,\typeout,\tw@,\undefined,\uppercase}
+% \DoNotIndex{\usecounter,\usefont,\usepackage,\vfil,\vfill,\viiipt}
+% \DoNotIndex{\viipt,\vipt,\vskip,\vspace}
+% \DoNotIndex{\wd,\xiipt,\year,\z@}
+%
+%  ^^A  Start up the body of the document
+%
+% \tableofcontents
+%
+% \section{Usage}
+%
+% \subsection{Exam production}
+%
+% An exam can be built from the following template.
+% For special issues as the use of default names for
+% various directories, language selection, etc. see
+% the implementation section.
+% You may customize the typesetting by providing
+% a file \emph{exam.cfg} in the search path; this file
+% is read just before typesetting begins.
+%
+% \begin{verbatim}
+% \documentclass[options]{exam}
+%
+% \title{title of exam}
+% \author{the examinator}
+% \target{the students}
+%
+% \begin{exam}[startvalue random generator]{date of exam}
+% \question{directory}{file}
+% \question[parameter value]{directory}{file} % parametrized
+% ....
+% \end{exam}
+%
+% ... % possibly other exams
+% \end{document}
+% \end{verbatim}
+%
+% \subsection{Format of a problem}
+%
+% A problem is built by environment |problem|.
+% In it several elements can be placed. These are:
+% \begin{enumerate}
+% \item |\parameterproblem{text}|: used to communicate to the
+% maintainer of the problems the possibilities offered
+% by the transfer of macro |\parameter| on posing
+% the question; an example of this will follow.
+% \item |\problemdate|: a macro to remember on which
+% day the problem was born;
+% \item |\begin{problem}[#1]|; the optional parameter
+% can have the value |\compact| (no pagebreak within problem, default)
+% or the value |\split| (pagebreak may occur in problem).
+% N.b. the previous two items can be placed before or within
+% the environment.
+% \item |\score|: use this macro for the number of
+% points the answer is worth; it is possible to include
+% several score items in one problem, they get totalled
+% at the end. Its value is not shown when an exam is typeset,
+% the student must earn these points!
+% \item text of the question.
+% \item the answer or multiple choice list;
+% see the description below.
+% \item |\remark[#1]{#2}|: a boxed remark with heading \#1 and body \#2.
+% \item |\end{problem}|.
+% \end{enumerate}
+%
+% \medskip 
+% \begin{center}\small
+% \fbox{problem --- coding ---}
+% \par\smallskip
+% \begin{verbatim}
+% \problemdate{\today}
+% \begin{problem}
+% What is the question?
+% \score{2}
+% \shortanswer{To be or not to be.}
+% \end{problem}
+% \end{verbatim}
+%
+% \medskip
+% \fbox{problem --- result --- 
+% left without \emph{answers}, right with \emph{answers, series}}
+% \par\smallskip
+% \parbox[t]{.33\linewidth}{\answersfalse
+% \problemdate{\today}
+% \begin{problem}
+% What is the question?
+% \score{2}
+% \shortanswer{To be or not to be.}
+% \end{problem}
+% }\hspace{2cm}\parbox[t]{.33\linewidth}{\answerstrue\seriestrue
+% \problemdate{\today}
+% \begin{problem}
+% What is the question?
+% \score{2}
+% \shortanswer{To be or not to be.}
+% \end{problem}
+% }
+% \end{center}
+%
+% The next example shows the use of a parameter for the selection
+% of alternate questions.
+%
+% \medskip 
+% \begin{center}\small
+% \fbox{parameterproblem --- coding ---}
+% \par\smallskip
+% \begin{verbatim}
+% \problemdate{\today}
+% \parameterproblem{1= to be\\2= not to be}
+% \begin{problem}
+% \score{2}
+% \def\parameter{2} % normally comes from \question[2]...
+% What is\ifnum\parameter=1\relax\else n't\fi\ the question?
+% \shortanswer{\ifnum\parameter=1\relax To be or n\else N\fi ot to be.}
+% \end{problem}
+% \end{verbatim}
+%
+% \medskip
+% \fbox{parameterproblem --- result --- 
+% left parameter = 1, right parameter = 2}
+% \par\smallskip
+% \parbox[t]{.45\linewidth}{\answerstrue\answerstrue\seriestrue
+% \problemdate{\today}
+% \parameterproblem{1= to be\\2= not to be}
+% \begin{problem}
+% \score{2}
+% \def\parameter{1}
+% What is\ifnum\parameter=1\relax\else n't\fi\ the question?
+% \unskip\shortanswer{\ifnum\parameter=1\relax To be or n\else N\fi ot to be.}
+% \end{problem}
+% }\hspace{10mm}\parbox[t]{.45\linewidth}{\answerstrue\seriestrue
+% \problemdate{\today}
+% \parameterproblem{1= to be\\2= not to be}
+% \begin{problem}
+% \score{2}
+% \def\parameter{2}
+% What is\ifnum\parameter=1\relax\else n't\fi\ the question?
+% \unskip\shortanswer{\ifnum\parameter=1\relax To be or n\else N\fi ot to be.}
+% \end{problem}
+% }
+% \end{center}
+%
+% Another method for the selection of alternatives is via the
+% mechanism implemented in macros |\loaditem|, |dumpitemno|
+% and friends (See sections~\ref{ref:dump1} and \ref{ref:dump2}.
+% Pieces text can be loaded (in this implementation at most 5) and
+% selectively dumped into the typeset stream.
+%
+%
+% \medskip 
+% \begin{center}\small
+% \fbox{load and dump --- coding ---}
+% \par\smallskip
+% \begin{verbatim}
+% \SRset{349}              % startup random generator
+% \resetloadcounter        % initialize load stack
+% \loaditem{\fbox{item 1}\space} % load 4 items of text
+% \loaditem{\fbox{item 2}\space}
+% \loaditem{\fbox{item 3}\space}
+% \loaditem{\fbox{item 4}\space}
+% Here comes nr~2: \dumpitemno{2}\par
+% \shuffle                 % randomize
+% Here comes nr~2 again after randomization: \dumpitemno{2}\par
+% Dump the whole lot: \dumpitems
+% \end{verbatim}
+%
+% \medskip
+% \fbox{load and dump --- result ---}
+% \par\smallskip
+% \parbox[t]{.8\linewidth}{%
+% \SRset{349}
+% \resetloadcounter
+% \loaditem{\fbox{item 1}\space}
+% \loaditem{\fbox{item 2}\space}
+% \loaditem{\fbox{item 3}\space}
+% \loaditem{\fbox{item 4}\space}
+% Here comes nr~2: \dumpitemno{2}\par
+% \shuffle
+% Nr~2 again after randomization: \dumpitemno{2}\par
+% Dump the whole lot: \dumpitems
+% }
+% \end{center}
+%
+%
+% \subsection{Answers}
+% The basic macros for showing and suppressing answers are
+% |\answer| that shows its argument when the \emph{answers}
+% option is chosen, and |\altanswer| that alternates its
+% two arguments. Both macros have a first, optional argument
+% for specifying the width of the box wherein the text
+% is placed.
+%
+% \medskip 
+% \begin{center}\small
+% \fbox{answer/altanswer --- coding ---}
+% \par\smallskip
+% \begin{verbatim}
+% \answer[.3\linewidth]{answer}\\
+% \altanswer[.3\linewidth]{answers NO}{answers YES}
+% \end{verbatim}
+%
+% \medskip
+% \fbox{answer/altanswer --- result --- 
+% left without \emph{answers}, right with \emph{answers}}
+% \par\smallskip
+% \parbox[t]{.4\linewidth}{\answersfalse
+% \answer[.3\linewidth]{answer}\\
+% \altanswer[.3\linewidth]{answers NO}{answers YES}
+% }\qquad\parbox[t]{.4\linewidth}{\answerstrue
+% \answer[.3\linewidth]{answer}\\
+% \altanswer[.3\linewidth]{answers NO}{answers YES}
+% }
+% \end{center}
+%
+% \subsubsection{Free Answers}
+%
+% Some questions can be answered by a few words, a short sentence.
+% The command |\shortanswer| serves this purpose;
+% its first argument is optional and used for the width of
+% the answerbox, its second argument is the answer itself.
+%
+% \medskip 
+% \begin{center}\small
+% \fbox{short answer --- coding ---}
+% \par\smallskip
+% \begin{verbatim}
+% Answer the next question:
+% \shortanswer[.35\linewidth]{The answer.}
+% \end{verbatim}
+%
+% \medskip
+% \fbox{short answer --- result --- 
+% left without \emph{answers}, right with \emph{answers}}
+% \par\smallskip
+% \parbox[t]{.4\linewidth}{\answersfalse
+% Answer the next question:
+% \shortanswer[.35\linewidth]{The answer.}}
+% \qquad\parbox[t]{.4\linewidth}{\answerstrue
+% Answer the next question:
+% \shortanswer[.35\linewidth]{The answer.}}
+% \end{center}
+%
+% When however more space is needed by the student, the
+% environment |longanswer| can be used. 
+% This environment has one optional parameter, meant
+% for specifying the amount of white space to be reserved
+% for the students answer. 
+%
+% \medskip 
+% \begin{center}\small
+% \fbox{long answer --- coding ---}
+% \par\smallskip
+% \begin{verbatim}
+% Answer the next question:
+% \begin{longanswer}[5mm]
+% The answer.
+% \end{longanswer}
+% \end{verbatim}
+%
+% \medskip
+% \fbox{long answer --- result --- 
+% left without \emph{answers}, right with \emph{answers}}
+% \par\smallskip
+% \parbox[t]{.4\linewidth}{\answersfalse
+% Answer the next question:
+% \begin{longanswer}[5mm]
+% The answer.
+% \end{longanswer}}
+% \qquad\parbox[t]{.4\linewidth}{\answerstrue
+% Answer the next question:
+% \begin{longanswer}[5mm]
+% The answer.
+% \end{longanswer}}
+% \end{center}
+%
+% \subsubsection{Customization of answer production}
+%
+% The answer is headed by a call to |\answerstart|; redefine
+% to your taste.
+%
+% The default of white space reserved for the depth of the short answer
+% can be changed by redefinition of |\shortwhite|.
+% The default for the white space of the long answer
+% can be changed by redefinition of |\longwhite|.
+%
+% \subsection{Multiple Choice}
+%
+% Multiple choice is provided for by environment |choice|.
+% Within this environment a itemized list of alternatives is given.
+% However instead of |\item| one code |\baditem| for wrong answers
+% and |\gooditem| for the correct one; the answer being put
+% into the argument of these two macros.
+% The optional parameter of this environment can be |\ordered| for
+% production of the alternatives in the order specified, or
+% |\random| for randomization; randomize is the default, unless
+% the \emph{series} option is specified in the |\documentclass| call.
+%
+% \medskip 
+% \begin{center}\small
+% \fbox{multiple choice example --- coding ---}
+% \par\smallskip
+% \begin{verbatim}
+% Choose the most appropriate alternative:
+% \begin{choice}[\ordered]
+% \baditem{first wrong answer}
+% \gooditem{the right answer}
+% \baditem{second wrong answer}
+% \end{choice}
+% \end{verbatim}
+%
+% \medskip
+% \fbox{multiple choice --- result --- 
+% left without \emph{answers}, right with \emph{answers}}
+% \par\smallskip
+% \parbox[t]{.4\linewidth}{\answersfalse
+% Choose appropriate alternative:
+% \begin{choice}[\ordered]
+% \baditem{first wrong answer}
+% \gooditem{the right answer}
+% \baditem{second wrong answer}
+% \end{choice}}
+% \qquad\parbox[t]{.4\linewidth}{\answerstrue
+% Choose appropriate alternative:
+% \begin{choice}[\ordered]
+% \baditem{first wrong answer}
+% \gooditem{the right answer}
+% \baditem{second wrong answer}
+% \end{choice}}
+% \end{center}
+%
+% \subsubsection{Customization of answer production}
+%
+% The marks for the multiple choice items are produced
+% by the macros |\badmark| and |\goodmark|. For their
+% redefinition see the implementation section of this
+% document.
+%
+% \subsection{Use of randomization}
+%
+% Macro |\loaditem| can be used to load from one to five
+% items in a data store. This data store can be shuffled
+% by a call to |\shuffle|. Popping items from the store
+% is effected by macros |\dumpitem| (pop one item) and
+% |\dumpitems| (all items). Clearing of the store
+% is done by |\resetloadcounter|.
+% With \SRtest one can make a random choice between two
+% alternatives.
+%
+% For the use of these macros the interested user is advised
+% to take a look at the implementation of environment |choice|.
+%
+% \StopEventually
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% \section{Identification}
+%
+%    This document class can only be used with \LaTeXe, so we make
+%    sure that an appropriate message is displayed when another \TeX{}
+%    format is used.
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}[1993/12/01]
+%    \end{macrocode}
+%
+%    Announce the Class name and its version.
+%    \begin{macrocode}
+\ProvidesClass{exam}[\filedate\space vs\fileversion\space Exam package]
+%    \end{macrocode}
+%
+% \DescribeMacro{\examerror}
+% \DescribeMacro{\examwarning}
+% Define |\examerror| and |\examwarning| to issue a proper 
+% |\ClassError| or |\ClassWarning| in case of errors.
+% Note that the error macro provides for a help text in its 
+% second argument.
+% \begin{macro}{\examerror}
+% \begin{macro}{\examwarning}
+%    \begin{macrocode}
+\newcommand\examerror[2]{\ClassError{exam}{!!!! #1}{#2}}
+\newcommand\examwarning[1]{\ClassWarning{exam}{!!!! #1}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%
+% \section{Declaration of Class Options}
+%
+%    In this part we define the options for this class that are additional
+%    to those of its parent class.
+% We show them to the user when the help option is chosen.
+%
+%    \begin{macrocode}
+\DeclareOption{help}{%
+    \ClassWarningNoLine{exam}{available options are:\MessageBreak
+    answers:\space show questions with answers;\MessageBreak
+    series:\space\space typeset a catalogue of problems}}
+%    \end{macrocode}
+%
+% \subsection{Switching answers on and off}
+%
+% The flag |\ifanswers| governs the production of answers in the
+% typesetting of problems. With the |answers| options in the
+% optional argument of the document class this option is turned on.
+%
+% \begin{macro}{\ifanswers}
+%    \begin{macrocode}
+\newif\ifanswers
+\DeclareOption{answers}{\answerstrue}
+\AtBeginDocument{\ifanswers\ClassWarningNoLine{exam}{Repeat typesetting for %
+    good table of contents}\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Typeset a Catalogue of Problems}
+%
+% The flag |\ifseries| initiates the production of a problem catalogue.
+% In order to show the answers too, the |\ifanswer| flag is set.
+%
+% \begin{macro}{\ifseries}
+%    \begin{macrocode}
+\newif\ifseries
+\DeclareOption{series}{\seriestrue\answerstrue}
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{Loading of Parent Class}
+%
+% \DescribeMacro{\parentclass}
+% Since the \emph{exam class} is implemented as a modification
+% of an existing document class, we must load the parent class.
+% In order to make changes in parent class easy, the
+% name of this class is parametrized in macro |\parentclass|.
+% Obvious candidates are \emph{article} and \emph{report}.
+% In order to provide some flexibility, we allow for the case
+% that the user has already defined |\parentclass| (before
+% the call to |\documentclass|. In that case we refrain
+% from redefinition.
+%
+% \begin{macro}{\parentclass}
+%    \begin{macrocode}
+\providecommand\parentclass{article}
+%    \end{macrocode}
+% \end{macro}
+%
+% The options of the |\documentclass| call which are not specific for the
+% \emph{exam class} must be passed to the parent class.
+% We take the opportunity to select the production of a titlepage 
+% (not automatically added if the parent class is \emph{article}.
+% After this we process the local options and load the parent class.
+%
+%    \begin{macrocode}
+\DeclareOption*{\PassOptionsToClass{\CurrentOption}{\parentclass}}
+\PassOptionsToClass{titlepage}{\parentclass}
+\ProcessOptions
+\LoadClass{\parentclass}
+%    \end{macrocode}
+%
+% \subsection{Loading Additional Packages}
+%
+% This is the place where additional packages can be loaded.
+%
+% \section{Produce an Exam}
+%
+% First we need a counter for exams, since in one run more than
+% one exam can be produced.
+% By stepping this counter we will effect the automatic reset of
+% the counter that numbers the problems and 
+% the counter that remembers the score value.
+%
+% \begin{macro}{\examnum}
+%    \begin{macrocode}
+\newcounter{examnum}
+%    \end{macrocode}
+% \end{macro}
+%
+% \DescribeEnv{exam}
+% Exams are produced within the |exam| environment. This environment takes
+% 2 parameters. The first one is optional and provides the initial value
+% of the random generator.\footnote{Not used when a series
+% is run.} The default is 0, which effectively shuts off randomness.
+% The second parameter must be present, but can be empty.
+% It fixes the date for which the exam is planned; an empty argument
+% fills in the current date.
+%
+% \begin{environment}{exam}
+%    \begin{macrocode}
+\newenvironment{exam}[2][0]{%
+  \stepcounter{examnum}%
+  \@ifemptyarg{#2}{}{\date{#2}}%
+  \ifseries\else\ifanswers
+    \addcontentsline{toc}{section}{\Exam~\theexamnum~---~\@date}%
+  \fi\fi
+%    \end{macrocode}
+%
+% When answers are requested we start with a titlepage\footnote{%
+% If not inhibited by the |notitlepage| option.} and
+% a table of contents.
+% In the case of exam production, typesetting of the titlepage 
+% is deferred to the end of the exam,
+% so that we may print on it the number of problems.
+% We write a few messages to the table of contents (date and initial 
+% value of the random generator) when an exam with answers 
+% is in production.
+%
+%    \begin{macrocode}
+    \ifanswers
+        \pagenumbering{roman}%
+        \maketitle\tableofcontents\cleardoublepage
+    \fi
+    \pagenumbering{arabic}%
+    \ifseries\SRset{0}\else
+        \SRset{#1}%
+        \addcontentsline{toc}{subsection}{Start value random generator = #1}%
+    \fi
+%    \end{macrocode}
+%
+% In each separate exam the first page gets the number one.
+%
+%    \begin{macrocode}
+  \setcounter{page}{1}}%
+%    \end{macrocode}
+%
+% At the end of the exam produced for the students
+% a titlepage is produced. If answers are given for an exam
+% we provide the total value of the scores.
+%
+%    \begin{macrocode}
+  {\ifseries\else
+    \typeout{Total value scores = \thetotalscore}%
+    \ifanswers
+      \addcontentsline{toc}{subsection}{Total value scores = \thetotalscore}%
+    \else\maketitle\fi\fi}
+%    \end{macrocode}
+% \end{environment}
+%
+% \section{Choice of Problems}
+%
+% We start with a counter |\problemnum| with which the problems
+% of the exam are neatly numbered. This counter is automatically
+% reset each time a new |exam| environment is entered.
+% A textual identification of the current problem is collected
+% in token register |\problemid|.
+%
+% \begin{macro}{\problemnum}
+% \begin{macro}{\problemid}
+%    \begin{macrocode}
+\newcounter{problemnum}[examnum]
+\newtoks\problemid
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \DescribeMacro{\question}
+% Each question resides in its own file, which is called up
+% by macro |\question|. Of its three parameters the first is
+% optional and provides a means of communication with the
+% problem itself. To achieve this the first 
+% argument of |\question| is cached 
+% in macro |\parameter|.\footnote{As most uses of this mechanism
+% boil down to a choice between several alternatives, the
+% number~1 is provided by macro {\ttfamily\protect\bslash parameterproblem}
+% as a convenient default value. See also the discussion
+% under the heading ``Parametrized Problems''.}
+% The default behaviour here is not touching the
+% the definition of |\parameter| in case of an empty argument;
+% in many cases a forgotten argument will then lead to
+% a ``missing something'' error. The benefit of not
+% touching |\parameter| in case of an empty argument
+% is that this macro now also can be initialized by
+% other means, e.g. by definition earlier in the problem coding.
+%
+% The second parameter of |\question| is the name of the (sub)directory
+% where the file named in the third parameter can be found.
+% This second parameter doubles up as section name in the
+% series production.\footnote{It is silently assumed
+% that all problems of a given category reside in a common
+% directory.}
+%
+% \begin{macro}{\question}
+%    \begin{macrocode}
+\newcommand\question[3][]{%
+  \@ifemptyarg{#1}{}{\renewcommand\parameter{#1}}%
+%    \end{macrocode}
+%
+% When a series is run we look for the start of a new section and
+% perform the appropriate actions if indeed a new section is found.
+% I.e.\ eject the page and then reset the section name 
+% and the problem counter.
+% Note the use of uppercase in order to smooth out differences
+% in typing.
+% The identification of the problem is set to its file name and,
+% in the case of a series, is mentioned in the output.
+% Then the problem number is incremented. 
+%
+%    \begin{macrocode}
+  \ifseries
+    \uppercase{\def\@namesection{#2}}%
+    \ifx\namesection\@namesection
+    \else
+      \newpage
+      \global\let\namesection=\@namesection
+      \addcontentsline{toc}{subsection}{\namesection}%
+      \setcounter{problemnum}{0}%
+    \fi   
+  \fi
+  \problemid={\uppercase{#3}}%
+  \ifseries
+    \noindent\underbar{\emph{File\,:}~\texttt{\the\problemid}}\par
+    \nopagebreak\medskip\nopagebreak
+  \fi
+  \stepcounter{problemnum}%
+%    \end{macrocode}
+%
+% Reading of the problem itself is surrounded by calculations
+% on the score that this question will bring.
+% Scores are mentioned on the console except when a series is run.
+% In a problem all contributions from the various parts of the
+% problem are collected in counter |scorecounter|.
+% At the end of the problem |totalscore| is 
+% updated with this value.\footnote{%
+% Note the resets for |totalscore| with |examnum|
+% and |scorecounter| with |problemnum| in their declaration.}
+% The code guards against typing errors in the name of the file.
+%
+%    \begin{macrocode}
+  \IfFileExists{\mainfolder#2:#3}{\@@input \mainfolder#2:#3}%
+    {\examwarning{File \mainfolder#2:#3 not found}}%
+  \ifseries\else
+    \addtocounter{totalscore}{\value{scorecounter}}%
+    \typeout{\Problem\space\theproblemnum: score=\thescorecounter}%
+  \fi
+%    \end{macrocode}
+%
+% If appropriate a summary of this problem is written to the table of contents.
+%
+%    \begin{macrocode}
+  \ifanswers
+    \addcontentsline{toc}{subsubsection}%
+      {\hbox to1cm{\theproblemnum:\hss}%
+      \hbox{#3~~[score = \thescorecounter]}}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% Macro |\namesection| gets its initial value here:
+%
+% \begin{macro}{namesection}
+%    \begin{macrocode}
+\newcommand\namesection{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Parametrized Problems}
+%
+% \DescribeMacro{\parameter}
+% A parametrized problem gets its parameter from the first
+% argument of macro |\question|, as already have been mentioned.
+% This is effected by definition of macro |\parameter| to
+% the value of that argument. 
+% We add code here to (re)initialize this macro.
+%
+% \begin{macro}{\reset@parameter}
+%    \begin{macrocode}
+\newcommand\reset@parameter{\gdef\parameter{}}
+\reset@parameter
+%    \end{macrocode}
+% \end{macro}
+%
+% \DescribeMacro{\parameterproblem}
+% The first argument is optional and serves as default value
+% for |\parameter|. The default value for this is the number~1.
+% It is recommended that the macro |\parameterproblem| is
+% placed in the problem before the use of |\parameter|.
+% Then this macro provides a check on the proper definition of 
+% |\parameter| when in exam production; if it is
+% not yet defined this macro will receive the default value of 
+% |\parameterproblem| and issue a warning.
+% The macro will typeset its second argument in a framed box.
+% Usually it tells the reader which options are available; however,
+% only in the case a series is run, otherwise `silence' is the word.
+%
+% The description is placed in a framed parbox, hanging with an indent
+% from the intro text by macro |\remark|.
+% 
+% \begin{macro}{\parameterproblem}
+%    \begin{macrocode}
+\newcommand\parameterproblem[2][1 ]{%
+  \ifx\parameter\@empty
+    \ifseries\else\examwarning{\string\parameter\space undefined,
+    value `#1' taken}\fi
+    \renewcommand\parameter{#1}%
+  \fi
+  \remark[Parameter \Problem]{#2}}
+%    \end{macrocode}
+% \end{macro}
+
+%
+% \section{Typesetting a Problem}
+%
+% \DescribeMacro{\everyproblem}
+% Each problem must be enclosed in an environment |problem|.
+% Within this environment a default setup exists.
+% By supplying code in token register |\everyproblem| one
+% can influence the typesetting of each problem.
+%
+% \begin{macro}{\everyproblem}
+%    \begin{macrocode}
+\newtoks\everyproblem
+%    \end{macrocode}
+%
+% \DescribeEnv{problem}
+% The |problem| environment also has one optional parameter
+% for specific adjustments of the options setting.
+% Execution of options occurs in the order:
+% default setup, possible modification by |\everyproblem| and
+% final customization through the optional parameter.
+% This mechanism provides for maximum flexibility.
+% \end{macro}
+%
+% \begin{environment}{problem}
+%    \begin{macrocode}
+\newenvironment{problem}[1][]{%
+%    \end{macrocode}
+%
+% Calling of options is guarded by a mechanism that makes them
+% active when necessary. Only when the switch |\if@tagsforbid|
+% is set false has calling of such an option any effect.
+% The relevant macros are described in section~\ref{ref:tags}.
+%
+% Choose by default for keeping the whole problem on a page,
+% execute any code in the token register and honor the
+% option calls from the user. Finally shut off option processing.
+%
+%    \begin{macrocode}
+  \@tagsforbidfalse\compact\the\everyproblem#1\@tagsforbidtrue
+%    \end{macrocode}
+%
+% In order to keep everything on page we will enclose
+% the problem in a vbox, coded in
+% macro |\@boxing|. Otherwise |\@boxing| is a noop and
+% \TeX's pagebuilder can choose its breakpoint freely.
+% For the declaration of |\@boxing| see section~\ref{ref:boxing}.
+%
+% The problem is typeset with a standard opening
+% programmed in |\problemstart|, completing the
+% opening manoeuvres of the environment.
+%
+%    \begin{macrocode}
+  \@boxing\bgroup\noindent\problemstart\ignorespaces}%
+%    \end{macrocode}
+%
+% After processing the body of the problem some postprocessing follows
+% and the possible vbox is closed by an |\egroup|.
+%
+% In particular a visual separation from the next problem is added.
+% In the case of series production the origin date
+% of the problem is added too.\footnote{Only if it has been
+% provided to it by the proper macro call, of course.}
+% The origin date and the communicated value
+% in macro |\parameter| are then cleared for the next problem.
+%
+%    \begin{macrocode}
+  {\par\nopagebreak\smallskip\nopagebreak
+  \hbox to\linewidth{\hrulefill
+    \ifseries\emph{\footnotesize\thinspace\the\@problemdate}\fi}%
+  \egroup\par\bigskip\reset@problemdate\reset@parameter}
+%    \end{macrocode}
+% \end{environment}
+% 
+% \subsection{Code for Options to Problem}
+% \label{ref:boxing}
+%
+% The options to |problem| are |\compact| or |\split|. 
+% These options govern the possibility for the problem 
+% to be split between successive pages or the necessity 
+% to keep everything on page; the last one being the 
+% favoured behaviour in this implementation.
+% Note the |\noident| before the |\vbox| that prevents
+% an unwanted shift to the right.
+% 
+% \begin{macro}{\compact}
+% \begin{macro}{\split}
+%    \begin{macrocode}
+\newcommand\compact{\@chktag\compact\def\@boxing{\noindent\vbox}\fi}
+\newcommand\split{\@chktag\split\def\@boxing{\@empty}\fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Coding Environments Options}
+% \label{ref:tags}
+%
+% The |\@chktag| macro is provided to the code just in case
+% it is not already present in the system.
+% Note the open ended |\if...\else| which will be closed
+% by a |\fi| in the option definition.
+%
+% \begin{macro}{\if@tagsforbid}
+% \begin{macro}{\@chktag}
+%    \begin{macrocode}
+\newif\if@tagsforbid \@tagsforbidtrue
+\providecommand\@chktag[1]{%
+  \if@tagsforbid\@warning{tag \string#1\space ignored here}\else}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Numbering the Problem}
+%
+% A problem gets a standard opening clause, coded in
+% macro |\@problemstart|. The opening code is used to
+% format the first paragraph with a nice indentation.\footnote{%
+% This indentation is also used in the left margin in multiple
+% choice listings in order to limit the variation in margins.}
+%
+% \begin{macro}{\@problemstart}
+% \begin{macro}{\problemstart}
+%    \begin{macrocode}
+\newcommand\@problemstart{%
+  \textbo{\Problem\,\ifnum\value{problemnum}<10 \phantom{0}\fi
+  \theproblemnum}.\enskip}
+\newcommand\problemstart{%
+  \hangafter-2\settowidth\hangindent{\@problemstart}%
+  \noindent\llap{\@problemstart}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Date of Origin}
+%
+% \DescribeMacro{\problemdate}
+% The user may specify an original date or date of last change
+% for the problem to be printed when a series is produced.
+% The global assignments are here just in case things happen in
+% a deeper nested level.
+%
+% \begin{macro}{\@problemdate}
+% \begin{macro}{\problemdate}
+% \begin{macro}{\@resetproblemdate}
+%    \begin{macrocode}
+\newtoks\@problemdate
+\newcommand\problemdate[1]{\global\@problemdate={#1}\ignorespaces}
+\newcommand\reset@problemdate{\global\@problemdate={}}
+\reset@problemdate
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Score Values}
+%
+% Associated with each problem are of course the benefits the
+% student receives for a good answer to (part of) the problem.
+% The |\score| macro exists for this purpose.
+% If answers are not included, just an empty square is printed
+% into which the teacher can express his satisfaction with
+% the answer given. When answers are included in the printout
+% the each call |\score{value}| shows up in the right margin
+% of the document.\footnote{At the end of each problem a summary
+% of its total score plus a grand total are presented
+% on the console.}
+%
+% These counters collect the values. Note that |\totalscore|
+% is reset for each new exam and |\scorecounter| for each problem.
+%
+% \begin{macro}{\totalscore}
+% \begin{macro}{\scorecounter}
+%    \begin{macrocode}
+\newcounter{totalscore}[examnum]
+\newcounter{scorecounter}[problemnum]
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% The next commands are used for the production of the box
+% for the score value.
+%
+% \begin{macro}{\scoreboxsize}
+% \begin{macro}{\scorebox}
+%    \begin{macrocode}
+\newcommand\scoreboxsize{6mm}
+\newcommand\scorebox[1]{%
+  \fbox{\vbox to\scoreboxsize{\vss\hbox to\scoreboxsize{\hss#1\hss}\vss}}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \DescribeMacro{\score}
+% Finally the next code puts the score box on paper.
+% It takes the value of the score as its argument and adds
+% it to the running sum for this problem.
+%
+% \begin{macro}{\score}
+%    \begin{macrocode}
+\newcommand\score[1]{%
+  \addtocounter{scorecounter}{#1}%
+  \rightnote[-\normalbaselineskip]{\scorebox{\ifanswers#1\fi}}%
+  \ignorespaces}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Placing a Note in the Margin}
+%
+% We do not use |\marginpar| for the placement of the score values,
+% because we do not want these items wandering around, as
+% \LaTeX's |\marginpar|'s sometimes do.
+% The optional argument to the |..note| macros specifies
+% a vertical amount to be skipped in the placement of the note.
+% We use |\providecommand| because we may have them
+% incorporated already in other packages.
+% Note the |\noident| before the |\vadjust| that also
+% leaves vmode for the benefit of the |\vadjust|.
+%
+% \begin{macro}{\leftnote}
+% \begin{macro}{\rightnote}
+% \begin{macro}{\@rlnote}
+%    \begin{macrocode}
+\providecommand\leftnote[1][\z@skip]{\@rlnote l{#1}}
+\providecommand\rightnote[1][\z@skip]{\@rlnote r{#1}}
+\providecommand\@rlnote[3]{%
+  \noindent\vadjust{\vbox to\z@{%
+    \vskip#2\leftskip\z@skip\rightskip\z@skip\noindent
+    \if#1l\llap{#3\hskip\marginparsep}%
+    \else\hfill\rlap{\hskip\marginparsep#3}\fi
+    \vss\vskip\z@skip}}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Adding remarks}
+%
+% \DescribeMacro{\remark}
+% In making a catalogue of problems (option \emph{series} selected) 
+% it is useful when remarks can be added that stand out against the rest
+% of the text. Macro |\remark| provides such a mechanism.
+% Its first (optional) argument is set emphasized, its second argument
+% hangs on the first. The complete remark is placed
+% in a |\parbox| and then boxed and centered.
+%
+% \begin{macro}{\remark}
+%    \begin{macrocode}
+\newcommand\remark[2][]{%
+    \ifseries
+        \begin{center}%
+        \fbox{\parbox{.9\linewidth}{%
+            \sloppy\hangafter\@ne
+            \setbox\z@=\hbox{\emph{#1}\@ifemptyarg{#1}{}{:~}}%
+            \hangindent=\wd\z@
+            \strut\box\z@ #2}}%
+        \end{center}\nopagebreak
+        \addvspace{5mm}\nopagebreak
+    \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{Answers}
+%
+% In this section various ways of typesetting answers are provided.
+%
+% \DescribeMacro{\longwhite}
+% \DescribeMacro{\shortwhite}
+% We start with two definitions for long and short stretches of white
+% space. These are meant for leaving room for the students answer.
+%
+% \begin{macro}{\longwhite}
+% \begin{macro}{\shortwhite}
+%    \begin{macrocode}
+\newcommand\longwhite{25mm}
+\newcommand\shortwhite{8mm}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Intro to Answer}
+%
+% \DescribeMacro{\answerstart}
+% Just as with the typesetting of the problem, we provide
+% a macro to start an answer. Note how the text is
+% parametrized in order to keep switching to other
+% languages simple.
+%
+% \begin{macro}{\answerstart}
+%    \begin{macrocode}
+\newcommand\answerstart{\emph{\Answer}:\enspace}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Switching Answer On and Off}
+% 
+% \DescribeMacro{\answer}
+% Macro call |\answer| holds the answer and shows it when
+% answers are requested. The optional first argument specifies
+% a width for the box into which the typesetting takes places.
+% The answer is centered by default; change it with |\hfil|'s.
+% Implementation of |\answer| is by the next macro |\altanswer|. 
+
+% \begin{macro}{\answer}
+%    \begin{macrocode}
+\newcommand\answer[2][]{\altanswer[#1]{}{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Alternating Some Stuff and Answer}
+% 
+% \DescribeMacro{\altanswer}
+% With |\altanswer| the text alternates between two possibilities:
+% the first one is typeset when answers are suppressed, the second
+% one for the opposite case. Optional width argument and placement
+% are the same as for |\answer|.
+%
+% \begin{macro}{\altanswer}
+%    \begin{macrocode}
+\newcommand\altanswer[3][]{%
+  \@ifemptyarg{#1}%
+    {\mbox{\ifanswers#3\fi}}%
+    {\makebox[#1]{\ifanswers#3\else#2\fi}}%
+  }
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Problem with a Short Answer}
+% 
+% \DescribeMacro{\shortanswer}
+% A question ``Give a short answer to \ldots'' is formatted
+% in |\shortanswer|. Usually the answer will fit on one line.
+% In the exam a row of dots is produced, otherwise the answer will show.
+% The optional argument provides the width of the box into which
+% the data are typeset.
+%
+% \begin{macro}{\shortanswer}
+%    \begin{macrocode}
+\newcommand\shortanswer[2][.75\linewidth]{\par
+  \ifanswers
+    \addvspace{\smallskipamount}%
+    \noindent\answerstart\parbox[t]{#1}{\noindent #2}%
+  \else 
+    \addvspace{\shortwhite}%
+    \noindent\answerstart\makebox[#1]{\dotfill}\fi
+  \par}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Problem with a Long Answer}
+% 
+% \DescribeEnv{longanswer}
+% For elaborate questions, problems, etc.\ an environment is available.
+% The |longanswer| environment takes as optional argument the length
+% of white to be reserved for the student.
+%
+% Code for opening of the environment. 
+% It opens a box in order to let the answer disappear
+% and places a rule in order to guarantee sufficient
+% white space.
+%
+% \begin{environment}{longanswer}
+%    \begin{macrocode}
+\newenvironment{longanswer}[1][\longwhite]{
+  \par\addvspace{\medskipamount}%
+  \noindent\answerstart\par\nopagebreak
+  \ifanswers\noindent\else
+    \hrule\@height#1\@width\z@\par
+    \setbox\z@\vbox\bgroup
+       \leavevmode
+   \fi}
+%    \end{macrocode}
+%
+% Aftermath of |longanswer|. If necessary close the box
+% and empty it to get rid of the answer.
+%    \begin{macrocode}
+      {\ifanswers\else\egroup\setbox\z@\hbox{}\fi}
+%    \end{macrocode}
+% \end{environment}
+%
+% \section{Multiple Choice Questions}
+%
+% Multiple choice problems must be placed
+% in an |choice| environment, a modification
+% of |itemize|.
+%
+% \subsection{Remembering and Counting Items}
+% \label{ref:dump1}
+%
+% We will make it possible to shuffle the items of a multiple
+% choice problem randomly. These items are held in a series
+% of token registers declared below.
+%
+% We need a counter into which to keep the number of items
+% at any time loaded into the token registers declared above.
+% Also we provide for resetting, incrementing and decrementing
+% of this register. Note the global assignments.
+%
+% \begin{macro}{\loadcounter}
+% \begin{macro}{\resetloadcounter}
+% \begin{macro}{\incloadcounter}
+% \begin{macro}{\decloadcounter}
+%    \begin{macrocode}
+\newcount\loadcounter
+\newcommand\resetloadcounter{\global\loadcounter\z@}
+\newcommand\incloadcounter{\global\advance\loadcounter\@ne}
+\newcommand\decloadcounter{\global\advance\loadcounter\m@ne}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Adapting List Parameters}
+%
+% We want a specific behaviour when the list of items is typeset.
+% However, we cannot be sure at which listlevel this will occur.
+% Therefore we predeclare a replacement for |\@listi|, |@listii|,
+% or whatsoever, and swap the |\@list..| at the right time.
+% Note the choice for the leftside margin, derived from the
+% width of the text with which the problem starts. This choice
+% diminishes the number of different margins. It is easily adapted
+% to your own taste.
+%
+% \begin{macro}{\@listk}
+%    \begin{macrocode}
+\newcommand\@listk{%
+  \settowidth{\leftmargin}{\@problemstart}%
+  \topsep\medskipamount
+  \partopsep\z@
+  \itemsep\smallskipamount
+  \parsep\z@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Typesetting Multiple Choice}
+%
+% \DescribeEnv{choice}
+% The multiple choice environment |choice| takes one argument,
+% the modifier options to the environment typesetting.
+% Here the options are |\random| and |\ordered|; the names
+% speak for themselves. Note that random permutation is not
+% executed if a series is run. Furthermore the counter
+% for the number of items loaded is reset.
+%
+% \begin{environment}{choice}
+%    \begin{macrocode}
+\newenvironment{choice}[1][]{%
+  \@tagsforbidfalse\ifseries\ordered\else\random\fi#1\@tagsforbidtrue
+  \resetloadcounter
+%    \end{macrocode}
+%
+% The following code is taken from \LaTeX's |itemize|.
+% I did not find a more elegant way to bend this environment
+% to my whims.
+%
+%    \begin{macrocode}
+  \ifnum\@itemdepth>3 \@toodeep \else
+  \advance\@itemdepth\@ne
+  \expandafter\let
+    \csname @list\romannumeral\the\@itemdepth\endcsname=\@listk
+  \list{\badmark}{\def\makelabel##1{\hss\llap{##1}}}%
+  \fi}%
+%    \end{macrocode}
+%
+% At the end of |choice| we dump all the items that may have been
+% collected inbetween and finish the |list|.
+%
+%    \begin{macrocode}
+  {\@dumpitems\endlist}
+%    \end{macrocode}
+% \end{environment}
+% 
+% \subsection{Code for Options to Choice}
+%
+% The option |\random| codes macros |\@loaditem| and
+% |\@dumpitems| so that the items are actually loaded,
+% then shuffled and dumped afterwards.
+% The |\ordered| option makes them noops and thus the
+% items will be typeset on the fly.
+%
+% \begin{macro}{\random}
+% \begin{macro}{\ordered}
+%    \begin{macrocode}
+\newcommand\random{\@chktag\random
+    \def\@loaditem{\loaditem}%
+    \def\@dumpitems{\shuffle\dumpitems}%
+  \fi}
+\newcommand\ordered{\@chktag\ordered
+    \def\@loaditem{}%
+    \def\@dumpitems{}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% 
+% \subsection{Formatting the Item Mark}
+%
+% We require two marks: one for the bad guys and one
+% for the good guy. We use two symbols from
+% the AMSa font, |\square| = |\symbol{3}| and
+% |\checksquare| = |\symbol{2}|. Declared for example by
+%    \begin{macrocode}
+% \DeclareMathSymbol\square{\mathord}{AMSa}{'003}
+% \DeclareMathSymbol\checksquare{\mathord}{AMSa}{'002}
+%    \end{macrocode}
+%
+% However, we make this code
+% as portable as possible and provide for 
+% standard \LaTeX{} replacements
+% just in case these macros are not defined in the system.
+%
+% \begin{macro}{\square}
+% \begin{macro}{\checksquare}
+% \begin{macro}{\badmark}
+% \begin{macro}{\goodmark}
+%    \begin{macrocode}
+\providecommand\square{\bigcirc}
+\providecommand\checksquare{\surd}
+\newcommand\badmark{$\square$}
+\newcommand\goodmark{\ifanswers$\checksquare$\else\badmark\fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \DescribeMacro{\baditem}
+% \DescribeMacro{\gooditem}
+% Each item can either be right or wrong. We take the precaution
+% to suppress the difference when typesetting the actual exam.
+% Enclose each item in your list in the argument to
+% |\gooditem| and |\baditem|. They
+% will load the item in memory prior to (possible) random shuffling.
+%
+% \begin{macro}{\baditem}
+% \begin{macro}{\gooditem}
+%    \begin{macrocode}
+\newcommand\baditem[1]{\@loaditem{\item[\badmark]#1}}
+\newcommand\gooditem[1]{\@loaditem{\item[\goodmark]#1}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Loading and Dumping Items}
+% \label{ref:dump2}
+%
+% This series of token registers
+% can hold five alternatives. The mechanism that loads the
+% items is sufficiently general to use it for other purposes too.
+% Use your imagination!
+% That there are five of them is remembered in a definition
+% because we will need this number to prevent overfilling the store.
+%
+% \begin{macro}{\@itemA}
+% \begin{macro}{\@itemB}
+% \begin{macro}{\@itemC}
+% \begin{macro}{\@itemD}
+% \begin{macro}{\@itemE}
+% \begin{macro}{\@itemstore}
+%    \begin{macrocode}
+\newtoks\@itemA
+\newtoks\@itemB
+\newtoks\@itemC
+\newtoks\@itemD
+\newtoks\@itemE
+\newcommand\@itemstore{5}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \DescribeMacro{\loaditem}
+% According to the value of |loadcounter| the token registers
+% |\@itemA|, etc.\ are filled. Argument to macro |\loaditem|
+% is the contents of the item.
+%
+% \begin{macro}{\loaditem}
+%    \begin{macrocode}
+\newcommand\loaditem[1]{%
+  \ifcase\loadcounter
+    \@itemA={#1}%
+    \or\@itemB={#1}%
+    \or\@itemC={#1}%
+    \or\@itemD={#1}%
+    \or\@itemE={#1}%
+  \fi
+  \ifnum\loadcounter<\@itemstore \incloadcounter
+  \else\examwarning{\string\loaditem\space ignored, too many}\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \DescribeMacro{\dumpitem}
+% \DescribeMacro{\dumpitems}
+% \DescribeMacro{\dumpitemno}
+% Produce items that were loaded.
+% With |\dumpitem| the last one comes out and is chopped off
+% from the stack, with |\dumpitems| the whole lot is dumped.
+% By means of |\dumpitemno| one can peek inside the stack:
+% its parameter gives the position to be produced, the item itself
+% remains on the stack.
+%
+% \begin{macro}{\dumpitemno}
+% \begin{macro}{\dumpitem}
+% \begin{macro}{\dumpitems}
+%    \begin{macrocode}
+\newcommand\dumpitemno[1]{%
+  \ifnum#1>\loadcounter
+    \examwarning{\string\dumpitemno[#1] ignored, out range}%
+  \else\ifcase#1\relax
+    \or\the\@itemA
+    \or\the\@itemB
+    \or\the\@itemC
+    \or\the\@itemD
+    \or\the\@itemE
+  \fi\fi}
+\newcommand\dumpitem{\dumpitemno{\loadcounter}\decloadcounter}
+\newcommand\dumpitems{\@whilenum\loadcounter>\z@\do{\dumpitem}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Shuffling Items}
+%
+% \DescribeMacro{\shuffle}
+% This macro permutes |loadcounter| items in the
+% token registers |\@itemA|, etc. Undoubtedly it
+% can be done better, but who's perfect?
+%
+% \begin{macro}{\shuffle}
+%    \begin{macrocode}
+\newcommand\shuffle{%
+  \ifcase\loadcounter
+    \or
+    \or\shuffle@ii
+    \or\shuffle@\@itemA\@itemC \shuffle@ii \shuffle@\@itemB\@itemC
+    \or\shuffle@iv
+    \or\shuffle@\@itemD\@itemE \shuffle@iv \shuffle@\@itemD\@itemE
+    \fi
+  }
+%    \end{macrocode}
+% \end{macro}
+%
+% Random interchange of two and four items.
+%
+% \begin{macro}{\@item@}
+% \begin{macro}{\shuffle@}
+% \begin{macro}{\shuffle@ii}
+% \begin{macro}{\shuffle@iv}
+%    \begin{macrocode}
+\newtoks\@item@
+\newcommand\shuffle@[2]{\SRtest{}{\@item@=#1 #1=#2 #2=\@item@}}
+\newcommand\shuffle@ii{\shuffle@\@itemA\@itemB}
+\newcommand\shuffle@iv{%
+  \SRtest{\shuffle@\@itemA\@itemB}{\shuffle@\@itemC\@itemD}%
+  \SRtest{\shuffle@\@itemA\@itemC}{\shuffle@\@itemB\@itemD}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Random Generator Implementation}
+%
+% \DescribeMacro{\SRtest}
+% Not much commentary with these macros. They are
+% described in the first issue of Tugboat~1994.
+%
+% \begin{macro}{\@SR}
+% \begin{macro}{\@SRconst}
+% \begin{macro}{\SRset}
+% \begin{macro}{\@SRadvance}
+% \begin{macro}{\SRbit}
+% \begin{macro}{\SRtest}
+% \begin{macro}{\SRvalue}
+%    \begin{macrocode}
+\ifx\@SR\undefined\newcount\@SR\fi
+\providecommand\@SRconst{2097152}
+\providecommand\SRset[1]{\global\@SR#1 \ignorespaces}
+\providecommand\@SRadvance{%
+  \begingroup
+  \ifnum\@SR<\@SRconst\relax\count@\z@\else\count@\@ne\fi
+  \ifodd\@SR\advance\count@\@ne\fi
+  \global\divide\@SR\tw@
+  \ifodd\count@\global\advance\@SR\@SRconst\relax\fi
+  \endgroup}
+\providecommand\SRbit{\@SRadvance\ifodd\@SR1\else0\fi}
+\providecommand\SRtest[2]{\@SRadvance\ifodd\@SR#2\else#1\fi\ignorespaces}
+\providecommand\SRvalue{\number\@SR }
+\SRset{0}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \section{Styling}
+%
+% \subsection{The Page Style}
+%
+% For a page style |examheadings| is offered.
+% Choose it by supplying to |\pagestyle|.
+%
+% \begin{macro}{\thehead}
+% \begin{macro}{\ps@examheadings}
+%    \begin{macrocode}
+\newcommand\thehead{%
+  \slshape\@title\enspace\upshape:\enspace
+  \ifseries\namesection\else\@date\fi}
+\newcommand\ps@examheadings{%
+  \let\@oddfoot\@empty
+  \let\@evenfoot\@empty
+  \renewcommand\@oddhead{%
+    \vbox{%
+    \hbox to\textwidth{\headerfont\thehead\hfil\upshape\thepage}%
+    \vskip1.5\p@
+    \hrule\@height.5\p@\@width\textwidth
+    }}%
+  \let\@evenhead\@oddhead}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{The Titlepage}
+%
+% \DescribeMacro{\target}
+% With target we denote the group of students for whom
+% the exam is meant. Define with |\target| and call up
+% with |\@target|.
+%
+% \begin{macro}{\target}
+%    \begin{macrocode}
+\newcommand\target[1]{\gdef\@target{#1}}\def\@target{}
+%    \end{macrocode}
+% \end{macro}
+%
+% The titlepage is set by a redefined |\maketitle|. Of course
+% this will be suppressed if the |notitlepage| option is given
+% on the |\documentclass| call.
+% Don't hesistate to adapt the blahblah to your own style.
+%
+% \DescribeMacro{\Copyright}
+% The |\Copyright| is a dummy; an example of a redefinition is:
+%    \begin{macrocode}
+% \renewcommand\Copyright{%
+%   \InputIfFileExists{\Commonfolder copyright}{}{\mbox{}}}
+%    \end{macrocode}
+% 
+% \begin{macro}{\Copyright}
+%    \begin{macrocode}
+\newcommand\Copyright{\mbox{}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\maketitle}
+%    \begin{macrocode}
+\renewcommand\maketitle{%
+\if@titlepage\begin{titlepage}
+  \begin{center}\titlefont
+    \vspace*{1cm}%
+    \mbox{}\rule{2cm}{0.4pt}\mbox{}\par
+    \addvspace{1cm}%
+    \begin{Large}
+      \textbf{\ifseries\Collection\else\Exam\fi}\\[10mm]
+    \end{Large}
+    \begin{large}
+      \@title\\[5mm]
+      \ifseries\@author\else\@target\fi\\[5mm]
+      \@date\\[10mm]
+    \end{large}
+    \mbox{}\rule{2cm}{0.4pt}\mbox{}\par
+    \addvspace{2cm}%
+  \ifseries
+    \vfill\vfill
+    \begin{flushleft}%
+      \Copyright
+    \end{flushleft}%
+  \else\ifanswers
+      \begin{huge}\Answers\end{huge}\par
+    \else
+      \begin{minipage}{.75\textwidth}%
+      \raggedright\parindent\medskipamount
+        Naam:\enspace\dotfill\strut\par
+        Adres:\enspace\dotfill\strut\par
+        Plaats:\enspace\dotfill\strut\par
+        Collegekaart:\enspace\dotfill\strut\par
+        \vspace{1cm}%
+        \begin{itemize}%
+        \item Zonder geldige collegekaart wordt geen
+          tentamenbriefje uitgereikt.
+        \item U wordt met nadruk verzocht om een
+          \emph{leesbaar} schrift; wat niet leesbaar
+          is, wordt fout gerekend.
+        \item Denk erom losse vellen tentamenpapier
+          van Uw naam en collegekaartnummer te voorzien;
+          gebruik blokletters voor de leesbaarheid.
+        \item Dit tentamen telt \theproblemnum\ opgaven
+        \end{itemize}%
+      \end{minipage}\\[10mm]
+      \GoodLuck\par
+    \fi
+  \fi
+  \end{center}%
+\end{titlepage}\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{Miscellaneous}
+%
+% \subsection{Language Adjustments}
+%
+% \DescribeMacro{\onlanguage}
+% A small problem arose with the Babel system.
+% If a language is not defined with |\addlanguage| an
+% |\errmessage| interfers with the smooth processing.
+% We avoid this problem with the following macro.
+%
+% \begin{macro}{\onlanguage}
+%    \begin{macrocode}
+\newcommand\onlanguage[4]{% {language}{current}{existing}{not existing}
+  \expandafter\ifx\csname l@#1\endcsname\relax
+  #4\else\ifnum\csname l@#1\endcsname=\language #2\else#3\fi\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{English}
+%
+% Put here all english equivalents.
+% \begin{macro}{\englishExamNames}
+%    \begin{macrocode}
+\newcommand\englishExamNames{%
+  \newcommand\Answers{ANSWERS}%
+  \newcommand\Answer{Answer}%
+  \newcommand\GoodLuck{Good luck!}%
+  \newcommand\Exam{EXAM}%
+  \newcommand\Collection{COLLECTION OF EXAMS}%
+  \newcommand\Problem{Problem}%
+  }
+%    \end{macrocode}
+% \end{macro}
+%
+% If appropriate set one of these languages at the start of the document.
+%
+%    \begin{macrocode}
+\AtBeginDocument{\onlanguage{english}{\englishExamNames}{}{}}
+\AtBeginDocument{\onlanguage{american}{\englishExamNames}{}{}}
+%    \end{macrocode}
+%
+% \subsubsection{Dutch}
+%
+% Put here all dutch equivalents.
+%
+% \begin{macro}{\dutchExamNames}
+%    \begin{macrocode}
+\newcommand\dutchExamNames{%
+  \newcommand\Answers{ANTWOORDEN}%
+  \newcommand\Answer{Antwoord}%
+  \newcommand\GoodLuck{Veel succes!}%
+  \newcommand\Exam{TENTAMEN}%
+  \newcommand\Collection{TENTAMENBUNDEL}%
+  \newcommand\Problem{Opgave}%
+  }
+%    \end{macrocode}
+% \end{macro}
+%
+% If appropriate set this language at the start of the document.
+%
+%    \begin{macrocode}
+\AtBeginDocument{\onlanguage{dutch}{\dutchExamNames}{}{}}
+%    \end{macrocode}
+%
+% \subsubsection{Private Language Dependent Specialties}
+%
+% \begin{macro}{\fullanswer}
+%    \begin{macrocode}
+\newcommand\fullanswer{Geef de volledige afleiding; %
+  slechts het antwoord vermelden wordt \emph{niet} goed gerekend.}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Macros Needed but Possibly Missing}
+%
+% I like bold more than bold extended (small hack to mf-files), but
+% if you don't have bold, replace it by bold extended.
+%
+% \begin{macro}{\textbo}
+%    \begin{macrocode}
+\providecommand\textbo{\textbf}
+%    \end{macrocode}
+% \end{macro}
+%
+% Testing for the presence or absence of a parameter.
+%
+% \begin{macro}{\@ifemptyarg}
+%    \begin{macrocode}
+\providecommand\@ifemptyarg[1]{% {absence}{presence}
+  \ifx\@empty#1\@empty
+  \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{Initializations}
+%
+% \subsection{Pagestyle}
+%
+% Initialize the pagestyle, you could use:
+%
+% \begin{verbatim}
+% \pagestyle{examheadings}
+% \end{verbatim}
+%
+% \subsection{Page Layout and Fonts}
+%
+% I like a somewhat more efficient use of the paper surface
+% and personally use via \emph{exam,cfg}:
+%
+% \begin{verbatim}
+% \addtolength{\topmargin}{-15mm}
+% \addtolength{\textheight}{35mm}
+% \end{verbatim}
+%
+% And allow more stretch in the lines,
+% encourage pagebreaking at paragraphs,
+% more strongly discourage widows
+%
+% \begin{verbatim}
+% \tolerance=2000
+% \hbadness=2000
+% \emergencystretch=2mm
+% \interlinepenalty=1000
+% \widowpenalty 1000
+% \end{verbatim}
+%
+% \DescribeMacro{\headerfont}
+% \DescribeMacro{\bodyfont}
+% \DescribeMacro{\titlefont}
+% Fonts for pageheader, body of the text and on the titlepage.
+%
+% \begin{macro}{\headerfont}
+% \begin{macro}{\bodyfont}
+% \begin{macro}{\titlefont}
+%    \begin{macrocode}
+\newcommand\headerfont{\rmfamily\small}
+\newcommand\bodyfont{\sffamily}
+\newcommand\titlefont{\rmfamily\upshape}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% And initialize
+%
+%    \begin{macrocode}
+\bodyfont
+%    \end{macrocode}
+%
+% \subsection{Directory Localization}
+%
+% \DescribeMacro{\Mainfolder}
+% \DescribeMacro{\Commonfolder}
+% \DescribeMacro{\Figuresfolder}
+% Specify folders (directories) for the main source,
+% a common folder for related material and a folder
+% for e.g.\ EPSF figures etc.
+%
+% \begin{macro}{\Mainfolder}
+% \begin{macro}{\Commonfolder}
+% \begin{macro}{\Figuresfolder}
+%    \begin{macrocode}
+\newcommand\Mainfolder[1]{\def\mainfolder{#1}}
+\newcommand\Commonfolder[1]{\def\commonfolder{#1}}
+\newcommand\Figuresfolder[1]{\def\figuresfolder{#1}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% Initialize them
+%
+%    \begin{macrocode}
+\Mainfolder{\@currdir}
+\Commonfolder{\@currdir}
+\Figuresfolder{\@currdir}
+%    \end{macrocode}
+%
+% \subsection{Configuration File}
+%
+% Last, but not least, see if there is a configuration
+% file \emph{exam.cfg} and read it for the final adjustments.
+%
+%    \begin{macrocode}
+\InputIfFileExists{exam.cfg}{}{}
+%
+%</package>
+%    \end{macrocode}
+% \PrintIndex\PrintChanges
+% \Finale
+%

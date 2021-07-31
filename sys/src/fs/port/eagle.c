@@ -542,9 +542,12 @@ stats(Eagle *e)
 
 static
 void
-cmd_state(int, char *[])
+cmd_state(int argc, char *argv[])
 {
 	Eagle *e;
+
+	USED(argc);
+	USED(argv);
 
 	for(e = &eagle[0]; e < &eagle[MaxEagle]; e++){
 		if(e->vme)

@@ -77,7 +77,7 @@ void readhere(void){
 void psubst(io *f, char *s)
 {
 	char *t, *u;
-	int savec, n;
+	int savec, n, c;
 	word *star;
 	while(*s){
 		if(*s!='$'){

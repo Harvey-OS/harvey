@@ -1,0 +1,21 @@
+%% 
+%% This is file `OMXhlcm.fd', generated 
+%% on <1994/6/8> with the docstrip utility (1.1).
+%% 
+%% The original source files were:
+%% 
+%% lucida.dtx  (with options: `lucidascale,OMXhlcm')
+%% Copyright (C) 1993 Sebastian Rahtz. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{2}
+\def\filedate{94/04/7}
+\def\docdate {94/04/7}
+%% File: lucida.dtx Copyright (C) 1994 Sebastian Rahtz
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}
+\endinput
+%% 
+%% End of file `OMXhlcm.fd'.

@@ -1,4 +1,3 @@
-#define nil		((void*)0)
 typedef	unsigned short	ushort;
 typedef	unsigned char	uchar;
 typedef unsigned long	ulong;
@@ -9,21 +8,24 @@ typedef	unsigned long long uvlong;
 typedef	ushort		Rune;
 typedef union
 {
-	vlong	length;
+	char	clength[8];
+	vlong	vlength;
+	struct
+	{
+		long	hlength;
+		long	length;
+	};
 } Length;
 typedef long	jmp_buf[2];
 #define	JMPBUFSP	0
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
-typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
-typedef unsigned int	u32int;		/* for /sys/include/libsec.h */
 
 /* FCR */
 #define	FPINEX	(1<<5)
-#define	FPUNFL	((1<<4)|(1<<1))
 #define	FPOVFL	(1<<3)
+#define	FPUNFL	((1<<4)|(1<<1))
 #define	FPZDIV	(1<<2)
-#define	FPINVAL	(1<<0)
 #define	FPRNR	(0<<10)
 #define	FPRZ	(3<<10)
 #define	FPRPINF	(2<<10)
@@ -38,13 +40,3 @@ typedef unsigned int	u32int;		/* for /sys/include/libsec.h */
 #define	FPAOVFL	FPOVFL
 #define	FPAUNFL	FPUNFL
 #define	FPAZDIV	FPZDIV
-#define	FPAINVAL	FPINVAL
-
-typedef	char*	va_list;
-#define va_start(list, start) list =\
-	(sizeof(start)<4?\
-		(char*)((int*)&(start)+1):\
-		(char*)(&(start)+1))
-#define va_end(list)
-#define va_arg(list, mode)\
-	((mode*)(list += sizeof(mode)))[-1]

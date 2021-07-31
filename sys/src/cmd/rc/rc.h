@@ -131,4 +131,3 @@ char Rcmain[], Fdprefix[];
 int ndot;
 char *getstatus(void);
 int lastc;
-int lastword;

@@ -1,0 +1,87 @@
+.TH XPAND 9.1
+.SH NAME
+xpand, picnegate \- adjust dynamic range
+.SH SYNOPSIS
+.B fb/xpand
+[
+.B -s
+] [
+.I input
+] [
+.I lo hi
+[
+.I inlo inhi
+] ]
+.PP
+.B fb/picnegate
+[
+.I input
+]
+.SH DESCRIPTION
+.I Xpand
+linearly adjusts the dynamic range of the
+.I input
+picture (default standard input)
+mapping value
+.I inlo
+to
+.IR lo ,
+and
+.I inhi
+to
+.IR hi .
+.I Lo
+and
+.I hi
+default to 0 and 255.
+If
+.I inlo
+and
+.I inhi
+are not specified, the lowest and highest pixel values in the input image are
+used.
+By default, then,
+.I xpand
+expands the image's dynamic range by mapping its smallest pixel value to zero
+and its largest value to 255.
+Option
+.B -s
+causes all channels of the input image to be considered together when computing
+default values for
+.I inlo
+and
+.IR inhi ,
+thus preserving the hue of
+.B rgb
+pictures.
+Otherwise, each channel is treated separately.
+Option
+.B -s
+has no effect if
+.I inlo
+and
+.I inhi
+are specified on the command line.
+.PP
+There is no requirement that
+.I lo
+be smaller than
+.IR hi ,
+or that
+.I inlo
+be smaller than
+.IR inhi ,
+nor that any of those values be in the range 0 to 255.
+Output values not in the range 0 to 255 are clamped.
+For example,
+.EX
+	xpand 0 255 255 0
+.EE
+inverts the pixel values of its input.
+For convenience,
+.I picnegate
+is a script that executes this command.
+.SH SOURCE
+.B /sys/src/fb/xpand.c
+.SH "SEE ALSO
+.IR picfile (9.6)

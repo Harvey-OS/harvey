@@ -1,0 +1,121 @@
+.TH INTRO 9
+.SH NAME
+intro \- introduction to raster image software
+.SH DESCRIPTION
+Plan 9 provides a suite of commands and library routines to create and
+manipulate files containing gray-scale and full-color images.  Section 9 of this
+manual is divided into subsections numbered like the main manual
+sections:  9.1 for commands, 9.2 for library routines, 9.6 for file formats.
+.PP
+Picture files are two-dimensional arrays of multi-byte records with a
+textual header describing the dimensions of the image, the algorithm
+used to encode the file, and whatever other information programs may wish to
+preserve.
+.IR Picfile (9.6)
+describes the file format;
+.IR picopen (9.2)
+describes a library of routines to read and write picture files.
+.PP
+.B /bin/fb
+contains a collection of programs to manipulate picture files.
+.PP
+.I 9v
+displays a picture file in an
+.IR 8½ (1)
+window.
+.I Examine
+similarly displays an image and allows interactive
+examination of its pixel values.
+.I Picinfo
+displays the
+header of a picture file on its standard output.
+.I Pcp
+copies picture files, modifying header attributes as requested and updating
+the encoded picture array correspondingly.
+It can clip a subwindow out of a picture, permute, delete, and rename channels,
+change the encoding type and even convert full-color images to monochrome and
+vice-versa.
+.I Hed
+is a more brute-force version of
+.I pcp
+that can apply an arbitrary
+.IR sed (1)
+script to a picfile header.  It copies the image array verbatim
+and can thus convert precious images into garbage or vice-versa.
+.PP
+.IR Dumppic ,
+.IR gif2pic ,
+.IR picopic ,
+and
+.I face2pic
+convert files in various alien formats to
+.IR picfile (9.6)
+format.
+.I Pic2ps
+converts picfiles to encapsulated PostScript.
+.I Nohed
+removes the header from a picture file.
+When applied to a
+.B TYPE=dump
+picture this converts it into the ubiquitous `raw dump' format.
+.I Mugs
+is an interactive program to convert picfiles into 48\(mu48 icons of
+the sort used by
+.B seemail
+(see
+.IR mail (1)
+and
+.IR face (6)).
+.PP
+Some commands create simple images out of whole cloth.
+.I Card
+writes an image of constant color.
+.I Ramp
+creates an image that is one color at one edge and changes linearly to another
+color at the opposite edge.
+.PP
+.I Aplot
+reads a square array of data points and draws an anti-aliased perspective
+plot of the surface it defines.
+.PP
+There are numerous commands that read one or more images and write a modified
+image on standard output.
+See
+.IR remap (9.1),
+.IR filters (9.1),
+.IR floyd (9.1),
+.IR he (9.1),
+.IR lam (9.1),
+.IR lerp (9.1),
+.IR logo (9.1),
+.IR lum (9.1),
+.IR quantize (9.1),
+.IR resample (9.1),
+.IR transpose (9.1),
+and
+.IR xpand (9.1)
+for descriptions.
+.PP
+.I Moto
+is an animator's command language.  It converts concise descriptions of
+simultaneous processes overlapping in time into sequential command files
+suitable for producing frames of an animation.
+.SH "SEE ALSO
+Tom Duff,
+``Raster Graphics in Plan 9''
+.br
+Sections
+.IR add (2),
+.IR balloc (2),
+.IR cachechars (2),
+.IR subfalloc (2),
+.IR bitblt (2),
+.IR event (2),
+.IR frame (2),
+.IR print (2),
+.IR bit (3),
+.IR layer (2),
+.IR bitmap (6),
+and
+.IR font (6)
+describe the standard Plan 9 interactive bitmap graphics interface.

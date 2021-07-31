@@ -9,7 +9,6 @@ extern	int	optind;
 int	verbose;
 int	Mflag;
 int	Cplusplus;
-int	nolineinfo;
 Nlist	*kwdefined;
 char	wd[128];
 
@@ -57,13 +56,9 @@ setup(int argc, char **argv)
 	char *fp, *dp;
 	Tokenrow tr;
 	char *objtype;
-	char *includeenv;
-	int firstinclude;
 	static char nbuf[40];
 	static Token deftoken[1] = {{ NAME, 0, 0, 0, 7, (uchar*)"defined" }};
 	static Tokenrow deftr = { deftoken, deftoken, deftoken+1, 1 };
-	int debuginclude = 0;
-	char xx[2] = { 0, 0};
 
 	for (kp=kwtab; kp->kw; kp++) {
 		t.t = (uchar*)kp->kw;
@@ -80,7 +75,7 @@ setup(int argc, char **argv)
 	}
 	/*
 	 * For Plan 9, search /objtype/include, then /sys/include
-	 * (Note that includelist is searched from high end to low)
+	 * (Note that includelist is searched from high end to low
 	 */
 	if ((objtype = getenv("objtype"))){
 		sprintf(nbuf, "/%s/include", objtype);
@@ -94,19 +89,6 @@ setup(int argc, char **argv)
 		wd[0] = '\0';
 	includelist[0].file = "/sys/include";
 	includelist[0].always = 1;
-	firstinclude = NINCLUDE-2;
-	if ((includeenv=getenv("include")) != NULL) {
-		char *cp;
-		includeenv = strdup(includeenv);
-		for (;firstinclude>0; firstinclude--) {
-			cp = strtok(includeenv, " ");
-			if (cp==NULL)
-				break;
-			includelist[firstinclude].file = cp;
-			includelist[firstinclude].always = 1;
-			includeenv = NULL;
-		}
-	}
 	setsource("", -1, 0);
 	ARGBEGIN {
 		case 'N':
@@ -115,7 +97,7 @@ setup(int argc, char **argv)
 					includelist[i].deleted = 1;
 			break;
 		case 'I':
-			for (i=firstinclude; i>=0; i--) {
+			for (i=NINCLUDE-2; i>=0; i--) {
 				if (includelist[i].file==NULL) {
 					includelist[i].always = 1;
 					includelist[i].file = ARGF();
@@ -123,7 +105,7 @@ setup(int argc, char **argv)
 				}
 			}
 			if (i<0)
-				error(WARNING, "Too many -I directives");
+				error(FATAL, "Too many -I directives");
 			break;
 		case 'D':
 		case 'U':
@@ -142,15 +124,11 @@ setup(int argc, char **argv)
 		case '+':
 			Cplusplus++;
 			break;
-		case 'i':
-			debuginclude++;
-			break;
-		case 'P':
-			nolineinfo++;
+		case 'W':
+			clearwstab();
 			break;
 		default:
-			xx[0] = ARGC();
-			error(FATAL, "Unknown argument '%s'", xx);
+			error(FATAL, "Unknown argument");
 			break;
 	} ARGEND
 	dp = ".";
@@ -177,11 +155,6 @@ setup(int argc, char **argv)
 	includelist[NINCLUDE-1].always = 0;
 	includelist[NINCLUDE-1].file = dp;
 	setsource(fp, fd, NULL);
-	if (debuginclude) {
-		for (i=0; i<NINCLUDE; i++)
-			if (includelist[i].file && includelist[i].deleted==0)
-				error(WARNING, "Include: %s", includelist[i].file);
-	}
 }
 
 Nlist *

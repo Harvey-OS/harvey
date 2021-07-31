@@ -18,6 +18,7 @@
  */
 #include <u.h>
 #include <libc.h>
+#include <stdarg.h>
 #undef END
 #include "Stdio.h"
 /*
@@ -39,6 +40,3 @@
 #define	END	6	/* open, but at eof */
 
 int _IO_setvbuf(FILE *);
-
-/* half hearted attempt to make multi threaded */
-extern QLock _stdiolk;

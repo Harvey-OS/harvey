@@ -1,0 +1,322 @@
+.TH BITBLT 2
+.SH NAME
+bitblt, bitbltclip, clipline, point, segment, polysegment, arc, circle, disc, ellipse, texture, border, string, strsize, strwidth, Fcode \- graphics functions
+.SH SYNOPSIS
+.nf
+.B #include <u.h>
+.br
+.B #include <libg.h>
+.PP
+.ta \w'\fLPoint 'u
+.B
+void	bitblt(Bitmap *db, Point dp, Bitmap *sb,
+.B
+	    Rectangle sr, Fcode f)
+.PP
+.B
+int	bitbltclip(void *)
+.PP
+.B
+int	clipline(Rectangle r, Point *p0, Point *p1)
+.PP
+.B
+void	point(Bitmap *b, Point p, int v, Fcode f)
+.PP
+.B
+void	segment(Bitmap *b, Point p, Point q, int v, Fcode f)
+.PP
+.B
+void	polysegment(Bitmap *b, int n, Point *pp, int v, Fcode f)
+.PP
+.B
+void	circle(Bitmap *b, Point p, int r, int v, Fcode f)
+.PP
+.B
+void	disc(Bitmap *b, Point p, int r, int v, Fcode)
+.PP
+.B
+void	arc(Bitmap *b, Point p0, Point p1, Point p2, int v, Fcode f)
+.PP
+.B
+void	ellipse(Bitmap *b, Point p, int a, int b, int v, Fcode f)
+.PP
+.B
+void	texture(Bitmap *b, Rectangle r, Bitmap *t, Fcode f)
+.PP
+.B
+void	border(Bitmap *b, Rectangle r, int w, Fcode f)
+.PP
+.B
+Point	string(Bitmap *b, Point p, Font *ft, char *s, Fcode f)
+.PP
+.B
+Point	strsize(Font *ft, char *s)
+.PP
+.B
+long	strwidth(Font *ft, char *s)
+.PP
+.ta 8n +\w'xxxxxxxxxx'u +\w'xxxxxxxxxx'u +\w'xxxxxxxxxx'u +\w'xxxxxxxxxx'u
+.ft L
+enum Fcode {
+	Zero,	DnorS,	DandnotS,	notS,
+	notDandS,	notD,	DxorS,	DnandS,
+	DandS,	DxnorS,	D,	DornotS,
+	S,	notDorS,	DorS,	F,
+} Fcode;
+.ft P
+.fi
+.SH DESCRIPTION
+.I Bitblt
+(bit-block transfer)
+takes bits from rectangle
+.I sr
+in the
+.I source
+Bitmap
+.IR sb
+and overlays them on a congruent rectangle with the
+.B min
+corner at point
+.I dp
+in the
+.I destination
+bitmap,
+.IR db .
+The
+.I f
+parameter defines each destination pixel
+as a function of the source and destination pixels.
+The sixteen codes in 
+.B Fcode
+give all possible boolean operations
+on the source
+.B S
+and destination
+.BR D .
+The code values may be expressed as
+boolean operations on the values
+.B S
+and
+.BR D.
+For example,
+.B D|S
+computes the result as the logical
+.I or
+of the destination pixel's old value and the overlaying source pixel's value.
+If pixels are more than one bit deep, the operations are still bitwise.
+The
+.B Zero
+and
+.B F
+codes result in new pixel values that are all zeros or all ones, respectively.
+.PP
+If the source and destination bitmaps have different depths,
+the source rectangle is first converted to have the same depth as the
+destination, as follows:
+conversion to a smaller number of bits per pixel is accomplished by
+taking the desired number of high order bits;
+conversion to a larger number of bits per pixel is accomplished by
+putting the small value into the high order bits, and replicating it as many times
+as necessary to fill the lower order bits.
+.PP
+All of the drawing graphics functions clip the rectangle against the
+source and destination bitmaps' clip rectangles, so that only
+pixels within the destination bitmap are changed and none are changed
+that would have come from areas outside the source bitmap.
+.I Bitbltclip
+takes a pointer to the first argument of a
+.I bitblt
+argument list and clips
+.I dp
+and
+.I sr
+so the resulting
+.I bitblt
+is confined to the source and destination bitmaps.
+It returns one if the x and y dimensions of the resulting
+.I bitblt
+are positive; zero otherwise.
+.PP
+.I Point
+changes the value of the destination point
+.I p
+in bitmap
+.I b
+according to function code
+.IR f .
+The source is a pixel with
+value
+.IR v .
+The constant
+.B ~0
+represents the maximum pixel value.
+.PP
+.IR Segment ,
+.IR circle ,
+.IR disc ,
+and
+.I ellipse
+all draw in bitmap
+.I b
+with function code
+.I f
+and a source pixel with value
+.IR v.
+.I Arc
+draws a circular arc centered on
+.IR p0 ,
+traveling clockwise from
+.I p1
+to
+.I p2
+or a point on the circle near
+.IR p2 .
+.I Segment
+draws a line segment in bitmap
+.I b
+from point
+.I p
+to
+.IR q .
+The segment is half-open:
+.I p
+is the first point of the segment and
+.I q
+is the first point beyond the segment,
+so adjacent segments sharing endpoints abut.
+.I Polysegment
+draws the
+.IR n \-1
+segments joining the
+.I n
+points in the array pointed to by
+.IR pp .
+.I Clipline
+clips the line segment from
+.RI * p0
+to
+.RI * p1
+.RI ( p0
+is closed,
+.I p1
+is open)
+to rectangle
+.IR r ,
+adjusting
+.I p0
+and
+.I p1
+so that the segment is within the rectangle and
+.RI * p1
+is closed.
+It returns 0 if none of the segment is in the rectangle, 1 otherwise.
+.PP
+.I Circle
+draws a circle with radius
+.I r
+and center at point
+.IR p .
+.I Disc
+is the same except that it fills the circle.
+.I Ellipse
+draws an ellipse with horizontal semi-axis
+.I a
+and vertical semi-axis
+.IR b.
+.PP
+.I Border
+draws, with function
+.I f
+in bitmap
+.IR b ,
+the rectangular outline with lines of width
+.I w
+fitting just inside rectangle
+.IR r .
+.PP
+.I Texture
+draws, with function
+.I f
+in bitmap
+.IR b ,
+a texture using the
+bitmap specified by
+.IR t .
+The texture bitmap is aligned on
+.IR b 's
+coordinate system so that (0,0) in both coordinate systems coincide,
+and then
+.I t
+is replicated to form a tiling of
+.IR b .
+The tiling is clipped to rectangle
+.I r
+in
+.IR b ,
+and then transferred to
+.I b
+using the specified function.
+.PP
+.I String
+draws the text characters given by the null-terminated
+.SM UTF
+string
+.I s
+into bitmap
+.IR b ,
+using font
+.IR ft.
+The upper left corner of the first character (i.e., a point
+that is
+.IB ft ->ascent
+above the baseline) is placed at point
+.IR p ,
+and subsequent characters are placed on the same baseline, displaced to
+the right by the previous character's
+.BR width .
+The individual characters are
+.IR bitblt 'ed
+into the destination, using drawing function
+.IR f .
+.I String
+returns the point after the final character of
+.IR s ;
+this can be outside
+.I b
+if the string was clipped.
+.PP
+If a character in the string would have zero width, either explicitly or because
+no image is present for the character in the font,
+.I string
+replaces it with the image of the character with value zero (traditionally a `Peter
+.if t face', \s+1\(pw\s-1).
+.if n face').
+If that character has zero width,
+.I string
+will get a fatal error.
+.PP
+The bounding box for text to be drawn with
+.I string
+in font
+.I ft
+can be found with
+.IR strsize ;
+it returns the
+.B max
+point of the bounding box, assuming a
+.B min
+point of (0,0).
+.I Strwidth
+returns the
+.IR x -component
+of the
+.B max
+point.
+.SH SOURCE
+.B /sys/src/libg
+.SH SEE ALSO
+.IR graphics (2),
+.IR utf (6),
+.IR add (2)
+.SH DIAGNOSTICS
+These routines call the graphics error function on fatal errors.

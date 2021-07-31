@@ -1,12 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <draw.h>
-#include <thread.h>
-#include <cursor.h>
-#include <mouse.h>
-#include <keyboard.h>
+#include <libg.h>
 #include <frame.h>
-#include <plumb.h>
 #include "flayer.h"
 #include "samterm.h"
 
@@ -24,7 +19,6 @@ long	invlong(int);
 void	hsetdot(int, long, long);
 void	hmoveto(int, long);
 void	hsetsnarf(int);
-void	hplumb(int);
 void	clrlock(void);
 int	snarfswap(char*, int, char**);
 
@@ -292,11 +286,7 @@ inmesg(Hmesg type, int count)
 
 	case Hexit:
 		outT0(Texit);
-		threadexitsall(nil);
-		break;
-
-	case Hplumb:
-		hplumb(m);
+		mouseexit();
 		break;
 	}
 }
@@ -304,18 +294,18 @@ inmesg(Hmesg type, int count)
 void
 setlock(void)
 {
-	hostlock++;
-	setcursor(mousectl, cursor = &lockarrow);
+	lock++;
+	cursorswitch(cursor = &lockarrow);
 }
 
 void
 clrlock(void)
 {
 	hasunlocked = 1;
-	if(hostlock > 0)
-		hostlock--;
-	if(hostlock == 0)
-		setcursor(mousectl, cursor=(Cursor *)0);
+	if(lock > 0)
+		lock--;
+	if(lock == 0)
+		cursorswitch(cursor=(Cursor *)0);
 }
 
 void
@@ -509,7 +499,7 @@ outsend(void)
 	outdata[1]=outcount;
 	outdata[2]=outcount>>8;
 	if(write(1, (char *)outdata, outcount+HSIZE)!=outcount+HSIZE)
-		panic("write error");
+		exits("write error");
 }
 
 
@@ -634,7 +624,7 @@ hsetsnarf(int nc)
 	int i;
 	int n;
 
-	setcursor(mousectl, &deadmouse);
+	cursorswitch(&deadmouse);
 	s2 = alloc(nc+1);
 	for(i=0; i<nc; i++)
 		s2[i] = getch();
@@ -643,38 +633,21 @@ hsetsnarf(int nc)
 	if(n >= 0){
 		if(!s1)
 			n = 0;
+		if(n > SNARFSIZE-1)
+			n = SNARFSIZE-1;
 		s1 = realloc(s1, n+1);
 		if (!s1)
-			panic("realloc");
+			exits("malloc");
 		s1[n] = 0;
 		snarflen = n;
 		outTs(Tsetsnarf, n);
 		if(n>0 && write(1, s1, n)!=n)
-			panic("snarf write error");
+			exits("write error");
 		free(s1);
 	}else
 		outTs(Tsetsnarf, 0);
 	free(s2);
-	setcursor(mousectl, cursor);
-}
-
-void
-hplumb(int nc)
-{
-	int i;
-	char *s;
-	Plumbmsg *m;
-
-	s = alloc(nc);
-	for(i=0; i<nc; i++)
-		s[i] = getch();
-	if(plumbfd > 0){
-		m = plumbunpack(s, nc);
-		if(m != 0)
-			plumbsend(plumbfd, m);
-		plumbfree(m);
-	}
-	free(s);
+	cursorswitch(cursor);
 }
 
 void

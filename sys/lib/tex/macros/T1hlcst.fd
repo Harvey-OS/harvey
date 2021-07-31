@@ -1,0 +1,46 @@
+%Filename: T1hlcst.fd
+%Created by: tex 2676lucsanst
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlcst.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlcst.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlcst}{\hyphenchar \font =-1}
+
+\DeclareFontShape{T1}{hlcst}{b}{n}{
+ <->s * [\LucidaScale]hlcbstq
+}{}
+
+\DeclareFontShape{T1}{hlcst}{b}{sc}{
+ <->s * [\LucidaScale]hlcbstcq
+}{}
+
+\DeclareFontShape{T1}{hlcst}{b}{sl}{
+ <->s * [\LucidaScale]hlcbostq
+}{}
+
+\DeclareFontShape{T1}{hlcst}{m}{n}{
+ <->s * [\LucidaScale]hlcrstq
+}{}
+
+\DeclareFontShape{T1}{hlcst}{m}{sc}{
+ <->s * [\LucidaScale]hlcrstcq
+}{}
+
+\DeclareFontShape{T1}{hlcst}{m}{sl}{
+ <->s * [\LucidaScale]hlcrostq
+}{}
+
+\DeclareFontShape{T1}{hlcst}{bx}{n}{<->ssub * hlcst/b/n}{}
+\DeclareFontShape{T1}{hlcst}{bx}{sc}{<->ssub * hlcst/b/sc}{}
+\DeclareFontShape{T1}{hlcst}{bx}{sl}{<->ssub * hlcst/b/sl}{}
+\DeclareFontShape{T1}{hlcst}{b}{it}{<->ssub * hlcst/b/sl}{}
+\DeclareFontShape{T1}{hlcst}{bx}{it}{<->ssub * hlcst/b/it}{}
+\DeclareFontShape{T1}{hlcst}{b}{ui}{<->sub * hlcst/b/it}{}
+\DeclareFontShape{T1}{hlcst}{bx}{ui}{<->ssub * hlcst/b/ui}{}
+\DeclareFontShape{T1}{hlcst}{m}{it}{<->ssub * hlcst/m/sl}{}
+\DeclareFontShape{T1}{hlcst}{m}{ui}{<->sub * hlcst/m/it}{}
+
+\endinput

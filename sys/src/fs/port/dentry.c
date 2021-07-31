@@ -16,7 +16,7 @@ accessdir(Iobuf *p, Dentry *d, int f, int uid)
 {
 	long t;
 
-	if(p && p->dev->type != Devro) {
+	if(p && p->dev.type != Devro) {
 		p->flags |= Bmod;
 		t = time();
 		if(f & (FREAD|FWRITE))
@@ -30,7 +30,7 @@ accessdir(Iobuf *p, Dentry *d, int f, int uid)
 }
 
 void
-preread(Device *d, long addr)
+preread(Device dev, long addr)
 {
 	Rabuf *rb;
 
@@ -46,110 +46,111 @@ preread(Device *d, long addr)
 	}
 	rabuffree = rb->link;
 	unlock(&rabuflock);
-	rb->dev = d;
+	rb->dev = dev;
 	rb->addr = addr;
 	send(raheadq, rb);
-	cons.brahead[0].count++;
-	cons.brahead[1].count++;
-	cons.brahead[2].count++;
+	cons.brahead.count++;
 }
 
-long
-rel2abs(Iobuf *p, Dentry *d, long a, int tag, int putb, int uid)
+void
+dbufread(Iobuf *p, Dentry *d, long ad, int uid)
 {
-	long addr, qpath;
-	Device *dev;
+	long addr, last, a;
 
-	if(a < 0) {
-		print("dnodebuf: neg\n");
-		return 0;
-	}
-	dev = p->dev;
-	qpath = d->qid.path;
+	last = ad + RACHUNK + RAOVERLAP;
+
+loop:
+	a = ad;
+	if(a < 0 || a >= last)
+		return;
+	ad++;
 	if(a < NDBLOCK) {
 		addr = d->dblock[a];
-		if(!addr && tag) {
-			addr = bufalloc(dev, tag, qpath, uid);
-			d->dblock[a] = addr;
-			p->flags |= Bmod|Bimm;
-		}
-		if(putb)
-			putbuf(p);
-		return addr;
+		if(!addr)
+			return;
+		preread(p->dev, addr);
+		goto loop;
 	}
 	a -= NDBLOCK;
 	if(a < INDPERBUF) {
 		addr = d->iblock;
-		if(!addr && tag) {
-			addr = bufalloc(dev, Tind1, qpath, uid);
-			d->iblock = addr;
-			p->flags |= Bmod|Bimm;
-		}
-		if(putb)
-			putbuf(p);
-		addr = indfetch(dev, qpath, addr, a, Tind1, tag, uid);
-		return addr;
+		if(!addr)
+			return;
+		addr = indfetch(p->dev, d->qid.path, addr, a, Tind1, 0, uid);
+		if(!addr)
+			return;
+		preread(p->dev, addr);
+		goto loop;
 	}
 	a -= INDPERBUF;
 	if(a < INDPERBUF2) {
 		addr = d->diblock;
-		if(!addr && tag) {
-			addr = bufalloc(dev, Tind2, qpath, uid);
-			d->diblock = addr;
-			p->flags |= Bmod|Bimm;
-		}
-		if(putb)
-			putbuf(p);
-		addr = indfetch(dev, qpath, addr, a/INDPERBUF, Tind2, Tind1, uid);
-		addr = indfetch(dev, qpath, addr, a%INDPERBUF, Tind1, tag, uid);
-		return addr;
-	}
-	if(putb)
-		putbuf(p);
-	print("dnodebuf: trip indirect\n");
-	return 0;
-}
-
-/*
- * read-ahead strategy
- * on second block, read RAGAP blocks,
- * thereafter, read RAGAP ahead of current pos
- */
-long
-dbufread(Iobuf *p, Dentry *d, long a, long ra, int uid)
-{
-	long addr;
-
-	if(a == 0)
-		return 1;
-	if(a == 1 && ra == 1) {
-		while(ra < a+RAGAP) {
-			ra++;
-			addr = rel2abs(p, d, ra, 0, 0, uid);
-			if(!addr)
-				return 0;
-			preread(p->dev, addr);
-		}
-		return ra+1;
-	}
-	if(ra == a+RAGAP) {
-		addr = rel2abs(p, d, ra, 0, 0, uid);
 		if(!addr)
-			return 0;
+			return;
+		addr = indfetch(p->dev, d->qid.path, addr, a/INDPERBUF, Tind2, Tind1, uid);
+		if(!addr)
+			return;
+		addr = indfetch(p->dev, d->qid.path, addr, a%INDPERBUF, Tind1, 0, uid);
+		if(!addr)
+			return;
 		preread(p->dev, addr);
-		return ra+1;
+		goto loop;
 	}
-	return ra;
 }
 
 Iobuf*
 dnodebuf(Iobuf *p, Dentry *d, long a, int tag, int uid)
 {
+	Iobuf *bp;
 	long addr;
 
-	addr = rel2abs(p, d, a, tag, 0, uid);
-	if(addr)
-		return getbuf(p->dev, addr, Bread);
+	if(a < 0) {
+		print("dnodebuf: neg\n");
+		return 0;
+	}
+	bp = 0;
+	if(a < NDBLOCK) {
+		addr = d->dblock[a];
+		if(addr)
+			return getbuf(p->dev, addr, Bread);
+		if(tag) {
+			addr = bufalloc(p->dev, tag, d->qid.path, uid);
+			if(addr) {
+				d->dblock[a] = addr;
+				p->flags |= Bmod|Bimm;
+				bp = getbuf(p->dev, addr, Bmod);
+			}
+		}
+		return bp;
+	}
+	a -= NDBLOCK;
+	if(a < INDPERBUF) {
+		addr = d->iblock;
+		if(!addr && tag) {
+			addr = bufalloc(p->dev, Tind1, d->qid.path, uid);
+			d->iblock = addr;
+			p->flags |= Bmod|Bimm;
+		}
+		addr = indfetch(p->dev, d->qid.path, addr, a, Tind1, tag, uid);
+		if(addr)
+			bp = getbuf(p->dev, addr, Bread);
+		return bp;
+	}
+	a -= INDPERBUF;
+	if(a < INDPERBUF2) {
+		addr = d->diblock;
+		if(!addr && tag) {
+			addr = bufalloc(p->dev, Tind2, d->qid.path, uid);
+			d->diblock = addr;
+			p->flags |= Bmod|Bimm;
+		}
+		addr = indfetch(p->dev, d->qid.path, addr, a/INDPERBUF, Tind2, Tind1, uid);
+		addr = indfetch(p->dev, d->qid.path, addr, a%INDPERBUF, Tind1, tag, uid);
+		if(addr)
+			bp = getbuf(p->dev, addr, Bread);
+		return bp;
+	}
+	print("dnodebuf: trip indirect\n");
 	return 0;
 }
 
@@ -160,25 +161,82 @@ dnodebuf(Iobuf *p, Dentry *d, long a, int tag, int uid)
 Iobuf*
 dnodebuf1(Iobuf *p, Dentry *d, long a, int tag, int uid)
 {
+	Iobuf *bp;
 	long addr;
-	Device *dev;
+	Device dev;
+	long qpath;
 
+	if(a < 0) {
+		putbuf(p);
+		print("dnodebuf1: neg\n");
+		return 0;
+	}
+
+	bp = 0;
 	dev = p->dev;
-	addr = rel2abs(p, d, a, tag, 1, uid);
-	if(addr)
-		return getbuf(dev, addr, Bread);
-	return 0;
+	qpath = d->qid.path;
+	if(a < NDBLOCK) {
+		addr = d->dblock[a];
+		if(addr) {
+			putbuf(p);
+			return getbuf(dev, addr, Bread);
+		}
+		if(tag) {
+			addr = bufalloc(dev, tag, qpath, uid);
+			if(addr) {
+				d->dblock[a] = addr;
+				p->flags |= Bmod|Bimm;
+				putbuf(p);
+				bp = getbuf(dev, addr, Bmod);
+				return bp;
+			}
+		}
+		putbuf(p);
+		return 0;
+	}
 
+	a -= NDBLOCK;
+	if(a < INDPERBUF) {
+		addr = d->iblock;
+		if(!addr && tag) {
+			addr = bufalloc(dev, Tind1, d->qid.path, uid);
+			d->iblock = addr;
+			p->flags |= Bmod|Bimm;
+		}
+		putbuf(p);
+		addr = indfetch(dev, qpath, addr, a, Tind1, tag, uid);
+		if(addr)
+			bp = getbuf(dev, addr, Bread);
+		return bp;
+	}
+	a -= INDPERBUF;
+	if(a < INDPERBUF2) {
+		addr = d->diblock;
+		if(!addr && tag) {
+			addr = bufalloc(dev, Tind2, d->qid.path, uid);
+			d->diblock = addr;
+			p->flags |= Bmod|Bimm;
+		}
+		putbuf(p);
+		addr = indfetch(dev, qpath, addr, a/INDPERBUF, Tind2, Tind1, uid);
+		addr = indfetch(dev, qpath, addr, a%INDPERBUF, Tind1, tag, uid);
+		if(addr)
+			bp = getbuf(dev, addr, Bread);
+		return bp;
+	}
+	print("dnodebuf1: trip indirect\n");
+	putbuf(p);
+	return 0;
 }
 
 long
-indfetch(Device* d, long qpath, long addr, long a, int itag, int tag, int uid)
+indfetch(Device dev, long qpath, long addr, long a, int itag, int tag, int uid)
 {
 	Iobuf *bp;
 
 	if(!addr)
 		return 0;
-	bp = getbuf(d, addr, Bread);
+	bp = getbuf(dev, addr, Bread);
 	if(!bp || checktag(bp, itag, qpath)) {
 		if(!bp) {
 			print("ind fetch bp = 0\n");
@@ -190,7 +248,7 @@ indfetch(Device* d, long qpath, long addr, long a, int itag, int tag, int uid)
 	}
 	addr = ((long*)bp->iobuf)[a];
 	if(!addr && tag) {
-		addr = bufalloc(d, tag, qpath, uid);
+		addr = bufalloc(dev, tag, qpath, uid);
 		if(addr) {
 			((long*)bp->iobuf)[a] = addr;
 			bp->flags |= Bmod;

@@ -1,0 +1,57 @@
+.TH GFTYPE 1 "7 Jan 92"
+.SH NAME
+gftype - translate a generic font file for humans to read
+.SH SYNTAX
+.B gftype
+[-m] [-i] gf_file_name [output_file_name]
+.SH DESCRIPTION
+The
+.I gftype
+program
+translates a GF (generic font) file output by, for example, 
+.BR mf (1),
+to a file that humans can read.
+It also serves as a GF file-validating
+program (i.e., if
+.I gftype
+can read it, it's correct) and as an example of a GF-reading
+program for other software that wants to read GF files.
+.PP
+The
+.I gf_file_name
+on the command line must be complete. Because
+the resolution is part of the extension, it would not make
+sense to add on a default extension as is done with TeX or
+DVI-reading software. If no
+.I output_file_name
+is specified, the output goes to
+.IR stdout .
+.SH OPTIONS
+The output file includes a symbolic listing of the GF commands, if
+.I -m
+is given on the command line, 
+and bitmap images of the characters, if
+.I -i
+is specified.
+.SH ENVIRONMENT
+.I gftype
+looks for
+.I gf_file_name
+first in the current directory.  If it is not present there, it uses the
+environment variable GFFONTS.  If that is not set, it uses the variable
+TEXFONTS.  If this is not set, it uses the system defaults:
+.br
+TEXFONTS:
+.BR @TEXFONTS@ ,
+.br
+.SH "SEE ALSO"
+dvitype(1), pktype(1)
+.br
+Donald Knuth et al.,
+.I METAFONTware
+.SH AUTHORS
+David Fuchs and Don Knuth wrote the program.  It was published as
+part of the
+.I METAFONTware
+technical report, available from the TeX Users Group.
+Paul Richards originally ported it to Unix.

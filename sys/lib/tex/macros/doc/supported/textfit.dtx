@@ -1,0 +1,229 @@
+\def\fileversion{5}
+\def\filedate{1994/04/15}
+\def\docdate{1994/04/15}
+% \iffalse
+%% File: textfit.dtx Copyright (C) 1994 Sebastian Rahtz and Phil Taylor
+% 
+%  This package is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{textfit}
+\begin{document}
+ \title{The \textsf{textfit} package for
+scaling up text to a desired size\thanks{This file
+        has version number \fileversion, last
+        revised \filedate.}}
+ \author{Sebastian Rahtz \and Phil Taylor}
+ \date{\filedate}
+ \maketitle
+ \tableofcontents
+ \DocInput{textfit.dtx}
+ \end{document}
+%</driver>
+% \fi
+% \CheckSum{281}
+%
+% \section{Introduction}
+%
+% The user needs to be able to specify the width or height for text, and
+% use the largest size necessary to fill that width or height. You
+% can choose whether to have the size increased by simple points, or
+% by using magsteps.
+% Usage:
+% \verb|\scaletowidth{3in}{This is the way of the world}|
+% \verb|\scaletoheight{7mm}{This is the way of the world}|
+% Details are controlled by two options: `magstep' will
+% make the system use magsteps, not points, and `noisy'
+% will produce useful messages.
+% \changes{1}{5/2/93}{Worked out point size by trial and error, increasing
+%   it in increments of 1pt until result reached desired size}
+% \changes{2}{9/2/93}{Final point size calculated by comparison of size at
+%    10pt. faster, and takes less TeX memory for intermediate fonts}
+% \changes{3}{10/1/94}{Revised to make it a \LaTeXe\ package}
+% \changes{4}{6/2/94}{It only worked if `noisy' option was given ...}
+% \changes{5}{15/4/94}{Checked again for \LaTeXe}
+%
+%Examples; note that the base font is taken from the current state when
+%you enter the macros. so if you start off with a large font (eg
+%cmr17), it will give a different result from that obtained by scaling
+%up cmr5.
+%
+%\scaletowidth{1in}{This is the way of the world}
+%
+%{\Huge \scaletowidth{1in}{This is the way of the world}}
+%
+%{\Huge \scaletowidth{5in}{This is the way of the world}}
+%
+%\scaletowidth{5in}{This is the way of the world}
+%
+%{\Huge \scaletoheight{1.3in}{Cowabunga!} }
+%
+% \scaletowidth{5in}{Gloucestershire  Warwickshire Railway}
+%
+%\ScalebyMagstepstrue
+%
+%\scaletowidth{1in}{This is the way of the world}
+%
+%{\Huge \scaletowidth{1in}{This is the way of the world}}
+%
+%{\Huge \scaletowidth{5in}{This is the way of the world}}
+%
+%\scaletowidth{5in}{This is the way of the world}
+%
+%{\Huge \scaletoheight{1.3in}{Cowabunga!} }
+% \StopEventually{}
+%    \begin{macrocode}
+%<*package>
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{textfit}[\filedate]
+\newif\ifScalebyMagsteps
+\newif\ifNoisyFitting
+\NoisyFittingfalse
+\ScalebyMagstepsfalse
+\DeclareOption{noisy}{\NoisyFittingtrue}
+\DeclareOption{magstep}{\ScalebyMagstepstrue}
+\ProcessOptions
+\newcount \mags@f@r
+\newdimen \desired@size
+\newcount \r@mainder
+\newcount \m@gstepcount
+\newcount \m@gsteplimit
+\newcount \m@gstepvalue
+\newdimen \m@gstepdimen
+%    \end{macrocode}
+% Code for working out the right magstep (this is Phil's bit).
+%    \begin{macrocode}
+\def \magsteps {\afterassignment \m@gsteps \m@gsteplimit = }
+\def \m@gsteps
+    {\let \@r = \or
+     \def \or {\noexpand \or}%
+     \m@gstepdimen = 0.166667 \maxdimen
+     \m@gstepvalue = 1000 
+     \m@gstepcount = 0
+     \def \magstep {}%
+     \loop
+     \ifnum     \m@gstepcount < \m@gsteplimit
+                \advance \m@gstepcount by 1
+                \ifnum \m@gstepvalue > \m@gstepdimen
+                        \advance \m@gstepcount by -1
+                        \message {Sorry --- integer overflow would occur if
+                                        I went any further; stopped at 
+                                                \the \m@gstepcount.}
+                        \m@gsteplimit = \m@gstepcount 
+                \else
+                        \multiply \m@gstepvalue by 12
+                        \multiply \r@mainder by 12
+                        \divide \r@mainder by 10
+                        \advance \m@gstepvalue by \r@mainder
+                        \r@mainder = \m@gstepvalue
+                        \divide \m@gstepvalue by 10
+                        \multiply \m@gstepvalue by 10
+                        \advance \r@mainder by -\m@gstepvalue
+                        \divide \m@gstepvalue by 10
+                        \ifnum \r@mainder < 5
+                               \edef \magstep {\magstep \or \the \m@gstepvalue}%
+                        \else
+                               \advance \m@gstepvalue by 1
+                               \edef \magstep {\magstep \or \the \m@gstepvalue}%
+                               \advance \m@gstepvalue by -1
+                        \fi
+                \fi
+     \repeat
+     \edef \magstep ##1%
+          {\noexpand \ifcase ##1
+                        1000\magstep 
+           \noexpand \else 0%
+           \noexpand \message 
+                {Sorry --- \string \magstep \space ##1
+                                is not in range 0 .. \the \m@gsteplimit}%
+           \noexpand \fi
+           \noexpand \relax
+          }%
+     \let \or = \@r
+    }
+\magsteps 63
+\def \Fontname #1{\expandafter \strip@size \fontname #1 }
+\def \strip@size #1 #2#{#1\void@@@}
+\def \void@@@ #1{}
+\gdef\n@d#1.#2:{#1}
+\def \@scaletofit[#1]#2#3{%
+     \def\Hb@x{h}\def\H@rV{#1}%
+     \ifx\H@rV\Hb@x\def\C@mpare{\wd}\else\def\C@mpare{\ht}\fi
+     \desired@size #2 
+     \def\curr@fontname{\Fontname \font {} }%
+     \ifScalebyMagsteps
+        \mags@f@r \z@
+        \setbox 0 = \hbox{#3}%
+        \def\@increment{1}%
+	\def\@test{<}%
+        \ifdim \C@mpare 0 > \desired@size
+           \message{When scaling by Magsteps, you cannot go downwards!}%
+        \fi
+        \loop
+        \font \temp@font = \curr@fontname  scaled \magstep \mags@f@r
+	\setbox 0 = \hbox{{\temp@font #3}}%
+        \ifNoisyFitting
+          \message {Trying \noexpand \magstep \the \mags@f@r...}%
+        \fi
+        \ifdim \C@mpare 0 \@test \desired@size
+           \advance \mags@f@r by \@increment
+        \repeat
+        \ifnum \mags@f@r=\z@
+           \mags@f@r1
+         \fi
+         \advance \mags@f@r by -\@increment
+     \else
+        \font\temp@font=\curr@fontname at1pt
+        \setbox 0 = \hbox{{\temp@font #3}}%
+        \@tempdima\C@mpare0
+        \multiply\@tempdima by 500 %\@m
+        \def\foo@@{\expandafter\n@d\the\@tempdima:}%
+        \@tempdimb\desired@size
+        \divide\@tempdimb by \foo@@
+        \multiply\@tempdimb by 500 %\@m
+     \fi
+     \ifScalebyMagsteps
+        \ifNoisyFitting
+	  \message {The calculated font is \curr@fontname 
+           scaled \noexpand \magstep \the \mags@f@r}%
+        \fi
+        \font \temp@font = \curr@fontname scaled \magstep \mags@f@r
+     \else
+        \ifNoisyFitting
+           \message {The calculated font is \curr@fontname ->\the\@tempdimb}%
+        \fi
+        \font\temp@font=\curr@fontname at \the\@tempdimb
+     \fi
+     \ifx\H@rV\Hb@x
+        \hbox to \desired@size {\hss{\temp@font #3}\hss}%
+     \else
+        \hbox {{\temp@font #3}}%
+     \fi     
+}
+% user interface
+\def\scaletowidth{\@scaletofit[h]}
+\def\scaletoheight{\@scaletofit[v]}
+%</package>
+%    \end{macrocode}
+% \Finale
+\endinput
+%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+

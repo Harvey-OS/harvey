@@ -1,5 +1,0 @@
-Programs for building troff width tables on a PostScript printer.
-Assumes you have direct access to the printer's serial port. Also
-needs a special table dependent shell library file to build the
-tables (e.g. ../devLatin1/shell.lib).
-

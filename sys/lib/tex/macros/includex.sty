@@ -1,0 +1,408 @@
+% \iffalse
+% $Id: includex.sty,v 1.1 1995/01/28 07:42:31 swift Exp $
+
+%   includex.sty                extensions to LaTeX \include
+
+%   Copyright (C) 1994 Matt Swift <swift@bu.edu>
+
+% In the near future this code will become part of a larger package called
+% "scholar" that I will release also under the GPL.  I want to make certain
+% useful parts of the package available before the whole package is released
+% because I don't see any reason to withhold them.  This is in lieu of a beta
+% release that would only be frustrating because I will not have time to
+% maintain it until May 1995.  If you find this code useful, look for the whole
+% package about that time.  I welcome comments, suggestions, etc.
+
+%   This program is free software; you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation; either version 2 of the License, or
+%   (at your option) any later version.
+
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+
+%   You should have received a copy of the GNU General Public License
+%   along with this program; if not, write to the Free Software
+%   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+% \fi
+
+% \date{95/01/26}
+% \author{Matt Swift \texttt{<swift@bu.edu>}}
+% \title{The \texttt{includex} package}
+% \maketitle
+
+% \section{Introduction}
+% \DescribeMacro{\include*}
+% |\include| was always pretty useless to me because it did a |\clearpage|
+% before and after the |\input|.  The macro |\include*| is defined below to be
+% like |\include| but without the |\clearpage|s. 
+
+% The other thing we do is define a command |\includedoc|, which includes a
+% file which is allowed to have its own |\documentclass| and |\begin{document}|
+% and |\end{document}| and |\usepackage| commands.  
+
+% This opens up a whole new world of truly modular \LaTeX\ files.  There is
+% even nothing special about extracting the |document| environment, we can
+% extract \emph{any} environment, or perhaps even other things.
+
+% There are some problems, however.  Maybe the |\usepackage| is necessary,
+% maybe it would conflict.  Same with other commands like the |\newcommand|
+% family. It is simply not (yet) an issue in \LaTeX\ design to consider the
+% implications of parent files.  The problems are not insurmountable.  We can
+% begin by working with a convention, and ultimately maybe make some changes in
+% certain macros.  I will be getting to all this.  I admit I have not looked
+% carefully to see whether the design specifications of \LaTeX3\ address these
+% important issues. 
+
+% The macros here will be useful in many circumstances, when the included files
+% are themselves simple.  
+
+% \DescribeMacro{\includedoc}
+% \DescribeMacro{\includedoc*}
+% \DescribeMacro{\includedocskip}
+% \DescribeMacro{\includedocskip*}
+% There are now two main commands, |\includedoc| and |includedocskip|, each
+% with a |*| version analogous to the new |\include*|.  Each take a filename as
+% an argument just like |\include|. 
+
+% |\includedoc|\marg{filename} reads everything in the file except for
+% |\documentclass|, |\usepackage|, |\begin{document}|, |\end{document}| (and
+% whatever follows it).  
+
+% |includedocskip|\marg{filename} does the same except it also skips everything
+% between |\documentclass| and |\begin{document}|.
+
+% \DescribeMacro{\gobbleopt}
+% \DescribeMacro{\gobble}
+% \DescribeMacro{\gobbletwo}
+% \DescribeMacro{\disable}
+% At present there is a makeshift way to ignore additional commands when using
+% |\includedoc| and |\includedocskip|. If you want to cause |\foo| which takes
+% no arguments to be disabled, say |\disable{\let\foo\relax}|. If |\foo| takes
+% one mandatory argument, say |\let\foo\gobble| instead.  If |\foo| takes one
+% optional and one mandatory, say |\let\foo\gobbleopt|.  If |\foo| takes two
+% mandatory arguments, say |\let\foo\gobbletwo|.  For other permutations of
+% arguments, you can extrapolate from the macros defined below. 
+
+% \section{Implementation}
+
+% \StopEventually{}
+
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{includex}[1995/01/26 v1.0 includation extensions]
+\RequirePackage{ifthen}
+% \RequirePackage{verbatim}
+%    \end{macrocode}
+
+% \begin{macro}{\newlet}
+% This helps avoid collisions.
+%    \begin{macrocode}
+\newcommand\newlet[2]
+  {\@ifdefinable #1
+      {\let#1#2}}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\addto@macro}
+% \begin{macro}{\newtokens}
+% \begin{macro}{\sc@toks@a}
+% These help us build up macros from pieces.   |\newtokens| should be |\outer|
+% but for the moment that's a pain because the scholar package is in pieces,
+% and you want to be able to load more than one piece.
+%    \begin{macrocode}
+\@ifundefined{newtokens}
+    {\def\newtokens#1%
+      {\@ifdefinable #1
+      {\csname newtoks\endcsname#1}}}
+  {}
+
+\@ifundefined{sc@toks@a}
+    {\newtokens\sc@toks@a}
+  {}
+
+\newcommand\addto@macro[2]
+  {\sc@toks@a=\expandafter{#1#2}%
+  \edef#1{\the\sc@toks@a}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{\DisableScholar}
+% This allows the disabling hacks.
+%    \begin{macrocode}
+\newcommand\DisableScholar{}
+\newcommand\disable[1]
+  {\g@addto@macro\DisableScholar{#1}}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\sc@saved@include}
+% \begin{macro}{\include}
+% \begin{macro}{\sc@include}
+% \begin{macro}{\sc@@include}
+% This is a simple redefinition of |\include| without the |\clearpage|
+% commands.  Nothing tricky going on. 
+%    \begin{macrocode}
+\newlet\sc@saved@include\include
+\renewcommand\include
+  {\@ifstar
+      \sc@include
+    \sc@saved@include}
+
+\newcommand\sc@include
+  {\relax
+  \ifthenelse{\@auxout = \@partaux}
+      {\@latex@error{\string\include\space cannot be nested}\@eha}
+    {\sc@@include}}
+
+\newcommand\sc@@include[1]
+  {\if@filesw
+    \immediate\write\@mainaux{\string\@input{#1.aux}}%
+  \fi
+  \@tempswatrue
+  \if@partsw 
+    \@tempswafalse
+    \edef\@tempb{#1}%
+    \@for \@tempa:=\@partlist
+      \do{\ifx\@tempa
+            \@tempb
+            \@tempswatrue
+          \fi}%
+  \fi
+  \if@tempswa 
+    \let\@auxout\@partaux 
+    \if@filesw
+      \immediate\openout\@partaux #1.aux%
+      \immediate\write\@partaux{\relax}%
+    \fi
+    \@input@{#1.tex}%
+    \@writeckpt{#1}%
+    \if@filesw
+      \immediate\closeout\@partaux 
+    \fi
+  \else
+    \@nameuse{cp@#1}%
+  \fi
+  \let\@auxout\@mainaux}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+
+% Now we start dealing with the much more tricky extraction of the |document|
+% environment.
+
+% We start with considering how to quit inputting a file.  The idea is to make
+% the |\end{document}| command of the included file call |\endinput|.  But
+% there is a hitch that characters after the |\end{document}| get inserted when
+% you don't want them to.
+
+% Following is a way I tried to beat that limitation.  I could have sworn I had
+% it working at one point, but it doesn't seem to now.
+% \begin{macro}{\sc@tempa}
+% First we need a scratch variable.
+%    \begin{macrocode}
+\newcommand\sc@tempa{}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\sc@radical@shutdown}
+% We will add a bunch of commands to this macro, with the idea of |\catcode|ing
+% everything and its brother to a comment.   This would be a brute force
+% method! 
+%    \begin{macrocode}
+\newcommand\sc@radical@shutdown{}
+%    \end{macrocode}
+% First log a message that we're about to do some crazy things. In case
+% something ever goes wrong, this might help.
+%    \begin{macrocode}
+\addto@macro\sc@radical@shutdown
+  {\PackageInfo{includex}{\protect\sc@radical@shutdown\space beginning}}
+%    \end{macrocode}
+% Now we start adding |\catcode| commands.  These first two should be
+% redundant; but just in case someone changed things\ldots.
+%    \begin{macrocode}
+\addto@macro\sc@radical@shutdown{\catcode`\%=14}    % 14 = comment
+\addto@macro\sc@radical@shutdown{\catcode`\^=7}     % 7 = superscript
+%    \end{macrocode}
+% \begin{macro}{\sc@disable@char}
+% Next, we define a command we weill use in a loop in a moment.
+%    \begin{macrocode}
+\newcommand\sc@disable@char[1]
+  {\addto@macro\sc@radical@shutdown
+    {\catcode`#1=14}}  % 14 = comment
+%    \end{macrocode}
+% The following list contains every keyboard char except these three, which are
+% treated specially: |%#|.  
+% The first is already a comment, and we handle the second in a moment.  Each
+% character in the following list is |\catcode|d to a comment:
+%    \begin{macrocode}
+\@tfor\sc@tempa:=abcdefghijklmnopqrstuvwxyz%
+                ABCDEFGHIJKLMNOPQRSTUVWXYZ%
+                ~!@$&*()_+-=[]|/?.,<>%
+                1234567890%
+                `'";:%
+                \^\\\{\}\ % this is really the chars "^\{}" and space
+    \do {\expandafter\sc@disable@char\sc@tempa}
+%    \end{macrocode}
+% We add |#| separately, because it's tricky or impossible to put it into the
+% list we just used.
+%    \begin{macrocode}
+\sc@disable@char\#
+%    \end{macrocode}
+% \end{macro}
+% We end the macro with |\endinput|.  This has to come after all the previous,
+% otherwise, \TeX\ goes ahead and reads to the end of the line immediately,
+% with regular catcodes.  This is a good theory, I'm not sure it's necessary.
+%    \begin{macrocode}
+\addto@macro\sc@radical@shutdown{\endinput}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\sc@radical@shutdown@aftergroup}
+% We need to use |\sc@radical@shutdown| this way.
+%    \begin{macrocode}
+\newcommand\sc@radical@shutdown@aftergroup
+  {\aftergroup\sc@radical@shutdown}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\includedoc}
+% \begin{macro}{\includedoc*}
+% Now we start from the other end, defining the user command.
+%    \begin{macrocode}
+\newcommand\includedoc
+  {\@ifstar
+      {\sc@includebit}
+    {\clearpage
+    \sc@includebit[\clearpage]}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{sc@count}
+% \begin{macro}{\sc@gobbleopt}
+% \begin{macro}{\gobbleopt}
+% \begin{macro}{\gobble}
+% \begin{macro}{\gobbletwo}
+% Before proceeding, we need a new counter, and the gobblers.
+% Saying |\let\foo\sc@gobbleopt| will cause occurrences of |\foo|\marg{baz}
+% |\foo|\oarg{bar}\marg{baz} to be entirely ignored. 
+%    \begin{macrocode}
+\newcounter{sc@count}
+
+\newcommand\sc@gobbleopt
+  {\@ifnextchar [{\sc@@gobbleopt}{\@gobble}}
+\newcommand\sc@@gobbleopt{}
+\def\sc@@gobbleopt[#1]#2{}
+
+\let\gobbleopt\sc@gobbleopt
+\let\gobble\@gobble
+\let\gobbletwo\@gobbletwo
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{\sc@includebit}
+% Ignore the commented lines here; they are for the bigger |scholar| package.
+%    \begin{macrocode}
+\newcommand\sc@includebit[2][]
+  {%\setcounter{sc@count}{\thebit}%
+  \begingroup
+  \DisableScholar  
+  \let\usepackage\sc@gobbleopt
+  \let\enddocument\sc@radical@shutdown@aftergroup
+  \let\documentclass\sc@gobbleopt  
+  \let\documentstyle\sc@gobbleopt  % why worry about branching if 2.09..
+  \renewcommand\document{}%
+  \include*{#2}% 
+  \endgroup
+%  \ifthenelse{\value{sc@count} = \value{bit}} 
+%      {\PackageWarning{includex}
+%      	{Included file #1 did not contain a proper bit}}
+%    {}%
+  \par
+  #1}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\includedocskip}
+% \begin{macro}{\includedocskip*}
+% Now we make a similar command that \emph{entirely} skips the preamble,
+% whereas |\includedoc| only skipped those commands that we specifically
+% disabled.  Obviously this whole business of the preamble needs to be
+% radically reconceived if convenient modularity of documents is to be had.  I
+% will get around to writing up my thoughts on this, and suggesting an interim
+% convention, when I can.  At the moment, no distinction is made between things
+% like |\newcommand| and |\usepackage| that should be exported to a parent
+% file, and those things that should not.
+%    \begin{macrocode}
+\newcommand\includedocskip
+  {\@ifstar
+      {\sc@includebitskip}
+    {\clearpage
+    \sc@includebitskip[\clearpage]}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+
+% I tried combining |\sc@includebitskip| and |\sc@includebit| but something
+% changed when I used a conditional to do this.  I'm sure the problem could be
+% figured out and the two combined.
+
+% \begin{macro}{\sc@includebitskip}
+% We begin skipping with the |\documentclass| or |\documentstyle| command, and
+% stop with the |\begin{document}| command.  With some hacking to the new
+% |verbatim| environment, this could be done.  I haven't done this yet, so this
+% is implemented by stuffing everything into a macro argument.  I can't think
+% of a |\begin| occurring between |\documentclass| the |\begin| document, but
+% that will screw things up if it does.
+
+% Ignore the commented lines here; they are for the bigger |scholar| package.
+%    \begin{macrocode}
+\newcommand\sc@includebitskip[2][]
+  {% \setcounter{sc@count}{\thebit}%
+  \begingroup
+  \DisableScholar
+  \let\enddocument\sc@radical@shutdown@aftergroup
+  \long\def\documentclass##1\begin{%
+    \begingroup
+    \def\@currenvir{document}%
+    \@gobble}  % "{document}" is still to be read.
+  \let\documentstyle\documentclass
+  \include*{#2}%
+  \endgroup
+%  \ifthenelse{\value{sc@count} = \value{bit}}
+%      {\PackageWarning{scholar}
+%      	{Included file #1 did not contain a proper bit}}
+%    {}%
+  \par
+  #1}
+%    \end{macrocode}
+% \end{macro}
+
+
+% \Finale
+
+\endinput
+
+% Notes for myself:
+
+% should consider being able to extract individual bits, like my name says, not
+% just the document command;  should be the same problem.
+
+% investigate globality of bit counter
+
+% change ``includex'' to ``scholar''
+
+% uncomment disabling things, and checking for bitcounter things. 
+

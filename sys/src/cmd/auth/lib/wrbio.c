@@ -8,7 +8,8 @@
 void
 wrbio(char *file, Acctbio *a)
 {
-	char buf[1024];
+	char uinfo[512];
+	char sponsors[512];
 	int i, fd, n;
 
 	fd = open(file, OWRITE);
@@ -17,25 +18,22 @@ wrbio(char *file, Acctbio *a)
 	if(seek(fd, 0, 2) < 0)
 		error("can't seek %s", file);
 
-	if(a->postid == 0)
-		a->postid = "";
 	if(a->name == 0)
-		a->name = "";
+		a->name = strdup(a->user);
 	if(a->dept == 0)
-		a->dept = "";
+		a->dept = strdup("1127?");
 	if(a->email[0] == 0)
 		a->email[0] = strdup(a->user);
 
+	snprint(uinfo, sizeof(uinfo), "%s %s <%s>", a->name, a->dept, a->email[0]);
 	n = 0;
-	n += snprint(buf+n, sizeof(buf)-n, "%s|%s|%s|%s",
-		a->user, a->postid, a->name, a->dept);
-	for(i = 0; i < Nemail; i++){
+	sponsors[0] = 0;
+	for(i = 1; i < Nemail; i++){
 		if(a->email[i] == 0)
 			break;
-		n += snprint(buf+n, sizeof(buf)-n, "|%s", a->email[i]);
+		n += snprint(sponsors+n, sizeof(sponsors)-n, "<%s>", a->email[i]);
 	}
-	n += snprint(buf+n, sizeof(buf)-n, "\n");
 
-	write(fd, buf, n);
+	fprint(fd, "%s		%s		%s\n", a->user, uinfo, sponsors);
 	close(fd);
 }

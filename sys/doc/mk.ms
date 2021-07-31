@@ -2,9 +2,8 @@
 Maintaining Files on Plan 9 with Mk
 .AU
 Andrew G. Hume
-andrew@research.att.com
 Bob Flandrena
-bobf@plan9.bell-labs.com
+andrew,bobf@plan9.att.com
 .AB
 .PP
 .CW Mk
@@ -14,7 +13,7 @@ files.
 It is similar to the
 UNIX program
 .CW make ,
-but provides several extensions.
+but provides several new capabilities.
 .CW Mk\fR'\fPs
 flexible rule specifications, implied
 dependency derivation, and parallel
@@ -27,24 +26,31 @@ are automated using
 .NH 1
 Introduction
 .PP
-This document describes how
-.CW mk ,
-a program functionally similar to
-.CW make
-[Feld79],
-is used to maintain dependencies between
-files in Plan 9.
 .CW Mk
-provides several extensions to the
-capabilities of its predecessor that work
-well in Plan 9's distributed, multi-architecture
-environment.  It
+performs the same task as
+.CW make
+[Feld79] but is different in many ways.
+This document describes
+.CW mk\fR'\fPs
+capabilities and discusses how they are
+used in Plan 9.  There are occasional references
+to differences between 
+.CW mk
+and
+.CW make ,
+but
+an appendix summarizes the details.
+.PP
+.CW Mk
+works well in the Plan 9 environment.
+It supports program construction
+in a heterogeneous environment and
 exploits the power of multiprocessors by executing
-maintenance actions in parallel and interacts with
-the Plan 9 command interpreter
+maintenance actions in parallel.
+It interacts seamlessly with the Plan 9 command
+interpreter
 .CW rc
-to provide a powerful set of maintenance tools.
-It accepts pattern-based dependency specifications
+and accepts pattern-based dependency specifications
 that are not limited to describing
 rules for program construction.
 The result is a tool that is flexible enough to
@@ -53,7 +59,7 @@ database maintenance,
 hardware design, and document production.
 .PP
 This document begins by discussing 
-the syntax of the control file,
+the syntax of the input file,
 the pattern matching capabilities, and
 the special rules for maintaining archives.
 A brief description of
@@ -68,11 +74,7 @@ and special features.
 An earlier paper [Hume87]
 provides a detailed discussion of
 .CW mk\fR'\fPs
-design and an appendix summarizes
-the differences between
-.CW mk
-and
-.CW make .
+design.
 .NH 1
 The \f(CWMkfile\fP
 .PP
@@ -138,6 +140,7 @@ The Plan 9 version of the same
 looks like:
 .P1
 </$objtype/mkfile
+CFLAGS=-w
 
 f1:	f1.$O
 	$LD $LDFLAGS -o f1 f1.$O
@@ -167,13 +170,13 @@ Invoking
 .CW mk
 from the command line as follows
 .P1
-% objtype=mips mk
-vc -w f1.c
-vl $LDFLAGS -o f1 f1.k
+% objtype=sparc mk
+kc -w f1.c
+kl $LDFLAGS -o f1 f1.k
 %
 .P2
 produces the
-.CW mips
+.CW sparc
 executable of program
 .CW f1
 regardless of the current architecture type.
@@ -183,6 +186,7 @@ We can extend the
 to build two programs:
 .P1
 </$objtype/mkfile
+CFLAGS=-w
 ALL=f1 f2
 
 all:V:	$ALL
@@ -218,7 +222,7 @@ Variables and the environment
 .PP
 .CW Mk
 does not distinguish between its
-internal variables and
+variables and
 .CW rc
 variables in the environment.
 When
@@ -239,8 +243,8 @@ It can be set with an assignment statement,
 inherited from the environment, or specified
 on the command line.
 .CW Mk
-also maintains several special internal variables
-that are described in
+also maintains several internal variables;
+these variables are described in
 .I mk (1).
 Assignments have the following decreasing order of precedence:
 .LP
@@ -318,7 +322,7 @@ substitute command
 .P1
 	s/\fIA\fP(.*)\fIB\fP/\fIC\fP\e1\fID\fP/
 .P2
-to each member of a variable list.
+to each member of a variable.
 .PP
 Namelists are useful for generating
 a list based on a predictable transformation.
@@ -347,9 +351,9 @@ execution environment.
 The command may
 be arbitrarily complex; for example,
 .P1
-	TARG=`{ls -d *.[cy] | sed 's/..$//'}
+	TARG=`{ls -d *.[cyl] | sed 's/..$//'}
 .P2
-assigns a list of the C and yacc source files in the current
+assigns a list of the C, yacc, and Alef source files in the current
 directory, stripped of their suffix, to the variable
 .CW TARG .
 .NH 1
@@ -399,12 +403,12 @@ each of which begins with white space.
 One or more targets must be specified but the
 attributes, prerequisites, and recipe are optional.
 A rule specifies
-a dependency between the target(s) and its prerequisite(s),
-the recipe brings the target(s)
-up to date with the prerequisite(s) and
-attributes modify
+a dependency between the targets and the prerequisites;
+the recipe brings the targets
+up to date with the prerequisites.
+Attributes modify
 .CW mk\fR'\fPs
-evaluation of the dependency.
+evaluation of a rule.
 .PP
 Normally the target is a file that depends
 on one or more prerequisite files.
@@ -475,9 +479,8 @@ executed if a file named
 existed.
 The
 .CW Q
-attribute
-silences the printing of a recipe before
-execution.
+silences the default printing of a recipe before
+it is executed.
 It is useful when the output of a recipe is
 similar to the recipe:
 .P1
@@ -485,9 +488,9 @@ default:QV:
 	echo 'No default target; use mk all or mk install'
 .P2
 .PP
-The recipe is an
+A recipe is an
 .CW rc
-script.  It is optional but when it is
+script.  The recipe is optional; when it is
 missing, the rule is handled specially, as described later.
 Unlike
 .CW make ,
@@ -507,8 +510,8 @@ Scripts for
 .CW awk
 and
 .CW sed
-commands can be embedded exactly as they would
-be entered from the command line.
+commands can be embedded just as they would
+be specified from the command line.
 .CW Mk
 invokes
 .CW rc
@@ -523,9 +526,10 @@ attribute overrides this behavior and allows
 .CW rc
 to continue executing in the face of errors.
 Before a recipe is executed, variables are exported
-to the environment where they are available to
-.CW rc .
-Commands in the recipe may not read from
+to the environment where
+.CW rc
+can see them.
+Recipe commands may not read from
 standard input because
 .CW mk
 uses it internally.
@@ -575,7 +579,7 @@ Metarules
 A
 .I metarule
 is a rule based on a pattern.
-The pattern selects a class of target(s) and 
+The pattern selects a class of target and 
 identifies related prerequisites.
 .CW Mk
 metarules may select targets and prerequisites
@@ -583,9 +587,10 @@ based on any criterion that can be described by a pattern, not just
 the suffix transformations associated with program
 construction.
 .PP
-Metarule patterns are either
+.CW Mk
+has two types of patterns:
 .I intrinsic
-or regular expressions conforming to the
+patterns or regular expressions conforming to the
 syntax of
 .I regexp (6).
 The intrinsic patterns are shorthand
@@ -652,7 +657,7 @@ and
 .CW f2 :
 .P1
 </$objtype/mkfile
-
+CFLAGS=-w
 ALL=f1 f2
 
 all:V:	$ALL
@@ -668,15 +673,15 @@ clean:V:
 .CW $OS
 is a list of code characters for all architectures.)
 Here, metarules specify
-compile and load steps for all C source files.
+compile and load steps for all files.
 The loader rule relies on two internal variables
 set by
 .CW mk
 during evaluation of the rule:
 .CW $target
-is the name of the target(s) and
+is the name of the target and
 .CW $prereq
-the name of all prerequisite(s).
+the name of all prerequisites.
 Metarules allow this
 .CW mkfile
 to be easily extended; a new program
@@ -725,9 +730,9 @@ is the name of the member.  Two rules define the
 dependency between an object file and its membership
 in an archive:
 .P1
-$LIB(foo.8):N:	foo.8
-$LIB:	$LIB(foo.8)
-	ar rv $LIB foo.8
+$LIB(foo.v):N:	foo.v
+$LIB:	$LIB(foo.v)
+	ar rv $LIB foo.v
 .P2
 The first rule establishes a dependency between the
 archive member and the object file.
@@ -742,8 +747,7 @@ The second
 rule establishes the dependency between the member and
 the archive; its recipe inserts the member
 into the archive.
-This two-step specification allows the modification time
-of the archive
+This two-step specification allows the archive
 to represent the state of its members.  Other rules
 can then specify the archive as a prerequisite instead of
 listing each member.
@@ -901,7 +905,7 @@ For example, the
 .CW mkfile
 .P1
 </$objtype/mkfile
-
+CFLAGS=-w
 FILES=f1.$O f2.$O f3.$O
 
 prog:	$FILES
@@ -930,12 +934,12 @@ When a rule has a target and prerequisites but no recipe,
 those prerequisites are added to all other rules with
 recipes that have the same target.
 All prerequisites, regardless of where they were specified, are
-exported to the recipe in variable
+available in the recipe in variable
 .CW $prereq .
 For example, in
 .P1
 </$objtype/mkfile
-
+CFLAGS=-w
 FILES=f1.$O f2.$O f3.$O
 
 prog:	$FILES
@@ -1048,7 +1052,7 @@ when
 .CW mk
 is invoked without a command line target
 all targets of the first non-metarule are built.
-If that rule has multiple targets, the recipe
+When that rule has multiple targets, the recipe
 is executed once for each target; normally, the recipe
 of a rule with multiple targets is only executed once.
 .PP
@@ -1072,7 +1076,8 @@ and
 .CW mk
 can unambiguously select the proper rule.
 If both files exist,
-the rules are ambiguous
+there are ambiguous rules to produce
+.CW \fIfoo\fP.$O ,
 and
 .CW mk
 exits with an error message.
@@ -1084,7 +1089,7 @@ For example, the
 .CW mkfile
 .P1
 </$objtype/mkfile
-
+CFLAGS=-w
 FILES=f1.$O f2.$O f3.$O f3.$O
 
 prog:	$FILES
@@ -1106,10 +1111,10 @@ names of the C source files in
 .CW ../port
 do not conflict with the names of files in the current directory,
 .CW mk
-selects the appropriate rule to build the object file.
+selects the appropriate rule.
 If like-named files exist in both directories, the
-specification is ambiguous and an explicit target
-must be specified to resolve the ambiguity.
+specification is ambiguous and results in an error.
+An explicit target resolves the ambiguity.
 For example,
 adding the rule
 .P1
@@ -1121,7 +1126,7 @@ to the previous
 uses the architecture-specific version of
 .CW f2.c
 instead of the portable one.
-Here, the explicit rule unambiguously
+Here, the explicit rule
 documents which of the
 like-named source files is used to build the program.
 .PP
@@ -1413,14 +1418,15 @@ emphasizes generality but allows
 customization through its pattern specifications and
 include facilities.
 .PP
-Plan 9 presents a difficult maintenance environment
-with its heterogeneous
+Plan 9 presents a difficult problem, particularly
+because of its heterogeneous collection of
 architectures and languages.
 .CW Mk\fR'\fPs
 flexible specification language and simple
 interaction with
 .CW rc
 work well in this environment.
+.PP
 As a result,
 Plan 9 relies on
 .CW mk

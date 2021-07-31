@@ -1,0 +1,244 @@
+%% 
+%% This is file `catalan.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% catalan.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ================================================================
+%%%  @LaTeX-style-file{
+%%%     author_1        = "Goncal Badenes",
+%%%     author_2        = "Johannes L. Braams",
+%%%     version         = "2.1c",
+%%%     date            = "26 June 1994",
+%%%     time            = "01:06:07 MET",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "11572 696 3394 27145",
+%%%     email_1         = "GONCAL@cnmvax.uab.es",
+%%%     email_2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, catalan",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the catalan language specific
+%%%                        definitions for the babel system.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionscatalan
+\else
+  \selectlanguage{catalan}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\fi
+\ProvidesFile{catalan.sty}[1994/06/26 v2.1d
+         Catalan support from the babel system]
+\ifx\undefined\originalTeX
+  \let\originalTeX\empty
+\fi
+\originalTeX
+\ifx\undefined\l@catalan
+  \@nopatterns{Catalan}
+  \adddialect\l@catalan0
+\fi
+\addto\captionscatalan{%
+  \def\prefacename{Preface}%   <- This needs translation!!
+  \def\refname{Refer\`encies}%
+  \def\abstractname{Resum}%
+  \def\bibname{Bibliografia}%
+  \def\chaptername{Cap\'{\i}tol}%
+  \def\appendixname{Ap\`endix}%
+  \def\contentsname{\'Index}%
+  \def\listfigurename{\'Index de figures}%
+  \def\listtablename{\'Index de taules}%
+  \def\indexname{\'Index de mat\`eries}%
+  \def\figurename{Figura}%
+  \def\tablename{Taula}%
+  \def\partname{Part}%
+  \def\enclname{adjunt}%
+  \def\ccname{c\`opies a}%
+  \def\headtoname{}%
+  \def\pagename{p\`agina}%
+  \def\seename{See}%           <- This needs translation!!
+  \def\alsoname{See also}%     <- This needs translation!!
+}
+\def\datecatalan{%
+  \def\today{\number\day~\ifcase\month\or
+    de Gener\or de Febrer\or de Mar\c{c}\or d'Abril\or de Maig\or
+    de Juny\or de Juliol\or d'Agost\or de Setembre\or d'Octubre\or
+    de Novembre\or de Desembre\fi
+    \space de~\number\year}}
+\addto\extrascatalan{%
+  \babel@add@special\"%
+  \babel@add@special\'%
+  \babel@add@special\~}
+\addto\noextrascatalan{%
+  \babel@remove@special\"%
+  \babel@remove@special\'%
+  \babel@remove@special\~}
+\addto\extrascatalan{%
+  \babel@savevariable{\catcode`\"}\babel@save\active@dq
+  \babel@savevariable{\catcode`\'}\babel@save\active@ac
+  \babel@savevariable{\catcode`\~}\babel@save\active@til
+  \babel@save~}
+\addto\extrascatalan{\catcode`\"\active\catcode`\'\active%
+                     \catcode`\~\active}
+\begingroup \catcode`\"\active \catcode`\~\active \catcode`\'\active
+\def\x{\endgroup
+  \addto\extrascatalan{%
+    \def'{\protect\active@ac}\let\active@ac\catalan@active@ac
+    \def~{\protect\active@til}\let\active@til\catalan@active@til
+    \def"{\protect\active@dq}\let\active@dq\catalan@active@dq}}
+\x
+\addto\extrascatalan{\babel@save\"\babel@save\'%
+                     \babel@save\~\babel@save\a}
+\addto\extrascatalan{\let\a\catalan@a}
+\addto\extrascatalan{\def\"{\protect\@umlaut}%
+                     \def\'{\protect\@acute}%
+                     \def\~{\protect\@tilde}}
+\def\catalan@a#1{{\if\string#1'\aftergroup\@acute
+            \else \expandafter\aftergroup\csname a#1\endcsname\fi}}
+\begingroup \catcode`\"12
+\edef\x{\endgroup
+  \def\noexpand\dq{"}
+  \def\noexpand\til{~}}
+\x
+\let\dieresis\"
+\let\textacute\'
+\let\texttilde\~
+\def\@umlaut#1{\expandafter\ifx\csname @um@\ifx #1\i \dotlessi%
+                                           \else #1\fi\endcsname\relax%
+        \allowhyphens\dieresis{#1}\allowhyphens
+        \else\csname @um@#1\endcsname\fi}
+\def\@acute#1{\expandafter\ifx\csname @ac@\ifx #1\i \dotlessi%
+                                          \else #1\fi\endcsname\relax%
+        \allowhyphens\textacute{#1}\allowhyphens%
+        \else\csname @ac@#1\endcsname\fi}
+\def\@tilde#1{\expandafter\ifx\csname @til@\ifx #1\i \dotlessi%
+                                           \else #1\fi\endcsname\relax%
+        \allowhyphens\texttilde{#1}\allowhyphens%
+        \else\csname @til@#1\endcsname\fi}
+\def\catalan@active@dq{\futurelet\next\first@catalan@active@dq}
+\def\first@catalan@active@dq{%
+  \begingroup
+  \ifx \next\bgroup \aftergroup\dq
+    \else\ifx \next\egroup \aftergroup\dq
+    \else\expandafter\ifx \space\next \aftergroup\dq
+    \else\aftergroup\second@catalan@active@dq
+    \fi\fi\fi
+  \endgroup}
+\def\second@catalan@active@dq#1{%
+  \ifx #1-\allowhyphens-\allowhyphens
+  \else\ifx #1|\discretionary{-}{}{\kern.03em}%
+  \else\ifx #1u\@umlaut{u}%
+  \else\ifx #1U\@umlaut{U}%
+  \else\ifx #1o{\raise1ex\hbox{\underbar{\scriptsize o}}}%
+  \else\ifx #1a{\raise1ex\hbox{\underbar{\scriptsize a}}}%
+  \else \dq #1\fi\fi\fi\fi\fi\fi}
+\def\catalan@active@ac{{%
+    \ifmmode\aftergroup\catalan@math@ac
+    \else\aftergroup\first@catalan@active@ac\fi}}
+\def\catalan@math@ac{^\bgroup\catcode`\'=12\prim@s}
+\def\first@catalan@active@ac{\futurelet\next\second@catalan@active@ac}
+\def\second@catalan@active@ac{%
+  \begingroup
+    \ifx \next\bgroup \aftergroup\rq
+    \else\ifx \next\egroup \aftergroup\rq
+    \else\expandafter\ifx \space\next \aftergroup\rq
+    \else\aftergroup\third@catalan@active@ac
+    \fi\fi\fi \endgroup}
+\def\third@catalan@active@ac#1{%
+     \ifx #1a\@acute{a}%
+\else\ifx #1e\@acute{e}%
+\else\ifx #1i\@acute{\dotlessi}%
+\else\ifx #1o\@acute{o}%
+\else\ifx #1u\@acute{u}%
+\else\ifx #1A\@acute{A}%
+\else\ifx #1E\@acute{E}%
+\else\ifx #1I\@acute{I}%
+\else\ifx #1O\@acute{O}%
+\else\ifx #1U\@acute{U}%
+\else\ifx #1n\@tilde{n}%  FTC compatibility
+\else\ifx #1N\@tilde{N}%  FTC compatibility
+\else\if\string#1'\rq\rq% Funny, this one gets the ligature right
+\else\rq #1\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}
+\def\catalan@active@til{\futurelet\next\first@catalan@active@til}
+\def\first@catalan@active@til{%
+  \begingroup
+    \ifx \next\bgroup \aftergroup\til
+    \else\ifx \next\egroup \aftergroup\til
+    \else\expandafter\ifx \space\next \aftergroup\til
+    \else\ifx n\next \@tilde{n}\aftergroup\@gobble
+    \else\ifx N\next \@tilde{N}\aftergroup\@gobble
+    \else\aftergroup\til
+    \fi\fi\fi\fi\fi \endgroup}
+\def\thechar#1{{\uccode`!=#1\relax\uppercase{\gdef\next{!}}}}
+\thechar\i\global\let\dotlessi\next
+\def\-{\allowhyphens\discretionary{-}{}{}\allowhyphens}
+\selectlanguage{catalan}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `catalan.sty'.

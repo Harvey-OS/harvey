@@ -1,0 +1,58 @@
+objtype=960
+</$objtype/mkfile
+
+OFILES=\
+	l.$O\
+	main.$O\
+	block.$O\
+	print.$O\
+	putc.$O\
+	memmove.$O\
+	memset.$O\
+	strlen.$O\
+	strchr.$O\
+
+HFILES=\
+	all.h\
+	fns.h\
+	comm.h\
+	io.h\
+
+CFLAGS=-wN
+
+all:V:		$O.out
+install:V:	$O.out
+installall:V:	$O.out
+
+$O.out:	$OFILES
+	$LD -H4 -l $OFILES
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+main.$O: main.c
+	$CC $CFLAGS '-DDATE='`{date -n} main.c 
+
+ibr:	ibr.c
+	$CC ibr.c
+	$LD -l -T0xF0C3ff00 -o ibr ibr.$O
+
+romcode:	rom.$O init.$O memmove.$O
+	$LD -l -T0xF0C00048 -o romcode $prereq
+
+rom:	romcode ibr $OFILES
+	$LD -l -T0x8000 $OFILES
+	aux/ms2 -s -a 0x48 romcode > rom
+	aux/ms2 -s -a 0x2000 $O.out >> rom
+	aux/ms2 -a 0xff00 -d ibr   >> rom
+
+test:	l.$O test.$O putc.$O print.$O memmove.$O memset.$O strlen.$O strchr.$O
+	$LD -H4 -l $prereq
+
+clean:V:
+	rm -f *.[$OS] [$OS].out ibr romcode rom

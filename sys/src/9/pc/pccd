@@ -1,0 +1,54 @@
+dev
+	root	/
+	cons	c
+	env	e
+	mnt	M
+	bit	b
+	uart	t
+	pipe	|
+	floppy	f
+	ata	H
+	srv	s
+	dup	d
+	proc	p
+	rtc	r
+	ether	l
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	iproute	P
+	vga	v
+	dk	k
+	incon	i	inconsubs
+	scsi	S	scsi adaptec ultrastor
+	wren	w
+	cdrom	R
+
+link
+	stip
+	stfcall
+	stasync
+	sturp
+	ether509
+	ether8003	ether8390
+	ether2000
+	vgaclgd542x
+	vgaet4000
+	vgas3
+	vgabt485
+	vgatvp3020
+
+misc
+	k9660srv.root
+
+port
+	int cpuserver = 0;
+	void consdebug(void){}
+	int incondev = 0;
+
+boot
+	local
+	il
+	tcp
+	9600
+	19200
+	incon	"config 1 16 restart dk 256"

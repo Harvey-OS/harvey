@@ -1,0 +1,30 @@
+#!/bin/rc
+kill kfs|rc
+echo asdf > '#w/sd0partition'
+bind -a '#w' /dev
+
+echo creating partitions
+disk/prep /dev/sd0 > /dev/null <<EOF
+boot
+
+1024
+cache
+
+20000
+fs
+
+
+*
+y
+EOF
+bind -a '#w' /dev
+
+echo copying kernel
+dd -bs 512 -conv sync < /68020/9gnotdisk > /dev/sd0boot
+
+echo making file system
+disk/kfs -rf/dev/sd0fs
+
+echo copying over files
+9fs dk!bootes
+cputype=68020 disk/mkfs -s /n/bootes /lib/proto/smallproto

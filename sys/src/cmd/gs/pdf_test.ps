@@ -1,0 +1,152 @@
+%    Copyright (C) 1994 Aladdin Enterprises.  All rights reserved.
+
+% pdf_test.ps
+% Test for PDF reader.
+
+/ESTACKPRINT true def
+/OSTACKPRINT true def
+
+/defaultfontname /Times-Roman def
+/GS_PDF_ProcSet where
+ { pop }
+ { (gs_pdf.ps) runlibfile }
+ifelse
+/pdfdict where
+ { pop }
+ { [(pdf_base.ps) (pdf_draw.ps) (pdf_main.ps)
+    (gs_pdf_e.ps) (gs_wan_e.ps) (gs_mro_e.ps) (gs_mex_e.ps)]
+    { runlibfile }
+   forall
+ }
+ifelse
+
+GS_PDF_ProcSet begin
+userdict begin
+
+/.setlanguagelevel where { pop 2 .setlanguagelevel } if
+.currentglobal true .setglobal
+
+/PSFile where {	pop } { (%END #) .skipeof } ifelse
+
+% "Wrap" all the runtime operators so they call #exec.
+numargsdict
+ { 1 index load exch 2 index exch /#exec cvx 4 packedarray cvx def
+ }
+forall
+/pdfmark
+  /pdfmark load dup type /operatortype eq { 1 packedarray cvx } if
+   { /pdfmark counttomark 1 sub #exec } bind
+  aload length 1 add packedarray cvx
+def
+% Define #exec so it also prints out its arguments.
+% Eventually this will move into pdf_base.
+/dictwrite#		% <file> <dict> dictwrite# -
+ { 2 copy length write=only 1 index ( dict) writestring
+    { exch 2 index dup ( dup ) writestring exch write#
+      1 index dup ( ) writestring exch write#
+      dup ( put) writestring
+    }
+   forall pop
+ } bdef
+/write#dict 10 dict dup begin
+  /arraytype
+   { dup xcheck { (}) ({) } { (]) ([) } ifelse
+     2 index length 0 eq
+      { 3 index exch writestring exch
+      }
+      { 3 -1 roll
+	 { 3 index 2 index writestring 3 index exch write# pop ( ) }
+	forall
+      }
+     ifelse pop writestring
+   } bdef
+  /dicttype
+   { dictwrite#
+   } bdef
+  /marktype
+   { pop ([) writestring
+   } bdef
+end def
+/write#
+ { dup type //write#dict exch .knownget { exec } { write==only } ifelse
+ } bind def
+
+% Rebind the procedures that conditionally write out PostScript.
+pdfdict begin
+/#			% <arg1> ... <argN> <opname> <N> # -
+ { 1 index load 3 1 roll #exec
+ } bdef
+/#exec		% <arg1> ... <argN> <proc|operator> <opname> <N> #exec -
+ { -1 1 { 1 add index PSout exch write# PSout ( ) writestring } for
+   PSout exch write= exec
+ } bdef
+/#dsc		% mark <obj1> ... #dsc -
+ { counttomark
+    { counttomark -1 roll PSout exch write=only }
+   repeat pop PSout (\n) writestring
+ } bdef
+
+% Rebind Is, which constructs a data source for an image.
+% pdf_draw already redefined it to retrieve the stream.
+/Is_draw /Is load def
+userdict /Is_string null put	% establish a binding
+/Is		% <imagedict> Is <imagedict> <datasource>
+ { dup /DataSource get string /Is_string exch store
+   /PStext PSout /ASCII85Encode filter def
+   /PSdata PStext Is_string length /RunLengthEncode filter def
+   Is_draw
+    { Is_string readstring pop PSdata 1 index writestring }
+   aload length 1 add packedarray cvx
+ } bdef
+/Ie
+ { PSdata closefile PStext closefile
+ } bdef
+
+% Rebind readfontfilter, which constructs the filter that
+% reads the text of an embedded Type 1 (and eventually Type 3) font.
+/readfontfilter_orig /readfontfilter load def
+/readfontfilter		% <proc> readfontfilter <filter>
+ { /copyfontdata cvx 2 array astore cvx
+   0 () /SubFileDecode filter
+ } bdef
+/copyfontdata		% <string> <origproc> copyfontdata <substring>
+ { exec PSout 1 index writestring
+ } bdef
+
+% Open the output file.
+/PSout PSFile (w) file def
+
+end		% pdfdict
+
+%END #
+
+.setglobal
+
+% Check for parameters supplied on the command line.
+/File where { pop } { /File (import/pdf/shrewdem.pdf) def } ifelse
+/FirstPage where { pop } { /FirstPage 0 def } ifelse
+/LastPage where { pop } { /LastPage { pdfpagecount 1 sub } def } ifelse
+
+File (r) file
+/Page# null def
+/Page null def
+pdfdict begin
+pdfopen begin
+Trailer /Root oget /Pages oget /CropBox knownoget
+ { mark /CropBox 3 -1 roll /PAGES pdfmark
+ }
+if
+FirstPage 1 LastPage
+ { dup /Page# exch store
+   (Page ) print dup == flush
+   [ (%%Page: ) 2 index ( ) 1 index 1 add #dsc
+   pdfgetpage /Page exch store
+save
+(before exec) VMDEBUG
+   Page pdfshowpage
+(after exec) VMDEBUG
+restore
+ } for
+/PSFile where { [ (%%Trailer) #dsc PSout closefile } 
+(Done.\n) print flush
+quit

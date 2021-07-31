@@ -1,0 +1,46 @@
+%Filename: OT1put.fd
+%Created by: tex 7722utopia
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{put}{}
+
+\DeclareFontShape{OT1}{put}{b}{n}{
+   <-> putb7t
+}{}
+
+\DeclareFontShape{OT1}{put}{b}{sc}{
+   <-> putbc7t
+}{}
+
+\DeclareFontShape{OT1}{put}{b}{sl}{
+   <-> putbo7t
+}{}
+
+\DeclareFontShape{OT1}{put}{b}{it}{
+   <-> putbi7t
+}{}
+
+\DeclareFontShape{OT1}{put}{m}{n}{
+   <-> putr7t
+}{}
+
+\DeclareFontShape{OT1}{put}{m}{sc}{
+   <-> putrc7t
+}{}
+
+\DeclareFontShape{OT1}{put}{m}{sl}{
+   <-> putro7t
+}{}
+
+\DeclareFontShape{OT1}{put}{m}{it}{
+   <-> putri7t
+}{}
+
+\DeclareFontShape{OT1}{put}{bx}{n}{<->ssub * put/b/n}{}
+\DeclareFontShape{OT1}{put}{bx}{sc}{<->ssub * put/b/sc}{}
+\DeclareFontShape{OT1}{put}{bx}{sl}{<->ssub * put/b/sl}{}
+\DeclareFontShape{OT1}{put}{bx}{it}{<->ssub * put/b/it}{}
+
+\endinput

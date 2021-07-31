@@ -1,0 +1,56 @@
+#!/bin/sh
+# A shell script to perform modifications on the mfd.h file
+# to make trapmf instead of inimf.
+#
+# To use it, say:
+# ini_to_trap <original mfd.h>
+# 
+# and that file changes into a file with the trap constants.  We do not
+# change the @d's in cmf.ch after mem_top (hash_size, hash_prime, and
+# max_in_open), although they are different in Knuth's trap test.  This
+# is not a serious problem; it just results in some of the printed maximum
+# values differing.  It cannot make any difference in the operation of
+# the test, since if the max values are exceeded, MF halts.
+# 
+# The output is in pairs of lines: the first is the definition for
+# inimf, and the second is the definition for trapmf.
+
+cp $1 $1.bak
+
+ed - $1 <<edscriptend
+/undef	TRAP/
+s/undef/define/p
+/memmax/
+s/[0-9][0-9]*/3000/p
+/maxinternal/
+s/[0-9][0-9]*/100/p
+/bufsize/
+s/[0-9][0-9]*/500/p
+/errorline/
+s/[0-9][0-9]*/64/p
+/halferrorline/
+s/[0-9][0-9]*/32/p
+/maxprintline/
+s/[0-9][0-9]*/72/p
+/screenwidth/
+s/[0-9][0-9]*/100/p
+/screendepth/
+s/[0-9][0-9]*/200/p
+/stacksize/
+s/[0-9][0-9]*/30/p
+/maxstrings/
+s/[0-9][0-9]*/2000/p
+/stringvacancies/
+s/[0-9][0-9]*/8000/p
+/poolsize/
+s/[0-9][0-9]*/32000/p
+/movesize/
+s/[0-9][0-9]*/5000/p
+/maxwiggle/
+s/[0-9][0-9]*/300/p
+/gfbufsize/
+s/[0-9][0-9]*/8/p
+/memtop/
+s/[0-9][0-9]*/3000/p
+w
+edscriptend

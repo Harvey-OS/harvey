@@ -1,0 +1,466 @@
+This is TeX, Version 3.141 (INITEX)  25 JAN 1992 22:08
+**\input trip
+(trip.tex
+! Bad character code (256).
+<to be read again> 
+                   -
+l.26   \nonstopmode\lccode256-
+                              0\mathchardef\a="8000\def\a{ SC...
+A character number must be between 0 and 255.
+I changed this one to zero.
+
+! Bad mathchar (32768).
+<to be read again> 
+                   \def 
+l.26 ...\mathchardef\a="8000\def
+                                \a{ SCALED 3~2769}
+A mathchar number must be between 0 and 32767.
+I changed this one to zero.
+
+! Illegal magnification has been changed to 1000 (32769).
+<to be read again> 
+                   \skewchar 
+l.28   \skewchar
+                \rip=`B \countdef\countz % \countz will be \c...
+The magnification ratio must be between 1 and 32768.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   \def 
+l.29   \def
+           \on{1} \toksdef\tokens=256 \show\errorstopmode
+A number should have been here; I inserted `0'.
+(If you can't figure out why I needed to see a number,
+look up `weird error' in the index to The TeXbook.)
+
+! Bad register code (256).
+l.29 ...{1} \toksdef\tokens=256 
+                                \show\errorstopmode
+A register number must be between 0 and 255.
+I changed this one to zero.
+
+> \errorstopmode=\errorstopmode.
+l.29 ...=256 \show\errorstopmode
+                                
+
+> \rip .
+<recently read> \font 
+                      
+l.30   \showthe\font
+                     \showthe\pageshrink \showthe\pagegoal
+
+> 0.0pt.
+l.30 ...font \showthe\pageshrink
+                                 \showthe\pagegoal
+
+> 16383.99998pt.
+l.30 ...shrink \showthe\pagegoal
+                                
+
+! Illegal unit of measure (replaced by filll).
+l.32 ...fdim\hsize<\hsize\fi lll
+                                minus 0 fill
+I dddon't go any higher than filll.
+
+\one \csname on line 60
+! You can't use `\badness' in vertical mode.
+l.61 ...yphenpenalty 89 \badness
+                                
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+! Bad \patterns.
+l.75 ...uage256\patterns{0111 \?
+                                50AA1b3 *1AcA. bb bb1 0B2B0 b...
+(See Appendix H.)
+
+! Nonletter.
+l.75 ...ge256\patterns{0111 \?50
+                                AA1b3 *1AcA. bb bb1 0B2B0 b1c...
+(See Appendix H.)
+
+! Duplicate pattern.
+l.75 ...1b3 *1AcA. bb bb1 0B2B0 
+                                b1c}} % *==space
+(See Appendix H.)
+
+Missing character: There is no Z in font trip!
+
+### horizontal mode entered at line 77 (hyphenmin 1,63)
+\hbox(0.0+0.0)x0.0
+\glue -9.0
+\setlanguage255 (hyphenmin 1,63)
+\rip A (ligature 7A)
+\setlanguage98 (hyphenmin 1,1)
+\rip 5 (ligature |1)
+\rip 7 (ligature )
+\rip 6 (ligature )
+\rip 7 (ligature )
+\kern-2.00002
+\rip 1
+\rip 7 (ligature |)
+\glue 4.0 plus 1.99799 minus 1.00099
+\rip 5 (ligature |1)
+\rip 7 (ligature )
+\rip 6 (ligature )
+\rip 7 (ligature )
+\kern-2.00002
+\rip 1
+\glue 4.0 plus 2.0 minus 1.0
+\setlanguage255 (hyphenmin 1,1)
+\rip 5 (ligature |1)
+\rip 5 (ligature |1)
+\rip t (ligature pt)
+\kern3.0
+\rip s
+\glue 4.0 plus 2.0 minus 1.0
+\kern-1.00002
+\rip - (ligature -
+)
+\rip p (ligature q)
+\rip t (ligature )
+\rip s (ligature )
+\rip q (ligature )
+\rip t (ligature )
+\kern3.0
+\rip q (ligature )
+\rip p (ligature )
+\rip r (ligature q|)
+\glue 4.0 plus 2.0 minus 1.0
+spacefactor 1000, current language 255
+### internal vertical mode entered at line 77
+prevdepth ignored
+### internal vertical mode entered at line 77
+\glue(\tabskip) 0.0
+prevdepth 0.0
+### restricted horizontal mode entered at line 76
+spacefactor 1000
+### restricted horizontal mode entered at line 76
+spacefactor 1000
+### vertical mode entered at line 0
+prevdepth ignored
+
+! OK.
+l.78 ...ns{q9q} -\0qq \showlists
+                                {\language\?\noboundary111}%
+
+[] 
+@ via @@0 b=0 p=0 d=0
+@@1: line 1.2 t=0 -> @@0
+[]\rip 7A[]1-1
+@\discretionary via @@0 b=10000 p=88 d=100007744
+@@2: line 1.0- t=100007744 -> @@0
+@\discretionary via @@1 b=10000 p=88 d=100007744
+@@3: line 2.0- t=100007744 -> @@1
+ 
+@ via @@0 b=10000 p=0 d=100000000
+@@4: line 1.0 t=100000000 -> @@0
+@ via @@2 b=0 p=0 d=0
+@ via @@1 b=10000 p=0 d=100000000
+@@5: line 2.0 t=100000000 -> @@1
+@ via @@3 b=0 p=0 d=0
+@@6: line 3.2 t=100007744 -> @@3
+1-1
+@\discretionary via @@0 b=10000 p=88 d=100007744
+@@7: line 1.0- t=100007744 -> @@0
+@\discretionary via @@4 b=10000 p=88 d=100007744
+@\discretionary via @@2 b=12 p=88 d=8888
+@\discretionary via @@1 b=12 p=88 d=7888
+@@8: line 2.2- t=7888 -> @@1
+@\discretionary via @@5 b=10000 p=88 d=100007744
+@\discretionary via @@3 b=12 p=88 d=8888
+@@9: line 3.2- t=100016632 -> @@3
+@\discretionary via @@6 b=10000 p=88 d=100007744
+@@10: line 4.0- t=200015488 -> @@6
+ 
+@ via @@0 b=4291 p=0 d=18412681
+@@11: line 1.0 t=18412681 -> @@0
+@ via @@7 b=0 p=0 d=0
+@ via @@4 b=10000 p=0 d=100000000
+@@12: line 2.2 t=100007744 -> @@7
+@ via @@8 b=0 p=0 d=0
+@ via @@5 b=10000 p=0 d=100000000
+@@13: line 3.2 t=7888 -> @@8
+@ via @@9 b=0 p=0 d=0
+@ via @@6 b=10000 p=0 d=100000000
+@@14: line 4.2 t=100016632 -> @@9
+@ via @@10 b=0 p=0 d=0
+@@15: line 5.2 t=200015488 -> @@10
+[]11-
+@\discretionary via @@0 b=195 p=88 d=45769
+@@16: line 1.0- t=45769 -> @@0
+@\discretionary via @@11 b=10000 p=88 d=100007744
+@\discretionary via @@4 b=0 p=88 d=7744
+@@17: line 2.2- t=100007744 -> @@4
+@\discretionary via @@12 b=10000 p=88 d=100007744
+@\discretionary via @@5 b=0 p=88 d=7744
+@@18: line 3.2- t=100007744 -> @@5
+@\discretionary via @@13 b=10000 p=88 d=100007744
+@\discretionary via @@6 b=0 p=88 d=7744
+@@19: line 4.2- t=100015488 -> @@6
+@\discretionary via @@14 b=10000 p=88 d=100007744
+@@20: line 5.0- t=200024376 -> @@14
+@\discretionary via @@15 b=10000 p=88 d=100007744
+@@21: line 6.0- t=300023232 -> @@15
+pts 
+@ via @@0 b=12 p=0 d=144
+@@22: line 1.2 t=144 -> @@0
+-
+q-q
+@\discretionary via @@0 b=336 p=88 d=120640
+@@23: line 1.0- t=120640 -> @@0
+@\discretionary via @@22 b=10000 p=88 d=100007744
+@@24: line 2.0- t=100007888 -> @@22
+ 
+@ via @@0 b=0 p=0 d=0
+@@25: line 1.2 t=0 -> @@0
+@ via @@23 b=0 p=0 d=0
+@ via @@22 b=10000 p=0 d=100000000
+@@26: line 2.2 t=120640 -> @@23
+@ via @@24 b=0 p=0 d=0
+@@27: line 3.2 t=100007888 -> @@24
+[]11-1
+@\discretionary via @@0 b=42 p=88 d=9508
+@@28: line 1.1- t=9508 -> @@0
+@\discretionary via @@25 b=10000 p=88 d=100007744
+@\discretionary via @@23 b=1558 p=88 d=2436108
+@\discretionary via @@22 b=4279 p=88 d=18317585
+@@29: line 2.0- t=2556748 -> @@23
+@\discretionary via @@26 b=10000 p=88 d=100007744
+@\discretionary via @@24 b=1558 p=88 d=2436108
+@@30: line 3.0- t=100128384 -> @@26
+@\discretionary via @@27 b=10000 p=88 d=100007744
+@@31: line 4.0- t=200015632 -> @@27
+@\par via @@0 b=0 p=-10000 d=0
+@@32: line 1.2- t=0 -> @@0
+@\par via @@28 b=0 p=-10000 d=100000
+@\par via @@25 b=10000 p=-10000 d=100000000
+@\par via @@23 b=0 p=-10000 d=100000
+@\par via @@22 b=100 p=-10000 d=10000
+@@33: line 2.0- t=10144 -> @@22
+@\par via @@29 b=0 p=-10000 d=100000
+@\par via @@26 b=10000 p=-10000 d=100000000
+@\par via @@24 b=0 p=-10000 d=100000
+@@34: line 3.2- t=2656748 -> @@29
+@\par via @@30 b=0 p=-10000 d=100000
+@\par via @@27 b=10000 p=-10000 d=100000000
+@@35: line 4.2- t=100228384 -> @@30
+@\par via @@31 b=0 p=-10000 d=100000
+@@36: line 5.2- t=200115632 -> @@31
+@emergencypass
+[] 
+@ via @@0 b=0 p=0 d=0
+@@1: line 1.2 t=0 -> @@0
+[]\rip 7A[]1-1
+@\discretionary via @@0 b=237 p=88 d=63913
+@@2: line 1.0- t=63913 -> @@0
+@\discretionary via @@1 b=4 p=88 d=7760
+@@3: line 2.2- t=7760 -> @@1
+ 
+@ via @@0 b=100 p=0 d=10000
+@@4: line 1.0 t=10000 -> @@0
+@ via @@2 b=0 p=0 d=0
+@ via @@1 b=0 p=0 d=0
+@@5: line 2.2 t=0 -> @@1
+@ via @@3 b=0 p=0 d=0
+@@6: line 3.2 t=7760 -> @@3
+1-1
+@\discretionary via @@0 b=75 p=88 d=13369
+@@7: line 1.1- t=13369 -> @@0
+@\discretionary via @@4 b=17 p=88 d=8033
+@\discretionary via @@2 b=0 p=88 d=8744
+@\discretionary via @@1 b=0 p=88 d=7744
+@@8: line 2.2- t=7744 -> @@1
+@\discretionary via @@5 b=17 p=88 d=8033
+@\discretionary via @@3 b=0 p=88 d=8744
+@@9: line 3.1- t=8033 -> @@5
+@\discretionary via @@6 b=17 p=88 d=8033
+@@10: line 4.1- t=15793 -> @@6
+ 
+@ via @@0 b=26 p=0 d=676
+@@11: line 1.1 t=676 -> @@0
+@ via @@7 b=0 p=0 d=0
+@ via @@4 b=1 p=0 d=1
+@@12: line 2.2 t=10001 -> @@4
+@ via @@8 b=0 p=0 d=0
+@ via @@5 b=1 p=0 d=1
+@@13: line 3.2 t=1 -> @@5
+@ via @@9 b=0 p=0 d=0
+@ via @@6 b=1 p=0 d=1
+@@14: line 4.2 t=7761 -> @@6
+@ via @@10 b=0 p=0 d=0
+@@15: line 5.2 t=15793 -> @@10
+[]11-
+@\discretionary via @@0 b=6 p=88 d=7780
+@@16: line 1.2- t=7780 -> @@0
+@\discretionary via @@11 b=1 p=88 d=7745
+@\discretionary via @@4 b=0 p=88 d=7744
+@@17: line 2.2- t=8421 -> @@11
+@\discretionary via @@12 b=1 p=88 d=7745
+@\discretionary via @@5 b=0 p=88 d=7744
+@@18: line 3.2- t=7744 -> @@5
+@\discretionary via @@13 b=1 p=88 d=7745
+@\discretionary via @@6 b=0 p=88 d=7744
+@@19: line 4.2- t=7746 -> @@13
+@\discretionary via @@14 b=1 p=88 d=7745
+@@20: line 5.2- t=15506 -> @@14
+@\discretionary via @@15 b=1 p=88 d=7745
+@@21: line 6.2- t=23538 -> @@15
+pts 
+@ via @@0 b=0 p=0 d=0
+@@22: line 1.2 t=0 -> @@0
+-
+q-q
+@\discretionary via @@0 b=22 p=88 d=8228
+@@23: line 1.1- t=8228 -> @@0
+@\discretionary via @@22 b=137 p=88 d=26513
+@@24: line 2.0- t=26513 -> @@22
+ 
+@ via @@0 b=0 p=0 d=0
+@@25: line 1.2 t=0 -> @@0
+@ via @@23 b=0 p=0 d=0
+@ via @@22 b=1 p=0 d=1
+@@26: line 2.2 t=1 -> @@22
+@ via @@24 b=0 p=0 d=0
+@@27: line 3.2 t=26513 -> @@24
+[]11-1
+@\discretionary via @@0 b=4 p=88 d=7760
+@@28: line 1.2- t=7760 -> @@0
+@\discretionary via @@25 b=100 p=88 d=17744
+@\discretionary via @@23 b=9 p=88 d=8825
+@\discretionary via @@22 b=26 p=88 d=8420
+@@29: line 2.1- t=8420 -> @@22
+@\discretionary via @@26 b=100 p=88 d=17744
+@\discretionary via @@24 b=9 p=88 d=8825
+@@30: line 3.0- t=17745 -> @@26
+@\discretionary via @@27 b=100 p=88 d=17744
+@@31: line 4.0- t=44257 -> @@27
+@\par via @@0 b=0 p=-10000 d=0
+@@32: line 1.2- t=0 -> @@0
+@\par via @@28 b=0 p=-10000 d=100000
+@\par via @@25 b=9 p=-10000 d=81
+@\par via @@23 b=0 p=-10000 d=100000
+@\par via @@22 b=1 p=-10000 d=1
+@@33: line 2.2- t=1 -> @@22
+@\par via @@29 b=0 p=-10000 d=100000
+@\par via @@26 b=9 p=-10000 d=81
+@\par via @@24 b=0 p=-10000 d=100000
+@@34: line 3.2- t=82 -> @@26
+@\par via @@30 b=0 p=-10000 d=100000
+@\par via @@27 b=9 p=-10000 d=81
+@@35: line 4.2- t=26594 -> @@27
+@\par via @@31 b=0 p=-10000 d=100000
+@@36: line 5.2- t=144257 -> @@31
+
+! Too late for \patterns.
+l.79 ...har\rip=`-\cr}}\patterns
+                                {toolate}\showbox0}
+All patterns must be given before typesetting begins.
+
+> \box0=
+\hbox(8.0+0.0)x0.0
+.\vbox(8.0+0.0)x0.0
+..\glue(\tabskip) 0.0
+..\vbox(8.0+0.0)x0.0
+...\hbox(7.0+1.0)x0.0, glue set 0.12505
+....\hbox(0.0+0.0)x0.0
+....\glue -9.0
+....\setlanguage255 (hyphenmin 1,63)
+....\rip A (ligature 7A)
+....\setlanguage98 (hyphenmin 1,1)
+....\discretionary replacing 7
+.....\rip 5 (ligature |1)
+.....\rip -
+....|\rip 5 (ligature |1)
+....|\rip 7 (ligature |)
+....\rip 5 (ligature |1)
+....\rip 7 (ligature )
+....\rip 6 (ligature )
+....\rip 7 (ligature )
+....\kern-2.00002
+....\rip 1
+....\rip 7 (ligature |)
+....\glue 4.0 plus 1.99799 minus 1.00099
+....\discretionary replacing 6
+.....\rip 5 (ligature |1)
+.....\rip -
+....|\rip 5 (ligature |1)
+....\rip 5 (ligature |1)
+....\rip 7 (ligature )
+....\rip 6 (ligature )
+....\rip 7 (ligature )
+....\kern-2.00002
+....\rip 1
+....\glue 4.0 plus 2.0 minus 1.0
+....\setlanguage255 (hyphenmin 1,1)
+....\rip 5 (ligature |1)
+....\rip 7 (ligature )
+....\rip 6 (ligature )
+....\rip 7 (ligature )
+....\kern-2.00002
+....\discretionary replacing 1
+.....\rip 1
+.....\rip 1 (ligature -)
+.....\rip 7 (ligature |)
+....\rip 1
+....\rip t (ligature pt)
+....\kern3.0
+....\rip s
+....\glue 4.0 plus 2.0 minus 1.0
+....\kern-1.00002
+....\discretionary replacing 10
+.....\rip - (ligature -
+)
+.....\rip p (ligature q)
+.....\rip -
+....|\rip q (ligature |)
+....|\rip q
+....\rip - (ligature -
+)
+....\rip p (ligature q)
+....\rip t (ligature )
+....\rip s (ligature )
+....\rip q (ligature )
+....\rip t (ligature )
+....\kern3.0
+....\rip q (ligature )
+....\rip p (ligature )
+....\rip r (ligature q|)
+....\glue 4.0 plus 2.0 minus 1.0
+....\setlanguage98 (hyphenmin 1,1)
+....\rip 1
+....\rip 7 (ligature )
+....\rip 6 (ligature )
+....\rip 7 (ligature )
+....\rip 5 (ligature )
+....\rip 7 (ligature )
+....\rip 6 (ligature )
+....etc.
+..\glue(\tabskip) 0.0
+
+! OK.
+<to be read again> 
+                   }
+l.79 ...terns{toolate}\showbox0}
+                                
+
+ )
+Beginning to dump on file trip.fmt
+ (preloaded format=trip 92.1.25)
+1318 strings of total length 23520
+471 memory locations dumped; current usage is 96&278
+341 multiletter control sequences
+\font\nullfont=nullfont
+\font\rip=trip
+\font\smalltrip=trip at 5.0pt
+\font\bigtr
+p=trip at 20.0pt
+2279 words of font info for 3 preloaded fonts
+1 hyphenation exception
+Hyphenation trie of length 273 has 9 ops out of 500
+  2 for language 255
+  1 for language 98
+  6 for language 0
+No pages of output.

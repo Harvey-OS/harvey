@@ -1,6 +1,6 @@
 #include "astro.h"
 
-double	sunfp[]	=
+float	sunfp[]	=
 {
 	-.265, 0,
 	3.760, 0,

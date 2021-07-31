@@ -1,0 +1,62 @@
+%% 
+%% This is file `upref.sty', generated 
+%% on <1995/1/27> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% upref.dtx 
+%%% ====================================================================
+%%%  @LaTeX-file{
+%%%     author          = "American Mathematical Society",
+%%%     version         = "1.2",
+%%%     date            = "1995/01/25",
+%%%     time            = "12:32:52 EST",
+%%%     filename        = "upref.dtx",
+%%%     copyright       = "Copyright (C) 1995 American Mathematical Society,
+%%%                        all rights reserved.  Copying of this file is
+%%%                        authorized only if either:
+%%%                        (1) you make absolutely no changes to your copy,
+%%%                        including name; OR
+%%%                        (2) if you do make changes, you first rename it
+%%%                        to some other name.",
+%%%     address         = "American Mathematical Society,
+%%%                        Technical Support,
+%%%                        Electronic Products and Services,
+%%%                        P. O. Box 6248,
+%%%                        Providence, RI 02940,
+%%%                        USA",
+%%%     telephone       = "401-455-4080 or (in the USA and Canada)
+%%%                        800-321-4AMS (321-4267)",
+%%%     FAX             = "401-331-3842",
+%%%     checksum        = "20561 98 414 3750",
+%%%     email           = "tech-support@math.ams.org (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "latex, amslatex, ams-latex, cross references",
+%%%     supported       = "yes",
+%%%     abstract        = "This is part of the AMS-\LaTeX{} distribution.
+%%%                        It is a package that provides printing of
+%%%                        \cn{\ref}s in an upright font even if the
+%%%                        current context is italic or slanted.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{upref}[1995/01/25 v1.2]
+\def\@setref#1#2#3{\ifx#1\relax
+    \protect\@noref{#3}%
+  \else
+    \protect\textup{\expandafter#2#1\hbox{}}%
+  \fi}
+\newcommand{\@noref}[1]{%
+  \G@refundefinedtrue
+  \nfss@text{\reset@font\bfseries ??}%
+  \@latex@warning{Reference `#3' on page \thepage\space undefined}%
+}
+\endinput
+%% 
+%% End of file `upref.sty'.

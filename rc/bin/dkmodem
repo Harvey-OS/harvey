@@ -1,0 +1,26 @@
+#!/bin/rc
+baud=-b2400
+net=dk
+
+switch($terminal){
+case NCR* 'AT&TNSX'*
+	dev=/dev/eia1
+case *
+	echo "dkmodem: this only works on a safari"
+	exit 1
+}
+switch($#*){
+case 0
+	echo "usage: dkmodem telno [dk-destination]"
+case 1
+	telno=$1
+	dest=nj/astro/bootes
+case *
+	telno=$1
+	dest=$2
+}
+if(test -r /net/dk/clone)
+	net=dk232
+dkconfig -a -n $net $baud -d $dev -C 'hayes '$telno' /dev/eia1'
+9fs $net!^$dest
+echo -n 'add dk dk232' > /net/cs

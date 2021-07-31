@@ -1,0 +1,35 @@
+</$objtype/mkfile
+HFILES=
+OFILES=
+AFILES=
+
+all:V:	install
+
+port $cputype:V:
+	cd $target
+	mk
+
+install:V:
+	for(i in port $objtype) @{
+		cd $i
+		mk install
+	}
+
+installall:V:
+	@{ cd port; mk installall }
+	for(objtype in $CPUS) @{
+		cd $objtype
+		mk install
+	}
+
+clean:V:
+	for(i in port $CPUS) @{
+		cd $i
+		mk clean
+	}
+
+nuke:V:
+	for(i in port $CPUS) @{
+		cd $i
+		mk nuke
+	}

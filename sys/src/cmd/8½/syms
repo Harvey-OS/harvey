@@ -1,0 +1,1279 @@
+sizeof_1_ = 8;
+aggr _1_
+{
+	'D' 0 hlength;
+	'D' 4 length;
+};
+
+defn
+_1_(addr) {
+	complex _1_ addr;
+	print("	hlength	", addr.hlength, "\n");
+	print("	length	", addr.length, "\n");
+};
+
+sizeof_2_ = 8;
+aggr _2_
+{
+	'a' 0 clength;
+	'V' 0 vlength;
+	{
+	'D' 0 hlength;
+	'D' 4 length;
+	};
+};
+
+defn
+_2_(addr) {
+	complex _2_ addr;
+	print("	clength	", addr.clength, "\n");
+	print("	vlength	", addr.vlength, "\n");
+	print("_1_ {\n");
+		_1_(addr+0);
+	print("}\n");
+};
+
+sizeofFconv = 24;
+aggr Fconv
+{
+	'X' 0 out;
+	'X' 4 eout;
+	'D' 8 f1;
+	'D' 12 f2;
+	'D' 16 f3;
+	'D' 20 chr;
+};
+
+defn
+Fconv(addr) {
+	complex Fconv addr;
+	print("	out	", addr.out\X, "\n");
+	print("	eout	", addr.eout\X, "\n");
+	print("	f1	", addr.f1, "\n");
+	print("	f2	", addr.f2, "\n");
+	print("	f3	", addr.f3, "\n");
+	print("	chr	", addr.chr, "\n");
+};
+
+sizeofTm = 36;
+aggr Tm
+{
+	'D' 0 sec;
+	'D' 4 min;
+	'D' 8 hour;
+	'D' 12 mday;
+	'D' 16 mon;
+	'D' 20 year;
+	'D' 24 wday;
+	'D' 28 yday;
+	'a' 32 zone;
+};
+
+defn
+Tm(addr) {
+	complex Tm addr;
+	print("	sec	", addr.sec, "\n");
+	print("	min	", addr.min, "\n");
+	print("	hour	", addr.hour, "\n");
+	print("	mday	", addr.mday, "\n");
+	print("	mon	", addr.mon, "\n");
+	print("	year	", addr.year, "\n");
+	print("	wday	", addr.wday, "\n");
+	print("	yday	", addr.yday, "\n");
+	print("	zone	", addr.zone, "\n");
+};
+
+sizeofQid = 8;
+aggr Qid
+{
+	'U' 0 path;
+	'U' 4 vers;
+};
+
+defn
+Qid(addr) {
+	complex Qid addr;
+	print("	path	", addr.path, "\n");
+	print("	vers	", addr.vers, "\n");
+};
+
+sizeofDir = 116;
+aggr Dir
+{
+	'a' 0 name;
+	'a' 28 uid;
+	'a' 56 gid;
+	Qid 84 qid;
+	'U' 92 mode;
+	'D' 96 atime;
+	'D' 100 mtime;
+	{
+	'a' 104 clength;
+	'V' 104 vlength;
+	{
+	'D' 104 hlength;
+	'D' 108 length;
+	};
+	};
+	'u' 112 type;
+	'u' 114 dev;
+};
+
+defn
+Dir(addr) {
+	complex Dir addr;
+	print("	name	", addr.name, "\n");
+	print("	uid	", addr.uid, "\n");
+	print("	gid	", addr.gid, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	mode	", addr.mode, "\n");
+	print("	atime	", addr.atime, "\n");
+	print("	mtime	", addr.mtime, "\n");
+	print("_2_ {\n");
+		_2_(addr+104);
+	print("}\n");
+	print("	type	", addr.type, "\n");
+	print("	dev	", addr.dev, "\n");
+};
+
+sizeofWaitmsg = 112;
+aggr Waitmsg
+{
+	'a' 0 pid;
+	'a' 12 time;
+	'a' 48 msg;
+};
+
+defn
+Waitmsg(addr) {
+	complex Waitmsg addr;
+	print("	pid	", addr.pid, "\n");
+	print("	time	", addr.time, "\n");
+	print("	msg	", addr.msg, "\n");
+};
+
+sizeofTicketreq = 144;
+aggr Ticketreq
+{
+	'C' 0 type;
+	'a' 1 authid;
+	'a' 29 authdom;
+	'a' 77 chal;
+	'a' 85 hostid;
+	'a' 113 uid;
+};
+
+defn
+Ticketreq(addr) {
+	complex Ticketreq addr;
+	print("	type	", addr.type, "\n");
+	print("	authid	", addr.authid, "\n");
+	print("	authdom	", addr.authdom, "\n");
+	print("	chal	", addr.chal, "\n");
+	print("	hostid	", addr.hostid, "\n");
+	print("	uid	", addr.uid, "\n");
+};
+
+sizeofTicket = 72;
+aggr Ticket
+{
+	'C' 0 num;
+	'a' 1 chal;
+	'a' 9 cuid;
+	'a' 37 suid;
+	'a' 65 key;
+};
+
+defn
+Ticket(addr) {
+	complex Ticket addr;
+	print("	num	", addr.num, "\n");
+	print("	chal	", addr.chal, "\n");
+	print("	cuid	", addr.cuid, "\n");
+	print("	suid	", addr.suid, "\n");
+	print("	key	", addr.key, "\n");
+};
+
+sizeofAuthenticator = 16;
+aggr Authenticator
+{
+	'C' 0 num;
+	'a' 1 chal;
+	'U' 12 id;
+};
+
+defn
+Authenticator(addr) {
+	complex Authenticator addr;
+	print("	num	", addr.num, "\n");
+	print("	chal	", addr.chal, "\n");
+	print("	id	", addr.id, "\n");
+};
+
+sizeofPasswordreq = 60;
+aggr Passwordreq
+{
+	'C' 0 num;
+	'a' 1 old;
+	'a' 29 new;
+};
+
+defn
+Passwordreq(addr) {
+	complex Passwordreq addr;
+	print("	num	", addr.num, "\n");
+	print("	old	", addr.old, "\n");
+	print("	new	", addr.new, "\n");
+};
+
+sizeofNvrsafe = 112;
+aggr Nvrsafe
+{
+	'a' 0 machkey;
+	'b' 7 machsum;
+	'a' 8 authkey;
+	'b' 15 authsum;
+	'a' 16 config;
+	'b' 30 configsum;
+	'a' 31 authid;
+	'b' 59 authidsum;
+	'a' 60 authdom;
+	'b' 108 authdomsum;
+};
+
+defn
+Nvrsafe(addr) {
+	complex Nvrsafe addr;
+	print("	machkey	", addr.machkey, "\n");
+	print("	machsum	", addr.machsum, "\n");
+	print("	authkey	", addr.authkey, "\n");
+	print("	authsum	", addr.authsum, "\n");
+	print("	config	", addr.config, "\n");
+	print("	configsum	", addr.configsum, "\n");
+	print("	authid	", addr.authid, "\n");
+	print("	authidsum	", addr.authidsum, "\n");
+	print("	authdom	", addr.authdom, "\n");
+	print("	authdomsum	", addr.authdomsum, "\n");
+};
+
+sizeofChalstate = 24;
+aggr Chalstate
+{
+	'D' 0 afd;
+	'D' 4 asfd;
+	'a' 8 chal;
+};
+
+defn
+Chalstate(addr) {
+	complex Chalstate addr;
+	print("	afd	", addr.afd, "\n");
+	print("	asfd	", addr.asfd, "\n");
+	print("	chal	", addr.chal, "\n");
+};
+
+sizeofPoint = 8;
+aggr Point
+{
+	'D' 0 x;
+	'D' 4 y;
+};
+
+defn
+Point(addr) {
+	complex Point addr;
+	print("	x	", addr.x, "\n");
+	print("	y	", addr.y, "\n");
+};
+
+sizeofRectangle = 16;
+aggr Rectangle
+{
+	Point 0 min;
+	Point 8 max;
+};
+
+defn
+Rectangle(addr) {
+	complex Rectangle addr;
+	print("Point min {\n");
+	Point(addr.min);
+	print("}\n");
+	print("Point max {\n");
+	Point(addr.max);
+	print("}\n");
+};
+
+sizeofBitmap = 44;
+aggr Bitmap
+{
+	Rectangle 0 r;
+	Rectangle 16 clipr;
+	'D' 32 ldepth;
+	'D' 36 id;
+	'A' Bitmap 40 cache;
+};
+
+defn
+Bitmap(addr) {
+	complex Bitmap addr;
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Rectangle clipr {\n");
+	Rectangle(addr.clipr);
+	print("}\n");
+	print("	ldepth	", addr.ldepth, "\n");
+	print("	id	", addr.id, "\n");
+	print("	cache	", addr.cache\X, "\n");
+};
+
+sizeofMouse = 16;
+aggr Mouse
+{
+	'D' 0 buttons;
+	Point 4 xy;
+	'U' 12 msec;
+};
+
+defn
+Mouse(addr) {
+	complex Mouse addr;
+	print("	buttons	", addr.buttons, "\n");
+	print("Point xy {\n");
+	Point(addr.xy);
+	print("}\n");
+	print("	msec	", addr.msec, "\n");
+};
+
+sizeofCursor = 72;
+aggr Cursor
+{
+	Point 0 offset;
+	'a' 8 clr;
+	'a' 40 set;
+};
+
+defn
+Cursor(addr) {
+	complex Cursor addr;
+	print("Point offset {\n");
+	Point(addr.offset);
+	print("}\n");
+	print("	clr	", addr.clr, "\n");
+	print("	set	", addr.set, "\n");
+};
+
+sizeofMenu = 12;
+aggr Menu
+{
+	'X' 0 item;
+	'X' 4 gen;
+	'D' 8 lasthit;
+};
+
+defn
+Menu(addr) {
+	complex Menu addr;
+	print("	item	", addr.item\X, "\n");
+	print("	gen	", addr.gen\X, "\n");
+	print("	lasthit	", addr.lasthit, "\n");
+};
+
+sizeofLinedesc = 20;
+aggr Linedesc
+{
+	'D' 0 x0;
+	'D' 4 y0;
+	'C' 8 xmajor;
+	'C' 9 slopeneg;
+	'D' 12 dminor;
+	'D' 16 dmajor;
+};
+
+defn
+Linedesc(addr) {
+	complex Linedesc addr;
+	print("	x0	", addr.x0, "\n");
+	print("	y0	", addr.y0, "\n");
+	print("	xmajor	", addr.xmajor, "\n");
+	print("	slopeneg	", addr.slopeneg, "\n");
+	print("	dminor	", addr.dminor, "\n");
+	print("	dmajor	", addr.dmajor, "\n");
+};
+
+sizeofFontchar = 8;
+aggr Fontchar
+{
+	'u' 0 x;
+	'b' 2 top;
+	'b' 3 bottom;
+	'C' 4 left;
+	'b' 5 width;
+};
+
+defn
+Fontchar(addr) {
+	complex Fontchar addr;
+	print("	x	", addr.x, "\n");
+	print("	top	", addr.top, "\n");
+	print("	bottom	", addr.bottom, "\n");
+	print("	left	", addr.left, "\n");
+	print("	width	", addr.width, "\n");
+};
+
+sizeofSubfont = 12;
+aggr Subfont
+{
+	'd' 0 n;
+	'b' 2 height;
+	'C' 3 ascent;
+	'A' Fontchar 4 info;
+	'D' 8 id;
+};
+
+defn
+Subfont(addr) {
+	complex Subfont addr;
+	print("	n	", addr.n, "\n");
+	print("	height	", addr.height, "\n");
+	print("	ascent	", addr.ascent, "\n");
+	print("	info	", addr.info\X, "\n");
+	print("	id	", addr.id, "\n");
+};
+
+sizeofCachefont = 16;
+aggr Cachefont
+{
+	'u' 0 min;
+	'u' 2 max;
+	'D' 4 offset;
+	'D' 8 abs;
+	'X' 12 name;
+};
+
+defn
+Cachefont(addr) {
+	complex Cachefont addr;
+	print("	min	", addr.min, "\n");
+	print("	max	", addr.max, "\n");
+	print("	offset	", addr.offset, "\n");
+	print("	abs	", addr.abs, "\n");
+	print("	name	", addr.name\X, "\n");
+};
+
+sizeofCacheinfo = 16;
+aggr Cacheinfo
+{
+	'u' 0 value;
+	'u' 2 age;
+	'U' 4 xright;
+	{
+	'u' 8 x;
+	'b' 10 top;
+	'b' 11 bottom;
+	'C' 12 left;
+	'b' 13 width;
+	};
+};
+
+defn
+Cacheinfo(addr) {
+	complex Cacheinfo addr;
+	print("	value	", addr.value, "\n");
+	print("	age	", addr.age, "\n");
+	print("	xright	", addr.xright, "\n");
+	print("Fontchar {\n");
+		Fontchar(addr+8);
+	print("}\n");
+};
+
+sizeofCachesubf = 12;
+aggr Cachesubf
+{
+	'U' 0 age;
+	'A' Cachefont 4 cf;
+	'A' Subfont 8 f;
+};
+
+defn
+Cachesubf(addr) {
+	complex Cachesubf addr;
+	print("	age	", addr.age, "\n");
+	print("	cf	", addr.cf\X, "\n");
+	print("	f	", addr.f\X, "\n");
+};
+
+sizeofFont = 36;
+aggr Font
+{
+	'X' 0 name;
+	'b' 4 height;
+	'C' 5 ascent;
+	'C' 6 width;
+	'C' 7 ldepth;
+	'd' 8 id;
+	'd' 10 nsub;
+	'U' 12 age;
+	'D' 16 ncache;
+	'D' 20 nsubf;
+	'A' Cacheinfo 24 cache;
+	'A' Cachesubf 28 subf;
+	'A' Cachefont 32 sub;
+};
+
+defn
+Font(addr) {
+	complex Font addr;
+	print("	name	", addr.name\X, "\n");
+	print("	height	", addr.height, "\n");
+	print("	ascent	", addr.ascent, "\n");
+	print("	width	", addr.width, "\n");
+	print("	ldepth	", addr.ldepth, "\n");
+	print("	id	", addr.id, "\n");
+	print("	nsub	", addr.nsub, "\n");
+	print("	age	", addr.age, "\n");
+	print("	ncache	", addr.ncache, "\n");
+	print("	nsubf	", addr.nsubf, "\n");
+	print("	cache	", addr.cache\X, "\n");
+	print("	subf	", addr.subf\X, "\n");
+	print("	sub	", addr.sub\X, "\n");
+};
+
+sizeofEvent = 8344;
+aggr Event
+{
+	'D' 0 kbdc;
+	Mouse 4 mouse;
+	'D' 20 n;
+	'a' 24 data;
+};
+
+defn
+Event(addr) {
+	complex Event addr;
+	print("	kbdc	", addr.kbdc, "\n");
+	print("Mouse mouse {\n");
+	Mouse(addr.mouse);
+	print("}\n");
+	print("	n	", addr.n, "\n");
+	print("	data	", addr.data, "\n");
+};
+
+sizeofSlave = 12;
+aggr Slave
+{
+	'D' 0 pid;
+	'X' 4 $head;
+	'X' 8 $tail;
+};
+
+defn
+Slave(addr) {
+	complex Slave addr;
+	print("	pid	", addr.pid, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofEbuf = 8328;
+aggr Ebuf
+{
+	'A' Ebuf 0 next;
+	'D' 4 n;
+	'a' 8 buf;
+};
+
+defn
+Ebuf(addr) {
+	complex Ebuf addr;
+	print("	next	", addr.next\X, "\n");
+	print("	n	", addr.n, "\n");
+	print("	buf	", addr.buf, "\n");
+};
+
+sizeofRGB = 12;
+aggr RGB
+{
+	'U' 0 red;
+	'U' 4 green;
+	'U' 8 blue;
+};
+
+defn
+RGB(addr) {
+	complex RGB addr;
+	print("	red	", addr.red, "\n");
+	print("	green	", addr.green, "\n");
+	print("	blue	", addr.blue, "\n");
+};
+
+complex Bitmap screen;
+complex Font font;
+sizeof_3_ = 4;
+aggr _3_
+{
+	'd' 0 bc;
+	'd' 2 minwid;
+};
+
+defn
+_3_(addr) {
+	complex _3_ addr;
+	print("	bc	", addr.bc, "\n");
+	print("	minwid	", addr.minwid, "\n");
+};
+
+sizeof_4_ = 4;
+aggr _4_
+{
+	'X' 0 ptr;
+	{
+	'd' 0 bc;
+	'd' 2 minwid;
+	};
+};
+
+defn
+_4_(addr) {
+	complex _4_ addr;
+	print("	ptr	", addr.ptr\X, "\n");
+	print("_3_ {\n");
+		_3_(addr+0);
+	print("}\n");
+};
+
+sizeofFrbox = 12;
+aggr Frbox
+{
+	'D' 0 wid;
+	'D' 4 nrune;
+	{
+	'X' 8 ptr;
+	{
+	'd' 8 bc;
+	'd' 10 minwid;
+	};
+	};
+};
+
+defn
+Frbox(addr) {
+	complex Frbox addr;
+	print("	wid	", addr.wid, "\n");
+	print("	nrune	", addr.nrune, "\n");
+	print("_4_ {\n");
+		_4_(addr+8);
+	print("}\n");
+};
+
+complex Font font;
+sizeofFrame = 72;
+aggr Frame
+{
+	'A' Font 0 font;
+	'A' Bitmap 4 b;
+	Rectangle 8 r;
+	Rectangle 24 entire;
+	'A' Frbox 40 box;
+	'U' 44 p0;
+	'U' 48 p1;
+	'd' 52 left;
+	'u' 54 nbox;
+	'u' 56 nalloc;
+	'u' 58 maxtab;
+	'u' 60 nchars;
+	'u' 62 nlines;
+	'u' 64 maxlines;
+	'u' 66 lastlinefull;
+	'u' 68 modified;
+};
+
+defn
+Frame(addr) {
+	complex Frame addr;
+	print("	font	", addr.font\X, "\n");
+	print("	b	", addr.b\X, "\n");
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Rectangle entire {\n");
+	Rectangle(addr.entire);
+	print("}\n");
+	print("	box	", addr.box\X, "\n");
+	print("	p0	", addr.p0, "\n");
+	print("	p1	", addr.p1, "\n");
+	print("	left	", addr.left, "\n");
+	print("	nbox	", addr.nbox, "\n");
+	print("	nalloc	", addr.nalloc, "\n");
+	print("	maxtab	", addr.maxtab, "\n");
+	print("	nchars	", addr.nchars, "\n");
+	print("	nlines	", addr.nlines, "\n");
+	print("	maxlines	", addr.maxlines, "\n");
+	print("	lastlinefull	", addr.lastlinefull, "\n");
+	print("	modified	", addr.modified, "\n");
+};
+
+sizeofLayer = 60;
+aggr Layer
+{
+	{
+	Rectangle 0 r;
+	Rectangle 16 clipr;
+	'D' 32 ldepth;
+	'D' 36 id;
+	'A' Bitmap 40 cache;
+	};
+	'A' Layer 44 next;
+	'X' 48 cover;
+	'D' 52 user;
+	'D' 56 vis;
+};
+
+defn
+Layer(addr) {
+	complex Layer addr;
+	print("Bitmap {\n");
+		Bitmap(addr+0);
+	print("}\n");
+	print("	next	", addr.next\X, "\n");
+	print("	cover	", addr.cover\X, "\n");
+	print("	user	", addr.user, "\n");
+	print("	vis	", addr.vis, "\n");
+};
+
+sizeofCover = 12;
+aggr Cover
+{
+	'A' Layer 0 layer;
+	'A' Layer 4 front;
+	'A' Bitmap 8 ground;
+};
+
+defn
+Cover(addr) {
+	complex Cover addr;
+	print("	layer	", addr.layer\X, "\n");
+	print("	front	", addr.front\X, "\n");
+	print("	ground	", addr.ground\X, "\n");
+};
+
+sizeofProc = 2440;
+aggr Proc
+{
+	'a' 0 label;
+	'X' 8 arg;
+	'A' Proc 12 nextrun;
+	'A' Proc 16 next;
+	Mouse 20 mouse;
+	'D' 36 dead;
+	'a' 40 stack;
+};
+
+defn
+Proc(addr) {
+	complex Proc addr;
+	print("	label	", addr.label, "\n");
+	print("	arg	", addr.arg\X, "\n");
+	print("	nextrun	", addr.nextrun\X, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("Mouse mouse {\n");
+	Mouse(addr.mouse);
+	print("}\n");
+	print("	dead	", addr.dead, "\n");
+	print("	stack	", addr.stack, "\n");
+};
+
+sizeofIOQ = 16;
+aggr IOQ
+{
+	'A' IOQ 0 next;
+	'D' 4 tag;
+	'D' 8 cnt;
+	'D' 12 fid;
+};
+
+defn
+IOQ(addr) {
+	complex IOQ addr;
+	print("	next	", addr.next\X, "\n");
+	print("	tag	", addr.tag, "\n");
+	print("	cnt	", addr.cnt, "\n");
+	print("	fid	", addr.fid, "\n");
+};
+
+sizeofText = 12;
+aggr Text
+{
+	'X' 0 s;
+	'U' 4 n;
+	'U' 8 nalloc;
+};
+
+defn
+Text(addr) {
+	complex Text addr;
+	print("	s	", addr.s\X, "\n");
+	print("	n	", addr.n, "\n");
+	print("	nalloc	", addr.nalloc, "\n");
+};
+
+sizeofWindow = 496;
+aggr Window
+{
+	'D' 0 ref;
+	'D' 4 busy;
+	'D' 8 slot;
+	Rectangle 12 r;
+	Rectangle 28 clipr;
+	Rectangle 44 scrollr;
+	'A' Layer 60 l;
+	'A' Proc 64 p;
+	'A' Cursor 68 cursorp;
+	Cursor 72 cursor;
+	Frame 144 f;
+	Rectangle 216 lastbar;
+	'D' 232 org;
+	'D' 236 q0;
+	'D' 240 q1;
+	'D' 244 qh;
+	Text 248 text;
+	Text 260 rawbuf;
+	Text 272 kbdbuf;
+	'X' 284 wbuf;
+	'D' 288 wcnt;
+	'D' 292 woff;
+	'a' 296 wpart;
+	'D' 300 nwpart;
+	'a' 304 ipart;
+	'b' 307 nipart;
+	'D' 308 kbdopen;
+	'D' 312 wtag;
+	'D' 316 wfid;
+	'D' 320 rtag;
+	'D' 324 rfid;
+	'D' 328 rcnt;
+	'a' 332 rpart;
+	'D' 336 nrpart;
+	'D' 340 mtag;
+	'D' 344 mfid;
+	'D' 348 MFID;
+	'A' IOQ 352 rq;
+	'A' IOQ 356 wq;
+	'A' IOQ 360 kq;
+	'D' 364 send;
+	'a' 368 wqid;
+	Rectangle 376 reshape;
+	Rectangle 392 onscreen;
+	'C' 408 scroll;
+	'C' 409 hold;
+	'C' 410 raw;
+	'C' 411 ctlopen;
+	'C' 412 bitopen;
+	'C' 413 bitinit;
+	'C' 414 mouseopen;
+	'C' 415 mousechanged;
+	'C' 416 reshaped;
+	'C' 417 dodelete;
+	'C' 418 deleted;
+	'D' 420 bitid;
+	'D' 424 fontid;
+	'D' 428 subfontid;
+	'D' 432 cachesfid;
+	'D' 436 hidemenu;
+	'X' 440 rdbmbuf;
+	'X' 444 rdwindow;
+	'D' 448 rdbml;
+	'D' 452 rdwl;
+	'D' 456 nsubf;
+	'X' 460 subf;
+	'D' 464 pgrpfd;
+	'a' 468 label;
+};
+
+defn
+Window(addr) {
+	complex Window addr;
+	print("	ref	", addr.ref, "\n");
+	print("	busy	", addr.busy, "\n");
+	print("	slot	", addr.slot, "\n");
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Rectangle clipr {\n");
+	Rectangle(addr.clipr);
+	print("}\n");
+	print("Rectangle scrollr {\n");
+	Rectangle(addr.scrollr);
+	print("}\n");
+	print("	l	", addr.l\X, "\n");
+	print("	p	", addr.p\X, "\n");
+	print("	cursorp	", addr.cursorp\X, "\n");
+	print("Cursor cursor {\n");
+	Cursor(addr.cursor);
+	print("}\n");
+	print("Frame f {\n");
+	Frame(addr.f);
+	print("}\n");
+	print("Rectangle lastbar {\n");
+	Rectangle(addr.lastbar);
+	print("}\n");
+	print("	org	", addr.org, "\n");
+	print("	q0	", addr.q0, "\n");
+	print("	q1	", addr.q1, "\n");
+	print("	qh	", addr.qh, "\n");
+	print("Text text {\n");
+	Text(addr.text);
+	print("}\n");
+	print("Text rawbuf {\n");
+	Text(addr.rawbuf);
+	print("}\n");
+	print("Text kbdbuf {\n");
+	Text(addr.kbdbuf);
+	print("}\n");
+	print("	wbuf	", addr.wbuf\X, "\n");
+	print("	wcnt	", addr.wcnt, "\n");
+	print("	woff	", addr.woff, "\n");
+	print("	wpart	", addr.wpart, "\n");
+	print("	nwpart	", addr.nwpart, "\n");
+	print("	ipart	", addr.ipart, "\n");
+	print("	nipart	", addr.nipart, "\n");
+	print("	kbdopen	", addr.kbdopen, "\n");
+	print("	wtag	", addr.wtag, "\n");
+	print("	wfid	", addr.wfid, "\n");
+	print("	rtag	", addr.rtag, "\n");
+	print("	rfid	", addr.rfid, "\n");
+	print("	rcnt	", addr.rcnt, "\n");
+	print("	rpart	", addr.rpart, "\n");
+	print("	nrpart	", addr.nrpart, "\n");
+	print("	mtag	", addr.mtag, "\n");
+	print("	mfid	", addr.mfid, "\n");
+	print("	MFID	", addr.MFID, "\n");
+	print("	rq	", addr.rq\X, "\n");
+	print("	wq	", addr.wq\X, "\n");
+	print("	kq	", addr.kq\X, "\n");
+	print("	send	", addr.send, "\n");
+	print("	wqid	", addr.wqid, "\n");
+	print("Rectangle reshape {\n");
+	Rectangle(addr.reshape);
+	print("}\n");
+	print("Rectangle onscreen {\n");
+	Rectangle(addr.onscreen);
+	print("}\n");
+	print("	scroll	", addr.scroll, "\n");
+	print("	hold	", addr.hold, "\n");
+	print("	raw	", addr.raw, "\n");
+	print("	ctlopen	", addr.ctlopen, "\n");
+	print("	bitopen	", addr.bitopen, "\n");
+	print("	bitinit	", addr.bitinit, "\n");
+	print("	mouseopen	", addr.mouseopen, "\n");
+	print("	mousechanged	", addr.mousechanged, "\n");
+	print("	reshaped	", addr.reshaped, "\n");
+	print("	dodelete	", addr.dodelete, "\n");
+	print("	deleted	", addr.deleted, "\n");
+	print("	bitid	", addr.bitid, "\n");
+	print("	fontid	", addr.fontid, "\n");
+	print("	subfontid	", addr.subfontid, "\n");
+	print("	cachesfid	", addr.cachesfid, "\n");
+	print("	hidemenu	", addr.hidemenu, "\n");
+	print("	rdbmbuf	", addr.rdbmbuf\X, "\n");
+	print("	rdwindow	", addr.rdwindow\X, "\n");
+	print("	rdbml	", addr.rdbml, "\n");
+	print("	rdwl	", addr.rdwl, "\n");
+	print("	nsubf	", addr.nsubf, "\n");
+	print("	subf	", addr.subf\X, "\n");
+	print("	pgrpfd	", addr.pgrpfd, "\n");
+	print("	label	", addr.label, "\n");
+};
+
+sizeof_5_ = 12;
+aggr _5_
+{
+	'A' Proc 0 p;
+	'A' Proc 4 $head;
+	'A' Proc 8 $tail;
+};
+
+defn
+_5_(addr) {
+	complex _5_ addr;
+	print("	p	", addr.p\X, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+complex _5_ proc;
+sizeof_6_ = 32;
+aggr _6_
+{
+	{
+	'D' 0 buttons;
+	Point 4 xy;
+	'U' 12 msec;
+	};
+	'a' 16 data;
+};
+
+defn
+_6_(addr) {
+	complex _6_ addr;
+	print("Mouse {\n");
+		Mouse(addr+0);
+	print("}\n");
+	print("	data	", addr.data, "\n");
+};
+
+complex _6_ mouse;
+complex Proc pmouse;
+complex Proc pkbd;
+complex Window input;
+complex Cover cover;
+complex Bitmap darkgrey;
+complex Cursor whitearrow;
+complex Bitmap lightgrey;
+complex Bitmap darkgrey;
+complex Rectangle box;
+complex Subfont subfont;
+complex Proc pmouse;
+complex Proc pkbd;
+complex Cover cover;
+complex Bitmap lightgrey;
+complex Bitmap darkgrey;
+complex Cursor cursorp;
+complex Rectangle box;
+complex Window input;
+complex Subfont subfont;
+complex Proc wakemouse;
+complex Cursor sweep0;
+complex Cursor boxcurs;
+complex Cursor sight;
+complex Cursor whitearrow;
+complex Bitmap main:b;
+complex Window intr:w;
+complex Waitmsg fork2:w;
+complex Menu menu3;
+complex Menu menu2;
+complex Mouse sweep:m;
+complex Point sweep:p1;
+complex Point sweep:p2;
+complex Window checkcursor:w;
+complex Cursor checkcursor:c;
+complex Window current:w;
+complex Window current:oinput;
+complex Rectangle okrect:r;
+complex Mouse windowctl:m;
+complex Rectangle windowctl:r;
+complex Window windowctl:w;
+complex Point windowctl:p1;
+complex Point windowctl:p2;
+complex Point windowctl:p3;
+complex Window hidemenu:w;
+file.c:
+sizeofRfile = 12;
+aggr Rfile
+{
+	'D' 0 busy;
+	'D' 4 open;
+	'D' 8 fileno;
+};
+
+defn
+Rfile(addr) {
+	complex Rfile addr;
+	print("	busy	", addr.busy, "\n");
+	print("	open	", addr.open, "\n");
+	print("	fileno	", addr.fileno, "\n");
+};
+
+sizeofDirtab = 16;
+aggr Dirtab
+{
+	'X' 0 name;
+	'U' 4 qid;
+	'U' 8 perm;
+	'C' 12 flag;
+};
+
+defn
+Dirtab(addr) {
+	complex Dirtab addr;
+	print("	name	", addr.name\X, "\n");
+	print("	qid	", addr.qid, "\n");
+	print("	perm	", addr.perm, "\n");
+	print("	flag	", addr.flag, "\n");
+};
+
+sizeofFile = 28;
+aggr File
+{
+	'D' 0 busy;
+	'U' 4 path;
+	'D' 8 slot;
+	Dirtab 12 dir;
+};
+
+defn
+File(addr) {
+	complex File addr;
+	print("	busy	", addr.busy, "\n");
+	print("	path	", addr.path, "\n");
+	print("	slot	", addr.slot, "\n");
+	print("Dirtab dir {\n");
+	Dirtab(addr.dir);
+	print("}\n");
+};
+
+complex Rfile rfile;
+complex File file;
+complex Fcall rhdr;
+complex Fcall thdr;
+complex Dirtab rootdir;
+complex Dirtab winddir;
+complex Rfile io:rf;
+complex Rfile rattach:rf;
+complex Rectangle rattach:r;
+complex File rattach:fp;
+complex Rfile rclone:rf;
+complex Rfile rclone:nrf;
+complex File rclone:fp;
+complex Rfile rwalk:rf;
+complex File rwalk:fp;
+complex Dirtab rwalk:dp;
+complex Rfile ropen:rf;
+complex File ropen:fp;
+complex Window ropen:w;
+complex Rfile rcreate:rf;
+complex Rfile rread:rf;
+complex Dir rread:dir;
+complex File rread:fp;
+complex Dirtab rread:dp;
+complex Window rread:w;
+complex Text rread:t;
+complex IOQ rread:kq;
+complex Rfile rwrite:rf;
+complex File rwrite:fp;
+complex Window rwrite:w;
+complex Text rwrite:t;
+complex Rfile rclunk:rf;
+complex Window rclunk:w;
+complex Window rclunk:myw;
+complex File rclunk:fp;
+complex Rfile rstat:rf;
+complex Dir rstat:dir;
+complex File rstat:fp;
+complex Rfile rwstat:rf;
+complex File dirlook:fp;
+complex Dirtab dend.91;
+complex Dirtab dir.91;
+complex Window walive:w;
+complex Window findwindow:w;
+complex Window findwindow:w1;
+complex Rfile wfopen:rf;
+complex Dirtab wfopen:dp;
+complex File wfopen:fp;
+complex File wfopen:nfp;
+complex Window doconsctl:w;
+main.c:
+complex Proc pmouse;
+complex Proc pkbd;
+complex Cover cover;
+complex Bitmap lightgrey;
+complex Bitmap darkgrey;
+complex Cursor cursorp;
+complex Rectangle box;
+complex Window input;
+complex Subfont subfont;
+complex Proc wakemouse;
+complex Cursor sweep0;
+complex Cursor boxcurs;
+complex Cursor sight;
+complex Cursor whitearrow;
+complex Bitmap main:b;
+complex Window intr:w;
+complex Waitmsg fork2:w;
+complex Menu menu3;
+complex Menu menu2;
+complex Mouse sweep:m;
+complex Point sweep:p1;
+complex Point sweep:p2;
+complex Window checkcursor:w;
+complex Cursor checkcursor:c;
+complex Window current:w;
+complex Window current:oinput;
+complex Rectangle okrect:r;
+complex Mouse windowctl:m;
+complex Rectangle windowctl:r;
+complex Window windowctl:w;
+complex Point windowctl:p1;
+complex Point windowctl:p2;
+complex Point windowctl:p3;
+complex Window hidemenu:w;
+proc.c:
+complex Proc newproc:p;
+complex Proc run:p;
+complex Proc run:q;
+term.c:
+complex Window snarf;
+complex Rectangle newterm:r;
+complex Window newterm:w;
+complex Window termrects:w;
+complex Rectangle termrects:r;
+complex Window termborder:w;
+complex Rectangle termborder:c;
+complex Point termwhich:pt;
+complex Layer termwhich:l;
+complex Point termtop:pt;
+complex Window termtop:w;
+complex Window backnl:w;
+complex Window setorigin:w;
+complex Window scrorigin:w;
+complex Window termclear:w;
+complex Window termdelete:w;
+complex Window termwrite:w;
+complex Window termread:w;
+complex Window termmouseread:w;
+complex Window textinsert:w;
+complex Text textinsert:t;
+complex Text textdelete:t;
+complex Window termhighlight:w;
+complex Window termselect:w;
+complex Mouse termselect:m;
+complex Window termfill:w;
+complex Window termcut:w;
+complex Window termsnarf:w;
+complex Window termpaste:w;
+complex Window termsend:w;
+complex Window termjump:w;
+complex Window termunblock:w;
+complex IOQ termunblock:wq;
+complex Window termshow:w;
+complex Window termscroll:w;
+complex Window termreshape:w;
+complex Rectangle termreshape:r;
+complex Layer termreshape:l;
+complex Rectangle rscale:r;
+complex Point rscale:old;
+complex Point rscale:new;
+complex Rectangle termreshapeall:osr;
+complex Rectangle termreshapeall:r;
+complex Layer termreshapeall:l;
+complex Window termreshapeall:w;
+complex Window termbrkc:w;
+complex Window termhold:w;
+complex Window termnote:w;
+complex Window termkbd:w;
+complex Window termraw:w;
+complex Window termunraw:w;
+complex IOQ termflush:oq;
+complex IOQ termflush:q;
+complex Window termflush:w;
+complex Window termwrune:w;
+complex Window termrrune:w;
+complex Window termctl:w;
+complex IOQ termctl:rq;
+complex IOQ termctl:nrq;
+complex IOQ termctl:wq;
+complex Mouse termctl:m;
+complex Rectangle termctl:clipr;

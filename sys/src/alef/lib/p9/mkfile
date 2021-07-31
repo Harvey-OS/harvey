@@ -1,0 +1,47 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libA.a
+OFILES=\
+	access.$O\
+	announce.$O\
+	brk.$O\
+	convD2M.$O\
+	convM2D.$O\
+	convM2S.$O\
+	convS2M.$O\
+	cputime.$O\
+	ctime.$O\
+	dial.$O\
+	dirfstat.$O\
+	dirfwstat.$O\
+	dirmodeconv.$O\
+	dirread.$O\
+	dirstat.$O\
+	execl.$O\
+	fcallconv.$O\
+	getenv.$O\
+	getpid.$O\
+	getppid.$O\
+	getuser.$O\
+	getwd.$O\
+	mstime.$O\
+	netmkaddr.$O\
+	postnote.$O\
+	putenv.$O\
+	syslog.$O\
+	time.$O\
+	times.$O\
+	werrstr.$O\
+
+AFILES=${OFILES:%.$O=%.l}
+</sys/src/cmd/mksyslib
+
+access.v access.k access.8: access.l
+	$ALEF -w -DMAGIC'='`{echo $O | tr vk8 VKI}^'_MAGIC' access.l
+
+/68020/lib/alef/libA.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'
+
+acid:V:
+	val -aa -DMAGIC'='1 $AFILES > acid.$objtype

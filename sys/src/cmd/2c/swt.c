@@ -1,12 +1,12 @@
 #include "gc.h"
 
 int
-swcmp(const void *a1, const void *a2)
+swcmp(void *a1, void *a2)
 {
 	C1 *p1, *p2;
 
-	p1 = (C1*)a1;
-	p2 = (C1*)a2;
+	p1 = a1;
+	p2 = a2;
 	if(p1->val < p2->val)
 		return -1;
 	return p1->val > p2->val;
@@ -31,7 +31,13 @@ doswit(int g, Node *n)
 		nc++;
 	}
 
-	iq = alloc(nc*sizeof(C1));
+	i = nc*sizeof(C1);
+	while(nhunk < i)
+		gethunk();
+	iq = (C1*)hunk;
+	nhunk -= i;
+	hunk += i;
+
 	q = iq;
 	for(c = cases; c->link != C; c = c->link) {
 		if(c->def)
@@ -62,6 +68,7 @@ swit1(C1 *q, int nc, long def, int g, Node *n)
 	Prog *sp1, *sp2;
 
 	/* note that g and g+1 are not allocated */
+loop:
 	if(nc <= N1)
 		goto linear;
 	y = 23*nc/100 + 5;	/* number of cases needed to make */
@@ -82,6 +89,7 @@ swit1(C1 *q, int nc, long def, int g, Node *n)
 	/*
 	 * divide and conquer
 	 */
+binary:
 	i = nc / 2;
 	r = q+i;
 	v = r->val;
@@ -190,7 +198,7 @@ cas(void)
 {
 	Case *c;
 
-	c = alloc(sizeof(*c));
+	ALLOC(c, Case);
 	c->link = cases;
 	cases = c;
 }
@@ -210,7 +218,7 @@ bitload(Node *b, int n1, int n2, int n3, Node *nn)
 	 * n3 gets contents of cell
 	 */
 	gs = 0;
-	t = tfield;
+	t = types[TFIELD];
 
 	l = b->left;
 	g = regalloc(t, n3);
@@ -271,7 +279,7 @@ bitstore(Node *b, int n1, int n2, int n3, int result, Node *nn)
 	 * n2 has address of cell
 	 * n3 has contents of cell
 	 */
-	t = tfield;
+	t = types[TFIELD];
 
 	l = b->left;
 	g = regalloc(t, D_NONE);
@@ -335,7 +343,7 @@ outlstring(ushort *s, long n)
 	r = nstring;
 	while(n > 0) {
 		c = *s++;
-		if(align(0, types[TCHAR], Aarg1)) {
+		if(endian(0)) {
 			buf[0] = c>>8;
 			buf[1] = c;
 		} else {
@@ -481,6 +489,35 @@ eval(Node *n, int g)
 	g = regalloc(n->type, g);
 	cgen(n, g, n);
 	return g;
+}
+
+int
+vlog(Node *n)
+{
+	int s, i;
+	ulong m, v;
+
+	if(n->op != OCONST)
+		goto bad;
+	if(typefd[n->type->etype])
+		goto bad;
+
+	v = n->vconst;
+
+	s = 0;
+	m = MASK(64);
+	for(i=32; i; i>>=1) {
+		m >>= i;
+		if(!(v & m)) {
+			v >>= i;
+			s += i;
+		}
+	}
+	if(v == 1)
+		return s;
+
+bad:
+	return -1;
 }
 
 void	outhist(Biobuf*);
@@ -697,29 +734,21 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char *p, *q, *op, c;
+	char *p, *q, *op;
 	Prog pg;
 	int n;
 
 	pg = zprog;
 	pg.as = AHISTORY;
-	c = pathchar();
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
 		op = 0;
-		if(p && p[0] != c && h->offset == 0 && pathname){
-			/* on windows skip drive specifier in pathname */
-			if(systemtype(Windows) && pathname[2] == c) {
-				op = p;
-				p = pathname+2;
-				*p = '/';
-			} else if(pathname[0] == c){
-				op = p;
-				p = pathname;
-			}
+		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
+			op = p;
+			p = pathname;
 		}
 		while(p) {
-			q = utfrune(p, c);
+			q = utfrune(p, '/');
 			if(q) {
 				n = q-p;
 				if(n == 0)
@@ -947,74 +976,42 @@ gextern(Sym *s, Node *a, long o, long w)
 	p->from.displace = w;
 }
 
-long
-align(long i, Type *t, int op)
+char*	xonames[] =
 {
-	long o;
-	Type *v;
-	int w;
+	"TST",
+	"BITI",
+	"NEG",
+	"COM",
+	"INDEX",
+	"FAS",
+	"XEND",
+};
 
-	o = i;
-	w = 1;
-	switch(op) {
-	default:
-		diag(Z, "unknown align opcode %d", op);
-		break;
-
-	case Asu2:	/* padding at end of a struct */
-		w = SZ_LONG;
-		break;
-
-	case Ael1:	/* initial allign of struct element */
-		for(v=t; v->etype==TARRAY; v=v->link)
-			;
-		w = ewidth[v->etype];
-		if(w <= 0 || w >= SZ_SHORT)
-			w = SZ_SHORT;
-		break;
-
-	case Ael2:	/* width of a struct element */
-		o += t->width;
-		break;
-
-	case Aarg0:	/* initial passbyptr argument in arg list */
-		if(typesuv[t->etype]) {
-			o = align(o, types[TIND], Aarg1);
-			o = align(o, types[TIND], Aarg2);
-		}
-		break;
-
-	case Aarg1:	/* initial allign of parameter */
-		w = ewidth[t->etype];
-		if(w <= 0 || w >= SZ_LONG) {
-			w = SZ_LONG;
-			break;
-		}
-		o += SZ_LONG - w;	/* big endian adjustment */
-		w = 1;
-		break;
-
-	case Aarg2:	/* width of a parameter */
-		o += t->width;
-		w = SZ_LONG;
-		break;
-
-	case Aaut3:	/* total allign of automatic */
-		o = align(o, t, Ael1);
-		o = align(o, t, Ael2);
-		break;
-	}
-	o = round(o, w);
-	if(debug['A'])
-		print("align %s %ld %T = %ld\n", bnames[op], i, t, o);
-	return o;
+char*
+xOconv(int a)
+{
+	if(a <= OEND || a > OXEND)
+		return "**badO**";
+	return xonames[a-OEND-1];
 }
 
-long
-maxround(long max, long v)
+int
+endian(int w)
 {
-	v += SZ_LONG-1;
-	if(v > max)
-		max = round(v, SZ_LONG);
-	return max;
+
+	return tint->width - w;
+}
+
+int
+passbypointer(int et)
+{
+
+	return typesuv[et];
+}
+
+int
+argalign(long typewidth, long offset, int offsp)
+{
+	USED(typewidth,offset,offsp);
+	return 0;
 }

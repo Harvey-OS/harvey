@@ -1,0 +1,93 @@
+#!/bin/rc
+#stolen from pcc
+# do not modify /$cputype/bin/c++/?l
+# instead, change the master copy in /sys/src/c++/ld/ldprog and mk installall
+
+rfork e
+
+switch($0){
+case *vl
+	O=v
+	objtype=mips
+case *2l
+	O=2
+	objtype=68020
+case *8l
+	O=8
+	objtype=386
+case *kl
+	O=k
+	objtype=sparc
+case *zl
+	O=z
+	objtype=hobbit
+case *
+	echo $0: fatal error
+	exits whoami
+}
+me='c++/' ^ $O ^ 'l'
+CC=$O ^ 'c'
+LD=$O ^ 'l'
+out=$O.out
+objs=()
+ldargs=()
+libn=()
+pflag=()
+vflag=()
+nflag=()
+while(! ~ $#* 0){
+	switch($1){
+	case -l*
+		la=`{echo $1 | sed 's/-l//'}
+		if(test -r /$objtype/lib/c++/lib ^ $la ^ '.a'){
+			ldargs=($ldargs /$objtype/lib/c++/lib ^ $la ^ '.a')
+			libn=($libn $1)
+		}
+		if not if(test -r /$objtype/lib/ape/lib ^ $la ^ '.a'){
+			ldargs=($ldargs /$objtype/lib/ape/lib ^ $la ^ '.a')
+			libn=($libn $1)
+		}
+		if not
+			echo library $la not found
+	case -o
+		out=$2
+		shift
+	case -n
+		nflag=-n
+	case -p
+		pflag=-p
+	case -v
+		vflag=-v
+	case -*
+		echo $me: flag $1 ignored
+	case *.$O
+		objs=($objs $1)
+	case *.a
+		objs=($objs $1)
+	case *
+		echo $me: argument $1 ignored
+	}
+	shift
+}
+if(~ $#objs 0){
+	echo $me: no files to load!
+	exit nofiles
+}
+
+fn sigint sighup sigterm{
+	rm -f $out
+	exit 1
+}
+
+if(! ~ $#vflag 0)
+	echo $LD $pflag $nflag $vflag -o $out $objs $libn
+$LD $pflag $nflag $vflag -o $out $objs $ldargs /$objtype/lib/c++/libC.a
+if(~ $status ''){
+	if(! ~ $#vflag 0)
+		echo c++/patch $out
+	if(! /bin/c++/patch $out){
+		rm -f $out
+		exit 1
+	}
+}
+exit ''

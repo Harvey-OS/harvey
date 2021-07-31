@@ -10,6 +10,7 @@
 #include <bio.h>
 
 
+#define	INDENT	3	/* The number of leading spaces in output */
 #define	NINC	50	/* Multiples of directory allocation */
 char	NEWS[] = "/lib/news";
 char	TFILE[] = "%s/lib/newstime";
@@ -108,7 +109,7 @@ read_dir(int update)
 			n_count++;
 		}
 		if(update) {
-			fd = create(newstime, OWRITE, 0644);
+			fd = create(newstime, OWRITE, 0600);
 			if(fd >= 0)
 				close(fd);
 		}
@@ -147,7 +148,7 @@ print_item(char *file)
 {
 	char name[4096], *p, *ep;
 	Dir dbuf;
-	int f, c;
+	int f, c, i;
 	int bol, bop;
 
 	sprint(name, "%s/%s", NEWS, file);
@@ -183,7 +184,8 @@ print_item(char *file)
 				continue;
 			}
 			if(bol) {
-				Bputc(&bout, '\t');
+				for(i=0; i<INDENT; i++)
+					Bputc(&bout, ' ');
 				bol = 0;
 				bop = 0;
 			}

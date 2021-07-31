@@ -20,8 +20,7 @@ s_simplegrow(String *sp, int incr)
 
 	cp = realloc(sp->base, size);
 	if (cp == 0) {
-		s_error("String (grow)", "realloc");
-		/* should never return */
+		perror("String:");
 		exits("realloc");
 	}
 	sp->ptr = (sp->ptr - sp->base) + cp;

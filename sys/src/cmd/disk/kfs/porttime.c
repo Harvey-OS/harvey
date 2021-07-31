@@ -3,8 +3,8 @@
 static	int	sunday(Tm *t, int d);
 static	int	dysize(int);
 static	void	ct_numb(char*, int);
-static	void	klocaltime(long tim, Tm *ct);
-static	void	kgmtime(long tim, Tm *ct);
+void		localtime(long tim, Tm *ct);
+void		gmtime(long tim, Tm *ct);
 
 static	char	dmsize[12] =
 {
@@ -40,14 +40,14 @@ static struct
 	5*60, 1
 };
 
-static void
-klocaltime(long tim, Tm *ct)
+void
+localtime(long tim, Tm *ct)
 {
 	int daylbegin, daylend, dayno, i;
 	long copyt;
 
 	copyt = tim - timezone.minuteswest*60L;
-	kgmtime(copyt, ct);
+	gmtime(copyt, ct);
 	dayno = ct->yday;
 	for(i=0;; i++)
 		if(ct->year >= daytab[i].yrfrom &&
@@ -60,7 +60,8 @@ klocaltime(long tim, Tm *ct)
 	    (dayno>daylbegin || (dayno==daylbegin && ct->hour>=2)) &&
 	    (dayno<daylend || (dayno==daylend && ct->hour<1))) {
 		copyt += 60L*60L;
-		kgmtime(copyt, ct);
+		gmtime(copyt, ct);
+		ct->isdst++;
 	}
 }
 
@@ -77,8 +78,8 @@ sunday(Tm *t, int d)
 	return d - (d - t->yday + t->wday + 700) % 7;
 }
 
-static void
-kgmtime(long tim, Tm *ct)
+void
+gmtime(long tim, Tm *ct)
 {
 	int d0, d1;
 	long hms, day;
@@ -133,6 +134,7 @@ kgmtime(long tim, Tm *ct)
 	dmsize[1] = 28;
 	ct->mday = d0 + 1;
 	ct->mon = d1;
+	ct->isdst = 0;
 }
 
 void
@@ -140,25 +142,25 @@ datestr(char *s, long t)
 {
 	Tm tm;
 
-	klocaltime(t, &tm);
+	localtime(t, &tm);
 	sprint(s, "%.4d%.2d%.2d", tm.year+1900, tm.mon+1, tm.mday);
 }
 
 int
-Tconv(va_list *arg, Fconv *f1)
+Tconv(Op *o)
 {
 	char s[30];
 	char *cp;
 	long t;
 	Tm tm;
 
-	t = va_arg(*arg, long);
+	t = *(long*)o->argp;
 	if(t == 0) {
 		strcpy(s, "The Epoch");
 		goto out;
 	}
 
-	klocaltime(t, &tm);
+	localtime(t, &tm);
 	strcpy(s, "Day Mon 00 00:00:00 1900");
 	cp = &"SunMonTueWedThuFriSat"[tm.wday*3];
 	s[0] = cp[0];
@@ -179,7 +181,7 @@ Tconv(va_list *arg, Fconv *f1)
 	ct_numb(s+22, tm.year+100);
 
 out:
-	strconv(s, f1);
+	strconv(s, o, o->f1, o->f2);
 	return sizeof(t);
 }
 
@@ -222,7 +224,7 @@ nextime(long t, int hr, int day)
 		day = 0;
 
 loop:
-	klocaltime(t, &tm);
+	localtime(t, &tm);
 	t -= tm.sec;
 	t -= tm.min*60;
 	nhr = tm.hour;
@@ -230,13 +232,13 @@ loop:
 		t += 60*60;
 		nhr++;
 	} while(nhr%24 != hr);
-	klocaltime(t, &tm);
+	localtime(t, &tm);
 	if(tm.hour != hr) {
 		t += 60*60;
-		klocaltime(t, &tm);
+		localtime(t, &tm);
 		if(tm.hour != hr) {
 			t -= 60*60;
-			klocaltime(t, &tm);
+			localtime(t, &tm);
 		}
 	}
 	if(day & (1<<tm.wday)) {

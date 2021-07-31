@@ -5,6 +5,7 @@
 #include "9p.h"
 #include "stdio.h"
 
+
 void	error(char*);
 
 struct{
@@ -51,7 +52,7 @@ mfmt(Fcall *f)
 {
 	int i;
 	char *n;
-	static char buf[2*(MAXFDATA+MAXMSG)+400];	/* no stack smashing */
+	static char buf[512];
 
 	for(i=0; mname[i].name; i++)
 		if(f->type == mname[i].type){

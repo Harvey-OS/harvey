@@ -1,0 +1,146 @@
+%% 
+%% This is file `dvips.def', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% drivers.dtx  (with options: `dvips,color1,psrulesZ,dosrules')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file drivers.dtx .
+%% 
+%% drivers.dtx Copyright (C) 1994 David Carlisle Sebastian Rahtz
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+\ProvidesFile{dvips.def}
+        [1994/12/12 v2.6 Driver-dependant file (DPC,SPQR)]
+\def\c@lor@arg#1{%
+  \dimen@#1\p@
+  \ifdim\dimen@<\z@\dimen@\maxdimen\fi
+  \ifdim\dimen@>\p@
+    \PackageError{color}{Argument `#1' not in range [0,1]}\@ehd
+  \fi}
+\def\color@gray#1#2{%
+  \c@lor@arg{#2}%
+  \def#1{gray #2}%
+  }
+\def\color@cmyk#1#2{\c@lor@@cmyk#2\@@#1}
+\def\c@lor@@cmyk#1,#2,#3,#4\@@#5{%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \c@lor@arg{#4}%
+  \def#5{cmyk #1 #2 #3 #4}%
+  }
+\def\color@rgb#1#2{\c@lor@@rgb#2\@@#1}
+\def\c@lor@@rgb#1,#2,#3\@@#4{%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \def#4{rgb #1 #2 #3}%
+  }
+\def\color@hsb#1#2{\c@lor@@hsb#2\@@#1}
+\def\c@lor@@hsb#1,#2,#3\@@#4{%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \def#4{hsb #1 #2 #3}%
+  }
+\def\color@named#1#2{\c@lor@@named#2,,\@@#1}
+\def\c@lor@@named#1,#2,#3\@@#4{%
+  \@ifundefined{col@#1}%
+    {\PackageError{color}{Undefined color `#1'}\@ehd}%
+  {\def#4{ #1}}%
+  }
+\def\c@lor@to@ps#1 #2\@@{\csname c@lor@ps@#1\endcsname#2 \@@}
+\def\c@lor@ps@#1 #2\@@{TeXDict begin #1 end}
+\def\c@lor@ps@rgb#1\@@{#1 setrgbcolor}
+\def\c@lor@ps@hsb#1\@@{#1 sethsbcolor}
+\def\c@lor@ps@cmyk#1\@@{#1 setcmykcolor}
+\def\c@lor@ps@gray#1\@@{#1 setgray}
+\def\current@color{ Black}
+\def\set@color{%
+  \special{color push \current@color}\aftergroup\reset@color}
+\def\reset@color{\special{color pop}}
+\def\set@page@color{\special{background \current@color}}
+\def\define@color@named#1#2{%
+  \expandafter\let\csname col@#1\endcsname\@nnil}
+\def\Gin@tobp#1{%
+  \divide#14111%
+  \multiply#14096%
+  \edef#1{\strip@pt#1\space}}
+\def\Ginclude@eps#1{%
+ \message{<#1>}%
+  \bgroup
+  \def\@tempa{!}%
+  \dimen@=10\Gin@req@width
+  \dimen@ii1bp%
+  \divide\dimen@\dimen@ii
+  \@tempdima=10\Gin@req@height
+  \divide\@tempdima\dimen@ii
+  \Gin@tobp\Gin@llx
+  \Gin@tobp\Gin@lly
+  \Gin@tobp\Gin@urx
+  \Gin@tobp\Gin@ury
+    \special{PSfile="#1"\space
+      llx=\Gin@llx
+      lly=\Gin@lly
+      urx=\Gin@urx
+      ury=\Gin@ury
+      \ifx\Gin@scalex\@tempa\else rwi=\number\dimen@\space\fi
+      \ifx\Gin@scaley\@tempa\else rhi=\number\@tempdima\space\fi
+      \ifGin@clip clip\fi}%
+  \egroup}
+\def\Ginclude@bmp#1{%
+  \message{<#1>}%
+  \dimen@\Gin@req@height
+  \advance\dimen@ by-\Gin@lly
+  \kern-\Gin@llx\raise\Gin@req@height\hbox{%
+   \ifdim\Gin@urx=\z@
+     \ifdim\Gin@ury=\z@
+        \special{em: graph #1}%
+     \else
+        \special{em: graph #1,\the\Gin@urx}%
+     \fi
+  \else
+        \special{em: graph #1,\the\Gin@urx,\the\Gin@ury}%
+  \fi
+ }%
+}
+\def\Grot@start{%
+ \special{ps: gsave currentpoint
+ currentpoint translate \Grot@angle\space neg
+ rotate neg exch neg exch translate}}
+\def\Grot@end{\special{ps: currentpoint grestore moveto}}
+\def\Gscale@start{\special{ps:  currentpoint currentpoint translate
+  \Gscale@x\space \Gscale@y\space scale neg exch neg exch translate}}
+\def\Gscale@end{\special{ps:  currentpoint currentpoint translate
+  1 \Gscale@x\space div 1 \Gscale@y\space div scale
+  neg exch neg exch translate}}
+\def\Gin@extensions{.eps,.ps,.eps.gz,.ps.gz,.eps.Z}
+\@namedef{Gin@rule@.ps}#1{{eps}{.ps}{#1}}
+\@namedef{Gin@rule@.eps}#1{{eps}{.eps}{#1}}
+\@namedef{Gin@rule@.pz}#1{{eps}{.bb}{`gunzip -c #1}}
+\@namedef{Gin@rule@.eps.Z}#1{{eps}{.eps.bb}{`gunzip -c #1}}
+\@namedef{Gin@rule@.ps.Z}#1{{eps}{.ps.bb}{`gunzip -c #1}}
+\@namedef{Gin@rule@.ps.gz}#1{{eps}{.ps.bb}{`gunzip -c #1}}
+\@namedef{Gin@rule@.eps.gz}#1{{eps}{.eps.bb}{`gunzip -c #1}}
+\@namedef{Gin@rule@*}#1{{eps}{\Gin@ext}{#1}}
+\@namedef{Gin@rule@.pcx}#1{{bmp}{}{#1}}
+\@namedef{Gin@rule@.bmp}#1{{bmp}{}{#1}}
+\@namedef{Gin@rule@.msp}#1{{bmp}{}{#1}}
+\endinput
+%% 
+%% End of file `dvips.def'.

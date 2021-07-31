@@ -15,29 +15,19 @@ cgen(Node *n, Node *nn)
 	}
 	if(n == Z || n->type == T)
 		return;
-	if(typesuv[n->type->etype]) {
+	if(typesu[n->type->etype] || typev[n->type->etype]) {
 		sugen(n, nn, n->type->width);
 		return;
 	}
-	l = n->left;
-	r = n->right;
-	o = n->op;
-	if(n->addable >= INDEXED) {
-		if(nn == Z) {
-			switch(o) {
-			default:
-				nullwarn(Z, Z);
-				break;
-			case OINDEX:
-				nullwarn(l, r);
-				break;
-			}
-			return;
-		}
-		gmove(n, nn);
+	if(n->addable > INDEXED) {
+		if(nn != Z)
+			gmove(n, nn);
 		return;
 	}
 	curs = cursafe;
+	l = n->left;
+	r = n->right;
+	o = n->op;
 
 	if(n->complex >= FNX)
 	if(l->complex >= FNX)
@@ -75,14 +65,9 @@ cgen(Node *n, Node *nn)
 			goto bitas;
 		if(l->addable >= INDEXED && l->complex < FNX) {
 			if(nn != Z || r->addable < INDEXED) {
-				if(r->complex >= FNX && nn == Z)
-					regret(&nod, r);
-				else
-					regalloc(&nod, r, nn);
+				regalloc(&nod, r, nn);
 				cgen(r, &nod);
 				gmove(&nod, l);
-				if(nn != Z)
-					gmove(&nod, nn);
 				regfree(&nod);
 			} else
 				gmove(r, l);
@@ -516,6 +501,11 @@ cgen(Node *n, Node *nn)
 		break;
 	}
 	cursafe = curs;
+	return;
+
+bad:
+	cursafe = curs;
+	diag(n, "%O not implemented", o);
 }
 
 void
@@ -625,25 +615,16 @@ boolgen(Node *n, int true, Node *nn)
 	default:
 		regalloc(&nod, n, nn);
 		cgen(n, &nod);
-		if(nn == Z || typefd[n->type->etype]) {
-			o = ONE;
-			if(true)
-				o = comrel[relindex(o)];
-			if(typefd[n->type->etype]) {
-				nodreg(&nod1, n, NREG+FREGZERO);
-				gopcode(o, &nod, &nod1, Z);
-			} else
-				gopcode(o, &nod, Z, Z);
-			regfree(&nod);
-			goto com;
-		}
+		o = ONE;
 		if(true)
-			gopcode(OCOND, &nod, nodconst(0), &nod);
-		else
-			gopcode(OCOND, nodconst(1), &nod, &nod);
-		gopcode(OAS, &nod, Z, nn);
+			o = comrel[relindex(o)];
+		if(typefd[n->type->etype]) {
+			nodreg(&nod1, n, NREG+FREGZERO);
+			gopcode(o, &nod, &nod1, Z);
+		} else
+			gopcode(o, &nod, Z, Z);
 		regfree(&nod);
-		break;
+		goto com;
 
 	case OCONST:
 		o = vconst(n);
@@ -732,61 +713,6 @@ boolgen(Node *n, int true, Node *nn)
 			nod = *n;
 			nod.right = &nod1;
 			boolgen(&nod, true, nn);
-			break;
-		}
-		if(nn != Z && !typefd[l->type->etype]) {
-			if(l->complex >= r->complex) {
-				regalloc(&nod1, l, nn);
-				cgen(l, &nod1);
-				regalloc(&nod, r, Z);
-				cgen(r, &nod);
-			} else {
-				regalloc(&nod, r, nn);
-				cgen(r, &nod);
-				regalloc(&nod1, l, Z);
-				cgen(l, &nod1);
-			}
-			switch(o) {
-			case OEQ:
-				gopcode(OSUB, &nod1, &nod, &nod);
-				gopcode(OCOND, &nod, nodconst(0), &nod);
-				break;
-			case ONE:
-				gopcode(OSUB, &nod1, &nod, &nod);
-				gopcode(OCOND, nodconst(1), &nod, &nod);
-				break;
-			case OLE:
-				gopcode(OCOMMA, &nod1, &nod, &nod);
-				break;
-			case OGT:
-				gopcode(OCOMMA, &nod1, &nod, &nod);
-				gopcode(OXOR, nodconst(1), &nod, &nod);
-				break;
-			case OLT:
-				gopcode(OCOMMA, &nod, &nod1, &nod);
-				gopcode(OXOR, nodconst(1), &nod, &nod);
-				break;
-			case OGE:
-				gopcode(OCOMMA, &nod, &nod1, &nod);
-				break;
-			case OLS:
-				gopcode(OCOND, &nod1, &nod, &nod);
-				break;
-			case OHI:
-				gopcode(OCOND, &nod1, &nod, &nod);
-				gopcode(OXOR, nodconst(1), &nod, &nod);
-				break;
-			case OLO:
-				gopcode(OCOND, &nod, &nod1, &nod);
-				gopcode(OXOR, nodconst(1), &nod, &nod);
-				break;
-			case OHS:
-				gopcode(OCOND, &nod, &nod1, &nod);
-				break;
-			}
-			gopcode(OAS, &nod, Z, nn);
-			regfree(&nod);
-			regfree(&nod1);
 			break;
 		}
 		if(sconst(l)) {
@@ -988,6 +914,7 @@ sugen(Node *n, Node *nn, long w)
 			xcom(&nod0);
 			nod0.addable = 0;
 
+			/* prtree(&nod0, "hand craft"); /* */
 			cgen(&nod0, Z);
 		}
 		break;
@@ -1144,8 +1071,6 @@ layout(Node *f, Node *t, int c, int cv, Node *cn)
 
 	regalloc(&t1, &regnode, Z);
 	regalloc(&t2, &regnode, Z);
-	t1.type = types[TLONG];
-	t2.type = types[TLONG];
 	if(c > 0) {
 		gopcode(OAS, f, Z, &t1);
 		f->xoffset += SZ_LONG;

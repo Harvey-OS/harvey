@@ -1,0 +1,255 @@
+%% BEGIN tvz-hax.sty
+%% 93/04/01
+%% Tim Van Zandt tvz@Princeton.EDU
+%%
+%% These are some lousy hacks for typesetting the code
+%% and User's Guide  in the Seminar and PSTricks packages.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% PAPER SIZES %%%%%%%%%%%%%%%%%%%%%%
+
+% Default paper size is 8.5in by 11in.
+% Just include the `a4' style option for A4 paper size.
+% For other paper sizes, define \paperwidth and \paperheight
+% before the \documentstyle command.
+
+\@ifundefined{paperwidth}{\def\paperwidth{8.5in}}{}
+\@ifundefined{paperheight}{\def\paperheight{11in}}{}
+\@namedef{ds@a4}{\def\paperwidth{210mm}\def\paperheight{297mm}}
+
+
+%%%%%%%%%%%%%%%%%%%% INPUTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\iftwoup
+\@namedef{ds@2up}{\input 2up.tex \twouptrue}
+
+\input article.sty
+\input fancybox.sty    % Version 0.93 or later.
+
+\iftwoup
+  \if@twoside
+    \targetlayout{twosided}
+  \fi
+\fi
+
+\if@twoside
+  \def\twosideclearpage{%
+    \clearpage
+    \ifodd\c@page\else
+      \thispagestyle{empty}%
+      \null\leavevmode
+      \clearpage
+    \fi}
+\else
+  \let\twosideclearpage\clearpage
+\fi
+
+
+%%%%%%%%%%%%%%%%%%%%% MISC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\arraystretch{1.2}
+
+\hfuzz 1pt
+
+% Just in case I'm using AmS-LaTeX.
+\def\makeatother{\catcode`\@=12\relax}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% SHORT META %%%%%%%%%%%%%%%%%%%%%%%%
+
+% Works in verbatim environments, unless specially designed.
+\begingroup
+  \catcode`\<=\active
+  \gdef\ShortMeta{%
+    \catcode`\<=\active
+    \def<##1>{{\MetaFont ##1\/}}}
+\endgroup
+\def\DeleteShortMeta{\catcode`\<=12\relax}
+\def\MetaFont{\sl}            % For meta arguments.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% FILE VERSIONS %%%%%%%%%%%%%%%%%%%%%
+
+% \GetVersion{file} scans first ten lines of <file> for
+% \filedate and \fileversion definitions.
+%
+% \CheckVersion{file} scans <scans> file for \filedate and \fileversion
+% and then compares these witha \FileDate and \FileVersion.
+%
+\def\GetVersion#1{%
+  \immediate\openin1=#1
+  \count@=0
+  \let\fileversion\relax
+  \let\filedate\relax
+  \@testtrue
+  \loop
+  \if@test
+    \advance\count@1
+    \immediate\read1 to \@tempa
+    \@tempa
+    \ifnum\count@=10
+      \@latexerr{Couldn't find fileversion}\@eha
+      \@testfalse
+    \else
+      \ifx\fileversion\relax
+        \@testtrue
+      \else
+        \ifx\filedate\relax
+          \@testtrue
+        \else
+          \@testfalse
+        \fi
+      \fi
+    \fi
+  \repeat}
+
+\def\CheckVersion#1{%
+  \GetVersion{#1}
+  \ifx\FileVersion\fileversion
+    \ifx\FileDate\filedate\else
+      \@latexerr{Doc date (\FileDate) and file date (\filedate)
+         do not match}\@eha
+    \fi
+  \else
+    \@latexerr{Doc version (\FileVersion) and file version (\fileversion)
+      do not match}\@eha
+  \fi}
+
+% This expands the date, as defined in \filedate.
+
+\def\expanddate#1/#2/#3/{%
+  \number#3{}
+  \month=#2
+  \ifcase\month\or
+    January \or February \or March \or April \or May \or June \or
+    July \or August \or September \or October \or November \or December
+  \fi
+  19#1}
+\def\thefiledate{\expandafter\expanddate\filedate/}
+\date{\thefiledate}
+
+
+%%%%%%%%%%%%%%%%% LOGOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\AmS{{\protect\the\textfont\tw@
+  A\kern-.1667em\lower.5ex\hbox{M}\kern-.125em S}}
+
+\def\b@LaTeX{%
+  \begingroup
+    \csname reset@font\endcsname
+    \rm\bf
+    L\kern-.32em
+    \raise.36ex\hbox{%
+      \ifx\@currsize\Huge\LARGE\else
+      \ifx\@currsize\huge\Large\else
+      \ifx\@currsize\LARGE\large\else
+      \ifx\@currsize\Large\normalsize\else
+      \ifx\@currsize\large\small\else
+      \ifx\@currsize\normalsize\footnotesize\else
+      \ifx\@currsize\small\scriptsize\else
+      \ifx\@currsize\footnotesize\scriptscriptsize
+      \fi\fi\fi\fi\fi\fi\fi\fi
+      \bf A}%
+    \kern-.15em
+    T\kern-.1667em
+    \lower.7ex\hbox{E}\kern-.125em
+    X%
+  \endgroup}
+\def\bLaTeX{\b@LaTeX}
+
+
+%%%%%%%%%%%%%%% PAGE STYLE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% The `docheadings' page style uses footers rather than headers.
+
+\def\ps@docheadings{%
+  \let\@mkboth\markboth
+  \def\@oddhead{}%
+  \let\@evenhead\@oddhead%
+  \def\@oddfoot{%
+    \small\sf
+    \rightmark
+    \hfil
+    \thepage}%
+  \def\@evenfoot{%
+    \small\sf
+    \thepage
+    \hfil
+    \theheadertitle}%
+  \def\sectionmark##1{\markright {##1}}}%
+\pagestyle{docheadings}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% Table of Contents %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Tighten up spacing in TOC:
+
+\newskip\tempskip
+\def\TOCshrink{.5}
+\def\TableOfContents{%
+  \begin{quote}
+    \begin{center} \Large\bf Contents \end{center}
+    \def\numberline##1{\hbox to 0pt{\hss##1\hskip 1em}}%
+    \let\oldaddvspace\addvspace
+    \def\addvspace##1{%
+      \tempskip##1\relax
+      \oldaddvspace{\TOCshrink\tempskip}}
+    \@starttoc{toc}%
+  \end{quote}}
+\def\tableofcontents{%
+  \clearpage
+  \markright{Table of contents}%
+  \TableOfContents
+  \clearpage}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% code and examples %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% `Ex' is an environment for putting samples of code.
+% It is a variant of
+%   \begin{quote}\tt ... \end{quote}.
+% It is NOT verbatim.
+
+\def\NotNested{%
+  \def\begin##1{%
+    \@latexerr{Bad nesting of environments.
+      Perhaps missing \end{\@currenvir}}\@eha
+    \end{\@currenvir}%
+    \begin{##1}}}
+
+\def\Ex{%
+  \NotNested
+  \list{}{}\item[]%
+  \if@minipage\else\vskip\parskip\fi
+  \leftskip\@totalleftmargin
+  \rightskip\z@
+  \parindent\z@
+  \parskip\z@
+  \parfillskip\@flushglue
+  \hfuzz 1pt
+  \@@par
+  \global\@inlabelfalse}
+\def\endEx{\endlist}
+
+% Various things to make it easier to write code and examples:
+
+\begingroup
+  \catcode`\{=12 \catcode`\}=12
+  \catcode`\(=1 \catcode`\)=2
+  \catcode`\+=0 \catcode`\\=12
+  +gdef+|(\)          % \| = character \
+  +gdef+{({)          % \{ = character {
+  +gdef+}(})          % \} = character }
++endgroup
+\def\Backslash{\protect\|}
+
+% Define some functional font commands:
+
+\def\MainFont{\tt}            % For macro definitions.
+\def\UsageFont{\tt}           % For in-line macro names.
+\def\InlineFont{\tt}          % For other in-line snipets of code.
+\def\DisplayFont{\tt}         % For displayed code.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\endinput
+%% END tvz-hax.sty

@@ -155,7 +155,7 @@ numb(int n)
 {
 
 	if(n >= 100) {
-		print("%d ", n);
+		print("%l ", n);
 		return;
 	}
 	if(n >= 20) {

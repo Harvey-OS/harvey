@@ -5,17 +5,18 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-static int	canflush(Proc*, Segment*);
-static void	executeio(void);
-static int	needpages(void*);
-static void	pageout(Proc*, Segment*);
-static void	pagepte(int, Page**);
-static void	pager(void*);
+int	canflush(Proc *p, Segment*);
+void	executeio(void);
+int	needpages(void*);
+void	pageout(Proc *p, Segment*);
+void	pagepte(int, Page**);
+void	pager(void*);
 
 	Image 	swapimage;
 static 	int	swopen;
 static	Page	**iolist;
 static	int	ioptr;
+static	int	maxpages;
 
 void
 swapinit(void)
@@ -25,11 +26,12 @@ swapinit(void)
 	swapalloc.alloc = swapalloc.swmap;
 	swapalloc.last = swapalloc.swmap;
 	swapalloc.free = conf.nswap;
-	iolist = xalloc(conf.nswppo*sizeof(Page*));
+	maxpages = SEGMAXSIZE/BY2PG;
+	if(maxpages > conf.nswap/2)
+		maxpages = conf.nswap/2;
+	iolist = xalloc(maxpages*sizeof(Page*));
 	if(swapalloc.swmap == 0 || iolist == 0)
 		panic("swapinit: not enough memory");
-
-	swapimage.notext = 1;
 }
 
 ulong
@@ -38,21 +40,18 @@ newswap(void)
 	uchar *look;
 
 	lock(&swapalloc);
-
-	if(swapalloc.free == 0){
-		unlock(&swapalloc);
-		return ~0;
-	}
+	if(swapalloc.free == 0)
+		panic("out of swap space");
 
 	look = memchr(swapalloc.last, 0, swapalloc.top-swapalloc.last);
 	if(look == 0)
 		panic("inconsistent swap");
-
+	
 	*look = 1;
 	swapalloc.last = look;
 	swapalloc.free--;
 	unlock(&swapalloc);
-	return (look-swapalloc.swmap) * BY2PG;
+	return (look-swapalloc.swmap) * BY2PG; 
 }
 
 void
@@ -67,8 +66,6 @@ putswap(Page *p)
 		if(idx < swapalloc.last)
 			swapalloc.last = idx;
 	}
-	if(*idx >= 254)
-		panic("putswap %lux == %ud", p, *idx);
 	unlock(&swapalloc);
 }
 
@@ -76,15 +73,8 @@ void
 dupswap(Page *p)
 {
 	lock(&swapalloc);
-	if(++swapalloc.swmap[((ulong)p)/BY2PG] == 0)
-		panic("dupswap");
+	swapalloc.swmap[((ulong)p)/BY2PG]++;
 	unlock(&swapalloc);
-}
-
-int
-swapcount(ulong daddr)
-{
-	return swapalloc.swmap[daddr/BY2PG];
 }
 
 void
@@ -100,41 +90,43 @@ kickpager(void)
 	}
 }
 
-static void
+void
 pager(void *junk)
 {
 	int i;
-	Segment *s;
 	Proc *p, *ep;
+	Segment *s, *ts;
 
-	if(waserror())
+	if(waserror()) 
 		panic("pager: os error\n");
 
+	USED(junk);
 	p = proctab(0);
 	ep = &p[conf.nproc];
 
 loop:
-	up->psstate = "Idle";
+	u->p->psstate = "Idle";
 	sleep(&swapalloc.r, needpages, 0);
 
 	while(needpages(junk)) {
+		p++;
+		if(p >= ep)
+			p = proctab(0);
+
+		if(p->state == Dead || p->kp)
+			continue;
+
+		/* don't swap out programs from devroot.c - they
+		 * supply important system services
+		 */
+		ts = p->seg[TSEG];
+		if(ts && ts->image && devchar[ts->image->c->type] == '/')
+			continue;
 
 		if(swapimage.c) {
-			p++;
-			if(p >= ep)
-				p = proctab(0);
-	
-			if(p->state == Dead || p->kp)
-				continue;
-
-			if(!canqlock(&p->seglock))
-				continue;		/* process changing its segments */
-
 			for(i = 0; i < NSEG; i++) {
-				if(!needpages(junk)){
-					qunlock(&p->seglock);
+				if(!needpages(junk))
 					goto loop;
-				}
 
 				if(s = p->seg[i]) {
 					switch(s->type&SG_TYPE) {
@@ -147,39 +139,35 @@ loop:
 					case SG_BSS:
 					case SG_STACK:
 					case SG_SHARED:
-					case SG_SHDATA:
-					case SG_MAP:
-						up->psstate = "Pageout";
+						u->p->psstate = "Pageout";
 						pageout(p, s);
 						if(ioptr != 0) {
-							up->psstate = "I/O";
+							u->p->psstate = "I/O";
 							executeio();
 						}
-						break;
 					}
 				}
 			}
-			qunlock(&p->seglock);
+			continue;
 		}
-		else {
+
+		if(palloc.freecount < swapalloc.highwater) {
 			if(!cpuserver)
 				freebroken();	/* can use the memory */
-			else
-				killbig();
 
 			/* Emulate the old system if no swap channel */
 			print("no physical memory\n");
-			tsleep(&swapalloc.pause, return0, 0, 5000);
+			tsleep(&swapalloc.r, return0, 0, 1000);
 			wakeup(&palloc.r);
 		}
 	}
 	goto loop;
 }
 
-static void
+void			
 pageout(Proc *p, Segment *s)
 {
-	int type, i, size;
+	int type, i;
 	Pte *l;
 	Page **pg, *entry;
 
@@ -205,8 +193,7 @@ pageout(Proc *p, Segment *s)
 
 	/* Pass through the pte tables looking for memory pages to swap out */
 	type = s->type&SG_TYPE;
-	size = s->mapsize;
-	for(i = 0; i < size; i++) {
+	for(i = 0; i < SEGMAPSIZE; i++) {
 		l = s->map[i];
 		if(l == 0)
 			continue;
@@ -220,9 +207,17 @@ pageout(Proc *p, Segment *s)
 				continue;
 			}
 
+			while(swapalloc.free == 0) {
+				if(ioptr != 0)
+					goto out;
+
+				print("out of swap space\n");
+				tsleep(&swapalloc.r, return0, 0, 1000);
+			}
+
 			pagepte(type, pg);
 
-			if(ioptr >= conf.nswppo)
+			if(ioptr >= maxpages)
 				goto out;
 		}
 	}
@@ -230,9 +225,10 @@ out:
 	poperror();
 	qunlock(&s->lk);
 	putseg(s);
+	wakeup(&palloc.r);
 }
 
-static int
+int
 canflush(Proc *p, Segment *s)
 {
 	int i;
@@ -248,7 +244,7 @@ canflush(Proc *p, Segment *s)
 	unlock(s);
 
 	/* Now we must do hardwork to ensure all processes which have tlb
-	 * entries for this segment will be flushed if we succeed in paging it out
+	 * entries for this segment will be flushed if we suceed in pageing it out
 	 */
 	p = proctab(0);
 	ep = &p[conf.nproc];
@@ -261,10 +257,10 @@ canflush(Proc *p, Segment *s)
 		}
 		p++;
 	}
-	return 1;
+	return 1;						
 }
 
-static void
+void
 pagepte(int type, Page **pg)
 {
 	ulong daddr;
@@ -272,7 +268,7 @@ pagepte(int type, Page **pg)
 
 	outp = *pg;
 	switch(type) {
-	case SG_TEXT:				/* Revert to demand load */
+	case SG_TEXT:					/* Revert to demand load */
 		putpage(outp);
 		*pg = 0;
 		break;
@@ -282,53 +278,27 @@ pagepte(int type, Page **pg)
 	case SG_STACK:
 	case SG_SHARED:
 	case SG_SHDATA:
-	case SG_MAP:
-		/*
-		 *  get a new swap address and clear any pages
-		 *  referring to it from the cache
-		 */
 		daddr = newswap();
-		if(daddr == ~0)
-			break;
 		cachedel(&swapimage, daddr);
-
 		lock(outp);
-
-		/* forget anything that it used to cache */
-		uncachepage(outp);
-
-		/*
-		 *  incr the reference count to make sure it sticks around while
-		 *  being written
-		 */
 		outp->ref++;
+		uncachepage(outp);
+		unlock(outp);
 
-		/*
-		 *  enter it into the cache so that a fault happening
-		 *  during the write will grab the page from the cache
-		 *  rather than one partially written to the disk
+		/* Enter swap page into cache before segment is unlocked so that
+		 * a fault will cause a cache recovery rather than a pagein on a
+		 * partially written block.
 		 */
 		outp->daddr = daddr;
 		cachepage(outp, &swapimage);
 		*pg = (Page*)(daddr|PG_ONSWAP);
-		unlock(outp);
 
-		/* Add page to IO transaction list */
+		/* Add me to IO transaction list */
 		iolist[ioptr++] = outp;
-		break;
 	}
 }
 
 void
-pagersummary(void)
-{
-	print("%lud/%lud memory %lud/%lud swap %d iolist\n",
-		palloc.user-palloc.freecount,
-		palloc.user, conf.nswap-swapalloc.free, conf.nswap,
-		ioptr);
-}
-
-static void
 executeio(void)
 {
 	Page *out;
@@ -340,8 +310,6 @@ executeio(void)
 	c = swapimage.c;
 
 	for(i = 0; i < ioptr; i++) {
-		if(ioptr > conf.nswppo)
-			panic("executeio: ioptr %d > %d\n", ioptr, conf.nswppo);
 		out = iolist[i];
 		k = kmap(out);
 		kaddr = (char*)VA(k);
@@ -349,7 +317,7 @@ executeio(void)
 		if(waserror())
 			panic("executeio: page out I/O error");
 
-		n = devtab[c->type]->write(c, kaddr, BY2PG, out->daddr);
+		n = (*devtab[c->type].write)(c, kaddr, BY2PG, out->daddr);
 		if(n != BY2PG)
 			nexterror();
 
@@ -365,45 +333,21 @@ executeio(void)
 	ioptr = 0;
 }
 
-static int
-needpages(void*)
+int
+needpages(void *p)
 {
+	USED(p);
 	return palloc.freecount < swapalloc.headroom;
 }
 
 void
 setswapchan(Chan *c)
 {
-	char dirbuf[DIRLEN];
-	Dir d;
-
 	if(swapimage.c) {
-		if(swapalloc.free != conf.nswap){
-			cclose(c);
+		if(swapalloc.free != conf.nswap)
 			error(Einuse);
-		}
-		cclose(swapimage.c);
+		close(swapimage.c);
 	}
-
-	/*
-	 *  if this isn't a file, set the swap space
-	 *  to be at most the size of the partition
-	 */
-	if(devtab[c->type]->dc != L'M'){
-		devtab[c->type]->stat(c, dirbuf);
-		convM2D(dirbuf, &d);
-		if(d.length < conf.nswap*BY2PG){
-			conf.nswap = d.length/BY2PG;
-			swapalloc.top = &swapalloc.swmap[conf.nswap];
-			swapalloc.free = conf.nswap;
-		}
-	}
-
+	incref(c);
 	swapimage.c = c;
-}
-
-int
-swapfull(void)
-{
-	return swapalloc.free < conf.nswap/10;
 }

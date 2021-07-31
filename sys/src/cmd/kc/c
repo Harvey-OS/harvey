@@ -1,0 +1,13 @@
+cd ../cc
+yacc -d cc.y
+vc -w *.c
+mk
+cd ../kc
+vc -w *.c
+mk
+cd ../cc
+../kc/v.out -w *.c
+objtype=sparc mk
+cd ../kc
+../kc/v.out -w *.c
+objtype=sparc mk

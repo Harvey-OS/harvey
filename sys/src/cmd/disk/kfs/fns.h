@@ -8,6 +8,8 @@ void	consserve(void);
 void	confinit(void);
 int	fsinit(int, int);
 void	*ialloc(ulong);
+void	*malloc(ulong);
+void	free(void *);
 int	nextelem(void);
 long	number(int, int);
 Device	scsidev(char*);
@@ -16,7 +18,7 @@ int	skipbl(int);
 void	startproc(void (*)(void), char *);
 void	syncproc(void);
 void	syncall(void);
-uvlong	statlen(char*);
+long	statlen(char*);
 
 int	fprint(int, char*, ...);
 void	wreninit(Device);
@@ -31,6 +33,7 @@ int	wrenwrite(Device, long, void *);
 /*
  * macros for compat with bootes
  */
+#define toytime()	time()
 #define	localfs			1
 
 #define devgrow(d, s)	0

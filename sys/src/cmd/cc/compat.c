@@ -1,30 +1,39 @@
-#include	"cc.h"
-#include	"compat"
+#include	<u.h>
+#include	<libc.h>
 
-/*
- * fake mallocs
- */
-void*
-malloc(ulong n)
+int
+mycreat(char *n, int p)
 {
-	return alloc(n);
+
+	return create(n, 1, p);
 }
 
-void*
-calloc(ulong m, ulong n)
+char*
+myerrstr(int eno)
 {
-	return alloc(m*n);
+	char err[ERRLEN];
+
+	USED(eno);
+	errstr(err);
+	return err;
 }
 
-void*
-realloc(void*, ulong)
+int
+mywait(int *s)
 {
-	fprint(2, "realloc called\n");
-	abort();
+	int p;
+	Waitmsg status;
+
+	p = wait(&status);
+	*s = 0;
+	if(status.msg[0])
+		*s = 1;
+	return p;
+}
+
+int
+unix(void)
+{
+
 	return 0;
-}
-
-void
-free(void*)
-{
 }

@@ -1,0 +1,244 @@
+%% 
+%% This is file `amsthm.sty', generated 
+%% on <1995/2/1> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% amsthm.dtx 
+%%% ====================================================================
+%%%  @LaTeX-file{
+%%%     filename  = "amsthm.dtx",
+%%%     version   = "1.2a",
+%%%     date      = "1995/02/01",
+%%%     time      = "10:03:21 EST",
+%%%     checksum  = "11606 681 3173 26034",
+%%%     author    = "American Mathematical Society",
+%%%     copyright = "Copyright (C) 1995 American Mathematical Society,
+%%%                  all rights reserved.  Copying of this file is
+%%%                  authorized only if either:
+%%%                  (1) you make absolutely no changes to your copy,
+%%%                  including name; OR
+%%%                  (2) if you do make changes, you first rename it
+%%%                  to some other name.",
+%%%     address   = "American Mathematical Society,
+%%%                  Technical Support,
+%%%                  Electronic Products and Services,
+%%%                  P. O. Box 6248,
+%%%                  Providence, RI 02940,
+%%%                  USA",
+%%%     telephone = "401-455-4080 or (in the USA and Canada)
+%%%                  800-321-4AMS (321-4267)",
+%%%     FAX       = "401-331-3842",
+%%%     email     = "tech-support@math.ams.org (Internet)",
+%%%     supported = "yes",
+%%%     keywords  = "latex, amslatex, ams-latex, theorem",
+%%%     abstract  = "This is part of the AMS-\LaTeX{} distribution.
+%%%                  It is a package which provides multiple theorem
+%%%                  styles, unnumbered theorem types, and a proof
+%%%                  environment with automatic ending Q.E.D. symbol.
+%%%                  Loosely derived from Mittelbach's theorem.sty.",
+%%%     docstring = "The checksum field contains: CRC-16 checksum,
+%%%                  word count, line count, and character count, as
+%%%                  produced by Robert Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{amsthm}[1995/02/01 v1.2a]
+\@ifpackageloaded{amsgen}{}{\input{amsgen.sty}}
+\newcommand{\theoremstyle}[1]{%
+  \@ifundefined{th@#1}{%
+    \PackageWarning{amsthm}{Unknown theoremstyle `#1'}%
+    \theorem@style{plain}%
+  }{%
+    \theorem@style{#1}%
+  }%
+}
+\newtoks\theorem@style
+\theorem@style{plain}
+\newtoks\theorembodyfont
+\theorembodyfont{\itshape}
+\newtoks\theoremheadfont
+\theoremheadfont{\bfseries}
+\newtoks\theoremnotefont
+\theoremnotefont{\bfseries}
+\newtoks\theoremheadpunct
+\theoremheadpunct{.}
+\newskip\theorempreskipamount \theorempreskipamount\topsep
+\newskip\theorempostskipamount \theorempostskipamount\topsep
+\renewcommand{\newtheorem}{\@ifstar{\@xnthm *}{\@xnthm \relax}}
+\def\@xnthm#1#2{%
+  \let\@tempa\relax
+  \@xp\@ifdefinable\csname #2\endcsname{%
+    \global\@xp\let\csname end#2\endcsname\@endtheorem
+    \ifx *#1% unnumbered, need to get one more mandatory arg
+      \edef\@tempa##1{%
+        \gdef\@xp\@nx\csname#2\endcsname{%
+          \@nx\@thm{\@xp\@nx\csname th@\the\theorem@style\endcsname}%
+            {}{##1}}}%
+    \else % numbered theorem, need to check for optional arg
+      \def\@tempa{\@oparg{\@ynthm{#2}}[]}%
+    \fi
+  }%
+  \@tempa
+}
+\def\@ynthm#1[#2]#3{%
+  \ifx\relax#2\relax
+    \def\@tempa{\@oparg{\@xthm{#1}{#3}}[]}%
+  \else
+    \@ifundefined{c@#2}{%
+      \def\@tempa{\@nocounterr{#2}}%
+    }{%
+      \@xp\xdef\csname the#1\endcsname{\@xp\@nx\csname the#2\endcsname}%
+      \toks@{#3}%
+      \@xp\xdef\csname#1\endcsname{%
+        \@nx\@thm{%
+          \let\@nx\thm@swap
+            \if S\thm@swap\@nx\@firstoftwo\else\@nx\@gobble\fi
+          \@xp\@nx\csname th@\the\theorem@style\endcsname}%
+            {#2}{\the\toks@}}%
+      \let\@tempa\relax
+    }%
+  \fi
+  \@tempa
+}
+\def\@xthm#1#2[#3]{%
+  \ifx\relax#3\relax
+    \newcounter{#1}%
+  \else
+    \newcounter{#1}[#3]%
+    \@xp\xdef\csname the#1\endcsname{\@xp\@nx\csname the#3\endcsname
+      \@thmcountersep\@thmcounter{#1}}%
+  \fi
+  \toks@{#2}%
+  \@xp\xdef\csname#1\endcsname{%
+    \@nx\@thm{%
+      \let\@nx\thm@swap
+        \if S\thm@swap\@nx\@firstoftwo\else\@nx\@gobble\fi
+      \@xp\@nx\csname th@\the\theorem@style\endcsname}%
+      {#1}{\the\toks@}}%
+}
+\def\@thm#1#2#3{\normalfont
+  \trivlist
+  \labelsep.5em\relax \let\thmheadnl\relax
+  \let\theoremindent\noindent % no indent
+  \let\thm@swap\@gobble
+  \theoremheadfont{\bfseries}% heading font bold
+  \theoremheadpunct{.}% add period after heading
+  \theorempreskipamount\topsep
+  \theorempostskipamount\theorempreskipamount
+  #1% style overrides
+  \@topsep \theorempreskipamount               % used by first \item
+  \@topsepadd \theorempostskipamount           % used by \@endparenv
+  \def\@tempa{#2}\ifx\@empty\@tempa
+    \def\@tempa{\@oparg{\@begintheorem{#3}{}}[]}%
+  \else
+    \refstepcounter{#2}%
+    \def\@tempa{\@oparg{\@begintheorem{#3}{\csname the#2\endcsname}}[]}%
+  \fi
+  \@tempa
+}
+\let\@ythm\relax
+\let\thmname\@iden \let\thmnumber\@iden \let\thmnote\@iden
+\def\thmhead@plain#1#2#3{%
+  \thmname{#1}\thmnumber{ #2}\thmnote{ {\the\theoremnotefont(#3)}}}
+\let\thmhead\thmhead@plain
+\def\swappedhead#1#2#3{%
+  \thmnumber{#2}\thmname{. #1}\thmnote{ {\the\theoremnotefont(#3)}}}
+\let\thmheadnl\relax
+\def\@begintheorem#1#2[#3]{%
+  \item[\normalfont % reset in case body font is abnormal
+  \hskip\labelsep
+  \the\theoremheadfont
+  \theoremindent
+  \@ifempty{#1}{\let\thmname\@gobble}{\let\thmname\@iden}%
+  \@ifempty{#2}{\let\thmnumber\@gobble}{\let\thmnumber\@iden}%
+  \@ifempty{#3}{\let\thmnote\@gobble}{\let\thmnote\@iden}%
+  \thm@swap\swappedhead\thmhead{#1}{#2}{#3}%
+  \the\theoremheadpunct]%
+  \thmheadnl % possibly a newline.
+  \ignorespaces}
+\def\nonslanted{\relax
+  \@xp\let\@xp\@tempa\csname\f@shape shape\endcsname
+  \ifx\@tempa\itshape\upshape
+  \else\ifx\@tempa\slshape\upshape\fi\fi}
+\def\swapnumbers{\edef\thm@swap{\if S\thm@swap N\else S\fi}}
+\def\thm@swap{N}%
+\let\@opargbegintheorem\relax
+\def\th@plain{%
+%%  \let\theoremindent\noindent % no indent
+%%  \theoremheadfont{\bfseries}% heading font is bold
+%%  \theoremnotefont{}% same as heading font
+%%  \theoremheadpunct{.}% add period after heading
+%%  \let\thm@swap\@gobble
+%%  \theorempreskipamount\topsep
+%%  \theorempostskipamount\theorempreskipamount
+  \itshape % body font
+}
+\def\th@definition{%
+  \normalfont % body font
+}
+\def\th@remark{%
+  \theoremheadfont{\itshape}%
+  \normalfont % body font
+  \theorempreskipamount\topsep
+  \divide\theorempreskipamount\tw@
+  \theorempostskipamount\theorempreskipamount
+}
+\def\@endtheorem{\endtrivlist\@endpefalse }
+\newcommand{\newtheoremstyle}[9]{%
+  \@ifempty{#5}{\dimen@\z@skip}{\dimen@#5\relax}%
+  \ifdim\dimen@=\z@
+    \toks@{#4\let\theoremindent\noindent}%
+  \else
+    \toks@{#4\def\theoremindent{\noindent\hbox to#5{}}}%
+  \fi
+  \def\@tempa{#8}\ifx\space\@tempa
+    \toks@\@xp{\the\toks@ \labelsep\fontdimen\tw@\font\relax}%
+  \else
+    \def\@tempb{\newline}%
+    \ifx\@tempb\@tempa
+      \toks@\@xp{\the\toks@ \labelsep\z@skip
+        \def\thmheadnl{\leavevmode\newline}}%
+    \else
+      \toks@\@xp{\the\toks@ \labelsep#8\relax}%
+    \fi
+  \fi
+  \@temptokena{%
+    \theorempreskipamount#2\relax
+    \theorempostskipamount#3\relax
+    \theoremheadfont{#6}\theoremheadpunct{#7}%
+  }%
+  \@ifempty{#9}{%
+    \let\thmhead\thmhead@plain
+  }{%
+    \@namedef{thmhead@#1}##1##2##3{#9}%
+    \@temptokena\@xp{\the\@temptokena
+      \@xp\let\@xp\thmhead\csname thmhead@#1\endcsname}%
+  }%
+  \@xp\xdef\csname th@#1\endcsname{\the\toks@ \the\@temptokena}%
+}
+\DeclareRobustCommand{\qed}{%
+  \ifmmode % if math mode, assume display: omit penalty etc.
+  \else \leavevmode\unskip\penalty9999 \hbox{}\nobreak\hfill
+  \fi
+  \quad\hbox{\qedsymbol}}
+\newcommand{\openbox}{\leavevmode
+  \hbox to.77778em{%
+  \hfil\vrule
+  \vbox to.675em{\hrule width.6em\vfil\hrule}%
+  \vrule\hfil}}
+\newcommand{\qedsymbol}{\openbox}
+\newenvironment{proof}[1][\proofname]{\par
+  \normalfont
+  \topsep6\p@\@plus6\p@ \trivlist
+  \item[\hskip\labelsep\itshape
+    #1\@addpunct{.}]\ignorespaces
+}{%
+  \qed\endtrivlist
+}
+\newcommand{\proofname}{Proof}
+\DeclareOption*{\input{\CurrentOption .thm}}
+\ProcessOptions
+\endinput
+%% 
+%% End of file `amsthm.sty'.

@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+TARG=ktrans
+
+OFILES=dict.$O hlook.$O translate.$O maps.$O
+
+HFILES=ktrans.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+dict.c:	eiwadict
+	awk -f mkdict.a <eiwadict >dict.c

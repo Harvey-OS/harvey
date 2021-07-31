@@ -1,0 +1,67 @@
+.TH GFTOPK 1 "7 Jan 92"
+.SH NAME
+gftopk - convert generic font files to packed font files
+.SH SYNOPSIS
+.B gftopk
+[-v] gf_file_name [pk_file_name]
+.SH DESCRIPTION
+The
+.IR gftopk
+program converts a generic font file output by, for example, 
+.BR mf (1),
+to a
+packed font file for use by DVI-reading programs. Packed
+font files (PK files) are much smaller than the corresponding GF files,
+so they are rapidly becoming the font format of choice.
+.PP
+The 
+.I gf_file_name
+on the command line must be complete. Because
+the resolution is part of the extension, it would not make
+sense to add on a default extension as is done with TeX or
+DVI-reading software. The
+.I pk_file_name
+defaults to the same (stripped) name as
+.IR gf_file_name ,
+and it is placed in the current
+working directory with the `pk' suffix replacing `gf'.
+For example, the input file
+.I io.300gf
+would become
+.IR io.300pk .
+.SH OPTIONS
+Unless the
+.I -v
+switch is given,
+.I gftopk
+operates silently.  With 
+.IR -v ,
+the version number of the program and statistics about the
+packing are output to
+.IR stdout .
+.SH ENVIRONMENT
+.I gftopk
+looks for
+.I gf_file_name
+first in the current directory.  If it is not present there, it uses the
+environment variable GFFONTS.  If that is not set, it uses the variable
+TEXFONTS.  If this is not set, it uses the system defaults:
+.br
+TEXFONTS:
+.BR @TEXFONTS@ ,
+.br
+See
+.BR tex (1)
+for the details of the searching.
+.SH "SEE ALSO"
+gftype(1), pktogf(1), pktype(1)
+.br
+Donald Knuth et al.,
+.I METAFONTware
+.SH AUTHORS
+Tomas Rokicki wrote the program. It was published as
+part of the
+.I METAFONTware
+technical report, available from the TeX Users Group.
+Paul Richards originally ported it to Unix.
+

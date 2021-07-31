@@ -1,4 +1,4 @@
 TEXT _SEEK(SB), 1, $0
-MOVL $39, AX
+MOVL $16, AX
 INT $64
 RET
