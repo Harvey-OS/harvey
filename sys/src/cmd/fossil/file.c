@@ -1669,7 +1669,7 @@ fileMetaUnlock(File *f)
 static void
 fileRAccess(File* f)
 {
-	if(f->mode == OReadOnly || f->fs->noatimeupd)
+	if(f->mode == OReadOnly)
 		return;
 
 	fileMetaLock(f);

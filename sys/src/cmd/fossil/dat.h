@@ -74,7 +74,6 @@ struct Fs {
 	Arch	*arch;		/* immutable */
 	Cache	*cache;		/* immutable */
 	int	mode;		/* immutable */
-	int	noatimeupd;	/* immutable */
 	int	blockSize;	/* immutable */
 	VtSession *z;		/* immutable */
 	Snap	*snap;		/* immutable */
