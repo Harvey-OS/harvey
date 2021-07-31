@@ -103,23 +103,11 @@ meaning the length of
 .IR string ,
 may be used in place of an integer.
 .TP
-.IB a " -nt " b
-True if file
-.I a
-is newer than (modified after) file
-.IR b .
-.TP
-.IB a " -ot " b
-True if file
-.I a
-is older than (modified before) file
-.IR b .
-.TP
 .IB f " -older " t
-True if file
+True if the modify time of file
 .I f
-is older than (modified before) time
-.IR t .
+is before
+,IR t .
 If
 .I t
 is a integer followed by the letters
