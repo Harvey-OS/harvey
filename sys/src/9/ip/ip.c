@@ -319,6 +319,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 	Route *r;
 	Conv conv;
 
+
 	if(BLKIPVER(bp) != IP_VER4) {
 		ipiput6(f, ifc, bp);
 		return;
@@ -384,7 +385,6 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		}
 
 		/* don't forward to source's network */
-		memmove(&conv, ifc->conv, sizeof conv);
 		conv.r = nil;
 		r = v4lookup(f, h->dst, &conv);
 		if(r == nil || r->ifc == ifc){

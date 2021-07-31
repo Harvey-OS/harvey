@@ -1,5 +1,5 @@
 /*
- * tftpd - tftp service, see /lib/rfc/rfc783 (now rfc1350 + 234[789])
+ * tftpd - tftp service, see /lib/rfc/rfc783
  */
 #include <u.h>
 #include <libc.h>
@@ -12,62 +12,11 @@ enum
 {
 	Maxpath=	128,
 	Maxerr=		256,
-
-	Debug=		0,
-
-	Opsize=		sizeof(short),
-	Blksize=	sizeof(short),
-	Hdrsize=	Opsize + Blksize,
-
-	Ackerr=		-1,
-	Ackok=		0,
-	Ackrexmit=	1,
-
-	/* op codes */
-	Tftp_READ	= 1,
-	Tftp_WRITE	= 2,
-	Tftp_DATA	= 3,
-	Tftp_ACK	= 4,
-	Tftp_ERROR	= 5,
-	Tftp_OACK	= 6,		/* option acknowledge */
-
-	Errnotdef	= 0,		/* see textual error instead */
-	Errnotfound	= 1,
-	Errnoaccess	= 2,
-	Errdiskfull	= 3,
-	Errbadop	= 4,
-	Errbadtid	= 5,
-	Errexists	= 6,
-	Errnouser	= 7,
-	Errbadopt	= 8,		/* really bad option value */
-
-	Defsegsize	= 512,
-	Maxsegsize	= 65464,	/* from rfc2348 */
-};
-
-typedef struct Opt Opt;
-struct Opt {
-	char	*name;
-	int	*valp;		/* set to client's value if within bounds */
-	int	min;
-	int	max;
 };
 
 int 	dbg;
 int	restricted;
-int	pid;
-
-/* options */
-int	blksize = Defsegsize;
-int	timeout = 5;			/* seconds */
-int	tsize;
-static Opt option[] = {
-	"timeout",	&timeout,	1,	255,
-	"blksize",	&blksize,	8,	Maxsegsize,
-	"tsize",	&tsize,		0,	~0UL >> 1,
-};
-
-void	sendfile(int, char*, char*, int);
+void	sendfile(int, char*, char*);
 void	recvfile(int, char*, char*);
 void	nak(int, int, char*);
 void	ack(int, ushort);
@@ -86,13 +35,14 @@ int	dirsllen;
 char	flog[] = "ipboot";
 char	net[Maxpath];
 
-static char *opnames[] = {
-[Tftp_READ]	"read",
-[Tftp_WRITE]	"write",
-[Tftp_DATA]	"data",
-[Tftp_ACK]	"ack",
-[Tftp_ERROR]	"error",
-[Tftp_OACK]	"oack",
+enum
+{
+	Tftp_READ	= 1,
+	Tftp_WRITE	= 2,
+	Tftp_DATA	= 3,
+	Tftp_ACK	= 4,
+	Tftp_ERROR	= 5,
+	Segsize		= 512,
 };
 
 void
@@ -176,9 +126,8 @@ main(int argc, char **argv)
 			if(dfd < 0)
  				exits(0);
 			remoteaddr(ldir, raddr, sizeof(raddr));
-			pid = getpid();
-			syslog(0, flog, "tftp %d connection from %s dir %s",
-				pid, raddr, ldir);
+			syslog(0, flog, "tftp connection from %s dir %s",
+				raddr, ldir);
 			doserve(dfd);
 			exits("done");
 			break;
@@ -189,150 +138,20 @@ main(int argc, char **argv)
 	}
 }
 
-static Opt *
-handleopt(int fd, char *name, char *val)
-{
-	int n;
-	Opt *op;
-
-	for (op = option; op < option + nelem(option); op++)
-		if(cistrcmp(name, op->name) == 0) {
-			n = strtol(val, nil, 10);
-			if (n < op->min || n > op->max) {
-				nak(fd, Errbadopt, "option value out of range");
-				syslog(dbg, flog, "tftp bad option value from "
-					"client: %s %s", name, val);
-				sysfatal("bad option value from client: %s %s",
-					name, val);
-			}
-			*op->valp = n;
-			syslog(dbg, flog, "tftpd %d setting %s to %d",
-				pid, name, n);
-			return op;
-		}
-	return nil;
-}
-
-static vlong
-filesize(char *file)
-{
-	vlong size;
-	Dir *dp;
-
-	dp = dirstat(file);
-	if (dp == nil)
-		return 0;
-	size = dp->length;
-	free(dp);
-	return size;
-}
-
-static int
-options(int fd, char *buf, char *file, ushort oper, char *p, int dlen)
-{
-	int nmlen, vallen, nopts;
-	vlong size;
-	char *val, *bp;
-	Opt *op;
-
-	buf[0] = 0;
-	buf[1] = Tftp_OACK;
-	bp = buf + Opsize;
-	nopts = 0;
-	while (dlen > 0 && *p != '\0') {
-		nmlen = strlen(p) + 1;		/* include NUL */
-		if (nmlen > dlen)
-			break;
-		dlen -= nmlen;
-		val = p + nmlen;
-		if (dlen <= 0 || *val == '\0')
-			break;
-
-		vallen = strlen(val) + 1;
-		if (vallen > dlen)
-			break;
-		dlen -= vallen;
-
-		nopts++;
-		op = handleopt(fd, p, val);
-		if (op) {
-			/* append OACK response to buf */
-			sprint(bp, "%s", p);
-			bp += nmlen;
-			if (oper == Tftp_READ && cistrcmp(p, "tsize") == 0) {
-				size = filesize(file);
-				sprint(bp, "%lld", size);
-				syslog(dbg, flog, "tftpd %d %s tsize is %,lld",
-					pid, file, size);
-			} else
-				sprint(bp, "%s", val); /* use value asked for */
-			bp += strlen(bp) + 1;
-		}
-		p = val + vallen;
-	}
-	if (nopts == 0)
-		return 0;		/* no options actually seen */
-	*bp++ = '\0';
-	*bp++ = '\0';			/* overkill */
-	*bp++ = '\0';
-	if (write(fd, buf, bp - buf) < bp - buf) {
-		syslog(dbg, flog, "tftpd network write error on oack to %s: %r",
-			raddr);
-		sysfatal("tftpd: network write error: %r");
-	}
-	if(Debug)
-		syslog(dbg, flog, "tftpd oack: options to %s", raddr);
-	return nopts;
-}
-
-/* this doesn't stop the cavium from barging ahead */
-//static void
-//sendnoopts(int fd, char *name)
-//{
-//	char buf[64];
-//
-//	memset(buf, 0, sizeof buf);
-//	buf[0] = 0;
-//	buf[1] = Tftp_OACK;
-//
-//	if(write(fd, buf, sizeof buf) < sizeof buf) {
-//		syslog(dbg, flog, "tftpd network write error on %s oack to %s: %r",
-//			name, raddr);
-//		sysfatal("tftpd: network write error: %r");
-//	}
-//	if(Debug)
-//		syslog(dbg, flog, "tftpd oack: no options to %s", raddr);
-//}
-
-static void
-optlog(char *bytes, char *p, int dlen)
-{
-	char *bp;
-
-	bp = bytes;
-	sprint(bp, "tftpd %d option bytes: ", dlen);
-	bp += strlen(bp);
-	for (; dlen > 0; dlen--, p++)
-		*bp++ = *p? *p: ' ';
-	*bp = '\0';
-	syslog(dbg, flog, "%s", bytes);
-}
-
 void
 doserve(int fd)
 {
-	int dlen, opts;
-	char *mode, *p, *file;
+	int dlen;
+	char *mode, *p;
 	short op;
 
-	dlen = read(fd, bigbuf, sizeof(bigbuf)-1);
+	dlen = read(fd, bigbuf, sizeof(bigbuf));
 	if(dlen < 0)
 		sysfatal("listen read: %r");
 
-	bigbuf[dlen] = '\0';
 	op = (bigbuf[0]<<8) | bigbuf[1];
-	dlen -= Opsize;
-	mode = file = bigbuf + Opsize;
+	dlen -= 2;
+	mode = bigbuf+2;
 	while(*mode != '\0' && dlen--)
 		mode++;
 	mode++;
@@ -342,49 +161,32 @@ doserve(int fd)
 	if(dlen == 0) {
 		nak(fd, 0, "bad tftpmode");
 		close(fd);
-		syslog(dbg, flog, "tftpd %d bad mode %s for file %s from %s",
-			pid, mode, file, raddr);
+		syslog(dbg, flog, "bad mode from %s", raddr);
 		return;
 	}
 
 	if(op != Tftp_READ && op != Tftp_WRITE) {
-		nak(fd, Errbadop, "Illegal TFTP operation");
+		nak(fd, 4, "Illegal TFTP operation");
 		close(fd);
-		syslog(dbg, flog, "tftpd %d bad request %d %s", pid, op, raddr);
+		syslog(dbg, flog, "bad request %d %s", op, raddr);
 		return;
 	}
 
 	if(restricted){
-		if(file[0] == '#' || strncmp(file, "../", 3) == 0 ||
-		  strstr(file, "/../") != nil ||
-		  (file[0] == '/' && strncmp(file, dirsl, dirsllen) != 0)){
-			nak(fd, Errnoaccess, "Permission denied");
+		if(bigbuf[2] == '#' ||
+		  strncmp(bigbuf+2, "../", 3)==0 || strstr(bigbuf+2, "/../") ||
+		  (bigbuf[2] == '/' && strncmp(bigbuf+2, dirsl, dirsllen)!=0)){
+			nak(fd, 4, "Permission denied");
 			close(fd);
-			syslog(dbg, flog, "tftpd %d bad request %d from %s file %s",
-				pid, op, raddr, file);
+			syslog(dbg, flog, "bad request %d from %s file %s", op, raddr, bigbuf+2);
 			return;
 		}
 	}
 
-	/*
-	 * options are supposed to be negotiated, but the cavium board's
-	 * u-boot really wants us to use a block size of 1432 bytes and won't
-	 * take `no' for an answer.
-	 */
-	p++;				/* skip NUL after mode */
-	dlen--;
-	opts = 0;
-	if(dlen > 0) {			/* might have options */
-		char bytes[32*1024];
-
-		if(Debug)
-			optlog(bytes, p, dlen);
-		opts = options(fd, bytes, file, op, p, dlen);
-	}
 	if(op == Tftp_READ)
-		sendfile(fd, file, mode, opts);
+		sendfile(fd, bigbuf+2, mode);
 	else
-		recvfile(fd, file, mode);
+		recvfile(fd, bigbuf+2, mode);
 }
 
 void
@@ -397,63 +199,18 @@ catcher(void *junk, char *msg)
 	noted(NCONT);
 }
 
-static int
-awaitack(int fd, int block)
-{
-	int ackblock, al, rxl;
-	ushort op;
-	uchar ack[1024];
-
-	for(rxl = 0; rxl < 10; rxl++) {
-		memset(ack, 0, Hdrsize);
-		alarm(1000);
-		al = read(fd, ack, sizeof(ack));
-		alarm(0);
-		if(al < 0) {
-			if (Debug)
-				syslog(dbg, flog, "tftpd %d timed out "
-					"waiting for ack from %s", pid, raddr);
-			return Ackrexmit;
-		}
-		op = ack[0]<<8|ack[1];
-		if(op == Tftp_ERROR) {
-			if (Debug)
-				syslog(dbg, flog, "tftpd %d got error "
-					"waiting for ack from %s", pid, raddr);
-			return Ackerr;
-		} else if(op != Tftp_ACK) {
-			syslog(dbg, flog, "tftpd %d rcvd %s op from %s", pid,
-				(op < nelem(opnames)? opnames[op]: "gok"),
-				raddr);
-			return Ackerr;
-		}
-		ackblock = ack[2]<<8|ack[3];
-		if (Debug)
-			syslog(dbg, flog, "tftpd %d read ack of %d bytes "
-				"for block %d", pid, al, ackblock);
-		if(ackblock == block)
-			return Ackok;		/* for block just sent */
-		else if(ackblock == block + 1)	/* intel pxe eof bug */
-			return Ackok;
-		else if(ackblock == 0xffff)
-			return Ackrexmit;
-		else
-			/* ack is for some other block; ignore it, try again */
-			syslog(dbg, flog, "tftpd %d expected ack for block %d, "
-				"got %d", pid, block, ackblock);
-	}
-	return Ackrexmit;
-}
-
 void
-sendfile(int fd, char *name, char *mode, int opts)
+sendfile(int fd, char *name, char *mode)
 {
-	int file, block, ret, rexmit, n, txtry;
-	uchar buf[Maxsegsize+Hdrsize];
+	int file;
+	uchar buf[Segsize+4];
+	uchar ack[1024];
 	char errbuf[Maxerr];
+	int ackblock, block, ret;
+	int rexmit, n, al, txtry, rxl;
+	short op;
 
-	syslog(dbg, flog, "tftpd %d send file '%s' %s to %s",
-		pid, name, mode, raddr);
+	syslog(dbg, flog, "send file '%s' %s to %s", name, mode, raddr);
 	name = sunkernel(name);
 	if(name == 0){
 		nak(fd, 0, "not in our database");
@@ -469,26 +226,16 @@ sendfile(int fd, char *name, char *mode, int opts)
 		return;
 	}
 	block = 0;
-	rexmit = Ackok;
+	rexmit = 0;
 	n = 0;
-	/*
-	 * if we sent an oack previously, wait for the client's ack or error.
-	 * if we get no ack for our oack, it could be that we returned
-	 * a tsize that the client can't handle, or it could be intel
-	 * pxe just read-with-tsize to get size, couldn't be bothered to
-	 * ack our oack and has just gone ahead and issued another read.
-	 */
-	if(opts && awaitack(fd, 0) != Ackok)
-		goto error;
-
-	for(txtry = 0; txtry < timeout;) {
-		if(rexmit == Ackok) {
+	for(txtry = 0; txtry < 5;) {
+		if(rexmit == 0) {
 			block++;
 			buf[0] = 0;
 			buf[1] = Tftp_DATA;
 			buf[2] = block>>8;
 			buf[3] = block;
-			n = read(file, buf+Hdrsize, blksize);
+			n = read(file, buf+4, Segsize);
 			if(n < 0) {
 				errstr(errbuf, sizeof errbuf);
 				nak(fd, 0, errbuf);
@@ -497,25 +244,36 @@ sendfile(int fd, char *name, char *mode, int opts)
 			txtry = 0;
 		}
 		else {
-			syslog(dbg, flog, "tftpd %d rexmit %d %s:%d to %s",
-				pid, Hdrsize+n, name, block, raddr);
+			syslog(dbg, flog, "rexmit %d %s:%d to %s",
+				4+n, name, block, raddr);
 			txtry++;
 		}
 
-		ret = write(fd, buf, Hdrsize+n);
-		if(ret < Hdrsize+n) {
-			syslog(dbg, flog,
-				"tftpd network write error on %s to %s: %r",
-				name, raddr);
+		ret = write(fd, buf, 4+n);
+		if(ret < 4+n)
 			sysfatal("tftpd: network write error: %r");
-		}
-		if (Debug)
-			syslog(dbg, flog, "tftpd %d sent block %d", pid, block);
 
-		rexmit = awaitack(fd, block);
-		if (rexmit == Ackerr)
-			break;
-		if(ret != blksize+Hdrsize && rexmit == Ackok)
+		for(rxl = 0; rxl < 10; rxl++) {
+			rexmit = 0;
+			alarm(1000);
+			al = read(fd, ack, sizeof(ack));
+			alarm(0);
+			if(al < 0) {
+				rexmit = 1;
+				break;
+			}
+			op = ack[0]<<8|ack[1];
+			if(op == Tftp_ERROR)
+				goto error;
+			ackblock = ack[2]<<8|ack[3];
+			if(ackblock == block)
+				break;
+			if(ackblock == 0xffff) {
+				rexmit = 1;
+				break;
+			}
+		}
+		if(ret != Segsize+4 && rexmit == 0)
 			break;
 	}
 error:
@@ -523,11 +281,13 @@ error:
 	close(file);
 }
 
+enum { Hdrsize = 2 * sizeof(short), };		/* op, block */
+
 void
 recvfile(int fd, char *name, char *mode)
 {
 	ushort op, block, inblock;
-	uchar buf[Maxsegsize+8];
+	uchar buf[Segsize+8];
 	char errbuf[Maxerr];
 	int n, ret, file;
 
@@ -547,7 +307,7 @@ recvfile(int fd, char *name, char *mode)
 
 	for (;;) {
 		alarm(15000);
-		n = read(fd, buf, blksize+8);
+		n = read(fd, buf, sizeof(buf));
 		alarm(0);
 		if(n < 0) {
 			syslog(dbg, flog, "tftpd: network error reading %s: %r",
@@ -617,7 +377,8 @@ nak(int fd, int code, char *msg)
 	buf[3] = code;
 	strcpy(buf+4, msg);
 	n = strlen(msg) + 4 + 1;
-	if(write(fd, buf, n) < n)
+	n = write(fd, buf, n);
+	if(n < 0)
 		sysfatal("write nak: %r");
 }
 
