@@ -14,7 +14,7 @@ typedef struct PW {
 	mpint *Hi;  	// H(passphrase)^-1 mod p
 } PW;
 
-PW *getPW(char *, int);
+PW *getPW(char *);
 int putPW(PW *);
 void freePW(PW *);
 int getpasswd(char*, char*, int);

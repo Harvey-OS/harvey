@@ -37,7 +37,7 @@ mtimePW(char *id)
 }
 
 PW *
-getPW(char *id, int dead_or_alive)
+getPW(char *id)
 {
 	uint now = time(0);
 	Biobuf *bin;
@@ -71,14 +71,12 @@ getPW(char *id, int dead_or_alive)
 		}
 	}
 	Bterm(bin);
-	if(dead_or_alive)
-		return pw;  // return PW entry for editing, whether currently valid or not
 	if(pw->expire <= now){
 		werrstr("account expired");
 		freePW(pw);
 		return nil;
 	}
-	if((pw->status & Enabled) == 0){
+	if(pw->status & Enabled == 0){
 		werrstr("account disabled");
 		freePW(pw);
 		return nil;
