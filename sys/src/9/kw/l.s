@@ -3,11 +3,6 @@
  * arm926ej-s processor at 1.2GHz
  *
  * loader uses R11 as scratch.
- * R9 and R10 are used for `extern register' variables.
- *
- * ARM v7 arch. ref. man. (I know, this is v5) §B1.3.3 that
- * we don't need barriers around moves to CPSR.  The ARM v6 manual
- * seems to be silent on the subject.
  */
 #include "arm.s"
 
@@ -38,7 +33,7 @@ _main:
 	 */
 	MOVW	$(CpCsystem|CpCd32|CpCi32), R1
 	MCR     CpSC, 0, R1, C(CpCONTROL), C(0)
-	ISB
+	BARRIERS
 
 	/*
 	 * disable the Sheevaplug's L2 cache, invalidate all caches
@@ -56,11 +51,11 @@ _dwbinv0:
 	MOVW	(4*10)(R1), R2
 	ORR	$(1<<3), R2		/* cpu->l2cfg |= L2exists */
 	MOVW	R2, (4*10)(R1)
-	ISB
+	BARRIERS
 
 	/* invalidate l2 cache */
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
-	ISB
+	BARRIERS
 
 	/* disable l2 cache.  do this while l1 caches are off */
 	MRC	CpSC, CpL2, R1, C(CpTESTCFG), C(CpTCl2cfg), CpTCl2conf
@@ -281,7 +276,7 @@ _busy:
 	BIC.S	$~(1<<5), R1			/* (x->lsr & LSRthre) == 0? */
 	BEQ	_busy
 	MOVW	R3, (R6)			/* print */
-	ISB
+	BARRIERS
 	RET
 
 /*
@@ -292,6 +287,7 @@ TEXT l1cacheson(SB), 1, $-4
 	MOVW	CPSR, R5
 	ORR	$(PsrDirq|PsrDfiq), R5, R4
 	MOVW	R4, CPSR			/* splhi */
+	BARRIERS
 
 	MRC	CpSC, 0, R0, C(CpCONTROL), C(0)
 	ORR	$(CpCdcache|CpCicache|CpCwb), R0
@@ -299,6 +295,7 @@ TEXT l1cacheson(SB), 1, $-4
 	BARRIERS
 
 	MOVW	R5, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT l1cachesoff(SB), 1, $-4
@@ -307,6 +304,7 @@ TEXT l1cachesoff(SB), 1, $-4
 	MOVW	CPSR, R5
 	ORR	$(PsrDirq|PsrDfiq), R5, R4
 	MOVW	R4, CPSR			/* splhi */
+	BARRIERS
 
 	BL	cacheuwbinv(SB)
 
@@ -316,6 +314,7 @@ TEXT l1cachesoff(SB), 1, $-4
 	BARRIERS
 
 	MOVW	R5, CPSR			/* splx */
+	BARRIERS
 	MOVM.IA.W (SP), [R14]			/* restore lr */
 	RET
 
@@ -327,6 +326,7 @@ TEXT cachedwb(SB), 1, $-4			/* D writeback */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
 	/* keep writing back dirty cache lines until no more exist */
 _dwb:
@@ -336,6 +336,7 @@ _dwb:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT cachedwbse(SB), 1, $-4			/* D writeback SE */
@@ -344,6 +345,7 @@ TEXT cachedwbse(SB), 1, $-4			/* D writeback SE */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	4(FP), R1			/* second arg: size */
 
@@ -360,14 +362,15 @@ _dwbse:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT cachedwbinv(SB), 1, $-4			/* D writeback+invalidate */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
-	DSB
 	/* keep writing back dirty cache lines until no more exist */
 _dwbinv:
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
@@ -376,6 +379,7 @@ _dwbinv:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT cachedwbinvse(SB), 1, $-4			/* D writeback+invalidate SE */
@@ -384,10 +388,10 @@ TEXT cachedwbinvse(SB), 1, $-4			/* D writeback+invalidate SE */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	4(FP), R1			/* second arg: size */
 
-	DSB
 //	CMP.S	$(4*1024), R1
 //	BGT	_dwbinv
 	ADD	R2, R1
@@ -401,6 +405,7 @@ _dwbinvse:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT cachedinvse(SB), 1, $-4			/* D invalidate SE */
@@ -409,10 +414,10 @@ TEXT cachedinvse(SB), 1, $-4			/* D invalidate SE */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	4(FP), R1			/* second arg: size */
 
-	DSB
 //	CMP.S	$(4*1024), R1
 //	BGT	_dinv
 	ADD	R2, R1
@@ -426,14 +431,15 @@ _dinvse:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT cacheuwbinv(SB), 1, $-4			/* D+I writeback+invalidate */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
-	DSB
 	/* keep writing back dirty cache lines until no more exist */
 _uwbinv:					/* D writeback+invalidate */
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
@@ -447,6 +453,7 @@ _uwbinv:					/* D writeback+invalidate */
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT cacheiinv(SB), 1, $-4			/* I invalidate */
@@ -504,6 +511,7 @@ TEXT l2cacheuwbse(SB), 1, $-4			/* L2 unified writeback SE */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	4(FP), R1			/* second arg: size */
 
@@ -517,20 +525,22 @@ _l2wbse:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT l2cacheuwbinv(SB), 1, $-4		/* L2 unified writeback+invalidate */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
-	DSB
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
 	BARRIERS
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT l2cacheuwbinvse(SB), 1, $-4	/* L2 unified writeback+invalidate SE */
@@ -539,10 +549,10 @@ TEXT l2cacheuwbinvse(SB), 1, $-4	/* L2 unified writeback+invalidate SE */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	4(FP), R1			/* second arg: size */
 
-	DSB
 	ADD	R2, R1
 	BIC	$(CACHELINESZ-1), R2
 _l2wbinvse:
@@ -555,6 +565,7 @@ _l2wbinvse:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT l2cacheuinv(SB), 1, $-4			/* L2 unified invalidate */
@@ -569,10 +580,10 @@ TEXT l2cacheuinvse(SB), 1, $-4			/* L2 unified invalidate SE */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	4(FP), R1			/* second arg: size */
 
-	DSB
 	ADD	R2, R1
 	BIC	$(CACHELINESZ-1), R2
 _l2invse:
@@ -583,6 +594,7 @@ _l2invse:
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 /*
@@ -632,7 +644,7 @@ TEXT ttbget(SB), 1, $-4				/* translation table base */
 
 TEXT ttbput(SB), 1, $-4				/* translation table base */
 	MCR	CpSC, 0, R0, C(CpTTB), C(0)
-	ISB
+	BARRIERS
 	RET
 
 TEXT dacget(SB), 1, $-4				/* domain access control */
@@ -641,7 +653,7 @@ TEXT dacget(SB), 1, $-4				/* domain access control */
 
 TEXT dacput(SB), 1, $-4				/* domain access control */
 	MCR	CpSC, 0, R0, C(CpDAC), C(0)
-	ISB
+	BARRIERS
 	RET
 
 TEXT fsrget(SB), 1, $-4				/* fault status */
@@ -658,22 +670,26 @@ TEXT pidget(SB), 1, $-4				/* address translation pid */
 
 TEXT pidput(SB), 1, $-4				/* address translation pid */
 	MCR	CpSC, 0, R0, C(CpPID), C(0x0)
-	ISB
+	BARRIERS
 	RET
 
 TEXT splhi(SB), 1, $-4
 	MOVW	$(MACHADDR+4), R2		/* save caller pc in Mach */
 	MOVW	R14, 0(R2)
 
-	MOVW	CPSR, R0			/* turn off interrupts */
-	ORR	$(PsrDirq), R0, R1
+	MOVW	CPSR, R3			/* turn off interrupts */
+	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
+	MOVW	R3, R0
 	RET
 
 TEXT spllo(SB), 1, $-4
-	MOVW	CPSR, R0
-	BIC	$(PsrDirq), R0, R1
+	MOVW	CPSR, R3
+	BIC	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
+	MOVW	R3, R0
 	RET
 
 TEXT splx(SB), 1, $-4
@@ -681,14 +697,18 @@ TEXT splx(SB), 1, $-4
 	MOVW	R14, 0(R2)
 
 	MOVW	R0, R1				/* reset interrupt level */
-	MOVW	CPSR, R0
+	MOVW	CPSR, R3
 	MOVW	R1, CPSR
+	BARRIERS
+	MOVW	R3, R0
 	RET
 
 TEXT splxpc(SB), 1, $-4				/* for iunlock */
 	MOVW	R0, R1
-	MOVW	CPSR, R0
+	MOVW	CPSR, R3
 	MOVW	R1, CPSR
+	BARRIERS
+	MOVW	R3, R0
 	RET
 
 TEXT spldone(SB), 1, $0
@@ -701,15 +721,19 @@ TEXT islo(SB), 1, $-4
 	RET
 
 TEXT splfhi(SB), $-4
-	MOVW	CPSR, R0
-	ORR	$(PsrDfiq|PsrDirq), R0, R1
+	MOVW	CPSR, R3
+	ORR	$(PsrDfiq|PsrDirq), R3, R1
 	MOVW	R1, CPSR
+	BARRIERS
+	MOVW	R3, R0
 	RET
 
 //TEXT splflo(SB), $-4
-//	MOVW	CPSR, R0
-//	BIC	$(PsrDfiq), R0, R1
+//	MOVW	CPSR, R3
+//	BIC	$(PsrDfiq), R3, R1
 //	MOVW	R1, CPSR
+//	BARRIERS
+//	MOVW	R3, R0
 //	RET
 
 TEXT	_tas(SB), $-4
@@ -756,15 +780,16 @@ TEXT getcallerpc(SB), 1, $-4
 
 TEXT _idlehands(SB), 1, $-4
 	MOVW	CPSR, R3
-//	ORR	$PsrDirq, R3, R1		/* splhi */
-	BIC	$PsrDirq, R3, R1		/* spllo */
+	ORR	$(PsrDirq|PsrDfiq), R3, R1	/* splhi */
 	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	$0, R0				/* wait for interrupt */
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEintr), CpCACHEwait
-	ISB
+	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT barriers(SB), 1, $-4

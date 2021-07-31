@@ -4,9 +4,6 @@
  *
  * loader uses R11 as scratch.
  * R9 and R10 are used for `extern register' variables.
- *
- * ARM v7 arch. ref. man. §B1.3.3 that we don't need barriers
- * around moves to CPSR.
  */
 
 #include "arm.s"
@@ -50,7 +47,7 @@ WAVE('\n')
 	/* go faster with fewer restrictions */
 	BIC	$(CpACcachenopipe|CpACcp15serial|CpACcp15waitidle|CpACcp15pipeflush), R1
 	MCR	CpSC, 0, R1, C(CpCONTROL), C(0), CpAuxctl
-	ISB
+	BARRIERS
 
 	MRC	CpSC, 1, R1, C(CpCLD), C(CpCLDl2), CpCLDl2aux
 	ORR	$CpCl2nowralloc, R1		/* fight cortex errata 460075 */
@@ -61,7 +58,7 @@ WAVE('\n')
 	 * of arguing with this fussy processor.  To hell with it.
 	 */
 	MCR	CpSC, 1, R1, C(CpCLD), C(CpCLDl2), CpCLDl2aux
-	ISB
+	BARRIERS
 #endif
 	DELAY(printloops, 1)
 WAVE('P')
@@ -73,12 +70,12 @@ WAVE('P')
 	ORR	$CpCsbo, R1
 	BIC	$CpCsbz, R1
 	MCR	CpSC, 0, R1, C(CpCONTROL), C(0), CpMainctl
-	ISB
+	BARRIERS
 
 	MRC	CpSC, 0, R1, C(CpCONTROL), C(0), CpAuxctl
 	BIC	$CpACl2en, R1			/* turn l2 cache off */
 	MCR	CpSC, 0, R1, C(CpCONTROL), C(0), CpAuxctl
-	ISB
+	BARRIERS
 
 WAVE('l')
 	DELAY(printloop3, 1)
@@ -163,7 +160,7 @@ _ptenv2:
 	BL	cachedinv(SB)
 	MOVW	$KZERO, R0
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
-	ISB
+	BARRIERS
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
 	BARRIERS
 
@@ -248,7 +245,7 @@ no2unmap:
 	MOVW	$PADDR(L1), R0
 	SUB	$(MACHSIZE+(2*1024)), R0
 	MCR	CpSC, 0, R0, C(CpVECS), C(CpVECSbase), CpVECSmon
-	ISB
+	BARRIERS
 #endif
 
 	/*
@@ -345,8 +342,10 @@ TEXT _r15warp(SB), 1, $-4
 TEXT cachedwbse(SB), $-4			/* D writeback SE */
 	MOVW	R0, R2
 
-	MOVW	CPSR, R3
-	CPSID					/* splhi */
+	MOVW	CPSR, R3			/* splhi */
+	ORR	$(PsrDirq), R3, R1
+	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	R2, R0
 	MOVW	4(FP), R1
@@ -363,10 +362,11 @@ _dwbse:
 TEXT cachedwbinvse(SB), $-4			/* D writeback+invalidate SE */
 	MOVW	R0, R2
 
-	MOVW	CPSR, R3
-	CPSID					/* splhi */
+	MOVW	CPSR, R3			/* splhi */
+	ORR	$(PsrDirq), R3, R1
+	MOVW	R1, CPSR
+	BARRIERS
 
-	DSB
 	MOVW	R2, R0
 	MOVW	4(FP), R1
 	ADD	R0, R1				/* R1 is end address */
@@ -384,15 +384,17 @@ _wait:						/* drain write buffer */
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
+	BARRIERS
 	RET
 
 TEXT cachedinvse(SB), $-4			/* D invalidate SE */
 	MOVW	R0, R2
 
-	MOVW	CPSR, R3
-	CPSID					/* splhi */
+	MOVW	CPSR, R3			/* splhi */
+	ORR	$(PsrDirq), R3, R1
+	MOVW	R1, CPSR
+	BARRIERS
 
-	DSB
 	MOVW	R2, R0
 	MOVW	4(FP), R1
 	ADD	R0, R1				/* R1 is end address */
@@ -427,14 +429,17 @@ TEXT mmudisable(SB), 1, $-4
  * check your Level 1 page table (at TTB) closely.
  */
 TEXT mmuinvalidate(SB), $-4			/* invalidate all */
-	MOVW	CPSR, R2
-	CPSID					/* interrupts off */
-
 	BARRIERS
+	MOVW	CPSR, R2
+	ORR	$(PsrDirq|PsrDfiq), R2, R3	/* interrupts off */
+	MOVW	R3, CPSR
+	BARRIERS
+
 	MOVW	PC, R0				/* some valid virtual address */
 	MCR	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinv
 	BARRIERS
 	MOVW	R2, CPSR			/* interrupts restored */
+	BARRIERS
 	RET
 
 TEXT mmuinvalidateaddr(SB), $-4			/* invalidate single entry */
@@ -461,7 +466,7 @@ TEXT ttbget(SB), 1, $-4				/* translation table base */
 TEXT ttbput(SB), 1, $-4				/* translation table base */
 	MCR	CpSC, 0, R0, C(CpTTB), C(0), CpTTB0
 	MCR	CpSC, 0, R0, C(CpTTB), C(0), CpTTB1	/* cortex has two */
-	ISB
+	BARRIERS
 	RET
 
 TEXT dacget(SB), 1, $-4				/* domain access control */
@@ -470,7 +475,7 @@ TEXT dacget(SB), 1, $-4				/* domain access control */
 
 TEXT dacput(SB), 1, $-4				/* domain access control */
 	MCR	CpSC, 0, R0, C(CpDAC), C(0)
-	ISB
+	BARRIERS
 	RET
 
 TEXT fsrget(SB), 1, $-4				/* fault status */
@@ -495,20 +500,28 @@ TEXT pidget(SB), 1, $-4				/* address translation pid */
 
 TEXT pidput(SB), 1, $-4				/* address translation pid */
 	MCR	CpSC, 0, R0, C(CpPID), C(0x0)
-	ISB
+	BARRIERS
 	RET
 
 TEXT splhi(SB), 1, $-4
-	MOVW	CPSR, R0
-	CPSID					/* turn off interrupts */
+	MOVW	CPSR, R3			/* turn off interrupts */
+	ORR	$(PsrDirq|PsrDfiq), R3, R1
+	MOVW	R1, CPSR
+	BARRIERS
 
 	MOVW	$(MACHADDR+4), R2		/* save caller pc in Mach */
 	MOVW	R14, 0(R2)
+
+	MOVW	R3, R0				/* must return old CPSR */
 	RET
 
 TEXT spllo(SB), 1, $-4			/* start marker for devkprof.c */
-	MOVW	CPSR, R0
-	CPSIE
+	MOVW	CPSR, R3
+	BIC	$PsrDirq, R3, R1
+	MOVW	R1, CPSR
+	BARRIERS
+
+	MOVW	R3, R0				/* must return old CPSR */
 	RET
 
 TEXT splx(SB), 1, $-4
@@ -517,6 +530,8 @@ TEXT splx(SB), 1, $-4
 
 	MOVW	CPSR, R3
 	MOVW	R0, CPSR			/* reset interrupt level */
+	BARRIERS
+
 	MOVW	R3, R0				/* must return old CPSR */
 	RET
 
