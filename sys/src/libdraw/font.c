@@ -265,12 +265,10 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush, char **subfontname)
     Found2:
 	subf->age = f->age;
 
-	/* possible overflow here, but works out okay */
 	pic += cf->offset;
-	pic -= cf->min;
-	if(pic >= subf->f->n)
+	if(pic-cf->min >= subf->f->n)
 		goto TryPJW;
-	fi = &subf->f->info[pic];
+	fi = &subf->f->info[pic - cf->min];
 	if(fi->width == 0)
 		goto TryPJW;
 	wid = (fi+1)->x - fi->x;

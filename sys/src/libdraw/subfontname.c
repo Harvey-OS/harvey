@@ -9,42 +9,36 @@
 char*
 subfontname(char *cfname, char *fname, int maxdepth)
 {
-	char *t, *u, *tmp1, *tmp2;
+	char *t, *u, tmp1[64], tmp2[64];
 	int i;
 
-	t = strdup(cfname);  /* t is the return string */
 	if(strcmp(cfname, "*default*") == 0)
-		return t;
+		return strdup(cfname);
+	t = cfname;
 	if(t[0] != '/'){
-		tmp2 = strdup(fname);
+		snprint(tmp2, sizeof tmp2, "%s", fname);
 		u = utfrrune(tmp2, '/');
 		if(u)
 			u[0] = 0;
 		else
 			strcpy(tmp2, ".");
-		tmp1 = smprint("%s/%s", tmp2, t);
-		free(tmp2);
-		free(t);
+		snprint(tmp1, sizeof tmp1, "%s/%s", tmp2, t);
 		t = tmp1;
 	}
 
 	if(maxdepth > 8)
 		maxdepth = 8;
 
-	for(i=3; i>=0; i--){
-		if((1<<i) > maxdepth)
-			continue;
+	for(i=log2[maxdepth]; i>=0; i--){
 		/* try i-bit grey */
-		tmp2 = smprint("%s.%d", t, i);
-		if(access(tmp2, AREAD) == 0) {
-			free(t);
-			return tmp2;
-		}
+		snprint(tmp2, sizeof tmp2, "%s.%d", t, i);
+		if(access(tmp2, AREAD) == 0)
+			return strdup(tmp2);
 	}
 
 	/* try default */
 	if(access(t, AREAD) == 0)
-		return t;
+		return strdup(t);
 
 	return nil;
 }
