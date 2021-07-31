@@ -132,18 +132,38 @@ enum
 };
 
 int	textfd;
+int	srvfd;
 int	rfd;
 Biobuf	rfb;
 char*	portname = "/dev/eia0";
 char*	textfile = "/386/9pc";
 char*	procname = "1";
 Channel* rchan;
+char*	Eexist = "file does not exist";
+
+char*	progname = "rdbfs";
 
 void
 usage(void)
 {
 	fprint(2, "usage: rdbfs [-p procnum] [-t textfile] [serialport]\n");
 	exits("usage");
+}
+
+int
+forkproc(void (*fn)(void))
+{
+	int pid;
+	switch(pid=rfork(RFNAMEG|RFMEM|RFPROC)){
+	case -1:
+		sysfatal("fork: %r");
+	case 0:
+		fn();
+		_exits(0);
+	default:
+		return pid;
+	}
+	return -1;	/* not reached */
 }
 
 void
@@ -321,6 +341,7 @@ fswrite(Req *r)
 		if(strncmp(r->ifcall.data, "kill", 4) == 0 ||
 		   strncmp(r->ifcall.data, "exit", 4) == 0) {
 			respond(r, nil);
+			bind("#p", "/proc", MREPL);
 			postnote(PNGROUP, getpid(), "umount");
 			exits(nil);
 		}else if(strncmp(r->ifcall.data, "refresh", 7) == 0){
@@ -420,6 +441,7 @@ threadmain(int argc, char **argv)
 		sysfatal("pipe: %r");
 
 	fmtinstall('F', fcallfmt);
+	srvfd = p[1];
 	proccreate(eiaread, nil, 8192);
 
 	fs.tree = alloctree("rdbfs", "rdbfs", DMDIR|0555, nil);
