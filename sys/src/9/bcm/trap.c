@@ -18,8 +18,6 @@ typedef struct Intregs Intregs;
 typedef struct Vctl Vctl;
 
 enum {
-	Debug = 0,
-
 	Nvec = 8,		/* # of vectors at start of lexception.s */
 	Fiqenable = 1<<7,
 };
@@ -196,26 +194,6 @@ trapname(int psr)
 	return s;
 }
 
-/* this is quite helpful during mmu and cache debugging */
-static void
-ckfaultstuck(uintptr va)
-{
-	static int cnt, lastpid;
-	static uintptr lastva;
-
-	if (va == lastva && up->pid == lastpid) {
-		++cnt;
-		if (cnt >= 2)
-			/* fault() isn't fixing the underlying cause */
-			panic("fault: %d consecutive faults for va %#p",
-				cnt+1, va);
-	} else {
-		cnt = 0;
-		lastva = va;
-		lastpid = up->pid;
-	}
-}
-
 /*
  *  called by trap to handle access faults
  */
@@ -224,6 +202,8 @@ faultarm(Ureg *ureg, uintptr va, int user, int read)
 {
 	int n, insyscall;
 	char buf[ERRMAX];
+	static int cnt, lastpid;
+	static ulong lastva;
 
 	if(up == nil) {
 		dumpregs(ureg);
@@ -231,8 +211,18 @@ faultarm(Ureg *ureg, uintptr va, int user, int read)
 	}
 	insyscall = up->insyscall;
 	up->insyscall = 1;
-	if (Debug)
-		ckfaultstuck(va);
+	/* this is quite helpful during mmu and cache debugging */
+	if(va == lastva && up->pid == lastpid) {
+		++cnt;
+		if (cnt >= 2)
+			/* fault() isn't fixing the underlying cause */
+			panic("fault: %d consecutive faults for va %#lux",
+				cnt+1, va);
+	} else {
+		cnt = 0;
+		lastva = va;
+		lastpid = up->pid;
+	}
 
 	n = fault(va, read);
 	if(n < 0){

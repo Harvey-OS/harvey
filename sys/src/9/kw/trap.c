@@ -13,8 +13,6 @@
 #include "arm.h"
 
 enum {
-	Debug = 0,
-
 	Ntimevec = 20,			/* # of time buckets for each intr */
 	Nvecs = 256,
 };
@@ -313,26 +311,6 @@ trapname(int psr)
 	return s;
 }
 
-/* this is quite helpful during mmu and cache debugging */
-static void
-ckfaultstuck(uintptr va)
-{
-	static int cnt, lastpid;
-	static uintptr lastva;
-
-	if (va == lastva && up->pid == lastpid) {
-		++cnt;
-		if (cnt >= 2)
-			/* fault() isn't fixing the underlying cause */
-			panic("fault: %d consecutive faults for va %#p",
-				cnt+1, va);
-	} else {
-		cnt = 0;
-		lastva = va;
-		lastpid = up->pid;
-	}
-}
-
 /*
  *  called by trap to handle access faults
  */
@@ -350,8 +328,19 @@ faultarm(Ureg *ureg, uintptr va, int user, int read)
 	}
 	insyscall = up->insyscall;
 	up->insyscall = 1;
-	if (Debug)
-		ckfaultstuck(va);
+
+	/* this is quite helpful during mmu and cache debugging */
+	if(va == lastva && up->pid == lastpid) {
+		++cnt;
+		if (cnt >= 2)
+			/* fault() isn't fixing the underlying cause */
+			panic("fault: %d consecutive faults for va %#lux",
+				cnt+1, va);
+	} else {
+		cnt = 0;
+		lastva = va;
+		lastpid = up->pid;
+	}
 
 	n = fault(va, read);
 	if(n < 0){
