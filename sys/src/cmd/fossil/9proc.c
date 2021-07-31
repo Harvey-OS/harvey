@@ -8,7 +8,7 @@ enum {
 	NConInit	= 128,
 	NMsgInit	= 384,
 	NMsgProcInit	= 64,
-	NMsizeInit	= 16*1024+IOHDRSZ,
+	NMsizeInit	= 8192+IOHDRSZ,
 };
 
 static struct {

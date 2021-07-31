@@ -14,7 +14,7 @@ usage(void)
 
 enum
 {
-	BlockSize = 16*1024,
+	BlockSize = 8*1024,
 };
 
 struct

@@ -168,7 +168,7 @@ enum
 	NHUNK		= 100000,
 	MINSIZ		= 64,
 	NENT		= 100,
-	MAXIO		= (16*1024),
+	MAXIO		= 8192,
 	MAXHIST		= 20,				/* limit of path elements for history symbols */
 };
 

@@ -46,7 +46,7 @@ enum
 	STRINGSZ	= 200,
 	NHASH		= 10007,
 	NHUNK		= 100000,
-	MAXIO		= 16*1024,
+	MAXIO		= 8192,
 	MAXHIST		= 20,	/* limit of path elements for history symbols */
 };
 

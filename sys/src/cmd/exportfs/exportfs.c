@@ -234,7 +234,7 @@ main(int argc, char **argv)
 	if(messagesize == 0){
 		messagesize = iounit(0);
 		if(messagesize == 0)
-			messagesize = 16*1024+IOHDRSZ;
+			messagesize = 8192+IOHDRSZ;
 	}
 	fhash = emallocz(sizeof(Fid*)*FHASHSIZE);
 

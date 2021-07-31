@@ -12,7 +12,7 @@
 #include <fcall.h>
 #include <libsec.h>
 
-#define	Maxfdata (16*1024)
+#define	Maxfdata 8192
 #define MaxStr 128
 
 void	remoteside(void);
