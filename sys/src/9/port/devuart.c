@@ -189,15 +189,12 @@ uartreset(void)
 		uartnuart++;
 	}
 
-	if(uartnuart) {
+	if(uartnuart)
 		uart = xalloc(uartnuart*sizeof(Uart*));
-		if (uart == nil)
-			panic("uartreset: no memory");
-	}
 
 	uartndir = 1 + 3*uartnuart;
 	uartdir = xalloc(uartndir * sizeof(Dirtab));
-	if (uartdir == nil)
+	if (uart == nil || uartdir == nil)
 		panic("uartreset: no memory");
 	dp = uartdir;
 	strcpy(dp->name, ".");
