@@ -17,7 +17,6 @@ int	done;
 int	ibsize;
 int	obsize;
 int	verb;
-vlong	off;
 
 void	doinput(int);
 void	dooutput(int);
@@ -25,9 +24,9 @@ void	dooutput(int);
 static void
 usage(void)
 {
-	fprint(2, "usage: pump [-b iando] [-d sleeptime] [-f ofile] "
-		"[-i ireadsize]\n\t[-k KB-buffer] [-o owritesize] "
-		"[-s start-KB] [-S seek-offset]\n\t[-t mins] [files]\n");
+	fprint(2, "usage: pump [-f ofile] [-k KB-buffer] [-i ireadsize]\n"
+		"\t[-o owritesize] [-b iando] [-s start-KB] [-d sleeptime] "
+		"[files]\n");
 	exits("usage");
 }
 
@@ -41,7 +40,6 @@ main(int argc, char *argv[])
 	obsize = ibsize = 8*1024;
 	dsize = 0;
 	fo = 1;
-	off = 0;
 
 	ARGBEGIN {
 	default:
@@ -72,11 +70,6 @@ main(int argc, char *argv[])
 		if(ssize <= 0)
 			ssize = 800;
 		ssize <<= 10;
-		break;
-	case 'S':
-		off = atoll(EARGF(usage()));
-		if(off < 0)
-			sysfatal("seek offset %lld must be non-negative", off);
 		break;
 	case 't':
 		tsize = atoll(EARGF(usage()));
@@ -136,7 +129,6 @@ dooutput(int f)
 {
 	long n, l, c;
 
-	seek(f, off, 0);
 	lock(&arithlock);
 	for (;;) {
 		n = nin - nout;
@@ -179,7 +171,6 @@ doinput(int f)
 {
 	long n, l, c, xnin;
 
-	seek(f, off, 0);
 	lock(&arithlock);
 	if(ssize > 0) {
 		for (xnin = 0; xnin < ssize && !done; xnin += c) {
