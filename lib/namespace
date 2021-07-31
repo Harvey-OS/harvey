@@ -35,4 +35,3 @@ cd /usr/$user
 
 . /lib/namespace.local
 . /lib/namespace.$sysname
-. /cfg/$sysname/namespace
