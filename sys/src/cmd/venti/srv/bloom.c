@@ -198,6 +198,7 @@ int
 inbloomfilter(Bloom *b, u8int *score)
 {
 	int r;
+	uint ms;
 
 	if(b == nil || b->data == nil)
 		return 1;
@@ -205,10 +206,12 @@ inbloomfilter(Bloom *b, u8int *score)
 	if(ignorebloom)
 		return 1;
 	
+	ms = msec();
 	rlock(&b->lk);
 	r = _inbloomfilter(b, score);
 	runlock(&b->lk);
-	addstat(StatBloomLookup, 1);
+	ms = ms - msec();
+	addstat2(StatBloomLookup, 1, StatBloomLookupTime, ms);
 	if(r)
 		addstat(StatBloomMiss, 1);
 	else

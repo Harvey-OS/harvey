@@ -250,8 +250,6 @@ scachemiss(u64int addr)
 {
 	ISum *s;
 
-	if(!icacheprefetch)
-		return nil;
 	s = scachelookup(addr);
 	if(s == nil){
 		/* first time: make an entry in the cache but don't populate it yet */
@@ -442,27 +440,32 @@ insertscore(u8int score[VtScoreSize], IAddr *ia, int state, AState *as)
 	return 0;
 }
 
+static int
+lookupscore_untimed(u8int score[VtScoreSize], int type, IAddr *ia)
+{
+	IEntry d;
+
+	if(icachelookup(score, type, ia) >= 0)
+		return 0;
+
+	addstat(StatIcacheFill, 1);
+	if(loadientry(mainindex, score, type, &d) < 0)
+		return -1;
+	
+	insertscore(score, &d.ia, IEClean, nil);
+	*ia = d.ia;
+	return 0;
+}
+
 int
 lookupscore(u8int score[VtScoreSize], int type, IAddr *ia)
 {
 	int ms, ret;
-	IEntry d;
-
-	if(icachelookup(score, type, ia) >= 0){
-		addstat(StatIcacheRead, 1);
-		return 0;
-	}
-
+	
 	ms = msec();
-	addstat(StatIcacheFill, 1);
-	if(loadientry(mainindex, score, type, &d) < 0)
-		ret = -1;
-	else{
-		ret = 0;
-		insertscore(score, &d.ia, IEClean, nil);
-		*ia = d.ia;
-	}
-	addstat2(StatIcacheRead, 1, StatIcacheReadTime, msec() - ms);
+	ret = lookupscore_untimed(score, type, ia);
+	ms = msec() - ms;
+	addstat2(StatIcacheRead, 1, StatIcacheReadTime, ms);
 	return ret;
 }
 	

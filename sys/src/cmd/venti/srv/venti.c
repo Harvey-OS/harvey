@@ -186,8 +186,6 @@ threadmain(int argc, char *argv[])
 		ventiserver(nil);
 	else
 		vtproc(ventiserver, nil);
-
-	threadexits(nil);
 }
 
 static void

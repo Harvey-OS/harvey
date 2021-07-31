@@ -71,7 +71,7 @@ lookuplump(u8int *score, int type)
 	Lump *b;
 	u32int h;
 
-	ms = 0;
+	ms = msec();
 	trace(TraceLump, "lookuplump enter");
 	
 	h = hashbits(score, HashLog);
@@ -112,9 +112,6 @@ again:
 		CHECK(checklumpcache());
 	}
 
-	/* start timer on cache miss to avoid system call on cache hit */
-	ms = msec();
-
 	addstat(StatLcacheMiss, 1);
 	b = lumpcache.free;
 	lumpcache.free = b->next;
@@ -154,7 +151,7 @@ found:
 	addstat(StatLumpStall, -1);
 
 	trace(TraceLump, "lookuplump exit");
-	addstat2(StatLcacheRead, 1, StatLcacheReadTime, ms ? msec()-ms : 0);
+	addstat2(StatLcacheRead, 1, StatLcacheReadTime, msec()-ms);
 	return b;
 }
 

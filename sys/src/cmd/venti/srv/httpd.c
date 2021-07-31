@@ -915,6 +915,7 @@ static char* graphname[] =
 	"bloomlookup",
 	"bloomones",
 	"bloombits",
+	"bloomlookuptime",
 
 	"apartread",
 	"apartreadbyte",
