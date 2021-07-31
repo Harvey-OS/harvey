@@ -140,11 +140,7 @@ havesize:
 		size = 16*1024*1024;
 	vgalinearaddr(scr, paddr, size);
 	hardscreen = scr->vaddr;
-	/* let mtrr harmlessly fail on old CPUs, e.g., P54C */
-	if (!waserror()){
-		mtrr(paddr, size, "wc");
-		poperror();
-	}
+	mtrr(paddr, size, "wc");
 }
 
 static void
