@@ -160,7 +160,7 @@ offsets to
 <TT>SB</TT>,
 as in
 <DL><DT><DD><TT><PRE>
-	MOVL	<I>array(SB), TOS
+	MOVL	$array(SB), TOS
 </PRE></TT></DL>
 to push the address of a global array on the stack, or
 <DL><DT><DD><TT><PRE>
@@ -169,22 +169,22 @@ to push the address of a global array on the stack, or
 to push the second (4-byte) element of the array.
 Note the use of an offset; the complete list of addressing modes is given below.
 Similarly, subroutine calls must use
-</I><TT>SB</TT><I>:
+<TT>SB</TT>:
 <DL><DT><DD><TT><PRE>
 	BSR	exit(SB)
 </PRE></TT></DL>
 File-static variables have syntax
 <DL><DT><DD><TT><PRE>
-	local&lt;&gt;+4(SB)
+	local&#60;&#62;+4(SB)
 </PRE></TT></DL>
 The
-</I><TT>&lt;&gt;</TT><I>
+<TT><></TT>
 will be filled in at load time by a unique integer.
 </P>
-</I><P>
+<P>
 When a program starts, it must execute
 <DL><DT><DD><TT><PRE>
-	MOVL	a6base(SB), A6
+	MOVL	$a6base(SB), A6
 </PRE></TT></DL>
 before accessing any global data.
 (On machines such as the MIPS and SPARC that cannot load a register
@@ -239,7 +239,7 @@ to indicate the size and scaling of the data.
 </P>
 <DL>
 <DT><DT>&#32;<DD>
-<br><img src="data.19116310.gif"><br>
+<br><img src="data.10610.gif"><br>
 </dl>
 <H4>Laying down data
 </H4>
@@ -254,23 +254,23 @@ and
 lay down the value of their single argument, of the appropriate size,
 as if it were an instruction:
 <DL><DT><DD><TT><PRE>
-	LONG	<I>12345
+	LONG	$12345
 </PRE></TT></DL>
 places the long 12345 (base 10)
 in the instruction stream.
 (On most machines,
 the only such operator is
-</I><TT>WORD</TT><I>
+<TT>WORD</TT>
 and it lays down 32-bit quantities.
 The 386 has all three:
-</I><TT>LONG</TT><I>,
-</I><TT>WORD</TT><I>,
+<TT>LONG</TT>,
+<TT>WORD</TT>,
 and
-</I><TT>BYTE</TT><I>.
+<TT>BYTE</TT>.
 The 960 has only one,
-</I><TT>LONG</TT><I>.)
+<TT>LONG</TT>.)
 </P>
-</I><P>
+<P>
 Placing information in the data section is more painful.
 The pseudo-instruction
 <TT>DATA</TT>
@@ -282,57 +282,57 @@ containing the characters
 <TT>abc</TT>
 and a terminating null:
 <DL><DT><DD><TT><PRE>
-	DATA    array+0(SB)/1, 'a'
-	DATA    array+1(SB)/1, <I>'b'
-	DATA    array+2(SB)/1, </I>'c'
-	GLOBL   array(SB), <I>4
+	DATA    array+0(SB)/1, $'a'
+	DATA    array+1(SB)/1, $'b'
+	DATA    array+2(SB)/1, $'c'
+	GLOBL   array(SB), $4
 </PRE></TT></DL>
 or
 <DL><DT><DD><TT><PRE>
-	DATA    array+0(SB)/4, </I>"abc\z"
-	GLOBL   array(SB), <I>4
+	DATA    array+0(SB)/4, $"abc\z"
+	GLOBL   array(SB), $4
 </PRE></TT></DL>
 The
-</I><TT>/1</TT><I>
+<TT>/1</TT>
 defines the number of bytes to define,
-</I><TT>GLOBL</TT><I>
+<TT>GLOBL</TT>
 makes the symbol global, and the
-</I><TT></TT><I>4</I><TT>
+<TT>$4</TT>
 says how many bytes the symbol occupies.
 Uninitialized data is zeroed automatically.
 The character
-</TT><TT>\z</TT><TT>
+<TT>z</TT>
 is equivalent to the C
-</TT><TT>\0.</TT><TT>
+<TT> .</TT>
 The string in a
-</TT><TT>DATA</TT><TT>
+<TT>DATA</TT>
 statement may contain a maximum of eight bytes;
 build larger strings piecewise.
 Two pseudo-instructions,
-</TT><TT>DYNT</TT><TT>
+<TT>DYNT</TT>
 and
-</TT><TT>INIT</TT><TT>,
+<TT>INIT</TT>,
 allow the (obsolete) Alef compilers to build dynamic type information during the load
 phase.
 The
-</TT><TT>DYNT</TT><TT>
+<TT>DYNT</TT>
 pseudo-instruction has two forms:
 <DL><DT><DD><TT><PRE>
 	DYNT	, ALEF_SI_5+0(SB)
 	DYNT	ALEF_AS+0(SB), ALEF_SI_5+0(SB)
 </PRE></TT></DL>
 In the first form,
-</TT><TT>DYNT</TT><TT>
+<TT>DYNT</TT>
 defines the symbol to be a small unique integer constant, chosen by the loader,
 which is some multiple of the word size.  In the second form,
-</TT><TT>DYNT</TT><TT>
+<TT>DYNT</TT>
 defines the second symbol in the same way,
 places the address of the most recently
 defined text symbol in the array specified by the first symbol at the
 index defined by the value of the second symbol,
 and then adjusts the size of the array accordingly.
 </P>
-</TT><P>
+<P>
 The
 <TT>INIT</TT>
 pseudo-instruction takes the same parameters as a
@@ -363,20 +363,20 @@ and restore instructions, even if the function is not a leaf.
 Here is a complete procedure that returns the sum
 of its two arguments:
 <DL><DT><DD><TT><PRE>
-TEXT	sum(SB), <I>0
+TEXT	sum(SB), $0
 	MOVL	arg1+0(FP), R0
 	ADDL	arg2+4(FP), R0
 	RTS
 </PRE></TT></DL>
 An optional middle argument
 to the
-</I><TT>TEXT</TT><I>
+<TT>TEXT</TT>
 pseudo-op is a bit field of options to the loader.
 Setting the 1 bit suspends profiling the function when profiling is enabled for the rest of
 the program.
 For example,
 <DL><DT><DD><TT><PRE>
-TEXT	sum(SB), 1, </I>0
+TEXT	sum(SB), 1, $0
 	MOVL	arg1+0(FP), R0
 	ADDL	arg2+4(FP), R0
 	RTS
@@ -433,29 +433,29 @@ does not distinguish between the various forms of
 instruction: move quick, move address, etc.  Instead the context
 does the job.  For example,
 <DL><DT><DD><TT><PRE>
-	MOVL	<I>1, R1
+	MOVL	$1, R1
 	MOVL	A0, R2
 	MOVW	SR, R3
 </PRE></TT></DL>
 generates official
-</I><TT>MOVEQ</TT><I>,
-</I><TT>MOVEA</TT><I>,
+<TT>MOVEQ</TT>,
+<TT>MOVEA</TT>,
 and
-</I><TT>MOVESR</TT><I>
+<TT>MOVESR</TT>
 instructions.
 A number of instructions do not have the syntax necessary to specify
 their entire capabilities.  Notable examples are the bitfield
 instructions, the
 multiply and divide instructions, etc.
 For a complete set of generated instruction names (in
-</I><TT>2a</TT><I>
+<TT>2a</TT>
 notation, not Motorola's) see the file
-</I><TT>/sys/src/cmd/2c/2.out.h</TT><I>.
+<TT>/sys/src/cmd/2c/2.out.h</TT>.
 Despite its name, this file contains an enumeration of the
 instructions that appear in the intermediate files generated
 by the compiler, which correspond exactly to lines of assembly language.
 </P>
-</I><P>
+<P>
 The MC68000 assembler,
 <TT>1a</TT>,
 is essentially the same, honoring the appropriate subset of the instructions
@@ -1175,7 +1175,7 @@ For example:
 <DL><DT><DD><TT><PRE>
 	MOVFL	CR(3), CR(0)
 	MOVFL	R3, CR(1)
-	MOVFL	R3, 7, CR
+	MOVFL	R3, $7, CR
 </PRE></TT></DL>
 They are also accepted in
 the conditional branch instruction, for example
@@ -1190,8 +1190,8 @@ in a similar way:
 <DL><DT><DD><TT><PRE>
 	MOVFL	FPSCR, F0
 	MOVFL	F0, FPSCR
-	MOVFL	F0, <I>7, FPSCR
-	MOVFL	</I>0, FPSCR(3)
+	MOVFL	F0, $7, FPSCR
+	MOVFL	$0, FPSCR(3)
 </PRE></TT></DL>
 producing
 <TT>mffs</TT>,
@@ -1282,16 +1282,16 @@ and
 <TT>R14</TT>
 when in another processor mode.
 Shifts and rotates in addressing modes are supported by binary operators
-<TT>&lt;&lt;</TT>
+<TT><<</TT>
 (logical left shift),
-<TT>&gt;&gt;</TT>
+<TT>>></TT>
 (logical right shift),
-<TT>-&gt;</TT>
+<TT>-></TT>
 (arithmetic right shift), and
-<TT>@&gt;</TT>
+<TT>@></TT>
 (rotate right); for example
-<TT>R7&gt;&gt;R2</TT>or
-<TT>R2@&gt;2</TT>.
+<TT>R7>>R2</TT>or
+<TT>R2@>2</TT>.
 The assembler does not support indexing by a shifted expression;
 only names can be doubly indexed.
 </P>
@@ -1351,8 +1351,9 @@ and
 <P>
 For details about this assembly language, which was built for the AMD 29240,
 look at the sources or examine compiler output.
+
 </P>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
 </body></html>

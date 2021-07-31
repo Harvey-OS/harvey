@@ -43,7 +43,7 @@ The
 command acts as a front end to the Plan 9 C compilers and loaders.
 It runs an ANSI C preprocessor over source files, using the APE
 headers to satisfy
-<TT>#include &lt;</TT><I>file</I><TT>&gt;</TT>
+<TT>#include <<I>file</I>></TT>
 directives; then it runs a Plan 9 C compiler; finally, it may load
 with APE libraries to produce an executable program.
 The document
@@ -51,12 +51,12 @@ The document
 explains how environment variables are used by convention to
 handle compilation for differing architectures.
 The environment variable
-<TT></TT><I>objtype</I>
+<TT>$objtype</TT>
 controls which Plan 9 compiler and loader are used by
-</TT><TT>pcc</TT>,
+<TT>pcc</TT>,
 as well as the location of header and library files.
 For example, if
-</TT><TT></TT><TT>objtype</TT>
+<TT>$objtype</TT>
 is
 <TT>mips</TT>,
 then
@@ -147,17 +147,17 @@ to turn on ANSI prototype warnings;
 <TT>-S</TT>
 to leave assembly language in
 <I>file</I>.s;
-<TT>-Wp,</TT><I>args</I><TT></TT>
+<TT>-Wp,<I>args</I></TT>
 to pass
 <I>args</I>
 to the
 <TT>cpp</TT>;
-<TT>-W0,</TT><I>args</I><TT></TT>
+<TT>-W0,<I>args</I></TT>
 to pass
 <I>args</I>
 to 2c, etc.;
 and
-<TT>-Wl,</TT><I>args</I><TT></TT>
+<TT>-Wl,<I>args</I></TT>
 to pass
 <I>args</I>
 to 2l, etc.
@@ -201,10 +201,10 @@ The most important feature test macro is
 when it is defined, exactly the symbols required by POSIX are
 visible in the appropriate headers.
 Consider
-<TT>&lt;signal.h&gt;</TT>
+<TT><signal.h></TT>
 for example:
 ANSI defines some names that must be defined in
-<TT>&lt;signal.h&gt;</TT>,
+<TT><signal.h></TT>,
 but POSIX defines others, such as
 <TT>sigset_t</TT>,
 which are not allowed according to ANSI.
@@ -238,7 +238,7 @@ by the C or POSIX standard, and those required by the POSIX standard
 are protected by
 <TT>#ifdef _POSIX_SOURCE</TT>.
 For example,
-<TT>&lt;errno.h&gt;</TT>
+<TT><errno.h></TT>
 defines
 <TT>EDOM</TT>,
 <TT>ERANGE</TT>,
@@ -294,7 +294,7 @@ The functions are as described in the Plan 9 manual (see
 had to be renamed
 <TT>ptdiv</TT>.
 Include the
-<TT>&lt;libg.h&gt;</TT>
+<TT><libg.h></TT>
 header to declare the needed types and functions.
 <DT>   -<DD>
 <TT>_LIMITS_EXTENSION</TT>.
@@ -303,12 +303,12 @@ POSIX does not require that names such as
 and
 <TT>OPEN_MAX</TT>
 be defined in
-<TT>&lt;limits.h&gt;</TT>,
+<TT><limits.h></TT>,
 but many programs assume they are defined there.
 If
 <TT>_LIMITS_EXTENSION</TT>
 is defined, those names will all be defined when
-<TT>&lt;limits.h&gt;</TT>
+<TT><limits.h></TT>
 is included.
 <DT>   -<DD>
 <TT>_BSD_EXTENSION</TT>.
@@ -316,45 +316,45 @@ This extension includes not only Berkeley Unix routines,
 but also a grab bag of other miscellaneous routines often
 found in Unix implementations.
 The extension allows the inclusion of any of:
-<TT>&lt;bsd.h&gt;</TT>
+<TT><bsd.h></TT>
 for
 <TT>bcopy()</TT>,
 <TT>bcmp()</TT>,
 and similar Berkeley functions;
-<TT>&lt;netdb.h&gt;</TT>
+<TT><netdb.h></TT>
 for
 <TT>gethostbyname()</TT>,
 etc.,
 and associated structures;
-<TT>&lt;select.h&gt;</TT>
+<TT><select.h></TT>
 for the Berkeley
 <TT>select</TT>
 function and associated types and macros
 for dealing with multiple input sources;
-<TT>&lt;sys/ioctl.h&gt;</TT>
+<TT><sys/ioctl.h></TT>
 for the
 <TT>ioctl</TT>
 function (minimally implemented);
-<TT>&lt;sys/param.h&gt;</TT>
+<TT><sys/param.h></TT>
 for
 <TT>NOFILES_MAX</TT>;
-<TT>&lt;sys/pty.h&gt;</TT>
+<TT><sys/pty.h></TT>
 for pseudo-tty support via the
 <TT>ptsname(int)</TT>
 and
 <TT>ptmname(int)</TT>
 functions;
-<TT>&lt;sys/resource.h&gt;</TT>;
-<TT>&lt;sys/socket.h&gt;</TT>
+<TT><sys/resource.h></TT>;
+<TT><sys/socket.h></TT>
 for socket structures, constants, and functions;
-<TT>&lt;sys/time.h&gt;</TT>
+<TT><sys/time.h></TT>
 for definitions of the
 <TT>timeval</TT>
 and
 <TT>timezone</TT>
 structures;
 and
-<TT>&lt;sys/uio.h&gt;</TT>
+<TT><sys/uio.h></TT>
 for the
 <TT>iovec</TT>
 structure and the
@@ -365,23 +365,23 @@ functions used for scatter/gather I/O.
 Defining
 <TT>_BSD_EXTENSION</TT>
 also enables various extra definitions in
-<TT>&lt;ctype.h&gt;</TT>,
-<TT>&lt;signal.h&gt;</TT>,
-<TT>&lt;stdio.h&gt;</TT>,
-<TT>&lt;unistd.h&gt;</TT>,
-<TT>&lt;sys/stat.h&gt;</TT>,
+<TT><ctype.h></TT>,
+<TT><signal.h></TT>,
+<TT><stdio.h></TT>,
+<TT><unistd.h></TT>,
+<TT><sys/stat.h></TT>,
 and
-<TT>&lt;sys/times.h&gt;</TT>.
+<TT><sys/times.h></TT>.
 <DT>   -<DD>
 <TT>_NET_EXTENSION</TT>.
 This extension allows inclusion of
-<TT>&lt;libnet.h&gt;</TT>,
+<TT><libnet.h></TT>,
 which defines the networking functions described in the Plan 9 manual page
 <A href="/magic/man2html/2/dial"><I>dial</I>(2).
 </A><DT>   -<DD>
 <TT>_REGEXP_EXTENSION</TT>.
 This extension allows inclusion of
-<TT>&lt;regexp.h&gt;</TT>,
+<TT><regexp.h></TT>,
 which defines the regular expression matching functions described
 in the Plan 9 manual page
 <A href="/magic/man2html/2/regexp"><I>regexp</I>(2).
@@ -390,7 +390,7 @@ in the Plan 9 manual page
 This extension enables a small library of functions from the Tenth Edition Unix
 Research System (V10).
 These functions and the types needed to use them are all defined in the
-<TT>&lt;libv.h&gt;</TT>
+<TT><libv.h></TT>
 header.
 The provided functions are:
 <TT>srand</TT>,
@@ -441,7 +441,7 @@ A good strategy for porting external programs is to first try using
 if that doesn't work, try adding
 <TT>_D_BSD_EXTENSION</TT>
 and perhaps include
-<TT>&lt;bsd.h&gt;</TT>
+<TT><bsd.h></TT>
 in source files.
 Here are some solutions to problems that might remain:
 </P>
@@ -456,15 +456,15 @@ global instead.
 <TT>OPEN_MAX</TT>,
 <TT>PATH_MAX</TT>,
 etc., assumed in
-<TT>&lt;limits.h&gt;</TT>.
+<TT><limits.h></TT>.
 Rewrite to call
 <TT>sysconf</TT>
 or define
 <TT>_LIMITS_EXTENSION</TT>.
 <DT>   -<DD>
-<TT>&lt;varargs.h&gt;</TT>.
+<TT><varargs.h></TT>.
 Rewrite to use
-<TT>&lt;stdarg.h&gt;</TT>.
+<TT><stdarg.h></TT>.
 </dl>
 <P>
 The second class of problems has to do with inadequacies in the Plan 9
@@ -525,8 +525,9 @@ code that does
 should be changed to
 <TT>getenv("home")</TT>
 on Plan 9.
+
 </dl>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
 </body></html>
