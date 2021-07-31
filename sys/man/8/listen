@@ -45,20 +45,17 @@ are executed as user
 .BR none ;
 services found in
 .I trustsrvdir
-are executed as the user who started
+as executed as the user who started
 .IR listen .
-When changing user to
-.BR none ,
-a new namespace is created,
-usually by executing
-.BR /lib/namespace ,
-but
-.B -n
-selects an alternate
-.IR namespace .
 Option
 .B -q
-suppresses affirmative log information.
+suppresses affirmative log information;
+option
+.B -n
+sets an alternate
+.I namespace
+file (default
+.BR /lib/namespace ).
 .PP
 Service names are made by concatenating the name of
 the network with the name of the service or port.
