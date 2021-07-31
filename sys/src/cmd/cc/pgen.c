@@ -231,7 +231,7 @@ loop:
 		if(cases == C)
 			diag(n, "case/default outside a switch");
 		if(l == Z) {
-			casf();
+			cas();
 			cases->val = 0;
 			cases->def = 1;
 			cases->label = pc;
@@ -243,7 +243,7 @@ loop:
 			goto rloop;
 		if(l->op == OCONST)
 		if(typeword[l->type->etype] && l->type->etype != TIND) {
-			casf();
+			cas();
 			cases->val = l->vconst;
 			cases->def = 0;
 			cases->label = pc;
@@ -268,7 +268,7 @@ loop:
 
 		cn = cases;
 		cases = C;
-		casf();
+		cas();
 
 		sbc = breakpc;
 		breakpc = pc;

@@ -186,7 +186,7 @@ linear:
 }
 
 void
-casf(void)
+cas(void)
 {
 	Case *c;
 
