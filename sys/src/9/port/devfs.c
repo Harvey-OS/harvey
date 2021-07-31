@@ -241,8 +241,7 @@ rdconf(void)
 	char	*c;
 	char	*p;
 	char	*e;
-	Chan *cc;
-	Chan **ccp;
+	Chan	*cc;
 
 	s = getconf("fsconfig");
 	if (s == nil){
@@ -250,23 +249,23 @@ rdconf(void)
 		s = "/dev/sdC0/fscfg";
 	} else
 		mustrd = 1;
-	ccp = &cc;
-	*ccp = nil;
+	cc = nil;
 	c = nil;
 	if (waserror()){
 		configed = 1;
-		if (*ccp != nil)
-			cclose(*ccp);
+		if (cc != nil)
+			cclose(cc);
 		if (c)
 			free(c);
 		if (!mustrd)
 			return;
 		nexterror();
 	}
-	*ccp = namec(s, Aopen, OREAD, 0);
-	devtab[(*ccp)->type]->read(*ccp, confstr, sizeof(confstr), 0);
-	cclose(*ccp);
-	*ccp = nil;
+	cc = namec(s, Aopen, OREAD, 0);
+	devtab[cc->type]->read(cc, confstr, sizeof(confstr), 0);
+	cclose(cc);
+	cc = nil;
+	USED(cc); // on errors
 	if (strncmp(confstr, Cfgstr, strlen(Cfgstr)) != 0)
 		error("Bad config: should begin with: fsdev\\n");
 	kstrdup(&c, confstr + strlen(Cfgstr));
