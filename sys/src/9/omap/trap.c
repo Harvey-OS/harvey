@@ -573,22 +573,16 @@ trap(Ureg *ureg)
 		break;
 	case PsrMund:			/* undefined instruction */
 		if(user){
-			if(seg(up, ureg->pc, 0) != nil &&
-			   *(u32int*)ureg->pc == 0xD1200070){
-				snprint(buf, sizeof buf, "sys: breakpoint");
+			/* look for floating point instructions to interpret */
+			x = spllo();
+			rv = fpiarm(ureg);
+			splx(x);
+			if(rv == 0){
+				ldrexvalid = 0;
+				snprint(buf, sizeof buf,
+					"undefined instruction: pc %#lux\n",
+					ureg->pc);
 				postnote(up, 1, buf, NDebug);
-			}else{
-				/* look for floating point instructions to interpret */
-				x = spllo();
-				rv = fpiarm(ureg);
-				splx(x);
-				if(rv == 0){
-					ldrexvalid = 0;
-					snprint(buf, sizeof buf,
-						"undefined instruction: pc %#lux\n",
-						ureg->pc);
-					postnote(up, 1, buf, NDebug);
-				}
 			}
 		}else{
 			if (ureg->pc & 3) {

@@ -15,7 +15,7 @@ struct	Vlong
 
 void	abort(void);
 
-/* needed by profiler; can't be profiled */
+/* called by profiler (notably ../port/profile.c); can't be profiled */
 #pragma profile off
 
 void
@@ -43,8 +43,6 @@ _subv(Vlong *r, Vlong a, Vlong b)
 	r->lo = lo;
 	r->hi = hi;
 }
-
-#pragma profile on
 
 void
 _d2v(Vlong *y, double d)
@@ -127,9 +125,6 @@ _v2f(Vlong x)
 {
 	return _v2d(x);
 }
-
-/* too many of these are also needed by profiler; leave them out */
-#pragma profile off
 
 static void
 dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
@@ -504,7 +499,6 @@ _sl2v(Vlong *ret, long sl)
 	ret->lo = t;
 	ret->hi = t >> 31;
 }
-
 
 void
 _ul2v(Vlong *ret, ulong ul)
