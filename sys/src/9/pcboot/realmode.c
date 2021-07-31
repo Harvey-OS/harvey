@@ -52,7 +52,7 @@ realmode(Ureg *ureg)
 		/* copy l.s so that it can be run from 16-bit mode */
 		sz = (char *)realmodeend - (char *)KTZERO;
 		if (sz > RMSIZE)
-			panic("real mode code %d bytes > %d", sz, RMSIZE);
+			panic("RMCODE < %d bytes", sz);
 		rmseg = (RMCODE - KZERO) >> 4;	/* into JMPFAR instr. */
 		memmove((void*)RMCODE, (void*)KTZERO, sz);
 	}
