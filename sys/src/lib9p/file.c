@@ -100,20 +100,20 @@ removefile(File *f)
 		return -1;
 	}
 
-	wlock(f);
 	wlock(fp);
+	wlock(f);
 	if(f->nchild != 0){
 		werrstr("has children");
-		wunlock(fp);
 		wunlock(f);
+		wunlock(fp);
 		closefile(f);
 		return -1;
 	}
 
 	if(f->parent != fp){
 		werrstr("parent changed underfoot");
-		wunlock(fp);
 		wunlock(f);
+		wunlock(fp);
 		closefile(f);
 		return -1;
 	}
