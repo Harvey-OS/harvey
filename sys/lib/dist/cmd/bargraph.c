@@ -126,10 +126,7 @@ bar(Biobuf *b)
 	parent = getpid();
 
 	die = 0;
-	if(textmode)
-		child = -1;
-	else
-	switch(child = rfork(RFMEM|RFPROC)) {
+	if(!textmode) switch(child = rfork(RFMEM|RFPROC)) {
 	case 0:
 		sleep(1000);
 		while(!die && (k = eread(Ekeyboard|Emouse, &e))) {
@@ -151,6 +148,7 @@ bar(Biobuf *b)
 		drawbar();
 	}
 	postnote(PNCTL, child, "kill");
+	die = 1;
 }
 
 
@@ -260,7 +258,6 @@ newwin(char *win)
 		pid  = 0;			/* can't send notes to remote processes! */
 	}else
 		pid = getpid();
-	USED(pid);
 	srvfd = open(srv, ORDWR);
 	free(srv);
 	if(srvfd == -1){
