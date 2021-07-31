@@ -192,7 +192,6 @@ double	scale = 1.0;
 int		logscale = 0;
 int		ylabels = 0;
 int		oldsystem = 0;
-int 	sleeptime = 1000;
 
 char		*procnames[NPROC] = {"main", "mouse"};
 
@@ -774,54 +773,54 @@ void
 contextval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->devsysstat[Context]-m->prevsysstat[Context];
-	*vmax = sleeptime*m->nproc;
+	*vmax = 1000*m->nproc;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = 1000;
 }
 
 void
 intrval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->devsysstat[Interrupt]-m->prevsysstat[Interrupt];
-	*vmax = sleeptime*m->nproc;
+	*vmax = 1000*m->nproc;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = 1000;
 }
 
 void
 syscallval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->devsysstat[Syscall]-m->prevsysstat[Syscall];
-	*vmax = sleeptime*m->nproc;
+	*vmax = 1000*m->nproc;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = 1000;
 }
 
 void
 faultval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->devsysstat[Fault]-m->prevsysstat[Fault];
-	*vmax = sleeptime*m->nproc;
+	*vmax = 1000*m->nproc;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = 1000;
 }
 
 void
 tlbmissval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->devsysstat[TLBfault]-m->prevsysstat[TLBfault];
-	*vmax = (sleeptime/1000)*10*m->nproc;
+	*vmax = 10*m->nproc;
 	if(init)
-		*vmax = (sleeptime/1000)*10;
+		*vmax = 10;
 }
 
 void
 tlbpurgeval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->devsysstat[TLBpurge]-m->prevsysstat[TLBpurge];
-	*vmax = (sleeptime/1000)*10*m->nproc;
+	*vmax = 10*m->nproc;
 	if(init)
-		*vmax = (sleeptime/1000)*10;
+		*vmax = 10;
 }
 
 void
@@ -851,27 +850,27 @@ void
 etherval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->netetherstats[In]-m->prevetherstats[In] + m->netetherstats[Out]-m->prevetherstats[Out];
-	*vmax = sleeptime*m->nproc;
+	*vmax = 1000*m->nproc;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = 1000;
 }
 
 void
 etherinval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->netetherstats[In]-m->prevetherstats[In];
-	*vmax = sleeptime*m->nproc;
+	*vmax = 1000*m->nproc;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = 1000;
 }
 
 void
 etheroutval(Machine *m, ulong *v, ulong *vmax, int init)
 {
 	*v = m->netetherstats[Out]-m->prevetherstats[Out];
-	*vmax = sleeptime*m->nproc;
+	*vmax = 1000*m->nproc;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = 1000;
 }
 
 void
@@ -882,9 +881,9 @@ ethererrval(Machine *m, ulong *v, ulong *vmax, int init)
 	*v = 0;
 	for(i=Err0; i<nelem(m->netetherstats); i++)
 		*v += m->netetherstats[i];
-	*vmax = (sleeptime/1000)*10*m->nproc;
+	*vmax = 10*m->nproc;
 	if(init)
-		*vmax = (sleeptime/1000)*10;
+		*vmax = 10;
 }
 
 void
@@ -902,7 +901,7 @@ signalval(Machine *m, ulong *v, ulong *vmax, int)
 {
 	ulong l;
 
-	*vmax = sleeptime;
+	*vmax = 1000;
 	l = m->netetherifstats[0];
 	/*
 	 * Range is seen to be from about -45 (strong) to -95 (weak); rescale
@@ -1212,6 +1211,7 @@ main(int argc, char *argv[])
 	char *s;
 	ulong v, vmax, nargs;
 	char args[100];
+	int sleeptime = 1000;
 
 	nmach = 1;
 	mysysname = getenv("sysname");
