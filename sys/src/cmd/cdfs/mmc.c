@@ -704,9 +704,6 @@ getbdstruct(Drive *drive)
 	return 0;
 }
 
-/*
- * infer endings from the beginnings of other tracks.
- */
 static void
 mmcinfertracks(Drive *drive, int first, int last)
 {
@@ -715,8 +712,10 @@ mmcinfertracks(Drive *drive, int first, int last)
 	ulong tot;
 	Track *t;
 
-	if (vflag)
-		print("inferring tracks\n");
+	/*
+	 * otherwise we need to infer endings from the
+	 * beginnings of other tracks.
+	 */
 	for(i = first; i <= last; i++) {
 		memset(resp, 0, sizeof(resp));
 		if(mmcreadtoc(drive, 0, i, resp, sizeof(resp)) < 0)
@@ -878,10 +877,6 @@ mmcgettoc(Drive *drive)
 		for(i = first; i <= last; i++)
 			mmctrackinfo(drive, i, i - first);
 	else
-		/*
-		 * otherwise we need to infer endings from the
-		 * beginnings of other tracks.
-		 */
 		mmcinfertracks(drive, first, last);
 
 	drive->firsttrack = first;
@@ -1278,7 +1273,6 @@ mmcxclose(Drive *drive, int clf, int trackno)
 	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 }
 
-/* flush drive cache, close current track */
 void
 mmcsynccache(Drive *drive)
 {
@@ -1287,22 +1281,23 @@ mmcsynccache(Drive *drive)
 	Mmcaux *aux;
 
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdSynccache;			/* flush */
+	cmd[0] = ScmdSynccache;		/* flush */
 	scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 	if(vflag) {
 		aux = drive->aux;
 		print("mmcsynccache: bytes = %lld blocks = %ld, mmcnwa 0x%luX\n",
 			aux->ntotby, aux->ntotbk, aux->mmcnwa);
 	}
-
 	invis = getinvistrack(drive);
 	if (invis < 0)
 		invis = Invistrack;
 	/*
 	 * rsc: seems not to work on some drives.
 	 * so ignore return code & don't issue on dvd+rw.
+	 * try skipping it on bd too.
 	 */
-	if(drive->mmctype != Mmcdvdplus || !drive->erasable) {
+	if((drive->mmctype != Mmcdvdplus || !drive->erasable) &&
+	    drive->mmctype != Mmcbd) {
 		if (vflag)
 			fprint(2, "closing invisible track %d (not dvd+rw)...\n",
 				invis);
@@ -1333,11 +1328,25 @@ mmcclose(Otrack *o)
 	free(o);
 }
 
+/*
+ * just close the current tracks.
+ */
 static int
-setonesess(Drive *drive)
+closetracks(Drive *drive)
 {
+	int r, invis;
 	uchar *p;
 	Mmcaux *aux;
+
+	if (drive->mmctype == Mmcdvdplus && drive->erasable) {
+		werrstr("dvd+rw can't close tracks without finalizing");
+		return -1;
+	}
+	if((drive->cap & Cwrite) == 0) {
+		werrstr("drive not a writer");
+		return -1;
+	}
+	drive->nchange = -1;		/* force reread toc */
 
 	/* page 5 is legacy and now read-only; see MMC-6 §7.5.4.1 */
 	aux = drive->aux;
@@ -1347,7 +1356,18 @@ setonesess(Drive *drive)
 	 * zero multi-session field: next session not allowed.
 	 */
 	p[3] &= ~0xC0;
-	return mmcsetpage(drive, Pagwrparams, p);
+	/* try to set it but don't freak out if it fails */
+	mmcsetpage(drive, Pagwrparams, p);
+
+	invis = getinvistrack(drive);
+	if (invis < 0)
+		invis = Invistrack;
+	if (vflag)
+		fprint(2, "closing invis track %d...\n", invis);
+	r = mmcxclose(drive, Closetrack, invis);
+	if (vflag)
+		fprint(2, "... done.\n");
+	return r;
 }
 
 /*
@@ -1357,6 +1377,8 @@ static int
 mmcfixate(Drive *drive)
 {
 	int r;
+	uchar *p;
+	Mmcaux *aux;
 
 	if((drive->cap & Cwrite) == 0) {
 		werrstr("not a writer");
@@ -1364,7 +1386,13 @@ mmcfixate(Drive *drive)
 	}
 	drive->nchange = -1;		/* force reread toc */
 
-	setonesess(drive);
+	/* page 5 is legacy and now read-only */
+	aux = drive->aux;
+	p = aux->page05;
+	/* zero multi-session field: next session not allowed */
+	p[3] &= ~0xC0;
+	/* try to set it but don't freak out if it fails */
+	mmcsetpage(drive, Pagwrparams, p);
 
 	/* skip explicit close session on bd-r */
 	if (drive->mmctype != Mmcbd || drive->erasable) {
@@ -1378,7 +1406,6 @@ mmcfixate(Drive *drive)
 	}
 	/*
 	 * Closesessfinal only closes & doesn't finalize on dvd+r and bd-r.
-	 * Closedvdrbdfinal closes & finalizes dvd+r and bd-r.
 	 */
 	if ((drive->mmctype == Mmcdvdplus || drive->mmctype == Mmcbd) &&
 	    !drive->erasable) {
@@ -1428,6 +1455,8 @@ mmcctl(Drive *drive, int argc, char **argv)
 		return e(mmcblank(drive, 0));
 	if(strcmp(cmd, "quickblank") == 0)
 		return e(mmcblank(drive, 1));
+	if(strcmp(cmd, "closetracks") == 0)
+		return e(closetracks(drive));
 	if(strcmp(cmd, "eject") == 0)
 		return e(start(drive, 2));
 	if(strcmp(cmd, "ingest") == 0)
