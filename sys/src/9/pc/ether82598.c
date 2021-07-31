@@ -1,9 +1,6 @@
 /*
- * intel pci-express 10Gb ethernet driver for 8259[89]
+ * intel 10Gb ethernet pci-express driver
  * copyright © 2007, coraid, inc.
- * depessimised and made to work on the 82599 at bell labs, 2013.
- *
- * 82599 requests should ideally not cross a 4KB (page) boundary.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -15,18 +12,19 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
-#define NEXTPOW2(x, m)	(((x)+1) & (m))
-
 enum {
-	Rbsz	= ETHERMAXTU+32, /* +slop is for vlan headers, crcs, etc. */
-	Descalign= 128,		/* 599 manual needs 128-byte alignment */
+	Rbsz	= ROUNDUP(ETHERMAXTU, 1024),
 
 	/* tunable parameters */
-	Nrd	= 256,		/* multiple of 8, power of 2 for NEXTPOW2 */
-	Nrb	= 1024,
-	Ntd	= 128,		/* multiple of 8, power of 2 for NEXTPOW2 */
-	Goslow	= 0,		/* flag: go slow by throttling intrs, etc. */
+	Nrd	= 256,
+	Nrb	= 256,
+	Ntd	= 64,
 };
+
+/*
+ * // comments note conflicts with 82563-style drivers,
+ * and the registers are all different.
+ */
 
 enum {
 	/* general */
@@ -34,10 +32,10 @@ enum {
 	Status		= 0x00008/4,	/* Device Status */
 	Ctrlext		= 0x00018/4,	/* Extended Device Control */
 	Esdp		= 0x00020/4,	/* extended sdp control */
-	Esodp		= 0x00028/4,	/* extended od sdp control (i2cctl on 599) */
+	Esodp		= 0x00028/4,	/* extended od sdp control */
 	Ledctl		= 0x00200/4,	/* led control */
 	Tcptimer	= 0x0004c/4,	/* tcp timer */
-	Ecc		= 0x110b0/4,	/* errata ecc control magic (pcie intr cause on 599) */
+	Ecc		= 0x110b0/4,	/* errata ecc control magic */
 
 	/* nvm */
 	Eec		= 0x10010/4,	/* eeprom/flash control */
@@ -49,11 +47,11 @@ enum {
 	/* interrupt */
 	Icr		= 0x00800/4,	/* interrupt cause read */
 	Ics		= 0x00808/4,	/* " set */
-	Ims		= 0x00880/4,	/* " mask read/set (actually enable) */
+	Ims		= 0x00880/4,	/* " mask read/set */
 	Imc		= 0x00888/4,	/* " mask clear */
-	Iac		= 0x00810/4,	/* " auto clear */
+	Iac		= 0x00810/4,	/* " ayto clear */
 	Iam		= 0x00890/4,	/* " auto mask enable */
-	Itr		= 0x00820/4,	/* " throttling rate regs (0-19) */
+	Itr		= 0x00820/4,	/* " throttling rate (0-19) */
 	Ivar		= 0x00900/4,	/* " vector allocation regs. */
 	/* msi interrupt */
 	Msixt		= 0x0000/4,	/* msix table (bar3) */
@@ -77,36 +75,34 @@ enum {
 	Rdt		= 0x01018/4,	/* " tail */
 	Rxdctl		= 0x01028/4,	/* " control */
 
-	Srrctl		= 0x02100/4,	/* split & replication rx ctl. array */
+	Srrctl		= 0x02100/4,	/* split and replication rx ctl. */
 	Dcarxctl	= 0x02200/4,	/* rx dca control */
 	Rdrxctl		= 0x02f00/4,	/* rx dma control */
 	Rxpbsize	= 0x03c00/4,	/* rx packet buffer size */
 	Rxctl		= 0x03000/4,	/* rx control */
-	Dropen		= 0x03d04/4,	/* drop enable control (598 only) */
+	Dropen		= 0x03d04/4,	/* drop enable control */
 
 	/* rx */
 	Rxcsum		= 0x05000/4,	/* rx checksum control */
-	Rfctl		= 0x05008/4,	/* rx filter control */
+	Rfctl		= 0x04008/4,	/* rx filter control */
 	Mta		= 0x05200/4,	/* multicast table array (0-127) */
-	Ral98		= 0x05400/4,	/* rx address low (598) */
-	Rah98		= 0x05404/4,
-	Ral99		= 0x0a200/4,	/* rx address low array (599) */
-	Rah99		= 0x0a204/4,
+	Ral		= 0x05400/4,	/* rx address low */
+	Rah		= 0x05404/4,
 	Psrtype		= 0x05480/4,	/* packet split rx type. */
 	Vfta		= 0x0a000/4,	/* vlan filter table array. */
 	Fctrl		= 0x05080/4,	/* filter control */
 	Vlnctrl		= 0x05088/4,	/* vlan control */
 	Msctctrl	= 0x05090/4,	/* multicast control */
 	Mrqc		= 0x05818/4,	/* multiple rx queues cmd */
-	Vmdctl		= 0x0581c/4,	/* vmdq control (598 only) */
-	Imir		= 0x05a80/4,	/* immediate irq rx (0-7) (598 only) */
-	Imirext		= 0x05aa0/4,	/* immediate irq rx ext (598 only) */
-	Imirvp		= 0x05ac0/4,	/* immediate irq vlan priority (598 only) */
+	Vmdctl		= 0x0581c/4,	/* vmdq control */
+	Imir		= 0x05a80/4,	/* immediate irq rx (0-7) */
+	Imirext		= 0x05aa0/4,	/* immediate irq rx ext */
+	Imirvp		= 0x05ac0/4,	/* immediate irq vlan priority */
 	Reta		= 0x05c00/4,	/* redirection table */
 	Rssrk		= 0x05c80/4,	/* rss random key */
 
 	/* tx */
-	Tdbal		= 0x06000/4,	/* tx desc base low +0x40n array */
+	Tdbal		= 0x06000/4,	/* tx desc base low +0x40n */
 	Tdbah		= 0x06004/4,	/* " high */
 	Tdlen		= 0x06008/4,	/* " len */
 	Tdh		= 0x06010/4,	/* " head */
@@ -115,11 +111,9 @@ enum {
 	Tdwbal		= 0x06038/4,	/* " write-back address low */
 	Tdwbah		= 0x0603c/4,
 
-	Dtxctl98	= 0x07e00/4,	/* tx dma control (598 only) */
-	Dtxctl99	= 0x04a80/4,	/* tx dma control (599 only) */
-	Tdcatxctrl98	= 0x07200/4,	/* tx dca register (0-15) (598 only) */
-	Tdcatxctrl99	= 0x0600c/4,	/* tx dca register (0-127) (599 only) */
-	Tipg		= 0x0cb00/4,	/* tx inter-packet gap (598 only) */
+	Dtxctl		= 0x07e00/4,	/* tx dma control */
+	Tdcatxctrl	= 0x07200/4,	/* tx dca register (0-15) */
+	Tipg		= 0x0cb00/4,	/* tx inter-packet gap */
 	Txpbsize	= 0x0cc00/4,	/* tx packet-buffer size (0-15) */
 
 	/* mac */
@@ -135,22 +129,15 @@ enum {
 	Macs		= 0x0429c/4,	/* fifo control & report */
 	Autoc		= 0x042a0/4,	/* autodetect control & status */
 	Links		= 0x042a4/4,	/* link status */
-	Links2		= 0x04324/4,	/* 599 only */
 	Autoc2		= 0x042a8/4,
 };
 
 enum {
-	Factive		= 1<<0,
-	Enable		= 1<<31,
-
 	/* Ctrl */
 	Rst		= 1<<26,	/* full nic reset */
 
 	/* Txdctl */
 	Ten		= 1<<25,
-
-	/* Dtxctl99 */
-	Te		= 1<<0,		/* dma tx enable */
 
 	/* Fctrl */
 	Bam		= 1<<10,	/* broadcast accept mode */
@@ -165,14 +152,12 @@ enum {
 
 	/* Rxctl */
 	Rxen		= 1<<0,
-	Dmbyps		= 1<<1,		/* descr. monitor bypass (598 only) */
+	Dmbyps		= 1<<1,
 
 	/* Rdrxctl */
-	Rdmt½		= 0,		/* 598 */
-	Rdmt¼		= 1,		/* 598 */
-	Rdmt⅛		= 2,		/* 598 */
-	Crcstrip	= 1<<1,		/* 599 */
-	Rscfrstsize	= 037<<17,	/* 599; should be zero */
+	Rdmt½		= 0,
+	Rdmt¼		= 1,
+	Rdmt⅛		= 2,
 
 	/* Rxcsum */
 	Ippcse		= 1<<12,	/* ip payload checksum enable */
@@ -187,19 +172,11 @@ enum {
 	Lsc		= 1<<20,	/* link status change */
 
 	/* Links */
-	Lnkup		= 1<<30,
-	Lnkspd		= 1<<29,
+	Lnkup	= 1<<30,
+	Lnkspd	= 1<<29,
 
 	/* Hlreg0 */
-	Txcrcen		= 1<<0,		/* add crc during xmit */
-	Rxcrcstrip	= 1<<1,		/* strip crc during recv */
-	Jumboen		= 1<<2,
-	Txpaden		= 1<<10,	/* pad short frames during xmit */
-
-	/* Autoc */
-	Flu		= 1<<0,		/* force link up */
-	Lmsshift	= 13,		/* link mode select shift */
-	Lmsmask		= 7,
+	Jumboen	= 1<<2,
 };
 
 typedef struct {
@@ -248,9 +225,9 @@ Stat stattab[] = {
 /* status */
 enum {
 	Pif	= 1<<7,	/* past exact filter (sic) */
-	Ipcs	= 1<<6,	/* ip checksum calculated */
+	Ipcs	= 1<<6,	/* ip checksum calcuated */
 	L4cs	= 1<<5,	/* layer 2 */
-	Tcpcs	= 1<<4,	/* tcp checksum calculated */
+	Tcpcs	= 1<<4,	/* tcp checksum calcuated */
 	Vp	= 1<<3,	/* 802.1q packet matched vet */
 	Ixsm	= 1<<2,	/* ignore checksum */
 	Reop	= 1<<1,	/* end of packet */
@@ -268,13 +245,13 @@ typedef struct {
 
 enum {
 	/* Td cmd */
-	Rs	= 1<<3,		/* report status */
-	Ic	= 1<<2,		/* insert checksum */
-	Ifcs	= 1<<1,		/* insert FCS (ethernet crc) */
-	Teop	= 1<<0,		/* end of packet */
+	Rs	= 1<<3,
+	Ic	= 1<<2,
+	Ifcs	= 1<<1,
+	Teop	= 1<<0,
 
 	/* Td status */
-	Tdd	= 1<<0,		/* descriptor done */
+	Tdd	= 1<<0,
 };
 
 typedef struct {
@@ -287,10 +264,14 @@ typedef struct {
 	ushort	vlan;
 } Td;
 
+enum {
+	Factive		= 1<<0,
+	Fstarted	= 1<<1,
+};
+
 typedef struct {
 	Pcidev	*p;
 	Ether	*edev;
-	int	type;
 
 	/* virtual */
 	u32int	*reg;
@@ -304,22 +285,19 @@ typedef struct {
 	int	nrd;
 	int	ntd;
 	int	nrb;
-	uint	rbsz;
-	int	procsrunning;
-	int	attached;
-
+	int	rbsz;
 	Lock	slock;
-	Lock	alock;			/* attach lock */
+	Lock	alock;
 	QLock	tlock;
 	Rendez	lrendez;
 	Rendez	trendez;
 	Rendez	rrendez;
-
 	uint	im;
 	uint	lim;
 	uint	rim;
 	uint	tim;
 	Lock	imlock;
+	char	*alloc;
 
 	Rd	*rdba;
 	Block	**rb;
@@ -336,11 +314,6 @@ typedef struct {
 	ulong	stats[nelem(stattab)];
 	uint	speeds[3];
 } Ctlr;
-
-enum {
-	I82598 = 1,
-	I82599,
-};
 
 static	Ctlr	*ctlrtab[4];
 static	int	nctlr;
@@ -393,7 +366,7 @@ ifstat(Ether *e, void *a, long n, ulong offset)
 }
 
 static void
-ienable(Ctlr *c, int i)
+im(Ctlr *c, int i)
 {
 	ilock(&c->imlock);
 	c->im |= i;
@@ -425,7 +398,7 @@ lproc(void *v)
 		c->speeds[i]++;
 		e->mbps = speedtab[i];
 		c->lim = 0;
-		ienable(c, Lsc);
+		im(c, Lsc);
 		sleep(&c->lrendez, lim, c);
 		c->lim = 0;
 	}
@@ -464,6 +437,8 @@ rbfree(Block *b)
 	iunlock(&rblock);
 }
 
+#define Next(x, m)	(((x)+1) & (m))
+
 static int
 cleanup(Ctlr *c, int tdh)
 {
@@ -471,12 +446,11 @@ cleanup(Ctlr *c, int tdh)
 	uint m, n;
 
 	m = c->ntd - 1;
-	while(c->tdba[n = NEXTPOW2(tdh, m)].status & Tdd){
+	while(c->tdba[n = Next(tdh, m)].status & Tdd){
 		tdh = n;
 		b = c->tb[tdh];
 		c->tb[tdh] = 0;
-		if (b)
-			freeb(b);
+		freeb(b);
 		c->tdba[tdh].status = 0;
 	}
 	return tdh;
@@ -492,34 +466,29 @@ transmit(Ether *e)
 
 	c = e->ctlr;
 	if(!canqlock(&c->tlock)){
-		ienable(c, Itx0);
+		im(c, Itx0);
 		return;
 	}
 	tdh = c->tdh = cleanup(c, c->tdh);
 	tdt = c->tdt;
 	m = c->ntd - 1;
-	for(i = 0; ; i++){
-		if(NEXTPOW2(tdt, m) == tdh){	/* ring full? */
-			ienable(c, Itx0);
+	for(i = 0; i < 8; i++){
+		if(Next(tdt, m) == tdh){
+			im(c, Itx0);
 			break;
 		}
-		if((b = qget(e->oq)) == nil)
+		if(!(b = qget(e->oq)))
 			break;
-		assert(c->tdba != nil);
 		t = c->tdba + tdt;
 		t->addr[0] = PCIWADDR(b->rp);
 		t->length = BLEN(b);
-		t->cmd = Ifcs | Teop;
-		if (!Goslow)
-			t->cmd |= Rs;
+		t->cmd = Rs | Ifcs | Teop;
 		c->tb[tdt] = b;
-		tdt = NEXTPOW2(tdt, m);
+		tdt = Next(tdt, m);
 	}
-	if(i) {
-		coherence();
-		c->reg[Tdt] = c->tdt = tdt;	/* make new Tds active */
-		coherence();
-		ienable(c, Itx0);
+	if(i){
+		c->tdt = tdt;
+		c->reg[Tdt] = tdt;
 	}
 	qunlock(&c->tlock);
 }
@@ -548,11 +517,10 @@ tproc(void *v)
 static void
 rxinit(Ctlr *c)
 {
-	int i, is598;
+	int i;
 	Block *b;
 
 	c->reg[Rxctl] &= ~Rxen;
-	c->reg[Rxdctl] = 0;
 	for(i = 0; i < c->nrd; i++){
 		b = c->rb[i];
 		c->rb[i] = 0;
@@ -561,39 +529,21 @@ rxinit(Ctlr *c)
 	}
 	c->rdfree = 0;
 
-	coherence();
 	c->reg[Fctrl] |= Bam;
-	c->reg[Fctrl] &= ~(Upe | Mpe);
-
-	/* intel gets some csums wrong (e.g., errata 44) */
-	c->reg[Rxcsum] &= ~Ippcse;
-	c->reg[Hlreg0] &= ~Jumboen;		/* jumbos are a bad idea */
-	c->reg[Hlreg0] |= Txcrcen | Rxcrcstrip | Txpaden;
-	c->reg[Srrctl] = (c->rbsz + 1024 - 1) / 1024;
+	c->reg[Rxcsum] |= Ipcs;
+	c->reg[Srrctl] = (c->rbsz + 1023)/1024;
 	c->reg[Mhadd] = c->rbsz << 16;
+	c->reg[Hlreg0] |= Jumboen;
 
 	c->reg[Rbal] = PCIWADDR(c->rdba);
 	c->reg[Rbah] = 0;
-	c->reg[Rdlen] = c->nrd*sizeof(Rd);	/* must be multiple of 128 */
+	c->reg[Rdlen] = c->nrd*sizeof(Rd);
 	c->reg[Rdh] = 0;
 	c->reg[Rdt] = c->rdt = 0;
-	coherence();
 
-	is598 = (c->type == I82598);
-	if (is598)
-		c->reg[Rdrxctl] = Rdmt¼;
-	else {
-		c->reg[Rdrxctl] |= Crcstrip;
-		c->reg[Rdrxctl] &= ~Rscfrstsize;
-	}
-	if (Goslow && is598)
-		c->reg[Rxdctl] = 8<<Wthresh | 8<<Pthresh | 4<<Hthresh | Renable;
-	else
-		c->reg[Rxdctl] = Renable;
-	coherence();
-	while (!(c->reg[Rxdctl] & Renable))
-		;
-	c->reg[Rxctl] |= Rxen | (c->type == I82598? Dmbyps: 0);
+	c->reg[Rdrxctl] = Rdmt¼;
+	c->reg[Rxdctl] = 8<<Wthresh | 8<<Pthresh | 4<<Hthresh | Renable;
+	c->reg[Rxctl] |= Rxen | Dmbyps;
 }
 
 static void
@@ -605,9 +555,9 @@ replenish(Ctlr *c, uint rdh)
 
 	m = c->nrd - 1;
 	i = 0;
-	for(rdt = c->rdt; NEXTPOW2(rdt, m) != rdh; rdt = NEXTPOW2(rdt, m)){
+	for(rdt = c->rdt; Next(rdt, m) != rdh; rdt = Next(rdt, m)){
 		r = c->rdba + rdt;
-		if((b = rballoc()) == nil){
+		if(!(b = rballoc())){
 			print("82598: no buffers\n");
 			break;
 		}
@@ -617,11 +567,8 @@ replenish(Ctlr *c, uint rdh)
 		c->rdfree++;
 		i++;
 	}
-	if(i) {
-		coherence();
-		c->reg[Rdt] = c->rdt = rdt;	/* hand back recycled rdescs */
-		coherence();
-	}
+	if(i)
+		c->reg[Rdt] = c->rdt = rdt;
 }
 
 static int
@@ -629,6 +576,8 @@ rim(void *v)
 {
 	return ((Ctlr*)v)->rim != 0;
 }
+
+static uchar zeroea[Eaddrlen];
 
 void
 rproc(void *v)
@@ -642,28 +591,30 @@ rproc(void *v)
 	e = v;
 	c = e->ctlr;
 	m = c->nrd - 1;
-	for (rdh = 0; ; ) {
+	for (rdh = 0; ; rdh = Next(rdh, m)) {
 		replenish(c, rdh);
-		ienable(c, Irx0);
+		im(c, Irx0);
 		sleep(&c->rrendez, rim, c);
-		for (;;) {
+		do {
 			c->rim = 0;
-			r = c->rdba + rdh;
-			if(!(r->status & Rdd))
-				break;		/* wait for pkts to arrive */
-			b = c->rb[rdh];
-			c->rb[rdh] = 0;
-			if (r->length > ETHERMAXTU)
-				print("82598: got jumbo of %d bytes\n", r->length);
-			b->wp += r->length;
-			b->lim = b->wp;			/* lie like a dog */
-//			r->status = 0;
-			etheriq(e, b, 1);
-			c->rdfree--;
-			rdh = NEXTPOW2(rdh, m);
-			if (c->rdfree <= c->nrd - 16)
+			if(c->nrd - c->rdfree >= 16)
 				replenish(c, rdh);
+			r = c->rdba + rdh;
+		} while(!(r->status & Rdd));
+		b = c->rb[rdh];
+		c->rb[rdh] = 0;
+		b->wp += r->length;
+		b->lim = b->wp;		/* lie like a dog */
+		if(!(r->status & Ixsm)){
+			if(r->status & Ipcs)
+				b->flag |= Bipck;
+			if(r->status & Tcpcs)
+				b->flag |= Btcpck | Budpck;
+			b->checksum = r->cksum;
 		}
+//		r->status = 0;
+		etheriq(e, b, 1);
+		c->rdfree--;
 	}
 }
 
@@ -708,29 +659,10 @@ multicast(void *a, uchar *ea, int on)
 	c->reg[Mta+i] = c->mta[i];
 }
 
-static void
-freemem(Ctlr *c)
-{
-	Block *b;
-
-	while(b = rballoc()){
-		b->free = 0;
-		freeb(b);
-	}
-	free(c->rdba);
-	c->rdba = nil;
-	free(c->tdba);
-	c->tdba = nil;
-	free(c->rb);
-	c->rb = nil;
-	free(c->tb);
-	c->tb = nil;
-}
-
 static int
 detach(Ctlr *c)
 {
-	int i, is598;
+	int i;
 
 	c->reg[Imc] = ~0;
 	c->reg[Ctrl] |= Rst;
@@ -741,22 +673,17 @@ detach(Ctlr *c)
 	}
 	if (i >= 100)
 		return -1;
-	is598 = (c->type == I82598);
-	if (is598) {			/* errata */
-		delay(50);
-		c->reg[Ecc] &= ~(1<<21 | 1<<18 | 1<<9 | 1<<6);
-	}
+	/* errata */
+	delay(50);
+	c->reg[Ecc] &= ~(1<<21 | 1<<18 | 1<<9 | 1<<6);
 
 	/* not cleared by reset; kill it manually. */
 	for(i = 1; i < 16; i++)
-		c->reg[is598? Rah98: Rah99] &= ~Enable;
+		c->reg[Rah] &= ~(1 << 31);
 	for(i = 0; i < 128; i++)
 		c->reg[Mta + i] = 0;
-	for(i = 1; i < (is598? 640: 128); i++)
+	for(i = 1; i < 640; i++)
 		c->reg[Vfta + i] = 0;
-
-//	freemem(c);			// TODO
-	c->attached = 0;
 	return 0;
 }
 
@@ -764,7 +691,6 @@ static void
 shutdown(Ether *e)
 {
 	detach(e->ctlr);
-//	freemem(e->ctlr);
 }
 
 /* ≤ 20ms */
@@ -814,7 +740,7 @@ eeload(Ctlr *c)
 static int
 reset(Ctlr *c)
 {
-	int i, is598;
+	int i;
 	uchar *p;
 
 	if(detach(c)){
@@ -826,38 +752,28 @@ reset(Ctlr *c)
 		return -1;
 	}
 	p = c->ra;
-	is598 = (c->type == I82598);
-	c->reg[is598? Ral98: Ral99] = p[3]<<24 | p[2]<<16 | p[1]<<8 | p[0];
-	c->reg[is598? Rah98: Rah99] = p[5]<<8 | p[4] | Enable;
+	c->reg[Ral] = p[3]<<24 | p[2]<<16 | p[1]<<8 | p[0];
+	c->reg[Rah] = p[5]<<8 | p[4] | 1<<31;
 
 	readstats(c);
 	for(i = 0; i<nelem(c->stats); i++)
 		c->stats[i] = 0;
 
-	c->reg[Ctrlext] |= 1 << 16;	/* required by errata (spec change 4) */
-	if (Goslow) {
-		/* make some guesses for flow control */
-		c->reg[Fcrtl] = 0x10000 | Enable;
-		c->reg[Fcrth] = 0x40000 | Enable;
-		c->reg[Rcrtv] = 0x6000;
-	} else
-		c->reg[Fcrtl] = c->reg[Fcrth] = c->reg[Rcrtv] = 0;
+	c->reg[Ctrlext] |= 1 << 16;
+	/* make some guesses for flow control */
+	c->reg[Fcrtl] = 0x10000 | 1<<31;
+	c->reg[Fcrth] = 0x40000 | 1<<31;
+	c->reg[Rcrtv] = 0x6000;
 
 	/* configure interrupt mapping (don't ask) */
 	c->reg[Ivar+0] =     0 | 1<<7;
 	c->reg[Ivar+64/4] =  1 | 1<<7;
 //	c->reg[Ivar+97/4] = (2 | 1<<7) << (8*(97%4));
 
-	if (Goslow) {
-		/* interrupt throttling goes here. */
-		for(i = Itr; i < Itr + 20; i++)
-			c->reg[i] = 128;		/* ¼µs intervals */
-		c->reg[Itr + Itx0] = 256;
-	} else {					/* don't throttle */
-		for(i = Itr; i < Itr + 20; i++)
-			c->reg[i] = 0;			/* ¼µs intervals */
-		c->reg[Itr + Itx0] = 0;
-	}
+	/* interrupt throttling goes here. */
+	for(i = Itr; i < Itr + 20; i++)
+		c->reg[i] = 128;		/* ¼µs intervals */
+	c->reg[Itr + Itx0] = 256;
 	return 0;
 }
 
@@ -867,36 +783,22 @@ txinit(Ctlr *c)
 	Block *b;
 	int i;
 
-	if (Goslow)
-		c->reg[Txdctl] = 16<<Wthresh | 16<<Pthresh;
-	else
-		c->reg[Txdctl] = 0;
-	if (c->type == I82599)
-		c->reg[Dtxctl99] = 0;
-	coherence();
+	c->reg[Txdctl] = 16<<Wthresh | 16<<Pthresh;
 	for(i = 0; i < c->ntd; i++){
 		b = c->tb[i];
 		c->tb[i] = 0;
 		if(b)
 			freeb(b);
 	}
-
-	assert(c->tdba != nil);
 	memset(c->tdba, 0, c->ntd * sizeof(Td));
 	c->reg[Tdbal] = PCIWADDR(c->tdba);
 	c->reg[Tdbah] = 0;
-	c->reg[Tdlen] = c->ntd*sizeof(Td);	/* must be multiple of 128 */
+	c->reg[Tdlen] = c->ntd*sizeof(Td);
 	c->reg[Tdh] = 0;
+	c->reg[Tdt] = 0;
 	c->tdh = c->ntd - 1;
-	c->reg[Tdt] = c->tdt = 0;
-	coherence();
-	if (c->type == I82599)
-		c->reg[Dtxctl99] |= Te;
-	coherence();
+	c->tdt = 0;
 	c->reg[Txdctl] |= Ten;
-	coherence();
-	while (!(c->reg[Txdctl] & Ten))
-		;
 }
 
 static void
@@ -904,51 +806,59 @@ attach(Ether *e)
 {
 	Block *b;
 	Ctlr *c;
+	int t;
 	char buf[KNAMELEN];
 
 	c = e->ctlr;
 	c->edev = e;			/* point back to Ether* */
 	lock(&c->alock);
-	if(waserror()){
+	if(c->alloc){
 		unlock(&c->alock);
-		freemem(c);
-		nexterror();
+		return;
 	}
-	if(c->rdba == nil) {
-		c->nrd = Nrd;
-		c->ntd = Ntd;
-		c->rdba = mallocalign(c->nrd * sizeof *c->rdba, Descalign, 0, 0);
-		c->tdba = mallocalign(c->ntd * sizeof *c->tdba, Descalign, 0, 0);
-		c->rb = malloc(c->nrd * sizeof(Block *));
-		c->tb = malloc(c->ntd * sizeof(Block *));
-		if (c->rdba == nil || c->tdba == nil ||
-		    c->rb == nil || c->tb == nil)
-			error(Enomem);
 
-		for(c->nrb = 0; c->nrb < 2*Nrb; c->nrb++){
-			b = allocb(c->rbsz + BY2PG);	/* see rbfree() */
-			if(b == nil)
-				error(Enomem);
-			b->free = rbfree;
+	c->nrd = Nrd;
+	c->ntd = Ntd;
+	t  = c->nrd * sizeof *c->rdba + 255;
+	t += c->ntd * sizeof *c->tdba + 255;
+	t += (c->ntd + c->nrd) * sizeof(Block*);
+	c->alloc = malloc(t);
+	unlock(&c->alock);
+	if(c->alloc == nil)
+		error(Enomem);
+
+	c->rdba = (Rd*)ROUNDUP((uintptr)c->alloc, 256);
+	c->tdba = (Td*)ROUNDUP((uintptr)(c->rdba + c->nrd), 256);
+	c->rb = (Block**)(c->tdba + c->ntd);
+	c->tb = (Block**)(c->rb + c->nrd);
+
+	if(waserror()){
+		while(b = rballoc()){
+			b->free = 0;
 			freeb(b);
 		}
+		free(c->alloc);
+		c->alloc = nil;
+		nexterror();
 	}
-	if (!c->attached) {
-		rxinit(c);
-		txinit(c);
-		if (!c->procsrunning) {
-			snprint(buf, sizeof buf, "#l%dl", e->ctlrno);
-			kproc(buf, lproc, e);
-			snprint(buf, sizeof buf, "#l%dr", e->ctlrno);
-			kproc(buf, rproc, e);
-			snprint(buf, sizeof buf, "#l%dt", e->ctlrno);
-			kproc(buf, tproc, e);
-			c->procsrunning = 1;
-		}
-		c->attached = 1;
+	for(c->nrb = 0; c->nrb < 2*Nrb; c->nrb++){
+		b = allocb(c->rbsz + BY2PG);	/* see rbfree() */
+		if(b == nil)
+			error(Enomem);
+		b->free = rbfree;
+		freeb(b);
 	}
-	unlock(&c->alock);
 	poperror();
+
+	rxinit(c);
+	txinit(c);
+
+	snprint(buf, sizeof buf, "#l%dl", e->ctlrno);
+	kproc(buf, lproc, e);
+	snprint(buf, sizeof buf, "#l%dr", e->ctlrno);
+	kproc(buf, rproc, e);
+	snprint(buf, sizeof buf, "#l%dt", e->ctlrno);
+	kproc(buf, tproc, e);
 }
 
 static void
@@ -961,33 +871,33 @@ interrupt(Ureg*, void *v)
 	e = v;
 	c = e->ctlr;
 	ilock(&c->imlock);
-	c->reg[Imc] = ~0;			/* disable all intrs */
+	c->reg[Imc] = ~0;
 	im = c->im;
 	while((icr = c->reg[Icr] & c->im) != 0){
+		if(icr & Lsc){
+			im &= ~Lsc;
+			c->lim = icr & Lsc;
+			wakeup(&c->lrendez);
+		}
 		if(icr & Irx0){
 			im &= ~Irx0;
-			c->rim = Irx0;
+			c->rim = icr & Irx0;
 			wakeup(&c->rrendez);
 		}
 		if(icr & Itx0){
 			im &= ~Itx0;
-			c->tim = Itx0;
+			c->tim = icr & Itx0;
 			wakeup(&c->trendez);
 		}
-		if(icr & Lsc){
-			im &= ~Lsc;
-			c->lim = Lsc;
-			wakeup(&c->lrendez);
-		}
 	}
-	c->reg[Ims] = c->im = im;  /* enable only intrs we didn't service */
+	c->reg[Ims] = c->im = im;
 	iunlock(&c->imlock);
 }
 
 static void
 scan(void)
 {
-	int pciregs, pcimsix, type;
+	int pciregs, pcimsix;
 	ulong io, iomsi;
 	void *mem, *memmsi;
 	Ctlr *c;
@@ -996,22 +906,15 @@ scan(void)
 	p = 0;
 	while(p = pcimatch(p, Vintel, 0)){
 		switch(p->did){
-		case 0x10b6:		/* 82598 backplane */
 		case 0x10c6:		/* 82598 af dual port */
 		case 0x10c7:		/* 82598 af single port */
+		case 0x10b6:		/* 82598 backplane */
 		case 0x10dd:		/* 82598 at cx4 */
 		case 0x10ec:		/* 82598 at cx4 dual port */
 			pcimsix = 3;
-			type = I82598;
 			break;
-		case 0x10f7:		/* 82599 kx/kx4 */
-		case 0x10f8:		/* 82599 kx/kx4/kx */
-		case 0x10f9:		/* 82599 cx4 */
-		case 0x10fb:		/* 82599 sfi/sfp+ */
-		case 0x10fc:		/* 82599 xaui/bx4 */
-		case 0x1557:		/* 82599 single-port sfi */
+		case 0x10fb:		/* 82599 */
 			pcimsix = 4;
-			type = I82599;
 			break;
 		default:
 			continue;
@@ -1046,7 +949,6 @@ scan(void)
 			error(Enomem);
 		}
 		c->p = p;
-		c->type = type;
 		c->physreg = (u32int*)io;
 		c->physmsix = (u32int*)iomsi;
 		c->reg = (u32int*)mem;
@@ -1087,7 +989,7 @@ pnp(Ether *e)
 	e->irq = c->p->intl;
 	e->tbdf = c->p->tbdf;
 	e->mbps = 10000;
-	e->maxmtu = ETHERMAXTU;
+	e->maxmtu = c->rbsz;
 	memmove(e->ea, c->ra, Eaddrlen);
 	e->arg = e;
 	e->attach = attach;
