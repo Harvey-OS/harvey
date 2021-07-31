@@ -601,10 +601,7 @@ mylex32rio(SDreq* r)
 	ccb->targetid = target;
 	ccb->luntag = lun;
 	if(r->unit->inquiry[7] & 0x02)
-		if(ctlr->wide)
-			ccb->datadir |= SQTag|TagEnable;
-		else
-			ccb->luntag |= SQTag|TagEnable;
+		ccb->luntag |= SQTag|TagEnable;
 	memmove(ccb->cdb, r->cmd, r->clen);
 	ccb->btstat = ccb->sdstat = 0;
 	ccb->ccbctl = 0;
@@ -887,19 +884,13 @@ buggery:
 	 * PCI and VLB buses.
 	 */
 	cmd[0] = Ciesi;
-	cmd[1] = 14;
+	cmd[1] = 4;
 	clen = 2;
 	dlen = 256;
 	if(issue(ctlr, cmd, clen, data, dlen)){
 		if(data[0] == 'E')
 			ctlr->bus = 32;
-		print("mylex ctlr @ port 0x%ux: 32-bit ", ctlr->port);
 		ctlr->wide = data[0x0D] & 0x01;
-		if (ctlr->wide)
-			print("wide ");
-		else
-			print("narrow ");
-		print("SCSI host adapter\n");
 	}
 	else{
 		/*
@@ -1179,12 +1170,8 @@ mylex32enable(Ctlr* ctlr)
 	if(ctlr->wide){
 		cmd[0] = Cwide;
 		cmd[1] = 1;
-		if(!issue(ctlr, cmd, 2, 0, 0)) {
+		if(!issue(ctlr, cmd, 2, 0, 0))
 			ctlr->wide = 0;
-			print(
-"mylex32enable: ctlr @ port 0x%ux: scsi wide-mode setup failed on wide host adapter",
-				ctlr->port);
-		}
 	}
 
 	/*
