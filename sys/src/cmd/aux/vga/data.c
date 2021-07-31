@@ -59,7 +59,6 @@ Ctlr* ctlrs[] = {
 	&s3clock,				/* clock */
 	&s3hwgc,				/* hwgc */
 	&sc15025,				/* ramdac */
-	&softhwgc,				/* hwgc */
 	&stg1702,				/* ramdac */
 	&t2r4,					/* ctlr */
 	&t2r4hwgc,				/* hwgc */
@@ -73,7 +72,6 @@ Ctlr* ctlrs[] = {
 	&tvp3026,				/* ramdac */
 	&tvp3026clock,				/* clock */
 	&tvp3026hwgc,				/* hwgc */
-	&vesa,					/* ctlr */
 	&virge,					/* ctlr */
 	&vision864,				/* ctlr */
 	&vision964,				/* ctlr */

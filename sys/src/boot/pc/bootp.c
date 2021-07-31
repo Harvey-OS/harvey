@@ -367,16 +367,7 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 				nak(ctlrno, a, 1, "block error", 0);
 				return -1;
 			}
-			rlen -= sizeof(tftp->header);
-			if(rlen < Segsize){
-				/* ACK now, in case we don't later */
-				buf[0] = 0;
-				buf[1] = Tftp_ACK;
-				buf[2] = tftpblockno>>8;
-				buf[3] = tftpblockno;
-				udpsend(ctlrno, a, buf, sizeof(tftp->header));
-			}
-			return rlen;
+			return rlen-sizeof(tftp->header);
 		}
 	}
 
