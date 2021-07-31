@@ -32,7 +32,7 @@ int nclust = NCLUST;
 static Ioclust*	iohead;
 static Ioclust*	iotail;
 
-static Ioclust*	getclust(Xdata*, vlong);
+static Ioclust*	getclust(Xdata*, long);
 static void	putclust(Ioclust*);
 static void	xread(Ioclust*);
 
@@ -88,7 +88,7 @@ purgebuf(Xdata *dev)
 }
 
 static Ioclust*
-getclust(Xdata *dev, vlong addr)
+getclust(Xdata *dev, long addr)
 {
 	Ioclust *c, *f;
 
@@ -142,7 +142,7 @@ putclust(Ioclust *c)
 }
 
 Iobuf*
-getbuf(Xdata *dev, uvlong addr)
+getbuf(Xdata *dev, ulong addr)
 {
 	int off;
 	Ioclust *c;
@@ -151,7 +151,7 @@ getbuf(Xdata *dev, uvlong addr)
 	c = getclust(dev, addr - off);
 	if(c->nbuf < off){
 		c->busy--;
-		error("short read or I/O error");
+		error("I/O read error");
 	}
 	return &c->buf[off];
 }
@@ -172,6 +172,6 @@ xread(Ioclust *c)
 	seek(dev->dev, (vlong)c->addr * Sectorsize, 0);
 	n = readn(dev->dev, c->iobuf, BUFPERCLUST*Sectorsize);
 	if(n < Sectorsize)
-		error("short read or I/O error");
+		error("I/O read error");
 	c->nbuf = n/Sectorsize;
 }
