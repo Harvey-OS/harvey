@@ -103,6 +103,5 @@ csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 		}
 		free(p);
 	}
-	ndbsetmalloctag(t, getcallerpc(&netroot));
 	return t;
 }

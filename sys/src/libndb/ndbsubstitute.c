@@ -9,15 +9,10 @@ ndbsubstitute(Ndbtuple *t, Ndbtuple *a, Ndbtuple *b)
 {
 	Ndbtuple *nt;
 
-	if(a == b){
-		ndbsetmalloctag(t, getcallerpc(&t));
+	if(a == b)
 		return t;
-	}
-	if(b == nil){
-		t = ndbdiscard(t, a);
-		ndbsetmalloctag(t, getcallerpc(&t));
-		return t;
-	}
+	if(b == nil)
+		return ndbdiscard(t, a);
 
 	/* all pointers to a become pointers to b */
 	for(nt = t; nt != nil; nt = nt->entry){
@@ -28,19 +23,17 @@ ndbsubstitute(Ndbtuple *t, Ndbtuple *a, Ndbtuple *b)
 	}
 
 	/* end of b chain points to a's successors */
-	for(nt = b; nt->entry; nt = nt->entry)
+	for(nt = b; nt->entry; nt = nt->entry){
 		nt->line = nt->entry;
+	}
 	nt->line = a->line;
 	nt->entry = a->entry;
 
 	a->entry = nil;
 	ndbfree(a);
 
-	if(a == t){
-		ndbsetmalloctag(b, getcallerpc(&t));
+	if(a == t)
 		return b;
-	}else{
-		ndbsetmalloctag(t, getcallerpc(&t));
+	else
 		return t;
-	}
 }

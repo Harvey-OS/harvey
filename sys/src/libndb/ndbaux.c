@@ -86,10 +86,9 @@ _ndbparseline(char *cp)
 		last = t;
 		t->line = 0;
 		t->entry = 0;
-		setmalloctag(t, getcallerpc(&cp));
 	}
 	if(first)
 		last->line = first;
-	ndbsetmalloctag(first, getcallerpc(&cp));
+	setmalloctag(first, getcallerpc(&cp));
 	return first;
 }

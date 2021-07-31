@@ -21,7 +21,6 @@ OFILES=\
 	devpipe.$O\
 	devroot.$O\
 	devssl.$O\
-	devtls.$O\
 	devtab.$O\
 	error.$O\
 	parse.$O\

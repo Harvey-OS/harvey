@@ -18,7 +18,6 @@ OFILES=\
 	dirwstat.$O\
 	dofmt.$O\
 	dorfmt.$O\
-	encodefmt.$O\
 	fcallfmt.$O\
 	fltfmt.$O\
 	fmt.$O\
@@ -40,7 +39,6 @@ OFILES=\
 	nsec.$O\
 	pow10.$O\
 	pushssl.$O\
-	pushtls.$O\
 	read9pmsg.$O\
 	readn.$O\
 	rune.$O\

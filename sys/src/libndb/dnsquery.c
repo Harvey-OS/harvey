@@ -63,7 +63,6 @@ dnsquery(char *net, char *val, char *type)
 		t = doquery(fd, val, type);
 
 	close(fd);
-	ndbsetmalloctag(t, getcallerpc(&net));
 	return t;
 }
 
@@ -152,6 +151,6 @@ doquery(int fd, char *dn, char *type)
 		}
 	}
 
-	ndbsetmalloctag(first, getcallerpc(&fd));
+	setmalloctag(first, getcallerpc(&fd));
 	return first;
 }
