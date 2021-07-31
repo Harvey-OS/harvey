@@ -1,10 +1,3 @@
-/*
- * This part takes care of locking except for initialization and
- * other threads created by the hw dep. drivers.
- * BUG: An error on the device does not make the driver exit.
- * It probably should.
- */
-
 #include <u.h>
 #include <libc.h>
 #include <ctype.h>
@@ -15,6 +8,13 @@
 #include "prolific.h"
 #include "ucons.h"
 #include "ftdi.h"
+
+/*
+ * This part takes care of locking except for initialization and
+ * other threads created by the hw dep. drivers.
+ * BUG: An error on the device does not make the driver exit.
+ * It probably should.
+ */
 
 int serialdebug;
 
@@ -33,12 +33,13 @@ struct Dirtab {
 };
 
 static Dirtab dirtab[] = {
-	[Qroot]	"/",		DMDIR|0555,
-	[Qdata]	"eiaU",		0660,
-	[Qctl]	"eiaUctl",	0664,
+	[Qroot]	"/",	DMDIR|0555,
+	[Qctl]	"ctl",	0444,
+	[Qdata]	"data",	0640,
 };
 
 static int sdebug;
+
 
 int
 serialnop(Serial *)
@@ -46,11 +47,13 @@ serialnop(Serial *)
 	return 0;
 }
 
+
 int
 serialnopctl(Serial *, int)
 {
 	return 0;
 }
+
 
 static void
 serialfatal(Serial *ser)
@@ -60,7 +63,7 @@ serialfatal(Serial *ser)
 	usbfsdel(&ser->fs);
 }
 
-/* I sleep with the lock... only way to drain in general */
+/* I sleep with the lock... only way to drain in general*/
 static void
 serialdrain(Serial *ser)
 {

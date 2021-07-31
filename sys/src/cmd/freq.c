@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
-uvlong	count[1<<16];
+long	count[1<<16];
 Biobuf	bout;
 
 void	usage(void);
@@ -112,7 +112,7 @@ freq(int f, char *s)
 			else
 				Bprint(&bout, "%C ", (int)i);
 		}
-		Bprint(&bout, "%8llud\n", count[i]);
+		Bprint(&bout, "%8ld\n", count[i]);
 	}
 	Bflush(&bout);
 }

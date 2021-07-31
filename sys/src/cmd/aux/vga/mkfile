@@ -33,7 +33,6 @@ OFILES=\
 	mga4xx.$O\
 	neomagic.$O\
 	nvidia.$O\
-	radeon.$O\
 	palette.$O\
 	pci.$O\
 	rgb524.$O\

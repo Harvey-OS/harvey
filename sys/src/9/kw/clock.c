@@ -1,5 +1,5 @@
 /*
- * kirkwood clocks
+ * kirkwood clock
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -10,7 +10,7 @@
 
 #include "ureg.h"
 
-#define TIMERREG	((TimerReg *)AddrTimer)
+#define TIMERREG	((TimerReg*)AddrTimer)
 
 enum {
 	Tcycles = CLOCKFREQ / HZ,		/* cycles per clock tick */
@@ -22,9 +22,6 @@ enum {
 	Tmr1periodic	= 1<<3,
 	TmrWDenable	= 1<<4,
 	TmrWDperiodic	= 1<<5,
-
-	MaxPeriod	= Tcycles,
-	MinPeriod	= MaxPeriod / 100,
 };
 
 typedef struct TimerReg TimerReg;
@@ -98,46 +95,49 @@ clockinit(void)
 
 	clockshutdown();
 	tmr->timer0  = Tcycles;
-	tmr->timer1  = ~0;
-	tmr->reload1 = ~0;
+	tmr->reload0 = Tcycles;
 	tmr->timerwd = CLOCKFREQ;
 	coherence();
-	tmr->ctl = Tmr0enable | Tmr1enable | Tmr1periodic | TmrWDenable;
+	tmr->ctl = Tmr0enable | Tmr0periodic | TmrWDenable;
 	CPUCSREG->rstout |= RstoutWatchdog;
 	coherence();
 }
 
 void
-timerset(Tval next)
+timerset(uvlong next)
 {
-	int offset;
-	TimerReg *tmr = TIMERREG;
+#ifdef FANCYTIMERS
+	Tn *tn;
+	Tval offset;
 
-	offset = next - fastticks(nil);
-	if(offset < MinPeriod)
-		offset = MinPeriod;
-	else if(offset > MaxPeriod)
-		offset = MaxPeriod;
-	tmr->timer0 = offset;
-	coherence();
+	ilock(&timers.tn1lock);
+	tn = (Tn*)Tn1;
+	tn->cr = Tm;
+
+	offset = next + tn->cv;
+	if(offset < timers.tn1minperiod)
+		offset = timers.tn1minperiod;
+	else if(offset > timers.tn1maxperiod)
+		offset = timers.tn1maxperiod;
+
+	tn->lc = offset;
+	tn->cr = Tm|Te;
+	iunlock(&timers.tn1lock);
+#else
+	USED(next);
+#endif
 }
 
+/*
+ * shift by 8 to provide enough resolution that dropping the tick rate
+ * won't mess up TOD calculation and cause infrequent clock interrupts.
+ */
 uvlong
 fastticks(uvlong *hz)
 {
-	uvlong now;
-	int s;
-
 	if(hz)
-		*hz = CLOCKFREQ;
-	s = splhi();
-	/* zero low ulong of fastclock */
-	now = (m->fastclock & ~(uvlong)~0ul) | ~TIMERREG->timer1;
-	if(now < m->fastclock)
-		now += 1ll << 32;
-	m->fastclock = now;
-	splx(s);
-	return now;
+		*hz = HZ << 8;
+	return m->fastclock << 8;
 }
 
 ulong
@@ -173,5 +173,6 @@ delay(int l)
 ulong
 perfticks(void)
 {
-	return ~TIMERREG->timer1;
+//	return ((Tn*)Tn0)->cv;		// TODO: FANCYTIMERS
+	return (ulong)fastticks(nil);
 }
