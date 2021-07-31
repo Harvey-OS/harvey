@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 		break;
 	case 'e':
 		if(nexclude >= MaxExclude)
-			sysfatal("too many exclusions");
+			sysfatal("too many exclusions\n");
 		exclude[nexclude] = ARGF();
 		if(exclude[nexclude] == nil)
 			usage();
@@ -239,7 +239,7 @@ assert(n > 0);
 		return 0;
 	if(!vtSha1Check(score, buf, n)) {
 		uchar score2[VtScoreSize];
-
+		
 		vtSha1(score2, buf, n);
 fprint(2, "vtSha1Check: n = %d %V %V\n", n, score, score2);
 		vtSetError("vtSha1Check failed");
@@ -266,7 +266,7 @@ vac(VtSession *z, char *argv[])
 	VacDir vd;
 
 	if(getwd(cwd, sizeof(cwd)) == 0)
-		sysfatal("can't find current directory: %r");
+		sysfatal("can't find current directory: %r\n");
 
 	dsink = dirSinkAlloc(z, bsize, bsize);
 
@@ -276,13 +276,13 @@ vac(VtSession *z, char *argv[])
 		if(fs == nil)
 			fprint(2, "could not open diff: %s: %s\n", dfile, vtGetError());
 	}
-
+		
 
 	if(oname != nil) {
 		fd = create(oname, OWRITE, 0666);
 		if(fd < 0)
 			sysfatal("could not create file: %s: %r", oname);
-	} else
+	} else 
 		fd = 1;
 
 	dir = dirfstat(fd);
@@ -297,8 +297,7 @@ vac(VtSession *z, char *argv[])
 				cp2 = cp;
 		if (cp2 != *argv) {
 			*cp2 = '\0';
-			if (chdir(*argv) < 0)
-				sysfatal("can't cd to %s: %r", *argv);
+			chdir(*argv);
 			*cp2 = '/';
 			cp2++;
 			cd = 1;
@@ -310,9 +309,9 @@ vac(VtSession *z, char *argv[])
 		if(vff)
 			vfDecRef(vff);
 		if(cd && chdir(cwd) < 0)
-			sysfatal("can't cd back to %s: %r", cwd);
+			sysfatal("can't cd back to %s: %r\n", cwd);
 	}
-
+	
 	if(isi) {
 		vff = nil;
 		if(fs)
@@ -338,14 +337,14 @@ vac(VtSession *z, char *argv[])
 	metaSinkWriteDir(ms, &vd);
 	vdCleanup(&vd);
 	metaSinkClose(ms);
-
+	
 	ds = dirSinkAlloc(z, bsize, bsize);
 	dirSinkWriteSink(ds, dsink->sink);
 	dirSinkWriteSink(ds, dsink->msink->sink);
 	dirSinkWriteSink(ds, ms->sink);
 	dirSinkClose(ds);
 
-	memset(&root, 0, sizeof(root));
+	memset(&root, 0, sizeof(root));		
 	root.version = VtRootVersion;
 	strncpy(root.name, dir->name, sizeof(root.name));
 	root.name[sizeof(root.name)-1] = 0;
@@ -361,7 +360,7 @@ vac(VtSession *z, char *argv[])
 	dirSinkFree(dsink);
 	if(fs != nil)
 		vfsClose(fs);
-
+	
 	vtRootPack(&root, buf);
 	if(!vacWrite(z, score, VtRootType, buf, VtRootSize))
 		vtFatal("vacWrite failed: %s", vtGetError());
@@ -370,7 +369,7 @@ vac(VtSession *z, char *argv[])
 	for(i=0; i<VtScoreSize; i++)
 		fprint(fd, "%.2x", score[i]);
 	fprint(fd, "\n");
-
+	
 	/* avoid remove at cleanup */
 	oname = nil;
 	return 1;
@@ -381,7 +380,7 @@ isExcluded(char *name)
 {
 	int bot, top, i, x;
 
-	bot = 0;
+	bot = 0;	
 	top = nexclude;
 	while(bot < top) {
 		i = (bot+top)>>1;
@@ -430,7 +429,7 @@ vacFile(DirSink *dsink, char *lname, char *sname, VacFile *vf)
 
 	entry = dsink->nentry;
 
-	if(dir->mode & DMDIR)
+	if(dir->mode & DMDIR) 
 		vacDir(dsink, fd, lname, sname, vf);
 	else
 		vacData(dsink, fd, lname, vf, dir);
@@ -634,7 +633,7 @@ vacMergeFile(DirSink *dsink, VacFile *vf, VacDir *dir, uvlong offset, uvlong *ma
 		e = dir->mentry;
 		if(e == 0)
 			e = dir->entry + 1;
-
+		
 		if(vfRead(vf, buf, VtEntrySize, e*VtEntrySize) != VtEntrySize) {
 			warn("could not read venti dir entry: %s\n", dir->elem);
 			return 0;
@@ -660,10 +659,10 @@ vacMergeFile(DirSink *dsink, VacFile *vf, VacDir *dir, uvlong offset, uvlong *ma
 	}
 
 	dirSinkWrite(dsink, &dd);
-	if(dir->mode & ModeDir)
+	if(dir->mode & ModeDir)	
 		dirSinkWrite(dsink, &md);
 	metaSinkWriteDir(dsink->msink, dir);
-
+	
 	return 1;
 }
 
@@ -704,7 +703,7 @@ vacMerge(DirSink *dsink, char *lname, char *sname)
 		if(vdeRead(d, &dir, 1) < 1)
 			break;
 		vacMergeFile(dsink, vf, &dir, fileid, &max);
-		vdCleanup(&dir);
+		vdCleanup(&dir);	
 	}
 	fileid += max;
 
@@ -767,7 +766,7 @@ sinkWriteScore(Sink *k, uchar score[VtScoreSize], int n)
 
 	/* round size up to multiple of dsize */
 	d->size = d->dsize * ((d->size + d->dsize-1)/d->dsize);
-
+	
 	d->size += n;
 }
 
@@ -798,7 +797,7 @@ sizeToDepth(uvlong s, int psize, int dsize)
 {
 	int np;
 	int d;
-
+	
 	/* determine pointer depth */
 	np = psize/VtScoreSize;
 	s = (s + dsize - 1)/dsize;
@@ -989,14 +988,14 @@ metaSinkFlush(MetaSink *k)
 	mb.maxindex = k->maxindex;
 	mb.buf = p;
 	mbPack(&mb);
-
+	
 	p += MetaHeaderSize;
 
 	/* XXX this is not reentrant! */
 	blockBase = k->buf;
 	qsort(p, k->nindex, MetaIndexSize, dirCmp);
 	p += k->nindex*MetaIndexSize;
-
+	
 	memset(p, 0, (k->maxindex-k->nindex)*MetaIndexSize);
 	p += (k->maxindex-k->nindex)*MetaIndexSize;
 
@@ -1053,7 +1052,7 @@ metaSinkWrite(MetaSink *k, uchar *data, int n)
 		metaSinkFlush(k);
 	if(k->p + n > k->ep)
 		vtFatal("directory entry too large");
-
+	
 	memmove(k->p, data, n);
 	k->p += n;
 }
@@ -1063,7 +1062,7 @@ metaSinkWriteDir(MetaSink *ms, VacDir *dir)
 {
 	metaSinkPutUint32(ms, DirMagic);
 	metaSinkPutc(ms, Version>>8);
-	metaSinkPutc(ms, Version);
+	metaSinkPutc(ms, Version);		
 	metaSinkPutString(ms, dir->elem);
 	metaSinkPutUint32(ms, dir->entry);
 	metaSinkPutUint64(ms, dir->qid);
