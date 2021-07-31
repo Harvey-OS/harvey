@@ -622,6 +622,14 @@ sysawait(ulong *arg)
 	return i;
 }
 
+long
+sysdeath(ulong*)
+{
+	pprint("deprecated system call\n");
+	pexit("Suicide", 0);
+	return 0;	/* not reached */
+}
+
 void
 werrstr(char *fmt, ...)
 {
