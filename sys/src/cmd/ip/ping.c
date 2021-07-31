@@ -362,7 +362,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 			lostmsgs++;
 	unlock(&listlock);
 
-	if(!quiet && lostmsgs)
+	if(lostmsgs)
 		print("%d out of %d messages lost\n", lostmsgs,
 			lostmsgs+rcvdmsgs);
 }
@@ -568,9 +568,8 @@ main(int argc, char **argv)
 		exits("dialing");
 	}
 
-	if (!quiet)	
-		print("sending %d %d byte messages %d ms apart to %s\n",
-			nmsg, msglen, interval, ds);
+	print("sending %d %d byte messages %d ms apart to %s\n",
+		nmsg, msglen, interval, ds);
 
 	switch(rfork(RFPROC|RFMEM|RFFDG)){
 	case -1:

@@ -1,8 +1,6 @@
 NPROC=1
 </$objtype/mkfile
 
-all:V: install
-
 install:V: genall gencall
 	genall
 
@@ -22,4 +20,4 @@ installall:V:
 	for(objtype in $CPUS) mk install
 
 update:V:
-	update $UPDATEFLAGS mkfile
+	update $UPDATEFLAGS mkfile sys.h
