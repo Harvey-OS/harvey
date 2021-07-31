@@ -232,8 +232,6 @@ vlong	probeaddr(uintptr);
 static void
 spiprobe(void)
 {
-if (0) {
-/* generates repeated "spurious irqbridge interrupt: 00000010" on sheevaplug. */
 	Spiregs *rp = (Spiregs *)soc.spi;
 
 	if (probeaddr(soc.spi) < 0)
@@ -249,7 +247,6 @@ if (0) {
 	if (probeaddr(PHYSSPIFLASH) < 0)
 		print(" (no response)");
 	print(": memory reads enabled\n");
-}
 }
 
 /*

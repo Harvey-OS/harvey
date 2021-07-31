@@ -31,18 +31,12 @@ typedef struct Qtree Qtree;
  */
 enum
 {
-	/* Ecapio->parms reg. */
-	Cnports		= 0xF,		/* nport bits */
-	Cdbgportshift	= 20,		/* debug port */
+	Cnports		= 0xF,		/* nport bits in Ecapio parms. */
+	Cdbgportshift	= 20,		/* debug port in Ecapio parms. */
 	Cdbgportmask	= 0xF,
-
-	/* Ecapio->capparms bits */
-	C64		= 1<<0,		/* 64-bits */
-	Cpfl		= 1<<1,	/* program'ble frame list: can be <1024 */
-	Casp		= 1<<2,		/* asynch. sched. park */
-	Ceecpshift	= 8,		/* extended capabilities ptr. */
-	Ceecpmask	= (1<<8) - 1,
-
+	C64		= 1,		/* 64-bits, in Ecapio capparms. */
+	Ceecpshift	= 8,		/* extended capabilities ptr. in */
+	Ceecpmask	= 8,		/* the Ecapio capparms reg. */
 	Clegacy		= 1,		/* legacy support cap. id */
 	CLbiossem	= 2,		/* legacy cap. bios sem. */
 	CLossem		= 3,		/* legacy cap. os sem */

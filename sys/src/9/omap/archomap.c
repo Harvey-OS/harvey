@@ -2,7 +2,7 @@
  * omap3530 SoC (e.g. beagleboard) architecture-specific stuff
  *
  * errata: usb port 3 cannot operate in ulpi mode, only serial or
- * utmi tll mode
+ * ulpi tll mode
  */
 
 #include "u.h"
