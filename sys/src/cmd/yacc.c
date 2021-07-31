@@ -1164,13 +1164,6 @@ intr(void)
 }
 
 void
-usage(void)
-{
-	fprint(2, "usage: yacc [-Dn] [-vdS] [-o outputfile] [-s stem] grammar\n");
-	exits("usage");
-}
-
-void
 setup(int argc, char *argv[])
 {
 	long c, t;
@@ -1192,14 +1185,14 @@ setup(int argc, char *argv[])
 		vflag++;
 		break;
 	case 'D':
-		yydebug = EARGF(usage());
+		yydebug = ARGF();
 		break;
 	case 'd':
 		dflag++;
 		break;
 	case 'o':
 		ytab++;
-		ytabc = EARGF(usage());
+		ytabc = ARGF();
 		break;
 	case 's':
 		stem++;

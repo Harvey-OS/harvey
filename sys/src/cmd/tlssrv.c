@@ -103,14 +103,6 @@ reporter(char *fmt, ...)
 }
 
 void
-usage(void)
-{
-	fprint(2, "usage: tlssrv -c cert [-D] [-l logfile] [-r remotesys] [cmd args...]\n");
-	fprint(2, "  after  auth/secretpem key.pem > /mnt/factotum/ctl\n");
-	exits("usage");
-}
-
-void
 main(int argc, char *argv[])
 {
 	TLSconn *conn;
@@ -127,16 +119,18 @@ main(int argc, char *argv[])
 		debug++;
 		break;
 	case 'c':
-		cert = EARGF(usage());
+		cert = ARGF();
 		break;
 	case 'l':
-		logfile = EARGF(usage());
+		logfile = ARGF();
 		break;
 	case 'r':
-		remotesys = EARGF(usage());
+		remotesys = ARGF();
 		break;
 	default:
-		usage();
+		fprint(2, "usage: tlssrv -c cert [-D] [-l logfile] [-r remotesys] [cmd args...]\n");
+		fprint(2, "  after  auth/secretpem key.pem > /mnt/factotum/ctl\n");
+		exits("usage");
 	}ARGEND
 
 	if(cert == nil)

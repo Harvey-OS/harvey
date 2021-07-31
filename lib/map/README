@@ -1,3 +1,0 @@
-# For map data, run this file
-cd /lib/map
-hget http://www.cs.dartmouth.edu/~doug/wdbii.tar.gz | tar xzvT

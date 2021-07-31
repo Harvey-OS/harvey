@@ -26,14 +26,14 @@ main(int argc, char **argv)
 		*argp++ = "-d";
 		break;
 	case 'e':
-		ename = EARGF(usage());
+		ename = ARGF();
 		break;
 	case 'p':
-		perm = strtol(EARGF(usage()), 0, 8);
+		perm = strtol(ARGF(), 0, 8);
 		break;
 	case 'P':
 		*argp++ = "-P";
-		*argp++ = EARGF(usage());
+		*argp++ = ARGF();
 		break;
 	case 'R':
 		*argp++ = "-R";

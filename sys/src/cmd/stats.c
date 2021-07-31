@@ -1223,7 +1223,7 @@ void
 main(int argc, char *argv[])
 {
 	int i, j;
-	double secs;
+	char *s;
 	ulong v, vmax, nargs;
 	char args[100];
 
@@ -1238,13 +1238,19 @@ main(int argc, char *argv[])
 	nargs = 0;
 	ARGBEGIN{
 	case 'T':
-		secs = atof(EARGF(usage()));
-		if(secs > 0)
-			sleeptime = 1000*secs;
+		s = ARGF();
+		if(s == nil)
+			usage();
+		i = atoi(s);
+		if(i > 0)
+			sleeptime = 1000*i;
 		break;
 	case 'S':
-		scale = atof(EARGF(usage()));
-		if(scale <= 0)
+		s = ARGF();
+		if(s == nil)
+			usage();
+		scale = atof(s);
+		if(scale <= 0.)
 			usage();
 		break;
 	case 'L':

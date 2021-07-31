@@ -58,7 +58,7 @@ main(int argc, char *argv[]){
 		constant++;
 		break;
 	case 'f':
-		format = EARGF(usage());
+		format = ARGF();
 		if(format[strlen(format)-1] != '\n'){
 			sprint(ffmt, "%s\n", format);
 			format = ffmt;
