@@ -64,32 +64,6 @@ struct {
 
 static void xetherdetach(void);
 
-static void
-fakeintrs(Alarm *)
-{
-	int ctlrno;
-	Ether *eth;
-
-	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++) {
-		eth = &ether[ctlrno];
-		if (eth->interrupt)
-			eth->interrupt(nil, eth);
-	}
-	alarm(TK2MS(1), fakeintrs, nil);
-}
-
-/* terrible temporary hack for 82575 */
-static void
-startfakeintrs(void)
-{
-	static int first = 1;
-
-	if (first) {
-		first = 0;
-		fakeintrs(nil);
-	}
-}
-
 int
 etherinit(void)
 {
@@ -98,8 +72,6 @@ etherinit(void)
 
 	fmtinstall('E', eipfmt);
 
-	if (getconf("*fakeintrs") != nil || getconf("*9loadfakeintrs") != nil)
-		startfakeintrs();
 	etherdetach = xetherdetach;
 	mask = 0;
 	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
@@ -218,6 +190,7 @@ etheraddr(int ctlrno)
 
 	if((ctlr = attach(ctlrno)) == 0)
 		return 0;
+
 	return ctlr->ea;
 }
 
@@ -230,11 +203,6 @@ wait(RingBuf* ring, uchar owner, int timo)
 	while(TK2MS(m->ticks - start) < timo){
 		if(ring->owner != owner)
 			return 1;
-		/*
-		 * idling here cuts time to load 9pc.gz in a parallels vm
-		 * from 4 minutes to about 1 second.
-		 */
-		idle();
 	}
 
 	return 0;

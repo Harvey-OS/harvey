@@ -36,7 +36,8 @@ enum {
 #define Q3(l, u, t)	((l)<<8 | QID(u, t))
 #define UP(d)		((d)->flag & Dup)
 
-#define	MS2TK(t)	((t)/MS2HZ)
+#define	Ms2tk(t)	(((t)*HZ)/1000)
+#define	Tk2ms(t)	(((t)*1000)/HZ)
 
 enum {
 	Qzero,
@@ -72,12 +73,12 @@ enum {
 	/*
 	 * round trip bounds, timeouts, in ticks.
 	 * timeouts should be long enough that rebooting
-	 * the coraid (which usually takes under two minutes)
+	 * the coraid (which takes under two minutes)
 	 * doesn't trigger a timeout.
 	 */
-	Rtmax		= MS2TK(320),
-	Rtmin		= MS2TK(20),
-	Maxreqticks	= 4*60*HZ,		/* was 45*HZ */
+	Rtmax		= Ms2tk(320),
+	Rtmin		= Ms2tk(20),
+	Srbtimeout	= 3*60*HZ,		/* was 45*HZ */
 
 	Dbcnt		= 1024,
 
@@ -497,7 +498,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 		downdev(d, "resend fails; no netlink/ea");
 		return -1;
 	}
-	if(f->srb && MACHP(0)->ticks - f->srb->ticksent > Maxreqticks){
+	if(f->srb && MACHP(0)->ticks - f->srb->ticksent > Srbtimeout){
 		eventlog("%æ: srb timeout\n", d);
 		frameerror(d, f, Etimedout);
 		return -1;
@@ -641,7 +642,7 @@ loop:
 			if(tx++ == 0){
 				if((l->rttavg <<= 1) > Rtmax)
 					l->rttavg = Rtmax;
-				eventlog("%æ: rtt %ldms\n", d, TK2MS(l->rttavg));
+				eventlog("%æ: rtt %ldms\n", d, Tk2ms(l->rttavg));
 			}
 		}
 		if(d->nout == d->maxout && d->maxout < d->nframes &&
@@ -1291,8 +1292,8 @@ devlinkread(Chan *c, void *db, int len, int off)
 	p = seprint(p, e, "npkt: %uld\n", l->npkt);
 	p = seprint(p, e, "resent: %uld\n", l->resent);
 	p = seprint(p, e, "flag: "); p = pflag(p, e, l->flag);
-	p = seprint(p, e, "rttavg: %uld\n", TK2MS(l->rttavg));
-	p = seprint(p, e, "mintimer: %uld\n", TK2MS(l->mintimer));
+	p = seprint(p, e, "rttavg: %uld\n", Tk2ms(l->rttavg));
+	p = seprint(p, e, "mintimer: %uld\n", Tk2ms(l->mintimer));
 
 	p = seprint(p, e, "nl path: %s\n", l->nl->path);
 	p = seprint(p, e, "nl ea: %E\n", l->nl->ea);
