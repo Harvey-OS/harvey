@@ -12,14 +12,6 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
-/* tweakable parameters */
-enum {
-	Rbsz	= 12*1024,
-	Nrd	= 256,
-	Ntd	= 64,
-	Nrb	= 256,
-};
-
 /*
  * // comments note conflicts with 82563-style drivers,
  * and the registers are all different.
@@ -306,6 +298,14 @@ typedef struct {
 	ulong	stats[nelem(stattab)];
 	uint	speeds[3];
 } Ctlr;
+
+/* tweakable paramaters */
+enum {
+	Rbsz	= 12*1024,
+	Nrd	= 256,
+	Ntd	= 64,
+	Nrb	= 256,
+};
 
 static	Ctlr	*ctlrtab[4];
 static	int	nctlr;
