@@ -44,17 +44,14 @@ gives the appearance of exporting a name space from a remote machine
 into a local file tree.
 .PP
 The options are:
-.TF "-A \fIaddress"
-.PD
 .TP
+.PD
 .B -A \fIaddress
-Use the network
+Use the address
 .I address
-to
-.IR announce (2)
+for
 .IR aan (8)
-connections,
-if requested by the initial protocol.
+connections.
 .TP
 .B -a
 Authenticate the user with the
