@@ -108,7 +108,6 @@ enum {					/* Tcr */
 	Macv14		= 0x30800000,	/* RTL8100E */
 	Macv15		= 0x38800000,	/* RTL8100E */
  	Macv16		= 0x24800000,	/* RTL8102EL */
-	Macv25		= 0x28000000,	/* RTL8168D */
 	Ifg0		= 0x01000000,	/* Interframe Gap 0 */
 	Ifg1		= 0x02000000,	/* Interframe Gap 1 */
 };
@@ -738,7 +737,6 @@ rtl8169init(Ether* edev)
 	case Macv14:
 	case Macv15:
 	case Macv16:
-	case Macv25:
 		break;
 	}
 
