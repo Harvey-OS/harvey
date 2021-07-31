@@ -18,7 +18,6 @@ PW *getPW(char *, int);
 int putPW(PW *);
 void freePW(PW *);
 char* getpassm(char*);
-char *validatefile(char *f);
 
 // *client: SConn, client name, passphrase
 // *server: SConn, (partial) 1st msg, PW entry
