@@ -204,7 +204,7 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 			}
 
 		/* distinction between not found and not good */
-		if(rp == nil && status != nil && dp->respcode != Rok)
+		if(rp == nil && status != nil && dp->respcode != 0)
 			*status = dp->respcode;
 	}
 	procsetname(procname);
@@ -424,9 +424,6 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 			/* unauthoritative db entries are hints */
 			if(rp->auth) {
 				noteinmem();
-				if(debug)
-					dnslog("[%d] dnresolve1 %s %d %d: auth rr in db",
-						getpid(), name, type, class);
 				return rp;
 			}
 		} else
@@ -435,9 +432,6 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 				/* but Tall entries are special */
 				if(type != Tall || rp->query == Tall) {
 					noteinmem();
-					if(debug)
-						dnslog("[%d] dnresolve1 %s %d %d: rr not in db",
-							getpid(), name, type, class);
 					return rp;
 				}
 	rrfreelist(rp);
@@ -452,12 +446,8 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 	if(type != Tcname){
 		rp = rrlookup(dp, Tcname, NOneg);
 		rrfreelist(rp);
-		if(rp){
-			if(debug)
-				dnslog("[%d] dnresolve1 %s %d %d: rr from rrlookup for non-cname",
-					getpid(), name, type, class);
+		if(rp)
 			return nil;
-		}
 	}
 
 	/*
@@ -478,34 +468,16 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 	rp = issuequery(qp, name, class, depth, recurse);
 	querydestroy(qp);
 	free(qp);
-	if(rp){
-		if(debug)
-			dnslog("[%d] dnresolve1 %s %d %d: rr from query",
-				getpid(), name, type, class);
+	if(rp)
 		return rp;
-	}
 
 	/* settle for a non-authoritative answer */
 	rp = rrlookup(dp, type, OKneg);
-	if(rp){
-		if(debug)
-			dnslog("[%d] dnresolve1 %s %d %d: rr from rrlookup",
-				getpid(), name, type, class);
+	if(rp)
 		return rp;
-	}
 
 	/* noone answered.  try the database, we might have a chance. */
-	rp = dblookup(name, class, type, 0, 0);
-	if (rp) {
-		if(debug)
-			dnslog("[%d] dnresolve1 %s %d %d: rr from dblookup",
-				getpid(), name, type, class);
-	}else{
-		if(debug)
-			dnslog("[%d] dnresolve1 %s %d %d: no rr from dblookup; crapped out",
-				getpid(), name, type, class);
-	}
-	return rp;
+	return dblookup(name, class, type, 0, 0);
 }
 
 /*
@@ -563,24 +535,6 @@ udpport(char *mtpt)
 	return fd;
 }
 
-void
-initdnsmsg(DNSmsg *mp, RR *rp, int flags, ushort reqno)
-{
-	mp->flags = flags;
-	mp->id = reqno;
-	mp->qd = rp;
-}
-
-DNSmsg *
-newdnsmsg(RR *rp, int flags, ushort reqno)
-{
-	DNSmsg *mp;
-
-	mp = emalloc(sizeof *mp);
-	initdnsmsg(mp, rp, flags, reqno);
-	return mp;
-}
-
 /* generate a DNS UDP query packet */
 int
 mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
@@ -588,7 +542,6 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 	DNSmsg m;
 	int len;
 	Udphdr *uh = (Udphdr*)buf;
-	RR *rp;
 
 	/* stuff port number into output buffer */
 	memset(uh, 0, sizeof *uh);
@@ -596,9 +549,13 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 
 	/* make request and convert it to output format */
 	memset(&m, 0, sizeof m);
-	rp = rralloc(type);
-	rp->owner = dp;
-	initdnsmsg(&m, rp, flags, reqno);
+	m.flags = flags;
+	m.id = reqno;
+	m.qd = rralloc(type);
+	m.qd->owner = dp;
+	m.qd->type = type;
+	if (m.qd->type != type)
+		dnslog("mkreq: bogus type %d", type);
 	len = convDNS2M(&m, &buf[Udphdrsize], Maxudp);
 	rrfree(m.qd);
 	memset(&m, 0, sizeof m);		/* cause trouble */
@@ -814,15 +771,11 @@ serveraddrs(Query *qp, int nd, int depth)
 		if(rp->marker)
 			continue;
 		arp = rrlookup(rp->host, Ta, NOneg);
-		if(arp == nil)
-			arp = rrlookup(rp->host, Taaaa, NOneg);
 		if(arp){
 			rp->marker = 1;
 			break;
 		}
 		arp = dblookup(rp->host->name, Cin, Ta, 0, 0);
-		if(arp == nil)
-			arp = dblookup(rp->host->name, Cin, Taaaa, 0, 0);
 		if(arp){
 			rp->marker = 1;
 			break;
@@ -848,9 +801,6 @@ serveraddrs(Query *qp, int nd, int depth)
 
 			arp = dnresolve(rp->host->name, Cin, Ta, qp->req, 0,
 				depth+1, Recurse, 1, 0);
-			if(arp == nil)
-				arp = dnresolve(rp->host->name, Cin, Taaaa,
-					qp->req, 0, depth+1, Recurse, 1, 0);
 			lock(&dnlock);
 			rrfreelist(rrremneg(&arp));
 			unlock(&dnlock);
@@ -1208,7 +1158,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 		if(isnegrname(mp))
 			qp->dp->respcode = Rname;
 		else
-			qp->dp->respcode = Rok;
+			qp->dp->respcode = 0;
 
 		/*
 		 *  cache any negative responses, free soarr.
@@ -1396,7 +1346,7 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
 	for(p = dest; p < qp->curdest; p++) {
 		destck(p);
 		if(p->code != Rserver)
-			qp->dp->respcode = Rok;
+			qp->dp->respcode = 0;
 		p->magic = 0;			/* prevent accidents */
 	}
 
