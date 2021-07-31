@@ -373,7 +373,7 @@ rwalk(Mfile *mf)
 		return;
 	}
 	if(c.thdr.newfid != c.thdr.fid){
-		if(c.thdr.newfid >= Nfid)
+		if(c.thdr.newfid<0 || Nfid<=c.thdr.newfid)
 			error("clone nfid out of range");
 		nmf = &mfile[c.thdr.newfid];
 		if(nmf->busy)
@@ -477,7 +477,7 @@ rread(Mfile *mf)
 			c.rhdr.count = statlen-off;
 		else
 			c.rhdr.count = cnt;
-		if((int)c.rhdr.count < 0){
+		if(c.rhdr.count < 0){
 			sendreply("eof");
 			return;
 		}
@@ -787,7 +787,7 @@ rcvmsg(P9fs *p, Fcall *f)
 
 	if((rlen = convM2S(datarcv, p->len, f)) != p->len)
 		error("rcvmsg format error, expected length %d, got %d", rlen, p->len);
-	if(f->fid >= Nfid){
+	if(f->fid<0 || Nfid<=f->fid){
 		fprint(2, "<-%s: %d %s on %d\n", p->name, f->type,
 			mname[f->type]? mname[f->type] : "mystery",
 			f->fid);

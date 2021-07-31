@@ -656,7 +656,6 @@ xuexpr:
 		$$ = new(OCAST, $5, Z);
 		dodecl(NODECL, CXXX, $2, $3);
 		$$->type = lastdcl;
-		$$->xcast = 1;
 	}
 |	'(' tlist abdecor ')' '{' ilist '}'	/* extension */
 	{
@@ -761,56 +760,48 @@ pexpr:
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TINT];
 		$$->vconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	LLCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TLONG];
 		$$->vconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	LUCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TUINT];
 		$$->vconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	LULCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TULONG];
 		$$->vconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	LDCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TDOUBLE];
 		$$->fconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	LFCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TFLOAT];
 		$$->fconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	LVLCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TVLONG];
 		$$->vconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	LUVLCONST
 	{
 		$$ = new(OCONST, Z, Z);
 		$$->type = types[TUVLONG];
 		$$->vconst = $1;
-		$$->cstring = strdup(symb);
 	}
 |	string
 |	lstring

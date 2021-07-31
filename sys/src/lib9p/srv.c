@@ -5,8 +5,6 @@
 #include <thread.h>
 #include <9p.h>
 
-void (*_forker)(void(*)(void*), void*, int);
-
 static char Ebadattach[] = "unknown specifier in attach";
 static char Ebadoffset[] = "bad offset";
 static char Ebadcount[] = "bad count";
@@ -465,7 +463,7 @@ sread(Srv *srv, Req *r)
 		respond(r, Eunknownfid);
 		return;
 	}
-	if((int)r->ifcall.count < 0){
+	if(r->ifcall.count < 0){
 		respond(r, Ebotch);
 		return;
 	}
@@ -511,7 +509,7 @@ swrite(Srv *srv, Req *r)
 		respond(r, Eunknownfid);
 		return;
 	}
-	if((int)r->ifcall.count < 0){
+	if(r->ifcall.count < 0){
 		respond(r, Ebotch);
 		return;
 	}
@@ -594,7 +592,6 @@ sstat(Srv *srv, Req *r)
 		return;
 	}
 	if(r->fid->file){
-		/* should we rlock the file? */
 		r->d = r->fid->file->Dir;
 		if(r->d.name)
 			r->d.name = estrdup9p(r->d.name);
@@ -633,7 +630,7 @@ rstat(Req *r, char *error)
 	}
 	r->ofcall.nstat = convD2M(&r->d, statbuf, n);
 	r->ofcall.stat = statbuf;	/* freed in closereq */
-	if(r->ofcall.nstat <= BIT16SZ){
+	if(r->ofcall.nstat < 0){
 		r->error = "convD2M fails";
 		free(statbuf);
 		return;
@@ -816,15 +813,6 @@ if(chatty9p)
 		closereq(r);
 	else
 		free(r);
-}
-
-void
-responderror(Req *r)
-{
-	char errbuf[ERRMAX];
-	
-	rerrstr(errbuf, sizeof errbuf);
-	respond(r, errbuf);
 }
 
 int

@@ -1288,7 +1288,7 @@ lookup(char *s, int doreset)
 		if(t == s)
 			goto BadCoords;
 		/* degree sign etc. is optional */
-		if((uchar)*t == L'°')
+		if(*t == L'°')
 			deg = DEG(getra(s));
 		if(doreset)
 			reset();

@@ -226,7 +226,6 @@ evconst(Node *n)
 	} else {
 		n->vconst = convvtox(v, n->type->etype);
 	}
-	n->oldop = n->op;
 	n->op = OCONST;
 }
 
@@ -376,7 +375,6 @@ acom2(Node *n, Type *t)
 	}
 	c1 = trm[0].mult;
 	if(j == 0) {
-		n->oldop = n->op;
 		n->op = OCONST;
 		n->vconst = c1;
 		return;

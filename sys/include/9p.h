@@ -198,7 +198,6 @@ struct Srv {
 	int		nopipe;
 	int		srvfd;
 	int		leavefdsopen;	/* magic for acme win */
-	char*	keyspec;
 
 /* below is implementation-specific; don't use */
 	Fidpool*	fpool;
@@ -209,19 +208,13 @@ struct Srv {
 	QLock	rlock;
 	uchar*	wbuf;
 	QLock	wlock;
-	
-	char*	addr;
 };
 
 void		srv(Srv*);
 void		postmountsrv(Srv*, char*, char*, int);
-void		_postmountsrv(Srv*, char*, char*, int);
-void		listensrv(Srv*, char*);
-void		_listensrv(Srv*, char*);
 int 		postfd(char*, int);
 int		chatty9p;
 void		respond(Req*, char*);
-void		responderror(Req*);
 void		threadpostmountsrv(Srv*, char*, char*, int);
 
 /*
@@ -237,16 +230,7 @@ enum {
 	OMASK = 3
 };
 
-void		readstr(Req*, char*);
-void		readbuf(Req*, void*, long);
-void		walkandclone(Req*, char*(*walk1)(Fid*,char*,void*), 
-			char*(*clone)(Fid*,Fid*,void*), void*);
-
-void		auth9p(Req*);
-void		authread(Req*);
-void		authwrite(Req*);
-void		authdestroy(Fid*);
-int		authattach(Req*);
-
-extern void (*_forker)(void (*)(void*), void*, int);
+void readstr(Req*, char*);
+void readbuf(Req*, void*, long);
+void	walkandclone(Req*, char*(*walk1)(Fid*,char*,void*), char*(*clone)(Fid*,Fid*,void*), void*);
 

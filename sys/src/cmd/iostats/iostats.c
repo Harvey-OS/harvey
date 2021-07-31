@@ -174,6 +174,9 @@ main(int argc, char **argv)
 		stats->nrpc++;
 		stats->nproto += n;
 
+		if(r->work.fid < 0)
+			fatal("fid out of range");
+
 		DEBUG(2, "%F\n", &r->work);
 
 		type = r->work.type;
