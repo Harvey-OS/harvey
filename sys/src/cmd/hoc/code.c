@@ -612,7 +612,7 @@ varread(void)	/* read into variable */
   Again:
 	do
 		c = Bgetc(bin);
-	while(c==' ' || c=='\t' || c=='\n');
+	while(c==' ' || c=='\t');
 	if(c == Beof){
   Iseof:
 		if(moreinput())
