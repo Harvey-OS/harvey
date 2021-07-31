@@ -20,8 +20,6 @@ enum {
 };
 
 static int dh_server(Conn *, Packet *, mpint *, int);
-static int dh_client1(Conn *, mpint *, int, int);
-static int dh_client2(Conn *, Packet *, mpint *, int);
 static void genkeys(Conn *, uchar [], mpint *);
 
 /*
@@ -564,30 +562,18 @@ err:
 static int
 dh_client11(Conn *c, Packet *)
 {
-	return dh_client1(c, p1, 128, 1024);
-}
-
-static int
-dh_client141(Conn *c, Packet *)
-{
-	return dh_client1(c, p14, 256, 2014);
-}
-
-static int
-dh_client1(Conn *c, mpint *grp, int nrand, int nbit)
-{
 	Packet *p;
 	int n;
 
 	if (c->e)
 		mpfree(c->e);
-	c->e = mpnew(nbit);
+	c->e = mpnew(1024);
 
 	/* Compute e: RFC4253 */
 	if (c->x)
 		mpfree(c->x);
-	c->x = mprand(nrand, genrandom, nil);
-	mpexp(two, c->x, grp, c->e);
+	c->x = mprand(128, genrandom, nil);
+	mpexp(two, c->x, p1, c->e);
 
 	p = new_packet(c);
 	add_byte(p, SSH_MSG_KEXDH_INIT);
@@ -697,18 +683,6 @@ verifyhostkey(Conn *c, RSApub *srvkey, Packet *sig)
 static int
 dh_client12(Conn *c, Packet *p)
 {
-	return dh_client2(c, p, p1, 1024);
-}
-
-static int
-dh_client142(Conn *c, Packet *p)
-{
-	return dh_client2(c, p, p14, 2048);
-}
-
-static int
-dh_client2(Conn *c, Packet *p, mpint *grp, int nbits)
-{
 	int n, retval;
 #ifdef VERIFYKEYS
 	char *newkey;
@@ -730,8 +704,8 @@ dh_client2(Conn *c, Packet *p, mpint *grp, int nbits)
 	q += nhgetl(q) + 4;
 	get_string(p, q, (char *)sig->payload, Maxpktpay, &n);
 	sig->rlength = n;
-	k = mpnew(nbits);
-	mpexp(f, c->x, grp, k);
+	k = mpnew(1024);
+	mpexp(f, c->x, p1, k);
 
 	/* Compute H: RFC 4253 */
 	init_packet(pack2);
@@ -809,6 +783,34 @@ out:
 	free(pack2);
 	free(srvkey);
 	return retval;
+}
+
+static int
+dh_client141(Conn *c, Packet *)
+{
+	Packet *p;
+	mpint *e, *x;
+	int n;
+
+	/* Compute e: RFC4253 */
+	e = mpnew(2048);
+	x = mprand(256, genrandom, nil);
+	mpexp(two, x, p14, e);
+	p = new_packet(c);
+	add_byte(p, SSH_MSG_KEXDH_INIT);
+	add_mp(p, e);
+	n = finish_packet(p);
+	iowrite(c->dio, c->datafd, p->nlength, n);
+	free(p);
+	mpfree(e);
+	mpfree(x);
+	return 0;
+}
+
+static int
+dh_client142(Conn *, Packet *)
+{
+	return 0;
 }
 
 static void
