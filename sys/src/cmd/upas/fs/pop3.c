@@ -318,16 +318,15 @@ pop3download(Pop *pop, Message *m)
 			s++;
 			l--;
 		}
-		/*
-		 * grow by 10%/200bytes - some servers
-		 *  lie about message sizes
-		 */
 		if(wp+l > ep) {
-			int pos = wp - m->start;
-			sz += ((sz / 10) < 200)? 200: sz/10;
-			m->start = erealloc(m->start, sz+1);
-			wp = m->start+pos;
-			ep = m->start+sz;
+			free(m->start);
+			m->start = nil;
+			for(;;){
+				s = pop3resp(pop);
+				if(strcmp(s, ".") == 0 || strcmp(s, "unexpected eof") == 0)
+					break;
+			}
+			return "message larger than expected";
 		}
 		memmove(wp, s, l-1);
 		wp[l-1] = '\n';
