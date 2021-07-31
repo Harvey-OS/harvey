@@ -288,7 +288,7 @@ static Chan*
 µcopen(Chan* c, int omode)
 {
 	omode = openmode(omode);
-	if(!iseve())
+	if(strcmp(up->user, eve)!=0)
 		error(Eperm);
 	return devopen(c, omode, µcdir, nelem(µcdir), devgen);
 }
