@@ -115,8 +115,6 @@ struct Conv
 	int	length;
 	int	state;
 
-	int	maxfragsize;		/* If set, used for fragmentation */
-
 	/* udp specific */
 	int	headers;		/* data src/dst headers in udp */
 	int	reliable;		/* true if reliable udp */
@@ -332,6 +330,7 @@ struct Proto
 	int		nc;		/* number of conversations */
 	int		ac;
 	Qid		qid;		/* qid for protocol directory */
+	ushort		nextport;
 	ushort		nextrport;
 
 	void		*priv;
