@@ -182,6 +182,7 @@ done(void)
 {
 	level.done = 1;
 	draw(screen, screen->r, selected, gameover, ZP);
+	draw(screen, screen->r, selected, gameover, ZP);
 	flushimage(display, 1);
 }
 
