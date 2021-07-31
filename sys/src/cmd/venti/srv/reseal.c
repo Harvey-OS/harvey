@@ -2,29 +2,28 @@
 #include "dat.h"
 #include "fns.h"
 
+static int	verbose;
+static int	fd;
 static uchar	*data;
 static uchar	*data1;
 static int	blocksize;
 static int	sleepms;
-static int	fd;
-static int	force;
-static vlong	offset0;
 
 void
 usage(void)
 {
-	fprint(2, "usage: reseal [-f] [-b blocksize] [-s ms] arenapart1 [name...]]\n");
+	fprint(2, "usage: reseal [-b blocksize] [-s ms] [-v] arenapart1 [name...]]\n");
 	threadexitsall(0);
 }
 
 static int
-pwriteblock(uchar *buf, int n, vlong off)
+pwriteblock(int fd, uchar *buf, int n, vlong off)
 {
 	int nr, m;
 
 	for(nr = 0; nr < n; nr += m){
 		m = n - nr;
-		m = pwrite(fd, &buf[nr], m, offset0+off+nr);
+		m = pwrite(fd, &buf[nr], m, off+nr);
 		if(m <= 0)
 			return -1;
 	}
@@ -32,13 +31,13 @@ pwriteblock(uchar *buf, int n, vlong off)
 }
 
 static int
-preadblock(uchar *buf, int n, vlong off)
+preadblock(int fd, uchar *buf, int n, vlong off)
 {
 	int nr, m;
 
 	for(nr = 0; nr < n; nr += m){
 		m = n - nr;
-		m = pread(fd, &buf[nr], m, offset0+off+nr);
+		m = pread(fd, &buf[nr], m, off+nr);
 		if(m <= 0){
 			if(m == 0)
 				werrstr("early eof");
@@ -49,9 +48,26 @@ preadblock(uchar *buf, int n, vlong off)
 }
 
 static int
-loadheader(char *name, ArenaHead *head, Arena *arena, vlong off)
+readblock(int fd, uchar *buf, int n)
 {
-	if(preadblock(data, head->blocksize, off + head->size - head->blocksize) < 0){
+	int nr, m;
+
+	for(nr = 0; nr < n; nr += m){
+		m = n - nr;
+		m = read(fd, &buf[nr], m);
+		if(m <= 0){
+			if(m == 0)
+				werrstr("early eof");
+			return -1;
+		}
+	}
+	return 0;
+}
+
+static int
+loadheader(char *name, ArenaHead *head, Arena *arena, int fd, vlong off)
+{
+	if(preadblock(fd, data, head->blocksize, off + head->size - head->blocksize) < 0){
 		fprint(2, "%s: reading arena tail: %r\n", name);
 		return -1;
 	}
@@ -74,7 +90,7 @@ loadheader(char *name, ArenaHead *head, Arena *arena, vlong off)
 uchar zero[VtScoreSize];
 
 static int
-verify(Arena *arena, void *data, uchar *newscore)
+verify(int fd, Arena *arena, void *data, uchar *newscore)
 {
 	vlong e, bs, n, o;
 	DigestState ds, ds1;
@@ -89,7 +105,7 @@ verify(Arena *arena, void *data, uchar *newscore)
 	bs = arena->blocksize;
 	memset(&ds, 0, sizeof ds);
 	for(n = 0; n < e; n += bs){
-		if(preadblock(data, bs, o + n) < 0){
+		if(preadblock(fd, data, bs, o + n) < 0){
 			werrstr("read: %r");
 			return -1;
 		}
@@ -99,7 +115,7 @@ verify(Arena *arena, void *data, uchar *newscore)
 	}
 	
 	/* last block */
-	if(preadblock(data, arena->blocksize, o + e) < 0){
+	if(preadblock(fd, data, arena->blocksize, o + e) < 0){
 		werrstr("read: %r");
 		return -1;
 	}
@@ -107,11 +123,8 @@ verify(Arena *arena, void *data, uchar *newscore)
 	sha1(data, bs - VtScoreSize, nil, &ds);
 	sha1(zero, VtScoreSize, score, &ds);
 	if(scorecmp(score, arena->score) != 0){
-		if(!force){
-			werrstr("score mismatch: %V != %V", score, arena->score);
-			return -1;
-		}
-		fprint(2, "warning: score mismatch %V != %V\n", score, arena->score);
+		werrstr("score mismatch: %V != %V", score, arena->score);
+		return -1;
 	}
 	
 	/* prepare new last block */
@@ -141,7 +154,7 @@ resealarena(char *name, vlong len)
 	/*
 	 * read a little bit, which will include the header
 	 */
-	if(preadblock(data, HeadSize, off) < 0){
+	if(preadblock(fd, data, HeadSize, off) < 0){
 		fprint(2, "%s: reading header: %r\n", name);
 		return;
 	}
@@ -156,7 +169,7 @@ resealarena(char *name, vlong len)
 	if(strcmp(name, "<stdin>") != 0 && strcmp(head.name, name) != 0)
 		fprint(2, "%s: warning: unexpected name %s\n", name, head.name);
 
-	if(loadheader(name, &head, &arena, off) < 0)
+	if(loadheader(name, &head, &arena, fd, off) < 0)
 		return;
 	
 	if(!arena.diskstats.sealed){
@@ -164,19 +177,20 @@ resealarena(char *name, vlong len)
 		return;
 	}
 	
-	if(verify(&arena, data, newscore) < 0){
+	if(verify(fd, &arena, data, newscore) < 0){
 		fprint(2, "%s: failed to verify before reseal: %r\n", name);
 		return;
 	}
+	fprint(2, "%s: verified: %V\n", name, arena.score);
 	
-	if(pwriteblock(data, arena.blocksize, arena.base + arena.size) < 0){
+	if(pwriteblock(fd, data, arena.blocksize, arena.base + arena.size) < 0){
 		fprint(2, "%s: writing new tail: %r\n", name);
 		return;
 	}
 	scorecp(arena.score, newscore);
 	fprint(2, "%s: resealed: %V\n", name, newscore);
 
-	if(verify(&arena, data, newscore) < 0){
+	if(verify(fd, &arena, data, newscore) < 0){
 		fprint(2, "%s: failed to verify after reseal!: %r\n", name);
 		return;
 	}
@@ -202,11 +216,11 @@ shouldcheck(char *name, char **s, int n)
 }
 
 char *
-readap(ArenaPart *ap)
+readap(int fd, ArenaPart *ap)
 {
 	char *table;
 	
-	if(preadblock(data, 8192, PartBlank) < 0)
+	if(preadblock(fd, data, 8192, PartBlank) < 0)
 		sysfatal("read arena part header: %r");
 	if(unpackarenapart(ap, data) < 0)
 		sysfatal("corrupted arena part header: %r");
@@ -215,7 +229,7 @@ readap(ArenaPart *ap)
 	ap->tabbase = (PartBlank+HeadSize+ap->blocksize-1)&~(ap->blocksize-1);
 	ap->tabsize = ap->arenabase - ap->tabbase;
 	table = malloc(ap->tabsize+1);
-	if(preadblock((uchar*)table, ap->tabsize, ap->tabbase) < 0)
+	if(preadblock(fd, (uchar*)table, ap->tabsize, ap->tabbase) < 0)
 		sysfatal("reading arena part directory: %r");
 	table[ap->tabsize] = 0;
 	return table;
@@ -228,7 +242,6 @@ threadmain(int argc, char *argv[])
 	char *p, *q, *table, *f[10], line[256];
 	vlong start, stop;
 	ArenaPart ap;
-	Part *part;
 	
 	ventifmtinstall();
 	blocksize = MaxIoSize;
@@ -236,11 +249,11 @@ threadmain(int argc, char *argv[])
 	case 'b':
 		blocksize = unittoull(EARGF(usage()));
 		break;
-	case 'f':
-		force = 1;
-		break;
 	case 's':
 		sleepms = atoi(EARGF(usage()));
+		break;
+	case 'v':
+		verbose++;
 		break;
 	default:
 		usage();
@@ -251,12 +264,10 @@ threadmain(int argc, char *argv[])
 		usage();
 
 	data = vtmalloc(blocksize);
-	if((part = initpart(argv[0], ORDWR)) == nil)
-		sysfatal("open partition %s: %r", argv[0]);
-	fd = part->fd;
-	offset0 = part->offset;
+	if((fd = open(argv[0], ORDWR)) < 0)
+		sysfatal("open %s: %r", argv[0]);
 
-	table = readap(&ap);
+	table = readap(fd, &ap);
 
 	nline = atoi(table);
 	p = strchr(table, '\n');
