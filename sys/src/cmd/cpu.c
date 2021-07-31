@@ -134,7 +134,7 @@ main(int argc, char **argv)
 	case 'k':
 		keyspec = EARGF(usage());
 		break;
-	case 'P':
+	case 'p':
 		patternfile = EARGF(usage());
 		break;
 	default:
@@ -187,7 +187,7 @@ main(int argc, char **argv)
 	if(dbg)
 		av[ac++] = "-d";
 	if(patternfile != nil){
-		av[ac++] = "-P";
+		av[ac++] = "-p";
 		av[ac++] = patternfile;
 	}
 	av[ac] = 0;
