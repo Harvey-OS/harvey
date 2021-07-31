@@ -14,8 +14,6 @@ enum {
 	OOverWrite,
 };
 
-extern char *currfsysname;
-
 void	fsClose(Fs*);
 int	fsEpochLow(Fs*, u32int);
 File	*fsGetRoot(Fs*);
