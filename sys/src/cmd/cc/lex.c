@@ -62,6 +62,7 @@ main(int argc, char *argv[])
 		}
 		thechar = '0';
 		thestring = "spim";
+		little = 1;
 		break;
 
 	case 'o':

@@ -3,6 +3,6 @@ rfork e
 U=`{cat /dev/user}
 for(i){
 	ps | sed -n '/^'$U' .* '$i'$/s%[^ ]*  *%~>/proc/%
-	s%  *.* (.*)%/note # \1%
+	s%  *.*%/note%
 	s%~%echo kill%p'
 }

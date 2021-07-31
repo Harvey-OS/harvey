@@ -2,6 +2,6 @@
 U=`{cat /dev/user}
 for(i){
 	ps | sed -n '/^'$U' .* '$i'$/s%[^ ]*  *%~>/proc/%
-	s%  *.* (.*)%/ctl # \1%
+	s%  *.*%/ctl%
 	s%~%echo kill%p'
 }
