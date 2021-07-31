@@ -76,6 +76,11 @@ enum {					/* Device/Head */
 	Lba		= 0x40,		/* LBA mode */
 };
 
+enum {					/* internal flags */
+	Lba48		= 0x1,		/* LBA48 mode */
+	Lba48always	= 0x2,		/* ... */
+};
+
 enum {					/* Status, Alternate Status */
 	Err		= 0x01,		/* Error */
 	Chk		= 0x01,		/* Check error (PACKET) */
@@ -324,11 +329,6 @@ typedef struct Drive {
 	int	error;
 	int	flags;			/* internal flags */
 } Drive;
-
-enum {					/* internal flags */
-	Lba48		= 0x1,		/* LBA48 mode */
-	Lba48always	= 0x2,		/* ... */
-};
 
 static void
 pc87415ienable(Ctlr* ctlr)
@@ -671,8 +671,7 @@ retry:
 			drive->c = drive->info[Iccyl];
 			drive->h = drive->info[Ichead];
 			drive->s = drive->info[Icsec];
-		}
-		else{
+		}else{
 			drive->c = drive->info[Ilcyl];
 			drive->h = drive->info[Ilhead];
 			drive->s = drive->info[Ilsec];
@@ -683,14 +682,12 @@ retry:
 					| (drive->info[Ilba48+1]<<16)
 					| ((vlong)drive->info[Ilba48+2]<<32);
 				drive->flags |= Lba48;
-			}
-			else{
+			}else{
 				drive->sectors = (drive->info[Ilba+1]<<16)
 					 |drive->info[Ilba];
 			}
 			drive->dev |= Lba;
-		}
-		else
+		}else
 			drive->sectors = drive->c*drive->h*drive->s;
 		atarwmmode(drive, cmdport, ctlport, dev);
 	}
@@ -702,10 +699,9 @@ retry:
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
-		print(" dma %8.8uX rwm %ud", drive->dma, drive->rwm);
+		print(" dma %8.8uX rwm %ud\n", drive->dma, drive->rwm);
 		if(drive->flags&Lba48)
-			print("\tLLBA sectors %lld", drive->sectors);
-		print("\n");
+			print("\tLLBA sectors %lld\n", drive->sectors);
 	}
 
 	return drive;
@@ -1314,13 +1310,11 @@ atageniostart(Drive* drive, vlong lba)
 			return -1;
 		use48 = 1;
 		c = h = s = 0;
-	}
-	else if(drive->dev & Lba){
+	}else if(drive->dev & Lba){
 		c = (lba>>8) & 0xFFFF;
 		h = (lba>>24) & 0x0F;
 		s = lba & 0xFF;
-	}
-	else{
+	}else{
 		c = lba/(drive->s*drive->h);
 		h = ((lba/drive->s) % drive->h);
 		s = (lba % drive->s) + 1;
@@ -1369,8 +1363,7 @@ atageniostart(Drive* drive, vlong lba)
 
 		if(DEBUG & Dbg48BIT)
 			print("using 48-bit commands\n");
-	}
-	else{
+	}else{
 		outb(cmdport+Count, drive->count);
 		outb(cmdport+Sector, s);
 		outb(cmdport+Cyllo, c);
@@ -1910,7 +1903,6 @@ atapnp(void)
 			 * address for the registers (0x50?).
 			 */
 			break;
-		case (0x5513<<16)|0x1039:	/* SiS 962 */
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
@@ -2211,7 +2203,7 @@ SDifc sdataifc = {
 	atalegacy,			/* legacy */
 	ataid,				/* id */
 	ataenable,			/* enable */
-	atadisable,			/* disable */
+	atadisable,		/* disable */
 
 	scsiverify,			/* verify */
 	scsionline,			/* online */
@@ -2220,7 +2212,7 @@ SDifc sdataifc = {
 	atawctl,			/* wctl */
 
 	scsibio,			/* bio */
-	ataprobew,			/* probe */
+	ataprobew,		/* probe */
 	ataclear,			/* clear */
 	atastat,			/* stat */
 };

@@ -646,19 +646,13 @@ texttype(Text *t, Rune r)
 	switch(r){
 	case Kleft:
 		if(t->q0 > 0){
-			if(t->w)
-				wincommit(t->w, t);
-			else
-				textcommit(t, TRUE);
+			wincommit(t->w, t);
 			textshow(t, t->q0-1, t->q0-1, TRUE);
 		}
 		return;
 	case Kright:
 		if(t->q1 < t->file->nc){
-			if(t->w)
-				wincommit(t->w, t);
-			else
-				textcommit(t, TRUE);
+			wincommit(t->w, t);
 			textshow(t, t->q1+1, t->q1+1, TRUE);
 		}
 		return;
