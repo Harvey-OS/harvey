@@ -32,7 +32,6 @@ PORT=\
 	segment.$O\
 	taslock.$O\
 	tod.$O\
-	watermarks.$O\
 	xalloc.$O\
 
 OBJ=\
