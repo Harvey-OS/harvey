@@ -13,7 +13,6 @@
 #include <libsec.h>
 
 #define	Maxfdata 8192
-#define MaxStr 128
 
 void	remoteside(int);
 void	fatal(int, char*, ...);
@@ -28,8 +27,9 @@ int	setamalg(char*);
 char *keyspec = "";
 
 int 	notechan;
-char	*system;
+char	system[32];
 int	cflag;
+int	hflag;
 int	dbg;
 char	*user;
 
@@ -77,7 +77,7 @@ int fdd;
 void
 main(int argc, char **argv)
 {
-	char dat[MaxStr], buf[MaxStr], cmd[MaxStr], *p, *err;
+	char dat[128], buf[128], cmd[128], *p, *err;
 	int fd, ms, data;
 
 	/* see if we should use a larger message size */
@@ -117,7 +117,9 @@ main(int argc, char **argv)
 		remoteside(0);
 		break;
 	case 'h':
-		system = EARGF(usage());
+		hflag++;
+		p = EARGF(usage());
+		strcpy(system, p);
 		break;
 	case 'c':
 		cflag++;
@@ -139,11 +141,11 @@ main(int argc, char **argv)
 	if(argc != 0)
 		usage();
 
-	if(system == nil) {
+	if(hflag == 0) {
 		p = getenv("cpu");
 		if(p == 0)
 			fatal(0, "set $cpu");
-		system = p;
+		strcpy(system, p);
 	}
 
 	if(err = rexcall(&data, system, srvname))
@@ -249,7 +251,7 @@ old9p(int fd)
 void
 remoteside(int old)
 {
-	char user[MaxStr], home[MaxStr], buf[MaxStr], xdir[MaxStr], cmd[MaxStr];
+	char user[128], home[128], buf[128], xdir[128], cmd[128];
 	int i, n, fd, badchdir, gotcmd;
 
 	fd = 0;
@@ -340,9 +342,9 @@ char*
 rexcall(int *fd, char *host, char *service)
 {
 	char *na;
-	char dir[MaxStr];
+	char dir[128];
 	char err[ERRMAX];
-	char msg[MaxStr];
+	char msg[128];
 	int n;
 
 	na = netmkaddr(host, 0, service);
@@ -426,7 +428,7 @@ netkeyauth(int fd)
 	char chall[32];
 	char resp[32];
 
-	strecpy(chall, chall+sizeof chall, getuser());
+	strcpy(chall, getuser());
 	print("user[%s]: ", chall);
 	if(readln(resp, sizeof(resp)) < 0)
 		return -1;
@@ -539,7 +541,7 @@ noauth(int fd)
 static int
 srvnoauth(int fd, char *user)
 {
-	strecpy(user, user+MaxStr, getuser());
+	strcpy(user, getuser());
 	ealgs = nil;
 	return fd;
 }
@@ -570,7 +572,7 @@ srvp9auth(int fd, char *user)
 		return -1;
 	if(auth_chuid(ai, nil) < 0)
 		return -1;
-	strecpy(user, user+MaxStr, ai->cuid);
+	strcpy(user, ai->cuid);
 	memmove(key+4, ai->secret, ai->nsecret);
 
 	if(ealgs == nil)
