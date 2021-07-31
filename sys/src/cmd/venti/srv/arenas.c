@@ -15,8 +15,7 @@ struct AHash
 
 enum
 {
-	AHashSize	= 512,
-	Emergency	= 0,		/* flag: performing emergency surgery */
+	AHashSize	= 512
 };
 
 static AHash	*ahash[AHashSize];
@@ -143,11 +142,8 @@ initarenapart(Part *part)
 	ap->narenas = amn.n;
 	ap->map = amn.map;
 	if(okamap(ap->map, ap->narenas, ap->arenabase, ap->size, "arena table") < 0){
-		if(!Emergency){
-			freearenapart(ap, 0);
-			return nil;
-		}
-		/* else keep on, for emergency use */
+		freearenapart(ap, 0);
+		return nil;
 	}
 
 	ap->arenas = MKNZ(Arena*, ap->narenas);
@@ -156,14 +152,8 @@ initarenapart(Part *part)
 		ap->arenas[i] = initarena(part, ap->map[i].start, ap->map[i].stop - ap->map[i].start, ap->blocksize);
 		if(ap->arenas[i] == nil){
 			seterr(ECorrupt, "%s: %r", ap->map[i].name);
-			if(!Emergency){
-				freearenapart(ap, 1);
-				return nil;
-			}else{
-				/* keep on, for emergency use */
-				ap->narenas = i;
-				break;
-			}
+			freearenapart(ap, 1);
+			return nil;
 		}
 		if(namecmp(ap->map[i].name, ap->arenas[i]->name) != 0){
 			seterr(ECorrupt, "arena name mismatches with expected name: %s vs. %s",

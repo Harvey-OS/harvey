@@ -219,9 +219,8 @@ enum {					/* General Descriptor control */
 /*
  */
 enum {					/* Ring sizes  (<= 1024) */
-	/* were 1024 & 64, but 253 and 9 are ample. */
-	Nrd		= 256,		/* Receive Ring */
-	Ntd		= 32,		/* Transmit Ring */
+	Ntd		= 64,		/* Transmit Ring */
+	Nrd		= 1024,		/* Receive Ring */
 
 	Mtu		= ETHERMAXTU,
 	Mps		= ROUNDUP(ETHERMAXTU+4, 128),
@@ -298,7 +297,7 @@ typedef struct Ctlr {
 	int	rcr;			/* receive configuration register */
 	int	imr;
 
-//	Watermark wmrb;
+	Watermark wmrb;
 	Watermark wmrd;
 	Watermark wmtd;
 
@@ -514,10 +513,8 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 		nexterror();
 	}
 
-	dtcc = ctlr->dtcc;
-	assert(dtcc);
 	csr32w(ctlr, Dtccr+4, 0);
-	csr32w(ctlr, Dtccr, PCIWADDR(dtcc)|Cmd);
+	csr32w(ctlr, Dtccr, PCIWADDR(ctlr->dtcc)|Cmd);
 	for(timeo = 0; timeo < 1000; timeo++){
 		if(!(csr32r(ctlr, Dtccr) & Cmd))
 			break;
@@ -525,6 +522,8 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 	}
 	if(csr32r(ctlr, Dtccr) & Cmd)
 		error(Eio);
+
+	dtcc = ctlr->dtcc;
 
 	edev->oerrs = dtcc->txer;
 	edev->crcs = dtcc->rxer;
@@ -860,8 +859,9 @@ rtl8169attach(Ether* edev)
 			qunlock(&ctlr->alock);
 			error(Enomem);
 		}
+		memset(ctlr->dtcc, 0, sizeof(Dtcc));	/* paranoia */
 		rtl8169init(edev);
-//		initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
+		initmark(&ctlr->wmrb, Nrd, "rcv bufs unprocessed");
 		initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
 		initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 		ctlr->init = 1;

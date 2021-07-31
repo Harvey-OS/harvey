@@ -335,11 +335,10 @@ enum {					/* extsts bits */
 };
 
 enum {
+	Nrd		= 256,
+	Nrb		= 4*Nrd,
 	Rbsz		= ROUNDUP(sizeof(Etherpkt)+8, 8),
-	/* were 256, 4*Nrd & 64, but 52, 253 and 9 are ample. */
-	Nrd		= 128,
-	Nrb		= 256,
-	Ntd		= 32,
+	Ntd		= 64,
 };
 
 typedef struct Ctlr Ctlr;
