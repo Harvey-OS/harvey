@@ -6,11 +6,11 @@
 void
 incref(Ref *r)
 {
-	ainc(&r->ref);
+	_xinc(&r->ref);
 }
 
 long
 decref(Ref *r)
 {
-	return adec(&r->ref);
+	return _xdec(&r->ref);
 }

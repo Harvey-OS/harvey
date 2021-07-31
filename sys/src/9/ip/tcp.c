@@ -2484,8 +2484,7 @@ tcpoutput(Conv *s)
 			usable = tcb->cwind;
 			if(tcb->snd.wnd < usable)
 				usable = tcb->snd.wnd;
-//			usable -= sent;
-			usable = usable >= sent? usable - sent: 0;
+			usable -= sent;
 		}
 		ssize = sndcnt-sent;
 		if(ssize && usable < 2)

@@ -179,6 +179,8 @@ void	_threadready(Thread*);
 void*	_threadrendezvous(void*, void*);
 void	_threadsignal(void);
 void	_threadsysfatal(char*, va_list);
+long	_xdec(long*);
+void	_xinc(long*);
 void**	_workerdata(void);
 
 extern int			_threaddebuglevel;
