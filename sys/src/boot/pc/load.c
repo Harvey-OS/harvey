@@ -395,6 +395,7 @@ main(void)
 	mode = Mauto;
 
 	p = getconf("bootfile");
+
 	if(p != 0) {
 		mode = Manual;
 		for(i = 0; i < NMode; i++){
@@ -426,7 +427,7 @@ done:
 		print("end final probe\n");
 
 	if(p = getconf("bootdef"))
-		strncpy(def, p, sizeof def);
+		strcpy(def, p);
 
 	/* print possible boot methods */
 	flag = 0;

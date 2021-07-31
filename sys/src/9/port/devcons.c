@@ -936,10 +936,9 @@ consread(Chan *c, void *buf, long n, vlong off)
 		b = malloc(READSTR);
 		if(b == nil)
 			error(Enomem);
-		k = 0;
+		n = 0;
 		for(i = 0; devtab[i] != nil; i++)
-			k += snprint(b+k, READSTR-k, "#%C %s\n",
-				devtab[i]->dc, devtab[i]->name);
+			n += snprint(b+n, READSTR-n, "#%C %s\n", devtab[i]->dc,  devtab[i]->name);
 		if(waserror()){
 			free(b);
 			nexterror();

@@ -35,7 +35,6 @@ PORT=\
 	qlock.$O\
 	segment.$O\
 	swap.$O\
-	syscallfmt.$O\
 	sysfile.$O\
 	sysproc.$O\
 	taslock.$O\

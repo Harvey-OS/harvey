@@ -27,7 +27,8 @@ bind -a '#¤' /dev
 bind -a '#S' /dev
 bind -a '#k' /dev
 bind -a '#æ' /dev
-bind -a '#u' /dev
+bind -a '#u' /dev	>[2]/dev/null
+bind -a '#U' /dev	>[2]/dev/null	# old usb implementation
 bind '#p' /proc
 bind '#d' /fd
 bind -c '#s' /srv
