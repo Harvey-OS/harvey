@@ -169,7 +169,6 @@ threadmain(int argc, char *argv[])
 	char *p, *srvpt = nil;
 
 	threadsetname("main");
-	nokeyverify = 1;	/* temporary until verification is fixed */
 	ARGBEGIN {
 	case '9':
 		chatty9p = 1;
@@ -189,18 +188,16 @@ threadmain(int argc, char *argv[])
 	case 'v':
 		nokeyverify = 1;
 		break;
-	case 'V':
-		nokeyverify = 0;
-		break;
 	default:
 		usage();
 		break;
 	} ARGEND;
 
 	p = getenv("nosshkeyverify");
-	if (p && p[0] != '\0')
+	if (p) {
 		nokeyverify = 1;
-	free(p);
+		free(p);
+	}
 
 	if (readfile("/dev/user", uid, sizeof uid) <= 0)
 		strcpy(uid, "none");
@@ -1350,11 +1347,10 @@ writereqremproc(void *a)
 		add_uint32(p, ch->otherid);
 		add_string(p, "exec");
 		add_byte(p, 0);
-
 		cmd = emalloc9p(Bigbufsz);
 		q = seprint(cmd, cmd+Bigbufsz, "%s", toks[1]);
 		for (n = 2; n < ntok; ++n) {
-			q = seprint(q, cmd+Bigbufsz, " %q", toks[n]);
+			q = seprint(q, cmd+Bigbufsz, " %s", toks[n]);
 			if (q == nil)
 				break;
 		}
@@ -2415,7 +2411,7 @@ established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 			Maxpayload, "%s %c", buf, *q? 't': 'f');
 		sshdebug(c, "request message begins: %s",
 			(char *)pl->pack->payload);
-		memmove(pl->pack->payload + n, q + 1, p->rlength - (11 + n-2));
+		memmove(pl->pack->payload + n, q + 1, p->rlength - (11 + (n-2)));
 		pl->rem = p->rlength - 11 + 2;
 		pl->st = pl->pack->payload;
 		pl->next = nil;

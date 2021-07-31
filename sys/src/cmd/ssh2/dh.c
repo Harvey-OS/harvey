@@ -743,11 +743,11 @@ dh_client12(Conn *c, Packet *p)
 	case -2:
 		goto out;
 	case -1:
-		newkey = "signature verification failed; try netssh -v";
+		newkey = "Signature verification failed; try ssh -v";
 		keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
 		break;
 	case 0:
-		newkey = "Key verification dialog failed; try netssh -v";
+		newkey = "Key verification dialog failed; try ssh -v";
 		keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
 		break;
 	case 1:
