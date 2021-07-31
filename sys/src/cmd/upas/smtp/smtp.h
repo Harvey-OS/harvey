@@ -9,7 +9,6 @@ struct Node {
 	char	addr;	/* true if this is an address */
 	String	*s;	/* string representing token */
 	String	*white;	/* white space following token */
-	char	*start;	/* first byte for this token */
 	char	*end;	/* next byte in input */
 };
 
