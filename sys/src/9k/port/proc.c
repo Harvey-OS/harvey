@@ -1240,7 +1240,7 @@ procdump(void)
 
 /*
  *  wait till all processes have flushed their mmu
- *  state about segment s
+ *  state about segement s
  */
 void
 procflushseg(Segment *s)
