@@ -53,15 +53,13 @@ main(int argc, char *argv[])
 		break;
 	case 'f':
 		find++;
-		p = EARGF(usage());
-		if(!parseScore(fscore, p, strlen(p)))
+		p = ARGF();
+		if(p == nil || !parseScore(fscore, p, strlen(p)))
 			usage();
 		break;
 	case 'a':
 		all = 1;
 		break;
-	default:
-		usage();
 	}ARGEND
 
 	vtAttach();
@@ -95,8 +93,6 @@ main(int argc, char *argv[])
 		Bprint(bout, "bsize: %d\n", bsize);
 		Bprint(bout, "prev: %V\n", root.prev);
 	}
-	if (bsize == 0)
-		sysfatal("zero bsize");
 
 	switch(ver) {
 	default:
@@ -288,8 +284,6 @@ dumpDir(Source *s, int indent)
 	uchar buf[VtMaxLumpSize];
 	Source ss;
 
-	if (s->dsize == 0)
-		sysfatal("dumpDir: zero s->dsize");
 	pb = s->dsize/VtEntrySize;
 	ne = pb*(s->size/s->dsize) + (s->size%s->dsize)/VtEntrySize;
 	nb = (s->size + s->dsize - 1)/s->dsize;
@@ -326,7 +320,7 @@ dumpDir(Source *s, int indent)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-ac] [-f findscore] [-h host] [file]\n", argv0);
+	fprint(2, "%s: [file]\n", argv0);
 	exits("usage");
 }
 
@@ -365,7 +359,7 @@ readRoot(VtRoot *root, uchar *score, char *file)
 	uchar buf[VtRootSize];
 	int i, n, nn;
 
-	if(file == nil)
+	if(file == 0)
 		fd = 0;
 	else {
 		fd = open(file, OREAD);

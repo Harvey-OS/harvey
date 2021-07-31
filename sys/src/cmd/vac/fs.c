@@ -94,7 +94,7 @@ vfsOpen(VtSession *z, char *file, int readOnly, long ncache)
 	}
 
 	fs = vfsAlloc(z, rt.blockSize, ncache);
-	vfsGetScore(fs, score);
+	memmove(fs->score, score, VtScoreSize);
 	fs->readOnly = readOnly;
 	root = vfRoot(fs, rt.score);
 	if(root == nil)
@@ -112,7 +112,10 @@ Err:
 VacFS *
 vacFsCreate(VtSession *z, int bsize, long ncache)
 {
-	return vfsAlloc(z, bsize, ncache);
+	VacFS *fs;
+
+	fs = vfsAlloc(z, bsize, ncache);
+	return fs;
 }
 
 int
@@ -136,7 +139,7 @@ vfsGetBlockSize(VacFS *fs)
 int
 vfsGetScore(VacFS *fs, uchar score[VtScoreSize])
 {
-	memmove(fs->score, score, VtScoreSize);
+	memmove(fs, score, VtScoreSize);
 	return 1;
 }
 
