@@ -248,17 +248,14 @@ Auth*
 authnew(char *uname, char *aname)
 {
 	static int si = 0;
-	int i, nwrap;
+	int i;
 	Auth *s;
 
-	i = si;
-	nwrap = 0;
+	i = si + 1;
+	if(i < 0 || i >= conf.nauth)
+		i = 0;
+	si = i;
 	for(;;){
-		if(i < 0 || i >= conf.nauth){
-			if(++nwrap > 1)
-				return nil;
-			i = 0;
-		}
 		s = &auths[i++];
 		if(s->inuse)
 			continue;

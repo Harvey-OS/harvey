@@ -192,6 +192,16 @@ static	struct
 	0,	73,	119,	303,
 };
 
+static struct
+{
+	short	minuteswest;	/* minutes west of Greenwich */
+	short	dsttime;	/* dst correction */
+} timezone =
+{
+//	5*60, 1			// East Coast North America time zone
+	8*60, 1			// West Coast North America time zone
+};
+
 static
 prevsunday(Tm *t, int d)
 {
@@ -220,7 +230,7 @@ localtime(ulong tim, Tm *ct)
 	int daylbegin, daylend, dayno, i;
 	ulong copyt;
 
-	copyt = tim - conf.minuteswest*60L;
+	copyt = tim - timezone.minuteswest*60L;
 	gmtime(copyt, ct);
 	dayno = ct->yday;
 	for(i=0;; i++)
@@ -230,7 +240,7 @@ localtime(ulong tim, Tm *ct)
 			daylend = prevsunday(ct, daytab[i].dayle);
 			break;
 		}
-	if(conf.dsttime &&
+	if(timezone.dsttime &&
 	    (dayno>daylbegin || (dayno==daylbegin && ct->hour>=2)) &&
 	    (dayno<daylend || (dayno==daylend && ct->hour<1))) {
 		copyt += 60L*60L;

@@ -493,9 +493,6 @@ struct	Conf
 	uchar	ripoff;
 	uchar	dumpreread;	/* read and compare in dump copy */
 
-	short	minuteswest;	/* minutes west of Greenwich */
-	short	dsttime;	/* dst correction */
-
 	ulong	npage0;		/* total physical pages of memory */
 	ulong	npage1;		/* total physical pages of memory */
 	ulong	base0;		/* base of bank 0 */
@@ -793,7 +790,6 @@ enum
 	Eversion,
 	Eauthdisabled,
 	Eauthnone,
-	Eauthfile,
 	Eedge,
 	MAXERR
 };

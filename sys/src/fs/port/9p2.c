@@ -231,10 +231,7 @@ auth(Chan* chan, Fcall* f, Fcall* r)
 	freewp(file->wpath);
 	file->wpath = 0;
 	file->auth = authnew(f->uname, f->aname);
-	if(file->auth == nil){
-		error = Eauthfile;
-		goto out;
-	}
+
 	r->aqid = file->qid;
 	
 out:
