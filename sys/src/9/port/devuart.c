@@ -23,7 +23,6 @@ static Uart** uart;
 static int uartnuart;
 static Dirtab *uartdir;
 static int uartndir;
-static Timer *uarttimer;
 
 struct Uartalloc {
 	Lock;
@@ -42,13 +41,13 @@ uartenable(Uart *p)
 	Uart **l;
 
 	if(p->iq == nil){
-		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil)
+		if((p->iq = qopen(4*1024, 0, uartflow, p)) == nil)
 			return nil;
 	}
 	else
 		qreopen(p->iq);
 	if(p->oq == nil){
-		if((p->oq = qopen(8*1024, 0, uartkick, p)) == nil){
+		if((p->oq = qopen(4*1024, 0, uartkick, p)) == nil){
 			qfree(p->iq);
 			p->iq = nil;
 			return nil;
@@ -226,9 +225,9 @@ uartreset(void)
 	if(uartnuart){
 		/*
 		 * at 115200 baud, the 1024 char buffer takes 56 ms to process,
-		 * processing it every 22 ms should be fine.
+		 * processing it every 22 ms should be fine
 		 */
-		uarttimer = addclock0link(uartclock, 22);
+		addclock0link(uartclock, 22);
 	}
 }
 
@@ -318,9 +317,7 @@ uartclose(Chan *c)
 		qlock(p);
 		if(--(p->opens) == 0){
 			qclose(p->iq);
-			ilock(&p->rlock);
 			p->ir = p->iw = p->istage;
-			iunlock(&p->rlock);
 
 			/*
 			 */
@@ -464,9 +461,7 @@ uartctl(Uart *p, char *cmd)
 			break;
 		case 'W':
 		case 'w':
-			if(uarttimer == nil || n < 1)
-				return -1;
-			uarttimer->tns = (vlong)n * 100000LL;
+			/* obsolete */
 			break;
 		case 'X':
 		case 'x':
@@ -636,35 +631,6 @@ uartkick(void *v)
 }
 
 /*
- * Move data from the interrupt staging area to
- * the input Queue.
- */
-static void
-uartstageinput(Uart *p)
-{
-	int n;
-	uchar *ir, *iw;
-
-	while(p->ir != p->iw){
-		ir = p->ir;
-		if(p->ir > p->iw){
-			iw = p->ie;
-			p->ir = p->istage;
-		}
-		else{
-			iw = p->iw;
-			p->ir = p->iw;
-		}
-		if((n = qproduce(p->iq, ir, iw - ir)) < 0){
-			p->serr++;
-			(*p->phys->rts)(p, 0);
-		}
-		else if(n == 0)
-			p->berr++;
-	}
-}
-
-/*
  *  receive a character at interrupt time
  */
 void
@@ -686,17 +652,13 @@ uartrecv(Uart *p,  char ch)
 	if(p->putc)
 		p->putc(p->iq, ch);
 	else{
-		ilock(&p->rlock);
 		next = p->iw + 1;
 		if(next == p->ie)
 			next = p->istage;
-		if(next == p->ir)
-			uartstageinput(p);
 		if(next != p->ir){
 			*p->iw = ch;
 			p->iw = next;
 		}
-		iunlock(&p->rlock);
 	}
 }
 
@@ -708,15 +670,22 @@ static void
 uartclock(void)
 {
 	Uart *p;
+	uchar *iw;
 
-	lock(&uartalloc);
 	for(p = uartalloc.elist; p; p = p->elist){
 
-		/* this hopefully amortizes cost of qproduce to many chars */
+		/* this amortizes cost of qproduce to many chars */
 		if(p->iw != p->ir){
-			ilock(&p->rlock);
-			uartstageinput(p);
-			iunlock(&p->rlock);
+			iw = p->iw;
+			if(iw < p->ir){
+				if(qproduce(p->iq, p->ir, p->ie-p->ir) < 0)
+					(*p->phys->rts)(p, 0);
+				p->ir = p->istage;
+			}
+			if(iw > p->ir)
+				if(qproduce(p->iq, p->ir, iw-p->ir) < 0)
+					(*p->phys->rts)(p, 0);
+			p->ir = iw;
 		}
 
 		/* hang up if requested */
@@ -736,7 +705,6 @@ uartclock(void)
 			iunlock(&p->tlock);
 		}
 	}
-	unlock(&uartalloc);
 }
 
 /*

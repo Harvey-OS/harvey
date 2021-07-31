@@ -70,8 +70,7 @@ provide a more polished interface.
 .PP
 Both client and server maintain textual databases of file system
 metadata.  Each line is of the form
-.ift .sp 0.5
-.ifn .sp
+.sp 0.5
 \h'0.25i'
 .I path
 .I mode
@@ -79,8 +78,7 @@ metadata.  Each line is of the form
 .I gid
 .I mtime
 .I length
-.ift .sp 0.5
-.ifn .sp
+.sp 0.5
 Later entries for a
 .I path
 supersede previous ones.
@@ -103,8 +101,7 @@ A replica is further described on the server by a textual
 log listing creation and deletion of files and changes
 to file contents and metadata.
 Each line is of the form:
-.ift .sp 0.5
-.ifn .sp
+.sp 0.5
 \h'0.25i'
 .I time
 .I gen
@@ -116,8 +113,7 @@ Each line is of the form:
 .I gid
 .I mtime
 .I length
-.ift .sp 0.5
-.ifn .sp
+.sp 0.5
 The
 .I time
 and

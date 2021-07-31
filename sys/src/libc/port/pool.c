@@ -20,12 +20,12 @@
  * When freed, adjacent blocks are coalesced to create larger blocks when
  * possible.
  * 
- * Allocated blocks (Alloc*) have one of two magic values: ALLOC_MAGIC or
- * UNALLOC_MAGIC.  When blocks are released from the pool, they have
- * magic value UNALLOC_MAGIC.  Once the block has been trimmed by trim()
+ * Allocated blocks (Alloc*) have one of two magic values: KEMPT_MAGIC or
+ * UNKEMPT_MAGIC.  When blocks are released from the pool, they have
+ * magic value UNKEMPT_MAGIC.  Once the block has been trimmed by kemb()
  * and the amount of user-requested data has been recorded in the
- * datasize field of the tail, the magic value is changed to ALLOC_MAGIC.
- * All blocks returned to callers should be of type ALLOC_MAGIC, as
+ * datasize field of the tail, the magic value is changed to KEMPT_MAGIC.
+ * All blocks returned to callers should be of type KEMPT_MAGIC, as
  * should all blocks passed to us by callers.  The amount of data the user
  * asked us for can be found by subtracting the short in tail->datasize 
  * from header->size.  Further, the up to at most four bytes between the
@@ -95,8 +95,8 @@ struct Alloc {
 			Bhdr;
 };
 enum {
-	ALLOC_MAGIC = 0x0A110C09,
-	UNALLOC_MAGIC = 0xCAB00D1E+1,
+	KEMPT_MAGIC = 0x0A110C09,
+	UNKEMPT_MAGIC = 0xCAB00D1E+1,
 };
 
 struct Arena {
@@ -112,10 +112,6 @@ enum {
 };
 #define A2TB(a)	((Bhdr*)((uchar*)(a)+(a)->asize-sizeof(Bhdr)))
 #define A2B(a)	B2NB(a)
-
-enum {
-	ALIGN_MAGIC = 0xA1F1D1C1,
-};
 
 enum {
 	MINBLOCKSIZE = sizeof(Free)+sizeof(Btail)
@@ -140,7 +136,7 @@ static Bhdr*	blocksetsize(Bhdr*, ulong);
 static ulong	bsize2asize(Pool*, ulong);
 static ulong	dsize2bsize(Pool*, ulong);
 static ulong	getdsize(Alloc*);
-static Alloc*	trim(Pool*, Alloc*, ulong);
+static Alloc*	kemb(Pool*, Alloc*, ulong);
 static Free*	listadd(Free*, Free*);
 static Free*	listdelete(Free*, Free*);
 static void		logstack(Pool*);
@@ -421,7 +417,7 @@ pooldel(Pool *p, Free *node)
 		memmark(_B2D(node), 0xF9, node->size-sizeof(Bhdr)-sizeof(Btail));
 	}
 
-	node->magic = UNALLOC_MAGIC;
+	node->magic = UNKEMPT_MAGIC;
 	return (Alloc*)node;
 }
 
@@ -477,7 +473,7 @@ blockmerge(Pool *pool, Bhdr *a, Bhdr *b)
 	b->size = NOT_MAGIC;
 	b->magic = NOT_MAGIC;
 
-	a->magic = UNALLOC_MAGIC;
+	a->magic = UNKEMPT_MAGIC;
 	return (Alloc*)a;
 }
 
@@ -529,9 +525,9 @@ blocksetdsize(Pool *p, Alloc *b, ulong dsize)
 	return b;
 }
 
-/* trim: trim a block down to what is needed to hold dsize bytes of user data */
+/* kemb: trim a block down to what is needed to hold dsize bytes of user data */
 static Alloc*
-trim(Pool *p, Alloc *b, ulong dsize)
+kemb(Pool *p, Alloc *b, ulong dsize)
 {
 	ulong extra, bsize;
 	Alloc *frag;
@@ -547,32 +543,14 @@ trim(Pool *p, Alloc *b, ulong dsize)
 			memmark(frag, 0xF1, extra);
 		}
 
-		frag->magic = UNALLOC_MAGIC;
+		frag->magic = UNKEMPT_MAGIC;
 		blocksetsize(frag, extra);
 		pooladd(p, frag);
 	}
 
-	b->magic = ALLOC_MAGIC;
+	b->magic = KEMPT_MAGIC;
 	blocksetdsize(p, b, dsize);
 	return b;
-}
-
-static Alloc*
-freefromfront(Pool *p, Alloc *b, ulong skip)
-{
-	Alloc *bb;
-
-	skip = skip&~(p->quantum-1);
-	if(skip >= 0x1000 || (skip >= b->size>>2 && skip >= MINBLOCKSIZE && skip >= p->minblock)){
-		bb = (Alloc*)((uchar*)b+skip);
-		blocksetsize(bb, b->size-skip);
-		bb->magic = UNALLOC_MAGIC;
-		blocksetsize(b, skip);
-		b->magic = UNALLOC_MAGIC;
-		pooladd(p, b);
-		return bb;
-	}
-	return b;	
 }
 
 /*
@@ -624,7 +602,7 @@ poolnewarena(Pool *p, ulong asize)
 
 	/* create one large block in arena */
 	b = (Alloc*)A2B(a);
-	b->magic = UNALLOC_MAGIC;
+	b->magic = UNKEMPT_MAGIC;
 	blocksetsize(b, (uchar*)A2TB(a)-(uchar*)b);
 	blockcheck(p, b);
 	pooladd(p, b);
@@ -674,7 +652,7 @@ blockgrow(Pool *p, Bhdr *b, ulong nsize)
 		a = (Alloc*)b;
 		dsize = getdsize(a);
 		blocksetsize(a, nsize);
-		trim(p, a, dsize);
+		kemb(p, a, dsize);
 	}
 }
 
@@ -732,7 +710,7 @@ dumpblock(Pool *p, Bhdr *b)
 	p->print(p, "tail %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux | %.8lux %.8lux\n",
 		dp[-6], dp[-5], dp[-4], dp[-3], dp[-2], dp[-1], dp[0], dp[1]);
 
-	if(b->magic == ALLOC_MAGIC){
+	if(b->magic == KEMPT_MAGIC){
 		dsize = getdsize((Alloc*)b);
 		if(dsize >= b->size)	/* user data size corrupt */
 			return;
@@ -776,7 +754,7 @@ blockcheck(Pool *p, Bhdr *b)
 	default:
 		panicblock(p, b, "bad magic");
 	case FREE_MAGIC:
-	case UNALLOC_MAGIC:
+	case UNKEMPT_MAGIC:
 	 	t = B2T(b);
 		if(t->magic0 != TAIL_MAGIC0 || t->magic1 != TAIL_MAGIC1)
 			panicblock(p, b, "corrupt tail magic");
@@ -805,7 +783,7 @@ blockcheck(Pool *p, Bhdr *b)
 		if(b->size != 0)
 			panicblock(p, b, "bad arena tail size");
 		break;
-	case ALLOC_MAGIC:
+	case KEMPT_MAGIC:
 		a = (Alloc*)b;
 		if(a->size > 1024*1024*1024)
 			panicblock(p, b, "block too big");
@@ -873,7 +851,7 @@ arenacompact(Pool *p, Arena *a)
 			pooldel(p, (Free*)b);
 			b->magic = FLOATING_MAGIC;
 			break;
-		case ALLOC_MAGIC:
+		case KEMPT_MAGIC:
 			if(wb != b) {
 				memmove(wb, b, b->size);
 				p->move(_B2D(b), _B2D(wb));
@@ -889,7 +867,7 @@ arenacompact(Pool *p, Arena *a)
 	 * at by wb.  all we need to do is set its size and get out.
 	 */
 	if(wb < eb) {
-		wb->magic = UNALLOC_MAGIC;
+		wb->magic = UNKEMPT_MAGIC;
 		blocksetsize(wb, (uchar*)eb-(uchar*)wb);
 		pooladd(p, (Alloc*)wb);
 	}
@@ -941,7 +919,7 @@ _B2D(void *a)
 static void*
 B2D(Pool *p, Alloc *a)
 {
-	if(a->magic != ALLOC_MAGIC)
+	if(a->magic != KEMPT_MAGIC)
 		p->panic(p, "B2D called on unworthy block");
 	return _B2D(a);
 }
@@ -960,15 +938,8 @@ static Alloc*
 D2B(Pool *p, void *v)
 {
 	Alloc *a;
-	ulong *u;
-
-	if((ulong)v&(sizeof(ulong)-1))
-		v = (char*)v - ((ulong)v&(sizeof(ulong)-1));
-	u = v;
-	while(u[-1] == ALIGN_MAGIC)
-		u--;
-	a = _D2B(u);
-	if(a->magic != ALLOC_MAGIC)
+	a = _D2B(v);
+	if(a->magic != KEMPT_MAGIC)
 		p->panic(p, "D2B called on non-block %p (double-free?)", v);
 	return a;
 }
@@ -997,7 +968,7 @@ poolallocl(Pool *p, ulong dsize)
 		}
 	}
 
-	ab = trim(p, pooldel(p, fb), dsize);
+	ab = kemb(p, pooldel(p, fb), dsize);
 	p->curalloc += ab->size;
 	return B2D(p, ab);
 }
@@ -1031,7 +1002,7 @@ poolreallocl(Pool *p, void *v, ulong ndsize)
 	Returnblock:
 		if(v != _B2D(a))
 			memmove(_B2D(a), v, odsize);
-		a = trim(p, a, ndsize);
+		a = kemb(p, a, ndsize);
 		p->curalloc -= obsize;
 		p->curalloc += a->size;
 		v = B2D(p, a);
@@ -1078,100 +1049,6 @@ poolreallocl(Pool *p, void *v, ulong ndsize)
 	memmove(nv, v, odsize);
 	poolfreel(p, v);
 	return nv;
-}
-
-static void*
-alignptr(void *v, ulong align, long offset)
-{
-	char *c;
-	ulong off;
-
-	c = v;
-	if(align){
-		off = (ulong)c%align;
-		if(off != offset){
-			c += offset - off;
-			if(off > offset)
-				c += align;
-		}
-	}
-	return c;
-}
-
-/* poolspanallocl: allocate as described below; assumes pool locked */
-static void*
-poolallocalignl(Pool *p, ulong dsize, ulong align, long offset, ulong span)
-{
-	ulong asize;
-	void *v;
-	char *c;
-	ulong *u;
-	int skip;
-	Alloc *b;
-
-	/*
-	 * allocate block
-	 * 	dsize bytes
-	 *	addr == offset (modulo align)
-	 *	does not cross span-byte block boundary
-	 *
-	 * to satisfy alignment, just allocate an extra
-	 * align bytes and then shift appropriately.
-	 * 
-	 * to satisfy span, try once and see if we're
-	 * lucky.  the second time, allocate 2x asize
-	 * so that we definitely get one not crossing
-	 * the boundary.
-	 */
-	if(align){
-		if(offset < 0)
-			offset = align - ((-offset)%align);
-		else
-			offset %= align;
-	}
-	asize = dsize+align;
-	v = poolallocl(p, asize);
-	if(v == nil)
-		return nil;
-	if(span && (ulong)v/span != ((ulong)v+asize)/span){
-		/* try again */
-		poolfreel(p, v);
-		v = poolallocl(p, 2*asize);
-		if(v == nil)
-			return nil;
-	}
-
-	/*
-	 * figure out what pointer we want to return
-	 */
-	c = alignptr(v, align, offset);
-	if(span && (ulong)c/span != (ulong)(c+dsize-1)/span){
-		c += span - (ulong)c%span;
-		c = alignptr(c, align, offset);
-		if((ulong)c/span != (ulong)(c+dsize-1)/span){
-			poolfreel(p, v);
-			werrstr("cannot satisfy dsize %lud span %lud with align %lud+%ld", dsize, span, align, offset);
-			return nil;
-		}
-	}
-	skip = c - (char*)v;
-
-	/*
-	 * free up the skip bytes before that pointer
-	 * or mark it as unavailable.
-	 */
-	b = _D2B(v);
-	b = freefromfront(p, b, skip);
-	v = _B2D(b);
-	skip = c - (char*)v;
-	if(c > (char*)v){
-		u = v;
-		while(c >= (char*)u+sizeof(ulong))
-			*u++ = ALIGN_MAGIC;
-	}
-	trim(p, b, skip+dsize);
-	assert(D2B(p, c) == b);
-	return c;
 }
 
 /* poolfree: free block obtained from poolalloc; assumes lock held */
@@ -1231,31 +1108,6 @@ poolalloc(Pool *p, ulong n)
 	}
 	if(p->logstack && (p->flags & POOL_LOGGING)) p->logstack(p);
 	LOG(p, "poolalloc %p %lud = %p\n", p, n, v);
-	p->unlock(p);
-	return v;
-}
-
-void*
-poolallocalign(Pool *p, ulong n, ulong align, long offset, ulong span)
-{
-	void *v;
-
-	p->lock(p);
-	paranoia {
-		poolcheckl(p);
-	}
-	verbosity {
-		pooldumpl(p);
-	}
-	v = poolallocalignl(p, n, align, offset, span);
-	paranoia {
-		poolcheckl(p);
-	}
-	verbosity {
-		pooldumpl(p);
-	}
-	if(p->logstack && (p->flags & POOL_LOGGING)) p->logstack(p);
-	LOG(p, "poolalignspanalloc %p %lud %lud %lud %ld = %p\n", p, n, align, span, offset, v);
 	p->unlock(p);
 	return v;
 }
