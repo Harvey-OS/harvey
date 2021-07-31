@@ -299,12 +299,7 @@ static Optable optab0F01[8]=
 [0x03]	0,0,		"MOVL	%e,IDTR",
 [0x04]	0,0,		"MOVW	MSW,%e",	/* word */
 [0x06]	0,0,		"MOVW	%e,MSW",	/* word */
-[0x07]	0,0,		"INVLPG	%e",		/* or SWAPGS */
-};
-
-static Optable optab0F01F8[1]=
-{
-[0x00]	0,0,		"SWAPGS",
+[0x07]	0,0,		"INVLPG	%e",		/* TO DO: distinguish SWAPGS? */
 };
 
 /* 0F71 */
@@ -1576,10 +1571,8 @@ badop:
 				return 0;
 			if (modrm(map, ip, c) < 0)
 				return 0;
-			obase = (Optable*)op->proto;
-			if(ip->amd64 && obase == optab0F01 && c == 0xF8)
-				return optab0F01F8;
 			c = ip->reg;
+			obase = (Optable*)op->proto;
 			goto newop;
 		case FRMOP:	/* FP R/M field with op code (/digit) */
 			if (igetc(map, ip, &c) < 0)
