@@ -43,7 +43,7 @@ static char usersDefault[] = {
 	"adm:adm:adm:sys\n"
 	"none:none::\n"
 	"noworld:noworld::\n"
-	"sys:sys::glenda\n"
+	"sys:sys::\n"
 	"glenda:glenda:glenda:\n"
 };
 

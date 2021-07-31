@@ -96,7 +96,7 @@ struct Proc
 
 enum
 {
-	Nr_workbufs 	= 40,
+	Nr_workbufs 	= 16,
 	Dsegpad		= 8192,
 	Fidchunk	= 1000,
 };
