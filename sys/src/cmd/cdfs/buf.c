@@ -10,7 +10,7 @@
 #include "fns.h"
 
 Buf*
-bopen(long (*fn)(Buf*, void*, long, ulong), int omode, int bs, int nblock)
+bopen(long (*fn)(Buf*, void*, long, long), int omode, int bs, int nblock)
 {
 	Buf *b;
 
@@ -24,16 +24,15 @@ bopen(long (*fn)(Buf*, void*, long, ulong), int omode, int bs, int nblock)
 	b->nblock = nblock;
 	b->bs = bs;
 	b->omode = omode;
-	b->fn = fn;		/* function to read or write bs-byte blocks */
+	b->fn = fn;
 
 	return b;
 }
 
 long
-bread(Buf *b, void *v, long n, vlong off)
+bread(Buf *b, void *v, long n, long off)
 {
-	long m;
-	vlong noff;
+	long m, noff;
 
 	assert(b->omode == OREAD);
 
@@ -41,16 +40,13 @@ bread(Buf *b, void *v, long n, vlong off)
 	if(b->off > off || off >= b->off+b->ndata) {
 		noff = off - off % b->bs;
 		if(vflag)
-			fprint(2, "try refill at %lld...", noff);
-		if((m = b->fn(b, b->data, b->nblock, noff/b->bs)) <= 0) {
-			if (vflag)
-				fprint(2, "failed\n");
+			fprint(2, "try refill at %ld\n", noff);
+		if((m = b->fn(b, b->data, b->nblock, noff/b->bs)) <= 0)
 			return m;
-		}
 		b->ndata = b->bs * m;
 		b->off = noff;
 		if(vflag)
-			fprint(2, "got %ld\n", b->ndata);
+			fprint(2, "refill %ld at %ld\n", b->ndata, b->off);
 	}
 
 //	fprint(2, "read %ld at %ld\n", n, off);
@@ -108,7 +104,7 @@ bterm(Buf *b)
 {
 	/* DVD & BD prefer full ecc blocks (tracks), but can cope with less */
 	if(b->omode == OWRITE && b->ndata)
-		b->fn(b, b->data, (b->ndata + b->bs - 1)/b->bs, 0); 
+		b->fn(b, b->data, (b->ndata+b->bs-1)/b->bs, b->off); 
 
 	free(b->data);
 	free(b);

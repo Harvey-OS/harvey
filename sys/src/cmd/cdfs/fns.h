@@ -1,9 +1,9 @@
-Buf*	bopen(long (*)(Buf*, void*, long, ulong), int, int, int);
-long	bread(Buf*, void*, long, vlong);
-void	bterm(Buf*);
-long	bufread(Otrack*, void*, long, vlong);
-long	bufwrite(Otrack*, void*, long);
-long	bwrite(Buf*, void*, long);
-void	*emalloc(ulong);
+Drive* mmcprobe(Scsi*);
 char*	geterrstr(void);
-Drive*	mmcprobe(Scsi*);
+Buf*	bopen(long (*)(Buf*, void*, long, long), int, int, int);
+void	bterm(Buf*);
+long	bread(Buf*, void*, long, long);
+long	bwrite(Buf*, void*, long);
+long bufread(Otrack*, void*, long, long);
+long bufwrite(Otrack*, void*, long);
+void *emalloc(ulong);

@@ -46,9 +46,10 @@ emalloc(ulong sz)
 {
 	void *v;
 
-	v = mallocz(sz, 1);
+	v = malloc(sz);
 	if(v == nil)
 		sysfatal("malloc %lud fails", sz);
+	memset(v, 0, sz);
 	return v;
 }
 
@@ -646,7 +647,7 @@ checktoc(Drive *drive)
 }
 
 long
-bufread(Otrack *t, void *v, long n, vlong off)
+bufread(Otrack *t, void *v, long n, long off)
 {
 	return bread(t->buf, v, n, off);
 }
