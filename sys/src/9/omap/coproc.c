@@ -22,10 +22,12 @@ enum {
 void
 cpwr(int cp, int op1, int crn, int crm, int op2, ulong val)
 {
+	int s;
 	volatile ulong instr[2];
 	void *pcaddr;
 	void (*fp)(ulong);
 
+	s = splhi();
 	op1 &= 7;
 	op2 &= 7;
 	crn &= 017;
@@ -35,6 +37,7 @@ cpwr(int cp, int op1, int crn, int crm, int op2, ulong val)
 	instr[0] = 0xee000010 |
 		op1 << 21 | crn << 16 | cp << 8 | op2 << 5 | crm;
 	instr[1] = Retinst;
+	coherence();
 
 	pcaddr = (void *)MAP2PCSPACE(instr, getcallerpc(&cp));
 	cachedwbse(pcaddr, sizeof instr);
@@ -43,6 +46,7 @@ cpwr(int cp, int op1, int crn, int crm, int op2, ulong val)
 	fp = (void (*)(ulong))pcaddr;
 	(*fp)(val);
 	coherence();
+	splx(s);
 }
 
 void
@@ -54,10 +58,13 @@ cpwrsc(int op1, int crn, int crm, int op2, ulong val)
 ulong
 cprd(int cp, int op1, int crn, int crm, int op2)
 {
+	int s;
+	ulong res;
 	volatile ulong instr[2];
 	void *pcaddr;
 	ulong (*fp)(void);
 
+	s = splhi();
 	op1 &= 7;
 	op2 &= 7;
 	crn &= 017;
@@ -69,13 +76,16 @@ cprd(int cp, int op1, int crn, int crm, int op2)
 	instr[0] = 0xee100010 |
 		op1 << 21 | crn << 16 | cp << 8 | op2 << 5 | crm;
 	instr[1] = Retinst;
+	coherence();
 
 	pcaddr = (void *)MAP2PCSPACE(instr, getcallerpc(&cp));
 	cachedwbse(pcaddr, sizeof instr);
 	cacheiinv();
 
 	fp = (ulong (*)(void))pcaddr;
-	return (*fp)();
+	res = (*fp)();
+	splx(s);
+	return res;
 }
 
 ulong
@@ -89,10 +99,13 @@ cprdsc(int op1, int crn, int crm, int op2)
 ulong
 fprd(int fpreg)
 {
+	int s;
+	ulong res;
 	volatile ulong instr[2];
 	void *pcaddr;
 	ulong (*fp)(void);
 
+	s = splhi();
 	fpreg &= 017;
 	/*
 	 * VMRS.  return value will be in R0, which is convenient.
@@ -107,16 +120,20 @@ fprd(int fpreg)
 	cacheiinv();
 
 	fp = (ulong (*)(void))pcaddr;
-	return (*fp)();
+	res = (*fp)();
+	splx(s);
+	return res;
 }
 
 void
 fpwr(int fpreg, ulong val)
 {
+	int s;
 	volatile ulong instr[2];
 	void *pcaddr;
 	void (*fp)(ulong);
 
+	s = splhi();
 	fpreg &= 017;
 	/* VMSR.  Rt will be R0. */
 	instr[0] = 0xeee00a10 | fpreg << 16 | 0 << 12;
@@ -130,4 +147,5 @@ fpwr(int fpreg, ulong val)
 	fp = (void (*)(ulong))pcaddr;
 	(*fp)(val);
 	coherence();
+	splx(s);
 }

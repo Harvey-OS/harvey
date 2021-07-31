@@ -16,7 +16,6 @@
 
 #include "../port/netif.h"
 #include "etherif.h"
-#include "../port/flashif.h"
 #include "usbehci.h"
 
 typedef struct L3agent L3agent;
@@ -246,7 +245,7 @@ log2(ulong n)
 	int i;
 
 	i = 31 - clz(n);
-	if (n == 0 || !ispow2(n))
+	if (!ispow2(n) || n == 0)
 		i++;
 	return i;
 }
@@ -1286,6 +1285,7 @@ chkmissing(void)
 	delay(20);
 }
 
+#ifdef USE_FLASH
 void
 archflashwp(Flash*, int)
 {
@@ -1301,14 +1301,11 @@ archflashreset(int bank, Flash *f)
 {
 	if(bank != 0)
 		return -1;
-	/*
-	 * this is set up for the igepv2 board.
-	 * if the beagleboard ever works, we'll have to sort this out.
-	 */
-	f->type = "onenand";
+	f->type = "nand";
 	f->addr = (void*)PHYSNAND;		/* mapped here by archreset */
 	f->size = 0;				/* done by probe */
 	f->width = 1;
 	f->interleave = 0;
 	return 0;
 }
+#endif
