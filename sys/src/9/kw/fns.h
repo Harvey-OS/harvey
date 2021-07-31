@@ -179,5 +179,3 @@ extern void kexit(Ureg*);
  */
 #define KADDR(pa)	UINT2PTR(KZERO|((uintptr)(pa)))
 #define PADDR(va)	PTR2UINT(((uintptr)(va)) & ~KSEGM)
-
-#define MASK(v)	((1UL << (v)) - 1)	/* mask `v' bits wide */

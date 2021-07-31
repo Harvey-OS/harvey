@@ -154,7 +154,6 @@ struct Mach
 	ulong	schedticks;		/* next forced context switch */
 
 	int	cputype;
-	int	socrev;			/* system-on-chip revision */
 	ulong	delayloop;
 
 	/* stats */

@@ -148,18 +148,10 @@ struct Eopio
 	ulong	epflush;
 	ulong	epsts;
 	ulong	epcompl;
-	ulong	epctl[6];
-
-	/* freescale registers */
-	uchar	_pad1[0x2c0-0x98];
-	ulong	snoop1;
-	ulong	snoop2;
-	ulong	agecntthresh;
-	ulong	prictl;		/* priority control */
-	ulong	sictl;		/* system interface control */
-
-	uchar	_pad2[0x3c0-0x2d4];
-	ulong	ctl;
+	ulong	epctl0;
+	ulong	epctl1;
+	ulong	epctl2;
+	ulong	epctl3;
 };
 
 /*

@@ -18,6 +18,8 @@
 #include "ethermii.h"
 #include "../ip/ip.h"
 
+#define MASK(v)	((1UL<<(v)) - 1)
+
 #define	MIIDBG	if(0)iprint
 
 enum {
@@ -744,7 +746,7 @@ gotinput(void* ctlr)
 
 /*
  * process any packets in the input ring.
- * also sum mib stats frequently to avoid the overflow
+ * also sum mib stats frequently so avoid the overflow
  * mentioned in the errata.
  */
 static void
