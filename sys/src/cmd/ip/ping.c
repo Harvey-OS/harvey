@@ -263,13 +263,9 @@ sender(int fd, int msglen, int interval, int n)
 	if (addresses)
 		print("\t%I -> %s\n", me, target);
 
-	if(rint != 0 && interval <= 0)
-		rint = 0;
-	extra = 0;
 	for(i = 0; i < n; i++){
 		if(i != 0){
-			if(rint != 0)
-				extra = nrand(interval);
+			extra = rint? nrand(interval): 0;
 			sleep(interval + extra);
 		}
 		r = malloc(sizeof *r);
@@ -512,16 +508,12 @@ main(int argc, char **argv)
 		break;
 	case 'i':
 		interval = atoi(EARGF(usage()));
-		if(interval < 0)
-			usage();
 		break;
 	case 'l':
 		lostonly++;
 		break;
 	case 'n':
 		nmsg = atoi(EARGF(usage()));
-		if(nmsg < 0)
-			usage();
 		break;
 	case 'q':
 		quiet = 1;
@@ -534,8 +526,6 @@ main(int argc, char **argv)
 		break;
 	case 'w':
 		waittime = atoi(EARGF(usage()));
-		if(waittime < 0)
-			usage();
 		break;
 	default:
 		usage();
