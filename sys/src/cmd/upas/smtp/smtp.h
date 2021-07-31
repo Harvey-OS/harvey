@@ -19,17 +19,6 @@ struct Field {
 	int	source;
 };
 
-typedef struct DS	DS;
-struct DS {
-	/* dist string */
-	char	buf[128];
-	char	expand[128];
-	char	*netdir;
-	char	*proto;
-	char	*host;
-	char	*service;
-};
-
 extern Field	*firstfield;
 extern Field	*lastfield;
 extern Node	*usender;
@@ -58,4 +47,4 @@ String*	yywhite(void);
 Node*	whiten(Node*);
 void	yycleanup(void);
 int	mxdial(char*, char*, char*);
-void	dial_string_parse(char*, DS*);
+char*	expand_meta(char *);

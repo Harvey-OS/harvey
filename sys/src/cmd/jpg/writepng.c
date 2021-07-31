@@ -1,6 +1,8 @@
-/*
- * See PNG 1.2 spec, also RFC 2083.
- */
+// based on PNG 1.2 specification, July 1999  (see also rfc2083)
+// Alpha is not supported yet because of lack of industry acceptance and
+// because Plan9 Image uses premultiplied alpha, so png can't be lossless.
+// Only 24bit color supported, because 8bit may as well use GIF.
+
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
@@ -10,36 +12,26 @@
 #include <flate.h>
 #include "imagefile.h"
 
-enum
-{
-	IDATSIZE = 	20000,
+enum{	IDATSIZE = 	20000,
 	FilterNone =	0,
 };
 
-typedef struct ZlibR ZlibR;
-typedef struct ZlibW ZlibW;
-
-struct ZlibR
-{
+typedef struct ZlibR{
 	uchar *data;
 	int width;
-	int dx;
-	int dy;
-	int x;
-	int y;
-	int pixwid;
-};
+	int nrow, ncol;
+	int row, col;	// next pixel to send
+} ZlibR;
 
-struct ZlibW
-{
-	Biobuf *io;
+typedef struct ZlibW{
+	Biobuf *bo;
 	uchar *buf;
-	uchar *b;
-	uchar *e;
-};
+	uchar *b;	// next place to write
+	uchar *e;	// past end of buf
+} ZlibW;
 
 static ulong *crctab;
-static uchar PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
+static uchar PNGmagic[] = {137,80,78,71,13,10,26,10};
 
 static void
 put4(uchar *a, ulong v)
@@ -71,51 +63,35 @@ chunk(Biobuf *bo, char *type, uchar *d, int n)
 static int
 zread(void *va, void *buf, int n)
 {
-	int a, i, pixels, pixwid;
-	uchar *b, *e, *img;
-	ZlibR *z;
+	ZlibR *z = va;
+	int nrow = z->nrow;
+	int ncol = z->ncol;
+	uchar *b = buf, *e = b+n, *img;
+	int i, pixels;  // number of pixels in row that can be sent now
 
-	z = va;
-	pixwid = z->pixwid;
-	b = buf;
-	e = b+n;
-	while(b+pixwid <= e){
-		if(z->y >= z->dy)
+	while(b+3 <= e){ // loop over image rows
+		if(z->row >= nrow)
 			break;
-		if(z->x == 0)
+		if(z->col==0)
 			*b++ = FilterNone;
-		pixels = (e-b)/pixwid;
-		if(pixels > z->dx - z->x)
-			pixels = z->dx - z->x;
-		img = z->data + z->width*z->y + pixwid*z->x;
-		memmove(b, img, pixwid*pixels);
-		if(pixwid == 4){
-			/*
-			 * Convert to non-premultiplied alpha.
-			 */
-			for(i=0; i<pixels; i++, b+=4){
-				a = b[3];
-				if(a == 0)
-					b[0] = b[1] = b[2] = 0;
-				else if(a != 255){
-					if(b[0] >= a)
-						b[0] = a;
-					b[0] = (b[0]*255)/a;
-					if(b[1] >= a)
-						b[1] = a;
-					b[1] = (b[1]*255)/a;
-					if(b[2] >= a)
-						b[2] = a;
-					b[2] = (b[2]*255)/a;
-				}
-			}
-		}else	
-			b += pixwid*pixels;
+		pixels = (e-b)/3;
+		if(pixels > ncol - z->col)
+			pixels = ncol - z->col;
+		img = z->data + z->width * z->row + 3 * z->col;
 
-		z->x += pixels;
-		if(z->x >= z->dx){
-			z->x = 0;
-			z->y++;
+		// Plan 9 image format is BGR?!!!
+		// memmove(b, img, 3*pixels);
+		// b += 3*pixels;
+		for(i=0; i<pixels; i++, img += 3){
+			*b++ = img[2];
+			*b++ = img[1];
+			*b++ = img[0];
+		}
+
+		z->col += pixels;
+		if(z->col >= ncol){
+			z->col = 0;
+			z->row++;
 		}
 	}
 	return b - (uchar*)buf;
@@ -124,22 +100,18 @@ zread(void *va, void *buf, int n)
 static void
 IDAT(ZlibW *z)
 {
-	chunk(z->io, "IDAT", z->buf, z->b - z->buf);
+	chunk(z->bo, "IDAT", z->buf, z->b - z->buf);
 	z->b = z->buf;
 }
 
 static int
 zwrite(void *va, void *buf, int n)
 {
+	ZlibW *z = va;
+	uchar *b = buf, *e = b+n;
 	int m;
-	uchar *b, *e;
-	ZlibW *z;
 
-	z = va;
-	b = buf;
-	e = b+n;
-
-	while(b < e){
+	while(b < e){ // loop over IDAT chunks
 		m = z->e - z->b;
 		if(m > e - b)
 			m = e - b;
@@ -153,25 +125,14 @@ zwrite(void *va, void *buf, int n)
 }
 
 static Memimage*
-memRGBA(Memimage *i)
+memRGB(Memimage *i)
 {
 	Memimage *ni;
-	char buf[32];
-	ulong dst;
-	
-	/*
-	 * [A]BGR because we want R,G,B,[A] in big-endian order.  Sigh.
-	 */
-	chantostr(buf, i->chan);
-	if(strchr(buf, 'a'))
-		dst = ABGR32;
-	else
-		dst = BGR24;
-		
-	if(i->chan == dst)
+
+	if(i->chan == RGB24)
 		return i;
 
-	ni = allocmemimage(i->r, dst);
+	ni = allocmemimage(i->r, RGB24);
 	if(ni == nil)
 		return ni;
 	memimagedraw(ni, ni->r, i, i->r.min, nil, i->r.min, S);
@@ -179,42 +140,38 @@ memRGBA(Memimage *i)
 }
 
 char*
-memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
+memwritepng(Biobuf *bo, Memimage *r, ImageInfo *II)
 {
-	int err, n;
 	uchar buf[200], *h;
 	ulong vgamma;
-	Tm *tm;
-	Memimage *rgb;
+	int err, n;
 	ZlibR zr;
 	ZlibW zw;
+	int nrow = r->r.max.y - r->r.min.y;
+	int ncol = r->r.max.x - r->r.min.x;
+	Tm *tm;
+	Memimage *rgb;
 
+	rgb = memRGB(r);
+	if(rgb == nil)
+		return "allocmemimage nil";
 	crctab = mkcrctab(0xedb88320);
 	if(crctab == nil)
 		sysfatal("mkcrctab error");
 	deflateinit();
 
-	rgb = memRGBA(m);
-	if(rgb == nil)
-		return "allocmemimage nil";
-
-	Bwrite(io, PNGmagic, sizeof PNGmagic);
-
-	/* IHDR chunk */
+	Bwrite(bo, PNGmagic, sizeof PNGmagic);
+	// IHDR chunk
 	h = buf;
-	put4(h, Dx(m->r)); h += 4;
-	put4(h, Dy(m->r)); h += 4;
-	*h++ = 8;	/* 8 bits per channel */
-	if(rgb->chan == BGR24)
-		*h++ = 2;		/* RGB */
-	else
-		*h++ = 6;		/* RGBA */
-	*h++ = 0;	/* compression - deflate */
-	*h++ = 0;	/* filter - none */
-	*h++ = 0;	/* interlace - none */
-	chunk(io, "IHDR", buf, h-buf);
+	put4(h, ncol); h += 4;
+	put4(h, nrow); h += 4;
+	*h++ = 8; // bit depth = 24 bit per pixel
+	*h++ = 2; // color type = rgb
+	*h++ = 0; // compression method = deflate
+	*h++ = 0; // filter method
+	*h++ = 0; // interlace method = no interlace
+	chunk(bo, "IHDR", buf, h-buf);
 
-	/* time - using now is suspect */
 	tm = gmtime(time(0));
 	h = buf;
 	*h++ = (tm->year + 1900)>>8;
@@ -224,44 +181,40 @@ memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 	*h++ = tm->hour;
 	*h++ = tm->min;
 	*h++ = tm->sec;
-	chunk(io, "tIME", buf, h-buf);
-
-	/* gamma */
+	chunk(bo, "tIME", buf, h-buf);
+	
 	if(II->fields_set & II_GAMMA){
 		vgamma = II->gamma*100000;
 		put4(buf, vgamma);
-		chunk(io, "gAMA", buf, 4);
+		chunk(bo, "gAMA", buf, 4);
 	}
 
-	/* comment */
 	if(II->fields_set & II_COMMENT){
 		strncpy((char*)buf, "Comment", sizeof buf);
 		n = strlen((char*)buf)+1; // leave null between Comment and text
 		strncpy((char*)(buf+n), II->comment, sizeof buf - n);
-		chunk(io, "tEXt", buf, n+strlen((char*)buf+n));
+		chunk(bo, "tEXt", buf, n+strlen((char*)buf+n));
 	}
 
-	/* image data */
-	zr.dx = Dx(m->r);
-	zr.dy = Dy(m->r);
+	// image chunks
+	zr.nrow = nrow;
+	zr.ncol = ncol;
 	zr.width = rgb->width * sizeof(ulong);
 	zr.data = rgb->data->bdata;
-	zr.x = 0;
-	zr.y = 0;
-	zr.pixwid = chantodepth(rgb->chan)/8;
-	zw.io = io;
+	zr.row = zr.col = 0;
+	zw.bo = bo;
 	zw.buf = malloc(IDATSIZE);
-	if(zw.buf == nil)
-		sysfatal("malloc: %r");
 	zw.b = zw.buf;
 	zw.e = zw.b + IDATSIZE;
-	if((err=deflatezlib(&zw, zwrite, &zr, zread, 6, 0)) < 0)
-		sysfatal("deflatezlib %s", flateerr(err));
+	err = deflatezlib(&zw, zwrite, &zr, zread, 6, 0);
 	if(zw.b > zw.buf)
 		IDAT(&zw);
 	free(zw.buf);
-	chunk(io, "IEND", nil, 0);
-	if(m != rgb)
+	if(err)
+		sysfatal("deflatezlib %s\n", flateerr(err));
+	chunk(bo, "IEND", nil, 0);
+
+	if(r != rgb)
 		freememimage(rgb);
 	return nil;
 }

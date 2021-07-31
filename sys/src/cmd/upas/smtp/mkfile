@@ -22,7 +22,8 @@ UPDATE=\
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common -D'SPOOL="/mail"'
 
-$O.smtpd:	smtpd.tab.$O rmtdns.$O spam.$O rfc822.tab.$O greylist.$O mxdial.$O
+$O.smtpd:	smtpd.tab.$O rmtdns.$O spam.$O rfc822.tab.$O greylist.$O
+
 $O.smtp:	rfc822.tab.$O mxdial.$O
 
 smtpd.$O: 	smtpd.h

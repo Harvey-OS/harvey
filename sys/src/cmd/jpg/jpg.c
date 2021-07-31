@@ -41,7 +41,7 @@ eresized(int new)
 	r.max.x = r.min.x+Dx(image->r);
 	r.max.y = r.min.y+Dy(image->r);
 	border(screen, r, -Border, nil, ZP);
-	drawop(screen, r, image, nil, image->r.min, S);
+	draw(screen, r, image, nil, image->r.min);
 	flushimage(display, 1);
 }
 
