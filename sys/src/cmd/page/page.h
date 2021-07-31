@@ -42,7 +42,6 @@ extern int mknewwindow;
 
 void rot180(Image*);
 Image *rot90(Image*);
-Image *rot270(Image*);
 Image *resample(Image*, Image*);
 
 /* ghostscript interface shared by ps, pdf */

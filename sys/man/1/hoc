@@ -4,11 +4,11 @@ hoc \- interactive floating point language
 .SH SYNOPSIS
 .B hoc
 [
-.B -e
-.I expression
+.I file ...
 ]
 [
-.I file ...
+.B -e
+.I expression
 ]
 .SH DESCRIPTION
 .I Hoc

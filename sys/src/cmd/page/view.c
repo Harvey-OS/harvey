@@ -16,7 +16,7 @@
 Document *doc;
 Image *im;
 int page;
-int angle = 0;
+int upside = 0;
 int showbottom = 0;		/* on the next showpage, move the image so the bottom is visible. */
 
 Rectangle ulrange;	/* the upper left corner of the image must be in this rectangle */
@@ -156,17 +156,8 @@ showpage(int page, Menu *m)
 		im = tmp;
 	}
 
-	switch(angle){
-	case 90:
-		im = rot90(im);
-		break;
-	case 180:
+	if(upside)
 		rot180(im);
-		break;
-	case 270:
-		im = rot270(im);
-		break;
-	}
 
 	esetcursor(nil);
 	if(showbottom){
@@ -399,7 +390,7 @@ viewer(Document *dd)
 				esetcursor(&reading);
 				rot180(im);
 				esetcursor(nil);
-				angle = (angle+180) % 360;
+				upside = !upside;
 				redraw(screen);
 				flushimage(display, 1);
 				break;
@@ -598,7 +589,6 @@ viewer(Document *dd)
 					esetcursor(&reading);
 					im = rot90(im);
 					esetcursor(nil);
-					angle = (angle+90) % 360;
 					redraw(screen);
 					flushimage(display, 1);
 					break;
@@ -608,7 +598,7 @@ viewer(Document *dd)
 					esetcursor(&reading);
 					rot180(im);
 					esetcursor(nil);
-					angle = (angle+180) % 360;
+					upside = !upside;
 					redraw(screen);
 					flushimage(display, 1);
 					break;

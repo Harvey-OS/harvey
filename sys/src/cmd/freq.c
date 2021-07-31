@@ -5,7 +5,6 @@
 long	count[1<<16];
 Biobuf	bout;
 
-void	usage(void);
 void	freq(int, char*);
 long	flag;
 enum
@@ -25,6 +24,9 @@ main(int argc, char *argv[])
 	flag = 0;
 	Binit(&bout, 1, OWRITE);
 	ARGBEGIN{
+	default:
+		fprint(2, "freq: unknown option %c\n", ARGC());
+		exits("usage");
 	case 'd':
 		flag |= Fdec;
 		break;
@@ -40,8 +42,6 @@ main(int argc, char *argv[])
 	case 'r':
 		flag |= Frune;
 		break;
-	default:
-		usage();
 	}ARGEND
 	if((flag&(Fdec|Fhex|Foct|Fchar)) == 0)
 		flag |= Fdec | Fhex | Foct | Fchar;
@@ -52,20 +52,13 @@ main(int argc, char *argv[])
 	for(i=0; i<argc; i++) {
 		f = open(argv[i], 0);
 		if(f < 0) {
-			fprint(2, "open %s: %r\n", argv[i]);
+			fprint(2, "cannot open %s\n", argv[i]);
 			continue;
 		}
 		freq(f, argv[i]);
 		close(f);
 	}
 	exits(0);
-}
-
-void
-usage(void)
-{
-	fprint(2, "usage: freq [-cdorx] [file ...]\n");
-	exits("usage");
 }
 
 void

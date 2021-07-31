@@ -4,15 +4,9 @@ grep \- search a file for a pattern
 .SH SYNOPSIS
 .B grep
 [
-.B -bchiLlnsv
+.I option ...
 ]
-[
-.B -e
 .I pattern
-[
-.B -f
-.I patternfile
-]
 [
 .I file ...
 ]
