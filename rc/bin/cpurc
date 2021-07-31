@@ -18,7 +18,8 @@ sysname=`{cat /dev/sysname}
 ndb/dns -r
 
 # parallelism for mk
-NPROC = `{wc -l </dev/sysstat}
+NPROC=`{wc -l /dev/sysstat}
+NPROC=`{echo $NPROC|sed 's/ .*//'}
 
 prompt=($sysname^'# ' '	')
 
