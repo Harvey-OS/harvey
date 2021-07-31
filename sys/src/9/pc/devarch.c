@@ -51,8 +51,6 @@ enum {				/* cpuid standard function codes */
 
 typedef long Rdwrfn(Chan*, void*, long, vlong);
 
-int	bsr(ulong n);		/* l.s */
-
 static Rdwrfn *readfn[Qmax];
 static Rdwrfn *writefn[Qmax];
 
@@ -1261,12 +1259,4 @@ timerset(Tval x)
 {
 	if(doi8253set)
 		(*arch->timerset)(x);
-}
-
-int
-clz(ulong n)			/* count leading zeroes */
-{
-	if (n == 0)
-		return BI2BY*BY2WD;
-	return BI2BY*BY2WD - 1 - bsr(n);
 }

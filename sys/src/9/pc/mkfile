@@ -29,7 +29,6 @@ PORT=\
 	edf.$O\
 	fault.$O\
 	latin1.$O\
-	logpow.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
