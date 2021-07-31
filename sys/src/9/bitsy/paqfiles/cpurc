@@ -1,0 +1,175 @@
+#!/bin/rc
+
+debug=0
+
+#set service to terminal (necessary for factotum, handy for everything else)
+service=terminal 
+
+echo -n terminal > /env/service
+echo -n plan9 > /env/site
+echo -n astro > /env/facedom
+echo -n emelie > /env/fs
+
+bind -a '#y' /dev
+bind -a '#F' /dev
+bind -a '#I' /net
+bind -a '#D' /net
+
+# parallelism for mk
+NPROC=1
+
+sysname=`{cat /dev/sysname}
+if (~ $sysname ''){
+	sysname=bitsy
+	echo $sysname>/dev/sysname
+}
+prompt=($sysname^'# ' '	')
+
+# flavor
+fileserver=emelie
+cpu=olive
+
+# user defined flash partitions
+echo -n add fs		0x0800000 0x1000000 > /dev/flash/flashctl
+
+# so we can see things
+light 0
+
+# set variables
+if(~ $debug 1) echo ramfs
+ramfs
+if(~ $debug 1) echo pencal
+params -f
+if(! grep -s '^calibrate=' /tmp/tmpparams)
+	pencal >>/tmp/tmpparams
+if not {
+	eval `{grep '^calibrate=' /tmp/tmpparams}
+	echo calibrate $calibrate > '#m/mousectl'
+}
+prompter /tmp/tmpparams
+params
+if(~ $debug 1) {
+	echo tmpparams:
+	cat /tmp/tmpparams
+}
+. /tmp/tmpparams
+
+if(~ $debug 1) echo set user
+# set userid
+if(test -e /env/user){
+	echo -n $user > /dev/hostowner
+}
+
+if(~ $debug 1) echo start flashfs
+# bind in read/write file system
+if (aux/flashfs) {
+	if (~ $debug 1) echo flashfs started
+	mount /srv/brzr /n/tmp
+	bind -a /n /n/tmp/n
+	bind -a /sys/lib /n/tmp/sys/lib
+	bind -a /sys /n/tmp/sys
+	bind -a /arm/bin/auth /n/tmp/arm/bin/auth
+	bind -a /arm/bin/ndb /n/tmp/arm/bin/ndb
+	bind -a /arm/bin/ip /n/tmp/arm/bin/ip
+	bind -a /arm/bin/aux /n/tmp/arm/bin/aux
+	bind -a /arm/bin /n/tmp/arm/bin
+	bind -a /arm /n/tmp/arm
+	bind -a /lib/ndb /n/tmp/lib/ndb
+	bind -a /lib/font /n/tmp/lib/font
+	bind -a /lib /n/tmp/lib
+	bind -a / /n/tmp
+	bind /n/tmp /
+	unmount /n/tmp
+} >[2] /dev/null
+
+# start network
+if(grep -s WaveLAN/IEEE /dev/pcm0ctl){
+	if (~ $debug 1) echo 'configure #l0 wavelan'
+	echo -n 'configure #l0 wavelan'>/dev/pcm0ctl
+	bind -a '#l0' /net
+	switch($wvkey1){
+	case ''
+		;
+	case *
+		echo -n 'key1 '^$wvkey1 >/net/ether0/clone
+	}
+	switch($wvkey2){
+	case ''
+		;
+	case *
+		echo -n 'key2 '^$wvkey2 >/net/ether0/clone
+	}
+	switch($wvkey3){
+	case ''
+		;
+	case *
+		echo -n 'key3 '^$wvkey3 >/net/ether0/clone
+	}
+	switch($wvtxkey){
+	case ''
+		;
+	case *
+		echo -n 'txkey '^$wvtxkey >/net/ether0/clone
+	}
+	switch($wvmode){
+	case ''
+		;
+	case *
+		echo -n 'mode '^$wvmode >/net/ether0/clone
+	}
+	switch($wvibss){
+	case ''
+		;
+	case *
+		echo -n 'ibss '^$wvibss >/net/ether0/clone
+	}
+	switch($wvessid){
+	case ''
+		;
+	case *
+		echo -n 'essid '^$wvessid >/net/ether0/clone
+	}
+	switch($wvcrypt){
+	case ''
+		;
+	case *
+		echo -n 'crypt '^$wvcrypt >/net/ether0/clone
+	}
+	if (~ $debug 1) echo ip/ipconfig ether /net/ether0 $ipaddr $ipmask
+	ip/ipconfig ether /net/ether0 $ipaddr $ipmask
+	if(test -e /env/auth)
+		echo '	auth='^$auth >>/net/ndb
+	if(test -e /env/dns)
+		echo '	dns='^$dns >>/net/ndb
+	if(test -e /env/dnsdomain)
+		echo '	dnsdomain='^$dnsdomain >>/net/ndb
+	if(test -e /env/authdom)
+		echo '	authdom='^$authdom >>/net/ndb
+
+	if (~ $debug 1) echo ndb/cs
+	ndb/cs
+	ndb/dns -r
+}
+
+auth/factotum -n -s factotum -a $auth
+
+if(! test -e /env/font)
+	font=/lib/font/bit/lucidasans/unicode.6.font
+if(! test -e /env/tabstop)
+	tabstop=2
+
+if (test -d /usr/$user) {
+	home=/usr/$user
+	cd $home
+	if (test -r lib/profile) {
+		. lib/profile
+		exec /bin/rc
+	}
+	if (test -r lib/windows) {
+		if (~ $debug 1) echo 'exec rio -sk ''/bin/keyboard -l'' -i '$home'/lib/windows'
+		exec rio -sk '/bin/keyboard -l -w' -i $home/lib/windows
+	}
+}
+# bind in read/write file system
+if (~ $debug 1) echo 'exec rio -sk ''/bin/keyboard -l'''
+exec rio -sk '/bin/keyboard -l -w'

@@ -1,0 +1,6 @@
+#
+#   files comprising the database
+#
+database=
+	file=/lib/ndb/local
+	file=/lib/ndb/common

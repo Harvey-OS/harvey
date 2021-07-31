@@ -1,0 +1,14 @@
+#!/bin/rc
+
+#master file is /sys/src/cmd/bitsy/light.rc
+
+switch($1){
+case on
+	echo -n 2 1 0x80 > /dev/backlight
+case off
+	echo -n 2 0 0x80 > /dev/backlight
+case auto
+	echo -n 1 1 0x80 > /dev/backlight
+case *
+	echo -n 2 1 $1 > /dev/backlight
+}

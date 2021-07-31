@@ -1,0 +1,53 @@
+# root
+mount #s/boot /root
+bind -a /root /
+bind -c /root/mnt /mnt
+
+# kernel devices
+bind #c /dev
+bind #d /fd
+bind -c #e /env
+bind #p /proc
+bind -c #s /srv
+bind -a #t /dev
+bind -a #r /dev
+bind -a #m /dev
+bind -a #y /dev
+bind -a #I /net
+bind -a #A /dev
+bind -a #F /dev
+bind -a #¤ /dev
+
+# servers
+mount -a /srv/cs /net
+mount -a /srv/dns /net
+mount -a /srv/factotum /mnt
+
+# read/write file system
+mount /srv/brzr /n/brzr
+mount /srv/brzr /n/tmp
+bind -a /n /n/tmp/n
+bind -a /sys/lib /n/tmp/sys/lib
+bind -a /sys /n/tmp/sys
+bind -a /arm/bin/auth /n/tmp/arm/bin/auth
+bind -a /arm/bin/ndb /n/tmp/arm/bin/ndb
+bind -a /arm/bin/ip /n/tmp/arm/bin/ip
+bind -a /arm/bin/aux /n/tmp/arm/bin/aux
+bind -a /arm/bin /n/tmp/arm/bin
+bind -a /arm /n/tmp/arm
+bind -a /lib/ndb /n/tmp/lib/ndb
+bind -a /lib/font /n/tmp/lib/font
+bind -a /lib /n/tmp/lib
+bind -a / /n/tmp
+bind /n/tmp /
+unmount /n/tmp
+
+# standard bin
+bind /arm/bin /bin
+bind -a /rc/bin /bin
+bind -a /arm/bin/bitsy /bin
+
+# user defines
+bind -cb /usr/$user/tmp /tmp
+bind -b /usr/$user/bin/rc /bin
+bind -b /usr/$user/bin/arm /bin

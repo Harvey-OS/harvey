@@ -1,0 +1,45 @@
+objtype=arm
+</$objtype/mkfile
+BIN=/arm
+
+TARG=\
+	inflate\
+
+INFLATE=\
+	il.$O\
+	imain.$O\
+
+CORE=\
+	uart.$O\
+	inflate.$O\
+	donprint.$O\
+	print.$O\
+
+HFILES=\
+	mem.h\
+
+CFLAGS=-w -I.
+
+all:V:	$TARG
+
+install:V:	$BIN/$TARG
+
+$BIN/%:	%
+	cp $stem $BIN/$stem
+
+inflate: $INFLATE $CORE
+	$LD -o s$target -R4 -T0xC0200010 $prereq -lflate -lc
+	$LD -o _^$target -H5 -R4 -T0xC0200010 $prereq -lflate -lc
+	dd -conv sync -ibs 20k -if _^$target -of $target
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	$HFILES
+
+clean:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG _$TARG  
+
