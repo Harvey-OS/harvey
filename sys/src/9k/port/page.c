@@ -550,8 +550,6 @@ pagereclaim(int npages)
 			if(p->ref == 0) {
 				npages--;
 				uncachepage(p);
-				pageunchain(p);
-				pagechainhead(p);
 			}
 			unlock(p);
 		}
