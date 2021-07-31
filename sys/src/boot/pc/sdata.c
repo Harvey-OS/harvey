@@ -12,16 +12,13 @@
 extern SDifc sdataifc;
 
 enum {
-	DbgCONFIG	= 0x0001,	/* detected drive config info */
-	DbgIDENTIFY	= 0x0002,	/* detected drive identify info */
-	DbgSTATE	= 0x0004,	/* dump state on panic */
-	DbgPROBE	= 0x0008,	/* trace device probing */
-	DbgDEBUG	= 0x0080,	/* the current problem... */
-	DbgINL		= 0x0100,	/* That Inil20+ message we hate */
-	Dbg48BIT	= 0x0200,	/* 48-bit LBA */
-	DbgBsy		= 0x0400,	/* interrupt but Bsy (shared IRQ) */
+	DbgCONFIG	= 0x01,		/* detected drive config info */
+	DbgIDENTIFY	= 0x02,		/* detected drive identify info */
+	DbgSTATE	= 0x04,		/* dump state on panic */
+	DbgPROBE	= 0x08,		/* trace device probing */
+	DbgDEBUG	= 0x80,		/* the current problem... */
 };
-#define DEBUG		(DbgDEBUG|DbgCONFIG)
+#define DEBUG		(DbgDEBUG/*|DbgPROBE*/|DbgCONFIG)
 
 enum {					/* I/O ports */
 	Data		= 0,
@@ -1221,7 +1218,7 @@ atainterrupt(Ureg*, void* arg)
 	ilock(ctlr);
 	if(inb(ctlr->ctlport+As) & Bsy){
 		iunlock(ctlr);
-		if(DEBUG & DbgBsy)
+		if(DEBUG & DbgDEBUG)
 			print("IBsy+");
 		return;
 	}
@@ -1229,7 +1226,7 @@ atainterrupt(Ureg*, void* arg)
 	status = inb(cmdport+Status);
 	if((drive = ctlr->curdrive) == nil){
 		iunlock(ctlr);
-		if((DEBUG & DbgINL) && ctlr->command != Cedd)
+		if((DEBUG & DbgDEBUG) && ctlr->command != Cedd)
 			print("Inil%2.2uX+", ctlr->command);
 		return;
 	}
@@ -1338,11 +1335,8 @@ atapnp(void)
 		 *    the only controller or not;
 		 * 2) put 0 in the programming interface byte (probably
 		 *    as a consequence of 1) above).
-		 * Sub-class code 0x04 is 'RAID controller', e.g. VIA VT8237.
 		 */
-		if(p->ccrb != 0x01)
-			continue;
-		if(p->ccru != 0x01 && p->ccru != 0x04 && p->ccru != 0x80)
+		if(p->ccrb != 0x01 || (p->ccru != 0x01 && p->ccru != 0x80))
 			continue;
 		pi = p->ccrp;
 		ispc87415 = 0;
@@ -1372,8 +1366,6 @@ atapnp(void)
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
 		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
-		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
-		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
 			pi = 0x85;
 			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */
