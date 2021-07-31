@@ -161,7 +161,7 @@ call(void) 		/* call a function */
 
 	Symbol *sp = (Symbol *)pc[0]; /* symbol table entry */
 				      /* for function */
-	if (fp >= &frame[NFRAME-1])
+	if (fp >= &frame[NFRAME])
 		execerror(sp->name, "call nested too deeply");
 	fp++;
 	fp->sp = sp;

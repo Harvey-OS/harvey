@@ -81,7 +81,7 @@ void	sendmsg(P9fs*, Fcall*);
 void	rcvmsg(P9fs*, Fcall*);
 int	delegate(void);
 int	askserver(void);
-void	cachesetup(int, char*, char*);
+void	cachesetup(int, char*);
 int	ctltest(Mfile*);
 void	genstats(void);
 
@@ -119,8 +119,8 @@ char *mname[]={
 void
 usage(void)
 {
-	fprint(2, "usage:\tcfs -s [-krd] [-f partition]\n");
-	fprint(2, "\tcfs [-krd] [-f partition] [-a netaddr] [mt-pt]\n");
+	fprint(2, "usage:\tcfs -s [-rd] [-f partition]");
+	fprint(2, "\tcfs [-rd] [-f partition] [-a netaddr] [mt-pt]\n");
 	exits("usage");
 }
 
@@ -133,14 +133,10 @@ main(int argc, char *argv[])
 	char *server;
 	char *mtpt;
 
-	int chkid;
-	NetConnInfo * snci;
-
 	std = 0;
 	format = 0;
-	chkid = 1;
 	part = "/dev/sdC0/cache";
-	server = "tcp!fs";
+	server = "tcp!edith";
 	mtpt = "/tmp";
 
 	ARGBEGIN{
@@ -162,9 +158,6 @@ main(int argc, char *argv[])
 	case 'd':
 		debug = 1;
 		break;
-	case 'k':
-		chkid = 0;
-		break;
 	default:
 		usage();
 	}ARGEND
@@ -174,6 +167,8 @@ main(int argc, char *argv[])
 	if(debug)
 		fmtinstall('F', fcallfmt);
 
+	cachesetup(format, part);
+
 	c.name = "client";
 	s.name = "server";
 	if(std){
@@ -181,17 +176,6 @@ main(int argc, char *argv[])
 		s.fd[0] = s.fd[1] = 0;
 	}else
 		mountinit(server, mtpt);
-
-	if(chkid){
-		if((snci = getnetconninfo(nil, s.fd[0])) == nil)
-			/* Failed to lookup information; format */
-			cachesetup(1, nil, part);
-		else
-			/* Do partition check */
-			cachesetup(0, snci->raddr, part);
-	}else
-		/* Obey -f w/o regard to cache vs. remote server */
-		cachesetup(format, nil, part);
 
 	switch(fork()){
 	case 0:
@@ -205,7 +189,7 @@ main(int argc, char *argv[])
 }
 
 void
-cachesetup(int format, char *name, char *partition)
+cachesetup(int format, char *partition)
 {
 	int f;
 	int secsize;
@@ -220,13 +204,8 @@ cachesetup(int format, char *name, char *partition)
 	if(f < 0)
 		error("opening partition");
 
-	if(format || iinit(&ic, f, secsize, name) < 0){
-		/*
-		 * If we need to format and don't have a name, fall
-		 * back to our old behavior of using "bootes"
-		 */
-		name = (name == nil? "bootes": name);
-		if(iformat(&ic, f, inodes, name, blocksize, secsize) < 0)
+	if(format || iinit(&ic, f, secsize)<0){
+		if(iformat(&ic, f, inodes, "bootes", blocksize, secsize) < 0)
 			error("formatting failed");
 	}
 }

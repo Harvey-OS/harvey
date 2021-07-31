@@ -4,14 +4,14 @@ cfs \- cache file system
 .SH SYNOPSIS
 .B cfs
 .B -s
-.RB [ -krdS ]
+.RB [ -rdS ]
 .RB [ -f
 .IR partition ]
 .PP
 .B cfs 
 .B -a
 .I netaddr
-.RB [ -krdS ]
+.RB [ -rdS ]
 .RB [ -f
 .IR partition ]
 .RI [ mtpt ]
@@ -66,10 +66,6 @@ sides and latencies.
 use file
 .I partition
 as the cache disk partition.
-.TP
-.BI k
-Keep cache contents even if they might have come from a different server.
-Cfs will obey the -r flag even if -k is given.
 .PP
 All 9P messages except
 .BR read ,
@@ -81,6 +77,12 @@ and
 are passed through
 .I cfs
 unchanged to the remote server.
+A
+.B clone
+followed immediately by a
+.B walk
+is converted into a
+.BR clwalk .
 If possible, a
 .B read
 is satisfied by cached data.

@@ -76,7 +76,6 @@ respondcmderror(Req *r, Cmdbuf *cb, char *fmt, ...)
 	p = vseprint(err, e, fmt, arg);
 	va_end(arg);
 	p = seprint(p, e, ": \"");
-	quotefmtinstall();	/* just in case */
 	for(i=0; i<cb->nf; i++){
 		if(i > 0)
 			p = seprint(p, e, " ");

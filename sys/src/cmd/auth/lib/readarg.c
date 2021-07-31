@@ -10,8 +10,9 @@ readarg(int fd, char *arg, int len)
 	int i;
 
 	i = 0;
-	memset(arg, 0, len);
-	while(read(fd, buf, 1) == 1){
+	for(;;){
+		if(read(fd, buf, 1) != 1)
+			return -1;
 		if(i < len - 1)
 			arg[i++] = *buf;
 		if(*buf == '\0'){
@@ -19,5 +20,4 @@ readarg(int fd, char *arg, int len)
 			return 0;
 		}
 	}
-	return -1;
 }
