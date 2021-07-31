@@ -186,7 +186,7 @@ slotena(PCMslot *pp)
 	wrreg(pp, Rigc, 0);
 	delay(100);
 	wrreg(pp, Rigc, Fnotreset);
-	delay(500);
+	delay(5000);
 
 	/* get configuration */
 	slotinfo(pp);

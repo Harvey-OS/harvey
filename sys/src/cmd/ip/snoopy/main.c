@@ -11,7 +11,6 @@
 int Cflag;
 int pflag;
 int Nflag;
-int Mflag;
 int sflag;
 int tiflag;
 int toflag;
@@ -88,10 +87,6 @@ main(int argc, char **argv)
 		printusage();
 		printhelp(ARGF());
 		exits(0);
-		break;
-	case 'M':
-		p = EARGF(usage());
-		Mflag = atoi(p);
 		break;
 	case 'N':
 		p = EARGF(usage());
@@ -315,8 +310,6 @@ tracepkt(uchar *ps, int len)
 {
 	struct pcap_pkthdr *goo;
 
-	if(Mflag && len > Mflag)
-		len = Mflag;
 	if(pcap){
 		goo = (struct pcap_pkthdr*)(ps-16);
 		goo->ts = pkttime;
