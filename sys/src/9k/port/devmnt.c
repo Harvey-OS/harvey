@@ -16,9 +16,7 @@
  * connection.
  */
 
-#define MAXRPC (IOHDRSZ+16*1024)	/* maybe a larger size will be faster */
-/* use a known-good common size for initial negotiation */
-#define MAXCMNRPC (IOHDRSZ+8192)
+#define MAXRPC (IOHDRSZ+8192)
 
 struct Mntrpc
 {
@@ -153,14 +151,14 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	f.tag = NOTAG;
 	f.msize = msize;
 	f.version = v;
-	msg = malloc(MAXCMNRPC);
+	msg = malloc(8192+IOHDRSZ);
 	if(msg == nil)
 		exhausted("version memory");
 	if(waserror()){
 		free(msg);
 		nexterror();
 	}
-	k = convS2M(&f, msg, MAXCMNRPC);
+	k = convS2M(&f, msg, 8192+IOHDRSZ);
 	if(k == 0)
 		error("bad fversion conversion on send");
 
@@ -179,7 +177,7 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	}
 
 	/* message sent; receive and decode reply */
-	n = c->dev->read(c, msg, MAXCMNRPC, c->offset);
+	n = c->dev->read(c, msg, 8192+IOHDRSZ, c->offset);
 	if(n <= 0)
 		error("EOF receiving fversion reply");
 
