@@ -83,7 +83,7 @@ vbemodeinfo(int mode)
 }
 
 static void
-vesalinear(VGAscr *scr, int, int)
+vesalinear(VGAscr *, int, int)
 {
 	int i, mode, size;
 	uchar *p;
@@ -132,9 +132,9 @@ vesalinear(VGAscr *scr, int, int)
 havesize:
 	if(size > 16*1024*1024)		/* probably arbitrary; could increase */
 		size = 16*1024*1024;
-	vgalinearaddr(scr, paddr, size);
-	hardscreen = scr->vaddr;
+	hardscreen = vmap(paddr, size);
 	mtrr(paddr, size, "wc");
+//	vgalinearaddr(scr, paddr, size);
 }
 
 static void
@@ -147,7 +147,6 @@ vesaflush(VGAscr *scr, Rectangle r)
 		return;
 
 	hp = hardscreen;
-	assert(hp != nil);
 	sp = (ulong*)(scr->gscreendata->bdata + scr->gscreen->zero);
 	t = (r.max.x * scr->gscreen->depth + 2*BI2WD-1) / BI2WD;
 	w = (r.min.x * scr->gscreen->depth) / BI2WD;

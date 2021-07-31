@@ -91,7 +91,8 @@ wrenread(Device *d, Off b, void *c)
 	if(b >= dr->max) {
 		print("wrenread: block out of range %Z(%lld)\n", d, (Wideoff)b);
 		r = 0x040;
-	} else if (pread(d->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (seek(d->wren.fd, (vlong)b*RBUFSIZE, 0) < 0 ||
+	    read(d->wren.fd, c, RBUFSIZE) != RBUFSIZE) {
 		print("wrenread: error on %Z(%lld): %r\n", d, (Wideoff)b);
 		cons.nwrenre++;
 		r = 1;
@@ -111,7 +112,8 @@ wrenwrite(Device *d, Off b, void *c)
 		print("wrenwrite: block out of range %Z(%lld)\n",
 			d, (Wideoff)b);
 		r = 0x040;
-	} else if (pwrite(d->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (seek(d->wren.fd, (vlong)b*RBUFSIZE, 0) < 0 ||
+	    write(d->wren.fd, c, RBUFSIZE) != RBUFSIZE) {
 		print("wrenwrite: error on %Z(%lld): %r\n", d, (Wideoff)b);
 		cons.nwrenwe++;
 		r = 1;

@@ -669,7 +669,8 @@ wormread(Device *d, Off b, void *c)
 	if(b >= max) {
 		print("wormread: block out of range %Z(%lld)\n", d, (Wideoff)b);
 		r = 0x071;
-	} else if (pread(dr->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (seek(dr->wren.fd, (vlong)b*RBUFSIZE, 0) < 0 ||
+	    read(dr->wren.fd, c, RBUFSIZE) != RBUFSIZE) {
 		fd2path(dr->wren.fd, name, sizeof name);
 		print("wormread: error on %Z(%lld) on %s in %s: %r\n",
 			d, (Wideoff)b, name, dr->wren.sddir);
@@ -700,7 +701,8 @@ wormwrite(Device *d, Off b, void *c)
 		print("wormwrite: block out of range %Z(%lld)\n",
 			d, (Wideoff)b);
 		r = 0x071;
-	} else if (pwrite(dr->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (seek(dr->wren.fd, (vlong)b*RBUFSIZE, 0) < 0 ||
+	    write(dr->wren.fd, c, RBUFSIZE) != RBUFSIZE) {
 		fd2path(dr->wren.fd, name, sizeof name);
 		print("wormwrwite: error on %Z(%lld) on %s in %s: %r\n",
 			d, (Wideoff)b, name, dr->wren.sddir);
