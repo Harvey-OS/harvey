@@ -54,7 +54,7 @@ enum {					/* registers */
 	Rms		= 0xDA,		/* Receive Packet Maximum Size */
 	Cplusc		= 0xE0,		/* C+ Command */
 	Rdsar		= 0xE4,		/* Receive Descriptor Start Address */
-	Mtps		= 0xEC,		/* Max. Transmit Packet Size */
+	Etthr		= 0xEC,		/* Early Transmit Threshold */
 };
 
 enum {					/* Dtccr */
@@ -205,7 +205,7 @@ enum {					/* Ring sizes  (<= 1024) */
 	Ntd		= 128,		/* Transmit Ring */
 	Nrd		= 64,		/* Receive Ring */
 
-	Mps		= ROUNDUP(ETHERMAXTU+4, 128),
+	Rbsz		= 1536,		/* can't be less, don't know why */
 };
 
 typedef struct Dtcc Dtcc;
@@ -249,7 +249,7 @@ typedef struct Ctlr {
 	int	ntdfree;
 	int	ntq;
 
-	int	mtps;			/* Max. Transmit Packet Size */
+	int	etthr;			/* Early Transmit Threshold */
 
 	Lock	rlock;			/* receive */
 	D*	rd;			/* descriptor ring */
@@ -359,7 +359,6 @@ rtl8169mii(Ctlr* ctlr)
 	print("oui %X phyno %d\n", phy->oui, phy->phyno);
 
 	miiane(ctlr->mii, ~0, ~0, ~0);
-
 	return 0;
 }
 
@@ -512,7 +511,7 @@ rtl8169replenish(Ctlr* ctlr)
 			/*
 			 * simple allocation for now
 			 */
-			bp = iallocb(Mps);
+			bp = iallocb(Rbsz);
 			if(bp == nil){
 				iprint("no available buffers\n");
 				break;
@@ -522,7 +521,7 @@ rtl8169replenish(Ctlr* ctlr)
 			d->addrhi = 0;
 		}
 		coherence();
-		d->control |= Own|Mps;
+		d->control |= Own|Rbsz;
 		rdt = NEXT(rdt, ctlr->nrd);
 		ctlr->nrdfree++;
 	}
@@ -567,12 +566,11 @@ rtl8169init(Ether* edev)
 
 	/*
 	 * Transmitter.
-	 * Mtps is in units of 128.
 	 */
 	memset(ctlr->td, 0, sizeof(D)*ctlr->ntd);
 	ctlr->tdh = ctlr->tdt = 0;
 	ctlr->td[ctlr->ntd-1].control = Eor;
-	ctlr->mtps = HOWMANY(Mps, 128);
+	ctlr->etthr = 128/32;
 
 	/*
 	 * Receiver.
@@ -603,19 +601,16 @@ rtl8169init(Ether* edev)
 	 * Clear missed-packet counter;
 	 * initial early transmit threshold value;
 	 * set the descriptor ring base addresses;
-	 * set the maximum receive packet size - if it is
-	 * larger than 8191 the Rwt|Res bits may be set
-	 * in the receive descriptor control info even if
-	 * the packet is good;
+	 * set the maximum receive packet size;
 	 * no early-receive interrupts.
 	 */
 	csr32w(ctlr, Mpc, 0);
-	csr8w(ctlr, Mtps, ctlr->mtps);
+	csr8w(ctlr, Etthr, ctlr->etthr);
 	csr32w(ctlr, Tnpds+4, 0);
 	csr32w(ctlr, Tnpds, PCIWADDR(ctlr->td));
 	csr32w(ctlr, Rdsar+4, 0);
 	csr32w(ctlr, Rdsar, PCIWADDR(ctlr->rd));
-	csr16w(ctlr, Rms, Mps);
+	csr16w(ctlr, Rms, Rbsz);
 	csr16w(ctlr, Mulint, 0);
 
 	/*

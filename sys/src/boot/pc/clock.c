@@ -26,14 +26,10 @@ enum
 	Freq=	1193182,	/* Real clock frequency */
 };
 
-static uvlong cpuhz = 66000000;
+static vlong cpufreq = 66000000;
 static int cpumhz = 66;
 static int loopconst = 100;
 int cpuidax, cpuiddx;
-int havetsc;
-
-extern void _cycles(uvlong*);		/* in l.s */
-extern void wrmsr(int, vlong);
 
 static void
 clockintr(Ureg*, void*)
@@ -133,24 +129,27 @@ static X86type x86amd[] =
 
 static X86type	*cputype;
 
-
+/*
+ *  delay for l milliseconds more or less.  delayloop is set by
+ *  clockinit() to match the actual CPU speed.
+ */
 void
-delay(int millisecs)
+delay(int l)
 {
-	millisecs *= loopconst;
-	if(millisecs <= 0)
-		millisecs = 1;
-	aamloop(millisecs);
+	l *= loopconst;
+	if(l <= 0)
+		l = 1;
+	aamloop(l);
 }
 
 void
-microdelay(int microsecs)
+microdelay(int l)
 {
-	microsecs *= loopconst;
-	microsecs /= 1000;
-	if(microsecs <= 0)
-		microsecs = 1;
-	aamloop(microsecs);
+	l *= loopconst;
+	l /= 1000;
+	if(l <= 0)
+		l = 1;
+	aamloop(l);
 }
 
 extern void cpuid(char*, int*, int*);
@@ -183,20 +182,14 @@ cpuidentify(void)
 	if(t->name == nil)
 		panic("cpuidentify");
 
-	if(cpuiddx & 0x10){
-		havetsc = 1;
-		if(cpuiddx & 0x20)
-			wrmsr(0x10, 0);
-	}
-
 	return t;
 }
 
 void
 clockinit(void)
 {
-	uvlong a, b, cpufreq;
-	int loops, incr, x, y;
+	int x, y;	/* change in counter */
+	int loops, incr;
 	X86type *t;
 
 	/*
@@ -246,14 +239,10 @@ clockinit(void)
 		 *
 		 */
 		outb(Tmode, Latch0);
-		if(havetsc)
-			_cycles(&a);
 		x = inb(T0cntr);
 		x |= inb(T0cntr)<<8;
 		aamloop(loops);
 		outb(Tmode, Latch0);
-		if(havetsc)
-			_cycles(&b);
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;
@@ -266,40 +255,21 @@ clockinit(void)
 	}
 
 	/*
- 	 *  figure out clock frequency and a loop multiplier for delay().
 	 *  counter  goes at twice the frequency, once per transition,
 	 *  i.e., twice per square wave
 	 */
-	cpufreq = (vlong)loops*((t->aalcycles*2*Freq)/x);
+	x >>= 1;
+
+	/*
+ 	 *  figure out clock frequency and a loop multiplier for delay().
+	 */
+	cpufreq = (vlong)loops*((t->aalcycles*Freq)/x);
 	loopconst = (cpufreq/1000)/t->aalcycles;	/* AAM+LOOP's for 1 ms */
 
-	if(havetsc){
-		/* counter goes up by 2*Freq */
-		b = (b-a)<<1;
-		b *= Freq;
-		b /= x;
-
-		/*
-		 *  round to the nearest megahz
-		 */
-		cpumhz = (b+500000)/1000000L;
-		cpuhz = b;
-	}
-	else{
-		/*
-		 *  add in possible .5% error and convert to MHz
-		 */
-		cpumhz = (cpufreq + cpufreq/200)/1000000;
-		cpuhz = cpufreq;
-	}
-
-	if(debug){
-		int timeo;
-
+	/*
+	 *  add in possible .2% error and convert to MHz
+	 */
+	cpumhz = (cpufreq + cpufreq/500)/1000000;
+	if (1)
 		print("%dMHz %s loop %d\n", cpumhz, t->name, loopconst);
-		print("tick...");
-		for(timeo = 0; timeo < 10; timeo++)
-			delay(1000);
-		print("tock...\n");
-	}
 }
