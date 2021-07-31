@@ -31,6 +31,7 @@ enum
 	RpcConfirm,
 };
 
+typedef struct Attr Attr;
 typedef struct Domain Domain;
 typedef struct Fsstate Fsstate;
 typedef struct Key Key;
