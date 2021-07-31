@@ -657,7 +657,7 @@ loop:
 static int
 fmtæ(Fmt *f)
 {
-	char buf[16];
+	char buf[8];
 	Aoedev *d;
 
 	d = va_arg(f->args, Aoedev*);

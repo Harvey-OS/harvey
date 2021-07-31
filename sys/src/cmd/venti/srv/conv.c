@@ -15,8 +15,6 @@
 #define	U32PUT(p,v)	(p)[0]=((v)>>24)&0xFF;(p)[1]=((v)>>16)&0xFF;(p)[2]=((v)>>8)&0xFF;(p)[3]=(v)&0xFF
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
-int debugarena = -1;		/* hack to improve error reporting */
-
 static struct {
 	u32int m;
 	char *s;
@@ -114,9 +112,7 @@ unpackarena(Arena *arena, u8int *buf)
 
 	m = U32GET(p);
 	if(m != ArenaMagic){
-		seterr(ECorrupt, "arena %d has wrong magic number: %s "
-			"expected ArenaMagic (%#lux)", debugarena,
-			fmtmagic(fbuf, m), ArenaMagic);
+		seterr(ECorrupt, "arena has wrong magic number: %s expected ArenaMagic (%#lux)", fmtmagic(fbuf, m), ArenaMagic);
 		return -1;
 	}
 	p += U32Size;
@@ -312,9 +308,7 @@ unpackarenahead(ArenaHead *head, u8int *buf)
 
 	m = U32GET(p);
 	if(m != ArenaHeadMagic){
-		seterr(ECorrupt, "arena %d head has wrong magic number: %s "
-			"expected ArenaHeadMagic (%#lux)", debugarena,
-			fmtmagic(fbuf, m), ArenaHeadMagic);
+		seterr(ECorrupt, "arena has wrong magic number: %s expected ArenaHeadMagic (%#lux)", fmtmagic(fbuf, m), ArenaHeadMagic);
 		return -1;
 	}
 
