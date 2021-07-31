@@ -1,7 +1,3 @@
-enum {
-	STACKSIZE = 2048 * sizeof(void*),
-};
-
 /* Keywords */
 
 typedef enum {

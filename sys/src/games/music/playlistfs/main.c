@@ -76,10 +76,10 @@ threadmain(int argc, char *argv[])
 
 	if(pipe(srvfd) < 0)
 		sysfatal("pipe failed: %r");
-	procrfork(srv, nil, STACKSIZE, RFFDG);
+	procrfork(srv, nil, 8192, RFFDG);
 	close(srvfd[0]);	/* don't deadlock if child fails */
 
-	procrfork(volumeproc, nil, STACKSIZE, RFFDG);
+	procrfork(volumeproc, nil, 8192, RFFDG);
 	playinit();
 
 	if(srvpost){

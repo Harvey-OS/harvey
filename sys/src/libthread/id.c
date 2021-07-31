@@ -83,11 +83,7 @@ threadsetname(char *fmt, ...)
 char*
 threadgetname(void)
 {
-	Proc *p;
-
-	if((p = _threadgetproc()) && p->thread)
-		return p->thread->cmdname;
-	return nil;
+	return _threadgetproc()->thread->cmdname;
 }
 
 void**
