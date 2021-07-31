@@ -24,4 +24,4 @@ OFILES=\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=$CFLAGS -c -D_POSIX_SOURCE
+CFLAGS=-c -D_POSIX_SOURCE

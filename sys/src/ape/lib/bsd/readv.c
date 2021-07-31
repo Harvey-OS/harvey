@@ -6,6 +6,7 @@ int
 readv(int fd, struct iovec *v, int ent)
 {
 	int x, i, n, len;
+	char *t;
 	char buf[10*1024];
 
 	for(len = i = 0; i < ent; i++)

@@ -37,6 +37,7 @@ _envsetup(void)
 	char **pp;
 	char name[NAME_MAX+5];
 	Dir *d9, *d9a;
+	struct dirent *de;
 	static char **emptyenvp = 0;
 
 	environ = emptyenvp;		/* pessimism */
@@ -116,7 +117,7 @@ _envsetup(void)
 static void
 sigsetup(char *s, char *se)
 {
-	int sig;
+	int i, sig;
 	char *e;
 
 	while(s < se){

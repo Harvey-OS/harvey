@@ -11,7 +11,7 @@
 int
 access(const char *name, int mode)
 {
-	int fd;
+	int fd, n;
 	Dir *db;
 	struct stat st;
 	static char omode[] = {

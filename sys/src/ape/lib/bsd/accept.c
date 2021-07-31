@@ -23,7 +23,7 @@ accept(int fd, void *a, int *alen)
 	struct sockaddr_in *ip;
 	char name[Ctlsize];
 	char file[8+Ctlsize+1];
-	char *net;
+	char *p, *net;
 
 	r = _sock_findrock(fd, 0);
 	if(r == 0){
@@ -39,9 +39,6 @@ accept(int fd, void *a, int *alen)
 			break;
 		case SOCK_STREAM:
 			net = "tcp";
-			break;
-		default:
-			net = "gok";
 			break;
 		}
 

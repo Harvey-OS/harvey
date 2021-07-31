@@ -107,9 +107,11 @@ readprocfdinit(void)
 static void
 sfdinit(int usedproc, char *s, char *se)
 {
+	int i;
 	Fdinfo *fi;
 	unsigned long fd, fl, ofl;
 	char *e;
+	struct stat sbuf;
 
 	while(s < se){
 		fd = strtoul(s, &e, 10);

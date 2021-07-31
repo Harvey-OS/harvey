@@ -13,7 +13,7 @@ int h_errno;
 struct hostent*
 gethostbyaddr(void *addr, int len, int type)
 {
-	unsigned long y;
+	unsigned long a, y;
 	struct in_addr x;
 	unsigned char *p = addr;
 

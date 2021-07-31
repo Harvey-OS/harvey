@@ -31,7 +31,6 @@ void	fpclear(void);
 void	fpenv(FPsave*);
 void	fpinit(void);
 void	fpoff(void);
-void	fpon(void);
 void	(*fprestore)(FPsave*);
 void	(*fpsave)(FPsave*);
 void	fpsserestore(FPsave*);

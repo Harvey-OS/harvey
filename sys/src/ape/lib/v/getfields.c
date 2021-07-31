@@ -51,7 +51,6 @@ getfields(char *ss, char **sp, int nptrs)
 	register unsigned char **p = (unsigned char **)sp;
 	register unsigned c;
 
-	c = 0;
 	for(;;){
 		if(--nptrs < 0) break;
 		*p++ = s;

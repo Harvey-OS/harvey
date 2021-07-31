@@ -11,7 +11,8 @@
 #include "priv.h"
 
 int
-sendto(int fd, void *a, int n, int flags, void *, int)
+sendto(int fd, void *a, int n, int flags,
+	void *to, int tolen)
 {
 	/* actually, should do connect if not done already */
 	return send(fd, a, n, flags);

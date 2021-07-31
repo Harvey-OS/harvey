@@ -8,6 +8,7 @@
 int
 _isatty(int fd)
 {
+	int t;
 	char buf[64];
 
 	if(_FD2PATH(fd, buf, sizeof buf) < 0)
@@ -19,7 +20,7 @@ _isatty(int fd)
 
 /* The FD_ISTTY flag is set via _isatty in _fdsetup or open */
 int
-isatty(int fd)
+isatty(fd)
 {
 	if(_fdinfo[fd].flags&FD_ISTTY)
 		return 1;

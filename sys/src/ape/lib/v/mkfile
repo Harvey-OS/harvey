@@ -15,7 +15,7 @@ OFILES=getpass.$O\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=$CFLAGS -c
+CFLAGS=-c
 
 %.$O:	$FAMILY/%.c
 	$CC $CFLAGS $prereq

@@ -19,6 +19,7 @@ _exit(int status)
 void
 _finish(int status, char *term)
 {
+	int i, nalive;
 	char *cp;
 
 	if(_finishing)

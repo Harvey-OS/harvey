@@ -27,7 +27,7 @@ srand(unsigned int seed)
 	rng_tap = rng_vec;
 	rng_feed = rng_vec+LEN-TAP;
 	seed = seed%M;
-	if(0 && seed < 0)			/* seed is unsigned */
+	if(seed < 0)
 		seed += M;
 	if(seed == 0)
 		seed = 89482311;

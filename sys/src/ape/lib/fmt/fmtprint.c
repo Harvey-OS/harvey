@@ -28,9 +28,9 @@ fmtprint(Fmt *f, char *fmt, ...)
 	va_list va;
 	int n;
 
-	va_start(va, fmt);
+	va_start(f->args, fmt);
 	n = fmtvprint(f, fmt, va);
-	va_end(va);
+	va_end(f->args);
 	return n;
 }
 

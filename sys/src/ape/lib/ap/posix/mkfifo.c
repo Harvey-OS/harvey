@@ -3,8 +3,10 @@
 #include	<errno.h>
 
 int
-mkfifo(char *, mode_t)
+mkfifo(char *path, mode_t mode)
 {
+#pragma ref path
+#pragma ref mode
 	errno = 0;
 	return -1;
 }

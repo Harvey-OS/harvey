@@ -47,9 +47,6 @@ listenproc(Rock *r, int fd)
 	case SOCK_STREAM:
 		net = "tcp";
 		break;
-	default:
-		net = "gok";
-		break;
 	}
 
 	strcpy(listen, r->ctl);
@@ -116,7 +113,9 @@ listenproc(Rock *r, int fd)
 }
 
 int
-listen(int fd, int)
+listen(fd, backlog)
+	int fd;
+	int backlog;
 {
 	Rock *r;
 	int n, cfd;
@@ -138,7 +137,7 @@ listen(int fd, int)
 			return -1;
 		}
 		lip = (struct sockaddr_in*)&r->addr;
-		if(1 || lip->sin_port >= 0) {	/* sin_port is unsigned */
+		if(lip->sin_port >= 0) {
 			if(write(cfd, "bind 0", 6) < 0) {
 				errno = EGREG;
 				close(cfd);

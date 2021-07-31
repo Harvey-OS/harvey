@@ -67,7 +67,6 @@ unlink(const char *path)
 			free(db2);
 		}
 	}
-	n = 0;
 	if(fd == -1)
 		if((n=_REMOVE(path)) < 0)
 			_syserrno();
