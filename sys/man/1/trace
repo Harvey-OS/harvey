@@ -65,13 +65,13 @@ Quit.
 .SH "SEE ALSO
 .IR proc (3)
 .SH FILES
-.TF /sys/include/trace.h
+.TF 
 .TP
 .B /proc/trace
 trace event file
 .TP
 .B /sys/include/trace.h
 trace event data structures
-.TD
+.TP
 .SH SOURCE
 .B /sys/src/cmd/trace
