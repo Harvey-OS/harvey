@@ -279,7 +279,7 @@ consclose(Chan *c)
 		if(t == nil)
 			break;
 		setsnarf(t->buf, t->n, 0);
-		t->buf = nil;	/* setsnarf took it */
+		free(t->buf);
 		free(t);
 		c->aux = nil;
 		break;

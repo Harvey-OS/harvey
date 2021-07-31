@@ -93,7 +93,7 @@ struct Udppriv
 };
 
 void (*etherprofiler)(char *name, int qlen);
-void udpkick(void *x, Block *bp);
+void udpkick(void *x);
 
 /*
  *  protocol specific part of Conv
@@ -148,7 +148,7 @@ static void
 udpcreate(Conv *c)
 {
 	c->rq = qopen(128*1024, Qmsg, 0, 0);
-	c->wq = qbypass(udpkick, c);
+	c->wq = qopen(128*1024, Qkick, udpkick, c);
 }
 
 static void
@@ -176,13 +176,14 @@ udpclose(Conv *c)
 }
 
 void
-udpkick(void *x, Block *bp)
+udpkick(void *x)
 {
 	Conv *c = x;
 	Udp4hdr *uh4;
 	Udp6hdr *uh6;
 	ushort rport;
 	uchar laddr[IPaddrlen], raddr[IPaddrlen];
+	Block *bp;
 	Udpcb *ucb;
 	int dlen, ptcllen;
 	Udppriv *upriv;
@@ -193,6 +194,7 @@ udpkick(void *x, Block *bp)
 	f = c->p->f;
 
 	netlog(c->p->f, Logudp, "udp: kick\n");
+	bp = qget(c->wq);
 	if(bp == nil)
 		return;
 

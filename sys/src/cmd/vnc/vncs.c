@@ -789,8 +789,7 @@ clientreadproc(Vncs *v)
 				vnclock(v);	/* for snarfvers */
 				setsnarf(buf, n, &v->snarfvers);
 				vncunlock(v);
-			}else
-				vncgobble(v, n);
+			}
 			break;
 		}
 	}

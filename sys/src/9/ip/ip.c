@@ -220,7 +220,7 @@ iprouting(Fs *f, int on)
 		f->ip->stats[Forwarding] = 1;	
 }
 
-int
+void
 ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 {
 	Ipifc *ifc;
@@ -231,7 +231,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 	int lid, len, seglen, chunk, dlen, blklen, offset, medialen;
 	Route *r, *sr;
 	IP *ip;
-	int rv = 0;
+	Proto *pr;
 
 	ip = f->ip;
 
@@ -263,7 +263,11 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 	if(r == nil){
 		ip->stats[OutNoRoutes]++;
 		netlog(f, Logip, "no interface %V\n", eh->dst);
-		rv = -1;
+		if(!gating){
+			freeblist(bp);
+print("ipoput4: no route\n");
+			error("no route");
+		}
 		goto free;
 	}
 
@@ -311,7 +315,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 		ifc->m->bwrite(ifc, bp, V4, gate);
 		runlock(ifc);
 		poperror();
-		return 0;
+		return;
 	}
 
 if((eh->frag[0] & (IP_DF>>8)) && !gating) print("%V: DF set\n", eh->dst);
@@ -400,8 +404,7 @@ raise:
 	runlock(ifc);
 	poperror();
 free:
-	freeblist(bp);
-	return rv;
+	freeblist(bp);	
 }
 
 void

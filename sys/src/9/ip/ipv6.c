@@ -131,7 +131,7 @@ struct IP
 	int		iprouting;	/* true if we route like a gateway */
 };
 
-int
+void
 ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 {
 	int tentative;
@@ -143,7 +143,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 	Fraghdr6 fraghdr;
 	Block *xp, *nb;
 	IP *ip;
-	int rv = 0;
+
 
 	ip = f->ip;
 
@@ -184,7 +184,6 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 //		print("no route for %I, src %I free\n", eh->dst, eh->src);
 		ip->stats[OutNoRoutes]++;
 		netlog(f, Logip, "no interface %I\n", eh->dst);
-		rv = -1;
 		goto free;
 	}
 
@@ -229,7 +228,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 		ifc->m->bwrite(ifc, bp, V6, gate);
 		runlock(ifc);
 		poperror();
-		return 0;
+		return;
 	}
 
 	if(gating) 
@@ -329,7 +328,7 @@ raise:
 	poperror();
 free:
 	freeblist(bp);	
-	return rv;
+
 }
 
 void

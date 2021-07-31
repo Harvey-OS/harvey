@@ -2411,6 +2411,11 @@ tcpoutput(Conv *s)
 	tpriv = s->p->priv;
 	version = s->ipversion;
 
+	if(waserror()){
+		localclose(s, up->errstr);
+		return;
+	}
+
 	for(msgs = 0; msgs < 100; msgs++) {
 		tcb = (Tcpctl*)s->ptcl;
 	
@@ -2418,7 +2423,7 @@ tcpoutput(Conv *s)
 		case Listen:
 		case Closed:
 		case Finwait2:
-			return;
+			goto out;
 		}
 	
 		/* force an ack when a window has opened up */
@@ -2545,7 +2550,7 @@ tcpoutput(Conv *s)
 			hbp = htontcp4(&seg, bp, &tcb->protohdr.tcp4hdr, tcb);
 			if(hbp == nil) {
 				freeblist(bp);
-				return;
+				goto out;
 			}
 			break;
 		case V6:
@@ -2553,7 +2558,7 @@ tcpoutput(Conv *s)
 			hbp = htontcp6(&seg, bp, &tcb->protohdr.tcp6hdr, tcb);
 			if(hbp == nil) {
 				freeblist(bp);
-				return;
+				goto out;
 			}
 			break;
 		default:
@@ -2585,16 +2590,10 @@ tcpoutput(Conv *s)
 
 		switch(version){
 		case V4:
-			if(ipoput4(f, hbp, 0, s->ttl, s->tos) < 0){
-				/* a negative return means no route */
-				localclose(s, "no route");
-			}
+			ipoput4(f, hbp, 0, s->ttl, s->tos);
 			break;
 		case V6:
-			if(ipoput6(f, hbp, 0, s->ttl, s->tos) < 0){
-				/* a negative return means no route */
-				localclose(s, "no route");
-			}
+			ipoput6(f, hbp, 0, s->ttl, s->tos);
 			break;
 		default:
 			panic("tcpoutput2: version %d", version);
@@ -2605,6 +2604,8 @@ tcpoutput(Conv *s)
 			qlock(s);
 		}
 	}
+out:
+	poperror();
 }
 
 /*
@@ -2744,7 +2745,7 @@ tcprxmit(Conv *s)
 	tcb->snd.ptr = tcb->snd.una;
 
 	/*
-	 *  We should be halving the slow start threshhold (down to one
+	 *  We should be halving the slow start thershhold (down to one
 	 *  mss) but leaving it at mss seems to work well enough
 	 */
  	tcb->ssthresh = tcb->mss;

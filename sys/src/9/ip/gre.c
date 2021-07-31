@@ -47,7 +47,7 @@ struct GREpriv
 	ulong		lenerr;			/* short packet */
 };
 
-static void grekick(void *x, Block *bp);
+static void grekick(void *x);
 
 static char*
 greconnect(Conv *c, char **argv, int argc)
@@ -90,7 +90,7 @@ static void
 grecreate(Conv *c)
 {
 	c->rq = qopen(64*1024, Qmsg, 0, c);
-	c->wq = qbypass(grekick, c);
+	c->wq = qopen(64*1024, Qkick, grekick, c);
 }
 
 static int
@@ -121,12 +121,14 @@ greclose(Conv *c)
 int drop;
 
 static void
-grekick(void *x, Block *bp)
+grekick(void *x)
 {
 	Conv *c = x;
 	GREhdr *ghp;
+	Block *bp;
 	uchar laddr[IPaddrlen], raddr[IPaddrlen];
 
+	bp = qget(c->wq);
 	if(bp == nil)
 		return;
 
