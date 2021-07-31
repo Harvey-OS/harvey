@@ -720,9 +720,6 @@ files support the following additional messages:
 .TF "\fLkeepalive\fI n\fR"
 .PD
 .TP
-.B close
-gracefully close down this TCP connection
-.TP
 .B hangup
 close down this TCP connection
 .TP
