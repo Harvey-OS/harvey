@@ -313,7 +313,7 @@ struct Ipifc
 
 	Conv	*conv;		/* link to its conversation structure */
 	char	dev[64];	/* device we're attached to */
-	Medium	*medium;	/* Media pointer */
+	Medium	*m;		/* Media pointer */
 	int	maxtu;		/* Maximum transfer unit */
 	int	mintu;		/* Minumum tranfer unit */
 	int	mbps;		/* megabits per second */

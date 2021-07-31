@@ -111,14 +111,14 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		nexterror();
 	}
 
-	if(ifc->medium == nil)
+	if(ifc->m == nil)
 		goto raise;
 
 	/* If we dont need to fragment just send it */
-	medialen = ifc->maxtu - ifc->medium->hsize;
+	medialen = ifc->maxtu - ifc->m->hsize;
 	if(len <= medialen) {
 		hnputs(eh->ploadlen, len - IP6HDR);
-		ifc->medium->bwrite(ifc, bp, V6, gate);
+		ifc->m->bwrite(ifc, bp, V6, gate);
 		runlock(ifc);
 		poperror();
 		return 0;
@@ -209,7 +209,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 				xp = xp->next;
 		}
 
-		ifc->medium->bwrite(ifc, nb, V6, gate);
+		ifc->m->bwrite(ifc, nb, V6, gate);
 		ip->stats[FragCreates]++;
 	}
 	ip->stats[FragOKs]++;

@@ -70,6 +70,7 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 	uint t;
 	Block *next, *xp;
 	Arpent *a, *e, *f, **l;
+	Medium *m = ifc->m;
 	int empty;
 
 	/* find oldest entry */
@@ -126,7 +127,7 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 	memmove(a->ip, ip, sizeof(a->ip));
 	a->utime = NOW;
 	a->ctime = 0;
-	a->type = ifc->medium;
+	a->type = m;
 
 	a->rtime = NOW + ReTransTimer;
 	a->rxtsrem = MAX_MULTICAST_SOLICIT;
@@ -207,7 +208,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uchar *ip, uchar *mac)
 {
 	int hash;
 	Arpent *a;
-	Medium *type;
+	Medium *type = ifc->m;
 	uchar v6ip[IPaddrlen];
 
 	if(version == V4){
@@ -217,7 +218,6 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uchar *ip, uchar *mac)
 
 	qlock(arp);
 	hash = haship(ip);
-	type = ifc->medium;
 	for(a = arp->hash[hash]; a; a = a->hash){
 		if(memcmp(ip, a->ip, sizeof(a->ip)) == 0)
 		if(type == a->type)
@@ -332,7 +332,7 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 	}
 
 	ifc = r->ifc;
-	type = ifc->medium;
+	type = ifc->m;
 
 	qlock(arp);
 	for(a = arp->hash[haship(ip)]; a; a = a->hash){
@@ -373,8 +373,8 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 						nexterror();
 					}
 					rlock(ifc);
-					if(ifc->medium != nil)
-						ifc->medium->bwrite(ifc, bp, version, ip);
+					if(ifc->m != nil)
+						ifc->m->bwrite(ifc, bp, version, ip);
 					else
 						freeb(bp);
 					runlock(ifc);
@@ -406,7 +406,7 @@ arpwrite(Fs *fs, char *s, int len)
 	Arp *arp;
 	Block *bp;
 	Arpent *a, *fl, **l;
-	Medium *type;
+	Medium *m;
 	char *f[4], buf[256];
 	uchar ip[IPaddrlen], mac[MAClen];
 
@@ -455,23 +455,23 @@ arpwrite(Fs *fs, char *s, int len)
 				r = v6lookup(fs, ip, nil);
 			if(r == nil)
 				error("Destination unreachable");
-			type = r->ifc->medium;
-			n = parsemac(mac, f[2], type->maclen);
+			m = r->ifc->m;
+			n = parsemac(mac, f[2], m->maclen);
 			break;
 		case 4:
-			type = ipfindmedium(f[1]);
-			if(type == nil)
+			m = ipfindmedium(f[1]);
+			if(m == nil)
 				error(Ebadarp);
 			if (parseip(ip, f[2]) == -1)
 				error(Ebadip);
-			n = parsemac(mac, f[3], type->maclen);
+			n = parsemac(mac, f[3], m->maclen);
 			break;
 		}
 
-		if(type->ares == nil)
+		if(m->ares == nil)
 			error(Ebadarp);
 
-		type->ares(fs, V6, ip, mac, n, 0);
+		m->ares(fs, V6, ip, mac, n, 0);
 	} else if(strcmp(f[0], "del") == 0){
 		if(n != 2)
 			error(Ebadarg);
