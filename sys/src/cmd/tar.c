@@ -1023,6 +1023,7 @@ main(int argc, char *argv[])
 	int errflg = 0;
 	char *ret = nil;
 
+	quotefmtinstall();
 	fmtinstall('M', dirmodefmt);
 
 	TARGBEGIN {
