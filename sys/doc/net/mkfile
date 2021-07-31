@@ -14,5 +14,4 @@ tree.pout:D:	tree
 	pic tree > tree.pout
 
 net.html:D:	$DEPS
-	tbl net.ms | htmlroff -ms -mhtml >net.html
-
+	{ echo $FONTS; cat net.ms } | tbl | ms2html > net.html

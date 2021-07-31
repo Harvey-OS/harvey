@@ -40,7 +40,6 @@ static struct {
 	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
 	"power", "#F/flash/flash0", 0x440000, sizeof(Nvrsafe),
 	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
-	"power", "/nvram", 0, sizeof(Nvrsafe),	/* OK for Ucu */
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };
 

@@ -95,7 +95,6 @@ plock(Pool *p)
 
 	pv = p->private;
 	ilock(&pv->lk);
-	pv->lk.pc = getcallerpc(&p);
 	pv->msg[0] = 0;
 }
 

@@ -5,5 +5,4 @@ il.ps:D:	il.ms transition.pic
 	../cleanps il.ps
 
 il.html:D:	il.ms transition.pic
-	pic il.ms | htmlroff -ms -mhtml >il.html
-
+	{echo $FONTS; cat il.ms} | pic | ms2html >il.html

@@ -636,7 +636,6 @@ sdopen(Chan* c, int omode)
 	sdev = sdgetdev(DEV(c->qid));
 	if(sdev == nil)
 		error(Enonexist);
-
 	unit = sdev->unit[UNIT(c->qid)];
 
 	switch(TYPE(c->qid)){
@@ -647,7 +646,6 @@ sdopen(Chan* c, int omode)
 		c->qid.vers = unit->vers;
 		if(tas(&unit->rawinuse) != 0){
 			c->flag &= ~COPEN;
-			decref(&sdev->r);
 			error(Einuse);
 		}
 		unit->state = Rawcmd;
@@ -657,7 +655,6 @@ sdopen(Chan* c, int omode)
 		if(waserror()){
 			qunlock(&unit->ctl);
 			c->flag &= ~COPEN;
-			decref(&sdev->r);
 			nexterror();
 		}
 		pp = &unit->part[PART(c->qid)];
@@ -707,10 +704,8 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 	ulong bno, max, nb, offset;
 
 	sdev = sdgetdev(DEV(c->qid));
-	if(sdev == nil){
-		decref(&sdev->r);
+	if(sdev == nil)
 		error(Enonexist);
-	}
 	unit = sdev->unit[UNIT(c->qid)];
 	if(unit == nil)
 		error(Enonexist);
@@ -1106,7 +1101,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 		if(unit->sectors){
 			if(unit->dev->ifc->rctl == nil)
 				l += snprint(p+l, m-l,
-					"geometry %lud %ld\n",
+					"geometry %ld %ld\n",
 					unit->sectors, unit->secsize);
 			pp = unit->part;
 			for(i = 0; i < unit->npart; i++){

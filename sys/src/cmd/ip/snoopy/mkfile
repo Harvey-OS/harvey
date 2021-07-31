@@ -53,8 +53,6 @@ UPDATE=\
 	main.c\
 	${POBJS:%.$O=%.c}\
 
-CLEANFILES=protos.c protos.h
-
 </sys/src/cmd/mkone
 
 protos.h: mkfile

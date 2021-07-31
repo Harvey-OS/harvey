@@ -17,6 +17,19 @@ enum{
 	RTPLEN = 12,		// Minimum size of an RTP header
 };
 
+
+static void
+p_compile(Filter *f)
+{
+	sysfatal("unknown rtp field: %s", f->s);
+}
+
+static int
+p_filter(Filter *, Msg *)
+{
+	return 0;
+}
+
 static int
 p_seprint(Msg *m)
 {
@@ -52,8 +65,8 @@ p_seprint(Msg *m)
 
 Proto rtp = {
 	"rtp",
-	nil,
-	nil,
+	p_compile,
+	p_filter,
 	p_seprint,
 	nil,
 	nil,

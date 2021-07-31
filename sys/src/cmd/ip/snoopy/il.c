@@ -102,7 +102,8 @@ char *pktnames[] =
 static char*
 pkttype(int t)
 {
-	static char b[10];
+	char b[10];
+
 	
 	if(t > 6){
 		sprint(b, "%d", t);

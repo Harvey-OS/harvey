@@ -5,7 +5,6 @@
 typedef struct Lstn Lstn;
 typedef struct Lstn {
 	int	afd;
-	int	flags;
 	char*	address;
 	char	dir[NETPATHLEN];
 
@@ -46,7 +45,7 @@ lstnListen(void* a)
 	Lstn *lstn;
 	int dfd, lfd;
 	char newdir[NETPATHLEN];
-	
+
  	vtThreadSetName("listen");
 
 	lstn = a;
@@ -55,16 +54,18 @@ lstnListen(void* a)
 			fprint(2, "listen: listen '%s': %r", lstn->dir);
 			break;
 		}
+
 		if((dfd = accept(lfd, newdir)) >= 0)
-			conAlloc(dfd, newdir, lstn->flags);
+			conAlloc(dfd, newdir);
 		else
-			fprint(2, "listen: accept %s: %r\n", newdir);
+			fprint(2, "listen: accept '%s': %r", newdir);
+		close(lfd);
 	}
 	lstnFree(lstn);
 }
 
 static Lstn*
-lstnAlloc(char* address, int flags)
+lstnAlloc(char* address)
 {
 	int afd;
 	Lstn *lstn;
@@ -88,7 +89,6 @@ lstnAlloc(char* address, int flags)
 	lstn = vtMemAllocZ(sizeof(Lstn));
 	lstn->afd = afd;
 	lstn->address = vtStrDup(address);
-	lstn->flags = flags;
 	memmove(lstn->dir, dir, NETPATHLEN);
 
 	if(lbox.tail != nil){
@@ -114,23 +114,17 @@ lstnAlloc(char* address, int flags)
 static int
 cmdLstn(int argc, char* argv[])
 {
-	int dflag, flags;
+	int dflag;
 	Lstn *lstn;
-	char *usage = "usage: listen [-dIN] [address]";
+	char *usage = "usage: listen [-d] [address]";
 
 	dflag = 0;
-	flags = 0;
+
 	ARGBEGIN{
 	default:
 		return cliError(usage);
 	case 'd':
 		dflag = 1;
-		break;
-	case 'I':
-		flags |= ConIPCheck;
-		break;
-	case 'N':
-		flags |= ConNoneAllow;
 		break;
 	}ARGEND
 
@@ -145,7 +139,7 @@ cmdLstn(int argc, char* argv[])
 		break;
 	case 1:
 		if(!dflag){
-			if(lstnAlloc(argv[0], flags) == nil)
+			if(lstnAlloc(argv[0]) == nil)
 				return 0;
 			break;
 		}

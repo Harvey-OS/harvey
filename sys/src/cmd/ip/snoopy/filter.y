@@ -12,7 +12,6 @@ char	*yyend;		/* end of buffer to be parsed */
 %term LOR
 %term LAND
 %term WORD
-%term NE
 %right '!'
 %left '|'
 %left '&'
@@ -28,14 +27,6 @@ expr		: WORD
 			{ $$ = $1; }
 		| WORD '=' WORD
 			{ $2->l = $1; $2->r = $3; $$ = $2; }
-		| WORD NE WORD
-			{ $2->l = newfilter();
-			  $2->l->op = '=';
-			  $2->l->l = $1;
-			  $2->l->r = $3;
-			  $2->op = '!';
-			  $$ = $2;
-			}
 		| WORD '(' expr ')'
 			{ $1->l = $3; free($2); free($4); $$ = $1; }
 		| '(' expr ')'
@@ -93,18 +84,17 @@ yylex(void)
 	}
 
 	yylp++;
-	if(c == '!' && *yylp == '='){
-		c = NE;
-		yylp++;
-	}
-	else if(c == '&' && *yylp == '&'){
-		c = LAND;
-		yylp++;
-	}
-	else if(c == '|' && *yylp == '|'){
-		c = LOR;
-		yylp++;
-	}
+	if(*yylp == c)
+		switch(c){
+		case '&':
+			c = LAND;
+			yylp++;
+			break;
+		case '|':
+			c = LOR;
+			yylp++;
+			break;
+		}
 	yylval->op = c;
 	return c;
 }

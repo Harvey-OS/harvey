@@ -813,7 +813,7 @@ ise_erase(Flash *flash, ulong addr)
  *	If someone learns better, please email me, though
  *	I doubt it will be much faster. -  presotto@bell-labs.com
  */
-static long
+static ulong
 ise_wbwrite(Flash *flash, Fword *p, int n, ulong off, ulong baddr, ulong *status)
 {
 	Fword x;

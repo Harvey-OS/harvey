@@ -1,18 +1,5 @@
 #include "cc.h"
 
-static Node*
-acast(Type *t, Node *n)
-{
-	if(n->type->etype != t->etype || n->op == OBIT) {
-		n = new1(OCAST, n, Z);
-		if(nocast(n->left->type, t))
-			*n = *n->left;
-		n->type = t;
-	}
-	return n;
-}
-
-
 void
 evconst(Node *n)
 {
@@ -439,8 +426,10 @@ acom2(Node *n, Type *t)
 			if(c2 % c1)
 				continue;
 			r = trm[j].node;
-			if(r->type->etype != et)
-				r = acast(t, r);
+			if(r->type->etype != et) {
+				r = new1(OCAST, r, Z);
+				r->type = t;
+			}
 			c2 = trm[j].mult/trm[i].mult;
 			if(c2 != 1 && c2 != -1) {
 				r = new1(OMUL, r, new(OCONST, Z, Z));
@@ -449,8 +438,10 @@ acom2(Node *n, Type *t)
 				r->right->vconst = c2;
 			}
 			l = trm[i].node;
-			if(l->type->etype != et)
-				l = acast(t, l);
+			if(l->type->etype != et) {
+				l = new1(OCAST, l, Z);
+				l->type = t;
+			}
 			r = new1(OADD, l, r);
 			r->type = t;
 			if(c2 == -1)
@@ -477,8 +468,10 @@ acom2(Node *n, Type *t)
 		if(c1 == 0)
 			continue;
 		r = trm[i].node;
-		if(r->type->etype != et || r->op == OBIT)
-			r = acast(t, r);
+		if(r->type->etype != et || r->op == OBIT) {
+			r = new1(OCAST, r, Z);
+			r->type = t;
+		}
 		if(c1 != 1 && c1 != -1) {
 			r = new1(OMUL, r, new(OCONST, Z, Z));
 			r->type = t;
@@ -583,7 +576,7 @@ addo(Node *n)
 
 	if(n != Z)
 	if(!typefd[n->type->etype])
-	if(!typev[n->type->etype] || ewidth[TVLONG] == ewidth[TIND])
+	if(!typev[n->type->etype])
 	switch(n->op) {
 
 	case OCAST:

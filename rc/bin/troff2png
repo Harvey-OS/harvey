@@ -1,9 +1,0 @@
-#!/bin/rc
-
-troff -ms $* | aux/tr2post |
-	gs -g1000x1600 -r100 -dNOPAUSE -dQUIET \
-		'-dGraphicsAlphaBits=4' '-dTextAlphaBits=4' \
-		'-sOUTPUTFILE=-' '-sDEVICE=plan9' - quit.ps |
-	{crop -c 255 255 255; cat >/dev/null} | 
-	topng
-

@@ -506,6 +506,7 @@ struct Waitq
 enum {
 	/* Mode */
 	Trelative,	/* timer programmed in ns from now */
+	Tabsolute,	/* timer programmed in ns since epoch */
 	Tperiodic,	/* periodic timer, period in ns */
 };
 
@@ -629,8 +630,6 @@ struct Proc
 	Egrp 	*egrp;		/* Environment group */
 	Fgrp	*fgrp;		/* File descriptor group */
 	Rgrp	*rgrp;		/* Rendez group */
-
-	Fgrp	*closingfgrp;	/* used during teardown */
 
 	ulong	parentpid;
 	ulong	time[6];	/* User, Sys, Real; child U, S, R */

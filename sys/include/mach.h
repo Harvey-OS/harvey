@@ -217,10 +217,9 @@ struct	Machdata {		/* Machine-dependent debugger support */
 typedef struct Fhdr
 {
 	char	*name;		/* identifier of executable */
-	uchar	type;		/* file type - see codes above */
+	uchar	type;		/* file type - see codes above*/
 	uchar	hdrsz;		/* header size */
-	uchar	_magic;		/* _MAGIC() magic */
-	uchar	spare;
+	uchar	spare[2];
 	long	magic;		/* magic number */
 	uvlong	txtaddr;	/* text address */
 	vlong	txtoff;		/* start of text in file */

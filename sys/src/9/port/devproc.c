@@ -62,7 +62,6 @@ enum
 	CMadmit,
 	CMextra,
 	CMexpel,
-	CMevent,
 };
 
 enum{
@@ -126,7 +125,6 @@ Cmdtab proccmd[] = {
 	CMadmit,		"admit",		1,
 	CMextra,		"extra",		1,
 	CMexpel,		"expel",		1,
-	CMevent,		"event",		1,
 };
 
 /* Segment type from portdat.h */
@@ -1291,7 +1289,6 @@ procctlreq(Proc *p, char *va, int n)
 	Cmdtab *ct;
 	vlong time;
 	char *e;
-	void (*pt)(Proc*, int, vlong);
 
 	if(p->kp)	/* no ctl requests to kprocs */
 		error(Eperm);
@@ -1320,13 +1317,13 @@ procctlreq(Proc *p, char *va, int n)
 			unbreak(p);
 			break;
 		case Stopped:
-			p->procctl = Proc_exitme;
 			postnote(p, 0, "sys: killed", NExit);
+			p->procctl = Proc_exitme;
 			ready(p);
 			break;
 		default:
-			p->procctl = Proc_exitme;
 			postnote(p, 0, "sys: killed", NExit);
+			p->procctl = Proc_exitme;
 		}
 		break;
 	case CMnohang:
@@ -1405,10 +1402,10 @@ procctlreq(Proc *p, char *va, int n)
 	case CMperiod:
 		if(p->edf == nil)
 			edfinit(p);
-		if(e=parsetime(&time, cb->f[1]))	/* time in ns */
+		if(e=parsetime(&time, cb->f[1]))
 			error(e);
 		edfstop(p);
-		p->edf->T = time/1000;	/* Edf times are in µs */
+		p->edf->T = time;
 		break;
 	case CMdeadline:
 		if(p->edf == nil)
@@ -1416,7 +1413,7 @@ procctlreq(Proc *p, char *va, int n)
 		if(e=parsetime(&time, cb->f[1]))
 			error(e);
 		edfstop(p);
-		p->edf->D = time/1000;
+		p->edf->D = time;
 		break;
 	case CMcost:
 		if(p->edf == nil)
@@ -1424,7 +1421,7 @@ procctlreq(Proc *p, char *va, int n)
 		if(e=parsetime(&time, cb->f[1]))
 			error(e);
 		edfstop(p);
-		p->edf->C = time/1000;
+		p->edf->C = time;
 		break;
 	case CMsporadic:
 		if(p->edf == nil)
@@ -1450,11 +1447,6 @@ procctlreq(Proc *p, char *va, int n)
 	case CMexpel:
 		if(p->edf)
 			edfstop(p);
-		break;
-	case CMevent:
-		pt = proctrace;
-		if(up->trace && pt)
-			pt(up, SUser, 0);
 		break;
 	}
 

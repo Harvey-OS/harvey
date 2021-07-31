@@ -1,5 +1,0 @@
-#!/bin/rc
-
-for(i in $*)
-	if(! ~ $i */*)
-		echo $i

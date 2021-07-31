@@ -103,6 +103,18 @@ enum
 	OP9auth=		129,	// plan9 auth servers
 };
 
+static void
+p_compile(Filter *f)
+{
+	sysfatal("unknown bootp field: %s", f->s);
+}
+
+static int
+p_filter(Filter *, Msg *)
+{
+	return 0;
+}
+
 /*
  *  convert a byte array to hex
  */
@@ -459,8 +471,8 @@ out:
 Proto dhcp =
 {
 	"dhcp",
-	nil,
-	nil,
+	p_compile,
+	p_filter,
 	p_seprint,
 	nil,
 	nil,
