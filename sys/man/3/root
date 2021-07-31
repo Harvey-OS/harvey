@@ -26,15 +26,14 @@ to allow a place to
 to.
 The exception is
 .BR /boot ,
-which contains
-.B /boot/boot
-and any files
-.B /boot/boot
-might need.
+which provides executable code when read.
 The kernel does an
 .IR exec (2)
 of
-.B /boot/boot
+.B /boot
 when initializing.
+Some kernels are built with other services, such as
+.IR kfs (4) ,
+in the root directory.
 .SH SOURCE
 .B /sys/src/9/port/devroot.c
