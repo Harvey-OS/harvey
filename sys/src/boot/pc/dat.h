@@ -64,7 +64,6 @@ typedef struct {
 extern uchar broadcast[Eaddrlen];
 
 typedef struct Ureg Ureg;
-#pragma incomplete Ureg
 
 typedef struct Segdesc {
 	ulong	d0;
@@ -134,7 +133,6 @@ enum {					/* type */
 	Tsd		= 0x02,
 	Tether		= 0x03,
 	Tcd		= 0x04,
-	Tbios		= 0x05,
 
 	Tany		= -1,
 };
