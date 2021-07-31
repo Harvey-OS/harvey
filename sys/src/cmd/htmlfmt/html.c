@@ -208,10 +208,7 @@ render(URLwin *u, Bytes *t, Item *items, int curanchor)
 		switch(il->tag){
 		case Itexttag:
 			it = (Itext*)il;
-			if(it->state & IFwrap)
-				renderrunes(t, it->s);
-			else
-				emitword(t, it->s, runestrlen(it->s));
+			renderrunes(t, it->s);
 			break;
 		case Iruletag:
 			if(t->n>0 && t->b[t->n-1]!='\n')
