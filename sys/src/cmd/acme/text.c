@@ -962,11 +962,8 @@ textshow(Text *t, uint q0, uint q1, int doselect)
 	int nl;
 	uint q;
 
-	if(t->what != Body){
-		if(doselect)
-			textsetselect(t, q0, q1);
+	if(t->what != Body)
 		return;
-	}
 	if(t->w!=nil && t->maxlines==0)
 		colgrow(t->col, t->w, 1);
 	if(doselect)
