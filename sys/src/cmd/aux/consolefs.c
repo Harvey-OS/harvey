@@ -479,8 +479,7 @@ console(Fs* fs, char *name, char *dev, int speed, int cronly, int ondemand)
 	}
 
 	c = emalloc(sizeof(Console));
-	fs->cons[fs->ncons] = c;
-	fs->ncons++;
+	fs->cons[fs->ncons++] = c;
 	c->name = strdup(name);
 	c->dev = strdup(dev);
 	c->fd = -1;

@@ -136,7 +136,8 @@ main(int argc, char **argv)
 				perror("temp file");
 				Exit();
 			}
-			if((tfd = create(temp, ORDWR, 0600)) < 0){
+			close(create(temp, OWRITE, 0600));
+			if((tfd = open(temp, 2)) < 0){
 				perror(temp);
 				Exit();
 			}

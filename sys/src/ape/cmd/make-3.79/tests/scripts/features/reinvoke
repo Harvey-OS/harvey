@@ -1,0 +1,92 @@
+#                                                              -*-mode: perl-*-
+
+$description = "Test GNU make's auto-reinvocation feature.";
+
+$details = "\
+If the makefile or one it includes can be rebuilt then it is, and make
+is reinvoked.  We create a rule to rebuild the makefile from a temp
+file, then touch the temp file to make it newer than the makefile.";
+
+$makefile2 = &get_tmpfile;
+$makefile_orig = &get_tmpfile;
+
+open(MAKEFILE,"> $makefile");
+
+print MAKEFILE <<EOM;
+
+all: ; \@echo 'running rules.'
+
+$makefile $makefile2: $makefile_orig
+	\@echo 'rebuilding \$\@.'
+	\@echo >> \$\@
+
+include $makefile2
+
+EOM
+
+close(MAKEFILE);
+
+&touch($makefile2);
+
+# Sleep 2 seconds for DOS/Windows FAT volumes which have 2-second
+# granularity of file times.
+sleep(2);
+
+&touch("$makefile_orig");
+
+&run_make_with_options($makefile, "", &get_logfile, 0);
+
+# Create the answer to what should be produced by this Makefile
+
+$answer = "rebuilding $makefile2.\nrebuilding $makefile.\nrunning rules.\n";
+
+&compare_output($answer,&get_logfile(1))
+  && unlink "$makefile_orig";
+
+# In this test we create an included file that's out-of-date, but then
+# the rule doesn't update it.  Make shouldn't re-exec.
+
+$makefile3 = &get_tmpfile;
+
+open(MAKEFILE, "> $makefile3");
+print MAKEFILE <<'EOM';
+SHELL = /bin/sh
+
+all: ; @echo hello
+
+a : b ; echo >> $@
+
+b : c ; [ -f $@ ] || echo >> $@
+
+c: ; echo >> $@
+
+include $(F)
+EOM
+
+close(MAKEFILE);
+
+&touch('b');
+&touch('a');
+sleep(2);
+&touch('c');
+
+# First try with the file that's not updated "once removed" from the
+# file we're including.
+
+&run_make_with_options($makefile3, "F=a", &get_logfile, 0);
+
+$answer = "[ -f b ] || echo >> b\nhello\n";
+&compare_output($answer,&get_logfile(1));
+
+# Now try with the file we're not updating being the actual file we're
+# including: this and the previous one test different parts of the code.
+
+&run_make_with_options($makefile3, "F=b", &get_logfile, 0);
+
+$answer = "[ -f b ] || echo >> b\nhello\n";
+&compare_output($answer,&get_logfile(1));
+
+unlink('a','b','c');
+
+# This tells the test driver that the perl test script executed properly.
+1;
