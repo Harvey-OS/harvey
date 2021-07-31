@@ -18,7 +18,6 @@ typedef struct Segdesc	Segdesc;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
 
-#pragma incomplete Pcidev
 #pragma incomplete Ureg
 
 #define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
