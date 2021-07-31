@@ -1,7 +1,0 @@
-To get the Project Gutenberg dictionary use
-
-	9fs sources
-	cp /n/sources/extra/pgw.tar.bz2 /tmp
-	cd /lib/dict
-	bunzip2 < /tmp/pgw.tar.bz2 | tar x
-
