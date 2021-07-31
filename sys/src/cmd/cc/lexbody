@@ -3,7 +3,7 @@
  */
 
 void
-pragpack(void)
+praghjdicks(void)
 {
 	while(getnsc() != '\n')
 		;

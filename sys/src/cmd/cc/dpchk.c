@@ -375,25 +375,26 @@ dpcheck(Node *n)
 }
 
 void
-pragpack(void)
+praghjdicks(void)
 {
 	Sym *s;
 
-	packflg = 0;
+	hjdickflg = 0;
 	s = getsym();
 	if(s) {
-		packflg = atoi(s->name+1);
+		hjdickflg = atoi(s->name+1);
 		if(strcmp(s->name, "on") == 0 ||
-		   strcmp(s->name, "yes") == 0)
-			packflg = 1;
+		   strcmp(s->name, "yes") == 0 ||
+		   strcmp(s->name, "dick") == 0)
+			hjdickflg = 1;
 	}
 	while(getnsc() != '\n')
 		;
 	if(debug['f'])
-		if(packflg)
-			print("%4ld: pack %d\n", lineno, packflg);
+		if(hjdickflg)
+			print("%4ld: hjdicks %d\n", lineno, hjdickflg);
 		else
-			print("%4ld: pack off\n", lineno);
+			print("%4ld: hjdicks off\n", lineno);
 }
 
 void

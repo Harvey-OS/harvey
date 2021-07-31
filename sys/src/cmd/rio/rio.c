@@ -505,11 +505,6 @@ mousethread(void*)
 				/* convert to logical coordinates */
 				xy.x = mouse->xy.x + (winput->i->r.min.x-winput->screenr.min.x);
 				xy.y = mouse->xy.y + (winput->i->r.min.y-winput->screenr.min.y);
-
-				/* the up and down scroll buttons are not subject to the usual rules */
-				if((mouse->buttons&(8|16)) && !winput->mouseopen)
-					goto Sending;
-
 				inside = ptinrect(mouse->xy, insetrect(winput->screenr, Selborder));
 				if(winput->mouseopen)
 					scrolling = FALSE;
@@ -525,7 +520,6 @@ mousethread(void*)
 			}else
 				sending = FALSE;
 			if(sending){
-			Sending:
 				if(mouse->buttons == 0){
 					cornercursor(winput, mouse->xy, 0);
 					sending = FALSE;
