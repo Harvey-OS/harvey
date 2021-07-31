@@ -20,7 +20,6 @@ extern int ec2treset(Ether*);
 extern int amd79c970reset(Ether*);
 extern int rtl8139pnp(Ether*);
 extern int ether83815reset(Ether*);
-extern int rhinepnp(Ether*);
 
 struct {
 	char	*type;
@@ -42,7 +41,6 @@ struct {
 	{ "AMD79C970", amd79c970reset, 0, },
 	{ "RTL8139", rtl8139pnp, 0, },
 	{ "83815", ether83815reset, 0, },
-	{ "rhine", rhinepnp, 0, },
 
 	{ 0, }
 };

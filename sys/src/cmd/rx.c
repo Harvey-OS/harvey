@@ -3,8 +3,6 @@
 #include <auth.h>
 
 int	eof;		/* send an eof if true */
-int	crtonl;		/* convert all received \r to \n */
-int	returns;	/* strip \r on reception */
 char	*note = "die: yankee dog";
 char	*ruser;
 char *key;
@@ -20,7 +18,7 @@ void	sshexec(char *host, char *cmd);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-e] [-T] [-r] [-k keypattern] [-l user] net!host command...\n", argv0);
+	fprint(2, "usage: %s [-e] [-k keypattern] [-l user] net!host command...\n", argv0);
 	exits("usage");
 }
 
@@ -32,15 +30,7 @@ main(int argc, char *argv[])
 
 	key = "";
 	eof = 1;
-	crtonl = 0;
-	returns = 1;
 	ARGBEGIN{
-	case 'T':
-		crtonl = 1;
-		break;
-	case 'r':
-		returns = 0;
-		break;
 	case 'e':
 		eof = 0;
 		break;
@@ -120,7 +110,7 @@ rex(int fd, char *cmd, char *proto)
 void
 tcpexec(int fd, char *addr, char *cmd)
 {
-	char *cp, *ep, *u, buf[4096];
+	char *u, buf[4096];
 	int kid, n;
 	char *r;
 
@@ -153,26 +143,9 @@ tcpexec(int fd, char *addr, char *cmd)
 	}
 
 	kid = send(fd);
-	while((n=read(fd, buf, sizeof buf))>0){
-		if(crtonl) {
-			/* convert cr's to nl's */
-			for (cp = buf; cp < buf + n; cp++)
-				if (*cp == '\r')
-					*cp = '\n';
-		}
-		else if(!returns){
-			/* convert cr's to null's */
-			cp = buf;
-			ep = buf + n;
-			while(cp < ep && (cp = memchr(cp, '\r', ep-cp))){
-				memmove(cp, cp+1, ep-cp-1);
-				ep--;
-				n--;
-			}
-		}
+	while((n=read(fd, buf, sizeof buf))>0)
 		if(write(1, buf, n)!=n)
 			error("write error", 0);
-	}
 	sleep(250);
 	postnote(PNPROC, kid, note);/**/
 	exits(0);

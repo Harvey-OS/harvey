@@ -61,8 +61,6 @@ ETHER=\
 	ether8390.$O\
 	etherec2t.$O\
 	etherelnk3.$O\
-	ethermii.$O\
-	etherrhine.$O\
 
 BCOM=\
 	bcom.$O\

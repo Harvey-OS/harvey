@@ -262,7 +262,7 @@ goteof:
 int
 select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeout)
 {
-	int n, i, tmp, t, slots, fd, err;
+	int n, i, tmp, t, slots, fd;
 	Fdinfo *f;
 	Muxbuf *b;
 
@@ -291,8 +291,7 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 					return -1;
 				}
 			b = f->buf;
-			if(rfds && FD_ISSET(i,rfds) && b->eof && b->n == 0)
-			if(efds == 0 || !FD_ISSET(i,efds)) {
+			if(rfds && FD_ISSET(i,rfds) && b->eof && b->n == 0) {
 				errno = EBADF;		/* how X tells a client is gone */
 				return -1;
 			}
@@ -318,22 +317,20 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 		fd = b->fd;
 		if(fd == -1)
 			continue;
-		err = 0;
-		if(efds && FD_ISSET(fd, efds)) {
-			if(b->eof && b->n == 0){
-				err = 1;
-				n++;
-			}else{
-				FD_CLR(fd, efds);
-				FD_SET(fd, &mux->ewant);
-			}
-		}
 		if(rfds && FD_ISSET(fd, rfds)) {
-			if(!err && (b->n > 0 || b->eof))
+			if(b->n > 0 || b->eof)
 				n++;
 			else{
 				FD_CLR(fd, rfds);
 				FD_SET(fd, &mux->rwant);
+			}
+		}
+		if(efds && FD_ISSET(fd, efds)) {
+			if(b->eof && b->n == 0)
+				n++;
+			else{
+				FD_CLR(fd, efds);
+				FD_SET(fd, &mux->ewant);
 			}
 		}
 	}
@@ -370,7 +367,6 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 }
 
 static int timerreset;
-static int timerpid;
 
 static void
 alarmed(int v)
@@ -380,12 +376,6 @@ alarmed(int v)
 
 /* a little over an hour */
 #define LONGWAIT 4000001
-
-static void
-_killtimerproc(void)
-{
-	kill(timerpid, SIGKILL);
-}
 
 static void
 _timerproc(void)
@@ -417,7 +407,6 @@ _timerproc(void)
 			}
 		}
 	}
-	atexit(_killtimerproc);
 	/* parent process continues */
 	_RENDEZVOUS(1, 0);
 }
