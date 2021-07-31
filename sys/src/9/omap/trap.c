@@ -386,24 +386,12 @@ irq(Ureg* ureg)
 			handled++;
 		}
 	if(!handled) {
-		iprint("unexpected interrupt: irq %d", irqno);
-		switch (irqno) {
-		case 56:
-		case 57:
-			iprint(" (I⁲C)");
-			break;
-		case 83:
-		case 86:
-		case 94:
-			iprint(" (MMC)");
-			break;
-		}
-
+		print("unknown interrupt: irq %d", irqno);
 		if(irqno < nelem(vctl)) {
 			intcmask(irqno);
-			iprint(", now masked");
+			print(", now masked");
 		}
-		iprint("\n");
+		print("\n");
 	}
 	t = perfticks();
 	ninterrupt++;
