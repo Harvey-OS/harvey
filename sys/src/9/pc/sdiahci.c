@@ -1817,11 +1817,11 @@ retry:
 				r->status = SDeio;
 				return SDeio;
 			}
-			print("%s: retry blk %lld\n", name, lba);
+			iprint("%s: retry %lld\n", name, lba);
 			goto retry;
 		}
 		if(flag & Ferror){
-			print("%s: i/o error task=%#ux @%,lld\n",
+			iprint("%s: i/o error task=%#ux @%,lld\n",
 				name, task, lba);
 			r->status = SDeio;
 			return SDeio;
