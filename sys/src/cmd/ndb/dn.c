@@ -311,8 +311,8 @@ dnageall(int doit)
 	}
 
 	if(dnvars.names >= target) {
-		dnslog("more names (%lud) than target (%lud)", dnvars.names,
-			target);
+		dnslog("more names (%lud) than target (%lud)",
+			dnvars.names, target);
 		dnvars.oldest /= 2;
 	}
 	nextage = now + maxage;
@@ -595,8 +595,7 @@ rrattach1(RR *new, int auth)
 			}
 
 			/* all things equal, pick the newer one */
-			if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1 &&
-			    (rp->type != Tsrv || rp->srv == new->srv)){
+			if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1){
 				/* new drives out old */
 				if (new->ttl > rp->ttl ||
 				    new->expire > rp->expire){
@@ -1475,8 +1474,7 @@ rrequiv(RR *r1, RR *r2)
 	return r1->owner == r2->owner
 		&& r1->type == r2->type
 		&& r1->arg0 == r2->arg0
-		&& r1->arg1 == r2->arg1
-		&& (r1->type != Tsrv || r1->srv == r2->srv);
+		&& r1->arg1 == r2->arg1;
 }
 
 void
@@ -1511,23 +1509,6 @@ subsume(char *higher, char *lower)
 	return 1;
 }
 
-int	isaslug(uchar nsip[]);
-
-static int
-rrisslug(RR *rp)
-{
-	uchar addr[IPaddrlen];
-	RR *iprr;
-
-	if (rp->type != Tns)
-		return 0;
-	iprr = rrlookup(rp->host, Ta, NOneg);
-	if (iprr == nil)
-		return 0;
-	parseip(addr, iprr->ip->name);
-	return isaslug(addr);
-}
-
 /*
  *  randomize the order we return items to provide some
  *  load balancing for servers.
@@ -1543,7 +1524,7 @@ randomize(RR *rp)
 	if(rp == nil || rp->next == nil)
 		return rp;
 
-	/* just randomize addresses, mx's and ns's */
+	/* just randomize addresses and mx's */
 	for(x = rp; x; x = x->next)
 		if(x->type != Ta && x->type != Tmx && x->type != Tns)
 			return rp;
@@ -1564,7 +1545,7 @@ randomize(RR *rp)
 		rp = x->next;
 		x->next = nil;
 
-		if(n&1 && x->type == Tns && rrisslug(x)){
+		if(n&1){
 			/* add to tail */
 			if(last == nil)
 				first = x;
@@ -1582,7 +1563,6 @@ randomize(RR *rp)
 		/* reroll the dice */
 		n >>= 1;
 	}
-	
 	return first;
 }
 
