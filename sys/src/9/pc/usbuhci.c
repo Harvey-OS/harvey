@@ -1380,12 +1380,8 @@ scanpci(void)
 			io = p->mem[4].bar & ~0x0F;
 			break;
 		case 0x10:
-		case 0x20:
-			print("usb%chci: %x/%x %sport 0x%lux size 0x%x irq %d (ignored)\n",
-				(p->ccrp == 0x10? 'o': 'e'), p->vid, p->did,
-				(p->ccrp == 0x10? "": "USB 2 "),
-				p->mem[0].bar & ~0x0F, p->mem[0].size, p->intl);
-			/* fallthrough */
+			print("usbohci: %x/%x port 0x%lux size 0x%x irq %d\n",
+				p->vid, p->did, p->mem[0].bar & ~0x0F, p->mem[0].size, p->intl);
 		default:
 			continue;
 		}
