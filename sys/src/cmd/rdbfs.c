@@ -129,6 +129,7 @@ enum
 	Xtext,
 	Xstatus,
 
+	Rendez = 0x89ABCDEF,
 };
 
 int	textfd;
