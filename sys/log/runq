@@ -1,0 +1,4 @@
+olive Apr 24 14:00:28 presotto/C.430279: execing '/mail/lib/remotemail' 'mail' 'presotto' 'net!lucent.com' 'ehg'
+olive Apr 24 14:00:29 removing presotto/C.430279
+olive Apr 24 14:01:00 presotto/C.430302: execing '/mail/lib/remotemail' 'mail' 'presotto' 'net!nslocum' 'local!cyoung'
+olive Apr 24 14:01:01 removing presotto/C.430302

@@ -1447,7 +1447,7 @@ useropen(Fid *fid, int omode, char **ep)
 		*ep = "programmer error";
 		return -1;
 	case OREAD:
-		a = R_OK;
+		a = W_OK;
 		o = O_RDONLY;
 		break;
 	case ORDWR:
