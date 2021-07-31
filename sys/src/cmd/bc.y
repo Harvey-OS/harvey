@@ -6,8 +6,8 @@
 	#define	bsp_max	5000
 
 	Biobuf	*in;
-	Biobuf	bstdin;
-	Biobuf	bstdout;
+	Biobuf	stdin;
+	Biobuf	stdout;
 	char	cary[1000];
 	char*	cp = { cary };
 	char	string[1000];
@@ -17,7 +17,7 @@
 	int	bindx = 0;
 	int	lev = 0;
 	int	ln;
-	char*	ttp;
+	int*	ttp;
 	char*	ss = "";
 	int	bstack[10] = { 0 };
 	char*	numb[15] =
@@ -26,8 +26,8 @@
 		" 6", " 7", " 8", " 9", " 10", " 11",
 		" 12", " 13", " 14"
 	};
-	char*	pre;
-	char*	post;
+	int*	pre;
+	int*	post;
 
 	long	peekc = -1;
 	int	sargc;
@@ -59,23 +59,23 @@
 		"u","v","w","x","y","z"
 	};
 	char*	dot = { "." };
-	char*	bspace[bsp_max];
-	char**	bsp_nxt = bspace;
+	int	bspace[bsp_max];
+	int*	bsp_nxt = { bspace };
 	int	bdebug = 0;
 	int	lflag;
 	int	cflag;
 	int	sflag;
 
-	char*	bundle(int, ...);
-	void	conout(char*, char*);
+	int*	bundle(int, ...);
+	void	conout(int*, char*);
 	int	cpeek(int, int, int);
 	int	getch(void);
-	char*	geta(char*);
-	char*	getf(char*);
+	int*	geta(char*);
+	int*	getf(char*);
 	void	getout(void);
-	void	output(char*);
+	void	output(int*);
 	void	pp(char*);
-	void	routput(char*);
+	void	routput(int*);
 	void	tp(char*);
 	void	yyerror(char*, ...);
 	int	yyparse(void);
@@ -86,12 +86,13 @@
 %}
 %union
 {
+	int*	iptr;
 	char*	cptr;
 	int	cc;
 }
 
-%type	<cptr>	pstat stat stat1 def slist dlets e ase nase
-%type	<cptr>	slist re fprefix cargs eora cons constant lora
+%type	<iptr>	pstat stat stat1 def slist dlets e ase nase
+%type	<iptr>	slist re fprefix cargs eora cons constant lora
 %type	<cptr>	crs
 
 %token	<cptr>	LETTER EQOP _AUTO DOT
@@ -121,7 +122,7 @@ stuff:
 		ttp = bundle(6, pre, $6, post , "0", numb[lev], "Q");
 		conout(ttp, (char*)$1);
 		rcrs = crs;
-		output("");
+		output((int*)"");	/* this is horse puk!! */
 		lev = bindx = 0;
 	}
 
@@ -547,8 +548,8 @@ def:
 	_DEFINE LETTER '('
 	{
 		$$ = getf($2);
-		pre = (char*)"";
-		post = (char*)"";
+		pre = (int*)"";
+		post = (int*)"";
 		lev = 1;
 		bindx = 0;
 		bstack[bindx] = 0;
@@ -790,7 +791,7 @@ loop:
 	if(ifile > sargc) {
 		if(ifile >= sargc+2)
 			getout();
-		in = &bstdin;
+		in = &stdin;
 		Binit(in, 0, OREAD);
 		ln = 0;
 		goto loop;
@@ -806,63 +807,57 @@ loop:
 	return 0;		/* shut up ken */
 }
 
-char*
+int*
 bundle(int a, ...)
 {
-	int i;
-	char **q;
-	va_list arg;
-	
-	i = a;
-	va_start(arg, a);
+	int i, *p, *q;
+
+	p = &a;
+	i = *p++;
 	q = bsp_nxt;
 	if(bdebug)
 		fprint(2, "bundle %d elements at %lx\n", i, q);
 	while(i-- > 0) {
 		if(bsp_nxt >= &bspace[bsp_max])
 			yyerror("bundling space exceeded");
-		*bsp_nxt++ = va_arg(arg, char*);
+		*bsp_nxt++ = *p++;
 	}
 	*bsp_nxt++ = 0;
-	va_end(arg);
-	yyval.cptr = (char*)q;
-	return (char*)q;
+	yyval.iptr = q;
+	return q;
 }
 
 void
-routput(char *p)
+routput(int *p)
 {
-	char **pp;
-	
 	if(bdebug)
 		fprint(2, "routput(%lx)\n", p);
-	if((char**)p >= &bspace[0] && (char**)p < &bspace[bsp_max]) {
+	if(p >= &bspace[0] && p < &bspace[bsp_max]) {
 		/* part of a bundle */
-		pp = (char**)p;
-		while(*pp != 0)
-			routput(*pp++);
+		while(*p != 0)
+			routput((int*)(*p++));
 	} else
-		Bprint(&bstdout, p);	/* character string */
+		Bprint(&stdout, (char*)p);	/* character string */
 }
 
 void
-output(char *p)
+output(int *p)
 {
 	routput(p);
 	bsp_nxt = &bspace[0];
-	Bprint(&bstdout, "\n");
-	Bflush(&bstdout);
+	Bprint(&stdout, "\n");
+	Bflush(&stdout);
 	cp = cary;
 	crs = rcrs;
 }
 
 void
-conout(char *p, char *s)
+conout(int *p, char *s)
 {
-	Bprint(&bstdout, "[");
+	Bprint(&stdout, "[");
 	routput(p);
-	Bprint(&bstdout, "]s%s\n", s);
-	Bflush(&bstdout);
+	Bprint(&stdout, "]s%s\n", s);
+	Bflush(&stdout);
 	lev--;
 }
 
@@ -871,8 +866,8 @@ yyerror(char *s, ...)
 {
 	if(ifile > sargc)
 		ss = "teletype";
-	Bprint(&bstdout, "c[%s on line %d, %s]pc\n", s, ln+1, ss);
-	Bflush(&bstdout);
+	Bprint(&stdout, "c[%s on line %d, %s]pc\n", s, ln+1, ss);
+	Bflush(&stdout);
 	cp = cary;
 	crs = rcrs;
 	bindx = 0;
@@ -885,9 +880,9 @@ pp(char *s)
 {
 	/* puts the relevant stuff on pre and post for the letter s */
 	bundle(3, "S", s, pre);
-	pre = yyval.cptr;
+	pre = yyval.iptr;
 	bundle(4, post, "L", s, "s.");
-	post = yyval.cptr;
+	post = yyval.iptr;
 }
 
 void
@@ -895,19 +890,19 @@ tp(char *s)
 {
 	/* same as pp, but for temps */
 	bundle(3, "0S", s, pre);
-	pre = yyval.cptr;
+	pre = yyval.iptr;
 	bundle(4, post, "L", s, "s.");
-	post = yyval.cptr;
+	post = yyval.iptr;
 }
 
 void
 yyinit(int argc, char **argv)
 {
-	Binit(&bstdout, 1, OWRITE);
+	Binit(&stdout, 1, OWRITE);
 	sargv = argv;
 	sargc = argc - 1;
 	if(sargc == 0) {
-		in = &bstdin;
+		in = &stdin;
 		Binit(in, 0, OREAD);
 	} else if((in = Bopen(sargv[1], OREAD)) == 0)
 		yyerror("cannot open input file");
@@ -919,21 +914,21 @@ yyinit(int argc, char **argv)
 void
 getout(void)
 {
-	Bprint(&bstdout, "q");
-	Bflush(&bstdout);
+	Bprint(&stdout, "q");
+	Bflush(&stdout);
 	exits(0);
 }
 
-char*
+int*
 getf(char *p)
 {
-	return funtab[*p - 'a'];
+	return (int*)funtab[*p - 'a'];
 }
 
-char*
+int*
 geta(char *p)
 {
-	return atab[*p - 'a'];
+	return (int*)atab[*p - 'a'];
 }
 
 void

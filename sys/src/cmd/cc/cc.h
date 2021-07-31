@@ -449,7 +449,6 @@ EXTERN	int	ninclude;
 EXTERN	Node*	nodproto;
 EXTERN	Node*	nodcast;
 EXTERN	Biobuf	outbuf;
-EXTERN	Biobuf	diagbuf;
 EXTERN	char*	outfile;
 EXTERN	char*	pathname;
 EXTERN	int	peekc;

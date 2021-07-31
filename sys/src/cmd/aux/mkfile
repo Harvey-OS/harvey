@@ -27,7 +27,6 @@ TARG=\
 	rdwr\
 	reboot\
 	searchfs\
-	statusbar\
 	stub\
 	timesync\
 	trampoline\

@@ -46,16 +46,13 @@ gives the UTF-8 representation of the character
 .IR utf (6)),
 or as 
 .BI ^ X
-to represent a control character.
-.PP
-The Unicode character can also be
+to represent a control character or as
 .BI M n
-to represent mouse button
-.IR n .
+to represent a mouse button.
+.PP
 The map
 .B /sys/lib/kbmap/mouse-fn
-maps the F1 through F5 keys to the three mouse buttons and the two
-scroll wheel buttons.
+maps the F1, F2, and F3 keys to the three mouse buttons.
 Similarly, 
 .B mouse-csa
 maps the left Control, Start, and Alt keys to the three mouse buttons.

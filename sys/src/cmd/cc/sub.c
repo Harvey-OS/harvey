@@ -1159,19 +1159,17 @@ diag(Node *n, char *fmt, ...)
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
-	Bprint(&diagbuf, "%L %s\n", (n==Z)? nearln: n->lineno, buf);
+	print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
-	if(debug['X']){
-		Bflush(&diagbuf);
+	if(debug['X'])
 		abort();
-	}
 	if(n != Z)
 	if(debug['v'])
 		prtree(n, "diagnostic");
 
 	nerrors++;
 	if(nerrors > 10) {
-		Bprint(&diagbuf, "too many errors\n");
+		print("too many errors\n");
 		errorexit();
 	}
 }
@@ -1183,11 +1181,11 @@ warn(Node *n, char *fmt, ...)
 	va_list arg;
 
 	if(debug['w']) {
-		Bprint(&diagbuf, "warning: ");
+		print("warning: ");
 		va_start(arg, fmt);
 		vseprint(buf, buf+sizeof(buf), fmt, arg);
 		va_end(arg);
-		Bprint(&diagbuf, "%L %s\n", (n==Z)? nearln: n->lineno, buf);
+		print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
 		if(n != Z)
 		if(debug['v'])
@@ -1211,10 +1209,10 @@ yyerror(char *fmt, ...)
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
-	Bprint(&diagbuf, "%L %s\n", lineno, buf);
+	print("%L %s\n", lineno, buf);
 	nerrors++;
 	if(nerrors > 10) {
-		Bprint(&diagbuf, "too many errors\n");
+		print("too many errors\n");
 		errorexit();
 	}
 }
@@ -1228,12 +1226,10 @@ fatal(Node *n, char *fmt, ...)
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
-	Bprint(&diagbuf, "%L %s\n", (n==Z)? nearln: n->lineno, buf);
+	print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
-	if(debug['X']){
-		Bflush(&diagbuf);
+	if(debug['X'])
 		abort();
-	}
 	if(n != Z)
 	if(debug['v'])
 		prtree(n, "diagnostic");
