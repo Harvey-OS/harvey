@@ -175,6 +175,8 @@ udpclose(Conv *c)
 
 	ucb = (Udpcb*)c->ptcl;
 	ucb->headers = 0;
+
+	qunlock(c);
 }
 
 void
