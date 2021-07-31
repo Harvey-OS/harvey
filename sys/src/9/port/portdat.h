@@ -316,7 +316,6 @@ struct Page
 	ulong	pa;			/* Physical address in memory */
 	ulong	va;			/* Virtual address for user */
 	ulong	daddr;			/* Disc address on swap */
-	ulong	gen;			/* Generation counter for swap */
 	ushort	ref;			/* Reference count */
 	char	modref;			/* Simulated modify/reference bits */
 	char	color;			/* Cache coloring */
@@ -746,7 +745,6 @@ struct Proc
 	 *  machine specific MMU
 	 */
 	PMMU;
-	char	*syscalltrace;	/* syscall trace */
 };
 
 enum
@@ -777,7 +775,6 @@ extern	char*	statename[];
 extern	Image	swapimage;
 extern	char*	sysname;
 extern	uint	qiomaxatomic;
-extern	char*	sysctab[];
 
 enum
 {

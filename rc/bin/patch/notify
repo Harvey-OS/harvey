@@ -1,9 +1,0 @@
-#!/bin/rc
-# patch/notify
-rfork e
-for(i)
-	# don't flood sys when merely shuffling patches around
-	if (~ $i applied/* saved/* sorry/*) {
-		patch/list $i | mail -s 'patch/list '^$i sys \
-			`{cat /n/sources/patch/$i/email}
-	}

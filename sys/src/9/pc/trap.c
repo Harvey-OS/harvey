@@ -664,7 +664,6 @@ syscall(Ureg* ureg)
 	long	ret;
 	int	i, s;
 	ulong scallnr;
-	vlong startnsec, stopnsec;
 
 	if((ureg->cs & 0xFFFF) != UESEL)
 		panic("syscall: cs 0x%4.4luX", ureg->cs);
@@ -678,12 +677,7 @@ syscall(Ureg* ureg)
 
 	if(up->procctl == Proc_tracesyscall){
 		up->procctl = Proc_stopme;
-		syscallprint(ureg);
 		procctl(up);
-		if(up->syscalltrace)
-			free(up->syscalltrace);
-		up->syscalltrace = nil;
-		startnsec = todget(nil);
 	}
 
 	scallnr = ureg->ax;
@@ -738,15 +732,10 @@ syscall(Ureg* ureg)
 	ureg->ax = ret;
 
 	if(up->procctl == Proc_tracesyscall){
-		stopnsec = todget(nil);
 		up->procctl = Proc_stopme;
-		syscallretprint(ureg, scallnr, startnsec, stopnsec);
 		s = splhi();
 		procctl(up);
 		splx(s);
-		if(up->syscalltrace)
-			free(up->syscalltrace);
-		up->syscalltrace = nil;
 	}
 
 	up->insyscall = 0;
