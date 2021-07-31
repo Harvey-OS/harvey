@@ -36,10 +36,8 @@ static Softtlb stlb[MAXMACH][STLBSIZE];
 
 Conf	conf;
 FPsave	initfp;
-Rbconf	rbconf;
 
 int normalprint;
-ulong memsize;
 
 char *
 getconf(char *)
@@ -158,59 +156,17 @@ parsemipsboothdr(Chan *c, ulong magic, Execvals *evp)
 		return -1;
 }
 
-/*
- * parse args kmac=AA:BB:CC:DD:EE:FF for ether0 mac, mem=256M,
- * HZ=340000000, console=ttyS0,115200.
- * args seem to live above 8MB, where they are likely to be clobbered
- * by kernel allocations, so make copies for rebooting.
- *
- * at this early stage, we can't use the usual kernel memory allocators,
- * thus we can't use kstrdup.
- */
-static void
-saverbconfig(int argc, char **argv)
-{
-	int i;
-	char *p;
-	static char ether0mac[32], mem[16], hz[16], console[32];
-
-	if (argv == nil)
-		return;
-	rbconf.ether0mac = ether0mac;
-	rbconf.memsize = mem;
-	rbconf.hz = hz;
-	rbconf.console = console;
-	for (i = 0; i < argc; i++) {
-		p = argv[i];
-		if (strncmp(p, "kmac=", 5) == 0)
-			strncpy(rbconf.ether0mac, p, sizeof ether0mac);
-		else if (strncmp(p, "mem=", 4) == 0)
-			strncpy(rbconf.memsize, p, sizeof mem);
-		else if (strncmp(p, "HZ=", 3) == 0)
-			strncpy(rbconf.hz, p, sizeof hz);
-		else if (strncmp(p, "console=", 8) == 0)
-			strncpy(rbconf.console, p, sizeof console);
-	}
-	memsize = 256*MB;			/* routerboard default */
-	p = strchr(rbconf.memsize, '=');
-	if (p)
-		memsize = atoi(p+1) * MB;
-}
-
-/* arguments come from routerboot; only argc and argv are non-zero. */
 void
-main(int argc, char **argv, char **envp, ulong memsz)
+main(void)
 {
 	stopwdog();			/* tranquilise the dog */
 	optionsinit("/boot/boot boot");
-	saverbconfig(argc, argv);
-	USED(envp, memsz);
-
 	confinit();
 	savefpregs(&initfp);
+
 	machinit();			/* calls clockinit */
 	active.exiting = 0;
-	cpuactive(0);
+	active.machs = 1;
 
 	kmapinit();
 	xinit();
@@ -220,7 +176,7 @@ main(int argc, char **argv, char **envp, ulong memsz)
 	vecinit();
 
 	normalprint = 1;
-	print("\nPlan 9 from Bell Labs (mips)\n");
+	print("\nPlan 9\n");
 	prcpuid();
 	if (PTECACHABILITY == PTENONCOHERWT)
 		print("caches configured as write-through\n");
@@ -297,7 +253,7 @@ init0(void)
 
 	if(!waserror()){
 		ksetenv("cputype", "mips", 0);
-		snprint(buf, sizeof buf, "mips %s", conffile);
+		snprint(buf, sizeof buf, "mips %s rb450g", conffile);
 		ksetenv("terminal", buf, 0);
 		if(cpuserver)
 			ksetenv("service", "cpu", 0);
@@ -332,7 +288,7 @@ bootargs(uintptr base)
 	 * of the argument list checked in syscall.
 	 */
 	i = oargblen+1;
-	p = (char *)STACKALIGN(base + BY2PG - Stkheadroom - i);
+	p = UINT2PTR(STACKALIGN(base + BY2PG - Stkheadroom - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -344,7 +300,7 @@ bootargs(uintptr base)
 	 * not the usual (int argc, char* argv[])
 	 */
 	av = (char**)(p - (oargc+1)*sizeof(char*));
-	ssize = base + BY2PG - (uintptr)av;
+	ssize = base + BY2PG - PTR2UINT(av);
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BY2PG);
 	*av = nil;
@@ -478,16 +434,16 @@ shutdown(int ispanic)
 	ilock(&active);
 	if(ispanic)
 		active.ispanic = ispanic;
-	else if(m->machno == 0 && !iscpuactive(m->machno))
+	else if(m->machno == 0 && (active.machs & (1<<m->machno)) == 0)
 		active.ispanic = 0;
-	once = iscpuactive(m->machno);
+	once = active.machs & (1<<m->machno);
 	/*
 	 * setting exiting will make hzclock() on each processor call exit(0),
 	 * which calls shutdown(0) and idles non-bootstrap cpus and returns
 	 * on bootstrap processors (to permit a reboot).  clearing our bit
 	 * in machs avoids calling exit(0) from hzclock() on this processor.
 	 */
-	cpuinactive(m->machno);
+	active.machs &= ~(1<<m->machno);
 	active.exiting = 1;
 	iunlock(&active);
 
@@ -499,7 +455,7 @@ shutdown(int ispanic)
 	ms = MAXMACH * 1000;
 	for(; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
-		if(active.nmachs == 0 && consactive() == 0)
+		if(active.machs == 0 && consactive() == 0)
 			break;
 	}
 	delay(100);
@@ -507,25 +463,14 @@ shutdown(int ispanic)
 
 /*
  * the new kernel is already loaded at address `code'
- * of size `size' and physical entry point `entry'.
+ * of size `size' and entry point `entry'.
  */
 void
 reboot(void *entry, void *code, ulong size)
 {
-	Rbconf *rbc;
-	void (*f)(void *, ulong, ulong, ulong);
+	void (*f)(ulong, ulong, ulong);
 
 	writeconf();
-	/*
-	 * copy rbconf and contents into allocated memory, thus safe from
-	 * being overwritten by the new kernel in the reboot trampoline
-	 * code below.
-	 */
-	rbc = smalloc(sizeof *rbc);
-	kstrdup(&rbc->ether0mac, rbconf.ether0mac);
-	kstrdup(&rbc->memsize, rbconf.memsize);
-	kstrdup(&rbc->hz, rbconf.hz);
-	kstrdup(&rbc->console, rbconf.console);
 
 	/*
 	 * the boot processor is cpu0.  execute this function on it
@@ -568,16 +513,13 @@ reboot(void *entry, void *code, ulong size)
 	/* setup reboot trampoline function */
 	f = (void*)REBOOTADDR;
 	memmove(f, rebootcode, sizeof(rebootcode));
-	dcflush(f, sizeof(rebootcode));
 	icflush(f, sizeof(rebootcode));
 
 	setstatus(BEV);		/* also, kernel mode, no interrupts */
 	coherence();
 
 	/* off we go - never to return */
-	if (((ulong)entry & KSEGM) == 0)	/* physical address? */
-		entry = KADDR(entry);		/* make it kernel virtual */
-	(*f)(rbc, (ulong)entry, (ulong)code, size);
+	(*f)((ulong)entry, (ulong)code, size);
 
 	panic("loaded kernel returned!");
 }
@@ -592,14 +534,14 @@ exit(int type)
 
 	delay(1000);
 	lock(&active);
-	cpuinactive(m->machno);
+	active.machs &= ~(1<<m->machno);
 	active.exiting = 1;
 	unlock(&active);
 	spllo();
 
 	print("cpu %d exiting\n", m->machno);
 	timer = 0;
-	while(active.nmachs || consactive()) {
+	while(active.machs || consactive()) {
 		if(timer++ > 400)
 			break;
 		delay(10);
@@ -639,15 +581,14 @@ idlehands(void)
 void
 confinit(void)
 {
-	char *p;
 	ulong kpages, ktop;
 
 	/*
 	 *  divide memory twixt user pages and kernel.
 	 */
 	conf.mem[0].base = ktop = PADDR(PGROUND((ulong)end));
-	assert(memsize > 16*MB);
-	conf.mem[0].npage = memsize/BY2PG - ktop/BY2PG;
+	/* fixed memory on routerboard */
+	conf.mem[0].npage = MEMSIZE/BY2PG - ktop/BY2PG;
 	conf.npage = conf.mem[0].npage;
 	conf.nuart = 1;
 
@@ -660,11 +601,11 @@ confinit(void)
 	conf.ialloc = (kpages/2)*BY2PG;
 
 	kpages *= BY2PG;
-	kpages -= conf.upages*sizeof(Page)	/* palloc.pages in pageinit */
-		+ conf.nproc*sizeof(Proc)  /* procalloc.free in procinit0 */
-		+ conf.nimage*sizeof(Image)	/* imagealloc.free in initseg */
-		+ conf.nswap		/* swapalloc.swmap in swapinit */
-		+ conf.nswppo*sizeof(Page*);	/* iolist in swapinit */
+	kpages -= conf.upages*sizeof(Page)
+		+ conf.nproc*sizeof(Proc)
+		+ conf.nimage*sizeof(Image)
+		+ conf.nswap
+		+ conf.nswppo*sizeof(Page*);
 	mainmem->maxsize = kpages;
 
 	/*
@@ -673,12 +614,7 @@ confinit(void)
 	 */
 	m->machno = 0;
 	m->speed = 680;			/* initial guess at MHz, for rb450g */
-	m->hz = 680 * Mhz;
-	p = strchr(rbconf.hz, '=');
-	if (p) {
-		m->hz = 2 * strtol(p+1, 0, 10);
-		m->speed = m->hz / Mhz;
-	}
+	m->hz = m->speed * Mhz;
 	conf.nmach = 1;
 
 	/* set up other configuration parameters */

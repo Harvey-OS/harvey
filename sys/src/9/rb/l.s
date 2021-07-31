@@ -12,12 +12,6 @@
  * Boot only processor
  */
 TEXT	start(SB), $-4
-	/* save parameters passed from routerboot */
-	MOVW	R4, R19			/* argc */
-	MOVW	R5, R20			/* argv */
-	MOVW	R6, R21			/* envp */
-	MOVW	R7, R23			/* memory size */
-
 	MOVW	$setR30(SB), R30
 
 PUTC('9', R1, R2)
@@ -27,7 +21,7 @@ PUTC('9', R1, R2)
 	CONST(SANITY, R2)
 	SUBU	R1, R2, R2
 	BNE	R2, insane
-	  NOP
+	NOP
 
 	MOVW	R0, M(COMPARE)
 	EHB
@@ -48,7 +42,7 @@ PUTC('9', R1, R2)
 	MOVW	R1, M(CACHEECC)		/* aka ErrCtl */
 	EHB
 	JAL	cleancache(SB)
-	  NOP
+	NOP
 
 	MOVW	$TLBROFF, R1
 	MOVW	R1, M(WIRED)
@@ -74,34 +68,18 @@ clrmach:
 	MOVW	R0, (R1)
 	ADDU	$BY2WD, R1
 	BNE	R1, SP, clrmach
-	  NOP
+	NOP
 	MOVW	R0, 0(R(MACH))			/* m->machno = 0 */
 	MOVW	R0, R(USER)			/* up = nil */
 
-	/* zero bss */
+	/* zero bss, byte-by-byte */
 	MOVW	$edata(SB), R1
 	MOVW	$end(SB), R2
 clrbss:
-	MOVW	R0, (R1)
-	ADDU	$BY2WD, R1
+	MOVB	R0, (R1)
+	ADDU	$1, R1
 	BNE	R1, R2, clrbss
-	  NOP
-
-	MOVW	R0, HI
-	MOVW	R0, LO
-
-PUTC('\r', R1, R2)
-PUTC('\n', R1, R2)
-
-	/*
-	 * restore parameters passed from routerboot and
-	 * pass them as arguments to main().
-	 */
-	SUB	$(5*4), SP	/* reserve space for args to main() + link */
-	MOVW	R19, R1			/* argc */
-	MOVW	R20, 8(SP)		/* argv */
-	MOVW	R21, 12(SP)		/* envp */
-	MOVW	R23, 16(SP)		/* memory size */
+	NOP
 
 	MOVW	$0x16, R16
 	MOVW	$0x17, R17
@@ -112,20 +90,22 @@ PUTC('\n', R1, R2)
 	MOVW	$0x22, R22
 	MOVW	$0x23, R23
 
-	JAL	main(SB)
-	  NOP
+	MOVW	R0, HI
+	MOVW	R0, LO
 
-	/* shouldn't get here */
+PUTC('\r', R1, R2)
+PUTC('\n', R1, R2)
+	JAL	main(SB)
+	NOP
 	CONST(ROM, R1)
 	JMP	(R1)			/* back to the rom */
-	  NOP
 
 #define PUT(c) PUTC(c, R1, R2)
 #define DELAY(lab) \
 	CONST(34000000, R3); \
 lab:	SUBU	$1, R3; \
 	BNE	R3, lab; \
-	  NOP
+	NOP
 
 insane:
 	/*
@@ -139,12 +119,12 @@ insane:
 	PUT('\r'); PUT('\n'); DELAY(dl5)
 	CONST(ROM, R1)
 	JMP	(R1)			/* back to the rom */
-	  NOP
+	NOP
 
 /* target for JALRHB in BARRIERS */
 TEXT ret(SB), $-4
 	JMP	(R22)
-	  NOP
+	NOP
 
 /* print R1 in hex; clobbers R3—8 */
 TEXT printhex(SB), $-4
@@ -157,16 +137,16 @@ prtop:
 	AND	$0xf, R6
 	SGTU	R6, R7, R8
 	BEQ	R8, prdec		/* branch if R6 <= 9 */
-	  NOP
+	NOP
 	ADD	$('a'-10), R6
 	JMP	prchar
-	  NOP
+	NOP
 prdec:
 	ADD	$'0', R6
 prchar:
 	PUTC(R6, R3, R4)
 	BNE	R5, prtop
-	  NOP
+	NOP
 	RETURN
 
 /*
@@ -174,7 +154,6 @@ prchar:
  * 	- argument is stack pointer to user
  */
 TEXT	touser(SB), $-4
-	DI(0)			/* ensure intrs see consistent M(STATUS) */
 	MOVW	R1, SP
 	MOVW	$(UTZERO+32), R2	/* header appears in text */
 	MOVW	R2, M(EPC)
@@ -214,7 +193,7 @@ TEXT	idle(SB), $-4
 
 TEXT	wait(SB), $-4
 	WAIT
-	  NOP
+	NOP
 
 	MOVW	R1, M(STATUS)		/* interrupts restored */
 	EHB
@@ -259,14 +238,6 @@ TEXT	coherence(SB), $-4
 	RETURN
 
 /*
- * bit twiddling
- */
-
-TEXT	clz(SB), $-4		/* dest = clz(src): count leading zeroes */
-	CLZ(1, 1)
-	RETURN
-
-/*
  * process switching
  */
 
@@ -305,9 +276,9 @@ TEXT	puttlb(SB), $0			/* puttlb(virt, phys0, phys1) */
 	EHB
 	MOVW	M(INDEX), R1
 	BGEZ	R1, index		/* if tlb entry found, use it */
-	  NOP
+	NOP
 	BEQ	R4, dont		/* not valid? cf. kunmap */
-	  NOP
+	NOP
 	MOVW	M(RANDOM), R1		/* write random tlb entry */
 	MOVW	R1, M(INDEX)
 index:
@@ -394,7 +365,7 @@ TEXT	gettlbp(SB), $0			/* gettlbp(tlbvirt, &entry) */
 	EHB
 	MOVW	M(INDEX), R1
 	BLTZ	R1, gettlbp1		/* if no tlb entry found, return */
-	  NOP
+	NOP
 	EHB
 	TLBR				/* read indexed tlb entry */
 	EHB
@@ -428,16 +399,14 @@ TEXT	gettlbvirt(SB), $0		/* gettlbvirt(index) */
 
 /*
  * exceptions.
- *
  * mips promises that there will be no current hazards upon entry
  * to exception handlers.
  */
 
-	/* will be copied into low memory vectors; must fit in 32 words */
 TEXT	vector0(SB), $-4
 	MOVW	$utlbmiss(SB), R26
 	JMP	(R26)
-	  NOP
+	NOP
 
 /*
  * compute stlb hash index.
@@ -447,8 +416,9 @@ TEXT	vector0(SB), $-4
  * stir in swizzled asid; we get best results with asid in both high & low bits.
  *
  * page = tlbvirt >> (PGSHIFT+1);	// ignoring even/odd bit
- * arg = (tlbvirt<<(STLBLOG-8) ^ (uchar)tlbvirt ^ page ^
- *	((page & (MASK(HIPFNBITS) << STLBLOG)) >> HIPFNBITS)) & (STLBSIZE-1);
+ * R27 = ((tlbvirt<<(STLBLOG-8) ^ (uchar)tlbvirt ^ page ^
+ *	((page & (MASK(HIPFNBITS) << STLBLOG)) >> HIPFNBITS)) &
+ *	(STLBSIZE-1)) * 12;
  */
 #define STLBHASH(arg, tmp, tmp2) \
 	MOVW	arg, tmp2; \
@@ -460,24 +430,10 @@ TEXT	vector0(SB), $-4
 	MOVW	tmp2, tmp;		/* asid in low byte */ \
 	SLL	$(STLBLOG-8), tmp;	/* move asid to high bits */ \
 	XOR	tmp, arg;		/* include asid in high bits too */ \
-	MOVBU	tmp2, tmp;		/* asid in low byte of tlbvirt */ \
+	AND	$0xff, tmp2, tmp;	/* asid in low byte */ \
 	XOR	tmp, arg;		/* include asid in low bits */ \
 	CONST	(STLBSIZE-1, tmp); \
 	AND	tmp, arg		/* chop to fit */
-/*
- * vc -S generated essentially this, which uses 4 registers and
- * R28 for big constants:
-	MOVW	R1, R4
-	SRL	$(PGSHIFT+1), R1, R3	// page = tlbvirt>>(PGSHIFT+1)
-	SLL	$(STLBLOG-8), R1, R1	// tlbvirt<<(STLBLOG-8)
-	MOVBU	R4, R5			// (uchar)tlbvirt
-	XOR	R5, R1
-	XOR	R3, R1
-	AND	$(MASK(HIPFNBITS) << STLBLOG), R3
-	SRL	$HIPFNBITS, R3
-	XOR	R3, R1
-	AND	$(STLBSIZE-1), R1	// chop to fit
- */
 
 TEXT	utlbmiss(SB), $-4
 	/*
@@ -485,25 +441,27 @@ TEXT	utlbmiss(SB), $-4
 	 * it's unsaved so far.  avoid R24 (up in kernel) and R25 (m in kernel).
 	 */
 	/* update statistics */
-	CONST	(MACHADDR+16, R26)	/* R26 = &m->tlbfault */
-	MOVW	(R26), R27
+	CONST	(MACHADDR, R26)		/* R26 = m-> */
+	MOVW	16(R26), R27
 	ADDU	$1, R27
-	MOVW	R27, (R26)		/* m->tlbfault++ */
+	MOVW	R27, 16(R26)		/* m->tlbfault++ */
 
 	MOVW	R23, M(DESAVE)		/* save R23 */
 
-#ifdef KUTLBSTATS
-	ADDU	$4, R26			/* &m->ktlbfault */
-
+#ifdef	KUTLBSTATS
 	MOVW	M(STATUS), R23
 	AND	$KUSER, R23
 	BEQ	R23, kmiss
-	  NOP
-	ADDU	$4, R26			/* m->utlbfault */
-kmiss:
-	MOVW	(R26), R27
+
+	MOVW	24(R26), R27
 	ADDU	$1, R27
-	MOVW	R27, (R26)		/* m->[ku]tlbfault++ */
+	MOVW	R27, 24(R26)		/* m->utlbfault++ */
+	JMP	either
+kmiss:
+	MOVW	20(R26), R27
+	ADDU	$1, R27
+	MOVW	R27, 20(R26)		/* m->ktlbfault++ */
+either:
 #endif
 
 	/* compute stlb index */
@@ -512,7 +470,7 @@ kmiss:
 	STLBHASH(R27, R26, R23)
 	MOVW	M(DESAVE), R23		/* restore R23 */
 
-	/* scale to a byte index (multiply by 12 [3 ulongs]) */
+	/* scale to a byte index (multiply by 12) */
 	SLL	$1, R27, R26		/* × 2 */
 	ADDU	R26, R27		/* × 3 */
 	SLL	$2, R27			/* × 12 */
@@ -524,22 +482,22 @@ kmiss:
 	MOVW	M(BADVADDR), R26
 	AND	$BY2PG, R26
 	BNE	R26, utlbodd		/* odd page? */
-	  NOP
+	NOP
 
 utlbeven:
 	MOVW	4(R27), R26		/* R26 = m->stb[hash].phys0 */
 	BEQ	R26, stlbm		/* nothing cached? do it the hard way */
-	  NOP
+	NOP
 	MOVW	R26, M(TLBPHYS0)
 	EHB
 	MOVW	8(R27), R26		/* R26 = m->stb[hash].phys1 */
 	JMP	utlbcom
-	  MOVW	R26, M(TLBPHYS1)	/* branch delay slot */
+	MOVW	R26, M(TLBPHYS1)	/* branch delay slot */
 
 utlbodd:
 	MOVW	8(R27), R26		/* R26 = m->stb[hash].phys1 */
 	BEQ	R26, stlbm		/* nothing cached? do it the hard way */
-	  NOP
+	NOP
 	MOVW	R26, M(TLBPHYS1)
 	EHB
 	MOVW	4(R27), R26		/* R26 = m->stb[hash].phys0 */
@@ -550,10 +508,10 @@ utlbcom:
 	MOVW	M(TLBVIRT), R26
 	MOVW	(R27), R27		/* R27 = m->stb[hash].virt */
 	BEQ	R27, stlbm		/* nothing cached? do it the hard way */
-	  NOP
+	NOP
 	/* is the stlb entry for the right virtual address? */
 	BNE	R26, R27, stlbm		/* M(TLBVIRT) != m->stb[hash].virt? */
-	  NOP
+	NOP
 
 	/* if an entry exists, overwrite it, else write a random one */
 	CONST	(PGSZ, R27)
@@ -563,36 +521,38 @@ utlbcom:
 	EHB
 	MOVW	M(INDEX), R26
 	BGEZ	R26, utlindex		/* if tlb entry found, rewrite it */
-	  EHB				/* delay slot */
+	EHB				/* delay slot */
 	TLBWR				/* else write random tlb entry */
 	ERET
 utlindex:
 	TLBWI				/* write indexed tlb entry */
 	ERET
 
-/*
- * will be copied into low memory vectors; must fit in 32 words
- * and avoid relative branches.
- */
-TEXT	vector100(SB), $-4		/* cache trap */
-TEXT	vector180(SB), $-4		/* most exceptions */
-stlbm:			/* not in the stlb either; make trap.c figure it out */
+/* not in the stlb either; make trap.c figure it out */
+stlbm:
 	MOVW	$exception(SB), R26
 	JMP	(R26)
-	  NOP
+	NOP
 
 TEXT	stlbhash(SB), $-4
 	STLBHASH(R1, R2, R3)
 	RETURN
 
-/*
- * exceptions other than tlb miss come here directly.
- */
+TEXT	vector100(SB), $-4
+	MOVW	$exception(SB), R26
+	JMP	(R26)
+	NOP
+
+TEXT	vector180(SB), $-4
+	MOVW	$exception(SB), R26
+	JMP	(R26)
+	NOP
+
 TEXT	exception(SB), $-4
 	MOVW	M(STATUS), R26
 	AND	$KUSER, R26, R27
 	BEQ	R27, waskernel
-	  MOVW	SP, R27			/* delay slot */
+	MOVW	SP, R27			/* delay slot */
 
 wasuser:
 	CONST	(MACHADDR, SP)		/*  m-> */
@@ -603,7 +563,7 @@ wasuser:
 	MOVW	R31, Ureg_r31(SP)
 
 	JAL	savereg1(SB)
-	  NOP
+	NOP
 
 	MOVW	R30, Ureg_r30(SP)
 	MOVW	R(MACH), Ureg_r25(SP)
@@ -617,17 +577,17 @@ wasuser:
 	AND	$(EXCMASK<<2), R26, R1
 	SUBU	$(CSYS<<2), R1
 	BNE	R1, notsys
-	  NOP
+	NOP
 
 	/* the carrera does this: */
 //	ADDU	$8, SP, R1			/* first arg for syscall */
 
 	MOVW	SP, R1				/* first arg for syscall */
-	JAL	syscall(SB)			/* to C */
-	  SUBU	$Notuoffset, SP			/* delay slot */
+	JAL	syscall(SB)
+	SUBU	$Notuoffset, SP			/* delay slot */
 sysrestore:
 	JAL	restreg1(SB)
-	  ADDU	$Notuoffset, SP			/* delay slot */
+	ADDU	$Notuoffset, SP			/* delay slot */
 
 	MOVW	Ureg_r31(SP), R31
 	MOVW	Ureg_status(SP), R26
@@ -635,36 +595,36 @@ sysrestore:
 	MOVW	R26, M(STATUS)
 	EHB
 	MOVW	Ureg_pc(SP), R26		/* old pc */
-erettor26:
 	MOVW	Ureg_sp(SP), SP
 	MOVW	R26, M(EPC)
 	ERET
 
 notsys:
 	JAL	savereg2(SB)
-	  NOP
+	NOP
 
 	/* the carrera does this: */
 //	ADDU	$8, SP, R1			/* first arg for trap */
 
 	MOVW	SP, R1				/* first arg for trap */
-	JAL	trap(SB)			/* to C for user trap */
-	  SUBU	$Notuoffset, SP			/* delay slot */
+	JAL	trap(SB)
+	SUBU	$Notuoffset, SP			/* delay slot */
 
 	ADDU	$Notuoffset, SP
 
 restore:
 	JAL	restreg1(SB)
-	  NOP
+	NOP
 	JAL	restreg2(SB)		/* restores R28, among others */
-	  NOP
+	NOP
 
 	MOVW	Ureg_r30(SP), R30
 	MOVW	Ureg_r31(SP), R31
 	MOVW	Ureg_r25(SP), R(MACH)
 	MOVW	Ureg_r24(SP), R(USER)
-	JMP	erettor26
-	  NOP
+	MOVW	Ureg_sp(SP), SP
+	MOVW	R26, M(EPC)
+	ERET
 
 waskernel:
 	SUBU	$UREGSIZE, SP
@@ -673,21 +633,21 @@ waskernel:
 	MOVW	R31, Ureg_r31(SP)
 
 	JAL	savereg1(SB)
-	  NOP
+	NOP
 	JAL	savereg2(SB)
-	  NOP
+	NOP
 
 	/* the carrera does this: */
 //	ADDU	$8, SP, R1			/* first arg for trap */
 
-	MOVW	SP, R1				/* first arg for trap */
-	JAL	trap(SB)			/* to C for kernel trap */
-	  SUBU	$Notuoffset, SP			/* delay slot */
+	MOVW	SP, R1			/* first arg for trap */
+	JAL	trap(SB)
+	SUBU	$Notuoffset, SP			/* delay slot */
 
 	ADDU	$Notuoffset, SP
 
 	JAL	restreg1(SB)
-	  NOP
+	NOP
 
 	/*
 	 * if about to return to `wait', interrupt arrived just before
@@ -698,20 +658,21 @@ waskernel:
 	MOVW	$wait(SB), R1
 	SUBU	R1, R31
 	BNE	R31, notwait
-	  NOP
+	NOP
 	ADD	$BY2WD, R26		/* advance saved pc */
 	MOVW	R26, Ureg_pc(SP)
 notwait:
 	JAL	restreg2(SB)		/* restores R28, among others */
-	  NOP
+	NOP
 
 	MOVW	Ureg_r31(SP), R31
-	JMP	erettor26
-	  NOP
+	MOVW	Ureg_sp(SP), SP
+	MOVW	R26, M(EPC)
+	ERET
 
 TEXT	forkret(SB), $0
 	JMP	sysrestore
-	  MOVW	R0, R1			/* delay slot; child returns 0 */
+	MOVW	R0, R1			/* delay slot; child returns 0 */
 
 /*
  * save mandatory registers.
@@ -834,6 +795,14 @@ TEXT	restreg2(SB), $-4
 	MOVW	Ureg_pc(SP), R26
 	RETURN
 
+#ifdef OLD_MIPS_EXAMPLE
+/* this appears to be a dreg from the distant past */
+TEXT	rfnote(SB), $0
+	MOVW	R1, R26			/* 1st arg is &uregpointer */
+	JMP	restore
+	SUBU	$(BY2WD), R26, SP	/* delay slot: pc hole */
+#endif
+
 /*
  * degenerate floating-point stuff
  */
@@ -864,7 +833,36 @@ tas1:
 	SC(2, 3)
 	NOP
 	BEQ	R3, tas1
-	  NOP
+	NOP
+	RETURN
+
+TEXT	ainc(SB), $0
+	MOVW	R1, R2		/* address of counter */
+loop:
+	MOVW	$1, R3
+	LL(2, 1)
+	NOP
+	ADDU	R1, R3
+	MOVW	R3, R1		/* return new value */
+	SC(2, 3)
+	NOP
+	BEQ	R3, loop
+	NOP
+	RETURN
+
+TEXT	adec(SB), $0
+	SYNC
+	MOVW	R1, R2		/* address of counter */
+loop1:
+	MOVW	$-1, R3
+	LL(2, 1)
+	NOP
+	ADDU	R1, R3
+	MOVW	R3, R1		/* return new value */
+	SC(2, 3)
+	NOP
+	BEQ	R3, loop1
+	NOP
 	RETURN
 
 /* used by the semaphore implementation */
@@ -875,7 +873,7 @@ TEXT cmpswap(SB), $0
 	LL(2, 1)		/* R1 = (R2) */
 	NOP
 	BNE	R1, R3, fail
-	  NOP
+	NOP
 	MOVW	R4, R1
 	SC(2, 1)	/* (R2) = R1 if (R2) hasn't changed; R1 = success */
 	NOP
@@ -907,7 +905,7 @@ icflush1:
 	CACHE	PI+HINV, (R8)		/* invalidate in I */
 	SUBU	$CACHELINESZ, R9
 	BGTZ	R9, icflush1
-	  ADDU	$CACHELINESZ, R8	/* delay slot */
+	ADDU	$CACHELINESZ, R8	/* delay slot */
 
 	BARRIERS(7, R7, ic2hb);		/* return to kseg0 (cached) */
 	MOVW	R10, M(STATUS)
@@ -929,7 +927,7 @@ dcflush1:
 	CACHE	PD+HWBI, (R8)		/* flush & invalidate in D */
 	SUBU	$CACHELINESZ, R9
 	BGTZ	R9, dcflush1
-	  ADDU	$CACHELINESZ, R8	/* delay slot */
+	ADDU	$CACHELINESZ, R8	/* delay slot */
 	SYNC
 	EHB
 	MOVW	R10, M(STATUS)
@@ -946,7 +944,7 @@ iccache:
 	CACHE	PI+IWBI, (R1)		/* flush & invalidate I by index */
 	SUBU	$CACHELINESZ, R9
 	BGTZ	R9, iccache
-	  ADDU	$CACHELINESZ, R1	/* delay slot */
+	ADDU	$CACHELINESZ, R1	/* delay slot */
 
 	BARRIERS(7, R7, cc2hb);		/* return to kseg0 (cached) */
 
@@ -956,7 +954,7 @@ dccache:
 	CACHE	PD+IWBI, (R1)		/* flush & invalidate D by index */
 	SUBU	$CACHELINESZ, R9
 	BGTZ	R9, dccache
-	  ADDU	$CACHELINESZ, R1	/* delay slot */
+	ADDU	$CACHELINESZ, R1	/* delay slot */
 
 	SYNC
 	MOVW	R10, M(STATUS)

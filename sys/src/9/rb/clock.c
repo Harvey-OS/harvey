@@ -12,32 +12,31 @@
 
 enum {
 	Cyccntres	= 2, /* counter advances at ½ clock rate (mips 24k) */
+	Basetickfreq	= 680*Mhz / Cyccntres,	/* rb450g */
 };
-
-ulong basetickfreq = 680*Mhz / Cyccntres;	/* rb450g */
 
 void (*kproftimer)(ulong);
 
 void
 silencewdog(void)
 {
-	*Rstwdogtimer = basetickfreq * 2 * 5;	/* pet the dog */
+	*Rstwdogtimer = Basetickfreq * 2 * 5;	/* pet the dog */
 }
 
 void
 sicwdog(void)
 {
-	*Rstwdogtimer = basetickfreq * 2;
+	*Rstwdogtimer = Basetickfreq * 2;
 	*Rstwdogctl = Wdogreset;		/* wake the dog */
 }
 
 void
 wdogreset(void)
 {
-	*Rstwdogtimer = basetickfreq / 100;
+	*Rstwdogtimer = Basetickfreq / 100;
 	*Rstwdogctl = Wdogreset;		/* wake the dog */
 	coherence();
-	*Rstwdogtimer = basetickfreq / 10000;
+	*Rstwdogtimer = Basetickfreq / 10000;
 	coherence();
 }
 
@@ -75,12 +74,12 @@ microdelay(int l)
 
 	speed = m->speed;
 	if (speed == 0)
-		speed = basetickfreq / Mhz * Cyccntres;
+		speed = Basetickfreq / Mhz * Cyccntres;
 	cyc = (ulong)l * (speed / Cyccntres);
 	s = splhi();
 	cnt = rdcount();
 	x = cnt + cyc;
-	if (x < cnt || x >= ~0ul - basetickfreq) {
+	if (x < cnt || x >= ~0ul - Basetickfreq) {
 		/* counter will wrap between now and x, or x is too near ~0 */
 		wrcount(0);			/* somewhat drastic */
 		wrcompare(rdcompare() - cnt);	/* match new count */
@@ -144,10 +143,10 @@ guessmips(long (*loop)(void), char *)
 			iprint("again...");
 	} while (cyc < 0);
 	/*
-	 * Instrs instructions took cyc cycles @ basetickfreq Hz.
+	 * Instrs instructions took cyc cycles @ Basetickfreq Hz.
 	 * round the result.
 	 */
-	return (((vlong)basetickfreq * Instrs) / cyc + Mhz/2) / Mhz;
+	return (((vlong)Basetickfreq * Instrs) / cyc + Mhz/2) / Mhz;
 }
 
 void
@@ -155,7 +154,6 @@ clockinit(void)
 {
 	int mips;
 
-	basetickfreq = m->hz / Cyccntres;
 	silencewdog();
 
 	/*
@@ -171,8 +169,11 @@ clockinit(void)
 	if(m->delayloop == 0)
 		m->delayloop = 1;
 
-	m->maxperiod = basetickfreq / HZ;
-	m->minperiod = basetickfreq / (100*HZ);
+	m->speed = mips;
+	m->hz = m->speed*Mhz;
+
+	m->maxperiod = Basetickfreq / HZ;
+	m->minperiod = Basetickfreq / (100*HZ);
 	wrcompare(rdcount()+m->maxperiod);
 
 	/*
@@ -187,7 +188,7 @@ clockinit(void)
 
 /*
  * Tval is supposed to be in fastticks units.
- * One fasttick unit is 1/basetickfreq seconds.
+ * One fasttick unit is 1/Basetickfreq seconds.
  */
 void
 timerset(Tval next)
@@ -220,7 +221,7 @@ fastticks(uvlong *hz)
 	ulong delta, count;
 
 	if(hz)
-		*hz = basetickfreq;
+		*hz = Basetickfreq;
 
 	/* avoid reentry on interrupt or trap, to prevent recursion */
 	x = splhi();
@@ -268,7 +269,7 @@ cycles(uvlong *cycp)
 	*cycp = fastticks(nil);
 }
 
-static Lock mpsynclock;
+Lock mpsynclock;
 
 /*
  *  synchronize all clocks with processor 0

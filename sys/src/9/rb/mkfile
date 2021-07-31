@@ -1,7 +1,7 @@
 CONF=rb
 CONFLIST=rb
 # no rb with nvram on bovril (outside)
-EXTRACOPIES=fsstand # pxe0
+EXTRACOPIES=piestand lookout boundary 
 
 objtype=mips
 </$objtype/mkfile
@@ -32,7 +32,6 @@ PORT=\
 	fault.$O\
 	latin1.$O\
 	mul64fract.$O\
-	logpow.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
