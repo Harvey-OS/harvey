@@ -340,7 +340,6 @@ static void
 readctl(Req *r)
 {
 	int i, isaudio;
-	ulong nwa;
 	char *p, *e, *ty;
 	char s[1024];
 	Msf *m;
@@ -376,14 +375,9 @@ readctl(Req *r)
 		ty = disctype(drive);
 		p = seprint(p, e, "%s", ty);
 		free(ty);
-		if (drive->mmctype != Mmcnone) {
-			nwa = getnwa(drive);
-			p = seprint(p, e, " next writable sector ");
-			if (nwa == ~0ul)
-				p = seprint(p, e, "none; disc full");
-			else
-				p = seprint(p, e, "%lud", nwa);
-		}
+		if (drive->mmctype != Mmcnone)
+			p = seprint(p, e, " next writable sector %lud",
+				getnwa(drive));
 		seprint(p, e, "\n");
 	}
 	readstr(r, s);
