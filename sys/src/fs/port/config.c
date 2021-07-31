@@ -79,7 +79,6 @@ devcmpr(Device *d1, Device *d2)
 		case Devworm:
 		case Devlworm:
 		case Devide:
-		case Devmarvsata:
 			if(d1->wren.ctrl == d2->wren.ctrl)
 			if(d1->wren.targ == d2->wren.targ)
 			if(d1->wren.lun == d2->wren.lun)
@@ -226,15 +225,12 @@ config(void)
 		d->type = Devnone;
 		break;
 
-	case 'w':	/* w[#.]#[.#] wren	[ctrl] unit [lun] */
-	case 'h':	/* h[#.]# ide		[ctlr] unit */
-	case 'm':	/* m[#.]# marvell sata	[ctlr] unit */
+	case 'w':	/* w[#.]#[.#] wren [ctrl] unit [lun] */
+	case 'h':	/* h[#.]# ide [ctlr] unit */
 	case 'r':	/* r# worm side */
 	case 'l':	/* l# labelled-worm side */
 		icp = f.charp;
-		if(c == 'm')
-			d->type = Devmarvsata;
-		else if(c == 'h')
+		if(c == 'h')
 			d->type = Devide;
 		else
 			d->type = Devwren;

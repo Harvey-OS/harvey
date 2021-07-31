@@ -1,11 +1,10 @@
 /*
- * (S)ATA(PI)/(E)IDE disk driver for file server.
+ * (S)ATA(PI)/(E)IDE disk driver for file server, now with DMA!
  * derived from /sys/src/boot/pc/sdata.c and /sys/src/9/pc/sdata.c
  *
  * we can't write message into a ctl file on the file server, so
  * enable dma and rwm as advertised by the drive & controller.
- * if that doesn't work, fix the hardware or turn it off in the source
- * (set conf.idedma = 0).
+ * if that doesn't work, fix the hardware or turn it off in the source.
  *
  * entry points:
 ../fs64/9fsfs64.c:38: 	{ "hd", ataread,   ataseek,   atawrite,   setatapart, },
@@ -24,25 +23,19 @@
 #undef error
 
 enum {
+	DEBUGPR = 0,
 	IDEBUG = 0,
 
 	/* old stuff carried forward */
 	NCtlr=		8,
-	NCtlrdrv=	2,		/* fixed by hardware */
-	NDrive=		NCtlr*NCtlrdrv,
+	NDrive=		NCtlr*2,
 	Maxxfer=	16*1024,	/* maximum transfer size/cmd */
 
 	Read = 0,
 	Write,
-
-	/* I/O ports */
-	Ctlr0cmd =	0x1f0,
-	Ctlr0ctl =	0x3f4,
-	Ctlr1cmd =	0x170,
-	Ctlr1ctl =	0x374,
-	Ctl2cmd = Ctlr0ctl - Ctlr0cmd,
 };
 
+#define DPRINT	if(DEBUGPR)print
 #define IDPRINT if(IDEBUG)print
 
 extern SDifc sdataifc;
@@ -318,8 +311,7 @@ typedef struct Ctlr {
 	void	(*idisable)(Ctlr*);
 	SDev*	sdev;
 
-	Drive*	drive[NCtlrdrv];
-	Target	target[NTarget];	/* contains filters for stats */
+	Drive*	drive[2];
 
 	Prd*	prdt;			/* physical region descriptor table */
 	void*	prdtbase;
@@ -333,7 +325,8 @@ typedef struct Ctlr {
 	Lock;				/* register access */
 
 	/* old stuff carried forward */
-	QLock	idelock;	/* make seek & i/o atomic in ide* routines */
+	QLock	idelock;		/* make seek & i/o atomic in ide* routines */
+	uchar	buf[RBUFSIZE];
 } Ctlr;
 
 typedef struct Drive {
@@ -374,27 +367,19 @@ typedef struct Drive {
 	/* for ata* routines */
 	int	online;
 	Devsize	offset;
-	int	driveno;		/* ctlr*NCtlrdrv + unit */
+	int	driveno;		/* ctlr*2 + unit */
 
 	char	lba;		/* true if drive has logical block addressing */
 	char	multi;		/* non-0 if drive does multiple block xfers */
-
-	/*
-	 * old stuff carried forward.  it's in Drive not Ctlr to maximise
-	 * possible concurrency.
-	 */
-	uchar	buf[RBUFSIZE];
 } Drive;
 
 /* file-server-specific data */
 
 static Ctlr *atactlr[NCtlr];
-static SDev *sdevs[NCtlr];
+static SDev sdevs[NCtlr];
 
 static Drive *atadrive[NDrive];
-// static SDunit *sdunits[NDrive];
-
-SDunit*	sdgetunit(SDev* sdev, int subno);
+static SDunit sdunits[NDrive];
 
 static Drive	*atadriveprobe(int driveno);
 
@@ -647,8 +632,6 @@ atarwmmode(Drive* drive, int cmdport, int ctlport, int dev)
 	drive->rwm = rwm;
 	if (conf.idedma)
 		drive->rwmctl = drive->rwm;	/* FS special */
-	else
-		drive->rwm = 0;
 	return rwm;
 }
 
@@ -673,8 +656,6 @@ atadmamode(Drive* drive)
 	}
 	if (conf.idedma)
 		drive->dmactl = drive->dma;	/* FS special */
-	else
-		drive->dma = 0;
 	return dma;
 }
 
@@ -734,7 +715,7 @@ static void
 ataverify(Drive *dp)
 {
 	int n, nb, dev = dp->driveno;
-	uchar *buf = dp->buf;
+	uchar *buf = dp->ctlr->buf;
 
 	if (dp->ctlr == nil)
 		panic("ataverify: nil ctlr for drive");
@@ -774,14 +755,9 @@ static Drive*
 atagetdrive(int cmdport, int ctlport, int dev)
 {
 	Drive *drive;
-	int as, i, pkt, driveno;
+	int as, i, pkt;
 	uchar buf[512], *p;
 	ushort iconfig, *sp;
-
-	driveno = (cmdport == Ctlr0cmd? 0:
-		cmdport == Ctlr1cmd? NCtlrdrv: 2*NCtlrdrv);
-	if (dev == Dev1)
-		driveno++;
 
 	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
 	pkt = 1;
@@ -826,17 +802,12 @@ retry:
 	 */
 	iconfig = drive->info[Iconfig];
 	if(iconfig != 0x848A && (iconfig & 0xC000) == 0x8000){
-		print("atagetdrive: port 0x%uX dev 0x%2.2uX: packet device\n",
-			cmdport, dev);
 		if(iconfig & 0x01)
 			drive->pkt = 16;
 		else
 			drive->pkt = 12;
 	}
 	else{
-		if (iconfig == 0x848A)
-			print("atagetdrive: port 0x%uX dev 0x%2.2uX: non-packet CF device\n",
-				cmdport, dev);
 		if(drive->info[Ivalid] & 0x0001){
 			drive->c = drive->info[Iccyl];
 			drive->h = drive->info[Ichead];
@@ -864,9 +835,8 @@ retry:
 	atadmamode(drive);
 
 	if(DEBUG & DbgCONFIG){
-		print("ata h%d: dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
-			driveno, dev, cmdport, iconfig,
-			drive->info[Icapabilities]);
+		print("ata: dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
+			dev, cmdport, iconfig, drive->info[Icapabilities]);
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
@@ -874,6 +844,7 @@ retry:
 		if(drive->flags&Lba48)
 			print("\tLLBA sectors %lld\n", (Wideoff)drive->sectors);
 	}
+
 	return drive;
 }
 
@@ -893,17 +864,6 @@ atasrst(int ctlport)
 	microdelay(2*1000);
 }
 
-static int drivenum = 0;	/* hope that we probe in order */
-
-static void
-updprobe(int cmdport)
-{
-	if(cmdport == Ctlr0cmd)
-		drivenum = NCtlrdrv;
-	else if (cmdport == Ctlr1cmd)
-		drivenum = 2*NCtlrdrv;
-}
-
 static SDev*
 ataprobe(int cmdport, int ctlport, int irq)
 {
@@ -911,21 +871,15 @@ ataprobe(int cmdport, int ctlport, int irq)
 	SDev *sdev;
 	Drive *drive;
 	int i, dev, error, rhi, rlo;
-
-	if(cmdport == Ctlr0cmd)
-		drivenum = 0;
-	else if (cmdport == Ctlr1cmd)
-		drivenum = NCtlrdrv;
+	static int drivenum = 0;	/* hope that we probe in order */
 
 	if(ioalloc(cmdport, 8, 0, "atacmd") < 0) {
 		print("ataprobe: Cannot allocate %X\n", cmdport);
-		updprobe(cmdport);
 		return nil;
 	}
 	if(ioalloc(ctlport+As, 1, 0, "atactl") < 0){
 		print("ataprobe: Cannot allocate %X\n", ctlport + As);
 		iofree(cmdport);
-		updprobe(cmdport);
 		return nil;
 	}
 
@@ -958,7 +912,6 @@ trydev1:
 release:
 				iofree(cmdport);
 				iofree(ctlport+As);
-				updprobe(cmdport);
 				return nil;
 			}
 			dev = Dev1;
@@ -1033,11 +986,8 @@ tryedd1:
 	}
 	memset(sdev, 0, sizeof(SDev));
 	drive->ctlr = ctlr;
-
-	atactlr[drivenum/NCtlrdrv] = ctlr;
+	atactlr[drivenum/2] = ctlr;
 	atadrive[drivenum++] = drive;
-	sdevs[drivenum/NCtlrdrv] = sdev;
-
 	if(dev == Dev0){
 		ctlr->drive[0] = drive;
 		if(!(error & 0x80)){
@@ -1065,7 +1015,7 @@ tryedd1:
 	drivenum++;
 
 	print("ata%d: cmd 0x%ux ctl 0x%ux irq %d\n",
-		(drivenum-1)/NCtlrdrv, cmdport, ctlport, irq);
+		(drivenum-1)/2, cmdport, ctlport, irq);
 	ctlr->cmdport = cmdport;
 	ctlr->ctlport = ctlport;
 	ctlr->irq = irq;
@@ -1074,14 +1024,13 @@ tryedd1:
 
 	sdev->ifc = &sdataifc;
 	sdev->ctlr = ctlr;
-	sdev->nunit = NCtlrdrv;
+	sdev->nunit = 2;
 	ctlr->sdev = sdev;
 
 	if (0)
 		for (i = drivenum - 2; i < drivenum; i++)
 			if (atadrive[i])
 				ataverify(atadrive[i]);
-	updprobe(cmdport);
 	return sdev;
 }
 
@@ -1098,9 +1047,15 @@ ataclear(SDev *sdev)
 		free(ctlr->drive[0]);
 	if (ctlr->drive[1])
 		free(ctlr->drive[1]);
-	/* TODO: clear entries in atadrive[] too */
 	if (sdev->name)
 		free(sdev->name);
+#ifdef notdef
+	/* TODO: WTF is this? */
+	if (sdev->unitflg)
+		free(sdev->unitflg);
+	if (sdev->unit)
+		free(sdev->unit);
+#endif
 	free(ctlr);
 	free(sdev);
 }
@@ -1111,7 +1066,7 @@ atastat(SDev *sdev, char *p, char *e)
 	Ctlr *ctlr = sdev->ctlr;
 
 	return seprint(p, e, "%s ata port %X ctl %X irq %d\n",
-			sdev->name, ctlr->cmdport, ctlr->ctlport, ctlr->irq);
+		    	       sdev->name, ctlr->cmdport, ctlr->ctlport, ctlr->irq);
 }
 
 #ifndef FS
@@ -1833,7 +1788,7 @@ retry:
 	else
 		status = atagenio(drive, cmdp, clen);
 	if(status == SDretry){
-		if(DEBUG & DbgDEBUG)
+		if(DbgDEBUG)
 			print("%s: retry: dma %8.8uX rwm %4.4uX\n",
 				unit->name, drive->dmactl, drive->rwmctl);
 		goto retry;
@@ -1992,18 +1947,13 @@ atapnp(void)
 	Pcidev *p;
 	int channel, ispc87415, pi, r;
 	SDev *legacy[2], *sdev, *head, *tail;
-	static int done;
-
-	if (done)
-		return nil;
-	done = 1;
 
 	legacy[0] = legacy[1] = head = tail = nil;
-	if(sdev = ataprobe(Ctlr0cmd, Ctlr0ctl, IrqATA0)){
+	if(sdev = ataprobe(0x1F0, 0x3F4, IrqATA0)){
 		head = tail = sdev;
 		legacy[0] = sdev;
 	}
-	if(sdev = ataprobe(Ctlr1cmd, Ctlr1ctl, IrqATA1)){
+	if(sdev = ataprobe(0x170, 0x374, IrqATA1)){
 		if(head != nil)
 			tail->next = sdev;
 		else
@@ -2163,13 +2113,52 @@ atapnp(void)
 			ctlr->bmiba = (p->mem[4].bar & ~0x01) + channel*8;
 		}
 	}
+
+#ifdef notdef
+if(0){
+	int port;
+	ISAConf isa;
+
+	/*
+	 * Hack for PCMCIA drives.
+	 * This will be tidied once we figure out how the whole
+	 * removeable device thing is going to work.
+	 */
+	memset(&isa, 0, sizeof(isa));
+	isa.port = 0x180;		/* change this for your machine */
+	isa.irq = 11;			/* change this for your machine */
+
+	port = isa.port+0x0C;
+	channel = pcmspecial("MK2001MPL", &isa);
+	if(channel == -1)
+		channel = pcmspecial("SunDisk", &isa);
+	if(channel == -1){
+		isa.irq = 10;
+		channel = pcmspecial("CF", &isa);
+	}
+	if(channel == -1){
+		isa.irq = 10;
+		channel = pcmspecial("OLYMPUS", &isa);
+	}
+	if(channel == -1){
+		port = isa.port+0x204;
+		channel = pcmspecial("ATA/ATAPI", &isa);
+	}
+	if(channel >= 0 && (sdev = ataprobe(isa.port, port, isa.irq)) != nil){
+		if(head != nil)
+			tail->next = sdev;
+		else
+			head = sdev;
+	}
+}
+#endif
 	return head;
 }
 
 static SDev*
 atalegacy(int port, int irq)
 {
-	return ataprobe(port, port+Ctl2cmd, irq);
+	return ataprobe(port, port+0x204, irq);
 }
 
 static SDev*
@@ -2188,16 +2177,16 @@ ataid(SDev* sdev)
 	if(sdev == nil)
 		return nil;
 	ctlr = sdev->ctlr;
-	if(ctlr->cmdport == Ctlr0cmd || ctlr->cmdport == Ctlr1cmd)
+	if(ctlr->cmdport == 0x1F0 || ctlr->cmdport == 0x170)
 		i = 2;
 	else
 		i = 0;
 	while(sdev){
 		if(sdev->ifc == &sdataifc){
 			ctlr = sdev->ctlr;
-			if(ctlr->cmdport == Ctlr0cmd)
+			if(ctlr->cmdport == 0x1F0)
 				sdev->idno = 'C';
-			else if(ctlr->cmdport == Ctlr1cmd)
+			else if(ctlr->cmdport == 0x170)
 				sdev->idno = 'D';
 			else{
 				sdev->idno = 'C'+i;
@@ -2429,37 +2418,13 @@ atadriveprobe(int driveno)
 	return atapart(drive);
 }
 
-static void
-cmd_stat(int, char*[])
-{
-	Ctlr *ctlr;
-	int ctlrno, targetno;
-	Target *tp;
-
-	for(ctlrno = 0; ctlrno < nelem(atactlr); ctlrno++){
-		ctlr = atactlr[ctlrno];
-		if(ctlr == nil || ctlr->sdev == nil)
-			continue;
-		for(targetno = 0; targetno < NTarget; targetno++){
-			tp = &ctlr->target[targetno];
-			if(tp->fflag == 0)
-				continue;
-			print("\t%d.%d work =%7W%7W%7W xfrs\n",
-				ctlrno, targetno,
-				tp->work+0, tp->work+1, tp->work+2);
-			print("\t    rate =%7W%7W%7W tBps\n",
-				tp->rate+0, tp->rate+1, tp->rate+2);
-		}
-	}
-}
-
 /* find all the controllers, enable interrupts, set up SDevs & SDunits */
 int
 atainit(void)
 {
 	unsigned i;
 	SDev *sdp;
-	SDev **sdpp;
+	SDunit *sup;
 	static int first = 1;
 
 	if (first)
@@ -2469,20 +2434,22 @@ atainit(void)
 
 	atapnp();
 
-	for (sdpp = sdevs; sdpp < sdevs + nelem(sdevs); sdpp++) {
-		sdp = *sdpp;
-		if (sdp == nil)
-			continue;
-		i = sdpp - sdevs;
+	for (sdp = sdevs; sdp < sdevs + NCtlr; sdp++) {
+		i = sdp - sdevs;
 		sdp->ifc = &sdataifc;
-		sdp->nunit = NCtlrdrv;
+		sdp->nunit = 2;
 		sdp->index = i;
 		sdp->idno = 'C' + i;
 		sdp->ctlr = atactlr[i];
 		if (sdp->ctlr != nil)
 			ataenable(sdp);
 	}
-	cmd_install("stati", "-- ide/ata stats", cmd_stat);
+	for (sup = sdunits; sup < sdunits + NDrive; sup++) {
+		i = sup - sdunits;
+		sup->dev = sdevs + i/2;	/* controller */
+		sup->subno = i%2;	/* drive within controller */
+		snprint(sup->name, sizeof sup->name, "h%d", i);
+	}
 	return 0xFF;
 }
 
@@ -2507,75 +2474,37 @@ setatapart(int driveno, char *)
 	return 1;
 }
 
-static void
-keepstats(Drive *dp, int dbytes)
-{
-	Target *tp = &dp->ctlr->target[dp->driveno%NCtlrdrv];
-
-	qlock(tp);
-//	if(tp->ok == 0)
-//		scsiprobe(d);
-	if(tp->fflag == 0) {
-		dofilter(tp->work+0, C0a, C0b, 1);	/* was , 1000); */
-		dofilter(tp->work+1, C1a, C1b, 1);	/* was , 1000); */
-		dofilter(tp->work+2, C2a, C2b, 1);	/* was , 1000); */
-		dofilter(tp->rate+0, C0a, C0b, 1);
-		dofilter(tp->rate+1, C1a, C1b, 1);
-		dofilter(tp->rate+2, C2a, C2b, 1);
-		tp->fflag = 1;
-	}
-	tp->work[0].count++;
-	tp->work[1].count++;
-	tp->work[2].count++;
-	tp->rate[0].count += dbytes;
-	tp->rate[1].count += dbytes;
-	tp->rate[2].count += dbytes;
-	qunlock(tp);
-}
-
+/*
+ * connect the old nvram (ata* routines) and ide* routines to sdata.c.
+ * an ugly hack.
+ */
 static long
-ataxfer(Drive *dp, int inout, Devsize start, long bytes)
+ataxfer(Drive *dp, void *, int inout, Devsize start, long bytes)
 {
 	unsigned driveno = dp->driveno;
 	ulong secsize = dp->secsize, sects;
-	SDunit *unit = sdgetunit(sdevs[driveno/NCtlrdrv], driveno%NCtlrdrv);
+	SDunit *sdp = sdunits + driveno;
 
-	if (unit == nil) {
-		print("mvsataxfer: nil unit\n");
-		return -1;
-	}
 	if (dp->driveno == -1)
 		panic("ataxfer: dp->driveno unset");
-	/*
-	 * unit->dev will be nil if the controller is missing (e.g., h0 on a
-	 * machine with only sdD, not sdC), so make this a non-fatal error.
-	 */
-	if (unit->dev == nil) {
-		print("ataxfer: missing controller for h%d\n", driveno);
-		return -1;
-	}
-	if (unit->dev != sdevs[driveno/NCtlrdrv])
-		panic("ataxfer: sdunits[%d].dev=%p is wrong controller (want %p)",
-			driveno, unit->dev, sdevs + driveno/NCtlrdrv);
-	if (unit->subno != driveno%NCtlrdrv)
-		panic("ataxfer: sdunits[%d].subno is %d, not %d",
-			driveno, unit->subno, driveno%NCtlrdrv);
-	keepstats(dp, bytes);
-	if (unit->sectors == 0) {
-		unit->sectors = dp->sectors;
-		unit->secsize = secsize;
+	if (sdp->dev != sdevs + driveno/2)
+		panic("ataxfer: SDunit[%d].dev is wrong controller", driveno);
+	if (sdp->subno != driveno%2)
+		panic("ataxfer: SDunit[%d].subno is %d, not %d", driveno, sdp->subno, driveno%2);
+	if (sdp->sectors == 0) {
+		sdp->sectors = dp->sectors;
+		sdp->secsize = secsize;
 	}
 	sects = (bytes + secsize - 1) / secsize;	/* round up */
 	if (start%secsize != 0)
 		print("ataxfer: start offset not on sector boundary\n");
-	return scsibio(unit, 0, inout, dp->buf, sects, start/secsize);
+	return scsibio(sdp, 0, inout, dp->ctlr->buf, sects, start/secsize);
 }
 
-/*
- * ataread & atawrite do the real work; ideread & idewrite just call them.
- * ataread & atawrite are called by the nvram routines.
- * ideread & idewrite are called for normal file server I/O.
- */
+/* ataread & atawrite do the real work; ideread and idewrite just call them */
+
+/* paranoia: only permit one outstanding I/O operation at a time */
+static QLock iolock;
 
 Off
 ataread(int driveno, void *a, long n)
@@ -2583,30 +2512,35 @@ ataread(int driveno, void *a, long n)
 	int skip;
 	Off rv, i;
 	uchar *aa = a;
-//	Ctlr *cp;
+	Ctlr *cp;
 	Drive *dp;
 
 	dp = atadrive[driveno];
 	if(dp == nil || !dp->online)
 		return 0;
 
-//	cp = dp->ctlr;
+	iolock.name = "ataio";
+	qlock(&iolock);
+	cp = dp->ctlr;
 	if (dp->secsize == 0)
 		panic("ataread: sector size of zero");
 	skip = dp->offset % dp->secsize;
 	for(rv = 0; rv < n; rv += i){
-		i = ataxfer(dp, Read, dp->offset+rv-skip, n-rv+skip);
+		i = ataxfer(dp, nil, Read, dp->offset+rv-skip, n-rv+skip);
 		if(i == 0)
 			break;
-		if(i < 0)
+		if(i < 0) {
+			qunlock(&iolock);
 			return -1;
+		}
 		i -= skip;
 		if(i > n - rv)
 			i = n - rv;
-		memmove(aa+rv, dp->buf + skip, i);
+		memmove(aa+rv, cp->buf + skip, i);
 		skip = 0;
 	}
 	dp->offset += rv;
+	qunlock(&iolock);
 	return rv;
 }
 
@@ -2615,14 +2549,15 @@ atawrite(int driveno, void *a, long n)
 {
 	Off rv, i, partial;
 	uchar *aa = a;
-//	Ctlr *cp;
+	Ctlr *cp;
 	Drive *dp;
 
 	dp = atadrive[driveno];
 	if(dp == nil || !dp->online)
 		return 0;
 
-//	cp = dp->ctlr;
+	qlock(&iolock);
+	cp = dp->ctlr;
 
 	/*
 	 *  if not starting on a sector boundary,
@@ -2632,15 +2567,19 @@ atawrite(int driveno, void *a, long n)
 		panic("atawrite: sector size of zero");
 	partial = dp->offset % dp->secsize;
 	if(partial){
-		if (ataxfer(dp, Read, dp->offset-partial, dp->secsize) < 0)
+		if (ataxfer(dp, nil, Read, dp->offset-partial, dp->secsize) < 0){
+			qunlock(&iolock);
 			return -1;
+		}
 		if(partial+n > dp->secsize)
 			rv = dp->secsize - partial;
 		else
 			rv = n;
-		memmove(dp->buf+partial, aa, rv);
-		if(ataxfer(dp, Write, dp->offset-partial, dp->secsize) < 0)
+		memmove(cp->buf+partial, aa, rv);
+		if(ataxfer(dp, nil, Write, dp->offset-partial, dp->secsize) < 0){
+			qunlock(&iolock);
 			return -1;
+		}
 	} else
 		rv = 0;
 
@@ -2653,12 +2592,14 @@ atawrite(int driveno, void *a, long n)
 		i = n - rv;
 		if(i > Maxxfer)
 			i = Maxxfer;
-		memmove(dp->buf, aa+rv, i);
-		i = ataxfer(dp, Write, dp->offset+rv, i);
+		memmove(cp->buf, aa+rv, i);
+		i = ataxfer(dp, nil, Write, dp->offset+rv, i);
 		if(i == 0)
 			break;
-		if(i < 0)
+		if(i < 0) {
+			qunlock(&iolock);
 			return -1;
+		}
 	}
 
 	/*
@@ -2666,19 +2607,24 @@ atawrite(int driveno, void *a, long n)
 	 *  read in the last sector before writing it out.
 	 */
 	if(partial){
-		if(ataxfer(dp, Read, dp->offset+rv, dp->secsize) < 0)
+		if(ataxfer(dp, nil, Read, dp->offset+rv, dp->secsize) < 0) {
+			qunlock(&iolock);
 			return -1;
-		memmove(dp->buf, aa+rv, partial);
-		if(ataxfer(dp, Write, dp->offset+rv, dp->secsize) < 0)
+		}
+		memmove(cp->buf, aa+rv, partial);
+		if(ataxfer(dp, nil, Write, dp->offset+rv, dp->secsize) < 0) {
+			qunlock(&iolock);
 			return -1;
+		}
 		rv += partial;
 	}
 	dp->offset += rv;
+	qunlock(&iolock);
 	return rv;
 }
 
 /*
- * normal I/O interface
+ * normal interface
  */
 
 /* result is size of d in blocks of RBUFSIZE bytes */
@@ -2706,7 +2652,7 @@ ideinit(Device *d)
 	if (d->private)
 		return;
 	/* call setatapart() first in case we didn't boot off this drive */
-	driveno = d->wren.ctrl*NCtlrdrv + d->wren.targ;
+	driveno = d->wren.ctrl*2 + d->wren.targ;
 	setatapart(driveno, "disk");
 	dp = atadriveprobe(driveno);
 	if (dp) {
@@ -2723,6 +2669,11 @@ ideinit(Device *d)
 	}
 }
 
+/*
+ * can't qlock(cp) here because atagenio() does so, & would deadlock,
+ * so we introduce a second lock (idelock).
+ */
+
 int
 ideread(Device *d, Devsize b, void *c)
 {
@@ -2737,13 +2688,13 @@ ideread(Device *d, Devsize b, void *c)
 	if (cp == nil)
 		panic("ideread: no controller for drive");
 
-	qlock(&cp->idelock);
 	cp->idelock.name = "ideio";
+	qlock(&cp->idelock);
 	driveno = dp->driveno;
 	if (driveno == -1)
 		panic("ideread: dp->driveno unset");
-	IDPRINT("ideread(dev %p, %lld, %p, %d): %p\n", d, (Wideoff)b, c,
-		driveno, dp);
+	IDPRINT("ideread(dev %lux, %lld, %lux, %d): %lux\n",
+		(ulong)d, (Wideoff)b, (ulong)c, driveno, (ulong)dp);
 	ataseek(driveno, b * RBUFSIZE);
 	x = ataread(driveno, c, RBUFSIZE) != RBUFSIZE;
 	qunlock(&cp->idelock);
@@ -2764,13 +2715,13 @@ idewrite(Device *d, Devsize b, void *c)
 	if (cp == nil)
 		panic("idewrite: no controller for drive");
 
-	qlock(&cp->idelock);
 	cp->idelock.name = "ideio";
+	qlock(&cp->idelock);
 	driveno = dp->driveno;
 	if (driveno == -1)
 		panic("idewrite: dp->driveno unset");
-	IDPRINT("idewrite(%p, %lld, %p): driveno %d\n", d, (Wideoff)b, c,
-		driveno);
+	IDPRINT("idewrite(%ux, %lld, %ux): driveno %d\n",
+		(int)d, (Wideoff)b, (int)c, driveno);
 	ataseek(driveno, b * RBUFSIZE);
 	x = atawrite(driveno, c, RBUFSIZE) != RBUFSIZE;
 	qunlock(&cp->idelock);

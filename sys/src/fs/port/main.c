@@ -5,8 +5,6 @@
 
 #include	"9p1.h"
 
-Rendez dawnrend;
-
 void
 machinit(void)
 {
@@ -133,12 +131,6 @@ main(void)
 		printinit();
 		procinit();
 		clockinit();
-
-		print("\nPlan 9 %d-bit file server with %d-deep indir blks%s\n",
-			sizeof(Off)*8 - 1, NIBLOCK,
-			(conf.idedma? " and IDE DMA+RWM": ""));
-		printsizes();
-
 		alarminit();
 
 		mainlock.wr.name = "mainr";
@@ -167,7 +159,12 @@ main(void)
 		gidspace = ialloc(conf.gidspace * sizeof(*gidspace), 0);
 		authinit();
 
-		print("iobufinit\n");
+		print("Plan 9 %d-bit file server with %d-deep indir blks%s\n",
+			sizeof(Off)*8 - 1, NIBLOCK,
+			(conf.idedma? " and IDE DMA+RWM": ""));
+		printsizes();
+
+		print("iobufinit:");
 		iobufinit();
 
 		arginit();
@@ -175,7 +172,6 @@ main(void)
 		userinit(touser, 0, "ini");
 
 	predawn = 0;
-		wakeup(&dawnrend);
 		launchinit();
 		schedinit();
 }
@@ -316,20 +312,13 @@ exit(void)
 	while(active.machs)
 		delay(1);
 
-	print("halted at %T.\npress a key to reboot sooner than %d mins.\n",
-		time(), Keydelay/60);
-	delay(500);		/* time to drain print q */
+	print("halted.  press a key to reboot sooner than %d mins.\n",
+		Keydelay/60);
+	delay(300);		/* time to drain print q */
 
 	splhi();
 	/* reboot after delay (for debugging) or at key press */
 	rawchar(Keydelay);
-
-	spllo();
-	delay(500);		/* time to drain echo q */
-	print("rebooting...\n");
-	delay(500);		/* time to drain print q */
-
-	splhi();
 	consreset();
 	firmware();
 }

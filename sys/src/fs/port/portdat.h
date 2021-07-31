@@ -913,7 +913,6 @@ enum
 	Devide,			/* IDE drive */
 	Devswab,		/* swab data between mem and device */
 	Devmirr,		/* mirror devices */
-	Devmarvsata,		/* Marvell sata disk drive */
 	MAXDEV
 };
 
@@ -987,4 +986,3 @@ Cons	cons;
 #pragma	varargck	type	"G"	int
 
 extern int (*fsprotocol[])(Msgbuf*);
-extern Rendez dawnrend;
