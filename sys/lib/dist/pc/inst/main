@@ -12,6 +12,7 @@ echo -n 'Preparing menu...'
 
 # must be topologically sorted (by prereq)
 tasks=(\
+	configfs\
 	partdisk prepdisk\
 	fmtventi\
 	fmtfossil\
