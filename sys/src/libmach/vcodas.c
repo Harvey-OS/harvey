@@ -412,19 +412,19 @@ copz(int cop, Instr *i)
 	switch (i->rs) {
 
 	case 0:
-		snprint(buf, sizeof buf, "mfc%d", cop);
+		sprint(buf, "mfc%d", cop);
 		break;
 
 	case 2:
-		snprint(buf, sizeof buf, "cfc%d", cop);
+		sprint(buf, "cfc%d", cop);
 		break;
 
 	case 4:
-		snprint(buf, sizeof buf, "mtc%d", cop);
+		sprint(buf, "mtc%d", cop);
 		break;
 
 	case 6:
-		snprint(buf, sizeof buf, "ctc%d", cop);
+		sprint(buf, "ctc%d", cop);
 		break;
 
 	case 8:
@@ -432,30 +432,30 @@ copz(int cop, Instr *i)
 		switch (i->rt) {
 
 		case 0:
-			snprint(buf, sizeof buf, "bc%df", cop);
+			sprint(buf, "bc%df", cop);
 			break;
 
 		case 1:
-			snprint(buf, sizeof buf, "bc%dt", cop);
+			sprint(buf, "bc%dt", cop);
 			break;
 
 		case 2:
-			snprint(buf, sizeof buf, "bc%dfl", cop);
+			sprint(buf, "bc%dfl", cop);
 			break;
 
 		case 3:
-			snprint(buf, sizeof buf, "bc%dtl", cop);
+			sprint(buf, "bc%dtl", cop);
 			break;
 
 		default:
-			snprint(buf, sizeof buf, "cop%d", cop);
+			sprint(buf, "cop%d", cop);
 			f = mipscoxxx;
 			break;
 		}
 		break;
 
 	default:
-		snprint(buf, sizeof buf, "cop%d", cop);
+		sprint(buf, "cop%d", cop);
 		if (i->rs & 0x10)
 			f = "function %c";
 		else
