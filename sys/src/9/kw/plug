@@ -9,7 +9,6 @@ dev
 	mnt
 	srv
 	dup
-	rtc
 	arch
 	ssl
 	tls
