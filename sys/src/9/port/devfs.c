@@ -599,7 +599,7 @@ mread(Chan *c, void *a, long n, vlong off)
 static long
 mwrite(Chan *c, void *a, long n, vlong off)
 {
-	int	i, allbad, anybad, retry;
+	int	i, allbad, retry;
 	long	l, res;
 	Fsdev	*mp;
 	Inner	*in;
@@ -642,23 +642,17 @@ mwrite(Chan *c, void *a, long n, vlong off)
 				tsleep(&up->sleep, return0, 0, 2000);
 			}
 			allbad = 1;
-			anybad = 0;
 			for (i = mp->ndevs - 1; i >= 0; i--){
-				if (waserror()) {
-					anybad = 1;
+				if (waserror())
 					continue;
-				}
 				in = &mp->inner[i];
 				l = io(mp, in, Iswrite, a, n, off);
 				poperror();
 				if (res > l)
 					res = l;	/* shortest OK write */
-				if (l == n)
-					allbad = 0;	/* wrote a good copy */
-				else
-					anybad = 1;
+				allbad = 0;		/* wrote a good copy */
 			}
-		} while (anybad && ++retry < 2);
+		} while (allbad && ++retry < 2);
 		if (allbad) {
 			/* no mirror took a good copy of the block */
 			print("#k/%s: byte %,lld count %ld: CAN'T WRITE "

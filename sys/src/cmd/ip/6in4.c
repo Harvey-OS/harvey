@@ -33,7 +33,7 @@ static void	tunnel2ip(int, int);
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-ag] [-x mtpt] [local6[/mask]] [remote4 [remote6]]\n",
+	fprint(2, "Usage: %s [-ag] [-x mtpt] local6[/mask] [remote4 [remote6]]\n",
 		argv0);
 	exits("Usage");
 }
@@ -42,7 +42,7 @@ void
 main(int argc, char **argv)
 {
 	int n, tunnel, ifc, cfd;
-	char *p, *cl, *ir, *loc6;
+	char *p, *cl, *ir;
 	char buf[128], path[64];
 
 	fmtinstall('I', eipfmt);
@@ -62,32 +62,20 @@ main(int argc, char **argv)
 	default:
 		usage();
 	} ARGEND
-
-	if (myipaddr(myip, net) < 0)
-		sysfatal("can't find my ipv4 address on %s", net);
-
 	if (argc < 1)
-		loc6 = smprint("2002:%2.2x%2.2x:%2.2x%2.2x::1/48",
-			myip[IPaddrlen - IPv4addrlen],
-			myip[IPaddrlen - IPv4addrlen + 1],
-			myip[IPaddrlen - IPv4addrlen + 2],
-			myip[IPaddrlen - IPv4addrlen + 3]);
-	else {
-		loc6 = argv[0];
-		argv++;
-		argc--;
-	}
+		usage();
 
 	/* local v6 address (mask defaults to /128) */
 	memcpy(localmask, IPallbits, sizeof localmask);
-	p = strchr(loc6, '/');
-	if (p != nil) {
+	if ((p = strchr(argv[0], '/')) != nil) {
 		parseipmask(localmask, p);
 		*p = 0;
 	}
-	parseip(local6, loc6);
+	parseip(local6, argv[0]);
 	if (isv4(local6))
 		usage();
+	argv++;
+	argc--;
 	if (argc >= 1 && argv[0][0] == '/') {
 		parseipmask(localmask, argv[0]);
 		argv++;
@@ -123,6 +111,8 @@ main(int argc, char **argv)
 		usage();
 
 	maskip(local6, localmask, localnet);
+	if (myipaddr(myip, net) < 0)
+		sysfatal("can't find my ipv4 address on %s", net);
 
 	/*
 	 * open IPv6-in-IPv4 tunnel
