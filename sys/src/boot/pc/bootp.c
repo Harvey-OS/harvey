@@ -436,7 +436,7 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 }
 
 static int
-bootpopen1(int ctlrno, char *file, Bootp *rep, int dotftpopen)
+bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 {
 	Bootp req;
 	int i, n;
@@ -492,7 +492,7 @@ bootpopen1(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 			break;
 	}
 	if(i >= 10) {
-		print("bootp on ether%d for %s timed out\n", ctlrno, file);
+		print("bootp timed out\n");
 		return -1;
 	}
 
@@ -523,19 +523,6 @@ bootpopen1(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 	if((n = tftpopen(ctlrno, &server, filename, &tftpb)) < 0)
 		return -1;
 
-	return n;
-}
-
-static int
-bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
-{
-	int n;
-
-	while ((n = bootpopen1(ctlrno, file, rep, dotftpopen)) < 0 &&
-	    (pxe || getconf("*bootppersist") != nil)) {
-		print("pausing before retry\n");
-		delay(30*1000);
-	}
 	return n;
 }
 
