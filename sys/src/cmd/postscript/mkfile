@@ -44,10 +44,7 @@ $TARGETS:V:
 &:VQ:
 	test -d $POSTBIN || mkdir $POSTBIN
 	for (i in $TARGETS) @{
-		echo ---- Making $target in $i ----
-		cd $i
-		rfork e
-		if (~ $target default)
-			target=()
+		echo ---- Making $target in $i ----;
+		cd $i;
 		mk $target
 	}

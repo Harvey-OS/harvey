@@ -956,8 +956,6 @@ struct Uart
 
 extern	Uart*	consuart;
 
-void (*lprint)(char *, int);
-
 /*
  *  performance timers, all units in perfticks
  */

@@ -771,8 +771,7 @@ uartputc(int c)
 
 	if(consuart == nil || consuart->phys->putc == nil) {
 		c2 = c;
-		if (lprint)
-			(*lprint)(&c2, 1);
+		_uartputs(&c2, 1);
 		return;
 	}
 	consuart->phys->putc(consuart, c);
@@ -784,8 +783,7 @@ uartputs(char *s, int n)
 	char *e;
 
 	if(consuart == nil || consuart->phys->putc == nil) {
-		if (lprint)
-			(*lprint)(s, n);
+		_uartputs(s, n);
 		return;
 	}
 
