@@ -379,7 +379,6 @@ main(void)
 	prcpuid();
 	readlsconf();
 	apminit();
-	print("bios (usb) loading %s\n", biosload? "enabled": "disabled");
 
 	devpccardlink();
 	devi82365link();

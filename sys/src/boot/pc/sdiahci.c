@@ -104,7 +104,6 @@ typedef struct {
 
 	uvlong	sectors;
 	ulong	intick;
-	ulong	lastseen;
 	int	wait;
 	uchar	mode;		/* DMautoneg, satai or sataii. */
 	uchar	active;
@@ -262,7 +261,7 @@ setfeatures(Aportc *pc, uchar f)
 	l->ctab = PCIWADDR(t);
 	l->ctabhi = 0;
 
-	return ahciwait(pc, 500);
+	return ahciwait(pc, 3*1000);
 }
 
 static int
@@ -293,7 +292,7 @@ setudmamode(Aportc *pc, uchar f)
 	l->ctab = PCIWADDR(t);
 	l->ctabhi = 0;
 
-	return ahciwait(pc, 500);
+	return ahciwait(pc, 3*1000);
 }
 
 static void
@@ -384,7 +383,7 @@ ahciidentify0(Aportc *pc, void *id, int atapi)
 	p->dbahi = 0;
 	p->count = 1<<31 | (0x200-2) | 1;
 
-	return ahciwait(pc, 500);
+	return ahciwait(pc, 3*1000);
 }
 
 static vlong
@@ -560,7 +559,7 @@ ahciwakeup(Aport *p)
 	p->sctl = 3*Aipm | 0*Aspd | Adet;
 	delay(1);
 	p->sctl &= ~7;
-//	print("ahci: wake %ux -> %ux\n", s, p->sstatus);
+//	iprint("ahci: wake %ux -> %ux\n", s, p->sstatus);
 }
 
 static int
@@ -582,7 +581,7 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 		dprint("ahci: configdrive: spinning up ... [%lux]\n",
 			p->sstatus);
 		p->cmd |= Apod|Asud;
-		asleep(400);
+		asleep(1400);
 	}
 
 	p->serror = SerrAll;
@@ -657,7 +656,7 @@ ahcihbareset(Ahba *h)
 	int wait;
 
 	h->ghc |= 1;
-	for(wait = 0; wait < 500; wait += 100){
+	for(wait = 0; wait < 1000; wait += 100){
 		if(h->ghc == 0)
 			return 0;
 		delay(100);
@@ -683,17 +682,6 @@ idmove(char *p, ushort *a, int n)
 	for (p = op; *p == ' '; p++)
 		;
 	memmove(op, p, n - (e - p));
-}
-
-static char*
-dnam(Drive *d)
-{
-	char *s;
-
-	s = d->name;
-	if(d->unit && d->unit->name)
-		s = d->unit->name;
-	return s;
 }
 
 static int
@@ -997,8 +985,6 @@ checkdrive(Drive *d, int i)
 	ilock(d);
 	name = d->unit->name;
 	s = d->port->sstatus;
-	if(s)
-		d->lastseen = m->ticks;
 	if(s != olds[i]){
 		dprint("%s: status: %04ux -> %04ux: %s\n",
 			name, olds[i], s, diskstates[d->state]);
@@ -1114,7 +1100,7 @@ iainterrupt(Ureg*, void *a)
 static int
 iaverify(SDunit *u)
 {
-	int i, reset;
+	int i;
 	Ctlr *c;
 	Drive *d;
 
@@ -1125,41 +1111,24 @@ iaverify(SDunit *u)
 	d->unit = u;
 	iunlock(d);
 	iunlock(c);
-
-	reset = 0;
 	for(i = 0; i < 10; i++){
 		checkdrive(d, d->driveno);
 		switch(d->state){
-		case Dnew:
-			if(d->port->task & 0x80){
-				d->state = Dportreset;
-				reset = 1;
-			}
-			break;
 		case Dmissing:
-			if(reset || d->port->sstatus & 0x733)
+			if(d->port->sstatus & 0x733)
 				break;
-			/*
-			 * don't print messages about missing drives;
-			 * it's just noise.
-			 */
-			break;
+			/* fall through */
 		case Dnull:
-		case Doffline:
-			if(0)print("sdiahci: drive %d in state %s after %d resets\n",
-				d->driveno, diskstates[d->state], i);
-			return 1;
 		case Dready:
-			if(d->portm.feat & Datapi)
-				return scsiverify(d->unit);
+		case Doffline:
+			print("sdiahci: drive %d in state %s after %d resets\n",
+				d->driveno, diskstates[d->state], i);
 			return 1;
 		}
 		delay(100);
 	}
-	if(d->state != Dmissing)
-		print("sdiahci: drive %d won't come up; "
-			"in state %s after %d resets\n",
-			d->driveno, diskstates[d->state], i);
+	print("sdiahci: drive %d won't come up; in state %s after %d resets\n",
+		d->driveno, diskstates[d->state], i);
 	return 1;
 }
 
@@ -1343,26 +1312,24 @@ ahcibuildpkt(Aportm *m, SDreq *r, void *data, int n)
 static int
 waitready(Drive *d)
 {
-	ulong s, i, δ;
+	ulong s, t, i;
 
 	/* don't wait long; we're only the bootstrap */
-	for(i = 0; i < 8000; i += 250){
-		if(d->state == Dreset || d->state == Dportreset ||
-		    d->state == Dnew)
-			return 1;
-		δ = m->ticks - d->lastseen;
-		if(d->state == Dnull || δ > 10*1000)
-			return -1;
+	for(i = 0; i < 150; i++){
 		ilock(d);
 		s = d->port->sstatus;
+		t = d->port->task;
 		iunlock(d);
-		if((s & Imask) == 0 && δ > 1500)
+		if((s & 0x100) == 0)
 			return -1;
-		if(d->state == Dready && (s & Smask) == Sphylink)
-			return 0;
-		esleep(250);
+		if(d->state == Dready && (s & 7) == 3)
+			return 0;	/* ready, present & phy. comm. */
+		if((i + 1) % 30 == 0)
+			print("%s: waitready: [%s] task=%lux sstat=%lux\n",
+				d->unit->name, diskstates[d->state], t, s);
+		esleep(100);
 	}
-	print("%s: not responding; offline\n", dnam(d));
+	print("%s: not responding; offline\n", d->unit->name);
 	ilock(d);
 	d->state = Doffline;
 	iunlock(d);
