@@ -8,7 +8,6 @@
 
 enum {
 	IP_IPV6PROTO	= 41,
-	V6to4pfx	= 0x2002,
 };
 
 int anysender;
@@ -68,8 +67,7 @@ main(int argc, char **argv)
 		sysfatal("can't find my ipv4 address on %s", net);
 
 	if (argc < 1)
-		loc6 = smprint("%ux:%2.2x%2.2x:%2.2x%2.2x::1/48",
-			V6to4pfx,
+		loc6 = smprint("2002:%2.2x%2.2x:%2.2x%2.2x::1/48",
 			myip[IPaddrlen - IPv4addrlen],
 			myip[IPaddrlen - IPv4addrlen + 1],
 			myip[IPaddrlen - IPv4addrlen + 2],
@@ -242,8 +240,8 @@ ip2tunnel(int in, int out)
 			continue;
 		}
 
-		/* send 6to4 packets directly to ipv4 target */
-		if ((ip->dst[0]<<8 | ip->dst[1]) == V6to4pfx)
+		/* send 6to4 packets (2002::) directly to ipv4 target */
+		if (ip->dst[0] == 0x20 && ip->dst[1] == 0x02)
 			memcpy(op->dst, ip->dst+2, sizeof op->dst);
 		else
 			memcpy(op->dst, remote4+IPv4off, sizeof op->dst);
@@ -323,15 +321,16 @@ badipv4(uchar *a)
 	return a[0] >= 240;
 }
 
-/*
- * 0x0000/16 prefix = v4 compatible, v4 mapped, loopback, unspecified...
- * site-local is now deprecated, rfc3879
- */
 static int
 badipv6(uchar *a)
 {
 	int h = a[0]<<8 | a[1];
 
-	return h == 0 || ISIPV6MCAST(a) || ISIPV6LINKLOCAL(a) ||
-	    h == V6to4pfx && badipv4(a+2);
+	if (h == 0 ||		/* compatible, mapped, loopback, unspecified ... */
+	    h >= 0xFE80)	/* multicast, link-local or site-local */
+		return 1;
+	if (h == 0x2002 &&	/* 6to4 address */
+	    badipv4(a+2))
+		return 1;
+	return 0;
 }
