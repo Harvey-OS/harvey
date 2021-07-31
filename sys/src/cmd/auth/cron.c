@@ -7,18 +7,12 @@
 
 char CRONLOG[] = "cron";
 
-enum {
-	Minute = 60,
-	Hour = 60 * Minute,
-	Day = 24 * Hour,
-};
-
 typedef struct Job	Job;
 typedef struct Time	Time;
 typedef struct User	User;
 
 struct Time{			/* bit masks for each valid time */
-	uvlong	min;
+	ulong	min;			/* actually 1 bit for every 2 min */
 	ulong	hour;
 	ulong	mday;
 	ulong	wday;
@@ -51,7 +45,7 @@ void	rexec(User*, Job*);
 void	readalljobs(void);
 Job	*readjobs(char*, User*);
 int	getname(char**);
-uvlong	gettime(int, int);
+ulong	gettime(int, int);
 int	gettok(int, int);
 void	initcap(void);
 void	pushtok(void);
@@ -73,7 +67,7 @@ main(int argc, char *argv[])
 	Job *j;
 	Tm tm;
 	Time t;
-	ulong now, last, nowsecs, future;
+	ulong now, last, x;
 	int i;
 
 	debug = 0;
@@ -87,6 +81,7 @@ main(int argc, char *argv[])
 	default:
 		usage();
 	}ARGEND
+	USED(argc, argv);
 
 	if(debug){
 		readalljobs();
@@ -107,36 +102,30 @@ main(int argc, char *argv[])
 
 	argv0 = "cron";
 	srand(getpid()*time(0));
-	last = time(0) / Minute;
+	last = time(0) / 60;
 	for(;;){
 		readalljobs();
-		now = time(0) / Minute;
-		if (now-last > Day/Minute)	/* don't go mad */
-			last = now - Day/Minute; /* just execute 1 day's jobs */
-		for(; last <= now; last++){
-			tm = *localtime(last*Minute);
-			t.min = 1ULL << tm.min;
+		now = time(0) / 60;
+		if ((now-last) > (60*60*24))		/* don't go mad */
+			last = now-(60*60*24);
+		for(; last <= now; last += 2){
+			tm = *localtime(last*60);
+			t.min = 1 << tm.min/2;
 			t.hour = 1 << tm.hour;
 			t.wday = 1 << tm.wday;
 			t.mday = 1 << tm.mday;
-			t.mon =  1 << (tm.mon + 1);
+			t.mon = 1 << (tm.mon + 1);
 			for(i = 0; i < nuser; i++)
 				for(j = users[i].jobs; j; j = j->next)
-					if(j->time.min & t.min
-					&& j->time.hour & t.hour
+					if(j->time.min & t.min && j->time.hour & t.hour
 					&& j->time.wday & t.wday
 					&& j->time.mday & t.mday
 					&& j->time.mon & t.mon)
 						rexec(&users[i], j);
 		}
-		/*
-		 * if we're not there yet, sleep until (now+1)*Minute,
-		 * which synchronises with minute roll-over as a side-effect.
-		 */
-		future = (now + 1) * Minute;
-		nowsecs = time(0);
-		if (nowsecs < future)
-			sleep((future - nowsecs)*1000);
+		x = time(0) / 60;
+		if(x - now < 2)
+			sleep((2 - (x - now))*60*1000);
 	}
 	/* not reached */
 }
@@ -183,8 +172,7 @@ readalljobs(void)
 			if(strcmp(d[i].name, "log") == 0)
 				continue;
 			if(strcmp(d[i].name, d[i].uid) != 0){
-				syslog(1, CRONLOG, "cron for %s owned by %s\n",
-					d[i].name, d[i].uid);
+				syslog(1, CRONLOG, "cron for %s owned by %s\n", d[i].name, d[i].uid);
 				continue;
 			}
 			u = newuser(d[i].name);
@@ -231,13 +219,12 @@ readjobs(char *file, User *user)
 		if(*savec == '#' || *savec == '\0')
 			continue;
 		if(strlen(savec) > 1024){
-			syslog(0, CRONLOG, "%s: line %d: line too long",
-				user->name, line);
+			syslog(0, CRONLOG, "%s: line %d: line too long", user->name, line);
 			continue;
 		}
 		j = emalloc(sizeof *j);
-		j->time.min = gettime(0, 59);
-		if(j->time.min && (j->time.hour = gettime(0, 23))
+		if((j->time.min = gettime(0, 59))
+		&& (j->time.hour = gettime(0, 23))
 		&& (j->time.mday = gettime(1, 31))
 		&& (j->time.mon = gettime(1, 12))
 		&& (j->time.wday = gettime(0, 6))
@@ -247,8 +234,7 @@ readjobs(char *file, User *user)
 			j->next = jobs;
 			jobs = j;
 		}else{
-			syslog(0, CRONLOG, "%s: line %d: syntax error",
-				user->name, line);
+			syslog(0, CRONLOG, "%s: line %d: syntax error", user->name, line);
 			free(j);
 		}
 	}
@@ -265,12 +251,12 @@ printjobs(void)
 
 	for(i = 0; i < nuser; i++){
 		print("user %s\n", users[i].name);
-		for(j = users[i].jobs; j; j = j->next)
+		for(j = users[i].jobs; j; j = j->next){
 			if(!mkcmd(j->cmd, buf, sizeof buf))
-				print("\tbad job %s on host %s\n",
-					j->cmd, j->host);
+				print("\tbad job %s on host %s\n", j->cmd, j->host);
 			else
 				print("\tjob %s on host %s\n", buf, j->host);
+		}
 	}
 }
 
@@ -335,7 +321,7 @@ getname(char **namep)
 }
 
 /*
- * return the next time range (as a bit vector) in the file:
+ * return the next time range in the file:
  * times: '*'
  * 	| range
  * range: number
@@ -343,21 +329,21 @@ getname(char **namep)
  *	| range ',' range
  * a return of zero means a syntax error was discovered
  */
-uvlong
+ulong
 gettime(int min, int max)
 {
-	uvlong n, m, e;
+	ulong n, m, e;
 
 	if(gettok(min, max) == '*')
-		return ~0ULL;
+		return ~0;
 	n = 0;
 	while(tok == '1'){
-		m = 1ULL << lexval;
+		m = 1 << lexval;
 		n |= m;
 		if(gettok(0, 0) == '-'){
 			if(gettok(lexval, max) != '1')
 				return 0;
-			e = 1ULL << lexval;
+			e = 1 << lexval;
 			for( ; m <= e; m <<= 1)
 				n |= m;
 			gettok(min, max);
@@ -393,6 +379,8 @@ gettok(int min, int max)
 		lexval = strtoul(savec, &savec, 10);
 		if(lexval < min || lexval > max)
 			return tok = 0;
+		if(max > 32)
+			lexval /= 2;			/* yuk: correct min by / 2 */
 		return tok = '1';
 	case '*': case '-': case ',':
 		savec++;
@@ -488,25 +476,23 @@ syslog(0, CRONLOG, "%s: ran '%s' on %s", user->name, j->cmd, j->host);
 		_exits(0);
 	}
 
-	alarm(2*Minute*1000);
+	alarm(2*60*1000);
 	fd = call(j->host);
 	if(fd < 0){
-		if(fd == -2)
-			syslog(0, CRONLOG, "%s: dangerous host %s",
-				user->name, j->host);
+		if(fd == -2){
+			syslog(0, CRONLOG, "%s: dangerous host %s", user->name, j->host);
+		}
 		syslog(0, CRONLOG, "%s: can't call %s: %r", user->name, j->host);
 		_exits(0);
 	}
 syslog(0, CRONLOG, "%s: called %s on %s", user->name, j->cmd, j->host);
 	if(becomeuser(user->name) < 0){
-		syslog(0, CRONLOG, "%s: can't change uid for %s on %s: %r",
-			user->name, j->cmd, j->host);
+		syslog(0, CRONLOG, "%s: can't change uid for %s on %s: %r", user->name, j->cmd, j->host);
 		_exits(0);
 	}
 	ai = auth_proxy(fd, nil, "proto=p9any role=client");
 	if(ai == nil){
-		syslog(0, CRONLOG, "%s: can't authenticate for %s on %s: %r",
-			user->name, j->cmd, j->host);
+		syslog(0, CRONLOG, "%s: can't authenticate for %s on %s: %r", user->name, j->cmd, j->host);
 		_exits(0);
 	}
 syslog(0, CRONLOG, "%s: authenticated %s on %s", user->name, j->cmd, j->host);

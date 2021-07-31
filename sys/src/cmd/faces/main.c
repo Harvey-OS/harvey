@@ -150,8 +150,7 @@ timeproc(void)
 		updatetimes();
 		flushimage(display, 1);
 		unlockdisplay(display);
-		now = time(nil);
-		sleep(((60 - now%60) + 1)*1000); /* wait for minute to change */
+		sleep(60000);
 		setdate();
 	}
 }
