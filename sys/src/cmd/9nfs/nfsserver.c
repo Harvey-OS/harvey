@@ -70,10 +70,11 @@ doalarm(void)
 {
 	nfstime = time(0);
 	mnttimer(nfstime);
-	if(conftime+5*60 < nfstime){
-		conftime = nfstime;
+	if(++conftime >= 360){
+		conftime = 0;
 		readunixidmaps(config);
 	}
+	alarm(10000);
 }
 
 void
@@ -83,6 +84,7 @@ nfsinit(int argc, char **argv)
 	clog("nfs file server init\n");
 	rpcalarm = doalarm;
 	nfstime = time(0);
+	alarm(10000);
 }
 
 static int
@@ -119,7 +121,7 @@ static int
 nfssetattr(int n, Rpccall *cmd, Rpccall *reply)
 {
 	Xfid *xf;
-	Dir dir, nd;
+	Dir dir;
 	Sattr sattr;
 	int r;
 	uchar *argptr = cmd->args;
@@ -149,16 +151,15 @@ nfssetattr(int n, Rpccall *cmd, Rpccall *reply)
 	}else if(sattr.size != NOATTR)
 		return error(reply, NFSERR_PERM);
 	r = 0;
-	nulldir(&nd);
+	nulldir(&dir);
 	if(sattr.mode != NOATTR)
-		++r, nd.mode = (dir.mode & ~0777) | (sattr.mode & 0777);
+		++r, dir.mode = (dir.mode & ~0777) | (sattr.mode & 0777);
 	if(sattr.atime != NOATTR)
-		++r, nd.atime = sattr.atime;
+		++r, dir.atime = sattr.atime;
 	if(sattr.mtime != NOATTR)
-		++r, nd.mtime = sattr.mtime;
-	chat("sattr.mode=%luo dir.mode=%luo nd.mode=%luo...", sattr.mode, dir.mode, nd.mode);
+		++r, dir.mtime = sattr.mtime;
 	if(r){
-		r = xfwstat(xf, &nd);
+		r = xfwstat(xf, &dir);
 		if(r < 0)
 			return error(reply, NFSERR_PERM);
 	}

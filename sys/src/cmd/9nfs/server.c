@@ -6,6 +6,7 @@ static int	alarmflag;
 
 static int	Iconv(Fmt*);
 static void	openudp(int);
+static int	rcvalarm(void*, char*);
 static void	cachereply(Rpccall*, void*, int);
 static int	replycache(int, Rpccall*, long (*)(int, void*, long));
 static void	udpserver(int, Progmap*);
@@ -65,23 +66,24 @@ server(int argc, char **argv, int myport, Progmap *progmap)
 		tcp = 1;
 		break;
 	}ARGEND
-
-	switch(rfork(RFMEM|RFPROC)){
-	case 0:
-		for(;;){
-			sleep(30*1000);
-			alarmflag = 1;
-		}
-	case -1:
-		sysfatal("rfork: %r");
-	}
-
+	atnotify(rcvalarm, 1);
 	for(pg=progmap; pg->init; pg++)
 		(*pg->init)(Argc, Argv);
 	if(tcp)
 		tcpserver(myport, progmap);
 	else
 		udpserver(myport, progmap);
+}
+
+static int
+rcvalarm(void *ureg, char *msg)
+{
+	USED(ureg);
+	if(strcmp(msg, "alarm") == 0){
+		++alarmflag;
+		return 1;
+	}
+	return 0;
 }
 
 static void
@@ -391,12 +393,12 @@ writetcp(int fd, void *vbuf, long len)
 long
 niwrite(int fd, void *buf, long n)
 {
-//	int savalarm;
+	int savalarm;
 
-// 	savalarm = alarm(0);
+	savalarm = alarm(0);
 	n = write(fd, buf, n);
-// 	if(savalarm > 0)
-//		alarm(savalarm);
+	if(savalarm > 0)
+		alarm(savalarm);
 	return n;
 }
 
@@ -485,11 +487,9 @@ getdnsdom(ulong ip, char *name, int len)
 	clog("getdnsdom: %I\n", ip);
 	snprint(buf, sizeof buf, "%I", ip);
 	t = csgetval("/net", "ip", buf, "dom", dom);
-clog("csgetval %p\n", t);
 	if(t == nil)
 		return -1;
 	ndbfree(t);
-clog("csgetval %s\n", dom);
 	strncpy(name, dom, len-1);
 	name[len] = 0;
 	addcacheentry(name, strlen(name), ip);

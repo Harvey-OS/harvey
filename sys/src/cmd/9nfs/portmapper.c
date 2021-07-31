@@ -11,9 +11,8 @@ struct Portmap
 };
 
 Portmap map[] = {
-	100003, 2, IPPROTO_UDP, 2049,	/* nfs */
-//	100003, 3, IPPROTO_UDP, 2049,	/* nfs */
 	100005, 1, IPPROTO_UDP, 2049,	/* mount */
+	100003, 2, IPPROTO_UDP, 2049,	/* nfs */
 	150001, 2, IPPROTO_UDP, 1111,	/* pcnfsd v2 */
 	150001, 1, IPPROTO_UDP, 1111,	/* pcnfsd v1 */
 	0, 0, 0, 0,
@@ -97,7 +96,7 @@ pmapgetport(int n, Rpccall *cmd, Rpccall *reply)
 	uchar *dataptr = reply->results;
 	Portmap *mp;
 
-	clog("get port\n");
+fprint(2, "get port\n");
 
 	if(n != 16)
 		return garbage(reply, "bad count");
