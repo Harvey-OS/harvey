@@ -1957,11 +1957,6 @@ sympnp(void)
 
 	p = nil;
 	head = tail = nil;
-
-	/* native access to disks seems to interfere with bios loading */
-	if (biosload)
-		return nil;
-
 	while(p = pcimatch(p, NCR_VID, 0)){
 		for(v = variant; v < &variant[nelem(variant)]; v++){
 			if(p->did == v->did && p->rid <= v->maxrid)

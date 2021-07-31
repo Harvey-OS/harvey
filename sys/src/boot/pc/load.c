@@ -157,16 +157,7 @@ char **ini;
 
 int scsi0port;
 char *defaultpartition;
-
-/*
- * Is it safe to probe the bios?
- *
- * Empirically, we can't touch any disks natively (not through the
- * bios) if we want to read them through the bios.  So we have to
- * choose bios (usb) loading or everything-else loading.
- */
-int biosload;
-
+int biosload;			/* is it safe to probe the bios? */
 int iniread;
 int debugload;
 int vga;
