@@ -378,8 +378,6 @@ struct Physseg
 	uchar	lg2pgsize;		/* log2(size of pages in segment) */
 };
 
-#define	physsegpgsize(ps)	(1<<(ps)->lg2pgsize)
-
 struct Sema
 {
 	Rendez;
