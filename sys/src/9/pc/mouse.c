@@ -29,7 +29,6 @@ static int packetsize;
 static int resolution;
 static int accelerated;
 static int mousehwaccel;
-static char mouseport[5];
 
 enum
 {
@@ -227,9 +226,6 @@ setintellimouse(void)
 		i8042auxcmd(0xF3);	/* set sample */
 		i8042auxcmd(0x50);
 		break;
-	case Mouseserial:
-		i8250setmouseputc(mouseport, m5mouseputc);
-		break;
 	}
 }
 
@@ -296,18 +292,12 @@ mousectl(Cmdbuf *cb)
 		if(mousetype == Mouseserial)
 			error(Emouseset);
 
-		if(cb->nf > 2){
-			if(strcmp(cb->f[2], "M") == 0)
-				i8250mouse(cb->f[1], m3mouseputc, 0);
-			else if(strcmp(cb->f[2], "MI") == 0)
-				i8250mouse(cb->f[1], m5mouseputc, 0);
-			else
-				i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
-		} else
+		if(cb->nf > 2 && *cb->f[2] == 'M')
+			i8250mouse(cb->f[1], m3mouseputc, 0);
+		else
 			i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
 
 		mousetype = Mouseserial;
-		strncmp(mouseport, cb->f[1], sizeof(mouseport)-1);
 		packetsize = 3;
 		break;
 	case CMhwaccel:

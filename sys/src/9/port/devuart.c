@@ -127,18 +127,6 @@ uartmouse(Uart* p, int (*putc)(Queue*, int), int setb1200)
 	qunlock(p);
 }
 
-void
-uartsetmouseputc(Uart* p, int (*putc)(Queue*, int))
-{
-	qlock(p);
-	if(p->opens == 0 || p->special == 0){
-		qunlock(p);
-		error(Enodev);
-	}
-	p->putc = putc;
-	qunlock(p);
-}
-
 static void
 setlength(int i)
 {
