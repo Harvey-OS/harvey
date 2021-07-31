@@ -227,30 +227,14 @@ superPut(Block* b, Super* super, int forceWrite)
  * TODO This should be rewritten to eliminate most of the duplication.
  */
 static File*
-fileOpenSnapshot(Fs *fs, char *dstpath, int doarchive)
+fileOpenSnapshot(Fs *fs, int doarchive)
 {
 	int n;
-	char buf[30], *s, *p, *elem;
+	char buf[30], *s;
 	File *dir, *f;
 	Tm now;
 
-	if(dstpath){
-		if((p = strrchr(dstpath, '/')) != nil){
-			*p++ = '\0';
-			elem = p;
-			p = dstpath;
-			if(*p == '\0')
-				p = "/";
-		}else{
-			p = "/";
-			elem = dstpath;
-		}
-		if((dir = fileOpen(fs, p)) == nil)
-			return nil;
-		f = fileCreate(dir, elem, ModeDir|ModeSnapshot|0555, "adm");
-		fileDecRef(dir);
-		return f;
-	}else if(doarchive){
+	if(doarchive){
 		/*
 		 * a snapshot intended to be archived to venti.
 		 */
@@ -491,7 +475,7 @@ saveQid(Fs *fs)
 }
 
 int
-fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
+fsSnapshot(Fs *fs, int doarchive)
 {
 	File *src, *dst;
 
@@ -512,9 +496,7 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 	/*
 	 * Get the root of the directory we're going to save.
 	 */
-	if(srcpath == nil)
-		srcpath = "/active";
-	src = fileOpen(fs, srcpath);
+	src = fileOpen(fs, "/active");
 	if(src == nil)
 		goto Err;
 
@@ -570,7 +552,7 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 	/*
 	 * Create the directory where we will store the copy of src.
 	 */
-	dst = fileOpenSnapshot(fs, dstpath, doarchive);
+	dst = fileOpenSnapshot(fs, doarchive);
 	if(dst == nil)
 		goto Err;
 
@@ -996,7 +978,7 @@ snapEvent(void *v)
 	 */
 	if(s->snapMinutes != ~0 && s->snapMinutes != 0
 	&& now%s->snapMinutes==0 && now != s->lastSnap){
-		if(!fsSnapshot(s->fs, nil, nil, 0))
+		if(!fsSnapshot(s->fs, 0))
 			fprint(2, "fsSnapshot snap: %R\n");
 		s->lastSnap = now;
 	}
@@ -1018,7 +1000,7 @@ snapEvent(void *v)
 				need = 1;
 		}
 		if(need){
-			fsSnapshot(s->fs, nil, nil, 1);
+			fsSnapshot(s->fs, 1);
 			s->lastArch = now;
 		}
 	}
