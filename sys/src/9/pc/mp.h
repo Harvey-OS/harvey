@@ -165,12 +165,10 @@ typedef struct Apic {
 
 	int	lintr[2];		/* Local APIC */
 	int	machno;
-
-	int	online;
 } Apic;
 
 enum {
-	MaxAPICNO	= 255,
+	MaxAPICNO	= 31,
 };
 
 enum {					/* I/O APIC registers */

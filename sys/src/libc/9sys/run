@@ -1,0 +1,11 @@
+#!/bin/rc
+fn f{
+	echo $1
+	cd $1
+	/sys/src/libc/9sys/v.out
+}
+vc ngetwd.c
+vl ngetwd.v pwd.v
+f /n/bootesother/andrew
+#f /bin
+#f /usr/andrew
