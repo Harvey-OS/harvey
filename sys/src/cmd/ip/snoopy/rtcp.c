@@ -91,6 +91,5 @@ Proto rtcp = {
 	p_seprint,
 	nil,
 	nil,
-	nil,
 	defaultframer,
 };

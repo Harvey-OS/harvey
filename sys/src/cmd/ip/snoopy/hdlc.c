@@ -169,7 +169,6 @@ Proto hdlc =
 	p_filter,
 	p_seprint,
 	p_mux,
-	"%#.4lux",
 	nil,
 	p_framer,
 };

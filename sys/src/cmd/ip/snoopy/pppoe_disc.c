@@ -155,7 +155,6 @@ Proto pppoe_disc =
 	p_filter,
 	p_seprintdisc,
 	p_mux,
-	"%lud",
 	p_fields,
 	defaultframer
 };
@@ -167,7 +166,6 @@ Proto pppoe_sess =
 	p_filter,
 	p_seprintsess,
 	p_mux,
-	"%lud",
 	p_fields,
 	defaultframer
 };

@@ -2,37 +2,31 @@
 
 TARG=snoopy
 PROTOS=\
+	ether\
+	ip\
+	ip6\
+	dump\
 	arp\
+	rarp\
+	udp\
 	bootp\
 	dhcp\
-	dump\
-	eap\
-	eap_identity\
-	eapol\
-	eapol_key\
-	ether\
 	hdlc\
-	icmp6\
-	icmp\
+	rtp\
+	rtcp\
+	tcp\
 	il\
-	ip6\
-	ip\
+	icmp\
+	icmp6\
 	ninep\
 	ospf\
 	ppp\
 	ppp_ccp\
+	ppp_lcp\
 	ppp_chap\
 	ppp_ipcp\
-	ppp_lcp\
-	pppoe_disc\
 	pppoe_sess\
-	rarp\
-	rc4keydesc\
-	rtcp\
-	rtp\
-	tcp\
-	ttls\
-	udp\
+	pppoe_disc\
 
 POBJS=${PROTOS:%=%.$O}
 
