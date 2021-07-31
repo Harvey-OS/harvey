@@ -9,7 +9,7 @@
 extern	long*	_clock;
 extern	long	_callpc(void**);
 extern	long	_savearg(void);
-extern	void*	sbrk(unsigned long);
+extern	void*	sbrk(int);
 
 typedef unsigned long ulong;
 
