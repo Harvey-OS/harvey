@@ -78,9 +78,6 @@ typedef	struct	Cache	Cache;
 typedef	struct	Centry	Centry;
 typedef	struct	Bucket	Bucket;
 
-#pragma incomplete Auth
-#pragma incomplete Ureg
-
 struct	Lock
 {
 	ulong*	sbsem;		/* addr of sync bus semaphore */

@@ -67,7 +67,7 @@ static uchar buttonmap[8] = {
 static int mouseswap;
 
 extern	Memimage*	gscreen;
-extern	void mousewarpnote(Point);
+extern	mousewarpnote(Point);
 
 static void
 mousereset(void)
