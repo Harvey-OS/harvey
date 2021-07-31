@@ -372,9 +372,13 @@ static void
 pteflush(Pte *pte, int s, int e)
 {
 	int i;
+	Page *p;
 
-	for(i = s; i < e; i++)
-		mmucachectl(pte->pages[i], PG_TXTFLUSH);
+	for(i = s; i < e; i++) {
+		p = pte->pages[i];
+		if(pagedout(p) == 0)
+			memset(p->cachectl, PG_TXTFLUSH, sizeof(p->cachectl));
+	}
 }
 
 void

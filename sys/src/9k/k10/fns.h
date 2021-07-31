@@ -76,7 +76,6 @@ void	mapupainit(uvlong, ulong);
 int	memcolor(uintmem, uintmem*);
 void	meminit(void);
 void	mfence(void);
-void	mmucachectl(Page*, uint);
 void	mmuflushtlb(u64int);
 void	mmuinit(void);
 u64int	mmuphysaddr(uintptr);

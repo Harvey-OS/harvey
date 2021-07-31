@@ -1612,7 +1612,7 @@ procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
 
 	/* Ensure the process sees text page changes */
 	if(s->flushme)
-		mmucachectl(pg, PG_TXTFLUSH);
+		memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 
 	s->steal--;
 
