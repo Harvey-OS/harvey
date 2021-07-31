@@ -166,20 +166,17 @@ scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io)
 static int
 _scsiready(Scsi *s, int dolock)
 {
-	char err[ERRMAX];
 	uchar cmd[6], resp[16];
 	int status, i;
 
 	if(dolock)
 		qlock(s);
-	werrstr("");
 	for(i=0; i<3; i++) {
 		memset(cmd, 0, sizeof(cmd));
 		cmd[0] = 0x00;	/* unit ready */
 		if(write(s->rawfd, cmd, sizeof(cmd)) != sizeof(cmd)) {
 			if(scsiverbose)
 				fprint(2, "ur cmd write: %r\n");
-			werrstr("short unit-ready raw write");
 			goto bad;
 		}
 		write(s->rawfd, resp, 0);
@@ -199,9 +196,6 @@ _scsiready(Scsi *s, int dolock)
 			fprint(2, "target: bad status: %x\n", status);
 	bad:;
 	}
-	rerrstr(err, sizeof err);
-	if(err[0] == '\0')
-		werrstr("unit did not become ready");
 	if(dolock)
 		qunlock(s);
 	return -1;
@@ -278,7 +272,7 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 		fprint(2, "scsi cmd #%.2ux: %.2ux %.2ux %.2ux: %s\n",
 			cmd[0], key, code, sense[13], p);
 
-//	if(key == 0)			/* no sense? */
+//	if(key == 0)
 //		return dcount;
 	return -1;
 }
@@ -303,27 +297,21 @@ openscsi(char *dev)
 
 	snprint(name, l, "%s/ctl", dev);
 	if((ctlfd = open(name, ORDWR)) < 0) {
-	Error:
 		free(name);
+	Error:
 		close(rawfd);
 		return nil;
 	}
+	free(name);
 
 	n = readn(ctlfd, buf, sizeof buf);
 	close(ctlfd);
-	if(n <= 0) {
-		if(n == 0)
-			werrstr("eof on %s", name);
+	if(n <= 0)
 		goto Error;
-	}
 
-	if(strncmp(buf, "inquiry ", 8) != 0 || (p = strchr(buf, '\n')) == nil) {
-		werrstr("inquiry mal-formatted in %s", name);
+	if(strncmp(buf, "inquiry ", 8) != 0 || (p = strchr(buf, '\n')) == nil)
 		goto Error;
-	}
 	*p = '\0';
-	free(name);
-	name = nil;
 
 	if((p = strdup(buf+8)) == nil)
 		goto Error;

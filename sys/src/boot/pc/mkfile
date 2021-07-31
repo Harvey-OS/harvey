@@ -202,7 +202,7 @@ install:V:
 		mk $MKFLAGS $i.install
 
 %.install:V:	$BIN/%
-	for (fs in )
+	for (fs in lookout boundary piestand bovril)
 		9fs $fs && cp $prereq /n/$fs/$prereq
 
 $BIN/%:	%
