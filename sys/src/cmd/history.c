@@ -10,6 +10,7 @@ int	uflag;
 int	force;
 int	diff;
 int	diffb;
+int	slashnhack = 1;
 char*	sflag;
 
 void	ysearch(char*, char*);
@@ -27,6 +28,11 @@ main(int argc, char *argv[])
 	ARGBEGIN {
 	default:
 		goto usage;
+/* The slashnhack is always right.
+	case 'N':
+		slashnhack = 0;
+		break;
+*/
 	case 'v':
 		verb = 1;
 		break;
@@ -52,7 +58,7 @@ main(int argc, char *argv[])
 
 	if(argc == 0) {
 	usage:
-		fprint(2, "usage: history [-bDfuv] [-d 9fsname] [-s yyyymmdd] files\n");
+		fprint(2, "usage: history [-vufD] [-d 9fsname] [-s yyyymmdd] files\n");
 		exits(0);
 	}
 
@@ -77,7 +83,7 @@ ysearch(char *file, char *ndump)
 		strcat(fil, "/");
 	}
 	strcat(fil, file);
-	if(memcmp(fil, "/n/", 3) == 0){
+	if(slashnhack && memcmp(fil, "/n/", 3) == 0){
 		p = strchr(fil+3, '/');
 		if(p == nil)
 			p = fil+strlen(fil);
