@@ -17,7 +17,6 @@ dev
 	kprof
 	aoe
 	sd
-	fs
 	flash
 #	pnp		pci
 
@@ -73,7 +72,7 @@ bootdir
 	boot$CONF.out boot
 	/arm/bin/ip/ipconfig
 	/arm/bin/auth/factotum
-	/arm/bin/paqfs
+#	/arm/bin/paqfs
 	/arm/bin/usb/usbd
 # nvram not needed any longer, it's in flash
 	nvram

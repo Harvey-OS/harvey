@@ -1244,7 +1244,7 @@ Done:
 
 Dev fsdevtab = {
 	'k',
-	"fs",
+	"devfs",
 
 	devreset,
 	devinit,
