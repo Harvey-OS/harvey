@@ -320,35 +320,12 @@ delcol(Text *et, Text*, Text*, int, int, Rune*, int)
 }
 
 void
-del(Text *et, Text*, Text *argt, int flag1, int, Rune *arg, int narg)
+del(Text *et, Text*, Text*, int flag1, int, Rune*, int)
 {
-	Window *w;
-	char *name, *p;
-	Plumbmsg *pm;
-
 	if(et->col==nil || et->w == nil)
 		return;
-	if(flag1 || et->w->body.file->ntext>1 || winclean(et->w, FALSE)){
-		w = et->w;
-		name = getname(&w->body, argt, arg, narg, TRUE);
-		if(name && plumbsendfd >= 0){
-			pm = emalloc(sizeof(Plumbmsg));
-			pm->src = estrdup("acme");
-			pm->dst = estrdup("close");
-			pm->wdir = estrdup(name);
-			if(p = strrchr(pm->wdir, '/'))
-				*p = '\0';
-			pm->type = estrdup("text");
-			pm->attr = nil;
-			pm->data = estrdup(name);
-			pm->ndata = strlen(pm->data);
-			if(pm->ndata < messagesize-1024)
-				plumbsend(plumbsendfd, pm);
-			else
-				plumbfree(pm);
-		}
+	if(flag1 || et->w->body.file->ntext>1 || winclean(et->w, FALSE))
 		colclose(et->col, et->w, TRUE);
-	}
 }
 
 void
@@ -562,11 +539,10 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 {
 	uint n, m;
 	Rune *r;
-	char *s, *name, *p;
+	char *s, *name;
 	int i, fd, q;
 	Dir *d, *d1;
 	Window *w;
-	Plumbmsg *pm;
 	int isapp;
 
 	w = f->curtext->w;
@@ -633,22 +609,6 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 			f->text[i]->w->putseq = f->seq;
 			f->text[i]->w->dirty = w->dirty;
 		}
-	}
-	if(plumbsendfd >= 0){
-		pm = emalloc(sizeof(Plumbmsg));
-		pm->src = estrdup("acme");
-		pm->dst = estrdup("put");
-		pm->wdir = estrdup(name);
-		if(p = strrchr(pm->wdir, '/'))
-			*p = '\0';
-		pm->type = estrdup("text");
-		pm->attr = nil;
-		pm->data = estrdup(name);
-		pm->ndata = strlen(pm->data);
-		if(pm->ndata < messagesize-1024)
-			plumbsend(plumbsendfd, pm);
-		else
-			plumbfree(pm);
 	}
 	fbuffree(s);
 	fbuffree(r);
