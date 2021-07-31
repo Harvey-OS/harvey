@@ -293,7 +293,6 @@ static int icvt_s(FILE *f, va_list *args, int store, int width, int type){
 	nn=0;
 	while(!isspace(c)){
 		if(c==EOF){
-			nread--;
 			if(nn==0) return 0;
 			else goto Done;
 		}
@@ -352,7 +351,6 @@ static int icvt_sq(FILE *f, va_list *args, int store, int width, int type){
 	for(;;){
 		wgetc(c, f, Done);
 		if(c==EOF){
-			nread--;
 			if(nn==0) return 0;
 			else goto Done;
 		}

@@ -26,15 +26,13 @@ enum{
 static Mux p_mux[] = {
 	{"aoeata",	0},
 	{"aoecmd",	1},
-	{"aoemask",	2},
-	{"aoerr",	3},
 	{0},
 };
 
 static Field p_fields[] =
 {
-	{"shelf",	Fnum,	Ominor,		"shelf", },
-	{"slot",	Fnum,	Omajor,		"slot",	},
+	{"slot",	Fnum,	Ominor,		"shelf",	},
+	{"shelf",	Fnum,	Omajor,		"slot",	},
 	{"cmd",		Fnum,	Ocmd,		"cmd",	},
 	{0}
 };

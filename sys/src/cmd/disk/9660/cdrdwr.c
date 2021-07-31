@@ -44,7 +44,7 @@ createcd(char *file, Cdinfo info)
 	Cputisopvd(cd, info);
 	if(info.flags & CDbootable){
 		cd->bootimage = info.bootimage;
-		cd->flags |= info.flags & (CDbootable|CDbootnoemu);
+		cd->flags |= CDbootable;
 		Cputbootvol(cd);
 	}
 

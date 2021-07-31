@@ -5,9 +5,6 @@ PROTOS=\
 	aoe\
 	aoeata\
 	aoecmd\
-	aoemask\
-	aoemd\
-	aoerr\
 	arp\
 	bootp\
 	cec\
