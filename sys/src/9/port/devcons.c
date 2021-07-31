@@ -397,6 +397,7 @@ void
 echo(char *buf, int n)
 {
 	static int ctrlt, pid;
+	extern ulong etext;
 	int x;
 	char *e, *p;
 

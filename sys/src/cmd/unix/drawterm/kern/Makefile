@@ -8,8 +8,6 @@ OFILES=\
 	chan.$O\
 	data.$O\
 	dev.$O\
-	devaudio.$O\
-	devaudio-$(AUDIO).$O\
 	devcons.$O\
 	devdraw.$O\
 	devfs-$(OS).$O\
