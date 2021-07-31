@@ -296,11 +296,11 @@ noteinmem(void)
 }
 
 static RR*
-issuequery(Query *qp, char *name, int class, int depth, int recurse)
+issuequery(Query *qp, RR *rp, char *name, int class, int depth, int recurse)
 {
 	char *cp;
 	DN *nsdp;
-	RR *rp, *nsrp, *dbnsrp;
+	RR *nsrp, *dbnsrp;
 
 	/*
 	 *  if we're running as just a resolver, query our
@@ -381,7 +381,7 @@ issuequery(Query *qp, char *name, int class, int depth, int recurse)
 			rrfreelist(dbnsrp);
 		}
 	}
-	return nil;
+	return rp;
 }
 
 static RR*
@@ -422,8 +422,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 					return rp;
 				}
 	rrfreelist(rp);
-	rp = nil;		/* accident prevention */
-	USED(rp);
+	rp = nil;
 
 	/*
 	 * try the cache for a canonical name. if found punt
@@ -452,7 +451,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 
 	qp = emalloc(sizeof *qp);
 	queryinit(qp, dp, type, req);
-	rp = issuequery(qp, name, class, depth, recurse);
+	rp = issuequery(qp, rp, name, class, depth, recurse);
 	querydestroy(qp);
 	free(qp);
 	if(rp)
