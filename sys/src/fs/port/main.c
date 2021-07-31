@@ -305,8 +305,6 @@ enum {
 void
 exit(void)
 {
-	long timeleft;
-
 	u = 0;
 	lock(&active);
 	active.machs &= ~(1<<m->machno);
@@ -318,16 +316,13 @@ exit(void)
 	while(active.machs)
 		delay(1);
 
-	print("halted at %T.\n", time());
-	print("press the Enter key to reboot sooner than %d mins.\n",
-		Keydelay/60);
+	print("halted at %T.\npress a key to reboot sooner than %d mins.\n",
+		time(), Keydelay/60);
 	delay(500);		/* time to drain print q */
 
 	splhi();
-	/* reboot after delay (for debugging) or at newline */
-	for (timeleft = Keydelay; timeleft > 0; timeleft--)
-		if (rawchar(1) == '\n')
-			break;
+	/* reboot after delay (for debugging) or at key press */
+	rawchar(Keydelay);
 
 	spllo();
 	delay(500);		/* time to drain echo q */

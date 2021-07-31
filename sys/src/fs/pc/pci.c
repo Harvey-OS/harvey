@@ -428,14 +428,6 @@ pcicfgw32(Pcidev* pcidev, int rno, int data)
 	pcicfgrw32(pcidev->tbdf, rno, data, 0);
 }
 
-void
-pciclrmwi(Pcidev* p)
-{
-	p->pcr &= ~MemWrInv;
-	pcicfgw16(p, PciPCR, p->pcr);
-}
-
-
 Pcidev*
 pcimatch(Pcidev* prev, int vid, int did)
 {
@@ -555,8 +547,6 @@ vid2name(int vid)
 		return "netgear";
 	case 0x15ad:
 		return "vmware";
-	case 0x16ec:
-		return "usrobot";
 	case 0x5333:			/* "S" "3".  har, har. */
 		return "s3";
 	case 0x8086:

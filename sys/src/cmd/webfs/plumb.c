@@ -101,8 +101,6 @@ ctypes[] =
 	{ "application/rtf", "rtf" },
 	{ "image/gif", "gif" },
 	{ "image/jpeg", "jpg" },
-	{ "image/png", "png" },
-	{ "image/ppm", "ppm" },
 	{ "image/tiff", "tiff" },
 	{ "text/html", "html" },
 	{ "text/plain", "txt" },

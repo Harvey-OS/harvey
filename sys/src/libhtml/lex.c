@@ -127,7 +127,7 @@ Rune* tagnames[] = {
 };
 
 // HTML 4.0 attribute names.
-// Keep sorted, and in correspondence with enum in impl.h.
+// Keep sorted, and in correspondence with enum in i.h.
 Rune* attrnames[] = {
 	L"abbr",
 	L"accept-charset",
@@ -540,7 +540,7 @@ static StringInt*	attrtable;		// initialized from attrnames
 static void		lexinit();
 static int		getplaindata(TokenSource* ts, Token* a, int* pai);
 static int		getdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai);
-static int		getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int findtag);
+static int		getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai);
 static int		gettag(TokenSource* ts, int starti, Token* a, int* pai);
 static Rune*	buftostr(Rune* s, Rune* buf, int j);
 static int		comment(TokenSource* ts);
@@ -620,11 +620,11 @@ _gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
 				break;
 			if(c == '<') {
 				tag = gettag(ts, starti, a, &ai);
-				if(tag == Tscript || tag == Tstyle) {
+				if(tag == Tscript) {
 					// special rules for getting Data after....
 					starti = ts->i;
 					c = getchar(ts);
-					tag = getscriptdata(ts, c, starti, a, &ai, tag);
+					tag = getscriptdata(ts, c, starti, a, &ai);
 				}
 			}
 			else
@@ -649,7 +649,6 @@ _gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
 				fprint(2, "lex: got token %T\n", &a[ai]);
 		}
 	}
-	free(ts);
 	if(dbglex)
 		fprint(2, "lex: returning %d tokens\n", ai);
 	*plen = ai;
@@ -794,9 +793,9 @@ getdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai)
 }
 
 // The rules for lexing scripts are different (ugh).
-// Gather up everything until see an "</" tagnames[tok] ">"
+// Gather up everything until see a </SCRIPT>.
 static int
-getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int findtag)
+getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai)
 {
 	Rune*	s;
 	int	j;
@@ -819,10 +818,8 @@ getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int f
 			savei = ts->i;
 			c = getchar(ts);
 			if(c == '!') {
-//				while(c >= 0 && c != '\n' && c != '\r')
-//					c = getchar(ts);
-				if(comment(ts) == -1)
-					break;
+				while(c >= 0 && c != '\n' && c != '\r')
+					c = getchar(ts);
 				if(c == '\r')
 					c = getchar(ts);
 				if(c == '\n')
@@ -836,11 +833,11 @@ getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int f
 				if(tag != Comment)
 					(*pai)--;
 				backup(ts, tstarti);
-				if(tag == findtag + RBRA) {
+				if(tag == Tscript + RBRA) {
 					done = 1;
 					break;
 				}
-				// here tag was not the one we were looking for, so take as regular data
+				// here tag was not </SCRIPT>, so take as regular data
 				c = getchar(ts);
 			}
 		}
@@ -1199,7 +1196,8 @@ mainloop_done:
 // We've just read an '&'; look for an entity reference
 // name, and if found, return translated char.
 // if there is a complete entity name but it isn't known,
-// back up to just past the '&' and return '&'.
+// try prefixes (gets around some buggy HTML out there),
+// and if that fails, back up to just past the '&' and return '&'.
 // If the entity can't be completed in the current buffer, back up
 // to the '&' and return -1.
 static int
@@ -1210,6 +1208,7 @@ ampersand(TokenSource* ts)
 	int	fnd;
 	int	ans;
 	int	v;
+	int	i;
 	int	k;
 	Rune	buf[SMALLBUFSIZE];
 
@@ -1220,23 +1219,12 @@ ampersand(TokenSource* ts)
 	if(c == '#') {
 		c = getchar(ts);
 		v = 0;
-		if(c == 'X' || c == 'x')
-			for(c = getchar(ts); c < 256; c = getchar(ts))
-				if(c >= '0' && c <= '9')
-					v = v*16+c-'0';
-				else if(c >= 'A' && c<= 'F')
-					v = v*16+c-'A'+10;
-				else if(c >= 'a' && c <= 'f')
-					v = v*16+c-'a'+10;
-				else
-					break;
-		else
-			while(c >= 0) {
-				if(!(c < 256 && isdigit(c)))
-					break;
-				v = v*10 + c - 48;
-				c = getchar(ts);
-			}
+		while(c >= 0) {
+			if(!(c < 256 && isdigit(c)))
+				break;
+			v = v*10 + c - 48;
+			c = getchar(ts);
+		}
 		if(c >= 0) {
 			if(!(c == ';' || c == '\n' || c == '\r'))
 				ungetchar(ts, c);
@@ -1257,7 +1245,7 @@ ampersand(TokenSource* ts)
 			c = getchar(ts);
 			if(c < 0)
 				break;
-			if(c < 256 && (isalpha(c) || isdigit(c))) {
+			if(ISNAMCHAR(c)) {
 				if(k < SMALLBUFSIZE-1)
 					buf[k++] = c;
 			}
@@ -1267,8 +1255,25 @@ ampersand(TokenSource* ts)
 				break;
 			}
 		}
-		if(c >= 256 || c != '=' && !(isalpha(c) || isdigit(c)))
+		if(c >= 0) {
 			fnd = _lookup(chartab, NCHARTAB, buf, k, &ans);
+			if(!fnd) {
+				// Try prefixes of s
+				if(c == ';' || c == '\n' || c == '\r')
+					ungetchar(ts, c);
+				i = k;
+				while(--k > 0) {
+					fnd = _lookup(chartab, NCHARTAB, buf, k, &ans);
+					if(fnd) {
+						while(i > k) {
+							i--;
+							ungetchar(ts, buf[i]);
+						}
+						break;
+					}
+				}
+			}
+		}
 	}
 	if(!fnd) {
 		backup(ts, savei);

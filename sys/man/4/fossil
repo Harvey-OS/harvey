@@ -63,24 +63,22 @@ fossil \- archival file server
 .B fossil/last
 .I file
 .SH DESCRIPTION
-.I Fossil
+Fossil
 will become the main file system for Plan 9.
 Unlike the Plan 9 file servers of old,
-.I fossil
+fossil
 is a collection of user-space programs that run on a standard Plan 9 kernel.
 The name of the main fossil file server at Murray Hill is
-.BR edith .
+.BR ehime .
 The Plan 9 distribution file server,
 .BR sources ,
 is also a fossil server.
 .PP
-.I Fossil
+Fossil
 is structured as a magnetic disk write buffer
-optionally backed by a Venti server for archival storage.
+backed by a Venti server for archival storage.
 It serves the Plan 9 protocol via TCP.
-A
-.I fossil
-file server conventionally presents
+A fossil file server conventionally presents
 three trees in the root directory of each file system:
 .BR active ,
 .BR archive ,
@@ -154,8 +152,7 @@ in the format
 An empty attach name selects
 .BR main/active .
 .PP
-.I Fossil
-normally requires all users except
+Fossil normally requires all users except
 .L none
 to provide authentication tickets on each
 .IR attach (5).
@@ -253,9 +250,7 @@ is deprecated in favor of the console
 command (see
 .IR fossilcons (8)).
 .I Flchk
-prints
-.I fossil
-console commands that may be
+prints fossil console commands that may be
 executed to take care of
 bad pointers
 .RB ( clrp ),
