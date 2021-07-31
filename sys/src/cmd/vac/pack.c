@@ -12,7 +12,7 @@ struct MetaChunk {
 	ushort index;
 };
 
-static int	stringUnpack(char **s, uchar **p, int *n);
+static int	stringunpack(char **s, uchar **p, int *n);
 
 /*
  * integer conversion routines
@@ -23,35 +23,35 @@ static int	stringUnpack(char **s, uchar **p, int *n);
 #define	U48GET(p)	(((uvlong)U16GET(p)<<32)|(uvlong)U32GET((p)+2))
 #define	U64GET(p)	(((uvlong)U32GET(p)<<32)|(uvlong)U32GET((p)+4))
 
-#define	U8PUT(p,v)	(p)[0]=(v)
-#define	U16PUT(p,v)	(p)[0]=(v)>>8;(p)[1]=(v)
-#define	U32PUT(p,v)	(p)[0]=(v)>>24;(p)[1]=(v)>>16;(p)[2]=(v)>>8;(p)[3]=(v)
+#define	U8PUT(p,v)	(p)[0]=(v)&0xFF
+#define	U16PUT(p,v)	(p)[0]=((v)>>8)&0xFF;(p)[1]=(v)&0xFF
+#define	U32PUT(p,v)	(p)[0]=((v)>>24)&0xFF;(p)[1]=((v)>>16)&0xFF;(p)[2]=((v)>>8)&0xFF;(p)[3]=(v)&0xFF
 #define	U48PUT(p,v,t32)	t32=(v)>>32;U16PUT(p,t32);t32=(v);U32PUT((p)+2,t32)
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 static int
-stringUnpack(char **s, uchar **p, int *n)
+stringunpack(char **s, uchar **p, int *n)
 {
 	int nn;
 
 	if(*n < 2)
-		return 0;
+		return -1;
 	
 	nn = U16GET(*p);
 	*p += 2;
 	*n -= 2;
 	if(nn > *n)
-		return 0;
-	*s = vtMemAlloc(nn+1);
+		return -1;
+	*s = vtmalloc(nn+1);
 	memmove(*s, *p, nn);
 	(*s)[nn] = 0;
 	*p += nn;
 	*n -= nn;
-	return 1;
+	return 0;
 }
 
 static int
-stringPack(char *s, uchar *p)
+stringpack(char *s, uchar *p)
 {
 	int n;
 
@@ -63,7 +63,7 @@ stringPack(char *s, uchar *p)
 
 
 int
-mbUnpack(MetaBlock *mb, uchar *p, int n)
+mbunpack(MetaBlock *mb, uchar *p, int n)
 {
 	u32int magic;
 
@@ -72,13 +72,13 @@ mbUnpack(MetaBlock *mb, uchar *p, int n)
 
 	if(n == 0) {
 		memset(mb, 0, sizeof(MetaBlock));
-		return 1;
+		return 0;
 	}
 
 	magic = U32GET(p);
 	if(magic != MetaMagic && magic != MetaMagic+1) {
-		vtSetError("bad meta block magic");
-		return 0;
+		werrstr("bad meta block magic");
+		return -1;
 	}
 	mb->size = U16GET(p+4);
 	mb->free = U16GET(p+6);
@@ -87,22 +87,22 @@ mbUnpack(MetaBlock *mb, uchar *p, int n)
 	mb->unbotch = (magic == MetaMagic+1);
 
 	if(mb->size > n) {
-		vtSetError("bad meta block size");
-		return 0;
+		werrstr("bad meta block size");
+		return -1;
 	}
 	p += MetaHeaderSize;
 	n -= MetaHeaderSize;
 
 	USED(p);
 	if(n < mb->maxindex*MetaIndexSize) {
- 		vtSetError("truncated meta block 2");
-		return 0;
+ 		werrstr("truncated meta block 2");
+		return -1;
 	}
-	return 1;
+	return 0;
 }
 
 void
-mbPack(MetaBlock *mb)
+mbpack(MetaBlock *mb)
 {
 	uchar *p;
 
@@ -117,7 +117,7 @@ mbPack(MetaBlock *mb)
 
 
 void
-mbDelete(MetaBlock *mb, int i, MetaEntry *me)
+mbdelete(MetaBlock *mb, int i, MetaEntry *me)
 {
 	uchar *p;
 	int n;
@@ -137,7 +137,7 @@ mbDelete(MetaBlock *mb, int i, MetaEntry *me)
 }
 
 void
-mbInsert(MetaBlock *mb, int i, MetaEntry *me)
+mbinsert(MetaBlock *mb, int i, MetaEntry *me)
 {
 	uchar *p;
 	int o, n;
@@ -161,14 +161,14 @@ mbInsert(MetaBlock *mb, int i, MetaEntry *me)
 }
 
 int
-meUnpack(MetaEntry *me, MetaBlock *mb, int i)
+meunpack(MetaEntry *me, MetaBlock *mb, int i)
 {
 	uchar *p;
 	int eo, en;
 
 	if(i < 0 || i >= mb->nindex) {
-		vtSetError("bad meta entry index");
-		return 0;
+		werrstr("bad meta entry index");
+		return -1;
 	}
 
 	p = mb->buf + MetaHeaderSize + i*MetaIndexSize;
@@ -177,32 +177,32 @@ meUnpack(MetaEntry *me, MetaBlock *mb, int i)
 
 if(0)print("eo = %d en = %d\n", eo, en);
 	if(eo < MetaHeaderSize + mb->maxindex*MetaIndexSize) {
-		vtSetError("corrupted entry in meta block");
-		return 0;
+		werrstr("corrupted entry in meta block");
+		return -1;
 	}
 
 	if(eo+en > mb->size) {
- 		vtSetError("truncated meta block");
-		return 0;
+ 		werrstr("truncated meta block");
+		return -1;
 	}
 
 	p = mb->buf + eo;
 	
 	/* make sure entry looks ok and includes an elem name */
 	if(en < 8 || U32GET(p) != DirMagic || en < 8 + U16GET(p+6)) {
-		vtSetError("corrupted meta block entry");
-		return 0;
+		werrstr("corrupted meta block entry");
+		return -1;
 	}
 
 	me->p = p;
 	me->size = en;
 
-	return 1;
+	return 0;
 }
 
-/* assumes a small amount of checking has been done in mbEntry */
+/* assumes a small amount of checking has been done in mbentry */
 int
-meCmp(MetaEntry *me, char *s)
+mecmp(MetaEntry *me, char *s)
 {
 	int n;
 	uchar *p;
@@ -230,7 +230,7 @@ meCmp(MetaEntry *me, char *s)
 }
 
 int
-meCmpNew(MetaEntry *me, char *s)
+mecmpnew(MetaEntry *me, char *s)
 {
 	int n;
 	uchar *p;
@@ -258,9 +258,9 @@ meCmpNew(MetaEntry *me, char *s)
 }
 
 static int
-offsetCmp(void *s0, void *s1)
+offsetcmp(const void *s0, const void *s1)
 {
-	MetaChunk *mc0, *mc1;
+	const MetaChunk *mc0, *mc1;
 
 	mc0 = s0;
 	mc1 = s1;
@@ -272,13 +272,13 @@ offsetCmp(void *s0, void *s1)
 }
 
 static MetaChunk *
-metaChunks(MetaBlock *mb)
+metachunks(MetaBlock *mb)
 {
 	MetaChunk *mc;
 	int oo, o, n, i;
 	uchar *p;
 
-	mc = vtMemAlloc(mb->nindex*sizeof(MetaChunk));
+	mc = vtmalloc(mb->nindex*sizeof(MetaChunk));
 	p = mb->buf + MetaHeaderSize;
 	for(i = 0; i<mb->nindex; i++) {
 		mc[i].offset = U16GET(p);
@@ -287,7 +287,7 @@ metaChunks(MetaBlock *mb)
 		p += MetaIndexSize;
 	}
 
-	qsort(mc, mb->nindex, sizeof(MetaChunk), offsetCmp);
+	qsort(mc, mb->nindex, sizeof(MetaChunk), offsetcmp);
 
 	/* check block looks ok */
 	oo = MetaHeaderSize + mb->maxindex*MetaIndexSize;
@@ -307,12 +307,12 @@ metaChunks(MetaBlock *mb)
 
 	return mc;
 Err:
-	vtMemFree(mc);
+	vtfree(mc);
 	return nil;
 }
 
 static void
-mbCompact(MetaBlock *mb, MetaChunk *mc)
+mbcompact(MetaBlock *mb, MetaChunk *mc)
 {
 	int oo, o, n, i;
 
@@ -333,7 +333,7 @@ mbCompact(MetaBlock *mb, MetaChunk *mc)
 }
 
 uchar *
-mbAlloc(MetaBlock *mb, int n)
+mballoc(MetaBlock *mb, int n)
 {
 	int i, o;
 	MetaChunk *mc;
@@ -346,44 +346,43 @@ mbAlloc(MetaBlock *mb, int n)
 	if(mb->maxsize - mb->size + mb->free < n)
 		return nil;
 
-	mc = metaChunks(mb);
+	mc = metachunks(mb);
 
 	/* look for hole */
 	o = MetaHeaderSize + mb->maxindex*MetaIndexSize;
 	for(i=0; i<mb->nindex; i++) {
 		if(mc[i].offset - o >= n) {
-			vtMemFree(mc);
+			vtfree(mc);
 			return mb->buf + o;
 		}
 		o = mc[i].offset + mc[i].size;
 	}
 
 	if(mb->maxsize - o >= n) {
-		vtMemFree(mc);
+		vtfree(mc);
 		return mb->buf + o;
 	}
 
 	/* compact and return off the end */
-	mbCompact(mb, mc);
-	vtMemFree(mc);
+	mbcompact(mb, mc);
+	vtfree(mc);
 
 	assert(mb->maxsize - mb->size >= n);
 	return mb->buf + mb->size;
 }
 
 int
-vdSize(VacDir *dir)
+vdsize(VacDir *dir, int version)
 {
 	int n;
 	
-	/* constant part */
+	if(version < 8 || version > 9)
+		sysfatal("bad version %d in vdpack", version);
 
+	/* constant part */
 	n = 	4 +	/* magic */
 		2 + 	/* version */
 		4 +	/* entry */
-		4 + 	/* guid */
-		4 + 	/* mentry */
-		4 + 	/* mgen */
 		8 +	/* qid */
 		4 + 	/* mtime */
 		4 + 	/* mcount */
@@ -392,6 +391,13 @@ vdSize(VacDir *dir)
 		4 +	/* mode */
 		0;
 
+	if(version == 9){
+		n += 	4 +	/* gen */
+			4 + 	/* mentry */
+			4 + 	/* mgen */
+			0;
+	}
+
 	/* strings */
 	n += 2 + strlen(dir->elem);
 	n += 2 + strlen(dir->uid);
@@ -399,39 +405,57 @@ vdSize(VacDir *dir)
 	n += 2 + strlen(dir->mid);
 
 	/* optional sections */
-	if(dir->qidSpace) {
+	if(version < 9 && dir->plan9) {
 		n += 	3 + 	/* option header */
-			8 + 	/* qidOffset */
-			8;	/* qid Max */
+			8 + 	/* path */
+			4;	/* version */
+	}
+	if(dir->qidspace) {
+		n += 	3 + 	/* option header */
+			8 + 	/* qid offset */
+			8;	/* qid max */
+	}
+	if(version < 9 && dir->gen) {
+		n += 	3 + 	/* option header */
+			4;	/* gen */
 	}
 
 	return n;
 }
 
 void
-vdPack(VacDir *dir, MetaEntry *me)
+vdpack(VacDir *dir, MetaEntry *me, int version)
 {
 	uchar *p;
 	ulong t32;
 
+	if(version < 8 || version > 9)
+		sysfatal("bad version %d in vdpack", version);
+
 	p = me->p;
 	
 	U32PUT(p, DirMagic);
-	U16PUT(p+4, 9);		/* version */
+	U16PUT(p+4, version);		/* version */
 	p += 6;
 
-	p += stringPack(dir->elem, p);
+	p += stringpack(dir->elem, p);
 
 	U32PUT(p, dir->entry);
-	U32PUT(p+4, dir->gen);
-	U32PUT(p+8, dir->mentry);
-	U32PUT(p+12, dir->mgen);
-	U64PUT(p+16, dir->qid, t32);
-	p += 24;
+	p += 4;
+	
+	if(version == 9){
+		U32PUT(p, dir->gen);
+		U32PUT(p+4, dir->mentry);
+		U32PUT(p+8, dir->mgen);
+		p += 12;
+	}
 
-	p += stringPack(dir->uid, p);
-	p += stringPack(dir->gid, p);
-	p += stringPack(dir->mid, p);
+	U64PUT(p, dir->qid, t32);
+	p += 8;
+
+	p += stringpack(dir->uid, p);
+	p += stringpack(dir->gid, p);
+	p += stringpack(dir->mid, p);
 	
 	U32PUT(p, dir->mtime);
 	U32PUT(p+4, dir->mcount);
@@ -440,20 +464,37 @@ vdPack(VacDir *dir, MetaEntry *me)
 	U32PUT(p+16, dir->mode);
 	p += 5*4;
 
-	if(dir->qidSpace) {
+	if(dir->plan9 && version < 9) {
+		U8PUT(p, DirPlan9Entry);
+		U16PUT(p+1, 8+4);
+		p += 3;
+		U64PUT(p, dir->p9path, t32);
+		U32PUT(p+8, dir->p9version);
+		p += 12;
+	}
+
+	if(dir->qidspace) {
 		U8PUT(p, DirQidSpaceEntry);
 		U16PUT(p+1, 2*8);
 		p += 3;
-		U64PUT(p, dir->qidOffset, t32);
-		U64PUT(p+8, dir->qidMax, t32);
+		U64PUT(p, dir->qidoffset, t32);
+		U64PUT(p+8, dir->qidmax, t32);
+		p += 16;
+	}
+	
+	if(dir->gen && version < 9) {
+		U8PUT(p, DirGenEntry);
+		U16PUT(p+1, 4);
+		p += 3;
+		U32PUT(p, dir->gen);
+		p += 4;
 	}
 
 	assert(p == me->p + me->size);
 }
 
-
 int
-vdUnpack(VacDir *dir, MetaEntry *me)
+vdunpack(VacDir *dir, MetaEntry *me)
 {
 	int t, nn, n, version;
 	uchar *p;
@@ -463,14 +504,12 @@ vdUnpack(VacDir *dir, MetaEntry *me)
 
 	memset(dir, 0, sizeof(VacDir));
 
-if(0)print("vdUnpack\n");
 	/* magic */
 	if(n < 4 || U32GET(p) != DirMagic)
 		goto Err;
 	p += 4;
 	n -= 4;
 
-if(0)print("vdUnpack: got magic\n");
 	/* version */
 	if(n < 2)
 		goto Err;
@@ -480,13 +519,9 @@ if(0)print("vdUnpack: got magic\n");
 	p += 2;
 	n -= 2;	
 
-if(0)print("vdUnpack: got version\n");
-
 	/* elem */
-	if(!stringUnpack(&dir->elem, &p, &n))
+	if(stringunpack(&dir->elem, &p, &n) < 0)
 		goto Err;
-
-if(0)print("vdUnpack: got elem\n");
 
 	/* entry  */
 	if(n < 4)
@@ -494,8 +529,6 @@ if(0)print("vdUnpack: got elem\n");
 	dir->entry = U32GET(p);
 	p += 4;
 	n -= 4;
-
-if(0)print("vdUnpack: got entry\n");
 
 	if(version < 9) {
 		dir->gen = 0;
@@ -511,8 +544,6 @@ if(0)print("vdUnpack: got entry\n");
 		n -= 3*4;
 	}
 
-if(0)print("vdUnpack: got gen etc\n");
-
 	/* size is gotten from DirEntry */
 
 	/* qid */
@@ -522,7 +553,6 @@ if(0)print("vdUnpack: got gen etc\n");
 	p += 8;
 	n -= 8;
 
-if(0)print("vdUnpack: got qid\n");
 	/* skip replacement */
 	if(version == 7) {
 		if(n < VtScoreSize)
@@ -532,18 +562,17 @@ if(0)print("vdUnpack: got qid\n");
 	}
 	
 	/* uid */
-	if(!stringUnpack(&dir->uid, &p, &n))
+	if(stringunpack(&dir->uid, &p, &n) < 0)
 		goto Err;
 
 	/* gid */
-	if(!stringUnpack(&dir->gid, &p, &n))
+	if(stringunpack(&dir->gid, &p, &n) < 0)
 		goto Err;
 
 	/* mid */
-	if(!stringUnpack(&dir->mid, &p, &n))
+	if(stringunpack(&dir->mid, &p, &n) < 0)
 		goto Err;
 
-if(0)print("vdUnpack: got ids\n");
 	if(n < 5*4)
 		goto Err;
 	dir->mtime = U32GET(p);
@@ -554,7 +583,6 @@ if(0)print("vdUnpack: got ids\n");
 	p += 5*4;
 	n -= 5*4;
 
-if(0)print("vdUnpack: got times\n");
 	/* optional meta data */
 	while(n > 0) {
 		if(n < 3)
@@ -584,26 +612,125 @@ if(0)print("vdUnpack: got times\n");
 				break;
 			break;
 		case DirQidSpaceEntry:
-			if(dir->qidSpace || nn != 16)
+			if(dir->qidspace || nn != 16)
 				goto Err;
-			dir->qidSpace = 1;
-			dir->qidOffset = U64GET(p);
-			dir->qidMax = U64GET(p+8);
+			dir->qidspace = 1;
+			dir->qidoffset = U64GET(p);
+			dir->qidmax = U64GET(p+8);
 			break;
 		}
 		p += nn;
 		n -= nn;
 	}
-if(0)print("vdUnpack: got options\n");
 
 	if(p != me->p + me->size)
 		goto Err;
 
-if(0)print("vdUnpack: correct size\n");
-	return 1;
-Err:
-if(0)print("vdUnpack: XXXXXXXXXXXX EbadMeta\n");
-	vtSetError(EBadMeta);
-	vdCleanup(dir);
 	return 0;
+Err:
+	werrstr(EBadMeta);
+	vdcleanup(dir);
+	return -1;
+}
+
+void
+vdcleanup(VacDir *dir)
+{
+	vtfree(dir->elem);
+	dir->elem = nil;
+	vtfree(dir->uid);
+	dir->uid = nil;
+	vtfree(dir->gid);
+	dir->gid = nil;
+	vtfree(dir->mid);
+	dir->mid = nil;
+}
+
+void
+vdcopy(VacDir *dst, VacDir *src)
+{
+	*dst = *src;
+	dst->elem = vtstrdup(dst->elem);
+	dst->uid = vtstrdup(dst->uid);
+	dst->gid = vtstrdup(dst->gid);
+	dst->mid = vtstrdup(dst->mid);
+}
+
+int
+mbsearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
+{
+	int i;
+	int b, t, x;
+
+	/* binary search within block */
+	b = 0;
+	t = mb->nindex;
+	while(b < t) {
+		i = (b+t)>>1;
+		if(meunpack(me, mb, i) < 0)
+			return 0;
+		if(mb->unbotch)
+			x = mecmpnew(me, elem);
+		else
+			x = mecmp(me, elem);
+
+		if(x == 0) {
+			*ri = i;
+			return 1;
+		}
+	
+		if(x < 0)
+			b = i+1;
+		else /* x > 0 */
+			t = i;
+	}
+
+	assert(b == t);
+	
+	*ri = b;	/* b is the index to insert this entry */
+	memset(me, 0, sizeof(*me));
+
+	return -1;
+}
+
+void
+mbinit(MetaBlock *mb, uchar *p, int n, int entries)
+{
+	memset(mb, 0, sizeof(MetaBlock));
+	mb->maxsize = n;
+	mb->buf = p;
+	mb->maxindex = entries;
+	mb->size = MetaHeaderSize + mb->maxindex*MetaIndexSize;
+}
+
+int
+mbresize(MetaBlock *mb, MetaEntry *me, int n)
+{
+	uchar *p, *ep;
+
+	/* easy case */
+	if(n <= me->size){
+		me->size = n;
+		return 0;
+	}
+
+	/* try and expand entry */
+
+	p = me->p + me->size;
+	ep = mb->buf + mb->maxsize;
+	while(p < ep && *p == 0)
+		p++;
+	if(n <= p - me->p){
+		me->size = n;
+		return 0;
+	}
+
+	p = mballoc(mb, n);
+	if(p != nil){
+		me->p = p;
+		me->size = n;
+		return 0;
+	}
+
+	return -1;
 }

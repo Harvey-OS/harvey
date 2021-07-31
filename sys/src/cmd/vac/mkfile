@@ -1,27 +1,24 @@
 </$objtype/mkfile
 
 LIBFILES=\
-	cache\
 	error\
 	file\
-	fs\
-	source\
 	pack\
 
 LIB=${LIBFILES:%=%.$O}
 
 HFILES=\
-	/sys/include/oventi.h\
+	/sys/include/venti.h\
 	stdinc.h\
 	error.h\
 	vac.h\
 	dat.h\
 	fns.h\
 
-TARG=vacfs vac vtdump
+TARG=vac unvac vacfs
 BIN=/$objtype/bin
 
-CFILES=${TARG:%=%.c} ${LIBFILES:%=%.c} srcload.c vactest.c
+CFILES=${TARG:%=%.c} ${LIBFILES:%=%.c}
 
 UPDATE=\
 	mkfile\
@@ -30,7 +27,5 @@ UPDATE=\
 	${TARG:%=/386/bin/%}
 
 default:V: all
-
-test:V: $O.srcload $O.wtest $O.rtest $O.vtdump $O.vtread
 
 </sys/src/cmd/mkmany
