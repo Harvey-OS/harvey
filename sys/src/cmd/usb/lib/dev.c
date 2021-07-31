@@ -420,7 +420,9 @@ cmdrep(Dev *d, void *buf, int nb)
 int
 usbcmd(Dev *d, int type, int req, int value, int index, uchar *data, int count)
 {
-	int i, r, nerr;
+	int r;
+	int i;
+	int nerr;
 	char err[64];
 
 	/*
@@ -430,12 +432,12 @@ usbcmd(Dev *d, int type, int req, int value, int index, uchar *data, int count)
 	r = -1;
 	*err = 0;
 	for(i = nerr = 0; i < Uctries; i++){
-		if(type & Rd2h)
+		if(type&Rd2h)
 			r = cmdreq(d, type, req, value, index, nil, count);
 		else
 			r = cmdreq(d, type, req, value, index, data, count);
 		if(r > 0){
-			if((type & Rd2h) == 0)
+			if((type&Rd2h) == 0)
 				break;
 			r = cmdrep(d, data, count);
 			if(r > 0)
@@ -448,10 +450,11 @@ usbcmd(Dev *d, int type, int req, int value, int index, uchar *data, int count)
 			rerrstr(err, sizeof(err));
 		sleep(Ucdelay);
 	}
-	if(r > 0 && i >= 2)
+	if(r > 0 && i >= 2){
 		/* let the user know the device is not in good shape */
 		fprint(2, "%s: usbcmd: %s: required %d attempts (%s)\n",
 			argv0, d->dir, i, err);
+	}
 	return r;
 }
 

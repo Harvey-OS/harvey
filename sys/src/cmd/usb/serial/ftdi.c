@@ -631,11 +631,9 @@ epreader(void *u)
 	dfd = ser->epin->dfd;
 	qunlock(ser);
 
-	p = nil;
 	do {
-		if (p == nil)
-			p = emallocz(sizeof(Packser), 1);
-		rcount = read(dfd, p->b, sizeof p->b);
+		p = emallocz(sizeof(Packser), 1);
+		rcount = read(dfd, p->b, Packsz);
 		if(serialdebug > 5)
 			dsprint(2, "%d %#ux%#ux ", rcount, ser->data[0],
 				ser->data[1]);
@@ -644,18 +642,16 @@ epreader(void *u)
 		if(rcount >= ser->inhdrsz){
 			ftuseinhdr(ser, p->b);
 			rcount -= ser->inhdrsz;
-			memmove(p->b, p->b + ser->inhdrsz, rcount);
+			memmove(p->b, p->b+ser->inhdrsz, rcount);
 			if(rcount != 0){
 				p->nb = rcount;
 				sendp(c, p);
-				p = nil;
 			}
 		}
 	} while(rcount >= 0 || (rcount < 0 && strstr(err, "timed out") != nil));
 
 	if(rcount < 0)
 		fprint(2, "error reading: %r\n");
-	free(p);
 	sendp(c, nil);
 	closedev(ser->dev);
 }
@@ -681,15 +677,15 @@ statusreader(void *u)
 	while((p = recvp(c)) != nil){
 		memmove(ser->data, p->b, p->nb);
 		ser->ndata = p->nb;
-		free(p);
-		dsprint(2, "serial: status reader %d \n", ser->ndata);
+		dsprint(2, "serial: status reader %d \n", p->nb);
 		/* consume it all */
 		while(ser->ndata != 0){
 			dsprint(2, "serial: status reader to consume: %d\n",
-				ser->ndata);
+				p->nb);
 			sendul(ser->w4data, 1);
 			recvul(ser->gotdata);
 		}
+		free(p);
 	}
 	free(a);
 	free(c);
@@ -789,8 +785,9 @@ ftseteps(Serial *ser)
 
 	s = smprint("maxpkt %d", Packsz);
 	devctl(ser->epin, s);
+	ser->maxread = Packsz;
 	devctl(ser->epout, s);
-	ser->maxread = ser->maxwrite = Packsz;
+	ser->maxwrite = Packsz;
 	free(s);
 	return 0;
 }

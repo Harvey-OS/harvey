@@ -875,11 +875,12 @@ balloc(Rx* rx)
 }
 
 static void
-rbfree(Block *b, Bpool *p)
+smbfree(Block *b)
 {
-	b->rp = b->wp = (uchar*)PGROUND((uintptr)b->base);
- 	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
+	Bpool *p;
 
+	b->rp = b->wp = (uchar*)PGROUND((uintptr)b->base);
+	p = &smpool;
 	ilock(p);
 	b->next = p->head;
 	p->head = b;
@@ -889,15 +890,18 @@ rbfree(Block *b, Bpool *p)
 }
 
 static void
-smbfree(Block *b)
-{
-	rbfree(b, &smpool);
-}
-
-static void
 bgbfree(Block *b)
 {
-	rbfree(b, &bgpool);
+	Bpool *p;
+
+	b->rp = b->wp = (uchar*)PGROUND((uintptr)b->base);
+	p = &bgpool;
+	ilock(p);
+	b->next = p->head;
+	p->head = b;
+	p->n++;
+	p->cnt++;
+	iunlock(p);
 }
 
 static void

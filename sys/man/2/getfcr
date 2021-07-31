@@ -112,7 +112,12 @@ internal registers are 80 bits long):
 .EX
 .IP
 .ft L
-setfcr((getfcr() & ~FPPMASK) | FPPDBL | FPOVFL);
+ulong fcr;
+fcr = getfcr();
+fcr |= FPOVFL;
+fcr &= ~FPPMASK;
+fcr |= FPPDBL;
+setfcr(fcr);
 .ft
 .EE
 .SH SOURCE
