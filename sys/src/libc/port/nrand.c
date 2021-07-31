@@ -10,6 +10,9 @@ nrand(int n)
 
 	if(n < 0)
 		return n;
+	if(n == 1)
+		return 0;
+	/* and if n == 0, you deserve what you get */
 	slop = MASK % n;
 	do
 		v = lrand();
