@@ -11,7 +11,6 @@ typedef struct IOMap IOMap;
 struct IOMap
 {
 	IOMap	*next;
-	int		reserved;
 	char	tag[13];
 	ulong	start;
 	ulong	end;
@@ -28,8 +27,8 @@ static struct
 } iomap;
 
 enum {
-	Qdir = 0,
-	Qioalloc = 1,
+	Qdir = CHDIR,
+	Qioalloc = 0,
 	Qiob,
 	Qiow,
 	Qiol,
@@ -44,7 +43,6 @@ static Rdwrfn *readfn[Qmax];
 static Rdwrfn *writefn[Qmax];
 
 static Dirtab archdir[Qmax] = {
-	".",	{ Qdir, 0, QTDIR },	0,	0555,
 	"ioalloc",	{ Qioalloc, 0 },	0,	0444,
 	"iob",		{ Qiob, 0 },		0,	0660,
 	"iow",		{ Qiow, 0 },		0,	0660,
@@ -52,9 +50,6 @@ static Dirtab archdir[Qmax] = {
 };
 Lock archwlock;	/* the lock is only for changing archdir */
 int narchdir = Qbase;
-int (*_pcmspecial)(char *, ISAConf *);
-void (*_pcmspecialclose)(int);
-
 
 /*
  * Add a file to the #P listing.  Once added, you can't delete it.
@@ -98,7 +93,6 @@ addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 void
 ioinit(void)
 {
-	char *excluded;
 	int i;
 
 	for(i = 0; i < nelem(iomap.maps)-1; i++)
@@ -108,80 +102,6 @@ ioinit(void)
 
 	// a dummy entry at 2^16
 	ioalloc(0x10000, 1, 0, "dummy");
-	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
-							// entry is needed for swappable devs.
-
-	if ((excluded = getconf("ioexclude")) != nil) {
-		char *s;
-
-		s = excluded;
-		while (s && *s != '\0' && *s != '\n') {
-			char *ends;
-			int io_s, io_e;
-
-			io_s = (int)strtol(s, &ends, 0);
-			if (ends == nil || ends == s || *ends != '-') {
-				print("ioinit: cannot parse option string\n");
-				break;
-			}
-			s = ++ends;
-
-			io_e = (int)strtol(s, &ends, 0);
-			if (ends && *ends == ',')
-				*ends++ = '\0';
-			s = ends;
-
-			ioalloc(io_s, io_e - io_s + 1, 0, "pre-allocated");
-		}
-	}
-
-}
-
-// Reserve a range to be ioalloced later.  This is in particular useful for exchangable cards, such
-// as pcmcia and cardbus cards.
-int
-ioreserve(int port, int size, int align, char *tag)
-{
-	IOMap *m, **l;
-	int i;
-
-	lock(&iomap);
-	// find a free port above 0x400 and below 0x1000
-	port = 0x400;
-	for(l = &iomap.m; *l; l = &(*l)->next){
-		m = *l;
-		if (m->start < 0x400) continue;
-		i = m->start - port;
-		if(i > size)
-			break;
-		if(align > 0)
-			port = ((port+align-1)/align)*align;
-		else
-			port = m->end;
-	}
-	if(*l == nil){
-		unlock(&iomap);
-		return -1;
-	}
-	m = iomap.free;
-	if(m == nil){
-		print("ioalloc: out of maps");
-		unlock(&iomap);
-		return port;
-	}
-	iomap.free = m->next;
-	m->next = *l;
-	m->start = port;
-	m->end = port + size;
-	m->reserved = 1;
-	strncpy(m->tag, tag, sizeof(m->tag));
-	m->tag[sizeof(m->tag)-1] = 0;
-	*l = m;
-
-	archdir[0].qid.vers++;
-
-	unlock(&iomap);
-	return m->start;
 }
 
 //
@@ -200,7 +120,6 @@ ioalloc(int port, int size, int align, char *tag)
 		port = 0x400;
 		for(l = &iomap.m; *l; l = &(*l)->next){
 			m = *l;
-			if (m->start < 0x400) continue;
 			i = m->start - port;
 			if(i > size)
 				break;
@@ -214,21 +133,11 @@ ioalloc(int port, int size, int align, char *tag)
 			return -1;
 		}
 	} else {
-		// Only 64KB I/O space on the x86.
-		if((port+size) >= 0x10000){
-			unlock(&iomap);
-			return -1;
-		}
 		// see if the space clashes with previously allocated ports
 		for(l = &iomap.m; *l; l = &(*l)->next){
 			m = *l;
 			if(m->end <= port)
 				continue;
-			if(m->reserved && m->start == port && m->end == port + size) {
-				m->reserved = 0;
-				unlock(&iomap);
-				return m->start;
-			}
 			if(m->start >= port+size)
 				break;
 			unlock(&iomap);
@@ -309,16 +218,16 @@ archattach(char* spec)
 	return devattach('P', spec);
 }
 
-Walkqid*
-archwalk(Chan* c, Chan *nc, char** name, int nname)
+int
+archwalk(Chan* c, char* name)
 {
-	return devwalk(c, nc, name, nname, archdir, narchdir, devgen);
+	return devwalk(c, name, archdir, narchdir, devgen);
 }
 
-static int
-archstat(Chan* c, uchar* dp, int n)
+static void
+archstat(Chan* c, char* dp)
 {
-	return devstat(c, dp, n, archdir, narchdir, devgen);
+	devstat(c, dp, archdir, narchdir, devgen);
 }
 
 static Chan*
@@ -347,7 +256,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 	IOMap *m;
 	Rdwrfn *fn;
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, archdir, narchdir, devgen);
@@ -360,22 +269,24 @@ archread(Chan *c, void *a, long n, vlong offset)
 		return n;
 
 	case Qiow:
-		if(n & 1)
+		if((n & 0x01) || (offset & 0x01))
 			error(Ebadarg);
 		checkport(offset, offset+n);
+		n /= 2;
 		sp = a;
 		for(port = offset; port < offset+n; port += 2)
 			*sp++ = ins(port);
-		return n;
+		return n*2;
 
 	case Qiol:
-		if(n & 3)
+		if((n & 0x03) || (offset & 0x03))
 			error(Ebadarg);
 		checkport(offset, offset+n);
+		n /= 4;
 		lp = a;
 		for(port = offset; port < offset+n; port += 4)
 			*lp++ = inl(port);
-		return n;
+		return n*4;
 
 	case Qioalloc:
 		break;
@@ -415,7 +326,7 @@ archwrite(Chan *c, void *a, long n, vlong offset)
 	ulong *lp;
 	Rdwrfn *fn;
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path & ~CHDIR){
 
 	case Qiob:
 		p = a;
@@ -425,22 +336,24 @@ archwrite(Chan *c, void *a, long n, vlong offset)
 		return n;
 
 	case Qiow:
-		if(n & 1)
+		if((n & 01) || (offset & 01))
 			error(Ebadarg);
 		checkport(offset, offset+n);
+		n /= 2;
 		sp = a;
 		for(port = offset; port < offset+n; port += 2)
 			outs(port, *sp++);
-		return n;
+		return n*2;
 
 	case Qiol:
-		if(n & 3)
+		if((n & 0x03) || (offset & 0x03))
 			error(Ebadarg);
 		checkport(offset, offset+n);
+		n /= 4;
 		lp = a;
 		for(port = offset; port < offset+n; port += 4)
 			outl(port, *lp++);
-		return n;
+		return n*4;
 
 	default:
 		if(c->qid.path < narchdir && (fn = writefn[c->qid.path]))
@@ -457,8 +370,8 @@ Dev archdevtab = {
 
 	devreset,
 	devinit,
-	devshutdown,
 	archattach,
+	devclone,
 	archwalk,
 	archstat,
 	archopen,
@@ -489,6 +402,8 @@ nop(void)
 }
 
 void (*coherence)(void) = nop;
+void cycletimerinit(void);
+uvlong cycletimer(uvlong*);
 
 PCArch* arch;
 extern PCArch* knownarch[];
@@ -502,13 +417,10 @@ PCArch archgeneric = {
 
 	i8259init,				/* intrinit */
 	i8259enable,				/* intrenable */
-	i8259vecno,				/* vector number */
-	i8259disable,				/* intrdisable */
 
 	i8253enable,				/* clockenable */
 
 	i8253read,				/* read the standard timer */
-	i8253timerset,
 };
 
 typedef struct {
@@ -541,13 +453,11 @@ static X86type x86intel[] =
 	{ 6,	6,	16,	"Celeron", },
 	{ 6,	7,	16,	"PentiumIII/Xeon", },
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
-	{ 0xF,	1,	16,	"P4", },	/* P4 */
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
 	{ 4,	-1,	22,	"486", },
 	{ 5,	-1,	23,	"P5", },
 	{ 6,	-1,	16,	"P6", },
-	{ 0xF,	-1,	16,	"P4", },	/* P4 */
 
 	{ -1,	-1,	23,	"unknown", },	/* total default */
 };
@@ -593,6 +503,7 @@ static X86type x86winchip[] =
 };
 
 
+static uvlong fasthz;
 static X86type *cputype;
 
 void
@@ -609,53 +520,33 @@ cpuidprint(void)
 	print(buf);
 }
 
-/*
- *  figure out:
- *	- cpu type
- *	- whether or not we have a TSC (cycle counter)
- *	- whether or not is supports page size extensions
- *		(if so turn it on)
- *	- whether or not is supports machine check exceptions
- *		(if so turn it on)
- */
 int
 cpuidentify(void)
 {
 	char *p;
 	int family, model, nomce;
-	X86type *t, *tab;
+	X86type *t;
 	ulong cr4;
 	vlong mca, mct;
 
 	cpuid(m->cpuidid, &m->cpuidax, &m->cpuiddx);
 	if(strncmp(m->cpuidid, "AuthenticAMD", 12) == 0)
-		tab = x86amd;
+		t = x86amd;
 	else if(strncmp(m->cpuidid, "CentaurHauls", 12) == 0)
-		tab = x86winchip;
+		t = x86winchip;
 	else
-		tab = x86intel;
-	
+		t = x86intel;
 	family = X86FAMILY(m->cpuidax);
 	model = X86MODEL(m->cpuidax);
-	for(t=tab; t->name; t++)
+	while(t->name){
 		if((t->family == family && t->model == model)
 		|| (t->family == family && t->model == -1)
 		|| (t->family == -1))
 			break;
-
+		t++;
+	}
 	m->cpuidtype = t->name;
-
-	/*
-	 *  if there is one, set tsc to a known value
-	 */
-	m->havetsc = t->family >= 5;
-	if(m->havetsc)
-		wrmsr(0x10, 0);
-
-	/*
- 	 *  use i8253 to guess our cpu speed
-	 */
-	guesscpuhz(t->aalcycles);
+	i8253init(t->aalcycles, t->family >= 5);
 
 	/*
 	 * If machine check exception or page size extensions are supported
@@ -682,33 +573,6 @@ cpuidentify(void)
 			rdmsr(0x01, &mct);
 	}
 
-	/*
-	 * Detect whether the chip supports the global bit
-	 * in page directory and page table entries.  When set
-	 * in a particular entry, it means ``don't bother removing
-	 * this from the TLB when CR3 changes.''  
-	 * 
-	 * We flag all kernel pages with this bit.  Doing so lessens the
-	 * overhead of switching processes on bare hardware,
-	 * even more so on VMware.  See mmu.c:/^memglobal.
-	 *
-	 * This feature exists on Intel Pentium Pro and later
-	 * processors.  Presumably the AMD processors have
-	 * a similar notion, but I can't find it in the meager
-	 * documentation I've tried.
-	 *
-	 * For future reference, should we ever need to do a
-	 * full TLB flush, it can be accomplished by clearing
-	 * the PGE bit in CR4, writing to CR3, and then
-	 * restoring the PGE bit.
-	 */
-	if(tab==x86intel && t->family >= 6){
-		cr4 = getcr4();
-		cr4 |= 0x80;		/* page global enable bit */
-		putcr4(cr4);
-		m->havepge = 1;
-	}
-
 	cputype = t;
 	return t->family;
 }
@@ -723,35 +587,6 @@ cputyperead(Chan*, void *a, long n, vlong offset)
 
 	snprint(str, sizeof(str), "%s %lud\n", cputype->name, mhz);
 	return readstr(offset, a, n, str);
-}
-
-static long
-pgewrite(Chan*, void *a, long n, vlong)
-{
-	if(!m->havepge)
-		error("processor does not support pge");
-
-	if(n==3 && memcmp(a, "off", 3)==0){
-		putcr4(getcr4() & ~0x80);
-		return n;
-	}
-	if(n==2 && memcmp(a, "on", 2)==0){
-		putcr4(getcr4() | 0x80);
-		return n;
-	}
-	error("invalid control message");
-	return -1;
-}
-
-static long
-pgeread(Chan*, void *a, long n, vlong offset)
-{
-	if(n < 16)
-		error("need more room");
-	if(offset)
-		return 0;
-	n = snprint(a, n, "%s pge; %s", m->havepge ? "have" : "no", getcr4()&0x80 ? "on" : "off");
-	return n;
 }
 
 void
@@ -777,60 +612,55 @@ archinit(void)
 			arch->serialpower = archgeneric.serialpower;
 		if(arch->modempower == 0)
 			arch->modempower = archgeneric.modempower;
+	
 		if(arch->intrinit == 0)
 			arch->intrinit = archgeneric.intrinit;
 		if(arch->intrenable == 0)
 			arch->intrenable = archgeneric.intrenable;
 	}
 
+	/* pick the better timer */
+	if(X86FAMILY(m->cpuidax) >= 5){
+		cycletimerinit();
+		arch->fastclock = cycletimer;
+	}
+
 	/*
-	 *  Decide whether to use copy-on-reference (386 and mp).
-	 *  We get another chance to set it in mpinit() for a
-	 *  multiprocessor.
+	 * Decide whether to use copy-on-reference (386 and mp).
 	 */
-	if(X86FAMILY(m->cpuidax) == 3)
+	if(X86FAMILY(m->cpuidax) == 3 || conf.nmach > 1)
 		conf.copymode = 1;
 
-//	if(X86FAMILY(m->cpuidax) >= 5 && conf.nmach > 1)
+	if(X86FAMILY(m->cpuidax) >= 5)
 		coherence = wbflush;
 
 	addarchfile("cputype", 0444, cputyperead, nil);
-	addarchfile("pge", 0664, pgeread, pgewrite);
 }
 
-/*
- *  call either the pcmcia or pccard device setup
- */
-int
-pcmspecial(char *idstr, ISAConf *isa)
-{
-	return (_pcmspecial  != nil)? _pcmspecial(idstr, isa): -1;
-}
-
-/*
- *  call either the pcmcia or pccard device teardown
- */
 void
-pcmspecialclose(int a)
+cycletimerinit(void)
 {
-	if (_pcmspecialclose != nil)
-		_pcmspecialclose(a);
+	wrmsr(0x10, 0);
+	fasthz = m->cpuhz;
 }
 
 /*
- *  return value and speed of timer set in arch->clockenable
+ *  return the most precise clock we have
  */
 uvlong
+cycletimer(uvlong *hz)
+{
+	uvlong tsc;
+
+	if(hz != nil)
+		*hz = fasthz;
+	rdmsr(0x10, (vlong*)&tsc);
+	m->fastclock = tsc;
+	return tsc;
+}
+
+vlong
 fastticks(uvlong *hz)
 {
 	return (*arch->fastclock)(hz);
-}
-
-/*
- *  set next timer interrupt
- */
-void
-timerset(uvlong x)
-{
-	(*arch->timerset)(x);
 }

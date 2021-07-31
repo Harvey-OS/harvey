@@ -10,8 +10,8 @@ readenv(void)
 {
 	char *p;
 	int envf, f;
-	Dir *e;
-	char nam[1024];
+	Dir e[20];
+	char nam[NAMELEN+5];
 	int i, n, len;
 	Word *w;
 
@@ -20,7 +20,8 @@ readenv(void)
 	envf = open("/env", OREAD);
 	if(envf < 0)
 		return;
-	while((n = dirread(envf, &e)) > 0){
+	while((n = dirread(envf, e, sizeof e)) > 0){
+		n /= sizeof e[0];
 		for(i = 0; i < n; i++){
 			len = e[i].length;
 				/* don't import funny names, NULL values,
@@ -51,7 +52,6 @@ readenv(void)
 			setvar(p, (void *) w);
 			symlook(p, S_EXPORTED, (void*)"")->value = (void*)"";
 		}
-		free(e);
 	}
 	close(envf);
 }
@@ -89,7 +89,7 @@ exportenv(Envy *e)
 	int f, n, hasvalue, first;
 	Word *w;
 	Symtab *sy;
-	char nam[256];
+	char nam[NAMELEN+5];
 
 	for(;e->name; e++){
 		sy = symlook(e->name, S_VAR, 0);
@@ -138,14 +138,12 @@ exportenv(Envy *e)
 int
 waitfor(char *msg)
 {
-	Waitmsg *w;
+	Waitmsg wm;
 	int pid;
 
-	if((w=wait()) == nil)
-		return -1;
-	strecpy(msg, msg+ERRMAX, w->msg);
-	pid = w->pid;
-	free(w);
+	pid = wait(&wm);
+	if(pid > 0)
+		strncpy(msg, wm.msg, ERRLEN);
 	return pid;
 }
 
@@ -272,7 +270,7 @@ pipecmd(char *cmd, Envy *e, int *fd)
 void
 Exit(void)
 {
-	while(waitpid() >= 0)
+	while(wait(0) >= 0)
 		;
 	exits("error");
 }
@@ -314,8 +312,7 @@ chgtime(char *name)
 {
 	Dir sbuf;
 
-	if(access(name, AEXIST) >= 0) {
-		nulldir(&sbuf);
+	if(dirstat(name, &sbuf) >= 0) {
 		sbuf.mtime = time((long *)0);
 		return dirwstat(name, &sbuf);
 	}
@@ -342,16 +339,8 @@ rcopy(char **to, Resub *match, int n)
 	}
 }
 
-ulong
-mkmtime(char *name)
+int
+mkdirstat(char *name, Dir *buf)
 {
-	Dir *buf;
-	ulong t;
-
-	buf = dirstat(name);
-	if(buf == nil)
-		return 0;
-	t = buf->mtime;
-	free(buf);
-	return t;
+	return dirstat(name, buf);
 }

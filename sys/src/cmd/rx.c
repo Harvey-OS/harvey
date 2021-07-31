@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 	host = argv[0];
 	args = buildargs(&argv[1]);
 
-	/* specific attempts */
+	/* specific attempts (more likely to work) */
 	fd = call("tcp", host, "shell", &addr);
 	if(fd >= 0)
 		tcpexec(fd, addr, args);
@@ -69,11 +69,11 @@ rex(int fd, char *cmd)
 {
 	char buf[4096];
 	int kid, n;
-	AuthInfo *ai;
 
-	ai = auth_proxy(fd, auth_getkey, "proto=p9sk2 role=client");
-	if(ai == nil)
-		error("auth_proxy", nil);
+	if(auth(fd) < 0){
+		close(fd);
+		error("authenticate fails", 0);
+	}
 	write(fd, cmd, strlen(cmd)+1);
 
 	kid = send(fd);

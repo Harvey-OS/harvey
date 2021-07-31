@@ -16,7 +16,7 @@ typedef struct PSInfo	PSInfo;
 typedef struct Page	Page;
 	
 struct Page {
-	char *name;
+	char name[NAMELEN+1];
 	int offset;			/* offset of page beginning within file */
 };
 
@@ -62,9 +62,9 @@ rdbbox(char *p)
 	 */
 
 	a = Dx(r)*Dy(r);
-	if(a < 300*300){	/* really small, probably supposed to be */
-		/* empty */
-	} else if(Dx(r) <= 596 && r.max.x <= 596 && Dy(r) > 792 && Dy(r) <= 842 && r.max.y <= 842)	/* A4 */
+	if(a < 300*300)	/* really small, probably supposed to be */
+		;
+	else if(Dx(r) <= 596 && r.max.x <= 596 && Dy(r) > 792 && Dy(r) <= 842 && r.max.y <= 842)	/* A4 */
 		r = Rect(0, 0, 596, 842);
 	else {	/* cast up to 8½×11 */
 		if(Dx(r) <= 612 && r.max.x <= 612){
@@ -130,12 +130,11 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 {
 	Document *d;
 	PSInfo *ps;
-	char *p;
+	char *p, *name;
 	char *q, *r;
 	char eol;
 	char *nargv[1];
 	char fdbuf[20];
-	char tmp[32];
 	int fd;
 	int i;
 	int incomments;
@@ -268,25 +267,24 @@ Keepreading:
 		 */
 		p[Blinelen(b)-1] = 0;
 		if(chatty) fprint(2, "page %s\n", p);
+		name = page[npage].name;
 		r = p+7;
 		while(*r == ' ' || *r == '\t')
 			r++;
 		q = r;
 		while(*q && *q != ' ' && *q != '\t')
 			q++;
-		free(page[npage].name);
 		if(*r) {
 			if(*r == '"' && *q == '"')
 				r++, q--;
 			if(*q)
 				*q = 0;
-			page[npage].name = estrdup(r);
+			strncpy(name, r, NAMELEN);
 			*q = 'x';
-		} else {
-			snprint(tmp, sizeof tmp, "p %ld", npage+1);
-			page[npage].name = estrdup(tmp);
-		}
+		} else 
+			snprint(name, NAMELEN, "p %ld", npage+1);
 
+		name[NAMELEN] = 0;
 		/*
 		 * store the offset info for later viewing
 		 */
@@ -312,7 +310,7 @@ Keepreading:
 		reverse = 0;
 		goodps = 0;
 		trailer = 0;
-		page[npage].name = "p 1";
+		strcpy(page[npage].name, "p 1");
 		page[npage++].offset = 0;
 	}
 

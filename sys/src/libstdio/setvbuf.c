@@ -40,17 +40,11 @@ int _IO_setvbuf(FILE *f){
 static int
 isatty(int fd)
 {
-	Dir *d1, *d2;
-	int ret;
+	Dir d1, d2;
 
-	d1 = dirfstat(fd);
-	d2 = dirstat("/dev/cons");
-	ret = 0;
-	if(d1!=nil && d2!=nil)
-		ret = (d1->qid.path == d2->qid.path) &&
-			(d1->type == d2->type) &&
-			(d1->dev == d2->dev);
-	free(d1);
-	free(d2);
+	if(dirfstat(fd, &d1) >= 0 && dirstat("/dev/cons", &d2) >= 0)
+		return (d1.qid.path == d2.qid.path) &&
+			(d1.type == d2.type) &&
+			(d1.dev == d2.dev);
 	return 0;
 }

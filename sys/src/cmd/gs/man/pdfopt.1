@@ -1,0 +1,26 @@
+.\" $Id: pdfopt.1,v 1.1.2.2 2000/11/28 01:31:26 raph Exp $
+.TH PDFOPT 1 "27 November 2000" 6.32 "Ghostscript Tools" \" -*- nroff -*-
+.SH NAME
+pdfopt \- Ghostscript PDF Optimizer
+.SH SYNOPSIS
+\fBpdfopt\fR [ \fIoptions\fR ] \fIinput.pdf output.pdf\fR
+.SH DESCRIPTION
+\fBpdfopt\fR uses \fBgs\fR(1) to convert the Adobe \fBPortable Document
+Format\fR (PDF) file "input.pdf" to a so-called optimized form in
+"output.pdf".  Optimization puts the elements of the file into a more linear
+order and adds "hint" pointers, allowing Adobe's Acrobat(TM) products to
+display individual pages of the file more quickly when accessing the file
+through a network.
+.PP
+Note: input.pdf and output.pdf must not be the same.  If they are, the file
+will probably be destroyed.  \fBpdfopt\fR currently does not check for this.
+.SH FILES
+Run "\fBgs -h\fR" to find the location of Ghostscript documentation on your
+system, from which you can get more details.
+.SH SEE ALSO
+"Linearized PDF" in Adobe's PDF reference manual,
+http://partners.adobe.com/asn/developer/acrosdk/DOCS/pdfspec.pdf
+.SH VERSION
+This document was last revised for Ghostscript version 6.32.
+.SH AUTHOR
+L. Peter Deutsch <ghost@aladdin.com>

@@ -13,9 +13,6 @@ static Reprog *fprog;
 
 int received;	/* from rfc822.y */
 
-static String*	getstring(Node *p);
-static String*	getaddr(Node *p);
-
 extern int
 default_from(message *mp)
 {
@@ -65,10 +62,6 @@ m_free(message *mp)
 	s_free(mp->sender);
 	s_free(mp->date);
 	s_free(mp->body);
-	s_free(mp->havefrom);
-	s_free(mp->havesender);
-	s_free(mp->havereplyto);
-	s_free(mp->havesubject);
 	free((char *)mp);
 }
 
@@ -112,67 +105,6 @@ m_read_to_file(Biobuf *fp, message *mp)
 	return 0;
 }
 
-/* get the first address from a node */
-static String*
-getaddr(Node *p)
-{
-	for(; p; p = p->next)
-		if(p->s && p->addr)
-			return s_copy(s_to_c(p->s));
-}
-
-/* get the text of a header line minus the field name */
-static String*
-getstring(Node *p)
-{
-	String *s;
-
-	s = s_new();
-	if(p == nil)
-		return s;
-
-	for(p = p->next; p; p = p->next){
-		if(p->s){
-			s_append(s, s_to_c(p->s));
-		}else{
-			s_putc(s, p->c);
-			s_terminate(s);
-		}
-		if(p->white)
-			s_append(s, s_to_c(p->white));
-	}
-	return s;
-}
-
-static char *fieldname[] =
-{
-[WORD-WORD]	"WORD",
-[DATE-WORD]	"DATE",
-[RESENT_DATE-WORD]	"RESENT_DATE",
-[RETURN_PATH-WORD]	"RETURN_PATH",
-[FROM-WORD]	"FROM",
-[SENDER-WORD]	"SENDER",
-[REPLY_TO-WORD]	"REPLY_TO",
-[RESENT_FROM-WORD]	"RESENT_FROM",
-[RESENT_SENDER-WORD]	"RESENT_SENDER",
-[RESENT_REPLY_TO-WORD]	"RESENT_REPLY_TO",
-[SUBJECT-WORD]	"SUBJECT",
-[TO-WORD]	"TO",
-[CC-WORD]	"CC",
-[BCC-WORD]	"BCC",
-[RESENT_TO-WORD]	"RESENT_TO",
-[RESENT_CC-WORD]	"RESENT_CC",
-[RESENT_BCC-WORD]	"RESENT_BCC",
-[REMOTE-WORD]	"REMOTE",
-[PRECEDENCE-WORD]	"PRECEDENCE",
-[MIMEVERSION-WORD]	"MIMEVERSION",
-[CONTENTTYPE-WORD]	"CONTENTTYPE",
-[MESSAGEID-WORD]	"MESSAGEID",
-[RECEIVED-WORD]	"RECEIVED",
-[MAILER-WORD]	"MAILER",
-[BADTOKEN-WORD]	"BADTOKEN",
-};
-
 /* fix 822 addresses */
 static void
 rfc822cruft(message *mp)
@@ -185,7 +117,7 @@ rfc822cruft(message *mp)
 	/*
 	 *  parse headers in in-core part
 	 */
-	yyinit(s_to_c(mp->body), s_len(mp->body));
+	yyinit(s_to_c(mp->body));
 	mp->rfc822headers = 0;
 	yyparse();
 	mp->rfc822headers = 1;
@@ -200,17 +132,13 @@ rfc822cruft(message *mp)
 		if(f->node->c == MIMEVERSION)
 			mp->havemime = 1;
 		if(f->node->c == FROM)
-			mp->havefrom = getaddr(f->node);
-		if(f->node->c == SENDER)
-			mp->havesender = getaddr(f->node);
-		if(f->node->c == REPLY_TO)
-			mp->havereplyto = getaddr(f->node);
+			mp->havefrom = 1;
 		if(f->node->c == TO)
 			mp->haveto = 1;
 		if(f->node->c == DATE)
 			mp->havedate = 1;
 		if(f->node->c == SUBJECT)
-			mp->havesubject = getstring(f->node);
+			mp->havesubject = 1;
 		if(f->node->c == PRECEDENCE && f->node->next && f->node->next->next){
 			s = f->node->next->next->s;
 			if(s && (strcmp(s_to_c(s), "bulk") == 0
@@ -281,7 +209,7 @@ m_read(Biobuf *fp, int rmail, int interactive)
 				memset(subexp, 0, sizeof(subexp));
 				if(regexec(fprog, s_to_c(mp->body), subexp,10) == 0)
 					break;
-				s_restart(mp->body);
+				USE(s_restart(mp->body));
 				append_match(subexp, s_restart(sender), SENDERMATCH);
 				append_match(subexp, s_restart(mp->date), DATEMATCH);
 				break;

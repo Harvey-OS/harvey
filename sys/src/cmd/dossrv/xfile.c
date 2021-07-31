@@ -10,26 +10,13 @@ static Xfs	*xhead;
 static Xfile	*xfiles[FIDMOD], *freelist;
 static MLock	xlock, xlocks[FIDMOD], freelock;
 
-static int
-okmode(int omode, int fmode)
-{
-	if(omode == OREAD)
-		return fmode & 4;
-	/* else ORDWR */
-	return (fmode & 6) == 6;
-}
-
 Xfs *
-getxfs(char *user, char *name)
+getxfs(char *name)
 {
-	Xfs *xf, *fxf;
-	Dir *dir;
-	Qid dqid;
+	int fd; Dir dir; Xfs *xf, *fxf;
 	char *p, *q;
 	long offset;
-	int fd, omode;
 
-	USED(user);
 	if(name==nil || name[0]==0)
 		name = deffile;
 	if(name == nil){
@@ -56,31 +43,16 @@ getxfs(char *user, char *name)
 		offset *= Sectorsize;
 	}
 
-	if(readonly)
-		omode = OREAD;
-	else
-		omode = ORDWR;
-	fd = open(name, omode);
-
-	if(fd < 0 && omode==ORDWR){
-		omode = OREAD;
-		fd = open(name, omode);
-	}
-
+	fd = open(name, ORDWR);
 	if(fd < 0){
-		chat("can't open %s: %r\n", name);
-		errno = Eerrstr;
+		errno = Enonexist;
 		return 0;
 	}
-	dir = dirfstat(fd);
-	if(dir == nil){
+	if(dirfstat(fd, &dir) < 0){
 		errno = Eio;
 		close(fd);
 		return 0;
 	}
-
-	dqid = dir->qid;
-	free(dir);
 	mlock(&xlock);
 	for(fxf=0,xf=xhead; xf; xf=xf->next){
 		if(xf->ref == 0){
@@ -88,7 +60,7 @@ getxfs(char *user, char *name)
 				fxf = xf;
 			continue;
 		}
-		if(!eqqid(xf->qid, dqid))
+		if(xf->qid.path != dir.qid.path || xf->qid.vers != dir.qid.vers)
 			continue;
 		if(strcmp(xf->name, name) != 0 || xf->dev < 0)
 			continue;
@@ -116,13 +88,12 @@ getxfs(char *user, char *name)
 	chat("alloc \"%s\", dev=%d...", name, fd);
 	fxf->name = strdup(name);
 	fxf->ref = 1;
-	fxf->qid = dqid;
+	fxf->qid = dir.qid;
 	fxf->dev = fd;
 	fxf->fmt = 0;
 	fxf->offset = offset;
 	fxf->ptr = nil;
 	fxf->isfat32 = 0;
-	fxf->omode = omode;
 	unmlock(&xlock);
 	return fxf;
 }
@@ -207,7 +178,7 @@ xfile(int fid, int flag)
 	unmlock(&xlocks[k]);
 	f->fid = fid;
 	f->flags = 0;
-	f->qid = (Qid){0,0,0};
+	f->qid = (Qid){0,0};
 	f->xf = nil;
 	f->ptr = nil;
 	return f;
@@ -225,7 +196,7 @@ clean(Xfile *f)
 		f->xf = nil;
 	}
 	f->flags = 0;
-	f->qid = (Qid){0,0,0};
+	f->qid = (Qid){0,0};
 	return f;
 }
 

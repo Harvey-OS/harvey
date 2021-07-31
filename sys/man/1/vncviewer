@@ -1,0 +1,100 @@
+.TH VNCVIEWER 1
+.SH NAME
+vncviewer \- remote frame buffer viewer
+.SH SYNOPSIS
+.B vncviewer
+[
+.B -e
+.I encodings
+]
+[
+.B -csv
+]
+.IR host [\fL: n ]
+.SH DESCRIPTION
+.I Vncviewer
+provides access to remote frame buffer
+.I n
+on 
+.I host
+using the VNC (Virtual Network Computing)
+protocol.
+It resizes its window to be the smaller of the
+remote frame buffer size and the local screen.
+.PP
+The 
+.B -e
+option specifies an ordered list of rectangle
+encodings to allow in the protocol.
+The default (and full set) is 
+.IP
+.EX
+copyrect corre hextile rre raw
+.EE
+.PP
+By default, connecting to a display closes 
+any other connections to that display.
+The
+.B -s
+option allows the other connections to share the display.
+.PP
+The
+.B -v
+option causes verbose output.
+.PP
+.I Vncviewer
+negotiates with the VNC server to settle on a true-color pixel format.
+For true-color displays, this is the native display pixel format.
+On eight bit color-mapped displays,
+.I vncviewer
+requests 
+.B r3g3b2
+pixels and upon receipt translates them to the nearest
+color in the map.
+This does not cover the color map particularly well.
+When invoked with the
+.B -c
+option,
+.I vncviewer
+requests
+.B r4g4b4
+pixels instead.  This consumes more bandwidth
+but results in better matching to the available colors.
+.PP
+.I Vncviewer
+correctly handles the typing of control characters
+and shifted keystrokes.
+To support systems that require the use
+of modifiers like Alt, Ctl, and Shift on
+things like mouse events,
+typing the sequences
+.B Alt
+.B Z
+.B A
+(for Alt), 
+.B Alt
+.B Z
+.B C
+(for Ctrl),
+and
+.B Alt
+.B Z
+.B S
+(for Shift)
+will send a ``key down'' message for
+the given key (see
+.IR keyboard (6)).
+A corresponding ``key up'' message
+will be sent after the next key is pressed,
+or when the sequence is retyped,
+whichever happens first.
+.SH SOURCE
+.B /sys/src/cmd/vncviewer
+.SH "SEE ALSO
+.IR drawterm (8)
+.br
+.B http://www.uk.research.att.com/vnc
+.SH BUGS
+If the remote frame buffer is larger than the
+local screen, only the upper left corner can
+be accessed.

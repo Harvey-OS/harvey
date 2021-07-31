@@ -34,10 +34,10 @@ void
 span(void)
 {
 	Prog *p, *q;
-	Sym *setext, *s;
+	Sym *setext;
 	Optab *o;
-	int m, bflag, i;
-	long c, otxt, v;
+	int m, bflag;
+	long c, otxt;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f span\n", cputime());
@@ -126,24 +126,6 @@ span(void)
 			c += m;
 		}
 	}
-
-	if(debug['t']) {
-		/* 
-		 * add strings to text segment
-		 */
-		c = rnd(c, 8);
-		for(i=0; i<NHASH; i++)
-		for(s = hash[i]; s != S; s = s->link) {
-			if(s->type != SSTRING)
-				continue;
-			v = s->value;
-			while(v & 3)
-				v++;
-			s->value = c;
-			c += v;
-		}
-	}
-
 	c = rnd(c, 8);
 
 	setext = lookup("etext", 0);
@@ -304,7 +286,6 @@ aclass(Adr *a)
 				goto consize;
 			case STEXT:
 			case SLEAF:
-			case SSTRING:
 				instoffset = s->value + a->offset;
 				return C_LCON;
 			}

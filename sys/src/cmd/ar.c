@@ -223,10 +223,10 @@ void
 rcmd(char *arname, int count, char **files)
 {
 	int fd;
-	int i;
+	int i, ret;
 	Arfile *ap;
 	Armember *bp;
-	Dir *d;
+	Dir d;
 	Biobuf *bfile;
 
 	fd = openar(arname, ORDWR, 1);
@@ -263,20 +263,18 @@ rcmd(char *arname, int count, char **files)
 			arcopy(&bar, ap, bp);
 			continue;
 		}
-		d = dirfstat(Bfildes(bfile));
-		if(d == nil)
-			fprint(2, "ar: cannot stat %s: %r\n", file);
-		if (uflag && (d==nil || d->mtime <= bp->date)) {
+		ret = dirfstat(Bfildes(bfile), &d);
+		if (ret < 0)
+			fprint(2, "ar: cannot stat %s\n", file);
+		if (uflag && (ret < 0 || d.mtime <= bp->date)) {
 			scanobj(&bar, ap, bp->size);
 			arcopy(&bar, ap, bp);
 			Bterm(bfile);
-			free(d);
 			continue;
 		}
 		mesg('r', file);
 		skip(&bar, bp->size);
-		scanobj(bfile, ap, d->length);
-		free(d);
+		scanobj(bfile, ap, d.length);
 		armove(bfile, ap, bp);
 		Bterm(bfile);
 	}
@@ -293,13 +291,12 @@ rcmd(char *arname, int count, char **files)
 			fprint(2, "ar: %s cannot open\n", file);
 		else {
 			mesg('a', file);
-			d = dirfstat(Bfildes(bfile));
-			if (d == nil)
+			i = dirfstat(Bfildes(bfile), &d);
+			if (i < 0)
 				fprint(2, "can't stat %s\n", file);
 			else {
-				scanobj(bfile, astart, d->length);
+				scanobj(bfile, astart, d.length);
 				armove(bfile, astart, newmember());
-				free(d);
 			}
 			Bterm(bfile);
 		}
@@ -345,7 +342,7 @@ xcmd(char *arname, int count, char **files)
 {
 	int fd, f, mode, i;
 	Armember *bp;
-	Dir *dx;
+	Dir dx;
 
 	fd = openar(arname, OREAD, 0);
 	Binit(&bar, fd, OREAD);
@@ -364,15 +361,13 @@ xcmd(char *arname, int count, char **files)
 				if (write(f, bp->member, bp->size) < 0)
 					wrerr();
 				if(oflag) {
-					dx = dirfstat(f);
-					if(dx == nil)
+					if(dirfstat(f, &dx) < 0)
 						perror(file);
 					else {
-						dx->atime = bp->date;
-						dx->mtime = bp->date;
-						if(dirwstat(file, dx) < 0)
+						dx.atime = bp->date;
+						dx.mtime = bp->date;
+						if(dirwstat(file, &dx) < 0)
 							perror(file);
-						free(dx);
 					}
 				}
 				free(bp->member);
@@ -526,7 +521,7 @@ scanobj(Biobuf *b, Arfile *ap, int size)
 {
 	int obj;
 	long offset;
-	Dir *d;
+	Dir d;
 	static int lastobj = -1;
 
 	if (!allobj)			/* non-object file encountered */
@@ -535,10 +530,8 @@ scanobj(Biobuf *b, Arfile *ap, int size)
 	obj = objtype(b, 0);
 	if (obj < 0) {			/* not an object file */
 		allobj = 0;
-		d = dirfstat(Bfildes(b));
-		if (d != nil && d->length == 0)
+		if (dirfstat(Bfildes(b), &d) >= 0 && d.length == 0)
 			fprint(2, "ar: zero length file %s\n", file);
-		free(d);
 		Bseek(b, offset, 0);
 		return;
 	}
@@ -720,10 +713,9 @@ void
 armove(Biobuf *b, Arfile *ap, Armember *bp)
 {
 	char *cp;
-	Dir *d;
+	Dir d;
 
-	d = dirfstat(Bfildes(b));
-	if (d == nil) {
+	if (dirfstat(Bfildes(b), &d) < 0) {
 		fprint(2, "ar: cannot stat %s\n", file);
 		return;
 	}
@@ -731,21 +723,20 @@ armove(Biobuf *b, Arfile *ap, Armember *bp)
 	for (cp = strchr(bp->hdr.name, 0);		/* blank pad on right */
 		cp < bp->hdr.name+sizeof(bp->hdr.name); cp++)
 			*cp = ' ';
-	sprint(bp->hdr.date, "%-12ld", d->mtime);
+	sprint(bp->hdr.date, "%-12ld", d.mtime);
 	sprint(bp->hdr.uid, "%-6d", 0);
 	sprint(bp->hdr.gid, "%-6d", 0);
-	sprint(bp->hdr.mode, "%-8lo", d->mode);
-	sprint(bp->hdr.size, "%-10lld", d->length);
+	sprint(bp->hdr.mode, "%-8lo", d.mode);
+	sprint(bp->hdr.size, "%-10lld", d.length);
 	strncpy(bp->hdr.fmag, ARFMAG, 2);
-	bp->size = d->length;
+	bp->size = d.length;
 	arread(b, bp, bp->size);
-	if (d->length&0x01)
-		d->length++;
+	if (d.length&0x01)
+		d.length++;
 	if (ap) {
 		arinsert(ap, bp);
-		ap->size += d->length+SAR_HDR;
+		ap->size += d.length+SAR_HDR;
 	}
-	free(d);
 }
 /*
  *	Copy the archive member at the current offset into the temp file.

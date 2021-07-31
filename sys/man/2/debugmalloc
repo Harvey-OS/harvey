@@ -1,0 +1,137 @@
+.TH DEBUGMALLOC 2
+.SH NAME
+showleak, malloc, mallocz, free, realloc, calloc, msize, setmalloctag,
+setrealloctag, getmalloctag, getrealloctag, malloctopoolblock \- debugging memory allocator
+.SH SYNOPSIS
+.B
+$LD $OFILES -ldebugmalloc
+.PP
+.B /sys/src/libdebugmalloc/showleak
+.I logfile
+[
+.I v.out
+]
+.SH DESCRIPTION
+.I Debugmalloc
+is a variant of the standard memory allocation routines that is intended to 
+help debug 
+.IR malloc -related
+problems.
+For function prototypes, see
+.IR malloc (2).
+It is invoked by specifying 
+.B -ldebugmalloc
+at link time.
+.PP
+Like the standard memory allocation routines, 
+.I debugmalloc
+is based on the 
+.IR pool (2)
+interface; the difference is that 
+it turns on the 
+.BR POOL_PARANOIA ,
+.BR POOL_ANTAGONISM ,
+and 
+.BR POOL_LOGGING 
+flags, which cause the pool routines to
+recheck the whole of their data structures at each call,
+fill non-zeroed memory with garbage at allocation time,
+fill memory with garbage at free time,
+and give the allocator logging information.
+.PP
+The effects of 
+.B POOL_PARANOIA
+and
+.B POOL_ANTAGONISM
+are fully defined in 
+.IR pool (2);
+what is new in
+.I debugmalloc
+is the logging facility.
+If the environment variable
+.B MALLOCFD
+is set to a positive number
+corresponding to an open file descriptor,
+a textual log entry is written to
+that file descriptor at each call to 
+.IR malloc ,
+.IR realloc ,
+or
+.IR free .
+On supported architectures, a log line containing
+a stack trace will be written before the log line for each call.
+Here is an example log fragment.
+.PP
+.EX
+#stack 0001190a 000139be 000116b5 000133d8
+poolalloc 1a350 8256 = 24d90
+#stack 0001190a 000139be 000116b5 00013748
+poolfree 1a350 24d90
+#stack 0001190a 000139be 000116b5 00013614
+poolrealloc 1a350 0 24 = 24d90
+.EE
+.PP
+The log lines that are not stack traces always begin with
+the function name, the value of the pool pointer,
+and then their arguments.
+.I Poolalloc
+and
+.I poolrealloc
+also log their returned blocks.
+.PP
+This log file can be processed by 
+.I showleak 
+to produce a listing of unfreed memory blocks, sorted
+by frequency of allocation.
+A sample listing might look like:
+.PP
+.EX
+15 * 24 bytes = 360 bytes src(0x1190a); src(0x116b5);
+10 * 68 bytes = 680 bytes src(0x1190a); src(0x116b5);
+5 * 40 bytes = 200 bytes src(0x1190a); src(0x116b5);
+.EE
+.PP
+Each of the lines ends with a string of commands to give to
+.IR acid (1) 
+to print the stack at the time the leaked block was allocated.
+If the optional program file argument is passed to
+.IR showleak ,
+it will filter calls to
+.I malloc
+and the pool routines
+from the stack trace.
+.SH EXAMPLE
+.EX
+% 8c leak.c
+% 8l leak.8 -ldebugmalloc
+% MALLOCFD=3 8.out >[3] mlog
+% /sys/src/libdebugmalloc/showleak mlog 8.out
+20 * 9 bytes = 180 bytes src(0x1354); src(0x10ff); src(0x1036);
+10 * 18 bytes = 180 bytes src(0x1354); src(0x10ff); src(0x1036);
+% 
+.EE
+.PP
+The setting of the
+.B POOL_PARANOIA
+flag slows down the allocator substantially.
+To use 
+.I debugmalloc
+without that setting, add the line
+.EX
+	sbrkmem->flags &= ~POOL_PARANOIA;
+.EE
+near the beginning of your program.
+.SH SOURCE
+.B /sys/src/libdebugmalloc
+.SH SEE ALSO
+.IR leak (1),
+.IR brk (2),
+.IR malloc (2),
+.IR pool (2)
+.SH BUGS
+.PP
+The stack trace can include some
+false positives.
+.PP
+Stack traces are only supported on the Intel
+.IR x86 .

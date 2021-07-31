@@ -138,13 +138,6 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
-	{ I_MAGIC|DYN_MAGIC,	/* I386 dynamic load module */
-		"386 plan 9 dynamically loaded module",
-		FI386,
-		&mi386,
-		sizeof(Exec),
-		beswal,
-		common },
 	{ J_MAGIC,			/* I960 6.out (big-endian) */
 		"960 plan 9 executable",
 		FI960,
@@ -173,7 +166,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		adotout },
-	{ Q_MAGIC,			/* PowerPC q.out & boot image */
+	{ Q_MAGIC,			/* PowerPC q.out */
 		"power plan 9 executable",
 		FPOWER,
 		&mpower,
@@ -223,16 +216,13 @@ Mach	*mach = &mi386;			/* Global current machine table */
 static ExecTable*
 couldbe4k(ExecTable *mp)
 {
-	Dir *d;
+	Dir d;
 	ExecTable *f;
 
-	if((d=dirstat("/proc/1/regs")) == nil)
+	if(dirstat("/proc/1/regs", &d) < 0)
 		return mp;
-	if(d->length < 32*8){		/* R3000 */
-		free(d);
+	if(d.length < 32*8)		/* R3000 */
 		return mp;
-	}
-	free(d);
 	for (f = exectab; f->magic; f++)
 		if(f->magic == M_MAGIC) {
 			f->name = "mips plan 9 executable on mips2 kernel";
@@ -316,11 +306,6 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 	long kbase;
 
 	adotout(fd, fp, hp);
-	if(hp->e.magic & DYN_MAGIC) {
-		fp->txtaddr = 0;
-		fp->dataddr = fp->txtsz;
-		return 1;
-	}
 	kbase = mach->kbase;
 	if ((fp->entry & kbase) == kbase) {		/* Boot image */
 		switch(fp->type) {
@@ -345,17 +330,15 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 		case FALPHA:
 			fp->type = FALPHAB;
 			fp->txtaddr = fp->entry;
-			fp->name = "alpha plan 9 boot image?";
+			fp->name = "Alpha plan 9 boot image?";
 			fp->hdrsz = 0;		/* header stripped */
 			fp->dataddr = fp->txtaddr+fp->txtsz;
 			break;
-		case FPOWER:
-			fp->type = FPOWERB;
-			fp->txtaddr = fp->entry;
-			fp->name = "power plan 9 boot image";
-			fp->hdrsz = 0;		/* header stripped */
+		case FALPHAB:
+			fp->txtaddr = 0x20000000+sizeof(Exec);
 			fp->dataddr = fp->txtaddr+fp->txtsz;
-			break;
+			fp->hdrsz = 0;		/* header stripped */
+			return 1;
 		default:
 			break;
 		}

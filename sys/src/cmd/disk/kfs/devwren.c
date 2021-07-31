@@ -33,12 +33,30 @@ wren(Device dev)
 	return 0;
 }
 
+/*
+ * find out the length of a file
+ * given the mesg version of a stat buffer
+ * we call this because convM2D is different
+ * for the file system than in the os
+ */
+uvlong
+statlen(char *ap)
+{
+	uchar *p;
+	ulong ll, hl;
+
+	p = (uchar*)ap;
+	p += 3*NAMELEN+5*4;
+	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
+	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
+	return ll | ((uvlong) hl << 32);
+}
+
 void
 wreninit(Device dev)
 {
-	char buf[MAXBUFSIZE];
+	char buf[8*1024], d[DIRREC];
 	Wren *w;
-	Dir *d;
 	int fd, i;
 
 	if(wrens == 0)
@@ -47,7 +65,7 @@ wreninit(Device dev)
 	fd = open(wrenfile, ORDWR);
 	if(fd < 0)
 		panic("can't open %s", wrenfile);
-	if((d = dirfstat(fd)) == nil)
+	if(fstat(fd, d) < 0)
 		panic("can't stat %s\n", wrenfile);
 	seek(fd, 0, 0);
 	i = read(fd, buf, sizeof buf);
@@ -64,8 +82,7 @@ wreninit(Device dev)
 	}else
 		badmagic = 1;
 	w->dev = dev;
-	w->size = d->length;
-	free(d);
+	w->size = statlen(d);
 	w->fd = fd;
 	maxwren++;
 }
@@ -74,7 +91,7 @@ void
 wrenream(Device dev)
 {
 	Wren *w;
-	char buf[MAXBUFSIZE];
+	char buf[8*1024];
 	int fd, i;
 
 	if(RBUFSIZE % 512)
@@ -106,7 +123,7 @@ wrentag(char *p, int tag, long qpath)
 int
 wrencheck(Device dev)
 {
-	char buf[MAXBUFSIZE];
+	char buf[8*1024];
 
 	if(badmagic)
 		return 1;

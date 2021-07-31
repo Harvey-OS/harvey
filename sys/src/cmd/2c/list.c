@@ -15,14 +15,14 @@ listinit(void)
 }
 
 int
-Bconv(Fmt *fp)
+Bconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 
 	str[0] = 0;
-	bits = va_arg(fp->args, Bits);
+	bits = va_arg(*arg, Bits);
 	while(bany(&bits)) {
 		i = bnum(bits);
 		if(str[0])
@@ -37,41 +37,44 @@ Bconv(Fmt *fp)
 		strcat(str, s);
 		bits.b[i/32] &= ~(1L << (i%32));
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Pconv(Fmt *fp)
+Pconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ], s[20];
 	Prog *p;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(*arg, Prog*);
 	sprint(str, "	%A	%D,%D", p->as, &p->from, &p->to);
 	if(p->from.field) {
 		sprint(s, ",%d,%d", p->to.field, p->from.field);
 		strcat(str, s);
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Aconv(Fmt *fp)
+Aconv(va_list *arg, Fconv *fp)
 {
 	int r;
 
-	r = va_arg(fp->args, int);
-	return fmtstrcpy(fp, anames[r]);
+	r = va_arg(*arg, int);
+	strconv(anames[r], fp);
+	return 0;
 }
 
 int
-Xconv(Fmt *fp)
+Xconv(va_list *arg, Fconv *fp)
 {
 	char str[20], s[10];
 	Index x;
 	int i;
 
-	x = va_arg(fp->args, Index);
+	x = va_arg(*arg, Index);
 	str[0] = 0;
 	i = x.o0 & D_MASK;
 	if(i != D_NONE) {
@@ -82,18 +85,19 @@ Xconv(Fmt *fp)
 			"12481248"[i]);
 		strcat(str, s);
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Dconv(Fmt *fp)
+Dconv(va_list *arg, Fconv *fp)
 {
 	char str[40], s[20];
 	Adr *a;
 	int i, j;
 	long d;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(*arg, Adr*);
 	i = a->index;
 	if(i != D_NONE) {
 		a->index = D_NONE;
@@ -212,16 +216,17 @@ Dconv(Fmt *fp)
 		strcat(str, s);
 	}
 out:
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Rconv(Fmt *fp)
+Rconv(va_list *arg, Fconv *fp)
 {
 	char str[20];
 	int r;
 
-	r = va_arg(fp->args, int);
+	r = va_arg(*arg, int);
 	if(r >= D_R0 && r < D_R0+NREG)
 		sprint(str, "R%d", r-D_R0);
 	else
@@ -332,16 +337,17 @@ Rconv(Fmt *fp)
 		sprint(str, "SRP");
 		break;
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Sconv(Fmt *fp)
+Sconv(va_list *arg, Fconv *fp)
 {
 	int i, c;
 	char str[30], *p, *s;
 
-	s = va_arg(fp->args, char*);
+	s = va_arg(*arg, char*);
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
 		c = s[i] & 0xff;
@@ -370,5 +376,6 @@ Sconv(Fmt *fp)
 		*p++ = ((c>>0) & 7) + '0';
 	}
 	*p = 0;
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }

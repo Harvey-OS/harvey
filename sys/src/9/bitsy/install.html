@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+                      "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>iPaq H3600 Linux Installation Instructions - v0.19</title>
+  <meta name="GENERATOR" content="amaya V3.1">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body lang="en">
+<h1 style="text-align: center">iPAQ H3600 Linux Installation Instructions -
+v0.19</h1>
+
+<h2>WARNINGS:</h2>
+<ul>
+  <li><h3>If this installation fails then your iPAQ could become
+    (temporarily) unusable.</h3>
+    <p>This version is less likely than the previous installation processes to
+    result in an installation failure. We are trying very hard to make this
+    procedure bullet proof, and we think we're very close with the boot
+    loader. The boot loader can not get over not get overwritten by accident
+    now. Some additionial bug is certainly possible, but we think it is
+    unlikely.   If you have not upgraded your boot load to version 2.9.5,
+    please do so immediatly.</p>
+
+    <p><em>Compaq Research will ensure that you do not permanently
+    turn your iPAQ into a paperweight</em>, but it is
+    <em><b>very</b></em> inconvenient for all of us if we have to fix
+    a unit that was rendered nonbooting by a failed installation (or
+    WinCE restoration).</p>
+
+  </li>
+  <li><h3>Windows CE Restoration</h3>
+
+    <p>If you save an image of your Windows CE software as described
+    in the <a
+    href="http://www.handhelds.org/projects/wincerestoration.html">WinCE
+    restoration instructions</a> then you will be able to restore it
+    again after installing Linux.
+
+    <p>The restoration process is not simple.  It is error-prone.  But
+    it is available.  We will help anyone who has trouble with it.
+
+    <p>We are working on an improved process, but it is not ready yet.
+
+    <p> WinCE has been successfully restored by many people on
+    fifteen (15) different iPAQs. The current status of the save / restoration
+    of WinCE is available at <a
+    href="http://www.handhelds.org/projects/wincerestoration.html">http://www.handhelds.org/projects/wincerestoration.html</a>.</p>
+
+  </li>
+  <li><h2>Errata</h2>
+    <ul>
+      <li>Do not use the "<em>Tools->Bootldr->Run</em>" command. The OSloader
+        program contians an older version of the boot loader program, that
+        could make your iPAQ fail to reboot. This will be fixed in the next
+        OSloader release.
+        <p></p>
+      </li>
+      <li>Some web browser's default download settings is 'ASCII' mode instead
+        of 'binary' mode, this will make the downloaded files corrupt.  For
+        example, Netscape requires that you hold down the shift key when you
+        click on an item for downloading in 'binary' mode.
+        <p><strong>WARNING</strong>:  Please verify the 'md5sum' of any file
+        before using.</p>
+        <p></p>
+      </li>
+      <li>If you are going to be using minicom, there is a timing issue. If
+        minicom starts to NAK repeatedly, stop the download Wait for the
+        second '.' to print, then type ctrl-c.  Retype the command at the boot
+        loader prompt followed by a &lt;cr>, then ctrl-a, z, s, select xmodem,
+        , &lt;cr>, &lt;cr>. This will restart the down load very quickly and
+        avoid the timing issues.
+        <p></p>
+      </li>
+      <li>Unless you really really know what you are doing do not mix kernels,
+        ramdisk and cramfs files from different V0.?? releases. Each V's can
+        have different memory mappings.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>Requirements:</h3>
+<ul>
+  <li>A computer that runs Windows 95/98/2000/NT. A few people have installed
+    Linux on the iPAQ using a Linux computer.  There are Linux conectivity
+    instructions at <a
+    href="http://www.handhelds.org/minihowto/wince-link/index.html">http://www.handhelds.org/minihowto/wince-link/index.html</a>
+    and <a
+    href="http://www.handhelds.org/pipermail/ipaq/2000-August/000061.html">
+    http://www.handhelds.org/pipermail/ipaq/2000-Auguest/000061.html</a>
+    <ul>
+      <li>Install the ActiveSync application (Async) from the iPAQ H3600
+        Pocket PC distribution CD that came with your unit onto your Windows
+        system.</li>
+      <li>You will also be using HyperTerminal (or other terminal emulator
+        capable of the xmodem protocol, such as minicom on Linux.</li>
+    </ul>
+  </li>
+  <li>The following files from <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19">ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19:</a>
+    <ul>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/init-2-67.cramfs">init-2-67.cramfs</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/init-2-67.cramfs.md5sum">init-2-67.cramfs.md5sum</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/root-2-56.cramfs">root-2-56.cramfs</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/root-2-56.cramfs.md5sum">root-2-56.cramfs.md5sum</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/usr-2-59.cramfs">usr-2-59.cramfs</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/usr-2-59.cramfs.md5sum">usr-2-59.cramfs.md5sum</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/zImage-2.4.0-test11-rmk1-np3-hh2">zImage-2.4.0-test11-rmk1-np3-hh2</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/zImage-2.4.0-test11-rmk1-np3-hh2.md5sum">zImage-2.4.0-test11-rmk1-np3-hh2.md5sum</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/bootldr-0000-2.9.5">bootldr-0000-2.9.5</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org:/pub/linux/compaq/ipaq/v0.19/bootldr-0000-2.9.5.md5sum">bootldr-0000-2.9.5.md5sum</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/bootldr-c002-2.9.5">bootldr-c002-2.9.5</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/bootldr-c002-2.9.5.md5sum">bootldr-c002-2.9.5.md5sum</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/osloader-1.3.0.exe">OSloader-1.3.0.exe</a></li>
+      <li><a
+        href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/osloader-1.3.0.exe.md5sum">OSloader-1.3.0.exe.md5sum</a></li>
+    </ul>
+  </li>
+  <li>iPAQ H3600 with a serial cable (USB is NOT supported at this time). For
+    those of you that can not wait for a serial cable, Peter Monta has
+    instructions for a home made cable which invalidates the warrenty on the
+    base station at <a
+    href="http://www.handhelds.org/pipermail/ipaq/2000-August/000061.html">
+    http://www.handhelds.org/pipermail/ipaq/2000-Auguest/000061.html</a></li>
+</ul>
+
+<p></p>
+
+<h3>Installation:</h3>
+<ol>
+  <li>Plug your iPAQ into the serial port of your Windows machine using a
+    serial cable.</li>
+  <li>Configure your iPAQ to use the serial port for ActiveSync.
+    <ul>
+      <li>Select settings from the Start Menu (the Microsoft flag icon)</li>
+      <li>Click the Connections tab, and then double-click the PC icon.</li>
+      <li>Ensure the <em>Automatically synchronize when serial cable is
+        connected using</em> is checked<em>.</em></li>
+      <li>Change <em>USB</em> to <em>115200 Default.</em></li>
+      <li>Click OK (top right of the screen).</li>
+    </ul>
+  </li>
+  <li>Use the ActiveSync application (the file name is Async.exe) to connect
+    to your iPaq 3600 from you PC.</li>
+  <li>Copy  <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/osloader-1.3.0.exe">OSloader-1.3.0.exe</a>
+    to your iPaq from your Windows machine. Ignore the "may need to convert"
+    message you will get.</li>
+  <li>Copy the <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/bootldr-c002-2.9.5">bootldr-c002-2.9.5</a>
+    file to your iPAQ: it MUST be in the root directory (the root directory is
+    referred to as "My PocketPC"), and MUST be renamed <em>bootldr</em>.</li>
+  <li>On your iPaq H3600, find OSloader-1.3.0 wherever you put it, and then
+    execute OSloader-1.3.0.</li>
+  <li>Select the <em>Tools->Flash->Save to files....</em> Four (4) files, 4MB
+    each in size will be created. After each file is created, copy the file to
+    your computer, then delete the file from the iPAQ to make room in the
+    WinCE ramdisk for the next file. The current status of the save /
+    restoration of WinCE is available at <a
+    href="http://www.handhelds.org/projects/restorationwince.html">http://www.handhelds.org/projects/wincerestoration.html.</a></li>
+  <li>Select the "<em>Tools->Bootldr->Run after loading from file"</em> menu
+    entry. The iPAQ screen should go blank.</li>
+  <li>On the PC disconnect the ActiveSync application (it is holding onto the
+    serial port you need).
+    <ul>
+      <li>On the PC, right click on the ActiveSync logo in the tooltray.</li>
+      <li>Select the Connections Settings.</li>
+      <li>Deselect Allow serial cable or infrared connection to this COM
+      port.</li>
+    </ul>
+  </li>
+  <li>You may have trouble getting ActiveSync to free your serial port. You
+    might want to use some more friendly operating system to run minicom or
+    eterm or,...</li>
+  <li>Run your terminal emulator on whatever machine can talk to your serial
+    port with the settings of: 115200 8N1 (115200 baud, 8 bits, No Parity, 1
+    stop bit) and Flow control: 'None'.</li>
+  <li>In your terminal emulator, hit the <em>enter </em>key on your keyboard
+    on your machine: you should see a '<strong>boot>'</strong> prompt. You can
+    type '<em>help</em>' at the bootloader at the '<strong>boot></strong>'
+    prompt to get a list of commands.</li>
+  <li><em>This step is dangerous: make sure you perform it exactly
+    correctly.</em> At the '<strong>boot></strong>' prompt, type '<em>load
+    bootldr</em>', then start an xmodem download of the file <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/bootldr-0000-2.9.5">bootldr-0000-2.9.5</a>.
+    A <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/bootldr-2.9.5.tar.gz">bootldr
+    tarball </a>corresponding exactly to these boot loader bits is
+  available.</li>
+  <li>Your iPAQ will say "<strong>verifying ... done.</strong>". The loader
+    program has a simple sanity check in it to try to ensure that only a
+    bootloader can get installed into flash at the iPAQ's bootloader's
+    address.</li>
+  <li>Make sure the bootldr flash sector is protected:
+  <ul>
+  <li><tt>qflash 2</tt>
+  <li> should print <tt>00010001</tt>.
+  <li>Otherwise, protect the flash sector manually.
+  <li><tt>pflash 0 0xffff 1</tt>
+  </ul>
+  <li>Reboot or power cycle your iPaq H3600: the boot loader should come up.
+    Don't be scared about the message "Corrupt kernel image", because you
+    don't have a kernel installed yet. <em>Whew! You are through the risky
+    part of the procedure</em>.</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<strong><em>load
+    kernel</em></strong>', then start an xmodem download of the file <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/zImage-2.4.0-test11-rmk1-np3-hh2">zImage-2.4.0-test11-rmk1-np3-hh2</a>.
+    When finished with the download, you will see "Erasing, Writing, Verifying
+    flash" messages. <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/linux-2.4.0-test11-rmk1-np3-hh2.tgz">A
+    kernel tarball corresponding exactly to these kernel bits is
+    available</a>.</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<em>load flash
+    0x100000</em>', then start an xmodem download of the file <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/init-2-67.cramfs">init-2-67.cramfs</a>.
+    This takes approximately 4 minutes. When finished with the download, you
+    will see "Erasing, Writing, Verifying flash" messages.</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<em>load flash
+    0x200000</em>', then start an xmodem download of the file <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/root-2-56.cramfs">root-2-56.cramfs</a>.
+    This takes approximately 10 minutes. When finished with the downlaod, you
+    will see "Erasing, Writing, Verifying flash" messages.</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<em>load flash
+    0x500000</em>', then start an xmodem download of the file <a
+    href="ftp://ftp.handhelds.org/pub/linux/compaq/ipaq/v0.19/usr-2-59.cramfs">usr-2-59.cramfs</a>.
+    This takes approximately 20 minutes. When finished with the downlaod, you
+    will see "Erasing, Writing, Verifying flash" messages.</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<em>set linuxargs
+    "noinitrd root=/dev/mtdblock4 init=/linuxrc console=ttySA0"</em>'.</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<em>set copy_ramdisk
+    0x0</em>'</li>
+  <li>At the '<strong>boot</strong>>' prompt, type '<em>set baudrate
+    115200</em>'</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<em>params
+  save</em>'.</li>
+  <li>At the '<strong>boot></strong>' prompt, type '<em>boot</em>'.</li>
+  <li>At the <strong>(none) login: </strong>prompt, type '<em>root</em>'</li>
+  <li>At the prompt, type '<em>mkfs -t ext2 /dev/mtdblock6</em>'</li>
+  <li>At the prompt, type '<em>mount /usr/local</em>'. This will allow you to
+    use /dev/mtdblock6 as /usr/local for persistent storage. Please note that you
+    may only make one hundred thousand (100,000) writes to a particular sector
+    of flash.</li>
+</ol>
+
+<p>Congratulations! You should be up and running.</p>
+
+<p></p>
+
+<p>Note: if you need to get back into the boot loader after you have Linux
+running, restart the iPAQ and quickly hit the space bar a few times during the
+boot process. You can restart the iPAQ with the Linux command <em>shutdown -r
+now.</em></p>
+
+<p></p>
+
+<p style="text-align: left">If you have any problems, please post to one of the followig lists:</p>
+<p style="text-align: left">General problems with setup, installation, user-land software or configuration: <a href="mailto:ipaq@handhelds.org">ipaq@handhelds.org</a>.</p>
+<p style="text-align: left">Issues believed to be related to the kernel: <a href="mailto:linux@handhelds.org">linux@handhelds.org</a>.</p>
+<p style="text-align: left">Thank you.</p>
+
+<p style="text-align: left"></p>
+
+<p style="text-align: left">Modified  <em>December 8, 2000</em>  by <a
+href="mailto:tom.lawler@compaq.com">tom.lawler@compaq.com.</a></p>
+
+<p style="text-align: left">Please send comments on this document to Tom
+Lawler (<a href="mailto:tom.lawler@compaq.com">tom.lawler@compaq.com</a>).</p>
+
+<p></p>
+</body>
+</html>

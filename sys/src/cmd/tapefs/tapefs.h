@@ -6,7 +6,6 @@ enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
 	Nram	= 512,
-	Maxbuf	= 8192,		/* max buffer size */
 };
 
 typedef struct Fid Fid;
@@ -33,7 +32,7 @@ struct Ram
 	Ram	*next;		/* next member of file's directory */
 	Qid	qid;
 	long	perm;
-	char	*name;
+	char	name[NAMELEN];
 	ulong	atime;
 	ulong	mtime;
 	char	*user;
@@ -69,14 +68,13 @@ typedef struct fileinf {
 
 extern	ulong	path;		/* incremented for each new file */
 extern	Ram	*ram;
-extern	char	*user;
+extern	char	user[];
 extern	Idmap	*uidmap;
 extern	Idmap	*gidmap;
 extern	int	replete;
 void	error(char*);
 void	*erealloc(void*, ulong);
 void	*emalloc(ulong);
-char	*estrdup(char*);
 void	populate(char *);
 void	dotrunc(Ram*);
 void	docreate(Ram*);

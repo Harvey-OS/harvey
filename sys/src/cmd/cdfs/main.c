@@ -8,12 +8,6 @@
 #include "dat.h"
 #include "fns.h"
 
-typedef struct Aux Aux;
-struct Aux {
-	int doff;
-	Otrack *o;
-};
-
 static void checktoc(Drive*);
 
 int vflag;
@@ -22,19 +16,20 @@ Drive *drive;
 int nchange;
 
 enum {
-	Qdir = 0,
-	Qctl = 1,
-	Qwa = 2,
-	Qwd = 3,
-	Qtrack = 4,
+	Qdir = 0|CHDIR,
+	Qctl = 0,
+	Qwa = 1|CHDIR,
+	Qwd = 2|CHDIR,
+	Qtrack = 3,
 };
 
 char*
 geterrstr(void)
 {
-	static char errbuf[ERRMAX];
+	static char errbuf[ERRLEN];
 
-	rerrstr(errbuf, sizeof errbuf);
+	errbuf[0] = 0;
+	errstr(errbuf);
 	return errbuf;
 }
 
@@ -51,97 +46,96 @@ emalloc(ulong sz)
 }
 
 static void
-fsattach(Req *r)
+cdattach(Req *r, Fid*, char *spec, Qid *qid)
 {
-	char *spec;
-
-	spec = r->ifcall.aname;
 	if(spec && spec[0]) {
 		respond(r, "invalid attach specifier");
 		return;
 	}
 
 	checktoc(drive);
-	r->fid->qid = (Qid){Qdir, drive->nchange, QTDIR};
-	r->ofcall.qid = r->fid->qid;
-	r->fid->aux = emalloc(sizeof(Aux));
+	*qid = (Qid){Qdir, drive->nchange};
 	respond(r, nil);
 }
 
-static char*
-fsclone(Fid *old, Fid *new)
+static void
+cdclone(Req *r, Fid *old, Fid *new)
 {
-	Aux *na;
+	Otrack *aux;
 
-	na = emalloc(sizeof(Aux));
-	*na = *((Aux*)old->aux);
-	if(na->o)
-		na->o->nref++;
-	new->aux = na;
-	return nil;
+	if(aux = old->aux)
+		aux->nref++;
+	new->aux = aux;
+
+	respond(r, nil);
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static void
+cdwalk(Req *r, Fid *fid, char *name, Qid *qid)
 {
 	int i;
 
 	checktoc(drive);
-	switch((ulong)fid->qid.path) {
+	switch(fid->qid.path) {
 	case Qdir:
 		if(strcmp(name, "..") == 0) {
-			*qid = (Qid){Qdir, drive->nchange, QTDIR};
-			return nil;
+			*qid = (Qid){Qdir, drive->nchange};
+			respond(r, nil);
+			return;
 		}
 		if(strcmp(name, "ctl") == 0) {
-			*qid = (Qid){Qctl, 0, 0};
-			return nil;
+			*qid = (Qid){Qctl, 0};
+			respond(r, nil);
+			return;
 		}
 		if(strcmp(name, "wa") == 0 && drive->writeok) {
-			*qid = (Qid){Qwa, drive->nchange, QTDIR};
-			return nil;
+			*qid = (Qid){Qwa, drive->nchange};
+			respond(r, nil);
+			return;
 		}
 		if(strcmp(name, "wd") == 0 && drive->writeok) {
-			*qid = (Qid){Qwd, drive->nchange, QTDIR};
-			return nil;
+			*qid = (Qid){Qwd, drive->nchange};
+			respond(r, nil);
+			return;
 		}
 		for(i=0; i<drive->ntrack; i++)
 			if(strcmp(drive->track[i].name, name) == 0)
 				break;
 		if(i == drive->ntrack) {
-			return "file not found";
+			respond(r, "file not found");
+			return;
 		}
-		*qid = (Qid){Qtrack+i, 0, 0};
-		return nil;
+		*qid = (Qid){Qtrack+i, 0};
+		respond(r, nil);
+		return;
 
 	case Qwa:
 	case Qwd:
 		if(strcmp(name, "..") == 0) {
-			*qid = (Qid){Qdir, drive->nchange, QTDIR};
-			return nil;
+			*qid = (Qid){Qdir, drive->nchange};
+			respond(r, nil);
+			return;
 		}
-		return "file not found";
+		respond(r, "file not found");
+		return;
 	default:	/* bug: lib9p could handle this */
-		return "walk in non-directory";
+		respond(r, "walk in non-directory");
+		return;
 	}
 }
 
 static void
-fscreate(Req *r)
+cdcreate(Req *r, Fid *fid, char*, int omode, ulong, Qid *qid)
 {
-	int omode, type;
+	int type;
 	Otrack *o;
-	Fid *fid;
 
-	fid = r->fid;
-	omode = r->ifcall.mode;
-	
 	if(omode != OWRITE) {
 		respond(r, "bad mode (use OWRITE)");
 		return;
 	}
 
-	switch((ulong)fid->qid.path) {
+	switch(fid->qid.path) {
 	case Qdir:
 	default:
 		respond(r, "permission denied");
@@ -169,17 +163,16 @@ fscreate(Req *r)
 	drive->nchange = -1;
 	checktoc(drive);	/* update directory info */
 	o->nref = 1;
-	((Aux*)fid->aux)->o = o;
+	fid->aux = o;
 
-	fid->qid = (Qid){Qtrack+(o->track - drive->track), drive->nchange, 0};
-	r->ofcall.qid = fid->qid;
+	*qid = (Qid){Qtrack+(o->track - drive->track), drive->nchange};
 	respond(r, nil);
 }
 
 static void
-fsremove(Req *r)
+cdremove(Req *r, Fid *fid)
 {
-	switch((ulong)r->fid->qid.path){
+	switch(fid->qid.path){
 	case Qwa:
 	case Qwd:
 		if(drive->fixate(drive) < 0)
@@ -196,44 +189,42 @@ fsremove(Req *r)
 }
 
 int
-fillstat(ulong qid, Dir *d)
+fillstat(int qid, Dir *d)
 {
 	Track *t;
 
 	memset(d, 0, sizeof(Dir));
-	d->uid = "cd";
-	d->gid = "cd";
-	d->muid = "";
-	d->qid = (Qid){qid, drive->nchange, 0};
+	strcpy(d->uid, "cd");
+	strcpy(d->gid, "cd");
+	d->qid = (Qid){qid, drive->nchange};
 	d->atime = time(0);
-	d->atime = drive->changetime;
+	d->mtime = drive->changetime;
 
 	switch(qid){
 	case Qdir:
-		d->name = "/";
-		d->qid.type = QTDIR;
-		d->mode = DMDIR|0777;
+		strcpy(d->name, "/");
+		d->mode = CHDIR|0777;
 		break;
 
 	case Qctl:
-		d->name = "ctl";
+		strcpy(d->name, "ctl");
 		d->mode = 0666;
 		break;
 
+	case Qwa&~CHDIR:
 	case Qwa:
 		if(drive->writeok == 0)
 			return 0;
-		d->name = "wa";
-		d->qid.type = QTDIR;
-		d->mode = DMDIR|0777;
+		strcpy(d->name, "wa");
+		d->mode = CHDIR|0777;
 		break;
 
+	case Qwd&~CHDIR:
 	case Qwd:
 		if(drive->writeok == 0)
 			return 0;
-		d->name = "wd";
-		d->qid.type = QTDIR;
-		d->mode = DMDIR|0777;
+		strcpy(d->name, "wd");
+		d->mode = CHDIR|0777;
 		break;
 
 	default:
@@ -242,7 +233,7 @@ fillstat(ulong qid, Dir *d)
 		t = &drive->track[qid-Qtrack];
 		if(strcmp(t->name, "") == 0)
 			return 0;
-		d->name = t->name;
+		strcpy(d->name, t->name);
 		d->mode = t->mode;
 		d->length = t->size;
 		break;
@@ -250,143 +241,69 @@ fillstat(ulong qid, Dir *d)
 	return 1;
 }
 
-static ulong 
-cddb_sum(int n)
+static int
+readctl(void*, long, long)
 {
-	int ret;
-	ret = 0;
-	while(n > 0) {
-		ret += n%10;
-		n /= 10;
-	}
-	return ret;
-}
-
-static ulong
-diskid(Drive *d)
-{
-	int i, n;
-	ulong tmp;
-	Msf *ms, *me;
-
-	n = 0;
-	for(i=0; i < d->ntrack; i++)
-		n += cddb_sum(d->track[i].mbeg.m*60+d->track[i].mbeg.s);
-
-	ms = &d->track[0].mbeg;
-	me = &d->track[d->ntrack].mbeg;
-	tmp = (me->m*60+me->s) - (ms->m*60+ms->s);
-
-	/*
-	 * the spec says n%0xFF rather than n&0xFF.  it's unclear which is correct.
-	 * most CDs are in the database under both entries.
-	 */
-	return ((n % 0xFF) << 24 | (tmp << 8) | d->ntrack);
+	return 0;
 }
 
 static void
-readctl(Req *r)
+cdread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 {
-	int i, isaudio;
-	char s[1024];
-	Msf *m;
-
-	strcpy(s, "");
-
-	isaudio = 0;
-	for(i=0; i<drive->ntrack; i++)
-		if(drive->track[i].type == TypeAudio)
-			isaudio = 1;
-
-	if(isaudio){
-		sprint(s, "aux/cddb query %8.8lux %d", diskid(drive), drive->ntrack);
-		for(i=0; i<drive->ntrack; i++){
-			m = &drive->track[i].mbeg;
-			sprint(s+strlen(s), " %d", (m->m*60+m->s)*75+m->f);
-		}
-		m = &drive->track[drive->ntrack].mbeg;
-		sprint(s+strlen(s), " %d\n", m->m*60+m->s);
-	}
-
-	if(drive->readspeed == drive->writespeed)
-		sprint(s+strlen(s), "speed %d\n", drive->readspeed);
-	else
-		sprint(s+strlen(s), "speed read %d write %d\n", drive->readspeed, drive->writespeed);
-	sprint(s+strlen(s), "maxspeed read %d write %d\n", drive->maxreadspeed, drive->maxwritespeed);
-	readstr(r, s);
-}
-
-static void
-fsread(Req *r)
-{
-	int j, n, m;
-	uchar *p, *ep;
+	int i, j, off, n, m;
+	char *p;
 	Dir d;
-	Fid *fid;
 	Otrack *o;
-	vlong offset;
-	void *buf;
-	long count;
-	Aux *a;
 
-	fid = r->fid;
-	offset = r->ifcall.offset;
-	buf = r->ofcall.data;
-	count = r->ifcall.count;
-
-	switch((ulong)fid->qid.path) {
+	switch(fid->qid.path) {
 	case Qdir:
 		checktoc(drive);
 		p = buf;
-		ep = p+count;
 		m = Qtrack+drive->ntrack;
-		a = fid->aux;
-		if(offset == 0)
-			a->doff = 1;	/* skip root */
-
-		for(j=a->doff; j<m; j++) {
+		n = *count/DIRLEN;
+		off = offset/DIRLEN;
+		for(i=0, j=0; j<m && i<off+n; j++) {
 			if(fillstat(j, &d)) {
-				if((n = convD2M(&d, p, ep-p)) <= BIT16SZ)
-					break;
-				p += n;
+				if(off<=i && i<off+n) {
+					convD2M(&d, p);
+					p += DIRLEN;
+				}
+				i++;
 			}
 		}
-		a->doff = j;
-
-		r->ofcall.count = p-(uchar*)buf;
+		*count = (i-off)*DIRLEN;
 		respond(r, nil);
 		return;
 
 	case Qwa:
 	case Qwd:
-		r->ofcall.count = 0;
+		*count = 0;
 		respond(r, nil);
 		return;
 
 	case Qctl:
-		readctl(r);
+		*count = readctl(buf, *count, offset);
 		respond(r, nil);
 		return;
 	}
 
 	/* a disk track; we can only call read for whole blocks */
-	o = ((Aux*)fid->aux)->o;
-	if((count = o->drive->read(o, buf, count, offset)) < 0)
+	o = fid->aux;
+
+	if((*count = o->drive->read(o, buf, *count, offset)) < 0)
 		respond(r, geterrstr());
-	else{
-		r->ofcall.count = count;
+	else
 		respond(r, nil);
-	}
+
 	return;
 }
 
-static char *Ebadmsg = "bad cdfs control message";
 static char*
 writectl(void *v, long count)
 {
 	char buf[256];
-	char *f[10], *p;
-	int i, nf, n, r, w, what;
+	char *f[10];
+	int nf;
 
 	if(count >= sizeof(buf))
 		count = sizeof(buf)-1;
@@ -394,102 +311,46 @@ writectl(void *v, long count)
 	buf[count] = '\0';
 
 	nf = tokenize(buf, f, nelem(f));
-	if(nf == 0)
-		return Ebadmsg;
-
-	if(strcmp(f[0], "speed") == 0){
-		what = 0;
-		r = w = -1;
-		if(nf == 1)
-			return Ebadmsg;
-		for(i=1; i<nf; i++){
-			if(strcmp(f[i], "read") == 0 || strcmp(f[i], "write") == 0){
-				if(what!=0 && what!='?')
-					return Ebadmsg;
-				what = f[i][0];
-			}else{
-				n = strtol(f[i], &p, 0);
-				if(*p != '\0' || n <= 0)
-					return Ebadmsg;
-				switch(what){
-				case 0:
-					if(r >= 0 || w >= 0)
-						return Ebadmsg;
-					r = w = n;
-					what = '?';
-					break;
-				case 'r':
-					if(r >= 0)
-						return Ebadmsg;
-					r = n;
-					what = '?';
-					break;
-				case 'w':
-					if(w >= 0)
-						return Ebadmsg;
-					w = n;
-					what = '?';
-					break;
-				default:
-					return Ebadmsg;
-				}
-			}
-		}
-		if(what != '?')
-			return Ebadmsg;
-		return drive->setspeed(drive, r, w);
-	}
 	return drive->ctl(drive, nf, f);
 }
 
 static void
-fswrite(Req *r)
+cdwrite(Req *r, Fid *fid, void *buf, long *count, vlong)
 {
 	Otrack *o;
-	Fid *fid;
 
-	fid = r->fid;
-	r->ofcall.count = r->ifcall.count;
 	if(fid->qid.path == Qctl) {
-		respond(r, writectl(r->ifcall.data, r->ifcall.count));
+		respond(r, writectl(buf, *count));
 		return;
 	}
 
-	if((o = ((Aux*)fid->aux)->o) == nil || o->omode != OWRITE) {
+	if((o = fid->aux) == nil || o->omode != OWRITE) {
 		respond(r, "permission denied");
 		return;
 	}
 
-	if(o->drive->write(o, r->ifcall.data, r->ifcall.count) < 0)
+	if(o->drive->write(o, buf, *count) < 0)
 		respond(r, geterrstr());
 	else
 		respond(r, nil);
 }
 
 static void
-fsstat(Req *r)
+cdstat(Req *r, Fid *fid, Dir *d)
 {
-	fillstat((ulong)r->fid->qid.path, &r->d);
-	r->d.name = estrdup9p(r->d.name);
-	r->d.uid = estrdup9p(r->d.uid);
-	r->d.gid = estrdup9p(r->d.gid);
-	r->d.muid = estrdup9p(r->d.muid);
+	fillstat(fid->qid.path, d);
 	respond(r, nil);
 }
 
 static void
-fsopen(Req *r)
+cdopen(Req *r, Fid *fid, int omode, Qid *qid)
 {
-	int omode;
-	Fid *fid;
 	Otrack *o;
 
-	fid = r->fid;
-	omode = r->ifcall.mode;
 	checktoc(drive);
-	r->ofcall.qid = (Qid){fid->qid.path, drive->nchange, fid->qid.vers};
+	*qid = (Qid){fid->qid.path, drive->nchange};
 
-	switch((ulong)fid->qid.path){
+	switch(fid->qid.path){
 	case Qdir:
 	case Qwa:
 	case Qwd:
@@ -518,7 +379,7 @@ fsopen(Req *r)
 		}
 
 		o->nref = 1;
-		((Aux*)fid->aux)->o = o;
+		fid->aux = o;
 		respond(r, nil);
 	}
 }
@@ -526,15 +387,11 @@ fsopen(Req *r)
 static uchar zero[BScdda];
 
 static void
-fsdestroyfid(Fid *fid)
+cdclunkaux(Fid *fid)
 {
-	Aux *aux;
 	Otrack *o;
 
-	aux = fid->aux;
-	if(aux == nil)
-		return;
-	o = aux->o;
+	o = fid->aux;
 	if(o && --o->nref == 0) {
 		bterm(o->buf);
 		drive->close(o);
@@ -594,23 +451,23 @@ bufwrite(Otrack *t, void *v, long n)
 	return bwrite(t->buf, v, n);
 }
 
-Srv fs = {
-.attach=	fsattach,
-.destroyfid=	fsdestroyfid,
-.clone=	fsclone,
-.walk1=	fswalk1,
-.open=	fsopen,
-.read=	fsread,
-.write=	fswrite,
-.create=	fscreate,
-.remove=	fsremove,
-.stat=	fsstat,
+Srv cdsrv = {
+.attach=	cdattach,
+.clone=	cdclone,
+.clunkaux=	cdclunkaux,
+.walk=	cdwalk,
+.open=	cdopen,
+.read=	cdread,
+.write=	cdwrite,
+.create=	cdcreate,
+.remove=	cdremove,
+.stat=	cdstat,
 };
 
 void
 usage(void)
 {
-	fprint(2, "usage: cdfs [-Dv] [-d /dev/sdC0] [-m mtpt]\n");
+	fprint(2, "usage: cdfs [-v] [-d /dev/sdC0] [-m mtpt]\n");
 	exits("usage");
 }
 
@@ -625,9 +482,6 @@ main(int argc, char **argv)
 	mtpt = "/mnt/cd";
 
 	ARGBEGIN{
-	case 'D':
-		chatty9p++;
-		break;
 	case 'd':
 		dev = ARGF();
 		break;
@@ -643,6 +497,9 @@ main(int argc, char **argv)
 			vflag++;
 			scsiverbose++;
 		}
+		break;
+	case 'V':
+		lib9p_chatty++;
 		break;
 	default:
 		usage();
@@ -663,6 +520,6 @@ main(int argc, char **argv)
 
 	checktoc(drive);
 
-	postmountsrv(&fs, nil, mtpt, MREPL|MCREATE);
+	postmountsrv(&cdsrv, nil, mtpt, MREPL|MCREATE);
 	exits(nil);
 }

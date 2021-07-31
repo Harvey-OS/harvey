@@ -4,11 +4,8 @@
  * code is due to Richard Miller.
  */
 #include	"all.h"
-#include	"9p1.h"
 
 int allownone;
-Nvrsafe nvr;
-int didread;
 
 /*
  *  create a challenge for a fid space
@@ -17,9 +14,6 @@ void
 mkchallenge(Chan *cp)
 {
 	int i;
-
-	if(!didread && readnvram(&nvr, 0) >= 0)
-		didread = 1;
 
 	srand(truerand());
 	for(i = 0; i < CHALLEN; i++)
@@ -32,10 +26,8 @@ mkchallenge(Chan *cp)
 /*
  *  match a challenge from an attach
  */
-Nvrsafe nvr;
-
 int
-authorize(Chan *cp, Oldfcall *in, Oldfcall *ou)
+authorize(Chan *cp, Fcall *in, Fcall *ou)
 {
 	Ticket t;
 	Authenticator a;
@@ -45,16 +37,13 @@ authorize(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	if (cp == cons.srvchan)               /* local channel already safe */
 		return 1;
 
-	if(wstatallow)		/* set to allow entry during boot */
+	if(noauth || wstatallow)		/* set to allow entry during boot */
 		return 1;
 
 	if(strcmp(in->uname, "none") == 0)
-		return allownone || cp->authed;
+		return allownone || cp->auth;
 
-	if(in->type == Toattach9p1)
-		return 0;
-
-	if(!didread)
+	if(in->type == Toattach)
 		return 0;
 
 	/* decrypt and unpack ticket */
@@ -87,6 +76,7 @@ print("bad challenge\n");
 	bit = 1<<x;
 	if(x < 0 || x > 31 || (bit&cp->idvec)){
 		unlock(&cp->idlock);
+print("id out of range: idoff %ld idvec %lux id %ld\n", cp->idoffset, cp->idvec, a.id);
 		return 0;
 	}
 	cp->idvec |= bit;
@@ -112,6 +102,6 @@ print("names don't match\n");
 	memmove(a.chal, cp->rchal, CHALLEN);
 	convA2M(&a, ou->rauth, t.key);
 
-	cp->authed = 1;
+	cp->auth = 1;
 	return 1;
 }

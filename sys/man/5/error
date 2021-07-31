@@ -2,26 +2,23 @@
 .SH NAME
 error \- return an error
 .SH SYNOPSIS
-.ta \w'\fLRerror 'u
-.IR size [4]
-.B Rerror
+.ta \w'\fLTerror 'u
+.B
+Rerror
 .IR tag [2]
-.IR ename [ s ]
+.IR ename [64]
 .SH DESCRIPTION
 The
 .B Rerror
-message
+request
 (there is no
 .BR Terror )
-is used to return an error string
+is used to return an error string, of length 64
+.RB ( ERRLEN
+in
+.BR <libc.h> ),
 describing the
 failure of a transaction.
 It replaces the corresponding reply message
 that would accompany a successful call; its tag is that
-of the failing request.
-.PP
-By convention, clients may truncate error messages after 255 bytes,
-defined as
-.B ERRMAX
-in
-.BR <libc.h> .
+of the request.

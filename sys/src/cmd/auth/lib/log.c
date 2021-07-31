@@ -1,15 +1,15 @@
 #include <u.h>
 #include <libc.h>
-#include <authsrv.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 static void
 record(char *db, char *user, char *msg)
 {
-	char buf[Maxpath];
+	char buf[sizeof(KEYDB)+sizeof(NETKEYDB)+NAMELEN+6];
 	int fd;
 
-	snprint(buf, sizeof buf, "%s/%s/log", db, user);
+	sprint(buf, "%s/%s/log", db, user);
 	fd = open(buf, OWRITE);
 	if(fd < 0)
 		return;

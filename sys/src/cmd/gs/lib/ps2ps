@@ -1,8 +1,8 @@
 #!/bin/sh
-# $Id: ps2ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
+# $Id: ps2ps,v 1.2 2000/05/19 06:38:25 lpd Exp $
 # "Distill" PostScript.
 
-OPTIONS=""
+OPTIONS="-dSAFER"
 while true
 do
 	case "$1" in

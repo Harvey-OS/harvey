@@ -5,7 +5,7 @@
 #include <fcall.h>
 #include <disk.h>
 
-enum {
+enum{
 	LEN	= 8*1024,
 	HUNKS	= 128,
 };
@@ -15,8 +15,8 @@ struct File{
 	char	*new;
 	char	*elem;
 	char	*old;
-	char	*uid;
-	char	*gid;
+	char	uid[NAMELEN];
+	char	gid[NAMELEN];
 	ulong	mode;
 };
 
@@ -52,7 +52,7 @@ static int	copyfile(Mkaux*, File*, Dir*, int);
 static void	freefile(File*);
 static File*	getfile(Mkaux*, File*);
 static char*	getmode(Mkaux*, char*, ulong*);
-static char*	getname(Mkaux*, char*, char**);
+static char*	getname(Mkaux*, char*, char*, int);
 static char*	getpath(Mkaux*, char*);
 static int	mkfile(Mkaux*, File*);
 static char*	mkpath(Mkaux*, char*, char*);
@@ -161,7 +161,7 @@ static void
 mktree(Mkaux *mkaux, File *me, int rec)
 {
 	File child;
-	Dir *d;
+	Dir d[HUNKS];
 	int i, n, fd;
 
 	fd = open(mkaux->oldfile.s, OREAD);
@@ -171,14 +171,15 @@ mktree(Mkaux *mkaux, File *me, int rec)
 	}
 
 	child = *me;
-	while((n = dirread(fd, &d)) > 0){
+	while((n = dirread(fd, d, sizeof d)) > 0){
+		n /= DIRLEN;
 		for(i = 0; i < n; i++){
 			child.new = mkpath(mkaux, me->new, d[i].name);
 			if(me->old)
 				child.old = mkpath(mkaux, me->old, d[i].name);
 			child.elem = d[i].name;
 			setnames(mkaux, &child);
-			if((!(d[i].mode&DMDIR) || rec) && copyfile(mkaux, &child, &d[i], 1) && rec)
+			if(copyfile(mkaux, &child, &d[i], 1) && rec)
 				mktree(mkaux, &child, rec);
 			free(child.new);
 			if(child.old)
@@ -191,14 +192,14 @@ mktree(Mkaux *mkaux, File *me, int rec)
 static int
 mkfile(Mkaux *mkaux, File *f)
 {
-	Dir *d;
+	Dir dir;
 
-	if((d = dirstat(mkaux->oldfile.s)) == nil){
+	if(dirstat(mkaux->oldfile.s, &dir) < 0){
 		warn(mkaux, "can't stat file %s: %r", mkaux->oldfile.s);
 		skipdir(mkaux);
 		return 0;
 	}
-	return copyfile(mkaux, f, d, 0);
+	return copyfile(mkaux, f, &dir, 0);
 }
 
 enum {
@@ -216,13 +217,13 @@ setname(Mkaux *mkaux, Name *name, char *s1, char *s2)
 		name->s = emalloc(mkaux, l+SLOP);
 		name->n = l+SLOP;
 	}
-	snprint(name->s, name->n, "%s%s%s", s1, s1[0]==0 || s1[strlen(s1)-1]!='/' ? "/" : "", s2);
+	snprint(name->s, name->n, "%s%s", s1, s2);
 }
 
 static int
 copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 {
-	Dir *nd;
+	Dir nd;
 	ulong xmode;
 	char *p;
 
@@ -230,38 +231,35 @@ copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 	/*
 	 * Extra stat here is inefficient but accounts for binds.
 	 */
-	if((nd = dirstat(mkaux->fullname.s)) != nil)
-		d = nd;
-
-	d->name = f->elem;
+	if(dirstat(mkaux->fullname.s, &nd) >= 0)
+		*d = nd;
+	memmove(d->name, f->elem, NAMELEN);
 	if(d->type != 'M'){
-		d->uid = "sys";
-		d->gid = "sys";
+		strncpy(d->uid, "sys", NAMELEN);
+		strncpy(d->gid, "sys", NAMELEN);
 		xmode = (d->mode >> 6) & 7;
 		d->mode |= xmode | (xmode << 3);
 	}
 	if(strcmp(f->uid, "-") != 0)
-		d->uid = f->uid;
+		strncpy(d->uid, f->uid, NAMELEN);
 	if(strcmp(f->gid, "-") != 0)
-		d->gid = f->gid;
+		strncpy(d->gid, f->gid, NAMELEN);
 	if(f->mode != ~0){
 		if(permonly)
 			d->mode = (d->mode & ~0666) | (f->mode & 0666);
-		else if((d->mode&DMDIR) != (f->mode&DMDIR))
+		else if((d->mode&CHDIR) != (f->mode&CHDIR))
 			warn(mkaux, "inconsistent mode for %s", f->new);
 		else
 			d->mode = f->mode;
 	}
 
 	if(p = strrchr(f->new, '/'))
-		d->name = p+1;
+		strcpy(d->name, p+1);
 	else
-		d->name = f->new;
+		strcpy(d->name, f->new);
 
 	mkaux->mkenum(f->new, mkaux->fullname.s, d, mkaux->a);
-	xmode = d->mode;
-	free(nd);
-	return (xmode&DMDIR) != 0;
+	return (d->mode & CHDIR) != 0;
 }
 
 static char *
@@ -284,9 +282,9 @@ setnames(Mkaux *mkaux, File *f)
 	
 	if(f->old){
 		if(f->old[0] == '/')
-			setname(mkaux, &mkaux->oldfile, f->old, "");
-		else
 			setname(mkaux, &mkaux->oldfile, mkaux->root, f->old);
+		else
+			setname(mkaux, &mkaux->oldfile, f->old, "");
 	} else
 		setname(mkaux, &mkaux->oldfile, mkaux->root, f->new);
 }
@@ -341,7 +339,7 @@ static File*
 getfile(Mkaux *mkaux, File *old)
 {
 	File *f;
-	char *elem;
+	char elem[NAMELEN];
 	char *p;
 	int c;
 
@@ -366,21 +364,20 @@ loop:
 		goto loop;
 	p--;
 	f = emalloc(mkaux, sizeof *f);
-	p = getname(mkaux, p, &elem);
+	p = getname(mkaux, p, elem, sizeof elem);
 	if(p == nil)
 		return nil;
 
 	f->new = mkpath(mkaux, old->new, elem);
-	free(elem);
 	f->elem = utfrrune(f->new, L'/') + 1;
 	p = getmode(mkaux, p, &f->mode);
-	p = getname(mkaux, p, &f->uid);	/* LEAK */
+	p = getname(mkaux, p, f->uid, sizeof f->uid);
 	if(p == nil)
 		return nil;
 
 	if(!*f->uid)
 		strcpy(f->uid, "-");
-	p = getname(mkaux, p, &f->gid);	/* LEAK */
+	p = getname(mkaux, p, f->gid, sizeof f->gid);
 	if(p == nil)
 		return nil;
 
@@ -417,35 +414,35 @@ getpath(Mkaux *mkaux, char *p)
 }
 
 static char*
-getname(Mkaux *mkaux, char *p, char **buf)
+getname(Mkaux *mkaux, char *p, char *buf, int len)
 {
-	char *s, *start;
-	int c;
+	char *s;
+	int i, c;
 
 	while((c = *p) == ' ' || c == '\t')
 		p++;
-
-	start = p;
-	while((c = *p) != '\n' && c != ' ' && c != '\t')
+	i = 0;
+	while((c = *p) != '\n' && c != ' ' && c != '\t'){
+		if(i < len)
+			buf[i++] = c;
 		p++;
+	}
+	if(i == len){
+		buf[len-1] = '\0';
+		warn(mkaux, "name %s too long; truncated", buf);
+	}else
+		buf[i] = '\0';
 
-	*buf = malloc(p+2-start);	/* +2: need at least 2 bytes; might strcpy "-" into buf */
-	if(*buf == nil)
-		return nil;
-	memmove(*buf, start, p-start);
-
-	(*buf)[p-start] = '\0';
-
-	if(**buf == '$'){
-		s = getenv(*buf+1);
+	if(buf[0] == '$'){
+		s = getenv(buf+1);
 		if(s == 0){
-			warn(mkaux, "can't read environment variable %s", *buf+1);
+			warn(mkaux, "can't read environment variable %s", buf+1);
 			skipdir(mkaux);
-			free(*buf);
 			return nil;
 		}
-		free(*buf);
-		*buf = s;
+		strncpy(buf, s, NAMELEN-1);
+		buf[NAMELEN-1] = '\0';
+		free(s);
 	}
 	return p;
 }
@@ -453,28 +450,25 @@ getname(Mkaux *mkaux, char *p, char **buf)
 static char*
 getmode(Mkaux *mkaux, char *p, ulong *xmode)
 {
-	char *buf, *s;
+	char buf[7], *s;
 	ulong m;
 
 	*xmode = ~0;
-	p = getname(mkaux, p, &buf);
-	if(p == nil)
-		return nil;
-
+	p = getname(mkaux, p, buf, sizeof buf);
 	s = buf;
 	if(!*s || strcmp(s, "-") == 0)
 		return p;
 	m = 0;
 	if(*s == 'd'){
-		m |= DMDIR;
+		m |= CHDIR;
 		s++;
 	}
 	if(*s == 'a'){
-		m |= DMAPPEND;
+		m |= CHAPPEND;
 		s++;
 	}
 	if(*s == 'l'){
-		m |= DMEXCL;
+		m |= CHEXCL;
 		s++;
 	}
 	if(s[0] < '0' || s[0] > '7'
@@ -482,11 +476,9 @@ getmode(Mkaux *mkaux, char *p, ulong *xmode)
 	|| s[2] < '0' || s[2] > '7'
 	|| s[3]){
 		warn(mkaux, "bad mode specification %s", buf);
-		free(buf);
 		return p;
 	}
 	*xmode = m | strtoul(s, 0, 8);
-	free(buf);
 	return p;
 }
 
@@ -497,7 +489,7 @@ warn(Mkaux *mkaux, char *fmt, ...)
 	va_list va;
 
 	va_start(va, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, va);
+	doprint(buf, buf+sizeof(buf), fmt, va);
 	va_end(va);
 
 	if(mkaux->warn)

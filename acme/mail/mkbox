@@ -7,5 +7,4 @@ for(i){
 			chmod +al $i
 		}
 	}
-	if not echo $i already exists
 }

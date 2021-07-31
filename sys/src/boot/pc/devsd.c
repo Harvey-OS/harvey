@@ -13,9 +13,6 @@
 #include "sd.h"
 #include "dosfs.h"
 
-#define parttrace 0
-
-
 extern SDifc* sdifc[];
 
 static SDev* sdlist;
@@ -34,8 +31,7 @@ sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
 	SDpart *pp;
 	int i, partno;
 
-	if(parttrace)
-		print("add %d %s %s %ld %ld\n", unit->npart, unit->name, name, start, end);
+//print("add %d %s %s %ld %ld\n", unit->npart, unit->name, name, start, end);
 	/*
 	 * Check name not already used
 	 * and look for a free slot.
@@ -50,31 +46,22 @@ sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
 				break;
 			}
 			if(strcmp(name, pp->name) == 0){
-				if(pp->start == start && pp->end == end){
-					if(parttrace)
-						print("already present\n");
+				if(pp->start == start && pp->end == end)
 					return;
-				}
 			}
 		}
-	}else{
-		if((unit->part = malloc(sizeof(SDpart)*SDnpart)) == nil){
-			if(parttrace)
-				print("malloc failed\n");
+	}
+	else{
+		if((unit->part = malloc(sizeof(SDpart)*SDnpart)) == nil)
 			return;
-		}
 		partno = 0;
 	}
 
 	/*
 	 * Check there is a free slot and size and extent are valid.
 	 */
-	if(partno == -1 || start > end || end > unit->sectors){
-		print("cannot add %s!%s [%lud,%lud) to disk [0,%lud): %s\n",
-			unit->name, name, start, end, unit->sectors, 
-			partno==-1 ? "no free partitions" : "partition boundaries out of range");
+	if(partno == -1 || start > end || end > unit->sectors)
 		return;
-	}
 	pp = &unit->part[partno];
 	pp->start = start;
 	pp->end = end;
@@ -89,8 +76,6 @@ sddelpart(SDunit* unit,  char* name)
 	int i;
 	SDpart *pp;
 
-	if(parttrace)
-		print("del %d %s %s\n", unit->npart, unit->name, name);
 	/*
 	 * Look for the partition to delete.
 	 * Can't delete if someone still has it open.
@@ -295,45 +280,22 @@ sdinitdev(int i, char *s)
 	strcpy(s, unit->name);
 }
 
-void
-sdprintdevs(int i)
-{
-	char *s;
-	SDunit *unit;
-
-	unit = sdindex2unit(i);
-	for(i=0; i<unit->npart; i++){
-		s = unit->part[i].name;
-		if(strncmp(s, "dos", 3) == 0 || strncmp(s, "9fat", 4) == 0)
-			print(" %s!%s", unit->name, s);
-	}
-}
-
 SDpart*
 sdfindpart(SDunit *unit, char *name)
 {
 	int i;
 
-	if(parttrace)
-		print("findpart %d %s %s\t\n", unit->npart, unit->name, name);
 	for(i=0; i<unit->npart; i++) {
-		if(parttrace)
-			print("%s...", unit->part[i].name);
-		if(strcmp(unit->part[i].name, name) == 0){
-			if(parttrace)
-				print("\n");
+		if(strcmp(unit->part[i].name, name) == 0)
 			return &unit->part[i];
-		}
 	}
-	if(parttrace)
-		print("not found\n");
 	return nil;
 }
 
 typedef struct Scsicrud Scsicrud;
 struct Scsicrud {
 	Dos;
-	vlong offset;
+	ulong offset;
 	SDunit *unit;
 	SDpart *part;
 };
@@ -351,26 +313,23 @@ sdread(Dos *vdos, void *v, long n)
 	return x;
 }
 
-vlong
-sdseek(Dos *vdos, vlong seek)
+long
+sdseek(Dos *vdos, long seek)
 {
-	((Scsicrud*)vdos)->offset = seek;
-	return seek;
+	return ((Scsicrud*)vdos)->offset = seek;
 }
 
 void*
-sdgetdospart(int i, char *s, int chatty)
+sdgetdospart(int i, char *s)
 {
 	SDunit *unit;
 	SDpart *p;
 	Scsicrud *dos;
 
 	unit = sdindex2unit(i);
-	if((p = sdfindpart(unit, s)) == nil){
-		if(chatty)
-			print("unknown partition %s!%s\n", unit->name, s);
+	if((p = sdfindpart(unit, s)) == nil)
 		return nil;
-	}
+
 	if(p->dos == nil) {
 		dos = malloc(sizeof(Scsicrud));
 		dos->dev = i;
@@ -379,12 +338,8 @@ sdgetdospart(int i, char *s, int chatty)
 		dos->start = 0;
 		dos->unit = unit;
 		dos->part = p;
-		if(dosinit(dos) < 0 && dosinit(dos) < 0){
-			if(chatty)
-				print("partition %s!%s does not contain a DOS file system\n",
-					unit->name, s);
+		if(dosinit(dos) < 0)
 			return nil;
-		}
 		p->dos = dos;
 	}
 	return p->dos;
@@ -406,7 +361,7 @@ sdaddconf(int i)
 	/*
 	 * If there were no partitions (just data and partition), don't bother.
 	 */
-	if(unit->npart<= 1 || (unit->npart==2 && strcmp(unit->part[1].name, "partition")==0))
+	if(unit->npart <= 2)
 		return;
 
 	addconf("%spart=", unit->name);
@@ -428,9 +383,11 @@ sdboot(int dev, char *pname, Boot *b)
 	}
 	*file++ = '\0';
 
-	dos = sdgetdospart(dev, pname, 1);
-	if(dos == nil)
+	dos = sdgetdospart(dev, pname);
+	if(dos == nil) {
+		print("no such FAT partition %s!%s\n", sdindex2unit(dev)->name, pname);
 		return -1;
+	}
 
 	return dosboot(dos, file, b);
 }
@@ -486,7 +443,7 @@ memset(a, 0xDA, len);
 //		return 0;
 
 	offset = off%unit->secsize;
-	if((l = unit->dev->ifc->bio(unit, 0, 0, b, nb, bno)) < 0) {
+	if((l = unit->dev->ifc->bio(unit, 0, 0, a, nb, bno)) < 0) {
 //		sdfree(b);
 		return 0;
 	}
@@ -495,8 +452,6 @@ memset(a, 0xDA, len);
 		len = 0;
 	else if(len > l - offset)
 		len = l - offset;
-	if(len)
-		memmove(a, b+offset, len);
 //	sdfree(b);
 
 	if(unit->inquiry[1] & 0x80)

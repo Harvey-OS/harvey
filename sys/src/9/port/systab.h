@@ -1,9 +1,10 @@
+#undef	CHDIR	/* BUG */
 #include "/sys/src/libc/9syscall/sys.h"
 
 typedef long Syscall(ulong*);
 
 Syscall sysr1;
-Syscall sys_errstr;
+Syscall syserrstr;
 Syscall sysbind;
 Syscall syschdir;
 Syscall sysclose;
@@ -11,25 +12,25 @@ Syscall sysdup;
 Syscall sysalarm;
 Syscall sysexec;
 Syscall sysexits;
-Syscall sys_fsession;
+Syscall sysfsession;
 Syscall sysfauth;
-Syscall sys_fstat;
+Syscall sysfstat;
 Syscall syssegbrk;
-Syscall sys_mount;
+Syscall sysmount;
 Syscall sysopen;
-Syscall sys_read;
+Syscall sysread;
 Syscall sysoseek;
 Syscall syssleep;
-Syscall sys_stat;
+Syscall sysstat;
 Syscall sysrfork;
-Syscall sys_write;
+Syscall syswrite;
 Syscall syspipe;
 Syscall syscreate;
 Syscall sysfd2path;
 Syscall sysbrk_;
 Syscall sysremove;
-Syscall sys_wstat;
-Syscall sys_fwstat;
+Syscall syswstat;
+Syscall sysfwstat;
 Syscall sysnotify;
 Syscall sysnoted;
 Syscall syssegattach;
@@ -38,23 +39,17 @@ Syscall syssegfree;
 Syscall syssegflush;
 Syscall sysrendezvous;
 Syscall sysunmount;
-Syscall sys_wait;
+Syscall syswait;
+Syscall syswrite9p;
+Syscall sysread9p;
 Syscall sysseek;
-Syscall sysfversion;
-Syscall syserrstr;
-Syscall sysstat;
-Syscall sysfstat;
-Syscall syswstat;
-Syscall sysfwstat;
-Syscall sysmount;
-Syscall sysawait;
 Syscall syspread;
 Syscall syspwrite;
 Syscall	sysdeath;
 
 Syscall *systab[]={
 	[SYSR1]		sysr1,
-	[_ERRSTR]	sys_errstr,
+	[ERRSTR]	syserrstr,
 	[BIND]		sysbind,
 	[CHDIR]		syschdir,
 	[CLOSE]		sysclose,
@@ -62,25 +57,25 @@ Syscall *systab[]={
 	[ALARM]		sysalarm,
 	[EXEC]		sysexec,
 	[EXITS]		sysexits,
-	[_FSESSION]	sys_fsession,
+	[FSESSION]	sysfsession,
 	[FAUTH]		sysfauth,
-	[_FSTAT]	sys_fstat,
+	[FSTAT]		sysfstat,
 	[SEGBRK]	syssegbrk,
-	[_MOUNT]	sys_mount,
+	[MOUNT]		sysmount,
 	[OPEN]		sysopen,
-	[_READ]		sys_read,
+	[READ]		sysread,
 	[OSEEK]		sysoseek,
 	[SLEEP]		syssleep,
-	[_STAT]		sys_stat,
+	[STAT]		sysstat,
 	[RFORK]		sysrfork,
-	[_WRITE]	sys_write,
+	[WRITE]		syswrite,
 	[PIPE]		syspipe,
 	[CREATE]	syscreate,
 	[FD2PATH]	sysfd2path,
 	[BRK_]		sysbrk_,
 	[REMOVE]	sysremove,
-	[_WSTAT]	sys_wstat,
-	[_FWSTAT]	sys_fwstat,
+	[WSTAT]		syswstat,
+	[FWSTAT]	sysfwstat,
 	[NOTIFY]	sysnotify,
 	[NOTED]		sysnoted,
 	[SEGATTACH]	syssegattach,
@@ -89,23 +84,17 @@ Syscall *systab[]={
 	[SEGFLUSH]	syssegflush,
 	[RENDEZVOUS]	sysrendezvous,
 	[UNMOUNT]	sysunmount,
-	[_WAIT]		sys_wait,
+	[WAIT]		syswait,
+	[WRITE9P]	syswrite9p,
+	[READ9P]	sysread9p,
 	[SEEK]		sysseek,
-	[FVERSION]	sysfversion,
-	[ERRSTR]	syserrstr,
-	[STAT]		sysstat,
-	[FSTAT]		sysfstat,
-	[WSTAT]		syswstat,
-	[FWSTAT]	sysfwstat,
-	[MOUNT]		sysmount,
-	[AWAIT]		sysawait,
 	[PREAD]		syspread,
 	[PWRITE]	syspwrite,
 };
 
 char *sysctab[]={
 	[SYSR1]		"Running",
-	[_ERRSTR]	"_errstr",
+	[ERRSTR]	"Errstr",
 	[BIND]		"Bind",
 	[CHDIR]		"Chdir",
 	[CLOSE]		"Close",
@@ -113,25 +102,25 @@ char *sysctab[]={
 	[ALARM]		"Alarm",
 	[EXEC]		"Exec",
 	[EXITS]		"Exits",
-	[_FSESSION]	"_fsession",
+	[FSESSION]	"Fsession",
 	[FAUTH]		"Fauth",
-	[_FSTAT]	"_fstat",
+	[FSTAT]		"Fstat",
 	[SEGBRK]	"Segbrk",
-	[_MOUNT]	"_mount",
+	[MOUNT]		"Mount",
 	[OPEN]		"Open",
-	[_READ]		"_read",
+	[READ]		"Read",
 	[OSEEK]		"Oseek",
 	[SLEEP]		"Sleep",
-	[_STAT]		"_stat",
+	[STAT]		"Stat",
 	[RFORK]		"Rfork",
-	[_WRITE]	"_write",
+	[WRITE]		"Write",
 	[PIPE]		"Pipe",
 	[CREATE]	"Create",
 	[FD2PATH]	"Fd2path",
 	[BRK_]		"Brk",
 	[REMOVE]	"Remove",
-	[_WSTAT]	"_wstat",
-	[_FWSTAT]	"_fwstat",
+	[WSTAT]		"Wstat",
+	[FWSTAT]	"Fwstat",
 	[NOTIFY]	"Notify",
 	[NOTED]		"Noted",
 	[SEGATTACH]	"Segattach",
@@ -140,16 +129,10 @@ char *sysctab[]={
 	[SEGFLUSH]	"Segflush",
 	[RENDEZVOUS]	"Rendez",
 	[UNMOUNT]	"Unmount",
-	[_WAIT]		"_wait",
+	[WAIT]		"Wait",
+	[WRITE9P]	"Write9p",
+	[READ9P]	"Read9p",
 	[SEEK]		"Seek",
-	[FVERSION]	"Fversion",
-	[ERRSTR]	"Errstr",
-	[STAT]		"Stat",
-	[FSTAT]		"Fstat",
-	[WSTAT]		"Wstat",
-	[FWSTAT]	"Fwstat",
-	[MOUNT]		"Mount",
-	[AWAIT]		"Await",
 	[PREAD]		"Pread",
 	[PWRITE]	"Pwrite",
 };

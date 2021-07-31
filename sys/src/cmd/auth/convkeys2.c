@@ -1,9 +1,9 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <mp.h>
 #include <libsec.h>
-#include <authsrv.h>
-#include "authcmdlib.h"
+#include "authsrv.h"
 
 char	authkey[DESKEYLEN];
 int	verb;
@@ -17,7 +17,7 @@ void	randombytes(uchar*, int);
 void
 main(int argc, char *argv[])
 {
-	Dir *d;
+	Dir d;
 	char *p, *np, *file, key[DESKEYLEN];
 	int fd, len;
 
@@ -48,10 +48,9 @@ main(int argc, char *argv[])
 	fd = open(file, ORDWR);
 	if(fd < 0)
 		error("can't open %s: %r\n", file);
-	d = dirfstat(fd);
-	if(d == nil)
+	if(dirfstat(fd, &d) < 0)
 		error("can't stat %s: %r\n", file);
-	len = d->length;
+	len = d.length;
 	p = malloc(len);
 	if(!p)
 		error("out of memory");
@@ -63,7 +62,7 @@ main(int argc, char *argv[])
 	len = convert(p, np, key, len);
 	if(verb)
 		exits(0);
-	if(pwrite(fd, np, len, 0) != len)
+	if(seek(fd, 0, 0) < 0 || write(fd, np, len) != len)
 		error("can't write key file: %r\n");
 	close(fd);
 	exits(0);

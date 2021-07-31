@@ -8,9 +8,8 @@
 
 enum
 {
-	Qdir,
-	Qargs,
 	Qctl,
+	Qdir,
 	Qfd,
 	Qfpregs,
 	Qkregs,
@@ -28,37 +27,13 @@ enum
 	Qprofile,
 };
 
-enum
-{
-	CMclose,
-	CMclosefiles,
-	CMfixedpri,
-	CMhang,
-	CMkill,
-	CMnohang,
-	CMpri,
-	CMprivate,
-	CMprofile,
-	CMstart,
-	CMstartstop,
-	CMstop,
-	CMwaitstop,
-	CMwired,
-};
-
-#define	STATSIZE	(2*KNAMELEN+12+9*12)
-/*
- * Status, fd, and ns are left fully readable (0444) because of their use in debugging,
- * particularly on shared servers.
- * Arguably, ns and fd shouldn't be readable; if you'd prefer, change them to 0000
- */
+#define	STATSIZE	(2*NAMELEN+12+9*12)
 Dirtab procdir[] =
 {
-	"args",	{Qargs},		0,			0440,
 	"ctl",		{Qctl},		0,			0000,
-	"fd",		{Qfd},		0,			0444,
+	"fd",		{Qfd},		0,			0000,
 	"fpregs",	{Qfpregs},	sizeof(FPsave),		0000,
-	"kregs",	{Qkregs},	sizeof(Ureg),		0400,
+	"kregs",	{Qkregs},	sizeof(Ureg),		0440,
 	"mem",		{Qmem},		0,			0000,
 	"note",		{Qnote},	0,			0000,
 	"noteid",	{Qnoteid},	0,			0664,
@@ -73,26 +48,8 @@ Dirtab procdir[] =
 	"profile",	{Qprofile},	0,			0400,
 };
 
-static
-Cmdtab proccmd[] = {
-	CMclose,		"close",		2,
-	CMclosefiles,	"closefiles",	1,
-	CMfixedpri,	"fixedpri",		2,
-	CMhang,		"hang",		1,
-	CMnohang,	"nohang",		1,
-	CMkill,		"kill",		1,
-	CMpri,		"pri",			2,
-	CMprivate,	"private",		1,
-	CMprofile,	"profile",		1,
-	CMstart,		"start",		1,
-	CMstartstop,	"startstop",	1,
-	CMstop,		"stop",		1,
-	CMwaitstop,	"waitstop",	1,
-	CMwired,		"wired",		2,
-};
-
 /* Segment type from portdat.h */
-static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
+char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", "Shdata", "Map" };
 
 /*
  * Qids are, in path:
@@ -104,8 +61,8 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
  */
 #define	QSHIFT	5	/* location in qid of proc slot # */
 
-#define	QID(q)		((((ulong)(q).path)&0x0000001F)>>0)
-#define	SLOT(q)		(((((ulong)(q).path)&0x07FFFFFE0)>>QSHIFT)-1)
+#define	QID(q)		(((q).path&0x0000001F)>>0)
+#define	SLOT(q)		((((q).path&0x07FFFFFE0)>>QSHIFT)-1)
 #define	PID(q)		((q).vers)
 #define	NOTEID(q)	((q).vers)
 
@@ -117,44 +74,30 @@ int	procstopped(void*);
 void	mntscan(Mntwalk*, Proc*);
 
 static int
-procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
+procgen(Chan *c, Dirtab *tab, int, int s, Dir *dp)
 {
 	Qid qid;
 	Proc *p;
-	char *ename;
 	Segment *q;
+	char buf[NAMELEN];
 	ulong pid, path, perm, len;
 
 	if(s == DEVDOTDOT){
-		mkqid(&qid, Qdir, 0, QTDIR);
-		devdir(c, qid, "#p", 0, eve, 0555, dp);
+		c->qid.path = CHDIR;
+		devdir(c, c->qid, "#p", 0, eve, 0555, dp);
 		return 1;
 	}
 
-	if(c->qid.path == Qdir){
-		if(name != nil){
-			/* ignore s and use name to find pid */
-			pid = strtol(name, &ename, 10);
-			if(pid==0 || ename[0]!='\0')
-				return -1;
-			s = procindex(pid);
-			if(s < 0)
-				return -1;
-		}else
-			if(s >= conf.nproc)
-				return -1;
+	if(c->qid.path == CHDIR){
+		if(s >= conf.nproc)
+			return -1;
 		p = proctab(s);
 		pid = p->pid;
 		if(pid == 0)
 			return 0;
-		sprint(up->genbuf, "%lud", pid);
-		/*
-		 * String comparison is done in devwalk so name must match its formatted pid
-		*/
-		if(name != nil && strcmp(name, up->genbuf) != 0)
-			return -1;
-		mkqid(&qid, (s+1)<<QSHIFT, pid, QTDIR);
-		devdir(c, qid, up->genbuf, 0, p->user, DMDIR|0555, dp);
+		sprint(buf, "%lud", pid);
+		qid = (Qid){CHDIR|((s+1)<<QSHIFT), pid};
+		devdir(c, qid, buf, 0, p->user, CHDIR|0555, dp);
 		return 1;
 	}
 	if(s >= nelem(procdir))
@@ -163,7 +106,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 		panic("procgen");
 
 	tab = &procdir[s];
-	path = c->qid.path&~(((1<<QSHIFT)-1));	/* slot component */
+	path = c->qid.path&~(CHDIR|((1<<QSHIFT)-1));	/* slot component */
 
 	p = proctab(SLOT(c->qid));
 	perm = tab->perm;
@@ -175,7 +118,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 	len = tab->length;
 	switch(QID(c->qid)) {
 	case Qwait:
-		len = p->nwait;	/* incorrect size, but >0 means there's something to read */
+		len = p->nwait * sizeof(Waitmsg);
 		break;
 	case Qprofile:
 		q = p->seg[TSEG];
@@ -186,7 +129,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 		break;
 	}
 
-	mkqid(&qid, path|tab->qid.path, c->qid.vers, QTFILE);
+	qid = (Qid){path|tab->qid.path, c->qid.vers};
 	devdir(c, qid, tab->name, len, p->user, perm, dp);
 	return 1;
 }
@@ -204,34 +147,16 @@ procattach(char *spec)
 	return devattach('p', spec);
 }
 
-static Walkqid*
-procwalk(Chan *c, Chan *nc, char **name, int nname)
-{
-	return devwalk(c, nc, name, nname, 0, 0, procgen);
-}
-
 static int
-procstat(Chan *c, uchar *db, int n)
+procwalk(Chan *c, char *name)
 {
-	return devstat(c, db, n, 0, 0, procgen);
+	return devwalk(c, name, 0, 0, procgen);
 }
 
-/*
- *  none can't read or write state on other
- *  processes.  This is to contain access of
- *  servers running as none should they be
- *  subverted by, for example, a stack attack.
- */
 static void
-nonone(Proc *p)
+procstat(Chan *c, char *db)
 {
-	if(p == up)
-		return;
-	if(strcmp(up->user, "none") != 0)
-		return;
-	if(iseve())
-		return;
-	error(Eperm);
+	devstat(c, db, 0, 0, procgen);
 }
 
 static Chan*
@@ -242,7 +167,7 @@ procopen(Chan *c, int omode)
 	Chan *tc;
 	int pid;
 
-	if(c->qid.type & QTDIR)
+	if(c->qid.path & CHDIR)
 		return devopen(c, omode, 0, 0, procgen);
 
 	p = proctab(SLOT(c->qid));
@@ -276,19 +201,14 @@ procopen(Chan *c, int omode)
 			error(Eperm);
 		break;
 
-	case Qmem:
-	case Qnote:
 	case Qctl:
-		if(p->privatemem)
-			error(Eperm);
-		/* fall through */
-	case Qargs:
+	case Qnote:
 	case Qnoteid:
+	case Qmem:
 	case Qstatus:
 	case Qwait:
 	case Qregs:
 	case Qfpregs:
-		nonone(p);
 		break;
 
 	case Qns:
@@ -298,7 +218,6 @@ procopen(Chan *c, int omode)
 		break;
 
 	case Qnotepg:
-		nonone(p);
 		pg = p->pgrp;
 		if(pg == nil)
 			error(Eprocdied);
@@ -329,20 +248,17 @@ procopen(Chan *c, int omode)
 	return tc;
 }
 
-static int
-procwstat(Chan *c, uchar *db, int n)
+static void
+procwstat(Chan *c, char *db)
 {
 	Proc *p;
-	Dir *d;
+	Dir d;
 
-	if(c->qid.type&QTDIR)
+	if(c->qid.path&CHDIR)
 		error(Eperm);
 
 	p = proctab(SLOT(c->qid));
-	nonone(p);
-	d = nil;
 	if(waserror()){
-		free(d);
 		qunlock(&p->debug);
 		nexterror();
 	}
@@ -354,25 +270,20 @@ procwstat(Chan *c, uchar *db, int n)
 	if(strcmp(up->user, p->user) != 0 && strcmp(up->user, eve) != 0)
 		error(Eperm);
 
-	d = smalloc(sizeof(Dir)+n);
-	n = convM2D(db, n, &d[0], (char*)&d[1]);
-	if(n == 0)
-		error(Eshortstat);
-	if(!emptystr(d->uid) && strcmp(d->uid, p->user) != 0){
+	convM2D(db, &d);
+	if(strcmp(d.uid, p->user) != 0){
 		if(strcmp(up->user, eve) != 0)
 			error(Eperm);
-		else
-			kstrdup(&p->user, d->uid);
+		else {
+			strncpy(p->user, d.uid, sizeof(p->user));
+			p->user[sizeof(p->user)-1] = 0;
+		}
 	}
-	if(d->mode != ~0UL)
-		p->procmode = d->mode&0777;
+	p->procmode = d.mode&0777;
 
 	poperror();
-	free(d);
 	qunlock(&p->debug);
-	return n;
 }
-
 
 static long
 procoffset(long offset, char *va, int *np)
@@ -390,42 +301,11 @@ procoffset(long offset, char *va, int *np)
 }
 
 static int
-procqidwidth(Chan *c)
-{
-	char buf[32];
-
-	return sprint(buf, "%lud", c->qid.vers);
-}
-
-int
-procfdprint(Chan *c, int fd, int w, char *s, int ns)
-{
-	int n;
-
-	if(w == 0)
-		w = procqidwidth(c);
-	n = snprint(s, ns, "%3d %.2s %C %4ld (%.16llux %*lud %.2ux) %5ld %8lld %s\n",
-		fd,
-		&"r w rw"[(c->mode&3)<<1],
-		devtab[c->type]->dc, c->dev,
-		c->qid.path, w, c->qid.vers, c->qid.type,
-		c->iounit, c->offset, c->name->s);
-	return n;
-}
-
-static int
 procfds(Proc *p, char *va, int count, long offset)
 {
 	Fgrp *f;
 	Chan *c;
-	char buf[256];
-	int n, i, w, ww;
-	char *a;
-
-	/* print to buf to avoid holding fgrp lock while writing to user space */
-	if(count > sizeof buf)
-		count = sizeof buf;
-	a = buf;
+	int n, i;
 
 	qlock(&p->debug);
 	f = p->fgrp;
@@ -440,32 +320,26 @@ procfds(Proc *p, char *va, int count, long offset)
 		nexterror();
 	}
 
-	n = readstr(0, a, count, p->dot->name->s);
-	n += snprint(a+n, count-n, "\n");
-	offset = procoffset(offset, a, &n);
-	/* compute width of qid.path */
-	w = 0;
+	n = readstr(0, va, count, p->dot->name->s);
+	n += snprint(va+n, count-n, "\n");
+	offset = procoffset(offset, va, &n);
 	for(i = 0; i <= f->maxfd; i++) {
 		c = f->fd[i];
 		if(c == nil)
 			continue;
-		ww = procqidwidth(c);
-		if(ww > w)
-			w = ww;
-	}
-	for(i = 0; i <= f->maxfd; i++) {
-		c = f->fd[i];
-		if(c == nil)
-			continue;
-		n += procfdprint(c, i, w, a+n, count-n);
-		offset = procoffset(offset, a, &n);
+		n += snprint(va+n, count-n, "%3d %.2s %C %4ld %.8lux.%.8lud %8lld ",
+			i,
+			&"r w rw"[(c->mode&3)<<1],
+			devtab[c->type]->dc, c->dev,
+			c->qid.path, c->qid.vers,
+			c->offset);
+		n += readstr(0, va+n, count-n, c->name->s);
+		n += snprint(va+n, count-n, "\n");
+		offset = procoffset(offset, va, &n);
 	}
 	unlock(f);
 	qunlock(&p->debug);
 	poperror();
-
-	/* copy result to user space, now that locks are released */
-	memmove(va, buf, n);
 
 	return n;
 }
@@ -496,32 +370,9 @@ int2flag(int flag, char *s)
 	*s = '\0';
 }
 
-static int
-procargs(Proc *p, char *buf, int nbuf)
-{
-	int j, k, m;
-	char *a;
-	int n;
-
-	a = p->args;
-	n = p->nargs;	
-	for(j = 0; j < nbuf - 1; j += m){
-		if(n == 0)
-			break;
-		if(j != 0)
-			buf[j++] = ' ';
-		m = snprint(buf+j, nbuf-j, "%q",  a);
-		k = strlen(a) + 1;
-		a += k;
-		n -= k;
-	}
-	return j;
-}
-
 static long
 procread(Chan *c, void *va, long n, vlong off)
 {
-	int m;
 	long l;
 	Proc *p;
 	Waitq *wq;
@@ -534,7 +385,7 @@ procread(Chan *c, void *va, long n, vlong off)
 	char statbuf[NSEG*32], *srv, flag[10];
 	ulong offset = off;
 
-	if(c->qid.type & QTDIR)
+	if(c->qid.path & CHDIR)
 		return devdirread(c, a, n, 0, 0, procgen);
 
 	p = proctab(SLOT(c->qid));
@@ -542,28 +393,22 @@ procread(Chan *c, void *va, long n, vlong off)
 		error(Eprocdied);
 
 	switch(QID(c->qid)){
-	case Qargs:
-		j = procargs(p, p->genbuf, sizeof p->genbuf);
-		if(offset >= j)
-			return 0;
-		if(offset+n > j)
-			n = j-offset;
-		memmove(a, &p->genbuf[offset], n);
-		return n;
-
 	case Qmem:
 		if(offset < KZERO
 		|| (offset >= USTKTOP-USTKSIZE && offset < USTKTOP))
 			return procctlmemio(p, offset, n, va, 1);
 
-		/* validate kernel addresses */
+		/* Protect crypt key memory */
+		if(offset+n >= palloc.cmembase && offset < palloc.cmemtop)
+			error(Eperm);
+
+		/* validate physical kernel addresses */
 		if(offset < (ulong)end) {
 			if(offset+n > (ulong)end)
 				n = (ulong)end - offset;
 			memmove(a, (char*)offset, n);
 			return n;
 		}
-		/* conf.base* and conf.npage* are set by xinit to refer to kernel allocation, not user pages */
 		if(offset >= conf.base0 && offset < conf.npage0){
 			if(offset+n > conf.npage0)
 				n = conf.npage0 - offset;
@@ -577,7 +422,6 @@ procread(Chan *c, void *va, long n, vlong off)
 			return n;
 		}
 		error(Ebadarg);
-
 	case Qprofile:
 		s = p->seg[TSEG];
 		if(s == 0 || s->profile == 0)
@@ -599,19 +443,15 @@ procread(Chan *c, void *va, long n, vlong off)
 		}
 		if(p->pid != PID(c->qid))
 			error(Eprocdied);
-		if(n < 1)	/* must accept at least the '\0' */
+		if(n < ERRLEN)
 			error(Etoosmall);
 		if(p->nnote == 0)
 			n = 0;
 		else {
-			m = strlen(p->note[0].msg) + 1;
-			if(m > n)
-				m = n;
-			memmove(va, p->note[0].msg, m);
-			((char*)va)[m-1] = '\0';
+			memmove(va, p->note[0].msg, ERRLEN);
 			p->nnote--;
 			memmove(p->note, p->note+1, p->nnote*sizeof(Note));
-			n = m;
+			n = ERRLEN;
 		}
 		if(p->nnote == 0)
 			p->notepending = 0;
@@ -662,10 +502,10 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(sps == 0)
 			sps = statename[p->state];
 		memset(statbuf, ' ', sizeof statbuf);
-		memmove(statbuf+0*KNAMELEN, p->text, strlen(p->text));
-		memmove(statbuf+1*KNAMELEN, p->user, strlen(p->user));
-		memmove(statbuf+2*KNAMELEN, sps, strlen(sps));
-		j = 2*KNAMELEN + 12;
+		memmove(statbuf+0*NAMELEN, p->text, strlen(p->text));
+		memmove(statbuf+1*NAMELEN, p->user, strlen(p->user));
+		memmove(statbuf+2*NAMELEN, sps, strlen(sps));
+		j = 2*NAMELEN + 12;
 
 		for(i = 0; i < 6; i++) {
 			l = p->time[i];
@@ -709,6 +549,9 @@ procread(Chan *c, void *va, long n, vlong off)
 		return n;
 
 	case Qwait:
+		if(n < sizeof(Waitmsg))
+			error(Etoosmall);
+
 		if(!canqlock(&p->qwaitr))
 			error(Einuse);
 
@@ -737,12 +580,9 @@ procread(Chan *c, void *va, long n, vlong off)
 
 		qunlock(&p->qwaitr);
 		poperror();
-		n = snprint(a, n, "%d %lud %lud %lud %q",
-			wq->w.pid,
-			wq->w.time[TUser], wq->w.time[TSys], wq->w.time[TReal],
-			wq->w.msg);
+		memmove(a, &wq->w, sizeof(Waitmsg));
 		free(wq);
-		return n;
+		return sizeof(Waitmsg);
 
 	case Qns:
 		qlock(&p->debug);
@@ -766,12 +606,12 @@ procread(Chan *c, void *va, long n, vlong off)
 			poperror();
 			return i;
 		}
-		int2flag(mw->cm->mflag, flag);
+		int2flag(mw->cm->flag, flag);
 		if(strcmp(mw->cm->to->name->s, "#M") == 0){
 			srv = srvname(mw->cm->to->mchan);
-			i = snprint(a, n, "mount %s %s %s %s\n", flag,
+			i = snprint(a, n, "mount %s %s %s %.*s\n", flag,
 				srv==nil? mw->cm->to->mchan->name->s : srv,
-				mw->mh->from->name->s, mw->cm->spec? mw->cm->spec : "");
+				mw->mh->from->name->s, NAMELEN, mw->cm->spec);
 			free(srv);
 		}else
 			i = snprint(a, n, "bind %s %s %s\n", flag,
@@ -832,11 +672,11 @@ procwrite(Chan *c, void *va, long n, vlong off)
 {
 	int id;
 	Proc *p, *t, *et;
-	char *a, buf[ERRMAX];
+	char *a, buf[ERRLEN];
 	ulong offset = off;
 
 	a = va;
-	if(c->qid.type & QTDIR)
+	if(c->qid.path & CHDIR)
 		error(Eisdir);
 
 	p = proctab(SLOT(c->qid));
@@ -890,7 +730,7 @@ procwrite(Chan *c, void *va, long n, vlong off)
 	case Qnote:
 		if(p->kp)
 			error(Eperm);
-		if(n >= ERRMAX-1)
+		if(n >= ERRLEN-1)
 			error(Etoobig);
 		memmove(buf, va, n);
 		buf[n] = 0;
@@ -930,8 +770,8 @@ Dev procdevtab = {
 
 	devreset,
 	procinit,
-	devshutdown,
 	procattach,
+	devclone,
 	procwalk,
 	procstat,
 	procopen,
@@ -997,7 +837,7 @@ procstopwait(Proc *p, int ctl)
 
 	if(p->pdbg)
 		error(Einuse);
-	if(procstopped(p) || p->state == Broken)
+	if(procstopped(p))
 		return;
 
 	if(ctl != 0)
@@ -1018,26 +858,11 @@ procstopwait(Proc *p, int ctl)
 		error(Eprocdied);
 }
 
-static void
-procctlcloseone(Proc *p, Fgrp *f, int fd)
-{
-	Chan *c;
-
-	c = f->fd[fd];
-	if(c == nil)
-		return;
-	f->fd[fd] = nil;
-	unlock(f);
-	qunlock(&p->debug);
-	cclose(c);
-	qlock(&p->debug);
-	lock(f);
-}
-
 void
-procctlclosefiles(Proc *p, int all, int fd)
+procctlclosefiles(Proc *p)
 {
 	int i;
+	Chan *c;
 	Fgrp *f;
 
 	f = p->fgrp;
@@ -1046,11 +871,17 @@ procctlclosefiles(Proc *p, int all, int fd)
 
 	lock(f);
 	f->ref++;
-	if(all)
-		for(i = 0; i < f->maxfd; i++)
-			procctlcloseone(p, f, i);
-	else
-		procctlcloseone(p, f, fd);
+	for(i = 0; i < f->maxfd; i++) {
+		c = f->fd[i];
+		if(c != 0) {
+			f->fd[i] = 0;
+			unlock(f);
+			qunlock(&p->debug);
+			cclose(c);
+			qlock(&p->debug);
+			lock(f);
+		}
+	}
 	unlock(f);
 	closefgrp(f);
 }
@@ -1060,42 +891,16 @@ procctlreq(Proc *p, char *va, int n)
 {
 	Segment *s;
 	int i, npc;
-	Cmdbuf *cb;
-	Cmdtab *ct;
+	char buf[NAMELEN];
 
-	if(p->kp)	/* no ctl requests to kprocs */
-		error(Eperm);
+	if(n > NAMELEN)
+		n = NAMELEN;
+	strncpy(buf, va, n);
 
-	cb = parsecmd(va, n);
-	if(waserror()){
-		free(cb);
-		nexterror();
-	}
-
-	ct = lookupcmd(cb, proccmd, nelem(proccmd));
-
-	switch(ct->index){
-	case CMclose:
-		procctlclosefiles(p, 0, atoi(cb->f[1]));
-		break;
-	case CMclosefiles:
-		procctlclosefiles(p, 1, 0);
-		break;
-	case CMfixedpri:
-		i = atoi(cb->f[1]);
-		if(i < 0)
-			i = 0;
-		if(i >= Nrq)
-			i = Nrq - 1;
-		if(i > p->basepri && !iseve())
-			error(Eperm);
-		p->basepri = i;
-		p->fixedpri = 1;
-		break;
-	case CMhang:
-		p->hang = 1;
-		break;
-	case CMkill:
+	if(strncmp(buf, "stop", 4) == 0)
+		procstopwait(p, Proc_stopme);
+	else
+	if(strncmp(buf, "kill", 4) == 0) {
 		switch(p->state) {
 		case Broken:
 			unbreak(p);
@@ -1109,12 +914,38 @@ procctlreq(Proc *p, char *va, int n)
 			postnote(p, 0, "sys: killed", NExit);
 			p->procctl = Proc_exitme;
 		}
-		break;
-	case CMnohang:
+	}
+	else
+	if(strncmp(buf, "hang", 4) == 0)
+		p->hang = 1;
+	else
+	if(strncmp(buf, "nohang", 6) == 0)
 		p->hang = 0;
-		break;
-	case CMpri:
-		i = atoi(cb->f[1]);
+	else
+	if(strncmp(buf, "waitstop", 8) == 0)
+		procstopwait(p, 0);
+	else
+	if(strncmp(buf, "startstop", 9) == 0) {
+		if(p->state != Stopped)
+			error(Ebadctl);
+		p->procctl = Proc_traceme;
+		ready(p);
+		procstopwait(p, Proc_traceme);
+	}
+	else
+	if(strncmp(buf, "start", 5) == 0) {
+		if(p->state != Stopped)
+			error(Ebadctl);
+		ready(p);
+	}
+	else
+	if(strncmp(buf, "closefiles", 10) == 0)
+		procctlclosefiles(p);
+	else
+	if(strncmp(buf, "pri", 3) == 0) {
+		if(n < 4)
+			error(Ebadctl);
+		i = atoi(buf+4);
 		if(i < 0)
 			i = 0;
 		if(i >= Nrq)
@@ -1123,11 +954,30 @@ procctlreq(Proc *p, char *va, int n)
 			error(Eperm);
 		p->basepri = i;
 		p->fixedpri = 0;
-		break;
-	case CMprivate:
-		p->privatemem = 1;
-		break;
-	case CMprofile:
+	}
+	else
+	if(strncmp(buf, "fixedpri", 8) == 0) {
+		if(n < 9)
+			error(Ebadctl);
+		i = atoi(buf+9);
+		if(i < 0)
+			i = 0;
+		if(i >= Nrq)
+			i = Nrq - 1;
+		if(i > p->basepri && !iseve())
+			error(Eperm);
+		p->basepri = i;
+		p->fixedpri = 1;
+	}
+	else
+	if(strncmp(buf, "wired", 5) == 0) {
+		if(n < 6)
+			error(Ebadctl);
+		i = atoi(buf+6);
+		procwired(p, i);
+	}
+	else
+	if(strncmp(buf, "profile", 7) == 0) {
 		s = p->seg[TSEG];
 		if(s == 0 || (s->type&SG_TYPE) != SG_TEXT)
 			error(Ebadctl);
@@ -1137,32 +987,9 @@ procctlreq(Proc *p, char *va, int n)
 		s->profile = malloc(npc*sizeof(*s->profile));
 		if(s->profile == 0)
 			error(Enomem);
-		break;
-	case CMstart:
-		if(p->state != Stopped)
-			error(Ebadctl);
-		ready(p);
-		break;
-	case CMstartstop:
-		if(p->state != Stopped)
-			error(Ebadctl);
-		p->procctl = Proc_traceme;
-		ready(p);
-		procstopwait(p, Proc_traceme);
-		break;
-	case CMstop:
-		procstopwait(p, Proc_stopme);
-		break;
-	case CMwaitstop:
-		procstopwait(p, 0);
-		break;
-	case CMwired:
-		procwired(p, atoi(cb->f[1]));
-		break;
 	}
-
-	poperror();
-	free(cb);
+	else
+		error(Ebadctl);
 }
 
 int

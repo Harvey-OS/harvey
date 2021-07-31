@@ -831,7 +831,7 @@ mylexprobe(int port, int irq)
 	if(ioalloc(port, 0x3, 0, "mylex") < 0)
 		return nil;
 	ctlr = nil;
-	sdev = nil;
+
 	/*
 	 * Attempt to hard-reset the board and reset
 	 * the SCSI bus. If the board state doesn't settle to
@@ -852,8 +852,6 @@ mylexprobe(int port, int irq)
 buggery:
 		if(ctlr != nil)
 			free(ctlr);
-		if (sdev != nil)
-			free(sdev);
 		iofree(port);
 		return nil;
 	}
@@ -1195,7 +1193,7 @@ mylexenable(SDev* sdev)
 	int tbdf;
 	Ctlr *ctlr;
 	void (*interrupt)(Ureg*, void*);
-	char name[32];
+	char name[NAMELEN];
 
 	ctlr = sdev->ctlr;
 	if(ctlr->cache == nil){
@@ -1218,7 +1216,7 @@ mylexenable(SDev* sdev)
 	else
 		return 0;
 
-	snprint(name, sizeof(name), "sd%c (%s)", sdev->idno, sdev->ifc->name);
+	snprint(name, NAMELEN, "sd%c (%s)", sdev->idno, sdev->ifc->name);
 	intrenable(ctlr->irq, interrupt, ctlr, tbdf, name);
 
 	return 1;
@@ -1240,7 +1238,4 @@ SDifc sdmylexifc = {
 	nil,				/* wctl */
 
 	scsibio,			/* bio */
-	nil,				/* probe */
-	nil,				/* clear */
-	nil,				/* stat */
 };

@@ -1,0 +1,4 @@
+TEXT _SEEK(SB), 1, $-4
+MOVW $39, R0
+SWI 0
+RET

@@ -3,32 +3,35 @@
 #include <bio.h>
 #include <auth.h>
 
+void	error(char*);
+
+int nonone = 1;
+
 /*
  * called by listen as rexexec rexexec net dir ...
  */
 void
 main(int argc, char **argv)
 {
-	char buf[8192];
-	int n, nn;
-	AuthInfo *ai;
+	char user[NAMELEN], buf[8192];
+	int n, nn, nonone = 0;
 
 	ARGBEGIN{
+	case 'a':
+		nonone = 0;
 	}ARGEND;
 
-	ai = auth_proxy(0, auth_getkey, "proto=p9sk2 role=server");
-	if(ai == nil)
-		sysfatal("auth_proxy: %r");
-	if(strcmp(ai->cuid, "none") == 0)
-		sysfatal("rexexec by none disallowed");
-	if(auth_chuid(ai, nil) < 0)
-		sysfatal("auth_chuid: %r");
-
+	if(srvauth(0, user) < 0)
+		error("srvauth");
+	if(nonone && strcmp(user, "none") == 0)
+		error("rexexec by none disallowed");
+	if(newns(user, 0) < 0)
+		error("newns");
 	n = 0;
 	do {
-		nn = read(0, buf+n, 1);
+		nn = read(0, buf+n, sizeof(buf) - n);
 		if(nn <= 0)
-			sysfatal("can't read command");
+			error("can't read command");
 		n += nn;
 		if(n == sizeof buf)
 			buf[n-1] = '\0';
@@ -36,5 +39,12 @@ main(int argc, char **argv)
 
 	putenv("service", "rx");
 	execl("/bin/rc", "rc", "-lc", buf, 0);
-	sysfatal("can't exec rc");
+	error("can't exec rc");
+}
+
+void
+error(char *msg)
+{
+	fprint(2, "rexexec: %s: %r\n", msg);
+	exits(msg);
 }

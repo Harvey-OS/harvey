@@ -17,7 +17,7 @@ Xdata*
 getxdata(char *name)
 {
 	int fd;
-	Dir *dir;
+	Dir dir;
 	Xdata *xf, *fxf;
 	int flag;
 
@@ -29,31 +29,26 @@ getxdata(char *name)
 	fd = open(name, flag);
 	if(fd < 0)
 		error(Enonexist);
-	dir = nil;
 	if(waserror()){
 		close(fd);
-		free(dir);
 		nexterror();
 	}
-	if((dir = dirfstat(fd)) == nil)
+	if(dirfstat(fd, &dir) < 0)
 		error("I/O error");
-	if(dir->qid.type != QTFILE)
-		error("attach name not a plain file");
 	for(fxf=0,xf=xhead; xf; xf=xf->next){
 		if(xf->name == 0){
 			if(fxf == 0)
 				fxf = xf;
 			continue;
 		}
-		if(xf->qid.path != dir->qid.path || xf->qid.vers != dir->qid.vers)
+		if(xf->qid.path != dir.qid.path || xf->qid.vers != dir.qid.vers)
 			continue;
-		if(xf->type != dir->type || xf->fdev != dir->dev)
+		if(xf->type != dir.type || xf->fdev != dir.dev)
 			continue;
 		xf->ref++;
 		chat("incref=%d, \"%s\", dev=%d...", xf->ref, xf->name, xf->dev);
 		close(fd);
 		poperror();
-		free(dir);
 		return xf;
 	}
 	if(fxf==0){
@@ -64,11 +59,10 @@ getxdata(char *name)
 	chat("alloc \"%s\", dev=%d...", name, fd);
 	fxf->ref = 1;
 	fxf->name = strcpy(ealloc(strlen(name)+1), name);
-	fxf->qid = dir->qid;
-	fxf->type = dir->type;
-	fxf->fdev = dir->dev;
+	fxf->qid = dir.qid;
+	fxf->type = dir.type;
+	fxf->fdev = dir.dev;
 	fxf->dev = fd;
-	free(dir);
 	poperror();
 	return fxf;
 }
@@ -145,7 +139,7 @@ xfile(int fid, int flag)
 	f->xf = 0;
 	f->fid = fid;
 	f->flags = 0;
-	f->qid = (Qid){0,0,0};
+	f->qid = (Qid){0,0};
 	f->len = 0;
 	f->ptr = 0;
 	return f;
@@ -164,7 +158,21 @@ clean(Xfile *f)
 	}
 	f->ptr = 0;
 	f->flags = 0;
-	f->qid = (Qid){0,0,0};
+	f->qid = (Qid){0,0};
 	return f;
 }
 
+void
+xread(Iobuf *p)
+{
+	Xdata *dev;
+	long addr;
+
+	dev = p->dev;
+	addr = p->addr;
+	chat("xread %d,%d...", dev->dev, addr);
+
+	seek(dev->dev, addr*Sectorsize, 0);
+	if(read(dev->dev, p->iobuf, Sectorsize) != Sectorsize)
+		error("I/O read error");
+}

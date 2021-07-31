@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <authsrv.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 void
 getpass(char *key, char *pass, int check, int confirm)

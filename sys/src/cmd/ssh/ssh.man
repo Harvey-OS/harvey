@@ -1,0 +1,128 @@
+.TH SSH 1
+.SH NAME
+ssh, sshserve \- secure login from/to Brazil or Plan 9
+.SH SYNOPSIS
+.B ssh
+[
+.B \-v
+]
+[
+.B \-r
+]
+[
+.B \-u
+.I user
+]
+.I hostname
+[
+.I command
+[
+.I arguments
+...]]
+.PP
+.B scp
+[host:]file [host:]file
+.br
+.B scp
+[host:]file ... [host:]dir
+.PP
+.B sshserve
+.I address
+.SH DESCRIPTION
+.I Ssh
+allows authenticated login over an encrypted channel to hosts that
+support the ssh protocol (see the RFC listed below for encryption and
+authentication details).
+.LP
+.I Ssh
+takes the host name of the machine to connect to as its mandatory argument.
+It may be specified as a domain name or an IP address.
+Normally, login is attempted using the user name from /dev/user.
+The
+.B \-v
+(verbose) flag gives feedback during the connection and authentication proces. 
+The
+.B \-r
+flag strips carriage returns. 
+The
+.B \-u
+flag allows login under a different name.
+.LP
+If no command is specified, an interactive shell is started on the remote
+host.
+Otherwise, the command is executed with its arguments.
+.LP
+Ssh establishes a connection with an ssh daemon on the remote host.
+The daemon sends to ssh its RSA public host key and session key.
+Using these, ssh sends a session key which, presumably, only the
+daemon can decipher.  After this, both sides start encrypting their
+data with this session key.  The encryption algorithm preferred by
+Plan9 ssh for data transfer is RC4, with triple-DES (which isn't
+really triple DES but a somewhat doubtful variation on it) as
+backup.  (All ssh implementations are required to be able to do 3DES.)
+.LP
+When the daemon's host key has been received,
+.I ssh
+looks it up in $home/lib/keyring and in /sys/lib/ssh/keyring.  If
+the key is found there, and it matches the received key,
+.I ssh
+is satisfied.  If not,
+.ssh
+reports this and offers to add the key to $home/lib/keyring.
+.LP
+Over the encrypted channel,
+.I ssh
+attempts to convince the daemon to accept the call.  It may prompt for
+the password on the remote host \- note that this password will be sent
+over the
+.I encrypted
+channel.  This is safe, provided one is indeed connected to the intended
+host.
+.LP
+The preferred way to authenticate the user, however, is the
+challenge/response system used by
+.I netkey .
+.I Ssh
+users on other systems than Plan 9 should enable \s-2TIS_A\s0uthentication.
+.LP
+When the connection is established, the command given in the remaining
+arguments, or the shell, is started up on the remote host.
+.sp 1
+.I Scp
+uses
+.I ssh
+to copy files from one host to another.  A remote file is identified by
+a host name, a colon and a file name (no spaces).
+.I Scp
+can copy files from remote hosts and to remote hosts.
+.sp 1
+.I Sshserve
+is the server that services
+.I ssh
+calls from remote hosts.  On Plan9 and Brazil, it always requires either
+a response to a challenge (netkey), or a password.  The password is
+protected by encryption as it travels from the remote host to
+.I sshserve .
+.SH FILES
+.TF /sys/lib/ssh/hostkey.public
+.TP
+.B /sys/lib/ssh/hostkey.public
+Public key for the host on which the program runs.
+.TP
+.B /sys/lib/ssh/hostkey.secret
+Secret key for the host on which the program runs.  This file must
+be owned and be readable by bootes only.
+.TP
+.B /sys/lib/ssh/keyring
+System keyring file containing public keys for remote ssh clients and servers.
+.TP
+.B /usr/\fIuser\fP/lib/keyring
+Personal keyring file containing public keys for remote ssh clients and
+servers.
+.SH SOURCE
+.B /sys/src/cmd/ssh
+.SH "SEE ALSO"
+.IR /sys/src/cmd/ssh/RFC*
+.IR Auth(6)
+.SH BUGS
+This program was written (and partially copied) by Sape Mullender.

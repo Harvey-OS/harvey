@@ -25,14 +25,13 @@
 static int
 isptty(int fd)
 {
-	Dir *d;
-	int rv;
+	Dir d;
+	char buf[256];
 
-	if((d = _dirfstat(fd)) == nil)
+	if(_FSTAT(fd, buf) < 0)
 		return 0;
-	rv = (strncmp(d->name, "ptty", 4) == 0);
-	free(d);
-	return rv;
+	convM2D(buf, &d);
+	return (strncmp(d.name, "ptty", 4) == 0);
 }
 
 int

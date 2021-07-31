@@ -4,12 +4,6 @@
 #include <ip.h>
 #include <ndb.h>
 
-enum
-{
-	Maxpath=	128,
-	Maxerr=		256,
-};
-
 int 	dbg;
 int	restricted;
 void	sendfile(int, char*, char*);
@@ -29,7 +23,7 @@ char	*dir = "/lib/tftpd";
 char	*dirsl;
 int	dirsllen;
 char	flog[] = "ipboot";
-char	net[Maxpath];
+char	net[2*NAMELEN];
 
 enum
 {
@@ -81,8 +75,8 @@ main(int argc, char **argv)
 	dirsl = strdup(buf);
 	dirsllen = strlen(dirsl);
 
-	fmtinstall('E', eipfmt);
-	fmtinstall('I', eipfmt);
+	fmtinstall('E', eipconv);
+	fmtinstall('I', eipconv);
 
 	if(chdir(dir) < 0)
 		sysfatal("can't get to directory %s: %r", dir);
@@ -191,7 +185,7 @@ sendfile(int fd, char *name, char *mode)
 	int file;
 	uchar buf[Segsize+4];
 	uchar ack[1024];
-	char errbuf[Maxerr];
+	char errbuf[ERRLEN];
 	int ackblock, block, ret;
 	int rexmit, n, al, txtry, rxl;
 	short op;
@@ -207,7 +201,7 @@ sendfile(int fd, char *name, char *mode)
 
 	file = open(name, OREAD);
 	if(file < 0) {
-		errstr(errbuf, sizeof errbuf);
+		errstr(errbuf);
 		nak(fd, 0, errbuf);
 		return;
 	}
@@ -223,7 +217,7 @@ sendfile(int fd, char *name, char *mode)
 			buf[3] = block;
 			n = read(file, buf+4, Segsize);
 			if(n < 0) {
-				errstr(errbuf, sizeof errbuf);
+				errstr(errbuf);
 				nak(fd, 0, errbuf);
 				return;
 			}
@@ -271,14 +265,14 @@ recvfile(int fd, char *name, char *mode)
 {
 	ushort op, block, inblock;
 	uchar buf[Segsize+8];
-	char errbuf[Maxerr];
+	char errbuf[ERRLEN];
 	int n, ret, file;
 
 	syslog(dbg, flog, "receive file '%s' %s from %s", name, mode, raddr);
 
 	file = create(name, OWRITE, 0666);
 	if(file < 0) {
-		errstr(errbuf, sizeof errbuf);
+		errstr(errbuf);
 		nak(fd, 0, errbuf);
 		return;
 	}
@@ -303,7 +297,7 @@ recvfile(int fd, char *name, char *mode)
 			if(inblock == block) {
 				ret = write(file, buf, n);
 				if(ret < 0) {
-					errstr(errbuf, sizeof errbuf);
+					errstr(errbuf);
 					nak(fd, 0, errbuf);
 					goto error;
 				}

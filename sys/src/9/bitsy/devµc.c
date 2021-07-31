@@ -7,20 +7,18 @@
 #include	"../port/error.h"
 
 enum{
-	Qdir,
-	Qbacklight,
+	Qbacklight = 1,
 	Qbattery,
 	Qbuttons,
 	Qcruft,
 	Qkbdin,
 	Qled,
 	Qversion,
-	Qsuspend,
 
 	/* command types */
 	BLversion=	0,
 	BLbuttons=	2,	/* button events */
-	BLtouch=		3,	/* read touch screen events */
+	BLtouch=	3,	/* read touch screen events */
 	BLled=		8,	/* turn LED on/off */
 	BLbattery=	9,	/* read battery status */
 	BLbacklight=	0xd,	/* backlight control */
@@ -50,21 +48,19 @@ enum {
 };
 
 Dirtab µcdir[]={
-	".",			{ Qdir, 0, QTDIR },	0,	DMDIR|0755,
 	"backlight",	{ Qbacklight, 0 },	0,	0664,
-	"battery",		{ Qbattery, 0 },		0,	0664,
-	"buttons",		{ Qbuttons, 0 },		0,	0664,
-	"cruft",		{ Qcruft, 0 },		0,	0664,
-	"kbdin",		{ Qkbdin, 0 },		0,	0664,
-	"led",		{ Qled, 0 },			0,	0664,
-	"version",		{ Qversion, 0 },		0,	0664,
-	"suspend",	{ Qsuspend, 0 },	0,	0222,
+	"battery",	{ Qbattery, 0 },	0,	0664,
+	"buttons",	{ Qbuttons, 0 },	0,	0664,
+	"cruft",	{ Qcruft, 0 },		0,	0664,
+	"kbdin",	{ Qkbdin, 0 },		0,	0664,
+	"led",		{ Qled, 0 },		0,	0664,
+	"version",	{ Qversion, 0 },	0,	0664,
 };
 
 static struct µcontroller
 {
 	/* message being rcvd */
-	int		state;
+	int	state;
 	uchar	buf[16+4];
 	uchar	n;
 
@@ -83,13 +79,10 @@ static struct µcontroller
 } ctlr;
 
 /* button map */
-Rune bmap[2][4] = 
+Rune bmap[4] = 
 {
-	{Kup, Kright, Kleft, Kdown},	/* portrait mode */
-	{Kright, Kdown, Kup, Kleft},	/* landscape mode */
+	Kup, Kright, Kleft, Kdown
 };
-
-extern int landscape;
 
 int
 µcputc(Queue*, int ch)
@@ -98,14 +91,14 @@ int
 	uchar cksum;
 	uchar *p;
 	static int samseq;
-	static int touching;	/* guard against something we call going spllo() */
-	static int buttoning;	/* guard against something we call going spllo() */
+	static int touching;		/* guard against something we call going spllo() */
+	static int buttoning;		/* guard against something we call going spllo() */
 
 	if(ctlr.n > sizeof(ctlr.buf))
 		panic("µcputc");
 
 	ctlr.buf[ctlr.n++] = (uchar)ch;
-
+		
 	for(;;){
 		/* message hasn't started yet? */
 		if(ctlr.buf[0] != SOF){
@@ -151,7 +144,7 @@ int
 			if(b > 5) {
 				/* rocker panel acts like arrow keys */
 				if(b < 10 && !up)
-					kbdputc(kbdq, bmap[landscape][b-6]);
+					kbdputc(kbdq, bmap[b-6]);
 			} else {
 				/* the rest like mouse buttons */
 				if(--b == 0)
@@ -165,12 +158,8 @@ int
 				break;
 			touching = 1;
 			if(len == 4) {
-				if (samseq++ > 10){
-					if (landscape)
-						pentrackxy((p[0]<<8)|p[1], (p[2]<<8)|p[3]);
-					else
-						pentrackxy((p[2]<<8)|p[3], (p[0]<<8)|p[1]);
-				}
+				if (samseq++ > 10)
+					pentrackxy((p[2]<<8)|p[3], (p[0]<<8)|p[1]);
 			} else {
 				samseq = 0;
 				pentrackxy(-1, -1);
@@ -272,16 +261,16 @@ static Chan*
 	return devattach('r', spec);
 }
 
-static Walkqid*
-µcwalk(Chan *c, Chan *nc, char **name, int nname)
+static int	 
+µcwalk(Chan* c, char* name)
 {
-	return devwalk(c, nc, name, nname, µcdir, nelem(µcdir), devgen);
+	return devwalk(c, name, µcdir, nelem(µcdir), devgen);
 }
 
-static int	 
-µcstat(Chan *c, uchar *dp, int n)
+static void	 
+µcstat(Chan* c, char* dp)
 {
-	return devstat(c, dp, n, µcdir, nelem(µcdir), devgen);
+	devstat(c, dp, µcdir, nelem(µcdir), devgen);
 }
 
 static Chan*
@@ -325,10 +314,10 @@ static long
 {
 	char buf[64];
 
-	if(c->qid.path == Qdir)
+	if(c->qid.path & CHDIR)
 		return devdirread(c, a, n, µcdir, nelem(µcdir), devgen);
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path){
 	case Qbattery:
 		sendmsgwithack(BLbattery, nil, 0);		/* send a battery request */
 		sprint(buf, "voltage: %d\nac: %s\nstatus: %s\n", ctlr.voltage,
@@ -353,8 +342,6 @@ static long
 	char str[64];
 	int i, j;
 	Rune r;
-	extern Rendez	powerr;
-	extern ulong	powerflag;
 
 	if(c->qid.path == Qkbdin){
 		if(n >= sizeof(str))
@@ -367,14 +354,6 @@ static long
 		}
 		return n;
 	}
-	if(c->qid.path == Qsuspend){
-		if(!iseve())
-			error(Eperm);
-		if(strncmp(a, "suspend", 7) != 0)
-			error(Ebadarg);
-		powerflag = 1;
-		wakeup(&powerr);
-	}
 
 	cmd = parsecmd(a, n);
 	if(cmd->nf > 15)
@@ -382,7 +361,7 @@ static long
 	for(i = 0; i < cmd->nf; i++)
 		data[i] = atoi(cmd->f[i]);
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path){
 	case Qled:
 		sendmsgwithack(BLled, data, cmd->nf);
 		break;
@@ -398,28 +377,14 @@ static long
 	return n;
 }
 
-void 
-µcpower(int on)
-{
-	uchar data[16];
-	if (on == 0)
-		return;
-	/* maybe dangerous, not holding the lock */
-	data[0]= 2;
-	data[1]= 1;
-	data[2]= 0x80;
-	_sendmsg(0xd, data, 3);
-	wakeup(&ctlr.r);
-}
-
 Dev µcdevtab = {
 	'r',
 	"µc",
 
 	devreset,
 	µcinit,
-	devshutdown,
 	µcattach,
+	devclone,
 	µcwalk,
 	µcstat,
 	µcopen,

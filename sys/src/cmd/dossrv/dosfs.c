@@ -4,28 +4,33 @@
 #include <fcall.h>
 #include "iotrack.h"
 #include "dat.h"
-#include "dosfs.h"
 #include "fns.h"
 
+extern Fcall	thdr;
+extern Fcall	rhdr;
+extern char	data[sizeof(Fcall)+MAXFDATA];
+extern char	fdata[MAXFDATA];
+extern int	errno;
+
 void
-rversion(void)
+rnop(void)
 {
-	if(req->msize > Maxiosize)
-		rep->msize = Maxiosize;
-	else
-		rep->msize = req->msize;
-	rep->version = "9P2000";
+	chat("nop...");
 }
 
 void
-rauth(void)
+rsession(void)
 {
-	errno = Enoauth;
+	memset(thdr.authid, 0, sizeof(thdr.authid));
+	memset(thdr.authdom, 0, sizeof(thdr.authdom));
+	memset(thdr.chal, 0, sizeof(thdr.chal));
+	chat("session...");
 }
 
 void
 rflush(void)
 {
+	chat("flush...");
 }
 
 void
@@ -35,20 +40,22 @@ rattach(void)
 	Xfile *root;
 	Dosptr *dp;
 
-	root = xfile(req->fid, Clean);
+	chat("attach(fid=%d,uname=\"%s\",aname=\"%s\",auth=\"%s\")...",
+		thdr.fid, thdr.uname, thdr.aname, thdr.auth);
+
+	root = xfile(thdr.fid, Clean);
 	if(!root){
 		errno = Enomem;
 		goto error;
 	}
-	root->xf = xf = getxfs(req->uname, req->aname);
+	root->xf = xf = getxfs(thdr.aname);
 	if(!xf)
 		goto error;
 	if(xf->fmt == 0 && dosfs(xf) < 0){
 		errno = Eformat;
 		goto error;
 	}
-	root->qid.type = QTDIR;
-	root->qid.path = 0;
+	root->qid.path = CHDIR;
 	root->qid.vers = 0;
 	root->xf->rootqid = root->qid;
 	dp = malloc(sizeof(Dosptr));
@@ -58,148 +65,132 @@ rattach(void)
 	}
 	root->ptr = dp;
 	rootfile(root);
-	rep->qid = root->qid;
+	rhdr.qid = root->qid;
 	return;
 error:
 	if(root)
-		xfile(req->fid, Clunk);
+		xfile(thdr.fid, Clunk);
+	return;
 }
 
-Xfile*
-doclone(Xfile *of, int newfid)
+void
+rclone(void)
 {
-	Xfile *nf, *next;
+	Xfile *of, *nf, *next;
 	Dosptr *dp;
 
-	nf = xfile(newfid, Clean);
+	chat("clone(fid=%d,newfid=%d)...", thdr.fid, thdr.newfid);
+	of = xfile(thdr.fid, Asis);
+	if(!of){
+		errno = Eio;
+		return;
+	}
+	nf = xfile(thdr.newfid, Clean);
 	if(!nf){
 		errno = Enomem;
-		return nil;
+		return;
 	}
 	dp = malloc(sizeof(Dosptr));
 	if(dp == nil){
 		errno = Enomem;
-		return nil;
+		return;
 	}
 	next = nf->next;
 	*nf = *of;
 	nf->next = next;
-	nf->fid = req->newfid;
+	nf->fid = thdr.newfid;
 	nf->ptr = dp;
 	refxfs(nf->xf, 1);
 	memmove(dp, of->ptr, sizeof(Dosptr));
 	dp->p = nil;
 	dp->d = nil;
-	return nf;
 }
 
 void
 rwalk(void)
 {
-	Xfile *f, *nf;
-	Dosptr dp[1], savedp[1];
-	int r, longtype;
-	Qid saveqid;
+	Xfile *f;
+	Dosptr dp[1];
+	int r, islong;
 
-	rep->nwqid = 0;
-	nf = nil;
-	f = xfile(req->fid, Asis);
-	if(f == nil){
-		chat("\tno xfile\n");
+	chat("walk(fid=%d,name=\"%s\")...", thdr.fid, thdr.name);
+	f = xfile(thdr.fid, Asis);
+	if(!f){
+		chat("no xfile...");
 		goto error;
 	}
-	if(req->fid != req->newfid){
-		nf = doclone(f, req->newfid);
-		if(nf == nil){
-			chat("\tclone failed\n");
-			goto error;
-		}
-		f = nf;
+	if(!(f->qid.path & CHDIR)){
+		chat("qid.path=0x%x...", f->qid.path);
+		goto error;
 	}
-
-	saveqid = f->qid;
-	memmove(savedp, f->ptr, sizeof(Dosptr));
-	for(; rep->nwqid < req->nwname && rep->nwqid < MAXWELEM; rep->nwqid++){
-		chat("\twalking %s\n", req->wname[rep->nwqid]);
-		if(!(f->qid.type & QTDIR)){
-			chat("\tnot dir: type=%#x\n", f->qid.type);
+	if(strcmp(thdr.name, ".")==0){
+		rhdr.qid = f->qid;
+		return;
+	}else if(strcmp(thdr.name, "..")==0){
+		if(f->qid.path==f->xf->rootqid.path){
+			chat("walkup from root...");
+			rhdr.qid = f->qid;
+			return;
+		}
+		r = walkup(f, dp);
+		if(r < 0)
 			goto error;
-		}
-		if(strcmp(req->wname[rep->nwqid], ".") == 0){
-			;
-		}else if(strcmp(req->wname[rep->nwqid], "..") == 0){
-			if(f->qid.path != f->xf->rootqid.path){
-				r = walkup(f, dp);
-				if(r < 0)
-					goto error;
-				memmove(f->ptr, dp, sizeof(Dosptr));
-				if(isroot(dp->addr))
-					f->qid.path = f->xf->rootqid.path;
-				else
-					f->qid.path = QIDPATH(dp);
-			}
-		}else{
-			fixname(req->wname[rep->nwqid]);
-			longtype = classifyname(req->wname[rep->nwqid]);
-			if(longtype==Invalid || getfile(f) < 0)
-				goto error;
+		memmove(f->ptr, dp, sizeof(Dosptr));
+		if(isroot(dp->addr))
+			f->qid.path = f->xf->rootqid.path;
+		else
+			f->qid.path = CHDIR | QIDPATH(dp);
+	}else{
+		islong = fixname(thdr.name);
+		if(islong < 0)
+			goto error;
+		if(getfile(f) < 0)
+			goto error;
 
-			/*
-			 * always do a search for the long name,
-			 * because it could be filed as such
-			 */
-			r = searchdir(f, req->wname[rep->nwqid], dp, 0, longtype);
-			putfile(f);
-			if(r < 0)
-				goto error;
-			memmove(f->ptr, dp, sizeof(Dosptr));
-			f->qid.path = QIDPATH(dp);
-			f->qid.type = QTFILE;
-			if(isroot(dp->addr))
-				f->qid.path = f->xf->rootqid.path;
-			else if(dp->d->attr & DDIR)
-				f->qid.type = QTDIR;
-			else if(dp->d->attr & DSYSTEM){
-				f->qid.type |= QTEXCL;
-				if(iscontig(f->xf, dp->d))
-					f->qid.type |= QTAPPEND;
-			}
-//ZZZ maybe use other bits than qtexcl & qtapppend
-			putfile(f);
-		}
-		rep->wqid[rep->nwqid] = f->qid;
+		/*
+		 * always do a search for the long name,
+		 * because it could be filed as such
+		 */
+		r = searchdir(f, thdr.name, dp, 0, islong);
+		putfile(f);
+		if(r < 0)
+			goto error;
+		memmove(f->ptr, dp, sizeof(Dosptr));
+		f->qid.path = QIDPATH(dp);
+		if(isroot(dp->addr))
+			f->qid.path = f->xf->rootqid.path;
+		else if(dp->d->attr & DDIR)
+			f->qid.path |= CHDIR;
+		putfile(f);
 	}
+	rhdr.qid = f->qid;
 	return;
 error:
-	f->qid = saveqid;
-	memmove(f->ptr, savedp, sizeof(Dosptr));
-	if(nf != nil)
-		xfile(req->newfid, Clunk);
-	if(!errno && !rep->nwqid)
-		errno = Enonexist;
+	errno = Enonexist;
+	return;
 }
 
 void
 ropen(void)
 {
 	Xfile *f;
-	Iosect *p;
 	Dosptr *dp;
 	int attr, omode;
 
-	f = xfile(req->fid, Asis);
+	chat("open(fid=%d,mode=%d)...", thdr.fid, thdr.mode);
+	f = xfile(thdr.fid, Asis);
 	if(!f || (f->flags&Omodes)){
 		errno = Eio;
 		return;
 	}
 	dp = f->ptr;
 	omode = 0;
-	if(!isroot(dp->paddr) && (req->mode & ORCLOSE)){
+	if(!isroot(dp->paddr) && (thdr.mode & ORCLOSE)){
 		/*
 		 * check on parent directory of file to be deleted
 		 */
-		p = getsect(f->xf, dp->paddr);
-		if(p == nil){
+		Iosect *p = getsect(f->xf, dp->paddr);
+		if(p == 0){
 			errno = Eio;
 			return;
 		}
@@ -210,7 +201,7 @@ ropen(void)
 			return;
 		}
 		omode |= Orclose;
-	}else if(req->mode & ORCLOSE)
+	}else if(thdr.mode & ORCLOSE)
 		omode |= Orclose;
 	if(getfile(f) < 0){
 		errno = Enonexist;
@@ -220,7 +211,7 @@ ropen(void)
 		attr = dp->d->attr;
 	else
 		attr = DDIR;
-	switch(req->mode & 7){
+	switch(thdr.mode & 7){
 	case OREAD:
 	case OEXEC:
 		omode |= Oread;
@@ -239,74 +230,61 @@ ropen(void)
 		errno = Eio;
 		goto out;
 	}
-	if(req->mode & OTRUNC){
+	if(thdr.mode & OTRUNC){
 		if(attr & DDIR || attr & DRONLY){
 			errno = Eperm;
 			goto out;
 		}
-		if(truncfile(f, 0) < 0){
+		if(truncfile(f) < 0){
 			errno = Eio;
 			goto out;
 		}
 	}
 	f->flags |= omode;
-	rep->qid = f->qid;
-	rep->iounit = 0;
+	chat("f->qid=0x%8.8lux...", f->qid.path);
+	rhdr.qid = f->qid;
 out:
 	putfile(f);
 }
 
 static int
-mk8dot3name(Xfile *f, Dosptr *ndp, char *name, char *sname)
+uniquename(Xfile *f, Dosptr *ndp, char *name, char *sname)
 {
 	Dosptr tmpdp;
-	int i, longtype;
+	int i, islong;
 
 	if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
-		return Invalid;
+		return -1;
 
 	/*
 	 * always do a search for the long name,
 	 * because it could be filed as such
 	 */
-	fixname(name);
-	longtype = classifyname(name);
-	if(longtype==Invalid || searchdir(f, name, ndp, 1, longtype) < 0)
-		return Invalid;
+	islong = fixname(name);
+	if(islong < 0 || searchdir(f, name, ndp, 1, islong) < 0)
+		return -1;
 
-	if(longtype==Short)
-		return Short;
-
-	if(longtype==ShortLower){
-		/*
-		 * alias is the upper-case version, which we
-		 * already know does not exist.
-		 */
-		strcpy(sname, name);
-		for(i=0; sname[i]; i++)
-			if('a' <= sname[i] && sname[i] <= 'z')
-				sname[i] += 'A'-'a';
-		return ShortLower;
-	}
+	if(!islong)
+		return 0;
 
 	/*
 	 * find alias for the long name
 	 */
-	for(i=1;; i++){
+	for(i = 1; ; i++){
 		mkalias(name, sname, i);
 		if(searchdir(f, sname, &tmpdp, 0, 0) < 0)
-			return Long;
+			break;
 		putsect(tmpdp.p);
 	}
-	abort();
-	return -1;
+
+	return 1;
 }
 
 /*
  * fill in a directory entry for a new file
  */
 static int
-mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype, int nattr, long start, long length)
+mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int islong, int nattr, long start, long length)
 {
 	Dosdir *nd;
 
@@ -315,7 +293,7 @@ mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype, int nattr,
 	 */
 	ndp->p = getsect(xf, ndp->addr);
 	if(ndp->p == nil
-	|| longtype!=Short && putlongname(xf, ndp, name, sname) < 0){
+	|| islong && putlongname(xf, ndp, name, sname) < 0){
 		errno = Eio;
 		return -1;
 	}
@@ -324,7 +302,7 @@ mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype, int nattr,
 	nd = ndp->d;
 	memset(nd, 0, DOSDIRSIZE);
 
-	if(longtype!=Short)
+	if(islong)
 		name = sname;
 	putname(name, nd);
 
@@ -351,9 +329,11 @@ rcreate(void)
 	Dosdir *pd, *xd;
 	char sname[13];
 	long start;
-	int longtype, attr, omode, nattr;
+	int islong, attr, omode, nattr;
 
-	f = xfile(req->fid, Asis);
+	chat("create(fid=%d,name=\"%s\",perm=%uo,mode=%d)...",
+		thdr.fid, thdr.name, thdr.perm, thdr.mode);
+	f = xfile(thdr.fid, Asis);
 	if(!f || (f->flags&Omodes) || getfile(f)<0){
 		errno = Eio;
 		return;
@@ -373,9 +353,9 @@ badperm:
 		return;
 	}
 	omode = 0;
-	if(req->mode & ORCLOSE)
+	if(thdr.mode & ORCLOSE)
 		omode |= Orclose;
-	switch(req->mode & 7){
+	switch(thdr.mode & 7){
 	case OREAD:
 	case OEXEC:
 		omode |= Oread;
@@ -385,7 +365,7 @@ badperm:
 		/* fall through */
 	case OWRITE:
 		omode |= Owrite;
-		if(req->perm & DMDIR)
+		if(thdr.perm & CHDIR)
 			goto badperm;
 		break;
 	default:
@@ -402,9 +382,8 @@ badperm:
 		errno = Enomem;
 		return;
 	}
-	longtype = mk8dot3name(f, ndp, req->name, sname);
-	chat("rcreate %s longtype %d...\n", req->name, longtype);
-	if(longtype == Invalid){
+	islong = uniquename(f, ndp, thdr.name, sname);
+	if(islong < 0){
 		free(ndp);
 		goto badperm;
 	}
@@ -414,7 +393,7 @@ badperm:
 	 */
 	start = 0;
 	bp = nil;
-	if(req->perm & DMDIR){
+	if(thdr.perm & CHDIR){
 		bp = f->xf->ptr;
 		mlock(bp);
 		start = falloc(f->xf);
@@ -431,12 +410,12 @@ badperm:
 	 * make the entry
 	 */
 	nattr = 0;
-	if((req->perm & 0222) == 0)
+	if((thdr.perm & 0222) == 0)
 		nattr |= DRONLY;
-	if(req->perm & DMDIR)
+	if(thdr.perm & CHDIR)
 		nattr |= DDIR;
 
-	if(mkdentry(f->xf, ndp, req->name, sname, longtype, nattr, start, 0) < 0){
+	if(mkdentry(f->xf, ndp, thdr.name, sname, islong, nattr, start, 0) < 0){
 		if(ndp->p != nil)
 			putsect(ndp->p);
 		free(ndp);
@@ -455,12 +434,10 @@ badperm:
 	 * fix up the fid
 	 */
 	f->ptr = ndp;
-	f->qid.type = QTFILE;
 	f->qid.path = QIDPATH(ndp);
 
-//ZZZ set type for excl, append?
-	if(req->perm & DMDIR){
-		f->qid.type = QTDIR;
+	if(thdr.perm & CHDIR){
+		f->qid.path |= CHDIR;
 		xp = getsect(f->xf, clust2sect(bp, start));
 		if(xp == nil){
 			errno = Eio;
@@ -486,8 +463,8 @@ badperm:
 	}
 
 	f->flags |= omode;
-	rep->qid = f->qid;
-	rep->iounit = 0;
+	chat("f->qid=0x%8.8lux...", f->qid.path);
+	rhdr.qid = f->qid;
 
 badio:
 	putfile(f);
@@ -500,27 +477,36 @@ rread(void)
 {
 	Xfile *f;
 	int r;
+	long offset;
 
-	if (!(f=xfile(req->fid, Asis)) || !(f->flags&Oread))
+	chat("read(fid=%d,offset=%lld,count=%d)...",
+		thdr.fid, thdr.offset, thdr.count);
+	if (!(f=xfile(thdr.fid, Asis)) || !(f->flags&Oread))
 		goto error;
-	if(req->count > sizeof repdata)
-		req->count = sizeof repdata;
-	if(f->qid.type & QTDIR){
+	if(f->qid.path & CHDIR){
+		thdr.count = (thdr.count/DIRLEN)*DIRLEN;
+		offset = thdr.offset;	/* cast vlong to long */
+		if(thdr.count<DIRLEN || offset%DIRLEN){
+			chat("count=%d,offset=%lld,DIRLEN=%d...",
+				thdr.count, thdr.offset, DIRLEN);
+			goto error;
+		}
 		if(getfile(f) < 0)
 			goto error;
-		r = readdir(f, repdata, req->offset, req->count);
+		r = readdir(f, fdata, thdr.offset, thdr.count);
 	}else{
 		if(getfile(f) < 0)
 			goto error;
-		r = readfile(f, repdata, req->offset, req->count);
+		r = readfile(f, fdata, thdr.offset, thdr.count);
 	}
 	putfile(f);
 	if(r < 0){
 error:
 		errno = Eio;
 	}else{
-		rep->count = r;
-		rep->data = (char*)repdata;
+		rhdr.count = r;
+		rhdr.data = fdata;
+		chat("rcnt=%d...", r);
 	}
 }
 
@@ -530,24 +516,28 @@ rwrite(void)
 	Xfile *f;
 	int r;
 
-	if (!(f=xfile(req->fid, Asis)) || !(f->flags&Owrite))
+	chat("write(fid=%d,offset=%lld,count=%d)...",
+		thdr.fid, thdr.offset, thdr.count);
+	if (!(f=xfile(thdr.fid, Asis)) || !(f->flags&Owrite))
 		goto error;
 	if(getfile(f) < 0)
 		goto error;
-	r = writefile(f, req->data, req->offset, req->count);
+	r = writefile(f, thdr.data, thdr.offset, thdr.count);
 	putfile(f);
 	if(r < 0){
 error:
 		errno = Eio;
 	}else{
-		rep->count = r;
+		rhdr.count = r;
+		chat("rcnt=%d...", r);
 	}
 }
 
 void
 rclunk(void)
 {
-	xfile(req->fid, Clunk);
+	chat("clunk(fid=%d)...", thdr.fid);
+	xfile(thdr.fid, Clunk);
 	sync();
 }
 
@@ -587,38 +577,51 @@ rremove(void)
 	Iosect *parp;
 	Dosdir *pard;
 
-	f = xfile(req->fid, Asis);
-	parp = nil;
-	if(f == nil){
+	chat("remove(fid=%d,name=\"%s\")...", thdr.fid, thdr.name);
+	f = xfile(thdr.fid, Asis);
+	if(!f){
 		errno = Eio;
 		goto out;
 	}
 	dp = f->ptr;
 	if(isroot(dp->addr)){
+		chat("root...");
 		errno = Eperm;
 		goto out;
 	}
-
 	/*
-	 * can't remove if parent is read only,
-	 * it's a non-empty directory,
-	 * or it's a read only file in the root directory
+	 * check on parent directory of file to be deleted
 	 */
 	parp = getsect(f->xf, dp->paddr);
-	if(parp == nil
-	|| getfile(f) < 0){
+	if(parp == 0){
 		errno = Eio;
 		goto out;
 	}
 	pard = (Dosdir *)&parp->iobuf[dp->poffset];
-	if(!isroot(dp->paddr) && (pard->attr & DRONLY)
-	|| (dp->d->attr & DDIR) && emptydir(f) < 0
-	|| isroot(dp->paddr) && (dp->d->attr&DRONLY)){
+	if(!isroot(dp->paddr) && (pard->attr & DRONLY)){
+		chat("parent read-only...");
+		putsect(parp);
 		errno = Eperm;
 		goto out;
 	}
-	if(truncfile(f, 0) < 0){
+	if(getfile(f) < 0){
+		chat("getfile failed...");
+		putsect(parp);
 		errno = Eio;
+		goto out;
+	}
+	if((dp->d->attr & DDIR) && emptydir(f) < 0){
+		chat("non-empty dir...");
+		putfile(f);
+		putsect(parp);
+		errno = Eperm;
+		goto out;
+	}
+	if(isroot(dp->paddr) && (dp->d->attr&DRONLY)){
+		chat("read-only file in root directory...");
+		putfile(f);
+		putsect(parp);
+		errno = Eperm;
 		goto out;
 	}
 	doremove(f->xf, f->ptr);
@@ -626,12 +629,12 @@ rremove(void)
 		puttime(pard, 0);
 		parp->flags |= BMOD;
 	}
+	putsect(parp);
+	if(truncfile(f) < 0)
+		errno = Eio;
+	putfile(f);
 out:
-	if(parp != nil)
-		putsect(parp);
-	if(f != nil)
-		putfile(f);
-	xfile(req->fid, Clunk);
+	xfile(thdr.fid, Clunk);
 	sync();
 }
 
@@ -646,13 +649,11 @@ dostat(Xfile *f, Dir *d)
 	dp = f->ptr;
 	if(isroot(dp->addr)){
 		memset(d, 0, sizeof(Dir));
-		d->name = "/";
-		d->qid.type = QTDIR;
-		d->qid.path = f->xf->rootqid.path;
-		d->mode = DMDIR|0777;
-		d->uid = "bill";
-		d->muid = "bill";
-		d->gid = "trog";
+		d->name[0] = '/';
+		d->qid.path = CHDIR;
+		d->mode = CHDIR|0777;
+		strcpy(d->uid, "bill");
+		strcpy(d->gid, "trog");
 	}else{
 		/*
 		 * assemble any long file name
@@ -676,7 +677,7 @@ dostat(Xfile *f, Dir *d)
 		}
 		getdir(f->xf, d, dp->d, dp->addr, dp->offset);
 		if(islong && sum == -1 && nameok(namebuf))
-			strcpy(d->name, namebuf);
+			strncpy(d->name, namebuf, NAMELEN);
 	}
 }
 
@@ -686,17 +687,17 @@ rstat(void)
 	Dir dir;
 	Xfile *f;
 
-	f = xfile(req->fid, Asis);
+	chat("stat(fid=%d)...", thdr.fid);
+
+	f = xfile(thdr.fid, Asis);
 	if(!f || getfile(f) < 0){
 		errno = Eio;
 		return;
 	}
 
-	dir.name = repdata;
 	dostat(f, &dir);
 
-	rep->nstat = convD2M(&dir, statbuf, sizeof statbuf);
-	rep->stat = statbuf;
+	convD2M(&dir, rhdr.stat);
 	putfile(f);
 }
 
@@ -711,9 +712,11 @@ rwstat(void)
 	char sname[13];
 	ulong oaddr, ooffset;
 	long start, length;
-	int i, longtype, changes, attr;
+	int i, islong, changes, attr;
 
-	f = xfile(req->fid, Asis);
+	chat("wstat(fid=%d)...", thdr.fid);
+
+	f = xfile(thdr.fid, Asis);
 	if(!f || getfile(f) < 0){
 		errno = Eio;
 		return;
@@ -726,29 +729,14 @@ rwstat(void)
 	}
 
 	changes = 0;
-	dir.name = repdata;
 	dostat(f, &dir);
-	if(convM2D(req->stat, req->nstat, &wdir, (char*)statbuf) != req->nstat){
-		errno = Ebadstat;
-		goto out;
-	}
-
-	/*
-	 * To change length, must have write permission on file.
-	 * we only allow truncates for now.
-	 */
-	if(wdir.length!=~0 && wdir.length!=dir.length){
-		if(wdir.length > dir.length || !dir.mode & 0222){
-			errno = Eperm;
-			goto out;
-		}
-	}
+	convM2D(thdr.stat, &wdir);
 
 	/*
 	 * no chown or chgrp
 	 */
-	if(wdir.uid[0] != '\0' && strcmp(dir.uid, wdir.uid) != 0
-	|| wdir.gid[0] != '\0' && strcmp(dir.gid, wdir.gid) != 0){
+	if(strncmp(dir.uid, wdir.uid, NAMELEN) != 0
+	|| strncmp(dir.gid, wdir.gid, NAMELEN) != 0){
 		errno = Eperm;
 		goto out;
 	}
@@ -756,33 +744,29 @@ rwstat(void)
 	/*
 	 * mode/mtime allowed
 	 */
-	if(wdir.mtime != ~0 && dir.mtime != wdir.mtime)
+	if(dir.mtime != wdir.mtime || ((dir.mode^wdir.mode) & (CHEXCL|0777)))
 		changes = 1;
 
 	/*
-	 * Setting DMAPPEND (make system file contiguous)
-	 * requires setting DMEXCL (system file).
+	 * Setting CHAPPEND (make system file contiguous)
+	 * requires setting CHEXCL (system file).
 	 */
-	if(wdir.mode != ~0){
-		if((wdir.mode & 7) != ((wdir.mode >> 3) & 7)
-		|| (wdir.mode & 7) != ((wdir.mode >> 6) & 7)){
+	if((dir.mode^wdir.mode) & CHAPPEND) {
+		if((wdir.mode & (CHEXCL|CHAPPEND)) == CHAPPEND) {
 			errno = Eperm;
 			goto out;
 		}
-		if((dir.mode^wdir.mode) & (DMEXCL|DMAPPEND|0777))
-			changes = 1;
-		if((dir.mode^wdir.mode) & DMAPPEND) {
-			if((wdir.mode & (DMEXCL|DMAPPEND)) == DMAPPEND) {
-				errno = Eperm;
-				goto out;
-			}
-			if((wdir.mode & DMAPPEND) && makecontig(f, 0) < 0) {
-				errno = Econtig;
-				goto out;
-			}
+		if((wdir.mode & CHAPPEND) && makecontig(f, 0) < 0) {
+			errno = Econtig;
+			goto out;
 		}
 	}
 
+	if((wdir.mode & 7) != ((wdir.mode >> 3) & 7)
+	|| (wdir.mode & 7) != ((wdir.mode >> 6) & 7)){
+		errno = Eperm;
+		goto out;
+	}
 
 	/*
 	 * to rename:
@@ -794,12 +778,7 @@ rwstat(void)
 	 * we need to remove the old entry before creating the new one
 	 * to avoid a lock loop.
 	 */
-	if(wdir.name[0] != '\0' && strcmp(dir.name, wdir.name) != 0){
-		if(utflen(wdir.name) >= DOSNAMELEN){
-			errno = Etoolong;
-			goto out;
-		}
-
+	if(strncmp(dir.name, wdir.name, NAMELEN) != 0){
 		/*
 		 * grab parent directory of file to be changed and check for write perm
 		 * rename also disallowed for read-only files in root directory
@@ -844,8 +823,8 @@ rwstat(void)
 		if(!isroot(pdp.addr))
 			pdp.d = (Dosdir *)&parp->iobuf[pdp.offset];
 		pf.ptr = &pdp;
-		longtype = mk8dot3name(&pf, &ndp, wdir.name, sname);
-		if(longtype==Invalid){
+		islong = uniquename(&pf, &ndp, wdir.name, sname);
+		if(islong < 0){
 			putsect(parp);
 			errno = Eperm;
 			return;
@@ -863,8 +842,8 @@ rwstat(void)
 		 * and we need to set up the naddr field if a long name spans the block.
 		 * create new entry.
 		 */
-		if(searchdir(&pf, wdir.name, dp, 1, longtype) < 0
-		|| mkdentry(pf.xf, dp, wdir.name, sname, longtype, attr, start, length) < 0){
+		if(searchdir(&pf, wdir.name, dp, 1, islong) < 0
+		|| mkdentry(pf.xf, dp, wdir.name, sname, islong, attr, start, length) < 0){
 			putsect(parp);
 			errno = Eio;
 			goto out;
@@ -886,25 +865,11 @@ rwstat(void)
 		/*
 		 * relocate up other fids to the same file, if it moved
 		 */
-		f->qid.path = QIDPATH(dp);
+		f->qid.path = (f->qid.path & CHDIR) | QIDPATH(dp);
 		if(oaddr != dp->addr || ooffset != dp->offset)
 			dosptrreloc(f, dp, oaddr, ooffset);
-
-		/*
-		 * copy fields that are not supposed to change
-		 */
-		if(wdir.mtime == ~0)
-			wdir.mtime = dir.mtime;
-		if(wdir.mode == ~0)
-			wdir.mode = dir.mode;
 		changes = 1;
 	}
-
-	/*
-	 * do the actual truncate
-	 */
-	if(wdir.length != ~0 && wdir.length != dir.length && truncfile(f, wdir.length) < 0)
-		errno = Eio;
 
 	if(changes){
 		putdir(dp->d, &wdir);

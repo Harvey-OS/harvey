@@ -9,55 +9,12 @@
 static int	replyid;
 
 int
-quote(Message *m, Biobuf *b, char *dir)
+EQUAL(char *s, char *t)
 {
-	char *body, *type;
-	int i, n, nlines;
-	char **lines;
-
-	/* look for first textual component to quote */
-	type = readfile(dir, "type", &n);
-	if(type == nil){
-		print("no type in %s\n", dir);
-		return 0;
-	}
-	if(strncmp(type, "multipart/", 10)==0 || strncmp(type, "message/", 8)==0){
-		dir = estrstrdup(dir, "1/");
-		if(quote(m, b, dir)){
-			free(type);
-			free(dir);
+	while(tolower(*s) == tolower(*t++))
+		if(*s++ == '\0')
 			return 1;
-		}
-		free(dir);
-	}
-	if(strncmp(type, "text", 4) != 0){
-		free(type);
-		return 0;
-	}
-	body = readbody(m->type, dir, &n);
-	if(body == nil)
-		return 0;
-	nlines = 0;
-	for(i=0; i<n; i++)
-		if(body[i] == '\n')
-			nlines++;
-	nlines++;
-	lines = emalloc(nlines*sizeof(char*));
-	nlines = getfields(body, lines, nlines, 0, "\n");
-	/* delete leading and trailing blank lines */
-	i = 0;
-	while(i<nlines && lines[i][0]=='\0')
-		i++;
-	while(i<nlines && lines[nlines-1][0]=='\0')
-		nlines--;
-	while(i < nlines){
-		Bprint(b, ">%s%s\n", lines[i][0]=='>'? "" : " ", lines[i]);
-		i++;
-	}
-	free(lines);
-	free(body);
-	free(type);
-	return 1;
+	return 0;
 }
 
 void
@@ -65,9 +22,7 @@ mkreply(Message *m, char *label, char *to)
 {
 	Message *r;
 	char *dir, *t;
-	int quotereply;
 
-	quotereply = (label[0] == 'Q');
 	r = emalloc(sizeof(Message));
 	r->isreply = 1;
 	if(m != nil)
@@ -89,12 +44,11 @@ mkreply(Message *m, char *label, char *to)
 	winopenbody(r->w, OWRITE);
 	if(to!=nil && to[0]!='\0')
 		Bprint(r->w->body, "%s\n", to);
-	dir = nil;
 	if(m != nil){
 		dir = estrstrdup(mbox.name, m->name);
 		if(to == nil){
 			/* Reply goes to replyto; Reply all goes to From and To and CC */
-			if(strstr(label, "all") == nil)
+			if(strcmp(label, "Reply") == 0)
 				Bprint(r->w->body, "To: %s\n", m->replyto);
 			else{	/* Replyall */
 				if(strlen(m->from) > 0)
@@ -112,20 +66,14 @@ mkreply(Message *m, char *label, char *to)
 					t = "Subject: ";
 			Bprint(r->w->body, "%s%s\n", t, m->subject);
 		}
-		if(!quotereply){
-			Bprint(r->w->body, "Include: %sraw\n", dir);
-			free(dir);
-		}
+		Bprint(r->w->body, "Include: %sraw\n", dir);
+		free(dir);
 	}
 	Bprint(r->w->body, "\n");
 	if(m == nil)
 		Bprint(r->w->body, "\n");
-	else if(quotereply){
-		quote(m, r->w->body, dir);
-		free(dir);
-	}
 	winclosebody(r->w);
-	if(m==nil && (to==nil || to[0]=='\0'))
+	if(m == nil)
 		winselect(r->w, "0", 0);
 	else
 		winselect(r->w, "$", 0);
@@ -147,6 +95,20 @@ delreply(Message *m)
 	mesgfreeparts(m);
 	free(m);
 }
+
+enum
+{
+	NARGS		= 100,
+	NARGCHAR	= 8*1024,
+	EXECSTACK 	= STACK+(NARGS+1)*sizeof(char*)+NARGCHAR
+};
+
+struct Exec
+{
+	char		**argv;
+	int		p[2];
+	Channel	*sync;
+};
 
 /* copy argv to stack and free the incoming strings, so we don't leak argument vectors */
 void
@@ -175,16 +137,12 @@ void
 execproc(void *v)
 {
 	struct Exec *e;
-	int p[2], q[2];
-	char *prog;
+	int p[2];
 	char *argv[NARGS+1], args[NARGCHAR];
 
 	e = v;
 	p[0] = e->p[0];
 	p[1] = e->p[1];
-	q[0] = e->q[0];
-	q[1] = e->q[1];
-	prog = e->prog;	/* known not to be malloc'ed */
 	rfork(RFFDG);
 	sendul(e->sync, 1);
 	buildargv(e->argv, argv, args);
@@ -192,15 +150,9 @@ execproc(void *v)
 	chanfree(e->sync);
 	free(e);
 	dup(p[0], 0);
-	close(p[0]);
 	close(p[1]);
-	if(q[0]){
-		dup(q[1], 1);
-		close(q[0]);
-		close(q[1]);
-	}
-	procexec(nil, prog, argv);
-//fprint(2, "exec: %s", e->prog);
+	procexec(nil, "/bin/upas/marshal", argv);
+//threadprint(2, "exec: /bin/upas/marshal");
 //{int i;
 //for(i=0; argv[i]; i++) print(" '%s'", argv[i]);
 //print("\n");
@@ -208,7 +160,7 @@ execproc(void *v)
 //argv[0] = "cat";
 //argv[1] = nil;
 //procexec(nil, "/bin/cat", argv);
-	fprint(2, "Mail: can't exec %s: %r\n", prog);
+	threadprint(2, "Mail: can't exec %s: %r\n", argv[0]);
 	threadexits("can't exec");
 }
 
@@ -237,7 +189,7 @@ whichheader(char *h)
 	int i;
 
 	for(i=0; headers[i]!=nil; i++)
-		if(cistrcmp(h, headers[i]) == 0)
+		if(EQUAL(h, headers[i]))
 			return i;
 	return -1;
 }
@@ -247,7 +199,7 @@ char	*cclist[200];
 char	*bcclist[200];
 int ncc, nbcc, nto;
 char	*attlist[200];
-char	included[200];
+int	rfc822[200];
 
 int
 addressed(char *name)
@@ -312,33 +264,6 @@ commas(char *s, char *e)
 	}
 }
 
-int
-print2(int fd, int ofd, char *fmt, ...)
-{
-	int m, n;
-	char *s;
-	va_list arg;
-
-	va_start(arg, fmt);
-	s = vsmprint(fmt, arg);
-	va_end(arg);
-	if(s == nil)
-		return -1;
-	m = strlen(s);
-	n = write(fd, s, m);
-	if(ofd > 0)
-		write(ofd, s, m);
-	return n;
-}
-
-void
-write2(int fd, int ofd, char *buf, int n)
-{
-	write(fd, buf, n);
-	if(ofd > 0)
-		write(ofd, buf, n);
-}
-
 void
 mesgsend(Message *m)
 {
@@ -346,8 +271,8 @@ mesgsend(Message *m)
 	int i, j, h, n, natt, p[2];
 	struct Exec *e;
 	Channel *sync;
-	int first, nfld, delit, ofd;
-	char *copy, *fld[100], *now;
+	int first, nfld, delit;
+	char *copy, *fld[100];
 
 	body = winreadbody(m->w, &n);
 	/* assemble to: list from first line, to: line, and cc: line */
@@ -403,7 +328,7 @@ mesgsend(Message *m)
 			delit = 1;
 			for(i=1; i<nfld && natt<nelem(attlist); i++){
 				attlist[natt] = estrdup(fld[i]);
-				included[natt++] = (h == INCLUDE);
+				rfc822[natt++] = (h == INCLUDE);
 			}
 			break;
 		default:
@@ -424,39 +349,23 @@ mesgsend(Message *m)
 		first = 0;
 	}
 
-	ofd = open(outgoing, OWRITE|OCEXEC);	/* no error check necessary */
-	if(ofd > 0){
-		/* From dhog Fri Aug 24 22:13:00 EDT 2001 */
-		now = ctime(time(0));
-		fprint(ofd, "From %s %s", user, now);
-		fprint(ofd, "From: %s\n", user);
-		fprint(ofd, "Date: %s", now);
-		for(i=0; i<natt; i++)
-			if(included[i])
-				fprint(ofd, "Include: %s\n", attlist[i]);
-			else
-				fprint(ofd, "Attach: %s\n", attlist[i]);
-		/* needed because mail is by default Latin-1 */
-		fprint(ofd, "Content-Type: text/plain; charset=\"UTF-8\"\n");
-		fprint(ofd, "Content-Transfer-Encoding: 8bit\n");
-	}
-
 	e = emalloc(sizeof(struct Exec));
 	if(pipe(p) < 0)
-		error("can't create pipe: %r");
+		error("Mail: can't create pipe\n");
 	e->p[0] = p[0];
 	e->p[1] = p[1];
-	e->prog = "/bin/upas/marshal";
 	e->argv = emalloc((1+1+4*natt+1)*sizeof(char*));
 	e->argv[0] = estrdup("marshal");
 	e->argv[1] = estrdup("-8");
 	j = 2;
 	for(i=0; i<natt; i++){
-		if(included[i])
+		if(rfc822[i]){
+			e->argv[j++] = estrdup("-t");
+			e->argv[j++] = estrdup("message/rfc822");
 			e->argv[j++] = estrdup("-A");
-		else
+		}else
 			e->argv[j++] = estrdup("-a");
-		e->argv[j++] = estrdup(attlist[i]);
+		e->argv[j++] = attlist[i];
 	}
 	sync = chancreate(sizeof(int), 0);
 	e->sync = sync;
@@ -466,48 +375,33 @@ mesgsend(Message *m)
 
 	/* using marshal -8, so generate rfc822 headers */
 	if(nto > 0){
-		print2(p[1], ofd, "To: ");
+		threadprint(p[1], "To: ");
 		for(i=0; i<nto-1; i++)
-			print2(p[1], ofd, "%s, ", tolist[i]);
-		print2(p[1], ofd, "%s\n", tolist[i]);
+			threadprint(p[1], "%s, ", tolist[i]);
+		threadprint(p[1], "%s\n", tolist[i]);
 	}
 	if(ncc > 0){
-		print2(p[1], ofd, "CC: ");
+		threadprint(p[1], "CC: ");
 		for(i=0; i<ncc-1; i++)
-			print2(p[1], ofd, "%s, ", cclist[i]);
-		print2(p[1], ofd, "%s\n", cclist[i]);
+			threadprint(p[1], "%s, ", cclist[i]);
+		threadprint(p[1], "%s\n", cclist[i]);
 	}
 	if(nbcc > 0){
-		print2(p[1], ofd, "BCC: ");
+		threadprint(p[1], "BCC: ");
 		for(i=0; i<nbcc-1; i++)
-			print2(p[1], ofd, "%s, ", bcclist[i]);
-		print2(p[1], ofd, "%s\n", bcclist[i]);
+			threadprint(p[1], "%s, ", bcclist[i]);
+		threadprint(p[1], "%s\n", bcclist[i]);
 	}
 
 	i = strlen(body);
 	if(i > 0)
-		write2(p[1], ofd, body, i);
+		write(p[1], body, i);
 
 	/* guarantee a blank line, to ensure attachments are separated from body */
 	if(i==0 || body[i-1]!='\n')
-		write2(p[1], ofd, "\n\n", 2);
+		write(p[1], "\n\n", 2);
 	else if(i>1 && body[i-2]!='\n')
-		write2(p[1], ofd, "\n", 1);
-
-	/* these look like pseudo-attachments in the "outgoing" box */
-	if(ofd>0 && natt>0){
-		for(i=0; i<natt; i++)
-			if(included[i])
-				fprint(ofd, "=====> Include: %s\n", attlist[i]);
-			else
-				fprint(ofd, "=====> Attach: %s\n", attlist[i]);
-	}
-	if(ofd > 0)
-		write(ofd, "\n", 1);
-
-	for(i=0; i<natt; i++)
-		free(attlist[i]);
-	close(ofd);
+		write(p[1], "\n", 1);
 	close(p[1]);
 	free(body);
 
@@ -521,6 +415,4 @@ mesgsend(Message *m)
 	winname(m->w, s);
 	free(s);
 	winclean(m->w);
-	/* mark message unopened because it's no longer the original message */
-	m->opened = 0;
 }

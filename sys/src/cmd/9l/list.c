@@ -18,13 +18,13 @@ prasm(Prog *p)
 }
 
 int
-Pconv(Fmt *fp)
+Pconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ], *s;
 	Prog *p;
 	int a;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(*arg, Prog*);
 	curp = p;
 	a = p->as;
 	if(a == ADATA || a == ADYNT || a == AINIT)
@@ -42,32 +42,35 @@ Pconv(Fmt *fp)
 			sprint(s, "	%A	%D,R%d,%D",
 				a, &p->from, p->reg, &p->to);
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Aconv(Fmt *fp)
+Aconv(va_list *arg, Fconv *fp)
 {
 	char *s, sr[20];
 	int a;
 
-	a = va_arg(fp->args, int);
+	a = va_arg(*arg, int);
 	if(a >= AXXX && a < ALAST) {
 		s = anames[a];
-		return fmtstrcpy(fp, s);
+		strconv(s, fp);
+	} else {
+		sprint(sr, "«%d»", a);
+		strconv(sr, fp);
 	}
-	sprint(sr, "«%d»", a);
-	return fmtstrcpy(fp, sr);
+	return 0;
 }
 
 int
-Dconv(Fmt *fp)
+Dconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	long v;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(*arg, Adr*);
 	switch(a->type) {
 
 	default:
@@ -130,17 +133,18 @@ Dconv(Fmt *fp)
 		sprint(str, "$\"%S\"", a->sval);
 		break;
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Nconv(Fmt *fp)
+Nconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(*arg, Adr*);
 	s = a->sym;
 	switch(a->name) {
 	default:
@@ -180,16 +184,17 @@ Nconv(Fmt *fp)
 		break;
 	}
 
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Sconv(Fmt *fp)
+Sconv(va_list *arg, Fconv *fp)
 {
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(*arg, char*);
 	p = str;
 	for(i=0; i<sizeof(long); i++) {
 		c = a[i] & 0xff;
@@ -221,7 +226,8 @@ Sconv(Fmt *fp)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 void
@@ -234,7 +240,7 @@ diag(char *fmt, ...)
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%s: %s\n", tn, buf);
 

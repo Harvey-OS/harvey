@@ -122,10 +122,6 @@ The kernel will open
 and read and write the resulting file descriptor
 to receive and transmit IP packets.
 .TP
-.BI "bind loopback "
-Treat this interface as a local loopback.  Anything
-written to it will be looped back.
-.TP
 .B "unbind
 Disassociate the physical device from an IP interface.
 .TP
@@ -159,9 +155,6 @@ Set the maximum transfer unit for this device to
 .IR n .
 The mtu is the maximum size of the packet including any
 medium-specific headers.
-.TP
-.BI reassemble
-Reassemble IP fragments before forwarding to this interface
 .TP
 .BI iprouting\  n
 Allow
@@ -367,6 +360,7 @@ low level error messages and to implement
 .IR ping (8).
 RUDP is a locally developed reliable datagram protocol based on
 UDP.
+IL is the protocol of choice for most Plan 9 services.
 .PP
 Each protocol is a subdirectory of the IP stack.
 The top level directory of each protocol contains a
@@ -464,7 +458,7 @@ is a decimal port number or
 Set the local port number to
 .IR X .
 This exists to support emulation
-of BSD sockets by the APE libraries (see
+of BSD sockets byt the APE libraries (see
 .IR pcc (1))
 and is not otherwise used.
 .TP
@@ -807,7 +801,7 @@ monitoring.
 .PP
 Reading
 .B /net/ipifc/stats
-returns a list of 19 tagged and new line separated fields representing:
+returns a space-separated list of 19 numbers representing:
 .EX
 .ft 1
 	forwarding status (0 and 2 mean forwarding off, 1 means on)
@@ -834,7 +828,7 @@ returns a list of 19 tagged and new line separated fields representing:
 .PP
 Reading
 .B /net/icmp/stats
-returns a list of 25 tagged and new line separated fields representing:
+returns a space-separated list of 26 numbers representing:
 .EX
 .ft 1
 	messages received 
@@ -867,14 +861,18 @@ returns a list of 25 tagged and new line separated fields representing:
 .PP
 Reading
 .B /net/tcp/stats
-returns a list of 11 tagged and new line separated fields representing:
+returns a space-separated list of 15 numbers representing:
 .EX
 .ft 1
+	0
+	0
+	0
 	maximum number of connections
 	total outgoing calls
 	total incoming calls
+	0
 	number of established connections to be reset
-	number of currently established connections
+	number of currently esablished connections
 	segments received
 	segments sent
 	segments retransmitted
@@ -885,7 +883,7 @@ returns a list of 11 tagged and new line separated fields representing:
 .PP
 Reading
 .B /net/udp/stats
-returns a list of 4 tagged and new line separated fields representing:
+returns a space-separated list of 4 numbers representing:
 .EX
 .ft 1
 	datagrams received
@@ -896,7 +894,7 @@ returns a list of 4 tagged and new line separated fields representing:
 .PP
 Reading
 .B /net/il/stats
-returns a list of 7 tagged and new line separated fields representing:
+returns a list of 7 tagged numbers representing:
 .EX
 .ft 1
 	checksum errors

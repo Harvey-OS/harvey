@@ -40,7 +40,7 @@ mxdial(char *addr, char *ddomain, char *gdomain)
 {
 	int fd;
 	DS ds;
-	char err[Errlen];
+	char err[ERRLEN];
 
 	addr = netmkaddr(addr, 0, "smtp");
 	dial_string_parse(addr, &ds);
@@ -49,7 +49,8 @@ mxdial(char *addr, char *ddomain, char *gdomain)
 	fd = callmx(&ds, addr, ddomain);
 
 	/* try our mail gateway */
-	rerrstr(err, sizeof(err));
+	errstr(err);
+	werrstr(err);
 	if(fd < 0 && gdomain && strstr(err, "can't translate") != 0)
 		fd = dial(netmkaddr(gdomain, 0, "smtp"), 0, 0, 0);
 

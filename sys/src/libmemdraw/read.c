@@ -3,6 +3,8 @@
 #include <draw.h>
 #include <memdraw.h>
 
+#define	CHUNK	8000
+
 Memimage*
 readmemimage(int fd)
 {
@@ -17,16 +19,12 @@ readmemimage(int fd)
 	int ldepth, chunk;
 	Memimage *i;
 
-	if(readn(fd, hdr, 11) != 11){
-		werrstr("readimage: short header");
+	if(readn(fd, hdr, 11) != 11)
 		return nil;
-	}
 	if(memcmp(hdr, "compressed\n", 11) == 0)
 		return creadmemimage(fd);
-	if(readn(fd, hdr+11, 5*12-11) != 5*12-11){
-		werrstr("readimage: short header (2)");
+	if(readn(fd, hdr+11, 5*12-11) != 5*12-11)
 		return nil;
-	}
 
 	/*
 	 * distinguish new channel descriptor from old ldepth.
@@ -75,7 +73,7 @@ readmemimage(int fd)
 	i = allocmemimage(r, chan);
 	if(i == nil)
 		return nil;
-	chunk = 32*1024;
+	chunk = CHUNK;
 	if(chunk < l)
 		chunk = l;
 	tmp = malloc(chunk);
@@ -99,10 +97,10 @@ readmemimage(int fd)
 			return nil;
 		}
 		if(!new)	/* an old image: must flip all the bits */
-			for(j=0; j<chunk; j++)
+			for(j=0; j<CHUNK; j++)
 				tmp[j] ^= 0xFF;
 
-		if(loadmemimage(i, Rect(r.min.x, miny, r.max.x, miny+dy), tmp, chunk) <= 0)
+		if(loadmemimage(i, Rect(r.min.x, miny, r.max.x, miny+dy), tmp, CHUNK) <= 0)
 			goto Err;
 		miny += dy;
 	}

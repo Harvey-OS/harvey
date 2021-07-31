@@ -12,7 +12,7 @@ main(int argc, char *argv[])
 {
 	int i;
 	int failed;
-	Dir *dirto, *dirfrom;
+	Dir dirto, dirfrom;
 	char *todir, *toelem;
 
 	if(argc<3){
@@ -20,12 +20,11 @@ main(int argc, char *argv[])
 		fprint(2, "	  mv fromfile ... todir\n");
 		exits("bad usage");
 	}
-	if((dirto = dirstat(argv[argc-1])) != nil && (dirto->mode&DMDIR)){
-		if(argc == 3
-		&& (dirfrom = dirstat(argv[1])) !=nil
-		&& (dirfrom->mode & DMDIR))
+	if(dirstat(argv[argc-1], &dirto) >= 0 && (dirto.mode&CHDIR)){
+		if(argc == 3 && dirstat(argv[1], &dirfrom) >= 0 &&
+				(dirfrom.mode&CHDIR)){
 			split(argv[argc-1], &todir, &toelem);
-		else{
+		}else{
 			todir = argv[argc-1];
 			toelem = 0;	/* toelem will be fromelem */
 		}
@@ -47,15 +46,15 @@ main(int argc, char *argv[])
 int
 mv(char *from, char *todir, char *toelem)
 {
-	Dir *dirb, *dirt, null;
-	char toname[4096], fromname[4096];
+	Dir dirb, dirt;
+	char toname[1024], fromname[1024];
 	int fdf, fdt, i, j;
 	int stat;
 	char *fromdir, *fromelem;
 
-	dirb = dirstat(from);
-	if(dirb == nil){
-		fprint(2, "mv: can't stat %s: %r\n", from);
+	if(dirstat(from, &dirb)!=0){
+		fprint(2, "mv: can't stat %s: ", from);
+		perror("");
 		return -1;
 	}
 	strncpy(fromname, from, sizeof fromname);
@@ -67,9 +66,13 @@ mv(char *from, char *todir, char *toelem)
 		fprint(2, "mv: null last name element moving %s\n", fromname);
 		return -1;
 	}
+	if(i >= NAMELEN){
+		fprint(2, "mv: name too big: %s\n", toelem);
+		return -1;
+	}
 	j = strlen(todir);
 	if(i + j + 2 > sizeof toname){
-		fprint(2, "mv: path too big (max %d): %s/%s\n", sizeof toname, todir, toelem);
+		fprint(2, "mv: path too big: %s/%s\n", todir, toelem);
 		return -1;
 	}
 	memmove(toname, todir, j);
@@ -81,54 +84,45 @@ mv(char *from, char *todir, char *toelem)
 			fprint(2, "mv: %s and %s are the same\n", fromname, toname);
 			return -1;
 		}
-		dirt = dirstat(toname);
-		if(dirt != nil){
-			free(dirt);
+		if(dirstat(toname, &dirt) == 0)
 			hardremove(toname);
-		}
-		nulldir(&null);
-		null.name = toelem;
-		if(dirwstat(fromname, &null) >= 0)
+		strcpy(dirb.name, toelem);
+		if(dirwstat(fromname, &dirb) >= 0)
 			return 0;
-		if(dirb->mode & DMDIR){
-			fprint(2, "mv: can't rename directory %s: %r\n", fromname);
+		if(dirb.mode&CHDIR){
+			fprint(2, "mv: can't rename directory %s: ", fromname);
+			perror("");
 			return -1;
 		}
 	}
 	/*
-	 * Renaming won't work --- must copy
+	 * Renaming won't work --- have to copy
 	 */
-	if(dirb->mode & DMDIR){
+	if(dirb.mode&CHDIR){
 		fprint(2, "mv: %s is a directory, not copied to %s\n", fromname, toname);
 		return -1;
 	}
 	fdf = open(fromname, OREAD);
-	if(fdf < 0){
-		fprint(2, "mv: can't open %s: %r\n", fromname);
+	if(fdf<0){
+		fprint(2, "mv: can't open %s:", fromname);
+		perror("");
 		return -1;
 	}
-	dirt = dirstat(toname);
-	if(dirt != nil && (dirt->mode & DMAPPEND))
+	if(dirstat(toname, &dirt)==0 && (dirt.mode&CHAPPEND))
 		hardremove(toname);	/* because create() won't truncate file */
-	free(dirt);
-	fdt = create(toname, OWRITE, dirb->mode);
+	fdt = create(toname, OWRITE, dirb.mode);
 	if(fdt < 0){
-		fprint(2, "mv: can't create %s: %r\n", toname);
+		fprint(2, "mv: can't create %s:", toname);
+		perror("");
 		close(fdf);
 		return -1;
 	}
-	if ((stat = copy1(fdf, fdt, fromname, toname)) != -1) {
-		nulldir(&null);
-		null.mtime = dirb->mtime;
-		null.mode = dirb->mode;
-		dirfwstat(fdt, &null);	/* ignore errors; e.g. user none always fails */
+	if ((stat = copy1(fdf, fdt, fromname, toname)) != -1)
 		if (remove(fromname) < 0) {
-			fprint(2, "mv: can't remove %s: %r\n", fromname);
-			close(fdf);
-			close(fdt);
+			fprint(2, "mv: can't remove %s ", fromname);
+			perror("");
 			return -1;
 		}
-	}
 	close(fdf);
 	close(fdt);
 	return stat;
@@ -147,13 +141,15 @@ copy1(int fdf, int fdt, char *from, char *to)
 				break;
 			n1 = write(fdt, buf, n);
 			if(n1 != n) {
-				fprint(2, "mv: error writing %s: %r\n", to);
+				fprint(2, "mv: error writing %s:", to);
+				perror("");
 				return -1;
 			}
 		}
 	}
 	if(n < 0) {
-		fprint(2, "mv: error reading %s: %r\n", from);
+		fprint(2, "mv: error reading %s:", from);
+		perror("");
 		return -1;
 	}
 	return 0;
@@ -181,30 +177,21 @@ split(char *name, char **pdir, char **pelem)
 int
 samefile(char *a, char *b)
 {
-	Dir *da, *db;
-	int ret;
+	Dir da, db;
 
 	if(strcmp(a, b) == 0)
 		return 1;
-	da = dirstat(a);
-	db = dirstat(b);
-	ret = (da !=nil ) &&
-		(db != nil) &&
-		(da->qid.type==db->qid.type) &&
-		(da->qid.path==db->qid.path) &&
-		(da->qid.vers==db->qid.vers) &&
-		(da->dev==db->dev) &&
-		da->type==db->type;
-	free(da);
-	free(db);
-	return ret;
+	if(dirstat(a, &da) < 0 || dirstat(b, &db) < 0)
+		return 0;
+	return (da.qid.path==db.qid.path && da.qid.vers==db.qid.vers &&
+		da.dev==db.dev && da.type==db.type);
 }
 
 void
 hardremove(char *a)
 {
 	if(remove(a) == -1){
-		fprint(2, "mv: can't remove %s: %r\n", a);
+		fprint(2, "mv: can't remove %s\n", a);
 		exits("mv");
 	}
 	do; while(remove(a) != -1);

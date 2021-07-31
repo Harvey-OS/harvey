@@ -1,4 +1,5 @@
 /* RFC2138 */
+
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
@@ -7,7 +8,7 @@
 #include <libsec.h>
 #include <bio.h>
 #include <ndb.h>
-#define AUTHLOG "auth"
+#include "authsrv.h"
 
 enum{	R_AccessRequest=1,	/* Packet code */
 	R_AccessAccept=2,
@@ -103,7 +104,6 @@ freePacket(Packet *p)
 int
 ding(void*, char *msg)
 {
-	syslog(0, AUTHLOG, "ding %s", msg);
 	if(strstr(msg, "alarm"))
 		return 1;
 	return 0;
@@ -138,32 +138,26 @@ rpc(char *dest, Secret *shared, Packet *req)
 	// send request, wait for reply
 	fd = dial(dest, 0, 0, 0);
 	if(fd < 0){
-		syslog(0, AUTHLOG, "%s: rpc can't get udp channel", dest);
+		syslog(0, AUTHLOG, "radius can't get udp channel");
 		return nil;
 	}
 	atnotify(ding, 1);
 	m = -1;
 	for(try = 0; try < 2; try++){
-		alarm(4000);
+		alarm(2000);
 		m = write(fd, buf, n);
 		if(m != n){
-			syslog(0, AUTHLOG, "%s: rpc write err %d %d: %r", dest, m, n);
 			m = -1;
 			break;
 		}
 		m = read(fd, buf2, sizeof buf2);
 		alarm(0);
-		if(m < 0){
-			syslog(0, AUTHLOG, "%s rpc read err %d: %r", dest, m);
+		if(m < 0)
 			break; // failure
-		}
-		if(m == 0 || buf2[1] != buf[1]){  // need matching ID
-			syslog(0, AUTHLOG, "%s unmatched reply %d", dest, m);
+		if(m == 0 || buf2[1] != buf[1])  // need matching ID
 			continue;
-		}
 		if(authcmp(shared, buf2, m, buf+4) == 0)
 			break;
-		syslog(0, AUTHLOG, "%s bad rpc chksum", dest);
 	}
 	close(fd);
 	if(m <= 0)
@@ -180,7 +174,7 @@ rpc(char *dest, Secret *shared, Packet *req)
 	n = *b++;
 	n = (n<<8) | *b++;
 	if(m != n){
-		syslog(0, AUTHLOG, "rpc got %d bytes, length said %d", m, n);
+		syslog(0, AUTHLOG, "got %d bytes, length said %d", m, n);
 		if(m > n)
 			e = buf2+n;
 	}
@@ -286,49 +280,47 @@ printPacket(Packet *p)
 	}
 }
 
-static uchar*
-getipv4addr(void)
+static int
+isvalidipv4(Ipifc *ifc)
 {
-	Ipifc *nifc;
-	Iplifc *lifc;
-	static Ipifc *ifc;
+	uchar *ip;
 
-	ifc = readipifc("/net", ifc, -1);
-	for(nifc = ifc; nifc; nifc = nifc->next)
-		for(lifc = nifc->lifc; lifc; lifc = lifc->next)
-			if(ipcmp(lifc->ip, IPnoaddr) != 0 && ipcmp(lifc->ip, v4prefix) != 0)
-				return lifc->ip;
-	return nil;
+	if(ifc == nil)
+		return 0;
+	ip = ifc->ip;
+	return ipcmp(ip, IPnoaddr) != 0 && ipcmp(ip, v4prefix) != 0;
 }
 
+static Ipifc *ifc;
 extern Ndb *db;
 
 /* returns 1 on success, 0 on failure */
 int
 secureidcheck(char *user, char *response)
 {
-	Packet *req = nil, *resp = nil;
+	Packet *req, *resp;
 	ulong u[4];
 	uchar x[16];
 	char radiussecret[Ndbvlen];
 	char ruser[Ndbvlen];
-	char dest[3*IPaddrlen+20];
+ 	char dest[3*IPaddrlen+20];
 	Secret shared, pass;
-	int rv = 0;
+	Ipifc *nifc;
+	int rv;
 	Ndbs s;
 	Ndbtuple *t, *nt, *tt;
-	uchar *ip;
 
 	/* bad responses make them disable the fob, avoid silly checks */
 	if(strlen(response) < 4 || strpbrk(response,"abcdefABCDEF") != nil)
-		goto out;
+		return 0;
+
+	rv = 0;
+	resp = nil;
 
 	/* get radius secret */
 	t = ndbgetval(db, &s, "radius", "lra-radius", "secret", radiussecret);
-	if(t == nil){
-		syslog(0, AUTHLOG, "secureidcheck: nil radius secret: %r");
-		goto out;
-	}
+	if(t == nil)
+		return 0;
 
 	/* translate user name if we have to */
 	strcpy(ruser, user);
@@ -351,12 +343,12 @@ secureidcheck(char *user, char *response)
 		goto out;
 	shared.s = (uchar*)radiussecret;
 	shared.len = strlen(radiussecret);
-	ip = getipv4addr();
-	if(ip == nil){
-		syslog(0, AUTHLOG, "no interfaces: %r\n");
+	ifc = readipifc("/net", ifc);
+	for(nifc = ifc; !isvalidipv4(nifc); nifc = nifc->next)
+		;
+	if(nifc == nil)
 		goto out;
-	}
-	if(setAttribute(req, R_NASIPAddress, ip + IPv4off, 4) < 0)
+	if(setAttribute(req, R_NASIPAddress, ifc->ip + IPv4off, 4) < 0)
 		goto out;
 
 	if(setAttribute(req, R_UserName, (uchar*)ruser, strlen(ruser)) < 0)
@@ -369,7 +361,7 @@ secureidcheck(char *user, char *response)
 
 	t = ndbsearch(db, &s, "sys", "lra-radius");
 	if(t == nil){
-		syslog(0, AUTHLOG, "secureidcheck: nil radius sys search: %r\n");
+		syslog(0, AUTHLOG, "secureidcheck: nil radius sys search\n");
 		goto out;
 	}
 	for(nt = t; nt; nt = nt->entry){
@@ -395,7 +387,6 @@ secureidcheck(char *user, char *response)
 			rv = 1;
 			break;
 		case R_AccessReject:
-			syslog(0, AUTHLOG, "%s rejected\n", dest);
 			break;
 		default:
 			syslog(0, AUTHLOG, "%s code=%d\n", dest, resp->code);

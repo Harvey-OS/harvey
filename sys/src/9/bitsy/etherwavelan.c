@@ -29,7 +29,7 @@
 
 #define DEBUG	if(1)print
 
-#define SEEKEYS 0
+#define SEEKEYS 1
 
 typedef struct Ctlr	Ctlr;
 typedef struct Wltv	Wltv;
@@ -105,7 +105,7 @@ enum
 	WTyp_NodeName	= 0xfc0e,
 	WTyp_Crypt	= 0xfc20,
 	WTyp_XClear	= 0xfc22,
- 	WTyp_CreateIBSS	= 0xfc81,
+	WTyp_Tick	= 0xfce0,
 	WTyp_RtsThres	= 0xfc83,
 	WTyp_TxRate	= 0xfc84,
 		WTx1Mbps	= 0x0,
@@ -114,12 +114,9 @@ enum
 	WTyp_Prom	= 0xfc85,
 	WTyp_Keys	= 0xfcb0,
 	WTyp_TxKey	= 0xfcb1,
-	WTyp_StationID	= 0xfd20,
 	WTyp_CurName	= 0xfd41,
-	WTyp_BaseID	= 0xfd42,	// ID of the currently connected-to base station
 	WTyp_CurTxRate	= 0xfd44,	// Current TX rate
 	WTyp_HasCrypt	= 0xfd4f,
-	WTyp_Tick	= 0xfce0,
 };
 
 // Controller
@@ -275,7 +272,6 @@ struct Ctlr
 	int	attached;
 	int	slot;
 	int	iob;
- 	int	createibss;
 	int	ptype;
 	int	apdensity;
 	int	rtsthres;
@@ -436,10 +432,7 @@ ltv_outstr(Ctlr* ctlr, int type, char* val)
 	memset(&ltv, 0, sizeof(ltv));
 	ltv.len = (sizeof(ltv.type)+sizeof(ltv.slen)+sizeof(ltv.s))/2;
 	ltv.type = type;
-
-//	This should be ltv.slen = len; according to Axel Belinfante
-	ltv.slen = len;
-
+	ltv.slen = (len+1) & ~1;
 	strncpy(ltv.s, val, len);
 	w_outltv(ctlr, &ltv);
 }
@@ -451,20 +444,15 @@ static char*
 ltv_inname(Ctlr* ctlr, int type)
 {
 	static Wltv ltv;
-	int len;
 
 	memset(&ltv,0,sizeof(ltv));
 	ltv.len = WNameLen/2+2;
 	ltv.type = type;
 	if (w_inltv(ctlr, &ltv))
 		return Unkname;
-	len = ltv.slen;
-	if(len == 0 || ltv.s[0] == 0)
+	if (ltv.name[2] == 0)
 		return Nilname;
-	if(len >= sizeof ltv.s)
-		len = sizeof ltv.s - 1;
-	ltv.s[len] = '\0';
-	return ltv.s;
+	return ltv.name+2;
 }
 
 static int
@@ -548,7 +536,6 @@ w_enable(Ether* ether)
 	ltv_outs(ctlr, WTyp_Tick, 8);
 	ltv_outs(ctlr, WTyp_MaxLen, ctlr->maxlen);
 	ltv_outs(ctlr, WTyp_Ptype, ctlr->ptype);
- 	ltv_outs(ctlr, WTyp_CreateIBSS, ctlr->createibss);
 	ltv_outs(ctlr, WTyp_RtsThres, ctlr->rtsthres);
 	ltv_outs(ctlr, WTyp_TxRate, ctlr->txrate);
 	ltv_outs(ctlr, WTyp_ApDens, ctlr->apdensity);
@@ -925,7 +912,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	k = ((ctlr->txbusy)? ", txbusy" : "");
 	PRINTSTAT("%s\n", k);
 
-	if (ctlr->hascrypt){
+	if (ctlr->txkey){
 		PRINTSTR("Keys: ");
 		for (i = 0; i < WNKeys; i++){
 			if (ctlr->keys.keys[i].len == 0)
@@ -953,16 +940,8 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	PRINTSTAT("Promiscuous mode: %d\n", ltv_ins(ctlr, WTyp_Prom));
 	if(i == 3)
 		PRINTSTAT("SSID name: %s\n", ltv_inname(ctlr, WTyp_NetName));
-	else {
-		Wltv ltv;
+	else
 		PRINTSTAT("Current name: %s\n", ltv_inname(ctlr, WTyp_CurName));
-		ltv.type = WTyp_BaseID;
-		ltv.len = 4;
-		if (w_inltv(ctlr, &ltv))
-			print("#l%d: unable to read base station mac addr\n", ether->ctlrno);
-		l += snprint(p+l, READSTR-l, "Base station: %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x\n",
-			ltv.addr[0], ltv.addr[1], ltv.addr[2], ltv.addr[3], ltv.addr[4], ltv.addr[5]);
-	}
 	PRINTSTAT("Net name: %s\n", ltv_inname(ctlr, WTyp_WantName));
 	PRINTSTAT("Node name: %s\n", ltv_inname(ctlr, WTyp_NodeName));
 	if (ltv_ins(ctlr, WTyp_HasCrypt) == 0)
@@ -1057,12 +1036,6 @@ option(Ctlr* ctlr, char* buf, long n)
 			ctlr->ptype = i;
 		else
 			r = -1;
-	}
-	else if(cistrcmp(cb->f[0], "ibss") == 0){
-		if(cistrcmp(cb->f[1], "on") == 0)
-			ctlr->createibss = 1;
-		else
-			ctlr->createibss = 0;
 	}
 	else if(cistrcmp(cb->f[0], "crypt") == 0){
 		if(cistrcmp(cb->f[1], "off") == 0)
@@ -1213,7 +1186,6 @@ reset(Ether* ether)
 	ctlr->chan = 0;
 	ctlr->ptype = WDfltPType;
 	ctlr->txkey = 0;
-	ctlr->createibss = 0;
 	ctlr->keys.len = sizeof(WKey)*WNKeys/2 + 1;
 	ctlr->keys.type = WTyp_Keys;
 	if(ctlr->hascrypt = ltv_ins(ctlr, WTyp_HasCrypt))

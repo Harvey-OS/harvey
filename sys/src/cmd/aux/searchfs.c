@@ -22,7 +22,7 @@ enum
 	/*
 	 * qids
 	 */
-	Qroot	= 1,
+	Qroot	= 1|CHDIR,
 	Qsearch	= 2,
 	Qstats	= 3,
 };
@@ -81,7 +81,7 @@ struct Fid
 	int	n;		/* number of bytes left in found item */
 };
 
-int			dostat(int, uchar*, int);
+void			dostat(int, char*);
 void*			emalloc(uint);
 void			fatal(char*, ...);
 Match*			mkmatch(Match*, int(*)(Match*, char*, char*), char*);
@@ -99,15 +99,15 @@ struct Fs
 	Lock;			/* for fids */
 
 	Fid	*hash[Nfidhash];
-	uchar	statbuf[1024];	/* plenty big enough */
 };
 extern	void	fsrun(Fs*, int);
 extern	Fid*	getfid(Fs*, uint);
 extern	Fid*	mkfid(Fs*, uint);
 extern	void	putfid(Fs*, Fid*);
-extern	char*	fsversion(Fs*, Fcall*);
-extern	char*	fsauth(Fs*, Fcall*);
+extern	char*	fsnop(Fs*, Fcall*);
+extern	char*	fssession(Fs*, Fcall*);
 extern	char*	fsattach(Fs*, Fcall*);
+extern	char*	fsclone(Fs*, Fcall*);
 extern	char*	fswalk(Fs*, Fcall*);
 extern	char*	fsopen(Fs*, Fcall*);
 extern	char*	fscreate(Fs*, Fcall*);
@@ -120,9 +120,10 @@ extern	char*	fswstat(Fs*, Fcall*);
 
 char	*(*fcalls[])(Fs*, Fcall*) =
 {
-	[Tversion]		fsversion,
+	[Tsession]	fssession,
+	[Tnop]		fsnop,
 	[Tattach]	fsattach,
-	[Tauth]	fsauth,
+	[Tclone]	fsclone,
 	[Twalk]		fswalk,
 	[Topen]		fsopen,
 	[Tcreate]	fscreate,
@@ -146,11 +147,11 @@ char	Ebadsearch[] =	"bad search string";
 Fs	fs;
 char	*database;
 char	*edatabase;
-int	messagesize = 8192+IOHDRSZ;
+
 void
 main(int argc, char **argv)
 {
-	Dir *d;
+	Dir d;
 	char buf[12], *mnt, *srv;
 	int fd, p[2], n;
 
@@ -166,16 +167,12 @@ main(int argc, char **argv)
 			break;
 	}ARGEND
 
-	fmtinstall('F', fcallfmt);
-
 	if(argc != 1)
 		usage();
-	d = nil;
 	fd = open(argv[0], OREAD);
-	if(fd < 0 || (d=dirfstat(fd)) == nil)
+	if(fd < 0 || dirfstat(fd, &d) < 0)
 		fatal("can't open %s: %r", argv[0]);
-	n = d->length;
-	free(d);
+	n = d.length;
 	if(n == 0)
 		fatal("zero length database %s", argv[0]);
 	database = emalloc(n);
@@ -216,7 +213,7 @@ main(int argc, char **argv)
 		exits(nil);
 	}
 
-	if(mount(p[1], -1, mnt, MREPL, "") < 0){
+	if(mount(p[1], mnt, MREPL, "") < 0){
 		close(p[1]);
 		fatal("mount failed");
 	}
@@ -588,11 +585,10 @@ void
 fsrun(Fs *fs, int fd)
 {
 	Fcall rpc;
-	char *err;
-	uchar *buf;
+	char *err, *buf;
 	int n;
 
-	buf = emalloc(messagesize);
+	buf = emalloc(MAXRPC);
 	for(;;){
 		/*
 		 * reading from a pipe or a network device
@@ -602,17 +598,15 @@ fsrun(Fs *fs, int fd)
 		 * on the processes writing to us,
 		 * so we wait for the error
 		 */
-		n = read9pmsg(fd, buf, messagesize);
+		n = read(fd, buf, MAXRPC);
 		if(n == 0)
 			continue;
 		if(n < 0)
 			fatal("mount read");
 
-		rpc.data = (char*)buf + IOHDRSZ;
-		if(convM2S(buf, n, &rpc) == 0)
+		rpc.data = buf + MAXMSG;
+		if(convM2S(buf, &rpc, n) == 0)
 			continue;
-		// fprint(2, "recv: %F\n", &rpc);
-
 
 		/*
 		 * flushes are way too hard.
@@ -626,11 +620,11 @@ fsrun(Fs *fs, int fd)
 			err = (*fcalls[rpc.type])(fs, &rpc);
 		if(err){
 			rpc.type = Rerror;
-			rpc.ename = err;
-		}else
+			strncpy(rpc.ename, err, ERRLEN);
+		}else{
 			rpc.type++;
-		n = convS2M(&rpc, buf, messagesize);
-		// fprint(2, "send: %F\n", &rpc);
+		}
+		n = convS2M(&rpc, buf);
 		if(write(fd, buf, n) != n)
 			fatal("mount write");
 	}
@@ -642,10 +636,13 @@ mkfid(Fs *fs, uint fid)
 	Fid *f;
 	int h;
 
+	lock(fs);
 	h = fid % Nfidhash;
 	for(f = fs->hash[h]; f; f = f->next){
-		if(f->fid == fid)
+		if(f->fid == fid){
+			unlock(fs);
 			return nil;
+		}
 	}
 
 	f = emalloc(sizeof *f);
@@ -659,6 +656,7 @@ mkfid(Fs *fs, uint fid)
 	f->ref = 1;
 	f->attached = 1;
 	f->open = 0;
+	unlock(fs);
 	return f;
 }
 
@@ -668,21 +666,25 @@ getfid(Fs *fs, uint fid)
 	Fid *f;
 	int h;
 
+	lock(fs);
 	h = fid % Nfidhash;
 	for(f = fs->hash[h]; f; f = f->next){
 		if(f->fid == fid){
 			if(f->attached == 0)
 				break;
 			f->ref++;
+			unlock(fs);
 			return f;
 		}
 	}
+	unlock(fs);
 	return nil;
 }
 
 void
-putfid(Fs *, Fid *f)
+putfid(Fs *fs, Fid *f)
 {
+	lock(fs);
 	f->ref--;
 	if(f->ref == 0 && f->attached == 0){
 		*f->last = f->next;
@@ -692,26 +694,22 @@ putfid(Fs *, Fid *f)
 			searchfree(f->search);
 		free(f);
 	}
+	unlock(fs);
 }
 
 char*
-fsversion(Fs *, Fcall *rpc)
+fsnop(Fs *, Fcall *)
 {
-	if(rpc->msize < 256)
-		return "version: message size too small";
-	if(rpc->msize > messagesize)
-		rpc->msize = messagesize;
-	messagesize = rpc->msize;
-	if(strncmp(rpc->version, "9P2000", 6) != 0)
-		return "unrecognized 9P version";
-	rpc->version = "9P2000";
 	return nil;
 }
 
 char*
-fsauth(Fs *, Fcall *)
+fssession(Fs *, Fcall *rpc)
 {
-	return "searchfs: authentication not required";
+	memset(rpc->authid, 0, sizeof(rpc->authid));
+	memset(rpc->authdom, 0, sizeof(rpc->authdom));
+	memset(rpc->chal, 0, sizeof(rpc->chal));
+	return nil;
 }
 
 char*
@@ -722,74 +720,70 @@ fsattach(Fs *fs, Fcall *rpc)
 	f = mkfid(fs, rpc->fid);
 	if(f == nil)
 		return Einuse;
+	lock(f);
 	f->open = 0;
-	f->qid.type = QTDIR;
 	f->qid.path = Qroot;
 	f->qid.vers = 0;
 	rpc->qid = f->qid;
+	unlock(f);
 	putfid(fs, f);
+	return nil;
+}
+
+char*
+fsclone(Fs *fs, Fcall *rpc)
+{
+	Fid *f, *nf;
+	Qid qid;
+
+	if(rpc->fid == rpc->newfid)
+		return Einuse;
+	f = getfid(fs, rpc->fid);
+	if(f == nil)
+		return Enofid;
+	lock(f);
+	qid = f->qid;
+	unlock(f);
+	putfid(fs, f);
+	nf = mkfid(fs, rpc->newfid);
+	if(nf == nil)
+		return Einuse;
+	lock(nf);
+	nf->qid = qid;
+	nf->open = 0;
+	unlock(nf);
+	putfid(fs, nf);
 	return nil;
 }
 
 char*
 fswalk(Fs *fs, Fcall *rpc)
 {
-	Fid *f, *nf;
-	int nqid, nwname, type;
-	char *err, *name;
-	ulong path;
+	Fid *f;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	nf = nil;
-	if(rpc->fid != rpc->newfid){
-		nf = mkfid(fs, rpc->newfid);
-		if(nf == nil){
-			putfid(fs, f);
-			return Einuse;
-		}
-		nf->qid = f->qid;
+	lock(f);
+	if(f->qid.path != Qroot){
+		unlock(f);
 		putfid(fs, f);
-		f = nf;	/* walk f */
+		return Enotdir;
 	}
-
-	err = nil;
-	path = f->qid.path;
-	nwname = rpc->nwname;
-	for(nqid=0; nqid<nwname; nqid++){
-		if(path != Qroot){
-			err = Enotdir;
-			break;
-		}
-		name = rpc->wname[nqid];
-		if(strcmp(name, "search") == 0){
-			type = QTFILE;
-			path = Qsearch;
-		}else if(strcmp(name, "stats") == 0){
-			type = QTFILE;
-			path = Qstats;
-		}else if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0){
-			type = QTDIR;
-			path = path;
-		}else{
-			err = Enotexist;
-			break;
-		}
-		rpc->wqid[nqid] = (Qid){path, 0, type};
+	if(strcmp(rpc->name, "search") == 0)
+		f->qid.path = Qsearch;
+	else if(strcmp(rpc->name, "stats") == 0)
+		f->qid.path = Qstats;
+	else{
+		unlock(f);
+		putfid(fs, f);
+		return Enotexist;
 	}
-
-	if(nwname > 0){
-		if(nf != nil && nqid < nwname)
-			nf->attached = 0;
-		if(nqid == nwname)
-			f->qid = rpc->wqid[nqid-1];
-	}
-
-	putfid(fs, f);
-	rpc->nwqid = nqid;
+	rpc->qid = f->qid;
 	f->open = 0;
-	return err;
+	unlock(f);
+	putfid(fs, f);
+	return nil;
 }
 
 char *
@@ -801,13 +795,16 @@ fsopen(Fs *fs, Fcall *rpc)
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
+	lock(f);
 	if(f->open){
+		unlock(f);
 		putfid(fs, f);
 		return Eisopen;
 	}
 	mode = rpc->mode & OPERM;
 	if(mode == OEXEC
 	|| f->qid.path == Qroot && (mode == OWRITE || mode == ORDWR)){
+		unlock(f);
 		putfid(fs, f);
 		return Eperm;
 	}
@@ -816,7 +813,7 @@ fsopen(Fs *fs, Fcall *rpc)
 	f->n = 0;
 	f->search = nil;
 	rpc->qid = f->qid;
-	rpc->iounit = messagesize-IOHDRSZ;
+	unlock(f);
 	putfid(fs, f);
 	return nil;
 }
@@ -837,6 +834,7 @@ fsread(Fs *fs, Fcall *rpc)
 	if(f == nil)
 		return Enofid;
 	if(!f->open){
+		unlock(f);
 		putfid(fs, f);
 		return Enotopen;
 	}
@@ -844,13 +842,18 @@ fsread(Fs *fs, Fcall *rpc)
 	off = rpc->offset;
 	rpc->count = 0;
 	if(f->qid.path == Qroot){
+		/*
+		 * legal reads of directories must read
+		 * an integral number of dir structures
+		 */
+		if(count > DIRLEN)
+			count = DIRLEN;
+		dostat(Qsearch, rpc->data);
+		rpc->count = count;
 		if(off > 0)
 			rpc->count = 0;
-		else
-			rpc->count = dostat(Qsearch, (uchar*)rpc->data, count);
+		unlock(f);
 		putfid(fs, f);
-		if(off == 0 && rpc->count <= BIT16SZ)
-			return "directory read count too small";
 		return nil;
 	}
 	if(f->qid.path == Qstats){
@@ -871,6 +874,7 @@ fsread(Fs *fs, Fcall *rpc)
 			}
 		}
 	}
+	unlock(f);
 	putfid(fs, f);
 	rpc->count = len;
 	return nil;
@@ -884,7 +888,9 @@ fswrite(Fs *fs, Fcall *rpc)
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
+	lock(f);
 	if(!f->open || f->qid.path != Qsearch){
+		unlock(f);
 		putfid(fs, f);
 		return Enotopen;
 	}
@@ -893,11 +899,13 @@ fswrite(Fs *fs, Fcall *rpc)
 		searchfree(f->search);
 	f->search = searchparse(rpc->data, rpc->data + rpc->count);
 	if(f->search == nil){
+		unlock(f);
 		putfid(fs, f);
 		return Ebadsearch;
 	}
 	f->where = database;
 	f->n = 0;
+	unlock(f);
 	putfid(fs, f);
 	return nil;
 }
@@ -929,11 +937,8 @@ fsstat(Fs *fs, Fcall *rpc)
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
 		return Enofid;
-	rpc->stat = fs->statbuf;
-	rpc->nstat = dostat(f->qid.path, rpc->stat, sizeof fs->statbuf);
+	dostat(f->qid.path, rpc->stat);
 	putfid(fs, f);
-	if(rpc->nstat <= BIT16SZ)
-		return "stat count too small";
 	return nil;
 }
 
@@ -943,34 +948,32 @@ fswstat(Fs *, Fcall *)
 	return Eperm;
 }
 
-int
-dostat(int path, uchar *buf, int nbuf)
+void
+dostat(int path, char *buf)
 {
 	Dir d;
 
 	switch(path){
 	case Qroot:
-		d.name = ".";
-		d.mode = DMDIR|0555;
-		d.qid.type = QTDIR;
+		strncpy(d.name, ".", NAMELEN);
+		d.mode = CHDIR|0555;
 		break;
 	case Qsearch:
-		d.name = "search";
+		strncpy(d.name, "search", NAMELEN);
 		d.mode = 0666;
-		d.qid.type = QTFILE;
 		break;
 	case Qstats:
-		d.name = "stats";
+		strncpy(d.name, "stats", NAMELEN);
 		d.mode = 0666;
-		d.qid.type = QTFILE;
 		break;
 	}
 	d.qid.path = path;
 	d.qid.vers = 0;
 	d.length = 0;
-	d.uid = d.gid = d.muid = "none";
+	strncpy(d.uid, "none", NAMELEN);
+	strncpy(d.gid, "none", NAMELEN);
 	d.atime = d.mtime = time(nil);
-	return convD2M(&d, buf, nbuf);
+	convD2M(&d, buf);
 }
 
 char *
@@ -1037,7 +1040,7 @@ fatal(char *fmt, ...)
 
 	write(2, "searchfs: ", 8);
 	va_start(arg, fmt);
-	vseprint(buf, buf+1024, fmt, arg);
+	doprint(buf, buf+1024, fmt, arg);
 	va_end(arg);
 	write(2, buf, strlen(buf));
 	write(2, "\n", 1);

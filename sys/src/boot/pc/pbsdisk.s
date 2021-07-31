@@ -91,32 +91,27 @@ _start0x3E:
 	MTSR(rAX, rES)
 	LWI(_magic-Xtotal(SB), rSP)
 	MW(rSP, rBP)			/* set the indexed-data pointer */
+
 	SBPB(rDL, Xdrive)		/* save the boot drive */
 
-	/* VMware starts us at 7C0:0.  Move to 0:7C00 */
-	PUSHR(rAX)
-	LWI(_nxt(SB), rAX)
-	PUSHR(rAX)
-	BYTE $0xCB	/* FAR RET */
-
-TEXT _nxt(SB), $0
 	STI
-	LWI(confidence(SB), rSI)	/* for that warm, fuzzy feeling */
-	CALL16(BIOSputs(SB))
 
-	CALL16(dreset(SB))
+	LWI(confidence(SB), rSI)	/* for that warm, fuzzy feeling */
+	CALL(BIOSputs(SB))
+
+	CALL(dreset(SB))
 
 _jmp00:
 	LW(_volid(SB), rAX)		/* Xrootlo */
 	LW(_volid+2(SB), rDX)		/* Xroothi */
 
 	LWI(_magic+DIROFF(SB), rBX)
-	CALL16(BIOSread(SB))		/* read the root directory */
+	CALL(BIOSread(SB))		/* read the root directory */
 
-	CALL16(printnl(SB))
+	CALL(printnl(SB))
 	LWI(_magic+DIROFF(SB), rBX)
 	LWI((512/2), rCX)
-	CALL16(printbuf(SB))
+	CALL(printbuf(SB))
 
 xloop:
 	JMP xloop
@@ -124,7 +119,7 @@ xloop:
 
 TEXT buggery(SB), $0
 	LWI(error(SB), rSI)
-	CALL16(BIOSputs(SB))
+	CALL(BIOSputs(SB))
 
 TEXT quietbuggery(SB), $0
 xbuggery:
@@ -134,7 +129,7 @@ xbuggery:
  * Read a sector from a disc. On entry:
  *   rDX:rAX	sector number
  *   rES:rBX	buffer address
- * For BIOSCALL(0x13):
+ * For SYSCALL(0x13):
  *   rAH	0x02
  *   rAL	number of sectors to read (1)
  *   rCH	low 8 bits of cylinder
@@ -146,7 +141,7 @@ xbuggery:
 TEXT BIOSread(SB), $0
 	LWI(5, rDI)			/* retry count (ATAPI ZIPs suck) */
 _retry:
-	PUSHA				/* may be trashed by BIOSCALL */
+	PUSHA				/* may be trashed by SYSCALL */
 	PUSHR(rBX)
 
 	LW(_trksize(SB), rBX)
@@ -178,19 +173,19 @@ _okay:
 
 	POPR(rBX)
 	LWI(0x0201, rAX)		/* form command and sectors */
-	BIOSCALL(0x13)			/* CF set on failure */
+	SYSCALL(0x13)			/* CF set on failure */
 	JCC _BIOSreadret
 
 	POPA
 	DEC(rDI)			/* too many retries? */
 	JEQ _ioerror
 
-	CALL16(dreset(SB))
+	CALL(dreset(SB))
 	JMP _retry
 
 _ioerror:
 	LWI(ioerror(SB), rSI)
-	CALL16(BIOSputs(SB))
+	CALL(BIOSputs(SB))
 	JMP xbuggery
 
 _BIOSreadret:
@@ -201,7 +196,7 @@ TEXT dreset(SB), $0
 	PUSHA
 	CLR(rAX)			/* rAH == 0 == reset disc system */
 	LBPB(Xdrive, rDL)
-	BIOSCALL(0x13)
+	SYSCALL(0x13)
 	ORB(rAH, rAH)			/* status (0 == success) */
 	POPA
 	JNE _ioerror
@@ -210,7 +205,7 @@ TEXT dreset(SB), $0
 TEXT printsharp(SB), $0
 	LWI(sharp(SB), rSI)
 _doprint:
-	CALL16(BIOSputs(SB))
+	CALL(BIOSputs(SB))
 	RET
 
 TEXT printspace(SB), $0
@@ -234,7 +229,7 @@ _BIOSputs:
 	JEQ _BIOSputsret
 
 	LBI(0x0E, rAH)
-	BIOSCALL(0x10)
+	SYSCALL(0x10)
 	JMP _BIOSputs
 
 _BIOSputsret:
@@ -270,28 +265,28 @@ _dowrite:
 	JNE _nextchar
 
 	LWI(numbuf(SB), rSI)
-	CALL16(BIOSputs(SB))
+	CALL(BIOSputs(SB))
 
 	POPW(rDI)
 	POPW(rCX)
 	POPW(rBX)
 	POPW(rAX)
 
-	CALL16(printspace(SB))
+	CALL(printspace(SB))
 	RET
 
 TEXT printDXAX(SB), $0
 	PUSHW(rAX)
 	MW(rDX, rAX)
-	CALL16(printAX(SB))
+	CALL(printAX(SB))
 	POPW(rAX)
-	CALL16(printAX(SB))
+	CALL(printAX(SB))
 	RET
 
 TEXT printBX(SB), $0
 	PUSHW(rAX)
 	MW(rBX, rAX)
-	CALL16(printAX(SB))
+	CALL(printAX(SB))
 	POPW(rAX)
 	RET
 
@@ -307,7 +302,7 @@ TEXT printbuf(SB), $0
 
 _nextword:
 	LXW(0, xBX, rAX)
-	CALL16(printAX(SB))
+	CALL(printAX(SB))
 	INC(rBX)
 	INC(rBX)
 	DEC(rCX)
@@ -339,6 +334,3 @@ TEXT space(SB), $0
 
 TEXT sharp(SB), $0
 	BYTE $'#'; BYTE $'\z';
-
-TEXT confidence(SB), $0
-	BYTE $'P'; BYTE $'\z'

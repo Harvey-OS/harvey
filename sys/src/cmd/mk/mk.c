@@ -67,7 +67,6 @@ work(Node *node, Node *p, Arc *parc)
 	int weoutofdate;
 	int ready;
 	int did = 0;
-	char cwd[128];
 
 	/*print("work(%s) flags=0x%x time=%ld\n", node->name, node->flags, node->time);/**/
 	if(node->flags&BEINGMADE)
@@ -88,13 +87,10 @@ work(Node *node, Node *p, Arc *parc)
 		}else
 			return(did);
 	}
-	/* consider no prerequisite case */
+	/* consider no prerequsite case */
 	if(node->prereqs == 0){
 		if(node->time == 0){
-			if(getwd(cwd, sizeof cwd))
-				fprint(2, "mk: don't know how to make '%s' in directory %s\n", node->name, cwd);
-			else
-				fprint(2, "mk: don't know how to make '%s'\n", node->name);
+			fprint(2, "mk: don't know how to make '%s'\n", node->name);
 			if(kflag){
 				node->flags |= BEINGMADE;
 				runerrs++;

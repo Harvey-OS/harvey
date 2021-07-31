@@ -1,0 +1,4 @@
+TEXT _FAUTH(SB), 1, $0
+MOVL $10, AX
+INT $64
+RET

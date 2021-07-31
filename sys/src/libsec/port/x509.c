@@ -3,9 +3,6 @@
 #include <mp.h>
 #include <libsec.h>
 
-/* ANSI offsetof, backwards. */
-#define	OFFSETOF(a, b)	offsetof(b, a)
-
 /*=============================================================*/
 /*  general ASN1 declarations and parsing
  *
@@ -41,7 +38,7 @@ typedef struct Elist Elist;
 #define ENUMERATED 10
 #define EMBEDDED_PDV 11
 #define SEQUENCE 16		/* also SEQUENCE OF */
-#define SETOF 17				/* also SETOF OF */
+#define SET 17				/* also SET OF */
 #define NumericString 18
 #define PrintableString 19
 #define TeletexString 20
@@ -139,7 +136,6 @@ static int	decode_value(uchar* a, int alen, int kind, int isconstr, Value* pval)
 static int	encode(Elem e, Bytes** pbytes);
 static int	oid_lookup(Ints* o, Ints** tab);
 static void	freevalfields(Value* v);
-static mpint	*asn1mpint(Elem *e);
 
 
 
@@ -479,7 +475,7 @@ value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value*
 		}
 		break;
 
-	case SETOF:
+	case SET:
 		err = seq_decode(&p, pend, length, isconstr, &vl);
 		if(err == ASN_OK) {
 			pval->tag = VSet;
@@ -672,8 +668,8 @@ seq_decode(uchar** pp, uchar* pend, int length, int isconstr, Elist** pelist)
 	uchar* pstart;
 	uchar* pold;
 	Elist* ans;
-	Elem elem;
-	Elist* lve;
+	Elem	elem;
+	Elist*	lve;
 	Elist* lveold;
 
 	err = ASN_OK;
@@ -869,7 +865,7 @@ val_enc(uchar** pp, Elem e, int *pconstr, int lenonly)
 			kind = SEQUENCE;
 			break;
 		case VSet:
-			kind = SETOF;
+			kind = SET;
 			break;
 		}
 	}
@@ -969,7 +965,7 @@ val_enc(uchar** pp, Elem e, int *pconstr, int lenonly)
 		break;
 
 	case SEQUENCE:
-	case SETOF:
+	case SET:
 		el = nil;
 		if(e.val.tag == VSeq)
 			el = e.val.u.seqval;
@@ -1132,7 +1128,7 @@ is_seq(Elem* pe, Elist** pseq)
 static int
 is_set(Elem* pe, Elist** pset)
 {
-	if(pe->tag.class == Universal && pe->tag.num == SETOF && pe->val.tag == VSet) {
+	if(pe->tag.class == Universal && pe->tag.num == SET && pe->val.tag == VSet) {
 		*pset = pe->val.u.setval;
 		return 1;
 	}
@@ -1155,29 +1151,12 @@ is_int(Elem* pe, int* pint)
 	return 0;
 }
 
-/*
- * for convience, all VInt's are readable via this routine,
- * as well as all VBigInt's
- */
 static int
 is_bigint(Elem* pe, Bytes** pbigint)
 {
-	int v, n, i;
-
-	if(pe->tag.class == Universal && pe->tag.num == INTEGER) {
-		if(pe->val.tag == VBigInt)
+	if(pe->tag.class == Universal && pe->tag.num == INTEGER && pe->val.tag == VBigInt) {
 			*pbigint = pe->val.u.bigintval;
-		else if(pe->val.tag == VInt){
-			v = pe->val.u.intval;
-			for(n = 1; n < 4; n++)
-				if((1 << (8 * n)) > v)
-					break;
-			*pbigint = newbytes(n);
-			for(i = 0; i < n; i++)
-				(*pbigint)->data[i] = (v >> ((n - 1 - i) * 8));
-		}else
-			return 0;
-		return 1;
+			return 1;
 	}
 	return 0;
 }
@@ -1248,6 +1227,8 @@ is_time(Elem* pe, char** ptime)
 	return 0;
 }
 
+/* ANSI offsetof() */
+#define OFFSET(x, s) ((int)(&(((s*)0)->x)))
 
 /*
  * malloc and return a new Bytes structure capable of
@@ -1259,7 +1240,7 @@ newbytes(int len)
 {
 	Bytes* ans;
 
-	ans = (Bytes*)malloc(OFFSETOF(data[0], Bytes) + len);
+	ans = (Bytes*)malloc(OFFSET(data[0], Bytes) + len);
 	ans->len = len;
 	return ans;
 }
@@ -1319,7 +1300,7 @@ newints(int len)
 {
 	Ints* ans;
 
-	ans = (Ints*)malloc(OFFSETOF(data[0], Ints) + len*sizeof(int));
+	ans = (Ints*)malloc(OFFSET(data[0], Ints) + len*sizeof(int));
 	ans->len = len;
 	return ans;
 }
@@ -1348,7 +1329,7 @@ newbits(int len)
 {
 	Bits* ans;
 
-	ans = (Bits*)malloc(OFFSETOF(data[0], Bits) + len);
+	ans = (Bits*)malloc(OFFSET(data[0], Bits) + len);
 	ans->len = len;
 	ans->unusedbits = 0;
 	return ans;
@@ -1496,7 +1477,7 @@ freevalfields(Value* v)
  *
  *	Name ::= SEQUENCE OF RelativeDistinguishedName
  *
- *	RelativeDistinguishedName ::= SETOF SIZE(1..MAX) OF AttributeTypeAndValue
+ *	RelativeDistinguishedName ::= SET SIZE(1..MAX) OF AttributeTypeAndValue
  *
  *	AttributeTypeAndValue ::= SEQUENCE {
  *		type OBJECT IDENTIFER,
@@ -1515,6 +1496,11 @@ freevalfields(Value* v)
  *		teletexString TeletexString,
  *		printableString PrintableString,
  *		universalString UniversalString }
+ *
+ *	RSAPublickKey :: SEQUENCE {
+ *		modulus INTEGER,
+ *		publicExponent INTEGER
+ *	}
  *
  */
 
@@ -1536,7 +1522,6 @@ enum {
 	ALG_md2WithRSAEncryption,
 	ALG_md4WithRSAEncryption,
 	ALG_md5WithRSAEncryption,
-	ALG_sha1WithRSAEncryption,
 	NUMALGS
 };
 typedef struct Ints7 {
@@ -1547,13 +1532,11 @@ static Ints7 oid_rsaEncryption = {7, 1, 2, 840, 113549, 1, 1, 1 };
 static Ints7 oid_md2WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 2 };
 static Ints7 oid_md4WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 3 };
 static Ints7 oid_md5WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 4 };
-static Ints7 oid_sha1WithRSAEncryption ={7, 1, 2, 840, 113549, 1, 1, 5 };
 static Ints *alg_oid_tab[NUMALGS+1] = {
 	(Ints*)&oid_rsaEncryption,
 	(Ints*)&oid_md2WithRSAEncryption,
 	(Ints*)&oid_md4WithRSAEncryption,
 	(Ints*)&oid_md5WithRSAEncryption,
-	(Ints*)&oid_sha1WithRSAEncryption,
 	nil
 };
 
@@ -1783,143 +1766,35 @@ errret:
 	return c;
 }
 
-/*
- *	RSAPublickKey :: SEQUENCE {
- *		modulus INTEGER,
- *		publicExponent INTEGER
- *	}
- */
 static RSApub*
 decode_rsapubkey(Bytes* a)
 {
+	int exp;
 	Elem e;
 	Elist *el;
-	mpint *mp;
-	RSApub* key;
+	Bytes *modbytes;
+	mpint *modulus = nil;
+	RSApub* ans;
 
-	key = rsapuballoc();
 	if(decode(a->data, a->len, &e) != ASN_OK)
 		goto errret;
 	if(!is_seq(&e, &el) || elistlen(el) != 2)
 		goto errret;
-
-	key->n = mp = asn1mpint(&el->hd);
-	if(mp == nil)
+	if(!is_bigint(&el->hd, &modbytes))
 		goto errret;
-
-	el = el->tl;
-	key->ek = mp = asn1mpint(&el->hd);
-	if(mp == nil)
+	modulus = betomp(modbytes->data, modbytes->len, nil);
+	if(!is_int(&el->tl->hd, &exp))
 		goto errret;
-	return key;
+	ans = rsapuballoc();
+	ans->n = modulus;
+	ans->ek = itomp(exp, nil);
+	return ans;
 errret:
-	rsapubfree(key);
+	if(modulus != nil)
+		mpfree(modulus);
 	return nil;
 }
 
-/*
- *	RSAPrivateKey ::= SEQUENCE {
- *		version Version,
- *		modulus INTEGER, -- n
- *		publicExponent INTEGER, -- e
- *		privateExponent INTEGER, -- d
- *		prime1 INTEGER, -- p
- *		prime2 INTEGER, -- q
- *		exponent1 INTEGER, -- d mod (p-1)
- *		exponent2 INTEGER, -- d mod (q-1)
- *		coefficient INTEGER -- (inverse of q) mod p }
- */
-static RSApriv*
-decode_rsaprivkey(Bytes* a)
-{
-	int version;
-	Elem e;
-	Elist *el;
-	mpint *mp;
-	RSApriv* key;
-
-	key = rsaprivalloc();
-	if(decode(a->data, a->len, &e) != ASN_OK)
-		goto errret;
-	if(!is_seq(&e, &el) || elistlen(el) != 9)
-		goto errret;
-	if(!is_int(&el->hd, &version) || version != 0)
-		goto errret;
-
-	el = el->tl;
-	key->pub.n = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	el = el->tl;
-	key->pub.ek = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	el = el->tl;
-	key->dk = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	el = el->tl;
-	key->q = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	el = el->tl;
-	key->p = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	el = el->tl;
-	key->kq = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	el = el->tl;
-	key->kp = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	el = el->tl;
-	key->c2 = mp = asn1mpint(&el->hd);
-	if(mp == nil)
-		goto errret;
-
-	return key;
-errret:
-	rsaprivfree(key);
-	return nil;
-}
-
-static mpint*
-asn1mpint(Elem *e)
-{
-	Bytes *b;
-	mpint *mp;
-	int v;
-
-	if(is_int(e, &v))
-		return itomp(v, nil);
-	if(is_bigint(e, &b)) {
-		mp = betomp(b->data, b->len, nil);
-		freebytes(b);
-		return mp;
-	}
-	return nil;
-}
-
-RSApriv*
-asn1toRSApriv(uchar *kd, int kn)
-{
-	Bytes *b;
-	RSApriv *key;
-
-	b = makebytes(kd, kn);
-	key = decode_rsaprivkey(b);
-	freebytes(b);
-	return key;
-}
 
 RSApub*
 X509toRSApub(uchar *cert, int ncert, char *name, int nname)

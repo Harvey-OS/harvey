@@ -1,13 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include <authsrv.h>
-
-/* deprecated.
-	This is the mechanism that put entries in /sys/lib/httpd.rewrite
-	and passwords on the authserver in /sys/lib/httppasswords, which
-	was awkward to administer.  Instead, use local .httplogin files,
-	which are implemented in sys/src/cmd/ip/httpd/authorize.c */
+#include "authlocal.h"
 
 int
 httpauth(char *name, char *password)
@@ -18,7 +12,7 @@ httpauth(char *name, char *password)
 	char key[DESKEYLEN];
 	char buf[512];
 
-	afd = authdial(nil, nil);
+	afd = authdial();
 	if(afd < 0)
 		return -1;
 

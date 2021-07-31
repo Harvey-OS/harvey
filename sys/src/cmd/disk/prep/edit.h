@@ -1,7 +1,7 @@
 typedef struct Part Part;
 struct Part {
-	char *name;
-	char *ctlname;
+	char name[NAMELEN];
+	char ctlname[NAMELEN];
 	vlong start;
 	vlong end;
 	vlong ctlstart;

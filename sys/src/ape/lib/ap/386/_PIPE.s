@@ -1,0 +1,4 @@
+TEXT _PIPE(SB), 1, $0
+MOVL $21, AX
+INT $64
+RET

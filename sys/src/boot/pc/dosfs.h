@@ -18,14 +18,11 @@ struct Dospart
 
 #define FAT12	0x01
 #define FAT16	0x04
-#define EXTEND	0x05
 #define FATHUGE	0x06
 #define FAT32	0x0b
 #define FAT32X	0x0c
-#define EXTHUGE	0x0f
 #define DMDDO	0x54
 #define PLAN9	0x39
-#define LEXTEND 0x85
 
 struct Dosboot{
 	uchar	magic[3];
@@ -74,9 +71,9 @@ struct Dosfile{
 struct Dos{
 	int	dev;				/* device id */
 	long	(*read)(Dos*, void*, long);	/* read routine */
-	vlong	(*seek)(Dos*, vlong);		/* seek routine */
+	long	(*seek)(Dos*, long);		/* seek routine */
 
-	long	start;		/* start of file system */
+	int	start;		/* start of file system */
 	int	sectsize;	/* in bytes */
 	int	clustsize;	/* in sectors */
 	int	clustbytes;	/* in bytes */

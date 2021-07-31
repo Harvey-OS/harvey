@@ -2,22 +2,22 @@ dev
 	root
 	cons
 	dup
+	draw
 	env
 	ether	netif
 	flash
-	ip	arp chandial ip ipaux iproute netlog nullmedium pktmedium inferno
+	ip	arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
 	kprof
 	mnt
 	µc
 	pcmcia	cis
-	draw
 	penmouse
 	pipe
 	proc
-	realtime
+	sac	tar unsac
 	srv
 	ssl
-	uart
+	uart	sa1110uart
 	uda1341
 
 ip
@@ -33,13 +33,9 @@ link
 	etherwavelan
 	ethermedium
 
-misc
-	uartsa1110
-	paqfs.root
-
 port
 	int cpuserver = 1;
 
 boot cpu
 boot
-	paq
+	sac

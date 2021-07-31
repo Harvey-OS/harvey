@@ -2,8 +2,8 @@
 .SH NAME
 lock, canlock, unlock,
 qlock, canqlock, qunlock,
-rlock, runlock, canrlock,
-wlock, wunlock, canwlock,
+rlock, runlock,
+wlock, wunlock,
 incref, decref
 \- shared memory spin locks, rendez-vous locks, reader-writer locks, and
 atomic increment and decrement
@@ -15,40 +15,34 @@ atomic increment and decrement
 #include <libc.h>
 .PP
 .B
-void	lock(Lock *l)
+void	lock(Lock*)
 .PP
 .B
-int	canlock(Lock *l)
+int	canlock(Lock*)
 .PP
 .B
-void	unlock(Lock *l)
+void	unlock(Lock*)
 .PP
 .B
-void	qlock(QLock *l)
+void	qlock(QLock*)
 .PP
 .B
-void	qunlock(QLock *l)
+void	qunlock(QLock*)
 .PP
 .B
-int	canqlock(QLock *l)
+int	canqlock(QLock*)
 .PP
 .B
-void	rlock(RWLock *l)
+void	rlock(RWLock*)
 .PP
 .B
-void	runlock(RWLock *l)
+void	runlock(RWLock*)
 .PP
 .B
-int	canrlock(RWLock *l)
+void	wlock(RWLock*)
 .PP
 .B
-void	wlock(RWLock *l)
-.PP
-.B
-void	wunlock(RWLock *l)
-.PP
-.B
-int	canwlock(RWLock *l)
+void	wunlock(RWLock*)
 .PP
 .PP
 .B
@@ -85,10 +79,8 @@ memory.
 The third group
 .RI ( rlock ,
 .IR runlock ,
-.IR canrlock ,
 .IR wlock ,
-.IR wunlock ,
-.IR canwlock ),
+.IR wunlock ),
 also uses rendezvous locks but has slightly different
 semantics.
 .PP
@@ -142,13 +134,8 @@ releases it.
 grants write access;
 .I wunlock
 releases it.
-.I Canrlock
-and
-.I canwlock
-are the non-blocking versions.
 There may be any number of simultaneous readers,
-but only one writer.
-Moreover,
+but only one writer.  Moreover,
 if write access is granted no one may have
 read access until write access is released.
 .PP

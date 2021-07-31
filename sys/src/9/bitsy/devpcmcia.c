@@ -34,35 +34,27 @@ enum
 	 Clevel=	 (1<<6),	/*  level sensitive interrupt line */
 };
 
+#define SLOTNO(c)	((c->qid.path>>8)&0xff)
+#define TYPE(c)		(c->qid.path&0xff)
+#define QID(s,t)	(((s)<<8)|(t))
+
 static void increfp(PCMslot*);
 static void decrefp(PCMslot*);
 static void slotmap(int, ulong, ulong, ulong);
 static void slottiming(int, int, int, int, int);
 static void slotinfo(Ureg*, void*);
 
-#define TYPE(c)		(((ulong)c->qid.path)&0xff)
-#define PATH(s,t)	(((s)<<8)|(t))
-
-static PCMslot*
-slotof(Chan *c)
-{
-	ulong x;
-
-	x = c->qid.path;
-	return slot + ((x>>8)&0xff);
-}
-
 static int
-pcmgen(Chan *c, char *, Dirtab * , int, int i, Dir *dp)
+pcmgen(Chan *c, Dirtab *, int , int i, Dir *dp)
 {
 	int slotno;
 	Qid qid;
 	long len;
 	PCMslot *sp;
+	char name[NAMELEN];
 
 	if(i == DEVDOTDOT){
-		mkqid(&qid, Qdir, 0, QTDIR);
-		devdir(c, qid, "#y", 0, eve, 0555, dp);
+		devdir(c, (Qid){CHDIR, 0}, "#y", 0, eve, 0555, dp);
 		return 1;
 	}
 
@@ -74,23 +66,22 @@ pcmgen(Chan *c, char *, Dirtab * , int, int i, Dir *dp)
 	len = 0;
 	switch(i%Nents){
 	case 0:
-		qid.path = PATH(slotno, Qmem);
-		snprint(up->genbuf, sizeof up->genbuf, "pcm%dmem", slotno);
+		qid.path = QID(slotno, Qmem);
+		sprint(name, "pcm%dmem", slotno);
 		len = sp->memlen;
 		break;
 	case 1:
-		qid.path = PATH(slotno, Qattr);
-		snprint(up->genbuf, sizeof up->genbuf, "pcm%dattr", slotno);
+		qid.path = QID(slotno, Qattr);
+		sprint(name, "pcm%dattr", slotno);
 		len = sp->memlen;
 		break;
 	case 2:
-		qid.path = PATH(slotno, Qctl);
-		snprint(up->genbuf, sizeof up->genbuf, "pcm%dctl", slotno);
+		qid.path = QID(slotno, Qctl);
+		sprint(name, "pcm%dctl", slotno);
 		break;
 	}
 	qid.vers = 0;
-	qid.type = QTFILE;
-	devdir(c, qid, up->genbuf, len, eve, 0660, dp);
+	devdir(c, qid, name, len, eve, 0660, dp);
 	return 1;
 }
 
@@ -134,30 +125,26 @@ pcmciaattach(char *spec)
 	return devattach('y', spec);
 }
 
-static Walkqid*
-pcmciawalk(Chan *c, Chan *nc, char **name, int nname)
+static int
+pcmciawalk(Chan *c, char *name)
 {
-	return devwalk(c, nc, name, nname, 0, 0, pcmgen);
+	return devwalk(c, name, 0, 0, pcmgen);
 }
 
-static int
-pcmciastat(Chan *c, uchar *db, int n)
+static void
+pcmciastat(Chan *c, char *db)
 {
-	return devstat(c, db, n, 0, 0, pcmgen);
+	devstat(c, db, 0, 0, pcmgen);
 }
 
 static Chan*
 pcmciaopen(Chan *c, int omode)
 {
-	PCMslot *slotp;
-
-	if(c->qid.type & QTDIR){
+	if(c->qid.path == CHDIR){
 		if(omode != OREAD)
 			error(Eperm);
-	} else {
-		slotp = slotof(c);
-		increfp(slotp);
-	}
+	} else
+		increfp(slot + SLOTNO(c));
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
@@ -168,8 +155,8 @@ static void
 pcmciaclose(Chan *c)
 {
 	if(c->flag & COPEN)
-		if((c->qid.type & QTDIR) == 0)
-			decrefp(slotof(c));
+		if(c->qid.path != CHDIR)
+			decrefp(slot+SLOTNO(c));
 }
 
 /* a memmove using only bytes */
@@ -248,7 +235,7 @@ pcmciaread(Chan *c, void *a, long n, vlong off)
 	PCMslot *sp;
 	ulong offset = off;
 
-	sp = slotof(c);
+	sp = slot + SLOTNO(c);
 
 	switch(TYPE(c)){
 	case Qdir:
@@ -333,8 +320,8 @@ pcmctlwrite(char *p, long n, ulong, PCMslot *sp)
 		}
 
 		/* configure device */
-		cf.type = nil;
-		kstrdup(&cf.type, cmd->f[2]);
+		strncpy(cf.type, cmd->f[2], sizeof(cf.type)-1);
+		cf.type[sizeof(cf.type)-1] = 0;
 		cf.mem = (ulong)sp->mem;
 		cf.port = (ulong)sp->regs;
 		cf.itype = GPIOfalling;
@@ -360,7 +347,7 @@ pcmciawrite(Chan *c, void *a, long n, vlong off)
 	PCMslot *sp;
 	ulong offset = off;
 
-	sp = slotof(c);
+	sp = slot + SLOTNO(c);
 
 	switch(TYPE(c)){
 	case Qmem:
@@ -386,8 +373,8 @@ Dev pcmciadevtab = {
 
 	pcmciareset,
 	devinit,
-	devshutdown,
 	pcmciaattach,
+	devclone,
 	pcmciawalk,
 	pcmciastat,
 	pcmciaopen,
@@ -451,9 +438,8 @@ increfp(PCMslot *sp)
 	}
 	incref(&sp->ref);
 	slotinfo(nil, nil);
-	if(sp->occupied && sp->cisread == 0) {
+	if(sp->occupied && sp->cisread == 0)
 		pcmcisread(sp);
-	}
 
 	wunlock(sp);
 	poperror();
@@ -496,7 +482,6 @@ slotmap(int slotno, ulong regs, ulong attr, ulong mem)
 
 	sp->regs = mapspecial(regs, 32*1024);
 }
-
 PCMmap*
 pcmmap(int slotno, ulong, int, int attr)
 {
@@ -507,7 +492,6 @@ pcmmap(int slotno, ulong, int, int attr)
 	else
 		return &slot[slotno].memmap;
 }
-
 void
 pcmunmap(int, PCMmap*)
 {

@@ -4,29 +4,26 @@ typedef	struct	Conf	Conf;
 typedef	struct	Cons	Cons;
 typedef struct	Devcall	Devcall;
 
-#define MAXBUFSIZE	(16*1024)	/* max. buffer size */
-
 #include "portdat.h"
 
 struct	Chan
 {
-	int	chan;			/* fd request came in on */
-	QLock rlock, wlock;		/* lock for reading/writing messages on chan */
 	int	type;
+	int	chan;			/* fd request came in on */
+	char	whoname[NAMELEN];
 	int	flags;
 	long	whotime;
 	File*	flist;			/* base of file structures */
 	Lock	flock;			/* manipulate flist */
 	RWLock	reflock;		/* lock for Tflush */
-	int	msize;			/* version */
-	int	authed;		/* someone other than ``none'' has authed */
 
-/* 9p1 auth */
-	uchar	chal[8];
-	uchar	rchal[8];
-	int	idoffset;
-	int	idvec;
-	Lock	idlock;
+				/* added for authorisation */
+	uchar   chal[CHALLEN];          /* locally generated challenge */
+	uchar   rchal[CHALLEN];         /* remotely generated challenge */
+	Lock    idlock;
+	ulong   idoffset;               /* offset of id vector */
+	ulong   idvec;                  /* vector of acceptable id's */
+	int	auth;			/* authenticated as someone other than none */
 };
 
 /*
@@ -127,7 +124,6 @@ enum
 
 #define	FID1		1
 #define	FID2		2
-#define	FID3		3
 
 #define SECOND(n) 	(n)
 #define MINUTE(n)	(n*SECOND(60))
@@ -136,12 +132,13 @@ enum
 #define	TLOCK		MINUTE(5)
 
 #define	CHAT(cp)	(chat)
-#define	QID9P1(a,b)	(Qid9p1){a,b}
+#define	QID(a,b)	(Qid){a,b}
 
 extern	Uid*	uid;
 extern	char*	uidspace;
 extern	short*	gidspace;
 extern	char*	errstring[MAXERR];
+extern	void	(*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*);
 extern	Chan*	chans;
 extern	RWLock	mainlock;
 extern	long	boottime;
@@ -163,7 +160,7 @@ extern	Hiob	*hiob;
 extern	int	chat;
 extern	int	writeallow;
 extern	int	wstatallow;
+extern	int	noauth;
 extern	int	allownone;
-extern	int	noatime;
-
-extern Lock wpathlock;
+extern	int	nosync;
+extern	Nvrsafe	nvr;

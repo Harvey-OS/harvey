@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevxxf.c,v 1.2 2000/03/10 06:56:27 lpd Exp $ */
+/*$Id: gdevxxf.c,v 1.5 2000/09/19 19:00:23 lpd Exp $ */
 /* External font (xfont) implementation for X11. */
 #include "math_.h"
 #include "memory_.h"
@@ -253,9 +253,9 @@ sym:	fmp = find_fontmap(fmp, fname, len);
     xxf->My = (My ? -1 : 1);
     xxf->angle = angle;
     if (xdev->logXFonts) {
-	fprintf(stdout, "Using %s\n", x11fontname);
-	fprintf(stdout, "  for %s at %g pixels.\n", fmp->ps_name, height);
-	fflush(stdout);
+	dprintf3("Using %s\n  for %s at %g pixels.\n", x11fontname,
+		 fmp->ps_name, height);
+	dflush();
     }
     return (gx_xfont *) xxf;
 }
@@ -338,7 +338,6 @@ x_render_char(gx_xfont * xf, gx_xglyph xg, gx_device * dev,
 	      int xo, int yo, gx_color_index color, int required)
 {
     x_xfont *xxf = (x_xfont *) xf;
-    gx_device_X *xdev = xxf->xdev;
     char chr = (char)xg;
     gs_point wxy;
     gs_int_rect bbox;
@@ -346,6 +345,8 @@ x_render_char(gx_xfont * xf, gx_xglyph xg, gx_device * dev,
     int code;
 
     if (dev->dname == gs_x11_device.dname && !((gx_device_X *)dev)->is_buffered) {
+	gx_device_X *xdev = (gx_device_X *)dev;
+
 	code = (*xf->common.procs->char_metrics) (xf, xg, 0, &wxy, &bbox);
 	if (code < 0)
 	    return code;
@@ -405,6 +406,7 @@ x_render_char(gx_xfont * xf, gx_xglyph xg, gx_device * dev,
 	return -1;		/* too hard */
     else {
 	/* Display on an intermediate bitmap, then copy the bits. */
+	gx_device_X *xdev = xxf->xdev;
 	int wbm, raster;
 	int i;
 	XImage *xim;

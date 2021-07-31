@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1993, 1994, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsutil.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsutil.c,v 1.4 2000/09/19 19:00:33 lpd Exp $ */
 /* Utilities for Ghostscript library */
 #include "string_.h"
 #include "memory_.h"
@@ -59,81 +59,70 @@ gs_next_ids(uint count)
 void
 memflip8x8(const byte * inp, int line_size, byte * outp, int dist)
 {
-    register uint ae, bf, cg, dh;
+    uint aceg, bdfh;
 
     {
 	const byte *ptr4 = inp + (line_size << 2);
+	const int ls2 = line_size << 1;
 
-	ae = ((uint) * inp << 8) + *ptr4;
+	aceg = ((uint)*inp) | ((uint)inp[ls2] << 8) |
+	    ((uint)*ptr4 << 16) | ((uint)ptr4[ls2] << 24);
 	inp += line_size, ptr4 += line_size;
-	bf = ((uint) * inp << 8) + *ptr4;
-	inp += line_size, ptr4 += line_size;
-	cg = ((uint) * inp << 8) + *ptr4;
-	inp += line_size, ptr4 += line_size;
-	dh = ((uint) * inp << 8) + *ptr4;
+	bdfh = ((uint)*inp) | ((uint)inp[ls2] << 8) |
+	    ((uint)*ptr4 << 16) | ((uint)ptr4[ls2] << 24);
     }
 
     /* Check for all 8 bytes being the same. */
     /* This is especially worth doing for the case where all are zero. */
-    if (ae == bf && ae == cg && ae == dh && (ae >> 8) == (ae & 0xff)) {
-	if (ae == 0)
+    if (aceg == bdfh && (aceg >> 8) == (aceg & 0xffffff)) {
+	if (aceg == 0)
 	    goto store;
-	*outp = -((ae >> 7) & 1);
-	outp += dist;
-	*outp = -((ae >> 6) & 1);
-	outp += dist;
-	*outp = -((ae >> 5) & 1);
-	outp += dist;
-	*outp = -((ae >> 4) & 1);
-	outp += dist;
-	*outp = -((ae >> 3) & 1);
-	outp += dist;
-	*outp = -((ae >> 2) & 1);
-	outp += dist;
-	*outp = -((ae >> 1) & 1);
-	outp += dist;
-	*outp = -(ae & 1);
+	*outp = -((aceg >> 7) & 1);
+	outp[dist] = -((aceg >> 6) & 1);
+	outp += dist << 1;
+	*outp = -((aceg >> 5) & 1);
+	outp[dist] = -((aceg >> 4) & 1);
+	outp += dist << 1;
+	*outp = -((aceg >> 3) & 1);
+	outp[dist] = -((aceg >> 2) & 1);
+	outp += dist << 1;
+	*outp = -((aceg >> 1) & 1);
+	outp[dist] = -(aceg & 1);
 	return;
     } {
 	register uint temp;
 
 /* Transpose a block of bits between registers. */
-#define transpose(r,s,mask,shift)\
-  r ^= (temp = ((s >> shift) ^ r) & mask);\
-  s ^= temp << shift
+#define TRANSPOSE(r,s,mask,shift)\
+  (r ^= (temp = ((s >> shift) ^ r) & mask),\
+   s ^= temp << shift)
 
 /* Transpose blocks of 4 x 4 */
-#define transpose4(r) transpose(r,r,0x00f0,4)
-	transpose4(ae);
-	transpose4(bf);
-	transpose4(cg);
-	transpose4(dh);
+	TRANSPOSE(aceg, aceg, 0x00000f0f, 20);
+	TRANSPOSE(bdfh, bdfh, 0x00000f0f, 20);
 
 /* Transpose blocks of 2 x 2 */
-	transpose(ae, cg, 0x3333, 2);
-	transpose(bf, dh, 0x3333, 2);
+	TRANSPOSE(aceg, aceg, 0x00330033, 10);
+	TRANSPOSE(bdfh, bdfh, 0x00330033, 10);
 
 /* Transpose blocks of 1 x 1 */
-	transpose(ae, bf, 0x5555, 1);
-	transpose(cg, dh, 0x5555, 1);
+	TRANSPOSE(aceg, bdfh, 0x55555555, 1);
 
+#undef TRANSPOSE
     }
 
-  store:*outp = ae >> 8;
-    outp += dist;
-    *outp = bf >> 8;
-    outp += dist;
-    *outp = cg >> 8;
-    outp += dist;
-    *outp = dh >> 8;
-    outp += dist;
-    *outp = (byte) ae;
-    outp += dist;
-    *outp = (byte) bf;
-    outp += dist;
-    *outp = (byte) cg;
-    outp += dist;
-    *outp = (byte) dh;
+  store:
+    *outp = (byte)aceg;
+    outp[dist] = (byte)bdfh;
+    outp += dist << 1;
+    *outp = (byte)(aceg >>= 8);
+    outp[dist] = (byte)(bdfh >>= 8);
+    outp += dist << 1;
+    *outp = (byte)(aceg >>= 8);
+    outp[dist] = (byte)(bdfh >>= 8);
+    outp += dist << 1;
+    *outp = (byte)(aceg >> 8);
+    outp[dist] = (byte)(bdfh >> 8);
 }
 
 #endif /* !USE_ASM */
@@ -171,8 +160,9 @@ bytes_compare(const byte * s1, uint len1, const byte * s2, uint len2)
 
 /* Test whether a string matches a pattern with wildcards. */
 /* '*' = any substring, '?' = any character, '\' quotes next character. */
-private const string_match_params smp_default =
-{'*', '?', '\\', false};
+const string_match_params string_match_params_default = {
+    '*', '?', '\\', false
+};
 
 bool
 string_match(const byte * str, uint len, const byte * pstr, uint plen,
@@ -184,7 +174,7 @@ string_match(const byte * str, uint len, const byte * pstr, uint plen,
     const byte *sp = str, *spend = str + len;
 
     if (psmp == 0)
-	psmp = &smp_default;
+	psmp = &string_match_params_default;
   again:while (p < pend) {
 	register byte ch = *p;
 

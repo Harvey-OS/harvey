@@ -1,21 +1,21 @@
-#    Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: ugcclib.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: ugcclib.mak,v 1.5.2.1 2000/11/28 00:14:34 raph Exp $
 # makefile for Unix / gcc library testing.
 
 BINDIR=./libobj
@@ -41,6 +41,10 @@ GS_INIT=gs_init.ps
 GENOPT=
 GS=gslib
 
+# We don't expect to build debug or profiling configurations....
+DEBUGRELDIR=.
+PGRELDIR=.
+
 JSRCDIR=jpeg
 JVERSION=6
 # DON'T SET THIS TO 1!
@@ -48,7 +52,7 @@ SHARE_JPEG=0
 JPEG_NAME=jpeg
 
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10008
 SHARE_LIBPNG=1
 LIBPNG_NAME=png
 
@@ -63,8 +67,10 @@ GCFLAGS_NO_WARN=-fno-builtin -fno-common
 GCFLAGS_WARNINGS=-Wall -Wcast-qual -Wpointer-arith -Wstrict-prototypes -Wwrite-strings
 GCFLAGS=$(GCFLAGS_NO_WARN) $(GCFLAGS_WARNINGS)
 XCFLAGS=
-CFLAGS=-g -O $(GCFLAGS) $(XCFLAGS)
-CFLAGS_NO_WARN=-g -O $(GCFLAGS_NO_WARN) $(XCFLAGS)
+CFLAGS_STANDARD=-O2
+CFLAGS_DEBUG=-g -O
+CFLAGS_PROFILE=-pg -O2
+CFLAGS=$(CFLAGS_DEBUG) $(GCFLAGS) $(XCFLAGS)
 LDFLAGS=$(XLDFLAGS)
 STDLIBS=-lm
 EXTRALIBS=
@@ -115,7 +121,7 @@ CCFLAGS=$(GENOPT) $(CFLAGS)
 CC_=$(CC) $(CCFLAGS)
 CCAUX=$(CC)
 CC_LEAF=$(CC_)
-CC_NO_WARN=$(CC) $(GENOPT) $(CFLAGS_NO_WARN)
+CC_NO_WARN=$(CC_) -Wno-cast-qual -Wno-traditional
 # When using gcc, CCA2K isn't needed....
 CCA2K=$(CC)
 
@@ -139,6 +145,6 @@ $(GS_XE): $(ld_tr) $(ECHOGS_XE) $(LIB_ALL) $(DEVS_ALL) $(LIB_ONLY)
 	$(ECHOGS_XE) -a $(ldt_tr) -n -s $(LIB_ONLY) -s
 	cat $(ld_tr) >>$(ldt_tr)
 	$(ECHOGS_XE) -a $(ldt_tr) -s - $(EXTRALIBS) $(STDLIBS)
-	LD_RUN_PATH=$(XLIBDIR); export LD_RUN_PATH; $(SH) <$(ldt_tr)
+	if [ x$(XLIBDIR) != x ]; then LD_RUN_PATH=$(XLIBDIR); export LD_RUN_PATH; fi; $(SH) <$(ldt_tr)
 
 include $(GLSRCDIR)/unix-end.mak

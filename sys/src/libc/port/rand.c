@@ -18,10 +18,9 @@
 static	ulong	rng_vec[LEN];
 static	ulong*	rng_tap = rng_vec;
 static	ulong*	rng_feed = 0;
-static	Lock	lk;
 
-static void
-isrand(long seed)
+void
+srand(long seed)
 {
 	long lo, hi, x;
 	int i;
@@ -48,25 +47,15 @@ isrand(long seed)
 	}
 }
 
-void
-srand(long seed)
-{
-	lock(&lk);
-	isrand(seed);
-	unlock(&lk);
-}
-
 long
 lrand(void)
 {
 	ulong x;
 
-	lock(&lk);
-
 	rng_tap--;
 	if(rng_tap < rng_vec) {
 		if(rng_feed == 0) {
-			isrand(1);
+			srand(1);
 			rng_tap--;
 		}
 		rng_tap += LEN;
@@ -76,9 +65,6 @@ lrand(void)
 		rng_feed += LEN;
 	x = (*rng_feed + *rng_tap) & MASK;
 	*rng_feed = x;
-
-	unlock(&lk);
-
 	return x;
 }
 

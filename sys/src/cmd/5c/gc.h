@@ -162,7 +162,6 @@ EXTERN	Prog	zprog;
 EXTERN	char	reg[NREG+NFREG];
 EXTERN	long	exregoffset;
 EXTERN	long	exfregoffset;
-EXTERN	int	suppress;
 
 #define	BLOAD(r)	band(bnot(r->refbehind), r->refahead)
 #define	BSTORE(r)	band(bnot(r->calbehind), r->calahead)
@@ -211,7 +210,7 @@ void	gen(Node*);
 void	noretval(int);
 void	usedset(Node*, int);
 void	xcom(Node*);
-int	bcomplex(Node*, Node*);
+void	bcomplex(Node*);
 
 /*
  * cgen.c
@@ -281,13 +280,13 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(Fmt*);
-int	Aconv(Fmt*);
-int	Dconv(Fmt*);
-int	Sconv(Fmt*);
-int	Nconv(Fmt*);
-int	Bconv(Fmt*);
-int	Rconv(Fmt*);
+int	Pconv(va_list*, Fconv*);
+int	Aconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Sconv(va_list*, Fconv*);
+int	Nconv(va_list*, Fconv*);
+int	Bconv(va_list*, Fconv*);
+int	Rconv(va_list*, Fconv*);
 
 /*
  * reg.c

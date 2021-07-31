@@ -160,7 +160,7 @@ grekick(Conv *c)
 }
 
 static void
-greiput(Proto *gre, Ipifc*, Block *bp)
+greiput(Proto *gre, uchar*, Block *bp)
 {
 	int len;
 	GREhdr *ghp;

@@ -1,0 +1,481 @@
+.TH WRAP 8
+.SH NAME
+wrap, create, info, inst, wdiff \- software package preparation
+.SH SYNOPSIS
+.B wrap/create
+[
+.B -luv
+]
+[
+.B -d
+.I desc
+]
+[
+.B -p
+.I proto
+]
+[
+.B -r
+.I root
+]
+[
+.B -t
+.I time
+]
+.I name
+[
+.I prefix...
+]
+.PP
+.B wrap/inst
+[
+.B -ovxF
+]
+[
+.B -r
+.I root
+]
+.I file
+[
+.I prefix...
+]
+.PP
+.B wrap/info
+[
+.B -r
+.I root
+]
+.I file
+.PP
+.B wrap/wdiff
+[
+.B -blp
+]
+[
+.B -r
+root
+]
+.I file
+[
+.I prefix...
+]
+.SH DESCRIPTION
+These programs
+are used to manage software packages.
+.PP
+Packages are identified by a unique name, and should
+correspond to some reference tree.
+For example, the base Plan 9 installation package
+is named
+.I plan9
+and corresponds to the root of the Plan 9 distribution file server
+at Bell Labs.
+Successive versions are distinguished by a date
+stored as seconds since January 1, 1970.
+.PP
+A 
+.I base
+.I package
+contains all files in the reference tree at some time.
+.B Wrap/create 
+creates these by default.
+.PP
+An
+.I update
+is a package listing only files modified relative to some earlier tree.
+The time of the prerequisite tree is included in the update.
+The target tree's time is the time of the base package
+or the time of the last installed update.
+The update cannot be installed unless the target tree is dated
+at or after the prerequisite time.
+.B Wrap/create
+.B -u
+creates updates when no
+.I prefix
+is given.
+.PP
+A
+.I partial
+.I update
+is like an update but usually only contains a few subtrees.
+For example, one might create a partial update
+of the Plan 9 distribution package containing
+only changes to 
+.IR acme .
+Installing a partial update does not change the target tree's time.
+.B Wrap/create
+.B -u
+creates partial updates when one or more
+.I prefixes
+are given.
+.PP
+.I Wrap/inst
+installs base packages, updates, and partial updates,
+taking into account version conflicts,
+prerequisites, and the possibility of local modifications.
+.I Wrap/info
+prints information about a package or update,
+and
+.I wrap/wdiff
+runs
+.I diff
+to compare files in a package archive
+with installed files.
+.B Wdiff 
+.B -l
+merely lists those files modified or removed
+since the package or update was created,
+and can be used on an installed tree instead
+of a package file.
+When used with an installed tree,
+only files modified or removed since the
+most recent updates are listed;
+.B wdiff
+.B -p
+shows changes since the last full package.
+.PP
+To decide whether a given update
+contains files fresher than those currently
+installed on the system, it is not enough to
+compare the update's date with the
+date of the most recent update to the same package:
+updates may only involve parts
+of a package, so updates can 
+only be partially ordered.
+As an example, if you have a full
+Plan 9 distribution package
+and two updates, one to 
+.I acme 
+and one to
+.IR aux/vga ,
+it is not correct to require one
+to be installed before the other,
+or to prohibit one from being installed
+once the other has been.
+To handle such cases,
+date comparisons must 
+made on a per-file basis rather
+than a per-update basis.
+.PP
+To do this, 
+.I create
+includes in each package and update a list 
+.BI /wrap/ name / time /md5sum
+of
+the contained files along with their MD5 checksums.
+A file in an update will be written over an
+installed file only if the installed file is
+from an update older than the one currently
+under consideration; otherwise a warning will
+be printed.
+If the currently installed file does not
+have the expected checksum, that usually
+indicates the presence of local modifications.
+In such cases, the file is not
+overwritten and a warning is printed.
+This behavior can be overriden, as described below.
+.PP
+.I Create
+writes to standard output a package
+with name
+.I name
+and time stamp
+.I time
+(by default, the current time),
+containing the files named by
+.I proto
+(see
+.IR proto (2)).
+In addition to the named files,
+a package may contain a one-line
+file describing its contents;
+the file contains 
+.IR desc ,
+when specified.
+If no
+.I proto
+is specified,
+.B /sys/lib/sysconfig/proto/allproto
+is used.
+.PP
+If
+.I create
+is given the
+.B -u
+flag, it compares the files contained in the
+named package (which may be a file or
+the name of a package installed in the
+.IR root ;
+see below) with those currently in
+the file system, and
+writes an update archive that only
+contains modified files.
+If no
+.I proto
+is given, it uses the 
+.I proto
+used to make the archive being updated.
+If any
+.I prefix es
+are specified, the update is restricted
+to just those changes that concern
+files having names with any of the 
+.I prefix es
+as a prefix.
+Without the
+.B -u
+flag, prefixes are not allowed.
+If
+.I create
+is given the
+.B -u
+flag it creates an update package.
+If prefixes are specified,
+.I create
+creates a partial update.
+.PP
+The 
+.B -l
+flag to
+.I create
+causes it to write a list of the files it
+would have included in an archive, rather
+than preparing the archive itself.
+.PP
+.I Inst
+unpacks a package or update created by 
+.IR create .
+It extracts from the package or update
+the files with names starting with
+.IR prefix es
+(default all files)
+and installs them in the tree
+rooted at
+.I root
+(default
+.BR / ).
+.I Inst
+attempts to set the modes on the 
+extracted files to those in the archive.
+If the
+.B -o
+flag is given,
+.I install
+will attempt to set the owner and group 
+as well;
+this is only possible if the
+.B allow
+command has been typed at the file server
+(see
+.IR fs (8)
+or
+.IR kfscmd (8)).
+The 
+.B -x
+flag causes
+.I inst
+to print what actions it would do to
+install the package, but not actually
+perform them.
+As described above,
+.I inst
+performs a number of checks to avoid overwriting
+new files with old ones;
+these checks are disabled by the
+.B -F
+flag.
+.PP
+.SH EXAMPLES
+Create a package consisting of the entire Plan 9 distribution tree:
+.IP
+.EX
+wrap/create -r /plan9dist -d 'Plan 9 — Third Edition' \e
+	-p plan9proto plan9 | gzip > plan9.9gz
+.EE
+.PP
+Create a base package as well as a full update.
+Note that we need to use the
+.B -t
+flag to make sure both have the same timestamp.
+.IP
+.EX
+now=`{date -n}
+wrap/create -r /plan9dist -d 'Plan 9 — Third Edition' \e
+	-p plan9proto -t $now plan9 | gzip > plan9.9gz
+
+wrap/create -ur /plan9dist -t $now oldplan9.9gz |
+	gzip > update.9gz
+.EE
+.PP
+Create a partial update containing new VGA software:
+.IP
+.EX
+wrap/create -ur /plan9dist plan9.9gz `{cat /tmp/vgafiles} |
+	gzip >vga.9gz
+.EE
+.PP
+where 
+.B /tmp/vgafiles
+is a text file containing:
+.IP
+.EX
+/386/bin/aux/vga
+/lib/vgadb
+/sys/src/cmd/aux/vga
+/sys/src/9/pc/devvga.c
+/sys/src/9/pc/vga
+.EE
+.PP
+Note that since the strings are just
+prefixes, the last line will match files such as
+.B /sys/src/9/pc/vgamach64xx.c
+and
+.BR /sys/src/9/pc/vga.h .
+.PP
+Install the VGA update on a
+.IR kfs (4)
+file system.
+.IP
+.EX
+disk/kfscmd allow
+mount /srv/kfs /n/kfs
+wrap/inst -or /n/kfs vga.9gz
+disk/kfscmd disallow
+.EE
+.PP
+Suppose that the update contains a new
+.B /386/bin/aux/vga
+and
+.B /lib/vgadb
+but those files
+have been changed since they
+were installed.
+.I Install
+will produce the following messages:
+.IP
+.EX
+skipping /386/bin/aux/vga
+skipping /lib/vgadb: locally updated
+wrap/wdiff vga.9gz \e
+	/386/bin/aux/vga \e
+	/lib/vgadb
+.EE
+.PP
+The printed command can be executed to inspect
+the differences and decide which files to
+overwrite with ones from the package;
+to actually overwrite the files,
+change
+.B wdiff
+to
+.B inst
+.B -F
+and send the command again.
+.PP
+Wrap an installed package 
+.I quux 
+for redistribution as a standalone package:
+.IP
+.EX
+wrap/create -d 'Repackaged quux' -r /root \e
+	-p /root/wrap/quux/time/proto quux | gzip > newquux.9gz
+.EE
+.PP
+To view and then package just your changes:
+.IP
+.EX
+wrap/wdiff -lr /root quux
+wrap/wdiff -r /root quux.9gz
+wrap/create -u -r /root quux >quuxpatch.9gz
+.EE
+.LP
+Note that 
+.B wrap/wdiff
+.B -l
+does not require the original archive: it can use checksums
+to determine which files have changed.
+By default 
+(without
+.BR -l )
+an archive is required for access to the original files.
+.SH FILES
+Installed package information is maintained via
+a small tree rooted at 
+.IB dst /wrap \fR.
+For each package and update, there is a directory
+.IB name / time
+that contains the following files:
+.TP 
+.B desc
+The
+.I description 
+for the package, if any.
+.TL \w'\fLmd5sum '
+.TP
+.B md5sum
+A sorted list of all files in the package,
+along with their MD5 checksums.
+.TP
+.B package
+An empty file, if this is a package.
+.TP
+.B proto
+The proto file used to create this package.
+.TP
+.B remove
+For an update, the list of obsolete
+files that should be removed.
+.TP
+.B update
+If this is an update, contains the decimal date
+of the package being updated.
+.TP
+.B done
+The installation of the package completed successfully.
+.PP
+Update packages contain both
+.B package
+and
+.B update
+files.
+A package is itself an
+(optionally gzipped)
+.IR mkfs -style
+archive that contains 
+.BI /wrap/ name
+and
+.BI /wrap/ name / time
+as the
+only directories under
+.BR /wrap .
+The entries must be the first ones in the archive
+to allow for quick access in compressed archives.
+.SH SOURCE
+.B /sys/src/cmd/wrap
+.SH SEE ALSO
+.IR diff (1),
+.I md5sum
+(in
+.IR sum (1)),
+.IR tar (1),
+.IR proto (2),
+.IR archfs (4),
+.IR mkfs (8)
+.SH BUGS
+Because
+.I inst
+sets the modes on the created files,
+permission checking must be turned off
+on the file server
+in order to create files
+in unwritable directories
+or to overwrite updated files
+that are not normally writable.
+.PP
+In the absence of the
+.B -l
+flag (which can use the MD5 checksums alone)
+.I wrap/wdiff
+must uncompress the entire archive 
+to pass it to
+.IR archfs (4).

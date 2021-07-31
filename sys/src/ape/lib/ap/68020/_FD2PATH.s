@@ -1,0 +1,4 @@
+TEXT _FD2PATH(SB), 1, $0
+MOVL $23, R0
+TRAP $0
+RTS

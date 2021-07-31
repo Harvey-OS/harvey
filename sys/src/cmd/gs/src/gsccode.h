@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsccode.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsccode.h,v 1.4 2000/09/19 19:00:26 lpd Exp $ */
 /* Types for character codes */
 
 #ifndef gsccode_INCLUDED
@@ -51,11 +51,21 @@ typedef ulong gs_glyph;
 typedef bool(*gs_glyph_mark_proc_t) (P2(gs_glyph glyph, void *proc_data));
 
 /* Define a procedure for mapping a gs_glyph to its (string) name. */
+/*
+ * NOTE: As of release 6.21, his procedure is obsolete and deprecated,
+ * but it must be supported for backward compatibility for the xfont
+ * interface.
+ */
 #define gs_proc_glyph_name(proc)\
   const char *proc(P2(gs_glyph, uint *))
-/* The following typedef is needed because ansi2knr can't handle */
-/* gs_proc_glyph_name((*procname)) in a formal argument list. */
 typedef gs_proc_glyph_name((*gs_proc_glyph_name_t));
+/*
+ * This is the updated procedure, which accepts closure data and also can
+ * return an error code.
+ */
+#define gs_glyph_name_proc(proc)\
+  int proc(P3(gs_glyph glyph, gs_const_string *pstr, void *proc_data))
+typedef gs_glyph_name_proc((*gs_glyph_name_proc_t));
 
 /* Define the indices for known encodings. */
 typedef enum {
@@ -70,10 +80,11 @@ typedef enum {
     ENCODING_INDEX_MACEXPERT,
 #define NUM_KNOWN_REAL_ENCODINGS 7
 	/* Pseudo-encodings (glyph sets). */
-    ENCODING_INDEX_MACGLYPH,	/* a pseudo-encoding */
-    ENCODING_INDEX_ALOGLYPH,	/* ditto */
-    ENCODING_INDEX_ALXGLYPH	/* ditto */
-#define NUM_KNOWN_ENCODINGS 10
+    ENCODING_INDEX_MACGLYPH,	/* Mac glyphs */
+    ENCODING_INDEX_ALOGLYPH,	/* Adobe Latin glyph set */
+    ENCODING_INDEX_ALXGLYPH,	/* Adobe Latin Extended glyph set */
+    ENCODING_INDEX_CFFSTRINGS	/* CFF StandardStrings */
+#define NUM_KNOWN_ENCODINGS 11
 } gs_encoding_index_t;
 #define KNOWN_REAL_ENCODING_NAMES\
   "StandardEncoding", "ISOLatin1Encoding", "SymbolEncoding",\

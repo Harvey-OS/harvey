@@ -2,9 +2,11 @@
 #include <libc.h>
 #include </386/include/ureg.h>
 typedef struct Ureg Ureg;
+
 #include <auth.h>
 #include <fcall.h>
 #include <thread.h>
+#include "/sys/src/libthread/assert.h"
 #include <9p.h>
 
 enum {
@@ -152,7 +154,7 @@ int apmdebug;
 static int
 _apmcall(int fd, Ureg *u)
 {
-if(apmdebug) fprint(2, "call ax 0x%lux bx 0x%lux cx 0x%lux\n",
+if(apmdebug) threadprint(2, "call ax 0x%lux bx 0x%lux cx 0x%lux\n",
 	u->ax&0xFFFF, u->bx&0xFFFF, u->cx&0xFFFF);
 
 	seek(fd, 0, 0);
@@ -163,7 +165,7 @@ if(apmdebug) fprint(2, "call ax 0x%lux bx 0x%lux cx 0x%lux\n",
 	if(read(fd, u, sizeof *u) != sizeof *u)
 		return -1;
 
-if(apmdebug) fprint(2, "flags 0x%lux ax 0x%lux bx 0x%lux cx 0x%lux\n",
+if(apmdebug) threadprint(2, "flags 0x%lux ax 0x%lux bx 0x%lux cx 0x%lux\n",
 	u->flags&0xFFFF, u->ax&0xFFFF, u->bx&0xFFFF, u->cx&0xFFFF);
 
 	if(u->flags & 1) {	/* carry flag */
@@ -523,6 +525,13 @@ apmsuspend(Apm *apm)
 	apmsetpowerstate(apm, DevAll, PowerSuspend);
 }
 
+void
+usage(void)
+{
+	fprint(2, "usage: apm [-s]\n");
+	exits("usage");
+}
+
 Apm apm;
 
 void
@@ -592,156 +601,156 @@ estrdupn(char *s, int n)
 }
 
 enum {
-	Qroot = 0,
-	Qevent,
+	Qroot = CHDIR,
+	Qevent = 0,
 	Qbattery,
 	Qctl,
 };
 
-static void rootread(Req*);
-static void eventread(Req*);
-static void ctlread(Req*);
-static void ctlwrite(Req*);
-static void batteryread(Req*);
+static void rootread(Req*, void*, long*, vlong);
+static void eventread(Req*, void*, long*, vlong);
+static void ctlread(Req*, void*, long*, vlong);
+static void ctlwrite(Req*, void*, long*, vlong);
+static void batteryread(Req*, void*, long*, vlong);
 
 typedef struct Dfile Dfile;
 struct Dfile {
-	Qid qid;
+	ulong path;
 	char *name;
 	ulong mode;
-	void (*read)(Req*);
-	void (*write)(Req*);
+	void (*read)(Req*, void*, long*, vlong);
+	void (*write)(Req*, void*, long*, vlong);
 };
 
 Dfile dfile[] = {
-	{ {Qroot,0,QTDIR},		"/",		DMDIR|0555,	rootread,		nil, },
-	{ {Qevent},		"event",	0444,		eventread,	nil, },
-	{ {Qbattery},	"battery",	0444,		batteryread,	nil, },
-	{ {Qctl},		"ctl",		0666,		ctlread,		ctlwrite, },
+	{ Qroot,		"/",		CHDIR|0555,	rootread,		nil, },
+	{ Qevent,		"event",	0444,		eventread,	nil, },
+	{ Qbattery,	"battery",	0444,		batteryread,	nil, },
+	{ Qctl,		"ctl",		0666,		ctlread,		ctlwrite, },
 };
 
 static int
-fillstat(ulong path, Dir *d, int doalloc)
+fillstat(ulong path, Dir *d)
 {
 	int i;
 
 	for(i=0; i<nelem(dfile); i++)
-		if(path==dfile[i].qid.path)
+		if(path==dfile[i].path)
 			break;
 	if(i==nelem(dfile))
 		return -1;
 
 	memset(d, 0, sizeof *d);
-	d->uid = doalloc ? estrdup("apm") : "apm";
-	d->gid = doalloc ? estrdup("apm") : "apm";
+	strcpy(d->uid, "apm");
+	strcpy(d->gid, "apm");
 	d->length = 0;
-	d->name = doalloc ? estrdup(dfile[i].name) : dfile[i].name;
+	strcpy(d->name, dfile[i].name);
 	d->mode = dfile[i].mode;
 	d->atime = d->mtime = time(0);
-	d->qid = dfile[i].qid;
+	d->qid = (Qid){dfile[i].path,0};
 	return 0;
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static void
+fswalk(Req *r, Fid*, char *name, Qid *qid)
 {
 	int i;
 
 	if(strcmp(name, "..")==0){
-		*qid = dfile[0].qid;
-		fid->qid = *qid;
-		return nil;
+		*qid = (Qid){Qroot, 0};
+		respond(r, nil);
+		return;
 	}
 
 	for(i=1; i<nelem(dfile); i++){	/* i=1: 0 is root dir */
 		if(strcmp(dfile[i].name, name)==0){
-			*qid = dfile[i].qid;
-			fid->qid = *qid;
-			return nil;
+			*qid = (Qid){dfile[i].path, 0};
+			respond(r, nil);
+			return;
 		}
 	}
-	return "file does not exist";
+	respond(r, "file does not exist");
 }
 
 static void
-fsopen(Req *r)
+fsopen(Req *r, Fid *fid, int omode, Qid*)
 {
-	switch((ulong)r->fid->qid.path){
+	switch(fid->qid.path){
 	case Qroot:
-		r->fid->aux = (void*)0;
-		respond(r, nil);
-		return;
-
 	case Qevent:
 	case Qbattery:
-		if(r->ifcall.mode == OREAD){
+		if(omode == OREAD){
 			respond(r, nil);
 			return;
 		}
 		break;
 
 	case Qctl:
-		if((r->ifcall.mode&~(OTRUNC|OREAD|OWRITE|ORDWR)) == 0){
+		if((omode&~(OTRUNC|OREAD|OWRITE|ORDWR)) == 0){
 			respond(r, nil);
 			return;
 		}
 		break;
 	}
+
 	respond(r, "permission denied");
 	return;
 }
 
 static void
-fsstat(Req *r)
+fsstat(Req *r, Fid *fid, Dir *d)
 {
-	fillstat(r->fid->qid.path, &r->d, 1);
+	fillstat(fid->qid.path, d);
 	respond(r, nil);
 }
 
 static void
-fsread(Req *r)
+fsread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 {
-	dfile[r->fid->qid.path].read(r);
+	int i;
+
+	for(i=0; i<nelem(dfile); i++){
+		if(dfile[i].path == fid->qid.path && dfile[i].read){
+			dfile[i].read(r, buf, count, offset);
+			return;
+		}
+	}
+	respond(r, "unknown file");
 }
 
 static void
-fswrite(Req *r)
+fswrite(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 {
-	dfile[r->fid->qid.path].write(r);
+	int i;
+
+	for(i=0; i<nelem(dfile); i++){
+		if(dfile[i].path == fid->qid.path && dfile[i].write){
+			dfile[i].write(r, buf, count, offset);
+			return;
+		}
+	}
+	respond(r, "unknown file");
 }
 
 static void
-rootread(Req *r)
+rootread(Req *r, void *buf, long *count, vlong offset)
 {
-	int n, offset;
-	char *p, *ep;
+	int i, j, n;
 	Dir d;
 
-	if(r->ifcall.offset == 0)
-		offset = 0;
-	else
-		offset = (int)r->fid->aux;
-
-	p = r->ofcall.data;
-	ep = r->ofcall.data+r->ifcall.count;
-
-	if(offset == 0)		/* skip root */
-		offset = 1;
-	for(; p+2 < ep; p+=n){
-		if(fillstat(offset, &d, 0) < 0)
+	n = *count/DIRLEN;
+	i = offset/DIRLEN;
+	for(j=0; j<n; j++){
+		if(fillstat(i+j, &d) < 0)
 			break;
-		n = convD2M(&d, (uchar*)p, ep-p);
-		if(n <= BIT16SZ)
-			break;
-		offset++;
+		convD2M(&d, (char*)buf+j*DIRLEN);
 	}
-	r->fid->aux = (void*)offset;
-	r->ofcall.count = p - r->ofcall.data;
+	*count = j*DIRLEN;
 	respond(r, nil);
 }
 
 static void
-batteryread(Req *r)
+batteryread(Req *r, void *v, long *count, vlong offset)
 {
 	char buf[Mbattery*80], *ep, *p;
 	int i;
@@ -750,13 +759,12 @@ batteryread(Req *r)
 
 	p = buf;
 	ep = buf+sizeof buf;
-	*p = '\0';	/* could be no batteries */
 	for(i=0; i<apm.nbattery && i<Mbattery; i++)
 		p += snprint(p, ep-p, "%s %d %d\n",
 			batterystatus(apm.battery[i].status),
 			apm.battery[i].percent, apm.battery[i].time);
 	
-	readstr(r, buf);
+	readstr(offset, v, count, buf);
 	respond(r, nil);
 }
 
@@ -781,12 +789,14 @@ skip(char *p, char *cmd)
 static void
 respondx(Req *r, int c)
 {
-	char err[ERRMAX];
+	char err[ERRLEN];
 
 	if(c == 0)
 		respond(r, nil);
 	else{
-		rerrstr(err, sizeof err);
+		err[0] = '\0';
+		errstr(err);
+		err[ERRLEN-1] = '\0';
 		respond(r, err);
 	}
 }
@@ -796,22 +806,18 @@ respondx(Req *r, int c)
  * cycle counter as well as the pcmcia ethernet cards.
  */
 static void
-ctlwrite(Req *r)
+ctlwrite(Req *r, void *v, long *count, vlong)
 {
 	char buf[80], *p, *q;
 	int dev;
-	long count;
 
-	count = r->ifcall.count;
-	if(count > sizeof(buf)-1)
-		count = sizeof(buf)-1;
-	memmove(buf, r->ifcall.data, count);
-	buf[count] = '\0';
+	if(*count > sizeof(buf)-1)
+		*count = sizeof(buf)-1;
+	memmove(buf, v, *count);
+	buf[*count] = '\0';
 
-	if(count && buf[count-1] == '\n'){
-		--count;
-		buf[count] = '\0';
-	}
+	if(*count && buf[*count-1] == '\n')
+		buf[--*count] = '\0';
 
 	q = buf;
 	p = strchr(q, ' ');
@@ -850,9 +856,9 @@ ctlwrite(Req *r)
 /*
 	else if(strcmp(p, "off")==0)
 		respondx(r, apmsetpowerstate(&apm, dev, PowerOff));
-*/
 	else if(strcmp(p, "suspend")==0)
 		respondx(r, apmsetpowerstate(&apm, dev, PowerSuspend));
+*/
 	else
 		respond(r, "unknown verb");
 }
@@ -870,7 +876,7 @@ statusline(char *buf, int nbuf, char *name, int dev)
 }
 
 static void
-ctlread(Req *r)
+ctlread(Req *r, void *v, long *count, vlong offset)
 {
 	char buf[256+7*50], *ep, *p;
 
@@ -896,7 +902,7 @@ ctlread(Req *r)
 	p += statusline(p, ep-p, "pcmcia", DevPCMCIA|All);
 	USED(p);
 
-	readstr(r, buf);
+	readstr(offset, v, count, buf);
 	respond(r, nil);
 }
 
@@ -1035,24 +1041,21 @@ eventproc(void*)
 }
 
 static void
-fsflush(Req *r)
+fsflush(Req *r, Req*)
 {
 	sendp(cflush, r);
 }
 
 static void
-eventread(Req *r)
+eventread(Req *r, void*, long*, vlong)
 {
 	sendp(creq, r);
 }
 
 static void
-fsattach(Req *r)
+fsattach(Req *r, Fid*, char *spec, Qid *qid)
 {
-	char *spec;
 	static int first = 1;
-
-	spec = r->ifcall.aname;
 
 	if(first){
 		first = 0;
@@ -1063,14 +1066,13 @@ fsattach(Req *r)
 		respond(r, "invalid attach specifier");
 		return;
 	}
-	r->fid->qid = dfile[0].qid;
-	r->ofcall.qid = dfile[0].qid;
+	*qid = (Qid){Qroot, 0};
 	respond(r, nil);
 }
 
-Srv fs = {
+Srv fssrv = {
 .attach=	fsattach,
-.walk1=	fswalk1,
+.walk=	fswalk,
 .open=	fsopen,
 .read=	fsread,
 .write=	fswrite,
@@ -1079,18 +1081,11 @@ Srv fs = {
 };
 
 void
-usage(void)
-{
-	fprint(2, "usage: aux/apm [-ADPi] [-d /dev/apm] [-m /mnt/apm] [-s service]\n");
-	exits("usage");
-}
-
-void
 threadmain(int argc, char **argv)
 {
 	char *dev, *mtpt, *srv;
 
-	dev = nil;
+	dev = "/dev/apm";
 	mtpt = "/mnt/apm";
 	srv = nil;
 	ARGBEGIN{
@@ -1098,19 +1093,13 @@ threadmain(int argc, char **argv)
 		apmdebug = 1;
 		break;
 	case 'D':
-		chatty9p = 1;
+		lib9p_chatty = 1;
 		break;
 	case 'P':
 		nopoll = 1;
 		break;
 	case 'd':
 		dev = EARGF(usage());
-		break;
-	case 'i':
-		fs.nopipe++;
-		fs.infd = 0;
-		fs.outfd = 1;
-		mtpt = nil;
 		break;
 	case 'm':
 		mtpt = EARGF(usage());
@@ -1120,33 +1109,28 @@ threadmain(int argc, char **argv)
 		break;
 	}ARGEND
 
-	if(dev == nil){
-		if((apm.fd = open("/dev/apm", ORDWR)) < 0
-		&& (apm.fd = open("#P/apm", ORDWR)) < 0){
-			fprint(2, "open %s: %r\n", dev);
-			threadexitsall("open");
-		}
-	} else if((apm.fd = open(dev, ORDWR)) < 0){
-		fprint(2, "open %s: %r\n", dev);
+	if((apm.fd = open(dev, ORDWR)) < 0){
+		threadprint(2, "open %s: %r\n", dev);
 		threadexitsall("open");
 	}
 
 	if(apmversion(&apm) < 0){
-		fprint(2, "cannot get apm version: %r\n");
+		threadprint(2, "cannot get apm version: %r\n");
 		threadexitsall("apmversion");
 	}
 
 	if(apm.verhi < 1 || (apm.verhi==1 && apm.verlo < 2)){
-		fprint(2, "apm version %d.%d not supported\n", apm.verhi, apm.verlo);
+		threadprint(2, "apm version %d.%d not supported\n", apm.verhi, apm.verlo);
 		threadexitsall("apmversion");
 	}
 
 	if(apmgetcapabilities(&apm) < 0)
-		fprint(2, "warning: cannot read apm capabilities: %r\n");
+		threadprint(2, "warning: cannot read apm capabilities: %r\n");
 
 	apminstallationcheck(&apm);
 	apmcpuidle(&apm);
 
-	rfork(RFNOTEG);
-	threadpostmountsrv(&fs, srv, mtpt, MREPL);
+	threadnonotes();
+
+	threadpostmountsrv(&fssrv, srv, mtpt, MREPL);
 }

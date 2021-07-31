@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
 #include "imap4d.h"
 
 /*
@@ -51,19 +50,15 @@ ciisprefix(char *pre, char *s)
 char*
 readFile(int fd)
 {
-	Dir *d;
-	long length;
+	Dir d;
 	char *s;
 
-	d = dirfstat(fd);
-	if(d == nil)
+	if(dirfstat(fd, &d) < 0)
 		return nil;
-	length = d->length;
-	free(d);
-	s = binalloc(&parseBin, length + 1, 0);
-	if(s == nil || read(fd, s, length) != length)
+	s = binalloc(&parseBin, d.length + 1, 0);
+	if(s == nil || read(fd, s, d.length) != d.length)
 		return nil;
-	s[length] = '\0';
+	s[d.length] = '\0';
 	return s;
 }
 
@@ -74,15 +69,15 @@ readFile(int fd)
 int
 imapTmp(void)
 {
-	char buf[ERRMAX], name[MboxNameLen];
+	char buf[ERRLEN], name[5*NAMELEN];
 	int tries, fd;
 
 	snprint(name, sizeof(name), "/mail/box/%s/mbox.tmp.imp", username);
 	for(tries = 0; tries < LockSecs*2; tries++){
-		fd = create(name, ORDWR|ORCLOSE|OCEXEC, DMEXCL|0600);
+		fd = create(name, ORDWR|ORCLOSE|OCEXEC, CHEXCL|0600);
 		if(fd >= 0)
 			return fd;
-		errstr(buf, sizeof buf);
+		errstr(buf);
 		if(cistrstr(buf, "locked") == nil)
 			break;
 		sleep(500);
@@ -97,32 +92,19 @@ imapTmp(void)
 int
 openLocked(char *dir, char *file, int mode)
 {
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	int tries, fd;
 
 	for(tries = 0; tries < LockSecs*2; tries++){
 		fd = cdOpen(dir, file, mode);
 		if(fd >= 0)
 			return fd;
-		errstr(buf, sizeof buf);
+		errstr(buf);
 		if(cistrstr(buf, "locked") == nil)
 			break;
 		sleep(500);
 	}
 	return -1;
-}
-
-int
-fqid(int fd, Qid *qid)
-{
-	Dir *d;
-
-	d = dirfstat(fd);
-	if(d == nil)
-		return -1;
-	*qid = d->qid;
-	free(d);
-	return 0;
 }
 
 ulong

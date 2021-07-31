@@ -1,1 +1,1 @@
-#!/bin/cpu -O
+#!/bin/cpu -f -R

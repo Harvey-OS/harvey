@@ -1,7 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 Fs fs[3] =
 {

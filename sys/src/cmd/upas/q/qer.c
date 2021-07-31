@@ -23,10 +23,10 @@ usage(void)
 void
 error(char *f, char *a)
 {
-	char err[Errlen+1];
+	char err[ERRLEN+1];
 	char buf[256];
 
-	rerrstr(err, sizeof(err));
+	errstr(err);
 	snprint(buf, sizeof(buf),  f, a);
 	fprint(2, "qer: %s: %s\n", buf, err);
 	exits(buf);
@@ -35,7 +35,7 @@ error(char *f, char *a)
 void
 main(int argc, char**argv)
 {
-	Dir	*dir;
+	Dir	dir;
 	String	*f, *c;
 	int	fd;
 	char	file[1024];
@@ -93,13 +93,12 @@ main(int argc, char**argv)
 	for(i = 0; i < 10; i++){
 		int perm;
 
-		dir = dirstat(file);
-		if(dir == nil){
+		if(dirstat(file, &dir) < 0){
 			perm = isnone?0777:0775;
 			if(sysmkdir(file, perm) < 0)
 				continue;
 		} else {
-			if((dir->qid.type&QTDIR)==0)
+			if((dir.qid.path&CHDIR)==0)
 				error("not a directory %s", file);
 		}
 		perm = isnone?0664:0660;

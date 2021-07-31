@@ -1,3 +1,0 @@
-Local srv net!plan9.bell-labs.com!wiki wiki /mnt/wiki
-Local wikifs /sys/lib/wiki
-Wiki /mnt/wiki

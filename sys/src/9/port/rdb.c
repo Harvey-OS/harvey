@@ -6,6 +6,8 @@
 #include "io.h"
 #include "ureg.h"
 
+extern Queue *printq;
+
 #define DBG	if(0)scrprint
 #pragma varargck argpos scrprint 1
 static Ureg ureg;
@@ -18,7 +20,7 @@ scrprint(char *fmt, ...)
 	int n;
 
 	va_start(va, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, va)-buf;
+	n = doprint(buf, buf+sizeof buf, fmt, va)-buf;
 	va_end(va);
 	putstrn(buf, n);
 }
@@ -30,7 +32,7 @@ getline(void)
 	int i, c;
 
 	for(;;){
-		for(i=0; i<nelem(buf) && (c=uartgetc()) != '\n'; i++){
+		for(i=0; i<nelem(buf) && (c=serialgetc()) != '\n'; i++){
 			DBG("%c...", c);
 			buf[i] = c;
 		}
@@ -60,8 +62,7 @@ talkrdb(Ureg *ureg)
 	char *p;
 	char *req;
 
-	serialoq = nil;	// turn off serial console
-	kprintoq = nil;	// turn off /dev/kprint if active
+	printq = nil;	// turn off serial console
 //	scrprint("Plan 9 debugger\n");
 	iprint("Edebugger reset\n");
 	for(;;){

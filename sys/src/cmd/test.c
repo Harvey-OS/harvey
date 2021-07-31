@@ -2,10 +2,6 @@
  * POSIX standard
  *	test expression
  *	[ expression ]
- *
- * Plan 9 additions:
- *	-A file exists and is append-only
- *	-L file exists and is exclusive-use
  */
 
 #include <u.h>
@@ -18,12 +14,12 @@ char	**av;
 char	*tmp;
 
 void	synbad(char *, char *);
+int	length(char *);
 int	fsizep(char *);
 int	isdir(char *);
 int	isreg(char *);
 int	isatty(int);
 int	isint(char *, int *);
-int	hasmode(char *, ulong);
 int	tio(char *, int);
 int	e(void), e1(void), e2(void), e3(void);
 
@@ -106,12 +102,6 @@ e3(void) {
 		return(p1);
 	}
 
-	if(EQ(a, "-A"))
-		return(hasmode(nxtarg(0), DMAPPEND));
-
-	if(EQ(a, "-L"))
-		return(hasmode(nxtarg(0), DMEXCL));
-
 	if(EQ(a, "-f"))
 		return(isreg(nxtarg(0)));
 
@@ -193,58 +183,14 @@ tio(char *a, int f)
 	return access (a, f) >= 0;
 }
 
-/* copy to local memory; clear names for safety */
-int
-localstat(char *f, Dir *dir)
-{
-	Dir *d;
-
-	d = dirstat(f);
-	if(d == 0)
-		return(-1);
-	*dir = *d;
-	dir->name = 0;
-	dir->uid = 0;
-	dir->gid = 0;
-	dir->muid = 0;
-	return 0;
-}
-
-/* copy to local memory; clear names for safety */
-int
-localfstat(int f, Dir *dir)
-{
-	Dir *d;
-
-	d = dirfstat(f);
-	if(d == 0)
-		return(-1);
-	*dir = *d;
-	dir->name = 0;
-	dir->uid = 0;
-	dir->gid = 0;
-	dir->muid = 0;
-	return 0;
-}
-
-int
-hasmode(char *f, ulong m)
-{
-	Dir dir;
-
-	if(localstat(f,&dir)<0)
-		return(0);
-	return(dir.mode&m);
-}
-
 int
 isdir(char *f)
 {
 	Dir dir;
 
-	if(localstat(f,&dir)<0)
+	if(dirstat(f,&dir)<0)
 		return(0);
-	return(dir.mode&DMDIR);
+	return(dir.mode&CHDIR);
 }
 
 int
@@ -252,9 +198,9 @@ isreg(char *f)
 {
 	Dir dir;
 
-	if(localstat(f,&dir)<0)
+	if(dirstat(f,&dir)<0)
 		return(0);
-	return(!(dir.mode&DMDIR));
+	return(!(dir.mode&CHDIR));
 }
 
 int
@@ -262,9 +208,9 @@ isatty(int fd)
 {
 	Dir d1, d2;
 
-	if(localfstat(fd, &d1) < 0)
+	if(dirfstat(fd, &d1) < 0)
 		return 0;
-	if(localstat("/dev/cons", &d2) < 0)
+	if(dirstat("/dev/cons", &d2) < 0)
 		return 0;
 	return d1.type==d2.type && d1.dev==d2.dev && d1.qid.path==d2.qid.path;
 }
@@ -273,8 +219,7 @@ int
 fsizep(char *f)
 {
 	Dir dir;
-
-	if(localstat(f,&dir)<0)
+	if(dirstat(f,&dir)<0)
 		return(0);
 	return(dir.length>0);
 }
@@ -291,6 +236,14 @@ synbad(char *s1, char *s2)
 		write(2, s2, len);
 	write(2, "\n", 1);
 	exits("bad syntax");
+}
+
+int
+length(char *s)
+{
+	char *es=s;
+	while(*es++);
+	return(es-s-1);
 }
 
 int

@@ -40,22 +40,18 @@ union FPdbleword
 {
 	double	x;
 	struct {	/* big endian */
-		ulong hi;
-		ulong lo;
+		long hi;
+		long lo;
 	};
 };
 
 /* stdarg */
-typedef	char*	va_list;
-#define va_start(list, start) list =\
-	(sizeof(start) < 4?\
-		(char*)((int*)&(start)+1):\
-		(char*)(&(start)+1))
-#define va_end(list)\
-	USED(list)
+typedef char *va_list;
+#define va_start(list, start) list = (char*)(&(start)+1)
+#define va_end(list)
 #define va_arg(list, mode)\
-	((sizeof(mode) == 1)?\
-		((mode*)(list += 4))[-1]:\
-	(sizeof(mode) == 2)?\
-		((mode*)(list += 4))[-1]:\
-		((mode*)(list += sizeof(mode)))[-1])
+	(sizeof(mode)==1?\
+		((mode*)(list += 4))[-4]:\
+		sizeof(mode)==2?\
+			((mode*)(list += 4))[-2]:\
+			((mode*)(list += sizeof(mode)))[-1])

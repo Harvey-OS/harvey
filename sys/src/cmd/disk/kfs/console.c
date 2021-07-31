@@ -1,14 +1,13 @@
 #include	"all.h"
-#include	"9p1.h"
 
 void
-fcall9p1(Chan *cp, Oldfcall *in, Oldfcall *ou)
+p9fcall(Chan *cp, Fcall *in, Fcall *ou)
 {
 	int t;
 
 	rlock(&mainlock);
 	t = in->type;
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !call9p1[t]) {
+	if(t < 0 || t >= MAXSYSCALL || (t&1) || !p9call[t]) {
 		print("bad message type %d\n", t);
 		panic("");
 	}
@@ -16,12 +15,11 @@ fcall9p1(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	ou->err = 0;
 
 	rlock(&cp->reflock);
-	(*call9p1[t])(cp, in, ou);
+
+	(*p9call[t])(cp, in, ou);
+
 	runlock(&cp->reflock);
 
-	if(ou->err)
-		if(CHAT(cp))
-			print("	error: %s\n", errstring[ou->err]);
 	cons.work.count++;
 	runlock(&mainlock);
 }
@@ -29,45 +27,45 @@ fcall9p1(Chan *cp, Oldfcall *in, Oldfcall *ou)
 int
 con_session(void)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Tsession9p1;
-	fcall9p1(cons.chan, &in, &ou);
+	in.type = Tsession;
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
 con_attach(int fid, char *uid, char *arg)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Tattach9p1;
+	in.type = Tattach;
 	in.fid = fid;
 	strncpy(in.uname, uid, NAMELEN);
 	strncpy(in.aname, arg, NAMELEN);
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
 con_clone(int fid1, int fid2)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Tclone9p1;
+	in.type = Tclone;
 	in.fid = fid1;
 	in.newfid = fid2;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
 con_path(int fid, char *path)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 	char *p;
 
-	in.type = Twalk9p1;
+	in.type = Twalk;
 	in.fid = fid;
 
 loop:
@@ -81,7 +79,7 @@ loop:
 	} else
 		path = strchr(path, 0);
 	if(in.name[0]) {
-		fcall9p1(cons.chan, &in, &ou);
+		p9fcall(cons.chan, &in, &ou);
 		if(ou.err)
 			return ou.err;
 	}
@@ -91,23 +89,23 @@ loop:
 int
 con_walk(int fid, char *name)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Twalk9p1;
+	in.type = Twalk;
 	in.fid = fid;
 	strncpy(in.name, name, NAMELEN);
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
 con_stat(int fid, char *data)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Tstat9p1;
+	in.type = Tstat;
 	in.fid = fid;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	if(ou.err == 0)
 		memmove(data, ou.stat, sizeof ou.stat);
 	return ou.err;
@@ -116,38 +114,38 @@ con_stat(int fid, char *data)
 int
 con_wstat(int fid, char *data)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Twstat9p1;
+	in.type = Twstat;
 	in.fid = fid;
 	memmove(in.stat, data, sizeof in.stat);
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
 con_open(int fid, int mode)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Topen9p1;
+	in.type = Topen;
 	in.fid = fid;
 	in.mode = mode;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
 con_read(int fid, char *data, long offset, int count)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Tread9p1;
+	in.type = Tread;
 	in.fid = fid;
 	in.offset = offset;
 	in.count = count;
 	ou.data = data;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	if(ou.err)
 		return 0;
 	return ou.count;
@@ -156,14 +154,14 @@ con_read(int fid, char *data, long offset, int count)
 int
 con_write(int fid, char *data, long offset, int count)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Twrite9p1;
+	in.type = Twrite;
 	in.fid = fid;
 	in.data = data;
 	in.offset = offset;
 	in.count = count;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	if(ou.err)
 		return 0;
 	return ou.count;
@@ -172,27 +170,27 @@ con_write(int fid, char *data, long offset, int count)
 int
 con_remove(int fid)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Tremove9p1;
+	in.type = Tremove;
 	in.fid = fid;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
 int
 con_create(int fid, char *name, int uid, int gid, long perm, int mode)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 
-	in.type = Tcreate9p1;
+	in.type = Tcreate;
 	in.fid = fid;
 	strncpy(in.name, name, NAMELEN);
 	in.perm = perm;
 	in.mode = mode;
 	cons.uid = uid;			/* beyond ugly */
 	cons.gid = gid;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -252,7 +250,7 @@ out:
 }
 
 void
-f_clri(Chan *cp, Oldfcall *in, Oldfcall *ou)
+f_clri(Chan *cp, Fcall *in, Fcall *ou)
 {
 	File *f;
 
@@ -277,15 +275,15 @@ out:
 int
 con_clri(int fid)
 {
-	Oldfcall in, ou;
+	Fcall in, ou;
 	Chan *cp;
 
-	in.type = Tremove9p1;
+	in.type = Tremove;
 	in.fid = fid;
 	cp = cons.chan;
 
 	rlock(&mainlock);
-	ou.type = Tremove9p1+1;
+	ou.type = Tremove+1;
 	ou.err = 0;
 
 	rlock(&cp->reflock);
@@ -297,75 +295,4 @@ con_clri(int fid)
 	cons.work.count++;
 	runlock(&mainlock);
 	return ou.err;
-}
-
-int
-con_swap(int fid1, int fid2)
-{
-	int err;
-	Iobuf *p1, *p2;
-	File *f1, *f2;
-	Dentry *d1, *d2;
-	Dentry dt1, dt2;
-	Chan *cp;
-
-	cp = cons.chan;
-	err = 0;
-	rlock(&mainlock);
-	rlock(&cp->reflock);
-
-	f2 = nil;
-	p1 = p2 = nil;
-	f1 = filep(cp, fid1, 0);
-	if(!f1){
-		err = Efid;
-		goto out;
-	}
-	p1 = getbuf(f1->fs->dev, f1->addr, Bread|Bmod);
-	d1 = getdir(p1, f1->slot);
-	if(!d1 || !(d1->mode&DALLOC)){
-		err = Ealloc;
-		goto out;
-	}
-
-	f2 = filep(cp, fid2, 0);
-	if(!f2){
-		err = Efid;
-		goto out;
-	}
-	if(memcmp(&f1->fs->dev, &f2->fs->dev, 4)==0
-	&& f2->addr == f1->addr)
-		p2 = p1;
-	else
-		p2 = getbuf(f2->fs->dev, f2->addr, Bread|Bmod);
-	d2 = getdir(p2, f2->slot);
-	if(!d2 || !(d2->mode&DALLOC)){
-		err = Ealloc;
-		goto out;
-	}
-
-	dt1 = *d1;
-	dt2 = *d2;
-	*d1 = dt2;
-	*d2 = dt1;
-	memmove(d1->name, dt1.name, NAMELEN);
-	memmove(d2->name, dt2.name, NAMELEN);
-
-	mkqid(&f1->qid, d1, 1);
-	mkqid(&f2->qid, d2, 1);
-out:
-	if(f1)
-		qunlock(f1);
-	if(f2)
-		qunlock(f2);
-	if(p1)
-		putbuf(p1);
-	if(p2 && p2!=p1)
-		putbuf(p2);
-
-	runlock(&cp->reflock);
-	cons.work.count++;
-	runlock(&mainlock);
-
-	return err;
 }

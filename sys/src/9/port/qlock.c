@@ -19,13 +19,13 @@ qlock(QLock *q)
 	Proc *p, *mp;
 
 	lock(&q->use);
-	rwstats.qlock++;
+rwstats.qlock++;
 	if(!q->locked) {
 		q->locked = 1;
 		unlock(&q->use);
 		return;
 	}
-	rwstats.qlockq++;
+rwstats.qlockq++;
 	p = q->tail;
 	mp = up;
 	if(mp == nil)
@@ -39,8 +39,6 @@ qlock(QLock *q)
 	mp->state = Queueing;
 	up->qpc = getcallerpc(&q);
 	unlock(&q->use);
-	if (isedf(mp))
-		edfblock(mp);
 	sched();
 }
 
@@ -83,7 +81,7 @@ rlock(RWlock *q)
 	Proc *p, *mp;
 
 	lock(&q->use);
-	rwstats.rlock++;
+rwstats.rlock++;
 	if(q->writer == 0 && q->head == nil){
 		/* no writer, go for it */
 		q->readers++;
@@ -91,7 +89,7 @@ rlock(RWlock *q)
 		return;
 	}
 
-	rwstats.rlockq++;
+rwstats.rlockq++;
 	p = q->tail;
 	mp = up;
 	if(mp == nil)
@@ -104,8 +102,6 @@ rlock(RWlock *q)
 	mp->qnext = 0;
 	mp->state = QueueingR;
 	unlock(&q->use);
-	if (isedf(mp))
-		edfblock(mp);
 	sched();
 }
 
@@ -138,7 +134,7 @@ wlock(RWlock *q)
 	Proc *p, *mp;
 
 	lock(&q->use);
-	rwstats.wlock++;
+rwstats.wlock++;
 	if(q->readers == 0 && q->writer == 0){
 		/* noone waiting, go for it */
 		q->wpc = getcallerpc(&q);
@@ -149,7 +145,7 @@ wlock(RWlock *q)
 	}
 
 	/* wait */
-	rwstats.wlockq++;
+rwstats.wlockq++;
 	p = q->tail;
 	mp = up;
 	if(mp == nil)
@@ -162,8 +158,6 @@ wlock(RWlock *q)
 	mp->qnext = 0;
 	mp->state = QueueingW;
 	unlock(&q->use);
-	if (isedf(mp))
-		edfblock(mp);
 	sched();
 }
 
@@ -205,12 +199,12 @@ wunlock(RWlock *q)
 	unlock(&q->use);
 }
 
-/* same as rlock but punts if there are any writers waiting */
+/* same as rlock but punts if there are any readers waiting */
 int
 canrlock(RWlock *q)
 {
 	lock(&q->use);
-	rwstats.rlock++;
+rwstats.rlock++;
 	if(q->writer == 0 && q->head == nil){
 		/* no writer, go for it */
 		q->readers++;

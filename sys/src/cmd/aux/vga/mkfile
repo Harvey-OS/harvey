@@ -26,7 +26,6 @@ OFILES=\
 	et4000.$O\
 	et4000hwgc.$O\
 	hiqvideo.$O\
-	i81x.$O\
 	ibm8514.$O\
 	icd2061a.$O\
 	ics2494.$O\
@@ -38,7 +37,6 @@ OFILES=\
 	main.$O\
 	mga2164w.$O\
 	neomagic.$O\
-	nvidia.$O\
 	palette.$O\
 	pci.$O\
 	rgb524.$O\
@@ -62,15 +60,13 @@ OFILES=\
 	vision864.$O\
 	vision964.$O\
 	vision968.$O\
-	vmware.$O\
 	w30c516.$O\
-	mga4xx.$O\
 
-HFILES=pci.h vga.h
+HFILES=vga.h
 
 </sys/src/cmd/mkone
 
-nvidia.$O:	riva_tbl.h
+pci.$O:	pci.h
 
 adjust:	adjust.$O error$DIST.$O io.$O vga.$O palette.$O
 	$LD -o $target $prereq

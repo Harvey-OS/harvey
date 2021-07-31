@@ -1,5 +1,7 @@
 #include "gc.h"
 
+#define	COL1	32
+
 void	addsplits(void);
 Reg	zreg;
 
@@ -269,7 +271,7 @@ loop2:
 					r->refbehind.b[z] | r->calbehind.b[z] |
 					r->use1.b[z] | r->use2.b[z];
 			if(bany(&bit)) {
-				print("\t");
+				print("%|", COL1);
 				if(bany(&r->use1))
 					print(" u1=%B", r->use1);
 				if(bany(&r->use2))
@@ -525,7 +527,7 @@ addmove(Reg *r, int bn, int rn, int f)
 			p1->as = AMOVHU;
 	}
 	if(debug['R'])
-		print("%P\t.a%P\n", p, p1);
+		print("%P%|.a%P\n", p, COL1, p1);
 }
 
 Bits
@@ -894,8 +896,8 @@ paint1(Reg *r, int bn)
 	if(LOAD(r) & ~(r->set.b[z] & ~(r->use1.b[z]|r->use2.b[z])) & bb) {
 		change -= CLOAD * r->loop;
 		if(debug['R'] && debug['v'])
-			print("%ld%P\tld %B $%d\n", r->loop,
-				r->prog, blsh(bn), change);
+			print("%ld%P%|ld %B $%d\n", r->loop,
+				r->prog, COL1, blsh(bn), change);
 	}
 	for(;;) {
 		r->act.b[z] |= bb;
@@ -904,22 +906,22 @@ paint1(Reg *r, int bn)
 		if(r->use1.b[z] & bb) {
 			change += CREF * r->loop;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tu1 %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P%|u1 %B $%d\n", r->loop,
+					p, COL1, blsh(bn), change);
 		}
 
 		if((r->use2.b[z]|r->set.b[z]) & bb) {
 			change += CREF * r->loop;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tu2 %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P%|u2 %B $%d\n", r->loop,
+					p, COL1, blsh(bn), change);
 		}
 
 		if(STORE(r) & r->regdiff.b[z] & bb) {
 			change -= CLOAD * r->loop;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tst %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P%|st %B $%d\n", r->loop,
+					p, COL1, blsh(bn), change);
 		}
 
 		if(r->refbehind.b[z] & bb)
@@ -1030,14 +1032,14 @@ paint3(Reg *r, int bn, long rb, int rn)
 				print("%P", p);
 			addreg(&p->from, rn);
 			if(debug['R'])
-				print("\t.c%P\n", p);
+				print("%|.c%P\n", COL1, p);
 		}
 		if((r->use2.b[z]|r->set.b[z]) & bb) {
 			if(debug['R'])
 				print("%P", p);
 			addreg(&p->to, rn);
 			if(debug['R'])
-				print("\t.c%P\n", p);
+				print("%|.c%P\n", COL1, p);
 		}
 
 		if(STORE(r) & r->regdiff.b[z] & bb)

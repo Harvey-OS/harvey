@@ -1,0 +1,524 @@
+sizeof_1_ = 8;
+aggr _1_
+{
+	'D' 0 llength;
+	'D' 4 hlength;
+};
+
+defn
+_1_(addr) {
+	complex _1_ addr;
+	print("	llength	", addr.llength, "\n");
+	print("	hlength	", addr.hlength, "\n");
+};
+
+sizeof_2_ = 8;
+aggr _2_
+{
+	'V' 0 length;
+	{
+	'D' 0 llength;
+	'D' 4 hlength;
+	};
+};
+
+defn
+_2_(addr) {
+	complex _2_ addr;
+	print("	length	", addr.length, "\n");
+	print("_1_ {\n");
+		_1_(addr+0);
+	print("}\n");
+};
+
+UTFmax = 3;
+Runesync = 128;
+Runeself = 128;
+Runeerror = 128;
+sizeofFconv = 24;
+aggr Fconv
+{
+	'X' 0 out;
+	'X' 4 eout;
+	'D' 8 f1;
+	'D' 12 f2;
+	'D' 16 f3;
+	'D' 20 chr;
+};
+
+defn
+Fconv(addr) {
+	complex Fconv addr;
+	print("	out	", addr.out\X, "\n");
+	print("	eout	", addr.eout\X, "\n");
+	print("	f1	", addr.f1, "\n");
+	print("	f2	", addr.f2, "\n");
+	print("	f3	", addr.f3, "\n");
+	print("	chr	", addr.chr, "\n");
+};
+
+sizeofTm = 40;
+aggr Tm
+{
+	'D' 0 sec;
+	'D' 4 min;
+	'D' 8 hour;
+	'D' 12 mday;
+	'D' 16 mon;
+	'D' 20 year;
+	'D' 24 wday;
+	'D' 28 yday;
+	'a' 32 zone;
+	'D' 36 tzoff;
+};
+
+defn
+Tm(addr) {
+	complex Tm addr;
+	print("	sec	", addr.sec, "\n");
+	print("	min	", addr.min, "\n");
+	print("	hour	", addr.hour, "\n");
+	print("	mday	", addr.mday, "\n");
+	print("	mon	", addr.mon, "\n");
+	print("	year	", addr.year, "\n");
+	print("	wday	", addr.wday, "\n");
+	print("	yday	", addr.yday, "\n");
+	print("	zone	", addr.zone, "\n");
+	print("	tzoff	", addr.tzoff, "\n");
+};
+
+PNPROC = 1;
+PNGROUP = 2;
+sizeofLock = 4;
+aggr Lock
+{
+	'D' 0 val;
+};
+
+defn
+Lock(addr) {
+	complex Lock addr;
+	print("	val	", addr.val, "\n");
+};
+
+sizeofQLp = 12;
+aggr QLp
+{
+	'D' 0 inuse;
+	'A' QLp 4 next;
+	'C' 8 state;
+};
+
+defn
+QLp(addr) {
+	complex QLp addr;
+	print("	inuse	", addr.inuse, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	state	", addr.state, "\n");
+};
+
+sizeofQLock = 16;
+aggr QLock
+{
+	Lock 0 lock;
+	'D' 4 locked;
+	'A' QLp 8 $head;
+	'A' QLp 12 $tail;
+};
+
+defn
+QLock(addr) {
+	complex QLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	locked	", addr.locked, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofRWLock = 20;
+aggr RWLock
+{
+	Lock 0 lock;
+	'D' 4 readers;
+	'D' 8 writer;
+	'A' QLp 12 $head;
+	'A' QLp 16 $tail;
+};
+
+defn
+RWLock(addr) {
+	complex RWLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	readers	", addr.readers, "\n");
+	print("	writer	", addr.writer, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+RFNAMEG = 1;
+RFENVG = 2;
+RFFDG = 4;
+RFNOTEG = 8;
+RFPROC = 16;
+RFMEM = 32;
+RFNOWAIT = 64;
+RFCNAMEG = 1024;
+RFCENVG = 2048;
+RFCFDG = 4096;
+RFREND = 8192;
+sizeofQid = 8;
+aggr Qid
+{
+	'U' 0 path;
+	'U' 4 vers;
+};
+
+defn
+Qid(addr) {
+	complex Qid addr;
+	print("	path	", addr.path, "\n");
+	print("	vers	", addr.vers, "\n");
+};
+
+sizeofDir = 116;
+aggr Dir
+{
+	'a' 0 name;
+	'a' 28 uid;
+	'a' 56 gid;
+	Qid 84 qid;
+	'U' 92 mode;
+	'D' 96 atime;
+	'D' 100 mtime;
+	{
+	'V' 104 length;
+	{
+	'D' 104 llength;
+	'D' 108 hlength;
+	};
+	};
+	'u' 112 type;
+	'u' 114 dev;
+};
+
+defn
+Dir(addr) {
+	complex Dir addr;
+	print("	name	", addr.name, "\n");
+	print("	uid	", addr.uid, "\n");
+	print("	gid	", addr.gid, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	mode	", addr.mode, "\n");
+	print("	atime	", addr.atime, "\n");
+	print("	mtime	", addr.mtime, "\n");
+	print("_2_ {\n");
+		_2_(addr+104);
+	print("}\n");
+	print("	type	", addr.type, "\n");
+	print("	dev	", addr.dev, "\n");
+};
+
+sizeofWaitmsg = 112;
+aggr Waitmsg
+{
+	'a' 0 pid;
+	'a' 12 time;
+	'a' 48 msg;
+};
+
+defn
+Waitmsg(addr) {
+	complex Waitmsg addr;
+	print("	pid	", addr.pid, "\n");
+	print("	time	", addr.time, "\n");
+	print("	msg	", addr.msg, "\n");
+};
+
+sizeofPool = 88;
+aggr Pool
+{
+	'X' 0 name;
+	'U' 4 maxsize;
+	'U' 8 cursize;
+	'U' 12 curfree;
+	'U' 16 curalloc;
+	'U' 20 minarena;
+	'U' 24 quantum;
+	'U' 28 minblock;
+	'X' 32 freeroot;
+	'X' 36 arenalist;
+	'X' 40 alloc;
+	'X' 44 merge;
+	'X' 48 move;
+	'D' 52 flags;
+	'D' 56 nfree;
+	'D' 60 lastcompact;
+	'X' 64 lock;
+	'X' 68 unlock;
+	'X' 72 print;
+	'X' 76 panic;
+	'X' 80 logstack;
+	'X' 84 private;
+};
+
+defn
+Pool(addr) {
+	complex Pool addr;
+	print("	name	", addr.name\X, "\n");
+	print("	maxsize	", addr.maxsize, "\n");
+	print("	cursize	", addr.cursize, "\n");
+	print("	curfree	", addr.curfree, "\n");
+	print("	curalloc	", addr.curalloc, "\n");
+	print("	minarena	", addr.minarena, "\n");
+	print("	quantum	", addr.quantum, "\n");
+	print("	minblock	", addr.minblock, "\n");
+	print("	freeroot	", addr.freeroot\X, "\n");
+	print("	arenalist	", addr.arenalist\X, "\n");
+	print("	alloc	", addr.alloc\X, "\n");
+	print("	merge	", addr.merge\X, "\n");
+	print("	move	", addr.move\X, "\n");
+	print("	flags	", addr.flags, "\n");
+	print("	nfree	", addr.nfree, "\n");
+	print("	lastcompact	", addr.lastcompact, "\n");
+	print("	lock	", addr.lock\X, "\n");
+	print("	unlock	", addr.unlock\X, "\n");
+	print("	print	", addr.print\X, "\n");
+	print("	panic	", addr.panic\X, "\n");
+	print("	logstack	", addr.logstack\X, "\n");
+	print("	private	", addr.private\X, "\n");
+};
+
+complex Pool mainmem;
+complex Pool imagmem;
+POOL_ANTAGONISM = 1;
+POOL_PARANOIA = 2;
+POOL_VERBOSITY = 4;
+POOL_DEBUGGING = 8;
+POOL_LOGGING = 16;
+POOL_TOLERANCE = 32;
+sizeofBhdr = 8;
+aggr Bhdr
+{
+	'U' 0 magic;
+	'U' 4 size;
+};
+
+defn
+Bhdr(addr) {
+	complex Bhdr addr;
+	print("	magic	", addr.magic, "\n");
+	print("	size	", addr.size, "\n");
+};
+
+NOT_MAGIC = 3735943697;
+TAIL_MAGIC0 = 190;
+TAIL_MAGIC1 = 239;
+sizeofBtail = 8;
+aggr Btail
+{
+	'b' 0 magic0;
+	'a' 1 datasize;
+	'b' 3 magic1;
+	'U' 4 size;
+};
+
+defn
+Btail(addr) {
+	complex Btail addr;
+	print("	magic0	", addr.magic0, "\n");
+	print("	datasize	", addr.datasize, "\n");
+	print("	magic1	", addr.magic1, "\n");
+	print("	size	", addr.size, "\n");
+};
+
+sizeofFree = 24;
+aggr Free
+{
+	{
+	'U' 0 magic;
+	'U' 4 size;
+	};
+	'A' Free 8 left;
+	'A' Free 12 right;
+	'A' Free 16 next;
+	'A' Free 20 prev;
+};
+
+defn
+Free(addr) {
+	complex Free addr;
+	print("Bhdr {\n");
+		Bhdr(addr+0);
+	print("}\n");
+	print("	left	", addr.left\X, "\n");
+	print("	right	", addr.right\X, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	prev	", addr.prev\X, "\n");
+};
+
+FREE_MAGIC = 3126770193;
+sizeofAlloc = 8;
+aggr Alloc
+{
+	{
+	'U' 0 magic;
+	'U' 4 size;
+	};
+};
+
+defn
+Alloc(addr) {
+	complex Alloc addr;
+	print("Bhdr {\n");
+		Bhdr(addr+0);
+	print("}\n");
+};
+
+KEMPT_MAGIC = 168889353;
+UNKEMPT_MAGIC = 3400535327;
+sizeofArena = 24;
+aggr Arena
+{
+	{
+	'U' 0 magic;
+	'U' 4 size;
+	};
+	'A' Arena 8 aup;
+	'A' Arena 12 down;
+	'U' 16 asize;
+	'U' 20 pad;
+};
+
+defn
+Arena(addr) {
+	complex Arena addr;
+	print("Bhdr {\n");
+		Bhdr(addr+0);
+	print("}\n");
+	print("	aup	", addr.aup\X, "\n");
+	print("	down	", addr.down\X, "\n");
+	print("	asize	", addr.asize, "\n");
+	print("	pad	", addr.pad, "\n");
+};
+
+ARENA_MAGIC = 3231835599;
+ARENATAIL_MAGIC = 3965590029;
+MINBLOCKSIZE = 32;
+complex Free ltreewalk:t;
+complex Free treelookup:t;
+complex Free treeinsert:tree;
+complex Free treeinsert:node;
+complex Free treeinsert:loc;
+complex Free treeinsert:repl;
+complex Free treedelete:tree;
+complex Free treedelete:node;
+complex Free treedelete:loc;
+complex Free treedelete:lsucc;
+complex Free treedelete:succ;
+complex Free treelookupgt:t;
+complex Free treelookupgt:lastgood;
+complex Free listadd:list;
+complex Free listadd:node;
+complex Free listdelete:list;
+complex Free listdelete:node;
+complex Pool pooladd:p;
+complex Alloc pooladd:anode;
+complex Free pooladd:lst;
+complex Free pooladd:olst;
+complex Free pooladd:node;
+complex Free pooladd:parent;
+complex Pool pooldel:p;
+complex Free pooldel:node;
+complex Free pooldel:lst;
+complex Free pooldel:olst;
+complex Free pooldel:parent;
+complex Pool dsize2bsize:p;
+complex Pool bsize2asize:p;
+complex Pool blockmerge:pool;
+complex Bhdr blockmerge:a;
+complex Bhdr blockmerge:b;
+complex Btail blockmerge:t;
+complex Bhdr blocksetsize:b;
+complex Btail blocksetsize:t;
+complex Alloc getdsize:b;
+complex Btail getdsize:t;
+complex Pool blocksetdsize:p;
+complex Alloc blocksetdsize:b;
+complex Btail blocksetdsize:t;
+complex Pool kemb:p;
+complex Alloc kemb:b;
+complex Alloc kemb:frag;
+complex Arena arenasetsize:a;
+complex Bhdr arenasetsize:atail;
+complex Pool poolnewarena:p;
+complex Arena poolnewarena:a;
+complex Arena poolnewarena:ap;
+complex Arena poolnewarena:lastap;
+complex Alloc poolnewarena:b;
+complex Pool blockgrow:p;
+complex Bhdr blockgrow:b;
+complex Alloc blockgrow:a;
+complex Bhdr blockgrow:bnxt;
+complex Alloc blockgrow:a;
+complex Pool arenamerge:p;
+complex Arena arenamerge:bot;
+complex Arena arenamerge:top;
+complex Bhdr arenamerge:bbot;
+complex Bhdr arenamerge:btop;
+complex Btail arenamerge:t;
+complex Pool blockcheck:p;
+complex Bhdr blockcheck:b;
+complex Alloc blockcheck:a;
+complex Btail blockcheck:t;
+FLOATING_MAGIC = 3419130827;
+complex Pool arenacompact:p;
+complex Arena arenacompact:a;
+complex Bhdr arenacompact:b;
+complex Bhdr arenacompact:wb;
+complex Bhdr arenacompact:eb;
+complex Bhdr arenacompact:nxt;
+complex Pool poolcompactl:pool;
+complex Arena poolcompactl:a;
+complex Pool B2D:p;
+complex Alloc B2D:a;
+complex Pool D2B:p;
+complex Alloc D2B:a;
+complex Pool poolallocl:p;
+complex Free poolallocl:fb;
+complex Alloc poolallocl:ab;
+complex Pool poolreallocl:p;
+complex Alloc poolreallocl:a;
+complex Bhdr poolreallocl:left;
+complex Bhdr poolreallocl:right;
+complex Bhdr poolreallocl:newb;
+complex Btail poolreallocl:t;
+complex Pool poolfreel:p;
+complex Alloc poolfreel:ab;
+complex Bhdr poolfreel:back;
+complex Bhdr poolfreel:fwd;
+complex Pool poolalloc:p;
+complex Pool poolcompact:p;
+complex Pool poolrealloc:p;
+complex Pool poolfree:p;
+complex Pool poolmsize:p;
+complex Alloc poolmsize:b;
+complex Pool poolcheckarena:p;
+complex Arena poolcheckarena:a;
+complex Bhdr poolcheckarena:b;
+complex Bhdr poolcheckarena:atail;
+complex Pool poolcheckl:p;
+complex Arena poolcheckl:a;
+complex Pool poolcheck:p;
+complex Pool poolblockcheck:p;
+complex Pool pooldump:p;
+complex Arena pooldump:a;
+complex Pool pooldumparena:p;
+complex Arena pooldumparena:a;
+complex Bhdr pooldumparena:b;
+complex Pool poolname:p;

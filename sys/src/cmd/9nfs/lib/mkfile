@@ -1,0 +1,29 @@
+</$objtype/mkfile
+CFLAGS=-Fw
+
+LIB=lib.a$O
+
+OFILES=	9p.$O\
+	auth.$O\
+	chat.$O\
+	listalloc.$O\
+	nfs.$O\
+	nfsmount.$O\
+	rpc.$O\
+	string.$O\
+	strparse.$O\
+	system.$O\
+	unixnames.$O\
+	xfile.$O\
+
+HFILES=../rpc.h\
+	../nfs.h\
+	../dat.h\
+	../fns.h\
+
+</sys/src/cmd/mklib
+CFLAGS=$CFLAGS -I..
+
+nuke:V:
+	mk clean
+	rm -f lib.a[$OS]

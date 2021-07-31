@@ -99,7 +99,7 @@ waitup(int echildok, int *retstatus)
 	Symtab *s;
 	Word *w;
 	Job *j;
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	Bufblock *bp;
 	int uarg = 0;
 	int done;

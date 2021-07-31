@@ -3,7 +3,7 @@
 LIB=/$objtype/lib/libmp.a
 ALLOFILES=\
 	mpaux.$O\
-	mpfmt.$O\
+	mpconv.$O\
 	strtomp.$O\
 	mptobe.$O\
 	mptole.$O\

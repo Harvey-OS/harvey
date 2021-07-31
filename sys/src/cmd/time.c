@@ -10,10 +10,10 @@ void
 main(int argc, char *argv[])
 {
 	int i;
-	Waitmsg *w;
+	Waitmsg w;
 	long l;
 	char *p;
-	char err[ERRMAX];
+	char err[ERRLEN];
 
 	if(argc <= 1){
 		fprint(2, "usage: time command\n");
@@ -36,18 +36,18 @@ main(int argc, char *argv[])
 	notify(notifyf);
 
     loop:
-	w = wait();
-	if(w == nil){
-		errstr(err, sizeof err);
+	i = wait(&w);
+	if(i == -1){
+		errstr(err);
 		if(strcmp(err, "interrupted") == 0)
 			goto loop;
 		error("wait");
 	}
-	l = w->time[0];
+	l = atoi(&w.time[0*12]);
 	add("%ld.%.2ldu", l/1000, (l%1000)/10);
-	l = w->time[1];
+	l = atoi(&w.time[1*12]);
 	add("%ld.%.2lds", l/1000, (l%1000)/10);
-	l = w->time[2];
+	l = atoi(&w.time[2*12]);
 	add("%ld.%.2ldr", l/1000, (l%1000)/10);
 	add("\t");
 	for(i=1; i<argc; i++){
@@ -57,16 +57,16 @@ main(int argc, char *argv[])
 			break;
 		}
 	}
-	if(w->msg[0]){
-		p = utfrune(w->msg, ':');
+	if(w.msg[0]){
+		p = utfrune(w.msg, ':');
 		if(p && p[1])
 			p++;
 		else
-			p = w->msg;
+			p = w.msg;
 		add(" # status=%s", p);
 	}
 	fprint(2, "%s\n", output);
-	exits(w->msg);
+	exits(w.msg);
 }
 
 void
@@ -78,7 +78,7 @@ add(char *a, ...)
 	if(beenhere)
 		strcat(output, " ");
 	va_start(arg, a);
-	vseprint(output+strlen(output), output+sizeof(output), a, arg);
+	doprint(output+strlen(output), output+sizeof(output), a, arg);
 	va_end(arg);
 	beenhere++;
 }
@@ -86,8 +86,10 @@ add(char *a, ...)
 void
 error(char *s)
 {
+	char buf[ERRLEN];
 
-	fprint(2, "time: %s: %r\n", s);
+	errstr(buf);
+	fprint(2, "time: %s: %s\n", s, buf);
 	exits(s);
 }
 

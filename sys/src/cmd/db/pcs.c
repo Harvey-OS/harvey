@@ -9,6 +9,8 @@
 
 char	NOPCS[] = "no process";
 
+extern	char	lastc;
+
 /* sub process control */
 
 void

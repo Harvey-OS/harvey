@@ -14,7 +14,7 @@ BOOL bpin;
 int pid;
 int nnote;
 int ending;
-char note[NNOTE][ERRMAX];
+char note[NNOTE][ERRLEN];
 
 /* service routines for sub process control */
 

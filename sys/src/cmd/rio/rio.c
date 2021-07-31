@@ -6,6 +6,7 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
+#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -34,7 +35,6 @@ void		resized(void);
 Channel	*exitchan;	/* chan(int) */
 Channel	*winclosechan; /* chan(Window*); */
 Rectangle	viewr;
-int		threadrforkflag = 0;	/* should be RFENVG but that hides rio from plumber */
 
 void	mousethread(void*);
 void	keyboardthread(void*);
@@ -168,10 +168,9 @@ threadmain(int argc, char *argv[])
 		maxtab = strtol(s, nil, 0);
 	if(maxtab == 0)
 		maxtab = 4;
-	free(s);
 	/* check font before barging ahead */
 	if(access(fontname, 0) < 0){
-		fprint(2, "rio: can't access %s: %r\n", fontname);
+		threadprint(2, "rio: can't access %s: %r\n", fontname);
 		exits("font open");
 	}
 	putenv("font", fontname);
@@ -179,7 +178,7 @@ threadmain(int argc, char *argv[])
 	snarffd = open("/dev/snarf", OREAD|OCEXEC);
 
 	if(geninitdraw(nil, derror, nil, "rio", nil, Refnone) < 0){
-		fprint(2, "rio: can't open display: %r\n");
+		threadprint(2, "rio: can't open display: %r\n");
 		exits("display open");
 	}
 	iconinit();
@@ -221,11 +220,11 @@ threadmain(int argc, char *argv[])
 			r.max.x = r.min.x+300;
 			r.max.y = r.min.y+80;
 			i = allocwindow(wscreen, r, Refbackup, DWhite);
-			wkeyboard = new(i, 0, 0, nil, "/bin/rc", kbdargv);
+			wkeyboard = new(i, 0, nil, "/bin/rc", kbdargv);
 			if(wkeyboard == nil)
 				error("can't create keyboard window");
 		}
-//		notify(shutdown);
+		notify(shutdown);/**/
 		recv(exitchan, nil);
 	}
 	killprocs();
@@ -251,7 +250,7 @@ putsnarf(void)
 		n = nsnarf-i;
 		if(n >= 256)
 			n = 256;
-		if(fprint(fd, "%.*S", n, snarf+i) < 0)
+		if(threadprint(fd, "%.*S", n, snarf+i) < 0)
 			break;
 	}
 	close(fd);
@@ -276,6 +275,7 @@ getsnarf(void)
 	}
 	if(i > 0){
 		snarf = runerealloc(snarf, i+1);
+		snarfversion++;
 		cvttorunes(sn, i, snarf, &nb, &nsnarf, &nulls);
 		free(sn);
 	}
@@ -289,7 +289,7 @@ initcmd(void *arg)
 	cmd = arg;
 	rfork(RFENVG|RFFDG|RFNOTEG|RFNAMEG);
 	procexecl(nil, "/bin/rc", "rc", "-c", cmd, 0);
-	fprint(2, "rio: exec failed: %r\n");
+	threadprint(2, "rio: exec failed: %r\n");
 	exits("exec");
 }
 
@@ -299,11 +299,12 @@ char *oknotes[] =
 	"hangup",
 	"kill",
 	"exit",
+	"kilall",	/* used internally by thread library during shutdown */
 	nil
 };
 
 void
-shutdown(void *, char *msg)
+shutdown1(void *, char *msg)
 {
 	int i;
 
@@ -311,9 +312,15 @@ shutdown(void *, char *msg)
 	for(i=0; oknotes[i]; i++)
 		if(strncmp(oknotes[i], msg, strlen(oknotes[i])) == 0)
 			threadexitsall(msg);
-	fprint(2, "rio %d: abort: %s\n", getpid(), msg);
+	threadprint(2, "rio %d: abort: %s\n", getpid(), msg);
 	abort();
 	exits(msg);
+}
+
+void
+shutdown(void *a, char *msg)	/* extra call to get stack trace on 386 */
+{
+	shutdown1(a, msg);
 }
 
 void
@@ -321,8 +328,11 @@ killprocs(void)
 {
 	int i;
 
+	filsysclose(filsys);
 	for(i=0; i<nwindow; i++)
 		postnote(PNGROUP, window[i]->pid, "hangup");
+	remove(srvpipe);
+	remove(srvwctl);
 }
 
 void
@@ -432,7 +442,7 @@ deletetimeoutproc(void *v)
 {
 	char *s;
 
-	s = v;
+	s = estrdup(v);
 	sleep(750);	/* remove window from screen after 3/4 of a second */
 	sendp(deletechan, s);
 }
@@ -561,9 +571,9 @@ mousethread(void*)
 			if(mouse->buttons){
 				/* w->topped will be zero if window has been bottomed */
 				if(w==nil || (w==winput && w->topped>0)){
-					if(mouse->buttons & 1){
+					if(mouse->buttons & 1)
 						;
-					}else if(mouse->buttons & 2){
+					else if(mouse->buttons & 2){
 						if(winput && !winput->mouseopen)
 							button2menu(winput);
 					}else if(mouse->buttons & 4)
@@ -625,7 +635,7 @@ resized(void)
 				break;
 			}
 		if(ishidden)
-			im = allocimage(display, r, screen->chan, 0, DWhite);
+			im = allocimage(display, r, display->chan, 0, DWhite);
 		else
 			im = allocwindow(wscreen, r, Refbackup, DWhite);
 		if(im)
@@ -649,7 +659,7 @@ button3menu(void)
 	case -1:
 		break;
 	case New:
-		new(sweep(), 0, 0, nil, "/bin/rc", nil);
+		new(sweep(), 0, nil, "/bin/rc", nil);
 		break;
 	case Reshape:
 		resize();
@@ -1056,7 +1066,7 @@ unhide(int h)
 }
 
 Window*
-new(Image *i, int hideit, int pid, char *dir, char *cmd, char **argv)
+new(Image *i, int pid, char *dir, char *cmd, char **argv)
 {
 	Window *w;
 	Mousectl *mc;
@@ -1079,13 +1089,8 @@ new(Image *i, int hideit, int pid, char *dir, char *cmd, char **argv)
 	free(mc);	/* wmk copies *mc */
 	window = erealloc(window, ++nwindow*sizeof(Window*));
 	window[nwindow-1] = w;
-	if(hideit){
-		hidden[nhidden++] = w;
-		w->screenr = ZR;
-	}
 	threadcreate(winctl, w, 8192);
-	if(!hideit)
-		wcurrent(w);
+	wcurrent(w);
 	flushimage(display, 1);
 	if(pid == 0){
 		arg = emalloc(5*sizeof(void*));
@@ -1107,7 +1112,7 @@ new(Image *i, int hideit, int pid, char *dir, char *cmd, char **argv)
 		chanfree(cpid);
 		return nil;
 	}
-	wsetpid(w, pid, 1);
+	wsetpid(w, pid);
 	wsetname(w);
 	chanfree(cpid);
 	return w;

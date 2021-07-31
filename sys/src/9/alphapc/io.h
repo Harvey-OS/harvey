@@ -1,4 +1,10 @@
 enum {
+	Uart0		= 0x3F8,
+	Uart1		= 0x2F8,
+	  UartFREQ	= 1843200,
+};
+
+enum {
 	IrqCLOCK	= 0,
 	IrqKBD		= 1,
 	IrqUART1	= 3,
@@ -21,7 +27,7 @@ enum {
 typedef struct Vctl {
 	Vctl*	next;			/* handlers on this vector */
 
-	char	name[KNAMELEN];	/* of driver */
+	char	name[NAMELEN];	/* of driver */
 	int	isintr;			/* interrupt or fault/trap */
 	int	irq;
 	int	tbdf;

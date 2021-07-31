@@ -22,19 +22,6 @@ mkdirec(Direc *direc, XDir *d)
 	direc->symlink = d->symlink;
 }
 
-static int
-strecmp(char *a, char *ea, char *b)
-{
-	int r;
-
-	if((r = strncmp(a, b, ea-a)) != 0)
-		return r;
-
-	if(b[ea-a] == '\0')
-		return 0;
-	return 1;
-}
-
 /*
  * Binary search a list of directories for the
  * entry with name name.
@@ -42,12 +29,11 @@ strecmp(char *a, char *ea, char *b)
  * where a new such entry would go.
  */
 static Direc*
-dbsearch(char *name, int nname, Direc *d, int n)
+dbsearch(char *name, Direc *d, int n)
 {
 	int i;
-
 	while(n > 0) {
-		i = strecmp(name, name+nname, d[n/2].name);
+		i = strcmp(name, d[n/2].name);
 		if(i < 0)
 			n = n/2;
 		else if(i > 0) {
@@ -65,17 +51,22 @@ dbsearch(char *name, int nname, Direc *d, int n)
 Direc*
 walkdirec(Direc *d, char *name)
 {
-	char *p, *nextp, *slashp;
+	char elem[NAMELEN], *p, *nextp;
 	Direc *nd;
 
 	for(p=name; p && *p; p=nextp) {
-		if((slashp = strchr(p, '/')) != nil)
-			nextp = slashp+1;
-		else
-			nextp = slashp = p+strlen(p);
+		if((nextp = strchr(p, '/')) != nil) {
+			strncpy(elem, p, nextp-p);
+			elem[nextp-p] = '\0';
+			nextp++;
+		} else {
+			nextp = p+strlen(p);
+			strncpy(elem, p, nextp-p);
+			elem[nextp-p] = '\0';
+		}
 
-		nd = dbsearch(p, slashp-p, d->child, d->nchild);
-		if(nd >= d->child+d->nchild || strecmp(p, slashp, nd->name) != 0)
+		nd = dbsearch(elem, d->child, d->nchild);
+		if(nd >= d->child+d->nchild || strcmp(nd->name, elem) != 0)
 			return nil;
 		d = nd;
 	}
@@ -110,10 +101,10 @@ adddirec(Direc *root, char *name, XDir *d)
 	} else
 		p = name;
 
-	nd = dbsearch(p, strlen(p), root->child, root->nchild);
+	nd = dbsearch(p, root->child, root->nchild);
 	off = nd - root->child;
 	if(off < root->nchild && strcmp(nd->name, p) == 0) {
-		if ((d->mode & DMDIR) == 0)
+		if ((d->mode & CHDIR) == 0)
 			fprint(2, "warning: proto lists %s twice\n", name);
 		return nil;
 	}
@@ -140,7 +131,7 @@ copydirec(Direc *dst, Direc *src)
 
 	*dst = *src;
 
-	if((src->mode & DMDIR) == 0)
+	if((src->mode & CHDIR) == 0)
 		return;
 
 	n = (src->nchild + Ndirblock - 1);
@@ -194,7 +185,7 @@ convertnames(Direc *d, char* (*cvt)(char*, char*))
 	char new[1024];
 
 	if(d->flags & Dbadname)
-		cvt(new, conform(d->name, d->mode & DMDIR));
+		cvt(new, conform(d->name, d->mode & CHDIR));
 	else
 		cvt(new, d->name);
 	d->confname = atom(new);

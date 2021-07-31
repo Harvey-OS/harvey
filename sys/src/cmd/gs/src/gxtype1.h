@@ -1,22 +1,22 @@
 /* Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxtype1.h,v 1.2 2000/03/10 04:29:37 lpd Exp $ */
+/*$Id: gxtype1.h,v 1.4 2000/09/19 19:00:40 lpd Exp $ */
 /* Private Adobe Type 1 / Type 2 charstring interpreter definitions */
 
 #ifndef gxtype1_INCLUDED
@@ -312,6 +312,9 @@ void gs_type1_finish_init(P2(gs_type1_state * pcis, is_ptr ps));
 
 int gs_type1_sbw(P5(gs_type1_state * pcis, fixed sbx, fixed sby,
 		    fixed wx, fixed wy));
+
+/* blend returns the number of values to pop. */
+int gs_type1_blend(P3(gs_type1_state *pcis, fixed *csp, int num_results));
 
 int gs_type1_seac(P4(gs_type1_state * pcis, const fixed * cstack,
 		     fixed asb_diff, ip_state * ipsp));

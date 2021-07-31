@@ -121,11 +121,8 @@ static int
 trailer(Biobuf *bout, Biobuf *bin)
 {
 	/* crc32 */
-	ulong x;
-
-	x = get4(bin);
-	if(crc != x){
-		print("crc mismatch %lux %lux\n", crc, x);
+	if(crc != get4(bin)){
+		print("crc mismatch\n");
 		return FlateCorrupted;
 	}
 

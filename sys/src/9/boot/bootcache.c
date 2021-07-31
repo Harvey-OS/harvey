@@ -2,26 +2,24 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-uchar statbuf[Statsz];
-
 int
 cache(int fd)
 {
 	int argc, i, p[2];
-	char *argv[5], bd[32], buf[256], partition[64], *pp;
+	char *argv[5], bd[NAMELEN], buf[256], d[DIRLEN], partition[2*NAMELEN], *pp;
 
-	if(stat("/cfs", statbuf, sizeof statbuf) < 0)
+	if(stat("/cfs", d) < 0)
 		return fd;
 
 	*partition = 0;
 
 	readfile("#e/cfs", buf, sizeof(buf));
 	if(*buf){
-		argc = tokenize(buf, argv, 4);
+		argc = getfields(buf, argv, 4, 1, " ");
 		for(i = 0; i < argc; i++){
 			if(strcmp(argv[i], "off") == 0)
 				return fd;
-			else if(stat(argv[i], statbuf, sizeof statbuf) >= 0){
+			else if(stat(argv[i], d) >= 0){
 				strncpy(partition, argv[i], sizeof(partition)-1);
 				partition[sizeof(partition)-1] = 0;
 			}
@@ -40,12 +38,12 @@ cache(int fd)
 			else if(strcmp("fs", &bd[i-2]) == 0)
 				bd[i-2] = 0;
 			sprint(partition, "%scache", bd);
-			if(stat(partition, statbuf, sizeof statbuf) < 0)
+			if(stat(partition, d) < 0)
 				*bd = 0;
 		}
 		if(*bd == 0){
 			sprint(partition, "%scache", bootdisk);
-			if(stat(partition, statbuf, sizeof statbuf) < 0)
+			if(stat(partition, d) < 0)
 				return fd;
 		}
 	}

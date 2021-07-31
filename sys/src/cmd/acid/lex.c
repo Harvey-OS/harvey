@@ -159,12 +159,14 @@ popio(void)
 }
 
 int
-Lfmt(Fmt *f)
+Lconv(va_list *arg, Fconv *f)
 {
 	int i;
 	char buf[1024];
 	IOstack *e;
 
+	USED(arg);
+	USED(f);
 	e = lexio;
 	if(e) {
 		i = sprint(buf, "%s:%d", e->name, line);
@@ -176,7 +178,7 @@ Lfmt(Fmt *f)
 		}
 	} else
 		sprint(buf, "no file:0");
-	fmtstrcpy(f, buf);
+	strconv(buf, f);
 	return 0;
 }
 
@@ -257,8 +259,6 @@ eatstring(void)
 			goto done;
 
 		case '\\':
-			if(esc)
-				goto Default;
 			esc = 1;
 			break;
 
@@ -268,7 +268,6 @@ eatstring(void)
 
 			/* Fall through */
 		default:
-		Default:
 			if(esc) {
 				c = escchar(c);
 				esc = 0;
@@ -528,7 +527,7 @@ numsym(char first)
 			error("%d <eof> eating symbols", line);
 		if(c == '\n')
 			line++;
-		if(c != '_' && c != '$' && c <= '~' && !isalnum(c)) {	/* checking against ~ lets UTF names through */
+		if(c != '_' && c != '$' && !isalnum(c)) {
 			unlexc(c);
 			break;
 		}

@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <ip.h>
 #include <pool.h>
-#include <ctype.h>
 #include "dns.h"
 
 /*
@@ -72,7 +71,10 @@ char *opname[] =
 
 Lock	dnlock;
 
-static int sencodefmt(Fmt*);
+static void* allocate(int);
+static void checkallocation(void*, int);
+
+#define CHECK(a) checkallocation(a, sizeof(*a))
 
 /*
  *  set up a pipe to use as a lock
@@ -80,12 +82,11 @@ static int sencodefmt(Fmt*);
 void
 dninit(void)
 {
-	fmtinstall('E', eipfmt);
-	fmtinstall('I', eipfmt);
-	fmtinstall('V', eipfmt);
-	fmtinstall('R', rrfmt);
-	fmtinstall('Q', rravfmt);
-	fmtinstall('H', sencodefmt);
+	fmtinstall('E', eipconv);
+	fmtinstall('I', eipconv);
+	fmtinstall('V', eipconv);
+	fmtinstall('R', rrconv);
+	fmtinstall('Q', rravconv);
 
 	dnvars.oldest = maxage;
 	dnvars.names = 0;
@@ -131,9 +132,9 @@ dnlookup(char *name, int class, int enter)
 		return 0;
 	}
 	dnvars.names++;
-	dp = emalloc(sizeof(*dp));
+	dp = allocate(sizeof(*dp));
 	dp->magic = DNmagic;
-	dp->name = estrdup(name);
+	dp->name = strdup(name);
 	assert(dp->name != 0);
 	dp->class = class;
 	dp->rr = 0;
@@ -323,6 +324,7 @@ dnageall(int doit)
 				if(dp->name)
 					free(dp->name);
 				dnvars.names--;
+				dncheck(dp, 0);
 				free(dp);
 				continue;
 			}
@@ -471,6 +473,7 @@ rrattach1(RR *new, int auth)
 	assert(dp->magic == DNmagic);
 	new->auth |= auth;
 	new->next = 0;
+	CHECK(new);
 
 	/*
 	 *  find first rr of the right type, similar types
@@ -490,6 +493,7 @@ rrattach1(RR *new, int auth)
 	 *  newer entries replace older entries with the same fields
 	 */
 	for(rp = *l; rp; rp = *l){
+		CHECK(rp);
 		assert(rp->magic == RRmagic && rp->cached);
 		if(rp->type != new->type)
 			break;
@@ -562,30 +566,26 @@ rralloc(int type)
 {
 	RR *rp;
 
-	rp = emalloc(sizeof(*rp));
+	rp = allocate(sizeof(*rp));
 	rp->magic = RRmagic;
 	rp->pc = getcallerpc(&type);
 	rp->type = type;
 	switch(type){
 	case Tsoa:
-		rp->soa = emalloc(sizeof(*rp->soa));
+		rp->soa = allocate(sizeof(*rp->soa));
 		break;
 	case Tkey:
-		rp->key = emalloc(sizeof(*rp->key));
+		rp->key = allocate(sizeof(*rp->key));
 		break;
 	case Tcert:
-		rp->cert = emalloc(sizeof(*rp->cert));
+		rp->cert = allocate(sizeof(*rp->cert));
 		break;
 	case Tsig:
-		rp->sig = emalloc(sizeof(*rp->sig));
-		break;
-	case Tnull:
-		rp->null = emalloc(sizeof(*rp->null));
+		rp->sig = allocate(sizeof(*rp->sig));
 		break;
 	}
 	rp->ttl = 0;
 	rp->expire = 0;
-	rp->next = 0;
 	return rp;
 }
 
@@ -599,6 +599,7 @@ rrfree(RR *rp)
 	RR *nrp;
 
 	assert(!rp->cached);
+	CHECK(rp);
 
 	dp = rp->owner;
 	if(dp){
@@ -609,23 +610,40 @@ rrfree(RR *rp)
 
 	switch(rp->type){
 	case Tsoa:
-		free(rp->soa);
+		if(rp->soa){
+			CHECK(rp->soa);
+			free(rp->soa);
+		}
 		break;
 	case Tkey:
-		free(rp->key->data);
-		free(rp->key);
+		if(rp->key){
+			if(rp->key->data){
+				CHECK(rp->key->data);
+				free(rp->key->data);
+			}
+			CHECK(rp->key);
+			free(rp->key);
+		}
 		break;
 	case Tcert:
-		free(rp->cert->data);
-		free(rp->cert);
+		if(rp->cert){
+			if(rp->cert->data){
+				CHECK(rp->cert->data);
+				free(rp->cert->data);
+			}
+			CHECK(rp->cert);
+			free(rp->cert);
+		}
 		break;
 	case Tsig:
-		free(rp->sig->data);
-		free(rp->sig);
-		break;
-	case Tnull:
-		free(rp->null->data);
-		free(rp->null);
+		if(rp->sig){
+			if(rp->sig->data){
+				CHECK(rp->sig->data);
+				free(rp->sig->data);
+			}
+			CHECK(rp->sig);
+			free(rp->sig);
+		}
 		break;
 	}
 
@@ -651,58 +669,19 @@ rrcopy(RR *rp, RR **last)
 {
 	RR *nrp;
 	SOA *soa;
-	Key *key;
-	Cert *cert;
-	Sig *sig;
-	Null *null;
 
+	CHECK(rp);
 	nrp = rralloc(rp->type);
-	switch(rp->type){
-	case Tsoa:
-		soa = nrp->soa;
-		*nrp = *rp;
+	soa = nrp->soa;
+	*nrp = *rp;
+	if(rp->type == Tsoa){
 		nrp->soa = soa;
 		*nrp->soa = *rp->soa;
-		break;
-	case Tkey:
-		key = nrp->key;
-		*nrp = *rp;
-		nrp->key = key;
-		*key = *rp->key;
-		key->data = emalloc(key->dlen);
-		memmove(key->data, rp->key->data, rp->key->dlen);
-		break;
-	case Tsig:
-		sig = nrp->sig;
-		*nrp = *rp;
-		nrp->sig = sig;
-		*sig = *rp->sig;
-		sig->data = emalloc(sig->dlen);
-		memmove(sig->data, rp->sig->data, rp->sig->dlen);
-		break;
-	case Tcert:
-		cert = nrp->cert;
-		*nrp = *rp;
-		nrp->cert = cert;
-		*cert = *rp->cert;
-		cert->data = emalloc(cert->dlen);
-		memmove(cert->data, rp->cert->data, rp->cert->dlen);
-		break;
-	case Tnull:
-		null = nrp->null;
-		*nrp = *rp;
-		nrp->null = null;
-		*null = *rp->null;
-		null->data = emalloc(null->dlen);
-		memmove(null->data, rp->null->data, rp->null->dlen);
-		break;
-	default:
-		*nrp = *rp;
-		break;
 	}
 	nrp->cached = 0;
 	nrp->next = 0;
 	*last = nrp;
+	CHECK(nrp);
 	return &nrp->next;
 }
 
@@ -732,6 +711,7 @@ rrlookup(DN *dp, int type, int flag)
 
 	/* try for an authoritative db entry */
 	for(rp = dp->rr; rp; rp = rp->next){
+		CHECK(rp);
 		assert(rp->magic == RRmagic && rp->cached);
 		if(rp->db)
 		if(rp->auth)
@@ -814,7 +794,7 @@ rrtype(char *atype)
  *  convert an integer RR type to it's ascii name
  */
 char*
-rrname(int type, char *buf, int len)
+rrname(int type, char *buf)
 {
 	char *t;
 
@@ -822,7 +802,7 @@ rrname(int type, char *buf, int len)
 	if(type <= Tall)
 		t = rrtname[type];
 	if(t==0){
-		snprint(buf, len, "%d", type);
+		sprint(buf, "%d", type);
 		t = buf;
 	}
 	return t;
@@ -908,196 +888,204 @@ rrremtype(RR **l, int type)
  *  print conversion for rr records
  */
 int
-rrfmt(Fmt *f)
+rrconv(va_list *arg, Fconv *f)
 {
 	RR *rp;
-	char *strp;
-	Fmt fstr;
-	int rv;
-	char buf[Domlen];
+	int n;
+	char buf[3*Domlen];
 
-	fmtstrinit(&fstr);
-
-	rp = va_arg(f->args, RR*);
+	rp = va_arg(*arg, RR*);
 	if(rp == 0){
-		fmtprint(&fstr, "<null>");
+		strcpy(buf, "<null>");
 		goto out;
 	}
 
-	fmtprint(&fstr, "%s %s", rp->owner->name,
-		rrname(rp->type, buf, sizeof buf));
+	n = snprint(buf, sizeof(buf), "%s %s", rp->owner->name,
+		rrname(rp->type, buf));
 
 	if(rp->negative){
-		fmtprint(&fstr, "\tnegative - rcode %d", rp->negrcode);
+		snprint(&buf[n], sizeof(buf)-n, "\tnegative - rcode %d", rp->negrcode);
 		goto out;
 	}
 
 	switch(rp->type){
 	case Thinfo:
-		fmtprint(&fstr, "\t%s %s", rp->cpu->name, rp->os->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s %s", rp->cpu->name, rp->os->name);
 		break;
 	case Tcname:
 	case Tmb:
 	case Tmd:
 	case Tmf:
 	case Tns:
-		fmtprint(&fstr, "\t%s", rp->host->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->host->name);
 		break;
 	case Tmg:
 	case Tmr:
-		fmtprint(&fstr, "\t%s", rp->mb->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->mb->name);
 		break;
 	case Tminfo:
-		fmtprint(&fstr, "\t%s %s", rp->mb->name, rp->rmb->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s %s", rp->mb->name, rp->rmb->name);
 		break;
 	case Tmx:
-		fmtprint(&fstr, "\t%lud %s", rp->pref, rp->host->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%lud %s", rp->pref, rp->host->name);
 		break;
 	case Ta:
-		fmtprint(&fstr, "\t%s", rp->ip->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->ip->name);
 		break;
 	case Tptr:
-		fmtprint(&fstr, "\t%s", rp->ptr->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->ptr->name);
 		break;
 	case Tsoa:
-		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud", rp->host->name,
+		snprint(&buf[n], sizeof(buf)-n, "\t%s %s %lud %lud %lud %lud %lud", rp->host->name,
 			rp->rmb->name, rp->soa->serial, rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
 		break;
-	case Tnull:
-		fmtprint(&fstr, "\t%.*H", rp->null->dlen, rp->null->data);
-		break;
 	case Ttxt:
-		fmtprint(&fstr, "\t%s", rp->txt->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s", rp->txt->name);
 		break;
 	case Trp:
-		fmtprint(&fstr, "\t%s %s", rp->rmb->name, rp->txt->name);
+		snprint(&buf[n], sizeof(buf)-n, "\t%s %s", rp->rmb->name, rp->txt->name);
 		break;
 	case Tkey:
-		fmtprint(&fstr, "\t%d %d %d", rp->key->flags, rp->key->proto,
+		snprint(&buf[n], sizeof(buf)-n, "\t%d %d %d", rp->key->flags, rp->key->proto,
 			rp->key->alg);
 		break;
 	case Tsig:
-		fmtprint(&fstr, "\t%d %d %d %lud %lud %lud %d %s",
+		snprint(&buf[n], sizeof(buf)-n, "\t%d %d %d %lud %lud %lud %d %s",
 			rp->sig->type, rp->sig->alg, rp->sig->labels, rp->sig->ttl,
 			rp->sig->exp, rp->sig->incep, rp->sig->tag, rp->sig->signer->name);
 		break;
 	case Tcert:
-		fmtprint(&fstr, "\t%d %d %d",
+		snprint(&buf[n], sizeof(buf)-n, "\t%d %d %d",
 			rp->sig->type, rp->sig->tag, rp->sig->alg);
 		break;
 	default:
 		break;
 	}
 out:
-	strp = fmtstrflush(&fstr);
-	rv = fmtstrcpy(f, strp);
-	free(strp);
-	return rv;
+	strconv(buf, f);
+	return sizeof(RR*);
 }
 
 /*
  *  print conversion for rr records in attribute value form
  */
 int
-rravfmt(Fmt *f)
+rravconv(va_list *arg, Fconv *f)
 {
 	RR *rp;
-	char *strp;
-	Fmt fstr;
-	int rv;
+	int n;
+	char buf[3*Domlen];
 
-	fmtstrinit(&fstr);
-
-	rp = va_arg(f->args, RR*);
+	rp = va_arg(*arg, RR*);
 	if(rp == 0){
-		fmtprint(&fstr, "<null>");
+		strcpy(buf, "<null>");
 		goto out;
 	}
 
 	if(rp->type == Tptr)
-		fmtprint(&fstr, "ptr=%s", rp->owner->name);
+		n = snprint(buf, sizeof(buf), "ptr=%s", rp->owner->name);
 	else
-		fmtprint(&fstr, "dom=%s", rp->owner->name);
+		n = snprint(buf, sizeof(buf), "dom=%s", rp->owner->name);
 
 	switch(rp->type){
 	case Thinfo:
-		fmtprint(&fstr, " cpu=%s os=%s", rp->cpu->name, rp->os->name);
+		snprint(&buf[n], sizeof(buf)-n, " cpu=%s os=%s", rp->cpu->name, rp->os->name);
 		break;
 	case Tcname:
-		fmtprint(&fstr, " cname=%s", rp->host->name);
+		snprint(&buf[n], sizeof(buf)-n, " cname=%s", rp->host->name);
 		break;
 	case Tmb:
 	case Tmd:
 	case Tmf:
-		fmtprint(&fstr, " mbox=%s", rp->host->name);
+		snprint(&buf[n], sizeof(buf)-n, " mbox=%s", rp->host->name);
 		break;
 	case Tns:
-		fmtprint(&fstr,  " ns=%s", rp->host->name);
+		snprint(&buf[n], sizeof(buf)-n, " ns=%s", rp->host->name);
 		break;
 	case Tmg:
 	case Tmr:
-		fmtprint(&fstr, " mbox=%s", rp->mb->name);
+		snprint(&buf[n], sizeof(buf)-n, " mbox=%s", rp->mb->name);
 		break;
 	case Tminfo:
-		fmtprint(&fstr, " mbox=%s mbox=%s", rp->mb->name, rp->rmb->name);
+		snprint(&buf[n], sizeof(buf)-n, " mbox=%s mbox=%s", rp->mb->name, rp->rmb->name);
 		break;
 	case Tmx:
-		fmtprint(&fstr, " pref=%lud mx=%s", rp->pref, rp->host->name);
+		snprint(&buf[n], sizeof(buf)-n, " pref=%lud mx=%s", rp->pref, rp->host->name);
 		break;
 	case Ta:
-		fmtprint(&fstr, " ip=%s", rp->ip->name);
+		snprint(&buf[n], sizeof(buf)-n, " ip=%s", rp->ip->name);
 		break;
 	case Tptr:
-		fmtprint(&fstr, " dom=%s", rp->ptr->name);
+		snprint(&buf[n], sizeof(buf)-n, " dom=%s", rp->ptr->name);
 		break;
 	case Tsoa:
-		fmtprint(&fstr, " ns=%s mbox=%s serial=%lud refresh=%lud retry=%lud expire=%lud ttl=%lud",
+		snprint(&buf[n], sizeof(buf)-n, " ns=%s mbox=%s serial=%lud refresh=%lud retry=%lud expire=%lud ttl=%lud",
 			rp->host->name, rp->rmb->name, rp->soa->serial,
 			rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
 		break;
-	case Tnull:
-		fmtprint(&fstr, " null=%.*H", rp->null->dlen, rp->null->data);
-		break;
 	case Ttxt:
-		fmtprint(&fstr, " txt=%s", rp->txt->name);
+		snprint(&buf[n], sizeof(buf)-n, " txt=%s", rp->txt->name);
 		break;
 	case Trp:
-		fmtprint(&fstr, " rp=%s txt=%s", rp->rmb->name, rp->txt->name);
+		snprint(&buf[n], sizeof(buf)-n, " rp=%s txt=%s", rp->rmb->name, rp->txt->name);
 		break;
 	case Tkey:
-		fmtprint(&fstr, " flags=%d proto=%d alg=%d",
+		snprint(&buf[n], sizeof(buf)-n, " flags=%d proto=%d alg=%d",
 			rp->key->flags, rp->key->proto, rp->key->alg);
 		break;
 	case Tsig:
-		fmtprint(&fstr, " type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s",
+		snprint(&buf[n], sizeof(buf)-n, " type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s",
 			rp->sig->type, rp->sig->alg, rp->sig->labels, rp->sig->ttl,
 			rp->sig->exp, rp->sig->incep, rp->sig->tag, rp->sig->signer->name);
 		break;
 	case Tcert:
-		fmtprint(&fstr, " type=%d tag=%d alg=%d",
+		snprint(&buf[n], sizeof(buf)-n, " type=%d tag=%d alg=%d",
 			rp->sig->type, rp->sig->tag, rp->sig->alg);
 		break;
 	default:
 		break;
 	}
 out:
-	strp = fmtstrflush(&fstr);
-	rv = fmtstrcpy(f, strp);
-	free(strp);
-	return rv;
+	strconv(buf, f);
+	return sizeof(RR*);
+
+}
+
+/*
+ *  case insensitive strcmp
+ */
+int
+cistrcmp(char *s1, char *s2)
+{
+	unsigned c1, c2;
+
+	for(;;) {
+		c1 = tolower(*s1++);
+		c2 = tolower(*s2++);
+		if(c1 != c2) {
+			if(c1 > c2)
+				return 1;
+			return -1;
+		}
+		if(c1 == 0)
+			return 0;
+	}
+	return 0;	/* not reached */
 }
 
 void
 warning(char *fmt, ...)
 {
+	int n;
 	char dnserr[128];
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(dnserr, dnserr+sizeof(dnserr), fmt, arg);
+	n = doprint(dnserr, dnserr+sizeof(dnserr), fmt, arg) - dnserr;
 	va_end(arg);
+	dnserr[n] = 0;
 	syslog(1, "dns", dnserr);
 }
 
@@ -1140,7 +1128,6 @@ dncheck(void *p, int dolock)
 	int i;
 	DN *dp;
 	RR *rp;
-	extern Pool *mainmem;
 
 	if(p != nil){
 		dp = p;
@@ -1152,7 +1139,6 @@ dncheck(void *p, int dolock)
 
 	if(dolock)
 		lock(&dnlock);
-	poolcheck(mainmem);
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next){
 			assert(dp != p);
@@ -1262,112 +1248,25 @@ randomize(RR *rp)
 	return first;
 }
 
-static int
-sencodefmt(Fmt *f)
+uchar allmagic[4] = { 0xb, 0xa, 0xb, 0xe };
+
+static void*
+allocate(int len)
 {
-	char *out;
-	char *buf;
-	int i, len;
-	int ilen;
-	int rv;
-	uchar *b;
-	char obuf[64];	// rsc optimization
+	uchar *p;
 
-	if(!(f->flags&FmtPrec) || f->prec < 1)
-		goto error;
-
-	b = va_arg(f->args, uchar*);
-	if(b == nil)
-		goto error;
-
-	/* if it's a printable, go for it */
-	len = f->prec;
-	for(i = 0; i < len; i++)
-		if(!isprint(b[i]))
-			break;
-	if(i == len){
-		if(len >= sizeof obuf)
-			len = sizeof(obuf)-1;
-		memmove(obuf, b, len);
-		obuf[len] = 0;
-		fmtstrcpy(f, obuf);
-		return 0;
-	}
-
-	ilen = f->prec;
-	f->prec = 0;
-	f->flags &= ~FmtPrec;
-	switch(f->r){
-	case '<':
-		len = (8*ilen+4)/5 + 3;
-		break;
-	case '[':
-		len = (8*ilen+5)/6 + 4;
-		break;
-	case 'H':
-		len = 2*ilen + 1;
-		break;
-	default:
-		goto error;
-	}
-
-	if(len > sizeof(obuf)){
-		buf = malloc(len);
-		if(buf == nil)
-			goto error;
-	} else
-		buf = obuf;
-
-	// convert
-	out = buf;
-	switch(f->r){
-	case '<':
-		rv = enc32(out, len, b, ilen);
-		break;
-	case '[':
-		rv = enc64(out, len, b, ilen);
-		break;
-	case 'H':
-		rv = enc16(out, len, b, ilen);
-		break;
-	default:
-		rv = -1;
-		break;
-	}
-	if(rv < 0)
-		goto error;
-
-	fmtstrcpy(f, buf);
-	if(buf != obuf)
-		free(buf);
-	return 0;
-
-error:
-	return fmtstrcpy(f, "<encodefmt>");
-
+	p = mallocz(len+4, 1);
+	assert(p != nil);
+	memmove(p+len, allmagic, 4);
+	return (void*)p;
 }
 
-void*
-emalloc(int size)
+static void
+checkallocation(void *x, int len)
 {
-	char *x;
+	uchar *p;
 
-	x = mallocz(size, 1);
-	if(x == nil)
-		abort();
-	return x;
-}
-
-char*
-estrdup(char *s)
-{
-	int size;
-	char *p;
-
-	size = strlen(s)+1;
-	p = mallocz(size, 0);
-	if(p == nil)
-		abort();
-	memmove(p, s, size);
-	return p;
+	p = x;
+	if(memcmp(&p[len], allmagic, 4) != 0)
+		sysfatal("allocation overrun");
 }

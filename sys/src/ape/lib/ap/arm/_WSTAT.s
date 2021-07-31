@@ -1,0 +1,4 @@
+TEXT _WSTAT(SB), 1, $-4
+MOVW $26, R0
+SWI 0
+RET

@@ -31,7 +31,6 @@ long	nipr;
 long	nofr;
 long	nopr;
 long	ntrunc;
-int dotrunc = 1;
 int	ibf;
 int	obf;
 char	*op;
@@ -93,10 +92,6 @@ main(int argc, char *argv[])
 		}
 		if(iskey("of")) {
 			ofile = string;
-			continue;
-		}
-		if(iskey("trunc")) {
-			dotrunc = number(BIG);
 			continue;
 		}
 		if(iskey("skip")) {
@@ -180,10 +175,7 @@ main(int argc, char *argv[])
 		exits("open");
 	}
 	if(ofile){
-		if(dotrunc)
-			obf = create(ofile, 1, 0664);
-		else
-			obf = open(ofile, 1);
+		obf = create(ofile, 1, 0664);
 		if(obf < 0) {
 			fprint(2, "dd: create %s: %r\n", ofile);
 			exits("create");

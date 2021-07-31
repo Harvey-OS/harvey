@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gscie.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gscie.c,v 1.3 2000/09/19 19:00:26 lpd Exp $ */
 /* CIE color rendering cache management */
 #include "math_.h"
 #include "memory_.h"
@@ -463,11 +463,14 @@ cie_common_complete(gs_cie_common *pcie)
 	cache_set_linear(&pcie->caches.DecodeLMN[i].floats);
 }
 
-/* Restrict and scale the DecodeDEF[G] cache according to RangeHIJ[K]. */
+/*
+ * Restrict the DecodeDEF[G] cache according to RangeHIJ[K], and scale to
+ * the dimensions of Table.
+ */
 private void
-gs_cie_defx_scale(float *values, const gs_range *range)
+gs_cie_defx_scale(float *values, const gs_range *range, int dim)
 {
-    double scale = 255.0 / (range->rmax - range->rmin);
+    double scale = (dim - 1.0) / (range->rmax - range->rmin);
     int i;
 
     for (i = 0; i < gx_cie_cache_size; ++i) {
@@ -475,7 +478,7 @@ gs_cie_defx_scale(float *values, const gs_range *range)
 
 	values[i] =
 	    (value <= range->rmin ? 0 :
-	     value >= range->rmax ? 255 :
+	     value >= range->rmax ? dim - 1 :
 	     (value - range->rmin) * scale);
     }
 }
@@ -489,7 +492,7 @@ gs_cie_defg_complete(gs_cie_defg * pcie)
 
     for (j = 0; j < 4; ++j)
 	gs_cie_defx_scale(pcie->caches_defg.DecodeDEFG[j].floats.values,
-			  &pcie->RangeHIJK.ranges[j]);
+			  &pcie->RangeHIJK.ranges[j], pcie->Table.dims[j]);
     gs_cie_abc_complete((gs_cie_abc *)pcie);
 }
 
@@ -502,7 +505,7 @@ gs_cie_def_complete(gs_cie_def * pcie)
 
     for (j = 0; j < 3; ++j)
 	gs_cie_defx_scale(pcie->caches_def.DecodeDEF[j].floats.values,
-			  &pcie->RangeHIJ.ranges[j]);
+			  &pcie->RangeHIJ.ranges[j], pcie->Table.dims[j]);
     gs_cie_abc_complete((gs_cie_abc *)pcie);
 }
 

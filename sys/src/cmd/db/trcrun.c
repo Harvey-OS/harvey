@@ -5,6 +5,7 @@
 #include "defs.h"
 #include "fns.h"
 
+extern char lastc, peekc;
 
 int child;
 int msgfd = -1;
@@ -42,11 +43,11 @@ setpcs(void)
 void
 msgpcs(char *msg)
 {
-	char err[ERRMAX];
+	char err[ERRLEN];
 
 	setpcs();
 	if(write(msgfd, msg, strlen(msg)) < 0 && !ending){
-		errstr(err, sizeof err);
+		errstr(err);
 		if(strcmp(err, "interrupted") != 0)
 			endpcs();
 		errors("can't write control file", err);
@@ -59,20 +60,20 @@ msgpcs(char *msg)
 void
 unloadnote(void)
 {
-	char err[ERRMAX];
+	char err[ERRLEN];
 
 	setpcs();
 	for(; nnote<NNOTE; nnote++){
-		switch(read(notefd, note[nnote], sizeof note[nnote])){
+		switch(read(notefd, note[nnote], ERRLEN)){
 		case -1:
-			errstr(err, sizeof err);
+			errstr(err);
 			if(strcmp(err, "interrupted") != 0)
 				endpcs();
 			errors("can't read note file", err);
 		case 0:
 			return;
 		}
-		note[nnote][ERRMAX-1] = '\0';
+		note[nnote][ERRLEN-1] = 0;
 		if(strncmp(note[nnote], "sys: breakpoint", 15) == 0)
 			--nnote;
 	}
@@ -85,12 +86,12 @@ void
 loadnote(void)
 {
 	int i;
-	char err[ERRMAX];
+	char err[ERRLEN];
 
 	setpcs();
 	for(i=0; i<nnote; i++){
 		if(write(notefd, note[i], strlen(note[i])) < 0){
-			errstr(err, sizeof err);
+			errstr(err);
 			if(strcmp(err, "interrupted") != 0)
 				endpcs();
 			errors("can't write note file", err);
@@ -267,7 +268,7 @@ bkput(BKPT *bp, int install)
 	ulong loc;
 	int ret;
 
-	errstr(buf, sizeof buf);
+	errstr(buf);
 	if(machdata->bpfix)
 		loc = (*machdata->bpfix)(bp->loc);
 	else
@@ -279,7 +280,7 @@ bkput(BKPT *bp, int install)
 	}else
 		ret = put1(cormap, loc, bp->save, machdata->bpsize);
 	if(ret < 0){
-		sprint(buf, "can't set breakpoint at %#llux: %r", bp->loc);
+		sprint(buf, "can't set breakpoint at %llux: %r", bp->loc);
 		print(buf);
 		read(0, buf, 100);
 	}

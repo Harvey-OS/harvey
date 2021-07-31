@@ -21,17 +21,14 @@ main(int argc, char *argv[])
 		exits("no memory");
 
 	p = buf;
-	for(i = 1+nflag; i < argc; i++){
-		strcpy(p, argv[i]);
-		p += strlen(p);
-		if(i < argc-1)
-			*p++ = ' ';
-	}
+	p[0] = 0;	/* in case there are no arguments to echo -n */
+	for(i = 1+nflag; i < argc; i++)
+		p += sprint(p, i == argc-1 ? "%s":"%s ", argv[i]);
 		
 	if(!nflag)
-		*p++ = '\n';
+		sprint(p, "\n");
 
-	if(write(1, buf, p-buf) < 0)
+	if(write(1, buf, strlen(buf)) < 0)
 		fprint(2, "echo: write error: %r\n");
 
 	exits((char *)0);

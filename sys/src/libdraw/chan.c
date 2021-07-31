@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
+#include <ctype.h>
 
 static char channames[] = "rgbkamx";
 char*
@@ -27,13 +28,6 @@ chantostr(char *buf, ulong cc)
 	*p = 0;
 
 	return buf;
-}
-
-/* avoid pulling in ctype when using with drawterm etc. */
-static int
-isspace(char c)
-{
-	return c==' ' || c== '\t' || c=='\r' || c=='\n';
 }
 
 ulong

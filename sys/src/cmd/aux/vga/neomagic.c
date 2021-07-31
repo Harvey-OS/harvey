@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "pci.h"
 #include "vga.h"
+#include "pci.h"
 
 typedef struct {
 	Pcidev*	pci;

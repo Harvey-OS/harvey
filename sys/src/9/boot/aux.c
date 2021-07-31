@@ -54,21 +54,13 @@ sendmsg(int fd, char *msg)
 void
 warning(char *s)
 {
-	char buf[ERRMAX];
-
-	buf[0] = '\0';
-	errstr(buf, sizeof buf);
-	fprint(2, "boot: %s: %s\n", s, buf);
+	fprint(2, "boot: %s: %r\n", s);
 }
 
 void
 fatal(char *s)
 {
-	char buf[ERRMAX];
-
-	buf[0] = '\0';
-	errstr(buf, sizeof buf);
-	fprint(2, "boot: %s: %s\n", s, buf);
+	fprint(2, "boot fatal: %s: %r\n", s);
 	exits(0);
 }
 
@@ -105,9 +97,9 @@ void
 setenv(char *name, char *val)
 {
 	int f;
-	char ename[64];
+	char ename[2*NAMELEN];
 
-	snprint(ename, sizeof ename, "#e/%s", name);
+	sprint(ename, "#e/%s", name);
 	f = create(ename, 1, 0666);
 	if(f < 0)
 		return;
@@ -120,7 +112,7 @@ srvcreate(char *name, int fd)
 {
 	char *srvname;
 	int f;
-	char buf[64];
+	char buf[2*NAMELEN];
 
 	srvname = strrchr(name, '/');
 	if(srvname)
@@ -128,7 +120,7 @@ srvcreate(char *name, int fd)
 	else
 		srvname = name;
 
-	snprint(buf, sizeof buf, "#s/%s", srvname);
+	sprint(buf, "#s/%s", srvname);
 	f = create(buf, 1, 0666);
 	if(f < 0)
 		fatal(buf);

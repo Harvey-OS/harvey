@@ -1,0 +1,108 @@
+CONF=vdterm
+CONFLIST=atlas brick viaduct vdterm
+
+objtype=power
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	nocache.$O\
+	chan.$O\
+	dev.$O\
+	fault.$O\
+	latin1.$O\
+	log.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+	spi.$O\
+	tar.$O\
+
+OBJ=\
+	l.$O\
+	inb.$O\
+	clock.$O\
+	cpm.$O\
+	main.$O\
+	mmu.$O\
+	random.$O\
+	rmap.$O\
+	trap.$O\
+	$DEVS\
+	$PORT\
+	boot$CONF.root.$O\
+
+LIB=\
+	/$objtype/lib/libauth.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+
+ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
+
+$p$CONF:	$CONF.$O $OBJ
+	$LD -o $target -T0x80010000 -l $OBJ $CONF.$O  $LIB
+	size $target
+
+install:V: $p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+#	import dinar / /n/dinar && cp $p$CONF /n/dinar/$objtype/$p$CONF
+
+<../boot/bootmkfile
+<../port/portmkfile
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -R4 -o init.out initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O devether.$O main.$O trap.$O:	/$objtype/include/ureg.h
+
+$ETHER: 	etherif.h ../port/netif.h
+
+acid:V:
+	8c -a -w -I. ../port/qio.c>acid
+
+sh.root.s:	sh.c
+	qc sh.c
+	ql -a -o sh.out sh.q > x
+	../port/mkroot sh sh
+
+cat.root.s:	/$objtype/bin/cat
+	cp /$objtype/bin/cat cat.out
+	../port/mkroot cat cat
+
+seq.root.s:	/$objtype/bin/seq
+	cp /$objtype/bin/seq seq.out
+	../port/mkroot seq seq
+
+
+rc.root.s:	/$objtype/bin/rc
+	cp /$objtype/bin/rc rc.out
+	../port/mkroot rc rc
+
+
+ms.root.s:	ms.c
+	qc ms.c
+	ql -a -o ms.out ms.q > ms.xxx
+	../port/mkroot ms ms
+

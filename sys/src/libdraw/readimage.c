@@ -2,6 +2,8 @@
 #include <libc.h>
 #include <draw.h>
 
+#define	CHUNK	8000
+
 Image*
 readimage(Display *d, int fd, int dolock)
 {
@@ -9,7 +11,7 @@ readimage(Display *d, int fd, int dolock)
 	int dy;
 	int new;
 	uint l, n;
-	int m, j, chunk;
+	int m, j;
 	int miny, maxy;
 	Rectangle r;
 	int ldepth;
@@ -23,7 +25,6 @@ readimage(Display *d, int fd, int dolock)
 		return creadimage(d, fd, dolock);
 	if(readn(fd, hdr+11, 5*12-11) != 5*12-11)
 		return nil;
-	chunk = d->bufsize - 32;	/* a little room for header */
 
 	/*
 	 * distinguish new channel descriptor from old ldepth.
@@ -76,13 +77,13 @@ readimage(Display *d, int fd, int dolock)
 		unlockdisplay(d);
 	if(i == nil)
 		return nil;
-	tmp = malloc(chunk);
+	tmp = malloc(CHUNK);
 	if(tmp == nil)
 		goto Err;
 	while(maxy > miny){
 		dy = maxy - miny;
-		if(dy*l > chunk)
-			dy = chunk/l;
+		if(dy*l > CHUNK)
+			dy = CHUNK/l;
 		if(dy <= 0){
 			werrstr("readimage: image too wide for buffer");
 			goto Err;
@@ -102,12 +103,12 @@ readimage(Display *d, int fd, int dolock)
 			return nil;
 		}
 		if(!new)	/* an old image: must flip all the bits */
-			for(j=0; j<chunk; j++)
+			for(j=0; j<CHUNK; j++)
 				tmp[j] ^= 0xFF;
 
 		if(dolock)
 			lockdisplay(d);
-		if(loadimage(i, Rect(r.min.x, miny, r.max.x, miny+dy), tmp, chunk) <= 0)
+		if(loadimage(i, Rect(r.min.x, miny, r.max.x, miny+dy), tmp, CHUNK) <= 0)
 			goto Err1;
 		if(dolock)
 			unlockdisplay(d);

@@ -200,12 +200,20 @@ typedef enum State {
 } State;
 
 typedef struct Dsa {
-	uchar stateb;
-	uchar result;
-	uchar dmablks;
-	uchar flag;	/* setbyte(state,3,...) */
+	union {
+		uchar state[4];
+		struct {
+			uchar stateb;
+			uchar result;
+			uchar dmablks;
+			uchar flag;	/* setbyte(state,3,...) */
+		};
+	};
 
-	uchar dmaaddr[4];
+	union {
+		ulong dmancr;		/* For block transfer: NCR order (little-endian) */
+		uchar dmaaddr[4];
+	};
 
 	uchar target;			/* Target */
 	uchar pad0[3];
@@ -337,7 +345,7 @@ intrprint(char *format, ...)
 {
 	if (debuglast == 0)
 		debuglast = debugbuf;
-	debuglast = vseprint(debuglast, debugbuf + (DEBUGSIZE - 1), format, (&format + 1));
+	debuglast = doprint(debuglast, debugbuf + (DEBUGSIZE - 1), format, (&format + 1));
 }
 
 static void
@@ -370,7 +378,7 @@ oprint(char *format, ...)
 	s = splhi();
 	if (debuglast == 0)
 		debuglast = debugbuf;
-	debuglast = vseprint(debuglast, debugbuf + (DEBUGSIZE - 1), format, (&format + 1));
+	debuglast = doprint(debuglast, debugbuf + (DEBUGSIZE - 1), format, (&format + 1));
 	splx(s);
 	iflush();	
 }
@@ -389,7 +397,7 @@ dsaalloc(Controller *c, int target, int lun)
 		if (DEBUG(1))
 			KPRINT(PRINTPREFIX "%d/%d: allocated new dsa %lux\n", target, lun, (ulong)d);
 		lesetl(d->next, 0);
-		lesetl(&d->stateb, A_STATE_ALLOCATED);
+		lesetl(d->state, A_STATE_ALLOCATED);
 		if (legetl(c->dsalist.head) == 0)
 			lesetl(c->dsalist.head, DMASEG(d));	/* ATOMIC?!? */
 		else
@@ -400,7 +408,7 @@ dsaalloc(Controller *c, int target, int lun)
 		if (DEBUG(1))
 			KPRINT(PRINTPREFIX "%d/%d: reused dsa %lux\n", target, lun, (ulong)d);
 		c->dsalist.freechain = d->freechain;
-		lesetl(&d->stateb, A_STATE_ALLOCATED);
+		lesetl(d->state, A_STATE_ALLOCATED);
 	}
 	iunlock(&c->dsalist);
 	d->target = target;
@@ -414,7 +422,7 @@ dsafree(Controller *c, Dsa *d)
 	ilock(&c->dsalist);
 	d->freechain = c->dsalist.freechain;
 	c->dsalist.freechain = d;
-	lesetl(&d->stateb, A_STATE_FREE);
+	lesetl(d->state, A_STATE_FREE);
 	iunlock(&c->dsalist);
 }
 
@@ -1103,7 +1111,7 @@ write_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 }
 
 static void
-sd53c8xxinterrupt(Ureg *ur, void *a)
+interrupt(Ureg *ur, void *a)
 {
 	uchar istat;
 	ushort sist;
@@ -1196,7 +1204,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				    dsa->dmablks, legetl(dsa->dmaaddr),
 				    legetl(dsa->data_buf.pa), legetl(dsa->data_buf.dbc));
 				n->scratcha[2] = dsa->dmablks;
-				lesetl(n->scratchb, *(ulong*)dsa->dmaaddr);
+				lesetl(n->scratchb, dsa->dmancr);
 				cont = E_data_block_mismatch_recover;
 			}
 			else if (sa == E_data_out_mismatch) {
@@ -1223,7 +1231,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				    dmablks * A_BSIZE - tbc + legetl(dsa->data_buf.dbc));
 				/* copy changes into scratch registers */
 				n->scratcha[2] = dsa->dmablks;
-				lesetl(n->scratchb, *(ulong*)dsa->dmaaddr);
+				lesetl(n->scratchb, dsa->dmancr);
 				cont = E_data_block_mismatch_recover;
 			}
 			else if (sa == E_id_out_mismatch) {
@@ -1434,12 +1442,6 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				    dsa->target, dsa->lun);
 				cont = -2;
 				break;
-			case A_error_reselected:		/* dsa isn't valid here */
-				print(PRINTPREFIX "reselection error\n");
-				dumpncrregs(c, 1);
-				for (dsa = KPTR(legetl(c->dsalist.head)); dsa; dsa = KPTR(legetl(dsa->next)))
-					IPRINT(PRINTPREFIX "dsa target %d lun %d state %d\n", dsa->target, dsa->lun, dsa->stateb);
-				break;
 			default:
 				IPRINT(PRINTPREFIX "%d/%d: script error %ld\n",
 					dsa->target, dsa->lun, legetl(n->dsps));
@@ -1581,7 +1583,7 @@ reset(Controller *c)
 }
 
 static int
-sd53c8xxrio(SDreq* r)
+symrio(SDreq* r)
 {
 	Dsa *d;
 	uchar *bp;
@@ -1750,7 +1752,7 @@ docheck:
 		 * Clear out the microcode state
 		 * so the Dsa can be re-used.
 		 */
-		lesetl(&d->stateb, A_STATE_ALLOCATED);
+		lesetl(d->state, A_STATE_ALLOCATED);
 		goto docheck;
 	}
 	qunlock(&c->q[target]);
@@ -1896,7 +1898,7 @@ na_fixup(Controller *c, ulong pa_reg,
 }
 
 static SDev*
-sd53c8xxpnp(void)
+sympnp(void)
 {
 	char *cp;
 	Pcidev *p;
@@ -1985,14 +1987,6 @@ buggery:
 		ctlr->v = v;
 		ctlr->script = script;
 		memmove(ctlr->script, na_script, sizeof(na_script));
-
-		/*
-		 * Because we don't yet have an abstraction for the
-		 * addresses as seen from the controller side (and on
-		 * the 386 it doesn't matter), the follwong two lines
-		 * are different between the 386 and alpha copies of
-		 * this driver.
-		 */
 		ctlr->scriptpa = p->mem[ba].bar & ~0x0F;
 		if(!na_fixup(ctlr, p->mem[1].bar & ~0x0F, na_patches, NA_PATCHES, xfunc)){
 			print("script fixup failed\n");
@@ -2026,24 +2020,24 @@ buggery:
 }
 
 static SDev*
-sd53c8xxid(SDev* sdev)
+symid(SDev* sdev)
 {
 	return scsiid(sdev, &sd53c8xxifc);
 }
 
 static int
-sd53c8xxenable(SDev* sdev)
+symenable(SDev* sdev)
 {
 	Pcidev *pcidev;
 	Controller *ctlr;
-	char name[32];
+	char name[NAMELEN];
 
 	ctlr = sdev->ctlr;
 	pcidev = ctlr->pcidev;
 
 	pcisetbme(pcidev);
-	snprint(name, sizeof(name), "%s (%s)", sdev->name, sdev->ifc->name);
-	intrenable(pcidev->intl, sd53c8xxinterrupt, ctlr, pcidev->tbdf, name);
+	snprint(name, NAMELEN, "%s (%s)", sdev->name, sdev->ifc->name);
+	intrenable(pcidev->intl, interrupt, ctlr, pcidev->tbdf, name);
 
 	ilock(ctlr);
 	synctabinit(ctlr);
@@ -2057,20 +2051,18 @@ sd53c8xxenable(SDev* sdev)
 SDifc sd53c8xxifc = {
 	"53c8xx",			/* name */
 
-	sd53c8xxpnp,			/* pnp */
+	sympnp,				/* pnp */
 	nil,				/* legacy */
-	sd53c8xxid,			/* id */
-	sd53c8xxenable,			/* enable */
+	symid,				/* id */
+	symenable,			/* enable */
 	nil,				/* disable */
 
 	scsiverify,			/* verify */
 	scsionline,			/* online */
-	sd53c8xxrio,			/* rio */
+	symrio,				/* rio */
 	nil,				/* rctl */
 	nil,				/* wctl */
 
 	scsibio,			/* bio */
-	nil,				/* probe */
-	nil,				/* clear */
-	nil,				/* stat */
 };
+

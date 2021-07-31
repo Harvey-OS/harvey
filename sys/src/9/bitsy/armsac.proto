@@ -1,0 +1,130 @@
+adm
+	timeconst
+	timezone
+		*
+	users
+arm
+	bin
+		acid
+		auth
+			iam
+		aux
+			pcmcia
+		bind
+		bitsy
+			*
+		cat
+		chmod
+		cp
+		cpu
+		exportfs
+		ftpfs
+		grep
+		dd
+		du
+		echo
+		ed
+		ip
+			ipconfig
+			ping
+		ls
+		mount
+		ndb
+			cs
+			csquery
+			dns
+			dnsquery
+			dnsdebug
+		ps
+		ramfs
+		rc
+		rio
+		sed
+		sleep
+		snoopy
+		srv
+		telnet
+		test
+		xd
+		xmr
+		xms
+	init
+bin
+fd
+lib
+	namespace 664 sys sys /sys/src/9/bitsy/sacfiles/namespace
+	ndb
+		common
+		local
+		local-cs
+		mesa
+	font
+		bit
+			misc
+				ascii.5x7.font
+				ascii.5x7
+			lucida
+				EuroLatin.5.0
+				GenPunct.5.0
+				MathOps1.5.0
+			lucidasans
+				lstr.10
+				lsr.10
+				lsb.10
+				typeunicode.6.font
+				boldlatin1.6.font
+				unicode.6.font 664 sys sys /sys/src/9/bitsy/sacfiles/unicode.6.font
+mnt
+	acme
+	apeselect
+	cd
+	cons
+		cons
+		consctl
+	consoles
+	doc
+	exportfs
+		*
+	lp
+	plumb
+	rdb
+	term
+	wsys
+n - sys sys /tmp
+	choline - sys sys /tmp
+	emelie - sys sys /tmp
+	emelieother - sys sys /tmp
+	olive - sys sys /tmp
+	achille - sys sys /tmp
+	nslocum - sys sys /tmp
+rc
+	lib
+		rcmain
+	bin
+		9fs
+		cpurc 775 sys sys /sys/src/9/bitsy/sacfiles/cpurc
+		reboot
+		kill
+		Kill
+		startip 775 sys sys /sys/src/9/bitsy/sacfiles/startip
+		startemelie 775 sys sys /sys/src/9/bitsy/sacfiles/startemelie
+		se 775 sys sys /sys/src/9/bitsy/sacfiles/startemelie
+net
+proc
+srv
+sys
+	lib
+		scribble
+			classifiers
+				*
+		acid
+			arm
+			port
+		music
+	src
+usr
+	sape
+	presotto
+	cyoung
+	rob
+tmp

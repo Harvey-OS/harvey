@@ -131,7 +131,12 @@ gbytes(Scan *sp, uchar **p, int n)
 		sp->err = toolong;
 		return 0;
 	}
-	*p = emalloc(n);
+	*p = malloc(n);
+	if(*p == nil){
+		sp->err = "memory";
+		return 0;
+	}
+
 	memmove(*p, sp->p, n);
 	sp->p += n;
 
@@ -282,9 +287,6 @@ retry:
 		STRING(rp->txt);
 		if(sp->p - data != len)
 			sp->p = data + len;
-		break;
-	case Tnull:
-		BYTES(rp->null->data, rp->null->dlen);
 		break;
 	case Trp:
 		rp->rmb = dnlookup(NAME(dname), Cin, 1);

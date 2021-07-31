@@ -1,0 +1,106 @@
+.TH AUTHFS 4
+.SH NAME
+authfs \- present different authentication files
+.SH SYNOPSIS
+.B authfs
+[
+.B -a
+.I authserver
+]
+[
+.B -u
+.I user
+]
+[
+.B -h
+.I hostowner
+]
+[
+.B -pv 
+]
+.SH DESCRIPTION
+.I Authfs
+presents an alternate set of credentials via the
+files 
+.BR authcheck ,
+.BR authenticator ,
+.BR authserver ,
+.BR hostowner ,
+.BR key ,
+and
+.B user
+in
+.BR /dev ,
+as well as a new 
+.BR /net/cs .
+.PP
+The
+.BR -a ,
+.BR -u ,
+and
+.B -h
+flags 
+specify the default authentication
+server, user name, and host owner, respectively.  They can
+be changed at any time by writing strings into the obvious
+files.
+The
+.B -p
+option prompts for a password that will be used
+to generate the key file. A great amount of debugging output
+is produced by the
+.B -v
+option.
+.PP
+The
+.BR authenticator ,
+.BR authcheck ,
+and
+.B key
+files behave identically to the ones that are presented by
+.IR cons (3).
+Unlike
+those files,
+they are not global:
+changes to authentication information
+(via, say, 
+.IR aux/typepasswd )
+are local to the namespace.
+This is
+useful for assuming a different identity on a per-window
+basis.
+.PP
+The file
+.B /net/cs
+is replaced with one that behaves identically except that
+.B $auth
+is rewritten with the contents of
+.B /dev/authserver
+rather than an entry from the network database.
+.SH EXAMPLES
+Change credentials to 
+boris
+and set a new authentication server before dialing
+kremvax.
+.IP
+.EX
+authfs
+echo boris >/dev/user
+echo moscvax >/dev/authserver
+aux/typepasswd
+cpu -h kremvax
+.EE
+.PP
+This may be shortened using command-line options:
+.IP
+.EX
+authfs -u boris -a moscvax -p
+cpu -h kremvax
+.EE
+.SH SOURCE
+.B /sys/src/cmd/authfs.c
+.SH SEE ALSO
+.IR cons (3),
+.IR auth (6),
+.IR auth (8),
+.IR ndb (8)

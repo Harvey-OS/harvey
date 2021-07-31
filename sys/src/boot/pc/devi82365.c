@@ -99,9 +99,6 @@ enum
 	Maxctab=	8,		/* maximum configuration table entries */
 };
 
-static int pcmcia_pcmspecial(char *, ISAConf *);
-static void pcmcia_pcmspecialclose(int);
-
 #define MAP(x,o)	(Rmap + (x)*0x8 + o)
 
 typedef struct I82365	I82365;
@@ -207,22 +204,6 @@ static long	pcmread(int, int, void*, long, vlong);
 static long	pcmwrite(int, int, void*, long, vlong);
 
 static void i82365dump(Slot*);
-
-void
-devi82365link(void)
-{
-	static int already;
-
-	if(already)
-		return;
-	already = 1;
-
-	if (_pcmspecial)
-		return;
-	
-	_pcmspecial = pcmcia_pcmspecial;
-	_pcmspecialclose = pcmcia_pcmspecialclose;
-}
 
 /*
  *  reading and writing card registers
@@ -451,8 +432,8 @@ decrefp(Slot *pp)
 /*
  *  look for a card whose version contains 'idstr'
  */
-static int
-pcmcia_pcmspecial(char *idstr, ISAConf *isa)
+int
+pcmspecial(char *idstr, ISAConf *isa)
 {
 	Slot *pp;
 	extern char *strstr(char*, char*);
@@ -488,12 +469,11 @@ pcmcia_pcmspecial(char *idstr, ISAConf *isa)
 	return -1;
 }
 
-static void
-pcmcia_pcmspecialclose(int slotno)
+void
+pcmspecialclose(int slotno)
 {
 	Slot *pp;
 
-	print("pcmspecialclose called\n");
 	if(slotno >= nslot)
 		panic("pcmspecialclose");
 	pp = slot + slotno;
@@ -548,11 +528,6 @@ i82365probe(int x, int d, int dev)
 			cp->type = Tpd6710;
 			cp->nslot = 1;
 		}
-
-		/* low power mode */
-		outb(x, Rmisc2 + (dev<<7));
-		c = inb(d);
-		outb(d, c & ~Flowpow);
 		break;
 	}
 
@@ -572,6 +547,11 @@ i82365probe(int x, int d, int dev)
 		c = inb(d);
 		outb(d, c & ~0xC0);
 	}
+
+	/* low power mode */
+	outb(x, Rmisc2 + (dev<<7));
+	c = inb(d);
+	outb(d, c & ~Flowpow);
 
 	memset(&isa, 0, sizeof(ISAConf));
 	if(isaconfig("pcmcia", ncontroller, &isa) && isa.irq)
@@ -621,6 +601,7 @@ i82365reset(void)
 		return;
 	already = 1;
 
+	meminit(0);
 
 	/* look for controllers */
 	i82365probe(0x3E0, 0x3E1, 0);
@@ -1047,10 +1028,10 @@ timing(Cisdat *cis, Conftab *ct)
 		ct->maxwait = ttiming(cis, i);		/* max wait */
 	i = (c>>2)&0x7;
 	if(i != 7)
-		ct->readywait = ttiming(cis, i);	/* max ready/busy wait */
+		ct->readywait = ttiming(cis, i);		/* max ready/busy wait */
 	i = (c>>5)&0x7;
 	if(i != 7)
-		ct->otherwait = ttiming(cis, i);	/* reserved wait */
+		ct->otherwait = ttiming(cis, i);		/* reserved wait */
 }
 
 static void
@@ -1077,7 +1058,7 @@ iospaces(Cisdat *cis, Conftab *ct)
 	nio = (c&0xf)+1;
 	for(i = 0; i < nio; i++){
 		ct->io[i].start = getlong(cis, (c>>4)&0x3);
-		ct->io[i].len = getlong(cis, (c>>6)&0x3)+1;
+		ct->io[0].len = getlong(cis, (c>>6)&0x3);
 	}
 	ct->nio = nio;
 }

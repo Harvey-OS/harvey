@@ -1,0 +1,4 @@
+TEXT _REMOVE(SB), 1, $0
+MOVL $25, AX
+INT $64
+RET

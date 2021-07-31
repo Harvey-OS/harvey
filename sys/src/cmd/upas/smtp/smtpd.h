@@ -6,7 +6,6 @@ enum {
 	DIALUP,
 	BLOCKED,
 	DELAY,
-	TRUSTED,
 	NONE,
 
 	MAXREJECTS = 100,
@@ -31,7 +30,7 @@ extern	int	rflag;
 extern	int	sflag;
 
 extern	int	debug;
-extern	NetConnInfo	*nci;
+extern	char	*hisaddr;
 extern	char	*dom;
 extern	char*	me;
 extern	List	ourdoms;
@@ -60,4 +59,4 @@ void	sayhi(void);
 void	sender(String*);
 void	turn(void);
 void	verify(String*);
-int	zzparse(void);
+int	yyparse(void);

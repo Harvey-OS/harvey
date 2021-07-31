@@ -331,6 +331,7 @@ eatwhite(void)
 void
 printsol(char *fmt, ...)
 {
+	char buf[8*1024], *s;
 	va_list arg;
 
 	if(quoting){
@@ -340,9 +341,10 @@ printsol(char *fmt, ...)
 	if(lastc != '\n')
 		Bputc(&out, '\n');
 	va_start(arg, fmt);
-	Bvprint(&out, fmt, arg);
+	s = doprint(buf, buf + (sizeof(buf)-1) / sizeof(*buf), fmt, arg);
 	va_end(arg);
-	lastc = '\n';
+	Bwrite(&out, buf, s-buf);
+	lastc = *(s-1);
 }
 
 void

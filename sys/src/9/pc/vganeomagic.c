@@ -72,6 +72,7 @@ static void
 neomagicenable(VGAscr* scr)
 {
 	Pcidev *p;
+	Physseg seg;
 	int align, curoff, size, vmsize;
 	ulong aperture;
 
@@ -106,7 +107,14 @@ neomagicenable(VGAscr* scr)
 	scr->io = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
 	if(scr->io == 0)
 		return;
-	addvgaseg("neomagicmmio", scr->io, p->mem[1].size);
+
+	memset(&seg, 0, sizeof(seg));
+	seg.attr = SG_PHYSICAL;
+	seg.name = smalloc(NAMELEN);
+	snprint(seg.name, NAMELEN, "neomagicmmio");
+	seg.pa = scr->io;
+	seg.size = p->mem[1].size;
+	addphysseg(&seg);
 
 	/*
 	 * Find a place for the cursor data in display memory.
@@ -122,7 +130,13 @@ neomagicenable(VGAscr* scr)
 	if(aperture) {
 		scr->aperture = aperture;
 		scr->apsize = size;
-		addvgaseg("neomagicscreen", aperture, size);
+		memset(&seg, 0, sizeof(seg));
+		seg.attr = SG_PHYSICAL;
+		seg.name = smalloc(NAMELEN);
+		snprint(seg.name, NAMELEN, "neomagicscreen");
+		seg.pa = aperture;
+		seg.size = size;
+		addphysseg(&seg);
 	}
 }
 

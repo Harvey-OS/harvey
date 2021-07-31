@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <authsrv.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 char *trivial[] = {
 	"login",
@@ -16,8 +16,8 @@ char *trivial[] = {
 char*
 okpasswd(char *p)
 {
-	char passwd[ANAMELEN];
-	char back[ANAMELEN];
+	char passwd[NAMELEN];
+	char back[NAMELEN];
 	int i, n;
 
 	strncpy(passwd, p, sizeof passwd - 1);

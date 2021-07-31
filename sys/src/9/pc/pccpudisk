@@ -1,0 +1,63 @@
+dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	bridge
+
+	ether		netif
+	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+
+	sd
+	floppy		dma
+
+	lpt
+	ns16552
+	astar		pci
+
+link
+	ether82557	pci
+	etherelnk3	pci
+	ethermedium
+
+misc
+	archmp		mp apic
+
+	ipconfig.root
+	kfs.root
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+
+	vgaclgd542x	+cur
+	vgahiqvideo	+cur
+	vgas3		+cur vgasavage
+
+ip
+	il
+	tcp
+	udp
+	rudp
+	ipifc
+	icmp
+	gre
+	ipmux
+
+port
+	int cpuserver = 1;
+
+boot cpu boot #S/sdC0/
+	local
+	il

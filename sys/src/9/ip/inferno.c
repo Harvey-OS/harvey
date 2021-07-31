@@ -25,7 +25,7 @@ commonfdtochan(int fd, int mode, int a, int b)
 char*
 commonerror(void)
 {
-	return up->errstr;
+	return up->error;
 }
 
 char*

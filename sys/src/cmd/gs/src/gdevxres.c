@@ -1,22 +1,22 @@
-/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevxres.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevxres.c,v 1.3 2000/09/19 19:00:23 lpd Exp $ */
 /* X Windows driver resource tables */
 #include "std.h"	/* must precede any file that includes <sys/types.h> */
 #include "x_.h"
@@ -30,10 +30,12 @@
  * the XtResource structure is botched -- it declares the strings as char *
  * rather than const char * -- and so compiling the statically initialized
  * tables with gcc -Wcast-qual produces dozens of bogus warnings.
+ *
+ * Astoundingly, not only does the X API specify these structures as not
+ * being const, the Xt implementation actually writes into them.
  */
 
-XtResource gdev_x_resources[] =
-{
+XtResource gdev_x_resources[] = {
 
 /* (String) casts are here to suppress warnings about discarding `const' */
 #define RINIT(a,b,t,s,o,it,n)\
@@ -130,8 +132,7 @@ ZapfChancery-MediumItalic:-Adobe-ITC Zapf Chancery-Medium-I-Normal--"),
 
 const int gdev_x_resource_count = XtNumber(gdev_x_resources);
 
-String gdev_x_fallback_resources[] =
-{
+String gdev_x_fallback_resources[] = {
     (String) "Ghostscript*Background: white",
     (String) "Ghostscript*Foreground: black",
     NULL

@@ -4,22 +4,57 @@
 #include <fcall.h>
 #include <thread.h>
 #include "9p.h"
+#include "impl.h"
 
-void
-readbuf(Req *r, void *s, long n)
+void*
+emalloc(ulong sz)
 {
-	r->ofcall.count = r->ifcall.count;
-	if(r->ifcall.offset >= n){
-		r->ofcall.count = 0;
-		return;
+	void *v;
+
+	if((v = malloc(sz)) == nil) {
+		fprint(2, "out of memory allocating %lud\n", sz);
+		exits("mem");
 	}
-	if(r->ifcall.offset+r->ofcall.count > n)
-		r->ofcall.count = n - r->ifcall.offset;
-	memmove(r->ofcall.data, (char*)s+r->ifcall.offset, r->ofcall.count);
+	memset(v, 0, sz);
+	return v;
 }
 
-void
-readstr(Req *r, char *s)
+void*
+erealloc(void *v, ulong sz)
 {
-	readbuf(r, s, strlen(s));
+	if((v = realloc(v, sz)) == nil) {
+		fprint(2, "out of memory allocating %lud\n", sz);
+		exits("mem");
+	}
+	return v;
+}
+
+char*
+estrdup(char *s)
+{
+	char *t;
+
+	if((t = strdup(s)) == nil) {
+		fprint(2, "out of memory in strdup(%.10s)\n", s);
+		exits("mem");
+	}
+	return t;
+}
+
+
+void
+readbuf(vlong off, void *dst, long *dlen, void *src, long slen)
+{
+	if(off >= slen) {
+		*dlen = 0;
+		return;
+	}
+	if(off+*dlen > slen)
+		*dlen = slen-off;
+	memmove(dst, (char*)src+off, *dlen);
+}
+void
+readstr(vlong off, void *dst, long *dlen, char *src)
+{
+	readbuf(off, dst, dlen, src, strlen(src));
 }

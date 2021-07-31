@@ -21,7 +21,6 @@ static char* ec2tpcmcia[] = {
 	"PCMPC100",			/* EtherFast 10/100 PC Card */
 	"EN2216",			/* Accton EtherPair-PCMCIA */
 	"FA410TX",			/* Netgear FA410TX */
-	"Network Everywhere",		/* Linksys NP10T 10BaseT Card */
 	nil,
 };
 

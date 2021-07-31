@@ -1,0 +1,4 @@
+TEXT _FSESSION(SB), 1, $0
+MOVL $9, R0
+TRAP $0
+RTS

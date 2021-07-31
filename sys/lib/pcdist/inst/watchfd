@@ -1,0 +1,17 @@
+#!/bin/rc
+
+p=`{ps | grep $1 | sed 's/[^ ]* +([^ ]+) .*/\1/' }
+while(~ $#p 0) {
+	sleep 1
+	p=`{ps | grep $1 | sed 's/[^ ]* +([^ ]+) .*/\1/'}
+}
+
+while(test -f /proc/$p/fd) {
+# all this to avoid using awk
+	cat /proc/$p/fd | sed -n '
+		/^ *'^$2^'/{
+			s/ *[^ ]* *[^ ]* *[^ ]* *[^ ]* *[^ ]* *([^ ]*).*/\1 '^$3^'/
+			p
+		}'
+	sleep 1
+}

@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>Details of Ghostscript output devices</title>
-<!-- $Id: Devices.htm,v 1.3 2000/03/16 08:09:42 lpd Exp $ -->
+<!-- $Id: Devices.htm,v 1.13.2.2 2000/11/28 01:31:22 raph Exp $ -->
 <!-- Originally: devices.txt -->
 </head>
 
@@ -25,7 +25,11 @@ Details of Ghostscript output devices
 <blockquote><ul>
 <li><a href="#Measurements">Notes on measurements</a>
 <li><a href="#Win">MS Windows printers</a>
+<li><a href="#File_formats">File formats</a>
+<ul>
 <li><a href="#JFIF">JPEG file format (JFIF)</a>
+<li><a href="#TIFF">TIFF file formats</a>
+</ul>
 <li><a href="#HP8_color_inkjet">H-P 8xx, 1100, and 1600 color inkjet printers</a>
 <ul>
 <li><a href="#HP8_gdevcd8">Drivers contained in <b><tt>gdevcd8.c</tt></b></a>
@@ -51,7 +55,8 @@ Details of Ghostscript output devices
 <li><a href="#HP_resolution_enhance">HP's resolution-enhanced mode for Inkjet printers</a>
 <li><a href="#HP_tips">General tips</a>
 </ul>
-<li><a href="#BJC">Canon BubbleJet (BJC) printers</a>
+<li><a href="#BJC_8200">Canon BJC-8200 printer</a>
+<li><a href="#BJC">Other Canon BubbleJet (BJC) printers</a>
 <ul>
 <li><a href="#BJC_history">History</a>
 <li><a href="#BJC_build">Configuring and building the BJC drivers</a>
@@ -148,7 +153,7 @@ document: inches, centimeters and millimeters, points, and bits per pixel.
 <dt><b>Inches</b>
 <dd>1 inch equals 2.54 centimeters.  The inch measure is sometimes
 represented by "<b>in</b>" or a quotation mark (<b>&quot;</b>) to the right
-of a measure, like <b>8.5in</b> or <b>8.5"</b>.  Dots per inch,
+of a measure, like <b>8.5in</b> or <b>8.5""</b>.  Dots per inch,
 "<b>dpi</b>", are the common measure of printing resolution for dot-matrix,
 laser, and ink-jet printers.  U.S. "letter" paper is exactly
 8.5in&times;11in, approximately 21.6cm&times;27.9cm.  (See in the usage
@@ -174,8 +179,6 @@ known to Ghostscript</a> are defined in the initialization file
 </dl>
 
 <hr>
-
-<h1><a name="Win"></a>MS Windows printers</h1>
 
 <h1><a name="Win"></a>MS Windows printers</h1>
 
@@ -427,7 +430,9 @@ the long side of the paper as the reference):
 
 <hr>
 
-<h1><a name="JFIF"></a>JPEG file format (JFIF)</h1>
+<h1><a name="File_formats">File formats</h1>
+
+<h2><a name="JFIF"></a>JPEG file format (JFIF)</h2>
 
 <p>
 Ghostscript includes output drivers that can produce <a
@@ -487,6 +492,53 @@ At this writing the default JPEG quality level of 75 is equivalent to
 future.  The JPEG drivers could be extended to support additional JPEG
 compression options, such as the other DCTEncode filter parameters, but so
 far they haven't been.
+
+<h2><a name="TIFF"></a>TIFF file formats</h2>
+
+<p>
+There are two unrelated sets of TIFF drivers: <b><tt>tiff12nc</tt></b> and
+<b><tt>tiff24nc</tt></b>, which produce uncompressed color output, and all
+the other <b><tt>tiff*</tt></b> drivers, which produce black-and-white
+output with different compression modes.
+
+<p>
+The black-and-white TIFF drivers support creation of files that are
+comprised of more than a single strip.  Multi-strip files reduce the memory
+requirement on the reader, since readers need only store and process one
+strip at a time.  These drivers provide two parameters beyond the standard
+set:
+
+<blockquote>
+<dl>
+<dt><b><tt>-dMaxStripSize=</tt><em>N</em></b> (non-negative integer; default = 0)
+<dd>Set the maximum (uncompressed) size of a strip.
+
+<dt><b><tt>-dAdjustWidth=</tt><em>true|false</em></b> (Boolean; default =
+true)
+<dd>If true, then if the requested page width is close to either A4 (1728
+columns) or B4 (2048 columns), set the page width to A4 or B4 respectively.
+</dl></blockquote>
+
+<p>
+The TIFF 6.0 specification, Section 7, page 27, recommends that the size of
+each strip be about 8 Kbytes.  As an example, to generate the 'tiger' in
+tiffg4 format that has the recommended strip size, use:
+
+<blockquote><pre>
+gs -sDEVICE=tiffg4 -sOutputFile=tiger.tif -dMaxStripSize=8192 examples/tiger.ps
+</pre></blockquote>
+
+<p>
+If the value of the <b><tt>MaxStripSize</tt></b> parameter is smaller than a
+single image row, then no error will be generated, and the TIFF file will be
+generated correctly using one row per strip.  Note that smaller strip sizes
+increase the size of the file by increasing the size of the StripOffsets and
+StripByteCounts tables, and by reducing the effectiveness of the compression
+which must start over for each strip.
+
+<p>
+If the value of MaxStripSize is 0 (the default), then the entire image will
+be a single strip.
 
 <hr>
 
@@ -1158,11 +1210,254 @@ findings back to me.
 
 <hr>
 
-<h1><a name="BJC"></a>Canon BubbleJet (BJC) printers</h1>
+<h1><a name="BJC_8200"></a>Canon BJC-8200 printer</h1>
+
+<p>
+This section was contributed by the author of the <b><tt>uniprint</tt></b>
+configuration files for the Canon BJC-8200, Stephan C. Buchert &lt;<a
+href="mailto:scb@stelab.nagoya-u.ac.jp">scb@stelab.nagoya-u.ac.jp</a>&gt;.
+These files also handle the Japanese Canon F850 printer.
+
+<p>
+Warning: Usage of this program is neither supported nor endorsed by
+the Canon corporation. Please see the Ghostscript <a
+href="Public.htm">license</a> regarding warranty.
+
+<h2>Introduction</h2>
+
+<p>
+The Canon Bubble Jet printer BJC-8200 is designed for printing digital
+photos and halftone images. Software drivers for Windows 95-2000 and Mac are
+usually included and can be downloaded from the Canon web sites like
+<a href="http://www.ccsi.canon.com/bjc/bjc8200">
+http://www.ccsi.canon.com/bjc/bjc8200/</a> for the US market. If these
+drivers cannot be used for some reason, then at present Ghostscript is
+probably the alternative giving the best results.
+
+<p>
+The BJC-8200 has features not found among the specs of earlier bubble jet
+models (except the even more advanced BJC-8500) and is advertised to offer:
+
+<ol>
+
+<li>microfine droplet technology;
+
+<li>support for printing on a new type of paper, Photo Paper Pro;
+
+<li>a printhead capable of printing up to 1200 DpI;
+
+<li>individual ink tanks for 6 colors;
+
+<li>an internal status monitor reporting low ink back to a driver;
+
+<li>an optional color scanner cartridge for up to 600 DpI resolution.
+
+</ol>
+
+<p>
+Access to features 5 and 6 requires use of the original Canon drivers for
+the foreseeable future. This README is about getting the printer features
+1-3 working with Ghostscript. No (re)compilation of Ghostscript is normally
+required.
+
+<p>
+Ghostscript comes with a relatively highly configurable driver, called
+<a href="#Uniprint">uniprint</a>, for printers which understand raster
+images in various propriety formats. Most options for this driver are
+usually organized into files having the suffix ".upp." Ghostscript
+versions >= 5.10 (or even earlier) include such uniprint control files
+for the Canon BJC-610. They work also well for some other Canon Bubble
+Jet models, for example for my BJC-35vII. But when using them for a
+BJC-8200 the result is unsatisfactory.
+
+<h2>The uniprint control files for the BJC-8200</h2>
+
+<p>
+After some experimenting with the options for uniprint I have obtained quite
+satisfactory prints with my printer(*). This distribution includes six new
+uniprint control files:
+
+<ul>
+<li>bj8pp12f.upp
+<li>bj8hg12f.upp
+<li>bj8gc12f.upp
+<li>bj8oh06n.upp
+<li>bj8ts06n.upp
+<li>bj8pa06n.upp
+</ul>
+
+<p>
+They are included in Ghostscript >=6.21. For older versions you can put
+them anywhere in the Ghostscript search path (type "gs -h" to see the
+path), but should perhaps add the files to the directory with the
+other *.upp files. This is "/usr/share/ghostscript/gs6.01/lib" in my
+RedHat 6.1 Linux box with Aladdin Ghostscript 6.01.
+
+<p>
+Here is an explanation of my file name convention: the prefix "bj8" should
+perhaps be used for the Canon BJC-8200 and compatible (like the Japanese
+F850 and perhaps the non-Japanese BJC-8500) models. The next two letters
+indicate the print media:
+
+<ul>
+<li>pp "Photo Paper Pro"
+<li>hg "High Gloss Photo Film"
+<li>gc "Glossy Photo Cards"
+<li>oh "OHP transparencies"
+<li>ts "T-shirt transfer"
+<li>pa "Plain Paper"
+</ul>
+
+<p>
+The numbers at positions 6 and 7 indicate the resolution
+
+<ul>
+<li>12   1200x1200 DpIxDpI
+<li>06    600x600  DpIxDpI
+</ul>
+
+<p>
+The last letter stands for a quality factor that effects also the print
+speed (presumably related to the number of passes that the printhead makes).
+
+<ul>
+<li>f   highest quality
+<li>n   normal quality
+</ul>
+
+<p>
+Printing a postcard size (~10x15 cm^2) image at 1200x1200 DpI^2 takes about
+3 minutes. The output of Ghostscript is then typically 4-5 MByte. The
+bootleneck seems to be the transfer of the raster image in run-length
+encoded Canon format to the printer (via the parallel port on my system) or
+the printer's speed, not Ghostscript or the uniprint renderer.
+
+<h2>Further Optimization for the Canon BJC-8200</h2>
+
+So far I have only experimented with the printer initialization code at the
+beginning of each page (-dupBeginPageCommand) and the resolution (-r). Other
+options, particularly the transfer arrays (-dupBlackTransfer,
+-dupCyanTransfer, -dupMagentaTransfer, -dupYellowTransfer) and the margins
+(-dupMargins) were simply copied from the files for the BJC-610, but they
+may need to be changed for optimized performance.
+
+<p>
+Here is information useful for changing or adding uniprint control files for
+the BJC-8200:
+
+<p>
+In "-dupBeginPageCommand=..." use the line
+
+<blockquote>
+   1b28 64 0400 04b0 04b0
+</blockquote>
+
+<p>
+for 1200x1200 resolution, and
+
+<blockquote>
+   1b28 64 0400 0258 0258
+</blockquote>
+
+<p>
+for 600x600. The "-r" option in the control file must of course match this
+line. Other resolutions might work as well, but I didn't try.
+
+<p>
+Crucial are the numbers in the lines like
+
+<blockquote><pre>
+   1b28 63 0300 3005 04
+                   ^  ^
+       Plain Paper 0  4 Highest quality
+  OHP transparency 2  .
+  T-shirt transfer 3  .
+ Glossy Photo Film 5  .
+  High Gloss Paper 6  0 Lowest quality
+   Photo Paper Pro 9
+</pre></blockquote>
+
+<h2>Outlook</h2>
+
+<p>
+Presently uniprint can use the black (K), cyan (C), magenta (M), and
+yellow (Y) colors in the BJC-8200. The unused colors are photo (or
+light) cyan (c) and magenta (m). Also the Canon driver seems to use
+only CMYK, for example when printing on Photo Paper Pro in "Camera" or
+"SuperPhoto" mode. These modes supposedly produce prints of the best
+quality that the Canon driver can offer. Other modes of Canon driver
+do use up to all six color cartridges (CMYKcm). Therefore expanding
+uniprint's capabilities for six colors would be interesting, but it may
+not increase the output quality of 6-color printers such as the
+BJC-8200 drastically.
+
+<p>
+More control files for uniprint could be added in order to offer more
+versatility for controlling the BJC-8200 within a Ghostscript
+installation. The number of possible combinations for media type, resolution
+and print quality factor is very large, many combinations would not make
+much sense, many might be used here and there, but relatively rarely. The
+user would have to remember a name for each combination that is used.
+
+<p>
+A better way would be to let the user patch optionally a user owned or
+system wide uniprint control file before each print via some print
+tool. This is similar to the approach taken by Canon with their driver for
+Windows. Similarly a uniprint tool could also incorporate other functions
+such as printing test and demo pages and the low ink warning once the
+protocol for this is known. Clearly it would be difficult to code such a
+uniprint tool for all the platforms where Ghostscript is running.
+
+<h2>Usage on RedHat Linux</h2>
+
+<p>
+In order to install a BJC-8200 printer on a RedHat Linux system with
+RedHat's printtool, you need also to insert with a text editor the contents
+of the file <b><tt>bj8.rpd</tt></b> into the RedHat printer database
+<b><tt>/usr/lib/rhs/rhs-printfilters/printerdb</tt></b>. Insert it most
+appropriately after the section
+
+<blockquote><pre>
+StartEntry: U_CanonBJC610
+.
+.
+.
+EndEntry
+
+< --- insert here "bj8.rpd" from this distribution:
+< --- StartEntry: U_CanonBJC8200
+      .
+      .
+      .
+</pre></blockquote>
+
+<h2>Contacting the Author</h2>
+
+<p>
+E-mail address: &lt;<a
+href="mailto:scb@stelab.nagoya-u.ac.jp">scb@stelab.nagoya-u.ac.jp</a>&gt;
+
+<p>
+Footnotes:
+
+<p>
+(*) Actually I have a F850, not a BJC-8200. That model is sold for the
+Japanese market only. The specs and also the external look are the
+same as those of the BJC-8200 models for the American and European
+markets. I expect that the raster image mode which is used exclusively
+by Ghostscript is entirely compatible for both models.
+
+<p>
+Stephan C. Buchert
+
+<hr>
+
+<h1><a name="BJC"></a>Other Canon BubbleJet (BJC) printers</h1>
 
 <p>
 This section was contributed by the author of the drivers, Yves Arrouye
-&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;.
+(&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;, but
+please do not send questions to him: he no longer maintains these drivers.)
 The drivers handle Canon BJC-600, BJC-4xxx, BJC-70, Stylewriter 2x00, and
 BJC-800 printers.
 
@@ -1170,12 +1465,10 @@ BJC-800 printers.
 
 <p>
 The BJC-600 driver was written in the first place by Yoshio Kuniyoshi and
-later modified by Yves Arrouye
-&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;.  We
-tried to make it evolve synchronously, though Yoshio cannot be reached
-since a long time ago.  The drivers are based on code for the HP printers
-by George Cameron (in fact, they are in the same file!), so he's the first
-person to thank.
+later modified by Yves Arrouye.  We tried to make it evolve synchronously,
+though Yoshio cannot be reached since a long time ago.  The drivers are
+based on code for the HP printers by George Cameron (in fact, they are in
+the same file!), so he's the first person to thank.
 
 <p>
 The 2.00 version of the drivers was a complete rewrite of the driver
@@ -1819,14 +2112,12 @@ update the PPD files.
 <h2><a name="BJC_bugs"></a>How to report problems</h2>
 
 <p>
-If you have problems with this driver (or if you are extremely satisfied
-with it, you may email me directly at
-&lt;<a href="mailto:yves.arrouye@usa.net">yves.arrouye@usa.net</a>&gt;.
-When you report a problem please be as descriptive as possible, and please
-send information that can be used to reproduce the problem.  Don't forget
-to say which driver you use, and in what version.  Version information can
-be found in the source code of the driver or by issuing the following
-command in a shell:
+Yves Arrouye no longer maintains this driver, and will not answer questions
+about it.  If you are posting a question about it in a public form, please
+be as descriptive as possible, and please send information that can be used
+to reproduce the problem.  Don't forget to say which driver you use, and in
+what version.  Version information can be found in the source code of the
+driver or by issuing the following command in a shell:
 
 <blockquote><b><tt>
 echo&nbsp;"currentpagedevice&nbsp;/VersionString&nbsp;get&nbsp;=="&nbsp;|&nbsp;gs&nbsp;-q&nbsp;-sDEVICE=bjc600&nbsp;-
@@ -3982,7 +4273,7 @@ gs @stc.upp -sOutputFile=/dev/lp1 tiger.ps -c quit
 	<td>&nbsp;
 	<td>300&times;300dpi
 	<td>&nbsp;
-	<td>Color
+	<td>Color -- also good for 450C
 <tr valign=top>	<td>&nbsp;
 	<td><b><tt>dnj750m.upp</tt></b>
 	<td>&nbsp;
@@ -4101,6 +4392,51 @@ gs @stc.upp -sOutputFile=/dev/lp1 tiger.ps -c quit
 	<td>720&times;720dpi
 	<td>&nbsp;
 	<td>plain paper?
+
+
+
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640p.upp</tt></b>
+	<td>&nbsp;
+	<td>720&times;720dpi
+	<td>&nbsp;
+	<td>CMYK, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640pg.upp</tt></b>
+	<td>&nbsp;
+	<td>720&times;720dpi
+	<td>&nbsp;
+	<td>grayscale, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640pl.upp</tt></b>
+	<td>&nbsp;
+	<td>360&times;360dpi
+	<td>&nbsp;
+	<td>CMYK, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640plg.upp</tt></b>
+	<td>&nbsp;
+	<td>360&times;360dpi
+	<td>&nbsp;
+	<td>grayscale, plain paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640ih.upp</tt></b>
+	<td>&nbsp;
+	<td>1440&times;720dpi
+	<td>&nbsp;
+	<td>CMYK, inkjet paper
+<tr valign=top>	<td>&nbsp;
+	<td><b><tt>st640ihg.upp</tt></b>
+	<td>&nbsp;
+	<td>1440&times;720dpi
+	<td>&nbsp;
+	<td>grayscale, inkjet paper
+
+
+
+
+
+
 <tr>	<td>&nbsp;
 <tr>	<th align=left colspan=6>Epson Stylus Color 800, 64/180-inch weaving
 <tr valign=top>	<td>&nbsp;
@@ -4168,7 +4504,10 @@ gs @stc.upp -sOutputFile=/dev/lp1 tiger.ps -c quit
 </table></blockquote>
 
 <p>
-Thanks to Danilo Beuche, Guido Classen, Mark Goldberg and  Hans-Heinrich Viehmann for providing the files for the stc200, hp690, stc500 and the stc640.
+Thanks to Danilo Beuche, Guido Classen, Mark Goldberg and Hans-Heinrich
+Viehmann for providing the files for the stc200, hp690, stc500 and the
+stc640.  Thanks to Michael Lossin <losse@germanymail.com> for the newer
+st640 parameter sets.
 
 <p>
 Please note the following:
@@ -5067,15 +5406,15 @@ meet your needs.
 
 <font size=2>
 
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+<p>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of Aladdin Ghostscript.  See the
+<p>This file is part of AFPL Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+AFPL Ghostscript.
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+Ghostscript version 6.32, 27 November 2000
 
 </font>
 
@@ -5083,3 +5422,4 @@ Ghostscript version 6.0, 3 February 2000
 
 </body>
 </html>
+

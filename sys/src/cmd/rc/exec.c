@@ -6,7 +6,6 @@
 /*
  * Start executing the given code at the given pc with the given redirection
  */
-char *argv0="rc";
 void start(code *c, int pc, var *local)
 {
 	struct thread *p=new(struct thread);
@@ -102,14 +101,13 @@ var *newvar(char *name, var *next)
 void main(int argc, char *argv[])
 {
 	code bootstrap[17];
-	char num[12], *rcmain;
+	char num[12];
 	int i;
-	argc=getflags(argc, argv, "srdiIlxepvVc:1m:1[command]", 1);
+	argc=getflags(argc, argv, "srdiIlxepvVc:1[command]", 1);
 	if(argc==-1) usage("[file [arg ...]]");
 	if(argv[0][0]=='-') flag['l']=flagset;
 	if(flag['I']) flag['i'] = 0;
 	else if(flag['i']==0 && argc==1 && Isatty(0)) flag['i'] = flagset;
-	rcmain=flag['m']?flag['m'][0]:Rcmain; 
 	err=openfd(2);
 	kinit();
 	Trapinit();
@@ -131,7 +129,7 @@ void main(int argc, char *argv[])
 	bootstrap[i++].s="*";
 	bootstrap[i++].f=Xdol;
 	bootstrap[i++].f=Xword;
-	bootstrap[i++].s=rcmain;
+	bootstrap[i++].s=Rcmain;
 	bootstrap[i++].f=Xword;
 	bootstrap[i++].s=".";
 	bootstrap[i++].f=Xsimple;
@@ -140,7 +138,6 @@ void main(int argc, char *argv[])
 	start(bootstrap, 1, (var *)0);
 	/* prime bootstrap argv */
 	pushlist();
-	argv0 = strdup(argv[0]);
 	for(i=argc-1;i!=0;--i) pushword(argv[i]);
 	for(;;){
 		if(flag['r']) pfnc(err, runq);
@@ -198,8 +195,8 @@ void Xappend(void){
 	char *file;
 	int f;
 	switch(count(runq->argv->words)){
-	default: Xerror1(">> requires singleton"); return;
-	case 0: Xerror1(">> requires file"); return;
+	default: Xerror(">> requires singleton"); return;
+	case 0: Xerror(">> requires file"); return;
 	case 1: break;
 	}
 	file=runq->argv->words->word;
@@ -300,8 +297,8 @@ void Xread(void){
 	char *file;
 	int f;
 	switch(count(runq->argv->words)){
-	default: Xerror1("< requires singleton\n"); return;
-	case 0: Xerror1("< requires file\n"); return;
+	default: Xerror("< requires singleton\n"); return;
+	case 0: Xerror("< requires file\n"); return;
 	case 1: break;
 	}
 	file=runq->argv->words->word;
@@ -353,8 +350,8 @@ void Xwrite(void){
 	char *file;
 	int f;
 	switch(count(runq->argv->words)){
-	default: Xerror1("> requires singleton\n"); return;
-	case 0: Xerror1("> requires file\n"); return;
+	default: Xerror("> requires singleton\n"); return;
+	case 0: Xerror("> requires file\n"); return;
 	case 1: break;
 	}
 	file=runq->argv->words->word;
@@ -436,11 +433,11 @@ void Xconc(void){
 	int lc=count(lp), rc=count(rp);
 	if(lc!=0 || rc!=0){
 		if(lc==0 || rc==0){
-			Xerror1("null list in concatenation");
+			Xerror("null list in concatenation");
 			return;
 		}
 		if(lc!=1 && rc!=1 && lc!=rc){
-			Xerror1("mismatched list lengths in concatenation");
+			Xerror("mismatched list lengths in concatenation");
 			return;
 		}
 		vp=conclist(lp, rp, vp);
@@ -452,7 +449,7 @@ void Xconc(void){
 void Xassign(void){
 	var *v;
 	if(count(runq->argv->words)!=1){
-		Xerror1("variable name not singleton!");
+		Xerror("variable name not singleton!");
 		return;
 	}
 	deglob(runq->argv->words->word);
@@ -481,7 +478,7 @@ void Xdol(void){
 	char *s, *t;
 	int n;
 	if(count(runq->argv->words)!=1){
-		Xerror1("variable name not singleton!");
+		Xerror("variable name not singleton!");
 		return;
 	}
 	s=runq->argv->words->word;
@@ -506,7 +503,7 @@ void Xqdol(void){
 	char *s;
 	int n;
 	if(count(runq->argv->words)!=1){
-		Xerror1("variable name not singleton!");
+		Xerror("variable name not singleton!");
 		return;
 	}
 	s=runq->argv->words->word;
@@ -550,7 +547,7 @@ void Xsub(void){
 	word *a, *v;
 	char *s;
 	if(count(runq->argv->next->words)!=1){
-		Xerror1("variable name not singleton!");
+		Xerror("variable name not singleton!");
 		return;
 	}
 	s=runq->argv->next->words->word;
@@ -568,7 +565,7 @@ void Xcount(void){
 	int n;
 	char num[12];
 	if(count(runq->argv->words)!=1){
-		Xerror1("variable name not singleton!");
+		Xerror("variable name not singleton!");
 		return;
 	}
 	s=runq->argv->words->word;
@@ -588,7 +585,7 @@ void Xcount(void){
 }
 void Xlocal(void){
 	if(count(runq->argv->words)!=1){
-		Xerror1("variable name must be singleton\n");
+		Xerror("variable name must be singleton\n");
 		return;
 	}
 	deglob(runq->argv->words->word);
@@ -735,19 +732,7 @@ void Xrdcmds(void){
 }
 void Xerror(char *s)
 {
-	if(strcmp(argv0, "rc")==0 || strcmp(argv0, "/bin/rc")==0)
-		pfmt(err, "rc: %s: %r\n", s);
-	else
-		pfmt(err, "rc (%s): %s: %r\n", argv0, s);
-	flush(err);
-	while(!runq->iflag) Xreturn();
-}
-void Xerror1(char *s)
-{
-	if(strcmp(argv0, "rc")==0 || strcmp(argv0, "/bin/rc")==0)
-		pfmt(err, "rc: %s\n", s);
-	else
-		pfmt(err, "rc (%s): %s\n", argv0, s);
+	pfmt(err, "rc: %s\n", s);
 	flush(err);
 	while(!runq->iflag) Xreturn();
 }

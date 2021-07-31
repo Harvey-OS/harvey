@@ -47,7 +47,7 @@ sbrkalloc(ulong n)
 	n += 8;	/* two longs for us */
 	x = sbrk(n);
 	if((int)x == -1)
-		return nil;
+		x = nil;
 	x[0] = (n+7)&~7;	/* sbrk rounds size up to mult. of 8 */
 	x[1] = 0xDeadBeef;
 	return x+2;
@@ -111,6 +111,9 @@ static void
 pprint(Pool *p, char *fmt, ...)
 {
 	va_list v;
+	int n;
+	char buf[128];
+	char *msg;
 	Private *pv;
 
 	pv = p->private;
@@ -120,8 +123,10 @@ pprint(Pool *p, char *fmt, ...)
 	if(pv->printfd <= 0)
 		pv->printfd = 2;
 
+	msg = buf;
 	va_start(v, fmt);
-	vfprint(pv->printfd, fmt, v);
+	n = doprint(buf, buf+sizeof buf, fmt, v)-msg;
+	write(pv->printfd, buf, n);
 	va_end(v);
 }
 
@@ -144,7 +149,7 @@ ppanic(Pool *p, char *fmt, ...)
 
 	msg = panicbuf;
 	va_start(v, fmt);
-	n = vseprint(msg, msg+sizeof panicbuf, fmt, v) - msg;
+	n = doprint(msg, msg+sizeof panicbuf, fmt, v) - msg;
 	write(2, "panic: ", 7);
 	write(2, msg, n);
 	write(2, "\n", 1);
@@ -233,13 +238,15 @@ realloc(void *v, ulong size)
 {
 	void *nv;
 
+	if(v == nil)
+		return malloc(size);
+
 	if(size == 0){
 		free(v);
 		return nil;
 	}
 
-	if(v)
-		v = (ulong*)v-Npadlong;
+	v = (ulong*)v-Npadlong;
 	size += Npadlong*sizeof(ulong);
 
 	if(nv = poolrealloc(mainmem, v, size)){

@@ -197,8 +197,8 @@ main(int argc, char *argv[])
 char*
 qmail(char **argv, char *buf, int n, Biobuf *cout)
 {
-	Waitmsg *status;
-	int i, pid, pipefd[2];
+	Waitmsg status;
+	int i, pid, ret, pipefd[2];
 	char path[512];
 	Biobuf *bp;
 
@@ -236,17 +236,11 @@ qmail(char **argv, char *buf, int n, Biobuf *cout)
 	close(pipefd[1]);
 	close(pipefd[0]);
 	for(;;){
-		status = wait();
-		if(status == nil || status->pid == pid)
+		ret = wait(&status);
+		if(ret < 0 || ret == pid)
 			break;
-		free(status);
 	}
-	if(status == nil)
-		strcpy(buf, "wait failed");
-	else{
-		strcpy(buf, status->msg);
-		free(status);
-	}
+	strcpy(buf, status.msg);
 	return buf;
 }
 
@@ -261,10 +255,8 @@ canon(Biobuf *bp, char *header, char *body, int *n)
 	*body = 0;
 	raw = readmsg(bp, &hsize, n);
 	if(raw){
-		if(convert(raw, raw+hsize, header, Hdrsize, 0))
-			conv64(raw+hsize, raw+*n, body, Bodysize);	/* base64 */
-		else
-			convert(raw+hsize, raw+*n, body, Bodysize, 1);	/* text */
+		convert(raw, raw+hsize, header, Hdrsize, 0);
+		convert(raw+hsize, raw+*n, body, Bodysize, 1);
 	}
 	return raw;
 }
@@ -394,10 +386,8 @@ opendump(char *sender)
 	else
 		sprint(buf, "%s/queue.dump/%s%c%c", SPOOL, cp+4, cp[8], cp[9]);
 	cp = buf+strlen(buf);
-	if(access(buf, 0) < 0 && sysmkdir(buf, 0777) < 0){
-		syslog(0, "smtpd", "couldn't dump mail from %s: %r", sender);
+	if(access(buf, 0) < 0 && sysmkdir(buf, 0777) < 0)
 		return 0;
-	}
 
 	h = 0;
 	while(*sender)

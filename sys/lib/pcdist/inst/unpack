@@ -1,0 +1,30 @@
+#!/bin/rc
+
+# desc: unpack the distribution archives
+# prereq: mountfs
+
+switch($1){
+case checkready
+	if(! ~ $#distdir 1 || ! test -f $distdir/$distname.9gz) {
+		unpack=notdone
+		export unpack
+	}
+
+case go
+	disk/kfscmd -n$disk allow
+	if(! test -d /n/kfs/dist)
+		disk/kfscmd -n$disk 'create /dist sys sys 775 d'
+
+	sz=`{ls -l $distdir/$distname.9gz | awk '{print $6}'}
+	{ sleep 3; watchfd gunzip 0 $sz | bargraph -k -w 145,129,445,168 'unpacking file system' }&
+	wrap/inst -ovr /n/kfs $distdir/$distname.9gz >>/srv/log
+	# incorporate local vgadb changes
+	cp /lib/vgadb /n/kfs/lib/vgadb
+	disk/kfscmd -n$disk sync
+
+case checkdone
+	if(! test -f /n/kfs/wrap/*/*/md5sum) {
+		unpack=notdone
+		export unpack
+	}
+}

@@ -100,11 +100,10 @@ extern	int	pid;
 extern	int	pcsactive;
 #define	NNOTE 10
 extern	int	nnote;
-extern	char	note[NNOTE][ERRMAX];
+extern	char	note[NNOTE][ERRLEN];
 
 extern	int	ending;
 extern	Map	*cormap, *symmap, *dotmap;
 
 extern	BKPT	*bkpthead;
 extern	int	kflag;
-extern	int	lastc, peekc;

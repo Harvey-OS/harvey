@@ -10,14 +10,14 @@ void
 main(int argc, char *argv[]) {
 	char *lockfile;
 	int fd, ppid, ssize;
-	struct Dir *statbuf;
+	struct Dir statbuf;
 
 	if (argc != 4) {
 		fprint(2, "usage: LOCK lockfile hostname ppid\n");
 		exits("lock failed on usage");
 	}
 	lockfile = argv[1];
-	if ((fd=create(lockfile, ORDWR, DMEXCL|0666)) < 0) {
+	if ((fd=create(lockfile, ORDWR, CHEXCL|0666)) < 0) {
 		exits("lock failed on create");
 	}
 	ppid = atoi(argv[3]);
@@ -38,14 +38,8 @@ main(int argc, char *argv[]) {
 	}
 
 	for(;;) {
-		statbuf = dirfstat(fd);
-		if(statbuf == nil)
+		if (dirfstat(fd, &statbuf) == -1 || statbuf.length == 0)
 			break;
-		if (statbuf->length == 0){
-			free(statbuf);
-			break;
-		}
-		free(statbuf);
 		if (write(fd, "", 0) < 0)
 			break;
 		sleep(3000);

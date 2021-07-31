@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+TARG=\
+	ssh\
+	scp\
+
+OFILES=\
+	misc.$O\
+
+HFILES=\
+	../ssh.h\
+
+BIN=/$objtype/bin
+
+LIB=/$objtype/lib/libmp.a /$objtype/lib/libsec.a
+
+</sys/src/cmd/mkmany
+
+ssh.$O:			client.h
+client_messages.$O:	client.h
+client_io.$O:		client.h
+
+%.$O:	../%.c
+	$CC $CFLAGS ../$stem.c
+
+$O.ssh:	client_messages.$O client_io.$O packet.$O key.$O

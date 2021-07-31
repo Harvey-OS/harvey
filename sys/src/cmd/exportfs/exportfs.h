@@ -2,7 +2,7 @@
  * exportfs.h - definitions for exporting file server
  */
 
-#define DEBUG		if(!dbg){}else fprint
+#define DEBUG		if(!dbg);else fprint
 #define DFD		9
 #define fidhash(s)	fhash[s%FHASHSIZE]
 
@@ -18,23 +18,25 @@ struct Fsrpc
 	int	pid;		/* Pid of slave process executing the rpc */
 	int	canint;		/* Interrupt gate */
 	int	flushtag;	/* Tag on which to reply to flush */
-	Fcall work;		/* Plan 9 incoming Fcall */
-	uchar	*buf;	/* Data buffer */
+	Fcall	work;		/* Plan 9 incoming Fcall */
+	char	buf[MAXFDATA+MAXMSG];	/* Data buffer */
 };
 
 struct Fid
 {
 	int	fid;		/* system fd for i/o */
+	int	offset;		/* current file offset */
 	File	*f;		/* File attached to this fid */
 	int	mode;
 	int	nr;		/* fid number */
+	Fsrpc	*mpend;		/* Split transaction mount */
 	int	mid;		/* Mount id */
 	Fid	*next;		/* hash link */
 };
 
 struct File
 {
-	char	*name;
+	char	name[NAMELEN];
 	int	ref;
 	Qid	qid;
 	Qidtab	*qidt;
@@ -56,14 +58,15 @@ struct Qidtab
 	int	ref;
 	int	type;
 	int	dev;
-	vlong	path;
-	vlong	uniqpath;
+	ulong	path;
+	ulong	uniqpath;
 	Qidtab	*next;
 };
 
 enum
 {
 	MAXPROC		= 50,
+	DIRCHUNK	= (50*DIRLEN),
 	FHASHSIZE	= 64,
 	Nr_workbufs 	= 50,
 	Fidchunk	= 1000,
@@ -72,14 +75,17 @@ enum
 	Nqidtab		= (1<<Nqidbits),
 };
 
-char Ebadfid[];
-char Enotdir[];
-char Edupfid[];
-char Eopen[];
-char Exmnt[];
-char Enomem[];
-char Emip[];
-char Enopsmt[];
+enum
+{
+	Ebadfid,
+	Enotdir,
+	Edupfid,
+	Eopen,
+	Exmnt,
+	Enoauth,
+	Emip,
+	Enopsmt,
+};
 
 Extern Fsrpc	*Workq;
 Extern int  	dbg;
@@ -90,20 +96,19 @@ Extern Fid	*fidfree;
 Extern Proc	*Proclist;
 Extern char	psmap[Npsmpt];
 Extern Qidtab	*qidtab[Nqidtab];
-Extern ulong	messagesize;
-Extern char	Enomem[];
-Extern int		srvfd;
 
 /* File system protocol service procedures */
 void Xattach(Fsrpc*);
 void Xauth(Fsrpc*);
+void Xclone(Fsrpc*);
 void Xclunk(Fsrpc*); 
+void Xclwalk(Fsrpc*);
 void Xcreate(Fsrpc*);
 void Xflush(Fsrpc*); 
 void Xnop(Fsrpc*);
 void Xremove(Fsrpc*);
+void Xsession(Fsrpc*);
 void Xstat(Fsrpc*);
-void Xversion(Fsrpc*);
 void Xwalk(Fsrpc*);
 void Xwstat(Fsrpc*);
 void slave(Fsrpc*);
@@ -114,8 +119,8 @@ int	freefid(int);
 Fid	*newfid(int);
 Fsrpc	*getsbuf(void);
 void	initroot(void);
-void	fatal(char*, ...);
-char*	makepath(File*, char*);
+void	fatal(char*);
+void	makepath(char*, File*, char*);
 File	*file(File*, char*);
 void	freefile(File*);
 void	slaveopen(Fsrpc*);
@@ -123,11 +128,9 @@ void	slaveread(Fsrpc*);
 void	slavewrite(Fsrpc*);
 void	blockingslave(void);
 void	reopen(Fid *f);
+void	fileseek(Fid*, ulong);
 void	noteproc(int, char*);
 void	flushaction(void*, char*);
 void	pushfcall(char*);
 Qidtab* uniqueqid(Dir*);
 void	freeqid(Qidtab*);
-char*	estrdup(char*);
-void*	emallocz(uint);
-int		readmessage(int, char*, int);

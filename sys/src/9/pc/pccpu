@@ -2,19 +2,16 @@ dev
 	root
 	cons
 	arch
-	pnp		pci
 	env
 	pipe
 	proc
 	mnt
+	mntstats
 	srv
 	dup
 	rtc
 	ssl
-	tls
-	bridge		log
-	sdp		thwack unthwack
-	cap
+	loopback
 	kprof
 
 	ether		netif
@@ -23,38 +20,38 @@ dev
 	sd
 	floppy		dma
 
-	uart
+	lpt
+	ns16552
 
 link
+	ether2000	ether8390
 	ether2114x	pci
-	ether82543gc	pci
+	ether79c970	pci
+	ether8003	ether8390
 	ether82557	pci
 	etherelnk3	pci
-	ethermedium
+	etherga620	pci
 	loopbackmedium
+	ethermedium
 
 misc
-	edf
 	archmp		mp apic
 
-	uarti8250
+	ipconfig.root
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
-
-	ipconfig.root
-	factotum.root
+	sdmylex		pci sdscsi
 
 ip
 	il
 	tcp
 	udp
+	rudp
 	ipifc
 	icmp
 	gre
 	ipmux
-	esp
-	rudp
 
 port
 	int cpuserver = 1;

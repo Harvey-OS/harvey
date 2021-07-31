@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpx.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevpx.c,v 1.4 2000/09/19 19:00:22 lpd Exp $ */
 /* H-P PCL XL driver */
 #include "math_.h"
 #include "memory_.h"
@@ -479,11 +479,10 @@ pclxl_write_image_data(gx_device_pclxl * xdev, const byte * data, int data_bit,
 
 	/*
 	 * H-P printers require that all the data for an operator be
-	 * contained in a single data block.  Thus, we must allocate
-	 * a temporary buffer for the compressed data.  Currently we
-	 * don't go to the trouble of breaking the data up into scan
-	 * lines if we can't allocate a buffer large enough for the
-	 * entire transfer.
+	 * contained in a single data block.  Thus, we must allocate a
+	 * temporary buffer for the compressed data.  Currently we don't go
+	 * to the trouble of doing two passes if we can't allocate a buffer
+	 * large enough for the entire transfer.
 	 */
 	byte *buf = gs_alloc_bytes(xdev->v_memory, num_bytes,
 				   "pclxl_write_image_data");
@@ -529,10 +528,11 @@ pclxl_write_image_data(gx_device_pclxl * xdev, const byte * data, int data_bit,
 	    px_put_data_length(s, count);
 	    px_put_bytes(s, buf, count);
 	}
+	gs_free_object(xdev->v_memory, buf, "pclxl_write_image_data");
 	return;
       ncfree:gs_free_object(xdev->v_memory, buf, "pclxl_write_image_data");
-      nc:;
     }
+ nc:
     /* Write the data uncompressed. */
     px_put_ub(s, eNoCompression);
     px_put_ac(s, pxaCompressMode, pxtReadImage);
@@ -1341,8 +1341,21 @@ pclxl_strip_copy_rop(gx_device * dev, const byte * sdata, int sourcex,
 
 /* ------ High-level images ------ */
 
-typedef gdev_vector_image_enum_t pclxl_image_enum_t;
-#define st_pclxl_image_enum st_vector_image_enum
+#define MAX_ROW_DATA 4000	/* arbitrary */
+typedef struct pclxl_image_enum_s {
+    gdev_vector_image_enum_common;
+    gs_matrix mat;
+    struct ir_ {
+	byte *data;
+	int num_rows;		/* # of allocated rows */
+	int first_y;
+	uint raster;
+    } rows;
+} pclxl_image_enum_t;
+gs_private_st_suffix_add1(st_pclxl_image_enum, pclxl_image_enum_t,
+			  "pclxl_image_enum_t", pclxl_image_enum_enum_ptrs,
+			  pclxl_image_enum_reloc_ptrs, st_vector_image_enum,
+			  rows.data);
 
 /* Start processing an image. */
 private int
@@ -1357,6 +1370,9 @@ pclxl_begin_image(gx_device * dev,
     gx_device_pclxl *const xdev = (gx_device_pclxl *)dev;
     const gs_color_space *pcs = pim->ColorSpace;
     pclxl_image_enum_t *pie;
+    byte *row_data;
+    int num_rows;
+    uint row_raster;
     /*
      * Following should divide by num_planes, but we only handle chunky
      * images, i.e., num_planes = 1.
@@ -1383,37 +1399,48 @@ pclxl_begin_image(gx_device * dev,
 	format != gs_image_format_chunky ||
 	prect
 	)
-	return gx_default_begin_image(dev, pis, pim, format, prect,
-				      pdcolor, pcpath, mem, pinfo);
+	goto use_default;
+    row_raster = (bits_per_pixel * pim->Width + 7) >> 3;
+    num_rows = MAX_ROW_DATA / row_raster;
+    if (num_rows > pim->Height)
+	num_rows = pim->Height;
+    if (num_rows <= 0)
+	num_rows = 1;
     pie = gs_alloc_struct(mem, pclxl_image_enum_t, &st_pclxl_image_enum,
 			  "pclxl_begin_image");
-    if (pie == 0)
-	return_error(gs_error_VMerror);
+    row_data = gs_alloc_bytes(mem, num_rows * row_raster,
+			      "pclxl_begin_image(rows)");
+    if (pie == 0 || row_data == 0) {
+	code = gs_note_error(gs_error_VMerror);
+	goto fail;
+    }
     code = gdev_vector_begin_image(vdev, pis, pim, format, prect,
 				   pdcolor, pcpath, mem,
-				   &pclxl_image_enum_procs, pie);
+				   &pclxl_image_enum_procs,
+				   (gdev_vector_image_enum_t *)pie);
     if (code < 0)
 	return code;
+    pie->mat = mat;
+    pie->rows.data = row_data;
+    pie->rows.num_rows = num_rows;
+    pie->rows.first_y = 0;
+    pie->rows.raster = row_raster;
     *pinfo = (gx_image_enum_common_t *) pie;
-    pclxl_set_cursor(xdev, (int)((mat.tx + 0.5) / xdev->scale.x),
-		     (int)((mat.ty + 0.5) / xdev->scale.y));
     {
-	stream *s = pclxl_stream(xdev);
 	gs_logical_operation_t lop = pis->log_op;
 
 	if (pim->ImageMask) {
+	    const byte *palette = (const byte *)
+		(pim->Decode[0] ? "\377\000" : "\000\377");
+
 	    code = gdev_vector_update_fill_color(vdev, pdcolor);
 	    if (code < 0)
-		return 0;
+		goto fail;
 	    code = gdev_vector_update_log_op
 		(vdev, lop | rop3_S | lop_S_transparent);
 	    if (code < 0)
-		return 0;
-	    pclxl_set_color_palette(xdev, eGray,
-				    (pim->Decode[0] ?
-				     (const byte *)"\377\000" :
-				     (const byte *)"\000\377"),
-				    2);
+		goto fail;
+	    pclxl_set_color_palette(xdev, eGray, palette, 2);
 	} else {
 	    int bpc = pim->BitsPerComponent;
 	    int num_components = pie->plane_depths[0] * pie->num_planes / bpc;
@@ -1424,11 +1451,12 @@ pclxl_begin_image(gx_device * dev,
 	    code = gdev_vector_update_log_op
 		(vdev, (pim->CombineWithColor ? lop : rop3_know_T_0(lop)));
 	    if (code < 0)
-		return code;
+		goto fail;
 	    for (i = 0; i < 1 << bits_per_pixel; ++i) {
 		gs_client_color cc;
 		gx_device_color devc;
 		int cv = i, j;
+		gx_color_index ci;
 
 		for (j = num_components - 1; j >= 0; cv >>= bpc, --j)
 		    cc.paint.values[j] = pim->Decode[j * 2] +
@@ -1439,10 +1467,10 @@ pclxl_begin_image(gx_device * dev,
 		    (&cc, pcs, &devc, pis, dev, gs_color_select_source);
 		if (!gx_dc_is_pure(&devc))
 		    return_error(gs_error_Fatal);
-		if (dev->color_info.num_components == 1)
-		    palette[i] = (byte) gx_dc_pure_color(&devc);
-		else {
-		    gx_color_index ci = gx_dc_pure_color(&devc);
+		ci = gx_dc_pure_color(&devc);
+		if (dev->color_info.num_components == 1) {
+		    palette[i] = (byte)ci;
+		} else {
 		    byte *ppal = &palette[i * 3];
 
 		    ppal[0] = (byte) (ci >> 16);
@@ -1457,19 +1485,54 @@ pclxl_begin_image(gx_device * dev,
 		pclxl_set_color_palette(xdev, eRGB, palette,
 					3 << bits_per_pixel);
 	}
-	{
-	    static const byte ii_[] = {
-		DA(pxaColorDepth),
-		DUB(eIndexedPixel), DA(pxaColorMapping)
-	    };
-
-	    px_put_ub(s, eBit_values[bits_per_pixel]);
-	    PX_PUT_LIT(s, ii_);
-	}
-	pclxl_write_begin_image(xdev, pim->Width, pim->Height,
-				(uint) (pim->Width * mat.xx),
-				(uint) (pim->Height * mat.yy));
     }
+    return 0;
+ fail:
+    gs_free_object(mem, row_data, "pclxl_begin_image(rows)");
+    gs_free_object(mem, pie, "pclxl_begin_image");
+ use_default:
+    return gx_default_begin_image(dev, pis, pim, format, prect,
+				  pdcolor, pcpath, mem, pinfo);
+}
+
+/* Write one strip of an image, from pie->rows.first_y to pie->y. */
+private int
+image_transform_x(const pclxl_image_enum_t *pie, int sx)
+{
+    return (int)((pie->mat.tx + sx * pie->mat.xx + 0.5) /
+		 ((const gx_device_pclxl *)pie->dev)->scale.x);
+}
+private int
+image_transform_y(const pclxl_image_enum_t *pie, int sy)
+{
+    return (int)((pie->mat.ty + sy * pie->mat.yy + 0.5) /
+		 ((const gx_device_pclxl *)pie->dev)->scale.y);
+}
+private int
+pclxl_image_write_rows(pclxl_image_enum_t *pie)
+{
+    gx_device_pclxl *const xdev = (gx_device_pclxl *)pie->dev;
+    stream *s = pclxl_stream(xdev);
+    int y = pie->rows.first_y;
+    int h = pie->y - y;
+    int xo = image_transform_x(pie, 0);
+    int yo = image_transform_y(pie, y);
+    int dw = image_transform_x(pie, pie->width) - xo;
+    int dh = image_transform_y(pie, y + h) - yo;
+    static const byte ii_[] = {
+	DA(pxaColorDepth),
+	DUB(eIndexedPixel), DA(pxaColorMapping)
+    };
+
+    if (dw <= 0 || dh <= 0)
+	return 0;
+    pclxl_set_cursor(xdev, xo, yo);
+    px_put_ub(s, eBit_values[pie->bits_per_pixel]);
+    PX_PUT_LIT(s, ii_);
+    pclxl_write_begin_image(xdev, pie->width, h, dw, dh);
+    pclxl_write_image_data(xdev, pie->rows.data, 0, pie->rows.raster,
+			   pie->rows.raster << 3, 0, h);
+    pclxl_write_end_image(xdev);
     return 0;
 }
 
@@ -1479,46 +1542,44 @@ pclxl_image_plane_data(gx_image_enum_common_t * info,
 		       const gx_image_plane_t * planes, int height,
 		       int *rows_used)
 {
-    gx_device *dev = info->dev;
-    gx_device_pclxl *const xdev = (gx_device_pclxl *)dev;
     pclxl_image_enum_t *pie = (pclxl_image_enum_t *) info;
+    int data_bit = planes[0].data_x * info->plane_depths[0];
+    int width_bits = pie->width * info->plane_depths[0];
+    int i;
 
+    /****** SHOULD HANDLE NON-BYTE-ALIGNED DATA ******/
+    if (width_bits != pie->bits_per_row || (data_bit & 7) != 0)
+	return_error(gs_error_rangecheck);
     if (height > pie->height - pie->y)
 	height = pie->height - pie->y;
-    pclxl_write_image_data(xdev, planes[0].data,
-			   planes[0].data_x * info->plane_depths[0],
-			   planes[0].raster,
-			   pie->width * info->plane_depths[0],
-			   pie->y, height);
+    for (i = 0; i < height; pie->y++, ++i) {
+	if (pie->y - pie->rows.first_y == pie->rows.num_rows) {
+	    int code = pclxl_image_write_rows(pie);
+
+	    if (code < 0)
+		return code;
+	    pie->rows.first_y = pie->y;
+	}
+	memcpy(pie->rows.data +
+	         pie->rows.raster * (pie->y - pie->rows.first_y),
+	       planes[0].data + planes[0].raster * i + (data_bit >> 3),
+	       pie->rows.raster);
+    }
     *rows_used = height;
-    return (pie->y += height) >= pie->height;
+    return pie->y >= pie->height;
 }
 
 /* Clean up by releasing the buffers. */
 private int
 pclxl_image_end_image(gx_image_enum_common_t * info, bool draw_last)
 {
-    gx_device *dev = info->dev;
-    gx_device_pclxl *const xdev = (gx_device_pclxl *)dev;
     pclxl_image_enum_t *pie = (pclxl_image_enum_t *) info;
     int code = 0;
 
-    /* Fill out to the full image height. */
-    /****** WRONG -- REST OF IMAGE SHOULD BE TRANSPARENT ******/
-    if (pie->height > pie->y) {
-	uint bytes_per_row = (pie->bits_per_row + 7) >> 3;
-	byte *row = gs_alloc_bytes(pie->memory, bytes_per_row,
-				   "pclxl_end_image(fill)");
-
-	if (row == 0)
-	    return_error(gs_error_VMerror);
-	memset(row, 0, bytes_per_row);
-	for (; pie->y < pie->height; pie->y++)
-	    pclxl_write_image_data(xdev, row, 0, bytes_per_row,
-				   pie->bits_per_row, pie->y, 1);
-	gs_free_object(pie->memory, row, "pclxl_end_image(fill)");
-    }
-    pclxl_write_end_image(xdev);
+    /* Write the final strip, if any. */
+    if (pie->y > pie->rows.first_y && draw_last)
+	code = pclxl_image_write_rows(pie);
+    gs_free_object(pie->memory, pie->rows.data, "pclxl_end_image(rows)");
     gs_free_object(pie->memory, pie, "pclxl_end_image");
     return code;
 }

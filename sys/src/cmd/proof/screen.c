@@ -40,7 +40,7 @@ screenprint(char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	vseprint(buf, &buf[sizeof buf], fmt, args);
+	doprint(buf, &buf[sizeof buf], fmt, args);
 	va_end(args);
 	p = Pt(screen->clipr.min.x+40, screen->clipr.max.y-40);
 	string(screen, p, display->black, ZP, font, buf);
@@ -55,16 +55,13 @@ getcmdstr(void)
 	int e;
 	static ulong timekey = 0;
 	ulong tracktm = 0;
-	Dir *dir;
+	Dir dir;
 
 	if(track){
 		if(timekey == 0)
 			timekey = etimer(0, 5000);
-		dir = dirstat(track);
-		if(dir != nil){
-			tracktm = dir->mtime;
-			free(dir);
-		}
+		if(dirstat(track, &dir) >= 0)
+			tracktm = dir.mtime;
 	}
 	for (;;) {
 		e = event(&ev);
@@ -78,16 +75,10 @@ getcmdstr(void)
 		} else if (e & Ekeyboard)
 			return getkbdstr(ev.kbdc);	/* sadly, no way to unget */
 		else if (e & timekey) {
-			if((dir = dirstat(track)) != nil){
-				if(tracktm < dir->mtime){
-					free(dir);
-					return "q";
-				}
-				free(dir);
-			}
+			if((dirstat(track, &dir) >= 0) && (tracktm < dir.mtime))
+				return "q";
 		}
 	}
-	return nil;
 }
 
 static char *

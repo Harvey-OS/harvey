@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gximage3.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gximage3.c,v 1.6 2000/09/19 19:00:38 lpd Exp $ */
 /* ImageType 3 image implementation */
 #include "math_.h"		/* for ceil, floor */
 #include "memory_.h"
@@ -24,12 +24,11 @@
 #include "gserrors.h"
 #include "gsbitops.h"
 #include "gscspace.h"
-#include "gsiparm3.h"
 #include "gsstruct.h"
 #include "gxdevice.h"
 #include "gxdevmem.h"
 #include "gxclipm.h"
-#include "gxiparam.h"
+#include "gximage3.h"
 #include "gxistate.h"
 
 /* Forward references */
@@ -40,7 +39,7 @@ private image_enum_proc_flush(gx_image3_flush);
 private image_enum_proc_planes_wanted(gx_image3_planes_wanted);
 
 /* GC descriptor */
-public_st_gs_image3();
+private_st_gs_image3();
 
 /* Define the image type for ImageType 3 images. */
 const gx_image_type_t gs_image_type_3 = {
@@ -67,11 +66,14 @@ gs_image3_t_init(gs_image3_t * pim, const gs_color_space * color_space,
  * We implement ImageType 3 images by interposing a mask clipper in
  * front of an ordinary ImageType 1 image.  Note that we build up the
  * mask row-by-row as we are processing the image.
+ *
+ * We export a generalized form of the begin_image procedure for use by
+ * the PDF and PostScript writers.
  */
 typedef struct gx_image3_enum_s {
     gx_image_enum_common;
-    gx_device_memory *mdev;
-    gx_device_mask_clip *pcdev;
+    gx_device *mdev;		/* gx_device_memory in default impl. */
+    gx_device *pcdev;		/* gx_device_mask_clip in default impl. */
     gx_image_enum_common_t *mask_info;
     gx_image_enum_common_t *pixel_info;
     gs_image3_interleave_type_t InterleaveType;
@@ -93,20 +95,110 @@ gs_private_st_suffix_add6(st_image3_enum, gx_image3_enum_t, "gx_image3_enum_t",
   image3_enum_enum_ptrs, image3_enum_reloc_ptrs, st_gx_image_enum_common,
   mdev, pcdev, pixel_info, mask_info, pixel_data, mask_data);
 
-/* Begin an ImageType 3 image. */
-private bool check_image3_extent(P2(floatp mask_coeff, floatp data_coeff));
+/* Define the default implementation of ImageType 3 processing. */
+private IMAGE3_MAKE_MID_PROC(make_mid_default); /* check prototype */
+private int
+make_mid_default(gx_device **pmidev, gx_device *dev, int width, int height,
+		 gs_memory_t *mem)
+{
+    gx_device_memory *midev =
+	gs_alloc_struct(mem, gx_device_memory, &st_device_memory,
+			"make_mid_default");
+    int code;
+
+    if (midev == 0)
+	return_error(gs_error_VMerror);
+    gs_make_mem_mono_device(midev, mem, NULL);
+    midev->bitmap_memory = mem;
+    midev->width = width;
+    midev->height = height;
+    gx_device_fill_in_procs((gx_device *)midev);
+    code = dev_proc(midev, open_device)((gx_device *)midev);
+    if (code < 0) {
+	gs_free_object(mem, midev, "make_mid_default");
+	return code;
+    }
+    midev->is_open = true;
+    dev_proc(midev, fill_rectangle)
+	((gx_device *)midev, 0, 0, width, height, (gx_color_index)0);
+    *pmidev = (gx_device *)midev;
+    return 0;
+}
+private IMAGE3_MAKE_MCDE_PROC(make_mcde_default);  /* check prototype */
+private int
+make_mcde_default(gx_device *dev, const gs_imager_state *pis,
+		  const gs_matrix *pmat, const gs_image_common_t *pic,
+		  const gs_int_rect *prect, const gx_drawing_color *pdcolor,
+		  const gx_clip_path *pcpath, gs_memory_t *mem,
+		  gx_image_enum_common_t **pinfo,
+		  gx_device **pmcdev, gx_device *midev,
+		  gx_image_enum_common_t *pminfo,
+		  const gs_int_point *origin)
+{
+    gx_device_memory *const mdev = (gx_device_memory *)midev;
+    gx_device_mask_clip *mcdev =
+	gs_alloc_struct(mem, gx_device_mask_clip, &st_device_mask_clip,
+			"make_mcde_default");
+    gx_strip_bitmap bits;	/* only gx_bitmap */
+    int code;
+
+    if (mcdev == 0)
+	return_error(gs_error_VMerror);
+    bits.data = mdev->base;
+    bits.raster = mdev->raster;
+    bits.size.x = mdev->width;
+    bits.size.y = mdev->height;
+    bits.id = gx_no_bitmap_id;
+    code = gx_mask_clip_initialize(mcdev, &gs_mask_clip_device,
+				   (const gx_bitmap *)&bits, dev,
+				   origin->x, origin->y, mem);
+    if (code < 0) {
+	gs_free_object(mem, mcdev, "make_mcde_default");
+	return code;
+    }
+    mcdev->tiles = bits;
+    code = dev_proc(mcdev, begin_typed_image)
+	((gx_device *)mcdev, pis, pmat, pic, prect, pdcolor, pcpath, mem,
+	 pinfo);
+    if (code < 0) {
+	gs_free_object(mem, mcdev, "make_mcde_default");
+	return code;
+    }
+    *pmcdev = (gx_device *)mcdev;
+    return 0;
+}
 private int
 gx_begin_image3(gx_device * dev,
 		const gs_imager_state * pis, const gs_matrix * pmat,
 		const gs_image_common_t * pic, const gs_int_rect * prect,
-	      const gx_drawing_color * pdcolor, const gx_clip_path * pcpath,
+		const gx_drawing_color * pdcolor, const gx_clip_path * pcpath,
 		gs_memory_t * mem, gx_image_enum_common_t ** pinfo)
+{
+    return gx_begin_image3_generic(dev, pis, pmat, pic, prect, pdcolor,
+				   pcpath, mem, make_mid_default,
+				   make_mcde_default, pinfo);
+}
+
+/*
+ * Begin a generic ImageType 3 image, with client handling the creation of
+ * the mask image and mask clip devices.
+ */
+private bool check_image3_extent(P2(floatp mask_coeff, floatp data_coeff));
+int
+gx_begin_image3_generic(gx_device * dev,
+			const gs_imager_state *pis, const gs_matrix *pmat,
+			const gs_image_common_t *pic, const gs_int_rect *prect,
+			const gx_drawing_color *pdcolor,
+			const gx_clip_path *pcpath, gs_memory_t *mem,
+			image3_make_mid_proc_t make_mid,
+			image3_make_mcde_proc_t make_mcde,
+			gx_image_enum_common_t **pinfo)
 {
     const gs_image3_t *pim = (const gs_image3_t *)pic;
     gx_image3_enum_t *penum;
     gs_int_rect mask_rect, data_rect;
-    gx_device_memory *mdev;
-    gx_device_mask_clip *pcdev;
+    gx_device *mdev = 0;
+    gx_device *pcdev = 0;
     gs_image_t i_pixel, i_mask;
     gs_matrix mi_pixel, mi_mask, mat;
     gs_rect mrect;
@@ -209,16 +301,6 @@ gx_begin_image3(gx_device * dev,
     penum->pixel_height = data_rect.q.y - data_rect.p.y;
     penum->pixel_full_height = pim->Height;
     penum->pixel_y = 0;
-    penum->mdev = mdev =
-	gs_alloc_struct(mem, gx_device_memory, &st_device_memory,
-			"gx_begin_image3(mdev)");
-    if (mdev == 0)
-	goto out1;
-    penum->pcdev = pcdev =
-	gs_alloc_struct(mem, gx_device_mask_clip, &st_device_mask_clip,
-			"gx_begin_image3(pcdev)");
-    if (pcdev == 0)
-	goto out2;
     penum->mask_info = 0;
     penum->pixel_info = 0;
     if (pim->InterleaveType == interleave_chunky) {
@@ -231,14 +313,14 @@ gx_begin_image3(gx_device * dev,
 	penum->mask_data =
 	    gs_alloc_bytes(mem, (penum->mask_width + 7) >> 3,
 			   "gx_begin_image3(mask_data)");
-	if (penum->pixel_data == 0 || penum->mask_data == 0)
-	    goto out3;
+	if (penum->pixel_data == 0 || penum->mask_data == 0) {
+	    code = gs_note_error(gs_error_VMerror);
+	    goto out1;
+	}
     }
     penum->InterleaveType = pim->InterleaveType;
     penum->bpc = pim->BitsPerComponent;
     penum->memory = mem;
-    gs_make_mem_mono_device(mdev, mem, NULL);
-    mdev->bitmap_memory = mem;
     mrect.p.x = mrect.p.y = 0;
     mrect.q.x = pim->MaskDict.Width;
     mrect.q.y = pim->MaskDict.Height;
@@ -249,29 +331,12 @@ gx_begin_image3(gx_device * dev,
 	)
 	return code;
     origin.x = floor(mrect.p.x);
-    mdev->width = (int)ceil(mrect.q.x) - origin.x;
     origin.y = floor(mrect.p.y);
-    mdev->height = (int)ceil(mrect.q.y) - origin.y;
-    gx_device_fill_in_procs((gx_device *) mdev);
-    code = (*dev_proc(mdev, open_device)) ((gx_device *) mdev);
+    code = make_mid(&mdev, dev, (int)ceil(mrect.q.x) - origin.x,
+		    (int)ceil(mrect.q.y) - origin.y, mem);
     if (code < 0)
-	goto out3;
-    mdev->is_open = true;
-    {
-	gx_strip_bitmap bits;	/* only gx_bitmap */
-
-	bits.data = mdev->base;
-	bits.raster = mdev->raster;
-	bits.size.x = mdev->width;
-	bits.size.y = mdev->height;
-	bits.id = gx_no_bitmap_id;
-	code = gx_mask_clip_initialize(pcdev, &gs_mask_clip_device,
-				       (const gx_bitmap *)&bits, dev,
-				       origin.x, origin.y, mem);
-	if (code < 0)
-	    goto out4;
-	pcdev->tiles = bits;
-    }
+	goto out1;
+    penum->mdev = mdev;
     gs_image_t_init_mask(&i_mask, false);
     i_mask.adjust = false;
     {
@@ -285,9 +350,6 @@ gx_begin_image3(gx_device * dev,
 	gx_drawing_color dcolor;
 	gs_matrix m_mat;
 
-	(*dev_proc(mdev, fill_rectangle))
-	    ((gx_device *) mdev, 0, 0, mdev->width, mdev->height,
-	     (gx_color_index) 0);
 	color_set_pure(&dcolor, 1);
 	/*
 	 * Adjust the translation for rendering the mask to include a
@@ -300,12 +362,12 @@ gx_begin_image3(gx_device * dev,
 	 * Note that pis = NULL here, since we don't want to have to
 	 * create another imager state with default log_op, etc.
 	 */
-	code = gx_device_begin_typed_image((gx_device *)mdev, NULL, &m_mat,
+	code = gx_device_begin_typed_image(mdev, NULL, &m_mat,
 					   (const gs_image_common_t *)&i_mask,
 					   &mask_rect, &dcolor, NULL, mem,
 					   &penum->mask_info);
 	if (code < 0)
-	    goto out5;
+	    goto out2;
     }
     gs_image_t_init(&i_pixel, pim->ColorSpace);
     {
@@ -314,11 +376,12 @@ gx_begin_image3(gx_device * dev,
 	*(gs_pixel_image_t *)&i_pixel = *(const gs_pixel_image_t *)pim;
 	i_pixel.type = type1;
     }
-    code = gx_device_begin_typed_image((gx_device *) pcdev, pis, pmat,
-				       (const gs_image_common_t *)&i_pixel,
-			   prect, pdcolor, pcpath, mem, &penum->pixel_info);
+    code = make_mcde(dev, pis, pmat, (const gs_image_common_t *)&i_pixel,
+		     prect, pdcolor, pcpath, mem, &penum->pixel_info,
+		     &pcdev, mdev, penum->mask_info, &origin);
     if (code < 0)
-	goto out6;
+	goto out3;
+    penum->pcdev = pcdev;
     /*
      * Set num_planes, plane_widths, and plane_depths from the values in the
      * enumerators for the mask and the image data.
@@ -353,19 +416,20 @@ gx_begin_image3(gx_device * dev,
 	       (penum->num_planes - 1) * sizeof(penum->plane_depths[0]));
 	break;
     }
-    gx_device_retain((gx_device *)mdev, true); /* will free explicitly */
-    gx_device_retain((gx_device *)pcdev, true); /* ditto */
+    gx_device_retain(mdev, true); /* will free explicitly */
+    gx_device_retain(pcdev, true); /* ditto */
     *pinfo = (gx_image_enum_common_t *) penum;
     return 0;
-  out6:gx_image_end(penum->mask_info, false);
-  out5:gs_closedevice((gx_device *) pcdev);
-  out4:gs_closedevice((gx_device *) mdev);
-  out3:gs_free_object(mem, pcdev, "gx_begin_image3(pcdev)");
-  out2:gs_free_object(mem, mdev, "gx_begin_image3(mdev)");
-  out1:gs_free_object(mem, penum->mask_data, "gx_begin_image3(mask_data)");
+  out3:
+    gx_image_end(penum->mask_info, false);
+  out2:
+    gs_closedevice(mdev);
+    gs_free_object(mem, mdev, "gx_begin_image3(mdev)");
+  out1:
+    gs_free_object(mem, penum->mask_data, "gx_begin_image3(mask_data)");
     gs_free_object(mem, penum->pixel_data, "gx_begin_image3(pixel_data)");
     gs_free_object(mem, penum, "gx_begin_image3");
-    return_error(gs_error_VMerror);
+    return code;
 }
 private bool
 check_image3_extent(floatp mask_coeff, floatp data_coeff)
@@ -657,13 +721,13 @@ gx_image3_end_image(gx_image_enum_common_t * info, bool draw_last)
 {
     gx_image3_enum_t *penum = (gx_image3_enum_t *) info;
     gs_memory_t *mem = penum->memory;
-    gx_device_memory *mdev = penum->mdev;
+    gx_device *mdev = penum->mdev;
     int mcode = gx_image_end(penum->mask_info, draw_last);
-    gx_device_mask_clip *pcdev = penum->pcdev;
+    gx_device *pcdev = penum->pcdev;
     int pcode = gx_image_end(penum->pixel_info, draw_last);
 
-    gs_closedevice((gx_device *) pcdev);
-    gs_closedevice((gx_device *) mdev);
+    gs_closedevice(pcdev);
+    gs_closedevice(mdev);
     gs_free_object(mem, penum->mask_data,
 		   "gx_image3_end_image(mask_data)");
     gs_free_object(mem, penum->pixel_data,

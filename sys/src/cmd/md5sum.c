@@ -6,16 +6,17 @@
 #pragma	varargck	type	"M"	uchar*
 
 static int
-digestfmt(Fmt *fmt)
+md5conv(va_list *va, Fconv *fp)
 {
 	char buf[MD5dlen*2+1];
 	uchar *p;
 	int i;
 
-	p = va_arg(fmt->args, uchar*);
+	p = va_arg(*va, uchar*);
 	for(i=0; i<MD5dlen; i++)
 		sprint(buf+2*i, "%.2ux", p[i]);
-	return fmtstrcpy(fmt, buf);
+	strconv(buf, fp);
+	return 0;
 }
 
 static void
@@ -46,7 +47,7 @@ main(int argc, char *argv[])
 		exits("usage");
 	}ARGEND
 
-	fmtinstall('M', digestfmt);
+	fmtinstall('M', md5conv);
 
 	if(argc == 0)
 		sum(0, nil);

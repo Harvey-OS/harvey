@@ -6,7 +6,7 @@
 #define O(x) (x)
 #define A(x) (U(x)|G(x)|O(x))
 
-#define DMRWE (DMREAD|DMWRITE|DMEXEC)
+#define CHRWE (CHREAD|CHWRITE|CHEXEC)
 
 int parsemode(char *, ulong *, ulong *);
 
@@ -14,9 +14,10 @@ void
 main(int argc, char *argv[])
 {
 	int i;
-	Dir *dir, ndir;
+	Dir dir;
 	ulong mode, mask;
 	char *p;
+	char err[ERRLEN];
 
 	if(argc < 3){
 		fprint(2, "usage: chmod 0777 file ... or chmod [who]op[rwxal] file ...\n");
@@ -24,22 +25,21 @@ main(int argc, char *argv[])
 	}
 	mode = strtol(argv[1], &p, 8);
 	if(*p == 0)
-		mask = A(DMRWE);
+		mask = A(CHRWE);
 	else if(!parsemode(argv[1], &mask, &mode)){
 		fprint(2, "chmod: bad mode: %s\n", argv[1]);
 		exits("mode");
 	}
-	nulldir(&ndir);
 	for(i=2; i<argc; i++){
-		dir = dirstat(argv[i]);
-		if(dir == nil){
-			fprint(2, "chmod: can't stat %s: %r\n", argv[i]);
+		if(dirstat(argv[i], &dir)==-1){
+			errstr(err);
+			fprint(2, "chmod: can't stat %s: %s\n", argv[i], err);
 			continue;
 		}
-		ndir.mode = (dir->mode & ~mask) | (mode & mask);
-		free(dir);
-		if(dirwstat(argv[i], &ndir)==-1){
-			fprint(2, "chmod: can't wstat %s: %r\n", argv[i]);
+		dir.mode = (dir.mode & ~mask) | (mode & mask);
+		if(dirwstat(argv[i], &dir)==-1){
+			errstr(err);
+			fprint(2, "chmod: can't wstat %s: %s\n", argv[i], err);
 			continue;
 		}
 	}
@@ -54,17 +54,17 @@ parsemode(char *spec, ulong *pmask, ulong *pmode)
 	char *s;
 
 	s = spec;
-	mask = DMAPPEND | DMEXCL;
+	mask = CHAPPEND | CHEXCL;
 	for(done=0; !done; ){
 		switch(*s){
 		case 'u':
-			mask |= U(DMRWE); break;
+			mask |= U(CHRWE); break;
 		case 'g':
-			mask |= G(DMRWE); break;
+			mask |= G(CHRWE); break;
 		case 'o':
-			mask |= O(DMRWE); break;
+			mask |= O(CHRWE); break;
 		case 'a':
-			mask |= A(DMRWE); break;
+			mask |= A(CHRWE); break;
 		case 0:
 			return 0;
 		default:
@@ -74,7 +74,7 @@ parsemode(char *spec, ulong *pmask, ulong *pmode)
 			s++;
 	}
 	if(s == spec)
-		mask |= A(DMRWE);
+		mask |= A(CHRWE);
 	op = *s++;
 	if(op != '+' && op != '-' && op != '=')
 		return 0;
@@ -82,15 +82,15 @@ parsemode(char *spec, ulong *pmask, ulong *pmode)
 	for(; *s ; s++){
 		switch(*s){
 		case 'r':
-			mode |= A(DMREAD); break;
+			mode |= A(CHREAD); break;
 		case 'w':
-			mode |= A(DMWRITE); break;
+			mode |= A(CHWRITE); break;
 		case 'x':
-			mode |= A(DMEXEC); break;
+			mode |= A(CHEXEC); break;
 		case 'a':
-			mode |= DMAPPEND; break;
+			mode |= CHAPPEND; break;
 		case 'l':
-			mode |= DMEXCL; break;
+			mode |= CHEXCL; break;
 		default:
 			return 0;
 		}

@@ -35,16 +35,16 @@ etherattach(char* spec)
 	return chan;
 }
 
-static Walkqid*
-etherwalk(Chan* chan, Chan* nchan, char** name, int nname)
+static int
+etherwalk(Chan* chan, char* name)
 {
-	return netifwalk(etherxx[chan->dev], chan, nchan, name, nname);
+	return netifwalk(etherxx[chan->dev], chan, name);
 }
 
-static int
-etherstat(Chan* chan, uchar* dp, int n)
+static void
+etherstat(Chan* chan, char* dp)
 {
-	return netifstat(etherxx[chan->dev], chan, dp, n);
+	netifstat(etherxx[chan->dev], chan, dp);
 }
 
 static Chan*
@@ -71,7 +71,7 @@ etherread(Chan* chan, void* buf, long n, vlong off)
 	ulong offset = off;
 
 	ether = etherxx[chan->dev];
-	if((chan->qid.type & QTDIR) == 0 && ether->ifstat){
+	if((chan->qid.path & CHDIR) == 0 && ether->ifstat){
 		/*
 		 * With some controllers it is necessary to reach
 		 * into the chip to extract statistics.
@@ -91,17 +91,23 @@ etherbread(Chan* chan, long n, ulong offset)
 	return netifbread(etherxx[chan->dev], chan, n, offset);
 }
 
-static int
-etherwstat(Chan* chan, uchar* dp, int n)
+static void
+etherremove(Chan*)
 {
-	return netifwstat(etherxx[chan->dev], chan, dp, n);
+}
+
+static void
+etherwstat(Chan* chan, char* dp)
+{
+	netifwstat(etherxx[chan->dev], chan, dp);
 }
 
 static void
 etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 {
-	int i, n;
+	int n;
 	Block *bp;
+	uvlong ts;
 
 	if(qwindow(f->in) <= 0)
 		return;
@@ -109,18 +115,22 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 		n = 58;
 	else
 		n = len;
-	bp = iallocb(64);
+	bp = iallocb(68);
 	if(bp == nil)
 		return;
 	memmove(bp->wp, pkt->d, n);
-	i = TK2MS(MACHP(0)->ticks);
+	ts = fastticks(nil);
 	bp->wp[58] = len>>8;
 	bp->wp[59] = len;
-	bp->wp[60] = i>>24;
-	bp->wp[61] = i>>16;
-	bp->wp[62] = i>>8;
-	bp->wp[63] = i;
-	bp->wp += 64;
+	bp->wp[60] = ts>>56;
+	bp->wp[61] = ts>>48;
+	bp->wp[62] = ts>>40;
+	bp->wp[63] = ts>>32;
+	bp->wp[64] = ts>>24;
+	bp->wp[65] = ts>>16;
+	bp->wp[66] = ts>>8;
+	bp->wp[67] = ts;
+	bp->wp += 68;
 	qpass(f->in, bp);
 }
 
@@ -176,8 +186,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 				else if(xbp = iallocb(len)){
 					memmove(xbp->wp, pkt, len);
 					xbp->wp += len;
-					if(qpass(f->in, xbp) < 0)
-						ether->soverflows++;
+					qpass(f->in, xbp);
 				}
 				else
 					ether->soverflows++;
@@ -260,13 +269,8 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 		error(Etoosmall);
 
 	bp = allocb(n);
-	if(waserror()){
-		freeb(bp);
-		nexterror();
-	}
 	memmove(bp->rp, buf, n);
 	memmove(bp->rp+Eaddrlen, ether->ea, Eaddrlen);
-	poperror();
 	bp->wp += n;
 
 	return etheroq(ether, bp);
@@ -343,140 +347,87 @@ parseether(uchar *to, char *from)
 	return 0;
 }
 
-static Ether*
-etherprobe(int cardno, int ctlrno)
-{
-	int i;
-	Ether *ether;
-	char buf[128], name[32];
-
-	ether = malloc(sizeof(Ether));
-	memset(ether, 0, sizeof(Ether));
-	ether->ctlrno = ctlrno;
-	ether->tbdf = BUSUNKNOWN;
-	ether->mbps = 10;
-	ether->minmtu = ETHERMINTU;
-	ether->maxmtu = ETHERMAXTU;
-
-	if(cardno < 0){
-		if(isaconfig("ether", ctlrno, ether) == 0){
-			free(ether);
-			return nil;
-		}
-		for(cardno = 0; cards[cardno].type; cardno++){
-			if(cistrcmp(cards[cardno].type, ether->type))
-				continue;
-			for(i = 0; i < ether->nopt; i++){
-				if(strncmp(ether->opt[i], "ea=", 3))
-					continue;
-				if(parseether(ether->ea, &ether->opt[i][3]))
-					memset(ether->ea, 0, Eaddrlen);
-			}
-			break;
-		}
-	}
-
-	if(cardno >= MaxEther || cards[cardno].type == nil){
-		free(ether);
-		return nil;
-	}
-	if(cards[cardno].reset(ether) < 0){
-		free(ether);
-		return nil;
-	}
-
-	/*
-	 * IRQ2 doesn't really exist, it's used to gang the interrupt
-	 * controllers together. A device set to IRQ2 will appear on
-	 * the second interrupt controller as IRQ9.
-	 */
-	if(ether->irq == 2)
-		ether->irq = 9;
-	snprint(name, sizeof(name), "ether%d", ctlrno);
-
-	/*
-	 * If ether->irq is 0, it is a hack to indicate no interrupt
-	 * used by ethersink.
-	 */
-	if(ether->irq > 0)
-		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
-
-	i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %lud",
-		ctlrno, cards[cardno].type, ether->mbps, ether->port, ether->irq);
-	if(ether->mem)
-		i += sprint(buf+i, " addr 0x%luX", PADDR(ether->mem));
-	if(ether->size)
-		i += sprint(buf+i, " size 0x%luX", ether->size);
-	i += sprint(buf+i, ": %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX",
-		ether->ea[0], ether->ea[1], ether->ea[2],
-		ether->ea[3], ether->ea[4], ether->ea[5]);
-	sprint(buf+i, "\n");
-	print(buf);
-
-	if(ether->mbps >= 100){
-		netifinit(ether, name, Ntypes, 256*1024);
-		if(ether->oq == 0)
-			ether->oq = qopen(256*1024, 1, 0, 0);
-	}
-	else{
-		netifinit(ether, name, Ntypes, 65*1024);
-		if(ether->oq == 0)
-			ether->oq = qopen(65*1024, 1, 0, 0);
-	}
-	if(ether->oq == 0)
-		panic("etherreset %s", name);
-	ether->alen = Eaddrlen;
-	memmove(ether->addr, ether->ea, Eaddrlen);
-	memset(ether->bcast, 0xFF, Eaddrlen);
-
-	return ether;
-}
-
 static void
 etherreset(void)
 {
 	Ether *ether;
-	int cardno, ctlrno;
+	int i, n, ctlrno;
+	char name[NAMELEN], buf[128];
 
-	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
-		if((ether = etherprobe(-1, ctlrno)) == nil)
+	for(ether = 0, ctlrno = 0; ctlrno < MaxEther; ctlrno++){
+		if(ether == 0)
+			ether = malloc(sizeof(Ether));
+		memset(ether, 0, sizeof(Ether));
+		ether->ctlrno = ctlrno;
+		ether->tbdf = BUSUNKNOWN;
+		ether->mbps = 10;
+		ether->minmtu = ETHERMINTU;
+		ether->maxmtu = ETHERMAXTU;
+		if(isaconfig("ether", ctlrno, ether) == 0)
 			continue;
-		etherxx[ctlrno] = ether;
-	}
+		for(n = 0; cards[n].type; n++){
+			if(cistrcmp(cards[n].type, ether->type))
+				continue;
+			for(i = 0; i < ether->nopt; i++){
+				if(strncmp(ether->opt[i], "ea=", 3))
+					continue;
+				if(parseether(ether->ea, &ether->opt[i][3]) == -1)
+					memset(ether->ea, 0, Eaddrlen);
+			}	
+			if(cards[n].reset(ether))
+				break;
 
-	cardno = ctlrno = 0;
-	while(cards[cardno].type != nil && ctlrno < MaxEther){
-		if(etherxx[ctlrno] != nil){
-			ctlrno++;
-			continue;
+			/*
+			 * IRQ2 doesn't really exist, it's used to gang the interrupt
+			 * controllers together. A device set to IRQ2 will appear on
+			 * the second interrupt controller as IRQ9.
+			 */
+			if(ether->irq == 2)
+				ether->irq = 9;
+			snprint(name, sizeof(name), "ether%d", ctlrno);
+
+			/* If ether->irq is less than 0, it is a hack to indicate no interrupt
+			 * used for the second logical ethernet for the wavelan card
+			 */
+			if(ether->irq >= 0)
+				intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
+
+			i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %lud",
+				ctlrno, ether->type, ether->mbps, ether->port, ether->irq);
+			if(ether->mem)
+				i += sprint(buf+i, " addr 0x%luX", PADDR(ether->mem));
+			if(ether->size)
+				i += sprint(buf+i, " size 0x%luX", ether->size);
+			i += sprint(buf+i, ": %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX",
+				ether->ea[0], ether->ea[1], ether->ea[2],
+				ether->ea[3], ether->ea[4], ether->ea[5]);
+			sprint(buf+i, "\n");
+			print(buf);
+
+			if(ether->mbps >= 100){
+				netifinit(ether, name, Ntypes, 256*1024);
+				if(ether->oq == 0)
+					ether->oq = qopen(256*1024, 1, 0, 0);
+			}
+			else{
+				netifinit(ether, name, Ntypes, 65*1024);
+				if(ether->oq == 0)
+					ether->oq = qopen(65*1024, 1, 0, 0);
+			}
+			if(ether->oq == 0)
+				panic("etherreset %s", name);
+			ether->alen = Eaddrlen;
+			memmove(ether->addr, ether->ea, Eaddrlen);
+			memset(ether->bcast, 0xFF, Eaddrlen);
+
+			etherxx[ctlrno] = ether;
+			ether = 0;
+			break;
 		}
-		if((ether = etherprobe(cardno, ctlrno)) == nil){
-			cardno++;
-			continue;
-		}
-		etherxx[ctlrno] = ether;
-		ctlrno++;
 	}
+	if(ether)
+		free(ether);
 }
-
-static void
-ethershutdown(void)
-{
-	Ether *ether;
-	int i;
-
-	for(i = 0; i < MaxEther; i++){
-		ether = etherxx[i];
-		if(ether == nil)
-			continue;
-		if(ether->shutdown == nil) {
-			print("#l%d: no shutdown fuction\n", i);
-			continue;
-		}
-		(*ether->shutdown)(ether);
-	}
-}
-
 
 #define POLY 0xedb88320
 
@@ -504,8 +455,8 @@ Dev etherdevtab = {
 
 	etherreset,
 	devinit,
-	ethershutdown,
 	etherattach,
+	devclone,
 	etherwalk,
 	etherstat,
 	etheropen,
@@ -515,6 +466,6 @@ Dev etherdevtab = {
 	etherbread,
 	etherwrite,
 	etherbwrite,
-	devremove,
+	etherremove,
 	etherwstat,
 };

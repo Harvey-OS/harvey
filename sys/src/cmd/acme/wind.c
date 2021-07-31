@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
-#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
+#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -230,7 +230,7 @@ winundo(Window *w, int isundo)
 	w->utflastqid = -1;
 	body = &w->body;
 	fileundo(body->file, isundo, &body->q0, &body->q1);
-	textshow(body, body->q0, body->q1, 1);
+	textshow(body, body->q0, body->q1);
 	f = body->file;
 	for(i=0; i<f->ntext; i++){
 		v = f->text[i]->w;
@@ -459,12 +459,11 @@ void
 winaddincl(Window *w, Rune *r, int n)
 {
 	char *a;
-	Dir *d;
+	Dir d;
 	Runestr rs;
 
 	a = runetobyte(r, n);
-	d = dirstat(a);
-	if(d == nil){
+	if(dirstat(a, &d) < 0){
 		if(a[0] == '/')
 			goto Rescue;
 		rs = dirname(&w->body, r, n);
@@ -472,20 +471,17 @@ winaddincl(Window *w, Rune *r, int n)
 		n = rs.nr;
 		free(a);
 		a = runetobyte(r, n);
-		d = dirstat(a);
-		if(d == nil)
+		if(dirstat(a, &d) < 0)
 			goto Rescue;
 		r = runerealloc(r, n+1);
 		r[n] = 0;
 	}
 	free(a);
-	if((d->qid.type&QTDIR) == 0){
-		free(d);
+	if((d.mode&CHDIR) == 0){
 		warning(nil, "%s: not a directory\n", a);
 		free(r);
 		return;
 	}
-	free(d);
 	w->nincl++;
 	w->incl = realloc(w->incl, w->nincl*sizeof(Rune*));
 	memmove(w->incl+1, w->incl, (w->nincl-1)*sizeof(Rune*));
@@ -523,14 +519,10 @@ winclean(Window *w, int conservative)	/* as it stands, conservative is always TR
 }
 
 void
-winctlprint(Window *w, char *buf, int fonts)
+winctlprint(Window *w, char *buf)
 {
-	int n;
-
-	n = sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->nc,
+	sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->nc,
 		w->body.file->nc, w->isdir, w->dirty);
-	if(fonts)
-		sprint(buf+n, "%11d %s" , Dx(w->body.r), w->body.reffont->f->name);
 }
 
 void
@@ -545,16 +537,14 @@ winevent(Window *w, char *fmt, ...)
 		return;
 	if(w->owner == 0)
 		error("no window owner");
+	b = fbufalloc();
 	va_start(arg, fmt);
-	b = vsmprint(fmt, arg);
+	n = doprint(b, b+BUFSIZE, fmt, arg) - b;
 	va_end(arg);
-	if(b == nil)
-		error("vsmprint failed");
-	n = strlen(b);
 	w->events = realloc(w->events, w->nevents+1+n);
 	w->events[w->nevents++] = w->owner;
 	memmove(w->events+w->nevents, b, n);
-	free(b);
+	fbuffree(b);
 	w->nevents += n;
 	x = w->eventx;
 	if(x){

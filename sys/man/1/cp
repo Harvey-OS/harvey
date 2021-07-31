@@ -4,13 +4,13 @@ cp, mv  \- copy, move files
 .SH SYNOPSIS
 .B cp
 [
-.B -gux
+.B -x
 ]
 .I file1 file2
 .br
 .B cp
 [
-.B -gux
+.B -x
 ]
 .I file ... directory
 .PP
@@ -53,11 +53,7 @@ The
 option sets the mode and modified time of
 .I file2
 from
-.IR file1 ;
-.B -g
-sets the group id; and
-.B -u
-sets the group id and user id (which is usually only possible if the file server is in an administrative mode).
+.IR file1 .
 .PP
 .I Mv
 moves
@@ -70,8 +66,7 @@ is just renamed;
 otherwise
 .I mv
 behaves like
-.I cp
-.B -x
+.I cp \-x
 followed by
 .B rm
 .IR file1 .

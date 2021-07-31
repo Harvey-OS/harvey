@@ -5,22 +5,20 @@ int
 access(char *name, int mode)
 {
 	int fd;
-	Dir *db;
+	char db[DIRLEN];
 	static char omode[] = {
 		0,
 		OEXEC,
 		OWRITE,
 		ORDWR,
 		OREAD,
-		OEXEC,	/* only approximate */
 		ORDWR,
-		ORDWR	/* only approximate */
+		ORDWR,
+		ORDWR
 	};
 
 	if(mode == AEXIST){
-		db = dirstat(name);
-		free(db);
-		if(db != nil)
+		if(stat(name, db) >= 0)
 			return 0;
 		return -1;
 	}

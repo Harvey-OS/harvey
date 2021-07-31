@@ -12,10 +12,11 @@ void	runprog(char**);
 
 void (*fcalls[])(Fsrpc*) =
 {
-	[Tversion]	Xversion,
-	[Tauth]	Xauth,
+	[Tnop]		Xnop,
+	[Tsession]	Xsession,
 	[Tflush]	Xflush,
 	[Tattach]	Xattach,
+	[Tclone]	Xclone,
 	[Twalk]		Xwalk,
 	[Topen]		slave,
 	[Tcreate]	Xcreate,
@@ -25,6 +26,7 @@ void (*fcalls[])(Fsrpc*) =
 	[Tremove]	Xremove,
 	[Tstat]		Xstat,
 	[Twstat]	Xwstat,
+	[Tclwalk]	Xclwalk,
 };
 
 int p[2];
@@ -68,7 +70,7 @@ main(int argc, char **argv)
 
 	if(dbg) {
 		close(2);
-		create(dbfile, OWRITE, 0666);
+		create(dbfile, OWRITE|OTRUNC, 0666);
 	}
 
 	if(pipe(p) < 0)
@@ -83,7 +85,7 @@ main(int argc, char **argv)
 			fatal("no working directory");
 
 		rfork(RFENVG|RFNAMEG|RFNOTEG);
-		if(mount(p[0], -1, "/", MREPL, "") < 0)
+		if(mount(p[0], "/", MREPL, "") < 0)
 			fatal("mount /");
 
 		bind("#c/pid", "/dev/pid", MREPL);
@@ -105,10 +107,10 @@ main(int argc, char **argv)
 
 	switch(fspid = fork()) {
 	default:
-		while(cpid != waitpid())
+		while(cpid != wait(0))
 			;
 		postnote(PNPROC, fspid, DONESTR);
-		while(fspid != waitpid())
+		while(fspid != wait(0))
 			;
 		exits(0);
 	case -1:
@@ -129,10 +131,11 @@ main(int argc, char **argv)
 	memset(Workq, 0, sizeof(Fsrpc)*Nr_workbufs);
 	memset(stats, 0, sizeof(Stats));
 
-	stats->rpc[Tversion].name = "version";
-	stats->rpc[Tauth].name = "auth";
+	stats->rpc[Tnop].name = "nop";
+	stats->rpc[Tsession].name = "session";
 	stats->rpc[Tflush].name = "flush";
 	stats->rpc[Tattach].name = "attach";
+	stats->rpc[Tclone].name = "clone";
 	stats->rpc[Twalk].name = "walk";
 	stats->rpc[Topen].name = "open";
 	stats->rpc[Tcreate].name = "create";
@@ -142,11 +145,12 @@ main(int argc, char **argv)
 	stats->rpc[Tremove].name = "remove";
 	stats->rpc[Tstat].name = "stat";
 	stats->rpc[Twstat].name = "wstat";
+	stats->rpc[Tclwalk].name = "clwalk";
 
-	for(n = 0; n < Maxrpc; n++)
+	for(n = 0; n < MAXRPC; n++)
 		stats->rpc[n].loms = 10000000;
 
-	fmtinstall('F', fcallfmt);
+	fmtinstall('F', fcallconv);
 
 	if(chdir("/") < 0)
 		fatal("chdir");
@@ -162,13 +166,13 @@ main(int argc, char **argv)
 		if(r == 0)
 			fatal("Out of service buffers");
 
-		n = read9pmsg(p[1], r->buf, sizeof(r->buf));
+		n = read(p[1], r->buf, sizeof(r->buf));
 		if(done)
 			break;
 		if(n < 0)
 			fatal("read server");
 
-		if(convM2S(r->buf, n, &r->work) == 0)
+		if(convM2S(r->buf, &r->work, n) == 0)
 			fatal("format error");
 
 		stats->nrpc++;
@@ -197,7 +201,7 @@ main(int argc, char **argv)
 	bwpsec = (float)stats->totwrite / (((float)rpc->time/1000.0)+.000001);
 
 	ttime = 0;
-	for(n = 0; n < Maxrpc; n++) {
+	for(n = 0; n < MAXRPC; n++) {
 		rpc = &stats->rpc[n];
 		if(rpc->count == 0)
 			continue;
@@ -214,7 +218,7 @@ main(int argc, char **argv)
 	fprint(2, "%-10s %5s %5s %5s %5s %5s          in      out\n", 
 	      "Message", "Count", "Low", "High", "Time", "Averg");
 
-	for(n = 0; n < Maxrpc; n++) {
+	for(n = 0; n < MAXRPC; n++) {
 		rpc = &stats->rpc[n];
 		if(rpc->count == 0)
 			continue;
@@ -262,21 +266,21 @@ main(int argc, char **argv)
 void
 reply(Fcall *r, Fcall *t, char *err)
 {
-	uchar data[IOHDRSZ+Maxfdata];
+	char data[MAXFDATA+MAXMSG];
 	int n;
 
 	t->tag = r->tag;
 	t->fid = r->fid;
 	if(err) {
 		t->type = Rerror;
-		t->ename = err;
+		strncpy(t->ename, err, ERRLEN);
 	}
 	else 
 		t->type = r->type + 1;
 
 	DEBUG(2, "\t%F\n", t);
 
-	n = convS2M(t, data, sizeof data);
+	n = convS2M(t, data);
 	if(write(p[1], data, n)!=n)
 		fatal("mount write");
 	stats->nproto += n;
@@ -395,7 +399,7 @@ file(File *parent, char *name)
 {
 	char buf[128];
 	File *f, *new;
-	Dir *dir;
+	Dir dir;
 
 	DEBUG(2, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
 
@@ -406,11 +410,9 @@ file(File *parent, char *name)
 	if(f != nil && !f->inval)
 		return f;
 	makepath(buf, parent, name);
-	dir = dirstat(buf);
-	if(dir == nil)
+	if(dirstat(buf, &dir) < 0)
 		return 0;
 	if(f != nil){
-		free(dir);
 		f->inval = 0;
 		return f;
 	}
@@ -420,59 +422,45 @@ file(File *parent, char *name)
 		fatal("no memory");
 
 	memset(new, 0, sizeof(File));
-	new->name = strdup(name);
-	if(new->name == nil)
-		fatal("can't strdup");
-	new->qid.type = dir->qid.type;
-	new->qid.vers = dir->qid.vers;
-	new->qid.path = ++qid;
+	strcpy(new->name, name);
+	new->qid.vers = dir.qid.vers;
+	new->qid.path = (dir.qid.path&CHDIR)|++qid;
 
 	new->parent = parent;
 	new->childlist = parent->child;
 	parent->child = new;
 
-	free(dir);
 	return new;
 }
 
 void
 initroot(void)
 {
-	Dir *dir;
+	Dir dir;
 
 	root = malloc(sizeof(File));
 	if(root == 0)
 		fatal("no memory");
 
 	memset(root, 0, sizeof(File));
-	root->name = strdup("/");
-	if(root->name == nil)
-		fatal("can't strdup");
-	dir = dirstat(root->name);
-	if(dir == nil)
+	strcpy(root->name, ".");
+	if(dirstat(root->name, &dir) < 0)
 		fatal("root stat");
 
-	root->qid.type = dir->qid.type;
-	root->qid.vers = dir->qid.vers;
-	root->qid.path = ++qid;
-	free(dir);
+	root->qid.vers = dir.qid.vers;
+	root->qid.path = (dir.qid.path&CHDIR)|++qid;
 }
 
 void
-makepath(char *as, File *p, char *name)
+makepath(char *s, File *p, char *name)
 {
 	char *c, *seg[100];
 	int i;
-	char *s;
 
 	seg[0] = name;
-	for(i = 1; i < 100 && p; i++, p = p->parent){
+	for(i = 1; i < 100 && p; i++, p = p->parent)
 		seg[i] = p->name;
-		if(strcmp(p->name, "/") == 0)
-			seg[i] = "";	/* will insert slash later */
-	}
 
-	s = as;
 	while(i--) {
 		for(c = seg[i]; *c; c++)
 			*s++ = *c;
@@ -481,8 +469,6 @@ makepath(char *as, File *p, char *name)
 	while(s[-1] == '/')
 		s--;
 	*s = '\0';
-	if(as == s)	/* empty string is root */
-		strcpy(as, "/");
 }
 
 void
@@ -540,6 +526,7 @@ fidreport(Fid *f)
 
 	p = path;
 	makepath(p, f->f, "");
+	p++;
 
 	for(fr = frhead; fr; fr = fr->next) {
 		if(strcmp(fr->op, p) == 0) {

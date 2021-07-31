@@ -1,0 +1,4 @@
+TEXT _BIND(SB), 1, $-4
+MOVW $2, R0
+SWI 0
+RET

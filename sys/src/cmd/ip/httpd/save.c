@@ -46,14 +46,14 @@ dangerous(char *s)
 int
 openLocked(char *file, int mode)
 {
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	int tries, fd;
 
 	for(tries = 0; tries < LockSecs*2; tries++){
 		fd = open(file, mode);
 		if(fd >= 0)
 			return fd;
-		errstr(buf, sizeof buf);
+		errstr(buf);
 		if(strstr(buf, "locked") == nil)
 			break;
 		sleep(500);
@@ -65,7 +65,7 @@ void
 main(int argc, char **argv)
 {
 	HConnect *c;
-	Dir *dir;
+	Dir dir;
 	Hio *hin, *hout;
 	char *s, *t, *fn;
 	int n, nfn, datafd, htmlfd;
@@ -120,7 +120,7 @@ main(int argc, char **argv)
 	n = snprint(c->xferbuf, HBufSize, "at %ld %s\n", time(0), s);
 
 
-	nfn = strlen(c->req.uri) + 64;
+	nfn = strlen(c->req.uri) + 4 * NAMELEN;
 	fn = halloc(c, nfn);
 
 	/*
@@ -128,16 +128,15 @@ main(int argc, char **argv)
 	 */
 	snprint(fn, nfn, "/usr/web/save/%s.html", c->req.uri);
 	htmlfd = open(fn, OREAD);
-	if(htmlfd < 0 || (dir = dirfstat(htmlfd)) == nil){
+	if(htmlfd < 0 || dirfstat(htmlfd, &dir) < 0){
 		hfail(c, HNotFound, c->req.uri);
 		exits("failed");
-		return;
 	}
 
 	snprint(fn, nfn, "/usr/web/save/%s.data", c->req.uri);
 	datafd = openLocked(fn, OWRITE);
 	if(datafd < 0){
-		errstr(c->xferbuf, sizeof c->xferbuf);
+		errstr(c->xferbuf);
 		if(strstr(c->xferbuf, "locked") != nil)
 			hfail(c, HTempFail, c->req.uri);
 		else
@@ -148,7 +147,7 @@ main(int argc, char **argv)
 	write(datafd, c->xferbuf, n);
 	close(datafd);
 
-	sendfd(c, htmlfd, dir, hmkcontent(c, "text", "html", nil), nil);
+	sendfd(c, htmlfd, &dir, hmkcontent(c, "text", "html", nil), nil);
 
 	exits(nil);
 }

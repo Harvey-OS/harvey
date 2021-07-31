@@ -1,0 +1,50 @@
+#!/bin/rc
+
+first=`{ls -p '#S' | sed 1q}
+if(! ~ $first $disk) {
+	echo 'warning: The plan 9 partition is not on the boot disk,'
+	echo 'so making it the active partition will have no effect.'
+}
+
+p9offset=`{disk/fdisk -p /dev/$disk/data |grep '^part plan9 ' | awk '{print $4}'}
+if(! ~ $#p9offset 1) {
+	echo 'could not find plan 9 partition.'
+	echo 'cannot happen'
+	exit bad
+}
+
+if(test $p9offset -gt 4128705) {	# 65536 * 63
+	echo 
+	echo 'Your Plan 9 partition is more than 2GB into your disk,'
+	echo 'and the master boot records used by most operating systems'
+	echo 'cannot access it (and thus cannot boot it).'
+	echo
+	echo 'Would you like to install a master boot record'
+	echo 'that will be able to access partitions more than 2GB into the disk?'
+	echo
+	prompt 'Install a new mbr' y n 
+	switch($rd) {
+	case n
+		echo
+		echo 'Not setting Plan 9 partition active, then.'
+		echo
+		exit bad
+	case y
+		disk/mbr -m /386/mbr /dev/$disk/data
+	}
+}
+
+# silently install pbslba if the partition is way into the disk.
+# it''s our only hope.
+if(test $p9offset -gt 16434495)	# 1024*63*255 (8.5GB)
+	disk/format -b /386/pbslba /dev/$disk/9fat
+
+log Setting Plan 9 partition active.
+p9part=`{disk/fdisk /dev/$disk/data >[2]/dev/null </dev/null | 
+		grep PLAN9 | sed 1q | sed 's/ *(p.) .*/\1/'}
+if(~ $#p9part 1) {
+	{ echo 'A '^$p9part; echo w } | disk/fdisk /dev/$disk/data >[2]/dev/null >/dev/null
+}
+
+echo
+echo 'The Plan 9 partition is now marked as active.'

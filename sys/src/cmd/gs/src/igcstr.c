@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994, 1995, 1996, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: igcstr.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: igcstr.c,v 1.3 2000/09/19 19:00:44 lpd Exp $ */
 /* String GC routines for Ghostscript */
 #include "memory_.h"
 #include "ghost.h"
@@ -217,14 +217,34 @@ gc_strings_set_reloc(chunk_t * cp)
 	byte *bot = cp->ctop;
 	byte *top = cp->climit;
 	uint count =
-	(top - bot + (string_data_quantum - 1)) >>
-	log2_string_data_quantum;
+	    (top - bot + (string_data_quantum - 1)) >>
+	    log2_string_data_quantum;
 	string_reloc_offset *relp =
-	cp->sreloc +
-	(cp->smark_size >> (log2_string_data_quantum - 3));
-	register byte *bitp = cp->smark + cp->smark_size;
+	    cp->sreloc +
+	    (cp->smark_size >> (log2_string_data_quantum - 3));
+	register const byte *bitp = cp->smark + cp->smark_size;
 	register string_reloc_offset reloc = 0;
 
+	/* Skip initial unrelocated strings quickly. */
+#if string_data_quantum == bword_bits || string_data_quantum == bword_bits * 2
+	{
+	    /* Work around the alignment aliasing bug. */
+	    const bword *wp = (const bword *)bitp;
+
+#if string_data_quantum == bword_bits
+#  define RELOC_TEST_1S(wp) (wp[-1])
+#else /* string_data_quantum == bword_bits * 2 */
+#  define RELOC_TEST_1S(wp) (wp[-1] & wp[-2])
+#endif
+	    while (count && RELOC_TEST_1S(wp) == bword_1s) {
+		wp -= string_data_quantum / bword_bits;
+		*--relp = reloc += string_data_quantum;
+		--count;
+	    }
+#undef RELOC_TEST_1S
+	    bitp = (const byte *)wp;
+	}
+#endif
 	while (count--) {
 	    bitp -= string_data_quantum / 8;
 	    reloc += string_data_quantum -
@@ -305,9 +325,9 @@ gc_strings_compact(chunk_t * cp)
     if (cp->smark != 0) {
 	byte *hi = cp->climit;
 	byte *lo = cp->ctop;
-	register const byte *from = hi;
-	register byte *to = hi;
-	register const byte *bp = cp->smark + cp->smark_size;
+	const byte *from = hi;
+	byte *to = hi;
+	const byte *bp = cp->smark + cp->smark_size;
 
 #ifdef DEBUG
 	if (gs_debug_c('4') || gs_debug_c('5')) {
@@ -340,23 +360,40 @@ gc_strings_compact(chunk_t * cp)
 	    }
 	}
 #endif
+	/*
+	 * Skip unmodified strings quickly.  We know that cp->smark is
+	 * aligned to a string_mark_unit.
+	 */
+	{
+	    /* Work around the alignment aliasing bug. */
+	    const bword *wp = (const bword *)bp;
+
+	    while (to > lo && wp[-1] == bword_1s)
+		to -= bword_bits, --wp;
+	    bp = (const byte *)wp;
+	    while (to > lo && bp[-1] == 0xff)
+		to -= 8, --bp;
+	}
+	from = to;
 	while (from > lo) {
-	    register byte b = *--bp;
+	    byte b = *--bp;
 
 	    from -= 8;
 	    switch (b) {
 		case 0xff:
 		    to -= 8;
-		    if (to != from) {
-			to[7] = from[7];
-			to[6] = from[6];
-			to[5] = from[5];
-			to[4] = from[4];
-			to[3] = from[3];
-			to[2] = from[2];
-			to[1] = from[1];
-			to[0] = from[0];
-		    }
+		    /*
+		     * Since we've seen a byte other than 0xff, we know
+		     * to != from at this point.
+		     */
+		    to[7] = from[7];
+		    to[6] = from[6];
+		    to[5] = from[5];
+		    to[4] = from[4];
+		    to[3] = from[3];
+		    to[2] = from[2];
+		    to[1] = from[1];
+		    to[0] = from[0];
 		    break;
 		default:
 		    if (b & 0x80)

@@ -26,7 +26,6 @@ extern Node	*udate;
 extern int	originator;
 extern int	destination;
 extern int	date;
-extern int	messageid;
 
 Node*	anonymous(Node*);
 Node*	address(Node*);
@@ -39,7 +38,7 @@ Node*	link3(Node*, Node*, Node*);
 void	freenode(Node*);
 void	newfield(Node*, int);
 void	freefield(Field*);
-void	yyinit(char*, int);
+void	yyinit(char*);
 int	yyparse(void);
 int	yylex(void);
 String*	yywhite(void);

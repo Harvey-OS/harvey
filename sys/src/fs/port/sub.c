@@ -17,16 +17,14 @@ fsstr(char *p)
  * of type 'type' and return pointer to base
  */
 Chan*
-chaninit(int type, int count, int data)
+chaninit(int type, int count)
 {
-	uchar *p;
 	Chan *cp, *icp;
 	int i;
 
-	p = ialloc(count * (sizeof(Chan)+data), 0);
-	icp = (Chan*)p;
+	icp = ialloc(count * sizeof(*icp), 0);
+	cp = icp;
 	for(i=0; i<count; i++) {
-		cp = (Chan*)p;
 		cp->next = chans;
 		chans = cp;
 		cp->type = type;
@@ -35,16 +33,12 @@ chaninit(int type, int count, int data)
 		strncpy(cp->whoname, "<none>", sizeof(cp->whoname));
 		dofilter(&cp->work, C0a, C0b, 1);
 		dofilter(&cp->rate, C0a, C0b, 1000);
+		fileinit(cp);
 		wlock(&cp->reflock);
 		wunlock(&cp->reflock);
 		rlock(&cp->reflock);
 		runlock(&cp->reflock);
-
-		p += sizeof(Chan);
-		if(data){
-			cp->pdata = p;
-			p += data;
-		}
+		cp++;
 	}
 	return icp;
 }
@@ -79,8 +73,7 @@ out:
 
 	qlock(f);
 	if(t = f->tlock) {
-		if(t->file == f)
-			t->time = 0;	/* free the lock */
+		t->time = 0;
 		f->tlock = 0;
 	}
 	if(f->open & FREMOV)
@@ -93,18 +86,16 @@ out:
 	goto loop;
 }
 
-#define NOFID (ulong)~0
-
 /*
  * returns a locked file structure
  */
 File*
-filep(Chan *cp, ulong fid, int flag)
+filep(Chan *cp, int fid, int flag)
 {
 	File *f;
 	int h;
 
-	if(fid == NOFID)
+	if(fid == NOF)
 		return 0;
 
 	h = (long)cp + fid;
@@ -115,18 +106,8 @@ filep(Chan *cp, ulong fid, int flag)
 loop:
 	lock(&flock);
 	for(f=flist[h]; f; f=f->next)
-		if(f->fid == fid && f->cp == cp){
-			/*
-			 * Already in use is an error
-			 * when called from attach or clone (walk
-			 * in 9P2000). The console uses FID[12] and
-			 * never clunks them so catch that case.
-			 */
-			if(flag == 0 || cp == cons.chan)
-				goto out;
-			unlock(&flock);
-			return 0;
-		}
+		if(f->fid == fid && f->cp == cp)
+			goto out;
 
 	if(flag) {
 		f = newfp();
@@ -135,9 +116,6 @@ loop:
 			f->cp = cp;
 			f->wpath = 0;
 			f->tlock = 0;
-			f->doffset = 0;
-			f->dslot = 0;
-			f->auth = 0;
 			f->next = flist[h];
 			flist[h] = f;
 			goto out;
@@ -350,21 +328,22 @@ freewp(Wpath *w)
 	unlock(&wpathlock);
 }
 
-long
-qidpathgen(Device *dev)
+Qid
+newqid(Device *dev)
 {
 	Iobuf *p;
 	Superb *sb;
-	long path;
+	Qid qid;
 
 	p = getbuf(dev, superaddr(dev), Bread|Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
 		panic("newqid: super block");
 	sb = (Superb*)p->iobuf;
 	sb->qidgen++;
-	path = sb->qidgen;
+	qid.path = sb->qidgen;
+	qid.version = 0;
 	putbuf(p);
-	return path;
+	return qid;
 }
 
 void
@@ -525,28 +504,28 @@ addfree(Device *dev, long addr, Superb *sb)
 		sb->fsize = addr+1;
 }
 
-static int
-Yfmt(Fmt* fmt)
+int
+Cconv(Op *o)
 {
 	Chan *cp;
 	char s[20];
 
-	cp = va_arg(fmt->args, Chan*);
+	cp = *(Chan**)o->argp;
 	sprint(s, "C%d.%.3d", cp->type, cp->chan);
-
-	return fmtstrcpy(fmt, s);
+	strconv(s, o, o->f1, o->f2);
+	return sizeof(cp);
 }
 
-static int
-Zfmt(Fmt* fmt)
+int
+Dconv(Op *o)
 {
 	Device *d;
 	int c, c1;
 	char s[100];
 
-	d = va_arg(fmt->args, Device*);
+	d = *(Device**)o->argp;
 	if(d == 0) {
-		sprint(s, "Z***");
+		sprint(s, "D***");
 		goto out;
 	}
 	switch(d->type) {
@@ -577,94 +556,123 @@ Zfmt(Fmt* fmt)
 		c1 = ']';
 	d2:
 		if(d->cat.first == d->cat.last)
-			sprint(s, "%c%Z%c", c, d->cat.first, c1);
+			sprint(s, "%c%D%c", c, d->cat.first, c1);
 		else
 		if(d->cat.first->link == d->cat.last)
-			sprint(s, "%c%Z%Z%c", c, d->cat.first, d->cat.last, c1);
+			sprint(s, "%c%D%D%c", c, d->cat.first, d->cat.last, c1);
 		else
-			sprint(s, "%c%Z-%Z%c", c, d->cat.first, d->cat.last, c1);
+			sprint(s, "%c%D-%D%c", c, d->cat.first, d->cat.last, c1);
 		break;
 	case Devro:
-		sprint(s, "o%Z%Z", d->ro.parent->cw.c, d->ro.parent->cw.w);
+		sprint(s, "o%D%D", d->ro.parent->cw.c, d->ro.parent->cw.w);
 		break;
 	case Devcw:
-		sprint(s, "c%Z%Z", d->cw.c, d->cw.w);
+		sprint(s, "c%D%D", d->cw.c, d->cw.w);
 		break;
 	case Devjuke:
-		sprint(s, "j%Z%Z", d->j.j, d->j.m);
+		sprint(s, "j%D%D", d->j.j, d->j.m);
 		break;
 	case Devpart:
 		sprint(s, "p%ld.%ld", d->part.base, d->part.size);
 		break;
 	case Devswab:
-		sprint(s, "x%Z", d->swab.d);
+		sprint(s, "x%D", d->swab.d);
 		break;
 	}
 out:
-	return fmtstrcpy(fmt, s);
+	strconv(s, o, o->f1, o->f2);
+	return sizeof(d);
 }
 
-static int
-Wfmt(Fmt* fmt)
+int
+Fconv(Op *o)
 {
 	Filter* a;
 	char s[30];
 
-	a = va_arg(fmt->args, Filter*);
-	sprint(s, "%lud", fdf(a->filter, a->c3*a->c1));
+	a = *(Filter**)o->argp;
 
-	return fmtstrcpy(fmt, s);
+	sprint(s, "%lud", fdf(a->filter, a->c3*a->c1));
+	strconv(s, o, o->f1, o->f2);
+	return sizeof(a);
 }
 
-static int
-Gfmt(Fmt* fmt)
+int
+Gconv(Op *o)
 {
 	int t;
-	char *s;
+	char s[20];
 
-	t = va_arg(fmt->args, int);
-	s = "<badtag>";
+	t = *(int*)o->argp;
+	strcpy(s, "<badtag>");
 	if(t >= 0 && t < MAXTAG)
-		s = tagnames[t];
-	return fmtstrcpy(fmt, s);
+		sprint(s, "%s", tagnames[t]);
+	strconv(s, o, o->f1, o->f2);
+	return sizeof(t);
 }
 
-static int
-Efmt(Fmt* fmt)
+int
+Econv(Op *o)
 {
 	char s[64];
 	uchar *p;
 
-	p = va_arg(fmt->args, uchar*);
+	p = *((uchar**)o->argp);
 	sprint(s, "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux",
 		p[0], p[1], p[2], p[3], p[4], p[5]);
-
-	return fmtstrcpy(fmt, s);
+	strconv(s, o, o->f1, o->f2);
+	return sizeof(uchar*);
 }
 
-static int
-Ifmt(Fmt* fmt)
+int
+Iconv(Op *o)
 {
 	char s[64];
 	uchar *p;
 
-	p = va_arg(fmt->args, uchar*);
-	sprint(s, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
+	p = *((uchar**)o->argp);
+	sprint(s, "%d.%d.%d.%d",
+		p[0], p[1], p[2], p[3]);
+	strconv(s, o, o->f1, o->f2);
+	return sizeof(uchar*);
+}
 
-	return fmtstrcpy(fmt, s);
+int
+Nconv(Op *o)
+{
+	char s[64];
+	uchar *p;
+	long n;
+
+	p = *((uchar**)o->argp);
+	n = (p[0]<<8) | p[1];
+	if(!(o->f3 & FSHORT))
+		n = (n<<16) | (p[2]<<8) | p[3];
+	sprint(s, "%lud", n);
+	strconv(s, o, o->f1, o->f2);
+	return sizeof(uchar*);
 }
 
 void
 formatinit(void)
 {
-	quotefmtinstall();
-	fmtinstall('Y', Yfmt);	/* print channels */
-	fmtinstall('Z', Zfmt);	/* print devices */
-	fmtinstall('W', Wfmt);	/* print filters */
-	fmtinstall('G', Gfmt);	/* print tags */
-	fmtinstall('T', Tfmt);	/* print times */
-	fmtinstall('E', Efmt);	/* print ether addresses */
-	fmtinstall('I', Ifmt);	/* print ip addresses */
+
+	fmtinstall('C', Cconv);	/* print channels */
+	fmtinstall('D', Dconv);	/* print devices */
+	fmtinstall('F', Fconv);	/* print filters */
+	fmtinstall('G', Gconv);	/* print tags */
+	fmtinstall('T', Tconv);	/* print times */
+	fmtinstall('E', Econv);	/* print ether addresses */
+	fmtinstall('I', Iconv);	/* print ip addresses */
+	fmtinstall('N', Nconv);	/* print network order integers */
+}
+
+int
+nzip(uchar ip[Pasize])
+{
+	if(ip[0] || ip[1] || ip[2] || ip[3])
+		return 1;
+	return 0;
 }
 
 void
@@ -684,10 +692,10 @@ rootream(Device *dev, long addr)
 		((DREAD|DEXEC) << 6) |
 		((DREAD|DEXEC) << 3) |
 		((DREAD|DEXEC) << 0);
-	d->qid = QID9P1(QPROOT|QPDIR,0);
+	d->qid = QID(QPROOT|QPDIR,0);
 	d->atime = time();
 	d->mtime = d->atime;
-	d->muid = 0;
+	d->wuid = 0;
 	putbuf(p);
 }
 
@@ -812,9 +820,6 @@ mballoc(int count, Chan *cp, int category)
 void
 mbfree(Msgbuf *mb)
 {
-	if(mb->flags & BTRACE)
-		print("mbfree: BTRACE cat=%d flags=%ux, caller 0x%lux\n",
-			mb->category, mb->flags, getcallerpc(&mb));
 	if(mb->flags & FREE)
 		panic("mbfree already free");
 
@@ -1042,7 +1047,7 @@ loop:
 			swab(c, 0);
 		return e;
 	}
-	panic("illegal device in read: %Z %ld", d, b);
+	panic("illegal device in read: %D %ld", d, b);
 	return 1;
 }
 
@@ -1062,7 +1067,7 @@ loop:
 		goto loop;
 
 	case Devro:
-		print("write to ro device %Z(%ld)\n", d, b);
+		print("write to ro device %D(%ld)\n", d, b);
 		return 1;
 
 	case Devwren:
@@ -1090,7 +1095,7 @@ loop:
 		swab(c, 0);
 		return e;
 	}
-	panic("illegal device in write: %Z %ld", d, b);
+	panic("illegal device in write: %D %ld", d, b);
 	return 1;
 }
 
@@ -1132,7 +1137,7 @@ loop:
 		d = d->swab.d;
 		goto loop;
 	}
-	panic("illegal device in dev_size: %Z", d);
+	panic("illegal device in dev_size: %D", d);
 	return 0;
 }
 
@@ -1180,10 +1185,10 @@ devream(Device *d, int top)
 	Device *l;
 
 loop:
-	print("	devream: %Z %d\n", d, top);
+	print("	devream: %D %d\n", d, top);
 	switch(d->type) {
 	default:
-		print("ream: unknown dev type %Z\n", d);
+		print("ream: unknown dev type %D\n", d);
 		return;
 
 	case Devcw:
@@ -1236,10 +1241,10 @@ devrecover(Device *d)
 {
 
 loop:
-	print("recover: %Z\n", d);
+	print("recover: %D\n", d);
 	switch(d->type) {
 	default:
-		print("recover: unknown dev type %Z\n", d);
+		print("recover: unknown dev type %D\n", d);
 		return;
 
 	case Devcw:
@@ -1262,10 +1267,10 @@ loop:
 	if(d->init)
 		return;
 	d->init = 1;
-	print("	devinit %Z\n", d);
+	print("	devinit %D\n", d);
 	switch(d->type) {
 	default:
-		print("devinit unknown device %Z\n", d);
+		print("devinit unknown device %D\n", d);
 		return;
 
 	case Devro:
@@ -1381,7 +1386,6 @@ swab(void *c, int flag)
 				print(" %.2x", p[i*16+j]);
 			print("\n");
 		}
-		panic("swab");
 		break;
 
 	case Tsuper:
@@ -1405,7 +1409,7 @@ swab(void *c, int flag)
 			swab2(&d->uid);
 			swab2(&d->gid);
 			swab2(&d->mode);
-			swab2(&d->muid);
+			swab2(&d->wuid);
 			swab4(&d->qid.path);
 			swab4(&d->qid.version);
 			swab4(&d->size);

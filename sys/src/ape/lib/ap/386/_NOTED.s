@@ -1,0 +1,4 @@
+TEXT _NOTED(SB), 1, $0
+MOVL $29, AX
+INT $64
+RET

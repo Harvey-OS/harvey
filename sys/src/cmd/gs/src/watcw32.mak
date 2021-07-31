@@ -1,21 +1,21 @@
-#    Copyright (C) 1991-1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1991-2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: watcw32.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
+# $Id: watcw32.mak,v 1.5 2000/09/25 15:06:28 lpd Exp $
 # watcw32.mak
 # makefile for Watcom C++ v??, Windows NT or Windows 95 platform.
 #   Does NOT build gs16spl.exe, which is 16-bit and is used under Win32s.
@@ -126,7 +126,7 @@ JVERSION=6
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10005
+PVERSION=10008
 
 # Define the directory where the zlib sources are stored.
 # See zlib.mak for more information.
@@ -178,7 +178,7 @@ CPU_TYPE=486
 # of that type (or higher) is available: this is NOT currently checked
 # at runtime.
 
-FPU_TYPE=0
+FPU_TYPE=387
 
 # Define the .dev module that implements thread and synchronization
 # primitives for this platform.  Don't change this unless you really know

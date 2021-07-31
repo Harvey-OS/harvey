@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "pci.h"
 #include "vga.h"
 
 /*
@@ -205,7 +204,7 @@ static struct {
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	char name[Namelen+1], *p;
+	char name[NAMELEN+1], *p;
 	int i;
 
 	if(vga->clock == 0)
@@ -214,8 +213,8 @@ init(Vga* vga, Ctlr* ctlr)
 	/*
 	 * Check we know about it.
 	 */
-	strncpy(name, vga->clock->name, Namelen);
-	name[Namelen] = 0;
+	strncpy(name, vga->clock->name, NAMELEN);
+	name[NAMELEN] = 0;
 	if(p = strchr(name, '-'))
 		*p = 0;
 	for(i = 0; clocks[i].name; i++){
@@ -243,14 +242,14 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	char name[Namelen+1], *p;
+	char name[NAMELEN+1], *p;
 	int i;
 
 	if(vga->clock == 0 || (vga->clock->flag & Fload))
 		return;
 
-	strncpy(name, vga->clock->name, Namelen);
-	name[Namelen] = 0;
+	strncpy(name, vga->clock->name, NAMELEN);
+	name[NAMELEN] = 0;
 	if(p = strchr(name, '-'))
 		*p = 0;
 

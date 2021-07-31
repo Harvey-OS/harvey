@@ -15,6 +15,7 @@ int xargc;		/* bullshit */
 extern	BOOL	executing;
 extern	int	infile;
 int	exitflg;
+extern	char	lastc;
 extern	int	eof;
 
 int	alldigs(char*);

@@ -86,11 +86,10 @@ int
 ndbreopen(Ndb *db)
 {
 	int fd;
-	Dir *d;
+	Dir d;
 
 	/* forget what we know about the open files */
 	if(db->mtime){
-		_ndbcacheflush(db);
 		hffree(db);
 		close(Bfildes(&db->b));
 		Bterm(&db->b);
@@ -101,17 +100,15 @@ ndbreopen(Ndb *db)
 	fd = open(db->file, OREAD);
 	if(fd < 0)
 		return -1;
-	d = dirfstat(fd);
-	if(d == nil){
+	if(dirfstat(fd, &d) < 0){
 		close(fd);
 		return -1;
 	}
 
-	db->qid = d->qid;
-	db->mtime = d->mtime;
-	db->length = d->length;
+	db->qid = d.qid;
+	db->mtime = d.mtime;
+	db->length = d.length;
 	Binits(&db->b, fd, OREAD, db->buf, sizeof(db->buf));
-	free(d);
 	return 0;
 }
 
@@ -125,7 +122,6 @@ ndbclose(Ndb *db)
 
 	for(; db; db = nextdb){
 		nextdb = db->next;
-		_ndbcacheflush(db);
 		hffree(db);
 		close(Bfildes(&db->b));
 		Bterm(&db->b);

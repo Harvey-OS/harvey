@@ -68,13 +68,13 @@ poppath(Fileinf fi, int new)
 		*suffix = 0;
 		suffix++;
 		if (*suffix=='\0'){
-			fi.mode |= DMDIR;
+			fi.mode |= CHDIR;
 			return poppath(fi, 1);
 		}
 		f = fi;
 		f.size = 0;
 		f.addr = 0;
-		f.mode = 0555|DMDIR;
+		f.mode = 0555|CHDIR;
 		dir = poppath(f, 0);
 		if (dir==0)
 			dir = ram;
@@ -87,7 +87,7 @@ poppath(Fileinf fi, int new)
 	ent = lookup(dir, suffix);
 	fi.mode |= 0400;			/* at least user read */
 	if (ent){
-		if (((fi.mode&DMDIR)!=0) != ((ent->qid.type&QTDIR)!=0)){
+		if ((fi.mode&CHDIR) != (ent->qid.path&CHDIR)){
 			fprint(2, "%s/%s directory botch\n", fi.name, suffix);
 			exits("");
 		}
@@ -118,14 +118,10 @@ popfile(Ram *dir, Fileinf fi)
 	ent->next = dir->child;
 	dir->child = ent;
 	ent->child = 0;
-	ent->qid.path = ++path;
+	ent->qid.path = ++path | fi.mode&CHDIR;
 	ent->qid.vers = 0;
-	if(fi.mode&DMDIR)
-		ent->qid.type = QTDIR;
-	else
-		ent->qid.type = QTFILE;
 	ent->perm = fi.mode;
-	ent->name = estrdup(fi.name);
+	strncpy(ent->name, fi.name, NAMELEN);
 	ent->atime = ent->mtime = fi.mdate;
 	ent->user = mapid(uidmap, fi.uid);
 	ent->group = mapid(gidmap, fi.gid);

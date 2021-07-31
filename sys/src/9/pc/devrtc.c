@@ -40,13 +40,11 @@ struct Rtc
 
 
 enum{
-	Qdir = 0,
-	Qrtc,
+	Qrtc = 1,
 	Qnvram,
 };
 
 Dirtab rtcdir[]={
-	".",	{Qdir, 0, QTDIR},	0,	0555,
 	"nvram",	{Qnvram, 0},	Nvsize,	0664,
 	"rtc",		{Qrtc, 0},	0,	0664,
 };
@@ -67,23 +65,23 @@ rtcattach(char* spec)
 	return devattach('r', spec);
 }
 
-static Walkqid*	 
-rtcwalk(Chan* c, Chan *nc, char** name, int nname)
+static int	 
+rtcwalk(Chan* c, char* name)
 {
-	return devwalk(c, nc, name, nname, rtcdir, nelem(rtcdir), devgen);
+	return devwalk(c, name, rtcdir, nelem(rtcdir), devgen);
 }
 
-static int	 
-rtcstat(Chan* c, uchar* dp, int n)
+static void	 
+rtcstat(Chan* c, char* dp)
 {
-	return devstat(c, dp, n, rtcdir, nelem(rtcdir), devgen);
+	devstat(c, dp, rtcdir, nelem(rtcdir), devgen);
 }
 
 static Chan*
 rtcopen(Chan* c, int omode)
 {
 	omode = openmode(omode);
-	switch((ulong)c->qid.path){
+	switch(c->qid.path){
 	case Qrtc:
 		if(strcmp(up->user, eve)!=0 && omode!=OREAD)
 			error(Eperm);
@@ -180,10 +178,10 @@ rtcread(Chan* c, void* buf, long n, vlong off)
 	char *a, *start;
 	ulong offset = off;
 
-	if(c->qid.type & QTDIR)
+	if(c->qid.path & CHDIR)
 		return devdirread(c, buf, n, rtcdir, nelem(rtcdir), devgen);
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path){
 	case Qrtc:
 		t = rtctime();
 		n = readnum(offset, buf, n, t, 12);
@@ -235,7 +233,7 @@ rtcwrite(Chan* c, void* buf, long n, vlong off)
 		error(Ebadarg);
 
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path){
 	case Qrtc:
 		/*
 		 *  read the time
@@ -308,8 +306,8 @@ Dev rtcdevtab = {
 
 	devreset,
 	rtcinit,
-	devshutdown,
 	rtcattach,
+	devclone,
 	rtcwalk,
 	rtcstat,
 	rtcopen,

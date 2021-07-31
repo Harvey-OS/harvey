@@ -77,22 +77,9 @@ enum{
 };
 
 static Dirtab mousedir[]={
-	".",			{Qdir, 0, QTDIR},	0,	DMDIR|0555,
-	"mouse",		{Qmouse},		0,	0666,
-	"mousein",	{Qmousein},		0,	0220,
-	"mousectl",	{Qmousectl},		0,	0660,
-};
-
-enum
-{
-	CMcalibrate,
-	CMswap,
-};
-
-static Cmdtab penmousecmd[] =
-{
-	CMcalibrate,	"calibrate",	0,
-	CMswap,		"swap",		1,
+	"mouse",	{Qmouse},		0,			0666,
+	"mousein",	{Qmousein},		0,			0220,
+	"mousectl",	{Qmousectl},	0,			0660,
 };
 
 static uchar buttonmap[8] = {
@@ -104,10 +91,7 @@ extern	Memimage*	gscreen;
 
 void
 penbutton(int up, int b) {
-	// button 5 (side button) immediately causes an event
-	// when the pen is down (button 1), other buttons also
-	// cause events, allowing chording with button 1
-	if ((b & 0x20) || (mouse.buttons & 0x1)) {
+	if (b & 0x20) {
 		if (up)
 			mouse.buttons &= ~b;
 		else
@@ -123,7 +107,6 @@ penbutton(int up, int b) {
 
 void
 pentrackxy(int x, int y) {
-
 	if (x == -1) {
 		/* pen up. associate with button 1 through 5 up */
 		mouse.buttons &= ~0x1f;
@@ -162,23 +145,32 @@ penmouseattach(char *spec)
 	return devattach('m', spec);
 }
 
-static Walkqid*
-penmousewalk(Chan *c, Chan *nc, char **name, int nname)
+static Chan*
+penmouseclone(Chan *c, Chan *nc)
 {
-	return devwalk(c, nc, name, nname, mousedir, nelem(mousedir), devgen);
+	nc = devclone(c, nc);
+	if(c->qid.path != CHDIR)
+		incref(&mouse);
+	return nc;
 }
 
 static int
-penmousestat(Chan *c, uchar *db, int n)
+penmousewalk(Chan *c, char *name)
 {
-	return devstat(c, db, n, mousedir, nelem(mousedir), devgen);
+	return devwalk(c, name, mousedir, nelem(mousedir), devgen);
+}
+
+static void
+penmousestat(Chan *c, char *db)
+{
+	devstat(c, db, mousedir, nelem(mousedir), devgen);
 }
 
 static Chan*
 penmouseopen(Chan *c, int omode)
 {
-	switch((ulong)c->qid.path){
-	case Qdir:
+	switch(c->qid.path){
+	case CHDIR:
 		if(omode != OREAD)
 			error(Eperm);
 		break;
@@ -222,7 +214,7 @@ penmousecreate(Chan*, char*, int, ulong)
 static void
 penmouseclose(Chan *c)
 {
-	if(c->qid.path != Qdir && (c->flag&COPEN)){
+	if(c->qid.path!=CHDIR && (c->flag&COPEN)){
 		lock(&mouse);
 		if(c->qid.path == Qmouse)
 			mouse.open = 0;
@@ -243,8 +235,8 @@ penmouseread(Chan *c, void *va, long n, vlong)
 	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };
 	Mousestate m;
 
-	switch((ulong)c->qid.path){
-	case Qdir:
+	switch(c->qid.path){
+	case CHDIR:
 		return devdirread(c, va, n, mousedir, nelem(mousedir), devgen);
 
 	case Qmousectl:
@@ -338,53 +330,49 @@ penmousewrite(Chan *c, void *va, long n, vlong)
 {
 	char *p;
 	Point pt;
-	Cmdbuf *cb;
-	Cmdtab *ct;
-	char buf[64];
-	int b;
+	char buf[64], *field[5];
+	int nf, b;
 
 	p = va;
-	switch((ulong)c->qid.path){
-	case Qdir:
+	switch(c->qid.path){
+	case CHDIR:
 		error(Eisdir);
 
 	case Qmousectl:
-		cb = parsecmd(va, n);
-		if(waserror()){
-			free(cb);
-			nexterror();
-		}
-		ct = lookupcmd(cb, penmousecmd, nelem(penmousecmd));
-		switch(ct->index){
-		case CMswap:
+		if(n >= sizeof(buf))
+			n = sizeof(buf)-1;
+		strncpy(buf, va, n);
+		if(buf[n - 1] == '\n')
+			buf[n-1] = 0;
+		else
+			buf[n] = 0;
+		nf = getfields(buf, field, 5, 1, " ");
+		if(strcmp(field[0], "swap") == 0){
 			if(mouseswap)
 				setbuttonmap("123");
 			else
 				setbuttonmap("321");
 			mouseswap ^= 1;
-			break;
-		case CMcalibrate:
-			if (cb->nf == 1) {
+		}
+		else if(strcmp(field[0], "calibrate") == 0){
+			if (nf == 1) {
 				calibration.scalex = 1<<16;
 				calibration.scaley = 1<<16;
 				calibration.transx = 0;
 				calibration.transy = 0;
-			} else if (cb->nf == 5) {
-				if ((!isdigit(*cb->f[1]) && *cb->f[1] != '-')
-				 || (!isdigit(*cb->f[2]) && *cb->f[2] != '-')
-				 || (!isdigit(*cb->f[3]) && *cb->f[3] != '-')
-				 || (!isdigit(*cb->f[4]) && *cb->f[4] != '-'))
+			} else if (nf == 5) {
+				if ((!isdigit(*field[1]) && *field[1] != '-')
+				 || (!isdigit(*field[2]) && *field[2] != '-')
+				 || (!isdigit(*field[3]) && *field[3] != '-')
+				 || (!isdigit(*field[4]) && *field[4] != '-'))
 					error("bad syntax in control file message");
-				calibration.scalex = strtol(cb->f[1], nil, 0);
-				calibration.scaley = strtol(cb->f[2], nil, 0);
-				calibration.transx = strtol(cb->f[3], nil, 0);
-				calibration.transy = strtol(cb->f[4], nil, 0);
+				calibration.scalex = strtol(field[1], nil, 0);
+				calibration.scaley = strtol(field[2], nil, 0);
+				calibration.transx = strtol(field[3], nil, 0);
+				calibration.transy = strtol(field[4], nil, 0);
 			} else
-				cmderror(cb, Ecmdargs);
-			break;
+				print("calibrate %d fields\n", nf);
 		}
-		free(cb);
-		poperror();
 		return n;
 
 	case Qmousein:
@@ -430,8 +418,8 @@ Dev penmousedevtab = {
 
 	penmousereset,
 	penmouseinit,
-	devshutdown,
 	penmouseattach,
+	penmouseclone,
 	penmousewalk,
 	penmousestat,
 	penmouseopen,

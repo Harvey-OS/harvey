@@ -4,7 +4,7 @@
 #include	"fns.h"
 
 #define	CHAT(cp)	((cons.flags&chatflag)||(cp&&(((Chan*)cp)->flags&chatflag)))
-#define	QID9P1(a,b)	(Qid9p1){a,b}
+#define	QID(a,b)	(Qid){a,b}
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
 #define	QPDIR		0x80000000L
@@ -13,7 +13,7 @@
 #define	QPSUPER		2
 
 /*
- * perm argument in 9P create
+ * perm argument in p9 create
  */
 #define	PDIR	(1L<<31)	/* is a directory */
 #define	PAPND	(1L<<30)	/* is append only */
@@ -21,6 +21,8 @@
 
 #define	FID1		1
 #define	FID2		2
+
+#define	NOF	(-1)
 
 #define SECOND(n) 	(n)
 #define MINUTE(n)	(n*SECOND(60))
@@ -31,6 +33,7 @@
 
 #define	NQUEUE		20
 
+Nvrsafe	nvr;
 Uid*	uid;
 short*	gidspace;
 Lock	printing;
@@ -38,7 +41,8 @@ Time	tim;
 File*	files;
 Wpath*	wpaths;
 Lock	wpathlock;
-char*	errstr9p[MAXERR];
+char*	errstr[MAXERR];
+void	(*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*);
 Chan*	chans;
 RWlock	mainlock;
 ulong	mktime;
@@ -56,23 +60,31 @@ int	predawn;		/* set in early boot, causes polling ttyout */
 int	mballocs[MAXCAT];
 Filsys	filsys[10];		/* named file systems -- from config block */
 char	service[50];		/* my name -- from config block */
+uchar 	authip[Pasize];		/* ip address of server - from config block */
+uchar	sntpip[Pasize];		/* ip address of sntp server */
+struct
+{
+	uchar	sysip[Pasize];	/* my ip - from config block */
+	uchar	defmask[Pasize];/* ip mask - from config block */
+	uchar	defgwip[Pasize];/* gateway ip - from config block */
+} ipaddr[10];
 int	aindex;
 
+char	srvkey[DESKEYLEN];
 ulong	roflag;
 ulong	errorflag;
 ulong	chatflag;
 ulong	attachflag;
-ulong	authdebugflag;
-ulong	authdisableflag;
 int	noattach;
+Ifc*	enets;			/* List of configured interfaces */
 int	echo;
 int	wstatallow;		/* set to circumvent wstat permissions */
 int	writeallow;		/* set to circumvent write permissions */
 int	duallow;		/* single user to allow du */
 
 int	noauth;			/* Debug */
-
-int	rawreadok;		/* allow reading raw data */
+Queue*	authreply;		/* Auth replys */
+Chan*	authchan;
 
 File*	flist[5003];		/* base of file structures */
 Lock	flock;			/* manipulate flist */

@@ -8,14 +8,11 @@ OFILES=\
 	cache.$O\
 	control.$O\
 	entry.$O\
-	group.$O\
 	keyboard.$O\
 	label.$O\
-	menu.$O\
 	radiobutton.$O\
 	scribble.$O\
 	slider.$O\
-	tabs.$O\
 	text.$O\
 	textbutton.$O\
 
@@ -25,5 +22,6 @@ HFILES=/sys/include/draw.h\
 	/sys/include/control.h
 
 </sys/src/cmd/mksyslib
+
 
 $OFILES: $HFILES

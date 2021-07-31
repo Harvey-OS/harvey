@@ -1,0 +1,4 @@
+TEXT _WAIT(SB), 1, $-4
+MOVW $36, R0
+SWI 0
+RET

@@ -17,17 +17,13 @@ accessdir(Iobuf *p, Dentry *d, int f)
 	long t;
 
 	if(p && !isro(p->dev)) {
-		if(!(f & FWRITE) && noatime)
-			return;
+		p->flags |= Bmod;
 		t = time(nil);
-		if(f & (FREAD|FWRITE)){
+		if(f & (FREAD|FWRITE))
 			d->atime = t;
-			p->flags |= Bmod;
-		}
 		if(f & FWRITE) {
 			d->mtime = t;
-			d->qid.version++;
-			p->flags |= Bmod;
+			d->qid.vers++;
 		}
 	}
 }
@@ -38,89 +34,60 @@ dbufread(Iobuf *p, Dentry *d, long a)
 	USED(p, d, a);
 }
 
-long
-rel2abs(Iobuf *p, Dentry *d, long a, int tag, int putb)
+Iobuf*
+dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
 {
-	long addr, qpath;
-	Device dev;
+	Iobuf *bp;
+	long addr;
 
 	if(a < 0) {
 		print("dnodebuf: neg\n");
 		return 0;
 	}
-	qpath = d->qid.path;
-	dev = p->dev;
+	bp = 0;
 	if(a < NDBLOCK) {
 		addr = d->dblock[a];
-		if(!addr && tag) {
-			addr = balloc(dev, tag, qpath);
-			d->dblock[a] = addr;
-			p->flags |= Bmod|Bimm;
+		if(addr)
+			return getbuf(p->dev, addr, Bread);
+		if(tag) {
+			addr = balloc(p->dev, tag, d->qid.path);
+			if(addr) {
+				d->dblock[a] = addr;
+				p->flags |= Bmod|Bimm;
+				bp = getbuf(p->dev, addr, Bmod);
+			}
 		}
-		if(putb)
-			putbuf(p);
-		return addr;
+		return bp;
 	}
 	a -= NDBLOCK;
 	if(a < INDPERBUF) {
 		addr = d->iblock;
 		if(!addr && tag) {
-			addr = balloc(dev, Tind1, qpath);
+			addr = balloc(p->dev, Tind1, d->qid.path);
 			d->iblock = addr;
 			p->flags |= Bmod|Bimm;
 		}
-		if(putb)
-			putbuf(p);
 		addr = indfetch(p, d, addr, a, Tind1, tag);
-		return addr;
+		if(addr)
+			bp = getbuf(p->dev, addr, Bread);
+		return bp;
 	}
 	a -= INDPERBUF;
 	if(a < INDPERBUF2) {
 		addr = d->diblock;
 		if(!addr && tag) {
-			addr = balloc(dev, Tind2, qpath);
+			addr = balloc(p->dev, Tind2, d->qid.path);
 			d->diblock = addr;
 			p->flags |= Bmod|Bimm;
 		}
-		if(putb)
-			putbuf(p);
 		addr = indfetch(p, d, addr, a/INDPERBUF, Tind2, Tind1);
 		addr = indfetch(p, d, addr, a%INDPERBUF, Tind1, tag);
-		return addr;
+		if(addr)
+			bp = getbuf(p->dev, addr, Bread);
+		return bp;
 	}
-	if(putb)
-		putbuf(p);
 	print("dnodebuf: trip indirect\n");
 	return 0;
-}
-
-Iobuf*
-dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
-{
-	long addr;
-
-	addr = rel2abs(p, d, a, tag, 0);
-	if(addr)
-		return getbuf(p->dev, addr, Bread);
-	return 0;
-}
-
-/*
- * same as dnodebuf but it calls putpuf(p)
- * to reduce interference.
- */
-Iobuf*
-dnodebuf1(Iobuf *p, Dentry *d, long a, int tag)
-{
-	long addr;
-	Device dev;
-
-	dev = p->dev;
-	addr = rel2abs(p, d, a, tag, 1);
-	if(addr)
-		return getbuf(dev, addr, Bread);
-	return 0;
-
 }
 
 long

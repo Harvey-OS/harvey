@@ -2,6 +2,7 @@
 
 void	warning(Mntdir*, char*, ...);
 
+
 #define	fbufalloc()	emalloc(BUFSIZE)
 #define	fbuffree(x)	free(x)
 

@@ -1,0 +1,2 @@
+#!/bin/rc
+/bin/aux/trampoline 'il!$auth!566' >[2] /dev/null

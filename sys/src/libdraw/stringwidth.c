@@ -6,10 +6,9 @@ int
 _stringnwidth(Font *f, char *s, Rune *r, int len)
 {
 	int wid, twid, n, max, l;
-	char *name;
 	enum { Max = 64 };
 	ushort cbuf[Max];
-	Rune rune, **rptr;
+	Rune **rptr;
 	char *subfontname, **sptr;
 	Font *def;
 
@@ -24,22 +23,14 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 	}else
 		rptr = &r;
 	twid = 0;
-	while((*s || *r) && len){
+	while((*s || *r)&& len){
 		max = Max;
 		if(len < max)
 			max = len;
 		n = 0;
 		while((l = cachechars(f, sptr, rptr, cbuf, max, &wid, &subfontname)) <= 0){
 			if(++n > 10){
-				if(*r)
-					rune = *r;
-				else
-					chartorune(&rune, s);
-				if(f->name != nil)
-					name = f->name;
-				else
-					name = "unnamed font";
-				fprint(2, "stringwidth: bad character set for rune 0x%.4ux in %s\n", rune, name);
+				_drawprint(2, "stringwidth: bad character set\n");
 				return twid;
 			}
 			if(subfontname){

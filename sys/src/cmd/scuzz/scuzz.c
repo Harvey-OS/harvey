@@ -110,19 +110,12 @@ mkfile(char *file, int omode, int *pid)
 int
 waitfor(int pid)
 {
-	int msg;
-	Waitmsg *w;
+	int rpid;
+	Waitmsg w;
 
-	while((w = wait()) != nil){
-		if(w->pid != pid){
-			free(w);
-			continue;
-		}
-		msg = (w->msg[0] != '\0');
-		free(w);
-		return msg;
-	}
-	return -1;
+	while((rpid = wait(&w)) != pid && rpid != -1)
+		;
+	return w.msg[0];
 }
 
 static long

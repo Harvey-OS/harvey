@@ -2,7 +2,6 @@ dev
 	root
 	cons
 	arch
-	pnp		pci
 	env
 	pipe
 	proc
@@ -11,9 +10,7 @@ dev
 	dup
 #	rtc
 	ssl
-	cap
-	kprof
-#	loopback
+	bridge
 
 	ether		netif
 	ip		arp chandial inferno ip ipaux iproute netlog nullmedium pktmedium ptclbsum
@@ -21,8 +18,7 @@ dev
 	sd
 	floppy		dma
 
-	audio		dma
-	uart
+	ns16552
 
 link
 	ether2114x	pci
@@ -32,17 +28,15 @@ misc
 	arch164
 
 	ipconfig.root
-	factotum.root
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
-
-	uarti8250
 
 ip
 	il
 	tcp
 	udp
+	rudp
 	ipifc
 	icmp
 	gre

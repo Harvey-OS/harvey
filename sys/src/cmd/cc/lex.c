@@ -1250,19 +1250,22 @@ pop:
 }
 
 int
-Oconv(Fmt *fp)
+Oconv(va_list *arg, Fconv *fp)
 {
 	int a;
+	char s[STRINGSZ];
 
-	a = va_arg(fp->args, int);
-	if(a < OXXX || a > OEND)
-		return fmtprint(fp, "***badO %d***", a);
-
-	return fmtstrcpy(fp, onames[a]);
+	a = va_arg(*arg, int);
+	if(a < OXXX || a > OEND) {
+		sprint(s, "***badO %d***", a);
+		strconv(s, fp);
+	} else
+		strconv(onames[a], fp);
+	return 0;
 }
 
 int
-Lconv(Fmt *fp)
+Lconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ], s[STRINGSZ];
 	Hist *h;
@@ -1276,7 +1279,7 @@ Lconv(Fmt *fp)
 	long l, d;
 	int i, n;
 
-	l = va_arg(fp->args, long);
+	l = va_arg(*arg, long);
 	n = 0;
 	for(h = hist; h != H; h = h->link) {
 		if(l < h->line)
@@ -1309,7 +1312,7 @@ Lconv(Fmt *fp)
 	str[0] = 0;
 	for(i=n-1; i>=0; i--) {
 		if(i != n-1) {
-			if(fp->flags & ~(FmtWidth|FmtPrec))	/* BUG ROB - was f3 */
+			if(fp->f3)
 				break;
 			strcat(str, " ");
 		}
@@ -1327,11 +1330,12 @@ Lconv(Fmt *fp)
 	}
 	if(n == 0)
 		strcat(str, "<eof>");
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Tconv(Fmt *fp)
+Tconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ+20], s[STRINGSZ+20];
 	Type *t, *t1;
@@ -1339,7 +1343,7 @@ Tconv(Fmt *fp)
 	long n;
 
 	str[0] = 0;
-	for(t = va_arg(fp->args, Type*); t != T; t = t->link) {
+	for(t = va_arg(*arg, Type*); t != T; t = t->link) {
 		et = t->etype;
 		if(str[0])
 			strcat(str, " ");
@@ -1386,31 +1390,33 @@ Tconv(Fmt *fp)
 			break;
 		}
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-FNconv(Fmt *fp)
+FNconv(va_list *arg, Fconv *fp)
 {
 	char *str;
 	Node *n;
 
-	n = va_arg(fp->args, Node*);
+	n = va_arg(*arg, Node*);
 	str = "<indirect>";
 	if(n != Z && (n->op == ONAME || n->op == ODOT || n->op == OELEM))
 		str = n->sym->name;
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Qconv(Fmt *fp)
+Qconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ+20], *s;
 	long b;
 	int i;
 
 	str[0] = 0;
-	for(b = va_arg(fp->args, long); b;) {
+	for(b = va_arg(*arg, long); b;) {
 		i = bitno(b);
 		if(str[0])
 			strcat(str, " ");
@@ -1420,20 +1426,22 @@ Qconv(Fmt *fp)
 		strcat(str, s);
 		b &= ~(1L << i);
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-VBconv(Fmt *fp)
+VBconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	int i, n, t, pc;
+	extern printcol;
 
-	n = va_arg(fp->args, int);
-	pc = 0;	/* BUG: was printcol */
+	n = va_arg(*arg, int);
+	pc = printcol;
 	i = 0;
 	while(pc < n) {
-		t = (pc+4) & ~3;
+		t = (pc+8) & ~7;
 		if(t <= n) {
 			str[i++] = '\t';
 			pc = t;
@@ -1443,8 +1451,8 @@ VBconv(Fmt *fp)
 		pc++;
 	}
 	str[i] = 0;
-
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 /*

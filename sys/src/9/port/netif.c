@@ -18,8 +18,8 @@ static int parseaddr(uchar*, char*, int);
 void
 netifinit(Netif *nif, char *name, int nfile, ulong limit)
 {
-	strncpy(nif->name, name, KNAMELEN-1);
-	nif->name[KNAMELEN-1] = 0;
+	strncpy(nif->name, name, NAMELEN-1);
+	nif->name[NAMELEN-1] = 0;
 	nif->nfile = nfile;
 	nif->f = xalloc(nfile*sizeof(Netfile*));
 	memset(nif->f, 0, nfile*sizeof(Netfile*));
@@ -30,31 +30,29 @@ netifinit(Netif *nif, char *name, int nfile, ulong limit)
  *  generate a 3 level directory
  */
 static int
-netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
+netifgen(Chan *c, Dirtab *vp, int, int i, Dir *dp)
 {
 	Qid q;
+	char buf[32];
 	Netif *nif = (Netif*)vp;
 	Netfile *f;
 	int t;
 	int perm;
 	char *o;
 
-	q.type = QTFILE;
 	q.vers = 0;
 
 	/* top level directory contains the name of the network */
-	if(c->qid.path == 0){
+	if(c->qid.path == CHDIR){
 		switch(i){
 		case DEVDOTDOT:
-			q.path = 0;
-			q.type = QTDIR;
-			devdir(c, q, ".", 0, eve, 0555, dp);
+			q.path = CHDIR;
+			devdir(c, q, ".", 0, eve, CHDIR|0555, dp);
 			break;
 		case 0:
-			q.path = N2ndqid;
-			q.type = QTDIR;
-			strcpy(up->genbuf, nif->name);
-			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
+			q.path = CHDIR | N2ndqid;
+			strcpy(buf, nif->name);
+			devdir(c, q, buf, 0, eve, CHDIR|0555, dp);
 			break;
 		default:
 			return -1;
@@ -67,9 +65,8 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 	if(t == N2ndqid || t == Ncloneqid || t == Naddrqid){
 		switch(i) {
 		case DEVDOTDOT:
-			q.type = QTDIR;
-			q.path = 0;
-			devdir(c, q, ".", 0, eve, DMDIR|0555, dp);
+			q.path = CHDIR;
+			devdir(c, q, ".", 0, eve, CHDIR|0555, dp);
 			break;
 		case 0:
 			q.path = Ncloneqid;
@@ -85,10 +82,9 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 				return -1;
 			if(nif->f[i] == 0)
 				return 0;
-			q.type = QTDIR;
-			q.path = NETQID(i, N3rdqid);
-			sprint(up->genbuf, "%d", i);
-			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+			q.path = CHDIR|NETQID(i, N3rdqid);
+			sprint(buf, "%d", i);
+			devdir(c, q, buf, 0, eve, CHDIR|0555, dp);
 			break;
 		}
 		return 1;
@@ -107,10 +103,9 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 	}
 	switch(i){
 	case DEVDOTDOT:
-		q.type = QTDIR;
-		q.path = N2ndqid;
-		strcpy(up->genbuf, nif->name);
-		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+		q.path = CHDIR | N2ndqid;
+		strcpy(buf, nif->name);
+		devdir(c, q, buf, 0, eve, CHDIR|0555, dp);
 		break;
 	case 0:
 		q.path = NETQID(NETID(c->qid.path), Ndataqid);
@@ -138,10 +133,10 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 	return 1;
 }
 
-Walkqid*
-netifwalk(Netif *nif, Chan *c, Chan *nc, char **name, int nname)
+int
+netifwalk(Netif *nif, Chan *c, char *name)
 {
-	return devwalk(c, nc, name, nname, (Dirtab *)nif, 0, netifgen);
+	return devwalk(c, name, (Dirtab *)nif, 0, netifgen);
 }
 
 Chan*
@@ -151,7 +146,7 @@ netifopen(Netif *nif, Chan *c, int omode)
 	Netfile *f;
 
 	id = 0;
-	if(c->qid.type & QTDIR){
+	if(c->qid.path & CHDIR){
 		if(omode != OREAD)
 			error(Eperm);
 	} else {
@@ -181,7 +176,6 @@ netifopen(Netif *nif, Chan *c, int omode)
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
-	c->iounit = qiomaxatomic;
 	return c;
 }
 
@@ -192,7 +186,7 @@ netifread(Netif *nif, Chan *c, void *a, long n, ulong offset)
 	Netfile *f;
 	char *p;
 
-	if(c->qid.type&QTDIR)
+	if(c->qid.path&CHDIR)
 		return devdirread(c, a, n, (Dirtab*)nif, 0, netifgen);
 
 	switch(NETTYPE(c->qid.path)){
@@ -240,7 +234,7 @@ netifread(Netif *nif, Chan *c, void *a, long n, ulong offset)
 Block*
 netifbread(Netif *nif, Chan *c, long n, ulong offset)
 {
-	if((c->qid.type & QTDIR) || NETTYPE(c->qid.path) != Ndataqid)
+	if((c->qid.path & CHDIR) || NETTYPE(c->qid.path) != Ndataqid)
 		return devbread(c, n, offset);
 
 	return qbread(nif->f[NETID(c->qid.path)]->in, n);
@@ -331,12 +325,11 @@ netifwrite(Netif *nif, Chan *c, void *a, long n)
 	return n;
 }
 
-int
-netifwstat(Netif *nif, Chan *c, uchar *db, int n)
+void
+netifwstat(Netif *nif, Chan *c, char *db)
 {
-	Dir *dir;
+	Dir dir;
 	Netfile *f;
-	int m;
 
 	f = nif->f[NETID(c->qid.path)];
 	if(f == 0)
@@ -345,24 +338,15 @@ netifwstat(Netif *nif, Chan *c, uchar *db, int n)
 	if(netown(f, up->user, OWRITE) < 0)
 		error(Eperm);
 
-	dir = smalloc(sizeof(Dir)+n);
-	m = convM2D(db, n, &dir[0], (char*)&dir[1]);
-	if(m == 0){
-		free(dir);
-		error(Eshortstat);
-	}
-	if(!emptystr(dir[0].uid))
-		strncpy(f->owner, dir[0].uid, KNAMELEN);
-	if(dir[0].mode != ~0UL)
-		f->mode = dir[0].mode;
-	free(dir);
-	return m;
+	convM2D(db, &dir);
+	strncpy(f->owner, dir.uid, NAMELEN);
+	f->mode = dir.mode;
 }
 
-int
-netifstat(Netif *nif, Chan *c, uchar *db, int n)
+void
+netifstat(Netif *nif, Chan *c, char *db)
 {
-	return devstat(c, db, n, (Dirtab *)nif, 0, netifgen);
+	devstat(c, db, (Dirtab *)nif, 0, netifgen);
 }
 
 void
@@ -406,8 +390,6 @@ netifclose(Netif *nif, Chan *c)
 		}
 		f->owner[0] = 0;
 		f->type = 0;
-		f->bridge = 0;
-		f->headersonly = 0;
 		qclose(f->in);
 	}
 	qunlock(f);
@@ -424,9 +406,9 @@ netown(Netfile *p, char *o, int omode)
 
 	lock(&netlock);
 	if(*p->owner){
-		if(strncmp(o, p->owner, KNAMELEN) == 0)	/* User */
+		if(strncmp(o, p->owner, NAMELEN) == 0)	/* User */
 			mode = p->mode;
-		else if(strncmp(o, eve, KNAMELEN) == 0)	/* Bootes is group */
+		else if(strncmp(o, eve, NAMELEN) == 0)	/* Bootes is group */
 			mode = p->mode<<3;
 		else
 			mode = p->mode<<6;		/* Other */
@@ -440,7 +422,7 @@ netown(Netfile *p, char *o, int omode)
 			return -1;
 		}
 	}
-	strncpy(p->owner, o, KNAMELEN);
+	strncpy(p->owner, o, NAMELEN);
 	p->mode = 0660;
 	unlock(&netlock);
 	return 0;

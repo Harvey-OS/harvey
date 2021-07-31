@@ -35,16 +35,16 @@ etherattach(char* spec)
 	return chan;
 }
 
-static Walkqid*
-etherwalk(Chan* chan, Chan* nchan, char** name, int nname)
+static int
+etherwalk(Chan* chan, char* name)
 {
-	return netifwalk(etherxx[chan->dev], chan, nchan, name, nname);
+	return netifwalk(etherxx[chan->dev], chan, name);
 }
 
-static int
-etherstat(Chan* chan, uchar* dp, int n)
+static void
+etherstat(Chan* chan, char* dp)
 {
-	return netifstat(etherxx[chan->dev], chan, dp, n);
+	netifstat(etherxx[chan->dev], chan, dp);
 }
 
 static Chan*
@@ -71,7 +71,7 @@ etherread(Chan* chan, void* buf, long n, vlong off)
 	ulong offset = off;
 
 	ether = etherxx[chan->dev];
-	if((chan->qid.type & QTDIR) == 0 && ether->ifstat){
+	if((chan->qid.path & CHDIR) == 0 && ether->ifstat){
 		/*
 		 * With some controllers it is necessary to reach
 		 * into the chip to extract statistics.
@@ -91,10 +91,15 @@ etherbread(Chan* chan, long n, ulong offset)
 	return netifbread(etherxx[chan->dev], chan, n, offset);
 }
 
-static int
-etherwstat(Chan* chan, uchar* dp, int n)
+static void
+etherremove(Chan*)
 {
-	return netifwstat(etherxx[chan->dev], chan, dp, n);
+}
+
+static void
+etherwstat(Chan* chan, char* dp)
+{
+	netifwstat(etherxx[chan->dev], chan, dp);
 }
 
 static void
@@ -333,7 +338,7 @@ etherreset(void)
 {
 	Ether *ether;
 	int i, n, ctlrno;
-	char name[32], buf[128];
+	char name[NAMELEN], buf[128];
 
 	for(ether = 0, ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		if(ether == 0)
@@ -342,8 +347,6 @@ etherreset(void)
 		ether->ctlrno = ctlrno;
 		ether->tbdf = BUSUNKNOWN;
 		ether->mbps = 10;
-		ether->minmtu = ETHERMINTU;
-		ether->maxmtu = ETHERMAXTU;
 		if(isaconfig("ether", ctlrno, ether) == 0)
 			continue;
 		for(n = 0; cards[n].type; n++){
@@ -431,8 +434,8 @@ Dev etherdevtab = {
 
 	etherreset,
 	devinit,
-	devshutdown,
 	etherattach,
+	devclone,
 	etherwalk,
 	etherstat,
 	etheropen,
@@ -442,6 +445,6 @@ Dev etherdevtab = {
 	etherbread,
 	etherwrite,
 	etherbwrite,
-	devremove,
+	etherremove,
 	etherwstat,
 };

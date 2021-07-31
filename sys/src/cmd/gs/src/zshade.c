@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zshade.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zshade.c,v 1.4 2000/09/19 19:00:55 lpd Exp $ */
 /* PostScript language interface to shading */
 #include "memory_.h"
 #include "ghost.h"
@@ -189,16 +189,16 @@ build_shading(i_ctx_t *i_ctx_p, build_shading_proc_t proc)
 	    }
 	    pcc->pattern = 0;
 	    params.Background = pcc;
-	    code = dict_float_array_param(op, "Background",
-					  countof(pcc->paint.values),
-					  pcc->paint.values, NULL);
-	    if (code != gs_color_space_num_components(pcs))
+	    code = dict_floats_param(op, "Background",
+				     gs_color_space_num_components(pcs),
+				     pcc->paint.values, NULL);
+	    if (code < 0)
 		goto fail;
 	}
     }
     if (dict_find_string(op, "BBox", &pvalue) <= 0)
 	params.have_BBox = false;
-    else if ((code = dict_float_array_param(op, "BBox", 4, box, NULL)) == 4) {
+    else if ((code = dict_floats_param(op, "BBox", 4, box, NULL)) == 4) {
 	params.BBox.p.x = box[0];
 	params.BBox.p.y = box[1];
 	params.BBox.q.x = box[2];
@@ -250,7 +250,7 @@ build_shading_function(const ref * op, gs_function_t ** ppfn, int num_inputs,
 	for (i = 0; i < size; ++i) {
 	    ref rsubfn;
 
-	    array_get(op, (long)i, &rsubfn);
+	    array_get(pFunction, (long)i, &rsubfn);
 	    code = fn_build_function(&rsubfn, &Functions[i], mem);
 	    if (code < 0)
 		break;
@@ -283,14 +283,14 @@ build_shading_1(const ref * op, const gs_shading_params_t * pcommon,
     *(gs_shading_params_t *)&params = *pcommon;
     gs_make_identity(&params.Matrix);
     params.Function = 0;
-    if ((code = dict_float_array_param(op, "Domain", 4, params.Domain,
-				       default_Domain)) != 4 ||
+    if ((code = dict_floats_param(op, "Domain", 4, params.Domain,
+				  default_Domain)) < 0 ||
 	(code = dict_matrix_param(op, "Matrix", &params.Matrix)) < 0 ||
 	(code = build_shading_function(op, &params.Function, 2, mem)) < 0 ||
 	(code = gs_shading_Fb_init(ppsh, &params, mem)) < 0
 	) {
 	gs_free_object(mem, params.Function, "Function");
-	return (code < 0 ? code : gs_note_error(e_rangecheck));
+	return code;
     }
     return 0;
 }
@@ -307,18 +307,17 @@ build_directional_shading(const ref * op, float *Coords, int num_Coords,
 			  float Domain[2], gs_function_t ** pFunction,
 			  bool Extend[2], gs_memory_t *mem)
 {
-    int code =
-	dict_float_array_param(op, "Coords", num_Coords, Coords, NULL);
+    int code = dict_floats_param(op, "Coords", num_Coords, Coords, NULL);
     static const float default_Domain[2] = {0, 1};
     ref *pExtend;
 
     *pFunction = 0;
-    if (code != num_Coords ||
-	(code = dict_float_array_param(op, "Domain", 2, Domain,
-				       default_Domain)) != 2 ||
+    if (code < 0 ||
+	(code = dict_floats_param(op, "Domain", 2, Domain,
+				  default_Domain)) < 0 ||
 	(code = build_shading_function(op, pFunction, 1, mem)) < 0
 	)
-	return (code < 0 ? code : gs_note_error(e_rangecheck));
+	return code;
     if (dict_find_string(op, "Extend", &pExtend) <= 0)
 	Extend[0] = Extend[1] = false;
     else {
@@ -452,12 +451,11 @@ build_mesh_shading(const ref * op, gs_shading_mesh_params_t * params,
 				"build_mesh_shading");
 	if (*pDecode == 0)
 	    return_error(e_VMerror);
-	code = dict_float_array_param(op, "Decode", num_decode, *pDecode,
-				      NULL);
-	if (code != num_decode) {
+	code = dict_floats_param(op, "Decode", num_decode, *pDecode, NULL);
+	if (code < 0) {
 	    gs_free_object(mem, *pDecode, "build_mesh_shading");
 	    *pDecode = 0;
-	    return (code < 0 ? code : gs_note_error(e_rangecheck));
+	    return code;
 	}
     }
     code = build_shading_function(op, pFunction, 1, mem);

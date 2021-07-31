@@ -1,0 +1,4 @@
+TEXT _NOTED(SB), 1, $0
+MOVL $29, R0
+TRAP $0
+RTS

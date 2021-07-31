@@ -27,9 +27,66 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
-#define DEBUG	if(1){}else print
+#define DEBUG	if(1)print
 
-#define SEEKEYS 0
+#define SEEKEYS 1
+
+typedef struct Ctlr	Ctlr;
+typedef struct Wltv	Wltv;
+typedef struct WFrame	WFrame;
+typedef struct Stats	Stats;
+typedef struct WStats	WStats;
+typedef struct WKey	WKey;
+
+struct WStats
+{
+	ulong	ntxuframes;		// unicast frames
+	ulong	ntxmframes;		// multicast frames
+	ulong	ntxfrags;		// fragments
+	ulong	ntxubytes;		// unicast bytes
+	ulong	ntxmbytes;		// multicast bytes
+	ulong	ntxdeferred;		// deferred transmits
+	ulong	ntxsretries;		// single retries
+	ulong	ntxmultiretries;	// multiple retries
+	ulong	ntxretrylimit;
+	ulong	ntxdiscards;
+	ulong	nrxuframes;		// unicast frames
+	ulong	nrxmframes;		// multicast frames
+	ulong	nrxfrags;		// fragments
+	ulong	nrxubytes;		// unicast bytes
+	ulong	nrxmbytes;		// multicast bytes
+	ulong	nrxfcserr;
+	ulong	nrxdropnobuf;
+	ulong	nrxdropnosa;
+	ulong	nrxcantdecrypt;
+	ulong	nrxmsgfrag;
+	ulong	nrxmsgbadfrag;
+	ulong	end;
+};
+
+struct WFrame
+{
+	ushort	sts;
+	ushort	rsvd0;
+	ushort	rsvd1;
+	ushort	qinfo;
+	ushort	rsvd2;
+	ushort	rsvd3;
+	ushort	txctl;
+	ushort	framectl;
+	ushort	id;
+	uchar	addr1[Eaddrlen];
+	uchar	addr2[Eaddrlen];
+	uchar	addr3[Eaddrlen];
+	ushort	seqctl;
+	uchar	addr4[Eaddrlen];
+	ushort	dlen;
+	uchar	dstaddr[Eaddrlen];
+	uchar	srcaddr[Eaddrlen];
+	ushort	len;
+	ushort	dat[3];
+	ushort	type;
+};
 
 // Lucent's Length-Type-Value records to talk to the wavelan.
 // most operational parameters are read/set using this.
@@ -48,7 +105,7 @@ enum
 	WTyp_NodeName	= 0xfc0e,
 	WTyp_Crypt	= 0xfc20,
 	WTyp_XClear	= 0xfc22,
- 	WTyp_CreateIBSS	= 0xfc81,
+	WTyp_Tick	= 0xfce0,
 	WTyp_RtsThres	= 0xfc83,
 	WTyp_TxRate	= 0xfc84,
 		WTx1Mbps	= 0x0,
@@ -57,12 +114,9 @@ enum
 	WTyp_Prom	= 0xfc85,
 	WTyp_Keys	= 0xfcb0,
 	WTyp_TxKey	= 0xfcb1,
-	WTyp_StationID	= 0xfd20,
 	WTyp_CurName	= 0xfd41,
-	WTyp_BaseID	= 0xfd42,	// ID of the currently connected-to base station
 	WTyp_CurTxRate	= 0xfd44,	// Current TX rate
 	WTyp_HasCrypt	= 0xfd4f,
-	WTyp_Tick	= 0xfce0,
 };
 
 // Controller
@@ -134,9 +188,6 @@ enum
 	WR_Data0	= 0x36,
 	WR_Data1	= 0x38,
 
-	WR_PciCor	= 0x26,
-	WR_PciHcr	= 0x2E,
-
 	// Frame stuff
 
 	WF_Err		= 0x0003,
@@ -158,62 +209,9 @@ enum
 
 };
 
-typedef struct Ctlr	Ctlr;
-typedef struct Wltv	Wltv;
-typedef struct WFrame	WFrame;
-typedef struct Stats	Stats;
-typedef struct WStats	WStats;
-typedef struct WKey	WKey;
-
-struct WStats
-{
-	ulong	ntxuframes;		// unicast frames
-	ulong	ntxmframes;		// multicast frames
-	ulong	ntxfrags;		// fragments
-	ulong	ntxubytes;		// unicast bytes
-	ulong	ntxmbytes;		// multicast bytes
-	ulong	ntxdeferred;		// deferred transmits
-	ulong	ntxsretries;		// single retries
-	ulong	ntxmultiretries;	// multiple retries
-	ulong	ntxretrylimit;
-	ulong	ntxdiscards;
-	ulong	nrxuframes;		// unicast frames
-	ulong	nrxmframes;		// multicast frames
-	ulong	nrxfrags;		// fragments
-	ulong	nrxubytes;		// unicast bytes
-	ulong	nrxmbytes;		// multicast bytes
-	ulong	nrxfcserr;
-	ulong	nrxdropnobuf;
-	ulong	nrxdropnosa;
-	ulong	nrxcantdecrypt;
-	ulong	nrxmsgfrag;
-	ulong	nrxmsgbadfrag;
-	ulong	end;
-};
-
-struct WFrame
-{
-	ushort	sts;
-	ushort	rsvd0;
-	ushort	rsvd1;
-	ushort	qinfo;
-	ushort	rsvd2;
-	ushort	rsvd3;
-	ushort	txctl;
-	ushort	framectl;
-	ushort	id;
-	uchar	addr1[Eaddrlen];
-	uchar	addr2[Eaddrlen];
-	uchar	addr3[Eaddrlen];
-	ushort	seqctl;
-	uchar	addr4[Eaddrlen];
-	ushort	dlen;
-	uchar	dstaddr[Eaddrlen];
-	uchar	srcaddr[Eaddrlen];
-	ushort	len;
-	ushort	dat[3];
-	ushort	type;
-};
+#define csr_outs(ctlr,r,arg)	outs((ctlr)->iob+(r),(arg))
+#define csr_ins(ctlr,r)		ins((ctlr)->iob+(r))
+#define csr_ack(ctlr,ev)	outs((ctlr)->iob+WR_EvAck,(ev))
 
 struct WKey
 {
@@ -251,7 +249,6 @@ struct Wltv
 struct Stats
 {
 	ulong	nints;
-	ulong	ndoubleint;
 	ulong	nrx;
 	ulong	ntx;
 	ulong	ntxrq;
@@ -275,7 +272,6 @@ struct Ctlr
 	int	attached;
 	int	slot;
 	int	iob;
- 	int	createibss;
 	int	ptype;
 	int	apdensity;
 	int	rtsthres;
@@ -301,76 +297,9 @@ struct Ctlr
 	Wltv	keys;			// default keys
 	int	xclear;			// exclude clear packets off/on
 
-	int	ctlrno;
-
-	/* for PCI-based devices */
-	Ctlr	*next;
-	ushort	*mmb;
-	int	active;
-	Pcidev	*pcidev;
-
 	Stats;
 	WStats;
 };
-
-/*
- * When we're using a PCI device and memory-mapped I/O, 
- * the registers are spaced out as though each takes 32 bits,
- * even though they are only 16-bit registers.  Thus, 
- * ctlr->mmb[reg] is the right way to access register reg,
- * even though a priori you'd expect to use ctlr->mmb[reg/2].
- */
-static void
-csr_outs(Ctlr *ctlr, int reg, ushort arg)
-{
-	if(ctlr->mmb)
-		ctlr->mmb[reg] = arg;
-	else
-		outs(ctlr->iob+reg, arg);
-}
-
-static ushort
-csr_ins(Ctlr *ctlr, int reg)
-{
-	if(ctlr->mmb)
-		return ctlr->mmb[reg];
-	else
-		return ins(ctlr->iob+reg);
-}
-
-static void
-csr_ack(Ctlr *ctlr, int ev)
-{
-	csr_outs(ctlr, WR_EvAck, ev);
-}
-
-static void
-csr_inss(Ctlr *ctlr, int reg, void *dat, int ndat)
-{
-	ushort *rp, *wp;
-
-	if(ctlr->mmb){
-		rp = &ctlr->mmb[reg];
-		wp = dat;
-		while(ndat-- > 0)
-			*wp++ = *rp;
-	}else
-		inss(ctlr->iob+reg, dat, ndat);
-}
-
-static void
-csr_outss(Ctlr *ctlr, int reg, void *dat, int ndat)
-{
-	ushort *rp, *wp;
-
-	if(ctlr->mmb){
-		rp = dat;
-		wp = &ctlr->mmb[reg];
-		while(ndat-- > 0)
-			*wp = *rp++;
-	}else
-		outss(ctlr->iob+reg, dat, ndat);
-}
 
 // w_... routines do not ilock the Ctlr and should
 // be called locked.
@@ -393,52 +322,22 @@ w_cmd(Ctlr *ctlr, ushort cmd, ushort arg)
 {
 	int i, rc;
 
-	for(i=0; i<WTmOut; i++)
-		if((csr_ins(ctlr, WR_Cmd)&WCmdBusy) == 0)
-			break;
-	if(i==WTmOut){
-		print("#l%d: issuing cmd %.4ux: %.4ux\n", ctlr->ctlrno, cmd, csr_ins(ctlr, WR_Cmd));
-		return -1;
-	}
-
 	csr_outs(ctlr, WR_Parm0, arg);
 	csr_outs(ctlr, WR_Cmd, cmd);
-
-	for(i=0; i<WTmOut; i++)
-		if(csr_ins(ctlr, WR_EvSts)&WCmdEv)
-			break;
-	if(i==WTmOut){
-		/*
-		 * WCmdIni can take a really long time.
-		 */
-		enum { IniTmOut = 2000 };
-		for(i=0; i<IniTmOut; i++){
-			if(csr_ins(ctlr, WR_EvSts)&WCmdEv)
+	for (i = 0; i<WTmOut; i++){
+		rc = csr_ins(ctlr, WR_EvSts);
+		if ( rc&WCmdEv ){
+			rc = csr_ins(ctlr, WR_Sts);
+			csr_ack(ctlr, WCmdEv);
+			if ((rc&WCmdMsk) != (cmd&WCmdMsk))
 				break;
-			microdelay(100);
-		}
-		if(i < IniTmOut)
-			if(0) print("#l%d: long cmd %.4ux %d\n", ctlr->ctlrno, cmd, i);
-		if(i == IniTmOut){
-			print("#l%d: execing cmd %.4ux: %.4ux\n", ctlr->ctlrno, cmd, csr_ins(ctlr, WR_EvSts));
-			return -1;
+			if (rc&WResSts)
+				break;
+			return 0;
 		}
 	}
-	rc = csr_ins(ctlr, WR_Sts);
-	csr_ack(ctlr, WCmdEv);
 
-	if((rc&WCmdMsk) != (cmd&WCmdMsk)){
-		print("#l%d: cmd %.4ux: status %.4ux\n", ctlr->ctlrno, cmd, rc);
-		return -1;
-	}
-	if(rc&WResSts){
-		/*
-		 * Don't print; this happens on every WCmdAccWr for some reason.
-		 */
-		if(0) print("#l%d: cmd %.4ux: status %.4ux\n", ctlr->ctlrno, cmd, rc);
-		return -1;
-	}
-	return 0;
+	return -1;
 }
 
 static int
@@ -479,12 +378,11 @@ w_inltv(Ctlr* ctlr, Wltv* ltv)
 		return -1;
 	ltv->len = len;
 	if ((code=csr_ins(ctlr, WR_Data1)) != ltv->type){
-		USED(code);
 		DEBUG("wavelan: type %x != code %x\n",ltv->type,code);
 		return -1;
 	}
 	if(ltv->len > 0)
-		csr_inss(ctlr, WR_Data1, &ltv->val, ltv->len-1);
+		inss((ctlr)->iob+(WR_Data1), &ltv->val, ltv->len-1);
 
 	return 0;
 }
@@ -494,7 +392,7 @@ w_outltv(Ctlr* ctlr, Wltv* ltv)
 {
 	if(w_seek(ctlr,ltv->type, 0, 1))
 		return;
-	csr_outss(ctlr, WR_Data1, ltv, ltv->len+1);
+	outss((ctlr)->iob+(WR_Data1), ltv, ltv->len+1);
 	w_cmd(ctlr, WCmdAccWr, ltv->type);
 }
 
@@ -534,10 +432,7 @@ ltv_outstr(Ctlr* ctlr, int type, char* val)
 	memset(&ltv, 0, sizeof(ltv));
 	ltv.len = (sizeof(ltv.type)+sizeof(ltv.slen)+sizeof(ltv.s))/2;
 	ltv.type = type;
-
-//	This should be ltv.slen = len; according to Axel Belinfante
-	ltv.slen = len;	
-
+	ltv.slen = (len+1) & ~1;
 	strncpy(ltv.s, val, len);
 	w_outltv(ctlr, &ltv);
 }
@@ -549,20 +444,15 @@ static char*
 ltv_inname(Ctlr* ctlr, int type)
 {
 	static Wltv ltv;
-	int len;
 
 	memset(&ltv,0,sizeof(ltv));
 	ltv.len = WNameLen/2+2;
 	ltv.type = type;
 	if (w_inltv(ctlr, &ltv))
 		return Unkname;
-	len = ltv.slen;
-	if(len == 0 || ltv.s[0] == 0)
+	if (ltv.name[2] == 0)
 		return Nilname;
-	if(len >= sizeof ltv.s)
-		len = sizeof ltv.s - 1;
-	ltv.s[len] = '\0';
-	return ltv.s;
+	return ltv.name+2;
 }
 
 static int
@@ -572,7 +462,7 @@ w_read(Ctlr* ctlr, int type, int off, void* buf, ulong len)
 		DEBUG("wavelan: w_read: seek failed");
 		return 0;
 	}
-	csr_inss(ctlr, WR_Data1, buf, len/2);
+	inss((ctlr)->iob+(WR_Data1), buf, len/2);
 
 	return len;
 }
@@ -588,7 +478,7 @@ w_write(Ctlr* ctlr, int type, int off, void* buf, ulong len)
 			return 0;
 		}
 
-		csr_outss(ctlr, WR_Data0, buf, len/2);
+		outss((ctlr)->iob+(WR_Data0), buf, len/2);
 
 		csr_outs(ctlr, WR_Data0, 0xdead);
 		csr_outs(ctlr, WR_Data0, 0xbeef);
@@ -646,7 +536,6 @@ w_enable(Ether* ether)
 	ltv_outs(ctlr, WTyp_Tick, 8);
 	ltv_outs(ctlr, WTyp_MaxLen, ctlr->maxlen);
 	ltv_outs(ctlr, WTyp_Ptype, ctlr->ptype);
- 	ltv_outs(ctlr, WTyp_CreateIBSS, ctlr->createibss);
 	ltv_outs(ctlr, WTyp_RtsThres, ctlr->rtsthres);
 	ltv_outs(ctlr, WTyp_TxRate, ctlr->txrate);
 	ltv_outs(ctlr, WTyp_ApDens, ctlr->apdensity);
@@ -849,8 +738,10 @@ w_intr(Ether *ether)
 		return;
 	}
 
+	csr_outs(ctlr, WR_IntEna, 0);
 	rc = csr_ins(ctlr, WR_EvSts);
-	csr_ack(ctlr, ~WEvs);	// Not interested in them
+	csr_ack(ctlr, ~WEvs);	// Not interested on them
+
 	if (rc & WRXEv){
 		w_rxdone(ether);
 		csr_ack(ctlr, WRXEv);
@@ -881,6 +772,8 @@ w_intr(Ether *ether)
 		ctlr->nidrop++;
 		csr_ack(ctlr, WIDropEv);
 	}
+
+	w_intena(ctlr);
 	w_txstart(ether);
 }
 
@@ -903,7 +796,7 @@ w_timer(void* arg)
 			continue;
 		ctlr->ticks++;
 
-		ilock(ctlr);
+		ilock(&ctlr->Lock);
 
 		// Seems that the card gets frames BUT does
 		// not send the interrupt; this is a problem because
@@ -920,10 +813,10 @@ w_timer(void* arg)
 		// the card frames in the wrong way; due to the
 		// lack of documentation I cannot know.
 
-		if (csr_ins(ctlr, WR_EvSts)&WEvs){
-			ctlr->tickintr++;
-			w_intr(ether);
-		}
+//		if (csr_ins(ctlr, WR_EvSts)&WEvs){
+//			ctlr->tickintr++;
+//			w_intr(ether);
+//		}
 
 		if ((ctlr->ticks % 10) == 0) {
 			if (ctlr->txtmout && --ctlr->txtmout == 0){
@@ -938,7 +831,7 @@ w_timer(void* arg)
 			if (ctlr->txbusy == 0)
 				w_cmd(ctlr, WCmdAskStats, WTyp_Stats);
 		}
-		iunlock(ctlr);
+		iunlock(&ctlr->Lock);
 	}
 	pexit("terminated",0);
 }
@@ -962,9 +855,9 @@ attach(Ether* ether)
 	snprint(name, sizeof(name), "#l%dtimer", ether->ctlrno);
 	ctlr = (Ctlr*) ether->ctlr;
 	if (ctlr->attached == 0){
-		ilock(ctlr);
+		ilock(&ctlr->Lock);
 		rc = w_enable(ether);
-		iunlock(ctlr);
+		iunlock(&ctlr->Lock);
 		if(rc == 0){
 			ctlr->attached = 1;
 			kproc(name, w_timer, ether);
@@ -1003,7 +896,6 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	PRINTSTAT("Noise: %d\n", ctlr->noise-149);
 	PRINTSTAT("SNR: %ud\n", ctlr->signal-ctlr->noise);
 	PRINTSTAT("Interrupts: %lud\n", ctlr->nints);
-	PRINTSTAT("Double Interrupts: %lud\n", ctlr->ndoubleint);
 	PRINTSTAT("TxPackets: %lud\n", ctlr->ntx);
 	PRINTSTAT("RxPackets: %lud\n", ctlr->nrx);
 	PRINTSTAT("TxErrors: %lud\n", ctlr->ntxerr);
@@ -1020,7 +912,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	k = ((ctlr->txbusy)? ", txbusy" : "");
 	PRINTSTAT("%s\n", k);
 
-	if (ctlr->hascrypt){
+	if (ctlr->txkey){
 		PRINTSTR("Keys: ");
 		for (i = 0; i < WNKeys; i++){
 			if (ctlr->keys.keys[i].len == 0)
@@ -1034,7 +926,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	}
 
 	// real card stats
-	ilock(ctlr);
+	ilock(&ctlr->Lock);
 	PRINTSTR("\nCard stats: \n");
 	PRINTSTAT("Status: %ux\n", csr_ins(ctlr, WR_Sts));
 	PRINTSTAT("Event status: %ux\n", csr_ins(ctlr, WR_EvSts));
@@ -1048,16 +940,8 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	PRINTSTAT("Promiscuous mode: %d\n", ltv_ins(ctlr, WTyp_Prom));
 	if(i == 3)
 		PRINTSTAT("SSID name: %s\n", ltv_inname(ctlr, WTyp_NetName));
-	else {
-		Wltv ltv;
+	else
 		PRINTSTAT("Current name: %s\n", ltv_inname(ctlr, WTyp_CurName));
-		ltv.type = WTyp_BaseID;
-		ltv.len = 4;
-		if (w_inltv(ctlr, &ltv))
-			print("#l%d: unable to read base station mac addr\n", ether->ctlrno);
-		l += snprint(p+l, READSTR-l, "Base station: %2.2x%2.2x%2.2x%2.2x%2.2x%2.2x\n",
-			ltv.addr[0], ltv.addr[1], ltv.addr[2], ltv.addr[3], ltv.addr[4], ltv.addr[5]);
-	}
 	PRINTSTAT("Net name: %s\n", ltv_inname(ctlr, WTyp_WantName));
 	PRINTSTAT("Node name: %s\n", ltv_inname(ctlr, WTyp_NodeName));
 	if (ltv_ins(ctlr, WTyp_HasCrypt) == 0)
@@ -1073,7 +957,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 			PRINTSTAT("Transmit key id: %d\n", txid);
 		}
 	}
-	iunlock(ctlr);
+	iunlock(&ctlr->Lock);
 
 	PRINTSTAT("ntxuframes: %lud\n", ctlr->ntxuframes);
 	PRINTSTAT("ntxmframes: %lud\n", ctlr->ntxmframes);
@@ -1153,12 +1037,6 @@ option(Ctlr* ctlr, char* buf, long n)
 		else
 			r = -1;
 	}
-	else if(cistrcmp(cb->f[0], "ibss") == 0){
-		if(cistrcmp(cb->f[1], "on") == 0)
-			ctlr->createibss = 1;
-		else
-			ctlr->createibss = 0;
-	}
 	else if(cistrcmp(cb->f[0], "crypt") == 0){
 		if(cistrcmp(cb->f[1], "off") == 0)
 			ctlr->crypt = 0;
@@ -1225,16 +1103,16 @@ ctl(Ether* ether, void* buf, long n)
 	if(ctlr->attached == 0)
 		error(Eshutdown);
 
-	ilock(ctlr);
+	ilock(&ctlr->Lock);
 	if(option(ctlr, buf, n)){
-		iunlock(ctlr);
+		iunlock(&ctlr->Lock);
 		error(Ebadctl);
 	}
 	if(ctlr->txbusy)
 		w_txdone(ctlr, WTxErrEv);
 	w_enable(ether);
 	w_txstart(ether);
-	iunlock(ctlr);
+	iunlock(&ctlr->Lock);
 
 	return n;
 }
@@ -1247,10 +1125,10 @@ transmit(Ether* ether)
 	if (ctlr == 0)
 		return;
 
-	ilock(ctlr);
+	ilock(&ctlr->Lock);
 	ctlr->ntxrq++;
 	w_txstart(ether);
-	iunlock(ctlr);
+	iunlock(&ctlr->Lock);
 }
 
 static void
@@ -1263,9 +1141,9 @@ promiscuous(void* arg, int on)
 		error("card not found");
 	if (ctlr->attached == 0)
 		error("card not attached");
-	ilock(ctlr);
+	ilock(&ctlr->Lock);
 	ltv_outs(ctlr, WTyp_Prom, (on?1:0));
-	iunlock(ctlr);
+	iunlock(&ctlr->Lock);
 }
 
 static void
@@ -1276,30 +1154,48 @@ interrupt(Ureg* ,void* arg)
 
 	if (ctlr == 0)
 		return;
-	ilock(ctlr);
+	ilock(&ctlr->Lock);
 	ctlr->nints++;
 	w_intr(ether);
-	iunlock(ctlr);
+	iunlock(&ctlr->Lock);
 }
 
-static char* wavenames[] = {
-	"WaveLAN/IEEE",
-	"TrueMobile 1150",
-	"Instant Wireless ; Network PC CARD",
-	nil,
-};
-
 static int
-genreset(Ether* ether, Ctlr *ctlr)
+reset(Ether* ether)
 {
 	int i;
-	char *p;
 	Wltv ltv;
+	Ctlr* ctlr;
+	char buf[ISAOPTLEN], *p;
+
+	if((ctlr = malloc(sizeof(Ctlr))) == nil)
+		return -1;
+
+	ilock(&ctlr->Lock);
+
+	if (ether->port==0)
+		ether->port=WDfltIOB;
+	ctlr->iob = ether->port;
+	if (ether->irq==0)
+		ether->irq=WDfltIRQ;
+
+	if (ioalloc(ether->port,WIOLen,0,"wavelan")<0){
+		print("#l%d: port 0x%lx in use\n",
+				ether->ctlrno, ether->port);
+		goto abort;
+	}
+
+	if ((ctlr->slot = pcmspecial("WaveLAN/IEEE", ether))<0){
+		DEBUG("no wavelan found\n");
+		goto abort;
+	}
+//	DEBUG("#l%d: port=0x%lx irq=%ld\n",
+//			ether->ctlrno, ether->port, ether->irq);
 
 	w_intdis(ctlr);
 	if (w_cmd(ctlr,WCmdIni,0)){
 		print("#l%d: init failed\n", ether->ctlrno);
-		return -1;
+		goto abort;
 	}
 	w_intdis(ctlr);
 	ltv_outs(ctlr, WTyp_Tick, 8);
@@ -1307,7 +1203,6 @@ genreset(Ether* ether, Ctlr *ctlr)
 	ctlr->chan = 0;
 	ctlr->ptype = WDfltPType;
 	ctlr->txkey = 0;
-	ctlr->createibss = 0;
 	ctlr->keys.len = sizeof(WKey)*WNKeys/2 + 1;
 	ctlr->keys.type = WTyp_Keys;
 	if(ctlr->hascrypt = ltv_ins(ctlr, WTyp_HasCrypt))
@@ -1316,9 +1211,14 @@ genreset(Ether* ether, Ctlr *ctlr)
 	strcpy(ctlr->nodename, "Plan 9 STA");
 
 	for(i = 0; i < ether->nopt; i++){
-		if(p = strchr(ether->opt[i], '='))
+		//
+		// The max. length of an 'opt' is ISAOPTLEN in dat.h.
+		// It should be > 16 to give reasonable name lengths.
+		//
+		strcpy(buf, ether->opt[i]);
+		if(p = strchr(buf, '='))
 			*p = ' ';
-		option(ctlr, ether->opt[i], strlen(ether->opt[i]));
+		option(ctlr, buf, strlen(buf));
 	}
 
 	ctlr->netname[WNameLen-1] = 0;
@@ -1330,7 +1230,7 @@ genreset(Ether* ether, Ctlr *ctlr)
 	if (w_inltv(ctlr, &ltv)){
 		print("#l%d: unable to read mac addr\n",
 			ether->ctlrno);
-		return -1;
+		goto abort;
 	}
 	memmove(ether->ea, ltv.addr, Eaddrlen);
 
@@ -1363,172 +1263,18 @@ genreset(Ether* ether, Ctlr *ctlr)
 //		ether->ea[0], ether->ea[1], ether->ea[2],
 //		ether->ea[3], ether->ea[4], ether->ea[5]);
 
+	iunlock(&ctlr->Lock);
 	return 0;
+
+abort:
+	iunlock(&ctlr->Lock);
+	free(ctlr);
+	ether->ctlr = nil;
+	return -1;
 }
 
-static int
-wavelanpcmciareset(Ether *ether)
-{
-	int i;
-	Ctlr *ctlr;
-
-	if((ctlr = malloc(sizeof(Ctlr))) == nil)
-		return -1;
-
-	ilock(ctlr);
-	ctlr->ctlrno = ether->ctlrno;
-
-	if (ether->port==0)
-		ether->port=WDfltIOB;
-	ctlr->iob = ether->port;
-	if (ether->irq==0)
-		ether->irq=WDfltIRQ;
-
-	if (ioalloc(ether->port,WIOLen,0,"wavelan")<0){
-	//	print("#l%d: port 0x%lx in use\n",
-	//			ether->ctlrno, ether->port);
-		goto abort1;
-	}
-
-	/*
-	 * If id= is specified, card must match.  Otherwise try generic.
-	 */
-	ctlr->slot = -1;
-	for(i=0; i<ether->nopt; i++){
-		if(cistrncmp(ether->opt[i], "id=", 3) == 0){
-			if((ctlr->slot = pcmspecial(&ether->opt[i][3], ether)) < 0)
-				return -1;
-			break;
-		}
-	}
-	if(ctlr->slot == -1){
-		for (i=0; wavenames[i]; i++)
-			if((ctlr->slot = pcmspecial(wavenames[i], ether))>=0)
-				break;
-		if(!wavenames[i]){
-			DEBUG("no wavelan found\n");
-			goto abort;
-		}
-	}
-
-	// DEBUG("#l%d: port=0x%lx irq=%ld\n",
-	//		ether->ctlrno, ether->port, ether->irq);
-
-	if(genreset(ether, ctlr) < 0){
-	abort:
-		iofree(ether->port);
-	abort1:
-		iunlock(ctlr);
-		free(ctlr);
-		ether->ctlr = nil;
-		return -1;
-	}
-	iunlock(ctlr);
-	return 0;
-}
-
-static struct {
-	int vid;
-	int did;
-} wavelanpci[] = {
-	0x1260, 0x3873,	/* Intersil Prism2.5 */
-};
-
-static Ctlr *ctlrhead, *ctlrtail;
-
-static void
-wavelanpciscan(void)
-{
-	int i;
-	ulong pa;
-	Pcidev *p;
-	Ctlr *ctlr;
-
-	p = nil;
-	while(p = pcimatch(p, 0, 0)){
-		for(i=0; i<nelem(wavelanpci); i++)
-			if(p->vid == wavelanpci[i].vid && p->did == wavelanpci[i].did)
-				break;
-		if(i==nelem(wavelanpci))
-			continue;
-
-		/*
-		 * On the Prism, bar[0] is the memory-mapped register address (4KB),
-		 */
-		if(p->mem[0].size != 4096){
-			print("wavelanpci: %.4ux %.4ux: unlikely mmio size\n", p->vid, p->did);
-			continue;
-		}
-
-		ctlr = malloc(sizeof(Ctlr));
-		ctlr->pcidev = p;
-		pa = upamalloc(p->mem[0].bar&~0xF, p->mem[0].size, 0);
-		if(pa == 0){
-			print("wavelanpci: %.4ux %.4ux: upamalloc 0x%.8lux %d failed\n", p->vid, p->did, p->mem[0].bar&~0xF, p->mem[0].size);
-			free(ctlr);
-			continue;
-		}
-		ctlr->mmb = (ushort*)KADDR(pa);
-		if(ctlrhead != nil)
-			ctlrtail->next = ctlr;
-		else
-			ctlrhead = ctlr;
-		ctlrtail = ctlr;
-		pcisetbme(p);
-	}
-}
-
-static int
-wavelanpcireset(Ether *ether)
-{
-	int i;
-	Ctlr *ctlr;
-
-	if(ctlrhead == nil)
-		wavelanpciscan();
-
-	/*
-	 * Allow plan9.ini to set vid, did?
-	 */
-	for(ctlr=ctlrhead; ctlr!=nil; ctlr=ctlr->next)
-		if(ctlr->active == 0)
-			break;
-	if(ctlr == nil)
-		return -1;
-
-	ctlr->active = 1;
-	ilock(ctlr);
-	ether->irq = ctlr->pcidev->intl;
-	ether->tbdf = ctlr->pcidev->tbdf;
-
-	/*
-	 * Really hard reset.
-	 */
-	csr_outs(ctlr, WR_PciCor, 0x0080);
-	delay(250);
-	csr_outs(ctlr, WR_PciCor, 0x0000);
-	delay(500);
-	for(i=0; i<2*10; i++){
-		if(!(csr_ins(ctlr, WR_Cmd)&WCmdBusy))
-			break;
-		delay(100);
-	}
-	if(i >= 2*10)
-		print("wavelan pci %.4ux %.4ux: reset timeout %.4ux\n",
-			ctlr->pcidev->vid, ctlr->pcidev->did, csr_ins(ctlr, WR_Cmd));
-
-	if(genreset(ether, ctlr) < 0){
-		iunlock(ctlr);
-		ether->ctlr = nil;
-		return -1;
-	}
-	iunlock(ctlr);
-	return 0;
-}
-	
 void
 etherwavelanlink(void)
 {
-	addethercard("wavelan", wavelanpcmciareset);
-	addethercard("wavelanpci", wavelanpcireset);
+	addethercard("wavelan", reset);
 }

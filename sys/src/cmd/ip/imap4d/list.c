@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
 #include "imap4d.h"
 
 #define SUBSCRIBED	"imap.subscribed"
@@ -16,15 +15,11 @@ static int	mkSubscribed(void);
 static long
 listMtime(char *file)
 {
-	Dir *d;
-	long mtime;
+	Dir d;
 
-	d = cdDirstat(mboxDir, file);
-	if(d == nil)
+	if(cdDirstat(mboxDir, file, &d) < 0)
 		return 0;
-	mtime = d->mtime;
-	free(d);
-	return mtime;
+	return d.mtime;
 }
 
 /*
@@ -36,10 +31,9 @@ int
 lsubBoxes(char *cmd, char *ref, char *pat)
 {
 	MbLock *mb;
-	Dir *d;
+	Dir d;
 	Biobuf bin;
 	char *s;
-	long mtime;
 	int fd, ok, isdir;
 
 	mb = mbLock();
@@ -60,19 +54,11 @@ lsubBoxes(char *cmd, char *ref, char *pat)
 			continue;
 		isdir = 1;
 		if(cistrcmp(s, "INBOX") == 0){
-			mtime = listMtime("mbox");
+			d.mtime = listMtime("mbox");
 			isdir = 0;
-		}else{
-			d = cdDirstat(mboxDir, s);
-			if(d != nil){
-				mtime = d->mtime;
-				if(!(d->mode & DMDIR))
-					isdir = 0;
-				free(d);
-			}else
-				mtime = 0;
-		}
-		ok |= checkMatch(cmd, ref, pat, s, mtime, isdir);
+		}else if(cdDirstat(mboxDir, s, &d) >= 0 && !(d.mode & CHDIR))
+			isdir = 0;
+		ok |= checkMatch(cmd, ref, pat, s, d.mtime, isdir);
 	}
 	Bterm(&bin);
 	close(fd);
@@ -166,9 +152,8 @@ listBoxes(char *cmd, char *ref, char *pat)
 static int
 listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 {
-	Dir *dir, *dirs;
+	Dir dir, *dirs;
 	char *mdir, *m, *mb, *wc;
-	long mode;
 	int c, i, nmb, nmdir, nd, ok, fd;
 
 	mdir = nil;
@@ -185,42 +170,37 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 				fd = cdOpen(mboxDir, mbox, OREAD);
 				*mdir = '/';
 				nmdir = mdir - mbox + 1;
-				if(fd < 0)
+				if(fd < 0 || dirfstat(fd, &dir) < 0)
 					return 0;
-				dir = dirfstat(fd);
-				if(dir == nil){
-					close(fd);
-					return 0;
-				}
-				mode = dir->mode;
-				free(dir);
-				if(!(mode & DMDIR))
+				if(!(dir.mode & CHDIR))
 					break;
 			}
 			wc = m;
 			for(; c = *m; m++)
 				if(c == '/')
 					break;
-			nmb = nmdir + strlen(m) + MboxNameLen + 3;
+			nmb = nmdir + strlen(m) + NAMELEN + 3;
 			mb = emalloc(nmb);
 			strncpy(mb, mbox, nmdir);
+			dirs = emalloc(sizeof(Dir) * NDirs);
 			ok = 0;
-			while((nd = dirread(fd, &dirs)) > 0){
+			while((nd = dirread(fd, dirs, sizeof(Dir) * NDirs)) >= sizeof(Dir)){
+				nd /= sizeof(Dir);
 				for(i = 0; i < nd; i++){
-					if(*wc == '*' && (dirs[i].mode & DMDIR) && mayMatch(mm, dirs[i].name, 1)){
+					if(*wc == '*' && (dirs[i].mode & CHDIR) && mayMatch(mm, dirs[i].name, 1)){
 						snprint(mb+nmdir, nmb-nmdir, "%s", dirs[i].name);
 						ok |= listAll(cmd, ref, pat, mb, dirs[i].mtime);
 					}else if(mayMatch(mm, dirs[i].name, 0)){
 						snprint(mb+nmdir, nmb-nmdir, "%s%s", dirs[i].name, m);
 						if(*m == '\0')
-							ok |= checkMatch(cmd, ref, pat, mb, dirs[i].mtime, (dirs[i].mode & DMDIR) == DMDIR);
-						else if(dirs[i].mode & DMDIR)
+							ok |= checkMatch(cmd, ref, pat, mb, dirs[i].mtime, (dirs[i].mode & CHDIR) == CHDIR);
+						else if(dirs[i].mode & CHDIR)
 							ok |= listMatch(cmd, ref, pat, mb, mb + nmdir + strlen(dirs[i].name));
 					}
 				}
-				free(dirs);
 			}
 			close(fd);
+			free(dirs);
 			free(mb);
 			return ok;
 		}
@@ -232,12 +212,9 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 	m = mbox;
 	if(*mbox == '\0')
 		m = ".";
-	dir = cdDirstat(mboxDir, m);
-	if(dir == nil)
+	if(cdDirstat(mboxDir, m, &dir) < 0)
 		return 0;
-	ok = checkMatch(cmd, ref, pat, mbox, dir->mtime, (dir->mode & DMDIR) == DMDIR);
-	free(dir);
-	return ok;
+	return checkMatch(cmd, ref, pat, mbox, dir.mtime, (dir.mode & CHDIR) == CHDIR);
 }
 
 /*
@@ -256,19 +233,21 @@ listAll(char *cmd, char *ref, char *pat, char *mbox, long mtime)
 	if(fd < 0)
 		return ok;
 
-	nmb = strlen(mbox) + MboxNameLen + 2;
+	nmb = strlen(mbox) + NAMELEN + 2;
 	mb = emalloc(nmb);
-	while((nd = dirread(fd, &dirs)) > 0){
+	dirs = emalloc(sizeof(Dir) * NDirs);
+	while((nd = dirread(fd, dirs, sizeof(Dir) * NDirs)) >= sizeof(Dir)){
+		nd /= sizeof(Dir);
 		for(i = 0; i < nd; i++){
 			snprint(mb, nmb, "%s/%s", mbox, dirs[i].name);
-			if(dirs[i].mode & DMDIR)
+			if(dirs[i].mode & CHDIR)
 				ok |= listAll(cmd, ref, pat, mb, dirs[i].mtime);
 			else
 				ok |= checkMatch(cmd, ref, pat, mb, dirs[i].mtime, 0);
 		}
-		free(dirs);
 	}
 	close(fd);
+	free(dirs);
 	free(mb);
 	return ok;
 }

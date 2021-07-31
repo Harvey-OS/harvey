@@ -1,9 +1,9 @@
 </$objtype/mkfile
 
-DIRS=9sys 9syscall fmt port $CPUS
+DIRS=9sys 9syscall port $CPUS
 
 all install:V:
-	for(i in 9sys 9syscall fmt port $objtype)@{
+	for(i in 9sys 9syscall port $objtype)@{
 		echo $i
 		cd $i
 		mk $MKFLAGS install

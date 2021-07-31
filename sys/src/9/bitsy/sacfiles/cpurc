@@ -1,0 +1,95 @@
+#!/bin/rc
+echo -n terminal > /env/service
+echo -n plan9 > /env/site
+echo -n astro > /env/facedom
+echo -n emelie > /env/fs
+
+bind -a '#y' /dev
+bind -a '#F' /dev
+bind -a '#I' /net
+bind -a '#D' /net
+
+# parallelism for mk
+NPROC=1
+
+sysname=`{cat /dev/sysname}
+prompt=($sysname^'# ' '	')
+
+# flavor
+fileserver=emelie
+cpu=olive
+
+# flash partitions
+echo -n add bootldr 0 0x40000 > /dev/flash/flashctl
+echo -n add kernel 0x40000 0xc0000 > /dev/flash/flashctl
+echo -n add ramdisk 0x100000 0x800000 > /dev/flash/flashctl
+echo -n add params 0x800000 0x840000 > /dev/flash/flashctl
+
+# so we can see things
+light 0
+
+# set variables
+ramfs
+params -f
+if(! grep -s '^calibrate=' /tmp/tmpparams)
+	pencal >>/tmp/tmpparams
+if not {
+	eval `{grep '^calibrate=' /tmp/tmpparams}
+	echo calibrate $calibrate > '#m/mousectl'
+}
+prompter /tmp/tmpparams
+params
+. /tmp/tmpparams
+
+
+# set userid
+echo -n $user > /dev/hostowner
+if(test -e /env/password){
+	auth/iam $user $password
+	rm /env/password
+}
+
+# start network
+if(grep -s WaveLAN/IEEE /dev/pcm0ctl){
+	echo -n 'configure #l0 wavelan'>/dev/pcm0ctl
+	bind -a '#l0' /net
+	switch($wvkey1){
+	case ''
+		;
+	case *
+		echo -n 'key1 '^$wvkey1 >/net/ether0/clone
+	}
+	switch($wvkey2){
+	case ''
+		;
+	case *
+		echo -n 'key2 '^$wvkey2 >/net/ether0/clone
+	}
+	switch($wvkey3){
+	case ''
+		;
+	case *
+		echo -n 'key3 '^$wvkey3 >/net/ether0/clone
+	}
+	switch($wvessid){
+	case ''
+		;
+	case *
+		echo -n 'essid '^$wvessid >/net/ether0/clone
+	}
+	switch($wvtxkey){
+	case ''
+		;
+	case *
+		echo -n 'txkey '^$wvtxkey >/net/ether0/clone
+	}
+	ip/ipconfig ether /net/ether0
+	ndb/cs
+	ndb/dns -r
+}
+
+if(! test -e /env/font)
+	font=/lib/font/bit/lucidasans/unicode.6.font
+if(! test -e /env/tabstop)
+	tabstop=2
+exec rio -sk '/bin/keyboard'

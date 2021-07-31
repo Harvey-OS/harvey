@@ -1,0 +1,83 @@
+CONF=carrera
+CONFLIST=carrera
+
+objtype=mips
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	fault.$O\
+	latin1.$O\
+	memmove.$O\
+	memset.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	clock.$O\
+	dma.$O\
+	faultmips.$O\
+	fptrap.$O\
+	kbd.$O\
+	main.$O\
+	mmu.$O\
+	random.$O\
+	rdb.$O\
+	screen.$O\
+	trap.$O\
+	$DEVS\
+	$PORT\
+	boot$CONF.root.$O\
+
+LIB=\
+	/mips/lib/libmemlayer.a\
+	/mips/lib/libmemdraw.a\
+	/mips/lib/libdraw.a\
+	/mips/lib/libauth.a\
+	/mips/lib/libc.a\
+	/mips/lib/libsec.a\
+
+$p$CONF:	$OBJ $CONF.c $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -R4 -T0x80012020 $OBJ $CONF.$O $LIB
+	size $p$CONF
+
+install:V:	$p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+
+<../boot/bootmkfile
+<../port/portmkfile
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -o init.out -H2 -T4128 -R4 initcode.$O -lc
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O faultmips.$O:	/$objtype/include/ureg.h
+
+devether.$O: ../port/netif.h

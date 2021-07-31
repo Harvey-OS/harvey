@@ -3,7 +3,7 @@
 struct
 {
 	RWLock	uidlock;
-	char*	uidbuf;
+	Iobuf*	uidbuf;
 	int	flen;
 	int	find;
 } uidgc;
@@ -34,12 +34,13 @@ fchar(void)
 
 	if(uidgc.find >= uidgc.flen) {
 		uidgc.find = 0;
-		uidgc.flen = con_read(FID2, uidgc.uidbuf, cons.offset, MAXDAT);
+		uidgc.flen = con_read(FID2, uidgc.uidbuf->iobuf,
+			cons.offset, BUFSIZE);
 		if(uidgc.flen <= 0)
 			return 0;
 		cons.offset += uidgc.flen;
 	}
-	return uidgc.uidbuf[uidgc.find++];
+	return uidgc.uidbuf->iobuf[uidgc.find++];
 }
 
 int
@@ -152,7 +153,7 @@ cmd_user(void)
 	char name[NAMELEN];
 
 	wlock(&uidgc.uidlock);
-	uidgc.uidbuf = malloc(MAXDAT);
+	uidgc.uidbuf = getbuf(devnone, Cuidbuf, 0);
 
 	memset(uid, 0, conf.nuid * sizeof(*uid));
 	memset(uidspace, 0, conf.uidspace * sizeof(*uidspace));
@@ -320,7 +321,7 @@ initu:
 	}
 
 out:
-	free(uidgc.uidbuf);
+	putbuf(uidgc.uidbuf);
 	wunlock(&uidgc.uidlock);
 
 }

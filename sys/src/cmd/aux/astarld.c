@@ -20,6 +20,7 @@ typedef struct
 	uchar	csum;
 } Cpline;
 
+void	fatal(char*, ...);
 char*	rdcpline(Biobuf*, Cpline*);
 void	clearmem(int);
 
@@ -37,16 +38,16 @@ loadimage(char* file, int mfd)
 	int fd, n, r;
 
 	if((fd = open(file, OREAD)) < 0)
-		sysfatal("opening %s: %r", file);
+		fatal("opening %s: %r", file);
 
 	seek(mfd, 0, 0);
 	do{
 		n = read(fd, buf, sizeof(buf));
 		if(n < 0)
-			sysfatal("read %s: %r", file);
+			fatal("read %s: %r", file);
 		if(n > 0)
 			if((r = write(mfd, buf, n)) != n)
-				sysfatal("write %s: %d != %d: %r", file, n, r);
+				fatal("write %s: %d != %d: %r", file, n, r);
 	}while(n > 0);
 	close(fd);
 }
@@ -64,27 +65,27 @@ loadhex(char* file, int mfd)
 
 	b = Bopen(file, OREAD);
 	if(b == 0)
-		sysfatal("opening %s: %r", file);
+		fatal("opening %s: %r", file);
 
 	lineno = 1;
 	seg = 0;
 	for(done = 0; !done; lineno++){
 		err = rdcpline(b, &c);
 		if(err)
-			sysfatal("%s line %d: %s", file, lineno, err);
+			fatal("%s line %d: %s", file, lineno, err);
 		switch(c.type){
 		case 0: /* data */
 			addr = seg + c.addr;
 			if(addr + c.dlen > Memsize)
-				sysfatal("addr out of range: %lux-%lux", addr, addr+c.dlen);
+				fatal("addr out of range: %lux-%lux", addr, addr+c.dlen);
 			if(seek(mfd, addr, 0) < 0)
-				sysfatal("seeking to %lud: %r", addr);
+				fatal("seeking to %d: %r", c.bytes);
 			if(write(mfd, c.bytes+Doff, c.dlen) != c.dlen)
-				sysfatal("writing: %r");
+				fatal("writing: %r");
 			if(seek(mfd, addr, 0) < 0)
-				sysfatal("seeking to %lud: %r", addr);
+				fatal("seeking to %d: %r", c.bytes);
 			if(read(mfd, buf, c.dlen) != c.dlen)
-				sysfatal("reading: %r");
+				fatal("reading: %r");
 			if(memcmp(buf, c.bytes+Doff, c.dlen) != 0)
 				print("readback error at %lux\n", addr);
 			if(dump)
@@ -96,7 +97,7 @@ loadhex(char* file, int mfd)
 		case 2: /* segment */
 			seg = ((c.bytes[Doff]<<8) | c.bytes[Doff+1]) <<4;
 			if(seg >= Memsize)
-				sysfatal("seg out of range: %lux", seg);
+				fatal("seg out of range: %lux", seg);
 			if(dump)
 				print("seg %8.8lux\n", seg);
 			break;
@@ -151,19 +152,19 @@ main(int argc, char **argv)
 		sprint(file, "#G/astar%dctl", unit);
 		cfd = open(file, ORDWR);
 		if(cfd < 0)
-			sysfatal("opening %s\n", file);
+			fatal("opening %s\n", file);
 		sprint(file, "#G/astar%dmem", unit);
 		mfd = open(file, ORDWR);
 		if(mfd < 0)
-			sysfatal("opening %s\n", file);
+			fatal("opening %s\n", file);
 	
 		if(write(cfd, "download", 8) != 8)
-			sysfatal("requesting download: %r");
+			fatal("requesting download: %r");
 	} else {
 		cfd = -1;
 		mfd = create("/tmp/astarmem", ORDWR, 0664);
 		if(mfd < 0)
-			sysfatal("creating /tmp/astarmem: %r");
+			fatal("creating /tmp/astarmem: %r");
 	}
 
 	if(image)
@@ -177,7 +178,7 @@ main(int argc, char **argv)
 
 	if(noload == 0 && nostart == 0)
 		if(write(cfd, "run", 3) != 3)
-			sysfatal("requesting run: %r");
+			fatal("requesting run: %r");
 	close(cfd);
 
 	exits(0);
@@ -193,12 +194,12 @@ clearmem(int fd)
 	memset(buf, 0, sizeof buf);
 	for(i = 0; i < Memsize; i += n){
 		if(seek(fd, i, 0) < 0)
-			sysfatal("seeking to %ux: %r", i);
+			fatal("seeking to %lux: %r", i);
 		n = write(fd, buf, sizeof buf);
 		if(n <= 0)
 			break;
 		if(seek(fd, i, 0) < 0)
-			sysfatal("seeking to %ux: %r", i);
+			fatal("seeking to %lux: %r", i);
 		n = read(fd, buf2, sizeof buf2);
 		if(n <= 0)
 			break;
@@ -262,4 +263,17 @@ rdcpline(Biobuf *b, Cpline *cpl)
 	cpl->addr = (cpl->bytes[1]<<8) | cpl->bytes[2];
 	cpl->type = cpl->bytes[3];
 	return 0;
+}
+
+void
+fatal(char *fmt, ...)
+{
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
+	va_end(arg);
+	fprint(2, "%s: %s\n", argv0, buf);
+	exits(buf);
 }

@@ -9,8 +9,8 @@
 typedef struct Srv Srv;
 struct Srv
 {
-	char	*name;
-	char	*owner;
+	char	name[NAMELEN];
+	char	owner[NAMELEN];
 	ulong	perm;
 	Chan	*chan;
 	Srv	*link;
@@ -22,10 +22,9 @@ static Srv	*srv;
 static int	qidpath;
 
 static int
-srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+srvgen(Chan *c, Dirtab*, int, int s, Dir *dp)
 {
 	Srv *sp;
-	Qid q;
 
 	if(s == DEVDOTDOT){
 		devdir(c, c->qid, "#s", 0, eve, 0555, dp);
@@ -40,11 +39,7 @@ srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		qunlock(&srvlk);
 		return -1;
 	}
-
-	mkqid(&q, sp->path, 0, QTFILE);
-	/* make sure name string continues to exist after we release lock */
-	kstrcpy(up->genbuf, sp->name, sizeof up->genbuf);
-	devdir(c, q, up->genbuf, 0, sp->owner, sp->perm, dp);
+	devdir(c, (Qid){sp->path, 0}, sp->name, 0, sp->owner, sp->perm, dp);
 	qunlock(&srvlk);
 	return 1;
 }
@@ -61,10 +56,16 @@ srvattach(char *spec)
 	return devattach('s', spec);
 }
 
-static Walkqid*
-srvwalk(Chan *c, Chan *nc, char **name, int nname)
+static int
+srvwalk(Chan *c, char *name)
 {
-	return devwalk(c, nc, name, nname, 0, 0, srvgen);
+	return devwalk(c, name, 0, 0, srvgen);
+}
+
+static void
+srvstat(Chan *c, char *db)
+{
+	devstat(c, db, 0, 0, srvgen);
 }
 
 static Srv*
@@ -75,12 +76,6 @@ srvlookup(char *name, ulong qidpath)
 		if(sp->path == qidpath || (name && strcmp(sp->name, name) == 0))
 			return sp;
 	return nil;
-}
-
-static int
-srvstat(Chan *c, uchar *db, int n)
-{
-	return devstat(c, db, n, 0, 0, srvgen);
 }
 
 char*
@@ -103,7 +98,7 @@ srvopen(Chan *c, int omode)
 {
 	Srv *sp;
 
-	if(c->qid.type == QTDIR){
+	if(c->qid.path == CHDIR){
 		if(omode & ORCLOSE)
 			error(Eperm);
 		if(omode != OREAD)
@@ -153,7 +148,6 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 
 	qlock(&srvlk);
 	if(waserror()){
-		free(sp);
 		qunlock(&srvlk);
 		nexterror();
 	}
@@ -162,15 +156,13 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 
 	sp->path = qidpath++;
 	sp->link = srv;
-	c->qid.type = QTFILE;
 	c->qid.path = sp->path;
 	srv = sp;
 	qunlock(&srvlk);
 	poperror();
 
-	sp->name = smalloc(strlen(name)+1);
-	strcpy(sp->name, name);
-	kstrdup(&sp->owner, up->user);
+	strncpy(sp->name, name, NAMELEN);
+	strncpy(sp->owner, up->user, NAMELEN);
 	sp->perm = perm&0777;
 
 	c->flag |= COPEN;
@@ -182,7 +174,7 @@ srvremove(Chan *c)
 {
 	Srv *sp, **l;
 
-	if(c->qid.type == QTDIR)
+	if(c->qid.path == CHDIR)
 		error(Eperm);
 
 	qlock(&srvlk);
@@ -209,20 +201,16 @@ srvremove(Chan *c)
 
 	if(sp->chan)
 		cclose(sp->chan);
-	if(sp->name){
-		free(sp->name);
-		sp->name = nil;
-	}
 	free(sp);
 }
 
-static int
-srvwstat(Chan *c, uchar *dp, int n)
+static void
+srvwstat(Chan *c, char *dp)
 {
 	Dir d;
 	Srv *sp;
 
-	if(c->qid.type & QTDIR)
+	if(c->qid.path & CHDIR)
 		error(Eperm);
 
 	qlock(&srvlk);
@@ -238,31 +226,25 @@ srvwstat(Chan *c, uchar *dp, int n)
 	if(strcmp(sp->owner, up->user) && !iseve())
 		error(Eperm);
 
-	n = convM2D(dp, n, &d, nil);
-	if(n == 0)
-		error (Eshortstat);
-	if(d.mode != ~0UL)
-		sp->perm = d.mode & 0777;
+	convM2D(dp, &d);
+	d.mode &= 0777;
+	sp->perm = d.mode;
 
 	qunlock(&srvlk);
 	poperror();
-	return n;
 }
 
 static void
 srvclose(Chan *c)
 {
 	/*
+	 * errors from srvremove will be caught by cclose and ignored.
 	 * in theory we need to override any changes in removability
 	 * since open, but since all that's checked is the owner,
 	 * which is immutable, all is well.
 	 */
-	if(c->flag & CRCLOSE){
-		if(waserror())
-			return;
+	if(c->flag & CRCLOSE)
 		srvremove(c);
-		poperror();
-	}
 }
 
 static long
@@ -296,8 +278,6 @@ srvwrite(Chan *c, void *va, long n, vlong)
 	}
 	if(c1->flag & (CCEXEC|CRCLOSE))
 		error("posted fd has remove-on-close or close-on-exec");
-	if(c1->qid.type & QTAUTH)
-		error("can't post auth file in srv");
 	sp = srvlookup(nil, c->qid.path);
 	if(sp == 0)
 		error(Enonexist);
@@ -316,9 +296,9 @@ Dev srvdevtab = {
 	"srv",
 
 	devreset,
-	srvinit,	
-	devshutdown,
+	srvinit,
 	srvattach,
+	devclone,
 	srvwalk,
 	srvstat,
 	srvopen,

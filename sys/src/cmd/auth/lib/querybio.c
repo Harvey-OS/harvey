@@ -2,7 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 #include <ctype.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 
 #define TABLEN 8

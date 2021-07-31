@@ -1,0 +1,9 @@
+#!/bin/rc
+if(grep -s WaveLAN/IEEE /dev/pcm0ctl){
+	echo -n 'configure #l0 WaveLAN/IEEE'>/dev/pcm0ctl
+	bind -a '#l0' /net
+	echo -n 'key moon1'>/net/ether0/clone
+	ip/ipconfig ether /net/ether0
+	ndb/cs
+	ndb/dns -r
+}

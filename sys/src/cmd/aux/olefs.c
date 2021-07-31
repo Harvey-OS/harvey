@@ -348,7 +348,7 @@ Die:
 }
 
 void
-oleread(Req *r)
+oleread(Req *r, Fid *f, void *buf, long *count, vlong offset)
 {
 	Odir *d;
 	char *p;
@@ -356,17 +356,17 @@ oleread(Req *r)
 	long c;
 	vlong o;
 
-	o = r->ifcall.offset;
-	d = r->fid->file->aux;
+	o = offset;
+	d = f->file->aux;
 	if(d == nil) {
 		respond(r, "cannot happen");
 		return;
 	}
 
-	c = r->ifcall.count;
+	c = *count;
 
 	if(o >= d->size) {
-		r->ofcall.count = 0;
+		*count = 0;
 		respond(r, nil);
 		return;
 	}
@@ -380,16 +380,16 @@ oleread(Req *r)
 	 */
 	e = c+o;
 	n = 0;
-	for(p=r->ofcall.data; o<e; o+=n, p+=n) {
+	for(p=buf; o<e; o+=n, p+=n) {
 		n = oreadfile(d, o, p, e-o);
 		if(n <= 0)
 			break;
 	}
 
-	if(n == -1 && o == r->ifcall.offset)
+	if(n == -1 && o == offset)
 		respond(r, "error reading word file");
 	else {
-		r->ofcall.count = o - r->ifcall.offset;
+		*count = o-offset;
 		respond(r, nil);
 	}
 }
@@ -409,8 +409,8 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 {
 	Odir d;
 	int i;
-	Rune rbuf[40];
-	char buf[UTFmax*nelem(rbuf)];
+	Rune rbuf[NAMELEN];
+	char buf[NAMELEN*3+1];
 	File *nt;
 
 	if(dnum == 0xFFFFFFFF || oreaddir(f, dnum, &d) != 1)
@@ -426,32 +426,31 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 	filldir(t, f, d.left, nrecur+1);
 
 	/* add current tree entry */
-	runestrecpy(rbuf, rbuf+sizeof rbuf, d.name);
-	for(i=0; rbuf[i]; i++)
+	memmove(rbuf, d.name, NAMELEN*sizeof(Rune));
+	rbuf[NAMELEN-1] = 0;
+	for(i=0; i<NAMELEN-1 && rbuf[i] != 0; i++)
 		if(rbuf[i] == L' ')
 			rbuf[i] = L'␣';
 		else if(rbuf[i] <= 0x20 || rbuf[i] == L'/' 
 			|| (0x80 <= rbuf[i] && rbuf[i] <= 0x9F))
 				rbuf[i] = ':';
-	
-	snprint(buf, sizeof buf, "%S", rbuf);
+
+	snprint(buf, NAMELEN, "%S", rbuf);
 
 	if(d.dir == 0xFFFFFFFF) {
 		/* make file */
-		nt = createfile(t, buf, nil, 0444, nil);
-if(nt ==nil)
-fprint(2, "nt nil: create %s: %r\n", buf);
+		nt = fcreate(t, buf, nil, nil, 0444);
 		nt->aux = copydir(&d);
 		nt->length = d.size;
 	} else /* make directory */
-		nt = createfile(t, buf, nil, DMDIR|0777, nil);
+		nt = fcreate(t, buf, nil, nil, CHDIR|0555);
 
 	filldir(t, f, d.right, nrecur+1);
 
 	if(d.dir != 0xFFFFFFFF)
 		filldir(nt, f, d.dir, nrecur+1);
 
-	closefile(nt);
+	fclose(nt);
 }
 
 Srv olesrv = {
@@ -494,7 +493,7 @@ main(int argc, char **argv)
 		exits("oreaddir");
 	}
 
-	olesrv.tree = alloctree(nil, nil, DMDIR|0777, nil);
+	olesrv.tree = mktree(nil, nil, CHDIR|0777);
 	filldir(olesrv.tree->root, f, d.dir, 0);
 	postmountsrv(&olesrv, nil, mtpt, MREPL);
 	exits(0);

@@ -10,7 +10,7 @@ typedef struct	Ebuf Ebuf;
 struct Slave
 {
 	int	pid;
-	Ebuf	*head;		/* ueue of messages for this descriptor */
+	Ebuf	*head;		/* queue of messages for this descriptor */
 	Ebuf	*tail;
 	int	(*fn)(int, Event*, uchar*, int);
 };
@@ -43,16 +43,12 @@ Ebuf*
 ebread(Slave *s)
 {
 	Ebuf *eb;
-	Dir *d;
-	ulong l;
+	Dir d;
 
 	for(;;){
-		d = dirfstat(epipe[0]);
-		if(d == nil)
+		if(dirfstat(epipe[0], &d) < 0)
 			drawerror(display, "events: eread stat error");
-		l = d->length;
-		free(d);
-		if(s->head && l==0)
+		if(s->head && d.length == 0)
 			break;
 		extract();
 	}
@@ -122,20 +118,16 @@ ecankbd(void)
 int
 ecanread(ulong keys)
 {
-	Dir *d;
+	Dir d;
 	int i;
-	ulong l;
 
 	for(;;){
 		for(i=0; i<nslave; i++)
 			if((keys & (1<<i)) && eslave[i].head)
 				return 1;
-		d = dirfstat(epipe[0]);
-		if(d == nil)
+		if(dirfstat(epipe[0], &d) < 0)
 			drawerror(display, "events: ecanread stat error");
-		l = d->length;
-		free(d);
-		if(l == 0)
+		if(d.length == 0)
 			return 0;
 		extract();
 	}
@@ -209,8 +201,11 @@ ekeyslave(int fd)
 	for(;;){
 		while(!fullrune(k, kn)){
 			kr = read(fd, k+kn, sizeof k - kn);
-			if(kr <= 0)
-				goto breakout;
+			if(kr <= 0){
+				t[0] = MAXSLAVE;
+				write(epipe[1], t, 1);
+				_exits(0);
+			}
 			kn += kr;
 		}
 		w = chartorune(&r, k);
@@ -218,13 +213,8 @@ ekeyslave(int fd)
 		memmove(k, &k[w], kn);
 		t[1] = r;
 		t[2] = r>>8;
-		if(write(epipe[1], t, 3) != 3)
-			break;
+		write(epipe[1], t, 3);
 	}
-breakout:;
-	t[0] = MAXSLAVE;
-	write(epipe[1], t, 1);
-	_exits(0);
 }
 
 void
@@ -359,30 +349,19 @@ eforkslave(ulong key)
 static int
 enote(void *v, char *s)
 {
-	char t[1];
 	int i, pid;
 
 	USED(v, s);
 	pid = getpid();
-	if(pid != parentpid){
-		for(i=0; i<nslave; i++){
-			if(pid == eslave[i].pid){
-				t[0] = MAXSLAVE;
-				write(epipe[1], t, 1);
-				break;
-			}
-		}
-		return 0;
-	}
-	close(epipe[0]);
-	epipe[0] = -1;
-	close(epipe[1]);
-	epipe[1] = -1;
+	if(pid != parentpid)
+		return 1;
 	for(i=0; i<nslave; i++){
 		if(pid == eslave[i].pid)
 			continue;	/* don't kill myself */
 		postnote(PNPROC, eslave[i].pid, "die");
 	}
+	close(epipe[0]);
+	close(epipe[1]);
 	return 0;
 }
 
@@ -478,9 +457,9 @@ eatomouse(Mouse *m, char *buf, int n)
 
 	if(buf[0] == 'r')
 		eresized(1);
-	m->xy.x = atoi(buf+1+0*12);
-	m->xy.y = atoi(buf+1+1*12);
-	m->buttons = atoi(buf+1+2*12);
-	m->msec = atoi(buf+1+3*12);
+	m->xy.x =  atoi(buf+1+0*12);
+	m->xy.y =  atoi(buf+1+1*12);
+	m->buttons =  atoi(buf+1+2*12);
+	m->msec =  atoi(buf+1+3*12);
 	return n;
 }

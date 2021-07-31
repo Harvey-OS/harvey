@@ -20,8 +20,3 @@ Ndbtuple*	_ndbparseline(char*);
 #define EATWHITE(x) while(ISWHITE(*(x)))(x)++
 
 extern Ndbtuple *_ndbtfree;
-
-/* caches */
-void	_ndbcacheflush(Ndb *db);
-int	_ndbcachesearch(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple **t);
-Ndbtuple* _ndbcacheadd(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple *t);

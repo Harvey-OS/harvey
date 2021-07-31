@@ -3,14 +3,15 @@
 remove \- remove a file from a server
 .SH SYNOPSIS
 .ta \w'\fLTremove 'u
-.IR size [4]
-.B Tremove
+.B
+Tremove	
 .IR tag [2]
-.IR fid [4]
+.IR fid [2]
 .br
-.IR size [4]
-.B Rremove
+.B
+Rremove	
 .IR tag [2]
+.IR fid [2]
 .SH DESCRIPTION
 The
 .B remove

@@ -35,12 +35,17 @@ void
 logclose(Log *alog)
 {
 	lock(alog);
+	if(waserror()){
+		unlock(alog);
+		nexterror();
+	}
 	alog->opens--;
 	if(alog->opens == 0){
 		free(alog->buf);
 		alog->buf = nil;
 	}
 	unlock(alog);
+	poperror();
 }
 
 static int
@@ -166,11 +171,10 @@ logn(Log *alog, int mask, void *buf, int n)
 }
 
 void
-log(Log *alog, int mask, char *fmt, ...)
+vlog(Log *alog, int mask, char *fmt, va_list arg)
 {
-	int n;
-	va_list arg;
 	char buf[128];
+	int n;
 
 	if(!(alog->logmask & mask))
 		return;
@@ -178,9 +182,18 @@ log(Log *alog, int mask, char *fmt, ...)
 	if(alog->opens == 0)
 		return;
 
-	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
-	va_end(arg);
+	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 
 	logn(alog, mask, buf, n);
 }
+
+void
+log(Log *alog, int mask, char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	vlog(alog, mask, fmt, arg);
+	va_end(arg);
+}
+

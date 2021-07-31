@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: idparam.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: idparam.c,v 1.3 2000/09/19 19:00:43 lpd Exp $ */
 /* Utilities for getting parameters out of dictionaries. */
 #include "memory_.h"
 #include "string_.h"		/* for strlen */
@@ -159,10 +159,10 @@ dict_float_param(const ref * pdict, const char *kstr,
 }
 
 /* Get an integer array from a dictionary. */
-/* Return the element count if OK, 0 if missing, <0 if invalid. */
+/* See idparam.h for specification. */
 int
-dict_int_array_param(const ref * pdict, const char *kstr,
-		     uint maxlen, int *ivec)
+dict_int_array_check_param(const ref * pdict, const char *kstr, uint len,
+			   int *ivec, int under_error, int over_error)
 {
     ref *pdval;
     const ref *pa;
@@ -175,10 +175,11 @@ dict_int_array_param(const ref * pdict, const char *kstr,
     if (!r_has_type(pdval, t_array))
 	return_error(e_typecheck);
     size = r_size(pdval);
-    if (size > maxlen)
-	return_error(e_limitcheck);
+    if (size > len)
+	return_error(over_error);
     pa = pdval->value.const_refs;
-    for (i = 0; i < size; i++, pa++, pi++) {	/* See dict_int_param above for why we allow reals here. */
+    for (i = 0; i < size; i++, pa++, pi++) {
+	/* See dict_int_param above for why we allow reals here. */
 	switch (r_type(pa)) {
 	    case t_integer:
 		if (pa->value.intval != (int)pa->value.intval)
@@ -197,7 +198,22 @@ dict_int_array_param(const ref * pdict, const char *kstr,
 		return_error(e_typecheck);
 	}
     }
-    return size;
+    return (size == len || under_error >= 0 ? size :
+	    gs_note_error(under_error));
+}
+int
+dict_int_array_param(const ref * pdict, const char *kstr,
+		     uint maxlen, int *ivec)
+{
+    return dict_int_array_check_param(pdict, kstr, maxlen, ivec,
+				      0, e_limitcheck);
+}
+int
+dict_ints_param(const ref * pdict, const char *kstr,
+		uint len, int *ivec)
+{
+    return dict_int_array_check_param(pdict, kstr, len, ivec,
+				      e_rangecheck, e_rangecheck);
 }
 
 /* Get a float array from a dictionary. */
@@ -206,8 +222,9 @@ dict_int_array_param(const ref * pdict, const char *kstr,
 /* if defaultvec is not NULL, copy it into fvec (maxlen elements) */
 /* and return maxlen. */
 int
-dict_float_array_param(const ref * pdict, const char *kstr,
-		       uint maxlen, float *fvec, const float *defaultvec)
+dict_float_array_check_param(const ref * pdict, const char *kstr,
+			     uint len, float *fvec, const float *defaultvec,
+			     int under_error, int over_error)
 {
     ref *pdval;
     uint size;
@@ -216,17 +233,33 @@ dict_float_array_param(const ref * pdict, const char *kstr,
     if (pdict == 0 || dict_find_string(pdict, kstr, &pdval) <= 0) {
 	if (defaultvec == NULL)
 	    return 0;
-	memcpy(fvec, defaultvec, maxlen * sizeof(float));
+	memcpy(fvec, defaultvec, len * sizeof(float));
 
-	return maxlen;
+	return len;
     }
     if (!r_has_type(pdval, t_array))
 	return_error(e_typecheck);
     size = r_size(pdval);
-    if (size > maxlen)
-	return_error(e_limitcheck);
+    if (size > len)
+	return_error(over_error);
     code = float_params(pdval->value.refs + size - 1, size, fvec);
-    return (code >= 0 ? size : code);
+    return (code < 0 ? code :
+	    size == len || under_error >= 0 ? size :
+	    gs_note_error(under_error));
+}
+int
+dict_float_array_param(const ref * pdict, const char *kstr,
+		       uint maxlen, float *fvec, const float *defaultvec)
+{
+    return dict_float_array_check_param(pdict, kstr, maxlen, fvec,
+					defaultvec, 0, e_limitcheck);
+}
+int
+dict_floats_param(const ref * pdict, const char *kstr,
+		  uint maxlen, float *fvec, const float *defaultvec)
+{
+    return dict_float_array_check_param(pdict, kstr, maxlen, fvec, defaultvec,
+					e_rangecheck, e_rangecheck);
 }
 
 /*

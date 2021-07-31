@@ -232,7 +232,7 @@ connect(char* net)
 	fd = mxdial(net, ddomain, gdomain);
 
 	if(fd < 0){
-		rerrstr(buf, sizeof(buf));
+		errstr(buf);
 		Bprint(&berr, "smtp: %s\n", buf);
 		syslog(0, "smtp.fail", "%s", buf);
 		if(strstr(buf, "illegal")
@@ -332,8 +332,6 @@ rcptto(char *to)
 	return 0;
 }
 
-static char hex[] = "0123456789abcdef";
-
 /*
  *  send the damn thing
  */
@@ -341,10 +339,9 @@ char *
 data(String *from, Biobuf *b)
 {
 	char *buf, *cp;
-	int i, n, nbytes, bufsize, eof, r;
+	int n, nbytes, bufsize, eof;
 	String *fromline;
-	char errmsg[Errlen];
-	char id[40];
+	char errmsg[ERRLEN];
 
 	/*
 	 *  input the header.
@@ -380,7 +377,7 @@ data(String *from, Biobuf *b)
 	/*
 	 *  parse the header, turn all addresses into @ format
 	 */
-	yyinit(buf, n);
+	yyinit(buf);
 	yyparse();
 
 	/*
@@ -401,25 +398,12 @@ data(String *from, Biobuf *b)
 		}
 	}
 	/*
-	 *  send header.  add a message-id, a sender, and a date if there
+	 *  send header.  add a sender and a date if there
 	 *  isn't one
 	 */
 	nbytes = 0;
 	fromline = convertheader(from);
 	uneaten = buf;
-
-	if(messageid == 0){
-		for(i=0; i<16; i++){
-			r = fastrand()&0xFF;
-			id[2*i] = hex[r&0xF];
-			id[2*i+1] = hex[(r>>4)&0xF];
-		}
-		id[2*i] = '\0';
-		nbytes += Bprint(&bout, "Message-ID: <%s@%s>\r\n", id, hostdomain);
-		if(debug)
-			Bprint(&berr, "Message-ID: <%s@%s>\r\n", id, hostdomain);
-	}	
-
 	if(originator==0){
 		nbytes += Bprint(&bout, "From: %s\r\n", s_to_c(fromline));
 		if(debug)
@@ -456,7 +440,7 @@ data(String *from, Biobuf *b)
 		for(;;){
 			n = Bread(b, buf, bufsize);
 			if(n < 0){
-				rerrstr(errmsg, sizeof(errmsg));
+				errstr(errmsg);
 				s_append(s_restart(reply), errmsg);
 				free(buf);
 				return Retry;
@@ -851,7 +835,7 @@ dBprint(char *fmt, ...)
 	int n;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+SIZE, fmt, arg);
+	out = doprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
 	if(debug){
 		Bwrite(&berr, buf, (long)(out-buf));

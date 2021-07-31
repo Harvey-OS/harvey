@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 1993, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 1993, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevbmp.c,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
+/*$Id: gdevbmp.c,v 1.3 2000/09/19 19:00:11 lpd Exp $ */
 /* .BMP file format output drivers */
 #include "gdevprn.h"
 #include "gdevpccm.h"
@@ -29,7 +29,7 @@ private dev_proc_print_page(bmp_cmyk_print_page);
 
 /* Monochrome. */
 
-gx_device_printer gs_bmpmono_device =
+const gx_device_printer gs_bmpmono_device =
 prn_device(prn_std_procs, "bmpmono",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
@@ -42,7 +42,7 @@ prn_device(prn_std_procs, "bmpmono",
 private const gx_device_procs bmpgray_procs =
 prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		gx_default_gray_map_rgb_color, gx_default_gray_map_color_rgb);
-gx_device_printer gs_bmpgray_device =
+const gx_device_printer gs_bmpgray_device =
 prn_device(bmpgray_procs, "bmpgray",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
@@ -57,10 +57,10 @@ prn_device(bmpgray_procs, "bmpgray",
     gdev_prn_get_params, gdev_prn_put_params,\
     p_map_cmyk_color, NULL, NULL, NULL, gx_page_device_get_page_device
 
-private gx_device_procs bmpsep1_procs = {
+private const gx_device_procs bmpsep1_procs = {
     bmp_cmyk_procs(cmyk_1bit_map_color_rgb, cmyk_1bit_map_cmyk_color)
 };
-gx_device_printer gs_bmpsep1_device = {
+const gx_device_printer gs_bmpsep1_device = {
   prn_device_body(gx_device_printer, bmpsep1_procs, "bmpsep1",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -70,10 +70,10 @@ gx_device_printer gs_bmpsep1_device = {
 
 /* 8-bit-per-plane separated CMYK color. */
 
-private gx_device_procs bmpsep8_procs = {
+private const gx_device_procs bmpsep8_procs = {
     bmp_cmyk_procs(cmyk_8bit_map_color_rgb, cmyk_8bit_map_cmyk_color)
 };
-gx_device_printer gs_bmpsep8_device = {
+const gx_device_printer gs_bmpsep8_device = {
   prn_device_body(gx_device_printer, bmpsep8_procs, "bmpsep8",
 	DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	X_DPI, Y_DPI,
@@ -86,7 +86,7 @@ gx_device_printer gs_bmpsep8_device = {
 private const gx_device_procs bmp16_procs =
 prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		pc_4bit_map_rgb_color, pc_4bit_map_color_rgb);
-gx_device_printer gs_bmp16_device =
+const gx_device_printer gs_bmp16_device =
 prn_device(bmp16_procs, "bmp16",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
@@ -99,7 +99,7 @@ prn_device(bmp16_procs, "bmp16",
 private const gx_device_procs bmp256_procs =
 prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		pc_8bit_map_rgb_color, pc_8bit_map_color_rgb);
-gx_device_printer gs_bmp256_device =
+const gx_device_printer gs_bmp256_device =
 prn_device(bmp256_procs, "bmp256",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
@@ -111,7 +111,7 @@ prn_device(bmp256_procs, "bmp256",
 private const gx_device_procs bmp16m_procs =
 prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		bmp_map_16m_rgb_color, bmp_map_16m_color_rgb);
-gx_device_printer gs_bmp16m_device =
+const gx_device_printer gs_bmp16m_device =
 prn_device(bmp16m_procs, "bmp16m",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
@@ -123,7 +123,7 @@ prn_device(bmp16m_procs, "bmp16m",
 private const gx_device_procs bmp32b_procs = {
     bmp_cmyk_procs(cmyk_8bit_map_color_rgb, gx_default_cmyk_map_cmyk_color)
 };
-gx_device_printer gs_bmp32b_device =
+const gx_device_printer gs_bmp32b_device =
 prn_device(bmp32b_procs, "bmp32b",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,

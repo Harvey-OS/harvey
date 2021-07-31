@@ -24,7 +24,6 @@ enum{
 	Kprofctlqid,
 };
 Dirtab kproftab[]={
-	".",	{Kprofdirqid, 0, QTDIR},		0,	DMDIR|0550,
 	"kpdata",	{Kprofdataqid},		0,	0600,
 	"kpctl",	{Kprofctlqid},		0,	0600,
 };
@@ -42,7 +41,8 @@ _kproftimer(ulong pc)
 	 */
 	if(pc>=(ulong)spllo && pc<=(ulong)spldone)
 		pc = m->splpc;
-
+	if(up && up->kppc)
+		pc = up->kppc;
 	kprof.buf[0] += TK2MS(1);
 	if(kprof.minpc<=pc && pc<kprof.maxpc){
 		pc -= kprof.minpc;
@@ -75,26 +75,26 @@ kprofattach(char *spec)
 		if(kprof.buf == 0)
 			error(Enomem);
 	}
-	kproftab[1].length = n;
-	return devattach('K', spec);
-}
-
-static Walkqid*
-kprofwalk(Chan *c, Chan *nc, char **name, int nname)
-{
-	return devwalk(c, nc, name, nname, kproftab, nelem(kproftab), devgen);
+	kproftab[0].length = n;
+	return devattach('T', spec);
 }
 
 static int
-kprofstat(Chan *c, uchar *db, int n)
+kprofwalk(Chan *c, char *name)
 {
-	return devstat(c, db, n, kproftab, nelem(kproftab), devgen);
+	return devwalk(c, name, kproftab, nelem(kproftab), devgen);
+}
+
+static void
+kprofstat(Chan *c, char *db)
+{
+	devstat(c, db, kproftab, nelem(kproftab), devgen);
 }
 
 static Chan*
 kprofopen(Chan *c, int omode)
 {
-	if(c->qid.type == QTDIR){
+	if(c->qid.path == CHDIR){
 		if(omode != OREAD)
 			error(Eperm);
 	}
@@ -117,7 +117,7 @@ kprofread(Chan *c, void *va, long n, vlong off)
 	uchar *a, *ea;
 	ulong offset = off;
 
-	switch((int)c->qid.path){
+	switch(c->qid.path & ~CHDIR){
 	case Kprofdirqid:
 		return devdirread(c, va, n, kproftab, nelem(kproftab), devgen);
 
@@ -154,7 +154,7 @@ kprofread(Chan *c, void *va, long n, vlong off)
 static long
 kprofwrite(Chan *c, void *a, long n, vlong)
 {
-	switch((int)(c->qid.path)){
+	switch((int)(c->qid.path&~CHDIR)){
 	case Kprofctlqid:
 		if(strncmp(a, "startclr", 8) == 0){
 			memset((char *)kprof.buf, 0, kprof.nbuf*SZ);
@@ -171,13 +171,13 @@ kprofwrite(Chan *c, void *a, long n, vlong)
 }
 
 Dev kprofdevtab = {
-	'K',
+	'T',
 	"kprof",
 
 	devreset,
 	kprofinit,
-	devshutdown,
 	kprofattach,
+	devclone,
 	kprofwalk,
 	kprofstat,
 	kprofopen,

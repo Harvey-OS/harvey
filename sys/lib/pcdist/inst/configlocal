@@ -1,0 +1,148 @@
+#!/bin/rc
+
+fn notdone {
+	archdisk=()
+	configarch=notdone
+	export archdisk configarch
+	exit
+}
+
+switch($1) {
+case go
+
+	kfs=()
+	ext2=()
+	fat=()
+	x9660=()
+	
+	echo -n Please wait... Scanning storage devices...
+	# scan each partition once
+	
+	for (i in /dev/sd??/data) {
+		ctl=`{echo $i | sed 's/data$/ctl/'}
+		disk/fdisk -p $i >$ctl >[2]/dev/null
+	}
+	
+	parts=`{ls /dev/sd??/* >[2]/dev/null | grep -v '/(ctl|log|raw)$'}
+	for (i in $parts) {
+		dd -if $i -bs 2048 -count 32 -of /tmp/localpart >[2]/dev/null
+#		if(iskfs /tmp/localpart)
+#			kfs=($kfs $i)
+		if(isfat /tmp/localpart)
+			fat=($fat $i)
+		if(isext2 /tmp/localpart)
+			ext2=($ext2 $i)
+		if(is9660 /tmp/localpart)
+			x9660=($x9660 $i)
+	}
+	echo done
+	
+	echo
+	echo The following storage media were detected.
+	echo Select the one containing the distribution.
+	echo
+	for (i in $parts) {
+		switch($i) {
+		case $kfs
+			echo '	'^$i^' (plan9 kfs)'
+		case $ext2
+			echo '	'^$i^' (linux ext2)'
+		case $fat
+			echo '	'^$i^' (microsoft fat)'
+		case $x9660
+			echo '	'^$i^' (iso9660 cdrom)'
+		}
+	}
+	echo
+	
+	mountstatus=x
+	while(! ~ $mountstatus '') {
+		prompt -w '' 'Distribution disk' $kfs $ext2 $fat $x9660
+		archdisk=$rd
+		archspec=$archdisk
+	
+		switch($archdisk){
+		case $kfs
+			type=kfs
+			n=`{echo $i|sed 's!/dev/(.*)/fs!\1!'}
+			archstart=(runkfs $n)
+			archsrv=/srv/kfs.$n
+			archspec=()
+	
+		case $ext2
+			type=ext2
+			archsrv=/srv/ext2
+			archstart=(ext2srv -r)
+		
+		case $fat
+			type=fat
+			archsrv=/srv/dos
+			archstart=dossrv
+		
+		case $x9660
+			type=is9660
+			archsrv=/srv/9660
+			archstart=9660srv
+	
+		case *
+			echo cannot happen
+			exit
+		}
+		if(! test -f $archsrv)
+			eval $archstart
+		log Mounting $type file system $archdisk on /n/dist
+		mount $archsrv /n/dist $archspec >>[2]/srv/log
+		mountstatus=$status
+	}
+	
+	first=yes
+	dir=/
+	while(! test -f /n/dist/$dir/$distname.9gz) {
+		if(~ $first yes) {
+			echo
+			echo Which directory contains the distribution archive?
+			echo 'Typing `browse'' will put you in a shell you can use to'
+			echo look for the directory.
+			echo 
+			first=no
+		}
+	
+		prompt 'Location of archives (or browse)'
+		dir=$rd
+		if(~ $dir browse)
+			dir=`{cdsh -r /n/dist}	
+		if(~ $#dir 0)
+			dir=''
+		if(! test -f /n/dist/$dir/$distname.9gz)
+			echo 'No archives found in '^`{cleanname /$dir}
+	}
+	
+	archdir=$dir
+	distdir=`{cleanname /n/dist/$archdir}
+	export archdisk archdir archsrv archstart distdir
+
+case checkdone
+	if(! ~ $#archdisk 1 || ! ~ $#archdir 1 || ! ~ $#archsrv 1 ||
+	   ~ $#archstart 0 || ! test -f $archdisk)
+		notdone
+
+	if(! test -f $archsrv)
+		eval $archstart
+
+	if(! test -f $archsrv)
+		notdone
+
+	spec=$archdisk
+	if(~ $archsrv /srv/kfs*)
+		spec=()
+	if(! mount $archsrv /n/dist $spec || ! test -d /n/dist/$archdir)
+		notdone
+
+	if(! test -f /n/dist/$archdir/$distname.9gz)
+		notdone
+
+	distdir=`{cleanname /n/dist/$archdir}
+	export distdir
+}
+	
+

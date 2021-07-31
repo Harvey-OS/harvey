@@ -4,9 +4,9 @@
 #include <ip.h>
 #include <ndb.h>
 
-void	pip(char*, Dir*);
-void	nstat(char*, void (*)(char*, Dir*));
-void	pipifc(void);
+void	pip(char*, char*);
+void	pipifc(char*, char*);
+void	nstat(char*, void (*)(char*, char*));
 
 Biobuf	out;
 char	*netroot;
@@ -48,7 +48,7 @@ main(int argc, char *argv[])
 	Binit(&out, 1, OWRITE);
 
 	if(justinterfaces){
-		pipifc();
+		nstat("ipifc", pipifc);
 		exits(0);
 	}
 
@@ -61,23 +61,30 @@ main(int argc, char *argv[])
 }
 
 void
-nstat(char *net, void (*f)(char*, Dir*))
+nstat(char *net, void (*f)(char*, char*))
 {
-	int fdir, i, tot;
-	Dir *dir;
-	char buf[128];
+	int fdir, i, n, tot;
+	char dir[500*DIRLEN], *mem;
 
-	snprint(buf, sizeof buf, "%s/%s", netroot, net);
-	fdir = open(buf, OREAD);
+	sprint(dir, "%s/%s", netroot, net);
+	fdir = open(dir, OREAD);
 	if(fdir < 0)
 		return;
 
-	tot = dirreadall(fdir, &dir);
-	for(i = 0; i < tot; i++) {
-		(*f)(net, &dir[i]);
+	mem = sbrk(0);
+	tot = 0;
+	while((n = read(fdir, dir, sizeof dir)) > 0){
+		if(brk((void*)(mem + tot + n)) == -1) {
+			fprint(2, "netstat: out of memory");
+			return;
+		}
+		memmove(mem+tot, dir, n);
+		tot += n;
+	}
+	for(i = 0; i < tot; i += DIRLEN) {
+		(*f)(net, mem+i);
 		Bflush(&out);
 	}
-	free(dir);
 	close(fdir);
 }
 
@@ -98,21 +105,24 @@ getport(char *net, char *p)
 }
 
 void
-pip(char *net, Dir *db)
+pip(char *net, char *entry)
 {
+	Dir db;
 	int n, fd;
 	char buf[128], *p;
 	Ndbtuple *tp;
 	char dname[Ndbvlen];
 
-	if(strcmp(db->name, "clone") == 0)
+	if(strcmp(entry, "clone") == 0)
 		return;
-	if(strcmp(db->name, "stats") == 0)
+	if(strcmp(entry, "stats") == 0)
 		return;
 
-	snprint(buf, sizeof buf, "%s/%s/%s/ctl", netroot, net, db->name);
+	sprint(buf, "%s/%s/%s/ctl", netroot, net, entry);
+	if(dirstat(buf, &db) < 0)
+		return;
 
-	sprint(buf, "%s/%s/%s/status", netroot, net, db->name);
+	sprint(buf, "%s/%s/%s/status", netroot, net, entry);
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return;
@@ -127,9 +137,9 @@ pip(char *net, Dir *db)
 	if(p != 0)
 		*p = 0;
 	
-	Bprint(&out, "%-4s %-4s %-10s %-12s ", net, db->name, db->uid, buf);
+	Bprint(&out, "%-4s %-4s %-10s %-12s ", net, entry, db.uid, buf);
 
-	sprint(buf, "%s/%s/%s/local", netroot, net, db->name);
+	sprint(buf, "%s/%s/%s/local", netroot, net, entry);
 	fd = open(buf, OREAD);
 	if(fd < 0) {
 		Bprint(&out, "\n");
@@ -150,7 +160,7 @@ pip(char *net, Dir *db)
 	*p = '\0';
 	Bprint(&out, "%-10s ", getport(net, p+1));
 
-	sprint(buf, "%s/%s/%s/remote", netroot, net, db->name);
+	sprint(buf, "%s/%s/%s/remote", netroot, net, entry);
 	fd = open(buf, OREAD);
 	if(fd < 0) {
 		print("\n");
@@ -182,37 +192,41 @@ pip(char *net, Dir *db)
 }
 
 void
-pipifc(void)
+pipifc(char *net, char *entry)
 {
-	Ipifc *ip, *nip;
-	Iplifc *lifc;
-	char buf[100];
-	int l, i;
+	int n, fd;
+	char buf[128], *p;
+	char *f[9];
 
-	fmtinstall('I', eipfmt);
-	fmtinstall('M', eipfmt);
+	if(strcmp(entry, "clone") == 0)
+		return;
+	if(strcmp(entry, "stats") == 0)
+		return;
 
-	ip = readipifc(netroot, nil, -1);
+	sprint(buf, "%s/%s/%s/status", netroot, net, entry);
+	fd = open(buf, OREAD);
+	if(fd < 0)
+		return;
 
-	l = 7;
-	for(nip = ip; nip; nip = nip->next){
-		for(lifc = nip->lifc; lifc; lifc = lifc->next){
-			i = snprint(buf, sizeof buf, "%I", lifc->ip);
-			if(i > l)
-				l = i;
-			i = snprint(buf, sizeof buf, "%I", lifc->net);
-			if(i > l)
-				l = i;
-		}
-	}
+	n = read(fd, buf, sizeof(buf));
+	if(n < 0)
+		return;
+	buf[n] = 0;
+	close(fd);
 
-	for(nip = ip; nip; nip = nip->next){
-		for(lifc = nip->lifc; lifc; lifc = lifc->next)
-			Bprint(&out, "%-12s %5d %-*I %5.5M %-*I %8lud %8lud %8lud %8lud\n",
-				nip->dev, nip->mtu, 
-				l, lifc->ip, lifc->mask, l, lifc->net,
-				nip->pktin, nip->pktout,
-				nip->errin, nip->errout);
-	}
-	Bflush(&out);
+	n = getfields(buf, f, 9, 1, " \t\n");
+	if(n < 7)
+		return;
+	p = strrchr(f[0], '/');
+	if(p != nil)
+		f[0] = p+1;
+
+	if(n == 9)
+		Bprint(&out, "%-8s %-5s %-16s %-16s %-16s %-10s %-10s %-6s %-6s\n",
+			f[0], f[1], f[2], f[3], f[4],
+			f[5], f[6], f[7], f[8]);
+	else
+		Bprint(&out, "               %-16s %-16s %-16s %-10s %-10s %-6s %-6s\n",
+			f[0], f[1], f[2], f[3], f[4],
+			f[5], f[6]);
 }

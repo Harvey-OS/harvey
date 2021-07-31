@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "pci.h"
 #include "vga.h"
 
 /*
@@ -57,14 +56,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 		trace("Aurora64V+\n");
 		break;
 
-	case 0x8901:				/* Trio64V2 */
-		vga->r[1] = 4;
-		vga->m[1] = 127;
-		vga->n[1] = 31;
-		vga->f[1] = 170000000;
-		trace("Trio64V2\n");
-		break;
-
 	case 0x5631:				/* ViRGE */
 		vga->r[1] = 3;
 		vga->m[1] = 127;
@@ -117,7 +108,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vga->vmz = (2*(((vga->crt[0x36]>>5) & 0x03)+1)) * 1*1024*1024;
 		break;
 
-	case 0x8C10:				/* Savage MX/MV */
 	case 0x8C12:				/* Savage4/IX-MV */
 		vga->r[1] = 4;
 		vga->m[1] = 127;
@@ -128,26 +118,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vga->apz = 128*1024*1024;
 		vga->vmz = savage4mem[vga->crt[0x36]>>5] * 1024 * 1024;
 		trace("Savage4/IX-MV\n");
-		break;
-
-	case 0x8C2E:				/* SuperSavage/IXC16 */
-		/*
-		 * This is all guessed, from the Savage4/IX,
-		 * inspection of the card (apz), and web pages
-		 * talking about the chip (f[1]).  It seems to
-		 * work on the IBM Thinkpad T23.
-		 *
-		 * XXX only 1024x768 works, not 1400x1050.
-		 */
-		vga->r[1] = 4;
-		vga->m[1] = 127;
-		vga->n[1] = 127;
-		vga->f[1] = 135000000;		/* 300000000 after doubling? */
-		for(i = 0x50; i < 0x70; i++)
-			vga->sequencer[i] = vgaxi(Seqx, i);
-		vga->apz = 64*1024*1024;
-		vga->vmz = savage4mem[vga->crt[0x36]>>5] * 1024 * 1024;
-		trace("SuperSavage/IXC16\n");
 		break;
 
 	case 0x8A22:				/* Savage4 */
@@ -173,24 +143,8 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-options(Vga *vga, Ctlr* ctlr)
+options(Vga*, Ctlr* ctlr)
 {
-	int id;
-
-	id = (vga->crt[0x2D]<<8)|(vga->crt[0x2E]);
-	switch(id){
-	case 0x8C2E:				/* SuperSavage/IXC16 */
-	case 0x8C10:				/* Savage MX/MV */
-	case 0x8C12:				/* Savage4/IX-MV */
-	case 0x8A22:				/* Savage4 */
-		/*
-		 * Round up so stride is multiple of 16.
-		 */
-		if(vga->virtx%16)
-			vga->virtx = (vga->virtx+15)&~15;
-		break;
-	}
-
 	ctlr->flag |= Hlinear|Hpclk2x8|Henhanced|Foptions;
 }
 
@@ -211,10 +165,6 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->f[1] = strtoul(p+1, 0, 0) * 1000000;
 	pclk = vga->f[1];
 
-	if(vga->mode->z > 8)
-		width = vga->virtx*(vga->mode->z/8);
-	else
-		width = vga->virtx*(8/vga->mode->z);
 	id = (vga->crt[0x2D]<<8)|vga->crt[0x2E];
 	switch(id){
 
@@ -259,15 +209,15 @@ init(Vga* vga, Ctlr* ctlr)
 			error("trio64: depth %d not supported\n", vga->mode->z);
 		break;
 
-	case 0x8901:				/* Trio64V2 */
-		vga->crt[0x90] = 0;
-		vga->crt[0x91] = 0;
-		break;
 	case 0x8A10:				/* ViRGE/GX2 */
 		vga->crt[0x90] = 0;
 	
 		vga->crt[0x31] |= 0x08;
 
+		if(vga->mode->z > 8)
+			width = vga->mode->x*(vga->mode->z/8);
+		else
+			width = vga->mode->x*(8/vga->mode->z);
 		vga->crt[0x13] = (width>>3) & 0xFF;
 		vga->crt[0x51] &= ~0x30;
 		vga->crt[0x51] |= (width>>7) & 0x30;
@@ -364,18 +314,25 @@ init(Vga* vga, Ctlr* ctlr)
 
 		break;
 
-	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
-	case 0x8C10:				/* Savage MX/MV */
 	case 0x8C12:				/* Savage4/IX-MV */
 		/*
 		 * Experience shows the -1 (according to the manual)
 		 * is incorrect.
 		 */
-		x = width/8 /*-1*/;
+		x = vga->mode->x/8 /*- 1*/;
+		switch(vga->mode->z){
+		default:
+			break;
+		case 16:
+			x *= 2;
+			break;
+		case 32:
+			x *= 4;
+			break;
+		}
 		vga->crt[0x91] = x;
 		vga->crt[0x90] &= ~0x07;
 		vga->crt[0x90] |= (x>>8) & 0x07;
-
 		/*FALLTHROUGH*/
 	case 0x8A22:				/* Savage4 */
 		/*
@@ -388,6 +345,10 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x85] = 0x02;
 		vga->crt[0x31] |= 0x08;
 
+		if(vga->mode->z > 8)
+			width = vga->mode->x*(vga->mode->z/8);
+		else
+			width = vga->mode->x*(8/vga->mode->z);
 		vga->crt[0x13] = (width>>3) & 0xFF;
 		vga->crt[0x51] &= ~0x30;
 		vga->crt[0x51] |= (width>>7) & 0x30;
@@ -422,7 +383,7 @@ init(Vga* vga, Ctlr* ctlr)
 			 * Should check if using doubled modes tidies any of
 			 * this up.
 			 */
-			if(id == 0x8C12 || id == 0x8C2E || id == 0x8C10)
+			if(id == 0x8C12)
 				vga->crt[0x67] |= 0x10;
 			break;
 		case 32:
@@ -430,7 +391,6 @@ init(Vga* vga, Ctlr* ctlr)
 			vga->crt[0x50] |= 3<<4;
 			break;
 		}
-		break;
 	}
 
 	/*
@@ -442,9 +402,8 @@ init(Vga* vga, Ctlr* ctlr)
 	if(vga->f[0] == 0)
 		vga->f[0] = vga->mode->frequency;
 	vga->misc &= ~0x0C;
-	if(vga->f[0] == VgaFreq0){
-		/* nothing to do */;
-	}
+	if(vga->f[0] == VgaFreq0)
+		;
 	else if(vga->f[0] == VgaFreq1)
 		vga->misc |= 0x04;
 	else if(id == 0x8812){			/* Aurora64V+ */
@@ -469,8 +428,6 @@ init(Vga* vga, Ctlr* ctlr)
 				vga->sequencer[0x29] &= ~0x01;
 			break;
 
-		case 0x8C2E:			/* SuperSavage/IXC16 (let's try this -rsc) */
-		case 0x8C10:			/* Savage MX/MV */
 		case 0x8C12:			/* Savage4/IX-MV */
 		case 0x8A22:			/* Savage4 */
 			vga->sequencer[0x12] = (vga->r[0]<<6)|(vga->n[0] & 0x3F);
@@ -518,7 +475,7 @@ init(Vga* vga, Ctlr* ctlr)
 	 */
 	if(vga->mode->x <= 800)
 		vga->crt[0x54] = 0xE8;
-	else if(vga->mode->x <= 1024 && id != 0x8C12 && id != 0x8C2E)
+	else if(vga->mode->x <= 1024 && id != 0x8C12)
 		vga->crt[0x54] = 0xA8;
 	else
 		vga->crt[0x54] = 0x00/*0x48*/;
@@ -551,7 +508,6 @@ load(Vga* vga, Ctlr* ctlr)
 	case 0x8A10:				/* ViRGE/GX2 */
 		vgaxo(Seqx, 0x29, vga->sequencer[0x29]);
 		break;
-	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
 	case 0x8C12:				/* Savage4/IX-MV */
 		vgaxo(Crtx, 0x90, vga->crt[0x90]);
 		vgaxo(Crtx, 0x91, vga->crt[0x91]);
@@ -580,10 +536,7 @@ load(Vga* vga, Ctlr* ctlr)
 			advfunc = 0x0001;
 		outportw(0x4AE8, advfunc);
 		break;
-	case 0x8901:				/* Trio64V2 */
-		vgaxo(Crtx, 0x90, vga->crt[0x90]);
-		vgaxo(Crtx, 0x91, vga->crt[0x91]);
-		break;
+
 	case 0x8A10:				/* ViRGE/GX2 */
 		vgaxo(Crtx, 0x90, vga->crt[0x90]);
 		vgaxo(Crtx, 0x31, vga->crt[0x31]);
@@ -591,7 +544,7 @@ load(Vga* vga, Ctlr* ctlr)
 		vgaxo(Crtx, 0x51, vga->crt[0x51]);
 		vgaxo(Crtx, 0x85, vga->crt[0x85]);
 		break;
-	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
+
 	case 0x8C12:				/* Savage4/IX-MV */
 	case 0x8A22:				/* Savage4 */
 		vgaxo(Crtx, 0x31, vga->crt[0x31]);
@@ -626,7 +579,6 @@ dump(Vga* vga, Ctlr* ctlr)
 		break;
 
 	case 0x8812:				/* Aurora64V+ */
-	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
 	case 0x8C12:				/* Savage4/IX-MV */
 		printitem(ctlr->name, "Seq50");
 		for(i = 0x50; i < 0x70; i++)
@@ -654,7 +606,6 @@ dump(Vga* vga, Ctlr* ctlr)
 		r = (vga->sequencer[0x12]>>6) & 0x03;
 		r |= (vga->sequencer[0x29] & 0x01)<<2;
 		break;
-	case 0x8C2E:				/* SuperSavage/IXC16 (let's try this -rsc) */
 	case 0x8C12:				/* Savage4/IX-MV */
 	case 0x8A22:				/* Savage4 */
 		m = vga->sequencer[0x13] & 0xFF;

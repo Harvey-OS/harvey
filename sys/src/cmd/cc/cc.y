@@ -25,8 +25,8 @@
 	vlong	vval;
 }
 %type	<sym>	ltag
-%type	<lval>	gctname gcname cname gname tname
-%type	<lval>	gctnlist gcnlist zgnlist
+%type	<lval>	gctname cname gname tname
+%type	<lval>	gctnlist zgnlist
 %type	<type>	tlist sbody complex
 %type	<tycl>	types
 %type	<node>	zarglist arglist zcexpr
@@ -376,8 +376,6 @@ block:
 		$$ = invert($3);
 		if($2 != Z)
 			$$ = new(OLIST, $2, $$);
-		if($$ == Z)
-			$$ = new(OLIST, Z, Z);
 	}
 
 slist:
@@ -437,16 +435,10 @@ ulstmnt:
 |	LIF '(' cexpr ')' stmnt
 	{
 		$$ = new(OIF, $3, new(OLIST, $5, Z));
-		if($5 == Z)
-			warn($3, "empty if body");
 	}
 |	LIF '(' cexpr ')' stmnt LELSE stmnt
 	{
 		$$ = new(OIF, $3, new(OLIST, $5, $7));
-		if($5 == Z)
-			warn($3, "empty if body");
-		if($7 == Z)
-			warn($3, "empty else body");
 	}
 |	LFOR '(' zcexpr ';' zcexpr ';' zcexpr ')' stmnt
 	{
@@ -487,7 +479,7 @@ ulstmnt:
 	{
 		$$ = new(OCONTINUE, Z, Z);
 	}
-|	LGOTO ltag ';'
+|	LGOTO LNAME ';'
 	{
 		$$ = new(OGOTO, dcllabel($2, 0), Z);
 	}
@@ -905,48 +897,34 @@ types:
 		$$.t = $1;
 		$$.c = CXXX;
 	}
-|	tname
-	{
-		$$.t = simplet($1);
-		$$.c = CXXX;
-	}
-|	gcnlist
-	{
-		$$.t = simplet($1);
-		$$.c = simplec($1);
-		$$.t = garbt($$.t, $1);
-	}
 |	complex gctnlist
 	{
 		$$.t = $1;
 		$$.c = simplec($2);
-		$$.t = garbt($$.t, $2);
 		if($2 & ~BCLASS & ~BGARB)
-			diag(Z, "duplicate types given: %T and %Q", $1, $2);
+			diag(Z, "illegal combination of types 1: %Q/%T", $2, $1);
 	}
-|	tname gctnlist
+|	gctnlist
 	{
-		$$.t = simplet(typebitor($1, $2));
-		$$.c = simplec($2);
-		$$.t = garbt($$.t, $2);
-	}
-|	gcnlist complex zgnlist
-	{
-		$$.t = $2;
-		$$.c = simplec($1);
-		$$.t = garbt($$.t, $1|$3);
-	}
-|	gcnlist tname
-	{
-		$$.t = simplet($2);
+		$$.t = simplet($1);
 		$$.c = simplec($1);
 		$$.t = garbt($$.t, $1);
 	}
-|	gcnlist tname gctnlist
+|	gctnlist complex
 	{
-		$$.t = simplet(typebitor($2, $3));
+		$$.t = $2;
+		$$.c = simplec($1);
+		$$.t = garbt($$.t, $1);
+		if($1 & ~BCLASS & ~BGARB)
+			diag(Z, "illegal combination of types 2: %Q/%T", $1, $2);
+	}
+|	gctnlist complex gctnlist
+	{
+		$$.t = $2;
 		$$.c = simplec($1|$3);
 		$$.t = garbt($$.t, $1|$3);
+		if(($1|$3) & ~BCLASS & ~BGARB || $3 & BCLASS)
+			diag(Z, "illegal combination of types 3: %Q/%T/%Q", $1, $2, $3);
 	}
 
 tlist:
@@ -1077,17 +1055,6 @@ zgnlist:
 gctname:
 	tname
 |	gname
-|	cname
-
-gcnlist:
-	gcname
-|	gcnlist gcname
-	{
-		$$ = typebitor($1, $2);
-	}
-
-gcname:
-	gname
 |	cname
 
 enum:

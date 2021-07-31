@@ -1,0 +1,5 @@
+TEXT _DUP(SB), 1, $0
+MOVW R7, 0(FP)
+MOVW $5, R7
+TA R0
+RETURN

@@ -1,0 +1,25 @@
+# root
+bind -a #C /
+
+# kernel devices
+bind #c /dev
+bind #d /fd
+bind -c #e /env
+bind #p /proc
+bind -c #s /srv
+bind -a #t /dev
+bind -a #r /dev
+bind -a #m /dev
+bind -a #y /dev
+bind -a #I /net
+bind -a #A /dev
+bind -a #F /dev
+
+# servers
+mount -a /srv/cs /net
+mount -a /srv/dns /net
+
+# standard bin
+bind /arm/bin /bin
+bind -a /rc/bin /bin
+bind -a /arm/bin/bitsy /bin

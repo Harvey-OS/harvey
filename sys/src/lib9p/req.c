@@ -3,7 +3,8 @@
 #include <auth.h>
 #include <fcall.h>
 #include <thread.h>
-#include <9p.h>
+#include "9p.h"
+#include "impl.h"
 
 static void
 increqref(void *v)
@@ -11,95 +12,96 @@ increqref(void *v)
 	Req *r;
 
 	r = v;
-	if(r){
-if(chatty9p > 1)
-	fprint(2, "increfreq %p %ld\n", r, r->ref.ref);
+	if(r)
 		incref(&r->ref);
-	}
 }
-
-Reqpool*
-allocreqpool(void (*destroy)(Req*))
-{
-	Reqpool *f;
-
-	f = emalloc9p(sizeof *f);
-	f->map = allocmap(increqref);
-	f->destroy = destroy;
-	return f;
-}
-
-void
-freereqpool(Reqpool *p)
-{
-	freemap(p->map, (void(*)(void*))p->destroy);
-	free(p);
-}	
 
 Req*
 allocreq(Reqpool *pool, ulong tag)
 {
 	Req *r;
 
-	r = emalloc9p(sizeof *r);
+	if((r = mallocz(sizeof *r, 1)) == nil)
+		return nil;
+
 	r->tag = tag;
 	r->pool = pool;
 
-	increqref(r);
-	increqref(r);
+	incref(&r->ref);
 	if(caninsertkey(pool->map, tag, r) == 0){
 		closereq(r);
 		return nil;
 	}
 
+if(lib9p_chatty)
+	fprint(2,"allocreq %p tag %lud\n", r, tag);
 	return r;
 }
 
-Req*
-lookupreq(Reqpool *pool, ulong tag)
-{
-if(chatty9p > 1)
-	fprint(2, "lookupreq %lud\n", tag);
-	return lookupkey(pool->map, tag);
-}
-
-void
+int
 closereq(Req *r)
 {
-	if(r == nil)
-		return;
+	int n;
 
-if(chatty9p > 1)
-	fprint(2, "closereq %p %ld\n", r, r->ref.ref);
-
-	if(decref(&r->ref) == 0){
-		if(r->fid)
-			closefid(r->fid);
-		if(r->newfid)
-			closefid(r->newfid);
-		if(r->oldreq)
-			closereq(r->oldreq);
-		switch(r->ifcall.type){
-		case Tstat:
-			free(r->ofcall.stat);
-			free(r->d.name);
-			free(r->d.uid);
-			free(r->d.gid);
-			free(r->d.muid);
-			break;
-		}
-		if(r->pool->destroy)
-			r->pool->destroy(r);
+	if((n = decref(&r->ref)) == 0){
 		free(r->buf);
 		free(r->rbuf);
 		free(r);
 	}
+if(lib9p_chatty)
+	fprint(2,"closereq %p: %lud refs\n", r, n ? r->ref.ref : n);
+	return n;
+}
+
+void
+freereq(Req *r)
+{
+	int tag;
+	Req *nr;
+
+	if(r == nil)
+		return;
+
+	lock(&r->taglock);
+	tag = r->tag;
+	r->tag = -1;
+	unlock(&r->taglock);
+	if(tag == -1)
+		return;
+
+	nr = deletekey(r->pool->map, tag);
+	if(nr == 0){
+		closereq(r);
+		return;
+	}
+
+if(r != nr)
+	fprint(2, "r %p nr %p\n", r, nr);
+
+	assert(r == nr);
+
+	if(closereq(r) == 0)	/* intmap reference */
+		abort();
+	closereq(r);
 }
 
 Req*
-removereq(Reqpool *pool, ulong tag)
+lookupreq(Reqpool *pool, ulong req)
 {
-if(chatty9p > 1)
-	fprint(2, "removereq %lud\n", tag);
-	return deletekey(pool->map, tag);
+	return lookupkey(pool->map, req);
 }
+
+Reqpool*
+allocreqpool(void)
+{
+	Reqpool *f;
+
+	if((f = mallocz(sizeof *f, 1)) == nil)
+		return nil;
+	if((f->map = allocmap(increqref)) == nil){
+		free(f);
+		return nil;
+	}
+	return f;
+}
+

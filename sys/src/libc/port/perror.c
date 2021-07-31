@@ -4,10 +4,10 @@
 void
 perror(char *s)
 {
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 
-	buf[0] = '\0';
-	errstr(buf, sizeof buf);
+	buf[0] = 0;
+	errstr(buf);
 	if(s && *s)
 		fprint(2, "%s: %s\n", s, buf);
 	else

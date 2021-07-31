@@ -1,7 +1,8 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <ctype.h>
-#include "authcmdlib.h"
+#include "authsrv.h"
 
 /*
  * get the date in the format yyyymmdd
@@ -29,7 +30,7 @@ getdate(char *d)
 long
 getexpiration(char *db, char *u)
 {
-	char buf[Maxpath];
+	char buf[KEYDBBUF+NAMELEN+6];
 	char prompt[128];
 	char cdate[32];
 	Tm date;
@@ -37,7 +38,7 @@ getexpiration(char *db, char *u)
 	int n;
 
 	/* read current expiration (if any) */
-	snprint(buf, sizeof buf, "%s/%s/expire", db, u);
+	sprint(buf, "%s/%s/expire", db, u);
 	fd = open(buf, OREAD);
 	buf[0] = 0;
 	if(fd >= 0){

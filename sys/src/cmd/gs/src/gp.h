@@ -1,22 +1,22 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gp.h,v 1.2 2000/03/18 01:45:16 lpd Exp $ */
+/*$Id: gp.h,v 1.5 2000/09/19 19:00:24 lpd Exp $ */
 /* Interface to platform-specific routines */
 /* Requires gsmemory.h */
 
@@ -117,29 +117,6 @@ void gp_readline_finit(P1(void *readline_data));
 /* ------ Screen management ------ */
 
 /*
- * The following routines are only relevant in a single-window environment
- * such as a PC; on platforms with window systems, the 'make current'
- * routines do nothing.
- */
-
-#ifndef gx_device_DEFINED
-#  define gx_device_DEFINED
-typedef struct gx_device_s gx_device;
-#endif
-
-/* Initialize the console. */
-void gp_init_console(P0());
-
-/* Write a string to the console. */
-void gp_console_puts(P2(const char *, uint));
-
-/* Make the console current on the screen. */
-int gp_make_console_current(P1(gx_device *));
-
-/* Make the graphics current on the screen. */
-int gp_make_graphics_current(P1(gx_device *));
-
-/*
  * The following are only relevant for X Windows.
  */
 
@@ -190,7 +167,7 @@ FILE *gp_fopen(P2(const char *fname, const char *mode));
 
 /* Force given file into binary mode (no eol translations, etc) */
 /* if 2nd param true, text mode if 2nd param false */
-bool gp_setmode_binary(P2(FILE * pfile, bool mode));
+int gp_setmode_binary(P2(FILE * pfile, bool mode));
 
 /* Answer whether a file name contains a directory/device specification, */
 /* i.e. is absolute (not directory- or device-relative). */

@@ -44,7 +44,7 @@ enum {
 typedef struct Vctl {
 	Vctl*	next;			/* handlers on this vector */
 
-	char	name[KNAMELEN];		/* of driver */
+	char	name[NAMELEN];		/* of driver */
 	int	isintr;			/* interrupt or fault/trap */
 	int	irq;
 	int	tbdf;
@@ -191,10 +191,6 @@ struct Pcidev
 		int	size;
 	} mem[6];
 
-	struct {
-		ulong	bar;	
-		int	size;
-	} rom;
 	uchar	intl;			/* interrupt line */
 
 	Pcidev*	list;
@@ -245,6 +241,7 @@ struct SMBus {
 
 typedef struct PCMslot		PCMslot;
 typedef struct PCMconftab	PCMconftab;
+typedef struct Cisdat 		Cisdat;
 
 /*
  * Map between ISA memory space and PCMCIA card memory space.
@@ -278,6 +275,15 @@ struct PCMconftab
 	ulong	otherwait;
 };
 
+/* cis memory walking */
+struct Cisdat
+{
+	uchar	*cisbase;
+	int	cispos;
+	int	cisskip;
+	int	cislen;
+};
+
 /* a card slot */
 struct PCMslot
 {
@@ -308,6 +314,9 @@ struct PCMslot
 	int	nctab;		/* number of config table entries */
 	PCMconftab	ctab[8];
 	PCMconftab	*def;		/* default conftab */
+
+	/* for walking through cis */
+	Cisdat;
 
 	/* memory maps */
 	Lock	mlock;		/* lock down the maps */

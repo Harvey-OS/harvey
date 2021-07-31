@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+TARG=bzfs
+
+OFILES=\
+	mkext.$O\
+	ramfs.$O\
+	bzexpand.$O\
+
+HFILES=bzfs.h
+
+BIN=/sys/lib/pcdist/bin/$objtype
+LIB=/sys/src/cmd/bzip2/lib/libbzip2.a$O
+</sys/src/cmd/mkone
+
+CFLAGS=$CFLAGS -I/sys/src/cmd/bzip2/lib
+
+/sys/src/cmd/bzip2/lib/libbzip2.a$O:
+	@{cd /sys/src/cmd/bzip2/lib && mk}

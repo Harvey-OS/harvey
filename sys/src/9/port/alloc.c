@@ -68,7 +68,7 @@ poolprint(Pool *p, char *fmt, ...)
 
 	pv = p->private;
 	va_start(v, fmt);
-	vseprint(pv->msg+strlen(pv->msg), pv->msg+sizeof pv->msg, fmt, v);
+	doprint(pv->msg+strlen(pv->msg), pv->msg+sizeof pv->msg, fmt, v);
 	va_end(v);
 }
 
@@ -81,7 +81,7 @@ ppanic(Pool *p, char *fmt, ...)
 
 	pv = p->private;
 	va_start(v, fmt);
-	vseprint(pv->msg+strlen(pv->msg), pv->msg+sizeof pv->msg, fmt, v);
+	doprint(pv->msg+strlen(pv->msg), pv->msg+sizeof pv->msg, fmt, v);
 	va_end(v);
 	memmove(msg, pv->msg, sizeof msg);
 	iunlock(&pv->lk);
@@ -189,14 +189,12 @@ malloc(ulong size)
 	void *v;
 
 	v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
-	if(v == nil)
-		return nil;
-	if(Npadlong){
+	if(Npadlong && v != nil) {
 		v = (ulong*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
+		memset(v, 0, size);
 	}
-	memset(v, 0, size);
 	return v;
 }
 

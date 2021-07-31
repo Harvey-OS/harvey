@@ -183,11 +183,11 @@ floppysetup1(FController*)
 }
 
 
-static vlong pcfloppyseek(FDrive*, vlong);
+static long pcfloppyseek(FDrive*, long);
 FController	fl;
 
-vlong
-floppyseek(Dos *dos, vlong off)
+long
+floppyseek(Dos *dos, long off)
 {
 	FDrive *dp;
 

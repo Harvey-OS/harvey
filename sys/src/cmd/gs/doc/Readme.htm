@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>Overview of Ghostscript</title>
-<!-- $Id: Readme.htm,v 1.2 2000/03/14 06:14:44 lpd Exp $ -->
+<!-- $Id: Readme.htm,v 1.13.2.2 2000/11/28 01:31:25 raph Exp $ -->
 <!-- Originally: README -->
 </head>
 
@@ -63,7 +63,7 @@ systems).
 <ul>
 <li><a href="#New_users">What should I read if I'm a new user?</a>
 <ul>
-<li><a href="#Two_Ghostscripts">Aladdin Ghostscript and GNU Ghostscript</a>
+<li><a href="#Two_Ghostscripts">AFPL Ghostscript and GNU Ghostscript</a>
 <li><a href="#Before_building">Before building Ghostscript</a>
 </ul>
 <li><a href="#Not_a_new_user">What should I read if I'm not a new user?</a>
@@ -72,47 +72,68 @@ systems).
 </ul>
 <li><a href="#Web_presence">Presence on the World Wide Web</a>
 <ul>
-<li><a href="#Web_home_page">Ghostscript's home page</a>
-<li><a href="#Aladdin_home_page">Aladdin's home page</a>
-<li><a href="#Adobe_documentation">Adobe PostScript and PDF reference documentation</a>
+<li><a href="#Web_home_page">Ghostscript's home pages</a>
+<li><a href="#Adobe_documentation">Adobe PostScript, Encapsulated
+PostScript, and PDF reference documentation</a>
 <li><a href="#Web_other">Other material on the WWW</a>
 </ul>
 <li><a href="#Ordered_roadmap">Which document contains what?</a>
+<ul>
+<li>Primarily for users:
 <blockquote><table cellpadding=0 cellspacing=0>
 <tr><td valign=top>
 <a href="#Bug-form">Bug-form.htm</a><br>
-<a href="#C-style">C-style.htm</a><br>
+<a href="#Bug-info">Bug-info.htm</a><br>
+<a href="#Devices">Devices.htm</a><br>
+<a href="#Helpers">Helpers.htm</a><br>
+<td>&nbsp;&nbsp;&nbsp;<td valign=top>
+<a href="#Humor">Humor.htm</a><br>
+<a href="#New-user">New-user.htm</a><br>
+<a href="#Ps2epsi">Ps2epsi.htm</a><br>
+<a href="#Ps2pdf">Ps2pdf.htm</a><br>
+<td>&nbsp;&nbsp;&nbsp;<td valign=top>
+<a href="#Readme">Readme.htm</a><br>
+<a href="#Unix-lpr">Unix-lpr.htm</a><br>
+<a href="#Use">Use.htm</a><br>
+<tr><td valign=top>
+</table></blockquote>
+<li>For both users and developers:
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><td valign=top>
+<a href="#Changes">Changes.htm</a><br>
 <a href="#Commprod">Commprod.htm</a><br>
 <a href="#Copying">Copying.htm</a><br>
 <a href="#Current">Current.htm</a><br>
-<a href="#DLL">DLL.htm</a><br>
-<a href="#Devices">Devices.htm</a><br>
-<a href="#Drivers">Drivers.htm</a><br>
 <a href="#Fonts">Fonts.htm</a><br>
-<a href="#Helpers">Helpers.htm</a>
 <td>&nbsp;&nbsp;&nbsp;<td valign=top>
 <a href="#Hershey">Hershey.htm</a><br>
 <a href="#History">History*.htm</a><br>
-<a href="#Htmstyle">Htmstyle.htm</a><br>
-<a href="#Humor">Humor.htm</a><br>
 <a href="#Install">Install.htm</a><br>
 <a href="#Language">Language.htm</a><br>
-<a href="#Lib">Lib.htm</a><br>
 <a href="#Make">Make.htm</a><br>
-<a href="#New-user">New-user.htm</a><br>
-<a href="#News">News.htm</a>
 <td>&nbsp;&nbsp;&nbsp;<td valign=top>
-<a href="#Ps2pdf">Ps2pdf.htm</a><br>
+<a href="#News">News.htm</a><br>
 <a href="#Psfiles">Psfiles.htm</a><br>
 <a href="#Public">Public.htm</a><br>
-<a href="#Readme">Readme.htm</a><br>
-<a href="#Release">Release.htm</a><br>
-<a href="#Source">Source.htm</a><br>
 <a href="#Tester">Tester.htm</a><br>
-<a href="#Unix-lpr">Unix-lpr.htm</a><br>
-<a href="#Use">Use.htm</a><br>
-<a href="#Xfonts">Xfonts.htm</a>
 </table></blockquote>
+<li>Primarily for developers:
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr><td valign=top>
+<a href="#C-style">C-style.htm</a><br>
+<a href="#DLL">DLL.htm</a><br>
+<a href="#Drivers">Drivers.htm</a><br>
+<a href="#Htmstyle">Htmstyle.htm</a><br>
+<td>&nbsp;&nbsp;&nbsp;<td valign=top>
+<a href="#Lib">Lib.htm</a><br>
+<a href="#Maintain">Maintain.htm</a><br>
+<a href="#Projects">Projects.htm</a><br>
+<a href="#Release">Release.htm</a><br>
+<td>&nbsp;&nbsp;&nbsp;<td valign=top>
+<a href="#Source">Source.htm</a><br>
+<a href="#Xfonts">Xfonts.htm</a><br>
+</table></blockquote>
+</ul>
 </ul></blockquote>
 
 <!-- [1.2 end table of contents] =========================================== -->
@@ -151,22 +172,22 @@ devices</a> that Ghostscript knows about
 <a href="Unix-lpr.htm">Unix with <b><tt>lpr</tt></b></a> as a
 filter for non-PostScript printers
 
-<li>a <a href="Bug-form.htm">problem-reporting form</a> -- but remember
-that Ghostscript comes with <b>NO WARRANTY</b> and <b>NO
+<li>information about <a href="Bug-info.htm">reporting problems</a> -- but
+remember that Ghostscript comes with <b>NO WARRANTY</b> and <b>NO
 SUPPORT</b>
 </ul>
 
-<h3><a name="Two_Ghostscripts"></a>Aladdin Ghostscript and GNU Ghostscript</h3>
+<h3><a name="Two_Ghostscripts"></a>AFPL Ghostscript and GNU Ghostscript</h3>
 
 <p>
-Aladdin Ghostscript and GNU Ghostscript are
+AFPL Ghostscript and GNU Ghostscript are
 <a href="New-user.htm#Find_Ghostscript">different releases</a>.  If you
-have Aladdin Ghostscript, not the GNU Ghostscript releases distributed by
+have AFPL Ghostscript, not the GNU Ghostscript releases distributed by
 the <a href="http://www.gnu.org">Free Software Foundation</a>, you should
 read (or at least skim through):
 
 <ul>
-<li>additional information about <a href="Public.htm">Aladdin Ghostscript
+<li>additional information about <a href="Public.htm">AFPL Ghostscript
 releases</a> that is not relevant to GNU Ghostscript releases.
 </ul>
 
@@ -205,11 +226,14 @@ If you have already used Ghostscript, when you receive a new release you
 should begin by reading this file, then
 
 <ul>
-<li> <a href="News.htm">News.htm</a>, for changes and new features in the
-current release;
+<li> <a href="News.htm">News.htm</a>, for incompatible changes and new
+features in the current release;
 
 <li> <a href="Current.htm">Current.htm</a>, for known problems in the
 current release;
+
+<li> if you wish, <a href="Changes.htm">Changes.htm</a>, for a detailed list
+of changes in the current release;
 
 <li> if you wish, History#.htm (currently <a
 href="History6.htm">History6.htm</a>), for changes in other releases.
@@ -234,7 +258,7 @@ Ghostscript and platform-supplied fonts (but read about
 </ul>
 
 <p>
-If you are considering distributing Ghostscript (either Aladdin or GNU
+If you are considering distributing Ghostscript (either AFPL or GNU
 versions) in conjunction with a commercial product, you should read the
 <a href="Public.htm">license</a> carefully, and you should also read
 
@@ -291,37 +315,41 @@ Ghostscript's HTML-based documentation.
 <p>
 Ghostscript has a home page on the World Wide Web with helpful information
 such as the FAQ (Frequently Asked Questions) and a list of known problems
-and workarounds for the current Aladdin Ghostscript release (in the
+and workarounds for the current AFPL Ghostscript release (in the
 "Obtaining" file for that release):
 
 <blockquote>
 <a href="http://www.cs.wisc.edu/~ghost/">http://www.cs.wisc.edu/~ghost/</a>
 </blockquote>
 
-<h2><a name="Aladdin_home_page"></a>Aladdin's home page</h2>
-
 <p>
-More material about Ghostscript can be found on Aladdin Enterprises' World
-Wide Web site at
+More material about Ghostscript can be found at
 
 <blockquote>
 <a href="http://www.ghostscript.com/">http://www.ghostscript.com/</a>
 </blockquote>
 
-<h2><a name="Adobe_documentation"></a>Adobe PostScript and PDF reference documentation</h2>
+<h2><a name="Adobe_documentation"></a>Adobe PostScript, Encapsulated
+PostScript, and PDF reference documentation</h2>
 
 <p>
-Adobe makes a wealth of relevant <a
-href="http://partners.adobe.com/asn/developer/technotes.html">technical
-documentation</a> available on its Web site, including the <a
-href="http://partners.adobe.com/asn/developer/PDFS/TN/PLRM.pdf">PostScript
-Language Reference Manual (Third Edition)</a>, the <a
-href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/pdfspec.pdf">PDF
-1.3 specification</a>, and the <a
-href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/pdfmark.pdf">pdfmark</a>
-and <a
-href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/distparm.pdf">distiller
-parameters</a> documentation.
+Adobe makes a wealth of
+<a href="http://partners.adobe.com/asn/developer/technotes.html">
+technical documentation</a> available over the Web, including the
+<a href="http://partners.adobe.com/asn/developer/PDFS/TN/PLRM.pdf">
+PostScript Language Reference Manual (Third Edition)</a>; the
+<a href="http://partners.adobe.com/asn/developer/PDFS/TN/5002.EPSF_Spec.pdf">
+Encapsulated PostScript</a> (EPS) Format Specification version 3, including
+<a href="#Ps2epsi">Encapsulated PostScript Interchange (EPSI)</a>
+format; the
+<a href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/pdfspec.pdf">
+PDF 1.3 specification</a>; and the
+<a href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/pdfmark.pdf">
+pdfmark</a> and
+<a href="http://partners.adobe.com/asn/developer/acrosdk/DOCS/distparm.pdf">
+Acrobat Distiller parameters</a> documentation.  Some of these documents
+are also available at <a href="ftp://ftp.adobe.com/pub/adobe/">Adobe's ftp
+site</a>, but not necessarily under the same filenames.
 
 <h2><a name="Web_other"></a>Other material on the WWW</h2>
 
@@ -338,6 +366,13 @@ in English and German (and soon in Japanese), at:
 <a href="http://www.pdflib.com">http://www.pdflib.com/gsmanual</a>
 </blockquote>
 
+<p>
+There is a translation of the Ghostscript 'man' pages into Czech at:
+
+<blockquote>
+<a href="http://www.volny.cz/rebus/ghostscript">http://www.volny.cz/rebus/ghostscript</a>
+</blockquote>
+
 <hr>
 
 <h1><a name="Ordered_roadmap"></a>Which document contains what?</h1>
@@ -347,19 +382,30 @@ with explanations of the contents.
 
 <dl>
 <dt><a name="Bug-form"></a><a href="Bug-form.htm"><b>Bug-form.htm</b></a>
-<dd> A form to fill out and send to Aladdin to
-<a href="New-user.htm#Reporting_bugs">report a bug</a> in Aladdin
-Ghostscript -- but remember that Ghostscript comes with <b>NO
-WARRANTY</b> and <b>NO SUPPORT</b>. Please read the
-<a href="New-user.htm#Reporting_bugs">guidelines</a> before reporting a
-bug.
+<dd> A form to fill out and a-meil to report a problem with AFPL
+Ghostscript -- but remember that Ghostscript comes with <b>NO WARRANTY</b>
+and <b>NO SUPPORT</b>. Please read the <a
+href="Bug-info.htm">instructions</a> before reporting a bug.
+</dl>
+
+<dl>
+<dt><a name="Bug-info"></a><a href="Bug-info.htm"><b>Bug-info.htm</b></a>
+<dd> Information about how to report problems with AFPL Ghostscript --
+but remember that Ghostscript comes with <b>NO WARRANTY</b> and <b>NO
+SUPPORT</b>.  Please read this before reporting a problem.
 </dl>
 
 <dl>
 <dt><a name="C-style"></a><a href="C-style.htm"><b>C-style.htm</b></a>
-<dd> Aladdin's guidelines and style for C coding, which you should follow
+<dd> Guidelines and style for C coding, which you should follow
 if, for example, you <a href="#Drivers">write a new driver</a> or add or
 change something in Ghostscript. For developers.
+</dl>
+
+<dl>
+<dt><a name="Changes"></a><a href="Changes.htm"><b>Changes.htm</b></a>
+<dd> A detailed list of all code changes in the current release or
+pre-release, generated mechanically from the CVS logs. For developers.
 </dl>
 
 <dl>
@@ -371,7 +417,7 @@ License</a>.
 
 <dl>
 <dt><a name="Copying"></a><a href="Copying.htm"><b>Copying.htm</b></a>
-<dd> A reminder that Aladdin Ghostscript is governed <b>NOT</b> by
+<dd> A reminder that AFPL Ghostscript is governed <b>NOT</b> by
 the <a href="http://www.gnu.org/">Free Software Foundation's</a> GNU
 <a href="http://www.gnu.org/copyleft/gpl.html">General Public License</a>
 but by the <a href="#Public">Aladdin Free Public License</a>.
@@ -471,6 +517,11 @@ operations in the PostScript language and in Adobe Portable Document Format
 </dl>
 
 <dl>
+<dt><a name="Maintain"></a><a href="Maintain.htm"><b>Maintain.htm</b></a>
+<dd> Assorted Ghostscript maintenance procedures. For developers.
+</dl>
+
+<dl>
 <dt><a name="Make"></a><a href="Make.htm"><b>Make.htm</b></a>
 <dd> How to build Ghostscript executables from the source code.  See also
 <a href="#Install">how to install it</a>. It's not necessary to be a highly
@@ -485,11 +536,24 @@ is needed.
 
 <dl>
 <dt><a name="News"></a><a href="News.htm"><b>News.htm</b></a>
-<dd> Changes in the latest releases of Ghostscript.  Changes in older
-releases are described in the history files
-"<b><tt>History*.htm</tt></b>", which are usually installed
-in the documentation directory. Run "<b><tt>gs&nbsp;-h</tt></b>"
-to see where that is.
+<dd> A brief description of the latest release or pre-release of
+Ghostscript, and a list of any incompatible changes in it.  Changes in older
+releases are described in the history files "<b><tt>History*.htm</tt></b>",
+which are usually installed in the documentation directory. Run
+"<b><tt>gs&nbsp;-h</tt></b>" to see where that is.
+</dl>
+
+<dl>
+<dt><a name="Projects"></a><a href="Projects.htm"><b>Projects.htm</b></a>
+<dd> A list of Ghostscript development projects with which we would like
+help.
+</dl>
+
+<dl>
+<dt><a name="Ps2epsi"></a><a href="Ps2epsi.htm"><b>Ps2epsi.htm</b></a>
+<dd> Detailed information on how to use Ghostscript through
+<tt><b>ps2epsi</b></tt> to convert PostScript to Adobe
+Encapsulated PostScript Interchange (EPSI) format.
 </dl>
 
 <dl>
@@ -509,7 +573,7 @@ programs, and sample printable files.
 <dl>
 <dt><a name="Public"></a><a href="Public.htm"><b>Public.htm</b></a>
 <dd> The Aladdin Free Public License, which states the conditions for using
-and redistributing Aladdin Ghostscript.
+and redistributing AFPL Ghostscript.
 </dl>
 
 <dl>
@@ -563,15 +627,15 @@ font-rendering mechanism, for developers.
 
 <font size=2>
 
-<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+<p>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of Aladdin Ghostscript.  See the
+<p>This file is part of AFPL Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+AFPL Ghostscript.
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+Ghostscript version 6.32, 27 November 2000
 
 </font>
 

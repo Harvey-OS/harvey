@@ -1,0 +1,593 @@
+.TH LIBSEC 2
+.SH NAME
+setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher, md4, md5, sha1, hmac_md5, hmac_sha1, dec64, enc64, dec32, enc32, genrandom, prng, genprime, gensafeprime, genstrongprime, DSAprimes, probably_prime, smallprimetest, setupRC4state, rc4, rc4skip, rc4back, crtpre, crtin, crtout, crtprefree, crtresfree, rsagen, rsaencrypt, rsadecrypt, rsaalloc, rsafree, rsapuballoc, rsapubfree, rsaprivalloc, rsaprivfree, rsaprivtopub, X509toRSApub, eggen, egencrypt, egdecrypt, egsign, egverify, egalloc, egfree, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub \- cryptographic security library
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <mp.h>
+.br
+.B #include <libsec.h>
+.PP
+.B
+void	des_key_setup(uchar key[8], ulong schedule[32])
+.PP
+.B
+void	block_cipher(ulong *schedule, uchar *data,
+.B
+		int decrypting)
+.PP
+.B
+void	setupDESstate(DESstate *s, uchar key[8], uchar *ivec)
+.PP
+.B
+void	desCBCencrypt(uchar*, int, DESstate*)
+.PP
+.B
+void	desCBCdecrypt(uchar*, int, DESstate*)
+.PP
+.B
+void	desECBencrypt(uchar*, int, DESstate*)
+.PP
+.B
+void	desECBdecrypt(uchar*, int, DESstate*)
+.PP
+.B
+void	triple_block_cipher(ulong keys[3][32], uchar*, int)
+.PP
+.B
+void	setupDES3state(DES3state *s, uchar key[3][8],
+.B
+		uchar *ivec)
+.PP
+.B
+void	des3CBCencrypt(uchar*, int, DES3state*)
+.PP
+.B
+void	des3CBCdecrypt(uchar*, int, DES3state*)
+.PP
+.B
+void	des3ECBencrypt(uchar*, int, DES3state*)
+.PP
+.B
+void	des3ECBdecrypt(uchar*, int, DES3state*)
+.PP
+.B
+void	key_setup(uchar[7], ulong[32])
+.PP
+.B
+void	des56to64(uchar *k56, uchar *k64)
+.PP
+.B
+void	des64to56(uchar *k64, uchar *k56)
+.PP
+.B
+DigestState*	md4(uchar *data, ulong dlen, uchar *digest,
+.B
+			 DigestState *state)
+.PP
+.B
+DigestState*	md5(uchar *data, ulong dlen, uchar *digest,
+.B
+			 DigestState *state)
+.PP
+.B
+DigestState*	sha1(uchar *data, ulong dlen, uchar *digest,
+.B
+			 DigestState *state)
+.PP
+.B
+DigestState*	hmac_md5(uchar *data, ulong dlen,
+.br
+.B
+			 uchar *key, ulong klen,
+.br
+.B
+			 uchar *digest, DigestState *state)
+.PP
+.B
+DigestState*	hmac_sha1(uchar *data, ulong dlen,
+.br
+.B
+			 uchar *key, ulong klen,
+.br
+.B
+			 uchar *digest, DigestState *state)
+.PP
+.B
+void	setupRC4state(RC4state *s, uchar *seed, int slen)
+.PP
+.B
+void	rc4(RC4state *s, uchar *data, int dlen)
+.PP
+.B
+void	rc4skip(RC4state *s, int nbytes)
+.PP
+.B
+void	rc4back(RC4state *s, int nbytes)
+.PP
+.B
+RSApriv*	rsagen(int nlen, int elen, int nrep)
+.PP
+.B
+mpint*	rsaencrypt(RSApub *k, mpint *in, mpint *out)
+.PP
+.B
+mpint*	rsadecrypt(RSApriv *k, mpint *in, mpint *out)
+.PP
+.B
+RSApub*	rsapuballoc(void)
+.PP
+.B
+void	rsapubfree(RSApub*)
+.PP
+.B
+RSApriv*	rsaprivalloc(void)
+.PP
+.B
+void	rsaprivfree(RSApriv*)
+.PP
+.B
+RSApub*	rsaprivtopub(RSApriv*)
+.PP
+.B
+RSApub*	X509toRSApub(uchar *cert, int ncert, char *name, int nname)
+.PP
+.B
+EGpriv*	eggen(int nlen, int nrep)
+.PP
+.B
+mpint*	egencrypt(EGpub *k, mpint *in, mpint *out)
+.PP
+.B
+mpint*	egdecrypt(EGpriv *k, mpint *in, mpint *out)
+.PP
+.B
+EGsig*	egsign(EGpriv *k, mpint *m)
+.PP
+.B
+int	egverify(EGpub *k, EGsig *sig, mpint *m)
+.PP
+.B
+EGpub*	egpuballoc(void)
+.PP
+.B
+void	egpubfree(EGpub*)
+.PP
+.B
+EGpriv*	egprivalloc(void)
+.PP
+.B
+void	egprivfree(EGpriv*)
+.PP
+.B
+EGsig*	egsigalloc(void)
+.PP
+.B
+void	egsigfree(EGsig*)
+.PP
+.B
+EGpub*	egprivtopub(EGpriv*)
+.PP
+.B
+int	dec64(uchar *out, int lim, char *in, int n)
+.PP
+.B
+int	enc64(char *out, int lim, uchar *in, int n)
+.PP
+.B
+int	dec32(uchar *out, int lim, char *in, int n)
+.PP
+.B
+int	enc32(char *out, int lim, uchar *in, int n)
+.PP
+.B
+void	genrandom(uchar *buf, int nbytes)
+.PP
+.B
+void	prng(uchar *buf, int nbytes)
+.PP
+.B
+int	smallprimetest(mpint *p)
+.PP
+.B
+int	probably_prime(mpint *p, int nrep)
+.PP
+.B
+void	genprime(mpint *p, int n, int nrep)
+.PP
+.B
+void	gensafeprime(mpint *p, mpint *alpha, int n, int accuracy)
+.PP
+.B
+void	genstrongprime(mpint *p, int n, int nrep)
+.PP
+.B
+void	DSAprimes(mpint *q, mpint *p, uchar seed[SHA1dlen])
+.SH DESCRIPTION
+.PP
+These routines provide a base for cryptographic security.
+.SS DES
+.PP
+The Digital Encryption Standard (DES) has the most functions.
+It is a shared key or symmetric encryption using either
+a 56 bit key for single DES or three 56 bit keys for triple des.
+The keys are encoded into 64 bits where every eight bit
+is parity. 
+.PP
+The basic DES function,
+.IR block_cipher ,
+works on a block of 8 bytes, converting them in place.
+It takes a key schedule, a pointer to the block, and
+a flag indicating encrypting (0) or decrypting (1).
+The key schedule is created from the key using
+.IR des_key_setup .
+.PP
+Since it is a bit awkward,
+.I block_cipher
+is rarely called directly.  Instead, one normally uses
+routines that encrypt larger buffers of data and
+which may chain the encryption state from one buffer
+to the next.
+These routines keep track of the state of the
+encryption using a
+.B DESstate
+structure that contains the key schedule and any chained
+state.
+.I SetupDESstate
+sets up the
+.B DESstate
+structure using the key and an 8 byte initialization vector.
+.PP
+Electronic code book, using
+.I desECBencrypt
+and 
+.IR desECBdecrypt , 
+is the less secure mode.  The encryption of each 8 bytes
+does not depend on the encryption of any other.
+Hence the encryption is a substitution
+cipher using 64 bit characters.
+.PP
+Cipher block chaining mode, using
+.I desCBCencrypt
+and
+.IR desCBCdecrypt ,
+is more secure.  Every block encrypted depends on the initialization
+vector and all blocks encrypted before it.
+.PP
+For both CBC and ECB modes, a stream of data can be encrypted as
+multiple buffers.  However, all buffers except the last must
+be a multiple of 8 bytes to ensure successful decryption of
+the stream.
+.PP
+There are equivalent triple DES functions for each of the
+DES functions.
+.PP
+In the past Plan 9 used a 56 bit or 7 byte
+format for DES keys.  To be compatible with the rest
+of the world, we've abandoned this format.
+There are two functions:
+.I des56to64
+and
+.I des64to56
+to convert back and forth between the two formats.
+Also a key schedule can be set up from the 7 byte format
+using
+.IR key_setup .
+.SS "Secure Hashes
+.PP
+We support several secure hash functions.  The output of the
+hash is called a
+.IR digest .
+A hash is secure if, given the hashed data and the digest,
+it is difficult to predict the change to the digest resulting
+from some change to the data without rehashing
+the whole data.  Therefore, if a secret is part of the hashed
+data, the digest can be used as an integrity check of the data by anyone
+possessing the secret.
+.PP
+The routines
+.IR md4 ,
+.IR md5 ,
+.IR sha1 ,
+.IR hmac_md5 ,
+and
+.I hmac_sha1
+differ only in the length of the resulting digest
+and in the security of the hash.  Usage for each is the same.
+The first call to the routine should have
+.B nil
+as the 
+.I state
+parameter.  This call returns a state which can be used to chain
+subsequent calls.
+The last call should have digest non-\fBnil\fR.
+.I Digest
+must point to a buffer of at least the size of the digest produced.
+This last call will free the state and copy the result into
+.IR digest .
+For example, to hash a single buffer using
+.IR md5 :
+.EX
+
+	uchar digest[MD5dlen];
+
+	md5(data, len, digest, nil);
+.EE
+.PP
+To chain a number of buffers together,
+bounded on each end by some secret:
+.EX
+
+	char buf[256];
+	uchar digest[MD5dlen];
+	DigestState *s;
+
+	s = md5("my password", 11, nil, nil);
+	while((n = read(fd, buf, 256)) > 0)
+		md5(buf, n, nil, s);
+	md5("drowssap ym", 11, digest, s);
+.EE
+.PP
+The constants
+.IR MD4dlen ,
+.IR MD5dlen ,
+and
+.I SHA1dlen
+define the lengths of the digests.
+.PP
+.I Hmac_md5
+and
+.I hmac_sha1
+are used slightly differently.  These hash algorithms are keyed and require
+a key to be specified on every call.
+The digest lengths for these hashes are
+.I MD5dlen
+and
+.I SHA1dlen
+respectively.
+.SS "Alleged RC4
+.PP
+This is an algorithm alleged to be Rivest's RC4 encryption function.  It is
+a pseudo-random number generator with a 256 byte state and a long
+cycle.  The input buffer is XOR'd with the output of the
+generator both to encrypt and to decrypt.  The seed, entered
+using
+.IR setupRC4state ,
+can be any length.  The generator can be run forward using
+.IR rc4 ,
+skip over bytes using
+.I rc4skip 
+to account lost transmissions,
+or run backwards using
+.I rc4back
+to cover retransmitted data.
+The
+.I RC4state
+structure keeps track of the algorithm.
+.SS RSA
+.PP
+RSA is a public key encryption algorithm.  The owner of a key publishes
+the public part of the key:
+.EX
+	struct RSApub
+	{
+		mpint	*n;	// modulus
+		mpint	*ek;	// exp (encryption key)
+	};
+.EE
+This part can be used for encrypting data (with
+.IR rsaencrypt )
+to be sent to the owner.
+The owner decrypts (with
+.IR rsadecrypt )
+using his private key:
+.EX
+	struct RSApriv
+	{
+		RSApub	pub;
+		mpint	*dk;	// exp (decryption key)
+	
+		// precomputed crt values
+		mpint	*p;
+		mpint	*q;
+		mpint	*kp;	// k mod p-1
+		mpint	*kq;	// k mod q-1
+		mpint	*c2;	// for converting residues to number
+	};
+.EE
+.PP
+Keys are generated using
+.IR rsagen .
+.I Rsagen
+takes both bit length of the modulus, the bit length of the
+public key exponent, and the number of repetitions of the miller-rabin
+primality test to run.  If the latter is 0, it does the default number
+of rounds.
+.I Rsagen
+returns a newly allocated structure containing both
+public and private keys.
+.I Rsaprivtopub
+returns a newly allocated copy of the public key
+corresponding to the private key.
+.PP
+The routines
+.IR rsaalloc ,
+.IR rsafree ,
+.IR rsapuballoc ,
+.IR rsapubfree ,
+.IR rsaprivalloc ,
+and
+.I rsaprivfree
+are provided to aid in user provided key I/O.
+.PP
+Given a binary X.509
+.IR cert ,
+the routine
+.I X509toRSApub
+returns the public key and, if
+.I name
+is not nil, the CN part of the Distinguished Name of the
+certificate's Subject.
+(This is conventionally a userid or a host DNS name.)
+No verification is done of the certificate signature;  the
+caller should check the fingerprint,
+.IR sha1(cert) ,
+against a table or check the certificate by other means.
+X.509 certificates are often stored in PEM format;  use
+.I dec64
+to convert to binary before computing the fingerprint or calling
+.IR X509toRSApub .
+.SS ElGamal
+.PP
+The corresponding keys for the ElGamal algorithm are:
+.EX
+	struct EGpub
+	{
+		mpint	*p;	// modulus
+		mpint	*alpha;	// generator
+		mpint	*key;	// (encryption key) alpha**secret mod p
+	};
+.EE
+and
+.EX
+	struct EGpriv
+	{
+		EGpub	pub;
+		mpint	*secret; // (decryption key)
+	};
+.EE
+.I Egsign
+signs message
+.I m
+using a private key
+.I k
+yielding a
+.EX
+	struct EGsig
+	{
+		mpint	*r, *s;
+	};
+.EE
+.I Egverify
+returns 0 if the signature is valid and \-1 if not.
+.SS Encodings
+.PP
+Two readable and 7-bit safe encodings exist for binary data; base 64 and base 32.
+Base 64 is the more compact and more popular, used by MIME and HTTP.
+Base 32 is preferred when human transmission is involved.  It avoids confusion
+by not including upper case or '0', 'o', '1', and 'l' in its character
+set.  Base 64 can encode buffers of any length while base 32 only
+works on buffers a multiple of 5 bytes long.
+.PP
+.I Enc32
+and
+.I enc64
+both create null terminated strings.  They return the size of the
+encoded string (without the null) or -1 if the encoding fails.
+The encoding fails if
+.IR lim ,
+the length of the output buffer, is too small.  Also, for base 32,
+the encoding fails if the input buffer length,
+.IR n ,
+is not a multiple of 5.
+.PP
+.I Dec32
+and
+.I dec64
+return the number of bytes decoded or -1 if the decoding fails.
+The decoding fails if the output buffer is not large enough or,
+for base 32, if the input buffer length is not a multiple
+of 8.
+.SS "Random numbers
+.PP
+Most security software requires a source of random or, at the
+very least, unguessable numbers.
+.PP
+.I Genrandom
+fills a buffer with bytes from the X9.17 pseudo-random
+number generator.  The X9.17 generator is seeded by 24
+truly random bytes read from
+.BR /dev/random .
+.PP
+.I Prng
+uses the native
+.IR rand (2)
+pseudo-random number generator to fill the buffer.  Used with
+.IR srand ,
+this function can produce a reproducible stream of pseudo random
+numbers useful in testing.
+.PP
+Both functions may be passed to
+.I mprand
+(see
+.IR mp (2)).
+.SS "Prime numbers
+.PP
+Public key algorithms abound in prime numbers.  The following routines
+generate primes or test numbers for primality.
+.PP
+.I Smallprimetest
+checks for divisibility by the first 10000 primes.  It returns 0
+if
+.I p
+is not divisible by the primes and \-1 if it is.
+.PP
+.I Probably_prime
+uses the Miller-Rabin test to test
+.IR p .
+It returns non-zero if
+.I P
+is probably prime.  The probability of it not being prime is
+1/4**\fInrep\fR.
+.PP
+.I Genprime
+generates a random
+.I n
+bit prime.  Since it uses the Miller-Rabin test,
+.I nrep
+is the repetition count passed to
+.IR probably_prime .
+.I Gensafegprime
+generates an
+.IR n -bit
+prime
+.I p
+and a generator
+.I alpha
+of the multiplicative group of integers mod \fIp\fR;
+there is a prime \fIq\fR such that \fIp-1=2*q\fR.
+.I Genstrongprime
+generates a prime,
+.IR p ,
+with the following properties:
+.IP \-
+.IR p -1
+has a large prime factor,
+.IR p '.
+A large factor is one close to 1/2
+the bit length of
+.IR p .
+.IP \-
+.IR p '-1
+has a large prime factor
+.IP \-
+.IR p +1
+has a large prime factor
+.IP \-
+(\fIp\fR-1)/2 is prime
+.PP
+.I DSAprimes
+generates two primes,
+.I q
+and
+.IR p,
+using the NIST recommended algorithm for DSA primes.
+.I q
+divides
+.IR p -1.
+.SH SOURCE
+.B /sys/src/libsec
+.SH SEE ALSO
+.IR mp (2)

@@ -1,121 +1,89 @@
-%    Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+%    Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of Aladdin Ghostscript.
+% This file is part of AFPL Ghostscript.
 % 
-% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-% or distributor accepts any responsibility for the consequences of using it,
-% or for whether it serves any particular purpose or works at all, unless he
-% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-% License (the "License") for full details.
+% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+% distributor accepts any responsibility for the consequences of using it, or
+% for whether it serves any particular purpose or works at all, unless he or
+% she says so in writing.  Refer to the Aladdin Free Public License (the
+% "License") for full details.
 % 
-% Every copy of Aladdin Ghostscript must include a copy of the License,
-% normally in a plain ASCII text file named PUBLIC.  The License grants you
-% the right to copy, modify and redistribute Aladdin Ghostscript, but only
-% under certain conditions described in the License.  Among other things, the
-% License requires that the copyright notice and this notice be preserved on
-% all copies.
+% Every copy of AFPL Ghostscript must include a copy of the License, normally
+% in a plain ASCII text file named PUBLIC.  The License grants you the right
+% to copy, modify and redistribute AFPL Ghostscript, but only under certain
+% conditions described in the License.  Among other things, the License
+% requires that the copyright notice and this notice be preserved on all
+% copies.
 
-% $Id: gs_cff.ps,v 1.1 2000/03/09 08:40:39 lpd Exp $
-% Loader for CFF (compressed) fonts.
+% $Id: gs_cff.ps,v 1.7.2.2 2000/11/09 23:11:33 rayjj Exp $
+% Loader for CFF (compressed) fonts, including OpenType CFFs.
 % The following are not implemented yet:
 %	Deleted entries in the Name Index
 %	Embedded PostScript
 %	Multiple Master fonts
-%	CIDFonts
 %	Chameleon fonts
 %	Synthetic fonts
-% Also, Type 2 charstrings are converted into FontType 2 fonts,
-% which may or may not be supported.
+
+% ---------------- Font loading machinery ---------------- %
+
+% Augment the FONTPATH machinery so it recognizes OpenType CFF font sets.
+
+/.scanfontheaders where {
+  pop /.scanfontheaders [
+   .scanfontheaders aload pop (OTTO*)
+  ] def
+} if
+
+% Load a font file that might be an OpenType CFF font set.
+
+% <file> .loadfontfile -
+/.loadnonottofontfile /.loadfontfile load def
+/.loadfontfile {
+  dup 4 string .peekstring pop (OTTO) eq {
+		% If this is a font at all, it's an OpenType CFF font set.
+    .loadottofontfile
+  } {
+		% Not a TrueType font.
+    .loadnonottofontfile
+  } ifelse
+} bind def
+
+% <file> .loadottofontfile -
+/.loadottofontfile {
+  /FontSetInit /ProcSet findresource begin
+  2 dict begin
+  /f exch def /cff null def
+  card32 pop card16 6 { next pop } repeat dup {
+		% Stack: numtables tablesleft
+    dup 0 eq {
+      pop pop /.loadottofontfile cvx /invalidfont signalerror
+    } if
+    f 4 string readstring pop (CFF ) eq { sub exit } if
+    1 sub
+  } loop
+		% Stack: tablesread
+  card32 pop card32 card32
+		% Stack: tablesread start length
+  exch 3 -1 roll 1 add 16 mul 12 add sub
+  f exch subfilefilter flushfile	% skip to start
+  f exch subfilefilter end
+	% Use a random FontSet resource name.  ****** WRONG ******
+  realtime rand xor =string cvs exch false
+  ReadData
+} bind def
 
 30 dict begin
 
 % ---------------- Standard strings (actually names) ---------------- %
 
 /StandardStrings mark
+	% The initial StandardStrings that that denote characters are
+	% defined as a pseudo-Encoding.
 % 0
-  /.notdef /space /exclam /quotedbl /numbersign
-  /dollar /percent /ampersand /quoteright /parenleft
-  /parenright /asterisk /plus /comma /hyphen
-  /period /slash /zero /one /two
-  /three /four /five /six /seven
-  /eight /nine /colon /semicolon /less
-  /equal /greater /question /at /A
-  /B /C /D /E /F
-  /G /H /I /J /K
-  /L /M /N /O /P
-% 50
-  /Q /R /S /T /U
-  /V /W /X /Y /Z
-  /bracketleft /backslash /bracketright /asciicircum /underscore
-  /quoteleft /a /b /c /d
-  /e /f /g /h /i
-  /j /k /l /m /n
-  /o /p /q /r /s
-  /t /u /v /w /x
-  /y /z /braceleft /bar /braceright
-  /asciitilde /exclamdown /cent /sterling /fraction
-% 100
-  /yen /florin /section /currency /quotesingle
-  /quotedblleft /guillemotleft /guilsinglleft /guilsinglright /fi
-  /fl /endash /dagger /daggerdbl /periodcentered
-  /paragraph /bullet /quotesinglbase /quotedblbase /quotedblright
-  /guillemotright /ellipsis /perthousand /questiondown /grave
-  /acute /circumflex /tilde /macron /breve
-  /dotaccent /dieresis /ring /cedilla /hungarumlaut
-  /ogonek /caron /emdash /AE /ordfeminine
-  /Lslash /Oslash /OE /ordmasculine /ae
-  /dotlessi /lslash /oslash /oe /germandbls
-% 150
-  /onesuperior /logicalnot /mu /trademark /Eth
-  /onehalf /plusminus /Thorn /onequarter /divide
-  /brokenbar /degree /thorn /threequarters /twosuperior
-  /registered /minus /eth /multiply /threesuperior
-  /copyright /Aacute /Acircumflex /Adieresis /Agrave
-  /Aring /Atilde /Ccedilla /Eacute /Ecircumflex
-  /Edieresis /Egrave /Iacute /Icircumflex /Idieresis
-  /Igrave /Ntilde /Oacute /Ocircumflex /Odieresis
-  /Ograve /Otilde /Scaron /Uacute /Ucircumflex
-  /Udieresis /Ugrave /Yacute /Ydieresis /Zcaron
-% 200
-  /aacute /acircumflex /adieresis /agrave /aring
-  /atilde /ccedilla /eacute /ecircumflex /edieresis
-  /egrave /iacute /icircumflex /idieresis /igrave
-  /ntilde /oacute /ocircumflex /odieresis /ograve
-  /otilde /scaron /uacute /ucircumflex /udieresis
-  /ugrave /yacute /ydieresis /zcaron /exclamsmall
-  /Hungarumlautsmall /dollaroldstyle /dollarsuperior /ampersandsmall /Acutesmall
-  /parenleftsuperior /parenrightsuperior /twodotenleader /onedotenleader /zerooldstyle
-  /oneoldstyle /twooldstyle /threeoldstyle /fouroldstyle /fiveoldstyle
-  /sixoldstyle /sevenoldstyle /eightoldstyle /nineoldstyle /commasuperior
-% 250
-  /threequartersemdash /periodsuperior /questionsmall /asuperior /bsuperior
-  /centsuperior /dsuperior /esuperior /isuperior /lsuperior
-  /msuperior /nsuperior /osuperior /rsuperior /ssuperior
-  /tsuperior /ff /ffi /ffl /parenleftinferior
-  /parenrightinferior /Circumflexsmall /hyphensuperior /Gravesmall /Asmall
-  /Bsmall /Csmall /Dsmall /Esmall /Fsmall
-  /Gsmall /Hsmall /Ismall /Jsmall /Ksmall
-  /Lsmall /Msmall /Nsmall /Osmall /Psmall
-  /Qsmall /Rsmall /Ssmall /Tsmall /Usmall
-  /Vsmall /Wsmall /Xsmall /Ysmall /Zsmall
-% 300
-  /colonmonetary /onefitted /rupiah /Tildesmall /exclamdownsmall
-  /centoldstyle /Lslashsmall /Scaronsmall /Zcaronsmall /Dieresissmall
-  /Brevesmall /Caronsmall /Dotaccentsmall /Macronsmall /figuredash
-  /hypheninferior /Ogoneksmall /Ringsmall /Cedillasmall /questiondownsmall
-  /oneeighth /threeeighths /fiveeighths /seveneighths /onethird
-  /twothirds /zerosuperior /foursuperior /fivesuperior /sixsuperior
-  /sevensuperior /eightsuperior /ninesuperior /zeroinferior /oneinferior
-  /twoinferior /threeinferior /fourinferior /fiveinferior /sixinferior
-  /seveninferior /eightinferior /nineinferior /centinferior /dollarinferior
-  /periodinferior /commainferior /Agravesmall /Aacutesmall /Acircumflexsmall
-% 350
-  /Atildesmall /Adieresissmall /Aringsmall /AEsmall /Ccedillasmall
-  /Egravesmall /Eacutesmall /Ecircumflexsmall /Edieresissmall /Igravesmall
-  /Iacutesmall /Icircumflexsmall /Idieresissmall /Ethsmall /Ntildesmall
-  /Ogravesmall /Oacutesmall /Ocircumflexsmall /Otildesmall /Odieresissmall
-  /OEsmall /Oslashsmall /Ugravesmall /Uacutesmall /Ucircumflexsmall
-  /Udieresissmall /Yacutesmall /Thornsmall /Ydieresissmall (001.000)
+  /CFFStandardStrings .findencoding aload pop
+% 379
+  (001.000)
+% 380
   (001.001) (001.002) (001.003) /Black /Bold
   /Book /Light /Medium /Regular /Roman
   /Semibold
@@ -213,14 +181,25 @@ mark
 % ------ Utilities ------ %
 
 /advance {	% <n> advance -
-  f cff eq { /pos pos 3 -1 roll add store } { pop } ifelse
-} def
+  f cff eq { pos add /pos exch store } { pop } ifelse
+} bind def
 /next {		% - next <byte>
   f read {
     1 advance
     DEBUG { (  ) print dup = } if
   } if
-} def
+} bind def
+/next2 {	% - next2 <byte1> <byte2>
+  f read {
+    f read {
+      2 advance
+      DEBUG { (  ) print 1 index =only (,) print dup = } if
+    } {
+      1 advance
+      DEBUG { (  ) print dup = } if
+    } ifelse
+  } if
+} bind def
 /nextstring {	% <length> nextstring <string>
   dup 0 eq {
     pop ()
@@ -228,27 +207,39 @@ mark
     string f exch readstring pop dup length advance
     DEBUG { (  ) print dup == } if
   } ifelse
-} def
+} bind def
 /card8		% - card8 <card8>
  /next load
 def
 /card16 {	% - card16 <card16>
-  card8 8 bitshift card8 add
-} def
+  next2 exch 8 bitshift add
+} bind def
+/card32 {	% - card32 <card32>
+  card16 16 bitshift card16 add
+} bind def
+/offsetprocs [
+  /card8 load
+  /card16 load
+  { card8 16 bitshift card16 add } bind
+  /card32 load
+] readonly def
+/offsetproc {	% <offsize> offsetproc <proc>
+  1 sub //offsetprocs exch get
+} bind def
 /offset {	% <offsize> offset <offset>
-  0 exch { 8 bitshift next add } repeat
-} def
+  offsetproc exec
+} bind def
 /sid		% - <sid> sid
   /card16 load
 def
 /Index {	% - Index <array>
   mark card16 dup 0 ne {
-    1 exch next dup offset pop exch {
-      dup offset dup 4 -1 roll sub 3 1 roll exch
+    1 exch next offsetproc dup exec pop exch {
+      dup exec dup 4 -1 roll sub 3 1 roll exch
     } repeat pop
   } if pop .packtomark
   [ exch { nextstring } forall ] readonly
-} def
+} bind def
 /tokens {	% - tokens <num1> ... <op#> (op# = 12 means EOF)
   {
     f read not { 12 exit } if
@@ -281,11 +272,11 @@ def
       } ifelse
     } ifelse
   } loop
-} def
+} bind def
 /tokenbuf 100 string def
 /tokenput {	% <index> <char> tokenput <index+1>
   tokenbuf 2 index 3 -1 roll put 1 add
-} def
+} bind def
 /tokenrealarray [
  (0123456789.E) { } forall
  [(E) 0 get /tokenput cvx (-) 0 get] cvx
@@ -301,24 +292,24 @@ def
     1 index 15 and tokenrealarray exch get exec tokenput exch pop
   } loop
   tokenbuf 0 3 -1 roll getinterval cvr exch pop
-} def
+} bind def
 /Dict {		% <opsdict> Dict -
   /opdict exch store {
     mark tokens
     DEBUG { (tokens: ) print ] dup === mark exch aload pop } if
     opdict exch .knownget { exec } if cleartomark
   } loop cleartomark
-} def
+} bind def
 /idstring {	% <sid> idstring <string|name>
-  dup 391 lt { StandardStrings } { 391 sub strings } ifelse exch get
-} def
+  dup 391 lt { //StandardStrings } { 391 sub strings } ifelse exch get
+} bind def
 /idname {	% <sid> idname <name>
   idstring dup type /nametype ne { cvn } if
-} def
+} bind def
 /subfilefilter {	% <file> <length> subfilefilter <filter>
 	% SubFileDecode interprets a length of 0 as infinite.
   dup 0 le { pop pop () 0 } if () /SubFileDecode filter
-} def
+} bind def
 
 % ------ Top dictionary ------ %
 
@@ -326,23 +317,23 @@ def
   DEBUG { (queued: ) print 1 index =only ( ) print dup === } if
   currentdict exch aload length 1 add packedarray cvx
   offsets 3 1 roll put
-} def
+} bind def
 /queueput {	% <font> <proc> queueput -
   16#7fffffff offsets { pop .min } forall
   pos sub nextstring
   3 1 roll aload length 2 add packedarray cvx
   [ queued aload pop counttomark 2 add -1 roll ]
   /queued exch store
-} def
+} bind def
 /xxput {	% <value> <key> <dict> xxput -
   3 1 roll exch put
-} def
+} bind def
 /putfi {	% <value> <key> putfi -
   FontInfo xxput
-} def
+} bind def
 /xdef {		% <value> <key> xdef -
   exch def
-} def
+} bind def
 /topdictops mark
   12 { exit }
   0 { idstring /version putfi }
@@ -378,41 +369,85 @@ def
   }
   17 { { readCharStrings } offput }
   18 { exch /readPrivate cvx 2 packedarray offput }
+	% CIDFont operators
+  62 {		% ROS, must be first in a CIDFont
+    currentdict /FontType undef
+    currentdict /Private undef
+    currentdict /Encoding undef
+    currentdict /FontMatrix undef
+    /CIDFontVersion 0 def
+    /CIDFontRevision 0 def
+    /CIDFontType 0 def
+    /CIDCount 8720 def
+    3 dict begin
+    /Supplement xdef
+    idstring /Ordering xdef
+    idstring /Registry xdef
+    /CIDSystemInfo currentdict end def
+  }
+  63 { /CIDFontVersion xdef }
+  64 { /CIDFontRevision xdef }
+  65 { /CIDFontType xdef }
+  66 { /CIDCount xdef }
+  67 { /UIDBase xdef }
+  68 { { readFDArray } offput }
+  69 { { readFDSelect } offput }
+	% This operator only appears in a FDArray element.
+  70 { idstring /FontName exch def }
 .dicttomark readonly def
+
+% readcharset and readFDSelect may require the length of CharStringArray,
+% but these structures may occur in the file before the CharStrings.
+% If that happens, use a hack: assume that all the data up to the next
+% queued read should be read.
+
+/charstringcount {	% <font> charstringcount <count> true
+			% <font> charstringcount <length> false
+  /CharStringArray .knownget {
+    length true
+  } {
+	% Hack: look for the next queued read.
+    16#7fffffff offsets { pop .min } forall
+    pos sub false
+  } ifelse
+} bind def
 
 /readCharStrings {	% <font> readCharStrings -
   /CharStringArray Index put
-} def
+} bind def
 
 % ------ Charsets and encodings ------ %
 
 % Note: formats 1 and 2 can overflow the operand stack.
 % We'll fix this if it ever becomes necessary.
+/charsetcount {
+  charstringcount { 1 sub } { 2 idiv } ifelse
+} bind def
 /charsetformats [
-{ [ 0 CharStringArray length 1 sub { sid } repeat ]
-}
-{ [ 0 CharStringArray length 1 sub {
+{ [ 0 3 -1 roll charsetcount { sid } repeat ]
+} bind
+{ [ 0 3 -1 roll charsetcount {
     dup 0 eq { pop exit } if
     sid card8 1 add 2 index .min { exch 1 sub 1 index 1 add } repeat pop
   } loop ]
-}
-{ [ 0 CharStringArray length 1 sub {
+} bind
+{ [ 0 3 -1 roll charsetcount {
     dup 0 eq { pop exit } if
     sid card16 1 add 2 index .min { exch 1 sub 1 index 1 add } repeat pop
   } loop ]
-}
+} bind
 ] readonly def
 /queuecharset {		% <font> queuecharset -
   { readcharset } queueput
-} def
+} bind def
 /readcharset {		% <data> <font> readcharset -
   begin 0 () /SubFileDecode filter /f exch store
-  charsetformats next get exec /charset exch def end
-} def
+  charsetformats next get currentdict exch exec /charset exch def end
+} bind def
 
 /encodingformats [
 { 1 1 next { next exch Encoding 3 1 roll put } for
-}
+} bind
 { 1 next {
     next next 1 add {
 			% Stack: gid code
@@ -420,11 +455,11 @@ def
       exch 1 add exch 1 add
     } repeat pop
   } repeat pop
-}
+} bind
 ] readonly def
 /queueEncoding {	% <font> queueEncoding -
   { readEncoding } queueput
-} def
+} bind def
 /readEncoding {		% <data> <font> readEncoding -
   begin 0 () /SubFileDecode filter /f exch store
   /Encoding [ 256 { /.notdef } repeat ] def
@@ -435,14 +470,50 @@ def
       Encoding next sid idname put
     } repeat
   } if end
-} def
+} bind def
+
+% ------ FDArray and FDSelect ------ %
+
+/readFDArray {		% <font> readFDArray -
+  Index exch
+  2 dict begin /f null def begin
+  [ exch {
+    dup length subfilefilter /f exch store
+    10 dict begin
+    /FontType 2 def
+    /PaintType 0 def
+    /FontMatrix [0.001 0 0 0.001 0 0] def
+    /Private 20 dict def
+    //topdictops Dict currentdict end
+  } forall ] /FDArray xdef end end
+} bind def
+
+% Note: this implementation can overflow the operand stack.
+% We'll fix this if it ever becomes necessary.
+/fdselectformats [
+{ [ exch charstringcount pop { card8 } repeat ] } bind
+{ /FDSelect cvx /invalidfont signalerror } bind
+dup
+{ pop [ card16 card16 exch {
+		% Stack: previndex
+    card8 card16 dup 4 1 roll 3 -1 roll sub 1 sub {
+      exch 1 index
+    } repeat exch
+  } repeat pop ]
+} bind
+] readonly def
+
+/readFDSelect {		% <font> readFDSelect -
+  begin fdselectformats next get currentdict exch exec /FDSelect exch def end
+} bind def
+
 
 % ------ Private dictionary ------ %
 
 /deltarray {		% -mark- <num1> ... deltarray <num1'> ...
   0 counttomark 1 sub { counttomark -1 roll add dup } repeat pop
   counttomark array astore
-} def
+} bind def
 
 /privatedictops mark
   12 { exit }
@@ -463,7 +534,7 @@ def
   49 { /LanguageGroup xdef }
   50 { /ExpansionFactor xdef }
   51 { /initialRandomSeed xdef }
-  19 { { readSubrs } offput }
+  19 { PrivateStart add { readSubrs } offput }
   20 { /defaultWidthX xdef }
   21 { /nominalWidthX xdef }
 	% Multiple Master fonts only
@@ -473,26 +544,103 @@ def
 .dicttomark readonly def
 
 /readPrivate {		% <font> <size> readPrivate -
-  exch 1 index f exch subfilefilter /f exch def
-  /Private get begin //privatedictops Dict end
-  /f cff def advance
-} def
+  2 dict begin
+  /PrivateStart pos def
+  f 3 1 roll exch 1 index f exch subfilefilter /f exch store
+  dup /FontType get exch
+  /Private get begin
+		% Default lenIV to -1 even for Type 1 CharStrings.
+  2 ne { /lenIV -1 def } if
+  //privatedictops Dict end
+  exch /f exch store advance
+  end
+} bind def
+
+/readSubrs {		% <font> readSubrs -
+  /Subrs Index put
+} bind def
 
 % ------ Main program ------ %
 
+% Clean up after finishing a font.
+/cleanupFont {		% (currentdict) cleanupFont -
+		% Remove unwanted entries.
+  currentdict /charset undef
+  currentdict /CharStringArray undef
+} bind def
+
+% Update the Encoding and CharStrings for a real font.
+/finishFont {		% (currentdict) finishFont -
+		% Construct the real Encoding.
+		% The value of Encoding is either a number, for predefined
+		% encodings, or an array of mixed GIDs and names.
+  /Encoding mark Encoding
+  DEBUG { (Encoding: ) print dup === flush } if
+  dup type /integertype eq {
+    StandardEncodings exch get { idname } forall
+  } {
+    {
+      dup type /integertype eq { charset exch get idname } if
+    } forall
+  } ifelse .packtomark def
+		% Construct the CharStrings.
+		% Note that they may only correspond to an initial
+		% subset of the charset.
+  /CharStrings charset length CharStringArray length .min dict def
+  DEBUG {
+    charset length =only ( charset ) print
+    CharStringArray length =only ( CharStringArray) =
+    charset == flush
+  } if
+  0 1 CharStrings maxlength 1 sub {
+    dup CharStringArray exch get
+    exch charset exch get idstring CharStrings xxput
+  } for
+  cleanupFont
+} bind def
+
+% Replace CharStrings with GlyphDirectory for a CIDFont.
+/finishCIDFont {	% (currentdict) finishCIDFont -
+		% Construct the GlyphDirectory, similar to CharStrings.
+  /FDBytes FDArray length 1 gt { 1 } { 0 } ifelse def
+  /GlyphDirectory charset length CharStringArray length .min dict def
+  DEBUG {
+    charset length =only ( charset ) print
+    CharStringArray length =only ( CharStringArray) =
+    charset == flush
+  } if
+  0 1 GlyphDirectory maxlength 1 sub {
+    dup CharStringArray exch get
+		% If there is more than one FDArray entry, add the font
+		% index to the beginning of each charstring.
+    FDBytes 1 eq {
+      FDSelect 2 index get
+      1 string dup 0 4 -1 roll put exch concatstrings
+    } if
+    exch charset exch get GlyphDirectory xxput
+  } for
+		% Clean up.
+  currentdict /FDSelect undef
+  cleanupFont
+} bind def
 % We need to pass the file as a parameter for the sake of the PDF
-% interpreter.
-/StartData {		% <resname> <nbytes> StartData -
-  currentfile exch subfilefilter ReadData
-} def
-/ReadData {		% <resname> <file> ReadData -
+% interpreter. Also for the sake of PDF, a flag forces the font
+% to be defined as <resname> instead of the name embedded in the data.
+% This is needed for subsetted fonts; it is valid if the CFF
+% contains only a single font.
+/StartData {          % <resname> <nbytes> StartData -
+  currentfile exch subfilefilter false ReadData
+} bind def
+/ReadData {           % <resname> <file> <forceresname> ReadData -
 
 	% Initialize.
 
   30 dict begin
+  /forceresname exch def
   /cff exch def
   /pos 0 def
   /resname exch cvlit def
+  /DEBUG DEBUG def	% bring the binding closer
 
 	% Read the header.
 
@@ -541,7 +689,9 @@ def
   { /f cff def
     DEBUG { (pos=) print pos = } if
     offsets pos 2 copy .knownget not { pop pop exit } if
-    3 1 roll undef exec
+    3 1 roll undef
+    DEBUG { (exec queued: ) print dup == } if
+    exec
   } loop
   offsets length 0 ne {
     (Error: missing tables at ) print [ offsets { pop } forall ] ==
@@ -558,35 +708,7 @@ def
 
   fonts {
     begin
-		% Construct the real Encoding.
-		% The value of Encoding is either a number, for predefined
-		% encodings, or an array of mixed GIDs and names.
-      /Encoding mark Encoding
-      DEBUG { (Encoding: ) print dup === flush } if
-      dup type /integertype eq {
-	StandardEncodings exch get { idname } forall
-      } {
-	{
-	  dup type /integertype eq { charset exch get idname } if
-        } forall
-      } ifelse .packtomark def
-		% Construct the CharStrings.
-		% Note that they may only correspond to an initial
-		% subset of the charset.
-      /CharStrings charset length CharStringArray length .min dict def
-      DEBUG {
-	charset length =only ( charset ) print
-	CharStringArray length =only ( CharStringArray) =
-	charset == flush
-      } if
-      0 1 CharStrings maxlength 1 sub {
-	dup CharStringArray exch get
-	exch charset exch get idstring
-	CharStrings xxput
-      } for
-		% Remove unwanted entries.
-      currentdict /charset undef
-      currentdict /CharStringArray undef
+    currentdict /CIDFontType known { finishCIDFont } { finishFont } ifelse
     end
   } forall
 
@@ -595,10 +717,18 @@ def
   resname mark 0 1 fonts length 1 sub {
     DEBUG { dup =only ( ) print flush } if
     dup names exch get
+    forceresname { pop resname } if
     DEBUG { dup == flush } if
     exch fonts exch get
-    dup /FontName 3 index put
-    1 index exch definefont
+    dup /CIDFontType known {
+		% This is a CIDFont.
+      dup /CIDFontName 3 index put
+      1 index exch /CIDFont defineresource
+    } {
+		% This is a font.
+      dup /FontName 3 index put
+      1 index exch definefont
+    } ifelse
   } for .dicttomark
   end		% temporary dict
   end		% FontSetInit ProcSet

@@ -62,5 +62,3 @@ void	writesnap(Biobuf*, Proc*);
 Page*	datapage(char *p, long len);
 Proc*	readsnap(Biobuf *b);
 Page*	findpage(Proc *plist, long pid, int type, ulong off);
-
-int	debug;

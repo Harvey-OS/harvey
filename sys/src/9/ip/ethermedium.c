@@ -106,8 +106,8 @@ static void
 etherbind(Ipifc *ifc, int argc, char **argv)
 {
 	Chan *mchan, *cchan, *achan;
-	char addr[Maxpath];
-	char dir[Maxpath];
+	char addr[2*NAMELEN];
+	char dir[2*NAMELEN];
 	char *buf;
 	int n;
 	char *ptr;
@@ -283,7 +283,7 @@ etherread(void *a)
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
-			ipiput(er->f, ifc, bp);
+			ipiput(er->f, ifc->lifc->local, bp);
 		runlock(ifc);
 		poperror();
 	}
@@ -429,13 +429,6 @@ recvarp(Ipifc *ifc)
 		break;
 
 	case ARPREPLY:
-		if(iplocalonifc(ifc, ip) || ipproxyifc(er->f, ifc, ip)){
-			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) != 0){
-				print("arprep: 0x%E/0x%E also has ip addr %V\n",
-					e->s, e->sha, e->spa);
-				break;
-			}
-		}
 		arpenter(er->f, V4, e->spa, e->sha, sizeof(e->sha), 0);
 		break;
 
@@ -447,11 +440,8 @@ recvarp(Ipifc *ifc)
 		/* check for someone that think's they're me */
 		v4tov6(ip, e->spa);
 		if(iplocalonifc(ifc, ip) || ipproxyifc(er->f, ifc, ip)){
-			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) != 0){
-				print("arpreq: 0x%E/0x%E also has ip addr %V\n",
-					e->s, e->sha, e->spa);
-				break;
-			}
+			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) != 0)
+				print("arp: 0x%E also has ip addr %V\n", e->sha, e->spa);
 		} else {
 			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) == 0){
 				print("arp: %V also has ether addr %E\n", e->spa, e->sha);

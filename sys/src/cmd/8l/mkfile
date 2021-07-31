@@ -20,4 +20,3 @@ BIN=/$objtype/bin
 
 enam.$O:	../8c/enam.c
 	$CC $CFLAGS ../8c/enam.c
-

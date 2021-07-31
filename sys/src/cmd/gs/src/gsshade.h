@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsshade.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsshade.h,v 1.3 2000/09/19 19:00:32 lpd Exp $ */
 /* Definitions for shading */
 
 #ifndef gsshade_INCLUDED
@@ -67,6 +67,7 @@ typedef struct gs_shading_s gs_shading_t;
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
 #endif
+
 /*
  * Fill a user space rectangle.  This will paint every pixel that is in the
  * intersection of the rectangle and the shading's geometry, but it may
@@ -74,13 +75,20 @@ typedef struct gx_device_s gx_device;
  * outside the rectangle: the caller is responsible for setting up a
  * clipping device if necessary.
  */
-#define shading_fill_rectangle_proc(proc)\
-  int proc(P4(const gs_shading_t *psh, const gs_rect *rect, gx_device *dev,\
+#define SHADING_FILL_RECTANGLE_PROC(proc)\
+  int proc(P4(const gs_shading_t *psh, const gs_rect *prect, gx_device *dev,\
 	      gs_imager_state *pis))
-typedef shading_fill_rectangle_proc((*shading_fill_rectangle_proc_t));
+typedef SHADING_FILL_RECTANGLE_PROC((*shading_fill_rectangle_proc_t));
+#define gs_shading_fill_rectangle(psh, prect, dev, pis)\
+  ((psh)->head.procs.fill_rectangle(psh, prect, dev, pis))
+
+/* Define the generic shading structures. */
+typedef struct gs_shading_procs_s {
+    shading_fill_rectangle_proc_t fill_rectangle;
+} gs_shading_procs_t;
 typedef struct gs_shading_head_s {
     gs_shading_type_t type;
-    shading_fill_rectangle_proc_t fill_rectangle;
+    gs_shading_procs_t procs;
 } gs_shading_head_t;
 
 /* Define a generic shading, for use as the target type of pointers. */

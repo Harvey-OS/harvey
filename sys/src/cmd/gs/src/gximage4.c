@@ -1,28 +1,27 @@
-/* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gximage4.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gximage4.c,v 1.3 2000/09/19 19:00:38 lpd Exp $ */
 /* ImageType 4 image implementation */
 #include "memory_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gscspace.h"
-#include "gsiparm3.h"
 #include "gsiparm4.h"
 #include "gxiparam.h"
 #include "gximage.h"
@@ -78,7 +77,7 @@ gx_begin_image4(gx_device * dev,
     penum->alpha = gs_image_alpha_none;
     penum->masked = false;
     penum->adjust = fixed_0;
-    /* Determine whether this image needs masking at all. */
+    /* Check that MaskColor values are within the valid range. */
     {
 	bool opaque = false;
 	uint max_value = (1 << pim->BitsPerComponent) - 1;
@@ -93,8 +92,8 @@ gx_begin_image4(gx_device * dev,
 	    else
 		c0 = c1 = pim->MaskColor[i >> 1];
 
-	    if (c1 > max_value)
-		c1 = max_value;
+	    if ((c0 | c1) > max_value)
+		return_error(gs_error_rangecheck);
 	    if (c0 > c1) {
 		opaque = true;	/* pixel can never match mask color */
 		break;

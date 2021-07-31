@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
-#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
+#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -83,6 +83,23 @@ xfidflush(Xfid *x)
 	}
 out:
 	qunlock(&row);
+	respond(x, &fc, nil);
+}
+
+void
+xfidwalk(Xfid *x)
+{
+	Fcall fc;
+	Window *w;
+
+	if(strcmp(x->name, "new") != 0)
+		error("unknown path in walk\n");
+	w = newwindow(nil);
+	winsettag(w);
+	incref(w);
+	x->f->w = w;
+	x->f->qid.path = QID(w->id, CHDIR|Qdir);
+	fc.qid = x->f->qid;
 	respond(x, &fc, nil);
 }
 
@@ -179,7 +196,6 @@ xfidopen(Xfid *x)
 		winunlock(w);
 	}
 	fc.qid = x->f->qid;
-	fc.iounit = messagesize-IOHDRSZ;
 	x->f->open = TRUE;
 	respond(x, &fc, nil);
 }
@@ -241,7 +257,7 @@ xfidclose(Xfid *x)
 			t = &w->body;
 			/* before: only did this if !w->noscroll, but that didn't seem right in practice */
 			textshow(t, min(w->wrselrange.q0, t->file->nc),
-				min(w->wrselrange.q1, t->file->nc), 1);
+				min(w->wrselrange.q1, t->file->nc));
 			textscrdraw(t);
 			break;
 		}
@@ -298,7 +314,7 @@ xfidread(Xfid *x)
 		break;
 
 	case QWctl:
-		winctlprint(w, buf, 1);
+		winctlprint(w, buf);
 		goto Readbuf;
 
 	Readbuf:
@@ -359,7 +375,7 @@ xfidwrite(Xfid *x)
 {
 	Fcall fc;
 	int c, cnt, qid, q, nb, nr, eval;
-	char buf[64], *err;
+	char buf[ERRLEN], *err;
 	Window *w;
 	Rune *r;
 	Range a;
@@ -463,9 +479,8 @@ xfidwrite(Xfid *x)
 			tq0 += nr;
 		if(tq1 >= q0)
 			tq1 += nr;
-		textsetselect(t, tq0, tq1);
 		if(!t->w->noscroll)
-			textshow(t, q0, q0+nr, 0);
+			textshow(t, tq0, tq1);
 		textscrdraw(t);
 		winsettag(w);
 		free(r);
@@ -487,7 +502,7 @@ xfidwrite(Xfid *x)
 		q = x->f->nrpart;
 		cnt = x->count;
 		if(q > 0){
-			memmove(x->data+q, x->data, cnt);	/* there's room; see fsysproc */
+			memmove(x->data+q, x->data, cnt);
 			memmove(x->data, x->f->rpart, q);
 			cnt += q;
 			x->f->nrpart = 0;
@@ -523,7 +538,7 @@ xfidwrite(Xfid *x)
 				q0 = textbsinsert(t, q0, r, nr, TRUE, &nr);
 				textsetselect(t, t->q0, t->q1);	/* insert could leave it somewhere else */
 				if(qid!=QWwrsel && !t->w->noscroll)
-					textshow(t, q0+nr, q0+nr, 1);
+					textshow(t, q0+nr, q0+nr);
 				textscrdraw(t);
 			}
 			winsettag(w);
@@ -598,7 +613,7 @@ xfidctlwrite(Xfid *x, Window *w)
 		}else
 		if(strncmp(p, "show", 4) == 0){	/* show dot */
 			t = &w->body;
-			textshow(t, t->q0, t->q1, 1);
+			textshow(t, t->q0, t->q1);
 			m = 4;
 		}else
 		if(strncmp(p, "name ", 5) == 0){	/* set file name */
@@ -1007,7 +1022,7 @@ xfidindexread(Xfid *x)
 	nmax++;
 	isbuf = (nmax<=RBUFSIZE);
 	if(isbuf)
-		b = (char*)x->buf;
+		b = x->buf;
 	else
 		b = emalloc(nmax);
 	r = fbufalloc();
@@ -1019,7 +1034,7 @@ xfidindexread(Xfid *x)
 			/* only show the currently active window of a set */
 			if(w->body.file->curtext != &w->body)
 				continue;
-			winctlprint(w, b+n, 0);
+			winctlprint(w, b+n);
 			n += Ctlsize;
 			m = min(RBUFSIZE, w->tag.file->nc);
 			bufread(w->tag.file, 0, r, m);

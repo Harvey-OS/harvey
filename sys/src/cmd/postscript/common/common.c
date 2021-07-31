@@ -251,14 +251,16 @@ int inputlineno;
 
 void
 error(int errtype, char *fmt, ...) {
+	char buf[1024], *out;
 	va_list arg;
 
 	Bflush(Bstdout);
 	Bflush(Bstderr);
 	fprint(2, "%s: %s:%d :%s: ", programname, inputfilename, inputlineno, errorstrings[errtype]);
 	va_start(arg, fmt);
-	vfprint(2, fmt, arg);
+	out = doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
+	write(2, buf, out-buf);
 	if (errtype == FATAL)
 		exits("fatal error");
 }

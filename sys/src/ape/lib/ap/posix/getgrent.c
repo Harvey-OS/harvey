@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <grp.h>
-#include <stdlib.h>
 
 #define	CL	':'
 #define	CM	','

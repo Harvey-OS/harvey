@@ -1,0 +1,16 @@
+#!/bin/rc
+
+cd /bin/dist
+. defs
+fn sigint { }
+
+# we do this here rather than main
+# so that ctl-d won't exit from us.
+
+# BUG in devsd
+chgrp -u glenda '#S'/sd??/* >[2]/dev/null
+
+coherence
+
+while()
+	main

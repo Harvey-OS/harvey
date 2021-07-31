@@ -14,14 +14,14 @@ listinit(void)
 }
 
 int
-Bconv(Fmt *fp)
+Bconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 
 	str[0] = 0;
-	bits = va_arg(fp->args, Bits);
+	bits = va_arg(*arg, Bits);
 	while(bany(&bits)) {
 		i = bnum(bits);
 		if(str[0])
@@ -36,17 +36,18 @@ Bconv(Fmt *fp)
 		strcat(str, s);
 		bits.b[i/32] &= ~(1L << (i%32));
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Pconv(Fmt *fp)
+Pconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 	int a;
 
-	p = va_arg(fp->args, Prog*);
+	p = va_arg(*arg, Prog*);
 	a = p->as;
 	if(a == ADATA)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
@@ -58,29 +59,31 @@ Pconv(Fmt *fp)
 		sprint(str, "	%A	%D,R%d,%D", a, &p->from, p->reg, &p->to);
 	else
 		sprint(str, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Aconv(Fmt *fp)
+Aconv(va_list *arg, Fconv *fp)
 {
 	char *s;
 	int a;
 
-	a = va_arg(fp->args, int);
+	a = va_arg(*arg, int);
 	s = "???";
 	if(a >= AXXX && a < ALAST)
 		s = anames[a];
-	return fmtstrcpy(fp, s);
+	strconv(s, fp);
+	return 0;
 }
 
 int
-Dconv(Fmt *fp)
+Dconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(*arg, Adr*);
 	switch(a->type) {
 
 	default:
@@ -137,16 +140,17 @@ Dconv(Fmt *fp)
 		sprint(str, "$\"%S\"", a->sval);
 		break;
 	}
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Sconv(Fmt *fp)
+Sconv(va_list *arg, Fconv *fp)
 {
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(*arg, char*);
 	p = str;
 	for(i=0; i<NSNAME; i++) {
 		c = a[i] & 0xff;
@@ -184,17 +188,18 @@ Sconv(Fmt *fp)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }
 
 int
-Nconv(Fmt *fp)
+Nconv(va_list *arg, Fconv *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
-	a = va_arg(fp->args, Adr*);
+	a = va_arg(*arg, Adr*);
 	s = a->sym;
 	if(s == S) {
 		sprint(str, "%lld", a->offset);
@@ -226,5 +231,6 @@ Nconv(Fmt *fp)
 		break;
 	}
 out:
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return 0;
 }

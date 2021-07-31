@@ -1,23 +1,23 @@
 /* Copyright (C) 1999, 2000, Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  This program is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public 
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License, 
-  normally in a plain ASCII text file named PUBLIC.  The License grants you 
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only 
-  under certain conditions described in the License.  Among other things, the 
-  License requires that the copyright notice and this notice be preserved on 
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
 
-// $Id: dwsetup.rc,v 1.1 2000/03/09 08:40:40 lpd Exp $
+// $Id: dwsetup.rc,v 1.4 2000/09/22 05:35:02 lpd Exp $
 
 #include <windows.h>
 #include "dwsetup.h"
@@ -33,14 +33,14 @@
 
 IDD_MAIN DIALOG 32, 32, 300, 200
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP /* | WS_VISIBLE */ | WS_CAPTION | WS_SYSMENU 
-CAPTION "Aladdin Ghostscript Setup"
+CAPTION "AFPL Ghostscript Setup"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "Install",IDC_INSTALL,240,178,50,14
     ICON            IDR_MAIN,IDC_STATIC,11,17,20,20
     LTEXT           "This installs",IDC_STATIC,56,6,232,8
     LTEXT           "Product Name",IDC_PRODUCT_NAME,72,16,216,8
-    LTEXT           "Copyright (C) 1994-1999 Aladdin Enterprises, Menlo Park, California, U.S.A.  All rights reserved. See the file PUBLIC for more details.\n\nRequires 10 - 20 Mbytes disk space.",
+    LTEXT           "Copyright (C) 1994-2000 Aladdin Enterprises, Menlo Park, California, U.S.A.  All rights reserved. See the file PUBLIC for more details.\n\nRequires 10 - 20 Mbytes disk space.",
                     IDC_COPYRIGHT,56,30,232,48
 
     LTEXT           "Install to directory",IDC_STATIC,8,92,56,8
@@ -62,7 +62,7 @@ END
 
 IDD_TEXTWIN DIALOG DISCARDABLE  0, 0, 318, 169
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Aladdin Ghostscript setup log"
+CAPTION "AFPL Ghostscript setup log"
 FONT 8, "MS Sans Serif"
 BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,261,148,50,14
@@ -137,9 +137,9 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_APPNAME             "Aladdin Ghostscript Setup"
-    IDS_TARGET_DIR          "C:\\Aladdin"
-    IDS_TARGET_GROUP        "Aladdin"
+    IDS_APPNAME             "AFPL Ghostscript Setup"
+    IDS_TARGET_DIR          "C:\\gs"
+    IDS_TARGET_GROUP        "Ghostscript"
 END
 
 /////////////////////////////////////////////////////////////////////////////

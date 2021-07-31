@@ -10,7 +10,6 @@ dorecipe(Node *node)
 	Word head, ahead, lp, ln, *w, *ww, *aw;
 	Symtab *s;
 	int did = 0;
-	char cwd[128];
 
 	aa = 0;
 	/*
@@ -24,10 +23,7 @@ dorecipe(Node *node)
 	*/
 	if(r == 0){
 		if(!(node->flags&VIRTUAL) && !(node->flags&NORECIPE)){
-			if(getwd(cwd, sizeof cwd))
-				fprint(2, "mk: no recipe to make '%s' in directory %s\n", node->name, cwd);
-			else
-				fprint(2, "mk: no recipe to make '%s'\n", node->name);
+			fprint(2, "mk: no recipe to make '%s'\n", node->name);
 			Exit();
 		}
 		if(strchr(node->name, '(') && node->time == 0)
@@ -56,7 +52,7 @@ dorecipe(Node *node)
 	} else {
 		for(w = r->alltargets; w; w = w->next){
 			if(r->attr&META)
-				subst(aa->stem, w->s, buf, sizeof(buf));
+				subst(aa->stem, w->s, buf);
 			else
 				strcpy(buf, w->s);
 			aw->next = newword(buf);

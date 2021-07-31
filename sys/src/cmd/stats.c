@@ -45,6 +45,8 @@ enum
 	In		= 0,
 	Out,
 	Err0,
+	/* /mnt/apm/battery */
+	Battery,
 };
 
 struct Machine
@@ -54,9 +56,7 @@ struct Machine
 	int		statsfd;
 	int		swapfd;
 	int		etherfd;
-	int		ifstatsfd;
 	int		batteryfd;
-	int		bitsybatfd;
 	int		disable;
 
 	long		devswap[4];
@@ -66,7 +66,6 @@ struct Machine
 	long		netetherstats[8];
 	long		prevetherstats[8];
 	long		batterystats[2];
-	long		netetherifstats[2];
 
 	char		buf[1024];
 	char		*bufp;
@@ -108,7 +107,6 @@ enum Menu2
 	Mtlbmiss,
 	Mtlbpurge,
 	Mbattery,
-	Msignal,
 	Nmenu2,
 };
 
@@ -127,7 +125,6 @@ char	*menu2str[Nmenu2+1] = {
 	"add  tlbmiss ",
 	"add  tlbpurge",
 	"add  battery ",
-	"add  802.11b ",
 	nil,
 };
 
@@ -145,8 +142,7 @@ void	contextval(Machine*, long*, long*, int),
 	syscallval(Machine*, long*, long*, int),
 	tlbmissval(Machine*, long*, long*, int),
 	tlbpurgeval(Machine*, long*, long*, int),
-	batteryval(Machine*, long*, long*, int),
-	signalval(Machine*, long*, long*, int);
+	batteryval(Machine*, long*, long*, int);
 
 Menu	menu2 = {menu2str, nil};
 int		present[Nmenu2];
@@ -165,7 +161,6 @@ void		(*newvaluefn[Nmenu2])(Machine*, long*, long*, int init) = {
 	tlbmissval,
 	tlbpurgeval,
 	batteryval,
-	signalval,
 };
 
 Image	*cols[Ncolor][3];
@@ -173,7 +168,7 @@ Graph	*graph;
 Machine	*mach;
 Font		*mediumfont;
 char		*mysysname;
-char		argchars[] = "8bceEfimlnpstw";
+char		argchars[] = "bceEfimlnpstw";
 int		pids[NPROC];
 int 		parity;	/* toggled to avoid patterns in textured background */
 int		nmach;
@@ -181,7 +176,6 @@ int		ngraph;	/* totaly number is ngraph*nmach */
 double	scale = 1.0;
 int		logscale = 0;
 int		ylabels = 0;
-int		oldsystem = 0;
 
 char		*procnames[NPROC] = {"main", "mouse"};
 
@@ -417,7 +411,7 @@ readnums(Machine *m, int n, long *a, int spanlines)
 				break;
 	p = m->bufp;
 	for(i=0; i<n && p<ep; i++){
-		while(p<ep && !isdigit(*p) && *p!='-')
+		while(p<ep && !isdigit(*p))
 			p++;
 		if(p == ep)
 			break;
@@ -465,7 +459,7 @@ filter(int fd)
 int
 connect9fs(char *addr)
 {
-	char dir[256], *na;
+	char dir[4*NAMELEN], *na;
 	int fd;
 
 	fprint(2, "connect9fs...");
@@ -476,49 +470,10 @@ connect9fs(char *addr)
 		return -1;
 
 	fprint(2, "dir %s...", dir);
-//	if(strstr(dir, "tcp"))
-//		fd = filter(fd);
+	if(strstr(dir, "tcp"))
+		fd = filter(fd);
 	return fd;
 }
-
-int
-old9p(int fd)
-{
-	int p[2];
-
-	if(pipe(p) < 0)
-		return -1;
-
-	switch(rfork(RFPROC|RFFDG|RFNAMEG)) {
-	case -1:
-		return -1;
-	case 0:
-		if(fd != 1){
-			dup(fd, 1);
-			close(fd);
-		}
-		if(p[0] != 0){
-			dup(p[0], 0);
-			close(p[0]);
-		}
-		close(p[1]);
-		if(0){
-			fd = open("/sys/log/cpu", OWRITE);
-			if(fd != 2){
-				dup(fd, 2);
-				close(fd);
-			}
-			execl("/bin/srvold9p", "srvold9p", "-ds", 0);
-		} else
-			execl("/bin/srvold9p", "srvold9p", "-s", 0);
-		return -1;
-	default:
-		close(fd);
-		close(p[0]);
-	}
-	return p[1];	
-}
-
 
 /*
  * exportfs
@@ -526,19 +481,19 @@ old9p(int fd)
 int 
 connectexportfs(char *addr)
 {
-	char buf[ERRMAX], dir[256], *na;
+	char buf[ERRLEN], dir[4*NAMELEN], *na;
 	int fd, n;
 	char *tree;
-	AuthInfo *ai;
 
 	tree = "/";
 	na = netmkaddr(addr, 0, "exportfs");
 	if((fd = dial(na, 0, dir, 0)) < 0)
 		return -1;
 
-	ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client");
-	if(ai == nil)
+	if(auth(fd) < 0){
+		close(fd);
 		return -1;
+	}
 
 	n = write(fd, tree, strlen(tree));
 	if(n < 0){
@@ -555,11 +510,8 @@ connectexportfs(char *addr)
 		return -1;
 	}
 
-//	if(strstr(dir, "tcp"))
-//		fd = filter(fd);
-
-	if(oldsystem)
-		return old9p(fd);
+	if(strstr(dir, "tcp"))
+		fd = filter(fd);
 
 	return fd;
 }
@@ -588,11 +540,10 @@ initmach(Machine *m, char *name)
 			fprint(2, "can't connect to %s: %r\n", name);
 			killall("connect");
 		}
-		/* BUG? need to use amount() now? */
-		if(mount(fd, -1, mpt, MREPL, "") < 0){
+		if(mount(fd, mpt, MREPL, "") < 0){
 			fprint(2, "stats: mount %s on %s failed (%r); trying /n/sid\n", name, mpt);
 			strcpy(mpt, "/n/sid");
-			if(mount(fd, -1, mpt, MREPL, "") < 0){
+			if(mount(fd, mpt, MREPL, "") < 0){
 				fprint(2, "stats: mount %s on %s failed: %r\n", name, mpt);
 				killall("mount");
 			}
@@ -617,29 +568,13 @@ initmach(Machine *m, char *name)
 
 	snprint(buf, sizeof buf, "%s/net/ether0/0/stats", mpt);
 	m->etherfd = open(buf, OREAD);
-	if(loadbuf(m, &m->etherfd) && readnums(m, nelem(m->netetherstats), a, 1))
+	if(loadbuf(m, &m->etherfd) &&  readnums(m, nelem(m->netetherstats), a, 1))
 		memmove(m->netetherstats, a, sizeof m->netetherstats);
-
-	snprint(buf, sizeof buf, "%s/net/ether0/0/ifstats", mpt);
-	m->ifstatsfd = open(buf, OREAD);
-	if(loadbuf(m, &m->ifstatsfd)){
-		/* need to check that this is a wavelan interface */
-		if(strncmp(m->buf, "Signal: ", 8) == 0 && readnums(m, nelem(m->netetherifstats), a, 1))
-			memmove(m->netetherifstats, a, sizeof m->netetherifstats);
-	}
 
 	snprint(buf, sizeof buf, "%s/mnt/apm/battery", mpt);
 	m->batteryfd = open(buf, OREAD);
-	m->bitsybatfd = -1;
-	if(m->batteryfd >= 0){
-		if(loadbuf(m, &m->batteryfd) && readnums(m, nelem(m->batterystats), a, 0))
-			memmove(m->batterystats, a, sizeof(m->batterystats));
-	}else{
-		snprint(buf, sizeof buf, "%s/dev/battery", mpt);
-		m->bitsybatfd = open(buf, OREAD);
-		if(loadbuf(m, &m->bitsybatfd) && readnums(m, 1, a, 0))
-			memmove(m->batterystats, a, sizeof(m->batterystats));
-	}
+	if(loadbuf(m, &m->batteryfd) && readnums(m, nelem(m->batterystats), a, 0))
+		memmove(m->batterystats, a, sizeof(m->batterystats));
 }
 
 jmp_buf catchalarm;
@@ -679,12 +614,6 @@ needbattery(int init)
 	return init | present[Mbattery];
 }
 
-int
-needsignal(int init)
-{
-	return init | present[Msignal];
-}
-
 void
 readmach(Machine *m, int init)
 {
@@ -721,12 +650,7 @@ readmach(Machine *m, int init)
 		memmove(m->prevetherstats, m->netetherstats, sizeof m->netetherstats);
 		memmove(m->netetherstats, a, sizeof m->netetherstats);
 	}
-	if(needsignal(init) && loadbuf(m, &m->ifstatsfd) && strncmp(m->buf, "Signal: ", 8)==0 && readnums(m, nelem(m->netetherifstats), a, 1)){
-		memmove(m->netetherifstats, a, sizeof m->netetherifstats);
-	}
 	if(needbattery(init) && loadbuf(m, &m->batteryfd) && readnums(m, nelem(m->batterystats), a, 0))
-		memmove(m->batterystats, a, sizeof(m->batterystats));
-	if(needbattery(init) && loadbuf(m, &m->bitsybatfd) && readnums(m, 1, a, 0))
 		memmove(m->batterystats, a, sizeof(m->batterystats));
 
 	if(m->remote){
@@ -856,33 +780,13 @@ void
 batteryval(Machine *m, long *v, long *vmax, int)
 {
 	*v = m->batterystats[0];
-	if(m->bitsybatfd >= 0)
-		*vmax = 184;		// at least on my bitsy...
-	else
-		*vmax = 100;
-}
-
-void
-signalval(Machine *m, long *v, long *vmax, int)
-{
-	long l;
-
-	*vmax = 1000;
-	l = m->netetherifstats[0];
-	/*
-	 * Range is seen to be from about -45 (strong) to -95 (weak); rescale
-	 */
-	if(l == 0){	/* probably not present */
-		*v = 0;
-		return;
-	}
-	*v = 20*(l+95);
+	*vmax = 100;
 }
 
 void
 usage(void)
 {
-	fprint(2, "usage: stats [-O] [-S scale] [-LY] [-%s] [machine...]\n", argchars);
+	fprint(2, "usage: stats [-S scale] [-LY] [-%s] [machine...]\n", argchars);
 	exits("usage");
 }
 
@@ -1202,9 +1106,6 @@ main(int argc, char *argv[])
 	case 'Y':
 		ylabels++;
 		break;
-	case 'O':
-		oldsystem = 1;
-		break;
 	default:
 		if(nargs>=sizeof args || strchr(argchars, ARGC())==nil)
 			usage();
@@ -1266,9 +1167,6 @@ main(int argc, char *argv[])
 	case 't':
 		addgraph(Mtlbmiss);
 		addgraph(Mtlbpurge);
-		break;
-	case '8':
-		addgraph(Msignal);
 		break;
 	case 'w':
 		addgraph(Mswap);

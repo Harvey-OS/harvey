@@ -201,7 +201,7 @@ con -l telco!18005551212!compress
 .br
 .B /sys/lib/fax/receiverc
 .br
-.B /mail/faxqueue/faxrecipients
+.B /sys/lib/fax/recipients
 .br
 .B /sys/lib/fax/h.ps
 .br

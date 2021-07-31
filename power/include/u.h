@@ -60,21 +60,15 @@ union FPdbleword
 {
 	double	x;
 	struct {	/* big endian */
-		ulong hi;
-		ulong lo;
+		long hi;
+		long lo;
 	};
 };
 
-typedef	char*	va_list;
-#define va_start(list, start) list =\
-	(sizeof(start) < 4?\
-		(char*)((int*)&(start)+1):\
-		(char*)(&(start)+1))
-#define va_end(list)\
-	USED(list)
-#define va_arg(list, mode)\
-	((sizeof(mode) == 1)?\
-		((mode*)(list += 4))[-1]:\
-	(sizeof(mode) == 2)?\
-		((mode*)(list += 4))[-1]:\
-		((mode*)(list += sizeof(mode)))[-1])
+typedef char *va_list;
+
+#define va_start(list, start) list = (sizeof(start)<4 ? (char *)((int *)&(start)+1) : \
+(char *)(&(start)+1))
+#define va_end(list)
+#define va_arg(list, mode) (sizeof(mode)==1 ? ((mode *) (list += 4))[-4] : \
+sizeof(mode)==2 ? ((mode *) (list += 4))[-2] : ((mode *) (list += sizeof(mode)))[-1])

@@ -142,6 +142,8 @@ udpclose(Conv *c)
 
 	ucb = (Udpcb*)c->ptcl;
 	ucb->headers = 0;
+
+	qunlock(c);
 }
 
 void
@@ -251,7 +253,7 @@ udpincoming(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport)
 }
 
 void
-udpiput(Proto *udp, Ipifc *ifc, Block *bp)
+udpiput(Proto *udp, uchar *ia, Block *bp)
 {
 	int len, olen, ottl;
 	Udphdr *uh;
@@ -312,7 +314,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		if(ucb->headers == 0){
 			/* create a new conversation */
 			if(ipforme(f, laddr) != Runi)
-				v4tov6(laddr, ifc->lifc->local);
+				v4tov6(laddr, ia);
 			c = Fsnewcall(c, raddr, rport, laddr, lport);
 			if(c == nil){
 				qunlock(udp);
@@ -351,7 +353,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		if(ipforme(f, laddr) == Runi)
 			ipmove(bp->rp+IPaddrlen, laddr);
 		else
-			ipmove(bp->rp+IPaddrlen, ifc->lifc->local);
+			ipmove(bp->rp+IPaddrlen, ia);
 		hnputs(bp->rp+2*IPaddrlen, rport);
 		hnputs(bp->rp+2*IPaddrlen+2, lport);
 		break;
@@ -362,7 +364,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		if(ipforme(f, laddr) == Runi)
 			v6tov4(bp->rp+IPv4addrlen, laddr);
 		else
-			v6tov4(bp->rp+IPv4addrlen, ifc->lifc->local);
+			v6tov4(bp->rp+IPv4addrlen, ia);
 		hnputs(bp->rp + 2*IPv4addrlen, rport);
 		hnputs(bp->rp + 2*IPv4addrlen + 2, lport);
 		break;
@@ -444,7 +446,7 @@ udpstats(Proto *udp, char *buf, int len)
 	Udppriv *upriv;
 
 	upriv = udp->priv;
-	return snprint(buf, len, "InDatagrams: %lud\nNoPorts: %lud\nInErrors: %lud\nOutDatagrams: %lud\n",
+	return snprint(buf, len, "%lud %lud %lud %lud",
 		upriv->ustats.udpInDatagrams,
 		upriv->ustats.udpNoPorts,
 		upriv->ustats.udpInErrors,

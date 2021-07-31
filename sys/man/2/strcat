@@ -78,10 +78,9 @@ and
 .I strncpy
 all alter
 .IR s1 .
-.I Strcat
-and
-.I strcpy
-do not check for overflow of
+Other than
+.IR strecpy ,
+these functions do not check for overflow of
 the array pointed to by
 .IR s1 .
 .PP

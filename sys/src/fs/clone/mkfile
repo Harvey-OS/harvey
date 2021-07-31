@@ -1,0 +1,118 @@
+objtype=386
+</$objtype/mkfile
+ARCH=emelie
+
+TARG=clone
+
+PORT=\
+	arp.$O\
+	auth.$O\
+	chk.$O\
+	clock.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	cw.$O\
+	data.$O\
+	dentry.$O\
+	devcons.$O\
+	fcall.$O\
+	fcmd.$O\
+	fs.$O\
+	fworm.$O\
+	icmp.$O\
+	il.$O\
+	iobuf.$O\
+	ip.$O\
+	iproute.$O\
+	juke.$O\
+	main.$O\
+	mworm.$O\
+	print.$O\
+	proc.$O\
+	sntp.$O\
+	sub.$O\
+	time.$O\
+	uidgid.$O\
+	wren.$O\
+
+ETHER=\
+	etherif.$O\
+	ether2114x.$O\
+	etherelnk3.$O\
+	ether82557.$O\
+
+SCSI=\
+	scsi.$O\
+	scsibuslogic.$O\
+	scsincr53c8xx.$O\
+
+OBJ=\
+	l.$O\
+	8250.$O\
+	8253.$O\
+	cga.$O\
+	devata.$O\
+	dosfs.$O\
+	floppy.$O\
+	kbd.$O\
+	lock.$O\
+	malloc.$O\
+	mmu.$O\
+	nvr.$O\
+	pc.$O\
+	pci.$O\
+	toy.$O\
+	fakewwv.$O\
+	trap.$O\
+	$PORT\
+	$ETHER\
+	$SCSI\
+
+HFILES=\
+	../port/all.h\
+	../port/lib.h\
+	../port/portdat.h\
+	../port/portfns.h\
+	./dat.h\
+	../$ARCH/fns.h\
+	../$ARCH/io.h\
+	../$ARCH/mem.h\
+	/$objtype/include/u.h\
+	/$objtype/include/ureg.h\
+
+CFLAGS=-Fw -I. -I../$ARCH -I../port
+
+all:V:	$TARG
+
+AFILES=`{builtin cd ../$ARCH; echo *.[sc] | sed 's/ /|/g; s/\.[sc]//g'}
+^($AFILES)\.$O:R:	../$ARCH/'\1.c'
+	$CC $CFLAGS -I. ../$ARCH/$stem1.c
+
+^($AFILES)\.$O:R:	../$ARCH/'\1.s'
+	$AS $CFLAGS -I. ../$ARCH/$stem1.s
+
+<../port/mkfile
+
+$TARG:	check $OBJ $TARG.$O
+	$LD -o $target -l -T0x80100020 $OBJ $TARG.$O -lauth -lc -lsec
+	size $target
+
+installall:V:	install
+install:V:	$TARG
+	cp $TARG /n/fornax/$objtype/$TARG
+	cp $TARG /$objtype/$TARG
+
+$TARG.$O:	$TARG.c
+	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c
+
+$ETHER:	../$ARCH/etherif.h
+
+9pcfs.$O dosfs.$O nvr.$O:	../$ARCH/dosfs.h
+
+check:VQ:
+	if(! cmp -s dat.h ../$ARCH/dat.h){
+		echo dat.h and ../$ARCH/dat.h must be identical
+		exit 'bad dat.h'
+	}
+	exit ''

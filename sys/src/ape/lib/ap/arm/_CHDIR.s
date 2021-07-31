@@ -1,0 +1,4 @@
+TEXT _CHDIR(SB), 1, $-4
+MOVW $3, R0
+SWI 0
+RET

@@ -53,7 +53,7 @@ initmodem(Modem *m, int fd, int cfd, char *type, char *id)
 int
 rawmchar(Modem *m, char *p)
 {
-	Dir *d;
+	Dir d;
 	int n;
 
 	if(m->icount == 0)
@@ -67,12 +67,11 @@ rawmchar(Modem *m, char *p)
 
 	m->iptr = m->ibuf;
 
-	if((d = dirfstat(m->fd)) == nil){
+	if(dirfstat(m->fd, &d) < 0){
 		verbose("rawmchar: dirfstat: %r");
 		return seterror(m, Esys);
 	}
-	n = d->length;
-	free(d);
+	n = d.length;
 	if(n == 0)
 		return Enoresponse;
 

@@ -229,7 +229,7 @@ newline(void)
 void
 cursoff(void)
 {
-	draw(screen, Rpt(pt(x, y), addpt(pt(x, y), Pt(CW,NS))),
+	draw(screen, Rpt(subpt(pt(x, y), Pt(1, 1)), addpt(pt(x, y), Pt(CW,NS))),
 		cursback, nil, cursback->r.min);
 }
 
@@ -243,12 +243,13 @@ curson(int bl)
 		return;
 	}
 
-	draw(cursback, cursback->r, screen, nil, pt(x, y));
+	draw(cursback, cursback->r, screen, nil, subpt(pt(x, y),Pt(1,1)));
 	if(bl)
 		col = red;
 	else
 		col = bordercol;
-	border(screen, Rpt(pt(x, y), addpt(pt(x, y), Pt(CW,NS))), 2, col, ZP);
+	border(screen, Rpt(subpt(pt(x, y), Pt(1, 1)), addpt(pt(x, y), Pt(CW,NS))),
+		2, col, ZP);
 }
 
 int

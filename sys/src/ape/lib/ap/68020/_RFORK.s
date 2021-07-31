@@ -1,0 +1,4 @@
+TEXT _RFORK(SB), 1, $0
+MOVL $19, R0
+TRAP $0
+RTS

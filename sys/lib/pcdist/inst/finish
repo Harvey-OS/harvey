@@ -1,0 +1,12 @@
+#!/bin/rc
+
+# desc: finish the installation and reboot
+# prereq: bootsetup
+# mustdo: 
+
+switch($1) {
+case go
+	echo 'Congratulations; you''ve completed the install.'
+	echo
+	stop go
+}

@@ -8,16 +8,9 @@
 static void	imagereclaim(void);
 static void	imagechanreclaim(void);
 
+/* System specific segattach devices */
 #include "io.h"
-
-/*
- * Attachable segment types
- */
-static Physseg physseg[10] = {
-	{ SG_SHARED,	"shared",	0,	SEGMAXSIZE,	0, 	0 },
-	{ SG_BSS,	"memory",	0,	SEGMAXSIZE,	0,	0 },
-	{ 0,		0,		0,	0,		0,	0 },
-};
+#include "segment.h"
 
 static Lock physseglock;
 
@@ -36,8 +29,6 @@ static struct Imagealloc
 	int	szfreechan;	/* size of freechan array */
 	QLock	fcreclaim;	/* mutex on reclaiming free channels */
 }imagealloc;
-
-Segment* (*_globalsegattach)(Proc*, char*);
 
 void
 initseg(void)
@@ -112,7 +103,6 @@ putseg(Segment *s)
 		unlock(s);
 		return;
 	}
-	unlock(s);
 
 	qlock(&s->lk);
 	if(i)
@@ -168,6 +158,7 @@ dupseg(Segment **seg, int segno, int share)
 	case SG_TEXT:		/* New segment shares pte set */
 	case SG_SHARED:
 	case SG_PHYSICAL:
+	case SG_SHDATA:
 		goto sameseg;
 
 	case SG_STACK:
@@ -175,8 +166,13 @@ dupseg(Segment **seg, int segno, int share)
 		break;
 
 	case SG_BSS:		/* Just copy on write */
-		if(share)
+	case SG_MAP:
+		if(share) {
+			if(s->ref != 1)
+				print("Fuckin A cap'n!\n");
+			s->type = (s->type&~SG_TYPE)|SG_SHARED;
 			goto sameseg;
+		}
 		n = newseg(s->type, s->base, s->size);
 		break;
 
@@ -187,8 +183,12 @@ dupseg(Segment **seg, int segno, int share)
 			return data2txt(s);
 		}
 
-		if(share)
+		if(share) {
+			if(s->ref != 1)
+				print("Fuckin A again cap'n!\n");
+			s->type = (s->type&~SG_TYPE)|SG_SHDATA;
 			goto sameseg;
+		}
 		n = newseg(s->type, s->base, s->size);
 
 		incref(s->image);
@@ -203,8 +203,6 @@ dupseg(Segment **seg, int segno, int share)
 			n->map[i] = ptecpy(pte);
 
 	n->flushme = s->flushme;
-	if(s->ref > 1)
-		procflushseg(s);
 	poperror();
 	qunlock(&s->lk);
 	return n;
@@ -390,7 +388,7 @@ putimage(Image *i)
 	lock(i);
 	if(--i->ref == 0) {
 		l = &ihash(i->qid.path);
-		mkqid(&i->qid, ~0, ~0, QTFILE);
+		i->qid = (Qid){~0, ~0};
 		unlock(i);
 		c = i->c;
 
@@ -533,8 +531,13 @@ mfreeseg(Segment *s, ulong start, int pages)
 	}
 out:
 	/* flush this seg in all other processes */
-	if(s->ref > 1)
+	i = s->type&SG_TYPE;
+	switch(i){
+	case SG_SHARED:
+	case SG_SHDATA:
 		procflushseg(s);
+		break;
+	}
 
 	/* free the pages */
 	for(pg = list; pg != nil; pg = list){
@@ -589,23 +592,6 @@ addphysseg(Physseg* new)
 	return 0;
 }
 
-int
-isphysseg(char *name)
-{
-	Physseg *ps;
-	int rv = 0;
-
-	lock(&physseglock);
-	for(ps = physseg; ps->name; ps++){
-		if(strcmp(ps->name, name) == 0){
-			rv = 1;
-			break;
-		}
-	}
-	unlock(&physseglock);
-	return rv;
-}
-
 ulong
 segattach(Proc *p, ulong attr, char *name, ulong va, ulong len)
 {
@@ -625,18 +611,6 @@ segattach(Proc *p, ulong attr, char *name, ulong va, ulong len)
 
 	if(sno == NSEG)
 		error(Enovmem);
-
-	/*
-	 *  first look for a global segment with the
-	 *  same name
-	 */
-	if(_globalsegattach != nil){
-		s = (*_globalsegattach)(p, name);
-		if(s != nil){
-			p->seg[sno] = s;
-			return s->base;
-		}
-	}
 
 	len = PGROUND(len);
 	if(len == 0)

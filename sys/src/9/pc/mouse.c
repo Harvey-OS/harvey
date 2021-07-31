@@ -26,33 +26,6 @@ static int intellimouse;
 static int packetsize;
 static int resolution;
 static int accelerated;
-static int mousehwaccel;
-
-enum
-{
-	CMaccelerated,
-	CMhwaccel,
-	CMintellimouse,
-	CMlinear,
-	CMps2,
-	CMps2intellimouse,
-	CMres,
-	CMreset,
-	CMserial,
-};
-
-static Cmdtab mousectlmsg[] =
-{
-	CMaccelerated,		"accelerated",		0,
-	CMhwaccel,		"hwaccel",		2,
-	CMintellimouse,		"intellimouse",		1,
-	CMlinear,		"linear",		1,
-	CMps2,			"ps2",			1,
-	CMps2intellimouse,	"ps2intellimouse",	1,
-	CMres,			"res",			0,
-	CMreset,		"reset",		1,
-	CMserial,		"serial",		0,
-};
 
 /*
  *  setup a serial mouse
@@ -60,7 +33,6 @@ static Cmdtab mousectlmsg[] =
 static void
 serialmouse(int port, char *type, int setspeed)
 {
-#ifdef notdef
 	if(mousetype == Mouseserial)
 		error(Emouseset);
 
@@ -71,15 +43,11 @@ serialmouse(int port, char *type, int setspeed)
 	if(setspeed)
 		setspeed = 1200;
 	if(type && *type == 'M')
-		uartspecial(port, setspeed, 0, 0, m3mouseputc);
+		ns16552special(port, setspeed, 0, 0, m3mouseputc);
 	else
-		uartspecial(port, setspeed, 0, 0, mouseputc);
+		ns16552special(port, setspeed, 0, 0, mouseputc);
 	mousetype = Mouseserial;
 	packetsize = 3;
-#else
-	error("serial mouse not supported yet");
-	USED(port, type, setspeed);
-#endif /* notdef */
 }
 
 /*
@@ -101,12 +69,6 @@ serialmouse(int port, char *type, int setspeed)
  * Also on laptops with AccuPoint AND external mouse, the
  * controller may deliver 3 or 4 bytes according to the type
  * of the external mouse; code must adapt.
- *
- * On the NEC Versa series (and perhaps others?) we seem to
- * lose a byte from the packet every once in a while, which
- * means we lose where we are in the instruction stream.
- * To resynchronize, if we get a byte more than two seconds
- * after the previous byte, we assume it's the first in a packet.
  */
 static void
 ps2mouseputc(int c, int shift)
@@ -114,17 +76,7 @@ ps2mouseputc(int c, int shift)
 	static short msg[4];
 	static int nb;
 	static uchar b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 3, 2, 3, 6, 7 };
-	static ulong lasttick;
-	ulong m;
 	int buttons, dx, dy;
-
-	/*
-	 * Resynchronize in stream with timing; see comment above.
-	 */
-	m = MACHP(0)->ticks;
-	if(TK2SEC(m - lasttick) > 2)
-		nb = 0;
-	lasttick = m;
 
 	/* 
 	 *  check byte 0 for consistency
@@ -163,7 +115,7 @@ ps2mouseputc(int c, int shift)
 		}
 		dx = msg[1];
 		dy = -msg[2];
-		mousetrack(dx, dy, buttons, TK2MS(MACHP(0)->ticks));
+		mousetrack(buttons, dx, dy);
 	}
 	return;
 }
@@ -184,46 +136,34 @@ ps2mouse(void)
 
 	mousetype = MousePS2;
 	packetsize = 3;
-	mousehwaccel = 1;
 }
 
-/*
- * The PS/2 Trackpoint multiplexor on the IBM Thinkpad T23 ignores
- * acceleration commands.  It is supposed to pass them on
- * to the attached device, but my Logitech mouse is simply
- * not behaving any differently.  For such devices, we allow
- * the user to use "hwaccel off" to tell us to back off to
- * software acceleration even if we're using the PS/2 port.
- * (Serial mice are always software accelerated.)
- * For more information on the Thinkpad multiplexor, see
- * http://wwwcssrv.almaden.ibm.com/trackpoint/
- */
 static void
 setaccelerated(int x)
 {
 	accelerated = x;
-	if(mousehwaccel){
-		switch(mousetype){
-		case MousePS2:
-			i8042auxcmd(0xE7);
-			return;
-		}
+	switch(mousetype){
+	case MousePS2:
+		i8042auxcmd(0xE7);
+		break;
+	default:
+		mouseaccelerate(x);
+		break;
 	}
-	mouseaccelerate(x);
 }
 
 static void
 setlinear(void)
 {
 	accelerated = 0;
-	if(mousehwaccel){
-		switch(mousetype){
-		case MousePS2:
-			i8042auxcmd(0xE6);
-			return;
-		}
+	switch(mousetype){
+	case MousePS2:
+		i8042auxcmd(0xE6);
+		break;
+	default:
+		mouseaccelerate(0);
+		break;
 	}
-	mouseaccelerate(0);
 }
 
 static void
@@ -271,35 +211,35 @@ resetmouse(void)
 }
 
 void
-mousectl(Cmdbuf *cb)
+mousectl(char* field[], int n)
 {
-	Cmdtab *ct;
-
-	ct = lookupcmd(cb, mousectlmsg, nelem(mousectlmsg));
-	switch(ct->index){
-	case CMaccelerated:
-		setaccelerated(cb->nf == 1 ? 1 : atoi(cb->f[1]));
-		break;
-	case CMintellimouse:
+	if(strncmp(field[0], "serial", 6) == 0){
+		switch(n){
+		case 1:
+			serialmouse(atoi(field[0]+6), 0, 1);
+			break;
+		case 2:
+			serialmouse(atoi(field[1]), 0, 0);
+			break;
+		case 3:
+		default:
+			serialmouse(atoi(field[1]), field[2], 0);
+			break;
+		}
+	} else if(strcmp(field[0], "ps2") == 0){
+		ps2mouse();
+	} else if(strcmp(field[0], "ps2intellimouse") == 0){
+		ps2mouse();
 		setintellimouse();
-		break;
-	case CMlinear:
+	} else if(strcmp(field[0], "accelerated") == 0){
+		setaccelerated(n == 1 ? 1 : atoi(field[1]));
+	} else if(strcmp(field[0], "linear") == 0){
 		setlinear();
-		break;
-	case CMps2:
-		ps2mouse();
-		break;
-	case CMps2intellimouse:
-		ps2mouse();
-		setintellimouse();
-		break;
-	case CMres:
-		if(cb->nf >= 2)
-			setres(atoi(cb->f[1]));
-		else
-			setres(1);
-		break;
-	case CMreset:
+	} else if(strcmp(field[0], "res") == 0){
+		if(n >= 2)
+			n = atoi(field[1]);
+		setres(n);
+	} else if(strcmp(field[0], "reset") == 0){
 		resetmouse();
 		if(accelerated)
 			setaccelerated(accelerated);
@@ -307,27 +247,9 @@ mousectl(Cmdbuf *cb)
 			setres(resolution);
 		if(intellimouse)
 			setintellimouse();
-		break;
-	case CMserial:
-		switch(cb->nf){
-		case 1:
-			serialmouse(atoi(cb->f[0]+6), 0, 1);
-			break;
-		case 2:
-			serialmouse(atoi(cb->f[1]), 0, 0);
-			break;
-		case 3:
-		default:
-			serialmouse(atoi(cb->f[1]), cb->f[2], 0);
-			break;
-		}
-		break;
-	case CMhwaccel:
-		if(strcmp(cb->f[1], "on")==0)
-			mousehwaccel = 1;
-		else if(strcmp(cb->f[1], "off")==0)
-			mousehwaccel = 0;
-		else
-			cmderror(cb, "bad mouse control message");
+	} else if(strcmp(field[0], "intellimouse") == 0){
+		setintellimouse();
 	}
+	else
+		error(Ebadctl);
 }

@@ -175,25 +175,6 @@ runcmp(void)
 }
 
 int
-runteq(void)
-{
-	long res = reg.cc1 ^ reg.cc2;
-	switch(reg.cond) {
-	case 0x0:	/* eq */	return res == 0;
-	case 0x1:	/* ne */	return res != 0;
-	case 0x4:	/* mi */	return (res & SIGNBIT) != 0;
-	case 0x5:	/* pl */	return (res & SIGNBIT) == 0;
-	case 0xe:	/* al */	return 1;
-	case 0xf:	/* nv */	return 0;
-	default:
-		Bprint(bioout, "unimplemented condition prefix %x (%ld %ld)\n",
-			reg.cond, reg.cc1, reg.cc2);
-		undef(reg.ir);
-		return 0;
-	}
-}
-
-int
 runtst(void)
 {
 	long res = reg.cc1 & reg.cc2;
@@ -229,9 +210,6 @@ run(void)
 		case CCcmp:
 			execute = runcmp();
 			break;
-		case CCteq:
-			execute = runteq();
-			break;
 		case CCtst:
 			execute = runtst();
 			break;
@@ -263,76 +241,16 @@ undef(ulong inst)
 	longjmp(errjmp, 0);
 }
 
-long
-shift(long v, int st, int sc, int isreg)
-{
-	if(sc == 0) {
-		switch(st) {
-		case 0:	/* logical left */
-			reg.cout = reg.cbit;
-			break;
-		case 1:	/* logical right */
-			reg.cout = (v >> 31) & 1;
-			break;
-		case 2:	/* arith right */
-			reg.cout = reg.cbit;
-			break;
-		case 3:	/* rotate right */
-			if(isreg) {
-				reg.cout = reg.cbit;
-			}
-			else {
-				reg.cout = v & 1;
-				v = ((ulong)v >> 1) | (reg.cbit << 31);
-			}
-		}
-	}
-	else {
-		switch(st) {
-		case 0:	/* logical left */
-			reg.cout = (v >> (32 - sc)) & 1;
-			v = v << sc;
-			break;
-		case 1:	/* logical right */
-			reg.cout = (v >> (sc - 1)) & 1;
-			v = (ulong)v >> sc;
-			break;
-		case 2:	/* arith right */
-			if(sc >= 32) {
-				reg.cout = (v >> 31) & 1;
-				if(reg.cout)
-					v = 0xFFFFFFFF;
-				else
-					v = 0;
-			}
-			else {
-				reg.cout = (v >> (sc - 1)) & 1;
-				v = (long)v >> sc;
-			}
-			break;
-		case 3:	/* rotate right */
-			reg.cout = (v >> (sc - 1)) & 1;
-			v = (v << (32-sc)) | ((ulong)v >> sc);
-			break;
-		}
-	}
-	return v;
-}
-
 void
 dpex(long inst, long o1, long o2, int rd)
 {
-	int cbit;
 
-	cbit = 0;
 	switch((inst>>21) & 0xf) {
 	case  0:	/* and */
 		reg.r[rd] = o1 & o2;
-		cbit = 1;
 		break;
 	case  1:	/* eor */
 		reg.r[rd] = o1 ^ o2;
-		cbit = 1;
 		break;
 	case  2:	/* sub */
 		reg.r[rd] = o1 - o2;
@@ -361,12 +279,8 @@ dpex(long inst, long o1, long o2, int rd)
 		}
 		reg.r[rd] = o1 + o2;
 		if(inst & Sbit) {
-			if(((uvlong)(ulong)o1 + (uvlong)(ulong)o2) & (1LL << 32))
-				reg.cbit = 1;
-			else
-				reg.cbit = 0;
-			reg.cc1 = o2;
-			reg.cc2 = -o1;
+			reg.cc1 = -o2;
+			reg.cc2 = o1;
 			reg.compare_op = CCcmp;
 		}
 		return;
@@ -397,24 +311,18 @@ dpex(long inst, long o1, long o2, int rd)
 		return;
 	case 12:	/* orr */
 		reg.r[rd] = o1 | o2;
-		cbit = 1;
 		break;
 	case 13:	/* mov */
 		reg.r[rd] = o2;
-		cbit = 1;
 		break;
 	case 14:	/* bic */
 		reg.r[rd] = o1 & ~o2;
-		cbit = 1;
 		break;
 	case 15:	/* mvn */
 		reg.r[rd] = ~o2;
-		cbit = 1;
 		break;
 	}
 	if(inst & Sbit) {
-		if(cbit)
-			reg.cbit = reg.cout;
 		reg.cc1 = reg.r[rd];
 		reg.cc2 = 0;
 		reg.compare_op = CCcmp;
@@ -470,7 +378,22 @@ Idp1(ulong inst)
 	o2 = reg.r[rm];
 	if(rm == REGPC)
 		o2 += 8;
-	o2 = shift(o2, st, sc, 0);
+
+	switch(st) {
+	case 0:	/* logical left */
+		o2 = o2 << sc;
+		break;
+	case 1:	/* logical right */
+		o2 = (ulong)o2 >> sc;
+		break;
+	case 2:	/* arith right */
+		o2 = (long)o2 >> sc;
+		break;
+	case 3:	/* rotate right */
+		o2 = (o2 << (32-sc)) | ((ulong)o2 >> sc);
+		break;
+	}
+
 	dpex(inst, o1, o2, rd);
 	if(trace)
 		itrace("%s%s\tR%d%s%d,R%d,R%d =#%x",
@@ -503,7 +426,23 @@ Idp2(ulong inst)
 	o3 = reg.r[rs];
 	if(rs == REGPC)
 		o3 += 8;
-	o2 = shift(o2, st, o3, 1);
+	o3 &= 0x1f; /* Not the architecture spec */
+
+	switch(st) {
+	case 0:	/* logical left */
+		o2 = o2 << o3;
+		break;
+	case 1:	/* logical right */
+		o2 = (ulong)o2 >> o3;
+		break;
+	case 2:	/* arith right */
+		o2 = (long)o2 >> o3;
+		break;
+	case 3:	/* rotate right */
+		o2 = (o2 << (32-o3)) | ((ulong)o2 >> o3);
+		break;
+	}
+
 	dpex(inst, o1, o2, rd);
 	if(trace)
 		itrace("%s%s\tR%d%sR%d=%d,R%d,R%d =#%x",
@@ -678,7 +617,21 @@ Imem1(ulong inst)
 		off = reg.r[rm];
 		if(rm == REGPC)
 			off += 8;
-		off = shift(off, st, sc, 0);
+
+		switch(st) {
+		case 0:	/* logical left */
+			off = off << sc;
+			break;
+		case 1:	/* logical right */
+			off = (ulong)off >> sc;
+			break;
+		case 2:	/* arith right */
+			off = (long)off >> sc;
+			break;
+		case 3:	/* rotate right */
+			off = (off << (32-sc)) | ((ulong)off >> sc);
+			break;
+		}
 	} else {
 		off = inst & 0xfff;
 	}

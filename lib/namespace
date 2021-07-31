@@ -1,7 +1,6 @@
 # root
 mount -aC #s/boot /root $rootspec
 bind -a $rootdir /
-bind -c $rootdir/mnt /mnt
 
 # kernel devices
 bind #c /dev
@@ -9,10 +8,6 @@ bind #d /fd
 bind -c #e /env
 bind #p /proc
 bind -c #s /srv
-bind -a #¤ /dev
-
-# authentication
-mount -a /srv/factotum /mnt
 
 # standard bin
 bind /$cputype/bin /bin
@@ -25,6 +20,10 @@ mount -a /srv/cs /net
 mount -a /srv/dns /net
 mount -a /srv/net /net
 bind -a #D /net
+
+# mail has to be uncached
+mount -c #s/boot /n/termrc.tmp
+bind -c /n/termrc.tmp/mail /mail
 
 bind -c /usr/$user/tmp /tmp
 cd /usr/$user

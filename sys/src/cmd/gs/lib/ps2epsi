@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: ps2epsi,v 1.1 2000/03/09 08:40:40 lpd Exp $
+# $Id: ps2epsi,v 1.4 2000/09/19 18:29:11 lpd Exp $
 
 tmpfile=/tmp/ps2epsi$$
 
@@ -51,31 +51,25 @@ awk 'F==1	{
 		}
 	' U="$USERNAME$LOGNAME"  F=1 - F=2 ${infile} >$tmpfile
 
-gs -q -dNOPAUSE -r72 -sDEVICE=bit -sOutputFile=/dev/null $tmpfile ps2epsi.ps $tmpfile <${infile} 1>&2
+gs -q -dNOPAUSE -dSAFER -r72 -sDEVICE=bit -sOutputFile=/dev/null $tmpfile ps2epsi.ps $tmpfile <${infile} 1>&2
 rm -f $tmpfile
 
 (
 cat << BEGINEPS
-save
-countdictstack
-mark
-newpath
-/showpage {} def
-/setpagedevice {pop} def
+save countdictstack mark newpath /showpage {} def /setpagedevice {pop} def
 %%EndProlog
 %%Page 1 1
 BEGINEPS
 
 cat ${infile} |
-tr -d '\015' |
-sed -e '/^%%BeginPreview:/,/%%EndPreview$/d' -e '/^%!PS-Adobe/d'\
-	-e '/^%%[A-Za-z][A-Za-z]*$/d' -e '/^%%[A-Za-z][A-Za-z]*: /d'
+sed -e '/^%%BeginPreview:/,/^%%EndPreview[
+]*$/d' -e '/^%!PS-Adobe/d'\
+	-e '/^%%[A-Za-z][A-Za-z]*[
+]*$/d' -e '/^%%[A-Za-z][A-Za-z]*: /d'
 
 cat << ENDEPS
 %%Trailer
-cleartomark
-countdictstack exch sub { end } repeat
-restore
+cleartomark countdictstack exch sub { end } repeat restore
 %%EOF
 ENDEPS
 

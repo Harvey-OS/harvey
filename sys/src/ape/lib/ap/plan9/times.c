@@ -23,15 +23,15 @@ clock_t
 times(struct tms *buf)
 {
 	char b[200], *p;
-	int f;
+	static int f = -1;
 	unsigned long r;
 
 	memset(b, 0, sizeof(b));
-	f = open("/dev/cputime", O_RDONLY);
+	if(f < 0)
+		f = open("/dev/cputime", O_RDONLY);
 	if(f >= 0) {
 		lseek(f, SEEK_SET, 0);
 		read(f, b, sizeof(b));
-		close(f);
 	}
 	p = b;
 	if(buf)

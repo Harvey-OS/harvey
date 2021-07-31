@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>How to use Ghostscript</title>
-<!-- $Id: Use.htm,v 1.2 2000/03/10 08:02:59 lpd Exp $ -->
+<!-- $Id: Use.htm,v 1.13.2.4 2000/11/28 01:31:25 raph Exp $ -->
 <!-- Originally: use.txt -->
 </head>
 
@@ -546,16 +546,33 @@ gs -dNOPAUSE -dBATCH -sDEVICE=bbox -r100 -g500000x500000
 
 <p>
 Ghostscript is distributed configured to use U.S. letter paper as its
-default page size, but it knows about many others, listed by name and size
-in the section on <a href="#Known_paper_sizes">paper sizes known to
-Ghostscript</a>.  To select one of these as the default paper size for a
-single invocation of Ghostscript, you can use the
-<b><tt>-sPAPERSIZE=</tt></b> switch, for instance
+default page size.  There are two ways to select other paper sizes from the
+command line:
+
+<ul>
+
+<li>
+If the desired paper size is listed in the section on <a
+href="#Known_paper_sizes">paper sizes known to Ghostscript</a> below, you
+can select it as the default paper size for a single invocation of
+Ghostscript by using the <b><tt>-sPAPERSIZE=</tt></b> switch, for instance
 
 <blockquote><b><tt>
 -sPAPERSIZE=a4<br>
 -sPAPERSIZE=legal
 </tt></b></blockquote>
+
+<li>
+Otherwise, let <em>w</em> be the desired paper width and <em>h</em> be the
+desired paper height, in 1/72" units.  You can set the page size using the
+pair of switches
+
+<blockquote>
+<b><tt>-dDEVICEWIDTHPOINTS=</tt></b><em>w</em>
+<b><tt>-dDEVICEHEIGHTPOINTS=</tt></b><em>h</em>
+</blockquote>
+
+</ul>
 
 <p>
 Individual documents can (and often do) specify a paper size, which takes
@@ -949,12 +966,21 @@ Adobe Type Manager fonts).
 
 <p>
 You can change in which directory Ghostscript creates temporary files by
-setting the <b><tt>TEMP</tt></b> environment variable to the name of the
-directory you want used.  Ghostscript currently doesn't do a very good job
-of deleting temporary files when it exits; you may have to delete them
-manually from time to time.
+setting the <b><tt>TMPDIR</tt></b> or <b><tt>TEMP</tt></b> environment
+variable to the name of the directory you want used.  Ghostscript currently
+doesn't do a very good job of deleting temporary files if it exits because
+of an error; you may have to delete them manually from time to time.
 
 <h1><a name="Environment_variables"></a>Summary of environment variables</h1>
+
+<dl>
+<dt><b><tt>GS</tt></b>, <b><tt>GSC</tt></b> (MS Windows only)
+<dd>Specify the names of the Ghostscript executables.  <b><tt>GS</tt></b>
+brings up a new typein window and possibly a graphics window;
+<b><tt>GSC</tt></b> uses the DOS console.  If these are not set,
+<b><tt>GS</tt></b> defaults to <b><tt>gswin32</tt></b>, and
+<b><tt>GSC</tt></b> defaults to <b><tt>gswin32c</tt></b>.
+</dl>
 
 <dl>
 <dt><a href="#GS_DEVICE"><b><tt>GS_DEVICE</tt></b></a>
@@ -984,8 +1010,10 @@ actual file names or even <a href="#Input_control">"@file" arguments</a>.
 </dl>
 
 <dl>
-<dt><a href="#Temp_files"><b><tt>TEMP</tt></b></a>
-<dd>Defines a directory name for temporary files.
+<dt><a href="#Temp_files"><b><tt>TEMP</tt></b>, <b><tt>TMPDIR</tt></b></a>
+<dd>Defines a directory name for temporary files.  If both
+<b><tt>TEMP</tt></b> and <b><tt>TMPDIR</tt></b> are defined,
+<b><tt>TMPDIR</tt></b> takes precedence.
 </dl>
 
 <hr>
@@ -1023,26 +1051,39 @@ is,
 <h2><a name="PDF_switches"></a>Switches for PDF files</h2>
 
 <dl>
-<dt><b><tt>-dFirstPage=pagenumber</tt></b>
+<dt><b><tt>-dFirstPage=</tt></b><em>pagenumber</em>
 <dd>Begins interpreting on the designated page of the document.
 </dl>
 
 <dl>
-<dt><b><tt>-dLastPage=pagenumber</tt></b>
+<dt><b><tt>-dLastPage=</tt></b><em>pagenumber</em>
 <dd>Stops interpreting after the designated page of the document.
+</dl>
+
+<dl>
+<dt><b><tt>-dPrinted</tt></b>
+<dt><b><tt>-dPrinted=false</tt></b>
+<dd>Determines whether the file should be displayed or printed using the
+"screen" or "printer" options for annotations and images.  With
+<b><tt>-dPrinted</tt></b>, the output will use the file's "print"
+options; with <b><tt>-dPrinted=false</tt></b>, the output will use the
+file's "screen" options.  If neither of these is specified, the output will
+use the screen options for any output device that doesn't have an
+<b><tt>OutputFile</tt></b> parameter, and the printer options for devices
+that do have this parameter.
 </dl>
 
 <h2><a name="PDF_problems"></a>Problems interpreting a PDF file</h2>
 
 <p>
 Occasionally you may try to read or print a <b><tt>*.pdf</tt></b> file that
-Ghostscript doesn't recognize as PDF, but the same file <b><em>can</em></b>
-be opened and interpreted by an Adobe Acrobat viewer.  This can happen
-when, for instance, a PDF file produced on a Macintosh is carelessly moved
-to another kind of system, leaving now-useless Macintosh-specific data
-before the standard header.  Ghostscript can't read these files because
-they don't conform to the PDF standard, Adobe's
-"<a href="http://www.adobe.com/supportservice/devrelations/PDFS/TN/PDFSPEC.PDF"><b><em>Portable
+Ghostscript doesn't recognize as PDF, even though the same file
+<b><em>can</em></b> be opened and interpreted by an Adobe Acrobat viewer.
+This can happen when, for instance, a PDF file produced on a Macintosh is
+carelessly moved to another kind of system, leaving now-useless
+Macintosh-specific data before the standard header.  Ghostscript can't read
+these files because they don't conform to the PDF standard, Adobe's "<a
+href="http://www.adobe.com/supportservice/devrelations/PDFS/TN/PDFSPEC.PDF"><b><em>Portable
 Document Format Reference Manual</em></b></a>", version 1.2, which states:
 
 <blockquote>
@@ -1100,7 +1141,7 @@ binary.
 The Ghostscript distribution includes some Unix shell scripts to use with
 Ghostscript in different environments.  These are all user-contributed
 code, so if you have questions, please contact the user identified in the
-file, not Aladdin Enterprises.
+file, not Aladdin Enterprises or artofcode LLC.
 
 <dl>
 <dt><b><tt>pv.sh</tt></b>
@@ -1915,8 +1956,10 @@ Note that the initialization file <b><tt>gs_init.ps</tt></b> makes
 <b><tt>systemdict</tt></b> read-only, so the values of names defined with
 <b><tt>-D</tt></b>, <b><tt>-d</tt></b>, <b><tt>-S</tt></b>, and
 <b><tt>-s</tt></b> cannot be changed -- although, of course, they can be
-superseded by definitions in <b><tt>userdict</tt></b> or other
-dictionaries.
+superseded by definitions in <b><tt>userdict</tt></b> or other dictionaries.
+However, device parameters set this way (<b><tt>PageSize</tt></b>,
+<b><tt>Margins</tt></b>, etc.) are <em>not</em> read-only, and <em>can</em>
+be changed by code in PostScript files.
 
 <dl>
 <dt><b><tt>-g</tt></b><em>number1</em><b><tt>x</tt></b><em>number2</em>
@@ -2009,12 +2052,6 @@ images at the expense of image quality.  <b><tt>-dNOINTERPOLATE</tt></b>
 overrides <b><tt>-dDOINTERPOLATE</tt></b>.
 </dl>
 
-<dl>
-<dt><b><tt>-dUsePrinterImages</tt></b>
-<dd>In PDF files that provide alternate images for printing, uses the
-alternate image (for all output devices).  Useful for print previewing.
-</dl>
-
 <h3><a name="Page_parameters"></a>Page parameters</h3>
 
 <dl>
@@ -2046,6 +2083,13 @@ use 0 to mean landscape and 1 to mean portrait.
 <b><tt>-dORIENT1=false</tt></b> declares that 0 means portrait and 1 means
 landscape, which is the convention used by a smaller number of files
 produced by properly written applications.
+</dl>
+
+<dl>
+<dt><b><tt>-dDEVICEWIDTHPOINTS=</tt></b><em>w</em>
+<br><b><tt>-dDEVICEHEIGHTPOINTS=</tt></b><em>h</em>
+<dd>Sets the initial page width to <em>w</em> or initial page height to
+<em>h</em> respectively, specified in 1/72" units.
 </dl>
 
 <h3><a name="Font_related_parameters"></a>Font-related parameters</h3>
@@ -2317,6 +2361,13 @@ usage.
 	<td>&nbsp;
 	<td>&nbsp;
 	<td>Execute the file with <b><tt>-B1</tt></b> temporarily in effect
+<tr>	<td valign=top><b><tt>-K</tt></b><em>n</em>
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>&nbsp;
+	<td>Limit the total amount of memory that the interpreter can have
+	    allocated at any one time to <b><em>n</em></b>K bytes.
+	    <b><em>n</em></b> is a positive decimal integer.
 <tr>	<td valign=top><b><tt>-M</tt></b><em>n</em>
 	<td>&nbsp;
 	<td>&nbsp;
@@ -2386,8 +2437,8 @@ usage.
 <dt><b><tt>t</tt></b><dd>tiling algorithm
 <dt><b><tt>u</tt></b><dd>undo saver (for save/restore), finalization
 <dt>&nbsp;&nbsp;&nbsp;<b><tt>U</tt></b><dd>undo saver, more detail
-<dt><b><tt>v</tt></b><dd>rectangle fill
-<dt>&nbsp;&nbsp;&nbsp;<b><tt>V</tt></b><dd>device-level output
+<dt><b><tt>v</tt></b><dd>alpha/transparency
+<dt>&nbsp;&nbsp;&nbsp;<b><tt>V</tt></b><dd>alpha/transparency, more detail
 <dt><b><tt>w</tt></b><dd>compression encoder/decoder
 <dt><b><tt>x</tt></b><dd>transformations
 <dt><b><tt>y</tt></b><dd>Type 1 hints
@@ -2734,15 +2785,15 @@ Ghostscript.symbolFonts: \
 
 <font size=2>
 
-<p>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+<p>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of Aladdin Ghostscript.  See the
+<p>This file is part of AFPL Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+AFPL Ghostscript.
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+Ghostscript version 6.32, 27 November 2000
 
 </font>
 

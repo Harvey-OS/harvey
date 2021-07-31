@@ -1,4 +1,0 @@
-#!/bin/rc
-
-echo 0 0 0 0 0 16 16384 > fs.filectl
-8.mkflashfs -n 16 -z 16384 -f fs.file

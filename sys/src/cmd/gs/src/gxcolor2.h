@@ -1,22 +1,22 @@
-/* Copyright (C) 1993, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxcolor2.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxcolor2.h,v 1.4 2000/09/19 19:00:35 lpd Exp $ */
 /* Internal definitions for Level 2 color routines */
 /* Requires gsstruct.h, gxfixed.h */
 
@@ -24,6 +24,7 @@
 #  define gxcolor2_INCLUDED
 
 #include "gscolor2.h"
+#include "gsmatrix.h"		/* for step_matrix */
 #include "gsrefct.h"
 #include "gxbitmap.h"
 
@@ -34,19 +35,19 @@ struct gs_indexed_map_s {
 	int (*lookup_index)(P3(const gs_indexed_params *, int, float *));
 	int (*tint_transform)(P3(const gs_separation_params *, floatp, float *));
     } proc;
+    void *proc_data;
     uint num_values;	/* base_space->type->num_components * (hival + 1) */
     float *values;	/* actually [num_values] */
 };
-
-extern_st(st_indexed_map);
-#define public_st_indexed_map() /* in gscolor2.c */\
-  gs_public_st_ptrs1(st_indexed_map, gs_indexed_map, "gs_indexed_map",\
-    indexed_map_enum_ptrs, indexed_map_reloc_ptrs, values)
+#define private_st_indexed_map() /* in gscolor2.c */\
+  gs_private_st_ptrs2(st_indexed_map, gs_indexed_map, "gs_indexed_map",\
+    indexed_map_enum_ptrs, indexed_map_reloc_ptrs, proc_data, values)
 
 /* Define a lookup_index procedure that just returns the map values. */
 int lookup_indexed_map(P3(const gs_indexed_params *, int, float *));
 
 /* Allocate an indexed map and its values. */
+/* The initial reference count is 1. */
 int alloc_indexed_map(P4(gs_indexed_map ** ppmap, int num_values,
 			 gs_memory_t * mem, client_name_t cname));
 

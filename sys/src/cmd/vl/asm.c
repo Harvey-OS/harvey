@@ -55,7 +55,7 @@ void
 asmb(void)
 {
 	Prog *p;
-	long t, etext;
+	long t;
 	Optab *o;
 
 	if(debug['v'])
@@ -89,17 +89,6 @@ asmb(void)
 	Bflush(&bso);
 	cflush();
 
-	etext = INITTEXT + textsize;
-	for(t = pc; t < etext; t += sizeof(buf)-100) {
-		if(etext-t > sizeof(buf)-100)
-			datblk(t, sizeof(buf)-100, 1);
-		else
-			datblk(t, etext-t, 1);
-	}
-
-	Bflush(&bso);
-	cflush();
-
 	curtext = P;
 	switch(HEADTYPE) {
 	case 0:
@@ -117,9 +106,9 @@ asmb(void)
 	}
 	for(t = 0; t < datsize; t += sizeof(buf)-100) {
 		if(datsize-t > sizeof(buf)-100)
-			datblk(t, sizeof(buf)-100, 0);
+			datblk(t, sizeof(buf)-100);
 		else
-			datblk(t, datsize-t, 0);
+			datblk(t, datsize-t);
 	}
 
 	symsize = 0;
@@ -421,10 +410,6 @@ asmsym(void)
 				putsymb(s->name, 'D', s->value, s->version);
 				continue;
 
-			case SSTRING:
-				putsymb(s->name, 'T', s->value, s->version);
-				continue;
-
 			case SDATA:
 				putsymb(s->name, 'D', s->value+INITDAT, s->version);
 				continue;
@@ -598,7 +583,7 @@ asmlc(void)
 }
 
 void
-datblk(long s, long n, int str)
+datblk(long s, long n)
 {
 	Prog *p;
 	char *cast;
@@ -608,8 +593,6 @@ datblk(long s, long n, int str)
 	memset(buf.dbuf, 0, n+100);
 	for(p = datap; p != P; p = p->link) {
 		curp = p;
-		if(str != (p->from.sym->type == SSTRING))
-			continue;
 		l = p->from.sym->value + p->from.offset - s;
 		c = p->reg;
 		i = 0;
@@ -667,17 +650,13 @@ datblk(long s, long n, int str)
 		case D_CONST:
 			d = p->to.offset;
 			if(p->to.sym) {
-				switch(p->to.sym->type) {
-				case STEXT:
-				case SLEAF:
-				case SSTRING:
+				if(p->to.sym->type == STEXT ||
+				   p->to.sym->type == SLEAF)
 					d += p->to.sym->value;
-					break;
-				case SDATA:
-				case SBSS:
+				if(p->to.sym->type == SDATA)
 					d += p->to.sym->value + INITDAT;
-					break;
-				}
+				if(p->to.sym->type == SBSS)
+					d += p->to.sym->value + INITDAT;
 			}
 			cast = (char*)&d;
 			switch(c) {

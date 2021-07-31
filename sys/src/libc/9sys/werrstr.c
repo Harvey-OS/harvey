@@ -4,11 +4,16 @@
 void
 werrstr(char *fmt, ...)
 {
+	int psave;
 	va_list arg;
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 
+	extern int printcol;
+
+	psave = printcol;
 	va_start(arg, fmt);
-	vseprint(buf, buf+ERRMAX, fmt, arg);
+	doprint(buf, buf+ERRLEN, fmt, arg);
 	va_end(arg);
-	errstr(buf, ERRMAX);
+	errstr(buf);
+	printcol = psave;
 }

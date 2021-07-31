@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-static char diskname[64];
+static char diskname[2*NAMELEN];
 static char *disk;
 static char **args;
 
@@ -49,30 +49,37 @@ configlocal(Method *mp)
 }
 
 int
+authlocal(void)
+{
+	return -1;
+}
+
+int
 connectlocal(void)
 {
 	int i, p[2];
-	Dir *dir;
-	char partition[64];
+	Dir dir;
+	char d[DIRLEN];
+	char partition[2*NAMELEN];
 	char *dev;
 	char **arg, **argp;
-	ulong mode;
 
-	if(stat("/kfs", statbuf, sizeof statbuf) < 0)
+	if(stat("/kfs", d) < 0){
+		print("stat /kfs fails: %r\n");
 		return -1;
+	}
 
 	dev = disk ? disk : bootdisk;
-	snprint(partition, sizeof partition, "%sfs", dev);
-	dir = dirstat(partition);
-	if(dir == nil){
+	sprint(partition, "%sfs", dev);
+	if(dirstat(partition, &dir) < 0){
 		strcpy(partition, dev);
-		dir = dirstat(partition);
-		if(dir == nil)
+		if(dirstat(partition, &dir) < 0){
+			print("stat %s fails: %r\n", partition);
+			print("(stat %sfs also failed)\n", dev);
 			return -1;
+		}
 	}
-	mode = dir->mode;
-	free(dir);
-	if(mode & DMDIR)
+	if(dir.mode & CHDIR)
 		return -1;
 
 	print("kfs...");
@@ -105,7 +112,6 @@ connectlocal(void)
 	default:
 		break;
 	}
-	waitpid();
 
 	close(p[1]);
 	return p[0];

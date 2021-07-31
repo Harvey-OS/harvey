@@ -7,11 +7,12 @@
 #include "defs.h"
 #include "fns.h"
 
-int	printcol = 0;
 int	infile = STDIN;
 int	maxpos = MAXPOS;
 
 Biobuf	stdout;
+
+extern int	printcol;
 
 void
 printc(int c)
@@ -19,17 +20,41 @@ printc(int c)
 	dprint("%c", c);
 }
 
-/* was move to next f1-sized tab stop; now just print a tab */
+/* move to next f1-sized tab stop */
 int
-tconv(Fmt *f)
+tconv(va_list *arg, Fconv *f)
 {
-	return fmtstrcpy(f, "\t");
+	int n;
+	char buf[128];
+
+	USED(arg);
+	n = f->f1 - (printcol%f->f1);
+	if(n != 0) {
+		memset(buf, ' ', n);
+		buf[n] = '\0';
+		f->f1 = 0;
+		strconv(buf, f);
+	}
+	return 0;
+}
+
+/* hexadecimal with initial 0x */
+int
+myxconv(va_list *arg, Fconv *f)
+{
+	f->f3 |= 1<<2;
+	return numbconv(arg, f);
+}
+
+charpos(void)
+{
+	return printcol;
 }
 
 void
 flushbuf(void)
 {
- 	if (printcol != 0)
+	if (printcol != 0)
 		printc(EOR);
 }
 
@@ -116,7 +141,7 @@ void
 endline(void)
 {
 
-	if (maxpos <= printcol)
+	if (maxpos <= charpos())
 		newline();
 }
 
@@ -129,26 +154,16 @@ flush(void)
 int
 dprint(char *fmt, ...)
 {
-	int n, w;
-	char *p;
- 	char buf[4096];
-	Rune r;
+	char buf[4096], *out;
+	int n;
 	va_list arg;
 
 	if(mkfault)
 		return -1;
 	va_start(arg, fmt);
-	n = vseprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	out = doprint(buf, buf+sizeof buf, fmt, arg);
 	va_end(arg);
-//Bprint(&stdout, "[%s]", fmt);
-	Bwrite(&stdout, buf, n);
-	for(p=buf; *p; p+=w){
-		w = chartorune(&r, p);
-		if(r == '\n')
-			printcol = 0;
-		else
-			printcol++;
-	}
+	n = Bwrite(&stdout, buf, (long)(out-buf));
 	return n;
 }
 
@@ -157,4 +172,5 @@ outputinit(void)
 {
 	Binit(&stdout, 1, OWRITE);
 	fmtinstall('t', tconv);
+	fmtinstall('x', myxconv);
 }

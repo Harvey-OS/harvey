@@ -1,0 +1,19 @@
+#!/bin/rc
+
+# desc: mount the destination plan 9 file system
+# prereq: reamfs
+
+switch($1) {
+case checkready
+	log Mounting kfs filesystem from /dev/$disk/fs
+	runkfs $disk
+	mount -c /srv/kfs.$disk /n/kfs >>[2]/srv/log
+	mountfs=done
+	export mountfs
+
+case checkdone
+	if(! grep -s 'kfs.'^$disk^' /n/kfs' /proc/$pid/ns) {
+		mountfs=notdone
+		export mountfs
+	}
+}

@@ -9,4 +9,3 @@ struct Cursorinfo {
 
 extern void	blankscreen(int);
 extern void	flushmemscreen(Rectangle);
-extern uchar*	attachscreen(Rectangle*, ulong*, int*, int*, int*);

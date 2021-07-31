@@ -1,0 +1,4 @@
+TEXT _WRITE(SB), 1, $0
+MOVL $20, AX
+INT $64
+RET

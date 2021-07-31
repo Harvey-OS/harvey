@@ -1,22 +1,22 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gstext.c,v 1.2 2000/03/10 04:41:47 lpd Exp $ */
+/*$Id: gstext.c,v 1.3.2.1 2000/10/26 12:45:11 igorm Exp $ */
 /* Driver text interface support */
 #include "memory_.h"
 #include "gstypes.h"
@@ -27,6 +27,7 @@
 #include "gsstruct.h"
 #include "gstypes.h"
 #include "gxdevcli.h"
+#include "gxdcolor.h"		/* for gs_state_color_load */
 #include "gxfont.h"		/* for init_fstack */
 #include "gxpath.h"
 #include "gxtext.h"
@@ -138,6 +139,7 @@ gs_text_enum_init_dynamic(gs_text_enum_t *pte, gs_font *font)
     pte->current_font = font;
     pte->index = 0;
     pte->xy_index = 0;
+    pte->FontBBox_as_Metrics2.x = pte->FontBBox_as_Metrics2.y = 0;
     return font->procs.init_fstack(pte, font);
 }
 int
@@ -183,6 +185,7 @@ gs_text_enum_copy_dynamic(gs_text_enum_t *pto, const gs_text_enum_t *pfrom,
     pto->index = pfrom->index;
     pto->xy_index = pfrom->xy_index;
     pto->fstack.depth = depth;
+    pto->FontBBox_as_Metrics2 = pfrom->FontBBox_as_Metrics2;
     if (depth >= 0)
 	memcpy(pto->fstack.items, pfrom->fstack.items,
 	       (depth + 1) * sizeof(pto->fstack.items[0]));
@@ -205,6 +208,9 @@ gs_text_begin(gs_state * pgs, const gs_text_params_t * text,
 	if (code < 0)
 	    return code;
 	gx_set_dev_color(pgs);
+	code = gs_state_color_load(pgs);
+	if (code < 0)
+	    return code;
     }
     return gx_device_text_begin(pgs->device, (gs_imager_state *) pgs,
 				text, pgs->font, pgs->path, pgs->dev_color,

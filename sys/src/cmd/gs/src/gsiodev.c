@@ -1,22 +1,22 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsiodev.c,v 1.2 2000/03/10 03:43:06 lpd Exp $ */
+/*$Id: gsiodev.c,v 1.3.2.1 2000/10/25 19:16:09 alexcher Exp $ */
 /* IODevice implementation for Ghostscript */
 #include "errno_.h"
 #include "string_.h"
@@ -243,8 +243,8 @@ os_get_params(gx_io_device * iodev, gs_param_list * plist)
      * correct values in a platform-independent manner.
      */
     BlockSize = 1024;
-    Free = 20000000;
-    LogicalSize = Free / BlockSize * 2;
+    LogicalSize = 2000000000 / BlockSize;	/* about 2 Gb */
+    Free = LogicalSize * 3 / 4;			/* about 1.5 Gb */
 
     if (
 	(code = param_write_bool(plist, "HasNames", &btrue)) < 0 ||

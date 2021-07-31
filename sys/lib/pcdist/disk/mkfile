@@ -1,0 +1,51 @@
+s=/sys/lib/pcdist
+default:V: ndisk
+	ls -l ndisk
+
+boot.bz2:Q: proto cpurc.boot
+	rm -rf boot
+	mkdir boot
+	bind /dev/null /sys/log/timesync
+	# make files writable for now.
+	cat proto | sed 's!d000!d775!;s!000!664!;s!555!775!;s!444!664!' >proto.cp
+	disk/mkfs -a proto.cp | disk/mkext -d boot
+	@{
+		cd boot/386
+		strip init
+		cd bin
+		strip * */* >[2]/dev/null || status=''
+	}
+	cat proto | sed 's!/.*!!' >proto.cp
+	disk/mkfs -a -s boot proto.cp | tee >{wc -c >[1=2]} | bzip2 -9 >$target
+	# rm -rf boot proto.cp
+	ls -l boot.bz2
+
+root.bz2:Q: boot.bz2
+	{
+		echo bzfilesystem
+		cat boot.bz2
+		dd -if /dev/zero -bs 1024 -count 1 >[2]/dev/null
+	} >$target
+	ls -l $target
+
+/sys/src/9/pc/9pcflop.gz: root.bz2
+	@{
+		cd /sys/src/9/pc
+		mk 'CONF=pcflop' 9pcflop.gz
+	}
+
+ndisk: plan9.nvr /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
+	dd -if /dev/zero -of ndisk -bs 1024 -count 1440 >[2]/dev/null
+	disk/format -f -b $s/bin/386/pbs -d ndisk \
+		/386/9load plan9.nvr \
+		/sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
+	ls -l ndisk
+	# rm -f boot.bz2 root.bz2 9pcflop
+
+clean:V:
+	rm -rf boot boot.bz2 root.bz2 9pcflop ndisk
+
+install:V: ndisk
+	rm disk
+	mv ndisk disk
+	mk clean

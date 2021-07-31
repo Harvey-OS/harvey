@@ -1,22 +1,22 @@
 /* Copyright (C) 1992, 1994, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: scfdgen.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: scfdgen.c,v 1.2 2000/09/19 19:00:48 lpd Exp $ */
 /* Generate the CCITTFaxDecode tables */
 #include "stdio_.h"		/* includes std.h */
 #include "scf.h"
@@ -43,7 +43,7 @@ main()
     cfd_node area[1 << max(cfd_white_initial_bits, cfd_black_initial_bits)];
 
     fputs("/* Copyright (C) 1992, 1993, 1998, 1999 Aladdin Enterprises.  All rights reserved. */\n\n", out);
-    fputs("/* $Id: scfdgen.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */\n", out);
+    fputs("/* $Id: scfdgen.c,v 1.2 2000/09/19 19:00:48 lpd Exp $ */\n", out);
     fputs("/* Tables for CCITTFaxDecode filter. */\n\n", out);
     fputs("/* This file was generated automatically.  It is governed by the same terms */\n", out);
     fputs("/* as the files scfetab.c and scfdgen.c from which it was derived. */\n", out);

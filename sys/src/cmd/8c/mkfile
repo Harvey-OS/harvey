@@ -18,7 +18,6 @@ HFILES=\
 
 LIB=../cc/cc.a$O
 
-
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
@@ -26,4 +25,3 @@ $LIB:
 	cd ../cc
 	mk install
 	mk clean
-

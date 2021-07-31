@@ -66,7 +66,7 @@ extern	void	printdim(char*, int, int);
 extern	int	ralpha(int);
 extern	int	readline(void);
 extern	void	sub(Node*, Node*, Node*);
-extern	int	Ufmt(Fmt*);
+extern	int	Uconv(va_list*, Fconv*);
 extern	void	xpn(Node*, Node*, int);
 extern	void	yyerror(char*, ...);
 extern	int	yylex(void);
@@ -239,15 +239,12 @@ loop:
 	case L'÷':
 		return '/';
 	case L'¹':
-	case L'ⁱ':
 		yylval.numb = 1;
 		return SUP;
 	case L'²':
-	case L'⁲':
 		yylval.numb = 2;
 		return SUP;
 	case L'³':
-	case L'⁳':
 		yylval.numb = 3;
 		return SUP;
 	}
@@ -295,7 +292,7 @@ main(int argc, char *argv[])
 		print("cant open: %s\n", file);
 		exits("open");
 	}
-	fmtinstall('U', Ufmt);
+	fmtinstall('U', Uconv);
 	one.val = 1;
 
 	/*
@@ -376,11 +373,8 @@ ralpha(int c)
 	case '|':
 	case '#':
 	case L'¹':
-	case L'ⁱ':
 	case L'²':
-	case L'⁲':
 	case L'³':
-	case L'⁳':
 	case L'×':
 	case L'÷':
 		return 0;
@@ -416,7 +410,7 @@ yyerror(char *fmt, ...)
 		return;
 	}
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%ld: %S\n\t%s\n", lineno, line, buf);
 	nerrors++;
@@ -558,13 +552,13 @@ printdim(char *str, int d, int n)
 }
 
 int
-Ufmt(Fmt *fp)
+Uconv(va_list *arg, Fconv *fp)
 {
 	char str[200];
 	Node *n;
 	int f, i, d;
 
-	n = va_arg(fp->args, Node*);
+	n = va_arg(*arg, Node*);
 	sprint(str, "%g", n->val);
 
 	f = 0;
@@ -586,7 +580,8 @@ Ufmt(Fmt *fp)
 		}
 	}
 
-	return fmtstrcpy(fp, str);
+	strconv(str, fp);
+	return sizeof n;
 }
 
 int

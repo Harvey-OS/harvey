@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 void
 error(char *fmt, ...)
@@ -11,7 +12,7 @@ error(char *fmt, ...)
 	s = buf;
 	s += sprint(s, "%s: ", argv0);
 	va_start(arg, fmt);
-	s = vseprint(s, buf + sizeof(buf), fmt, arg);
+	s = doprint(s, buf + sizeof(buf), fmt, arg);
 	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);

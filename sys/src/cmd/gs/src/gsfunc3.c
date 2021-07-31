@@ -1,27 +1,28 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsfunc3.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsfunc3.c,v 1.4 2000/09/19 19:00:28 lpd Exp $ */
 /* Implementation of LL3 Functions */
 #include "math_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gsfunc3.h"
+#include "gsparam.h"
 #include "gxfunc.h"
 
 /* ---------------- Utilities ---------------- */
@@ -121,6 +122,30 @@ fn_ElIn_is_monotonic(const gs_function_t * pfn_common,
     return result;
 }
 
+/* Write Exponential Interpolation function parameters on a parameter list. */
+private int
+fn_ElIn_get_params(const gs_function_t *pfn_common, gs_param_list *plist)
+{
+    const gs_function_ElIn_t *const pfn =
+	(const gs_function_ElIn_t *)pfn_common;
+    int ecode = fn_common_get_params(pfn_common, plist);
+    int code;
+
+    if (pfn->params.C0) {
+	if ((code = param_write_float_values(plist, "C0", pfn->params.C0,
+					     pfn->params.n, false)) < 0)
+	    ecode = code;
+    }
+    if (pfn->params.C1) {
+	if ((code = param_write_float_values(plist, "C1", pfn->params.C1,
+					     pfn->params.n, false)) < 0)
+	    ecode = code;
+    }
+    if ((code = param_write_float(plist, "N", &pfn->params.N)) < 0)
+	ecode = code;
+    return ecode;
+}
+
 /* Free the parameters of an Exponential Interpolation function. */
 void
 gs_function_ElIn_free_params(gs_function_ElIn_params_t * params,
@@ -142,6 +167,8 @@ gs_function_ElIn_init(gs_function_t ** ppfn,
 	{
 	    (fn_evaluate_proc_t) fn_ElIn_evaluate,
 	    (fn_is_monotonic_proc_t) fn_ElIn_is_monotonic,
+	    gs_function_get_info_default,
+	    (fn_get_params_proc_t) fn_ElIn_get_params,
 	    (fn_free_params_proc_t) gs_function_ElIn_free_params,
 	    fn_common_free
 	}
@@ -280,6 +307,36 @@ fn_1ItSg_is_monotonic(const gs_function_t * pfn_common,
     return result;
 }
 
+/* Return 1-Input Stitching function information. */
+private void
+fn_1ItSg_get_info(const gs_function_t *pfn_common, gs_function_info_t *pfi)
+{
+    const gs_function_1ItSg_t *const pfn =
+	(const gs_function_1ItSg_t *)pfn_common;
+
+    gs_function_get_info_default(pfn_common, pfi);
+    pfi->Functions = pfn->params.Functions;
+    pfi->num_Functions = pfn->params.k;
+}
+
+/* Write 1-Input Stitching function parameters on a parameter list. */
+private int
+fn_1ItSg_get_params(const gs_function_t *pfn_common, gs_param_list *plist)
+{
+    const gs_function_1ItSg_t *const pfn =
+	(const gs_function_1ItSg_t *)pfn_common;
+    int ecode = fn_common_get_params(pfn_common, plist);
+    int code;
+
+    if ((code = param_write_float_values(plist, "Bounds", pfn->params.Bounds,
+					 pfn->params.k - 1, false)) < 0)
+	ecode = code;
+    if ((code = param_write_float_values(plist, "Encode", pfn->params.Encode,
+					 2 * pfn->params.k, false)) < 0)
+	ecode = code;
+    return ecode;
+}
+
 /* Free the parameters of a 1-Input Stitching function. */
 void
 gs_function_1ItSg_free_params(gs_function_1ItSg_params_t * params,
@@ -301,6 +358,8 @@ gs_function_1ItSg_init(gs_function_t ** ppfn,
 	{
 	    (fn_evaluate_proc_t) fn_1ItSg_evaluate,
 	    (fn_is_monotonic_proc_t) fn_1ItSg_is_monotonic,
+	    (fn_get_info_proc_t) fn_1ItSg_get_info,
+	    (fn_get_params_proc_t) fn_1ItSg_get_params,
 	    (fn_free_params_proc_t) gs_function_1ItSg_free_params,
 	    fn_common_free
 	}
@@ -415,21 +474,30 @@ gs_function_AdOt_init(gs_function_t ** ppfn,
 	{
 	    (fn_evaluate_proc_t) fn_AdOt_evaluate,
 	    (fn_is_monotonic_proc_t) fn_AdOt_is_monotonic,
+	    gs_function_get_info_default, /****** WRONG ******/
+	    fn_common_get_params,	/****** WHAT TO DO ABOUT THIS? ******/
 	    (fn_free_params_proc_t) gs_function_AdOt_free_params,
 	    fn_common_free
 	}
     };
     int m = params->m, n = params->n;
     int i;
+    int is_monotonic = 0;	/* initialize to pacify compiler */
 
     *ppfn = 0;			/* in case of error */
     if (m <= 0 || n <= 0)
 	return_error(gs_error_rangecheck);
     for (i = 0; i < n; ++i) {
 	const gs_function_t *psubfn = params->Functions[i];
+	int sub_mono;
 
 	if (psubfn->params.m != m || psubfn->params.n != 1)
 	    return_error(gs_error_rangecheck);
+	sub_mono = fn_domain_is_monotonic(psubfn, EFFORT_MODERATE);
+	if (i == 0 || sub_mono < 0)
+	    is_monotonic = sub_mono;
+	else if (is_monotonic >= 0)
+	    is_monotonic &= sub_mono;
     }
     {
 	gs_function_AdOt_t *pfn =
@@ -442,8 +510,7 @@ gs_function_AdOt_init(gs_function_t ** ppfn,
 	pfn->params.Domain = 0;
 	pfn->params.Range = 0;
 	pfn->head = function_AdOt_head;
-	pfn->head.is_monotonic =
-	    fn_domain_is_monotonic((gs_function_t *)pfn, EFFORT_MODERATE);
+	pfn->head.is_monotonic = is_monotonic;
 	*ppfn = (gs_function_t *) pfn;
     }
     return 0;

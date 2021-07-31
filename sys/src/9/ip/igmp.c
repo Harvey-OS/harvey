@@ -166,7 +166,7 @@ igmpproc(void *a)
 }
 
 void
-igmpiput(Media *m, Ipifc*, Block *bp)
+igmpiput(Media *m, Block *bp)
 {
 	int n;
 	IGMPpkt *ghp;

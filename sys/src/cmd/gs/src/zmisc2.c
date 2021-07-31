@@ -1,22 +1,22 @@
-/* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zmisc2.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
+/*$Id: zmisc2.c,v 1.3 2000/09/19 19:00:54 lpd Exp $ */
 /* Miscellaneous Level 2 operators */
 #include "memory_.h"
 #include "string_.h"
@@ -185,36 +185,44 @@ set_language_level(i_ctx_t *i_ctx_p, int new_level)
 private int
 swap_level_dict(i_ctx_t *i_ctx_p, const char *dict_name)
 {
-    ref *leveldict;
+    ref *pleveldict;
+    ref rleveldict;
     int index;
     ref elt[2];			/* key, value */
-    ref *subdict;
+    ref *psubdict;
 
-    if (dict_find_string(systemdict, dict_name, &leveldict) <= 0)
+    /*
+     * We have to copy the refs for leveldict and subdict, since they may
+     * move if their containing dictionary is resized.
+     */
+    if (dict_find_string(systemdict, dict_name, &pleveldict) <= 0)
 	return_error(e_undefined);
-    index = dict_first(leveldict);
-    while ((index = dict_next(leveldict, index, &elt[0])) >= 0)
+    rleveldict = *pleveldict;
+    index = dict_first(&rleveldict);
+    while ((index = dict_next(&rleveldict, index, &elt[0])) >= 0)
 	if (r_has_type(&elt[1], t_dictionary) &&
-	    dict_find(&elt[1], &elt[0], &subdict) > 0 &&
-	    obj_eq(&elt[1], subdict)
+	    dict_find(&elt[1], &elt[0], &psubdict) > 0 &&
+	    obj_eq(&elt[1], psubdict)
 	    ) {
 	    /* elt[1] is the 2nd-level sub-dictionary */
 	    int isub = dict_first(&elt[1]);
 	    ref subelt[2];
-	    int found = dict_find(systemdict, &elt[0], &subdict);
+	    int found = dict_find(systemdict, &elt[0], &psubdict);
+	    ref rsubdict;
 
 	    if (found <= 0)
 		continue;
+	    rsubdict = *psubdict;
 	    while ((isub = dict_next(&elt[1], isub, &subelt[0])) >= 0)
 		if (!obj_eq(&subelt[0], &elt[0])) {
 		    /* don't swap dict itself */
-		    int code = swap_entry(i_ctx_p, subelt, subdict, &elt[1]);
+		    int code = swap_entry(i_ctx_p, subelt, &rsubdict, &elt[1]);
 
 		    if (code < 0)
 			return code;
 		}
 	} else {
-	    int code = swap_entry(i_ctx_p, elt, systemdict, leveldict);
+	    int code = swap_entry(i_ctx_p, elt, systemdict, &rleveldict);
 
 	    if (code < 0)
 		return code;

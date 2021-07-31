@@ -1,9 +1,8 @@
 enum{
 	Enevermind,	/* never mind */
 	Enofd,		/* no free file descriptors */
-	Efidinuse,		/* fid already in use */
-	Ebadfd,		/* fid out of range or not open */
-	Ebadusefd,	/* inappropriate use of fid */
+	Ebadfd,		/* fd out of range or not open */
+	Ebadusefd,	/* inappropriate use of fd */
 	Ebadarg,	/* bad arg in system call */
 	Enonexist,	/* file does not exist */
 	Efilename,	/* file name syntax */
@@ -21,7 +20,7 @@ enum{
 	Enomntdev,	/* no free mount devices */
 	Eshutdown,	/* mounted device shut down */
 	Einuse,		/* device or object already in use */
-	Eio,		/* i/o error */
+	Eio,		/* i/o error (ramfs) */
 	Eisdir,		/* file is a directory */
 	Ebaddirread,	/* directory read not quantized */
 	Esegaddr,	/* illegal segment addresses or size */

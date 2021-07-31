@@ -1,6 +1,0 @@
-#!/bin/rc
-
-/mail/lib/justqmail $* || exit 1
-if(ndb/csquery -s /net/cs 'tcp!$smtp!smtp')
-	/mail/lib/kickqueue
-exit 0

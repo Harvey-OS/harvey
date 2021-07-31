@@ -4,6 +4,7 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include	<pool.h>
 
 #define	Image	IMAGE
 #include	<draw.h>
@@ -31,13 +32,12 @@ enum
  */
 #define	QSHIFT	4	/* location in qid of client # */
 
-#define	QID(q)		((((ulong)(q).path)&0x0000000F)>>0)
-#define	CLIENTPATH(q)	((((ulong)q)&0x7FFFFFF0)>>QSHIFT)
+#define	QID(q)		(((q).path&0x0000000F)>>0)
+#define	CLIENTPATH(q)	((q&0x07FFFFFF0)>>QSHIFT)
 #define	CLIENT(q)	CLIENTPATH((q).path)
 
 #define	NHASH		(1<<5)
 #define	HASHMASK	(NHASH-1)
-#define	IOUNIT	(64*1024)
 
 typedef struct Client Client;
 typedef struct Draw Draw;
@@ -184,33 +184,33 @@ static	char Enamed[] = 	"image already has name";
 static	char Ewrongname[] = 	"wrong name for image";
 
 static int
-drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+drawgen(Chan *c, Dirtab *tab, int x, int s, Dir *dp)
 {
 	int t;
 	Qid q;
 	ulong path;
 	Client *cl;
+	char buf[NAMELEN];
 
+	USED(tab, x);
 	q.vers = 0;
 
 	if(s == DEVDOTDOT){
 		switch(QID(c->qid)){
 		case Qtopdir:
 		case Q2nd:
-			mkqid(&q, Qtopdir, 0, QTDIR);
-			devdir(c, q, "#i", 0, eve, 0500, dp);
+			devdir(c, (Qid){CHDIR|Qtopdir, 0}, "#i", 0, eve, 0500, dp);
 			break;
 		case Q3rd:
 			cl = drawclientofpath(c->qid.path);
 			if(cl == nil)
-				strcpy(up->genbuf, "??");
+				strcpy(buf, "??");
 			else
-				sprint(up->genbuf, "%d", cl->clientid);
-			mkqid(&q, Q2nd, 0, QTDIR);
-			devdir(c, q, up->genbuf, 0, eve, 0500, dp);
+				sprint(buf, "%d", cl->clientid);
+			devdir(c, (Qid){CHDIR|Q2nd, 0}, buf, 0, eve, 0500, dp);
 			break;
 		default:
-			panic("drawwalk %llux", c->qid.path);
+			panic("drawwalk %lux", c->qid.path);
 		}
 		return 1;
 	}
@@ -218,11 +218,10 @@ drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	/*
 	 * Top level directory contains the name of the device.
 	 */
-	t = QID(c->qid);
-	if(t == Qtopdir){
+	if(c->qid.path == CHDIR){
 		switch(s){
 		case 0:
-			mkqid(&q, Q2nd, 0, QTDIR);
+			q = (Qid){CHDIR|Q2nd, 0};
 			devdir(c, q, "draw", 0, eve, 0555, dp);
 			break;
 		default:
@@ -234,18 +233,19 @@ drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	/*
 	 * Second level contains "new" plus all the clients.
 	 */
+	t = QID(c->qid);
 	if(t == Q2nd || t == Qnew){
 		if(s == 0){
-			mkqid(&q, Qnew, 0, QTFILE);
-			devdir(c, q, "new", 0, eve, 0666, dp);
+			q = (Qid){Qnew, 0};
+			devdir(c, q, "new", 0, eve, 0600, dp);
 		}
 		else if(s <= sdraw.nclient){
 			cl = sdraw.client[s-1];
 			if(cl == 0)
 				return 0;
-			sprint(up->genbuf, "%d", cl->clientid);
-			mkqid(&q, (s<<QSHIFT)|Q3rd, 0, QTDIR);
-			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
+			sprint(buf, "%d", cl->clientid);
+			q = (Qid){CHDIR|(s<<QSHIFT)|Q3rd, 0};
+			devdir(c, q, buf, 0, eve, 0555, dp);
 			return 1;
 		}
 		else
@@ -256,24 +256,23 @@ drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	/*
 	 * Third level.
 	 */
-	path = c->qid.path&~((1<<QSHIFT)-1);	/* slot component */
+	path = c->qid.path&~(CHDIR|((1<<QSHIFT)-1));	/* slot component */
 	q.vers = c->qid.vers;
-	q.type = QTFILE;
 	switch(s){
 	case 0:
-		q.path = path|Qcolormap;
+		q = (Qid){path|Qcolormap, c->qid.vers};
 		devdir(c, q, "colormap", 0, eve, 0600, dp);
 		break;
 	case 1:
-		q.path = path|Qctl;
+		q = (Qid){path|Qctl, c->qid.vers};
 		devdir(c, q, "ctl", 0, eve, 0600, dp);
 		break;
 	case 2:
-		q.path = path|Qdata;
+		q = (Qid){path|Qdata, c->qid.vers};
 		devdir(c, q, "data", 0, eve, 0600, dp);
 		break;
 	case 3:
-		q.path = path|Qrefresh;
+		q = (Qid){path|Qrefresh, c->qid.vers};
 		devdir(c, q, "refresh", 0, eve, 0400, dp);
 		break;
 	default:
@@ -304,13 +303,14 @@ drawrefreshscreen(DImage *l, Client *client)
 
 static
 void
-drawrefresh(Memimage*, Rectangle r, void *v)
+drawrefresh(Memimage *l, Rectangle r, void *v)
 {
 	Refx *x;
 	DImage *d;
 	Client *c;
 	Refresh *ref;
 
+	USED(l);
 	if(v == 0)
 		return;
 	x = v;
@@ -368,8 +368,7 @@ addflush(Rectangle r)
 		return;
 	}
 	/* emit current state */
-	if(flushrect.min.x < flushrect.max.x)
-		flushmemscreen(flushrect);
+	flushmemscreen(flushrect);
 	flushrect = r;
 	waste = 0;
 }
@@ -396,11 +395,11 @@ dstflush(int dstid, Memimage *dst, Rectangle r)
 	addflush(r);
 }
 
+static
 void
 drawflush(void)
 {
-	if(flushrect.min.x < flushrect.max.x)
-		flushmemscreen(flushrect);
+	flushmemscreen(flushrect);
 	flushrect = Rect(10000, 10000, -10000, -10000);
 }
 
@@ -862,7 +861,7 @@ initscreenimage(void)
 	}
 
 	screenimage->width = width;
-	screenimage->clipr = r;
+	screenimage->clipr  = screenimage->r;
 	return 1;
 }
 
@@ -889,18 +888,18 @@ drawattach(char *spec)
 	return devattach('i', spec);
 }
 
-Walkqid*
-drawwalk(Chan *c, Chan *nc, char **name, int nname)
+int
+drawwalk(Chan *c, char *name)
 {
 	if(screendata.bdata == nil)
 		error("no frame buffer");
-	return devwalk(c, nc, name, nname, 0, 0, drawgen);
+	return devwalk(c, name, 0, 0, drawgen);
 }
 
-static int
-drawstat(Chan *c, uchar *db, int n)
+static void
+drawstat(Chan *c, char *db)
 {
-	return devstat(c, db, n, 0, 0, drawgen);
+	devstat(c, db, 0, 0, drawgen);
 }
 
 static Chan*
@@ -908,10 +907,8 @@ drawopen(Chan *c, int omode)
 {
 	Client *cl;
 
-	if(c->qid.type & QTDIR){
-		c = devopen(c, omode, 0, 0, drawgen);
-		c->iounit = IOUNIT;
-	}
+	if(c->qid.path & CHDIR)
+		return devopen(c, omode, 0, 0, drawgen);
 
 	qlock(&sdraw);
 	if(waserror()){
@@ -951,7 +948,6 @@ drawopen(Chan *c, int omode)
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
-	c->iounit = IOUNIT;
 	return c;
 }
 
@@ -963,7 +959,7 @@ drawclose(Chan *c)
 	Client *cl;
 	Refresh *r;
 
-	if(QID(c->qid) < Qcolormap)	/* Qtopdir, Qnew, Q3rd, Q2nd have no client */
+	if(c->qid.path & CHDIR)
 		return;
 	qlock(&sdraw);
 	if(waserror()){
@@ -1017,7 +1013,8 @@ drawread(Chan *c, void *a, long n, vlong off)
 	ulong offset = off;
 	char buf[16];
 
-	if(c->qid.type & QTDIR)
+	USED(offset);
+	if(c->qid.path & CHDIR)
 		return devdirread(c, a, n, 0, 0, drawgen);
 	cl = drawclient(c);
 	qlock(&sdraw);
@@ -1123,13 +1120,15 @@ drawwakeall(void)
 }
 
 static long
-drawwrite(Chan *c, void *a, long n, vlong)
+drawwrite(Chan *c, void *a, long n, vlong off)
 {
 	char buf[128], *fields[4], *q;
 	Client *cl;
 	int i, m, red, green, blue, x;
+	ulong offset = off;
 
-	if(c->qid.type & QTDIR)
+	USED(offset);
+	if(c->qid.path & CHDIR)
 		error(Eisdir);
 	cl = drawclient(c);
 	qlock(&sdraw);
@@ -1161,7 +1160,7 @@ drawwrite(Chan *c, void *a, long n, vlong)
 			a = (char*)a + i;
 			m -= i;
 			*q = 0;
-			if(tokenize(buf, fields, nelem(fields)) != 4)
+			if(getfields(buf, fields, nelem(fields), 1, " ") != 4)
 				error(Ebadarg);
 			i = strtoul(fields[0], 0, 0);
 			red = strtoul(fields[1], 0, 0);
@@ -1226,7 +1225,7 @@ printmesg(char *fmt, uchar *a, int plsprnt)
 	char *p, *q;
 	int s;
 
-	if(1|| plsprnt==0){
+	if(1 || plsprnt==0){
 		SET(s,q,p);
 		USED(fmt, a, buf, p, q, s);
 		return;
@@ -1294,7 +1293,7 @@ drawmesg(Client *client, void *av, int n)
 	fmt = nil;
 	if(waserror()){
 		if(fmt) printmesg(fmt, a, 1);
-	/*	iprint("error: %s\n", up->errstr);	*/
+	/*	iprint("error: %s\n", up->error);	*/
 		nexterror();
 	}
 	while((n-=m) > 0){
@@ -1510,10 +1509,8 @@ drawmesg(Client *client, void *av, int n)
 				error(Enodrawimage);
 			if(font->image->layer)
 				error("can't use window as font");
-			ni = BGLONG(a+5);
-			if(ni<=0 || ni>4096)
-				error("bad font size (4096 chars max)");
 			free(font->fchar);	/* should we complain if non-zero? */
+			ni = BGLONG(a+5);
 			font->fchar = malloc(ni*sizeof(FChar));
 			if(font->fchar == 0)
 				error("no memory for font");
@@ -1926,8 +1923,8 @@ Dev drawdevtab = {
 
 	devreset,
 	devinit,
-	devshutdown,
 	drawattach,
+	devclone,
 	drawwalk,
 	drawstat,
 	drawopen,

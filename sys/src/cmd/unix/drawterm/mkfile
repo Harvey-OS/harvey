@@ -1,14 +1,5 @@
-#CONF=FreeBSD
-#CONF=FreeBSD-power	# MAC OSX
-#CONF=Irix
-#CONF=Linux
-#CONF=OSF1
-#CONF=Solaris
-#CONF=Solaris-386
-#CONF=Solaris-sparc
 #CONF=Windows
-#DSRC=/n/emelie/sys/src/cmd/unix/drawterm
-DSRC=.
+DSRC=/n/emelie/sys/src/cmd/unix/drawterm
 BIN=$DSRC/bin
 
 <$DSRC/mkfile-$CONF

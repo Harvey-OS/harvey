@@ -1,0 +1,18 @@
+#!/bin/rc
+
+echo
+echo 'Insert a disk other than your installation boot disk'
+echo 'into your floppy drive; it will be erased to create'
+echo 'the boot floppy.'
+echo
+echo -n 'Press enter when ready.'
+read >/dev/null >[2]/dev/null
+
+log Formatting boot floppy
+disk/format -b /386/pbs \
+	-d $adisk /386/9load /n/kfs/386/9pcdisk.gz \
+	/tmp/plan9ini.bak
+
+echo 
+echo 'Done!'
+echo

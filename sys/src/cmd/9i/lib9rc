@@ -1,0 +1,74 @@
+# what to do after touching 9.out.h
+
+cd /sys/src/libmach
+mk clean
+mk install
+mk clean
+
+cd /sys/src/cmd/9c
+rc mkenam
+mk clean
+mk install
+mk clean
+
+cd /sys/src/cmd/9l
+mk clean
+mk install
+mk clean
+
+cd /sys/src/cmd/9a
+mk clean
+mk install
+mk clean
+
+cd /sys/src/cmd
+rm -f v.ar v.nm v.file ar.v nm.v file.v ar nm file
+mk ar.install
+mk nm.install
+mk file.install
+rm -f v.ar v.nm v.file ar.v nm.v file.v ar nm file
+
+rm -f /29000/lib/libc.a
+
+cd /sys/src/libc/port
+rm -f *.9
+9c *.c
+rm -f plumbing.9
+ar u /29000/lib/libc.a *.9
+rm -f *.9
+
+cd /sys/src/libc/9sys
+rm -f *.9
+9c *.c
+ar u /29000/lib/libc.a *.9
+rm -f *.9
+
+cd /sys/src/libc/9syscall
+rm -f *.9
+objtype=29000 mk
+rm -f *.9
+
+cd /sys/src/libc/29000
+rm -f *.9
+9a *.s
+9c *.c
+ar u /29000/lib/libc.a *.9
+rm -f *.9
+
+rm -f /29000/lib/libbio.a
+
+cd /sys/src/libbio
+rm -f *.9
+9c *.c
+ar vu /29000/lib/libbio.a *.9
+rm -f *.9
+
+cd /sys/src/cmd/9i
+mk clean
+mk install
+mk clean
+
+cd /sys/src/cmd/9i
+9c phw.c
+9l phw.9
+echo :r | 9i

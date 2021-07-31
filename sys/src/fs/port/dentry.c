@@ -23,7 +23,7 @@ accessdir(Iobuf *p, Dentry *d, int f, int uid)
 			d->atime = t;
 		if(f & FWRITE) {
 			d->mtime = t;
-			d->muid = uid;
+			d->wuid = uid;
 			d->qid.version++;
 		}
 	}

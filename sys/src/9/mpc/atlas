@@ -1,0 +1,43 @@
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	mntstats
+	srv
+	dup
+	rtc
+	ssl
+
+	ether		netif
+	ip		chandial ip ipaux iproute arp nullmedium pktmedium netlog inferno nullmedium pktmedium ptclbsum
+	uart
+
+link
+	etherscc
+	ethermedium
+
+misc
+#	archgeneric
+	netif
+
+	sh.root
+	ls.root
+
+ip
+	il
+	tcp
+	udp
+	ipifc
+	icmp
+	gre
+	ipmux
+	rudp
+
+port
+	int cpuserver = 1;
+
+boot cpu
+	il

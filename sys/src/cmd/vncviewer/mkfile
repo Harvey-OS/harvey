@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+TARG=vncviewer
+
+OFILES=\
+	auth.$O\
+	color.$O\
+	dial.$O\
+	draw.$O\
+	kbd_vwr.$O\
+	proto.$O\
+	vncviewer.$O\
+	wsys.$O\
+
+HFILES=vnc.h\
+	vncv.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

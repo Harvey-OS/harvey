@@ -7,11 +7,22 @@
 #include	"ureg.h"
 #include	"../port/error.h"
 
-Intrregs *intrregs;
+struct Intrregs
+{
+	ulong	icip;	/* pending IRQs */
+	ulong	icmr;	/* IRQ mask */
+	ulong	iclr;	/* IRQ if bit == 0, FRIQ if 1 */
+	ulong	iccr;	/* control register */
+	ulong	icfp;	/* pending FIQs */
+	ulong	dummy1[3];
+	ulong	icpr;	/* pending interrupts */
+};
+
+struct Intrregs *intrregs;
 
 typedef struct Vctl {
 	Vctl*	next;			/* handlers on this vector */
-	char	*name;		/* of driver, xallocated */
+	char	name[NAMELEN];		/* of driver */
 	void	(*f)(Ureg*, void*);	/* handler to call */
 	void*	a;			/* argument to call it with */
 } Vctl;
@@ -38,24 +49,8 @@ void (*doze)(void);
 static void	irq(Ureg*);
 static void	gpiointr(Ureg*, void*);
 
-/* recover state after power suspend
- * NB: to help debugging bad suspend code,
- *     I changed some prints below to iprints,
- *     to avoid deadlocks when a panic is being
- *     issued during the suspend/resume handler.
- */
-void
-trapresume(void)
-{
-	vpage0 = (Vpage0*)EVECTORS;
-	memmove(vpage0->vectors, vectors, sizeof(vpage0->vectors));
-	memmove(vpage0->vtable, vtable, sizeof(vpage0->vtable));
-	wbflush();
-	mappedIvecEnable();
-}
-
 /*
- *  set up for exceptions
+ *  set up for exceptioons
  */
 void
 trapinit(void)
@@ -98,7 +93,7 @@ trapinit(void)
 void
 trapdump(char *tag)
 {
-	iprint("%s: icip %lux icmr %lux iclr %lux iccr %lux icfp %lux\n",
+	print("%s: icip %lux icmr %lux iclr %lux iccr %lux icfp %lux\n",
 		tag, intrregs->icip, intrregs->icmr, intrregs->iclr,
 		intrregs->iccr, intrregs->icfp);
 }
@@ -121,7 +116,7 @@ warnregs(Ureg *ur, char *tag)
 		ur->r8, ur->r9, ur->r10, ur->r11);
 	seprint(p, e, "r12 0x%.8lux r13 0x%.8lux r14 0x%.8lux\n",
 		ur->r12, ur->r13, ur->r14);
-	iprint("%s", buf);
+	print("%s", buf);
 }
 
 /*
@@ -138,8 +133,8 @@ irqenable(int irq, IntrHandler *f, void* a, char *name)
 	v = xalloc(sizeof(Vctl));
 	v->f = f;
 	v->a = a;
-	v->name = xalloc(strlen(name)+1);
-	strcpy(v->name, name);
+	strncpy(v->name, name, NAMELEN-1);
+	v->name[NAMELEN-1] = 0;
 
 	lock(&vctllock);
 	v->next = vctl[irq];
@@ -177,8 +172,8 @@ intrenable(int type, int which, IntrHandler *f, void* a, char *name)
 	v = xalloc(sizeof(Vctl));
 	v->f = f;
 	v->a = a;
-	v->name = xalloc(strlen(name)+1);
-	strcpy(v->name, name);
+	strncpy(v->name, name, NAMELEN-1);
+	v->name[NAMELEN-1] = 0;
 
 	lock(&vctllock);
 	v->next = gpiovctl[which];
@@ -211,12 +206,8 @@ static void
 faultarm(Ureg *ureg, ulong va, int user, int read)
 {
 	int n, insyscall;
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 
-	if (up == nil) {
-		warnregs(ureg, "kernel fault");
-		panic("fault: nil up in faultarm, accessing 0x%lux\n", va);
-	}
 	insyscall = up->insyscall;
 	up->insyscall = 1;
 	n = fault(va, read);
@@ -259,18 +250,15 @@ trap(Ureg *ureg)
 	ulong inst;
 	int user, x, rv;
 	ulong va, fsr;
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	int rem;
 
 	if(up != nil)
 		rem = ((char*)ureg)-up->kstack;
 	else
 		rem = ((char*)ureg)-((char*)(MACHADDR+sizeof(Mach)));
-	if(rem < 256) {
-		dumpstack();
-		panic("trap %d bytes remaining, up = 0x%lux, ureg = 0x%lux, at pc 0x%lux",
-			rem, up, ureg, ureg->pc);
-	}
+	if(rem < 256)
+		panic("trap %d bytes remaining", rem);
 
 	user = (ureg->psr & PsrMask) == PsrMusr;
 
@@ -319,7 +307,7 @@ trap(Ureg *ureg)
 		case 0xa:
 		case 0xc:
 		case 0xe:
-			panic("external abort 0x%lux pc 0x%lux addr 0x%lux\n", fsr, ureg->pc, va);
+			panic("external abort 0x%ux pc 0x%lux addr 0x%lux\n", fsr, ureg->pc, va);
 			break;
 		case 0x5:
 		case 0x7:
@@ -345,8 +333,8 @@ trap(Ureg *ureg)
 		}
 		break;
 	case PsrMund:	/* undefined instruction */
+		/* start of Inferno code [SJM] */
 		if (user) {
-			/* look for floating point instructions to interpret */
 			x = spllo();
 			rv = fpiarm(ureg);
 			splx(x);
@@ -358,6 +346,7 @@ trap(Ureg *ureg)
 			warnregs(ureg, "undefined instruction");
 			panic("undefined instruction");
 		}
+		/* end of Inferno code [SJM] */
 		break;
 	}
 
@@ -426,14 +415,12 @@ gpiointr(Ureg *ur, void*)
 void
 syscall(Ureg* ureg)
 {
-	char *e;
 	ulong	sp;
 	long	ret;
 	int	i, scallnr;
 
-	if((ureg->psr & PsrMask) != PsrMusr) {
-		panic("syscall: pc 0x%lux r14 0x%lux cs 0x%lux\n", ureg->pc, ureg->r14, ureg->psr);
-	}
+	if((ureg->psr & PsrMask) != PsrMusr)
+		panic("syscall: pc 0x%lux r14 0x%lux cs 0x%ux\n", ureg->pc, ureg->r14, ureg->psr);
 
 	m->syscall++;
 	up->insyscall = 1;
@@ -463,11 +450,6 @@ syscall(Ureg* ureg)
 
 		ret = systab[scallnr](up->s.args);
 		poperror();
-	}else{
-		/* failure: save the error buffer for errstr */
-		e = up->syserrstr;
-		up->syserrstr = up->errstr;
-		up->errstr = e;
 	}
 	if(up->nerrlab){
 		print("bad errstack [%d]: %d extra\n", scallnr, up->nerrlab);
@@ -549,7 +531,7 @@ noted(Ureg* ureg, ulong arg0)
 			pexit("Suicide", 0);
 		}
 		qunlock(&up->debug);
-		sp = oureg-4*BY2WD-ERRMAX;
+		sp = oureg-4*BY2WD-ERRLEN;
 		splhi();
 		ureg->sp = sp;
 		((ulong*)sp)[1] = oureg;	/* arg 1 0(FP) is ureg* */
@@ -593,8 +575,8 @@ notify(Ureg* ureg)
 	n = &up->note[0];
 	if(strncmp(n->msg, "sys:", 4) == 0){
 		l = strlen(n->msg);
-		if(l > ERRMAX-15)	/* " pc=0x12345678\0" */
-			l = ERRMAX-15;
+		if(l > ERRLEN-15)	/* " pc=0x12345678\0" */
+			l = ERRLEN-15;
 		sprint(n->msg+l, " pc=0x%.8lux", ureg->pc);
 	}
 
@@ -619,7 +601,7 @@ notify(Ureg* ureg)
 	sp -= sizeof(Ureg);
 
 	if(!okaddr((ulong)up->notify, 1, 0)
-	|| !okaddr(sp-ERRMAX-4*BY2WD, sizeof(Ureg)+ERRMAX+4*BY2WD, 1)){
+	|| !okaddr(sp-ERRLEN-4*BY2WD, sizeof(Ureg)+ERRLEN+4*BY2WD, 1)){
 		pprint("suicide: bad address in notify\n");
 		qunlock(&up->debug);
 		pexit("Suicide", 0);
@@ -629,8 +611,8 @@ notify(Ureg* ureg)
 	memmove((Ureg*)sp, ureg, sizeof(Ureg));
 	*(Ureg**)(sp-BY2WD) = up->ureg;	/* word under Ureg is old up->ureg */
 	up->ureg = (void*)sp;
-	sp -= BY2WD+ERRMAX;
-	memmove((char*)sp, up->note[0].msg, ERRMAX);
+	sp -= BY2WD+ERRLEN;
+	memmove((char*)sp, up->note[0].msg, ERRLEN);
 	sp -= 3*BY2WD;
 	*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
 	*(ulong*)(sp+1*BY2WD) = (ulong)up->ureg;	/* arg 1 is ureg* */
@@ -769,12 +751,10 @@ _dumpstack(Ureg *ureg)
 	ulong *p;
 	extern ulong etext;
 
-	if(up == 0){
-		iprint("no current proc\n");
+	if(up == 0)
 		return;
-	}
 
-	iprint("ktrace /kernel/path %.8lux %.8lux %.8lux\n", ureg->pc, ureg->sp, ureg->r14);
+	print("ktrace /kernel/path %.8lux %.8lux %.8lux\n", ureg->pc, ureg->sp, ureg->r14);
 	i = 0;
 	for(l=(ulong)&l; l<(ulong)(up->kstack+KSTACK); l+=4){
 		v = *(ulong*)l;
@@ -782,17 +762,17 @@ _dumpstack(Ureg *ureg)
 			v -= 4;
 			p = (ulong*)v;
 			if((*p & 0x0f000000) == 0x0b000000){
-				iprint("%.8lux=%.8lux ", l, v);
+				print("%.8lux=%.8lux ", l, v);
 				i++;
 			}
 		}
 		if(i == 4){
 			i = 0;
-			iprint("\n");
+			print("\n");
 		}
 	}
 	if(i)
-		iprint("\n");
+		print("\n");
 }
 
 void

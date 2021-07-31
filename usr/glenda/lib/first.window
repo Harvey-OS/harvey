@@ -1,5 +1,11 @@
 #!/bin/rc
 echo -n readme > /dev/label
-cat readme.rio
-exec rc -i
+echo 'You have completed the Installation Process.'
 
+cat<<'!'
+
+Welcome to Plan 9.
+This is rc.
+!
+
+exec rc

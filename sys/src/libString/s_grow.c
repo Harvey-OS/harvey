@@ -10,7 +10,7 @@ s_grow(String *s, int incr)
 	int size;
 
 	if(s->fixed)
-		sysfatal("s_grow of constant string");
+		sysfatal("s_grow of contant string");
 	s = s_unique(s);
 
 	/*

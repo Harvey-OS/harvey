@@ -6,6 +6,7 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
+#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -23,7 +24,6 @@ enum
 	Move,
 	Scroll,
 	Noscroll,
-	Set,
 	Top,
 	Bottom,
 	Current,
@@ -38,7 +38,6 @@ static char *cmds[] = {
 	[Move]	= "move",
 	[Scroll]	= "scroll",
 	[Noscroll]	= "noscroll",
-	[Set]		= "set",
 	[Top]	= "top",
 	[Bottom]	= "bottom",
 	[Current]	= "current",
@@ -51,7 +50,6 @@ static char *cmds[] = {
 enum
 {
 	Cd,
-	Hidden,
 	Id,
 	Minx,
 	Miny,
@@ -66,7 +64,6 @@ enum
 static char *params[] = {
 	[Cd]	 	= "-cd",
 	[Id]		= "-id",
-	[Hidden]	= "-hide",
 	[Minx]	= "-minx",
 	[Miny]	= "-miny",
 	[Maxx]	= "-maxx",
@@ -186,13 +183,11 @@ riostrtol(char *s, char **t)
 
 
 int
-parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hiddenp, char **cdp, char *s, char *err)
+parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, char **cdp, char *s, char *err)
 {
 	int cmd, param, xy, sign;
 	char *t;
 
-	*pidp = 0;
-	*hiddenp = 0;
 	*cdp = nil;
 	cmd = word(&s, cmds);
 	if(cmd < 0){
@@ -204,10 +199,6 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hid
 
 	strcpy(err, "missing or bad wctl parameter");
 	while((param = word(&s, params)) >= 0){
-		if(param == Hidden){
-			*hiddenp = 1;
-			continue;
-		}
 		if(param == R){
 			r.min.x = riostrtol(s, &t);
 			if(t == s)
@@ -297,7 +288,7 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hid
 }
 
 int
-wctlnew(Rectangle rect, char *arg, int pid, int hideit, char *dir, char *err)
+wctlnew(Rectangle rect, char *arg, char *dir, char *err)
 {
 	char **argv;
 	Image *i;
@@ -318,17 +309,14 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, char *dir, char *err)
 		argv[2] = arg;
 		argv[3] = nil;
 	}
-	if(hideit)
-		i = allocimage(display, rect, screen->chan, 0, DWhite);
-	else
-		i = allocwindow(wscreen, rect, Refbackup, DWhite);
+	i = allocwindow(wscreen, rect, Refbackup, DWhite);
 	if(i == nil){
 		strcpy(err, Ewalloc);
 		return -1;
 	}
 	border(i, rect, Selborder, red, ZP);
 
-	new(i, hideit, pid, dir, "/bin/rc", argv);
+	new(i, 0, dir, "/bin/rc", argv);
 
 	free(argv);	/* when new() returns, argv and args have been copied */
 	return 1;
@@ -337,7 +325,7 @@ wctlnew(Rectangle rect, char *arg, int pid, int hideit, char *dir, char *err)
 int
 writewctl(Xfid *x, char *err)
 {
-	int cnt, cmd, j, id, hideit, pid;
+	int cnt, cmd, j, id;
 	Image *i;
 	char *arg, *dir;
 	Rectangle rect;
@@ -349,7 +337,7 @@ writewctl(Xfid *x, char *err)
 	id = 0;
 
 	rect = rectsubpt(w->screenr, screen->r.min);
-	cmd = parsewctl(&arg, rect, &rect, &pid, &id, &hideit, &dir, x->data, err);
+	cmd = parsewctl(&arg, rect, &rect, nil, &id, &dir, x->data, err);
 	if(cmd < 0)
 		return -1;
 
@@ -375,11 +363,7 @@ writewctl(Xfid *x, char *err)
 
 	switch(cmd){
 	case New:
-		return wctlnew(rect, arg, pid, hideit, dir, err);
-	case Set:
-		if(pid > 0)
-			wsetpid(w, pid, 0);
-		return 1;
+		return wctlnew(rect, arg, dir, err);
 	case Move:
 		rect = Rect(rect.min.x, rect.min.y, rect.min.x+Dx(w->screenr), rect.min.y+Dy(w->screenr));
 		rect = rectonscreen(rect);
@@ -403,6 +387,7 @@ writewctl(Xfid *x, char *err)
 		w->scrolling = 1;
 		wshow(w, w->nr);
 		wsendctlmesg(w, Wakeup, ZR, nil);
+		flushimage(display, 1);
 		return 1;
 	case Noscroll:
 		w->scrolling = 0;
@@ -454,9 +439,9 @@ void
 wctlthread(void *v)
 {
 	char *buf, *arg, *dir;
-	int cmd, id, pid, hideit;
+	int cmd, id;
 	Rectangle rect;
-	char err[ERRMAX];
+	char err[ERRLEN];
 	Channel *c;
 
 	c = v;
@@ -465,11 +450,11 @@ wctlthread(void *v)
 
 	for(;;){
 		buf = recvp(c);
-		cmd = parsewctl(&arg, ZR, &rect, &pid, &id, &hideit, &dir, buf, err);
+		cmd = parsewctl(&arg, ZR, &rect, nil, &id, &dir, buf, err);
 
 		switch(cmd){
 		case New:
-			wctlnew(rect, arg, pid, hideit, dir, err);
+			wctlnew(rect, arg, dir, err);
 		}
 		free(buf);
 	}
@@ -487,8 +472,8 @@ wctlproc(void *v)
 
 	eofs = 0;
 	for(;;){
-		buf = emalloc(messagesize);
-		n = read(wctlfd, buf, messagesize-1);	/* room for \0 */
+		buf = emalloc(MAXFDATA+1);	/* +1 for terminal '\0' */
+		n = read(wctlfd, buf, MAXFDATA);
 		if(n < 0)
 			break;
 		if(n == 0){

@@ -22,7 +22,8 @@ main(int argc, char *argv[])
 {
 	char buf[100];
 	Tm *tm;
-	Waitmsg *w;
+	Dir dir;
+	Waitmsg w;
 	int i;
 
 	ndump = "dump";
@@ -51,29 +52,21 @@ main(int argc, char *argv[])
 
 	if(argc == 0) {
 	usage:
-		fprint(2, "usage: history [-vuD] [-d 9fsname] [-s yyyymmdd] files\n");
+		fprint(2, "usage: history [-vuD] [-d 9fsname] [-s yymmdd] files\n");
 		exits(0);
 	}
 
 	tm = localtime(time(0));
 	sprint(buf, "/n/%s/%.4d/", ndump, tm->year+1900);
-	if(access(buf, AREAD) < 0) {
+	if(dirstat(buf, &dir)) {
 		if(verb)
 			print("mounting dump\n");
 		if(rfork(RFFDG|RFPROC) == 0) {
 			execl("/bin/rc", "rc", "9fs", ndump, 0);
 			exits(0);
 		}
-		w = wait();
-		if(w == nil){
-			fprint(2, "history: wait error: %r\n");
-			exits("wait");
-		}
-		if(w->msg[0] != '\0'){
-			fprint(2, "9fs failed: %s\n", w->msg);
-			exits(w->msg);
-		}
-		free(w);
+		while(wait(&w) != -1)
+			;
 	}
 
 	for(i=0; i<argc; i++)
@@ -85,41 +78,30 @@ void
 ysearch(char *file)
 {
 	char fil[400], buf[500], pair[2][500];
-	Dir *dir;
+	Dir dir;
 	ulong otime, dt;
 	int toggle, started;
 
-	started = 0;
-	dir = dirstat(file);
-	if(dir == nil)
-		fprint(2, "history: warning: %s does not exist\n", file);
-	else{
-		print("%s %s %lld [%s]\n", prtime(dir->mtime), file, dir->length, dir->muid);
-		started = 1;
-		strcpy(pair[1], file);
-	}
-	free(dir);
 	fil[0] = 0;
 	if(file[0] != '/') {
 		getwd(strchr(fil, 0), 100);
 		strcat(fil, "/");
 	}
 	strcat(fil, file);
-	otime = starttime(sflag);
+	dir.mtime = starttime(sflag);
+	started = 0;
 	toggle = 0;
 	for(;;) {
+		otime = dir.mtime;
 		lastbefore(otime, fil, buf);
-		dir = dirstat(buf);
-		if(dir == nil)
+		if(dirstat(buf, &dir))
 			return;
 		dt = HOUR(12);
-		while(otime <= dir->mtime) {
+		while(otime <= dir.mtime) {
 			if(verb)
-				print("backup %ld, %ld\n", dir->mtime, otime-dt);
+				print("backup %ld, %ld\n", dir.mtime, otime-dt);
 			lastbefore(otime-dt, fil, buf);
-			free(dir);
-			dir = dirstat(buf);
-			if(dir == nil)
+			if(dirstat(buf, &dir))
 				return;
 			dt += HOUR(12);
 		}
@@ -137,15 +119,14 @@ ysearch(char *file)
 				fprint(2, "can't fork diff: %r\n");
 				break;
 			default:
-				while(waitpid() != -1)
+				while(wait(nil) != -1)
 					;
 				break;
 			}
 		}
-		print("%s %s %lld [%s]\n", prtime(dir->mtime), buf, dir->length, dir->muid);
+		print("%s %s %lld\n", prtime(dir.mtime), buf, dir.length);
 		toggle ^= 1;
 		started = 1;
-		otime = dir->mtime;
 	}
 }
 
@@ -153,41 +134,30 @@ void
 lastbefore(ulong t, char *f, char *b)
 {
 	Tm *tm;
-	Dir *dir;
+	Dir dir;
 	int vers, try;
-	ulong t0, mtime;
+	ulong t0;
 
 	t0 = t;
 	if(verb)
 		print("%ld lastbefore %s\n", t0, f);
-	mtime = 0;
 	for(try=0; try<10; try++) {
 		tm = localtime(t);
 		sprint(b, "/n/%s/%.4d/%.2d%.2d", ndump,
 			tm->year+1900, tm->mon+1, tm->mday);
-		dir = dirstat(b);
-		if(dir){
-			mtime = dir->mtime;
-			free(dir);
-		}
-		if(dir==nil || mtime > t0) {
+		if(dirstat(b, &dir) || dir.mtime > t0) {
 			if(verb)
-				print("%ld earlier %s\n", mtime, b);
+				print("%ld earlier %s\n", dir.mtime, b);
 			t -= HOUR(24);
 			continue;
 		}
 		for(vers=0;; vers++) {
 			sprint(b, "/n/%s/%.4d/%.2d%.2d%d", ndump,
 				tm->year+1900, tm->mon+1, tm->mday, vers+1);
-			dir = dirstat(b);
-			if(dir){
-				mtime = dir->mtime;
-				free(dir);
-			}
-			if(dir==nil || mtime > t0)
+			if(dirstat(b, &dir) || dir.mtime > t0)
 				break;
 			if(verb)
-				print("%ld later %s\n", mtime, b);
+				print("%ld later %s\n", dir.mtime, b);
 		}
 		sprint(b, "/n/%s/%.4d/%.2d%.2d%s", ndump,
 			tm->year+1900, tm->mon+1, tm->mday, f);
@@ -226,26 +196,15 @@ starttime(char *s)
 	t = time(0);
 	if(s == 0)
 		return t;
-	for(i=0; s[i]; i++)
+	for(i=0; i<6; i++)
 		if(s[i] < '0' || s[i] > '9') {
 			fprint(2, "bad start time: %s\n", s);
 			return t;
 		}
-	if(strlen(s)==6){
-		yr = (s[0]-'0')*10 + s[1]-'0';
-		mo = (s[2]-'0')*10 + s[3]-'0' - 1;
-		da = (s[4]-'0')*10 + s[5]-'0';
-		if(yr < 70)
-			yr += 100;
-	}else if(strlen(s)==8){
-		yr = (((s[0]-'0')*10 + s[1]-'0')*10 + s[2]-'0')*10 + s[3]-'0';
-		yr -= 1900;
-		mo = (s[4]-'0')*10 + s[5]-'0' - 1;
-		da = (s[6]-'0')*10 + s[7]-'0';
-	}else{
-		fprint(2, "bad start time: %s\n", s);
-		return t;
-	}
+	yr = (s[0]-'0')*10 + s[1]-'0';
+	mo = (s[2]-'0')*10 + s[3]-'0' - 1;
+	da = (s[4]-'0')*10 + s[5]-'0';
+
 	t = 0;
 	dt = YEAR(10);
 	for(i=0; i<50; i++) {

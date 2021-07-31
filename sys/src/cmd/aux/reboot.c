@@ -50,10 +50,9 @@ void
 main(int argc, char **argv)
 {
 	int fd;
-	char buf[256];
+	char buf[DIRLEN];
 	char file[128];
 	char *p;
-	Dir *d;
 
 	switch(rfork(RFPROC|RFNOWAIT|RFNOTEG|RFCFDG)){
 	case 0:
@@ -72,7 +71,7 @@ main(int argc, char **argv)
 		file[0] = 0;
 		strcat(file, "/");
 		strcat(file, p);
-		strcat(file, "/lib");
+		strcat(file, "/init");
 	}
 
 	fd = open(file, OREAD);
@@ -85,10 +84,7 @@ main(int argc, char **argv)
 	for(;;){
 		alarm(1000*60*5);
 		alarmed = 0;
-
-		d = dirfstat(fd);
-		free(d);
-		if(d == nil)
+		if(fstat(fd, buf) < 0)
 			if(!alarmed)
 				reboot();
 		alarm(0);

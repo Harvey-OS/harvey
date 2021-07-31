@@ -3,14 +3,66 @@
 #include <ctype.h>
 #include <ip.h>
 
+static char*
+_nexttoken(char *p, char *buf, int len)
+{
+	int c;
+
+	while(isspace(*p))
+		p++;
+	for(;;p++){
+		c = *p;
+		if(isspace(c) || c == 0)
+			break;
+		if(len <= 1)
+			continue;
+		*buf++ = c;
+		len--;
+	}
+	*buf = 0;
+	return p;
+}
+
+static Ipifc**
+_insertifc(Ipifc **l, char *device, int mtu, uchar *ip, uchar *mask, uchar *ipnet, int index)
+{
+	Ipifc *ifc;
+
+	/* get next ipifc */
+	ifc = *l;
+	if(ifc == nil){
+		ifc = malloc(sizeof(Ipifc));
+		if(ifc == nil)
+			return l;
+		ifc->next = nil;
+		*l = ifc;
+	}
+
+	/* add to list */
+	strncpy(ifc->dev, device, sizeof(ifc->dev));
+	ifc->dev[sizeof(ifc->dev)-1] = 0;
+	ifc->mtu = mtu;
+	ifc->index = index;
+	ipmove(ifc->ip, ip);
+	ipmove(ifc->mask, mask);
+	ipmove(ifc->net, ipnet);
+	l = &ifc->next;
+
+	return l;
+}
+
 static Ipifc**
 _readipifc(char *file, Ipifc **l, int index)
 {
 	int i, n, fd;
 	char buf[4*1024];
-	char *f[200];
-	Ipifc *ifc;
-	Iplifc *lifc, **ll;
+	char device[64];
+	char token[64];
+	uchar ip[IPaddrlen];
+	uchar ipnet[IPaddrlen];
+	uchar mask[IPaddrlen];
+	int mtu;
+	char *p;
 
 	/* read the file */
 	fd = open(file, OREAD);
@@ -21,149 +73,84 @@ _readipifc(char *file, Ipifc **l, int index)
 		n += i;
 	buf[n] = 0;
 	close(fd);
-	n = tokenize(buf, f, nelem(f));
-	if(n < 2)
+
+	/* get device and mtu */
+	p = _nexttoken(buf, device, sizeof(device));
+	if(*device == 0)
 		return l;
-
-	/* allocate new interface */
-	*l = ifc = mallocz(sizeof(Ipifc), 1);
-	if(ifc == nil)
+	p = _nexttoken(p, token, sizeof(token));
+	if(*token == 0)
 		return l;
-	l = &ifc->next;
-	ifc->index = index;
-	i = 0;
+	mtu = atoi(token);
 
-	if(strcmp(f[i], "device") == 0){
-		/* new format */
-		i++;
-		strncpy(ifc->dev, f[i++], sizeof(ifc->dev));
-		ifc->dev[sizeof(ifc->dev)-1] = 0;
-		i++;
-		ifc->mtu = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->sendra6 = atoi(f[i++]);
-		i++;
-		ifc->recvra6 = atoi(f[i++]);
-		i++;
-		ifc->rp.mflag = atoi(f[i++]);
-		i++;
-		ifc->rp.oflag = atoi(f[i++]);
-		i++;
-		ifc->rp.maxraint = atoi(f[i++]);
-		i++;
-		ifc->rp.minraint = atoi(f[i++]);
-		i++;
-		ifc->rp.linkmtu = atoi(f[i++]);
-		i++;
-		ifc->rp.reachtime = atoi(f[i++]);
-		i++;
-		ifc->rp.rxmitra = atoi(f[i++]);
-		i++;
-		ifc->rp.ttl = atoi(f[i++]);
-		i++;
-		ifc->rp.routerlt = atoi(f[i++]);
-		i++;
-		ifc->pktin = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->pktout = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->errin = strtoul(f[i++], nil, 10);
-		i++;
-		ifc->errout = strtoul(f[i++], nil, 10);
-	
-		ll = &ifc->lifc;
-		while(n-i >= 5){
-			/* allocate new local address */
-			*ll = lifc = mallocz(sizeof(Iplifc), 1);
-			ll = &lifc->next;
-	
-			parseip(lifc->ip, f[i++]);
-			parseipmask(lifc->mask, f[i++]);
-			parseip(lifc->net, f[i++]);
-			lifc->validlt = strtoul(f[i++], nil, 10);
-			lifc->preflt = strtoul(f[i++], nil, 10);
-		}
-	} else {
-		/* old format */
-		strncpy(ifc->dev, f[i++], sizeof(ifc->dev));
-		ifc->dev[sizeof(ifc->dev)-1] = 0;
-		ifc->mtu = strtoul(f[i++], nil, 10);
+	for(i = 0; i < n; i++){
+		p = _nexttoken(p, token, sizeof(token));
+		if(*token == 0)
+			break;
+		parseip(ip, token);
+		p = _nexttoken(p, token, sizeof(token));
+		if(*token == 0)
+			break;
+		parseipmask(mask, token);
+		p = _nexttoken(p, token, sizeof(token));
+		if(*token == 0)
+			break;
+		parseip(ipnet, token);
 
-		ll = &ifc->lifc;
-		while(n-i >= 7){
-			/* allocate new local address */
-			*ll = lifc = mallocz(sizeof(Iplifc), 1);
-			ll = &lifc->next;
-	
-			parseip(lifc->ip, f[i++]);
-			parseipmask(lifc->mask, f[i++]);
-			parseip(lifc->net, f[i++]);
-			ifc->pktin = strtoul(f[i++], nil, 10);
-			ifc->pktout = strtoul(f[i++], nil, 10);
-			ifc->errin = strtoul(f[i++], nil, 10);
-			ifc->errout = strtoul(f[i++], nil, 10);
-		}
+		/* dump counts */
+		p = _nexttoken(p, token, sizeof(token));
+		p = _nexttoken(p, token, sizeof(token));
+		p = _nexttoken(p, token, sizeof(token));
+		p = _nexttoken(p, token, sizeof(token));
+
+		l = _insertifc(l, device, mtu, ip, mask, ipnet, index);
 	}
+
+	// make sure we have at least one entry to go with the device
+	if(i == 0)
+		l = _insertifc(l, device, mtu, IPnoaddr, IPnoaddr, IPnoaddr, index);
 
 	return l;
 }
 
-static void
-_freeifc(Ipifc *ifc)
-{
-	Ipifc *next;
-	Iplifc *lnext, *lifc;
-
-	if(ifc == nil)
-		return;
-	for(; ifc; ifc = next){
-		next = ifc->next;
-		for(lifc = ifc->lifc; lifc; lifc = lnext){
-			lnext = lifc->next;
-			free(lifc);
-		}
-		free(ifc);
-	}
-}
-
 Ipifc*
-readipifc(char *net, Ipifc *ifc, int index)
+readipifc(char *net, Ipifc *ifc)
 {
 	int fd, i, n;
-	Dir *dir;
+	Dir dir[32];
 	char directory[128];
 	char buf[128];
-	Ipifc **l;
-
-	_freeifc(ifc);
+	Ipifc **l, *nifc, *nnifc;
 
 	l = &ifc;
-	ifc = nil;
 
 	if(net == 0)
 		net = "/net";
 	snprint(directory, sizeof(directory), "%s/ipifc", net);
+	fd = open(directory, OREAD);
+	if(fd < 0)
+		goto out;
 
-	if(index >= 0){
-		snprint(buf, sizeof(buf), "%s/%d/status", directory, index);
-		_readipifc(buf, l, index);
-	} else {
-		fd = open(directory, OREAD);
-		if(fd < 0)
-			return nil;
-		n = dirreadall(fd, &dir);
-		close(fd);
-	
+	for(;;){
+		n = dirread(fd, dir, sizeof(dir));
+		if(n <= 0)
+			break;
+		n /= sizeof(Dir);
 		for(i = 0; i < n; i++){
 			if(strcmp(dir[i].name, "clone") == 0)
-				continue;
-			if(strcmp(dir[i].name, "stats") == 0)
 				continue;
 			snprint(buf, sizeof(buf), "%s/%s/status", directory, dir[i].name);
 			l = _readipifc(buf, l, atoi(dir[i].name));
 		}
-		free(dir);
 	}
+	close(fd);
+
+out:
+	for(nifc = *l; nifc != nil; nifc = nnifc){
+		nnifc = nifc->next;
+		free(nifc);
+	}
+	*l = nil;
 
 	return ifc;
 }

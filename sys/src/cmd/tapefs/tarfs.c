@@ -15,7 +15,7 @@
 
 union hblock {
 	char dummy[TBLOCK];
-	char tbuf[Maxbuf];
+	char tbuf[MAXFDATA];
 	struct header {
 		char name[TNAMSIZ];
 		char mode[8];

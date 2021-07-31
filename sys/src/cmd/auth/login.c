@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include <authsrv.h>
 
 void
 readln(char *prompt, char *line, int len, int raw)
@@ -79,9 +78,9 @@ setenv(char *var, char *val)
 void
 main(int argc, char *argv[])
 {
-	char pass[ANAMELEN];
-	char buf[2*ANAMELEN];
-	char home[2*ANAMELEN];
+	char pass[NAMELEN];
+	char buf[2*NAMELEN];
+	char home[2*NAMELEN];
 	char *user, *sysname, *tz, *cputype, *service;
 
 	service = getenv("service");

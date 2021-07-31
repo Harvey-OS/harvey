@@ -168,15 +168,6 @@ asmsym(void)
 	Auto *a;
 	Sym *s;
 	int h;
-	Relocsym *rs;
-	Reloc *r;
-
-	for(rs = relocs; rs != nil; rs = rs->link) {
-		if(rs->s != nil)
-			putsymb(rs->s->name, 'U', 0, 0);
-		for(r = rs->reloc; r != nil; r = r->link)
-			putsymb("", r->type, r->pc-INITTEXT, 0);
-	}
 
 	s = lookup("etext", 0);
 	if(s->type == STEXT)
@@ -507,77 +498,11 @@ bad:
 	return;
 }
 
-static Relocsym *
-genrelocsym(Sym *s, Relocsym**l)
-{
-	Relocsym *r;
-
-	*l = r = malloc(sizeof(Relocsym));
-	r->s = s;
-	r->reloc = nil;
-	r->link = nil;
-	return r;
-}
-
-static void
-genreloc(Sym *s, long pc, int type)
-{
-	Reloc *r;
-	Relocsym *rs, **l;
-
-	if(relocs == nil)
-		genrelocsym(nil, &relocs);
-	l = &relocs;
-	for(rs = *l; rs != nil; rs = *l) {
-		l = &rs->link;
-		if(rs->s == s)
-			break;
-	}
-	if(rs == nil)
-		rs = genrelocsym(s, l);
-	r = malloc(sizeof(Reloc));
-	r->type = type;
-	r->pc = pc;
-	r->link = rs->reloc;
-	rs->reloc = r;
-}
-
-void
-wreloc(Sym *s, long pc)
-{
-	switch(s->type) {
-	case SCONST:
-		break;
-	case SUNDEF:
-		genreloc(s, pc, 'R');
-		break;
-	default:
-		genreloc(nil, pc, 'R');
-		break;
-	}
-}
-
-static void
-put4(long v)
-{
-	if(reloca) {
-		if(curp != P)
-			wreloc(reloca->sym, curp->pc + andptr - &and[0]);
-		reloca = nil;
-	}
-	andptr[0] = v;
-	andptr[1] = v>>8;
-	andptr[2] = v>>16;
-	andptr[3] = v>>24;
-	andptr += 4;
-}
-
 long
 vaddr(Adr *a)
 {
 	int t;
 	long v;
-	Sym *s;
 
 	t = a->type;
 	v = a->offset;
@@ -586,19 +511,14 @@ vaddr(Adr *a)
 	switch(t) {
 	case D_STATIC:
 	case D_EXTERN:
-		s = a->sym;
-		if(s != nil) {
-			if(reloc)
-				reloca = a;
-			switch(s->type) {
-			case SUNDEF:
-				break;
+		if(a->sym) {
+			v += a->sym->value;
+			switch(a->sym->type) {
 			case STEXT:
 			case SCONST:
-				v += s->value;
 				break;
 			default:
-				v += INITDAT + s->value;
+				v += INITDAT;
 			}
 		}
 	}
@@ -620,7 +540,11 @@ asmand(Adr *a, int r)
 			if(t == D_NONE) {
 				*andptr++ = (0 << 6) | (4 << 0) | (r << 3);
 				asmidx(a, t);
-				put4(v);
+				andptr[0] = v;
+				andptr[1] = v>>8;
+				andptr[2] = v>>16;
+				andptr[3] = v>>24;
+				andptr += 4;
 				return;
 			}
 			if(v == 0) {
@@ -636,7 +560,11 @@ asmand(Adr *a, int r)
 			}
 			*andptr++ = (2 << 6) | (4 << 0) | (r << 3);
 			asmidx(a, t);
-			put4(v);
+			andptr[0] = v;
+			andptr[1] = v>>8;
+			andptr[2] = v>>16;
+			andptr[3] = v>>24;
+			andptr += 4;
 			return;
 		}
 		switch(t) {
@@ -666,8 +594,12 @@ asmand(Adr *a, int r)
 	if(t >= D_INDIR) {
 		t -= D_INDIR;
 		if(t == D_NONE) {
-			*andptr++ = (0 << 6) | (5 << 0) | (r << 3);
-			put4(v);
+			andptr[0] = (0 << 6) | (5 << 0) | (r << 3);
+			andptr[1] = v;
+			andptr[2] = v>>8;
+			andptr[3] = v>>16;
+			andptr[4] = v>>24;
+			andptr += 5;
 			return;
 		}
 		if(t == D_SP) {
@@ -684,7 +616,11 @@ asmand(Adr *a, int r)
 			}
 			*andptr++ = (2 << 6) | (4 << 0) | (r << 3);
 			asmidx(a, D_SP);
-			put4(v);
+			andptr[0] = v;
+			andptr[1] = v>>8;
+			andptr[2] = v>>16;
+			andptr[3] = v>>24;
+			andptr += 4;
 			return;
 		}
 		if(t >= D_AX && t <= D_DI) {
@@ -698,8 +634,12 @@ asmand(Adr *a, int r)
 				andptr += 2;
 				return;
 			}
-			*andptr++ = (2 << 6) | (reg[t] << 0) | (r << 3);
-			put4(v);
+			andptr[0] = (2 << 6) | (reg[t] << 0) | (r << 3);
+			andptr[1] = v;
+			andptr[2] = v>>8;
+			andptr[3] = v>>16;
+			andptr[4] = v>>24;
+			andptr += 5;
 			return;
 		}
 		goto bad;
@@ -985,64 +925,47 @@ found:
 
 	case Zil_rp:
 		*andptr++ = op + reg[p->to.type];
-		if(o->prefix == Pe) {
-			*andptr++ = v;
-			*andptr++ = v>>8;
-		}
-		else
-			put4(v);
-		break;
-
-	case Zib_rr:
-		*andptr++ = op;
-		asmand(&p->to, reg[p->to.type]);
 		*andptr++ = v;
+		*andptr++ = v>>8;
+		if(o->prefix != Pe) {
+			*andptr++ = v>>16;
+			*andptr++ = v>>24;
+		}
 		break;
 
 	case Z_il:
 		v = vaddr(&p->to);
 	case Zil_:
 		*andptr++ = op;
-		if(o->prefix == Pe) {
-			*andptr++ = v;
-			*andptr++ = v>>8;
+		*andptr++ = v;
+		*andptr++ = v>>8;
+		if(o->prefix != Pe) {
+			*andptr++ = v>>16;
+			*andptr++ = v>>24;
 		}
-		else
-			put4(v);
 		break;
 
 	case Zm_ilo:
 		v = vaddr(&p->to);
 		*andptr++ = op;
 		asmand(&p->from, o->op[z+1]);
-		if(o->prefix == Pe) {
-			*andptr++ = v;
-			*andptr++ = v>>8;
+		*andptr++ = v;
+		*andptr++ = v>>8;
+		if(o->prefix != Pe) {
+			*andptr++ = v>>16;
+			*andptr++ = v>>24;
 		}
-		else
-			put4(v);
 		break;
 
 	case Zilo_m:
 		*andptr++ = op;
 		asmand(&p->to, o->op[z+1]);
-		if(o->prefix == Pe) {
-			*andptr++ = v;
-			*andptr++ = v>>8;
+		*andptr++ = v;
+		*andptr++ = v>>8;
+		if(o->prefix != Pe) {
+			*andptr++ = v>>16;
+			*andptr++ = v>>24;
 		}
-		else
-			put4(v);
-		break;
-
-	case Zil_rr:
-		*andptr++ = op;
-		asmand(&p->to, reg[p->to.type]);
-		if(o->prefix == Pe) {
-			*andptr++ = v;
-			*andptr++ = v>>8;
-		}
-		else
-			put4(v);
 		break;
 
 	case Z_rp:
@@ -1081,17 +1004,6 @@ found:
 		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 5;
-			if(reloc && curp != P) {
-				switch(p->to.sym->type) {
-				case SUNDEF:
-					v = 0;
-					genreloc(p->to.sym, p->pc, 'P');
-					break;
-				case SCONST:
-					diag("Zcall: %P", curp);
-					break;
-				}
-			}
 			*andptr++ = op;
 			*andptr++ = v;
 			*andptr++ = v>>8;

@@ -170,13 +170,8 @@ enum {					/* CbTransmit count */
 	CbEOF		= 0x00008000,
 };
 
-typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
 	int	port;
-	Pcidev*	pcidev;
-	Ctlr*	next;
-	int	active;
-
 	int	eepromsz;		/* address size in bits */
 	ushort*	eeprom;
 
@@ -193,9 +188,6 @@ typedef struct Ctlr {
 	Block*	cbqtail;
 	int	cbqbusy;
 } Ctlr;
-
-static Ctlr* ctlrhead;
-static Ctlr* ctlrtail;
 
 static uchar configdata[24] = {
 	0x16,				/* byte count */
@@ -540,39 +532,42 @@ reread:
 	return data;
 }
 
+typedef struct Adapter {
+	int	port;
+	int	irq;
+	int	tbdf;
+} Adapter;
+static Block* adapter;
+
+static void
+i82557adapter(Block** bpp, int port, int irq, int tbdf)
+{
+	Block *bp;
+	Adapter *ap;
+
+	bp = allocb(sizeof(Adapter));
+	ap = (Adapter*)bp->rp;
+	ap->port = port;
+	ap->irq = irq;
+	ap->tbdf = tbdf;
+
+	bp->next = *bpp;
+	*bpp = bp;
+}
+
 static void
 i82557pci(void)
 {
 	Pcidev *p;
-	Ctlr *ctlr;
 
 	p = nil;
-	while(p = pcimatch(p, 0x8086, 0)){
-		switch(p->did){
-		default:
-			continue;
-		case 0x1209:		/* INtel 82559ER */
-		case 0x1229:		/* Intel 8255[789] */
-		case 0x1031:		/* Intel 82562EM */
-		case 0x2449:		/* Intel 82562ET */
-			break;
-		}
-
+	while(p = pcimatch(p, 0x8086, 0x1229)){
 		/*
 		 * bar[0] is the memory-mapped register address (4KB),
 		 * bar[1] is the I/O port register address (32 bytes) and
 		 * bar[2] is for the flash ROM (1MB).
 		 */
-		ctlr = malloc(sizeof(Ctlr));
-		ctlr->port = p->mem[1].bar & ~0x01;
-		ctlr->pcidev = p;
-
-		if(ctlrhead != nil)
-			ctlrtail->next = ctlr;
-		else
-			ctlrhead = ctlr;
-		ctlrtail = ctlr;
-
+		i82557adapter(&adapter, p->mem[1].bar & ~0x01, p->intl, p->tbdf);
 		pcisetbme(p);
 	}
 }
@@ -620,46 +615,54 @@ scanphy(Ctlr* ctlr)
 int
 i82557reset(Ether* ether)
 {
-	int anar, anlpar, bmcr, bmsr, force, i, phyaddr, x;
+	int anar, anlpar, bmcr, bmsr, force, i, phyaddr, port, x;
 	unsigned short sum;
-	Block *bp;
+	Block *bp, **bpp;
+	Adapter *ap;
 	uchar ea[Eaddrlen];
 	Ctlr *ctlr;
 	Cb *cb;
+	static int scandone;
 
-
-	if(ctlrhead == nil)
+	if(scandone == 0){
 		i82557pci();
+		scandone = 1;
+	}
 
 	/*
 	 * Any adapter matches if no ether->port is supplied,
 	 * otherwise the ports must match.
 	 */
-	for(ctlr = ctlrhead; ctlr != nil; ctlr = ctlr->next){
-		if(ctlr->active)
-			continue;
-		if(ether->port == 0 || ether->port == ctlr->port){
-			ctlr->active = 1;
+	port = 0;
+	bpp = &adapter;
+	for(bp = *bpp; bp; bp = bp->next){
+		ap = (Adapter*)bp->rp;
+		if(ether->port == 0 || ether->port == ap->port){
+			port = ap->port;
+			ether->irq = ap->irq;
+			ether->tbdf = ap->tbdf;
+			*bpp = bp->next;
+			freeb(bp);
 			break;
 		}
+		bpp = &bp->next;
 	}
-	if(ctlr == nil)
+	if(port == 0)
 		return -1;
 
 	/*
-	 * Initialise the Ctlr structure.
+	 * Allocate a controller structure and start to initialise it.
 	 * Perform a software reset after which need to ensure busmastering
 	 * is still enabled. The EtherExpress PRO/100B appears to leave
 	 * the PCI configuration alone (see the 'To do' list above) so punt
 	 * for now.
 	 * Load the RUB and CUB registers for linear addressing (0).
 	 */
-	ether->ctlr = ctlr;
-	ether->port = ctlr->port;
-	ether->irq = ctlr->pcidev->intl;
-	ether->tbdf = ctlr->pcidev->tbdf;
+	ether->ctlr = malloc(sizeof(Ctlr));
+	ctlr = ether->ctlr;
 	ctlr->ctlrno = ether->ctlrno;
 	ctlr->type = ether->type;
+	ctlr->port = port;
 
 	csr32w(ctlr, Port, 0);
 	delay(1);
@@ -698,29 +701,16 @@ i82557reset(Ether* ether)
 	 * to set any PHY specific options and determine the speed.
 	 * Unfortunately, sometimes the EEPROM is blank except for
 	 * the ether address and checksum; in this case look at the
-	 * controller type and if it's am 82558 or 82559 it has an
-	 * embedded PHY so scan for that.
+	 * controller type and if 0 scan for the first PHY and try to
+	 * use that.
 	 * If no PHY, assume 82503 (serial) operation.
 	 */
 	if((ctlr->eeprom[6] & 0x1F00) && !(ctlr->eeprom[6] & 0x8000))
 		phyaddr = ctlr->eeprom[6] & 0x00FF;
-	else
-	switch(ctlr->pcidev->rid){
-	case 0x01:			/* 82557 A-step */
-	case 0x02:			/* 82557 B-step */
-	case 0x03:			/* 82557 C-step */
-	default:
-		phyaddr = -1;
-		break;
-	case 0x04:			/* 82558 A-step */
-	case 0x05:			/* 82558 B-step */
-	case 0x06:			/* 82559 A-step */
-	case 0x07:			/* 82559 B-step */
-	case 0x08:			/* 82559 C-step */
-	case 0x09:			/* 82559ER A-step */
+	else if(!(ctlr->eeprom[5] & 0xFF00))
 		phyaddr = scanphy(ctlr);
-		break;
-	}
+	else
+		phyaddr = -1;
 	if(phyaddr >= 0){
 		/*
 		 * Resolve the highest common ability of the two
@@ -868,6 +858,7 @@ i82557reset(Ether* ether)
 	/*
 	 * Linkage to the generic ethernet driver.
 	 */
+	ether->port = port;
 	ether->attach = attach;
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;

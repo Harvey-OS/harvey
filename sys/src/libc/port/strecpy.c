@@ -10,8 +10,6 @@ strecpy(char *to, char *e, char *from)
 	if(to == nil){
 		to = e - 1;
 		*to = '\0';
-	}else{
-		to--;
 	}
 	return to;
 }

@@ -1,66 +1,87 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsfcmap.c,v 1.2 2000/03/10 07:03:09 lpd Exp $ */
+/*$Id: gsfcmap.c,v 1.8.2.2 2000/10/26 12:45:11 igorm Exp $ */
 /* CMap character decoding */
+#include "memory_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gsstruct.h"
 #include "gxfcmap.h"
 
-/* CMap structure descriptors */
+/* GC descriptors */
 public_st_cmap();
-public_st_code_map();
-public_st_code_map_element();
-
-/* Because code maps can be elements of arrays, */
+/* Because lookup ranges can be elements of arrays, */
 /* their enum_ptrs procedure must never return 0 prematurely. */
 private 
-ENUM_PTRS_WITH(code_map_enum_ptrs, gx_code_map *pcmap) return 0;
-ENUM_PTR(0, gx_code_map, cmap);
-case 1:
-switch (pcmap->type)
-{
-    case cmap_glyph:
-	(*pcmap->cmap->mark_glyph)(pcmap->data.glyph,
-				   pcmap->cmap->mark_glyph_data);
-    default:
-	ENUM_RETURN(0);
-    case cmap_subtree:
-	ENUM_RETURN_PTR(gx_code_map, data.subtree);
-}
-ENUM_PTRS_END
-private RELOC_PTRS_WITH(code_map_reloc_ptrs, gx_code_map *pcmap);
-switch (pcmap->type) {
-    case cmap_subtree:
-	RELOC_PTR(gx_code_map, data.subtree);
-	break;
-    default:
-	;
-}
-RELOC_PTR(gx_code_map, cmap);
-RELOC_PTRS_END
+ENUM_PTRS_WITH(code_lookup_range_enum_ptrs,
+               gx_code_lookup_range_t *pclr) return 0;
+case 0:
+    if (pclr->value_type == CODE_VALUE_GLYPH) {
+        const byte *pv = pclr->values.data;
+        int k;
 
-/* CIDSystemInfo structure descriptors */
-private_st_cid_system_info();
-public_st_cid_system_info_element();
+        for (k = 0; k < pclr->num_keys; ++k) {
+            gs_glyph glyph = 0;
+            int i;
+
+            for (i = 0; i < pclr->value_size; ++i)
+                glyph = (glyph << 8) + *pv++;
+            pclr->cmap->mark_glyph(glyph, pclr->cmap->mark_glyph_data);
+        }
+    }
+    return ENUM_OBJ(pclr->cmap);
+case 1: return ENUM_STRING(&pclr->keys);
+case 2: return ENUM_STRING(&pclr->values);
+ENUM_PTRS_END
+private
+RELOC_PTRS_WITH(code_lookup_range_reloc_ptrs, gx_code_lookup_range_t *pclr)
+    RELOC_VAR(pclr->cmap);
+    RELOC_STRING_VAR(pclr->keys);
+    RELOC_STRING_VAR(pclr->values);
+RELOC_PTRS_END
+public_st_code_lookup_range();
+public_st_code_lookup_range_element();
 
 /* ---------------- Procedures ---------------- */
+
+/*
+ * Initialize a just-allocated CMap, to ensure that all pointers are clean
+ * for the GC.
+ */
+void
+gs_cmap_init(gs_cmap_t *pcmap)
+{
+    memset(pcmap, 0, sizeof(*pcmap));
+    uid_set_invalid(&pcmap->uid);
+}
+
+/* Get a big-endian integer. */
+private uint
+bytes2int(const byte *p, int n)
+{
+    uint v = 0;
+    int i;
+
+    for (i = 0; i < n; ++i)
+        v = (v << 8) + p[i];
+    return v;
+}
 
 /*
  * Decode a character from a string using a code map, updating the index.
@@ -69,66 +90,78 @@ public_st_cid_system_info_element();
  * *pchr.  For undefined characters, set *pglyph = gs_no_glyph and return 0.
  */
 private int
-code_map_decode_next(const gx_code_map * pcmap, const gs_const_string * str,
-		     uint * pindex, uint * pfidx,
-		     gs_char * pchr, gs_glyph * pglyph)
+code_map_decode_next(const gx_code_map_t * pcmap, const gs_const_string * pstr,
+                     uint * pindex, uint * pfidx,
+                     gs_char * pchr, gs_glyph * pglyph)
 {
-    const gx_code_map *map = pcmap;
-    uint chr = 0;
+    const byte *str = pstr->data + *pindex;
+    uint ssize = pstr->size - *pindex;
+    /*
+     * The keys are not sorted due to 'usecmap'.  Possible optimization :
+     * merge and sort keys in 'zbuildcmap', then use binary search here.
+     * This would be valuable for UniJIS-UTF8-H, which contains about 7000
+     * keys.
+     */
+    int i;
 
-    for (;;) {
-	int result;
+    for (i = pcmap->num_lookup - 1; i >= 0; --i) { /* reverse scan order due to 'usecmap' */
+        const gx_code_lookup_range_t *pclr = &pcmap->lookup[i];
+        int pre_size = pclr->key_prefix_size, key_size = pclr->key_size,
+            chr_size = pre_size + key_size;
 
-	if_debug1('J', "[J]cmap char = 0x%x: ", chr);
-	switch ((gx_code_map_type) map->type) {
-	    case cmap_char_code:
-		if_debug0('J', "char code");
-		*pglyph = (gs_glyph)map->data.ccode;
-		result = map->num_bytes1 + 1;
-leaf:		if (chr > map->last)
-		    goto undef;
-		if (map->add_offset)
-		    *pglyph += chr - map->first;
-		*pfidx = map->byte_data.font_index;
-		if_debug3('J', " 0x%lx, fidx %u, result %d\n",
-			  *pglyph, *pfidx, result);
-		return result;
-	    case cmap_glyph:
-		if_debug0('J', "glyph");
-		*pglyph = map->data.glyph;
-		result = 0;
-		goto leaf;
-	    case cmap_subtree:
-		if_debug0('J', "subtree\n");
-		if (*pindex >= str->size)
-		    return_error(gs_error_rangecheck);
-		chr = str->data[(*pindex)++];
-		if (chr >= map->data.subtree[0].first) {
-		    /* Invariant: map[lo].first <= chr < map[hi].first. */
-		    uint lo = 0, hi = map->byte_data.count1 + 1;
+        if (ssize < chr_size)
+            continue;
+        if (memcmp(str, pclr->key_prefix, pre_size))
+            continue;
+        /* Search the lookup range. We could use binary search. */
+        {
+            const byte *key = pclr->keys.data;
+            int step = key_size;
+            int k;
+            const byte *pvalue;
 
-		    map = map->data.subtree;
-		    while (lo + 1 < hi) {
-			uint mid = (lo + hi) >> 1;
-
-			if (chr >= map[mid].first)
-			    lo = mid;
-			else
-			    hi = mid;
-		    }
-		    *pchr = (*pchr << 8) | chr;
-		    map = &map[lo];
-		    continue;
-		}
-undef:		if_debug0('J', " undef\n");
-		*pchr = 0;
-		*pglyph = gs_no_glyph;
-		return 0;
-	    default:		/* (can't happen) */
-		if_debug0('J', "error!\n");
-		return_error(gs_error_invalidfont);
-	}
+            if (pclr->key_is_range) {
+                step <<= 1;
+                for (k = 0; k < pclr->num_keys; ++k, key += step)
+                    if (memcmp(str + pre_size, key, key_size) >= 0 &&
+                        memcmp(str + pre_size, key + key_size, key_size) <= 0)
+                        break;
+            } else {
+                for (k = 0; k < pclr->num_keys; ++k, key += step)
+                    if (!memcmp(str + pre_size, key, key_size))
+                        break;
+            }
+            if (k == pclr->num_keys)
+                continue;
+            /* We have a match.  Return the result. */
+            *pchr = (*pchr << (chr_size * 8)) + bytes2int(str, chr_size);
+            *pindex += chr_size;
+            *pfidx = pclr->font_index;
+            pvalue = pclr->values.data + k * pclr->value_size;
+            switch (pclr->value_type) {
+            case CODE_VALUE_CID:
+                *pglyph = gs_min_cid_glyph +
+                    bytes2int(pvalue, pclr->value_size) +
+                    bytes2int(str + pre_size, key_size) -
+                    bytes2int(key, key_size);
+                return 0;
+            case CODE_VALUE_GLYPH:
+                *pglyph = bytes2int(pvalue, pclr->value_size);
+                return 0;
+            case CODE_VALUE_CHARS:
+                *pglyph =
+                    bytes2int(pvalue, pclr->value_size) +
+                    bytes2int(str + pre_size, key_size) -
+                    bytes2int(key, key_size);
+                return pclr->value_size;
+            default:            /* shouldn't happen */
+                return_error(gs_error_rangecheck);
+            }
+        }
     }
+    /* No mapping. */
+    *pglyph = gs_no_glyph;
+    return 0;
 }
 
 /*
@@ -136,28 +169,21 @@ undef:		if_debug0('J', " undef\n");
  * Return like code_map_decode_next.
  */
 int
-gs_cmap_decode_next(const gs_cmap * pcmap, const gs_const_string * str,
-		    uint * pindex, uint * pfidx,
-		    gs_char * pchr, gs_glyph * pglyph)
+gs_cmap_decode_next(const gs_cmap_t * pcmap, const gs_const_string * pstr,
+                    uint * pindex, uint * pfidx,
+                    gs_char * pchr, gs_glyph * pglyph)
 {
     uint save_index = *pindex;
     int code;
 
     *pchr = 0;
     code =
-	code_map_decode_next(&pcmap->def, str, pindex, pfidx, pchr, pglyph);
+        code_map_decode_next(&pcmap->def, pstr, pindex, pfidx, pchr, pglyph);
     if (code != 0 || *pglyph != gs_no_glyph)
-	return code;
+        return code;
     /* This is an undefined character.  Use the notdef map. */
-    {
-	uint next_index = *pindex;
-
-	*pindex = save_index;
-	*pchr = 0;
-	code =
-	    code_map_decode_next(&pcmap->notdef, str, pindex, pfidx,
-				 pchr, pglyph);
-	*pindex = next_index;
-    }
-    return code;
+    *pindex = save_index;
+    *pchr = 0;
+    return code_map_decode_next(&pcmap->notdef, pstr, pindex, pfidx,
+                                pchr, pglyph);
 }

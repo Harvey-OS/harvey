@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "pci.h"
 #include "vga.h"
 
 int vflag, Vflag;
@@ -17,10 +16,10 @@ error(char* format, ...)
 	sequencer(0, 1);
 	n = sprint(buf, "%s: ", argv0);
 	va_start(arg, format);
-	out = vseprint(buf+n, buf+sizeof(buf)-n, format, arg);
+	out = doprint(buf+n, buf+sizeof(buf)-n, format, arg);
 	va_end(arg);
 	if(vflag)
-		Bprint(&stdout, "%s", buf+n);
+		Bprint(&stdout, buf+n);
 	Bflush(&stdout);
 	write(2, buf, out-buf);
 	exits("error");
@@ -38,10 +37,10 @@ trace(char* format, ...)
 			Bprint(&stdout, "\n");
 		}
 		va_start(arg, format);
-		vseprint(buf, buf+sizeof(buf), format, arg);
+		doprint(buf, buf+sizeof(buf), format, arg);
 		va_end(arg);
-		Bprint(&stdout, "%s", buf);
+		Bprint(&stdout, buf);
 		if(Vflag)
-			print("%s", buf);
+			print(buf);
 	}
 }

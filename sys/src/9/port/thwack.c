@@ -74,15 +74,17 @@ thwackack(Thwack *tw, ulong seq, ulong mask)
 
 	slot = tw->slot;
 	for(;;){
-		slot--;
-		if(slot < 0)
-			slot += EWinBlocks;
-		if(slot == tw->slot)
-			break;
-		if(tw->blocks[slot].seq != seq)
-			continue;
-
-		tw->blocks[slot].acked = 1;
+		for(;;){
+			slot--;
+			if(slot < 0)
+				slot += EWinBlocks;
+			if(slot == tw->slot)
+				return;
+			if(tw->blocks[slot].seq == seq){
+				tw->blocks[slot].acked = 1;
+				break;
+			}
+		}
 
 		if(mask == 0)
 			break;
@@ -248,7 +250,7 @@ thwack(Thwack *tw, uchar *dst, uchar *src, int n, ulong seq, ulong stats[ThwStat
 		}
 		if(len < MinMatch){
 			toff = *s;
-			lithist = (lithist << 1) | (toff < 32) | (toff > 127);
+			lithist = (lithist << 1) | toff < 32 | toff > 127;
 			if(lithist & 0x1e){
 				twbits = (twbits << 9) | toff;
 				twnbits += 9;
@@ -353,6 +355,13 @@ thwack(Thwack *tw, uchar *dst, uchar *src, int n, ulong seq, ulong stats[ThwStat
 		}
 	}
 
+	stats[StatBytes] += blocks->maxoff;
+	stats[StatLits] += lits;
+	stats[StatMatches] += matches;
+	stats[StatOffBits] += offbits;
+	stats[StatLenBits] += lenbits;
+	stats[StatDelay] = stats[StatDelay]*7/8 + dst[0];
+	stats[StatHist] = stats[StatHist]*7/8 + nhist;
 
 	if(twnbits & 7){
 		twbits <<= 8 - (twnbits & 7);
@@ -368,13 +377,6 @@ thwack(Thwack *tw, uchar *dst, uchar *src, int n, ulong seq, ulong stats[ThwStat
 	if(tw->slot >= EWinBlocks)
 		tw->slot = 0;
 
-	stats[StatBytes] += blocks->maxoff;
-	stats[StatLits] += lits;
-	stats[StatMatches] += matches;
-	stats[StatOffBits] += offbits;
-	stats[StatLenBits] += lenbits;
-	stats[StatDelay] = stats[StatDelay]*7/8 + dst[0];
-	stats[StatHist] = stats[StatHist]*7/8 + nhist;
 	stats[StatOutBytes] += twdst - dst;
 
 	return twdst - dst;

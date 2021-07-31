@@ -39,7 +39,7 @@ extern	void	reverse(void);
 extern	void	skip(void);
 extern	void	suffix(char*);
 extern	long	tread(char*, long);
-extern	void	trunc(Dir*, Dir**);
+extern	void	trunc(Dir*, Dir*);
 extern	long	tseek(long, int);
 extern	void	twrite(char*, long);
 extern	void	usage(void);
@@ -112,31 +112,21 @@ main(int argc, char **argv)
 		skip();
 	if(follow && seekable)
 		for(;;) {
-			static Dir *sb0, *sb1;
-			trunc(sb1, &sb0);
+			static Dir sb0, sb1;
+			trunc(&sb1, &sb0);
 			copy();
-			trunc(sb0, &sb1);
+			trunc(&sb0, &sb1);
 			sleep(5000);
 		}
 	exits(0);
 }
 
 void
-trunc(Dir *old, Dir **new)
+trunc(Dir *old, Dir *new)
 {
-	Dir *d;
-	ulong olength;
-
-	d = dirfstat(file);
-	if(d == nil)
-		return;
-	olength = 0;
-	if(old)
-		olength = old->length;
-	if(d->length < olength)
-		d->length = tseek(0L, 0);
-	free(*new);
-	*new = d;
+	dirfstat(file, new);
+	if(new->length < old->length)
+		new->length = tseek(0L, 0);
 }
 
 void
@@ -347,9 +337,9 @@ getnumber(char *s)
 void		
 fatal(char *s)
 {
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 
-	errstr(buf, sizeof buf);
+	errstr(buf);
 	fprint(2, "tail: %s: %s\n", s, buf);
 	exits(s);
 }

@@ -5,7 +5,6 @@ TARG=jpg\
 	togif\
 	ppm\
 	toppm\
-	png\
 	topng\
 
 IMFILES=\
@@ -26,7 +25,6 @@ $O.gif:		$IMFILES readgif.$O gif.$O
 $O.togif:	writegif.$O onechan.$O togif.$O torgbv.$O
 $O.ppm:		$IMFILES readppm.$O ppm.$O
 $O.toppm:	writeppm.$O multichan.$O toppm.$O
-$O.png:		$IMFILES readpng.$O png.$O
 $O.topng:	writepng.$O topng.$O
 
 torgbv.$O:	ycbcr.h rgbv.h

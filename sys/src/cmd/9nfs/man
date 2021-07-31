@@ -1,0 +1,192 @@
+.TH NFSSERVER 1
+.SH NAME
+nfsserver, portmapper, pcnfsd, 9auth \- provide NFS service
+.SH SYNOPSIS
+.B aux/nfsserver
+[
+.I rpc-options...
+]
+[
+.I nfs-options...
+]
+.br
+.B aux/pcnfsd
+[
+.I rpc-options...
+]
+.br
+.B aux/portmapper
+[
+.I rpc-options...
+]
+.br
+.B 9auth
+[
+.I auth-options
+]
+.I user
+.SH DESCRIPTION
+These programs collectively provide NFS access to Plan 9 file servers.
+.IR Nfsserver ,
+.IR pcnfsd ,
+and
+.I portmapper
+run on a Plan 9 CPU server, and should be started in that order.
+.I 9auth
+is run by a user on a client machine for optional per-user
+authentication.  By default, all users on client machines have the
+access privileges of the Plan 9 user
+.LR none .
+.PP
+The
+.I rpc-options
+are all intended for debugging:
+.nr zz \w'\f5-a\f2 addr'+2n/1n
+.TP \n(zz
+.B -r
+Reject: answer all RPC requests by returning the
+.B AUTH_TOOWEAK
+error.
+.TP
+.B -v
+Verbose: show all RPC calls and internal program state, including 9P messages.
+(In any case, the program creates a file
+.BI /srv/ name .chat\c
+\&; echoing
+.L 1
+or
+.L 0
+into this file sets or clears the
+.B -v
+flag dynamically.)
+.TP
+.B -D
+Debug: show all RPC messages (at a lower level than
+.BR -v ).
+This flag may be repeated to get more detail.
+.PP
+The
+.I nfs-options
+are:
+.TP \n(zz
+.BI -a " addr"
+Set up NFS service for the 9P server at network address
+.IR addr .
+.TP
+.BI -f " file"
+Set up NFS service for the 9P server at
+.I file
+(typically an entry in
+.BR /srv ).
+.TP
+.B -n
+Do not allow per-user authentication.
+.TP
+.BI -c " file"
+.I File
+contains the uid/gid map configuration.  It is read at startup
+and subsequently every hour (or if
+.L c
+is echoed into
+.BR /srv/nfsserver.chat ).
+Blank lines or lines beginning with
+.L #
+are ignored; lines beginning with
+.L !
+are executed as commands; otherwise lines contain four fields
+separated by white space: a regular expression (in the notation of
+.IR regexp (6))
+for a class of servers, a regular expression for
+a class of clients, a file of user id's (in the format of a Un*x
+password file), and a file of group id's (same format).
+.PP
+NFS clients must be in the Plan 9
+.B /lib/ndb
+database.  The machine name and IP address given in the NFS mount
+request must match the entry in the database.
+.PP
+.I Pcnfsd
+is a toy program that authorizes PC-NFS clients.  All clients
+are mapped to uid=1, gid=1
+.RB ( daemon
+on most systems) regardless of name or password.
+.PP
+The options for
+.I 9auth
+are:
+.TP \n(zz
+.B -D
+Debug flag.
+.TP
+.BI -r " root"
+Authenticate to the file system at
+.I root
+(default
+.BR /n/bootes ).
+.TP
+.B -d
+Delete the authorization for
+.IR user .
+.PP
+In the absence of
+.BR -d ,
+.I 9auth
+will present a challenge to be encrypted with the
+.IR user "'s"
+Plan 9 password (using
+.IR netkey (1),
+for example).  If the response is correct, subsequent NFS transactions
+will take place with the
+.IR user "'s"
+privileges.
+.SH EXAMPLES
+A simple
+.B /lib/ndb/nfs
+might contain:
+.PP
+.EX
+!9fs tcp!ivy
+\&.+  [^.]+\e.csdept\e.univ\e.edu  /n/ivy/etc/passwd  /n/ivy/etc/group
+.EE
+.PP
+A typical entry in
+.B /rc/bin/cpurc
+might be:
+.PP
+.EX
+aux/nfsserver -a il!bootes -a il!fornax -c /lib/ndb/nfs
+aux/pcnfsd
+aux/portmapper
+.EE
+.PP
+Assuming the cpu server's name is
+.BR merrimack ,
+the mount commands on the client would be:
+.PP
+.EX
+/etc/mount -o soft,intr merrimack:bootes /n/bootes
+/etc/mount -o soft,intr merrimack:fornax /n/fornax
+.EE
+.PP
+Note that a single instance of
+.I nfsserver
+may provide access to several 9P servers.
+.SH FILES
+.TF /lib/ndb/nfs
+.TP
+.B /lib/ndb/nfs
+List of uid/gid maps.
+.TP
+.B /sys/log/nfs
+Log file.
+.SH SOURCE
+.B /sys/src/cmd/service/nfs
+.SH SEE ALSO
+.IR netkey (1),
+.IR regexp (6)
+.PP
+RFC1057,
+.I "RPC: Remote Procedure Call Protocol Specification, Version 2."
+.br
+RFC1094,
+.I "NFS: Network File System Protocol Specification."

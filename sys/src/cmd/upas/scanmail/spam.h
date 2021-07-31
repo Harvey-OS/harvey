@@ -52,8 +52,7 @@ extern	Patterns patterns[];
 extern	char	header[];
 extern	char	cmd[];
 
-extern	void	conv64(char*, char*, char*, int);
-extern	int	convert(char*, char*, char*, int, int);
+extern	void	convert(char*, char*, char*, int, int);
 extern	void*	Malloc(long n);
 extern	int	matchpat(Pattern*, char*, Resub*);
 extern	char*	readmsg(Biobuf*, int*, int*);

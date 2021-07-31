@@ -1,11 +1,11 @@
 #include <u.h>
 #include <libc.h>
-#include <authsrv.h>
+#include <auth.h>
 #include <fcall.h>
 #include <bio.h>
 #include <mp.h>
 #include <libsec.h>
-#include "authcmdlib.h"
+#include "authsrv.h"
 
 char authkey[8];
 
@@ -24,8 +24,7 @@ enum{
 	Qmax,
 
 	Nuser	= 512,
-	MAXBAD	= 50,			/* max number of bad attempts before disabling the account */
-	Namelen	= ANAMELEN,		/* file must be randomly addressible, so names have fixed length */
+	MAXBAD	= 50,			/* max number of bad attempts before diabling the account */
 };
 
 enum{
@@ -43,7 +42,7 @@ struct Fid{
 };
 
 struct User{
-	char	*name;
+	char	name[NAMELEN];
 	char	key[DESKEYLEN];
 	char	secret[SECRETLEN];
 	ulong	expire;			/* 0 == never */
@@ -81,8 +80,6 @@ Fcall	rhdr,
 	thdr;
 int	usepass;
 char	*warnarg;
-uchar	mdata[8192 + IOHDRSZ];
-int	messagesize = sizeof mdata;
 
 int	readusers(void);
 ulong	hash(char*);
@@ -95,26 +92,28 @@ void	writeusers(void);
 void	io(int, int);
 void	*emalloc(ulong);
 Qid	mkqid(User*, ulong);
-int	dostat(User*, ulong, void*, int);
+void	dostat(User*, ulong, void*);
 int	newkeys(void);
 void	warning(void);
 
-char	*Auth(Fid*), *Attach(Fid*), *Version(Fid*),
-	*Flush(Fid*), *Walk(Fid*),
-	*Open(Fid*), *Create(Fid*),
+char	*Auth(Fid*), *Attach(Fid*), *Nop(Fid*), *Session(Fid*),
+	*Flush(Fid*), *Clone(Fid*), *Walk(Fid*),
+	*Clwalk(Fid *), *Open(Fid*), *Create(Fid*),
 	*Read(Fid *), *Write(Fid*), *Clunk(Fid*),
 	*Remove(Fid *), *Stat(Fid*), *Wstat(Fid*);
 char 	*(*fcalls[])(Fid*) = {
 	[Tattach]	Attach,
-	[Tauth]	Auth,
+	[Tclone]	Clone,
 	[Tclunk]	Clunk,
+	[Tclwalk]	Clwalk,
 	[Tcreate]	Create,
 	[Tflush]	Flush,
+	[Tnop]		Nop,
 	[Topen]		Open,
 	[Tread]		Read,
 	[Tremove]	Remove,
+	[Tsession]	Session,
 	[Tstat]		Stat,
-	[Tversion]	Version,
 	[Twalk]		Walk,
 	[Twrite]	Write,
 	[Twstat]	Wstat,
@@ -156,10 +155,24 @@ main(int argc, char *argv[])
 		error("fork");
 	default:
 		close(p[1]);
-		if(mount(p[0], -1, mntpt, MREPL|MCREATE, "") < 0)
+		if(mount(p[0], mntpt, MREPL|MCREATE, "") < 0)
 			error("can't mount: %r");
 		exits(0);
 	}
+}
+
+char *
+Nop(Fid *f)
+{
+	USED(f);
+	return 0;
+}
+
+char *
+Session(Fid *f)
+{
+	USED(f);
+	return 0;
 }
 
 char *
@@ -170,9 +183,15 @@ Flush(Fid *f)
 }
 
 char *
-Auth(Fid *)
+Auth(Fid *f)
 {
-	return "keyfs: no authentication required";
+	if(f->busy)
+		Clunk(f);
+	f->user = 0;
+	f->qtype = Qroot;
+	f->busy = 1;
+	strcpy(thdr.chal, "none");
+	return 0;
 }
 
 char *
@@ -187,108 +206,55 @@ Attach(Fid *f)
 	return 0;
 }
 
-char*
-Version(Fid*)
+char *
+Clone(Fid *f)
 {
-	Fid *f;
+	Fid *nf;
 
-	for(f = fids; f; f = f->next)
-		if(f->busy)
-			Clunk(f);
-	if(rhdr.msize > sizeof mdata)
-		thdr.msize = sizeof mdata;
-	else
-		thdr.msize = rhdr.msize;
-	messagesize = thdr.msize;
-	if(strncmp(rhdr.version, "9P2000", 6) != 0)
-		return "bad 9P version";
-	thdr.version = "9P2000";
+	if(!f->busy)
+		return "permission denied";
+	nf = findfid(rhdr.newfid);
+	if(nf->busy)
+		Clunk(nf);
+	thdr.fid = rhdr.newfid;
+	nf->busy = 1;
+	nf->qtype = f->qtype;
+	if(nf->user = f->user)
+		nf->user->ref++;
 	return 0;
 }
 
 char *
 Walk(Fid *f)
 {
-	char *name, *err;
-	int i, j, max;
-	Fid *nf;
-	ulong qtype;
-	User *user;
+	char *name;
+	int i, max;
 
 	if(!f->busy)
-		return "walk of unused fid";
-	nf = nil;
-	qtype = f->qtype;
-	user = f->user;
-	if(rhdr.fid != rhdr.newfid){
-		nf = findfid(rhdr.newfid);
-		if(nf->busy)
-			return "fid in use";
-		f = nf;	/* walk f */
-	}
-
-	err = nil;
-	i = 0;
-	if(rhdr.nwname > 0){
-		for(; i<rhdr.nwname; i++){
-			if(i >= MAXWELEM){
-				err = "too many path name elements";
+		return "permission denied";
+	name = rhdr.name;
+	switch(f->qtype){
+	case Qroot:
+		f->user = finduser(name);
+		if(!f->user)
+			return "file does not exist";
+		f->user->ref++;
+		f->qtype = Quser;
+		break;
+	case Quser:
+		max = Qmax;
+		for(i = Quser + 1; i < Qmax; i++)
+			if(strcmp(name, qinfo[i]) == 0){
+				f->qtype = i;
 				break;
 			}
-			name = rhdr.wname[i];
-			switch(qtype){
-			case Qroot:
-				if(strcmp(name, "..") == 0)
-					goto Accept;
-				user = finduser(name);
-				if(!user)
-					goto Out;
-				qtype = Quser;
-
-			Accept:
-				thdr.wqid[i] = mkqid(user, qtype);
-				break;
-
-			case Quser:
-				max = Qmax;
-				for(j = Quser + 1; j < Qmax; j++)
-					if(strcmp(name, qinfo[j]) == 0){
-						qtype = j;
-						break;
-					}
-				if(j < max)
-					goto Accept;
-				goto Out;
-
-			default:
-				err = "file is not a directory";
-				goto Out;
-			}
-		}
-	    Out:
-		if(i < rhdr.nwname && err == nil)
-			err = "file not found";
+		if(i == max)
+			return "file not found";
+		break;
+	default:
+		return "file is not a directory";
 	}
-
-	if(err != nil){
-		return err;
-	}
-
-	/* if we cloned and then completed the walk, update new fid */
-	if(rhdr.fid != rhdr.newfid && i == rhdr.nwname){
-		nf->busy = 1;
-		nf->qtype = qtype;
-		if(nf->user = user)
-			nf->user->ref++;
-	}else if(nf == nil && rhdr.nwname > 0){	/* walk without clone (rare) */
-		Clunk(f);
-		f->busy = 1;
-		f->qtype = qtype;
-		if(f->user = user)
-			f->user->ref++;
-	}
-
-	thdr.nwqid = i;
+	thdr.qid = mkqid(f->user, f->qtype);
 	return 0;
 }
 
@@ -303,17 +269,37 @@ Clunk(Fid *f)
 }
 
 char *
+Clwalk(Fid *f)
+{
+	Fid *nf;
+	char *err;
+
+	if(!f->busy)
+		return "permission denied";
+	nf = findfid(rhdr.newfid);
+	thdr.fid = rhdr.newfid;
+	if(nf->busy)
+		Clunk(nf);
+	nf->busy = 1;
+	nf->qtype = f->qtype;
+	if(nf->user = f->user)
+		nf->user->ref++;
+	if(err = Walk(nf))
+		Clunk(nf);
+	return err;
+}
+
+char *
 Open(Fid *f)
 {
 	int mode;
 
 	if(!f->busy)
-		return "open of unused fid";
+		return "permission denied";
 	mode = rhdr.mode;
 	if(f->qtype == Quser && (mode & (OWRITE|OTRUNC)))
 		return "user already exists";
 	thdr.qid = mkqid(f->user, f->qtype);
-	thdr.iounit = messagesize - IOHDRSZ;
 	return 0;
 }
 
@@ -324,18 +310,16 @@ Create(Fid *f)
 	long perm;
 
 	if(!f->busy)
-		return "create of unused fid";
+		return "permission denied";
 	name = rhdr.name;
 	if(f->user){
 		return "permission denied";
 	}else{
 		perm = rhdr.perm;
-		if(!(perm & DMDIR))
+		if(!(perm & CHDIR))
 			return "permission denied";
-		if(strcmp(name, "") == 0)
-			return "empty file name";
-		if(strlen(name) >= Namelen)
-			return "file name too long";
+		if(!memchr(name, '\0', NAMELEN))
+			return "bad file name";
 		if(finduser(name))
 			return "user already exists";
 		f->user = installuser(name);
@@ -343,7 +327,6 @@ Create(Fid *f)
 		f->qtype = Quser;
 	}
 	thdr.qid = mkqid(f->user, f->qtype);
-	thdr.iounit = messagesize - IOHDRSZ;
 	writeusers();
 	return 0;
 }
@@ -353,42 +336,47 @@ Read(Fid *f)
 {
 	User *u;
 	char *data;
-	ulong off, n, m;
+	ulong off, n;
 	int i, j, max;
 
 	if(!f->busy)
-		return "read of unused fid";
+		return "permission denied";
 	n = rhdr.count;
 	off = rhdr.offset;
 	thdr.count = 0;
 	data = thdr.data;
 	switch(f->qtype){
 	case Qroot:
+		if(off % DIRLEN || n % DIRLEN)
+			return "unaligned directory read";
+		off /= DIRLEN;
+		n /= DIRLEN;
 		j = 0;
 		for(i = 0; i < Nuser; i++)
-			for(u = users[i]; u; j += m, u = u->link){
-				m = dostat(u, Quser, data, n);
-				if(m <= BIT16SZ)
-					break;
+			for(u = users[i]; u; j++, u = u->link){
 				if(j < off)
 					continue;
-				data += m;
-				n -= m;
+				if(j - off >= n)
+					break;
+				dostat(u, Quser, data);
+				data += DIRLEN;
 			}
 		thdr.count = data - thdr.data;
 		return 0;
 	case Quser:
+		if(off % DIRLEN || n % DIRLEN)
+			return "unaligned directory read";
+		off /= DIRLEN;
+		n /= DIRLEN;
 		max = Qmax;
 		max -= Quser + 1;
-		j = 0;
-		for(i = 0; i < max; j += m, i++){
-			m = dostat(f->user, i + Quser + 1, data, n);
-			if(m <= BIT16SZ)
-				break;
-			if(j < off)
+		for(i = 0; i < max; i++){
+			if(i < off)
 				continue;
-			data += m;
-			n -= m;
+			if(i - off >= n)
+				break;
+			dostat(f->user, i - off + Quser + 1, data);
+			data += DIRLEN;
 		}
 		thdr.count = data - thdr.data;
 		return 0;
@@ -461,7 +449,7 @@ Read(Fid *f)
 		thdr.count = n;
 		return 0;
 	default:
-		return "permission denied: unknown qid";
+		return "permission denied";
 	}
 }
 
@@ -565,14 +553,9 @@ Remove(Fid *f)
 char *
 Stat(Fid *f)
 {
-	static uchar statbuf[1024];
-
 	if(!f->busy)
 		return "stat on unattached fid";
-	thdr.nstat = dostat(f->user, f->qtype, statbuf, sizeof statbuf);
-	if(thdr.nstat <= BIT16SZ)
-		return "stat buffer too small";
-	thdr.stat = statbuf;
+	dostat(f->user, f->qtype, thdr.stat);
 	return 0;
 }
 
@@ -580,26 +563,18 @@ char *
 Wstat(Fid *f)
 {
 	Dir d;
-	int n;
-	char buf[1024];
 
 	if(!f->busy || f->qtype != Quser)
 		return "permission denied";
-	if(rhdr.nstat > sizeof buf)
-		return "wstat buffer too big";
-	if(convM2D(rhdr.stat, rhdr.nstat, &d, buf) == 0)
+	if(convM2D(rhdr.stat, &d) == 0)
 		return "bad stat buffer";
-	n = strlen(d.name);
-	if(n == 0 || n >= Namelen)
+	if(!memchr(d.name, '\0', NAMELEN))
 		return "bad user name";
 	if(finduser(d.name))
 		return "user already exists";
 	if(!removeuser(f->user))
 		return "user previously removed";
-	free(f->user->name);
-	f->user->name = strdup(d.name);
-	if(f->user->name == nil)
-		error("wstat: malloc failed: %r");
+	strncpy(f->user->name, d.name, NAMELEN);
 	insertuser(f->user);
 	writeusers();
 	return 0;
@@ -615,30 +590,29 @@ mkqid(User *u, ulong qtype)
 	if(u)
 		q.path |= u->uniq * 0x100;
 	if(qtype == Quser || qtype == Qroot)
-		q.type = QTDIR;
-	else
-		q.type = QTFILE;
+		q.path |= CHDIR;
 	return q;
 }
 
-int
-dostat(User *user, ulong qtype, void *p, int n)
+void
+dostat(User *user, ulong qtype, void *p)
 {
 	Dir d;
 
 	if(qtype == Quser)
-		d.name = user->name;
+		strncpy(d.name, user->name, NAMELEN);
 	else
-		d.name = qinfo[qtype];
-	d.uid = d.gid = d.muid = "auth";
+		strncpy(d.name, qinfo[qtype], NAMELEN);
+	strncpy(d.uid, "auth", NAMELEN);
+	strncpy(d.gid, "auth", NAMELEN);
 	d.qid = mkqid(user, qtype);
-	if(d.qid.type & QTDIR)
-		d.mode = 0777|DMDIR;
+	if(d.qid.path & CHDIR)
+		d.mode = 0777|CHDIR;
 	else
 		d.mode = 0666;
 	d.atime = d.mtime = time(0);
 	d.length = 0;
-	return convD2M(&d, p, n);
+	convD2M(&d, p);
 }
 
 int
@@ -649,7 +623,7 @@ passline(Biobuf *b, void *vbuf)
 	if(Bread(b, buf, KEYDBLEN) != KEYDBLEN)
 		return 0;
 	decrypt(authkey, buf, KEYDBLEN);
-	buf[Namelen-1] = '\0';
+	buf[NAMELEN-1] = '\0';
 	return 1;
 }
 
@@ -722,8 +696,8 @@ writeusers(void)
 	p += KEYDBOFF;
 	for(i = 0; i < Nuser; i++)
 		for(u = users[i]; u; u = u->link){
-			strncpy((char*)p, u->name, Namelen);
-			p += Namelen;
+			strncpy((char*)p, u->name, NAMELEN);
+			p += NAMELEN;
 			memmove(p, u->key, DESKEYLEN);
 			p += DESKEYLEN;
 			*p++ = u->status;
@@ -760,7 +734,7 @@ readusers(void)
 	int fd, i, n, nu;
 	uchar *p, *buf, *ep;
 	User *u;
-	Dir *d;
+	Dir d;
 
 	if(usepass) {
 		if(*authkey == 0)
@@ -775,21 +749,18 @@ readusers(void)
 	fd = open(userkeys, OREAD);
 	if(fd < 0)
 		return 0;
-	d = dirfstat(fd);
-	if(d == nil){
+	if(dirfstat(fd, &d) < 0){
 		close(fd);
 		return 0;
 	}
-	buf = malloc(d->length);
+	buf = malloc(d.length);
 	if(buf == 0){
 		close(fd);
-		free(d);
 		return 0;
 	}
-	n = readn(fd, buf, d->length);
+	n = readn(fd, buf, d.length);
 	close(fd);
-	free(d);
-	if(n != d->length){
+	if(n != d.length){
 		free(buf);
 		return 0;
 	}
@@ -805,8 +776,8 @@ readusers(void)
 		u = finduser((char*)ep);
 		if(u == 0)
 			u = installuser((char*)ep);
-		memmove(u->key, ep + Namelen, DESKEYLEN);
-		p = ep + Namelen + DESKEYLEN;
+		memmove(u->key, ep + NAMELEN, DESKEYLEN);
+		p = ep + NAMELEN + DESKEYLEN;
 		u->status = *p++;
 		u->warnings = *p++;
 		if(u->status >= Smax)
@@ -831,9 +802,7 @@ installuser(char *name)
 
 	h = hash(name);
 	u = emalloc(sizeof *u);
-	u->name = strdup(name);
-	if(u->name == nil)
-		error("malloc failed: %r");
+	strncpy(u->name, name, NAMELEN);
 	u->removed = 0;
 	u->ref = 0;
 	u->expire = 0;
@@ -925,7 +894,7 @@ findfid(int fid)
 void
 io(int in, int out)
 {
-	char *err;
+	char mdata[MAXFDATA + MAXMSG], *err;
 	int n;
 	long now, lastwarning;
 
@@ -933,18 +902,18 @@ io(int in, int out)
 	lastwarning = time(0) - 24*60*60 + 5*60;
 
 	for(;;){
-		n = read9pmsg(in, mdata, messagesize);
+		n = read(in, mdata, sizeof mdata);
 		if(n == 0)
 			continue;
 		if(n < 0)
 			error("mount read %d", n);
-		if(convM2S(mdata, n, &rhdr) == 0)
+		if(convM2S(mdata, &rhdr, n) == 0)
 			continue;
 
 		if(newkeys())
 			readusers();
 
-		thdr.data = (char*)mdata + IOHDRSZ;
+		thdr.data = mdata + MAXMSG;
 		thdr.fid = rhdr.fid;
 		if(!fcalls[rhdr.type])
 			err = "fcall request";
@@ -954,9 +923,9 @@ io(int in, int out)
 		thdr.type = rhdr.type+1;
 		if(err){
 			thdr.type = Rerror;
-			thdr.ename = err;
+			strncpy(thdr.ename, err, ERRLEN);
 		}
-		n = convS2M(&thdr, mdata, messagesize);
+		n = convS2M(&thdr, mdata);
 		if(write(out, mdata, n) != n)
 			error("mount write");
 
@@ -972,18 +941,15 @@ io(int in, int out)
 int
 newkeys(void)
 {
-	Dir *d;
+	Dir d;
 	static long ftime;
 
-	d = dirstat(userkeys);
-	if(d == nil)
+	if(dirstat(userkeys, &d) < 0)
 		return 0;
-	if(d->mtime > ftime){
-		ftime = d->mtime;
-		free(d);
+	if(d.mtime > ftime) {
+		ftime = d.mtime;
 		return 1;
 	}
-	free(d);
 	return 0;
 }
 
@@ -1016,4 +982,21 @@ warning(void)
 		execl("/bin/auth/warning", "warning", warnarg, 0);
 		error("can't exec warning");
 	}
+}
+
+void
+error(char *fmt, ...)
+{
+	char buf[8192], *s;
+	va_list arg;
+
+	s = buf;
+	s += sprint(s, "%s: ", argv0);
+	va_start(arg, fmt);
+	doprint(s, buf + sizeof(buf) - 1 - strlen(buf), fmt, arg);
+	va_end(arg);
+	syslog(0, "auth", "%s", buf);
+	strcat(buf, "\n");
+	write(2, buf, strlen(buf));
+	exits(buf);
 }

@@ -1,0 +1,43 @@
+.TH CLWALK 5 
+.SH NAME
+clwalk \- clone, then search a directory, and change to a file within it
+.SH SYNOPSIS
+.ta \w'\fLTclwalk 'u
+.B
+Tclwalk	
+.IR tag [2]
+.IR fid [2]
+.IR newfid [2]
+.IR name [28]
+.br
+.B
+Rclwalk	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.SH DESCRIPTION
+The
+.B clwalk
+request is a combination of a
+.B clone
+request (see
+.IR clone (5))
+followed by a
+.B walk
+request (see
+.IR walk (5))
+on the new
+.IR fid .
+If the walk fails, there is an implicit
+.B clunk
+of
+.BR newfid .
+.SH ENTRY POINTS
+The
+.B clwalk
+message is an optimization for use on low-speed lines; it is not generated
+by the kernel.
+The
+.IR cfs (4)
+cached file system generates it as a side-effect of any
+system call that interprets a file name.

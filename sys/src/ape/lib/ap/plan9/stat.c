@@ -1,21 +1,19 @@
 #include "lib.h"
 #include <sys/stat.h>
 #include <errno.h>
-#include <stdlib.h>
 #include "sys9.h"
 #include "dir.h"
 
 int
 stat(const char *path, struct stat *buf)
 {
-	Dir *d;
+	char cd[DIRLEN];
 
-	if((d = _dirstat(path)) == nil){
+	if(_STAT(path, cd) < 0){
 		_syserrno();
 		return -1;
 	}
-	_dirtostat(buf, d, 0);
-	free(d);
+	_dirtostat(buf, cd, 0);
 
 	return 0;
 }

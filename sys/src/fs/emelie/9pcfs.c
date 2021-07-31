@@ -3,7 +3,7 @@
 #include "io.h"
 #include "ureg.h"
 
-#include "../pc/dosfs.h"
+#include "dosfs.h"
 
 #ifndef	DATE
 #define	DATE	568011600L+4*3600
@@ -119,7 +119,6 @@ touser(void)
 	 */
 	etherstart();
 
-
 	/*
 	 * read ahead processes
 	 */
@@ -148,22 +147,3 @@ touser(void)
 	u->text = "scp";
 	synccopy();
 }
-
-void
-localconfinit(void)
-{
-	conf.nfile = 40000;
-	conf.wcpsize = 10;
-	conf.nodump = 0;
-	conf.firstsb = 13219302;
-	conf.recovsb = 0;
-	conf.ripoff = 1;
-	conf.nlgmsg = 100;
-	conf.nsmmsg = 500;
-}
-
-int (*fsprotocol[])(Msgbuf*) = {
-	serve9p1,
-	serve9p2,
-	nil,
-};

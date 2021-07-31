@@ -2,12 +2,35 @@
 #include <libc.h>
 #include <draw.h>
 
+/*
+ * compressed data are sequences of byte codes.  
+ * if the first byte b has the 0x80 bit set, the next (b^0x80)+1 bytes
+ * are data.  otherwise, it's two bytes specifying a previous string to repeat.
+ */
+static void
+twiddlecompressed(uchar *buf, int n)
+{
+	uchar *ebuf;
+	int j, k, c;
+
+	ebuf = buf+n;
+	while(buf < ebuf){
+		c = *buf++;
+		if(c >= 128){
+			k = c-128+1;
+			for(j=0; j<k; j++, buf++)
+				*buf ^= 0xFF;
+		}else
+			buf++;
+	}
+}
+
 Image *
 creadimage(Display *d, int fd, int dolock)
 {
 	char hdr[5*12+1];
 	Rectangle r;
-	int m, nb, miny, maxy, new, ldepth, ncblock;
+	int m, nb, miny, maxy, new, ldepth;
 	uchar *buf, *a;
 	Image *i;
 	ulong chan;
@@ -61,8 +84,7 @@ creadimage(Display *d, int fd, int dolock)
 		unlockdisplay(d);
 	if(i == nil)
 		return nil;
-	ncblock = _compblocksize(r, i->depth);
-	buf = malloc(ncblock);
+	buf = malloc(NCBLOCK);
 	if(buf == nil)
 		goto Errout;
 	miny = r.min.y;
@@ -84,7 +106,7 @@ creadimage(Display *d, int fd, int dolock)
 			werrstr("creadimage: bad maxy %d", maxy);
 			goto Errout;
 		}
-		if(nb<=0 || ncblock<nb){
+		if(nb<=0 || NCBLOCK<nb){
 			werrstr("creadimage: bad count %d", nb);
 			goto Errout;
 		}
@@ -102,7 +124,7 @@ creadimage(Display *d, int fd, int dolock)
 		BPLONG(a+13, r.max.x);
 		BPLONG(a+17, maxy);
 		if(!new)	/* old image: flip the data bits */
-			_twiddlecompressed(buf, nb);
+			twiddlecompressed(buf, nb);
 		memmove(a+21, buf, nb);
 		if(dolock)
 			unlockdisplay(d);

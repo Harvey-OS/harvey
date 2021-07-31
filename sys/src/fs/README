@@ -1,0 +1,11 @@
+clone
+	files to help you make a new file server without
+	copying all the source files
+emelie
+	our production server, using 16K blocks
+plan9pc
+	as emelie, but with 4K blocks
+port
+	machine-independent source
+worms
+	help file for configuring file servers

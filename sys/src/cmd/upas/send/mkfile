@@ -16,7 +16,6 @@ SMOBJ=main.$O\
 	translate.$O\
 	authorize.$O\
 	gateway.$O\
-	cat_mail.$O\
 
 LIB=../common/libcommon.av\
 

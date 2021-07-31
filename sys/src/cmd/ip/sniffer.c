@@ -46,8 +46,8 @@ main(int argc, char **argv)
 	int fd, cfd, pid, ppid;
 	char *p;
 
-	fmtinstall('E', eipfmt);
-	fmtinstall('I', eipfmt);
+	fmtinstall('E', eipconv);
+	fmtinstall('I', eipconv);
 
 	ARGBEGIN{
 	case 'd':
@@ -176,7 +176,7 @@ error(char *error, ...)
 	va_list arg;
 
 	va_start(arg, error);
-	vseprint(buf, &buf[sizeof(buf)], error, arg);
+	doprint(buf, &buf[sizeof(buf)], error, arg);
 	va_end(arg);
 	fprint(2, "sniffer: %s\n", buf);
 	exits(buf);

@@ -1,0 +1,4 @@
+TEXT _DUP(SB), 1, $0
+MOVL $5, R0
+TRAP $0
+RTS

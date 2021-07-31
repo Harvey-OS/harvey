@@ -1,22 +1,22 @@
-/* Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This file is part of AFPL Ghostscript.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
 */
 
-/*$Id: gdevcdj.c,v 1.1 2000/03/09 08:40:40 lpd Exp $*/
+/*$Id: gdevcdj.c,v 1.4 2000/09/19 19:00:11 lpd Exp $*/
 /* H-P and Canon colour printer drivers */
 
 /****************************************************************
@@ -35,12 +35,17 @@
  ****************************************************************/
 
 /*
+ * Change history:
+ *	2000-08-20 Jonathan Kamens <jik@kamens.brookline.ma.us>:
+ *	  change to support printers with different X and Y resolution.
+ */
+
+/*
  * Important compilation notes (YA).
  *
  * You may also try the cdj550cmyk driver after having defined
  * USE_CDJ550_CMYK and added the needed definition in devs.mak. Not tried!
- * (I have a BJC!) If you ty that, please report success/failure to me,
- * yves.arrouye@usa.net. Also note that modes descriptions of CMYK printing
+ * (I have a BJC!) Also note that modes descriptions of CMYK printing
  * is done under the BJC section of devices.doc.
  *
  * CMYK to RGB conversion is made a la GhostScript unless you define
@@ -197,8 +202,14 @@ private int cdj_param_check_float(P4(gs_param_list *, gs_param_name, floatp, boo
 #  define BITSPERPIXEL 24
 #endif
 
-#define W sizeof(word)
-#define I sizeof(int)
+/*
+ * The following use of size_of rather than sizeof is required to work
+ * around a bug in Microsoft Visual C++ 5.0, which considers the THRESHOLD
+ * value (128 << SHIFT) to be unsigned because SHIFT is unsigned (because
+ * sizeof() is unsigned).
+ */
+#define W size_of(word)
+#define I size_of(int)
 
 
 #define invert_word(v)\
@@ -1541,7 +1552,7 @@ bjc_raster_cmd(int c_id, int rastsize, byte* data, gx_device_printer* pdev,
 private int
 bjc_init_page(gx_device_printer* pdev, FILE* stream)
 {
-    byte pagemargins[3], resolution[2], paperloading[2];
+    byte pagemargins[3], resolution[4], paperloading[2];
 
     /* Compute page margins. */
 
@@ -1566,8 +1577,10 @@ bjc_init_page(gx_device_printer* pdev, FILE* stream)
 
     /* Initialize resolution argument. */
 
-    resolution[0] = (byte) ((int)pdev->x_pixels_per_inch / 256);
-    resolution[1] = (byte) ((int)pdev->x_pixels_per_inch % 256);
+    resolution[0] = (byte) ((int)pdev->y_pixels_per_inch / 256);
+    resolution[1] = (byte) ((int)pdev->y_pixels_per_inch % 256);
+    resolution[2] = (byte) ((int)pdev->x_pixels_per_inch / 256);
+    resolution[3] = (byte) ((int)pdev->x_pixels_per_inch % 256);
 
     /* Initialize paper loading argument. */
 
@@ -1634,7 +1647,7 @@ bjc_init_page(gx_device_printer* pdev, FILE* stream)
 
     /* Set raster resolution */
 
-    bjc_cmd('d', 2, resolution, pdev, stream);
+    bjc_cmd('d', 4, resolution, pdev, stream);
 
     return 0;
 }

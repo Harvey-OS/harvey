@@ -1,21 +1,21 @@
-#    Copyright (C) 1991-1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1991-1999, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of Aladdin Ghostscript.
+# This file is part of AFPL Ghostscript.
 # 
-# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-# or distributor accepts any responsibility for the consequences of using it,
-# or for whether it serves any particular purpose or works at all, unless he
-# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-# License (the "License") for full details.
+# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+# distributor accepts any responsibility for the consequences of using it, or
+# for whether it serves any particular purpose or works at all, unless he or
+# she says so in writing.  Refer to the Aladdin Free Public License (the
+# "License") for full details.
 # 
-# Every copy of Aladdin Ghostscript must include a copy of the License,
-# normally in a plain ASCII text file named PUBLIC.  The License grants you
-# the right to copy, modify and redistribute Aladdin Ghostscript, but only
-# under certain conditions described in the License.  Among other things, the
-# License requires that the copyright notice and this notice be preserved on
-# all copies.
+# Every copy of AFPL Ghostscript must include a copy of the License, normally
+# in a plain ASCII text file named PUBLIC.  The License grants you the right
+# to copy, modify and redistribute AFPL Ghostscript, but only under certain
+# conditions described in the License.  Among other things, the License
+# requires that the copyright notice and this notice be preserved on all
+# copies.
 
-# $Id: winlib.mak,v 1.1 2000/03/09 08:40:44 lpd Exp $
+# $Id: winlib.mak,v 1.4.2.1 2000/11/02 19:39:53 igorm Exp $
 # Common makefile section for 32-bit MS Windows.
 
 # This makefile must be acceptable to Microsoft Visual C++, Watcom C++,
@@ -63,8 +63,11 @@ XEAUX=.exe
 
 # We have to use a batch file for the equivalent of cp,
 # because the DOS COPY command copies the file write time, like cp -p.
+# We also have to use a batch file for for the equivalent of rm -f,
+# because the DOS ERASE command returns an error status if the file
+# doesn't exist.
 CP_=call $(GLSRCDIR)\cp.bat
-RM_=erase
+RM_=call $(GLSRCDIR)\rm.bat
 RMN_=call $(GLSRCDIR)\rm.bat
 
 # Define the generic compilation flags.
@@ -138,7 +141,7 @@ $(GLOBJ)gp_msio.$(OBJ): $(GLSRC)gp_msio.c $(AK) $(gp_mswin_h) \
 # console I/O module gp_msio.c, because this incorrectly refers to gsdll.c,
 # which in turn incorrectly refers to PostScript interpreter code.
 
-msw32nc__=$(GLOBJ)gp_mswin.$(OBJ) $(GLOBJ)gp_nofb.$(OBJ) $(GLOBJ)gp_wgetv.$(OBJ)
+msw32nc__=$(GLOBJ)gp_mswin.$(OBJ) $(GLOBJ)gp_wgetv.$(OBJ)
 msw32nc_inc=$(GLD)nosync.dev $(GLD)winplat.dev
 $(GLGEN)msw32nc_.dev: $(msw32nc__) $(ECHOGS_XE) $(msw32nc_inc)
 	$(SETMOD) $(GLGEN)msw32nc_ $(msw32nc__)
@@ -146,7 +149,7 @@ $(GLGEN)msw32nc_.dev: $(msw32nc__) $(ECHOGS_XE) $(msw32nc_inc)
 
 $(GLOBJ)gp_mswin.$(OBJ): $(GLSRC)gp_mswin.c $(AK) $(gp_mswin_h) \
  $(ctype__h) $(dos__h) $(malloc__h) $(memory__h) $(string__h) $(windows__h) \
- $(gx_h) $(gp_h) $(gpcheck_h) $(gserrors_h) $(gsexit_h)
+ $(gx_h) $(gp_h) $(gpcheck_h) $(gpmisc_h) $(gserrors_h) $(gsexit_h)
 	$(GLCCWIN) $(GLO_)gp_mswin.$(OBJ) $(C_) $(GLSRC)gp_mswin.c
 
 $(GLOBJ)gp_wgetv.$(OBJ): $(GLSRC)gp_wgetv.c $(AK) $(gscdefs_h)

@@ -1,46 +1,71 @@
-/* Copyright (C) 1990, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zbseq.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zbseq.c,v 1.4 2000/09/19 19:00:52 lpd Exp $ */
 /* Level 2 binary object sequence operators */
 #include "memory_.h"
 #include "ghost.h"
+#include "gxalloc.h"		/* for names_array in allocator */
 #include "oper.h"
 #include "ialloc.h"
+#include "istruct.h"
 #include "btoken.h"
 #include "store.h"
 
-/* System and user name arrays. */
-ref binary_token_names;		/* array of size 2 */
-private ref *const binary_token_names_p = &binary_token_names;
+/*
+ * Define the structure that holds the t_*array ref for the system or
+ * user name table.
+ */
+typedef struct names_array_ref_s {
+    ref names;
+} names_array_ref_t;
+gs_private_st_ref_struct(st_names_array_ref, names_array_ref_t,
+			 "names_array_ref_t");
+
+/* Create a system or user name table (in the stable memory of mem). */
+int
+create_names_array(ref **ppnames, gs_memory_t *mem, client_name_t cname)
+{
+    ref *pnames = (ref *)
+	gs_alloc_struct(gs_memory_stable(mem), names_array_ref_t,
+			&st_names_array_ref, cname);
+
+    if (pnames == 0)
+	return_error(e_VMerror);
+    make_empty_array(pnames, a_readonly);
+    *ppnames = pnames;
+    return 0;
+}
 
 /* Initialize the binary token machinery. */
 private int
 zbseq_init(i_ctx_t *i_ctx_p)
 {
-    /* Initialize fake system and user name tables. */
+    /* Initialize a fake system name table. */
     /* PostScript code will install the real system name table. */
-    ialloc_ref_array(&binary_token_names, 0 /*a_noaccess */ , 2,
-		     "binary token names");
-    make_empty_array(system_names_p, a_readonly);
-    make_empty_array(user_names_p, a_all);
-    return gs_register_ref_root(imemory, NULL, (void **)&binary_token_names_p,
-				"binary token names");
+    ref *psystem_names = 0;
+    int code = create_names_array(&psystem_names, imemory_global,
+				  "zbseq_init(system_names)");
+
+    if (code < 0)
+	return code;
+    system_names_p = psystem_names;
+    return 0;
 }
 
 /* <names> .installsystemnames - */
@@ -49,7 +74,7 @@ zinstallsystemnames(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
 
-    if (r_space(op) != avm_global)
+    if (r_space(op) != avm_global || imemory_save_level(iimemory_global) != 0)
 	return_error(e_invalidaccess);
     check_read_type(*op, t_shortarray);
     ref_assign_old(NULL, system_names_p, op, ".installsystemnames");

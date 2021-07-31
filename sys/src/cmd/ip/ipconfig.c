@@ -7,9 +7,8 @@ int	noconfig;
 int	debug;
 int	dodhcp;
 int	nip;
-int	myifc;
+Ipifc	*myifc;
 int	plan9 = 1;
-Ipifc	*ifc;
 
 // possible verbs
 enum
@@ -127,10 +126,10 @@ main(int argc, char **argv)
 	Ctl *cp;
 
 	srand(truerand());
-	fmtinstall('E', eipfmt);
-	fmtinstall('I', eipfmt);
-	fmtinstall('M', eipfmt);
-	fmtinstall('V', eipfmt);
+	fmtinstall('E', eipconv);
+	fmtinstall('I', eipconv);
+	fmtinstall('M', eipconv);
+	fmtinstall('V', eipconv);
 
 	setnetmtpt(conf.mpoint, sizeof(conf.mpoint), nil);
 	conf.cputype = getenv("cputype");
@@ -327,52 +326,46 @@ doadd(int retry)
 void
 doremove(void)
 {
+	Ipifc *ifc;
 	char file[128];
 	int cfd;
-	Ipifc *nifc;
-	Iplifc *lifc;
 
 	if(!validip(conf.laddr)){
 		fprint(2, "%s: remove requires an address\n", argv0);
 		exits("usage");
 	}
 
-	ifc = readipifc(conf.mpoint, ifc, -1);
-	for(nifc = ifc; nifc != nil; nifc = nifc->next){
-		if(strcmp(nifc->dev, conf.dev) != 0)
+	for(ifc = readipifc(conf.mpoint, nil); ifc != nil; ifc = ifc->next){
+		if(strcmp(ifc->dev, conf.dev) != 0)
 			continue;
-		for(lifc = nifc->lifc; lifc != nil; lifc = lifc->next){
-			if(ipcmp(conf.laddr, lifc->ip) != 0)
-				continue;
-			if(validip(conf.mask) && ipcmp(conf.mask, lifc->mask) != 0)
-				continue;
-			if(validip(conf.raddr) && ipcmp(conf.raddr, lifc->net) != 0)
-				continue;
-
-			snprint(file, sizeof(file), "%s/ipifc/%d/ctl", conf.mpoint, nifc->index);
-			cfd = open(file, ORDWR);
-			if(cfd < 0){
-				fprint(2, "%s: can't open %s: %r\n", argv0, conf.mpoint);
-				continue;
-			}
-			if(fprint(cfd, "remove %I %I", lifc->ip, lifc->mask) < 0)
-				fprint(2, "%s: can't remove %I %I from %s: %r\n", argv0,
-					lifc->ip, lifc->mask, file);
+		if(ipcmp(conf.laddr, ifc->ip) != 0)
+			continue;
+		if(validip(conf.mask) && ipcmp(conf.mask, ifc->mask) != 0)
+			continue;
+		if(validip(conf.raddr) && ipcmp(conf.raddr, ifc->net) != 0)
+			continue;
+		snprint(file, sizeof(file), "%s/ipifc/%d/ctl", conf.mpoint, ifc->index);
+		cfd = open(file, ORDWR);
+		if(cfd < 0){
+			fprint(2, "%s: can't open %s: %r\n", argv0, conf.mpoint);
+			continue;
 		}
+		if(fprint(cfd, "remove %I %I", ifc->ip, ifc->mask) < 0)
+			fprint(2, "%s: can't remove %I %I from %s: %r\n", argv0,
+				ifc->ip, ifc->mask, file);
 	}
 }
 
 void
 dounbind(void)
 {
-	Ipifc *nifc;
+	Ipifc *ifc;
 	char file[128];
 	int cfd;
 
-	ifc = readipifc(conf.mpoint, ifc, -1);
-	for(nifc = ifc; nifc != nil; nifc = nifc->next){
-		if(strcmp(nifc->dev, conf.dev) == 0){
-			snprint(file, sizeof(file), "%s/ipifc/%d/ctl", conf.mpoint, nifc->index);
+	for(ifc = readipifc(conf.mpoint, nil); ifc != nil; ifc = ifc->next){
+		if(strcmp(ifc->dev, conf.dev) == 0){
+			snprint(file, sizeof(file), "%s/ipifc/%d/ctl", conf.mpoint, ifc->index);
 			cfd = open(file, ORDWR);
 			if(cfd < 0){
 				fprint(2, "%s: can't open %s: %r\n", argv0, conf.mpoint);
@@ -427,7 +420,7 @@ lookforip(char *net)
 	snprint(proto, sizeof(proto), "%s/ipifc", net);
 	if(access(proto, 0) == 0)
 		return;
-	sysfatal("no ip stack bound onto %s", net);
+	sysfatal("no ip stack bound onto %s\n", net);
 }
 
 // send some ctls to a device
@@ -462,9 +455,9 @@ void
 binddevice(void)
 {
 	char buf[256];
-	int ac, pid;
+	int ac, pid, rv;
 	char *av[12];
-	Waitmsg *w;
+	Waitmsg w;
 
 	if(strcmp(conf.type, "ppp") == 0){
 		// ppp does the binding
@@ -498,24 +491,21 @@ binddevice(void)
 		}
 
 		// wait for ppp to finish connecting and configuring
-		w = nil;
 		for(;;){
-			free(w);
-			w = wait();
-			if(w == nil)
-				sysfatal("/ppp disappeated");
-			if(w->pid == pid){
-				if(w->msg[0] != 0)
-					sysfatal("/ppp exited with status: %s", w->msg);
-				free(w);
+			rv = wait(&w);
+			if(rv == pid){
+				if(w.msg[0] != 0)
+					sysfatal("/ppp exited with status: %s", w.msg);
 				break;
 			}
+			if(rv < 0)
+				sysfatal("/ppp disappeated");
 		}
 
 		// ppp sets up the configuration itself
 		noconfig = 1;
 		getndb();
-	} else if(myifc == 0){
+	} else if(myifc == nil){
 		// get a new ip interface
 		snprint(buf, sizeof(buf), "%s/ipifc/clone", conf.mpoint);
 		conf.cfd = open(buf, ORDWR);
@@ -527,10 +517,10 @@ binddevice(void)
 			sysfatal("binding device: %r");
 	} else {
 		// open the old interface
-		snprint(buf, sizeof(buf), "%s/ipifc/%d/ctl", conf.mpoint, myifc);
+		snprint(buf, sizeof(buf), "%s/ipifc/%d/ctl", conf.mpoint, myifc->index);
 		conf.cfd = open(buf, ORDWR);
 		if(conf.cfd < 0)
-			sysfatal("opening %s/ipifc/%d/ctl: %r", conf.mpoint, myifc);
+			sysfatal("opening %s/ipifc/%d/ctl: %r", conf.mpoint, myifc->index);
 	}
 
 }
@@ -867,7 +857,7 @@ dhcprecv(void)
 	Bootp *bp;
 	int i, n, type;
 	ulong lease;
-	char err[ERRMAX];
+	char err[ERRLEN];
 	uchar vopts[256];
 
 	alarm(1000);
@@ -875,7 +865,7 @@ dhcprecv(void)
 	alarm(0);
 
 	if(n < 0){
-		errstr(err, sizeof err);
+		errstr(err);
 		if(strstr(err, "interrupt") == nil)
 			fprint(2, "ipconfig: bad read: %s\n", err);
 		return;
@@ -1406,20 +1396,18 @@ tweakservers(void)
 int
 nipifcs(char *net)
 {
-	Ipifc *nifc;
-	Iplifc *lifc;
+	Ipifc *ifc, *tifc;
 	int n;
 
 	n = 0;
-	ifc = readipifc(net, ifc, -1);
-	for(nifc = ifc; nifc != nil; nifc = nifc->next){
-		for(lifc = nifc->lifc; lifc != nil; lifc = lifc->next)
-			if(validip(lifc->ip)){
-				n++;
-				break;
-			}
-		if(strcmp(nifc->dev, conf.dev) == 0)
-			myifc = nifc->index;
+	for(ifc = readipifc(net, nil); ifc != nil; ifc = tifc){
+		tifc = ifc->next;
+		if(validip(ifc->ip))
+			n++;
+		if(strcmp(ifc->dev, conf.dev) == 0)
+			myifc = ifc;
+		else
+			free(ifc);
 	}
 	return n;
 }

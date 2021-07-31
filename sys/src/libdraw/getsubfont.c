@@ -15,7 +15,7 @@ _getsubfont(Display *d, char *name)
 	fd = open(name, OREAD);
 		
 	if(fd < 0){
-		fprint(2, "getsubfont: can't open %s: %r\n", name);
+		_drawprint(2, "getsubfont: can't open %s: %r\n", name);
 		return 0;
 	}
 	/*
@@ -30,7 +30,7 @@ _getsubfont(Display *d, char *name)
 	if(d->locking == 0)
 		lockdisplay(d);
 	if(f == 0)
-		fprint(2, "getsubfont: can't read %s: %r\n", name);
+		_drawprint(2, "getsubfont: can't read %s: %r\n", name);
 	close(fd);
 	return f;
 }

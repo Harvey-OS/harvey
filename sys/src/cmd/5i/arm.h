@@ -96,9 +96,7 @@ struct Registers
 	long	cc2;
 	int	class;
 	int	cond;
-	int	compare_op;
-	int	cbit;
-	int	cout;
+	int	compare_op; 
 };
 
 enum

@@ -241,13 +241,13 @@ msg(int pid, char *msg)
 {
 	int i;
 	int l;
-	char err[ERRMAX];
+	char err[ERRLEN];
 
 	for(i = 0; i < Maxproc; i++) {
 		if(ptab[i].pid == pid) {
 			l = strlen(msg);
 			if(write(ptab[i].ctl, msg, l) != l) {
-				errstr(err, sizeof err);
+				errstr(err);
 				if(strcmp(err, "process exited") == 0)
 					deinstall(pid);
 				error("msg: pid=%d %s: %s", pid, msg, err);
@@ -279,17 +279,18 @@ getstatus(int pid)
 	return buf+56;			/* ditto */
 }
 
-Waitmsg*
+char *
 waitfor(int pid)
 {
-	Waitmsg *w;
+	int n;
+
+	static Waitmsg w;
 
 	for(;;) {
-		if((w = wait()) == nil)
+		n = wait(&w);
+		if(n < 0)
 			error("wait %r");
-		if(w->pid == pid)
-			return w;
-		free(w);
+		if(n == pid)
+			return w.msg;
 	}
-	return nil;	/* ken */
 }

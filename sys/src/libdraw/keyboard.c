@@ -48,8 +48,7 @@ ioproc(void *arg)
 		}
 		m = read(kc->consfd, buf+n, sizeof buf-n);
 		if(m <= 0){
-			yield();	/* if error is due to exiting, we'll exit here */
-			fprint(2, "keyboard read error: %r\n");
+			_drawprint(2, "keyboard read error: %r\n");
 			threadexits("error");
 		}
 		n += m;
@@ -78,14 +77,14 @@ Error1:
 	sprint(t, "%sctl", file);
 	kc->ctlfd = open(t, OWRITE|OCEXEC);
 	if(kc->ctlfd < 0){
-		fprint(2, "initkeyboard: can't open %s: %r\n", t);
+		_drawprint(2, "initkeyboard: can't open %s: %r\n", t);
 Error2:
 		close(kc->consfd);
 		free(t);
 		goto Error1;
 	}
 	if(ctlkeyboard(kc, "rawon") < 0){
-		fprint(2, "initkeyboard: can't turn on raw mode on %s: %r\n", t);
+		_drawprint(2, "initkeyboard: can't turn on raw mode on %s: %r\n", t);
 		close(kc->ctlfd);
 		goto Error2;
 	}

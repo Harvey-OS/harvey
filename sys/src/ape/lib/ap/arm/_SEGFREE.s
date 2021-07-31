@@ -1,0 +1,4 @@
+TEXT _SEGFREE(SB), 1, $-4
+MOVW $32, R0
+SWI 0
+RET

@@ -110,15 +110,7 @@ mmuinit(void)
 	l1table[a>>20] = L1PageTable | L1Domain0 | (((ulong)t) & L1PTBaseMask);
 	t[(a&0xfffff)>>PGSHIFT] = L2SmallPage | L2KernelRW | (PHYSDRAM0 & L2PageBaseMask);
 
-	mmurestart();
-
-	mmuinited = 1;
-}
-
-void
-mmurestart(void) {
 	/* set up the domain register to cause all domains to obey pte access bits */
-
 	putdac(Dclient);
 
 	/* point to map */
@@ -129,6 +121,8 @@ mmurestart(void) {
 	mmuinvalidate();
 	mmuenable();
 	cacheflush();
+
+	mmuinited = 1;
 }
 
 /*
@@ -260,7 +254,7 @@ mmu_paddr(ulong va)
 }
 
 /* map a physical address to a virtual one */
-ulong
+static ulong
 findva(ulong pa, ulong zero, ulong top)
 {
 	int i;

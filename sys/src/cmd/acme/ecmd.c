@@ -6,6 +6,7 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
+#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -287,9 +288,9 @@ e_cmd(Text *t, Cmd *cp)
 {
 	Rune *name;
 	File *f;
-	int i, isdir, q0, q1, fd, nulls, samename, allreplaced;
+	int i, q0, q1, fd, nulls, samename, allreplaced;
 	char *s, tmp[128];
-	Dir *d;
+	Dir d;
 
 	f = t->file;
 	q0 = addr.r.q0;
@@ -314,10 +315,7 @@ e_cmd(Text *t, Cmd *cp)
 		free(s);
 		editerror(tmp);
 	}
-	d = dirfstat(fd);
-	isdir = (d!=nil && (d->qid.type&QTDIR));
-	free(d);
-	if(isdir){
+	if(dirfstat(fd, &d)>=0 && (d.mode&CHDIR)){
 		close(fd);
 		snprint(tmp, sizeof tmp, "%s is a directory", s);
 		free(s);
@@ -369,6 +367,17 @@ i_cmd(Text *t, Cmd *cp)
 	return append(t->file, cp, addr.r.q0);
 }
 
+#ifdef asdf
+
+int
+k_cmd(File *f, Cmd *cp)
+{
+	USED(cp);
+	f->mark = addr.r;
+	return TRUE;
+}
+#endif
+
 void
 copy(File *f, Address addr2)
 {
@@ -413,6 +422,25 @@ m_cmd(Text *t, Cmd *cp)
 		copy(t->file, addr2);
 	return TRUE;
 }
+
+
+#ifdef asdf
+int
+n_cmd(File *f, Cmd *cp)
+{
+	int i;
+	USED(f);
+	USED(cp);
+	for(i = 0; i<file.nused; i++){
+		if(file.filepptr[i] == cmd)
+			continue;
+		f = file.filepptr[i];
+		Strduplstr(&genstr, &f->name);
+		filename(f);
+	}
+	return TRUE;
+}
+#endif
 
 int
 p_cmd(Text *t, Cmd*)
@@ -707,7 +735,7 @@ nl_cmd(Text *t, Cmd *cp)
 			addr = lineaddr(1, a, 1);
 		}
 	}
-	textshow(t, addr.r.q0, addr.r.q1, 1);
+	textshow(t, addr.r.q0, addr.r.q1);
 	return TRUE;
 }
 

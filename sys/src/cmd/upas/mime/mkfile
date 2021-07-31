@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+HFILES=../ed/print.h\
+	../common/common.h\
+	../common/sys.h\
+	../smtp/y.tab.h\
+
+LIB=../common/libcommon.a$O\
+
+TARG=unmime
+OFILES=unmime.$O
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkone
+CFLAGS=$CFLAGS -I../common

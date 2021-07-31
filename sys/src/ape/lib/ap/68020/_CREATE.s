@@ -1,0 +1,4 @@
+TEXT _CREATE(SB), 1, $0
+MOVL $22, R0
+TRAP $0
+RTS

@@ -1,32 +1,30 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libthread.a
+# LIB=libthread.a
 
 OFILES=\
-	$objtype.$O\
-	xinc$objtype.$O\
+	thread.$O\
 	channel.$O\
-	chanprint.$O\
-	create.$O\
-	debug.$O\
-	exec.$O\
-	exit.$O\
-	id.$O\
-	kill.$O\
-	lib.$O\
-	main.$O\
-	note.$O\
+	assert.$O\
 	ref.$O\
-	rendez.$O\
-	sched.$O\
+	xinc$objtype.$O\
 
 HFILES=\
 	/sys/include/thread.h\
 	threadimpl.h\
+	assert.h\
 
-all:V:	$LIB sched.acid channel.acid
+all:V:	$LIB syms
 
-</sys/src/cmd/mksyslib
+< /sys/src/cmd/mksyslib
 
-$O.tprimes: tprimes.$O $LIB
-	$LD -o $target $prereq
+CFLAGS = $CFLAGS -DM$objtype
+
+syms:V: threadimpl.h
+	$CC -a thread.c	>syms.$objtype
+	$CC -a channel.c >>syms.$objtype
+
+assert.$O: assert.h threadimpl.h
+channel.$O: assert.h threadimpl.h
+thread.$O: assert.h threadimpl.h

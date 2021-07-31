@@ -7,6 +7,8 @@
 #include "defs.h"
 #include "fns.h"
 
+extern	char	lastc, peekc;
+
 void
 scanform(long icount, int prt, char *ifp, Map *map, int literal)
 {
@@ -61,7 +63,6 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 	uchar ch, *cp;
 	Symbol s;
 	char buf[512];
-	extern int printcol;
 
 	fp = 0;
 	while (fcount > 0) {
@@ -80,7 +81,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 				dprint("%s%c%16t", buf, map==symmap? '?':'/');
 			}
 		}
-		if (printcol==0 && modifier != 'a' && modifier != 'A')
+		if (charpos()==0 && modifier != 'a' && modifier != 'A')
 			dprint("\t\t");
 		switch(modifier) {
 
@@ -102,7 +103,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			break;
 
 		case 'A':
-			dprint("%#lux%10t", dot);
+			dprint("%lux%10t", dot);
 			dotinc = 0;
 			break;
 
@@ -128,7 +129,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			if (c == 'u')
 				dprint("%-8lud", w);
 			else if (c == 'x')
-				dprint("%-8#lux", w);
+				dprint("%-8lux", w);
 			else if (c == 'd')
 				dprint("%-8ld", w);
 			else if (c == 'o')
@@ -150,7 +151,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			if (c == 'U')
 				dprint("%-16lud", w);
 			else if (c == 'X')
-				dprint("%-16#lux", w);
+				dprint("%-16lux", w);
 			else if (c == 'D')
 				dprint("%-16ld", w);
 			else if (c == 'O')
@@ -167,7 +168,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 				error("%r");
 			dotinc = 8;
 			if (c == 'Y')
-				dprint("%-20#llux", v);
+				dprint("%-20llux", v);
 			else if (c == 'V')
 				dprint("%-20lld", v);
 			else if (c == 'Z')
@@ -184,7 +185,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			if (modifier == 'C')
 				printesc(ch);
 			else if (modifier == 'B' || modifier == 'b')
-				dprint("%-8#lux", (long) ch);
+				dprint("%-8lux", (long) ch);
 			else
 				printc(ch);
 			dotinc = 1;

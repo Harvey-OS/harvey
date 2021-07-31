@@ -1,7 +1,7 @@
 <html>
 <head>
-<title>Aladdin's C coding guidelines</title>
-<!-- $Id: C-style.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
+<title>Ghostscript C coding guidelines</title>
+<!-- $Id: C-style.htm,v 1.4.2.2 2000/11/28 01:31:22 raph Exp $ -->
 <!-- Originally: c-style.txt -->
 </head>
 
@@ -12,7 +12,7 @@
 
 <table width="100%" border="0">
 <tr><th align="center" bgcolor="#CCCC00"><font size=6>
-Aladdin's C coding guidelines
+Ghostscript C coding guidelines
 </font>
 </table>
 
@@ -44,6 +44,7 @@ Aladdin's C coding guidelines
 <li><a href="#Scalars">Scalars</a>
 </ul>
 <li><a href="#Static_extern_scoping"><b><tt>static</tt></b> and <b><tt>extern</tt></b> scoping</a>
+<li><a href="#Standard_library">Standard library features</a>
 <li><a href="#Other">Miscellany</a>
 </ul>
 <li><a href="#File_structuring_naming">File structuring and naming</a>
@@ -403,6 +404,15 @@ it, especially if it's local to a file.
 <p>
 Avoid <b><tt>extern</tt></b> in <b><tt>.c</tt></b> files: put it in header
 files.
+
+<h2><a name="Standard_library"></a>Standard library features</h2>
+
+<p>
+Only use library features that are documented in the established ANSI
+standard (e.g., Harbison & Steele's book).  Do not use procedures that are
+"standards" promulgated by Microsoft (e.g., <b><tt>stricmp</tt></b>), or
+originate in BSD Unix (e.g., <b><tt>strcasecmp</tt></b>), or were added in
+later versions of the standard such as C 9X.
 
 <h2><a name="Other"></a>Miscellany</h2>
 
@@ -933,13 +943,13 @@ by using explicit casts.
 
 <p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of Aladdin Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-Aladdin Ghostscript.
+<p>This file is part of AFPL Ghostscript.  See the <a
+href="Public.htm">Aladdin Free Public License</a> (the "License") for full
+details of the terms of using, copying, modifying, and redistributing AFPL
+Ghostscript.
 
 <p>
-Ghostscript version 6.0, 3 February 2000
+Ghostscript version 6.32, 27 November 2000
 
 </font>
 

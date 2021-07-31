@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
 #include <libsec.h>
 #include "imap4d.h"
 
@@ -35,9 +34,8 @@ copyCheck(Box *box, Msg *m, int uids, void *v)
 int
 copySave(Box *box, Msg *m, int uids, void *vs)
 {
-	Dir *d;
+	Dir d;
 	Biobuf b;
-	vlong length;
 	char *head;
 	int ok, hfd, bfd, nhead;
 
@@ -73,16 +71,13 @@ copySave(Box *box, Msg *m, int uids, void *vs)
 		return 0;
 	}
 
-	d = dirfstat(bfd);
-	if(d == nil){
+	if(dirfstat(bfd, &d) < 0){
 		close(bfd);
 		return 0;
 	}
-	length = d->length;
-	free(d);
 
 	Binit(&b, bfd, OREAD);
-	ok = saveMsg(vs, m->info[IDigest], m->flags, head, nhead, &b, length);
+	ok = saveMsg(vs, m->info[IDigest], m->flags, head, nhead, &b, d.length);
 	Bterm(&b);
 	close(bfd);
 	return ok;

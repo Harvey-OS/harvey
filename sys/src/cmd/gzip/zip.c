@@ -7,6 +7,7 @@
 enum
 {
 	HeadAlloc	= 64,
+	NDirs		= 64,
 };
 
 static	void	zip(Biobuf *bout, char *file, int stdout);
@@ -111,15 +112,14 @@ zip(Biobuf *bout, char *file, int stdout)
 {
 	Tm *t;
 	ZipHead *zh;
-	Dir *dir;
+	Dir dir;
 	vlong off;
 	int fd, err;
 
 	fd = open(file, OREAD);
 	if(fd < 0)
 		error("can't open %s: %r", file);
-	dir = dirfstat(fd);
-	if(dir == nil)
+	if(dirfstat(fd, &dir) < 0)
 		error("can't stat %s: %r", file);
 
 	/*
@@ -137,7 +137,7 @@ zip(Biobuf *bout, char *file, int stdout)
 	zh->extos = ZDos;
 	zh->extvers = (2 * 10) + 0;
 	
-	t = localtime(dir->mtime);
+	t = localtime(dir.mtime);
 	zh->modtime = (t->hour<<11) | (t->min<<5) | (t->sec>>1);
 	zh->moddate = ((t->year-80)<<9) | ((t->mon+1)<<5) | t->mday;
 
@@ -150,11 +150,11 @@ zip(Biobuf *bout, char *file, int stdout)
 		error("out of memory");
 	zh->iattr = 0;
 	zh->eattr = ZDArch;
-	if((dir->mode & 0700) == 0)
+	if((dir.mode & 0700) == 0)
 		zh->eattr |= ZDROnly;
 	zh->off = Boffset(bout);
 
-	if(dir->mode & DMDIR){
+	if(dir.mode & CHDIR){
 		zh->eattr |= ZDDir;
 		zh->meth = 0;
 		zipDir(bout, fd, zh, stdout);
@@ -179,13 +179,13 @@ zip(Biobuf *bout, char *file, int stdout)
 		trailer(bout, zh, off);
 	}
 	close(fd);
-	free(dir);
+	
 }
 
 static void
 zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout)
 {
-	Dir *dirs;
+	Dir dirs[NDirs];
 	char *file, *pfile;
 	int i, nf, nd;
 
@@ -206,16 +206,16 @@ zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout)
 		header(bout, zh);
 	}
 
-	nf += 256;	/* plenty of room */
+	nf += NAMELEN;
 	file = malloc(nf);
 	if(file == nil)
 		error("out of memory");
-	while((nd = dirread(fd, &dirs)) >= 0){
+	while((nd = dirread(fd, dirs, sizeof(Dir) * NDirs)) >= sizeof(Dir)){
+		nd /= sizeof(Dir);
 		for(i = 0; i < nd; i++){
 			snprint(file, nf, "%s%s", pfile, dirs[i].name);
 			zip(bout, file, stdout);
 		}
-		free(dirs);
 	}
 }
 
@@ -386,13 +386,13 @@ put1(Biobuf *b, int v)
 static void
 error(char *fmt, ...)
 {
+	char buf[1024];
 	va_list arg;
 
-	fprint(2, "zip: ");
 	va_start(arg, fmt);
-	vfprint(2, fmt, arg);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
-	fprint(2, "\n");
+	fprint(2, "zip: %s\n", buf);
 
 	longjmp(zjmp, 1);
 }

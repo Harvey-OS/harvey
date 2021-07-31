@@ -49,8 +49,8 @@ enum
 	NCompStats = 8,
 };
 
-#define TYPE(x) 	(((ulong)(x).path) & 0xff)
-#define CONV(x) 	((((ulong)(x).path) >> 8)&(Maxconv-1))
+#define TYPE(x) 	((x).path & 0xff)
+#define CONV(x) 	(((x).path >> 8)&(Maxconv-1))
 #define QID(x, y) 	(((x)<<8) | (y))
 
 struct Stats
@@ -144,7 +144,7 @@ struct Conv {
 	Chan *chan;		// packet channel
 	char *channame;
 
-	char owner[KNAMELEN];		/* protections */
+	char owner[NAMELEN];		/* protections */
 	int	perm;
 
 	Algorithm *auth;
@@ -283,7 +283,7 @@ static char *convstatename[] = {
 	[CClosed]	"Closed",
 };
 
-static int sdpgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp);
+static int sdpgen(Chan *c, Dirtab*, int, int s, Dir *dp);
 static Conv *sdpclone(Sdp *sdp);
 static void sdpackproc(void *a);
 static void onewaycleanup(OneWay *ow);
@@ -375,7 +375,7 @@ sdpattach(char* spec)
 		error("bad specification");
 
 	c = devattach('E', spec);
-	c->qid = (Qid){QID(0, Qtopdir), 0, QTDIR};
+	c->qid = (Qid){QID(0, Qtopdir)|CHDIR, 0};
 	c->dev = dev;
 
 	sdp = sdptab + dev;
@@ -392,17 +392,18 @@ sdpattach(char* spec)
 	return c;
 }
 
-static Walkqid*
-sdpwalk(Chan *c, Chan *nc, char **name, int nname)
+static int
+sdpwalk(Chan *c, char *name)
 {
-	return devwalk(c, nc, name, nname, 0, 0, sdpgen);
+	return devwalk(c, name, 0, 0, sdpgen);
 }
 
-static int
-sdpstat(Chan* c, uchar* db, int n)
+static void
+sdpstat(Chan* c, char* db)
 {
-	return devstat(c, db, n, nil, 0, sdpgen);
+	devstat(c, db, nil, 0, sdpgen);
 }
+
 
 static Chan*
 sdpopen(Chan* ch, int omode)
@@ -702,10 +703,11 @@ sdpbwrite(Chan *ch, Block *bp, ulong offset)
 }
 
 static int
-sdpgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+sdpgen(Chan *c, Dirtab*, int, int s, Dir *dp)
 {
 	Sdp *sdp = sdptab + c->dev;
 	int type = TYPE(c->qid);
+	char buf[32];
 	Dirtab *dt;
 	Qid qid;
 
@@ -713,17 +715,15 @@ sdpgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		switch(TYPE(c->qid)){
 		case Qtopdir:
 		case Qsdpdir:
-			snprint(up->genbuf, sizeof(up->genbuf), "#E%ld", c->dev);
-			mkqid(&qid, Qtopdir, 0, QTDIR);
-			devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
+			snprint(buf, sizeof(buf), "#E%ld", c->dev);
+			devdir(c, (Qid){CHDIR|Qtopdir, 0}, buf, 0, eve, 0555, dp);
 			break;
 		case Qconvdir:
-			snprint(up->genbuf, sizeof(up->genbuf), "%d", s);
-			mkqid(&qid, Qsdpdir, 0, QTDIR);
-			devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
+			snprint(buf, sizeof(buf), "%d", s);
+			devdir(c, (Qid){CHDIR|Qsdpdir, 0}, buf, 0, eve, 0555, dp);
 			break;
 		default:
-			panic("sdpwalk %llux", c->qid.path);
+			panic("sdpwalk %lux", c->qid.path);
 		}
 		return 1;
 	}
@@ -731,20 +731,19 @@ sdpgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	switch(type) {
 	default:
 		// non directory entries end up here
-		if(c->qid.type & QTDIR)
+		if(c->qid.path & CHDIR)
 			panic("sdpgen: unexpected directory");	
 		if(s != 0)
 			return -1;
 		dt = dirtab[TYPE(c->qid)];
 		if(dt == nil)
-			panic("sdpgen: unknown type: %lud", TYPE(c->qid));
+			panic("sdpgen: unknown type: %d", TYPE(c->qid));
 		devdir(c, c->qid, dt->name, dt->length, eve, dt->perm, dp);
 		return 1;
 	case Qtopdir:
 		if(s != 0)
 			return -1;
-		mkqid(&qid, QID(0, Qsdpdir), 0, QTDIR);
-		devdir(c, qid, "sdp", 0, eve, 0555, dp);
+		devdir(c, (Qid){QID(0,Qsdpdir)|CHDIR,0}, "sdp", 0, eve, 0555, dp);
 		return 1;
 	case Qsdpdir:
 		if(s<nelem(sdpdirtab)) {
@@ -755,15 +754,15 @@ sdpgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		s -= nelem(sdpdirtab);
 		if(s >= sdp->nconv)
 			return -1;
-		mkqid(&qid, QID(s, Qconvdir), 0, QTDIR);
-		snprint(up->genbuf, sizeof(up->genbuf), "%d", s);
-		devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
+		qid = (Qid){QID(s,Qconvdir)|CHDIR, 0};
+		snprint(buf, sizeof(buf), "%d", s);
+		devdir(c, qid, buf, 0, eve, 0555, dp);
 		return 1;
 	case Qconvdir:
 		if(s>=nelem(convdirtab))
 			return -1;
 		dt = convdirtab+s;
-		mkqid(&qid, QID(CONV(c->qid),TYPE(dt->qid)), 0, QTFILE);
+		qid = (Qid){QID(CONV(c->qid),TYPE(dt->qid)),0};
 		devdir(c, qid, dt->name, dt->length, eve, dt->perm, dp);
 		return 1;
 	}
@@ -935,8 +934,8 @@ Dev sdpdevtab = {
 
 	devreset,
 	sdpinit,
-	devshutdown,
 	sdpattach,
+	devclone,
 	sdpwalk,
 	sdpstat,
 	sdpopen,
@@ -955,7 +954,7 @@ static void
 convsetstate(Conv *c, int state)
 {
 
-if(0)print("convsetstate %d: %s -> %s\n", c->id, convstatename[c->state], convstatename[state]);
+if(1)print("convsetstate %d: %s -> %s\n", c->id, convstatename[c->state], convstatename[state]);
 
 	switch(state) {
 	default:
@@ -1224,14 +1223,14 @@ conviput(Conv *c, Block *b, int control)
 
 	if(seqdiff <= 0) {
 		if(seqdiff <= -SeqWindow) {
-if(0)print("old sequence number: %ld (%ld %ld)\n", seq, c->in.seqwrap, seqdiff);
+print("old sequence number: %ld (%ld %ld)\n", seq, c->in.seqwrap, seqdiff);
 			c->lstats.inBadSeq++;
 			freeb(b);
 			return nil;
 		}
 
 		if(c->in.window & (1<<-seqdiff)) {
-if(0)print("dup sequence number: %ld (%ld %ld)\n", seq, c->in.seqwrap, seqdiff);
+print("dup sequence number: %ld (%ld %ld)\n", seq, c->in.seqwrap, seqdiff);
 			c->lstats.inDup++;
 			freeb(b);
 			return nil;
@@ -1244,7 +1243,7 @@ if(0)print("dup sequence number: %ld (%ld %ld)\n", seq, c->in.seqwrap, seqdiff);
 if(0) print("coniput seq=%ulx\n", seq);
 	if(c->in.auth != 0) {
 		if(!(*c->in.auth)(&c->in, b->rp-4, BLEN(b)+4)) {
-if(0)print("bad auth %ld\n", BLEN(b)+4);
+print("bad auth %ld\n", BLEN(b)+4);
 			c->lstats.inBadAuth++;
 			freeb(b);
 			return nil;
@@ -1254,7 +1253,7 @@ if(0)print("bad auth %ld\n", BLEN(b)+4);
 
 	if(c->in.cipher != 0) {
 		if(!(*c->in.cipher)(&c->in, b->rp, BLEN(b))) {
-if(0)print("bad cipher\n");
+print("bad cipher\n");
 			c->lstats.inBadOther++;
 			freeb(b);
 			return nil;
@@ -1263,7 +1262,7 @@ if(0)print("bad cipher\n");
 		if(c->in.cipherblklen > 1) {
 			pad = b->wp[-1];
 			if(pad > BLEN(b)) {
-if(0)print("pad too big\n");
+print("pad too big\n");
 				c->lstats.inBadOther++;
 				freeb(b);
 				return nil;
@@ -1314,7 +1313,7 @@ if(0)print("pad too big\n");
 			break;
 		return b;
 	}
-if(0)print("dropping packet id=%d: type=%d n=%ld control=%d\n", c->id, type, BLEN(b), control);
+print("dropping packet id=%d: type=%d n=%ld control=%d\n", c->id, type, BLEN(b), control);
 	c->lstats.inBadOther++;
 	freeb(b);
 	return nil;
@@ -1441,7 +1440,7 @@ convicontrol(Conv *c, int subtype, Block *b)
 	switch(subtype){
 	case ControlMesg:
 		if(cseq == c->in.controlseq) {
-if(0)print("duplicate control packet: %ulx\n", cseq);
+print("duplicate control packet: %ulx\n", cseq);
 			// duplicate control packet
 			freeb(b);
 			if(c->in.controlpkt == nil)
@@ -1819,7 +1818,7 @@ convreader(void *a)
 		}
 		qlock(c);
 		if(b == nil) {
-			if(strcmp(up->errstr, Eintr) != 0) {
+			if(strcmp(up->error, Eintr) != 0) {
 				convsetstate(c, CClosed);
 				break;
 			}
@@ -2285,7 +2284,7 @@ thwackuncomp(Conv *c, int subtype, ulong seq, Block **bp)
 		n = unthwack(c->in.compstate, b->wp, ThwMaxBlock, bb->rp, BLEN(bb), seq);
 		freeb(bb);
 		if(n < 0) {
-if(0)print("unthwack failed: %d\n", n);
+print("unthwack failed: %d\n", n);
 			freeb(b);
 			return 0;
 		}

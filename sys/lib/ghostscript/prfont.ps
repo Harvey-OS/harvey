@@ -18,8 +18,9 @@
 %   Modified to sort unencoded characters.
 % Copyright (C) 2000 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
 %   Modified to print CIDFonts as well as fonts.
+%   O(N^2) sorting replaced with O(N log N).
 
-% $Id: prfont.ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
+% $Id: prfont.ps,v 1.2 2000/03/21 06:39:49 lpd Exp $
 
 % Example usages at bottom of file
 
@@ -32,19 +33,38 @@
 /Base 16 def	% char code output base
 /TempEncoding [ 256 { /.notdef } repeat ] def
 
-% Sort an array.  Code copied from Ghostscript (lib/gs_ttf.ps) and used by
-% permission of the author, Aladdin Enterprises.
-/sort {		% <array> <lt-proc> sort <array>
-  1 index length 1 sub -1 1 {
-    2 index exch 2 copy get 3 copy	% arr proc arr i arr[i] arr i arr[i]
-    0 1 3 index 1 sub {
-      3 index 1 index get	% arr proc arr i arr[i] arr imax amax j arr[j]
-      2 index 1 index 10 index exec {	% ... amax < arr[j]
-	4 2 roll
-      } if pop pop
-    } for			% arr proc arr i arr[i] arr imax amax
-    4 -1 roll exch 4 1 roll put put
-  } for pop
+% Sort an array.  Code used by permission of the author, Aladdin Enterprises.
+/sort {			% <array> <lt-proc> sort <array>
+	% Heapsort (algorithm 5.2.3H, Knuth vol. 2, p. 146),
+	% modified for 0-origin indexing. */
+  10 dict begin
+  /LT exch def
+  /recs exch def
+  /N recs length def
+  N 1 gt {
+    /l N 2 idiv def
+    /r N 1 sub def {
+      l 0 gt {
+	/l l 1 sub def
+	/R recs l get def
+      } {
+	/R recs r get def
+	recs r recs 0 get put
+	/r r 1 sub def
+	r 0 eq { recs 0 R put exit } if
+      } ifelse
+      /j l def {
+	/i j def
+	/j j dup add 1 add def
+	j r lt {
+	  recs j get recs j 1 add get LT { /j j 1 add def } if
+	} if
+	j r gt { recs i R put exit } if
+	R recs j get LT not { recs i R put exit } if
+	recs i recs j get put
+      } loop
+    } loop
+  } if recs end
 } def
 
 % do single character of page

@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gscpixel.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gscpixel.c,v 1.3 2000/09/19 19:00:26 lpd Exp $ */
 /* DevicePixel color space and operation definition */
 #include "gx.h"
 #include "gserrors.h"
@@ -26,19 +26,27 @@
 #include "gxdevice.h"
 
 /* Define the DevicePixel color space type. */
+private cs_proc_equal(gx_equal_DevicePixel);
 private cs_proc_restrict_color(gx_restrict_DevicePixel);
 private cs_proc_remap_concrete_color(gx_remap_concrete_DevicePixel);
 private cs_proc_concretize_color(gx_concretize_DevicePixel);
 private const gs_color_space_type gs_color_space_type_DevicePixel = {
     gs_color_space_index_DevicePixel, true, false,
     &st_base_color_space, gx_num_components_1,
-    gx_no_base_space,
+    gx_no_base_space, gx_equal_DevicePixel,
     gx_init_paint_1, gx_restrict_DevicePixel,
     gx_same_concrete_space,
     gx_concretize_DevicePixel, gx_remap_concrete_DevicePixel,
     gx_default_remap_color, gx_no_install_cspace,
     gx_no_adjust_cspace_count, gx_no_adjust_color_count
 };
+
+/* Test whether one DevicePixel color space equals another. */
+private bool
+gx_equal_DevicePixel(const gs_color_space *pcs1, const gs_color_space *pcs2)
+{
+    return pcs1->params.pixel.depth == pcs2->params.pixel.depth;
+}
 
 /* Initialize a DevicePixel color space. */
 int

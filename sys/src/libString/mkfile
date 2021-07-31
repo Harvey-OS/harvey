@@ -22,3 +22,4 @@ OFILES=	s_alloc.$O\
 HFILES=/sys/include/String.h
 
 </sys/src/cmd/mksyslib
+

@@ -5,84 +5,35 @@
 #define Extern	extern
 #include "statfs.h"
 
-char Ebadfid[]	= "Bad fid";
-char Enotdir[]	="Not a directory";
-char Edupfid[]	= "Fid already in use";
-char	Eopen[]	= "Fid already opened";
-char	Exmnt[]	= "Cannot .. past mount point";
-char	Enoauth[]	= "iostats: Authentication failed";
-char	Ebadver[]	= "Unrecognized 9P version";
-
-int
-okfile(char *s, int mode)
+char *e[] =
 {
-	if(strncmp(s, "/fd/", 3) == 0){
-		/* 0, 1, and 2 we handle ourselves */
-		if(s[4]=='/' || atoi(s+4) > 2)
-			return 0;
-		return 1;
-	}
-	if(strncmp(s, "/net/ssl", 8) == 0)
-		return 0;
-	if(strncmp(s, "/net/tls", 8) == 0)
-		return 0;
-	if(strncmp(s, "/srv/", 5) == 0 && ((mode&3) == OWRITE || (mode&3) == ORDWR))
-		return 0;
-	return 1;
-}
+	[Ebadfid]	"Bad fid",
+	[Enotdir]	"Not a directory",
+	[Edupfid]	"Fid already in use",
+	[Eopen]		"Fid already opened",
+	[Exmnt]		"Cannot .. past mount point",
+	[Enoauth]	"Authentication failed",
+};
 
 void
-Xversion(Fsrpc *r)
+Xnop(Fsrpc *r)
 {
 	Fcall thdr;
-	Rpc *rpc;
-	ulong t;
 
-	t = msec();
-
-	if(r->work.msize > IOHDRSZ+Maxfdata)
-		thdr.msize = IOHDRSZ+Maxfdata;
-	else
-		thdr.msize = r->work.msize;
-	myiounit = thdr.msize - IOHDRSZ;
-	if(strncmp(r->work.version, "9P2000", 6) != 0){
-		reply(&r->work, &thdr, Ebadver);
-		r->busy = 0;
-		return;
-	}
-	thdr.version = "9P2000";
-	/* BUG: should clunk all fids */
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
-
-	t = msec()-t;
-	rpc = &stats->rpc[Tversion];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
 }
 
 void
-Xauth(Fsrpc *r)
+Xsession(Fsrpc *r)
 {
 	Fcall thdr;
-	Rpc *rpc;
-	ulong t;
 
-	t = msec();
-
-	reply(&r->work, &thdr, Enoauth);
+	memset(thdr.authid, 0, sizeof(thdr.authid));
+	memset(thdr.authdom, 0, sizeof(thdr.authdom));
+	memset(thdr.chal, 0, sizeof(thdr.chal));
+	reply(&r->work, &thdr, 0);
 	r->busy = 0;
-
-	t = msec()-t;
-	rpc = &stats->rpc[Tauth];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
 }
 
 void
@@ -124,7 +75,7 @@ Xattach(Fsrpc *r)
 
 	f = newfid(r->work.fid);
 	if(f == 0) {
-		reply(&r->work, &thdr, Ebadfid);
+		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
 		return;
 	}
@@ -144,74 +95,83 @@ Xattach(Fsrpc *r)
 }
 
 void
-Xwalk(Fsrpc *r)
+Xclone(Fsrpc *r)
 {
-	char errbuf[ERRMAX], *err;
 	Fcall thdr;
 	Fid *f, *n;
-	File *nf;
-	Rpc *rpc;
 	ulong t;
-	int i;
+	Rpc *rpc;
 
 	t = msec();
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
-		reply(&r->work, &thdr, Ebadfid);
+		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
 		return;
 	}
-	n = nil;
-	if(r->work.newfid != r->work.fid){
-		n = newfid(r->work.newfid);
-		if(n == 0) {
-			reply(&r->work, &thdr, Edupfid);
+	n = newfid(r->work.newfid);
+	if(n == 0) {
+		reply(&r->work, &thdr, e[Edupfid]);
+		r->busy = 0;
+		return;
+	}
+	n->f = f->f;
+	reply(&r->work, &thdr, 0);
+	r->busy = 0;
+
+	t = msec()-t;
+	rpc = &stats->rpc[Tclone];
+	rpc->time += t;
+	if(t < rpc->loms)
+		rpc->loms = t;
+	if(t > rpc->hims)
+		rpc->hims = t;
+}
+
+void
+Xwalk(Fsrpc *r)
+{
+	char err[ERRLEN];
+	Fcall thdr;
+	Fid *f;
+	File *nf;
+	Rpc *rpc;
+	ulong t;
+
+	t = msec();
+
+	f = getfid(r->work.fid);
+	if(f == 0) {
+		reply(&r->work, &thdr, e[Ebadfid]);
+		r->busy = 0;
+		return;
+	}
+
+	if(strcmp(r->work.name, "..") == 0) {
+		if(f->f->parent == 0) {
+			reply(&r->work, &thdr, e[Exmnt]);
 			r->busy = 0;
 			return;
 		}
-		n->f = f->f;
-		f = n;	/* walk new guy */
+		f->f = f->f->parent;
+		thdr.qid = f->f->qid;
+		reply(&r->work, &thdr, 0);
+		r->busy = 0;
+		return;
 	}
 
-	thdr.nwqid = 0;
-	err = nil;
-	for(i=0; i<r->work.nwname; i++){
-		if(i >= MAXWELEM)
-			break;
-		if(strcmp(r->work.wname[i], "..") == 0) {
-			if(f->f->parent == 0) {
-				err = Exmnt;
-				break;
-			}
-			f->f = f->f->parent;
-			thdr.wqid[thdr.nwqid++] = f->f->qid;
-			continue;
-		}
-	
-		nf = file(f->f, r->work.wname[i]);
-		if(nf == 0) {
-			errstr(errbuf, sizeof errbuf);
-			err = errbuf;
-			break;
-		}
-
-		f->f = nf;
-		thdr.wqid[thdr.nwqid++] = nf->qid;
-		continue;
+	nf = file(f->f, r->work.name);
+	if(nf == 0) {
+		errstr(err);
+		reply(&r->work, &thdr, err);
+		r->busy = 0;
+		return;
 	}
-
-	if(err == nil && thdr.nwqid == 0 && r->work.nwname > 0)
-		err = "file does not exist";
-
-	if(n != nil && (err != 0 || thdr.nwqid < r->work.nwname)){
-		/* clunk the new fid, which is the one we walked */
-		freefid(n->nr);
-	}
-
-	if(thdr.nwqid > 0)
-		err = nil;
-	reply(&r->work, &thdr, err);
+		
+	f->f = nf;
+	thdr.qid = nf->qid;
+	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
 	t = msec()-t;
@@ -236,7 +196,7 @@ Xclunk(Fsrpc *r)
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
-		reply(&r->work, &thdr, Ebadfid);
+		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
 		return;
 	}
@@ -265,8 +225,7 @@ Xclunk(Fsrpc *r)
 void
 Xstat(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
-	uchar statbuf[STATMAX];
+	char err[ERRLEN], path[128];
 	Fcall thdr;
 	Fid *f;
 	int s;
@@ -277,31 +236,23 @@ Xstat(Fsrpc *r)
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
-		reply(&r->work, &thdr, Ebadfid);
+		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
 		return;
 	}
-	makepath(path, f->f, "");
-	if(!okfile(path, -1)){
-		snprint(err, sizeof err, "iostats: can't simulate %s", path);
-		reply(&r->work, &thdr, err);
-		r->busy = 0;
-		return;
-	}
-
 	if(f->fid >= 0)
-		s = fstat(f->fid, statbuf, sizeof statbuf);
-	else
-		s = stat(path, statbuf, sizeof statbuf);
+		s = fstat(f->fid, thdr.stat);
+	else {
+		makepath(path, f->f, "");
+		s = stat(path, thdr.stat);
+	}
 
 	if(s < 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(&r->work, &thdr, err);
 		r->busy = 0;
 		return;
 	}
-	thdr.stat = statbuf;
-	thdr.nstat = s;
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
@@ -317,7 +268,7 @@ Xstat(Fsrpc *r)
 void
 Xcreate(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
+	char err[ERRLEN], path[128];
 	Fcall thdr;
 	Fid *f;
 	File *nf;
@@ -328,7 +279,7 @@ Xcreate(Fsrpc *r)
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
-		reply(&r->work, &thdr, Ebadfid);
+		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
 		return;
 	}
@@ -337,7 +288,7 @@ Xcreate(Fsrpc *r)
 	makepath(path, f->f, r->work.name);
 	f->fid = create(path, r->work.mode, r->work.perm);
 	if(f->fid < 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(&r->work, &thdr, err);
 		r->busy = 0;
 		return;
@@ -345,7 +296,7 @@ Xcreate(Fsrpc *r)
 
 	nf = file(f->f, r->work.name);
 	if(nf == 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(&r->work, &thdr, err);
 		r->busy = 0;
 		return;
@@ -353,7 +304,7 @@ Xcreate(Fsrpc *r)
 
 	f->mode = r->work.mode;
 	f->f = nf;
-	thdr.iounit = myiounit;
+	f->offset = 0;
 	thdr.qid = f->f->qid;
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
@@ -371,7 +322,7 @@ Xcreate(Fsrpc *r)
 void
 Xremove(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
+	char err[ERRLEN], path[128];
 	Fcall thdr;
 	Fid *f;
 	ulong t;
@@ -381,7 +332,7 @@ Xremove(Fsrpc *r)
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
-		reply(&r->work, &thdr, Ebadfid);
+		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
 		return;
 	}
@@ -389,7 +340,7 @@ Xremove(Fsrpc *r)
 	makepath(path, f->f, "");
 	DEBUG(2, "\tremove: %s\n", path);
 	if(remove(path) < 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(&r->work, &thdr, err);
 		freefid(r->work.fid);
 		r->busy = 0;
@@ -416,7 +367,7 @@ Xremove(Fsrpc *r)
 void
 Xwstat(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
+	char err[ERRLEN], path[128];
 	Fcall thdr;
 	Fid *f;
 	int s;
@@ -427,18 +378,18 @@ Xwstat(Fsrpc *r)
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
-		reply(&r->work, &thdr, Ebadfid);
+		reply(&r->work, &thdr, e[Ebadfid]);
 		r->busy = 0;
 		return;
 	}
 	if(f->fid >= 0)
-		s = fwstat(f->fid, r->work.stat, r->work.nstat);
+		s = fwstat(f->fid, r->work.stat);
 	else {
 		makepath(path, f->f, "");
-		s = wstat(path, r->work.stat, r->work.nstat);
+		s = wstat(path, r->work.stat);
 	}
 	if(s < 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(&r->work, &thdr, err);
 	}
 	else
@@ -452,6 +403,15 @@ Xwstat(Fsrpc *r)
 		rpc->loms = t;
 	if(t > rpc->hims)
 		rpc->hims = t;
+}
+ 
+void
+Xclwalk(Fsrpc *r)
+{
+	Fcall thdr;
+
+	reply(&r->work, &thdr, "exportfs: no Tclwalk");
+	r->busy = 0;
 }
 
 void
@@ -516,8 +476,8 @@ blockingslave(void)
 			continue;
 
 		DEBUG(2, "\tslave: %d %F b %d p %d\n", pid, &p->work, p->busy, p->pid);
-		if(p->flushtag != NOTAG)
-			return;
+	if(p->flushtag != NOTAG)
+		return;
 
 		switch(p->work.type) {
 		case Tread:
@@ -545,7 +505,7 @@ blockingslave(void)
 void
 slaveopen(Fsrpc *p)
 {
-	char err[ERRMAX], path[128];
+	char err[ERRLEN], path[128];
 	Fcall *work, thdr;
 	Fid *f;
 	ulong t;
@@ -557,7 +517,7 @@ slaveopen(Fsrpc *p)
 
 	f = getfid(work->fid);
 	if(f == 0) {
-		reply(work, &thdr, Ebadfid);
+		reply(work, &thdr, e[Ebadfid]);
 		return;
 	}
 	if(f->fid >= 0) {
@@ -571,25 +531,18 @@ slaveopen(Fsrpc *p)
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
 		return;
-
-	if(!okfile(path, work->mode)){
-		snprint(err, sizeof err, "iostats can't simulate %s", path);
-		reply(work, &thdr, err);
-		return;
-	}
-
 	/* There is a race here I ignore because there are no locks */
 	f->fid = open(path, work->mode);
 	p->canint = 0;
 	if(f->fid < 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(work, &thdr, err);
 		return;
 	}
 
 	DEBUG(2, "\topen: fd %d\n", f->fid);
 	f->mode = work->mode;
-	thdr.iounit = myiounit;
+	f->offset = 0;
 	thdr.qid = f->f->qid;
 	reply(work, &thdr, 0);
 
@@ -605,7 +558,7 @@ slaveopen(Fsrpc *p)
 void
 slaveread(Fsrpc *p)
 {
-	char data[Maxfdata], err[ERRMAX];
+	char data[MAXFDATA], err[ERRLEN];
 	Fcall *work, thdr;
 	Fid *f;
 	int n, r;
@@ -618,43 +571,28 @@ slaveread(Fsrpc *p)
 
 	f = getfid(work->fid);
 	if(f == 0) {
-		reply(work, &thdr, Ebadfid);
+		reply(work, &thdr, e[Ebadfid]);
 		return;
 	}
 
-	n = (work->count > Maxfdata) ? Maxfdata : work->count;
+	if(work->offset != f->offset)
+		fileseek(f, work->offset);
+
+	n = (work->count > MAXFDATA) ? MAXFDATA : work->count;
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
 		return;
-	/* can't just call pread, since directories must update the offset */
-	if(f->f->qid.type&QTDIR){
-		if(work->offset != f->offset){
-			if(work->offset != 0){
-				snprint(err, sizeof err, "can't seek in directory from %lld to %lld", f->offset, work->offset);
-				reply(work, &thdr, err);
-				return;
-			}
-			if(seek(f->fid, 0, 0) != 0){
-				errstr(err, sizeof err);
-				reply(work, &thdr, err);
-				return;	
-			}
-			f->offset = 0;
-		}
-		r = read(f->fid, data, n);
-		if(r > 0)
-			f->offset += r;
-	}else
-		r = pread(f->fid, data, n, work->offset);
+	r = read(f->fid, data, n);
 	p->canint = 0;
 	if(r < 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(work, &thdr, err);
 		return;
 	}
 
 	DEBUG(2, "\tread: fd=%d %d bytes\n", f->fid, r);
 
+	f->offset += r;
 	thdr.data = data;
 	thdr.count = r;
 	stats->totread += r;
@@ -674,7 +612,7 @@ slaveread(Fsrpc *p)
 void
 slavewrite(Fsrpc *p)
 {
-	char err[ERRMAX];
+	char err[ERRLEN];
 	Fcall *work, thdr;
 	Fid *f;
 	int n;
@@ -687,24 +625,28 @@ slavewrite(Fsrpc *p)
 
 	f = getfid(work->fid);
 	if(f == 0) {
-		reply(work, &thdr, Ebadfid);
+		reply(work, &thdr, e[Ebadfid]);
 		return;
 	}
 
-	n = (work->count > Maxfdata) ? Maxfdata : work->count;
+	if(work->offset != f->offset)
+		fileseek(f, work->offset);
+
+	n = (work->count > MAXFDATA) ? MAXFDATA : work->count;
 	p->canint = 1;
 	if(p->flushtag != NOTAG)
 		return;
-	n = pwrite(f->fid, work->data, n, work->offset);
+	n = write(f->fid, work->data, n);
 	p->canint = 0;
 	if(n < 0) {
-		errstr(err, sizeof err);
+		errstr(err);
 		reply(work, &thdr, err);
 		return;
 	}
 
 	DEBUG(2, "\twrite: %d bytes fd=%d\n", n, f->fid);
 
+	f->offset += n;
 	thdr.count = n;
 	f->nwrite++;
 	f->bwrite += n;
@@ -718,6 +660,30 @@ slavewrite(Fsrpc *p)
 		rpc->loms = t;
 	if(t > rpc->hims)
 		rpc->hims = t;
+}
+
+void
+fileseek(Fid *f, vlong offset)
+{
+	char chunk[DIRCHUNK];
+	int n, nbytes, r;
+
+	if(f->f->qid.path&CHDIR) {
+		if(offset < f->offset)
+			reopen(f);
+
+		for(nbytes = offset - f->offset; nbytes; nbytes -= r) {
+			n = (nbytes > DIRCHUNK) ? DIRCHUNK : nbytes;
+			r = read(f->fid, chunk, n);
+			if(r <= 0) {
+				DEBUG(2,"\tdir seek error\n");
+				return;
+			}
+			f->offset += r;
+		}
+	}
+	else
+		f->offset = seek(f->fid, offset, 0);
 }
 
 void

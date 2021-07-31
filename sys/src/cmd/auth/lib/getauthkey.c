@@ -1,18 +1,20 @@
 #include <u.h>
 #include <libc.h>
-#include <authsrv.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 static int
 getkey(char *authkey)
 {
-	Nvrsafe safe;
+	int fd;
+	int n;
 
-	if(readnvram(&safe, 0) < 0)
+	fd = open("/dev/key", OREAD);
+	if(fd < 0)
 		return -1;
-	memmove(authkey, safe.machkey, DESKEYLEN);
-	memset(&safe, 0, sizeof safe);
-	return 0;
+	n = read(fd, authkey, DESKEYLEN);
+	close(fd);
+	return n != DESKEYLEN ? -1 : 0;
 }
 
 int

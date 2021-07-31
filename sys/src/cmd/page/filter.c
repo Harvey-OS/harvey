@@ -12,6 +12,7 @@ initfilt(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf, char *type, cha
 	int p[2];
 	char xbuf[8192];
 	int n;
+	Waitmsg w;
 
 	if(argc > 1) {
 		fprint(2, "can only view one %s file at a time\n", type);
@@ -47,7 +48,7 @@ initfilt(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf, char *type, cha
 					write(p[0], xbuf, n);
 		}
 		close(p[0]);
-		waitpid();
+		wait(&w);
 		break;
 	case 0:
 		close(p[0]);

@@ -1,5 +1,0 @@
-#!/bin/rc
-if(test -e /mnt/keys/$1)
-	echo -n ok > /mnt/keys/$1/status
-if(test -e /mnt/netkeys/$1)
-	echo -n ok > /mnt/netkeys/$1/status

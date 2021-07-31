@@ -39,7 +39,7 @@ error(char *s)
 	exits(s);
 }
 
-char net[32];
+char net[2*NAMELEN];
 
 void
 usage(void)
@@ -57,9 +57,10 @@ main(int argc, char *argv[])
 	Rarp *rp;
 	char ebuf[Ndbvlen];
 	char ipbuf[Ndbvlen];
-	char file[128];
+	char file[2*NAMELEN];
 	int arp;
 	char *p, *ndbfile;
+	Ipifc *ifcs;
 
 	ndbfile = nil;
 	setnetmtpt(net, sizeof(net), nil);
@@ -88,8 +89,8 @@ main(int argc, char *argv[])
 	}ARGEND
 	USED(argc, argv);
 
-	fmtinstall('E', eipfmt);
-	fmtinstall('I', eipfmt);
+	fmtinstall('E', eipconv);
+	fmtinstall('I', eipconv);
 
 	db = ndbopen(ndbfile);
 	if(db == 0)
@@ -99,8 +100,10 @@ main(int argc, char *argv[])
 	if(edata < 0)
 		error("can't open ethernet");
 
-	if(myipaddr(myip, net) < 0)
+	ifcs = readipifc(net, nil);
+	if(ifcs == nil)
 		error("can't get my ip address");
+	ipmove(myip, ifcs->ip);
 	sprint(ebuf, "%s/%s", net, device);
 	if(myetheraddr(myether, ebuf) < 0)
 		error("can't get my ether address");

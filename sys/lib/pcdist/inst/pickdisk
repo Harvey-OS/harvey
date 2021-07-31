@@ -1,0 +1,55 @@
+#!/bin/rc
+
+# desc: select disk on which to install plan 9
+# prereq: 
+
+switch($1){
+case go
+	disks=`{ls /dev/sd*/data >[2]/dev/null | sed 's!/dev/(sd..)/data!\1!'}
+	if(~ $#disks 0) {
+		echo 'No disk devices were found on your system.'
+		echo 'The installation process cannot continue.'
+		exit giveup
+	}
+	
+	echo 'The following disk devices were found.'
+	echo
+	for(i in $disks) {
+		desc=`{cat /dev/$i/ctl | sed 1q | sed 's/inquiry //'}
+		echo $i '-' $desc
+		echo e | disk/fdisk -r /dev/$i/data >[2]/dev/null | grep -v '^   mbr'
+		echo
+	}
+	
+	okay=no
+	defdisk=$disks(1)
+
+	if(~ $#disks 1)
+		default=(-d $disks)
+	if not
+		default=()
+	prompt $default 'Disk to use' $disks
+	disk=$rd
+
+	if(! hasmbr /dev/$disk/data) {
+		echo 'The disk you selected has no master boot record on its first sector.'
+		echo '(Perhaps it is a completely blank disk.)'
+		echo 'You need a master boot record to use the disk.'
+		echo 'Should we install a default master boot record?'
+		echo
+		prompt 'Install mbr' y n
+		switch($rd) {
+		case y
+			disk/mbr /dev/$disk/data
+			pickdisk=done
+		}
+	}
+	export disk
+
+case checkdone
+	if(! ~ $#disk 1 || ! test -f /dev/$disk/data || ! hasmbr /dev/$disk/data) {
+		pickdisk=notdone
+		export pickdisk
+	}
+}
+

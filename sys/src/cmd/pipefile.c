@@ -39,7 +39,6 @@ main(int argc, char *argv[])
 	char *rcmd, *wcmd;
 	int fd0, fd1, ifd0, ifd1, dupflag;
 
-	rfork(RFNOTEG);
 	dupflag = 0;
 	rcmd = wcmd = nil;
 	ARGBEGIN{

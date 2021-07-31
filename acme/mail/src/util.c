@@ -13,17 +13,6 @@ emalloc(uint n)
 	if(p == nil)
 		error("can't malloc: %r");
 	memset(p, 0, n);
-	setmalloctag(p, getcallerpc(&n));
-	return p;
-}
-
-void*
-erealloc(void *p, uint n)
-{
-	p = realloc(p, n);
-	if(p == nil)
-		error("can't realloc: %r");
-	setmalloctag(p, getcallerpc(&n));
 	return p;
 }
 
@@ -76,17 +65,16 @@ egrow(char *s, char *sep, char *t)
 void
 error(char *fmt, ...)
 {
-	Fmt f;
-	char buf[64];
+	int n;
 	va_list arg;
+	char buf[256];
 
-	fmtfdinit(&f, 2, buf, sizeof buf);
-	fmtprint(&f, "Mail: ");
+	threadprint(2, "Mail: ");
 	va_start(arg, fmt);
-	fmtvprint(&f, fmt, arg);
+	n = doprint(buf, buf+sizeof buf, fmt, arg) - buf;
 	va_end(arg);
-	fmtprint(&f, "\n");
-	fmtfdflush(&f);
+	write(2, buf, n);
+	write(2, "\n", 1);
 	threadexitsall(fmt);
 }
 
@@ -95,10 +83,11 @@ ctlprint(int fd, char *fmt, ...)
 {
 	int n;
 	va_list arg;
+	char buf[256];
 
 	va_start(arg, fmt);
-	n = vfprint(fd, fmt, arg);
+	n = doprint(buf, buf+sizeof buf, fmt, arg) - buf;
 	va_end(arg);
-	if(n <= 0)
+	if(write(fd, buf, n) != n)
 		error("control file write error: %r");
 }

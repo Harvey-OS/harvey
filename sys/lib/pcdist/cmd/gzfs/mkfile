@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+TARG=gzfs
+
+OFILES=\
+	mkext.$O\
+	ramfs.$O\
+	inflate.$O\
+
+HFILES=gzfs.h
+
+BIN=/sys/lib/pcdist/bin/$objtype
+</sys/src/cmd/mkone

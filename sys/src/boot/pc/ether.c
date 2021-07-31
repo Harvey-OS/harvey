@@ -9,41 +9,10 @@
 
 static Ether ether[MaxEther];
 
-extern int ether2114xreset(Ether*);
-extern int elnk3reset(Ether*);
-extern int i82557reset(Ether*);
-extern int elnk3reset(Ether*);
-extern int ether589reset(Ether*);
-extern int ne2000reset(Ether*);
-extern int wd8003reset(Ether*);
-extern int ec2treset(Ether*);
-extern int amd79c970reset(Ether*);
-extern int rtl8139pnp(Ether*);
-extern int ether83815reset(Ether*);
-
-struct {
+extern struct {
 	char	*type;
 	int	(*reset)(Ether*);
-} ethercards[] = {
-	{ "21140", ether2114xreset, },
-	{ "2114x", ether2114xreset, },
-	{ "i82557", i82557reset, },
-	{ "elnk3", elnk3reset, },
-	{ "3C509", elnk3reset, },
-	{ "3C575", elnk3reset, },
-	{ "3C589", ether589reset, },
-	{ "3C562", ether589reset, },
-	{ "589E", ether589reset, },
-	{ "NE2000", ne2000reset, },
-	{ "WD8003", wd8003reset, },
-	{ "EC2T", ec2treset, },
-	{ "AMD79C970", amd79c970reset, },
-	{ "RTL8139", rtl8139pnp, },
-	{ "83815", ether83815reset, },
-
-	{ 0, }
-};
-
+} ethercards[];
 
 static void xetherdetach(void);
 
@@ -78,7 +47,7 @@ etherinit(void)
 				ctlr->irq = 9;
 			setvec(VectorPIC + ctlr->irq, ctlr->interrupt, ctlr);
 
-			print("ether#%d: %s: port 0x%luX irq %lud",
+			print("ether#%d: %s: port 0x%luX irq %d",
 				ctlr->ctlrno, ctlr->type, ctlr->port, ctlr->irq);
 			if(ctlr->mem)
 				print(" addr 0x%luX", ctlr->mem & ~KZERO);
@@ -118,12 +87,6 @@ void
 etherinitdev(int i, char *s)
 {
 	sprint(s, "ether%d", i);
-}
-
-void
-etherprintdevs(int i)
-{
-	print(" ether%d", i);
 }
 
 static Ether*

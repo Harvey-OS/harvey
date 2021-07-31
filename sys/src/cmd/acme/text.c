@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
-#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
+#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -58,7 +58,7 @@ textredraw(Text *t, Rectangle r, Font *f, Image *b, int odx)
 		if(t->maxlines > 0){
 			textreset(t);
 			textcolumnate(t, t->w->dlp,  t->w->ndl);
-			textshow(t, 0, 0, 1);
+			textshow(t, 0, 0);
 		}
 	}else{
 		textfill(t);
@@ -138,7 +138,7 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 	for(i=0; i<ndl; i++){
 		dl = dlp[i];
 		w = dl->wid;
-		if(maxt-w%maxt < mint || w%maxt==0)
+		if(maxt-w%maxt < mint)
 			w += mint;
 		if(w % maxt)
 			w += maxt-(w%maxt);
@@ -181,10 +181,10 @@ textload(Text *t, uint q0, char *file, int setqid)
 {
 	Rune *rp;
 	Dirlist *dl, **dlp;
-	int fd, i, j, n, ndl, nulls;
+	int fd, i, n, ndl, nulls;
 	uint q, q1;
-	Dir *d, *dbuf;
-	char *tmp;
+	Dir d, *dbuf;
+	char tmp[NAMELEN+1];
 	Text *u;
 
 	if(t->ncache!=0 || t->file->nc || t->w==nil || t!=&t->w->body || (t->w->isdir && t->file->nname==0))
@@ -194,13 +194,12 @@ textload(Text *t, uint q0, char *file, int setqid)
 		warning(nil, "can't open %s: %r\n", file);
 		return 0;
 	}
-	d = dirfstat(fd);
-	if(d == nil){
+	if(dirfstat(fd, &d) < 0){
 		warning(nil, "can't fstat %s: %r\n", file);
 		goto Rescue;
 	}
 	nulls = FALSE;
-	if(d->qid.type & QTDIR){
+	if(d.qid.path & CHDIR){
 		/* this is checked in get() but it's possible the file changed underfoot */
 		if(t->file->ntext > 1){
 			warning(nil, "%s is a directory; can't read with multiple windows on it\n", file);
@@ -217,25 +216,22 @@ textload(Text *t, uint q0, char *file, int setqid)
 		}
 		dlp = nil;
 		ndl = 0;
-		dbuf = nil;
-		while((n=dirread(fd, &dbuf)) > 0){
+		dbuf = (Dir*)fbufalloc();
+		while((n=dirread(fd, dbuf, BUFSIZE-(BUFSIZE)%sizeof(Dir))) > 0){
+			n /= sizeof(Dir);
 			for(i=0; i<n; i++){
 				dl = emalloc(sizeof(Dirlist));
-				j = strlen(dbuf[i].name);
-				tmp = emalloc(j+1+1);
-				memmove(tmp, dbuf[i].name, j);
-				if(dbuf[i].qid.type & QTDIR)
-					tmp[j++] = '/';
-				tmp[j] = '\0';
+				memmove(tmp, dbuf[i].name, NAMELEN);
+				if(dbuf[i].mode & CHDIR)
+					strcat(tmp, "/");
 				dl->r = bytetorune(tmp, &dl->nr);
 				dl->wid = stringwidth(t->font, tmp);
-				free(tmp);
 				ndl++;
 				dlp = realloc(dlp, ndl*sizeof(Dirlist*));
 				dlp[ndl-1] = dl;
 			}
-			free(dbuf);
 		}
+		fbuffree(dbuf);
 		qsort(dlp, ndl, sizeof(Dirlist*), dircmp);
 		t->w->dlp = dlp;
 		t->w->ndl = ndl;
@@ -247,9 +243,9 @@ textload(Text *t, uint q0, char *file, int setqid)
 		q1 = q0 + fileload(t->file, q0, fd, &nulls);
 	}
 	if(setqid){
-		t->file->dev = d->dev;
-		t->file->mtime = d->mtime;
-		t->file->qidpath = d->qid.path;
+		t->file->dev = d.dev;
+		t->file->mtime = d.mtime;
+		t->file->qidpath = d.qid.path;
 	}
 	close(fd);
 	rp = fbufalloc();
@@ -278,7 +274,6 @@ textload(Text *t, uint q0, char *file, int setqid)
 	}
 	if(nulls)
 		warning(nil, "%s: NUL bytes elided\n", file);
-	free(d);
 	return q1-q0;
 
     Rescue:
@@ -550,7 +545,7 @@ texttype(Text *t, Rune r)
 		cut(t, t, nil, TRUE, TRUE, nil, 0);
 		t->eq0 = ~0;
 	}
-	textshow(t, t->q0, t->q0, 1);
+	textshow(t, t->q0, t->q0);
 	switch(r){
 	case 0x1B:
 		if(t->eq0 != ~0)
@@ -786,7 +781,7 @@ textselect(Text *t)
 }
 
 void
-textshow(Text *t, uint q0, uint q1, int doselect)
+textshow(Text *t, uint q0, uint q1)
 {
 	int qe;
 	int nl;
@@ -796,8 +791,7 @@ textshow(Text *t, uint q0, uint q1, int doselect)
 		return;
 	if(t->w!=nil && t->maxlines==0)
 		colgrow(t->col, t->w, 1);
-	if(doselect)
-		textsetselect(t, q0, q1);
+	textsetselect(t, q0, q1);
 	qe = t->org+t->nchars;
 	if(t->org<=q0 && (q0<qe || (q0==qe && qe==t->file->nc+t->ncache)))
 		textscrdraw(t);
@@ -906,26 +900,15 @@ textsetselect(Text *t, uint q0, uint q1)
 	t->p1 = p1;
 }
 
-/*
- * Release the button in less than DELAY ms and it's considered a null selection
- * if the mouse hardly moved, regardless of whether it crossed a char boundary.
- */
-enum {
-	DELAY = 2,
-	MINMOVE = 4,
-};
-
-uint
+uint;
 xselect(Frame *f, Mousectl *mc, Image *col, uint *p1p)	/* when called, button is down */
 {
 	uint p0, p1, q, tmp;
-	ulong msec;
 	Point mp, pt0, pt1, qt;
 	int reg, b;
 
 	mp = mc->xy;
 	b = mc->buttons;
-	msec = mc->msec;
 
 	/* remove tick */
 	if(f->p0 == f->p1)
@@ -972,15 +955,6 @@ xselect(Frame *f, Mousectl *mc, Image *col, uint *p1p)	/* when called, button is
 		flushimage(f->display, 1);
 		readmouse(mc);
 	}while(mc->buttons == b);
-	if(mc->msec-msec < DELAY && p0!=p1
-	&& abs(mp.x-mc->xy.x)<MINMOVE
-	&& abs(mp.y-mc->xy.y)<MINMOVE) {
-		if(reg > 0)
-			selrestore(f, pt0, p0, p1);
-		else if(reg < 0)
-			selrestore(f, pt1, p1, p0);
-		p1 = p0;
-	}
 	if(p1 < p0){
 		tmp = p0;
 		p0 = p1;

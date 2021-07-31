@@ -204,11 +204,11 @@ extern	char*	anames[];
 #pragma	varargck	type	"R"	int
 #pragma	varargck	type	"S"	char*
 
-int	Aconv(Fmt*);
-int	Dconv(Fmt*);
-int	Pconv(Fmt*);
-int	Rconv(Fmt*);
-int	Sconv(Fmt*);
+int	Aconv(va_list*, Fconv*);
+int	Dconv(va_list*, Fconv*);
+int	Pconv(va_list*, Fconv*);
+int	Rconv(va_list*, Fconv*);
+int	Sconv(va_list*, Fconv*);
 void	addhist(long, int);
 int	andsize(Prog*, Adr*);
 Prog*	appendp(Prog*);

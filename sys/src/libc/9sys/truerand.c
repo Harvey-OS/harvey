@@ -15,3 +15,9 @@ truerand(void)
 		sysfatal("can't read /dev/random");
 	return x;
 }
+
+int
+n_truerand(int n)
+{
+	return (truerand()>>1) % n;
+}

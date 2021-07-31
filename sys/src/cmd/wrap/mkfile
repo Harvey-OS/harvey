@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+OFILES=\
+	arch.$O\
+	bio.$O\
+	gzip.$O\
+	lib.$O\
+	md5.$O\
+	wrap.$O\
+
+TARG=\
+	create\
+	info\
+	wdiff\
+	inst\
+
+HFILES=\
+	wrap.h\
+
+BIN=/$objtype/bin/wrap
+LIB=/$objtype/lib/libdisk.a
+
+</sys/src/cmd/mkmany
+

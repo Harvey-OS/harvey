@@ -15,7 +15,7 @@ faultalpha(Ureg *ur)
 {
 	ulong addr, cause;
 	int read, user;
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	uvlong x;
 
 	x = ur->a0&0xffffffff80000000LL;
@@ -42,11 +42,12 @@ faultalpha(Ureg *ur)
 	}
 
 	iprint("kernel %s vaddr=0x%lux\n", read? (cause != 0) ? "ifetch" : "read" : "write", (ulong)ur->a0);
-	if(0)
-		mmudump();
+iprint("ptbr %lux up %lux\n", (ulong)m->ptbr, up);
+if(up) iprint("top %lux lvl2 %lux\n", up->mmutop->va, up->mmulvl2->va);
+if(up) iprint("top[N-1] %lux\n", ((uvlong *)up->mmutop->va)[PTE2PG-1]);
+	iprint("st=0x%lux pc=0x%lux sp=0x%lux\n", (ulong)ur->status, (ulong)ur->pc, (ulong)ur->sp);
 	dumpregs(ur);
-	_dumpstack(ur);
-	exit(1);
+	panic("fault");
 }
 
 /*

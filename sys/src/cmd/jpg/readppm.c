@@ -90,7 +90,7 @@ readpixmap(int fd, int colorspace)
 {
 	Rawimage **array, *a;
 	Biobuf b;
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	int i;
 	char *e;
 
@@ -130,10 +130,10 @@ Error:
 		free(array[0]);
 	free(array);
 
-	errstr(buf, sizeof buf);
+	errstr(buf);
 	if(buf[0] == 0)
 		strcpy(buf, e);
-	errstr(buf, sizeof buf);
+	errstr(buf);
 
 	return nil;
 }
@@ -166,7 +166,7 @@ readppm(Biobuf *b, Rawimage *a)
 	int maxcol, nchan, invert;
 	int (*fetch)(Biobufhdr*);
 	uchar *rgb[3];
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	char *e;
 	Pix *p;
 
@@ -225,10 +225,10 @@ readppm(Biobuf *b, Rawimage *a)
 	return a;
 
 Error:
-	errstr(buf, sizeof buf);
+	errstr(buf);
 	if(buf[0] == 0)
 		strcpy(buf, e);
-	errstr(buf, sizeof buf);
+	errstr(buf);
 
 	for(i=0; i<3; i++)
 		free(a->chans[i]);

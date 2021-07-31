@@ -130,7 +130,7 @@ struct File
 	Elog		elog;		/* current pending change */
 	Rune		*name;	/* name of associated file */
 	int		nname;	/* size of name */
-	uvlong	qidpath;	/* of file when read */
+	uint		qidpath;	/* of file when read */
 	uint		mtime;	/* of file when read */
 	int		dev;		/* of file when read */
 	int		unread;	/* file has not been read from disk */
@@ -217,7 +217,7 @@ int		textselect23(Text*, uint*, uint*, Image*, int);
 int		textselect3(Text*, uint*, uint*);
 void		textsetorigin(Text*, uint, int);
 void		textsetselect(Text*, uint, uint);
-void		textshow(Text*, uint, uint, int);
+void		textshow(Text*, uint, uint);
 void		texttype(Text*, Rune);
 
 struct Window
@@ -280,7 +280,7 @@ void	winevent(Window*, char*, ...);
 void	winmousebut(Window*);
 void	winaddincl(Window*, Rune*, int);
 void	wincleartag(Window*);
-void	winctlprint(Window*, char*, int);
+void	winctlprint(Window*, char*);
 
 struct Column
 {
@@ -325,7 +325,6 @@ void		rowdragcol(Row*, Column*, int but);
 int		rowclean(Row*);
 void		rowdump(Row*, char*);
 void		rowload(Row*, char*, int);
-void		rowloadfonts(char*);
 
 struct Timer
 {
@@ -350,7 +349,6 @@ struct Command
 struct Dirtab
 {
 	char	*name;
-	uchar	type;
 	uint	qid;
 	uint	perm;
 };
@@ -388,13 +386,14 @@ struct Xfid
 	Xfid	*next;
 	Channel	*c;		/* chan(void(*)(Xfid*)) */
 	Fid	*f;
-	uchar	*buf;
+	char	*buf;
 	int	flushed;
 
 };
 
 void		xfidctl(void *);
 void		xfidflush(Xfid*);
+void		xfidwalk(Xfid*);
 void		xfidopen(Xfid*);
 void		xfidclose(Xfid*);
 void		xfidread(Xfid*);
@@ -447,7 +446,7 @@ struct Expand
 enum
 {
 	/* fbufalloc() guarantees room off end of BUFSIZE */
-	BUFSIZE = Maxblock+IOHDRSZ,	/* size from fbufalloc() */
+	BUFSIZE = MAXRPC,	/* size from fbufalloc() */
 	RBUFSIZE = BUFSIZE/sizeof(Rune),
 	EVENTSIZE = 256,
 	Scrollwid = 12,	/* width of scroll bar */
@@ -457,7 +456,7 @@ enum
 };
 
 #define	QID(w,q)	((w<<8)|(q))
-#define	WIN(q)	((((ulong)(q).path)>>8) & 0xFFFFFF)
+#define	WIN(q)	((((q).path&~CHDIR)>>8) & 0xFFFFFF)
 #define	FILE(q)	((q).path & 0xFF)
 
 enum
@@ -525,7 +524,6 @@ int			plumbsendfd;
 int			plumbeditfd;
 char			wdir[];
 int			editing;
-int			messagesize;		/* negotiated in 9P version setup */
 
 Channel	*ckeyboard;	/* chan(Rune)[10] */
 Channel	*cplumb;		/* chan(Plumbmsg*) */
@@ -534,7 +532,6 @@ Channel	*ccommand;	/* chan(Command*) */
 Channel	*ckill;		/* chan(Rune*) */
 Channel	*cxfidalloc;	/* chan(Xfid*) */
 Channel	*cxfidfree;	/* chan(Xfid*) */
-Channel	*cnewwindow;	/* chan(Channel*) */
 Channel	*mouseexit0;	/* chan(int) */
 Channel	*mouseexit1;	/* chan(int) */
 Channel	*cexit;		/* chan(int) */

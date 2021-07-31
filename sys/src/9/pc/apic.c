@@ -88,14 +88,7 @@ enum {					/* LapicTDCR */
 };
 
 static ulong* lapicbase;
-
-struct
-{
-	uvlong	hz;
-	ulong	max;
-	ulong	min;
-	ulong	mult;	/* factor to mutiply fast ticks by to get lapicticks<<16 */
-} lapictimer;
+static int clkin;
 
 static int
 lapicr(int r)
@@ -120,36 +113,32 @@ lapiconline(void)
 	 * accepted by the APIC.
 	 */
 	microdelay((TK2MS(1)*1000/conf.nmach) * m->machno);
-	lapicw(LapicTICR, lapictimer.max);
+	lapicw(LapicTICR, clkin/HZ);
 	lapicw(LapicTIMER, LapicCLKIN|LapicPERIODIC|(VectorPIC+IrqTIMER));
 
 	lapicw(LapicTPR, 0);
 }
 
-/*
- *  use the i8253 clock to figure out our lapic timer rate.
- */
 static void
 lapictimerinit(void)
 {
-	uvlong x, v, hz;
+	ulong lo, v;
+	vlong tsc;
 
 	v = m->cpuhz/1000;
 	lapicw(LapicTDCR, LapicX1);
 	lapicw(LapicTIMER, ApicIMASK|LapicCLKIN|LapicONESHOT|(VectorPIC+IrqTIMER));
 
-	if(lapictimer.hz == 0ULL){
-		x = fastticks(&hz);
-		x += hz/10;
-		lapicw(LapicTICR, 0xffffffff);
-		do{
-			v = fastticks(nil);
-		}while(v < x);
+	if(clkin == 0){
+		lapicw(LapicTICR, v);
+		wrmsr(0x10, 0);
 
-		lapictimer.hz = (0xffffffffUL-lapicr(LapicTCCR))*10;
-		lapictimer.max = lapictimer.hz/HZ;
-		lapictimer.min = lapictimer.hz/(100*HZ);
-		lapictimer.mult = (lapictimer.hz<<16)/hz;
+		do{
+			rdmsr(0x10, &tsc);
+			lo = (ulong)tsc;
+		}while(lo < v);
+
+		clkin = ((v-lapicr(LapicTCCR)+500)/1000)*1000*1000;
 	}
 }
 
@@ -341,36 +330,4 @@ ioapicinit(Apic* apic, int apicno)
 	lo = ApicIMASK;
 	for(v = 0; v <= apic->mre; v++)
 		ioapicrdtw(apic, v, hi, lo);
-}
-
-void
-lapictimerset(uvlong next)
-{
-	ulong period;
-	int x;
-
-	x = splhi();
-	lock(&m->apictimerlock);
-	period = lapictimer.max;
-	if(next != 0){
-		period = next - fastticks(nil);
-		period *= lapictimer.mult;
-		period >>= 16;
-
-		if(period < lapictimer.min)
-			period = lapictimer.min;
-		else if(period > lapictimer.max - lapictimer.min)
-			period = lapictimer.max;
-	}
-
-	lapicw(LapicTICR, period);
-
-	unlock(&m->apictimerlock);
-	splx(x);
-}
-
-void
-lapicclock(Ureg *u, void*)
-{
-	timerintr(u, 0);
 }

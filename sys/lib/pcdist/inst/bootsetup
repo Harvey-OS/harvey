@@ -1,0 +1,55 @@
+#!/bin/rc
+
+# desc: create a boot floppy or configure hard disk to boot plan 9
+# prereq: unpack
+
+switch($1) {
+case go
+	echo
+	echo 'Initializing Plan 9 FAT configuration partition (9fat)'
+	echo
+	
+	if(! test -f /dev/$disk/9fat) {
+		echo cannot happen: no 9fat
+		exit
+	}
+	
+	if(! test -f /tmp/plan9.ini) {
+		{
+			echo bootfile'='$disk!9fat!9pcdisk
+			echo 'bootdisk=local!#S/'$disk/fs
+			grep -v 'bootfile|bootdisk|bootargs' /tmp/plan9.orig
+		} >/tmp/plan9.ini
+	}
+	if(! test -f /tmp/plan9ini.bak)
+		cp /tmp/plan9.ini /tmp/plan9ini.bak
+
+	if(! isfat /dev/$disk/9fat || ! ~ $did9fat done) {
+		log Initializing Plan 9 FAT partition.
+		disk/format -r 2 -d -b /386/pbs \
+			/dev/$disk/9fat /386/9load
+		mount -c /srv/dos /n/9fat /dev/$disk/9fat
+	
+		cp /n/kfs/386/9pcdisk /n/9fat
+		cp /tmp/plan9.ini /n/9fat/plan9.ini
+
+		did9fat=done
+		export did9fat
+	}
+	
+	echo
+	echo 'There are myriad ways to boot a Plan 9 system.'
+	echo 'You can use any of the following.'
+	echo '(You can also repeat this task to use more than one).'
+	echo
+	echo '  floppy - create a boot floppy'
+	echo '  plan9  - make the plan 9 disk partition the default for booting'
+	echo '  win9x  - add a plan 9 option to windows 9x boot menu'
+	echo '  winnt  - add a plan 9 option to windows nt boot manager'
+	echo
+	echo '(See the documentation for instructions on booting Plan 9 from LILO.)'
+	echo
+	
+	prompt 'Enable boot method' floppy plan9 win9x winnt
+	exec boot$rd
+}

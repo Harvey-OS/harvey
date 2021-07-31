@@ -1,8 +1,5 @@
 #!/bin/rc
 
-rfork e
-path=(/bin/)
-
 sym = 'threadmain?z
 	main?z'
 

@@ -8,7 +8,7 @@ Bwrite(Biobufhdr *bp, void *ap, long count)
 	long c;
 	uchar *p;
 	int i, n, oc;
-	char errbuf[ERRMAX];
+	char errbuf[ERRLEN];
 
 	p = ap;
 	c = count;
@@ -23,10 +23,10 @@ Bwrite(Biobufhdr *bp, void *ap, long count)
 				return Beof;
 			i = write(bp->fid, bp->bbuf, bp->bsize);
 			if(i != bp->bsize) {
-				errstr(errbuf, sizeof errbuf);
+				errstr(errbuf);
 				if(strstr(errbuf, "interrupt") == nil)
 					bp->state = Binactive;
-				errstr(errbuf, sizeof errbuf);
+				errstr(errbuf);
 				return Beof;
 			}
 			bp->offset += i;

@@ -1,14 +1,14 @@
 #include <u.h>
 #include <libc.h>
-#include <authsrv.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 static char *pbmsg = "AS protocol botch";
 
 int
 asrdresp(int fd, char *buf, int len)
 {
-	char error[AERRLEN];
+	char error[ERRLEN];
 
 	if(read(fd, buf, 1) != 1){
 		werrstr(pbmsg);
@@ -23,11 +23,11 @@ asrdresp(int fd, char *buf, int len)
 		}
 		break;
 	case AuthErr:
-		if(readn(fd, error, AERRLEN) < 0){
+		if(readn(fd, error, ERRLEN) < 0){
 			werrstr(pbmsg);
 			return -1;
 		}
-		error[AERRLEN-1] = 0;
+		error[ERRLEN-1] = 0;
 		werrstr(error);
 		return -1;
 	default:
@@ -58,12 +58,10 @@ main(int argc, char **argv)
 		exits("boofhead");
 	}
 
-	if(argc > 0)
-		s = argv[0];
-	else
-		s = nil;
+	if(argc > 1)
+		error("usage: passwd [user]");
 
-	fd = authdial(nil, s);
+	fd = authdial();
 	if(fd < 0)
 		error("protocol botch: %r");
 

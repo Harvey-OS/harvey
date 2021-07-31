@@ -1,14 +1,13 @@
 #include "common.h"
 #include "smtpd.h"
-#include "smtp.h"
 #include "ip.h"
 
 char	*me;
 char	*him="";
+char	*hisaddr="";
+char	*netroot="/net";
 char	*dom;
 process	*pp;
-String	*mailer;
-NetConnInfo *nci;
 
 int	filterstate = ACCEPT;
 int	trusted;
@@ -32,7 +31,6 @@ List badguys;
 int	pipemsg(int*);
 String*	startcmd(void);
 int	rejectcheck(void);
-String*	mailerpath(char*);
 
 static int
 catchalarm(void *a, char *msg)
@@ -58,15 +56,15 @@ catchalarm(void *a, char *msg)
 void
 s_error(char *f, char *status)
 {
-	char errbuf[Errlen];
+	char errbuf[ERRLEN];
 
 	errbuf[0] = 0;
-	rerrstr(errbuf, sizeof(errbuf));
+	errstr(errbuf);
 	if(f && *f)
 		reply("452 out of memory %s: %s\r\n", f, errbuf);
 	else
 		reply("452 out of memory %s\r\n", errbuf);
-	syslog(0, "smtpd", "++Malloc failure %s [%s]", him, nci->rsys);
+	syslog(0, "smtpd", "++Malloc failure %s [%s]", him, hisaddr);
 	exits(status);
 }
 
@@ -77,15 +75,17 @@ main(int argc, char **argv)
 	String *s;
 	Link *l;
 	uchar addr[IPv4addrlen];
-	char *netdir;
 
-	netdir = nil;
 	ARGBEGIN{
 	case 'd':
 		debug++;
 		break;
 	case 'n':				/* log peer ip address */
-		netdir = ARGF();
+		p = ARGF();
+		if(p && *p){
+			netroot = p;
+			hisaddr = remoteaddr(-1, p);
+		}
 		break;
 	case 'f':				/* disallow relaying */
 		fflag = 1;
@@ -101,11 +101,6 @@ main(int argc, char **argv)
 			listadd(&badguys, s);
 		}
 		break;
-	case 'm':				/* set mail command */
-		p = ARGF();
-		if(p)
-			mailer = mailerpath(p);
-		break;
 	case 'r':
 		rflag = 1;			/* verify sender's domain */
 		break;
@@ -115,23 +110,20 @@ main(int argc, char **argv)
 	default:
 		fprint(2, "usage: smtpd [-dfhrs] [-n net]\n");
 		exits("usage");
-	}ARGEND;
-
-	nci = getnetconninfo(netdir, 0);
-	if(nci == nil)
-		sysfatal("can't get remote system's address");
-
-	if(mailer == nil)
-		mailer = mailerpath("send");
-
-	v4parseip(addr, nci->rsys);
-	peerip = nhgetl(addr);
-
-	/* check if this IP address is banned */
+	}ARGEND
+	if(hisaddr == 0 || *hisaddr == 0)
+		hisaddr = remoteaddr(0,0);	/* try to get peer addr from fd 0 */
+	if(hisaddr && *hisaddr){
+		v4parseip(addr, hisaddr);
+		peerip = nhgetl(addr);
+	}
+		/* check if this IP address is banned */
 	for(l = badguys.first; l; l = l->next)
 		if(cidrcheck(s_to_c(l->p)))
 			exits("banned");
 
+	getconf();
+	Binit(&bin, 0, OREAD);
 	if(debug){
 		close(2);
 		snprint(buf, sizeof(buf), "%s/smtpd", UPASLOG);
@@ -141,8 +133,6 @@ main(int argc, char **argv)
 		} else
 			debug = 0;
 	}
-	getconf();
-	Binit(&bin, 0, OREAD);
 
 	chdir(UPASLOG);
 	me = sysname_read();
@@ -155,7 +145,7 @@ main(int argc, char **argv)
 		/* allow 45 minutes to parse the header */
 	atnotify(catchalarm, 1);
 	alarm(45*60*1000);
-	zzparse();
+	yyparse();
 	exits(0);
 }
 
@@ -198,7 +188,7 @@ reply(char *fmt, ...)
 	int n;
 
 	va_start(arg, fmt);
-	out = vseprint(buf, buf+SIZE, fmt, arg);
+	out = doprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
 	n = (long)(out-buf);
 	if(debug) {
@@ -235,9 +225,6 @@ hello(String *himp)
 	if(rejectcheck())
 		return;
 	him = s_to_c(himp);
-	if(strchr(him, '.') == 0 && nci != nil && strchr(nci->rsys, '.') != nil)
-		him = nci->rsys;
-		
 	reply("250 %s you are %s\r\n", dom, him);
 }
 
@@ -293,8 +280,8 @@ sender(String *path)
 	/*
 	 * perform DNS lookup to see if sending domain exists
 	 */
-	if(filterstate == ACCEPT && rflag && returnable(s_to_c(path))){
-		if(rmtdns(nci->root, s_to_c(path)) < 0){
+	if(filterstate == ACCEPT && rflag && !trusted && returnable(s_to_c(path))){
+		if(rmtdns(netroot, s_to_c(path)) < 0){
 			filterstate = REFUSED;
 			lastsender = strdup(s_to_c(path));
 			cp = strrchr(lastsender, '!');
@@ -327,7 +314,7 @@ receiver(String *path)
 	if(!recipok(s_to_c(path))){
 		rejectcount++;
 		syslog(0, "smtpd", "Disallowed %s (%s/%s) to %s",
-				sender, him, nci->rsys, s_to_c(path));
+				sender, him, hisaddr, s_to_c(path));
 		reply("550 %s ... user unknown\r\n", s_to_c(path));
 		return;
 	}
@@ -336,7 +323,7 @@ receiver(String *path)
 		/* forwarding() can modify 'path' on loopback request */
 	if(filterstate == ACCEPT && fflag && forwarding(path)) {
 		syslog(0, "smtpd", "Bad Forward %s (%s/%s) (%s)",
-			s_to_c(senders.last->p), him, nci->rsys, s_to_c(path));
+			s_to_c(senders.last->p), him, hisaddr, s_to_c(path));
 		rejectcount++;
 		reply("550 we don't relay.  send to your-path@[] for loopback.\r\n");
 		return;
@@ -382,6 +369,7 @@ help(String *cmd)
 void
 verify(String *path)
 {
+	String *cmd;
 	char *p, *q;
 	char *av[4];
 
@@ -391,7 +379,10 @@ verify(String *path)
 		reply("503 Bad character in address %s.\r\n", s_to_c(path));
 		return;
 	}
-	av[0] = s_to_c(mailer);
+	cmd = s_new();
+	s_append(cmd, UPASBIN);
+	s_append(cmd, "/send");
+	av[0] = s_to_c(cmd);
 	av[1] = "-x";
 	av[2] = s_to_c(path);
 	av[3] = 0;
@@ -399,6 +390,7 @@ verify(String *path)
 	pp = noshell_proc_start(av, (stream *)0, outstream(),  (stream *)0, 1, 0);
 	if (pp == 0) {
 		reply("450 We're busy right now, try later\r\n");
+		s_free(cmd);
 		return;
 	}
 
@@ -419,6 +411,7 @@ verify(String *path)
 	proc_wait(pp);
 	proc_free(pp);
 	pp = 0;
+	s_free(cmd);
 }
 
 /*
@@ -427,11 +420,15 @@ verify(String *path)
  *  return 0 on EOF
  */
 static int
-getcrnl(String *s, Biobuf *fp)
+getcrnl(char *buf, int n, Biobuf *fp)
 {
 	int c;
+	char *ep;
+	char *bp;
 
-	for(;;){
+	bp = buf;
+	ep = bp + n - 1;
+	while(bp != ep){
 		c = Bgetc(fp);
 		if(debug) {
 			seek(2, 0, 2);
@@ -439,7 +436,11 @@ getcrnl(String *s, Biobuf *fp)
 		}
 		switch(c){
 		case -1:
-			goto out;
+			*bp = 0;
+			if(bp==buf)
+				return 0;
+			else
+				return bp-buf;
 		case '\r':
 			c = Bgetc(fp);
 			if(c == '\n'){
@@ -447,23 +448,22 @@ getcrnl(String *s, Biobuf *fp)
 					seek(2, 0, 2);
 					fprint(2, "%c", c);
 				}
-				s_putc(s, '\n');
-				goto out;
+				*bp++ = '\n';
+				*bp = 0;
+				return bp-buf;
 			}
 			Bungetc(fp);
-			s_putc(s, '\r');
+			c = '\r';
 			break;
 		case '\n':
-			s_putc(s, c);
-			goto out;
-		default:
-			s_putc(s, c);
-			break;
+			*bp++ = '\n';
+			*bp = 0;
+			return bp-buf;
 		}
+		*bp++ = c;
 	}
-out:
-	s_terminate(s);
-	return s_len(s);
+	*bp = 0;
+	return bp-buf;
 }
 
 void
@@ -484,24 +484,10 @@ logcall(int nbytes)
 			s_append(to, ", ");
 		s_append(to, s_to_c(l->p));
 	}
-	syslog(0, "smtpd", "[%s/%s] %s sent %d bytes to %s", him, nci->rsys,
+	syslog(0, "smtpd", "[%s/%s] %s sent %d bytes to %s", him, hisaddr,
 		s_to_c(from), nbytes, s_to_c(to));
 	s_free(to);
 	s_free(from);
-}
-
-static void
-logmsg(char *action)
-{
-	Link *l;
-
-	if(logged)
-		return;
-
-	logged = 1;
-	for(l = rcvers.first; l; l = l->next)
-		syslog(0, "smtpd", "%s %s (%s/%s) (%s)", action,
-			s_to_c(senders.last->p), him, nci->rsys, s_to_c(l->p));
 }
 
 String*
@@ -517,7 +503,12 @@ startcmd(void)
 	case BLOCKED:
 	case DELAY:
 		rejectcount++;
-		logmsg("Blocked");
+		if(!logged){
+			logged = 1;
+			for(l = rcvers.first; l; l = l->next)
+				syslog(0, "smtpd", "Blocked %s (%s/%s) (%s)",
+					s_to_c(senders.last->p), him, hisaddr, s_to_c(l->p));
+		}
 		filename = dumpfile(s_to_c(senders.last->p));
 		cmd = s_new();
 		s_append(cmd, "cat > ");
@@ -525,7 +516,12 @@ startcmd(void)
 		pp = proc_start(s_to_c(cmd), instream(), 0, outstream(), 0, 0);
 		break;
 	case DIALUP:
-		logmsg("Dialup");
+		if(!logged){
+			logged = 1;
+			for(l = rcvers.first; l; l = l->next)
+				syslog(0, "smtpd", "Dialup %s (%s/%s) (%s)",
+					s_to_c(senders.last->p), him, hisaddr, s_to_c(l->p));
+		}
 		rejectcount++;
 		reply("554 We don't accept mail from dial-up ports.\r\n");
 		/*
@@ -536,30 +532,34 @@ startcmd(void)
 		hardreject = 1;
 		return 0;
 	case DENIED:
-		logmsg("Denied");
+		if(!logged){
+			logged = 1;
+			for(l = rcvers.first; l; l = l->next)
+				syslog(0, "smtpd", "Denied %s (%s/%s) (%s)",
+					s_to_c(senders.last->p), him, hisaddr, s_to_c(l->p));
+		}
 		rejectcount++;
 		reply("554-We don't accept mail from %s.\r\n", s_to_c(senders.last->p));
 		reply("554 Contact postmaster@%s for more information.\r\n", dom);
 		return 0;
 	case REFUSED:
-		logmsg("Refused");
+		if(!logged){
+			logged = 1;
+			for(l = rcvers.first; l; l = l->next)
+				syslog(0, "smtpd", "Refused %s (%s/%s) (%s)",
+					s_to_c(senders.last->p), him, hisaddr, s_to_c(l->p));
+		}
 		rejectcount++;
 		reply("554 Sender domain must exist: %s\r\n", s_to_c(senders.last->p));
 		return 0;
-	default:
-	case NONE:
-		logmsg("Confused");
-		rejectcount++;
-		reply("554-We have had an internal mailer error classifying your message.\r\n");
-		reply("554-Filterstate is %d\r\n", filterstate);
-		reply("554 Contact postmaster@%s for more information.\r\n", dom);
-		return 0;
 	case ACCEPT:
-	case TRUSTED:
+	default:
 		/*
 		 *  set up mail command
 		 */
-		cmd = s_clone(mailer);
+		cmd = s_new();
+		s_append(cmd, UPASBIN);
+		s_append(cmd, "/send");
 		n = 3;
 		for(l = rcvers.first; l; l = l->next)
 			n++;
@@ -591,147 +591,54 @@ startcmd(void)
 	return cmd;
 }
 
-/*
- *  print out a header line, expanding any domainless addresses into
- *  address@him
- */
-char*
-bprintnode(Biobuf *b, Node *p)
-{
-	if(p->s){
-		if(p->addr && strchr(s_to_c(p->s), '@') == nil){
-			if(Bprint(b, "%s@%s", s_to_c(p->s), him) < 0)
-				return nil;
-		} else {
-			if(Bwrite(b, s_to_c(p->s), s_len(p->s)) < 0)
-				return nil;
-		}
-	}else{
-		if(Bputc(b, p->c) < 0)
-			return nil;
-	}
-	if(p->white)
-		if(Bwrite(b, s_to_c(p->white), s_len(p->white)) < 0)
-			return nil;
-	return p->end+1;
-}
-
-/*
- *  pipe message to mailer with the following transformations:
- *	- change \r\n into \n.
- *	- add sender's domain to any addrs with no domain
- *	- add a From: if none of From:, Sender:, or Replyto: exists
- *	- add a Received: line
- */
 int
 pipemsg(int *byteswritten)
 {
-	int status;
+	int status = 0;
 	char *cp;
-	String *line;
-	String *hdr;
-	int n, nbytes;
+	char buf[4096];
+	int sol, n, nbytes;
 	int sawdot;
-	Field *f;
-	Node *p;
-
-	pipesig(&status);	/* set status to 1 on write to closed pipe */
-	sawdot = 0;
-	status = 0;
 
 	/*
-	 *  add a 'From ' line as envelope
+	 *  read first line.  If it is a 'From ' line, leave it.  Otherwise,
+	 *  add one.
 	 */
+	n = getcrnl(buf, sizeof(buf), &bin);
+	cp = buf;
 	nbytes = 0;
-	nbytes += Bprint(pp->std[0]->fp, "From %s %s remote from \n",
-			s_to_c(senders.first->p), thedate());
-
-	/*
-	 *  add our own Received: stamp
-	 */
+	nbytes += Bprint(pp->std[0]->fp, "From %s %s remote from \n", s_to_c(senders.first->p),
+			thedate());
 	nbytes += Bprint(pp->std[0]->fp, "Received: from %s ", him);
-	if(nci->rsys)
-		nbytes += Bprint(pp->std[0]->fp, "([%s]) ", nci->rsys);
+	if(hisaddr && *hisaddr)
+		nbytes += Bprint(pp->std[0]->fp, "([%s]) ", hisaddr);
 	nbytes += Bprint(pp->std[0]->fp, "by %s; %s\n", me, thedate());
 
-	/*
-	 *  read first 16k obeying '.' escape.  we're assuming
-	 *  the header will all be there.
-	 */
-	line = s_new();
-	hdr = s_new();
-	while(sawdot == 0 && s_len(hdr) < 16*1024){
-		n = getcrnl(s_reset(line), &bin);
-
-		/* eof or error ends the message */
-		if(n <= 0)
-			break;
-
-		/* a line with only a '.' ends the message */
-		cp = s_to_c(line);
-		if(n == 2 && *cp == '.' && *(cp+1) == '\n'){
-			sawdot = 1;
-			break;
-		}
-
-		s_append(hdr, s_to_c(line));
-	}
 
 	/*
- 	 *  parse header
+	 *  pass message to mailer.  take care of '.' escapes.
 	 */
-	yyinit(s_to_c(hdr), s_len(hdr));
-	yyparse();
-
-	/*
-	 *  add an orginator if there isn't one
-	 */
-	if(originator == 0)
-		Bprint(pp->std[0]->fp, "From: /dev/null@%s\n", him);
-
-	/*
-	 *  add sender's domain to any domainless addresses
-	 *  (to avoid forging local addresses)
-	 */
-	cp = s_to_c(hdr);
-	for(f = firstfield; cp != nil && f; f = f->next){
-		for(p = f->node; cp != 0 && p; p = p->next)
-			cp = bprintnode(pp->std[0]->fp, p);
-		Bprint(pp->std[0]->fp, "\n");
-	}
-	if(cp == nil)
-		status = 1;
-
-	/* write anything we read following the header */
-	if(status == 0)
-		if(Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0)
-			status = 1;
-	s_free(hdr);
-
-	/*
-	 *  pass rest of message to mailer.  take care of '.'
-	 *  escapes.
-	 */
-	while(status == 0 && sawdot == 0){
-		n = getcrnl(s_reset(line), &bin);
-
-		/* eof or error ends the message */
-		if(n <= 0)
-			break;
-
-		/* a line with only a '.' ends the message */
-		cp = s_to_c(line);
-		if(n == 2 && *cp == '.' && *(cp+1) == '\n'){
-			sawdot = 1;
-			break;
+	pipesig(&status);	/* set status to 1 on write to closed pipe */
+	sawdot = 0;
+	for(sol = 1; status == 0 && n != 0;){
+		if(n > 0){
+			if(sol && *cp=='.'){
+				/* '.'s at the start of line is an escape */
+				cp++;
+				n--;
+				if(*cp=='\n'){
+					sawdot = 1;
+					break;
+				}
+			}
+			sol = cp[n-1] == '\n';
 		}
 		nbytes += n;
-		if(Bwrite(pp->std[0]->fp, s_to_c(line), n) < 0){
+		if(Bwrite(pp->std[0]->fp, cp, n) < 0)
 			status = 1;
-			break;
-		}
+		n = getcrnl(buf, sizeof(buf), &bin);
+		cp = buf;
 	}
-	s_free(line);
 	pipesigoff();
 
 	if(sawdot == 0){
@@ -806,7 +713,7 @@ data(void)
 	 *  if process terminated abnormally, send back error message
 	 */
 	if(status){
-		syslog(0, "smtpd", "++[%s/%s] %s returned %d", him, nci->rsys, s_to_c(cmd), status);
+		syslog(0, "smtpd", "++[%s/%s] %s returned %d", him, hisaddr, s_to_c(cmd), status);
 		for(cp = s_to_c(err); ep = strchr(cp, '\n'); cp = ep){
 			*ep++ = 0;
 			reply("450-%s\r\n", cp);
@@ -844,7 +751,7 @@ rejectcheck(void)
 {
 
 	if(rejectcount > MAXREJECTS){
-		syslog(0, "smtpd", "Rejected (%s/%s)", him, nci->rsys);
+		syslog(0, "smtpd", "Rejected (%s/%s)", him, hisaddr);
 		reply("554 too many errors.  transaction failed.\r\n");
 		exits("errcount");
 	}
@@ -853,23 +760,4 @@ rejectcheck(void)
 		reply("554 We don't accept mail from dial-up ports.\r\n");
 	}
 	return hardreject;
-}
-
-/*
- *  create abs path of the mailer
- */
-String*
-mailerpath(char *p)
-{
-	String *s;
-
-	if(p == nil)
-		return nil;
-	if(*p == '/')
-		return s_copy(p);
-	s = s_new();
-	s_append(s, UPASBIN);
-	s_append(s, "/");
-	s_append(s, p);
-	return s;
 }

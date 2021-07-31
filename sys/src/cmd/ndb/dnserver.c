@@ -20,8 +20,6 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req)
 	Area *myarea;
 	char tname[32];
 
-	dncheck(nil, 1);
-
 	memset(repp, 0, sizeof(*repp));
 	repp->id = reqp->id;
 	repp->flags = Fresp | Fcanrec | Oquery;
@@ -40,7 +38,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req)
 
 	myarea = inmyarea(repp->qd->owner->name);
 	if(myarea != nil && (repp->qd->type == Tixfr || repp->qd->type == Taxfr)){
-		syslog(0, logfile, "server: request %s", rrname(repp->qd->type, tname, sizeof tname));
+		syslog(0, logfile, "server: request %s", rrname(repp->qd->type, tname));
 		repp->flags = Runimplimented | Fresp | Fcanrec | Oquery;
 		return;
 	}
@@ -122,8 +120,6 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req)
 	unique(repp->ar);
 
 	rrfreelist(neg);
-
-	dncheck(nil, 1);
 }
 
 /*

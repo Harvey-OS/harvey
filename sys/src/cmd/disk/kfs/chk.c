@@ -81,12 +81,14 @@ check(Filsys *fs, long flag)
 	Superb *sb;
 	Dentry *d;
 	long raddr;
-	long nqid;
 
 	wlock(&mainlock);
 	dev = fs->dev;
 	flags = flag;
 	fence = fencebase;
+
+	sizqbits = ((1<<18) + 7) / 8;		/* botch */
+	qbits = zalloc(sizqbits);
 
 	sizname = 4000;
 	name = zalloc(sizname);
@@ -106,15 +108,6 @@ check(Filsys *fs, long flag)
 	sizabits = (fsize-fstart + 7)/8;
 	abits = zalloc(sizabits);
 
-	nqid = sb->qidgen+100;		/* not as much of a botch */
-	if(nqid > 1024*1024*8)
-		nqid = 1024*1024*8;
-	if(nqid < 64*1024)
-		nqid = 64*1024;
-
-	sizqbits = (nqid+7)/8;
-	qbits = zalloc(sizqbits);
-
 	mod = 0;
 	nfree = 0;
 	nfdup = 0;
@@ -133,12 +126,12 @@ check(Filsys *fs, long flag)
 		cprint("oldblock = %ld\n", oldblock);
 	}
 	if(amark(sbaddr))
-		{}
+		;
 	if(cwflag) {
 		if(amark(sb->roraddr))
-			{}
+			;
 		if(amark(sb->next))
-			{}
+			;
 	}
 
 	if(!(flags & Cquiet))
@@ -149,7 +142,7 @@ check(Filsys *fs, long flag)
 	d = maked(raddr, 0, QPROOT);
 	if(d) {
 		if(amark(raddr))
-			{}
+			;
 		if(fsck(d))
 			modd(raddr, 0, d);
 		depth--;

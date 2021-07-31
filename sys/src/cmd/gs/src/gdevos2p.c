@@ -1,27 +1,29 @@
-/* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevos2p.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
+/*$Id: gdevos2p.c,v 1.3 2000/09/19 19:00:14 lpd Exp $ */
 /*
  * OS/2 printer device
  *
  * By Russell Lang, derived from mswinpr2 device by Russell Lang and
  * L. Peter Deutsch, Aladdin Enterprises.
+ *
+ * Bug fixed by Pierre Arnaud 2000-03-20 (os2prn_set_bpp did not set anti_alias)
  */
 
 /* This device works when GS is a DLL loaded by a PM program */
@@ -626,8 +628,7 @@ os2prn_set_bpp(gx_device * dev, int depth)
 	/* 3 plane printer */
 	/* suitable for impact dot matrix CMYK printers */
 	/* create 4-bit bitmap, but only use 8 colors */
-	static const gx_device_color_info os2prn_4color =
-	{3, 4, 1, 1, 2, 2};
+	static const gx_device_color_info os2prn_4color = dci_values(3, 4, 1, 1, 2, 2);
 
 	dev->color_info = os2prn_4color;
     } else {			/* default is black_and_white */

@@ -1,387 +1,210 @@
 #include	<u.h>
 #include	<libc.h>
+#include	<auth.h>
 #include	<fcall.h>
 
-static
-uchar*
-pstring(uchar *p, char *s)
-{
-	uint n;
+#define	CHAR(x)		*p++ = f->x
+#define	SHORT(x)	p[0]=f->x; p[1]=f->x>>8; p += 2
+#define	LONG(x)		p[0]=f->x; p[1]=f->x>>8; p[2]=f->x>>16; p[3]=f->x>>24; p += 4
+#define	VLONG(x)	p[0]=f->x;	p[1]=f->x>>8;\
+			p[2]=f->x>>16;	p[3]=f->x>>24;\
+			p[4]=f->x>>32;	p[5]=f->x>>40;\
+			p[6]=f->x>>48;	p[7]=f->x>>56;\
+			p += 8
+#define	STRING(x,n)	memmove(p, f->x, n); p += n
 
-	if(s == nil){
-		PBIT16(p, 0);
-		p += BIT16SZ;
-		return p;
-	}
-
-	n = strlen(s);
-	PBIT16(p, n);
-	p += BIT16SZ;
-	memmove(p, s, n);
-	p += n;
-	return p;
-}
-
-static
-uchar*
-pqid(uchar *p, Qid *q)
-{
-	PBIT8(p, q->type);
-	p += BIT8SZ;
-	PBIT32(p, q->vers);
-	p += BIT32SZ;
-	PBIT64(p, q->path);
-	p += BIT64SZ;
-	return p;
-}
-
-static
-uint
-stringsz(char *s)
-{
-	if(s == nil)
-		return BIT16SZ;
-
-	return BIT16SZ+strlen(s);
-}
-
-static
-uint
-sizeS2M(Fcall *f)
-{
-	uint n;
-	int i;
-
-	n = 0;
-	n += BIT32SZ;	/* size */
-	n += BIT8SZ;	/* type */
-	n += BIT16SZ;	/* tag */
-
-	switch(f->type)
-	{
-	default:
-		return 0;
-
-	case Tversion:
-		n += BIT32SZ;
-		n += stringsz(f->version);
-		break;
-
-	case Tflush:
-		n += BIT16SZ;
-		break;
-
-	case Tauth:
-		n += BIT32SZ;
-		n += stringsz(f->uname);
-		n += stringsz(f->aname);
-		break;
-
-	case Tattach:
-		n += BIT32SZ;
-		n += BIT32SZ;
-		n += stringsz(f->uname);
-		n += stringsz(f->aname);
-		break;
-
-	case Twalk:
-		n += BIT32SZ;
-		n += BIT32SZ;
-		n += BIT16SZ;
-		for(i=0; i<f->nwname; i++)
-			n += stringsz(f->wname[i]);
-		break;
-
-	case Topen:
-		n += BIT32SZ;
-		n += BIT8SZ;
-		break;
-
-	case Tcreate:
-		n += BIT32SZ;
-		n += stringsz(f->name);
-		n += BIT32SZ;
-		n += BIT8SZ;
-		break;
-
-	case Tread:
-		n += BIT32SZ;
-		n += BIT64SZ;
-		n += BIT32SZ;
-		break;
-
-	case Twrite:
-		n += BIT32SZ;
-		n += BIT64SZ;
-		n += BIT32SZ;
-		n += f->count;
-		break;
-
-	case Tclunk:
-	case Tremove:
-		n += BIT32SZ;
-		break;
-
-	case Tstat:
-		n += BIT32SZ;
-		break;
-
-	case Twstat:
-		n += BIT32SZ;
-		n += BIT16SZ;
-		n += f->nstat;
-		break;
-/*
- */
-
-	case Rversion:
-		n += BIT32SZ;
-		n += stringsz(f->version);
-		break;
-
-	case Rerror:
-		n += stringsz(f->ename);
-		break;
-
-	case Rflush:
-		break;
-
-	case Rauth:
-		n += QIDSZ;
-		break;
-
-	case Rattach:
-		n += QIDSZ;
-		break;
-
-	case Rwalk:
-		n += BIT16SZ;
-		n += f->nwqid*QIDSZ;
-		break;
-
-	case Ropen:
-	case Rcreate:
-		n += QIDSZ;
-		n += BIT32SZ;
-		break;
-
-	case Rread:
-		n += BIT32SZ;
-		n += f->count;
-		break;
-
-	case Rwrite:
-		n += BIT32SZ;
-		break;
-
-	case Rclunk:
-		break;
-
-	case Rremove:
-		break;
-
-	case Rstat:
-		n += BIT16SZ;
-		n += f->nstat;
-		break;
-
-	case Rwstat:
-		break;
-	}
-	return n;
-}
-
-uint
-convS2M(Fcall *f, uchar *ap, uint nap)
+int
+convS2M(Fcall *f, char *ap)
 {
 	uchar *p;
-	uint i, size;
-
-	size = sizeS2M(f);
-	if(size == 0)
-		return 0;
-	if(size > nap)
-		return 0;
 
 	p = (uchar*)ap;
-
-	PBIT32(p, size);
-	p += BIT32SZ;
-	PBIT8(p, f->type);
-	p += BIT8SZ;
-	PBIT16(p, f->tag);
-	p += BIT16SZ;
-
+	CHAR(type);
+	SHORT(tag);
 	switch(f->type)
 	{
 	default:
 		return 0;
 
-	case Tversion:
-		PBIT32(p, f->msize);
-		p += BIT32SZ;
-		p = pstring(p, f->version);
+	case Tosession:
+	case Tnop:
+		break;
+
+	case Tsession:
+		STRING(chal, sizeof(f->chal));
 		break;
 
 	case Tflush:
-		PBIT16(p, f->oldtag);
-		p += BIT16SZ;
-		break;
-
-	case Tauth:
-		PBIT32(p, f->afid);
-		p += BIT32SZ;
-		p  = pstring(p, f->uname);
-		p  = pstring(p, f->aname);
+		SHORT(oldtag);
 		break;
 
 	case Tattach:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
-		PBIT32(p, f->afid);
-		p += BIT32SZ;
-		p  = pstring(p, f->uname);
-		p  = pstring(p, f->aname);
+		SHORT(fid);
+		STRING(uname, sizeof(f->uname));
+		STRING(aname, sizeof(f->aname));
+		STRING(ticket, sizeof(f->ticket));
+		STRING(auth, sizeof(f->auth));
+		break;
+
+	case Toattach:
+		SHORT(fid);
+		STRING(uname, sizeof(f->uname));
+		STRING(aname, sizeof(f->aname));
+		STRING(ticket, NAMELEN);
+		break;
+
+	case Tauth:
+		SHORT(fid);
+		STRING(uname, sizeof(f->uname));
+		STRING(ticket, 8+NAMELEN);
+		break;
+
+	case Tclone:
+		SHORT(fid);
+		SHORT(newfid);
 		break;
 
 	case Twalk:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
-		PBIT32(p, f->newfid);
-		p += BIT32SZ;
-		PBIT16(p, f->nwname);
-		p += BIT16SZ;
-		if(f->nwname > MAXWELEM)
-			return 0;
-		for(i=0; i<f->nwname; i++)
-			p = pstring(p, f->wname[i]);
+		SHORT(fid);
+		STRING(name, sizeof(f->name));
 		break;
 
 	case Topen:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
-		PBIT8(p, f->mode);
-		p += BIT8SZ;
+		SHORT(fid);
+		CHAR(mode);
 		break;
 
 	case Tcreate:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
-		p = pstring(p, f->name);
-		PBIT32(p, f->perm);
-		p += BIT32SZ;
-		PBIT8(p, f->mode);
-		p += BIT8SZ;
+		SHORT(fid);
+		STRING(name, sizeof(f->name));
+		LONG(perm);
+		CHAR(mode);
 		break;
 
 	case Tread:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
-		PBIT64(p, f->offset);
-		p += BIT64SZ;
-		PBIT32(p, f->count);
-		p += BIT32SZ;
+		SHORT(fid);
+		VLONG(offset);
+		SHORT(count);
 		break;
 
 	case Twrite:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
-		PBIT64(p, f->offset);
-		p += BIT64SZ;
-		PBIT32(p, f->count);
-		p += BIT32SZ;
-		memmove(p, f->data, f->count);
-		p += f->count;
+		SHORT(fid);
+		VLONG(offset);
+		SHORT(count);
+		p++;	/* pad(1) */
+		STRING(data, f->count);
 		break;
 
 	case Tclunk:
+		SHORT(fid);
+		break;
+
 	case Tremove:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
+		SHORT(fid);
 		break;
 
 	case Tstat:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
+		SHORT(fid);
 		break;
 
 	case Twstat:
-		PBIT32(p, f->fid);
-		p += BIT32SZ;
-		PBIT16(p, f->nstat);
-		p += BIT16SZ;
-		memmove(p, f->stat, f->nstat);
-		p += f->nstat;
+		SHORT(fid);
+		STRING(stat, sizeof(f->stat));
+		break;
+
+	case Tclwalk:
+		SHORT(fid);
+		SHORT(newfid);
+		STRING(name, sizeof(f->name));
 		break;
 /*
  */
+	case Rosession:
+	case Rnop:
+		break;
 
-	case Rversion:
-		PBIT32(p, f->msize);
-		p += BIT32SZ;
-		p = pstring(p, f->version);
+	case Rsession:
+		STRING(chal, sizeof(f->chal));
+		STRING(authid, sizeof(f->authid));
+		STRING(authdom, sizeof(f->authdom));
 		break;
 
 	case Rerror:
-		p = pstring(p, f->ename);
+		STRING(ename, sizeof(f->ename));
 		break;
 
 	case Rflush:
 		break;
 
-	case Rauth:
-		p = pqid(p, &f->aqid);
+	case Rattach:
+		SHORT(fid);
+		LONG(qid.path);
+		LONG(qid.vers);
+		STRING(rauth, sizeof(f->rauth));
 		break;
 
-	case Rattach:
-		p = pqid(p, &f->qid);
+	case Roattach:
+		SHORT(fid);
+		LONG(qid.path);
+		LONG(qid.vers);
+		break;
+
+	case Rauth:
+		SHORT(fid);
+		STRING(ticket, 8+8+7+7);
+		break;
+
+	case Rclone:
+		SHORT(fid);
 		break;
 
 	case Rwalk:
-		PBIT16(p, f->nwqid);
-		p += BIT16SZ;
-		if(f->nwqid > MAXWELEM)
-			return 0;
-		for(i=0; i<f->nwqid; i++)
-			p = pqid(p, &f->wqid[i]);
+	case Rclwalk:
+		SHORT(fid);
+		LONG(qid.path);
+		LONG(qid.vers);
 		break;
 
 	case Ropen:
+		SHORT(fid);
+		LONG(qid.path);
+		LONG(qid.vers);
+		break;
+
 	case Rcreate:
-		p = pqid(p, &f->qid);
-		PBIT32(p, f->iounit);
-		p += BIT32SZ;
+		SHORT(fid);
+		LONG(qid.path);
+		LONG(qid.vers);
 		break;
 
 	case Rread:
-		PBIT32(p, f->count);
-		p += BIT32SZ;
-		memmove(p, f->data, f->count);
-		p += f->count;
+		SHORT(fid);
+		SHORT(count);
+		p++;	/* pad(1) */
+		STRING(data, f->count);
 		break;
 
 	case Rwrite:
-		PBIT32(p, f->count);
-		p += BIT32SZ;
+		SHORT(fid);
+		SHORT(count);
 		break;
 
 	case Rclunk:
+		SHORT(fid);
 		break;
 
 	case Rremove:
+		SHORT(fid);
 		break;
 
 	case Rstat:
-		PBIT16(p, f->nstat);
-		p += BIT16SZ;
-		memmove(p, f->stat, f->nstat);
-		p += f->nstat;
+		SHORT(fid);
+		STRING(stat, sizeof(f->stat));
 		break;
 
 	case Rwstat:
+		SHORT(fid);
 		break;
 	}
-	if(size != p-ap)
-		return 0;
-	return size;
+	return p - (uchar*)ap;
 }

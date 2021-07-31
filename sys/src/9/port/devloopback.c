@@ -35,7 +35,7 @@ struct Link
 	Queue	*oq;		/* output queue from other side & packets in the link */
 	Queue	*iq;
 
-	Timer	ci;		/* time to move packets from  next packet from oq */
+	Cycintr	ci;		/* time to move packets from  next packet from oq */
 };
 
 struct Loop
@@ -92,9 +92,9 @@ static Loop	loopbacks[Nloopbacks];
 
 static uvlong	fasthz;
 
-#define TYPE(x) 	(((ulong)(x))&0xff)
-#define ID(x) 		(((ulong)(x))>>8)
-#define QID(x,y) 	((((ulong)(x))<<8)|((ulong)(y)))
+#define TYPE(x) 	((x)&0xff)
+#define ID(x) 		(((x)&~CHDIR)>>8)
+#define QID(x,y) 	(((x)<<8)|(y))
 
 #define NS2FASTHZ(t)	((fasthz*(t))/1000000000);
 
@@ -105,7 +105,7 @@ static vlong	gtime(uchar *p);
 static void	closelink(Link *link, int dofree);
 static void	pushlink(Link *link, vlong now);
 static void	freelb(Loop *lb);
-static void	linkintr(Ureg*, Timer *ci);
+static void	linkintr(Ureg*, Cycintr *ci);
 
 static void
 loopbackinit(void)
@@ -123,11 +123,14 @@ loopbackinit(void)
 static Chan*
 loopbackattach(char *spec)
 {
-	Loop *volatile lb;
+	Loop *lb;
 	Queue *q;
 	Chan *c;
 	int chan;
 	int dev;
+
+	if(!havecycintr())
+		error("can't time packets");
 
 	dev = 0;
 	if(spec != nil){
@@ -176,36 +179,49 @@ loopbackattach(char *spec)
 	poperror();
 	qunlock(lb);
 
-	mkqid(&c->qid, QID(0, Qtopdir), 0, QTDIR);
+	c->qid = (Qid){CHDIR|QID(0, Qtopdir), 0};
 	c->aux = lb;
 	c->dev = dev;
 	return c;
 }
 
+static Chan*
+loopbackclone(Chan *c, Chan *nc)
+{
+	Loop *lb;
+
+	lb = c->aux;
+	nc = devclone(c, nc);
+	qlock(lb);
+	lb->ref++;
+	if((c->flag & COPEN) && TYPE(c->qid.path) == Qdata)
+		lb->link[ID(c->qid.path)].ref++;
+	qunlock(lb);
+	return nc;
+}
+
 static int
-loopbackgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
+loopbackgen(Chan *c, Dirtab*, int, int i, Dir *dp)
 {
 	Loop *lb;
 	Dirtab *tab;
+	char buf[NAMELEN];
 	int len, type;
-	Qid qid;
 
 	type = TYPE(c->qid.path);
 	if(i == DEVDOTDOT){
 		switch(type){
 		case Qtopdir:
 		case Qloopdir:
-			snprint(up->genbuf, sizeof(up->genbuf), "#X%ld", c->dev);
-			mkqid(&qid, QID(0, Qtopdir), 0, QTDIR);
-			devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
+			snprint(buf, sizeof(buf), "#X%ld", c->dev);
+			devdir(c, (Qid){CHDIR|QID(0, Qtopdir), 0}, buf, 0, eve, 0555, dp);
 			break;
 		case Qportdir:
-			snprint(up->genbuf, sizeof(up->genbuf), "loopback%ld", c->dev);
-			mkqid(&qid, QID(0, Qloopdir), 0, QTDIR);
-			devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
+			snprint(buf, sizeof(buf), "loopback%ld", c->dev);
+			devdir(c, (Qid){CHDIR|QID(0, Qloopdir), 0}, buf, 0, eve, 0555, dp);
 			break;
 		default:
-			panic("loopbackgen %llux", c->qid.path);
+			panic("loopbackgen %lux", c->qid.path);
 		}
 		return 1;
 	}
@@ -214,27 +230,24 @@ loopbackgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 	case Qtopdir:
 		if(i != 0)
 			return -1;
-		snprint(up->genbuf, sizeof(up->genbuf), "loopback%ld", c->dev);
-		mkqid(&qid, QID(0, Qloopdir), 0, QTDIR);
-		devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
+		snprint(buf, sizeof(buf), "loopback%ld", c->dev);
+		devdir(c, (Qid){QID(0, Qloopdir) | CHDIR, 0}, buf, 0, eve, 0555, dp);
 		return 1;
 	case Qloopdir:
 		if(i >= 2)
 			return -1;
-		snprint(up->genbuf, sizeof(up->genbuf), "%d", i);
-		mkqid(&qid, QID(i, QID(0, Qportdir)), 0, QTDIR);
-		devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
+		snprint(buf, sizeof(buf), "%d", i);
+		devdir(c, (Qid){QID(i, QID(0, Qportdir)) | CHDIR, 0}, buf, 0, eve, 0555, dp);
 		return 1;
 	case Qportdir:
 		if(i >= nelem(loopportdir))
 			return -1;
 		tab = &loopportdir[i];
-		mkqid(&qid, QID(ID(c->qid.path), tab->qid.path), 0, QTFILE);
-		devdir(c, qid, tab->name, tab->length, eve, tab->perm, dp);
+		devdir(c, (Qid){QID(ID(c->qid.path), tab->qid.path), 0}, tab->name, tab->length, eve, tab->perm, dp);
 		return 1;
 	default:
 		/* non directory entries end up here; must be in lowest level */
-		if(c->qid.type & QTDIR)
+		if(c->qid.path & CHDIR)
 			panic("loopbackgen: unexpected directory");	
 		if(i != 0)
 			return -1;
@@ -252,28 +265,16 @@ loopbackgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 }
 
 
-static Walkqid*
-loopbackwalk(Chan *c, Chan *nc, char **name, int nname)
+static int
+loopbackwalk(Chan *c, char *name)
 {
-	Walkqid *wq;
-	Loop *lb;
-
-	wq = devwalk(c, nc, name, nname, nil, 0, loopbackgen);
-	if(wq != nil && wq->clone != nil && wq->clone != c){
-		lb = c->aux;
-		qlock(lb);
-		lb->ref++;
-		if((c->flag & COPEN) && TYPE(c->qid.path) == Qdata)
-			lb->link[ID(c->qid.path)].ref++;
-		qunlock(lb);
-	}
-	return wq;
+	return devwalk(c, name, nil, 0, loopbackgen);
 }
 
-static int
-loopbackstat(Chan *c, uchar *db, int n)
+static void
+loopbackstat(Chan *c, char *db)
 {
-	return devstat(c, db, n, nil, 0, loopbackgen);
+	devstat(c, db, nil, 0, loopbackgen);
 }
 
 /*
@@ -284,7 +285,7 @@ loopbackopen(Chan *c, int omode)
 {
 	Loop *lb;
 
-	if(c->qid.type & QTDIR){
+	if(c->qid.path & CHDIR){
 		if(omode != OREAD)
 			error(Ebadarg);
 		c->mode = omode;
@@ -307,7 +308,6 @@ loopbackopen(Chan *c, int omode)
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
-	c->iounit = qiomaxatomic;
 	return c;
 }
 
@@ -378,7 +378,7 @@ closelink(Link *link, int dofree)
 	link->tqtail = nil;
 	link->tout = 0;
 	link->tin = 0;
-	timerdel(&link->ci);
+	cycintrdel(&link->ci);
 	iunlock(link);
 	if(iq != nil){
 		qclose(iq);
@@ -472,8 +472,8 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 {
 	Loop *lb;
 	Link *link;
-	Cmdbuf *volatile cb;
-	Block *volatile bp;
+	Cmdbuf *cb;
+	Block *bp;
 	vlong d0, d0ns;
 	long dn, dnns;
 
@@ -492,10 +492,6 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 		lb = c->aux;
 		link = &lb->link[ID(c->qid.path)];
 		cb = parsecmd(va, n);
-		if(waserror()){
-			free(cb);
-			nexterror();
-		}
 		if(cb->nf < 1)
 			error("short control request");
 		if(strcmp(cb->f[0], "delay") == 0){
@@ -549,8 +545,6 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 			iunlock(link);
 		}else
 			error("unknown control request");
-		poperror();
-		free(cb);
 		break;
 	default:
 		error(Eperm);
@@ -560,23 +554,18 @@ loopbackwrite(Chan *c, void *va, long n, vlong off)
 }
 
 static long
-loopoput(Loop *lb, Link *link, Block *volatile bp)
+loopoput(Loop *lb, Link *link, Block *bp)
 {
 	long n;
 
 	n = BLEN(bp);
 
 	/* make it a single block with space for the loopback timing header */
-	if(waserror()){
-		freeb(bp);
-		nexterror();
-	}
 	bp = padblock(bp, Tmsize);
 	if(bp->next)
 		bp = concatblock(bp);
 	if(BLEN(bp) < lb->minmtu)
 		bp = adjustblock(bp, lb->minmtu);
-	poperror();
 	ptime(bp->rp, fastticks(nil));
 
 	link->packets++;
@@ -597,10 +586,11 @@ looper(Loop *lb)
 	t = fastticks(nil);
 	for(chan = 0; chan < 2; chan++)
 		pushlink(&lb->link[chan], t);
+	clockintrsched();
 }
 
 static void
-linkintr(Ureg*, Timer *ci)
+linkintr(Ureg*, Cycintr *ci)
 {
 	Link *link;
 
@@ -629,7 +619,7 @@ pushlink(Link *link, vlong now)
 		return;
 
 	}
-	timerdel(&link->ci);
+	cycintrdel(&link->ci);
 
 	/*
 	 * put more blocks into the xmit queue
@@ -706,7 +696,7 @@ pushlink(Link *link, vlong now)
 	if(tin){
 		if(tin < now)
 			panic("loopback unfinished business");
-		timeradd(&link->ci);
+		cycintradd(&link->ci);
 	}
 	iunlock(link);
 }
@@ -744,8 +734,8 @@ Dev loopbackdevtab = {
 
 	devreset,
 	loopbackinit,
-	devshutdown,
 	loopbackattach,
+	loopbackclone,
 	loopbackwalk,
 	loopbackstat,
 	loopbackopen,

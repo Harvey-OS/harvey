@@ -38,47 +38,43 @@ mmuinit(void)
 	nextio = (uchar*) (KZERO|bootconf->maxphys);
 }
 
-static void
-mmuptefree(Proc* proc)
-{
-	uvlong *lvl2;
-	Page **last, *page;
-
-	if(proc->mmutop && proc->mmuused){
-		lvl2 = (uvlong*)proc->mmulvl2->va;
-		last = &proc->mmuused;
-		for(page = *last; page; page = page->next){
-			lvl2[page->daddr] = 0;
-			last = &page->next;
-		}
-		*last = proc->mmufree;
-		proc->mmufree = proc->mmuused;
-		proc->mmuused = 0;
-	}
-}
-
+/*
+ * Called splhi, not in Running state
+ */
 void
-mmuswitch(Proc *proc)
+mmuswitch(Proc *p)
 {
-	if(proc->newtlb){
-		mmuptefree(proc);
-		proc->newtlb = 0;
+	Page *pg;
+	uvlong *lvl2;
+
+	if(p->newtlb){
+		/*
+		 *  newtlb set means that they are inconsistent
+		 *  with the segment.c data structures.
+		 *
+		 *  bin the current 3rd level page tables and
+		 *  the pointers to them in the 2nd level page.
+		 *  pg->daddr is used by putmmu to save the offset into
+		 *  the 2nd level page.
+		 */
+		if(p->mmutop && p->mmuused){
+			lvl2 = (uvlong*)p->mmulvl2->va;
+			for(pg = p->mmuused; pg->next; pg = pg->next)
+				lvl2[pg->daddr] = 0;
+			lvl2[pg->daddr] = 0;
+			pg->next = p->mmufree;
+			p->mmufree = p->mmuused;
+			p->mmuused = 0;
+		}
+		p->newtlb = 0;
 	}
 
 	/* tell processor about new page table and flush cached entries */
-	if(proc->mmutop == 0)
+	if(p->mmutop == 0)
 		setptb(origlvl1);
 	else
-		setptb(proc->mmutop->pa);
+		setptb(p->mmutop->pa);
 	tlbflush(-1, 0);
-	icflush();
-}
-
-/* point to protoype page map */
-void
-mmupark(void)
-{
-	setptb(origlvl1);
 	icflush();
 }
 
@@ -87,32 +83,44 @@ mmupark(void)
  *  with palloc locked.
  */
 void
-mmurelease(Proc *proc)
+mmurelease(Proc *p)
 {
-	Page *page, *next;
+	Page *pg;
+	Page *next;
 
-	mmupark();
-	mmuptefree(proc);
-	proc->mmuused = 0;
-	if(proc->mmutop) {
-		proc->mmutop->next = proc->mmufree;
-		proc->mmufree = proc->mmutop;
-		proc->mmutop = 0;
+	if(canlock(&palloc))
+		panic("mmurelease");
+
+	/* point to protoype page map */
+	setptb(origlvl1);
+	icflush();
+
+	/* give away page table pages */
+	for(pg = p->mmuused; pg; pg = next){
+		next = pg->next;
+		pg->next = p->mmufree;
+		p->mmufree = pg;
 	}
-	if(proc->mmulvl2) {
-		proc->mmulvl2->next = proc->mmufree;
-		proc->mmufree = proc->mmulvl2;
-		proc->mmulvl2 = 0;
+	p->mmuused = 0;
+	if(p->mmutop) {
+		p->mmutop->next = p->mmufree;
+		p->mmufree = p->mmutop;
+		p->mmutop = 0;
 	}
-	for(page = proc->mmufree; page; page = next){
-		next = page->next;
-		if(--page->ref)
-			panic("mmurelease: page->ref %d\n", page->ref);
-		pagechainhead(page);
+	if(p->mmulvl2) {
+		p->mmulvl2->next = p->mmufree;
+		p->mmufree = p->mmulvl2;
+		p->mmulvl2 = 0;
 	}
-	if(proc->mmufree && palloc.r.p)
+	for(pg = p->mmufree; pg; pg = next){
+		next = pg->next;
+		if(--pg->ref)
+			panic("mmurelease: pg->ref %d\n", pg->ref);
+		pagechainhead(pg);
+	}
+	if(p->mmufree && palloc.r.p)
 		wakeup(&palloc.r);
-	proc->mmufree = 0;
+	p->mmufree = 0;
 }
 
 void
@@ -245,20 +253,4 @@ void
 upafree(ulong, int)
 {
 	print("upafree: virtual mapping not freed\n");
-}
-
-void
-mmudump(void)
-{
-	Page *top, *lvl2;
-
-	iprint("ptbr %lux up %lux\n", (ulong)m->ptbr, up);
-	if(up) {
-		top = up->mmutop;
-		if(top != nil)
-			iprint("top %lux top[N-1] %llux\n", top->va, ((uvlong *)top->va)[PTE2PG-1]);
-		lvl2 = up->mmulvl2;
-		if(lvl2 != nil)
-			iprint("lvl2 %lux\n", lvl2->va);
-	}
 }

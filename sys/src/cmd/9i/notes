@@ -1,0 +1,10 @@
+
+to do:
+
+1. peep
+2. reg
+3. vlong
+5. div on neg remainders
+7. allocate local/global registers
+8. put Q register in depend
+9. put SETIP in depend

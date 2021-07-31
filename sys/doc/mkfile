@@ -11,6 +11,7 @@ FILES = \
 	asm.ps \
 	comp.ps \
 	compiler.ps \
+	install.ps \
 	lexnames.ps \
 	libmach.ps \
 	lp.ps \
@@ -22,11 +23,11 @@ FILES = \
 	rc.ps \
 	sleep.ps \
 	spin.ps \
+	start.ps \
 	troff.ps \
 	utf.ps \
 	colophon.ps \
-	release4.ps \
-	prog4.ps\
+	release3.ps \
 
 DIRS = \
 	8½ \
@@ -44,9 +45,9 @@ print:V: \
 	contents.ps\
 	9.ps \
 	names.ps \
+	start.ps \
 	net/net.ps \
 	comp.ps \
-	prog4.ps \
 	ape.ps \
 	acidpaper.ps \
 	acid.ps \
@@ -69,6 +70,7 @@ print:V: \
 	troff.ps \
 	spin.ps \
 	port.ps \
+	install.ps \
 	colophon.ps
 	lp -dfn -H -i0 $prereq
 
@@ -76,9 +78,8 @@ html:V: \
 	9.html \
 	names.html \
 	net/net.html \
-	auth.html \
+	start.html \
 	comp.html \
-	prog4.html \
 	ape.html \
 	acidpaper.html \
 	acid.html \
@@ -101,7 +102,8 @@ html:V: \
 	troff.html \
 	spin.html \
 	port.html \
-	release4.html
+	install.html \
+	release3.html
 	cp index.htm index.html
 
 dirs:V:	$FILES $DIRS
@@ -141,10 +143,6 @@ troff.ps:D:	troff.ms
 	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms | lp -dstdout > $target
 	cleanps $target
 
-auth.ps:D:	auth.ms
-	{ echo $FONTS; cat $prereq } | pic | tbl | eqn  | troff -ms | lp -dstdout > $target
-	cleanps $target
-
 plumb.ps:D:	plumb.ms
 	{ echo $FONTS; cat $prereq } | pic | troff -ms | lp -dstdout > $target
 	cleanps $target
@@ -176,9 +174,6 @@ troff.html:D:	troff.ms
 
 plumb.html:D:	plumb.ms
 	{ echo $FONTS; cat $prereq } | pic | ms2html > $target
-
-auth.html:D:	auth.ms
-	{ echo $FONTS; cat $prereq } | pic |eqn | tbl | ms2html > $target
 
 comp.html:D:	comp.ms
 	{ echo $FONTS; cat $prereq } | tbl | ms2html > $target
@@ -215,9 +210,9 @@ il/il.html:
 	cd il
 	mk il.html
 
-release4.html:	release4.ms
+release3.html:	release3.ms
 	# remove all those extra blank lines
-	{ echo $FONTS; cat release4.ms } | tbl | ms2html | uniq > $target
+	{ echo $FONTS; cat release3.ms } | tbl | ms2html | uniq > $target
 
 %.pdf: %.ps
 	distill $stem.ps

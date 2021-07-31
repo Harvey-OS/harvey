@@ -6,7 +6,6 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "pci.h"
 #include "vga.h"
 
 typedef struct {

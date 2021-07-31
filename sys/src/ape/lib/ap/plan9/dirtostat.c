@@ -6,11 +6,14 @@
 
 /* fi is non-null if there is an fd associated with s */
 void
-_dirtostat(struct stat *s, Dir *d, Fdinfo *fi)
+_dirtostat(struct stat *s, char *cd, Fdinfo *fi)
 {
+	Dir *d, db;
 	int num;
 	char *nam;
 
+	convM2D(cd, &db);
+	d = &db;
 	s->st_dev = (d->type<<8)|(d->dev&0xFF);
 	s->st_ino = d->qid.path;
 	s->st_mode = d->mode&0777;
@@ -38,10 +41,10 @@ _dirtostat(struct stat *s, Dir *d, Fdinfo *fi)
 		s->st_uid = fi->uid;
 		s->st_gid = fi->gid;
 	} else {
-		nam = d->uid;
+		nam = db.uid;
 		if(_getpw(&num, &nam, 0))
 			s->st_uid = num;
-		nam = d->gid;
+		nam = db.gid;
 		if(_getpw(&num, &nam, 0))
 			s->st_gid = num;
 	}

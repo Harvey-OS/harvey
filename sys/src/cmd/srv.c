@@ -2,19 +2,22 @@
 #include <libc.h>
 #include <bio.h>
 #include <auth.h>
+#include <fcall.h>
 
-char	*dest = "system";
+Fcall	hdr;
+char	dest[2*NAMELEN];
 int	mountflag = MREPL;
 
 void	error(char *);
 void	rpc(int, int);
 void	post(char*, int);
 void	mountfs(char*, int);
+int	filter(int);
 
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-abcCm] [net!]host [srvname [mtpt]]\n", argv0);
+	fprint(2, "usage: %s [-abcCmr] [net!]host [srvname [mtpt]]\n", argv0);
 		exits("usage");
 }
 
@@ -23,7 +26,7 @@ ignore(void *a, char *c)
 {
 	USED(a);
 	if(strcmp(c, "alarm") == 0){
-		fprint(2, "srv: timeout establishing connection to %s\n", dest);
+		fprint(2, "srv: timeout establishing connection\n");
 		exits("timeout");
 	}
 	noted(NDFLT);
@@ -34,15 +37,18 @@ main(int argc, char *argv[])
 {
 	int fd;
 	char srv[64], mtpt[64];
-	char dir[1024];
-	char err[ERRMAX];
+	char dir[NAMELEN*4];
+	char err[ERRLEN];
+	char tickets[2*TICKETLEN];
 	char *p, *p2;
-	int domount, reallymount, try;
+	int domount, reallymount, record, try;
 
 	notify(ignore);
+	alarm(30000);
 
 	domount = 0;
 	reallymount = 0;
+	record = 0;
 
 	ARGBEGIN{
 	case 'a':
@@ -74,7 +80,7 @@ main(int argc, char *argv[])
 		reallymount = 0;
 		break;
 	case 'r':
-		/* deprecated -r flag; ignored for compatibility */
+		record = 1;
 		break;
 	default:
 		usage();
@@ -83,6 +89,7 @@ main(int argc, char *argv[])
 
 	if((mountflag&MAFTER)&&(mountflag&MBEFORE))
 		usage();
+
 
 	switch(argc){
 	case 1:	/* calculate srv and mtpt from address */
@@ -112,10 +119,8 @@ main(int argc, char *argv[])
 	}
 
 	try = 0;
-	dest = *argv;
 Again:
 	try++;
-
 	if(access(srv, 0) == 0){
 		if(domount){
 			fd = open(srv, ORDWR);
@@ -129,15 +134,18 @@ Again:
 		}
 	}
 
-	alarm(10000);
-	dest = netmkaddr(dest, 0, "9fs");
-	fd = dial(dest, 0, dir, 0);
+	strcpy(dest, *argv);
+
+	fd = dial(netmkaddr(*argv, 0, "9fs"), 0, dir, 0);
 	if(fd < 0) {
-		fprint(2, "srv: dial %s: %r\n", dest);
+		fprint(2, "srv: dial %s: %r\n", netmkaddr(*argv, 0, "9fs"));
 		exits("dial");
 	}
-	alarm(0);
+	if(record || strstr(dir, "tcp"))
+		fd = filter(fd);
 
+	fprint(2, "session...");
+	fsession(fd, tickets);
 	post(srv, fd);
 
 Mount:
@@ -146,7 +154,7 @@ Mount:
 
 	if(amount(fd, mtpt, mountflag, "") < 0){
 		err[0] = 0;
-		errstr(err, sizeof err);
+		errstr(err);
 		if(strstr(err, "hungup") || strstr(err, "timed out")){
 			remove(srv);
 			if(try == 1)
@@ -173,6 +181,33 @@ post(char *srv, int fd)
 	sprint(buf, "%d", fd);
 	if(write(f, buf, strlen(buf)) != strlen(buf))
 		error("write");
+}
+
+/* Network on fd1, mount driver on fd0 */
+int
+filter(int fd)
+{
+	int p[2];
+
+	if(pipe(p) < 0)
+		error("pipe");
+
+	switch(rfork(RFNOWAIT|RFPROC|RFFDG)) {
+	case -1:
+		error("rfork record module");
+	case 0:
+		dup(fd, 1);
+		close(fd);
+		dup(p[0], 0);
+		close(p[0]);
+		close(p[1]);
+		execl("/bin/aux/fcall", "fcall", 0);
+		error("exec record module");
+	default:
+		close(fd);
+		close(p[0]);
+	}
+	return p[1];	
 }
 
 void

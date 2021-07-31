@@ -116,7 +116,7 @@ main(int argc, char **argv)
 
 	char *xfile;
 	FILE *xptr;
-	Waitmsg *w;
+	Waitmsg w;
 
 
 /*	argument decoding	*/
@@ -249,9 +249,8 @@ main(int argc, char **argv)
 			sortfile, "-o", sortfile, 0);
 		diag("Sort exec failed","");
 	}
-	if((w=wait())==nil || w->msg[0]!=0)
+	if(wait(&w)<0 || w.msg[0]!=0)
 		diag("Sort failed","");
-	free(w);
 
 	makek();
 	if(fork()==0){
@@ -260,9 +259,8 @@ main(int argc, char **argv)
 		execl(roff, roff, "-a", kfile, 0);
 		diag("Sort exec failed","");
 	}
-	if((w=wait())==nil || w->msg[0]!=0)
+	if(wait(&w)<0 || w.msg[0]!=0) 
 		diag("Sort failed","");
-	free(w);
 
 	getsort();
 /*	remove(sortfile);

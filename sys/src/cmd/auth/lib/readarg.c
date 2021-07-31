@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include "authcmdlib.h"
+#include <auth.h>
+#include "authsrv.h"
 
 int
 readarg(int fd, char *arg, int len)

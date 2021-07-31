@@ -16,8 +16,8 @@ int outfd = 1;		/* local output file descriptor */
 int cooked;		/* non-zero forces cooked mode */
 int returns;		/* non-zero forces carriage returns not to be filtered out */
 int	strip;		/* strip off parity bits */
-char firsterr[2*ERRMAX];
-char transerr[2*ERRMAX];
+char firsterr[2*ERRLEN];
+char transerr[2*ERRLEN];
 int limited;
 char *remuser;
 int verbose;
@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 		break;
 	case 'l':
 		limited = 1;
-		if(argv[1] != nil && argv[1][0] != '-')
+		if(argv[1][0] != '-')
 			remuser = ARGF();
 		break;
 	case 'n':
@@ -157,7 +157,7 @@ void
 rlogin(char *dest, char *cmd)
 {
 	int net;
-	char buf[128];
+	char buf[2*NAMELEN];
 	char *p;
 	char *localuser;
 
@@ -219,21 +219,17 @@ void
 device(char *dest, char *cmd)
 {
 	int net;
-	char cname[128];
+	char cname[3*NAMELEN];
 
 	net = open(dest, ORDWR);
 	if(net < 0) {
 		fprint(2, "con: cannot open %s: %r\n", dest);
 		exits("open");
 	}
-	snprint(cname, sizeof cname, "%sctl", dest);
+	sprint(cname, "%sctl", dest);
 	ctl = open(cname, ORDWR);
-	if (baud > 0) {
-		if(ctl >= 0)
-			fprint(ctl, "b%d", baud);
-		else
-			fprint(2, "con: cannot open %s: %r\n", cname);
-	}
+	if(ctl >= 0 && baud > 0)
+		fprint(ctl, "b%d", baud);
 
 	if(cmd)
 		dosystem(net, cmd);
@@ -272,7 +268,7 @@ rawon(void)
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
 	if(consctl < 0){
-//		fprint(2, "can't open consctl\n");
+		fprint(2, "can't open consctl\n");
 		return;
 	}
 	write(consctl, "rawon", 5);
@@ -292,7 +288,7 @@ rawoff(void)
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
 	if(consctl < 0){
-//		fprint(2, "can't open consctl\n");
+		fprint(2, "can't open consctl\n");
 		return;
 	}
 	write(consctl, "rawoff", 6);
@@ -385,14 +381,14 @@ stdcon(int net)
 	case 0:
 		notify(notifyf);
 		fromnet(net);
-		postnote(PNPROC, ttypid, "");
+		postnote(PNPROC, ttypid, "kill");
 		exits(0);
 	default:
 		notify(notifyf);
 		fromkbd(net);
 		if(notkbd)
 			for(;;)sleep(0);
-		postnote(PNPROC, netpid, "");
+		postnote(PNPROC, netpid, "kill");
 		exits(0);
 	}
 }
@@ -502,8 +498,8 @@ fromnet(int net)
 int
 dodial(char *dest, char *net, char *service)
 {
-	char name[128];
-	char devdir[128];
+	char name[3*NAMELEN];
+	char devdir[3*NAMELEN];
 	int data;
 
 	devdir[0] = 0;
@@ -579,7 +575,7 @@ system(int fd, char *cmd)
 					break;
 			}
 		}
-		p = waitpid();
+		p = wait(&msg);
 		outfd = 1;
 		close(pfd[1]);
 		if(p < 0 || p != pid)
@@ -607,8 +603,8 @@ punt(char *msg)
 char*
 syserr(void)
 {
-	static char err[ERRMAX];
-	errstr(err, sizeof err);
+	static char err[ERRLEN];
+	errstr(err);
 	return err;
 }
 

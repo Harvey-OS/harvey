@@ -94,6 +94,7 @@ static int
 mntstatsgen(Chan *c, Dirtab*, int, int i, Dir *dp)
 {
 	Qid q;
+	char name[NAMELEN];
 	Mntstats *m;
 
 	if(i == DEVDOTDOT){
@@ -106,8 +107,8 @@ mntstatsgen(Chan *c, Dirtab*, int, int i, Dir *dp)
 		return -1;
 
 	q = (Qid){Qmntstat+i, 0};
-	snprint(up->genbuf, sizeof up->genbuf, "%C%lud.%lux", devtab[m->c.type]->dc, m->c.dev, m->c.qid.path);
-	devdir(c, q, up->genbuf, 0, eve, 0666, dp);
+	snprint(name, NAMELEN, "%C%lud.%lux", devtab[m->c.type]->dc, m->c.dev, m->c.qid.path);
+	devdir(c, q, name, 0, eve, 0666, dp);
 
 	return 1;
 }

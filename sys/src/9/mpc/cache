@@ -1,0 +1,6 @@
+chaned mmu to use pg->cachectl
+change l.s in kernelmmu to use I cache by default - I think
+this is needed so the icache is still ok during fault code
+
+change l.s in kernelmmu to use D cache by default - I think
+this is needed so the icache is still ok during fault code

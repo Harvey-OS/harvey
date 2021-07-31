@@ -11,35 +11,30 @@
 Ndb *db;
 char *ndbfile;
 
-Iplifc*
-findlifc(uchar *ip)
+Ipifc*
+findifc(uchar *ip)
 {
 	uchar x[IPaddrlen];
 	Ipifc *ifc;
-	Iplifc *lifc;
 
 	for(ifc = ipifcs; ifc; ifc = ifc->next){
-		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next){
-			if(lifc->net[0] == 0)
-				continue;
-			maskip(ip, lifc->mask, x);
-			if(memcmp(x, lifc->net, IPaddrlen) == 0)
-				return lifc;
-		}
+		if(ifc->net[0] == 0)
+			continue;
+		maskip(ip, ifc->mask, x);
+		if(memcmp(x, ifc->net, IPaddrlen) == 0)
+			return ifc;
 	}
-	return nil;
+	return 0;
 }
 
-int
+Ipifc*
 forme(uchar *ip)
 {
 	Ipifc *ifc;
-	Iplifc *lifc;
 
 	for(ifc = ipifcs; ifc; ifc = ifc->next){
-		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next)
-			if(memcmp(ip, lifc->ip, IPaddrlen) == 0)
-				return 1;
+		if(memcmp(ip, ifc->ip, IPaddrlen) == 0)
+			return ifc;
 	}
 	return 0;
 }
@@ -81,8 +76,6 @@ lookupip(uchar *ipaddr, Info *iip)
 	*p++ = "ip";
 	*p++ = "ipmask";
 	*p++ = "bootf";
-	*p++ = "bootf2";
-	*p++ = "rootpath";
 	*p++ = "dhcp";
 	*p++ = "vendor";
 	*p++ = "ether";
@@ -130,11 +123,6 @@ lookupip(uchar *ipaddr, Info *iip)
 				strcpy(iip->bootf, nt->val);
 		}
 		else
-		if(strcmp(nt->attr, "bootf2") == 0){
-			if(iip->bootf2[0] == 0)
-				strcpy(iip->bootf2, nt->val);
-		}
-		else
 		if(strcmp(nt->attr, "vendor") == 0){
 			if(iip->vendor[0] == 0)
 				strcpy(iip->vendor, nt->val);
@@ -143,11 +131,6 @@ lookupip(uchar *ipaddr, Info *iip)
 		if(strcmp(nt->attr, "dom") == 0){
 			if(iip->domain[0] == 0)
 				strcpy(iip->domain, nt->val);
-		}
-		else
-		if(strcmp(nt->attr, "rootpath") == 0){
-			if(iip->rootpath[0] == 0)
-				strcpy(iip->rootpath, nt->val);
 		}
 	}
 	ndbfree(t);

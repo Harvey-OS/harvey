@@ -1,7 +1,7 @@
                          Aladdin Free Public License
-                       (Version 8, November 18, 1999)
+                      (Version 9, September 18, 2000)
 
-       Copyright (C) 1994, 1995, 1997, 1998, 1999 Aladdin Enterprises,
+    Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000 Aladdin Enterprises,
             Menlo Park, California, U.S.A. All rights reserved.
 
      NOTE: This License is not the same as any of the GNU Licenses
@@ -20,14 +20,28 @@ License is being applied to a work created in a country other than the
 United States, replacing the first paragraph of Section 6 with an
 appropriate reference to the laws of the appropriate country.
 
+This License is not an Open Source license: among other things, it places
+restrictions on distribution of the Program, specifically including sale of
+the Program. While Aladdin Enterprises respects and supports the philosophy
+of the Open Source Definition, and shares the desire of the GNU project to
+keep licensed software freely redistributable in both source and object
+form, we feel that Open Source licenses unfairly prevent developers of
+useful software from being compensated proportionately when others profit
+financially from their work. This License attempts to ensure that those who
+receive, redistribute, and contribute to the licensed Program according to
+the Open Source and Free Software philosophies have the right to do so,
+while retaining for the developer(s) of the Program the power to make those
+who use the Program to enhance the value of commercial products pay for the
+privilege of doing so.
+
 0. Subject Matter
 
-This License applies to the computer program known as "Aladdin Ghostscript."
+This License applies to the computer program known as "AFPL Ghostscript."
 The "Program", below, refers to such program. The Program is a copyrighted
-work whose copyright is held by Aladdin Enterprises (the "Licensor"). Please
-note that Aladdin Ghostscript is neither the program known as "GNU
-Ghostscript" nor the version of Ghostscript available for commercial
-licensing from Artifex Software Inc.
+work whose copyright is held by artofcode LLC, located in Benicia,
+California (the "Licensor"). Please note that AFPL Ghostscript is neither
+the program known as "GNU Ghostscript" nor the version of Ghostscript
+available for commercial licensing from Artifex Software Inc.
 
 A "work based on the Program" means either the Program or any derivative
 work of the Program, as defined in the United States Copyright Act of 1976,

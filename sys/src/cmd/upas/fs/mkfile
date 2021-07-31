@@ -10,8 +10,7 @@ HFILES= ../common/common.h\
 
 BIN=/$objtype/bin/upas
 </sys/src/cmd/mkmany
-CFLAGS=$CFLAGS -I/sys/include -I../common
-
+CFLAGS=$CFLAGS -I../common
 
 FSOFILES=\
 	imap4.$O\

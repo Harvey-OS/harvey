@@ -29,51 +29,22 @@ struct Readcache {
 
 static Readcache *rcache;
 
-ulong
-dirlen(char *s)
-{
-	Dir *d;
-	ulong len;
-
-	d = dirstat(s);
-	if(d == nil)
-		return 0;
-	len = d->length;
-	free(d);
-	return len;
-}
-
-ulong
-dirmtime(char *s)
-{
-	Dir *d;
-	ulong t;
-
-	d = dirstat(s);
-	if(d == nil)
-		return 0;
-	t = d->mtime;
-	free(d);
-	return t;
-}
-
 static char*
 doreadfile(char *s)
 {
+	Dir d;
 	char *p;
 	int fd, n;
-	ulong len;
 
-	len = dirlen(s);
-	if(len == 0)
+	if(dirstat(s, &d) < 0)
 		return nil;
 
-	p = malloc(len+1);
+	p = malloc(d.length+1);
 	if(p == nil)
 		return nil;
 
 	if((fd = open(s, OREAD)) < 0
-	|| (n = readn(fd, p, len)) < 0) {
+	|| (n = readn(fd, p, d.length)) < 0) {
 		free(p);
 		return nil;
 	}
@@ -86,8 +57,8 @@ static char*
 readfile(char *s)
 {
 	Readcache *r, **l;
+	Dir d;
 	char *p;
-	ulong mtime;
 
 	for(l=&rcache, r=*l; r; l=&r->next, r=*l) {
 		if(strcmp(r->file, s) != 0)
@@ -99,7 +70,7 @@ readfile(char *s)
 		 */
 		if(time(0) - r->rdtime < 30)
 			return strdup(r->data);
-		if(dirmtime(s) == r->mtime) {
+		if(dirstat(s, &d) >= 0 && d.mtime == r->mtime) {
 			r->rdtime = time(0);
 			return strdup(r->data);
 		}
@@ -113,8 +84,7 @@ readfile(char *s)
 	}
 
 	/* add to cache */
-	mtime = dirmtime(s);
-	if(mtime == 0)
+	if(dirstat(s, &d) < 0)
 		return nil;
 
 	if((p = doreadfile(s)) == nil)
@@ -123,7 +93,7 @@ readfile(char *s)
 	r = malloc(sizeof(*r));
 	if(r == nil)
 		return nil;
-	r->mtime = mtime;
+	r->mtime = d.mtime;
 	r->file = estrdup(s);
 	r->data = p;
 	r->rdtime = time(0);
@@ -380,14 +350,14 @@ readface(char *fn)
 	uchar data[Facesize*Facesize];
 	uchar mdata[(Facesize*Facesize)/8];
 	Facefile *f;
-	Dir *d;
+	Dir d;
 
 	for(f=facefiles; f!=nil; f=f->next){
 		if(strcmp(fn, f->file) == 0){
 			if(f->image == nil)
 				break;
 			if(time(0) - f->rdtime >= 30) {
-				if(dirmtime(fn) != f->mtime){
+				if(dirstat(fn, &d)<0 || d.mtime!=f->mtime){
 					f = nil;
 					break;
 				}
@@ -462,11 +432,8 @@ Done:
 	if(f == nil){
 		f = emalloc(sizeof(Facefile));
 		f->file = estrdup(fn);
-		d = dirfstat(fd);
-		if(d != nil){
-			f->mtime = d->mtime;
-			free(d);
-		}
+		if(dirfstat(fd, &d) >= 0)
+			f->mtime = d.mtime;
 		f->next = facefiles;
 		facefiles = f;
 	}

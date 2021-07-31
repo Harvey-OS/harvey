@@ -1,6 +1,5 @@
 objtype=68020
 </68020/mkfile
-CFLAGS=-I/sys/ninclude $CFLAGS
 
 LIB=/$objtype/lib/lib68881.a
 OFILES=\

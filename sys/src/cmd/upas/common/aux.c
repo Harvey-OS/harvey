@@ -144,5 +144,5 @@ int
 returnable(char *path)
 {
 
-	return strcmp(path, "/dev/null") != 0;
+	return !strstr(path, "/dev/null");
 }

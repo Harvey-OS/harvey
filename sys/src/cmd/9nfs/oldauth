@@ -1,0 +1,8 @@
+!9file tcp!tempel nfstempel /n/tempel /etc/passwd
+!9file tcp!cetus nfscetus /n/cetus /etc/passwd
+
+#server	client	uidfile	gidfile
+
+.+	[^.]+\.research\.att\.com	/n/cetus/etc/passwd	/n/cetus/etc/group
+.+	gimli|oats	/n/cetus/etc/passwd	/n/cetus/etc/group
+.+	moshi	/n/tempel/etc/passwd	/n/tempel/etc/group

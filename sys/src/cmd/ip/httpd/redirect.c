@@ -17,9 +17,10 @@ struct Redir
 	char	*repl;
 };
 
+#define AUTHPRE	"basic:"
+
 static Redir *redirtab[HASHSIZE];
-static Redir *vhosttab[HASHSIZE];
-static char emptystring[1];
+static Redir *authtab[HASHSIZE];
 
 static int 
 hashasu(char *key, int n)
@@ -69,7 +70,7 @@ redirectinit(void)
 {
 	static Biobuf *b = nil;
 	static Qid qid;
-	char *file, *line, *s, *host, *field[3];
+	char *file, *line, *s, *field[3];
 
 	file = "/sys/lib/httpd.rewrite";
 	if(b != nil){
@@ -83,7 +84,7 @@ redirectinit(void)
 	updateQid(Bfildes(b), &qid);
 
 	cleartab(redirtab);
-	cleartab(vhosttab);
+	cleartab(authtab);
 
 	while((line = Brdline(b, '\n')) != nil){
 		line[Blinelen(b)-1] = 0;
@@ -91,19 +92,12 @@ redirectinit(void)
 		if(s != nil)
 			*s = '\0'; 	/* chop comment */
 		if(tokenize(line, field, nelem(field)) == 2){
-			if(strncmp(field[0], "http://", STRLEN("http://")) == 0 &&
-					strncmp(field[1], "http://", STRLEN("http://")) != 0){
-				host = field[0]+STRLEN("http://");
-				s = strstr(host, "/:");
-				if(s)
-					*s = 0;  /* chop trailing slash or portnumber */
-				insert(vhosttab, estrdup(host), estrdup(field[1]));
-			}else{
+			if(strncmp(field[1], AUTHPRE, STRLEN(AUTHPRE)) == 0)
+				insert(authtab, estrdup(field[0]), estrdup(field[1]+STRLEN(AUTHPRE)));
+			else
 				insert(redirtab, estrdup(field[0]), estrdup(field[1]));
-			}
 		}
 	}
-	syslog(0, HTTPLOG, "redirectinit pid=%d", getpid());
 }
 
 static Redir*
@@ -129,6 +123,24 @@ prevslash(char *p, char *s)
 }
 
 char*
+authrealm(HConnect *hc, char *path)
+{
+	Redir *redir;
+	char *s;
+	int c;
+
+	for(s = strchr(path, '\0'); s > path; s = prevslash(path, s)){
+		c = *s;
+		*s = '\0';
+		redir = lookup(authtab, path);
+		*s = c;
+		if(redir != nil)
+			return hstrdup(hc, redir->repl);
+	}
+	return nil;
+}
+
+char*
 redirect(HConnect *hc, char *path)
 {
 	Redir *redir;
@@ -141,25 +153,11 @@ redirect(HConnect *hc, char *path)
 		redir = lookup(redirtab, path);
 		*s = c;
 		if(redir != nil){
-			n = strlen(redir->repl) + strlen(s) + 2 + UTFmax;
+			n = strlen(redir->repl) + strlen(s+1) + 2 + UTFmax;
 			newpath = halloc(hc, n);
-			snprint(newpath, n, "%s%s", redir->repl, s);
+			snprint(newpath, n, "%s/%s", redir->repl, &s[c == '/']);
 			return newpath;
 		}
 	}
 	return nil;
-}
-
-// if host is virtual, return implicit prefix for URI within webroot.
-// if not, return empty string
-// return value should not be freed by caller
-char*
-masquerade(char *host)
-{
-	Redir *redir;
-
-	redir = lookup(vhosttab, host);
-	if(redir != nil)
-		return redir->repl;
-	return emptystring;
 }

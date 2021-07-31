@@ -72,8 +72,7 @@ enum {
 	Pterm,				/* closing down */
 
 	/* PPP protocol types */
-	Pip=		0x21,		/* ip v4 */
-	Pipv6=		0x57,		/* ip v6 */
+	Pip=		0x21,		/* staticet */
 	Pvjctcp=	0x2d,		/* compressing van jacobson tcp */
 	Pvjutcp=	0x2f,		/* uncompressing van jacobson tcp */
 	Pcdata=		0xfd,		/* compressed datagram */
@@ -216,7 +215,8 @@ struct Chap
 	int	state;		/* chap state */
 	uchar	id;		/* id of current message */
 	int	timeout;	/* for current state */
-	Chalstate *cs;
+	int	afd;		/* authentication fd */
+	uchar	chal[8];	/* challenge sent - 8 uchars is what MS uses */
 };
 
 struct Qualstats

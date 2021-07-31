@@ -304,25 +304,16 @@ patch(void)
 		if(p->as == ACALL || p->as == ARET) {
 			s = p->to.sym;
 			if(s) {
-				if(debug['c'])
-					Bprint(&bso, "%s calls %s\n", TNAME, s->name);
-				switch(s->type) {
-				case STEXT:
-					p->to.offset = s->value;
-					break;
-				case SUNDEF:
-					p->pcond = UP;
-					p->to.offset = 0;
-					break;
-				default:
+				if(s->type != STEXT) {
 					diag("undefined: %s in %s\n", s->name, TNAME);
 					s->type = STEXT;
 					s->value = vexit;
 				}
+				p->to.offset = s->value;
 				p->to.type = D_BRANCH;
 			}
 		}
-		if(p->to.type != D_BRANCH || p->pcond == UP)
+		if(p->to.type != D_BRANCH)
 			continue;
 		c = p->to.offset;
 		for(q = firstp; q != P;) {
@@ -346,7 +337,7 @@ patch(void)
 		if(p->as == ATEXT)
 			curtext = p;
 		p->mark = 0;	/* initialization for follow */
-		if(p->pcond != P && p->pcond != UP) {
+		if(p->pcond != P) {
 			p->pcond = brloop(p->pcond);
 			if(p->pcond != P)
 			if(p->to.type == D_BRANCH)

@@ -1,0 +1,24 @@
+#!/bin/rc
+
+# set userid
+echo -n $user > /dev/hostowner
+if(test -e /env/password){
+	auth/iam $user $password
+	rm /env/password
+}
+
+# start network
+if(grep -s WaveLAN/IEEE /dev/pcm0ctl){
+	echo -n 'configure #l0 WaveLAN/IEEE'>/dev/pcm0ctl
+	bind -a '#l0' /net
+	echo -n 'key '^$wavelankey >/net/ether0/clone
+	ip/ipconfig ether /net/ether0
+	ndb/cs
+	ndb/dns -r
+}
+
+if(!test -e /env/font)
+	font=/lib/font/bit/lucidasans/typeunicode.6.font
+if(!test -e /env/tabstop)
+	tabstop=2
+exec rio -sk /bin/keyboard

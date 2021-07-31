@@ -641,7 +641,7 @@ ipmuxkick(Conv *c)
 }
 
 static void
-ipmuxiput(Proto *p, Ipifc *ifc, Block *bp)
+ipmuxiput(Proto *p, uchar *ia, Block *bp)
 {
 	int len;
 	Fs *f = p->f;
@@ -649,9 +649,6 @@ ipmuxiput(Proto *p, Ipifc *ifc, Block *bp)
 	Conv *c;
 	Ipmux *mux;
 	Iphdr *ip;
-	uchar *ia;
-
-	ia = ifc->lifc->local;
 
 	if(p->priv == nil)
 		goto nomatch;
@@ -740,7 +737,7 @@ nomatch:
 	ip = (Iphdr*)bp->rp;
 	p = f->t2p[ip->proto];
 	if(p)
-		(*p->rcv)(p, ifc, bp);
+		(*p->rcv)(p, ia, bp);
 	else
 		freeblist(bp);
 	return;

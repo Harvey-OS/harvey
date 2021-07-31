@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
 #include "imap4d.h"
 
 static	int	copyData(int ffd, int tfd, MbLock *ml);
@@ -10,7 +9,7 @@ static	MbLock	mLock =
 	.fd = -1
 };
 
-static char curDir[MboxNameLen];
+static char curDir[3 * NAMELEN];
 
 void
 resetCurDir(void)
@@ -23,11 +22,11 @@ myChdir(char *dir)
 {
 	if(strcmp(dir, curDir) == 0)
 		return 0;
-	if(dir[0] != '/' || strlen(dir) > MboxNameLen)
+	if(dir[0] != '/' || strlen(dir) > 3 * NAMELEN)
 		return -1;
 	strcpy(curDir, dir);
 	if(chdir(dir) < 0){
-		werrstr("mychdir failed: %r");
+		dir[0] = '-';
 		return -1;
 	}
 	return 0;
@@ -41,24 +40,12 @@ cdCreate(char *dir, char *file, int mode, ulong perm)
 	return create(file, mode, perm);
 }
 
-Dir*
-cdDirstat(char *dir, char *file)
+int
+cdDirstat(char *dir, char *file, Dir *d)
 {
 	if(myChdir(dir) < 0)
-		return nil;
-	return dirstat(file);
-}
-
-int
-cdExists(char *dir, char *file)
-{
-	Dir *d;
-
-	d = cdDirstat(dir, file);
-	if(d == nil)
-		return 0;
-	free(d);
-	return 1;
+		return -1;
+	return dirstat(file, d);
 }
 
 int
@@ -234,7 +221,7 @@ createBox(char *mbox, int dir)
 			if(access(mbox, AEXIST) < 0){
 				if(fd >= 0)
 					close(fd);
-				fd = cdCreate(mboxDir, mbox, OREAD, DMDIR|0775);
+				fd = cdCreate(mboxDir, mbox, OREAD, CHDIR|0775);
 				if(fd < 0)
 					return -1;
 			}
@@ -242,7 +229,7 @@ createBox(char *mbox, int dir)
 		}
 	}
 	if(dir)
-		fd = cdCreate(mboxDir, mbox, OREAD, DMDIR|0775);
+		fd = cdCreate(mboxDir, mbox, OREAD, CHDIR|0775);
 	else
 		fd = cdCreate(mboxDir, mbox, OWRITE, 0664);
 	return fd;
@@ -258,26 +245,29 @@ createBox(char *mbox, int dir)
 int
 moveBox(char *from, char *to)
 {
-	Dir *d;
+	Dir d;
 	char *fd, *fe, *td, *te, *fimp;
 
 	splitr(from, '/', &fd, &fe);
 	splitr(to, '/', &td, &te);
+	if(strlen(te) >= NAMELEN)
+		return 0;
 
 	/*
 	 * in the same directory: try rename
 	 */
-	d = cdDirstat(mboxDir, from);
-	if(d == nil)
+	if(cdDirstat(mboxDir, from, &d) < 0)
 		return 0;
 	if(strcmp(fd, td) == 0){
-		nulldir(d);
-		d->name = te;
-		if(cdDirwstat(mboxDir, from, d) >= 0){
+		strncpy(d.name, te, NAMELEN);
+		d.name[NAMELEN-1] = '\0';
+		if(cdDirwstat(mboxDir, from, &d) >= 0){
 			fimp = impName(from);
-			d->name = impName(te);
-			cdDirwstat(mboxDir, fimp, d);
-			free(d);
+			if(cdDirstat(mboxDir, fimp, &d) >= 0){
+				strncpy(d.name, impName(te), NAMELEN);
+				d.name[NAMELEN-1] = '\0';
+				cdDirwstat(mboxDir, fimp, &d);
+			}
 			return 1;
 		}
 	}
@@ -285,9 +275,8 @@ moveBox(char *from, char *to)
 	/*
 	 * directory copy is too hard for now
 	 */
-	if(d->mode & DMDIR)
+	if(d.mode & CHDIR)
 		return 0;
-	free(d);
 
 	return copyBox(from, to, 1);
 }
@@ -358,7 +347,7 @@ copyBox(char *from, char *to, int doremove)
 static int
 copyData(int ffd, int tfd, MbLock *ml)
 {
-	Dir *fd, td;
+	Dir fd, td;
 	char buf[BufSize];
 	int n;
 
@@ -373,13 +362,10 @@ copyData(int ffd, int tfd, MbLock *ml)
 			return 0;
 		mbLockRefresh(ml);
 	}
-	fd = dirfstat(ffd);
-	if(fd != nil){
-		nulldir(&td);
-		td.mode = fd->mode;
+	if(dirfstat(ffd, &fd) >= 0 && dirfstat(tfd, &td) >= 0){
+		td.mode = fd.mode;
 		if(dirfwstat(tfd, &td) >= 0){
-			nulldir(&td);
-			td.gid = fd->gid;
+			strncpy(td.gid, fd.gid, NAMELEN);
 			dirfwstat(tfd, &td);
 		}
 	}

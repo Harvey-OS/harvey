@@ -34,7 +34,6 @@ static	int	uconv(Op*);
 static	int	xconv(Op*);
 static	int	Xconv(Op*);
 static	int	percent(Op*);
-static	int	pconv(Op*);
 
 static
 int	(*fmtconv[MAXCON])(Op*) =
@@ -42,7 +41,7 @@ int	(*fmtconv[MAXCON])(Op*) =
 	noconv,
 	cconv, dconv, hconv, lconv,
 	oconv, sconv, uconv, xconv,
-	Xconv, percent, pconv,
+	Xconv, percent,
 };
 static
 char	fmtindex[128] =
@@ -57,10 +56,9 @@ char	fmtindex[128] =
 	['x'] 8,
 	['X'] 9,
 	['%'] 10,
-	['p'] 11,
 };
 
-static	int	convcount  = { 12 };
+static	int	convcount  = { 11 };
 static	int	ucase;
 
 static void
@@ -311,13 +309,6 @@ uconv(Op*)
 static	int
 xconv(Op *op)
 {
-	return numbconv(op, 16);
-}
-
-static	int
-pconv(Op *op)
-{
-	op->f3 |= FLONG|FUNSIGN;
 	return numbconv(op, 16);
 }
 

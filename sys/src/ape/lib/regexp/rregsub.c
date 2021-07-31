@@ -6,14 +6,12 @@
 extern	void
 rregsub(wchar_t *sp,	/* source string */
 	wchar_t *dp,	/* destination string */
-	int dlen,
 	Resub *mp,	/* subexpression elements */
 	int ms)		/* number of elements pointed to by mp */
 {
-	wchar_t *ssp, *ep;
+	wchar_t *ssp;
 	int i;
 
-	ep = dp+(dlen/sizeof(wchar_t))-1;
 	while(*sp != '\0'){
 		if(*sp == '\\'){
 			switch(*++sp){
@@ -32,19 +30,16 @@ rregsub(wchar_t *sp,	/* source string */
 					for(ssp = mp[i].s.rsp;
 					     ssp < mp[i].e.rep;
 					     ssp++)
-						if(dp < ep)
-							*dp++ = *ssp;
+						*dp++ = *ssp;
 				break;
 			case '\\':
-				if(dp < ep)
-					*dp++ = '\\';
+				*dp++ = '\\';
 				break;
 			case '\0':
 				sp--;
 				break;
 			default:
-				if(dp < ep)
-					*dp++ = *sp;
+				*dp++ = *sp;
 				break;
 			}
 		}else if(*sp == '&'){				
@@ -52,12 +47,9 @@ rregsub(wchar_t *sp,	/* source string */
 			if(mp[0].s.rsp != 0)
 				for(ssp = mp[0].s.rsp;
 				     ssp < mp[0].e.rep; ssp++)
-					if(dp < ep)
-						*dp++ = *ssp;
-		}else{
-			if(dp < ep)
-				*dp++ = *sp;
-		}
+					*dp++ = *ssp;
+		}else
+			*dp++ = *sp;
 		sp++;
 	}
 	*dp = '\0';

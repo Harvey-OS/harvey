@@ -5,28 +5,26 @@
 /*
  * mem routines
  */
-extern	void*	memccpy(void*, void*, int, ulong);
-extern	void*	memset(void*, int, ulong);
-extern	int	memcmp(void*, void*, ulong);
-extern	void*	memmove(void*, void*, ulong);
-extern	void*	memchr(void*, int, ulong);
+extern	void	*memccpy(void*, void*, int, long);
+extern	void	*memset(void*, int, long);
+extern	int	memcmp(void*, void*, long);
+extern	void	*memmove(void*, void*, long);
+extern	void	*memchr(void*, int, long);
 
 /*
  * string routines
  */
-extern	char*	strcat(char*, char*);
-extern	char*	strchr(char*, char);
-extern	char*	strrchr(char*, char);
+extern	char	*strcat(char*, char*);
+extern	char	*strchr(char*, char);
+extern	char	*strrchr(char*, char);
 extern	int	strcmp(char*, char*);
-extern	char*	strcpy(char*, char*);
-extern	char*	strecpy(char*, char*, char*);
-extern	char*	strncat(char*, char*, long);
-extern	char*	strncpy(char*, char*, long);
+extern	char	*strcpy(char*, char*);
+extern	char	*strncat(char*, char*, long);
+extern	char	*strncpy(char*, char*, long);
 extern	int	strncmp(char*, char*, long);
 extern	long	strlen(char*);
 extern	char*	strstr(char*, char*);
 extern	int	atoi(char*);
-extern	int	fullrune(char*, int);
 
 enum
 {
@@ -50,46 +48,30 @@ extern	int	abs(int);
 /*
  * print routines
  */
-typedef struct Fmt	Fmt;
-typedef int (*Fmts)(Fmt*);
-struct Fmt{
-	uchar	runes;			/* output buffer is runes or chars? */
-	void	*start;			/* of buffer */
-	void	*to;			/* current place in the buffer */
-	void	*stop;			/* end of the buffer; overwritten if flush fails */
-	int	(*flush)(Fmt *);	/* called when to == stop */
-	void	*farg;			/* to make flush a closure */
-	int	nfmt;			/* num chars formatted so far */
-	va_list	args;			/* args passed to dofmt */
-	int	r;			/* % format Rune */
-	int	width;
-	int	prec;
-	ulong	flags;
-};
-extern	int	print(char*, ...);
-extern	char*	seprint(char*, char*, char*, ...);
-extern	char*	vseprint(char*, char*, char*, va_list);
-extern	int	snprint(char*, int, char*, ...);
-extern	int	vsnprint(char*, int, char*, va_list);
+typedef
+struct
+{
+	char*	out;		/* pointer to next output */
+	char*	eout;		/* pointer to end */
+	int	f1;
+	int	f2;
+	int	f3;
+	int	chr;
+} Fconv;
+extern	void	strconv(char*, Fconv*);
+extern	int	numbconv(va_list*, Fconv*);
+extern	char	*doprint(char*, char*, char*, va_list);
+extern	int	fmtinstall(int, int (*)(va_list*, Fconv*));
 extern	int	sprint(char*, char*, ...);
-
-extern	int	fmtinstall(int, int (*)(Fmt*));
-extern	int	quotefmtinstall(void);
-extern	int	fmtprint(Fmt*, char*, ...);
-extern	int	fmtstrcpy(Fmt*, char*);
-
-#pragma	varargck	argpos	fmtprint	2
-#pragma	varargck	argpos	print		1
-#pragma	varargck	argpos	seprint		3
-#pragma	varargck	argpos	snprint		3
-#pragma	varargck	argpos	sprint		2
+extern	char*	seprint(char*, char*, char*, ...);
+extern	int	snprint(char*, int, char*, ...);
+extern	int	print(char*, ...);
 
 /*
  * one-of-a-kind
  */
 extern	char*	cleanname(char*);
 extern	ulong	getcallerpc(void*);
-
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
 extern	vlong	strtoll(char*, char**, int);
@@ -98,8 +80,6 @@ extern	char	etext[];
 extern	char	edata[];
 extern	char	end[];
 extern	int	getfields(char*, char**, int, int, char*);
-extern	int	tokenize(char*, char**, int);
-extern	int	dec64(uchar*, int, char*, int);
 
 /*
  * Syscall data structures
@@ -110,7 +90,7 @@ extern	int	dec64(uchar*, int, char*, int);
 #define	MAFTER	0x0002	/* mount goes after others in union directory */
 #define	MCREATE	0x0004	/* permit creation in mounted directory */
 #define	MCACHE	0x0010	/* cache some data */
-#define	MMASK	0x0017	/* all bits on */
+#define	MMASK	0x001F	/* all bits on */
 
 #define	OREAD	0	/* open for read */
 #define	OWRITE	1	/* write */
@@ -119,7 +99,6 @@ extern	int	dec64(uchar*, int, char*, int);
 #define	OTRUNC	16	/* or'ed in (except for exec), truncate file first */
 #define	OCEXEC	32	/* or'ed in, close on exec */
 #define	ORCLOSE	64	/* or'ed in, remove on close */
-#define OEXCL   0x1000	/* or'ed in, exclusive create */
 
 #define	NCONT	0	/* continue after note */
 #define	NDFLT	1	/* terminate after note */
@@ -128,62 +107,35 @@ extern	int	dec64(uchar*, int, char*, int);
 
 typedef struct Qid	Qid;
 typedef struct Dir	Dir;
-typedef struct OWaitmsg	OWaitmsg;
 typedef struct Waitmsg	Waitmsg;
 
-#define	ERRMAX			128	/* max length of error string */
-#define	KNAMELEN		28	/* max length of name held in kernel */
-
-/* bits in Qid.type */
-#define QTDIR		0x80		/* type bit for directories */
-#define QTAPPEND	0x40		/* type bit for append only files */
-#define QTEXCL		0x20		/* type bit for exclusive use files */
-#define QTMOUNT		0x10		/* type bit for mounted channel */
-#define QTAUTH		0x08		/* type bit for authentication file */
-#define QTFILE		0x00		/* plain file */
-
-/* bits in Dir.mode */
-#define DMDIR		0x80000000	/* mode bit for directories */
-#define DMAPPEND	0x40000000	/* mode bit for append only files */
-#define DMEXCL		0x20000000	/* mode bit for exclusive use files */
-#define DMMOUNT		0x10000000	/* mode bit for mounted channel */
-#define DMREAD		0x4		/* mode bit for read permission */
-#define DMWRITE		0x2		/* mode bit for write permission */
-#define DMEXEC		0x1		/* mode bit for execute permission */
+#define	ERRLEN		64
+#define	DIRLEN		116
+#define	NAMELEN		28
 
 struct Qid
 {
-	vlong	path;
+	ulong	path;
 	ulong	vers;
-	uchar	type;
 };
 
-struct Dir {
-	/* system-modified data */
-	ushort	type;	/* server type */
-	uint	dev;	/* server subtype */
-	/* file data */
-	Qid	qid;	/* unique id from server */
-	ulong	mode;	/* permissions */
-	ulong	atime;	/* last read time */
-	ulong	mtime;	/* last write time */
-	vlong	length;	/* file length: see <u.h> */
-	char	*name;	/* last element of path */
-	char	*uid;	/* owner name */
-	char	*gid;	/* group name */
-	char	*muid;	/* last modifier name */
-};
-
-struct OWaitmsg
+struct Dir
 {
-	char	pid[12];	/* of loved one */
-	char	time[3*12];	/* of loved one and descendants */
-	char	msg[64];	/* compatibility BUG */
+	char	name[NAMELEN];
+	char	uid[NAMELEN];
+	char	gid[NAMELEN];
+	Qid	qid;
+	ulong	mode;
+	long	atime;
+	long	mtime;
+	vlong	length;
+	short	type;
+	short	dev;
 };
 
 struct Waitmsg
 {
-	int	pid;	/* of loved one */
-	ulong	time[3];	/* of loved one and descendants */
-	char	msg[ERRMAX];	/* actually variable-size in user mode */
+	char	pid[12];	/* of loved one */
+	char	time[3*12];	/* of loved one and descendants */
+	char	msg[ERRLEN];
 };

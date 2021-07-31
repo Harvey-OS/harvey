@@ -46,12 +46,10 @@ struct message {
 	int	size;
 	int	fd;		/* if >= 0, the file the message is stored in*/
 	char	haveto;
-	String	*havefrom;
-	String	*havesender;
-	String	*havereplyto;
+	char	havefrom;
 	char	havedate;
 	char	havemime;
-	String	*havesubject;
+	char	havesubject;
 	char	bulk;		/* if Precedence: Bulk in header */
 	char	rfc822headers;
 	int	received;	/* number of received lines */
@@ -74,7 +72,6 @@ extern int nosummary;
  *  exported procedures
  */
 extern void	authorize(dest*);
-extern int	cat_mail(dest*, message*);
 extern dest	*up_bind(dest*, message*, int);
 extern int	ok_to_forward(char*);
 extern int	lookup(char*, char*, Biobuf**, char*, Biobuf**);
@@ -105,4 +102,3 @@ extern void	dumprules(void);
 extern void	regerror(char*);
 extern dest	*translate(dest*);
 extern char*	skipequiv(char*);
-extern int	refuse(dest*, message*, char*, int, int);

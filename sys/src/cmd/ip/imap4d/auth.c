@@ -28,7 +28,7 @@ enableForwarding(void)
 	fd = open("/srv/ratify", ORDWR);
 	if(fd < 0)
 		return;
-	if(!mount(fd, -1, "/mail/ratify", MBEFORE, "")){
+	if(!mount(fd, "/mail/ratify", MBEFORE, "")){
 		close(fd);
 		return;
 	}
@@ -55,19 +55,10 @@ enableForwarding(void)
 }
 
 void
-setupuser(AuthInfo *ai)
+setupuser(void)
 {
-	Waitmsg *w;
+	Waitmsg w;
 	int pid;
-
-	if(ai){
-		strecpy(username, username+sizeof username, ai->cuid);
-
-		if(auth_chuid(ai, nil) < 0)
-			bye("user auth failed: %r");
-		auth_freeAI(ai);
-	}else
-		strecpy(username, username+sizeof username, getuser());
 
 	if(newns(username, 0) < 0)
 		bye("user login failed: %r");
@@ -77,7 +68,7 @@ setupuser(AuthInfo *ai)
 	 */
 	enableForwarding();
 
-	snprint(mboxDir, MboxNameLen, "/mail/box/%s", username);
+	snprint(mboxDir, 3 * NAMELEN, "/mail/box/%s", username);
 	if(myChdir(mboxDir) < 0)
 		bye("can't open user's mailbox");
 
@@ -87,15 +78,31 @@ setupuser(AuthInfo *ai)
 		break;
 	case 0:
 		execl("/bin/upas/fs", "upas/fs", "-np", nil);
-_exits("rob1");
 		_exits(0);
 		break;
 	default:
 		break;
 	}
-	if((w=wait()) == nil || w->pid != pid || w->msg[0] != '\0')
+	if(wait(&w) != pid || w.msg[0] != '\0')
 		bye("can't initialize mail system");
-	free(w);
+}
+
+void
+initchal(Chalstate *ch)
+{
+	ch->afd = -1;
+	ch->asfd = -1;
+}
+
+void
+closechal(Chalstate *ch)
+{
+	if(ch->afd >= 0)
+		close(ch->afd);
+	if(ch->asfd >= 0)
+		close(ch->asfd);
+	ch->afd = -1;
+	ch->asfd = -1;
 }
 
 static char*
@@ -127,17 +134,16 @@ authresp(void)
 char*
 cramauth(void)
 {
-	AuthInfo *ai;
-	Chalstate *cs;
+	Cramchalstate acs;
 	char *s, *t;
 	int n;
 
-	if((cs = auth_challenge("proto=cram role=server")) == nil)
+	if(cramchal(&acs) < 0)
 		return "couldn't get cram challenge";
 
-	n = cs->nchal;
+	n = strlen(acs.chal);
 	s = binalloc(&parseBin, n * 2, 0);
-	n = enc64(s, n * 2, (uchar*)cs->chal, n);
+	n = enc64(s, n * 2, (uchar*)acs.chal, n);
 	Bprint(&bout, "+ ");
 	Bwrite(&bout, s, n);
 	Bprint(&bout, "\r\n");
@@ -152,41 +158,75 @@ cramauth(void)
 	if(t == nil)
 		bye("bad auth response");
 	*t++ = '\0';
-	strncpy(username, s, UserNameLen);
-	username[UserNameLen-1] = '\0';
+	strncpy(username, s, NAMELEN);
+	username[NAMELEN-1] = '\0';
 
-	cs->user = username;
-	cs->resp = t;
-	cs->nresp = strlen(t);
-	if((ai = auth_response(cs)) == nil)
+	if(cramreply(&acs, username, t) < 0)
 		return "login failed";
-	auth_freechal(cs);
-	setupuser(ai);
+
+	setupuser();
+
 	return nil;
 }
 
-AuthInfo*
-passLogin(char *user, char *secret)
+static char*
+cramLogin(char *user, char *secret)
 {
-	AuthInfo *ai;
-	Chalstate *cs;
+	Cramchalstate acs;
 	uchar digest[MD5dlen];
 	char response[2*MD5dlen+1];
 	int i;
 
-	if((cs = auth_challenge("proto=cram role=server")) == nil)
-		return nil;
+	if(cramchal(&acs) < 0)
+		return "couldn't get cram challenge";
 
-	hmac_md5((uchar*)cs->chal, strlen(cs->chal),
+	hmac_md5((uchar*)acs.chal, strlen(acs.chal),
 		(uchar*)secret, strlen(secret), digest,
 		nil);
 	for(i = 0; i < MD5dlen; i++)
 		snprint(response + 2*i, sizeof(response) - 2*i, "%2.2ux", digest[i]);
 
-	cs->user = user;
-	cs->resp = response;
-	cs->nresp = strlen(response);
-	ai = auth_response(cs);
-	auth_freechal(cs);
-	return ai;
+	if(cramreply(&acs, user, response) < 0)
+		return "login failed";
+
+	return nil;
+}
+
+int
+passCheck(char *user, char *pass)
+{
+	return cramLogin(user, pass) == nil;
+}
+
+
+#define USER		"VXNlcg=="
+#define PASSWORD	"UGFzc3dvcmQ="
+
+char*
+loginauth(void)
+{
+	Chalstate ch;
+	char *s, *u;
+
+	Bprint(&bout, "+ %s\r\n", USER);
+	if(Bflush(&bout) < 0)
+		writeErr();
+
+	u = authresp();
+	if(u == nil || getchal(&ch, u) < 0)
+		return "login failed";
+	Bprint(&bout, "* ok [ALERT] encrypt challenge, %s, as a password\r\n", ch.chal);
+	Bprint(&bout, "+ %s\r\n", PASSWORD);
+	if(Bflush(&bout) < 0)
+		writeErr();
+
+	s = authresp();
+	if(s == nil || chalreply(&ch, s) < 0)
+		return "login failed";
+
+	strncpy(username, u, NAMELEN);
+	username[NAMELEN-1] = '\0';
+
+	setupuser();
+	return nil;
 }

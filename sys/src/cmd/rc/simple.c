@@ -19,12 +19,11 @@ void Xsimple(void){
 	thread *p=runq;
 	var *v;
 	struct builtin *bp;
-	int pid, n;
-	char buf[ERRMAX];
+	int pid;
 	globlist();
 	a=runq->argv->words;
 	if(a==0){
-		Xerror1("empty argument list");
+		Xerror("empty argument list");
 		return;
 	}
 	if(flag['x'])
@@ -56,7 +55,7 @@ void Xsimple(void){
 		}
 		else{
 			flush(err);
-			Updenv();	/* necessary so changes don't go out again */
+			Updenv();
 			switch(pid=fork()){
 			case -1:
 				Xerror("try again");
@@ -64,10 +63,7 @@ void Xsimple(void){
 			case 0:
 				pushword("exec");
 				execexec();
-				strcpy(buf, "can't exec: ");
-				n = strlen(buf);
-				errstr(buf+n, ERRMAX-n);
-				Exit(buf);
+				Exit("can't exec");
 			default:
 				poplist();
 				/* interrupts don't get us out */
@@ -107,7 +103,7 @@ word *searchpath(char *w){
 void execexec(void){
 	popword();	/* "exec" */
 	if(runq->argv->words==0){
-		Xerror1("empty argument list");
+		Xerror("empty argument list");
 		return;
 	}
 	doredir(runq->redir);
@@ -162,7 +158,7 @@ void execcd(void){
 				break;
 			}
 		}
-		if(cdpath==0) pfmt(err, "Can't cd %s: %r\n", a->next->word);
+		if(cdpath==0) pfmt(err, "Can't cd %s\n", a->next->word);
 		break;
 	case 1:
 		a=vlook("home")->val;
@@ -170,7 +166,7 @@ void execcd(void){
 			if(dochdir(a->word)>=0)
 				setstatus("");
 			else
-				pfmt(err, "Can't cd %s: %r\n", a->word);
+				pfmt(err, "Can't cd %s\n", a->word);
 		}
 		else
 			pfmt(err, "Can't cd -- $home empty\n");
@@ -251,7 +247,7 @@ void execeval(void){
 	int len=0;
 	word *ap;
 	if(count(runq->argv->words)<=1){
-		Xerror1("Usage: eval cmd ...");
+		Xerror("Usage: eval cmd ...");
 		return;
 	}
 	eflagok=1;
@@ -303,7 +299,7 @@ void execdot(void){
 	}
 	/* get input file */
 	if(p->argv->words==0){
-		Xerror1("Usage: . [-i] file [arg ...]");
+		Xerror("Usage: . [-i] file [arg ...]");
 		return;
 	}
 	zero=strdup(p->argv->words->word);
@@ -364,7 +360,7 @@ void execflag(void){
 			}
 		}
 	default:
-		Xerror1("Usage: flag [letter] [+-]");
+		Xerror("Usage: flag [letter] [+-]");
 		return;
 	}
 	poplist();
@@ -378,7 +374,7 @@ void execwhatis(void){	/* mildly wrong -- should fork before writing */
 	int found, sep;
 	a=runq->argv->words->next;
 	if(a==0){
-		Xerror1("Usage: whatis name ...");
+		Xerror("Usage: whatis name ...");
 		return;
 	}
 	setstatus("");
@@ -434,7 +430,7 @@ void execwhatis(void){	/* mildly wrong -- should fork before writing */
 }
 void execwait(void){
 	switch(count(runq->argv->words)){
-	default: Xerror1("Usage: wait [pid]"); return;
+	default: Xerror("Usage: wait [pid]"); return;
 	case 2: Waitfor(atoi(runq->argv->words->next->word), 0); break;
 	case 1: Waitfor(-1, 0); break;
 	}

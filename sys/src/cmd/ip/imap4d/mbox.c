@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
 #include "imap4d.h"
 
 static NamedInt	flagChars[NFlags] =
@@ -17,7 +16,7 @@ static NamedInt	flagChars[NFlags] =
 static	int	fsCtl = -1;
 
 static	void	boxFlags(Box *box);
-static	int	createImp(Box *box, Qid *qid);
+static	int	createImp(Box *box, Dir *d);
 static	void	fsInit(void);
 static	void	mboxGone(Box *box);
 static	MbLock	*openImp(Box *box, int new);
@@ -82,10 +81,10 @@ openBox(char *name, char *fsname, int writable)
 	fsInit();
 	if(fprint(fsCtl, "open /mail/box/%s/%s %s", username, name, fsname) < 0){
 //ZZZ
-char err[ERRMAX];
-errstr(err, sizeof err);
-if(strstr(err, "file does not exist") == nil)
-	fprint(2, "imap4d at %lud: upas/fs open %s/%s as %s failed: '%s' %s\n", time(nil), username, name, fsname, err, ctime(time(nil)));
+char err[ERRLEN];
+errstr(err);
+if(strstr(err, "file does not exist") != nil)
+	fprint(2, "upas/fs open %s/%s as %s failed: '%s' '%r' %s", username, name, fsname, err, ctime(time(nil)));
 		fprint(fsCtl, "close %s", fsname);
 		return nil;
 	}
@@ -137,7 +136,7 @@ MbLock*
 checkBox(Box *box, int imped)
 {
 	MbLock *ml;
-	Dir *d;
+	Dir d;
 	int new;
 
 	if(box == nil)
@@ -146,21 +145,17 @@ checkBox(Box *box, int imped)
 	/*
 	 * if stat fails, mailbox must be gone
 	 */
-	d = cdDirstat(box->fsDir, ".");
-	if(d == nil){
+	if(cdDirstat(box->fsDir, ".", &d) < 0){
 		mboxGone(box);
 		return nil;
 	}
 	new = 0;
-	if(box->qid.path != d->qid.path || box->qid.vers != d->qid.vers
-	|| box->mtime != d->mtime){
+	if(box->qid.path != d.qid.path || box->qid.vers != d.qid.vers
+	|| box->mtime != d.mtime){
 		new = readBox(box);
-		if(new < 0){
-			free(d);
+		if(new < 0)
 			return nil;
-		}
 	}
-	free(d);
 	ml = openImp(box, new);
 	if(ml == nil)
 		box->writable = 0;
@@ -179,8 +174,9 @@ static void
 mboxGone(Box *box)
 {
 	Msg *m;
+	Dir d;
 
-	if(cdExists(mboxDir, box->name) < 0)
+	if(cdDirstat(mboxDir, box->name, &d) < 0)
 		cdRemove(mboxDir, box->imp);
 	for(m = box->msgs; m != nil; m = m->next)
 		m->expunged = 1;
@@ -196,15 +192,15 @@ static int
 readBox(Box *box)
 {
 	Msg *msgs, *m, *last;
-	Dir *d;
+	Dir d[NDirs];
 	char *s;
 	long max, id;
-	int i, nd, fd, new;
+	int i, nd, fd, ns, new;
 
 	fd = cdOpen(box->fsDir, ".", OREAD);
 	if(fd < 0){
 //ZZZ
-fprint(2, "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil), username, box->name, box->fsDir);
+fprint(2, "upas/fs stat of %s/%s aka %s failed: %r\n", username, box->name, box->fsDir);
 		mboxGone(box);
 		return -1;
 	}
@@ -213,8 +209,7 @@ fprint(2, "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil)
 	 * read box to find all messages
 	 * each one has a directory, and is in numerical order
 	 */
-	d = dirfstat(fd);
-	if(d == nil){
+	if(dirfstat(fd, d) < 0){
 		close(fd);
 		return -1;
 	}
@@ -224,13 +219,13 @@ fprint(2, "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil)
 	msgs = box->msgs;
 	max = 0;
 	new = 0;
-	free(d);
-	while((nd = dirread(fd, &d)) > 0){
+	while((nd = dirread(fd, d, sizeof(Dir) * NDirs)) >= sizeof(Dir)){
+		nd /= sizeof(Dir);
 		for(i = 0; i < nd; i++){
 			s = d[i].name;
 			id = strtol(s, &s, 10);
 			if(id <= max || *s != '\0'
-			|| (d[i].mode & DMDIR) != DMDIR)
+			|| (d[i].mode & CHDIR) != CHDIR)
 				continue;
 
 			max = id;
@@ -246,9 +241,10 @@ fprint(2, "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil)
 			new = 1;
 			m = MKZ(Msg);
 			m->id = id;
+			ns = 3*(NAMELEN+1);
 			m->fsDir = box->fsDir;
-			m->fs = emalloc(2 * (MsgNameLen + 1));
-			m->efs = seprint(m->fs, m->fs + (MsgNameLen + 1), "%lud/", id);
+			m->fs = emalloc(ns);
+			m->efs = seprint(m->fs, m->fs + ns, "%lud/", id);
 			m->size = ~0UL;
 			m->lines = ~0UL;
 			m->prev = last;
@@ -264,7 +260,6 @@ fprint(2, "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil)
 			}
 	continueDir:;
 		}
-		free(d);
 	}
 	close(fd);
 	for(; msgs != nil; msgs = msgs->next)
@@ -293,7 +288,7 @@ fprint(2, "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil)
 static MbLock*
 openImp(Box *box, int new)
 {
-	Qid qid;
+	Dir d;
 	Biobuf b;
 	MbLock *ml;
 	int fd;
@@ -306,23 +301,23 @@ openImp(Box *box, int new)
 	fd = cdOpen(mboxDir, box->imp, OREAD);
 	once = 0;
 ZZZhack:
-	if(fd < 0 || fqid(fd, &qid) < 0){
+	if(fd < 0 || dirfstat(fd, &d) < 0){
 		if(fd < 0){
-			char buf[ERRMAX];
+			char buf[ERRLEN];
 
-			errstr(buf, sizeof buf);
+			errstr(buf);
 			if(cistrstr(buf, "does not exist") == nil)
-				fprint(2, "imap4d at %lud: imp open failed: %s\n", time(nil), buf);
+				fprint(2, "imp open failed: %s\n", buf);
 			if(!once && cistrstr(buf, "locked") != nil){
 				once = 1;
-				fprint(2, "imap4d at %lud: imp %s/%s %s locked when it shouldn't be; spinning\n", time(nil), username, box->name, box->imp);
+				fprint(2, "imp %s/%s %s locked when it shouldn't be; spinning\n", username, box->name, box->imp);
 				fd = openLocked(mboxDir, box->imp, OREAD);
 				goto ZZZhack;
 			}
 		}
 		if(fd >= 0)
 			close(fd);
-		fd = createImp(box, &qid);
+		fd = createImp(box, &d);
 		if(fd < 0){
 			mbUnlock(ml);
 			return nil;
@@ -330,9 +325,9 @@ ZZZhack:
 		box->dirtyImp = 1;
 		if(box->uidvalidity == 0)
 			box->uidvalidity = box->mtime;
-		box->impQid = qid;
+		box->impQid = d.qid;
 		new = 1;
-	}else if(qid.path != box->impQid.path || qid.vers != box->impQid.vers){
+	}else if(d.qid.path != box->impQid.path || d.qid.vers != box->impQid.vers){
 		Binit(&b, fd, OREAD);
 		if(!parseImp(&b, box)){
 			box->dirtyImp = 1;
@@ -340,7 +335,7 @@ ZZZhack:
 				box->uidvalidity = box->mtime;
 		}
 		Bterm(&b);
-		box->impQid = qid;
+		box->impQid = d.qid;
 		new = 1;
 	}
 	if(new)
@@ -356,7 +351,7 @@ void
 closeImp(Box *box, MbLock *ml)
 {
 	Msg *m;
-	Qid qid;
+	Dir d;
 	Biobuf b;
 	char buf[NFlags+1];
 	int fd;
@@ -386,8 +381,8 @@ closeImp(Box *box, MbLock *ml)
 	}
 	Bterm(&b);
 
-	if(fqid(fd, &qid) >= 0)
-		box->impQid = qid;
+	if(dirfstat(fd, &d) >= 0)
+		box->impQid = d.qid;
 	close(fd);
 	mbUnlock(ml);
 }
@@ -410,24 +405,20 @@ wrImpFlags(char *buf, int flags, int killRecent)
 int
 emptyImp(char *mbox)
 {
-	Dir *d;
-	long mode;
+	Dir bd, d;
 	int fd;
 
 	fd = cdCreate(mboxDir, impName(mbox), OWRITE, 0664);
 	if(fd < 0)
 		return -1;
-	d = cdDirstat(mboxDir, mbox);
-	if(d == nil){
+	if(cdDirstat(mboxDir, mbox, &bd) < 0 || dirfstat(fd, &d) < 0){
 		close(fd);
 		return -1;
 	}
-	fprint(fd, "%s%.*lud %.*lud\n", IMPMAGIC, NUid, d->mtime, NUid, 1UL);
-	mode = d->mode & 0777;
-	nulldir(d);
-	d->mode = mode;
-	dirfwstat(fd, d);
-	free(d);
+	d.mode = bd.mode & 0777;
+	dirfwstat(fd, &d);
+	fprint(fd, "%s%.*lud %.*lud\n", IMPMAGIC, NUid, bd.mtime, NUid, 1UL);
+	
 	return fd;
 }
 
@@ -435,24 +426,19 @@ emptyImp(char *mbox)
  * try to match permissions with mbox
  */
 static int
-createImp(Box *box, Qid *qid)
+createImp(Box *box, Dir *d)
 {
-	Dir *d;
-	long mode;
+	Dir bd;
 	int fd;
 
 	fd = cdCreate(mboxDir, box->imp, OREAD, 0664);
 	if(fd < 0)
 		return -1;
-	d = cdDirstat(mboxDir, box->name);
-	if(d != nil){
-		mode = d->mode & 0777;
-		nulldir(d);
-		d->mode = mode;
+	if(cdDirstat(mboxDir, box->name, &bd) >= 0 && dirfstat(fd, d) >= 0){
+		d->mode = bd.mode & 0777;
 		dirfwstat(fd, d);
-		free(d);
 	}
-	if(fqid(fd, qid) < 0){
+	if(dirfstat(fd, d) < 0){
 		close(fd);
 		return -1;
 	}
@@ -795,14 +781,13 @@ okMbox(char *path)
 		name = path;
 	else
 		name++;
-	if(strlen(name) + STRLEN(".imp") >= MboxNameLen)
+	if(strlen(name) + STRLEN(".imp") >= NAMELEN)
 		return 0;
 	for(i = 0; stoplist[i]; i++)
 		if(strcmp(name, stoplist[i]) == 0)
 			return 0;
 	if(isprefix("L.", name) || isprefix("imap-tmp.", name)
 	|| issuffix(".imp", name)
-	|| strcmp("imap.subscribed", name) == 0
 	|| isdotdot(name) || name[0] == '/')
 		return 0;
 

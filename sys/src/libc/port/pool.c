@@ -54,7 +54,6 @@ struct Bhdr {
 };
 enum {
 	NOT_MAGIC = 0xdeadfa11,
-	DEAD_MAGIC = 0xdeaddead,
 };
 #define B2NB(b) ((Bhdr*)((uchar*)(b)+(b)->size))
 
@@ -181,46 +180,16 @@ static Free*	treelookupgt(Free*, ulong);
  */
 
 /* the if(!x);else avoids ``dangling else'' problems */
-#define antagonism	if(!(p->flags & POOL_ANTAGONISM)){}else
-#define paranoia	if(!(p->flags & POOL_PARANOIA)){}else
-#define verbosity	if(!(p->flags & POOL_VERBOSITY)){}else
+#define antagonism	if(!(p->flags & POOL_ANTAGONISM));else
+#define paranoia	if(!(p->flags & POOL_PARANOIA));else
+#define verbosity	if(!(p->flags & POOL_VERBOSITY));else
 
-#define DPRINT	if(!(p->flags & POOL_DEBUGGING)){}else p->print
-#define LOG		if(!(p->flags & POOL_LOGGING)){}else p->print
+#define DPRINT	if(!(p->flags & POOL_DEBUGGING));else p->print
+#define LOG		if(!(p->flags & POOL_LOGGING));else p->print
 
 /*
  * Tree walking
  */
-
-static void
-checklist(Free *t)
-{
-	Free *q;
-
-	for(q=t->next; q!=t; q=q->next){
-		assert(q->size == t->size);
-		assert(q->next==nil || q->next->prev==q);
-		assert(q->prev==nil || q->prev->next==q);
-	//	assert(q->left==nil);
-	//	assert(q->right==nil);
-		assert(q->magic==FREE_MAGIC);
-	}
-}
-
-static void
-checktree(Free *t, int a, int b)
-{
-	assert(t->next==nil || t->next->prev==t);
-	assert(t->prev==nil || t->prev->next==t);
-	assert(t->magic==FREE_MAGIC);
-	assert(a < t->size && t->size < b);
-	checklist(t);
-	if(t->left)
-		checktree(t->left, a, t->size);
-	if(t->right)
-		checktree(t->right, t->size, b);
-	
-}
 
 /* ltreewalk: return address of pointer to node of size == size */
 static Free**
@@ -328,7 +297,7 @@ treelookupgt(Free *t, ulong size)
  * List maintenance
  */
 
-/* listadd: add a node to a doubly linked list */
+/* listadd: add a node to a doubled linked list */
 static Free*
 listadd(Free *list, Free *node)
 {
@@ -579,11 +548,9 @@ poolnewarena(Pool *p, ulong asize)
 
 	LOG(p, "newarena %lud\n", asize);
 	if(p->cursize+asize > p->maxsize) {
-		if(poolcompactl(p) == 0){
+		if(poolcompactl(p) == 0)
 			LOG(p, "pool too big: %lud+%lud > %lud\n",
 				p->cursize, asize, p->maxsize);
-			werrstr("memory pool too large");
-		}
 		return;
 	}
 
@@ -707,8 +674,8 @@ dumpblock(Pool *p, Bhdr *b)
 	if(b->size >= 1024*1024*1024)	/* tail pointer corrupt; printing tail will fault */
 		return;
 	dp = (ulong*)B2T(b);
-	p->print(p, "tail %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux | %.8lux %.8lux\n",
-		dp[-6], dp[-5], dp[-4], dp[-3], dp[-2], dp[-1], dp[0], dp[1]);
+	p->print(p, "tail %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux\n",
+		dp[-6], dp[-5], dp[-4], dp[-3], dp[-2], dp[-1]);
 
 	if(b->magic == KEMPT_MAGIC){
 		dsize = getdsize((Alloc*)b);
@@ -746,7 +713,6 @@ blockcheck(Pool *p, Bhdr *b)
 {
 	Alloc *a;
 	Btail *t;
-	int i, n;
 	uchar *q, *bq, *eq;
 	ulong dsize;
 
@@ -760,19 +726,6 @@ blockcheck(Pool *p, Bhdr *b)
 			panicblock(p, b, "corrupt tail magic");
 		if(T2HDR(t) != b)
 			panicblock(p, b, "corrupt tail ptr");
-		break;
-	case DEAD_MAGIC:
-	 	t = B2T(b);
-		if(t->magic0 != TAIL_MAGIC0 || t->magic1 != TAIL_MAGIC1)
-			panicblock(p, b, "corrupt tail magic");
-		if(T2HDR(t) != b)
-			panicblock(p, b, "corrupt tail ptr");
-		n = getdsize((Alloc*)b);
-		q = _B2D(b);
-		q += 8;
-		for(i=8; i<n; i++)
-			if(*q++ != 0xDA)
-				panicblock(p, b, "dangling pointer write");
 		break;
 	case ARENA_MAGIC:
 		b = A2TB((Arena*)b);
@@ -940,7 +893,7 @@ D2B(Pool *p, void *v)
 	Alloc *a;
 	a = _D2B(v);
 	if(a->magic != KEMPT_MAGIC)
-		p->panic(p, "D2B called on non-block %p (double-free?)", v);
+		p->panic(p, "D2B called on non-block %p", v);
 	return a;
 }
 
@@ -952,10 +905,8 @@ poolallocl(Pool *p, ulong dsize)
 	Free *fb;
 	Alloc *ab;
 
-	if(dsize < 0 || dsize >= 0x80000000UL){	/* for sanity, overflow */
-		werrstr("invalid allocation size");
+	if(dsize < 0 || dsize >= 0x80000000UL)	/* for sanity, overflow */
 		return nil;
-	}
 
 	bsize = dsize2bsize(p, dsize);
 
@@ -1063,16 +1014,6 @@ poolfreel(Pool *p, void *v)
 
 	ab = D2B(p, v);
 	blockcheck(p, ab);
-
-	if(p->flags&POOL_NOREUSE){
-		int n;
-
-		ab->magic = DEAD_MAGIC;
-		n = getdsize(ab)-8;
-		if(n > 0)
-			memset((uchar*)v+8, 0xDA, n);
-		return;	
-	}
 
 	p->nfree++;
 	p->curalloc -= ab->size;
@@ -1242,8 +1183,6 @@ poolcheckl(Pool *p)
 {
 	Arena *a;
 
-	if(p->freeroot)
-		checktree(p->freeroot, 0, 1<<30);
 	for(a=p->arenalist; a; a=a->down)
 		poolcheckarena(p, a);
 }
@@ -1313,3 +1252,4 @@ memmark(void *v, int sig, ulong size)
 	while(p<ep)
 		*p++ = sig;
 }
+

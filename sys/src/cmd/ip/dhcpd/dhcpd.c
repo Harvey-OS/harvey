@@ -30,7 +30,7 @@ struct Req
 	int	leasetime;		/* dhcp lease */
 	uchar	ip[IPaddrlen];		/* requested address */
 	uchar	server[IPaddrlen];	/* server address */
-	char	msg[ERRMAX];		/* error message */
+	char	msg[ERRLEN];		/* error message */
 	char	vci[32];		/* vendor class id */
 	char	*id;			/* client id */
 	uchar	requested[32];		/* requested params */
@@ -52,7 +52,7 @@ int	debug;
 int	nobootp;
 long	now;
 int	slow;
-char	net[256];
+char	net[2*NAMELEN];
 
 int	pptponly;	// only answer request that came from the pptp server
 int	mute;
@@ -113,10 +113,10 @@ main(int argc, char **argv)
 
 	setnetmtpt(net, sizeof(net), nil);
 
-	fmtinstall('E', eipfmt);
-	fmtinstall('I', eipfmt);
-	fmtinstall('V', eipfmt);
-	fmtinstall('M', eipfmt);
+	fmtinstall('E', eipconv);
+	fmtinstall('I', eipconv);
+	fmtinstall('V', eipconv);
+	fmtinstall('M', eipconv);
 	ARGBEGIN {
 	case 'm':
 		mute = 1;
@@ -169,6 +169,8 @@ main(int argc, char **argv)
 
 	/* what is my name? */
 	p = readsysname();
+	if(p == nil)
+		fatal(0, "dhcp cannot read system name");
 	strcpy(mysysname, p);
 
 	/* put process in background */
@@ -215,7 +217,7 @@ proto(Req *rp, int n)
 	if(pptponly && rp->bp->htype != 0)
 		return;
 
-	ipifcs = readipifc(net, ipifcs, -1);
+	ipifcs = readipifc(net, ipifcs);
 	if(validip(rp->giaddr))
 		ipmove(relip, rp->giaddr);
 	else if(validip(rp->up->raddr))
@@ -558,14 +560,14 @@ rcvinform(Req *rp)
 }
 
 int
-setsiaddr(char * attr, uchar *siaddr, uchar *ip, uchar *laddr)
+setsiaddr(uchar *siaddr, uchar *ip, uchar *laddr)
 {
 	uchar *addrs[2];
 	uchar x[2*IPaddrlen];
 
 	addrs[0] = x;
 	addrs[1] = x+IPaddrlen;
-	if(lookupserver(attr, addrs, ip) > 0){
+	if(lookupserver("tftp", addrs, ip) > 0){
 		v6tov4(siaddr, addrs[0]);
 		return 0;
 	} else {
@@ -611,7 +613,7 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	memset(bp->ciaddr, 0, sizeof(bp->ciaddr));
 	v6tov4(bp->giaddr, rp->giaddr);
 	v6tov4(bp->yiaddr, ip);
-	setsiaddr("tftp", bp->siaddr, ip, up->laddr);
+	setsiaddr(bp->siaddr, ip, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
 	strncpy(bp->file, rp->ii.bootf, sizeof(bp->file));
 
@@ -621,6 +623,12 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	byteopt(rp, ODtype, Offer);
 	longopt(rp, ODlease, offer);
 	addropt(rp, ODserverid, up->laddr);
+	// OBhostname for the HP4000M switches
+	// (this causes NT to log infinite errors - tough shit )
+	if(*rp->ii.domain){
+		remrequested(rp, OBhostname);
+		stringopt(rp, OBhostname, rp->ii.domain);
+	}
 	miscoptions(rp, ip);
 	termopt(rp);
 
@@ -672,7 +680,7 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	hnputs(bp->secs, 0);
 	v6tov4(bp->giaddr, rp->giaddr);
 	v6tov4(bp->yiaddr, ip);
-	setsiaddr("tftp", bp->siaddr, ip, up->laddr);
+	setsiaddr(bp->siaddr, ip, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
 	strncpy(bp->file, rp->ii.bootf, sizeof(bp->file));
 
@@ -683,6 +691,12 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	if(sendlease)
 		longopt(rp, ODlease, offer);
 	addropt(rp, ODserverid, up->laddr);
+	// OBhostname for the HP4000M switches
+	// (this causes NT to log infinite errors - tough shit )
+	if(*rp->ii.domain){
+		remrequested(rp, OBhostname);
+		stringopt(rp, OBhostname, rp->ii.domain);
+	}
 	miscoptions(rp, ip);
 	termopt(rp);
 
@@ -756,7 +770,7 @@ bootp(Req *rp)
 	Bootp *bp;
 	Udphdr *up;
 	ushort flags;
-	Iplifc *lifc;
+	Ipifc *ifc;
 	Info *iip;
 	int servedbyme;
 
@@ -799,8 +813,8 @@ bootp(Req *rp)
 	}
 
 	/* ignore if the file is unreadable */
-	if(!rp->genrequest && access(bp->file, 4) < 0){
-		warning(0, "inaccessible bootfile1 %s", bp->file);
+	if(access(bp->file, 4) < 0){
+		warning(0, "inaccessible bootfile %s", bp->file);
 		return;
 	}
 
@@ -815,8 +829,6 @@ bootp(Req *rp)
 				iip->auip, iip->gwip);
 	} else if(rp->genrequest){
 		warning(0, "genericbootp: %I", iip->ipaddr);
-		if( *iip->bootf2 ) /* if not plan9, change the boot file to bootf2 */
-			strncpy(bp->file, iip->bootf2, sizeof(bp->file));
 		memmove(bp->optmagic, genericopt, 4);
 		miscoptions(rp, iip->ipaddr);
 		termopt(rp);
@@ -849,22 +861,19 @@ bootp(Req *rp)
 	/*
 	 *  select best local address if destination is directly connected
 	 */
-	lifc = findlifc(up->raddr);
-	if(lifc)
-		ipmove(up->laddr, lifc->ip);
+	ifc = findifc(up->raddr);
+	if(ifc)
+		ipmove(up->laddr, ifc->ip);
 
 	/*
 	 *  our identity
 	 */
-	servedbyme = setsiaddr("tftp", bp->siaddr, iip->ipaddr, up->laddr);
+	servedbyme = setsiaddr(bp->siaddr, iip->ipaddr, up->laddr);
 	strncpy(bp->sname, mysysname, sizeof(bp->sname));
-	/* not plan9 and has alternative bootf */
-	if(servedbyme && rp->genrequest && *iip->bootf2)
-		servedbyme = setsiaddr("tftp2", bp->siaddr, iip->ipaddr, up->laddr);
-	/* havn't we done this a few lines above? why again? */
-	/* ignore if booting plan9 and the file is unreadable */
+
+	/* ignore if the file is unreadable */
 	if(servedbyme && access(bp->file, 4) < 0){
-		warning(0, "inaccessible bootfile2 %s", bp->file);
+		warning(0, "inaccessible bootfile %s", bp->file);
 		return;
 	}
 
@@ -933,8 +942,8 @@ parseoptions(Req *rp)
 				v4tov6(rp->server, o);
 			break;
 		case ODmessage:
-			if(n > sizeof rp->msg-1)
-				n = sizeof rp->msg-1;
+			if(n > ERRLEN-1)
+				n = ERRLEN-1;
 			memmove(rp->msg, o, n);
 			rp->msg[n] = 0;
 			break;
@@ -1001,16 +1010,6 @@ miscoptions(Req *rp, uchar *ip)
 	} else if(validip(rp->giaddr)){
 		remrequested(rp, OBrouter);
 		addropt(rp, OBrouter, rp->giaddr);
-	}
-
-	// OBhostname for the HP4000M switches
-	// (this causes NT to log infinite errors - tough shit )
-	if(*rp->ii.domain){
-		remrequested(rp, OBhostname);
-		stringopt(rp, OBhostname, rp->ii.domain);
-	}
-	if( *rp->ii.rootpath ) {
-		stringopt(rp, OBrootpath, rp->ii.rootpath);
 	}
 
 	/* lookup anything we might be missing */
@@ -1135,11 +1134,11 @@ openlisten(char *net)
 void
 fatal(int syserr, char *fmt, ...)
 {
-	char buf[ERRMAX];
+	char buf[ERRLEN];
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(syserr)
 		syslog(1, blog, "dhcp: %s: %r", buf);
@@ -1155,7 +1154,7 @@ warning(int syserr, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	vseprint(buf, buf+sizeof(buf), fmt, arg);
+	doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(syserr){
 		syslog(0, blog, "dhcp: %s: %r", buf);
@@ -1171,7 +1170,7 @@ warning(int syserr, char *fmt, ...)
 char*
 readsysname(void)
 {
-	static char name[128];
+	static char name[NAMELEN*2];
 	char *p;
 	int n, fd;
 
@@ -1185,8 +1184,8 @@ readsysname(void)
 		}
 	}
 	p = getenv("sysname");
-	if(p == nil || *p == 0)
-		return "unknown";
+	if(p == nil)
+		return 0;
 	return p;
 }
 

@@ -1,10 +1,10 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include <bio.h>
 #include <ndb.h>
-#include <authsrv.h>
-#include "authcmdlib.h"
+#include "authsrv.h"
 
 /*
  * c -> a	client
@@ -17,7 +17,7 @@ void	catchalarm(void*, char*);
 void	getraddr(char*);
 int	secureidcheck(char*, char*);
 
-char	user[ANAMELEN];
+char	user[NAMELEN];
 char	raddr[128];
 int	debug;
 Ndb	*db;
@@ -39,7 +39,7 @@ main(int argc, char *argv[])
 	db = ndbopen("/lib/ndb/auth");
 	if(db == 0)
 		syslog(0, AUTHLOG, "no /lib/ndb/auth");
-	db2 = ndbopen(0);
+	db2 = ndbopen("/lib/ndb/local");
 	if(db2 == 0)
 		syslog(0, AUTHLOG, "no /lib/ndb/local");
 	db = ndbcat(db, db2);
@@ -109,7 +109,7 @@ getraddr(char *dir)
 {
 	int n, fd;
 	char *cp;
-	char file[128];
+	char file[3*NAMELEN];
 
 	snprint(file, sizeof(file), "%s/remote", dir);
 	fd = open(file, OREAD);

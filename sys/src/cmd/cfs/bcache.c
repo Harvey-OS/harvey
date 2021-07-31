@@ -181,7 +181,9 @@ bread(Bcache *bc, ulong bno, void *buf)
 {
 	ulong x = bno*bc->bsize;
 
-	if(pread(bc->f, buf, bc->bsize, x) != bc->bsize)
+	if(seek(bc->f, x, 0) != x)
+		return -1;
+	if(read(bc->f, buf, bc->bsize) != bc->bsize)
 		return -1;
 	return 0;
 }
@@ -194,7 +196,9 @@ bwrite(Bcache *bc, ulong bno, void *buf)
 {
 	ulong x = bno*bc->bsize;
 
-	if(pwrite(bc->f, buf, bc->bsize, x) != bc->bsize)
+	if(seek(bc->f, x, 0) != x)
+		return -1;
+	if(write(bc->f, buf, bc->bsize) != bc->bsize)
 		return -1;
 	return 0;
 }

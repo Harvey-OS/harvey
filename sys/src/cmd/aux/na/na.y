@@ -911,7 +911,7 @@ main(int argc, char *argv[])
 void
 preprocess(char *in, FILE *out)
 {
-	Waitmsg *w;
+	Waitmsg w;
 	char **argv;
 
 	if (fork() == 0) {
@@ -930,8 +930,7 @@ preprocess(char *in, FILE *out)
 		}
 		exits("");
 	}
-	w = wait();
-	free(w);
+	wait(&w);
 }
 
 struct sym *

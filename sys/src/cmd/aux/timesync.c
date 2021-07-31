@@ -98,7 +98,7 @@ static void	hnputts(void *p, vlong nsec);
 static void	inittime(void);
 static vlong	nhgetts(void *p);
 static vlong	nhgetts(void *p);
-static void	ntpserver(char*);
+static void	ntpserver(void);
 static vlong	ntpsample(void);
 static int	ntptimediff(NTPserver *ns);
 static int	openfreqfile(void);
@@ -125,8 +125,7 @@ main(int argc, char **argv)
 	Sample *s, *x, *first, **l;
 	vlong diff, accuracy, taccuracy;
 	uvlong hz, minhz, maxhz, avgerr, period, nhz;
-	char *servenet[4];
-	int nservenet;
+	int server;
 	char *a;
 	Tm tl, tg;
 	int already = 0;
@@ -134,7 +133,7 @@ main(int argc, char **argv)
 	type = Fs;		// by default, sync with the file system
 	debug = 0;
 	accuracy = 1000000LL;	// default accuracy is 1 millisecond
-	nservenet = 0;
+	server = 0;
 	tsecs = secs = MinSampleSecs;
 
 	ARGBEGIN{
@@ -196,23 +195,17 @@ main(int argc, char **argv)
 		impotent = 1;
 		break;
 	case 's':
-		if(nservenet >= nelem(servenet))
-			sysfatal("too many networks to serve on");
-		a = ARGF();
-		if(a == nil)
-			sysfatal("must specify network to serve on");
-		servenet[nservenet++] = a;
+		server = 1;
 		break;
 	case 'l':
 		logging = 1;
 		break;
 	}ARGEND;
 
-	fmtinstall('E', eipfmt);
-	fmtinstall('I', eipfmt);
-	fmtinstall('V', eipfmt);
+	fmtinstall('E', eipconv);
+	fmtinstall('I', eipconv);
+	fmtinstall('V', eipconv);
 	sysid = getenv("sysname");
-	timeserver = "";
 
 	switch(type){
 	case Fs:
@@ -225,9 +218,8 @@ main(int argc, char **argv)
 		if(argc > 0){
 			for(i = 0; i <argc; i++)
 				addntpserver(argv[i]);
-		} else {
+		} else
 			addntpserver("$ntp");
-		}
 		break;
 	}
 
@@ -267,7 +259,7 @@ main(int argc, char **argv)
 		fd = open(timeserver, ORDWR);
 		if(fd < 0)
 			sysfatal("opening %s: %r\n", timeserver);
-		if(mount(fd, -1, "/n/boot", MREPL, "") < 0)
+		if(mount(fd, "/n/boot", MREPL, "") < 0)
 			sysfatal("mounting %s: %r\n", timeserver);
 		close(fd);
 		break;
@@ -279,15 +271,15 @@ main(int argc, char **argv)
 	}
 
 	//
-	//  start a local ntp server(s)
+	//  start a local ntp server
 	//
-	for(i = 0; i < nservenet; i++){
+	if(server){
 		switch(rfork(RFPROC|RFFDG|RFMEM|RFNOWAIT)){
 		case -1:
 			sysfatal("forking: %r");
 			break;
 		case 0:
-			ntpserver(servenet[i]);
+			ntpserver();
 			_exits(0);
 			break;
 		default:
@@ -485,7 +477,7 @@ whatisthefrequencykenneth(uvlong hz, uvlong minhz, uvlong maxhz, vlong dt, vlong
 static int
 caperror(vlong dhz, int tsecs, vlong taccuracy)
 {
-	if(dhz*tsecs <= taccuracy)
+	if(dhz*tsecs < taccuracy)
 		return tsecs;
 
 	if(debug)
@@ -861,7 +853,6 @@ addntpserver(char *name)
 	ns = mallocz(sizeof(NTPserver), 1);
 	if(ns == nil)
 		sysfatal("addntpserver: %r");
-	timeserver = strdup(name);
 	ns->name = name;
 	for(l = &ntpservers; *l != nil; l = &(*l)->next)
 		;
@@ -880,7 +871,7 @@ ntptimediff(NTPserver *ns)
 	vlong dt, recvts, origts, xmitts, destts, x;
 	char dir[64];
 
-	fd = dial(netmkaddr(ns->name, "udp", "ntp"), 0, dir, 0);
+	fd = dial(netmkaddr(ns->name, "udp", "ntp"), 0, 0, 0);
 	if(fd < 0){
 		syslog(0, logfile, "can't reach %s: %r", ns->name);
 		return -1;
@@ -1004,7 +995,7 @@ openlisten(char *net)
 	return fd;
 }
 static void
-ntpserver(char *servenet)
+ntpserver(void)
 {
 	int fd, n;
 	NTPpkt *ntp;
@@ -1012,7 +1003,7 @@ ntpserver(char *servenet)
 	int vers, mode;
 	vlong recvts, x;
 
-	fd = openlisten(servenet);
+	fd = openlisten("/net");
 
 	switch(type){
 	case Fs:
@@ -1059,16 +1050,11 @@ ntpserver(char *servenet)
 static long
 fstime(void)
 {
-	Dir *d;
-	ulong t;
+	Dir d;
 
-	d = dirstat("/n/boot");
-	if(d != nil){
-		t = d->atime;
-		free(d);
-	} else
-		t = 0;
-	return t;
+	if(dirstat("/n/boot", &d) < 0)
+		sysfatal("stating /n/boot: %r");
+	return d.atime;
 }
 
 //
@@ -1131,7 +1117,7 @@ sample(long (*get)(void))
 static int
 openfreqfile(void)
 {
-	char buf[29];
+	char buf[64];
 	int fd;
 
 	if(sysid == nil)
@@ -1189,7 +1175,7 @@ writefreqfile(int fd, vlong hz, int secs, vlong diff)
 	if(fd < 0)
 		return;
 	now = time(0);
-	if(now - last < 10*60)
+	if(now - last < 60*60)
 		return;
 	last = now;
 	if(seek(fd, 0, 0) < 0)

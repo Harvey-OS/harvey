@@ -37,7 +37,7 @@ readcolmap(Display *d, RGB *colmap)
 			break;
 		i = strtoul(p, &q, 0);
 		if(i < 0 || i > 255) {
-			fprint(2, "rdcolmap: bad index\n");
+			_drawprint(2, "rdcolmap: bad index\n");
 			exits("bad");
 		}
 		p = q;

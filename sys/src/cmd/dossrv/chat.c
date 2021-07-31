@@ -11,25 +11,30 @@ extern int	doabort;
 void
 chat(char *fmt, ...)
 {
+	char buf[SIZE], *out;
 	va_list arg;
 
 	if (!chatty)
 		return;
+
 	va_start(arg, fmt);
-	vfprint(2, fmt, arg);
+	out = doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
+	write(2, buf, (long)(out-buf));
 }
 
 void
 panic(char *fmt, ...)
 {
+	char buf[SIZE];
 	va_list arg;
+	int n;
 
-	fprint(2, "%s %d: panic ", argv0, getpid());
+	n = sprint(buf, "%s %d: panic ", argv0, getpid());
 	va_start(arg, fmt);
-	vfprint(2, fmt, arg);
+	doprint(buf+n, buf+sizeof(buf)-n, fmt, arg);
 	va_end(arg);
-	fprint(2, ": %r\n");
+	fprint(2, "%s: %r\n", buf);
 	if(doabort)
 		abort();
 	exits("panic");

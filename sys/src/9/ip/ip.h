@@ -3,7 +3,6 @@ typedef struct	Fs	Fs;
 typedef union	Hwaddr	Hwaddr;
 typedef struct	Ifcconv	Ifcconv;
 typedef struct	IP	IP;
-typedef struct	IPaux	IPaux;
 typedef struct	Ipself	Ipself;
 typedef struct	Ipselftab	Ipselftab;
 typedef struct	Iplink	Iplink;
@@ -47,8 +46,6 @@ enum
 
 	/* 2^Lroot trees in the root table */
 	Lroot	= 10,
-
-	Maxpath =	64,
 };
 
 enum
@@ -78,7 +75,7 @@ struct Conv
 	uint	ttl;			/* max time to live */
 	uint	tos;			/* type of service */
 
-	char	*owner		;	/* protections */
+	char	owner[NAMELEN];		/* protections */
 	int	perm;
 	int	inuse;			/* opens of listen/data/ctl */
 	int	length;
@@ -97,7 +94,7 @@ struct Conv
 
 	QLock	car;
 	Rendez	cr;
-	char	cerr[ERRMAX];
+	char	cerr[ERRLEN];
 
 	QLock	listenq;
 	Rendez	listenr;
@@ -174,7 +171,6 @@ struct Ipifc
 	int	maxmtu;		/* Maximum transfer unit */
 	int	minmtu;		/* Minumum tranfer unit */
 	void	*arg;		/* medium specific */
-	int	reassemble;	/* reassemble IP packets before forwarding */
 
 	/* these are used so that we can unbind on the fly */
 	Lock	idlock;
@@ -246,7 +242,7 @@ struct Proto
 	int		(*state)(Conv*, char*, int);
 	void		(*create)(Conv*);
 	void		(*close)(Conv*);
-	void		(*rcv)(Proto*, Ipifc*, Block*);
+	void		(*rcv)(Proto*, uchar*, Block*);
 	char*		(*ctl)(Conv*, char**, int);
 	void		(*advise)(Proto*, Block*, char*);
 	int		(*stats)(Proto*, char*, int);
@@ -293,8 +289,6 @@ struct Fs
 	Ifclog	*ilog;
 
 	char	ndb[1024];		/* an ndb entry for this interface */
-	int	ndbvers;
-	long	ndbmtime;
 };
 
 int	Fsconnected(Conv*, char*);
@@ -308,9 +302,7 @@ Proto*	Fsrcvpcolx(Fs*, uchar);
 char*	Fsstdconnect(Conv*, char**, int);
 char*	Fsstdannounce(Conv*, char**, int);
 char*	Fsstdbind(Conv*, char**, int);
-ulong	scalednconv(void);
 void	closeconv(Conv*);
-
 /* 
  *  logging
  */
@@ -338,7 +330,7 @@ enum
 void	netloginit(Fs*);
 void	netlogopen(Fs*);
 void	netlogclose(Fs*);
-void	netlogctl(Fs*, char*, int);
+char*	netlogctl(Fs*, char*, int);
 long	netlogread(Fs*, void*, ulong, long);
 void	netlog(Fs*, int, char*, ...);
 void	ifcloginit(Fs*);
@@ -388,7 +380,6 @@ struct	RouteTree
 	uchar	ifcid;		/* must match ifc->id */
 	Ipifc	*ifc;
 	char	tag[4];
-	int	ref;
 };
 
 struct V4route
@@ -425,22 +416,6 @@ extern long	routewrite(Fs *f, Chan*, char*, int);
 extern void	routetype(int, char*);
 extern void	ipwalkroutes(Fs*, Routewalk*);
 extern void	convroute(Route*, uchar*, uchar*, uchar*, char*, int*);
-
-/*
- *  devip.c
- */
-
-/*
- *  Hanging off every ip channel's ->aux is the following structure.
- *  It maintains the state used by devip and iproute.
- */
-struct IPaux
-{
-	char	*owner;		/* the user that did the attach */
-	char	tag[4];
-};
-
-extern IPaux*	newipaux(char*, char*);
 
 /*
  *  arp.c
@@ -480,7 +455,7 @@ extern uchar*	defmask(uchar*);
 extern int	isv4(uchar*);
 extern void	v4tov6(uchar *v6, uchar *v4);
 extern int	v6tov4(uchar *v4, uchar *v6);
-extern int	eipfmt(Fmt*);
+extern int	eipconv(va_list *arg, Fconv *f);
 
 #define	ipcmp(x, y) memcmp(x, y, IPaddrlen)
 #define	ipmove(x, y) memmove(x, y, IPaddrlen)
@@ -537,17 +512,15 @@ extern long	ipselftabread(Fs*, char *a, ulong offset, int n);
 extern void	iprouting(Fs*, int);
 extern void	closeifcconv(Ifcconv*);
 extern void	icmpnoconv(Fs*, Block*);
-extern void	icmpttlexceeded(Fs*, Ipifc*, Block*);
+extern void	icmpttlexceeded(Fs*, uchar*, Block*);
 extern void	initfrag(IP*, int);
 extern ushort	ipcsum(uchar*);
-extern void	ipiput(Fs*, Ipifc*, Block*);
+extern void	ipiput(Fs*, uchar*, Block*);
 extern void	ipoput(Fs*, Block*, int, int, int);
 extern int	ipstats(Fs*, char*, int);
 extern ushort	ptclbsum(uchar*, int);
 extern ushort	ptclcsum(Block*, int, int);
 extern void	ip_init(Fs*);
-extern void	update_mtucache(uchar*, ulong);
-extern ulong	restrict_mtu(uchar*, ulong);
 
 /*
  * bootp.c

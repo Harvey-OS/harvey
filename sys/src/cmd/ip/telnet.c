@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 int
 dodial(char *dest)
 {
-	char name[2*NETPATHLEN];
+	char name[3*NAMELEN];
 	int data;
 	char devdir[40];
 
@@ -416,7 +416,7 @@ system(int fd, char *cmd)
 		perror("con");
 		exits("exec");
 	}
-	for(p = waitpid(); p >= 0; p = waitpid()){
+	for(p = wait(&msg); p >= 0; p = wait(&msg)){
 		if(p == pid)
 			return msg.msg;	
 	}
@@ -504,14 +504,11 @@ xlocsub(Biobuf *bp, uchar *sub, int n)
 static int
 islikeatty(int fd)
 {
-	Dir *d;
-	int iscons;
+	Dir d;
 
-	if((d = dirfstat(fd)) == nil)
+	if(dirfstat(fd, &d) < 0)
 		return 0;
-	iscons = (strcmp(d->name, "cons") == 0);
-	free(d);
-	return iscons;
+	return strcmp(d.name, "cons") == 0;
 }
 
 /*

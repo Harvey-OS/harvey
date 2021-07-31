@@ -1,0 +1,30 @@
+</$objtype/mkfile
+
+TARG=\
+	sshserve\
+	ssh_genkey\
+
+OFILES=\
+	misc.$O\
+
+HFILES=	../ssh.h
+
+LIB=/$objtype/lib/libmp.a /$objtype/lib/libsec.a
+
+BIN=/$objtype/bin/aux
+
+</sys/src/cmd/mkmany
+
+sshserve.$O: 		server.h
+server_messages.$O:	server.h
+server_io.$O:		server.h
+ssh_genkey.$O:		server.h
+
+%.$O:	../%.c
+	$CC $CFLAGS ../$stem.c
+
+$O.sshserve:	server_messages.$O server_io.$O packet.$O
+
+$O.ssh_genkey:	misc.$O
+
+$O.sshd:	sshd.$O

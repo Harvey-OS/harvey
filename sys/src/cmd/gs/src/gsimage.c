@@ -1,22 +1,22 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gsimage.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
+/*$Id: gsimage.c,v 1.3 2000/09/19 19:00:29 lpd Exp $ */
 /* Image setup procedures for Ghostscript library */
 #include "memory_.h"
 #include "gx.h"
@@ -338,6 +338,17 @@ gs_image_planes_wanted(gs_image_enum *penum)
     return penum->client_wanted;
 }
 
+/*
+ * Return the enumerator memory used for allocating the row buffers.
+ * Because some PostScript files use save/restore within an image data
+ * reading procedure, this must be a stable allocator.
+ */
+private gs_memory_t *
+gs_image_row_memory(const gs_image_enum *penum)
+{
+    return gs_memory_stable(penum->memory);
+}
+
 /* Free the row buffers when cleaning up. */
 private void
 free_row_buffers(gs_image_enum *penum, int num_planes, client_name_t cname)
@@ -345,7 +356,10 @@ free_row_buffers(gs_image_enum *penum, int num_planes, client_name_t cname)
     int i;
 
     for (i = num_planes - 1; i >= 0; --i) {
-	gs_free_string(penum->memory, penum->planes[i].row.data,
+	if_debug3('b', "[b]free plane %d row (0x%lx,%u)\n",
+		  i, (ulong)penum->planes[i].row.data,
+		  penum->planes[i].row.size);
+	gs_free_string(gs_image_row_memory(penum), penum->planes[i].row.data,
 		       penum->planes[i].row.size, cname);
 	penum->planes[i].row.data = 0;
 	penum->planes[i].row.size = 0;
@@ -426,15 +440,18 @@ gs_image_next_planes(gs_image_enum * penum,
 
 		    /* Make sure the row buffer is fully allocated. */
 		    if (raster > old_size) {
+			gs_memory_t *mem = gs_image_row_memory(penum);
 			byte *old_data = penum->planes[i].row.data;
 			byte *row =
 			    (old_data == 0 ?
-			     gs_alloc_string(penum->memory, raster,
+			     gs_alloc_string(mem, raster,
 					     "gs_image_next(row)") :
-			     gs_resize_string(penum->memory, old_data,
-					      old_size, raster,
+			     gs_resize_string(mem, old_data, old_size, raster,
 					      "gs_image_next(row)"));
 
+			if_debug5('b', "[b]plane %d row (0x%lx,%u) => (0x%lx,%u)\n",
+				  i, (ulong)old_data, old_size,
+				  (ulong)row, raster);
 			if (row == 0) {
 			    code = gs_note_error(gs_error_VMerror);
 			    free_row_buffers(penum, i, "gs_image_next(row)");

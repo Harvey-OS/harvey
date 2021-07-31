@@ -1,5 +1,4 @@
 #!/bin/rc
-if (! ~ $DEBUG '') flag x +
 
 # usage: gspipe [dev]
 # assumes postscript on stdin
@@ -15,9 +14,9 @@ case *
 }
 
 GSTMPFILE=/tmp/gsp^$pid
-GSOPT=('-sDEVICE='^$GSDEVICE '-sOUTPUTFILE='$GSTMPFILE -dSAFER -dNOPAUSE -dQUIET -dBATCH)
+GSOPT=('-sDEVICE='^$GSDEVICE '-sOutputFile='$GSTMPFILE -dSAFER -dNOPAUSE -dQUIET -dBATCH)
 
-gs $GSOPT - >/dev/null 
+gs $GSOPT - >/dev/null >[2=1]
 
 cat $GSTMPFILE
 rm -f $GSTMPFILE

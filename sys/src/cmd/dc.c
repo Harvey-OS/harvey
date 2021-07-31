@@ -1168,7 +1168,7 @@ void
 init(int argc, char *argv[])
 {
 	Sym *sp;
-	Dir *d;
+	Dir d;
 
 	ARGBEGIN {
 	default:
@@ -1178,16 +1178,14 @@ init(int argc, char *argv[])
 	ifile = 1;
 	curfile = &bin;
 	if(*argv){
-		d = dirstat(*argv);
-		if(d == nil) {
+		if(dirstat(*argv, &d) < 0 ) {
 			fprint(2, "dc: can't open file %s\n", *argv);
 			exits("open");
 		}
-		if(d->mode & DMDIR) {
+		if(d.mode & CHDIR) {
 			fprint(2, "dc: file %s is a directory\n", *argv);
 			exits("open");
 		}
-		free(d);
 		if((curfile = Bopen(*argv, OREAD)) == 0) {
 			fprint(2,"dc: can't open file %s\n", *argv);
 			exits("open");
@@ -1904,7 +1902,8 @@ int
 command(void)
 {
 	char line[100], *sl;
-	int pid, p, c;
+	int pid, c;
+	Waitmsg retcode;
 
 	switch(c = readc()) {
 	case '<':
@@ -1924,9 +1923,9 @@ command(void)
 			exits("shell");
 		}
 		for(;;) {
-			if((p = waitpid()) < 0)
+			if(wait(&retcode) < 0)
 				break;
-			if(p== pid)
+			if(atoi(retcode.pid) == pid)
 				break;
 		}
 		Bprint(&bout,"!\n");

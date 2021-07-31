@@ -150,7 +150,7 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 {
 	Ipifc *ifc;
 	uchar *gate;
-	ulong fragoff;
+	ushort fragoff;
 	Block *xp, *nb;
 	Iphdr *eh, *feh;
 	int lid, len, seglen, chunk, dlen, blklen, offset, medialen;
@@ -206,8 +206,7 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 	if(!gating)
 		eh->vihl = IP_VER|IP_HLEN;
 	eh->ttl = ttl;
-	if(!gating)
-		eh->tos = tos;
+	eh->tos = tos;
 
 	if(!canrlock(ifc))
 		goto free;
@@ -224,10 +223,8 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 		if(!gating)
 			hnputs(eh->id, incref(&ip->id));
 		hnputs(eh->length, len);
-		if(!gating){
-			eh->frag[0] = 0;
-			eh->frag[1] = 0;
-		}
+		eh->frag[0] = 0;
+		eh->frag[1] = 0;
 		eh->cksum[0] = 0;
 		eh->cksum[1] = 0;
 		hnputs(eh->cksum, ipcsum(&eh->vihl));
@@ -268,12 +265,7 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 	}
 	xp->rp += offset;
 
-	if(gating)
-		fragoff = nhgets(eh->frag)<<3;
-	else
-		fragoff = 0;
-	dlen += fragoff;
-	for(; fragoff < dlen; fragoff += seglen) {
+	for(fragoff = 0; fragoff < dlen; fragoff += seglen) {
 		nb = allocb(IPHDR+seglen);
 		feh = (Iphdr*)(nb->rp);
 
@@ -344,7 +336,7 @@ initfrag(IP *ip, int size)
 #define DBG(x)	if((logmask & Logipmsg) && (iponly == 0 || x == iponly))netlog
 
 void
-ipiput(Fs *f, Ipifc *ifc, Block *bp)
+ipiput(Fs *f, uchar *ia, Block *bp)
 {
 	int hl;
 	Iphdr *h;
@@ -428,23 +420,9 @@ ipiput(Fs *f, Ipifc *ifc, Block *bp)
 		/* don't forward if packet has timed out */
 		if(h->ttl <= 1){
 			ip->stats[InHdrErrors]++;
-			icmpttlexceeded(f, ifc, bp);
+			icmpttlexceeded(f, ia, bp);
 			freeblist(bp);
 			return;
-		}
-		
-		/* reassemble if the interface expects it */
-		if(r->ifc->reassemble){
-			frag = nhgets(h->frag);
-			if(frag) {
-				h->tos = 0;
-				if(frag & IP_MF)
-					h->tos = 1;
-				bp = ipreassemble(ip, frag, bp, h);
-				if(bp == nil)
-					return;
-				h = (Iphdr *)(bp->rp);
-			}
 		}
 
 		ip->stats[ForwDatagrams]++;
@@ -453,7 +431,8 @@ ipiput(Fs *f, Ipifc *ifc, Block *bp)
 		return;
 	}
 
-	/* reassemble */
+
+
 	frag = nhgets(h->frag);
 	if(frag) {
 		h->tos = 0;
@@ -468,7 +447,7 @@ ipiput(Fs *f, Ipifc *ifc, Block *bp)
 	p = Fsrcvpcol(f, h->proto);
 	if(p != nil && p->rcv != nil) {
 		ip->stats[InDelivers]++;
-		(*p->rcv)(p, ifc, bp);
+		(*p->rcv)(p, ia, bp);
 		return;
 	}
 	ip->stats[InDiscards]++;
@@ -728,72 +707,4 @@ ipcsum(uchar *addr)
 	sum = (sum & 0xffff) + (sum >> 16);
 
 	return (sum^0xffff);
-}
-
-enum
-{
-	Nmtucache=	128,
-};
-
-typedef struct MTUcache MTUcache;
-
-struct MTUcache
-{
-	uchar	ip[IPaddrlen];
-	ulong	mtu;
-	ulong	ms;
-};
-
-static struct {
-	Lock;
-	MTUcache c[Nmtucache];
-} mc;
-
-void
-update_mtucache(uchar *ip, ulong mtu)
-{
-	MTUcache *oldest, *p;
-
-	if(mtu < 512)
-		return;
-
-	lock(&mc);
-	oldest = mc.c;
-	for(p = mc.c; p < &mc.c[Nmtucache]; p++){
-		if(ipcmp(ip, p->ip) == 0){
-			p->mtu = mtu;
-			p->ms = msec;
-			break;
-		}
-		if(p->ms < oldest->ms)
-			oldest = p;
-	}
-	if(p == &mc.c[Nmtucache]){
-		ipmove(oldest->ip, ip);
-		oldest->mtu = mtu;
-		oldest->ms = msec;
-	}
-	unlock(&mc);
-}
-
-ulong
-restrict_mtu(uchar *ip, ulong mtu)
-{
-	MTUcache *p;
-
-	lock(&mc);
-	for(p = mc.c; p < &mc.c[Nmtucache]; p++){
-		if(p->ms + 1000*10*60 < msec){
-			memset(p->ip, 0, sizeof(p->ip));
-			p->ms = 0;
-		}
-		if(ipcmp(ip, p->ip) == 0){
-			if(p->mtu < mtu)
-				mtu = p->mtu;
-			break;
-		}
-	}
-	unlock(&mc);
-
-	return mtu;
 }

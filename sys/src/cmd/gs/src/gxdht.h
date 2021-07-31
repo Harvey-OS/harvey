@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 1996, 1997, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxdht.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxdht.h,v 1.4 2000/09/19 19:00:36 lpd Exp $ */
 /* Definition of device halftones */
 
 #ifndef gxdht_INCLUDED
@@ -24,6 +24,7 @@
 
 #include "gsrefct.h"
 #include "gscsepnm.h"
+#include "gsmatrix.h"
 #include "gxarith.h"		/* for igcd */
 #include "gxhttype.h"
 
@@ -168,10 +169,15 @@ typedef struct gx_ht_order_procs_s {
     uint bit_data_elt_size;
 
     /* Construct the order from the threshold array. */
-    /* Note that for 16-bit threshold values (not supported yet), */
+    /* Note that for 16-bit threshold values, */
     /* each value is 2 bytes in big-endian order (Adobe spec). */
 
     int (*construct_order)(P2(gx_ht_order *order, const byte *thresholds));
+
+    /* Return the (x,y) coordinate of an element of bit_data. */
+
+    int (*bit_index)(P3(const gx_ht_order *order, uint index,
+			gs_int_point *ppt));
 
     /* Update a halftone cache tile to match this order. */
 
@@ -186,6 +192,11 @@ typedef struct gx_ht_order_procs_s {
 extern const gx_ht_order_procs_t ht_order_procs_table[2];
 #define ht_order_procs_default ht_order_procs_table[0]	/* bit_data is gx_ht_bit[] */
 #define ht_order_procs_short ht_order_procs_table[1]	/* bit_data is ushort[] */
+/* For screen/spot halftones, we must record additional parameters. */
+typedef struct gx_ht_order_screen_params_s {
+    gs_matrix matrix;		/* CTM when the function was sampled */
+    ulong max_size;		/* max bitmap size */
+} gx_ht_order_screen_params_t;
 struct gx_ht_order_s {
     gx_ht_cell_params_t params;	/* parameters defining the cells */
     ushort width;
@@ -203,6 +214,7 @@ struct gx_ht_order_s {
     void *bit_data;
     gx_ht_cache *cache;		/* cache to use */
     gx_transfer_map *transfer;	/* TransferFunction or 0 */
+    gx_ht_order_screen_params_t screen_params;
 };
 
 #define ht_order_is_complete(porder)\

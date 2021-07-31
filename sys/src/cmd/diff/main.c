@@ -3,8 +3,8 @@
 #include <bio.h>
 #include "diff.h"
 
-#define	DIRECTORY(s)		((s)->qid.type&QTDIR)
-#define	REGULAR_FILE(s)		((s)->type == 'M' && !DIRECTORY(s))
+#define	DIRECTORY(s)		((s).qid.path&CHDIR)
+#define	REGULAR_FILE(s)		((s).type == 'M' && !DIRECTORY(s))
 
 Biobuf	stdout;
 
@@ -42,13 +42,15 @@ void
 panic(int status, char *fmt, ...)
 {
 	va_list arg;
+	char buf[1024], *out;
 
 	Bflush(&stdout);
 
-	fprint(2, "%s: ", progname);
+	out = buf+snprint(buf, sizeof(buf), "%s: ", progname);
 	va_start(arg, fmt);
-	vfprint(2, fmt, arg);
+	out = doprint(out, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
+	write(2, buf, out-buf);
 	if (status)
 		done(status);
 		/*NOTREACHED*/
@@ -74,7 +76,7 @@ mkpathname(char *pathname, char *path, char *name)
 }
 	
 static char *
-mktmpfile(int input, Dir **sb)
+mktmpfile(int input, Dir *sb)
 {
 	int fd, i;
 	char *p;
@@ -91,7 +93,7 @@ mktmpfile(int input, Dir **sb)
 		if ((i = write(fd, buf, i)) < 0)
 			break;
 	}
-	*sb = dirfstat(fd);
+	dirfstat(fd, sb);
 	close(fd);
 	if (i < 0) {
 		panic(mflag ? 0: 2, "cannot read/write %s: %r\n", p);
@@ -101,22 +103,18 @@ mktmpfile(int input, Dir **sb)
 }
 
 static char *
-statfile(char *file, Dir **sb)
+statfile(char *file, Dir *sb)
 {
-	Dir *dir;
 	int input;
 
-	dir = dirstat(file);
-	if(dir == nil) {
-		if (strcmp(file, "-") || (dir = dirfstat(0)) == nil) {
+	if (dirstat(file, sb) == -1) {
+		if (strcmp(file, "-") || dirfstat(0, sb) == -1) {
 			panic(mflag ? 0: 2, "cannot stat %s: %r\n", file);
 			return 0;
 		}
-		free(dir);
-		return mktmpfile(0, sb);
+		file = mktmpfile(0, sb);
 	}
-	else if (!REGULAR_FILE(dir) && !DIRECTORY(dir)) {
-		free(dir);
+	else if (!REGULAR_FILE(*sb) && !DIRECTORY(*sb)) {
 		if ((input = open(file, OREAD)) == -1) {
 			panic(mflag ? 0: 2, "cannot open %s: %r\n", file);
 			return 0;
@@ -124,8 +122,6 @@ statfile(char *file, Dir **sb)
 		file = mktmpfile(input, sb);
 		close(input);
 	}
-	else
-		*sb = dir;
 	return file;
 }
 
@@ -133,14 +129,12 @@ void
 diff(char *f, char *t, int level)
 {
 	char *fp, *tp, *p, fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
-	Dir *fsb, *tsb;
+	Dir fsb, tsb;
 
 	if ((fp = statfile(f, &fsb)) == 0)
 		return;
-	if ((tp = statfile(t, &tsb)) == 0){
-		free(fsb);
+	if ((tp = statfile(t, &tsb)) == 0)
 		return;
-	}
 	if (DIRECTORY(fsb) && DIRECTORY(tsb)) {
 		if (rflag || level == 0)
 			diffdir(fp, tp, level);
@@ -156,20 +150,20 @@ diff(char *f, char *t, int level)
 				p = f;
 			else
 				p++;
-			if (mkpathname(tb, tp, p) == 0)
-				diffreg(fp, tb);
+			if (mkpathname(tb, tp, p))
+				return;
+			diffreg(fp, tb);
 		}
 		else {
 			if ((p = utfrrune(t, '/')) == 0)
 				p = t;
 			else
 				p++;
-			if (mkpathname(fb, fp, p) == 0)
-				diffreg(fb, tp);
+			if (mkpathname(fb, fp, p))
+				return;
+			diffreg(fb, tp);
 		}
 	}
-	free(fsb);
-	free(tsb);
 }
 
 void
@@ -177,7 +171,7 @@ main(int argc, char *argv[])
 {
 	char *p;
 	int i;
-	Dir *fsb, *tsb;
+	Dir fsb, tsb;
 
 	Binit(&stdout, 1, OWRITE);
 	progname = *argv;
@@ -216,7 +210,7 @@ main(int argc, char *argv[])
 	}
 	if (argc < 2)
 		panic(2, usage, progname);
-	if ((tsb = dirstat(argv[argc-1])) == nil)
+	if (dirstat(argv[argc-1], &tsb) == -1)
 		panic(2, "can't stat %s\n", argv[argc-1]);
 	if (argc > 2) {
 		if (!DIRECTORY(tsb))
@@ -224,13 +218,11 @@ main(int argc, char *argv[])
 		mflag = 1;
 	}
 	else {
-		if ((fsb = dirstat(argv[0])) == nil)
+		if (dirstat(argv[0], &fsb) == -1)
 			panic(2, "can't stat %s\n", argv[0]);
 		if (DIRECTORY(fsb) && DIRECTORY(tsb))
 			mflag = 1;
-		free(fsb);
 	}
-	free(tsb);
 	for (i = 0; i < argc-1; i++) {
 		diff(argv[i], argv[argc-1], 0);
 		rmtmpfiles();

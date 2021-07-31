@@ -1,5 +1,7 @@
 #include "gc.h"
 
+#define	COL1	40
+
 Reg*
 rega(void)
 {
@@ -206,8 +208,6 @@ regopt(Prog *p)
 		case ASHRB:
 		case ASHRL:
 		case ASHRW:
-		case AIMULL:
-		case AIMULW:
 			for(z=0; z<BITS; z++) {
 				r->set.b[z] |= bit.b[z];
 				r->use2.b[z] |= bit.b[z];
@@ -226,15 +226,12 @@ regopt(Prog *p)
 		}
 
 		switch(p->as) {
-		case AIMULL:
-		case AIMULW:
-			if(p->to.type != D_NONE)
-				break;
-
 		case AIDIVB:
 		case AIDIVL:
 		case AIDIVW:
 		case AIMULB:
+		case AIMULL:
+		case AIMULW:
 		case ADIVB:
 		case ADIVL:
 		case ADIVW:
@@ -350,7 +347,7 @@ regopt(Prog *p)
 					   r->use2.b[z] |
 					   r->set.b[z];
 			if(bany(&bit)) {
-				print("\t");
+				print("%|", COL1);
 				if(bany(&r->use1))
 					print(" u1=%B", r->use1);
 				if(bany(&r->use2))
@@ -429,7 +426,7 @@ loop2:
 	nregion = 0;
 	for(r = firstr; r != R; r = r->link) {
 		if(debug['R'] && debug['v']) {
-			print("%P\t", r->prog);
+			print("%P%|", r->prog, COL1);
 			if(bany(&r->set))
 				print("s:%B ", r->set);
 			if(bany(&r->refahead))
@@ -607,7 +604,7 @@ addmove(Reg *r, int bn, int rn, int f)
 			p1->as = AMOVW;
 	}
 	if(debug['R'])
-		print("%P\t.a%P\n", p, p1);
+		print("%P%|.a%P\n", p, COL1, p1);
 }
 
 ulong
@@ -992,8 +989,8 @@ paint1(Reg *r, int bn)
 	if(LOAD(r) & ~(r->set.b[z]&~(r->use1.b[z]|r->use2.b[z])) & bb) {
 		change -= CLOAD * r->loop;
 		if(debug['R'] && debug['v'])
-			print("%ld%P\tld %B $%d\n", r->loop,
-				r->prog, blsh(bn), change);
+			print("%ld%P%|ld %B $%d\n", r->loop,
+				r->prog, COL1, blsh(bn), change);
 	}
 	for(;;) {
 		r->act.b[z] |= bb;
@@ -1005,8 +1002,8 @@ paint1(Reg *r, int bn)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tu1 %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P%|u1 %B $%d\n", r->loop,
+					p, COL1, blsh(bn), change);
 		}
 
 		if((r->use2.b[z]|r->set.b[z]) & bb) {
@@ -1015,8 +1012,8 @@ paint1(Reg *r, int bn)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tu2 %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P%|u2 %B $%d\n", r->loop,
+					p, COL1, blsh(bn), change);
 		}
 
 		if(STORE(r) & r->regdiff.b[z] & bb) {
@@ -1025,8 +1022,8 @@ paint1(Reg *r, int bn)
 				if(BtoR(bb) != D_F0)
 					change = -CINF;
 			if(debug['R'] && debug['v'])
-				print("%ld%P\tst %B $%d\n", r->loop,
-					p, blsh(bn), change);
+				print("%ld%P%|st %B $%d\n", r->loop,
+					p, COL1, blsh(bn), change);
 		}
 
 		if(r->refbehind.b[z] & bb)
@@ -1184,14 +1181,14 @@ paint3(Reg *r, int bn, long rb, int rn)
 				print("%P", p);
 			addreg(&p->from, rn);
 			if(debug['R'])
-				print("\t.c%P\n", p);
+				print("%|.c%P\n", COL1, p);
 		}
 		if((r->use2.b[z]|r->set.b[z]) & bb) {
 			if(debug['R'])
 				print("%P", p);
 			addreg(&p->to, rn);
 			if(debug['R'])
-				print("\t.c%P\n", p);
+				print("%|.c%P\n", COL1, p);
 		}
 
 		if(STORE(r) & r->regdiff.b[z] & bb)

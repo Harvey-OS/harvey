@@ -44,8 +44,8 @@ enum
  */
 struct Htmlesc
 {
-	char		*name;
-	Rune		value;
+	char	*name;
+	Rune	value;
 };
 
 struct HContent
@@ -60,7 +60,7 @@ struct HContent
 struct HContents
 {
 	HContent	*type;
-	HContent	 *encoding;
+	HContent *encoding;
 };
 
 /*
@@ -87,7 +87,7 @@ struct HSPairs
 };
 
 /*
- * byte ranges within a file
+ * uchar ranges within a file
  */
 struct HRange
 {
@@ -141,6 +141,9 @@ struct Hio {
  */
 struct HttpReq
 {
+	/*
+	 * request line
+	 */
 	char		*meth;
 	char		*uri;
 	char		*urihost;
@@ -155,7 +158,7 @@ struct HttpReq
 struct HttpHead
 {
 	int		closeit;		/* http1.1 close connection after this request? */
-	uchar		persist;		/* http/1.1 requests a persistent connection */
+	uchar		persist;		/* <http/1.1 requests a persistent connection */
 
 	uchar		expectcont;		/* expect a 100-continue */
 	uchar		expectother;		/* expect anything else; should reject with ExpectFail */
@@ -213,53 +216,50 @@ extern	char*		hmydomain;
 extern	char*		hversion;
 extern	Htmlesc		htmlesc[];
 
-/*
- * .+2,/^$/ | sort -bd +1
- */
+char			*hstrdup(HConnect *c, char *s);
 void			*halloc(HConnect *c, ulong size);
-Hio			*hbodypush(Hio *hh, ulong len, HFields *te);
-int			hbuflen(Hio *h, void *p);
-int			hcheckcontent(HContent*, HContent*, char*, int);
-void			hclose(Hio*);
-ulong			hdate2sec(char*);
-int			hdatefmt(Fmt*);
-int			hfail(HConnect*, int, ...);
-int			hflush(Hio*);
-int			hgetc(Hio*);
-int			hgethead(HConnect *c, int many);
-int			hinit(Hio*, int, int);
-int			hiserror(Hio *h);
+
+char			*hunload(Hio*);
 int			hload(Hio*, char*);
-char			*hlower(char*);
-HContent		*hmkcontent(HConnect *c, char *generic, char *specific, HContent *next);
-HFields			*hmkhfields(HConnect *c, char *s, HSPairs *p, HFields *next);
-char			*hmkmimeboundary(HConnect *c);
-HSPairs			*hmkspairs(HConnect *c, char *s, char *t, HSPairs *next);
+int			hgetc(Hio*);
+void			*hreadbuf(Hio *h, void *vsave);
+int			hungetc(Hio *h);
+int			hputc(Hio*, int);
+int			hprint(Hio*, char*, ...);
+#pragma			varargck	argpos	hprint	2
+int			hwrite(Hio*, void*, int);
+int			hinit(Hio*, int, int);
+int			hflush(Hio*);
+int			hxferenc(Hio*, int);
+void			hclose(Hio*);
+int			hiserror(Hio *h);
+int			hbuflen(Hio *h, void *p);
+Hio			*hbodypush(Hio *hh, ulong len, HFields *te);
+int			hcheckcontent(HContent*, HContent*, char*, int);
+ulong			hdate2sec(char*);
+int			hdateconv(va_list*, Fconv*);
+int			hfail(HConnect*, int, ...);
+int			hgethead(HConnect *c, int many);
+int			http11(HConnect*);
+int			httpconv(va_list*, Fconv*);
+char*			httpunesc(HConnect *c, char *s);
+char*			hlower(char*);
+HContent*		hmkcontent(HConnect *c, char *generic, char *specific, HContent *next);
+char*			hmkmimeboundary(HConnect *c);
+HFields*		hmkhfields(HConnect *c, char *s, HSPairs *p, HFields *next);
+HSPairs*		hmkspairs(HConnect *c, char *s, char *t, HSPairs *next);
 int			hmoved(HConnect *c, char *uri);
 void			hokheaders(HConnect *c);
-int			hparseheaders(HConnect*, int timeout);
-HSPairs			*hparsequery(HConnect *c, char *search);
 int			hparsereq(HConnect *c, int timeout);
-int			hprint(Hio*, char*, ...);
-int			hputc(Hio*, int);
-void			*hreadbuf(Hio *h, void *vsave);
+int			hparseheaders(HConnect*, int timeout);
+HSPairs*		hparsequery(HConnect *c, char *search);
 int			hredirected(HConnect *c, char *how, char *uri);
 void			hreqcleanup(HConnect *c);
-HFields			*hrevhfields(HFields *hf);
-HSPairs			*hrevspairs(HSPairs *sp);
-char			*hstrdup(HConnect *c, char *s);
-int			http11(HConnect*);
-int			httpfmt(Fmt*);
-char			*httpunesc(HConnect *c, char *s);
+HFields*		hrevhfields(HFields *hf);
+HSPairs*		hrevspairs(HSPairs *sp);
 int			hunallowed(HConnect *, char *allowed);
-int			hungetc(Hio *h);
-char			*hunload(Hio*);
-int			hurlfmt(Fmt*);
-char			*hurlunesc(HConnect *c, char *s);
-int			hwrite(Hio*, void*, int);
-int			hxferenc(Hio*, int);
-
-#pragma			varargck	argpos	hprint	2
+int			hurlconv(va_list*, Fconv*);
+char*			hurlunesc(HConnect *c, char *s);
 
 /*
  * D is httpd format date conversion

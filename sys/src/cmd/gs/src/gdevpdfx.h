@@ -1,22 +1,22 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevpdfx.h,v 1.2 2000/03/16 01:21:24 lpd Exp $ */
+/*$Id: gdevpdfx.h,v 1.22 2000/09/19 19:00:17 lpd Exp $ */
 /* Internal definitions for PDF-writing driver. */
 
 #ifndef gdevpdfx_INCLUDED
@@ -61,6 +61,7 @@ typedef struct cos_object_s cos_object_t;
 typedef struct cos_stream_s cos_stream_t;
 typedef struct cos_dict_s cos_dict_t;
 typedef struct cos_array_s cos_array_t;
+typedef struct cos_value_s cos_value_t;
 typedef struct cos_object_procs_s cos_object_procs_t;
 typedef const cos_object_procs_t *cos_type_t;
 #define cos_types_DEFINED
@@ -73,9 +74,9 @@ typedef enum {
      * up to but not including Font are written page-by-page.
      */
     resourceColorSpace,
-    /*resourceExtGState,*/	/* not needed */
+    resourceExtGState,
     resourcePattern,
-    /*resourceShading,*/	/* not needed */
+    resourceShading,
     resourceXObject,
     resourceFont,
     /*
@@ -83,19 +84,23 @@ typedef enum {
      */
     resourceCharProc,
     resourceFontDescriptor,
+    resourceFunction,
     NUM_RESOURCE_TYPES
 } pdf_resource_type_t;
 
 #define pdf_resource_type_names\
-  "ColorSpace", "Pattern", "XObject", "Font",\
-  0, 0
+  "ColorSpace", "ExtGState", "Pattern", "Shading", "XObject", "Font",\
+  0, 0, 0
 #define pdf_resource_type_structs\
   &st_pdf_resource,		/* see below */\
+  &st_pdf_resource,\
+  &st_pdf_resource,\
   &st_pdf_resource,\
   &st_pdf_x_object,		/* see below */\
   &st_pdf_font,			/* gdevpdff.h / gdevpdff.c */\
   &st_pdf_char_proc,		/* gdevpdff.h / gdevpdff.c */\
-  &st_pdf_font_descriptor	/* gdevpdff.h / gdevpdff.c */
+  &st_pdf_font_descriptor,	/* gdevpdff.h / gdevpdff.c */\
+  &st_pdf_resource
 
 #define pdf_resource_common(typ)\
     typ *next;			/* next resource of this type */\
@@ -213,8 +218,13 @@ struct pdf_article_s {
 /* ---------------- The device structure ---------------- */
 
 /* Text state */
+#ifndef pdf_font_descriptor_DEFINED
+#  define pdf_font_descriptor_DEFINED
+typedef struct pdf_font_descriptor_s pdf_font_descriptor_t;
+#endif
 typedef struct pdf_std_font_s {
     gs_font *font;		/* weak pointer, may be 0 */
+    pdf_font_descriptor_t *pfd;  /* *not* a weak pointer */
     gs_matrix orig_matrix;
     gs_uid uid;			/* UniqueID, not XUID */
 } pdf_std_font_t;
@@ -224,6 +234,8 @@ typedef struct pdf_text_state_s {
     pdf_font_t *font;
     floatp size;
     float word_spacing;
+    float leading;
+    bool use_leading;		/* true => use ', false => use Tj */
     /* Bookkeeping */
     gs_matrix matrix;		/* relative to device space, not user space */
     gs_point line_start;
@@ -234,7 +246,7 @@ typedef struct pdf_text_state_s {
 } pdf_text_state_t;
 
 #define pdf_text_state_default\
-  0, NULL, 0, 0,\
+  0, NULL, 0, 0, 0, 0 /*false*/,\
   { identity_matrix_body }, { 0, 0 }, { 0, 0 }, { 0 }, 0
 
 /* Resource lists */
@@ -265,6 +277,17 @@ typedef enum {
 } pdf_procset;
 
 /*
+ * Define the structure for keeping track of text rotation.
+ * There is one for the current page (for AutoRotate /PageByPage)
+ * and one for the whole document (for AutoRotate /All).
+ */
+typedef struct pdf_text_rotation_s {
+    long counts[5];		/* 0, 90, 180, 270, other */
+    int Rotate;			/* computed rotation, -1 means none */
+} pdf_text_rotation_t;
+#define pdf_text_rotation_angle_values 0, 90, 180, 270, -1
+
+/*
  * Define the stored information for a page.  Because pdfmarks may add
  * information to any page anywhere in the document, we have to wait
  * until the end to write out the page dictionaries.
@@ -277,6 +300,7 @@ typedef struct pdf_page_s {
     long resource_ids[resourceFont]; /* resources up to Font, see above */
     long fonts_id;
     cos_array_t *Annots;
+    pdf_text_rotation_t text_rotation;
 } pdf_page_t;
 #define private_st_pdf_page()	/* in gdevpdf.c */\
   gs_private_st_ptrs2(st_pdf_page, pdf_page_t, "pdf_page_t",\
@@ -303,23 +327,29 @@ struct gx_device_pdf_s {
     gx_device_psdf_common;
     /* PDF-specific distiller parameters */
     double CompatibilityLevel;
-#ifdef POST60
+    int EndPage;
+    int StartPage;
     bool Optimize;
     bool ParseDSCCommentsForDocInfo;
     bool ParseDSCComments;
     bool EmitDSCWarnings;
     bool CreateJobTicket;
     bool PreserveEPSInfo;
-    bool AutoPositionEPSFile;
+    bool AutoPositionEPSFiles;
     bool PreserveCopyPage;
     bool UsePrologue;
-#endif
     /* End of distiller parameters */
     /* Other parameters */
     bool ReAssignCharacters;
     bool ReEncodeCharacters;
     long FirstObjectNumber;
     /* End of parameters */
+    /* Additional graphics state */
+    bool fill_overprint, stroke_overprint;
+    int overprint_mode;
+    gs_id halftone_id;
+    gs_id transfer_ids[4];
+    gs_id black_generation_id, undercolor_removal_id;
     /* Following are set when device is opened. */
     enum {
 	pdf_compress_none,
@@ -355,8 +385,8 @@ struct gx_device_pdf_s {
      * EP nest, we delete the object from the pictures file at that time.
      */
     pdf_temp_file_t pictures;
-    pdf_font_t *open_font;
-    char open_font_name[sizeof(long) * 8 / 5 + 2]; /* radix-26 */
+    pdf_font_t *open_font;	/* current Type 3 synthesized font */
+    bool use_open_font;		/* if false, start new open_font */
     long embedded_encoding_id;
     /* ................ */
     long next_id;
@@ -376,11 +406,13 @@ struct gx_device_pdf_s {
     pdf_text_state_t text;
     pdf_std_font_t std_fonts[PDF_NUM_STD_FONTS];
     long space_char_ids[X_SPACE_MAX - X_SPACE_MIN + 1];
+    pdf_text_rotation_t text_rotation;
 #define initial_num_pages 50
     pdf_page_t *pages;
     int num_pages;
     pdf_resource_list_t resources[NUM_RESOURCE_TYPES];
-    pdf_resource_t *cs_Pattern;
+    /* cs_Patterns[0] is colored; 1,3,4 are uncolored + Gray,RGB,CMYK */
+    pdf_resource_t *cs_Patterns[5];
     pdf_resource_t *last_resource;
     pdf_outline_level_t outline_levels[MAX_OUTLINE_DEPTH];
     int outline_depth;
@@ -405,14 +437,17 @@ struct gx_device_pdf_s {
  m(8,open_font)\
  m(9,Catalog) m(10,Info) m(11,Pages)\
  m(12,text.font) m(13,pages)\
- m(14,cs_Pattern) m(15,last_resource)\
- m(16,articles) m(17,Dests) m(18,named_objects) m(19,open_graphics)
-#define gx_device_pdf_num_ptrs 20
+ m(14,cs_Patterns[0])\
+ m(15,cs_Patterns[1]) m(16,cs_Patterns[3]) m(17,cs_Patterns[4])\
+ m(18,last_resource)\
+ m(19,articles) m(20,Dests) m(21,named_objects) m(22,open_graphics)
+#define gx_device_pdf_num_ptrs 23
 #define gx_device_pdf_do_strings(m) /* do nothing */
 #define gx_device_pdf_num_strings 0
 #define st_device_pdf_max_ptrs\
   (st_device_psdf_max_ptrs + gx_device_pdf_num_ptrs +\
-   gx_device_pdf_num_strings + PDF_NUM_STD_FONTS /* std_fonts[].font */ +\
+   gx_device_pdf_num_strings +\
+   PDF_NUM_STD_FONTS * 2 /* std_fonts[].{font,pfd} */ +\
    NUM_RESOURCE_TYPES * NUM_RESOURCE_CHAINS /* resources[].chains[] */ +\
    MAX_OUTLINE_DEPTH * 2 /* outline_levels[].{first,last}.action */
 
@@ -423,16 +458,17 @@ struct gx_device_pdf_s {
 
 /* ================ Driver procedures ================ */
 
+    /* In gdevpdfb.c */
+dev_proc_copy_mono(gdev_pdf_copy_mono);
+dev_proc_copy_color(gdev_pdf_copy_color);
+dev_proc_fill_mask(gdev_pdf_fill_mask);
+dev_proc_strip_tile_rectangle(gdev_pdf_strip_tile_rectangle);
     /* In gdevpdfd.c */
 dev_proc_fill_rectangle(gdev_pdf_fill_rectangle);
 dev_proc_fill_path(gdev_pdf_fill_path);
 dev_proc_stroke_path(gdev_pdf_stroke_path);
     /* In gdevpdfi.c */
-dev_proc_copy_mono(gdev_pdf_copy_mono);
-dev_proc_copy_color(gdev_pdf_copy_color);
-dev_proc_fill_mask(gdev_pdf_fill_mask);
-dev_proc_begin_image(gdev_pdf_begin_image);
-dev_proc_strip_tile_rectangle(gdev_pdf_strip_tile_rectangle);
+dev_proc_begin_typed_image(gdev_pdf_begin_typed_image);
     /* In gdevpdfp.c */
 dev_proc_get_params(gdev_pdf_get_params);
 dev_proc_put_params(gdev_pdf_put_params);
@@ -448,6 +484,9 @@ void pdf_initialize_ids(P1(gx_device_pdf * pdev));
 
 /* Update the color mapping procedures after setting ProcessColorModel. */
 void pdf_set_process_color_model(P1(gx_device_pdf * pdev));
+
+/* Reset the text state parameters to initial values. */
+void pdf_reset_text(P1(gx_device_pdf *pdev));
 
 /* ---------------- Exported by gdevpdfu.c ---------------- */
 
@@ -470,31 +509,6 @@ long pdf_begin_obj(P1(gx_device_pdf * pdev));
 
 /* End an object. */
 int pdf_end_obj(P1(gx_device_pdf * pdev));
-
-/* ------ Graphics ------ */
-
-/* Reset the graphics state parameters to initial values. */
-void pdf_reset_graphics(P1(gx_device_pdf *pdev));
-
-/* Set the fill or stroke color. */
-int pdf_set_color(P4(gx_device_pdf *pdev, gx_color_index color,
-		     gx_drawing_color *pdcolor,
-		     const psdf_set_color_commands_t *ppscc));
-
-/* Write matrix values. */
-void pdf_put_matrix(P4(gx_device_pdf *pdev, const char *before,
-		       const gs_matrix *pmat, const char *after));
-
-/* Write a name, with escapes for unusual characters. */
-void pdf_put_name_escaped(P4(stream *s, const byte *nstr, uint size,
-			     bool escape));
-void pdf_put_name(P3(const gx_device_pdf *pdev, const byte *nstr, uint size));
-
-/* Write a string in its shortest form ( () or <> ). */
-void pdf_put_string(P3(const gx_device_pdf *pdev, const byte *str, uint size));
-
-/* Write a value, treating names specially. */
-void pdf_write_value(P3(const gx_device_pdf *pdev, const byte *vstr, uint size));
 
 /* ------ Page contents ------ */
 
@@ -562,6 +576,9 @@ void pdf_copy_data(P3(stream *s, FILE *file, long count));
 /* Returns 0 if the page number is out of range. */
 long pdf_page_id(P2(gx_device_pdf * pdev, int page_num));
 
+/* Get the page structure for the current page. */
+pdf_page_t *pdf_current_page(P1(gx_device_pdf *pdev));
+
 /* Get the dictionary object for the current page. */
 cos_dict_t *pdf_current_page_dict(P1(gx_device_pdf *pdev));
 
@@ -578,6 +595,80 @@ bool pdf_must_put_clip_path(P2(gx_device_pdf * pdev, const gx_clip_path * pcpath
 
 /* Write and update the clip path. */
 int pdf_put_clip_path(P2(gx_device_pdf * pdev, const gx_clip_path * pcpath));
+
+/* ------ Miscellaneous output ------ */
+
+#define PDF_MAX_PRODUCER 200	/* adhoc */
+/* Generate the default Producer string. */
+void pdf_store_default_Producer(P1(char buf[PDF_MAX_PRODUCER]));
+
+/* Define the strings for filter names and parameters. */
+typedef struct pdf_filter_names_s {
+    const char *ASCII85Decode;
+    const char *ASCIIHexDecode;
+    const char *CCITTFaxDecode;
+    const char *DCTDecode;
+    const char *DecodeParms;
+    const char *Filter;
+    const char *FlateDecode;
+    const char *LZWDecode;
+    const char *RunLengthDecode;
+} pdf_filter_names_t;
+#define PDF_FILTER_NAMES\
+  "/ASCII85Decode", "/ASCIIHexDecode", "/CCITTFaxDecode",\
+  "/DCTDecode",  "/DecodeParms", "/Filter", "/FlateDecode",\
+  "/LZWDecode", "/RunLengthDecode"
+#define PDF_FILTER_NAMES_SHORT\
+  "/A85", "/AHx", "/CCF", "/DCT", "/DP", "/F", "/Fl", "/LZW", "/RL"
+
+/* Write matrix values. */
+void pdf_put_matrix(P4(gx_device_pdf *pdev, const char *before,
+		       const gs_matrix *pmat, const char *after));
+
+/* Write a name, with escapes for unusual characters. */
+void pdf_put_name_escaped(P4(stream *s, const byte *nstr, uint size,
+			     bool escape));
+void pdf_put_name(P3(const gx_device_pdf *pdev, const byte *nstr, uint size));
+
+/* Write a string in its shortest form ( () or <> ). */
+void pdf_put_string(P3(const gx_device_pdf *pdev, const byte *str, uint size));
+
+/* Write a value, treating names specially. */
+void pdf_write_value(P3(const gx_device_pdf *pdev, const byte *vstr, uint size));
+
+/* Store filters for a stream. */
+int pdf_put_filters(P4(cos_dict_t *pcd, gx_device_pdf *pdev, stream *s,
+		       const pdf_filter_names_t *pfn));
+
+/* Define a possibly encoded and compressed data stream. */
+typedef struct pdf_data_writer_s {
+    psdf_binary_writer binary;
+    long start;
+    long length_id;
+} pdf_data_writer_t;
+/*
+ * Begin a Function or halftone data stream.  The client has opened the
+ * object and written the << and any desired dictionary keys.
+ */
+int pdf_begin_data(P2(gx_device_pdf *pdev, pdf_data_writer_t *pdw));
+
+/* End a data stream. */
+int pdf_end_data(P1(pdf_data_writer_t *pdw));
+
+/* Define the maximum size of a Function reference. */
+#define MAX_REF_CHARS ((sizeof(long) * 8 + 2) / 3)
+
+/* Create a Function object. */
+#ifndef gs_function_DEFINED
+typedef struct gs_function_s gs_function_t;
+#  define gs_function_DEFINED
+#endif
+int pdf_function(P3(gx_device_pdf *pdev, const gs_function_t *pfn,
+		    cos_value_t *pvalue));
+
+/* Write a Function object, returning its object ID. */
+int pdf_write_function(P3(gx_device_pdf *pdev, const gs_function_t *pfn,
+			  long *pid));
 
 /* ---------------- Exported by gdevpdfm.c ---------------- */
 
@@ -673,6 +764,5 @@ int pdf_scan_token_composite(P3(const byte **pscan, const byte * end,
 /* Replace object names with object references in a (parameter) string. */
 int pdf_replace_names(P3(gx_device_pdf *pdev, const gs_param_string *from,
 			 gs_param_string *to));
-
 
 #endif /* gdevpdfx_INCLUDED */

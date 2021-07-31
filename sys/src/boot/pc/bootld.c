@@ -76,7 +76,7 @@ Endofinput:
 			return FAIL;
 		}
 		if(size < 32*1024 || size > 256*1024) {
-			print("got %lud byte loader; not likely\n", size);
+			print("got %d byte loader; not likely\n");
 			b->state = FAILED;
 			return FAIL;
 		}

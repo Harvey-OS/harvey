@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
 
-extern	vlong	du(char*, Dir*);
-extern	vlong	k(vlong);
+extern	ulong	du(char*, Dir*, int);
+extern	ulong	k(ulong);
 extern	void	err(char*);
 extern	int	warn(char*);
 extern	int	seen(Dir*);
@@ -14,8 +14,8 @@ int	sflag;
 int	tflag;
 int	uflag;
 int	qflag;
-char	*fmt = "%llud\t%s\n";
-vlong	blocksize = 1024LL;
+char	fmt[] = "%lud\t%s\n";
+ulong	blocksize = 1024;
 
 void
 main(int argc, char *argv[])
@@ -44,7 +44,6 @@ main(int argc, char *argv[])
 		uflag = 1;
 		break;
 	case 'q':	/* qid */
-		fmt = "%.16llux\t%s\n";
 		qflag = 1;
 		break;
 	case 'b':	/* block size */
@@ -59,78 +58,87 @@ main(int argc, char *argv[])
 		break;
 	} ARGEND
 	if(argc==0)
-		print(fmt, du(".", dirstat(".")), ".");
+		print(fmt, du(".", nil, 1), ".");
 	else
-		for(i=0; i<argc; i++)
-			print(fmt, du(argv[i], dirstat(argv[i])), argv[i]);
+	for(i=0; i<argc; i++)
+		print(fmt, du(argv[i], nil, 1), argv[i]);
 	exits(0);
 }
 
-vlong
-du(char *name, Dir *dir)
+ulong
+du(char *name, Dir *dir, int top)
 {
 	int fd, i, n;
-	Dir *buf, *d;
+	Dir buf[25];
 	char file[256];
-	vlong nk, t;
+	ulong nk, t, mtime;
 
-	if(dir == nil)
-		return warn(name);
-
+	mtime = 0;
+	if(dir == 0) {
+		dir = buf;
+		if(dirstat(name, dir) < 0)
+			return warn(name);
+		if((dir->mode&CHDIR) == 0) {
+			if(tflag) {
+				if(uflag)
+					return dir->atime;
+				return dir->mtime;
+			}
+			if(qflag)
+				return dir->qid.path;
+			return k(dir->length);
+		}
+		mtime = dir->mtime;
+	}
 	fd = open(name, OREAD);
 	if(fd < 0)
 		return warn(name);
-
-	if((dir->qid.type&QTDIR) == 0)
-		nk = k(dir->length);
-	else{
-		nk = 0;
-		while((n=dirread(fd, &buf)) > 0) {
-			d = buf;
-			for(i=0; i<n; i++, d++) {
-				if((d->qid.type&QTDIR) == 0) {
-					t = k(d->length);
-					nk += t;
-					if(aflag) {
-						sprint(file, "%s/%s", name, d->name);
-						if(tflag) {
-							t = d->mtime;
-							if(uflag)
-								t = d->atime;
-						}
-						if(qflag)
-							t = d->qid.path;
-						print(fmt, t, file);
-					}
-					continue;
-				}
-				if(strcmp(d->name, ".") == 0 ||
-				   strcmp(d->name, "..") == 0 ||
-				   seen(d))
-					continue;
-				sprint(file, "%s/%s", name, d->name);
-				t = du(file, d);
+	nk = 0;
+	while((n=dirread(fd, buf, sizeof buf)) > 0) {
+		n /= sizeof(Dir);
+		dir = buf;
+		for(i=0; i<n; i++, dir++) {
+			if((dir->mode&CHDIR) == 0) {
+				t = k(dir->length);
 				nk += t;
-				if(tflag) {
-					t = d->mtime;
-					if(uflag)
-						t = d->atime;
-				}
-				if(qflag)
-					t = d->qid.path;
-				if(!sflag)
+				if(aflag) {
+					sprint(file, "%s/%s", name, dir->name);
+					if(tflag) {
+						t = dir->mtime;
+						if(uflag)
+							t = dir->atime;
+					}
+					if(qflag)
+						t = dir->qid.path;
 					print(fmt, t, file);
+				}
+				continue;
 			}
-			free(buf);
+			if(strcmp(dir->name, ".") == 0 ||
+			   strcmp(dir->name, "..") == 0 ||
+			   seen(dir))
+				continue;
+			sprint(file, "%s/%s", name, dir->name);
+			t = du(file, dir, 0);
+			nk += t;
+			if(tflag) {
+				t = dir->mtime;
+				if(uflag)
+					t = dir->atime;
+			}
+			if(qflag)
+				t = dir->qid.path;
+			if(!sflag || top)
+				print(fmt, t, file);
 		}
-		if(n < 0)
-			warn(name);
 	}
+	if(n < 0)
+		warn(name);
 	close(fd);
 	if(tflag) {
 		if(uflag)
 			return dir->atime;
-		return dir->mtime;
+		return mtime;
 	}
 	if(qflag)
 		return dir->qid.path;
@@ -172,23 +180,26 @@ seen(Dir *dir)
 void
 err(char *s)
 {
-	fprint(2, "du: %s: %r\n", s);
+	fprint(2, "du: ");
+	perror(s);
 	exits(s);
 }
 
 int
 warn(char *s)
 {
-	if(fflag == 0)
-		fprint(2, "du: %s: %r\n", s);
+	if(fflag == 0) {
+		fprint(2, "du: ");
+		perror(s);
+	}
 	return 0;
 }
 
-vlong
-k(vlong n)
+ulong
+k(ulong n)
 {
 	if(nflag)
 		return n;
 	n = (n+blocksize-1)/blocksize;
-	return n*blocksize/1024LL;
+	return n*blocksize/1024;
 }

@@ -57,7 +57,6 @@ readmessage(Message *m, Inbuf *inb)
 	int i, n, done;
 	uchar *p, *np;
 	char sdigest[SHA1dlen*2+1];
-	char tmp[64];
 
 	for(done = 0; !done;){
 		n = inb->wptr - inb->rptr;
@@ -68,9 +67,7 @@ readmessage(Message *m, Inbuf *inb)
 			inb->wptr = inb->rptr + n;
 			i = read(inb->fd, inb->wptr, Buffersize);
 			if(i < 0){
-				if(fd2path(inb->fd, tmp, sizeof tmp) < 0)
-					strcpy(tmp, "unknown mailbox");
-				fprint(2, "error reading '%s': %r\n", tmp);
+				fprint(2, "error reading mbox: %r");
 				return -1;
 			}
 			if(i == 0){
@@ -164,8 +161,8 @@ _readmbox(Mailbox *mb, int doplumb, Mlock *lk)
 {
 	int fd;
 	String *tmp;
-	Dir *d;
-	static char err[128];
+	Dir d;
+	static char err[ERRLEN];
 	Message *m, **l;
 	Inbuf *inb;
 	char *x;
@@ -178,7 +175,7 @@ _readmbox(Mailbox *mb, int doplumb, Mlock *lk)
 retry:
 	fd = open(mb->path, OREAD);
 	if(fd < 0){
-		errstr(err, sizeof(err));
+		errstr(err);
 		if(strstr(err, "exist") != 0){
 			tmp = s_copy(mb->path);
 			s_append(tmp, ".tmp");
@@ -195,37 +192,31 @@ retry:
 	 *  a new qid.path means reread the mailbox, while
 	 *  a new qid.vers means read any new messages
 	 */
-	d = dirfstat(fd);
-	if(d == nil){
+	if(dirfstat(fd, &d) < 0){
 		close(fd);
-		errstr(err, sizeof(err));
+		errstr(err);
 		return err;
 	}
-	if(mb->d != nil){
-		if(d->qid.path == mb->d->qid.path && d->qid.vers == mb->d->qid.vers){
-			close(fd);
-			free(d);
-			return nil;
-		}
-		if(d->qid.path == mb->d->qid.path){
-			while(*l != nil)
-				l = &(*l)->next;
-			seek(fd, mb->d->length, 0);
-		}
-		free(mb->d);
+	if(d.qid.path == mb->d.qid.path && d.qid.vers == mb->d.qid.vers){
+		close(fd);
+		return nil;
 	}
-	mb->d = d;
+	if(d.qid.path == mb->d.qid.path){
+		while(*l != nil)
+			l = &(*l)->next;
+		seek(fd, mb->d.length, 0);
+	}
+	memmove(&mb->d, &d, sizeof(d));
 	mb->vers++;
-	henter(PATH(0, Qtop), mb->name,
-		(Qid){PATH(mb->id, Qmbox), mb->vers, QTDIR}, nil, mb);
+	henter(CHDIR|PATH(0, Qtop), mb->name,
+		(Qid){CHDIR|PATH(mb->id, Qmbox), mb->vers}, nil, mb);
 
 	inb = emalloc(sizeof(Inbuf));
 	inb->rptr = inb->wptr = inb->data;
 	inb->fd = fd;
 
 	//  read new messages
-	snprint(err, sizeof err, "reading '%s'", mb->path);
-	logmsg(err, nil);
+	logmsg("reading mbox", nil);
 	for(;;){
 		if(lk != nil)
 			syslockrefresh(lk);
@@ -297,7 +288,7 @@ retry:
 static void
 _writembox(Mailbox *mb, Mlock *lk)
 {
-	Dir *d;
+	Dir d;
 	Message *m;
 	String *tmp;
 	int mode, errs;
@@ -309,11 +300,9 @@ _writembox(Mailbox *mb, Mlock *lk)
 	/*
 	 * preserve old files permissions, if possible
 	 */
-	d = dirstat(mb->path);
-	if(d != nil){
-		mode = d->mode&0777;
-		free(d);
-	} else
+	if(dirstat(mb->path, &d) >= 0)
+		mode = d.mode&0777;
+	else
 		mode = MBOXMODE;
 
 	sysremove(s_to_c(tmp));
@@ -352,9 +341,7 @@ _writembox(Mailbox *mb, Mlock *lk)
 		fprint(2, "%s: can't rename %s to %s: %r\n", argv0,
 			s_to_c(tmp), mb->path);
 	s_free(tmp);
-	if(mb->d != nil)
-		free(mb->d);
-	mb->d = dirstat(mb->path);
+	dirstat(mb->path, &mb->d);
 }
 
 char*
@@ -386,11 +373,11 @@ plan9syncmbox(Mailbox *mb, int doplumb)
 char*
 plan9mbox(Mailbox *mb, char *path)
 {
-	static char err[64];
+	static char err[ERRLEN];
 	String *tmp;
 
 	if(access(path, AEXIST) < 0){
-		errstr(err, sizeof(err));
+		errstr(err);
 		tmp = s_copy(path);
 		s_append(tmp, ".tmp");
 		if(access(s_to_c(tmp), AEXIST) < 0){

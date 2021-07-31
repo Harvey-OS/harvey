@@ -1,0 +1,36 @@
+# ext2srv
+# [bl]
+
+on trouve le numero de version sur les 2 premières lignes du
+fichier ext2subs.c.
+
+
+Version 0.1 : 
+
+1)	il n'ya plus de copie d'inode
+	tous les iobuf utilisés dans un fonction 
+	sont libérés. Un getbuf() => Un putbuf.
+
+2)	Tous dans les iobufs : super, group desc et bitmaps
+
+3)	Il n'ya plus aucune reférence au contenu d'une inode dans la
+	structure Xfile.
+
+4)	Choix de la parition en passant /dev/hd?disk:n lors du mount
+
+
+Version 0.11 :
+
+1)	-v affiche les blocks manipulés en lecture et écriture [18/10/96]
+
+2)	bug pour open avec TRUNC sur les liens... fixed [19/10/96]
+
+3)	maintenant on jette si la taille des blocks != 1024 dans ext2fs() [21/10/96]
+	(c'est quand même mieux pour le moment ...)
+
+
+Version 0.20 :
+
+1)	les blocks de 1024, 2048, 4096 octets sont supportés. [22/10/96]
+
+2)	le bug sur le qid.vers est détecté mais non corrigé...

@@ -5,7 +5,6 @@
 
 char	*yylp;		/* next character to be lex'd */
 char	*yybuffer;	/* first parsed character */
-char	*yyend;		/* end of buffer to be parsed */
 Node	*root;
 Field	*firstfield;
 Field	*lastfield;
@@ -16,7 +15,6 @@ int	originator;
 int	destination;
 int	date;
 int	received;
-int	messageid;
 %}
 
 %term WORD
@@ -135,7 +133,7 @@ ignored		: ignoredhdr ':' things
 		| ignoredhdr ':'
 			{ newfield(link2($1, $2), 0); }
 		;
-ignoredhdr	: MIMEVERSION | CONTENTTYPE | MESSAGEID { messageid = 1; } | MAILER
+ignoredhdr	: MIMEVERSION | CONTENTTYPE | MESSAGEID | MAILER
 		;
 optional	: fieldwords ':' things
 			{ /* hack to allow same lex for field names and the rest */
@@ -181,7 +179,7 @@ mailbox		: route_addr
 brak_addr	: '<' route_addr '>'
 			{ $$ = link3($1, $2, $3); }
 		| '<' '>'
-			{ $$ = nobody($2); freenode($1); }
+			{ $$ = anonymous($2); freenode($1); }
 		;
 route_addr	: route ':' at_addr
 			{ $$ = address(concat($1, concat($2, $3))); }
@@ -244,11 +242,10 @@ fieldword	: '<' | '>' | '@' | ';' | ','
  *  Initialize the parsing.  Done once for each header field.
  */
 void
-yyinit(char *p, int len)
+yyinit(char *p)
 {
 	yybuffer = p;
 	yylp = p;
-	yyend = p + len;
 	firstfield = lastfield = 0;
 	received = 0;
 }
@@ -305,7 +302,7 @@ yylex(void)
 	int c, d;
 
 /*	print("lexing\n"); /**/
-	if(yylp >= yyend)
+	if(*yylp == 0)
 		return 0;
 
 	quoting = escaping = 0;
@@ -314,13 +311,8 @@ yylex(void)
 	yylval->white = yylval->s = 0;
 	yylval->next = 0;
 	yylval->addr = 0;
-	for(t = 0; yylp < yyend; yylp++){
+	for(t = 0; *yylp; yylp++){
 		c = *yylp & 0xff;
-
-		/* dump nulls, they can't be in header */
-		if(c == 0)
-			continue;
-
 		if(escaping) {
 			escaping = 0;
 		} else if(quoting) {
@@ -418,13 +410,8 @@ yywhite(void)
 	int escaping;
 
 	escaping = clevel = 0;
-	for(w = 0; yylp < yyend; yylp++){
+	for(w = 0; *yylp; yylp++){
 		c = *yylp & 0xff;
-
-		/* dump nulls, they can't be in header */
-		if(c == 0)
-			continue;
-
 		if(escaping){
 			escaping = 0;
 		} else if(clevel) {
@@ -640,7 +627,7 @@ freenode(Node *p)
  *  an anonymous user
  */
 Node*
-nobody(Node *p)
+anonymous(Node *p)
 {
 	if(p->s)
 		s_free(p->s);

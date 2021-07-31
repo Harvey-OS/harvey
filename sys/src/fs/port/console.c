@@ -1,15 +1,13 @@
 #include	"all.h"
 
-#include	"9p1.h"
-
 void
-fcall9p1(Chan *cp, Fcall *in, Fcall *ou)
+p9fcall(Chan *cp, Fcall *in, Fcall *ou)
 {
 	int t;
 
 	rlock(&mainlock);
 	t = in->type;
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !call9p1[t]) {
+	if(t < 0 || t >= MAXSYSCALL || (t&1) || !p9call[t]) {
 		print("bad message type %d\n", t);
 		panic("");
 	}
@@ -17,12 +15,12 @@ fcall9p1(Chan *cp, Fcall *in, Fcall *ou)
 	ou->err = 0;
 
 	rlock(&cp->reflock);
-	(*call9p1[t])(cp, in, ou);
+	(*p9call[t])(cp, in, ou);
 	runlock(&cp->reflock);
 
 	if(ou->err)
 		if(CHAT(cp))
-			print("	error: %s\n", errstr9p[ou->err]);
+			print("	error: %s\n", errstr[ou->err]);
 	cons.work[0].count++;
 	cons.work[1].count++;
 	cons.work[2].count++;
@@ -35,7 +33,7 @@ con_session(void)
 	Fcall in, ou;
 
 	in.type = Tsession;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -48,7 +46,7 @@ con_attach(int fid, char *uid, char *arg)
 	in.fid = fid;
 	strncpy(in.uname, uid, NAMELEN);
 	strncpy(in.aname, arg, NAMELEN);
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -60,7 +58,7 @@ con_clone(int fid1, int fid2)
 	in.type = Tclone;
 	in.fid = fid1;
 	in.newfid = fid2;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -72,7 +70,7 @@ con_walk(int fid, char *name)
 	in.type = Twalk;
 	in.fid = fid;
 	strncpy(in.name, name, NAMELEN);
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -84,7 +82,7 @@ con_open(int fid, int mode)
 	in.type = Topen;
 	in.fid = fid;
 	in.mode = mode;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -98,7 +96,7 @@ con_read(int fid, char *data, long offset, int count)
 	in.offset = offset;
 	in.count = count;
 	ou.data = data;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	if(ou.err)
 		return 0;
 	return ou.count;
@@ -114,7 +112,7 @@ con_write(int fid, char *data, long offset, int count)
 	in.data = data;
 	in.offset = offset;
 	in.count = count;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	if(ou.err)
 		return 0;
 	return ou.count;
@@ -127,7 +125,7 @@ con_remove(int fid)
 
 	in.type = Tremove;
 	in.fid = fid;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -143,7 +141,7 @@ con_create(int fid, char *name, int uid, int gid, long perm, int mode)
 	in.mode = mode;
 	cons.uid = uid;			/* beyond ugly */
 	cons.gid = gid;
-	fcall9p1(cons.chan, &in, &ou);
+	p9fcall(cons.chan, &in, &ou);
 	return ou.err;
 }
 
@@ -227,7 +225,7 @@ f_fstat(Chan *cp, Fcall *in, Fcall *ou)
 		goto out;
 
 	print("name = %.28s\n", d->name);
-	print("uid = %d; gid = %d; muid = %d\n", d->uid, d->gid, d->muid);
+	print("uid = %d; gid = %d; wuid = %d\n", d->uid, d->gid, d->wuid);
 	print("size = %ld; qid = %lux/%lux\n", d->size, d->qid.path, d->qid.version);
 	print("atime = %ld; mtime = %ld\n", d->atime, d->mtime);
 	print("dblock =");

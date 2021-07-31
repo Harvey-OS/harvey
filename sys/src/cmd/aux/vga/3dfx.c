@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "pci.h"
 #include "vga.h"
+#include "pci.h"
 
 /*
  * 3Dfx.
@@ -165,9 +165,8 @@ init(Vga* vga, Ctlr* ctlr)
 	if(vga->f[0] == 0)
 		vga->f[0] = mode->frequency;
 	vga->misc &= ~0x0C;
-	if(vga->f[0] == VgaFreq0){
-		/* nothing to do */;
-	}
+	if(vga->f[0] == VgaFreq0)
+		;
 	else if(vga->f[0] == VgaFreq1)
 		vga->misc |= 0x04;
 	else if(vga->f[0] == 50000000)

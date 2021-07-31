@@ -1,0 +1,68 @@
+#!/bin/rc
+
+# 
+# extract - unpack distribution archives
+#
+
+rfork en
+
+. /bin/dist/defs
+
+root=/
+flag=()
+while(~ $1 -*) {
+	switch($1){
+	case -*d
+		flag=($flag $1 $2)
+		root=$2
+		shift
+		shift
+	case -*
+		flag=($flag $1)
+		shift
+	}
+}
+
+if(! ~ $#* 1) {
+	echo 'usage: extract [-uv] [-d root] archive.9gz' >[1=2]
+	exit usage
+}
+
+if(! test -d $root/dist) {
+	echo The distribution directory `{cleanname $root/dist} does not exist. >[1=2]
+	echo Please create it and try again. >[1=2]
+	exit notdone
+}
+
+name=`{basename `{basename $1} .9gz}
+if(test -d $root/dist/$name) {
+	echo The package $name is already installed. >[1=2]
+	prompt 'Do you want to reinstall it?' y n
+	switch($rd) {
+	case n
+		exit
+	}
+}
+
+if(test -f /dist/$name) {
+	echo The file /dist/$name is a file rather than a directory. >[1=2]
+	echo Please remove it and try again. >[1=2]
+	exit notdone
+}
+
+# bad way to avoid awk
+sz=`{ls -l $1 | sed 's/ *[^ ]* *[^ ]* *[^ ]* *[^ ]* *[^ ]* *([^ ]*).*/\1/'}
+{ watchfd gunzip 0 $sz | bargraph -k -w 145,129,445,168 'unpacking file system' }&
+gunzip < $1 | disk/mkext $flag
+s=$status
+
+if(~ $s '' '|') {
+	if(! test -d $root/dist/$name)
+		mkdir $root/dist/$name
+	>$root/dist/$name/done
+}
+if not {
+	echo The archive was not installed properly. >[1=2]
+	rm -rf /dist/$name
+}
+exit

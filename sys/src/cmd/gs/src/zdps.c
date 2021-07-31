@@ -1,22 +1,22 @@
-/* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: zdps.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/*$Id: zdps.c,v 1.4 2000/09/19 19:00:53 lpd Exp $ */
 /* Display PostScript extensions */
 #include "ghost.h"
 #include "oper.h"
@@ -24,6 +24,7 @@
 #include "gsdps.h"
 #include "gsimage.h"
 #include "gsiparm2.h"
+#include "gxalloc.h"		/* for names_array in allocator */
 #include "gxfixed.h"		/* for gxpath.h */
 #include "gxpath.h"
 #include "btoken.h"		/* for user_names_p */
@@ -199,6 +200,13 @@ zdefineusername(i_ctx_t *i_ctx_p)
 
     check_int_ltu(op[-1], max_array_size);
     check_type(*op, t_name);
+    if (user_names_p == 0) {
+	int code = create_names_array(&user_names_p, imemory_local,
+				      "defineusername");
+
+	if (code < 0)
+	    return code;
+    }
     if (array_get(user_names_p, op[-1].value.intval, &uname) >= 0) {
 	switch (r_type(&uname)) {
 	    case t_null:
@@ -224,30 +232,31 @@ zdefineusername(i_ctx_t *i_ctx_p)
 			old_size << 1);
 	else
 	    new_size <<= 1;
-	/* The user name array is always allocated in system VM, */
-	/* because it must be immune to save/restore. */
+	/*
+	 * The user name array is allocated in stable local VM,
+	 * because it must be immune to save/restore.
+	 */
 	{
-	    uint save_space = icurrent_space;
+	    gs_ref_memory_t *slmem =
+		(gs_ref_memory_t *)gs_memory_stable(imemory_local);
 	    int code;
 
-	    ialloc_set_space(idmemory, avm_system);
-	    code = ialloc_ref_array(&new_array, a_all, new_size,
-				    "defineusername(new)");
-	    if (code < 0) {
-		ialloc_set_space(idmemory, save_space);
+	    code = gs_alloc_ref_array(slmem, &new_array, a_all, new_size,
+				      "defineusername(new)");
+	    if (code < 0)
 		return code;
-	    }
 	    refcpy_to_new(new_array.value.refs, user_names_p->value.refs,
 			  old_size, idmemory);
 	    refset_null(new_array.value.refs + old_size,
 			new_size - old_size);
-	    ifree_ref_array(user_names_p, "defineusername(old)");
-	    ialloc_set_space(idmemory, save_space);
+	    if (old_size)
+		gs_free_ref_array(slmem, user_names_p, "defineusername(old)");
 	}
 	ref_assign(user_names_p, &new_array);
     }
     ref_assign(user_names_p->value.refs + op[-1].value.intval, op);
-  ret:pop(2);
+  ret:
+    pop(2);
     return 0;
 }
 

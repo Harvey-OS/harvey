@@ -1,0 +1,4 @@
+TEXT _BRK_(SB), 1, $0
+MOVL $24, R0
+TRAP $0
+RTS

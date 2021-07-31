@@ -34,6 +34,7 @@ enum {
 #define CGASCREENBASE	((uchar*)KADDR(0xB8000))
 
 static int cgapos;
+static int screeninitdone;
 static Lock cgascreenlock;
 
 static uchar
@@ -95,6 +96,15 @@ cgascreenputc(int c)
 	movecursor();
 }
 
+void
+screeninit(void)
+{
+	cgapos = cgaregr(0x0E)<<8;
+	cgapos |= cgaregr(0x0F);
+	cgapos *= 2;
+	screeninitdone = 1;
+}
+
 static void
 cgascreenputs(char* s, int n)
 {
@@ -115,13 +125,4 @@ cgascreenputs(char* s, int n)
 	unlock(&cgascreenlock);
 }
 
-void
-screeninit(void)
-{
-
-	cgapos = cgaregr(0x0E)<<8;
-	cgapos |= cgaregr(0x0F);
-	cgapos *= 2;
-
-	screenputs = cgascreenputs;
-}
+void (*screenputs)(char*, int) = cgascreenputs;

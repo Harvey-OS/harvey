@@ -1,0 +1,4 @@
+TEXT _ALARM(SB), 1, $0
+MOVL $6, R0
+TRAP $0
+RTS

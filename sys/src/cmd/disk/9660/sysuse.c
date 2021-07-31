@@ -535,7 +535,7 @@ CputrripTF(Cdimg *cd, Direc *d, int type, int dowrite)
 }
 
 
-#define NONPXMODES  (DMDIR & DMAPPEND & DMEXCL & DMMOUNT)
+#define NONPXMODES  (CHDIR & CHAPPEND & CHEXCL & CHMOUNT)
 #define POSIXMODEMASK (0177777)
 #ifndef S_IFMT
 #define S_IFMT  (0170000)
@@ -572,7 +572,7 @@ mode(Direc *d, int dot)
 
 	if ((dot != DTroot) && (dot != DTrootdot)) {
 		mode = (d->mode & ~(NONPXMODES));
-		if (d->mode & DMDIR)
+		if (d->mode & CHDIR)
 			mode |= S_IFDIR;
 		else if (d->mode & CHLINK)
 			mode |= S_IFLNK;
@@ -601,11 +601,11 @@ nlink(Direc *d)   /* Trump up the nlink field for POSIX compliance */
 		return 0;
 
 	n = 1;
-	if (d->mode & DMDIR)   /* One for "." and one more for ".." */
+	if (d->mode & CHDIR)   /* One for "." and one more for ".." */
 		n++;
 
 	for(i=0; i<d->nchild; i++)
-		if (d->child[i].mode & DMDIR)
+		if (d->child[i].mode & CHDIR)
 			n++;
 
 	return n;

@@ -274,16 +274,15 @@ printsyms(Sym **symptr, long nsym)
 void
 error(char *fmt, ...)
 {
-	Fmt f;
-	char buf[128];
+	char buf[4096], *s;
 	va_list arg;
 
-	fmtfdinit(&f, 2, buf, sizeof buf);
-	fmtprint(&f, "%s: ", argv0);
+	s = buf;
+	s += sprint(s, "%s: ", argv0);
 	va_start(arg, fmt);
-	fmtvprint(&f, fmt, arg);
+	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
 	va_end(arg);
-	fmtprint(&f, "\n");
-	fmtfdflush(&f);
+	*s++ = '\n';
+	write(2, buf, s - buf);
 	errs = "errors";
 }

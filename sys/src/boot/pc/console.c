@@ -207,7 +207,6 @@ panic(char *fmt, ...)
 	consputs(buf, n);
 	consputs("\n", 1);
 
-splhi(); for(;;);
 	if(etherdetach)
 		etherdetach();
 	if(sddetach)

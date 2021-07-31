@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+TARG=9i
+OFILES=9i.$O\
+	run.$O\
+	mem.$O\
+	syscall.$O\
+	stats.$O\
+	icache.$O\
+	symbols.$O\
+	cmd.$O\
+	bpt.$O\
+
+HFILES=29000.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+

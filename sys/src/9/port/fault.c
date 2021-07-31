@@ -38,14 +38,8 @@ fault(ulong addr, int read)
 }
 
 static void
-faulterror(char *s, Chan *c, int freemem)
+faulterror(char *s, int freemem)
 {
-	char buf[ERRMAX];
-
-	if(c && c->name){
-		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->name->s, up->errstr);
-		s = buf;
-	}
 	if(up->nerrlab) {
 		postnote(up, 1, s, NDebug);
 		error(s);
@@ -59,10 +53,12 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 	int type;
 	int ref;
 	Pte **p, *etp;
-	ulong mmuphys=0, soff;
+	char buf[ERRLEN];
+	ulong va, mmuphys=0, soff;
 	Page **pg, *lkp, *new;
 	Page *(*fn)(Segment*, ulong);
 
+	va = addr;
 	addr &= ~(BY2PG-1);
 	soff = addr-s->base;
 	p = &s->map[soff/PTEMAPMEM];
@@ -94,7 +90,12 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 	case SG_BSS:
 	case SG_SHARED:			/* Zero fill on demand */
 	case SG_STACK:
+	case SG_MAP:
 		if(*pg == 0) {
+			if(type == SG_MAP) {
+				sprint(buf, "map 0x%lux %c", va, read ? 'r' : 'w');
+				postnote(up, 1, buf, NDebug);
+			}
 			new = newpage(1, &s, addr);
 			if(s == 0)
 				return -1;
@@ -104,6 +105,7 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 		goto common;
 
 	case SG_DATA:
+	case SG_SHDATA:
 	common:			/* Demand load/pagein/copy on write */
 		if(pagedout(*pg))
 			pio(s, addr, soff, pg);
@@ -131,7 +133,7 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 			if(swapfull()){
 				qunlock(&s->lk);
 				pprint("swap space full\n");
-				faulterror(Enoswap, nil, 1);
+				faulterror(Enoswap, 1);
 			}
 
 			new = newpage(0, &s, addr);
@@ -219,11 +221,11 @@ retry:
 	if(loadrec == 0) {			/* This is demand load */
 		c = s->image->c;
 		while(waserror()) {
-			if(strcmp(up->errstr, Eintr) == 0)
+			if(strcmp(up->error, Eintr) == 0)
 				continue;
 			kunmap(k);
 			putpage(new);
-			faulterror("sys: demand load I/O error", c, 0);
+			faulterror("sys: demand load I/O error", 0);
 		}
 
 		ask = s->flen-soff;
@@ -232,7 +234,7 @@ retry:
 
 		n = devtab[c->type]->read(c, kaddr, ask, daddr);
 		if(n != ask)
-			faulterror(Eioload, c, 0);
+			faulterror(Eioload, 0);
 		if(ask < BY2PG)
 			memset(kaddr+ask, 0, BY2PG-ask);
 
@@ -259,12 +261,12 @@ retry:
 			putpage(new);
 			qlock(&s->lk);
 			qunlock(&s->lk);
-			faulterror("sys: page in I/O error", c, 0);
+			faulterror("sys: page in I/O error", 0);
 		}
 
 		n = devtab[c->type]->read(c, kaddr, BY2PG, daddr);
 		if(n != BY2PG)
-			faulterror(Eioload, c, 0);
+			faulterror(Eioload, 0);
 
 		poperror();
 		kunmap(k);
@@ -341,18 +343,15 @@ vmemchr(void *s, int c, int n)
 	char *t;
 	ulong a;
 
-    loop:
 	a = (ulong)s;
 	m = BY2PG - (a & (BY2PG-1));
 	if(m < n){
-		t = memchr(s, c, m);
+		t = vmemchr(s, c, m);
 		if(t)
 			return t;
 		if((a & KZERO) != KZERO)
 			validaddr(a+m, 1, 0);
-		s = (void*)(a+m);
-		n -= m;
-		goto loop;
+		return vmemchr((void*)(a+m), c, n-m);
 	}
 	/*
 	 * All in one page

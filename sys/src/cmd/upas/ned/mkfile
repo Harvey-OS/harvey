@@ -1,14 +1,13 @@
 </$objtype/mkfile
 
-TARG=nedmail
+TARG=nedmail marshal
 
 LIB=../common/libcommon.a$O\
 
 HFILES=	../common/common.h\
 
-OFILES=nedmail.$O
 
 BIN=/$objtype/bin/upas
-</sys/src/cmd/mkone
+</sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common
 

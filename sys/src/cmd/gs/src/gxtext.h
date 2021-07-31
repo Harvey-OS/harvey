@@ -1,22 +1,22 @@
-/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxtext.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxtext.h,v 1.3.2.1 2000/10/26 12:45:12 igorm Exp $ */
 /* Driver text interface implementation support */
 
 #ifndef gxtext_INCLUDED
@@ -102,6 +102,7 @@ rc_free_proc(rc_free_text_enum);
     gx_font_stack_t fstack;\
     int cmap_code;		/* hack for FMapType 9 composite fonts, */\
 				/* the value returned by decode_next */\
+    gs_point FontBBox_as_Metrics2;  /* used with FontType 9,11 && WMode 1 */\
     /* The following are used to return information to the client. */\
     gs_text_returned_t returned
 /* The typedef is in gstext.h. */
@@ -202,7 +203,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_is_width_only(proc)\
-  int proc(P1(const gs_text_enum_t *pte))
+  bool proc(P1(const gs_text_enum_t *pte))
 
     text_enum_proc_is_width_only((*is_width_only));
 

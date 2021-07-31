@@ -23,7 +23,7 @@ printerr(char *type, char *fmt, va_list argl)
 
 	if(!eof)fprint(errorf,"%d: ",yyline);
 	fprint(errorf,"(%s) ", type);
-	vseprint(buf, buf+sizeof(buf), fmt, argl);
+	doprint(buf, buf+sizeof(buf), fmt, argl);
 	fprint(errorf, "%s\n", buf);
 }
 

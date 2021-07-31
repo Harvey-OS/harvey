@@ -1,5 +1,4 @@
 typedef struct Event Event;
-typedef struct Exec Exec;
 typedef struct Message Message;
 typedef struct Window Window;
 
@@ -55,8 +54,6 @@ struct Message
 	uchar	deleted;
 	uchar	writebackdel;
 	uchar	tagposted;
-	uchar	recursed;
-	uchar	level;
 
 	/* header info */
 	char		*fromcolon;	/* from header file; all rest are from info file */
@@ -77,22 +74,6 @@ struct Message
 	Message	*tail;		/* last subpart */
 };
 
-enum
-{
-	NARGS		= 100,
-	NARGCHAR	= 8*1024,
-	EXECSTACK 	= STACK+(NARGS+1)*sizeof(char*)+NARGCHAR
-};
-
-struct Exec
-{
-	char		*prog;
-	char		**argv;
-	int		p[2];	/* p[1] is write to program; p[0] set to prog fd 0*/
-	int		q[2];	/* q[0] is read from program; q[1] set to prog fd 1 */
-	Channel	*sync;
-};
-
 extern	Window*	newwindow(void);
 extern	int		winopenfile(Window*, char*);
 extern	void		winopenbody(Window*, int);
@@ -107,7 +88,6 @@ extern	void		wineventproc(void*);
 extern	void		winwritebody(Window*, char*, int);
 extern	void		winclean(Window*);
 extern	int		winselect(Window*, char*, int);
-extern	char*	winselection(Window*);
 extern	int		winsetaddr(Window*, char*, int);
 extern	char*	winreadbody(Window*, int*);
 extern	void		windormant(Window*);
@@ -134,17 +114,14 @@ extern	Message*	mesglookupfile(Message*, char*, char*);
 extern	void		mesgfreeparts(Message*);
 
 extern	char*	readfile(char*, char*, int*);
-extern	char*	readbody(char*, char*, int*);
 extern	void		ctlprint(int, char*, ...);
 extern	void*	emalloc(uint);
-extern	void*	erealloc(void*, uint);
 extern	char*	estrdup(char*);
 extern	char*	estrstrdup(char*, char*);
 extern	char*	egrow(char*, char*, char*);
 extern	char*	eappend(char*, char*, char*);
 extern	void		error(char*, ...);
 extern	int		tokenizec(char*, char**, int, char*);
-extern	void		execproc(void*);
 
 #pragma	varargck	argpos	error	1
 #pragma	varargck	argpos	ctlprint	2
@@ -156,9 +133,6 @@ extern	char		*fsname;
 extern	int		plumbsendfd;
 extern	int		plumbseemailfd;
 extern	char		*home;
-extern	char		*outgoing;
 extern	char		*mailboxdir;
-extern	char		*user;
 extern	char		deleted[];
 extern	int		wctlfd;
-extern	int		shortmenu;

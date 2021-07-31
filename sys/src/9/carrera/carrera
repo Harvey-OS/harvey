@@ -1,0 +1,42 @@
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	ether		netif ethersonic
+	ip		chandial ip ipaux iproute arp netlog ptclbsum inferno nullmedium pktmedium
+	ns16552
+	mouse
+	draw
+	kprof
+	mntstats
+
+misc
+	ipconfig.root
+
+link
+	ethermedium
+
+ip
+	il
+	tcp
+	udp
+	ipifc
+	icmp
+	gre
+	ipmux
+
+port
+	int cpuserver = 0;
+	uchar rdbgcode[1];
+	ulong rdbglen = sizeof(rdbgcode);
+	void audiosbintr(void){}
+
+boot
+	il

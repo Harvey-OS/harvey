@@ -54,14 +54,14 @@ mpnew(int n)
 
 	b = mallocz(sizeof(mpint), 1);
 	if(b == nil)
-		sysfatal("mpnew: %r");
+		sysfatal("mpnew");
 	n = DIGITS(n);
 	if(n < mpmindigits)
 		n = mpmindigits;
 	n = n;
 	b->p = (mpdigit*)mallocz(n*Dbytes, 1);
 	if(b->p == nil)
-		sysfatal("mpnew: %r");
+		sysfatal("mpnew");
 	b->size = n;
 	b->sign = 1;
 
@@ -84,7 +84,7 @@ mpbits(mpint *b, int m)
 	}
 	b->p = (mpdigit*)realloc(b->p, n*Dbytes);
 	if(b->p == nil)
-		sysfatal("mpbits: %r");
+		sysfatal("mpbits");
 	memset(&b->p[b->top], 0, Dbytes*(n - b->top));
 	b->size = n;
 	b->top = n;

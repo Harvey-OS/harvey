@@ -152,8 +152,7 @@ enum
 typedef struct FPart FPart;
 struct FPart
 {
-	char	*name;
-	char	*ctlname;
+	char	name[NAMELEN-4];
 	ulong	start;
 	ulong	end;
 };
@@ -164,25 +163,25 @@ static FPart	part[Maxpart];
 #define FPART(q)	(&part[(q) >>8])
 
 static int
-gen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
+gen(Chan *c, Dirtab*, int, int i, Dir *dp)
 {
 	Qid q;
+	char buf[NAMELEN];
 	FPart *fp;
 
 	q.vers = 0;
 
 	/* top level directory contains the name of the network */
-	if(c->qid.path == Qtopdir){
+	if(c->qid.path == CHDIR){
 		switch(i){
 		case DEVDOTDOT:
-			q.path = Qtopdir;
-			q.type = QTDIR;
-			devdir(c, q, "#F", 0, eve, DMDIR|0555, dp);
+			q.path = CHDIR;
+			devdir(c, q, ".", 0, eve, CHDIR|0555, dp);
 			break;
 		case 0:
-			q.path = Q2nddir;
-			q.type = QTDIR;
-			devdir(c, q, "flash", 0, eve, DMDIR|0555, dp);
+			q.path = CHDIR | Q2nddir;
+			strcpy(buf, "flash");
+			devdir(c, q, buf, 0, eve, CHDIR|0555, dp);
 			break;
 		default:
 			return -1;
@@ -193,24 +192,22 @@ gen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 	/* second level contains all partitions and their control files */
 	switch(i) {
 	case DEVDOTDOT:
-		q.path = Qtopdir;
-		q.type = QTDIR;
-		devdir(c, q, "#F", 0, eve, DMDIR|0555, dp);
+		q.path = CHDIR;
+		devdir(c, q, "#F", 0, eve, CHDIR|0555, dp);
 		break;
 	default:
 		if(i >= 2*Maxpart)
 			return -1;
 		fp = &part[i>>1];
-		if(fp->name == nil)
+		if(fp->name[0] == 0)
 			return 0;
 		if(i & 1){
 			q.path = FQID(i>>1, Qfdata);
-			q.type = QTFILE;
 			devdir(c, q, fp->name, fp->end-fp->start, eve, 0660, dp);
 		} else {
+			snprint(buf, sizeof(buf), "%sctl", fp->name);
 			q.path = FQID(i>>1, Qfctl);
-			q.type = QTFILE;
-			devdir(c, q, fp->ctlname, 0, eve, 0660, dp);
+			devdir(c, q, buf, 0, eve, 0660, dp);
 		}
 		break;
 	}
@@ -223,7 +220,7 @@ findpart(char *name)
 	int i;
 
 	for(i = 0; i < Maxpart; i++)
-		if(part[i].name != nil && strcmp(name, part[i].name) == 0)
+		if(strcmp(name, part[i].name) == 0)
 			break;
 	if(i >= Maxpart)
 		return nil;
@@ -234,8 +231,9 @@ static void
 addpart(FPart *fp, char *name, ulong start, ulong end)
 {
 	int i;
-	char ctlname[64];
 
+	if(strlen(name) > NAMELEN-3)
+		error("name too long");
 	if(fp == nil){
 		if(start >= flash.size || end > flash.size)
 			error(Ebadarg);
@@ -254,14 +252,12 @@ addpart(FPart *fp, char *name, ulong start, ulong end)
 	if(fp != nil)
 		error(Eexist);
 	for(i = 0; i < Maxpart; i++)
-		if(part[i].name == nil)
+		if(part[i].name[0] == 0)
 			break;
 	if(i == Maxpart)
 		error("no more partitions");
 	fp = &part[i];
-	kstrdup(&fp->name, name);
-	snprint(ctlname, sizeof ctlname, "%sctl", name);
-	kstrdup(&fp->ctlname, ctlname);
+	strncpy(fp->name, name, sizeof(fp->name)-1);
 	fp->start = start;
 	fp->end = end;
 }
@@ -269,14 +265,7 @@ addpart(FPart *fp, char *name, ulong start, ulong end)
 static void
 rempart(FPart *fp)
 {
-	char *p, *cp;
-
-	p = fp->name;
-	fp->name = nil;
-	cp = fp->ctlname;
-	fp->ctlname = nil;
-	free(p);
-	free(cp);
+	fp->name[0] = 0;
 }
 
 void
@@ -303,16 +292,16 @@ flashattach(char* spec)
 	return devattach('F', spec);
 }
 
-static Walkqid*
-flashwalk(Chan *c, Chan *nc, char **name, int nname)
+static int	 
+flashwalk(Chan* c, char* name)
 {
-	return devwalk(c, nc, name, nname, nil, 0, gen);
+	return devwalk(c, name, nil, 0, gen);
 }
 
-static int	 
-flashstat(Chan *c, uchar *db, int n)
+static void	 
+flashstat(Chan* c, char* dp)
 {
-	return devstat(c, db, n, nil, 0, gen);
+	devstat(c, dp, nil, 0, gen);
 }
 
 static Chan*
@@ -338,7 +327,7 @@ flashctlread(FPart *fp, void* a, long n, vlong off)
 
 	buf = smalloc(1024);
 	e = buf + 1024;
-	p = seprint(buf, e, "0x%-9lux 0x%-9x 0x%-9ux 0x%-9ux\n", fp->end-fp->start,
+	p = seprint(buf, e, "0x%-9lux 0x%-9lux 0x%-9lux 0x%-9lux\n", fp->end-fp->start,
 		flash.wbsize, flash.manid, flash.devid);
 	addr = fp->start;
 	for(i = 0; i < flash.nr && addr < fp->end; i++)
@@ -364,7 +353,7 @@ flashdataread(FPart *fp, void* a, long n, vlong off)
 		runlock(&flash);
 		nexterror();
 	}
-	if(fp->name == nil)
+	if(fp->name[0] == 0)
 		error("partition vanished");
 	if(!iseve())
 		error(Eperm);
@@ -384,12 +373,9 @@ flashdataread(FPart *fp, void* a, long n, vlong off)
 static long	 
 flashread(Chan* c, void* a, long n, vlong off)
 {
-	int t;
-
-	if(c->qid.type == QTDIR)
+	if(c->qid.path&CHDIR)
 		return devdirread(c, a, n, nil, 0, gen);
-	t = FTYPE(c->qid.path);
-	switch(t){
+	switch(FTYPE(c->qid.path)){
 	default:
 		error(Eperm);
 	case Qfctl:
@@ -528,7 +514,7 @@ flashdatawrite(FPart *fp, uchar *p, long n, long off)
 		nexterror();
 	}
 
-	if(fp->name == nil)
+	if(fp->name[0] == 0)
 		error("partition vanished");
 	if(!iseve())
 		error(Eperm);
@@ -589,16 +575,13 @@ flashdatawrite(FPart *fp, uchar *p, long n, long off)
 static long	 
 flashwrite(Chan* c, void* a, long n, vlong off)
 {
-	int t;
-
-	if(c->qid.type == QTDIR)
+	if(c->qid.path & CHDIR)
 		error(Eperm);
 
 	if(!iseve())
 		error(Eperm);
 
-	t = FTYPE(c->qid.path);
-	switch(t){
+	switch(FTYPE(c->qid.path)){
 	default:
 		panic("flashwrite");
 	case Qfctl:
@@ -617,8 +600,8 @@ Dev flashdevtab = {
 
 	devreset,
 	flashinit,
-	devshutdown,
 	flashattach,
+	devclone,
 	flashwalk,
 	flashstat,
 	flashopen,
@@ -672,7 +655,7 @@ ise_clearerror(void)
 static void
 ise_error(int bank, ulong status)
 {
-	char err[64];
+	char err[ERRLEN];
 
 	if(status & (ISEs_lockerr)){
 		sprint(err, "flash%d: block locked %lux", bank, status);

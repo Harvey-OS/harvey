@@ -6,7 +6,8 @@
  *
  * Also supports Rock Ridge extensions for long file names and Unix stuff.
  * Also supports Microsoft's Joliet extensions for Unicode and long file names.
- * Also supports El Torito bootable CD spec.
+ *
+ * To do: bootable CD support.
  */
 
 typedef struct Cdimg Cdimg;
@@ -111,12 +112,6 @@ struct Cdimg {
 	ulong rrcontin; /* rock ridge continuation offset */
 	ulong nulldump;	/* next dump block */
 	ulong nconform;	/* number of conform entries written already */
-	ulong bootcatptr;
-	ulong bootcatblock;
-	ulong bootimageptr;
-	Direc *bootdirec;
-	char *bootimage;
-	
 	Biobuf brd;
 	Biobuf bwr;
 
@@ -132,7 +127,6 @@ enum {	/* Cdimg->flags, Cdinfo->flags */
 	CDrockridge = 1<<3,
 	CDnew = 1<<4,
 	CDdump = 1<<5,
-	CDbootable = 1<<6,
 };
 
 typedef struct Tx Tx;
@@ -155,7 +149,6 @@ struct Cdinfo {
 	char *publisher;
 	char *preparer;
 	char *application;
-	char *bootimage;
 };
 
 enum {
@@ -287,13 +280,6 @@ enum { /* CputrripNM flag types */
 	NMvolroot = 1<<4,
 	NMhost = 1<<5,
 };
-
-/* boot.c */
-void Cputbootvol(Cdimg*);
-void Cputbootcat(Cdimg*);
-void Cupdatebootvol(Cdimg*);
-void Cupdatebootcat(Cdimg*);
-void findbootimage(Cdimg*, Direc*);
 
 /* cdrdwr.c */
 Cdimg *createcd(char*, Cdinfo);

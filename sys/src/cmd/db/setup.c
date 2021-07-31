@@ -28,6 +28,7 @@ setsym(void)
 	}
 	if (crackhdr(fsym, &fhdr)) {
 		machbytype(fhdr.type);
+print("name = %s\n", mach->name);
 		symmap = loadmap(symmap, fsym, &fhdr);
 		if (symmap == 0)
 			symmap = dumbmap(fsym);
@@ -184,25 +185,23 @@ void
 attachprocess(void)
 {
 	char buf[100];
-	Dir *sym, *mem;
+	int statstat;
+	Dir sym, mem;
 	int fd;
 
 	if (!adrflg) {
 		dprint("used pid$a\n");
 		return;
 	}
-	sym = dirfstat(fsym);
+	statstat = dirfstat(fsym, &sym);
 	sprint(buf, "/proc/%lud/mem", adrval);
 	corfil = buf;
 	setcor();
 	sprint(buf, "/proc/%lud/text", adrval);
 	fd = open(buf, OREAD);
-	mem = nil;
-	if (sym==nil || fd < 0 || (mem=dirfstat(fd))==nil
-				|| sym->qid.path != mem->qid.path)
+	if (statstat < 0 || fd < 0 || dirfstat(fd, &mem) < 0
+				|| sym.qid.path != mem.qid.path)
 		dprint("warning: text images may be inconsistent\n");
-	free(sym);
-	free(mem);
 	if (fd >= 0)
 		close(fd);
 }

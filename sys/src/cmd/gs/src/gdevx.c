@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gdevx.c,v 1.3 2000/03/17 07:35:43 lpd Exp $ */
+/*$Id: gdevx.c,v 1.7 2000/09/19 19:00:23 lpd Exp $ */
 /* X Windows driver for Ghostscript library */
 #include "gx.h"			/* for gx_bitmap; includes std.h */
 #include "math_.h"
@@ -77,6 +77,7 @@ private dev_proc_get_page_device(x_get_page_device);
 private dev_proc_strip_tile_rectangle(x_strip_tile_rectangle);
 private dev_proc_begin_typed_image(x_begin_typed_image);
 private dev_proc_get_bits_rectangle(x_get_bits_rectangle);
+/*extern dev_proc_get_xfont_procs(gdev_x_finish_copydevice);*/
 
 /* The device descriptor */
 const gx_device_X gs_x11_device = {
@@ -124,7 +125,12 @@ const gx_device_X gs_x11_device = {
 	NULL,			/* strip_copy_rop */
 	NULL,			/* get_clipping_box */
 	x_begin_typed_image,
-	x_get_bits_rectangle
+	x_get_bits_rectangle,
+	NULL,			/* map_color_rgb_alpha */
+	NULL,			/* create_compositor */
+	NULL,			/* get_hardware_params */
+	NULL,			/* text_begin */
+	gdev_x_finish_copydevice
     },
     gx_device_bbox_common_initial(0 /*false*/, 1 /*true*/, 1 /*true*/),
     0 /*false*/,		/* is_buffered */
@@ -284,7 +290,7 @@ x_sync(gx_device * dev)
     gx_device_X *xdev = (gx_device_X *) dev;
 
     update_do_flush(xdev);
-    XFlush(xdev->dpy);
+    XSync(xdev->dpy, False);
     return 0;
 }
 
@@ -1148,25 +1154,33 @@ const gx_device_bbox_procs_t gdev_x_box_procs = {
 
 /* ------ Internal procedures ------ */
 
-/* Substitute for XPutImage using XFillRectangle. */
-/* This is a total hack to get around an apparent bug */
-/* in some X servers.  It only works with the specific */
-/* parameters (bit/byte order, padding) used above. */
+/*
+ * Substitute for XPutImage using XFillRectangle.  This is a hack to get
+ * around an apparent bug in some X servers.  It only works with the
+ * specific parameters (bit/byte order, padding) used above.
+ */
 private int
-alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
-	XImage * pi, int sx, int sy, int dx, int dy, unsigned w, unsigned h)
+alt_put_image(gx_device *dev, Display *dpy, Drawable win, GC gc, XImage *pi,
+	      int sx, int sy, int dx, int dy, unsigned w, unsigned h)
 {
     int raster = pi->bytes_per_line;
     byte *data = (byte *) pi->data + sy * raster + (sx >> 3);
     int init_mask = 0x80 >> (sx & 7);
     int invert = 0;
     int yi;
-
-#define nrects 40
-    XRectangle rects[nrects];
+#define NUM_RECTS 40
+    XRectangle rects[NUM_RECTS];
     XRectangle *rp = rects;
-
     XGCValues gcv;
+
+#ifdef DEBUG
+    if (pi->format != XYBitmap || pi->byte_order != MSBFirst ||
+	pi->bitmap_bit_order != MSBFirst || pi->depth != 1
+	) {
+	lprintf("alt_put_image: unimplemented parameter values!\n");
+	return_error(gs_error_rangecheck);
+    }
+#endif
 
     XGetGCValues(dpy, gc, (GCFunction | GCForeground | GCBackground), &gcv);
 
@@ -1175,11 +1189,25 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
 	XFillRectangle(dpy, win, gc, dx, dy, w, h);
 	XSetForeground(dpy, gc, gcv.foreground);
     } else if (gcv.function == GXand) {
+	/* The only cases used above are fc = ~0 or bc = ~0. */
+#ifdef DEBUG
+	if (gcv.foreground != ~(x_pixel)0 && gcv.background != ~(x_pixel)0) {
+	    lprintf("alt_put_image: unimplemented GXand case!\n");
+	    return_error(gs_error_rangecheck);
+	}
+#endif
 	if (gcv.background != ~(x_pixel) 0) {
 	    XSetForeground(dpy, gc, gcv.background);
 	    invert = 0xff;
 	}
     } else if (gcv.function == GXor) {
+	/* The only cases used above are fc = 0 or bc = 0. */
+#ifdef DEBUG
+	if (gcv.foreground != 0 && gcv.background != 0) {
+	    lprintf("alt_put_image: unimplemented GXor case!\n");
+	    return_error(gs_error_rangecheck);
+	}
+#endif
 	if (gcv.background != 0) {
 	    XSetForeground(dpy, gc, gcv.background);
 	    invert = 0xff;
@@ -1198,8 +1226,8 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
 	    if ((*dp ^ invert) & mask) {
 		int xleft = xi;
 
-		if (rp == &rects[nrects]) {
-		    XFillRectangles(dpy, win, gc, rects, nrects);
+		if (rp == &rects[NUM_RECTS]) {
+		    XFillRectangles(dpy, win, gc, rects, NUM_RECTS);
 		    rp = rects;
 		}
 		/* Scan over a run of 1-bits */
@@ -1208,7 +1236,7 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
 		    if (!(mask >>= 1))
 			mask = 0x80, dp++;
 		    xi++;
-		} while (xi < w && (*dp & mask));
+		} while (xi < w && ((*dp ^ invert) & mask));
 		rp->width = xi - xleft, rp->height = 1;
 		rp++;
 	    } else {
@@ -1222,4 +1250,5 @@ alt_put_image(gx_device * dev, Display * dpy, Drawable win, GC gc,
     if (invert)
 	XSetForeground(dpy, gc, gcv.foreground);
     return 0;
+#undef NUM_RECTS
 }

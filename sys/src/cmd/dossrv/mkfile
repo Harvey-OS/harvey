@@ -12,7 +12,6 @@ OFILES=\
 	devio.$O\
 
 HFILES=dat.h\
-	dosfs.h\
 	fns.h\
 	iotrack.h\
 

@@ -17,45 +17,10 @@
 enum {
 	Qdir,
 	Qvgactl,
-	Qvgaovl,
-	Qvgaovlctl,
 };
 
 static Dirtab vgadir[] = {
-	".",	{ Qdir, 0, QTDIR },		0,	0550,
-	"vgactl",		{ Qvgactl, 0 },		0,	0660,
-	"vgaovl",		{ Qvgaovl, 0 },		0,	0660,
-	"vgaovlctl",	{ Qvgaovlctl, 0 },	0, 	0660,
-};
-
-enum {
-	CMactualsize,
-	CMblank,
-	CMblanktime,
-	CMdrawinit,
-	CMhwaccel,
-	CMhwblank,
-	CMhwgc,
-	CMlinear,
-	CMpalettedepth,
-	CMpanning,
-	CMsize,
-	CMtype,
-};
-
-static Cmdtab vgactlmsg[] = {
-	CMactualsize,	"actualsize",	2,
-	CMblank,	"blank",	1,
-	CMblanktime,	"blanktime",	2,
-	CMdrawinit,	"drawinit",	1,
-	CMhwaccel,	"hwaccel",	2,
-	CMhwblank,	"hwblank",	2,
-	CMhwgc,		"hwgc",		2,
-	CMlinear,	"linear",	0,
-	CMpalettedepth,	"palettedepth",	2,
-	CMpanning,	"panning",	2,
-	CMsize,		"size",		3,
-	CMtype,		"type",		2,
+	"vgactl",	{ Qvgactl, 0 },		0,	0660,
 };
 
 static void
@@ -77,50 +42,27 @@ vgaattach(char* spec)
 	return devattach('v', spec);
 }
 
-Walkqid*
-vgawalk(Chan* c, Chan *nc, char** name, int nname)
+int
+vgawalk(Chan* c, char* name)
 {
-	return devwalk(c, nc, name, nname, vgadir, nelem(vgadir), devgen);
+	return devwalk(c, name, vgadir, nelem(vgadir), devgen);
 }
 
-static int
-vgastat(Chan* c, uchar* dp, int n)
+static void
+vgastat(Chan* c, char* dp)
 {
-	return devstat(c, dp, n, vgadir, nelem(vgadir), devgen);
+	devstat(c, dp, vgadir, nelem(vgadir), devgen);
 }
 
 static Chan*
 vgaopen(Chan* c, int omode)
 {
-	VGAscr *scr;
-	static char *openctl = "openctl\n";
-
-	scr = &vgascreen[0];
-	if ((ulong)c->qid.path == Qvgaovlctl) {
-		if (scr->dev->ovlctl)
-			scr->dev->ovlctl(scr, c, openctl, strlen(openctl));
-		else 
-			error(Enonexist);
-	}
 	return devopen(c, omode, vgadir, nelem(vgadir), devgen);
 }
 
 static void
-vgaclose(Chan* c)
+vgaclose(Chan*)
 {
-	VGAscr *scr;
-	static char *closectl = "closectl\n";
-
-	scr = &vgascreen[0];
-	if((ulong)c->qid.path == Qvgaovlctl)
-		if(scr->dev->ovlctl){
-			if(waserror()){
-				print("ovlctl error: %s\n", up->errstr);
-				return;
-			}
-			scr->dev->ovlctl(scr, c, closectl, strlen(closectl));
-			poperror();
-		}
 }
 
 static void
@@ -146,7 +88,7 @@ vgaread(Chan* c, void* a, long n, vlong off)
 	ulong offset = off;
 	char chbuf[30];
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path & ~CHDIR){
 
 	case Qdir:
 		return devdirread(c, a, n, vgadir, nelem(vgadir), devgen);
@@ -182,18 +124,12 @@ vgaread(Chan* c, void* a, long n, vlong off)
 		len += snprint(p+len, READSTR-len, "blanktime %lud\n", blanktime);
 		len += snprint(p+len, READSTR-len, "hwaccel %s\n", hwaccel ? "on" : "off");
 		len += snprint(p+len, READSTR-len, "hwblank %s\n", hwblank ? "on" : "off");
-		len += snprint(p+len, READSTR-len, "panning %s\n", panning ? "on" : "off");
 		snprint(p+len, READSTR-len, "addr 0x%lux\n", scr->aperture);
 		n = readstr(offset, a, n, p);
 		poperror();
 		free(p);
 
 		return n;
-
-	case Qvgaovl:
-	case Qvgaovlctl:
-		error(Ebadusefd);
-		break;
 
 	default:
 		error(Egreg);
@@ -206,21 +142,26 @@ vgaread(Chan* c, void* a, long n, vlong off)
 static char Ebusy[] = "vga already configured";
 
 static void
-vgactl(Cmdbuf *cb)
+vgactl(char* a)
 {
-	int align, i, size, x, y, z;
-	char *chanstr, *p;
+	int align, i, n, size, x, y, z;
+	char *chanstr, *field[6], *p;
 	ulong chan;
-	Cmdtab *ct;
 	VGAscr *scr;
 	extern VGAdev *vgadev[];
 	extern VGAcur *vgacur[];
+	Rectangle r;
+
+	n = getfields(a, field, nelem(field), 1, " \t\n");
+	if(n < 1)
+		error(Ebadarg);
 
 	scr = &vgascreen[0];
-	ct = lookupcmd(cb, vgactlmsg, nelem(vgactlmsg));
-	switch(ct->index){
-	case CMhwgc:
-		if(strcmp(cb->f[1], "off") == 0){
+	if(strcmp(field[0], "hwgc") == 0){
+		if(n < 2)
+			error(Ebadarg);
+
+		if(strcmp(field[1], "off") == 0){
 			lock(&cursor);
 			if(scr->cur){
 				if(scr->cur->disable)
@@ -232,7 +173,7 @@ vgactl(Cmdbuf *cb)
 		}
 
 		for(i = 0; vgacur[i]; i++){
-			if(strcmp(cb->f[1], vgacur[i]->name))
+			if(strcmp(field[1], vgacur[i]->name))
 				continue;
 			lock(&cursor);
 			if(scr->cur && scr->cur->disable)
@@ -243,11 +184,13 @@ vgactl(Cmdbuf *cb)
 			unlock(&cursor);
 			return;
 		}
-		break;
+	}
+	else if(strcmp(field[0], "type") == 0){
+		if(n < 2)
+			error(Ebadarg);
 
-	case CMtype:
 		for(i = 0; vgadev[i]; i++){
-			if(strcmp(cb->f[1], vgadev[i]->name))
+			if(strcmp(field[1], vgadev[i]->name))
 				continue;
 			if(scr->dev && scr->dev->disable)
 				scr->dev->disable(scr);
@@ -256,13 +199,14 @@ vgactl(Cmdbuf *cb)
 				scr->dev->enable(scr);
 			return;
 		}
-		break;
-
-	case CMsize:
+	}
+	else if(strcmp(field[0], "size") == 0){
+		if(n < 3)
+			error(Ebadarg);
 		if(drawhasclients())
 			error(Ebusy);
 
-		x = strtoul(cb->f[1], &p, 0);
+		x = strtoul(field[1], &p, 0);
 		if(x == 0 || x > 2048)
 			error(Ebadarg);
 		if(*p)
@@ -276,7 +220,7 @@ vgactl(Cmdbuf *cb)
 
 		z = strtoul(p, &p, 0);
 
-		chanstr = cb->f[2];
+		chanstr = field[2];
 		if((chan = strtochan(chanstr)) == 0)
 			error("bad channel");
 
@@ -290,12 +234,14 @@ vgactl(Cmdbuf *cb)
 		vgascreenwin(scr);
 		cursoron(1);
 		return;
-
-	case CMactualsize:
+	}
+	else if(strcmp(field[0], "actualsize") == 0){
 		if(scr->gscreen == nil)
 			error("set the screen size first");
 
-		x = strtoul(cb->f[1], &p, 0);
+		if(n < 2)
+			error(Ebadarg);
+		x = strtoul(field[1], &p, 0);
 		if(x == 0 || x > 2048)
 			error(Ebadarg);
 		if(*p)
@@ -308,97 +254,96 @@ vgactl(Cmdbuf *cb)
 		if(x > scr->gscreen->r.max.x || y > scr->gscreen->r.max.y)
 			error("physical screen bigger than virtual");
 
-		physgscreenr = Rect(0,0,x,y);
-		scr->gscreen->clipr = physgscreenr;
+		r = Rect(0,0,x,y);
+		if(!eqrect(r, scr->gscreen->r)){
+			if(scr->cur == nil || scr->cur->doespanning == 0)
+				error("virtual screen not supported");
+		}
+
+		physgscreenr = r;
 		return;
-	
-	case CMpalettedepth:
-		x = strtoul(cb->f[1], &p, 0);
+	}
+	else if(strcmp(field[0], "palettedepth") == 0){
+		if(n < 2)
+			error(Ebadarg);
+
+		x = strtoul(field[1], &p, 0);
 		if(x != 8 && x != 6)
 			error(Ebadarg);
 
 		scr->palettedepth = x;
 		return;
-
-	case CMdrawinit:
-		memimagedraw(scr->gscreen, scr->gscreen->r, memblack, ZP, nil, ZP);
+	}
+	else if(strcmp(field[0], "drawinit") == 0){
 		if(scr && scr->dev && scr->dev->drawinit)
 			scr->dev->drawinit(scr);
 		return;
-	
-	case CMlinear:
-		if(cb->nf!=2 && cb->nf!=3)
+	}
+	else if(strcmp(field[0], "linear") == 0){
+		if(n < 2)
 			error(Ebadarg);
-		size = strtoul(cb->f[1], 0, 0);
-		if(cb->nf == 2)
+
+		size = strtoul(field[1], 0, 0);
+		if(n < 3)
 			align = 0;
 		else
-			align = strtoul(cb->f[2], 0, 0);
+			align = strtoul(field[2], 0, 0);
 		if(screenaperture(size, align))
 			error("not enough free address space");
 		return;
-/*	
-	case CMmemset:
-		memset((void*)strtoul(cb->f[1], 0, 0), atoi(cb->f[2]), atoi(cb->f[3]));
+	}
+/*	else if(strcmp(field[0], "memset") == 0){
+		if(n < 4)
+			error(Ebadarg);
+		memset((void*)strtoul(field[1], 0, 0), atoi(field[2]), atoi(field[3]));
 		return;
+	}
 */
-
-	case CMblank:
+	else if(strcmp(field[0], "blank") == 0){
+		if(n < 1)
+			error(Ebadarg);
 		drawblankscreen(1);
 		return;
-	
-	case CMblanktime:
-		blanktime = strtoul(cb->f[1], 0, 0);
+	}
+	else if(strcmp(field[0], "blanktime") == 0){
+		if(n < 2)
+			error(Ebadarg);
+		blanktime = strtoul(field[1], 0, 0);
 		return;
-
-	case CMpanning:
-		if(strcmp(cb->f[1], "on") == 0){
-			if(scr == nil || scr->cur == nil)
-				error("set screen first");
-			if(!scr->cur->doespanning)
-				error("panning not supported");
-			scr->gscreen->clipr = scr->gscreen->r;
-			panning = 1;
-		}
-		else if(strcmp(cb->f[1], "off") == 0){
-			scr->gscreen->clipr = physgscreenr;
-			panning = 0;
-		}else
-			break;
-		return;
-
-	case CMhwaccel:
-		if(strcmp(cb->f[1], "on") == 0)
+	}
+	else if(strcmp(field[0], "hwaccel") == 0){
+		if(n < 2)
+			error(Ebadarg);
+		if(strcmp(field[1], "on") == 0)
 			hwaccel = 1;
-		else if(strcmp(cb->f[1], "off") == 0)
+		else if(strcmp(field[1], "off") == 0)
 			hwaccel = 0;
 		else
-			break;
+			error(Ebadarg);
 		return;
-	
-	case CMhwblank:
-		if(strcmp(cb->f[1], "on") == 0)
+	}
+	else if(strcmp(field[0], "hwblank") == 0){
+		if(n < 2)
+			error(Ebadarg);
+		if(strcmp(field[1], "on") == 0)
 			hwblank = 1;
-		else if(strcmp(cb->f[1], "off") == 0)
+		else if(strcmp(field[1], "off") == 0)
 			hwblank = 0;
 		else
-			break;
+			error(Ebadarg);
 		return;
 	}
 
-	cmderror(cb, "bad VGA control message");
+	error(Ebadarg);
 }
-
-char Enooverlay[] = "No overlay support";
 
 static long
 vgawrite(Chan* c, void* a, long n, vlong off)
 {
+	char *p;
 	ulong offset = off;
-	Cmdbuf *cb;
-	VGAscr *scr;
 
-	switch((ulong)c->qid.path){
+	switch(c->qid.path & ~CHDIR){
 
 	case Qdir:
 		error(Eperm);
@@ -406,31 +351,16 @@ vgawrite(Chan* c, void* a, long n, vlong off)
 	case Qvgactl:
 		if(offset || n >= READSTR)
 			error(Ebadarg);
-		cb = parsecmd(a, n);
+		p = malloc(READSTR);
 		if(waserror()){
-			free(cb);
+			free(p);
 			nexterror();
 		}
-		vgactl(cb);
+		memmove(p, a, n);
+		p[n] = 0;
+		vgactl(p);
 		poperror();
-		free(cb);
-		return n;
-
-	case Qvgaovl:
-		scr = &vgascreen[0];
-		if (scr->dev->ovlwrite == nil) {
-			error(Enooverlay);
-			break;
-		}
-		return scr->dev->ovlwrite(scr, a, n, off);
-
-	case Qvgaovlctl:
-		scr = &vgascreen[0];
-		if (scr->dev->ovlctl == nil) {
-			error(Enooverlay);
-			break;
-		}
-		scr->dev->ovlctl(scr, c, a, n);
+		free(p);
 		return n;
 
 	default:
@@ -447,8 +377,8 @@ Dev vgadevtab = {
 
 	vgareset,
 	devinit,
-	devshutdown,
 	vgaattach,
+	devclone,
 	vgawalk,
 	vgastat,
 	vgaopen,

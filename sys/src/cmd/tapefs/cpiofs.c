@@ -15,7 +15,7 @@
 
 union hblock {
 	char dummy[TBLOCK];
-	char tbuf[Maxbuf];
+	char tbuf[MAXFDATA];
 	struct header {
 		char magic[6];
 		char dev[6];
@@ -63,7 +63,7 @@ populate(char *name)
 		f.mode = mode&0777;
 		switch(mode & 0170000) {
 		case 0040000:
-			f.mode |= DMDIR;
+			f.mode |= CHDIR;
 			break;
 		case 0100000:
 			break;

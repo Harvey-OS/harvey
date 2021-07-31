@@ -1,0 +1,4 @@
+TEXT _CLOSE(SB), 1, $0
+MOVL $4, R0
+TRAP $0
+RTS

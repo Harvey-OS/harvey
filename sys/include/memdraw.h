@@ -169,6 +169,7 @@ extern	Memcmap	*memdefcmap;
 /*
  * Kernel interface
  */
+uchar*	attachscreen(Rectangle*, ulong*, int*, int*, int*);
 void		memimagemove(void*, void*);
 
 /*

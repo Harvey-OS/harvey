@@ -1,22 +1,22 @@
-/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of AFPL Ghostscript.
+  
+  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
+  distributor accepts any responsibility for the consequences of using it, or
+  for whether it serves any particular purpose or works at all, unless he or
+  she says so in writing.  Refer to the Aladdin Free Public License (the
+  "License") for full details.
+  
+  Every copy of AFPL Ghostscript must include a copy of the License, normally
+  in a plain ASCII text file named PUBLIC.  The License grants you the right
+  to copy, modify and redistribute AFPL Ghostscript, but only under certain
+  conditions described in the License.  Among other things, the License
+  requires that the copyright notice and this notice be preserved on all
+  copies.
+*/
 
-   This file is part of Aladdin Ghostscript.
-
-   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of Aladdin Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute Aladdin Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
- */
-
-/*$Id: gxclrast.c,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
+/*$Id: gxclrast.c,v 1.8 2000/09/19 19:00:35 lpd Exp $ */
 /* Command list interpreter/rasterizer */
 #include "memory_.h"
 #include "gx.h"
@@ -1940,70 +1940,69 @@ private int
 read_set_misc2(command_buf_t *pcb, gs_imager_state *pis, segment_notes *pnotes)
 {
     const byte *cbp = pcb->ptr;
-    uint cb = *cbp++;
+    uint mask, cb;
 
-    switch (cb >> 6) {
-
-    case cmd_set_misc2_cap_join >> 6:
+    cmd_getw(mask, cbp);
+    if (mask & cap_join_known) {
+	cb = *cbp++;
 	pis->line_params.cap = (gs_line_cap)((cb >> 3) & 7);
 	pis->line_params.join = (gs_line_join)(cb & 7);
 	if_debug2('L', " cap=%d join=%d\n",
 		  pis->line_params.cap, pis->line_params.join);
-	break;
-
-    case cmd_set_misc2_cj_ac_op_sa >> 6:
-	pis->line_params.curve_join = ((cb >> 3) & 7) - 1;
-	pis->accurate_curves = (cb & 4) != 0;
-	pis->overprint = (cb & 2) != 0;
+    }
+    if (mask & cj_ac_sa_known) {
+	cb = *cbp++;
+	pis->line_params.curve_join = ((cb >> 2) & 7) - 1;
+	pis->accurate_curves = (cb & 2) != 0;
 	pis->stroke_adjust = cb & 1;
-	if_debug4('L', " CJ=%d AC=%d OP=%d SA=%d\n",
+	if_debug3('L', " CJ=%d AC=%d SA=%d\n",
 		  pis->line_params.curve_join, pis->accurate_curves,
-		  pis->overprint, pis->stroke_adjust);
-	break;
+		  pis->stroke_adjust);
+    }
+    if (mask & flatness_known) {
+	cmd_get_value(pis->flatness, cbp);
+	if_debug1('L', " flatness=%g\n", pis->flatness);
+    }
+    if (mask & line_width_known) {
+	float width;
 
-    case cmd_set_misc2_notes >> 6:
+	cmd_get_value(width, cbp);
+	if_debug1('L', " line_width=%g\n", width);
+	gx_set_line_width(&pis->line_params, width);
+    }
+    if (mask & miter_limit_known) {
+	float limit;
+
+	cmd_get_value(limit, cbp);
+	if_debug1('L', " miter_limit=%g\n", limit);
+	gx_set_miter_limit(&pis->line_params, limit);
+    }
+    if (mask & op_bm_tk_known) {
+	cb = *cbp++;
+	pis->blend_mode = cb >> 3;
+	pis->text_knockout = (cb & 4) != 0;
+	pis->overprint_mode = (cb >> 1) & 1;
+	pis->overprint = cb & 1;
+	if_debug4('L', " BM=%d TK=%d OPM=%d OP=%d\n",
+		  pis->blend_mode, pis->text_knockout, pis->overprint_mode,
+		  pis->overprint);
+    }
+    if (mask & segment_notes_known) {
+	cb = *cbp++;
 	*pnotes = (segment_notes)(cb & 0x3f);
 	if_debug1('L', " notes=%d\n", *pnotes);
-	break;
-
-    case cmd_set_misc2_value >> 6:
-	switch (cb) {
-
-	case cmd_set_misc2_flatness:
-	    cmd_get_value(pis->flatness, cbp);
-	    if_debug1('L', " %g\n", pis->flatness);
-	    break;
-
-	case cmd_set_misc2_line_width: {
-	    float width;
-
-	    cmd_get_value(width, cbp);
-	    if_debug1('L', " %g\n", width);
-	    gx_set_line_width(&pis->line_params, width);
-	}
-	break;
-
-	case cmd_set_misc2_miter_limit: {
-	    float limit;
-
-	    cmd_get_value(limit, cbp);
-	    if_debug1('L', " %g\n", limit);
-	    gx_set_miter_limit(&pis->line_params, limit);
-	}
-	break;
-
-	case cmd_set_misc2_alpha >> 6:
-	    cmd_get_value(pis->alpha, cbp);
-	    if_debug1('L', " %u\n", pis->alpha);
-	    break;
-
-	default:
-	    return_error(gs_error_rangecheck);
-	}
-	break;
-
-    default:
-	return_error(gs_error_rangecheck);
+    }
+    if (mask & opacity_alpha_known) {
+	cmd_get_value(pis->opacity.alpha, cbp);
+	if_debug1('L', " opacity.alpha=%g\n", pis->opacity.alpha);
+    }
+    if (mask & shape_alpha_known) {
+	cmd_get_value(pis->shape.alpha, cbp);
+	if_debug1('L', " shape.alpha=%g\n", pis->shape.alpha);
+    }
+    if (mask & alpha_known) {
+	cmd_get_value(pis->alpha, cbp);
+	if_debug1('L', " alpha=%u\n", pis->alpha);
     }
     pcb->ptr = cbp;
     return 0;
@@ -2064,28 +2063,15 @@ read_set_color_space(command_buf_t *pcb, gs_imager_state *pis,
 	cmd_getw(hival, cbp);
 	num_values = (hival + 1) * gs_color_space_num_components(pcs);
 	if (use_proc) {
-	    void *map_values =
-		gs_alloc_byte_array(mem, num_values,
-		    sizeof(pcolor_space->params.indexed.lookup.map->values[0]),
-				    "indexed map values");
-	    gs_indexed_map *map =
-		gs_alloc_struct(mem, gs_indexed_map, &st_indexed_map,
-				"indexed map");
+	    gs_indexed_map *map;
 
-	    if (map_values == 0 || map == 0) {
-		gs_free_object(mem, map, "indexed map");
-		gs_free_object(mem, map_values, "indexed map values");
-		code = gs_note_error(gs_error_VMerror);
+	    code = alloc_indexed_map(&map, num_values, mem, "indexed map");
+	    if (code < 0)
 		goto out;
-	    }
-	    rc_init(map, mem, 1);
 	    map->proc.lookup_index = lookup_indexed_map;
-	    map->num_values = num_values; /* (maybe not needed) */
-	    map->values = map_values;
 	    pcolor_space->params.indexed.lookup.map = map;
-	    data = (byte *)map_values;
-	    data_size = num_values *
-		sizeof(pcolor_space->params.indexed.lookup.map->values[0]);
+	    data = (byte *)map->values;
+	    data_size = num_values * sizeof(map->values[0]);
 	} else {
 	    byte *table = gs_alloc_string(mem, num_values, "indexed table");
 
@@ -2302,7 +2288,7 @@ cmd_select_map(cmd_map_index map_index, cmd_map_contents cont,
 		pis->effective_transfer.indexed[i] = map;
 	    }
 transfer:   if (cont != cmd_map_other) {
-		map->proc = gs_identity_transfer;
+		gx_set_identity_transfer(map);
 		*pmdata = 0;
 		*pcount = 0;
 		return 0;
@@ -2336,7 +2322,7 @@ alloc:	    if (cont == cmd_map_none) {
 			      mem, return_error(gs_error_VMerror), cname);
 	    map = *pmap;
 	    if (cont == cmd_map_identity) {
-		map->proc = gs_identity_transfer;
+		gx_set_identity_transfer(map);
 		*pmdata = 0;
 		*pcount = 0;
 		return 0;

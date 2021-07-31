@@ -7,7 +7,15 @@
 #include "io.h"
 
 /*
- *  Intel 82365SL PCIC controller and compatibles.
+ *  Support for up to 4 PCMslot card slots.  Generalizing above that is hard
+ *  since addressing is not obvious. - presotto
+ *
+ *  WARNING: This has never been tried with more than one card slot.
+ */
+
+/*
+ *  Intel 82365SL PCIC controller for the PCMCIA or
+ *  Cirrus Logic PD6710/PD6720 which is mostly register compatible
  */
 enum
 {
@@ -113,6 +121,7 @@ static PCMslot	*lastslot;
 static nslot;
 
 static void	i82365intr(Ureg*, void*);
+static void	i82365reset(void);
 static int	pcmio(int, ISAConf*);
 static long	pcmread(int, int, void*, long, vlong);
 static long	pcmwrite(int, int, void*, long, vlong);
@@ -285,7 +294,7 @@ pcmmap(int slotno, ulong offset, int len, int attr)
 		}
 		m->isa = PADDR(umbmalloc(0, len, Mgran));
 		if(m->isa == 0){
-			print("pcmmap: out of isa space\n");
+			print("pcmmap: %d out of isa space\n", len);
 			unlock(&pp->mlock);
 			return 0;
 		}
@@ -347,13 +356,14 @@ decrefp(PCMslot *pp)
 /*
  *  look for a card whose version contains 'idstr'
  */
-static int
-pcmcia_pcmspecial(char *idstr, ISAConf *isa)
+int
+pcmspecial(char *idstr, ISAConf *isa)
 {
 	PCMslot *pp;
 	extern char *strstr(char*, char*);
 	int enabled;
 
+	i82365reset();
 	for(pp = slot; pp < lastslot; pp++){
 		if(pp->special)
 			continue;	/* already taken */
@@ -387,8 +397,8 @@ pcmcia_pcmspecial(char *idstr, ISAConf *isa)
 	return -1;
 }
 
-static void
-pcmcia_pcmspecialclose(int slotno)
+void
+pcmspecialclose(int slotno)
 {
 	PCMslot *pp;
 
@@ -409,21 +419,21 @@ enum
 	Nents = 3,
 };
 
-#define SLOTNO(c)	((ulong)((c->qid.path>>8)&0xff))
-#define TYPE(c)	((ulong)(c->qid.path&0xff))
+#define SLOTNO(c)	((c->qid.path>>8)&0xff)
+#define TYPE(c)		(c->qid.path&0xff)
 #define QID(s,t)	(((s)<<8)|(t))
 
 static int
-pcmgen(Chan *c, char*, Dirtab *, int , int i, Dir *dp)
+pcmgen(Chan *c, Dirtab *, int , int i, Dir *dp)
 {
 	int slotno;
 	Qid qid;
 	long len;
 	PCMslot *pp;
+	char name[NAMELEN];
 
 	if(i == DEVDOTDOT){
-		mkqid(&qid, Qdir, 0, QTDIR);
-		devdir(c, qid, "#y", 0, eve, 0555, dp);
+		devdir(c, (Qid){CHDIR, 0}, "#y", 0, eve, 0555, dp);
 		return 1;
 	}
 
@@ -435,30 +445,29 @@ pcmgen(Chan *c, char*, Dirtab *, int , int i, Dir *dp)
 	switch(i%Nents){
 	case 0:
 		qid.path = QID(slotno, Qmem);
-		snprint(up->genbuf, sizeof up->genbuf, "pcm%dmem", slotno);
+		sprint(name, "pcm%dmem", slotno);
 		len = pp->memlen;
 		break;
 	case 1:
 		qid.path = QID(slotno, Qattr);
-		snprint(up->genbuf, sizeof up->genbuf, "pcm%dattr", slotno);
+		sprint(name, "pcm%dattr", slotno);
 		len = pp->memlen;
 		break;
 	case 2:
 		qid.path = QID(slotno, Qctl);
-		snprint(up->genbuf, sizeof up->genbuf, "pcm%dctl", slotno);
+		sprint(name, "pcm%dctl", slotno);
 		break;
 	}
 	qid.vers = 0;
-	qid.type = QTFILE;
-	devdir(c, qid, up->genbuf, len, eve, 0660, dp);
+	devdir(c, qid, name, len, eve, 0660, dp);
 	return 1;
 }
 
 static char *chipname[] =
 {
 [Ti82365]	"Intel 82365SL",
-[Tpd6710]	"Cirrus Logic CL-PD6710",
-[Tpd6720]	"Cirrus Logic CL-PD6720",
+[Tpd6710]	"Cirrus Logic PD6710",
+[Tpd6720]	"Cirrus Logic PD6720",
 [Tvg46x]	"Vadem VG-46x",
 };
 
@@ -503,11 +512,6 @@ i82365probe(int x, int d, int dev)
 			cp->type = Tpd6710;
 			cp->nslot = 1;
 		}
-
-		/* low power mode */
-		outb(x, Rmisc2 + (dev<<7));
-		c = inb(d);
-		outb(d, c & ~Flowpow);
 		break;
 	}
 
@@ -531,6 +535,11 @@ i82365probe(int x, int d, int dev)
 		c = inb(d);
 		outb(d, c & ~0xC0);
 	}
+
+	/* low power mode */
+	outb(x, Rmisc2 + (dev<<7));
+	c = inb(d);
+	outb(d, c & ~Flowpow);
 
 	memset(&isa, 0, sizeof(ISAConf));
 	if(isaconfig("pcmcia", ncontroller, &isa) && isa.irq)
@@ -558,9 +567,9 @@ i82365dump(PCMslot *pp)
 	for(i = 0; i < 0x40; i++){
 		if((i&0x0F) == 0)
 			print("\n%2.2uX:	", i);
-		print("%2.2uX ", rdreg(pp, i));
 		if(((i+1) & 0x0F) == 0x08)
 			print(" - ");
+		print("%2.2uX ", rdreg(pp, i));
 	}
 	print("\n");
 }
@@ -568,22 +577,19 @@ i82365dump(PCMslot *pp)
 /*
  *  set up for slot cards
  */
-void
-devi82365link(void)
+static void
+i82365reset(void)
 {
 	static int already;
 	int i, j;
 	I82365 *cp;
 	PCMslot *pp;
-	char buf[32];
+	char buf[NAMELEN];
 
 	if(already)
 		return;
 	already = 1;
 
-	if(_pcmspecial)
-		return;
-	
 	/* look for controllers if the ports aren't already taken */
 	if(ioalloc(0x3E0, 2, 0, "i82365.0") >= 0){
 		i82365probe(0x3E0, 0x3E1, 0);
@@ -598,17 +604,11 @@ devi82365link(void)
 		if(ncontroller == i)
 			iofree(0x3E2);
 	}
-
-	if(ncontroller == 0)
-		return;
-
-	_pcmspecial = pcmcia_pcmspecial;
-	_pcmspecialclose = pcmcia_pcmspecialclose;
-
 	for(i = 0; i < ncontroller; i++)
 		nslot += controller[i]->nslot;
 	slot = xalloc(nslot * sizeof(PCMslot));
 
+	/* if the card is there turn on 5V power to keep its battery alive */
 	lastslot = slot;
 	for(i = 0; i < ncontroller; i++){
 		cp = controller[i];
@@ -630,7 +630,7 @@ devi82365link(void)
 		}
 
 		/* for card management interrupts */
-		snprint(buf, sizeof buf, "i82365.%d", i);
+		sprint(buf, "i82365.%d", i);
 		intrenable(cp->irq, i82365intr, 0, BUSUNKNOWN, buf);
 	}
 }
@@ -641,22 +641,22 @@ i82365attach(char *spec)
 	return devattach('y', spec);
 }
 
-static Walkqid*
-i82365walk(Chan *c, Chan *nc, char **name, int nname)
+static int
+i82365walk(Chan *c, char *name)
 {
-	return devwalk(c, nc, name, nname, 0, 0, pcmgen);
+	return devwalk(c, name, 0, 0, pcmgen);
 }
 
-static int
-i82365stat(Chan *c, uchar *db, int n)
+static void
+i82365stat(Chan *c, char *db)
 {
-	return devstat(c, db, n, 0, 0, pcmgen);
+	devstat(c, db, 0, 0, pcmgen);
 }
 
 static Chan*
 i82365open(Chan *c, int omode)
 {
-	if(c->qid.type & QTDIR){
+	if(c->qid.path == CHDIR){
 		if(omode != OREAD)
 			error(Eperm);
 	} else
@@ -671,7 +671,7 @@ static void
 i82365close(Chan *c)
 {
 	if(c->flag & COPEN)
-		if((c->qid.type & QTDIR) == 0)
+		if(c->qid.path != CHDIR)
 			decrefp(slot+SLOTNO(c));
 }
 
@@ -866,10 +866,10 @@ Dev i82365devtab = {
 	'y',
 	"i82365",
 
-	devreset,
+	i82365reset,
 	devinit,
-	devshutdown,
 	i82365attach,
+	devclone,
 	i82365walk,
 	i82365stat,
 	i82365open,
@@ -976,10 +976,7 @@ pcmio(int slotno, ISAConf *isa)
 		x |= x<<4;
 	wrreg(pp, Rio, x);
 
-	/*
-	 * enable io port map 0
-	 * the 'top' register value includes the last valid address
-	 */
+	/* enable io port map 0 */
 	if(isa->port == 0)
 		isa->port = ct->io[0].start;
 	we = rdreg(pp, Rwe);
@@ -1005,11 +1002,9 @@ pcmio(int slotno, ISAConf *isa)
 		m = pcmmap(slotno, pp->caddr + Rconfig, 1, 1);
 		p = KADDR(m->isa + pp->caddr + Rconfig - m->ca);
 
-		/*  set configuration and interrupt type.
-		 *  if level is possible on the card, use it.
-		 */
+		/* set configuration and interrupt type */
 		x = ct->index;
-		if(ct->irqtype & 0x20)
+		if((ct->irqtype & 0x20) && ((ct->irqtype & 0x40)==0 || isa->irq>7))
 			x |= Clevel;
 		*p = x;
 		delay(5);

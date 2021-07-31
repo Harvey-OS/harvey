@@ -5,7 +5,6 @@ OFILES=\
 	ndbhash.$O\
 	ndbopen.$O\
 	ndbparse.$O\
-	ndbcache.$O\
 	ndbcat.$O\
 	ndbgetval.$O\
 	ndbaux.$O\
