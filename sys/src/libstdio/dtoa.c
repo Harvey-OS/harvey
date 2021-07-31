@@ -511,11 +511,9 @@ diff(Bigint *a, Bigint *b)
 static double	
 ulp(double x)
 {
-	ulong L;
-	Ulongs uls;
+	register ulong L;
 
-	uls = double2ulongs(x);
-	L = (uls.hi & Exp_mask) - (P - 1) * Exp_msk1;
+	L = (double2ulongs(x).hi & Exp_mask) - (P - 1) * Exp_msk1;
 	return ulongs2double((Ulongs){L, 0});
 }
 
@@ -565,7 +563,7 @@ d2b(double d, int *e, int *bits)
 	de = (int)(uls.hi >> Exp_shift);
 	z |= Exp_msk11;
 	if (y = uls.lo) {		/* assignment = */
-		if (k = lo0bits(&y)) {	/* assignment = */
+		if (k = lo0bits(&y)) {
 			x[0] = y | z << 32 - k;
 			z >>= k;
 		} else
@@ -904,7 +902,7 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 
 	ulsd2 = ulsd;
 	ulsd2.hi &= Frac_mask1;
-	ulsd2.hi |= Exp_11;
+	ulsd2.lo |= Exp_11;
 	d2 = ulongs2double(ulsd2);
 
 	/* log(x)	~=~ log(1.5) + (x-1.5)/1.5
@@ -1052,7 +1050,6 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 		eps *= tens[ilim-1];
 		for (i = 1; ; i++, d *= 10.) {
 			L = d;
-			// assert(L < 10);
 			d -= L;
 			*s++ = '0' + (int)L;
 			if (i == ilim) {
