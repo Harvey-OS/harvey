@@ -33,7 +33,7 @@ Token tokenlistinit[] = {
 	{ "work",	Obj,	Work		, "title"	, {nil,0}},
 };
 Token *tokenlist;
-int ntoken = nelem(tokenlistinit);
+int ntoken = Ntoken;
 int catnr = 0;
 
 Cmdlist cmdlist[] = {
@@ -49,10 +49,9 @@ inittokenlist(void)
 {
 	int i;
 
-	ntoken = nelem(tokenlistinit);
-	tokenlist = malloc(sizeof(tokenlistinit));
-	memmove(tokenlist, tokenlistinit, sizeof(tokenlistinit));
-	for(i = 0; i< ntoken; i++){
+	tokenlist = malloc(ntoken*sizeof(Token));
+	memmove(tokenlist, tokenlistinit, ntoken*sizeof(Token));
+	for(i = 0; i< Ntoken; i++){
 		tokenlist[i].name = strdup(tokenlist[i].name);
 		catsetinit(&tokenlist[i].categories, tokenlist[i].value);
 	}
