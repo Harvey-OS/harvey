@@ -1725,10 +1725,10 @@ scsirio(SDreq* r)
 	r->status = ~0;
 	switch(r->unit->dev->ifc->rio(r)){
 	default:
-		break;
+		return -1;
 	case SDcheck:
 		if(!(r->flags & SDvalidsense))
-			break;
+			return -1;
 		switch(r->sense[2] & 0x0F){
 		case 0x00:		/* no sense */
 		case 0x01:		/* recovered error */
@@ -1743,16 +1743,16 @@ scsirio(SDreq* r)
 				return 2;
 			if(r->sense[12] == 0x29)
 				return 2;
-			break;
+			return -1;
 		case 0x02:		/* not ready */
 			/*
 			 * If no medium present, bail out.
 			 * If unit is becoming ready, rather than not
 			 * not ready, wait a little then poke it again. 				 */
 			if(r->sense[12] == 0x3A)
-				break;
+				return 1;
 			if(r->sense[12] != 0x04 || r->sense[13] != 0x01)
-				break;
+				return -1;
 
 			while(waserror())
 				;
@@ -1761,9 +1761,9 @@ scsirio(SDreq* r)
 			scsitest(r);
 			return 2;
 		default:
-			break;
+			return -1;
 		}
-		break;
+		return -1;
 	case SDok:
 		return 0;
 	}

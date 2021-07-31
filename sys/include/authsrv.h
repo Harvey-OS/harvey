@@ -14,18 +14,18 @@ typedef struct	OMSchapreply	OMSchapreply;
 
 enum
 {
-	ANAMELEN=	28,	/* name max size in previous proto */
-	AERRLEN=	64,	/* errstr max size in previous proto */
-	DOMLEN=		48,	/* authentication domain name length */
-	DESKEYLEN=	7,	/* encrypt/decrypt des key length */
-	CHALLEN=	8,	/* plan9 sk1 challenge length */
-	NETCHLEN=	16,	/* max network challenge length (used in AS protocol) */
+	ANAMELEN=	28,		/* maximum size of name in previous proto */
+	AERRLEN=	64,		/* maximum size of errstr in previous proto */
+	DOMLEN=		48,		/* length of an authentication domain name */
+	DESKEYLEN=	7,		/* length of a des key for encrypt/decrypt */
+	CHALLEN=	8,		/* length of a plan9 sk1 challenge */
+	NETCHLEN=	16,		/* max network challenge length (used in AS protocol) */
 	CONFIGLEN=	14,
-	SECRETLEN=	32,	/* secret max size */
+	SECRETLEN=	32,		/* max length of a secret */
 
-	KEYDBOFF=	8,	/* bytes of random data at key file's start */
-	OKEYDBLEN=	ANAMELEN+DESKEYLEN+4+2,	/* old key file entry length */
-	KEYDBLEN=	OKEYDBLEN+SECRETLEN,	/* key file entry length */
+	KEYDBOFF=	8,		/* length of random data at the start of key file */
+	OKEYDBLEN=	ANAMELEN+DESKEYLEN+4+2,	/* length of an entry in old key file */
+	KEYDBLEN=	OKEYDBLEN+SECRETLEN,	/* length of an entry in key file */
 	OMD5LEN=	16,
 };
 
@@ -131,28 +131,21 @@ extern	int	passtokey(char*, char*);
  *  Nvram interface
  */
 enum {
-	NVread		= 0,	/* just read */
-	NVwrite		= 1<<0,	/* always prompt and rewrite nvram */
-	NVwriteonerr	= 1<<1,	/* prompt and rewrite nvram when corrupt */
-	NVwritemem	= 1<<2,	/* don't prompt, write nvram from argument */
+	NVwrite = 1<<0,		/* always prompt and rewrite nvram */
+	NVwriteonerr = 1<<1,	/* prompt and rewrite nvram when corrupt */
 };
 
-/* storage layout */
 struct Nvrsafe
 {
-	char	machkey[DESKEYLEN];	/* was file server's authid's des key */
+	char	machkey[DESKEYLEN];
 	uchar	machsum;
-	char	authkey[DESKEYLEN];	/* authid's des key from password */
+	char	authkey[DESKEYLEN];
 	uchar	authsum;
-	/*
-	 * file server config string of device holding full configuration;
-	 * secstore key on non-file-servers.
-	 */
 	char	config[CONFIGLEN];
 	uchar	configsum;
-	char	authid[ANAMELEN];	/* auth userid, e.g., bootes */
+	char	authid[ANAMELEN];
 	uchar	authidsum;
-	char	authdom[DOMLEN]; /* auth domain, e.g., cs.bell-labs.com */
+	char	authdom[DOMLEN];
 	uchar	authdomsum;
 };
 

@@ -281,12 +281,10 @@ doreply(State *s, char *user, char *response)
 	convM2T(ticket, &s->t, (char*)s->key->priv);
 	if(s->t.num != AuthTs
 	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
-		if(s->key->successes == 0)
-			disablekey(s->key);
+		disablekey(s->key);
 		werrstr(Easproto);
 		goto err;
 	}
-	s->key->successes++;
 	convM2A(ticket+TICKETLEN, &a, s->t.key);
 	if(a.num != AuthAc
 	|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0

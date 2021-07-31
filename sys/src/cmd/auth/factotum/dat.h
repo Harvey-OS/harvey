@@ -82,7 +82,6 @@ struct Key
 	Proto *proto;
 
 	void *priv;	/* protocol-specific; a parsed key, perhaps */
-	ulong successes;
 };
 
 struct Keyinfo	/* for findkey */
