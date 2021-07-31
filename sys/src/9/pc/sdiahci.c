@@ -21,7 +21,7 @@
 #define Intel(x)	((x)->pci->vid == Vintel)
 
 enum {
-	NCtlr	= 8,
+	NCtlr	= 4,
 	NCtlrdrv= 32,
 	NDrive	= NCtlr*NCtlrdrv,
 
@@ -34,12 +34,6 @@ enum {
 	Mcomrwait= 64*1024/Nms - 1,
 
 	Obs	= 0xa0,			/* obsolete device bits */
-
-	/*
-	 * if we get more than this many interrupts per tick for a drive,
-	 * either the hardware is broken or we've got a bug in this driver.
-	 */
-	Maxintrspertick = 1000,
 };
 
 /* pci space configuration */
@@ -150,9 +144,6 @@ struct Drive {
 	int	driveno;	/* ctlr*NCtlrdrv + unit */
 	/* controller port # != driveno when not all ports are enabled */
 	int	portno;
-
-	ulong	lastintr0;
-	ulong	intrs;
 };
 
 struct Ctlr {
@@ -174,10 +165,7 @@ struct Ctlr {
 	Drive	rawdrive[NCtlrdrv];
 	Drive*	drive[NCtlrdrv];
 	int	ndrive;
-	int	mport;		/* highest drive # (0-origin) on ich9 at least */
-
-	ulong	lastintr0;
-	ulong	intrs;		/* not attributable to any drive */
+	int	mport;
 };
 
 struct Asleep {
@@ -889,10 +877,10 @@ ahciconf(Ctlr *ctlr)
 		h->ghc |= Hae;
 
 	dprint("#S/sd%c: type %s port %#p: sss %ld ncs %ld coal %ld "
-		"%ld ports, led %ld clo %ld ems %ld\n",
+		"mports %ld led %ld clo %ld ems %ld\n",
 		ctlr->sdev->idno, tname[ctlr->type], h,
-		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1,
-		(u & 0x1f) + 1, (u>>25) & 1, (u>>24) & 1, (u>>6) & 1);
+		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1, u & 0x1f, (u>>25) & 1,
+		(u>>24) & 1, (u>>6) & 1);
 	return countbits(h->pi);
 }
 
@@ -1367,36 +1355,6 @@ satakproc(void*)
 }
 
 static void
-isctlrjabbering(Ctlr *c, ulong cause)
-{
-	ulong now;
-
-	now = TK2MS(MACHP(0)->ticks);
-	if (now > c->lastintr0) {
-		c->intrs = 0;
-		c->lastintr0 = now;
-	}
-	if (++c->intrs > Maxintrspertick)
-		panic("sdiahci: too many intrs per tick for no serviced "
-			"drive; cause %#lux mport %d", cause, c->mport);
-}
-
-static void
-isdrivejabbering(Drive *d)
-{
-	ulong now;
-
-	now = TK2MS(MACHP(0)->ticks);
-	if (now > d->lastintr0) {
-		d->intrs = 0;
-		d->lastintr0 = now;
-	}
-	if (++d->intrs > Maxintrspertick)
-		panic("sdiahci: too many interrupts per tick for %s",
-			d->unit->name);
-}
-
-static void
 iainterrupt(Ureg*, void *a)
 {
 	int i;
@@ -1407,29 +1365,16 @@ iainterrupt(Ureg*, void *a)
 	c = a;
 	ilock(c);
 	cause = c->hba->isr;
-	if (cause == 0) {
-		isctlrjabbering(c, cause);
-		iprint("sdiahci: interrupt for no drive\n");
-		iunlock(c);
-		return;
-	}
-	for(i = 0; cause && i <= c->mport; i++){
+	for(i = 0; i < c->mport; i++){
 		m = 1 << i;
 		if((cause & m) == 0)
 			continue;
 		d = c->rawdrive + i;
 		ilock(d);
-		isdrivejabbering(d);
 		if(d->port->isr && c->hba->pi & m)
 			updatedrive(d);
 		c->hba->isr = m;
 		iunlock(d);
-
-		cause &= ~m;
-	}
-	if (cause) {
-		isctlrjabbering(c, cause);
-		iprint("sdiachi: intr cause unserviced: %#lux\n", cause);
 	}
 	iunlock(c);
 }

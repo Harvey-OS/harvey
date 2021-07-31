@@ -185,24 +185,14 @@ kstrdup(char **p, char *s)
 	free(prev);
 }
 
-static int debugstart;
-
 void
 chandevreset(void)
 {
 	int i;
 
 	todinit();	/* avoid later reentry causing infinite recursion */
-	debugstart = getconf("*debugstart") != nil;
-	if(debugstart)
-		iprint("reset:");
-	for(i=0; devtab[i] != nil; i++) {
-		if(debugstart)
-			iprint(" %s", devtab[i]->name);
+	for(i=0; devtab[i] != nil; i++)
 		devtab[i]->reset();
-	}
-	if(debugstart)
-		iprint("\n");
 }
 
 void
@@ -210,15 +200,8 @@ chandevinit(void)
 {
 	int i;
 
-	if(debugstart)
-		iprint("init:");
-	for(i=0; devtab[i] != nil; i++) {
-		if(debugstart)
-			iprint(" %s", devtab[i]->name);
+	for(i=0; devtab[i] != nil; i++)
 		devtab[i]->init();
-	}
-	if(debugstart)
-		iprint("\n");
 }
 
 void

@@ -112,30 +112,27 @@ sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
 	/* update devsd's in-memory partition table */
 	if (fprint(unit->ctl, "part %s %lld %lld\n", name, start, end) < 0)
 		fprint(2, "can't update devsd's partition table\n");
-	if (debugboot)
-		print("part %s %lld %lld\n", name, start, end);
 }
 
 static long
 sdread(SDunit *unit, SDpart *pp, void* va, long len, vlong off)
 {
-	long l, secsize;
+	long l;
 	uvlong bno, nb;
 
 	/*
 	 * Check the request is within partition bounds.
 	 */
-	secsize = unit->secsize;
-	if (secsize == 0)
+	if (unit->secsize == 0)
 		sysfatal("sdread: zero sector size");
-	bno = off/secsize + pp->start;
-	nb = (off+len+secsize-1)/secsize + pp->start - bno;
+	bno = (off/unit->secsize) + pp->start;
+	nb = ((off+len+unit->secsize-1)/unit->secsize) + pp->start - bno;
 	if(bno+nb > pp->end)
 		nb = pp->end - bno;
 	if(bno >= pp->end || nb == 0)
 		return 0;
 
-	seek(unit->data, bno * secsize, 0);
+	seek(unit->data, off, 0);
 	assert(va);				/* "sdread" */
 	l = read(unit->data, va, len);
 	if (l < 0)
@@ -175,8 +172,7 @@ oldp9part(SDunit *unit)
 {
 	SDpart *pp;
 	char *field[3], *line[Npart+1];
-	ulong n;
-	uvlong start, end;
+	ulong n, start, end;
 	int i;
 
 	/*
@@ -192,8 +188,6 @@ oldp9part(SDunit *unit)
 	pp->start = unit->sectors - 2;
 	pp->end = unit->sectors - 1;
 
-	if(debugboot)
-		print("oldp9part %s\n", unit->name);
 	if(sdreadblk(unit, pp, partbuf, 0, 0) < 0)
 		return;
 
@@ -236,7 +230,7 @@ sdfindpart(SDunit *unit, char *name)
 	int i;
 
 	if(parttrace)
-		print("findpart %d %s %s: ", unit->npart, unit->name, name);
+		print("findpart %d %s %s\t\n", unit->npart, unit->name, name);
 	for(i=0; i<unit->npart; i++) {
 		if(parttrace)
 			print("%s...", unit->part[i].name);
@@ -251,11 +245,6 @@ sdfindpart(SDunit *unit, char *name)
 	return nil;
 }
 
-/*
- * look for a plan 9 partition table on drive `unit' in the second
- * sector (sector 1) of partition `name'.
- * if found, add the partitions defined in the table.
- */
 static void
 p9part(SDunit *unit, char *name)
 {
@@ -264,8 +253,6 @@ p9part(SDunit *unit, char *name)
 	uvlong start, end;
 	int i, n;
 
-	if(debugboot)
-		print("p9part %s %s\n", unit->name, name);
 	p = sdfindpart(unit, name);
 	if(p == nil)
 		return;
@@ -313,8 +300,8 @@ static int
 mbrpart(SDunit *unit)
 {
 	Dospart *dp;
-	uvlong taboffset, start, end;
-	uvlong firstxpart, nxtxpart;
+	ulong taboffset, start, end;
+	ulong firstxpart, nxtxpart;
 	int havedos, i, nplan9;
 	char name[10];
 
@@ -350,7 +337,7 @@ mbrpart(SDunit *unit)
 			return -1;
 		if(trace) {
 			if(firstxpart)
-				print("%s ext %llud ", unit->name, taboffset);
+				print("%s ext %lud ", unit->name, taboffset);
 			else
 				print("%s mbr ", unit->name);
 		}
@@ -386,7 +373,7 @@ mbrpart(SDunit *unit)
 			if(isextend(dp[i].type)){
 				nxtxpart = start-taboffset+firstxpart;
 				if(trace)
-					print("link %llud...", nxtxpart);
+					print("link %lud...", nxtxpart);
 			}
 		}
 		if(trace)
