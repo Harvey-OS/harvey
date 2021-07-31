@@ -18,6 +18,8 @@ authpasswordfn(Conn *c)
 	sendmsg(m);
 
 	m = recvmsg(c, 0);
+	if(m == nil)
+		badmsg(m, 0);
 	switch(m->type){
 	default:
 		badmsg(m, 0);
