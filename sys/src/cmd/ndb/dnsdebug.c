@@ -123,7 +123,6 @@ prettyrrfmt(Fmt *f)
 	RR *rp;
 	char buf[3*Domlen];
 	char *p, *e;
-	Txt *t;
 
 	rp = va_arg(f->args, RR*);
 	if(rp == 0){
@@ -179,12 +178,10 @@ prettyrrfmt(Fmt *f)
 		seprint(p, e, "\t%.*H", rp->null->dlen, rp->null->data);
 		break;
 	case Ttxt:
-		p = seprint(p, e, "\t");
-		for(t = rp->txt; t != nil; t = t->next)
-			p = seprint(p, e, "%s", t->p);
+		seprint(p, e, "\t%s", rp->txt->name);
 		break;
 	case Trp:
-		seprint(p, e, "\t%s %s", rp->rmb->name, rp->rp->name);
+		seprint(p, e, "\t%s %s", rp->rmb->name, rp->txt->name);
 		break;
 	case Tkey:
 		seprint(p, e, "\t%d %d %d", rp->key->flags, rp->key->proto,
