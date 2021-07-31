@@ -273,10 +273,10 @@ The variable's value can take the following forms:
 .TP
 .B /dev/sdC0/arenas
 the file should be a venti partition with a configuration
-stored on it using
+stored on using
 .I venti/conf 
 (see
-.IR venti-fmt (8)).
+.IR ventiaux (8)).
 .I Boot
 will start a loopback IP interface on 127.0.0.1
 and start

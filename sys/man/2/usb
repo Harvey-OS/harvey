@@ -319,8 +319,7 @@ in the style of
 It is better not to call
 .I print
 directly because the control request should be issued as a single
-.I write
-system call.
+.IR write (2).
 See
 .IR usb (3)
 for a list of available control requests (not to be confused with

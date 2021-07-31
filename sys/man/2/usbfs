@@ -304,9 +304,7 @@ In most cases, the file system supplied is
 The
 .I flag
 is used for
-.IR mount
-(see
-.IR bind (2)).
+.IR mount (2).
 Once
 .I usbdirfs
 is started, calls to
@@ -338,4 +336,6 @@ and the file system are handled.
 .IR usb (2),
 .IR usb (3),
 .IR usb (4),
-.IR usbd (4)
+.IR usbd (4).
+.SH BUGS
+Not heavily exercised yet.
