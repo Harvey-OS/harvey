@@ -10,16 +10,15 @@
 static void*
 share(int len)
 {
-	uchar *vastart;
+	ulong vastart;
 
-	vastart = sbrk(0);
-	vastart += 2*1024*1024;
+	vastart = ((ulong)sbrk(0)) + 2*1024*1024;
 
-	if(segattach(0, "shared", vastart, len) < 0)
+	if(segattach(0, "shared", (void *)vastart, len) < 0)
 		return 0;
-	memset(vastart, 0, len);
+	memset((void*)vastart, 0, len);
 
-	return vastart;
+	return (void*)vastart;
 }
 
 /*

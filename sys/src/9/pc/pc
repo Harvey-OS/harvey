@@ -43,8 +43,7 @@ link
 	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
-	ether8139	pci
-	ether8169	pci ethermii
+	ether8139
 	ether82543gc	pci
 	ether82557	pci
 	ether83815	pci
@@ -66,12 +65,11 @@ misc
 	archmp		mp apic
 
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
+	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
 
 	uarti8250
 	uartpci		pci
-	uartisa
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
@@ -102,7 +100,6 @@ ip
 	ipifc
 	icmp
 	icmp6
-	gre
 
 port
 	int cpuserver = 0;

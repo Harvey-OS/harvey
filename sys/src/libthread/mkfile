@@ -32,7 +32,6 @@ OFILES=\
 CFILES=\
 	386.c\
 	alpha.c\
-	amd64.c\
 	arm.c\
 	channel.c\
 	chanprint.c\
@@ -62,13 +61,12 @@ CFILES=\
 	test.c\
 	tprimes.c\
 	xincarm.c\
+	xincpower.c
 
 SFILES=\
 	xinc386.s\
 	xincalpha.s\
-	xincamd64.s\
-	xincmips.s\
-	xincpower.s\
+	xincmips.s
 
 HFILES=\
 	/sys/include/thread.h\

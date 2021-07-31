@@ -37,9 +37,9 @@ struct Rpc
 {
 	char	*name;
 	ulong	count;
-	vlong	time;
-	vlong	lo;
-	vlong	hi;
+	ulong	time;
+	ulong	loms;
+	ulong	hims;
 	ulong	bin;
 	ulong	bout;
 };

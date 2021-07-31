@@ -466,11 +466,6 @@ work(void){
 			gotop(c);
 			continue;
 		case ':':
-			if ((cc = getch()) == ':') {
-				putch(c,NO);
-				putch(cc,NO);
-				continue;
-			}
 			if (question == 1){
 				question = 0;
 				gotop(c);
@@ -801,7 +796,7 @@ outs(int n){
 			lbegin = 0;
 			if (split == 1){
 				split = 0;
-				if (clev->tabs > 0)Bprint(output, "\t");
+				if (clev->tabs > 0)Bprint(output, "    ");
 			}
 		}
 		*p = '\0';
