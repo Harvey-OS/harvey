@@ -42,6 +42,7 @@ threadsetname,
 threadwaitchan,
 yield \- thread and proc management
 .SH SYNOPSIS
+.PP
 .EX
 .ta 4n +4n +4n +4n +4n +4n +4n
 #include <u.h>
@@ -345,12 +346,6 @@ can safely free it once they have
 received the
 .I cpid
 response.
-Note that the mount point
-.B /mnt/temp
-must exist;
-.I procexec(l)
-mount pipes there.
-.PP
 .I Threadwaitchan
 returns a channel of pointers to
 .B Waitmsg
@@ -583,9 +578,8 @@ functions for debugging threaded programs.
 a full example program.
 .TP
 .B /mnt/temp
-a place for
-.I procexec
-to create pipes.
+a place to create pipes by
+.IR procexec .
 .SH SOURCE
 .B /sys/src/libthread
 .SH SEE ALSO
