@@ -127,7 +127,7 @@ subnet(Ndb *db, uchar *net, Ndbtuple *f, int prefix)
 	int masklen;
 
 	t = nil;
-	snprint(netstr, sizeof netstr, "%I", net);
+	sprint(netstr, "%I", net);
 	nt = ndbsearch(db, &s, "ip", netstr);
 	while(nt != nil){
 		xt = ndbfindattr(nt, nt, "ipnet");
