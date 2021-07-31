@@ -681,7 +681,7 @@ uartrecv(Uart *p,  char ch)
 	/* receive the character */
 	if(p->putc)
 		p->putc(p->iq, ch);
-	else if (p->iw) {		/* maybe the line isn't enabled yet */
+	else{
 		ilock(&p->rlock);
 		next = p->iw + 1;
 		if(next == p->ie)
