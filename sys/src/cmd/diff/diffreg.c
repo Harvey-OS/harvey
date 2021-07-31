@@ -374,6 +374,7 @@ diffreg(char *f, char *t)
 		return;
 	b1 = prepare(1, t);
 	if (!b1) {
+		FREE(file[0]);
 		Bterm(b0);
 		return;
 	}
