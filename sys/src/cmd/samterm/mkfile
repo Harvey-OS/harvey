@@ -32,5 +32,6 @@ CFLAGS=-I../sam $CFLAGS
 mesg.$O:	../sam/mesg.h
 
 syms:V:
-	$CC -a $CFLAGS main.c		 > syms
-	for(i in *.c) $CC -aa $CFLAGS $i >> syms
+	vc -a $CFLAGS main.c	>syms
+	for(i in *.c) vc -aa $CFLAGS $i >> syms
+
