@@ -4,7 +4,7 @@ diff \- differential file comparator
 .SH SYNOPSIS
 .B diff
 [
-.B -acefmnbwr
+.B -cefmnbwr
 ] file1 ... file2
 .SH DESCRIPTION
 .I Diff
@@ -127,9 +127,6 @@ The
 .B -c
 option includes three lines of context around each
 change, merging changes whose contexts overlap.
-The
-.B -a
-flag displays the entire file as context.
 .PP
 Except in rare circumstances,
 .I diff

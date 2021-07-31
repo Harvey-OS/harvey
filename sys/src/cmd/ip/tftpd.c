@@ -107,7 +107,7 @@ main(int argc, char **argv)
 	if (cfd < 0)
 		sysfatal("announcing on %s: %r", buf);
 	syslog(dbg, flog, "tftpd started on %s dir %s", buf, adir);
-	setuser();
+//	setuser();	Moved to doserve [sape]
 	for(;;) {
 		lcfd = listen(adir, ldir);
 		if(lcfd < 0)
@@ -140,6 +140,7 @@ doserve(int fd)
 	char *mode, *p;
 	short op;
 
+	setuser();
 	dlen = read(fd, bigbuf, sizeof(bigbuf));
 	if(dlen < 0)
 		sysfatal("listen read: %r");
@@ -410,12 +411,11 @@ sunkernel(char *name)
 	uchar v6[IPaddrlen];
 	char buf[256];
 	char ipbuf[128];
-	char *suffix;
 
-	addr = strtoul(name, &suffix, 16);
-	if(suffix-name != 8 || (strcmp(suffix, "") != 0 && strcmp(suffix, ".SUN") != 0))
+	if(strlen(name) != 14 || strncmp(name + 8, ".SUN", 4) != 0)
 		return name;
 
+	addr = strtoul(name, 0, 16);
 	v4[0] = addr>>24;
 	v4[1] = addr>>16;
 	v4[2] = addr>>8;
