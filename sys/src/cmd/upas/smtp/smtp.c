@@ -255,7 +255,8 @@ connect(char* net)
 		syslog(0, "smtp.fail", "%s (%s)", buf, net);
 		if(strstr(buf, "illegal")
 		|| strstr(buf, "unknown")
-		|| strstr(buf, "can't translate"))
+		|| strstr(buf, "can't translate")
+		|| strstr(buf, "name does not exist"))
 			return Giveup;
 		else
 			return Retry;
