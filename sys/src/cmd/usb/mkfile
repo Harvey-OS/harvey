@@ -4,24 +4,14 @@ DIRS=\
 	lib\
 	usbd\
 	audio\
-	misc\
-
-UPDATE=\
-	mkfile\
+	mouse\
+	printer\
 
 none:VQ:
-	echo mk all, install, clean, or nuke
+	echo mk all, install, installall, clean, or nuke
 
-all install clean nuke:VQ:
+all install installall safeinstall clean nuke:VQ:
 	for (i in $DIRS) @{
 		cd $i
 		mk $target
-	}
-
-update:V:
-	update $UPDATEFLAGS $UPDATE
-	for (i in $DIRS) @{
-		echo update $i
-		cd $i
-		mk 'UPDATEFLAGS='$"UPDATEFLAGS update
 	}

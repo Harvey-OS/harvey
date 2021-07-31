@@ -5,8 +5,10 @@
 #include <fcall.h>
 #include <libsec.h>
 #include "usb.h"
-#include "usbaudio.h"
-#include "usbaudioctl.h"
+#include "usbproto.h"
+#include "dat.h"
+#include "fns.h"
+#include "audioclass.h"
 
 #define STACKSIZE 16*1024
 
@@ -89,7 +91,7 @@ Fcall	thdr;
 Fcall	rhdr;
 Worker *workers;
 
-char srvfile[64], mntdir[64], epdata[64], audiofile[64];
+char srvfile[64], mntdir[64];
 int mfd[2], p[2];
 char user[32];
 char *srvpost;
@@ -130,7 +132,7 @@ char 	*(*fcalls[])(Fid*) = {
 
 char	Eperm[] =		"permission denied";
 char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"no authentication in ramfs";
+char	Enoauth[] =	"usbaudio: authentication not required";
 char	Enotexist[] =	"file does not exist";
 char	Einuse[] =		"file in use";
 char	Eexist[] =		"file exists";
@@ -162,6 +164,30 @@ post(char *name, char *envname, int srvfd)
 		sysfatal("srv write");
 	close(fd);
 	putenv(envname, name);
+}
+
+static void
+dobind(Nexus *nx, char *mntpt, char *file)
+{
+	Stream *s;
+	Device *d;
+	Endpt *ep;
+	Streamalt *sa;
+	char epdata[64], audiofile[64];
+
+	if(nx == nil)
+		return;
+	s = nx->s;
+	d = s->intf->d;
+	for(sa = s->salt; sa != nil; sa = sa->next) {
+		if(sa->dalt->npt != 0)
+			break;
+	}
+	ep = &sa->dalt->ep[0];
+	sprint(epdata, "#U/usb%d/%d/ep%ddata", d->ctlrno, d->id, ep->addr);
+	sprint(audiofile, "%s/%s", mntpt, file);
+	if(bind(epdata, audiofile, MREPL) < 0)
+		sysfatal("bind failed");
 }
 
 void
@@ -203,18 +229,8 @@ serve(void *)
 	}
 	if(mount(p[1], -1, mntpt, MBEFORE, "") < 0)
 		sysfatal("mount failed");
-	if (endpt[Play] >= 0){
-		sprint(epdata, "#U/usb%d/%d/ep%ddata", ad->ctlrno, ad->id, endpt[Play]);
-		sprint(audiofile, "%s/audio", mntpt);
-		if(bind(epdata, audiofile, MREPL) < 0)
-			sysfatal("bind failed");
-	}
-	if (endpt[Record] >= 0){
-		sprint(epdata, "#U/usb%d/%d/ep%ddata", ad->ctlrno, ad->id, endpt[Record]);
-		sprint(audiofile, "%s/audioin", mntpt);
-		if(bind(epdata, audiofile, MREPL) < 0)
-			sysfatal("bind failed");
-	}
+	dobind(nexus[Play], mntpt, "audio");
+	dobind(nexus[Record], mntpt, "audioin");
 	threadexits(nil);
 }
 
@@ -241,7 +257,7 @@ rversion(Fid*)
 char*
 rauth(Fid*)
 {
-	return "usbaudio: no authentication required";
+	return Enoauth;
 }
 
 char*
@@ -304,9 +320,9 @@ dowalk(Fid *f, char *name)
 	if(f->dir != &dirs[Qdir])
 		return Enotexist;
 	for (t = 1; t < Nqid; t++){
-		if (t == Qaudio && endpt[Play] < 0)
+		if (t == Qaudio && nexus[Play] == nil)
 			continue;
-		if (t == Qaudioin && endpt[Record] < 0)
+		if (t == Qaudioin && nexus[Record] == nil)
 			continue;
 		if(strcmp(name, dirs[t].name) == 0){
 			f->dir = &dirs[t];
@@ -414,9 +430,9 @@ readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
 	n = 0;
 	pos = 0;
 	for (i = 1; i < Nqid; i++){
-		if (endpt[Play] < 0 && i == Qaudio)
+		if (nexus[Play] == nil && i == Qaudio)
 			continue;
-		if (endpt[Record] < 0 && i == Qaudioin)
+		if (nexus[Record] == nil && i == Qaudioin)
 			continue;
 		m = convD2M(&dirs[i], &buf[n], blen-n);
 		if(off <= pos){
@@ -437,6 +453,7 @@ makeaudioctldata(Fid *f)
 	char *p, *e;
 	Audiocontrol *c;
 	Audioctldata *a;
+	Nexus *nx;
 
 	if ((a = f->fiddata) == nil)
 		sysfatal("fiddata");
@@ -445,9 +462,12 @@ makeaudioctldata(Fid *f)
 		a->s = p;
 	}
 	e = p + 1024;
-	for (rec = 0; rec < 2; rec++)
-		for (ctl = 0; ctl < Ncontrol; ctl++) {
-			c = &controls[rec][ctl];
+	for(rec = 0; rec < 2; rec++) {
+		nx = nexus[rec];
+		if(nx == nil)
+			continue;
+		for(ctl = 0; ctl < Ncontrol; ctl++) {
+			c = &nx->control[ctl];
 			different = 0;
 			if (c->chans){
 				for (i = 1; i < 8; i++)
@@ -457,7 +477,7 @@ makeaudioctldata(Fid *f)
 				if (c->value[0] != a->values[rec][ctl][0])
 					different = 1;
 			if (different){
-				p = seprint(p, e, "%s %s %A", c->name, rec?"in":"out", c);
+				p = seprint(p, e, "%s %s %A", controlname[ctl], rec?"in":"out", c);
 				memmove(a->values[rec][ctl], c->value, sizeof c->value);
 				if (c->min != Undef){
 					p = seprint(p, e, " %ld %ld", c->min, c->max);
@@ -467,6 +487,7 @@ makeaudioctldata(Fid *f)
 				p = seprint(p, e, "\n");
 			}
 		}
+	}
 	assert(strlen(a->s) < 1024);
 	a->ns = p - a->s;
 	return a->ns;
@@ -555,6 +576,7 @@ rread(Fid *f)
 	Audiocontrol *c;
 	Audioctldata *a;
 	Worker *w;
+	Nexus *nx;
 
 	rhdr.count = 0;
 	off = thdr.offset;
@@ -574,26 +596,35 @@ rread(Fid *f)
 	if(f->dir == &dirs[Qvolume]){
 		p = buf;
 		n = sizeof buf;
-		for (rec = 0; rec < 2; rec++){
-			c = &controls[rec][Volume_control];
+		for (rec = 0; rec < 2; rec++) {
+			nx = nexus[rec];
+			if(nx == nil)
+				continue;
+			c = &nx->control[Volume_control];
 			if (c->readable){
 				i = snprint(p, n, "audio %s %ld\n", rec?"in":"out", (c->min != Undef) ?
 					100*(c->value[0]-c->min)/(c->max-c->min) : c->value[0]);
 				p+=i; n-=i;
 			}
-			c = &controls[rec][Treble_control];
+			c = &nx->control[Mixer_control];
+			if (c->readable){
+				i = snprint(p, n, "mixer %s %ld\n", rec?"in":"out", (c->min != Undef) ?
+					100*(c->value[0]-c->min)/(c->max-c->min) : c->value[0]);
+				p+=i; n-=i;
+			}
+			c = &nx->control[Treble_control];
 			if (c->readable){
 				i = snprint(p, n, "treb %s %ld\n", rec?"in":"out", (c->min != Undef) ?
 					100*(c->value[0]-c->min)/(c->max-c->min) : c->value[0]);
 				p+=i; n-=i;
 			}
-			c = &controls[rec][Bass_control];
+			c = &nx->control[Bass_control];
 			if (c->readable){
 				i = snprint(p, n, "bass %s %ld\n", rec?"in":"out", (c->min != Undef) ?
 					100*(c->value[0]-c->min)/(c->max-c->min) : c->value[0]);
 				p+=i; n-=i;
 			}
-			c = &controls[rec][Speed_control];
+			c = &nx->control[Speed_control];
 			if (c->readable){
 				i = snprint(p, n, "speed %s %ld\n", rec?"in":"out", c->value[0]);
 				p+=i; n-=i;
@@ -672,7 +703,7 @@ rwrite(Fid *f)
 {
 	long cnt, value;
 	char *lines[2*Ncontrol], *fields[4], *subfields[9], *err, *p;
-	int nlines, i, nf, nnf, rec, ctl;
+	int nlines, i, nf, nnf, rec;
 	Audiocontrol *c;
 	Worker *w;
 	static char buf[256];
@@ -707,15 +738,10 @@ rwrite(Fid *f)
 				if (debug) fprint(2, "bad2 %d\n", nf);
 				return Ebadctl;
 			}
-			c = nil;
 			if (strcmp(fields[0], "audio") == 0)	/* special case */
 				fields[0] = "volume";
-			for (ctl = 0; ctl < Ncontrol; ctl++){
-				c = &controls[rec][ctl];
-				if (strcmp(fields[0], c->name) == 0)
-					break;
-			}
-			if (ctl == Ncontrol){
+			c = findcontrol(nexus[rec], fields[0]);
+			if (c == nil){
 				if (debug) fprint(2, "bad3\n");
 				return Ebadctl;
 			}
@@ -732,13 +758,13 @@ rwrite(Fid *f)
 					if (debug) {
 						if (p == buf)
 							fprint(2, "rwrite: %s %s '%ld",
-								c->name, rec?"record":"playback", value);
+								fields[0], rec?"record":"playback", value);
 						else
 							fprint(2, " %ld", value);
 					}
 					if (p == buf)
 						p = seprint(p, buf+sizeof buf, "0x%p %s %s '%ld",
-							replchan, c->name, rec?"record":"playback", value);
+							replchan, fields[0], rec?"record":"playback", value);
 					else
 						p = seprint(p, buf+sizeof buf, " %ld", value);
 				}
@@ -746,8 +772,8 @@ rwrite(Fid *f)
 				seprint(p, buf+sizeof buf, "'");
 				chanprint(controlchan, buf);
 			} else {
-				if (debug) fprint(2, "rwrite: %s %s %q", c->name, rec?"record":"playback", fields[nf-1]);
-				chanprint(controlchan, "0x%p %s %s %q", replchan, c->name, rec?"record":"playback", fields[nf-1]);
+				if (debug) fprint(2, "rwrite: %s %s %q", fields[0], rec?"record":"playback", fields[nf-1]);
+				chanprint(controlchan, "0x%p %s %s %q", replchan, fields[0], rec?"record":"playback", fields[nf-1]);
 			}
 			p = recvp(replchan);
 			if (p){
@@ -797,9 +823,9 @@ rstat(Fid *f)
 {
 	Audioctldata *a;
 
-	if (f->dir == &dirs[Qaudio] && endpt[Play] < 0)
+	if (f->dir == &dirs[Qaudio] && nexus[Play] == nil)
 			return Enotexist;
-	if (f->dir == &dirs[Qaudioin] && endpt[Record] < 0)
+	if (f->dir == &dirs[Qaudioin] && nexus[Record] == nil)
 			return Enotexist;
 	if (f->dir == &dirs[Qaudioctl]){
 		qlock(f);

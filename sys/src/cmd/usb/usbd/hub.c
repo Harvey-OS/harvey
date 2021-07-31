@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <thread.h>
 #include "usb.h"
+#include "usbproto.h"
 
 #include "dat.h"
 #include "fns.h"
@@ -45,20 +46,23 @@ newhub(Hub *parent, Device *d)
 	h->ctlrno = parent->ctlrno;
 	h->dev0 = parent->dev0;
 
-	if (setupreq(d->ep[0], RD2H|Rclass|Rdevice, GET_DESCRIPTOR, (0<<8)|0, 0, sizeof(buf)) < 0 ||
-	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < DHUBLEN) {
-		fprint(2, "usbd: error reading hub descriptor\n");
+	nr = setupreq(d, RD2H|Rclass|Rdevice, GET_DESCRIPTOR, (0<<8)|0, 0, buf, sizeof(buf));
+	if(nr < 0) {
+		werrstr("newhub: %r");
+Error:
 		free(h);
 		return nil;
 	}
-	pdesc(d, -1, -1, buf, nr);
+	if(nr < DHUBLEN) {
+		werrstr("newhub: short device descriptor (%d < %d)", nr, DHUBLEN);
+		goto Error;
+	}
 	dd = (DHub*)buf;
 	nport = dd->bNbrPorts;
 	nmap = 1 + nport/8;
 	if(nr < 7 + 2*nmap) {
-		fprint(2, "usbd: hub descriptor too small\n");
-		free(h);
-		return nil;
+		werrstr("newhub: hub descriptor too small");
+		goto Error;
 	}
 
 	h->nport = nport;
@@ -112,7 +116,7 @@ Hfmt(Fmt *f)
 	return fmtprint(f, "usb%d/%d", h->ctlrno, h->d->id);
 }
 
-static void
+static int
 hubfeature(Hub *h, int port, int feature, int on)
 {
 	int cmd;
@@ -121,46 +125,37 @@ hubfeature(Hub *h, int port, int feature, int on)
 		cmd = SET_FEATURE;
 	else
 		cmd = CLEAR_FEATURE;
-	setup0(h->d, Rclass|Rother, cmd, feature, port, 0);
+	return setupreq(h->d, Rclass|Rother, cmd, feature, port, nil, 0);
 }
 
-void
+int
 portenable(Hub *h, int port, int on)
 {
-	if(h->isroot) {
-		if(fprint(h->portfd, "%s %d", on? "enable": "disable", port) < 0)
-			sysfatal("usbd: portenable: write error: %r");
-		return;
-	}
-	if(port == 0)
-		return;
-	hubfeature(h, port, PORT_ENABLE, on);
+	if(h->isroot)
+		return fprint(h->portfd, "%s %d", on? "enable": "disable", port);
+	return hubfeature(h, port, PORT_ENABLE, on);
 }
 
-void
+int
 portreset(Hub *h, int port)
 {
 	if(h->isroot) {
 		if(fprint(h->portfd, "reset %d", port) < 0)
-			sysfatal("usbd: portreset: write error: %r");
+			return -1;
 		sleep(100);
-		return;
+		return 0;
 	}
-	if(port == 0)
-		return;
-	hubfeature(h, port, PORT_RESET, 1);
+	return hubfeature(h, port, PORT_RESET, 1);
 }
 
-void
+int
 portpower(Hub *h, int port, int on)
 {
 	if(h->isroot) {
 		/* no power control */
-		return;
+		return 0;
 	}
-	if(port == 0)
-		return;
-	hubfeature(h, port, PORT_POWER, on);
+	return hubfeature(h, port, PORT_POWER, on);
 }
 
 static struct
@@ -181,7 +176,6 @@ int
 portstatus(Hub *h, int port)
 {
 	int x;
-	Endpt *e;
 	byte buf[4];
 	int n, nf, i, j;
 	char *status, *q, *qe, *field[20];
@@ -190,8 +184,11 @@ portstatus(Hub *h, int port)
 		seek(h->portfd, 0, 0);
 		status = malloc(8192);
 		n = read(h->portfd, status, 8192);
-		if (n <= 0)
-			sysfatal("usbd: can't read usb port status: %r");
+		if(n <= 0) {
+			werrstr("portstatus read: %r");
+			free(status);
+			return -1;
+		}
 		status[n] = '\0';
 		q = status;
 		for(;;) {
@@ -218,12 +215,9 @@ portstatus(Hub *h, int port)
 		free(status);
 		return x;
 	}
-	e = h->d->ep[0];
-	if (setupreq(e, RD2H|Rclass|Rother, GET_STATUS, 0, port, sizeof(buf)) < 0
-	  || setupreply(e, buf, sizeof(buf)) < sizeof(buf)) {
-		if (debug)
-			sysfatal("usbd: error reading hub status %H.%d", h, port);
-		return 0;
+	if(setupreq(h->d, RD2H|Rclass|Rother, GET_STATUS, 0, port, buf, sizeof(buf)) < sizeof(buf)) {
+		werrstr("portstatus: setupreq: %r");
+		return -1;
 	}
-	return GET2(buf);
+	return GET4(buf);
 }

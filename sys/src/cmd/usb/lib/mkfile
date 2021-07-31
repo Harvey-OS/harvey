@@ -2,6 +2,7 @@
 
 LIB=usb.a$O
 OFILES=\
+	config.$O\
 	device.$O\
 	dump.$O\
 	fmt.$O\
@@ -10,13 +11,9 @@ OFILES=\
 
 HFILES=\
 	usb.h\
-
-UPDATE=\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-	mkfile\
+	usbproto.h\
 
 </sys/src/cmd/mklib
 
-install:V:	$LIB
+install safeinstall:V:	$LIB
 	date
