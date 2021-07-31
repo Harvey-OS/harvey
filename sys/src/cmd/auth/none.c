@@ -2,29 +2,13 @@
 #include <libc.h>
 #include <auth.h>
 
-char *namespace;
-
-void
-usage(void)
-{
-	fprint(2, "usage: auth/none [-n namespace] [cmd ...]\n");
-	exits("usage");
-}
-
 void
 main(int argc, char *argv[])
 {
 	char cmd[256];
 	int fd;
 
-	ARGBEGIN{
-	case 'n':
-		namespace = EARGF(usage());
-		break;
-	default:
-		usage();
-	}ARGEND
-
+	argv0 = argv[0];
 	if (rfork(RFENVG|RFNAMEG) < 0)
 		sysfatal("can't make new pgrp");
 
@@ -35,17 +19,17 @@ main(int argc, char *argv[])
 		sysfatal("can't become none");
 	close(fd);
 
-	if (newns("none", namespace) < 0)
+	if (newns("none", nil) < 0)
 		sysfatal("can't build namespace");
 
-	if (argc > 0) {
-		strecpy(cmd, cmd+sizeof cmd, argv[0]);
-		exec(cmd, &argv[0]);
+	if (argc > 1) {
+		strecpy(cmd, cmd+sizeof cmd, argv[1]);
+		exec(cmd, &argv[1]);
 		if (strncmp(cmd, "/", 1) != 0
 		&& strncmp(cmd, "./", 2) != 0
 		&& strncmp(cmd, "../", 3) != 0) {
-			snprint(cmd, sizeof cmd, "/bin/%s", argv[0]);
-			exec(cmd, &argv[0]);
+			snprint(cmd, sizeof cmd, "/bin/%s", argv[1]);
+			exec(cmd, &argv[1]);
 		}
 	} else {
 		strcpy(cmd, "/bin/rc");
