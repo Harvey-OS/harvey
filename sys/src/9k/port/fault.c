@@ -23,7 +23,7 @@ fault(uintptr addr, int read)
 	m->pfault++;
 	for(;;) {
 		s = seg(up, addr, 1);		/* leaves s->lk qlocked if seg != nil */
-		if(s == nil) {
+		if(s == 0) {
 			up->psstate = sps;
 			return -1;
 		}
@@ -80,7 +80,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput)
 	addr &= ~(pgsize-1);
 	soff = addr-s->base;
 	p = &s->map[soff/s->ptemapmem];
-	if(*p == nil)
+	if(*p == 0)
 		*p = ptealloc();
 
 	etp = *p;
@@ -109,7 +109,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput)
 	case SG_BSS:
 	case SG_SHARED:			/* Zero fill on demand */
 	case SG_STACK:
-		if(*pg == nil) {
+		if(*pg == 0) {
 			new = newpage(1, s, addr, 1);
 			if(new == nil)
 				return -1;
@@ -159,7 +159,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput)
 		break;
 
 	case SG_PHYSICAL:
-		if(*pg == nil) {
+		if(*pg == 0) {
 			fn = s->pseg->pgalloc;
 			if(fn)
 				*pg = (*fn)(s, addr);
@@ -327,7 +327,7 @@ seg(Proc *p, uintptr addr, int dolock)
 	et = &p->seg[NSEG];
 	for(s = p->seg; s < et; s++) {
 		n = *s;
-		if(n == nil)
+		if(n == 0)
 			continue;
 		if(addr >= n->base && addr < n->top) {
 			if(dolock == 0)
