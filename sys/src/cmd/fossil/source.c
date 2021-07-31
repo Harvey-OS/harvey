@@ -38,36 +38,30 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 	 * get prints.
 	 */
 	if(!entryUnpack(&e, b->data, offset % epb)){
-		fprint(2, "%s: %V: sourceAlloc: entryUnpack failed\n", argv0,
-			b->score);
+		fprint(2, "entryUnpack failed\n");
 		goto Bad;
 	}
 	if(!(e.flags & VtEntryActive)){
-		if(0) fprint(2, "%s: %V: sourceAlloc: not active\n",
-			argv0, e.score);
+		if(0)fprint(2, "not active\n");
 		goto Bad;
 	}
 	if(e.psize < 256 || e.dsize < 256){
-		fprint(2, "%s: %V: sourceAlloc: psize %ud dsize %ud\n",
-			argv0, e.score, e.psize, e.dsize);
+		fprint(2, "psize %ud dsize %ud\n", e.psize, e.dsize);
 		goto Bad;
 	}
 
 	if(e.depth < sizeToDepth(e.size, e.psize, e.dsize)){
-		fprint(2, "%s: %V: sourceAlloc: depth %ud size %llud psize %ud dsize %ud\n",
-			argv0, e.score, e.depth, e.size, e.psize, e.dsize);
+		fprint(2, "depth %ud size %llud psize %ud dsize %ud\n", e.depth, e.size, e.psize, e.dsize);
 		goto Bad;
 	}
 
 	if((e.flags & VtEntryLocal) && e.tag == 0){
-		fprint(2, "%s: %V: sourceAlloc: flags %#ux tag %#ux\n",
-			argv0, e.score, e.flags, e.tag);
+		fprint(2, "flags %#ux tag %#ux\n", e.flags, e.tag);
 		goto Bad;
 	}
 
 	if(e.dsize > fs->blockSize || e.psize > fs->blockSize){
-		fprint(2, "%s: %V: sourceAlloc: psize %ud dsize %ud blocksize %ud\n",
-			argv0, e.score, e.psize, e.dsize, fs->blockSize);
+		fprint(2, "psize %ud dsize %ud blocksize %ud\n", e.psize, e.dsize, fs->blockSize);
 		goto Bad;
 	}
 
@@ -104,20 +98,20 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 		vtUnlock(p->lk);
 	}
 	r->epoch = epoch;
-//	fprint(2, "%s: sourceAlloc: have %V be.%d fse.%d %s\n", argv0, b->score,
-//		b->l.epoch, r->fs->ehi, mode == OReadWrite? "rw": "ro");
+//fprint(2, "sourceAlloc have %V be.%d fse.%d %s\n", b->score, b->l.epoch, r->fs->ehi, mode==OReadWrite ? "rw" : "ro");
 	memmove(r->score, b->score, VtScoreSize);
 	r->scoreEpoch = b->l.epoch;
 	r->offset = offset;
 	r->epb = epb;
 	r->tag = b->l.tag;
 
-//	fprint(2, "%s: sourceAlloc: %p -> %V %d\n", r, r->score, r->offset);
+//fprint(2, "sourceAlloc: %p -> %V %d\n", r, r->score, r->offset);
 
 	return r;
 Bad:
 	vtSetError(EBadEntry);
 	return nil;
+
 }
 
 Source *
@@ -131,8 +125,7 @@ sourceRoot(Fs *fs, u32int addr, int mode)
 		return nil;
 
 	if(mode == OReadWrite && b->l.epoch != fs->ehi){
-		fprint(2, "%s: sourceRoot: fs->ehi = %ud, b->l = %L\n",
-			argv0, fs->ehi, &b->l);
+		fprint(2, "sourceRoot: fs->ehi = %ud, b->l = %L\n", fs->ehi, &b->l);
 		blockPut(b);
 		vtSetError(EBadRoot);
 		return nil;
