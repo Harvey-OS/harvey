@@ -109,7 +109,6 @@ struct Hciimpl
 	int	(*portenable)(Hci*, int, int);	/* enable/disable port */
 	int	(*portreset)(Hci*, int, int);	/* set/clear port reset */
 	int	(*portstatus)(Hci*, int);	/* get port status */
-	void	(*shutdown)(Hci*);		/* shutdown for reboot */
 	void	(*debug)(Hci*, int);		/* set/clear debug flag */
 };
 
@@ -121,6 +120,7 @@ struct Hci
 	int	nports;				/* number of ports in hub */
 	int	highspeed;
 	Hciimpl;					/* HCI driver  */
+
 };
 
 /*

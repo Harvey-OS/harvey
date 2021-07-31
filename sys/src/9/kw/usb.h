@@ -14,8 +14,7 @@ enum
 	/* tunable parameters */
 	Nhcis	= 16,		/* max nb. of HCIs */
 	Neps	= 64,		/* max nb. of endpoints */
-	Maxctllen = 16*1024,	/* max allowed sized for ctl. xfers */
-	Xfertmout = 2000,	/* default request time out (ms) */
+	Maxctllen = 8*1024,	/* max allowed sized for ctl. xfers */
 
 	/* transfer types. keep this order */
 	Tnone = 0,		/* no tranfer type configured */
@@ -62,7 +61,6 @@ enum
 	Dconfig	 = 0,		/* configuration in progress */
 	Denabled,		/* address assigned */
 	Ddetach,		/* device is detached */
-	Dreset,			/* its port is being reset */
 
 	/* (root) Hub reply to port status (reported to usbd) */
 	HPpresent	= 0x1,
@@ -120,7 +118,7 @@ struct Hci
 	int	ctlrno;				/* controller number */
 	int	nports;				/* number of ports in hub */
 	int	highspeed;
-	Hciimpl;					/* HCI driver  */
+	Hciimpl;				/* HCI driver  */
 };
 
 /*
@@ -161,7 +159,6 @@ struct Ep
 	long	hz;		/* poll frequency (iso) */
 	long	samplesz;	/* sample size (iso) */
 	int	ntds;		/* nb. of Tds per µframe */
-	int	tmout;		/* 0 or timeout for transfers (ms) */
 };
 
 /*
