@@ -43,7 +43,7 @@ boot boot #S/sdC0/
 
 bootdir
 	/power/bin/rc
-	/rc/lib/rcmain
+	/sys/src/9/power/rcmain
 	/power/bin/bind
 	/power/bin/sed
 	/power/bin/srv
