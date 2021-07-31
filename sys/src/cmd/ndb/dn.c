@@ -320,12 +320,9 @@ dnageall(int doit)
 		l = &ht[i];
 		for(dp = *l; dp; dp = *l){
 			if(dp->rr == 0 && dp->refs == 0){
-				assert(dp->magic == DNmagic);
 				*l = dp->next;
 				if(dp->name)
 					free(dp->name);
-				dp->magic = ~dp->magic;
-syslog(0, "dns", "freeing %p\n", dp);
 				dnvars.names--;
 				free(dp);
 				continue;
@@ -615,7 +612,6 @@ rrfree(RR *rp)
 	RR *nrp;
 	Txt *t;
 
-	assert(rp->magic = RRmagic);
 	assert(!rp->cached);
 
 	dp = rp->owner;
@@ -656,7 +652,6 @@ rrfree(RR *rp)
 		break;
 	}
 
-	rp->magic = ~rp->magic;
 	free(rp);
 }
 
@@ -1442,7 +1437,6 @@ emalloc(int size)
 	x = mallocz(size, 1);
 	if(x == nil)
 		abort();
-	setmalloctag(x, getcallerpc(&size));
 	return x;
 }
 
@@ -1457,7 +1451,6 @@ estrdup(char *s)
 	if(p == nil)
 		abort();
 	memmove(p, s, size);
-	setmalloctag(p, getcallerpc(&s));
 	return p;
 }
 
