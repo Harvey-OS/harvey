@@ -252,8 +252,6 @@ struct Block {
 	uchar	score[VtScoreSize];	/* score */
 	Label l;
 
-	uchar	*dmap;
-
 	uchar 	*data;
 
 	/* the following is private; used by cache */

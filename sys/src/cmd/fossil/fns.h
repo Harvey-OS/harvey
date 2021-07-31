@@ -26,7 +26,7 @@ u32int cacheLocalSize(Cache*, int);
 Block* blockCopy(Block*, u32int, u32int, u32int);
 void blockDupLock(Block*);
 void blockPut(Block*);
-void blockDependency(Block*, Block*, int, uchar*, Entry*);
+void blockDependency(Block*, Block*, int, uchar*);
 int blockDirty(Block*);
 int blockRemoveLink(Block*, u32int, int, u32int);
 int blockSetLabel(Block*, Label*);

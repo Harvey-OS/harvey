@@ -16,7 +16,6 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 	Block *b, *bs;
 	Super super;
 	int m;
-	uchar oscore[VtScoreSize];
 
 	switch(mode){
 	default:
@@ -83,7 +82,6 @@ fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
 		b = blockCopy(b, RootTag, fs->ehi, fs->elo);
 		if(b == nil)
 			goto Err;
-		localToGlobal(super.active, oscore);
 		super.active = b->addr;
 		bs = cacheLocal(fs->cache, PartSuper, 0, OReadWrite);
 		if(bs == nil){
@@ -91,7 +89,7 @@ fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
 			goto Err;
 		}
 		superPack(&super, bs->data);
-		blockDependency(bs, b, 0, oscore, nil);
+		blockDependency(bs, b, -1, nil);
 		blockDirty(bs);
 		blockPut(bs);
 		blockPut(b);
@@ -210,7 +208,7 @@ superPut(Block* b, Super* super, int forceWrite)
 
 /*
  * Prepare the directory to store a snapshot.
- * Temporary snapshots go into /snapshot/yyyy/mmdd/hhmm[.#]
+ * Temporary snapshots go into /snapshot/#.
  * Archival snapshots go into /archive/yyyy/mmdd[.#].
  *
  * TODO This should be rewritten to eliminate most of the duplication.
@@ -314,20 +312,17 @@ fileOpenSnapshot(Fs *fs, int doarchive)
 			return nil;
 		dir = f;
 
-		/* hhmm[.#] */
+		/* hhmm */
 		snprint(buf, sizeof buf, "%02d%02d", now.hour, now.min);
-		s = buf+strlen(buf);
-		for(n=0;; n++){
-			if(n)
-				seprint(s, buf+sizeof(buf), ".%d", n);
-			f = fileWalk(dir, buf);
-			if(f != nil){
-				fileDecRef(f);
-				continue;
-			}
-			f = fileCreate(dir, buf, ModeDir|ModeSnapshot|0555, "adm");
-			break;
+		f = fileWalk(dir, buf);
+		if(f != nil){
+			fileDecRef(f);
+			fileDecRef(dir);
+			fprint(2, "/snapshot/%d/%02d%02d/%s already exists!\n",
+				now.year+1900, now.mon+1, now.mday, buf);
+			return nil;
 		}
+		f = fileCreate(dir, buf, ModeDir|ModeSnapshot|0555, "adm");
 		fileDecRef(dir);
 		return f;
 	}
@@ -362,7 +357,7 @@ fsEpochLow(Fs *fs, u32int low)
 static int
 bumpEpoch(Fs *fs, int doarchive)
 {
-	uchar oscore[VtScoreSize];
+	uchar score[VtScoreSize];
 	u32int oldaddr;
 	Block *b, *bs;
 	Entry e;
@@ -386,6 +381,7 @@ bumpEpoch(Fs *fs, int doarchive)
 	memmove(e.score, b->score, VtScoreSize);
 	e.tag = RootTag;
 	e.snap = b->l.epoch;
+	oldaddr = b->addr;
 
 	b = blockCopy(b, RootTag, fs->ehi+1, fs->elo);
 	if(b == nil){
@@ -417,8 +413,8 @@ bumpEpoch(Fs *fs, int doarchive)
 	 * Record that the new super.active can't get written out until
 	 * the new b gets written out.  Until then, use the old value.
 	 */
-	localToGlobal(oldaddr, oscore);
-	blockDependency(bs, b, 0, oscore, nil);
+	localToGlobal(oldaddr, score);
+	blockDependency(bs, b, 0, score);
 	blockPut(b);
 
 	/*

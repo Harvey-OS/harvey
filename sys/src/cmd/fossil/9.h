@@ -143,7 +143,6 @@ extern int fsysNoAuthCheck(Fsys*);
 extern int fsysNoPermCheck(Fsys*);
 extern void fsysPut(Fsys*);
 extern int fsysWstatAllow(Fsys*);
-extern char* fsysGetName(Fsys*);
 
 /*
  * 9lstn.c
