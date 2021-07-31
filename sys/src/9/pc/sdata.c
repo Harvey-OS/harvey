@@ -606,10 +606,11 @@ retry:
 	if(DEBUG & DbgCONFIG){
 		print("dev %2.2uX config %4.4uX capabilities %4.4uX",
 			dev, drive->info[Iconfig], drive->info[Icapabilities]);
-		print(" mwdma %4.4uX", drive->info[Imwdma]);
+		print(" mwdma %4.4uX dma %8.8uX", 
+			drive->info[Imwdma], drive->dma);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
-		print(" dma %8.8uX rwm %ud\n", drive->dma, drive->rwm);
+		print(" rwm %ud\n", drive->rwm);
 	}
 
 	return drive;

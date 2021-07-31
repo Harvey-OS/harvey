@@ -1792,9 +1792,9 @@ docheck:
 		status = SDcheck;
 		r->flags |= SDvalidsense;
 	}
-	KPRINT("sd53c8xx: %d: r flags %8.8uX status %d rlen %ld\n",
-		target, r->flags, status, r->rlen);
-	return r->status = status;
+	KPRINT("sd53c8xx: %d: r flags %8.8uX status %d rlen %d\n",
+		target, r->flags, r->status, r->dlen);
+	return status;
 }
 
 #define NCR_VID 	0x1000
@@ -1907,23 +1907,17 @@ na_fixup(Controller *c, ulong pa_reg,
 static SDev*
 sympnp(void)
 {
-	char *cp;
+	int ba;
 	Pcidev *p;
 	Variant *v;
-	int ba, nctlr;
 	void *scriptma;
 	Controller *ctlr;
 	SDev *sdev, *head, *tail;
 	ulong regpa, *script, scriptpa;
 
-	if(cp = getconf("*maxsd53c8xx"))
-		nctlr = strtoul(cp, 0, 0);
-	else
-		nctlr = 32;
-
 	p = nil;
 	head = tail = nil;
-	while((p = pcimatch(p, NCR_VID, 0)) != nil && nctlr > 0){
+	while(p = pcimatch(p, NCR_VID, 0)){
 		for(v = variant; v < &variant[nelem(variant)]; v++){
 			if(p->did == v->did && p->rid <= v->maxrid)
 				break;
@@ -2017,8 +2011,6 @@ buggery:
 		else
 			head = sdev;
 		tail = sdev;
-
-		nctlr--;
 	}
 
 	return head;

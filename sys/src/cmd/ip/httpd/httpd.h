@@ -208,7 +208,7 @@ struct Connect
 	HttpHead	head;
 
 	char		*remotesys;
-	ulong		reqtime;		/* time at start of request */
+	ulong		begin_time;
 	char		xferbuf[BufSize];	/* buffer for making up or transferring data */
 	uchar		header[BufSize + 2];	/* room for \n\0 */
 	uchar		*hpos;

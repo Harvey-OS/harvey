@@ -5,12 +5,9 @@
 #include "vga.h"
 
 /*
- * S3 Trio/ViRGE/Savage4
+ * S3 Trio/ViRGE.
  * Requires work.
  */
-
-/* on some cards, savage4mem[1] == 8, but i don't know how to tell. -rsc */
-static uchar savage4mem[] = { 2, 4, 8, 12, 16, 32, 0, 32};
 static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
@@ -42,16 +39,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	case 0xE111:				/* Trio64+ */
 		vga->r[1] = 3;
-		vga->m[1] = 127;
-		vga->n[1] = 31;
 		vga->f[1] = 135000000;
 		trace("Trio64+\n");
 		break;
 
 	case 0xE131:				/* ViRGE */
 		vga->r[1] = 3;
-		vga->m[1] = 127;
-		vga->n[1] = 31;
 		vga->f[1] = 135000000;
 		vga->apz = 64*1024*1024;
 		trace("ViRGE\n");
@@ -59,16 +52,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	case 0xE18A:				/* ViRGE/[DG]X */
 		vga->r[1] = 4;
-		vga->m[1] = 127;
-		vga->n[1] = 31;
 		vga->f[1] = 170000000;
 		trace("ViRGE/[DG]X\n");
 		break;
 
 	case 0xE110:				/* ViRGE/GX2 */
 		vga->r[1] = 4;
-		vga->m[1] = 127;
-		vga->n[1] = 31;
 		vga->f[1] = 170000000;
 		vga->apz = 64*1024*1024;
 		trace("ViRGE/GX2\n");
@@ -89,8 +78,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	case 0xE13D:				/* ViRGE/VX */
 		vga->r[1] = 4;
-		vga->m[1] = 127;
-		vga->n[1] = 31;
 		vga->f[1] = 220000000;
 		vga->apz = 64*1024*1024;
 		trace("ViRGE/VX\n");
@@ -98,17 +85,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 		 * Memory encoding on the ViRGE/VX is different.
 		 */
 		vga->vmz = (2*(((vga->crt[0x36]>>5) & 0x03)+1)) * 1*1024*1024;
-		break;
-
-	case 0xE122:				/* Savage 4 */
-		vga->r[1] = 4;
-		vga->m[1] = 511;
-		vga->n[1] = 127;
-		vga->f[1] = 300000000;	
-
-		vga->apz = 128*1024*1024;
-		vga->vmz = savage4mem[vga->crt[0x36]>>5] * 1024 * 1024;
-		trace("Savage4\n");
 		break;
 	}
 
@@ -226,6 +202,7 @@ init(Vga* vga, Ctlr* ctlr)
 			 */
 			vga->crt[0x36] &= ~0x0C;
 
+
 			if(vga->mode->x > 800 && vga->mode->z == 8)
 				vga->crt[0x67] = 0x10;
 			else
@@ -292,49 +269,6 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->crt[0x53] |= 0x08;
 
 		break;
-
-	case 0xE122:	/* Savage 4 */
-		/*
-		 * The Savage 4 is frustratingly similar to the
-		 * ViRGE/GX2, but has enough slight differences
-		 * to warrant special treatment.  Blog.
-		 */
-		vga->crt[0x66] = 0x89;
-		vga->crt[0x67] &= ~0xF0;
-		vga->crt[0x67] = 0;
-		vga->crt[0x85] = 0x02;
-		vga->crt[0x31] |= 0x08;
-
-		if(vga->mode->z > 8)
-			width = vga->mode->x*(vga->mode->z/8);
-		else
-			width = vga->mode->x*(8/vga->mode->z);
-		vga->crt[0x13] = (width>>3) & 0xFF;
-		vga->crt[0x51] &= ~0x30;
-		vga->crt[0x51] |= (width>>7) & 0x30;
-
-		/*
-		 * The high nibble is the mode; or'ing in 0x02 turns
-		 * on support for gamma correction via the DACs, but I
-		 * haven't figured out how to turn on the 8-bit DACs,
-		 * so gamma correction stays off.
-		 */
-		switch(vga->mode->z){
-		default:
-			error("%d-bit mode not supported on savage 4\n", vga->mode->z);
-		case 8:
-			vga->crt[0x67] |= 0x00;
-			break;
-		case 15:
-			vga->crt[0x67] |= 0x20;
-			break;
-		case 16:
-			vga->crt[0x67] |= 0x40;
-			break;
-		case 32:
-			vga->crt[0x67] |= 0xD0;
-			break;
-		}
 	}
 
 	/*
@@ -366,18 +300,6 @@ init(Vga* vga, Ctlr* ctlr)
 				vga->sequencer[0x29] &= ~0x01;
 			break;
 
-		case 0xE122:			/* Savage4 */
-			vga->sequencer[0x12] = (vga->r[0]<<6)|(vga->n[0] & 0x3F);
-			vga->sequencer[0x39] &= ~0x01;
-			vga->sequencer[0x29] &= ~0x1C;
-			if(vga->r[0] & 0x04)
-				vga->sequencer[0x29] |= (1<<2);
-			if(vga->m[0] & 0x100)
-				vga->sequencer[0x29] |= (1<<3);
-			if(vga->n[0] & 0x40)
-				vga->sequencer[0x29] |= (1<<4);
-			break;
-
 		default:
 			vga->sequencer[0x12] = (vga->r[0]<<5)|vga->n[0];
 			break;
@@ -407,8 +329,6 @@ init(Vga* vga, Ctlr* ctlr)
 	 * memory-system and dot-clock dependent, the
 	 * values below are guesses from dumping
 	 * registers.
-	 * The Savage4 does not document 0x54,
-	 * but we leave this anyway.
 	 */
 	if(vga->mode->x <= 800)
 		vga->crt[0x54] = 0xE8;
@@ -445,10 +365,6 @@ load(Vga* vga, Ctlr* ctlr)
 	case 0xE110:				/* ViRGE/GX2 */
 		vgaxo(Seqx, 0x29, vga->sequencer[0x29]);
 		break;
-	case 0xE122:				/* Savage 4 */
-		vgaxo(Seqx, 0x29, vga->sequencer[0x29]);
-		vgaxo(Seqx, 0x39, vga->sequencer[0x39]);
-		break;
 	}
 	if((vga->misc & 0x0C) == 0x0C)
 		vgaxo(Seqx, 0x15, vga->sequencer[0x15]|0x20);
@@ -477,20 +393,13 @@ load(Vga* vga, Ctlr* ctlr)
 		vgaxo(Crtx, 0x51, vga->crt[0x51]);
 		vgaxo(Crtx, 0x85, vga->crt[0x85]);
 		break;
-
-	case 0xE122:				/* Savage 4 */
-		vgaxo(Crtx, 0x31, vga->crt[0x31]);
-		vgaxo(Crtx, 0x13, vga->crt[0x13]);
-		vgaxo(Crtx, 0x51, vga->crt[0x51]);
-		vgaxo(Crtx, 0x85, vga->crt[0x85]);
-		break;
 	}
 }
 
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	int i, id;
+	int i;
 	ulong dclk, m, n, r;
 
 	s3generic.dump(vga, ctlr);
@@ -507,20 +416,8 @@ dump(Vga* vga, Ctlr* ctlr)
 	printreg(vga->crt[0x2E]);
 	printreg(vga->crt[0x2F]);
 
-	id = (vga->crt[0x30]<<8)|vga->crt[0x2E];
-	switch(id){
-	default:
-		n = vga->sequencer[0x12] & 0x1F;
-		break;
-
-	case 0xE112:				/* Savage4 */
-		n = vga->sequencer[0x12] & 0x3F;
-		if(vga->sequencer[0x29] & (1<<4))
-			n |= 0x40;
-		break;
-	}
-
-	switch(id){
+	n = vga->sequencer[0x12] & 0x1F;
+	switch((vga->crt[0x30]<<8)|vga->crt[0x2E]){
 	default:
 	case 0xE111:				/* Trio64+ */
 	case 0xE131:				/* ViRGE */
@@ -535,24 +432,8 @@ dump(Vga* vga, Ctlr* ctlr)
 		r = (vga->sequencer[0x12]>>6) & 0x03;
 		r |= (vga->sequencer[0x29] & 0x01)<<2;
 		break;
-
-	case 0xE112:				/* Savage 4 */
-		r = (vga->sequencer[0x12]>>6) & 0x03;
-		r |= (vga->sequencer[0x29] & (1<<2));
-		break;
 	}
-
-	switch(id){
-	default:
-		m = vga->sequencer[0x13] & 0x7F;
-		break;
-
-	case 0xE112:				/* Savage 4 */
-		m = vga->sequencer[0x13] & 0xFF;
-		if(vga->sequencer[0x29] & (1<<3))
-			m |= 0x100;
-		break;
-	}
+	m = vga->sequencer[0x13] & 0x7F;
 	dclk = (m+2)*RefFreq;
 	dclk /= (n+2)*(1<<r);
 	printitem(ctlr->name, "dclk m n r");

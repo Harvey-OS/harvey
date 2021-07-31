@@ -3,6 +3,7 @@
 TARG=\
 	sshserve\
 	ssh_genkey\
+	sshd\
 
 OFILES=\
 	misc.$O\

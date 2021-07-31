@@ -156,10 +156,8 @@ threadmain(int argc, char *argv[])
 
 	snarffd = open("/dev/snarf", OREAD|OCEXEC);
 
-	if(geninitdraw(nil, derror, nil, "rio", nil, Refnone) < 0){
-		threadprint(2, "rio: can't open display: %r\n");
-		exits("display open");
-	}
+	if(geninitdraw(nil, derror, nil, "rio", nil, Refnone) < 0)
+		error("can't find display");
 	iconinit();
 	view = screen;
 	viewr = view->r;
@@ -868,13 +866,8 @@ pointto(int wait)
 	else
 		w = nil;
 	if(wait)
-		while(mouse->buttons){
-			if(mouse->buttons!=4 && w !=nil){	/* cancel */
-				cornercursor(input, mouse->xy, 0);
-				w = nil;
-			}
+		while(mouse->buttons)
 			readmouse(mousectl);
-		}
 	cornercursor(input, mouse->xy, 0);
 	return w;
 }

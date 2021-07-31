@@ -45,11 +45,11 @@ getline(void)
 }
 
 static void*
-addr(char *s, Ureg *ureg, char **p)
+addr(char *s, Ureg *ureg)
 {
 	ulong a;
 
-	a = strtoul(s, p, 16);
+	a = strtoul(s, 0, 16);
 	if(a < sizeof(Ureg))
 		return ((uchar*)ureg)+a;
 	return (void*)a;
@@ -59,7 +59,6 @@ static void
 talkrdb(Ureg *ureg)
 {
 	uchar *a;
-	char *p;
 	char *req;
 
 	printq = nil;	// turn off serial console
@@ -69,15 +68,9 @@ talkrdb(Ureg *ureg)
 		req = getline();
 		switch(*req){
 		case 'r':
-			a = addr(req+1, ureg, nil);
+			a = addr(req+1, ureg);
 			DBG("read %p\n", a);
 			iprint("R%.8lux %.2ux %.2ux %.2ux %.2ux\n", strtoul(req+1, 0, 16), a[0], a[1], a[2], a[3]);
-			break;
-
-		case 'w':
-			a = addr(req+1, ureg, &p);
-			*(ulong*)a = strtoul(p, nil, 16);
-			iprint("W\n");
 			break;
 /*
  *		case Tmput:

@@ -18,7 +18,6 @@ char	*root;
 int	debug;
 int	giveup = 2*24*60*60;
 int	load;
-int	limit;
 
 /* the current directory */
 Dir	*dirbuf;
@@ -39,7 +38,7 @@ int	Eflag;			/* ignore E.xxxxxx dates */
 void
 usage(void)
 {
-	fprint(2, "usage: runq [-adsE] [-q dir] [-l load] [-t time] [-r nfiles] [-n nprocs] q-root cmd\n");
+	fprint(2, "usage: runq [-adsE] [-q dir] [-l load] [-t time] [-n nprocs] q-root cmd\n");
 	exits("");
 }
 
@@ -67,9 +66,6 @@ main(int argc, char **argv)
 		break;
 	case 'd':
 		debug++;
-		break;
-	case 'r':
-		limit = atoi(ARGF());
 		break;
 	case 's':
 		sflag++;
@@ -220,8 +216,6 @@ readdirect(int fd)
 
 	m = 1;	/* prime the loop */
 	for(n=0; m>0; n+=m/sizeof(Dir)){
-		if(limit && n >= limit)
-			break;
 		if(n == ndirbuf){
 			dirbuf = realloc(dirbuf, (ndirbuf+N)*sizeof(Dir));
 			if(dirbuf == 0){
@@ -322,25 +316,11 @@ dofile(Dir *dp)
 	if(debug)
 		fprint(2, "dofile %s\n", dp->name);
 	/*
-	 *  if no data file or empty control or data file, just clean up
-	 *  the empty control file must be 15 minutes old, to minimize the
-	 *  chance of a race.
+	 *  if no data file, just clean up
 	 */
 	if(dirstat(file(dp->name, 'D'), &d) < 0){
 		syslog(0, runqlog, "no data file for %s", dp->name);
 		remmatch(dp->name);
-		return;
-	}
-	if(d.length == 0){
-		syslog(0, runqlog, "empty data file for %s", dp->name);
-		remmatch(dp->name);
-		return;
-	}
-	if(dp->length == 0){
-		if(time(0)-dp->mtime > 15*60){
-			syslog(0, runqlog, "empty ctl file for %s", dp->name);
-			remmatch(dp->name);
-		}
 		return;
 	}
 	dtime = d.mtime;

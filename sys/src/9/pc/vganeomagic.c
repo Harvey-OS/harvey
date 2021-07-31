@@ -37,7 +37,6 @@ neomagiclinear(VGAscr* scr, int* size, int* align)
 		switch(p->did){
 		case 0x0004:		/* MagicGraph 128XD */
 		case 0x0005:		/* MagicMedia 256AV */
-		case 0x0006:		/* MagicMedia 256ZX */
 			aperture = p->mem[0].bar & ~0x0F;
 			*size = p->mem[0].size;
 			break;
@@ -93,10 +92,6 @@ neomagicenable(VGAscr* scr)
 		case 0x0005:		/* MagicMedia 256AV */
 			curoff = 0x1000;
 			vmsize = 2560*1024;
-			break;
-		case 0x0006:		/* MagicMedia 256ZX */
-			curoff = 0x1000;
-			vmsize = 4096*1024;
 			break;
 		default:
 			return;

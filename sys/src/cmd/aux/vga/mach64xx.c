@@ -335,8 +335,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	switch(mp->reg[ConfigCntl]&0x3){
 	case 0:
-		vga->apz = 16*1024*1024;	/* empirical -rsc */
-		break;
+		error("%s: no linear aperture", ctlr->name);
 	case 1:
 		vga->apz = 4*1024*1024;
 		break;
@@ -344,8 +343,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vga->apz = 8*1024*1024;
 		break;
 	case 3:
-		werrstr("%s: undocumented linear aperture size", ctlr->name);
-		ctlr->flag |= Ferror;
+		error("%s: undocumented linear aperture size", ctlr->name);
 	}
 
 	ctlr->flag |= Fsnarf;

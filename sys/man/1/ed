@@ -1,4 +1,6 @@
 .TH ED 1
+.ds Dt (\|\fL.,.\fP\|)
+.ds 1$ (\|\fL1,$\fP\|)
 .SH NAME
 ed \- text editor
 .SH SYNOPSIS
@@ -290,7 +292,7 @@ Address
 is legal for this command; text is placed
 at the beginning of the buffer.
 .TP
-.RB (\|\fL.,.\fP\|) \|b [ +- ][\fIpagesize\fP][ pln\fR]
+.RB \*(Dt \|b [ +- ][\fIpagesize\fP][ pln\fR]
 Browse.
 Print a `page', normally 20 lines.
 The optional 
@@ -314,7 +316,7 @@ Pagesize and format are remembered between
 commands.
 Dot is left at the last line displayed.
 .TP
-.RB (\|\fL.,.\fP\|) \|c
+.RB \*(Dt \|c
 .br
 .ns
 .TP
@@ -329,7 +331,7 @@ text to replace these lines.
 Dot is left at the last line input; if there were none,
 it is left at the line preceding the deleted lines.
 .TP
-.RB (\|\fL.,.\fP\|) \|d
+.RB \*(Dt \|d
 Delete the addressed lines from the buffer.
 Dot is set to the line following the last line deleted, or to
 the last line of the buffer if the deleted lines had no successor.
@@ -365,12 +367,12 @@ is given,
 the currently remembered file name is first changed to
 .IR filename .
 .TP
-.RB (\|\fL1,$\fP\|) \|g/\fIregular\ expression\fP/\fIcommand\ list\fP
+.RB \*(1$ \|g/\fIregular\ expression\fP/\fIcommand\ list\fP
 .PD 0
 .TP
-.RB (\|\fL1,$\fP\|) \|g/\fIregular\ expression\fP/
+.RB \*(1$ \|g/\fIregular\ expression\fP/
 .TP
-.RB (\|\fL1,$\fP\|) \|g/\fIregular\ expression\fP
+.RB \*(1$ \|g/\fIregular\ expression\fP
 .PD
 Global.
 First mark every line which matches
@@ -432,7 +434,7 @@ The address form
 then addresses this line.
 .ne 2.5
 .TP
-.RB (\|\fL.,.\fP\|) \|l
+.RB \*(Dt \|l
 List.
 Print the addressed lines in an unambiguous way:
 a tab is printed as
@@ -456,14 +458,14 @@ may be appended, like
 .LR p ,
 to any non-I/O command.
 .TP
-.RB (\|\fL.,.\fP\|) \|m\fIa
+.RB \*(Dt \|m\fIa
 Move.
 Reposition the addressed lines after the line
 addressed by
 .IR a .
 Dot is left at the last moved line.
 .TP
-.RB (\|\fL.,.\fP\|) \|n
+.RB \*(Dt \|n
 Number.
 Perform
 .LR p ,
@@ -474,7 +476,7 @@ may be appended, like
 .LR p ,
 to any non-I/O command.
 .TP
-.RB (\|\fL.,.\fP\|) \|p
+.RB \*(Dt \|p
 Print the addressed lines.
 Dot is left at the last line printed.
 A
@@ -482,7 +484,7 @@ A
 appended to any non-I/O command causes the then current line
 to be printed after the command is executed.
 .TP
-.RB (\|\fL.,.\fP\|) \|P
+.RB \*(Dt \|P
 This command is a synonym for
 .LR p .
 .TP
@@ -516,12 +518,12 @@ If the read is successful, the number of characters
 read is printed.
 Dot is left at the last line read from the file.
 .TP
-.RB (\|\fL.,.\fP\|) \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/
+.RB \*(Dt \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/
 .PD 0
 .TP
-.RB (\|\fL.,.\fP\|) \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/g
+.RB \*(Dt \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP/g
 .TP
-.RB (\|\fL.,.\fP\|) \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP
+.RB \*(Dt \|s\fIn\fP/\fIregular\ expression\fP/\fIreplacement\fP
 .PD
 Substitute.
 Search each addressed
@@ -584,20 +586,20 @@ or newline may be included in a replacement
 by prefixing it with
 .LR \e .
 .TP
-.RB (\|\fL.,.\fP\|) \|t\|\fIa
+.RB \*(Dt \|t\|\fIa
 Transfer.
 Copy the addressed lines 
 after the line addressed by
 .IR a .
 Dot is left at the last line of the copy.
 .TP
-.RB (\|\fL.,.\fP\|) \|u
+.RB \*(Dt \|u
 Undo.
 Restore the preceding contents
 of the first addressed line (sic), which must be the last line
 in which a substitution was made (double sic).
 .TP
-.RB (\|\fL1,$\fP\|) \|v/\fIregular\ expression\fP/\fIcommand\ list\fP
+.RB \*(1$ \|v/\fIregular\ expression\fP/\fIcommand\ list\fP
 This command is the same as the global command
 .L g
 except that the command list is executed with
@@ -606,7 +608,7 @@ dot initially set to every line
 those
 matching the regular expression.
 .TP
-.RB (\|\fL1,$\fP\|) \|w " \fIfilename\fP"
+.RB \*(1$ \|w " \fIfilename\fP"
 Write the addressed lines to
 the given file.
 If the file does not exist,
@@ -620,7 +622,7 @@ Dot is unchanged.
 If the write is successful, the number of characters written is
 printed.
 .TP
-.RB (\|\fL1,$\fP\|) \|W " \fIfilename\fP"
+.RB \*(1$ \|W " \fIfilename\fP"
 Perform
 .LR w ,
 but append to, instead of overwriting, any existing file contents.

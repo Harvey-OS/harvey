@@ -1242,7 +1242,7 @@ int
 redirected(Connect *c, char *how, char *uri)
 {
 	Hio *hout;
-	char *s, *ss, *host;
+	char *s, *host;
 	int n;
 
 	host = c->head.host;
@@ -1252,11 +1252,9 @@ redirected(Connect *c, char *how, char *uri)
 		s = strrchr(c->req.uri, '/');
 		if(s != nil)
 			*s = '\0';
-		ss = halloc(strlen(c->req.uri) + strlen(uri) + 2 + UTFmax);
-		sprint(ss, "%s/%s", c->req.uri, uri);
-		uri = ss;
-		if(s != nil)
-			*s = '/';
+		s = halloc(strlen(c->req.uri) + strlen(uri) + 2 + UTFmax);
+		sprint(s, "%s/%s", c->req.uri, uri);
+		uri = s;
 	}
 
 	n = snprint(c->xferbuf, BufSize, 
@@ -1283,10 +1281,7 @@ redirected(Connect *c, char *how, char *uri)
 	if(strcmp(c->req.meth, "HEAD") != 0)
 		hwrite(hout, c->xferbuf, n);
 
-	if(host == nil || host[0] == 0)
-		writelog(c, "Reply: %s\nRedirect: %U\n", how, uri);
-	else
-		writelog(c, "Reply: %s\nRedirect: http://%U%U\n", how, host, uri);
+	writelog(c, "Reply: %s\nRedirect: %U%U\n", how, host, uri);
 	if(c->head.closeit)
 		exits(nil);
 	return hflush(hout);
@@ -1533,6 +1528,36 @@ cistrncmp(char *s1, char *s2, int n)
 	return -*s2;
 }
 
+void
+writelog(Connect *c, char *fmt, ...)
+{
+	char buf[BufSize+500], *bufp, *bufe;
+	ulong now, today;
+	int logfd;
+	va_list arg;
+
+	bufe = buf + sizeof(buf);
+	now = time(nil);
+	today = now / (24*60*60);
+	logfd = logall[today & 1];
+	if(logfd <= 0)
+		return;
+	if(c->hstop == c->header || c->hstop[-1] != '\n')
+		*c->hstop = '\n';
+	*c->hstop = '\0';
+	bufp = seprint(buf, bufe, "==========\n");
+	bufp = seprint(bufp, bufe, "LogTime:  %D\n", now);
+	bufp = seprint(bufp, bufe, "ConnTime: %D\n", c->begin_time);
+	bufp = seprint(bufp, bufe, "RemoteIP: %s\n", c->remotesys);
+	va_start(arg, fmt);
+	bufp = doprint(bufp, bufe, fmt, arg);
+	va_end(arg);
+	if(c->req.uri != nil && c->req.uri[0] != 0)
+		bufp = seprint(bufp, bufe, "FinalURI: %s\n", c->req.uri);
+	bufp = seprint(bufp, bufe, "----------\n%s\n", (char*)c->header);
+	write(logfd, buf, bufp-buf);   /* append-only file */
+}
+
 char*
 lower(char *p)
 {
@@ -1546,34 +1571,4 @@ lower(char *p)
 		if(c >= 'A' && c <= 'Z')
 			*x -= 'A' - 'a';
 	return p;
-}
-
-void
-writelog(Connect *c, char *fmt, ...)
-{
-	char buf[BufSize+500], *bufp, *bufe;
-	ulong now, today;
-	int logfd;
-	va_list arg;
-
-	bufe = buf + sizeof(buf);
-	now = time(nil);
-	today = now / (24*60*60);
-	logfd = logall[today & 1];
-	if(c == nil || logfd <= 0)
-		return;
-	if(c->hstop == c->header || c->hstop[-1] != '\n')
-		*c->hstop = '\n';
-	*c->hstop = '\0';
-	bufp = seprint(buf, bufe, "==========\n");
-	bufp = seprint(bufp, bufe, "LogTime:  %D\n", now);
-	bufp = seprint(bufp, bufe, "ConnTime: %D\n", c->reqtime);
-	bufp = seprint(bufp, bufe, "RemoteIP: %s\n", c->remotesys);
-	va_start(arg, fmt);
-	bufp = doprint(bufp, bufe, fmt, arg);
-	va_end(arg);
-	if(c->req.uri != nil && c->req.uri[0] != 0)
-		bufp = seprint(bufp, bufe, "FinalURI: %s\n", c->req.uri);
-	bufp = seprint(bufp, bufe, "----------\n%s\n", (char*)c->header);
-	write(logfd, buf, bufp-buf);   /* append-only file */
 }

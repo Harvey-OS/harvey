@@ -63,7 +63,7 @@ main(int argc, char **argv)
 		usage();
 	}ARGEND
 
-	if(argc < 1)
+	if(argc < 2)
 		usage();
 
 	if(access(argv[0], 0) < 0)

@@ -1,5 +1,5 @@
 CONF=pc
-CONFLIST=pc pccpu
+CONFLIST=pc pcdisk pccpu pccpudisk
 
 objtype=386
 </$objtype/mkfile
@@ -44,7 +44,6 @@ OBJ=\
 	main.$O\
 	memory.$O\
 	mmu.$O\
-	random.$O\
 	rdb.$O\
 	trap.$O\
 	$DEVS\

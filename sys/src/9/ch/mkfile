@@ -1,0 +1,79 @@
+CONF=ch
+CONFLIST=ch
+
+objtype=mips
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	fault.$O\
+	latin1.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	rdb.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	clock.$O\
+	faultmips.$O\
+	fptrap.$O\
+	main.$O\
+	memset.$O\
+	memmove.$O\
+	mmu.$O\
+	trap.$O\
+	$DEVS\
+	$PORT\
+	boot$CONF.root.$O\
+	sdwd95a.$O\
+
+LIB=\
+	/mips/lib/libauth.a\
+	/mips/lib/libc.a\
+	/mips/lib/libsec.a\
+
+$p$CONF:	$OBJ $CONF.c $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -R8 -H3 -T0x80020000 $OBJ $CONF.$O $LIB
+	size $target
+
+install:V:	$p$CONF
+	#cp $p$CONF /n/bootes/$objtype/$p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+	import dinar / /n/dinar && cp $p$CONF /n/dinar/$objtype/$p$CONF
+
+<../boot/bootmkfile
+<../port/portmkfile
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	va initcode
+	vl -l -o init.out -H2 -T4128 -R4 initcode.$O -lc
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O faultmips.$O:	/$objtype/include/ureg.h
+
+devether.$O: 		../port/netif.h
