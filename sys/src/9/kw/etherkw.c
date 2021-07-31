@@ -1,7 +1,11 @@
 /*
  * marvell kirkwood ethernet (88e1116) driver
- * (as found in the sheevaplug & openrd).
+ * (as found in the sheevaplug).
  * from /public/doc/marvell/sheeva/88f61xx.kirkwood.pdf
+ *
+ * features that could be implemented:
+ * - ip4, tcp, udp checksum offloading
+ * - multicast filtering
  */
 
 #include "u.h"
@@ -19,11 +23,14 @@
 
 #define MASK(v)	((1UL<<(v)) - 1)
 
+// #undef	assert
+// #define assert(expr)
+
 #define	MIIDBG	if(0)iprint
+#define diprint	if(0)iprint
 
 enum {
-	Gbe0regs	= Regbase + 0x72000,
-	Gbe1regs	= Regbase + 0x76000,
+	Gberegs		= Regbase + 0x72000,
 
 	Nrx		= 512,
 	Ntx		= 512,
@@ -35,8 +42,6 @@ enum {
 
 	Descralign	= 16,
 	Bufalign	= 8,
-
-	Pass		= 1,		/* accept packets */
 
 	Qno		= 0,		/* do everything on queue zero */
 };
@@ -161,7 +166,7 @@ enum {
 #define SDCipgintrx(v)	((((v)>>15) & 1)<<25) | (((v) & MASK(15))<<7)
 
 	/* portcfg */
-	PCFGupromisc		= 1<<0,	/* unicast promiscuous mode */
+	PCFGupromisc		= 1<<0,
 #define Rxqdefault(q)	((q)<<1)
 #define Rxqarp(q)	((q)<<4)
 	PCFGbcrejectnoiparp	= 1<<7,
@@ -218,7 +223,7 @@ enum {
 	/* port serial control 1, psc1 */
 	PSC1loopback	= 1<<1,
 	PSC1mii		= 0<<2,
-	PSC1rgmii	= 1<<3,			/* enable RGMII */
+	PSC1rgmii	= 1<<3,
 	PSC1portreset	= 1<<4,
 	PSC1clockbypass	= 1<<5,
 	PSC1iban	= 1<<6,
@@ -456,12 +461,16 @@ struct Gbereg {
 	Mibstats;
 	ulong	_pad23[PAD(0x1400, 0x107c)];
 
-	/* multicast filtering; each byte: Qno<<1 | Pass */
+	/* multicast filtering */
 	ulong	dfsmt[64];	/* dest addr filter special m'cast table */
 	ulong	dfomt[64];	/* dest addr filter other m'cast table */
+
 	/* unicast filtering */
 	ulong	dfut[4];		/* dest addr filter unicast table */
 };
+
+vlong etherstart;
+
 
 static void getmibstats(Ctlr *);
 
@@ -562,16 +571,16 @@ dump(uchar *bp, long max)
 }
 
 static void
-etheractive(Ether *ether)
+etheractive(void)
 {
-	ether->starttime = TK2MS(MACHP(0)->ticks)/1000;
+	etherstart = TK2MS(MACHP(0)->ticks)/1000;
 }
 
 static void
-ethercheck(Ether *ether)
+ethercheck(void)
 {
-	if (ether->starttime != 0 &&
-	    TK2MS(MACHP(0)->ticks)/1000 - ether->starttime > Etherstuck)
+	if (etherstart != 0 &&
+	    TK2MS(MACHP(0)->ticks)/1000 - etherstart > Etherstuck)
 		iprint("ethernet stuck\n");
 }
 
@@ -584,7 +593,7 @@ receive(Ether *ether)
 	Ctlr *ctlr = ether->ctlr;
 	Rx *r;
 
-	ethercheck(ether);
+	ethercheck();
 	for (i = Nrx-2; i > 0; i--) {
 		r = &ctlr->rx[ctlr->rxhead];
 		assert(((uintptr)r & (Descralign - 1)) == 0);
@@ -620,7 +629,7 @@ receive(Ether *ether)
 		 */
 		b->rp += 2;
 		etheriq(ether, b, 1);
-		etheractive(ether);
+		etheractive();
 		if (i % (Nrx / 2) == 0)
 			rxreplenish(ctlr);
 	}
@@ -628,11 +637,8 @@ receive(Ether *ether)
 }
 
 static void
-txreplenish(Ether *ether)			/* free transmitted packets */
+txreplenish(Ctlr *ctlr)			/* free transmitted packets */
 {
-	Ctlr *ctlr;
-
-	ctlr = ether->ctlr;
 	while(ctlr->txtail != ctlr->txhead) {
 		cachedinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
 		if(ctlr->tx[ctlr->txtail].cs & TCSdmaown)
@@ -642,7 +648,7 @@ txreplenish(Ether *ether)			/* free transmitted packets */
 		freeb(ctlr->txb[ctlr->txtail]);
 		ctlr->txb[ctlr->txtail] = nil;
 		ctlr->txtail = NEXT(ctlr->txtail, Ntx);
-		etheractive(ether);
+		etheractive();
 	}
 }
 
@@ -660,9 +666,9 @@ transmit(Ether *ether)
 	Gbereg *reg = ctlr->reg;
 	Tx *t;
 
-	ethercheck(ether);
+	ethercheck();
 	ilock(ctlr);
-	txreplenish(ether);			/* reap old packets */
+	txreplenish(ctlr);			/* reap old packets */
 
 	/* queue new packets; don't use more than half the tx descs. */
 	kick = 0;
@@ -753,13 +759,14 @@ interrupt(Ureg*, void *arg)
 	Ether *ether = arg;
 	Ctlr *ctlr = ether->ctlr;
 	Gbereg *reg = ctlr->reg;
+	static int linkchg = 0;
 
 	handled = 0;
 	irq = reg->irq;
 	irqe = reg->irqe;
 	reg->irq = 0;				/* extinguish intr causes */
 	reg->irqe = 0;				/* " " " */
-	ethercheck(ether);
+	ethercheck();
 
 	if(irq & Irxbufferq(Qno)) {
 		/*
@@ -788,7 +795,7 @@ interrupt(Ureg*, void *arg)
 		 */
 		if(irqe & IEphystschg) {
 			ether->link = (reg->ps0 & PS0linkup) != 0;
-			ether->linkchg = 1;
+			linkchg = 1;
 		}
 		if(irqe & IEtxerrq(Qno))
 			ether->oerrs++;
@@ -815,10 +822,10 @@ interrupt(Ureg*, void *arg)
 			handled++;
 	}
 
-	if(ether->linkchg && (reg->ps1 & PS1an_done)) {
+	if(linkchg && (reg->ps1 & PS1an_done)) {
 		handled++;
 		ether->link = (reg->ps0 & PS0linkup) != 0;
-		ether->linkchg = 0;
+		linkchg = 0;
 	}
 	ctlr->newintrs++;
 
@@ -835,6 +842,8 @@ interrupt(Ureg*, void *arg)
 	intrclear(Irqlo, IRQ0gbe0sum);
 }
 
+static int prom, mcast;
+
 void
 promiscuous(void *arg, int on)
 {
@@ -843,8 +852,8 @@ promiscuous(void *arg, int on)
 	Gbereg *reg = ctlr->reg;
 
 	ilock(ctlr);
-	ether->prom = on;
-	if(on)
+	ether->prom = prom = on;
+	if(prom || mcast)
 		reg->portcfg |= PCFGupromisc;
 	else
 		reg->portcfg &= ~PCFGupromisc;
@@ -852,9 +861,20 @@ promiscuous(void *arg, int on)
 }
 
 void
-multicast(void *, uchar *, int)
+multicast(void *arg, uchar *addr, int on)
 {
-	/* nothing to do; we always accept multicast */
+	Ether *e = arg;
+	Ctlr *ctlr = e->ctlr;
+	Gbereg *reg = ctlr->reg;
+
+	mcast |= on;
+	USED(addr);
+	ilock(ctlr);
+	if(prom || mcast)
+		reg->portcfg |= PCFGupromisc;		/* overkill */
+	else
+		reg->portcfg &= ~PCFGupromisc;
+	iunlock(ctlr);
 }
 
 static void quiesce(Gbereg *reg);
@@ -1027,17 +1047,10 @@ kirkwoodmii(Ether *ether)
 	ctlr->mii->mir = miird;
 	ctlr->mii->miw = miiwr;
 
-	phy = nil;
 	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
-		iprint("#l%d: etherkw: init mii failure\n", ether->ctlrno);
-		if (phy)
-			iprint("#l%d: etherkw: mii(...,~0) failed\n",
-				ether->ctlrno);
-		else
-			iprint("#l%d: etherkw: nil ctlr->mii->curphy\n",
-				ether->ctlrno);
 		free(ctlr->mii);
 		ctlr->mii = nil;
+		iprint("etherkw: init mii failure\n");
 		return -1;
 	}
 
@@ -1079,25 +1092,30 @@ kirkwoodmii(Ether *ether)
 static int
 miiphyinit(Mii *mii)			/* magic numbers 'r' us */
 {
-	ulong dev;
+	ulong reg, devadr;
 
 	/* select mii phy */
-	dev = miird(mii, 0xEE, 0xEE);		/* device address */
-//	print("dev %lux\n", dev);
-	if (dev == -1) {
+	devadr = miird(mii, 0xEE, 0xEE);
+//	print("devadr %lux\n", devadr);
+	if (devadr == -1) {
 		print("etherkw: can't read PHY dev address\n");
 		return -1;
 	}
 
 	/* leds link & activity */
-	miiwr(mii, dev, 22, 0x3);
-	miiwr(mii, dev, 10, (miird(mii, dev, 10) & ~0xf) | 1);	/* magic */
-	miiwr(mii, dev, 22, 0);
+	miiwr(mii, devadr, 22, 0x3);
+	reg = miird(mii, devadr, 10);
+	reg &= ~0xf;
+	reg |= 0x1;
+	miiwr(mii, devadr, 10, reg);
+	miiwr(mii, devadr, 22, 0);
 
 	/* enable RGMII delay on Tx and Rx for CPU port */
-	miiwr(mii, dev, 22, 2);
-	miiwr(mii, dev, 21, miird(mii, dev, 21) | 1<<5 | 1<<4);	/* magic */
-	miiwr(mii, dev, 22, 0);
+	miiwr(mii, devadr, 22, 2);
+	reg = miird(mii, devadr, 21);
+	reg |= (1<<5) | (1<<4);
+	miiwr(mii, devadr, 21, reg);
+	miiwr(mii, devadr, 22, 0);
 	return 0;
 }
 
@@ -1149,12 +1167,16 @@ p32(uchar *p, ulong v)
 	*p   = v;
 }
 
+enum {
+	Pass = 1,
+};
+
 /*
  * set ether->ea from hw mac address,
  * configure unicast filtering to accept it.
  */
 void
-archetheraddr(Ether *ether, Gbereg *reg, int rxqno)
+archetheraddr(Ether *ether, Gbereg *reg, int queue)
 {
 	ulong nibble, ucreg, tbloff, regoff;
 
@@ -1169,12 +1191,8 @@ archetheraddr(Ether *ether, Gbereg *reg, int rxqno)
 	regoff *= 8;
 	ucreg = reg->dfut[tbloff];
 	ucreg &= 0xff << regoff;
-	ucreg |= (rxqno << 1 | Pass) << regoff;
+	ucreg |= (queue << 1 | Pass) << regoff;
 	reg->dfut[tbloff] = ucreg;
-
-	/* accept all multicast too.  set up special & other tables. */
-	memset(reg->dfsmt, Qno<<1 | Pass, sizeof reg->dfsmt);
-	memset(reg->dfomt, Qno<<1 | Pass, sizeof reg->dfomt);
 }
 
 static void
@@ -1251,7 +1269,7 @@ ctlrinit(Ether *ether)
 	reg->sdc = SDCrifb | SDCrxburst(Burst16) | SDCtxburst(Burst16) |
 		SDCrxnobyteswap | SDCtxnobyteswap |
 		SDCipgintrx(CLOCKFREQ/(Maxrxintrsec*64));
-	reg->pxtfut = 0;	/* TFUTipginttx(CLOCKFREQ/(Maxrxintrsec*64)) */
+	reg->pxtfut = 0;	// TFUTipginttx(CLOCKFREQ/(Maxrxintrsec*64));
 
 	/* allow just these interrupts */
 	reg->irqmask = Irxbufferq(Qno) | Irxerr | Itxendq(Qno);
@@ -1261,8 +1279,6 @@ ctlrinit(Ether *ether)
 	reg->irqe = 0;
 	reg->euirqmask = 0;
 	reg->euirq = 0;
-
-//	archetheraddr(ether, ctlr->reg, Qno);	/* 2nd location */
 
 	reg->tcqdp[Qno]  = PADDR(&ctlr->tx[ctlr->txhead]);
 	for (i = 1; i < nelem(reg->tcqdp); i++)
@@ -1283,9 +1299,9 @@ ctlrinit(Ether *ether)
 
 	/* set ethernet MTU for leaky bucket mechanism to 0 (disabled) */
 	reg->pmtu = 0;
-
 	reg->rqc = Rxqon(Qno);
-	etheractive(ether);
+
+	etheractive();
 
 	snprint(name, sizeof name, "#l%drproc", ether->ctlrno);
 	kproc(name, rcvproc, ether);
@@ -1433,13 +1449,10 @@ reset(Ether *ether)
 	ether->ctlr = ctlr;
 	switch(ether->ctlrno) {
 	case 0:
-		ctlr->reg = (Gbereg*)Gbe0regs;
-		break;
-	case 1:
-		ctlr->reg = (Gbereg*)Gbe1regs;
+		ctlr->reg = (Gbereg*)Gberegs;
 		break;
 	default:
-		panic("etherkw: bad ether ctlr #%d", ether->ctlrno);
+		panic("etherkirdwood: bad ether ctlr #%d", ether->ctlrno);
 	}
 
 	/* io cfg 0: 1.8v gbe */
@@ -1458,8 +1471,8 @@ reset(Ether *ether)
 		ether->ctlr = nil;
 		return -1;
 	}
-	miiphyinit(ctlr->mii);			/* commented-out in inferno */
-	archetheraddr(ether, ctlr->reg, Qno);	/* original location */
+	miiphyinit(ctlr->mii);
+	archetheraddr(ether, ctlr->reg, 0);	/* 0 is the rx queue */
 
 	ether->attach = attach;
 	ether->transmit = transmit;

@@ -367,13 +367,12 @@ masquerade(String *path, char *him)
 	int rv = 0;
 
 	if(debug)
-		fprint(2, "masquerade(%s) ", s_to_c(path));
+		fprint(2, "masquerade(%s)\n", s_to_c(path));
 
-	if(trusted || path == nil) {
-		if(debug)
-			fprint(2, "0\n");
+	if(trusted)
 		return 0;
-	}
+	if(path == nil)
+		return 0;
 
 	lpath = s_copy(s_to_c(path));
 
@@ -396,8 +395,6 @@ masquerade(String *path, char *him)
 	}
 
 	s_free(lpath);
-	if (debug)
-		fprint(2, "%d\n", rv);
 	return rv;
 }
 
