@@ -401,10 +401,8 @@ main(int argc, char** argv)
 			 * Set type to vesa for linear.
 			 */
 			if(vga->vesa){
-				vesa.load(vga, vga->vesa);
-				if(vga->vesa->flag&Ferror)
-					error("vesa load error\n");
 				vgactlw("type", vesa.name);
+				vesa.load(vga, vga->vesa);
 			}
 
 			/*
