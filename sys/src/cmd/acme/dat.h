@@ -15,12 +15,10 @@ enum
 	QWctl,
 	QWdata,
 	QWeditout,
-	QWerrors,
 	QWevent,
 	QWrdsel,
 	QWwrsel,
 	QWtag,
-	QWxdata,
 	QMAX,
 };
 
