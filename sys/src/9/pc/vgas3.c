@@ -35,7 +35,6 @@ enum {
 	VIRGEMX		= 0x8C01,
 	VIRGEMXP	= 0x8C03,
 
-	VIRTUALPC2004	= 0x8810,
 	AURORA64VPLUS	= 0x8812,
 };
 
@@ -227,7 +226,6 @@ s3load(VGAscr* scr, Cursor* curs)
 	id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
 	switch(id){
 
-	case VIRTUALPC2004:
 	case VIRGE:
 	case VIRGEDXGX:
 	case VIRGEGX2:

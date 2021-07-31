@@ -179,18 +179,18 @@ void
 dnpurge(void)
 {
 	DN *dp;
-	RR *rp, *srp;
+	RR *rp;
 	int i;
 
 	lock(&dnlock);
 
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next){
-			srp = rp = dp->rr;
+			rp = dp->rr;
 			dp->rr = nil;
 			for(; rp != nil; rp = rp->next)
 				rp->cached = 0;
-			rrfreelist(srp);
+			rrfreelist(dp->rr);
 		}
 
 	unlock(&dnlock);
