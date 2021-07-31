@@ -39,7 +39,6 @@ TEXT _vsvc(SB), 1, $-4			/* SWI */
 	MOVW	$PsrMsvc, R14		/* ureg->type = PsrMsvc */
 	MOVW.W	R14, -4(R13)		/* ... */
 
-	/* avoid the ambiguity described in notes/movm.w. */
 //	MOVM.DB.W.S [R0-R14], (R13)	/* save user level registers, at end r13 points to ureg */
 	MOVM.DB.S [R0-R14], (R13)	/* save user level registers */
 	SUB	$(15*4), R13		/* r13 now points to ureg */
@@ -109,7 +108,6 @@ _vswitch:
 	MOVM.IA	  (R3), [R0-R4]		/* restore [R0-R4] from previous mode's stack */
 
 	/*
-	 * avoid the ambiguity described in notes/movm.w.
 	 * In order to get a predictable value in R13 after the stores,
 	 * separate the store-multiple from the stack-pointer adjustment.
 	 * We'll assume that the old value of R13 should be stored on the stack.
@@ -142,7 +140,6 @@ _userexcep:
 	MOVM.DB.W [R0-R2], (R13)	/* set ureg->{type, psr, pc}; r13 points to ureg->type  */
 	MOVM.IA	  (R3), [R0-R4]		/* restore [R0-R4] from previous mode's stack */
 
-	/* avoid the ambiguity described in notes/movm.w. */
 //	MOVM.DB.W.S [R0-R14], (R13)	/* save kernel level registers, at end r13 points to ureg */
 	MOVM.DB.S [R0-R14], (R13)	/* save kernel level registers */
 	SUB	$(15*4), R13		/* r13 now points to ureg */
