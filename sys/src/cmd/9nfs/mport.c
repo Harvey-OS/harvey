@@ -50,6 +50,7 @@ main(int argc, char **argv)
 		fprint(2, "can't set header mode: %r\n");
 		exits("headers");
 	}
+	fprint(r.ctl, "oldheaders");
 	sprint(name, "%s/remote", dir);
 	fd = open(name, OREAD);
 	if(fd < 0){

@@ -20,7 +20,7 @@ typedef struct Inprogress Inprogress;
 struct Inprogress
 {
 	int	inuse;
-	Udphdr	uh;
+	OUdphdr	uh;
 	DN	*owner;
 	int	type;
 	int	id;
@@ -35,9 +35,9 @@ static Inprogress*
 clientrxmit(DNSmsg *req, uchar *buf)
 {
 	Inprogress *p, *empty;
-	Udphdr *uh;
+	OUdphdr *uh;
 
-	uh = (Udphdr *)buf;
+	uh = (OUdphdr *)buf;
 	empty = nil;
 	for(p = inprog; p < &inprog[Maxactive]; p++){
 		if(p->inuse == 0){
@@ -48,7 +48,7 @@ clientrxmit(DNSmsg *req, uchar *buf)
 		if(req->id == p->id)
 		if(req->qd->owner == p->owner)
 		if(req->qd->type == p->type)
-		if(memcmp(uh, &p->uh, Udphdrsize) == 0)
+		if(memcmp(uh, &p->uh, OUdphdrsize) == 0)
 			return nil;
 	}
 	if(empty == nil)
@@ -57,7 +57,7 @@ clientrxmit(DNSmsg *req, uchar *buf)
 	empty->id = req->id;
 	empty->owner = req->qd->owner;
 	empty->type = req->qd->type;
-	memmove(&empty->uh, uh, Udphdrsize);
+	memmove(&empty->uh, uh, OUdphdrsize);
 	empty->inuse = 1;
 	return empty;
 }
@@ -69,13 +69,13 @@ void
 dnudpserver(char *mntpt)
 {
 	int fd, len, op, rcode;
-	uchar buf[Udphdrsize + Maxudp + 1024];
+	uchar buf[OUdphdrsize + Maxudp + 1024];
 	char *err;
 	char tname[32];
 	Request req;
 	DNSmsg reqmsg, repmsg;
 	Inprogress *p;
-	Udphdr *uh;
+	OUdphdr *uh;
 
 	/* fork sharing text, data, and bss with parent */
 	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
@@ -112,18 +112,18 @@ restart:
 		alarm(60*1000);
 		len = read(fd, buf, sizeof buf);
 		alarm(0);
-		if(len <= Udphdrsize)
+		if(len <= OUdphdrsize)
 			goto restart;
-		uh = (Udphdr*)buf;
-		len -= Udphdrsize;
+		uh = (OUdphdr*)buf;
+		len -= OUdphdrsize;
 
 		// dnslog("read received UDP from %I to %I",
-		//	((Udphdr*)buf)->raddr, ((Udphdr*)buf)->laddr);
+		//	((OUdphdr*)buf)->raddr, ((OUdphdr*)buf)->laddr);
 		getactivity(&req, 0);
 		req.aborttime = now + Maxreqtm;
 		rcode = 0;
 
-		err = convM2DNS(&buf[Udphdrsize], len, &reqmsg, &rcode);
+		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg, &rcode);
 		if(err){
 			/* first bytes in buf are source IP addr */
 			dnslog("server: input error: %s from %I", err, buf);
@@ -196,6 +196,7 @@ freereq:
  *  announce on udp port and set message style interface
  */
 static char *hmsg = "headers";
+static char *ohmsg = "oldheaders";
 
 static int
 udpannounce(char *mntpt)
@@ -217,6 +218,7 @@ udpannounce(char *mntpt)
 	/* turn on header style interface */
 	if(write(ctl, hmsg, strlen(hmsg)) , 0)
 		abort();			/* hmsg */
+	write(ctl, ohmsg, strlen(ohmsg));
 	data = open(datafile, ORDWR);
 	if(data < 0){
 		close(ctl);
@@ -242,8 +244,8 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 			rrname(rep->qd->type, tname, sizeof tname),
 			rep->qd, rep->an, rep->ns, rep->ar);
 
-	len = convDNS2M(rep, &buf[Udphdrsize], Maxudp);
-	len += Udphdrsize;
+	len = convDNS2M(rep, &buf[OUdphdrsize], Maxudp);
+	len += OUdphdrsize;
 	if(write(fd, buf, len) != len)
 		dnslog("error sending reply: %r");
 }

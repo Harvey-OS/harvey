@@ -10,7 +10,7 @@ static void	cachereply(Rpccall*, void*, int);
 static int	replycache(int, Rpccall*, long (*)(int, void*, long));
 static void	udpserver(int, Progmap*);
 static void	tcpserver(int, Progmap*);
-static void	getendpoints(Udphdr*, char*);
+static void	getendpoints(OUdphdr*, char*);
 static long	readtcp(int, void*, long);
 static long	writetcp(int, void*, long);
 static int	servemsg(int, long (*)(int, void*, long), long (*)(int, void*, long),
@@ -115,8 +115,10 @@ udpserver(int myport, Progmap *progmap)
 		panic("can't announce %s: %r\n", service);
 	if(fprint(ctlfd, "headers") < 0)
 		panic("can't set header mode: %r\n");
+	fprint(ctlfd, "oldheaders");
 
 	snprint(data, sizeof data, "%s/data", devdir);
+
 	datafd = open(data, ORDWR);
 	if(datafd < 0)
 		panic("can't open udp data: %r\n");
@@ -124,8 +126,10 @@ udpserver(int myport, Progmap *progmap)
 
 	chatsrv(0);
 	clog("%s: listening to port %d\n", argv0, myport);
-	while (servemsg(datafd, read, write, myport, progmap) >= 0)
-		continue;
+	for(;;){
+		if(servemsg(datafd, read, write, myport, progmap) < 0)
+			break;
+	}
 	exits(0);
 }
 
@@ -169,7 +173,7 @@ tcpserver(int myport, Progmap *progmap)
 			if(data < 0)
 				exits(0);
 
-			getendpoints((Udphdr*)buf, ldir);
+			getendpoints((OUdphdr*)buf, ldir);
 
 			for(;;){
 				if(servemsg(data, readtcp, writetcp, myport, progmap) < 0)
@@ -329,7 +333,7 @@ getendpoint(char *dir, char *file, uchar *addr, uchar *port)
 }
 
 static void
-getendpoints(Udphdr *ep, char *dir)
+getendpoints(OUdphdr *ep, char *dir)
 {
 	getendpoint(dir, "local", ep->laddr, ep->lport);
 	getendpoint(dir, "remote", ep->raddr, ep->rport);
@@ -344,8 +348,8 @@ readtcp(int fd, void *vbuf, long blen)
 	char *buf;
 
 	buf = vbuf;
-	buf += Udphdrsize;
-	blen -= Udphdrsize;
+	buf += OUdphdrsize;
+	blen -= OUdphdrsize;
 
 	done = 0;
 	for(sofar = 0; !done; sofar += n){
@@ -361,7 +365,7 @@ readtcp(int fd, void *vbuf, long blen)
 		if(m != n)
 			return 0;
 	}
-	return sofar + Udphdrsize;
+	return sofar + OUdphdrsize;
 }
 
 static long
@@ -370,8 +374,8 @@ writetcp(int fd, void *vbuf, long len)
 	char *buf;
 
 	buf = vbuf;
-	buf += Udphdrsize;
-	len -= Udphdrsize;
+	buf += OUdphdrsize;
+	len -= OUdphdrsize;
 
 	buf -= 4;
 	buf[0] = 0x80 | (len>>24);
