@@ -215,9 +215,7 @@ fromnet(int net)
 	Binit(&ib, net, OREAD);
 	Binit(&ob, 1, OWRITE);
 	eofs = 0;
-	for(;;){
-		if(Bbuffered(&ib) == 0)
-			Bflush(&ob);
+	for(;; Bbuffered(&ib) == 0 ? Bflush(&ob) : 0){
 		if(interrupted){
 			interrupted = 0;
 			send2(net, Iac, Interrupt);
@@ -522,13 +520,12 @@ islikeatty(int fd)
 void*
 share(int len)
 {
-	uchar *vastart;
+	ulong vastart;
 
-	vastart = sbrk(0);
-	vastart += 2*1024*1024;
+	vastart = ((ulong)sbrk(0)) + 2*1024*1024;
 
-	if(segattach(0, "shared", vastart, len) < 0)
+	if(segattach(0, "shared", (void *)vastart, len) < 0)
 		return 0;
 
-	return vastart;
+	return (void*)vastart;
 }
