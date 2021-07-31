@@ -478,7 +478,6 @@ v4lookup(Fs *f, uchar *a, Conv *c)
 		return c->r;
 
 	la = nhgetl(a);
-again:
 	q = nil;
 	for(p=f->v4root[V4H(la)]; p;)
 		if(la >= p->v4.address) {
@@ -497,14 +496,8 @@ again:
 		} else
 			v4tov6(gate, q->v4.gate);
 		ifc = findipifc(f, gate, q->type);
-		if(ifc == nil){
-			/* find a direct attached route */
-			if(q->v4.address == 0 && q->v4.endaddress == ~0){
-				la = nhgetl(q->v4.gate);
-				goto again;
-			}
+		if(ifc == nil)
 			return nil;
-		}
 		q->ifc = ifc;
 		q->ifcid = ifc->ifcid;
 	}
@@ -809,7 +802,6 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	uchar gate[IPaddrlen];
 	IPaux *a, *na;
 	Route *q;
-	uchar type;
 
 	cb = parsecmd(p, n);
 	if(waserror()){
@@ -853,12 +845,9 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 			a = c->aux;
 			tag = a->tag;
 		}
-		if(memcmp(addr, v4prefix, IPv4off) == 0){
-			type = 0;
-			if(ipcmp(mask, IPallbits) == 0)
-				type = Rbcast;
-			v4addroute(f, tag, addr+IPv4off, mask+IPv4off, gate+IPv4off, type);
-		}else
+		if(memcmp(addr, v4prefix, IPv4off) == 0)
+			v4addroute(f, tag, addr+IPv4off, mask+IPv4off, gate+IPv4off, 0);
+		else
 			v6addroute(f, tag, addr, mask, gate, 0);
 	} else if(strcmp(cb->f[0], "tag") == 0) {
 		if(cb->nf < 2)
