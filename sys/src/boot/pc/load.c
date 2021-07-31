@@ -42,16 +42,6 @@ Type types[] = {
 #include "sd.h"
 
 extern SDifc sdataifc;
-
-#ifdef NOSCSI
-
-SDifc* sdifc[] = {
-	&sdataifc,
-	nil,
-};
-
-#else
-
 extern SDifc sdmylexifc;
 extern SDifc sd53c8xxifc;
 SDifc* sdifc[] = {
@@ -60,8 +50,6 @@ SDifc* sdifc[] = {
 	&sd53c8xxifc,
 	nil,
 };
-
-#endif NOSCSI
 
 typedef struct Mode Mode;
 

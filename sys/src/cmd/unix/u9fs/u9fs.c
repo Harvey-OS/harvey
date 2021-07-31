@@ -406,8 +406,7 @@ rattach(Fcall *rx, Fcall *tx)
 	if(defaultuser)
 		rx->uname = defaultuser;
 
-	if((u = uname2user(rx->uname)) == nil
-	|| (!defaultuser && u->id == 0)){
+	if((u = uname2user(rx->uname)) == nil || u->id == 0){
 		/* we don't know anyone named root... */
 		seterror(tx, Eunknownuser);
 		freefid(fid);
