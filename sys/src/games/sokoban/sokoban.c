@@ -5,22 +5,18 @@
 
 #include "sokoban.h"
 
-#define SOKOTREE "/sys/games/lib/sokoban/"
-
-char *LEasy = SOKOTREE "levels/easy.slc";
-char *LHard = SOKOTREE "levels/hard.slc";
+char *LEasy = "/sys/games/lib/sokoban/levels/easy.slc";
+char *LHard = "/sys/games/lib/sokoban/levels/hard.slc";
 char *levelfile;
 
-#define SOKOIMG SOKOTREE "images/"
-
-char	*GRImage =	SOKOIMG "right.bit";
-char	*GLImage =	SOKOIMG "left.bit";
-char	*WallImage =	SOKOIMG "wall.bit";
-char	*EmptyImage =	SOKOIMG "empty.bit";
-char	*CargoImage =	SOKOIMG "cargo.bit";
-char	*GoalCargoImage= SOKOIMG "goalcargo.bit";
-char	*GoalImage =	SOKOIMG "goal.bit";
-char	*WinImage =	SOKOIMG "win.bit";
+char		*GRImage = "/sys/games/lib/sokoban/images/right.bit";
+char		*GLImage = "/sys/games/lib/sokoban/images/left.bit";
+char		*WallImage = "/sys/games/lib/sokoban/images/wall.bit";
+char		*EmptyImage = "/sys/games/lib/sokoban/images/empty.bit";
+char		*CargoImage = "/sys/games/lib/sokoban/images/cargo.bit";
+char		*GoalCargoImage = "/sys/games/lib/sokoban/images/goalcargo.bit";
+char		*GoalImage = "/sys/games/lib/sokoban/images/goal.bit";
+char		*WinImage = "/sys/games/lib/sokoban/images/win.bit";
 
 char *buttons[] = 
 {
