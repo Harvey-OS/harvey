@@ -113,7 +113,7 @@ command.
 The security model is the same, although
 the key format has changed.
 If you have an old key file, use
-.CW auth/convkeys2
+.CW auth/convkeys
 (see
 .I auth (8))
 to update it.

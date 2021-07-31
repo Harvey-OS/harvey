@@ -128,7 +128,6 @@ char *file;
 char *pbs;
 char *type;
 char *bootfile;
-int dos;
 
 enum
 {
@@ -168,7 +167,7 @@ fatal(char *fmt, ...)
 void
 main(int argc, char **argv)
 {
-	int n, writepbs;
+	int n, dos, writepbs;
 	int fd;
 	char buf[512];
 	char label[11];
@@ -293,7 +292,7 @@ sanitycheck(Disk *disk)
 		return;
 
 	bad = 0;
-	if(dos && nresrv < 2 && seek(disk->fd, disk->secsize, 0) == disk->secsize
+	if(nresrv < 2 && seek(disk->fd, disk->secsize, 0) == disk->secsize
 	&& read(disk->fd, buf, sizeof(buf)) >= 5 && strncmp(buf, "part ", 5) == 0) {
 		fprint(2, 
 			"there's a plan9 partition on the disk\n"

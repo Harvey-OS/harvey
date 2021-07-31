@@ -81,7 +81,7 @@ randomclock(void)
 		wakeup(&rb.consumer);
 }
 
-void
+static void
 randominit(void)
 {
 	addclock0link(randomclock);
@@ -93,7 +93,7 @@ randominit(void)
 /*
  *  consume random bytes from a circular buffer
  */
-ulong
+static ulong
 randomread(void *xp, ulong n)
 {
 	uchar *e, *p;

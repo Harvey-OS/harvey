@@ -106,7 +106,6 @@
 #define	PTERONLY	(0<<1)
 #define	PTEKERNEL	(0<<2)
 #define	PTEUSER		(1<<2)
-#define PTESIZE		(1<<7)
 
 /*
  *  flag register bits that we care about

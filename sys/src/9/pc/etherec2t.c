@@ -1,5 +1,7 @@
 /*
- * Supposed NE2000 PCMCIA clones, see the comments in ether2000.c
+ * Linksys Combo PCMCIA EthernetCard (EC2T)
+ * and EtherFast 10/100 PC Card (PCMPC100).
+ * Supposedly NE2000 clones, see the comments in ether2000.c
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -19,9 +21,8 @@ enum {
 };
 
 static char* ec2tpcmcia[] = {
-	"EC2T",				/* Linksys Combo PCMCIA EthernetCard */
-	"PCMPC100",			/* EtherFast 10/100 PC Card */
-	"EN2216",			/* Accton EtherPair-PCMCIA */
+	"EC2T",
+	"PCMPC100",
 	nil,
 };
 
@@ -61,15 +62,6 @@ reset(Ether* ether)
 		if((slot = pcmspecial(type, ether)) >= 0)
 			break;
 	}
-	if(ec2tpcmcia[i] == nil){
-		for(i = 0; i < ether->nopt; i++){
-			if(cistrncmp(ether->opt[i], "id=", 3))
-				continue;
-			type = &ether->opt[i][3];
-			if((slot = pcmspecial(type, ether)) >= 0)
-				break;
-		}
-	}
 	if(slot < 0){
 		iofree(port);
 		return -1;
@@ -88,12 +80,6 @@ reset(Ether* ether)
 	ctlr->pstop = ctlr->tstart + HOWMANY(ether->size, Dp8390BufSz);
 
 	ctlr->dummyrr = 0;
-	for(i = 0; i < ether->nopt; i++){
-		if(cistrcmp(ether->opt[i], "nodummyrr") == 0)
-			ctlr->dummyrr = 0;
-		else if(cistrncmp(ether->opt[i], "dummyrr=", 8) == 0)
-			ctlr->dummyrr = strtol(&ether->opt[i][8], nil, 0);
-	}
 
 	/*
 	 * Reset the board. This is done by doing a read
@@ -115,7 +101,13 @@ reset(Ether* ether)
 	 */
 	dp8390reset(ether);
 	sum = 0;
-	if(cistrcmp(type, "PCMPC100") == 0){
+	if(strcmp(type, "PCMPC100")){
+		memset(buf, 0, sizeof(buf));
+		dp8390read(ctlr, buf, 0, sizeof(buf));
+		if((buf[0x0E] & 0xFF) == 0x57 && (buf[0x0F] & 0xFF) == 0x57)
+			sum = 0xFF;
+	}
+	else{
 		/*
 		 * The PCMPC100 has the ethernet address in I/O space.
 		 * There's a checksum over 8 bytes which sums to 0xFF.
@@ -125,12 +117,6 @@ reset(Ether* ether)
 			sum += x;
 			buf[i] = (x<<8)|x;
 		}
-	}
-	else{
-		memset(buf, 0, sizeof(buf));
-		dp8390read(ctlr, buf, 0, sizeof(buf));
-		if((buf[0x0E] & 0xFF) == 0x57 && (buf[0x0F] & 0xFF) == 0x57)
-			sum = 0xFF;
 	}
 	if(sum != 0xFF){
 		pcmspecialclose(slot);

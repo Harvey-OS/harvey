@@ -87,7 +87,7 @@ Endofinput:
 
 		/*
 		 * The string `JUMP' appears right before
-		 * tokzero, which is where we want to jump.
+		 * mode32bit, which is where we want to jump.
 		 */
 		for(; p<q; p++) {
 			if(strncmp(p, "JUMP", 4) == 0) {

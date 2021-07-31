@@ -16,9 +16,9 @@ enum {
 	DbgIDENTIFY	= 0x02,		/* detected drive identify info */
 	DbgSTATE	= 0x04,		/* dump state on panic */
 	DbgPROBE	= 0x08,		/* trace device probing */
-	DbgDEBUG	= 0x80,		/* the current problem... */
 };
 #define DEBUG		0
+/* (DbgSTATE|DbgCONFIG) */
 
 enum {					/* I/O ports */
 	Data		= 0,
@@ -92,7 +92,6 @@ enum {					/* Command */
 	Cidpkt		= 0xA1,		/* Identify Packet Device */
 	Crsm		= 0xC4,		/* Read Multiple */
 	Cwsm		= 0xC5,		/* Write Multiple */
-	Csm		= 0xC6,		/* Set Multiple */
 	Crdq		= 0xC7,		/* Read DMA queued */
 	Crd		= 0xC8,		/* Read DMA */
 	Cwd		= 0xCA,		/* Write DMA */
@@ -197,19 +196,17 @@ typedef struct Ctlr {
 	int	cmdport;
 	int	ctlport;
 	int	irq;
-	int	tbdf;
+//	int	bmiba;			/* bus master interface base address */
 
 	Pcidev*	pcidev;
 	void	(*ienable)(Ctlr*);
-	SDev*	sdev;
 
 	Drive*	drive[2];
 
-	Prd*	prdt;			/* physical region descriptor table */
+//	Prd*	prdt;			/* physical region descriptor table */
 
 //	QLock;				/* current command */
 	Drive*	curdrive;
-	int	command;		/* last command issued (debugging) */
 //	Rendez;
 	int	done;
 
@@ -226,15 +223,11 @@ typedef struct Drive {
 	int	s;			/* sector */
 	int	sectors;		/* total */
 	int	secsize;		/* sector size */
-
-//	int	dma;			/* DMA R/W possible */
-//	int	dmactl;
-//	int	rwm;			/* read/write multiple possible */
-//	int	rwmctl;
-
+	int	block;			/* R/W multiple size */
+	int	pior;			/* PIO read command */
+	int	piow;			/* PIO write command */
+	int	dma;			/* DMA R/W possible */
 	int	pkt;			/* PACKET device, length of pktcmd */
-	uchar	pktcmd[16];
-//	int	pktdma;			/* this PACKET command using dma */
 
 	uchar	sense[18];
 	uchar	inquiry[48];
@@ -246,9 +239,11 @@ typedef struct Drive {
 	int	dlen;
 	uchar*	limit;
 	int	count;			/* sectors */
-	int	block;			/* R/W bytes per block */
 	int	status;
 	int	error;
+
+	uchar	pktcmd[16];
+	int	pktdma;
 } Drive;
 
 static void
@@ -269,42 +264,79 @@ pc87415ienable(Ctlr* ctlr)
 	pcicfgw32(p, 0x40, x);
 }
 
+int
+atadebug(int cmdport, int ctlport, char* fmt, ...)
+{
+	int i, n;
+	va_list arg;
+	char buf[PRINTSIZE];
+
+	if(!DEBUG){
+		USED(cmdport, ctlport, fmt);
+		return 0;
+	}
+
+	va_start(arg, fmt);
+	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
+
+	if(cmdport){
+		if(buf[n-1] == '\n')
+			n--;
+		n += snprint(buf+n, PRINTSIZE-n, " ataregs 0x%uX:",
+			cmdport);
+		for(i = 1; i < 7; i++)
+			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2uX",
+				inb(cmdport+i));
+		if(ctlport)
+			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2uX",
+				inb(ctlport+As));
+		n += snprint(buf+n, PRINTSIZE-n, "\n");
+	}
+	putstrn(buf, n);
+
+	return n;
+}
+
 static int
 ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 {
 	int as;
 
-//	atadebug(cmdport, ctlport, "ataready: dev %uX reset %uX ready %uX",
-//		dev, reset, ready);
+	atadebug(cmdport, ctlport, "ataready: dev %uX reset %uX ready %uX",
+		dev, reset, ready);
 
 	for(;;){
 		/*
 		 * Wait for the controller to become not busy and
 		 * possibly for a status bit to become true (usually
 		 * Drdy). Must change to the appropriate device
-		 * register set if necessary before testing for ready.
+		 * register set before testing for ready.
 		 * Always run through the loop at least once so it
 		 * can be used as a test for !Bsy.
 		 */
 		as = inb(ctlport+As);
-		if(as & reset)
-			;
-		else if(dev){
+		if(dev && !(as & (Bsy|Drq))){
 			outb(cmdport+Dh, dev);
 			dev = 0;
+			continue;
 		}
-		else if(ready == 0 || (as & ready)){
-		//	atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
-			return as;
+		else if(!(as & reset)){
+			if(ready == 0 || (as & ready)){
+				atadebug(0, 0, "ataready: %d 0x%2.2uX\n",
+					micro, as);
+				return as;
+			}
 		}
 
 		if(micro-- <= 0){
-		//	atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
+			atadebug(0, 0, "ataready: %d 0x%2.2uX\n",
+				micro, as);
 			break;
 		}
 		microdelay(1);
 	}
-//	atadebug(cmdport, ctlport, "ataready: timeout");
+	atadebug(cmdport, ctlport, "ataready: timeout");
 
 	return -1;
 }
@@ -328,57 +360,74 @@ atacsfenabled(Drive* drive, vlong csf)
 }
 
 static int
-atasf(int cmdport, int ctlport, int dev, uchar* command)
+atasetrwmode(Drive* drive, int cmdport, int ctlport, int dev)
 {
-	int as, i;
+	int as, block;
 
-	if(ataready(cmdport, ctlport, dev, Bsy|Drq, Drdy, 108*1000) < 0)
-		return -1;
+	drive->block = drive->secsize;
+	drive->pior = Crs;
+	drive->piow = Cws;
+	if((block = drive->info[Imaxrwm] & 0xFF) == 0)
+		return 0;
 
-	for(i = Features; i < Dh; i++)
-		outb(cmdport+i, command[i]);
+	/*
+	 * Prior to ATA-4 there was no way to determine the
+	 * current block count (now in Irwm).
+	 * Sometimes drives come up with the current count set
+	 * to 0, so always set a suitable value.
+	 */
+	if(ataready(cmdport, ctlport, dev, Bsy|Drq, Drdy, 100*1000) < 0)
+		return 0;
+	outb(cmdport+Sector, block);
 	outb(cmdport+Command, Csf);
-	microdelay(100);
-	as = ataready(cmdport, ctlport, 0, Bsy, Drdy|Df|Err, 109*1000);
+	microdelay(1);
+	as = ataready(cmdport, ctlport, dev, Bsy, Drdy|Df|Err, 1000);
 	if(as < 0 || (as & (Df|Err)))
 		return -1;
-	return 0;
+
+	drive->info[Irwm] = 0x100|block;
+	drive->block = block*drive->secsize;
+	drive->pior = Crsm;
+	drive->piow = Cwsm;
+
+	return block;
 }
 
-static int
-ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
+static Drive*
+ataidentify(int cmdport, int ctlport, int dev)
 {
-	int as, command, drdy;
+	Drive *drive;
+	uchar buf[512], *p;
+	int command, i, as;
+	ushort *sp;
 
-	if(pkt){
-		command = Cidpkt;
-		drdy = 0;
-	}
-	else{
-		command = Cid;
-		drdy = Drdy;
-	}
-	as = ataready(cmdport, ctlport, dev, Bsy|Drq, drdy, 103*1000);
+	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
+	command = Cidpkt;
+retry:
+	as = ataready(cmdport, ctlport, dev, Bsy|Drq, 0, 100*1000);
 	if(as < 0)
-		return as;
+		return nil;
 	outb(cmdport+Command, command);
 	microdelay(1);
 
-	as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 104*1000);
+	as = ataready(cmdport, ctlport, dev, Bsy, Drq|Err, 100*1000);
 	if(as < 0)
-		return -1;
-	if(as & Err)
-		return as;
-
-	memset(info, 0, 512);
-	inss(cmdport+Data, info, 256);
+		return nil;
+	if(as & Err){
+		if(command == Cid)
+			return nil;
+		command = Cid;
+		goto retry;
+	}
+	memset(buf, 0, sizeof(buf));
+	inss(cmdport+Data, buf, 256);
 	inb(cmdport+Status);
 
 	if(DEBUG & DbgIDENTIFY){
 		int i;
 		ushort *sp;
 
-		sp = (ushort*)info;
+		sp = (ushort*)buf;
 		for(i = 0; i < 256; i++){
 			if(i && (i%16) == 0)
 				print("\n");
@@ -386,30 +435,6 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 			sp++;
 		}
 		print("\n");
-	}
-
-	return 0;
-}
-
-static Drive*
-atadrive(int cmdport, int ctlport, int dev)
-{
-	ushort *sp;
-	Drive *drive;
-	int as, i, pkt;
-	uchar buf[512], *p;
-
-//	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
-	pkt = 1;
-retry:
-	as = ataidentify(cmdport, ctlport, dev, pkt, buf);
-	if(as < 0)
-		return nil;
-	if(as & Err){
-		if(pkt == 0)
-			return nil;
-		pkt = 0;
-		goto retry;
 	}
 
 	if((drive = malloc(sizeof(Drive))) == nil)
@@ -454,17 +479,18 @@ retry:
 		}
 		else
 			drive->sectors = drive->c*drive->h*drive->s;
-	//	atarwmmode(drive, cmdport, ctlport, dev);
-	}
-//	atadmamode(drive);	
+		atasetrwmode(drive, cmdport, ctlport, dev);
+	}	
+
+	drive->dma = 0;
 
 	if(DEBUG & DbgCONFIG){
-		print("dev %2.2uX config %4.4uX capabilities %4.4uX",
-			dev, drive->info[Iconfig], drive->info[Icapabilities]);
-		print(" mwdma %4.4uX", drive->info[Imwdma]);
+		print("dev %2.2uX capabilities %4.4uX config %4.4uX",
+			dev, drive->info[Icapabilities], drive->info[Iconfig]);
+		print(" mwdma %4.4uX dma %8.8uX", 
+			drive->info[Imwdma], drive->dma);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
-//		print(" dma %8.8uX rwm %ud\n", drive->dma, drive->rwm);
 		print("\n");
 	}
 
@@ -495,13 +521,6 @@ ataprobe(int cmdport, int ctlport, int irq)
 	Drive *drive;
 	int dev, error, rhi, rlo;
 
-//	if(ioalloc(cmdport, 8, 0, "atacmd") < 0)
-//		return nil;
-//	if(ioalloc(ctlport+As, 1, 0, "atactl") < 0){
-//		iofree(cmdport);
-//		return nil;
-//	}
-
 	/*
 	 * Try to detect a floating bus.
 	 * Bsy should be cleared. If not, see if the cylinder registers
@@ -518,9 +537,8 @@ ataprobe(int cmdport, int ctlport, int irq)
 	dev = Dev0;
 	if(inb(ctlport+As) & Bsy){
 		outb(cmdport+Dh, dev);
-		microdelay(1);
 trydev1:
-//		atadebug(cmdport, ctlport, "ataprobe bsy");
+		atadebug(cmdport, ctlport, "ataprobe bsy");
 		outb(cmdport+Cyllo, 0xAA);
 		outb(cmdport+Cylhi, 0x55);
 		outb(cmdport+Sector, 0xFF);
@@ -529,8 +547,6 @@ trydev1:
 		if(rlo != 0xAA && (rlo == 0xFF || rhi != 0x55)){
 			if(dev == Dev1){
 release:
-			//	iofree(cmdport);
-			//	iofree(ctlport+As);
 				return nil;
 			}
 			dev = Dev1;
@@ -544,7 +560,7 @@ release:
 	 */
 	outb(ctlport+Dc, Nien);
 tryedd1:
-	if(ataready(cmdport, ctlport, dev, Bsy|Drq, 0, 105*1000) < 0){
+	if(ataready(cmdport, ctlport, dev, Bsy|Drq, 0, 100*1000) < 0){
 		/*
 		 * There's something there, but it didn't come up clean,
 		 * so try hitting it with a big stick. The timing here is
@@ -552,7 +568,7 @@ tryedd1:
 		 * gets some marginal hardware back online.
 		 */
 		atasrst(ctlport);
-		if(ataready(cmdport, ctlport, dev, Bsy|Drq, 0, 106*1000) < 0)
+		if(ataready(cmdport, ctlport, dev, Bsy|Drq, 0, 100*1000) < 0)
 			goto release;
 	}
 
@@ -576,7 +592,7 @@ tryedd1:
 	 * exist and the EDD won't take, so try again with Dev1.
 	 */
 	error = inb(cmdport+Error);
-//	atadebug(cmdport, ctlport, "ataprobe: dev %uX", dev);
+	atadebug(cmdport, ctlport, "ataprobe: dev %uX", dev);
 	if((error & ~0x80) != 0x01){
 		if(dev == Dev1)
 			goto release;
@@ -591,7 +607,7 @@ tryedd1:
 	 * If the one drive found is Dev0 and the EDD command
 	 * didn't indicate Dev1 doesn't exist, check for it.
 	 */
-	if((drive = atadrive(cmdport, ctlport, dev)) == nil)
+	if((drive = ataidentify(cmdport, ctlport, dev)) == nil)
 		goto release;
 	if((ctlr = malloc(sizeof(Ctlr))) == nil){
 		free(drive);
@@ -613,15 +629,13 @@ tryedd1:
 			 * Ataprobe is the only place possibly invalid
 			 * drives should be selected.
 			 */
-			drive = atadrive(cmdport, ctlport, Dev1);
+			drive = ataidentify(cmdport, ctlport, Dev1);
 			if(drive != nil){
 				drive->ctlr = ctlr;
 				ctlr->drive[1] = drive;
 			}
-			else{
+			else
 				outb(cmdport+Dh, Dev0);
-				microdelay(1);
-			}
 		}
 	}
 	else
@@ -630,13 +644,10 @@ tryedd1:
 	ctlr->cmdport = cmdport;
 	ctlr->ctlport = ctlport;
 	ctlr->irq = irq;
-	ctlr->tbdf = BUSUNKNOWN;
-	ctlr->command = Cedd;		/* debugging */
 
 	sdev->ifc = &sdataifc;
 	sdev->ctlr = ctlr;
 	sdev->nunit = 2;
-	ctlr->sdev = sdev;
 
 	return sdev;
 }
@@ -697,8 +708,7 @@ atanop(Drive* drive, int subcommand)
 	cmdport = ctlr->cmdport;
 	outb(cmdport+Features, subcommand);
 	outb(cmdport+Dh, drive->dev);
-	ctlr->command = Cnop;		/* debugging */
-	outb(cmdport+Command, Cnop);
+	outb(cmdport+Command, 0);
 
 	microdelay(1);
 	ctlport = ctlr->ctlport;
@@ -709,25 +719,6 @@ atanop(Drive* drive, int subcommand)
 		microdelay(1);
 	}
 	drive->error |= Abrt;
-}
-
-static void
-ataabort(Drive* drive, int dolock)
-{
-	/*
-	 * If NOP is available (packet commands) use it otherwise
-	 * must try a software reset.
-	 */
-	if(dolock)
-		ilock(drive->ctlr);
-	if(atacsfenabled(drive, 0x0000000000004000LL))
-		atanop(drive, 0);
-	else{
-		atasrst(drive->ctlr->ctlport);
-		drive->error |= Abrt;
-	}
-	if(dolock)
-		iunlock(drive->ctlr);
 }
 
 static int
@@ -770,10 +761,7 @@ atapktinterrupt(Drive* drive)
 		break;
 
 	case Io|Cd:
-	//	if(drive->pktdma)
-	//		atadmainterrupt(drive, drive->dlen);
-	//	else
-			ctlr->done = 1;
+ctlr->done=1;
 		break;
 	}
 }
@@ -800,18 +788,13 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 
 	qlock(ctlr);
 
-	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 107*1000) < 0){
-		qunlock(ctlr);
+	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 100*1000) < 0)
 		return -1;
-	}
 
 	ilock(ctlr);
-//	if(drive->dlen && drive->dmactl && !atadmasetup(drive, drive->dlen))
-//		drive->pktdma = Dma;
-//	else
-//		drive->pktdma = 0;
+drive->pktdma = 0;
 
-	outb(cmdport+Features, 0/*drive->pktdma*/);
+	outb(cmdport+Features, drive->pktdma);
 	outb(cmdport+Count, 0);
 	outb(cmdport+Sector, 0);
 	len = 16*drive->secsize;
@@ -819,15 +802,11 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 	outb(cmdport+Bytehi, len>>8);
 	outb(cmdport+Dh, drive->dev);
 	ctlr->done = 0;
-	ctlr->curdrive = drive;
-	ctlr->command = Cpkt;		/* debugging */
-//	if(drive->pktdma)
-//		atadmastart(ctlr, drive->write);
 	outb(cmdport+Command, Cpkt);
 
 	if((drive->info[Iconfig] & 0x0060) != 0x0020){
-		microdelay(1);
-		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Chk, 4*1000);
+		as = ataready(cmdport, ctlport,
+			drive->dev, Bsy, Drq|Chk, 4*1000);
 		if(as < 0)
 			r = SDtimeout;
 		else if(as & Chk)
@@ -835,9 +814,12 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 		else
 			atapktinterrupt(drive);
 	}
+	ctlr->curdrive = drive;
 	iunlock(ctlr);
 
-	sleep(ctlr, atapktiodone, ctlr);
+	tsleep(ctlr, atapktiodone, ctlr, 10*1000);
+	if(!ctlr->done)
+		panic("atapktiodone");
 
 	qunlock(ctlr);
 
@@ -873,18 +855,14 @@ atageniostart(Drive* drive, int lba)
 	ctlr = drive->ctlr;
 	cmdport = ctlr->cmdport;
 	ctlport = ctlr->ctlport;
-	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 101*1000) < 0)
+	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 100*1000) < 0)
 		return -1;
 
 	ilock(ctlr);
-
-	drive->block = drive->secsize;
 	if(drive->write)
-		drive->command = Cws;
+		drive->command = drive->piow;
 	else
-		drive->command = Crs;
-
-	drive->limit = drive->data + drive->count*drive->secsize;
+		drive->command = drive->pior;
 
 	outb(cmdport+Count, drive->count);
 	outb(cmdport+Sector, s);
@@ -892,15 +870,13 @@ atageniostart(Drive* drive, int lba)
 	outb(cmdport+Cyllo, c);
 	outb(cmdport+Cylhi, c>>8);
 	ctlr->done = 0;
-	ctlr->curdrive = drive;
-	ctlr->command = drive->command;	/* debugging */
 	outb(cmdport+Command, drive->command);
+	microdelay(1);
 
 	switch(drive->command){
 	case Cws:
 	case Cwsm:
-		microdelay(1);
-		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 1000);
+		as = ataready(cmdport, ctlport, drive->dev, Bsy, Drq|Err, 1000);
 		if(as < 0 || (as & Err)){
 			iunlock(ctlr);
 			return -1;
@@ -913,18 +889,13 @@ atageniostart(Drive* drive, int lba)
 
 	case Crd:
 	case Cwd:
-	//	atadmastart(ctlr, drive->write);
+panic("atadmastart");
 		break;
 	}
+	ctlr->curdrive = drive;
 	iunlock(ctlr);
 
 	return 0;
-}
-
-static int
-atagenioretry(Drive* drive)
-{
-	return atasetsense(drive, SDcheck, 4, 8, drive->error);
 }
 
 static int
@@ -1021,13 +992,12 @@ atagenio(Drive* drive, uchar* cmd, int)
 			drive->count = 256;
 		else
 			drive->count = count;
+		drive->limit += drive->count*drive->secsize;
 		if(atageniostart(drive, lba)){
-			ilock(ctlr);
-			atanop(drive, 0);
-			iunlock(ctlr);
 			qunlock(ctlr);
-			return atagenioretry(drive);
+			return atasetsense(drive, SDcheck, 2, 5, 0);
 		}
+		lba += drive->count;
 
 		tsleep(ctlr, atageniodone, ctlr, 10*1000);
 		if(!ctlr->done){
@@ -1036,18 +1006,19 @@ atagenio(Drive* drive, uchar* cmd, int)
 			 * standby and sleep modes it could take as
 			 * long as 30 seconds for a drive to respond.
 			 * Very hard to get out of this cleanly.
+			 * Let's see if it ever happens first...
 			 */
-		//	atadumpstate(drive, cmd, lba, count);
-			ataabort(drive, 1);
-			return atagenioretry(drive);
+			panic("atagenio");
 		}
 
 		if(drive->status & Err){
 			qunlock(ctlr);
 			return atasetsense(drive, SDcheck, 4, 8, drive->error);
 		}
+		if(drive->data != drive->limit)
+			print("atagenio: %d != %d\n",
+				(int)drive->data, (int)drive->limit);
 		count -= drive->count;
-		lba += drive->count;
 	}
 	qunlock(ctlr);
 
@@ -1101,6 +1072,7 @@ atario(SDreq* r)
 	drive->write = r->write;
 	drive->data = r->data;
 	drive->dlen = r->dlen;
+	drive->limit = r->data;
 
 	drive->status = 0;
 	drive->error = 0;
@@ -1125,6 +1097,7 @@ atario(SDreq* r)
 		cmd10[4] = sizeof(r->sense)-1;
 		drive->data = r->sense;
 		drive->dlen = sizeof(r->sense)-1;
+		drive->limit = r->sense;
 		drive->status = 0;
 		drive->error = 0;
 		if(drive->pkt)
@@ -1169,20 +1142,16 @@ atainterrupt(Ureg*, void* arg)
 	int cmdport, len, status;
 
 	ctlr = arg;
-
+	
 	ilock(ctlr);
 	if(inb(ctlr->ctlport+As) & Bsy){
 		iunlock(ctlr);
-		if(DEBUG & DbgDEBUG)
-			print("IBsy+");
 		return;
 	}
 	cmdport = ctlr->cmdport;
 	status = inb(cmdport+Status);
 	if((drive = ctlr->curdrive) == nil){
 		iunlock(ctlr);
-		if((DEBUG & DbgDEBUG) && ctlr->command != Cedd)
-			print("Inil%2.2uX+", ctlr->command);
 		return;
 	}
 
@@ -1234,7 +1203,7 @@ atainterrupt(Ureg*, void* arg)
 
 	case Crd:
 	case Cwd:
-	//	atadmainterrupt(drive, drive->count*drive->secsize);
+		panic("atadmainterrupt");
 		break;
 	}
 	iunlock(ctlr);
@@ -1256,7 +1225,7 @@ atapnp(void)
 {
 	Ctlr *ctlr;
 	Pcidev *p;
-	int channel, ispc87415, pi, r;
+	int channel, ispc87415, pi;
 	SDev *legacy[2], *sdev, *head, *tail;
 
 	legacy[0] = legacy[1] = head = tail = nil;
@@ -1310,27 +1279,15 @@ atapnp(void)
 			ispc87415 = 1;
 			pcicfgw32(p, 0x40, 0x00000300);
 			break;
-		case (0x1000<<16)|0x1042:	/* PC-Tech RZ1000 */
-			/*
-			 * Turn off prefetch. Overkill, but cheap.
-			 */
-			r = pcicfgr32(p, 0x40);
-			r &= ~0x2000;
-			pcicfgw32(p, 0x40, r);
-			break;
+
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 			pi = 0x85;
-			break;
-		case (0x0640<<16)|0x1095:	/* CMD 640B */
-			/*
-			 * Bugfix code here...
-			 */
-			break;
-		case (0x0646<<16)|0x1095:	/* CMD 646 */
-		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
+			/*FALLTHROUGH*/
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
+		case (0x0646<<16)|0x1095:	/* CMD 646 */
+		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 			break;
 		}
 
@@ -1351,14 +1308,8 @@ atapnp(void)
 				else
 					head = sdev;
 				tail = sdev;
-				ctlr->tbdf = p->tbdf;
+				ctlr->pcidev = p;
 			}
-			else if((sdev = legacy[channel]) == nil)
-				continue;
-			else
-				ctlr = sdev->ctlr;
-
-			ctlr->pcidev = p;
 		}
 	}
 
@@ -1401,7 +1352,7 @@ ataid(SDev* sdev)
 				sdev->idno = 'C'+i;
 				i++;
 			}
-		//	snprint(sdev->name, NAMELEN, "sd%c", sdev->idno);
+			//snprint(sdev->name, NAMELEN, "sd%c", sdev->idno);
 		}
 		sdev = sdev->next;
 	}
@@ -1424,6 +1375,7 @@ ataenable(SDev* sdev)
 	return 1;
 }
 
+
 SDifc sdataifc = {
 	"ata",				/* name */
 
@@ -1436,8 +1388,8 @@ SDifc sdataifc = {
 	scsiverify,			/* verify */
 	scsionline,			/* online */
 	atario,				/* rio */
-	nil,			/* rctl */
-	nil,			/* wctl */
+	nil,				/* rctl */
+	nil,				/* wctl */
 
 	scsibio,			/* bio */
 };

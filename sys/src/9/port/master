@@ -16,7 +16,6 @@
 	kprof	T
 	usb	U
 	lml	V
-	loopback	X
 	intrts	Z
 	cons	c
 	dup	d

@@ -926,7 +926,7 @@ readaliases(void)
 	}
 
 	// read in file in one go
-	p = malloc(d.length+1);
+	p = malloc(d.length);
 	if(p == nil){
 		close(fd);
 		return nil;
@@ -941,14 +941,11 @@ readaliases(void)
 	// parse alias file
 	first = nil;
 	l = &first;
-	p[n] = '\0';
-	for(e = p + n; p < e; p = nl){
+	for(e = p + d.length; p < e; p = nl){
 		for(;;){
 			nl = strchr(p, '\n');
-			if(nl == nil){
-				nl = e;
+			if(nl == nil)
 				break;
-			}
 			if(nl == p || *(nl-1) != '\\')
 				break;
 			*(nl-1) = ' ';

@@ -324,18 +324,14 @@ writewctl(Xfid *x, char *err)
 		border(i, rect, Selborder, red, ZP);
 		wsendctlmesg(w, Reshaped, i->r, i);
 		return 1;
-	/* Safest to ignore these if mouse button is pressed */
 	case Top:
-		if(mouse->buttons == 0)
-			wtopme(w);
+		wtopme(w);
 		return 1;
 	case Bottom:
-		if(mouse->buttons == 0)
-			wbottomme(w);
+		wbottomme(w);
 		return 1;
 	case Current:
-		if(mouse->buttons == 0)
-			wcurrent(w);
+		wcurrent(w);
 		return 1;
 	}
 	strcpy(err, "invalid wctl message");

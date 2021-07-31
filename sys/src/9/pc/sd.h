@@ -14,7 +14,7 @@ typedef struct SDpart {
 	char	user[NAMELEN];
 	ulong	perm;
 	int	valid;
-	ulong	vers;
+	int	nopen;			/* of this partition */
 } SDpart;
 
 typedef struct SDunit {
@@ -27,8 +27,10 @@ typedef struct SDunit {
 	QLock	ctl;
 	ulong	sectors;
 	ulong	secsize;
-	SDpart*	part;		/* either nil or points at array of size SDnpart */
-	ulong	vers;
+	SDpart*	part;
+	int	npart;			/* of valid partitions */
+	int	nopen;			/* of partitions on this unit */
+	int	changed;
 
 	Lock	rawinuse;		/* really just a test-and-set */
 	int	state;

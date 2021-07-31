@@ -26,6 +26,7 @@ redraw(Image *screen)
 	static Image *im;
 	int i;
 	int anghr, angmin;
+	int oanghr, oangmin;
 	static Tm tms;
 	static Tm ntms;
 
@@ -35,19 +36,28 @@ redraw(Image *screen)
 
 	ntms = *localtime(ntm);
 	anghr = 90-(ntms.hour*5 + ntms.min/10)*6;
+	oanghr = 90-(tms.hour*5 + tms.min/10)*6;
 	angmin = 90-ntms.min*6;
+	oangmin = 90-tms.min*6;
 	tm = ntm;
 	tms = ntms;
-	r = screen->r;
-	c = divpt(addpt(r.min, r.max), 2);
-	rad = Dx(r) < Dy(r) ? Dx(r) : Dy(r);
-	rad /= 2;
-	rad -= 8;
+	if(!eqrect(screen->r, r)) {
+		r = screen->r;
+		c = divpt(addpt(r.min, r.max), 2);
+		rad = Dx(r) < Dy(r) ? Dx(r) : Dy(r);
+		rad /= 2;
+		rad -= 8;
 
-	draw(screen, screen->r, back, nil, ZP);
-	for(i=0; i<12; i++)
-		fillellipse(screen, circlept(c, rad, i*(360/12)), 2, 2, dots, ZP);
-
+		draw(screen, screen->r, back, nil, ZP);
+		for(i=0; i<12; i++) {
+			fillellipse(screen, circlept(c, rad, i*(360/12)),
+				2, 2, dots, ZP);
+		}
+	}else{
+		if(oanghr != anghr)
+			line(screen, c, circlept(c, rad/2, oanghr), 0, 0, 1, back, ZP);
+		line(screen, c, circlept(c, (rad*3)/4, oangmin), 0, 0, 1, back, ZP);
+	}
 	line(screen, c, circlept(c, (rad*3)/4, angmin), 0, 0, 1, minhand, ZP);
 	line(screen, c, circlept(c, rad/2, anghr), 0, 0, 1, hrhand, ZP);
 
@@ -63,7 +73,7 @@ eresized(int new)
 }
 
 void
-main(int, char**)
+main(int argc, char **argv)
 {
 	Event e;
 	Mouse m;

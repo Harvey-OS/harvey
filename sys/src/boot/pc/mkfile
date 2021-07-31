@@ -46,8 +46,6 @@ LOAD=\
 	part.$O\
 	pci.$O\
 	sdata.$O\
-	sdmylex.$O\
-	sd53c8xx.$O\
 	sdscsi.$O\
 	load.$O\
 
@@ -55,12 +53,10 @@ BCOM=\
 	bcom.$O\
 	bootld.$O\
 	devsd.$O\
-	memory.$O\
 	part.$O\
 	pci.$O\
 	sdata.$O\
 	sdscsi.$O\
-	sdmylex.$O\
 
 HFILES=\
 	lib.h\

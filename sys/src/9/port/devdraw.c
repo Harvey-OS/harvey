@@ -756,11 +756,6 @@ drawnewclient(void)
 int
 drawhasclients(void)
 {
-	/*
-	 * if draw has ever been used, we can't resize the frame buffer,
-	 * even if all clients have exited (nclients is cumulative); it's too
-	 * hard to make work.
-	 */
 	return sdraw.nclient != 0;
 }
 

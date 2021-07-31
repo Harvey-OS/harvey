@@ -516,3 +516,10 @@ sdmalloc(void *p, ulong sz)
 	}
 	return malloc(sz);
 }
+
+extern SDifc sdataifc;
+SDifc* sdifc[] = {
+	&sdataifc,
+	nil,
+};
+
