@@ -232,10 +232,8 @@ device(char *dest, char *cmd)
 	snprint(cname, sizeof cname, "%sctl", dest);
 	ctl = open(cname, ORDWR);
 	if (baud > 0) {
-		if(ctl >= 0){
-			/* set speed and use fifos if available */
-			fprint(ctl, "b%d i1", baud);
-		}
+		if(ctl >= 0)
+			fprint(ctl, "b%d", baud);
 		else
 			fprint(2, "con: cannot open %s: %r\n", cname);
 	}
