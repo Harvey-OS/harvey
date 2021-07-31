@@ -1187,15 +1187,12 @@ warn(Node *n, char *fmt, ...)
 	char buf[STRINGSZ];
 	va_list arg;
 
-	if(debug['w'] || debug['W']) {
+	if(debug['w']) {
+		Bprint(&diagbuf, "warning: ");
 		va_start(arg, fmt);
 		vseprint(buf, buf+sizeof(buf), fmt, arg);
 		va_end(arg);
-		if(debug['W']) {
-			diag(n, "%s", buf);
-			return;
-		}
-		Bprint(&diagbuf, "warning: %L %s\n", (n==Z)? nearln: n->lineno, buf);
+		Bprint(&diagbuf, "%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
 		if(n != Z)
 		if(debug['v'])
