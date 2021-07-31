@@ -43,11 +43,6 @@ struct Dest
 	ulong	magic;
 };
 
-/*
- * Query has a QLock in it, thus it can't be an automatic
- * variable, since each process would see a separate copy
- * of the lock on its stack.
- */
 struct Query {
 	DN	*dp;		/* domain */
 	int	type;		/* and type to look up */
@@ -173,8 +168,7 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 				if(rp == nil)
 					break;
 
-				/* rp->host == nil shouldn't happen, but does */
-				if(rp->negative || rp->host == nil){
+				if(rp->negative){
 					rrfreelist(rp);
 					rp = nil;
 					break;
@@ -294,102 +288,14 @@ noteinmem(void)
 }
 
 static RR*
-issuequery(Query *qp, RR *rp, char *name, int class, int depth, int recurse)
-{
-	char *cp;
-	DN *nsdp;
-	RR *nsrp, *dbnsrp;
-
-	/*
-	 *  if we're running as just a resolver, query our
-	 *  designated name servers
-	 */
-	if(cfg.resolver){
-		nsrp = randomize(getdnsservers(class));
-		if(nsrp != nil) {
-			qp->nsrp = nsrp;
-			if(netquery(qp, depth+1)){
-				rrfreelist(nsrp);
-				return rrlookup(qp->dp, qp->type, OKneg);
-			}
-			rrfreelist(nsrp);
-		}
-	}
-
-	/*
- 	 *  walk up the domain name looking for
-	 *  a name server for the domain.
-	 */
-	for(cp = name; cp; cp = walkup(cp)){
-		/*
-		 *  if this is a local (served by us) domain,
-		 *  return answer
-		 */
-		dbnsrp = randomize(dblookup(cp, class, Tns, 0, 0));
-		if(dbnsrp && dbnsrp->local){
-			rp = dblookup(name, class, qp->type, 1, dbnsrp->ttl);
-			rrfreelist(dbnsrp);
-			return rp;
-		}
-
-		/*
-		 *  if recursion isn't set, just accept local
-		 *  entries
-		 */
-		if(recurse == Dontrecurse){
-			if(dbnsrp)
-				rrfreelist(dbnsrp);
-			continue;
-		}
-
-		/* look for ns in cache */
-		nsdp = dnlookup(cp, class, 0);
-		nsrp = nil;
-		if(nsdp)
-			nsrp = randomize(rrlookup(nsdp, Tns, NOneg));
-
-		/* if the entry timed out, ignore it */
-		if(nsrp && nsrp->ttl < now){
-			rrfreelist(nsrp);
-			nsrp = nil;
-		}
-
-		if(nsrp){
-			rrfreelist(dbnsrp);
-
-			/* query the name servers found in cache */
-			qp->nsrp = nsrp;
-			if(netquery(qp, depth+1)){
-				rrfreelist(nsrp);
-				return rrlookup(qp->dp, qp->type, OKneg);
-			}
-			rrfreelist(nsrp);
-			continue;
-		}
-
-		/* use ns from db */
-		if(dbnsrp){
-			/* try the name servers found in db */
-			qp->nsrp = dbnsrp;
-			if(netquery(qp, depth+1)){
-				/* we got an answer */
-				rrfreelist(dbnsrp);
-				return rrlookup(qp->dp, qp->type, NOneg);
-			}
-			rrfreelist(dbnsrp);
-		}
-	}
-	return rp;
-}
-
-static RR*
 dnresolve1(char *name, int class, int type, Request *req, int depth,
 	int recurse)
 {
+	char *cp;
 	Area *area;
-	DN *dp;
-	RR *rp;
-	Query *qp;
+	DN *dp, *nsdp;
+	RR *rp, *nsrp, *dbnsrp;
+	Query query;
 
 	if(debug)
 		dnslog("[%d] dnresolve1 %s %d %d", getpid(), name, type, class);
@@ -419,6 +325,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 					noteinmem();
 					return rp;
 				}
+
 	rrfreelist(rp);
 
 	/*
@@ -446,13 +353,92 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 		return nil;
 	}
 
-	qp = emalloc(sizeof *qp);
-	queryinit(qp, dp, type, req);
-	rp = issuequery(qp, rp, name, class, depth, recurse);
-	querydestroy(qp);
-	free(qp);
-	if(rp)
-		return rp;
+	queryinit(&query, dp, type, req);
+
+	/*
+	 *  if we're running as just a resolver, query our
+	 *  designated name servers
+	 */
+	if(cfg.resolver){
+		nsrp = randomize(getdnsservers(class));
+		if(nsrp != nil) {
+			query.nsrp = nsrp;
+			if(netquery(&query, depth+1)){
+				rrfreelist(nsrp);
+				querydestroy(&query);
+				return rrlookup(dp, type, OKneg);
+			}
+			rrfreelist(nsrp);
+		}
+	}
+
+	/*
+ 	 *  walk up the domain name looking for
+	 *  a name server for the domain.
+	 */
+	for(cp = name; cp; cp = walkup(cp)){
+		/*
+		 *  if this is a local (served by us) domain,
+		 *  return answer
+		 */
+		dbnsrp = randomize(dblookup(cp, class, Tns, 0, 0));
+		if(dbnsrp && dbnsrp->local){
+			rp = dblookup(name, class, type, 1, dbnsrp->ttl);
+			rrfreelist(dbnsrp);
+			querydestroy(&query);
+			return rp;
+		}
+
+		/*
+		 *  if recursion isn't set, just accept local
+		 *  entries
+		 */
+		if(recurse == Dontrecurse){
+			if(dbnsrp)
+				rrfreelist(dbnsrp);
+			continue;
+		}
+
+		/* look for ns in cache */
+		nsdp = dnlookup(cp, class, 0);
+		nsrp = nil;
+		if(nsdp)
+			nsrp = randomize(rrlookup(nsdp, Tns, NOneg));
+
+		/* if the entry timed out, ignore it */
+		if(nsrp && nsrp->ttl < now){
+			rrfreelist(nsrp);
+			nsrp = nil;
+		}
+
+		if(nsrp){
+			rrfreelist(dbnsrp);
+
+			/* query the name servers found in cache */
+			query.nsrp = nsrp;
+			if(netquery(&query, depth+1)){
+				rrfreelist(nsrp);
+				querydestroy(&query);
+				return rrlookup(dp, type, OKneg);
+			}
+			rrfreelist(nsrp);
+			continue;
+		}
+
+		/* use ns from db */
+		if(dbnsrp){
+			/* try the name servers found in db */
+			query.nsrp = dbnsrp;
+			if(netquery(&query, depth+1)){
+				/* we got an answer */
+				rrfreelist(dbnsrp);
+				querydestroy(&query);
+				return rrlookup(dp, type, NOneg);
+			}
+			rrfreelist(dbnsrp);
+		}
+	}
+	querydestroy(&query);
 
 	/* settle for a non-authoritative answer */
 	rp = rrlookup(dp, type, OKneg);
@@ -544,12 +530,13 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 
 /* for alarms in readreply */
 static void
-ding(void*, char *msg)
+ding(void *x, char *msg)
 {
-	if(strstr(msg, "alarm") != nil)
-		noted(NCONT);		/* resume with system call error */
+	USED(x);
+	if(strcmp(msg, "alarm") == 0)
+		noted(NCONT);
 	else
-		noted(NDFLT);		/* die */
+		noted(NDFLT);
 }
 
 void
@@ -1081,7 +1068,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 //	int lcktype;
 	char buf[32];
 	DN *ndp;
-	Query *nqp;
+	Query nquery;
 	RR *tp, *soarr;
 
 	if (mp->an == nil)
@@ -1192,15 +1179,13 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 //	lcktype = qtype2lck(qp->type);
 //	qunlock(&qp->dp->querylck[lcktype]);
 
-	nqp = emalloc(sizeof *nqp);
-	queryinit(nqp, qp->dp, qp->type, qp->req);
-	nqp->nsrp = tp;
-	rv = netquery(nqp, depth+1);
+	queryinit(&nquery, qp->dp, qp->type, qp->req);
+	nquery.nsrp = tp;
+	rv = netquery(&nquery, depth+1);
 
 //	qlock(&qp->dp->querylck[lcktype]);
 	rrfreelist(tp);
-	querydestroy(nqp);
-	free(nqp);
+	querydestroy(&nquery);
 	return rv;
 }
 
@@ -1565,20 +1550,16 @@ seerootns(void)
 	int rv;
 	char root[] = "";
 	Request req;
-	Query *qp;
+	Query query;
 
 	memset(&req, 0, sizeof req);
 	req.isslave = 1;
 	req.aborttime = now + Maxreqtm;
 	req.from = "internal";
-	qp = emalloc(sizeof *qp);
-	queryinit(qp, dnlookup(root, Cin, 1), Tns, &req);
-
-	qp->nsrp = dblookup(root, Cin, Tns, 0, 0);
-	rv = netquery(qp, 0);
-
-	rrfreelist(qp->nsrp);
-	querydestroy(qp);
-	free(qp);
+	queryinit(&query, dnlookup(root, Cin, 1), Tns, &req);
+	query.nsrp = dblookup(root, Cin, Tns, 0, 0);
+	rv = netquery(&query, 0);
+	rrfreelist(query.nsrp);
+	querydestroy(&query);
 	return rv;
 }

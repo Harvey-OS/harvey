@@ -1425,12 +1425,9 @@ slave(Request *req)
 		return;
 	}
 
-	/*
-	 * parent returns to main loop, child does the work.
-	 * don't change note group.
-	 */
+	/* parent returns to main loop, child does the work */
 	ppid = getpid();
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
 	case -1:
 		putactivity(1);
 		break;

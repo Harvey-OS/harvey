@@ -11,12 +11,13 @@ static int	udpannounce(char*);
 static void	reply(int, uchar*, DNSmsg*, Request*);
 
 static void
-ding(void*, char *msg)
+ding(void *x, char *msg)
 {
-	if(strstr(msg, "alarm") != nil)
-		noted(NCONT);		/* resume with system call error */
+	USED(x);
+	if(strcmp(msg, "alarm") == 0)
+		noted(NCONT);
 	else
-		noted(NDFLT);		/* die */
+		noted(NDFLT);
 }
 
 typedef struct Inprogress Inprogress;
@@ -80,11 +81,8 @@ dnudpserver(char *mntpt)
 	volatile Request req;
 	Udphdr *volatile uh;
 
-	/*
-	 * fork sharing text, data, and bss with parent.
-	 * stay in the same note group.
-	 */
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
+	/* fork sharing text, data, and bss with parent */
+	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
 	case -1:
 		break;
 	case 0:
