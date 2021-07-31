@@ -14,8 +14,6 @@ char *defbackgr = "/sys/games/lib/mahjongg/backgrounds/default.bit";
 char *deflayout = "/sys/games/lib/mahjongg/layouts/default.layout";
 ulong defchan;
 
-int trace;
-
 
 char *buttons[] = 
 {
@@ -34,7 +32,7 @@ Menu menu =
 void
 usage(char *progname)
 {
-	fprint(2, "usage: %s [-b background] [-l layout] [-t tileset] [-c] [-f]\n", progname);
+	fprint(2, "usage: %s [-b background] [-l layout] [-t tileset] -c\n", progname);
 	exits("usage");
 }
 
@@ -76,7 +74,6 @@ allocimages(void)
 	Rectangle one = Rect(0, 0, 1, 1);
 	
 	selected = eallocimage(one, 1, RGBA32, setalpha(DPalebluegreen, 0x5f));
-	litbrdr = eallocimage(one, 1, RGBA32, DGreen);
 	img = eallocimage(Rect(0, 0, Sizex, Sizey), 0, defchan ? defchan : screen->chan, DBlack);
 
 	background = eloadfile(defbackgr);
@@ -107,9 +104,6 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'h':
 		usage(argv0);
-	case 'f':
-		trace = 1;
-		break;
 	case 'b':
 		defbackgr = EARGF(usage(argv0));
 		break;
@@ -154,11 +148,8 @@ main(int argc, char **argv)
 					clickety = 1;
 					clicked(subpt(m.xy, addpt(screen->r.min, Pt(30, 30))));
 				}
-			} else {
+			} else 
 				clickety = 0;
-				if(trace)
-					light(subpt(m.xy, addpt(screen->r.min, Pt(30, 30))));
-			}
 			if(m.buttons&2) {
 				/* nothing here for the moment */
 			}
