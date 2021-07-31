@@ -1496,10 +1496,8 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 {
 	uchar *p;
 	Ctlr *ctlr;
-	int maxio;
-	ulong count;
-	vlong len;
-	uvlong lba;
+	vlong lba, len;
+	int count, maxio;
 
 	/*
 	 * Map SCSI commands into ATA commands for discs.
@@ -1605,11 +1603,17 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 	}
 
 	ctlr = drive->ctlr;
-	if(clen == 16)
+	if(clen == 16){
 		/* ata commands only go to 48-bit lba */
 		if(cmd[2] || cmd[3])
 			return atasetsense(drive, SDcheck, 3, 0xc, 2);
-	scsilbacount(cmd, clen, &lba, &count);
+		lba = (uvlong)cmd[4]<<40 | (uvlong)cmd[5]<<32;
+		lba |= cmd[6]<<24 | cmd[7]<<16 | cmd[8]<<8 | cmd[9];
+		count = cmd[10]<<24 | cmd[11]<<16 | cmd[12]<<8 | cmd[13];
+	}else{
+		lba = cmd[2]<<24 | cmd[3]<<16 | cmd[4]<<8 | cmd[5];
+		count = cmd[7]<<8 | cmd[8];
+	}
 	if(drive->data == nil)
 		return SDok;
 	if(drive->dlen < count*drive->secsize)
