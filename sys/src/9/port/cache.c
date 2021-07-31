@@ -114,7 +114,7 @@ cinit(void)
 
 	/* a better algorithm would be nice */
 	if(conf.npage*BY2PG > 400*MB)
-		maxcache = 20*MAXCACHE;
+		maxcache = 50*MAXCACHE;
 	else if(conf.npage*BY2PG > 200*MB)
 		maxcache = 10*MAXCACHE;
 
