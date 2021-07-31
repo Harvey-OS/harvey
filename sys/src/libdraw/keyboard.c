@@ -59,7 +59,6 @@ _ioproc(void *arg)
 Keyboardctl*
 initkeyboard(char *file)
 {
-	int nb;
 	Keyboardctl *kc;
 	char *t;
 
@@ -70,14 +69,13 @@ initkeyboard(char *file)
 		file = "/dev/cons";
 	kc->file = strdup(file);
 	kc->consfd = open(file, ORDWR|OCEXEC);
-	nb = strlen(file)+16;
-	t = malloc(nb);
+	t = malloc(strlen(file)+16);
 	if(kc->consfd<0 || t==nil){
 Error1:
 		free(kc);
 		return nil;
 	}
-	snprint(t, nb, "%sctl", file);
+	sprint(t, "%sctl", file);
 	kc->ctlfd = open(t, OWRITE|OCEXEC);
 	if(kc->ctlfd < 0){
 		fprint(2, "initkeyboard: can't open %s: %r\n", t);
