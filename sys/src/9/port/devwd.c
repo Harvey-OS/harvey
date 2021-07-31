@@ -77,12 +77,13 @@ wdautostart(void)
 	if (wdautopet || !wd || !wdallowed())
 		return;
 	if (waserror()) {
-		print("watchdog: automatic enable failed\n");
+		print("watchdog: enable failed\n");
 		return;
 	}
 	wd->enable();
 	poperror();
 
+	print("watchdog: on with clock strokes\n");
 	wdautopet = watchdogon = 1;
 	if (!wdclock0called) {
 		addclock0link(wdpet, 200);
@@ -101,6 +102,7 @@ wdautostop(void)
 		return;
 	wdautopet = 0;
 	wdshutdown();
+	print("watchdog: disabled before open\n");
 }
 
 /*

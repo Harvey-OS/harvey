@@ -40,8 +40,7 @@ start(char *name, char **argv, char *file)
 	for(cnt = 10; cnt > 0 && access(file, AEXIST) < 0; cnt--)
 		sleep(100);
 	if (cnt <= 0) {
-		if(debugboot)
-			fprint(2, "no %s...", file);
+		fprint(2, "no %s...", file);
 		return -1;
 	}
 	return 0;
