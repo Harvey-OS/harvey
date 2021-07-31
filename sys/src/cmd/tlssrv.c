@@ -164,7 +164,7 @@ main(int argc, char *argv[])
 		reporter("failed: %r");
 		exits(0);
 	}
-	reporter("open");
+	reporter("open\n");
 
 	if(argc > 0){
 		if(pipe(p) < 0)

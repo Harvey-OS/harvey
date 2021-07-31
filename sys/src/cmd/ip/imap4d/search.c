@@ -102,9 +102,7 @@ searchMsg(Msg *m, Search *s)
 			ok = addrSearch(m->to, s->s);
 			break;
 		case SKSubject:
-			ok = 0;
-			if(m->info[ISubject])
-				ok = cistrstr(m->info[ISubject], s->s) != nil;
+			ok = cistrstr(m->info[ISubject], s->s) != nil;
 			break;
 
 		case SKBefore:
