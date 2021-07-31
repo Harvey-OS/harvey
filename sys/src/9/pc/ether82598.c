@@ -1,5 +1,5 @@
 /*
- * intel 10Gb ethernet pci-express driver
+ * intel 10GB ethernet pci-express driver
  * copyright © 2007, coraid, inc.
  */
 #include "u.h"
@@ -12,13 +12,12 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
+/* tweakable parameters */
 enum {
-	Rbsz	= ROUNDUP(ETHERMAXTU, 1024),
-
-	/* tunable parameters */
+	Rbsz	= 12*1024,
 	Nrd	= 256,
-	Nrb	= 256,
 	Ntd	= 64,
+	Nrb	= 256,
 };
 
 /*
@@ -272,15 +271,8 @@ enum {
 typedef struct {
 	Pcidev	*p;
 	Ether	*edev;
-
-	/* virtual */
 	u32int	*reg;
-	u32int	*msix;			/* unused */
-
-	/* physical */
-	u32int	*physreg;
-	u32int	*physmsix;		/* unused */
-
+	u32int	*reg3;
 	uchar	flag;
 	int	nrd;
 	int	ntd;
@@ -842,8 +834,7 @@ attach(Ether *e)
 		nexterror();
 	}
 	for(c->nrb = 0; c->nrb < 2*Nrb; c->nrb++){
-		b = allocb(c->rbsz + BY2PG);	/* see rbfree() */
-		if(b == nil)
+		if(!(b = allocb(c->rbsz+BY2PG)))
 			error(Enomem);
 		b->free = rbfree;
 		freeb(b);
@@ -897,68 +888,55 @@ interrupt(Ureg*, void *v)
 static void
 scan(void)
 {
-	int pciregs, pcimsix;
-	ulong io, iomsi;
-	void *mem, *memmsi;
+	ulong io, io3;
+	void *mem, *mem3;
 	Ctlr *c;
 	Pcidev *p;
 
 	p = 0;
-	while(p = pcimatch(p, Vintel, 0)){
+	while(p = pcimatch(p, 0x8086, 0)){
 		switch(p->did){
 		case 0x10c6:		/* 82598 af dual port */
 		case 0x10c7:		/* 82598 af single port */
 		case 0x10b6:		/* 82598 backplane */
 		case 0x10dd:		/* 82598 at cx4 */
 		case 0x10ec:		/* 82598 at cx4 dual port */
-			pcimsix = 3;
-			break;
-		case 0x10fb:		/* 82599 */
-			pcimsix = 4;
 			break;
 		default:
 			continue;
 		}
-		pciregs = 0;
 		if(nctlr == nelem(ctlrtab)){
 			print("i82598: too many controllers\n");
 			return;
 		}
-
-		io = p->mem[pciregs].bar & ~0xf;
-		mem = vmap(io, p->mem[pciregs].size);
+		io = p->mem[0].bar & ~0xf;
+		mem = vmap(io, p->mem[0].size);
 		if(mem == nil){
-			print("i82598: can't map regs %#p\n",
-				p->mem[pciregs].bar);
+			print("i82598: can't map %#p\n", p->mem[0].bar);
 			continue;
 		}
-
-		iomsi = p->mem[pcimsix].bar & ~0xf;
-		memmsi = vmap(iomsi, p->mem[pcimsix].size);
-		if(memmsi == nil){
-			print("i82598: can't map msi-x regs %#p\n",
-				p->mem[pcimsix].bar);
-			vunmap(mem, p->mem[pciregs].size);
+		io3 = p->mem[3].bar & ~0xf;
+		mem3 = vmap(io3, p->mem[3].size);
+		if(mem3 == nil){
+			print("i82598: can't map %#p\n", p->mem[3].bar);
+			vunmap(mem, p->mem[0].size);
 			continue;
 		}
-
 		c = malloc(sizeof *c);
 		if(c == nil) {
-			vunmap(mem, p->mem[pciregs].size);
-			vunmap(memmsi, p->mem[pcimsix].size);
+			vunmap(mem, p->mem[0].size);
+			vunmap(mem3, p->mem[3].size);
 			error(Enomem);
 		}
 		c->p = p;
-		c->physreg = (u32int*)io;
-		c->physmsix = (u32int*)iomsi;
 		c->reg = (u32int*)mem;
-		c->msix = (u32int*)memmsi;	/* unused */
+		c->reg3 = (u32int*)mem3;
 		c->rbsz = Rbsz;
 		if(reset(c)){
 			print("i82598: can't reset\n");
 			free(c);
-			vunmap(mem, p->mem[pciregs].size);
-			vunmap(memmsi, p->mem[pcimsix].size);
+			vunmap(mem, p->mem[0].size);
+			vunmap(mem3, p->mem[3].size);
 			continue;
 		}
 		pcisetbme(p);
@@ -985,7 +963,7 @@ pnp(Ether *e)
 		return -1;
 	c->flag |= Factive;
 	e->ctlr = c;
-	e->port = (uintptr)c->physreg;
+	e->port = (uintptr)c->reg;
 	e->irq = c->p->intl;
 	e->tbdf = c->p->tbdf;
 	e->mbps = 10000;
