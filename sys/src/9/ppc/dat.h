@@ -6,6 +6,7 @@ typedef struct Imap	Imap;
 typedef struct Label	Label;
 typedef struct Lock	Lock;
 typedef struct Mach	Mach;
+typedef struct Notsave	Notsave;
 typedef struct PCArch	PCArch;
 typedef struct PMMU	PMMU;
 typedef struct Page	Page;
@@ -112,6 +113,14 @@ struct PMMU
 {
 	int	mmupid;
 	Ureg	*mmureg;		/* pointer to ureg structure */
+};
+
+/*
+ *  things saved in the Proc structure during a notify
+ */
+struct Notsave
+{
+	ulong	UNUSED;
 };
 
 #include "../port/portdat.h"

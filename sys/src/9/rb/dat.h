@@ -8,6 +8,7 @@ typedef struct Label	Label;
 typedef struct Lock	Lock;
 typedef struct Mach	Mach;
 typedef struct MMU	MMU;
+typedef struct Notsave	Notsave;
 typedef struct Pcidev	Pcidev;
 typedef struct PMMU	PMMU;
 typedef struct Rbconf	Rbconf;
@@ -129,6 +130,14 @@ int fpemudebug;
 struct PMMU
 {
 	int	pidonmach[MAXMACH];
+};
+
+/*
+ *  things saved in the Proc structure during a notify
+ */
+struct Notsave
+{
+	ulong	nonempty;
 };
 
 #include "../port/portdat.h"
