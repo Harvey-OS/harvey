@@ -54,7 +54,7 @@ are ignored.
 .B /lib/news/*
 articles
 .TP
-.B $home/lib/newstime
+.B $HOME/lib/newstime
 modify time is time news was last read
 .TP
 .B /sys/lib/subscribers

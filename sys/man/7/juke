@@ -358,12 +358,9 @@ is the text field of the object.
 is the type of the object
 .LP
 .SH FILES
-.TF /sys/lib/music/map
-.TP
-.B /sys/lib/music/map
+.BR /sys/lib/music/map :
 Default map file
-.TP
-.B /mnt/juke
+.BR /mnt/juke :
 Default mount point for the music database.
 .SH SOURCE
 .B /sys/src/games/music
