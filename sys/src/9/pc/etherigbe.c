@@ -450,7 +450,7 @@ enum {
 };
 
 typedef struct Ctlr Ctlr;
-struct Ctlr {
+typedef struct Ctlr {
 	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
@@ -465,7 +465,7 @@ struct Ctlr {
 	void*	alloc;			/* receive/transmit descriptors */
 	int	nrd;
 	int	ntd;
-	int	nrb;			/* # bufs this Ctlr has in the pool */
+	int	nrb;			/* how many this Ctlr has in the pool */
 
 	int*	nic;
 	Lock	imlock;
@@ -494,7 +494,7 @@ struct Ctlr {
 
 	Rendez	rrendez;
 	int	rim;
-	int	rdfree;			/* rx descriptors awaiting packets */
+	int	rdfree;
 	Rd*	rdba;			/* receive descriptor base address */
 	Block**	rb;			/* receive buffers */
 	int	rdh;			/* receive descriptor head */
@@ -502,6 +502,7 @@ struct Ctlr {
 	int	rdtr;			/* receive delay timer ring value */
 
 	Lock	tlock;
+	int	tbusy;
 	int	tdfree;
 	Td*	tdba;			/* transmit descriptor base address */
 	Block**	tb;			/* transmit buffers */
@@ -511,7 +512,7 @@ struct Ctlr {
 	int	txcw;
 	int	fcrtl;
 	int	fcrth;
-};
+} Ctlr;
 
 #define csr32r(c, r)	(*((c)->nic+((r)/4)))
 #define csr32w(c, r, v)	(*((c)->nic+((r)/4)) = (v))

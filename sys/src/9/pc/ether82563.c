@@ -320,18 +320,14 @@ enum {					/* Receive Delay Timer Ring */
 	Fpd		= 0x80000000,	/* Flush partial Descriptor Block */
 };
 
-typedef struct Ctlr Ctlr;
-typedef struct Rd Rd;
-typedef struct Td Td;
-
-struct Rd {				/* Receive Descriptor */
+typedef struct Rd {			/* Receive Descriptor */
 	u32int	addr[2];
 	u16int	length;
 	u16int	checksum;
 	u8int	status;
 	u8int	errors;
 	u16int	special;
-};
+} Rd;
 
 enum {					/* Rd status */
 	Rdd		= 0x01,		/* Descriptor Done */
@@ -353,11 +349,11 @@ enum {					/* Rd errors */
 	Rxe		= 0x80,		/* RX Data Error */
 };
 
-struct Td {				/* Transmit Descriptor */
+typedef struct {			/* Transmit Descriptor */
 	u32int	addr[2];		/* Data */
 	u32int	control;
 	u32int	status;
-};
+} Td;
 
 enum {					/* Tdesc control */
 	LenMASK		= 0x000FFFFF,	/* Data/Packet Length Field */
@@ -463,6 +459,7 @@ static char *tname[] = {
 	"i82579",
 };
 
+typedef struct Ctlr Ctlr;
 struct Ctlr {
 	int	port;
 	Pcidev	*pcidev;
@@ -476,7 +473,7 @@ struct Ctlr {
 	int	attached;
 	int	nrd;
 	int	ntd;
-	int	nrb;			/* # bufs this Ctlr has in the pool */
+	int	nrb;			/* how many this Ctlr has in the pool */
 	unsigned rbsz;			/* unsigned for % and / by 1024 */
 
 	int	*nic;
@@ -504,7 +501,7 @@ struct Ctlr {
 
 	Rendez	rrendez;
 	int	rim;
-	int	rdfree;			/* rx descriptors awaiting packets */
+	int	rdfree;
 	Rd	*rdba;			/* receive descriptor base address */
 	Block	**rb;			/* receive buffers */
 	int	rdh;			/* receive descriptor head */
@@ -514,6 +511,7 @@ struct Ctlr {
 
 	Rendez	trendez;
 	QLock	tlock;
+	int	tbusy;
 	Td	*tdba;			/* transmit descriptor base address */
 	Block	**tb;			/* transmit buffers */
 	int	tdh;			/* transmit descriptor head */
@@ -941,7 +939,7 @@ i82563replenish(Ctlr* ctlr)
 	while(Next(rdt, m) != ctlr->rdh){
 		rd = &ctlr->rdba[rdt];
 		if(ctlr->rb[rdt] != nil){
-			iprint("#l%d: 82563: rx overrun\n", ctlr->edev->ctlrno);
+			iprint("82563: tx overrun\n");
 			break;
 		}
 		bp = i82563rballoc();
@@ -1125,15 +1123,10 @@ i82563rproc(void* arg)
 			}
 			ctlr->rb[rdh] = nil;
 
-			/* rd needs to be replenished to accept another pkt */
 			rd->status = 0;
 			ctlr->rdfree--;
 			ctlr->rdh = rdh = Next(rdh, m);
-			/*
-			 * if number of rds ready for packets is too low,
-			 * set up the unready ones.
-			 */
-			if(ctlr->rdfree <= ctlr->nrd - 32 || (rim & Rxdmt0))
+			if(ctlr->nrd-ctlr->rdfree >= 32 || (rim & Rxdmt0))
 				i82563replenish(ctlr);
 		}
 	}

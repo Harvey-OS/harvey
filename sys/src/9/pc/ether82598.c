@@ -202,10 +202,6 @@ enum {
 	Lmsmask		= 7,
 };
 
-typedef struct Ctlr Ctlr;
-typedef struct Rd Rd;
-typedef struct Td Td;
-
 typedef struct {
 	uint	reg;
 	char	*name;
@@ -261,14 +257,14 @@ enum {
 	Rdd	= 1<<0,	/* descriptor done */
 };
 
-struct Rd {			/* Receive Descriptor */
+typedef struct {
 	u32int	addr[2];
 	ushort	length;
 	ushort	cksum;
 	uchar	status;
 	uchar	errors;
 	ushort	vlan;
-};
+} Rd;
 
 enum {
 	/* Td cmd */
@@ -281,7 +277,7 @@ enum {
 	Tdd	= 1<<0,		/* descriptor done */
 };
 
-struct Td {			/* Transmit Descriptor */
+typedef struct {
 	u32int	addr[2];
 	ushort	length;
 	uchar	cso;
@@ -289,9 +285,9 @@ struct Td {			/* Transmit Descriptor */
 	uchar	status;
 	uchar	css;
 	ushort	vlan;
-};
+} Td;
 
-struct Ctlr {
+typedef struct {
 	Pcidev	*p;
 	Ether	*edev;
 	int	type;
@@ -307,7 +303,7 @@ struct Ctlr {
 	uchar	flag;
 	int	nrd;
 	int	ntd;
-	int	nrb;			/* # bufs this Ctlr has in the pool */
+	int	nrb;
 	uint	rbsz;
 	int	procsrunning;
 	int	attached;
@@ -319,27 +315,27 @@ struct Ctlr {
 	Rendez	trendez;
 	Rendez	rrendez;
 
-	uint	im;			/* interrupt mask */
+	uint	im;
 	uint	lim;
 	uint	rim;
 	uint	tim;
 	Lock	imlock;
 
-	Rd*	rdba;			/* receive descriptor base address */
-	Block**	rb;			/* receive buffers */
-	int	rdt;			/* receive descriptor tail */
-	int	rdfree;			/* rx descriptors awaiting packets */
+	Rd	*rdba;
+	Block	**rb;
+	uint	rdt;
+	uint	rdfree;
 
-	Td*	tdba;			/* transmit descriptor base address */
-	int	tdh;			/* transmit descriptor head */
-	int	tdt;			/* transmit descriptor tail */
-	Block**	tb;			/* transmit buffers */
+	Td	*tdba;
+	uint	tdh;
+	uint	tdt;
+	Block	**tb;
 
-	uchar	ra[Eaddrlen];		/* receive address */
-	uchar	mta[128];		/* multicast table array */
+	uchar	ra[Eaddrlen];
+	uchar	mta[128];
 	ulong	stats[nelem(stattab)];
 	uint	speeds[3];
-};
+} Ctlr;
 
 enum {
 	I82598 = 1,
