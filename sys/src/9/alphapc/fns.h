@@ -4,7 +4,6 @@ Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,v
 void	archinit(void);
 void	arginit(void);
 void	arith(void);
-ulong	cankaddr(ulong);
 void	clock(Ureg*);
 void	clockinit(void);
 void	clockintrsched(void);

@@ -14,7 +14,6 @@ typedef struct Proc	Proc;
 typedef struct Sys	Sys;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
-typedef long		Tval;
 
 #pragma incomplete Ureg
 

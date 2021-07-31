@@ -1,6 +1,6 @@
 #!/bin/rc
-# C system - connect to system's console
-rfork en
+
+rfork n
 oflag=()
 opt=-r
 while(~ $1 -*)
@@ -17,6 +17,10 @@ while(~ $1 -*)
 	}
 
 switch($1){
+case fs
+	server=edith
+case sources
+	server=ethel
 case ella
 	exec C office0
 	exit
@@ -57,10 +61,4 @@ if(! test -e /mnt/consoles/$1){
 	exit 'console not found'
 }
 
-if (test -w /dev/label) {
-	olab=`{cat /dev/label}
-	label $1
-}
 con -l $opt /mnt/consoles/$1
-if (test -w /dev/label)
-	label $olab

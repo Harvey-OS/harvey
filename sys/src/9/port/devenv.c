@@ -262,14 +262,16 @@ static long
 envwrite(Chan *c, void *a, long n, vlong off)
 {
 	char *s;
-	ulong len;
+	ulong vend;
 	Egrp *eg;
 	Evalue *e;
 	ulong offset = off;
 
 	if(n <= 0)
 		return 0;
-	if(offset > Maxenvsize || n > (Maxenvsize - offset))
+
+	vend = offset+n;
+	if(vend > Maxenvsize)
 		error(Etoobig);
 
 	eg = envgrp(c);
@@ -280,15 +282,14 @@ envwrite(Chan *c, void *a, long n, vlong off)
 		error(Enonexist);
 	}
 
-	len = offset+n;
-	if(len > e->len) {
-		s = smalloc(len);
+	if(vend > e->len) {
+		s = smalloc(offset+n);
 		if(e->value){
 			memmove(s, e->value, e->len);
 			free(e->value);
 		}
 		e->value = s;
-		e->len = len;
+		e->len = vend;
 	}
 	memmove(e->value+offset, a, n);
 	e->qid.vers++;

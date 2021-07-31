@@ -15,7 +15,6 @@ typedef struct Proc	Proc;
 typedef struct Sys	Sys;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
-typedef vlong		Tval;
 
 #define MAXSYSARG	6	/* for mount(fd, mpt, flag, arg, srv) */
 
