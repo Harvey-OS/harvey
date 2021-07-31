@@ -1,6 +1,6 @@
 .TH VI 1
 .SH NAME
-0i, 5i, ki, vi, qi \- instruction simulators
+0i, 5i, ki, vi \- instruction simulators
 .SH SYNOPSIS
 .B vi
 [
@@ -33,14 +33,6 @@
 .br
 .B ki
 .I pid
-.br
-.B qi
-[
-.I textfile
-]
-.br
-.B qi
-.I pid
 .SH DESCRIPTION
 .I Vi
 simulates the execution of a MIPS binary in
@@ -55,12 +47,11 @@ single stepping under
 .IR db .
 .IR 0i ,
 .IR 5i ,
-.IR ki ,
 and
-.IR qi
+.IR ki
 are similar to
 .I vi
-but interpret little-endian MIPS, ARM, SPARC, and PowerPC binaries.
+but interpret little-endian MIPS, ARM 7500, and SPARC binaries.
 The following discussion refers to
 .I vi
 but applies to the others
