@@ -284,7 +284,6 @@ if(cli->chatty) print("resend %lux %lud %lud\n", o->xid, t, o->t);
 			}
 			out[i] = out[--nout];
 			free(o->p);
-			o->p = nil;
 			if(rpc.status == SunSuccess){
 				o->p = buf;
 				o->rpc = rpc;
