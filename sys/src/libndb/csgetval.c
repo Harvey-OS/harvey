@@ -67,6 +67,5 @@ csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 	}
 	close(fd);
 
-	setmalloctag(first, getcallerpc(&netroot));
 	return first;
 }

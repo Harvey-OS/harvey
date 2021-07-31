@@ -155,7 +155,6 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 	}
 	t = ndbsnext(s, attr, val);
 	_ndbcacheadd(db, s, attr, val, (t != nil && s->db == db)?t:nil);
-	setmalloctag(t, getcallerpc(&db));
 	return t;
 }
 
@@ -223,10 +222,8 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 				t = ndbparse(db);
 				if(t == 0)
 					break;
-				if(s->t = match(t, attr, val)){
-					setmalloctag(t, getcallerpc(&s));
+				if(s->t = match(t, attr, val))
 					return t;
-				}
 				ndbfree(t);
 				break;
 			}
@@ -241,7 +238,5 @@ nextfile:
 		return 0;
 
 	/* advance search to next db file */
-	t = ndbsearch(db->next, s, attr, val);
-	setmalloctag(t, getcallerpc(&s));
-	return t;
+	return ndbsearch(db->next, s, attr, val);
 }

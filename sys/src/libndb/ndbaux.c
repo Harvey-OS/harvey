@@ -24,7 +24,6 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 	t = mallocz(sizeof(Ndbtuple), 1);
 	if(t == nil)
 		return nil;
-	setmalloctag(t, getcallerpc(&cp));
 	*tp = t;
 
 	/* parse attribute */
@@ -94,6 +93,5 @@ _ndbparseline(char *cp)
 	}
 	if(first)
 		last->line = first;
-	setmalloctag(first, getcallerpc(&cp));
 	return first;
 }
