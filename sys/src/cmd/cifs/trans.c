@@ -160,7 +160,8 @@ RAPshareenum(Session *s, Share *sp, Share **ent)
 	}
 
 	if(ngot < navail)
-		fprint(2, "%s: %d/%d - share list incomplete\n", argv0, ngot, navail);
+		fprint(2, "%s: %d share names too long for RAP (>13 chars)\n",
+			argv0, navail - ngot);
 
 	free(p);
 	return ngot;
@@ -285,11 +286,12 @@ RAPsessionenum(Session *s, Share *sp, Sessinfo **sip)
 		q->user = estrdup9p(tmp);
 		q->sesstime = gl32(p);
 		q->idletime = gl32(p);
-		ngot++;
 		q++;
+		ngot++;
 	}
 	if(ngot < navail)
-		fprint(2, "warning: %d/%d - session list incomplete\n", ngot, navail);
+		fprint(2, "warning: %d/%d - incomplete session list sent\n",
+			ngot, navail);
 	free(p);
 	return ngot;
 }
@@ -340,9 +342,9 @@ RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
  		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
-		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		ngot++;
+		if(p->pos >= p->eop)	/* Windows seems to lie sometimes */
 			break;
 	}
 	free(p);
@@ -396,9 +398,9 @@ RAPgroupusers(Session *s, Share *sp, char *group, Namelist **nlp)
  		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
-		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		ngot++;
+		if(p->pos >= p->eop)	/* Windows seems to lie sometimes */
 			break;
 	}
 	free(p);
@@ -450,9 +452,9 @@ RAPuserenum(Session *s, Share *sp, Namelist **nlp)
  		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
-		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		ngot++;
+		if(p->pos >= p->eop)	/* Windows seems to lie sometimes */
 			break;
 	}
 	free(p);
@@ -509,9 +511,9 @@ more:
  		gmem(p, tmp, 21);
 		tmp[21] = 0;
 		q->name = estrdup9p(tmp);
-		ngot++;
 		q++;
-		if(p->pos >= p->eop)		/* Windows seems to lie somtimes */
+		ngot++;
+		if(p->pos >= p->eop)	/* Windows seems to lie sometimes */
 			break;
 	}
 	free(p);
@@ -700,8 +702,8 @@ more:
 			free(q->comment);
 			continue;
 		}
-		ngot++;
 		q++;
+		ngot++;
 	}
 	free(p);
 	if(ngot < navail)
@@ -727,10 +729,10 @@ more:
 	ptparam(p);
 	pl16(p, API_WFileEnum2);
 	pascii(p, REMSmb_NetFileEnum2_P);	/* request descriptor */
-	pascii(p, REMSmb_file_info_1);		/* reply descriptor */
+	pascii(p, REMSmb_file_info_3);		/* reply descriptor */
 	pascii(p, path);
 	pascii(p, user);
-	pl16(p, 1);				/* detail level */
+	pl16(p, 3);				/* detail level */
 	pl16(p, MTU - 200);			/* receive buffer length */
 	pl32(p, resume);			/* resume key */
 /* FIXME: maybe the padding and resume key are the wrong way around? */

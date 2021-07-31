@@ -53,12 +53,6 @@
 #include <9p.h>
 #include "cifs.h"
 
-enum {
-	Nomatch,	/* not found in cache */
-	Exactmatch,	/* perfect match found */
-	Badmatch	/* matched but wrong case */
-};
-
 #define SINT_MAX	0x7fffffff
 
 typedef struct Dfscache Dfscache;
@@ -106,30 +100,27 @@ trimshare(char *s)
 }
 
 static Dfscache *
-lookup(char *path, int *match)
+lookup(char *opath, int *exact)
 {
+	char *path;
 	int len, n, m;
 	Dfscache *cp, *best;
 
-	if(match)
-		*match = Nomatch;
+	*exact = 0;
 
 	len = 0;
 	best = nil;
-	m = strlen(path);
+	path = opath;
+	m = strlen(opath);
 	for(cp = Cache; cp; cp = cp->next){
 		n = strlen(cp->src);
-		if(n < len)
-			continue;
-		if(strncmp(path, cp->src, n) != 0)
-			continue;
-		if(path[n] != 0 && path[n] != '/')
+		if(n < len || cistrncmp(path, cp->src, n) != 0 ||
+		    path[n] != 0 && path[n] != '/')
 			continue;
 		best = cp;
 		len = n;
 		if(n == m){
-			if(match)
-				*match = Exactmatch;
+			*exact = 1;
 			break;
 		}
 	}
@@ -140,8 +131,8 @@ char *
 mapfile(char *opath)
 {
 	int exact;
-	Dfscache *cp;
 	char *p, *path;
+	Dfscache *cp;
 	static char npath[MAX_DFS_PATH];
 
 	path = opath;
@@ -161,26 +152,22 @@ mapfile(char *opath)
 int
 mapshare(char *path, Share **osp)
 {
-	int i;
-	Share *sp;
+	int i, exact;
+	char *try, *tail[] = { "", "$" };
 	Dfscache *cp;
-	char *s, *try;
-	char *tail[] = { "", "$" };
+	Share *sp;
 
-	if((cp = lookup(path, nil)) == nil)
+	if((cp = lookup(path, &exact)) == nil)
 		return 0;
 
-	for(sp = Shares; sp < Shares+Nshares; sp++){
-		s = trimshare(sp->name);
-		if(cistrcmp(cp->share, s) != 0)
-			continue;
-		if(Checkcase && strcmp(cp->share, s) != 0)
-			continue;
-		if(Debug && strstr(Debug, "dfs") != nil)
-			print("mapshare, already connected, src=%q => dst=%q\n", path, sp->name);
-		*osp = sp;
-		return 0;
-	}
+	for(sp = Shares; sp < Shares+Nshares; sp++)
+		if(cistrcmp(cp->share, trimshare(sp->name)) == 0){
+			if(Debug && strstr(Debug, "dfs") != nil)
+				print("mapshare, already connected, src=%q => dst=%q\n",
+					path, sp->name);
+			*osp = sp;
+			return 0;
+		}
 	/*
 	 * Try to autoconnect to share if it is not known.  Note even if you
 	 * didn't specify any shares and let the system autoconnect you may
@@ -206,7 +193,6 @@ mapshare(char *path, Share **osp)
 
 	if(Debug && strstr(Debug, "dfs") != nil)
 		print("mapshare failed src=%s\n", path);
-	werrstr("not found");
 	return -1;
 }
 
@@ -226,10 +212,9 @@ remap(Dfscache *cp, Refer *re)
 	char *p, *a[4];
 	enum {
 		Hostname = 1,
-		Sharename = 2,
-		Pathname = 3,
-
-		Rtt_tol = 10
+		Shre = 2,
+		Path = 3,
+		Rtt_tol = 10,
 	};
 
 	if(Debug && strstr(Debug, "dfs") != nil)
@@ -262,7 +247,7 @@ remap(Dfscache *cp, Refer *re)
 	}
 
 	if(n < 4)
-		a[Pathname] = "";
+		a[Path] = "";
 	if(re->ttl == 0)
 		re->ttl = 60*5;
 
@@ -273,8 +258,8 @@ remap(Dfscache *cp, Refer *re)
 	cp->prox = re->prox;
 	cp->expiry = time(nil)+re->ttl;
 	cp->host = estrdup9p(a[Hostname]);
-	cp->share = estrdup9p(trimshare(a[Sharename]));
-	cp->path = estrdup9p(a[Pathname]);
+	cp->share = estrdup9p(trimshare(a[Shre]));
+	cp->path = estrdup9p(a[Path]);
 	if(Debug && strstr(Debug, "dfs") != nil)
 		print("	remap ping OK prox=%d host=%s share=%s path=%s\n",
 			cp->prox, cp->host, cp->share, cp->path);
@@ -330,19 +315,16 @@ redir1(Session *s, char *path, Dfscache *cp, int level)
 int
 redirect(Session *s, Share *sp, char *path)
 {
-	int match;
+	int exact;
 	char *unc;
 	Dfscache *cp;
 
 	if(Debug && strstr(Debug, "dfs") != nil)
 		print("redirect name=%q path=%q\n", sp->name, path);
 
-	cp = lookup(path, &match);
-	if(match == Badmatch)
-		return -1;
-
-	if(cp && match == Exactmatch){
-		if(cp->expiry >= time(nil)){		/* cache hit */
+	cp = lookup(path, &exact);
+	if(cp && exact){
+		if(cp->expiry >= time(nil)){	/* cache hit */
 			if(Debug && strstr(Debug, "dfs") != nil)
 				print("redirect cache=hit src=%q => share=%q path=%q\n",
 					cp->src, cp->share, cp->path);
@@ -371,7 +353,6 @@ redirect(Session *s, Share *sp, char *path)
 			return 0;
 		}
 	}
-
 
 	/* in-exact match or complete miss */
 	if(cp)
@@ -404,4 +385,3 @@ redirect(Session *s, Share *sp, char *path)
 			cp->src, cp->share, cp->path);
 	return 0;
 }
-

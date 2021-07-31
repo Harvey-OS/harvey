@@ -30,8 +30,7 @@ shareinfo(Fmt *f)
 				sp = &Shares[j];
 				break;
 			}
-		if(j >= Nshares)
-			sp->tid = Ipc.tid;
+		sp->tid = Ipc.tid;
 
 		if(RAPshareinfo(Sess, sp, sp->name, &si2) != -1){
 			switch(si2.type){
@@ -44,8 +43,7 @@ shareinfo(Fmt *f)
 			default:		type = "unknown"; break;
 			}
 
-			fmtprint(f, "%-8s %5d/%-5d %s", type,
-				si2.activeusrs, si2.maxusrs, si2.comment);
+			fmtprint(f, "%-8s %s", type, si2.comment);
 			free(si2.name);
 			free(si2.comment);
 			free(si2.path);
@@ -66,15 +64,12 @@ openfileinfo(Fmt *f)
 
 	fi = nil;
 	if((got = RAPFileenum2(Sess, &Ipc, "", "", &fi)) == -1){
-		fmtprint(f, "RAPfileenum: %r\n");
+		fmtprint(f, "RAPfileenum: %r (Only Administrator has permission)\n");
 		return 0;
 	}
 
 	for(i = 0; i < got; i++){
-		fmtprint(f, "%c%c%c %-4d %-24q %q ",
-			(fi[i].perms & 1)? 'r': '-',
-			(fi[i].perms & 2)? 'w': '-',
-			(fi[i].perms & 4)? 'c': '-',
+		fmtprint(f, "0x%02x %-4d %-24q %q ", fi[i].perms,
 			fi[i].locks, fi[i].user, fi[i].path);
 		free(fi[i].path);
 		free(fi[i].user);
@@ -178,7 +173,6 @@ sessioninfo(Fmt *f)
  * containing a dot ('.') must be a DNS name, as the NetBios
  * name munging cannot encode one.  Thus names which contain no
  * dots must be netbios names.
- *
  */
 static void
 dfsredir(Fmt *f, char *path, int depth)
@@ -194,7 +188,6 @@ dfsredir(Fmt *f, char *path, int depth)
 			dfsredir(f, re->path, depth+1);
 		else
 			fmtprint(f, "%-32q %q\n", re->path, re->addr);
-
 		free(re->addr);
 		free(re->path);
 	}
