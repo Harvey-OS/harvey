@@ -241,7 +241,6 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 		break;
 	case 'a':
 	case 'A':
-	case 'W':
 		r->type = TINT;
 		ret = geta(m, addr, &uvval);
 		if (ret < 0)
@@ -261,6 +260,7 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 		r->ival = lval;
 		break;
 	case 'V':
+	case 'W':
 	case 'Y':
 	case 'Z':
 		r->type = TINT;
@@ -400,7 +400,6 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 		break;
 	case 'a':
 	case 'A':
-	case 'W':
 		ret = puta(m, aes.ival, res.ival);
 		break;
 	case 'B':
@@ -412,6 +411,7 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 		ret = put4(m, aes.ival, lval);
 		break;
 	case 'V':
+	case 'W':
 	case 'Y':
 	case 'Z':
 		ret = put8(m, aes.ival, res.ival);
