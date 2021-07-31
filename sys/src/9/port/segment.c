@@ -76,8 +76,8 @@ newseg(int type, ulong base, ulong size)
 	mapsize = ROUND(size, PTEPERTAB)/PTEPERTAB;
 	if(mapsize > nelem(s->ssegmap)){
 		mapsize *= 2;
-		if(mapsize > SEGMAPSIZE)
-			mapsize = SEGMAPSIZE;
+		if(mapsize > (SEGMAPSIZE*PTEPERTAB))
+			mapsize = (SEGMAPSIZE*PTEPERTAB);
 		s->map = smalloc(mapsize*sizeof(Pte*));
 		s->mapsize = mapsize;
 	}
