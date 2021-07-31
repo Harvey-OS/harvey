@@ -133,8 +133,6 @@ typedef struct CipherState CipherState;
 typedef struct Conn Conn;
 typedef struct Msg Msg;
 
-#pragma incomplete CipherState
-
 struct Auth
 {
 	int id;

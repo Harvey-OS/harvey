@@ -6,8 +6,6 @@ typedef struct Xfile	Xfile;
 typedef struct Xfs	Xfs;
 typedef struct Xfsub	Xfsub;
 
-#pragma incomplete Isofile
-
 enum
 {
 	Sectorsize = 2048,

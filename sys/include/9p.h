@@ -6,8 +6,6 @@
  */
 typedef struct Intmap	Intmap;
 
-#pragma incomplete Intmap
-
 Intmap*	allocmap(void (*inc)(void*));
 void		freemap(Intmap*, void (*destroy)(void*));
 void*	lookupkey(Intmap*, ulong);
@@ -27,9 +25,6 @@ typedef struct Filelist	Filelist;
 typedef struct Tree		Tree;
 typedef struct Readdir	Readdir;
 typedef struct Srv Srv;
-
-#pragma incomplete Filelist
-#pragma incomplete Readdir
 
 struct Fid
 {

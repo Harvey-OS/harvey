@@ -108,9 +108,6 @@ extern	int		mainstacksize;
 /* slave I/O processes */
 typedef struct Ioproc Ioproc;
 
-#pragma incomplete Ioproc
-
-
 Ioproc*	ioproc(void);
 void		closeioproc(Ioproc*);
 void		iointerrupt(Ioproc*);

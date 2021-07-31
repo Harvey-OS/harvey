@@ -8,9 +8,6 @@ typedef struct Avl Avl;
 typedef struct Avltree Avltree;
 typedef struct Avlwalk Avlwalk;
 
-#pragma incomplete Avltree
-#pragma incomplete Avlwalk
-
 struct Avl
 {
 	Avl *p;	/* parent */

@@ -94,6 +94,7 @@ extern	int	login(char*, char*, char*);
 extern	int	httpauth(char*, char*);
 
 typedef struct Attr Attr;
+typedef struct String String;
 enum {
 	AttrNameval,		/* name=val -- when matching, must have name=val */
 	AttrQuery,		/* name? -- when matching, must be present */

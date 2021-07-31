@@ -1,6 +1,7 @@
 typedef struct	Conv	Conv;
 typedef struct	Fs	Fs;
 typedef union	Hwaddr	Hwaddr;
+typedef struct	Ifcconv	Ifcconv;
 typedef struct	IP	IP;
 typedef struct	IPaux	IPaux;
 typedef struct	Ipself	Ipself;
@@ -8,12 +9,17 @@ typedef struct	Ipselftab	Ipselftab;
 typedef struct	Iplink	Iplink;
 typedef struct	Iplifc	Iplifc;
 typedef struct	Ipmulti	Ipmulti;
+typedef struct	Ipmux	Ipmux;
+typedef struct	IProuter IProuter;
 typedef struct	Ipifc	Ipifc;
 typedef struct	Iphash	Iphash;
 typedef struct	Ipht	Ipht;
 typedef struct	Netlog	Netlog;
+typedef struct	Ifclog	Ifclog;
 typedef struct	Medium	Medium;
 typedef struct	Proto	Proto;
+typedef struct	Pstate	Pstate;
+typedef struct	Tcpc	Tcpc;
 typedef struct	Arpent	Arpent;
 typedef struct	Arp Arp;
 typedef struct	Route	Route;
@@ -22,12 +28,6 @@ typedef struct	Routerparams	Routerparams;
 typedef struct 	Hostparams	Hostparams;
 typedef struct 	v6router	v6router;
 typedef struct	v6params	v6params;
-
-#pragma incomplete Arp
-#pragma incomplete Ipself
-#pragma incomplete Ipselftab
-#pragma incomplete IP
-#pragma incomplete Netlog
 
 enum
 {
@@ -340,6 +340,7 @@ struct Fs
 	Route	*queue;			/* used as temp when reinjecting routes */
 
 	Netlog	*alog;
+	Ifclog	*ilog;
 
 	char	ndb[1024];		/* an ndb entry for this interface */
 	int	ndbvers;
@@ -612,6 +613,7 @@ extern void	ipsendra6(Fs *f, int on);
  *  ip.c
  */
 extern void	iprouting(Fs*, int);
+extern void	closeifcconv(Ifcconv*);
 extern void	icmpnoconv(Fs*, Block*);
 extern void	icmpcantfrag(Fs*, Block*, int);
 extern void	icmpttlexceeded(Fs*, uchar*, Block*);

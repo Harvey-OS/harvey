@@ -19,8 +19,7 @@ typedef struct Proc		Proc;
 typedef struct Uart		Uart;
 typedef struct Ureg		Ureg;
 typedef struct Vctl		Vctl;
-
-#pragma incomplete Ureg
+typedef struct Uart		Uart;
 
 typedef void IntrHandler(Ureg*, void*);
 

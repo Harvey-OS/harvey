@@ -1,3 +1,7 @@
+#include	<auth.h>
+#include	<authsrv.h>
+
+
 #define	DIRREC		116		/* size of a directory ascii record */
 #define	ERRREC		64		/* size of a error record */
 #define	MAXMSG		160	/* max header sans data */

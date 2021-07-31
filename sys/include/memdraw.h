@@ -8,8 +8,6 @@ typedef struct	Memlayer Memlayer;
 typedef struct	Memcmap Memcmap;
 typedef struct	Memdrawparam	Memdrawparam;
 
-#pragma incomplete Memlayer
-
 /*
  * Memdata is allocated from main pool, but .data from the image pool.
  * Memdata is allocated separately to permit patching its pointer after
