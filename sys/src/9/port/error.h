@@ -50,4 +50,3 @@ extern char Ebadstat[];		/* malformed stat buffer */
 extern char Enegoff[];		/* negative i/o offset */
 extern char Ecmdargs[];		/* wrong #args in control message */
 extern char Ebadip[];		/* bad ip address syntax */
-extern char Edirseek[];		/* seek in directory */
