@@ -822,7 +822,7 @@ fatal(char *s, ...)
 
 	DEBUG(DFD, "%s\n", buf);
 	if (s) 
-		sysfatal("%s", buf);	/* caution: buf could contain '%' */
+		sysfatal(buf);
 	else
 		exits(nil);
 }
