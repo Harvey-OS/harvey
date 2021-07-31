@@ -67,6 +67,8 @@ peep(void)
 	pc = 0;	/* speculating it won't kill */
 
 loop1:
+	if(debug['b'])
+		comtarg();
 
 	t = 0;
 	for(r=firstr; r!=R; r=r->link) {
