@@ -1,0 +1,8 @@
+How to build rc on unix:
+
+ramfs
+dircp .. /tmp
+cd /tmp/unix
+dircp . ..
+cd ..
+run
