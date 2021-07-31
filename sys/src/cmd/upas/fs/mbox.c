@@ -1042,7 +1042,7 @@ decode(Message *m)
 	case Equoted:
 		len = m->bend - m->body;
 		x = emalloc(len+2);	// room for null and possible extra nl
-		len = decquoted(x, m->body, m->bend, 0);
+		len = decquoted(x, m->body, m->bend);
 		if(m->ballocd)
 			free(m->body);
 		m->body = x;
@@ -1189,7 +1189,7 @@ hex2int(int x)
 }
 
 static char*
-decquotedline(char *out, char *in, char *e, int uscores)
+decquotedline(char *out, char *in, char *e)
 {
 	int c, soft;
 
@@ -1208,8 +1208,6 @@ decquotedline(char *out, char *in, char *e, int uscores)
 		c = (*in++) & 0xff;
 		switch(tableqp[c]){
 		case Self:
-			if(uscores && c == '_')
-				c = ' ';
 			*out++ = c;
 			break;
 		case Hex:
@@ -1227,7 +1225,7 @@ decquotedline(char *out, char *in, char *e, int uscores)
 }
 
 int
-decquoted(char *out, char *in, char *e, int uscores)
+decquoted(char *out, char *in, char *e)
 {
 	char *p, *nl;
 
@@ -1236,11 +1234,11 @@ decquoted(char *out, char *in, char *e, int uscores)
 
 	p = out;
 	while((nl = strchr(in, '\n')) != nil && nl < e){
-		p = decquotedline(p, in, nl, uscores);
+		p = decquotedline(p, in, nl);
 		in = nl + 1;
 	}
 	if(in < e)
-		p = decquotedline(p, in, e-1, uscores);
+		p = decquotedline(p, in, e-1);
 
 	// make sure we end with a new line
 	if(*(p-1) != '\n'){

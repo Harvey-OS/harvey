@@ -92,7 +92,6 @@ enum
 	ObjAlpha,		/* .7 */
 	ObjSparc64,		/* .u */
 	ObjAmd64,		/* .6 */
-	ObjSpim,		/* .0 */
 	Maxobjtype,
 
 	CNONE  = 0,		/* symbol table classes */
