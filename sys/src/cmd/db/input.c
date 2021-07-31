@@ -46,13 +46,12 @@ clrinp(void)
 int
 readrune(int fd, Rune *r)
 {
-	char buf[UTFmax+1];
+	char buf[UTFmax];
 	int i;
 
 	for(i=0; i<UTFmax && !fullrune(buf, i); i++)
 		if(read(fd, buf+i, 1) <= 0)
 			return -1;
-	buf[i] = 0;
 	chartorune(r, buf);
 	return 1;
 }
