@@ -380,7 +380,7 @@ cmdmodeselect6(ScsiReq *rp, int argc, char *argv[])
 	long nbytes, ul;
 	char *p;
 
-	memset(list, 0, sizeof list);
+	memset(list, 0, sizeof(list));
 	for(nbytes = 0; argc; argc--, argv++, nbytes++){
 		if((ul = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
 			rp->status = Status_BADARG;
@@ -401,7 +401,7 @@ cmdmodeselect10(ScsiReq *rp, int argc, char *argv[])
 	long nbytes, ul;
 	char *p;
 
-	memset(list, 0, sizeof list);
+	memset(list, 0, sizeof(list));
 	for(nbytes = 0; argc; argc--, argv++, nbytes++){
 		if((ul = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
 			rp->status = Status_BADARG;
@@ -422,7 +422,7 @@ cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 	long i, n, nbytes, status;
 	char *p;
 
-	nbytes = sizeof list;
+	nbytes = sizeof(list);
 	switch(argc){
 
 	default:
@@ -444,7 +444,7 @@ cmdmodesense6(ScsiReq *rp, int argc, char *argv[])
 		break;
 
 	case 0:
-		page = Allmodepages;
+		page = 0x3F;
 		break;
 	}
 	if((status = SRmodesense6(rp, page, list, nbytes)) == -1)
@@ -498,6 +498,7 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 
 	nbytes = MaxDirData;
 	switch(argc){
+
 	default:
 		rp->status = Status_BADARG;
 		return -1;
@@ -508,6 +509,7 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 			return -1;
 		}
 		/*FALLTHROUGH*/
+
 	case 1:
 		if((page = strtoul(argv[0], &p, 0)) == 0 && p == argv[0]){
 			rp->status = Status_BADARG;
@@ -516,7 +518,7 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 		break;
 
 	case 0:
-		page = Allmodepages;
+		page = 0x3F;
 		break;
 	}
 	list = malloc(nbytes);
@@ -563,21 +565,20 @@ cmdmodesense10(ScsiReq *rp, int argc, char *argv[])
 		}
 		Bputc(&bout, '\n');
 	}
-	else
-		while(nbytes > 0){				/* pages */
-			i = *(lp+1);
-			nbytes -= i+2;
-			Bprint(&bout, " Page %2.2uX %d\n   ", *lp & 0x3F, lp[1]);
-			lp += 2;
-			for(n = 0; n < i; n++){
-				if(n && ((n & 0x0F) == 0))
-					Bprint(&bout, "\n   ");
-				Bprint(&bout, " %2.2uX", *lp);
-				lp++;
-			}
-			if(n && (n & 0x0F))
-				Bputc(&bout, '\n');
+	else while(nbytes > 0){				/* pages */
+		i = *(lp+1);
+		nbytes -= i+2;
+		Bprint(&bout, " Page %2.2uX %d\n   ", *lp & 0x3F, *(lp+1));
+		lp += 2;
+		for(n = 0; n < i; n++){
+			if(n && ((n & 0x0F) == 0))
+				Bprint(&bout, "\n   ");
+			Bprint(&bout, " %2.2uX", *lp);
+			lp++;
 		}
+		if(n && (n & 0x0F))
+			Bputc(&bout, '\n');
+	}
 	free(list);
 	return status;
 }
@@ -713,7 +714,7 @@ cmdrtoc(ScsiReq *rp, int argc, char *argv[])
 	case 0:
 		break;
 	}
-	if((nbytes = SRTOC(rp, d, sizeof d, format, track)) == -1){
+	if((nbytes = SRTOC(rp, d, sizeof(d), format, track)) == -1){
 		if(rp->status == STok)
 			Bprint(&bout, "\t(probably empty)\n");
 		return -1;
@@ -813,7 +814,7 @@ cmdrdiscinfo(ScsiReq *rp, int argc, char*[])
 	case 0:
 		break;
 	}
-	if((nbytes = SRrdiscinfo(rp, d, sizeof d)) == -1)
+	if((nbytes = SRrdiscinfo(rp, d, sizeof(d))) == -1)
 		return -1;
 
 	dl = (d[0]<<8)|d[1];
@@ -932,7 +933,7 @@ cmdrtrackinfo(ScsiReq *rp, int argc, char *argv[])
 	case 0:
 		break;
 	}
-	if((nbytes = SRrtrackinfo(rp, d, sizeof d, track)) == -1)
+	if((nbytes = SRrtrackinfo(rp, d, sizeof(d), track)) == -1)
 		return -1;
 
 	dl = (d[0]<<8)|d[1];
@@ -1901,7 +1902,7 @@ main(int argc, char *argv[])
 		exits("Binit");
 	}
 
-	memset(&target, 0, sizeof target);
+	memset(&target, 0, sizeof(target));
 	if (raw) {			/* hack for -r */
 		++argc;
 		--argv;
