@@ -21,7 +21,7 @@ authrsafn(Conn *c)
 		close(afd);
 		return -1;
 	}
-	s = "proto=rsa role=client";
+	s = "proto=sshrsa role=client";
 	if(auth_rpc(rpc, "start", s, strlen(s)) != ARok){
 		debug(DBG_AUTH, "auth_rpc start %s failed: %r\n", s);
 		auth_freerpc(rpc);

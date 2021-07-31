@@ -155,7 +155,6 @@ int	islimbo(void);
 int	ismung(void);
 int	isp9bit(void);
 int	isp9font(void);
-int	isrtf(void);
 int	istring(void);
 int	long0(void);
 int	p9bitnum(uchar*);
@@ -180,7 +179,7 @@ int	(*call[])(void) =
 	isp9font,	/* plan 9 font */
 	isp9bit,	/* plan 9 image (as from /dev/window) */
 	isenglish,	/* char frequency English */
-	isrtf,		/* rich text format */
+	ishp,		/* HP Job Control Language - Postscript */
 	0
 };
 
@@ -512,9 +511,9 @@ Filemagic long0tab[] = {
 	0x32636170,	0xFFFF00FF,	"pac4 audio file\n",	OCTET,
 	0xBA010000,	0xFFFFFFFF,	"mpeg system stream\n",	OCTET,
 	0x30800CC0,	0xFFFFFFFF,	"inferno .dis executable\n", OCTET,
-	0x04034B50,	0xFFFFFFFF,	"zip archive\n", "application/zip",
+	0x04034B50,	0xFFFFFFFF,	"zip archive\n", OCTET,
 	070707,		0xFFFF,		"cpio archive\n", OCTET,
-	0x2F7,		0xFFFF,		"tex dvi\n", "application/dvi",
+	0x2F7,		0xFFFF,		"tex dvi\n", OCTET,
 };
 
 int
@@ -582,8 +581,6 @@ struct	FILE_STRING
 	"\377\330\377\341",	"jpeg",				4,	"image/jpeg",
 	"\377\330\377\333",	"jpeg",				4,	"image/jpeg",
 	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	"application/octet-stream",
-	"<MakerFile ",		"FrameMaker file",		11,	"application/framemaker",
-	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",
 	0,0,0,0
 };
 
@@ -1112,10 +1109,10 @@ getfontnum(uchar *cp, uchar **rp)
 }
 
 int
-isrtf(void)
+ishp(void)
 {
-	if(strstr((char *)buf, "\\rtf1")){
-		print(mime ? "application/rtf" : "rich text format");
+	if (strncmp("\033%-12345X", (char *)buf, 9)==0) {
+		print("HPJCL file\n");
 		return 1;
 	}
 	return 0;

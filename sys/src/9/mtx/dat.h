@@ -183,7 +183,7 @@ struct
 struct ISAConf {
 	char		*type;
 	ulong	port;
-	int	irq;
+	ulong	irq;
 	ulong	dma;
 	ulong	mem;
 	ulong	size;

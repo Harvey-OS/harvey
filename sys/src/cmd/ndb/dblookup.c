@@ -136,11 +136,8 @@ out:
 	if(rp){
 		for(tp = rp; tp; tp = tp->next)
 			tp->owner = dp;
-	} else {
-		if(inmyarea(name) == nil)
-			err = 0;
+	} else
 		dp->nonexistent = err;
-	}
 
 	unlock(&dblock);
 	return rp;

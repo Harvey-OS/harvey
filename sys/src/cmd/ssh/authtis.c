@@ -39,9 +39,6 @@ authtisfn(Conn *c)
 	else
 		resp[n] = '\0';
 
-	if(resp[0] == 0 || resp[0] == '\n')
-		return -1;
-
 	m = allocmsg(c, SSH_CMSG_AUTH_TIS_RESPONSE, 4+strlen(resp));
 	putstring(m, resp);
 	sendmsg(m);

@@ -241,25 +241,17 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 {
 	Ether *ether;
 	Block *bp;
-	int nn, onoff;
-	Cmdbuf *cb;
+	int nn;
 
 	ether = etherxx[chan->dev];
 	if(NETTYPE(chan->qid.path) != Ndataqid) {
 		nn = netifwrite(ether, chan, buf, n);
 		if(nn >= 0)
 			return nn;
-		cb = parsecmd(buf, n);
-		if(strcmp(cb->f[0], "nonblocking") == 0){
-			if(cb->nf <= 1)
-				onoff = 1;
-			else
-				onoff = atoi(cb->f[1]);
-			qnoblock(ether->oq, onoff);
-			free(cb);
+		if(n == sizeof("nonblocking")-1 && strncmp((char*)buf, "nonblocking", n) == 0){
+			qnoblock(ether->oq, 1);
 			return n;
 		}
-		free(cb);
 		if(ether->ctl!=nil)
 			return ether->ctl(ether,buf,n);
 			
@@ -407,13 +399,13 @@ etherprobe(int cardno, int ctlrno)
 	snprint(name, sizeof(name), "ether%d", ctlrno);
 
 	/*
-	 * If ether->irq is <0, it is a hack to indicate no interrupt
+	 * If ether->irq is 0, it is a hack to indicate no interrupt
 	 * used by ethersink.
 	 */
-	if(ether->irq >= 0)
+	if(ether->irq > 0)
 		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 
-	i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %d",
+	i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %lud",
 		ctlrno, cards[cardno].type, ether->mbps, ether->port, ether->irq);
 	if(ether->mem)
 		i += sprint(buf+i, " addr 0x%luX", PADDR(ether->mem));

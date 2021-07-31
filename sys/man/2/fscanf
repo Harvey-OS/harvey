@@ -2,8 +2,6 @@
 .SH NAME
 fscanf, scanf, sscanf, vfscanf \- scan formatted input
 .SH SYNOPSIS
-.B "#include <u.h>
-.br
 .B "#include <stdio.h>"
 .PP
 .B

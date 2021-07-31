@@ -506,8 +506,7 @@ receive(char *dest)
 					nd.atime = atime;
 					nd.mtime = mtime;
 				}
-				if(exists && (d->mode&0777) != (mode&0777))
-					nd.mode = (d->mode & ~0777) | (mode&0777);
+				nd.mode = (d->mode & ~0777) | (mode&0777);
 				if(dirwstat(name, &nd) < 0)
 					scperror(0, "can't wstat %s: %r", name);
 			}

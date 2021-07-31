@@ -89,7 +89,12 @@ main(int argc, char **argv)
 	c.serverpriv = rsagen(768, 6, 0);
 	if(c.serverpriv == nil)
 		sysfatal("rsagen failed: %r");
+	c.hostpriv = readsecretkey("/sys/lib/ssh/hostkey.secret");
+	if(c.hostpriv == nil)
+		sysfatal("cannot read secret key: %r");
+
 	c.serverkey = &c.serverpriv->pub;
+	c.hostkey = &c.hostpriv->pub;
 
 	c.nokcipher = getfields(cipherlist, f, nelem(f), 1, ", ");
 	c.okcipher = emalloc(sizeof(Cipher*)*c.nokcipher);
@@ -157,8 +162,8 @@ fromnet(Conn *c)
 	}
 
 InteractiveMode:
+	free(m);
 	for(;;){
-		free(m);
 		m = recvmsg(c, 0);
 		if(m == nil)
 			exits(nil);

@@ -39,12 +39,6 @@ usage(void)
 	exits("usage");
 }
 
-void
-regerror(char *s)
-{
-	fprint(2, "scanmail: %s\n", s);
-}
-
 void *
 Malloc(long n)
 {

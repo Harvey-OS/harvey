@@ -9,18 +9,6 @@
  * The sys*() routines needn't poperror() as they return directly to syscall().
  */
 
-static void
-unlockfgrp(Fgrp *f)
-{
-	int ex;
-
-	ex = f->exceed;
-	f->exceed = 0;
-	unlock(f);
-	if(ex)
-		pprint("warning: process exceeds %d file descriptors\n", ex);
-}
-
 int
 growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
 {
@@ -30,6 +18,8 @@ growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
 		return 0;
 	if(fd >= f->nfd+DELTAFD)
 		return -1;	/* out of range */
+	if(fd % 100 == 0)
+		pprint("warning: process exceeds %d file descriptors\n", fd);
 	/*
 	 * Unbounded allocation is unwise; besides, there are only 16 bits
 	 * of fid in 9P
@@ -47,11 +37,8 @@ growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
 	f->fd = newfd;
 	free(oldfd);
 	f->nfd += DELTAFD;
-	if(fd > f->maxfd){
-		if(fd/100 > f->maxfd/100)
-			f->exceed = (fd/100)*100;
+	if(fd > f->maxfd)
 		f->maxfd = fd;
-	}
 	return 1;
 }
 
@@ -81,13 +68,13 @@ newfd(Chan *c)
 	lock(f);
 	fd = findfreefd(f, 0);
 	if(fd < 0){
-		unlockfgrp(f);
+		unlock(f);
 		return -1;
 	}
 	if(fd > f->maxfd)
 		f->maxfd = fd;
 	f->fd[fd] = c;
-	unlockfgrp(f);
+	unlock(f);
 	return fd;
 }
 
@@ -100,19 +87,19 @@ newfd2(int fd[2], Chan *c[2])
 	lock(f);
 	fd[0] = findfreefd(f, 0);
 	if(fd[0] < 0){
-		unlockfgrp(f);
+		unlock(f);
 		return -1;
 	}
 	fd[1] = findfreefd(f, fd[0]+1);
 	if(fd[1] < 0){
-		unlockfgrp(f);
+		unlock(f);
 		return -1;
 	}
 	if(fd[1] > f->maxfd)
 		f->maxfd = fd[1];
 	f->fd[fd[0]] = c[0];
 	f->fd[fd[1]] = c[1];
-	unlockfgrp(f);
+	unlock(f);
 
 	return 0;
 }
@@ -240,7 +227,7 @@ sysdup(ulong *arg)
 	if(fd != -1){
 		lock(f);
 		if(fd<0 || growfd(f, fd)<0) {
-			unlockfgrp(f);
+			unlock(f);
 			cclose(c);
 			error(Ebadfd);
 		}
@@ -249,7 +236,7 @@ sysdup(ulong *arg)
 
 		oc = f->fd[fd];
 		f->fd[fd] = c;
-		unlockfgrp(f);
+		unlock(f);
 		if(oc)
 			cclose(oc);
 	}else{

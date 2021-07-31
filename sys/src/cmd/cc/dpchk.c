@@ -176,7 +176,6 @@ pragvararg(void)
 	int n, c;
 	char *t;
 	Rune r;
-	Type *ty;
 
 	if(!debug['F'])
 		goto out;
@@ -237,11 +236,12 @@ cktype:
 	s = getsym();
 	if(s == S)
 		goto bad;
-	ty = s->type;
-	while((c = getnsc()) == '*')
-		ty = typ(TIND, ty);
+	c = getnsc();
 	unget(c);
-	newprot(s, ty, t);
+	if(c == '*')
+		newprot(s, typ(TIND, s->type), t);
+	else
+		newprot(s, s->type, t);
 	goto out;
 
 bad:

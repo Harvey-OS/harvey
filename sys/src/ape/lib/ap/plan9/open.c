@@ -50,8 +50,10 @@ open(const char *path, int flags, ...)
 		fi = &_fdinfo[n];
 		fi->flags = FD_ISOPEN;
 		fi->oflags = flags&(O_ACCMODE|O_NONBLOCK|O_APPEND);
-		fi->uid = -2;
-		fi->gid = -2;
+		if(stat(path, &sbuf) >= 0) {
+			fi->uid = sbuf.st_uid;
+			fi->gid = sbuf.st_gid;
+		}
 		fi->name = malloc(strlen(path)+1);
 		if(fi->name)
 			strcpy(fi->name, path);

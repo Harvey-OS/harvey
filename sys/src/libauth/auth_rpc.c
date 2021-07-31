@@ -61,7 +61,6 @@ uint
 auth_rpc(AuthRpc *rpc, char *verb, void *a, int na)
 {
 	int l, n, type;
-	char *f[4];
 
 	l = strlen(verb);
 	if(na+l+1 > AuthRpcMax){
@@ -103,10 +102,7 @@ auth_rpc(AuthRpc *rpc, char *verb, void *a, int na)
 		werrstr("needkey %s", rpc->arg);
 		break;
 	case ARbadkey:
-		if(getfields(rpc->arg, f, nelem(f), 0, "\n") < 2)
-			werrstr("badkey %s", rpc->arg);
-		else
-			werrstr("badkey %s", f[1]);
+		werrstr("badkey %s", rpc->arg);
 		break;
 	case ARphase:
 		werrstr("phase error %s", rpc->arg);

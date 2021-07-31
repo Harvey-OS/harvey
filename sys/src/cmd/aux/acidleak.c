@@ -31,7 +31,6 @@ struct Block {
 	ulong w0;
 	ulong w1;
 	int mark;
-	int free;
 	Data *d;
 };
 
@@ -107,7 +106,7 @@ finddata(ulong addr)
 int nmark;
 
 int
-markblock(ulong from, ulong fromval, Block *b)
+markblock(Block *b, ulong from)
 {
 	Data *d;
 	ulong top;
@@ -115,10 +114,6 @@ markblock(ulong from, ulong fromval, Block *b)
 
 USED(from);
 //print("trace 0x%.8lux from 0x%.8lux (%d)\n", b->addr, from, b->mark);
-	if(b->free){
-	//	fprint(2, "possible dangling pointer *0x%.8lux = 0x%.8lux\n", from, fromval);
-		return 0;
-	}
 	if(b->mark)
 		return 0;
 	b->mark = 1;
@@ -132,7 +127,7 @@ USED(from);
 			assert(d->b == 0);
 			d->b = b;
 			if((nb = findblock(d->val-8)) || (nb = findblock(d->val-8-8)))
-				markblock(d->addr, d->val, nb);
+				markblock(nb, b->addr);
 		}
 		return 1;
 	}
@@ -194,7 +189,7 @@ main(int argc, char **argv)
 			data[ndata].b = 0;
 			ndata++;
 		}
-		if(nf >= 5 && (strcmp(f[0], "block") == 0 || strcmp(f[0], "free") == 0)) {
+		if(nf >= 5 && strcmp(f[0], "block") == 0) {
 			if(nblock%64 == 0)
 				block = erealloc(block, (nblock+64)*sizeof(Block));
 			block[nblock].addr = strtoul(f[1], nil, 0);
@@ -203,7 +198,6 @@ main(int argc, char **argv)
 			block[nblock].w1 = strtoul(f[4], nil, 0);
 			block[nblock].mark = 0;
 			block[nblock].d = 0;
-			block[nblock].free = strcmp(f[0], "free") == 0;
 			nblock++;
 		}
 		if(nf >= 4 && strcmp(f[0], "range") == 0 && strcmp(f[1], "alloc") == 0) {
@@ -220,9 +214,9 @@ main(int argc, char **argv)
 		if(d->type == 'a')
 			continue;
 		if(b = findblock(d->val-8))		// pool header 2 words
-			n8 += markblock(d->addr, d->val, b);
+			n8 += markblock(b, d->addr);
 		else if(b = findblock(d->val-8-8))	// sometimes malloc header 2 words
-			n16 += markblock(d->addr, d->val, b);
+			n16 += markblock(b, d->addr);
 		else
 			{}//print("noblock %.8lux\n", d->val);
 	}
@@ -294,7 +288,7 @@ main(int argc, char **argv)
 	}else{
 		eb = block+nblock;
 		for(b=block; b<eb; b++)
-			if(b->mark == 0 && !b->free)
+			if(b->mark == 0)
 				Bprint(&bio, "block 0x%.8lux 0x%.8lux 0x%.8lux 0x%.8lux\n", b->addr, b->size, b->w0, b->w1);
 	}
 	Bterm(&bio);

@@ -441,9 +441,7 @@ struct Egrp
 {
 	Ref;
 	RWlock;
-	Evalue	**ent;
-	int nent;
-	int ment;
+	Evalue	*entries;
 	ulong	path;	/* qid.path of next Evalue to be allocated */
 	ulong	vers;	/* of Egrp */
 };
@@ -463,7 +461,6 @@ struct Fgrp
 	Chan	**fd;
 	int	nfd;			/* number allocated */
 	int	maxfd;			/* highest fd in use */
-	int	exceed;			/* debugging */
 };
 
 enum

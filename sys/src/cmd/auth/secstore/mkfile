@@ -17,9 +17,10 @@ DEBUG = secacct secchk
 
 UPDATE=\
 	$HFILES\
-	dirls.c\
+	dirls.$O\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
+	${TARG:%=/386/bin/auth/%}\
 	${DEBUG:%=%.c}\
 	mkfile\
 	/sys/man/1/secstore\

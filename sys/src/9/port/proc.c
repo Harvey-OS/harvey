@@ -334,9 +334,6 @@ rebalance(void)
 			continue;
 		if(p->priority == p->basepri)
 			continue;
-
-		/* this comparison is too arbitrary - need a better one */
-		/* presotto */
 		if(m->ticks - p->readytime < quanta[p->priority]/4)
 			continue;
 		splhi();
@@ -365,8 +362,6 @@ runproc(void)
 	if ((p = edf->edfrunproc()) != nil)
 		return p;
 
-	/* 10 is completely arbitrary - it interacts with the comparison in rebalance */
-	/* presotto */
 	if(m->fairness++ == 10){
 		m->fairness = 0;
 		rebalance();

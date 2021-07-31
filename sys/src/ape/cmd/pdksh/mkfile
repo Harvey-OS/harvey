@@ -19,6 +19,7 @@ OFILES=\
 	mail.$O\
 	main.$O\
 	misc.$O\
+	missing.$O\
 	path.$O\
 	shf.$O\
 	syn.$O\

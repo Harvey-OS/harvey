@@ -5,7 +5,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: newns [-n namespace] [cmd [args...]]\n");
+	fprint(2, "usage: newns [-f file] command\n");
 	exits("usage");
 }
 
@@ -13,11 +13,10 @@ void
 main(int argc, char **argv)
 {
 	char *nsfile;
-	char *defargv[] = { "/bin/rc", "-i", nil };
 
 	nsfile = "/lib/namespace";
 	ARGBEGIN{
-	case 'n':
+	case 'f':
 		nsfile = ARGF();
 		break;
 	default:
@@ -25,7 +24,7 @@ main(int argc, char **argv)
 		break;
 	}ARGEND
 	if(argc == 0)
-		argv = defargv;
+		usage();
 	newns(getuser(), nsfile);
 	exec(argv[0], argv);
 	sysfatal("exec: %s: %r", argv[0]);

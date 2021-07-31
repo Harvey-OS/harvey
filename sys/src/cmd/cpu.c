@@ -165,7 +165,7 @@ main(int argc, char **argv)
 	 *  of /mnt/term
 	 */
 	if(readstr(data, buf, sizeof(buf)) < 0)
-		fatal(1, "waiting for FS: %r");
+		fatal(1, "waiting for FS");
 	if(strncmp("FS", buf, 2) != 0) {
 		print("remote cpu: %s", buf);
 		exits(buf);

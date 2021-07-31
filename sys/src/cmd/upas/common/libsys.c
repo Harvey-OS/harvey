@@ -555,6 +555,7 @@ sysrename(char *old, char *new)
 	Dir d;
 	char *obase;
 	char *nbase;
+	int rv;
 
 	obase = strrchr(old, '/');
 	nbase = strrchr(new, '/');

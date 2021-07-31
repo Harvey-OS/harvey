@@ -198,7 +198,6 @@ rTwstat(Msg* m)
 
 	op = 0;
 
-	oldmode = de.mode;
 	if(dir.qid.type != (uchar)~0 || dir.mode != ~0){
 		/*
 		 * .qid.type or .mode isn't defaulted, check for unknown bits.
@@ -247,7 +246,7 @@ rTwstat(Msg* m)
 		 * Cannot change length on append-only files.
 		 * If we're changing the append bit, it's okay.
 		 */
-		if(de.mode & oldmode & ModeAppend){
+		if((de.mode & ModeAppend) && (oldmode & ModeAppend)){
 			vtSetError("wstat -- attempt to change length of append-only file");
 			goto error;
 		}
@@ -306,7 +305,6 @@ rTwstat(Msg* m)
 		de.gid = gid;
 		gid = nil;
 		op = 1;
-		tsync = 0;
 	}
 
 	/*

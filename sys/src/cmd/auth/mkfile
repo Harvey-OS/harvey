@@ -3,7 +3,6 @@
 #		programs
 #
 TARG=\
-	asn12rsa\
 	authsrv\
 	changeuser\
 	convkeys\
@@ -15,17 +14,8 @@ TARG=\
 	keyfs\
 	login\
 	netkey\
-	newns\
 	passwd\
-	pemdecode\
-	pemencode\
 	printnetkey\
-	rsagen\
-	rsafill\
-	rsa2csr\
-	rsa2pub\
-	rsa2ssh\
-	rsa2x509\
 	uniq\
 	warning\
 	wrkey\
@@ -38,7 +28,6 @@ OTHEROFILES=\
 	challenge.$O\
 	convbio.$O\
 	respond.$O\
-	rsa2any.$O\
 	secureidcheck.$O\
 	userpasswd.$O\
 
@@ -51,9 +40,9 @@ CLIB=`{ls lib/*.c}
 UPDATE=\
 	mkfile\
 	$HFILES\
-	rsa2any.h\
 	${OTHEROFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
+	${TARG:%=/386/bin/auth/%}\
 
 </sys/src/cmd/mkmany
 
@@ -66,7 +55,7 @@ $DIRS:V:
 		mk all
 	}
 
-lib.$O.a:	$CLIB
+lib.$O.a:V:
 	cd lib
 	mk
 
@@ -138,7 +127,3 @@ $BIN/enable:V:
 
 $BIN/disable:V:
 	cp disable $target
-
-$O.rsa2ssh $O.rsafill $O.rsa2x509 $O.rsa2pub $O.rsa2csr: rsa2any.$O
-rsa2ssh.$O rsafill.$O rsa2x509.$O rsa2pub.$O rsa2csr.$O: rsa2any.h
-

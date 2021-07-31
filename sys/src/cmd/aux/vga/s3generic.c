@@ -225,7 +225,7 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	int i, id, interlace, mul, div;
+	int i, interlace, mul;
 	char *name;
 	ushort shb, vrs, x;
 
@@ -255,37 +255,18 @@ dump(Vga* vga, Ctlr* ctlr)
 	if(ctlr->flag & Finit)
 		return;
 
-
 	/*
 	 * If hde <= 400, assume this is a 928 or Vision964
 	 * and the horizontal values have been divided by 4.
-	 *
-	 * if ViRGE/[DG]X and 15 or 16bpp, horizontal values have
-	 * been multiplied by 2.
 	 */
 	mul = 1;
-	div = 1;
-
-	if(strcmp(name, "virge") == 0){
-		id = (vga->crt[0x2D]<<8)|vga->crt[0x2E];
-		/* S3 ViRGE/[DG]X */
-		if(id==0x8A01 && ((vga->crt[0x67] & 0x30) || (vga->crt[0x67] & 0x50))){
-			mul = 1;
-			div = 2;
-		}
-	}
-
 	x = vga->crt[0x01];
 	if(vga->crt[0x5D] & 0x02)
 		x |= 0x100;
 	x = (x+1)<<3;
-
-	if(x <= 400){
+	if(x <= 400)
 		mul = 4;
-		div = 1;
-	}
-
-	x = (x * mul) / div;
+	x *= mul;
 	printitem(name, "hde");
 	printreg(x);
 	Bprint(&stdout, "%6ud", x);
@@ -294,7 +275,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	if(vga->crt[0x5D] & 0x04)
 		shb |= 0x100;
 	shb = (shb+1)<<3;
-	shb = (shb * mul) / div;
+	shb *= mul;
 	printitem(name, "shb");
 	printreg(shb);
 	Bprint(&stdout, "%6ud", shb);
@@ -302,7 +283,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	x = vga->crt[0x03] & 0x1F;
 	if(vga->crt[0x05] & 0x80)
 		x |= 0x20;
-	x = (x * mul) / div;
+	x *= mul;
 	x = shb|x;					/* ???? */
 	if(vga->crt[0x5D] & 0x08)
 		x += 64;
@@ -314,7 +295,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	if(vga->crt[0x5D] & 0x01)
 		x |= 0x100;
 	x = (x+5)<<3;
-	x = (x * mul) / div;
+	x *= mul;
 	printitem(name, "ht");
 	printreg(x);
 	Bprint(&stdout, "%6ud", x);

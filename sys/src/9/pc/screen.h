@@ -116,7 +116,6 @@ struct VGAscr {
 	void	(*blank)(VGAscr*, int);
 	ulong	id;	/* internal identifier for driver use */
 	int isblank;
-	int overlayinit;
 };
 
 extern VGAscr vgascreen[];

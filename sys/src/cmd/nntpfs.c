@@ -358,9 +358,7 @@ nntpover(Netbuf *n, Group *g, int m)
 			if(i >= XoverChunk)
 				sysfatal("news server doesn't play by the rules");
 			free(xover[i]);
-			xover[i] = emalloc(strlen(p)+2);
-			strcpy(xover[i], p);
-			strcat(xover[i], "\n");
+			xover[i] = estrdup(p);
 		}
 		qsort(xover, i, sizeof(xover[0]), overcmp);
 
