@@ -1263,6 +1263,5 @@ char* wavenames[] = {
 	"Instant Wireless Network PC Card",
 	"Avaya Wireless PC Card",
 	"AirLancer MC-11",
-	"INTERSIL;HFA384x/IEEE;Version 01.02;",
 	nil,
 };

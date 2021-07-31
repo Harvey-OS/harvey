@@ -4,7 +4,6 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-#include	"pool.h"
 
 #include	<authsrv.h>
 
@@ -703,7 +702,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 	ulong l;
 	Mach *mp;
 	char *b, *bp;
-	char tmp[256];		/* must be >= 18*NUMSIZE (Qswap) */
+	char tmp[128];		/* must be >= 6*NUMSIZE */
 	char *cbuf = buf;
 	int ch, i, k, id, eol;
 	vlong offset = off;
@@ -871,21 +870,9 @@ consread(Chan *c, void *buf, long n, vlong off)
 		return n;
 
 	case Qswap:
-		snprint(tmp, sizeof tmp,
-			"%lud memory\n"
-			"%d pagesize\n"
-			"%lud kernel\n"
-			"%lud/%lud user\n"
-			"%lud/%lud swap\n"
-			"%lud/%lud kernel malloc\n"
-			"%lud/%lud kernel draw\n",
-			conf.npage*BY2PG,
-			BY2PG,
-			conf.npage-conf.upages,
-			palloc.user-palloc.freecount, palloc.user,
-			conf.nswap-swapalloc.free, conf.nswap,
-			mainmem->cursize, mainmem->maxsize,
-			imagmem->cursize, imagmem->maxsize);
+		sprint(tmp, "%lud/%lud memory %lud/%lud swap\n",
+			palloc.user-palloc.freecount,
+			palloc.user, conf.nswap-swapalloc.free, conf.nswap);
 
 		return readstr((ulong)offset, buf, n, tmp);
 
