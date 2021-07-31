@@ -333,10 +333,6 @@ oadd(Node *n, Node *res)
 {
 	Node l, r;
 
-	if(n->right == nil){		/* unary + */
-		expr(n->left, res);
-		return;
-	}
 	expr(n->left, &l);
 	expr(n->right, &r);
 	res->fmt = l.fmt;
