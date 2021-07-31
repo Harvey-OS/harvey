@@ -377,15 +377,15 @@ enum {
 	Cfgdprefetch	= 1<<17,	/* data prefetch enable */
 
 	/* cpucsr bits */
-	Reset		= 1<<1,		/* reset cpu core */
+	Reset		= 1<<1,
 
 	/* rstout bits */
-	RstoutPex	= 1<<0,		/* assert RSTOUTn at pci-e reset */
-	RstoutWatchdog	= 1<<1,		/* assert RSTOUTn at watchdog timeout */
-	RstoutSoft	= 1<<2,		/* assert RSTOUTn at sw reset */
+	RstoutPex	= 1<<0,
+	RstoutWatchdog	= 1<<1,
+	RstoutSoft	= 1<<2,
 
 	/* softreset bits */
-	ResetSystem	= 1<<0,		/* assert RSTOUTn pin on SoftRstOutEn */
+	ResetSystem	= 1<<0,
 
 	/* l2cfg bits */
 	L2ecc		= 1<<2,
