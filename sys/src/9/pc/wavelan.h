@@ -63,7 +63,6 @@ enum
 	WNKeys		= 4,
 	WKeyLen		= 14,
 	WMinKeyLen	= 5,
-	WMaxKeyLen	= 13,
 
 	// Wavelan hermes registers
 	WR_Cmd		= 0x00,
