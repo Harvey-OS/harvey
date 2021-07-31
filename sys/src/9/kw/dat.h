@@ -265,22 +265,16 @@ struct DevConf
 	Devport	*ports;			/* The ports themselves */
 };
 
-enum {
-	Dcache,
-	Icache,
-	Unified,
-};
-
 /* characteristics of a given cache level */
 struct Memcache {
 	uint	level;		/* 1 is nearest processor, 2 further away */
-	uint	kind;		/* I, D or unified */
+	uint	icache;		/* flag.  otherwise D cache */
 
 	uint	size;
 	uint	nways;		/* associativity */
 	uint	nsets;
 	uint	linelen;	/* bytes per cache line */
-	uint	setsways;
+	uint	flags;
 
 	uint	log2linelen;
 	uint	waysh;		/* shifts for set/way register */
