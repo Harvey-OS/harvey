@@ -1,0 +1,7 @@
+image: 9front
+sources:
+- https://github.com/oridb/git9
+tasks:
+- build: |
+    cd git9
+    mk all

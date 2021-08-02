@@ -1,0 +1,88 @@
+#!/bin/rc
+rfork ne
+. /sys/lib/git/common.rc
+
+patchname=/tmp/git.patchname.$pid
+patchfile=/tmp/git.patchfile.$pid
+fn sigexit{
+	rm -f $patchname $patchfile
+}
+
+gitup
+
+flagfmt='o:patchdir patchdir'; args='[query]'
+eval `''{aux/getflags $*} || exec aux/usage
+
+if(~ $#patchdir 1 && ! test -d $patchdir)
+	mkdir -p $patchdir
+
+q=$*
+if(~ $#q 0)
+	q=HEAD
+commits=`{git/query $q || die $status}
+n=1
+m=$#commits
+
+
+# sleazy hack: we want to run
+# under rfork m for the web ui,
+# so don't error if we can't mount
+mntgen /mnt/scratch >[2]/dev/null || status=''
+for(c in $commits){
+	cp=`{git/query -p $c}
+	pp=`{git/query -p $c'~'}
+	fc=`$nl{git/query -c $c~ $c | sed 's/^..//'}
+
+	@{
+		rfork n
+		cd /mnt/scratch
+		if(test -d $pp/tree)
+			bind $pp/tree a
+		if(test -d $cp/tree)
+			bind $cp/tree b
+		
+		echo From: `{cat $cp/author}
+		echo Date: `{date -um `{mtime $cp/author | awk '{print $1}'}}
+		<$cp/msg awk '
+		NR == 1 {
+			n = ENVIRON["n"]
+			m = ENVIRON["m"]
+			msg=$0
+			if(m > 1)
+				patch = sprintf("[PATCH %d/%d]", n, m)
+			else
+				patch = "[PATCH]"
+			printf "Subject: %s %s\n\n", patch, msg
+			
+			gsub("^[ 	]|[ 	]$", "", msg)
+			gsub("[^a-zA-Z0-9_]+", "-", msg)
+			printf "%.4d-%s.patch", n, msg >ENVIRON["patchname"]
+			next
+		}
+		{
+			print
+		}'
+		echo '---'
+		echo diff `{basename $pp} `{basename $cp}
+		for(f in $fc){
+			a=a/$f
+			if(! test -e $a)
+				a=/dev/null
+			b=b/$f
+			if(! test -e $b)
+				b=/dev/null
+			ape/diff -urN $a $b
+		}
+	} >$patchfile
+	if(~ $#patchdir 0){
+		cat $patchfile
+		! ~ $n $m && echo
+	}
+	if not{
+		f=$patchdir/`{cat $patchname}
+		mv $patchfile $f
+		echo $f
+	}
+	n=`{echo $n + 1 | bc}
+}
+exit ''

@@ -1,0 +1,122 @@
+#!/bin/rc -e
+rfork en
+. /sys/lib/git/common.rc
+
+gitup
+
+flagfmt='a:listall, b:baseref ref, d:delete, n:newbr, s:stay, m:merge'
+args='[branch]'
+eval `''{aux/getflags $*} || exec aux/usage
+
+modified=()
+deleted=()
+
+if(~ $#* 0){
+	if(~ $#listall 0)
+		awk '$1=="branch"{print $2}' < $gitfs/ctl
+	if not
+		cd .git/refs/ && walk -f heads remotes
+	exit
+}
+if(! ~ $#* 1)
+	exec aux/usage
+
+branch=$1
+if(~ $branch refs/heads/*)
+	new=$name
+if not if(~ $branch heads/*)
+	new=refs/$branch
+if not
+	new=refs/heads/$branch
+
+orig=`{git/query HEAD}
+if (~ $#baseref 1)
+	base=`{git/query $baseref} || exit 'bad base'
+if not if(test -e .git/$new)
+	base=`{git/query $new}
+if not
+	base=`{git/query HEAD}
+
+if(~ $#newbr 0){
+	if(! ~ $#baseref 0)
+		die update would clobber $branch with $baseref
+	baseref=`$nl{echo -n $new | sed s@refs/heads/@refs/remotes/origin/@}
+	echo $baseref
+	if(! test -e .git/$new)
+		if(! base=`{git/query $baseref})
+			die could not find branch $branch
+}
+modified=`$nl{git/query -c HEAD $base | grep '^[^-]' | subst '^..'}
+deleted=`$nl{git/query -c HEAD $base | grep '^-' | subst '^..'}
+
+if(! ~ $#modified 0 || ! ~ $#deleted 0 && ~ $#merge 0){
+	git/walk -fRMA $modified $deleted || 
+		die 'uncommited changes would be clobbered'
+}
+if(~ $delete 1){
+	rm -f .git/$new
+	echo 'deleted branch' $new
+	exit
+}
+commit=`{git/query $base} || die 'branch does not exist:' $base
+if(~ $new */*)
+	mkdir -p .git/`{basename -d $new}
+if(! ~ $#stay 0){
+	echo $commit > .git/$new
+	exit
+}
+basedir=`{git/query -p $base}
+dirtypaths=()
+if(! ~ $#modified 0 || ! ~ $#deleted 0)
+	dirtypaths=`$nl{git/walk -cfRMA $modified $deleted}
+if(! ~ $#modified 0 || ! ~ $#deleted 0)
+	dirtypaths=`$nl{git/walk -cfRMA $modified $deleted}
+if(~ $#dirtypaths 0)
+	cleanpaths=($modified $deleted)
+if not {
+	cleanpaths=()
+	for(p in $modified $deleted)
+		if(! ~ $p $dirtypaths)
+			cleanpaths=($cleanpaths $p)
+}
+
+echo $commit > .git/$new
+for(m in $cleanpaths){
+	d=`$nl{basename -d $m}
+	mkdir -p $d
+	mkdir -p .git/index9/tracked/$d
+	# Modifications can turn a file into
+	# a directory, or vice versa, so we
+	# need to delete and copy the files
+	# over.
+	a=dir
+	b=dir
+	if(test -f $m)
+		a=file
+	if(test -f $basedir/tree/$m)
+		b=file
+	if(! ~ $a $b){
+		rm -rf $m
+		rm -rf .git/index9/tracked/$m
+	}
+	if(~ $b file){
+		if(cp -x -- $basedir/tree/$m $m)
+			walk -eq $m > .git/index9/tracked/$m
+		if not
+			echo -n > .git/index9/tracked/$m
+	}
+}
+
+for(ours in $dirtypaths){
+	common=$gitfs/object/$orig/tree/$ours
+	theirs=$gitfs/object/$base/tree/$ours
+	merge1 $ours $ours $common $theirs
+}
+
+if(! ~ $#deleted 0){
+	rm -f $deleted
+	rm -f .git/index9/tracked/$deleted
+}
+
+echo ref: $new > .git/HEAD
+exit ''

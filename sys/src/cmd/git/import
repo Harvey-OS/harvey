@@ -1,0 +1,107 @@
+#!/bin/rc
+rfork ne
+. /sys/lib/git/common.rc
+
+diffpath=/tmp/gitimport.$pid.diff
+fn sigexit {
+	rm -f $diffpath
+}
+
+fn apply @{
+	git/fs
+	email=''
+	name=''
+	msg=''
+	parents='-p'^`{git/query HEAD}
+	branch=`{git/branch}
+	if(test -e $gitfs/branch/$branch/tree)
+		refpath=.git/refs/$branch
+	if not if(test -e $gitfs/object/$branch/tree)
+		refpath=.git/HEAD
+	if not
+		die 'invalid branch:' $branch
+	awk '
+	BEGIN{
+		state="headers"
+	}
+	state=="headers" && /^From:/ {
+		sub(/^From:[ \t]*/, "", $0);
+		name=$0;
+		email=$0;
+		sub(/[ \t]*<.*$/, "", name);
+		sub(/.*</, "", email);
+		sub(/>/, "", email);
+	}
+	state=="headers" && /^Date:/{
+		sub(/^Date:[ \t]*/, "", $0)
+		date=$0
+	}
+	state=="headers" && /^Subject:/{
+		sub(/^Subject:[ \t]*(\[[^\]]*\][ \t]*)*/, "", $0);
+		gotmsg = 1
+		print > "/env/msg"
+	}
+	state=="headers" && /^$/ {
+		state="body"
+		next
+	}
+	(state=="headers" || state=="body") && (/^diff/ || /^---[ 	]*$/){
+		state="diff"
+	}
+	state=="body" {
+		print > "/env/msg"
+	}
+	state=="diff" {
+		print > ENVIRON["diffpath"]
+	}
+	END{
+		if(state != "diff")
+			exit("malformed patch: " state);
+		if(name == "" || email == "" || date == "" || gotmsg == "")
+			exit("missing headers");
+		printf "%s", name > "/env/name"
+		printf "%s", email > "/env/email"
+		printf "%s", date > "/env/date"
+	}
+	' || die 'could not import:' $status
+
+	# force re-reading env
+	rc -c '
+		echo applying $msg | sed 1q
+		date=`{seconds $date}
+		if(! files=`$nl{ape/patch -Ep1 < $diffpath | grep ''^patching file'' | sed ''s/^patching file `(.*)''''/\1/''})
+			die ''patch failed''
+		for(f in $files){
+			if(test -e $f)
+				git/add $f
+			if not
+				git/add -r $f
+		}
+		git/walk -fRMA $files
+		if(~ $#nocommit 0){
+			hash=`{git/save -n $name -e $email -m $msg -d $date $parents $files}
+			echo $hash > $refpath
+		}
+		status=''''
+	'
+}
+
+gitup
+
+flagfmt='n:nocommit'; args='file ...'
+eval `''{aux/getflags $*} || exec aux/usage
+
+patches=(/fd/0)
+if(! ~ $#* 0)
+	patches=$*
+for(p in $patches){
+	# upas serves the decoded header and body separately,
+	# so we cat them together when applying a upas message.
+	#
+	# this allows mime-encoded or line-wrapped patches.
+	if(test -d $p && test -f $p/header && test -f $p/body)
+		{{cat $p/header; echo; cat $p/body} | apply} || die $status
+	if not
+		apply < $p || die $status
+}
+exit ''

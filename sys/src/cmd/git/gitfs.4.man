@@ -1,0 +1,112 @@
+.TH GITFS 4
+.SH NAME
+git/fs \- git file server
+
+.SH SYNOPSIS
+
+git/fs
+[
+.B -d
+]
+[
+.B -m
+.I mtpt
+]
+
+.SH DESCRIPTION
+
+.PP
+Git/fs serves a file system interface to a git repository in the
+current directory.
+This file system provides a read-only view into the repository contents.
+By default, it is mounted on
+.B $repo/.git/fs.
+It does not cache mutable data, so any changes to the git repository will immediately be reflected in git/fs.
+
+.PP
+Git/fs serves a few levels of hierarchy.
+The top level contains the following files and directories:
+
+.TP
+.B branch
+Exposes branches. Branches are aliases for commit objects.
+
+.TP
+.B object
+Exposes all objects in the git repository.
+Objects may be commits, trees, or blobs.
+
+.TP
+.B HEAD
+This is an alias for the current commit.
+
+.PP
+Commits are also represented as small hierarchies. They contain
+the following files:
+
+.TP
+.B author
+This is the author of the commit.
+The contents of this file are free-form text, but conventionally
+they take the form
+.B Full Name <email@domain.here>
+
+.TP
+.B hash
+The commit id of the current branch
+
+.TP
+.B msg
+The full text of the commit message.
+
+.TP
+.B parent
+The list of parent commit ids of the current commit.
+One parent is listed per line.
+
+.TP
+.B tree
+A directory containing the tree associated with the
+commit.
+The timestamp of the files contained within this
+hierarchy are the same as the date of the commit.
+
+.PP
+Trees are presented as directory listings, and blobs
+as files.
+
+.SH FILES
+.TP
+.B .git
+The git repository being expected.
+.TP
+.B .git/HEAD
+A reference to the current HEAD.
+Used to populate
+.B $repo/.git/fs/HEAD
+.TP
+.git/config
+The per-repository configuation for git tools.
+.TP
+.B $home/lib/git/config
+The global configuration for git tools.
+
+.SH SOURCE
+.TP
+.B /sys/src/cmd/git/fs.c
+
+.SH "SEE ALSO"
+.IR git (1)
+.IR hg (1)
+.IR hgfs (4)
+
+.SH BUGS
+Symlinks are only partially supported.
+Symlinks are treated as regular files when reading.
+Modifying symlinks is unsupported.
+
+.PP
+There is no way to inspect the raw objects. This is
+a feature that would be useful for debugging.
+
+

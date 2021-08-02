@@ -1,0 +1,158 @@
+#!/bin/rc
+
+rfork e
+
+opts=()
+args=()
+
+fn cmd_init{
+	while(~ $#* 0){
+		switch($1){
+		case --bare
+			opts=(-b)
+		case -- 
+			# go likes to use these
+		case -*
+			die unknown command init $*
+		case *
+			args=($args $1)
+		}
+		shift
+	}
+	ls >[1=2]
+	git/init $opts $args
+}
+
+fn cmd_clone{
+	branch=()
+	while( ! ~ $#* 0){
+		switch($1){
+		case -b
+			branch=$2
+			shift
+		case --
+			# go likes to use these
+		case -*
+			die unknown command clone $*
+		case *
+			args=($args $1)
+		}
+		shift
+	}
+	git/clone $opts $args
+	if(~ $#branch 1)
+		git/branch -n -b $1 origin/$1
+}
+
+fn cmd_pull{
+	if(~ $1 -*)
+		die unknown options for pull $*
+	git/pull
+}
+
+fn cmd_fetch{
+	while(~ $#* 0){
+		switch($1){
+		case --all
+			opts=($opts -a)
+		case -f
+			opts=($opts -u $2)
+			shift
+		case --
+ 			# go likes to use these
+		case -*
+			die unknown command clone $*
+		case *
+			args=($args $1)
+		}
+		shift
+	}	
+	git/pull -f $opts
+}
+
+
+fn cmd_checkout{
+	if(~ $1 -*)
+		die unknown command pull $*
+	if(~ $#* 0)
+		die git checkout branch
+	git/branch $b
+}
+
+fn cmd_submodule {
+	if(test -f .gitmodules)
+		die 'submodules unsupported'
+}
+
+fn cmd_rev-parse{
+	while(~ $1 -*){
+		switch($1){
+		case --git-dir
+			echo $gitroot/.git
+			shift
+		case --abbrev-ref
+			echo `{dcmd git9/branch | sed s@^heads/@@g}
+			shift
+		case *
+			dprint option $opt
+		}
+		shift
+	}
+}
+
+fn cmd_show-ref{
+	if(~ $1 -*)
+		die unknown command pull $*
+	filter=cat
+	if(~ $#* 0)
+		filter=cat
+	if not
+		filter='-e(^|/)'^$*^'$'
+	for(b in `$nl{cd $gitroot/.git/refs/ && walk -f})
+		echo `{cat $gitroot/.git/refs/$b} refs/$b 
+}
+
+fn cmd_remote{
+	if({! ~ $#* 3 && ! ~ $#* 4} || ! ~ $1 add)
+		die unimplemented remote cmd $*
+	name=$2
+	url=$3
+	if(~ $3 '--')
+		url=$4
+	>>$gitroot/.git/config{
+		echo '[remote "'$name'"]'
+		echo '	url='$url
+	}
+}
+
+fn cmd_version{
+	echo git version 2.2.0
+}
+
+
+fn usage{
+	echo 'git <command> <args>' >[1=2]
+	exit usage
+}
+
+fn die {
+	>[1=2] echo git $_cmdname: $*
+	exit $_cmdname: $*
+}
+
+_cmdname=$1
+if(~ $0 *compat){
+	ramfs -m /n/gitcompat
+	touch /n/gitcompat/git
+	bind $0 /n/gitcompat/git
+	path=( /n/gitcompat $path )
+	exec rc
+}
+
+if(! test -f '/env/fn#cmd_'$1)
+	die git $1: commmand not implemented
+if(! ~ $1 init && ! ~ $1 clone)
+	gitroot=`{git/conf -r} || die repo
+
+cmd_$1 $*(2-)
+exit ''

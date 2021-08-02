@@ -1,0 +1,95 @@
+nl='
+'
+
+fn die{
+	>[1=2] echo $0: $*
+	exit $"*
+}
+
+fn usage{
+	>[1=2] echo -n 'usage:' $usage
+	exit 'usage'
+}
+
+# subst [-g] this [that]
+fn subst{
+	awk 'BEGIN{
+		global = 0
+		for(i = 1; ARGV[i] ~ /^-/; i++){
+			if(ARGV[i] == "-g")
+				global = 1
+			ARGC--
+		}
+		this = ARGV[i++]; ARGC--
+		that = ARGV[i++]; ARGC--
+	}
+	{
+		if(global) gsub(this, that)
+		else sub(this, that)
+		print
+	}' $*
+}
+
+fn present {
+	if(~ $1 /dev/null && cmp $2 $3>/dev/null)
+		status=gone
+	if not if (~ $3 /dev/null && cmp $1 $2>/dev/null)
+		status=gone
+	if not
+		status=()
+}
+
+# merge1 out theirs base ours
+fn merge1 {@{
+	rfork e
+	n=$pid
+	out=$1
+	ours=$2
+	base=$3
+	theirs=$4
+	tmp=$out.tmp
+	while(test -f $tmp){
+		tmp=$tmp.$n
+		n=`{echo $n + 1 | hoc}
+	}
+
+	if(! test -f $ours)
+		ours=/dev/null
+	if(! test -f $base)
+		base=/dev/null
+	if(! test -f $theirs)
+		theirs=/dev/null
+	if(! ape/diff3 -3 -m $ours $base $theirs > $tmp)
+		echo merge needed: $out >[1=2]
+
+	if(present $ours $base $theirs){
+		mv $tmp $out
+		git/add $out
+	}
+	if not {
+		rm -f $tmp $out
+		git/rm $out
+	}
+}}
+
+fn gitup{
+	gitroot=`{git/conf -r >[2]/dev/null}
+	if(~ $#gitroot 0)
+		die 'not a git repository'
+	gitfs=$gitroot/.git/fs
+	gitrel=`{pwd | subst '^'$"gitroot'/?'}
+	if(~ $#gitrel 0)
+		gitrel='.'
+	cd $gitroot
+	startfs=()
+	if(! test -d $gitfs)
+		mkdir -p $gitfs
+	if(! test -e $gitfs/ctl)
+		startfs=true
+	if(! grep -s '^repo '$gitroot'$' $gitfs/ctl >[2]/dev/null)
+		startfs=true
+	if(~ $#startfs 1)
+		git/fs
+	if not
+		status=''
+}

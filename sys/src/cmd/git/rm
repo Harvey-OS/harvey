@@ -1,0 +1,3 @@
+#!/bin/rc -e
+
+exec git/add -r $*

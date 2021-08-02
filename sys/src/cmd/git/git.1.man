@@ -1,0 +1,650 @@
+.TH GIT 1
+.SH NAME
+git, git/conf, git/query, git/walk, git/clone, git/branch,
+git/commit, git/diff, git/init, git/log, git/merge, git/push,
+git/pull, git/rm, git/serve
+\- Manage git repositories.
+
+.SH SYNOPSIS
+.PP
+.B git/add
+[
+.B -r
+]
+.I path...
+.PP
+.B git/rm
+.I path...
+.PP
+.B git/branch
+[
+.B -admns
+]
+[
+.B -b
+.I base
+]
+.I newbranch
+.PP
+.B git/clone
+[
+.I remote
+[
+.I local
+]
+]
+.PP
+.B git/commit
+[
+.B -re
+]
+[
+.B -m msg
+]
+[
+.I file...
+]
+.PP
+.B git/compat
+.PP
+.B git/conf
+[
+.B -r
+]
+[
+.B -f
+.I file
+]
+.I keys...
+.PP
+.B git/diff
+[
+.B -c
+.I branch
+]
+[
+.B -s
+]
+[
+.I file...
+]
+.PP
+.B git/revert
+[
+.B -c
+.I commit
+]
+.I file...
+.PP
+.B git/export
+[
+.I commits...
+]
+.PP
+.B git/import
+[
+.I commits...
+]
+.PP
+.B git/init
+[
+.B -b
+]
+[
+.I dir
+]
+[
+.B -u
+.I upstream
+]
+.PP
+.B git/log
+[
+.B -c
+.I commit
+.B | -e
+.I expr
+]
+[
+.B -s
+]
+[
+.I files...
+]
+.PP
+.B git/merge
+.I theirs
+.PP
+.B git/rebase
+[
+.B -ari
+]
+[
+.B onto
+]
+.PP
+.B git/pull
+[
+.B -f
+]
+[
+.B -q
+]
+[
+.B -a
+]
+[
+.B -u
+.I upstream
+]
+.PP
+.B git/push
+[
+.B -a
+]
+[
+.B -u
+.I upstream
+]
+[
+.B -b
+.I branch
+]
+[
+.B -r
+.I branch
+]
+.PP
+.B git/serve
+[
+.B -w
+]
+[
+.B -r
+.I path
+]
+.PP
+.B git/query
+[
+.B -pcr
+]
+.I query
+.PP
+.B git/walk
+[
+.B -qc
+]
+[
+.B -b
+.I branch
+]
+[
+.B -f
+.I filters
+]
+[
+.I [files...]
+]
+
+.SH DESCRIPTION
+.PP
+Git is a distributed version control system.
+This means that each repository contains a full copy of the history.
+This history is then synced between computers as needed.
+
+.PP
+These programs provide tools to manage and interoperate with
+repositories hosted in git.
+
+.SH CONCEPTS
+
+Git stores snapshots of the working directory.
+Files can either be in a tracked or untracked state.
+Each commit takes the current version of all tracked files and
+adds them to a new commit.
+
+This history is stored in the
+.I .git
+directory.
+This suite of
+.I git
+tools provides a file interface to the
+.I .git
+directory mounted on
+.I $repo/.git/fs.
+Modifications to the repository are done directly to the
+.I .git
+directory, and are reflected in the file system interface.
+This allows for easy scripting, without excessive complexity
+in the file API.
+
+.SH COMMANDS
+
+.PP
+.B Git/init
+is used to create a new git repository, with no code or commits.
+The repository is created in the current directory by default.
+Passing a directory name will cause the repository to be created
+there instead.
+Passing the
+.B -b
+option will cause the repository to be initialized as a bare repository.
+Passing the
+.B -u
+.I upstream
+option will cause the upstream to be configured to
+.I upstream.
+
+.PP
+.B Git/clone
+will take an existing repository, served over either the
+.I git://
+or
+.I ssh://
+protocols.
+The first argument is the repository to clone.
+The second argument, optionally, specifies the location to clone into.
+If not specified, the repository will be cloned into the last path component
+of the clone source, with the
+.I .git
+stripped off if present.
+
+.PP
+.B Git/push
+is used to push the current changes to a remote repository.
+When no arguments are provided, the remote repository is taken from
+the origin configured in
+.I .git/config,
+and only the changes on the current branch are pushed.
+When passed the
+.I -a
+option, all branches are pushed.
+When passed the
+.I -u upstream
+option, the changed are pushed to
+.I upstream
+instead of the configured origin.
+When given the
+.I -r
+option, the branch is deleted from origin, instead of updated.
+
+.PP
+.B Git/revert
+restores the named files from HEAD. When passed the -c flag, restores files from
+the named commit.
+
+.PP
+.B Git/pull
+behaves in a similar manner to git/push, however it gets changes from
+the upstream repository.
+After fetching, it checks out the changes into the working directory.
+When passed the
+.I -f
+option, the update of the working copy is suppressed.
+When passed the
+.I -u upstream
+option, the changes are pulled from
+.I upstream
+instead of the configured origin.
+
+.PP
+.B Git/serve
+serves repositories using the
+.I git://
+protocol over stdin.
+By default, it serves them read-only.
+The 
+.I -w
+flag, it allows pushing into repositories.
+The
+.I -r
+.B path
+flag serves repositories relative to
+.BR path .
+
+.PP
+.B Git/fs 
+serves a file system on $repo/.git/fs.
+For full documentation, see
+.IR gitfs (4)
+
+.PP
+.B Git/add
+adds a file to the list of tracked files. When passed the
+.I -r
+flag, the file is removed from the list of tracked files.
+The copy of the file in the repository is left untouched.
+.PP
+.B Git/rm
+is an alias for
+.IR git/add -r .
+
+.PP
+.B Git/commit
+creates a new commit consisting of all changes to the specified files.
+By default, an editor is opened to prepare the commit message.
+The
+.I -m
+flag supplies the commit message directly.
+The
+.I -r
+flag revises the contents of the previous commit, reusing the message.
+The
+.I -e
+flag opens an editor to finalize the commit message, regardless of
+whether or not it was specified explicitly or reused.
+To amend a commit message,
+.I -r
+can be used in conjuction with
+.I -m
+or
+.IR -e .
+
+.PP
+.B Git/branch
+is used to list or switch branches.
+When invoked with no arguments, it lists the current branch.
+To list all branches, pass the
+.I -a
+option.
+To switch between branches, pass a branch name.
+When passed the
+.I -n
+option, the branch will be created, overwriting existing branch.
+When passed the
+.I -b base
+option, the branch created is based off of
+.I base
+instead of
+.I HEAD.
+When passed the
+.I -s
+option, the branch is created but the files are not checked out.
+When passed the
+.I -d
+option, the branch is deleted.
+.PP
+When switching branches, git/branch will refuse to clobber
+modificiations.
+Passing the
+.I -m
+option will cause git9 to attempt to merge the changes between
+the branches.
+
+.PP
+.B Git/log
+shows a history of the current branch.
+When passed a list of files, only commits affecting
+those files are shown.
+The
+.I -c commit
+option logs starting from the provided commit, instead of HEAD.
+The
+.I -s
+option shows a summary of the commit, instead of the full message.
+The
+.I -e expr
+option shows commits matching the query expression provided.
+The expression is in the syntax of
+.B git/query.
+
+.PP
+.B Git/diff
+shows the differences between the currently checked out code and
+the
+.I HEAD
+commit.
+When passed the
+.I -c base
+option, the diff is computed against
+.I base
+instead of
+.I HEAD.
+When passed the
+.I -s
+option, only the file statuses are
+printed.
+
+.PP
+.B Git/export
+exports a list of commits in a format that
+.B git/import
+can apply.
+
+.PP
+.B Git/import
+imports a commit with message, author, and
+date information.
+
+.PP
+.B Git/merge
+takes two branches and merges them filewise using
+.I ape/diff3.
+The next commit made will be a merge commmit.
+
+.PP
+.B Git/rebase
+takes one branch and moves it onto another.
+On error, the remaining commits to rebase are
+saved, and can be resumed once the conflict is
+resolved using the
+.I -r
+option.
+If the rebase is to be aborted, the
+.I -a
+option will clean up the in progress rebase
+and reset the state of the branch.
+The
+.I -i
+option will open an editor to modify the todo-list before the rebase
+begins.
+
+.PP
+The following rebase commands are supported:
+.TP 10
+.B pick
+Apply the commit.
+.TP
+.B reword
+Apply the commit, then edit its commit message.
+.TP
+.B edit
+Apply the commit, then exit to allow further changes.
+.TP
+.B squash
+Fold the commit into the previous commit, then edit the combined
+commit message.
+.TP
+.B fixup
+Fold the commit into the previous commit, discarding its commit
+message.
+.TP
+.B break
+Exit to allow for manual edits or inspection before continuing.
+
+.PP
+.B Git/conf
+is a tool for querying the git configuration.
+The configuration key is provided as a dotted string. Spaces
+are accepted. For example, to find the URL of the origin
+repository, one might pass
+.I 'remote "origin".url".
+When given the
+.I -r
+option, the root of the current repository is printed.
+
+.B Git/query
+takes an expression describing a commit, or set of commits,
+and resolves it to a list of commits.
+The
+.I -r
+option reverses the order of the commit list.
+With the
+.I -p
+option, instead of printing the commit hashes, the full
+path to their
+.B git/fs
+path is printed. With the
+.I -c
+option, the query must resolve to two commits. The blobs
+that have changed in the commits are printed.
+
+.PP
+.B Git/walk
+provides a tool for walking the list of tracked objects and printing their status.
+With no arguments, it prints a list of paths prefixed with the status character.
+When given the
+.I -c
+character, only the paths are printed.
+When given the
+.I -q
+option, all output is suppressed, and only the status is printed.
+When given the
+.I -f
+option, the output is filtered by status code, and only matching items are printed.
+
+.PP
+The status characters are as follows:
+.TP
+T
+Tracked, not modified since last commit.
+.TP
+M
+Modified since last commit.
+.TP
+R
+Removed from either working directory tracking list.
+.TP
+A
+Added, does not yet exist in a commit.
+
+.PP
+.B Git/compat
+spawns an rc subshell with a compatibility stub in
+.IR $path .
+This compatibility stub provides enough of the unix
+.I git
+commands to run tools like
+.I go get
+but not much more.
+
+.SH REF SYNTAX
+
+.PP
+Refs are specified with a simple query syntax.
+A bare hash always evaluates to itself.
+Ref names are resolved to their hashes.
+The
+.B a ^
+suffix operator finds the parent of a commit.
+The
+.B a b @
+suffix operator finds the common ancestor of the previous two commits.
+The
+.B a .. b
+or
+.B a : b
+operator finds all commits between
+.B a
+and
+.B b.
+Between is defined as the set of all commits which are reachable from
+.B b
+but not reachable from
+.B a.
+
+.SH PROTOCOLS
+.PP
+Git9 supports URL schemes of the format
+.BR transport://dial/repo/path .
+The transport portion specifies the protocol to use.
+If the transport portion is omitted, then the transport used is
+.BR ssh .
+The
+.I dial
+portion is either a plan 9 dial string, or a conventional
+.I host:port
+pair.
+For the ssh protocol, it may also include a
+.I user@
+prefix.
+.I repo/path
+portion is the path of the repository on the server.
+
+The supported transports are
+.B ssh://, git://, hjgit://, gits://, http://,
+and
+.BR https .
+Two of these are specific to git9:
+.I gits://
+and
+.IR hjgit:// .
+Both are the
+.I git://
+protocol, tunnelled over tls.
+.I Hjgit://
+authenticates with the server using Plan 9 authentication,
+using
+.IR tlsclient\ -a .
+Any of these protocol names may be prefixed with
+.IR git+ ,
+for copy-paste compatibility with Unix git.
+
+.SH EXAMPLES
+
+.PP
+In order to create a new repository, run
+.B git/init:
+.PP
+.EX
+git/init myrepo
+.EE
+
+.PP
+To clone an existing repository from a git server, run:
+.PP
+.EX
+git/clone git://github.com/Harvey-OS/harvey
+cd harvey
+# edit files
+git/commit foo.c
+git/push
+.EE
+
+.PP
+To set a user and email for commits, run:
+.PP
+.EX
+% mkdir $home/lib/git
+% >$home/lib/git/config echo '
+[user]
+        name = Ori Bernstein
+        email = ori@eigenstate.org'
+.EE
+
+.SH FILES
+.TP
+$repo/.git
+The full git repository.
+.TP
+$repo/.git/config
+The configuration file for a repository.
+.TP
+$home/lib/git/config
+The global configuration for git.
+The contents of this file are used as fallbacks for the per-repository config.
+
+.SH SEE ALSO
+.IR hg (1)
+.IR replica (1)
+.IR patch (1)
+.IR gitfs (4)
+.IR diff3
+
+.SH BUGS
+.PP
+Repositories with submodules are effectively read-only.
+.PP
+There are a some of missing commands, features, and tools, such as git/rebase
+.PP
+git/compat only works within a git repository.

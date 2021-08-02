@@ -1,0 +1,150 @@
+#!/bin/rc -e
+rfork ne
+. /sys/lib/git/common.rc
+
+fn whoami{
+	name=`{git/conf user.name}
+	email=`{git/conf user.email}
+	if(test -f /adm/keys.who){
+		if(~ $name '')
+			name=`{awk -F'|' '$1=="'$user'" {x=$3} END{print x}' </adm/keys.who}
+		if(~ $email '')
+			email=`{awk -F'|' '$1=="'$user'" {x=$5} END{print x}' </adm/keys.who}
+	}
+	if(~ $name '')
+		name=glenda
+	if(~ $email '')
+		email=glenda@9front.local
+}
+
+fn findbranch{
+	branch=`{git/branch}
+	if(test -e $gitfs/branch/$branch/tree){
+		refpath=.git/refs/$branch
+		initial=false
+	}
+	if not if(test -e $gitfs/object/$branch/tree){
+		refpath=.git/HEAD
+		initial=false
+	}
+	if not if(! test -e $gitfs/HEAD/tree){
+		refpath=.git/refs/$branch
+		initial=true
+	}
+	if not
+		die 'invalid branch:' $branch
+}
+
+# Remove commentary lines.
+# Remove leading and trailing empty lines.
+# Combine consecutive empty lines between paragraphs.
+# Remove trailing spaces from lines.
+# Ensure there's trailing newline.
+fn cleanmsg{
+	awk '
+	/^[ 	]*#/ {next}
+	/^[ 	]*$/ {empty = 1; next}
+
+	wet && empty {printf "\n"}
+	{wet = 1; empty = 0}
+	{sub(/[ 	]+$/, ""); print $0}
+	'
+}
+
+fn editmsg{
+	if(! test -s $msgfile.tmp){
+		>$msgfile.tmp {
+			echo '# Author:' $name '<'$email'>'
+			echo '#'
+			for(p in $parents)
+				echo '# parent:' $p
+			git/walk -fAMR $files | subst -g '^' '# '
+			echo '#'
+			echo '# Commit message:'
+		}
+		edit=1
+	}
+	if(! ~ $#edit 0){
+		giteditor=`{git/conf core.editor}
+		if(~ $#editor 0)
+			editor=$giteditor
+		if(~ $#editor 0)
+			editor=hold
+		$editor $msgfile.tmp
+	}
+	cleanmsg < $msgfile.tmp > $msgfile
+	if(! test -s $msgfile)
+		die 'empty commit message'
+}
+
+fn parents{
+	if(! ~ $#revise 0)
+		parents=`{cat $gitfs/HEAD/parent}
+	if not if(test -f .git/index9/merge-parents)
+		parents=`{cat .git/index9/merge-parents | sort | uniq}
+	if not if(~ $initial true)
+		parents=()
+	if not
+		parents=`{git/query $branch}
+}
+
+fn commit{
+	msg=`''{cat $msgfile}
+	if(! ~ $#parents 0)
+		pflags='-p'^$parents
+	hash=`{git/save -n $"name -e $"email  -m $"msg $pflags $files || die $status}
+	rm -f .git/index9/merge-parents
+}
+
+fn update{
+	mkdir -p `{basename -d $refpath}
+	# Paranoia: let's not mangle the repo.
+	if(~ $#hash 0)
+		die 'botched commit'
+	echo $branch: $hash
+	echo $hash > $refpath
+	for(f in $files){
+		if(test -e .git/index9/removed/$f || ! test -e $f){
+			rm -f .git/index9/removed/$f
+			rm -f .git/index9/tracked/$f
+		}
+		if not{
+			mkdir -p `{basename -d $f}
+			walk -eq $f > .git/index9/tracked/$f
+		}
+	}
+}
+
+fn sigexit{
+	rm -f $msgfile $msgfile.tmp
+}
+
+gitup
+
+flagfmt='m:msg message, r:revise, e:edit'; args='[file ...]'
+eval `''{aux/getflags $*} || exec aux/usage
+
+msgfile=/tmp/git-msg.$pid
+if(~ $#msg 1)
+	echo $msg >$msgfile.tmp
+if not if(~ $#revise 1){
+	msg=1
+	echo revising commit `{cat $gitfs/HEAD/hash}
+	cat $gitfs/HEAD/msg >$msgfile.tmp
+}
+
+files=()
+if(! ~ $#* 0)
+	files=`$nl{git/walk -c `$nl{cleanname -d $gitrel $*}}
+if(~ $status '' || ~ $#files 0 && ! test -f .git/index9/merge-parents && ~ $#revise 0)
+	die 'nothing to commit' $status
+@{
+	flag e +
+	whoami
+	findbranch
+	parents
+	editmsg
+	commit
+	update
+} || die 'could not commit:' $status
+exit ''
