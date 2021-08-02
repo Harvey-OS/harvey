@@ -1,0 +1,33 @@
+#!/bin/rc
+# Derived from the 9legacy build scripts.
+
+rfork en
+
+. funcs
+
+mkdir /tmp/dist
+bind -c $build/sys /sys
+bind -c $build/386 /386
+
+
+if (test -d $build/sys/src/9/pcboot) {
+	ls -l /386
+	aux/stub /sys/lib/dist/cdstub/9load
+	aux/stub /sys/lib/dist/cdstub/pbsraw
+	sed /'mk cddisk'/d /sys/lib/dist/mkfile > /sys/lib/dist/mkfile.new
+	mv /sys/lib/dist/mkfile.new /sys/lib/dist/mkfile
+
+	rm -f $build/other/dist/*
+	cd /sys/lib/dist && mk ncd-dist
+	cd /sys/lib/dist/pc && mk clean
+
+#	chmod +w $cdstub
+#	rm -f $cdstub/9load
+#	rm -f $cdstub/pbsraw
+#	chmod -w $cdstub
+}
+if not {
+	rm -f $build/other/dist/*
+	cd /sys/lib/dist && mk ncd-dist
+	cd /sys/lib/dist/pc && mk clean
+}

@@ -169,7 +169,7 @@ sys	d555 sys sys
 	log	d555 sys sys
 		dns	444 sys sys	/sys/lib/dist/pc/emptyfile
 		timesync	444 sys sys	/sys/lib/dist/pc/emptyfile
-tmp	d555 sys sys
+tmp	d775 sys sys
 usr	d555 sys sys
 	glenda	d775 glenda glenda
 		+	- glenda glenda	/sys/lib/dist/pc/glenda

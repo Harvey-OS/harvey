@@ -1,9 +1,9 @@
 # files like NOTICE
-*	- sys sys
+*	d775 sys sys
 
 # adm owns adm
-adm	- adm adm
-	+	- adm adm
+adm	d775 adm adm
+	+	d775 adm adm
 
 # upas owns mail
 mail	- upas upas
@@ -29,151 +29,151 @@ usr	- sys sys
 		+	- glenda glenda
 
 # architectures owned by sys
-386	- sys sys
-	+	- sys sys
-amd64	- sys sys
-	+	- sys sys
-arm	- sys sys
-	+	- sys sys
-mips	- sys sys
-	+	- sys sys
-mips64	- sys sys
-	+	- sys sys
-power	- sys sys
-	+	- sys sys
-power64	- sys sys
-	+	- sys sys
-sparc	- sys sys
-	+	- sys sys
-spim	- sys sys
-	+	- sys sys
-spim64	- sys sys
-	+	- sys sys
+386	d775 sys sys
+	+	d775 sys sys
+amd64	d775 sys sys
+	+	d775 sys sys
+arm	d775 sys sys
+	+	d775 sys sys
+mips	d775 sys sys
+	+	d775 sys sys
+mips64	d775 sys sys
+	+	d775 sys sys
+power	d775 sys sys
+	+	d775 sys sys
+power64	d775 sys sys
+	+	d775 sys sys
+sparc	d775 sys sys
+	+	d775 sys sys
+spim	d775 sys sys
+	+	d775 sys sys
+spim64	d775 sys sys
+	+	d775 sys sys
 
 # everything else is owned by sys
-acme	- sys sys
-	+	- sys sys
-cfg	- sys sys
-	+	- sys sys
+acme	d775 sys sys
+	+	d775 sys sys
+cfg	d775 sys sys
+	+	d775 sys sys
 cron	d777 sys sys
-	upas	- upas sys
-		+	- upas sys
-	sys	- sys sys
-		+	- sys sys
-fd	- sys sys
-	+	- sys sys
-env	- sys sys
-lib	- sys sys
-	+	- sys sys
-lp	- sys sys
+	upas	d775 upas sys
+		+	d775 upas sys
+	sys	d775 sys sys
+		+	d775 sys sys
+fd	d775 sys sys
+	+	d775 sys sys
+env	d775 sys sys
+lib	d775 sys sys
+	+	d775 sys sys
+lp	d775 sys sys
 	log	d777 sys sys
 	prob	d777 sys sys
 	queue	d777 sys sys
 	tmp	d777 sys sys
-mnt	- sys sys
-	+	- sys sys
-n	- sys sys
-	+	- sys sys
-rc	- sys sys
-	+	- sys sys
-sys	- sys sys
-	doc	- sys sys
-		+	- sys sys
-	games	- sys sys
-		lib	- sys sys
+mnt	d775 sys sys
+	+	d775 sys sys
+n	d775 sys sys
+	+	d775 sys sys
+rc	d775 sys sys
+	+	d775 sys sys
+sys	d775 sys sys
+	doc	d775 sys sys
+		+	d775 sys sys
+	games	d775 sys sys
+		lib	d775 sys sys
 			4scores	a666 sys sys
 			5scores	a666 sys sys
-			anawords	- sys sys
-			fortunes	- sys sys
-			life	- sys sys
-				+	- sys sys
-			mahjongg	- sys sys
-				+	- sys sys
-			sokoban	- sys sys
-				+	- sys sys
-			sudoku	- sys sys
-				+	- sys sys
-	include	- sys sys
-		+	- sys sys
-	lib	- sys sys
-		*	- sys sys
-		acid	- sys sys
-			+	- sys sys
-		antiword	- sys sys
-			+	- sys sys
-		astar	- sys sys
-			+	- sys sys
-		backup	- sys sys
-			+	- sys sys
-		dist	- sys sys
-			+	- sys sys
-		fax	- sys sys
-			+	- sys sys
-		ghostscript	- sys sys
-			+	- sys sys
-		kbmap	- sys sys
-			+	- sys sys
-		lex	- sys sys
-			+	- sys sys
-		lp	- sys sys
-			*	- sys sys
-			bin	- sys sys
-				+	- sys sys
-			daemon	- sys sys
-				+	- sys sys
-			kill	- sys sys
-				+	- sys sys
+			anawords	d775 sys sys
+			fortunes	d775 sys sys
+			life	d775 sys sys
+				+	d775 sys sys
+			mahjongg	d775 sys sys
+				+	d775 sys sys
+			sokoban	d775 sys sys
+				+	d775 sys sys
+			sudoku	d775 sys sys
+				+	d775 sys sys
+	include	d775 sys sys
+		+	d775 sys sys
+	lib	d775 sys sys
+		*	d775 sys sys
+		acid	d775 sys sys
+			+	d775 sys sys
+		antiword	d775 sys sys
+			+	d775 sys sys
+		astar	d775 sys sys
+			+	d775 sys sys
+		backup	d775 sys sys
+			+	d775 sys sys
+		dist	d775 sys sys
+			+	d775 sys sys
+		fax	d775 sys sys
+			+	d775 sys sys
+		ghostscript	d775 sys sys
+			+	d775 sys sys
+		kbmap	d775 sys sys
+			+	d775 sys sys
+		lex	d775 sys sys
+			+	d775 sys sys
+		lp	d775 sys sys
+			*	d775 sys sys
+			bin	d775 sys sys
+				+	d775 sys sys
+			daemon	d775 sys sys
+				+	d775 sys sys
+			kill	d775 sys sys
+				+	d775 sys sys
 			log	d777 sys sys
-			perm	- sys sys
-				+	- sys sys
-			process	- sys sys
-				+	- sys sys
-			sched	- sys sys
-				+	- sys sys
-			spooler	- sys sys
-				+	- sys sys
-			stat	- sys sys
-				+	- sys sys
+			perm	d775 sys sys
+				+	d775 sys sys
+			process	d775 sys sys
+				+	d775 sys sys
+			sched	d775 sys sys
+				+	d775 sys sys
+			spooler	d775 sys sys
+				+	d775 sys sys
+			stat	d775 sys sys
+				+	d775 sys sys
 			tmp	d777 sys sys
-		man	- sys sys
-			+	- sys sys
-		plumb	- sys sys
-			+	- sys sys
-		postscript	- sys sys
-			+	- sys sys
-		scribble	- sys sys
-			+	- sys sys
-		ssh	- sys sys
-			+	- sys sys
-		sysconfig	- sys sys
-			+	- sys sys
-		texmf	- sys sys
-			+	- sys sys
-		tls	- sys sys
-			+	- sys sys
-		tmac	- sys sys
-			+	- sys sys
-		troff	- sys sys
-			+	- sys sys
-		wiki	- sys sys
-			+	- sys sys
-	log	- sys sys
+		man	d775 sys sys
+			+	d775 sys sys
+		plumb	d775 sys sys
+			+	d775 sys sys
+		postscript	d775 sys sys
+			+	d775 sys sys
+		scribble	d775 sys sys
+			+	d775 sys sys
+		ssh	d775 sys sys
+			+	d775 sys sys
+		sysconfig	d775 sys sys
+			+	d775 sys sys
+		texmf	d775 sys sys
+			+	d775 sys sys
+		tls	d775 sys sys
+			+	d775 sys sys
+		tmac	d775 sys sys
+			+	d775 sys sys
+		troff	d775 sys sys
+			+	d775 sys sys
+		wiki	d775 sys sys
+			+	d775 sys sys
+	log	d775 sys sys
 		*	a666 sys sys 
 		timesync.d	d775 sys sys
-		httpd	- sys sys
+		httpd	d775 sys sys
 			*	a666 sys sys
-	man	- sys sys
-		+	- sys sys
-	src	- sys sys
-		+	- sys sys
-tmp	- sys sys
-	+	- sys sys
+	man	d775 sys sys
+		+	d775 sys sys
+	src	d775 sys sys
+		+	d775 sys sys
+tmp	d775 sys sys
+	+	d775 sys sys
 
 # distribution metadata
-dist	- sys sys
-	replica	- sys sys
-		kfs	- sys sys
-		cd	- sys sys
-		network	- sys sys
-		plan9.proto	- sys sys
+dist	d775 sys sys
+	replica	d775 sys sys
+		kfs	d775 sys sys
+		cd	d775 sys sys
+		network	d775 sys sys
+		plan9.proto	d775 sys sys
 

@@ -23,6 +23,7 @@ case go
 		{
 			sfs=`{echo $fs | sed 's;/dev;#S;'}
 			if(~ $fstype fossil fossil+venti){
+				echo bootfile'='$bootfat!9k10f
 				echo bootfile'='$bootfat!9pcf
 				echo 'nobootprompt=local!'^$sfs
 				echo 'bootargs=local!'^$sfs
@@ -86,6 +87,7 @@ case go
 	if(! test -f /n/9fat/4e){
 		logprog cp /n/newfs/386/9load /n/9fat/9load
 		logprog cp /n/newfs/386/9pcf /n/9fat/9pcf
+		logprog cp /n/newfs/amd64/9k10f /n/9fat/9k10f
 		if(test -f /n/9fat/plan9.ini && ! test -f /n/9fat/plan9-3e.ini)
 			logprog mv /n/9fat/plan9.ini /n/9fat/plan9-3e.ini
 		if(test -f /n/9fat/9pcdisk && ! test -f /n/9fat/9pc3e)
