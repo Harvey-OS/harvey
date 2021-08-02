@@ -1,0 +1,4 @@
+/repos.html				/bin/gitls /usr/git list
+/([^'/]+)/([^'/]+)/info.html		/bin/gitls /usr/git info '\1' '\2'
+/([^'/]+)/([^'/]+)/snap.tar.gz		/bin/gitls /usr/git tar '\1' '\2'
+/([^'/]+)/([^'/]+)/(([^']+)/)?f.html	/bin/gitls /usr/git view '\1' '\2' '\4'

@@ -1,0 +1,116 @@
+#!/bin/rc
+rfork en
+. /sys/lib/git/common.rc
+
+flagfmt='d:debug, b:branch branch'; args='remote [local]'
+eval `''{aux/getflags $*} || exec aux/usage
+if(~ $debug 1)
+	debug=(-d)
+
+remote=`{echo $1 | subst -g '/*$'}
+local=$2
+
+if(~ $#remote 0)
+	exec aux/usage
+if(~ $#local 0)
+	local=`{basename $remote .git}
+if(~ $#branch 1)
+	branchflag=(-b $branch)
+
+if(test -e $local)
+	die 'repository already exists:' $local
+
+fn clone{
+	flag +e
+	mkdir -p $local/.git
+	mkdir -p $local/.git/fs
+	mkdir -p $local/.git/objects/pack/
+	mkdir -p $local/.git/refs/heads/
+	
+	cd $local
+	
+	>>.git/config {
+		echo '[remote "origin"]'
+		echo '	url='$remote
+	}
+	{git/fetch  $debug $branchflag $remote >[2=3] | awk '
+		BEGIN{
+			headref=""
+			if(ENVIRON["branch"] != "")
+				headref="refs/remotes/origin/"ENVIRON["branch"]
+			headhash=""
+		}
+		/^symref / && headref == "" {
+			if($2 == "HEAD"){
+				gsub("^refs/heads", "refs/remotes/origin", $3)
+				gsub("^refs/tags", "refs/remotes/origin/tags", $3)
+			}
+		}
+		/^remote /{
+			if($2=="HEAD"){
+				headhash=$3
+			}else if(match($2, "^refs/(heads|tags)/")){
+				gsub("^refs/heads", "refs/remotes/origin", $2)
+				if($2 == headref || (headref == "" && $3 == headhash))
+					headref=$2
+				outfile = ".git/" $2
+				outdir = outfile
+				gsub("/?[^/]*/?$", "", outdir)
+				system("mkdir -p "outdir)
+				print $3 > outfile
+				close(outfile)
+			}
+		}
+		END{
+			if(headref != ""){
+				remote = headref;
+				refdir = headref;
+				gsub("/?[^/]*/?$", "", refdir)
+				gsub("^refs/remotes/origin", "refs/heads", headref)
+				system("mkdir -p .git/"refdir);
+				system("cp .git/" remote " .git/" headref)
+				print "ref: " headref > ".git/HEAD"
+			}else if(headhash != ""){
+				print "warning: detached head "headhash > "/fd/2"
+				print headhash > ".git/HEAD"
+			}
+		}
+	'} |[3] tr '\x0d' '\x0a' || die 'could not clone repository'
+
+	tree=.git/fs/HEAD/tree
+	lbranch=`{git/branch}
+	rbranch=`{echo $lbranch | subst '^heads' 'remotes/origin'}
+	echo checking out repository...
+	if(test -f .git/refs/$rbranch){
+		cp .git/refs/$rbranch .git/refs/$lbranch
+		git/fs
+		@ {builtin cd $tree && tar cif /fd/1 .} | @ {tar xf /fd/0} \
+			|| die 'checkout failed:' $status
+		for(f in `$nl{walk -f $tree | subst '^'$tree'/*'}){
+			if(! ~ $#f 0){
+				idx=.git/index9/tracked/$f
+				mkdir -p `$nl{basename -d $idx}
+				walk -eq $f > $idx
+			}
+		}
+	}
+	if not{
+		echo no default branch >[1=2]
+		echo check out your code with git/branch >[1=2]
+	}
+}
+
+fn sigint {
+	echo cancelled clone $remote: cleaning $local >[1=2]
+	rm -rf $local
+	exit interrupted
+}
+
+@{clone}
+st=$status
+if(! ~ $st ''){
+	echo failed to clone $remote: cleaning $local >[1=2]
+	rm -rf $local
+	exit $st
+}
+exit ''

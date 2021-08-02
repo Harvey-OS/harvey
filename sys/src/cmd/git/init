@@ -1,0 +1,39 @@
+#!/bin/rc -e
+rfork ne
+. /sys/lib/git/common.rc
+
+flagfmt='u:upstream upstream,b:branch branch'; args='name'
+eval `''{aux/getflags $*} || exec aux/usage
+
+dir=$1
+if(~ $#dir 0)
+	dir=.
+if(~ $#branch 0)
+	branch=front
+if(test -e $dir/.git)
+	die $dir/.git already exists
+name=`{basename `{cleanname -d `{pwd} $dir}}
+if(~ $#upstream 0){
+	upstream=`{git/conf 'defaults "origin".baseurl'}
+	if(! ~ $#upstream 0)
+		upstream=$upstream/$name
+}
+
+mkdir -p $dir/.git/refs/^(heads remotes)
+mkdir -p $dir/.git/^(fs objects)
+>$dir/.git/config {
+	echo '[core]'
+	echo '	repositoryformatversion = p9.0'
+	if(! ~ $#upstream 0){
+		echo '[remote "origin"]'
+		echo '	url = '$upstream
+	}
+	echo '[branch "'$branch'"]'
+	echo '	remote = origin'
+}
+
+>$dir/.git/HEAD {
+	echo ref: refs/heads/$branch
+}
+
+exit ''

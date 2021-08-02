@@ -1,0 +1,92 @@
+#!/bin/rc
+
+. /sys/lib/git/common.rc
+gitup
+
+flagfmt='a:abort, r:resume, i:interactive'; args='onto'
+eval `''{aux/getflags $*} || exec aux/usage
+
+tmp=_rebase.working
+if(! git/walk -q)
+	die dirty working tree
+if(~ $#abort 1){
+	if(! test -f .git/rebase.todo)
+		die no rebase to abort
+	src=`{cat .git/rebase.src}
+	rm -f .git/rebase.^(src todo)
+	git/branch $src
+	git/branch -d $tmp
+	exit
+}
+if(test -f .git/rebase.todo){
+	if(~ $#resume 0)
+		die rebase in progress
+	if(! ~ $#* 0)
+		exec aux/usage
+	src=`{cat .git/rebase.src}
+}
+if not{
+	if(! ~ $#* 1)
+		exec aux/usage
+	src=`{git/branch}
+	dst=`{git/query $1}
+	echo $src > .git/rebase.src
+	git/log -se $dst' '$src' @ .. '$src | sed 's/^/pick /' >.git/rebase.todo
+	if(! ~ $#interactive 0){
+		giteditor=`{git/conf core.editor}
+		if(~ $#editor 0)
+			editor=$giteditor
+		if(~ $#editor 0)
+			editor=hold
+		$editor .git/rebase.todo
+	}
+	git/branch -nb $dst $tmp
+}
+todo=`$nl{cat .git/rebase.todo}
+
+fn sigexit {
+	s=$status
+	if(!)
+		echo 'fix and git/rebase -r'
+	>.git/rebase.todo for(i in $todo)
+		echo $i
+	status=$s
+}
+
+flag e +
+
+while(! ~ $#todo 0){
+	item=`{echo $todo(1)}
+	todo=$todo(2-)
+	echo $item
+	c=$item(2)
+	switch($item(1)){
+	case p pick
+		git/export $c | git/import
+	case r reword
+		git/export $c | git/import
+		git/commit -re
+	case e edit
+		git/export $c | git/import
+		echo 'stopped for edit, resume with git/rebase -r'
+		exit
+	case s squash
+		git/export $c | git/import -n
+		msg=`''{cat $gitfs/HEAD/msg; echo; cat $gitfs/object/$c/msg}
+		git/commit -rem $msg .
+	case f fixup
+		git/export $c | git/import -n
+		git/commit -r .
+	case b break
+		echo 'stopped, resume with git/rebase -r'
+		exit
+	case '#'* ''
+	case *
+		die 'unknown command '''^$item(1)^''''
+	}
+}
+
+fn sigexit
+git/branch -nb $tmp $src
+git/branch -d $tmp
+rm .git/rebase.todo .git/rebase.src

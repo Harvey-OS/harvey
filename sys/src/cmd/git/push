@@ -1,0 +1,51 @@
+#!/bin/rc -e
+rfork en
+. /sys/lib/git/common.rc
+
+gitup
+
+flagfmt='a:pushall, b:branch branch, f:force, d:debug,
+         r:remove remove, u:upstream upstream' args=''
+eval `''{aux/getflags $*} || exec aux/usage
+if(! ~ $#* 0)
+	exec aux/usage
+
+if(~ $pushall 1)
+	branch=`$nl{cd .git/refs/heads && walk -f}
+if(~ $#branch 0)
+	branch=`{git/branch}
+if(~ $#branch 0)
+	die 'no branches'
+if(~ $force 1)
+	force=-f
+if(~ $debug 1)
+	debug='-d'
+
+if(~ $#upstream 0)
+	upstream=origin
+
+remotes=`$nl{git/conf -a 'remote "'$upstream'".url'}
+if(~ $#remotes 0)
+	remotes=$upstream
+branch=-b^$branch
+if(! ~ $#remove 0)
+	remove=-r^$remove
+for(remote in $remotes){
+	updates=`$nl{git/send $debug $force $branch $remove $remote} || die $status
+	for(ln in $updates){
+		u=`{echo $ln}
+		refpath=`{echo $u(2) | subst '^refs/heads/' '.git/refs/remotes/'$upstream'/'}
+		switch($u(1)){
+		case update;
+			mkdir -p `{basename -d $refpath}
+			echo $u(4) > $refpath
+			echo $u(2)^':' $u(3) '=>' $u(4)
+		case delete;
+			echo $u(2)^': removed'
+			rm -f $refpath
+		case uptodate;
+			echo $u(2)^': up to date'
+		}
+	}
+}
+exit ''

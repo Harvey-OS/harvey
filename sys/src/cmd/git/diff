@@ -1,0 +1,37 @@
+#!/bin/rc
+rfork ne
+. /sys/lib/git/common.rc
+
+gitup
+
+flagfmt='c:commit branch, s:summarize'; args='[file ...]'
+eval `''{aux/getflags $*} || exec aux/usage
+
+if(~ $#commit 0)
+	commit=HEAD
+
+files=()
+if(! ~ $#* 0)
+	files=`{cleanname -d $gitrel $*}
+
+branch=`{git/query -p $commit}
+if(~ $summarize 1){
+	git/walk -fMAR $files
+	exit
+}
+
+fn lsdirty {
+	git/walk -c -fRMA $files
+	if(! ~ $commit HEAD)
+		git/query -c $commit HEAD | subst '^..'
+}
+
+for(f in `$nl{lsdirty | sort | uniq}){
+	orig=$branch/tree/$f
+	if(! test -f $orig)
+		orig=/dev/null
+	if(! test -f $f)
+		f=/dev/null
+	diff -u $orig $f
+}
+exit ''

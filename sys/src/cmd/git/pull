@@ -1,0 +1,82 @@
+#!/bin/rc -e
+rfork en
+. /sys/lib/git/common.rc
+
+fn update{
+	branch=$1
+	upstream=$2
+	url=$3
+	dir=$4
+	bflag=()
+	dflag=()
+	if(! ~ $#branch 0)
+		bflag=(-b $branch)
+	if(! ~ $#debug 0)
+		dflag='-d'
+	{git/fetch $dflag $bflag -u $upstream $url >[2=3] || die $status} | awk '
+	/^remote/{
+		if($2=="HEAD")
+			next
+		ref=$2
+		hash=$3
+		gsub("^refs/heads", "refs/remotes/'$upstream'", ref)
+		outfile = ".git/"ref
+		system("mkdir -p `{basename -d "outfile"}");
+		print hash > outfile;
+		close(outfile);
+	}
+	' |[3] tr '\x0d' '\x0a'
+}
+
+gitup
+
+flagfmt='a:allbranch, b:branch branch, d:debug,
+	f:fetchonly, u:upstream upstream, q:quiet'
+args=''
+eval `''{aux/getflags $*} || exec aux/usage
+
+if(~ $#branch 0)
+	branch=refs/`{git/branch}
+if(~ $allbranch 1)
+	branch=''
+
+if(~ $#upstream 0)
+	upstream=origin
+remote=`$nl{git/conf 'remote "'$upstream'".url'}
+if(~ $#remote 0){
+	remote=$upstream
+	upstream=THEM
+}
+
+update $branch $upstream $remote
+if (~ $fetchonly 1)
+	exit
+
+local=`{git/branch}
+remote=`{git/branch | subst '^(refs/)?heads' 'remotes/'$upstream}
+
+# we have local commits, but the remote hasn't changed.
+# in this case, we want to keep the local commits untouched.
+if(~ `{git/query HEAD $remote @} `{git/query $remote}){
+	echo 'up to date' >[1=2]
+	exit
+}
+# The remote repository and our HEAD have diverged: we
+# need to merge.
+if(! ~ `{git/query HEAD $remote @} `{git/query HEAD}){
+	>[1=2]{
+		echo ours:	`{git/query HEAD}
+		echo theirs:	`{git/query $remote}
+		echo common:	`{git/query HEAD $remote @}
+		echo git/merge $remote
+	}
+	exit diverged
+}
+# The remote is directly ahead of the local, and we have
+# no local commits that need merging.
+if(~ $#quiet 0)
+	git/log -s -e $local'..'$remote >[1=2]
+echo
+echo $remote':' `{git/query $local} '=>' `{git/query $remote}  >[1=2]
+git/branch -mnb $remote $local
+exit ''
