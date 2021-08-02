@@ -1,0 +1,17 @@
+#!/bin/rc
+# Derived from the 9legacy build scripts.
+
+rfork en
+
+. funcs
+
+root=$build
+repl=$build/dist/replica
+proto=$repl/plan9.proto
+db=$repl/plan9.db
+db2=$repl/_plan9.db
+log=$repl/plan9.log
+> $db
+replica/updatedb -p $proto -r $root -x $repl $db >$log
+replica/compactdb $db >/tmp/a && mv /tmp/a $db
+cp $db $db2

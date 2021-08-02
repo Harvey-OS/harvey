@@ -1,0 +1,46 @@
+#!/bin/rc
+# Derived from the 9legacy build scripts.
+
+rfork en
+
+. funcs
+
+task=( \
+#	prepare \
+#	download \
+#	patch \
+#	checkpatch \
+#	cleanpatch \
+	mod \
+	build \
+	checkbuild \
+	bootdisk \
+	repl \
+	iso \
+	copy \
+)
+
+# usb: add usb and send-usb after iso and send
+
+if(! test -d log)
+	mkdir log
+if not
+	rm -f log/*
+
+echo target is $target
+
+if (! test -f $patches){
+	echo $patches does not exist
+	exit
+}
+
+for(i in $task){
+	echo -n $i'... '
+	$i >log/$i >[2=1]
+	if(~ $status '')
+		echo done
+	if not{
+		echo failed
+		exit failed
+	}
+}

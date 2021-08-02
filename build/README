@@ -1,0 +1,3 @@
+To build on Linux, run `bash build.bash` *from within* the build directory. You'll need to run `ufs` or `centre` on the host, serving 9P over port 5640; the finished ISO will be dropped onto that 9P service.
+
+To build on Plan 9, just do the steps in build.bash manually (basically, bind the Harvey source to /n/harvey and run the individual scripts)

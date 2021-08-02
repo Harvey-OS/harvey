@@ -141,9 +141,6 @@ $scr/%.iso.bz2:D: $scr/%.iso
 				mv  $stem.iso.bz2 _$stem.iso.bz2
 			mv n$stem.iso.bz2 $stem.iso.bz2
 		}
-		echo `{date} md5 `{md5sum <$stem.iso.bz2} \
-			sha1 `{sha1sum <$stem.iso.bz2} \
-			$stem.iso.bz2 >>/usr/web/plan9checksums.txt
 	}
 
 rebuild:V:
