@@ -11,7 +11,7 @@ fi
 
 $(cd ..; bash ./build/mkdirs)
 
-$(cd ..; tar --exclude './build' --exclude harvey.tgz --exclude .git --exclude '9legacy.iso*' -czf harvey.tgz *)
+$(cd ..; tar --format ustar --exclude './build' --exclude harvey.tgz --exclude .git --exclude '9legacy.iso*' -czf harvey.tgz *)
 
 expect <<EOF
 spawn qemu-system-i386 -accel kvm -nographic -net user -net nic,model=virtio -m 2048 -vga none -cdrom 9legacy.iso -boot d -hda ../harvey.tgz
