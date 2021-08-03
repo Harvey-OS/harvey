@@ -46,12 +46,7 @@ send "gunzip < /dev/sdC0/data | tar x\n"
 expect -exact "term% "
 send "cd /n/harvey/build/scripts\n"
 expect -exact "term% "
-send "rc build\n"
-expect -exact "term% "
-send "rc repl\n"
-expect -exact "term% "
-send "rc iso\n"
-
+send "rc build && rc repl && rc iso\n"
 
 # and shut down
 expect -exact "term% "
