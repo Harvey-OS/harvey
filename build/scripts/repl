@@ -1,4 +1,4 @@
-#!/bin/rc
+#!/bin/rc -e
 # Derived from the 9legacy build scripts.
 
 rfork en
