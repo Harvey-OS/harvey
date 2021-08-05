@@ -2,7 +2,7 @@
 
 PORTDIRS=9sys 9syscall fmt port
 DIRS=$PORTDIRS $CPUS
-OLDCPUS=sparc
+OLDCPUS=
 
 all install:V:
 	for(i in $PORTDIRS $objtype)@{
