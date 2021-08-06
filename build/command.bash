@@ -9,7 +9,7 @@ if [ ! -e 9legacy.iso ]; then
 fi
 
 expect <<EOF
-spawn qemu-system-i386 -nographic -net user -net nic,model=virtio -m 1024 -vga none -cdrom 9legacy.iso -boot d
+spawn qemu-system-i386 -enable-kvm -nographic -net user -net nic,model=virtio -m 1024 -vga none -cdrom 9legacy.iso -boot d
 expect -exact "Selection:"
 send "2\n"
 expect -exact "Plan 9"
