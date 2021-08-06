@@ -7,6 +7,10 @@
 
 set -e
 
+if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
+  export kvmflag='-enable-kvm'
+fi
+
 ls -l
 file *
 ls /usr/bin/qemu*
@@ -24,7 +28,7 @@ rm -f disk.raw
 qemu-img create -f raw disk.raw 1G
 # Run the installer to create the disk image.
 expect <<EOF
-spawn qemu-system-i386 -enable-kvm -nographic -net user -net nic,model=virtio -m 1024 -vga none -drive if=none,id=hd,file=disk.raw,media=disk,cache=writeback -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -cdrom 9legacy.iso -boot d
+spawn qemu-system-i386 $kvmflag -nographic -net user -net nic,model=virtio -m 1024 -vga none -drive if=none,id=hd,file=disk.raw,media=disk,cache=writeback -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -cdrom 9legacy.iso -boot d
 expect -exact "Selection:"
 send "1\n"
 expect -exact "Plan 9"
@@ -97,7 +101,7 @@ EOF
 
 ## Configuration.
 #expect <<EOF
-#spawn qemu-system-i386 -enable-kvm -nographic -net user -net nic,model=virtio -m 1024 -vga none -drive if=none,id=hd,file=disk.raw -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -cdrom 9legacy.iso -boot c
+#spawn qemu-system-i386 $kvmflag -nographic -net user -net nic,model=virtio -m 1024 -vga none -drive if=none,id=hd,file=disk.raw -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -cdrom 9legacy.iso -boot c
 #expect -exact "Plan 9"
 #sleep 5
 ## Need to wait for the kernel to boot.
@@ -148,7 +152,7 @@ EOF
 #
 #
 #	expect <<EOF
-#	spawn qemu-system-i386 -enable-kvm -machine accel=kvm -nographic -net user -net nic,model=virtio -m 1024 -vga none -drive if=none,id=hd,file=disk.raw -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -cdrom 9legacy.iso -boot c
+#	spawn qemu-system-i386 $kvmflag -nographic -net user -net nic,model=virtio -m 1024 -vga none -drive if=none,id=hd,file=disk.raw -device virtio-scsi-pci,id=scsi -device scsi-hd,drive=hd -cdrom 9legacy.iso -boot c
 #	expect -exact "Plan 9"
 #	sleep 5
 #	# Need to wait for the kernel to boot.

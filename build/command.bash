@@ -1,5 +1,9 @@
 set -e
 
+if [ "$(uname)" = "Linux" ] && [ -e /dev/kvm ]; then
+  export kvmflag='-enable-kvm'
+fi
+
 # Download Plan 9
 if [ ! -e 9legacy.iso ] && [ ! -e 9legacy.iso.bz2 ]; then
   curl -L --fail -O https://github.com/Harvey-OS/harvey/releases/download/9legacy/9legacy.iso.bz2
@@ -9,7 +13,7 @@ if [ ! -e 9legacy.iso ]; then
 fi
 
 expect <<EOF
-spawn qemu-system-i386 -enable-kvm -nographic -net user -net nic,model=virtio -m 1024 -vga none -cdrom 9legacy.iso -boot d
+spawn qemu-system-i386 $kvmflag -nographic -net user -net nic,model=virtio -m 1024 -vga none -cdrom 9legacy.iso -boot d
 expect -exact "Selection:"
 send "2\n"
 expect -exact "Plan 9"
