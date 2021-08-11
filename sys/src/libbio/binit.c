@@ -132,6 +132,8 @@ Bopen(char *name, int mode)
 		close(fd);
 		return nil;
 	}
+
+	// Override the malloc tag with the PC of this Bopen call
 	setmalloctag(bp, getcallerpc(&name));
 
 	return bp;
