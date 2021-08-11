@@ -58,6 +58,7 @@ int	Binits(Biobufhdr*, int, int, uchar*, int);
 int	Blinelen(Biobufhdr*);
 vlong	Boffset(Biobufhdr*);
 Biobuf*	Bopen(char*, int);
+Biobuf*	Bfdopen(int, int);
 int	Bprint(Biobufhdr*, char*, ...);
 int	Bvprint(Biobufhdr*, char*, va_list);
 int	Bputc(Biobufhdr*, int);
