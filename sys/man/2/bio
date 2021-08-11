@@ -1,6 +1,6 @@
 .TH BIO 2
 .SH NAME
-Bopen, Binit, Binits, Brdline, Brdstr, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetrune, Bread, Bseek, Boffset, Bfildes, Blinelen, Bputc, Bputrune, Bprint, Bvprint, Bwrite, Bflush, Bterm, Bbuffered \- buffered input/output
+Bopen, Bfdopen, Binit, Binits, Brdline, Brdstr, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetrune, Bread, Bseek, Boffset, Bfildes, Blinelen, Bputc, Bputrune, Bprint, Bvprint, Bwrite, Bflush, Bterm, Bbuffered \- buffered input/output
 .SH SYNOPSIS
 .ta \w'Biobuf* 'u
 .B #include <u.h>
@@ -11,6 +11,9 @@ Bopen, Binit, Binits, Brdline, Brdstr, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetru
 .PP
 .B
 Biobuf* Bopen(char *file, int mode)
+.PP
+.B
+Biobuf* Bfdopen(int fd, int mode)
 .PP
 .B
 int	Binit(Biobuf *bp, int fd, int mode)
@@ -88,6 +91,17 @@ opens
 for mode
 .B OREAD
 or creates for mode
+.BR OWRITE .
+It calls
+.IR malloc (2)
+to allocate a buffer.
+.PP
+.I Bfdopen
+allocates a buffer for the already-open file descriptor
+.I fd
+for mode
+.B OREAD
+or
 .BR OWRITE .
 It calls
 .IR malloc (2)

@@ -53,7 +53,6 @@ install(Biobufhdr *bp)
 int
 Binits(Biobufhdr *bp, int f, int mode, uchar *p, int size)
 {
-
 	p += Bungetsize;	/* make room for Bungets */
 	size -= Bungetsize;
 
@@ -86,7 +85,6 @@ Binits(Biobufhdr *bp, int f, int mode, uchar *p, int size)
 	return 0;
 }
 
-
 int
 Binit(Biobuf *bp, int f, int mode)
 {
@@ -94,27 +92,48 @@ Binit(Biobuf *bp, int f, int mode)
 }
 
 Biobuf*
+Bfdopen(int fd, int mode)
+{
+	Biobuf *bp;
+
+	bp = malloc(sizeof(Biobuf));
+	if(bp == nil)
+		return nil;
+	if(Binits(bp, fd, mode, bp->b, sizeof(bp->b)) != 0) {
+		free(bp);
+		return nil;
+	}
+	bp->flag = Bmagic;			/* mark bp open & malloced */
+	setmalloctag(bp, getcallerpc(&fd));
+	return bp;
+}
+
+Biobuf*
 Bopen(char *name, int mode)
 {
 	Biobuf *bp;
-	int f;
+	int fd;
 
 	switch(mode&~(OCEXEC|ORCLOSE|OTRUNC)) {
 	default:
 		fprint(2, "Bopen: unknown mode %#x\n", mode);
-		return 0;
+		return nil;
 	case OREAD:
-		f = open(name, mode);
+		fd = open(name, mode);
 		break;
 	case OWRITE:
-		f = create(name, mode, 0666);
+		fd = create(name, mode, 0666);
 		break;
 	}
-	if(f < 0)
-		return 0;
-	bp = malloc(sizeof(Biobuf));
-	Binits(bp, f, mode, bp->b, sizeof(bp->b));
-	bp->flag = Bmagic;			/* mark bp open & malloced */
+	if(fd < 0)
+		return nil;
+	bp = Bfdopen(fd, mode);
+	if(bp == nil) {
+		close(fd);
+		return nil;
+	}
+	setmalloctag(bp, getcallerpc(&name));
+
 	return bp;
 }
 
