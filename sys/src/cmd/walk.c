@@ -217,19 +217,6 @@ usage(void)
 	a rework, I left them in - BurnZeZ
 */
 
-Biobuf *
-Bfdopen(int fd, int flag)
-{
-	Biobuf *b;
-
-	b = malloc(sizeof(Biobuf));
-	if(b && Binit(b, fd, flag) == 0)
-		return b;
-	free(b);
-	return nil;
-}
-	
-
 void
 main(int argc, char **argv)
 {
