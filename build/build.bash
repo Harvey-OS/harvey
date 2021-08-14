@@ -1,6 +1,23 @@
 #!/bin/bash
 set -e
 
+rm -f /tmp/image
+
+if [ $HARVEY_GOLANG"" == "" ]; then
+               echo Not including Go in the image
+       else
+	      mkdir -p ../sys/go
+              echo sudo mount --bind $HARVEY_GOLANG ../sys/go
+              sudo mount --bind $HARVEY_GOLANG ../sys/go
+              ls -l ../sys/go
+              function cleanup {
+                       echo unmounting sys/go
+                       sudo umount ../sys/go
+               }
+               trap cleanup EXIT
+fi
+
+
 # Download Plan 9
 if [ ! -e 9legacy.iso ] && [ ! -e 9legacy.iso.bz2 ]; then
   curl -L --fail -O https://github.com/Harvey-OS/harvey/releases/download/9legacy/9legacy.iso.bz2
@@ -14,7 +31,7 @@ $(cd ..; bash ./build/mkdirs)
 $(cd ..; tar --format ustar --exclude './build' --exclude harvey.tgz --exclude .git --exclude '9legacy.iso*' -czf harvey.tgz *)
 
 expect <<EOF
-spawn qemu-system-i386 -accel kvm -nographic -net user -net nic,model=virtio -m 2048 -vga none -cdrom 9legacy.iso -boot d -hda ../harvey.tgz
+spawn qemu-system-i386 -accel kvm -nographic -net user -net nic,model=virtio -m 4096 -vga none -cdrom 9legacy.iso -boot d -hda ../harvey.tgz
 expect -exact "Selection:"
 send "2\n"
 expect -exact "Plan 9"
