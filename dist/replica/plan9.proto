@@ -111,6 +111,8 @@ sys	d775 sys sys
 			+	d775 sys sys
 		ghostscript	d775 sys sys
 			+	d775 sys sys
+		git	d775 sys sys
+			+	d775 sys sys
 		kbmap	d775 sys sys
 			+	d775 sys sys
 		lex	d775 sys sys
