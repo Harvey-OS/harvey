@@ -242,6 +242,7 @@ lst=( \
 	./sys/lib/dist/pc/glenda/bin/386 \
 	./sys/lib/dist/pc/glenda/tmp \
 	./sys/lib/dist/pc/multi \
+	./sys/lib/git \
 	./sys/lib/lp/log \
 	./sys/lib/lp/perm \
 	./sys/lib/lp/tmp \
