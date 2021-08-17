@@ -25,6 +25,7 @@ mount -a /srv/factotum /mnt
 # standard bin
 bind /$cputype/bin /bin
 bind -a /rc/bin /bin
+bind -a /sys/go/bin/plan9_$cputype /bin
 
 # internal networks
 # mount -a /srv/ip /net
