@@ -4,26 +4,27 @@ set -e
 rm -f /tmp/image
 
 if [ $HARVEY_GOLANG"" == "" ]; then
-               echo Not including Go in the image
-       else
-	      mkdir -p ../sys/go
-              echo sudo mount --bind $HARVEY_GOLANG ../sys/go
-              sudo mount --bind $HARVEY_GOLANG ../sys/go
-              ls -l ../sys/go
-              function cleanup {
-                       echo unmounting sys/go
-                       sudo umount ../sys/go
-               }
-               trap cleanup EXIT
+    echo Not including Go in the image
+else
+    mkdir -p ../sys/go
+    echo sudo mount --bind $HARVEY_GOLANG ../sys/go
+    sudo mount --bind $HARVEY_GOLANG ../sys/go
+    ls -l ../sys/go
+    function cleanup {
+        echo unmounting sys/go
+        sudo umount ../sys/go
+    }
+    trap cleanup EXIT
 fi
 
 
 # Download Plan 9
 if [ ! -e 9legacy.iso ] && [ ! -e 9legacy.iso.bz2 ]; then
-  curl -L --fail -O https://github.com/Harvey-OS/harvey/releases/download/9legacy/9legacy.iso.bz2
+    curl -L --fail -O https://github.com/Harvey-OS/harvey/releases/download/9legacy/9legacy.iso.bz2
 fi
+
 if [ ! -e 9legacy.iso ]; then
-  bunzip2 -k 9legacy.iso.bz2
+    bunzip2 -k 9legacy.iso.bz2
 fi
 
 $(cd ..; bash ./build/mkdirs)

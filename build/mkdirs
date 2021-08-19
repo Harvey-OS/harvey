@@ -258,6 +258,13 @@ lst=( \
 	./usr/glenda/bin/amd64 \
 	./usr/glenda/bin/mips \
 	./usr/glenda/tmp \
+	./bbin \
+	./amd64/bbin \
+	./386/bbin \
+	./arm64/bbin \
+	./arm/bbin \
+	./mips64/bbin \
+	./mips/bbin \
 )
 
 for i in "${lst[@]}"; do
