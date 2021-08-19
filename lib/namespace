@@ -25,7 +25,15 @@ mount -a /srv/factotum /mnt
 # standard bin
 bind /$cputype/bin /bin
 bind -a /rc/bin /bin
+
+# golang
 bind -a /sys/go/bin/plan9_$cputype /bin
+
+# u-root
+# u-root assumes its binaries are in /bbin and uses
+# #! scripts for that purpose.
+bind /$cputype/bbin /bbin
+bind -a /$cputype/bbin /bin
 
 # internal networks
 # mount -a /srv/ip /net
