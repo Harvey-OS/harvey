@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-rm -f /tmp/image
-
 if [ $HARVEY_GOLANG"" == "" ]; then
                echo Not including Go in the image
        else
