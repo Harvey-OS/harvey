@@ -12,7 +12,7 @@ if (test -e /srv/fossil -o -e /srv/fossil.open) {
 sd=sdXX
 dev=/dev/$sd
 target=plan9-usb
-disk=/tmp/$target.img
+disk=$outputdir^/$target.img
 #gb=1024*1024*1024
 #size=$gb^*1
 size=131072
@@ -103,4 +103,4 @@ rm -f /srv/^(fossil fossil.open fscons fscons.open)
 sleep 8
 kill fossil2 | rc
 
-bzip2 -c9 $disk > $disk.bz2 && rm $disk
+#bzip2 -c9 $disk > $disk.bz2 && rm $disk

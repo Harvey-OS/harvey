@@ -50,6 +50,8 @@ fn buildinit {
 		dir=/n/harvey/build
 		path=(/bin $dir .)
 
+		outputdir=/n/host
+
 		rdev=/dev/sdD0
 
 		buildinitdone=yes

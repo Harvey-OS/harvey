@@ -70,9 +70,9 @@ send "cd /n/harvey/build/scripts\n"
 expect -exact "term% "
 send "rc build && rc repl && rc usb\n"
 expect -exact "term% "
-send "ls -l /tmp/dist/\n"
-expect -exact "term% "
-send "time fcp /tmp/plan9-usb.img.bz2 /n/host/\n"
+send "ls -l /n/host/\n"
+#expect -exact "term% "
+#send "time fcp /tmp/plan9-usb.img.bz2 /n/host/\n"
 
 # build usb
 expect -exact "term% "
