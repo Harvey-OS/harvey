@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-rm -f /tmp/image
-
 if [ $HARVEY_GOLANG"" == "" ]; then
     echo Not including Go in the image
 else
@@ -56,27 +54,34 @@ set timeout 2400
 expect -exact "term% "
 send "ramfs -u -m /n/harvey\n"
 expect -exact "term% "
+send "ramfs -u -m /tmp\n"
+expect -exact "term% "
 send "cd /n/harvey\n"
 expect -exact "term% "
 send "gunzip < /dev/sdC0/data | tar x\n"
 
+expect -exact "term% "
+send "srv -c tcp!10.0.2.2!5640 host /n/host\n"
+
 # Go to the build dir
 expect -exact "term% "
 send "cd /n/harvey/build/scripts\n"
-expect -exact "term% "
-send "rc build && rc repl && rc iso\n"
 
-# and shut down
+# build usb first
 expect -exact "term% "
-send "ls -l /tmp/dist/\n"
+send "rc build && rc repl && rc usb\n"
 expect -exact "term% "
-send "srv -c tcp!10.0.2.2!5640 host /n/host\n"
+send "ls -l /n/host/\n"
+
+# build iso
+expect -exact "term% "
+send "rm -r /tmp/dist/plan9-usb.*\n"
+expect -exact "term% "
+send "rc iso\n"
 expect -exact "term% "
 send "time fcp /tmp/dist/plan9-new.iso.bz2 /n/host/\n"
-expect -exact "term% "
-send "cd /n/host\n"
-expect -exact "term% "
-send "mkusbboot -r /n/harvey -p /sys/lib/sysconfig/proto/allproto -s 2048\n"
+
+# and shut down
 expect -exact "term% "
 send "fshalt\n"
 expect -exact "done halting"

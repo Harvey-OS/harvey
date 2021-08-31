@@ -1,0 +1,106 @@
+#!/bin/rc
+
+rfork en
+
+. funcs
+
+if (test -e /srv/fossil -o -e /srv/fossil.open) {
+	echo $0: /srv/fossil* exists, not safe to start a new one >[1=2]
+	exit fossil-already-running
+}
+
+sd=sdXX
+dev=/dev/$sd
+target=plan9-usb
+disk=$outputdir^/$target.img
+#gb=1024*1024*1024
+#size=$gb^*1
+size=131072
+
+data=$dev/data
+plan9=$dev/plan9
+9fat=$dev/9fat
+fossil=$dev/fossil
+
+{
+	echo [menu]
+	echo menuitem'='cpu, Plan 9 CPU Kernel
+	echo menuitem'='terminal, Plan 9 Terminal Kernel
+	echo menuitem'='manual, Manual
+	echo menudefault'='terminal, 10
+	echo
+	echo [cpu]
+	echo bootfile'='sdB0!9fat!9pccpuf
+	echo
+	echo [terminal]
+	echo bootfile'='sdB0!9fat!9pcf
+	echo
+	echo [manual]
+	echo
+	echo [common]
+	echo nobootprompt'='local!$dev/fossil
+	echo
+	echo nvram'='$dev/nvram
+	echo debugboot'='1
+	echo *nodumpstack'='1
+	echo *noe820print'='1
+	echo *nomp'='1
+	echo
+	echo mouseport'='ask
+	echo monitor'='ask
+	echo vgasize'='ask
+	echo user'='glenda
+} > /tmp/plan9.ini
+
+#dd -if /dev/zero -of $disk -bs 1 -seek $size -count 1
+dd -if /dev/zero -of $disk -bs 8192 -count $size
+chmod +t $disk
+disk/partfs $disk
+
+cp $build/386/9loadusb /tmp/9load
+
+disk/mbr -m $build/386/mbr $data
+disk/fdisk -baw $data
+disk/prep -bw -a^(9fat nvram fscfg fossil) $plan9
+disk/format -b /386/pbslba -d -r 2 $9fat /tmp/9load $build/386/9pcf $build/386/9pccpuf /tmp/plan9.ini
+
+rm /tmp/9load
+rm /tmp/plan9.ini
+
+fossil/flfmt -y $fossil
+
+{
+	echo fsys main config
+	echo fsys main open -Va -c 32768
+	echo srv fossil
+	echo srv -APW fossil.open
+	echo srv -Ap fscons.open
+	echo fsys main
+} | fossil/conf -w $fossil
+
+fossil/fossil -f $fossil
+
+bind /n/harvey /n/dist
+mount -c /srv/fossil.open /n/newfs
+
+echo fsys main create /active/adm adm sys d775 >>/srv/fscons.open
+echo fsys main create /active/adm/users adm sys 664 >>/srv/fscons.open
+echo uname upas :upas >>/srv/fscons.open
+echo users -w >>/srv/fscons.open
+for(i in dist dist/replica dist/replica/client)
+	echo fsys main create /active/$i sys sys d775 >>/srv/fscons.open
+echo fsys main create /active/dist/replica/client/plan9.db sys sys 664 >>/srv/fscons.open
+echo fsys main create /active/dist/replica/client/plan9.log sys sys a664 >>/srv/fscons.open
+replica/pull /sys/lib/dist/pc/inst/replcfg
+
+unmount /n/newfs
+sleep 8
+echo fsys all sync >>/srv/fscons.open
+sleep 8
+echo fsys all halt >>/srv/fscons.open
+sleep 8
+rm -f /srv/^(fossil fossil.open fscons fscons.open)
+sleep 8
+kill fossil2 | rc
+
+#bzip2 -c9 $disk > $disk.bz2 && rm $disk
