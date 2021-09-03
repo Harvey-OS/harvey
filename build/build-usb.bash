@@ -67,11 +67,11 @@ send "srv -c tcp!10.0.2.2!5640 host /n/host\n"
 expect -exact "term% "
 send "cd /n/harvey/build/scripts\n"
 
-# build the ISO
+# build usb first
 expect -exact "term% "
-send "rc build && rc repl && rc iso\n"
+send "rc build && rc repl && rc usb\n"
 expect -exact "term% "
-send "time fcp /tmp/dist/plan9-new.iso.bz2 /n/host/\n"
+send "ls -l /n/host/\n"
 
 # and shut down
 expect -exact "term% "

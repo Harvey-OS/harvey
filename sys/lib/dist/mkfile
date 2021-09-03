@@ -2,8 +2,6 @@
 
 <defs
 
-x=`{setup}	# import /sys/lib/dist/web.protect from the outside
-
 cd:V: $scr/plan9.iso
 
 ncd:V: $scr/plan9-new.iso.bz2
