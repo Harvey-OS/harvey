@@ -18,7 +18,7 @@ if (test -d $build/sys/src/9/pcboot) {
 	mv /sys/lib/dist/mkfile.new /sys/lib/dist/mkfile
 
 	rm -f $build/other/dist/*
-	cd /sys/lib/dist && mk ncd-dist
+	cd /sys/lib/dist && mk ncd
 	cd /sys/lib/dist/pc && mk clean
 
 #	chmod +w $cdstub
@@ -28,6 +28,6 @@ if (test -d $build/sys/src/9/pcboot) {
 }
 if not {
 	rm -f $build/other/dist/*
-	cd /sys/lib/dist && mk ncd-dist
+	cd /sys/lib/dist && mk ncd
 	cd /sys/lib/dist/pc && mk clean
 }

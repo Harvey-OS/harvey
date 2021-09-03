@@ -15,7 +15,8 @@ target=plan9-usb
 disk=$outputdir^/$target.img
 #gb=1024*1024*1024
 #size=$gb^*1
-size=131072
+#size=131072
+size=180000
 
 data=$dev/data
 plan9=$dev/plan9
@@ -91,7 +92,7 @@ for(i in dist dist/replica dist/replica/client)
 	echo fsys main create /active/$i sys sys d775 >>/srv/fscons.open
 echo fsys main create /active/dist/replica/client/plan9.db sys sys 664 >>/srv/fscons.open
 echo fsys main create /active/dist/replica/client/plan9.log sys sys a664 >>/srv/fscons.open
-replica/pull /sys/lib/dist/pc/inst/replcfg
+replica/pull $build/sys/lib/dist/pc/inst/replcfg
 
 unmount /n/newfs
 sleep 8

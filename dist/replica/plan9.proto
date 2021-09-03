@@ -93,6 +93,8 @@ sys	d775 sys sys
 				+	d775 sys sys
 			sudoku	d775 sys sys
 				+	d775 sys sys
+	go	d775 sys sys
+		+	d775 sys sys
 	include	d775 sys sys
 		+	d775 sys sys
 	lib	d775 sys sys
