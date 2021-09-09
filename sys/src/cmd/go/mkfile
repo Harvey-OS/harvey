@@ -9,29 +9,39 @@ DIRS=`{cat commands | awk '{print $2}'}
 all:V:	$DIRS
 
 $DIRS:V:
-	for (i in $DIRS) @{
-		echo BUILD $i
-		ls $i
-		cd $i
-		GOARCH=$objtype go build
+	if (test -e /bin/go) {
+		for (i in $DIRS) @{
+			echo BUILD $i
+			ls $i
+			cd $i
+			GOARCH=$objtype go build
+		} 
+	}
+	if not {
+		echo No go, skipping
 	}
 
 install:V:	installdirs
 
 installdirs:V:
-	for (i in $DIRS) @{
-		echo INSTALL $i
-		ls $i
-		cd $i
-		GOARCH=$objtype go build
-		cp $i /$objtype/bin/	
+	if (test -e /bin/go) {
+		for (i in $DIRS) @{
+			echo INSTALL $i
+			ls $i
+			cd $i
+			GOARCH=$objtype go build
+			cp $i /$objtype/bin/	
+		}
+	}
+	if not {
+		echo No go, skipping
 	}
 
 cleandirs:V:
 	for (i in $DIRS) @{
 		echo clean $i
 		cd $i
-		rm $i
+		rm -f $i
 	}
 
 update:V:
