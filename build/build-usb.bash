@@ -63,6 +63,16 @@ send "gunzip < /dev/sdC0/data | tar x\n"
 expect -exact "term% "
 send "srv -c tcp!10.0.2.2!5640 host /n/host\n"
 
+# Get tools ready
+expect -exact "term% "
+send "bind -a /n/harvey/sys/go/bin /bin\n"
+expect -exact "term% "
+send "aux/stub -d /sys/go\n"
+expect -exact "term% "
+send "bind -a /n/harvey/sys/go/ /sys/go\n"
+expect -exact "term% "
+send "GOROOT=/sys/go\n"
+
 # Go to the build dir
 expect -exact "term% "
 send "cd /n/harvey/build/scripts\n"
