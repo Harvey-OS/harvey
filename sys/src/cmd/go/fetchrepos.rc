@@ -1,0 +1,5 @@
+#!/bin/rc
+cat commands | while (line=`{read}) {
+	echo git/clone $line
+	git/clone $line
+}
