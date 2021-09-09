@@ -8,6 +8,9 @@ else
     echo sudo mount --bind $HARVEY_GOLANG ../sys/go
     sudo mount --bind $HARVEY_GOLANG ../sys/go
     ls -l ../sys/go
+    pushd ../sys/src/cmd/go
+    sh fetchrepos.sh
+    popd
     function cleanup {
         echo unmounting sys/go
         sudo umount ../sys/go
