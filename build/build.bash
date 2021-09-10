@@ -1,21 +1,6 @@
 #!/bin/bash
 set -e
 
-if [ $HARVEY_GOLANG"" == "" ]; then
-    echo Not including Go in the image
-else
-    mkdir -p ../sys/go
-    echo sudo mount --bind $HARVEY_GOLANG ../sys/go
-    sudo mount --bind $HARVEY_GOLANG ../sys/go
-    ls -l ../sys/go
-    function cleanup {
-        echo unmounting sys/go
-        sudo umount ../sys/go
-    }
-    trap cleanup EXIT
-fi
-
-
 # Download Plan 9
 if [ ! -e 9legacy.iso ] && [ ! -e 9legacy.iso.bz2 ]; then
     curl -L --fail -O https://github.com/Harvey-OS/harvey/releases/download/9legacy/9legacy.iso.bz2
@@ -25,8 +10,13 @@ if [ ! -e 9legacy.iso ]; then
     bunzip2 -k 9legacy.iso.bz2
 fi
 
+# Get the Go program source fetched
+$(cd ../sys/src/cmd/go && sh fetchrepos.sh)
+
+# Make directories as needed
 $(cd ..; bash ./build/mkdirs)
 
+rm -f harvey.tgz
 $(cd ..; tar --format ustar --exclude './build' --exclude harvey.tgz --exclude .git --exclude '9legacy.iso*' -czf harvey.tgz *)
 
 expect <<EOF
@@ -63,15 +53,8 @@ send "gunzip < /dev/sdC0/data | tar x\n"
 expect -exact "term% "
 send "srv -c tcp!10.0.2.2!5640 host /n/host\n"
 
-# Get tools ready
 expect -exact "term% "
-send "bind -a /n/harvey/sys/go/bin /bin\n"
-expect -exact "term% "
-send "aux/stub -d /sys/go\n"
-expect -exact "term% "
-send "bind -a /n/harvey/sys/go/ /sys/go\n"
-expect -exact "term% "
-send "GOROOT=/sys/go\n"
+send "bind -a /n/harvey/sys/go/bin/plan9_386 /bin\n"
 
 # Go to the build dir
 expect -exact "term% "
