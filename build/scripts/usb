@@ -16,7 +16,7 @@ disk=$outputdir^/$target.img
 #gb=1024*1024*1024
 #size=$gb^*1
 #size=131072
-size=180000
+size=260000
 
 data=$dev/data
 plan9=$dev/plan9

@@ -28,3 +28,4 @@ usr/djc
 sys/lib/dist/bin
 sys/lib/dist/pc/multi
 sys/lib/firmware
+sys/go
