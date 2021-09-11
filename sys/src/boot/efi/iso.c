@@ -129,15 +129,19 @@ Foundpvd:
 		return 0;
 
 	for(;;){
-		if(readn(ex, &d, Dirsz) != Dirsz)
+		if(read(ex, &d.dirlen, 1) != 1)
 			break;
 		if(d.dirlen == 0)
+			continue;	/* zero padding to next sector */
+		if(read(ex, &d.dirlen + 1, Dirsz-1) != Dirsz-1)
 			break;
-		if(readn(ex, name, d.namelen) != d.namelen)
+		if(read(ex, name, d.namelen) != d.namelen)
 			break;
 		i = d.dirlen - (Dirsz + d.namelen);
-		while(i-- > 0)
-			read(ex, &c, 1);
+		while(i-- > 0){
+			if(read(ex, &c, 1) != 1)
+				break;
+		}
 		for(i=0; i<d.namelen; i++){
 			c = name[i];
 			if(c >= 'A' && c <= 'Z'){
