@@ -1,5 +1,6 @@
 #!/bin/rc
-cat commands | while (line=`{read}) {
+# TODO: fix this to match fetch.sh
+grep git: commands | while (line=`{read}) {
 	echo git/clone $line
 	git/clone $line
 }

@@ -1,1 +1,3 @@
-git://github.com/Harvey-OS/edwood.git edwood
+edwood git://github.com/Harvey-OS/edwood.git edwood
+tools/gopls git://github.com/golang/tools.git tools
+tools/cmd/goimports ... 
