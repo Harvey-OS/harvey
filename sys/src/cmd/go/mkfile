@@ -2,7 +2,7 @@
 #
 #		programs
 #
-DIRS=`{cat commands | awk '{print $2}'}
+DIRS=`{cat commands | awk '{print $1}'}
 
 #</sys/src/cmd/mkmany
 
@@ -29,8 +29,7 @@ installdirs:V:
 			echo INSTALL $i
 			ls $i
 			cd $i
-			GOARCH=$objtype go build
-			cp $i /$objtype/bin/	
+			GOARCH=$objtype go build -o /$objtype/bin/ .
 		}
 	}
 	if not {
