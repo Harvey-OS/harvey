@@ -158,11 +158,9 @@ echo IN /sys/lib/dist/pc
 ls -l
 cd /sys/src/9/pc && mk nuke
 
-cd /sys/src/ && mk nuke
+cd /sys/src/cmd && mk nuke
 
 # man
 
 cd /sys/lib/man/lookman && mk index
 cd /sys/man && mk
-
-echo DONEZO
