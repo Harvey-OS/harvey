@@ -11,13 +11,13 @@ if [ ! -e 9legacy.iso ]; then
 fi
 
 # Get the Go program source fetched
-$(cd ../sys/src/cmd/go && sh fetchrepos.sh)
+(cd ../sys/src/cmd/go && sh fetchrepos.sh)
 
 # Make directories as needed
-$(cd ..; bash ./build/mkdirs)
+(cd ..; bash ./build/mkdirs)
 
 rm -f harvey.tgz
-$(cd ..; tar --format ustar --exclude './build' --exclude harvey.tgz --exclude .git --exclude '9legacy.iso*' -czf harvey.tgz *)
+(cd ..; tar --format ustar --exclude './build' --exclude harvey.tgz --exclude .git --exclude '9legacy.iso*' -czf harvey.tgz *)
 
 expect <<EOF
 spawn qemu-system-i386 -accel kvm -nographic -net user -net nic,model=virtio -m 4096 -vga none -cdrom 9legacy.iso -boot d -hda ../harvey.tgz

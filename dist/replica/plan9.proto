@@ -35,6 +35,8 @@ amd64	d775 sys sys
 	+	d775 sys sys
 arm	d775 sys sys
 	+	d775 sys sys
+arm64	d775 sys sys
+	+	d775 sys sys
 mips	d775 sys sys
 	+	d775 sys sys
 mips64	d775 sys sys
@@ -42,6 +44,10 @@ mips64	d775 sys sys
 power	d775 sys sys
 	+	d775 sys sys
 power64	d775 sys sys
+	+	d775 sys sys
+riscv	d775 sys sys
+	+	d775 sys sys
+riscv64	d775 sys sys
 	+	d775 sys sys
 sparc	d775 sys sys
 	+	d775 sys sys
