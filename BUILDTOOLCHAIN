@@ -1,3 +1,8 @@
+#!/bin/bash
+
+set -x
+set -e
+
 PATH=$PATH:$PLAN9/bin
 export NXM=`pwd`
 . $NXM/buildconfig

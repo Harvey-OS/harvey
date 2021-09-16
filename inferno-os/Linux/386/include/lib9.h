@@ -1,7 +1,7 @@
 /* define _BSD_SOURCE to use ISO C, POSIX, and 4.3BSD things. */
 #define	USE_PTHREADS
-#ifndef _BSD_SOURCE
-#define _BSD_SOURCE
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
 #endif
 #define _XOPEN_SOURCE  500
 #define _LARGEFILE_SOURCE	1
