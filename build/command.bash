@@ -18,9 +18,9 @@ expect -timeout 600 "root is from (tcp, local)"
 send "local\n"
 expect -exact "mouseport is (ps2, ps2intellimouse, 0, 1, 2)\[ps2\]:"
 send "ps2intellimouse\n"
-expect -exact "vgasize \[640x480x8\]:"
+expect -re "vgasize .*:"
 send "1280x1024x32\n"
-expect -exact "monitor is \[xga\]:"
+expect -re "monitor is .*:"
 send "vesa\n"
 
 # Mount the host's fileserver

@@ -76,16 +76,16 @@ if(~ $mouseport ask){
 		mouseport=ps2
 }
 if(~ $vgasize ask){
-	echo -n 'vgasize [640x480x8]: '
+	echo -n 'vgasize [1280x1024x32]: '
 	vgasize=`{read}
 	if(~ $#vgasize 0)
-		vgasize=640x480x8
+		vgasize=1280x1024x32
 }
 if(~ $monitor ask){
-	echo -n 'monitor is [xga]: '
+	echo -n 'monitor is [vesa]: '
 	monitor=`{read}
 	if(~ $#monitor 0)
-		monitor=xga
+		monitor=vesa
 }
 if(test -f /dev/mousectl){
 	switch($mouseport){
