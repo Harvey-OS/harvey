@@ -13,5 +13,5 @@ if not
 	dump=acme.dump
 
 a=`{echo $wid-35 | hoc }
-window 60,90,$a,$ht acme -l lib/$dump
+window 60,90,$a,$ht edwood -l lib/$dump
 window 20,140,610,450 /usr/glenda/lib/first.window
