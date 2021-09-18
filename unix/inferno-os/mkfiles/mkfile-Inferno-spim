@@ -1,0 +1,24 @@
+TARGMODEL=	Inferno
+TARGSHTYPE=	rc
+CPUS=		spim 386 amd64
+
+O=		0
+OS=		v851ok0q2t6
+
+AR=		ar
+ARFLAGS=	vu
+
+AS=		0a
+ASFLAGS=
+
+CC=		0c
+CFLAGS=		-w -I$ROOT/Inferno/$OBJTYPE/include -I$ROOT/Inferno/include -I$ROOT/include
+ANSICPP= -p
+
+LD=		0l
+LDFLAGS=
+
+SYSLIBS=	-lc
+
+YACC=		yacc
+YFLAGS=		-d

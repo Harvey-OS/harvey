@@ -1,0 +1,31 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		386
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	ruvs
+
+AS=		cc -c -m32
+ASFLAGS=
+
+CC=		cc -c -m32
+CFLAGS=		-g\
+		-O\
+		-Wuninitialized -Wunused -Wreturn-type -Wimplicit\
+		-I$ROOT/Linux/386/include\
+		-I$ROOT/include\
+ 		-I/usr/X11R6/include\
+		-DLINUX_386
+
+ANSICPP=
+LD=		cc -m32
+LDFLAGS=	-L/usr/openwin/lib\
+		-L/usr/X11R6/lib\
+
+SYSLIBS=
+
+YACC=		iyacc
+YFLAGS=		-d

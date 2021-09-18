@@ -1,0 +1,52 @@
+</$objtype/mkfile
+
+LIB=cc.a$O
+OFILES=\
+	y.tab.$O\
+	lex.$O\
+	mac.$O\
+	dcl.$O\
+	acid.$O\
+	pickle.$O\
+	bits.$O\
+	com.$O\
+	scon.$O\
+	funct.$O\
+	sub.$O\
+	com64.$O\
+	compat.$O\
+	dpchk.$O\
+	omachcap.$O\
+
+HFILES=cc.h\
+	y.tab.h\
+
+YFILES=cc.y\
+
+CURCC=6c 8c qc vc
+OTHERCC=1c 2c 5c 7c kc
+
+</sys/src/cmd/mklib
+
+install:V:	$LIB
+	date
+
+$LIB:	$LIBOBJ
+	ar vu $LIB $OFILES
+
+mac.$O:	macbody
+
+everything:V:
+	# mk the current compilers
+	for(DIR in cc $CURCC){
+		cd ../$DIR
+		mk nuke
+		mk install
+	}
+	# mk all the others with those
+	for(DIR in cc $CURCC $OTHERCC){
+		cd ../$DIR
+		mk nuke
+		mk installall
+		mk clean
+	}

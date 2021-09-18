@@ -1,0 +1,41 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		386
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	ruvs
+A=		a
+
+AS=		cc -c -arch i386
+ASFLAGS=
+
+ISYSROOT=	-isysroot /Developer/SDKs/MacOSX10.4u.sdk
+
+CC=		cc -c
+COPTFLAGS=	-Os
+CDEBUGFLAGS=
+CTHREADFLAGS=
+CFLAGS= 	-arch i386\
+		-mmacosx-version-min=10.4\
+		-Wno-deprecated-declarations -Wuninitialized -Wunused -Wreturn-type -Wimplicit -Wno-four-char-constants -Wno-unknown-pragmas\
+		-pipe\
+		-fno-strict-aliasing\
+		-no-cpp-precomp\
+		-mno-fused-madd\
+		-I$ROOT/MacOSX/386/include\
+		-I$ROOT/include\
+		$COPTFLAGS $CDEBUGFLAGS\
+
+LD=		cc -arch i386
+LDFLAGS=\
+		-mmacosx-version-min=10.4\
+		-multiply_defined suppress
+
+SYSLIBS=
+
+YACC=		iyacc
+YFLAGS=		-d
+

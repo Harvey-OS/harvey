@@ -1,0 +1,43 @@
+<../../mkconfig
+
+TARG=6ca
+TARG=6c
+
+OFILES=\
+	cgen.$O\
+	enam.$O\
+	list.$O\
+	sgen.$O\
+	swt.$O\
+	txt.$O\
+	reg.$O\
+	peep.$O\
+	pgen.$O\
+	pswt.$O\
+	machcap.$O\
+	div.$O\
+	mul.$O\
+
+HFILES=\
+	gc.h\
+	6.out.h\
+	../cc/cc.h\
+
+LIBS=cc bio 9		# order is important
+
+BIN=$ROOT/$OBJDIR/bin
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+
+CFLAGS=	$CFLAGS -I../include
+
+$ROOT/$OBJDIR/lib/libcc.a:
+	cd ../cc
+	mk $MKFLAGS install
+	mk $MKFLAGS clean
+
+%.$O: ../cc/%.c
+	$CC $CFLAGS -I. ../cc/$stem.c
+
+#enam.c:	6.out.h
+#	rc mkenam

@@ -1,0 +1,32 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		386
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	ruvs
+
+AS=		cc -c
+ASFLAGS=
+
+CC=		cc -c
+CFLAGS=	-g\
+		-O\
+		-Wno-deprecated-declarations -Wuninitialized -Wunused -Wreturn-type -Wimplicit\
+		-I$ROOT/DragonFly/386/include\
+		-I$ROOT/include\
+		-I/usr/local/include\
+ 		-I/usr/X11R6/include\
+
+ANSICPP=
+LD=		cc
+LDFLAGS=	-L/usr/openwin/lib\
+		-L/usr/local/lib\
+		-L/usr/X11R6/lib\
+
+SYSLIBS=
+
+YACC=		iyacc
+YFLAGS=		-d

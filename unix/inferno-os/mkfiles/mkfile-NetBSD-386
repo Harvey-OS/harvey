@@ -1,0 +1,30 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		386
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	ruvs
+
+AS=		cc -c
+ASFLAGS=
+
+CC=		cc -c
+CFLAGS=		-g\
+		-O\
+		-Wno-deprecated-declarations -Wuninitialized -Wunused -Wreturn-type -Wimplicit\
+		-I$ROOT/NetBSD/386/include\
+		-I$ROOT/include\
+ 		-I/usr/X11R7/include\
+ 		-I/usr/X11R6/include
+
+ANSICPP=
+LD=		cc
+LDFLAGS=	-L/usr/X11R6/lib -R/usr/X11R6/lib
+
+SYSLIBS=
+
+YACC=		iyacc
+YFLAGS=		-d

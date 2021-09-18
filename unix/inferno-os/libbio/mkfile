@@ -1,0 +1,23 @@
+<../mkconfig
+
+LIB=libbio.a
+OFILES=\
+	bbuffered.$O\
+	bfildes.$O\
+	bflush.$O\
+	bgetrune.$O\
+	bgetc.$O\
+	bgetd.$O\
+	binit.$O\
+	boffset.$O\
+	bprint.$O\
+	bputrune.$O\
+	bputc.$O\
+	brdline.$O\
+	bread.$O\
+	bseek.$O\
+	bwrite.$O\
+
+HFILES=	$ROOT/include/bio.h
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE

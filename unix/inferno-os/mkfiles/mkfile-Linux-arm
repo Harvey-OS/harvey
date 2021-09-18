@@ -1,0 +1,27 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		arm
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	ruvs
+
+AS=		arm-gcc -c 
+ASFLAGS=
+
+CC=		arm-gcc -c 
+CFLAGS=		-O\
+		-I$ROOT/Linux/arm/include\
+		-I$ROOT/include\
+		-DLINUX_ARM
+
+ANSICPP=
+LD=		arm-gcc 
+LDFLAGS=	
+
+SYSLIBS=
+
+YACC=		iyacc
+YFLAGS=		-d

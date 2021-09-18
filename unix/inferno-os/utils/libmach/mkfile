@@ -1,0 +1,46 @@
+<../../mkconfig
+
+LIB=libmach.a
+OFILES=\
+	2.$O\
+	4.$O\
+	5.$O\
+	6.$O\
+	8.$O\
+	9.$O\
+	k.$O\
+	q.$O\
+	t.$O\
+	v.$O\
+	2db.$O\
+	5db.$O\
+	8db.$O\
+	kdb.$O\
+	qdb.$O\
+	tdb.$O\
+	vdb.$O\
+	2obj.$O\
+	5obj.$O\
+	6obj.$O\
+	8obj.$O\
+	9obj.$O\
+	kobj.$O\
+	qobj.$O\
+	vobj.$O\
+	obj.$O\
+	map.$O\
+	swap.$O\
+	sym.$O\
+	access.$O\
+	machdata.$O\
+	setmach.$O\
+	executable.$O\
+	vcodas.$O\
+
+HFILES=../include/mach.h ../include/a.out.h bootexec.h elf.h ureg2.h ureg4.h ureg6.h ureg8.h uregk.h uregv.h ureg5.h
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE
+CFLAGS= $CFLAGS -I../include -I..
+
+package:QV:
+	$TRUE

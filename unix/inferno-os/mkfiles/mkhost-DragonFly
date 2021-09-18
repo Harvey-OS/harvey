@@ -1,0 +1,19 @@
+
+#	Variables for host system type = Unixware
+
+SHELLTYPE=	sh
+SHELLNAME=	/bin/sh
+HOSTMODEL=	Posix
+OSTARG=	os
+
+DATA2S=	data2s
+NDATE=		ndate
+KSIZE=		ksize
+AWK=		awk
+CP=	cp
+ECHO=	echo
+FALSE=	false
+MKDIR=	mkdir -p
+RM=	rm -f
+RMDIR=	rmdir
+TRUE=	true

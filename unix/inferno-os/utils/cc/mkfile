@@ -1,0 +1,35 @@
+<../../mkconfig
+
+LIB=libcc.a
+
+OFILES=\
+	acid.$O\
+	bits.$O\
+	com.$O\
+	com64.$O\
+	$TARGMODEL.$O\
+	dcl.$O\
+	dpchk.$O\
+	funct.$O\
+	lex.$O\
+	mac.$O\
+	mpatof.$O\
+	pickle.$O\
+	scon.$O\
+	sub.$O\
+	y.tab.$O\
+	omachcap.$O\
+ 
+HFILES=cc.h\
+	y.tab.h\
+ 
+YFILES=cc.y\
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE
+
+CFLAGS=	$CFLAGS -I../include
+
+mac.$O: macbody
+
+lex.$O:	lex.c
+	$CC $CFLAGS '-DCPP="/bin/cpp"' lex.c

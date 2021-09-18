@@ -1,0 +1,12 @@
+
+#	Variables for host system type = Inferno
+
+SHELLTYPE=	rc
+SHELLNAME=	rc
+HOSTMODEL=	Inferno
+OSTARG=		Inferno
+
+DATA2S=		data2s
+NDATE=		date -n
+KSIZE=		size
+AWK=		awk

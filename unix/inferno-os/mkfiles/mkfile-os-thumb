@@ -1,0 +1,26 @@
+TARGMODEL=	Inferno
+TARGSHTYPE=	sh
+CPUS=		arm
+OBJDIR=		Inferno/thumb		#force everything to point to inferno directory
+
+O=		t
+OS=		5t
+
+AR=		iar
+ARFLAGS=	vu
+ARPREFIX=
+
+AS=		5a
+ASFLAGS=	-t
+
+CC=		tc
+CFLAGS=		-wFV -I$ROOT/Inferno/thumb/include -I$ROOT/include
+ANSICPP= -p
+
+LD=		5l
+LDFLAGS=
+
+SYSLIBS=	#-lc
+
+YACC=		iyacc
+YFLAGS=		-d

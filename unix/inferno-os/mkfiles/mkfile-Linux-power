@@ -1,0 +1,29 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		power
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	crvs
+
+AS=		cc -c -m32
+ASFLAGS=
+
+CC=		cc -c -m32
+CFLAGS=		-g\
+		-O\
+		-I$ROOT/Linux/power/include\
+		-I$ROOT/include\
+		-I/usr/X11R6/include
+
+ANSICPP=
+LD=		cc -m32
+LDFLAGS=	-L/usr/openwin/lib\
+		-L/usr/X11R6/lib\
+
+SYSLIBS=
+
+YACC=		yacc
+YFLAGS=		-d

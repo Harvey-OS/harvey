@@ -1,0 +1,40 @@
+TARGMODEL=	Nt
+TARGSHTYPE=	rc
+CPUS=		386
+
+O=		obj
+OS=		obj
+
+AR=		LIB
+ARFLAGS=	-nologo
+ARPREFIX=	-out:
+
+AS=		ml
+ASFLAGS=	-c\
+		-nologo\
+		-coff\
+		-Cx\
+		-Zm\
+		-DQUIET\
+		-Di386\
+
+CC=		cl
+CFLAGS=		-c\
+		-nologo\
+		-W3\
+		-Zi\
+		-MT\
+		-D_WIN32_WINNT=0x0400\
+		-I$ROOT/Nt/386/include\
+		-I$ROOT/include\
+		$XCFLAGS\
+
+ANSICPP=
+LD=		link
+LDFLAGS=	$LDEBUG -nologo -incremental:no -map
+# LDFLAGS=	-nologo -incremental:no -debug
+
+SYSLIBS=	binmode.obj
+
+YACC=		iyacc
+YFLAGS=		-d

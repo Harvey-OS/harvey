@@ -1,0 +1,24 @@
+TARGMODEL=	Plan9
+TARGSHTYPE=	rc
+CPUS=		386 sparc mips power amd64 arm
+
+O=		5
+OS=		v851ok0q2t6
+
+AR=		ar
+ARFLAGS=	vu
+
+AS=		5a
+ASFLAGS=
+
+CC=		5c
+CFLAGS=		-wFV -I$ROOT/Plan9/$OBJTYPE/include -I$ROOT/Plan9/include -I$ROOT/include
+ANSICPP= -p
+
+LD=		5l
+LDFLAGS=
+
+SYSLIBS=-lc
+
+YACC=		yacc
+YFLAGS=		-d

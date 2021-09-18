@@ -1,0 +1,20 @@
+<../../mkconfig
+
+TARG=iyacc
+
+OFILES=	yacc.$O\
+
+HFILES= ../../include/bio.h\
+
+LIBS=bio 9		# libbio.a uses lib9.a so order matters.
+
+BIN=$ROOT/$OBJDIR/bin
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+
+CFLAGS=	$CFLAGS -I../include '-DROOT="'$ROOT'"' '-DPARSER="yaccpar"' '-DPARSERS="yaccpar"'
+
+install:V:	$ROOT/utils/lib/yaccpar
+
+$ROOT/utils/lib/yaccpar:	yaccpar
+	rm -f $target && cp $prereq $target
