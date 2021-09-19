@@ -3,6 +3,7 @@
 
 *.6
 *.8
+*.o
 386/9*
 386/*bin
 386/init
@@ -29,3 +30,15 @@ sys/lib/dist/bin
 sys/lib/dist/pc/multi
 sys/lib/firmware
 sys/go
+y.tab.*
+o.out
+y.debug
+*~
+lib*.a
+6a
+6c
+6l
+8a
+8c
+8l
+xbin

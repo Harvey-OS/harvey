@@ -18,4 +18,4 @@ OFILES=\
 HFILES=cpp.h
 
 BIN=$NXM/xbin
-<$NXM/sys/src/cmd/mkone
+<$HARVEY/sys/src/cmd/mkone
