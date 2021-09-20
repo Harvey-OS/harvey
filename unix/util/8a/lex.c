@@ -7,7 +7,7 @@ void
 main(int argc, char *argv[])
 {
 	char *p;
-	int nout, nproc, status, i, c;
+	int nout, nproc, status = 0, i, c;
 
 	thechar = '8';
 	thestring = "386";

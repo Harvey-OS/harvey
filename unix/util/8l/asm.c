@@ -408,11 +408,11 @@ datblk(long s, long n)
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[fnuxi4[j]] & 0xff);
+						Bprint(&bso, "%.2ux", cast[(int)fnuxi4[j]] & 0xff);
 					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
-					buf.dbuf[l] = cast[fnuxi4[i]];
+					buf.dbuf[l] = cast[(int)fnuxi4[i]];
 					l++;
 				}
 				break;
@@ -421,11 +421,11 @@ datblk(long s, long n)
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[fnuxi8[j]] & 0xff);
+						Bprint(&bso, "%.2ux", cast[(int)fnuxi8[j]] & 0xff);
 					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
-					buf.dbuf[l] = cast[fnuxi8[i]];
+					buf.dbuf[l] = cast[(int)fnuxi8[i]];
 					l++;
 				}
 				break;
@@ -468,11 +468,11 @@ datblk(long s, long n)
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[inuxi1[j]] & 0xff);
+						Bprint(&bso, "%.2ux", cast[(int)inuxi1[j]] & 0xff);
 					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
-					buf.dbuf[l] = cast[inuxi1[i]];
+					buf.dbuf[l] = cast[(int)inuxi1[i]];
 					l++;
 				}
 				break;
@@ -480,11 +480,11 @@ datblk(long s, long n)
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[inuxi2[j]] & 0xff);
+						Bprint(&bso, "%.2ux", cast[(int)inuxi2[j]] & 0xff);
 					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
-					buf.dbuf[l] = cast[inuxi2[i]];
+					buf.dbuf[l] = cast[(int)inuxi2[i]];
 					l++;
 				}
 				break;
@@ -492,11 +492,11 @@ datblk(long s, long n)
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
-						Bprint(&bso, "%.2ux", cast[inuxi4[j]] & 0xff);
+						Bprint(&bso, "%.2ux", cast[(int)inuxi4[j]] & 0xff);
 					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
-					buf.dbuf[l] = cast[inuxi4[i]];
+					buf.dbuf[l] = cast[(int)inuxi4[i]];
 					l++;
 				}
 				break;

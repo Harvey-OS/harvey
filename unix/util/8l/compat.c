@@ -36,7 +36,7 @@ calloc(ulong m, ulong n)
 }
 
 void*
-realloc(void*, ulong)
+realloc(void* v, ulong size)
 {
 	fprint(2, "realloc called\n");
 	abort();
@@ -52,14 +52,15 @@ mysbrk(ulong size)
 void
 setmalloctag(void *v, ulong pc)
 {
-	USED(v, pc);
+	USED(v/*, pc*/);
 }
 
 int
 fileexists(char *s)
 {
-	uchar dirbuf[400];
+	int stat(const char *pathname, struct stat *statbuf);
+	struct stat buf[1];
 
 	/* it's fine if stat result doesn't fit in dirbuf, since even then the file exists */
-	return stat(s, dirbuf, sizeof(dirbuf)) >= 0;
+	return stat(s, buf) >= 0;
 }
