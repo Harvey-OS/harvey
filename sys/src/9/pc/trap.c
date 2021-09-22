@@ -193,7 +193,6 @@ trapinit0(void)
 	for(v = 0; v < 256; v++){
 		d1 = (vaddr & 0xFFFF0000)|SEGP;
 		switch(v){
-
 		case VectorBPT:
 			d1 |= SEGPL(3)|SEGIG;
 			break;
@@ -609,17 +608,19 @@ unexpected(Ureg* ureg, void*)
 
 extern void checkpages(void);
 extern void checkfault(ulong, ulong);
+extern void mayberdmsr(void);
+extern void rdmsrfail(void);
 
 static void
 faultgpf(Ureg* ureg, void*)
 {
-	switch (ureg->pc) {
-		case rdmsr_doit:
-			ureg->pc = rdmsr_bad;
-			break;
-		default:
-			panic("GPF with no handler at addr=0x%.8lux", ureg->pc);
-			break;
+	switch(ureg->pc){
+	case mayberdmsr:
+		ureg->pc = rdmsrfail;
+		break;
+	default:
+		panic("GPF with no handler at addr=0x%.8lux", ureg->pc);
+		break;
 	}
 }
 
