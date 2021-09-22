@@ -44,7 +44,7 @@ see
 .IR regexp (6).
 Multiple
 .B -e
-options may appear.
+options may not appear.
 If a subexpression of
 .I expression
 is contained in parentheses

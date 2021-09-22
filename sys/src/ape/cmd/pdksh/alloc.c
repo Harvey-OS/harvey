@@ -82,9 +82,7 @@ afreeall(ap)
 
 /* allocate object from Area */
 void *
-alloc(size, ap)
-	size_t size;
-	register Area *ap;
+alloc(size_t size, Area *ap)
 {
 	int cells, acells;
 	Block *bp = 0;
@@ -291,9 +289,9 @@ aresize(ptr, size, ap)
 		int split;
 
 		split = oldcells - cells;
-		if (split <= NOBJECT_FIELDS) /* cannot split */
+		if (split <= NOBJECT_FIELDS) { /* cannot split */
 			;
-		else {		/* shrink head, free tail */
+		} else {		/* shrink head, free tail */
 			Block *bp = (dp-2)->block;
 
 			(dp-1)->size = cells;

@@ -1,0 +1,265 @@
+Sat Mar  7 18:16:40 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* omega.man: Add authors list.
+
+	* pdftex.man: Add authors list.
+
+Tue Mar  3 09:07:10 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* omega.man: Corrected instructions for subscribing to the omega
+ 	list.
+
+Fri Jan  9 21:14:37 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in: Include clean.make, add a default target.
+
+Sun Jan  4 15:57:34 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in: Use man.make to supply rules for manual pages.
+
+	* Makefile.in: Changes to cope with new manual pages.
+
+Tue Dec 30 17:46:24 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Changes to all pages in an attempt to get them up-to-date.  Some
+	pages (amslatex, lamstex, slitex, initex, virtex) have been
+	removed.  Some renamed (etex -> eplain).  Some added (etex,
+	pdftex, omega).
+
+Tue Dec 12 16:52:12 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (sedscript): Correct path for c-auto.h. From Ulrik.
+
+Tue Jun 13 11:31:35 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: Use ../web2c, not /w.
+
+Mon Dec 19 13:07:24 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * dvitype.man: The .dvi file extended if necessary.
+        * vftovp.man: Similarly.
+
+Sat Dec 17 16:44:49 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * tftopl.man: Both the .tfm and .pl files are extended if
+        necessary now.
+        * vptovf.man: Similarly.
+
+Thu Nov 24 13:42:16 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * bibtex.man: We don't use TEXINPUTS to look for .bst files now.
+
+Mon Feb 21 14:50:51 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in: srcdir changes from simon.
+
+Wed Feb  2 11:00:09 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 6.1.
+
+Mon Jan 24 07:31:37 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 6.0.
+
+Sat Jan 22 06:48:27 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * *.man: Remove ==== line after NAME section, since Sun's
+        makewhatis doesn't ignore it.
+
+Tue Dec 14 20:02:06 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* *.man: Update for new path variables, etc.
+	* Makefile.in (sedscript): Likewise.
+
+Sun Dec 12 19:14:19 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* mf.man: Don't mention cmsources.
+	* Makefile.in (cmsources): Don't bother with this.
+	(sedscript): Don't substitute for this, and rm the dependency on
+	lib/paths.h, since it doesn't exist any more.
+
+Sun Dec  5 16:04:51 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* tex.man: Document the envvars MAKETEXTEX, USE_MAKETEXTEX, etc.
+	* mf.man: Likewise.
+
+Sun Nov 14 11:58:01 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: texfontdir => fontdir.
+
+Thu Oct  7 10:04:22 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* latex.man: Mention the LaTeX manual and the local guide.  From
+	tuttle@crl.dec.com.
+
+Sat Jul 10 09:24:56 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* mf.man: The word `facilitates' bothers me.
+
+Tue May 18 14:03:49 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install-*): mkdirchain on install dirs.
+
+Sun May  9 13:22:00 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: Use ! instead of %, which loses on the EDITOR string.
+
+Tue May  4 10:23:33 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* weave.man: Correct date, other miscellany.
+
+Mon Mar 29 08:57:19 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* bibtex.man: System default for BSTINPUTS is BSTINPUTS, not
+	TEXINPUTS.
+
+Sat Mar 13 10:38:14 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* bibtex.man: Had stdout sentence end in wrong place.
+
+	* Makefile.in (sedscript): Use % instead of ; to delimit sed
+	arguments, since ; might occur in the yytext declaration.  (From
+	ilan343@violet.berkeley.edu.)
+
+Sun Feb 28 10:52:01 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: Separate clean targets.
+
+	* Makefile.in (clean): Don't remove Makefile here.
+
+Sun Feb 21 08:28:14 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.851d.
+
+Tue Feb 16 17:54:04 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install-exec, install-data): New targets.
+
+Fri Feb 12 12:43:04 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* tangle.man, weave.man: Separate.
+
+Fri Jan 29 12:07:08 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* tex.man: Describe texfonts.map.
+
+Mon Jan 25 13:55:40 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (sedscript): Don't use $@; get definitions from
+	c-auto.h as well as paths.h.
+
+Thu Jan 14 08:08:20 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* bibtex.man: Mention that DEK's bibtex doesn't have some of our
+	features.
+
+Sun Jan  3 13:35:05 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* etex.man: The listed features aren't the only ones.
+
+	* Makefile.in (distclean): Remove Makefile.
+
+Sat Jan  2 15:58:52 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (dw, spell, check, .ps, .txt): New targets from beebe.
+        * *.man: Likewise.
+
+Fri Dec 18 13:32:01 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* tftopl.man: .tfm is now added if necessary.
+
+Mon Dec 14 07:40:07 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* <many>.man: Remove end-of-sentence periods after paths.
+
+Sun Dec 13 15:00:23 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* bibtex.man: Document BSTINPUTS.
+
+Sat Dec 12 13:16:25 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: Rewrite from Makefile.
+
+	* mf.man: Missing quotes in MFTERM line.
+
+Tue Oct  6 08:18:48 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* {mf,tex}.man: Use ~me instead of /usr/me.
+
+	* {gftodvi,gftopk,gftype,pktogf,pktype,vftovp}.man: Current
+	directory is not searched first.
+
+Fri Sep  4 09:02:22 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (extraclean): new target.
+
+Sun Jul  5 07:26:14 1992  Karl Berry  (karl@hayley)
+
+        * tex.man: avoid lines >= 80 chars.
+
+        * Makefile (*clean): remove *.dvi and *.log; have `mostlyclean' do
+          nothing.
+
+Tue Jun 23 09:14:07 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (manext): default to `1', not `l'.
+
+Fri May 29 16:54:43 1992  Karl Berry  (karl@hayley)
+
+        * bibtex.man: more paragraphs, etc.
+
+Sat May 23 12:26:53 1992  Karl Berry  (karl@hayley)
+
+        * tex.man: document slightly different path searching.
+
+Thu May 14 19:21:49 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Thu Apr 23 12:06:30 1992  Karl Berry  (karl@hayley)
+
+        * tex.man, mf.man: fix nroff quote problems.
+        * Makefile (sedscript): toss trailing comments.
+        These changes from Andreas.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Sun Apr 12 11:51:58 1992  Karl Berry  (karl@hayley)
+
+        * tex.man: . not searched first anymore.
+
+Fri Apr  3 09:55:14 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Sat Mar 21 09:14:20 1992  Karl Berry  (karl at hayley)
+
+        * patgen.man: update for patgen2.
+
+        * *.man: (ENVIRONMENT VARIABLES): rename to `ENVIRONMENT'; remove
+          references to TEXFONTS_SUBDIR.
+
+        * tex.man (ENVIRONMENT): mention ~.
+
+        * Makefile (sedscript): depend using srcdir, not SITEDIR.
+
+Fri Mar 20 16:43:23 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the stuff.
+
+Sat Feb  1 16:45:54 1992  Karl Berry  (karl at hayley)
+
+        * tex.man: update path searching info.
+
+Sat Jan 11 08:47:26 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (initex.1, virtex.1): new targets.
+
+Tue Jan  7 16:04:29 1992  Karl Berry  (karl at hayley)
+
+        * Use `1 Jan 1992' date format.

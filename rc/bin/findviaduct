@@ -1,0 +1,69 @@
+#!/bin/rc
+# findviaduct ip - map ip to viaduct and user
+# findviaduct -n viaduct - print bridge & tunnel info for viaduct
+#
+# findviaduct -r ip ether - run ip mapping on a vespine
+# findviaduct -g name - run -n on a vespine
+rfork en
+vespines=(vespine vespine2)
+bind -a '#B' /dev >[2]/dev/null
+
+switch($1){
+case -r
+	ip=$2
+	ether=$3
+#	echo; echo on $sysname:
+
+	cd /dev/bridge0
+	bridge=`{grep $ether cache | sed 's/^[^ ]* *([^ ]*).*/\1/'}
+	if (~ $bridge ''){
+		echo no bridge device associated with $ether
+		exit no-bridge
+	}
+	x=`{cat $bridge/status}
+	switch($x){
+	case tunnel*
+		viaduct=`{echo $x | sed 's/^[^ ]* *([^:]*).*/\1/'}
+	case *
+		# no viaduct associated with $ether on this machine
+		exit no-viaduct
+	}
+	echo -n ip $ip ether $ether $sysname bridge $bridge $viaduct ''
+
+	grep $viaduct^'[	 ]' /adm/brickdb/owners |
+		sed 's/^[a-z0-9]+[	 ]+//'
+case -g
+	name=$2
+	cd /dev/bridge0
+	{
+		for(i in [0-9]*){
+			echo -n $sysname /dev/bridge0/$i ' '
+			cat $i/status
+		}
+	} | grep $name:
+
+case -n
+	name=$2
+	for (v in $vespines)
+		rx $v findviaduct -g $name
+case *
+	ip=$1
+	ippat=`{echo $ip | sed 's/\./\\./g'}
+
+	# find ether address.  would it be better to do this with dhcpleases?
+	ether=`{
+		tail -r -n 100000 /sys/log/ipboot |
+		grep -b 'Request.*[^0-9]'^$ippat^'[^0-9].*id\((id|hwa)01' |
+		sed 1q |
+		sed 's/.*id\((id|hwa)01_?([^)]*)\).*/\2/' |
+		sed 1q
+	}
+	if (~ $ether ''){
+		echo $1 not in /sys/log/ipboot
+		exit ip-not-in-ipboot
+	}
+#	echo ip $ip ether $ether
+
+	for (v in $vespines)
+		rx $v findviaduct -r $ip $ether
+}

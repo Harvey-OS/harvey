@@ -7,12 +7,12 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
-#include	"ureg.h"
 
-enum
-{
-	DIRSIZE	= STATFIXLEN + 16 * 4		/* enough for encoded stat buf + some reasonable strings */
+#include	"../port/error.h"
+
+enum {
+	/* enough for encoded stat buf + some reasonable strings */
+	DIRSIZE	= STATFIXLEN + 16 * 4,
 };
 
 Dir*
@@ -121,7 +121,7 @@ unionread(Chan *c, void *va, long n)
 				c->umc = cclone(mount->to);
 				c->umc = devtab[c->umc->type]->open(c->umc, OREAD);
 			}
-	
+
 			nr = devtab[c->umc->type]->read(c->umc, va, n, c->umc->offset);
 			c->umc->offset += nr;
 			poperror();
@@ -306,7 +306,7 @@ mountrewind(Chan *c)
 }
 
 /*
- * Rewrite the results of a directory read to reflect current 
+ * Rewrite the results of a directory read to reflect current
  * name space bindings and mounts.  Specifically, replace
  * directory entries for bind and mount points with the results
  * of statting what is mounted there.  Except leave the old names.

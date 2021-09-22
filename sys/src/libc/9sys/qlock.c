@@ -1,12 +1,12 @@
 #include <u.h>
 #include <libc.h>
 
+/* don't initialize p here, to reduce initialized data.  see getqlp. */
 static struct {
-	QLp	*p;
+	QLp	*p;		/* pointer to last Qlp allocated within x */
+	Lock;
 	QLp	x[1024];
-} ql = {
-	ql.x
-};
+} ql;
 
 enum
 {
@@ -31,7 +31,12 @@ getqlp(void)
 {
 	QLp *p, *op;
 
-	op = ql.p;
+	if ((op = ql.p) == nil) {
+		lock(&ql);
+		if ((op = ql.p) == nil)
+			op = ql.p = ql.x;
+		unlock(&ql);
+	}
 	for(p = op+1; ; p++){
 		if(p == &ql.x[nelem(ql.x)])
 			p = ql.x;
@@ -58,7 +63,6 @@ qlock(QLock *q)
 		return;
 	}
 
-
 	/* chain into waiting list */
 	mp = getqlp();
 	p = q->tail;
@@ -71,7 +75,7 @@ qlock(QLock *q)
 	unlock(&q->lock);
 
 	/* wait */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~(uintptr)0)
 		;
 	mp->inuse = 0;
 }
@@ -83,8 +87,7 @@ qunlock(QLock *q)
 
 	lock(&q->lock);
 	if (q->locked == 0)
-		fprint(2, "qunlock called with qlock not held, from %#p\n",
-			getcallerpc(&q));
+		abort();		/* qunlock called with qlock not held */
 	p = q->head;
 	if(p != nil){
 		/* wakeup head waiting process */
@@ -92,7 +95,7 @@ qunlock(QLock *q)
 		if(q->head == nil)
 			q->tail = nil;
 		unlock(&q->lock);
-		while((*_rendezvousp)(p, (void*)0x12345) == (void*)~0)
+		while((*_rendezvousp)(p, (void*)0x12345) == (void*)~(uintptr)0)
 			;
 		return;
 	}
@@ -139,7 +142,7 @@ rlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wait in kernel */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~(uintptr)0)
 		;
 	mp->inuse = 0;
 }
@@ -182,7 +185,7 @@ runlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wakeup waiter */
-	while((*_rendezvousp)(p, 0) == (void*)~0)
+	while((*_rendezvousp)(p, 0) == (void*)~(uintptr)0)
 		;
 }
 
@@ -212,7 +215,7 @@ wlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wait in kernel */
-	while((*_rendezvousp)(mp, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(mp, (void*)1) == (void*)~(uintptr)0)
 		;
 	mp->inuse = 0;
 }
@@ -251,7 +254,7 @@ wunlock(RWLock *q)
 		if(q->head == nil)
 			q->tail = nil;
 		unlock(&q->lock);
-		while((*_rendezvousp)(p, 0) == (void*)~0)
+		while((*_rendezvousp)(p, 0) == (void*)~(uintptr)0)
 			;
 		return;
 	}
@@ -264,7 +267,7 @@ wunlock(RWLock *q)
 		p = q->head;
 		q->head = p->next;
 		q->readers++;
-		while((*_rendezvousp)(p, 0) == (void*)~0)
+		while((*_rendezvousp)(p, 0) == (void*)~(uintptr)0)
 			;
 	}
 	if(q->head == nil)
@@ -302,7 +305,7 @@ rsleep(Rendez *r)
 		if(r->l->head == nil)
 			r->l->tail = nil;
 		unlock(&r->l->lock);
-		while((*_rendezvousp)(t, (void*)0x12345) == (void*)~0)
+		while((*_rendezvousp)(t, (void*)0x12345) == (void*)~(uintptr)0)
 			;
 	}else{
 		r->l->locked = 0;
@@ -310,7 +313,7 @@ rsleep(Rendez *r)
 	}
 
 	/* wait for a wakeup */
-	while((*_rendezvousp)(me, (void*)1) == (void*)~0)
+	while((*_rendezvousp)(me, (void*)1) == (void*)~(uintptr)0)
 		;
 	me->inuse = 0;
 }

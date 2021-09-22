@@ -1,0 +1,108 @@
+ == retok ==
+Z
+Z
+Z
+Z
+AS IND STRUCT Hash (1)
+   NAME "h" -12 <11> IND STRUCT Hash
+   IND IND STRUCT Hash (1)
+      ADD IND IND STRUCT Hash (1)
+         NAME "hi" 0 <11> IND IND STRUCT Hash
+         CONST "8" <20> IND IND STRUCT Hash
+      Z
+FOR
+   Z
+   Z
+   Z
+   Z
+   IF
+      GE INT (2)
+         IND INT (1)
+            NAME "hi" 0 <11> IND STRUCT Hashiter
+            Z
+         INDEX <9> INT (1)
+            ADDR <13> IND INT
+               NAME "hashsize" 0 <10> INT
+               Z
+            IND IND INT (1)
+               ADD IND INT (1)
+                  IND IND INT (1)
+                     ADD IND IND STRUCT Hash (1)
+                        NAME "hi" 0 <11> IND IND STRUCT Hash
+                        CONST "8" <20> IND IND STRUCT Hash
+                     Z
+                  CONST "8" <20> IND INT
+               Z
+      RETURN IND STRUCT Xel (1)
+         CONST "0" <20> IND VOID
+         Z
+      Z
+   FOR
+      ANDAND INT (2)
+         LT INT (1)
+            NAME "j" -4 <11> INT
+            IND INT (1)
+               ADD IND INT (1)
+                  NAME "hi" 0 <11> IND INT
+                  CONST "4" <20> IND INT
+               Z
+         NE INT (1)
+            CONST "0" <20> IND VOID
+            NAME "x" -8 <11> IND STRUCT Xel
+      COMMA IND STRUCT Xel (2)
+         AS INT (1)
+            NAME "j" -4 <11> INT
+            CONST "0" <20> INT
+         AS IND STRUCT Xel (2)
+            NAME "x" -8 <11> IND STRUCT Xel
+            IND IND STRUCT Xel (2)
+               ADD IND IND STRUCT Xel (2)
+                  ASHL <7> IND IND STRUCT Xel (2)
+                     IND IND IND STRUCT Xel (1)
+                        NAME "hi" 0 <11> IND STRUCT Hashiter
+                        Z
+                     CONST "2" <20> INT
+                  IND IND IND STRUCT Xel (1)
+                     ADD IND IND IND STRUCT Xel (1)
+                        NAME "h" -12 <11> IND IND IND STRUCT Xel
+                        CONST "4" <20> IND IND IND STRUCT Xel
+                     Z
+               Z
+      COMMA IND STRUCT Xel (2)
+         POSTINC INT (1)
+            NAME "j" -4 <11> INT
+            Z
+         AS IND STRUCT Xel (1)
+            NAME "x" -8 <11> IND STRUCT Xel
+            IND IND STRUCT Xel (1)
+               NAME "x" -8 <11> IND STRUCT Xel
+               Z
+      Z
+   IF
+      NAME "x" -8 <11> IND STRUCT Xel
+      Z
+      POSTINC INT (1)
+         IND INT (1)
+            ADD IND INT (1)
+               NAME "hi" 0 <11> IND INT
+               CONST "4" <20> IND INT
+            Z
+         Z
+      RETURN IND STRUCT Xel (1)
+         NAME "x" -8 <11> IND STRUCT Xel
+         Z
+      Z
+   AS INT (1)
+      IND INT (1)
+         ADD IND INT (1)
+            NAME "hi" 0 <11> IND INT
+            CONST "4" <20> IND INT
+         Z
+      CONST "0" <20> INT
+   POSTINC INT (1)
+      IND INT (1)
+         NAME "hi" 0 <11> IND STRUCT Hashiter
+         Z
+      Z
+
+warning: hash.c:228 no return at end of function: hashiternext

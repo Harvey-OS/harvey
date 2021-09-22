@@ -1,0 +1,16 @@
+#!/bin/rc
+# badguy ip... - add ip addresses of bad guys to /sys/lib/badips
+cd /sys/lib
+chmod +l badips.lock >>badips.lock		# for first time
+{
+	for (ip) {
+		if (~ $ip *.*.*.* && ! ~ $ip 50.250.245.* && ! ~ $ip 10.0.*)
+			echo $ip >>badips
+		if not
+			echo $0: $ip: illegal bad-guy ipv4 addr >[1=2]
+	}
+# don't race with smtpd, which adds impatient spammers
+#	chmod -a badips
+#	sort -u badips | sort -o badips -t. +0n -1 +1n -2 +2n -3 +3n
+	chmod +a badips
+} >>badips.lock

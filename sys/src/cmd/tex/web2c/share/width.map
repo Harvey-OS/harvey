@@ -1,0 +1,23 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "1 June 1996",
+@c   filename = width.map"",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "23      95     615",
+@c   docstring = "Width abbreviations for TeX font names."
+@c }
+c Condensed Cond
+e Expanded
+n Narrow
+o UltraCondensed
+p Compressed Compact
+q ExtraCompressed ExtraCondensed
+r Normal Medium Regular @r{(usually omitted)}
+t Thin
+u UltraCompressed
+v ExtraExpanded @r{more than @t{Expanded}, less than @t{Wide}}
+w Wide
+x Extended Elongated

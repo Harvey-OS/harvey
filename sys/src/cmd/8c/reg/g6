@@ -1,0 +1,26 @@
+$global
+	uvlong ru, a[1] = {27}, u = 0x01;
+	char c = 6, d = 36;
+	int i = 1, j = 6;
+$main
+	vlong rv, v = 0x7;
+$lhs
+	rv
+	ru
+$op
+	<<=
+	>>=
+$op0
+	u
+	v
+	a[i]
+$op1
+	1
+	17
+	32
+	36
+	60
+	c
+	d
+	j
+	a[i]

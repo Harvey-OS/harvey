@@ -118,7 +118,7 @@ usage(void)
 void
 threadmain(int argc, char *argv[])
 {
-	char *initstr, *kbdin, *s;
+	char *initstr, *kbdin, *s, *lab;
 	static void *arg[1];
 	char buf[256];
 	Image *i;
@@ -178,7 +178,8 @@ threadmain(int argc, char *argv[])
 
 	snarffd = open("/dev/snarf", OREAD|OCEXEC);
 
-	if(geninitdraw(nil, derror, nil, "rio", nil, Refnone) < 0){
+	lab = smprint("rio # %s", sysname());
+	if(geninitdraw(nil, derror, nil, lab, nil, Refnone) < 0){
 		fprint(2, "rio: can't open display: %r\n");
 		exits("display open");
 	}

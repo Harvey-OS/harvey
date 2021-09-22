@@ -1,0 +1,12 @@
+reg.	abi name
+R0	zero
+R1	ra
+R2	sp
+R3	gp		SB in 9
+R4	tp		as temp in 9
+R5-7	t0-2
+R8	s0, fp
+R9	s1
+R10-17	a0-7
+R18-27	s2-11
+R28-31	t3-6

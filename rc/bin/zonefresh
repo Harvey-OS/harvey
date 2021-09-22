@@ -1,0 +1,138 @@
+#!/bin/rc
+# zonefresh server domain - AXFR zone transfer of domain from server
+
+rfork en
+fn reformat {
+	awk ' 
+	BEGIN {
+		printf("#\n# Generated file, no not edit\n#\n\n")
+		ndoms = 1
+	}
+	/cname=/ {
+		cnames[$1] = $2		# dom=fakename cname=realname
+		next
+	}
+	/ip=/ {				# ip=quad dom=domain
+		if (doms[$2] == "")
+			doms[$2] = $1
+		else
+			doms[$2] = doms[$2] "\n\t" $1
+		domidx[ndoms++] = $2
+	
+		if ($2 ~ ":")
+			next		# IPv6
+	
+		# cannot do much for CIDR or subnetting
+		split($2, addr, "[=.]")
+		if (addr[2] <= 127) {
+			tail = addr[2]
+			net = "ip=" tail ".0.0.0"
+			mask = "mask=255.0.0.0"
+		} else
+		if (addr[2] > 127 && addr[2] <= 191) {
+			tail = addr[2] "." addr[3]
+			net = "ip=" tail ".0.0"
+			mask = "mask=255.255.0.0"
+		} else
+		if (addr[2] > 191) {
+			tail = addr[2] "." addr[3] "." addr[4]
+			net = "ip=" tail ".0"
+			mask = "mask=255.255.255.0"
+		}
+	
+		nets[net] = mask
+		netnames[net] = sprintf("ipnet=net-%s", tail)
+		next
+	}
+
+	/srv=/ {
+		for (i = 2; i <= NF; i++){
+			srvs[$1]++
+			sdata[$1, nsdata[$1]] = sdata[$1, nsdata[$1]] " " $i
+		}
+		nsdata[$1]++
+		next
+	}
+
+	{
+		for (i = 2; i <= NF; i++){
+			soas[$1]++
+			data[$1, ndata[$1]++] = $i
+		}
+	}
+	END {
+		for (dom in soas) {
+			printf("%s\n", dom)
+			for (i = 0; i < ndata[dom]; i++)
+				if (data[dom, i] ~ "^mx=.*")
+					printf("\t%s", data[dom, i])
+				else
+				if (data[dom, i] ~ "^[a-z]+=\".*") {
+					printf("\t")
+					for (; i < ndata[dom] &&
+					    data[dom, i] !~ ".*\"$"; i++)
+						printf("%s ", data[dom, i])
+					printf("%s\n", data[dom, i])
+				} else
+					printf("\t%s\n", data[dom, i])
+			printf("\n")
+		}
+		printf("\n")
+	
+		for (net in nets)
+			printf("%s %s %s\n", netnames[net], net, nets[net])
+		printf("\n")
+	
+		for (dom in cnames)
+			printf("%s %s\n", dom, cnames[dom])
+		printf("\n")
+	
+		qsort(domidx, 1, ndoms-1)
+		for (i = 1; i < ndoms; i++)
+			if (i == 1 || doms[domidx[i-1]] != doms[domidx[i]] ||
+				    domidx[i-1] != domidx[i])
+			printf("%s %s\n", domidx[i], doms[domidx[i]])
+		printf("\n")
+	
+		for (srv in srvs){
+			printf("%s\n", srv)
+			for (i = 1; i < nsdata[srv]; i++)
+				printf("\t%s\n", sdata[srv, i])
+			printf("\n")
+		}
+	}
+	
+	function qsort(A, left, right,	i, last){
+		if (left >= right)
+			return
+		swap(A, left, left + int((right-left+1)*rand()))
+		last = left
+		for (i = left+1; i <= right; i++)
+			if (A[i] < A[left])
+				swap(A, ++last, i)
+		swap(A, left, last)
+		qsort(A, left, last-1)
+		qsort(A, last+1, right)
+	}
+	
+	function swap(A, i, j,		t){
+		t = A[i]; A[i] = A[j]; A[j] = t
+	}
+	' $*
+}
+
+if (! ~ $#* 2 && ! ~ $#* 3) {
+	echo usage: $0 '[-s] nameserver domainname' >[1=2]
+	exit usage
+}
+
+if (~ $1 -s){
+	ramfs
+	if (ndb/axfr $2 $3 > /tmp/sec.$3.raw){
+		reformat /tmp/sec.$3.raw > /tmp/sec.$3.fmt
+		if (! cmp -s /tmp/sec.$3.fmt /lib/ndb/sec.$3)
+			cp   /tmp/sec.$3.fmt /lib/ndb/sec.$3
+	}
+}
+if not
+	ndb/axfr $1 $2 | reformat

@@ -585,7 +585,6 @@ pooldump(Pool *p)
 			limit = B2LIMIT(base);
 		}
 	}
-	return;
 }
 */
 
@@ -652,7 +651,7 @@ poolcompact(Pool *pool)
 			USED(recov);
 			if(nb > 0){
 				if(nb < pool->quanta+1)
-					panic("poolcompact: leftover too small\n");
+					panic("poolcompact: leftover too small");
 				end->size = nb;
 				pooladd(pool, end);
 			}

@@ -27,6 +27,8 @@ log(double arg)
 	double x, z, zsq, temp;
 	int exp;
 
+	if(isNaN(arg) || isInf(arg, 0))
+		return arg;
 	if(arg <= 0)
 		return NaN();
 	x = frexp(arg, &exp);
@@ -51,7 +53,8 @@ log(double arg)
 double
 log10(double arg)
 {
-
+	if(isNaN(arg) || isInf(arg, 0))
+		return arg;
 	if(arg <= 0)
 		return NaN();
 	return log(arg) * ln10o1;

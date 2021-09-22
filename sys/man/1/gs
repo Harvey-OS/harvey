@@ -278,3 +278,13 @@ and
 subdirectories of the source directory.
 .SH BUGS
 The treatment of standard input is non-standard.
+.PP
+Tends to break on some inputs on
+.I amd64
+and
+.I riscv64
+where it doesn't on
+.I 386
+or
+.IR arm .
+It's a massive and complex program, thus not easily debugged.

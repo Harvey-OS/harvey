@@ -347,6 +347,16 @@ writetomem(ulong inst)
 }
 
 /*
+ * ureg is the current stack pointer.  verify that it's within
+ * a plausible range.
+ */
+void
+ckstack(Ureg **uregp)
+{
+	USED(uregp);
+}
+
+/*
  *  here on all exceptions other than syscall (SWI) and fiq
  */
 void

@@ -1,0 +1,12 @@
+.de XX
+$1 is \\$1
+.ihtml f
+.if \\$1=1 .ihtml f <b>
+..
+Hello
+.XX 1
+BOLD
+MORE BOLD
+.XX 2
+not bold
+more not bold

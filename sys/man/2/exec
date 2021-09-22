@@ -193,11 +193,18 @@ or
 .IR execl ;
 the calling image is lost.
 .SH BUGS
-There is a large but finite limit on the size of an argment list,
-typically around 409,600 bytes.
-The kernel constant
+There is a large but finite limit on the size of an argment list.
+The
+.B 9
+kernel constant
 .B TSTKSIZ
-controls this.
+controls this and typically yields about one megabyte.
+In
+.BR 9k ,
+it's
+.BR USTKSIZE ,
+which is typically larger
+(e.g., 16MB).
 .PP
 Both functions rely upon the system's demand paging,
 which in turn expects to be able to read full pages in a single

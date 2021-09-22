@@ -1,36 +1,38 @@
+# build kernels
+
+# /386/expand-* are used to build pc kernels (bootstrap and normal)
 ARCH=\
 	bcm\
-	kw\
-	mtx\
-	omap\
+	pcexp\
 	pc\
-	ppc\
+	pcboot\
 	rb\
 	teg2\
 
-all:V:
-	for(i in $ARCH)@{
-		cd $i
-		mk
-	}
-	# build pc boots last
-	@{ cd pc; mk clean }
-	@{ cd pcboot; mk }
-pcboot:V:
-	@{ cd pc; mk clean }
-	@{ cd pcboot; mk }
-
-installall install:V:
+default:V: all
+all installall install clean:V:
 	for(i in $ARCH) @{
 		cd $i
 		mk $target
 	}
-	@{ cd pc; mk clean }
-	@{ cd pcboot; mk install }
-	@{ cd pc; mk clean }
 
-clean:V:
-	for(i in $ARCH pcboot) @{
-		cd $i
-		mk clean
+unused:V:
+	nl='
+	'
+	fn check {
+		f=$1; shift
+		cat $f | tr -cs 'a-zA-Z0-9_'^$nl ' ' | awk '{print $2}' | grep . | sort -u >/tmp/u.1
+		cat $* | tr -cs 'a-zA-Z0-9_' $nl | grep . | sort -u >/tmp/u.2
+		comm -23 /tmp/u.1 /tmp/u.2
 	}
+	check port/portfns.h */*.c
+	for(i in $ARCH ch){
+		files=($i/*.c $i/l.s port/*.c)
+		if(~ $i alphapc arm)
+			files=($files pc/*.c)
+		check $i/fns.h $files | sed 's/^/'$i'\//g'
+	}
+dist:V:
+	# don't ship everything
+	mkdir /tmp/9 && dircp . /tmp/9 && cd /tmp/9 && mk clean &&
+		rm -rf _* */_* */*/_* && tar czf /tmp/9.tlz *

@@ -12,10 +12,7 @@ newmap(Map *map, int n)
 	int size;
 
 	size = sizeof(Map)+(n-1)*sizeof(struct segment);
-	if (map == 0)
-		map = malloc(size);
-	else
-		map = realloc(map, size);
+	map = realloc(map, size);
 	if (map == 0) {
 		werrstr("out of memory: %r");
 		return 0;
@@ -137,7 +134,7 @@ findseg(Map *map, char *name)
 	if (!map)
 		return -1;
 	for (i = 0; i < map->nsegs; i++)
-		if (map->seg[i].inuse && !strcmp(map->seg[i].name, name))
+		if (map->seg[i].inuse && strcmp(map->seg[i].name, name) == 0)
 			return i;
 	return -1;
 }

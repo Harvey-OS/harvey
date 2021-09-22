@@ -1,6 +1,6 @@
 .TH 8C 1
 .SH NAME
-0c, 5c, 6c, 8c, 9c, ic, jc, kc, qc, vc \- C compilers
+0c, 5c, 6c, 7c, 8c, 9c, ic, jc, qc, vc \- C compilers
 .SH SYNOPSIS
 .B 8c
 [
@@ -27,34 +27,37 @@ for example
 .PD
 .TP
 .B "0c spim
-little-endian MIPS 3000 family
+MIPS 3000 family
 .TP
 .B "5c arm
-little-endian ARM
+ARM
 .TP
 .B "6c amd64
 AMD64 and compatibles (e.g., Intel64)
+.TP
+.B "7c arm64
+64-bit ARM
 .TP
 .B "8c 386
 Intel i386, i486, Pentium, etc.
 .TP
 .B "9c power64
-64-bit PowerPC
+big-endian 64-bit PowerPC
 .TP
 .B "ic riscv
-32-bit RISC-V
+RISC-V RV32G
 .TP
 .B "jc riscv64
-64-bit RISC-V
-.TP
-.B "kc sparc
-Sun (now Oracle) SPARC
+RISC-V RV64G
 .TP
 .B "qc power
-PowerPC
+big-endian PowerPC
 .TP
 .B "vc mips
 big-endian MIPS 3000 family
+.PP
+Unless otherwise noted, these are all little-endian processors, alas
+(at least by default).
 .PP
 The compilers handle most preprocessing directives themselves; a complete
 preprocessor is available in
@@ -66,11 +69,11 @@ Let the first letter of the compiler name be
 .BR 0 ,
 .BR 5 ,
 .BR 6 ,
+.BR 7 ,
 .BR 8 ,
 .BR 9 ,
 .BR i ,
 .BR j ,
-.BR k ,
 .BR q ,
 or
 .BR v .
@@ -186,7 +189,11 @@ on standard output as well as generating the
 file.
 .TP
 .B -T
-Pass type signatures on all external and global entities.
+Pass type signatures on all external and global entities
+to the loader
+(see
+.IR 8l (1)),
+which will verify consistency.
 The signature is based on the C
 .B signof
 operator.
@@ -425,7 +432,7 @@ and
 .BR sub.c :
 .IP
 .EX
-8c -FVw main.c sub.c
+8c -FTVw main.c sub.c
 8l -o prog main.8 sub.8
 .EE
 .SH FILES
@@ -451,12 +458,12 @@ machine-dependent part
 .SH "SEE ALSO"
 .IR 8a (1),
 .IR 8l (1),
+.IR acid (1),
 .IR cpp (1),
+.IR db (1),
 .IR mk (1),
 .IR nm (1),
-.IR pcc (1),
-.IR db (1),
-.IR acid (1)
+.IR pcc (1)
 .\" .IR ansitize (1)
 .PP
 Rob Pike,

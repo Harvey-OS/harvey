@@ -1,0 +1,856 @@
+This is Info file web2c.info, produced by Makeinfo version 1.68 from
+the input file web2c.texi.
+
+INFO-DIR-SECTION TeX
+START-INFO-DIR-ENTRY
+* Web2c: (web2c).                    TeX, Metafont, and companion programs.
+* bibtex: (web2c)bibtex invocation.             Maintaining bibliographies.
+* dmp: (web2c)dmp invocation.                   Troff->MPX (MetaPost pictures).
+* dvicopy: (web2c)dvicopy invocation.           Virtual font expansion
+* dvitomp: (web2c)dvitomp invocation.           DVI to MPX (MetaPost pictures).
+* dvitype: (web2c)dvitype invocation.           DVI to human-readable text.
+* gftodvi: (web2c)gftodvi invocation.           Generic font proofsheets.
+* gftopk: (web2c)gftopk invocation.             Generic to packed fonts.
+* gftype: (web2c)gftype invocation.             GF to human-readable text.
+* inimf: (web2c)inimf invocation.               Initial Metafont.
+* inimpost: (web2c)inimpost invocation.         Initial MetaPost.
+* initex: (web2c)initex invocation.             Initial TeX.
+* makempx: (web2c)makempx invocation.           MetaPost label typesetting.
+* mf: (web2c)mf invocation.                     Creating typeface families.
+* mft: (web2c)mft invocation.                   Prettyprinting Metafont source.
+* mltex: (web2c)MLTeX.                          Multi-lingual TeX.
+* mpost: (web2c)mpost invocation.               Creating technical diagrams.
+* mpto: (web2c)mpto invocation.                 MetaPost label extraction.
+* newer: (web2c)newer invocation.               Compare modification times.
+* patgen: (web2c)patgen invocation.             Creating hyphenation patterns.
+* pktogf: (web2c)pktogf invocation.             Packed to generic fonts.
+* pktype: (web2c)pktype invocation.             PK to human-readable text.
+* pltotf: (web2c)pltotf invocation.             Property list to TFM.
+* pooltype: (web2c)pooltype invocation.         Display WEB pool files.
+* tangle: (web2c)tangle invocation.             WEB to Pascal.
+* tex: (web2c)tex invocation.                   Typesetting.
+* tftopl: (web2c)tftopl invocation.             TFM -> property list.
+* vftovp: (web2c)vftovp invocation.             Virtual font -> virtual pl.
+* virmf: (web2c)virmf invocation.               Virgin Metafont.
+* virmpost: (web2c)virmpost invocation.         Virgin MetaPost.
+* virtex: (web2c)virtex invocation.             Virgin TeX.
+* vptovf: (web2c)vptovf invocation.             Virtual pl -> virtual font.
+* weave: (web2c)weave invocation.               WEB to TeX.
+END-INFO-DIR-ENTRY
+
+  This file documents the installation and use of the programs in Web2c,
+an implementation of Donald Knuth's TeX system.
+
+  Copyright (C) 1996, 97 K. Berry & O. Weber.
+
+  Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+  Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+  Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation
+
+
+File: web2c.info,  Node: Index,  Prev: References,  Up: Top
+
+Index
+*****
+
+* Menu:
+
+* #define options:                       Compile-time options.
+* $ expansion in filenames:              \input filenames.
+* %& magic number:                       Determining the memory dump to use.
+* - starting a filename:                 Option conventions.
+* - starts option names:                 Option conventions.
+* -base=BASE:                            Determining the memory dump to use.
+* -base=DUMPNAME:                        Common options.
+* -change=CHFILE:                        mft invocation.
+* -charcode-format=TYPE <1>:             vftovp invocation.
+* -charcode-format=TYPE:                 tftopl invocation.
+* -D compiler options:                   Compile-time options.
+* -disable-dump-share configure option:  Hardware and memory dumps.
+* -dpi=REAL:                             dvitype invocation.
+* -enable-auto-core configure option:    Preloaded executables.
+* -enable-ipc configure option:          tex invocation.
+* -fmt=DUMPNAME:                         Common options.
+* -fmt=FMT:                              Determining the memory dump to use.
+* -geometry, supported with Xt:          Online Metafont graphics.
+* -help common option:                   Common options.
+* -images:                               gftype invocation.
+* -ini <1>:                              Initial and virgin.
+* -ini:                                  Common options.
+* -interaction=STRING:                   Common options.
+* -ipc:                                  tex invocation.
+* -ipc-start:                            tex invocation.
+* -kpathsea-debug=NUMBER:                Common options.
+* -magnification=INTEGER <1>:            dvitype invocation.
+* -magnification=INTEGER:                dvicopy invocation.
+* -max-pages=N <1>:                      dvitype invocation.
+* -max-pages=N:                          dvicopy invocation.
+* -mem=DUMPNAME:                         Common options.
+* -mem=MEM:                              Determining the memory dump to use.
+* -min-crossrefs=N:                      bibtex invocation.
+* -mktex=FILETYPE <1>:                   mf invocation.
+* -mktex=FILETYPE:                       tex invocation.
+* -mltex:                                tex invocation.
+* -mnemonics:                            gftype invocation.
+* -no-mktex=FILETYPE <1>:                mf invocation.
+* -no-mktex=FILETYPE:                    tex invocation.
+* -output-comment=STRING:                tex invocation.
+* -output-level=N:                       dvitype invocation.
+* -overflow-label-offset=POINTS:         gftodvi invocation.
+* -page-start=PAGE-SPEC <1>:             dvitype invocation.
+* -page-start=PAGE-SPEC:                 dvicopy invocation.
+* -progname=STRING <1>:                  Determining the memory dump to use.
+* -progname=STRING:                      Common options.
+* -shell-escape:                         tex invocation.
+* -show-opcodes:                         dvitype invocation.
+* -style=MFTFILE:                        mft invocation.
+* -T:                                    mpost invocation.
+* -terse:                                bibtex invocation.
+* -tex:                                  mpto invocation.
+* -troff <1>:                            mpto invocation.
+* -troff <2>:                            makempx invocation.
+* -troff:                                mpost invocation.
+* -verbose common option:                Common options.
+* -version common option:                Common options.
+* -with-editor=CMD:                      Editor invocation.
+* -with-epsfwin:                         Online Metafont graphics.
+* -with-hp2627win:                       Online Metafont graphics.
+* -with-mftalkwin:                       Online Metafont graphics.
+* -with-next:                            Online Metafont graphics.
+* -with-regiswin:                        Online Metafont graphics.
+* -with-suntoolswin:                     Online Metafont graphics.
+* -with-tektronixwin:                    Online Metafont graphics.
+* -with-unitermwin:                      Online Metafont graphics.
+* -with-x:                               Online Metafont graphics.
+* -with-x-toolkit=KIT:                   Online Metafont graphics.
+* -with-x11:                             Online Metafont graphics.
+* -with-x11win:                          Online Metafont graphics.
+* -x:                                    weave invocation.
+* ., used for output:                    Output file location.
+* .2602gf:                               mf invocation.
+* .aux cross-reference files:            bibtex invocation.
+* .base:                                 inimf invocation.
+* .bbl bibliography files:               bibtex invocation.
+* .bib bibliography databases:           bibtex invocation.
+* .blg BibTeX log file:                  bibtex invocation.
+* .fmt:                                  initex invocation.
+* .mem:                                  inimpost invocation.
+* .mf:                                   mf invocation.
+* .mp:                                   mpost invocation.
+* .NNN PostScript figures:               mpost invocation.
+* .NNNgf generic fonts:                  mf invocation.
+* .tex:                                  tex invocation.
+* .tfm output <1>:                       mpost invocation.
+* .tfm output:                           mf invocation.
+* .Xdefaults:                            Online Metafont graphics.
+* .Xresources:                           Online Metafont graphics.
+* 2602gf:                                mf invocation.
+* \bibliography:                         bibtex invocation.
+* \bibliographystyle:                    bibtex invocation.
+* \charsubdef and MLTeX:                 \charsubdef.
+* \countN <1>:                           dvitype invocation.
+* \countN:                               dvicopy invocation.
+* \font and dynamic generation:          tex invocation.
+* \fontdimen:                            tftopl invocation.
+* \immediate\write18:                    tex invocation.
+* \input filenames:                      \input filenames.
+* \mag <1>:                              dvitype invocation.
+* \mag:                                  dvicopy invocation.
+* \openout and security:                 tex invocation.
+* \string:                               \input filenames.
+* \tracingcharsubdef and MLTeX:          \tracingcharsubdef.
+* \tracinglostchars and MLTeX:           \tracingcharsubdef.
+* \write18 shell escape extension:       tex invocation.
+* `Computer Modern Typefaces', production of: mft invocation.
+* abbrv.bst:                             Basic BibTeX style files.
+* accents, hyphenating words with:       MLTeX.
+* acknowledgements:                      Introduction.
+* acm.bst:                               Basic BibTeX style files.
+* Ada, WEB for:                          WEB.
+* additional Make targets:               Additional targets.
+* AFM to TFM conversion:                 Font utilities available elsewhere.
+* afm2tfm:                               Font utilities available elsewhere.
+* afmtopl:                               Font utilities available elsewhere.
+* aliases for fonts:                     Path searching.
+* alpha.bst:                             Basic BibTeX style files.
+* American Mathematical Society, typesetting system: Formats.
+* AMSLaTeX:                              Formats.
+* AMSTeX:                                Formats.
+* apalike.bst:                           Basic BibTeX style files.
+* Arabic typesetting:                    TeX extensions.
+* architecture dependencies:             Hardware and memory dumps.
+* array limit, fixed:                    Runtime options.
+* array sizes:                           Runtime options.
+* assembly language routines:            Compile-time options.
+* Awk, WEB for:                          WEB.
+* base file, determining:                Determining the memory dump to use.
+* base files:                            inimf invocation.
+* base files, need mode definitions:     Modes.
+* base files, plain only:                inimf invocation.
+* base files, sharing:                   Hardware and memory dumps.
+* bases Make target:                     Additional targets.
+* basic BibTeX style files:              Basic BibTeX style files.
+* basic fonts and macros:                Installation.
+* batch languages:                       TeX.
+* BDF and GF conversion:                 Font utilities available elsewhere.
+* beginfig:                              mpost invocation.
+* BeginPath ditroff command:             dmp invocation.
+* Berry, Karl:                           Introduction.
+* BIBINPUTS, search path for bib files:  bibtex invocation.
+* bibliographies, creating:              BibTeX.
+* bibliography:                          References.
+* bibliography items, cross-referenced:  bibtex invocation.
+* bibtex:                                bibtex invocation.
+* BibTeX:                                BibTeX.
+* BibTeX collection:                     bibtex invocation.
+* BibTeX style files:                    Basic BibTeX style files.
+* BigEndian machines:                    Hardware and memory dumps.
+* binaries, linking:                     Common options.
+* Bourne shell commands in TeX:          tex invocation.
+* boxes, memory for:                     Runtime options.
+* breakpoints, memory for:               Runtime options.
+* Breitenlohner, Peter:                  Introduction.
+* BSTINPUTS, search path for bst files:  bibtex invocation.
+* btex and label extraction:             mpto invocation.
+* btex for MetaPost labels:              mpost invocation.
+* btxdoc.bib:                            bibtex invocation.
+* btxdoc.tex:                            bibtex invocation.
+* btxhak.tex:                            bibtex invocation.
+* byte position <1>:                     gftype invocation.
+* byte position:                         pktype invocation.
+* byte swapping:                         Hardware and memory dumps.
+* c-sources Makefile target:             Additional targets.
+* captions, extracting from MetaPost input: mpto invocation.
+* captions, for MetaPost:                makempx invocation.
+* change files, and MFT:                 mft invocation.
+* change files, and Tangle:              tangle invocation.
+* change files, and Weave:               weave invocation.
+* character codes, in GFtype output:     gftype invocation.
+* character codes, in PKtype output:     pktype invocation.
+* character proofs of fonts:             gftodvi invocation.
+* CHARACTER property:                    tftopl invocation.
+* CHARDP property:                       tftopl invocation.
+* CHARHT property:                       tftopl invocation.
+* CHARIC property:                       tftopl invocation.
+* CHARWD property:                       tftopl invocation.
+* chtopx:                                Font utilities available elsewhere.
+* class name for Metafont:               Online Metafont graphics.
+* cm.base:                               inimf invocation.
+* cmbase.mf:                             inimf invocation.
+* cmbase.mft:                            mft invocation.
+* cmmf.base not recommended:             inimf invocation.
+* comments, MFT control:                 mft invocation.
+* common options:                        Common options.
+* commonalities:                         Commonalities.
+* comparing file modification times:     newer invocation.
+* compilation:                           Installation.
+* compile-time options <1>:              Compile-time options.
+* compile-time options:                  configure options.
+* Computer Modern fonts, and Troff:      mpost invocation.
+* Computer Modern macros:                inimf invocation.
+* configuration:                         Installation.
+* configuration file reading:            Path searching.
+* configuration file values:             Runtime options.
+* configuration, compile-time:           configure options.
+* configure -with/-enable options:       configure options.
+* CONTENTS.tex:                          weave invocation.
+* control sequence names, space for:     Runtime options.
+* conventions for options,:              Option conventions.
+* conversion, DVI to plain text:         dvitype invocation.
+* conversion, GF to PK:                  gftopk invocation.
+* conversion, GF to plain text:          gftype invocation.
+* conversion, PK to GF:                  pktogf invocation.
+* conversion, PK to plain text:          pktype invocation.
+* conversion, property list to TFM:      pltotf invocation.
+* conversion, property list to VF:       vptovf invocation.
+* conversion, TFM to property list:      tftopl invocation.
+* conversion, VF to VPL:                 vftovp invocation.
+* copyright notices:                     Legalisms.
+* core dump from filename:               Preloaded executables.
+* creating memory dumps:                 Creating memory dumps.
+* cross-referenced bibliography items:   bibtex invocation.
+* cross-references, omitting:            weave invocation.
+* CTRL-\:                                Preloaded executables.
+* current directory, used for output:    Output file location.
+* Curtis, Pavel:                         Introduction.
+* CWEB:                                  WEB.
+* Cweb:                                  WEB.
+* D C ditroff graphics:                  dmp invocation.
+* date and time, in memory dumps:        Hardware and memory dumps.
+* debugging DVI utilities:               dvitype invocation.
+* debugging flags, specifying:           Common options.
+* dependencies, hardware:                Hardware and memory dumps.
+* design-size units:                     tftopl invocation.
+* device definitions, for Metafont:      Modes.
+* device-independent width <1>:          gftype invocation.
+* device-independent width:              pktype invocation.
+* directory structure:                   Installation.
+* DISPLAY:                               Online Metafont graphics.
+* ditroff output, converting to MPX:     dmp invocation.
+* DMP <1>:                               dmp invocation.
+* DMP:                                   makempx invocation.
+* DMP, invoked by MakeMPX:               makempx invocation.
+* dmp.c:                                 dmp invocation.
+* dot files, written by TeX programs:    tex invocation.
+* downloading of fonts for MetaPost labels: mpost invocation.
+* dpost:                                 dmp invocation.
+* DrawingServant:                        Online Metafont graphics.
+* DrawPath ditroff command:              dmp invocation.
+* dumping memory:                        Memory dumps.
+* DVI comment, specifying:               tex invocation.
+* DVI files, converting to MPX:          dvitomp invocation.
+* DVI files, creating multiple:          TeX extensions.
+* DVI files, explained:                  Font file formats.
+* DVI format definition:                 DVI utilities.
+* DVI opcodes, showing:                  dvitype invocation.
+* DVI utilities:                         DVI utilities.
+* dvicopy:                               dvicopy invocation.
+* dvitomp:                               dvitomp invocation.
+* DVITOMP:                               makempx invocation.
+* DVItoMP, invoked by MakeMPX:           makempx invocation.
+* dvitype DVI validation:                dvitype invocation.
+* dvitype output example:                dvitype output example.
+* dvitype.web:                           DVI utilities.
+* dx horizontal escapement <1>:          gftype invocation.
+* dx horizontal escapement:              pktype invocation.
+* dy vertical escapement:                gftype invocation.
+* dynamic array allocation:              Runtime options.
+* dynamic Metafont mode definitions with smode: Modes.
+* dynamic packing variable:              pktype invocation.
+* e response at error prompt:            Editor invocation.
+* e-circumflex:                          \charsubdef.
+* e-TeX:                                 TeX extensions.
+* e.mft:                                 mft invocation.
+* EC fonts <1>:                          mf invocation.
+* EC fonts:                              tex invocation.
+* editing of bitmap fonts:               Font utilities available elsewhere.
+* editor invoked at error:               Editor invocation.
+* eight-bit characters in filenames:     \input filenames.
+* endian dependencies:                   Hardware and memory dumps.
+* eoc GF command:                        gftype invocation.
+* Eplain:                                Formats.
+* epsf:                                  Online Metafont graphics.
+* errors, editor invoked at:             Editor invocation.
+* escapement, horizontal <1>:            gftype invocation.
+* escapement, horizontal:                pktype invocation.
+* escapement, vertical:                  gftype invocation.
+* etex and label extraction:             mpto invocation.
+* etex for MetaPost labels:              mpost invocation.
+* executables, shared initial and virgin: Initial and virgin.
+* expanded plain format:                 Formats.
+* extensions to TeX:                     TeX extensions.
+* extra_mem_bot:                         Runtime options.
+* FACE property:                         tftopl invocation.
+* FAMILY property:                       tftopl invocation.
+* Ferguson, Michael:                     MLTeX.
+* file formats for fonts:                Font file formats.
+* file mtimes, comparing:                newer invocation.
+* File-handling TeX:                     TeX extensions.
+* filename conventions, in input files:  \input filenames.
+* filenames starting with -:             Option conventions.
+* fixed-point arithmetic:                Compile-time options.
+* FIXPT:                                 Compile-time options.
+* flag byte:                             pktype invocation.
+* floating-point arithmetic:             Compile-time options.
+* floating-point values:                 Hardware and memory dumps.
+* fmt file, determining:                 Determining the memory dump to use.
+* fmt files:                             initex invocation.
+* fmt files, sharing:                    Hardware and memory dumps.
+* fmts Make target:                      Additional targets.
+* font aliases:                          Path searching.
+* font design:                           Metafont.
+* font downloading for MetaPost labels:  mpost invocation.
+* font file formats:                     Font file formats.
+* font proofs:                           gftodvi invocation.
+* font utilities:                        Font utilities.
+* font utilities, non-Web2c:             Font utilities available elsewhere.
+* font_mem_size:                         Runtime options.
+* fontinst, for creating virtual fonts:  Font utilities available elsewhere.
+* fonts, basic:                          Installation.
+* format files:                          initex invocation.
+* formats for TeX:                       Formats.
+* formats Make target:                   Additional targets.
+* fraction routines:                     Compile-time options.
+* Free Software Foundation documentation system: Formats.
+* freedom of Web2c:                      Introduction.
+* ftp.math.utah.edu:                     bibtex invocation.
+* geometric designs:                     Metafont.
+* geometric font scaling:                Font file formats.
+* geometry for Metafont:                 Online Metafont graphics.
+* getopt_long_only:                      Option conventions.
+* GF files, explained:                   Font file formats.
+* GF files, output by Metafont:          mf invocation.
+* GF format definition:                  Font utilities.
+* GF output:                             mf invocation.
+* GF, converting PK to:                  pktogf invocation.
+* GF, converting to PK:                  gftopk invocation.
+* gftodvi:                               gftodvi invocation.
+* gftopk:                                gftopk invocation.
+* gftopxl:                               Font utilities available elsewhere.
+* gftype GF validation:                  gftype invocation.
+* gftype.web:                            Font utilities.
+* glue ratio representations:            Hardware and memory dumps.
+* glue, memory for:                      Runtime options.
+* glyph substitutions:                   MLTeX.
+* gray font:                             gftodvi invocation.
+* Gruff, Billy Goat:                     Triptrap.
+* gsftopk:                               Font utilities available elsewhere.
+* HackyInputFileNameForCoreDump.tex:     Preloaded executables.
+* Harbison, Samuel P.:                   Hardware and memory dumps.
+* hardware and memory dumps:             Hardware and memory dumps.
+* hash table, increasing size of:        Runtime options.
+* hash_extra:                            Runtime options.
+* headerbyte information:                tftopl invocation.
+* height, in pixels:                     pktype invocation.
+* help, online:                          Common options.
+* Henry, Patrick:                        Introduction.
+* Herberts, Mathias:                     Online Metafont graphics.
+* history:                               Introduction.
+* Hobby, John <1>:                       dmp invocation.
+* Hobby, John:                           Introduction.
+* horizontal escapement <1>:             gftype invocation.
+* horizontal escapement:                 pktype invocation.
+* hp2627:                                Online Metafont graphics.
+* human languages, supported in TeX:     Languages and hyphenation.
+* human-readable text, converting DVI to: dvitype invocation.
+* human-readable text, converting GF to: gftype invocation.
+* human-readable text, converting PK to: pktype invocation.
+* human-readable text, converting TFM to: tftopl invocation.
+* human-readable text, converting VF to: vftovp invocation.
+* hyphenation and languages:             Languages and hyphenation.
+* hyphenation patterns, creating:        patgen invocation.
+* ice cream:                             Introduction.
+* ieeetr.bst:                            Basic BibTeX style files.
+* Info format:                           Formats.
+* initial form, enabling:                Common options.
+* initial Metafont:                      inimf invocation.
+* initial MetaPost:                      inimpost invocation.
+* initial programs:                      Initial and virgin.
+* initial TeX:                           initex invocation.
+* initializations, lengthy:              Initial and virgin.
+* input filenames:                       \input filenames.
+* install-bases Make target:             Additional targets.
+* install-fmts Make target:              Additional targets.
+* install-formats Make target:           Additional targets.
+* install-mems Make target:              Additional targets.
+* installation:                          Installation.
+* interaction mode:                      Common options.
+* introduction:                          Introduction.
+* IPC:                                   IPC and TeX.
+* IPC_DEBUG <1>:                         IPC and TeX.
+* IPC_DEBUG:                             Compile-time options.
+* kerning table, in TFM files:           tftopl invocation.
+* Knuth, Donald E. <1>:                  mft invocation.
+* Knuth, Donald E.:                      Introduction.
+* KPATHSEA_DEBUG:                        Common options.
+* KRN property:                          tftopl invocation.
+* label font:                            gftodvi invocation.
+* LABEL property:                        tftopl invocation.
+* labels, extracting from MetaPost input: mpto invocation.
+* labels, for MetaPost:                  makempx invocation.
+* LAMSTeX:                               Formats.
+* language support in TeX:               Languages and hyphenation.
+* languages, hyphenation rules for:      patgen invocation.
+* LaTeX:                                 Formats.
+* left side bearing <1>:                 gftype invocation.
+* left side bearing:                     pktype invocation.
+* legalisms:                             Legalisms.
+* licensing terms:                       Introduction.
+* LIG property:                          tftopl invocation.
+* ligature table, in TFM files:          tftopl invocation.
+* LIGTABLE property:                     tftopl invocation.
+* linking binaries:                      Common options.
+* links to binaries:                     Determining the memory dump to use.
+* literate programming:                  WEB.
+* litprog@shsu.edu:                      WEB.
+* LittleEndian machines:                 Hardware and memory dumps.
+* log file, BibTeX:                      bibtex invocation.
+* machine dependencies:                  Hardware and memory dumps.
+* machine-readable, converting property lists to <1>: vptovf invocation.
+* machine-readable, converting property lists to: pltotf invocation.
+* MacKay, Pierre:                        Font file formats.
+* macro packages, major TeX:             Formats.
+* macros, basic:                         Installation.
+* macros, predefining in memory dumps:   Memory dumps.
+* magnification <1>:                     dvitype invocation.
+* magnification:                         dvicopy invocation.
+* main_memory:                           Runtime options.
+* Make targets, additional:              Additional targets.
+* makempx:                               makempx invocation.
+* MAKEMPX_BINDIR:                        makempx invocation.
+* Martin, Rick:                          Introduction.
+* Mathematical Reviews:                  Formats.
+* mathematical typesetting:              TeX.
+* mem file, determining:                 Determining the memory dump to use.
+* mem files:                             inimpost invocation.
+* mem files, plain only:                 inimpost invocation.
+* mem files, sharing:                    Hardware and memory dumps.
+* memory dump to use, determining:       Determining the memory dump to use.
+* memory dumps:                          Memory dumps.
+* memory dumps and hardware:             Hardware and memory dumps.
+* memory dumps, contain date and time:   Hardware and memory dumps.
+* memory dumps, creating:                Creating memory dumps.
+* mems Make target:                      Additional targets.
+* meta characters in filenames:          \input filenames.
+* Metafont:                              Metafont.
+* Metafont geometry:                     Online Metafont graphics.
+* Metafont graphics:                     Online Metafont graphics.
+* Metafont input files:                  mf invocation.
+* Metafont invocation:                   mf invocation.
+* Metafont meets PostScript:             MetaPost.
+* Metafont online support, new devices:  Online Metafont graphics.
+* Metafont source, prettyprinting:       mft invocation.
+* Metafont, compatibility in MetaPost:   inimpost invocation.
+* Metafont, initial:                     inimf invocation.
+* Metafont, MetaPost, and TeX:           Three programs.
+* Metafont, virgin:                      virmf invocation.
+* MetaPost:                              MetaPost.
+* MetaPost and plain Metafont compatibility: inimpost invocation.
+* MetaPost input files:                  mpost invocation.
+* MetaPost input, extracting labels from: mpto invocation.
+* MetaPost invocation:                   mpost invocation.
+* MetaPost labels:                       makempx invocation.
+* MetaPost source, prettyprinting:       mft invocation.
+* MetaPost, initial:                     inimpost invocation.
+* MetaPost, TeX, and Metafont:           Three programs.
+* MetaPost, virgin:                      virmpost invocation.
+* mf:                                    mf invocation.
+* mf.base:                               inimf invocation.
+* MFEDIT:                                Editor invocation.
+* mfplain.mem:                           inimpost invocation.
+* mfput:                                 mf invocation.
+* mft:                                   mft invocation.
+* mftalk:                                Online Metafont graphics.
+* MFTERM:                                Online Metafont graphics.
+* mftmac.tex:                            mft invocation.
+* mktexmf, disabling:                    mf invocation.
+* mktextfM, disabling:                   tex invocation.
+* mltex:                                 MLTeX.
+* MLTeX, enabling:                       tex invocation.
+* mode needed to run Metafont:           mf invocation.
+* mode_def:                              Modes.
+* mode_setup:                            Modes.
+* modes file needed for Metafont:        Modes.
+* modes.mf recommended modes file:       Modes.
+* Morgan, Tim:                           Introduction.
+* Morris, Bob:                           Introduction.
+* MPEDIT:                                Editor invocation.
+* mpgraph.ps:                            mpost invocation.
+* mpman.ps:                              mpost invocation.
+* mpost:                                 mpost invocation.
+* mpost, reason for name change:         Installation.
+* mpost.mem:                             inimpost invocation.
+* mpout:                                 mpost invocation.
+* mproof.tex:                            mpost invocation.
+* MPSUPPORT:                             dmp invocation.
+* MPto:                                  mpto invocation.
+* MPto, invoked by MakeMPX:              makempx invocation.
+* MPTOTEX:                               makempx invocation.
+* MPTOTR:                                makempx invocation.
+* mptrap Make target:                    Additional targets.
+* mptrap test:                           Triptrap.
+* mptrap.readme:                         Triptrap.
+* mpx file, defined:                     makempx invocation.
+* MPX files, converting from DVI files:  dvitomp invocation.
+* MPX files, creating from ditroff output: dmp invocation.
+* mpxerr:                                makempx invocation.
+* mpxerr.dvi:                            makempx invocation.
+* mpxerr.log:                            makempx invocation.
+* mpxerr.t:                              makempx invocation.
+* mpxerr.tex:                            makempx invocation.
+* mtimes of files, comparing:            newer invocation.
+* Multi-lingual TeX:                     MLTeX.
+* multiple DVI files, creating:          TeX extensions.
+* N tilde:                               \charsubdef.
+* new graphics support for Metafont:     Online Metafont graphics.
+* NEWER:                                 makempx invocation.
+* newer file comparison:                 newer invocation.
+* newrow GF command:                     gftype invocation.
+* next:                                  Online Metafont graphics.
+* NO_X11WIN:                             Online Metafont graphics.
+* non-Unix system, compiling on:         Additional targets.
+* NUL, not allowed in filenames:         \input filenames.
+* offset for overflow labels:            gftodvi invocation.
+* older-than, file comparisons:          newer invocation.
+* Omega:                                 TeX extensions.
+* online Metafont graphics:              Online Metafont graphics.
+* opcodes, showing DVI:                  dvitype invocation.
+* optical font scaling:                  Font file formats.
+* option conventions:                    Option conventions.
+* origin:                                pktype invocation.
+* output file location:                  Output file location.
+* output files, written by TeX programs: tex invocation.
+* output_comment for DVI files:          tex invocation.
+* overflow label offset:                 gftodvi invocation.
+* packet length:                         pktype invocation.
+* page, starting <1>:                    dvitype invocation.
+* page, starting:                        dvicopy invocation.
+* Pascal, creating from WEB:             tangle invocation.
+* patgen:                                patgen invocation.
+* path searching:                        Path searching.
+* path searching debugging:              Common options.
+* PDF:                                   TeX extensions.
+* PDFTeX:                                TeX extensions.
+* permissions, legal:                    Legalisms.
+* PFA and PFB conversion:                Font utilities available elsewhere.
+* PiCTeX, increasing memory for:         Runtime options.
+* picture expressions:                   makempx invocation.
+* pixel height:                          pktype invocation.
+* pixel width:                           pktype invocation.
+* PK bitmaps from PostScript:            Font utilities available elsewhere.
+* PK files, explained:                   Font file formats.
+* PK files, not output by Metafont:      mf invocation.
+* PK format definition:                  Font utilities.
+* PK, converting GF to:                  gftopk invocation.
+* PK, converting to GF:                  pktogf invocation.
+* pktogf:                                pktogf invocation.
+* pktype PK validation:                  pktype invocation.
+* pktype.web:                            Font utilities.
+* PL files, explained:                   Font file formats.
+* plain Metafont, compatibility in MetaPost: inimpost invocation.
+* plain text, converting DVI to:         dvitype invocation.
+* plain text, converting GF to:          gftype invocation.
+* plain text, converting PK to:          pktype invocation.
+* plain text, converting TFM to:         tftopl invocation.
+* plain text, converting VF to:          vftovp invocation.
+* plain.base:                            inimf invocation.
+* plain.bst:                             Basic BibTeX style files.
+* plain.fmt:                             initex invocation.
+* plain.mem:                             inimpost invocation.
+* plain.mft:                             mft invocation.
+* pltotf:                                pltotf invocation.
+* pool file, writing:                    tangle invocation.
+* Poole, Simon:                          Online Metafont graphics.
+* pooltype:                              pooltype invocation.
+* PostScript fonts, and Troff:           mpost invocation.
+* PostScript meets Metafont:             MetaPost.
+* PostScript output:                     mpost invocation.
+* PostScript to PK bitmaps:              Font utilities available elsewhere.
+* PostScript Type 1 font conversion:     Font utilities available elsewhere.
+* PostScript, and font scaling:          Font file formats.
+* predefined macros and memory dumps:    Memory dumps.
+* preloaded executables, creating:       Preloaded executables.
+* preloaded executables, not recommended: Initial and virgin.
+* prettyprinting Metafont source:        mft invocation.
+* prettyprinting WEB programs:           weave invocation.
+* primitives, new:                       TeX extensions.
+* printer characteristics, for Metafont: Modes.
+* production use:                        Initial and virgin.
+* program name, determines memory dump:  Determining the memory dump to use.
+* program names, special <1>:            tex invocation.
+* program names, special:                Common options.
+* prologues:                             mpost invocation.
+* prologues and Troff in MetaPost:       makempx invocation.
+* prologues, and EPSF output:            mpost invocation.
+* proof mode:                            mf invocation.
+* proof sheets, of fonts:                gftodvi invocation.
+* property list format:                  tftopl invocation.
+* property list, converting TFM to:      tftopl invocation.
+* property list, converting VF to virtual: vftovp invocation.
+* ps2pk:                                 Font utilities available elsewhere.
+* psfonts.map, read by MetaPost:         mpost invocation.
+* PXL files, explained:                  Font file formats.
+* pxtoch:                                Font utilities available elsewhere.
+* quit character:                        Preloaded executables.
+* Raichle, Bernd:                        MLTeX.
+* reading, additional:                   Introduction.
+* readonly directory, running TeX in:    Output file location.
+* reallocation of arrays:                Runtime options.
+* redefined character substitutions:     \tracingcharsubdef.
+* reference pixel:                       pktype invocation.
+* references:                            References.
+* regis:                                 Online Metafont graphics.
+* Regis graphics support:                Online Metafont graphics.
+* regression testing:                    tex invocation.
+* repeated rows:                         pktype invocation.
+* representation of strings:             pooltype invocation.
+* right side bearing <1>:                gftype invocation.
+* right side bearing:                    pktype invocation.
+* right-to-left typesetting:             TeX extensions.
+* Rokicki, Tomas:                        Introduction.
+* run length encoded bitmaps <1>:        gftype invocation.
+* run length encoded bitmaps:            pktype invocation.
+* runtime options:                       Runtime options.
+* scaled pixels <1>:                     gftype invocation.
+* scaled pixels:                         pktype invocation.
+* scaling of fonts:                      Font file formats.
+* scanned images of fonts:               Font utilities available elsewhere.
+* security, and \openout:                tex invocation.
+* security, and output files:            tex invocation.
+* security, and shell escapes:           tex invocation.
+* SetColor ditroff command:              dmp invocation.
+* shapes:                                Metafont.
+* sharing executables, and preloading:   Preloaded executables.
+* sharing memory dumps:                  Hardware and memory dumps.
+* shell commands in TeX:                 tex invocation.
+* shell_escape enabling in TeX:          tex invocation.
+* siam.bst:                              Basic BibTeX style files.
+* side bearings <1>:                     gftype invocation.
+* side bearings:                         pktype invocation.
+* SIGQUIT:                               Preloaded executables.
+* slant font:                            gftodvi invocation.
+* slides, producing:                     Formats.
+* SliTeX:                                Formats.
+* small Metafont memory and modes:       Modes.
+* smode and dynamic Metafont mode definition: Modes.
+* sockets:                               IPC and TeX.
+* space-terminated filenames:            \input filenames.
+* Spiderweb:                             WEB.
+* Stallman, Richard:                     Introduction.
+* starting page <1>:                     dvitype invocation.
+* starting page:                         dvicopy invocation.
+* Steele Jr., Guy L.:                    Hardware and memory dumps.
+* strategy, overall:                     Introduction.
+* string numbers, displaying:            pooltype invocation.
+* string pool, writing:                  tangle invocation.
+* string representation:                 pooltype invocation.
+* style design, for BibTeX:              bibtex invocation.
+* style files:                           mft invocation.
+* substitutions of font glyphs:          MLTeX.
+* sun:                                   Online Metafont graphics.
+* sun-gfx.c:                             Online Metafont graphics.
+* Suntools:                              Online Metafont graphics.
+* SunView:                               Online Metafont graphics.
+* swap space, as array limit:            Runtime options.
+* swapping bytes:                        Hardware and memory dumps.
+* system C library function:             tex invocation.
+* Tachikawa, Elizabeth:                  Font file formats.
+* tangle:                                tangle invocation.
+* targets, additional Make:              Additional targets.
+* tek:                                   Online Metafont graphics.
+* Tektronix:                             Online Metafont graphics.
+* Tektronix 4014:                        Online Metafont graphics.
+* TERM:                                  Online Metafont graphics.
+* terminator for filenames:              \input filenames.
+* terse output:                          bibtex invocation.
+* TEX:                                   makempx invocation.
+* tex:                                   tex invocation.
+* TeX, bibliographies for:               bibtex invocation.
+* TeX, creating from Metafont:           mft invocation.
+* TeX, creating from WEB:                weave invocation.
+* TeX, description of:                   TeX.
+* TeX, extensions to:                    TeX extensions.
+* TeX, format packages for:              Formats.
+* TeX, initial:                          initex invocation.
+* TeX, input files found:                tex invocation.
+* TeX, invocation:                       tex invocation.
+* TeX, Metafont, and MetaPost:           Three programs.
+* TeX, virgin:                           virtex invocation.
+* TeX, Web2c implementation of:          Introduction.
+* TeX-Xet:                               TeX extensions.
+* tex.fmt:                               initex invocation.
+* TEXBIB, search path for bib files:     bibtex invocation.
+* TEXEDIT:                               Editor invocation.
+* texfonts.map:                          Path searching.
+* Texinfo:                               Formats.
+* texmf.cnf:                             Path searching.
+* texmfmp.c:                             Online Metafont graphics.
+* texmfmp.c and openoutnameok:           tex invocation.
+* TEXMFOUTPUT, used if . unwritable:     Output file location.
+* texput:                                tex invocation.
+* text, extracting from MetaPost input:  mpto invocation.
+* TFM files, converting property lists to: pltotf invocation.
+* TFM files, explained:                  Font file formats.
+* TFM files, memory for:                 Runtime options.
+* TFM files, output by Metafont:         mf invocation.
+* TFM files, output by MetaPost:         mpost invocation.
+* TFM width of characters <1>:           gftype invocation.
+* TFM width of characters:               pktype invocation.
+* tftopl:                                tftopl invocation.
+* three programs:                        Three programs.
+* time and date, in memory dumps:        Hardware and memory dumps.
+* title font:                            gftodvi invocation.
+* toolkits, X:                           Online Metafont graphics.
+* torture tests:                         Triptrap.
+* translation from WEB to C:             Introduction.
+* trap Make target:                      Additional targets.
+* trap test:                             Triptrap.
+* trapman.tex:                           Triptrap.
+* trchars.adj:                           dmp invocation.
+* Trickey, Howard:                       Introduction.
+* trip Make target:                      Additional targets.
+* trip test:                             Triptrap.
+* tripman.tex:                           Triptrap.
+* triptrap Make target:                  Additional targets.
+* TROFF:                                 makempx invocation.
+* Troff, and MetaPost:                   mpost invocation.
+* Troff, WEB for:                        WEB.
+* Trojan horses and TeX programs:        tex invocation.
+* TUGboat bibliography:                  bibtex invocation.
+* Type 1 conversion:                     Font utilities available elsewhere.
+* type design, personal:                 inimf invocation.
+* type programs, DVI:                    dvitype invocation.
+* type programs, GF:                     gftype invocation.
+* type programs, PK:                     pktype invocation.
+* type programs, pool:                   pooltype invocation.
+* typeface families:                     Metafont.
+* typeface specimen sheets:              Font utilities available elsewhere.
+* typesetting:                           TeX.
+* undump:                                Preloaded executables.
+* Unicode:                               TeX extensions.
+* uniterm:                               Online Metafont graphics.
+* unsrt.bst:                             Basic BibTeX style files.
+* validation, of DVI files:              dvitype invocation.
+* validation, of GF files:               gftype invocation.
+* validation, of PK files:               pktype invocation.
+* validation, of TFM files:              tftopl invocation.
+* validation, of VF files:               vftovp invocation.
+* verbatimtex MetaPost command:          mpto invocation.
+* verbose BibTeX output, suppressing:    bibtex invocation.
+* verbosity, enabling:                   Common options.
+* version number, finding:               Common options.
+* vertical escapement:                   gftype invocation.
+* VF files, converting property lists to: vptovf invocation.
+* vftovp:                                vftovp invocation.
+* virgin Metafont:                       virmf invocation.
+* virgin MetaPost:                       virmpost invocation.
+* virgin programs:                       Initial and virgin.
+* virgin TeX:                            virtex invocation.
+* virtual font creation:                 Font utilities available elsewhere.
+* virtual fonts, expanding:              dvicopy invocation.
+* virtual-fonts.knuth:                   Font file formats.
+* virtualfonts.txt:                      Font file formats.
+* vptovf:                                vptovf invocation.
+* weave:                                 weave invocation.
+* WEB:                                   WEB.
+* WEB pool files, displaying:            pooltype invocation.
+* WEB programs, compiling:               tangle invocation.
+* WEB programs, typesetting:             weave invocation.
+* Weber, Olaf:                           Introduction.
+* webmac.tex:                            weave invocation.
+* webman.tex:                            WEB.
+* whitespace-terminated filenames:       \input filenames.
+* width, device-independent <1>:         gftype invocation.
+* width, device-independent:             pktype invocation.
+* width, in pixels:                      pktype invocation.
+* word processor, not:                   TeX.
+* writing memory dumps:                  Creating memory dumps.
+* X bitmap fonts:                        Font utilities available elsewhere.
+* X class name for Metafont:             Online Metafont graphics.
+* x offset:                              pktype invocation.
+* X resources:                           Online Metafont graphics.
+* X toolkits and Metafont:               Online Metafont graphics.
+* x X ditroff device control:            dmp invocation.
+* xampl.bib:                             bibtex invocation.
+* xbfe, bitmap font editor:              Font utilities available elsewhere.
+* xfed, bitmap font editor:              Font utilities available elsewhere.
+* xfedor, bitmap font editor:            Font utilities available elsewhere.
+* Xlib:                                  Online Metafont graphics.
+* Xlib support:                          Online Metafont graphics.
+* Xt:                                    Online Metafont graphics.
+* Xt support:                            Online Metafont graphics.
+* xterm:                                 Online Metafont graphics.
+* y offset:                              pktype invocation.
+* ~ expansion in filenames:              \input filenames.
+
+

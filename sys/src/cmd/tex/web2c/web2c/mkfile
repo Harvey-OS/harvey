@@ -1,0 +1,22 @@
+</$objtype/mkfile
+CPUS=mips 386
+
+BIN=/sys/lib/texmf/bin/$objtype
+TARG=fixwrites splitup regfix web2c
+
+HFILES=../lib/config.h
+
+LIB=../../kpathsea/libkpathsea.a$O ../lib/lib.a$O /$objtype/lib/ape/libl.a
+
+</sys/src/cmd/mkmany
+
+CC=pcc
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -I../.. -I.. -c
+
+# the parser now appears to require the GNU tools,
+# so we just leave the resultant .c and .h files lying around
+# and never remake them.
+$O.web2c:	web2cy.$O web2cl.$O
+web2cl.$O:	web2c.h web2cy.h
+web2cy.$O:	web2c.h
+web2c.$O:	web2cy.h

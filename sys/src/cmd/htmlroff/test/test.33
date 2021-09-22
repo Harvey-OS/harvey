@@ -1,0 +1,19 @@
+.ce 2
+hello world
+goodbye world
+again world
+this is a test
+
+.sp 5
+.di A1
+.ce 999
+Russ Cox, MIT LCS
+Eric Gross, Bell Labs
+.di
+.ce 0
+.sp 
+Here is A1:
+.nf
+.A1
+And away we go.
+

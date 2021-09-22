@@ -49,9 +49,8 @@ ding(void*, char*msg)
 void
 main(int argc, char **argv)
 {
-	int fd;
-	char buf[256];
-	char file[128];
+	int fd, logfd, pfxlen;
+	char buf[256], file[128], mylog[128];
 	char *p;
 	Dir *d;
 
@@ -69,6 +68,11 @@ main(int argc, char **argv)
 	if (access(file, AREAD) < 0)
 		sysfatal("%s not readable: %r", file);
 
+	logfd = -1;
+	strncpy(mylog, "/sys/log/up/", sizeof mylog);
+	pfxlen = strlen(mylog);
+	p = readenv("sysname", mylog + pfxlen, sizeof mylog - pfxlen);
+
 	switch(rfork(RFPROC|RFNOWAIT|RFNOTEG|RFCFDG)){
 	case 0:
 		break;
@@ -80,6 +84,8 @@ main(int argc, char **argv)
 	fd = open(file, OREAD);
 	if (fd < 0)
 		exits("no file");
+	if (p)
+		logfd = create(mylog, AWRITE, 0666);
 
 	//  the logic here is to make a request every 5 minutes.
 	//  If the request alarms out, that's OK, the file server
@@ -96,6 +102,9 @@ main(int argc, char **argv)
 			if(!alarmed)
 				reboot();
 		alarm(0);
+
+		if (logfd >= 0)
+			pwrite(logfd, "\n", 1, 0);  /* evidence of running */
 		sleep(60*1000*5);
 	}
 }

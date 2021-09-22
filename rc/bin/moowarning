@@ -1,0 +1,37 @@
+#!/bin/rc
+# moowarning - warn the milk czar to bring some
+rfork ne
+ramfs
+moo=()
+
+ifs='
+'
+next=`{calendar /lib/moo}
+for(i in $next)
+	moo=($moo `{echo $i | sed 's/.*[ 	]//'})
+ifs=' 	
+'
+
+mail pb <<EOF
+
+next MOO is:
+$next
+sent mail to $moo
+
+EOF
+mail $moo <<EOF
+Next unix room milk duty goes to:
+
+$next
+
+You may bring in your own milk or buy it at the
+cafeteria.  Gallons are now available in the cafeteria
+(in the fridge where they have small cartons of milk).
+
+At the moment we're consuming about 4-5 gallons a
+week.  Check the refrigerator before buying and try to 
+keep the stockpile of approximately 1 gallon during the 
+week.  If we stock more, it goes bad(!!!).  Please bring
+in 1% and/or 2% milk, hardly anybody prefers whole
+milk these days.
+EOF

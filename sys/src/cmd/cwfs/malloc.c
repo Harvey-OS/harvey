@@ -11,7 +11,7 @@ Hiob	*hiob;
  * end of the allocated memory.
  */
 void*
-ialloc(ulong n, int align)
+ialloc(uintptr n, int align)
 {
 	void *p = mallocalign(n, align, 0, 0);
 
@@ -27,8 +27,8 @@ prbanks(void)
 	Mbank *mbp;
 
 	for(mbp = mconf.bank; mbp < &mconf.bank[mconf.nbank]; mbp++)
-		print("bank[%ld]: base 0x%8.8lux, limit 0x%8.8lux (%.0fMB)\n",
-			mbp - mconf.bank, mbp->base, mbp->limit,
+		print("bank[%d]: base 0x%8.8lux, limit 0x%8.8lux (%.0fMB)\n",
+			(int)(mbp - mconf.bank), mbp->base, mbp->limit,
 			(mbp->limit - mbp->base)/(double)MB);
 }
 

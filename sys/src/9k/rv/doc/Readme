@@ -1,0 +1,25 @@
+The attached .tgz file should have everything you need to compile Plan 9
+riscv64 kernels and commands.  I plan to continue improving the port and
+adapting to other RISC-V systems.
+
+Note the documentation and manual pages.  The compilers are ic (rv32) and jc
+(rv64), built from the same sources.  Note that I've widened the last argument
+to memset (but this is *not* required, you can choose not to).
+
+Edit the tops of 9k/rv*/mkfile before mking.  The "te" architecture is
+tinyemu.  mk will generate 9tecpu.bin files that can be executed directly by
+tinyemu.  On hardware, interrupt u-boot and type
+
+	dhcp 0x90000000; bootm 0x90000000 - ${fdtcontroladdr}
+
+to load ndb's
+
+	bootf=/riscv64/9pfcpu.uim
+
+All these kernels are cpu kernels; the only peripherals supported so far are
+uarts, ethernet, sd and mmc cards.
+
+Almost everything I have tried has worked (gs, of course, never really works
+right).  Crypto remains marginal.
+
+Good luck, and let me know if you have questions.

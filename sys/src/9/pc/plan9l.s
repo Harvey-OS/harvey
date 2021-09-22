@@ -1,19 +1,14 @@
 #include "mem.h"
 
 /*
- * This must match io.h.
- */
-#define VectorSYSCALL	0x40
-
-/*
  *  Used to get to the first process:
  * 	set up an interrupt return frame and IRET to user level.
  */
-TEXT touser(SB), $0
+TEXT touser(SB), $0				/* touser(ulong sp) */
 	PUSHL	$(UDSEL)			/* old ss */
 	MOVL	sp+0(FP), AX			/* old sp */
 	PUSHL	AX
-	MOVL	$0x200, AX			/* interrupt enable flag */
+	MOVL	$IF, AX
 	PUSHL	AX				/* old flags */
 	PUSHL	$(UESEL)			/* old cs */
 	PUSHL	$(UTZERO+32)			/* old pc */

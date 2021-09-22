@@ -1,1 +1,3 @@
-#!/bin/cpu -O
+#!/bin/rc
+echo `{date} `{cat $3/remote} >> /sys/log/cpu-O
+exec /bin/cpu -O

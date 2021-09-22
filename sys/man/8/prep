@@ -469,9 +469,8 @@ Set the named partition active.
 The active partition is the one whose boot block is used
 when booting a PC from disk.
 .TP
-.B e
-Print the names of empty slots in the partition table, i.e., the
-valid names to use when creating a new partition.
+.B R
+Restore the disk back to initial configuration and exit.
 .TP
 .BI t " \fR[\fI type \fR]
 Set the partition type.  If it is not given,
@@ -634,6 +633,7 @@ is similar, but because it uses LBA addressing (not supported
 by older BIOSes), it can access more than the first 8.5GB of the disk.
 .B /386/pbsraw
 is suitable for CDs.
+.
 .SS mbr
 .I Mbr
 installs a new boot block in sector 0 (the master boot record)
@@ -757,3 +757,7 @@ will delete all partitions,
 including
 .LR data ,
 if there are no partitions defined in the MBR.
+.PP
+.I Mbr
+will only make the first 2TB of any disk visible
+because MBR sector numbers are 32 bits wide.

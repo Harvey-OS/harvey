@@ -1,0 +1,46 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "urw.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "46     124    1304",
+@c   docstring = "URW PostScript fonts."
+@c }
+uagd8r   URWGothicL-Demi
+uagdo8r  URWGothicL-DemiObli
+uagk8r   URWGothicL-Book
+uagko8r  URWGothicL-BookObli
+ubkd8r   URWBookmanL-DemiBold
+ubkdi8r  URWBookmanL-DemiBoldItal
+ubkl8r   URWBookmanL-Ligh
+ubkli8r  URWBookmanL-LighItal
+ucrb8r   NimbusMonL-Bold
+ucrbo8r  NimbusMonL-BoldObli
+ucrr8r   NimbusMonL-Regu
+ucrro8r  NimbusMonL-ReguObli
+uhvb8r   NimbusSanL-Bold
+uhvbo8r  NimbusSanL-BoldItal
+uhvboc8r NimbusSanL-ReguCondItal
+uhvbrc8r NimbusSanL-BoldCond
+uhvr8r   NimbusSanL-Regu
+uhvro8r  NimbusSanL-ReguItal
+uhvro8rc NimbusSanL-BoldCondItal
+uhvr8rc  NimbusSanL-ReguCond
+uncb8r   CenturySchL-Bold
+uncbi8r  CenturySchL-BoldItal
+uncr8r   CenturySchL-Roma
+uncri8r  CenturySchL-Ital
+uplb8r   URWPalladioL-Bold
+uplbi8r  URWPalladioL-BoldItal
+uplr8r   URWPalladioL-Roma
+uplri8r  URWPalladioL-Ital
+usyr     StandardSymL
+utmb8r   NimbusRomNo9L-Medi
+utmbi8r  NimbusRomNo9L-MediItal
+utmr8r   NimbusRomNo9L-Regu
+utmri8r  NimbusRomNo9L-ReguItal
+uzcmi8r  URWChanceryL-MediItal
+uzdr     Dingbats

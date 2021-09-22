@@ -1002,7 +1002,7 @@ parseaddr(char **pp, Message *first, Message *cur, Message *unspec, Message **mp
 		if(m == nil)
 			return "search";
 		*mp = m;
-		free(prog);
+		regfree(prog);
 		break;
 	case '$':
 		for(m = first; m != nil && m->next != nil; m = m->next)
@@ -1148,7 +1148,7 @@ parsecmd(char *p, Cmd *cmd, Message *first, Message *cur)
 					}
 				}
 			}
-			free(prog);
+			regfree(prog);
 		}
 	} else {
 	

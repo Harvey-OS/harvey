@@ -1418,7 +1418,7 @@ receiver(Dev *d)
 		close(fd);
 
 		/* open connection through the file system interface */
-		sprint(file, "/net/telco/%ld/data", d - dev);
+		sprint(file, "/net/telco/%ld/data", (int)(d - dev));
 		fd = open(file, ORDWR);
 		if(fd < 0){
 			syslog(0, LOGFILE, "can't open %s: %r", file);

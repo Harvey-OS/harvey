@@ -4,9 +4,11 @@
 MODE $64
 
 /*
+ * switch to user mode with stack pointer from sp+0(FP) as start of text.
+ * used to start process 1 (init).
  */
 TEXT touser(SB), 1, $-4
-	CLI
+	CLI		/* ensure intrs see consistent kernel or user regs */
 	SWAPGS
 	MOVQ	$SSEL(SiUDS, SsRPL3), AX
 	MOVW	AX, DS
@@ -15,13 +17,16 @@ TEXT touser(SB), 1, $-4
 	MOVW	AX, GS
 
 	MOVQ	$(UTZERO+0x28), CX		/* ip */
-	MOVQ	$If, R11			/* flags */
+	MOVQ	$If, R11			/* flags: allow interrtupts */
 
 	MOVQ	RARG, SP			/* sp */
 
 	BYTE $0x48; SYSRET			/* SYSRETQ */
 
 /*
+ * entry here is from a SYSCALL instruction.  set up m & up, switch stacks,
+ * save regs, call syscall(syscallno, Ureg *).  upon return, restore regs
+ * including sp, and return.
  */
 TEXT syscallentry(SB), 1, $-4
 	SWAPGS
@@ -32,9 +37,9 @@ TEXT syscallentry(SB), 1, $-4
 	ADDQ	$KSTACK, SP
 	PUSHQ	$SSEL(SiUDS, SsRPL3)		/* old stack segment */
 	PUSHQ	R13				/* old sp */
-	PUSHQ	R11				/* old flags */
+	PUSHQ	R11				/* old flags; from SYSCALL */
 	PUSHQ	$SSEL(SiUCS, SsRPL3)		/* old code segment */
-	PUSHQ	CX				/* old ip */
+	PUSHQ	CX				/* old ip; from SYSCALL */
 
 	SUBQ	$(18*8), SP			/* unsaved registers */
 
@@ -45,7 +50,7 @@ TEXT syscallentry(SB), 1, $-4
 
 	PUSHQ	SP				/* Ureg* */
 	PUSHQ	RARG				/* system call number */
-	CALL	syscall(SB)
+	CALL	syscallamd(SB)
 
 TEXT syscallreturn(SB), 1, $-4
 	MOVQ	16(SP), AX			/* Ureg.ax */
@@ -53,20 +58,20 @@ TEXT syscallreturn(SB), 1, $-4
 _syscallreturn:
 	ADDQ	$(17*8), SP			/* registers + arguments */
 
-	CLI
+	CLI		/* ensure intrs see consistent kernel or user regs */
 	SWAPGS
 	MOVW	0(SP), DS
 	MOVW	2(SP), ES
 	MOVW	4(SP), FS
 	MOVW	6(SP), GS
 
-	MOVQ	24(SP), CX			/* ip */
-	MOVQ	40(SP), R11			/* flags */
+	MOVQ	24(SP), CX			/* ip for SYSRET */
+	MOVQ	40(SP), R11			/* flags for SYSRET */
 
 	MOVQ	48(SP), SP			/* sp */
 
 	BYTE $0x48; SYSRET			/* SYSRETQ */
 
 TEXT sysrforkret(SB), 1, $-4
-	MOVQ	$0, AX
+	XORQ	AX, AX
 	JMP	_syscallreturn

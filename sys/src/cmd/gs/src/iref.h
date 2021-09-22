@@ -349,6 +349,7 @@ typedef struct stream_s stream;
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#pragma incomplete gx_device
 #endif
 #ifndef obj_header_DEFINED
 #  define obj_header_DEFINED

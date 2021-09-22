@@ -15,7 +15,7 @@ Config conf;
 void
 threadmain(int argc, char *argv[])
 {
-	u32int bcmem, icmem;
+	uintptr bcmem, icmem;
 
 	bcmem = 0;
 	icmem = 0;
@@ -45,7 +45,8 @@ threadmain(int argc, char *argv[])
 
 	if(bcmem < maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16))
 		bcmem = maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16);
-	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+	if(0) fprint(2, "initialize %lld bytes of disk block cache\n",
+		(vlong)bcmem);
 	initdcache(bcmem);
 	initlumpcache(1*1024*1024, 1024/8);
 	initicache(icmem);

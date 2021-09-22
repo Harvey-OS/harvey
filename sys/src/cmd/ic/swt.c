@@ -77,7 +77,8 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 		v = ~0 + (1L << b->type->nbits);
 		gopcode(OAND, nodconst(v), Z, n1);
 	} else {
-		sh = 32 - b->type->shift - b->type->nbits;
+		/* tfield->width*8 makes bitfields work on 64-bit systems */
+		sh = tfield->width*8 - b->type->shift - b->type->nbits;
 		if(sh > 0)
 			gopcode(OASHL, nodconst(sh), Z, n1);
 		sh += b->type->shift;

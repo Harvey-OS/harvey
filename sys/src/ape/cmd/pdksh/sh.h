@@ -6,83 +6,17 @@
 
 #include "config.h"	/* system and option configuration info */
 
-#ifdef HAVE_PROTOTYPES
 # define	ARGS(args)	args	/* prototype declaration */
-#else
-# define	ARGS(args)	()	/* K&R declaration */
-#endif
-
 
 /* Start of common headers */
 
 #include <stdio.h>
 #include <sys/types.h>
 #include <setjmp.h>
-#ifdef HAVE_STDDEF_H
 # include <stddef.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 # include <stdlib.h>
-#else
-/* just a useful subset of what stdlib.h would have */
-extern char * getenv  ARGS((const char *));
-extern void * malloc  ARGS((size_t));
-extern void * realloc ARGS((void *, size_t));
-extern int    free    ARGS((void *));
-extern int    exit    ARGS((int));
-extern int    rand    ARGS((void));
-extern void   srand   ARGS((unsigned int));
-extern int    atoi    ARGS((const char *));
-#endif /* HAVE_STDLIB_H */
-
-#ifdef HAVE_UNISTD_H
 # include <unistd.h>
-#else
-/* just a useful subset of what unistd.h would have */
-extern int access ARGS((const char *, int));
-extern int open ARGS((const char *, int, ...));
-extern int creat ARGS((const char *, mode_t));
-extern int read ARGS((int, char *, unsigned));
-extern int write ARGS((int, const char *, unsigned));
-extern off_t lseek ARGS((int, off_t, int));
-extern int close ARGS((int));
-extern int pipe ARGS((int []));
-extern int dup2 ARGS((int, int));
-extern int unlink ARGS((const char *));
-extern int fork ARGS((void));
-extern int execve ARGS((const char *, char * const[], char * const[]));
-extern int chdir ARGS((const char *));
-extern int kill ARGS((pid_t, int));
-extern char *getcwd();	/* no ARGS here - differs on different machines */
-extern int geteuid ARGS((void));
-extern int readlink ARGS((const char *, char *, int));
-extern int getegid ARGS((void));
-extern int getpid ARGS((void));
-extern int getppid ARGS((void));
-extern unsigned int sleep ARGS((unsigned int));
-extern int isatty ARGS((int));
-# ifdef POSIX_PGRP
-extern int getpgrp ARGS((void));
-extern int setpgid ARGS((pid_t, pid_t));
-# endif /* POSIX_PGRP */
-# ifdef BSD_PGRP
-extern int getpgrp ARGS((pid_t));
-extern int setpgrp ARGS((pid_t, pid_t));
-# endif /* BSD_PGRP */
-# ifdef SYSV_PGRP
-extern int getpgrp ARGS((void));
-extern int setpgrp ARGS((void));
-# endif /* SYSV_PGRP */
-#endif /* HAVE_UNISTD_H */
-
-#ifdef HAVE_STRING_H
 # include <string.h>
-#else
-# include <strings.h>
-# define strchr index
-# define strrchr rindex
-#endif /* HAVE_STRING_H */
 #ifndef HAVE_STRSTR
 char *strstr ARGS((const char *s, const char *p));
 #endif /* HAVE_STRSTR */
@@ -91,38 +25,13 @@ int strcasecmp ARGS((const char *s1, const char *s2));
 int strncasecmp ARGS((const char *s1, const char *s2, int n));
 #endif /* HAVE_STRCASECMP */
 
-#ifdef HAVE_MEMORY_H
-# include <memory.h>
-#endif
-#ifndef HAVE_MEMSET
-# define memcpy(d, s, n)	bcopy(s, d, n)
-# define memcmp(s1, s2, n)	bcmp(s1, s2, n)
-void *memset ARGS((void *d, int c, size_t n));
-#endif /* HAVE_MEMSET */
-#ifndef HAVE_MEMMOVE
-# ifdef HAVE_BCOPY
-#  define memmove(d, s, n)	bcopy(s, d, n)
-# else
-void *memmove ARGS((void *d, const void *s, size_t n));
-# endif
-#endif /* HAVE_MEMMOVE */
-
-#ifdef HAVE_PROTOTYPES
 # include <stdarg.h>
 # define SH_VA_START(va, argn) va_start(va, argn)
-#else
-# include <varargs.h>
-# define SH_VA_START(va, argn) va_start(va)
-#endif /* HAVE_PROTOTYPES */
 
 #include <errno.h>
 extern int errno;
 
-#ifdef HAVE_FCNTL_H
 # include <fcntl.h>
-#else
-# include <sys/file.h>
-#endif /* HAVE_FCNTL_H */
 #ifndef O_ACCMODE
 # define O_ACCMODE	(O_RDONLY|O_WRONLY|O_RDWR)
 #endif /* !O_ACCMODE */

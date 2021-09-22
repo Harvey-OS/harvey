@@ -465,7 +465,7 @@ Raw:
 	fprint(2, "\n");
 	for(; p < end; p++){
 		if((p - (uchar *)buf) % 16 == 0)
-			fprint(2, "\n%06lx\t", p - (uchar *)buf);
+			fprint(2, "\n%06llx\t", (vlong)(p - (uchar *)buf));
 		if(isprint((char)*p))
 			fprint(2, "%c  ", (char )*p);
 		else

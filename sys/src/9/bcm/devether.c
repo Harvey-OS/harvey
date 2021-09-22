@@ -1,1 +1,1 @@
-#include "../omap/devether.c"
+#include "../teg2/devether.c"

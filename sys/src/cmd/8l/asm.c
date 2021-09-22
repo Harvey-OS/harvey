@@ -1,4 +1,7 @@
 #include	"l.h"
+#define Sym Aoutsym
+#include	<a.out.h>
+#undef Sym
 
 #define	Dbufslop	100
 
@@ -310,9 +313,9 @@ asmb(void)
 		lputl(0x200);			/* flags comment only */
 		break;
 	case 2:	/* plan9 */
-		magic = 4*11*11+7;
+		magic = I_MAGIC;
 		if(dlm)
-			magic |= 0x80000000;
+			magic |= DYN_MAGIC;
 		lput(magic);			/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);

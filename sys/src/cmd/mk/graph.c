@@ -48,10 +48,13 @@ applyrules(char *target, char *cnt)
 	sym = symlook(target, S_TARGET, 0);
 	memset((char*)rmatch, 0, sizeof(rmatch));
 	for(r = sym? sym->u.ptr:0; r; r = r->chain){
-		if(r->attr&META) continue;
-		if(strcmp(target, r->target)) continue;
-		if((!r->recipe || !*r->recipe) && (!r->tail || !r->tail->s || !*r->tail->s)) continue;	/* no effect; ignore */
-		if(cnt[r->rule] >= nreps) continue;
+		if(r->attr&META || strcmp(target, r->target) != 0)
+			continue;
+		if((!r->recipe || !*r->recipe) &&
+		    (!r->tail || !r->tail->s || !*r->tail->s))
+			continue;		/* no effect; ignore */
+		if(cnt[r->rule] >= nreps)
+			continue;
 		cnt[r->rule]++;
 		node->flags |= PROBABLE;
 
@@ -67,14 +70,17 @@ applyrules(char *target, char *cnt)
 			a = a->next;
 		} else
 			for(w = r->tail; w; w = w->next){
-				a->next = newarc(applyrules(w->s, cnt), r, "", rmatch);
+				a->next = newarc(applyrules(w->s, cnt), r, "",
+					rmatch);
 				a = a->next;
 		}
 		cnt[r->rule]--;
 		head.n = node;
 	}
 	for(r = metarules; r; r = r->next){
-		if((!r->recipe || !*r->recipe) && (!r->tail || !r->tail->s || !*r->tail->s)) continue;	/* no effect; ignore */
+		if((!r->recipe || !*r->recipe) &&
+		    (!r->tail || !r->tail->s || !*r->tail->s))
+			continue;		/* no effect; ignore */
 		if ((r->attr&NOVIRT) && a != &head && (a->r->attr&VIR))
 			continue;
 		if(r->attr&REGEXP){
@@ -84,9 +90,11 @@ applyrules(char *target, char *cnt)
 			if(regexec(r->pat, node->name, rmatch, NREGEXP) == 0)
 				continue;
 		} else {
-			if(!match(node->name, r->target, stem)) continue;
+			if(!match(node->name, r->target, stem))
+				continue;
 		}
-		if(cnt[r->rule] >= nreps) continue;
+		if(cnt[r->rule] >= nreps)
+			continue;
 		cnt[r->rule]++;
 
 /*		if(r->attr&VIR)
@@ -102,10 +110,12 @@ applyrules(char *target, char *cnt)
 		} else
 			for(w = r->tail; w; w = w->next){
 				if(r->attr&REGEXP)
-					regsub(w->s, buf, sizeof(buf), rmatch, NREGEXP);
+					regsub(w->s, buf, sizeof(buf), rmatch,
+						NREGEXP);
 				else
 					subst(stem, w->s, buf, sizeof(buf));
-				a->next = newarc(applyrules(buf, cnt), r, stem, rmatch);
+				a->next = newarc(applyrules(buf, cnt), r, stem,
+					rmatch);
 				a = a->next;
 			}
 		cnt[r->rule]--;
@@ -149,9 +159,8 @@ vacuous(Node *node)
 	for(a = node->prereqs; a; a = a->next)
 		if((a->flag&TOGO) == 0)
 			for(la = node->prereqs; la; la = la->next)
-				if((la->flag&TOGO) && (la->r == a->r)){
+				if(la->flag&TOGO && la->r == a->r)
 					la->flag &= ~TOGO;
-				}
 	togo(node);
 	if(vac)
 		node->flags |= VACUOUS;
@@ -196,7 +205,8 @@ trace(char *s, Arc *a)
 			a->n? a->n->name:"");
 		if(a->n){
 			for(a = a->n->prereqs; a; a = a->next)
-				if(*a->r->recipe) break;
+				if(*a->r->recipe)
+					break;
 		} else
 			a = 0;
 	}
@@ -231,7 +241,8 @@ ambiguous(Node *n)
 	for(a = n->prereqs; a; a = a->next){
 		if(a->n)
 			ambiguous(a->n);
-		if(*a->r->recipe == 0) continue;
+		if(*a->r->recipe == 0)
+			continue;
 		if(r == 0)
 			r = a->r, la = a;
 		else{
@@ -246,7 +257,8 @@ ambiguous(Node *n)
 			}
 			if(r->recipe != a->r->recipe){
 				if(bad == 0){
-					fprint(2, "mk: ambiguous recipes for %s:\n", n->name);
+					fprint(2, "mk: ambiguous recipes for %s:\n",
+						n->name);
 					bad = 1;
 					trace(n->name, la);
 				}

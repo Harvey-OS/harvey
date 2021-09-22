@@ -1,0 +1,134 @@
+.TH MFT 1 "14 December 1993" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+mft \- translate Metafont code to TeX code for prettyprinting
+.SH SYNOPSIS
+.B mft
+.I mf_file_name[.mf]
+[
+[
+.B \-c
+]
+or
+[
+.I change_file_name[.ch]
+]
+]
+[
+[
+.B \-s
+]
+or
+[
+.I style_file_name[.mft]
+]
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B mft
+program creates a \*(TX file from a \*(MF program.
+It takes appropriate care of typographic details like page
+layout and the use of indentation, italics, boldface, etc., as illustrated
+in the book
+.IR "Computer Modern Typefaces" .
+Special conventions in \*(MF comments allow you to control things that
+would not otherwise come out right; section 1 of the MFT source program
+in the
+.I \*(MFware
+report explains these rules.
+.PP
+The command line has one required file name and two optional file names.
+The required
+one is a \*(MF source file; there is also an optional change file
+(which works just as the change files to
+.BR tangle (1)
+and
+.BR weave (1)
+do)
+and an optional style file (which is prepended to everything).
+.PP
+A file name that doesn't contain a dot is always given an extension,
+either
+.I .mf
+(\*(MF) or
+.I .ch
+(change) or
+.I .mft
+(style). If no style file is specified, the style file
+.I plain.mft
+is automatically used. The
+.I change_file_name
+is not searched for using any paths. The
+.I .mf
+file is searched for using the MFINPUTS environment variable if you
+have set it, or else the system default.  The style file is searched
+for using the TEXINPUTS environment variable.  See
+.BR tex (1)
+for the details of the searching.
+.PP
+The output \*(TX file name is formed by using
+.I .tex
+in place of the extension of
+.IR mf_file_name .
+.\"=====================================================================
+.SH OPTIONS
+Specify command-line options
+.B \-c
+to suppress the reading of a change file, and
+.B \-s
+to suppress the reading of a style file.
+.\"=====================================================================
+.SH FILES
+.TP
+.I mftmac.tex
+\*(TX macros used by
+.B mft
+output.
+.TP
+.I plain.mft
+Default style file.
+.TP
+.I cmbase.mft
+Style file for Computer Modern.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR mf (1),
+.BR weave (1).
+.br
+Donald E. Knuth,
+.I Computer Modern Typefaces
+(Volume E of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13446-2.
+.br
+Donald E. Knuth et al.,
+.IR \*(MFware .
+.\"=====================================================================
+.SH AUTHORS
+Donald E. Knuth wrote the program, and he ported it to Unix with the help of
+Pierre MacKay and the Unix port of
+.B weave
+by Howard Trickey and Pavel Curtis.
+The program is published in the
+.I \*(MFware
+technical report, available from the \*(TX Users Group.

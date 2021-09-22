@@ -133,29 +133,35 @@ connectlocalkfs(void)
 	return p[0];
 }
 
-void
+/* file to optionally fetch is argv[0] and to exec is bootname(argv[0]). */
+int
 runv(char **argv)
 {
 	int i, pid;
+	char *cmd, *bootnm;
 
+	cmd = argv[0];
+	fetchmissing(cmd);
 	switch(pid = fork()){
 	case -1:
 		fatal("fork");
 	case 0:
-		exec(argv[0], argv);
-		fatal(smprint("can't exec %s: %r", argv[0]));
+		bootnm = bootname(cmd);
+		exec(bootnm, argv);
+		fatal(smprint("can't exec %s: %r", bootnm));
 	default:
 		while ((i = waitpid()) != pid && i != -1)
 			;
 		if(i == -1)
-			fatal(smprint("wait failed running %s", argv[0]));
+			fatal(smprint("wait failed running %s", cmd));
+		return 0;
 	}
 }
 
-void
+int
 run(char *file, ...)
 {
-	runv(&file);
+	return runv(&file);
 }
 
 static int
@@ -280,7 +286,9 @@ connectlocal(void)
 	bind("#k", "/dev", MAFTER);
 	bind("#u", "/dev", MAFTER);
 	bind("#æ", "/dev", MAFTER);
+#ifdef USB
 	mountusbparts();	/* make partfs partitions visible again */
+#endif
 
 	if((fd = connectlocalfossil()) < 0)
 		fd = connectlocalkfs();

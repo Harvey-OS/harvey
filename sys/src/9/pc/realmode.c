@@ -1,5 +1,4 @@
 #include	"u.h"
-#include	"tos.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
@@ -10,16 +9,19 @@
 
 /*
  * Back the processor into real mode to run a BIOS call,
- * then return.  This must be used carefully, since it 
- * completely disables hardware interrupts (e.g., the i8259)
- * while running.  It is *not* using VM86 mode. 
+ * then return.  This must be used carefully, since it
+ * completely disables hardware interrupts (i.e., the i8259 and lapic)
+ * while running.  It is *not* using VM86 mode.
  * Maybe that's really the right answer, but real mode
  * is fine for now.  We don't expect to use this very much --
  * just for VGA and APM.
  */
-#define realmoderegs (*(Ureg*)RMUADDR)
 
 #define LORMBUF (RMBUF-KZERO)
+
+enum { CF = 1, };		/* carry flag: indicates error in bios call */
+
+extern void realmode0(void);	/* in lreal.s */
 
 static Ureg rmu;
 static Lock rmlock;
@@ -29,40 +31,37 @@ realmode(Ureg *ureg)
 {
 	int s;
 	ulong cr3;
-	extern void realmode0(void);	/* in l.s */
 
 	if(getconf("*norealmode"))
 		return;
 
 	lock(&rmlock);
-	realmoderegs = *ureg;
+	*(Ureg*)RMUADDR = *ureg;
 
-	/* copy l.s so that it can be run from 16-bit mode */
-	memmove((void*)RMCODE, (void*)KTZERO, 0x1000);
+	/*
+	 * copy l.s so that it can be run from 16-bit mode.
+	 * the RMCODE page is writable because it's between KZERO and KTZERO.
+	 */
+	memmove((void*)RMCODE, (void*)KTZERO, BY2PG);
 
 	s = splhi();
 	m->pdb[PDX(0)] = m->pdb[PDX(KZERO)];	/* identity map low */
 	cr3 = getcr3();
 	putcr3(PADDR(m->pdb));
-	if (arch)
-		arch->introff();
-	else
-		i8259off();
+	arch->introff();
 	realmode0();
-	if(m->tss){
-		/*
-		 * Called from memory.c before initialization of mmu.
-		 * Don't turn interrupts on before the kernel is ready!
-		 */
-		if (arch)
-			arch->intron();
-		else
-			i8259on();
-	}
+	splhi();			/* who knows what the bios did */
+	/*
+	 * Called from memory.c before initialization of mmu.
+	 * Don't turn interrupts on before the kernel is ready!
+	 */
+	if(m->tss)
+		arch->intron();
 	m->pdb[PDX(0)] = 0;	/* remove low mapping */
 	putcr3(cr3);
 	splx(s);
-	*ureg = realmoderegs;
+
+	*ureg = *(Ureg*)RMUADDR;
 	unlock(&rmlock);
 }
 
@@ -131,10 +130,29 @@ rmemwrite(Chan*, void *a, long n, vlong off)
 	return rmemrw(0, a, n, off);
 }
 
+static void
+realmodediag(void)
+{
+	Ureg *ureg;
+	Ureg uregs;
+
+	ureg = &uregs;
+	memset(ureg, 0, sizeof *ureg);
+	ureg->trap = 0x15;
+	ureg->ax = 2401;	/* harmless: enable A20 line */
+	iprint("to real mode...");
+	realmode(ureg);
+	if (ureg->flags & CF)
+		iprint("a20-on bios call (nop) failed\n");
+	else
+		iprint("and back.\n");
+}
+
 void
 realmodelink(void)
 {
 	addarchfile("realmode", 0660, rtrapread, rtrapwrite);
 	addarchfile("realmodemem", 0660, rmemread, rmemwrite);
+	realmodediag();
 }
 

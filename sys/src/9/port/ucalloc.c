@@ -1,5 +1,7 @@
 /*
  * allocate uncached memory
+ *
+ * requires an arch-dependent mmuuncache().
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -62,7 +64,7 @@ ucpoolunlock(Pool* p)
 	pv->cur = pv->msg;
 	iunlock(pv);
 
-	iprint("%.*s", sizeof pv->msg, msg);
+	iprint("%.*s", (int)sizeof pv->msg, msg);
 }
 
 static void
@@ -76,27 +78,12 @@ ucpoollock(Pool* p)
 	pv->cur = pv->msg;
 }
 
-static void*
-ucarena(usize size)
-{
-	void *uv, *v;
-
-	assert(size == 1*MiB);
-
-	mainmem->maxsize += 1*MiB;
-	if((v = mallocalign(1*MiB, 1*MiB, 0, 0)) == nil ||
-	    (uv = mmuuncache(v, 1*MiB)) == nil){
-		free(v);
-		mainmem->maxsize -= 1*MiB;
-		return nil;
-	}
-	return uv;
-}
+static void *ucarena(usize size);
 
 static Pool ucpool = {
 	.name		= "Uncached",
-	.maxsize	= 4*MiB,
-	.minarena	= 1*MiB-32,
+	.maxsize	= 4*MB,
+	.minarena	= 1*MB-32,	/* required on arm; see mmuuncache() */
 	.quantum	= 32,
 	.alloc		= ucarena,
 	.merge		= nil,
@@ -109,6 +96,26 @@ static Pool ucpool = {
 
 	.private	= &ucprivate,
 };
+
+/* allocate another power-of-2-sized lump of uncached ram for this pool */
+static void*
+ucarena(usize size)
+{
+	void *uv, *v;
+
+	if (!ispow2(size)) {
+		print("ucarena: non-power-of-2 size %lud\n", size);
+		return nil;
+	}
+	mainmem->maxsize += size;
+	if((v = mallocalign(size, size, 0, 0)) == nil ||
+	    (uv = mmuuncache(v, size)) == nil){
+		free(v);
+		mainmem->maxsize -= size;
+		return nil;
+	}
+	return uv;
+}
 
 void
 ucfree(void* v)

@@ -24,7 +24,7 @@ int	fsizep(char *);
 int	isdir(char *);
 int	isreg(char *);
 int	isatty(int);
-int	isint(char *, int *);
+int	isint(char *, vlong *);
 int	isolder(char *, char *);
 int	isolderthan(char *, char *);
 int	isnewerthan(char *, char *);
@@ -71,7 +71,7 @@ nxtarg(int mt)
 }
 
 int
-nxtintarg(int *pans)
+nxtintarg(vlong *pans)
 {
 	if(ap<ac && isint(av[ap], pans)){
 		ap++;
@@ -116,7 +116,8 @@ e2(void)
 int
 e3(void)
 {
-	int p1, int1, int2;
+	int p1;
+	vlong int1, int2;
 	char *a, *p2;
 
 	a = nxtarg(0);
@@ -316,11 +317,11 @@ synbad(char *s1, char *s2)
 }
 
 int
-isint(char *s, int *pans)
+isint(char *s, vlong *pans)
 {
 	char *ep;
 
-	*pans = strtol(s, &ep, 0);
+	*pans = strtoll(s, &ep, 0);
 	return (*ep == 0);
 }
 

@@ -1,0 +1,65 @@
+vm 0-5.5
+pC 35.190139, 80.951944	# clt
+pG 35.200056, 81.150167	# 0a6 apt
+
+px xccn pC,11, pG,2
+py xccs pC,11, pG,2
+
+n clt_gnd\100
+ar pG,px,py
+al pC,py,px
+
+n clt_36\100
+c pC,20
+
+pa d pC,m127,20
+pb d pC,m246,20
+pc d pC,m293,20
+pd d pC,m060,20
+
+pe d pC,m127,25
+pf d pC,m153,25
+pg d pC,m223,25
+ph d pC,m246,25
+pi d pC,m293,25
+pj d pC,m323,25
+pk d pC,m030,25
+pl d pC,m060,25
+
+pm d pC,m127,30
+pn d pC,m153,30
+po d pC,m223,30
+pp d pC,m246,30
+pq d pC,m293,30
+pr d pC,m315,30
+ps d pC,m323,28
+pt d pC,m030,30
+pu d pC,m060,30
+
+n clt_60\100
+s pa,pe
+ar pC,pe,pf
+Ar pC,pf,pg
+s ph,pb
+s pc,pi
+ar pC,pi,pj
+Ar pC,pj,pk
+ar pC,pk,pl
+s pl,pd
+
+n clt_80\100
+Ar pC,pl,pe
+Ar pC,ph,pi
+S pe,pm
+Ar pC,pm,pn
+S pn,pf
+S pg,po
+Ar pC,po,pp
+S pp,ph
+S pi,pq
+Ar pC,pq,pr
+S pr,ps
+S ps,pj
+S pk,pt
+Ar pC,pt,pu
+S pu,pl

@@ -7,17 +7,17 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
-#include "ureg.h"
 #include "../port/error.h"
-
 #include "../port/sd.h"
 
 extern Dev sddevtab;
 extern SDifc* sdifc[];
 
+char Echange[] = "media or partition has changed";
+
 static char devletters[] = "0123456789"
 	"abcdefghijklmnopqrstuvwxyz"
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" "_-";
 
 static SDev *devs[sizeof devletters-1];
 static QLock devslock;
@@ -69,6 +69,7 @@ enum {
 #define QID(d,u, p, t)	(((d)<<DevSHIFT)|((u)<<UnitSHIFT)|\
 					 ((p)<<PartSHIFT)|((t)<<TypeSHIFT))
 
+static int unconfigure(char* spec);
 
 void
 sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
@@ -348,10 +349,12 @@ sdadddevs(SDev *sdev)
 		if(sdev->unit == nil || sdev->unitflg == nil){
 			print("sdadddevs: out of memory\n");
 		giveup:
-			free(sdev->unit);
-			free(sdev->unitflg);
 			if(sdev->ifc->clear)
 				sdev->ifc->clear(sdev);
+			free(sdev->unit);
+			free(sdev->unitflg);
+			sdev->unit = nil;
+			sdev->unitflg = nil;
 			free(sdev);
 			continue;
 		}
@@ -362,29 +365,46 @@ sdadddevs(SDev *sdev)
 		}
 		qlock(&devslock);
 		for(i=0; i<nelem(devs); i++){
-			if(devs[j = (id+i)%nelem(devs)] == nil){
+			if(devs[j = (uint)(id+i) % nelem(devs)] == nil){
 				sdev->idno = devletters[j];
 				devs[j] = sdev;
-				snprint(sdev->name, sizeof sdev->name, "sd%c", devletters[j]);
+				snprint(sdev->name, sizeof sdev->name, "sd%c",
+					devletters[j]);
 				break;
 			}
 		}
 		qunlock(&devslock);
-		if(i == nelem(devs)){
+		if(i >= nelem(devs)){
 			print("sdadddevs: out of device letters\n");
 			goto giveup;
 		}
 	}
 }
 
-// void
-// sdrmdevs(SDev *sdev)
-// {
-// 	char buf[2];
-//
-// 	snprint(buf, sizeof buf, "%c", sdev->idno);
-// 	unconfigure(buf);
-// }
+void
+sdrmdevs(SDev *sdev)
+{
+	char buf[UTFmax+1];
+
+	snprint(buf, sizeof buf, "%c", sdev->idno);
+	unconfigure(buf);
+}
+
+/*
+ * Shutdown all known controller types.
+ */
+static void
+sdshutdown(void)
+{
+	int i;
+	SDev *sdev;
+
+	for(i = 0; i < nelem(devs); i++) {
+		sdev = devs[i];
+		if (sdev)
+			sdrmdevs(sdev);
+	}
+}
 
 void
 sdaddallconfs(void (*addconf)(SDunit *))
@@ -494,13 +514,12 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 		s -= (Qunitdir-Qtopbase);
 
 		qlock(&devslock);
-		for(i=0; i<nelem(devs); i++){
+		for(i=0; i<nelem(devs); i++)
 			if(devs[i]){
 				if(s < devs[i]->nunit)
 					break;
 				s -= devs[i]->nunit;
 			}
-		}
 
 		if(i == nelem(devs)){
 			/* Run off the end of the list */
@@ -532,8 +551,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 	case Qunitdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
-			snprint(up->genbuf, sizeof up->genbuf, "#%C",
-				sddevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", sddevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
@@ -550,11 +568,12 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 		 * Check for media change.
 		 * If one has already been detected, sectors will be zero.
 		 * If there is one waiting to be detected, online
-		 * will return > 1.
+		 * will return >= 2.
 		 * Online is a bit of a large hammer but does the job.
 		 */
 		if(unit->sectors == 0
-		|| (unit->dev->ifc->online && unit->dev->ifc->online(unit) > 1))
+		|| (unit->dev->ifc->online && unit->dev->ifc->online(unit) >=
+		    SDmedchanged))
 			sdinitpart(unit);
 
 		i = s+Qunitbase;
@@ -729,15 +748,16 @@ sdclose(Chan* c)
 }
 
 static long
-sdbio(Chan* c, int write, char* a, long len, vlong off)
+sdbio(Chan* c, int write, char* a, long len, uvlong off)
 {
 	int nchange;
+	long l;
 	uchar *b;
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
-	vlong bno;
-	long l, max, nb, offset;
+	ulong max, nb, offset;
+	uvlong bno;
 
 	sdev = sdgetdev(DEV(c->qid));
 	if(sdev == nil){
@@ -960,7 +980,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	unit = r->unit;
 
 	/*
-	 * Rewrite read(6)/write(6) into read(10)/write(10).
+	 * Rewrite read(6)/write(6) into read(10)/write(10) in place.
 	 */
 	switch(cmd[0]){
 	case ScmdRead:
@@ -974,7 +994,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		cmd[3] = cmd[1] & 0x0F;
 		cmd[2] = 0;
 		cmd[1] &= 0xE0;
-		cmd[0] |= 0x20;
+		cmd[0] |= 0x20;		/* promote to extended read or write */
 		break;
 	}
 
@@ -990,7 +1010,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	default:
 		return sdsetsense(r, SDcheck, 0x05, 0x20, 0);
 
-	case ScmdTur:		/* test unit ready */
+	case ScmdTur:	/* test unit ready */
 		return sdsetsense(r, SDok, 0, 0, 0);
 
 	case ScmdRsense:	/* request sense */
@@ -1004,7 +1024,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		}
 		return sdsetsense(r, SDok, 0, 0, 0);
 
-	case ScmdInq:		/* inquiry */
+	case ScmdInq:	/* inquiry */
 		if(cmd[4] < sizeof unit->inquiry)
 			len = cmd[4];
 		else
@@ -1015,7 +1035,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		}
 		return sdsetsense(r, SDok, 0, 0, 0);
 
-	case ScmdStart:		/* start/stop unit */
+	case ScmdStart:	/* start/stop unit */
 		/*
 		 * nop for now, can use power management later.
 		 */
@@ -1030,17 +1050,8 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		/*
 		 * Read capacity returns the LBA of the last sector.
 		 */
-		len = unit->sectors - 1;
-		p = r->data;
-		*p++ = len>>24;
-		*p++ = len>>16;
-		*p++ = len>>8;
-		*p++ = len;
-		len = 512;
-		*p++ = len>>24;
-		*p++ = len>>16;
-		*p++ = len>>8;
-		*p++ = len;
+		p = beputl(r->data, unit->sectors - 1);
+		p = beputl(p, 512);
 		r->rlen = p - (uchar*)r->data;
 		return sdsetsense(r, SDok, 0, 0, 0);
 
@@ -1050,23 +1061,10 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		if(r->data == nil || r->dlen < 8)
 			return sdsetsense(r, SDcheck, 0x05, 0x20, 1);
 		/*
-		 * Read capcity returns the LBA of the last sector.
+		 * Read capacity returns the LBA of the last sector.
 		 */
-		len = unit->sectors - 1;
-		p = r->data;
-		*p++ = len>>56;
-		*p++ = len>>48;
-		*p++ = len>>40;
-		*p++ = len>>32;
-		*p++ = len>>24;
-		*p++ = len>>16;
-		*p++ = len>>8;
-		*p++ = len;
-		len = 512;
-		*p++ = len>>24;
-		*p++ = len>>16;
-		*p++ = len>>8;
-		*p++ = len;
+		p = beputvl(r->data, unit->sectors - 1);
+		p = beputl(p, 512);
 		r->rlen = p - (uchar*)r->data;
 		return sdsetsense(r, SDok, 0, 0, 0);
 
@@ -1081,58 +1079,6 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	}
 }
 
-int
-sdfakescsirw(SDreq *r, uvlong *llba, int *nsec, int *rwp)
-{
-	uchar *c;
-	int rw, count;
-	uvlong lba;
-
-	c = r->cmd;
-	rw = 0;
-	if((c[0] & 0xf) == 0xa)
-		rw = 1;
-	switch(c[0]){
-	case 0x08:	/* read6 */
-	case 0x0a:
-		lba = (c[1] & 0xf)<<16 | c[2]<<8 | c[3];
-		count = c[4];
-		break;
-	case 0x28:	/* read10 */
-	case 0x2a:
-		lba = c[2]<<24 | c[3]<<16 | c[4]<<8 | c[5];
-		count = c[7]<<8 | c[8];
-		break;
-	case 0xa8:	/* read12 */
-	case 0xaa:
-		lba = c[2]<<24 | c[3]<<16 | c[4]<<8 | c[5];
-		count = c[6]<<24 | c[7]<<16 | c[8]<<8 | c[9];
-		break;
-	case 0x88:	/* read16 */
-	case 0x8a:
-		/* ata commands only go to 48-bit lba */
-		if(c[2] || c[3])
-			return sdsetsense(r, SDcheck, 3, 0xc, 2);
-		lba = (uvlong)c[4]<<40 | (uvlong)c[5]<<32;
-		lba |= c[6]<<24 | c[7]<<16 | c[8]<<8 | c[9];
-		count = c[10]<<24 | c[11]<<16 | c[12]<<8 | c[13];
-		break;
-	default:
-		print("%s: bad cmd 0x%.2ux\n", r->unit->name, c[0]);
-		r->status  = sdsetsense(r, SDcheck, 0x05, 0x20, 0);
-		return SDcheck;
-	}
-	if(r->data == nil)
-		return SDok;
-	if(r->dlen < count * r->unit->secsize)
-		count = r->dlen/r->unit->secsize;
-	if(rwp)
-		*rwp = rw;
-	*llba = lba;
-	*nsec = count;
-	return SDnostatus;
-}
-
 static long
 sdread(Chan *c, void *a, long n, vlong off)
 {
@@ -1140,7 +1086,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
-	long offset;
+	ulong offset;
 	int i, l, m, status;
 
 	offset = off;
@@ -1160,7 +1106,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 				p = sdev->ifc->rtopctl(sdev, p, e);
 		}
 		qunlock(&devslock);
-		n = readstr(offset, a, n, buf);
+		n = readstr(off, a, n, buf);
 		free(buf);
 		return n;
 
@@ -1178,8 +1124,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 		p = malloc(m);
 		if(p == nil)
 			error(Enomem);
-		l = snprint(p, m, "inquiry %.48s\n",
-			(char*)unit->inquiry+8);
+		l = snprint(p, m, "inquiry %.48s\n", (char*)unit->inquiry+8);
 		qlock(&unit->ctl);
 		/*
 		 * If there's a device specific routine it must
@@ -1246,171 +1191,194 @@ sdread(Chan *c, void *a, long n, vlong off)
 
 static void legacytopctl(Cmdbuf*);
 
-static long
-sdwrite(Chan* c, void* a, long n, vlong off)
+static void
+sdwtopctl(void* a, long n)
 {
 	char *f0;
 	int i;
-	uvlong end, start;
 	Cmdbuf *cb;
 	SDifc *ifc;
+	SDev *sdev;
+
+	cb = parsecmd(a, n);
+	if(waserror()){
+		free(cb);
+		nexterror();
+		notreached();
+	}
+	if(cb->nf == 0) {
+		error("empty control message");
+		notreached();
+	}
+	f0 = cb->f[0];
+	cb->f++;
+	cb->nf--;
+	if(strcmp(f0, "config") == 0){
+		/* wormhole into ugly legacy interface */
+		legacytopctl(cb);
+		poperror();
+		free(cb);
+		return;
+	}
+	/*
+	 * "ata arg..." invokes sdifc[i]->wtopctl(nil, cb),
+	 * where sdifc[i]->name=="ata" and cb contains the args.
+	 */
+	for(i=0; sdifc[i]; i++)
+		if(strcmp(sdifc[i]->name, f0) == 0){
+			ifc = sdifc[i];
+			sdev = nil;
+			goto subtopctl;
+		}
+	/*
+	 * "sd1 arg..." invokes sdifc[i]->wtopctl(sdev, cb),
+	 * where sdifc[i] and sdev match controller letter "1",
+	 * and cb contains the args.
+	 */
+	if(f0[0]=='s' && f0[1]=='d' && f0[2] && f0[3] == 0)
+		if((sdev = sdgetdev(f0[2])) != nil){
+			ifc = sdev->ifc;
+			goto subtopctl;
+		}
+	error("unknown sd interface");
+	notreached();
+
+subtopctl:
+	if(waserror()){
+		if(sdev)
+			decref(&sdev->r);
+		nexterror();
+		notreached();
+	}
+	if(ifc->wtopctl)
+		ifc->wtopctl(sdev, cb);
+	else {
+		error(Ebadctl);
+		notreached();
+	}
+	poperror();
+	poperror();
+	if(sdev)
+		decref(&sdev->r);
+	free(cb);
+}
+
+static long
+sdwraw(Chan *c, void *a, long n)
+{
 	SDreq *req;
 	SDunit *unit;
 	SDev *sdev;
 
+	sdev = sdgetdev(DEV(c->qid));
+	if(sdev == nil)
+		error(Enonexist);
+	unit = sdev->unit[UNIT(c->qid)];
+	qlock(&unit->raw);
+	if(waserror()){
+		qunlock(&unit->raw);
+		decref(&sdev->r);
+		nexterror();
+	}
+	switch(unit->state){
+	case Rawcmd:
+		if(n < 6 || n > sizeof(req->cmd))
+			error(Ebadarg);
+		if((req = malloc(sizeof(SDreq))) == nil)
+			error(Enomem);
+		req->unit = unit;
+		memmove(req->cmd, a, n);
+		req->clen = n;
+		req->flags = SDnosense;
+		req->status = ~0;
+
+		unit->req = req;
+		unit->state = Rawdata;
+		break;
+
+	case Rawstatus:
+		unit->state = Rawcmd;
+		free(unit->req);
+		unit->req = nil;
+		error(Ebadusefd);
+
+	case Rawdata:
+		unit->state = Rawstatus;
+		unit->req->write = 1;
+		n = sdrio(unit->req, a, n);
+		break;
+	}
+	qunlock(&unit->raw);
+	decref(&sdev->r);
+	poperror();
+	return n;
+}
+
+static long
+sdwctl(Chan* c, void* a, long n)
+{
+	uvlong end, start;
+	Cmdbuf *cb;
+	SDunit *unit;
+	SDev *sdev;
+
+	cb = parsecmd(a, n);
+	sdev = sdgetdev(DEV(c->qid));
+	if(sdev == nil)
+		error(Enonexist);
+	unit = sdev->unit[UNIT(c->qid)];
+
+	qlock(&unit->ctl);
+	if(waserror()){
+		qunlock(&unit->ctl);
+		decref(&sdev->r);
+		free(cb);
+		nexterror();
+	}
+	if(unit->vers != c->qid.vers)
+		error(Echange);
+
+	if(cb->nf < 1)
+		error(Ebadctl);
+	if(strcmp(cb->f[0], "part") == 0){
+		if(cb->nf != 4)
+			error(Ebadctl);
+		if(unit->sectors == 0 && !sdinitpart(unit))
+			error(Eio);
+		start = strtoull(cb->f[2], 0, 0);
+		end = strtoull(cb->f[3], 0, 0);
+		sdaddpart(unit, cb->f[1], start, end);
+	} else if(strcmp(cb->f[0], "delpart") == 0){
+		if(cb->nf != 2 || unit->part == nil)
+			error(Ebadctl);
+		sddelpart(unit, cb->f[1]);
+	} else if(unit->dev->ifc->wctl)
+		unit->dev->ifc->wctl(unit, cb);
+	else
+		error(Ebadctl);
+	qunlock(&unit->ctl);
+	decref(&sdev->r);
+	poperror();
+	free(cb);
+	return n;
+}
+
+static long
+sdwrite(Chan* c, void* a, long n, vlong off)
+{
 	switch(TYPE(c->qid)){
 	default:
 		error(Eperm);
 	case Qtopctl:
-		cb = parsecmd(a, n);
-		if(waserror()){
-			free(cb);
-			nexterror();
-		}
-		if(cb->nf == 0)
-			error("empty control message");
-		f0 = cb->f[0];
-		cb->f++;
-		cb->nf--;
-		if(strcmp(f0, "config") == 0){
-			/* wormhole into ugly legacy interface */
-			legacytopctl(cb);
-			poperror();
-			free(cb);
-			break;
-		}
-		/*
-		 * "ata arg..." invokes sdifc[i]->wtopctl(nil, cb),
-		 * where sdifc[i]->name=="ata" and cb contains the args.
-		 */
-		ifc = nil;
-		sdev = nil;
-		for(i=0; sdifc[i]; i++){
-			if(strcmp(sdifc[i]->name, f0) == 0){
-				ifc = sdifc[i];
-				sdev = nil;
-				goto subtopctl;
-			}
-		}
-		/*
-		 * "sd1 arg..." invokes sdifc[i]->wtopctl(sdev, cb),
-		 * where sdifc[i] and sdev match controller letter "1",
-		 * and cb contains the args.
-		 */
-		if(f0[0]=='s' && f0[1]=='d' && f0[2] && f0[3] == 0){
-			if((sdev = sdgetdev(f0[2])) != nil){
-				ifc = sdev->ifc;
-				goto subtopctl;
-			}
-		}
-		error("unknown interface");
-
-	subtopctl:
-		if(waserror()){
-			if(sdev)
-				decref(&sdev->r);
-			nexterror();
-		}
-		if(ifc->wtopctl)
-			ifc->wtopctl(sdev, cb);
-		else
-			error(Ebadctl);
-		poperror();
-		poperror();
-		if(sdev)
-			decref(&sdev->r);
-		free(cb);
+		sdwtopctl(a, n);
 		break;
-
 	case Qctl:
-		cb = parsecmd(a, n);
-		sdev = sdgetdev(DEV(c->qid));
-		if(sdev == nil)
-			error(Enonexist);
-		unit = sdev->unit[UNIT(c->qid)];
-
-		qlock(&unit->ctl);
-		if(waserror()){
-			qunlock(&unit->ctl);
-			decref(&sdev->r);
-			free(cb);
-			nexterror();
-		}
-		if(unit->vers != c->qid.vers)
-			error(Echange);
-
-		if(cb->nf < 1)
-			error(Ebadctl);
-		if(strcmp(cb->f[0], "part") == 0){
-			if(cb->nf != 4)
-				error(Ebadctl);
-			if(unit->sectors == 0 && !sdinitpart(unit))
-				error(Eio);
-			start = strtoull(cb->f[2], 0, 0);
-			end = strtoull(cb->f[3], 0, 0);
-			sdaddpart(unit, cb->f[1], start, end);
-		}
-		else if(strcmp(cb->f[0], "delpart") == 0){
-			if(cb->nf != 2 || unit->part == nil)
-				error(Ebadctl);
-			sddelpart(unit, cb->f[1]);
-		}
-		else if(unit->dev->ifc->wctl)
-			unit->dev->ifc->wctl(unit, cb);
-		else
-			error(Ebadctl);
-		qunlock(&unit->ctl);
-		decref(&sdev->r);
-		poperror();
-		free(cb);
-		break;
-
+		return sdwctl(c, a, n);
 	case Qraw:
-		sdev = sdgetdev(DEV(c->qid));
-		if(sdev == nil)
-			error(Enonexist);
-		unit = sdev->unit[UNIT(c->qid)];
-		qlock(&unit->raw);
-		if(waserror()){
-			qunlock(&unit->raw);
-			decref(&sdev->r);
-			nexterror();
-		}
-		switch(unit->state){
-		case Rawcmd:
-			if(n < 6 || n > sizeof(req->cmd))
-				error(Ebadarg);
-			if((req = malloc(sizeof(SDreq))) == nil)
-				error(Enomem);
-			req->unit = unit;
-			memmove(req->cmd, a, n);
-			req->clen = n;
-			req->flags = SDnosense;
-			req->status = ~0;
-
-			unit->req = req;
-			unit->state = Rawdata;
-			break;
-
-		case Rawstatus:
-			unit->state = Rawcmd;
-			free(unit->req);
-			unit->req = nil;
-			error(Ebadusefd);
-
-		case Rawdata:
-			unit->state = Rawstatus;
-			unit->req->write = 1;
-			n = sdrio(unit->req, a, n);
-		}
-		qunlock(&unit->raw);
-		decref(&sdev->r);
-		poperror();
-		break;
+		return sdwraw(c, a, n);
 	case Qpart:
 		return sdbio(c, 1, a, n, off);
 	}
-
 	return n;
 }
 
@@ -1531,8 +1499,10 @@ unconfigure(char* spec)
 	/* make sure no interrupts arrive anymore before removing resources */
 	if(sdev->enabled && sdev->ifc->disable)
 		sdev->ifc->disable(sdev);
+	if(sdev->ifc->clear)
+		sdev->ifc->clear(sdev);
 
-	for(i = 0; i != sdev->nunit; i++){
+	for(i = 0; i < sdev->nunit; i++){
 		if(unit = sdev->unit[i]){
 			free(unit->name);
 			free(unit->user);
@@ -1540,9 +1510,7 @@ unconfigure(char* spec)
 		}
 	}
 
-	if(sdev->ifc->clear)
-		sdev->ifc->clear(sdev);
-	free(sdev);
+//	free(sdev); /* caused "panic: corrupt malloc arena" during sdshutdown */
 	return 0;
 }
 
@@ -1560,7 +1528,7 @@ Dev sddevtab = {
 
 	sdreset,
 	devinit,
-	devshutdown,
+	sdshutdown,
 	sdattach,
 	sdwalk,
 	sdstat,
@@ -1590,9 +1558,9 @@ struct Confdata {
 static void
 parseswitch(Confdata* cd, char* option)
 {
-	if(!strcmp("on", option))
+	if(strcmp("on", option) == 0)
 		cd->on = 1;
-	else if(!strcmp("off", option))
+	else if(strcmp("off", option) == 0)
 		cd->on = 0;
 	else
 		error(Ebadarg);

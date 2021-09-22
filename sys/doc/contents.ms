@@ -4,6 +4,8 @@
 .ds CH
 .
 .de He
+.br
+.ne 6
 .sp
 .ft B
 .in 0
@@ -147,16 +149,16 @@
 .Au "Bob Flandrena
 .Co updated
 .De "The procedures necessary to add a new instruction set to Plan 9's programming environment.
-.Ti 279 fs/fs "The Plan 9 File Server
-.Au "Ken Thompson
+.Ti 279 fs/fs "The 64-bit Standalone Plan 9 File Server
+.Au "Ken Thompson and Geoff Collyer
 .Co updated
-.De "The design of the central file server and its novel backup system.
+.De "The design of the previous central file server and its novel backup system.
 .Ti 287 venti/venti "Venti: A new approach to archival storage
 .Au "Sean Quinlan and Sean Dorward
 .De "Archival block-level storage using secure hashes as block identifiers.
 .Ti 301 il/il "The IL protocol
 .Au "Dave Presotto and Phil Winterbottom
-.De "A description of the Internet protocol Plan 9 uses for internal communication.
+.De "A description of the now-obsolete Internet protocol Plan 9 used for internal communication.
 .Ti 307 lexnames "Lexical File Names in Plan 9, or, Getting Dot-Dot Right
 .Au "Rob Pike
 .Co new
@@ -173,7 +175,6 @@
 .Au "Joseph F. Ossanna and Brian W. Kernighan
 .Co updated
 .De "The old warhorse, updated for Unicode characters.
-.bp
 .Ti 373 spin "Using SPIN
 .Au "Gerard Holzmann
 .Co updated

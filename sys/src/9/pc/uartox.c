@@ -141,7 +141,7 @@ oxpnp(void)
 	return head;
 }
 
-static void
+static int
 oxinterrupt(Ureg *, void *arg)
 {
 	Ctlr *ctlr;
@@ -156,7 +156,7 @@ oxinterrupt(Ureg *, void *arg)
 	ilock(ctlr);
 	if(!(ctlr->im & ctlr->mem[Gis])){
 		iunlock(ctlr);
-		return;
+		return Intrnotforme;
 	}
 	for(i = 0; i < ctlr->nport; ++i){
 		if(!(ctlr->im & 1<<i))
@@ -212,9 +212,10 @@ oxinterrupt(Ureg *, void *arg)
 		}
 	}
 	iunlock(ctlr);
+	return Intrforme;
 }
 
-#define MASK(p)	(1UL<<((p)-(p)->ctlr->port))
+#define OXMASK(p)	(1UL << ((p) - (p)->ctlr->port))
 
 static void
 oxenable(Uart *uart, int)
@@ -229,7 +230,7 @@ oxenable(Uart *uart, int)
 	if(ctlr->im == 0)
 		intrenable(ctlr->pcidev->intl, oxinterrupt, ctlr,
 		    ctlr->pcidev->tbdf, ctlr->name);
-	ctlr->im |= MASK(port);
+	ctlr->im |= OXMASK(port);
 	iunlock(ctlr);
 
 	/* Enable 950 Mode */
@@ -262,7 +263,7 @@ oxdisable(Uart *uart)
 	port->mem[Ier] = 0;
 
 	ilock(ctlr);
-	ctlr->im &= ~MASK(port);
+	ctlr->im &= ~OXMASK(port);
 	if(ctlr->im == 0)
 		intrdisable(ctlr->pcidev->intl, oxinterrupt, ctlr,
 		    ctlr->pcidev->tbdf, ctlr->name);

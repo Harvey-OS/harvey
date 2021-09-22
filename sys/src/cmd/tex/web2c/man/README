@@ -1,0 +1,260 @@
+(This file written by Nelson H. F. Beebe <beebe@math.utah.edu>.)
+
+This directory contains UNIX manual pages for TeXware and MFware.
+
+Here are some guidelines for writing UNIX manual page files, based on
+the standards used by Sun Microsystems.  The manual pages in this
+directory have been revised to conform to these guidelines.
+
+*** The sections of a manual page are identified by these headings:
+
+.TH PROGRAM 1 "dd month yyyy"
+.SH NAME
+.SH SYNOPSIS
+.SH DESCRIPTION
+.SH OPTIONS
+.SH ENVIRONMENT
+.SH FILES
+.SH "SEE ALSO"
+.SH AUTHOR
+
+Additional sections may be supplied, but the above section order
+should be preserved.  If you are adding a new section, try to find
+several examples in existing UNIX manual pages to justify the header
+name you choose.
+
+To improve readability of the [nt]roff man page files in this
+directory, each section header has been prefixed by a comment line of
+the form
+.\"=====================================================================
+
+
+------------------------------------------------------------------------
+
+*** The
+
+.TH PROGRAM 1 "dd month yyyy"
+
+line should be the first [nt]roff dotted command in the .man file,
+other than comments, which begin with the 3-character sequence .\".
+
+The PROGRAM name should be spelled entirely in uppercase letters.
+
+The single character following PROGRAM is the manual page section,
+generally 1 for user commands.  Any character from the set [1-8nl] is
+recognized by the UNIX man command, but the sections have specific
+meanings (1=user commands, 2=system calls, 3=library routines, 4=special
+files, 5=file formats and conventions, 6=games, 7=macro packages and
+language conventions, 8=maintenance, l=local, and n=new).
+
+Historically, man page files were stored in /usr/man/man[1-8nl], with
+local additions to /usr/man/manl.  That approach offered no
+subdivision of local additions into sections, so the trend today is to
+leave the /usr/man tree in the state supplied by the vendor, and to
+maintain a separate tree, /usr/man/man[1-8nl], to hold local
+additions.  Most UNIX man implementations support a MANPATH variable
+to specify a search path, such as /usr/man:/usr/local/man.
+
+If your man command doesn't support a MANPATH variable, get the
+freely-available man implementation man-1.0.tar.Z available on several
+Internet archive sites, including gatekeeper.dec.com in
+/.8/GNU/man-1.0.tar.Z.  Some bugs exist in that version, and fixes were
+supplied to the program's author on 12 December 1992, so look for a new
+version, or ask Nelson Beebe <beebe@math.utah.edu> for a set of patches.
+This new man implementation has some nice features, including support
+for compressed files, and checking of formatted and raw file time stamps
+to decide whether to reformat or not.  Furthermore, it can be configured
+to use either [nt]roff, or GNU groff; some UNIX vendors charge extra for
+[nt]roff, so groff may offer a cheaper man page implementation.
+
+The last argument to .TH is the date in the form 01 December 1992; the
+month is NOT abbreviated.
+
+
+------------------------------------------------------------------------
+
+*** Following
+.SH NAME
+should be a single line with NO macros, such as
+
+bibtex \- make a bibliography for (La)TeX
+
+This line is very important, because it is used by the "man -k" and
+"apropos" commands to look up commands by keywords; every word in the
+line is a potential keyword match.
+
+
+------------------------------------------------------------------------
+
+*** Following
+.SH SYNOPSIS
+there should be one or more lines in the form
+
+.B vftovp
+[
+.B \-verbose
+]
+[
+.BI \-charcode-format =format
+]
+.I vf_file_name
+.I tfm_file_name
+[
+.I vpl_file_name
+]
+
+Program names and option switches are typeset in bold type (.B), and
+file names in italics (.I).  Switch values are in italics.
+
+Give option switches in alphabetical order in the SYNOPSIS
+section, and their descriptions in the same order in the OPTIONS
+section.
+
+
+------------------------------------------------------------------------
+
+*** Here are some general [nt]roff hints for writing the
+.SH DESCRIPTION
+section.
+
+
+*** Separate paragraphs by a .PP command, not by blank lines.
+
+
+*** When using the multi-font selectors, like .BI (bold, then italic),
+remember that fonts alternate in the following space-separated words:
+
+.BI aaa bbb ccc ddd
+
+will typeset aaa and cccc in bold, and bbb and ddd in italic, with NO
+intervening spaces, so the result here will be aaabbbcccddd.  If you
+want spaces between the words, use quotation marks:
+
+.BI "aaa " "bbb " "ccc " ddd
+
+will produce aaa bbb ccc ddd.
+
+Use [nt]roff dotted font change sequences (.I, .B, .BI, .BR, ...)
+instead of the \fX...\fP alternatives.  The single exception is when
+you need quotation marks in italics, such as \fIsetenv FOOBAR "foo
+bar"\fP.
+
+
+*** Represent en dashes by the current font minus (\-), and use the
+same character in front of option switches.  Hyphens in words, as
+``multi-font'', are written with the ASCII minus sign.
+
+
+*** Quotation marks are [nt]roff grouping commands, analogous to curly
+braces in TeX files.  They will NOT survive in the formatted output.
+If you want typeset quotation marks, use ``phrase'', just as in TeX.
+
+
+*** Ellipses (...) in [nt]roff are coded as .\|.\|., for the same
+reason that \ldots{} is used in TeX instead of ....
+
+
+*** UNIX is a trademark of AT&T Bell Laboratories and must be spelled
+in uppercase letters.
+
+
+*** Watch out for spaces.  Unlike TeX, [nt]roff preserve ALL input
+spaces.  This means you cannot indent [nt]roff input for readability.
+Two spaces should follow a sentence-ending period, and otherwise, only
+one space should be used.  Tabs are special in [nt]roff; they are used
+to separate columns of tables, like & in TeX, and no other character
+can be used for that purpose.  The man page files in this directory
+contain no tabs, and trailing blanks have been stripped from all
+files.
+
+
+*** Do not used fixed indentation dimensions for displayed material.
+Instead, use .RS and .RE to mark the indented paragraphs, with .IP to
+separate paragraphs:
+
+.RS
+Blah blah blah blah blah blah blah blah blah.
+Blah blah blah blah blah blah blah blah blah.
+.IP
+Blah blah blah blah blah blah blah blah blah.
+Blah blah blah blah blah blah blah blah blah.
+.RE
+
+
+*** Use macros for phrases that require special typesetting, such as
+the TeX logo, and provide both nroff and troff definitions:
+
+.if n .ds AB nroff-definition
+.if t .ds AB troff-definition
+
+Macro names are exactly 2 characters long, and are referenced by \*(
+prefixed to their names, e.g. \*(AB.
+
+If a macro expansion requires another macro, it must be given after
+that macro.  For example, the BibTeX and LaTeX macros follow the TeX
+macro so they can use \*(TX in their definitions.
+
+Suitable macros have been provided for TeX, BibTeX, LaTeX, Metafont,
+and Web, and adjusted for troff's default Times Roman typeface to
+match their appearance with Computer Modern typefaces.
+
+
+------------------------------------------------------------------------
+
+*** The 
+.SH ENVIRONMENT
+section should list all the relevant environment variables, with a brief
+description and system defaults if appropriate.
+
+
+*** Environment variables are spelled in uppercase letters, e.g.,
+TEXFONTS, and NO font size changes are made around them.  When font
+sizes were changed in the past, many inconsistencies were present, so
+the practice has been abandoned.
+
+
+*** Do not use fixed dimensions for indented labelled paragraphs.
+Instead, use the width of the longest label, plus 2n, as follows:
+
+.TP \w'LONGESTLABEL'u+2n
+LABEL
+Blah blah blah blah blah blah blah blah blah.
+.TP
+LONGESTLABEL
+Blah blah blah blah blah blah blah blah blah.
+Blah blah blah blah blah blah blah blah blah.
+
+If the longest label is extremely long, pick a somewhat shorter one so
+as to avoid having very short paragraph lines.
+
+
+------------------------------------------------------------------------
+
+*** Spell TeX control sequences in Roman letters, doubling the
+backslash, e.g. \\input, or for better visibility, use italics
+with the backslash represented as \e:
+
+.I \einput
+
+Although some [nt]roff implementations support a typewriter font which
+is conventional for TeX control sequences, historically only roman,
+bold, italic, and special fonts were available.
+
+
+*** These manual pages in the *.man form are filtered by sedscript to
+expand @XYZ@ into something else, producing corresponding *.1 files
+which are installed in the system manual page directories. This is
+used to insert local paths into the manual pages, so that for example
+@TEXINPUTS@ is replaced by the local default TEXINPUTS search path.
+Such paths are set at installation time in the top-level Makefile.
+
+
+*** You can use the UNIX checknr utility to do a rudimentary validation of
+your manual page files, e.g.
+
+	checknr -c.BI.BR.IR.IB.RB.RI tex.man
+
+The -c.BI.BR.IR.IB.RB.RI is needed because checknr doesn't know about
+the -man document style, and otherwise complains about those font
+change commands.  The command "make check" will run checknr with each
+of the *.1 files.

@@ -1,0 +1,2 @@
+% Output should be on just.log, etc., not just.texi.log.
+\end

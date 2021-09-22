@@ -1,0 +1,37 @@
+# Makefile for the Metafont window support library.
+
+ac_include ../make/common.make
+ac_include ../make/library.make
+ac_include kpathsea.make
+
+x_cppflags = @X_CFLAGS@
+library = window
+
+# Extra library-specific compiler options.
+prog_cflags = -I.. -I$(srcdir)/.. $(x_cppflags)
+
+objects = amiga.o epsf.o hp2627.o mftalk.o next.o regis.o suntools.o tek.o \
+trap.o uniterm.o win32.o x11.o 
+
+default all: $(library).a
+$(library).a: $(objects)
+	rm -f $@
+	$(AR) $(ARFLAGS) $@ $(objects)
+	$(RANLIB) $@
+
+# It doesn't matter much what this default is, since if anything was
+# enabled configure would hopefully have found it.
+x11.c:
+	rm -f $@
+	$(LN) $(srcdir)/x11-Xt.c $@
+
+Makefile: Makefile.in ../config.status
+	cd .. && $(SHELL) config.status
+
+ac_include ../make/clean.make
+
+distclean::
+	rm -f x11.c
+
+ac_include ../make/rdepend.make
+ac_include window/depend.make

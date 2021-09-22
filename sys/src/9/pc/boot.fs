@@ -1,37 +1,21 @@
 #!/boot/rc -m /boot/rcmain
-# boot script for file servers, including standalone ones
+# /boot/boot script for file servers, including standalone ones
+rfork e
 path=(/boot /$cputype/bin /rc/bin .)
-fn diskparts {
-	# set up any /dev/sd partitions
-	for(disk in /dev/sd*) {
-		if(test -f $disk/data && test -f $disk/ctl)
-			fdisk -p $disk/data >$disk/ctl >[2]/dev/null
-		if(test -f $disk/plan9)
-			parts=($disk/plan9*)
-		if not
-			parts=($disk/data)
-		for(part in $parts)
-			if(test -f $part)
-				prep -p $part >$disk/ctl >[2]/dev/null
-	}
-}
-
 cd /boot
 echo -n boot...
-if (! test -e /env/vmpc)
-	vmpc=23			# % of free memory for venti
-cp '#r/rtc' '#c/time'
+
+# set up initial namespace.
+# initcode (startboot) has bound #c to /dev, #e & #ec to /env & #s to /srv.
 bind -a '#I0' /net
 bind -a '#l0' /net
-bind -a '#¤' /dev
-bind -a '#S' /dev
-bind -a '#k' /dev
-bind -a '#æ' /dev
-bind -a '#u' /dev
+for (dev in '#¤' '#S' '#k' '#æ' '#u')	# auth, sd, fs, aoe, usb
+	bind -a $dev /dev >[2]/dev/null
 bind '#p' /proc
 bind '#d' /fd
-bind -c '#s' /srv
 # bind -a /boot /
+
+cp '#r/rtc' /dev/time
 
 # start usb for keyboard, disks, etc.
 if (test -e /dev/usb/ctl) {
@@ -39,43 +23,79 @@ if (test -e /dev/usb/ctl) {
 	usbd
 }
 
-echo -n disks...
-if(! ~ $dmaon no)
-	for (ctl in /dev/sd[C-H]?/ctl)
+#
+# special disk setup
+#
+if(! ~ $dmaon no) {
+	echo -n disk dma...
+	for (ctl in /dev/sd[CD]?/ctl)
 		if (test -e $ctl)
-			echo 'dma on' >$ctl
+			echo 'dma on' >$ctl >[2]/dev/null
+}
 
+# give the external caldigit raid array time to come on-line, if present.
+@ {
+	extdisk=/dev/sdF0
+	ls $extdisk >/dev/null >[2]/dev/null &
+	sleep 1
+	if (test -e $extdisk && ~ `{read <$extdisk/ctl} inquiry' 'caldigit*) {
+		echo -n await extdisk...
+		for (n in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
+			if(! test -e $extdisk/data) {
+				echo -n .
+				sleep 5
+			}
+		if(! test -e $extdisk/data)
+			echo extdisk on $extdisk off-line!
+	}
+}
+
+# make local disk partitions visible
+fn diskparts {			# set up any /dev/sd partitions
+	# avoid touching sdF1 (no drive), it may hang
+	for(disk in `{grep -l '^inquiry..' '#S'/sd*/ctl | sed 's;/ctl$;;'}) {
+		if(test -f $disk/data && test -f $disk/ctl) {
+			echo -n $disk fdisk...
+			fdisk -p $disk/data >$disk/ctl # >[2]/dev/null
+		}
+		if(test -f $disk/plan9)
+			parts=($disk/plan9*)
+		if not
+			parts=($disk/data)
+		for(part in $parts)
+			if(test -f $part) {
+				echo -n $part prep...
+				prep -p $part >$disk/ctl # >[2]/dev/null
+			}
+	}
+}
+# local hackery for AoE: make visible extra sr luns of shelf 1.
+# doesn't use the ip stack, just ethernet.
+if (test -e /dev/aoe) {
+	echo -n aoe...
+	if (test -e /dev/aoe/1.1 && ! test -e /dev/sdf0)
+		echo config switch on spec f type aoe//dev/aoe/1.1 >/dev/sdctl
+	if (test -e /dev/aoe/1.2 && ! test -e /dev/sdg0)
+		echo config switch on spec g type aoe//dev/aoe/1.2 >/dev/sdctl
+}
+echo -n partitions...
 diskparts
 
-# set up any fs(3) partitions (HACK)
+# set up any fs(3) partitions
 # don't match AoE disks, as those may be shared.
-if (test ! -e /env/fscfg)
-	fscfg=`{ls -d /dev/sd[~e-h]?/fscfg >[2]/dev/null | sed 1q}
-if (~ $#fscfg 1 && test -r $fscfg)
-	zerotrunc <$fscfg | read -m >/dev/fs/ctl
-
-# figure out which arenas and fossil partitions to use.
-# don't match AoE disks, as those may be shared.
-if(! test -e /env/arena0){
-	if (test -e	/dev/fs/arena0)
-		arena0=	/dev/fs/arena0
-	if not if (test -e	/dev/sd[~e-h]?/arena0)
-		arena0=		/dev/sd[~e-h]?/arena0
-	if not
-		arena0=/dev/null
+if (test ! -e /env/fscfg) {
+	fscfgs=`{echo /dev/sd[~e-h]?/fscfg}
+	if (! ~ $#fscfgs 0)
+		fscfg=$fscfgs(1)
 }
-if (test -e	/dev/fs/fossil)
-	fossil=	/dev/fs/fossil
-if not if (test -e	/dev/sd[~e-h]?/fossil)
-	fossil=		/dev/sd[~e-h]?/fossil
-if not
-	fossil=/dev/null
+if (~ $#fscfg 1 && test -r $fscfg) {
+	echo reading /dev/fs definitions from $fscfg...
+	zerotrunc <$fscfg | read -m >/dev/fs/ctl
+}
 
 #
-# the local disks are now sorted out.
-# set up the network, auth, venti and fossil.
+# set up the network.
 #
-
 echo -n ip...
 if (~ $#ip 1 && ! ~ $ip '') {
 	# need to supply ip, ipmask and ipgw in plan9.ini to use this
@@ -84,25 +104,19 @@ if (~ $#ip 1 && ! ~ $ip '') {
 }
 if not
 	ipconfig
-# if outside, add explicit vfw routing to the inside
-switch (`{sed '/\.(0|255)[	 ]/d' /net/ipselftab}) {
-case 135.104.24.*				# new outside
-	echo 'add 135.104.9.0 255.255.255.0 135.104.24.13' >>/net/iproute
-}
 ipconfig loopback /dev/null 127.1
+# routing example: if outside, add explicit vfw routing to the inside
+# switch (`{sed '/\.(0|255)[	 ]/d' /net/ipselftab}) {
+# case 135.104.24.*				# new outside
+# 	echo 'add 135.104.9.0 255.255.255.0 135.104.24.13' >>/net/iproute
+# }
 
-# local hackery: add extra sr luns of shelf 1
-if (test -e /dev/aoe/1.1 && ! test -e /dev/sdf0)
-	echo config switch on spec f type aoe//dev/aoe/1.1 >/dev/sdctl
-if (test -e /dev/aoe/1.2 && ! test -e /dev/sdg0)
-	echo config switch on spec g type aoe//dev/aoe/1.2 >/dev/sdctl
-diskparts
-
-# so far we're using the default key from $nvram, usually
-# for insideout.plan9.bell-labs.com on outside machines,
+#
+# set up auth via factotum, load from secstore & mount network root, if named.
+#
+# so far we're using the default key from $nvram,
 # and have mounted our root over the net, if running diskless.
 # factotum always mounts itself (on /mnt by default).
-
 echo -n factotum...
 if(~ $#auth 1){
 	echo start factotum on $auth
@@ -119,18 +133,29 @@ if (~ $#keys 1 && test -r $keys) {
 	zerotrunc <$keys | aescbc -n -d | read -m >/mnt/factotum/ctl
 }
 
-# get root from network if fsaddr set in plan9.ini, and bail out here
+# get root from network if fs addr set in plan9.ini.  bail out on error.
 if (test -e /env/fs) {
-	echo -n fs root...
-	if(! srv tcp!$fs!564 boot)
-		exec ./rc -m/boot/rcmain -i
-	if(! mount -c /srv/boot /root)
+	echo -n $fs on /root...
+	if(! srv tcp!$fs!564 boot || ! mount -c /srv/boot /root)
 		exec ./rc -m/boot/rcmain -i
 }
 
-# start venti store
-if (! ~ $arena0 /dev/null && test -r $arena0) {
-	echo -n start venti on $arena0...
+#
+# start venti store if we have arenas (don't search AoE).
+# otherwise point to the local venti machine.
+#
+if(! test -e /env/arena0){
+	if (test -e    /dev/fs/arena0)
+		arena0=/dev/fs/arena0
+	if not if (test -e /dev/sd[~e-h]?/arena0)
+		arena0=    /dev/sd[~e-h]?/arena0
+	if not
+		arena0=/dev/no-arenas
+}
+if (test -r $arena0) {
+	echo start venti on $arena0...
+	if (! test -e /env/vmpc)
+		vmpc=23			# % of free memory for venti
 	venti=tcp!127.0.0.1!17034
 	vcfg=`{ls -d /dev/sd*/venticfg >[2]/dev/null | sed 1q}
 	if (~ $#vcfg 1 && test -r $vcfg)
@@ -140,26 +165,31 @@ if (! ~ $arena0 /dev/null && test -r $arena0) {
 	sleep 10
 }
 if not if (! test -e /env/venti)
-	venti=tcp!135.104.9.33!17034		# local default
+	venti=tcp!50.250.245.75!17034		# local default: fs
 
-# start root fossil, may serve /srv/boot
-if (! ~ $fossil /dev/null && test -r $fossil) {
+#
+# figure out which root fossil partition to use, if any (don't search AoE),
+# any start the root fossil, which may serve /srv/boot.
+#
+if (test -e    /dev/fs/fossil)
+	fossil=/dev/fs/fossil
+if not if (test -e /dev/sd[~e-h]?/fossil)
+	fossil=    /dev/sd[~e-h]?/fossil
+if not
+	fossil=/dev/no-fossil
+if (test -r $fossil) {
 	echo -n root fossil on $fossil...
-	fossil -m 2 -f $fossil
+	fossil -m 10 -f $fossil
 	sleep 3
 }
 
 #
-# normal start up on local fossil root
-#
-
-rootdir=/root
-rootspec=main/active
-
+# mount new root.
 # factotum is now mounted in /mnt; keep it visible.
 # newns() needs it, among others.
-
-# mount new root
+#
+rootdir=/root
+rootspec=main/active			# used by /lib/namespace
 if (test -e /srv/boot)
 	srv=boot
 if not if (test -e /srv/fossil)
@@ -167,6 +197,7 @@ if not if (test -e /srv/fossil)
 if not if (test -e /srv/fsmain)
 	srv=fsmain
 if not {
+	srv=no-root
 	echo cannot find a root in /srv:
 	ls -l /srv
 }
@@ -178,17 +209,19 @@ if (test -d $rootdir/mnt)
 	bind -ac $rootdir/mnt /mnt
 mount -b /srv/factotum /mnt
 
-# standard bin
+#
+# bind a standard /bin and run init, which will run cpurc,
+# then give the local user a bootes console shell.
+#
 if (! test -d /$cputype) {
 	echo /$cputype missing!
 	exec ./rc -m/boot/rcmain -i
 }
 bind /$cputype/bin /bin
 bind -a /rc/bin /bin
-
-# run cpurc
-echo cpurc...
 path=(/bin . /boot)
+echo init, cpurc, rc...
 /$cputype/init -c
 
+# init died: let the local user repair what he can.
 exec ./rc -m/boot/rcmain -i

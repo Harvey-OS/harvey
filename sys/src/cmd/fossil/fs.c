@@ -8,7 +8,7 @@ static Snap *snapInit(Fs*);
 static void snapClose(Snap*);
 
 Fs *
-fsOpen(char *file, VtConn *z, long ncache, int mode)
+fsOpen(char *file, VtSession *z, vlong ncache, int mode)
 {
 	int fd, m;
 	uchar oscore[VtScoreSize];
@@ -16,11 +16,10 @@ fsOpen(char *file, VtConn *z, long ncache, int mode)
 	Disk *disk;
 	Fs *fs;
 	Super super;
-	char e[ERRMAX];
 
 	switch(mode){
 	default:
-		werrstr(EBadMode);
+		vtSetError(EBadMode);
 		return nil;
 	case OReadOnly:
 		m = OREAD;
@@ -31,22 +30,23 @@ fsOpen(char *file, VtConn *z, long ncache, int mode)
 	}
 	fd = open(file, m);
 	if(fd < 0){
-		werrstr("open %s: %r", file);
+		vtSetError("open %s: %r", file);
 		return nil;
 	}
 
 	bwatchInit();
 	disk = diskAlloc(fd);
 	if(disk == nil){
-		werrstr("diskAlloc: %r");
+		vtSetError("diskAlloc: %R");
 		close(fd);
 		return nil;
 	}
 
-	fs = vtmallocz(sizeof(Fs));
+	fs = vtMemAllocZ(sizeof(Fs));
 	fs->mode = mode;
-	fs->name = vtstrdup(file);
+	fs->name = vtStrDup(file);
 	fs->blockSize = diskBlockSize(disk);
+	fs->elk = vtLockAlloc();
 	fs->cache = cacheAlloc(disk, z, ncache, mode);
 	if(mode == OReadWrite && z)
 		fs->arch = archInit(fs->cache, disk, fs, z);
@@ -57,7 +57,7 @@ fsOpen(char *file, VtConn *z, long ncache, int mode)
 		goto Err;
 	if(!superUnpack(&super, b->data)){
 		blockPut(b);
-		werrstr("bad super block");
+		vtSetError("bad super block");
 		goto Err;
 	}
 	blockPut(b);
@@ -73,18 +73,17 @@ fsOpen(char *file, VtConn *z, long ncache, int mode)
 		 * Perhaps it failed because the block is copy-on-write.
 		 * Do the copy and try again.
 		 */
-		rerrstr(e, sizeof e);
-		if(mode == OReadOnly || strcmp(e, EBadRoot) != 0)
+		if(mode == OReadOnly || strcmp(vtGetError(), EBadRoot) != 0)
 			goto Err;
 		b = cacheLocalData(fs->cache, super.active, BtDir, RootTag,
 			OReadWrite, 0);
 		if(b == nil){
-			werrstr("cacheLocalData: %r");
+			vtSetError("cacheLocalData: %R");
 			goto Err;
 		}
 		if(b->l.epoch == fs->ehi){
 			blockPut(b);
-			werrstr("bad root source block");
+			vtSetError("bad root source block");
 			goto Err;
 		}
 		b = blockCopy(b, RootTag, fs->ehi, fs->elo);
@@ -95,7 +94,7 @@ fsOpen(char *file, VtConn *z, long ncache, int mode)
 		bs = cacheLocal(fs->cache, PartSuper, 0, OReadWrite);
 		if(bs == nil){
 			blockPut(b);
-			werrstr("cacheLocal: %r");
+			vtSetError("cacheLocal: %R");
 			goto Err;
 		}
 		superPack(&super, bs->data);
@@ -106,19 +105,19 @@ fsOpen(char *file, VtConn *z, long ncache, int mode)
 		blockPut(bs);
 		fs->source = sourceRoot(fs, super.active, mode);
 		if(fs->source == nil){
-			werrstr("sourceRoot: %r");
+			vtSetError("sourceRoot: %R");
 			goto Err;
 		}
 	}
 
 //fprint(2, "%s: got fs source\n", argv0);
 
-	rlock(&fs->elk);
+	vtRLock(fs->elk);
 	fs->file = fileRoot(fs->source);
 	fs->source->file = fs->file;		/* point back */
-	runlock(&fs->elk);
+	vtRUnlock(fs->elk);
 	if(fs->file == nil){
-		werrstr("fileRoot: %r");
+		vtSetError("fileRoot: %R");
 		goto Err;
 	}
 
@@ -139,31 +138,32 @@ fprint(2, "%s: fsOpen error\n", argv0);
 void
 fsClose(Fs *fs)
 {
-	rlock(&fs->elk);
+	vtRLock(fs->elk);
 	periodicKill(fs->metaFlush);
 	snapClose(fs->snap);
 	if(fs->file){
 		fileMetaFlush(fs->file, 0);
 		if(!fileDecRef(fs->file))
-			sysfatal("fsClose: files still in use: %r");
+			vtFatal("fsClose: files still in use: %r\n");
 	}
 	fs->file = nil;
 	sourceClose(fs->source);
 	cacheFree(fs->cache);
 	if(fs->arch)
 		archFree(fs->arch);
-	vtfree(fs->name);
-	runlock(&fs->elk);
+	vtMemFree(fs->name);
+	vtRUnlock(fs->elk);
+	vtLockFree(fs->elk);
 	memset(fs, ~0, sizeof(Fs));
-	vtfree(fs);
+	vtMemFree(fs);
 }
 
 int
 fsRedial(Fs *fs, char *host)
 {
-	if(vtredial(fs->z, host) < 0)
+	if(!vtRedial(fs->z, host))
 		return 0;
-	if(vtconnect(fs->z) < 0)
+	if(!vtConnect(fs->z, 0))
 		return 0;
 	return 1;
 }
@@ -186,11 +186,11 @@ superGet(Cache *c, Super* super)
 	Block *b;
 
 	if((b = cacheLocal(c, PartSuper, 0, OReadWrite)) == nil){
-		fprint(2, "%s: superGet: cacheLocal failed: %r\n", argv0);
+		fprint(2, "%s: superGet: cacheLocal failed: %R\n", argv0);
 		return nil;
 	}
 	if(!superUnpack(super, b->data)){
-		fprint(2, "%s: superGet: superUnpack failed: %r\n", argv0);
+		fprint(2, "%s: superGet: superUnpack failed: %R\n", argv0);
 		blockPut(b);
 		return nil;
 	}
@@ -212,7 +212,7 @@ superWrite(Block* b, Super* super, int forceWrite)
 		}
 		while(b->iostate != BioClean && b->iostate != BioDirty){
 			assert(b->iostate == BioWriting);
-			rsleep(&b->ioready);
+			vtSleep(b->ioready);
 		}
 		/*
 		 * it's okay that b might still be dirty.
@@ -361,13 +361,13 @@ fsNeedArch(Fs *fs, uint archMinute)
 	snprint(buf, sizeof buf, "/archive/%d/%02d%02d",
 		now.year+1900, now.mon+1, now.mday);
 	need = 1;
-	rlock(&fs->elk);
+	vtRLock(fs->elk);
 	f = fileOpen(fs, buf);
 	if(f){
 		need = 0;
 		fileDecRef(f);
 	}
-	runlock(&fs->elk);
+	vtRUnlock(fs->elk);
 	return need;
 }
 
@@ -377,15 +377,15 @@ fsEpochLow(Fs *fs, u32int low)
 	Block *bs;
 	Super super;
 
-	wlock(&fs->elk);
+	vtLock(fs->elk);
 	if(low > fs->ehi){
-		werrstr("bad low epoch (must be <= %ud)", fs->ehi);
-		wunlock(&fs->elk);
+		vtSetError("bad low epoch (must be <= %ud)", fs->ehi);
+		vtUnlock(fs->elk);
 		return 0;
 	}
 
 	if((bs = superGet(fs->cache, &super)) == nil){
-		wunlock(&fs->elk);
+		vtUnlock(fs->elk);
 		return 0;
 	}
 
@@ -393,7 +393,7 @@ fsEpochLow(Fs *fs, u32int low)
 	fs->elo = low;
 	superWrite(bs, &super, 1);
 	blockPut(bs);
-	wunlock(&fs->elk);
+	vtUnlock(fs->elk);
 
 	return 1;
 }
@@ -421,18 +421,17 @@ bumpEpoch(Fs *fs, int doarchive)
 		return 0;
 
 	memset(&e, 0, sizeof e);
-	e.flags = VtEntryActive | VtEntryLocal | _VtEntryDir;
+	e.flags = VtEntryActive | VtEntryLocal | VtEntryDir;
 	memmove(e.score, b->score, VtScoreSize);
 	e.tag = RootTag;
 	e.snap = b->l.epoch;
 
 	b = blockCopy(b, RootTag, fs->ehi+1, fs->elo);
 	if(b == nil){
-		fprint(2, "%s: bumpEpoch: blockCopy: %r\n", argv0);
+		fprint(2, "%s: bumpEpoch: blockCopy: %R\n", argv0);
 		return 0;
 	}
 
-	if(0) fprint(2, "%s: snapshot root from %d to %d\n", argv0, oldaddr, b->addr);
 	entryPack(&e, b->data, 1);
 	blockDirty(b);
 
@@ -451,6 +450,8 @@ bumpEpoch(Fs *fs, int doarchive)
 	super.active = b->addr;
 	if(doarchive)
 		super.next = oldaddr;
+	if(0) fprint(2, "%s: snapshot root from %d to %d\n",
+		argv0, oldaddr, b->addr);
 
 	/*
 	 * Record that the new super.active can't get written out until
@@ -507,14 +508,14 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 	dst = nil;
 
 	if(fs->halted){
-		werrstr("file system is halted");
+		vtSetError("file system is halted");
 		return 0;
 	}
 
 	/*
 	 * Freeze file system activity.
 	 */
-	wlock(&fs->elk);
+	vtLock(fs->elk);
 
 	/*
 	 * Get the root of the directory we're going to save.
@@ -599,7 +600,7 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 			goto Err;
 	}
 
-	wunlock(&fs->elk);
+	vtUnlock(fs->elk);
 
 	/* BUG? can fs->arch fall out from under us here? */
 	if(doarchive && fs->arch)
@@ -608,12 +609,12 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 	return 1;
 
 Err:
-	fprint(2, "%s: fsSnapshot: %r\n", argv0);
+	fprint(2, "%s: fsSnapshot: %R\n", argv0);
 	if(src)
 		fileDecRef(src);
 	if(dst)
 		fileDecRef(dst);
-	wunlock(&fs->elk);
+	vtUnlock(fs->elk);
 	return 0;
 }
 
@@ -625,37 +626,37 @@ fsVac(Fs *fs, char *name, uchar score[VtScoreSize])
 	Entry e, ee;
 	File *f;
 
-	rlock(&fs->elk);
+	vtRLock(fs->elk);
 	f = fileOpen(fs, name);
 	if(f == nil){
-		runlock(&fs->elk);
+		vtRUnlock(fs->elk);
 		return 0;
 	}
 
 	if(!fileGetSources(f, &e, &ee) || !fileGetDir(f, &de)){
 		fileDecRef(f);
-		runlock(&fs->elk);
+		vtRUnlock(fs->elk);
 		return 0;
 	}
 	fileDecRef(f);
 
 	r = mkVac(fs->z, fs->blockSize, &e, &ee, &de, score);
-	runlock(&fs->elk);
+	vtRUnlock(fs->elk);
 	return r;
 }
 
 static int
-vtWriteBlock(VtConn *z, uchar *buf, uint n, uint type, uchar score[VtScoreSize])
+vtWriteBlock(VtSession *z, uchar *buf, uint n, uint type, uchar score[VtScoreSize])
 {
-	if(vtwrite(z, score, type, buf, n) < 0)
+	if(!vtWrite(z, score, type, buf, n))
 		return 0;
-	if(vtsha1check(score, buf, n) < 0)
+	if(!vtSha1Check(score, buf, n))
 		return 0;
 	return 1;
 }
 
 int
-mkVac(VtConn *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar score[VtScoreSize])
+mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar score[VtScoreSize])
 {
 	uchar buf[8192];
 	int i;
@@ -673,7 +674,7 @@ mkVac(VtConn *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar sco
 
 	if(globalToLocal(e.score) != NilBlock
 	|| (ee.flags&VtEntryActive && globalToLocal(ee.score) != NilBlock)){
-		werrstr("can only vac paths already stored on venti");
+		vtSetError("can only vac paths already stored on venti");
 		return 0;
 	}
 
@@ -682,7 +683,7 @@ mkVac(VtConn *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar sco
 	 */
 	n = deSize(&de);
 	if(n+MetaHeaderSize+MetaIndexSize > sizeof buf){
-		werrstr("DirEntry too big");
+		vtSetError("DirEntry too big");
 		return 0;
 	}
 	memset(buf, 0, sizeof buf);
@@ -721,10 +722,11 @@ mkVac(VtConn *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar sco
 	/*
 	 * Save root.
 	 */
+	root.version = VtRootVersion;
 	strecpy(root.type, root.type+sizeof root.type, "vac");
 	strecpy(root.name, root.name+sizeof root.name, de.elem);
-	root.blocksize = blockSize;
-	vtrootpack(&root, buf);
+	root.blockSize = blockSize;
+	vtRootPack(&root, buf);
 	if(!vtWriteBlock(z, buf, VtRootSize, VtRootType, score))
 		return 0;
 
@@ -734,17 +736,17 @@ mkVac(VtConn *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar sco
 int
 fsSync(Fs *fs)
 {
-	wlock(&fs->elk);
+	vtLock(fs->elk);
 	fileMetaFlush(fs->file, 1);
 	cacheFlush(fs->cache, 1);
-	wunlock(&fs->elk);
+	vtUnlock(fs->elk);
 	return 1;
 }
 
 int
 fsHalt(Fs *fs)
 {
-	wlock(&fs->elk);
+	vtLock(fs->elk);
 	fs->halted = 1;
 	fileMetaFlush(fs->file, 1);
 	cacheFlush(fs->cache, 1);
@@ -757,7 +759,7 @@ fsUnhalt(Fs *fs)
 	if(!fs->halted)
 		return 0;
 	fs->halted = 0;
-	wunlock(&fs->elk);
+	vtUnlock(fs->elk);
 	return 1;
 }
 
@@ -788,9 +790,9 @@ fsMetaFlush(void *a)
 	int rv;
 	Fs *fs = a;
 
-	rlock(&fs->elk);
+	vtRLock(fs->elk);
 	rv = fileMetaFlush(fs->file, 1);
-	runlock(&fs->elk);
+	vtRUnlock(fs->elk);
 	if(rv > 0)
 		cacheFlush(fs->cache, 0);
 }
@@ -827,7 +829,7 @@ fsEsearch1(File *f, char *path, u32int savetime, u32int *plo)
 			if((ff = fileWalk(f, de.elem)) != nil){
 				t = smprint("%s/%s", path, de.elem);
 				n += fsEsearch1(ff, t, savetime, plo);
-				vtfree(t);
+				vtMemFree(t);
 				fileDecRef(ff);
 			}
 		}
@@ -875,11 +877,11 @@ fsSnapshotCleanup(Fs *fs, u32int age)
 	 * given that we need to save all the unventied archives
 	 * and all the snapshots younger than age.
 	 */
-	rlock(&fs->elk);
+	vtRLock(fs->elk);
 	lo = fs->ehi;
 	fsEsearch(fs, "/archive", 0, &lo);
 	fsEsearch(fs, "/snapshot", time(0)-age*60, &lo);
-	runlock(&fs->elk);
+	vtRUnlock(fs->elk);
 
 	fsEpochLow(fs, lo);
 	fsSnapshotRemove(fs);
@@ -894,7 +896,7 @@ fsRsearch1(File *f, char *s)
 	DirEntry de;
 	DirEntryEnum *dee;
 	File *ff;
-	char *t, e[ERRMAX];
+	char *t;
 
 	dee = deeOpen(f);
 	if(dee == nil)
@@ -907,10 +909,9 @@ fsRsearch1(File *f, char *s)
 			break;
 		n++;
 		if(de.mode & ModeSnapshot){
-			rerrstr(e, sizeof e);
 			if((ff = fileWalk(f, de.elem)) != nil)
 				fileDecRef(ff);
-			else if(strcmp(e, ESnapOld) == 0){
+			else if(strcmp(vtGetError(), ESnapOld) == 0){
 				if(fileClri(f, de.elem, "adm"))
 					n--;
 			}
@@ -921,7 +922,7 @@ fsRsearch1(File *f, char *s)
 				if(fsRsearch1(ff, t) == 0)
 					if(fileRemove(ff, "adm"))
 						n--;
-				vtfree(t);
+				vtMemFree(t);
 				fileDecRef(ff);
 			}
 		}
@@ -961,16 +962,16 @@ fsRsearch(Fs *fs, char *path)
 void
 fsSnapshotRemove(Fs *fs)
 {
-	rlock(&fs->elk);
+	vtRLock(fs->elk);
 	fsRsearch(fs, "/snapshot");
-	runlock(&fs->elk);
+	vtRUnlock(fs->elk);
 }
 
 struct Snap
 {
 	Fs	*fs;
 	Periodic*tick;
-	QLock	lk;
+	VtLock	*lk;
 	uint	snapMinutes;
 	uint	archMinute;
 	uint	snapLife;
@@ -992,7 +993,7 @@ snapEvent(void *v)
 	s = v;
 
 	now = time(0)/60;
-	qlock(&s->lk);
+	vtLock(s->lk);
 
 	/*
 	 * Snapshots happen every snapMinutes minutes.
@@ -1002,7 +1003,7 @@ snapEvent(void *v)
 	if(s->snapMinutes != ~0 && s->snapMinutes != 0
 	&& now%s->snapMinutes==0 && now != s->lastSnap){
 		if(!fsSnapshot(s->fs, nil, nil, 0))
-			fprint(2, "%s: fsSnapshot snap: %r\n", argv0);
+			fprint(2, "%s: fsSnapshot snap: %R\n", argv0);
 		s->lastSnap = now;
 	}
 
@@ -1038,7 +1039,7 @@ snapEvent(void *v)
 		fsSnapshotCleanup(s->fs, s->snapLife);
 		s->lastCleanup = now;
 	}
-	qunlock(&s->lk);
+	vtUnlock(s->lk);
 }
 
 static Snap*
@@ -1046,9 +1047,10 @@ snapInit(Fs *fs)
 {
 	Snap *s;
 
-	s = vtmallocz(sizeof(Snap));
+	s = vtMemAllocZ(sizeof(Snap));
 	s->fs = fs;
 	s->tick = periodicAlloc(snapEvent, s, 10*1000);
+	s->lk = vtLockAlloc();
 	s->snapMinutes = -1;
 	s->archMinute = -1;
 	s->snapLife = -1;
@@ -1066,11 +1068,11 @@ snapGetTimes(Snap *s, u32int *arch, u32int *snap, u32int *snaplen)
 		return;
 	}
 
-	qlock(&s->lk);
+	vtLock(s->lk);
 	*snap = s->snapMinutes;
 	*arch = s->archMinute;
 	*snaplen = s->snapLife;
-	qunlock(&s->lk);
+	vtUnlock(s->lk);
 }
 
 void
@@ -1079,11 +1081,11 @@ snapSetTimes(Snap *s, u32int arch, u32int snap, u32int snaplen)
 	if(s == nil)
 		return;
 
-	qlock(&s->lk);
+	vtLock(s->lk);
 	s->snapMinutes = snap;
 	s->archMinute = arch;
 	s->snapLife = snaplen;
-	qunlock(&s->lk);
+	vtUnlock(s->lk);
 }
 
 static void
@@ -1093,6 +1095,6 @@ snapClose(Snap *s)
 		return;
 
 	periodicKill(s->tick);
-	vtfree(s);
+	vtMemFree(s);
 }
 

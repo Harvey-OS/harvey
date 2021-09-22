@@ -29,6 +29,7 @@
 
 #define	UTF2(c)		((c)>=0xA0 && (c)<0xE0)		/* 2-char UTF seq */
 #define	UTF3(c)		((c)>=0xE0 && (c)<0xF0)		/* 3-char UTF seq */
+#define	UTF4(c)		((c)>=0xF0 && (c)<0xF8)		/* 4-char UTF seq */
 
 /* character classes */
 #define	C_WS	1
@@ -257,7 +258,8 @@ expandlex(void)
 			case C_ALPH:
 				for (j=0; j<=256; j++)
 					if ('a'<=j&&j<='z' || 'A'<=j&&j<='Z'
-					  || UTF2(j) || UTF3(j) || j=='_')
+					  || UTF2(j) || UTF3(j) || UTF4(j)
+					  || j=='_')
 						bigfsm[j][fp->state] = nstate;
 				continue;
 			case C_NUM:
@@ -272,7 +274,7 @@ expandlex(void)
 	/* install special cases for ? (trigraphs),  \ (splicing), runes, and EOB */
 	for (i=0; i<MAXSTATE; i++) {
 		for (j=0; j<0xFF; j++)
-			if (j=='?' || j=='\\' || UTF2(j) || UTF3(j)) {
+			if (j=='?' || j=='\\' || UTF2(j) || UTF3(j) || UTF4(j)) {
 				if (bigfsm[j][i]>0)
 					bigfsm[j][i] = ~bigfsm[j][i];
 				bigfsm[j][i] &= ~QBSBIT;
@@ -400,6 +402,10 @@ gettokens(Tokenrow *trp, int reset)
 				}
 				if (UTF3(c)) {
 					runelen = 3;
+					goto reswitch;
+				}
+				if (UTF4(c)) {
+					runelen = 4;
 					goto reswitch;
 				}
 				error(WARNING, "Lexical botch in cpp");

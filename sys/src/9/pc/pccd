@@ -1,8 +1,9 @@
-# pccd - small kernel used to install from cd
+# pccd - kernel with kfs root used to install from floppy & cd
+# compressed stripped size:
+# --rw-rw-r-- M 79850 geoff sys  683803 May 21 17:45 9pccd.gz
 dev
 	root
 	cons
-
 	arch
 	pnp		pci
 	env
@@ -15,11 +16,10 @@ dev
 	ssl
 	tls
 	cap
-	kprof
 	fs
 
 	ether		netif
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386
 
 	draw		screen vga vgax
 	mouse		mouse
@@ -28,94 +28,62 @@ dev
 	kbin
 
 	sd
-	floppy		dma
-	lpt
-
-	audio		dma
-	pccard
-	i82365		cis
 	uart
 	usb
 
 link
-	realmode
-	devpccard
-	devi82365
-	apm		apmjump
+#	apm		apmjump
 
 # order of ethernet drivers should match that in ../pcboot/boot so that
 # devices are detected in the same order by bootstraps and kernels
-# and thus given the same controller numbers.
+# and thus given the same controller numbers.  put fastest first.
+# 10 Gb/s
+	etherxgbe	pci
+# gigabit
+	etherigbepci	pci ethermii
+	etherigbe	pci
+	ether8169	pci ethermii
+# 100 Mb/s
+	ether82557	pci
+	ether8139	pci
+	etherelnk3	pci
+	ethervt6105m	pci ethermii
+# dog slow, mainly for use in virtual machines
 	ether2000	ether8390
-	ether2114x	pci
-	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
-	ether8139	pci
-	ether8169	pci ethermii
-	ether82543gc	pci
-	ether82557	pci
-	ether82563	pci
-	ether83815	pci
-	etherdp83820	pci
-	etherec2t	ether8390
-	etherelnk3	pci
-	etherga620	pci
-	etherigbe	pci ethermii
-	ethervgbe	pci ethermii
-	ethervt6102	pci ethermii
-	ethervt6105m	pci ethermii
-	ethersink
-	ethersmc	devi82365 cis
-	etherwavelan	wavelan devi82365 cis pci
-#	etherm10g	pci ethermii		# vast firmware
-#	ether82598	pci
-	ethervirtio	pci
 
 	ethermedium
-	pcmciamodem
 	netdevmedium
 
-	usbuhci
-	usbohci
+#	usbuhci
+#	usbohci
 	usbehci		usbehcipc
 
+# only needed for vga
+	realmode
+
 misc
-	archmp		mp apic mpacpi
-	mtrr
+	mp		apic mpacpi
+#	nomp
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
-	sdiahci		pci sdscsi
-	sdvirtio	pci sdscsi
+	sdahci		pci sdscsi
+	sdnvme		pci sdscsi
 
 	uarti8250
-	uartpci		pci
-	uartisa
+#	uartpci		pci
+#	uartisa
 
-	vga3dfx		+cur
-	vgaark2000pv	+cur
-	vgabt485	=cur
-	vgaclgd542x	+cur
-	vgaclgd546x	+cur
-	vgact65545	+cur
-	vgacyber938x	+cur
-	vgaet4000	+cur
-	vgahiqvideo	+cur
 	vgai81x		+cur
-	vgamach64xx	+cur
-	vgamga2164w	+cur
-	vgamga4xx	+cur
-	vganeomagic	+cur
 	vganvidia	+cur
 	vgaradeon	+cur
 	vgargb524	=cur
 	vgas3		+cur vgasavage
 	vgat2r4		+cur
-	vgatvp3020	=cur
-	vgatvp3026	=cur
-	vgavesa
+	vgavesa		realmode
 	vgavmware	+cur
 
 ip

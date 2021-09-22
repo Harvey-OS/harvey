@@ -32,24 +32,30 @@ rbnotfull(void*)
 static int
 rbnotempty(void*)
 {
+	if (active.exiting)
+		return 1;		/* don't sleep */
 	return rb.wp != rb.rp;
 }
 
 static void
 genrandom(void*)
 {
-	up->basepri = PriNormal;
+	spllo();
+	up->basepri = 2;		/* don't hog the cpu at start-up */
 	up->priority = up->basepri;
 
-	for(;;){
-		for(;;)
-			if(++rb.randomcount > 100000)
-				break;
+	while (!active.exiting){
+		/* keep this threshold lowish for slow machines or emulations */
+		while (++rb.randomcount <= 10000)
+			;
+		if (active.exiting)
+			break;
 		if(anyhigher())
 			sched();
 		if(!rbnotfull(0))
 			sleep(&rb.producer, rbnotfull, 0);
 	}
+	pexit("", 1);
 }
 
 /*

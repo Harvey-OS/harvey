@@ -139,8 +139,4 @@ grep '^03' /dev/pci/*ctl
 .SH BUGS
 Access to the I/O and memory regions of a PCI device is not provided.
 .PP
-The ability to set a Plug 'n' Play card's configurable settings has not been
-implemented.
-.PP
-There should be a user program for identifying and configuring
-Plug 'n' Play cards.
+Only PCs have Plug 'n' Play.

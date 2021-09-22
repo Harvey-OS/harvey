@@ -254,7 +254,7 @@ kmapinval(void)
 	uchar *ktlbx;
 
 	if(m->machno < nelem(ktime))
-		ktime[m->machno] = MACHP(0)->ticks;
+		ktime[m->machno] = sys->ticks;
 	if(m->kactive == 0)
 		return;
 

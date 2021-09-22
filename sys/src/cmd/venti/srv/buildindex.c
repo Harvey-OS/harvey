@@ -18,7 +18,7 @@ int		nisect;
 int		bloom;
 int		zero;
 
-u32int	isectmem;
+uintptr	isectmem;
 u64int	totalbuckets;
 u64int	totalclumps;
 Channel	*arenadonechan;
@@ -44,7 +44,7 @@ void
 threadmain(int argc, char *argv[])
 {
 	int fd, i, napart, nfinish, maxdisks;
-	u32int bcmem, imem;
+	uintptr bcmem, imem;
 	Config conf;
 	Part *p;
 	
@@ -107,7 +107,7 @@ threadmain(int argc, char *argv[])
 	 * need a block for every arena
 	 */
 	bcmem = maxblocksize * (mainindex->narenas + 16);
-	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+	if(0) fprint(2, "initialize %lld bytes of disk block cache\n", (vlong)bcmem);
 	initdcache(bcmem);
 	
 	totalclumps = 0;
@@ -736,7 +736,8 @@ sortminibuffer(ISect *is, Minibuf *mb, uchar *buf, u32int nbuf, u32int bufsize)
 		zerorange(part, bucket2offset(is, lastb+1), bucket2offset(is, is->stop - is->start));
 
 	if(n != mb->nwentry)
-		fprint(2, "sortminibuffer bug: n=%ud nwentry=%ud have=%ld\n", n, mb->nwentry, (ep-buf)/IEntrySize);
+		fprint(2, "sortminibuffer bug: n=%ud nwentry=%ud have=%lld\n",
+			n, mb->nwentry, (vlong)(ep-buf)/IEntrySize);
 
 	free(buckdata);
 }

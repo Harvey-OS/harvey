@@ -53,7 +53,7 @@ newhideset(int hs, Nlist *np)
 		return hs;
 	if (nhidesets >= maxhidesets) {
 		maxhidesets = 3*maxhidesets/2+1;
-		hidesets = (Hideset *)realloc(hidesets, (sizeof (Hideset *))*maxhidesets);
+		hidesets = (Hideset *)dorealloc(hidesets, (sizeof (Hideset *))*maxhidesets);
 	}
 	hs1 = (Hideset)domalloc(len*sizeof(Hideset));
 	memmove(hs1, nhs, len*sizeof(Hideset));

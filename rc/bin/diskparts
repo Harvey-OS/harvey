@@ -4,7 +4,8 @@ rfork e
 if (! test -e /dev/sdctl)
 	bind -b '#S' /dev
 if (~ $#* 0)
-	*=`{ls -d /dev/sd* | uniq}
+	# skip missing drives such as fs's /dev/sdF1
+	* = `{grep -l '^inquiry..' /dev/sd*/ctl | uniq | sed 's;/ctl$;;'}
 
 bind -a /bin/disk /bin >[2]/dev/null		# work with /boot too
 
@@ -14,25 +15,31 @@ bind -a /bin/disk /bin >[2]/dev/null		# work with /boot too
 # block numbers, so we may have to examine the data file with prep if
 # there's no plan9 file.  beware that `disk/prep -p data' on a disk with
 # no plan 9 partition table will delete all extant partitions.
-for(disk) {
-	if(test -f $disk/data && test -f $disk/ctl)
-		{ fdisk -p $disk/data |
-			grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
-	if(test -f $disk/plan9)
-		parts=($disk/plan9*)
-	if not
-		parts=($disk/data)
-	for(part in $parts)
-		if(test -f $part)
-			 { prep -p $part |
-				grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
-}
+for (disk)
+	if (test -f $disk/data && test -f $disk/ctl) {
+		echo -n $disk...
+		ctl=$disk/ctl
+		data=$disk/data
+		{ fdisk -p $data | grep -v '^delpart ' >$ctl } >[2]/dev/null
+		if (test -f $disk/plan9)
+			parts=($disk/plan9*)
+		if not
+			parts=$data
+		for (part in $parts)
+			if(test -f $part) {
+				prep -p $part | grep -v '^delpart ' >$ctl
+			} >[2]/dev/null
+	}
 
 sysname=`{cat /dev/sysname}
 
 # set up any fs(3) partitions
+echo -n fs...
 if (! test -e /dev/fs/ctl && test -e '#k/fs')
 	bind -b '#k' /dev
+# initialize fs only if necessary
 if (~ $#sysname 1 && ! ~ $sysname '' &&
-    test -r /cfg/$sysname/fsconfig && test -w /dev/fs/ctl)
+    test -r /cfg/$sysname/fsconfig && test -w /dev/fs/ctl &&
+    ~ `{wc -l </dev/fs/ctl} 0)
 	read -m /cfg/$sysname/fsconfig >/dev/fs/ctl
+echo

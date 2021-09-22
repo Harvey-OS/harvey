@@ -1,0 +1,11 @@
+% Written by DVItoMP, Version 0.63 (C version REPLACE-WITH-VERSION)
+begingroup save _p,_r,_s,_n; picture _p; _p=nullpicture;
+string _n[];
+vardef _s(expr _t,_f,_m,_x,_y)=
+  addto _p also _t infont _f scaled _m shifted (_x,_y); enddef;
+_n0="cmr10";
+_s("Ka",_n0,1.00000,0.0000,0.0000);
+setbounds _p to (0,0.0000)--(12.7301,0.0000)--
+ (12.7301,6.8078)--(0,6.8078)--cycle;
+_p endgroup
+mpxbreak

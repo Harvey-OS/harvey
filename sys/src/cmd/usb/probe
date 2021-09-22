@@ -1,7 +1,7 @@
 #!/bin/rc
 # usb/probe [-h] - list all usb devices, including hubs
 rfork e
-test -e /dev/usb || bind -a '#u' /dev || {
+test -e /dev/usb || bind -a '#u' /dev >[2]/dev/null || {
 	echo no '#u/usb' >[1=2]
 	exit nousb
 }

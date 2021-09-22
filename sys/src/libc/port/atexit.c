@@ -10,7 +10,7 @@ struct Onex{
 };
 
 static Lock onexlock;
-Onex onex[NEXIT];
+static Onex onex[NEXIT];
 
 int
 atexit(void (*f)(void))

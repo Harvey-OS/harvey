@@ -209,6 +209,7 @@ reap(Dest *dp)
 	char exitsts[2*ERRMAX];
 
 	if (outstandingprocs(dp) && await(exitsts, sizeof exitsts) >= 0) {
+		exitsts[sizeof exitsts - 1] = '\0';
 		notedeath(dp, exitsts);
 		return 0;
 	}

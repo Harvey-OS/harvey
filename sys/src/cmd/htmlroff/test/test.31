@@ -1,0 +1,7 @@
+.if 1 \{\
+.de X
+hello, world
+..\}
+before X
+.X
+after X

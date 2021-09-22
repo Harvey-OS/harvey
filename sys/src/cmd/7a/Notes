@@ -1,0 +1,181 @@
+-	writeback
+-	D_VREG? vector register type/index field?
+-	ACASE/ABCASE
+	- register in ACASE must be dead after use, or better, take two registers
+
+MOVWZ -> MOVWU?
+
+basic
+
+§3.2
+
+CBZ	Rt, label (imm19)
+CBNZ
+
+B.<cond>	label (imm19)
+
+SVC	$imm16
+HVC
+SMC
+BRK
+HLT
+DCPS1
+DCPS2
+DCPS3
+
+MSR	$imm, CRn
+HINT
+CLREX
+DSB
+DMB
+ISB
+SYS	CRm, CRn, Rt
+MSR	CRm, CRn, Rt
+SYSL	CRm, CRn, Rt
+MRS	CRm, CRn, Rt
+
+TBZ	$b5:b40, Rt, label (imm14)   # bit number
+TBNZ
+
+B	label (imm26)
+BL
+
+BR	Rn
+BLR
+RET
+
+ERET Rn=1F
+DRPS
+
+§3.3
+
+[SIMD later]
+
+LDR	label:19, Rt
+LDR [SIMD&FP]
+LDRSW
+PRFM
+
+[load/store exclusive, later]
+[load/store no-allocate pair, later]
+
+# post-index write-back load/store [simm9 range -256 to 255, then scaled]
+STR[BWHX]	#<simm9>, [Rn], Rt
+LDR[S][BWHX]
+
+# pre-index write-back
+STR[BWHX]	[Rn, <simm9>]!, Rt
+LDR[S][BWHX]
+
+# unsigned offset
+STR[BWHX]	<uimm12>(Rn), Rt	# <uimm12> scaled by operand size field
+LDR[S][BWHX]
+
+STR[BWHX]	Rm [<option>][<shift>](Rn), Rt           SHIFT(EXT-or-LSL(Rn),{size|0})
+LDR[S][BWHX]
+
+[load/store unscaled immediate, later]
+[load/store unsigned immediate, later]
+[load/store register pair, offset]
+[load/store register pair, post-indexed]
+[load/store register pair, pre-indexed]
+
+§3.4
+
+ADD		imm12+shift, Rn, Rd
+ADDS
+SUB
+SUBS
+
+SBFM	immr, imms, Rn, Rd
+BFM
+UBFM
+
+EXR	imms, Rm, Rn, Rd
+
+AND	immr, imms, Rn, Rd
+ORR
+EOR
+ANDS
+
+MOVN	hw, imm16, Rd
+MOVZ
+MOVK
+
+ADR	immhi:immlo, Rd
+ADRP
+
+§3.5
+
+ADD	Rm [extend, imm3], Rn, Rd
+ADDS
+SUB
+SUBS
+
+ADD Rm <shift> imm6, Rn, Rd
+ADDS
+SUB
+SUBS
+
+ADC	Rm, Rn, Rd
+ADCS
+SBC
+SBCS
+
+# if cond then compare(Rn, -<imm5>) else $nzcv
+CCMN.<cond>	$<imm5>, Rn, $<nzcv>
+CCMP
+
+# if cond then compare(Rn, -Rm) else $nzcv
+CCMN.<cond>	Rm, Rn, $<nzcv>
+CCMP
+
+# if cond then Rn else F(Rm)
+CSEL.<cond> Rm, Rn, Rd		F = copy
+CSINC	Rm, Rn, Rd		F = add one
+CSINV	Rm, Rn, Rd		F = NOT
+CSNEG	Rm, Rn, Rd		F = negate
+
+# OP Rn, Rd
+RBIT	Rn, Rd
+REV16
+REV
+CLZ
+CLS
+RBIT
+REV16
+REV32
+REV
+CLZ
+CLS
+
+# OP Rm, Rn, Rd
+UDIV
+SDIV
+LSLV
+LSRV
+ASRV
+RORV
+CRC32[BHWX]
+CRC32C[BHWX]
+
+# OP Rm, Rn, Ra, Rd
+MADD
+MSUB
+SMADDL
+SMSUBL
+SMULH
+UMADDL
+UMSUBL
+UMULH
+
+# logical shifted register
+AND	Rm <shift> imm6, Rn, Rd
+BIC
+ORR
+ORN
+EOR
+EON
+ANDS
+BICS
+

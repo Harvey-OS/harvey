@@ -10,6 +10,7 @@ int	verbose;
 int	Mflag;
 int	Cplusplus;
 int	nolineinfo;
+int	printpplines;
 Nlist	*kwdefined;
 char	wd[128];
 
@@ -149,6 +150,9 @@ setup(int argc, char **argv)
 			break;
 		case 'P':
 			nolineinfo++;
+			break;
+		case 'p':
+			printpplines++;
 			break;
 		case '.':
 			nodot++;

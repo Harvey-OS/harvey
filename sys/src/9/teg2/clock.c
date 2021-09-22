@@ -95,6 +95,8 @@ enum {
 	Gincr	= 1<<3,
 };
 
+extern ulong initµs;			/* from clock.c */
+
 /*
  * until 5[cl] inline vlong ops, avoid them where possible,
  * they are currently slow function calls.
@@ -109,7 +111,6 @@ union Vlong {
 };
 
 static int fired;
-static int ticking[MAXMACH];
 
 /* no lock is needed to update our local timer.  splhi keeps it tight. */
 static void
@@ -127,44 +128,6 @@ setltimer(Ltimer *tn, ulong ticks)
 }
 
 static void
-ckstuck(int cpu, long myticks, long histicks)
-{
-	if (labs(histicks - myticks) > HZ) {
-//		iprint("cpu%d: clock ticks %ld (vs myticks %ld cpu0 %ld); "
-//			"apparently stopped\n",
-//			cpu, histicks, myticks, MACHP(0)->ticks);
-		if (!ticking[cpu])
-			panic("cpu%d: clock not interrupting", cpu);
-	}
-}
-
-static void
-mpclocksanity(void)
-{
-	int cpu, mycpu;
-	long myticks, histicks;
-
-	if (conf.nmach <= 1 || active.exiting || navailcpus == 0)
-		return;
-
-	mycpu = m->machno;
-	myticks = m->ticks;
-	if (myticks == HZ)
-		ticking[mycpu] = 1;
-
-	if (myticks < 5*HZ)
-		return;
-
-	for (cpu = 0; cpu < navailcpus; cpu++) {
-		if (cpu == mycpu)
-			continue;
-		histicks = MACHP(cpu)->ticks;
-		if (myticks == 5*HZ || histicks > 1)
-			ckstuck(cpu, myticks, histicks);
-	}
-}
-
-static void
 clockintr(Ureg* ureg, void *arg)
 {
 	Ltimer *wd, *tn;
@@ -177,7 +140,6 @@ clockintr(Ureg* ureg, void *arg)
 
 	timerintr(ureg, 0);
 
-#ifdef watchdog_not_bloody_useless
 	/* appease the dogs */
 	wd = &lt->wd;
 	if (wd->cnt == 0 &&
@@ -186,11 +148,8 @@ clockintr(Ureg* ureg, void *arg)
 			m->machno);
 	wd->load = Dogtimeout - 1;
 	coherence();
-#endif
-	SET(wd); USED(wd);
-	tegclockintr();
 
-	mpclocksanity();
+	tegclockintr();
 }
 
 void
@@ -216,27 +175,32 @@ clockreset(Ltimer *tn)
 }
 
 void
-watchdogoff(Ltimer *wd)
+watchdogoff(void)
 {
+	Ploctmr *lt;
+	Ltimer *wd;
+
+	lt = (Ploctmr *)soc.loctmr;
+	wd = &lt->wd;
 	wd->ctl &= ~Wdogena;
 	coherence();
 	wd->wddis = Wdoff1;
 	coherence();
-	wd->wddis = Wdoff2;
+	wd->wddis = Wdoff2;		/* switch from watchdog to timer mode */
 	coherence();
+	wd->ctl &= ~Wdogena;
+	coherence();
+	tegclockshutdown();
 }
 
 /* clear any pending watchdog intrs or causes */
 void
 wdogclrintr(Ltimer *wd)
 {
-#ifdef watchdog_not_bloody_useless
 	wd->isr = Xisrclk;
 	coherence();
 	wd->wdrst = Wdrst;
 	coherence();
-#endif
-	USED(wd);
 }
 
 /*
@@ -250,9 +214,7 @@ clockshutdown(void)
 
 	lt = (Ploctmr *)soc.loctmr;
 	clockreset(&lt->loc);
-	watchdogoff(&lt->wd);
-
-	tegclockshutdown();
+	watchdogoff();
 }
 
 enum {
@@ -330,7 +292,7 @@ guessmips(long (*loop)(void), char *lab)
 		tcks = loop();
 		splx(s);
 		if (tcks < 0)
-			iprint("again...");
+			print("again...");
 	} while (tcks < 0);
 	/*
 	 * Instrs instructions took tcks ticks @ Basetickfreq Hz.
@@ -338,21 +300,18 @@ guessmips(long (*loop)(void), char *lab)
 	 */
 	s = (((vlong)Basetickfreq * Instrs) / tcks + 500000) / 1000000;
 	if (Debug)
-		iprint("%ud mips (%s-issue)", s, lab);
+		print("%ud mips (%s-issue)", s, lab);
 	USED(s);
 }
 
 void
 wdogintr(Ureg *, void *ltmr)
 {
-#ifdef watchdog_not_bloody_useless
 	Ltimer *wd;
 
 	wd = ltmr;
 	fired++;
 	wdogclrintr(wd);
-#endif
-	USED(ltmr);
 }
 
 static void
@@ -371,7 +330,6 @@ ckcounting(Ltimer *lt)
 static void
 ckwatchdog(Ltimer *wd)
 {
-#ifdef watchdog_not_bloody_useless
 	int s;
 
 	fired = 0;
@@ -387,31 +345,19 @@ ckwatchdog(Ltimer *wd)
 	delay(2 * 1000/HZ);
 	splx(s);
 	if (!fired)
-		/* useless local watchdog */
 		iprint("cpu%d: local watchdog failed to interrupt\n", m->machno);
 	/* clean up */
 	wd->ctl &= ~Wdogena;
 	coherence();
-#endif
-	USED(wd);
 }
 
-static void
-startwatchdog(void)
+void
+restartwatchdog(void)
 {
-#ifdef watchdog_not_bloody_useless
 	Ltimer *wd;
-	Ploctmr *lt;
-
-	lt = (Ploctmr *)soc.loctmr;
-	wd = &lt->wd;
-	watchdogoff(wd);
-	wdogclrintr(wd);
-	irqenable(Wdtmrirq, wdogintr, wd, "watchdog");
-
-	ckwatchdog(wd);
 
 	/* set up for normal use, causing reset */
+	wd = &((Ploctmr *)soc.loctmr)->wd;
 	wd->ctl &= ~Tintena;			/* reset, don't interrupt */
 	coherence();
 	wd->ctl |= Wdog;
@@ -420,9 +366,20 @@ startwatchdog(void)
 	coherence();
 	wd->ctl |= Wdogena;
 	coherence();
+}
 
+void
+startwatchdog(void)
+{
+	Ltimer *wd;
+
+	wd = &((Ploctmr *)soc.loctmr)->wd;
+	watchdogoff();
+	wdogclrintr(wd);
+	irqenable(Wdtmrirq, wdogintr, wd, "watchdog");
+	ckwatchdog(wd);
+	restartwatchdog();
 	ckcounting(wd);
-#endif
 }
 
 static void
@@ -452,20 +409,19 @@ clock0init(Ltimer *tn)
 	USED(fticks, old);
 
 	if (Debug)
-		iprint("cpu%d: ", m->machno);
+		print("cpu%d: ", m->machno);
 	guessmips(issue1loop, "single");
 	if (Debug)
-		iprint(", ");
+		print(", ");
 	guessmips(issue2loop, "dual");
 	if (Debug)
-		iprint("\n");
+		print("\n");
 
 	/*
 	 * m->delayloop should be the number of delay loop iterations
 	 * needed to consume 1 ms.  2 is instr'ns in the delay loop.
 	 */
 	m->delayloop = m->cpuhz / (1000 * 2);
-//	iprint("cpu%d: m->delayloop = %lud\n", m->machno, m->delayloop);
 
 	tegclock0init();
 }
@@ -477,7 +433,7 @@ clock0init(Ltimer *tn)
 void
 clockinit(void)
 {
-	ulong old;
+	ulong old, new;
 	Ltimer *tn;
 	Ploctmr *lt;
 
@@ -497,6 +453,10 @@ clockinit(void)
 
 	lt = (Ploctmr *)soc.loctmr;
 	tn = &lt->loc;
+	/*
+	 * can't irqenable twice for the same irq, so enable it on cpu0
+	 * and just unmask it on the other(s).
+	 */
 	if (m->machno == 0)
 		irqenable(Loctmrirq, clockintr, lt, "clock");
 	else
@@ -512,11 +472,14 @@ clockinit(void)
 	coherence();
 
 	old = tn->cnt;
-	delay(5);
+	coherence();
+	delay(10);
+	new = tn->cnt;
+
 	/* m->ticks won't be incremented here because timersinit hasn't run. */
-	if (tn->cnt == old)
+	if (new == old)
 		panic("cpu%d: clock not ticking at all", m->machno);
-	else if ((long)tn->cnt > 0)
+	else if ((long)new > 0)
 		panic("cpu%d: clock ticking slowly", m->machno);
 
 	if (m->machno == 0)
@@ -530,6 +493,7 @@ clockinit(void)
 	 *  try to resched at the same time.
 	 */
 	delay(m->machno*2);
+	clockreset(tn);
 	setltimer(tn, Tcycles);
 }
 
@@ -562,14 +526,17 @@ timerset(Tval next)
 	splx(s);
 }
 
-static ulong
-cpucycles(void)	/* cpu clock rate, except when waiting for intr (unused) */
+/*
+ * cpu clock rate, except when waiting for intr.  could be useful for
+ * measurements, but not time-of-day.  wraps after ~4 s.
+ */
+ulong
+cpucycles(void)
 {
 	ulong v;
 
 	/* reads 32-bit cycle counter (counting up) */
-//	v = cprdsc(0, CpCLD, CpCLDcyc, 0);
-	v = getcyc();				/* fast asm */
+	v = getcyc();		/* fast asm of cprdsc(0, CpCLD, CpCLDcyc, 0) */
 	/* keep it non-negative; prevent m->fastclock ever going to 0 */
 	return v == 0? 1: v;
 }
@@ -602,7 +569,9 @@ fastticks(uvlong *hz)
 	if (fcp->low == 0 && fcp->high == 0 && m->ticks > HZ/10)
 		panic("fastticks: zero m->fastclock; ticks %lud fastclock %#llux",
 			m->ticks, m->fastclock);
-	return m->fastclock;
+	coherence();
+	/* correct by subtracting initial free-running µs counter value */
+	return m->fastclock - initµs;
 }
 
 void

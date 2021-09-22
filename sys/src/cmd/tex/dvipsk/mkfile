@@ -1,0 +1,108 @@
+</$objtype/mkfile
+CPUS=mips 386
+
+BIN=/sys/lib/texmf/bin/$objtype
+TARG=dvips afm2tfm
+
+DVIOFILES=\
+	dospecial.$O\
+	dviinput.$O\
+	emspecial.$O\
+	fontdef.$O\
+	loadfont.$O\
+	dvips.$O\
+	tfmload.$O\
+	download.$O\
+	prescan.$O\
+	scanpage.$O\
+	skippage.$O\
+	output.$O\
+	scalewidth.$O\
+	dosection.$O\
+	dopage.$O\
+	resident.$O\
+	search.$O\
+	unpack.$O\
+	drawPS.$O\
+	header.$O\
+	repack.$O\
+	virtualfont.$O\
+	dpicheck.$O\
+	finclude.$O\
+	t1part.$O\
+	pprescan.$O\
+	papersiz.$O\
+	color.$O\
+	bbox.$O\
+	hps.$O\
+
+HFILES=paths.h
+
+LIB=../kpathsea/libkpathsea.a$O
+
+</sys/src/cmd/mkmany
+
+DEFINES=\
+	-DNeedFunctionPrototypes\
+	-DKPATHSEA\
+	-DPlan9\
+	-D_POSIX_SOURCE\
+	-D_BSD_EXTENSION\
+
+CC=pcc
+CFLAGS=-B -I../kpathsea -I.. -I. $DEFINES -c
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+
+$O.dvips: $DVIOFILES
+
+$BIN/dvips:V: $BIN/_dvips
+	# do nothing
+
+
+$BIN/_dvips: $O.dvips
+	cp $prereq $target
+
+%.pro:	$cpuobjtype.squeeze %.lpro
+	$cpuobjtype.squeeze < $stem.lpro >$stem.pro || rm -f $stem.pro
+
+$cpuobjtype.squeeze:	squeeze.c $HFILES
+	@{
+		objtype=$cputype
+		$CC $CFLAGS squeeze.c
+		$cpuobjtype^l $LDFLAGS -o $target squeeze.$cpuobjtype
+	}
+
+texc.lpro:	texc.script tex.lpro
+	rc texc.script tex.lpro texc.lpro
+
+PROLOGUES=\
+	tex.pro\
+	texps.pro\
+	texc.pro\
+	special.pro\
+	finclude.pro \
+	color.pro\
+	crop.pro\
+	hps.pro\
+
+all:V: $PROGS $PROLOGUES
+
+test:V: $O.dvips
+	rm -f mtest.ps
+	TFMFONTS=testdata: VFFONTS=testdata: \
+	TEXPSHEADERS=testdata TEXCONFIG=testdata \
+	$O.dvips -D 300 testdata/dvipstst.xdv -o dvipstst.ps
+	mv dvipstst.ps mtest.ps
+	TFMFONTS=testdata: VFFONTS=testdata: \
+	TEXPSHEADERS=testdata: TEXCONFIG=testdata: \
+	$O.dvips -D 300 testdata/dvipstst.xdv -o 
+	diff testdata/dvipstst.xps dvipstst.ps ||status=''
+
+install-data:V:
+	for(i in $PROLOGUES)
+		cp $i /sys/lib/texmf/dvips/base
+	@{cd reencode; for(e in *.enc)
+		cp $e /sys/lib/texmf/dvips/base}
+	# copy config.ps to .../base after editing it yourself
+	# ditto for psfonts.map

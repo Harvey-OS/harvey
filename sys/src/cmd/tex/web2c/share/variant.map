@@ -1,0 +1,84 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "variant.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "84     407    3582",
+@c   docstring = "Variant abbreviations for TeX font names, unfortunately
+@c                including scripts and encodings."
+@c }
+@r{obsolete [0=>8a] Adobe standard encoding}
+@r{obsolete [1 SemiSans]}
+@r{obsolete [2=>7c] Fraktur encoding}
+@r{obsolete [3=>7f] Fraction}
+@r{obsolete [4 fax; now typeface @samp{lx}, Lucida Fax]}
+5 @r{escape for (presently) phonetic encodings}
+6 @r{escape for Cyrillic encodings [was @samp{SemiSerif}]}
+7 @r{escape for (mostly) 7-bit encodings}
+8 @r{escape for (mostly) 8-bit encodings}
+9 @r{escape for (presently) expert encodings [was oldstyle digits]}
+a Alt Arrows Alternative             @r{[was alternate encoding]}
+@r{obsolete [b bright; now typeface lh, Lucida Bright]}
+c SmallCaps
+d Display Titling Caption Headline TallCaps SwashCaps LombardicCaps
+e Engraved Copperplate Elite
+f Fraktur Gothic OldEnglish Handtooled @r{(`gothic' can also be sans)}
+g SmallText      @r{designed for small sizes [was grooved, as in the IBM logo]}
+h Shadow
+i Italic Kursiv Ital                 @r{text italic}
+j                                    @r{old-style digits [was invisible]}
+k Greek                              @r{obsolete}
+l Outline OpenFace Blanks
+m @r{math italic}
+n Informal Fashion Schlbk            @r{for Stone}
+o Oblique Obl                        @r{slanted}
+p Ornaments
+@r{obsolete [q=>8t @r{Cork (@TeX{} extended) encoding}]}
+r                                    @r{roman or sans; often omitted, see text}
+s Gothic                             @r{sans serif}
+t Monospace                          @r{fixed-width typewriter}
+u                                    @r{unslanted italic}
+v MathExtension
+w Script Handwritten Swash Calligraphy Cursive Tango
+x @r{built with Adobe expert encoding [was expert-encoded]}
+y MathSymbol
+z Cyrillic                           @r{font-dependent Cyrillic}
+5a PhoneticAlternate
+5i PhoneticIPA
+5s @r{sil-IPA}
+6b @r{Cyrillic part of ISO 8859-5, seven bits}
+6d @r{Cyrillic CP866 encoding}
+6i @r{ISO 8859-5}
+6k @r{Cyrillic KOI-8 encoding}
+6m @r{Cyrillic Macintosh encoding}
+6w @r{Cyrillic CP1251 encoding}
+7a A                                 @r{alternate characters only}
+7c Dfr                               @r{Fraktur}
+7d OsF OSF                           @r{oldstyle digit encoding}
+7f Fraction
+7k OT2Cyrillic
+7m TeXMathItalicEncoding             @r{@pxref{texmital}}
+7t                       @r{@TeX{} text encoding (as in Computer Modern Roman)}
+7v TeXMathExtensionEncoding          @r{@pxref{texmext}}
+7y TeXMathSymbolEncoding             @r{@pxref{texmsym}}
+82 GreekKeys
+83 Ibycus1
+84 Ibycus2
+8a StandardEncoding                  @r{Adobe standard encoding, @pxref{8a}}
+8c TeXTextCompanion                  @r{La@TeX{}'s TS1}
+8m @r{Macintosh standard encoding}
+8r TeXBase1Encoding                  @r{@pxref{8r}}
+8t CorkEncoding                      @r{@pxref{cork}}
+8u XT2Encoding                       @r{cmtt + Latin 2, see @file{xl2.enc}}
+8w @r{Windows 3.1 ANSI encoding}
+8x Expert                            @r{expert encoding}
+8z XL2Encoding                       @r{cmr + Latin 2, see @file{xl2.enc}}
+9c @r{expert + Text companion}
+9d @r{expert + oldstyle digits + Cork}
+9e @r{expert + Cork}
+9o @r{expert + oldstyle digits + @TeX{} text}
+9s SF                                @r{SuperFont}
+9t @r{expert + @TeX{} text}

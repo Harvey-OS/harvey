@@ -1,143 +1,253 @@
-#include <stdlib.h>
-#include <string.h>
-#include "../plan9/sys9.h"
-#include <stdio.h>
+/*
+ * V7 unix malloc, adapted to the modern world
+ */
 
-typedef unsigned long long intptr_t;
+/*
+ *	C storage allocator
+ *	circular first-fit strategy
+ *	works with noncontiguous, but monotonically linked, arena
+ *	each block is preceded by a ptr to the (pointer of)
+ *	the next following block
+ *	blocks are exact number of words long
+ *	aligned to the data type requirements of ALIGN
+ *	pointers to blocks must have BUSY bit 0
+ *	bit in ptr is 1 for busy, 0 for idle
+ *	gaps in arena are merely noted as busy blocks
+ *	last block of arena (pointed to by alloct) is empty and
+ *	has a pointer to first
+ *	idle blocks are coalesced during space search
+ *
+ *	a different implementation may need to redefine
+ *	ALIGN, NALIGN, BLOCK, BUSY, INT
+ *	where INT is integer type to which a pointer can be cast
+ */
 
-enum
+#include <u.h>
+#include <libc.h>
+
+#ifdef debug
+#define ASSERT(p) if(!(p))botch("p");else
+
+void
+botch(char *s)
 {
-	MAGIC		= 0xbada110c,
-	MAX2SIZE	= 32,
-	CUTOFF		= 12,
+	unlock(&malloclck);
+	print("assertion botched: %s\n", s);
+	abort();
+}
+#else
+#define ASSERT(p)
+#endif
+
+#define INT	uintptr
+#define ALIGN	vlong
+#define NALIGN	1
+#define WORD	sizeof(union store)
+#define BLOCK	1024			/* a multiple of WORD */
+
+#define BUSY 1
+#define NULL 0
+
+#define testbusy(p)	((INT)(p)&BUSY)
+#define setbusy(p)	(union store *)((INT)(p)|BUSY)
+#define clearbusy(p)	(union store *)((INT)(p)&~BUSY)
+
+typedef union store Store;
+union store {
+	Store	*ptr;
+	ALIGN	dummy[NALIGN];
+	int	calloc;		/*calloc clears an array of integers*/
 };
 
-typedef struct Bucket Bucket;
-struct Bucket
+static Store allocs[2];	/*initial arena*/
+static Store *allocp;	/*search ptr*/
+static Store *alloct;	/*arena top*/
+static Store *allocx;	/*for benefit of realloc*/
+static Lock malloclck;
+
+void *
+malloc(uintptr nbytes)
 {
-	int	size;
-	int	magic;
-	Bucket	*next;
-	char	data[1];
-};
+	uintptr nw, temp;
+	Store *p, *q;
 
-typedef struct Arena Arena;
-struct Arena
+	lock(&malloclck);
+	if (allocs[0].ptr == 0) {	/* first time */
+		allocs[0].ptr = setbusy(&allocs[1]);
+		allocs[1].ptr = setbusy(&allocs[0]);
+		alloct = &allocs[1];
+		allocp = &allocs[0];
+	}
+	nw = (nbytes + WORD + WORD - 1) / WORD;
+	ASSERT(allocp >= allocs && allocp <= alloct);
+	ASSERT(allock());
+	for (p = allocp; ; ) {
+		for (temp = 0; ; ) {
+			if (!testbusy(p->ptr)) {
+				while (!testbusy((q = p->ptr)->ptr)) {
+					ASSERT(q > p && q < alloct);
+					p->ptr = q->ptr;
+				}
+				if (q >= p + nw && p + nw >= p)
+					goto found;
+			}
+			q = p;
+			p = clearbusy(p->ptr);
+			if (p > q) {
+				ASSERT(p <= alloct);
+			} else if (q != alloct || p != allocs) {
+				ASSERT(q == alloct && p == allocs);
+				unlock(&malloclck);
+				return NULL;
+			} else if (++temp > 1)
+				break;
+		}
+		temp = ((nw + BLOCK/WORD) / (BLOCK/WORD)) * (BLOCK/WORD);
+		q = (Store *)sbrk(0);
+		if (q + temp < q) {
+			unlock(&malloclck);
+			return NULL;
+		}
+		q = (Store *)sbrk(temp * WORD);
+		if ((INT)q == -1) {
+			unlock(&malloclck);
+			return NULL;
+		}
+		ASSERT(q > alloct);
+		alloct->ptr = q;
+		if (q != alloct + 1)
+			alloct->ptr = setbusy(alloct->ptr);
+		alloct = q->ptr = q + temp - 1;
+		alloct->ptr = setbusy(allocs);
+	}
+found:
+	allocp = p + nw;
+	ASSERT(allocp <= alloct);
+	if (q > allocp) {
+		allocx = allocp->ptr;
+		allocp->ptr = p->ptr;
+	}
+	p->ptr = setbusy(allocp);
+	unlock(&malloclck);
+	return p + 1;
+}
+
+void *
+mallocz(uintptr size, int clr)
 {
-	Bucket	*btab[MAX2SIZE];	
-};
-static Arena arena;
+	void *p;
 
-#define datoff		((int)((Bucket*)0)->data)
-#define nil		((void*)0)
+	p = malloc(size);
+	if (p && clr)
+		memset(p, 0, size);
+	return p;
+}
 
-extern	void	*sbrk(unsigned long);
+/*
+ *	freeing strategy tuned for LIFO allocation
+ */
+void
+free(void *ap)
+{
+	Store *p = (Store *)ap;
+
+	if (p == 0)
+		return;
+	lock(&malloclck);
+	ASSERT(p > clearbusy(allocs[1].ptr) && p <= alloct);
+	ASSERT(allock());
+	allocp = --p;
+	ASSERT(testbusy(p->ptr));
+	p->ptr = clearbusy(p->ptr);
+	ASSERT(p->ptr > allocp && p->ptr <= alloct);
+	unlock(&malloclck);
+}
+
+/*	realloc(p, nbytes) reallocates a block obtained from malloc()
+ *	and freed since last call of malloc()
+ *	to have new size nbytes, and old content
+ *	returns new location, or 0 on failure
+ */
+
+void *
+realloc(void *ap, uintptr nbytes)
+{
+	Store *p, *q;
+	uintptr nw, onw;
+
+	p = ap;
+	if (nbytes == 0) {
+		free(p);
+		return nil;
+	}
+	if (p == nil)
+		return malloc(nbytes);
+
+	if (testbusy(p[-1].ptr))
+		free(p);
+
+	onw = p[-1].ptr - p;
+	q = (Store *)malloc(nbytes);
+	if (q == NULL || q == p)
+		return q;
+
+	lock(&malloclck);
+	memmove(q, p, nbytes);
+	nw = (nbytes + WORD - 1) / WORD;
+	if (q < p && q + nw >= p)
+		(q + (q + nw - p))->ptr = allocx;
+	unlock(&malloclck);
+	return q;
+}
+
+#ifdef debug
+void
+allock(void)
+{
+#ifdef longdebug
+	Store *p;
+	int	x;
+
+	x = 0;
+	for (p = &allocs[0]; clearbusy(p->ptr) > p; p = clearbusy(p->ptr))
+		if (p == allocp)
+			x++;
+	ASSERT(p == alloct);
+	return x == 1 | p == allocp;
+#else
+	return 1;
+#endif
+}
+#endif
 
 void*
-malloc(size_t size)
+calloc(uintptr n, uintptr szelem)
 {
-	intptr_t next;
-	int pow, n;
-	Bucket *bp, *nbp;
+	void *v;
 
-	for(pow = 1; pow < MAX2SIZE; pow++) {
-		if(size <= (1<<pow))
-			goto good;
-	}
-
-	return nil;
-good:
-	/* Allocate off this list */
-	bp = arena.btab[pow];
-	if(bp) {
-		arena.btab[pow] = bp->next;
-
-		if(bp->magic != 0)
-			abort();
-
-		bp->magic = MAGIC;
-		return  bp->data;
-	}
-	size = sizeof(Bucket)+(1<<pow);
-	size += 7;
-	size &= ~7;
-
-	if(pow < CUTOFF) {
-		n = (CUTOFF-pow)+2;
-		bp = sbrk(size*n);
-		if((intptr_t)bp == -1)
-			return nil;
-
-		next = (intptr_t)bp+size;
-		nbp = (Bucket*)next;
-		arena.btab[pow] = nbp;
-		for(n -= 2; n; n--) {
-			next = (intptr_t)nbp+size;
-			nbp->next = (Bucket*)next;
-			nbp->size = pow;
-			nbp = nbp->next;
-		}
-		nbp->size = pow;
-	}
-	else {
-		bp = sbrk(size);
-		if((intptr_t)bp == -1)
-			return nil;
-	}
-		
-	bp->size = pow;
-	bp->magic = MAGIC;
-
-	return bp->data;
+	if (v = mallocz(n * szelem, 1))
+		setmalloctag(v, getcallerpc(&n));
+	return v;
 }
 
 void
-free(void *ptr)
+setmalloctag(void *, uintptr)
 {
-	Bucket *bp, **l;
-
-	if(ptr == nil)
-		return;
-
-	/* Find the start of the structure */
-	bp = (Bucket*)((intptr_t)ptr - datoff);
-
-	if(bp->magic != MAGIC)
-		abort();
-
-	bp->magic = 0;
-	l = &arena.btab[bp->size];
-	bp->next = *l;
-	*l = bp;
 }
 
-void*
-realloc(void *ptr, size_t n)
+void
+setrealloctag(void *, uintptr)
 {
-	void *new;
-	size_t osize;
-	Bucket *bp;
+}
 
-	if(ptr == nil)
-		return malloc(n);
+uintptr
+getmalloctag(void *)
+{
+	return ~0;
+}
 
-	/* Find the start of the structure */
-	bp = (Bucket*)((intptr_t)ptr - datoff);
-
-	if(bp->magic != MAGIC)
-		abort();
-
-	/* enough space in this bucket */
-	osize = 1<<bp->size;
-	if(osize >= n)
-		return ptr;
-
-	new = malloc(n);
-	if(new == nil)
-		return nil;
-
-	memmove(new, ptr, osize);
-	free(ptr);
-
-	return new;
+uintptr
+getrealloctag(void *)
+{
+	return ~0;
 }

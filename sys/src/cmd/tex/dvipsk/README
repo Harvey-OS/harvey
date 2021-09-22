@@ -1,0 +1,110 @@
+This directory contains Dvipsk, my (kb@mail.tug.org) modified version of
+Tom Rokicki's dvips, a DVI-to-PostScript translator.
+
+See `NEWS' for major changes by release, `ChangeLog` for all changes.
+See `INSTALL' for installation instructions.
+See `../kpathsea/BUGS' for details on reporting bugs.
+
+Aside from configuration, this differs from the original primarily in
+that it uses the same code for path searching as TeX and my other
+distributions.
+
+Dvipsk does not install any default config.ps file, since no one file is
+generally suitable. Sample Dvips config files are in the contrib/
+directory. See ./INSTALL.
+
+The documentation is now in Texinfo format.  I've removed the font
+naming section, since it was an old version of the font naming document
+(which you can get from ftp://ftp.tug.org/tex/fontname/).
+
+Dvipsk is free software; Tom's original files are public domain.  The
+files I wrote (originally for the Free Software Foundation) are covered
+by the GNU General Public License -- see the files COPYING*.
+
+You can get the original dvips from ftp://labrea.stanford.edu/pub/dvips*.
+
+kb@mail.tug.org
+Member of the League for Programming Freedom -- write lpf@uunet.uu.net.
+-------------------------------------------------------------------------
+dvips 5.74 notes:
+
+   The epsf.sty and epsf.tex files are now in the public domain.
+   The t1part.c has been updated to support binary files with
+   multiple binary sections.
+
+dvips 5.72 notes:
+
+   Bug fix in t1part.c???  I hope so!
+
+   Debugging now turned on by default.  No real reason to turn it off.
+   (Too many Linux versions of dvips without debugging have been
+   distributed, and it makes it very difficult to help the users with
+   their problems . . .)
+
+dvips 5.62 notes:
+
+   The makefile and config.ps and MakeTeXPK need to be modified to fit
+   your site!
+
+   dvips.tex needs updating.
+
+To document:
+   Landscape mfmode
+   HPS integration
+   Separate EPSF file generation
+   Better bbox support
+   Partial type 1 support
+   Comment elision now turned *off*
+   Upleveling of font requirements
+   Bitmap font descriptions
+
+Questions:
+   Should I eliminate PStfms/PSvfs/afm-extra?
+   Should I eliminate PSlatex?  (my guess is yes)
+   Partial type 1 downloading (Sergey Lesenko)
+   HyperTeX support (Mark Doyle)
+   Lots of little bugs/changes/fixes
+
+Still todo:
+
+- Make a better copyfile that handles Level 2 data better
+- Add landscape mode def and code to select it.
+- Sanitize; test on various systems
+- Improve makefile!!!  Goal:  on a standard C installation (with stdlib
+  and all) and a Unix machine using TDS, make it be just a `make' away.
+- Improve diagnostics, especially when files not found.
+- Eliminate `extern' declarations; use header files properly
+
+Despite the fact that I reference Mark and Sergey, bugs are mine, mine,
+all mine, so please bug me and not them.
+----------------------------------------------------------------------------
+All real documentation is now in the file dvips.tex.  There is also a file
+called test.tex that you can read and run to test some basic capabilities of
+dvips.  INSTALLATION has the primary installation instructions.
+
+If you enjoy using dvips, you will probably enjoy being a member of 
+the TeX Users Group.  To join or contribute to TUG, contact them at
+
+   TeX Users Group
+   1850 Union Street  #1637
+   San Francisco, CA  94123
+   Voice:  (415) 982-8449
+   FAX:  (415) 982-8559
+   Email:  TUG@tug.org
+   Web:  http://www.tug.org/
+
+This is a list of people who have contributed substantially to dvips.
+I'm sure I've forgotten many.  Thanks to all!
+
+Karl Berry
+Mark Doyle
+Edward J. Groth
+James Hafner
+John Hobby
+Donald E. Knuth
+Russell Lang
+Sergey Lesenko
+Art Ogawa
+Melissa O'Neill
+Sebastian Rahtz
+Andrew Trevorrow

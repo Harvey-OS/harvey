@@ -1,0 +1,36 @@
+.TH SAPPER 1
+.SH NAME
+sapper \- time waster
+.SH SYNOPSIS
+.B games/sapper
+[ level ]
+.SH DESCRIPTION
+Sapper is a logic game - you have to uncover mines strewn randomly on
+a field. You are told the number of mines that are on the field, and
+the time taken.
+.PP
+The smaller the level the harder the game, the default is level 6, which
+is roughtly one mine per six squares of board. Level 1 is all mines.
+.PP
+You use the mouse buttons to control the game. The
+left mouse button uncovers a square on the board. If the square contained
+a mine you die. If not the number of mines in adjacent squares is displayed.
+If there are no mines in the adjacent squares each of those is uncovered too.
+This process repeats.
+.PP
+When you believe a mine is present in a square you mark
+it with the right mouse button, which puts a little flag on the square.
+When a square is marked with a flag you cannot accidently uncover it, you
+must first unflag it by clicking twice more with the right button.
+The intermediate state is a question mark that may be useful, but is not
+significant in any other respect from a blank square.
+.PP
+The middle button will uncover all squares in the three by three grid
+centred on the current mouse position.
+.PP
+The format of the scores files is a series of lines, one per game with the
+tab separated fileds being user, level, board size, number of unfound mines,
+number of squares uncovered, and time taken. A time of -1 indicates that a
+mine was hit on the first move.
+.SH FILES
+/sys/games/lib/sapper_scores

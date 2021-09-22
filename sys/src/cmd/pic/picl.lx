@@ -9,9 +9,9 @@
 %{
 #undef	input
 #undef	unput
-/* #include <stdio.h> lex puts one out for us */
+
+/* we insert includes for u.h and libc.h, and lex inserts include for stdio.h at the top */
 #include <ctype.h>
-#include <stdlib.h>
 #include "pic.h"
 #include "y.tab.h"
 

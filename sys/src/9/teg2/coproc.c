@@ -10,14 +10,12 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
-
 #include "arm.h"
 
 enum {
-	/* alternates:	0xe12fff1e	BX (R14); last e is R14 */
-	/*		0xe28ef000	B 0(R14); second e is R14 (ken) */
-	Retinst	= 0xe1a0f00e,		/* MOV R14, R15 */
+	/* alternates:	0xe12fff1e	BX (LR); last e is R14 */
+	/*		0xe28ef000	B 0(LR); second e is R14 (ken) */
+	Retinst	= 0xe1a0f00e,		/* MOVW LR, PC */
 
 	Opmask	= MASK(3),
 	Regmask	= MASK(4),

@@ -1,4 +1,0 @@
-#!/bin/rc
-9fs fs
-bind -c /n/fs/mail/faxoutqueue /mail/faxoutqueue
-upas/runq -t3 -a /mail/faxoutqueue /sys/lib/fax/faxtry

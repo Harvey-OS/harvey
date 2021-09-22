@@ -304,7 +304,7 @@ static int free_aux(ttfMemory *mem, void *ptr)
    ttfMemory   *mem = face->font->tti->ttf_memory;
    TMaxProfile *maxp = &face->maxProfile;
    Int          n_points, n_twilight;
-   Int          callSize, stackSize;
+   uintptr_t    callSize, stackSize;
 
    callSize  = 32;
 

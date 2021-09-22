@@ -1,0 +1,175 @@
+diff grap.ape/coord.c grap/coord.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,3d3
+< #include <string.h>
+< #include <stdlib.h>
+diff grap.ape/for.c grap/for.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2d3
+< #include <stdlib.h>
+diff grap.ape/frame.c grap/frame.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2d3
+< #include <stdlib.h>
+Only in grap: grap.c
+diff grap.ape/grap.h grap/grap.h
+205d204
+< extern void print(void);
+236a236,241
+> 
+> /* import from unix */
+> #define exit(n) exits((n) == 0? 0: "error")
+> #define unlink remove
+> 
+> int	system(char *);
+diff grap.ape/grap.y grap/grap.y
+1a2,3
+> #include <u.h>
+> #include <libc.h>
+3,5d4
+< #include <math.h>
+< #include <stdlib.h>
+< #include <string.h>
+Only in grap: grapl.c
+diff grap.ape/grapl.lx grap/grapl.lx
+6,7c6,7
+< #include <stdio.h>
+< #include <stdlib.h>
+---
+> 
+> /* we insert includes for u.h and libc.h, and lex inserts include for stdio.h at the top */
+diff grap.ape/input.c grap/input.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,3d3
+< #include <stdlib.h>
+< #include <string.h>
+5d4
+< #include <errno.h>
+220c219
+< 	register int c;
+---
+> 	int c;
+235c234
+< 	register int c;
+---
+> 	int c;
+236a236
+> 	c = 0;
+405,411c405,407
+< 	extern int errno;
+< 
+< 	if (errno == EDOM) {
+< 		errno = 0;
+< 		ERROR "%s argument out of domain", s WARNING;
+< 	} else if (errno == ERANGE) {
+< 		errno = 0;
+---
+> 	if (isNaN(x)) {
+> 		ERROR "%s result is not a number", s WARNING;
+> 	} else if (isInf(x, +1) || isInf(x, -1)) {
+422d417
+< 	int ern = errno;	/* cause some libraries clobber it */
+427,431c422
+< 	fprintf(stderr, "%s: %s", cmdname, s);
+< 	if (ern > 0) {
+< 		errno = ern;
+< 		perror("???");
+< 	}
+---
+> 	fprintf(stderr, "%s: %s: %r", cmdname, s);
+436d426
+< 	errno = 0;
+diff grap.ape/label.c grap/label.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2d3
+< #include <string.h>
+67c68
+< 	label_side = BOT;
+---
+> //	label_side = BOT;		/* no-op */
+diff grap.ape/main.c grap/main.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,5d3
+< #include <signal.h>
+< #include <math.h>
+< #include <stdlib.h>
+< #include <string.h>
+35a34
+> extern void onintr(int), fpecatch(int);
+40,41c39
+< 	extern void onintr(int), fpecatch(int);
+< 
+---
+> #ifdef TODO			/* signals */
+44a43
+> #endif
+89c88
+< 	n;
+---
+> 	USED(n);
+diff grap.ape/misc.c grap/misc.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,3d3
+< #include <string.h>
+< #include <stdlib.h>
+diff grap.ape/mkfile grap/mkfile
+16a17
+> 	system.$O\
+27,30c28,29
+< CC=pcc
+< LD=pcc
+< YFLAGS = -d -S
+< CFLAGS=-FTV -c
+---
+> YFLAGS = -d
+> CFLAGS=-FTVw
+36c35
+< 	$LEX -t $prereq > $target
+---
+> 	{ echo '#include <u.h>'; echo '#include <libc.h>'; $LEX -t $prereq } >$target
+diff grap.ape/plot.c grap/plot.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,3d3
+< #include <stdlib.h>
+< #include <math.h>
+diff grap.ape/print.c grap/print.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,4d3
+< #include <stdlib.h>
+< #include <string.h>
+< #include <math.h>
+17c16
+< void print(void)	/* arrange final output */
+---
+> void grapprint(void)	/* arrange final output */
+138c137
+< 		print();	/* pump out previous graph */
+---
+> 		grapprint();		/* pump out previous graph */
+Only in grap: system.c
+diff grap.ape/ticks.c grap/ticks.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,4d3
+< #include <stdlib.h>
+< #include <string.h>
+< #include <math.h>

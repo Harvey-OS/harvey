@@ -55,6 +55,7 @@ enum
 	AuthHr,		/* http reply */
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
 struct Ticketreq
 {
 	char	type;
@@ -137,7 +138,7 @@ enum {
 	NVwritemem	= 1<<2,	/* don't prompt, write nvram from argument */
 };
 
-/* storage layout */
+/* external storage layout */
 struct Nvrsafe
 {
 	char	machkey[DESKEYLEN];	/* was file server's authid's des key */

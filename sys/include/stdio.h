@@ -1,3 +1,6 @@
+#ifdef USE_BSTDIO
+#include <bstdio.h>
+#else
 #pragma	src	"/sys/src/libstdio"
 #pragma	lib	"libstdio.a"
 
@@ -23,17 +26,17 @@
  * 		(f)->wp>=(f)->rp || (f)->flags&LINEBUF && _IO_ctmp=='\n'?\
  * 		_IO_putc(_IO_ctmp, f): *(f)->wp++=_IO_ctmp)
  */
-typedef struct{
+typedef struct{		/* rearranged for compactness on 64-bit systems */
 	int fd;		/* UNIX file pointer */
 	char flags;	/* bits for must free buffer on close, line-buffered */
 	char state;	/* last operation was read, write, position, error, eof */
-	unsigned char *buf;	/* pointer to i/o buffer */
-	unsigned char *rp;	/* read pointer (or write end-of-buffer) */
-	unsigned char *wp;	/* write pointer (or read end-of-buffer) */
-	unsigned char *lp;	/* actual write pointer used when line-buffering */
+	char junk;
+	uchar unbuf[1];	/* tiny buffer for unbuffered io */
+	uchar *buf;	/* pointer to i/o buffer */
+	uchar *rp;	/* read pointer (or write end-of-buffer) */
+	uchar *wp;	/* write pointer (or read end-of-buffer) */
+	uchar *lp;	/* actual write pointer used when line-buffering */
 	long bufl;	/* actual length of buffer */
-	unsigned char unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
-	int	junk;
 }FILE;
 
 typedef long long fpos_t;
@@ -122,3 +125,4 @@ int	vfscanf(FILE *, const char *, va_list);
 int	vprintf(const char *, va_list);
 int 	vsnprintf(char *, int, const char *, va_list);
 int	vsprintf(char *, const char *, va_list);
+#endif

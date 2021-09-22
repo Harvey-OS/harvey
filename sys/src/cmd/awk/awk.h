@@ -10,10 +10,9 @@ typedef double	Awkfloat;
 
 typedef	unsigned char uschar;
 
-#define	xfree(a)	{ if ((a) != NULL) { free((void *) (a)); (a) = NULL; } }
+#define	xfree(a)	{ if ((a) != NULL) { free((char *) a); a = NULL; } }
 
-#define	NN(p)	((p) ? (p) : "(null)")	/* guaranteed non-null for dprintf 
-*/
+#undef DEBUG
 #define	DEBUG
 #ifdef	DEBUG
 			/* uses have to be doubly parenthesized */
@@ -21,6 +20,8 @@ typedef	unsigned char uschar;
 #else
 #	define	dprintf(x)
 #endif
+
+extern	char	errbuf[];
 
 extern int	compile_time;	/* 1 if compiling, 0 if running */
 extern int	safe;		/* 0 => unsafe, 1 => safe */
@@ -64,6 +65,8 @@ typedef struct Cell {
 	int	 tval;		/* type info: STR|NUM|ARR|FCN|FLD|CON|DONTFREE */
 	struct Cell *cnext;	/* ptr to next if chained */
 } Cell;
+
+#undef nelem
 
 typedef struct Array {		/* symbol table array */
 	int	nelem;		/* elements in table right now */
@@ -159,14 +162,17 @@ extern Node	*nullnode;
 
 extern	int	pairstack[], paircnt;
 
-#define notlegal(n)	(n <= FIRSTTOKEN || n >= LASTTOKEN || proctab[n-FIRSTTOKEN] == nullproc)
+#define notlegal(n)	((unsigned)(n) <= FIRSTTOKEN || \
+	(unsigned)(n) >= LASTTOKEN || \
+	proctab[(unsigned)(n)-FIRSTTOKEN] == nullproc)
 #define isvalue(n)	((n)->ntype == NVALUE)
 #define isexpr(n)	((n)->ntype == NEXPR)
 #define isjump(n)	((n)->ctype == OJUMP)
 #define isexit(n)	((n)->csub == JEXIT)
 #define	isbreak(n)	((n)->csub == JBREAK)
 #define	iscont(n)	((n)->csub == JCONT)
-#define	isnext(n)	((n)->csub == JNEXT || (n)->csub == JNEXTFILE)
+#define	isnext(n)	((n)->csub == JNEXT)
+#define	isnextfile(n)	((n)->csub == JNEXTFILE)
 #define	isret(n)	((n)->csub == JRET)
 #define isrec(n)	((n)->tval & REC)
 #define isfld(n)	((n)->tval & FLD)
@@ -181,3 +187,19 @@ extern	int	pairstack[], paircnt;
 #define freeable(p)	( ((p)->tval & (STR|DONTFREE)) == STR )
 
 #include "proto.h"
+
+/* importing from posix */
+#define MB_CUR_MAX	UTFmax
+#define wchar_t		Rune
+
+#define exit(n)		exits((n) == 0? nil: "awk error")
+#define wctomb(s, wc)	runetochar(s, &(wc))
+
+#undef ARGC
+
+int errno;
+Rune dummyr;
+char **environ;
+
+void	envsetup(void);
+int	mblen(char *s, int n);

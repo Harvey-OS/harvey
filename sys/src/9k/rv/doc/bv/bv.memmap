@@ -1,0 +1,19 @@
+physical memory map for beagle v
+
+/* on-core devices */
+0x02000000	clint
+0x02010000	l2 cache controller
+0x0c000000	plic
+/* off-core i/o */
+
+/*
+ * on-core memory.
+ */
+0x80000000	protected memory; no idea why it's this high up
+0x80020000	1GB-128K cached non-dma-coherent memory; ether needs fences
+0xc9000000	framebuffer, 64MB
+0xd0000000	framebuffer, 640MB
+0xf9000000	framebuffer, 16MB
+0xfb000000	framebuffer, 32MB
+0x100000000	4GB
+0x3000000000	cached access to up to 6GB

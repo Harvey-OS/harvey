@@ -1,21 +1,29 @@
 #!/bin/rc
-# cpu server start up
-date > /env/boottime
+# cpu server startup
+boottime=`{date}
+boottime=$"boottime
+echo cpurc starting $boottime
 
-# mount points
-mntgen -s slashn && chmod 666 /srv/slashn
-
-# name translation, cs sets /dev/sysname
-ndb/cs
+# cs sets /dev/sysname
+ndb/cs -4			# bloody google's ipv6 mail sending rules
 sysname=`{cat /dev/sysname}
+
+# get rid of need for dirs in /n
+mntgen -s slashn && chmod 666 /srv/slashn
 
 # parallelism for mk
 NPROC = `{wc -l </dev/sysstat}
 
+# enable usb keyboard, among other usb devices
+if (! test -e /srv/usb && test -e '#u/usb')
+	usb/usbd
+
 # site-specific startup
+listener=()
 if(test -e /rc/bin/cpurc.local)
 	. /rc/bin/cpurc.local
 
+# sysname sanity checks
 if (~ $#sysname 0 || ~ $sysname '') {
 	sysname = helix			# default
 	echo -n $sysname >/dev/sysname
@@ -23,60 +31,73 @@ if (~ $#sysname 0 || ~ $sysname '') {
 prompt=($sysname^'# ' '	')
 
 # cpu-specific startup
+# if it runs aux/listen, it must first run ndb/dns.
+if(! test -e '/env/*envloaded')
+	. loadcfgpxe
 if(test -e /cfg/$sysname/cpurc)
 	. /cfg/$sysname/cpurc
 
-# start up internet if we don't already have an address
-if(! grep u /net/ipselftab | grep -sv 127.0.0.1)
-	ip/ipconfig
-if(! grep -s 127.0.0.1 /net/ipselftab)
-	ip/ipconfig loopback /dev/null 127.1
-
 # if we're not a server, start a dns resolver
-if(! test -e /srv/dns)
-	ndb/dns -r
+if(! test -e /srv/dns && ! test -e /env/dns) {
+	echo -n dns...
+	ndb/dns	&		# -rF
+}
 
-# If you are on an auth server, start these before listening:
-#
-# auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
-# auth/cron >>/sys/log/cron >[2=1] &
+# reboot cpu server if we lose the file server
+if (! ~ $sysname fs)
+	aux/reboot &
 
-# keep other bootes processes from creating capabilities
-rm -f '#¤/caphash'
+# don't turn on dong's tcp port hog defense; our firewall drops
+# the out-of-sequence keepalives it uses, thus dropping
+# inside-to-outside connections after 5 minutes.
+#if( test -e /net/tcp/clone)
+#	echo -n tcpporthogdefense on > /net/tcp/0/ctl
 
-# also rename some files on an auth server:
-#
-# if(! test -e /rc/bin/service.auth/tcp567){
-#	mv /rc/bin/service.auth/authsrv.il566 /rc/bin/service.auth/il566
-#	mv /rc/bin/service.auth/authsrv.tcp567 /rc/bin/service.auth/tcp567
-#	mv /rc/bin/service/il566 /rc/bin/service/_il566
-#	mv /rc/bin/service/tcp567 /rc/bin/service/_tcp567
-# }
+# keep other bootes processes from creating capabilities (optional)
+rm '#¤/caphash' > /dev/null >[2=1]
 
-# netssh
+# start up internet if we don't already have an address
+if(! grep u /net/ipselftab | grep -sv 127.0.0.1) {
+	echo -n ipconfig for ip...
+	ip/ipconfig
+}
+if not if (~ $sysname pi) # in case on net 10 and answered by fw or airport extreme
+	ip/ipconfig
+if(! grep -s 127.0.0.1 /net/ipselftab) {
+	echo -n loopbacks...
+	ip/ipconfig loopback /dev/null 127.1
+	ip/ipconfig loopback /dev/null ::1 /128
+}
 
-# start listeners if it hasn't already been done (dicey check)
-if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
-	aux/listen -q tcp
-# we don't use IL, maybe you do
-if(! netstat -n | grep -v 17008 | grep -s il.*Listen)
-	aux/listen -q il
+# start listeners if it hasn't already been done (dicey check; auth can be slow)
+if(! netstat -n | grep -s '^tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010|17013) .*' &&
+    ! ~ $listener yes) {
+	echo -n listen...
+	aux/listen -q &
+	sleep 2
+}
 
 if(! ps|grep -s timesync) {
-	aux/timesync -n pool.ntp.org
-	if (test -e '#r/rtc') @ {
-		sleep 10			# let timesync correct the time
-		awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
-	} &
+	echo -n timesync...
+	starttimesync &
+	sleep 2
 }
 
 # cpu-specific late startup
 if(test -e /cfg/$sysname/cpustart)
-	. /cfg/$sysname/cpustart
+	.  /cfg/$sysname/cpustart
 
-# mode of /proc/*/ctl is inherited across rfork, and sets modes on
-# other /proc files, such as note, so let listen be killed.
-dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
+# prevent killing specific processes when out of memory.
+# processes started via listen must be killable, so exclude listen.
+dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$' &
 
-# echo `{date} $sysname >>/sys/log/boot
+# log boot and kernel information
+kern=`{ls -ld `{kern}}
+echo $"boottime $sysname $terminal $"kern >>/sys/log/boot
+ls -l /srv/boot | sed -e 's/.* 0 /kernel built: /' -e 's; /srv/boot;;'
+echo $terminal $"kern
+echo -n `{date} ' '; uptime
+
+echo collect kmesg...
+kmesg.boot &
 exit ''

@@ -1,0 +1,38 @@
+%--------------------------------------------------------------
+%---------- greek.sty ---------------------
+%---------- 4/19/90 S. Janowsky -----------
+%
+% Include as a style option after times, palatino, or whatever.
+%
+\def\@mathgreekmap#1{\@cmrscale=\@cmrfam \multiply\@cmrscale by 256
+\advance\@cmrscale by \the#1 \mathchardef#1=\@cmrscale\relax}
+\@mathgreekmap{\Gamma}
+\@mathgreekmap{\Delta}
+\@mathgreekmap{\Theta}
+\@mathgreekmap{\Lambda}
+\@mathgreekmap{\Xi}
+\@mathgreekmap{\Pi}
+\@mathgreekmap{\Sigma}
+\@mathgreekmap{\Upsilon}
+\@mathgreekmap{\Phi}
+\@mathgreekmap{\Psi}
+\@mathgreekmap{\Omega}
+%
+\def\@mathaccdefmap#1#2{\@cmrscale=\@cmrfam \multiply\@cmrscale by 256
+\advance\@cmrscale by #2 \edef#1{\mathaccent\the\@cmrscale}\relax}
+%
+\@mathaccdefmap{\acute}{"0013 }
+\@mathaccdefmap{\grave}{"0012 }
+\@mathaccdefmap{\ddot}{"007F }
+\@mathaccdefmap{\tilde}{"007E }
+\@mathaccdefmap{\bar}{"0016 }
+\@mathaccdefmap{\breve}{"0015 }
+\@mathaccdefmap{\check}{"0014 }
+\@mathaccdefmap{\hat}{"005E }
+%\@mathaccdefmap{\vec}{"017E }          % Not type 00
+\@mathaccdefmap{\dot}{"005F }
+%\@mathaccdefmap{\widetilde}{"0365 }    % Not type 00
+%\@mathaccdefmap{\widehat}{"0362 }      % Not type 00
+%
+%----------------------------------------------------
+

@@ -1,0 +1,112 @@
+</$objtype/mkfile
+
+TARG=`{ls *.[cyl] | sed 's/..$//' }
+HFILES=/$objtype/include/u.h /sys/include/libc.h /sys/include/bio.h
+BIN=$home/bin/$objtype
+PROGS=${TARG:%=$O.%}
+LDFLAGS=
+YFLAGS=-d
+
+NOTSYS=sml|dup|411
+BUGGERED=dwb|unix|gc|opq|lmlvideo
+NOMK=$NOTSYS|$BUGGERED
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
+
+none:VQ:
+	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
+
+all:V:	$PROGS
+
+ar\.[$OS]:R:	/sys/include/ar.h
+cpu\.[$OS]:R:	/sys/include/auth.h
+ed\.[$OS]:R:	/sys/include/regexp.h
+file\.[$OS]:R:	/sys/include/ctype.h /sys/include/mach.h
+fmt\.[$OS]:R:	/sys/include/ctype.h
+grep\.[$OS]:R:	/sys/include/regexp.h
+import\.[$OS]:R:	/sys/include/fcall.h /sys/include/auth.h
+init\.[$OS]:R:	/sys/include/auth.h
+kprof\.[$OS]:R:	/sys/include/mach.h
+ls\.[$OS]:R:	/sys/include/fcall.h
+mc\.[$OS]:R:	/sys/include/draw.h
+netstat\.[$OS]:R:	/sys/include/ip.h /sys/include/ndb.h
+nm\.[$OS]:R:	/sys/include/ar.h /sys/include/mach.h
+pr\.[$OS]:R:	/sys/include/ctype.h
+prof\.[$OS]:R:	/sys/include/mach.h
+ramfs\.[$OS]:R:	/sys/include/fcall.h
+rx\.[$OS]:R:	/sys/include/auth.h
+sed\.[$OS]:R:	/sys/include/regexp.h
+size\.[$OS]:R:	/sys/include/mach.h
+split\.[$OS]:R:	/sys/include/regexp.h
+srv\.[$OS]:R:	/sys/include/fcall.h /sys/include/ndb.h
+stats\.[$OS]:R:	/sys/include/draw.h
+strip\.[$OS]:R:	/sys/include/a.out.h
+tail\.[$OS]:R:	/sys/include/ctype.h
+tar\.[$OS]:R:	/sys/include/fcall.h
+tweak\.[$OS]:R:	/sys/include/draw.h
+uniq\.[$OS]:R:	/sys/include/ctype.h
+yacc\.[$OS]:R:	/sys/include/ctype.h
+
+^([$OS])\.(.*):RD:	\2.\1
+	$stem1^l $LDFLAGS -o $target $stem2.$stem1
+
+.*\.[$OS]:R:	$HFILES
+
+(.*)\.([$OS])'$':RD:	\1.c
+	$stem2^c $CFLAGS $stem1.c
+
+&:n:	$O.&
+	mv $O.$stem $stem
+
+%.tab.h %.tab.c:D:	%.y
+	$YACC $YFLAGS -s $stem $prereq
+
+%.install:V: $BIN/%
+
+$BIN/%:	$O.%
+	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
+	$cpuobjtype._cp $prereq $BIN/$stem
+
+%.directories:V:
+	for(i in $DIRS) @{
+		cd $i
+		echo mk $i
+		mk $MKFLAGS $stem
+	}
+
+clean:V:	cleanfiles clean.directories
+
+nuke:V:		cleanfiles nuke.directories
+
+directories:V:	install.directories
+
+cleanfiles:V:
+	rm -f [$OS].out *.[$OS] y.tab.? y.debug y.output [$OS].$TARG [$OS].units.tab $TARG bc.c bc.tab.h units.tab.h units.c [$OS]._cp
+
+install:V:
+	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
+	mk $MKFLAGS $TARG.install
+	mk $MKFLAGS directories
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+
+%.installall:	%.c
+	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
+	for (objtype in $CPUS) {
+		rfork e
+		mk $stem.install &
+	}
+	wait
+	rm -f $stem.[$OS] y.tab.? $stem.tab.? y.debug y.output [$OS].$stem bc.c bc.tab.h units.c
+
+%.acid:D: %.$O $HFILES
+	$CC $CFLAGS -a $stem.c >$target
+
+(bc|units).c:R:	\1.tab.c
+	mv $stem1.tab.c $stem1.c
+
+$BIN/init:	$O.init
+	cp $prereq /$objtype/init

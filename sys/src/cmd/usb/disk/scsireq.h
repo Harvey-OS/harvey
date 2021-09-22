@@ -2,8 +2,6 @@
  * This is /sys/src/cmd/scuzz/scsireq.h
  * changed to add more debug support, and to keep
  * disk compiling without a scuzz that includes these changes.
- *
- * scsireq.h is also included by usb/disk and cdfs.
  */
 typedef struct Umsc Umsc;
 #pragma incomplete Umsc
@@ -12,10 +10,10 @@ enum {					/* fundamental constants/defaults */
 	MaxDirData	= 255,		/* max. direct data returned */
 	/*
 	 * Because we are accessed via devmnt, we can never get i/o counts
-	 * larger than 8216 (Msgsize and devmnt's offered iounit) - 24
-	 * (IOHDRSZ) = 8K.
+	 * larger than 16408 (Msgsize and devmnt's offered iounit) - 24
+	 * (IOHDRSZ) = 16K.
 	 */
-	Maxiosize	= 8216 - IOHDRSZ, /* max. I/O transfer size */
+	Maxiosize	= 16408 - IOHDRSZ, /* max. I/O transfer size */
 };
 
 typedef struct {
@@ -113,8 +111,12 @@ enum {
 
 /* p arguments should be of type uchar* */
 #define GETBELONG(p) ((ulong)(p)[0]<<24 | (ulong)(p)[1]<<16 | (p)[2]<<8 | (p)[3])
+#define GETBEVLONG(p) ((uvlong)GETBELONG(p) << 32 | GETBELONG((p)+4))
+
 #define PUTBELONG(p, ul) ((p)[0] = (ul)>>24, (p)[1] = (ul)>>16, \
 			  (p)[2] = (ul)>>8,  (p)[3] = (ul))
+#define PUTBEVLONG(p, uvl) (PUTBELONG(p, uvl>>32), PUTBELONG((p)+4, uvl))
+
 #define GETBE24(p)	((ulong)(p)[0]<<16 | (p)[1]<<8 | (p)[2])
 #define PUTBE24(p, ul)	((p)[0] = (ul)>>16, (p)[1] = (ul)>>8, (p)[2] = (ul))
 

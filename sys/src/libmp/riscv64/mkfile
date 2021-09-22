@@ -1,8 +1,12 @@
 objtype=riscv64
-</$objtype/mkfile
+</riscv64/mkfile
 
 LIB=/$objtype/lib/libmp.a
-OFILES=	\
+OFILES=\
+#	mpvecadd.$O\
+#	mpvecdigmuladd.$O\
+#	mpvecdigmulsub.$O\
+#	mpvecsub.$O\
 
 HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
 

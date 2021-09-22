@@ -6,6 +6,7 @@
 void
 genprime(mpint *p, int n, int accuracy)
 {
+	int loops;
 	mpdigit x;
 
 	// generate n random bits with high and low bits set
@@ -18,10 +19,17 @@ genprime(mpint *p, int n, int accuracy)
 	p->p[p->top-1] |= x;
 	p->p[0] |= 1;
 
-	// keep icrementing till it looks prime
+	// keep incrementing till it looks prime (or we fail).
+	// largest known prime gap is 1113106 says wikipedia on 9 aug 2021.
+	loops = 1113106/2 + 1;
 	for(;;){
 		if(probably_prime(p, accuracy))
 			break;
+		if(--loops <= 0) {
+			fprint(2, "genprime %d bits: failed\n", n);
+			*p = *mpcopy(mptwo);
+			break;
+		}
 		mpadd(p, mptwo, p);
 	}
 }

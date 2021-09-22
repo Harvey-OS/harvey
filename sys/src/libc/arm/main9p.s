@@ -32,6 +32,7 @@ loop:
 	B	loop
 
 TEXT	_savearg(SB), 1, $0
+TEXT	_saveret(SB), 1, $0
 	RET
 
 TEXT	_callpc(SB), 1, $-4

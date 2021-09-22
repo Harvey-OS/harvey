@@ -1,5 +1,6 @@
 /*
- * nvidia tegra 2 architecture-specific stuff
+ * nvidia tegra 2 architecture-specific stuff:
+ * clocks, reset, scu, power, etc.
  */
 
 #include "u.h"
@@ -7,13 +8,12 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "../port/error.h"
-#include "io.h"
 #include "arm.h"
 
 #include "../port/netif.h"
 #include "etherif.h"
 #include "../port/flashif.h"
+
 #include "../port/usb.h"
 #include "../port/portusbehci.h"
 #include "usbehci.h"
@@ -24,11 +24,14 @@ enum {
 	Maxflowcpus	= 2,
 
 	Debug	= 0,
+	/* ms to wait for 8169 to signal cpu1 that L1 pt is stable */
+	L1wait	= 15*1000,
+	Cpuwait	= 10*1000,
 };
 
 typedef struct Clkrst Clkrst;
-typedef struct Diag Diag;
 typedef struct Flow Flow;
+typedef struct Isolated Isolated;
 typedef struct Scu Scu;
 typedef struct Power Power;
 
@@ -43,9 +46,9 @@ struct Clkrst {
 	ulong	clkoutu;
 
 	uchar	_pad0[0x24-0x1c];
-	ulong	supcclkdiv;		/* super cclk divider */
+	ulong	supcclkdiv;		/* super cclk divider (cpu) */
 	ulong	_pad1;
-	ulong	supsclkdiv;		/* super sclk divider */
+	ulong	supsclkdiv;		/* super sclk divider (avp) */
 
 	uchar	_pad4[0x4c-0x30];
 	ulong	clkcpu;
@@ -57,6 +60,7 @@ struct Clkrst {
 	ulong	pllemisc;
 
 	uchar	_pad2[0x340-0xf0];
+	/* these don't seem to read back reliably from the other cpu */
 	ulong	cpuset;
 	ulong	cpuclr;
 };
@@ -72,11 +76,18 @@ enum {
 	/* devl bits */
 	Sysreset =	1<<2,
 
+	/* devh bits */
+	Apbdmarst=	1<<2,
+	Ahbdmarst=	1<<1,
+
 	/* clkcpu bits */
 	Cpu1stop =	1<<9,
 	Cpu0stop =	1<<8,
 
-	/* cpu* bits */
+	/* cpu(set|clr) bits */
+	Cpupresetdbg =	1<<30,
+	Cpuscureset =	1<<29,
+	Cpuperiphreset=	1<<28,
 	Cpu1dbgreset =	1<<13,
 	Cpu0dbgreset =	1<<12,
 	Cpu1wdreset =	1<<9,
@@ -128,11 +139,11 @@ struct Power {
 
 	ulong	detval;
 	ulong	ddr;
-	ulong	usbdebdel;	/* usb de-bounce delay */
+	ulong	usbdebdel;		/* usb de-bounce delay */
 	ulong	usbao;
 	ulong	cryptoop;
 	ulong	pllpwb0ovr;
-	ulong	scratch24[42-24+1];
+	ulong	scratch24[42-24+1];	/* guaranteed to survive deep sleep */
 	ulong	boundoutmirr[3];
 	ulong	sys33ven;
 	ulong	boundoutmirracc;
@@ -143,8 +154,14 @@ enum {
 	/* toggle bits */
 	Start	= 1<<8,
 	/* partition ids */
-	Partpcie= 3,
-	Partl2	= 4,
+	Partcpu	= 0,
+	Partpcie= 3,			/* says the manual; correct? */
+	Partl2	= 5,
+
+	/* unclamp bits */
+	Unccpu	= 1<<0,
+	Uncpcie	= 1<<4,
+	Uncl2	= 1<<5,
 };
 
 struct Scu {
@@ -153,7 +170,10 @@ struct Scu {
 	ulong	cpupwrsts;
 	ulong	inval;
 
-	uchar	_pad0[0x40-0x10];
+	uchar	_pad0[0x30-0x10];
+	ulong	undoc;			/* erratum 764369 */
+
+	uchar	_pad0[0x40-0x34];
 	ulong	filtstart;
 	ulong	filtend;
 
@@ -165,12 +185,22 @@ struct Scu {
 enum {
 	/* ctl bits */
 	Scuenable =	1<<0,
-	Filter =	1<<1,
+	Filter =	1<<1,		/* address filtering enable */
 	Scuparity =	1<<2,
 	Specfill =	1<<3,		/* only for PL310 */
+	/*
+	 * force all requests from acp or cpus with AxCACHE=DV (Device) to be
+	 * issued on axi master port M0 enable.
+	 */
 	Allport0 =	1<<4,
 	Standby =	1<<5,
-	Icstandby =	1<<6,
+	Icstandby =	1<<6,		/* intr ctlr standby enable */
+
+	/* cpupwrsts values */
+	Pwrnormal =	0,
+	Pwrreserved,
+	Pwrdormant,
+	Pwroff,
 };
 
 struct Flow {
@@ -195,37 +225,38 @@ enum {
 	Cpuenable =		1<<0,
 };
 
-struct Diag {
+typedef uchar Cacheline[CACHELINESZ];
+
+/* a word guaranteed to be in its own cache line */
+struct Isolated {
 	Cacheline c0;
-	Lock;
-	long	cnt;
-	long	sync;
+	ulong	word;
 	Cacheline c1;
 };
-
-extern ulong testmem;
 
 /*
  * number of cpus available.  contrast with conf.nmach, which is number
  * of running cpus.
  */
 int navailcpus;
-Isolated l1ptstable;
+static volatile Isolated l1ptstable;
+static Lock shadlock;
+static ulong shadcpuset = 1<<1;		/* shadow of clk->cpuset */
 
 Soc soc = {
-	.clkrst	= 0x60006000,		/* clock & reset signals */
+	.clkrst	= PHYSCLKRST,		/* clock & reset signals */
 	.power	= 0x7000e400,
 	.exceptvec = PHYSEVP,		/* undocumented magic */
 	.sema	= 0x60001000,
 	.l2cache= PHYSL2BAG,		/* pl310 bag on the side */
-	.flow	= 0x60007000,
+	.flow	= 0x60007000,		/* mostly unused flow controller */
 
-	/* 4 non-gic controllers */
+	/* 4 unused non-gic interrupt controllers */
 //	.intr	= { 0x60004000, 0x60004100, 0x60004200, 0x60004300, },
 
-	/* private memory region */
-	.scu	= 0x50040000,
-	/* we got this address from the `cortex-a series programmer's guide'. */
+	/* private memory region; see `cortex-a series programmer's guide'. */
+	.scu	= PHYSSCU,		/* also in cbar reg (periphbase) */
+	/* could compute these from .scu in scuon() */
 	.intr	= 0x50040100,		/* per-cpu interface */
 	.glbtmr	= 0x50040200,
 	.loctmr	= 0x50040600,
@@ -255,24 +286,23 @@ Soc soc = {
 		    P2VAHB(0xc8000400), P2VAHB(0xc8000600), },
 };
 
-static volatile Diag diag;
 static int missed;
 
+int
+cmpswap(long *addr, long old, long new)
+{
+	return cas((int *)addr, old, new);
+}
+
 void
-dumpcpuclks(void)		/* run CPU at full speed */
+dumpcpuclks(void)
 {
 	Clkrst *clk = (Clkrst *)soc.clkrst;
 
-	iprint("pllx base %#lux misc %#lux\n", clk->pllxbase, clk->pllxmisc);
-	iprint("plle base %#lux misc %#lux\n", clk->pllebase, clk->pllemisc);
-	iprint("super cclk divider %#lux\n", clk->supcclkdiv);
-	iprint("super sclk divider %#lux\n", clk->supsclkdiv);
-}
-
-static char *
-devidstr(ulong)
-{
-	return "ARM Cortex-A9";
+	print("pllx base %#lux misc %#lux\n", clk->pllxbase, clk->pllxmisc);
+	print("plle base %#lux misc %#lux\n", clk->pllebase, clk->pllemisc);
+	print("super cclk divider %#lux\n", clk->supcclkdiv);
+	print("super sclk divider %#lux\n", clk->supsclkdiv);
 }
 
 void
@@ -286,34 +316,77 @@ cputype2name(char *buf, int size)
 {
 	ulong r;
 
-	r = cpidget();			/* main id register */
-	assert((r >> 24) == 'A');
-	seprint(buf, buf + size, "Cortex-A9 r%ldp%ld",
-		(r >> 20) & MASK(4), r & MASK(4));
+	if (conf.cpurev == 0 && conf.cpupart == 0) {
+		r = cpidget();			/* main id register */
+		assert((r >> 24) == 'A');
+		conf.cpupart = r & MASK(4);	/* minor revision */
+		r >>= 20;
+		r &= MASK(4);			/* major revision */
+		conf.cpurev = r;
+	}
+	seprint(buf, buf + size, "Cortex-A9 r%dp%d", conf.cpurev, conf.cpupart);
 	return buf;
 }
 
-static void
+enum {					/* undocumented diagnostic bits */
+	Dmbisdsb	= 1<<4,		/* treat DMB as DSB */
+	Nofastlookup	= 1<<6,
+	Nointrmaint	= 1<<11,   /* make cp15 maint. ops. uninterruptible */
+	Nodirevict	= 1<<21,	/* no direct eviction */
+	Nowrallocwait	= 1<<22,
+	Nordalloc	= 1<<23,
+};
+
+/*
+ * apply cortex-a9 errata workarounds.
+ * trimslice a9 is r1p0.
+ */
+void
 errata(void)
 {
 	ulong reg, r, p;
 
-	/* apply cortex-a9 errata workarounds */
 	r = cpidget();			/* main id register */
-	assert((r >> 24) == 'A');
-	p = r & MASK(4);		/* minor revision */
+	if ((r >> 24) != 'A')
+		return;			/* non-arm cpu */
+	conf.cpupart = p = r & MASK(4);	/* minor revision */
 	r >>= 20;
 	r &= MASK(4);			/* major revision */
+	conf.cpurev = r;
 
-	/* this is an undocumented `diagnostic register' that linux knows */
-	reg = cprdsc(0, CpDTLB, 0, 1);
-	if (r < 2 || r == 2 && p <= 2)
-		reg |= 1<<4;			/* 742230 */
+	/*
+	 * this is referred to as an `undocumented diagnostic register'
+	 * in the errata.
+	 */
+	reg = cprdsc(0, CpDTLB, CpDTLBmisc, CpDTLBdiag);
+	/* errata 742230, 794072: dmb might be buggy */
+	reg |= Dmbisdsb;
+	/* erratum 743622: faulty store buffer leads to corruption */
+	/* erratum 742231: bad hazard handling in the scu leads to corruption */
 	if (r == 2 && p <= 2)
-		reg |= 1<<6 | 1<<12 | 1<<22;	/* 743622, 2×742231 */
-	if (r < 3)
-		reg |= 1<<11;			/* 751472 */
-	cpwrsc(0, CpDTLB, 0, 1, reg);
+		reg |= Nofastlookup | 1<<12;
+	/* erratum 751472: interrupted ICIALLUIS may not complete */
+	if (r == 1)
+		reg |= Nointrmaint;
+	/*
+	 * erratum 761320: full cache line writes to same mem region from
+	 * 2 cpus might deadlock the cpu.
+	 */
+	reg |= Nodirevict | Nowrallocwait;
+	cpwrsc(0, CpDTLB, CpDTLBmisc, CpDTLBdiag, reg);
+
+	putauxctl(CpACparity);
+}
+
+void
+dumpscustate(void)
+{
+	Scu *scu = (Scu *)soc.scu;
+
+	print("cpu%d scu: accctl %#lux\n", m->machno, scu->accctl);
+	print("cpu%d scu: smp cpu bit map %#lo for %ld cpus; ", m->machno,
+		(scu->cfg >> 4) & MASK(4), (scu->cfg & MASK(2)) + 1);
+	print("cpus' power %#lux\n", scu->cpupwrsts);
 }
 
 void
@@ -331,7 +404,6 @@ archconfinit(void)
 			m->cpuhz = hz;
 	}
 	m->delayloop = m->cpuhz/2000;		/* initial estimate */
-	errata();
 }
 
 int
@@ -349,28 +421,77 @@ archether(unsigned ctlrno, Ether *ether)
 	return -1;
 }
 
+/* stop cache coherency */
 void
-dumpscustate(void)
+scuoff(void)
 {
-	Scu *scu = (Scu *)soc.scu;
+	Scu *scu;
 
-	print("cpu%d scu: accctl %#lux\n", m->machno, scu->accctl);
-	print("cpu%d scu: smp cpu bit map %#lo for %ld cpus; ", m->machno,
-		(scu->cfg >> 4) & MASK(4), (scu->cfg & MASK(2)) + 1);
-	print("cpus' power %#lux\n", scu->cpupwrsts);
+	scu = (Scu *)soc.scu;
+	if (!(scu->ctl & Scuenable))
+		return;
+	scu->ctl &= Filter; /* leave Filter alone, per arm's recommendation */
+	coherence();
+}
+
+void
+scuinval(void)
+{
+	Scu *scu;
+
+	scu = (Scu *)soc.scu;
+	if (scu->ctl & Scuenable)
+		return;
+	scu->inval = MASK(Maxcpus*4);
+	coherence();
 }
 
 void
 scuon(void)
 {
-	Scu *scu = (Scu *)soc.scu;
+	Scu *scu;
 
+//	soc.scu = cprdsc(CpDTLBcbar1, CpDTLB, CpDTLBmisc, CpDTLBcbar2);
+	scu = (Scu *)soc.scu;
 	if (scu->ctl & Scuenable)
 		return;
-	scu->inval = MASK(16);
+	/* erratum 764369: cache maint by mva may fail on inner shareable mem */
+	scu->undoc |= 1;		/* no migratory bit: bit reads as 0 */
+	/* leave Filter alone, per arm's recommendation */
+	scu->ctl &= ~(Standby | Icstandby | Allport0);
+	scu->ctl |= Scuenable | Scuparity | Specfill;
 	coherence();
-	scu->ctl = Scuparity | Scuenable | Specfill;
-	coherence();
+}
+
+/* don't shut down the scu, but tell it that this cpu is shutting down. */
+void
+tellscushutdown(void)
+{
+	ulong sts, osts;
+	Scu *scu = (Scu *)soc.scu;
+
+	sts = osts = scu->cpupwrsts;
+	sts &= ~(MASK(2)  << (m->machno*8));
+	sts |= Pwrdormant << (m->machno*8);
+	if (sts != osts) {
+		scu->cpupwrsts = sts;
+		coherence();
+	}
+}
+
+void
+tellscuup(void)
+{
+	ulong sts, osts;
+	Scu *scu = (Scu *)soc.scu;
+
+	sts = osts = scu->cpupwrsts;
+	sts &= ~(MASK(2) << (m->machno*8));
+	sts |= Pwrnormal << (m->machno*8);
+	if (sts != osts) {
+		scu->cpupwrsts = sts;
+		coherence();
+	}
 }
 
 int
@@ -409,188 +530,279 @@ cpuidprint(void)
 }
 
 static void
+setcpusclkdiv(uchar m, uchar n)
+{
+	Clkrst *clk = (Clkrst *)soc.clkrst;
+
+	/* setting cpu super clk div to m/n */
+	clk->supcclkdiv = 1<<31 | (m-1)<<8 | (n-1);
+	coherence();
+	delay(1);
+}
+
+void
 clockson(void)
 {
 	Clkrst *clk = (Clkrst *)soc.clkrst;
 
-	/* enable all by clearing resets */
-	clk->rstdevl = clk->rstdevh = clk->rstdevu = 0;
-	coherence();
 	clk->clkoutl = clk->clkouth = clk->clkoutu = ~0; /* enable all clocks */
 	coherence();
+	microdelay(20);
+	clk->rstdevl = clk->rstdevh = clk->rstdevu = 0; /* deassert resets */
+	coherence();
+	microdelay(20);
 
+	/* configure watchdog resets */
 	clk->rstsrc = Wdcpurst | Wdcoprst | Wdsysrst | Wdena;
+	/* again.  paranoia due to nxp erratum 4346. */
+	coherence();
+	clk->rstsrc = Wdcpurst | Wdcoprst | Wdsysrst | Wdena;
+	coherence();
+
+	/* setting cpu super clk div to full speed */
+	clk->supcclkdiv = 0;
+	coherence();
+	delay(1);
+}
+
+void
+clockenable(int cpu)
+{
+	Clkrst *clk = (Clkrst *)soc.clkrst;
+
+	/* start cpu's clock */
+	clk->clkcpu &= ~(Cpu0stop << cpu);
 	coherence();
 }
 
-/* we could be shutting down ourself (if cpu == m->machno), so take care. */
 void
-stopcpu(uint cpu)
+clockdisable(int cpu)
 {
-	Flow *flow = (Flow *)soc.flow;
 	Clkrst *clk = (Clkrst *)soc.clkrst;
 
-	if (cpu == 0) {
-		iprint("stopcpu: may not stop cpu0\n");
-		return;
-	}
+	clk->clkcpu |= Cpu0stop << cpu;
+	coherence();
+}
 
-	machoff(cpu);
-	lock(&active);
-	active.stopped |= 1 << cpu;
-	unlock(&active);
-	l1cache->wb();
+/* tidy up before shutting down this cpu */
+void
+cpucleanup(void)
+{
+	// intrcpushutdown();		/* let clock intrs in for scheduling */
+	if (m->machno != 0)
+		watchdogoff();
+	cachedwb();			/* flush our dirt */
+	// smpcoheroff();
+	if (m->machno == 0)
+		allcacheswb();
+}
 
-	/* shut down arm7 avp coproc so it can't cause mischief. */
-	/* could try watchdog without stopping avp. */
+/* idle forever */
+void
+cpuwfi(void)
+{
+	splhi();
+	smpcoheroff();
+	// tellscushutdown(); /* likely a bad idea; will stop clocks, etc.? */
+	if (wfiloop)
+		wfiloop();		/* low memory; no return */
+	for (;;)
+		wfi();
+}
+
+/* shut down arm7 avp coproc so it can't cause mischief. */
+static void
+flowstopavp(void)
+{
+	Flow *flow = (Flow *)soc.flow;
+
 	flow->haltcop = Stop;
 	coherence();
 	flow->cop = 0;					/* no Cpuenable */
 	coherence();
-	delay(10);
-
-	assert(cpu < Maxflowcpus);
-	*(cpu == 0? &flow->haltcpu0: &flow->haltcpu1) = Stop;
-	coherence();
-	*(cpu == 0? &flow->cpu0: &flow->cpu1) = 0;	/* no Cpuenable */
-	coherence();
-	delay(10);
-
-	/* cold reset */
-	assert(cpu < Maxcpus);
-	clk->cpuset = (Cpu0reset | Cpu0dbgreset | Cpu0dereset) << cpu;
-	coherence();
-	delay(1);
-
-	l1cache->wb();
 }
 
-static void
-synccpus(volatile long *cntp, int n)
+int
+cpusinreset(void)
 {
-	ainc(cntp);
-	while (*cntp < n)
-		;
-	/* all cpus should now be here */
+	return shadcpuset & MASK(MAXMACH);
+}
+
+int
+iscpureset(uint cpu)
+{
+	return shadcpuset & (Cpu0reset << cpu);
 }
 
 static void
-pass1(int pass, volatile Diag *dp)
+pushshadow(void)
+{
+	cachedwbse(&shadcpuset, sizeof shadcpuset);
+	allcacheswbse(&shadcpuset, sizeof shadcpuset);
+	l2pl310sync();		/* erratum 769419 */
+}
+
+static void
+setshadcpu(ulong bits)
+{
+	if (m->printok)
+		ilock(&shadlock);
+	shadcpuset |= bits;
+	if (m->printok)
+		iunlock(&shadlock);
+	pushshadow();
+}
+
+static void
+clrshadcpu(ulong bits)
+{
+	if (m->printok)
+		ilock(&shadlock);
+	shadcpuset &= ~bits;
+	if (m->printok)
+		iunlock(&shadlock);
+	pushshadow();
+}
+
+/* put cpu into reset.  it takes about 1 µs. to take effect. */
+void
+resetcpu(uint cpu)
 {
 	int i;
+	ulong cpubit;
+	Clkrst *clk = (Clkrst *)soc.clkrst;
 
-	if(m->machno == 0)
-		iprint(" %d", pass);
-	for (i = 1000*1000; --i > 0; ) {
-		ainc(&dp->cnt);
-		adec(&dp->cnt);
+	if (cpu == 0) {
+		iprint("may not reset cpu%d\n", cpu);
+		return;
 	}
+	cpubit = Cpu0reset << cpu;
+	if (shadcpuset & cpubit)
+		return;			/* already in reset */
+	delay(2);
+	if (cpu == m->machno)
+		setshadcpu((Cpu0reset | Cpu0wdreset) << cpu);	/* optimism */
+	for (i = 1000; !(clk->cpuset & cpubit) && i > 0; i--) {
+		/* whack it again! */
+		clk->cpuset = (Cpu0reset | Cpu0wdreset) << cpu;
+		coherence();
+		microdelay(2);
+	}
+	if (clk->cpuset & cpubit) {
+		setshadcpu((Cpu0reset | Cpu0wdreset) << cpu);	/* optimism */
+	} else
+		iprint("bloody cpu%d NOT in reset\n", cpu);
+	delay(2);
+}
 
-	synccpus(&dp->sync, navailcpus);
-	/* all cpus are now here */
+ulong
+ckcpurst(void)
+{
+	Clkrst *clk = (Clkrst *)soc.clkrst;
 
-	ilock(dp);
-	if(dp->cnt != 0)
-		panic("cpu%d: diag: failed w count %ld", m->machno, dp->cnt);
-	iunlock(dp);
+	if (!(shadcpuset & Cpu1reset)) {
+		iprint("cpuset says cpu1 is running: %#lux\n", clk->cpuset);
+		return 0;
+	}
+	return 1;
+}
 
-	synccpus(&dp->sync, 2 * navailcpus);
-	/* all cpus are now here */
-	adec(&dp->sync);
-	adec(&dp->sync);
+static void
+stopcpuclock(uint cpu)
+{
+	delay(20);
+	clockdisable(cpu);
+	delay(10);
 }
 
 /*
- * try to confirm coherence of l1 caches.
- * assume that all available cpus will be started.
+ * we could be shutting down ourself (if cpu == m->machno), so take care.
+ * this works best if up != nil (i.e., called from a process context).
  */
 void
-l1diag(void)
+stopcpu(uint cpu)
 {
-	int pass;
-	volatile Diag *dp;
+	int s;
 
-	if (!Debug)
+	if (cpu == 0) {
+		print("stopcpu: may not stop cpu0\n");
 		return;
+	}
+	assert(cpu < Maxcpus);
+	s = splhi();
+	machoff(cpu);
+	if (iscpureset(cpu)) {
+		splx(s);
+		return;			/* already in reset */
+	}
 
-	l1cache->wb();
+	/* if we're shutting ourself down, tidy up before reset */
+	if (cpu == m->machno) {
+		cpucleanup();
+		/* leave coherence & mmu on so resetcpu can update shadcpuset */
+	}
+	resetcpu(cpu);
+	if (cpu == m->machno)
+		cpuwfi();	/* wait for the reset to actually happen */
+	splx(s);
+}
 
-	/*
-	 * synchronise and print
-	 */
-	dp = &diag;
-	ilock(dp);
-	if (m->machno == 0)
-		iprint("l1: waiting for %d cpus... ", navailcpus);
-	iunlock(dp);
+/* unclamp i/o via power ctlr */
+void
+unclamp(void)
+{
+	Power *pwr = (Power *)soc.power;
 
-	synccpus(&dp->sync, navailcpus);
+	pwr->unclamp |= Unccpu | Uncpcie | Uncl2;
+	coherence();
+	delay(4);		/* let i/o signals settle */
+}
 
-	ilock(dp);
-	if (m->machno == 0)
-		iprint("cache coherency pass");
-	iunlock(dp);
+/* reset various peripherals and the interrupt controllers */
+void
+periphreset(void)
+{
+	Clkrst *clk = (Clkrst *)soc.clkrst;
 
-	synccpus(&dp->sync, 2 * navailcpus);
-	adec(&dp->sync);
-	adec(&dp->sync);
+	clk->cpuclr = Cpuperiphreset;
+	l2pl310sync();			/* erratum 769419 */
+	delay(1);
 
-	/*
-	 * cpus contend
-	 */
-	for (pass = 0; pass < 3; pass++)
-		pass1(pass, dp);
+	clk->cpuset = Cpuperiphreset;
+	l2pl310sync();			/* erratum 769419 */
+	delay(10);
 
-	/*
-	 * synchronise and check sanity
-	 */
-	synccpus(&dp->sync, navailcpus);
-
-	if(dp->sync < navailcpus || dp->sync >= 2 * navailcpus)
-		panic("cpu%d: diag: failed w dp->sync %ld", m->machno,
-			dp->sync);
-	if(dp->cnt != 0)
-		panic("cpu%d: diag: failed w dp->cnt %ld", m->machno,
-			dp->cnt);
-
-	ilock(dp);
-	iprint(" cpu%d ok", m->machno);
-	iunlock(dp);
-
-	synccpus(&dp->sync, 2 * navailcpus);
-	adec(&dp->sync);
-	adec(&dp->sync);
-	l1cache->wb();
-
-	/*
-	 * all done, print
-	 */
-	ilock(dp);
-	if (m->machno == 0)
-		iprint("\n");
-	iunlock(dp);
+	clk->cpuclr = Cpuperiphreset;
+	l2pl310sync();			/* erratum 769419 */
+	delay(200);
 }
 
 static void
 unfreeze(uint cpu)
 {
 	Clkrst *clk = (Clkrst *)soc.clkrst;
-	Flow *flow = (Flow *)soc.flow;
+
+	if (cpu == 0) {
+		print("unfreeze: may not unfreeze cpu0\n");
+		return;
+	}
 
 	assert(cpu < Maxcpus);
 
-	clk->clkcpu &= ~(Cpu0stop << cpu);
-	coherence();
-	/* out of reset */
-	clk->cpuclr = (Cpu0reset | Cpu0wdreset | Cpu0dbgreset | Cpu0dereset) <<
-		cpu;
-	coherence();
+	/* ensure cpu is in reset */
+	resetcpu(cpu);
 
-	assert(cpu < Maxflowcpus);
-	*(cpu == 0? &flow->cpu0: &flow->cpu1) = 0;
+	clockenable(cpu);
+	delay(10);
+
+	unclamp();
+
+	/* take cpu out of reset; should start it at _vrst */
+	clrshadcpu((Cpu0reset|Cpu0wdreset|Cpu0dbgreset|Cpu0dereset) << cpu);
+	clk->cpuclr = (Cpu0reset | Cpu0wdreset | Cpu0dbgreset | Cpu0dereset) <<
+		cpu | Cpupresetdbg | Cpuscureset | Cpuperiphreset;
 	coherence();
-	*(cpu == 0? &flow->haltcpu0: &flow->haltcpu1) = 0; /* normal operat'n */
-	coherence();
+	delay(10);
 }
 
 /*
@@ -604,28 +816,37 @@ startcpu(uint cpu)
 {
 	int i, r;
 	ulong oldvec, rstaddr;
-	ulong *evp = (ulong *)soc.exceptvec;	/* magic */
+	volatile ulong *evp = (ulong *)soc.exceptvec;	/* magic */
 
 	r = 0;
 	if (getncpus() < 2 || cpu == m->machno ||
 	    cpu >= MAXMACH || cpu >= navailcpus)
 		return -1;
 
+	stopcpu(cpu);			/* make sure it's stopped */
 	oldvec = *evp;
-	l1cache->wb();			/* start next cpu w same view of ram */
-	*evp = rstaddr = PADDR(_vrst);	/* will start cpu executing at _vrst */
-	coherence();
-	l1cache->wb();
+	/* a cpu coming out of reset will start executing at _vrst */
+	*evp = rstaddr = PADDR(_vrst);
+	cachedwbinv();			/* start next cpu w same view of ram */
+
+	/*
+	 * since the cpu being started can't yet participate in L1 coherency,
+	 * we manually flush or invalidate our caches.
+	 */
+	allcacheswbinvse(evp, sizeof *evp);
 	unfreeze(cpu);
 
-	for (i = 2000; i > 0 && *evp == rstaddr; i--)
-		delay(1);
+	for (i = Cpuwait/50; i > 0 && *evp == rstaddr; i--) {
+		delay(50);
+		cachedinvse(evp, sizeof *evp);
+	}
 	if (i <= 0 || *evp != cpu) {
-		iprint("cpu%d: didn't start!\n", cpu);
+		print("cpu%d: didn't start after %d s.!\n", cpu, Cpuwait/1000);
 		stopcpu(cpu);		/* make sure it's stopped */
 		r = -1;
 	}
 	*evp = oldvec;
+	coherence();
 	return r;
 }
 
@@ -639,118 +860,169 @@ cksecure(void)
 		panic("cpu%d: running non-secure", m->machno);
 	db = getdebug();
 	if (db)
-		iprint("cpu%d: debug enable reg %#lux\n", m->machno, db);
+		print("cpu%d: debug enable reg %#lux\n", m->machno, db);
 }
 
+enum {
+	Cachecoherent	= CpACsmpcoher | CpACmaintbcast,
+};
+
 ulong
-smpon(void)
+smpcoheroff(void)
 {
+	int s;
 	ulong aux;
 
-	/* cortex-a9 model-specific configuration */
+	s = splhi();
 	aux = getauxctl();
-	putauxctl(aux | CpACsmp | CpACmaintbcast);
+	if (aux & Cachecoherent)
+		/* cortex-a9 model-specific configuration */
+		putauxctl(aux & ~Cachecoherent);
+	splx(s);
 	return aux;
 }
 
+/*
+ * set SMP and FW bits in aux ctl.
+ */
+ulong
+smpcoheron(void)
+{
+	int s;
+	ulong aux;
+
+	s = splhi();
+	aux = getauxctl();
+	if ((aux & Cachecoherent) != Cachecoherent)
+		/* cortex-a9 model-specific configuration */
+		putauxctl(aux | Cachecoherent);
+	splx(s);
+	return aux;
+}
+
+/* cortex-a9 model-specific cache configuration */
 void
 cortexa9cachecfg(void)
 {
-	/* cortex-a9 model-specific configuration */
-	putauxctl(getauxctl() | CpACparity | CpAClwr0line | CpACl2pref);
+	ulong aux;
+
+	/*
+	 * the l2 cache must be enabled before setting CpAClwr0line.
+	 *
+	 * errata 751473, 719332: prefetcher can deadlock or corrupt.
+	 * fix: clear CpACl?pref.
+	 * ignore erratum 719331, which says it's okay.
+	 */
+	aux = getauxctl() | CpACparity | CpAClwr0line;
+	if (conf.cpurev < 3)
+		aux &= ~(CpACl1pref | CpACl2pref);
+	putauxctl(aux);
 }
 
-/*
- * called on a cpu other than 0 from cpureset in l.s,
- * from _vrst in lexception.s.
- * mmu and l1 (and system-wide l2) caches and coherency (smpon) are on,
- * but interrupts are disabled.
- * our mmu is using an exact copy of cpu0's l1 page table
- * as it was after userinit ran.
- */
+/* signal secondary cpus that l1 ptes are stable */
 void
-cpustart(void)
+signall1ptstable(void)
+{
+	l1ptstable.word = 1;
+	coherence();
+	cachedwbse(&l1ptstable.word, sizeof l1ptstable.word);
+}
+
+void
+awaitstablel1pt(void)
 {
 	int ms;
-	ulong *evp;
+
+	if (Debug)
+		print("cpu%d: waiting for 8169\n", m->machno);
+	for (ms = 0; !l1ptstable.word && ms < L1wait; ms += 50)
+		delay(50);
+	if (!l1ptstable.word)
+		print("cpu%d: 8169 hasn't signaled L1 pt stable after %d ms; "
+			"proceeding\n", m->machno, L1wait);
+}
+
+void
+poweron(void)
+{
 	Power *pwr;
 
-	up = nil;
-	if (active.machs & (1<<m->machno)) {
-		serialputc('?');
-		serialputc('r');
-		panic("cpu%d: resetting after start", m->machno);
-	}
-	assert(m->machno != 0);
-
-	errata();
-	cortexa9cachecfg();
-	memdiag(&testmem);
-
-	machinit();			/* bumps nmach, adds bit to machs */
-	machoff(m->machno);		/* not ready to go yet */
-
-	/* clock signals and scu are system-wide and already on */
-	clockshutdown();		/* kill any watch-dog timer */
-
-	trapinit();
-	clockinit();			/* sets loop delay */
-	timersinit();
-	cpuidprint();
-
 	/*
-	 * notify cpu0 that we're up so it can proceed to l1diag.
+	 * pwr->noiopwr == 0, pwr->detect == 0x1ff (default, all disabled)
 	 */
-	evp = (ulong *)soc.exceptvec;	/* magic */
-	*evp = m->machno;
-	coherence();
-
-	l1diag();		/* contend with other cpus to verify sanity */
-
-	/*
-	 * pwr->noiopwr == 0
-	 * pwr->detect == 0x1ff (default, all disabled)
-	 */
+	unclamp();
 	pwr = (Power *)soc.power;
-	assert(pwr->gatests == MASK(7)); /* everything has power */
-
-	/*
-	 * 8169 has to initialise before we get past this, thus cpu0
-	 * has to schedule processes first.
-	 */
-	if (Debug)
-		iprint("cpu%d: waiting for 8169\n", m->machno);
-	for (ms = 0; !l1ptstable.word && ms < 5000; ms += 10) {
-		delay(10);
-		cachedinvse(&l1ptstable.word, sizeof l1ptstable.word);
-	}
-	if (!l1ptstable.word)
-		iprint("cpu%d: 8169 unreasonably slow; proceeding\n", m->machno);
-	/* now safe to copy cpu0's l1 pt in mmuinit */
-
-	mmuinit();			/* update our l1 pt from cpu0's */
-	fpon();
-	machon(m->machno);		/* now ready to go and be scheduled */
-
-	if (Debug)
-		iprint("cpu%d: scheding\n", m->machno);
-	schedinit();
-	panic("cpu%d: schedinit returned", m->machno);
+	assert((pwr->gatests & (Unccpu | Uncpcie | Uncl2)) ==
+		(Unccpu | Uncpcie | Uncl2));
+	tellscuup();
+	clockson();
 }
+
+int
+vfyintrs(void)
+{
+	int s, oldticks, oldintr;
+
+	oldintr = m->intr;
+	oldticks = m->ticks;
+	// iprint("cpu%d: spllo...", m->machno); delay(2);
+	s = spllo();
+	delay(200);			/* expect interrupts here */
+	splx(s);
+	// iprint("cpu%d back.\n", m->machno);
+	if (m->intr == oldintr) {
+		iprint("cpu%d: no interrupts; taking cpu offline\n",
+			m->machno);
+		return -1;
+	}
+	if (m->ticks == oldticks) {
+		iprint("cpu%d: clock not interrupting; taking cpu offline\n",
+			m->machno);
+		return -1;
+	}
+	return 0;
+}
+
+void
+confirmup(void)
+{
+	ulong *evp;
+
+	evp = (ulong *)soc.exceptvec;	/* magic */
+	if (vfyintrs() < 0) {
+		*evp = 0;		/* notify cpu0 that we failed. */
+		coherence();
+		stopcpu(m->machno);
+		cpuwfi();		/* no return */
+	}
+	*evp = m->machno;  /* notify cpu0 that we're up so it can proceed */
+	coherence();
+}
+
 
 /* mainly used to break out of wfi */
 void
-sgintr(Ureg *ureg, void *)
+sgintr(Ureg *, void *vp)
 {
-	iprint("cpu%d: got sgi\n", m->machno);
-	/* try to prod cpu1 into life when it gets stuck */
-	if (m->machno != 0)
-		clockprod(ureg);
+	ulong *sgicntp = vp;
+
+	++*sgicntp;
+}
+
+ulong sgicnt[MAXMACH];
+
+void
+sgienable(void)
+{
+	irqenable(Cpu0irq, sgintr, (void *)&sgicnt[0], "cpu0");
+	irqenable(Cpu1irq, sgintr, (void *)&sgicnt[1], "cpu1");
+	/* ... */
 }
 
 void
 archreset(void)
 {
+	Power *pwr;
 	static int beenhere;
 
 	if (beenhere)
@@ -761,19 +1033,22 @@ archreset(void)
 	m->cpuhz = 1000 * Mhz;			/* trimslice speed */
 	m->delayloop = m->cpuhz/2000;		/* initial estimate */
 
-	prcachecfg();
-
 	clockson();
-	/* all partitions were powered up by u-boot, so needn't do anything */
-	archconfinit();
-//	resetusb();
-	fpon();
 
-	if (irqtooearly)
-		panic("archreset: too early for irqenable");
-	irqenable(Cpu0irq, sgintr, nil, "cpu0");
-	irqenable(Cpu1irq, sgintr, nil, "cpu1");
-	/* ... */
+	/*
+	 * normally, all partitions are powered up by u-boot,
+	 * so we needn't do anything.
+	 */
+	unclamp();
+	pwr = (Power *)soc.power;
+	assert((pwr->gatests & (Unccpu | Uncpcie | Uncl2)) ==
+		(Unccpu | Uncpcie | Uncl2));
+
+	flowstopavp();
+	archconfinit();
+	prcachecfg();
+	fpon();				/* initialise */
+	fpoff();			/* cause a fault on first use */
 }
 
 void
@@ -785,16 +1060,21 @@ archreboot(void)
 	iprint("archreboot: reset!\n");
 	delay(20);
 
+	// smpcoheroff();
+	// calling tellscushutdown() is likely a bad idea; will stop clocks, &c.
+	scuoff();
+	restartwatchdog();
+
 	clk->rstdevl |= Sysreset;
 	coherence();
-	delay(500);
+	delay(100);
 
 	/* shouldn't get here */
 	splhi();
 	iprint("awaiting reset");
 	for(;;) {
 		delay(1000);
-		print(".");
+		iprint(".");
 	}
 }
 
@@ -809,18 +1089,18 @@ missing(ulong addr, char *name)
 	static int firstmiss = 1;
 
 	if (addr == 0) {
-		iprint("address zero for %s\n", name);
+		print("address zero for %s\n", name);
 		return;
 	}
 	if (probeaddr(addr) >= 0)
 		return;
 	missed++;
 	if (firstmiss) {
-		iprint("missing:");
+		print("missing:");
 		firstmiss = 0;
 	} else
-		iprint(",\n\t");
-	iprint(" %s at %#lux", name, addr);
+		print(",\n\t");
+	print(" %s at %#lux", name, addr);
 }
 
 /* verify that all the necessary device registers are accessible */
@@ -837,13 +1117,8 @@ chkmissing(void)
 	missing(soc.ether, "ether8169");
 	missing(soc.µs, "µs counter");
 	if (missed)
-		iprint("\n");
+		print("\n");
 	delay(10);
-}
-
-void
-archflashwp(Flash*, int)
-{
 }
 
 /*

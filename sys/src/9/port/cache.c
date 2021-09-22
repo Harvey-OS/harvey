@@ -8,7 +8,7 @@
 enum
 {
 	NHASH		= 128,
-	MAXCACHE	= 1024*1024,
+	MAXCACHE	= 1024*1024,	/* default; see cinit() */
 	NFILE		= 4096,
 	NEXTENT		= 200,		/* extent allocation size */
 };
@@ -111,12 +111,6 @@ cinit(void)
 	m = cache.head;
 	if (m == nil)
 		panic("cinit: no memory");
-
-	/* a better algorithm would be nice */
-	if(conf.npage*BY2PG > 400*MB)
-		maxcache = 20*MAXCACHE;
-	else if(conf.npage*BY2PG > 200*MB)
-		maxcache = 10*MAXCACHE;
 
 	for(i = 0; i < NFILE-1; i++) {
 		m->next = m+1;

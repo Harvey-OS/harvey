@@ -7,7 +7,7 @@
 #include	"../port/error.h"
 
 #include	"../port/edf.h"
-#include	<ptrace.h>
+#include	<trace.h>
 
 /* debugging */
 enum {
@@ -49,7 +49,7 @@ enum {
 };
 
 static int
-timeconv(Fmt *f)
+timeconv(Fmt *f)			/* unused */
 {
 	char buf[128], *sign;
 	vlong t;
@@ -68,8 +68,7 @@ timeconv(Fmt *f)
 	if (t < 0) {
 		sign = "-";
 		t = -t;
-	}
-	else
+	} else
 		sign = "";
 	if (t > Onesecond){
 		t += OneRound;
@@ -78,7 +77,8 @@ timeconv(Fmt *f)
 			(int)(t % Onesecond)/Onemillisecond);
 	}else if (t > Onemillisecond)
 		snprint(buf, sizeof buf, "%s%d.%.3dms", sign,
-			(int)(t / Onemillisecond), (int)(t % Onemillisecond));
+			(int)(t / Onemillisecond),
+			(int)(t % Onemillisecond));
 	else
 		snprint(buf, sizeof buf, "%s%dµs", sign, (int)t);
 	return fmtstrcpy(f, buf);
@@ -97,7 +97,7 @@ edflock(Proc *p)
 	if((e = p->edf) && (e->flags & Admitted)){
 		thelock.pc = getcallerpc(&p);
 #ifdef EDFCYCLES
-		edfcycles -= lcycles();
+		edfcycles -= perfticks();
 #endif
 		now = µs();
 		return e;
@@ -111,7 +111,7 @@ edfunlock(void)
 {
 
 #ifdef EDFCYCLES
-	edfcycles += lcycles();
+	edfcycles += perfticks();
 #endif
 	edfnrun++;
 	iunlock(&thelock);
@@ -121,7 +121,7 @@ void
 edfinit(Proc*p)
 {
 	if(!edfinited){
-		fmtinstall('t', timeconv);
+		fmtinstall('t', timeconv);	/* %t is unused */
 		edfinited++;
 	}
 	now = µs();
@@ -129,7 +129,6 @@ edfinit(Proc*p)
 	p->edf = malloc(sizeof(Edf));
 	if(p->edf == nil)
 		error(Enomem);
-	return;
 }
 
 static void
@@ -138,7 +137,7 @@ deadlineintr(Ureg*, Timer *t)
 	/* Proc reached deadline */
 	extern int panicking;
 	Proc *p;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 
 	if(panicking || active.exiting)
 		return;
@@ -146,28 +145,46 @@ deadlineintr(Ureg*, Timer *t)
 	p = t->ta;
 	now = µs();
 	DPRINT("%lud deadlineintr %d[%s]\n", now, p->pid, statename[p->state]);
-	/* If we're interrupting something other than the proc pointed to by t->a,
-	 * we've already achieved recheduling, so we need not do anything
-	 * Otherwise, we must cause a reschedule, but if we call sched()
-	 * here directly, the timer interrupt routine will not finish its business
-	 * Instead, we cause the resched to happen when the interrupted proc
-	 * returns to user space
+	/*
+	 * If we're interrupting something other than the proc pointed to by
+	 * t->a, we've already achieved recheduling, so we need not do anything
+	 * Otherwise, we must cause a reschedule, but if we call sched() here
+	 * directly, the timer interrupt routine will not finish its business.
+	 * Instead, we cause the resched to happen when the interrupted
+	 * proc returns to user space.
 	 */
 	if(p == up){
 		if(up->trace && (pt = proctrace))
-			pt(up, SInts, 0, 0);
+			pt(up, SInts, 0);
 		up->delaysched++;
 		delayedscheds++;
 	}
 }
 
+/*
+ * Non sporadic processes stay true to their period;
+ * calculate next release time.
+ * Second test limits duration of while loop.
+ */
+static void
+nextrelease(Edf *e)
+{
+	long n;
+
+	n = now - e->t;
+	if(n > 0)
+		if(n < e->T)
+			e->t += e->T;
+		else
+			e->t = now + e->T - (n % e->T);
+}
+
+/* Called with edflock held */
 static void
 release(Proc *p)
 {
-	/* Called with edflock held */
 	Edf *e;
-	void (*pt)(Proc*, int, vlong, vlong);
-	long n;
+	void (*pt)(Proc*, int, vlong);
 	vlong nowns;
 
 	e = p->edf;
@@ -175,32 +192,26 @@ release(Proc *p)
 	if(e->d - now < 0){
 		e->periods++;
 		e->r = now;
-		if((e->flags & Sporadic) == 0){
+		if((e->flags & Sporadic) == 0)
 			/*
 			 * Non sporadic processes stay true to their period;
 			 * calculate next release time.
 			 * Second test limits duration of while loop.
 			 */
-			if((n = now - e->t) > 0){
-				if(n < e->T)
-					e->t += e->T;
-				else
-					e->t = now + e->T - (n % e->T);
-			}
-		}else{
+			nextrelease(e);
+		else
 			/* Sporadic processes may not be released earlier than
 			 * one period after this release
 			 */
 			e->t = e->r + e->T;
-		}
 		e->d = e->r + e->D;
 		e->S = e->C;
 		DPRINT("%lud release %d[%s], r=%lud, d=%lud, t=%lud, S=%lud\n",
 			now, p->pid, statename[p->state], e->r, e->d, e->t, e->S);
 		if(pt = proctrace){
 			nowns = todget(nil);
-			pt(p, SRelease, nowns, 0);
-			pt(p, SDeadline, nowns + 1000LL*e->D, 0);
+			pt(p, SRelease, nowns);
+			pt(p, SDeadline, nowns + 1000LL*e->D);
 		}
 	}else{
 		DPRINT("%lud release %d[%s], too late t=%lud, called from %#p\n",
@@ -240,9 +251,8 @@ releaseintr(Ureg*, Timer *t)
 	case Waitrelease:
 		release(p);
 		edfunlock();
-		if(p->state == Wakeme){
+		if(p->state == Wakeme)
 			iprint("releaseintr: wakeme\n");
-		}
 		ready(p);
 		if(up){
 			up->delaysched++;
@@ -273,7 +283,7 @@ edfrecord(Proc *p)
 {
 	long used;
 	Edf *e;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 
 	if((e = edflock(p)) == nil)
 		return;
@@ -285,7 +295,7 @@ edfrecord(Proc *p)
 	if(e->S > 0){
 		if(e->S <= used){
 			if(pt = proctrace)
-				pt(p, SSlice, 0, 0);
+				pt(p, SSlice, 0);
 			DPRINT("%lud edfrecord slice used up\n", now);
 			e->d = now;
 			e->S = 0;
@@ -300,7 +310,7 @@ void
 edfrun(Proc *p, int edfpri)
 {
 	Edf *e;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 	long tns;
 
 	e = p->edf;
@@ -327,7 +337,7 @@ edfrun(Proc *p, int edfpri)
 			DPRINT("v");
 		}
 		if(p->trace && (pt = proctrace))
-			pt(p, SInte, todget(nil) + e->tns, 0);
+			pt(p, SInte, todget(nil) + e->tns);
 		e->tmode = Trelative;
 		e->tf = deadlineintr;
 		e->ta = p;
@@ -345,7 +355,7 @@ edfadmit(Proc *p)
 	Edf *e;
 	int i;
 	Proc *r;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 	long tns;
 
 	e = p->edf;
@@ -371,10 +381,11 @@ edfadmit(Proc *p)
 	}
 	e->flags |= Admitted;
 
-	edflock(p);
+	if (edflock(p) == nil)		/* the ilock on thelock is not held */
+		return "edflock failed";
 
 	if(p->trace && (pt = proctrace))
-		pt(p, SAdmit, 0, 0);
+		pt(p, SAdmit, 0);
 
 	/* Look for another proc with the same period to synchronize to */
 	for(i=0; (r = psincref(i)) != nil; i++) {
@@ -440,12 +451,12 @@ void
 edfstop(Proc *p)
 {
 	Edf *e;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 
 	if(e = edflock(p)){
 		DPRINT("%lud edfstop %d[%s]\n", now, p->pid, statename[p->state]);
 		if(p->trace && (pt = proctrace))
-			pt(p, SExpel, 0, 0);
+			pt(p, SExpel, 0);
 		e->flags &= ~Admitted;
 		if(e->tt)
 			timerdel(e);
@@ -465,19 +476,14 @@ edfyield(void)
 {
 	/* sleep until next release */
 	Edf *e;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 	long n;
 
 	if((e = edflock(up)) == nil)
 		return;
 	if(up->trace && (pt = proctrace))
-		pt(up, SYield, 0, 0);
-	if((n = now - e->t) > 0){
-		if(n < e->T)
-			e->t += e->T;
-		else
-			e->t = now + e->T - (n % e->T);
-	}
+		pt(up, SYield, 0);
+	nextrelease(e);
 	e->r = e->t;
 	e->flags |= Yield;
 	e->d = now;
@@ -503,29 +509,22 @@ edfready(Proc *p)
 	Edf *e;
 	Schedq *rq;
 	Proc *l, *pp;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 	long n;
 
 	if((e = edflock(p)) == nil)
 		return 0;
 
-	if(p->state == Wakeme && p->r){
+	if(p->state == Wakeme && p->r)
 		iprint("edfready: wakeme\n");
-	}
-	if(e->d - now <= 0){
+ 	if(e->d - now <= 0){
 		/* past deadline, arrange for next release */
-		if((e->flags & Sporadic) == 0){
+		if((e->flags & Sporadic) == 0)
 			/*
 			 * Non sporadic processes stay true to their period;
 			 * calculate next release time.
 			 */
-			if((n = now - e->t) > 0){
-				if(n < e->T)
-					e->t += e->T;
-				else
-					e->t = now + e->T - (n % e->T);
-			}
-		}
+			nextrelease(e);
 		if(now - e->t < 0){
 			/* Next release is in the future, schedule it */
 			if(e->tt == nil || e->tf != releaseintr){
@@ -540,11 +539,15 @@ edfready(Proc *p)
 				DPRINT("%lud edfready %d[%s], release=%lud\n",
 					now, p->pid, statename[p->state], e->t);
 			}
-			if(p->state == Running && (e->flags & (Yield|Yieldonblock)) == 0 && (e->flags & Extratime)){
-				/* If we were running, we've overrun our CPU allocation
-				 * or missed the deadline, continue running best-effort at low priority
-				 * Otherwise we were blocked.  If we don't yield on block, we continue
-				 * best effort
+			if(p->state == Running &&
+			    (e->flags & (Yield|Yieldonblock)) == 0 &&
+			    (e->flags & Extratime)){
+				/*
+				 * If we were running, we've overrun our CPU
+				 * allocation or missed the deadline, continue
+				 * running best-effort at low priority.
+				 * Otherwise we were blocked.  If we don't
+				 * yield on block, we continue best effort.
 				 */
 				DPRINT(">");
 				p->basepri = PriExtra;
@@ -558,7 +561,8 @@ edfready(Proc *p)
 			edfunlock();
 			return 1;	/* Make runnable later */
 		}
-		DPRINT("%lud edfready %d %s release now\n", now, p->pid, statename[p->state]);
+		DPRINT("%lud edfready %d %s release now\n", now, p->pid,
+			statename[p->state]);
 		/* release now */
 		release(p);
 	}
@@ -588,7 +592,7 @@ edfready(Proc *p)
 	p->state = Ready;
 	unlock(runq);
 	if(p->trace && (pt = proctrace))
-		pt(p, SReady, 0, 0);
+		pt(p, SReady, 0);
 	return 1;
 }
 

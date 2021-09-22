@@ -1,0 +1,30 @@
+18 aug 2021 converted fastticks from rdtsc to clint (600MHz -> 1MHz)
+12 aug 2021 fixed crypto by removing libmp/riscv64/*.s, rebuilding libmp & cmds
+14 jun 2021 (approx.) fix &~(ulong) truncation of physical addresses (on beagle)
+12 jun 2021 (approx.) revert to lr/sc for ainc/adec after deccnt panic
+ ...
+ 1 mar 2021 don't ask for an ipi in idlehands if a tick is imminent; is faster
+25 feb 2021 boots again on icicle!
+19 feb 2021 19:47 last successful boot on icicle; after, gets stuck in dhcp loop
+14 feb 2021 Sv48 works in tinyemu
+ 9 feb 2021 reboots on hw too and all cpus come up!
+ 8 feb 2021 reboots on temu again and might work on hw.
+ 7 feb 2021 rewrote *start.s as begin.c, almost entirely.  (re)boots on temu.
+ 2 feb 2021 reboot on hw works with a magic delay for 2ndary cpus
+31 jan 2021 reboot on hw starts only 2 cpus, but comes up
+16 jan 2021 `last fix' to jc for nvcsum.c
+14 jan 2021 fpusave turns fpu off for lazy restoral
+ 8 jan 2021 jc fix from miller for tcp sequence number comparisons.
+	fixed mount rpc errors (actually connections closing).
+ 5 jan 2021 and now notes work.  Yay.
+ 4 jan 2021 runs on 4 cpus at KSEG0!
+ 3 jan 2021 runs on one cpu at KSEG0 and starts all CPUs, then panics on
+	a nil ptr deref in mmuwrpte.
+ 1 jan 2021 kernel starting to run at KSEG0 on hw
+30 dec 2020 kernel running at KSEG0 in tinyemu, so user procs can be 256GB.
+23 dec 2020 all cpus scheduling!
+22 dec 2020 some cpus scheduling despite NPROC=4
+20 dec 2020 all 4 harts start!  now to coordinate them...
+15 nov 2020 working in tinyemu with v7 malloc in libc (a few programs
+	use pool directly)
+ 3 dec 2020 9pf64cpu runs on my icicle (on one cpu)

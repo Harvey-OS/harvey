@@ -1,0 +1,963 @@
+This is Info file web2c.info, produced by Makeinfo version 1.68 from
+the input file web2c.texi.
+
+INFO-DIR-SECTION TeX
+START-INFO-DIR-ENTRY
+* Web2c: (web2c).                    TeX, Metafont, and companion programs.
+* bibtex: (web2c)bibtex invocation.             Maintaining bibliographies.
+* dmp: (web2c)dmp invocation.                   Troff->MPX (MetaPost pictures).
+* dvicopy: (web2c)dvicopy invocation.           Virtual font expansion
+* dvitomp: (web2c)dvitomp invocation.           DVI to MPX (MetaPost pictures).
+* dvitype: (web2c)dvitype invocation.           DVI to human-readable text.
+* gftodvi: (web2c)gftodvi invocation.           Generic font proofsheets.
+* gftopk: (web2c)gftopk invocation.             Generic to packed fonts.
+* gftype: (web2c)gftype invocation.             GF to human-readable text.
+* inimf: (web2c)inimf invocation.               Initial Metafont.
+* inimpost: (web2c)inimpost invocation.         Initial MetaPost.
+* initex: (web2c)initex invocation.             Initial TeX.
+* makempx: (web2c)makempx invocation.           MetaPost label typesetting.
+* mf: (web2c)mf invocation.                     Creating typeface families.
+* mft: (web2c)mft invocation.                   Prettyprinting Metafont source.
+* mltex: (web2c)MLTeX.                          Multi-lingual TeX.
+* mpost: (web2c)mpost invocation.               Creating technical diagrams.
+* mpto: (web2c)mpto invocation.                 MetaPost label extraction.
+* newer: (web2c)newer invocation.               Compare modification times.
+* patgen: (web2c)patgen invocation.             Creating hyphenation patterns.
+* pktogf: (web2c)pktogf invocation.             Packed to generic fonts.
+* pktype: (web2c)pktype invocation.             PK to human-readable text.
+* pltotf: (web2c)pltotf invocation.             Property list to TFM.
+* pooltype: (web2c)pooltype invocation.         Display WEB pool files.
+* tangle: (web2c)tangle invocation.             WEB to Pascal.
+* tex: (web2c)tex invocation.                   Typesetting.
+* tftopl: (web2c)tftopl invocation.             TFM -> property list.
+* vftovp: (web2c)vftovp invocation.             Virtual font -> virtual pl.
+* virmf: (web2c)virmf invocation.               Virgin Metafont.
+* virmpost: (web2c)virmpost invocation.         Virgin MetaPost.
+* virtex: (web2c)virtex invocation.             Virgin TeX.
+* vptovf: (web2c)vptovf invocation.             Virtual pl -> virtual font.
+* weave: (web2c)weave invocation.               WEB to TeX.
+END-INFO-DIR-ENTRY
+
+  This file documents the installation and use of the programs in Web2c,
+an implementation of Donald Knuth's TeX system.
+
+  Copyright (C) 1996, 97 K. Berry & O. Weber.
+
+  Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+  Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+  Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation
+
+
+File: web2c.info,  Node: dvitype invocation,  Prev: dvicopy invocation,  Up: DVI utilities
+
+DVItype: Plain text transliteration of DVI files
+================================================
+
+  DVItype translates a DeVice Independent (DVI) file (as output by TeX,
+for example) to a plain text file that humans can read.  It also serves
+as a DVI-validating program, i.e., if DVItype can read a file, it's
+correct.  Synopsis:
+
+     dvitype [OPTION]... DVIFILE[.dvi]
+
+DVItype does not read any bitmap files, but it does read TFM files for
+fonts referenced in DVIFILE.  The usual places are searched (*note
+Supported file formats: (kpathsea)Supported file formats.).  To see all
+the relevant paths, set the environment variable `KPATHSEA_DEBUG' to
+`-1' before running the program.
+
+  Output goes to standard output.
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-dpi=REAL'
+     Do pixel movement calculations at REAL pixels per inch; default
+     300.0.
+
+`-magnification=INTEGER'
+     Override existing magnification in INDVI with INTEGER; 1000
+     specifies no magnification.  This is equivalent to setting TeX's
+     `\mag' parameter.
+
+`-max-pages=N'
+     Process N pages; default is one million.
+
+`-output-level=N'
+     Verbosity level of output, from 0 to 4 (default 4):
+        * 0: Global document information only.
+
+        * 1: Most DVI commands included, and typeset characters
+          summarized.
+
+        * 2: Character and movement commands explicitly included.
+
+        * 3: DVI stack and current position calculations included.
+
+        * 4: Same information as level 3, but DVItype does random
+          positioning in the file, reading the DVI postamble first.
+
+`-page-start=PAGE-SPEC'
+     Start at the first page matching PAGE-SPEC, which is one or more
+     (signed) integers separated by periods, corresponding to TeX's
+     `\count0...9' parameters at `\shipout' time; `*' matches anything.
+     Examples: `1', `5.*.-9'.
+
+`-show-opcodes'
+     Show numeric opcode values (in decimal) for DVI commands, in braces
+     after the command name. This can help in debugging DVI utilities.
+     We use decimal because in the DVI format documentation (in
+     `dvitype.web', among others) the opcodes are shown in decimal.
+
+* Menu:
+
+* dvitype output example::
+
+
+File: web2c.info,  Node: dvitype output example,  Up: dvitype invocation
+
+DVItype output example
+----------------------
+
+  As an example of the output from DVItype (see section above), here is
+its (abridged) translation of the `story.dvi' resulting from running
+the example in `The TeXbook', with `-output-level=4' and
+`-show-opcodes' on.
+
+     ...
+     Options selected:
+       Starting page = *
+       Maximum number of pages = 1000000
+       Output level = 4 (the works)
+       Resolution = 300.00000000 pixels per inch
+     numerator/denominator=25400000/473628672
+     magnification=1000;       0.00006334 pixels per DVI unit
+     ' TeX output 1992.05.17:0844'
+     Postamble starts at byte 564.
+     maxv=43725786, maxh=30785863, maxstackdepth=3, totalpages=1
+     Font 33: cmsl10---loaded at size 655360 DVI units
+     Font 23: cmbx10---loaded at size 655360 DVI units
+     Font 0: cmr10---loaded at size 655360 DVI units
+     
+     42: beginning of page 1
+     87: push {141}
+     level 0:(h=0,v=0,w=0,x=0,y=0,z=0,hh=0,vv=0)
+     88: down3 -917504 {159} v:=0-917504=-917504, vv:=-58
+     92: pop {142}
+     ...
+     104: putrule {137} height 26214, width 30785863 (2x1950 pixels)
+     113: down3 5185936 {159} v:=655360+5185936=5841296, vv:=370
+     117: push {141}
+     level 1:(h=0,v=5841296,w=0,x=0,y=0,z=0,hh=0,vv=370)
+     118: right4 12265425 {146} h:=0+12265425=12265425, hh:=777
+     [ ]
+     123: fntdef1 23 {243}: cmbx10
+     145: fntnum23 {194} current font is cmbx10
+     146: setchar65 h:=12265425+569796=12835221, hh:=813
+     147: w3 251220 {150} h:=12835221+251220=13086441, hh:=829
+     151: setchar83 h:=13086441+418700=13505141, hh:=856
+     ...
+     164: setchar82 h:=17448202+565245=18013447, hh:=1142
+     165: x0 -62805 {152} h:=18013447-62805=17950642, hh:=1138
+     166: setchar89 h:=17950642+569796=18520438, hh:=1174
+     [A SHORT STORY]
+     167: pop {142}
+     level 1:(h=0,v=5841296,w=0,x=0,y=0,z=0,hh=0,vv=370)
+     ...
+     550: pop {142}
+     level 0:(h=0,v=42152922,w=0,x=0,y=0,z=0,hh=0,vv=2670)
+     551: down3 1572864 {159} v:=42152922+1572864=43725786, vv:=2770
+     555: push {141}
+     level 0:(h=0,v=43725786,w=0,x=0,y=0,z=0,hh=0,vv=2770)
+     556: right4 15229091 {146} h:=0+15229091=15229091, hh:=965
+     561: setchar49 h:=15229091+327681=15556772, hh:=986
+     [ 1]
+     562: pop {142}
+     level 0:(h=0,v=43725786,w=0,x=0,y=0,z=0,hh=0,vv=2770)
+     563: eop {140}
+
+  Explanation:
+
+   * The DVItype options are recorded at the beginning, followed by
+     global information about the document, including fonts used.
+
+   * Each DVI command is preceded by its byte position in the file
+     (`42:', `87:', ...), and (because of the `-show-opcodes') followed
+     by its decimal opcode value in braces (`{141}', `{142}', ...).
+
+   * The `level' lines record information about the DVI stack; `h' and
+     `v' define the current position in DVI units, while `hh' and `vv'
+     are the same in pixels.
+
+   * Text sequences are summarized in brackets, as in `[A SHORT STORY]'
+     and the `[ 1]'.
+
+
+File: web2c.info,  Node: Font utilities,  Next: Legalisms,  Prev: DVI utilities,  Up: Top
+
+Font utilities
+**************
+
+  The Web2c programs described here convert between various TeX-related
+font formats; the first section below briefly describes the formats.
+GFtoPK is the only one that is routinely used, as Metafont outputs GF
+format, but it's most efficient for device drivers to use PK.
+
+  The precise definitions of the PK, GF, TFM, PL, VF, and VPL formats
+mentioned below are in the source files that read them; `pktype.web',
+`gftype.web', `tftopl.web', etc.
+
+* Menu:
+
+* Font file formats::       Explanations of GF, PK, TFM, VF, ...
+* gftopk invocation::       GF -> PK (compact)
+* pktogf invocation::       PK -> GF (expand).
+* pktype invocation::       PK -> human-readable text.
+* gftype invocation::       GF -> human-readable text.
+* tftopl invocation::       TFM -> PL (for editing TFM).
+* pltotf invocation::       PL -> TFM (make editing results usable).
+* vftovp invocation::       VF -> VPL (tftopl for virtual fonts).
+* vptovf invocation::       VPL -> VF (pltotf for virtual fonts).
+* Font utilities available elsewhere:: Type 1, BDF, editors, etc.
+
+
+File: web2c.info,  Node: Font file formats,  Next: gftopk invocation,  Up: Font utilities
+
+Font file formats
+=================
+
+  (For another perspective on this, *note Font concepts: (dvips)Font
+concepts.).
+
+  Font files come in several varieties, with suffixes like:
+     .tfm  .*pk  .*gf  .*pxl (obsolete)  .pl  .mf  .vf  .vpl
+
+Each represents a file format.
+
+  A TFM (TeX font metric) file is a compact binary file that contains
+information about each character in a font, about combinations of
+characters within that font, and about the font as a whole.  The font
+metric information contained in TFM files is device-independent units is
+used by TeX to do typesetting.  Unlike the bitmap (raster) fonts
+described below, TFM font files contain no information about the shapes
+of characters.  They describe rectangular areas and combinations
+thereof, but not what will eventually be printed in those areas.
+
+  Since TeX does scaling calculations, one TFM file serves for all
+magnifications of a given typeface.  On the other hand, the best printed
+results are obtained when magnified (or reduced fonts) are not produced
+geometrically (as done by PostScript, for example) but rather optically,
+with each size a separate design (as done with Computer Modern and the
+EC fonts, for example); then a separate TFM file is needed for each
+size.
+
+  At any rate, TeX produces a DVI (DeVice Independent) file from your
+source document.  In order to print DVI files on real devices, you need
+font files defining digitized character shapes and other data.  Then
+previewers and printer-driver programs can translate your DVI files into
+something usable by your monitor or printer.  Bitmap fonts come with
+suffixes such as `.600pk' or `.600gf' or `.3000pxl', where the `600' is
+the horizontal dots-per-inch resolution at which the font was produced,
+and the `pk' or `gf' or `pxl' indicates the font format.  Outline fonts
+in PostScript Type 1 format have suffixes such as `.pfa' or `.pfb'.
+
+  Fonts in pk (packed) format are in the tightly packed raster format
+that is pretty much the standard today.  They take up less space than
+fonts in the gf (generic font) format that Metafont generates, and far
+less space than fonts in pxl format.  Fonts in pxl format take up gross
+amounts of disk space and permit only 128 characters.  They are
+obsolete.
+
+  Font files with the `.pl' (property list) suffix are the plain text
+(human-readable) analog of the binary `.tfm' files.  The TFtoPL and
+PLtoTF programs convert between the two formats (*note tftopl
+invocation::. and *Note pltotf invocation::).
+
+  Font files with the `.mf' suffix are in Metafont source format.
+These are the files used by Metafont to generate rastered fonts for
+specific typefaces at specific magnifications for the specific
+resolution and type of mapping used by your device.
+
+  The suffix `.vf' identifies "virtual font" files, for which `.vpl' is
+the human-readable analog.  *Note vftovp invocation:: and *Note vptovf
+invocation::.  For further discussion of virtual fonts, see
+`CTAN:/doc/virtual-fonts.knuth', `CTAN:/help/virtualfonts.txt', and
+*Note Virtual fonts: (dvips)Virtual fonts.
+
+  (This section is based on documentation in the original Unix TeX
+distribution by Pierre MacKay and Elizabeth Tachikawa.)
+
+
+File: web2c.info,  Node: gftopk invocation,  Next: pktogf invocation,  Prev: Font file formats,  Up: Font utilities
+
+GFtoPK: Generic to packed font conversion
+=========================================
+
+  GFtoPK converts a generic font (GF) file output by, for example,
+Metafont (*note mf invocation::.) to a packed font (PK) file.  PK files
+are considerably smaller than the corresponding gf files, so they are
+generally the bitmap font format of choice.  Some DVI-processing
+programs, notably Dvips, only support PK files and not GF files.
+Synopsis:
+
+     gftopk [OPTION]... GFNAME.DPI[gf] [PKFILE]
+
+The font GFNAME is searched for in the usual places (*note Glyph
+lookup: (kpathsea)Glyph lookup.).  To see all the relevant paths, set
+the environment variable `KPATHSEA_DEBUG' to `-1' before running the
+program.
+
+  The suffix `gf' is supplied if not already present.  This suffix is
+not an extension; no `.' precedes it: for instance, `cmr10.600gf'.
+
+  If PKFILE is not specified, the output is written to the basename of
+`GFNAME.DPIpk', e.g., `gftopk /wherever/cmr10.600gf' creates
+`./cmr10.600pk'.
+
+  The only options are `--verbose', `--help', and `--version' (*note
+Common options::.).
+
+
+File: web2c.info,  Node: pktogf invocation,  Next: pktype invocation,  Prev: gftopk invocation,  Up: Font utilities
+
+PKtoGF: Packed to generic font conversion
+=========================================
+
+  PKtoGF converts a packed font (PK) file to a generic font (GF) file.
+Since PK format is much more compact than GF format, the most likely
+reason to do this is to run GFtype (*note gftype invocation::.) on the
+result, so you can see the bitmap images.  Also, a few old utility
+programs do not support PK format.  Synopsis:
+
+     pktogf [OPTION]... PKNAME.DPI[pk] [GFFILE]
+
+The font PKNAME is searched for in the usual places (*note Glyph
+lookup: (kpathsea)Glyph lookup.).  To see all the relevant paths, set
+the environment variable `KPATHSEA_DEBUG' to `-1' before running the
+program.
+
+  The suffix `pk' is supplied if not already present.  This suffix is
+not an extension; no `.' precedes it: for instance, `cmr10.600pk'.
+
+  If GFFILE is not specified, the output is written to the basename of
+`PKNAME.DPIgf', e.g., `pktogf /wherever/cmr10.600pk' creates
+`./cmr10.600gf'.
+
+  The only options are `--verbose', `--help', and `--version' (*note
+Common options::.).
+
+
+File: web2c.info,  Node: pktype invocation,  Next: gftype invocation,  Prev: pktogf invocation,  Up: Font utilities
+
+PKtype: Plain text transliteration of packed fonts
+==================================================
+
+  PKtype translates a packed font (PK) bitmap file (as output by GFtoPK,
+for example) to a plain text file that humans can read.  It also serves
+as a PK-validating program, i.e., if PKtype can read a file, it's
+correct.  Synopsis:
+
+     pktype PKNAME.DPI[pk]
+
+  The font PKNAME is searched for in the usual places (*note Glyph
+lookup: (kpathsea)Glyph lookup.).  To see all the relevant paths, set
+the environment variable `KPATHSEA_DEBUG' to `-1' before running the
+program.
+
+  The suffix `pk' is supplied if not already present.  This suffix is
+not an extension; no `.' precedes it: for instance, `cmr10.600pk'.
+
+  The translation is written to standard output.
+
+  The only options are `-help' and `-version' (*note Common options::.).
+
+  As an example of the output, here is the (abridged) translation of the
+letter `K' in `cmr10', as rendered at 600dpi with the mode `ljfour'
+from `modes.mf' (available from `ftp://ftp.tug.org/tex/modes.mf').
+
+     955:  Flag byte = 184  Character = 75  Packet length = 174
+       Dynamic packing variable = 11
+       TFM width = 815562  dx = 4259840
+       Height = 57  Width = 57  X-offset = -3  Y-offset = 56
+       [2]23(16)17(8)9(25)11(13)7(27)7(16)7(28)4(18)7(28)2(20)7(27)...
+       ...
+       (14)9(24)12(5)[2]23(13)21
+
+Explanation:
+
+`955'
+     The byte position in the file where this character starts.
+
+`Flag byte'
+`Dynamic packing variable'
+     Related to the packing for this character; see the source code.
+
+`Character'
+     The character code, in decimal.
+
+`Packet length'
+     The total length of this character definition, in bytes.
+
+`TFM width'
+     The device-independent (TFM) width of this character.  It is 2^24
+     times the ratio of the true width to the font's design size.
+
+`dx'
+     The device-dependent width, in "scaled pixels", i.e., units of
+     horizontal pixels times 2^16.
+
+`Height'
+`Width'
+     The bitmap height and width, in pixels.
+
+`X-offset'
+`Y-offset'
+     Horizontal and vertical offset from the upper left pixel to the
+     reference (origin) pixel for this character, in pixels (right and
+     down are positive).  The "reference pixel" is the pixel that
+     occupies the unit square in Metafont; the Metafont reference point
+     is the lower left hand corner of this pixel. Put another way, the
+     x-offset is the negative of the left side bearing; the right side
+     bearing is the horizontal escapement minus the bitmap width plus
+     the x-offset.
+
+`[2]23(16)...'
+     Finally, run lengths of black pixels alternate with parenthesized
+     run lengths of white pixels, and brackets indicate a repeated row.
+
+
+File: web2c.info,  Node: gftype invocation,  Next: tftopl invocation,  Prev: pktype invocation,  Up: Font utilities
+
+GFtype: Plain text transliteration of generic fonts
+===================================================
+
+  GFtype translates a generic font (GF) bitmap file (as output by
+Metafont, for example) to a plain text file that humans can read.  It
+also serves as a GF-validating program, i.e., if GFtype can read a file,
+it's correct.  Synopsis:
+
+     gftype [OPTION]... GFNAME.DPI[gf]
+
+  The font GFNAME is searched for in the usual places (*note Glyph
+lookup: (kpathsea)Glyph lookup.).  To see all the relevant paths, set
+the environment variable `KPATHSEA_DEBUG' to `-1' before running the
+program.
+
+  The suffix `gf' is supplied if not already present.  This suffix is
+not an extension; no `.' precedes it: for instance, `cmr10.600gf'.
+
+  The translation is written to standard output.
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-images'
+     Show the characters' bitmaps using asterisks and spaces.
+
+`-mnemonics'
+     Translate all commands in the GF file.
+
+  As an example of the output, here is the (abrdiged) translation of the
+letter `K' in `cmr10', as rendered at 600dpi with the mode `ljfour'
+from `modes.mf' (available from `ftp://ftp.tug.org/tex/modes.mf'), with
+both `-mnemonics' and `-images' enabled.
+
+  GFtype outputs the information about a character in two places: a main
+definition and a one-line summary at the end. We show both.  Here is the
+main definition:
+
+     2033: beginning of char 75: 3<=m<=60 0<=n<=56
+     (initially n=56) paint (0)24(12)20
+     2043: newrow 0 (n=55) paint 24(12)20
+     2047: newrow 0 (n=54) paint 24(12)20
+     2051: newrow 0 (n=53) paint 24(12)20
+     2055: newrow 7 (n=52) paint 10(21)13
+     2059: newrow 8 (n=51) paint 8(23)9
+     ...
+     2249: newrow 8 (n=5) paint 8(23)11
+     2253: newrow 7 (n=4) paint 10(22)12
+     2257: newrow 0 (n=3) paint 24(11)22
+     2261: newrow 0 (n=2) paint 24(11)22
+     2265: newrow 0 (n=1) paint 24(11)22
+     2269: newrow 0 (n=0) paint 24(11)22
+     2273: eoc
+     .<--This pixel's lower left corner is at (3,57) in METAFONT coordinates
+     ************************            ********************
+     ************************            ********************
+     ************************            ********************
+     ************************            ********************
+            **********                     *************
+             ********                       *********
+     ...
+             ********                       ***********
+            **********                      ************
+     ************************           **********************
+     ************************           **********************
+     ************************           **********************
+     ************************           **********************
+     .<--This pixel's upper left corner is at (3,0) in METAFONT coordinates
+
+Explanation:
+
+`2033'
+`2043'
+`...'
+     The byte position in the file where each GF command starts.
+
+`beginning of char 75'
+     The character code, in decimal.
+
+`3<=m<=60 0<=n<=56'
+     The character's bitmap lies between 3 and 60 (inclusive)
+     horizontally, and between 0 and 56 (inclusive) vertically. (m is a
+     column position and n is a row position.)  Thus, 3 is the left side
+     bearing.  The right side bearing is the horizontal escapement
+     (given below) minus the maximum m.
+
+`(initially n=56) paint (0)24(12)20'
+     The first row of pixels: 0 white pixels, 24 black pixels, 12 white
+     pixels, etc.
+
+`newrow 0 (n=55) paint 24(12)20'
+     The second row of pixels, with zero leading white pixels on the
+     row.
+
+`eoc'
+     The end of the main character definition.
+
+  Here is the GF postamble information that GFtype outputs at the end:
+
+     Character 75: dx 4259840 (65), width 815562 (64.57289), loc 2033
+
+  Explanation:
+
+`dx'
+     The device-dependent width, in "scaled pixels", i.e., units of
+     horizontal pixels times 2^16.  The `(65)' is simply the same number
+     rounded.  If the vertical escapement is nonzero, it would appear
+     here as a `dy' value.
+
+`width'
+     The device-independent (TFM) width of this character.  It is 2^24
+     times the ratio of the true width to the font's design size.  The
+     `64.57289' is the same number converted to pixels.
+
+`loc'
+     The byte position in the file where this character starts.
+
+
+File: web2c.info,  Node: tftopl invocation,  Next: pltotf invocation,  Prev: gftype invocation,  Up: Font utilities
+
+TFtoPL: TeX font metric to property list conversion
+===================================================
+
+  TFtoPL translates a TeX font metric (TFM, *note Metric files:
+(dvips)Metric files.) file (as output by Metafont, for example) to
+"property list format" (a list of parenthesized items describing the
+font) that humans can edit or read.  This program is mostly used by
+people debugging TeX implementations, writing font utilities, etc.
+Synopsis:
+
+     tftopl [OPTION]... TFMNAME[.tfm] [PLFILE[.pl]]
+
+  The font TFMNAME (extended with `.tfm' if necessary) is searched for
+in the usual places (*note Supported file formats: (kpathsea)Supported
+file formats.).  To see all the relevant paths, set the environment
+variable `KPATHSEA_DEBUG' to `-1' before running the program.
+
+  If PLFILE (which is extended with `.pl' if necessary) is not
+specified, the property list file is written to standard output.  The
+property list file can be converted back to TFM format by the companion
+program TFtoPL (see the next section).
+
+  The program accepts the following option, as well as the standard
+`-verbose', `-help' and `-version' (*note Common options::.):
+`-charcode-format=TYPE'
+     Output character codes in the PL file according to TYPE: either
+     `octal' or `ascii'.  Default is `ascii' for letters and digits,
+     octal for all other characters.  Exception: if the font's coding
+     scheme starts with `TeX math sy' or `TeX math ex', all character
+     codes are output in octal.
+
+     In `ascii' format, character codes that correspond to graphic
+     characters, except for left and right parentheses, are output as a
+     `C' followed by the single character: `C K', for example.  In
+     octal format, character codes are output as the letter `O' followed
+     by octal digits, as in `O 113' for `K'.
+
+     `octal' format is useful for symbol and other non-alphabetic fonts,
+     where using ASCII characters for the character codes is merely
+     confusing.
+
+  As an example of the output, here is the (abridged) property list
+translation of `cmr10.tfm':
+
+     (FAMILY CMR)
+     (FACE O 352)
+     (CODINGSCHEME TEX TEXT)
+     (DESIGNSIZE R 10.0)
+     (COMMENT DESIGNSIZE IS IN POINTS)
+     (COMMENT OTHER SIZES ARE MULTIPLES OF DESIGNSIZE)
+     (CHECKSUM O 11374260171)
+     (FONTDIMEN
+        (SLANT R 0.0)
+        (SPACE R 0.333334)
+        (STRETCH R 0.166667)
+        (SHRINK R 0.111112)
+        (XHEIGHT R 0.430555)
+        (QUAD R 1.000003)
+        (EXTRASPACE R 0.111112)
+        )
+     (LIGTABLE
+        ...
+        (LABEL C f)
+        (LIG C i O 14)
+        (LIG C f O 13)
+        (LIG C l O 15)
+        (KRN O 47 R 0.077779)
+        (KRN O 77 R 0.077779)
+        (KRN O 41 R 0.077779)
+        (KRN O 51 R 0.077779)
+        (KRN O 135 R 0.077779)
+        (STOP)
+        ...
+        )
+     ...
+     (CHARACTER C f
+        (CHARWD R 0.305557)
+        (CHARHT R 0.694445)
+        (CHARIC R 0.077779)
+        (COMMENT
+           (LIG C i O 14)
+           (LIG C f O 13)
+           (LIG C l O 15)
+           (KRN O 47 R 0.077779)
+           (KRN O 77 R 0.077779)
+           ...
+           )
+        )
+     ...
+
+  As you can see, the general format is a list of parenthesized
+"properties", nested where necessary.
+
+   * The first few items (`FAMILY', `FACE', and so on) are the
+     so-called "headerbyte" information from Metafont, giving general
+     information about the font.
+
+   * The `FONTDIMEN' property defines the TeX `\fontdimen' values.
+
+   * The `LIGTABLE' property defines the ligature and kerning table.
+     `LIG' properties define ligatures: in the example above, an `f'
+     (in the `LABEL') followed by an `i' is a ligature, i.e., a
+     typesetting program like TeX replaces those two consecutive
+     characters by the character at position octal '014 in the current
+     font--presumably the `fi' ligature.  `KRN' properties define
+     kerns: if an `f' is followed by character octal '047 (an
+     apostrophe), TeX inserts a small amount of space between them:
+     0.077779 times the design size the font was loaded at (about
+     three-quarters of a printer's point by default in this case, or
+     .001 inches).
+
+   * The `CHARACTER' property defines the dimensions of a character: its
+     width, height, depth, and italic correction, also in design-size
+     units, as explained in the previous item.  For our example `f',
+     the depth is zero, so that property is omitted.  TFtoPL also
+     inserts any kerns and ligatures for this character as a comment.
+
+
+File: web2c.info,  Node: pltotf invocation,  Next: vftovp invocation,  Prev: tftopl invocation,  Up: Font utilities
+
+PLtoTF: Property list to TeX font metric conversion
+===================================================
+
+  PLtoTF translates a property list file (as output by TFtoPL, for
+example) to TeX font metric (TFM, *note Metric files: (dvips)Metric
+files.)  format.  It's much easier for both programs and humans to
+create the (plain text) property list files and let PLtoTF take care of
+creating the binary TFM equivalent than to output TFM files directly.
+Synopsis:
+
+     pltotf [OPTION]... PLFILE[.pl] [TFMFILE[.tfm]]
+
+  If TFMFILE (extended with `.tfm' if necessary) is not specified, the
+TFM file is written to the basename of `PLFILE.tfm', e.g., `pltotf
+/wherever/cmr10.pl' creates `./cmr10.tfm'.  (Since TFM files are
+binary, writing to standard output by default is undesirable.)
+
+  The only options are `-verbose', `-help', and `-version' (*note
+Common options::.).
+
+  For an example of property list format, see the previous section.
+
+
+File: web2c.info,  Node: vftovp invocation,  Next: vptovf invocation,  Prev: pltotf invocation,  Up: Font utilities
+
+VFtoVP: Virtual font to virtual property lists
+==============================================
+
+  VFtoVP translates a virtual font metric (VF, *note Virtual fonts:
+(dvips)Virtual fonts.) file and its accompanying TeX font metric (TFM,
+*note Metric files: (dvips)Metric files.) file (as output by VPtoVF, for
+example) to "virtual property list format" (a list of parenthesized
+items describing the virtual font) that humans can edit or read.  This
+program is mostly used by people debugging virtual font utilities.
+Synopsis:
+
+     vftovp [OPTION]... VFNAME[.vf] [TFMNAME[.tfm] [VPLFILE[.vpl]]]
+
+  The fonts VFNAME and TFMNAME (extended with `.vf' and `.tfm' if
+necessary) are searched for in the usual places (*note Supported file
+formats: (kpathsea)Supported file formats.).  To see all the relevant
+paths, set the environment variable `KPATHSEA_DEBUG' to `-1' before
+running the program.  If TFMNAME is not specified, VFNAME (without a
+trailing `.vf') is used.
+
+  If VPLFILE (extended with `.vpl' if necessary) is not specified, the
+property list file is written to standard output.  The property list
+file can be converted back to VF and TFM format by the companion
+program VFtoVP (see the next section).
+
+  The program accepts the following option, as well as the standard
+`-verbose', `-help' and `-version' (*note Common options::.):
+`-charcode-format=TYPE'
+     Output character codes in the PL file according to TYPE: either
+     `octal' or `ascii'.  Default is `ascii' for letters and digits,
+     octal for all other characters.  Exception: if the font's coding
+     scheme starts with `TeX math sy' or `TeX math ex', all character
+     codes are output in octal.
+
+     In `ascii' format, character codes that correspond to graphic
+     characters, except for left and right parentheses, are output as a
+     `C' followed by the single character: `C K', for example.  In
+     octal format, character codes are output as the letter `O' followed
+     by octal digits, as in `O 113' for `K'.
+
+     `octal' format is useful for symbol and other non-alphabetic fonts,
+     where using ASCII characters for the character codes is merely
+     confusing.
+
+
+File: web2c.info,  Node: vptovf invocation,  Next: Font utilities available elsewhere,  Prev: vftovp invocation,  Up: Font utilities
+
+VPtoVF: Virtual property lists to virtual font
+==============================================
+
+  VPtoVF translates a virtual property list file (as output by VFtoVP,
+for example) to virtual font (VF, *note Virtual fonts: (dvips)Virtual
+fonts.) and TeX font metric (TFM, *note Metric files: (dvips)Metric
+files.) files.  It's much easier for both programs and humans to create
+the (plain text) property list files and let VPtoVF take care of
+creating the binary VF and TFM equivalents than to output them
+directly.  Synopsis:
+
+     vptovf [OPTION]... VPLFILE[.vpl] [VFFILE[.vf] [TFMFILE[.tfm]]]
+
+  If VFFILE (extended with `.vf' if necessary) is not specified, the VF
+file is written to the basename of `VPLFILE.vf'; similarly for TFMFILE.
+For example, `vptovf /wherever/ptmr.vpl' creates `./ptmr.vf' and
+`./ptmr.tfm'.
+
+  The only options are `-verbose', `-help', and `-version' (*note
+Common options::.).
+
+
+File: web2c.info,  Node: Font utilities available elsewhere,  Prev: vptovf invocation,  Up: Font utilities
+
+Font utilities available elsewhere
+==================================
+
+  The Web2c complement of font utilities merely implements a few basic
+conversions.  Many other more sophisticated font utilities exist; most
+are in `CTAN:/fonts/utilities' (for CTAN info, *note unixtex.ftp:
+(kpathsea)unixtex.ftp.).  Here are some of the most commonly-requested
+items:
+
+   * AFM (Adobe font metric) to TFM conversion: *note Invoking afm2tfm:
+     (dvips)Invoking afm2tfm., and `CTAN:/fonts/utilities/afmtopl'.
+
+   * BDF (the X bitmap format) conversion:
+     `ftp://ftp.tug.org/tex/bdf.tar.gz'.
+
+   * Editing of bitmap fonts: Xbfe from the GNU font utilities mentioned
+     below; the X BDF-editing programs available from
+     `ftp://ftp.x.org/R5contrib/xfed.tar.Z' and
+     `ftp://ftp.x.org/R5contrib/xfedor.tar.Z'; and finally, if your
+     fonts have only 128 characters, you can use the old `gftopxl',
+     `pxtoch', and `chtopx' programs from `ftp://ftp.tug.org/tex/web'.
+
+   * PK bitmaps from PostScript fonts: gsftopk from the `xdvik'
+     distribution or from `CTAN:/fonts/utilities/gsftopk';
+     alternatively, `ps2pk', from `CTAN:/fonts/utilities/ps2pk'.
+
+   * PostScript Type 1 font format conversion (i.e., between PFA and PFB
+     formats): `ftp://ftp.tug.org/tex/t1utils.tar.gz'.
+
+   * Scanned image conversion: the (aging) GNU font utilities convert
+     type specimen images to Metafont, PostScript, etc.:
+     `ftp://prep.ai.mit.edu/pub/gnu/fontutils-0.6.tar.gz'.
+
+   * Virtual font creation: `CTAN:/fonts/utilities/fontinst'.
+
+
+File: web2c.info,  Node: Legalisms,  Next: References,  Prev: Font utilities,  Up: Top
+
+Legalisms
+*********
+
+  In general, each file has its own copyright notice stating the copying
+permissions for that file.  Following is a summary.
+
+  The Web2c system itself and most of the original WEB source files are
+public domain.
+
+  `tex.web', the MLTeX code, `mf.web', and `bibtex.web', are
+copyrighted by their authors.  They may be copied verbatim, but may be
+modified only through a `.ch' file.
+
+  MetaPost-related files, including `mp.web' itself, are copyrighted
+under X-like terms; the precise notice is included below.
+
+  Finally, almost all of the Kpathsea library is covered by the GNU
+Library General Public License, but part of one file is covered by the
+regular GNU General Public License (*note Introduction:
+(kpathsea)Introduction.).  Therefore, the *binaries* resulting from a
+standard Web2c compilation are also covered by the GPL; so if you
+(re)distribute the binaries, you must also (offer to) distribute the
+complete source that went into those binaries.  See the files `COPYING'
+and `COPYING.LIB' for complete details on the GPL and LGPL.
+
+  The following notice must be included by the terms of the MetaPost
+copyright.
+
+     Permission to use, copy, modify, and distribute this software and
+     its documentation for any purpose and without fee is hereby
+     granted, provided that the above copyright notice appear in all
+     copies and that both that the copyright notice and this permission
+     notice and warranty disclaimer appear in supporting documentation,
+     and that the names of AT&T Bell Laboratories or any of its
+     entities not be used in advertising or publicity pertaining to
+     distribution of the software without specific, written prior
+     permission.
+
+     AT&T disclaims all warranties with regard to this software,
+     including all implied warranties of merchantability and fitness.
+     In no event shall AT&T be liable for any special, indirect or
+     consequential damages or any damages whatsoever resulting from
+     loss of use, data or profits, whether in an action of contract,
+     negligence or other tortious action, arising out of or in
+     connection with the use or performance of this software.
+
+
+File: web2c.info,  Node: References,  Next: Index,  Prev: Legalisms,  Up: Top
+
+References
+**********
+
+  1. Kpathsea: *Note Introduction: (kpathsea)Top.
+
+  2. Dvips and Afm2tfm: *Note Introduction: (dvips)Top.
+
+  3. For a bibliography of formal articles and technical reports on the
+     TeX project, see the books `TeX: The Program' or `Metafont: The
+     Program' cited below.
+
+  4. TUGboat: `ftp://ftp.math.utah.edu/pub/tex/bib/tugboat.bib'.
+
+  5. TeX and computer typesetting in general:
+     `ftp://ftp.math.utah.edu/pub/tex/bib/texbook1.bib'.
+
+  6. [Bil87] Neenie Billawala.  Write-white printing engines and tuning
+     fonts with Metafont.  `TUGboat', 8(1):29, April 1987.
+
+  7. [GMS94] Michel Goossens, Frank Mittelbach, and Alexander Samarin.
+     `The LaTeX Companion'.  Addison-Wesley, Reading, MA, USA, 1994.
+
+  8. [Hob89] John D. Hobby.  A Metafont-like System with PostScript
+     Output.  `TUGboat', 10(4):505-512, December 1989.
+
+  9. [Hob92] John D. Hobby.  A User's Manual for MetaPost.  Technical
+     Report CSTR-162, AT&T Bell Laboratories, 1992.
+
+ 10. [Hob93] John D. Hobby.  Drawing Graphs with MetaPost.  Technical
+     Report CSTR-164, AT&T Bell Laboratories, 1993.
+
+ 11. [HS91] Samuel P. Harbison and Guy L. Steele Jr.  `C--A Reference
+     Manual'.  Prentice-Hall, Englewood Cliffs, NJ 07632, USA, third
+     edition, 1991.  An authoritative reference to C programming
+     language, and a good companion to   Kernighan and Ritchie.
+
+ 12. [KL93] Donald E. Knuth and Silvio Levy.  `The CWEB System of
+     Structured Documentation, Version 3.0'.  Addison-Wesley, Reading,
+     MA, USA, 1993.
+
+ 13. [Knu84] Donald E. Knuth.  A Torture Test for TeX.  Report No.
+     STAN-CS-84-1027, Stanford University, Department of Computer
+     Science, 1984.
+
+ 14. [Knu86a] Donald E. Knuth.  A Torture Test for METAFONT.  Report
+     No. STAN-CS-86-1095, Stanford University, Department of Computer
+     Science, 1986.
+
+ 15. [Knu86b] Donald E. Knuth.  `The TeXbook', volume A of `Computers
+     and Typesetting'.  Addison-Wesley, Reading, MA, USA, 1986.
+
+ 16. [Knu86c] Donald E. Knuth.  `TeX: The Program', volume B of
+     `Computers and Typesetting'.  Addison-Wesley, Reading, MA, USA,
+     1986.
+
+ 17. [Knu86d] Donald E. Knuth.  `The METAFONTbook', volume C of
+     `Computers and Typesetting'.  Addison-Wesley, Reading, MA, USA,
+     1986.
+
+ 18. [Knu86e] Donald E. Knuth.  `METAFONT: The Program', volume D of
+     `Computers and   Typesetting'.  Addison-Wesley, Reading, MA, USA,
+     1986.
+
+ 19. [Knu86f] Donald E. Knuth.  `Computer Modern Typefaces', volume E
+     of `Computers and   Typesetting'.  Addison-Wesley, Reading, MA,
+     USA, 1986.
+
+ 20. [Knu89] Donald E. Knuth.  The errors of TeX.  `Software--Practice
+     and Experience', 19(7):607-681, July   1989.  This is an updated
+     version of iteKnuth:1988:ET.
+
+ 21. [Knu90] Donald Knuth.  Virtual Fonts: More Fun for Grand Wizards.
+     `TUGboat', 11(1):13-23, April 1990.
+
+ 22. [Knu92] Donald E. Knuth.  `Literate Programming'.  CSLI Lecture
+     Notes Number 27. Stanford University Center for the Study of
+     Language and Information, Stanford, CA, USA, 1992.
+
+ 23. [Lam94] Leslie Lamport.  `LaTeX: A Document Preparation System:
+     User's Guide and Reference   Manual'.  Addison-Wesley, Reading,
+     MA, USA, second edition, 1994.
+
+ 24. [Lia83] Franklin Mark Liang.  Word hy-phen-a-tion by com-pu-ter.
+     Technical Report STAN-CS-83-977, Stanford University, August 1983.
+
+ 25. [Mac91] Pierre A. MacKay.  Looking at the pixels: Quality control
+     for 300 dpi laser printer fonts,   especially Metafonts.  In
+     Robert A. Morris and Jacques Andre, editors, `Raster Imaging and
+     Digital Typography II--Papers from the second RIDT meeting, held in
+      Boston, Oct. 14-16, 1991', pages 205-215, New York, 1991.
+     Cambridge   University Press.
+
+ 26. [Spi89] Michael D. Spivak.  `LAMSTeX, The Synthesis'.  The
+     TeXplorators Corporation, 3701 W. Alabama, Suite 450-273, Houston,
+     TX   77027, USA, 1989.
+
+ 27. [Spi90] Michael D. Spivak.  `The Joy of TeX--A Gourmet Guide to
+     Typesetting with the   AMSTeX macro package'.  American
+     Mathematical Society, Providence, RI, USA, 2nd revised edition,
+     1990.
+
+

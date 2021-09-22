@@ -4,14 +4,21 @@
 #include <string.h>
 #include <utf.h>
 #include <fmt.h>
+#ifndef _SUSV2_SOURCE
+#define _SUSV2_SOURCE
+#include <inttypes.h>
+#undef	_SUSV2_SOURCE
+#else
+#include <inttypes.h>
+#endif
 
 typedef unsigned int u32int;
 typedef unsigned long long u64int;
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
-extern	ulong	getcallerpc(void*);
-extern	void*	mallocz(ulong, int);
+extern	uintptr_t getcallerpc(void*);
+extern	void*	mallocz(size_t, int);
 extern	void	setmalloctag(void*, ulong);
 
 extern int  dec16(uchar *, int, char *, int);

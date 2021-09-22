@@ -38,13 +38,18 @@ private const char *run_strings[] =
 
 #endif
 
+#include <unistd.h>
+
 int
 main(int argc, char *argv[])
 {
     int exit_status = 0;
-    gs_main_instance *minst = gs_main_alloc_instance(gs_malloc_init(NULL));
+write(2, "*\n", 2);				/* TODO DEBUG */
+   gs_main_instance *minst = gs_main_alloc_instance(gs_malloc_init(NULL));
 
-    int code = gs_main_init_with_args(minst, argc, argv);
+write(2, "A", 1);	/* TODO DEBUG */
+// printf("argc %d argv %#p\n", argc, argv);	/* TODO */
+   int code = gs_main_init_with_args(minst, argc, argv);
 
 #ifdef RUN_STRINGS
     {				/* Run a list of strings (for testing). */
@@ -57,6 +62,7 @@ main(int argc, char *argv[])
 
 	    fprintf(stdout, "{%s} =>\n", *pstr);
 	    fflush(stdout);
+write(2, "1", 1);	/* TODO DEBUG */
 	    code = gs_main_run_string(minst, *pstr, 0,
 				      &exit_code, &error_object);
 	    zflush(osp);
@@ -70,6 +76,7 @@ main(int argc, char *argv[])
     }
 #endif
 
+write(2, "2", 1);	/* TODO DEBUG */
     if (code >= 0)
 	code = gs_main_run_start(minst);
 
@@ -86,6 +93,7 @@ main(int argc, char *argv[])
 	    exit_status = 255;
     }
 
+write(2, "3", 1);	/* TODO DEBUG */
     gs_to_exit_with_code(minst->heap, exit_status, code);
 
     switch (exit_status) {
@@ -96,5 +104,6 @@ main(int argc, char *argv[])
 	    exit_status =  exit_FAILED;
 	    break;
     }
+write(2, "4", 1);	/* TODO DEBUG */
     return exit_status;
 }

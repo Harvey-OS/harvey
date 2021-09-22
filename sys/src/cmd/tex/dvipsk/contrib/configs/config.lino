@@ -1,0 +1,93 @@
+*
+*   This configuration file is a sample one for a typesetter.  See the
+*   end of the file especially, where we use setpageparams.  With a
+*   configuration file like this, you can use
+*
+*   -t film0 -k -T 11in,17in
+*
+*   for instance to print an 11x17 inch document in orientation 0 with
+*   crop marks.
+*
+*   Assume we have a nice modern lino with lots of memory.
+*
+m 1000000
+*
+*   And send output by default to a PostScript file.
+*
+o
+*
+*   Default resolution.  We must get this right!
+*
+D 1270
+*
+*   Compress the fonts.
+*
+Z
+*
+*   Paper size information.  First definition is the default.
+*
+*   If your default is a4 uncomment the following definition
+*   and comment out the letterSize definition.
+*
+*@ a4size 210mm 297mm
+*@+ %%PaperSize: a4
+
+@ letterSize 8.5in 11in
+@+ %%PaperSize: Letter
+
+@ letter 8.5in 11in
+@+ %%BeginPaperSize: Letter
+@+ letter
+@+ %%EndPaperSize
+
+@ legal 8.5in 14in
+@+ ! %%DocumentPaperSizes: Legal
+@+ %%BeginPaperSize: Legal
+@+ legal
+@+ %%EndPaperSize
+
+@ ledger 17in 11in
+@+ ! %%DocumentPaperSizes: Ledger
+@+ %%BeginPaperSize: Ledger
+@+ ledger
+@+ %%EndPaperSize
+
+@ tabloid 11in 17in
+@+ ! %%DocumentPaperSizes: Tabloid
+@+ %%BeginPaperSize: Tabloid
+@+ 11x17
+@+ %%EndPaperSize
+
+@ a4 210mm 297mm
+@+ ! %%DocumentPaperSizes: a4
+@+ %%BeginPaperSize: a4
+@+ a4
+@+ %%EndPaperSize
+
+@ a3 297mm 420mm
+@+ ! %%DocumentPaperSizes: a3
+@+ %%BeginPaperSize: a3
+@+ a3
+@+ %%EndPaperSize
+*
+*   These last two are only for typesetters that can set the page size;
+*   uncomment and put them in a `config.lino', for instance.
+*
+*   Use this for pages where you want the text to run in the same direction
+*   as the film feeds (slow scan direction; down the length of the film.)
+*   Best for everything *but* pages higher than the film is wide or pages
+*   wider than they are tall; needed for pages wider than the film is wide.
+*
+@ film0 0in 0in
+@+ statusdict /setpageparams known { vsize hsize 0 0 statusdict begin {
+@+ setpageparams } stopped end } { true } ifelse { statusdict /setpage known
+@+ { vsize hsize 0 statusdict begin { setpage } stopped pop end } if } if
+*
+*   Use this for pages where you want the text to run across the width of
+*   the film (fast scan direction.)  Needed for pages taller than the film
+*   is wide; preferred for pages wider than they are tall.
+*
+@ film1 0in 0in
+@+ statusdict /setpageparams known { hsize vsize 0 1 statusdict begin {
+@+ setpageparams } stopped end } { true } ifelse { statusdict /setpage known
+@+ { hsize vsize 1 statusdict begin { setpage } stopped pop end } if } if

@@ -1,0 +1,4388 @@
+\input texinfo
+@setfilename dvips.info
+@settitle Dvips: A DVI driver
+
+@set version 5.66a
+@set month-year February 1997
+
+@c Define a new index for filenames and options.
+@defcodeindex fl
+@defcodeindex op
+
+@c Put everything in one index (arbitrarily chosen to be the concept index).
+@syncodeindex fl cp
+@syncodeindex fn cp
+@syncodeindex ky cp
+@syncodeindex op cp
+@syncodeindex pg cp
+@syncodeindex vr cp
+
+@ifclear INSTALLONLY
+
+@dircategory TeX
+@direntry
+* DVI-to-Postscript: (dvips).        Translating TeX DVI files to PostScript.
+* afm2tfm: (dvips)Invoking afm2tfm.  Making Type 1 fonts available to TeX.
+* dvips: (dvips)Invoking Dvips.      DVI-to-PostScript translator.
+@end direntry
+
+@titlepage
+@title Dvips: A DVI-to-PostScript Translator
+@subtitle for version @value{version}
+@subtitle @value{month-year}
+@author Tomas Rokicki
+@author (edited for Dvipsk by @email{kb@@mail.tug.org})
+
+@page
+@vskip 0pt plus 1filll
+This document is based on @file{dvips.tex} by Tomas Rokicki.  It is
+in the public domain.
+@end titlepage
+
+@ifinfo
+@node Top
+@top Dvips
+
+This manual documents Dvips, a program to translate a DVI file into
+PostScript.  It corresponds to version @value{version}
+(@value{month-year}) of the Dvipsk distribution, a slightly modified
+variant of the original Dvips program with path searching rules
+consistent with the Web2c @TeX{} implementation, the GNU font utilities,
+Xdvik, and Dviljk.
+
+@menu
+* Why Dvips::                   Why use Dvips?
+* Installation::                How to compile and install Dvips.
+* Invoking Dvips::              Command-line options, configuration files, etc.
+* Paper size and landscape::    Changing the paper dimensions.
+* Interaction with PostScript:: TeX meets Dvips meets PostScript.
+* PostScript fonts::            Installing and using PostScript fonts.
+* Color::                       Using color with Dvips.
+* Index::                       General index.
+@end menu
+@end ifinfo
+
+
+@node Why Dvips
+@chapter Why use Dvips?
+
+The Dvips program has a number of features that set it apart from
+other PostScript drivers for @TeX{}.  This rather long section describes
+the advantages of using Dvips, and may be skipped if you are just
+interested in learning how to use the program.  @xref{Installation}, for
+details of compilation and installation.
+
+The Dvips driver generates excellent, standard PostScript, that
+can be included in other documents as figures or printed through a
+variety of spoolers.  The generated PostScript requires very little
+printer memory, so very complex documents with a lot of fonts can easily
+be printed even on PostScript printers without much memory, such as the
+original Apple LaserWriter.  The PostScript output is also compact,
+requiring less disk space to store and making it feasible as a transfer
+format.
+
+Even those documents that are too complex to print in their entirety on
+a particular printer can be printed, since Dvips will
+automatically split such documents into pieces, reclaiming the printer
+memory between each piece.
+
+The Dvips program supports graphics in a natural way, allowing
+PostScript graphics to be included and automatically scaled and
+positioned in a variety of ways.
+
+Printers with any resolution are supported, even if they have different
+resolutions in the horizontal and vertical directions.  High resolution
+output is supported for typesetters, including an option that compresses
+the bitmap fonts so that typesetter virtual memory is not exhausted.
+This option also significantly reduces the size of the PostScript file
+and decoding in the printer is very fast.
+
+Missing fonts can be automatically generated if Metafont exists on
+the system, or fonts can be converted from GF to PK format
+on demand.  If a font cannot be generated, a scaled version of the same
+font at a different size can be used instead, although Dvips will
+complain loudly about the poor aesthetics of the resulting output.
+
+Users will appreciate features such as collated copies and support for
+@file{tpic}, @file{psfig}, @file{emtex}, and @file{METAPOST}; system
+administrators will love the support for multiple printers, each with
+their own configuration file, and the ability to pipe the output
+directly to a program such as @file{lpr}.  Support for MS-DOS, OS/2, and
+VMS in addition to Unix is provided in the standard distribution, and
+porting to other systems is easy.
+
+One of the most important features is the support of virtual fonts,
+which add an entirely new level of flexibility to @TeX{}.  Virtual fonts
+are used to give Dvips its excellent PostScript font support, handling
+all the font remapping in a natural, portable, elegant, and extensible
+way.  Dvips even comes with its own Afm2tfm program that creates
+the necessary virtual fonts and @TeX{} font metric files automatically
+from the Adobe font metric files.
+
+Source is provided and freely distributable, so adding a site-specific feature
+is possible.  Adding such features is made easier by the highly modular
+structure of the program.
+
+There is really no reason to use another driver, and the more people use
+Dvips, the less time will be spent fighting with PostScript and the
+more time will be available to create beautiful documents.
+So if you don't use Dvips on your system, get it today.
+
+@cindex Rokicki, Tomas
+Tom Rokicki wrote and maintains the original Dvips program.
+
+@end ifclear
+@c INSTALLONLY
+
+
+@node Installation
+@chapter Installation
+
+@cindex configuration, of Dvips
+@cindex compilation
+@cindex installation, of Dvips
+
+@ifset version
+(A copy of this chapter is in the distribution file @file{dvipsk/INSTALL}.)
+@end ifset
+
+Installing Dvips is mostly the same as installing any Kpathsea-using
+program.  Therefore, for the basic steps involved,
+@pxref{Installation,,, kpathsea, Kpathsea}.  (A copy is in the file
+@file{kpathsea/INSTALL}.)
+
+For solutions to common installation problems and information on how to
+report a bug, see the file @file{kpathsea/BUGS} (@pxref{Bugs,,,
+kpathsea, Kpathsea}).  For solutions to Dvips-specific problems,
+@pxref{Debug options}.  Also see the Dvips home page at
+@url{http://www.radicaleye.com/dvips}.
+
+Dvips does require some additional installation, detailed in the
+sections below.  Also, to configure color devices, @pxref{Color device
+configuration}.
+
+@menu
+* config.ps installation::        Printer and site Dvips configuration.
+* PostScript font installation::  Many PostScript fonts are freely available.
+* Ghostscript installation::      A free PostScript interpreter.
+* Diagnosing problems::           Some common runtime difficulties.
+@end menu
+
+
+@node config.ps installation
+@section @file{config.ps} installation
+
+@flindex config.ps @r{installation}
+@cindex installation of @file{config.ps}
+@cindex printer configuration
+@cindex paper size, default
+@cindex configuration files, creating
+
+Dvips has its own configuration files: a file @file{config.ps} for
+sitewide defaults, and a file @file{config.@var{printer}} for each
+printer (output device).  Since these are site-specific, @code{make
+install} does not create them; you must create them yourself.
+
+(These Dvips configuration files are independent of the Kpathsea
+onfiguration file @file{texmf.cnf} (@pxref{Config files,,,kpathsea,
+Kpathsea}).
+
+@flindex config.proto
+@cindex prototype printer configuration file
+@cindex printer configuration file, prototype
+@cindex configuration files, prototype
+Dvips configuration files contents and searching are described fully in
+@ref{Config files}.  The simplest way to create a new configuration file
+is to copy and modify the file @file{dvipsk/contrib/config.proto},
+seasoning with options to your taste from @ref{Config files}.  Here is
+@file{config.proto}
+for your reading pleasure:
+@example
+@include contrib/config.proto
+@end example
+
+
+@node PostScript font installation
+@section PostScript font installation
+
+@cindex installation of PostScript fonts
+@cindex fonts, installation of PostScript
+@cindex PostScript fonts, installing
+
+To use PostScript fonts with @TeX{} and Dvips, you need both metric
+files (@file{.tfm} and @file{.vf}) and the outlines (@file{.pfa} or
+@file{.pfb}).  @xref{Font concepts}.
+
+@cindex Adobe fonts
+@cindex Bigelow & Holmes fonts
+@cindex Lucida, installing
+@cindex Monotype fonts
+@cindex Softkey fonts
+To support the basic PostScript font set, the recommended (and simplest)
+approach is to retrieve @url{ftp://ftp.tug.org/tex/psfonts.tar.gz} and
+unpack it in your @code{$(fontdir)} directory
+(@file{/usr/local/share/texmf/fonts} by default).  This archive contains
+metrics, outlines, and bitmaps (for previewing) for the 35 de facto
+standard fonts donated by URW and the additional high-quality freely
+available PostScript fonts donated by Adobe, Bitstream, and URW,
+including geometrically-created variants such as oblique and small caps.
+
+@cindex Adobe fonts, installing
+@cindex Bitstream fonts, installing
+@cindex Monotype fonts, installing
+@cindex Softkey fonts, installing
+@cindex Y&Y fonts, installing
+@file{@var{CTAN:}/fonts/psfonts} contains support for many additional
+fonts for which you must buy outlines (Adobe, Bigelow & Holmes,
+Monotype, Softkey, Y&Y).  @file{psfonts.tar.gz} is a small extract from
+this directory.  (For CTAN info, @pxref{unixtex.ftp,,, kpathsea,
+Kpathsea}; a copy is in the top-level file @file{INSTALL}.)
+
+@cindex fonts, system PostScript
+@cindex PostScript fonts, on your system
+@flindex psfonts.map
+If you have additional PostScript fonts, you can make them available to
+Dvips by (1) giving them with appropriate filenames; and (2) running
+Afm2tfm (@pxref{Making a font available}) to make TFM and VF metrics for
+@TeX{} and Dvips to use.  Also add them to @file{psfonts.map} if
+necessary (@pxref{psfonts.map}); it contains everything contained in
+@file{psfonts.tar.gz} and most fonts that come with Unix systems.
+
+Following are locations for vendor-supplied fonts.  Please mail
+@email{tex-k@@mail.tug.org} if you find fonts elsewhere on your system.
+
+@table @asis
+@item DEC Ultrix
+@t{/usr/lib/DPS/outline/decwin}
+
+@item DEC Digital Unix
+@t{/usr/lib/X11/fonts/Type1Adobe}
+
+@item HP HP-UX 9, 10
+@t{/usr/lib/X11/fonts/type1.st/typefaces}
+
+@item IBM AIX
+@t{/usr/lpp/DPS/fonts/outlines}@*
+@t{/usr/lpp/X11/lib/X11/fonts/Type1}@*
+@t{/usr/lpp/X11/lib/X11/fonts/Type1/DPS}
+
+@item NeXT
+@t{/NextLibrary/Fonts/outline}
+
+@item SGI IRIX
+@t{/usr/lib/DPS/outline/base}
+@t{/usr/lib/X11/fonts/Type1}
+
+@item Sun SunOS 4.x
+(NeWSprint only)@*
+@t{newsprint_2.5/SUNWsteNP/reloc/$BASEDIR/}@*
+@t{   NeWSprint/small_openwin/lib/fonts}@*
+@t{/usr/openwin/lib/X11/fonts/Type1/outline}
+
+@item Sun Solaris 2
+@t{/usr/openwin/lib/X11/fonts/Type1/outline}
+
+@item VMS
+@t{SYS$COMMON:[SYSFONT.XDPS.OUTLINE]}
+@end table
+
+@noindent The NeXT system supplies more fonts than any others, but
+there's a lot of overlap.
+
+@cindex HP printers and Type 1 fonts
+Finally, if you have an Hewlett-Packard printer, you should be able to
+get Type 1 font files for the standard 35 fonts from HP, if the freely
+available URW Type 1's do not satisfy for whatever reason.  The phone
+number for HP Printer Drivers is (in the United States) 303-339-7009.
+The driver set to ask for is Adobe Type Manager 2.51, and the disk set
+number is @samp{MP210en3}.  Mentioning anything other than Microsoft
+Windows when you ask for the driver set will likely lead to great
+confusion on the other end.
+
+
+@node Ghostscript installation
+@section Ghostscript installation
+
+@cindex Ghostscript installation
+@pindex gs @r{installation}
+
+@cindex Deutsch, Peter
+@cindex Epson printers
+@cindex previewing Dvips output
+@cindex PostScript previewers
+@cindex PDF files, making
+@cindex Aladdin Ghostscript
+Ghostscript is a PostScript interpreter freely available to end-users,
+written by Peter Deutsch.  It can read the PostScript produced by Dvips
+and render it on your monitor, or for another device (e.g., an Epson
+printer) that does not support PostScript, or in PDF format.  The latest
+version is available via @url{http://www.cs.wisc.edu/~ghost/index.html}
+and @url{ftp://ftp.cs.wisc.edu/pub/ghost/aladdin/}.
+
+@cindex GNU Ghostscript
+A somewhat older version of Ghostscript is available under the GNU
+General Public License, free to everyone.  You can get that from
+@url{ftp://prep.ai.mit.edu/pub/gnu/}.
+
+@cindex Theisen, Tim
+@pindex ghostview
+@cindex Ghostview, and no @samp{N}
+@cindex EPS, and Ghostview
+@cindex standard PostScript, required by Ghostview
+@findex %%Page@r{, required by Ghostview}
+The program Ghostview, written by Tim Theisen, provides typical
+previewing capabilities (next page/previous page, magnification, etc.).
+It requires Ghostscript to run, and files in structured Postscript,
+specifically with @samp{%%Page} comments (no @samp{N} in
+@file{config.ps}).  You can get Ghostview from the same places as
+Ghostscript.
+
+
+@node Diagnosing problems
+@section Diagnosing problems
+
+@cindex problems
+@cindex trouble
+@cindex debugging
+
+You've gone through all the trouble of installing Dvips, carefully read
+all the instructions in this manual, and still can't get something to
+work.  The following sections provide some helpful hints if you find
+yourself in such a situation.
+
+For details on effective bug reporting, common installation problems,
+and @code{mktexpk} problems, @pxref{Bugs,,, kpathsea, Kpathsea}.
+
+@menu
+* Debug options::               Getting diagnostics.
+* No output::                   No output at all.
+* Small or inverted::           Output too small or inverted.
+* Printer errors::              The printer sends back errors.
+* Long documents fail::         Long documents fail to print.
+* Including graphics fails::    Figures don't work.
+@end menu
+
+
+@node Debug options
+@subsection Debug options
+
+@cindex debugging options
+@cindex options, debugging
+
+The @samp{-d} flag to Dvips helps in tracking down certain errors.  The
+parameter to this flag is an integer that tells what errors are
+currently being tracked.  To track a certain class of debug messages,
+simply provide the appropriate number given below; if you wish to track
+multiple classes, sum the numbers of the classes you wish to track.  To
+track all classes, you can use @code{-1}.  Another useful value is
+@code{3650}, which tracks everything having to do with file searching
+and opening.
+
+Some of these debugging options are actually provided by Kpathsea
+(@pxref{Debugging, , , kpathsea, Kpathsea}).
+
+The classes are:
+@table @asis
+@item 1 
+specials
+@item 2
+paths
+@item 4
+fonts
+@item 8
+pages
+@item 16
+headers
+@item 32
+font compression
+@item 64
+files
+@item 128
+config files
+@item 256
+Partial Type 1 font encoding vectors
+@item 512
+Partial Type 1 subr calls
+@item 1024
+Kpathsea @code{stat} calls
+@item 2048
+Kpathsea hash table lookups
+@item 4096
+Kpathsea path element expansion
+@item 8192
+Kpathsea path searches
+@end table
+
+
+@node No output
+@subsection No output at all
+
+@cindex output, none
+@cindex no output at all
+@cindex failure, to print at all
+
+If you are not getting any output at all, even from the simplest
+one-character file (for instance, @samp{\ \bye}), then something is very
+wrong.  Practically any file sent to a PostScript laser printer should
+generate some output, at the very least a page detailing what error
+occurred, if any.  Talk to your system administrator about downloading a
+PostScript error handler.  (Adobe distributes a good one called
+@samp{ehandler.ps}.)
+@flindex ehandler.ps
+
+@cindex PowerPage PostScript implementation
+@cindex Shinko CHC-S446i printer
+@cindex Mitsubishi Shinko CHC-S446i printer
+It is possible, especially if you are using non-Adobe PostScript, that
+your PostScript interpreter is broken.  Even then it should generate an
+error message.  Dvips tries to work around as many bugs as possible in
+common non-Adobe PostScript interpreters, but doubtless it misses a few.
+PowerPage Revision 1, Interpreter Version 20001.001, on a Mitsubishi
+Shinko CHC-S446i color thermal dye sublimation printer is known to be
+unable to print with any but builtin fonts.
+
+If Dvips gives any strange error messages, or compilation on your
+machine generated a lot of warnings, perhaps the Dvips program itself is
+broken.  Try using the debug options to determine where the error
+occurred (@pxref{Debug options}).
+
+It is possible your spooler is broken and is misinterpreting the
+structured comments.  Try the @samp{-N} flag to turn off structured
+comments and see what happens.
+
+
+@node Small or inverted
+@subsection Output too small or inverted
+
+@cindex output, too small
+@cindex output, inverted
+@cindex inverted output
+@cindex too-small output
+
+@cindex save/restore, and inverted output
+If some documents come out inverted or too small, probably your spooler
+is not supplying an end of job indicator at the end of each file.  (This
+commonly happens on small machines that don't have spoolers.)  You can
+force Dvips to do this with the @samp{-F} flag (or @samp{F} config file
+option), but this generates files with a terminating binary character
+(control-D).  You can also try using the @samp{-s} flag (or @samp{s}
+config file option) to enclose the entire job in a save/restore pair.
+@xref{Command-line options}, and @ref{Config files}.
+
+
+@node Printer errors
+@subsection Error messages from printer
+
+@cindex printer errors
+@cindex error messages from printer
+@cindex failure, and printer errors
+
+@cindex @t{bop undefined} error
+If your printer returns error messages, the error message gives very
+good information on what might be going wrong.  One of the most common
+error messages is @samp{bop undefined}.  This is caused by old versions
+of Transcript and other spoolers that do not properly parse the setup
+section of the PostScript.  To fix this, turn off structured comments
+with the @samp{-N} option, but it'd be best to get your spooling
+software updated.
+
+@cindex VM exhausted
+@cindex printer memory exhausted
+@cindex memory of printer exhausted
+Another error message is @samp{VM exhausted}.  Some printers indicate
+this error by locking up, others quietly reset.  This is caused by Dvips
+thinking that the printer has more memory than it actually does, and
+then printing a complicated document.  To fix this, try lowering the
+@samp{m} parameter in the configuration file; use the debug option to
+make sure you adjust the correct file.
+
+Other errors may indicate you are trying to include graphics that don't
+nest properly in other PostScript documents, among other things.  Try
+the PostScript file on a QMS PS-810 or other Adobe PostScript printer if
+you have one, or Ghostscript (@pxref{Ghostscript installation}); it
+might be a problem with the printer itself.
+
+
+@node Long documents fail
+@subsection Long documents fail to print
+
+@cindex long documents not printing
+@cindex failure, of long documents
+
+This is usually caused by incorrectly specifying the amount of memory
+the printer has in the configuration file; see the previous section.
+
+
+@node Including graphics fails
+@subsection Including graphics fails
+
+@cindex including graphics fails
+@cindex graphics inclusion fails
+@cindex failure, to include graphics
+
+The most common problem with including graphics is an incorrect bounding
+box (@pxref{Bounding box}). Complain to whoever wrote the software that
+generated the file if the bounding box is indeed incorrect.
+
+@cindex Illustrator, workaround for
+Another possible problem is that the figure you are trying to include
+does not nest properly; there are certain rules PostScript applications
+must follow when generating files to be included.  The Dvips program
+includes work-arounds for such errors in Adobe Illustrator and other
+programs, but there are certainly applications that haven't been tested.
+
+One possible thing to try is the @samp{-K} flag which strips the comments
+from an included figure.  This might be necessary if the PostScript
+spooling software does not read the structured comments correctly.  Use
+of this flag will break graphics from some applications, though, since
+some applications read the PostScript file from the input stream,
+looking for a particular comment.
+
+@cindex binary files, not supported
+Any application which generates graphics output containing raw binary
+(not ASCII hex) will probably fail with Dvips.
+
+
+@ifclear INSTALLONLY
+@node Invoking Dvips
+@chapter Invoking Dvips
+
+@cindex command-line options
+@cindex options, Dvips
+@cindex invoking Dvips
+
+Dvips reads a DVI file as output by (for example) @TeX{}, and converts
+it to PostScript, taking care of builtin or downloaded PostScript fonts,
+font reencoding, color, etc.  These features are described in other
+chapters in this document.
+
+There many ways to control Dvips' behavior: configuration files,
+environment variables, and command-line options.
+
+@menu
+* Basic usage::
+* Command-line options::        
+* Environment variables::       
+* Config files::                
+@end menu
+
+
+@node Basic usage
+@section Basic usage of Dvips
+
+To use Dvips at its simplest, simply type
+@example
+dvips foo
+@end example
+@noindent
+where @file{foo.dvi} is the output of @TeX{} that you want to print.  If
+Dvips has been installed correctly, the document will probably roll out
+of your default printer.
+
+If you use fonts that have not been used on your system before, they may
+be automatically generated; this process can take a few minutes, so
+progress reports appear by default.  The next time that document is
+printed, these fonts will have been saved in the proper directories, so
+printing will go much faster.  (If Dvips tries to endlessly generate the
+same fonts over and over again, it hasn't been installed properly.
+@xref{Unable to generate fonts,,, kpathsea, Kpathsea}.)
+
+Many options are available (see the next section).  For a brief summary
+of available options, just type
+@example
+dvips --help
+@end example
+
+
+@node Command-line options
+@section Command-line options
+
+Dvips has a plethora of command line options.  Reading through this
+section will give a good idea of the capabilities of the driver.
+
+@menu
+* Option summary::              Quick listing, from Dvips --help.
+* Option details::              More information about each option.
+@end menu
+
+
+@node Option summary
+@subsection Option summary
+
+@cindex options, summary
+Here is a handy summary of the options; it is printed out when you run
+Dvips with no arguments or with the standard @samp{--help} option.
+@opindex --help
+
+@example
+@include dvips.help
+@end example
+
+
+@node Option details
+@subsection Option details
+
+@cindex option, details of
+
+Many of the parameterless options listed here can be turned off by
+suffixing the option with a zero (@samp{0}); for instance, to turn off
+page reversal, use @samp{-r0}.  Such options are marked with a trailing
+@samp{*}.
+
+@table @samp
+@item -
+@opindex -
+@cindex options, reading from standard input
+@cindex standard input, reading options from
+Read additional options from standard input after processing the command
+line.
+
+@item --help
+@opindex --help
+Print a usage message and exit.
+
+@item --version
+@opindex --version
+Print the version number and exit.
+
+@item -a*
+@opindex -a
+@cindex memory, conserving
+Conserve memory by making three passes over the DVI file instead
+of two and only loading those characters actually used.  Generally only
+useful on machines with a very limited amount of memory, like some PCs.
+
+@item -A
+@opindex -A
+@cindex odd pages only
+Print only the odd pages.  This option uses @TeX{}
+page numbers, not physical page numbers.
+
+@item -b @var{num}
+@opindex -b @var{num}
+@vindex /#copies
+@cindex copies, duplicated page bodies
+@cindex color separations
+Generate @var{num} copies of each page, but duplicating the page body
+rather than using the @samp{/#copies} PostScript variable.  This can
+be useful in conjunction with a header file setting @samp{bop-hook} to
+do color separations or other neat tricks.
+
+@item -B
+@opindex -B
+@cindex even pages only
+@cindex double-sided printing
+Print only the even pages.  This option uses @TeX{} page numbers, not
+physical page numbers.
+
+@item -c @var{num}
+@opindex -c @var{num}
+@vindex /#copies
+@cindex copies, uncollated
+@cindex uncollated copies
+Generate @var{num} consecutive copies of every page, i.e., the output is
+uncollated.  This merely sets the builtin PostScript variable
+@samp{/#copies}.
+
+@item -C @var{num}
+@opindex -C @var{num}
+@cindex copies, collated
+@cindex collated copies
+Generate @var{num} copies, but collated (by replicating the data in the
+PostScript file).  Slower than the @samp{-c} option, but easier on the
+hands, and faster than resubmitting the same PostScript file multiple
+times.
+
+@item -d @var{num}
+@opindex -d @var{num}
+@cindex debugging
+Set the debug flags, showing what Dvips (thinks it) is doing.  This will
+work unless Dvips has been compiled without the @samp{DEBUG} option (not
+recommended).  @xref{Debug options}, for the possible values of
+@var{num}.  Use @samp{-d -1} as the first option for maximum output.
+
+@item -D @var{num}
+@opindex -D @var{num}
+@cindex resolution, setting
+Set both the horizontal and vertical resolution to @var{num}, given in
+dpi (dots per inch). This affects the choice of bitmap fonts that are
+loaded and also the positioning of letters in resident PostScript
+fonts. Must be between 10 and 10000.  This affects both the horizontal
+and vertical resolution.  If a high resolution (something greater than
+400 dpi, say) is selected, the @samp{-Z} flag should probably also be
+used.  If you are using fonts made with Metafont, such as Computer
+Modern, @file{mktexpk} needs to know about the value for @var{num}
+that you use or Metafont will fail.  See the file
+@url{ftp://ftp.tug.org/tex/modes.mf} for a list of resolutions and mode
+names for most devices.
+
+@item -e @var{num}
+@opindex -e @var{num}
+@cindex maxdrift
+@cindex accuracy in positioning
+@cindex positioning accuracy
+Maximum drift in pixels of each character from its `true'
+resolution-independent position on the page. The default value of this
+parameter is resolution dependent (it is the number of entries in the
+list [100, 200, 300, 400, 500, 600, 800, 1000, 1200, 1600, 2000, 2400,
+2800, 3200, @dots{}] that are less than or equal to the resolution in
+dots per inch). Allowing individual characters to `drift' from their
+correctly rounded positions by a few pixels, while regaining the true
+position at the beginning of each new word, improves the spacing of
+letters in words.
+
+@item -E*
+@opindex -E
+@cindex EPSF, generating
+@cindex tight bounding box, finding
+@cindex bounding box, finding tight
+Generate an EPSF file with a tight bounding box.  This only looks at
+marks made by characters and rules, not by any included graphics.  In
+addition, it gets the glyph metrics from the TFM file, so characters
+that print outside their enclosing TFM box may confuse it.  In addition,
+the bounding box might be a bit too loose if the character glyph has
+significant left or right side bearings.  Nonetheless, this option works
+well enough for creating small EPSF files for equations or tables or the
+like.  (Of course, Dvips output, especially when using bitmap fonts, is
+resolution-dependent and thus does not make very good EPSF files,
+especially if the images are to be scaled; use these EPSF files with
+care.)  For multiple page input files, also specify @samp{-i} to get
+each page as a separate EPSF file; otherwise, all the pages are overlaid
+in the single output file.
+
+@item -f*
+@opindex -f
+@cindex filter, running as a
+@cindex standard I/O
+@cindex pipes, not readable
+@vindex PRINTER@r{, avoided with @samp{-f}}
+Run as a filter.  Read the DVI file from standard input and write the
+PostScript to standard output.  The standard input must be seekable, so
+it cannot be a pipe.  If your input must be a pipe, write a shell script
+that copies the pipe output to a temporary file and then points Dvips at
+this file.  This option also disables the automatic reading of the
+@code{PRINTER} environment variable; use @samp{-P$PRINTER} after the
+@samp{-f} to read it anyway.  It also turns off the automatic sending of
+control-D if it was turned on with the @samp{-F} option or in the
+configuration file; use @samp{-F} after the @samp{-f} to send it anyway.
+
+@item -F*
+@opindex -F
+@cindex EOF
+@cindex control-D
+@cindex printer, driving directly
+@cindex spooler, lacking
+Write control-D (ASCII code 4) as the very last character of the
+PostScript file.  This is useful when Dvips is driving the printer
+directly instead of working through a spooler, as is common on personal
+systems.  On systems shared by more than one person, this is not
+recommended.
+
+@item -h @var{name}
+@opindex -h @var{name}
+@cindex header file, downloading
+@cindex userdict@r{, used for header files}
+Prepend @var{name} as an additional header file, or, if @var{name} is
+@samp{-}, suppress all header files.  Any definitions in the header file
+get added to the PostScript @samp{userdict}.
+
+@item -i*
+@opindex -i
+@cindex sections output, in separate files
+@cindex multiple output files
+@cindex output files, multiple
+Make each section be a separate file; a @dfn{section} is a part of the
+document processed independently, most often created to avoid memory
+overflow.  The filenames are created replacing the suffix of the
+supplied output file name by a three-digit sequence number.  This option
+is most often used in conjunction with the @samp{-S} option which sets
+the maximum section length in pages; if @samp{-i} is specified and
+@samp{-S} is not, each page is output as a separate file.  For instance,
+some phototypesetters cannot print more than ten or so consecutive pages
+before running out of steam; these options can be used to automatically
+split a book into ten-page sections, each to its own file.
+
+@item -j*
+@opindex -j @r{for partial font downloading}
+Download only needed characters from Type 1 fonts. This is the
+default in the current release.  Some debugging flags trace this operation
+(@pxref{Debug options}).  You can also control partial downloading on a
+per-font basis (@pxref{psfonts.map}).
+
+@item -k*
+@opindex -k @r{for cropmarks}
+@cindex cropmarks
+@flindex crop.pro
+Print crop marks.  This option increases the paper size (which should be
+specified, either with a paper size special or with the @samp{-T}
+option) by a half inch in each dimension.  It translates each page by a
+quarter inch and draws cross-style crop marks.  It is mostly useful with
+typesetters that can set the page size automatically.  This works by
+downloading @file{crop.pro}.
+
+@item -K*
+@opindex -K
+@cindex comments, removing included
+@findex %%Page@r{, removing}
+Remove comments in included PostScript graphics, font files, and
+headers; only necessary to get around bugs in spoolers or PostScript
+post-processing programs.  Specifically, the @samp{%%Page}
+comments, when left in, often cause difficulties.  Use of this flag can
+cause other graphics to fail, however, since the PostScript header
+macros from some software packages read portion the input stream line by
+line, searching for a particular comment.
+
+@item -l [=]@var{num}
+@opindex -l [=]@var{num}
+@cindex last page printed
+@cindex page, last printed
+@cindex physical page number, and @samp{-l}
+@cindex absolute page number, and @samp{-l}
+The last page printed will be the first one numbered @var{num}. Default
+is the last page in the document.  If @var{num} is prefixed by an equals
+sign, then it (and the argument to the @samp{-p} option, if specified)
+is treated as a physical (absolute) page number, rather than a value to
+compare with the @TeX{} @samp{\count0} values stored in the DVI file.
+Thus, using @samp{-l =9} will end with the ninth page of the document,
+no matter what the pages are actually numbered.
+
+@item -m*
+@opindex -m
+@cindex manual feed
+Specify manual feed, if supported by the output device.
+
+@item -mode @var{mode}
+@opindex -mode @var{mode}
+@opindex -mode
+@cindex mode name, specifying
+@cindex Metafont mode, specifying
+Use @var{mode} as the Metafont device name for path searching and font
+generation.  This overrides any value from configuration files.  With
+the default paths, explicitly specifying the mode also makes the program
+assume the fonts are in a subdirectory named @var{mode}.
+@xref{TeX directory structure,, @TeX{} directory structure, kpathsea,
+Kpathsea}.  If Metafont does not understand the @var{mode} name, see
+@ref{Unable to generate fonts,,, kpathsea, Kpathsea}.
+
+@item -M*
+@opindex -M
+@cindex font generation, avoiding
+@pindex mktexpk@r{, avoiding}
+@flindex missfont.log
+@comment this description repeated in kpathsea.texi
+Turns off automatic font generation (@file{mktexpk}).  If
+@code{mktexpk}, the invocation is appended to a file
+@file{missfont.log} (by default) in the current directory.  You can then
+execute the log file to create the missing files after fixing the
+problem.
+@vindex TEXMFOUTPUT
+@vindex MISSFONT_LOG
+If the current directory is not writable and the environment variable or
+configuration file value @samp{TEXMFOUTPUT} is set, its value is used.
+Otherwise, nothing is written.  The name @samp{missfont.log} is
+overridden by the @samp{MISSFONT_LOG} environment variable or
+configuration file value.
+
+@item -n @var{num}
+@opindex -n @var{num}
+@cindex maximum pages printed
+@cindex pages, maximum printed
+Print at most @var{num} pages. Default is 100000.
+
+@item -N*
+@opindex -N
+@cindex structured comments
+@cindex TranScript
+@findex %%Page@r{, not generating}
+Turns off generation of structured comments such as @samp{%%Page}; this
+may be necessary on some systems that try to interpret PostScript
+comments in weird ways, or on some PostScript printers.  Old versions of
+TranScript in particular cannot handle modern Encapsulated PostScript.
+Beware: This also disables page movement, etc., in PostScript viewers
+such as Ghostview.
+
+@item -o @var{name}
+@opindex -o @var{name}
+@cindex output, redirecting
+@cindex standard output, output to
+Send output to the file @var{name}.  If @samp{-o} is specified without
+@var{name}, the default is @samp{@var{file}.ps} where the input DVI file
+was @samp{@var{file}.dvi}.  If @samp{-o} isn't given at all, the
+configuration file default is used.
+
+@findex popen @r{for output}
+@kindex - @r{as output filename}
+@kindex ! @r{starting output filename}
+@kindex | @r{starting output filename}
+@cindex lpr spooler, MS-DOS emulation
+@cindex spooling to lpr on MS-DOS
+If @var{name} is @samp{-}, output goes to standard output.  If the first
+character of @var{name} is @samp{!} or @samp{|}, then the remainder will
+be used as an argument to @code{popen}; thus, specifying @samp{|lpr} as
+the output file will automatically queue the file for printing as
+usual.  (The MS-DOS version will print to the local printer device
+@file{PRN} when @var{name} is @samp{|lpr} and a program by that name
+cannot be found.)
+
+@samp{-o} disables the automatic reading of the @code{PRINTER}
+environment variable, and turns off the automatic sending of control-D.
+See the @samp{-f} option for how to override this.
+
+@item -O @var{x-offset},@var{y-offset}
+@opindex -O @var{x-offset},@var{y-offset}
+@cindex offset pages
+@cindex printer offset
+Move the origin by @var{x-offset},@var{y-offset}, a comma-separated
+pair of dimensions such as @samp{.1in,-.3cm} (@pxref{papersize
+special}).  The origin of the page is shifted from the default position
+(of one inch down, one inch to the right from the upper left corner of
+the paper) by this amount.  This is usually best specified in the
+printer-specific configuration file.
+
+@flindex testpage.tex
+This is useful for a printer that consistently offsets output pages by a
+certain amount.  You can use the file @file{testpage.tex} to determine
+the correct value for your printer.  Be sure to do several runs with the
+same @code{O} value---some printers vary widely from run to run.
+
+@findex bop-hook@r{, and offset pages}
+If your printer offsets every other page consistently, instead of every
+page, your best recourse is to use @samp{bop-hook} (@pxref{PostScript
+hooks}).
+
+@item -p [=]@var{num}
+@opindex -p [=]@var{num}
+@cindex first page printed
+@cindex page, first printed
+@cindex physical page number, and @samp{-p}
+@cindex absolute page number, and @samp{-p}
+The first page printed will be the first one numbered @var{num}. Default
+is the first page in the document.  If @var{num} is prefixed by an
+equals sign, then it (and the argument to the @samp{-l} option, if
+specified) is treated as a physical (absolute) page number, rather than
+a value to compare with the @TeX{} @samp{\count0} values stored in the
+DVI file.  Thus, using @samp{-p =3} will start with the third page of
+the document, no matter what the pages are actually numbered.
+
+@item -pp @var{first}-@var{last}
+@opindex -pp @var{first}-@var{last}
+@cindex page range
+@opindex -pp @var{range}
+Print pages @var{first} through @var{last}; equivalent to @samp{-p
+@var{first} -l @var{last}}, except that multiple @samp{-pp} options
+accumulate, unlike @samp{-p} and @samp{-l}.  The @samp{-} separator can
+also be @samp{:}.
+
+@item -P @var{printer}
+@opindex -P @var{printer}
+@flindex config.ps
+Read the configuration file @file{config.@var{printer}}
+(@file{@var{printer}.cfg} on MS-DOS), which can set the output name
+(most likely @samp{o |lpr -P@var{printer}}), resolution, Metafont mode,
+and perhaps font paths and other printer-specific defaults.  It works
+best to put sitewide defaults in the one master @samp{config.ps} file
+and only things that vary printer to printer in the
+@samp{config.@var{printer}} files; @samp{config.ps} is read before
+@samp{config.@var{printer}}.
+
+If no @samp{-P} or @samp{-o} is given, the environment variable
+@code{PRINTER} is checked.  If that variable exists, and a corresponding
+@file{config.@var{printer}} (@file{@var{printer}.cfg} on MS-DOS) file
+exists, it is read.
+@xref{Configuration file searching}.
+
+@item -q*
+@opindex -q
+@cindex quiet operation
+@cindex silent operation
+@cindex warnings, suppressing
+Run quietly.  Don't chatter about pages converted, etc.@: to standard
+output; report no warnings (only errors) to standard error.
+
+@item -r*
+@opindex -r
+@cindex reverse pagination
+Output pages in reverse order.  By default, page 1 is output first.
+
+@item -R
+@opindex -R
+@cindex security
+@cindex shell command execution, disabling
+@cindex absolute filenames, disabling
+@cindex pipes, disabling output to
+Run securely.  This disables shell command execution in @code{\special}
+(via @samp{`}, @pxref{Dynamic creation of graphics}) and config files
+(via the @samp{E} option, @pxref{Configuration file commands}), pipes as
+output files, and opening of any absolute filenames.
+
+@item -s*
+@opindex -s
+@cindex save/restore, generating global
+Enclose the output in a global save/restore pair.  This causes the file
+to not be truly conformant, and is thus not recommended, but is useful
+if you are driving a deficient printer directly and thus don't care too
+much about the portability of the output to other environments.
+
+@item -S @var{num}
+@opindex -S @var{num}
+Set the maximum number of pages in each `section'.  This option is most
+commonly used with the @samp{-i} option; see its description above for
+more information.
+
+@item -t @var{papertype}
+@opindex -t @var{papertype}
+@cindex paper type
+@cindex media
+@cindex letter papertype
+@cindex legal papertype
+@cindex ledger papertype
+@cindex a4 papertype
+@cindex a3 papertype
+@cindex landscape papertype
+Set the paper type to @var{papertype}, usually defined in one of the
+configuration files, along with the appropriate PostScript code to
+select it (@pxref{Config file paper sizes}).  You can also specify a
+@var{papertype} of @samp{landscape}, which rotates a document by 90
+degrees.  To rotate a document whose paper type is not the default, you
+can use the @samp{-t} option twice, once for the paper type, and once
+for @samp{landscape}.
+
+@item -T @var{hsize,vsize}
+@opindex -T @var{hsize,vsize}
+Set the paper size to (@var{hsize},@var{vsize}), a comma-separated pair
+of dimensions such as @samp{.1in,-.3cm} (@pxref{papersize special}).  It
+overrides any paper size special in the DVI file.
+
+@item -U*
+@opindex -U
+@cindex Xerox 4045
+Disable a PostScript virtual memory-saving optimization that stores the
+character metric information in the same string that is used to store
+the bitmap information.  This is only necessary when driving the Xerox
+4045 PostScript interpreter, which has a bug that puts garbage on the
+bottom of each character.  Not recommended unless you must drive this
+printer.
+
+@item -V*
+@opindex -V
+Download non-resident PostScript fonts as bitmaps.  This requires use
+@pindex mtpk
+@pindex gsftopk
+@pindex pstopk
+of @code{mtpk} or @code{gsftopk} or @code{pstopk} or some combination
+thereof to generate the required bitmap fonts; these programs are
+supplied with Dvips.  The bitmap must be put into @file{psfonts.map} as
+the downloadable file for that font.  This is useful only for those
+fonts for which you do not have real outlines, being downloaded to
+printers that have no resident fonts, i.e., very rarely.
+
+
+@item -x @var{num}
+@opindex -x @var{num}
+@cindex magnification, overriding DVI
+Set the @math{x} magnification ratio to @math{@var{num}/1000}. Overrides
+the magnification specified in the DVI file.  Must be between 10 and
+100000.  It is recommended that you use standard magstep values (1095,
+1200, 1440, 1728, 2074, 2488, 2986, and so on) to help reduce the total
+number of PK files generated.  @var{num} may be a real number, not an
+integer, for increased precision.
+
+@item -X @var{num}
+@opindex -X @var{num}
+@cindex resolution
+Set the horizontal resolution in dots per inch to @var{num}.
+
+@item -y @var{num}
+@cindex magnification, vertical
+Set the @math{y} magnification ratio to @math{@var{num}/1000}.  See
+@samp{-x} above.
+
+@item -Y @var{num}
+@opindex -Y @var{num}
+Set the vertical resolution in dots per inch to @var{num.}
+@cindex resolution
+
+@item -z*
+@opindex -z @r{for recognizing hyperdvi}
+@cindex hyperdvi extensions, enabling
+@cindex distillation, and @samp{-z}
+@cindex PDF files, option for
+@findex html @r{specials, and @samp{-z}}
+Pass @samp{html} hyperdvi specials through to the output for eventual
+distillation into PDF.  This is not enabled by default to avoid
+including the header files unnecessarily, and use of temporary files in
+creating the output.  @xref{Hypertext}.
+
+@item -Z*
+@opindex -Z @r{for compressing bitmap fonts}
+@cindex compressing bitmap fonts
+Compress bitmap fonts in the output file, thereby reducing the size of
+what gets downloaded.  Especially useful at high resolutions or when
+very large fonts are used.  May slow down printing, especially on early
+68000-based PostScript printers.  Generally recommend today, and can be
+enabled in the configuration file (@pxref{Configuration file commands}).
+
+@end table
+
+
+@node Environment variables
+@section Environment variables
+
+@cindex environment variables
+
+Dvips looks for many environment variables, to define search paths and
+other things.  The path variables are read as needed, after all
+configuration files are read, so they override values in the
+configuration files.  (Except for @code{TEXCONFIG}, which defines where
+the configuration files themselves are found.)
+
+@xref{Path specifications,,, kpathsea, Kpathsea}, for details of
+interpretation of path and other environment variables common to all
+Kpathsea-using programs.  Only the environment variables specific to
+Dvips are mentioned here.
+
+@vtable @code
+@item DVIPSFONTS
+Default path to search for all fonts.  Overrides all the font path
+config file options and other environment variables (@pxref{Supported
+file formats,,, kpathsea, Kpathsea}).
+
+@item DVIPSHEADERS
+Default path to search for PostScript header files.  Overrides the @samp{H}
+config file option (@pxref{Configuration file commands}).
+
+@item DVIPSMAKEPK
+@pindex mktexpk@r{, changing name}
+Overrides @samp{mktexpk} as the name of the program to invoke to
+create missing PK fonts.  You can change the arguments passed to the
+@code{mktexpk} program with the @code{MAKETEXPK} environment
+variable; @pxref{MakeTeX script arguments,,, kpathsea, Kpathsea}.
+
+@item DVIPSRC
+Specifies the name of the startup file (@pxref{Configuration file
+searching}) which is read after @file{config.ps} but before any
+printer-specific configuration files.
+
+@item DVIPSSIZES
+@cindex last-resort font scaling, with @code{DVIPSSIZES}
+Last-resort sizes for scaling of unfound fonts.  Overrides the @samp{R}
+definition in config files (@pxref{Configuration file commands}).
+
+@item PRINTER
+Determine the default printer configuration file.  (Dvips itself does
+not use @code{PRINTER} to determine the output destination in any way.)
+
+@item TEXCONFIG
+@cindex configuration file path
+Path to search for Dvips' @file{config.@var{printer}} configuration
+files, including the base @file{config.ps}.  Using this single
+environment variable, you can override everything else.  (The
+printer-specific configuration files are called @file{@var{printer}.cfg}
+on MS-DOS, but @file{config.ps} is called by that name on all
+platforms.)
+
+@item TEXPICTS
+Path to search for included graphics files.  Overrides the @samp{S}
+config file option (@pxref{Configuration file commands}).  If not set,
+@code{TEXINPUTS} is looked for.  @xref{Supported file formats,,,
+kpathsea, Kpathsea}.
+
+@end vtable
+
+
+@node Config files
+@section Dvips configuration files
+
+@cindex configuration files
+
+This section describes in detail the Dvips-specific @file{config.*}
+device configuration files (called @file{*.cfg} on MS-DOS), which
+override the @file{texmf.cnf}
+configuration files generic to Kpathsea which Dvips also reads
+(@pxref{Config files,,, kpathsea, Kpathsea}).
+
+For information about installing these files, including a prototype file
+you can copy, @pxref{config.ps installation}.
+
+@menu
+* Configuration file searching:: Where config.* files are searched for.
+* Configuration file commands::  What can go in a config.* file.
+@end menu
+
+
+@node Configuration file searching
+@subsection Configuration file searching
+
+@cindex configuration file searching
+@cindex searching config files, order of
+
+The Dvips program loads many different configuration files, so that
+parameters can be set globally across the system, on a per-device basis,
+or individually by each user.
+
+@enumerate
+@item
+@flindex config.ps@r{, searched for}
+Dvips first reads (if it exists) @file{config.ps}; it is searched for
+along the path for Dvips configuration files, as described in
+@ref{Supported file formats,,, kpathsea, Kpathsea}.
+
+@item
+@flindex .dvipsrc@r{, searched for}
+A user-specific startup file is loaded, so individual users can override
+any options set in the global file.  The environment variable
+@code{DVIPSRC}, if defined, is used as the specification of the startup
+file.  If this variable is undefined, Dvips uses a platform-specific
+default name.  On Unix Dvips looks for the default startup file under
+the name @file{$HOME/.dvipsrc}, which is in the user's home directory.
+On MS-DOS and MS-Windows, where users generally don't have their private
+directories, the startup file is called @file{dvips.ini} and it is
+searched for along the path for Dvips configuration files (as described
+in @ref{Supported file formats,,, kpathsea, Kpathsea}.); users are
+expected to set this path as they see fit for their taste.
+
+@item
+@opindex -P@var{printer}@r{, and config file searching}
+The command line is read and parsed: if the @samp{-P@var{device}} option
+is encountered, at that point @file{config.@var{device}} is loaded.
+Thus, the printer configuration file can override anything in the
+site-wide or user configuration file, and it can also override options
+in the command line up to the point that the @samp{-P} option was
+encountered.  (On MS-DOS, the printer configuration files are called
+@file{@var{device}.cfg}, since DOS doesn't allow more than 3 characters
+after the dot in filenames.)
+
+@item
+@vindex PRINTER@r{, and config file searching}
+If no @samp{-P} option was specified, and also the @samp{-o} and
+@samp{-f} command line options were not used, Dvips checks the
+environment variable @code{PRINTER}.  If it exists, then
+@file{config.@var{$PRINTER}} (@file{@var{$PRINTER}.cfg} on MS-DOS) is
+loaded (if it exists).
+
+@end enumerate
+
+Because the @file{.dvipsrc} file is read before the printer-specific
+configuration files, individual users cannot override settings in the
+latter.  On the other hand, the @code{TEXCONFIG} path usually includes
+the current directory, and can in any case be set to anything, so the
+users can always define their own printer-specific configuration files
+to be found before the system's.
+
+A few command-line options are treated specially, in that they are not
+overridden by configuration files:
+
+@table @samp
+@item -D
+As well as setting the resolution, this unsets the mode, if the mode was
+previously set from a configuration file.  If @file{config.$PRINTER} is
+read, however, any @samp{D} or @samp{M} lines from there will take
+effect.
+
+@item -mode
+This overrides any mode setting (@samp{M} line) in configuration files.
+@samp{-mode} does not affect the resolution.
+
+@item -o
+This overrides any output setting (@samp{o} line) in configuration files.
+
+@end table
+
+The purpose of these special cases is to (1) minimize the chance of
+having a mismatched mode and resolution (which @samp{mktexpk} cannot
+resolve), and (2) let command-line options override config files where
+possible.
+
+
+@node Configuration file commands
+@subsection Configuration file commands
+
+@cindex configuration file options
+@cindex Dvips configuration file options
+
+Most of the configuration file commands are similar to corresponding
+command line options, but there are a few exceptions.  When they are the
+same, we omit the description here.
+
+As with command line options, many may be turned off by suffixing the
+letter with a zero (@samp{0}).
+
+@cindex comments, in configuration files
+@cindex continuation lines, not supported
+Within a configuration file, empty lines, and lines starting with a
+space, asterisk, equal sign, percent sign, or pound sign are ignored.
+There is no provision for continuation lines.
+
+@table @samp
+@item @@ @var{name hsize vsize}
+@opindex @@ @r{paper size config command}
+Define paper sizes.  @xref{Config file paper sizes}.
+
+@item a*
+@opindex a @r{config command (memory conservation)}
+Memory conservation.  Same as @samp{-a}, @pxref{Option details}.
+
+@item b @var{#copies}
+@opindex b @r{config command (#copies)}
+Multiple copies.  Same as @samp{-b}, @pxref{Option details}.
+
+@item D @var{dpi}
+@opindex D @r{config command (dpi)}
+Output resolution.  Same as @samp{-D}, @pxref{Option details}.
+
+@item e @var{num}
+@opindex e @r{config command (maxdrift)}
+Max drift.  Same as @samp{-e}, @pxref{Option details}.
+
+@item E @var{command}
+@opindex E @r{config command (shell escape)}
+@findex system @r{in config file}
+@cindex datestamp, in output
+@cindex shell escape, in config file
+Executes the command listed with @code{system}(3); can be used to get
+the current date into a header file for inclusion, for instance.
+Possibly dangerous; this may be disabled, in which case a warning will
+be printed if the option is used (and warnings are not suppressed).
+
+@item f*
+@itemx F
+@opindex f @r{config command (filter)}
+@opindex F @r{config command (filter)}
+Run as a filter.  Same as @samp{-f}, @pxref{Option details}.
+
+@item h @var{header}
+@opindex h @r{header downloading config command}
+Prepend @var{header} to output.  Same as @samp{h-}, @pxref{Option details}.
+
+@item H @var{path}
+@opindex H @r{header path config command}
+@cindex header path, defining
+@vindex DVIPSHEADERS@r{, overrides} H
+Use @var{path} to search for PostScript header files.  The environment
+variable @code{DVIPSHEADERS} overrides this.
+
+@item i @var{n}
+@opindex i @r{config command (pages/section)}
+Make multiple output files.  Same as @samp{-i -S @var{n}}, @pxref{Option
+details}.
+
+@item j*
+@opindex j @r{config command (partial font downloading)}
+Partially download Type 1 fonts.  Same as @samp{-j}, @pxref{Option details}.
+
+@item K*
+@opindex K @r{config command (comment-removeal)}
+Remove comments from included PostScript files.  Same as @samp{-K},
+@pxref{Option details}.
+
+@item m @var{num}
+@opindex m @r{config command (available memory)}
+@cindex memory available
+@cindex printer memory
+Declare @var{num} as the memory available for fonts and strings in the
+printer.  Default is 180000.  This value must be accurate if memory
+conservation and document splitting is to work correctly.  To determine
+this value, send the following file to the printer:
+
+@example
+%! Hey, we're PostScript
+/Times-Roman findfont 30 scalefont setfont 144 432 moveto
+vmstatus exch sub 40 string cvs show pop showpage
+@end example
+
+@noindent
+The number printed by this file is the total memory free; it is usually
+best to tell Dvips that the printer has slightly less memory, because
+many programs download permanent macros that can reduce the memory in
+the printer.  Some systems or printers can dynamically increase the
+memory available to a PostScript interpreter, in which case this file
+might return a ridiculously low number; for example, the NeXT computer
+and Ghostscript.  In these cases, a value of one million works fine.
+
+@item M @var{mode}
+@opindex M @r{config command (mf mode)}
+Metafont mode.  Same as @samp{-mode}, @pxref{Option details}.
+
+@item N*
+@opindex N @r{EPS-disabling config command}
+Disable structured comments.  Beware: This also turns off displaying
+page numbers or changing to specific pagenumbers in PostScript viewers.
+Same as @samp{-N}, @pxref{Option details}.
+
+@item o @var{name}
+@opindex o @r{config command (output file)}
+@cindex output file, setting
+Send output to @var{name}.  Same as @samp{-}, @pxref{Option details}.
+In the file @file{config.foo}, a setting like this is probably
+appropriate:
+@example
+o |lpr -Pfoo
+@end example
+The MS-DOS version will emulate spooling to @code{lpr} by printing to
+the local printer device @file{PRN} if it doesn't find an executable
+program by that name in the current directory or along the @code{PATH}.
+
+@item O @var{xoff},@var{yoff}
+@opindex O @r{config command (offset)}
+Origin offset.  Same as @samp{-O}, @pxref{Option details}.
+
+@item p @r{[+]}@var{name}
+@opindex p @r{config command (font aliases)}
+@cindex PostScript font alias file
+@cindex resident fonts, different in different printers
+@kindex +@var{psmapfile}
+Examine @var{name} for PostScript font aliases.  Default is
+@file{psfonts.map}.  This option allows you to specify different resident
+fonts that different printers may have.  If @var{name} starts with a
+@samp{+} character, then the rest of the name (after any leading spaces)
+is used as an additional map file; thus, it is possible to have local
+map files pointed to by local configuration files that append to the
+global map file.  This can be used for font families.
+
+@item P @var{path}
+@opindex P @r{config command (PK path)}
+@vindex PKFONTS@r{, overrides} P
+@vindex TEXPKS@r{, overrides} P
+@vindex GLYPHFONTS@r{, overrides} P
+@vindex TEXFONTS@r{, overrides} P
+Use @var{path} to search for bitmap PK font files is @var{path}.  The
+@code{PKFONTS}, @code{TEXPKS}, @code{GLYPHFONTS}, and @code{TEXFONTS}
+environment variables override this.  @xref{Supported file formats,,,
+kpathsea, Kpathsea}.
+
+@item q*
+@itemx Q
+@opindex q @r{config command (quiet)}
+@opindex Q @r{config command (quiet)}
+Run quietly.  Same as @samp{-q}, @pxref{Option details}.
+
+@item r*
+@opindex r @r{config command (page reversal)}
+Page reversal.  Same as @samp{-r}, @pxref{Option details}.
+
+@item R @var{num1 num2 @dots{}}
+@opindex R @r{fallback resolution config command}
+@cindex fallback resolutions
+@cindex default resolutions
+@cindex last-resort scaling, with @code{R}
+Define the list of default resolutions for PK fonts.  If a font size
+actually used in a document is not available and cannot be created,
+Dvips will scale the font found at the closest of these resolutions to
+the requested size, using PostScript scaling.  The resulting output may
+be ugly, and thus a warning is issued.  To turn this last-resort scaling
+off, use a line with just the @samp{R} and no numbers.
+
+The given numbers must be sorted in increasing order; any number smaller
+than the preceding one is ignored.  This is because it is better to
+scale a font up than down; scaling down can obliterate small features in
+the character shape.
+
+@vindex DVIPSSIZES@r{, overrides} R
+@vindex TEXSIZES@r{, overrides} R
+The environment and config file values @samp{DVIPSSIZES} or
+@samp{TEXSIZES} override this configuration file setting.
+
+@vindex default_texsizes @r{Make variable}
+If no @samp{R} settings or environment variables are specified, a list
+compiled in during installation is used. This default list is defined by
+the Makefile variable @samp{default_texsizes}, defined in the file
+@file{make/paths.make}.
+
+@item s*
+@opindex s @r{config command (save/restore)}
+Output global save/restore.  Same as @samp{-s}, @pxref{Option details}.
+
+@item S @var{path}
+@opindex S @r{config command (pict path)}
+@vindex TEXPICTS@r{, overrides} S
+@vindex TEXINPUTS@r{, overrides} S
+Use @var{path} to search for special illustrations (Encapsulated
+PostScript files or psfiles).  The @code{TEXPICTS} and then
+@code{TEXINPUTS} environment variables override this.
+
+@item T @var{path}
+@opindex T @r{config command (TFM path)}
+@vindex TFMFONTS@r{, overrides} T
+@vindex TEXFONTS@r{, overrides} T
+Use @var{path} to search for TFM files.  The @code{TFMFONTS} and then
+@code{TEXFONTS} environment variables overrides this.  This path is used
+for resident fonts and fonts that can't otherwise be found.
+
+@item U*
+@opindex U @r{config command (Xerox 4045)}
+Work around bug in Xerox 4045 printer.  Same as @samp{-U}, @pxref{Option
+details}.
+
+@item V @var{path}
+@opindex V @r{config command (vf path)}
+@cindex virtual font path
+@cindex device dependency, and virtual fonts
+Use @var{path} to search for virtual font files.  This may be
+device-dependent if you use virtual fonts to simulate actual fonts on
+different devices.
+
+@item W @r{[@var{string}]}
+@opindex W @r{config command (warning)}
+@cindex warning messages, defining
+If @var{string} is supplied, write it to standard error after reading
+all the configuration files; with no @var{string}, cancel any previous
+@samp{W} message.  This is useful in the default configuration file to
+remind users to specify a printer, for instance, or to notify users
+about special characteristics of a particular printer.
+
+@item X @var{num}
+@opindex X @r{config command (horizontal resolution)}
+Horizontal resolution.  Same as @samp{-X}, @pxref{Option details}.
+
+@item Y @var{num}
+@opindex Y @r{config command (vertical resolution)}
+Vertical resolution.  Same as @samp{-Y}, @pxref{Option details}.
+
+@item Z*
+@opindex Z @r{config command (compression)}
+Compress bitmap fonts.  Same as @samp{-Z}, @pxref{Option details}.
+
+@end table
+
+
+@node Paper size and landscape
+@chapter Paper size and landscape orientation
+
+@cindex paper size, general
+
+Most @TeX{} documents at a particular site are designed to use the
+standard paper size (letter size in the United States, A4 in Europe).
+The Dvips program can be customized either sitewide or for a particular
+printer.
+
+@cindex landscape orientation, defined
+But many documents are designed for other paper sizes.  For instance,
+you may want to design a document that has the long edge of the paper
+horizontal.  This can be useful when typesetting booklets, brochures,
+complex tables, or many other documents.  This type of paper orientation
+is called @dfn{landscape} orientation (the default orientation is
+@dfn{portrait}).  Alternatively, a document might be designed for ledger
+or A3 paper.
+
+Since the intended paper size is a document design decision, not a
+printing decision, such information should be given in the @TeX{} file
+and not on the Dvips command line.  For this reason, Dvips supports a
+@samp{papersize} special.  It is hoped that this special will become
+standard over time for @TeX{} previewers and other printer drivers.
+
+@menu
+* papersize special::           Specifying the paper size in TeX.
+* Config file paper sizes::     Specifying printer- and site-specific sizes.
+* Paper trays::                 Changing paper trays automatically.
+@end menu
+
+
+@node papersize special
+@section @samp{papersize} special
+
+@findex papersize @r{special}
+
+The format of the @samp{papersize} special is
+
+@example
+\special@{papersize=@var{width},@var{height}@}
+@end example
+
+@noindent
+@var{width} is the horizontal size of the page, and @var{height} is the
+vertical size.  The dimensions supported are the same as for @TeX{};
+namely, in (inches), cm (centimeters), mm (millimeters), pt (points), sp
+(scaled points), bp (big points, the same as the default PostScript
+unit), pc (picas), dd (didot points), and cc (ciceros).
+
+@findex landscape@r{, as @code{\special}}
+For a US letter size landscape document, the @code{papersize} would be:
+@example
+\special@{papersize=11in,8.5in@}
+@end example
+
+@noindent
+An alternate specification of @code{landscape}:
+@example
+\special@{landscape@}
+@end example
+
+@noindent
+This is supported for backward compatibility, but it is hoped that
+reventually the @code{papersize} comment will dominate.
+
+Of course, such a @code{\special} only informs Dvips of the desired
+paper size; you must also adjust @code{\hsize} and @code{\vsize} in your
+@TeX{} document typeset to those dimensions.
+
+The @code{papersize} special must occur somewhere on the first page of
+the document.
+
+
+@node Config file paper sizes
+@section Configuration file paper size command
+
+@cindex paper size configuration file command
+@cindex configuration file paper size command
+
+The @samp{@@} command in a configuration file sets the paper size
+defaults and options.  The first @samp{@@} command defines the default
+paper size.  It has three possible parameters:
+
+@example
+@@ @r{[}@var{name} @r{[}@var{hsize} @var{vsize}@r{]]}
+@end example
+
+If @samp{@@} is specified on a line by itself, with no parameters, it
+instructs Dvips to discard all previous paper size information (possibly
+from another configuration file).
+
+If three parameters are given, with the first parameter being a name and
+the second and third being a dimension (as in @samp{8.5in} or
+@samp{3.2cc}, just like in the @samp{papersize} special), then the
+option is interpreted as starting a new paper size description, where
+@var{name} is the name and @var{hsize} and @var{vsize} define the
+horizontal and vertical size of the sheet of paper, respectively. For
+example:
+
+@example
+@@ letterSize 8.5in 11in
+@end example
+
+If both @var{hsize} and @var{vsize} are zero (you must still specify
+units!) then any page size will match.  If the @samp{@@} character is
+immediately followed by a @samp{+} sign, then the remainder of the line
+(after skipping any leading blanks) is treated as PostScript code to
+send to the printer, presumably to select that particular paper size:
+
+@example
+@@ letter 8.5in 11in
+@@+ %%BeginPaperSize: Letter
+@@+ letter
+@@+ %%EndPaperSize
+@end example
+
+After all that, if the first character of the line is an exclamation
+point, then the line is put in the initial comments section of the final
+output file; else, it is put in the setup section of the output file.
+For example:
+
+@example
+@@ legal 8.5in 14in
+@@+ ! %%DocumentPaperSizes: Legal
+@@+ %%BeginPaperSize: Legal
+@@+ legal
+@@+ %%EndPaperSize
+@end example
+
+When Dvips has a paper format name given on the command line, it looks
+for a match by the @var{name}; when it has a @samp{papersize} special,
+it looks for a match by dimensions.  The first match found (in the order
+the paper size information is found in the configuration file) is used.
+If nothing matches, a warning is printed and the first paper size is
+used.  The dimensions must match within a quarter of an inch.  Landscape
+mode for all paper sizes is automatically supported.
+
+If your printer has a command to set a special paper size, then give
+dimensions of @samp{0in 0in}; the PostScript code that sets the paper
+size can refer to the dimensions the user requested as @samp{hsize} and
+@samp{vsize}; these will be macros defined in the PostScript that return
+the requested size in default PostScript units.  Virtually all of the
+PostScript commands you use here are device-dependent and degrade the
+portability of the file; that is why the default first paper size entry
+should not send any PostScript commands down (although a structured
+comment or two would be okay).  Also, some printers want
+@samp{BeginPaperSize} comments and paper size setting commands; others
+(such as the NeXT) want @samp{PaperSize} comments and they will handle
+setting the paper size.  There is no solution I could find that works
+for both (except maybe specifying both).
+
+@flindex mkdvipspapers
+The Perl 5 script @file{contrib/mkdvipspapers} in the distribution
+directory may help in determining appropriate paper size definitions.
+
+@cindex a4 paper size, as default
+If your printers are configured to use A4 paper by default, the
+configuration file (probably the global @file{config.ps} in this case)
+should include this as the first @samp{@@} command:
+
+@example
+@@ A4size 210mm 297mm
+@@+ %%PaperSize: A4
+@end example
+
+@noindent
+so that @code{A4size} is used as the default, and not @code{A4} itself;
+thus, no PostScript @code{a4} command is added to the output file,
+unless the user explicitly says to use paper size @samp{a4}.  That is,
+by default, no paper size PostScript command should be put in the
+output, but Dvips will still know that the paper size is A4 because
+@samp{A4size} is the first (and therefore default) size in the
+configuration file.
+
+Executing the @samp{letter} or @samp{a4} or other PostScript operators
+cause the document to be nonconforming and can cause it not to print on
+certain printers, so the default paper size should not execute such an
+operator if at all possible.
+
+
+@node Paper trays
+@section Paper trays
+
+@cindex paper trays
+@cindex dual paper trays
+@cindex multiple paper trays
+@cindex HP4Si printer and paper trays
+
+Some printers, such as the Hewlett-Packard HP4si, have multiple paper
+trays.  You can set up Dvips to take advantage of this using the
+@code{bop-hook} PostScript variable (@pxref{PostScript hooks}).
+
+@cindex letterhead tray
+For example, suppose you have an alternate tray stocked with letterhead
+paper; the usual tray has the usual paper.  You have a document where
+you want the first page printed on letterhead, and the remaining pages
+on the usual paper. You can create a header file, say
+@file{firstletterhead.PS}, with the following (PostScript) code
+(@code{bop-hook} is passed the current physical page number, which
+starts at zero):
+
+@example
+/bop-hook @{ dup 0 eq @{ @var{alternatetray} @} @{ @var{normaltray} @} ifelse @} def
+@end example
+
+@noindent where @var{alternatetray} and @var{normaltray} are the appropriate
+commands to select the paper trays.  On the 4SI, @var{alternatetray} is
+@samp{statusdict begin 1 setpapertray end} and @var{normaltray} is
+@samp{statusdict begin 0 setpapertray end}.
+
+Then, include the file with either
+@itemize @bullet
+@item the @samp{-h} command-line option (@pxref{Option details}); or
+
+@item the @samp{h} config file option (@pxref{Configuration file
+commands}); or
+
+@item @samp{\special@{header=@var{file}@}} in your @TeX{} document
+(@pxref{Including headers from TeX,, Including headers from @TeX{}}).
+
+@end itemize
+
+
+@node Interaction with PostScript
+@chapter Interaction with PostScript
+
+@cindex interaction with PostScript
+@cindex PostScript interaction
+
+Dvips supports inclusion of PostScript figure files (e.g., Encapsulated
+PostScript), downloading other header files (e.g., fonts), including
+literal PostScript code, and hypertext.
+
+@menu
+* PostScript figures::          Including an Encapsulated PostScript figure.
+* Header files::                Downloading extra definitions.
+* Literal PS::                  Writing literal PostScript code.
+* Hypertext::                   Producing HyperPostScript to make PDF.
+@end menu
+
+
+@node PostScript figures
+@section PostScript figures
+
+Scaling and including PostScript graphics is a breeze---if the PostScript
+file is correctly formed.  Even if it is not, however, the file can usually
+be accommodated with just a little more work.
+
+@menu
+* Bounding box::                The %%BoundingBox EPS comment.
+* EPSF macros::                 Including the file in TeX.
+* psfile special::              The basic special.
+* Dynamic creation of graphics:: Handling compressed or generated figures.
+* Fonts in figures::            The %*Font comment.
+@end menu
+
+
+@node Bounding box
+@subsection The bounding box comment
+
+@cindex bounding box, comment for
+
+The most important feature of a good PostScript file from the standpoint
+of including it in another document is an accurate bounding box comment.
+Every well-formed PostScript file has a comment describing where on the
+page the graphic is located, and how big that graphic is.
+
+@cindex big points
+@cindex PostScript units
+@cindex bounding box, defined
+This information is given as the lower left and upper right corners of
+the box just enclosing the graphic, and is thus referred to as the
+@dfn{bounding box}.  These coordinates are given in the default
+PostScript units (there are precisely 72 PostScript units to the inch,
+like @TeX{} big points) with respect to the lower left corner of the
+sheet of paper.
+
+@findex %%BoundingBox
+To see if a PostScript file has a bounding box comment, just look at the
+first few lines of the file.  PostScript files are standard ASCII, so
+you can use any text editor to do this.  If within the first few dozen
+lines there is a line like
+
+@example
+%%BoundingBox: 25 50 400 300
+@end example
+
+@noindent
+(with any reasonable numbers), chances are very good that the file is
+Encapsulated PostScript and will work easily with Dvips.  If the file
+contains instead a line like
+
+@findex atend@r{, bounding box specification}
+@findex (atend)@r{, bounding box specification}
+@example
+%%BoundingBox: (atend)
+@end example
+
+@noindent
+the file is still probably Encapsulated PostScript, but the bounding box
+is given at the end of the file.  Dvips needs it at the beginning.  You
+can move it with that same text editor, or a simple script.  (The
+bounding box is given in this way when the program that generated the
+PostScript couldn't know the size in advance, or was too lazy to compute
+it.)
+
+@pindex bbfig
+@cindex bounding box, determining
+If the document lacks a @samp{%%BoundingBox:} altogether, you can
+determine one in a couple of ways.  One is to use the @samp{bbfig}
+program distributed with Dvips in the @file{contrib} directory. This can
+usually find the correct bounding box automatically; it works best with
+Ghostscript.
+
+@vindex 612 792 @r{bounding box size}
+If the comment looks like this:
+@example
+%%BoundingBox: 0 0 612 792
+@end example
+
+@noindent
+the graphic claims to take up an entire sheet of paper.  This is
+usually a symptom of a bug in the program that generated it.
+
+The other is to do it yourself: print the file.  Now, take a ruler, and
+make the following measurements (in PostScript units, so measure in
+inches and multiply by 72): From the left edge of the paper to the
+leftmost mark on the paper is @var{llx}, the first number.  From the
+bottom edge of the paper to the bottommost mark on the paper is
+@var{lly}, the second number.  From the left edge of the paper to the
+rightmost mark on the paper is @var{urx}, the third number.  The fourth
+and final number, @var{ury}, is the distance from the bottom of the page
+to the uppermost mark on the paper.
+
+Once you have the numbers, add a comment of the following form as the
+second line of the document.  (The first line should already be a line
+starting with the two characters @samp{%!}; if it is not, the file
+probably isn't PostScript.)
+
+@example
+%%BoundingBox: @var{llx} @var{lly} @var{urx} @var{ury}
+@end example
+
+@noindent
+Or, if you don't want to modify the file, you can simply write these
+numbers down in a convenient place and give them in your @TeX{} document
+when you import the graphic, as described in the next section.
+
+If the document does not have such a bounding box, or if the bounding
+box is given at the end of the document, or the bounding box is wrong,
+please complain to the authors of the software package that generated
+the file.
+
+
+@node EPSF macros
+@subsection Using the EPSF macros
+
+@cindex EPSF macros
+@cindex macros for epsf inclusion
+
+Once the figure file has a bounding box comment (see the previous
+section,) you are ready it the graphic into a @TeX{} document.  Many
+packages for using EPS files exist.  One distributed with Dvips is the
+files @file{epsf.tex} (for plain @TeX{}) and @file{epsf.sty} (for
+La@TeX{}).  For plain @TeX{}, add a line like this near the top of your
+input file:
+
+@flindex epsf.tex
+@example
+\input epsf
+@end example
+
+@noindent
+If you are using La@TeX{} 2e, use the @samp{graphics} or @samp{graphicx}
+package.  
+@flindex epsf.sty
+If you are using La@TeX{} 2.09, add the @samp{epsf} style option, as in:
+
+@example
+\documentstyle[12pt,epsf]@{article@}
+@end example
+
+@noindent
+In any case, the above only needs to be done once, no matter how many
+figures you plan to include.
+
+Now, at the point you want to include a file, enter a line such as:
+
+@example
+\epsffile@{foo.eps@}
+@end example
+
+@findex \leavevmode
+@cindex bounding box, supplying to @TeX{}
+If you are using La@TeX{}, you may need to add @code{\leavevmode}
+immediately before the @code{\epsffile} command to get certain
+environments to work correctly.  If your file does not have a bounding
+box comment, you can supply the numbers as determined in the previous
+section, in the same order they would have been in a normal bounding box
+comment:
+
+@example
+\epsffile[100 100 500 500]@{foo.ps@}
+@end example
+
+@noindent
+Now, save your changes and run @TeX{} and Dvips; the output should have
+your graphic positioned at precisely the point you indicated, occupying
+the proper amount of space.
+
+@findex \epsffile @r{macro}
+@cindex figures, natural size
+The @code{\epsffile} macro typesets the figure as a @TeX{} @code{\vbox}
+at the point of the page that the command is executed.  By default, the
+graphic will have its `natural' width (namely, the width of its bounding
+box).  The @TeX{} box will have depth zero and its natural height.  By
+default, the graphic will be scaled by any DVI magnification in effect,
+just as is everything else in your document.  See the next section for
+more information on scaling.
+
+@vindex \epsfverbosetrue
+@cindex verbose EPSF processing
+If you want @TeX{} to report the size of the figure as a message on your
+terminal when it processes each figure, give the command:
+
+@example
+\epsfverbosetrue
+@end example
+
+@menu
+* EPSF scaling::                
+* EPSF clipping::               
+@end menu
+
+
+@node EPSF scaling
+@subsubsection EPSF scaling
+
+@cindex scaling of figures
+@cindex figures, scaling
+
+Usually, you will want to scale an EPSF figure to some size appropriate
+for your document, since its natural size is determined by the creator
+of the EPS file.
+
+The best way to do this is to assign the desired size to the @TeX{}
+@code{\epsfxsize} or @code{\epsfysize} variables, whichever is more
+convenient for you.  That is, put
+
+@vindex \epsfxsize
+@example
+\epsfxsize=@var{dimen}
+@end example
+
+@noindent
+right before the call to @code{\epsffile}.  Then the width of the @TeX{}
+box will be @var{dimen} and its height will be scaled proportionately.
+Similarly, you can set the vertical size with
+
+@vindex \epsfysize
+@example
+\epsfysize=@var{dimen}
+@end example
+
+@noindent
+in which case the height will be set and the width scaled
+proportionally.
+
+If you set both, both will be honored, but the aspect ratio of the
+included graphic may necessarily be distorted, i.e., its contents
+stretched in one direction or the other.
+
+@findex \epsfsize
+You can resize graphics in a more general way by redefining the
+@code{\epsfsize} macro.  @code{\epsffile} calls this with two
+parameters: the natural horizontal and vertical sizes of the PostScript
+graphic.  @code{\epsfsize} must expand to the desired horizontal size,
+that is, the width of the @code{\vbox}.  Schematically:
+
+@example
+\def\epsfsize#1#2@{@var{body}@}
+@end example
+
+Some useful definitions of @var{body}:
+
+@table @samp
+@item \epsfxsize
+This definition (the default) enables the default features listed above,
+by setting @code{\epsfxsize} to the same value it had before the macro
+was called.
+
+@item #1
+Force the natural size by returning the first parameter (the original
+width).
+
+@item 0pt
+A special case, equivalent to @samp{#1}.
+
+@item 0.5#1
+Scale to half the natural size.
+
+@item \hsize
+Scale to the current @code{\hsize}.  (In La@TeX{}, use @code{\textwidth}
+instead of @code{\hsize}.)
+
+@item \ifnum#1>\hsize\hsize\else#1\fi
+If the natural width is greater than the current @code{\hsize}, scale to
+@code{\hsize}, otherwise use the natural width.
+
+@end table
+
+@cindex DVI magnification
+@cindex magnification, DVI
+@vindex \magnification
+For compatibility with other PostScript drivers, it is possible to turn
+off the default scaling of included figures by the DVI magnification
+with the following @TeX{} command:
+
+@vindex /magscale
+@example
+\special@{! /magscale false def@}
+@end example
+
+@noindent
+Use of this command is not recommended because it will make the
+@code{\epsffile} graphics the ``wrong'' size if global magnification is
+being used, and it will cause any PostScript graphics to appear
+improperly scaled and out of position if a DVI to DVI program is used to
+scale or otherwise modify the document.
+
+@findex bop-hook
+DVI magnification is not applied to any output from code you write in
+@samp{bop-hook} or its ilk (@pxref{PostScript hooks}),
+
+
+@node EPSF clipping
+@subsubsection EPSF clipping
+
+@cindex clipping of EPSF
+@cindex bounding box, inaccurate
+@cindex text in figures, chopped off
+@cindex lines in figures, wrong width
+
+By default, clipping is disabled for included EPSF images.  This is
+because clipping to the bounding box dimensions often cuts off a
+small portion of the figure, due to slightly inaccurate bounding
+box arguments.  The problem might be subtle; lines around the boundary
+of the image might be half their intended width, or the tops or
+bottoms of some text annotations might be sliced off.  If you want to
+turn clipping on, just use the command
+
+@example
+\epsfclipon
+@end example
+
+@noindent
+and to turn clipping back off, use
+
+@example
+\epsfclipoff
+@end example
+
+
+@node psfile special
+@subsection @samp{psfile} special
+
+@findex psfile @r{special}
+
+The basic special for file inclusion is as follows:
+
+@example
+\special@{psfile=@var{filename}.ps @r{[}@var{key}=@var{value}@r{]} @dots{} @}
+@end example
+
+@noindent
+This downloads the PostScript file @file{@var{filename}.ps} such that
+the current point will be the origin of the PostScript coordinate
+system.  The optional @var{key}@t{=}@var{value} assignments allow you to
+specify transformations on the PostScript.
+
+The possible @var{key}s are:
+
+@table @samp
+
+@item hoffset
+The horizontal offset (default 0)
+@item voffset
+The vertical offset (default 0)
+@item hsize     
+The horizontal clipping size (default 612)
+@item vsize     
+The vertical clipping size (default 792)
+@item hscale    
+The horizontal scaling factor (default 100)
+@item vscale    
+The vertical scaling factor (default 100)
+@item angle     
+The rotation (default 0)
+@item clip    
+Enable clipping to the bounding box
+@end table
+
+The dimension parameters are all given in PostScript units.
+The @samp{hscale} and @samp{vscale} are given in non-dimensioned percentage
+units, and the rotation value is specified in degrees.
+Thus
+
+@example
+\special@{psfile=foo.ps hoffset=72 hscale=90 vscale=90@}
+@end example
+
+@noindent
+will shift the graphics produced by file @file{foo.ps} right by one inch
+and will draw it at 0.9 times normal size.  Offsets are given relative
+to the point of the special command, and are unaffected by scaling or
+rotation.  Rotation is counterclockwise about the origin.  The order of
+operations is to rotate the figure, scale it, then offset it.
+
+For compatibility with older PostScript drivers, it is possible to change
+the units that @samp{hscale} and @samp{vscale} are given in.  This can be
+done by redefining @samp{@@scaleunit}
+@vindex scaleunit
+in @samp{SDict}
+@vindex SDict
+by a @TeX{} command such as
+
+@example
+\special@{! /@@scaleunit 1 def@}
+@end example
+
+@noindent
+The @samp{@@scaleunit} variable, which is by default 100, is what
+@samp{hscale} and @samp{vscale} are divided by to yield an absolute
+scale factor.
+
+
+@node Dynamic creation of graphics
+@subsection Dynamic creation of PostScript graphics files
+
+@cindex dynamic creation of graphics
+@cindex compressed PostScript
+@cindex uncompressing PostScript
+
+PostScript is an excellent page description language---but it does tend
+to be rather verbose.  Compressing PostScript graphics files can reduce
+them by factor of five or more.  For this reason, if the name of an
+included PostScript file ends with @file{.Z} or @file{.gz}, Dvips
+automatically runs @samp{gzip -d}.  For example:
+
+@example
+\epsffile[72 72 540 720]@{foo.ps.gz@}
+@end example
+
+@noindent
+Since the results of such a command are not accessible to @TeX{}, if you
+use this facility with the @file{epsf} macros, you need to supply the
+bounding box parameter yourself, as shown.
+
+More generally, if the filename parameter to one of the graphics
+inclusion techniques starts with a left quote (@samp{`}), the parameter
+is instead interpreted as a command to execute that will send the actual
+file to standard output.  For example:
+
+@example
+\special@{psfile="`gnuplot foo"@}
+@end example
+
+@noindent
+@flindex gnuplot
+to include the file @file{foo}.  Of course, the command to be executed
+can be anything, including using a file conversion utility such as
+@file{tek2ps} or whatever is appropriate.  This feature can be disabled
+with the @samp{-R} command-line option or @samp{R} configuration option.
+
+
+@node Fonts in figures
+@subsection Fonts in figures
+
+@cindex figures and fonts
+@cindex fonts, in PostScript figures
+@findex %*Font
+
+You can use any font available to @TeX{} and Dvips within a graphics
+file by putting a @code{%*Font:} line in the leading commentary of the
+file.  Schematically, this looks like:
+
+@example
+%*Font: @var{tfmname} @var{scaledbp} @var{designbp} @var{hex-start}:@var{hex-bitstring}
+@end example
+
+Here is the meaning of each of these elements:
+
+@table @var
+@item tfmname
+The @TeX{} TFM filename, e.g., @file{cmr10}.  You can give the same
+@var{tfmname} on more than one @samp{%*Font} line; this is useful when
+the number of characters from the font used needs a longer
+@var{hex-bitstring} (see item below) than conveniently fits on one line.
+
+@item scaledbp
+The size at which you are using the font, in PostScript points (@TeX{}
+big points).  72@dmn{bp} = 72.27@dmn{pt} = 1@dmn{in}.
+
+@item designbp
+The designsize of the font, again in PostScript points.  This should
+match the value in the TFM file @var{tfmname}.  Thus, for @file{cmr10},
+it should be @samp{9.96265}.
+
+@item hex-start
+The character code of the first character used from the font, specified
+as two ASCII hexadecimal characters, e.g., @samp{4b} or @samp{4B} for
+@samp{K}.
+
+@item hex-bitstring
+An arbitrary number of ASCII hexadecimal digits specifying which
+characters following (and including) @var{hex-start} are used.  This is
+treated as a bitmap.  For example, if your figure used the single letter
+@samp{K}, you would use @samp{4b:8} for @var{hex-start} and
+@var{hex-bitstring}.  If it used @samp{KLMNP}, you would use
+@samp{4b:f4}.
+
+@end table
+
+MetaPost's output figures contain lines like this for bitmap fonts used
+in a MetaPost label (@pxref{MetaPost,,, web2c, Web2c}).
+
+
+@node Header files
+@section PostScript header files
+
+@cindex header files, defined
+@cindex PostScript header files
+
+@dfn{Header files} are bits of PostScript included in the output file;
+generally they provide support for special features, rather than
+producing any printed output themselves.  You can explicitly request
+downloading header files if necessary for some figure, or to achieve
+some special effect.
+
+@vindex psheaderdir
+@flindex .pro @r{prologue files}
+@flindex .lpro @r{long prologue files}
+Dvips includes some headers on its own initiative, to implement features
+such as PostScript font reencoding, bitmap font downloading, handling of
+@code{\special}'s, and so on.  These standard headers are the
+@file{.pro} files (for ``prologue'') in the installation directory
+@samp{$(psheaderdir)}; they are created from the @file{.lpro} (``long
+prologue'') files in the distribution by stripping
+comments, squeezing blank lines, etc., for maximum efficiency.  If you
+want to peruse one of the standard header files, read the @file{.lpro}
+version.
+
+@vindex userdict@r{, and dictionary files}
+@cindex dictionary, @code{userdict}
+The PostScript dictionary stack will be at the @samp{userdict} level
+when header files are included.
+
+@menu
+* Including headers from TeX::  
+* Including headers from the command line::  
+* Headers and memory usage::
+@end menu
+
+
+@node Including headers from TeX
+@subsection Including headers from @TeX{}
+
+@cindex including headers in @TeX{}
+@findex header=@var{file} \special
+@cindex @TeX{}, including headers in
+
+@cindex headers, including in @TeX{}
+In order to get a particular graphic file to work, a certain font or
+header file might need to be sent first.  The Dvips program provides
+support for this with the @samp{header} @code{\special}.  For instance,
+to ensure that @file{foo.ps} gets downloaded:
+
+@example
+\special@{header=foo.ps@}
+@end example
+
+@cindex fonts, as header files
+As another example, if you have some PostScript code that uses a
+PostScript font not built into your printer, you must download it to the
+printer. If the font isn't used elsewhere in the document, Dvips can't
+know you've used it, so you must include it in the same way, as in:
+
+@example
+\special@{header=putr.pfa@}
+@end example
+
+@noindent
+to include the font definition file for Adobe Utopia Roman.
+
+
+@node Including headers from the command line
+@subsection Including headers from the command line
+
+@cindex including headers from the command line
+@cindex command line, including headers from
+@cindex headers, including from the command line
+
+You can include headers when you run Dvips, as well as from your
+document (see the previous section).  To do this, run Dvips with the
+option @samp{-P @var{header}}; this will read the file
+@file{config.@var{header}}, which in turn can specify a header file to
+be downloaded with the @samp{h} option. @xref{Configuration file
+commands}.  These files are called @file{@var{header}.cfg} on MS-DOS.
+
+@cindex duplex printers
+@cindex simplex mode on duplex printers
+@cindex screen frequencies, setting
+You can arrange for the same file to serve as a @samp{-P} config file
+and the downloadable header file, by starting the lines of PostScript
+code with a space, leaving only the @samp{h} line and any comments
+starting in the first column.  As an example, see
+@file{contrib/volker/config.*} (@file{contrib/volker/*.cfg} on MS-DOS).
+(These files also perform useful functions: controlling duplex/simplex
+mode on duplex printers, and setting various screen frequencies;
+@file{contrib/volker/README} explains further.)
+
+
+@node Headers and memory usage
+@subsection Headers and memory usage
+
+@cindex headers and memory usage
+@cindex memory usage, and headers
+
+@cindex sections of output file, and memory
+@cindex output file, sectioning of
+Dvips tries to avoid overflowing the printer's memory by splitting the
+output files into ``sections'' (see the @samp{-i} option in @ref{Option
+details}).  Therefore, for all header files, Dvips debits the printer VM
+budget by some value.  If the header file has, in its leading
+commentary a line of the form
+
+@findex VMusage
+@findex %%VMusage
+@example
+%%VMusage: @var{min} @var{max}
+@end example
+
+@noindent
+then @var{max} is used.  If there is no @code{%%VMusage} line, then
+the size (in bytes) of the header file is used as an approximation.
+
+Illustrations (figure files) are also checked for @code{%%VMusage} line.
+
+
+@node Literal PS
+@section Literal PostScript
+
+@cindex literal PostScript, using
+@cindex PostScript code, literal
+
+You can include literal PostScript code in your document in several ways.
+
+@menu
+* " special::                   To include inline PostScript code.
+* ps special::                  Inline PostScript without save/restore.
+* PostScript hooks::            Specifying code to run in the PS interpreter.
+* Literal headers::             Literal PostScript for the whole document.
+* Literal examples::            Neat example.
+@end menu
+
+
+@node " special
+@subsection @code{"} special: Literal PostScript
+
+@findex " @r{special (literal PostScript)}
+
+For simple graphics, or just for experimentation, literal PostScript
+code can be included.  Simply use a @code{\special} beginning with a
+double quote character @samp{"}; there is no matching closing @samp{"}.
+
+For instance, the following (simple) graphic:
+
+@iftex 
+@tex
+\vskip\baselineskip
+\vbox to 100bp{\vss % a bp is the same as a PostScript unit
+\special{" newpath 0 0 moveto 100 100 lineto 394 0 lineto
+closepath gsave 0.8 setgray fill grestore stroke}}
+@end tex
+@end iftex
+@ifinfo
+[ picture of a grey triangle ]
+@end ifinfo
+
+@noindent
+was created by typing:
+
+@example
+\vbox to 100bp@{\vss % a bp is the same as a PostScript unit
+  \special@{" newpath 0 0 moveto 100 100 lineto 394 0 lineto
+  closepath gsave 0.8 setgray fill grestore stroke@}@}
+@end example
+
+You are responsible for leaving space for such literal graphics, as with
+the @code{\vbox} above.
+
+
+@node ps special
+@subsection @samp{ps} special
+
+@findex ps @r{special}
+
+@cindex save/restore, and specials
+Generally, Dvips encloses specials in a PostScript save/restore pair,
+guaranteeing that the special will have no effect on the rest of the
+document.  The @samp{ps} special, however, allows you to insert literal
+PostScript instructions without this protective shield; you should
+understand what you're doing (and you shouldn't change the PostScript
+graphics state unless you are willing to take the consequences).  This
+command can take many forms because it has had a torturous history; any
+of the following will work:
+
+@example
+\special@{ps:@var{text}@}
+\special@{ps::@var{text}@}
+\special@{ps::[begin]@var{text}@}
+\special@{ps::[end]@var{text}@}
+@end example
+
+@noindent
+(with longer forms taking precedence over shorter forms, when they are
+present).  @samp{ps::} and @samp{ps::[end]} do no positioning, so they
+can be used to continue PostScript literals started with @samp{ps:} or
+@samp{ps::[begin]}.
+
+@findex plotfile@r{, @samp{ps} subspecial}
+In addition, the variant
+
+@example
+\special@{ps: plotfile @var{filename}@}
+@end example
+
+@noindent
+@flindex rotate.tex
+inserts the contents of @var{filename} verbatim into the output (except
+for omitting lines that begin with %).  An example of the proper use of
+literal specials can be found in the file @file{rotate.tex}, which makes
+it easy to typeset text turned in multiples of 90 degrees.
+
+
+@node Literal headers
+@subsection Literal headers: @samp{!} @code{\special}
+
+@cindex literal headers
+@vindex SDict @r{dictionary}
+
+@findex ! @r{special (literal PS header)}
+@cindex dictionary, @code{SDict}
+You can download literal PostScript header code in your @TeX{} document,
+for use with (for example) literal graphics code that you include later.
+The text of a @code{\special} beginning with an @samp{!} is copied into
+the output file.  A dictionary @code{SDict} will be current when this
+code is executed; Dvips arranges for @code{SDict} to be first on the
+dictionary stack when any PostScript graphic is included, whether
+literally (the @samp{"} special) or through macros (e.g.,
+@file{epsf.tex}).
+
+For example:
+
+@example
+\special@{! /reset @{ 0 0 moveto@} def@}
+@end example
+
+
+@node PostScript hooks
+@subsection PostScript hooks
+
+@cindex PostScript hooks
+
+Besides including literal PostScript at a particular place in your
+document (as described in the previous section), you can also arrange to
+execute arbitrary PostScript code at particular times while the
+PostScript is printing.
+
+@findex bop-hook
+@findex eop-hook
+@findex start-hook
+@findex end-hook
+If any of the PostScript names @code{bop-hook}, @code{eop-hook},
+@code{start-hook}, or @code{end-hook} are defined in @code{userdict},
+they will be executed at the beginning of a page, end of a page, start
+of the document, and end of a document, respectively.
+
+@cindex draft copies
+@cindex dated output
+When these macros are executed, the default PostScript coordinate system
+and origin is in effect.  Such macros can be defined in headers added by
+the @samp{-h} option or the @samp{header=} special, and might be useful
+for writing, for instance, `DRAFT' across the entire page, or, with the
+aid of a shell script, dating the document.  These macros are executed
+outside of the save/restore context of the individual pages, so it is
+possible for them to accumulate information, but if a document must be
+divided into sections because of memory constraints, such added
+information will be lost across section breaks.
+
+@cindex physical page number, and @code{bop-hook}
+The single argument to @code{bop-hook} is the physical page number; the
+first page gets zero, the second one, etc.  @code{bop-hook} must leave
+this number on the stack.  None of the other hooks are passed arguments.
+
+As an example of what can be done, the following special will write
+a light grey `DRAFT' across each page in the document:
+
+@example
+\special@{!userdict begin /bop-hook@{gsave 200 30 translate
+65 rotate /Times-Roman findfont 216 scalefont setfont
+0 0 moveto 0.7 setgray (DRAFT) show grestore@}def end@}
+@end example
+
+@findex %%Page@r{, and multi-page information}
+Using @code{bop-hook} or @code{eop-hook} to preserve information across
+pages breaks compliance with the Adobe document structuring conventions,
+so if you use any such tricks, you may also want to use the @samp{-N}
+option to turn off structured comments (such as @samp{%%Page}).
+Otherwise, programs that read your file will assume its pages are
+independent.
+
+
+@node Literal examples
+@subsection Literal examples
+
+@cindex literal PostScript, examples
+@cindex examples of literal PostScript
+
+To finish off this section, the following examples of literal PostScript
+are presented without explanation:
+
+@example
+\def\rotninety@{\special@{ps:currentpoint currentpoint translate 90
+rotate neg exch neg exch translate@}@}\font\huge=cmbx10 at 14.4truept
+\setbox0=\hbox to0pt@{\huge A\hss@}\vskip16truept\centerline@{\copy0
+\special@{ps:gsave@}\rotninety\copy0\rotninety\copy0\rotninety
+\box0\special@{ps:grestore@}@}\vskip16truept
+@end example
+
+@iftex
+@tex
+\def\rotninety{\special{ps:currentpoint currentpoint translate 90
+rotate neg exch neg exch translate}}
+\font\huge=cmbx10 at 14.4truept
+\setbox0=\hbox to0pt {\huge A\hss}
+\vskip16truept
+\centerline{\copy0\special{ps:gsave}
+            \rotninety\copy0\rotninety\copy0\rotninety
+\box0\special{ps:grestore}}
+\vskip16truept
+@end tex
+@end iftex
+@ifinfo
+[ There are 4 @samp{A} characters, each rotated 90 degrees about a
+  common center point ]
+@end ifinfo
+
+
+@example
+\vbox to 2truein@{\special@{ps:gsave 0.3 setgray@}\hrule height 2in
+width\hsize\vskip-2in\special@{ps:grestore@}\font\big=cminch\big
+\vss\special@{ps:gsave 1 setgray@}\vbox to 0pt@{\vskip2pt
+\line@{\hss\hskip4pt NEAT\hss@}\vss@}\special@{ps:0 setgray@}%
+\hbox@{\raise2pt\line@{\hss NEAT\hss@}\special@{ps:grestore@}@}\vss@}
+@end example
+
+@iftex
+@tex
+\smallskip
+\vbox to 2truein{\special{ps:gsave 0.3 setgray}\hrule height 2in
+width\hsize\vskip-2in\special{ps:grestore}\font\big=cminch\big
+\vss\special{ps:gsave 1 setgray}\vbox to 0pt{\vskip2pt
+\line{\hss\hskip4pt NEAT\hss}\vss}\special{ps:0 setgray}%
+\hbox{\raise2pt\line{\hss NEAT\hss}\special{ps:grestore}}\vss}
+@end tex
+@end iftex
+@ifinfo
+[ There is a big gray box with the word @samp{NEAT} inside in big letters ]
+@end ifinfo
+
+@findex \rotninety
+@findex gsave@r{/}grestore@r{, and literal PS}
+@findex save@r{/}restore@r{, and literal PS}
+Some caveats are in order, however. Make sure that each @code{gsave} is
+matched with a @code{grestore} on the same page.  Do not use @code{save}
+and @code{restore}; they can interact with the PostScript generated by
+Dvips if care is not taken.  Try to understand what the above macros are
+doing before writing your own.  The @code{\rotninety} macro especially
+has a useful trick that appears again and again.
+
+
+@node Hypertext
+@section Hyper@TeX{}t
+
+@cindex hypertext support
+
+@opindex -z
+@findex html @r{specials}
+@findex pdfmark
+Dvips has support for producing hypertext PostScript documents.  If you
+specify the @samp{-z} option, the @file{html:} specials described below
+will be converted into @samp{pdfmark} PostScript operators to specify
+links.  Without @samp{-z}, @file{html:} specials are ignored.
+
+@cindex distiller, for PDF files
+@cindex PDF files, making
+The resulting PostScript can then be processed by a distiller program to
+make a PDF file.  (It can still be handled by ordinary PostScript
+interpreters as well.)  Various versions of both PC and Unix distillers
+are supported; Ghostscript includes limited distiller support
+(@pxref{Ghostscript installation}).
+
+Macros you can use in your @TeX{} document to insert the specials in the
+first place are available from @file{@var{CTAN:}/support/hypertex}.  For
+CTAN info, @pxref{unixtex.ftp,,, kpathsea, Kpathsea}.
+
+@flindex @code{http://www.win.tue.nl/~dickie/idvi}
+@flindex @code{http://xxx.lanl.gov/hypertex}
+@cindex Doyle, Mark
+@cindex Bhattacharya, Tanmoy
+@cindex Java DVI reader
+@pindex idvi @r{Java DVI reader}
+@pindex dvihps@r{, hyperdvi to PostScript}
+This hypertext support (and original form of the documentation) was
+written by Mark Doyle and Tanmoy Bhattacharya as the @samp{dvihps}
+program. You can retrieve their software and additional documentation
+via the CTAN reference above.  You may also be interested in the Java
+previewer IDVI, available at @url{http://www.win.tue.nl/~dickie/idvi},
+and/or in @url{http://www.emrg.com/texpdf.html}, which describes
+the process of making PDF files from TeX files in more detail.
+
+Mail archives for the original project are at
+@url{http://math.albany.edu:8800/hm/ht/}.
+
+
+@menu
+* Hypertext caveats::       Bitmaps poorly supported, psi.
+* Hypertext specials::      The details on the specials.
+@end menu
+
+
+@node Hypertext caveats
+@subsection Hypertext caveats
+
+@cindex hypertext caveats
+
+@cindex Computer Modern in PostScript
+@cindex hypertext and bitmap fonts
+If you intend to go all the way to PDF, you will probably want to use
+PostScript fonts exclusively, since the Adobe PDF readers are extremely
+slow when dealing with bitmap fonts.  Commercial versions of the
+Computer Modern fonts are available from Blue Sky; public domain
+versions are available from CTAN sites (for CTAN info,
+@pxref{unixtex.ftp,,, kpathsea, Kpathsea}) in:
+@example
+fonts/postscript/bakoma
+fonts/postscript/paradissa
+@end example
+@noindent You may need to modify these fonts; see
+@url{http://xxx.lanl.gov/faq/bakoma.html}.
+
+@cindex psi character missing
+@cindex trailing spaces, dropped
+@cindex spaces, dropped trailing
+Also, the Adobe distillers prior to 2.1 drop trailing space characters
+(character code 32) from strings.  Unfortunately, the PostScript fonts
+use this character code for characters other than space (notably the
+Greek letter psi in the @code{Symbol} font), and so these characters are
+dropped.  This bug is fixed in version 2.1.
+
+If you can't upgrade, One workaround is to change all the trailing
+blanks in strings to a character code that isn't in the font. This works
+because the default behavior is to substitute a blank for a missing
+character, i.e., the distiller is fooled into substituting the right
+character. For instance, with the Blue Sky fonts, you can globally
+replace @samp{ )} with @samp{\200)} (with @code{sed}, for example) and
+get the desired result.  With the public domain fonts, you will probably
+have to use a character code in the range 128 to 191 since these fonts
+duplicate the first 32 characters starting at 192 to avoid MS-DOS
+problems.
+
+
+@node Hypertext specials
+@subsection Hypertext specials
+
+@cindex hypertext specials
+@cindex specials, hypertext
+
+@cindex Smith, Arthur
+Current support for the World Wide Web in the @TeX{} system does not
+involve modifying @TeX{} itself.  We need only define some specials;
+Arthur Smith (@email{apsmith@@aps.org}), Tanmoy Bhattacharya, and Paul
+Ginsparg originally proposed and implemented the following:
+@example
+html:<a href="@var{xurl}">
+html:<a name="@var{name}">
+html:</a>
+html:<img src="@var{xurl}">
+html:<base href="@var{xurl}">
+@end example
+
+Like all @TeX{} @code{\special}'s, these produce no visible output, and
+are uninterpreted by @TeX{} itself.  They are instructions to DVI
+processors only.
+
+@cindex uniform resource locator
+@cindex extended URL
+@cindex URL, extended for @TeX{}
+@cindex Murphy, Tim
+Here, @var{xurl} is a standard WWW uniform resource locator (URL),
+possibly extended with a @samp{#@var{type}.@var{string}} construct,
+where @var{type} is @samp{page}, @samp{section}, @samp{equation},
+@samp{reference} (for bibliographic references), @samp{figure},
+@samp{table}, etc.  For example, 
+@smallexample
+\special@{html:<a href="http://www.maths.tcd.ie/~tim/ch1.dvi#equation.1.1">@}
+@end smallexample
+@noindent is a link to equation (1.1) in an example document by Tim Murphy.
+
+@cindex URL, definition
+See @url{http://www.w3.org/hypertext/WWW/Addressing/Addressing.html}
+for a precise description of base URL's.  (That itself is a URL, in case
+you were wondering.)
+
+Descriptions of the @code{\special}'s:
+@ftable @samp
+@item href
+@cindex links, hypertext
+Creates links in your @TeX{} document. For example:
+@example
+\special@{html:<a href="http://www.tug.org/">@}\TeX\ Users
+Group\special@{html:</a>@}
+@end example
+@noindent The user will be able to click on the text `@TeX{} Users
+Group' while running Xdvi and get to the TUG home page.  (By the way,
+this is for illustration. In practice, you most likely want to use
+macros to insert the @code{\special} commands; reference above.)
+
+@item name
+@cindex Anderson, Laurie
+Defines URL targets in your @TeX{} documents, so links can be
+resolved. For example:
+@example
+\special@{html:<a name="#paradise">@}Paradise\special@{html:</a>@}
+is exactly where you are right now.
+@end example
+This will resolve an @samp{href="paradise"}.
+
+@item img
+@flindex mailcap @r{and hypertext}
+Links to an arbitrary external file.  Interactively, a viewer is spawned
+to read the file according to the file extension and your @file{mailcap}
+file (see the Xdvi documentation).
+
+@item base
+Defines a base URL that is prepended to all the @code{name} targets.
+Typically unnecessary, as the name of the DVI file being read is used by
+default.
+@end ftable
+
+The @samp{img} and @samp{base} tags are not yet implemented in Dvips or
+the NeXTSTEP DVI viewer.
+
+
+@node PostScript fonts
+@chapter PostScript fonts
+
+@cindex PostScript fonts
+
+Dvips supports the use of PostScript fonts in @TeX{} documents.  To use
+a PostScript font conveniently, you need to prepare a corresponding
+virtual font; the program Afm2tfm, supplied with Dvips, helps
+with that.
+
+All the necessary support for the standard 35 PostScript fonts
+(@samp{AvantGarde-Book} through @samp{ZapfDingbats}), plus other freely
+or commonly available PostScript fonts is available along with Dvips.
+To use these fonts, you need do nothing beyond what is mentioned in the
+installation procedure (@pxref{Installation}).  This chapter is
+therefore relevant only if you are installing new PostScript fonts not
+supplied with Dvips. (Or if you're curious.)
+
+@menu
+* Font concepts::               Metrics, glyphs, virtual fonts, and encodings.
+* Making a font available::     Installing and using a PostScript font.
+* Invoking afm2tfm::            Creating TFM and AFM files for a virtual font.
+* psfonts.map::                 Defining available PostScript fonts.
+@end menu
+
+
+@node Font concepts
+@section Font concepts
+
+@cindex font concepts
+
+The information needed to typeset using a particular font is contained
+in two files: a @dfn{metric file} that contains shape-independent
+information and a @dfn{glyph file} that contains the actual shapes of
+the font's characters.  A @dfn{virtual font} is an optional additional
+file that can specify special ways to construct the characters.  @TeX{}
+itself (or La@TeX{}) look only at the metric file, but DVI drivers such
+as Dvips look at all three of these files.
+
+An @dfn{encoding file} defines the correspondence between the code
+numbers of the characters in a font and their descriptive names.  Two
+encoding files used together can describe a reencoding that rearranges,
+i.e., renumbers, the characters of a font.
+
+@menu
+* Metric files::                Shape-independent font information.
+* Glyph files::                 Character shapes.
+* Virtual fonts::               Constructing one font from others.
+* Encodings::                   Character codes and character names.
+* PostScript typesetting::      How PostScript typesets a character.
+@end menu
+
+
+@node Metric files
+@subsection Metric files
+
+@cindex metric files
+
+A @dfn{metric file} describes properties of the font that are
+independent of what the characters actually look like.  Aside from
+general information about the font itself, a metric file has two kinds
+of information: information about individual characters, organized by
+character code, and information about sequences of characters.
+
+The per-character information specifies the width, height, depth, and
+italic correction of each character in the font.  Any might be zero.
+
+@cindex kerning, defined
+@cindex ligature, defined
+In addition to information on individual characters, the metric file
+specifies @dfn{kerning}, i.e., adding or removing space between
+particular character pairs.  It further specifies @dfn{ligature}
+information: when a sequence of input characters should be typeset as a
+single (presumably different) ``ligature'' character.  For example, it's
+traditional for the input @samp{fi} to be typeset as `fi', not as
+`@r{f}@r{i}' (with the dot of the `i' colliding with `f').  (In English,
+the only common ligatures are fi, fl, ff, ffi, and ffl.)
+
+Different typesetting systems use different metric file formats:
+
+@itemize @bullet
+@item
+@cindex afm files
+@flindex .afm @r{Adobe metric files}
+Each Postscript font has an @dfn{Adobe font metrics} (@samp{.afm})
+file. These files are plain text, so you can inspect them easily.  You
+can get AFM files for Adobe's fonts from
+@url{ftp://ftp.adobe.com/pub/adobe/Fonts/AFMs}.
+
+@item 
+@cindex tfm files
+@flindex .tfm @r{@TeX{} font metric files}
+@TeX{} uses @dfn{@TeX{} font metrics} (@samp{.tfm}) files. When you say
+@samp{\font = @var{font}} in your @TeX{} document, @TeX{} reads a file
+named @samp{@var{font}.tfm}.  (Well, except for the @file{texfonts.map}
+feature; @pxref{Fontmap,,, kpathsea, Kpathsea}).  @TeX{} can then
+calculate the space occupied by characters from the font when
+typesetting. In addition, the DVI drivers you use to print or view the
+DVI file produced by @TeX{} may need to look at the TFM file.
+
+@cindex property list files
+@pindex tftopl
+@pindex pltotf
+@flindex .pl @r{property list files}
+TFM files are binary (and hence are typically much smaller than AFM
+files). You can use the @code{tftopl} program (@pxref{tftopl
+invocation,,, web2c, Web2c}) that comes with @TeX{} to transform a TFM
+file into a human-readable ``property list'' (@samp{.pl}) file.  You can
+also edit a PL file and transform it back to a @TeX{}-readable TFM with
+the companion program @code{pltotf} (@pxref{pltotf invocation,,, web2c,
+Web2c}).  Editing metrics by hand is not something you're likely to want
+to do often, but the capability is there.
+
+@item
+@cindex pfm files
+@flindex .pfm @r{printer font metric files}
+ATM and other typesetting systems use @dfn{printer font metric}
+(@samp{.pfm}) files. These are binary files. They are irrelevant in the
+@TeX{} world, and not freely available, so we will not discuss them
+further.
+
+@end itemize
+
+The Afm2tfm program distributed with Dvips converts an AFM file
+to a TFM file and performs other useful transformations as well.
+@xref{Invoking afm2tfm}.
+
+
+@node Glyph files
+@subsection Glyph files
+
+@cindex glyph files
+
+Although a metric file (see the previous section) contains information
+about the spatial and other properties of the character at position 75,
+say, it contains nothing about what the character at position 75
+actually looks like. The glyphs---the actual shapes of the letterforms
+in a font---are defined by other files, which we call glyph files.
+@TeX{} itself only reads the TFM file for a font; it does not need to
+know character shapes.
+
+A @dfn{glyph file} is a file that defines the shapes of the characters
+in a font.  The shapes can be defined either by outlines or by bitmaps.
+
+@cindex outline fonts
+@cindex arcs
+@cindex splines
+PostScript fonts are defined as @dfn{outline fonts}: Each character in
+the font is defined by giving the mathematical curves (lines, arcs, and
+splines) that define its contours.  Different sizes of a character are
+generated by linearly scaling a single shape. For example, a 10-point
+`A' is simply half the size of a 20-point `A'.  Nowadays, outline fonts
+usually also contain @dfn{hints}---additional information to improve the
+appearance of the font at small sizes or low resolutions.
+
+@cindex Type 1 fonts
+@cindex pfa files
+@cindex pfb files
+@flindex .pfa @r{printer font ascii files}
+@flindex .pfb @r{printer font binary files}
+Although various kinds of PostScript outline fonts exist, by far the
+most common, and the only one we will consider, is called @dfn{Type 1}.
+The glyph files for Postscript Type 1 fonts typically have names ending
+in @samp{.pfa} (``printer font ASCII'') or @samp{.pfb} (``printer font
+binary'').
+
+@cindex bitmap fonts
+@flindex .mf @r{Metafont source files}
+@cindex Metafont source files
+In contrast, glyph files for Computer Modern and the other standard
+@TeX{} fonts are @dfn{bitmap fonts}, generated from Metafont
+(@samp{.mf}) descriptions.  The Metafont program distributed with @TeX{}
+generates bitmaps from these descriptions.
+
+@cindex pk files
+@flindex .@var{nnn}pk @r{packed font bitmaps}
+The glyph files for @TeX{} bitmap fonts are usually stored in
+@dfn{packed font} (PK) files.  The names of these files end in
+@samp{.@var{nnn}pk}, where @var{nnn} is the resolution of the font in
+dots per inch.  For example, @file{cmr10.600pk} contains the bitmaps for
+the @samp{cmr10} font at a resolution of 600@dmn{dpi}.  (On DOS
+filesystems, it's more likely @file{dpi600\cmr10.pk}.)
+
+@cindex gf files
+@pindex gftopk
+Metafont actually outputs @dfn{generic font} (GF) files, e.g.,
+@file{cmr10.600gf}, but the GF files are usually converted immediately
+to PK format (using the @code{gftopk} utility that comes with @TeX{})
+since PK files are smaller and contain the same information. (The GF
+format is a historical artifact.)
+
+
+@node Virtual fonts
+@subsection Virtual fonts
+
+@cindex virtual fonts
+
+A @dfn{virtual font} is constructed by extracting characters from one or
+more existing fonts and rearranging them, or synthesizing new characters
+in various ways.  The explanation in this manual is intended to suffice
+for understanding enough about virtual fonts to use them with Dvips. It
+isn't a reference manual on virtual fonts.  For more information: The
+primary document on virtual fonts is Donald E. Knuth, @cite{TUGboat}
+11(1), Apr.@: 1990, pp.@: 13--23, ``Virtual Fonts: More Fun for Grand
+Wizards'' (@file{@var{CTAN:}/info/virtual-fonts.knuth}; for CTAN info,
+@pxref{unixtex.ftp,,, kpathsea, Kpathsea}).  (Don't be intimidated by
+the subtitle.)
+
+@cindex vf files
+@cindex vpl files
+A virtual font (@samp{.vf}) file specifies, for each character in the
+virtual font, a recipe for typesetting that character.  A VF file, like
+a TFM file, is in a compressed binary format.  The @code{vftovp} and
+@code{vptovf} programs convert a VF file to a human-readable VPL
+(virtual property list) format and back again.  @xref{vftovp
+invocation,,, web2c, Web2c}, and @ref{vptovf invocation,,, web2c,
+Web2c}.
+
+@cindex base fonts
+In the case of a PostScript font @var{f} being used in a straightforward
+way, the recipe says: character @var{i} in the VF font is character
+@var{j} in font @var{f}.  The font @var{f} is called a @dfn{base font}.
+For example, the VF file could remap the characters of the PostScript
+font to the positions where @TeX{} expects to find them.
+@xref{Encodings}.
+
+Since @TeX{} reads only TFM files, not VF's, each VF must have a
+corresponding TFM for use with @TeX{}.  This corresponding TFM is
+created when you run @code{vptovf}.
+
+@cindex expansion, of virtual fonts
+@cindex virtual font expansion
+You can @dfn{expand} virtual fonts into their base fonts with DVIcopy
+(@pxref{dvicopy invocation,,, web2c, Web2c}).  This is useful if you are
+using a DVI translator that doesn't understand vf's itself.
+
+
+@node Encodings
+@subsection Encodings
+
+@cindex encodings
+
+Every font, whatever its type, has an @dfn{encoding}, that specifies the
+correspondence between ``logical'' characters and character codes.  For
+example, the ASCII encoding specifies that the character numbered 65
+(decimal) is an uppercase `A'.  The encoding does not specify what the
+character at that position looks like; there are lots of ways to draw an
+`A', and a glyph file (@pxref{Glyph files}) tells how.  Nor does it
+specify how much space that character occupies; that information is in a
+metric file (@pxref{Metric files}).
+
+@cindex Computer Modern, encoding of
+@TeX{} implicitly assumes a particular encoding for the fonts you use
+with it.  For example, the plain @TeX{} macro @code{\'}, which typesets
+an acute accent over the following letter, assumes the acute accent is
+at position 19 (decimal). This happens to be true of standard @TeX{}
+fonts such as Computer Modern, as you might expect, but it is not true
+of normal PostScript fonts.
+
+It's possible but painful to change all the macros that assume
+particular character positions.  A better solution is to create a new
+font with the information for the acute accent at position 19, where
+@TeX{} expects it to be.  @xref{Making a font available}.
+
+@cindex PostScript encoding
+@cindex encoding files
+@cindex encoding vectors, defined
+
+PostScript represents encodings as a sequence of 256 character names
+called an @dfn{encoding vector}.  An @dfn{encoding file} (@samp{.enc})
+gives such a vector, together with ligature and kerning information
+(with which we are not concerned at the moment).  These encoding files
+are used by the Afm2tfm program.  Encoding files are also downloaded to
+the PostScript interpreter in your printer if you use one of them in
+place of the default encoding vector for a particular PostScript font.
+
+@flindex dvips.enc
+@flindex 8r.enc
+@flindex texmext.enc
+@flindex texmital.enc
+@flindex texmsym.enc
+@flindex reencode/*.enc
+Examples of encodings: the @file{dvips.enc} encoding file that comes
+with Dvips in the @samp{reencode} directory is a good (but not perfect)
+approximation to the @TeX{} encoding for @TeX{}'s Computer Modern text
+fonts.  This is the encoding of the fonts that originated with Dvips,
+such as @file{ptmr.tfm}.  The distribution includes many other encoding
+files; for example, @file{8r.enc}, which is the base font for the
+current PostScript font distribution, and three corresponding to the
+@TeX{} mathematics fonts: @file{texmext.enc} for math extensions,
+@file{texmital.enc} for math italics, and @file{texmsym.enc} for math
+symbols.
+
+
+@node PostScript typesetting
+@subsection How PostScript typesets a character
+
+@cindex typesetting in PostScript
+@cindex character lookup procedure in PostScript
+
+The output of Dvips is a program in the PostScript language that
+instructs your (presumably PostScript-capable) printer how to typeset
+your document by transforming it into toner on paper.  Your printer, in
+turn, contains a PostScript interpreter that carries out the
+instructions in this typesetting program.
+
+The program must include the definition of any PostScript fonts that you
+use in your document.  Fonts built into your printer (probably the
+standard 35: @samp{Times-Roman}, @samp{ZapfDingbats}, @dots{}) are
+defined within the interpreter itself.  Other fonts must be downloaded
+as pfa or pfb files (@pxref{Glyph files}) from your host (the computer
+on which you're running Dvips).
+
+You may be wondering exactly how a PostScript interpreter figures out
+what character to typeset, with this mass of metrics, glyphs, encodings,
+and other information.  (If you're not wondering, skip this section
+@dots{})
+
+@findex show @r{PostScript operator}
+The basic PostScript operator for imaging characters is
+@code{show}. Suppose you've asked @TeX{} to typeset an `S'. This will
+eventually wind up in the Dvips output as the equivalent of this
+PostScript operation:
+
+@example
+(S) show
+@end example
+
+@noindent Here is how PostScript typesets the `S':
+
+@enumerate
+@item
+@cindex ASCII character codes, used by PostScript
+PostScript interpreters use ASCII; therefore `S' is represented as the
+integer 83. (Any of the 256 possible characters representable in a
+standard 8-bit byte can be typeset.)
+
+@item
+@cindex current font, in PostScript
+@cindex dictionary, PostScript language
+A PostScript @dfn{dictionary} is a mapping of names to arbitrary values.
+A font, to the interpreter, is a dictionary which contains entries for
+certain names.  (If these entries are missing, the interpreter refuses
+to do anything with that font.)
+
+PostScript has a notion of ``the current font''---whatever font is
+currently being typeset in.
+
+@item 
+@cindex encoding vectors, in Type 1 fonts
+@findex Encoding @r{Type 1 dictionary}
+One of the mandatory entries in a font dictionary is @samp{Encoding},
+which defines the encoding vector (@pxref{Encodings}) for that font.
+This vector of 256 names maps each possible input character to a name.
+
+@item
+The interpreter retrieves the entry at position 83 of the encoding
+vector. This value is a PostScript name: @code{/S}.
+
+@item
+@findex CharStrings @r{Type 1 dictionary}
+@cindex dictionary, @code{CharStrings}
+For Type 1 fonts (we're not going to discuss anything else), the
+interpreter now looks up @code{/S} as a key in a dictionary named
+@code{CharStrings}, another mandatory entry in a font dictionary.
+
+@item
+@cindex hints
+@cindex character definitions in PostScript
+The value of @code{S} in @code{CharStrings} is the equivalent of a
+series of standard PostScript commands like @samp{curveto},
+@samp{lineto}, @samp{fill}, and so on. These commands are executed to
+draw the character. There can also be @dfn{hint information} that helps
+adapt the character to low-resolution rasters.  (@xref{Glyph files}.)
+The commands are actually represented in a more compact way than
+standard PostScript source; see the Type 1 book for details.
+
+@end enumerate
+
+This method for typesetting characters is used in both Level 1 and Level
+2 PostScript.  See the PostScript reference manuals for more
+information.
+
+
+@node Making a font available
+@section Making a PostScript font available
+
+@cindex installing fonts
+@cindex fonts, installing
+
+To make a PostScript font available in a @TeX{} document, you need to
+install the font on your system and then define it within the document.
+Once you have installed the font, of course, it is available for any
+document thereafter and you don't need to reinstall it.  You must have
+an AFM file for any font you install. Unless the font is built into your
+printer, you must also have a PFA or PFB file.
+
+In the following examples, we use the font @samp{Times-Roman} to
+illustrate the process.  But you should use the prebuilt fonts for Times
+and the other standard fonts, rather than rebuilding them.  The prebuilt
+fonts are made using a more complicated process than that described
+here, to make them work as well as possible with @TeX{}.  So following
+the steps in this manual will not generate files identical to the
+distributed ones.  @xref{PostScript font installation}, for pointers to
+the prebuilt fonts.
+
+Installation of a PostScript font proceeds in three steps.  @xref{Font
+concepts}, for descriptions of the various files involved.
+
+@enumerate
+@item
+Run @code{afm2tfm} to create a TFM file for the original font,
+and the VPL form of the virtual font:
+@example
+afm2tfm Times-Roman -v ptmr rptmr
+@end example
+
+@item
+Run @code{vptovf} to generate a VF and TFM file for the virtual font
+from the VPL file:
+@example
+vptovf ptmr.vpl ptmr.vf ptmr.tfm
+@end example
+
+@item
+Insert an entry for the font in @file{psfonts.map} (@xref{psfonts.map}):
+@example
+rptmr      Times-Roman                 <ptmr8a.pfa
+@end example
+
+@item
+Install the files in the standard locations, as in:
+@example
+cp ptmr.vf @var{fontdir}/vf/@dots{}
+cp *ptmr.tfm @var{fontdir}/tfm/@dots{}
+cp ptmr.afm @var{fontdir}/afm/@dots{}
+cp ptmr.pf? @var{fontdir}/type1/@dots{}
+@end example
+@end enumerate
+
+The simplest invocation of Afm2tfm to make virtual fonts goes something
+like this:
+
+@pindex afm2tfm
+@example
+afm2tfm Times-Roman -v ptmr rptmr
+@end example
+
+@noindent
+This reads the file @file{Times-Roman.afm}, and produces two files as
+output, namely the virtual property list'file @file{ptmr.vpl}, and the
+``raw'' font metric file @file{rptmr.tfm}. To use the font in @TeX{},
+you first run
+
+@pindex vptovf
+@example
+vptovf ptmr.vpl ptmr.vf ptmr.tfm
+@end example
+
+@noindent
+You should then install the virtual font file @file{ptmr.vf} where Dvips
+will see it and install @file{ptmr.tfm} and @file{rptmr.tfm} where
+@TeX{} and Dvips will see them.
+
+Using these raw fonts is not recommended; there are no raw fonts in the
+prebuilt PostScript fonts distributed along with Dvips.  But
+nevertheless, that's how Afm2tfm presently operates, so that's what we
+document here.  The @samp{r} prefix convention is likewise historical
+accident.
+
+You can also make more complex virtual fonts by editing @file{ptmr.vpl}
+before running @samp{vptovf}; such editing might add the uppercase Greek
+characters in the standard @TeX{} positions, for instance.  (This has
+already been done for the prebuilt fonts.)
+
+Once the files have been installed, you're all set. You can now do
+things like this in @TeX{}:
+@example
+\font\myfont = ptmr at 12pt
+\myfont Hello, I am being typeset in 12-point Times-Roman.
+@end example
+
+Thus, we have two fonts, one actual (@samp{rptmr}, which is analogous to
+the font in the printer) and one virtual (@samp{ptmr}, which has been
+remapped to the standard @TeX{} encoding (almost)), and has typesetting
+know-how added. You could also say
+
+@example
+\font\raw = rptmr at 10pt
+@end example
+
+@noindent
+and typeset directly with that, but then you would have no ligatures or
+kerning, and you would have to use Adobe character positions for special
+letters like
+@tex
+\AE.
+@end tex
+@ifinfo
+the ligature `AE'.
+@end ifinfo
+The virtual font @samp{ptmr} not only has ligatures and kerning, and
+most of the standard accent conventions of @TeX{}, it also has a few
+additional features not present in the Computer Modern fonts. For
+example, it includes all the Adobe characters (such as the Polish ogonek
+and the French guillemots).  The only things you lose from ordinary
+@TeX{} text fonts are the dotless `j' (which can be hacked into the VPL
+file with literal PostScript specials if you have the patience) and
+uppercase Greek letters (which just don't exist unless you buy them
+separately).  @xref{Reencoding with Afm2tfm}.
+
+As a final step you need to record information about both the virtual
+font and the original font (if you ever might want to use it) in the
+@file{psfonts.map} file (@pxref{psfonts.map}).  For our example, you'd
+insert the following into @file{psfonts.map}:
+@example
+rptmr      Times-Roman                 <ptmr8a.pfa
+@end example
+
+@noindent Of course, @code{Times-Roman} is already built in to most every
+printer, so there's no need to download any Type 1 file for it.  But if
+you are actually following these instructions for new fonts, most likely
+they are not built in to the printer.
+
+@cindex memory, used by PostScript fonts
+@cindex efficiency, and fonts
+These PostScript fonts can be scaled to any size.  Go wild!  Using
+PostScript fonts, however, does use up a great deal of the printer's
+memory and it does take time.  You may find downloading bitmap fonts
+(possibly compressed, with the @samp{Z} option) to be faster than using
+the built-in PostScript fonts.
+
+
+@node Invoking afm2tfm
+@section Invoking Afm2tfm
+
+@pindex afm2tfm
+
+The Afm2tfm program converts an AFM file for a PostScript font to a TFM
+file and a VPL file for a corresponding virtual font (or, in its
+simplest form, to a TFM file for the PostScript font itself).  The
+results of the conversion are affected by the command-line options and
+especially by the reencodings you can specify with those options.  You
+can also obtain special effects such as an oblique font.
+
+@pindex fontinst
+@cindex virtual fonts, creating
+@cindex Jeffrey, Alan
+An alternative to Afm2tfm for creating virtual fonts is Alan Jeffrey's
+@code{fontinst} program, available from
+@file{@var{CTAN:}fonts/utilities/fontinst} (for CTAN info,
+@pxref{unixtex.ftp,,, kpathsea, Kpathsea}).
+
+@menu
+* Changing font encodings::     Reencoding with -t, -p, -T.
+* Special font effects::        Oblique fonts, small caps, and such.
+* Afm2tfm options::             afm2tfm command-line options.
+@end menu
+
+
+@node Changing font encodings
+@subsection Changing font encodings
+
+@cindex encoding changes
+@cindex fonts, changing encoding of
+
+Afm2tfm allows you to specify a different encoding for a PostScript font
+(for a general introduction to encodings, @pxref{Encodings}). The 
+@samp{-t} options changes the @TeX{} encoding, @samp{-p} changes the
+PostScript encoding, and @samp{-T} changes both simultaneously, as
+detailed in the sections below.
+
+@menu
+* Changing TeX encodings::      Where TeX finds a character.
+* Changing PostScript encodings::  Where PostScript finds a character.
+* Changing both encodings::     One and the same, simultaneously.
+* Reencoding with Afm2tfm::     Problems with the default encoding.
+* Encoding file format::        Syntax of an encoding file.
+@end menu
+
+
+@node Changing TeX encodings
+@subsubsection @samp{-t}: Changing @TeX{} encodings
+
+@cindex changing @TeX{} encodings
+@cindex @TeX{} encoding, changing
+
+@opindex -t @var{tex-enc}
+To build a virtual font with Afm2tfm, you specify the @samp{-v} or
+@samp{-V} option. You can then specify an encoding for that virtual font
+with @samp{-t @var{tex-enc}}.  (@samp{-t} is ignored if neither
+@samp{-v} nor @samp{-V} is present.)  Any ligature and kerning
+information you specify in @var{tex-enc} will be used in the VPL, in
+addition to the ligature and kerning information from the AFM file.
+
+If the AFM file has no entry for a character specified in @var{tex-enc},
+that character will be omitted from the output VPL.
+
+@flindex texmsym.enc
+The @samp{-t} option is likely to be needed when you have a PostScript
+font corresponding to a @TeX{} font other than a normal text font such
+as Computer Modern.  For instance, if you have a PostScript font that
+contains math symbols, you'd probably want to use the encoding in the
+@file{texmsym.enc} file supplied with Dvips. (For a start; to actually
+get usable math fonts, you have to define much more than just an
+encoding.)
+
+
+@node Changing PostScript encodings
+@subsubsection @samp{-p}: Changing PostScript encodings
+
+@cindex changing PostScript encodings
+@cindex PostScript encoding, changing
+@opindex -p @var{ps-enc}
+
+By default, Afm2tfm uses the encoding it finds in the AFM file.  You can
+specify a different PostScript encoding with @samp{-p @var{ps-enc}}.
+This makes the raw TFM file (the one output by Afm2tfm) have the
+encoding specified in the encoding file @var{ps-enc}.  Any ligature or
+kern information specified in @var{ps-enc} is ignored by Afm2tfm, since
+ligkern info is always omitted from the raw TFM.
+
+If you use this option, you must also arrange to download @var{ps-enc}
+as part of any document that uses this font.  You do this by adding a
+line like the following one to @file{psfonts.map} (@pxref{psfonts.map}):
+@example
+zpopr Optima "MyEncoding ReEncodeFont" <myenc.enc
+@end example
+
+@findex trademark @r{character, accessing}
+@findex registered @r{character, accessing}
+@cindex extra characters, accessing
+Using @samp{-p} is the only way to access characters in a PostScript
+font that are neither encoded in the AFM file nor constructed from other
+characters.  For instance, Adobe's @samp{Times-Roman} font contains the
+extra characters @samp{trademark} and @samp{registered} (among others);
+these can only be accessed through such a PostScript reencoding.
+
+@findex 8r @r{encoding, and extra characters}
+In fact, the `8r' base encoding used for the current PostScript font
+distribution (available at @url{ftp://ftp.tug.org/tex/psfonts.tar.gz})
+does do this reencoding, for precisely this reason.
+
+
+@node Changing both encodings
+@subsubsection @samp{-T}: Changing both @TeX{} and PostScript encodings
+
+@opindex -T @var{enc-file}
+
+The option @samp{-T @var{enc-file}} is equivalent to @samp{-p
+@var{enc-file} -t @var{enc-file}}.  If you make regular use of a private
+non-standard reencoding @samp{-T} is usually a better idea than the
+individual options, to avoid unexpected inconsistencies in mapping
+otherwise.  An example of when you might use this option is a dingbats
+font: when you have a @TeX{} encoding that is designed to be used with a
+particular PostScript font.
+
+
+@node Reencoding with Afm2tfm
+@subsubsection Reencoding with Afm2tfm
+
+@cindex reencoding
+@cindex remapping
+
+The Afm2tfm program creates the TFM and VF files for the virtual font
+corresponding to a PostScript font by @dfn{reencoding} the PostScript
+font.  Afm2tfm generates these files from two encodings: one for @TeX{}
+and one for PostScript.  The @TeX{} encoding is used to map character
+numbers to character names while the PostScript encoding is used to map
+each character name to a possibly different number.  In combination, you
+can get access to any character of a PostScript font at any position for
+@TeX{} typesetting.
+
+In the default case, when you specify none of the @code{-t}, @code{-p},
+or @code{-T} options, Afm2tfm uses a default @TeX{} encoding (which
+mostly corresponds to the Computer Modern text fonts) and the PostScript
+encoding found in the AFM file being read.  The reencoding is also
+sometimes called a @dfn{remapping}.
+
+For example, the default encodings reencode the acute accent in two
+steps: first the default @TeX{} encoding maps the number 19 to the
+character name @samp{acute}; then the default PostScript encoding, as
+found in the AFM file for an ordinary PostScript font, maps the
+character name @samp{acute} to the number 194.  (The PostScript encoding
+works in reverse, by looking in the encoding vector for the name and
+then yielding the corresponding number.)  The combined mapping of 19 to
+194 shows up explicitly in the VF file and also implicitly in the fact
+that the properties of PostScript character 194 appear in position 19 of
+the TFM file for the virtual font.
+
+@cindex accents, in wrong position
+@cindex Hungarian umlaut
+@cindex dot accent
+@cindex Scandinavian A ring
+@cindex A ring, Scandinavian letter
+The default encoding of the distributed fonts (e.g., @file{ptmr.tfm})
+mostly follows plain @TeX{} conventions for accents.  The exceptions:
+the Hungarian umlaut (which is at position @code{0x7D} in @samp{cmr10},
+but position @code{0xCD} in @samp{ptmr}); the dot accent (at positions
+@code{0x5F} and @code{0xC7}, respectively); and the Scandinavian A ring
+@code{\AA}, whose definition needs different tweaking.  In order to use
+these accents with PostScript fonts or in math mode when
+@code{\textfont0} is a PostScript font, you will need to use the
+following definitions.  These definitions will not work with the
+Computer Modern fonts for the relevant accents.  They are already part
+of the distributed @file{psfonts.sty} for use with La@TeX{}.
+
+@findex \H
+@findex \.
+@findex \dot
+@findex \AA
+@example
+\def\H#1@{@{\accent"CD #1@}@}
+\def\.#1@{@{\accent"C7 #1@}@}
+\def\dot@{\mathaccent"70C7 @}
+\newdimen\aadimen
+\def\AA@{\leavevmode\setbox0\hbox@{h@}\aadimen\ht0
+  \advance\aadimen-1ex\setbox0\hbox@{A@}\rlap@{\raise.67\aadimen
+  \hbox to \wd0@{\hss\char'27\hss@}@}A@}
+@end example
+
+@vindex CODINGSCHEME
+As a kind of summary, here are the @samp{CODINGSCHEME}s that result from
+the various possible choices for reencoding.
+
+@table @asis
+@item default encoding
+@example
+(CODINGSCHEME TeX text + AdobeStandardEncoding)
+@end example
+
+@item @samp{-p dc.enc}
+@example
+(CODINGSCHEME TeX text + DCEncoding)
+@end example
+
+@item @samp{-t dc.enc}
+@example
+(CODINGSCHEME DCEncoding + AdobeStandardEncoding)
+@end example
+
+@item @samp{-T dc.enc}
+@example
+(CODINGSCHEME DCEncoding + DCEncoding)
+@end example
+
+@end table
+
+@noindent The @samp{CODINGSCHEME} line appears in the VPL file but is
+ignored by Dvips.
+
+
+@node Encoding file format
+@subsubsection Encoding file format
+
+@cindex encoding file format
+
+Afm2tfm's encoding files have the same format as an encoding vector in a
+PostScript font.  Here is a skeletal example:
+
+@example
+% @r{Comments are ignored, unless the first word after the percent sign}
+% @r{is @samp{LIGKERN}; see below.}
+/MyEncoding [ % @r{exactly 256 entries follow, each with a leading @samp{/}}
+  /Alpha /Beta /Gamma /Delta @dots{}
+  /A /B @dots{} /Z 
+  @dots{}  /.notdef /xfooaccent /yfooaccent /zfooaccent
+] def
+@end example
+
+These encoding files are downloaded as part of changing the encoding at
+the PostScript level (see the previous section).
+
+@cindex comments, in encoding files
+Comments, which start with a percent sign and continue until the end
+of the line, are ignored unless they start with @samp{LIGKERN} (see below).
+
+The first non-comment word of the file must start with a forward slash
+@samp{/} (i.e., a PostScript literal name) and defines the name of the
+encoding.  The next word must be an left bracket @samp{[}.  Following
+that must be precisely 256 character names; use @samp{/.notdef} for any
+that you want to leave undefined.  Then there must be a matching right
+bracket @code{]}.  A final @samp{def} token is optional.  All names are
+case-sensitive.
+
+Any ligature or kern information is given as a comment.  If the first
+word after the @samp{%} is @samp{LIGKERN}, then the entire rest of the
+line is parsed for ligature and kern information.  This ligature and
+kern information is given in groups of words: each group is terminated
+by a space and a semicolon and (unless the semicolon is at the end of a
+line) another space.
+
+@findex LIGKERN @r{encoding file command}
+In these @code{LIGKERN} statements, three types of information may be
+specified.  These three types are ligature pairs, kerns to ignore, and
+the character value of this font's boundary character. 
+
+@cindex boundary character
+Throughout a @code{LIGKERN} statement, the boundary character is
+specified as @samp{||}. To set the font's boundary character value for
+@TeX{}:
+
+@example
+% LIGKERN || = 39 ;
+@end example
+
+To indicate a kern to remove, give the names of the two characters
+(without the leading slash) separated by @samp{@{@}}, as in @samp{one
+@{@} one ;}.  This is intended to be reminiscent of the way you might
+use @samp{@{@}} in a @TeX{} file to turn off ligatures or kerns at a
+particular location.  Either or both of the character names can be given
+as @samp{*}, which is a wild card matching any character; thus, all
+kerns can be removed with @samp{* @{@} * ;}.
+
+@cindex ligature operations
+@cindex Metafont ligature operations
+To specify a ligature, specify the names of the pair of characters,
+followed by the ligature operation (as in Metafont), followed by the
+replacing character name.  Either (but not both) of the first two
+characters can be @samp{||} to indicate a word boundary.
+
+@findex =: @r{ligature operation}
+The most common operation is @samp{=:} meaning that both characters are
+removed and replaced by the third character, but by adding the @samp{|}
+character on either side of the @samp{=:}, you can retain either or both
+of the two leading characters.  In addition, by suffixing the ligature
+operation with one or two @samp{>} signs, you can make the ligature
+scanning operation skip that many resulting characters before
+proceeding.  This works just like in Metafont.  For example, the `fi'
+ligature is specified with @w{@samp{f i =: fi ;}}.  A more convoluted
+ligature is @samp{one one |=:|>> exclam ;} which separates a pair of
+adjacent @code{1}'s with an exclamation point, and then skips over two
+of the resulting characters before continuing searching for ligatures
+and kerns.  You cannot give more @t{>}'s than @t{|}'s in an ligature
+operation, so there are a total of eight possibilities:
+
+@example
+=: |=: |=:> =:| =:|> |=:| |=:|> |=:|>>
+@end example
+
+The default set of ligatures and kerns built in to Afm2tfm is:
+
+@example
+% LIGKERN question quoteleft =: questiondown ;
+% LIGKERN exclam quoteleft =: exclamdown ;
+% LIGKERN hyphen hyphen =: endash ; endash hyphen =: emdash ;
+% LIGKERN quoteleft quoteleft =: quotedblleft ;
+% LIGKERN quoteright quoteright =: quotedblright ;
+% LIGKERN space @{@} * ; * @{@} space ; 0 @{@} * ; * @{@} 0 ;
+% LIGKERN 1 @{@} * ; * @{@} 1 ; 2 @{@} * ; * @{@} 2 ; 3 @{@} * ; * @{@} 3 ;
+% LIGKERN 4 @{@} * ; * @{@} 4 ; 5 @{@} * ; * @{@} 5 ; 6 @{@} * ; * @{@} 6 ;
+% LIGKERN 7 @{@} * ; * @{@} 7 ; 8 @{@} * ; * @{@} 8 ; 9 @{@} * ; * @{@} 9 ;
+@end example
+
+
+@node Special font effects
+@subsection Special font effects
+
+@cindex oblique fonts
+@cindex slanted fonts
+@cindex fonts, slanted
+Besides the reencodings described in the previous section, Afm2tfm can
+do other manipulations.  (Again, it's best to use the prebuilt fonts
+rather than attempting to remake them.)
+
+@samp{-s @var{slant}} makes an obliqued variant, as in:
+
+@example
+afm2tfm Times-Roman -s .167 -v ptmro rptmro
+@end example
+
+@noindent
+This creates @file{ptmro.vpl} and @file{rptmro.tfm}.  To use this font,
+put the line
+
+@findex SlantFont
+@example
+rptmro Times-Roman ".167 SlantFont"
+@end example
+
+@noindent
+@flindex psfonts.map
+into @file{psfonts.map}.  Then @samp{rptmro} (our name for the obliqued
+Times) will act as if it were a resident font, although it is actually
+constructed from Times-Roman via the PostScript routine @code{SlantFont}
+(which will slant everything 1/6 to the right, in this case).
+
+@cindex expanded fonts
+@cindex fonts, expanded
+Similarly, you can get an expanded font with
+
+@example
+afm2tfm Times-Roman -e 1.2 -v ptmrre rptmrre
+@end example
+
+@noindent
+and by recording the pseudo-resident font
+@findex ExtendFont
+
+@example
+rptmrre Times-Roman "1.2 ExtendFont"
+@end example
+
+@noindent
+in @file{psfonts.map}.
+
+You can also create a small caps font with a command such as
+@cindex small caps fonts
+@cindex fonts, small caps
+
+@example
+afm2tfm Times-Roman -V ptmrc rptmrc
+@end example
+
+@noindent
+This will generate a set of pseudo-small caps mapped into the usual
+lowercase positions and scaled down to 0.8 of the normal cap
+dimensions.  You can also specify the scaling as something other than
+the default 0.8:
+
+@example
+afm2tfm Times-Roman -c 0.7 -V ptmrc rptmrc
+@end example
+
+It is unfortunately not possible to increase the width of the small caps
+independently of the rest of the font.  If you want a really
+professional looking set of small caps, you need to acquire a small caps
+font.
+
+@findex PaintType
+@cindex outline fonts
+@cindex fonts, outlined
+To change the @code{PaintType} in a font from filled (0) to outlined
+(2), you can add @code{"/PaintType 2 store"} to @file{psfonts.map}, as
+in the following:
+
+@example
+rphvrl   Helvetica "/PaintType 2 store"
+@end example
+
+Afm2tfm writes to standard output the line you need to add to
+@file{psfonts.map} to use that font, assuming the font is resident in
+the printer; if the font is not resident, you must add the
+@samp{<@var{filename}} command to download the font.  Each identical
+line only needs to be specified once in the @samp{psfonts.map} file,
+even though many different fonts (small caps variants, or ones with
+different output encodings) may be based on it.
+
+
+@node Afm2tfm options
+@subsection Afm2tfm options
+
+@cindex options, to Afm2tfm
+@cindex afm2tfm options
+
+Synopsis:
+@example
+afm2tfm [@var{option}]@dots{} @var{afmfile}[.afm] [@var{tfmfile}[.tfm]]
+@end example
+
+Afm2tfm reads @var{afmfile} and writes a corresponding (but raw) TFM
+file. If @var{tfmfile} is not supplied, the base name of the AFM file is
+extended with @samp{.tfm} to get the output filename.
+
+The simplest example:
+
+@example
+afm2tfm Times-Roman rptmr
+@end example
+
+@cindex accents, wrong
+@noindent
+The TFM file thus created is @dfn{raw} because it omits ligature and
+kern information, and does no character remapping; it simply contains
+the character information in the AFM file in TFM form, which is the form
+that @TeX{} understands.  The characters have the same code in the TFM
+file as in the AFM file.  For text fonts, this means printable ASCII
+characters will work ok, but little else, because standard PostScript
+fonts have a different encoding scheme than the one that plain @TeX{}
+expects (@pxref{Encodings}).  Although both schemes agree for the
+printable ASCII characters, other characters such as ligatures and
+accents vary.  Thus, in practice, it's almost always desirable to create
+a virtual font as well with the @samp{-v} or @samp{-V} option.
+@xref{Making a font available}.
+
+The command line options to Afm2tfm:
+
+@table @samp
+@item -c @var{ratio}
+@opindex -c @var{ratio}
+@cindex scaling small caps
+See @samp{-V}; overrides the default ratio of 0.8 for the
+scaling of small caps.
+
+@item -e @var{ratio}
+@opindex -e @var{ratio}
+@cindex expanded fonts
+@cindex condensed fonts
+Stretch characters horizontally by @var{ratio}; if less than 1.0, you
+get a condensed font.
+
+@item -O
+@opindex -O
+@cindex octal character codes
+Output all character codes in the @samp{vpl} file as octal numbers, not
+names; this is useful for symbol or other special-purpose fonts where
+character names such as @samp{A} have no meaning.
+
+@item -p @var{ps-enc}
+@opindex -p @var{ps-enc}
+Use @var{ps-enc} for the destination (PostScript) encoding of the font;
+@var{ps-enc} must be mentioned as a header file for the font in
+@samp{psfonts.map}.
+@xref{Changing PostScript encodings}.
+
+@item -s @var{slant}
+@opindex -s @var{slant}
+@cindex slanted fonts, making
+Slant characters to the right by @var{slant}.  If @var{slant} is
+negative, the letters slope to the left (or they might be upright if you
+start with an italic font).
+
+@item -t @var{tex-enc}
+@opindex -t @var{tex-enc}
+Use @var{tex-enc} for the target (@TeX{}) encoding of the font.
+Ligature and kern information may also be specified in @var{file}.
+@var{file} is not mentioned in @file{psfonts.map}.
+
+@item -T @var{ps-tex-enc}
+@opindex -T @var{ps-tex-enc}
+Use @var{ps-tex-enc} for both the PostScript and target @TeX{} encodings
+of the font.  Equivalent to @samp{-p @var{file} -t @var{file}}.
+
+@item -u
+@opindex -u
+Use only those characters specified in the @TeX{} encoding, and no
+others.  By default, Afm2tfm tries to include all characters in the
+input font, even those not present in the @TeX{} encoding (it puts them
+into otherwise-unused positions, arbitrarily).
+
+@item -v @var{vpl-file}
+@opindex -v @var{vpl-file}
+Output a VPL (virtual property list) file, as well as a TFM file.
+
+@item -V @var{vpl-file}
+@opindex -V @var{vpl-file}
+Same as @samp{-v}, but the virtual font generated is a pseudo small caps
+font obtained by scaling uppercase letters by 0.8 to typeset
+lowercase. This font handles accented letters and retains proper
+kerning.
+@end table
+
+
+@node psfonts.map
+@section @file{psfonts.map}: PostScript font catalog
+
+@flindex psfonts.map
+@cindex non-resident fonts
+@cindex downloading PostScript fonts
+@cindex fonts, downloading
+
+The @file{psfonts.map} file associates a PostScript font with related
+files and constructs.  Each line has the format:
+
+@example
+@var{filename} @var{PostScript-name} @var{options}
+@end example
+
+@kindex < @r{font downloading}
+For example, the line
+@example
+rpstrn StoneInformal <StoneInformal.pfb
+@end example
+@noindent
+causes Dvips to download @file{StoneInformal.pfb} if your document (just
+as if it were a header file, @pxref{Header files}) uses the font
+@samp{StoneInformal}.
+
+@cindex partial font downloading
+@cindex downloading fonts partially
+If the @samp{j} config file or command-line option is enabled,
+@file{StoneInformal.pfb} will be @dfn{partially downloaded}---only those
+characters your document actually uses will be extracted and downloaded,
+and the remainder discarded.  @xref{Option details}.
+
+Filenames of fonts that are partially downloaded are surrounded by curly
+braces (@samp{@{@dots{}@}}) in the progress report Dvips writes to
+standard output.  Wholly-downloaded fonts appear inside angle brackets
+(@samp{<@dots{}>}), like other downloaded files.
+
+@cindex whole font downloading
+@cindex multiple master fonts
+@cindex Minion typeface family
+@kindex << @r{whole font downloading}
+Adobe Multiple Master fonts, such as Minion, cannot be partially
+downloaded.  To partially download in general, but avoid partial
+downloading for individual fonts, use @samp{<<} instead @samp{<}:
+@example
+pmnr8r Minion <<Minion.pfb
+@end example
+
+@cindex transforming downloaded fonts
+@cindex expanded fonts
+@cindex wide fonts
+@cindex narrow fonts
+You can generate transformed fonts with a line like this:
+@example
+rpstrc StoneInformal <StoneInformal.pfb ".8 ExtendFont"
+@end example
+
+@noindent
+@xref{Special font effects}, for a
+complete list of font effects.
+
+@cindex reencoding PostScript fonts
+You can change the encoding of the Type 1 font at the PostScript
+level with a @samp{ReEncodeFont} instruction, plus the name of the
+encoding file.  This allows you access to characters that may be present
+in the Type 1 font file, but not encoded by default---most of the
+preaccented characters, for example.  An example:
+@smallexample
+pstrn8r StoneInformal "TeXBase1Encoding ReEncodeFont" <8r.enc <pstrn8a.pfb
+@end smallexample
+
+@cindex 8r font encoding
+@cindex base encoding, recommended
+The @samp{8r} encoding mentioned here has been designed to serve as a
+base for all downloadable fonts; it allows access to all the characters
+commonly present in a Type 1 font.  For more details, see the
+@file{8r.enc} source file that comes with (and is installed with) Dvips.
+
+@kindex <[ @r{encoding vector downloading}
+You may notice that the same syntax is used for downloading encoding
+vectors and Type 1 font files. To make your intentions clear, you can
+also use @samp{<[} to explicitly indicate you are downloading an
+encoding vector, as in:
+@smallexample
+pstrn8r StoneInformal "TeXBase1Encoding ReEncodeFont" <[8r.enc <pstrn8a.pfb
+@end smallexample
+
+@flindex .enc @r{extension for encoding vectors}
+If the filename of your encoding vector does not end in @samp{.enc}, and
+you are using partial font downloading, you must use the @samp{<[}
+syntax, or Dvips will not download the font properly.
+
+@flindex .pfa @r{extension required for partial downloading}
+@flindex .pfb @r{extension required for partial downloading}
+Similarly, the name of the Type 1 font file itself must have extension
+@file{.pfa} or @file{.pfb} for partial downloading to work properly.
+
+@cindex pfb files, automatically unpacked
+When using PFB files, Dvips is smart enough to unpack the binary PFB
+format into printable ASCII so there is no need to perform this
+conversion yourself.  In addition, Dvips scans the font to determine its
+memory usage, just as it does for other header files (@pxref{Header
+files}).
+
+Here is a brief summary of how @file{psfonts.map} is read:
+
+@enumerate
+@item If a line is empty or begins with a space, percent, asterisk,
+semicolon, or hash mark, it is ignored.
+
+@item Otherwise, the line is separated into words, where words are
+separated by spaces or tabs, except that if a word begins with a double
+quote, it extends until the next double quote or the end of the line.
+
+@item If a word starts with @samp{<<}, it is taken as a font file to be
+wholly downloaded.  Use this to avoid partial downloading, as described
+above.
+
+@item If a word starts with @samp{<[}, it is taken as an encoding file
+to be downloaded.  Use this if the name of the encoding file does end in
+@samp{.enc}, also as described above.
+
+@item If a word starts with a @samp{<} character, it is
+treated as a header file that needs to be downloaded.  If the name ends
+in @samp{.pfa} or @samp{.pfb}, it is taken as Type 1 font file that will
+be partially downloaded if the @samp{j} option is in effect.  There can
+be more than one such header for a given font.  If a @samp{<} is a word
+by itself, the next word is taken as the name of the header file.
+
+@item If a word starts with a @samp{"} character, it is taken as PostScript
+code used in generating that font, and is inserted into the output
+verbatim at the appropriate point.  (And the double quotes beginning and
+ending the word are removed.)
+
+@item Otherwise the word is a name. The first such name is the TFM file that
+a virtual font file can refer to.  If there is a second name, it is used
+as the PostScript name; if there is only one name, it is used for both
+the @TeX{} name and the PostScript name.
+
+@end enumerate
+
+
+@node Color
+@chapter Color
+
+@cindex color
+
+@cindex Hafner, Jim
+Dvips supports one-pass multi-color printing of @TeX{} documents on any
+color PostScript device.  Initially added by Jim Hafner, IBM Research,
+@email{hafner@@almaden.ibm.com}, the color support has gone through many
+changes by Tomas Rokicki.  Besides the source code support itself, there
+are additional @TeX{} macro files: @samp{colordvi.tex} and
+@samp{blackdvi.tex}, and corresponding @samp{.sty} versions for use with
+La@TeX{}.
+
+In this section we describe the use of color from the document
+preparer's point of view and then add some instructions on installation
+for the @TeX{} administrator.
+
+@menu
+* Color macro files::           TeX macro definitions.
+* User-definable colors::       Adding your own colors.
+* Color subtleties::            Subtleties in using color.
+* Ted Turner::                  Printing in black/white after colorizing.
+* Color device configuration::  Configuring Dvips for color devices.
+* Color support details::       Color support details
+@end menu
+
+
+@node Color macro files
+@section Color macro files
+
+@cindex macros for color
+@cindex color macros
+
+All the color macro commands are defined in @samp{colordvi.tex} (or
+@samp{colordvi.sty}).  To access these macros simply add to the top of
+your plain @TeX{} file the command:
+@example
+\input colordvi
+@end example
+@noindent
+For (the obsolete) La@TeX{} 2.09, add the @samp{colordvi} style option as in:
+@example
+\documentstyle[12pt,colordvi]@{article@}
+@end example
+@noindent
+For La@TeX{} 2e, these examples are not applicable.  Instead, please see
+the documentation for the graphics package, available from
+@file{@var{CTAN}:doc/latex/graphics/}.  See also
+@file{@var{CTAN}:doc/epslatex.ps}.
+
+@cindex Crayola crayon box
+@cindex Pantone colors
+@cindex color names, mixed case
+These macros provide two basic kinds of color macros: ones for local
+color changes (a few words, a single symbol) and one for global color
+changes (the whole document).  All the color names use a mixed case
+scheme to avoid conflicts with other macros.  There are 68 predefined
+colors, with names taken primarily from the Crayola crayon box of 64
+colors, and one pair of macros for the user to set his own color pattern
+(@pxref{User-definable colors}).  You can browse the file
+@samp{colordvi.tex} for a list of the predefined colors.  The comments
+in this file also show a rough correspondence between the crayon names
+and Pantones.
+
+A local color command has the form
+
+@example
+\@var{ColorName}@{this is the color @var{ColorName}@}
+@end example
+
+@findex \@var{ColorName}
+@noindent
+where @var{ColorName} is the name of a predefined color, e.g.,
+@samp{Blue}.  As shown, these macros take one argument, the text to
+print in the specified color.  This can be used for nested color changes
+since it restores the original color state when it completes.  For
+example:
+
+@example
+This text is normal but here we are \Red@{switching to red,
+\Blue@{nesting blue@}, recovering the red@} and back to original.
+@end example
+
+@noindent
+@cindex color nesting level
+The color nesting level has no hard limit, but it is not advisable to
+nest too deeply lest you and the reader lose track of the color history.
+ 
+The global color command has the form
+
+@example
+\text@var{ColorName}
+@end example
+
+@noindent 
+@findex \text@var{ColorName}
+These macros take no arguments and changes the default color from that
+point on to @var{ColorName}.  This of course can be overridden globally
+by another such command or locally by local color commands. For example,
+expanding on the example above, we might have
+
+@example
+\textGreen 
+This text is green but here we are \Red@{switching to red, 
+\Blue@{nesting blue@}, recovering the red@} and back to 
+original green.
+\textCyan 
+The text from here on will be cyan until
+\Yellow@{locally changed to yellow@}. Now we are back to cyan.
+@end example
+ 
+The color commands will even work in math mode and across math mode
+boundaries.  This means that if you have a color before going into math
+mode, the mathematics will be set in that color as well.  In alignment
+environments like @code{\halign}, @samp{tabular} or @samp{eqnarray},
+local color commands cannot extend beyond the alignment characters.
+ 
+Because local color commands respect only some environment and
+delimiter changes besides their own, care must be taken in setting
+their scope.  It is best not to have them stretch too far.
+ 
+At the present time there are no macros for color environments in La@TeX{}
+which might have a larger range.  This is primarily to keep the @TeX{}
+and La@TeX{} use compatible.
+
+
+@node User-definable colors
+@section User-definable colors
+ 
+@cindex user-definable colors
+@cindex colors, user-definable
+
+There are two ways for the user to specify colors not already defined.
+For local changes, there is the command @code{\Color} which takes two
+arguments.  The first argument is four numbers between zero and one and
+specifies the intensity of cyan, magenta, yellow and black (CMYK) in
+that order.  The second argument is the text that should appear in the
+given color.  For example, suppose you want the words ``this color is
+pretty'' to appear in a color which is 50% cyan, 85% magenta, 40% yellow
+and 20% black.  You would use the command
+
+@example
+\Color@{.5 .85 .4 .2@}@{this color is pretty@}
+@end example
+
+For global color changes, there is a command @code{\textColor} which
+takes one argument, the CMYK quadruple of relative color intensities.
+For example, if you want the default color to be as above, then the
+command
+
+@example
+\textColor@{.5 .85 .4 .2@}
+The text from now on will be this pretty color
+@end example
+
+@noindent
+will do the trick.
+ 
+Making a global color change in the midst of nested local colors is
+highly discouraged.  Consequently, Dvips will give you warning message
+and do its best to recover by discarding the current color history.
+
+
+@node Color subtleties
+@section Color subtleties
+
+@cindex color subtleties
+
+Color macros are defined via @code{\special} keywords.  As such, they
+are put in the @samp{.dvi} file only as explicit message strings to the
+driver.  The (unpleasant) result is that certain unprotected regions of
+the text can have unwanted color side effects.  For example, if a color
+region is split by @TeX{} across a page boundary, then the footers of
+the current page (e.g., the page number) and the headers of the next
+page can inherit that color.  To avoid this effect globally, users
+should make sure that these special regions of the text are defined with
+their own local color commands.  For example, to protect the
+header and footer in plain @TeX{}, use
+
+@example
+\headline@{\Black@{My Header@}@}
+\footline@{\Black@{\hss\tenrm\folio\hss@}@}
+@end example
+
+This warning also applies to figures and other insertions, so be careful!
+
+Of course, in La@TeX{}, this is much more difficult to do because of the
+complexity of the macros that control these regions.  This is
+unfortunate but inevitable, because @TeX{} and La@TeX{} were
+not written with color in mind.
+
+Even when writing your own macros, much care must be taken.  The macros
+that `colorize' a portion of the text work prefix the text work by
+outputting one @code{\special} command to turn the color on before the
+text, and outputting another @code{\special} command afterwards to
+restore the original color.  It is often useful to ensure that @TeX{} is
+in horizontal mode before the first special command is issued; this can
+be done by prefixing the color command with @code{\leavevmode}.
+
+
+@node Ted Turner
+@section Printing in black/white after colorizing
+
+If you have a @TeX{} or La@TeX{} document written with color macros and
+you want to print it in black and white there are two options.  On all
+(good) PostScript devices, printing a color file will print in
+corresponding gray levels.  This is useful to get a rough idea of the
+colors without using expensive color printing devices.  The second
+option is to replace the call to input @file{colordvi.tex} with
+@samp{blackdvi.tex} (and similarly for the @samp{.sty} files).  So in
+the above example, replacing the word @samp{colordvi} with
+@samp{blackdvi} suffices.  @file{blackdvi.tex} defines the color macros
+as no-ops, and so will produce normal black/white printing.  By this
+simple mechanism, the user can switch to all black/white printing
+without having to ferret out the color commands.  Also, some device
+drivers, particularly non-PostScript ones like screen previewers, will
+simply ignore the color commands and so print in black/white.
+Hopefully, in the future screen previewers for color displays will be
+compatible with some form of color support.
+
+
+@node Color device configuration
+@section Color device configuration
+
+@cindex color configuration
+@cindex configuration, of color devices
+
+To configure Dvips for a particular color device you need to fine tune
+the color parameters to match your device's color rendition.  To do this,
+you will need a Pantone chart for your device.  The header file
+@samp{color.lpro} shows a (rough) correspondence between the Crayola
+crayon names and the Pantone numbers and also defines default CMYK
+values for each of the colors.  Note that these colors must be defined
+in CMYK terms and not RGB, as Dvips outputs PostScript color commands in
+CMYK.  This header file also defines (if they are not known to the
+interpreter) the PostScript commands @samp{setcmykcolor} and
+@samp{currentcmykcolor} in terms of a RGB equivalent so if your device
+only understands RGB, there should be no problem.
+
+@cindex Phaser printer, used for color calibration
+@cindex Tektronix Phaser printer, used for color calibration
+The parameters set in this file were determined by comparing the Pantone
+chart of a Tektronix Phaser printer with the actual Crayola Crayons.
+Because these were defined for a particular device, the actual color
+rendition on your device may be very different.  There are two ways to
+adjust this.  One is to use the PAntone chart for your device to rewrite
+@samp{color.lpro} prior to compilation and installation.  A better
+alternative, which supports multiple devices, is to add a header file
+option in the configuration file (@pxref{Configuration file commands})
+for each device that defines, in @samp{userdict}, the color parameters
+for those colors that need redefining.
+
+For example, if you need to change the parameters defining
+@samp{Goldenrod} (approximately Pantone 109 on the Phaser) for your
+device @samp{mycolordev}, do the following.  In the Pantone chart for
+your device, find the CMYK values for Pantone 109.  Let's say they are
+@samp{@{\ 0 0.10 0.75 0.03 @}}. Then create a header file named
+@samp{mycolordev.pro} with the commands
+
+@example
+userdict begin 
+/Goldenrod @{ 0 0.10 0.75 0.03 setcmykcolor@} bind def
+@end example
+
+@noindent
+Finally, in @samp{config.mycolordev} add the line 
+
+@example
+h mycolordev.pro
+@end example
+
+@noindent
+This will then define @samp{Goldenrod} in your device's CMYK values in
+@file{userdict} which is checked before defining it in @file{TeXdict} by
+@file{color.pro}.  (On MS-DOS, you will have to call this file
+@file{mycolordev.cfg}.)
+
+This mechanism, together with additions to @file{colordvi.tex} and
+@file{blackdvi.tex} (and the @samp{.sty} files), can also be used to
+predefine other colors for your users.
+
+
+@node Color support details
+@section Color support details
+
+To support color, Dvips recognizes a certain set of specials.  These
+specials start with the keyword @samp{color} or the keyword
+@samp{background}, followed by a color specification.
+
+@menu
+* Color specifications::
+* Color specials::
+@end menu
+
+
+@node Color specifications
+@subsection Color specifications
+
+@cindex color specifications
+
+What is a color specification?  One of three things.  First, it might be
+a PostScript procedure as defined in a PostScript header file.  The
+@file{color.pro} file defines 64 of these, including @samp{Maroon}.
+This PostScript procedure must set the current color to be some value;
+in this case, @samp{Maroon} is defined as @samp{0 0.87 0.68 0.32
+setcmykcolor}.
+
+The second possibility is the name of a color model (initially, one of
+@samp{rgb}, @samp{hsb}, @samp{cmyk}, or @samp{gray}) followed by the
+appropriate number of parameters.  When Dvips encounters such a macro,
+it sends out the parameters first, followed by the string created by
+prefixing @samp{TeXcolor} to the color model.  Thus, the color
+specification @samp{rgb 0.3 0.4 0.5} would generate the PostScript code
+@samp{0.3 0.4 0.5 TeXrgbcolor}.  Note that the case of zero arguments is
+disallowed, as that is handled by the single keyword case
+(@samp{Maroon}) above, where no changes to the name are made before it
+is sent to the PostScript file.
+
+The third and final type of color specification is a double quote
+followed by any sequence of PostScript.  The double quote is stripped
+from the output.  For instance, the color specification
+@samp{"AggiePattern setpattern} will set the `color' to the Aggie logo
+pattern (assuming such exists.)
+
+
+@node Color specials
+@subsection Color specials
+
+We will describe @samp{background} first, since it is the simplest.  The
+@samp{background} keyword must be followed by a color specification.
+That color specification is used as a fill color for the background.
+The last @samp{background} special on a page is the one that gets
+issued, and it gets issued at the very beginning of the page, before any
+text or specials are sent.  (This is possible because the prescan phase
+of Dvips notices all of the color specials so that the appropriate
+information can be written out during the second phase.)
+
+The @samp{color} special itself has three forms.
+The first is just @samp{color} followed by a color specification.  In
+this case, the current global color is set to that color; the color stack
+must be empty when such a command is executed.
+
+The second form is @samp{color push} followed by a color specification.
+This saves the current color on the color stack and sets the color to be
+that given by the color specification.  This is the most common way to
+set a color.
+
+The final version of the @samp{color} special is just @samp{color pop},
+with no color specification; this says to pop the color last pushed on
+the color stack from the color stack and set the current color to be
+that color.
+
+Dvips correctly handles these color specials across pages, even when the
+pages are repeated or reversed.
+
+These color specials can be used for things such as patterns or screens
+as well as simple colors.  However, note that in the PostScript, only
+one color specification can be active at a time.  For instance, at the
+beginning of a page, only the bottommost entry on the color stack is
+sent; also, when a color is popped, all that is done is that the color
+specification from the previous stack entry is sent.  No @samp{gsave} or
+@samp{grestore} is used.  This means that you cannot easily mix usage of
+the @samp{color} specials for screens and colors, just one or the other.
+This may be addressed in the future by adding support for different
+categories of color-like state.
+
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+
+@summarycontents
+@contents
+
+@end ifclear
+@c INSTALLONLY
+@bye

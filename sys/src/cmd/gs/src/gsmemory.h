@@ -83,12 +83,12 @@ typedef struct gs_memory_status_s {
      * the parent of the memory manager.  It includes space used for
      * allocated data, space available for allocation, and overhead.
      */
-    ulong allocated;
+    uintptr_t allocated;
     /*
      * "Used" space is the amount of space used by allocated data
      * plus overhead.
      */
-    ulong used;
+    uintptr_t used;
 } gs_memory_status_t;
 
 		/*
@@ -101,7 +101,7 @@ typedef struct gs_memory_status_s {
 		 */
 
 #define gs_memory_t_proc_alloc_bytes(proc, mem_t)\
-  byte *proc(mem_t *mem, uint nbytes, client_name_t cname)
+  byte *proc(mem_t *mem, uintptr_t nbytes, client_name_t cname)
 
 #define gs_alloc_bytes_immovable(mem, nbytes, cname)\
   ((mem)->procs.alloc_bytes_immovable(mem, nbytes, cname))
@@ -271,7 +271,7 @@ typedef struct gs_memory_procs_s {
      */
 
 #define gs_memory_proc_alloc_byte_array(proc)\
-  byte *proc(gs_memory_t *mem, uint num_elements, uint elt_size,\
+  byte *proc(gs_memory_t *mem, uint num_elements, uintptr_t elt_size,\
     client_name_t cname)
 #define gs_alloc_byte_array(mem, nelts, esize, cname)\
   (*(mem)->procs.alloc_byte_array)(mem, nelts, esize, cname)
@@ -321,7 +321,7 @@ typedef struct gs_memory_procs_s {
      */
 
 #define gs_memory_proc_alloc_string(proc)\
-  byte *proc(gs_memory_t *mem, uint nbytes, client_name_t cname)
+  byte *proc(gs_memory_t *mem, uintptr_t nbytes, client_name_t cname)
 #define gs_alloc_string(mem, nbytes, cname)\
   (*(mem)->procs.alloc_string)(mem, nbytes, cname)
     gs_memory_proc_alloc_string((*alloc_string));
@@ -346,7 +346,7 @@ typedef struct gs_memory_procs_s {
      */
 
 #define gs_memory_proc_free_string(proc)\
-  void proc(gs_memory_t *mem, byte *data, uint nbytes,\
+  void proc(gs_memory_t *mem, byte *data, uintptr_t nbytes,\
     client_name_t cname)
 #define gs_free_string(mem, data, nbytes, cname)\
   (*(mem)->procs.free_string)(mem, data, nbytes, cname)
@@ -402,7 +402,7 @@ typedef struct gs_memory_procs_s {
  */
 void gs_free_const_object(gs_memory_t *mem, const void *data,
 			  client_name_t cname);
-void gs_free_const_string(gs_memory_t *mem, const byte *data, uint nbytes,
+void gs_free_const_string(gs_memory_t *mem, const byte *data, uintptr_t nbytes,
 			  client_name_t cname);
 
 /*

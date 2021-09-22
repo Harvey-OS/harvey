@@ -1,0 +1,786 @@
+Fri Feb 20 17:14:08 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* fixwrites.c (main): Use kpse_set_program_name instead of
+ 	kpse_set_progname.
+
+Tue Feb 10 17:55:48 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* web2c.h: Add prototypes for most functions being declared.
+  	Spotted by Andreas Scherer <Andreas.Scherer@Pobox.Com>
+
+Sat Dec 13 23:04:50 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* texmf.defines: Add define for flushdvi.
+
+Fri Dec 12 10:20:08 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in (y_tab.c y_tab.h): Don't abort make if the 'test -f'
+ 	fails.
+
+	* web2c.y (gen_function_head): Switch to using HAVE_PROTOTYPES
+ 	from __STDC__.
+
+Fri Nov 21 15:20:10 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* convert: Conversion of tex results in at least tex2.c, similar
+ 	for the others.
+
+	* web2c.y (do_proc_args, gen_function_head): Generating different
+ 	C files depending on whether __STDC__ is defined is not a good
+ 	idea, it makes the number of files produced by splitup
+ 	unpredictable.
+
+Sat Nov 15 21:19:25 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* texmf.defines: Remove the additions for PDFTeX.  These will now
+ 	be picked up from an external file.
+
+	* splitup.c (main): Add support for Omega.
+
+	* fixwrites.c (main): Changes for Omega.
+
+	* convert: Adapt for Omega.  When converting footex, convert now
+	looks for footexdir/footex.defines, and adds this to the usual
+	defines if found.
+
+	* common.defines: Add some definitions for Omega.
+
+Fri Nov 14 16:46:03 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* texmf.defines: Additional defines for PDFTeX.
+
+	* splitup.c (main): define PDFTeX when splitting PDFTeX.
+
+	* common.defines: Add PDFTEXHELP.
+
+Tue Oct 21 23:36:53 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in: Correction to handling of y.tab.[hc].
+
+Mon Oct 20 08:42:48 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* splitup.c: Add e-TeX and pdftex support.
+
+	* common.defines: Include e-TeX support.
+
+	* Makefile.in, main.c, web2c.l: Replace y.tab.* with y_tab.* for
+	MS-DOS' sake. From Fabrice Popineau.
+
+Fri Oct 17 14:28:46 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* convert: Adapt for etex/pdftex.
+
+Thu Oct 16 21:30:47 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* convert: After the last changes to tex.ch, we no longer have a
+ 	tex2.c.
+
+	* convert: Remove reference to cvttex.sed.
+	* cvttex.sed: Obsolete.  From Peter Breitenlohner
+	<peb@mppmu.mpg.de>.
+
+Thu Oct  2 12:56:41 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* common.defines (isprint): New function, used in tex.ch.  From
+ 	Bernd Raichle <raichle@informatik.uni-stuttgart.de>.
+
+	* web2c.y (do_proc_args, gen_function_head): Use prototyped
+ 	function declarations and definitions when __STDC__ is defined.
+  	After the patch by Ezra Peisach	<epeisach@auriga.rose.brandeis.edu>.
+
+Tue Sep 30 11:12:47 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* web2c.h: Fix for the unsigned char yytext[] bug.  (From
+	Thomas Esser <te@informatik.uni-hannover.de>)
+
+Sun Feb 16 16:06:10 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* fixwrites.c: Replace matching bracket, not first one.
+	From: John Plaice <plaice@iad.ift.ulaval.ca>.
+
+Mon Jan 20 17:30:21 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Version 7.0.
+
+Sun Dec 29 17:12:17 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* convert: Don't assume . is in PATH for finding the web2c programs.
+	From Fabrice.
+
+Sun Dec  8 16:39:09 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* web2c.l (yywrap): Give a prototype, just in case.
+	(YY_SKIP_YYWRAP): Define, to avoid flex declaring it.
+
+	* common.defines (FOPENRBINMODE): New define for WIN32.
+	(standardinput, standardoutput): Remove, these are in bibtex.ch now.
+	From: Fabrice POPINEAU <popineau@esemetz.ese-metz.fr>.
+
+Fri Dec  6 17:47:51 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* texmf.defines ({ocp,ofm}openin): New functions for Omega.
+        From: John Plaice <plaice@iad.ift.ulaval.ca>.
+
+Tue Dec  3 15:05:11 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* web2c.l (yywrap): Give our own definition.
+
+Mon Oct 14 17:33:27 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* web2c.h (max): #undef before defining.
+
+	* splitup.c: Use stdin instead of in.
+
+	* common.defines (makebinaryfile): New function.
+
+Sat Aug 10 15:29:47 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* fixwrites.c: Have to have another special case for
+		kpathseaversionstring a la versionstring.
+
+Sun Aug  4 15:59:48 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* common.defines (kpathseaversionstring): A new ``var''.
+
+Sat Aug  3 17:30:22 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (web2c): Use $(kpathsea_link).
+
+Fri Jul 26 15:47:44 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in: Remove co.make.
+
+Sun Jun  9 13:33:34 1996  K. Berry  <kb@cs.umb.edu>
+
+	* Makefile.in (fixwrites, splitup, regfix): Use $(kpathsea_link).
+
+Wed Feb 21 09:47:05 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (kpseopenfile): Rename from xopenfile.
+
+Sat Feb 17 15:25:51 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (openoutnameok): Declare this new function.
+
+Fri Dec 29 17:15:54 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: misc.make is now clean.make.
+
+Sun Dec 10 15:36:59 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (kpsefindmft): New decl.
+
+Fri Dec  1 19:17:37 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (MFTHELP): Oops, restore this, it was MFHELP that
+        was supposed to go away.
+
+Fri Nov 24 17:33:36 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * main.c (yyerror): Print last token as a character as well as a
+        number.
+
+        * convert: For tex, replace xl(r)paren with ()), for mltex.
+        * cvttex.sed: New file.
+
+Fri Nov 17 13:42:19 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (libcfree): Rename from cfree. From Ulrik.
+        (TEXHELP, MFHELP): These aren't needed, since used in texmfmp.c.
+
+Sun Nov 12 16:02:24 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.h (YYTEXT_ARRAY): This should really be
+        YYTEXT_POINTER. Found by Tim Pattison et al.
+
+Sat Sep 30 15:05:32 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (system): Add this.
+
+Sat Sep 23 15:20:41 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * main.c (indent_line): May as well toss this. Just call `new_line'.
+        * web2c.y: Change calls here too.
+
+        * web2c.y (CONST_DEC): Ensure #define ends up in column 1.
+
+Sat Sep  9 16:21:44 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.l (endifn): Add `not' to the comment.
+
+Thu Aug 31 17:46:38 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * mfmp.defines: New file.
+        * convert (more_defines): Use it for mf and mp.
+
+Tue Aug 22 14:11:40 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: Include rdepend.make and depend.make.
+
+Mon Aug 21 16:43:33 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (FOPENRMODE, fopen): Define this.
+
+Sun Aug  6 19:33:28 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (xfclose): Declare this.
+
+Sat Jul 29 13:14:39 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * convert: Use new name texmfmp.h.
+
+        * common.defines (DVITOMPHELP): New constant.
+
+Fri Jul 28 15:07:50 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * convert: If $pascalfile is not readable, look for it in srcdir.
+        * Makefile.in: Use ac_include ../../make, not /w/make.
+        From Greg.
+
+        * web2c.y: Use yyerror instead of FATAL directly.
+
+Sat Jul 22 17:01:25 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines: Move all the kpse_*_format's here.
+
+        * texmf.defines (kpsempformat, etc.): Define these new file formats.
+        * splitup.c: Can split mp now.
+        * convert: mp is mostly like mf.
+
+Fri Jul 21 15:46:36 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (undumpuppercheckthings): Add this procedure.
+
+Thu Jul 20 14:24:07 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (put[24]bytes): Declare these.
+
+        * web2c.y (SUBRANGE_CONSTANT): Allow even an undefined identifier
+        as a bound, so we don't even have to change type definitions.
+
+Wed Jul 19 15:42:44 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.y (SUBRANGE_CONSTANT): Allow a variable as a
+        bound. (Translates to the integer type.)
+        (compute_array_bounds): But complain here if a bound is a variable.
+
+        * main.c, splitup.c, fixwrites.c: Call kpse_set_progname.
+
+Thu Jul 13 17:36:44 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (setupcharset): Rename from below.
+
+Sun Jul  9 17:33:58 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (setupxchrandisprintable): New procedure.
+
+Sat Jul  8 13:47:29 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.y (CONSTANT_EXPRESS, CONSTANT_FACTOR): New nonterminals to
+        allow expressions as const values. From Nelson.
+
+        * common.defines (XTALLOC): New function.
+        (BIBXRETALLOC): New procedure.
+
+Wed Jun 21 15:36:45 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * fixwrites.c (remove_newline): If we lose a newline, output the
+        magic @error@ string.
+
+        * common.defines (fprintf, printf): Remove these.
+
+        * texmf.defines (undumpcheckedthings): New procedure.
+
+Fri Jun 16 11:46:45 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (ipcpage): New procedure.
+
+Sat Jun 10 19:25:52 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (fmemoryword): New type.
+
+Sun Jun  4 14:57:28 1995  Karl Berry  <karl@cs.umb.edu>
+
+	* web2c.y: ANSIfy output in coerce file.
+        * *.c: ANSIfy functions.
+        From Andreas Scherer.
+
+Fri Jun  2 19:42:58 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texmf.defines (setupboundvariable): Declare this.
+
+Mon May 29 16:25:44 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.l (ifndef, endifn): Add support for this. Remove void casts.
+        From: Giuseppe Ghibo' <ghibo@galileo.polito.it>.
+        * splitup.c: Check for #ifndef here as well.
+
+Sat May 27 13:51:09 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (atou, strtol): Add these.
+
+Fri May 26 17:38:45 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (addressofint): Rename to addressof.
+
+Fri May 19 19:26:38 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (findsuffix): Add this.
+
+Tue May 16 19:49:20 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (removesuffix): Add this.
+
+Sun May 14 10:59:23 1995  Karl Berry  <karl@fosse>
+
+        * texmf.defines (bytefile, wordfile): The original Pascal
+        definitions will work, so remove.
+
+        * fixwrites.c: Include c-pathmx.h.
+
+Tue May  9 15:58:08 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (*HELP): Define all of these.
+
+Sat May  6 11:16:47 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (parsearguments): Remove this.
+
+Fri May  5 16:01:18 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (usage): Add this.
+
+        * web2c.y: Restore old token order, since - and + depend on it.
+
+Thu May  4 19:30:27 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.y (PROGRAM): Output a #define of the program name,
+        uppercased, before anything else.
+        * main.c (main): Remember the program name.
+        * common.defines (POOLTYPE_HELP): Define this.
+
+        * main.c: Use fputs where appropriate.
+        (initialize): Use xfopen.
+
+Fri Apr 28 11:51:42 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (alphafile): No longer needed.
+        * web2c.y (FILE_TYPE): Use `text' instead of file_ptr.
+
+        * cvtbib.sed: Insert the setjmp stuff before line 1, instead of
+        appending after. (The first line of bibtex.c is an #ifdef now.)
+
+        * web2c.y (PROGRAM_FILE_PART): Allow no file list at all.
+
+        * convert: Echo the mv, so they can see exactly what the dregs are.
+
+Tue Apr 25 15:53:25 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.y (PROGRAM_FILE{,_LIST}): Define these to ignore the files
+        in the Pascal program statement.
+
+Sat Apr 22 13:23:22 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * cvtbib.sed: main_body is now mainbody.
+
+        * fixwrites.c: Print nameoffile as a string, not a character.
+
+        * web2c.y (BODY): Use mainbody instead of main_body, for the sake
+        of tex, where the main program is procedurized.
+        (BLOCK): Never output `coerce.h'.  What is this left over from?
+        Also, do output a newline after the {.
+        (IF_STATEMENT): Don't output a newline after the condition.
+
+        * texmf.defines (kpsetexpoolformat): Define this.
+        (xmallocarray): And this.
+
+Fri Apr 21 11:19:27 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * splitup.c: Use `mfini' instead of `imf', etc.
+
+        * Makefile.in (programs): Remove regfix.
+
+        * splitup.c: Define INI and INIMF and INITEX in the output.
+
+Tue Apr 18 13:44:37 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * splitup.c (MAXLINES): Increase to 10000.
+
+        * common.defines (cfree): Declare this.
+
+        * splitup.c (main): Don't output forever if input is malformed.
+
+Mon Apr 17 11:09:42 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * convert: Add rules for mf.
+
+Sun Apr 16 11:10:04 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (xstrdup): Define this.
+
+Fri Apr 14 15:32:21 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (tfmtemp): Define this.
+
+Tue Apr  4 17:01:28 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * main.c (initialize): exit 1 if the coerce file can't be opened.
+
+        * convert (midcmd): Add extra command for bibtex.
+
+        * common.defines (kpse{bib,bst}format): Define these.
+
+Sat Mar 18 17:24:10 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (input): Define this as a const.
+        (kpsefindvf): Also use this in dvicopy.
+
+Fri Mar 17 14:22:18 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (web2c.[co]): Rename to main.[co], to avoid GNU make
+        trying to make web2c.c from web2c.y.
+
+Tue Feb 21 13:42:45 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * convert: Mention that the bad cfile was preserved.
+
+        * common.defines (output): New variable.
+
+Mon Feb 20 15:24:54 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (xopenfile, kpsefind{mf,tex}): Define these.
+
+Sat Jan  7 14:52:24 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (testreadaccess, etc.): Remove obsolete definitions.
+        (kpseinitprog): Add this.
+
+Mon Dec 19 13:21:39 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (kpsefindfile): Add this.
+        (kpse{pk,vf}format): And these.
+        
+Sun Dec 18 16:51:07 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (flush): Remove this, add fflush.
+
+Sat Dec 17 15:36:38 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.c (my_output): Try omitting spaces after (, too.
+
+Tue Nov 15 11:47:11 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * web2c.c (my_output): Don't output an extra space after [.
+
+        * common.defines (kpsesetprogname): Add this.
+
+Mon Nov 14 11:42:10 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines (argv): Variable now.
+        (cmdline): New function.
+	(basename, makesuffix, makesuffixchar): Add these.
+        (cstring): Rename from ccharpointer;
+        (strcat, strcpy): Use these instead of v...
+
+        * Makefile.in (web2c.o): Depend on web2c.c.
+
+        * web2c.c (yyerror): Put @error@ in the output file on error.
+        * convert: If the output file contains @error@, delete it.
+
+Sun Nov 13 16:19:12 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * common.defines: Remove the ...PATH and ...PATHBIT constants.
+
+Mon Oct 10 15:32:40 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * convert: Check if the output file is nonempty, rather than the
+        exit status of the pipeline. Rewrite argument parsing.
+
+        * Makefile.in (prog_cflags): Define this.
+        (web2c): Include LEXLIB here.
+
+Sun Sep 25 16:51:32 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: ac_include changes, etc.
+
+Thu May 26 20:28:26 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * regfix.c (main) [!REGFIX]: Use getchar and putchar instead of
+        fgets and fputs.
+
+Mon Apr 18 17:34:50 1994  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * web2c.h (DECLARE_YYTEXT): No need for this.
+
+Mon Feb 21 14:14:30 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in: srcdir changes from simon.
+
+        * web2c.h (alloca): Do not declare, since whatever uses it (i.e.,
+        bison output) should declare it, and we want to avoid conflicts.
+
+Wed Feb  2 11:00:09 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 6.1.
+
+Mon Jan 24 07:34:29 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 6.0.
+
+Sat Dec  4 17:25:08 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (web2c): Must link with the flex library now.
+
+Sat Nov  6 13:40:20 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* fixwrites.c (main): Output strings for xdig, xext, and xhyf.
+	From alonz@cs.Technion.AC.IL.
+
+Sun Oct  3 13:28:56 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (commono): kpathsea.a has its own variable now.
+	(*clean): Include standard targets.
+	(program): New variable.
+	(all): Use it.
+
+Tue May 25 14:38:40 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Most files: Change exit calls to use EXIT_SUCCESS and EXIT_FAILURE.
+
+Fri May 21 11:58:47 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* fixwrites.c (main): Return EXIT_SUCCESS_CODE instead of using uexit.
+	* splitup.c (main): Likewise.
+	* regfix.c (main) [!REGFIX]: Likewise.
+
+	* fixwrites.c (whole): Declare return type.
+
+	* web2c.lex (ifdef): Remove unused variable `my_routine'.
+
+	* web2c.yacc (fixup_var_list): Add parens to avoid gcc warning.
+
+	* web2c.c (main): Declare as void, since we have to use uexit here.
+
+Fri May 14 14:23:01 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* web2c.yacc (gen_function_head, PROC): Output the return type on
+	a line of its own, so that we can make TAGS files.
+
+	* web2c.yacc: Omit some needless parentheses and casts to void in
+	the web2c output.
+
+Thu May 13 16:53:47 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Not quite all of Bill's changes below have been merged (not the
+	new descrip.mms or convert.com files, in particular), but just to
+	get the gist, I'll include the whole log.
+
+Tue Mar 23 10:13:17 1993  Bill Barabash  (barabash@ops5.lmo.dec.com)
+
+	* descrip.mms : new file.  This is the VMS equivalent of a
+	makefile.
+
+	* web2c.h : added function declarations for add_to_table,
+	search_table, yyerror, yylex, yyparse, and alloca.
+
+	* web2c.c, fixreg.c, regfix.c, splitup.c : declare argc and gargv,
+	which are referenced by config.h, to prevent VMS linker warnings.
+
+	* web2c.c, web2c.lex : On VMS, include "y_tab.h" instead of "y.tab.h"
+	since on VMS a file basename cannot contain a '.'.
+
+	* splitup.c : On VMS use run-time library routine "delete" instead
+	of "unlink"; declare function read_line; initialize file-pointer "in"
+	dynamically.
+
+	* fixwrites.c : Fix translation of xchr.  It was translating
+	"xchr [ vector [ element ] ]" to "Xchr ( vector [ element ) ]"
+	in BibTeX;  the fix is to ensure that open/close brackets are
+	balanced.
+
+  Sun Feb 21 08:28:39 1993  Karl Berry  (karl@cs.umb.edu)
+  
+Sun May  9 10:10:58 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* fixwrites.c (main): Exit with EXIT_SUCCESS_CODE, not zero.
+
+	* Makefile.in (commonh): Remove $(srcdir) for paths.h.
+	(commono): Add kpathsea library.
+
+Fri Apr 30 15:21:33 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* fixwrites.c: Do %c for patgen uses of `buf'.
+
+Sun Apr 18 13:46:50 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* web2c.yacc (P_F_DEC_PART): Remove empty case.
+	* Makefile.in (y.tab.c): Only one s/r conflict now,
+
+Fri Apr 16 19:29:56 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (LEX_OUTPUT_ROOT): New variable, so DOS people can
+	get lexyy automatically.  Change targets.
+
+Sat Mar 13 12:11:02 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (CPPFLAGS): Add @DEFS@, for -DHAVE_CONFIG_H.
+
+Sun Feb 28 10:58:12 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (clean): Remove lex/yacc output here, instead of at
+	distclean.
+
+Sun Feb 21 08:28:39 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.851d.
+
+Tue Feb 16 17:57:37 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install-exec, install-data): New targets.
+
+Fri Feb 12 07:35:56 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (distclean): Don't remove y.* and lex.*, that loses
+	the dist files.
+
+Tue Feb  9 17:02:53 1993  Karl Berry  (karl@red.cs.umb.edu)
+
+	* web2c.h (yyerror): Don't bother to declare this.
+
+Tue Feb  9 08:49:18 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* web2c.c (yyerror): Declare as int, not void.
+        Remove various casts to void.
+
+Fri Jan 29 11:38:41 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* fixwrites.c (main): Don't look for the rest of the supposed
+	string constant if we're doing versionstring, and allow it to be
+	first in the write statement.
+
+Thu Jan 28 09:24:10 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* fixwrites.c: Remove casts to void, both in the output and in the
+	source.
+        (main): If the arg is versionstring, use %s instead of %ld.
+
+Mon Jan 25 10:11:40 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* web2c.yacc (SIMPLE_TYPE): On reflection, cast to unsigned long;
+	rewrite to use signed types in preference to unsigned.  Sigh.
+
+Sun Jan 24 11:39:43 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* web2c.yacc (SIMPLE_TYPE): Cast upper_bound to unsigned to avoid
+	compiler bugs.
+
+Sat Jan 16 08:42:07 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (realclean): Same as distclean again; remove lex and
+	yacc output here.
+
+Sun Jan  3 13:35:27 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (distclean): Remove Makefile.
+
+Fri Jan  1 15:48:26 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (web2c): Use shell variable lexlib, not make variable.
+
+Sun Dec 13 13:53:38 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (web2c): Don't bother to link with the flex library.
+
+	* Makefile.in (realclean): Remove the lex and yacc output here.
+
+Sat Dec 12 15:27:50 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* web2c.c: Include y.tab.h instead of web2cy.h.
+
+	* Makefile.in: Rewrite from Makefile.
+
+Sat Dec  5 15:29:38 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* web2c.yacc (SIMPLE_TYPE): Rewrite to use unsigned types where
+	possible; in particular, `small_number' being defined as `schar'
+	can produce unportable .fmt files.
+
+Fri Sep  4 09:05:33 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (extraclean): new target.
+        (distclean): don't remove backup files etc. here.
+
+Fri Jul 24 16:56:12 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Makefile (fixwrites, splitup, regfix): include CPPFLAGS.
+
+Thu Jul  2 16:10:37 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (CPPFLAGS): new variable
+        (.c.o): use it.
+        (cflags): change to CFLAGS.
+
+Tue Jun 23 10:18:00 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (CC): default is gcc -posix again.
+
+Thu May 14 19:22:45 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Sat Apr 25 09:15:13 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (libs): new variable to abbreviate `../lib/lib.a ($LIBS)'.
+
+Thu Apr 23 08:17:14 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (web2cy.h): new target, depends on web2cy.c (from Andreas).
+
+        * web2c.c (main): fclose coerce.h.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Wed Apr  8 15:38:41 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (regfix,fixwrites,splitup): link with lib.a.
+        * {regfix,fixwrites,splitup,web2c}.c: use uexit, not exit.
+
+Fri Apr  3 09:56:27 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Thu Apr  2 16:32:56 1992  Karl Berry  (karl@hal)
+
+        * Makefile (.SUFFIXES): add rule for .c.o.
+
+Thu Apr  2 13:38:45 1992  Karl Berry  (karl at ds1.cs.umb.edu)
+
+        * web2c.yacc (labs): rename to `my_labs', to avoid conflict with
+          system `labs'.
+
+Sat Mar 28 16:36:58 1992  Karl Berry  (karl at hayley)
+
+        * fixwrites.c, regfix.c, splitup.c, web2c.c (main): return int,
+          use EXIT_SUCCESS_CODE instead of zero.
+
+Fri Mar 20 16:43:17 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Fri Jan 24 09:19:24 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Sat Jan 11 17:33:14 1992  Karl Berry  (karl at hayley)
+
+        * web2c.lex: #undef read after the #include's, since the scanner
+          does a system call.
+
+        * Makefile: rearrange for new configuration.
+
+        * splitup.c (FILENAMESIZE): rename to `PATH_MAX'.

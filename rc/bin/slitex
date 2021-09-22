@@ -1,0 +1,5 @@
+#!/bin/rc
+if(~ $NEWTEX no)
+	exec /sys/lib/tex/bin/$cputype/virtex '&slitex' $*
+
+echo slitex is no more

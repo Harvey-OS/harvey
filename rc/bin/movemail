@@ -1,0 +1,49 @@
+#!/bin/rc
+rfork ne
+9fs fs
+rm /srv/emelie
+9fs emelie
+
+switch($#*){
+case 1
+	user=$1
+}
+old=/n/emelie/mail/box/$user
+new=/n/fs/mail/box/$user
+
+PROTO=/tmp/movemail.$pid.$user
+cat > $PROTO << EOF
+mail
+	box
+		$user
+			+
+EOF
+
+echo Getting all your mailbox files into the cache.
+echo This could take a while, but we do this first to
+echo shorten the time your mailbox is locked during the
+echo copy.
+{
+	disk/mkfs -a -s /n/emelie $PROTO > /dev/null
+}
+echo
+echo Caching done!
+echo
+
+unmount /mail/box
+mail -c
+
+echo Copying your mailbox files from $old to $new.
+echo Your mailbox will be locked until this finishes.
+echo Ignore the message about L.mbox...
+echo
+upas/lockmailbox
+{
+	rm $new/mbox
+	disk/mkfs -a -s /n/emelie $PROTO | disk/mkext -d /n/fs
+}
+echo
+echo Copying done!
+
+kill lockmailbox | rc
+rm $PROTO

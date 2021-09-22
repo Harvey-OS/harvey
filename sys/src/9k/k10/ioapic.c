@@ -7,23 +7,14 @@
 #include "apic.h"
 #include "io.h"
 
-typedef struct Rbus Rbus;
 typedef struct Rdt Rdt;
-
-struct Rbus {
-	Rbus	*next;
-	int	bustype;
-	int	devno;
-	Rdt	*rdt;
-};
-
 struct Rdt {
 	Apic*	apic;
+	int	devno;
 	int	intin;
 	u32int	lo;
 
-	int	ref;				/* could map to multiple busses */
-	int	enabled;			/* times enabled */
+	Rdt*	next;				/* on this bus */
 };
 
 enum {						/* IOAPIC registers */
@@ -39,61 +30,60 @@ enum {						/* IOAPIC registers */
 	Ioredtbl	= 0x10,			/* Redirection Table */
 };
 
+extern int mpisabusno;
+
 static Rdt rdtarray[Nrdt];
 static int nrdtarray;
 static int gsib;
-static Rbus* rdtbus[Nbus];
+static Rdt* rdtbus[Nbus];
 static Rdt* rdtvecno[IdtMAX+1];
 
 static Lock idtnolock;
-static int idtno = IdtIOAPIC;
+static uint idtno = IdtIOAPIC;
+
+static u32int
+rtblr(u32int *addr, int sel, u32int *valp)
+{
+	u32int r;
+
+	*(addr+Ioregsel) = sel;
+	coherence();
+	r = *(addr+Iowin);
+	if(valp)
+		*valp = r;
+	coherence();
+	return r;
+}
 
 static void
 rtblget(Apic* apic, int sel, u32int* hi, u32int* lo)
 {
-	u32int r;
-
 	sel = Ioredtbl + 2*sel;
-
-	*(apic->addr+Ioregsel) = sel+1;
-	r = *(apic->addr+Iowin);
-	if(hi)
-		*hi = r;
-	*(apic->addr+Ioregsel) = sel;
-	r = *(apic->addr+Iowin);
-	if(lo)
-		*lo = r;
+	rtblr(apic->addr, sel+1, hi);
+	rtblr(apic->addr, sel, lo);
 }
 
+static void
+rtblw(u32int *addr, int sel, u32int val)
+{
+	*(addr+Ioregsel) = sel;
+	coherence();
+	*(addr+Iowin) = val;
+	coherence();
+}
+
+/* sel is irq */
 static void
 rtblput(Apic* apic, int sel, u32int hi, u32int lo)
 {
 	sel = Ioredtbl + 2*sel;
-
-	*(apic->addr+Ioregsel) = sel+1;
-	*(apic->addr+Iowin) = hi;
-	*(apic->addr+Ioregsel) = sel;
-	*(apic->addr+Iowin) = lo;
-}
-
-Rdt*
-rdtlookup(Apic *apic, int intin)
-{
-	int i;
-	Rdt *r;
-
-	for(i = 0; i < nrdtarray; i++){
-		r = rdtarray + i;
-		if(apic == r->apic && intin == r->intin)
-			return r;
-	}
-	return nil;
+	rtblw(apic->addr, sel+1, hi);
+	rtblw(apic->addr, sel, lo);
 }
 
 void
-ioapicintrinit(int bustype, int busno, int apicno, int intin, int devno, u32int lo)
+ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
 {
-	Rbus *rbus;
 	Rdt *rdt;
 	Apic *apic;
 
@@ -103,47 +93,27 @@ ioapicintrinit(int bustype, int busno, int apicno, int intin, int devno, u32int 
 	if(!apic->useable || intin >= apic->nrdt)
 		return;
 
-	rdt = rdtlookup(apic, intin);
-	if(rdt == nil){
-		if(nrdtarray == nelem(rdtarray)){
-			print("ioapic: intrinit: rdtarray too small\n");
-			return;
-		}
-		rdt = &rdtarray[nrdtarray++];
-		rdt->apic = apic;
-		rdt->intin = intin;
-		rdt->lo = lo;
-	}else{
-		if(lo != rdt->lo){
-			if(bustype == BusISA && intin < 16 && lo == (Im|IPhigh|TMedge)){
-				DBG("override: isa %d %.8ux\n", intin, rdt->lo);
-				return;	/* expected; default was overridden*/
-			}
-			print("multiple irq botch type %d bus %d %d/%d/%d lo %.8ux vs %.8ux\n",
-				bustype, busno, apicno, intin, devno, lo, rdt->lo);
-			return;
-		}
-		DBG("dup rdt %d %d %d %d %.8ux\n", busno, apicno, intin, devno, lo);
-	}
-	rdt->ref++;
-	rbus = malloc(sizeof(*rbus));
-	rbus->rdt = rdt;
-	rbus->bustype = bustype;
-	rbus->devno = devno;
-	rbus->next = rdtbus[busno];
-	rdtbus[busno] = rbus;
+	rdt = &rdtarray[nrdtarray++];
+	rdt->apic = apic;
+	rdt->devno = devno;
+	rdt->intin = intin;
+	rdt->lo = lo;
+	rdt->next = rdtbus[busno];
+	rdtbus[busno] = rdt;
 }
 
 void
 ioapicinit(int id, uintmem pa)
 {
+	int i;
+	u32int r;
 	Apic *apic;
 
 	/*
 	 * Mark the IOAPIC useable if it has a good ID
 	 * and the registers can be mapped.
 	 */
-	if(id >= Napic)
+	if((uint)id >= Napic)
 		return;
 
 	apic = &ioapic[id];
@@ -156,22 +126,24 @@ ioapicinit(int id, uintmem pa)
 	 * The MultiProcessor Specification says it is the
 	 * responsibility of the O/S to set the APIC ID.
 	 */
-	lock(apic);
-	*(apic->addr+Ioregsel) = Ioapicver;
-	apic->nrdt = ((*(apic->addr+Iowin)>>16) & 0xff) + 1;
+	ilock(apic);
+	r = rtblr(apic->addr, Ioapicver, &r);
+	apic->nrdt = ((r>>16) & 0xff) + 1;
 	apic->gsib = gsib;
 	gsib += apic->nrdt;
+	coherence();
+	rtblw(apic->addr, Ioapicid, id<<24);
 
-	*(apic->addr+Ioregsel) = Ioapicid;
-	*(apic->addr+Iowin) = id<<24;
-	unlock(apic);
+	/* clear apic's redirection table */
+	for(i = 0; i < apic->nrdt; i++)
+		rtblput(apic, i, 0, Im);
+	iunlock(apic);
 }
 
 void
 ioapicdump(void)
 {
 	int i, n;
-	Rbus *rbus;
 	Rdt *rdt;
 	Apic *apic;
 	u32int hi, lo;
@@ -186,28 +158,29 @@ ioapicdump(void)
 		DBG("ioapic %d addr %#p nrdt %d gsib %d\n",
 			i, apic->addr, apic->nrdt, apic->gsib);
 		for(n = 0; n < apic->nrdt; n++){
-			lock(apic);
+			ilock(apic);
 			rtblget(apic, n, &hi, &lo);
-			unlock(apic);
+			iunlock(apic);
 			DBG(" rdt %2.2d %#8.8ux %#8.8ux\n", n, hi, lo);
 		}
 	}
 	for(i = 0; i < Nbus; i++){
-		if((rbus = rdtbus[i]) == nil)
+		if((rdt = rdtbus[i]) == nil)
 			continue;
 		DBG("iointr bus %d:\n", i);
-		while(rbus != nil){
-			rdt = rbus->rdt;
-			DBG(" apic %ld devno %#ux (%d %d) intin %d lo %#ux ref %d\n",
-				rdt->apic-ioapic, rbus->devno, rbus->devno>>2,
-				rbus->devno & 0x03, rdt->intin, rdt->lo, rdt->ref);
-			rbus = rbus->next;
+		while(rdt != nil){
+			DBG(" apic %lld devno %#ux (%d %d) intin %d lo %#ux\n",
+				(vlong)(rdt->apic - ioapic), rdt->devno,
+				rdt->devno>>2, rdt->devno & 0x03, rdt->intin,
+				rdt->lo);
+			rdt = rdt->next;
 		}
 	}
 }
 
+/* clear all ioapic interrupt redirections */
 void
-ioapiconline(void)
+ioapiconline(void)			/* unused, oddly */
 {
 	int i;
 	Apic *apic;
@@ -215,29 +188,61 @@ ioapiconline(void)
 	for(apic = ioapic; apic < &ioapic[Napic]; apic++){
 		if(!apic->useable || apic->addr == nil)
 			continue;
-		for(i = 0; i < apic->nrdt; i++){
-			lock(apic);
+		ilock(apic);
+		for(i = 0; i < apic->nrdt; i++)
 			rtblput(apic, i, 0, Im);
-			unlock(apic);
-		}
+		iunlock(apic);
 	}
 	if(DBGFLG)
 		ioapicdump();
 }
 
-static int dfpolicy = 0;
-
-static void
-ioapicintrdd(u32int* hi, u32int* lo)
+/*
+ * set v->cpu and return its apicno.
+ * cpu0 is assumed to be always up and usable.
+ */
+static int
+usecpu(Vctl *v, uint cpu)
 {
-	int i;
-	static int df;
+	int apicno;
+	Mach *mp;
+
+	for(; ; cpu = 0) {
+		if (cpu >= nelem(sys->machptr))
+			continue;
+		mp = sys->machptr[cpu];
+		if (mp == nil || !mp->online)
+			continue;
+		apicno = mp->apicno;
+		if(xapic[apicno].useable && xapic[apicno].addr == 0)
+			break;
+	}
+	v->cpu = cpu;
+	return apicno;
+}
+
+enum {
+	Noisecore,
+	Roundrobin,
+
+	Dfpolicy = Roundrobin,
+};
+
+int usbpresent;
+
+/*
+ * Set delivery mode (lo) and destination field (hi),
+ * according to interrupt routing policy.
+ */
+static void
+ioapicintrdd(u32int* hi, u32int* lo, Vctl *v)
+{
+	int cpu, noise, trips;
+	Apic *apic;
+	Mach *mp;
+	static uint df;
 	static Lock dflock;
 
-	/*
-	 * Set delivery mode (lo) and destination field (hi),
-	 * according to interrupt routing policy.
-	 */
 	/*
 	 * The bulk of this code was written ~1995, when there was
 	 * one architecture and one generation of hardware, the number
@@ -247,122 +252,303 @@ ioapicintrdd(u32int* hi, u32int* lo)
 	 * the increasing number of packages/cores/threads, so the
 	 * fall-back is to physical mode, which works across all processor
 	 * generations, both AMD and Intel, using the APIC and xAPIC.
-	 *
-	 * Interrupt routing policy can be set here.
 	 */
-	switch(dfpolicy){
-	default:				/* noise core 0 */
-		*hi = sys->machptr[0]->apicno<<24;
+	cpu = 0;
+	switch(Dfpolicy){
+	default:
+	case Noisecore:
+		/* noise core 0 */
 		break;
-	case 1:					/* round-robin */
+	case Roundrobin:
 		/*
-		 * Assign each interrupt to a different CPU on a round-robin
+		 * Assign each interrupt to a different CPU on a round-robin.
 		 * Some idea of the packages/cores/thread topology would be
 		 * useful here, e.g. to not assign interrupts to more than one
 		 * thread in a core. But, as usual, Intel make that an onerous
 		 * task.
 		 */
-		lock(&dflock);
-		for(;;){
-			i = df++;
-			if(df >= MACHMAX+1)
-				df = 0;
-			if(sys->machptr[i] == nil || !sys->machptr[i]->online)
-				continue;
-			i = sys->machptr[i]->apicno;
-			if(xapic[i].useable && xapic[i].addr == 0)
-				break;
-		}
-		unlock(&dflock);
+		noise = sys->nmach - 1;
 
-		*hi = i<<24;
+		/* put COMs & ether0 on cpu0 to simplify rebooting. */
+		if(sys->nmach == 1 || strncmp(v->name, "COM", 3) == 0 ||
+		    strcmp(v->name, "ether0") == 0)
+			cpu = 0;
+		/* on mp, assign all noisy intr sources (usb) to a noise core */
+		else if (usbpresent && sys->nmach > 1 &&
+		    strncmp(v->name, "usb", 3) == 0)
+			cpu = noise;
+		else {
+			lock(&dflock);
+			trips = 0;
+			for(;;){
+				mp = sys->machptr[df];
+				cpu = df++;
+				df %= MACHMAX;
+				if (++trips > 128) {
+					cpu = 0;
+					break;
+				}
+				/* this is non-usb, so skip the noise core */
+				if(usbpresent && sys->nonline > 1 &&
+				    cpu == noise)
+					continue;
+				/* don't allow pci devs on cpu0 normally */
+				if(sys->nmach > 2 && cpu == 0 &&
+				    BUSTYPE(v->tbdf) == BusPCI)
+					continue;
+
+				if(mp && mp->online) {
+					apic = &xapic[mp->apicno];
+					if(apic->useable && apic->addr == 0)
+						break;
+				}
+			}
+			unlock(&dflock);
+		}
 		break;
 	}
-	*lo |= Pm|MTf;
+	*hi = usecpu(v, cpu) << 24;
+	*lo |= Pm | MTf;
+	coherence();
+	// print("\nioapicintrdd hi %#ux lo %#ux\n", *hi, *lo);
 }
 
-int
-ioapicintrenable(Vctl* v)
+typedef struct Buggymsi Buggymsi;
+struct Buggymsi {
+	ushort	vid;		/* pci vendor id */
+	ushort	did;		/* " device " */
+};
+
+static Buggymsi buggymsi[] = {
+			/* 951 msi generates lapic errors & spurious intrs */
+	0x144d, 0xa802,	/* Samsung NVMe SSD SM951/PM951 (m.2 via pcie adapter) */
+	Vintel, 0x10a4,	/* intel 82571s, from intel erratum 63 */
+	Vintel, 0x105e,
+	Vintel, 0x107d,	/* intel 82572s, " */
+	Vintel, 0x107e,
+	Vintel, 0x107f,
+	Vintel, 0x10b9,
+};
+
+static char *msiconf;
+
+/*
+ * use message-signalled interrupt if available.  msi and msi-x may both
+ * be available (e.g. pci-e devices), but only one can be used on a given
+ * device.  msi-x seems much more complicated for little benefit.
+ */
+static int
+trymsi(Vctl *v, Pcidev *pcidev)
 {
-	Rbus *rbus;
+	int ptr, ptrx, pcie;
+	Buggymsi *bm;
+	Msi msi;
+
+	v->ismsi = 0;
+	if (msiconf == nil)
+		msiconf = getconf("*msiconf");
+	if (msiconf && strcmp(msiconf, "no") == 0)
+		return -1;
+	memset(&msi, 0, sizeof msi);
+	ptr = pcigetmsi(pcidev, &msi);
+	ptrx = pcigetmsixcap(pcidev);
+	pcie = pcigetpciecap(pcidev);
+	if (ptr == -1) {
+		if (ptrx >= 0)
+			print("%s: msi-x offered but not msi! using neither\n",
+				v->name);
+		if (pcie >= 0)
+			print("%s: %T: vid %ux did %ux pci-e device NOT "
+				"offering msi, but it's required for pci-e!\n",
+				v->name, pcidev->tbdf, pcidev->vid, pcidev->did);
+		/* else a pci device, so msi not mandatory */
+		return -1;		/* sorry, no msi */
+	}
+
+	if (msiconf && strcmp(msiconf, "print") == 0) {
+		print("%s: %T: vid %ux did %ux offering msi\n",
+			v->name, pcidev->tbdf, pcidev->vid, pcidev->did);
+		delay(20);
+	}
+	for (bm = buggymsi; bm < buggymsi + nelem(buggymsi); bm++)
+		if (pcidev->vid == bm->vid && pcidev->did == bm->did) {
+			print("%s: %T: vid %ux did %ux known to be buggy; "
+				"refusing msi\n", v->name, pcidev->tbdf,
+				pcidev->vid, pcidev->did);
+			return -1;
+		}
+
+	v->ismsi = 1;
+	msi.ctl	&= ~Msimme;		/* single-message msi */
+	msi.ctl |= Msienable;
+	msi.addr = (uvlong)(uintptr)Lapicphys | v->lapic<<12 | Msirhtocpuid;
+	msi.data = Msitrglevel | Msitrglvlassert | Msidlvfixed | v->vno;
+	pcisetmsi(pcidev, &msi);
+
+	DBG("%s: msi enabled at vector %d lapic %d for %T\n",
+		v->name, v->vno, v->lapic, pcidev->tbdf);
+	delay(20);
+	return v->vno;
+}
+
+static Rdt *
+getrdtbus(int busno, int devno)
+{
 	Rdt *rdt;
-	u32int hi, lo;
-	int bustype, busno, devno, vecno;
 
-	/*
-	 * Bridge between old and unspecified new scheme,
-	 * the work in progress...
-	 */
-	if(v->tbdf == BUSUNKNOWN){
-		if(v->irq >= IdtLINT0 && v->irq <= IdtSPURIOUS){
-			if(v->irq != IdtSPURIOUS)
-				v->isr = apiceoi;
-			v->type = "lapic";
-			return v->irq;
-		}
-		else{
-			/*
-			 * Legacy ISA.
-			 * Make a busno and devno using the
-			 * ISA bus number and the irq.
-			 */
-			extern int mpisabusno;
+	for(rdt = rdtbus[busno]; rdt != nil; rdt = rdt->next)
+		if(rdt->devno == devno)
+			return rdt;
+	return nil;
+}
 
-			if(mpisabusno == -1)
-				panic("no ISA bus allocated");
-			busno = mpisabusno;
-			devno = v->irq;
-			bustype = BusISA;
-		}
-	}
-	else if((bustype = BUSTYPE(v->tbdf)) == BusPCI){
+int vecinuse(uint);	/* trap.c */
+
+/* return a unique vector number; we don't share vectors in 9k */
+static int
+newvecno(Rdt *rdt)
+{
+	int vecno, firstvec, first;
+
+	if(rdt->lo & 0xff)
+		return -1;	/* assume rdt->lo is already set to vector */
+
+	lock(&idtnolock);
+	firstvec = idtno;
+	first = 1;
+	do {
+		vecno = idtno;
+		if (vecno != firstvec)
+			first = 0;
+		idtno = (idtno+8) % IdtMAX;
+		if(idtno < IdtIOAPIC)
+			idtno += IdtIOAPIC;
+	} while (vecinuse(vecno) && (first || firstvec != vecno));
+	unlock(&idtnolock);
+	if (!first && firstvec == vecno)
+		panic("newvecno: all vectors in use");
+	rdt->lo |= vecno;
+	rdtvecno[vecno] = rdt;
+	return vecno;
+}
+
+static int
+isrbusdev(Vctl *v, int *busnop, int *devnop)
+{
+	int irq;
+
+	irq = v->irq;
+	if(irq >= IdtLINT0 && irq <= IdtSPURIOUS){
+		if(irq != IdtSPURIOUS)
+			v->isr = apiceoi;
+		return 0;
+	} else {
 		/*
-		 * PCI.
-		 * Make a devno from BUSDNO(tbdf) and pcidev->intp.
+		 * Legacy ISA.  Make a busno and devno using the
+		 * ISA bus number and the irq.
 		 */
-		Pcidev *pcidev;
-
-		busno = BUSBNO(v->tbdf);
-		if((pcidev = pcimatchtbdf(v->tbdf)) == nil)
-			panic("no PCI dev for tbdf %#8.8ux\n", v->tbdf);
-		if((devno = pcicfgr8(pcidev, PciINTP)) == 0)
-			panic("no INTP for tbdf %#8.8ux\n", v->tbdf);
-		devno = BUSDNO(v->tbdf)<<2|(devno-1);
-		DBG("ioapicintrenable: tbdf %#8.8ux busno %d devno %d\n",
-			v->tbdf, busno, devno);
+		if(mpisabusno == -1)
+			panic("no ISA bus allocated");
+		*busnop = mpisabusno;
+		*devnop = irq<<2;
+		return -1;
 	}
-	else{
-		SET(busno, devno);
-		panic("unknown tbdf %#8.8ux\n", v->tbdf);
-	}
+}
 
-	rdt = nil;
-	for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next)
-		if(rbus->devno == devno && rbus->bustype == bustype){
-			rdt = rbus->rdt;
-			break;
-		}
-	if(rdt == nil){
-		extern int mpisabusno;
+/*
+ * Make a devno from BUSDNO(tbdf) and pcidev->intp.
+ */
+static Pcidev *
+pcibusdev(Vctl *v, int *busnop, int *devnop)
+{
+	int busno, devno;
+	Pcidev *pcidev;
 
+	busno = BUSBNO(v->tbdf);
+	if((pcidev = pcimatchtbdf(v->tbdf)) == nil)
+		panic("no PCI dev for tbdf %#8.8ux", v->tbdf);
+	if((devno = pcicfgr8(pcidev, PciINTP)) == 0)
+		panic("no INTP for tbdf %#8.8ux", v->tbdf);
+	devno = BUSDNO(v->tbdf)<<2 | (devno-1);
+	DBG("ioapicintrenable: tbdf %#8.8ux busno %d devno %d\n",
+		v->tbdf, busno, devno);
+	*busnop = busno;
+	*devnop = devno;
+	return pcidev;
+}
+
+static Rdt *
+ioapicrdtbusdev(Vctl *v, int *busnop, int *devnop)
+{
+	int busno, devno;
+	Rdt *rdt;
+
+	busno = *busnop;
+	devno = *devnop;
+	rdt = getrdtbus(busno, devno);
+	if(rdt == nil) {
 		/*
 		 * First crack in the smooth exterior of the new code:
 		 * some BIOS make an MPS table where the PCI devices are
 		 * just defaulted to ISA.
 		 * Rewrite this to be cleaner.
 		 */
-		if((busno = mpisabusno) == -1)
-			return -1;
-		devno = v->irq<<2;
-		for(rbus = rdtbus[busno]; rbus != nil; rbus = rbus->next){
-			if(rbus->devno == devno){
-				rdt = rbus->rdt;
-				break;
-			}
+		if((busno = mpisabusno) >= 0) {
+			devno = v->irq<<2;
+			rdt = getrdtbus(busno, devno);
+			DBG("isa: tbdf %#8.8ux busno %d devno %d %#p\n",
+				v->tbdf, busno, devno, rdt);
+			if (rdt == nil)
+				print("ioapicrdtbusdev: nil getrdtbus %d %d\n",
+					busno, devno);
 		}
-		DBG("isa: tbdf %#8.8ux busno %d devno %d %#p\n",
-			v->tbdf, busno, devno, rdt);
+		*busnop = busno;
+		*devnop = devno;
 	}
+	return rdt;
+}
+
+static int
+in8259range(int irq)
+{
+	/* exclude 0, which probably indicates a missing value, not a timer */
+	return irq > 0 && irq <= 15;
+}
+
+static int
+novect(Vctl *v)
+{
+	print("ioapicintrenable: newvecno failed to assign vector for %s %T\n",
+		v->name, v->tbdf);
+	return -1;
+}
+
+int
+ioapicintrenable(Vctl* v)
+{
+	Rdt *rdt;
+	u32int hi, lo;
+	int busno, devno, vecno;
+	Pcidev *pcidev = nil;
+
+	/*
+	 * Bridge between old and unspecified new scheme,
+	 * the work in progress...
+	 */
+	busno = devno = -1;
+	if(v->tbdf == BUSUNKNOWN) {
+		if (isrbusdev(v, &busno, &devno) == 0) {
+			if (vecinuse(v->irq))
+				print("isrbusdev vecno %d in use for %s %T\n",
+					v->irq, v->name, v->tbdf);
+			return v->irq;
+		}
+	} else if(BUSTYPE(v->tbdf) == BusPCI)
+		pcidev = pcibusdev(v, &busno, &devno);
+	else
+		panic("ioapicintrenable: unknown tbdf %#8.8ux", v->tbdf);
+	rdt = ioapicrdtbusdev(v, &busno, &devno);
+//	if(rdt == nil && BUSTYPE(v->tbdf) != BusPCI)
 	if(rdt == nil)
 		return -1;
 
@@ -379,38 +565,100 @@ ioapicintrenable(Vctl* v)
 	 * rather than putting a Lock in each entry.
 	 */
 	lock(rdt->apic);
-	if((rdt->lo & 0xff) == 0){
-		lock(&idtnolock);
-		vecno = idtno;
-		idtno = (idtno+8) % IdtMAX;
-		if(idtno < IdtIOAPIC)
-			idtno += IdtIOAPIC;
-		unlock(&idtnolock);
+	vecno = newvecno(rdt); /* updates rdt->lo with vecno, if rdt->lo is 0 */
+	if (vecno < 0)
+		if (rdt->lo & 0xff) {
+			/*
+			 * ugh.  the vector was probably in use, so try
+			 * assigning a new one, overriding rdt->lo.
+			 */
+			rdt->lo &= ~0xff;
+			vecno = newvecno(rdt);
+			if (vecno < 0)
+				return novect(v);
+		} else
+			return novect(v);
 
-		rdt->lo |= vecno;
-		rdtvecno[vecno] = rdt;
+	/* we trust that vecno & rdt->lo&0xff are a valid vector */
+	lo = rdt->lo & ~Im;
+	ioapicintrdd(&hi, &lo, v);		/* assign a cpu */
+	v->vno = vecno;
+	v->lapic = hi>>24;
+	if (pcidev && trymsi(v, pcidev) >= 0)
+		pcinointrs(pcidev);	/* msi on: no legacy pci interrupts */
+	else {
+		/* no msi: redirect int to this apic */
+		rtblput(rdt->apic, rdt->intin, hi, lo);		/**/
+		vecno = lo & 0xff;
+		if (pcidev) {
+			pcimsioff(v, pcidev);  /* make sure msi is really off */
+			pciintrs(pcidev);
+		}
 	}
-
-	rdt->enabled++;
-	lo = (rdt->lo & ~Im);
-	ioapicintrdd(&hi, &lo);
-	rtblput(rdt->apic, rdt->intin, hi, lo);
-	vecno = lo & 0xff;
 	unlock(rdt->apic);
-
 	DBG("busno %d devno %d hi %#8.8ux lo %#8.8ux vecno %d\n",
 		busno, devno, hi, lo, vecno);
-	v->isr = apicisr;
-	v->eoi = apiceoi;
-	v->vno = vecno;
-	v->type = "ioapic";
 
+	if (vecno >= 0) {
+		v->isr = apicisr;
+		v->eoi = apiceoi;
+		if (!in8259range(v->irq))
+			v->irq = vecno;
+		if (pcidev && !in8259range(pcidev->intl))
+			pcidev->intl = vecno;
+	}
+	/* else isr and eoi default to a nop */
+	v->vno = vecno;
 	return vecno;
 }
 
-int
-ioapicintrdisable(int vecno)
+/* run through the active ioapics and disable redirections to vector vno */
+void
+ioapicrtbloff(uint vno)
 {
+	int i;
+	u32int hi, lo;
+	Apic *apic;
+
+	for(apic = ioapic; apic < &ioapic[Napic]; apic++)
+		if(apic->useable && apic->addr != nil) {
+			ilock(apic);
+			for(i = 0; i < apic->nrdt; i++) {
+				rtblget(apic, i, &hi, &lo);
+				if ((lo & MASK(8)) == vno) {
+					iprint("apic %#p vector %d was "
+						"redirected to %d\n",
+						apic, i, vno);
+					rtblput(apic, i, 0, 0|Im);
+				}
+			}
+			iunlock(apic);
+		}
+}
+
+int
+ioapicintrtbloff(uint vecno)
+{
+	Apic *apic;
+	Rdt *rdt;
+
+	if(vecno > IdtMAX)
+		return -1;
+	if((rdt = rdtvecno[vecno]) == nil){
+		ioapicrtbloff(vecno);
+	} else {
+		apic = rdt->apic;
+		ilock(apic);
+		rtblput(apic, rdt->intin, 0, rdt->lo|Im);
+		iunlock(apic);
+	}
+	return 0;
+}
+
+int
+ioapicintrdisable(uint vecno)
+{
+	Apic *apic;
 	Rdt *rdt;
 
 	/*
@@ -421,7 +669,7 @@ ioapicintrdisable(int vecno)
 	 *
 	 * What about any pending interrupts?
 	 */
-	if(vecno < 0 || vecno > IdtMAX){
+	if(vecno > IdtMAX){
 		panic("ioapicintrdisable: vecno %d out of range", vecno);
 		return -1;
 	}
@@ -429,12 +677,10 @@ ioapicintrdisable(int vecno)
 		panic("ioapicintrdisable: vecno %d has no rdt", vecno);
 		return -1;
 	}
-
-	lock(rdt->apic);
-	rdt->enabled--;
-	if(rdt->enabled == 0)
-		rtblput(rdt->apic, rdt->intin, 0, rdt->lo);
-	unlock(rdt->apic);
+	apic = rdt->apic;
+	ilock(apic);
+	rtblput(apic, rdt->intin, 0, rdt->lo|Im);
+	iunlock(apic);
 
 	return 0;
 }

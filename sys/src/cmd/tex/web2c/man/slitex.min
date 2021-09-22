@@ -1,0 +1,39 @@
+.TH SLITEX 1 "27 December 1992"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+slitex \- make LaTeX slides
+.SH SYNOPSIS
+.B slitex
+[ first line ]
+.\"=====================================================================
+.SH DESCRIPTION
+The
+.B slitex
+program is a variant of
+.BR latex (1),
+designed for generating slides.
+It is described in Appendix A of
+.IR "\*(LX \- A Document Preparation System" .
+All the capabilities described in
+.BR tex (1)
+are present.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR latex (1),
+.BR tex (1).
+.br
+Leslie Lamport,
+.IR "\*(LX \- A Document Preparation System" ,
+Addison-Wesley, 1985, ISBN 0-201-15790-X.

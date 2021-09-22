@@ -35,6 +35,8 @@ typedef struct Tdpool Tdpool;
 
 enum
 {
+	Giveadamn	= 0,		/* print errors, even on ga-6bxd */
+
 	Incr		= 64,		/* for Td and Ed pools */
 
 	Align		= 0x20,		/* OHCI only requires 0x10 */
@@ -1206,7 +1208,7 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int)
 	/*
 	 * When we get more than half the frames consecutive errors
 	 * we signal an actual error. Errors in the entire Td are
-	 * more serious and are always singaled.
+	 * more serious and are always signalled.
 	 * Errors like overrun are not really errors. In fact, for
 	 * output, errors cannot be really detected. The driver will
 	 * hopefully notice I/O errors on input endpoints and detach the device.
@@ -1245,15 +1247,16 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int)
 		wakeup(iso);
 }
 
-static void
+static int
 interrupt(Ureg *, void *arg)
 {
 	Td *td, *ntd;
 	Hci *hp;
 	Ctlr *ctlr;
 	ulong status, curred;
-	int i, frno;
+	int i, frno, forme;
 
+	forme = Intrnotforme;
 	hp = arg;
 	ctlr = hp->aux;
 	ilock(ctlr);
@@ -1286,28 +1289,34 @@ interrupt(Ureg *, void *arg)
 	}
 
 	ctlr->ohci->intrsts = status;
-	status &= ~Wdh;
-	status &= ~Sf;
+	status &= ~(Wdh|Sf);
 	if(status & So){
-		print("ohci: sched overrun: too much load\n");
+		if(Giveadamn)
+			print("ohci: sched overrun: too much load\n");
 		ctlr->overrun++;
 		status &= ~So;
 	}
 	if((status & Ue) != 0){
 		curred = ctlr->ohci->periodcurred;
+		if(Giveadamn)
 		print("ohci: unrecoverable error frame 0x%.8lux ed 0x%.8lux, "
 			"ints %d %d %d %d\n",
 			ctlr->ohci->fmnumber, curred,
 			ohciinterrupts[Tctl], ohciinterrupts[Tintr],
 			ohciinterrupts[Tbulk], ohciinterrupts[Tiso]);
-		if(curred != 0)
+		if(curred != 0 && curred != ~0ul)
 			dumped(pa2ptr(curred));
 		status &= ~Ue;
 	}
-	if(status != 0)
-		print("ohci interrupt: unhandled sts 0x%.8lux\n", status);
+	if(status != 0) {
+		if (Giveadamn)
+			print("ohci interrupt: unhandled sts 0x%.8lux\n",
+				status);
+	} else
+		forme = Intrforme;
 	ctlr->ohci->intrenable = Mie | Wdh | Ue;
 	iunlock(ctlr);
+	return forme;
 }
 
 /*
@@ -1498,7 +1507,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 
 	ilock(ctlr);
 	if(io->state != Qclose){
-		io->iotime = TK2MS(MACHP(0)->ticks);
+		io->iotime = TK2MS(sys->ticks);
 		io->state = Qrun;
 		ed->tail = ptr2pa(ltd);
 		if(ep->ttype == Tctl)
@@ -1634,7 +1643,7 @@ epread(Ep *ep, void *a, long count)
 		return epio(ep, &io[OREAD], a, count, 1);
 	case Tintr:
 		io = ep->aux;
-		delta = TK2MS(MACHP(0)->ticks) - io[OREAD].iotime + 1;
+		delta = TK2MS(sys->ticks) - io[OREAD].iotime + 1;
 		if(delta < ep->pollival / 2)
 			tsleep(&up->sleep, return0, 0, ep->pollival/2 - delta);
 		if(ep->clrhalt)
@@ -1865,7 +1874,7 @@ epwrite(Ep *ep, void *a, long count)
 		return tot;
 	case Tintr:
 		io = ep->aux;
-		delta = TK2MS(MACHP(0)->ticks) - io[OWRITE].iotime + 1;
+		delta = TK2MS(sys->ticks) - io[OWRITE].iotime + 1;
 		if(delta < ep->pollival)
 			tsleep(&up->sleep, return0, 0, ep->pollival - delta);
 		if(ep->clrhalt)
@@ -2361,11 +2370,11 @@ scanpci(void)
 			print("ohci: failed to map registers\n");
 			continue;
 		}
-		if(p->intl == 0xFF || p->intl == 0) {
+		/* don't do this; let intrenable() try msi */
+		if(0 && (p->intl == 0xff || p->intl == 0)) {
 			print("ohci: no irq assigned for port %#lux\n", mem);
 			continue;
 		}
-
 		ctlr = malloc(sizeof(Ctlr));
 		if (ctlr == nil)
 			panic("ohci: out of memory");

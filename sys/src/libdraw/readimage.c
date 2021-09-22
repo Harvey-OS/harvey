@@ -5,26 +5,30 @@
 Image*
 readimage(Display *d, int fd, int dolock)
 {
+	int dy, ldepth, m, j, chunk, miny, maxy, new;
 	char hdr[5*12+1];
-	int dy;
-	int new;
-	uint l, n;
-	int m, j, chunk;
-	int miny, maxy;
-	Rectangle r;
-	int ldepth;
-	ulong chan;
 	uchar *tmp;
+	uint l, n;
+	ulong chan;
 	Image *i;
+	Rectangle r;
 
-	if(readn(fd, hdr, 11) != 11)
+	hdr[5*12] = '\0';
+	hdr[11] = '\0';
+	n = readn(fd, hdr, 11);
+	if(n != 11) {
+		werrstr("header too short: %d bytes instead of 11", n);
 		return nil;
+	}
 	if(memcmp(hdr, "compressed\n", 11) == 0)
 		return creadimage(d, fd, dolock);
-	if(readn(fd, hdr+11, 5*12-11) != 5*12-11)
+	n = readn(fd, hdr+11, 5*12-11);
+	if(n != 5*12-11) {
+		werrstr("header too short: %d instead of 49", n);
 		return nil;
+	}
 	if(d)
-		chunk = d->bufsize - 32;	/* a little room for header */
+		chunk = d->bufsize - 32;  /* a little room for header */
 	else
 		chunk = 8192;
 
@@ -78,13 +82,10 @@ readimage(Display *d, int fd, int dolock)
 		i = allocimage(d, r, chan, 0, -1);
 		if(dolock)
 			unlockdisplay(d);
-		if(i == nil)
-			return nil;
-	}else{
+	}else
 		i = mallocz(sizeof(Image), 1);
-		if(i == nil)
-			return nil;
-	}
+	if(i == nil)
+		return nil;
 
 	tmp = malloc(chunk);
 	if(tmp == nil)
@@ -118,7 +119,8 @@ readimage(Display *d, int fd, int dolock)
 		if(d){
 			if(dolock)
 				lockdisplay(d);
-			if(loadimage(i, Rect(r.min.x, miny, r.max.x, miny+dy), tmp, chunk) <= 0)
+			if(loadimage(i, Rect(r.min.x, miny,
+			    r.max.x, miny+dy), tmp, chunk) <= 0)
 				goto Err1;
 			if(dolock)
 				unlockdisplay(d);

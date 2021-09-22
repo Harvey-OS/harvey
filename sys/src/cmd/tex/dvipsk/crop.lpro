@@ -1,0 +1,26 @@
+%!
+%   This file is for crop marks.
+%
+%   First, we translate and draw the marks.  You can change the way the
+%   marks are drawn, but the quarter inch border around the page is fixed.
+%
+%   This file uses bop-hook; sorry.
+%
+TeXDict begin
+%
+/cX 18 def      % the crop offset
+/CM {   % draw a crop mark; just a cross.
+   gsave TR 0 cX neg moveto 0 cX lineto stroke
+   cX neg 0 moveto cX 0 lineto stroke grestore
+} def
+%
+end
+%
+/bop-hook {
+   cX dup TR % move the origin a bit
+   gsave .3 setlinewidth 0 0 CM % now draw four crop marks
+   vsize cX 2 mul sub dup hsize cX 2 mul sub dup
+   isls { 4 2 roll } if 0 CM exch CM 0 exch CM grestore
+   0 cX -2 mul TR % now move to where we start drawing
+   isls { cX -2 mul 0 TR } if
+} def

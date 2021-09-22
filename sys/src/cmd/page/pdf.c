@@ -137,7 +137,7 @@ pdfdrawpage(Document *doc, int page)
 	gscmd(pdf, "%d DoPDFPage\n", page+1);
 	im = readimage(display, pdf->gsdfd, 0);
 	if(im == nil) {
-		fprint(2, "fatal: readimage error %r\n");
+		fprint(2, "page: pdf readimage error %r\n");
 		wexits("readimage");
 	}
 	waitgs(pdf);
@@ -148,6 +148,7 @@ static char*
 pdfpagename(Document*, int page)
 {
 	static char str[15];
-	sprint(str, "p %d", page+1);
+
+	snprint(str, sizeof str, "p %d", page+1);
 	return str;
 }

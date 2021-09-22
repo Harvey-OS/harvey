@@ -1,5 +1,6 @@
 /*
  * Storage Device.
+ * SCSI is the canonical model.
  */
 #include <diskcmd.h>
 
@@ -87,7 +88,7 @@ struct SDifc {
 	int	(*wtopctl)(SDev*, Cmdbuf*);
 };
 
-struct SDreq {
+struct SDreq {			/* nominally a scsi i/o request */
 	SDunit*	unit;
 	int	lun;
 	int	write;
@@ -133,6 +134,8 @@ enum {
 	SDcheck		= 0x02,		/* check condition */
 	SDbusy		= 0x08,		/* busy */
 
+	SDmedchanged	= 2,		/* from online() */
+
 	SDmaxio		= 2048*1024,
 	SDnpart		= 16,
 };
@@ -151,15 +154,15 @@ enum {
 /*
  * mmc/sd/sdio host controller interface
  */
-
 struct SDio {
 	char	*name;
 	int	(*init)(void);
 	void	(*enable)(void);
 	int	(*inquiry)(char*, int);
-	int	(*cmd)(u32int, u32int, u32int*);
+	int	(*cmd)(ulong, ulong, ulong*);
 	void	(*iosetup)(int, void*, int, int);
 	void	(*io)(int, uchar*, int);
+	void	(*disable)(void);
 };
 
 extern SDio sdio;
@@ -172,7 +175,6 @@ extern void sdaddpart(SDunit*, char*, uvlong, uvlong);
 extern int sdsetsense(SDreq*, int, int, int, int);
 extern int sdmodesense(SDreq*, uchar*, void*, int);
 extern int sdfakescsi(SDreq*, void*, int);
-extern int sdfakescsirw(SDreq*, uvlong*, int*, int*);
 
 /* sdscsi.c */
 extern int scsiverify(SDunit*);

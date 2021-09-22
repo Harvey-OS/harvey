@@ -1,0 +1,35 @@
+.TH TAGRD 1
+.SH NAME
+tagrd \- plumb a Mifare Ultralight tag
+.SH SYNOPSIS
+.B tagrd
+[
+.B -D
+]
+.B /dev/cci*/rpc
+.SH DESCRIPTION
+.I Tagrd
+runs continuously, polling a
+.IR usb (4)
+ccid-based
+Touchatag
+reader and plumbs
+a message for any tag with its content and its UID.
+It plumbs another message when the
+tag disappears.
+For an example of how to use this, see
+.BR /sys/src/cmd/scard/plumbing .
+.PP
+When the program successfully communicates with the reader,
+its led should turn orange.
+.PP
+This program is part of an ongoing programming of the ISO smartcard
+standards, part of the library can be seen at
+.BR /sys/src/cmd/scard .
+.PD
+.SH SOURCE
+.B /sys/src/cmd/scard/tagrd.c
+.br
+.B /sys/src/cmd/scard/plumbing
+.SH SEE ALSO
+.IR usb (4)

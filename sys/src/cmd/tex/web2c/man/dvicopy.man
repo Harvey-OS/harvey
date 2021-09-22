@@ -1,0 +1,29 @@
+.TH DVICOPY 1 TeX "27 December 1997" "Web2C @VERSION@"
+.SH NAME
+dvicopy \- produce modified copy of DVI file
+.SH SYNOPSIS
+.B dvicopy
+infile outfile
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+.IR dvicopy ,
+a program from the
+.I web2c
+distribution, prompts for one or more options. Currently, these may be
+chosen from the list
+.TP
+.BI mag " mag"
+magnify the file by the factor
+.IR mag .
+.TP
+.BI select " first_page \fR[\fP num_pages \fR]\fP"
+output only the
+.I num_pages
+beginning at page
+.IR first_page .
+.SH "SEE ALSO"
+dviselect(1)

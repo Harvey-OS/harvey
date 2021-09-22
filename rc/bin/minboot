@@ -1,0 +1,7 @@
+#!/bin/rc
+rfork nes
+@ {
+	sleep 60		# avoid double-boot when run from cron
+	fshalt -r
+	reboot			# paranoia
+} &

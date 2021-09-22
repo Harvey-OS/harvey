@@ -1,11 +1,12 @@
+/*
+ * #P/cputype, and maybe access to 8080 I/O ports.
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 #include "../port/error.h"
-
-#include "ureg.h"
 
 typedef struct IOMap IOMap;
 struct IOMap
@@ -30,9 +31,11 @@ static struct
 enum {
 	Qdir = 0,
 	Qioalloc = 1,
+#ifdef IOPORTS					/* only used by vga */
 	Qiob,
 	Qiow,
 	Qiol,
+#endif
 	Qbase,
 
 	Qmax = 16,
@@ -46,12 +49,24 @@ static Rdwrfn *writefn[Qmax];
 static Dirtab archdir[Qmax] = {
 	".",		{ Qdir, 0, QTDIR },	0,	0555,
 	"ioalloc",	{ Qioalloc, 0 },	0,	0444,
+#ifdef IOPORTS
 	"iob",		{ Qiob, 0 },		0,	0660,
 	"iow",		{ Qiow, 0 },		0,	0660,
 	"iol",		{ Qiol, 0 },		0,	0660,
+#endif
 };
 Lock archwlock;	/* the lock is only for changing archdir */
 int narchdir = Qbase;
+
+extern Dev archdevtab;
+
+/* complain, unless it's a known bug in this hypervisor */
+void
+vmbotch(ulong vmbit, char *cause)
+{
+	print("am i running in a VM, or is %s?\n", cause);
+	USED(vmbit);
+}
 
 /*
  * Add a file to the #P listing.  Once added, you can't delete it.
@@ -92,96 +107,36 @@ addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 	return dp;
 }
 
+/*
+ * Welcome to 1978.  Somehow Intel hadn't seen the PDP-11 yet.
+ * In addition to a separate address space for devices (I/O ports),
+ * they required special IN and OUT instructions.
+ */
 void
 ioinit(void)
 {
-	char *excluded;
-	int i;
+	int i, io_s, io_e;
+	char *ends, *s;
 
 	for(i = 0; i < nelem(iomap.maps)-1; i++)
 		iomap.maps[i].next = &iomap.maps[i+1];
 	iomap.maps[i].next = nil;
 	iomap.free = iomap.maps;
 
-	/*
-	 * Someone needs to explain why this was here...
-	 */
-	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
-					// entry is needed for swappable devs.
-
-	if ((excluded = getconf("ioexclude")) != nil) {
-		char *s;
-
-		s = excluded;
-		while (s && *s != '\0' && *s != '\n') {
-			char *ends;
-			int io_s, io_e;
-
-			io_s = (int)strtol(s, &ends, 0);
-			if (ends == nil || ends == s || *ends != '-') {
-				print("ioinit: cannot parse option string\n");
-				break;
-			}
-			s = ++ends;
-
-			io_e = (int)strtol(s, &ends, 0);
-			if (ends && *ends == ',')
-				*ends++ = '\0';
-			s = ends;
-
-			ioalloc(io_s, io_e - io_s + 1, 0, "pre-allocated");
-		}
-	}
-
-}
-
-// Reserve a range to be ioalloced later.
-// This is in particular useful for exchangable cards, such
-// as pcmcia and cardbus cards.
-int
-ioreserve(int, int size, int align, char *tag)
-{
-	IOMap *map, **l;
-	int i, port;
-
-	lock(&iomap);
-	// find a free port above 0x400 and below 0x1000
-	port = 0x400;
-	for(l = &iomap.map; *l; l = &(*l)->next){
-		map = *l;
-		if (map->start < 0x400)
-			continue;
-		i = map->start - port;
-		if(i > size)
+	for (s = getconf("ioexclude"); s && *s != '\0' && *s != '\n'; s = ends){
+		io_s = (int)strtol(s, &ends, 0);
+		if (ends == nil || ends == s || *ends != '-') {
+			print("ioinit: cannot parse ioexclude string\n");
 			break;
-		if(align > 0)
-			port = ((port+align-1)/align)*align;
-		else
-			port = map->end;
-	}
-	if(*l == nil){
-		unlock(&iomap);
-		return -1;
-	}
-	map = iomap.free;
-	if(map == nil){
-		print("ioalloc: out of maps");
-		unlock(&iomap);
-		return port;
-	}
-	iomap.free = map->next;
-	map->next = *l;
-	map->start = port;
-	map->end = port + size;
-	map->reserved = 1;
-	strncpy(map->tag, tag, sizeof(map->tag));
-	map->tag[sizeof(map->tag)-1] = 0;
-	*l = map;
+		}
+		s = ++ends;
 
-	archdir[0].qid.vers++;
+		io_e = (int)strtol(s, &ends, 0);
+		if (ends && *ends == ',')
+			*ends++ = '\0';
 
-	unlock(&iomap);
-	return map->start;
+		ioalloc(io_s, io_e - io_s + 1, 0, "pre-allocated");
+	}
 }
 
 //
@@ -225,7 +180,8 @@ ioalloc(int port, int size, int align, char *tag)
 			map = *l;
 			if(map->end <= port)
 				continue;
-			if(map->reserved && map->start == port && map->end == port + size) {
+			if(map->reserved && map->start == port &&
+			    map->end == port + size) {
 				map->reserved = 0;
 				unlock(&iomap);
 				return map->start;
@@ -282,11 +238,10 @@ iounused(int start, int end)
 {
 	IOMap *map;
 
-	for(map = iomap.map; map; map = map->next){
+	for(map = iomap.map; map; map = map->next)
 		if(start >= map->start && start < map->end
 		|| start <= map->start && end > map->start)
 			return 0;
-	}
 	return 1;
 }
 
@@ -294,20 +249,17 @@ static void
 checkport(int start, int end)
 {
 	/* standard vga regs are OK */
-	if(start >= 0x2b0 && end <= 0x2df+1)
+	if(start >= 0x2b0 && end <= 0x2df+1 ||
+	   start >= 0x3c0 && end <= 0x3da+1)
 		return;
-	if(start >= 0x3c0 && end <= 0x3da+1)
-		return;
-
-	if(iounused(start, end))
-		return;
-	error(Eperm);
+	if(!iounused(start, end))
+		error(Eperm);
 }
 
 static Chan*
 archattach(char* spec)
 {
-	return devattach('P', spec);
+	return devattach(archdevtab.dc, spec);
 }
 
 Walkqid*
@@ -341,10 +293,12 @@ enum
 static long
 archread(Chan *c, void *a, long n, vlong offset)
 {
-	char *buf, *p;
+	char *buf, *p, *e;
+#ifdef IOPORTS
 	int port;
 	ushort *sp;
 	ulong *lp;
+#endif
 	IOMap *map;
 	Rdwrfn *fn;
 
@@ -352,7 +306,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 
 	case Qdir:
 		return devdirread(c, a, n, archdir, narchdir, devgen);
-
+#ifdef IOPORTS
 	case Qiob:
 		port = offset;
 		checkport(offset, offset+n);
@@ -377,7 +331,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 		for(port = offset; port < offset+n; port += 4)
 			*lp++ = inl(port);
 		return n;
-
+#endif
 	case Qioalloc:
 		break;
 
@@ -391,14 +345,16 @@ archread(Chan *c, void *a, long n, vlong offset)
 	if((buf = malloc(n)) == nil)
 		error(Enomem);
 	p = buf;
-	n = n/Linelen;
-	offset = offset/Linelen;
+	e = buf + n;
+	n /= Linelen;
+	offset /= Linelen;
 
 	lock(&iomap);
 	for(map = iomap.map; n > 0 && map != nil; map = map->next){
 		if(offset-- > 0)
 			continue;
-		sprint(p, "%#8lux %#8lux %-12.12s\n", map->start, map->end-1, map->tag);
+		seprint(p, e, "%#8lux %#8lux %-12.12s\n",
+			map->start, map->end-1, map->tag);
 		p += Linelen;
 		n--;
 	}
@@ -414,14 +370,16 @@ archread(Chan *c, void *a, long n, vlong offset)
 static long
 archwrite(Chan *c, void *a, long n, vlong offset)
 {
+#ifdef IOPORTS
 	char *p;
 	int port;
 	ushort *sp;
 	ulong *lp;
+#endif
 	Rdwrfn *fn;
 
 	switch((ulong)c->qid.path){
-
+#ifdef IOPORTS
 	case Qiob:
 		p = a;
 		checkport(offset, offset+n);
@@ -446,14 +404,13 @@ archwrite(Chan *c, void *a, long n, vlong offset)
 		for(port = offset; port < offset+n; port += 4)
 			outl(port, *lp++);
 		return n;
-
+#endif
 	default:
 		if(c->qid.path < narchdir && (fn = writefn[c->qid.path]))
 			return fn(c, a, n, offset);
 		error(Eperm);
-		break;
+		notreached();
 	}
-	return 0;
 }
 
 Dev archdevtab = {
@@ -477,8 +434,6 @@ Dev archdevtab = {
 	devwstat,
 };
 
-/*
- */
 void
 nop(void)
 {
@@ -504,7 +459,11 @@ archinit(void)
 void
 archreset(void)
 {
-	int i;
+	ushort *s;
+
+	s = KADDR(0x472);
+	*s = 0x1234;		/* BIOS warm-boot flag examined at boot */
+	wbinvd();
 
 	/*
 	 * And sometimes there is no keyboard...
@@ -512,16 +471,45 @@ archreset(void)
 	 * The reset register (0xcf9) is usually in one of the bridge
 	 * chips. The actual location and sequence could be extracted from
 	 * ACPI but why bother, this is the end of the line anyway.
-	print("Takes a licking and keeps on ticking...\n");
 	 */
-	i = inb(0xcf9);					/* ICHx reset control */
-	i &= 0x06;
-	outb(0xcf9, i|0x02);				/* SYS_RST */
-	millidelay(1);
-	outb(0xcf9, i|0x06);				/* RST_CPU transition */
+	spllo();
+	iprint("resetting.\n\n");
+	delay(500);
+	pcicf9reset();
+	delay(500);
 
+	iprint("no luck, idling.\n");
 	for(;;)
-		pause();
+		idlehands();
+}
+
+/*
+ * secondary cpus should all idle (here or in shutdown, called from reboot).
+ * for a true shutdown, reset and boot, cpu 0 should then reset itself or the
+ * system as a whole.  if plan 9 is rebooting (loading a new kernel and
+ * starting it), cpu 0 needs to keep running to do that work.
+ */
+void
+mpshutdown(void)
+{
+	static QLock mpshutdownlock;
+
+	if(m->machno == 0 && canqlock(&mpshutdownlock)) {  /* we are cpu0 */
+		if(active.rebooting)
+			return;
+		iprint("mpshutdown: %d active cpus\n", sys->nonline);
+		delay(500);
+		splhi();
+		apicresetothers();
+		delay(1);			/* let secondary cpus reset */
+
+		/* we can now use the uniprocessor reset */
+		archreset();
+	}
+	splhi();
+	wbinvd();
+	for (;;)
+		idlehands();
 }
 
 /*
@@ -550,38 +538,4 @@ timerset(uvlong x)
 	extern void apictimerset(uvlong);
 
 	apictimerset(x);
-}
-
-void
-cycles(uvlong* t)
-{
-	*t = rdtsc();
-}
-
-void
-delay(int millisecs)
-{
-	u64int r, t;
-
-	if(millisecs <= 0)
-		millisecs = 1;
-	r = rdtsc();
-	for(t = r + m->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
-		;
-}
-
-/*
- *  performance measurement ticks.  must be low overhead.
- *  doesn't have to count over a second.
- */
-ulong
-perfticks(void)
-{
-	uvlong x;
-
-//	if(m->havetsc)
-		cycles(&x);
-//	else
-//		x = 0;
-	return x;
 }

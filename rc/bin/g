@@ -1,0 +1,26 @@
+#!/bin/rc
+# g - grep sources
+rfork e
+args=()
+while(! ~ $#* 0 1 && ~ $1 -*) {
+	args=($args $1)
+	shift
+}
+
+if(~ $#* 0) {
+	echo usage: $0 '[grep-opt]... [file]...' >[1=2]
+	exit usage
+}
+if(~ $#* 1)
+	exec grep -n $args -e $1 *.[chsy] /dev/null >[2]/dev/null
+if not {
+	args=($args -e $1)
+	shift
+	for(arg in $*){
+		if(test -d $arg)
+			args = ($args $arg/*.[chsy])
+		if not
+			args = ($args $arg)
+	}
+	exec grep -n $args /dev/null >[2]/dev/null
+}

@@ -96,7 +96,7 @@ onfont(int n, int f)	/* is char n on font f? */
 	/* maybe it was a \N... */
 	np = chname(n);
 	if (*np == Number) {
-		i = atoi(np+1);		/* sscanf(np+1, "%d", &i); */
+		i = atoi(np+1);
 		cp = &fp->wp[0];
 		ep = &fp->wp[fp->nchars];
 		for ( ; cp < ep; cp++) {	/* search others */
@@ -227,21 +227,18 @@ Tchar t_setch(int c)
 			s++;
 	}
 	*s = '\0';
-#ifdef UNICODE
-	return chadd(temp, Troffchar, Install) | chbits; /* add name even if haven't seen it */
-#else
+#ifndef UNICODE
 	if (NROFF) {
 		int j;
 
 		j = chadd(temp, Troffchar, Lookup);
-		if ( j == -1)
+		if (j == -1)
 			return 0;
 		else
 			return j | chbits;
-	} else
-		return chadd(temp, Troffchar, Install) | chbits; /* add name even if haven't seen it */
-		
+	}
 #endif /*UNICODE*/
+	return chadd(temp, Troffchar, Install) | chbits; /* add name even if haven't seen it */
 }
 
 Tchar t_setabs(void)		/* set absolute char from \N'...' */
@@ -255,7 +252,7 @@ Tchar t_setabs(void)		/* set absolute char from \N'...' */
 	getch();	/* delim */
 	if (nonumb)
 		return 0;
-	sprintf(temp, "%d", n);	/* convert into "#n" */
+	snprintf(temp, sizeof temp, "%d", n);	/* convert into "#n" */
 	n = chadd(temp, Number, Install);
 	return n | chbits;
 }
@@ -705,7 +702,7 @@ char *strdupl(const char *s)	/* make a copy of s */
 	return t;
 }
 
-setfp(int pos, int f, char *truename, int print)	/* mount font f at position pos[0...nfonts] */
+setfp(int pos, int f, char *truename, int doprint)	/* mount font f at position pos[0...nfonts] */
 {
 	char pathname[NS], shortname[NS];
 
@@ -732,7 +729,7 @@ setfp(int pos, int f, char *truename, int print)	/* mount font f at position pos
 		ERROR "Can't open font file %s", pathname WARN;
 		return -1;
 	}
-	if (print && !ascii) {
+	if (doprint && !ascii) {
 		ptfpcmd(pos, fonts[pos].longname, truename);
 		ptfont();
 	}

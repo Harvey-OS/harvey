@@ -12,6 +12,7 @@ extern void* i8250alloc(int, int, int);
 
 static Uart *perlehead, *perletail;
 
+/* barno is that of the I/O port, ugh */
 static Uart*
 uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name,
 	int iosize)
@@ -24,7 +25,7 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name,
 	io = p->mem[barno].bar & ~0x01;
 	snprint(buf, sizeof(buf), "%s%d", pciphysuart.name, ctlrno);
 	if(ioalloc(io, p->mem[barno].size, 0, buf) < 0){
-		print("uartpci: I/O 0x%uX in use\n", io);
+		print("uartpci: I/O %#uX in use\n", io);
 		return nil;
 	}
 
@@ -41,9 +42,10 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name,
 		snprint(buf, sizeof(buf), "%s.%8.8uX", name, p->tbdf);
 		kstrdup(&uart->name, buf);
 		uart->freq = freq;
+		/* ignore pciphysuart hereafter for this uart */
 		uart->phys = &i8250physuart;
-		/* print("#t: %s port %#x freq %,ldHz irq %d\n",
-			uart->name, io - iosize, uart->freq, p->intl); /**/
+		print("#t/eia%d: %s port %#x freq %,ldHz irq %d\n",
+			ctlrno+i+2, uart->name, io - iosize, uart->freq, p->intl); /**/
 		if(uart != head)
 			(uart-1)->next = uart;
 		uart++;
@@ -107,6 +109,7 @@ uartpcipnp(void)
 		if(p->ccrb != Pcibccomm || p->ccru > 2 && p->ccru != 0x80)
 			continue;
 
+		/* 1843200 == 16 * 115200 */
 		switch(p->did<<16 | p->vid){
 		default:
 			continue;
@@ -118,6 +121,13 @@ uartpcipnp(void)
 				"PCI2S550-1", 8);
 			if(uart->next == nil)
 				continue;
+			break;
+		case (0x9904<<16)|0x9710:	/* StarTech PEX4S553B */
+			/*
+			 * (aka MosChip MCS 9904) each of these is 1 uart, but
+			 * they are packaged as 4 per pci-e card.
+			 */
+			uart = uartpci(ctlrno, p, 0, 1, 1843200, "PEX4S553B", 8);
 			break;
 		case (0x950A<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
 		case (0x9501<<16)|0x1415:
@@ -167,7 +177,7 @@ uartpcipnp(void)
 			 */
 			subid = pcicfgr16(p, PciSVID);
 			subid |= pcicfgr16(p, PciSID)<<16;
-			freq = 7372800;
+			freq = 7372800;	/* twice max. baud rate; default */
 			switch(subid){
 			default:
 				print("uartpci: unknown perle subid %#ux\n",

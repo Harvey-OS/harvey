@@ -1,0 +1,5 @@
+1964 52 Australia
+1968 52 France
+1972 51.08 EGer
+1976 49.29 Pol
+1980 48.88 EGer

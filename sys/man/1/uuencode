@@ -1,0 +1,59 @@
+.TH UUENCODE 1
+.SH NAME
+uuencode, uudecode \- encode/decode a file as printable ASCII
+.SH SYNOPSIS
+.B uuencode
+[
+.I input
+]
+.PP
+.B uudecode
+[
+.I input
+]
+.SH DESCRIPTION
+.I Uuencode
+and
+.I uudecode
+are filters used to transmit files over transmission media
+that do not support other than simple ASCII data.
+.PP
+.I Uuencode
+converts a file to a purely ASCII-based representation.
+.PP
+.I Uudecode
+reads a file produced by
+.IR uuencode ,
+ignoring any leading and trailing lines that are not part of the encoding,
+and
+emits the original file on standard output,
+also writing its name to standard error.
+.SH EXAMPLES
+Encode a
+.I dis
+file
+.I limbo.dis
+so that it can be included in a mail message:
+.IP
+.EX
+uuencode limbo.dis >tmp
+.I "place tmp in mail message and send to recipient"
+.EE
+.PP
+Decode the mail message
+.RI ( msg
+say):
+.IP
+.EX
+uudecode <msg >limbo.dis
+.EE
+.SH SOURCE
+.B /sys/src/cmd/uuencode.c
+.br
+.B /sys/src/cmd/uudecode.c
+.SH SEE ALSO
+.IR marshal (1)
+.SH BUGS
+The encoded file is expanded by at least a third.
+.PP
+This encoding is a relic of the days before MIME encoding.

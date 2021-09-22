@@ -1,5 +1,3 @@
-#define LINK	R1
-#define SP	R2
 #define ARG	8
 
 #define FFLAGS		1

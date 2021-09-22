@@ -1,0 +1,88 @@
+.TH AOESRV 8
+.SH NAME
+aoesrv - serve data via ATA-over-Ethernet (AoE)
+.SH SYNOPSIS
+.B aoesrv
+[
+.B -i
+] [
+.B -a
+.IB shelf . slot
+] [
+.B -c
+.I config
+] [
+.B -e
+.I ether
+] [
+.B -s
+.I size
+]
+.I file
+.SH DESCRIPTION
+.I Aoesrv
+serves
+.I file
+via AoE (ATA-over-Ethernet)
+to the local Ethernet segment connected to the specified interfaces.
+.I File
+then appears on the network as an AoE target.
+Since AoE uses raw Ethernet frames (no IP), it is an unrouted protocol.
+.PP
+Options are:
+.TF -m
+.PD
+.TP
+.B -a
+Specify the
+.I shelf
+and
+.I slot
+(or major and minor) address of the target.
+Valid shelf numbers are between 0 and 65534.
+Valid slots are 0—255.
+.TP
+.B -c
+Set the AoE
+.I config
+string.
+.TP
+.B -e
+Listen to the network port
+.IR ether.
+This option may be repeated to specify multiple ports.
+.TP
+.B -i
+Initialize the configuration header in
+.IR file .
+All previous configuration information is lost.  Without this option,
+configuration is read from
+.I file
+and command-like options override previous settings.
+.TP
+.B -s
+The exported target will be of
+.IR size ,
+rather than the available space in the target.
+A
+.I size
+may end in
+.LR p ,
+.LR t ,
+.LR g ,
+.LR m ,
+or
+.LR k
+to specify a customary
+.I binary
+multiplier.
+.SH SOURCE
+.B /sys/src/cmd/aoesrv
+.SH SEE ALSO
+.IR aoe (3),
+.IR sdaoe (3)
+.br
+.BR http://www.coraid.com/documents/AoEr10.txt .
+.SH BUGS
+Security depends on control of a local Ethernet segment.  It may be
+unwise to serve AoE on a segment bridged to a wireless network.

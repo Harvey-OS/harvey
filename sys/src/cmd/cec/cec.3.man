@@ -1,0 +1,119 @@
+.TH CEC 3
+.SH NAME
+cec \- coraid ethernet console server
+.SH SYNOPSIS
+.nf
+.B bind #© /dev
+
+.B /dev/ceccfg
+.B /dev/cecctl
+.B /dev/cecdbg
+.B /dev/cecstat
+.fi
+.SH DESCRIPTION
+Cec exports a machines console over
+raw ethernet frames.  See
+.IR cec (1)
+for a client.
+.PP
+The read-only file
+.B ceccfg
+lists the interfaces on which
+.I cec
+is configured, one per line.
+.PP
+The write-only
+.B cecctl
+accepts control messages.  The command
+.IP
+.B cecon
+.I ethern
+.PP
+turns on a cec listener for
+.IR ethern ,
+while
+.IP
+.B cecoff 
+.I ethern
+.PP
+turns that listener off.
+The command
+.IP
+.BI name string
+.PP
+sets the name of the current machine name to
+.I string
+while
+.IP
+.B shelf 
+.I n
+.PP
+sets the shelf number in
+.B Toffer
+messages.  The default
+.I name
+is the empty string and the default shelf number is -1.
+These parameters are listed in the available servers
+presented by
+.IR cec(1).
+The command
+.IP
+.B password
+.I string
+.PP
+sets the connection password.  The cec protocol transmits
+passwords in the clear. This is not real security.
+The strings
+.B traceon
+and
+.B traceoff
+control cec tracing.
+.PP
+Debugging output is available in the read-only file
+.BR cecdbg .
+.PP
+The file
+.B cecstat
+lists each connection in the following format
+.IP
+.EX
+000e0c06a37c  25 open              0 0 0 00000000
+.EE
+.PP
+The 7 fields are 
+ethernet mac address,
+the connection number,
+the connection state (
+.IR unused ,
+.IR initb ,
+.IR login ,
+.IR open ),
+the number of idle ticks,
+the number of retires and the address of the current
+outstanding message's
+.BR Block* .
+Fields 4-7 are likely to change in the future.
+.SH EXAMPLE
+Start cec on ports with no ip stack.
+.IP
+.EX
+bind -a '#©' /dev
+for(i in `{seq 1 10}){
+	if(test -e '#l'^$i)
+	if(! test -e /net*/ether^$i)
+		echo 'cecon #l'^$i>/dev/cecctl
+}
+.EE
+.SH SEE ALSO
+.IR cec (1),
+.\" .IR cec (6),
+.\" .IR cec (4).
+.SH SOURCE
+.B /sys/src/9/port/devcec.c
+.SH BUGS
+Cec is not available before ethernet has started or
+from 9load.
+.PP
+The
+.B cecstat
+format is neither fixed-width nor are fields 4-7 very useful.

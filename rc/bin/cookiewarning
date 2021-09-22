@@ -1,0 +1,35 @@
+#!/bin/rc
+# cookiewarning - warn the cookie czar to bring some
+rfork ne
+ramfs
+moo=()
+
+ifs='
+'
+next=`{calendar -y -p 4 /lib/cookie}
+for(i in $next)
+	moo=($moo `{echo $i|awk '{print $3;}'})
+
+mail clarkson <<EOF
+
+next COOKIE is:
+$next
+sent mail to $moo
+
+EOF
+mail $moo <<EOF
+Next cookie rotation goes to:
+
+$next
+
+For your week, you're the cookie czar.  Buy or bake whatever kind of
+cookies you want and like, and don't feel compelled to get high-end or
+fancy stuff.  We have had one request that Oatmeal Raisin cookies be
+part of the selection, if at all possible.  Please refer any
+complainers to Ken Clarkson, who will be happy to enlist them as a new
+volunteer.
+
+Eight bags of Pepperidge Farm-style cookies seems to be about the
+right amount of cookies for one Friday.
+
+EOF

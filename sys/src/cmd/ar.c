@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 		}
 		argv++;
 	}
-	exits(cp);
+	exits(dupfound? "duplicate symbol": cp);
 }
 /*
  *	select a command
@@ -670,9 +670,9 @@ rderr(void)
 }
 
 void
-phaseerr(int offset)
+phaseerr(vlong offset)
 {
-	fprint(2, "ar: phase error at offset %d\n", offset);
+	fprint(2, "ar: phase error at offset %lld\n", offset);
 	exits("error");
 }
 
@@ -817,7 +817,6 @@ install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend, int createf
 void
 rl(int fd)
 {
-
 	Biobuf b;
 	char *cp;
 	struct ar_hdr a;

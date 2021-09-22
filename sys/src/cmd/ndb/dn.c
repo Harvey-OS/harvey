@@ -149,6 +149,13 @@ static ulong agefreq = Defagefreq;
 static int rrequiv(RR *r1, RR *r2);
 static int sencodefmt(Fmt*);
 
+void
+freez(void *p, uint len)
+{
+	memset(p, 0, len);		/* prevent future accidents */
+	free(p);
+}
+
 static void
 ding(void*, char *msg)
 {
@@ -583,8 +590,7 @@ dnageall(int doit)
 					free(dp->name);
 				dp->magic = ~dp->magic;
 				dnvars.names--;
-				memset(dp, 0, sizeof *dp); /* cause trouble */
-				free(dp);
+				freez(dp, sizeof *dp);
 
 				continue;
 			}
@@ -842,11 +848,12 @@ rrattach1(RR *new, int auth)
 		l = &rp->next;
 	}
 
-	if (rronlist(new, rp)) {
-		/* should not happen; duplicates were processed above */
-		dnslog("adding duplicate %R to list of %R; aborting", new, rp);
-		abort();
-	}
+	if (rronlist(new, rp))
+		/*
+		 * should not happen, since duplicates were processed above,
+		 * but maybe we stopped too soon due to differing types.
+		 */
+		dnslog("adding duplicate %R to list of %R", new, rp);
 	/*
 	 *  add to chain
 	 */
@@ -1065,8 +1072,8 @@ out:
 	unique(first);
 	unlock(&dnlock);
 //	dnslog("rrlookup(%s) -> %#p\t# in-core only", dp->name, first);
-//	if (first)
-//		setmalloctag(first, getcallerpc(&dp));
+	if (first)
+		setmalloctag(first, getcallerpc(&dp));
 	return first;
 }
 
@@ -1085,6 +1092,8 @@ rrtype(char *atype)
 	/* make any a synonym for all */
 	if(strcmp(atype, "any") == 0)
 		return Tall;
+	else if(strcmp(atype, "ipany") == 0)
+		return Tipall;
 	else if(isascii(atype[0]) && isdigit(atype[0]))
 		return atoi(atype);
 	else
@@ -1108,7 +1117,8 @@ rrsupported(int type)
 int
 tsame(int t1, int t2)
 {
-	return t1 == t2 || t1 == Tall;
+	return t1 == t2 || t1 == Tall ||
+		(t1 == Tipall && (t2 == Ta || t2 == Taaaa));
 }
 
 /*
@@ -1585,7 +1595,7 @@ dncheck(void *p, int dolock)
 
 	if(dolock)
 		lock(&dnlock);
-	poolcheck(mainmem);
+//	poolcheck(mainmem);
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next){
 			assert(dp != p);
@@ -1932,6 +1942,8 @@ rrname(int type, char *buf, int len)
 	t = nil;
 	if(type >= 0 && type <= Tall)
 		t = rrtname[type];
+	else if(type == Tipall)
+		t = "ipany";
 	if(t==nil){
 		snprint(buf, len, "%d", type);
 		t = buf;
@@ -1971,6 +1983,7 @@ RR*
 rralloc(int type)
 {
 	RR *rp;
+	static long uniqid;
 
 	rp = emalloc(sizeof(*rp));
 	rp->magic = RRmagic;
@@ -1979,6 +1992,7 @@ rralloc(int type)
 	if (rp->type != type)
 		dnslog("rralloc: bogus type %d", type);
 	setmalloctag(rp, rp->pc);
+
 	switch(type){
 	case Tsoa:
 		rp->soa = emalloc(sizeof(*rp->soa));
@@ -2004,6 +2018,14 @@ rralloc(int type)
 	case Tnull:
 		rp->null = emalloc(sizeof(*rp->null));
 		setmalloctag(rp->null, rp->pc);
+		break;
+	case Ttxt:
+		/*
+		 * ensure txt rrs and others with no meaningful arg0 nor arg1
+		 * are distinguished.
+		 */
+		rp->arg0 = 0;
+		rp->arg1 = ainc(&uniqid);
 		break;
 	}
 	rp->ttl = 0;
@@ -2040,45 +2062,36 @@ rrfree(RR *rp)
 	switch(rp->type){
 	case Tsoa:
 		freeserverlist(rp->soa->slaves);
-		memset(rp->soa, 0, sizeof *rp->soa);	/* cause trouble */
-		free(rp->soa);
+		freez(rp->soa, sizeof *rp->soa);
 		break;
 	case Tsrv:
-		memset(rp->srv, 0, sizeof *rp->srv);	/* cause trouble */
-		free(rp->srv);
+		freez(rp->srv, sizeof *rp->srv);
 		break;
 	case Tkey:
 		free(rp->key->data);
-		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
-		free(rp->key);
+		freez(rp->key, sizeof *rp->key);
 		break;
 	case Tcert:
 		free(rp->cert->data);
-		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
-		free(rp->cert);
+		freez(rp->cert, sizeof *rp->cert);
 		break;
 	case Tsig:
 		free(rp->sig->data);
-		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
-		free(rp->sig);
+		freez(rp->sig, sizeof *rp->sig);
 		break;
 	case Tnull:
 		free(rp->null->data);
-		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
-		free(rp->null);
+		freez(rp->null, sizeof *rp->null);
 		break;
 	case Ttxt:
 		while(rp->txt != nil){
 			t = rp->txt;
 			rp->txt = t->next;
 			free(t->p);
-			memset(t, 0, sizeof *t);	/* cause trouble */
-			free(t);
+			freez(t, sizeof *t);
 		}
 		break;
 	}
 
-	rp->magic = ~rp->magic;
-	memset(rp, 0, sizeof *rp);		/* cause trouble */
-	free(rp);
+	freez(rp, sizeof *rp);
 }

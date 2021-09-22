@@ -1,0 +1,59 @@
+#!/bin/rc
+
+rfork e
+
+includes=(/sys/include /$objtype/include)
+dirs=(.)
+
+st = ''
+
+while(~ $1 -*){
+	switch($1){
+	case -d
+		shift
+		dirs=($1 $dirs)
+	case -d*
+		inc=`{echo $1 | sed 's/-d//'}
+		dirs=($inc $dirs)
+	case -I
+		shift
+		includes=($includes $1)
+	case -I*
+		inc=`{echo $1 | sed 's/-I//'}
+		includes=($includes $inc)
+	case -*
+		echo Ignoring flag $1 >[1=2]
+	}
+	shift
+}
+
+for(f in $*){
+	file=''
+	for(d in $dirs){
+		if(test -e $d/$f)
+			file = $d/$f
+	}
+	if(! ~ $file ''){
+		incbase=`{grep '^[ 	]*#include' $file | sed 's/.*#include[ 	]+[<"](.*)[>"][ 	]*$/ \1/'}
+		incfiles=()
+		for (j in $incbase) {
+			incfile=''
+			for (i in (. $includes)) {
+				if (test -r $i/$j) {
+					incfile=$i/$j
+				}
+			}
+			if (! ~ $incfile '') {
+				incfiles=($incfiles $incfile)
+			}
+			if not {
+				st = $file^': cannot find '^$j
+				echo $st >/fd/2
+			}
+		}
+		echo `{basename $file .c}^'.$O': $incfiles | \
+		sed 's/\/'$objtype'\//\/$objtype\//g
+			s/ \.\// /g'
+	}
+}
+exit $st

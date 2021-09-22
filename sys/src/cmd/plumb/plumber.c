@@ -15,6 +15,7 @@ Ruleset **rules;
 int	printerrors=1;
 jmp_buf	parsejmp;
 char	*lasterror;
+/* threads are created but not destroyed, so watch stack usage. */
 int mainstacksize = 20*1024;
 
 void
@@ -110,13 +111,14 @@ parseerror(char *fmt, ...)
 		printinputstack();
 		fprint(2, "%s\n", buf);
 	}
-	do; while(popinput());
+	while(popinput())
+		;
 	lasterror = estrdup(buf);
 	longjmp(parsejmp, 1);
 }
 
 void*
-emalloc(long n)
+emalloc(uintptr n)
 {
 	void *p;
 
@@ -128,7 +130,7 @@ emalloc(long n)
 }
 
 void*
-erealloc(void *p, long n)
+erealloc(void *p, uintptr n)
 {
 	p = realloc(p, n);
 	if(p == nil)

@@ -49,10 +49,13 @@ enum
 #define QID(p, c, y)	( ((p)<<(Shiftproto)) | ((c)<<Shiftconv) | (y) )
 
 static char network[] = "network";
+static char Enonmcast[] = "addmulti for a non-multicast address";
 
 QLock	fslock;
 Fs	*ipfs[Nfs];	/* attached fs's */
 Queue	*qlog;
+
+extern Dev ipdevtab;
 
 extern	void nullmediumlink(void);
 extern	void pktmediumlink(void);
@@ -303,10 +306,10 @@ ipattach(char* spec)
 
 	devno = atoi(spec);
 	if(devno >= Nfs)
-		error("bad specification");
+		error("bad #I specification");
 
 	ipgetfs(devno);
-	c = devattach('I', spec);
+	c = devattach(ipdevtab.dc, spec);
 	mkqid(&c->qid, QID(0, 0, Qtopdir), 0, QTDIR);
 	c->devno = devno;
 
@@ -641,7 +644,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		return netlogread(f, a, offset, n);
 	case Qctl:
 		buf = smalloc(16);
-		snprint(buf, 16, "%lud", CONV(ch->qid));
+		snprint(buf, 16-1, "%lud", CONV(ch->qid));
 		rv = readstr(offset, p, n, buf);
 		free(buf);
 		return rv;
@@ -1142,7 +1145,7 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 				error("addmulti needs interface address");
 			if(cb->nf == 2){
 				if(!ipismulticast(c->raddr))
-					error("addmulti for a non multicast address");
+					error(Enonmcast);
 				if (parseip(ia, cb->f[1]) == -1)
 					error(Ebadip);
 				ipifcaddmulti(c, c->raddr, ia);
@@ -1151,21 +1154,20 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 				    parseip(ma, cb->f[2]) == -1)
 					error(Ebadip);
 				if(!ipismulticast(ma))
-					error("addmulti for a non multicast address");
+					error(Enonmcast);
 				ipifcaddmulti(c, ma, ia);
 			}
 		} else if(strcmp(cb->f[0], "remmulti") == 0){
 			if(cb->nf < 2)
 				error("remmulti needs interface address");
 			if(!ipismulticast(c->raddr))
-				error("remmulti for a non multicast address");
+				error("remmulti for a non-multicast address");
 			if (parseip(ia, cb->f[1]) == -1)
 				error(Ebadip);
 			ipifcremmulti(c, c->raddr, ia);
 		} else if(strcmp(cb->f[0], "maxfragsize") == 0){
 			if(cb->nf < 2)
 				error("maxfragsize needs size");
-
 			c->maxfragsize = (int)strtol(cb->f[1], nil, 0);
 
 		} else if(x->ctl != nil) {

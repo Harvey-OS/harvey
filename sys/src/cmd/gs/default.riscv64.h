@@ -1,4 +1,5 @@
-/* Parameters derived from machine and compiler architecture */
+/* Parameters derived from machine and compiler architecture. */
+/* This file is generated mechanically by genarch.c. */
 
 	 /* ---------------- Scalar alignments ---------------- */
 
@@ -12,6 +13,7 @@
 
 	 /* ---------------- Scalar sizes ---------------- */
 
+#define ARCH_LOG2_SIZEOF_CHAR 0
 #define ARCH_LOG2_SIZEOF_SHORT 1
 #define ARCH_LOG2_SIZEOF_INT 2
 #define ARCH_LOG2_SIZEOF_LONG 2
@@ -31,8 +33,8 @@
 
 	 /* ---------------- Cache sizes ---------------- */
 
-#define ARCH_CACHE1_SIZE 4096
-#define ARCH_CACHE2_SIZE 524288
+#define ARCH_CACHE1_SIZE 32768
+#define ARCH_CACHE2_SIZE 4194304
 
 	 /* ---------------- Miscellaneous ---------------- */
 
@@ -42,3 +44,7 @@
 #define ARCH_ARITH_RSHIFT 2
 #define ARCH_CAN_SHIFT_FULL_LONG 0
 #define ARCH_DIV_NEG_POS_TRUNCATES 1
+
+#ifndef _GNUC_LONG64_
+#define _GNUC_LONG64_
+#endif

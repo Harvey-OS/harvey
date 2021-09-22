@@ -17,7 +17,7 @@ int	nlibdir	= 0;
 static	int	maxlibdir = 0;
 
 /*
- *	-H2 -T0x200028 -R0x200000	is plan9 format (was -T4136 -R4096)
+ *	-H2 -T0x200028 -R0x200000	is plan9 format (was -T4136 -R4096); default
  *	-H5 -T0x80110000 -R4096		is ELF32
  *	-H6 -T0x2000e8 -R0x200000	is ELF64
  *
@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 		break;
 	} ARGEND
 	USED(argc);
-	if(*argv == nil)
+	if(*argv == 0)
 		usage();
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
@@ -223,8 +223,9 @@ main(int argc, char *argv[])
 	ycover[Yax*Ymax + Yrb] = 1;
 	ycover[Ycx*Ymax + Yrb] = 1;
 	ycover[Yrx*Ymax + Yrb] = 1;
-	ycover[Yrl*Ymax + Yrb] = 1;	// 8l disables this
-	ycover[Ycl*Ymax + Ycx] = 1;	// 8l disables this
+	ycover[Yrl*Ymax + Yrb] = 1;
+
+	ycover[Ycl*Ymax + Ycx] = 1;
 
 	ycover[Yax*Ymax + Yrx] = 1;
 	ycover[Ycx*Ymax + Yrx] = 1;
@@ -241,7 +242,7 @@ main(int argc, char *argv[])
 	ycover[Ycx*Ymax + Ymb] = 1;
 	ycover[Yrx*Ymax + Ymb] = 1;
 	ycover[Yrb*Ymax + Ymb] = 1;
-	ycover[Yrl*Ymax + Ymb] = 1;	// 8l disables this
+	ycover[Yrl*Ymax + Ymb] = 1;
 	ycover[Ym*Ymax + Ymb] = 1;
 
 	ycover[Yax*Ymax + Yml] = 1;
@@ -263,10 +264,6 @@ main(int argc, char *argv[])
 	ycover[Yrl*Ymax + Yxm] = 1;
 	ycover[Ym*Ymax + Yxm] = 1;
 	ycover[Yxr*Ymax + Yxm] = 1;
-	ycover[Yxr*Ymax + Yxyr] = 1;
-
-	ycover[Yyr*Ymax + Yxm] = 1;
-	ycover[Yyr*Ymax + Yxyr] = 1;
 
 	for(i=0; i<D_NONE; i++) {
 		reg[i] = -1;
@@ -284,20 +281,13 @@ main(int argc, char *argv[])
 			if(i >= D_R8)
 				regrex[i] = Rxr | Rxx | Rxb;
 		}
-/*
 		if(i >= D_F0 && i <= D_F0+7)
 			reg[i] = (i-D_F0) & 7;
-*/
 		if(i >= D_M0 && i <= D_M0+7)
 			reg[i] = (i-D_M0) & 7;
 		if(i >= D_X0 && i <= D_X0+15) {
 			reg[i] = (i-D_X0) & 7;
 			if(i >= D_X0+8)
-				regrex[i] = Rxr | Rxx | Rxb;
-		}
-		if(i >= D_Y0 && i <= D_Y0+15) {
-			reg[i] = (i-D_Y0) & 7;
-			if(i >= D_Y0+8)
 				regrex[i] = Rxr | Rxx | Rxb;
 		}
 		if(i >= D_CR+8 && i <= D_CR+15) 
@@ -383,8 +373,8 @@ main(int argc, char *argv[])
 		Bprint(&bso, "%5.2f cpu time\n", cputime());
 		Bprint(&bso, "%ld symbols\n", nsymbol);
 		Bprint(&bso, "%ld memory used\n", thunk);
-		Bprint(&bso, "%d sizeof adr\n", sizeof(Adr));
-		Bprint(&bso, "%d sizeof prog\n", sizeof(Prog));
+		Bprint(&bso, "%lld sizeof adr\n", (vlong)sizeof(Adr));
+		Bprint(&bso, "%lld sizeof prog\n", (vlong)sizeof(Prog));
 	}
 	Bflush(&bso);
 
@@ -545,7 +535,8 @@ objfile(char *file)
 			l |= (e[3] & 0xff) << 16;
 			l |= (e[4] & 0xff) << 24;
 			seek(f, l, 0);
-			l = read(f, &arhdr, SAR_HDR);
+			/* need readn to read the dumps (at least) */
+			l = readn(f, &arhdr, SAR_HDR);
 			if(l != SAR_HDR)
 				goto bad;
 			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
@@ -588,6 +579,10 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	}
 	a->offset = 0;
 	if(t & T_OFFSET) {
+		/*
+		 * Hack until Charles fixes the compiler.
+		a->offset = (long)(p[c] | (p[c+1]<<8) | (p[c+2]<<16) | (p[c+3]<<24));
+		 */
 		l = p[c] | (p[c+1]<<8) | (p[c+2]<<16) | (p[c+3]<<24);
 		a->offset = l;
 		c += 4;
@@ -918,7 +913,8 @@ loop:
 			sig = 1729;
 		if(sig != 0){
 			if(s->sig != 0 && s->sig != sig)
-				diag("incompatible type signatures %lux(%s) and %lux(%s) for %s", s->sig, filen[s->file], sig, pn, s->name);
+				diag("incompatible type signatures %lux(%s) and %lux(%s) for %s",
+					s->sig, filen[s->file], sig, pn, s->name);
 			s->sig = sig;
 			s->file = files-1;
 		}
@@ -1424,7 +1420,8 @@ doprof2(void)
 			}
 
 			/*
-			 * JMPL	profin
+			 * JAL/JMPL profin
+			 * profin must preserve RARG
 			 */
 			q = prg();
 			q->line = p->line;
@@ -1476,6 +1473,7 @@ doprof2(void)
 
 			/*
 			 * JAL	profout
+			 * profout must preserve return register(s)
 			 */
 			p->as = ACALL;
 			p->from = zprg.from;

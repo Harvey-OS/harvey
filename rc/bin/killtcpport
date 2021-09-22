@@ -1,0 +1,8 @@
+#!/bin/rc
+# killtcpport port - emit commands to kill processes with remote tcp port open
+rfork e
+port=$1
+for(i in `{grep '!'$port'$' /net/tcp/*/remote | sed s'/(.*\/)remote.*/\1/'})
+	grep $i /proc/*/fd |
+		sed 's^/proc/(.*)/fd.*^chmod +rw /proc/\1/ctl; echo kill >/proc/\1/ctl^' |
+		sort -u

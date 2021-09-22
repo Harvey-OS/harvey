@@ -1,0 +1,58 @@
+This is the README file of the `tie' distribution.
+ The current version is 2.4.
+ This file was created on 18 Dec 92.
+ This file was updated on 15 Jul 93.
+
+
+SUBJECT:
+
+`Tie' is a program which was first developed to allow WEB programmers
+(be it Pascal-, C- or any other WEB) to add more than one change file
+to their programs.
+
+ But it can be used to create new versions of the WEB file with
+incorporated changes as well. This feature does not depend on any
+special WEB dialect, nor on using WEB at all, as the only controls to
+be interpreted are the change requests in the change files (delimited
+by @x, @y and @z).
+ This makes `tie' also usable for any other language, or even data
+files. See the documentation tiedoc.tex and the example file tie.tie.
+
+ Actually, this gives a second file update mechanism besides `patch'.
+Whereas patch relies on line numbers and/or precise contexts produced
+by diff, tie depends on the order of changes and on a an amount of
+context lines determined manually.
+
+
+REQUIREMENTS:
+
+This version of `tie' is written in CWEB. To preprocess and compile
+the source you will need a working `ctangle'.
+ A pretangled tie.c is supplied which has been compiled successfully
+on a variety of workstations using either the manufacturer supplied
+C compiler in the K&R or ANSI version, or gcc (version 1.40).
+ Please note, that the CWEB by Silvio Levy and Donald E. Knuth must
+be at least at version 2.8, to process and compile `tie' without
+problems.
+
+
+DISTRIBUTION:
+
+The reference version of tie may be retrieved by anonymous ftp from
+
+	ftp.th-darmstadt.de [130.83.55.75]
+	directory pub/programming/literate-programming/Tools
+	file tie-<version>.tar.Z
+
+where <version> is the most current version number.
+ See the source file tie.w for details of the distribution policy.
+
+
+BUGS/ENHANCEMENTS:
+
+If you detect bugs in the implementation of `tie' or have 
+suggestions to enhance functionality or improve portability, 
+please send a message to
+
+	Klaus Guntermann <guntermann@iti.informatik.th-darmstadt.de>
+

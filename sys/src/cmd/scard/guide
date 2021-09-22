@@ -1,0 +1,51 @@
+/sys/src/cmd/usb/tagrd/guide
+Edit s/	*([^	].*) = (.*);/	\2 = \1;/g
+Edit s/	(.*)( |	)+=( |	)+(.*),/	{\1, ""},/g
+echo '3B 0F 00 65 46 53 05 16 05 71 DF 00 00 00 80 6A 82'| 8.atrparse
+echo '3B 1F 11 80 6A 80 34 46 49 53 45 53 94 36 FF 07'| 8.atrparse
+
+	cr = getdata(fd, nil, InsGetData2, 0x0130, 0, 32);
+	if(cr == nil)
+		fprint(2, "tagrd: get data failed %r\n");
+	else
+		free(cr);
+	cr = getdata(fd, nil, InsGetData2, 0x2f00, 0, 32);
+	if(cr == nil)
+		fprint(2, "tagrd: get data failed %r\n");
+	else
+		free(cr);
+	cr = getdata(fd, nil, InsGetData2, 0x2f00, 0, 32);
+	if(cr == nil)
+		fprint(2, "tagrd: get data failed %r\n");
+	else
+		free(cr);
+	
+
+	memset(&f, 0, sizeof f);
+	f.type |= IsLong;
+	f.longid = MFid;
+	cr = getdata(fd, &f, 1, 0, 0, 0);
+	if(cr == nil)
+		fprint(2, "tagrd: get data failed %r\n");
+	else
+		free(cr);
+
+
+	uchar[3]	status;
+	uchar	statuslen;
+
+	uchar[16] country;
+	uchar	countrylen;
+	uchar[16]  issuerid;
+	uchar	issueridlen;
+	uchar	csrv;	/* card service data byte */
+	uchar[16]  iniaccess;	/* description of command...*/
+	uchar	iniaccesslen;
+	uchar[16]  issuer;
+	uchar	issuerlen;
+	uchar[16]  preissu;
+	uchar	preissulen;
+	uchar[3] 	capab;
+	uchar[3]	capalen;
+	uchar	capwrite;
+	uchar	caplchanmax;

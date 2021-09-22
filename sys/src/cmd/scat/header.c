@@ -233,7 +233,7 @@ getplates(void)
 	Bterm(bin);
 
 	if(nplate >= nelem(plate))
-		fprint(2, "nplate too small %d %d\n", nelem(plate), nplate);
+		fprint(2, "nplate too small %d %d\n", (int)nelem(plate), nplate);
 	if(debug)
 		Bprint(&bout, "%d plates\n", nplate);
 }

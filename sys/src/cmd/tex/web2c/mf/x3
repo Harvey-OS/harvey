@@ -1,0 +1,134 @@
+#ifdef TEXMF_DEBUG
+#endif /* TEXMF_DEBUG */
+#define MFCOERCE
+#include "texmfmp.h"
+/* 1 9998 9999 */ 
+#define maxinternal ( 300 ) 
+#define bufsize ( 3000 ) 
+#define screenwidth ( 1664 ) 
+#define screendepth ( 1200 ) 
+#define stacksize ( 300 ) 
+#define maxstrings ( 7500 ) 
+#define stringvacancies ( 74000L ) 
+#define poolsize ( 100000L ) 
+#define movesize ( 20000 ) 
+#define maxwiggle ( 1000 ) 
+#define poolname ( "mf.pool" ) 
+#define pathsize ( 1000 ) 
+#define bistacksize ( 1500 ) 
+#define headersize ( 100 ) 
+#define ligtablesize ( 15000 ) 
+#define maxkerns ( 2500 ) 
+#define maxfontdimen ( 60 ) 
+#define infmainmemory ( 2999 ) 
+#define supmainmemory ( 8000000L ) 
+typedef unsigned char ASCIIcode  ;
+typedef unsigned char eightbits  ;
+typedef text /* of  ASCIIcode */ alphafile  ;
+typedef text /* of  eightbits */ bytefile  ;
+typedef integer poolpointer  ;
+typedef integer strnumber  ;
+typedef unsigned char packedASCIIcode  ;
+typedef integer scaled  ;
+typedef char smallnumber  ;
+typedef integer fraction  ;
+typedef integer angle  ;
+typedef unsigned char quarterword  ;
+typedef integer halfword  ;
+typedef char twochoices  ;
+typedef char threechoices  ;
+#include "texmfmem.h"
+typedef text /* of  memoryword */ wordfile  ;
+typedef char commandcode  ;
+typedef integer screenrow  ;
+typedef integer screencol  ;
+typedef screencol transspec [screenwidth + 1] ;
+typedef char pixelcolor  ;
+typedef char windownumber  ;
+typedef struct { quarterword indexfield ;
+  halfword startfield, locfield, limitfield, namefield ;
+} instaterecord  ;
+typedef integer gfindex  ;
+integer bad  ;
+#ifdef INIMF
+boolean iniversion  ;
+boolean dumpoption  ;
+boolean dumpline  ;
+#endif /* INIMF */
+integer bounddefault  ;
+char * boundname  ;
+integer mainmemory  ;
+integer memtop  ;
+integer memmax  ;
+integer errorline  ;
+integer halferrorline  ;
+integer maxprintline  ;
+integer gfbufsize  ;
+ASCIIcode xord[256]  ;
+ASCIIcode xchr[256]  ;
+ASCIIcode * nameoffile  ;
+integer namelength  ;
+ASCIIcode buffer[bufsize + 1]  ;
+integer first  ;
+integer last  ;
+integer maxbufstack  ;
+packedASCIIcode strpool[poolsize + 1]  ;
+poolpointer strstart[maxstrings + 1]  ;
+poolpointer poolptr  ;
+strnumber strptr  ;
+poolpointer initpoolptr  ;
+strnumber initstrptr  ;
+poolpointer maxpoolptr  ;
+strnumber maxstrptr  ;
+char strref[maxstrings + 1]  ;
+#ifdef INIMF
+alphafile poolfile  ;
+#endif /* INIMF */
+alphafile logfile  ;
+char selector  ;
+char dig[23]  ;
+integer tally  ;
+integer termoffset  ;
+integer fileoffset  ;
+ASCIIcode trickbuf[256]  ;
+integer trickcount  ;
+integer firstcount  ;
+char interaction  ;
+char interactionoption  ;
+boolean deletionsallowed  ;
+char history  ;
+schar errorcount  ;
+strnumber helpline[6]  ;
+char helpptr  ;
+boolean useerrhelp  ;
+strnumber errhelp  ;
+integer interrupt  ;
+boolean OKtointerrupt  ;
+boolean aritherror  ;
+integer twotothe[31]  ;
+integer speclog[29]  ;
+angle specatan[27]  ;
+fraction nsin, ncos  ;
+fraction randoms[55]  ;
+char jrandom  ;
+memoryword * mem  ;
+halfword lomemmax  ;
+halfword himemmin  ;
+integer varused, dynused  ;
+halfword avail  ;
+halfword memend  ;
+halfword rover  ;
+#ifdef TEXMF_DEBUG
+boolean freearr[2]  ;
+boolean wasfree[2]  ;
+halfword wasmemend, waslomax, washimin  ;
+boolean panicking  ;
+#endif /* TEXMF_DEBUG */
+scaled internal[maxinternal + 1]  ;
+strnumber intname[maxinternal + 1]  ;
+integer intptr  ;
+char oldsetting  ;
+char charclass[256]  ;
+halfword hashused  ;
+integer stcount  ;
+@error@

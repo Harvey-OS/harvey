@@ -1628,7 +1628,9 @@ Again:
 	}
 	if(ci >= eci || cit < ecit){
 		print("ran out of space editing existing directory; rewriting\n");
-		print("# eci %ld ci %ld ecit %ld cit %ld\n", eci-bci, ci-bci, ecit-bcit, cit-bcit);
+		print("# eci %lld ci %lld ecit %lld cit %lld\n",
+			(vlong)(eci-bci), (vlong)(ci-bci),
+			(vlong)(ecit-bcit), (vlong)(cit-bcit));
 		assert(smart);	/* can't happen second time thru */
 		smart = 0;
 		goto Again;

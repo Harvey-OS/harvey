@@ -9,10 +9,15 @@
  * mem routines
  */
 extern	void*	memccpy(void*, void*, int, ulong);
-extern	void*	memset(void*, int, ulong);
+extern	void*	memset(void*, int, uintptr);
 extern	int	memcmp(void*, void*, ulong);
 extern	void*	memmove(void*, void*, ulong);
 extern	void*	memchr(void*, int, ulong);
+
+/*
+ * char routines
+ */
+extern int	tolower(int);
 
 /*
  * string routines
@@ -22,15 +27,26 @@ extern	char*	strchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
-extern	char*	strncat(char*, char*, long);
-extern	char*	strncpy(char*, char*, long);
-extern	int	strncmp(char*, char*, long);
-extern	char*	strrchr(char*, int);
 extern	long	strlen(char*);
+extern	char*	strncat(char*, char*, long);
+extern	int	strncmp(char*, char*, long);
+extern	char*	strncpy(char*, char*, long);
+extern	char*	strrchr(char*, int);
 extern	char*	strstr(char*, char*);
-extern	int	cistrncmp(char*, char*, int);
 extern	int	cistrcmp(char*, char*);
+extern	int	cistrncmp(char*, char*, int);
+extern	int	getfields(char*, char**, int, int, char*);
+extern	int	gettokens(char *, char **, int, char *);
 extern	int	tokenize(char*, char**, int);
+
+/*
+ * text-to-integer conversions
+ */
+extern	int	atoi(char*);
+extern	long	strtol(char*, char**, int);
+extern	vlong	strtoll(char*, char**, int);
+extern	ulong	strtoul(char*, char**, int);
+extern	uvlong	strtoull(char*, char**, int);
 
 enum
 {
@@ -56,28 +72,29 @@ extern	char*	utfrune(char*, long);
 /*
  * malloc
  */
-extern	void*	malloc(ulong);
-extern	void*	mallocz(ulong, int);
 extern	void	free(void*);
-extern	void*	mallocalign(ulong, ulong, long, ulong);
-extern	void*	realloc(void*, ulong);
-extern	void	setmalloctag(void*, ulong);
-extern	void	setrealloctag(void*, ulong);
-extern	ulong	getmalloctag(void*);
-extern	ulong	getrealloctag(void*);
+extern	uintptr	getmalloctag(void*);
+extern	uintptr	getrealloctag(void*);
+extern	void*	mallocalign(uintptr, uintptr, vlong, uintptr);
+extern	void*	malloc(uintptr);
+extern	void*	mallocz(uintptr, int);
+extern	void*	realloc(void*, uintptr);
+extern	void	setmalloctag(void*, uintptr);
+extern	void	setrealloctag(void*, uintptr);
 
 /*
  * print routines
+ * Fmt must match the one in <libc.h>.
  */
 typedef struct Fmt	Fmt;
 struct Fmt{
 	uchar	runes;			/* output buffer is runes or chars? */
+	int	nfmt;			/* num chars formatted so far */
 	void	*start;			/* of buffer */
 	void	*to;			/* current place in the buffer */
 	void	*stop;			/* end of the buffer; overwritten if flush fails */
 	int	(*flush)(Fmt *);	/* called when to == stop */
 	void	*farg;			/* to make flush a closure */
-	int	nfmt;			/* num chars formatted so far */
 	va_list	args;			/* args passed to dofmt */
 	int	r;			/* % format Rune */
 	int	width;
@@ -108,13 +125,15 @@ extern	char*	seprint(char*, char*, char*, ...);
 extern	char*	vseprint(char*, char*, char*, va_list);
 extern	int	snprint(char*, int, char*, ...);
 extern	int	vsnprint(char*, int, char*, va_list);
-extern	int	sprint(char*, char*, ...);
+/* don't declare sprint, so using it will be an error. */
+// extern	int	sprint(char*, char*, ...);
+extern	int	encodefmt(Fmt*);
 
 #pragma	varargck	argpos	fmtprint	2
 #pragma	varargck	argpos	print		1
 #pragma	varargck	argpos	seprint		3
 #pragma	varargck	argpos	snprint		3
-#pragma	varargck	argpos	sprint		2
+// #pragma	varargck	argpos	sprint		2
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
@@ -152,25 +171,13 @@ extern	int	fmtstrinit(Fmt*);
 extern	void	quotefmtinstall(void);
 
 /*
- * Time-of-day
- */
-extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
-
-/*
  * one-of-a-kind
  */
 extern	int	abs(int);
-extern	int	atoi(char*);
 extern	char*	cleanname(char*);
 extern	int	dec64(uchar*, int, char*, int);
 extern	uintptr	getcallerpc(void*);
-extern	int	getfields(char*, char**, int, int, char*);
-extern	int	gettokens(char *, char **, int, char *);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
-extern	long	strtol(char*, char**, int);
-extern	ulong	strtoul(char*, char**, int);
-extern	vlong	strtoll(char*, char**, int);
-extern	uvlong	strtoull(char*, char**, int);
 
 /*
  * Syscall data structures
@@ -194,8 +201,8 @@ extern	uvlong	strtoull(char*, char**, int);
 
 #define NCONT	0	/* continue after note */
 #define NDFLT	1	/* terminate after note */
-#define NSAVE	2	/* clear note but hold state */
-#define NRSTR	3	/* restore saved state */
+#define NSAVE	2	/* clear note but hold state (for APE) */
+#define NRSTR	3	/* restore saved state (for APE) */
 
 typedef struct Qid	Qid;
 typedef struct Dir	Dir;
@@ -203,7 +210,9 @@ typedef struct OWaitmsg	OWaitmsg;
 typedef struct Waitmsg	Waitmsg;
 
 #define ERRMAX		128		/* max length of error string */
-#define KNAMELEN	28		/* max length of name held in kernel */
+/* fixed by e.g., proc(3); max len. of name held in pre-9P2000 kernel */
+#define KNAMELEN	28
+#define KCOMPLEN	256 /* max len. of filename component held in kernel */
 
 /* bits in Qid.type */
 #define QTDIR		0x80		/* type bit for directories */

@@ -6,10 +6,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
-#include	"pool.h"
-#include	"../port/netif.h"
+
 #include	"../ip/ip.h"
 #include	"pxe.h"
 
@@ -86,6 +83,7 @@ finditem(char* name, char** residue)
 int
 getstr(char *prompt, char *buf, int size, char *def, int timeout)
 {
+	char ch;
 	int len, isdefault;
 	static char pbuf[PRINTSIZE];
 
@@ -102,12 +100,20 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 			prompt, def, timeout);
 	else
 		snprint(pbuf, sizeof pbuf, "%s[default==%s]: ", prompt, def);
+
+	/*
+	 * discard any typeahead so we don't get stuck here due
+	 * to serial noise, unread typeahead, etc.
+	 */
+	while (kbdq != nil && qlen(kbdq) > 0)
+		qread(kbdq, &ch, 1);
+
 	for (;;) {
 		print("%s", pbuf);
 		if (timeout > 0) {
 			for(timeout *= 1000; timeout > 0; timeout -= 100) {
 				if (qlen(kbdq) > 0)	/* if input queued */
-					break; 
+					break;
 				tsleep(&up->sleep, return0, 0, 100);
 			}
 			if (timeout <= 0) {		/* use default */
@@ -137,6 +143,16 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 	if(len == 0 && isdefault)
 		strncpy(buf, def, size);
 	return 0;
+}
+
+void
+trimnl(char *s)
+{
+	char *nl;
+
+	nl = strchr(s, '\n');
+	if (nl != nil)
+		*nl = '\0';
 }
 
 void
@@ -210,7 +226,7 @@ parsemenu(char* str, char* scratch, int len)
 	char buf[20], *p, *q, *line[MAXCONF];
 	int i, inblock, n, show;
 
-	inblock = 0;
+	nmblock = inblock = 0;
 	menu = nil;
 	memmove(scratch, str, len);
 	n = getfields(scratch, line, MAXCONF, 0, "\n");
@@ -315,10 +331,10 @@ again:
 			break;
 		default:
 			continue;
-			
+
 		}
 		mi = &mitem[i];
-	
+
 		p = str;
 		p += snprint(p, len, "menuitem=%s\n", mi->mb->name);
 		for(i = 0; i < nmblock; i++){
@@ -339,78 +355,6 @@ again:
 		break;
 	}
 	print("\n");
-}
-
-/* dig out tables created by l16r.s in real mode */
-void
-readlsconf(void)
-{
-	int i, n;
-	uchar *p;
-	MMap *map;
-	u64int addr, len;
-
-	/*
-	 * we could be running above 1MB, so put bios tables in low memory,
-	 * not after end.
-	 */
-	p = (uchar*)KADDR(BIOSTABLES);
-	for(n = 0; n < nelem(mmap); n++){
-		if(*p == 0)
-			break;
-		if(memcmp(p, "APM\0", 4) == 0){
-			p += 20;
-			continue;
-		}
-		else if(memcmp(p, "MAP\0", 4) == 0){
-			map = (MMap*)p;
-
-			switch(map->type){
-			default:
-				if(v_flag)
-					print("type %ud", map->type);
-				break;
-			case 1:
-				if(v_flag)
-					print("Memory");
-				break;
-			case 2:
-				if(v_flag)
-					print("reserved");
-				break;
-			case 3:
-				if(v_flag)
-					print("ACPI Reclaim Memory");
-				break;
-			case 4:
-				if(v_flag)
-					print("ACPI NVS Memory");
-				break;
-			}
-			addr = (((u64int)map->base[1])<<32)|map->base[0];
-			len = (((u64int)map->length[1])<<32)|map->length[0];
-			if(v_flag)
-				print("\t%#16.16lluX %#16.16lluX (%llud)\n",
-					addr, addr+len, len);
-
-			if(nmmap < nelem(mmap)){
-				memmove(&mmap[nmmap], map, sizeof(MMap));
-				mmap[nmmap].size = 20;
-				nmmap++;
-			}
-			p += 24;
-			continue;
-		}
-		else{
-			 /* ideally we shouldn't print here */
-			print("\nweird low-memory map at %#p:\n", p);
-			for(i = 0; i < 24; i++)
-				print(" %2.2uX", *(p+i));
-			print("\n");
-			delay(5000);
-		}
-		break;
-	}
 }
 
 void
@@ -439,8 +383,9 @@ dumpbootargs(void)
 	}
 }
 
+#ifdef notdef
 void
-changeconf(char *fmt, ...)
+changeconf(char *fmt, ...)			/* unused */
 {
 	va_list arg;
 	char *p, *q, pref[20], buf[128];
@@ -472,6 +417,7 @@ changeconf(char *fmt, ...)
 	/* add replacement to end */
 	addconf("%s", buf);
 }
+#endif
 
 /*
  *  read configuration file
@@ -481,8 +427,9 @@ static char id[8] = "ZORT 0\r\n";
 int
 dotini(char *inibuf)
 {
-	int blankline, i, incomment, inspace, n;
+	int blankline, i, incomment, inspace, n, envlen;
 	char *cp, *p, *q, *line[MAXCONF];
+	static char envloaded[] = "*envloaded=1\n";
 
 	cp = inibuf;
 
@@ -491,10 +438,10 @@ dotini(char *inibuf)
 	 * Change runs of spaces into single spaces.
 	 * Strip out trailing spaces, blank lines.
 	 *
-	 * We do this before we make the copy so that if we 
+	 * We do this before we make the copy so that if we
 	 * need to change the copy, it is already fairly clean.
 	 * The main need is in the case when plan9.ini has been
-	 * padded with lots of trailing spaces, as is the case 
+	 * padded with lots of trailing spaces, as is the case
 	 * for those created during a distribution install.
 	 */
 	p = cp;
@@ -527,12 +474,18 @@ dotini(char *inibuf)
 			incomment = 1;
 		blankline = 0;
 		if(!incomment)
-			*p++ = *q;	
+			*p++ = *q;
 	}
 	if(p > cp && p[-1] != '\n')
 		*p++ = '\n';
 	*p++ = 0;
 	n = p-cp;
+
+	envlen = strlen(envloaded);
+	if (n < BOOTARGSLEN - (envlen+1)) {
+		strcpy(p-1, envloaded); /* signal cpurc that loadcfgpxe is done */
+		n += envlen;
+	}
 
 	parsemenu(cp, BOOTARGS, n);
 
@@ -542,7 +495,7 @@ dotini(char *inibuf)
 	 * to the booted programme instead of the raw
 	 * string, then it only gets done once.
 	 */
-	if(strncmp(cp, id, sizeof(id))){
+	if(strncmp(cp, id, sizeof id) != 0){
 		memmove(BOOTARGS, id, sizeof(id));
 		if(n+1+sizeof(id) >= BOOTARGSLEN)
 			n -= sizeof(id);

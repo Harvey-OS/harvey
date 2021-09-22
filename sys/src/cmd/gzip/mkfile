@@ -10,6 +10,7 @@ TARG=\
 	zip\
 	unzip\
 
+LIB=/$objtype/lib/libnofp.a
 BIN=/$objtype/bin
 
 </sys/src/cmd/mkmany

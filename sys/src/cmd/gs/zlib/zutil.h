@@ -16,11 +16,6 @@
 #define ZLIB_INTERNAL
 #include "zlib.h"
 
-#ifdef STDC
-#  include <stddef.h>
-#  include <string.h>
-#  include <stdlib.h>
-#endif
 #ifdef NO_ERRNO_H
     extern int errno;
 #else
@@ -252,7 +247,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #endif
 
 
-voidpf zcalloc OF((voidpf opaque, unsigned items, unsigned size));
+voidpf zcalloc OF((voidpf opaque, unsigned items, size_t size));
 void   zcfree  OF((voidpf opaque, voidpf ptr));
 
 #define ZALLOC(strm, items, size) \

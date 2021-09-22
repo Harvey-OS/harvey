@@ -1,3 +1,12 @@
 #!/bin/rc
-
-exec /bin/ip/imap4d >[2]/sys/log/imap4d
+# tcp143 - imap4 service *not* over tls
+rfork en
+remote=`{cat $3/remote}
+echo imap $* >>/sys/log/imap4d
+if(~ $sysname debug-host){		# this is for debugging only
+	9fs other
+	exec /sys/src/cmd/ip/imap4d/8.relay /sys/src/cmd/ip/imap4d/8.out \
+		-pdcollyer.net -r$remote>[2]/sys/log/imap4d
+	exit
+}
+exec /bin/ip/imap4d -pdcollyer.net -r$remote >[2]/sys/log/imap4d

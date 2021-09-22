@@ -19,13 +19,13 @@ vtfree \- error-checking memory allocators
 void*	vtbrk(int size)
 .PP
 .B
-void*	vtmalloc(int size)
+void*	vtmalloc(uintptr size)
 .PP
 .B
-void*	vtmallocz(int size)
+void*	vtmallocz(uintptr size)
 .PP
 .B
-void*	vtrealloc(void *ptr, int size)
+void*	vtrealloc(void *ptr, uintptr size)
 .PP
 .B 
 char*	vtstrdup(char *s)

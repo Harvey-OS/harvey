@@ -1,1 +1,1 @@
-#include "../omap/kbd.c"
+#include "../teg2/kbd.c"

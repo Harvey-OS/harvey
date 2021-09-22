@@ -1,0 +1,82 @@
+# pcauth - pccpuf specialised for our auth servers
+dev
+	root
+	cons
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	cap
+	kprof
+	fs
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+
+	sd
+	floppy		dma
+
+	uart
+	usb
+	kbin
+
+link
+	apm		apmjump
+	etherdp83820	pci
+	ether82557	pci
+	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
+	ethermedium
+	netdevmedium
+	loopbackmedium
+	usbuhci
+	usbohci
+	usbehci		usbehcipc
+
+misc
+	realmode
+	mtrr
+	sdata		pci sdscsi
+
+	uarti8250
+	uartpci
+
+	vgamach64xx	+cur
+	vgas3 		+cur vgasavage
+
+ip
+	tcp
+	udp
+	rudp
+	ipifc
+	icmp
+	icmp6
+	gre
+	ipmux
+	esp
+
+port
+	int cpuserver = 1;
+
+boot cpu boot #S/sdC0/
+	tcp
+	local
+
+bootdir
+	boot$CONF.out boot
+	/386/bin/ip/ipconfig
+	/386/bin/auth/factotum
+	/386/bin/fossil/fossil
+	/386/bin/venti/venti
+	/386/bin/usb/usbd

@@ -175,9 +175,9 @@ struct Config
 	int		nsects;			/* index sections initialized */
 	ISect		**sects;
 	Bloom	*bloom;		/* bloom filter */
-	u32int	bcmem;
-	u32int	mem;
-	u32int	icmem;
+	uintptr	bcmem;
+	uintptr	mem;
+	uintptr	icmem;
 	int		queuewrites;
 	char*	haddr;
 	char*	vaddr;
@@ -497,7 +497,7 @@ struct ISect
 	char		index[ANameSize];	/* index owning the section */
 	u32int		blocksize;		/* size of hash buckets in index */
 	u32int		blockbase;		/* address of start of on disk index table */
-	u32int		blocks;			/* total blocks on disk; some may be unused */
+	u32int		blocks;			/* total blocks on disk; some may be unused; good for 32TB only */
 	u32int		start;			/* first bucket in this section */
 	u32int		stop;			/* limit of buckets in this section */
 };

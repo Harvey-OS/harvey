@@ -1,6 +1,10 @@
 enum {
 	Maxbustedmx = 100,
 	Maxdomain = 1024,
+
+	/* intervals in milliseconds */
+	Second = 1000,
+	Minute = 60 * Second,
 };
 
 typedef struct Node Node;
@@ -26,7 +30,7 @@ struct Field {
 
 typedef struct DS	DS;
 struct DS {
-	/* dist string */
+	/* dial string */
 	char	buf[128];
 	char	expand[128];
 	char	*netdir;
@@ -34,6 +38,9 @@ struct DS {
 	char	*host;
 	char	*service;
 };
+
+static char Retry[] = "Retry, Temporary Failure";
+static char Giveup[] = "Permanent Failure";
 
 extern Field	*firstfield;
 extern Field	*lastfield;
@@ -58,7 +65,7 @@ void	freefield(Field*);
 void	freenode(Node*);
 Node*	link2(Node*, Node*);
 Node*	link3(Node*, Node*, Node*);
-int	mxdial(char*, char*, char*);
+int	mxdial(char*, char*, char*, char **);
 void	newfield(Node*, int);
 Node*	whiten(Node*);
 void	yycleanup(void);

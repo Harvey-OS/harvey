@@ -1,0 +1,45 @@
+$global
+	uvlong ru, a[1] = {27}, u = 0x01;
+	char c = 6, d = 36;
+	int i = 1, j = 0xFFF;
+$main
+	vlong rv, v = 0x7;
+$lhs
+	rv
+	ru
+$op
+	+
+	-
+$op0
+	u
+	v
+	a[i]
+	-1
+	0
+	1
+	0xFFFFFFFFULL
+	0x80000000L
+	0x80000000UL
+	0xA5A5A5a5L
+	0xA5A5A5a5UL
+	0x0000000100000000LL
+	0x8000000100000000LL
+	0x0123456789ABCDEFLL
+	0xFEDCBA9876543210LL
+$op1
+	(u + j)
+	(u + j)
+	(u - j)
+	(u - j)
+	(u + j)
+	(u + j)
+	(u - j)
+	(u - j)
+	(j + u)
+	(j + u)
+	(j - u)
+	(j - u)
+	(j + u)
+	(j + u)
+	(j - u)
+	(j - u)

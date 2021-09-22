@@ -2,6 +2,7 @@
 
 TARG=ipconfig\
 
+LIB=/$objtype/lib/libnofp.a
 OFILES=\
 	main.$O\
 	ipv6.$O\

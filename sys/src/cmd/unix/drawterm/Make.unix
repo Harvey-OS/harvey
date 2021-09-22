@@ -6,15 +6,16 @@ AS=as
 RANLIB=ranlib
 X11=/usr/X11R6
 CC=gcc
-CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -I$(X11)/include -D_THREAD_SAFE $(PTHREAD) -O2
+# removed -Wall; added -w
+CFLAGS=-w -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -I$(X11)/include -D_THREAD_SAFE $(PTHREAD) -O2
 O=o
 OS=posix
 GUI=x11
 LDADD=-L$(X11)/lib64 -L$(X11)/lib -lX11 -ggdb
 LDFLAGS=$(PTHREAD)
 TARG=drawterm
-# AUDIO=none
-AUDIO=unix
+AUDIO=none
+# AUDIO=unix
 
 all: default
 

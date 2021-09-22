@@ -17,6 +17,7 @@ OFILES=picy.$O\
 	input.$O\
 	for.$O\
 	pltroff.$O\
+	system.$O\
 
 HFILES=pic.h\
 	y.tab.h\
@@ -25,16 +26,14 @@ YFILES=picy.y\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CC=pcc
-LD=pcc
-CFLAGS=-FTV -c
-YFLAGS=-S -d
+CFLAGS=-FTVw
+YFLAGS=-d
 
-picy.c:	y.tab.c
+picy.c:D:	y.tab.c
 	mv $prereq $target
 
-picl.c:	picl.lx
-	$LEX -t $prereq > $target
+picl.c:D:	picl.lx
+	{ echo '#include <u.h>'; echo '#include <libc.h>'; $LEX -t $prereq } >$target
 
 clean:V:
 	rm -f *.[$OS] [$OS].out y.tab.? y.debug $TARG picy.c picl.c

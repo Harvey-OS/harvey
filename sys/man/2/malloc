@@ -8,37 +8,37 @@ malloc, mallocalign, mallocz, free, realloc, calloc, msize, setmalloctag, setrea
 .PP
 .ta \w'\fLvoid* 'u
 .B
-void*	malloc(ulong size)
+void*	malloc(uintptr size)
 .PP
 .B
-void*	mallocalign(ulong size, ulong align, long offset, ulong span)
+void*	mallocalign(uintptr size, uintptr align, vlong offset, uintptr span)
 .PP
 .B
-void*	mallocz(ulong size, int clr)
+void*	mallocz(uintptr size, int clr)
 .PP
 .B
 void	free(void *ptr)
 .PP
 .B
-void*	realloc(void *ptr, ulong size)
+void*	realloc(void *ptr, uintptr size)
 .PP
 .B
-void*	calloc(ulong nelem, ulong elsize)
+void*	calloc(uintptr nelem, uintptr elsize)
 .PP
 .B
-ulong	msize(void *ptr)
+uintptr	msize(void *ptr)
 .PP
 .B
-void	setmalloctag(void *ptr, ulong tag)
+void	setmalloctag(void *ptr, uintptr tag)
 .PP
 .B
-ulong	getmalloctag(void *ptr)
+uintptr	getmalloctag(void *ptr)
 .PP
 .B
-void	setrealloctag(void *ptr, ulong tag)
+void	setrealloctag(void *ptr, uintptr tag)
 .PP
 .B
-ulong	getrealloctag(void *ptr)
+uintptr	getrealloctag(void *ptr)
 .PP
 .B
 void*	malloctopoolblock(void*)
@@ -139,7 +139,7 @@ When a block is allocated, sometimes there is some extra unused space at the end
 grows the block to encompass this unused space and returns the new number
 of bytes that may be used.
 .PP
-The memory allocator maintains two word-sized fields
+The memory allocator maintains two pointer-sized fields
 associated with each block, the ``malloc tag'' and the ``realloc tag''.
 By convention, the malloc tag is the PC that allocated the block,
 and the realloc tag the PC that last reallocated the block.

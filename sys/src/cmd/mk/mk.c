@@ -187,7 +187,7 @@ update(int fake, Node *node)
 /*	print("----node %s time=%lud flags=0x%x\n", node->name, node->time, node->flags);/**/
 }
 
-static
+static int
 pcmp(char *prog, char *p, char *q)
 {
 	char buf[3*NAMEBLOCK];

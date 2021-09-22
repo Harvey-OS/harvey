@@ -12,7 +12,7 @@
 
 Reglist riscvreglist[] = {
 	{"PC",		REGOFF(pc),	RINT, 'X'},
-	{"SP",		REGOFF(r27),	RINT, 'X'},
+	{"SP",		REGOFF(r2),	RINT, 'X'},
 	{"R31",		REGOFF(r31),	RINT, 'X'},
 	{"R30",		REGOFF(r30),	RINT, 'X'},
 	{"R28",		REGOFF(r28),	RINT, 'X'},
@@ -49,7 +49,7 @@ Reglist riscvreglist[] = {
 	/* the machine description */
 Mach mriscv =
 {
-	"riscv",
+	"riscv",	/* cputype */
 	MRISCV,		/* machine type */
 	riscvreglist,	/* register set */
 	REGSIZE,	/* register set size */
@@ -62,8 +62,8 @@ Mach mriscv =
 	0x1000,		/* page size */
 	0x80000000ULL,	/* kernel base */
 	0xC0000000ULL,	/* kernel text mask */
-	0x3FFFFFFFULL,	/* user stack top */
-	2,		/* quantization of pc */
+	0x7FFFFFFFULL,	/* user stack top */
+	2,		/* quantization of pc (could be compressed) */
 	4,		/* szaddr */
 	4,		/* szreg */
 	4,		/* szfloat */

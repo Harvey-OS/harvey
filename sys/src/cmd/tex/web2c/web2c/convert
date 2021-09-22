@@ -1,0 +1,90 @@
+#!/bin/rc
+# Convert WEB programs not needing special treatment to C.
+# 
+# $1 is the Pascal file to be converted.
+# $2 is the C file to be created.
+# $3, if present, is extended with .h, and #included in the C file, and
+# extended with .defines, and prepended along with the common
+# definitions.
+
+fn usage {
+	echo 'Usage: '^$0^' basefile' >[1=2]
+	exit usage
+}
+
+if(! ~ $#* 1)
+	usage
+
+if(~ $#srcdir 0 || ~ $srcdir '')
+	srcdir=.
+
+basefile=$1
+
+pascalfile=$basefile.p
+cfile=$basefile.c
+
+# This is for tangleboot if the build and source directories are different.
+test -r $pascalfile || pascalfile=$srcdir/$pascalfile
+
+# We use cpascal.h by default instead of config.h because straight C
+# routines can only be confused by the definitions for `chr', etc.
+hfile=cpascal.h
+more_defines=''
+web2c_options=-c$basefile
+precmd=''
+midcmd=''
+fixwrites_options=''
+postcmd=''
+output='> '$cfile
+output_files=$cfile' '$basefile.h
+
+switch($basefile){
+case bibtex
+	midcmd='| sed -f '$srcdir'/web2c/cvtbib.sed'
+case mf mp
+	more_defines=$srcdir'/web2c/texmf.defines '$srcdir'/web2c/mfmp.defines'
+	precmd='|sed -f '$srcdir'/web2c/cvtmf1.sed'
+	web2c_options='-m -c'$basefile'coerce'
+	hfile=texmfmp.h
+	midcmd='| sed -f '$srcdir'/web2c/cvtmf2.sed'
+	postcmd='| splitup '$basefile
+	cfile=$basefile^'2.c'
+	output=''
+	output_files=($basefile[0-9]*.c $basefile^'ini.c' $basefile^'d.h' $basefile^'coerce.h')
+case tex etex pdftex omega
+	more_defines=$srcdir/web2c/texmf.defines
+	prog_defines=$srcdir/$basefile^'dir/'^$basefile.defines
+	if(test -f $prog_defines)
+		more_defines=$more_defines^' '^$prog_defines
+	web2c_options='-t -c'$basefile'coerce'
+	hfile=texmfmp.h
+	fixwrites_options=-t
+	postcmd='|splitup '$basefile
+	cfile=$basefile'2.c'
+	output=''
+	output_files=($basefile[0-9]*.c $basefile^'ini.c' $basefile^'d.h' $basefile^'coerce.h')
+}
+
+echo cat $srcdir/web2c/common.defines $more_defines $pascalfile $precmd \
+	'|' web2c -h$hfile $web2c_options \
+	$midcmd \
+	'|' fixwrites $fixwrites_options $basefile \
+	$postcmd \
+	$output | rc
+
+switch($basefile){
+case bibtex
+	sed -e 's/\(buftype\)//g' -e 's/\(pdstype\)//g' <bibtex.h >xbibtex.h
+	mv xbibtex.h bibtex.h
+case mf mp
+	sleep 2
+	cat $basefile'coerce.h' $srcdir/web2c/coerce.mf >x$basefile'coerce.h'
+	mv x$basefile'coerce.h' $basefile'coerce.h'
+	touch $basefile'd.h'
+case tex etex pdftex omega
+	sleep 2
+	cat $basefile'coerce.h' $srcdir/web2c/coerce.tex >x$basefile'coerce.h'
+	mv x$basefile'coerce.h' $basefile'coerce.h'
+	touch $basefile'd.h'
+}
+status=''

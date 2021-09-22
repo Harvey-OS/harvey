@@ -157,7 +157,7 @@ main(int argc, char *argv[])
 		if(INITDAT == -1)
 			INITDAT = 0;
 		if(INITRND == -1)
-			INITRND = 16*1024;
+			INITRND = 16*1024;	/* failed big-page experiment */
 		if(INITTEXT == -1)
 			INITTEXT = INITRND + HEADR;
 		break;
@@ -194,8 +194,6 @@ main(int argc, char *argv[])
 			INITTEXT = 0x80000000L+HEADR;
 		if(INITDAT == -1)
 			INITDAT = 0;
-		if(INITRND == -1)
-			INITRND = 4096;
 		break;
 	case 7:	/* 64-bit elf executable */
 		HEADR = rnd(Ehdr64sz+3*Phdr64sz, 16);
@@ -207,6 +205,8 @@ main(int argc, char *argv[])
 			INITRND = 0;
 		break;
 	}
+	if(INITRND == -1)
+		INITRND = 4096;	/* by default, round up to next small page */
 	if (INITTEXTP == -1)
 		INITTEXTP = INITTEXT;
 	if(INITDAT != 0 && INITRND != 0)
@@ -282,8 +282,8 @@ out:
 	if(debug['v']) {
 		Bprint(&bso, "%5.2f cpu time\n", cputime());
 		Bprint(&bso, "%ld memory used\n", thunk);
-		Bprint(&bso, "%d sizeof adr\n", sizeof(Adr));
-		Bprint(&bso, "%d sizeof prog\n", sizeof(Prog));
+		Bprint(&bso, "%lld sizeof adr\n", (vlong)sizeof(Adr));
+		Bprint(&bso, "%lld sizeof prog\n", (vlong)sizeof(Prog));
 	}
 	Bflush(&bso);
 	errorexit();
@@ -387,7 +387,7 @@ objfile(char *file)
 		errorexit();
 	}
 	l = read(f, magbuf, SARMAG);
-	if(l != SARMAG || strncmp(magbuf, ARMAG, SARMAG)){
+	if(l != SARMAG || strncmp(magbuf, ARMAG, SARMAG) != 0){
 		/* load it as a regular file */
 		l = seek(f, 0L, 2);
 		seek(f, 0L, 0);
@@ -403,7 +403,7 @@ objfile(char *file)
 		diag("%s: short read on archive file symbol header", file);
 		goto out;
 	}
-	if(strncmp(arhdr.name, symname, strlen(symname))) {
+	if(strncmp(arhdr.name, symname, strlen(symname)) != 0) {
 		diag("%s: first entry not symbol header", file);
 		goto out;
 	}
@@ -448,7 +448,7 @@ objfile(char *file)
 			l = readn(f, &arhdr, SAR_HDR);
 			if(l != SAR_HDR)
 				goto bad;
-			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
+			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)) != 0)
 				goto bad;
 			l = atolwhex(arhdr.size);
 			ldobj(f, l, pname);

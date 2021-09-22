@@ -2,7 +2,7 @@
 #include	<libc.h>
 #include	<bio.h>
 #include	"../6c/6.out.h"
-#include	"../ld/elf.h"
+#include	"../8l/elf.h"
 
 #ifndef	EXTERN
 #define	EXTERN	extern
@@ -17,6 +17,7 @@
 		cflush(); }
 
 #define	LIBNAMELEN	300
+
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
 typedef	struct	Sym	Sym;
@@ -71,7 +72,7 @@ struct	Auto
 {
 	Sym*	asym;
 	Auto*	link;
-	long	aoffset;
+	vlong	aoffset;
 	short	type;
 };
 struct	Sym
@@ -91,7 +92,7 @@ struct	Optab
 {
 	short	as;
 	uchar*	ytab;
-	ushort	prefix;
+	uchar	prefix;
 	uchar	op[20];
 };
 struct	Movtab
@@ -108,7 +109,7 @@ enum
 	STEXT		= 1,
 	SDATA,
 	SBSS,
-	SDATA1,
+	SDATA1,		/* small datum, now allocated to data seg */
 	SXREF,
 	SFILE,
 	SCONST,
@@ -119,11 +120,12 @@ enum
 
 	NHASH		= 10007,
 	NHUNK		= 100000,
+	/* any data up to this size is allocated at start of data seg */
 	MINSIZ		= 8,
 	STRINGSZ	= 200,
 	MINLC		= 1,
 	MAXIO		= (16*1024),
-	MAXHIST		= 20,				/* limit of path elements for history symbols */
+	MAXHIST		= 20,	/* limit of path elements for history symbols */
 
 	Yxxx		= 0,
 	Ynone,
@@ -154,8 +156,8 @@ enum
 	Ycr0,	Ycr1,	Ycr2,	Ycr3,	Ycr4,	Ycr5,	Ycr6,	Ycr7,	Ycr8,
 	Ydr0,	Ydr1,	Ydr2,	Ydr3,	Ydr4,	Ydr5,	Ydr6,	Ydr7,
 	Ytr0,	Ytr1,	Ytr2,	Ytr3,	Ytr4,	Ytr5,	Ytr6,	Ytr7,	Yrl32,	Yrl64,
-	Ymr, 	Ymm,
-	Yxr,	Yxm,	Yyr,	Yxyr,
+	Ymr, Ymm,
+	Yxr, Yxm,
 	Ymax,
 
 	Zxxx		= 0,
@@ -211,12 +213,8 @@ enum
 	Pb		= 0xfe,	/* byte operands */
 	Pf2		= 0xf2,	/* xmm escape 1 */
 	Pf3		= 0xf3,	/* xmm escape 2 */
-	Pm38	= 0x38,	/* 0f.38 opcode */
-	Pm3a	= 0x3a,	/* 0f.3a opcode */
 	Pw		= 0x48,	/* Rex.w */
 	Py		= 0x80,	/* defaults to 64-bit mode */
-
-	P2		=	1<<9,	/* flag: two operand (avx only) */
 
 	Rxf		= 1<<9,	/* internal flag for Rxr on from */
 	Rxt		= 1<<8,	/* internal flag for Rxr on to */
@@ -224,26 +222,6 @@ enum
 	Rxr		= 1<<2,	/* extend modrm reg */
 	Rxx		= 1<<1,	/* extend sib index */
 	Rxb		= 1<<0,	/* extend modrm r/m, sib base, or opcode reg */
-
-	Vex2	= 0xc5,	/* 2-byte vex prefix */
-	Vex3	= 0xc4,	/* 3-byte vex prefix */
-
-	/* vex flags */
-	Vexr	= 1<<7,		/* byte 1, both */
-	Vexx	= 1<<6,		/* byte 1, 3-byte */
-	Vexb	= 1<<5,		/* byte 1, 3-byte */
-	Vexw	= 1<<7,		/* byte 2, 3-byte */
-	Vexl	= 1<<2,		/* 256-bit vector */
-
-	Vexnr	= 0xF<<3,	/* no reg */
-	Vexp0	= 0,		/* no SIMD prefix */
-	Vexp66	= 1,		/* prefix 66 */
-	Vexpf3	= 2,		/* prefix f3 */
-	Vexpf2	= 3,		/* prefix f2 */
-
-	Vex0f	= 1,		/* 0F opcode byte */
-	Vex0f38	= 2,		/* 0F 38 opcode bytes */
-	Vex0f3a	= 3,		/* 0F 3A opcode bytes */
 
 	Roffset	= 22,		/* no. bits for offset in relocation address */
 	Rindex	= 10,		/* no. bits for index in relocation address */
@@ -267,7 +245,6 @@ EXTERN union
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"R"	int
-#pragma	varargck	type	"R"	uint
 #pragma	varargck	type	"S"	char*
 
 #pragma	varargck	argpos	diag 1
@@ -315,8 +292,8 @@ EXTERN	char	ycover[Ymax*Ymax];
 EXTERN	uchar*	andptr;
 EXTERN	uchar*	rexptr;
 EXTERN	uchar	and[30];
-EXTERN	int	reg[D_XREG];
-EXTERN	int	regrex[D_XREG+1];
+EXTERN	int	reg[D_NONE];
+EXTERN	int	regrex[D_NONE+1];
 EXTERN	Prog*	lastp;
 EXTERN	long	lcsize;
 EXTERN	int	nerrors;
@@ -332,7 +309,6 @@ EXTERN	Prog*	textp;
 EXTERN	vlong	textsize;
 EXTERN	long	thunk;
 EXTERN	int	version;
-EXTERN	int	vexed;
 EXTERN	Prog	zprg;
 EXTERN	int	dtype;
 EXTERN	char*	paramspace;
@@ -340,7 +316,7 @@ EXTERN	char*	paramspace;
 EXTERN	Adr*	reloca;
 EXTERN	int	doexp, dlm;
 EXTERN	int	imports, nimports;
-EXTERN	int	exports, nexports, allexport;
+EXTERN	int	exports, nexports;
 EXTERN	char*	EXPTAB;
 EXTERN	Prog	undefp;
 
@@ -393,13 +369,12 @@ void	histtoauto(void);
 double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
 void	import(void);
-int	isxyreg(int);
 void	ldobj(int, long, char*);
 void	loadlib(void);
 void	listinit(void);
+Sym*	lookup(char*, int);
 void	llput(vlong v);
 void	llputl(vlong v);
-Sym*	lookup(char*, int);
 void	lput(long);
 void	lputl(long);
 void	main(int, char*[]);

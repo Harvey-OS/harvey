@@ -1,3 +1,6 @@
+/*
+ * driver support and default entry points
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -117,6 +120,7 @@ devshutdown(void)
 Chan*
 devattach(int dc, char *spec)
 {
+	int pathsz;
 	Chan *c;
 	char *buf;
 
@@ -131,8 +135,9 @@ devattach(int dc, char *spec)
 	c->dev = devtabget(dc, 0);
 	if(spec == nil)
 		spec = "";
-	buf = smalloc(4+strlen(spec)+1);
-	sprint(buf, "#%C%s", dc, spec);
+	pathsz = 1+UTFmax+strlen(spec)+1;
+	buf = smalloc(pathsz);
+	snprint(buf, pathsz, "#%C%s", dc, spec);
 	c->path = newpath(buf);
 	free(buf);
 	return c;
@@ -145,7 +150,7 @@ devclone(Chan *c)
 	Chan *nc;
 
 	if(c->flag & COPEN){
-		panic("devclone: file of type %C already open\n",
+		panic("devclone: file of type %C already open",
 			c->dev != nil? c->dev->dc: -1);
 	}
 
@@ -214,7 +219,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 			if((*gen)(nc, nil, tab, ntab, DEVDOTDOT, &dir) != 1){
 				print("devgen walk .. in dev%s %#llux broken\n",
 					c->dev->name, nc->qid.path);
-				error("broken devgen");
+				error("broken devgen in devwalk");
 			}
 			nc->qid = dir.qid;
 			goto Accept;
@@ -444,7 +449,7 @@ long
 devwstat(Chan*, uchar*, long)
 {
 	error(Eperm);
-	return 0;
+	notreached();
 }
 
 void
@@ -457,5 +462,5 @@ int
 devconfig(int, char *, DevConf *)
 {
 	error(Eperm);
-	return 0;
+	notreached();
 }

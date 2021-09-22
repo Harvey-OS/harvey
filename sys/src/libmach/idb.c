@@ -244,7 +244,7 @@ static Opclass *opclass[32] = {
  * Print value v as name[+offset]
  */
 static int
-gsymoff(char *buf, int n, ulong v, int space)
+gsymoff(char *buf, int n, uvlong v, int space)
 {
 	Symbol s;
 	int r;
@@ -259,15 +259,12 @@ gsymoff(char *buf, int n, ulong v, int space)
 			delta = -delta;
 	}
 	if (v == 0 || r == 0 || delta >= 4096)
-		return snprint(buf, n, "#%lux", v);
+		return snprint(buf, n, "#%llux", v);
 	if (strcmp(s.name, ".string") == 0)
-		return snprint(buf, n, "#%lux", v);
+		return snprint(buf, n, "#%llux", v);
 	if (!delta)
 		return snprint(buf, n, "%s", s.name);
-	if (s.type != 't' && s.type != 'T')
-		return snprint(buf, n, "%s+%llux", s.name, v-s.value);
-	else
-		return snprint(buf, n, "#%lux", v);
+	return snprint(buf, n, "%s+%llux", s.name, v-s.value);
 }
 
 #pragma	varargck	argpos	bprint		2
@@ -334,8 +331,7 @@ format(Instr *i, char *opcode, char *f)
 				bprint(i, "%lux", imm);
 			break;
 		case 'p':
-			imm = i->addr + i->imm;
-			i->curr += gsymoff(i->curr, i->end-i->curr, imm, CANY);
+			i->curr += gsymoff(i->curr, i->end-i->curr, i->addr + i->imm, CANY);
 			break;
 		case 'a':
 			if(i->rs1 == REGSB && mach->sb){

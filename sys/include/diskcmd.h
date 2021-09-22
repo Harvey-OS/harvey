@@ -1,3 +1,13 @@
+/*
+ * hex commands	bytes
+ * 00 to 1F	6
+ * 20 to 5F	10
+ * 60 to 7D	reserved
+ * 7E		variable (more than 16 bytes)
+ * 7F		extended (variable length; may contain one or more CDBs)
+ * 80 to 9F	16
+ * A0 to BF	12
+ */
 enum {					/* SCSI command codes */
 	ScmdTur		= 0x00,		/* test unit ready */
 	ScmdRewind	= 0x01,		/* rezero/rewind */

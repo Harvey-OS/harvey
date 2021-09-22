@@ -1,0 +1,14 @@
+@x
+line 2
+line 3
+@y
+changed line 2
+changed line 3
+inserted line
+@z
+
+@x
+line 7
+@y
+changed line 7
+@z

@@ -1,0 +1,79 @@
+{This file defines symbols in addition to those in `common.defines',
+ for use in the TeX, Metafont, and MetaPost change files.  Public domain.}
+
+@define const TEXPOOLNAME;
+
+@define @field b0;
+@define @field b1;
+@define @field b2;
+@define @field b3;
+@define @field gr;
+@define @field hh;
+@define @field hhfield;
+@define @field int;
+@define @field lh;
+@define @field lhfield;
+@define @field rh;
+{`qqqq' is already defined, in ./common.defines, because of gftodvi.}
+
+@define function bopenin ();
+@define function bopenout ();
+@define function callmakempx ();
+@define function floorscaled ();
+@define function floorunscaled ();
+@define function initscreen;
+@define function inputln ();
+@define function ocpopenin ();
+@define function ofmopenin ();
+@define function openoutnameok ();
+@define function roundfraction ();
+@define function roundunscaled ();
+@define function vfbopenin ();
+@define function wopenin ();
+@define function wopenout ();
+
+@define procedure bclose ();
+@define procedure blankrectangle ();
+@define procedure calledit ();
+@define procedure clearterminal;
+@define procedure dateandtime ();
+@define procedure dumpcore;
+@define procedure dumphh ();
+@define procedure dumpint ();
+@define procedure dumpqqqq ();
+@define procedure dumpthings ();
+@define procedure dumpwd ();
+@define procedure flushdvi;
+@define procedure ipcpage ();
+@define procedure paintrow ();
+@define procedure put2bytes ();
+@define procedure put4bytes ();
+@define procedure setupboundvariable ();
+@define procedure setupcharset;
+@define procedure system ();
+@define procedure topenin;
+@define procedure undumphh ();
+@define procedure undumpint ();
+@define procedure undumpqqqq ();
+@define procedure undumpthings ();
+@define procedure undumpcheckedthings ();
+@define procedure undumpuppercheckthings ();
+@define procedure undumpwd ();
+@define procedure updatescreen;
+@define procedure wakeupterminal;
+@define procedure wclose ();
+@define procedure writedvi ();
+@define procedure writegf ();
+@define procedure xmallocarray ();
+
+@define type fourquarters;
+@define type twohalves;
+@define type fmemoryword;
+
+@define var eqtb;
+@define var mem;
+@define var kpsemaketexdiscarderrors;
+
+{For TeX; see openclose.c.}
+@define var tfmtemp;
+@define var texinputtype;

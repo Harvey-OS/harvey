@@ -1,0 +1,28 @@
+#!/bin/rc
+
+#dir=/sys/src/libsec/port
+dir=/sys/src/libc/port
+out=$w/test/newer
+
+switch($#*) {
+case 1
+	o=$1
+case *
+	o=8
+}
+
+cc=/usr/brucee/work/8c/$o.out
+#cc=/bin/8c
+
+flag e
+
+rm $out/*
+
+cd $dir
+for (i in *.c) {
+	b = `{echo $i | sed 's/\.c$//'}
+	$cc -S $b.c > $out/$b.s
+}
+
+fn d { diff $w/test/orig $w/test/new }
+fn d { diff $w/test/new $w/test/newer }

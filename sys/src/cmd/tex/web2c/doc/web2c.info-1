@@ -1,0 +1,1295 @@
+This is Info file web2c.info, produced by Makeinfo version 1.68 from
+the input file web2c.texi.
+
+INFO-DIR-SECTION TeX
+START-INFO-DIR-ENTRY
+* Web2c: (web2c).                    TeX, Metafont, and companion programs.
+* bibtex: (web2c)bibtex invocation.             Maintaining bibliographies.
+* dmp: (web2c)dmp invocation.                   Troff->MPX (MetaPost pictures).
+* dvicopy: (web2c)dvicopy invocation.           Virtual font expansion
+* dvitomp: (web2c)dvitomp invocation.           DVI to MPX (MetaPost pictures).
+* dvitype: (web2c)dvitype invocation.           DVI to human-readable text.
+* gftodvi: (web2c)gftodvi invocation.           Generic font proofsheets.
+* gftopk: (web2c)gftopk invocation.             Generic to packed fonts.
+* gftype: (web2c)gftype invocation.             GF to human-readable text.
+* inimf: (web2c)inimf invocation.               Initial Metafont.
+* inimpost: (web2c)inimpost invocation.         Initial MetaPost.
+* initex: (web2c)initex invocation.             Initial TeX.
+* makempx: (web2c)makempx invocation.           MetaPost label typesetting.
+* mf: (web2c)mf invocation.                     Creating typeface families.
+* mft: (web2c)mft invocation.                   Prettyprinting Metafont source.
+* mltex: (web2c)MLTeX.                          Multi-lingual TeX.
+* mpost: (web2c)mpost invocation.               Creating technical diagrams.
+* mpto: (web2c)mpto invocation.                 MetaPost label extraction.
+* newer: (web2c)newer invocation.               Compare modification times.
+* patgen: (web2c)patgen invocation.             Creating hyphenation patterns.
+* pktogf: (web2c)pktogf invocation.             Packed to generic fonts.
+* pktype: (web2c)pktype invocation.             PK to human-readable text.
+* pltotf: (web2c)pltotf invocation.             Property list to TFM.
+* pooltype: (web2c)pooltype invocation.         Display WEB pool files.
+* tangle: (web2c)tangle invocation.             WEB to Pascal.
+* tex: (web2c)tex invocation.                   Typesetting.
+* tftopl: (web2c)tftopl invocation.             TFM -> property list.
+* vftovp: (web2c)vftovp invocation.             Virtual font -> virtual pl.
+* virmf: (web2c)virmf invocation.               Virgin Metafont.
+* virmpost: (web2c)virmpost invocation.         Virgin MetaPost.
+* virtex: (web2c)virtex invocation.             Virgin TeX.
+* vptovf: (web2c)vptovf invocation.             Virtual pl -> virtual font.
+* weave: (web2c)weave invocation.               WEB to TeX.
+END-INFO-DIR-ENTRY
+
+  This file documents the installation and use of the programs in Web2c,
+an implementation of Donald Knuth's TeX system.
+
+  Copyright (C) 1996, 97 K. Berry & O. Weber.
+
+  Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+  Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+  Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation
+
+
+File: web2c.info,  Node: Top,  Next: Introduction,  Up: (dir)
+
+Web2c
+*****
+
+  This document describes how to install and use the programs in the
+Web2c implementation of the TeX system, especially for Unix systems.  It
+corresponds to Web2c version 7.2, released in November 1997.
+
+* Menu:
+
+* Introduction::                A brief introduction.
+* Installation::                How to compile and install Web2c.
+* Commonalities::               Option syntax, standard options, memory dumps.
+* TeX::                         Typesetting.
+* Metafont::                    Typeface design.
+* MetaPost::                    Technical illustrations.
+* BibTeX::                      Reusable bibliographies.
+* WEB::                         Literate programming.
+* DVI utilities::               DVI expansion.
+* Font utilities::              Font format conversion.
+* Legalisms::                   Blah blah blah.
+* References::                  Books and such.
+* Index::                       General index.
+
+
+File: web2c.info,  Node: Introduction,  Next: Installation,  Prev: Top,  Up: Top
+
+Introduction
+************
+
+  This manual corresponds to version 7.2 of Web2c, released in
+November 1997.
+
+  "Web2c" is the name of a TeX implementation, originally for Unix, but
+now also running under DOS, Amiga, and other operating systems. By "TeX
+implementation", we mean all of the standard programs developed by the
+Stanford TeX project directed by Donald E. Knuth: Metafont, DVItype,
+GFtoDVI, BibTeX, Tangle, etc., as well as TeX itself. Other programs
+are also included: DVIcopy, written by Peter Breitenlohner, MetaPost
+and its utilities (derived from Metafont), by John Hobby, etc.
+
+  General strategy: Web2c works, as its name implies, by translating the
+WEB source in which TeX is written into C source code. Its output is
+not self-contained, however; it makes extensive use of many macros and
+functions in a library (the `web2c/lib' directory in the sources).
+Therefore, it will not work without change on an arbitrary WEB program.
+
+  Availability: All of Web2c is freely available--"free" both in the
+sense of no cost (free ice cream) and of having the source code to
+modify and/or redistribute (free speech).  (*Note unixtex.ftp:
+(kpathsea)unixtex.ftp, for the practical details of how to obtain
+Web2c.)  Different parts of the Web2c distribution have different
+licensing terms, however, reflecting the different circumstances of
+their creation; consult each source file for exact details.  The main
+practical implication for redistributors of Web2c is that the
+executables are covered by the GNU Public License, and therefore anyone
+who gets a binary distribution must also get the sources, as explained
+by the terms of the GPL (*note Copying: (kpathsea)Copying.). The GPL
+covers the Web2c executables, including `tex', because the Free
+Software Foundation sponsored the initial development of the Kpathsea
+library that Web2c uses.  The basic source files from Stanford, however,
+have their own copyright terms or are in the public domain, and are not
+covered by the GPL.
+
+  History: Tomas Rokicki originated the TeX-to-C system in 1987,
+working from the first change files for TeX under Unix, which were done
+primarily by Howard Trickey and Pavel Curtis. Tim Morgan then took over
+development and maintenance for a number of years; the name changed to
+Web-to-C somewhere in there.  In 1990, Karl Berry became the
+maintainer.  He made many changes to the original sources, and started
+using the shorter name Web2c.  In 1997, Olaf Weber took over.  Dozens of
+other people have contributed; their names are listed in the
+`ChangeLog' files.
+
+  Other acknowledgements: The University of Massachusetts at Boston
+(particularly Rick Martin and Bob Morris) has provided computers and ftp
+access to me for many years.  Richard Stallman at the Free Software
+Foundation employed me while I wrote the original path searching library
+(for the GNU font utilities).  (rms also gave us Emacs, GDB, and GCC,
+without which I cannot imagine developing Web2c.)  And, of course, TeX
+would not exist in the first place without Donald E. Knuth.
+
+  Further reading: *Note References::.
+
+
+File: web2c.info,  Node: Installation,  Next: Commonalities,  Prev: Introduction,  Up: Top
+
+Installation
+************
+
+  (A copy of this chapter is in the distribution file `web2c/INSTALL'.)
+
+  Installing Web2c is mostly the same as installing any other
+Kpathsea-using program.  Therefore, for the basic steps involved, see
+*Note Installation: (kpathsea)Installation.  (A copy is in the file
+`kpathsea/INSTALL'.)
+
+  One peculiarity to Web2c is that the source distribution comes in two
+files: `web.tar.gz' and `web2c.tar.gz'.  You must retrieve and unpack
+them both.  (We have two because the former archive contains the very
+large and seldom-changing original WEB source files.)  *Note
+unixtex.ftp: (kpathsea)unixtex.ftp.
+
+  Another peculiarity is the MetaPost program.  Although it has been
+installed previously as `mp', as of Web2c 7.0 the installed name is now
+`mpost', to avoid conflict with the `mp' program that does
+prettyprinting.  This approach was recommended by the MetaPost author,
+John Hobby.  If you as the TeX administrator wish to make it available
+under its shorter name as well, you will have to set up a link or some
+such yourself.  And of course individual users can do the same.
+
+  For solutions to common installation problems and information on how
+to report a bug, see the file `kpathsea/BUGS' (*note Bugs:
+(kpathsea)Bugs.).  See also the Web2c home page,
+`http://www.tug.org/web2c'.
+
+  Points worth repeating:
+
+   * Before starting the standard compilation and installation you must
+     install the basic fonts, macros, and other library files.  *Note
+     Installation: (kpathsea)Installation.
+
+   * If you do not wish to use the standard file locations, see *Note
+     Changing search paths: (kpathsea)Changing search paths.
+
+   * Some Web2c features are enabled or disabled at `configure' time,
+     as described in the first section below.
+
+* Menu:
+
+* configure options::           Especially -with and -enable.
+* Compile-time options::        Unusual -D's.
+* Additional targets::		Breaking down the task.
+* Triptrap::                    Running the torture tests.
+* Runtime options::             Array sizes and the like.
+
+
+File: web2c.info,  Node: configure options,  Next: Compile-time options,  Up: Installation
+
+`configure' options
+===================
+
+  This section gives pointers to descriptions of the `--with' and
+`--enable' `configure' arguments that Web2c accepts.  Some are specific
+to Web2c, others are generic to all Kpathsea-using programs.
+
+  For a list of all the options `configure' accepts, run `configure
+--help'.  The generic options are listed first, and the
+package-specific options come last.
+
+  For a description of the generic options (which mainly allow you to
+specify installation directories) and basic `configure' usage, see
+*Note Running `configure' scripts: (autoconf)Invoking configure, a copy
+is in the file `kpathsea/CONFIGURE'.
+
+`--disable-dump-share'
+     Do not make fmt/base/mem files sharable across different endian
+     architectures.  *Note Hardware and memory dumps::.
+
+`--without-maketexmf-default'
+`--without-maketexpk-default'
+`--without-maketextfm-default'
+`--with-maketextex-default'
+     Enable or disable the dynamic generation programs.  *Note mktex
+     configuration: (kpathsea)mktex configuration.  The defaults are
+     the inverse of the options, i.e., everything is enabled except
+     `mktextex'.
+
+`--enable-auto-core'
+     Dump `core' if the input file is
+     `HackyInputFileNameForCoreDump.tex'.  *Note Preloaded
+     executables::.
+
+`--enable-shared'
+     Build Kpathsea as a shared library.  *Note Shared library:
+     (kpathsea)Shared library.
+
+`--with-editor=CMD'
+     Change the default editor invoked by the `e' interactive command.
+     *Note Editor invocation::.
+
+`--with-epsfwin'
+`--with-hp2627win'
+`--with-mftalkwin'
+`--with-nextwin'
+`--with-regiswin'
+`--with-suntoolswin'
+`--with-tektronixwin'
+`--with-unitermwin'
+`--with-x'
+`--with-x-toolkit=KIT'
+`--with-x11win'
+`--with-x11'
+     Define Metafont graphics support; by default, no graphics support
+     is enabled.  *Note Online Metafont graphics::.
+
+`--x-includes=DIR'
+`--x-libraries=DIR'
+     Define the locations of the X11 include files and libraries; by
+     default, `configure' does its best to guess).  *Note Optional
+     Features: (autoconf)Optional Features.  A copy is in
+     `kpathsea/CONFIGURE'.
+
+
+File: web2c.info,  Node: Compile-time options,  Next: Additional targets,  Prev: configure options,  Up: Installation
+
+Compile-time options
+====================
+
+  In addition to the `configure' options listed in the previous
+section, there are a few things that can be affected at compile-time
+with C definitions, rather than with `configure'.  Using any of these
+is unusual.
+
+  To specify extra compiler flags (`-DNAME' in this case), the simplest
+thing to do is:
+     make XCFLAGS="CCOPTIONS"
+   You can also set the `CFLAGS' environment variable before running
+`configure'.  *Note configure environment: (kpathsea)configure
+environment.
+
+Anyway, here are the possibilities:
+
+`-DFIXPT'
+`-DNO_MF_ASM'
+     Use the original WEB fixed-point routines for Metafont and MetaPost
+     arithmetic calculations regarding fractions.  By default,
+     assembly-language routines are used on x86 hardware with GNU C
+     (unless `NO_MF_ASM' is defined), and floating-point routines are
+     used otherwise.
+
+`-DIPC_DEBUG'
+     Report on various interprocess communication activities.  *Note
+     IPC and TeX: IPC and TeX.
+
+
+File: web2c.info,  Node: Additional targets,  Next: Triptrap,  Prev: Compile-time options,  Up: Installation
+
+Additional targets
+==================
+
+  Web2c has several Make targets besides the standard ones.  You can
+invoke these either in the top level directory of the source
+distribution (the one containing `kpathsea/' and `web2c/'), or in the
+`web2c/' directory.
+
+`c-sources'
+     Make only the C files, translated from the Web sources, presumably
+     because you want to take them to a non-Unix machine.
+
+`formats'
+`install-formats'
+     Make or install all the memory dumps (*note Memory dumps::.).  By
+     default, the standard plain formats plus `latex.fmt' are made.  You
+     can add other formats by redefining the `fmts', `bases', and
+     `mems' variables.  See the top of `web2c/Makefile' for the
+     possibilities.
+
+`fmts'
+`install-fmts'
+     Make or install the TeX `.fmt' files. *Note initex invocation::.
+
+`bases'
+`install-bases'
+     Make or install the Metafont `.base' files.  *Note inimf
+     invocation::.
+
+`mems'
+`install-mems'
+     Make or install the MetaPost `.mem' files.  *Note inimpost
+     invocation::.
+
+`triptrap'
+`trip'
+`trap'
+`mptrap'
+     To run the torture tests for TeX, Metafont, and MetaPost
+     (respectively).  See the next section.
+
+
+File: web2c.info,  Node: Triptrap,  Next: Runtime options,  Prev: Additional targets,  Up: Installation
+
+Trip, trap, and mptrap: Torture tests
+=====================================
+
+  To validate your TeX, Metafont, and MetaPost executables, run `make
+triptrap'.  This runs the trip, trap, and mptrap "torture tests".  See
+the files `triptrap/tripman.tex', `triptrap/trapman.tex', and
+`triptrap/mptrap.readme' for detailed information and background on the
+tests.
+
+  The differences between your executables' behavior and the standard
+values will show up on your terminal.  The usual differences (these are
+all acceptable) are:
+
+   * string usage and table sizes;
+
+   * glue set ratios;
+
+   * `down4', `right4', and `y4' commands in DVItype output;
+
+   * dates and times.
+
+Any other differences are trouble. The most common culprit in the past
+has been compiler bugs, especially when optimizing.  *Note TeX or
+Metafont failing: (kpathsea)TeX or Metafont failing.
+
+  The files `trip.diffs', `mftrap.diffs', and `mptrap.diffs' in the
+`triptrap' directory show the standard diffs against the original
+output.  If you diff your diffs against these files, you should come up
+clean.  For example
+     make trip >&mytrip.diffs
+     diff triptrap/trip.diffs mytrip.diffs
+
+  To run the tests separately, use the targets `trip', `trap', and
+`mptrap'.
+
+  To run simple tests for all the programs as well as the torture tests,
+run `make check'.  You can compare the output to the distributed file
+`tests/check.log' if you like.
+
+
+File: web2c.info,  Node: Runtime options,  Prev: Triptrap,  Up: Installation
+
+Runtime options
+===============
+
+  Besides the configure- and compile-time options described in the
+previous sections, you can control a number of parameters (in
+particular, array sizes) in the `texmf.cnf' runtime file read by
+Kpathsea (*note Config files: (kpathsea)Config files.).
+
+  Rather than exhaustively listing them here, please see the last
+section of the distributed `kpathsea/texmf.cnf'.  Some of the more
+interesting values:
+
+`main_memory'
+     Total words of memory available, for TeX, Metafont, and MetaPost.
+     Must remake the format file after changing.
+
+`extra_mem_bot'
+     Extra space for "large" TeX data structures: boxes, glue,
+     breakpoints, et al.  If you use PiCTeX, you may well want to set
+     this.
+
+`font_mem_size'
+     Words of font info available for TeX; this is approximately the
+     total size of all TFM files read.
+
+`hash_extra'
+     Additional space for the hash table of control sequence names.
+     Approximately 10,000 control sequences can be stored in the main
+     hash table; if you have a large book with numerous
+     cross-references, this might not be enough, and thus you will want
+     to set `hash_extra'.
+
+  Of course, ideally all arrays would be dynamically expanded as
+necessary, so the only limiting factor would be the amount of swap space
+available.  Unfortunately, implementing this is extremely difficult, as
+the fixed size of arrays is assumed in many places throughout the source
+code.  These runtime limits are a practical compromise between the
+compile-time limits in previous versions, and truly dynamic arrays.  (On
+the other hand, the Web2c BibTeX implementation does do dynamic
+reallocation of some arrays.)
+
+
+File: web2c.info,  Node: Commonalities,  Next: TeX,  Prev: Installation,  Up: Top
+
+Commonalities
+*************
+
+  Many aspects of the TeX system are the same among more than one
+program, so we describe all those pieces together, here.
+
+* Menu:
+
+* Option conventions::   Order doesn't matter, - or -, = or ` ' for values.
+* Common options::       -help -version -verbose, and TeX/MF/MP options.
+* Path searching::       Features of the common path searching library.
+* Output file location:: TEXMFOUTPUT allows output in places other than `.'.
+* Three programs::       TeX, Metafont, and MetaPost have a lot in common.
+
+
+File: web2c.info,  Node: Option conventions,  Next: Common options,  Up: Commonalities
+
+Option conventions
+==================
+
+  To provide a clean and consistent behavior, we chose to have all these
+programs use the GNU function `getopt_long_only' to parse command lines.
+
+  As a result, you can:
+   * give the options in any order, interspersed as you wish with
+     non-option arguments;
+
+   * use `-' or `--' to start an option name;
+
+   * use any unambiguous abbreviation for an option name;
+
+   * separate option names and values with either `=' or one or more
+     spaces;
+
+   * use filenames that would otherwise look like options by putting
+     them after an option `--'.
+
+  By convention, non-option arguments, if specified, generally define
+the name of an input file, as documented for each program.
+
+  If a particular option with a value is given more than once, it is the
+last value that counts.
+
+  For example, the following command line specifies the options `foo',
+`bar', and `verbose'; gives the value `baz' to the `abc' option, and
+the value `xyz' to the `quux' option; and specifies the filename
+`-myfile-'.
+
+     -foo --bar -verb -abc=baz -quux karl --quux xyz -- -myfile-
+
+
+File: web2c.info,  Node: Common options,  Next: Path searching,  Prev: Option conventions,  Up: Commonalities
+
+Common options
+==============
+
+  All of these programs accept the standard GNU `--help' and
+`--version' options, and several programs accept `--verbose'.  Rather
+than writing identical descriptions in every node, they are described
+here.
+
+`--help'
+     Print a usage message listing basic usage and all available
+     options to standard output, then exit successfully.
+
+`--verbose'
+     Print progress reports to standard output.
+
+`--version'
+     Print the version number to standard output, then exit
+     successfully.
+
+  TeX, Metafont, and MetaPost have additional options in common:
+
+`-kpathsea-debug=NUMBER'
+     Set path searching debugging flags according to the bits of NUMBER
+     (*note Debugging: (kpathsea)Debugging.).  You can also specify
+     this in `KPATHSEA_DEBUG' environment variable (for all Web2c
+     programs).  (The command line value overrides.)  The most useful
+     value is `-1', to get all available output.
+
+`-ini'
+     Enable the "initial" form of the program (*note Initial and
+     virgin::.).  This is implicitly set if the program name is `initex'
+     resp. `inimf' resp. `inimpost'.
+
+`-interaction=STRING'
+     Set the interaction mode from the command line.  The STRING must
+     be one of `batchmode', `nonstopmode', `scrollmode', or
+     `errorstopmode'.
+
+`-fmt=DUMPNAME'
+`-base=DUMPNAME'
+`-mem=DUMPNAME'
+     Use DUMPNAME instead of the program name or a `%&' line to
+     determine the name of the memory dump file read (`fmt' for TeX,
+     `base' for Metafont, `mem' for MetaPost).  *Note Memory dumps::.
+     Also set the program name to DUMPNAME.  When creating a dump, this
+     option will also set the name of the dump file.
+
+`-progname=STRING'
+     Set program (and memory dump) name to STRING.  This may affect the
+     search paths and other values used (*note Config files:
+     (kpathsea)Config files.).  Using this option is equivalent to
+     making a link named STRING to the binary and then invoking the
+     binary under that name.  *Note Memory dumps::.
+
+
+File: web2c.info,  Node: Path searching,  Next: Output file location,  Prev: Common options,  Up: Commonalities
+
+Path searching
+==============
+
+  All of the Web2c programs, including TeX, which do path searching use
+the Kpathsea routines to do so.  The precise names of the environment
+and configuration file variables which get searched for particular file
+formatted are therefore documented in the Kpathsea manual (*note
+Supported file formats: (kpathsea)Supported file formats.).  Reading
+`texmf.cnf' (*note Config files: (kpathsea)Config files.), invoking
+`mktex...' scripts (*note mktex scripts: (kpathsea)mktex scripts.), and
+so on are all handled by Kpathsea.
+
+  The programs which read fonts make use of another Kpathsea feature:
+`texfonts.map', which allows arbitrary aliases for the actual names of
+font files; for example, `Times-Roman' for `ptmr8r.tfm'.  The
+distributed (and installed by default) `texfonts.map' includes aliases
+for many widely available PostScript fonts by their PostScript names.
+
+
+File: web2c.info,  Node: Output file location,  Next: Three programs,  Prev: Path searching,  Up: Commonalities
+
+Output file location
+====================
+
+  All the programs generally follow the usual convention for output
+files.  Namely, they are placed in the directory current when the
+program is run, regardless of any input file location; or, in a few
+cases, output is to standard output.
+
+  For example, if you run `tex /tmp/foo', for example, the output will
+be in `./foo.dvi' and `./foo.log', not `/tmp/foo.dvi' and
+`/tmp/foo.log'.
+
+  However, if the current directory is not writable, the main programs
+(TeX, Metafont, MetaPost, and BibTeX) make an exception: if the
+environment variable or config file value `TEXMFOUTPUT' is set (it is
+not by default), output files are written to the directory specified.
+This is useful when you are in some read-only distribution directory,
+perhaps on a CD-ROM, and want to TeX some documentation, for example.
+
+
+File: web2c.info,  Node: Three programs,  Prev: Output file location,  Up: Commonalities
+
+Three programs: Metafont, MetaPost, and TeX
+===========================================
+
+  TeX, Metafont, and MetaPost have a number of features in common.
+Besides the ones here, the common command-line options are described in
+the previous section.  The configuration file options that let you
+control some array sizes and other features are described in *Note
+Runtime options::.
+
+* Menu:
+
+* Initial and virgin::          Making memory dumps vs. production runs.
+* Memory dumps::                .fmt/.base/.mem files for fast startup.
+* Editor invocation::           The `e' response at errors.
+* \input filenames::            ~ and $ expansion in TeX/MF/MP.
+
+
+File: web2c.info,  Node: Initial and virgin,  Next: Memory dumps,  Up: Three programs
+
+Initial and virgin
+------------------
+
+  The TeX, Metafont, and MetaPost programs each have two main variants,
+called initial and virgin.  As of Web2c 7, one executable suffices for
+both variants.
+
+  The initial form is enabled if:
+  1. the `-ini' option was specified; or
+
+  2. the program name is `initex' resp. `inimf' resp.  `inimpost'; or
+
+  3. the first line of the main input file is `%&ini';
+
+otherwise, the virgin form is used.
+
+  The "virgin" form is the one generally invoked for production use.
+The first thing it does is read a memory dump (*note Determining the
+memory dump to use::.), and then proceeds on with the main job.
+
+  The "initial" form is generally used only to create memory dumps (see
+the next section).  It starts up more slowly than the virgin form,
+because it must do lengthy initializations that are encapsulated in the
+memory dump file.
+
+  In the past, there was a third form, "preloaded" executables.  This
+is no longer recommended or widely used; but see the section below if
+you're interested anyway.  In this case, the memory dump file was read
+in to the virgin form, a core dump of the running executable was done,
+and the `undump' program run to create a new binary.  Nowadays, reading
+memory dumps is fast enough that this is generally no longer worth the
+cost in disk space and unshared executables.
+
+* Menu:
+
+* Preloaded executables::
+
+
+File: web2c.info,  Node: Preloaded executables,  Up: Initial and virgin
+
+Preloaded executables
+.....................
+
+  Specifying `--enable-auto-core' to `configure' tells TeX, Metafont,
+and MetaPost to suicide with a `SIGQUIT' on an input filename of
+`HackyInputFileNameForCoreDump.tex' (all three programs use the `.tex'
+suffix). This produces a memory dump of the running executable in a
+file `core'.  (This is unrelated to the standard memory dump feature in
+these programs; *note Memory dumps::.).
+
+  You don't actually need to do this to produce a core dump.  Just
+typing your quit character (usually <CTRL-\>) when the program is
+waiting for input (at `**') will have the same result.  But a few sites
+want to reliably generate a core dump without human intervention; that's
+what `--enable-auto-core' is for.
+
+  With the program `undump', you can use `core' to reconstitute a
+"preloaded" executable, which does not need to read a `.fmt' file to
+get started.  Although preloaded executables save startup time, they
+have a big disadvantage: neither the disk space to store them nor their
+code segments (at runtime) can be shared.  Therefore, if both `tex' and
+`latex' are running, twice as much memory will be consumed, to the
+general detriment of performance.
+
+  The `undump' program is not part of the Web2c distribution, but you
+can get it from the CTAN archives as `CTAN:/support/undump', and it is
+included in several TeX distributions (*note unixtex.ftp:
+(kpathsea)unixtex.ftp.).
+
+
+File: web2c.info,  Node: Memory dumps,  Next: Editor invocation,  Prev: Initial and virgin,  Up: Three programs
+
+Memory dumps
+------------
+
+  In typical use, TeX, Metafont, and MetaPost require a large number of
+macros to be predefined; therefore, they support "memory dump" files,
+which can be read much more efficiently than ordinary source code.
+
+* Menu:
+
+* Creating memory dumps::
+* Determining the memory dump to use::
+* Hardware and memory dumps::
+
+
+File: web2c.info,  Node: Creating memory dumps,  Next: Determining the memory dump to use,  Up: Memory dumps
+
+Creating memory dumps
+.....................
+
+  The programs all create memory dumps in slightly idiosyncratic
+(thought substantially similar) way, so we describe the details in
+separate sections (references below).  The basic idea is to run the
+initial version of the program (*note Initial and virgin::.), read the
+source file to define the macros, and then execute the `\dump'
+primitive.
+
+  Also, each program uses a different filename extension for its memory
+dumps, since although they are completely analogous they are not
+interchangeable (TeX cannot read a Metafont memory dump, for example).
+
+  Here is a list of filename extensions with references to examples of
+creating memory dumps:
+
+TeX
+     (`.fmt') *Note initex invocation::.
+
+Metafont
+     (`.base') *Note inimf invocation::.
+
+MetaPost
+     (`.mem') *Note inimpost invocation::.
+
+  When making memory dumps, the programs read environment variables and
+configuration files for path searching and other values as usual.  If
+you are making a new installation and have environment variables
+pointing to an old one, for example, you will probably run into
+difficulties.
+
+
+File: web2c.info,  Node: Determining the memory dump to use,  Next: Hardware and memory dumps,  Prev: Creating memory dumps,  Up: Memory dumps
+
+Determining the memory dump to use
+..................................
+
+  The virgin form (*note Initial and virgin::.) of each program always
+reads a memory dump before processing normal source input.  All three
+programs determine the memory dump to use in the same way:
+
+  1. If the first non-option command-line argument begins with `&', the
+     program uses the remainder of that argument as the memory dump
+     name.  For example, running `tex \&super' reads `super.fmt'.  (The
+     backslash protects the `&' against interpretation by the shell.)
+
+  2. If the `-fmt' resp. `-base' resp. `-mem' option is specified, its
+     value is used.
+
+  3. If the `-progname' option is specified, its value is used.
+
+  4. If the first line of the main input file (which must be specified
+     on the command line, not in response to `**') is `%&DUMP', and
+     DUMP is an existing memory dump of the appropriate type, DUMP is
+     used.  As a special case, `%&ini' means the initial form of the
+     program (*note Initial and virgin::.).
+
+  5. Otherwise, the program uses the program invocation name, most
+     commonly `tex' resp. `mf' resp. `mpost'.  For example, if `latex'
+     is a link to `tex', and the user runs `latex foo', `latex.fmt'
+     will be used.
+
+
+
+File: web2c.info,  Node: Hardware and memory dumps,  Prev: Determining the memory dump to use,  Up: Memory dumps
+
+Hardware and memory dumps
+.........................
+
+  By default, memory dump files are generally sharable between
+architectures of different types; specifically, on machines of different
+endianness (*note Byte order: (libc)Byte order.).  (This is a feature
+of the Web2c implementation, and is not true of all TeX
+implementations.)  If you specify `--disable-dump-share' to
+`configure', however, memory dumps will be endian-dependent.
+
+  The reason to do this is speed.  To achieve endian-independence, the
+reading of memory dumps on LittleEndian architectures, such as PC's and
+DEC architectures, is somewhat slowed (all the multibyte values have to
+be swapped).  Usually, this is not noticeable, and the advantage of
+being able to share memory dumps across all platforms at a site far
+outweighs the speed loss.  But if you're installing Web2c for use on
+LittleEndian machines only, perhaps on a PC being used only by you, you
+may wish to get maximum speed.
+
+  TeXnically, even without `--disable-dump-share', sharing of `.fmt'
+files cannot be guaranteed to work.  Floating-point values are always
+written in native format, and hence will generally not be readable
+across platforms.  Fortunately, TeX uses floating point only to
+represent glue ratios, and all common formats (plain, LaTeX, AMSTeX,
+...) do not do any glue setting at `.fmt'-creation time.  Metafont and
+MetaPost do not use floating point in any dumped value at all.
+
+  Incidentally, different memory dump files will never compare equal
+byte-for-byte, because the program always dumps the current date and
+time. So don't be alarmed by just a few bytes difference.
+
+  If you don't know what endianness your machine is, and you're curious,
+here is a little C program to tell you. (The `configure' script
+contains a similar program.)  This is from the book `C: A Reference
+Manual', by Samuel P. Harbison and Guy L. Steele Jr. (*note
+References::.).
+
+     main ()
+     {
+       /* Are we little or big endian?  From Harbison&Steele.  */
+       union
+       {
+         long l;
+         char c[sizeof (long)];
+       } u;
+       u.l = 1;
+       if (u.c[0] == 1)
+         printf ("LittleEndian\n");
+       else if (u.c[sizeof (long) - 1] == 1)
+         printf ("BigEndian\n");
+       else
+         printf ("unknownEndian");
+     
+       exit (u.c[sizeof (long) - 1] == 1);
+     }
+
+
+File: web2c.info,  Node: Editor invocation,  Next: \input filenames,  Prev: Memory dumps,  Up: Three programs
+
+Editor invocation
+-----------------
+
+  TeX, Metafont, and MetaPost all (by default) stop and ask for user
+intervention at an error.  If the user responds with `e' or `E', the
+program invokes an editor.
+
+  Specifying `--with-editor=CMD' to `configure' sets the default editor
+command string to CMD.  The environment variables/configuration values
+`TEXEDIT', `MFEDIT', and `MPEDIT' (respectively) override this.  If
+`--with-editor' is not specified, the default is `vi +%d %s'.
+
+  In this string, `%d' is replaced by the line number of the error, and
+`%s' is replaced by the name of the current input file.
+
+
+File: web2c.info,  Node: \input filenames,  Prev: Editor invocation,  Up: Three programs
+
+`\input' filenames
+------------------
+
+  TeX, Metafont, and MetaPost source programs can all read other source
+files with the `\input' (TeX) and `input' (MF and MP) primitives:
+     \input NAME % in TeX
+
+  The file NAME can always be terminated with whitespace; for Metafont
+and MetaPost, the statement terminator `;' also works.  (LaTeX and
+other macro packages provide other interfaces to `\input' that allow
+different notation; here we are concerned only with the primitive
+operation.)  This means that `\input' filenames cannot directly contain
+whitespace, even though Unix has no trouble.  Sorry.
+
+  On the other hand, various C library routines and Unix itself use the
+null byte (character code zero, ASCII NUL) to terminate strings.  So
+filenames in Web2c cannot contain nulls, even though TeX itself does
+not treat NUL specially.
+
+  Furthermore, some older Unix variants do not allow eight-bit
+characters (codes 128-255) in filenames.
+
+  For maximal portability of your document across systems, use only the
+characters `a'-`z', `0'-`9', and `.', and restrict your filenames to at
+most eight characters (not including the extension), and at most a
+three-character extension.  Do not use anything but simple filenames,
+since directory separators vary among systems; instead, add the
+necessary directories to the appropriate search path.
+
+  Finally, the present Web2c implementation does `~' and `$' expansion
+on NAME, unlike Knuth's original implementation and older versions of
+Web2c.  Thus:
+     \input ~jsmith/$foo.bar
+  will dereference the environment variable or Kpathsea config file
+value `foo' and read that file extended with `.bar' in user `jsmith''s
+home directory.  (You can also use braces, as in `${foo}bar' if you
+want to follow the variable name with a letter, numeral, or `_'.)
+
+  (So you could define an environment variable value including
+whitespace and get the program to read such a filename that way, if you
+need to.)
+
+  In all the common TeX formats (plain TeX, LaTeX, AMSTeX), the
+characters `~' and `~' have special category codes, so to actually use
+these in a document you have to change their catcodes or use `\string'.
+(The result is unportable anyway, see the suggestions above.)  The
+place where they are most likely to be useful is when typing
+interactively.
+
+
+File: web2c.info,  Node: TeX,  Next: Metafont,  Prev: Commonalities,  Up: Top
+
+TeX: Typesetting
+****************
+
+  TeX is a typesetting system: it was especially designed to handle
+complex mathematics, as well as most ordinary text typesetting.
+
+  TeX is a batch language, like C or Pascal, and not an interactive
+"word processor": you compile a TeX input file into a corresponding
+device-independent (DVI) file (and then translate the DVI file to the
+commands for a particular output device).  This approach has both
+considerable disadvantages and considerable advantages.  For a complete
+description of the TeX language, see `The TeXbook' (*note
+References::.).  Many other books on TeX, introductory and otherwise,
+are available.
+
+* Menu:
+
+* tex invocation::              Invoking TeX.
+* initex invocation::           Initial TeX.
+* virtex invocation::           Virgin TeX.
+* Formats::                     Major TeX macro packages.
+* Languages and hyphenation::   TeX supports many human languages.
+* IPC and TeX::                 DVI output to a socket.
+* TeX extensions::              Changes to the TeX language.
+
+
+File: web2c.info,  Node: tex invocation,  Next: initex invocation,  Up: TeX
+
+`tex' invocation
+================
+
+  TeX (usually invoked as `tex') formats the given text and commands,
+and outputs a corresponding device-independent representation of the
+typeset document.  This section merely describes the options available
+in the Web2c implementation.  For a complete description of the TeX
+typesetting language, see `The TeXbook' (*note References::.).
+
+  TeX, Metafont, and MetaPost process the command line (described here)
+and determine their memory dump (fmt) file in the same way (*note
+Memory dumps::.).  Synopses:
+
+     tex [OPTION]... [TEXNAME[.tex]] [TEX-COMMANDS]
+     tex [OPTION]... \FIRST-LINE
+     tex [OPTION]... &FMT ARGS
+
+  TeX searches the usual places for the main input file TEXNAME (*note
+Supported file formats: (kpathsea)Supported file formats.), extending
+TEXNAME with `.tex' if necessary.  To see all the relevant paths, set
+the environment variable `KPATHSEA_DEBUG' to `-1' before running the
+program.
+
+  After TEXNAME is read, TeX processes any remaining TEX-COMMANDS on
+the command line as regular TeX input.  Also, if the first non-option
+argument begins with a TeX escape character (usually `\'), TeX
+processes all non-option command-line arguments as a line of regular
+TeX input.
+
+  If no arguments or options are specified, TeX prompts for an input
+file name with `**'.
+
+  TeX writes the main DVI output to the file `BASETEXNAME.dvi', where
+BASETEXNAME is the basename of TEXNAME, or `texput' if no input file
+was specified.  A DVI file is a device-independent binary
+representation of your TeX document.  The idea is that after running
+TeX, you translate the DVI file using a separate program to the
+commands for a particular output device, such as a PostScript printer
+(*note Introduction: (dvipsk)Top.) or an X Window System display (see
+xdvi(1)).
+
+  TeX also reads TFM files for any fonts you load in your document with
+the `\font' primitive.  By default, it runs an external program named
+`mktextfm' to create any nonexistent TFM files.  You can disable this
+at configure-time or runtime (*note mktex configuration:
+(kpathsea)mktex configuration.).  This is enabled mostly for the sake
+of the EC fonts, which can be generated at any size.
+
+  TeX can write output files, via the `\openout' primitive; this opens
+a security hole vulnerable to Trojan horse attack: an unwitting user
+could run a TeX program that overwrites, say, `~/.rhosts'.  (MetaPost
+has a `write' primitive with similar implications).  To alleviate this,
+there is a configuration variable `openout_any', which selects one of
+three levels of security.  When it is set to `a' (for "any"), no
+restrictions are imposed.  When it is set to `r' (for "restricted"),
+filenames beginning with `.' are disallowed (except `.tex' because
+LaTeX needs it).  When it is set to `p' (for "paranoid") additional
+restrictions are imposed: an absolute filename must refer to a file in
+(a subdirectory) of `TEXMFOUTPUT', and any attempt to go up a directory
+level is forbidden (that is, paths may not contain a `..'  component).
+The paranoid setting is the default.  (For backwards compatibility, `y'
+and `1' are synonyms of `a', while `n' and `0' are synonyms for `r'.)
+
+  In any case, all `\openout' filenames are recorded in the log file,
+except those opened on the first line of input, which is processed when
+the log file has not yet been opened.  (If you as a TeX administrator
+wish to implement more stringent rules on `\openout', modifying the
+function `openoutnameok' in `web2c/lib/texmfmp.c' is intended to
+suffice.)
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-kpathsea-debug=NUMBER'
+`-ini'
+`-fmt=FMTNAME'
+`-progname=STRING'
+     These options are common to TeX, Metafont, and MetaPost.  *Note
+     Common options::.
+
+`-ipc'
+`-ipc-start'
+     With either option, TeX writes its DVI output to a socket as well
+     as to the usual `.dvi' file.  With `-ipc-start', TeX also opens a
+     server program at the other end to read the output.  *Note IPC and
+     TeX: IPC and TeX.
+
+     These options are available only if the `--enable-ipc' option was
+     specified to `configure' during installation of Web2c.
+
+`-mktex=FILETYPE'
+`-no-mktex=FILETYPE'
+     Turn on or off the `mktex' script associated with FILETYPE.  The
+     only values that make sense for FILETYPE are `tex' and `tfm',
+
+`-mltex'
+     If `INITEX' (*note Initial and virgin::.), enable MLTeX extensions
+     such as `\charsubdef'.  Implicitly set if the program name is
+     `mltex'.  *Note MLTeX: MLTeX.
+
+`-output-comment=STRING'
+     Use STRING as the DVI file comment.  Ordinarily, this comment
+     records the date and time of the TeX run, but if you are doing
+     regression testing, you may not want the DVI file to have this
+     spurious difference.  This is also taken from the environment
+     variable and config file value `output_comment'.
+
+`-shell-escape'
+     Enable the `\write18{SHELL-COMMAND}' feature.  This is also
+     enabled if the environment variable or config file value
+     `shell_escape' is set to `t'.  (For backwards compatibility, `y'
+     and `1' are accepted as synonyms of `t').  It is disabled by
+     default to avoid security problems.  When enabled, the
+     SHELL-COMMAND string (which first undergoes the usual TeX
+     expansions, just as in `\special') is passed to the command shell
+     (via the C library function `system').  The output of
+     SHELL-COMMAND is not diverted anywhere, so it will not appear in
+     the log file.  The system call either happens at `\output' time or
+     right away, according to the absence or presence of the
+     `\immediate' prefix, as usual for `\write'.  (If you as a TeX
+     administrator wish to implement more stringent rules on what can
+     be executed, you will need to modify `tex.ch'.)
+
+
+File: web2c.info,  Node: initex invocation,  Next: virtex invocation,  Prev: tex invocation,  Up: TeX
+
+`initex' invocation
+===================
+
+  `initex' is the "initial" form of TeX, which does lengthy
+initializations avoided by the "virgin" (`vir') form, so as to be
+capable of dumping `.fmt' files (*note Memory dumps::.).  For a
+detailed comparison of virgin and initial forms, *note Initial and
+virgin::..
+
+  For a list of options and other information, *note tex invocation::..
+
+  Unlike Metafont and MetaPost, many format files are commonly used with
+TeX.  The standard one implementing the features described in the
+`TeXbook' is `plain.fmt', also known as `tex.fmt' (again, *note Memory
+dumps::.).  It is created by default during installation, but you can
+also do so by hand if necessary (e.g., if an update to `plain.tex' is
+issued):
+     initex '\input plain \dump'
+
+(The quotes prevent interpretation of the backslashes from the shell.)
+Then install the resulting `plain.fmt' in `$(fmtdir)'
+(`/usr/local/share/texmf/web2c' by default), and link `tex.fmt' to it.
+
+  The necessary invocation for generating a format file differs for each
+format, so instructions that come with the format should explain.  The
+top-level `web2c' Makefile has targets for making most common formats:
+plain latex amstex texinfo eplain.  *Note Formats::, for more details
+on TeX formats.
+
+
+File: web2c.info,  Node: virtex invocation,  Next: Formats,  Prev: initex invocation,  Up: TeX
+
+`virtex' invocation
+===================
+
+  `virtex' is the "virgin" form of TeX, which avoids the lengthy
+initializations done by the "initial" (`ini') form, and is thus what is
+generally used for production work.  For a detailed comparison of
+virgin and initial forms, *note Initial and virgin::..
+
+  For a list of options and other information, see *Note tex
+invocation::.
+
+
+File: web2c.info,  Node: Formats,  Next: Languages and hyphenation,  Prev: virtex invocation,  Up: TeX
+
+Formats
+=======
+
+  TeX "formats" are large collections of macros, possibly dumped into a
+`.fmt' file (*note Memory dumps::.) by `initex' (*note initex
+invocation::.).  A number of formats are in reasonably widespread use,
+and the Web2c Makefile has targets to make the versions current at the
+time of release.  You can change which formats are automatically built
+by setting the `fmts' Make variable; by default, only the `plain' and
+`latex' formats are made.
+
+  You can get the latest versions of most of these formats from the CTAN
+archives in subdirectories of `CTAN:/macros' (for CTAN info, *note
+unixtex.ftp: (kpathsea)unixtex.ftp.).  The archive
+`ftp://ftp.tug.org/tex/lib.tar.gz' (also available from CTAN) contains
+most of these formats (although perhaps not the absolute latest
+version), among other things.
+
+latex
+     The most widely used format.  The current release is named `LaTeX
+     2e'; new versions are released approximately every six months, with
+     patches issued as needed.  The old release was called `LaTeX 2.09',
+     and is no longer maintained or supported.  LaTeX attempts to
+     provide generic markup instructions, such as "emphasize", instead
+     of specific typesetting instructions, such as "use the 10pt
+     Computer Modern italic font".
+
+amstex
+     The official typesetting system of the American Mathematical
+     Society, used to produce nearly all of its publications, e.g.,
+     `Mathematical Reviews'.  Like LaTeX, it encourages generic markup
+     commands.  The AMS also provides a LaTeX package for authors who
+     prefer LaTeX (see the `amslatex' item below).
+
+texinfo
+     The documentation system developed and maintained by the Free
+     Software Foundation for their software manuals.  It can be
+     automatically converted into plain text, a machine-readable
+     on-line format called `info', HTML, etc.
+
+eplain
+     The "expanded plain" format provides various common features (e.g.,
+     symbolic cross-referencing, tables of contents, indexing, citations
+     using BibTeX), for those authors who prefer to handle their own
+     high-level formatting.
+
+lamstex
+     Augments AMSTeX with LaTeX-like features.
+
+amslatex
+     An LaTeX package (see `latex' item above), that augments LaTeX
+     with AMSTeX-like features.
+
+slitex
+     An obsolete LaTeX 2.09 format for making slides.  It is replaced by
+     the `slides' document class.
+
+
+File: web2c.info,  Node: Languages and hyphenation,  Next: IPC and TeX,  Prev: Formats,  Up: TeX
+
+Languages and hyphenation
+=========================
+
+  TeX supports most natural languages.  See also *Note TeX extensions:
+TeX extensions.
+
+* Menu:
+
+* MLTeX::                Multi-lingual TeX.
+* patgen invocation::    Creating hyphenation patterns.
+
+
+File: web2c.info,  Node: MLTeX,  Next: patgen invocation,  Up: Languages and hyphenation
+
+MLTeX: Multi-lingual TeX
+------------------------
+
+  Multi-lingual TeX (`mltex') is an extension of TeX originally written
+by Michael Ferguson and now updated and maintained by Bernd Raichle.
+It allows the use of non-existing glyphs in a font by declaring glyph
+substitutions.  These are restricted to substitutions of an accented
+character glyph, which need not be defined in the current font, by its
+appropriate `\accent' construction using a base and accent character
+glyph, which do have to exist in the current font.  This substitution
+is automatically done behind the scenes, if necessary, and thus MLTeX
+additionally supports hyphenation of words containing an accented
+character glyph for fonts missing this glyph (e.g., Computer Modern).
+Standard TeX suppresses hyphenation in this case.
+
+  MLTeX works at `.fmt'-creation time: the basic idea is to specify the
+`-mltex' option to TeX when you `\dump' a format.  Then, when you
+subsequently invoke TeX and read that `.fmt' file, the MLTeX features
+described below will be enabled.
+
+  Generally, you use special macro files to create an MLTeX `.fmt'
+file.  See:
+     CTAN:/systems/generic/mltex
+     `ftp://ftp.univ-rennes1.fr/pub/GUTenberg/french/'
+
+  The sections below describe the two new primitives that MLTeX defines.
+Aside from these, MLTeX is completely compatible with standard TeX.
+
+* Menu:
+
+* \charsubdef::                 Character substitution definitions.
+* \tracingcharsubdef::          Tracing substitutions.
+
+
+File: web2c.info,  Node: \charsubdef,  Next: \tracingcharsubdef,  Up: MLTeX
+
+`\charsubdef': Character substitutions
+......................................
+
+  The most important primitive MLTeX adds is `\charsubdef', used in a
+way reminiscent of `\chardef':
+     \charsubdef COMPOSITE [=] ACCENT BASE
+
+  Each of COMPOSITE, ACCENT, and BASE are font glyph numbers, expressed
+in the usual TeX syntax: `\e symbolically, '145 for octal, "65 for hex,
+101 for decimal.
+
+  MLTeX's `\charsubdef' declares how to construct an accented character
+glyph (not necessarily existing in the current font) using two
+character glyphs (that do exist).  Thus it defines whether a character
+glyph code, either typed as a single character or using the `\char'
+primitive, will be mapped to a font glyph or to an `\accent' glyph
+construction.
+
+  For example, if you assume glyph code 138 (decimal) for an
+e-circumflex and you are using the Computer Modern fonts, which have
+the circumflex accent in position 18 and lowercase `e' in the usual
+ASCII position 101 decimal, you would use `\charsubdef' as follows:
+
+     \charsubdef 138 = 18 101
+
+  For the plain TeX format to make use of this substitution, you have
+to redefine the circumflex accent macro `\^' in such a way that if its
+argument is character `e' the expansion `\char138 ' is used instead of
+`\accent18 e'.  Similar `\charsubdef' declaration and macro
+redefinitions have to be done for all other accented characters.
+
+  To disable a previous `\charsubdef C', redefine C as a pair of zeros.
+For example:
+     \charsubdef '321 = 0 0  % disable N tilde
+
+(Octal '321 is the ISO Latin-1 value for the Spanish N tilde.)
+
+  `\charsubdef' commands should only be given once.  Although in
+principle you can use `\charsubdef' at any time, the result is
+unspecified.  If `\charsubdef' declarations are changed, usually either
+incorrect character dimensions will be used or MLTeX will output
+missing character warnings.  (The substitution of a `\charsubdef' is
+used by TeX when appending the character node to the current horizontal
+list, to compute the width of a horizontal box when the box gets
+packed, and when building the `\accent' construction at
+`\shipout'-time.  In summary, the substitution is accessed often, so
+changing it is not desirable, nor generally useful.)
+
+
+File: web2c.info,  Node: \tracingcharsubdef,  Prev: \charsubdef,  Up: MLTeX
+
+`\tracingcharsubdef': Substitution diagnostics
+..............................................
+
+  To help diagnose problems with `\charsubdef', MLTeX provides a new
+primitive parameter, `\tracingcharsubdef'.  If positive, every use of
+`\charsubdef' will be reported.  This can help track down when a
+character is redefined.
+
+  In addition, if the TeX parameter `\tracinglostchars' is 100 or more,
+the character substitutions actually performed at `\shipout'-time will
+be recorded.
+
+
+File: web2c.info,  Node: patgen invocation,  Prev: MLTeX,  Up: Languages and hyphenation
+
+Patgen: Creating hyphenation patterns
+-------------------------------------
+
+  Patgen creates hyphenation patterns from dictionary files for use with
+TeX. Synopsis:
+
+     patgen DICTIONARY PATTERNS OUTPUT TRANSLATE
+
+  Each argument is a filename. No path searching is done. The output is
+written to the file OUTPUT.
+
+  In addition, Patgen prompts interactively for other values.
+
+  For more information, see `Word hy-phen-a-tion by com-puter' by Frank
+Liang (*note References::.), and also the `patgen.web' source file.
+
+  The only options are `-help' and `-version' (*note Common options::.).
+
+
+File: web2c.info,  Node: IPC and TeX,  Next: TeX extensions,  Prev: Languages and hyphenation,  Up: TeX
+
+IPC and TeX
+===========
+
+  (Sorry, but I'm not going to write this unless someone actually uses
+this feature. Let me know.)
+
+  This functionality is available only if the `--enable-ipc' option was
+specified to `configure' during installation of Web2c (*note
+Installation::.).
+
+  If you define `IPC_DEBUG' before compilation (e.g., with `make
+XCFLAGS=-DIPC_DEBUG'), TeX will print messages to standard error about
+its socket operations.  This may be helpful if you are, well, debugging.
+

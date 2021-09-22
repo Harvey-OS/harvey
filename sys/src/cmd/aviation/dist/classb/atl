@@ -1,0 +1,141 @@
+vm 0-2
+pA 33.628972, 84.435139	# atl vor
+pF 33.779028, 84.521444	# fty
+
+va 092			# look up
+
+pa d pA,m(va-90),6
+pb d pA,m(va+90),3
+
+pc xccw pF,t5, pA,7
+pd xcle pF,t5, pa,m(va)
+pe xcle pA,7, pa,m(va)
+pf xcle pA,7, pb,m(va)
+pg xclw pA,7, pb,m(va)
+
+n atl_gnd\125
+al pF,pc,pd
+s pd,pe
+ar pA,pe,pf
+s pf,pg
+ar pA,pg,pc
+
+ph xcle pA,9, pa,m(va)
+pi xcle pA,9, pA,m(va)
+pj xcle pA,7, pA,m(va)
+
+n atl_21\125
+s pe,ph
+ar pA,ph,pi
+s pi,pj
+
+pk xcle pA,12, pa,m(va)
+pl xcle pA,12, pb,m(va)
+pm xclw pF,t5, pa,m(va)
+pn xclw pA,12, pa,m(va)
+po xclw pA,12, pb,m(va)
+
+n atl_25\125
+s ph,pk
+ar pA,pk,pl
+s pl,pf
+ar pF,pc,pm
+s pm,pn
+al pA,pn,po
+s po,pg
+
+pp d pA,m(va-90),10
+pq d pA,m(va+90),7
+
+pr xcle pA,20, pp,m(va)
+ps xcle pA,20, pq,m(va)
+pt xclw pA,20, pq,m(va)
+pu xclw pA,20, pp,m(va)
+
+n atl_35\125
+ar pA,pr,ps
+s ps,pt
+ar pA,pt,pu
+s pu,pr
+
+pv d pA,m(va-90),14
+pw d pA,m(va+90),11
+
+p*a d pA,m(va),20
+p*b d pA,m(va),25
+p*c xcle pA,25, pw,m(va)
+p*d xll pA,m(va+90-40), pw,m(va)
+p*e xll pA,m(va+90-40), pq,m(va)
+
+p*f d pA,m(va+180),20
+p*g d pA,m(va+180),25
+p*h xclw pA,25, pw,m(va)
+p*i xll pA,m(va+90+40), pw,m(va)
+p*j xll pA,m(va+90+40), pq,m(va)
+
+n atl_40\125
+s p*a,p*b
+ar pA,p*b,p*c
+s p*c,p*d
+s p*d,p*e
+
+s p*f,p*g
+al pA,p*g,p*h
+s p*h,p*i
+s p*i,p*j
+
+p*k d pA,m(va+90-40), 25
+p*l d pA,m(va+90+40), 25
+
+n atl_50\125
+ar pA,p*c,p*k
+s p*k,p*d
+
+al pA,p*h,p*l
+s p*l,p*i
+
+p*m d pA,m(va-90-35), 25
+p*n xll pA,m(va-90-35), pv,m(va)
+p*o xll pA,m(va-90+35), pv,m(va)
+p*p d pA,m(va-90+35), 25
+
+n atl_60\125
+ar pA,p*g,p*m
+s p*m,p*n
+s p*n,p*o
+s p*o,p*p
+ar pA,p*p,p*b
+
+p*q d pA,m(va+90-60), 30
+p*r d pA,m(va+90+60), 30
+p*s d pA,m(va+90+60), 35
+p*t d pA,m(va+90+40), 35
+p*u d pA,m(va+90+40), 30
+p*v d pA,m(va+90-40), 30
+p*w d pA,m(va+90-40), 35
+p*x d pA,m(va+90-60), 35
+
+n atl_80\125
+al pA,p*q,p*r
+s p*r,p*s
+al pA,p*s,p*t
+s p*t,p*u
+al pA,p*u,p*v
+s p*v,p*w
+al pA,p*w,p*x
+s p*x,p*q
+
+p**a d pA,m(va+90-60), 42
+p**b d pA,m(va+90-40), 42
+p**c d pA,m(va+90+40), 42
+p**d d pA,m(va+90+60), 42
+
+n atl_100\125
+Al pA,p*x,p*s
+Al pA,p*t,p*w
+S p*x,p**a
+Ar pA,p**a,p**b
+S p**b,p*w
+S p*t,p**c
+Ar pA,p**c,p**d
+S p**d,p*s

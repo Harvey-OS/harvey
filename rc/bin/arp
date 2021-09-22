@@ -1,0 +1,10 @@
+#!/bin/rc
+# arp [/net/arp] - format /net*/arp more usefully
+if (! ~ $#* 1)
+	* = (/net/arp)		# default
+if (test -d $1)
+	* = $1^/arp		# accept just the directory name
+{
+	grep 'OK|WAIT' $1 | column 3 4 | grep '\.' | sort -t. +3n	# v4
+	grep 'OK|WAIT' $1 | column 3 4 | grep -v '\.' | sort		# v6
+} | column 2 1

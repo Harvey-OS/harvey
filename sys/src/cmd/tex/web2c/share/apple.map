@@ -1,0 +1,18 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "apple.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "18      68     453",
+@c   docstring = "Apple fonts."
+@c }
+@c From kahn@math.toronto.edu.
+eecr8r   AppleChancery
+eger8r   Geneva
+ehtr8r   HoeflerText
+emcr8r   Monaco
+epi001   Zeal
+eskr8r   Skia

@@ -1,0 +1,114 @@
+In order to reduce network load, it is recommended that you use the
+Comprehensive TeX Archive Network (CTAN) host which is located in the
+closest network proximity to your site.  Alternatively, you may wish to
+obtain a copy of the CTAN via CD-ROM (see help/CTAN.cdrom for details).
+
+Known mirrors of the CTAN reside on (alphabetically, by country):
+  ctan.unsw.edu.au (NSW, Australia)       /tex-archive
+  mirror.aarnet.edu.au (QLD, Australia)   /pub/tex-archive
+  ftp.univie.ac.at (Austria)              /packages/tex
+  gd.tuwien.ac.at (Austria)               /publishing/tex/CTAN
+
+  ftp.belnet.be (Belgium)                 /packages/TeX
+
+  ctan.math.mun.ca (Newfoundland, Canada) /tex-archive 
+  scratchy.emate.ucr.ac.cr (Costa Rica)   /pub/ctan
+
+  ftp.cstug.cz (The Czech Republic)       /pub/tex/CTAN
+
+  ftp.net.uni-c.dk (Denmark)              /mirror/ftp.tex.ac.uk/tex-archive
+  sunsite.auc.dk (Denmark)                /pub/tex/ctan
+
+  ftp.gwdg.de (Germany)                   /pub/dante
+  ftp.informatik.uni-hamburg.de (Germany) /tex-archive
+  ftp.mpi-sb.mpg.de (Germany)             /pub/tex/mirror/ftp.dante.de
+  ftp.tu-chemnitz.de (Germany)            /pub/tex
+  ftp.uni-augsburg.de (Germany)           /pub/tex/ctan
+  ftp.uni-bielefeld.de (Germany)          /pub/tex
+  ftp.uni-mainz.de (Germany)              /pub/tex
+  ftp.uni-stuttgart.de (Germany)          /tex-archive (/pub/tex)
+
+  ftp.ut.ee (Estonia)                     /tex-archive
+
+  ftp.funet.fi (Finland)                  /pub/TeX/CTAN
+  ftp.jussieu.fr (France)                 /pub4/TeX/CTAN
+  ftp.loria.fr (France)                   /pub/ctan
+  ftp.oleane.net (France)                 /pub/mirrors/CTAN/
+  ftp.uvsq.fr (France)                    /pub/TeX/CTAN
+
+  ftp.ntua.gr (Greece)                    /mirror/ctan
+
+  ftp.comp.hkbu.edu.hk (Hong Kong)        /pub/TeX/CTAN
+  ftp.sztaki.hu (Hungary)                 /pub/tex
+
+  ftp.heanet.ie (Ireland)                 /pub/ctan/tex
+  cis.uniRoma2.it (Italy)                 /TeX
+  ftp.unina.it (Italy)                    /pub/TeX
+
+  ftp.lab.kdd.co.jp (Japan)               /CTAN
+  ftp.meisei-u.ac.jp (Japan)              /pub/CTAN
+  ftp.riken.go.jp (Japan)                 /pub/tex-archive
+  ftp.u-aizu.ac.jp (Japan)                /pub/tex/CTAN
+  sunsite.sut.ac.jp (Japan)               /pub/archives/ctan
+
+  ftp.kreonet.re.kr (Korea)               /pub/CTAN
+
+  ftp.ntg.nl (The Netherlands)            /pub/tex-archive
+
+  sunsite.icm.edu.pl (Poland)             /pub/CTAN
+
+  ftp.chg.ru (Russia)                     /pub/TeX/CTAN
+  ftp.radio-msu.net (Russia *only*)       /tex-archive
+  tex.ihep.su (Russia)                    /pub/TeX/CTAN
+
+  ftp.nus.edu.sg (Singapore)              /pub/docs/TeX
+  ftp.linux.co.za (South Africa)          /pub/ctan
+  ftp.rediris.es (Spain)                  /mirror/tex-archive
+  ftp.sunsite.kth.se (Sweden)             /pub/tex
+  sunsite.cnlab-switch.ch (Switzerland)   /mirror/tex
+
+  ftp.ccu.edu.tw (Taiwan)                 /pub/tex
+  dongpo.math.ncu.edu.tw (Taiwan)         /tex-archive
+  sunsite.bilkent.edu.tr (Turkey)         /pub/tex/ctan
+
+  sunsite.doc.ic.ac.uk (UK)               /packages/tex/uk-tex
+  csociety-ftp.ecn.purdue.edu (Indiana, USA) /pub/ctan
+  ftp.cdrom.com (West coast, USA)         /pub/tex/ctan
+  ftp.cise.ufl.edu (Florida, USA)         /tex-archive
+  ftp.duke.edu (North Carolina, USA)      /tex-archive
+  ftp.rge.com (New York, USA)             /pub/tex
+  joshua.smcvt.edu (Vermont, USA)         /pub/tex
+  sunsite.unc.edu (North Carolina, USA)   /pub/packages/TeX
+  wuarchive.wustl.edu (Missouri, USA)     /packages/TeX
+
+Known partial mirrors of the CTAN reside on:
+  ftp.dcc.uchile.cl (Chile)               /pub/Mirror/ctan
+  ftp.germany.eu.net (Germany)            /pub/packages/TeX
+  ftp.gust.org.pl (Poland)                /pub/TeX
+  sunsite.dsi.unimi.it (Italy)            /pub/TeX
+  sunsite.snu.ac.kr (Korea)               /shortcut/CTAN
+  ftp.jaist.ac.jp (Japan)                 /pub/TeX/tex-archive
+  ftp.fcu.edu.tw (Taiwan)                 /pub2/tex
+  ftp.uu.net (Virginia, USA)              /pub/text-processing/TeX
+
+Please send updates to this list to <ctan@urz.uni-heidelberg.de>.
+
+The participating hosts in the Comprehensive TeX Archive Network are:
+  ftp.dante.de  (Mainz, Germany)         
+       -- anonymous ftp                   /tex-archive (/pub/tex /pub/archive)
+       -- gopher on node gopher.dante.de
+       -- email via ftpmail@dante.de
+       -- World Wide Web access on http://www.dante.de/
+       -- Administrator: <ftpmaint@dante.de>
+
+  ftp.tex.ac.uk (Cambridge, UK)
+       -- anonymous ftp                   /tex-archive (/pub/tex /pub/archive)
+       -- gopher on node gopher.tex.ac.uk
+       -- NFS mountable from nfs.tex.ac.uk:/public/ctan/tex-archive
+       -- World Wide Web access on http://www.tex.ac.uk/
+       -- Administrator: <ctan-uk@tex.ac.uk>
+
+  ctan.tug.org (Boston, Massachusetts, USA)
+       -- anonymous ftp                   /tex-archive (/pub/archive)
+       -- World Wide Web access on http://ctan.tug.org/
+       -- Administrator: <ctan@tug.org>

@@ -4,19 +4,14 @@
 rfork nes
 kern=()
 kerncopy=()
-loadkern=yes
 reboot=no
 fn usage {
-	echo usage: $1 '[-r] [-R] [new-kernel]' >[1=2]
+	echo usage: $1 '[-r] [new-kernel]' >[1=2]
 	exit usage
 }
 if (! ~ $#* 0)
 	switch ($1) {
 	case -r
-		reboot=yes
-		shift
-	case -R
-		loadkern=no
 		reboot=yes
 		shift
 	case -*
@@ -26,6 +21,8 @@ switch ($#*) {
 case 0
 case 1
 	kern = $1
+	if (! test -e $kern)
+		echo $0: caution: no $kern >[1=2]
 case *
 	usage $0
 }
@@ -53,13 +50,12 @@ fn isbootable {
 		*' plan 9 executable'* *ELF*' executable'
 }
 fn usekernel {
-	kerncopy=kern
-	cp $1 /tmp/$kerncopy && echo -n using kernel $1...
+	cp $1 /tmp && echo -n using kernel $1...
+	kerncopy=`{basename $1}
 }
 
 # make a copy of the right kernel
-if (~ $reboot yes)
-if (~ $loadkern yes) {
+if (~ $reboot yes) {
 	if (~ $#kern 0)
 		kern=`{echo $terminal |
 			sed 's;^([^ ]+) .*/([^/ ]+).*$;/n/boot/'$cputype'/9\2;'}
@@ -86,7 +82,8 @@ kill watchdog | rc
 sleep 1
 
 f=`{ls /srv/fscons*>[2]/dev/null}
-k=`{ls /srv/kfs*cmd >[2]/dev/null|sort -r}
+# k=`{ls /srv/kfs*cmd >[2]/dev/null|sort -r}
+k=()
 
 echo -n syncing...
 for(i in $f) @ {
@@ -96,7 +93,7 @@ for(i in $f) @ {
 		dial/drain &
 		sleep 2
 		echo fsys all sync
-		if(! dial/expect -t 120 ': ')
+		if(! dial/expect -t 060 ': ')
 			echo -n 'not synced...' > /dev/cons
 	} < $i >> $i
 }
@@ -122,7 +119,8 @@ for (i in $k){
 
 # halting (binaries we run can't be on the fs we're halting)
 builtin cd /bin
-cp dial/expect echo disk/kfscmd rc sed /tmp
+cp dial/expect echo rc sed /tmp
+# cp disk/kfscmd /tmp
 builtin cd /tmp
 mkdir /tmp/lib
 cp /rc/lib/rcmain /tmp/lib
@@ -154,7 +152,7 @@ fn x {
 		}
 	}
 	echo
-	echo done halting
+	echo done halting fs
 
 	if (~ $reboot yes)
 		echo reboot $kerncopy >'#c/reboot'

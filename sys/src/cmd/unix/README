@@ -2,10 +2,6 @@
 This directory contains source for some programs that
 help Plan 9 co-exist with the non-Plan 9 world.
 
-	9pfreebsd/
-		Patches to FreeBSD 3.2 to add the IL network protocol
-		and the pre-9P2000 version of 9P.
-
 	drawterm/
 		Drawterm is a Unix and Windows program that simulates
 		a Plan 9 terminal to connect to a Plan 9 cpu server.

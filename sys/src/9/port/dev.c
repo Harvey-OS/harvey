@@ -149,7 +149,7 @@ devclone(Chan *c)
 	Chan *nc;
 
 	if(c->flag & COPEN)
-		panic("clone of open file type %C\n", devtab[c->type]->dc);
+		panic("clone of open file type %C", devtab[c->type]->dc);
 
 	nc = newchan();
 

@@ -119,7 +119,7 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 	if(bp == nil)
 		return;
 	memmove(bp->wp, pkt->d, n);
-	i = TK2MS(MACHP(0)->ticks);
+	i = TK2MS(sys->ticks);
 	bp->wp[58] = len>>8;
 	bp->wp[59] = len;
 	bp->wp[60] = i>>24;
@@ -128,6 +128,15 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 	bp->wp[63] = i;
 	bp->wp += 64;
 	qpass(f->in, bp);
+}
+
+static void
+softovflow(Ether *ether, char *context)
+{
+	if (0)
+		iprint("#l%d: etheriq: soverflow for %s\n", ether->ctlrno,
+			context);
+	ether->soverflows++;
 }
 
 Block*
@@ -142,25 +151,19 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	ether->inpackets++;
 
 	pkt = (Etherpkt*)bp->rp;
-	len = BLEN(bp);
-	type = (pkt->type[0]<<8)|pkt->type[1];
-	fx = 0;
-	ep = &ether->f[Ntypes];
-
 	multi = pkt->d[0] & 1;
 	/* check for valid multicast addresses */
-	if(multi && memcmp(pkt->d, ether->bcast, sizeof(pkt->d)) != 0 && ether->prom == 0){
-		if(!activemulti(ether, pkt->d, sizeof(pkt->d))){
-			if(fromwire){
-				freeb(bp);
-				bp = 0;
-			}
-			return bp;
+	if(multi && memcmp(pkt->d, ether->bcast, sizeof(pkt->d)) != 0 &&
+	    ether->prom == 0 && !activemulti(ether, pkt->d, sizeof(pkt->d))){
+		if(fromwire){
+			freeb(bp);
+			bp = nil;
 		}
+		return bp;
 	}
 
 	/* is it for me? */
-	tome = memcmp(pkt->d, ether->ea, sizeof(pkt->d)) == 0;
+	tome   = memcmp(pkt->d, ether->ea, sizeof(pkt->d)) == 0;
 	fromme = memcmp(pkt->s, ether->ea, sizeof(pkt->s)) == 0;
 
 	/*
@@ -169,47 +172,39 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	 * attempt to simply pass it into one of the connections, thereby
 	 * saving a copy of the data (usual case hopefully).
 	 */
-	for(fp = ether->f; fp < ep; fp++){
-		if(f = *fp)
-		if(f->type == type || f->type < 0)
-		if(tome || multi || f->prom){
-			/* Don't want to hear bridged packets */
-			if(f->bridge && !fromwire && !fromme)
-				continue;
-			if(!f->headersonly){
-				if(fromwire && fx == 0)
-					fx = f;
-				else if(xbp = iallocb(len)){
-					memmove(xbp->wp, pkt, len);
-					xbp->wp += len;
-					if(qpass(f->in, xbp) < 0){
-						// print("soverflow for f->in\n");
-						ether->soverflows++;
-					}
-				}
-				else{
-					// print("soverflow iallocb\n");
-					ether->soverflows++;
-				}
-			}
-			else
-				etherrtrace(f, pkt, len);
-		}
-	}
+	fx = nil;
+	len = BLEN(bp);
+	type = (pkt->type[0]<<8)|pkt->type[1];
+	ep = &ether->f[Ntypes];
+	for(fp = ether->f; fp < ep; fp++)
+		if((f = *fp) == nil || f->type != type && f->type >= 0)
+			continue;
+		else if(!tome && !multi && !f->prom)
+			continue;
+		/* Don't want to hear bridged packets */
+		else if(f->bridge && !fromwire && !fromme)
+			continue;
+		else if(f->headersonly)
+			etherrtrace(f, pkt, len);
+		else if(fromwire && fx == nil)
+			fx = f;
+		else if(xbp = iallocb(len)){
+			memmove(xbp->wp, pkt, len);
+			xbp->wp += len;
+			if(qpass(f->in, xbp) < 0)
+				softovflow(ether, "fx->in copy");
+		} else
+			softovflow(ether, "iallocb");
 
 	if(fx){
-		if(qpass(fx->in, bp) < 0){
-			// print("soverflow for fx->in\n");
-			ether->soverflows++;
-		}
-		return 0;
-	}
-	if(fromwire){
+		if(qpass(fx->in, bp) < 0)
+			softovflow(ether, "fx->in normal");
+		return nil;
+	} else if(fromwire){
 		freeb(bp);
-		return 0;
-	}
-
-	return bp;
+		return nil;
+	} else
+		return bp;
 }
 
 static int
@@ -218,6 +213,10 @@ etheroq(Ether* ether, Block* bp)
 	int len, loopback, s;
 	Etherpkt *pkt;
 
+	if (active.exiting) {
+		freeb(bp);
+		return 0;
+	}
 	ether->outpackets++;
 
 	/*
@@ -232,7 +231,8 @@ etheroq(Ether* ether, Block* bp)
 	pkt = (Etherpkt*)bp->rp;
 	len = BLEN(bp);
 	loopback = memcmp(pkt->d, ether->ea, sizeof(pkt->d)) == 0;
-	if(loopback || memcmp(pkt->d, ether->bcast, sizeof(pkt->d)) == 0 || ether->prom){
+	if(loopback || memcmp(pkt->d, ether->bcast, sizeof(pkt->d)) == 0 ||
+	    ether->prom){
 		s = splhi();
 		etheriq(ether, bp, 0);
 		splx(s);
@@ -305,26 +305,22 @@ etherbwrite(Chan* chan, Block* bp, ulong)
 	long n;
 
 	n = BLEN(bp);
+	if(waserror()) {
+		freeb(bp);
+		nexterror();
+	}
 	if(NETTYPE(chan->qid.path) != Ndataqid){
-		if(waserror()) {
-			freeb(bp);
-			nexterror();
-		}
 		n = etherwrite(chan, bp->rp, n, 0);
 		poperror();
 		freeb(bp);
 		return n;
 	}
 	ether = etherxx[chan->dev];
-
-	if(n > ether->mtu){
-		freeb(bp);
+	if(n > ether->mtu)
 		error(Etoobig);
-	}
-	if(n < ether->minmtu){
-		freeb(bp);
+	if(n < ether->minmtu)
 		error(Etoosmall);
-	}
+	poperror();
 
 	return etheroq(ether, bp);
 }
@@ -334,13 +330,14 @@ static struct {
 	int	(*reset)(Ether*);
 } cards[MaxEther+1];
 
+/* adds a model of ethernet card, not a specific instance */
 void
 addethercard(char* t, int (*r)(Ether*))
 {
-	static int ncard;
+	static unsigned ncard;
 
-	if(ncard == MaxEther)
-		panic("too many ether cards");
+	if(ncard >= MaxEther)
+		panic("too many ether cards (%d)", ncard);
 	cards[ncard].type = t;
 	cards[ncard].reset = r;
 	ncard++;
@@ -375,6 +372,7 @@ etherprobe(int cardno, int ctlrno)
 	int i, lg;
 	ulong mb, bsz;
 	Ether *ether;
+	char *p, *e;
 	char buf[128], name[32];
 
 	ether = malloc(sizeof(Ether));
@@ -383,10 +381,9 @@ etherprobe(int cardno, int ctlrno)
 	memset(ether, 0, sizeof(Ether));
 	ether->ctlrno = ctlrno;
 	ether->tbdf = BUSUNKNOWN;
-	ether->mbps = 10;
+	ether->mbps = 1000;
 	ether->minmtu = ETHERMINTU;
-	ether->maxmtu = ETHERMAXTU;
-	ether->mtu = ETHERMAXTU;
+	ether->maxmtu = ether->mtu = ETHERMAXTU;
 
 	if(cardno < 0){
 		if(isaconfig("ether", ctlrno, ether) == 0){
@@ -410,7 +407,7 @@ etherprobe(int cardno, int ctlrno)
 		free(ether);
 		return nil;
 	}
-	if(cards[cardno].reset(ether) < 0){
+	if(cards[cardno].reset(ether) < 0){	/* fills in irq, etc. */
 		free(ether);
 		return nil;
 	}
@@ -429,22 +426,25 @@ etherprobe(int cardno, int ctlrno)
 	 * used by ethersink.
 	 */
 	if(ether->irq >= 0)
-		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
+		ether->irq = intrenable(ether->irq, ether->interrupt, ether,
+			ether->tbdf, name);
 
-	i = sprint(buf, "#l%d: %s: ", ctlrno, cards[cardno].type);
+	p = buf;
+	e = buf + sizeof buf;
+	p = seprint(p, e, "#l%d: %s: ", ctlrno, cards[cardno].type);
 	if(ether->mbps >= 1000)
-		i += sprint(buf+i, "%dGbps", ether->mbps/1000);
+		p = seprint(p, e, "%dGbps", ether->mbps/1000);
 	else
-		i += sprint(buf+i, "%dMbps", ether->mbps);
-	i += sprint(buf+i, " port 0x%luX irq %d", ether->port, ether->irq);
+		p = seprint(p, e, "%dMbps", ether->mbps);
+	p = seprint(p, e, " regs %#p irq %d", ether->port, ether->irq);
 	if(ether->mem)
-		i += sprint(buf+i, " addr 0x%luX", ether->mem);
+		p = seprint(p, e, " addr %#p", ether->mem);
 	if(ether->size)
-		i += sprint(buf+i, " size 0x%luX", ether->size);
-	i += sprint(buf+i, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
+		p = seprint(p, e, " size %ld", ether->size);
+	p = seprint(p, e, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		ether->ea[0], ether->ea[1], ether->ea[2],
 		ether->ea[3], ether->ea[4], ether->ea[5]);
-	sprint(buf+i, "\n");
+	seprint(p, e, "\n");
 	print(buf);
 
 	/*
@@ -457,7 +457,10 @@ etherprobe(int cardno, int ctlrno)
 	 */
 
 	/* compute log10(ether->mbps) into lg */
-	for(lg = 0, mb = ether->mbps; mb >= 10; lg++)
+	mb = ether->mbps;
+	if (mb < 1000)			/* implausible nowadays */
+		mb = 1000;
+	for(lg = 0; mb >= 10; lg++)
 		mb /= 10;
 	if (lg > 14)			/* sanity cap; 2**(14+15) = 2²⁹ */
 		lg = 14;
@@ -507,6 +510,12 @@ etherreset(void)
 		}
 		etherxx[ctlrno] = ether;
 		ctlrno++;
+	}
+	if (ctlrno == 0) {
+		print("no known ethernet interfaces found\n");
+		pcihinv(nil);
+		for(;;)
+			tsleep(&up->sleep, return0, 0, 1000);
 	}
 }
 
@@ -569,3 +578,38 @@ Dev etherdevtab = {
 	devremove,
 	etherwstat,
 };
+
+enum {
+	Ethidlen	= 32,
+};
+
+/* common to intel *gbe drivers, so far */
+int
+etherfmt(Fmt* fmt)
+{
+	char *p;
+	int r, ctlrno;
+	Ctlr *ctlr;
+	Ethident *ctlrcomm;
+
+	if((p = malloc(Ethidlen)) == nil)
+		return fmtstrcpy(fmt, "(etherfmt)");
+	switch(fmt->r){
+	case L'æ':
+		ctlr = va_arg(fmt->args, Ctlr *);
+		if(ctlr == nil) {
+			snprint(p, Ethidlen, "#l?");
+			break;
+		}
+		ctlrcomm = (Ethident *)ctlr;
+		ctlrno = ctlrcomm->edev == nil? -1: ctlrcomm->edev->ctlrno;
+		snprint(p, Ethidlen, "#l%d: %s", ctlrno, ctlrcomm->prtype);
+		break;
+	default:
+		snprint(p, Ethidlen, "(etherfmt)");
+		break;
+	}
+	r = fmtstrcpy(fmt, p);
+	free(p);
+	return r;
+}

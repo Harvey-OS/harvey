@@ -3,21 +3,26 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static long totalmalloc;
+static vlong totalmalloc;
 
 void*
-_threadmalloc(long size, int z)
+_threadmalloc(uintptr size, int z)
 {
 	void *m;
 
 	m = malloc(size);
 	if (m == nil)
-		sysfatal("Malloc of size %ld failed: %r", size);
+		sysfatal("Malloc of size %lld failed: %r", (vlong)size);
 	setmalloctag(m, getcallerpc(&size));
 	totalmalloc += size;
-	if (size > 100000000) {
-		fprint(2, "Malloc of size %ld, total %ld\n", size, totalmalloc);
-		abort();
+	if (1 || size > 100000000) {	// TODO: restore
+		static int log = -1;
+
+		if (log < 0)
+			log = open("/sys/log/plumber", OWRITE);
+		fprint(log, "Malloc of size %lld, total %lld\n",
+			(vlong)size, totalmalloc);
+//		abort();
 	}
 	if (z)
 		memset(m, 0, size);

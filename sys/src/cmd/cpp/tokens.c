@@ -92,7 +92,7 @@ growtokenrow(Tokenrow *trp)
 	int nlast = trp->lp - trp->bp;
 
 	trp->max = 3*trp->max/2 + 1;
-	trp->bp = (Token *)realloc(trp->bp, trp->max*sizeof(Token));
+	trp->bp = (Token *)dorealloc(trp->bp, trp->max*sizeof(Token));
 	trp->lp = &trp->bp[nlast];
 	trp->tp = &trp->bp[ncur];
 	return trp->lp;

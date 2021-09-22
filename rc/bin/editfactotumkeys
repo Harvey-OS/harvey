@@ -1,0 +1,35 @@
+#!/bin/rc
+
+rfork n
+ramfs
+cd /tmp
+
+switch($#*){
+case 0
+	editor=acme
+case 1
+	editor=$1
+case *
+	echo 'usage: editfactotumkeys [editor]' >[1=2]
+	exit usage
+}
+
+myfactotum=1
+if(! syscall open /mnt/factotum/ctl 2 >[2]/dev/null)
+	myfactotum=0
+
+echo fetching keys...
+if(! auth/secstore -g factotum)
+	exit secstore
+cp factotum factotum.o || exit secstore
+$editor factotum
+if(! cmp factotum factotum.o >[2]/dev/null >/dev/null){
+	sleep 2	# wait for samterm to exit
+	echo 'keys modified; writing back...'
+	auth/secstore -p factotum
+	# why not use read -m here?  no one else uses aux/lines.
+	if(~ $myfactotum 1)
+		aux/lines <factotum >/mnt/factotum/ctl
+}
+if not
+	echo 'keys unchanged.'

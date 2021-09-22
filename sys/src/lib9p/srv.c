@@ -213,7 +213,8 @@ sattach(Srv *srv, Req *r)
 		return;
 	}
 	r->afid = nil;
-	if(r->ifcall.afid != NOFID && (r->afid = lookupfid(srv->fpool, r->ifcall.afid)) == nil){
+	if(r->ifcall.afid != NOFID &&
+	    (r->afid = lookupfid(srv->fpool, r->ifcall.afid)) == nil){
 		respond(r, Eunknownfid);
 		return;
 	}
@@ -228,7 +229,6 @@ sattach(Srv *srv, Req *r)
 		srv->attach(r);
 	else
 		respond(r, nil);
-	return;
 }
 static void
 rattach(Req *r, char *error)

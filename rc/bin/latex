@@ -1,0 +1,10 @@
+#!/bin/rc
+
+if(~ $NEWTEX no)
+	exec /sys/lib/tex/bin/$cputype/virtex '&latex386' $*
+
+rfork en
+bind -b /sys/lib/texmf/bin/$cputype /bin
+bind -b /sys/lib/texmf/bin/rc /bin
+
+/sys/lib/texmf/bin/$cputype/_tex '&'latex.`{endian} $*

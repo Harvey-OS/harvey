@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin
+TARG=aoesrv
+
+OFILES=\
+	aoesrv.$O\
+
+HFILES=aoe.h
+
+</sys/src/cmd/mkone
+
+CFLAGS=$CFLAGS -I/sys/src/9/port

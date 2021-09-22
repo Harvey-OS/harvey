@@ -1328,13 +1328,13 @@ error:
 }
 
 void *
-emalloc(ulong n)
+emalloc(uintptr n)
 {
 	void *p;
 
 	p = mallocz(n, 1);
 	if(!p){
-		fprint(2, "%s: out of memory alloc %lud\n", argv0, n);
+		fprint(2, "%s: out of memory alloc %llud\n", argv0, (uvlong)n);
 		exits("out of memory");
 	}
 	setmalloctag(p, getcallerpc(&n));
@@ -1342,13 +1342,14 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uintptr n)
 {
 	if(n == 0)
 		n = 1;
 	p = realloc(p, n);
 	if(!p){
-		fprint(2, "%s: out of memory realloc %lud\n", argv0, n);
+		fprint(2, "%s: out of memory realloc %llud\n",
+			argv0, (uvlong)n);
 		exits("out of memory");
 	}
 	setrealloctag(p, getcallerpc(&p));
@@ -1382,7 +1383,7 @@ mailplumb(Mailbox *mb, Message *m, int delete)
 	else
 		date = "";
 
-	sprint(lenstr, "%ld", m->end-m->start);
+	snprint(lenstr, sizeof lenstr, "%d", (int)(m->end - m->start));
 
 	if(biffing && !delete)
 		print("[ %s / %s / %s ]\n", from, subject, lenstr);

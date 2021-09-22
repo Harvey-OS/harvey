@@ -1,4 +1,3 @@
-#if defined(V9) || defined(BSD4_2) || defined(plan9)
 #define _BSD_EXTENSION
 
 #include <stdio.h>
@@ -36,4 +35,3 @@ tempnam(char *dir, char *pfx)
 	} while (stat(tnm, &stb) >= 0 && seq < 256);
 	return tnm;
 }
-#endif

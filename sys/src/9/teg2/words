@@ -1,11 +1,34 @@
-this is a plan 9 port to the Trimslice with tegra2 soc: dual-core,
-dual-issue 1GHz Cortex-A9 system (v7a arch).
+this is a plan 9 port to the Compulab Trimslice using Nvidia's tegra2 soc:
+a dual-core, dual-issue, out-of-order, speculative-execution 1GHz Cortex-A9
+MPcore r1p0 system (v7-a arch.).  it prefetches speculatively and
+aggressively.  it's no xeon, though.
 
 dram is 1GB at 0.
-linux believes that u-boot runs in the bottom 4MB.
-the l2 cache is a non-architectural bag nailed on the side.
-mp arm systems have a generic interrupt controller; this one is gic v1(!).
-vfp 3 floating-point is present.
+has vfp 3 floating-point.
+linux believes that u-boot runs in the bottom 4MB, and u-boot sets
+loadaddr to 0x408000.
+
+l1 & l2 caches are kept coherent by scu (snoop control unit) hardware once
+CpACsmpcoher is set.  NB: v7 arch allows few L1 cache ops, mainly
+invalidation.  the l2 cache (pl310 r2p0) is a non-architectural bag nailed
+on the side, but the scu even coordinates with it.
+
+nvidia says that the tegra 2 includes the acp (accelerator coherency port),
+which should reduce the cost of dma by eliminating the need for cache
+maintainence around it, but it isn't obvious how to invoke the acp and
+experimentation failed.
+
+mp arm systems have a generic interrupt controller; this one is gic
+v1(!) similar to pl390.  has trustzone (secure & non-secure modes),
+security extensions, 31 lspi (lockable irqs) and 160 itlines (5
+interrupt controllers), including local interrupts.  we use the secure
+world exclusively, ignoring the non-secure world and all hypervisor hooks.
+
+everything has errata (hardware bugs); the notable docs are from arm
+for the cortex-a9, pl310 l2 cache and gic v1 interrupt controller.
+
+uarts are numbered 1-5, also known as a-e, respectively.  uart1 (a.k.a.
+uarta) is connected to the front at P3, an ultra mini connector.
 
 section numbers (§) are in the tegra 2 tech. ref. man.
 for a minimal cpu server, need these devices to work:
@@ -21,7 +44,7 @@ then add these:
 ☑	l2 cache (l2cache.pl310.pdf, errata),
 ☑	fpu (cortex.a9.fp.pdf),
 ☑	user profiling,
-	kprof,
+☑	kprof (needed small fix to kprof(1)),
 	in-line 64-bit arithmetic,
 eventually might want:
 	usb (e.g., for sata) §26,
@@ -32,9 +55,7 @@ and the really horrid ones:
 	mmc §25.
 
 physical memory map
-
 0		1GB	ram
-
 40000000 	256K	iram (audio/video memory)
 50000000		cortex-a9 cpu regs, periphbase, intr distrib, memsel,
 			l2 cache
@@ -43,13 +64,20 @@ physical memory map
 60000000	256MB	ppsb bus dev regs, including semas, intr ctlr, dma,
 			arm7 cache, gpio, except. vects
 70000000	256MB	apc bus regs, including uarts, nand, nor, spi, rtc
-
-80000000	1GB	ahb extern mem, pcie for cpu only
-90000000-97ffffff	pcie 0 mem(?)
-a0000000-a7ffffff	pcie 0 prefetch mem, includes rtl8111dl ether(?)
-a0020000		ether region 4
-a0024000		ether region 2
-
+80000000	1GB	ahb extern mem, pcie for cpu only;
+			dram, goes through acp
+80000000		pcie port 0 regs
+80001000		pcie port 1 regs
+80003000		pads regs
+80003800		afi regs
+80400000		ether bar 0
+82000000-8200ffff	pcie downstream i/o
+90000000-9fffffff	pcie config space
+90000000-9fffffff	pcie 0 mem
+a0000000-afffffff	pcie non-prefetch mem, includes rtl8111dl ether(?)
+a0000000		ether bar 2 - 8169 ctlr regs
+a0004000		ether bar 4
+b0000000-bfffffff 256MB	pcie prefetch mem
 c0000000	256MB	ahb bus			virtual b0000000
 c3000000-c80007ff 81MB	ide, usb, sata, mmc
 d0000000	256MB	nor flash		virtual 40000000
@@ -58,3 +86,30 @@ fff00000	48K	irom boot code
 ffff0000	64K	high vectors
 
 use 0xc0000000 as KZERO.
+
+mpidr 0x80000000 cpu 0 cluster 0 of an mp system
+clidr 0x09200003 LoUU=LoC=LoIUS=1 ctype1=3 (l1 sep i&d), ctype2=0 (no l2)
+mmfr0 0x00100103 innermost shareable non-cacheable [but bit not valid]; no FCSE;
+		aux ctl reg only; no TCM; 1 level shareability;
+		outermost shareable with hardware coherency, vmsa v7 (v7-a).
+mmfr1 0x20000000 branch predictor flush needed on {mmu enabled or disabled,
+		writing instructions, new TTB mappings, any change to TTBR[01]
+		or TTBCR}; no L1 test or clean ops (per v7); no L1 unified or
+		Harvard ops, etc. (per v7).
+mmfr2 0x01230000 no hardware access flag; wfi stalling; {dsb, isb, dmb}
+		supported as cp15 ops; unified tlb ops: invalidate by
+		{mva, all, asid, i&d tlb by {mva, all, asid}}.
+mmfr3 0x00102111 supersections supported; 4gb physical memory supported by
+		caches; updates to translation tables do not require clear
+		to point-of-unification to be visible by TT walks; maint.
+		broadcast: cache, tlb & branch predictor ops affect structures
+		according to shareability and defined behaviour of instructions;
+		branch predictor op supported: invalidate all; cache {mva and
+		set/way} ops: invalidate or clean data or unified caches, also
+		instruction cache by mva or all.
+power control 0x700 maximum clock latency, dynamic clock gating disabled.
+
+pllx base 0x4003e80c misc 0x100
+plle base 0xcd18c801 misc 0x8000
+super cclk divider 0x80000000		# full speed: 1/1
+super sclk divider 0x0

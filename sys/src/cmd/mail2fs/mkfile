@@ -1,0 +1,83 @@
+</$objtype/mkfile
+
+TARG=\
+	mail2fs\
+	msgs\
+	mailplumb\
+	mlist\
+
+SCRIPTS=\
+	Arch\
+	Delmesg\
+#	M\
+	Msgs\
+#	Mg\
+	Mvmesg\
+	Post\
+	Reply\
+	Save\
+	Send\
+	Sort\
+	Spam\
+	mspool\
+
+
+OMAIL2FS=\
+	mail2fs.$O\
+	util.$O\
+	/sys/src/cmd/upas/common/libcommon.a$O\
+
+LIB=
+
+HFILES=\
+	/sys/src/cmd/upas/common/common.h\
+	util.h\
+
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$SCRIPTS\
+	util.c\
+	$HFILES\
+	${TARG:%=%.c}\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkmany
+
+CFLAGS=$CFLAGS -I/sys/include -I/sys/src/cmd/upas/common
+
+$O.mail2fs: $OMAIL2FS
+
+$O.mailplumb: mailplumb.$O util.$O /sys/src/cmd/upas/common/libcommon.a$O
+
+$O.msgs: msgs.$O util.$O /sys/src/cmd/upas/common/libcommon.a$O
+
+install:V:
+	for (i in $TARG) {
+		mk $MKFLAGS $i.install
+#		test -d /n/9$BIN && cp $BIN/$i /n/9$BIN/$i
+	}
+	for (s in $SCRIPTS) {
+		if (test -d /acme/msgs)
+			cp $s /acme/msgs
+		if not
+			sleep 0
+#		cp $s /rc/bin/$s
+#		test -d /n/9/rc/bin && cp $s /n/9/rc/bin/$s
+	}
+
+export:V:
+	mk clean
+	@{
+		rfork n
+		9fs sources
+		bind -b /sys/src/cmd/upas /sys/src/cmd
+		cd /sys/src/cmd
+		contrib/push mail2fs
+		tar cv mail2fs >/n/sources/contrib/nemo/m.tar
+	}
+
+/sys/src/cmd/upas/common/libcommon.a$O:
+	cd /sys/src/cmd/upas/common; mk

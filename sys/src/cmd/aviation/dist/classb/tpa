@@ -1,0 +1,75 @@
+vm 0-2.5
+pT 27.975173, 82.533432	# tpa apt
+pI d pT,m310,1		# center ??
+pS 27.395018, 82.554285	# srq apt
+
+va 130
+pa d pI,m(va),t5
+pb xclw pI,5, pa,m(va+090)
+pc xcle pI,5, pa,m(va+090)
+pd d pI,m195,10
+pe 27.7032,82.6458
+pf 27.7062,82.6792
+pg 27.6826,82.7374
+ph 27.7360,82.7468
+pi 27.8489,82.8444
+pj 27.8859,82.8504
+pk 28.3298,82.7250
+pl 28.3251,82.3238
+pm 28.2662,82.3295
+pn 28.2368,82.3551
+po 28.2296,82.1802
+pp 28.0211,82.1236
+pq 27.9363,82.1201
+pr 27.9371,82.1865
+
+p*a xccw pI,30, pS,10
+p*b d pS,m020,10
+p*c d pI,m100,10
+p*d d pS,m035,10
+p*e 28,83
+p*g xcls pI,30, p*e,0
+p*h xcln pI,30, p*e,0
+p*i d pI,m040,30
+p*j d pI,m145,30
+#BUG wont work with circles reversed
+p*k xcce pS,10, pI,30
+
+n tpa_gnd\100
+s pb,pc
+al pI,pc,pb
+
+n tpa_12\100
+ar pI,pd,p*c
+s p*c,p*b
+al pS,p*b,p*a
+s p*a,pg
+s pg,pf
+s pf,pe
+s pe,pd
+
+n tpa_30\100
+s pg,ph
+s ph,pi
+s pi,pj
+s pj,pk
+s pk,pl
+s pl,pm
+s pm,pn
+s pn,po
+S po,pp
+S pp,pq
+s pq,pr
+s pr,p*d
+al pS,p*d,p*b
+
+n tpa_60\100
+Al pS,p*d,p*a
+Ar pI,p*a,p*g
+S p*g,p*h
+Ar pI,p*h,p*i
+S p*i,po
+
+S pq,p*j
+Ar pI,p*j,p*k
+Al pS,p*k,p*d

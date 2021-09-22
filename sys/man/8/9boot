@@ -1,14 +1,17 @@
 .TH 9BOOT 8
 .SH NAME
-9boot, 9bootpbs, 9load, 9loadusb, pbs \- PC bootstrap programs
+9boot, 9bootpbs, 9load, 9loadusb, mbr, pbs \- PC bootstrap programs
 .SH SYNOPSIS
 .I none
 .SH DESCRIPTION
 .I 9boot
 is a specialized Plan 9 kernel loaded by
 the PXE download (BOOTP/DHCP followed by TFTP)
-found in any reasonable Ethernet card's BIOS; it bootstraps Plan 9 by using
-PXE to load another
+found in any reasonable Ethernet card's BIOS;
+it bootstraps Plan 9 by using
+TTFTP
+(write path name to TCP port 17015 and read its contents)
+or PXE to load another
 .B 386
 or
 .B amd64
@@ -30,7 +33,7 @@ as can
 .I 9load
 and
 .IR 9loadusb .
-It is intended to PXE boot older machines without working PXE ROMs.
+It is intended to network boot older machines without working PXE ROMs.
 .I 9load
 and
 .I 9loadusb
@@ -52,7 +55,10 @@ and the need to avoid intermixing BIOS and non-BIOS disk access.
 .PP
 These programs are run automatically by the boot procedures described below;
 they cannot be run directly by hand.
-There are two bootstrap sequences:
+There are three bootstrap sequences:
+.IP \- 3
+PXE BIOS,
+self-decompressing compressed kernel
 .IP \- 3
 PXE BIOS,
 .IR 9boot ,
@@ -61,10 +67,6 @@ kernel
 BIOS, MBR, disk partition PBS,
 .IR 9load ,
 kernel
-.\" .IP \-
-.\" BIOS, floppy PBS,
-.\" .IR 9load ,
-.\" kernel
 .PP
 In summary,
 Plan 9 is usually booted on a PC
@@ -115,7 +117,9 @@ then loads the
 named within via TFTP,
 trying each ethernet in sequence,
 at the entry address specified by the kernel executable's header,
-usually virtual
+typically virtual
+.B 0xE0100020
+or
 .BR 0xF0100020 .
 After loading,
 .I 9boot
@@ -169,14 +173,13 @@ loaded by the PC partition boot sector program (PBS),
 which usually resides in the first
 sector of the active disk partition.
 It is initially loaded at physical address
-.BR 0x10000 (64K);
+.B 0x10000
+(64K);
 it begins execution at virtual address
 .BR 0x80010000 .
 In order to find configuration information,
 .I 9load
 searches all units on devices
-.\" .BR fd
-.\" and
 .B sd?[0-9]*
 (all
 .B sd
@@ -462,9 +465,9 @@ or
 .IR cpurc (8)).
 .I 9boot
 cannot parse partition tables,
-as it lacks disk drivers, so add
-.L readparts=
-to the machine's
+as it lacks disk drivers, so ensure that
+.L readparts=0
+is absent from the machine's
 .B /cfg/pxe
 file, per
 .IR plan9.ini (8),
@@ -482,12 +485,17 @@ must be contiguously allocated on
 the disk.
 See
 .IR dossrv (4)
-for information on ensuring this.
+for the means to ensure this.
 .SH FILES
-.TF /cfg/pxe
+.TF expand-pxe
 .TP
 .B /386
 these programs reside here
+.TP
+.B expand-pxe
+self-decompressing headers for bootstraps and small kernels
+.TP
+.B expand-pbs
 .TP
 .BI /cfg/pxe
 directory of configuration
@@ -506,7 +514,7 @@ files on your TFTP server
 .B /sys/src/boot/pc
 first-stage disk boot sectors (MBR, PBS)
 .TP
-.B /sys/src/9/pcboot
+.B /sys/src/9/pc^(boot exp)
 PC-bootstrap-specific source
 .TP
 .B /sys/src/9/^(pc port ip)
@@ -532,6 +540,10 @@ and
 .B sdB
 usually only work on the first LBA device in the BIOS's list of boot devices,
 if they work at all.
+.I 9loadusb
+seems to hang for two minutes when attempting to read via the
+BIOS on some BIOSes (e.g., Vmware's),
+then reports a disk timeout on the INT 13 extended read operation.
 .PP
 USB keyboards will only work with
 .I 9boot

@@ -1,0 +1,74 @@
+.TH PLTOTF 1 "27 December 1992" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if n .ds WB Web
+.if t .ds WB W\s-2EB\s0
+.\"=====================================================================
+.SH NAME
+pltotf \- convert property list files to TeX font metric (tfm) format
+.SH SYNOPSIS
+.B pltotf
+[
+.B \-verbose
+]
+.I pl_file_name
+.I tfm_file_name
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B pltotf
+program translates a (human-oriented) \*(WB property list file to a
+(program-oriented) \*(TX font metric file. Thus, after editing the property
+list file, a TFM file can be generated for use with, for example,
+.BR tex (1).
+.PP
+Both the
+.I pl_file_name
+and the
+.I tfm_file_name
+must be complete; no adding of default extensions or path searching is done.
+.\"=====================================================================
+.SH OPTIONS
+Without the
+.B \-verbose
+option,
+.B pltotf
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR tftopl (1).
+.br
+Donald E. Knuth,
+.IR "\*(OXware" .
+.br
+Donald E. Knuth,
+.IR "The \*(MFbook" ,
+(Volume C of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13445-4.
+.\"=====================================================================
+.SH AUTHORS
+Donald E. Knuth wrote the program. It was published as
+part of the
+.I \*(OXware
+technical report, available from the \*(TX Users Group.
+Howard Trickey, Pavel Curtis, and Richard Furuta originally ported it to
+Unix.

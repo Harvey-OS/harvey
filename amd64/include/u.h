@@ -6,8 +6,9 @@ typedef unsigned int	uint;
 typedef   signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
+typedef long long	intptr;
 typedef unsigned long long uintptr;
-typedef unsigned long	usize;
+typedef unsigned long usize;  /* changing width changes system call interface */
 typedef	uint		Rune;
 typedef union FPdbleword FPdbleword;
 typedef uintptr		jmp_buf[2];
@@ -15,6 +16,8 @@ typedef uintptr		jmp_buf[2];
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
+
+/* rarely needed and overused */
 typedef unsigned char	u8int;
 typedef unsigned short	u16int;
 typedef unsigned int	u32int;
@@ -55,6 +58,7 @@ union FPdbleword
 	};
 };
 
+/* stdarg - little-endian 64-bit */
 typedef	char*	va_list;
 #define va_start(list, start) list =\
 	(sizeof(start) < 8?\
@@ -70,3 +74,5 @@ typedef	char*	va_list;
 	(sizeof(mode) == 4)?\
 		((list += 8), (mode*)list)[-2]:\
 		((list += sizeof(mode)), (mode*)list)[-1])
+
+#define _BITS64		/* for ape */

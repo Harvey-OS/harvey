@@ -1,5 +1,7 @@
 #!/bin/rc
 # dircp src dest - copy a tree with tar
+rfork e
+cdpath=.
 switch($#*){
 case 2
 	@ {builtin cd $1 && tar cif /fd/1 .} | @ {builtin cd $2 && tar xTf /fd/0}

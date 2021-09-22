@@ -1,0 +1,70 @@
+.ND "December 31, 1984"
+.EQ
+delim $$
+.EN
+.so /usr/jlb/grap/man/macros
+.ds g /bin/grap
+.TL
+GRAP \(em A Language for Typesetting Graphs
+.br
+Tutorial and User Manual
+.AU
+Jon L. Bentley
+Brian W. Kernighan
+.AI
+.MH
+.AB
+.UC GRAP
+is a language for describing plots of data.
+This graph of the 1984
+age distribution in the United States
+.ps 8
+.vs 10
+.G1
+frame ht 1 wid 1.5
+coord x 0,89 y 0,5
+label left "Population" "(in millions)"
+label bottom "1984 Age"
+draw solid
+copy "/usr/jlb/grap/man/agepop.d"
+.G2
+.ps 10
+.vs 12
+is produced by the
+.UC GRAP
+commands
+.P1
+\&.G1
+coord x 0,89 y 0,5
+label left "Population" "(in millions)"
+label bottom "1984 Age"
+draw solid
+copy "agepop.d"
+\&.G2
+.P2
+(Each line in the data file
+.UL agepop.d
+contains an age and the number of Americans of that
+age alive in 1984; the file is sorted by age.)
+.PP
+The
+.UC GRAP
+preprocessor works with
+.UC PIC
+and
+.UC TROFF .
+Most of its input is passed
+through untouched, but statements between
+.UL .G1
+and
+.UL .G2
+are translated into
+.UC PIC
+commands that draw graphs.
+.AE
+.NH
+Introduction
+.PP
+.UC GRAP
+is a language for describing graphical
+displays of data.

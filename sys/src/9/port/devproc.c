@@ -132,7 +132,7 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 
 /*
  * Qids are, in path:
- *	 5 bits of file type (qids above)
+ *	 5 bits of file type (for 20 Q* qids above)
  *	26 bits of process slot number + 1
  *	     in vers,
  *	32 bits of pid, for consistency checking
@@ -852,7 +852,7 @@ procread(Chan *c, void *va, long n, vlong off)
 		for(i = 0; i < 6; i++) {
 			l = p->time[i];
 			if(i == TReal)
-				l = MACHP(0)->ticks - l;
+				l = sys->ticks - l;
 			l = TK2MS(l);
 			readnum(0, statbuf+j+NUMSIZE*i, NUMSIZE, l, NUMSIZE);
 		}
@@ -1181,12 +1181,8 @@ proctext(Chan *c, Proc *p)
 	if(tc == 0)
 		error(Eprocdied);
 
-	if(incref(tc) == 1 || (tc->flag&COPEN) == 0 || tc->mode!=OREAD) {
-		cclose(tc);
-		error(Eprocdied);
-	}
-
-	if(p->pid != PID(c->qid)){
+	if(incref(tc) == 1 || (tc->flag&COPEN) == 0 || tc->mode!=OREAD ||
+	    p->pid != PID(c->qid)){
 		cclose(tc);
 		error(Eprocdied);
 	}
@@ -1252,9 +1248,13 @@ procctlclosefiles(Proc *p, int all, int fd)
 		error(Eprocdied);
 
 	lock(f);
+	if(!all && (fd < 0 || fd > f->maxfd)){
+		unlock(f);
+		error(Ebadarg);
+	}
 	f->ref++;
 	if(all)
-		for(i = 0; i < f->maxfd; i++)
+		for(i = 0; i <= f->maxfd; i++)
 			procctlcloseone(p, f, i);
 	else
 		procctlcloseone(p, f, fd);

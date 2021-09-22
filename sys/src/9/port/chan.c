@@ -68,7 +68,10 @@ dumpmount(void)		/* DEBUGGING */
 				f->from->qid.vers, devtab[f->from->type]->dc,
 				f->from->dev);
 			for(t = f->mount; t; t = t->next)
-				print("\t%#p: %s (umh %#p) (path %#.8llux dev %C %lud)\n", t, t->to->path->s, t->to->umh, t->to->qid.path, devtab[t->to->type]->dc, t->to->dev);
+				print("\t%#p: %s (umh %#p) (path %#.8llux dev %C %lud)\n",
+					t, t->to->path->s, t->to->umh,
+					t->to->qid.path,
+					devtab[t->to->type]->dc, t->to->dev);
 		}
 	}
 	poperror();
@@ -198,7 +201,7 @@ chandevreset(void)
 		iprint("reset:");
 	for(i=0; devtab[i] != nil; i++) {
 		if(debugstart)
-			iprint(" %s", devtab[i]->name);
+			iprint("[%s]", devtab[i]->name);
 		devtab[i]->reset();
 	}
 	if(debugstart)
@@ -214,7 +217,7 @@ chandevinit(void)
 		iprint("init:");
 	for(i=0; devtab[i] != nil; i++) {
 		if(debugstart)
-			iprint(" %s", devtab[i]->name);
+			iprint("(%s)", devtab[i]->name);
 		devtab[i]->init();
 	}
 	if(debugstart)
@@ -1646,7 +1649,7 @@ if(c->umh != nil){
 		goto Open;
 
 	default:
-		panic("unknown namec access %d\n", amode);
+		panic("unknown namec access %d", amode);
 	}
 
 	/* place final element in genbuf for e.g. exec */

@@ -1,0 +1,42 @@
+BUILTINS=
+</$objtype/mkfile
+
+OFILES=\
+	main.$O\
+	eg.$O\
+	cdat.$O\
+	emem.$O\
+	init.$O\
+	log.$O\
+	content.$O\
+	egdb1.$O\
+	cd.$O\
+	ci.$O\
+	cg.$O\
+
+HFILES=\
+	all.h\
+	eg.h\
+
+$O.out:	$OFILES
+	$LD $OFILES
+
+go:V:	$O.out
+	$O.out >/usr/inferno/usr/ken/b.html
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	/sys/src/cmd/ip/httpd/%.c
+	$CC $CFLAGS /sys/src/cmd/ip/httpd/$stem.c
+
+%.$O:	$HFILES
+
+clean:V:
+	rm -f *.[$OS] [$OS].out
+
+install:V:	$O.out
+	cp $O.out /$objtype/bin/ip/httpd/eg
+
+installall:V:
+	for(objtype in $CPUS) mk install

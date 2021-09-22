@@ -1,3 +1,7 @@
+/*
+ * Start-up InterProcessor Interrupt
+ * boot CPUs other than 0.
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -7,22 +11,115 @@
 #include "apic.h"
 #include "sipi.h"
 
-#define SIPIHANDLER	(KZERO+0x3000)
+extern void squidboy(int);
+
+void
+setsipihandler(uintmem sipipa)
+{
+	leputl(KADDR(0x467), sipipa);	/* set start address to sipi handler */
+	/* will need to undo this nvram change after receiving the IPI */
+	nvramwrite(Cmosreset, Rstwarm);
+	coherence();
+}
+
+void
+sendinitipi(int apicno, uintmem sipipa)
+{
+	setsipihandler(sipipa);
+	apicinitipi(apicno);		/* send INIT sipi to self */
+	coherence();
+}
 
 /*
- * Parameters are passed to the bootstrap code via a vector
- * in low memory indexed by the APIC number of the processor.
- * The layout, size, and location have to be kept in sync
- * with the handler code in l64sipi.s.
+ * Allocate and minimally populate new page tables & Mach for the cpu at apicno.
+ *
+ * The data needed per-processor is the sum of the stack, page
+ * table pages, vsvm page and the Mach page.  The layout (Syscomm) is
+ * similar to that described in dat.h for the bootstrap processor
+ * (Sys), but with any unused space elided; see l32p.s, dat.h.
+ *
+ * NOTE: for now, share the page tables with the
+ * bootstrap processor, until this code is worked out,
+ * so only the Mach and stack portions are used below.
  */
-typedef struct Sipi Sipi;
-struct Sipi {
-	u32int	pml4;
-	u32int	_4_;
-	uintptr	stack;
-	Mach*	mach;
-	uintptr	pc;
-};
+static Mach *
+newcpupages(int apicno, Apic *apic, Sipi *sipi)
+{
+	Mach *mach;
+	Syscomm *nsys;
+
+	nsys = mallocalign(sizeof(Syscomm), PGSZ, 0, 0);
+	if(nsys == nil) {
+		print("no memory for cpu%d\n", apic->machno);
+		return nil;
+	}
+
+	/* establish new stack */
+	sipi->pml4 = cr3get();		/* save current pml4 root */
+	/* stack must immediately precede pml4.  see dat.h. */
+	sipi->stack = (uintptr)nsys->pml4;
+
+	/*
+	 * Committed. If the AP startup fails, can't safely
+	 * release the resources, who knows what mischief
+	 * the AP is up to. Perhaps should try to put it
+	 * back into the INIT state?
+	 */
+	mach = &nsys->mach;
+	sipi->mach = mach;
+	mach->machno = apic->machno;		/* NOT one-to-one... */
+	sipi->pc = mach->splpc = (uintptr)squidboy;
+	mach->apicno = apicno;
+	mach->stack = (uintptr)nsys;
+	mach->vsvm = nsys->vsvmpage;
+	mach->pml4 = m->pml4;
+	return mach;
+}
+
+#ifdef unused
+void
+popcpu0sipi(Sipireboot *rebootargs, Sipi *sipi, void *tramp, void *physentry,
+	void *src, int len)
+{
+	rebootargs->tramp = tramp;
+	rebootargs->physentry = physentry;
+	rebootargs->src = src;
+	rebootargs->len = len;
+	sipi->args = (uintptr)rebootargs;
+	sipi->pml4 = cr3get();		/* save current pml4 root */
+	sipi->mach = sys->machptr[0];
+	sipi->stack = PADDR(sys->machptr[0]->pml4);
+	sipi->pc = PADDR((void *)SIPIHANDLER);
+}
+#endif
+
+/*
+ * warm start the cpu for apicno at sipipa, and wait for it.
+ * The Universal Startup Algorithm described in the MP Spec. 1.4.
+ */
+static void
+wakecpu(int apicno, Mach *mach, uintmem sipipa)
+{
+	int i, machno;
+
+	apicsipi(apicno, sipipa); /* send the IPI to warm-start it */
+	coherence();
+
+	/* wait for victim cpu to start and acknowledge */
+	for (i = 5000; i > 0 && mach->splpc != 0; i--)
+		millidelay(1);
+	machno = mach->machno;
+	if (mach->splpc != 0)
+		print("cpu%d didn't start\n", machno);
+	else {
+		DBG("apicno%d: machno %d mach %#p (%#p) %dMHz\n", apicno,
+			machno, mach, sys->machptr[machno], mach->cpumhz);
+		print("%d ", machno);
+	}
+}
+
+Sipi *cpu0sipi;
+Sipi *sipis;
 
 void
 sipi(void)
@@ -30,88 +127,38 @@ sipi(void)
 	Apic *apic;
 	Mach *mach;
 	Sipi *sipi;
-	int apicno, i;
-	u8int *sipiptr;
+	int apicno;
 	uintmem sipipa;
-	u8int *alloc, *p;
-	extern void squidboy(int);
+
+	if (MACHMAX == 1 || dbgflg['S'])
+		return;			/* no other cpus; avoid nvram wear */
 
 	/*
-	 * Move the startup code into place,
-	 * must be aligned properly.
+	 * Copy the startup code into place,
+	 * it must be aligned properly.
 	 */
 	sipipa = mmuphysaddr(SIPIHANDLER);
-	if((sipipa & (4*KiB - 1)) || sipipa > (1*MiB - 2*4*KiB))
+	if(sipipa & (PGSZ - 1) || sipipa > 1*MB - 2*PGSZ) {
+		print("sipi: misaligned code PA %#p\n", sipipa);
 		return;
-	sipiptr = UINT2PTR(SIPIHANDLER);
-	memmove(sipiptr, sipihandler, sizeof(sipihandler));
-	memset(sipiptr+4*KiB, 0, sizeof(Sipi)*Napic);
+	}
+	memmove((uchar *)SIPIHANDLER, sipihandler, sizeof(sipihandler));
 
-	/*
-	 * Notes:
-	 * The Universal Startup Algorithm described in the MP Spec. 1.4.
-	 * The data needed per-processor is the sum of the stack, page
-	 * table pages, vsvm page and the Mach page. The layout is similar
-	 * to that described in data.h for the bootstrap processor, but
-	 * with any unused space elided.
-	 */
+	/* Sipi array fits in 2 pages for Napic <= 256 */
+	sipis = sipi = (Sipi *)(SIPIHANDLER + PGSZ);
+	memset(sipi, 0, sizeof(Sipi)*Napic);
+	cpu0sipi = &sipi[sys->machptr[0]->apicno];
+
+	setsipihandler(sipipa);
+
+	/* start all cpus other than 0 */
 	for(apicno = 0; apicno < Napic; apicno++){
 		apic = &xapic[apicno];
-		if(!apic->useable || apic->addr || apic->machno == 0)
-			continue;
-		sipi = &((Sipi*)(sipiptr+4*KiB))[apicno];
-
-		/*
-		 * NOTE: for now, share the page tables with the
-		 * bootstrap processor, until this code is worked out,
-		 * so only the Mach and stack portions are used below.
-		 */
-		alloc = mallocalign(MACHSTKSZ+4*PTSZ+4*KiB+MACHSZ, 4096, 0, 0);
-		if(alloc == nil)
-			continue;
-		memset(alloc, 0, MACHSTKSZ+4*PTSZ+4*KiB+MACHSZ);
-		p = alloc+MACHSTKSZ;
-
-		sipi->pml4 = cr3get();
-		sipi->stack = PTR2UINT(p);
-
-		p += 4*PTSZ+4*KiB;
-
-		/*
-		 * Committed. If the AP startup fails, can't safely
-		 * release the resources, who knows what mischief
-		 * the AP is up to. Perhaps should try to put it
-		 * back into the INIT state?
-		 */
-		mach = (Mach*)p;
-		sipi->mach = mach;
-		mach->machno = apic->machno;		/* NOT one-to-one... */
-		mach->splpc = PTR2UINT(squidboy);
-		sipi->pc = mach->splpc;
-		mach->apicno = apicno;
-		mach->stack = PTR2UINT(alloc);
-		mach->vsvm = alloc+MACHSTKSZ+4*PTSZ;
-		mach->pml4 = m->pml4;
-
-		p = KADDR(0x467);
-		*p++ = sipipa;
-		*p++ = sipipa>>8;
-		*p++ = 0;
-		*p = 0;
-
-		nvramwrite(0x0f, 0x0a);
-		apicsipi(apicno, sipipa);
-
-		for(i = 0; i < 1000; i++){
-			if(mach->splpc == 0)
-				break;
-			millidelay(5);
-		}
-		nvramwrite(0x0f, 0x00);
-
-		DBG("apicno%d: machno %d mach %#p (%#p) %dMHz\n",
-			apicno, mach->machno,
-			mach, sys->machptr[mach->machno],
-			mach->cpumhz);
+		if(apic->useable && apic->addr == 0 && apic->machno != 0 &&
+		    (mach = newcpupages(apicno, apic, &sipi[apicno])) != nil)
+			wakecpu(apicno, mach, sipipa);
 	}
+
+	/* revert to normal power-on startup */
+	nvramwrite(Cmosreset, Rstpwron);
 }

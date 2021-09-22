@@ -1,0 +1,119 @@
+</$objtype/mkfile
+BIN=/$objtype/bin
+
+TARG=links
+CC=pcc
+CFLAGS=-FV -I. -Ijpeg -Ipng -Izlib -B -p -c \
+ -DPLAN9 -D_PLAN9_SOURCE -DHAVE_CONFIG_H
+
+OFILES= \
+	af_unix.$O\
+	auth.$O\
+	bfu.$O\
+	bookmarks.$O\
+	builtin.$O\
+	cache.$O\
+	charsets.$O\
+	connect.$O\
+	context.$O\
+	cookies.$O\
+	default.$O\
+	dip.$O\
+	dither.$O\
+	dns.$O\
+	drivers.$O\
+	error.$O\
+	file.$O\
+	font_include.$O\
+	ftp.$O\
+	gif.$O\
+	html.$O\
+	html_gr.$O\
+	html_r.$O\
+	html_tbl.$O\
+	http.$O\
+	https.$O\
+	img.$O\
+	imgcache.$O\
+	ipret.$O\
+	javascr.$O\
+	javascript.$O\
+	jpeg.$O\
+	jsint.$O\
+	kbd.$O\
+	language.$O\
+	links_icon.$O\
+	listedit.$O\
+	lru.$O\
+	mailto.$O\
+	main.$O\
+	md5.$O\
+	md5hl.$O\
+	menu.$O\
+	memory.$O\
+	ns.$O\
+	objreq.$O\
+	os_dep.$O\
+	png.$O\
+	pomocny.$O\
+	sched.$O\
+	select.$O\
+	session.$O\
+	terminal.$O\
+	tiff.$O\
+	types.$O\
+	url.$O\
+	view.$O\
+	view_gr.$O\
+	xbm.$O\
+	plan9.$O\
+	png/libpng.a$O\
+	jpeg/libjpeg.a$O\
+	zlib/libz.a$O\
+
+HFILES= \
+	acconfig.h\
+	bits.h\
+	builtin.h\
+	builtin_keys.h\
+	cfg.h\
+	codepage.h\
+	config.h\
+	ipret.h\
+	javascript.h\
+	language.h\
+	libc.h\
+	links.h\
+	md5.h\
+	ns.h\
+	os_dep.h\
+	os_depx.h\
+	setup.h\
+	struct.h\
+	tree.h\
+	typy.h\
+
+</sys/src/cmd/mkone
+
+LDFLAGS= # -p
+
+plan9.$O:	plan9.c 
+	$CC $CFLAGS -D_RESEARCH_SOURCE -D_POSIX_SOURCE plan9.c
+
+png/libpng.a$O: zlib/libz.a$O
+	cd png
+	mk
+jpeg/libjpeg.a$O: zlib/libz.a$O
+	cd jpeg
+	mk
+zlib/libz.a$O:
+	cd zlib
+	mk
+fontdata.s: fontdata
+       aux/data2s fontdata <fontdata | sed 's/^([A-Z]+) fontdatacode/\1 font_data/g' > $target
+
+clean nuke:
+	for (i in png jpeg zlib) {
+		cd $i && mk $target && cd ..
+	}
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG fontdata.s

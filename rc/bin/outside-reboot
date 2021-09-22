@@ -1,0 +1,9 @@
+#!/bin/webscript
+load "http://apc-reset/outlets.htm"
+find "outside"
+find next select
+input "Immediate Reboot"
+submit
+find "outside"
+find prev row
+print

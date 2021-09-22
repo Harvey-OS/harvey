@@ -1,0 +1,23 @@
+/*
+ * polarfire icicle plic interrupt sources: irqs/ids
+ *
+ * there are several ranges:
+ * 187 global interrupts
+ *	  0	no interrupt
+ *	  1-12	l2 cache + dma controllers
+ *	 13-181	mss peripherals
+ *	182-186	bus error unit
+ *
+ * name		mss global int	irq
+ * ----		--------------	---
+ * mac0		51		64
+ * mac1		57		70
+ * rtc wakeup	67		80
+ * rtc match	68		81
+ * timer1	69		82
+ * timer2	70		83
+ * usb dma	73		86
+ * usb mc	74		87
+ * mmuart0	77		90
+ * mmuart1	78		91
+ */

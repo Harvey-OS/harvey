@@ -89,6 +89,7 @@ main(int argc, char *argv[])
 			Bwrite(output, line, Blinelen(b)-1);
 			Bputc(output, '\n');
 		}
+		regfree(exp);
 	} else {
 		int linecnt = n;
 

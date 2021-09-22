@@ -1,0 +1,13 @@
+Version 0.80
+
+- First public release
+
+Version 0.90
+
+- Frames
+  Bookmarks
+  Support for more languages
+  Mailto:
+  -dump, -source
+  -anonymous
+  A lot of small improvements, see ChangeLog

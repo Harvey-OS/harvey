@@ -1,0 +1,136 @@
+%
+%   This file is a quick and simple, gross test of dvips.  It only tests
+%   the most basic things.
+%
+%   To run:
+%      remove the file mtest.ps if it exists
+%      tex test
+%      dvips test -o test.ps (ignore the error)
+%      copy test.ps mtest.ps
+%      dvips test
+%   and print.
+%
+%   First, paper size
+%
+\newif\ifafour
+\afourtrue
+%
+%   Next, big rules.
+%
+\nopagenumbers\raggedbottom
+\ifafour
+  \special{papersize=210mm,297mm}
+  \hsize=7.7677truein\vsize=11.1929truein
+\else
+  \special{papersize=8.5in,11in} % the default anyway, so not necessary
+  \hsize=8truein\vsize=10.5truein
+\fi
+\hoffset=-0.75truein\voffset=-0.75truein
+\newdimen\ovsize \ovsize=\vsize
+\newdimen\ohsize \ohsize=\hsize
+\vbox to\vsize{\hrule height 6pt\advance\vsize by -12pt
+\hbox{\vrule width 6pt\vbox to\vsize{\advance\hsize by -12pt
+%
+%   Now, PostScript fonts.
+%
+\bigskip
+\font\norm=ptmr at 20truept
+\centerline{\norm DVIPS: A \TeX\ Driver For PostScript}
+\font\foolish=ptmri at 100truept\
+\bigskip
+\centerline{\foolish g}
+\bigskip
+%
+%   Next, literal graphics.  It's not supposed to look pretty.
+%
+\vskip1truein
+\centerline{\special{" 0 36 translate .05 .099 .95 {
+   27.4 0 translate gsave
+      0 0 moveto dup 90 mul rotate
+      -10 -10 rmoveto 20 0 rlineto 0 20 rlineto -20 0 rlineto closepath
+      gsave dup setgray fill grestore 1 exch sub setgray stroke
+   grestore 27.4 0 translate } for }\hskip 7.77truein}
+%
+%   Next, some alignment problems that are not done correctly by some
+%   dvi2ps programs.
+%
+$$\sqrt{\sqrt{{a\Longrightarrow b\longrightarrow c}\over
+\vbox{\hsize=3in\noindent
+the phase of the moon multiplied by the number of angels that can
+dance on the head of a pin while the rich man threads the needle
+divided by $\pi$ or some other transcendental number}}}$$
+\bigskip
+%
+%   Now, included epsf graphics.  We include this document
+%   recursively.  Of course, things will be ugly.
+%
+\input epsf
+\epsfxsize=0.5\ohsize
+%
+%   If you go to a4 paper, change the following supplied bounding box
+%   appropriately.
+%
+\ifafour
+  \line{\hfil\epsffile[18 18 577 814]{mtest.ps}\hfil
+\else
+  \line{\hfil\epsffile[18 18 594 774]{mtest.ps}\hfil
+\fi
+\vbox to 0.5\ovsize{\hsize=3.3truein\parindent=10pt\parskip=0pt plus 1fil
+To run this test, remove a file called mtest.ps if it exists.
+Then, run \TeX\ over
+test.tex, run dvips over test.dvi, saving the output in a file test.ps.
+Copy test.ps to mtest.ps.
+Run dvips over test.dvi again, this time printing or saving the output,
+as you choose.  (Including the document too many times inside itself
+will overflow the virtual memory capacities of most printers.)
+
+Some things to check on this page.  First, the large rules surrounding
+the page should be exactly one quarter inch from each border (assuming
+a 8.5 by 11 page; for an a4 page, change the {\tt\char92 afourfalse}
+to {\tt\char92 afourtrue} on line 16.)
+
+You should see a title at the top, and a large italic g under that.
+Then, there should be a centered row of ten boxes, going from dark to
+light gray, rotating slowly.
+
+In the `equation' that follows, check the upper left corner of the radical
+signs for alignment.  Also check the right arrows.
+
+In the recursively included page to the left,
+note how bad the bitmapped fonts look
+(they are the ones under the radical, and indeed this text itself.)
+The thin
+rules may disappear altogether.  This points out the resolution dependence
+of dvips output; this is an unfortunate necessity of using bitmapped fonts.
+The PostScript fonts, on the other hand, should scale fine.
+
+Finally, at the bottom of the page, you will see some tests of the accents in
+the PostScript fonts.  Pay careful attention to the word na\"\i ve; there
+should be an umlaut over a dotless i.  The text should read
+``Ich wei\ss\ tats\"achlich nicht mehr als das.
+D\ae monic souffl\'es have no r\^ole in na\"\i ve \oe uvres.
+---\AE sop's \OE uvres.''
+}\hfil}
+%
+%   Finally, PostScript fonts again; let's test some accents.
+%
+\bigskip
+\font\foo=ptmbi at 16truept
+\centerline{\vbox{\advance\hsize by -2in
+{\foo\noindent Ich wei\ss\ tats\"achlich nicht mehr als das.
+D\ae monic souffl\'es have no r\^ole in na\"\i ve \oe uvres.
+---\AE sop's \OE uvres.}}}
+\bigskip}\vrule width 6pt}\hrule height 6pt}
+%
+%   We also want to test bop-hook stuff.
+%
+\special{! userdict begin /bop-hook{gsave 200 30 translate
+65 rotate /Times-Roman findfont 260 scalefont setfont
+0 0 moveto 0.8 setgray (DVIPS) show grestore}def end}
+%
+\bye
+
+%%% Local Variables: 
+%%% mode: plain-tex
+%%% TeX-master: t
+%%% End: 

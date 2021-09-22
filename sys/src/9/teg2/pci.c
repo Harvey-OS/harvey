@@ -114,7 +114,7 @@ enum {
 	Pads		= 0x3000,
 	Afi		= 0x3800,
 	Aficfg		= Afi + 0xac,
-	Cfgspace	= 0x4000,
+	Cfgspace	= 0x004000,
 	Ecfgspace	= 0x104000,
 
 	/* cs bits */
@@ -232,6 +232,7 @@ pcilscan(int bno, Pcidev** list)
 	maxubn = bno;
 	head = nil;
 	tail = nil;
+	// print("pcilscan bus %d...", bno);
 	for(dno = 0; dno <= pcimaxdno; dno++){
 		maxfno = 0;
 		for(fno = 0; fno <= maxfno; fno++){
@@ -253,6 +254,7 @@ pcilscan(int bno, Pcidev** list)
 			p->tbdf = tbdf;
 			p->vid = l;
 			p->did = l>>16;
+			iprint("%T %ux/%ux...", tbdf, p->vid, p->did);
 
 			if(pcilist != nil)
 				pcitail->list = p;
@@ -283,17 +285,16 @@ pcilscan(int bno, Pcidev** list)
 			 * and work out the sizes.
 			 */
 			switch(p->ccrb) {
-			case 0x03:		/* display controller */
-				/* fall through */
-			case 0x01:		/* mass storage controller */
-			case 0x02:		/* network controller */
-			case 0x04:		/* multimedia device */
-			case 0x07:		/* simple comm. controllers */
-			case 0x08:		/* base system peripherals */
-			case 0x09:		/* input devices */
-			case 0x0A:		/* docking stations */
-			case 0x0B:		/* processors */
-			case 0x0C:		/* serial bus controllers */
+			case Pcibcdisp:		/* display controller */
+			case Pcibcstore:	/* mass storage controller */
+			case Pcibcnet:		/* network controller */
+			case Pcibcmmedia:	/* multimedia device */
+			case Pcibccomm:		/* simple comm. controllers */
+			case Pcibcbasesys:	/* base system peripherals */
+			case Pcibcinput:	/* input devices */
+			case Pcibcdock:		/* docking stations */
+			case Pcibcproc:		/* processors */
+			case Pcibcserial:	/* serial bus controllers */
 				if((hdt & 0x7F) != 0)
 					break;
 				rno = PciBAR0 - 4;
@@ -304,9 +305,9 @@ pcilscan(int bno, Pcidev** list)
 				}
 				break;
 
-			case 0x00:
-			case 0x05:		/* memory controller */
-			case 0x06:		/* bridge device */
+			case Pcibcpci1:
+			case Pcibcmem:		/* memory controller */
+			case Pcibcbridge:	/* bridge device */
 			default:
 				break;
 			}
@@ -324,7 +325,7 @@ pcilscan(int bno, Pcidev** list)
 		/*
 		 * Find PCI-PCI bridges and recursively descend the tree.
 		 */
-		if(p->ccrb != 0x06 || p->ccru != 0x04)
+		if(p->ccrb != Pcibcbridge || p->ccru != Pciscbrpci)
 			continue;
 
 		/*
@@ -376,6 +377,38 @@ pciintr(Ureg *ureg, void *p)
 	rtl8169interrupt(ureg, p);		/* HACK */
 }
 
+/*
+ * TrimSlice # pci 0 1
+ * Scanning PCI devices on bus 0 1
+ * BusDevFun  VendorId   DeviceId   Device Class       Sub-Class
+ * _____________________________________________________________
+ * 00.00.00   0x10de     0x0bf0     Bridge device           0x04
+ * 01.00.00   0x10ec     0x8168     Network controller      0x00
+ *
+ * thus pci bus 0 has a bridge with, perhaps, an ide/sata ctlr behind,
+ * and pci bus 1 has the realtek 8169 on it:
+ *
+ * TrimSlice # pci 1 long
+ * Scanning PCI devices on bus 1
+ *
+ * Found PCI device 01.00.00:
+ *   vendor ID =                   0x10ec
+ *   device ID =                   0x8168
+ *   command register =            0x0007
+ *   status register =             0x0010
+ *   revision ID =                 0x03
+ *   class code =                  0x02 (Network controller)
+ *   sub class code =              0x00
+ *   programming interface =       0x00
+ *   cache line =                  0x08
+ *   base address 0 =              0x80400001		config
+ *   base address 1 =              0x00000000		(ext. config)
+ *   base address 2 =              0xa000000c		"downstream"
+ *   base address 3 =              0x00000000		(prefetchable)
+ *   base address 4 =              0xa000400c		not "
+ *   base address 5 =              0x00000000		(unused)
+ */
+
 static void
 pcicfginit(void)
 {
@@ -390,37 +423,6 @@ pcicfginit(void)
 		return;
 	}
 
-	/*
-	 * TrimSlice # pci 0 1
-	 * Scanning PCI devices on bus 0 1
-	 * BusDevFun  VendorId   DeviceId   Device Class       Sub-Class
-	 * _____________________________________________________________
-	 * 00.00.00   0x10de     0x0bf0     Bridge device           0x04
-	 * 01.00.00   0x10ec     0x8168     Network controller      0x00
-	 *
-	 * thus pci bus 0 has a bridge with, perhaps, an ide/sata ctlr behind,
-	 * and pci bus 1 has the realtek 8169 on it:
-	 *
-	 * TrimSlice # pci 1 long
-	 * Scanning PCI devices on bus 1
-	 *
-	 * Found PCI device 01.00.00:
-	 *   vendor ID =                   0x10ec
-	 *   device ID =                   0x8168
-	 *   command register =            0x0007
-	 *   status register =             0x0010
-	 *   revision ID =                 0x03
-	 *   class code =                  0x02 (Network controller)
-	 *   sub class code =              0x00
-	 *   programming interface =       0x00
-	 *   cache line =                  0x08
-	 *   base address 0 =              0x80400001		config
-	 *   base address 1 =              0x00000000		(ext. config)
-	 *   base address 2 =              0xa000000c		"downstream"
-	 *   base address 3 =              0x00000000		(prefetchable)
-	 *   base address 4 =              0xa000400c		not "
-	 *   base address 5 =              0x00000000		(unused)
-	 */
 	n = pci->id >> 16;
 	if (((pci->id & MASK(16)) != Vnvidia || (n != 0xbf0 && n != 0xbf1)) &&
 	     (pci->id & MASK(16)) != Vrealtek) {
@@ -433,13 +435,12 @@ pcicfginit(void)
 			pci, (uchar)pci->revclass, pci->revclass >> 8,
 			pci->misc);
 
-	pci->cs &= Iospace;
+	pci->cs &= ~Iospace;		/* don't use pc i/o ports */
 	pci->cs |= Memspace | Busmaster;
 	coherence();
 
 	pcicfgmode = 1;
-//	pcimaxdno = 31;
-	pcimaxdno = 15;			/* for trimslice */
+	pcimaxdno = 15;			/* for trimslice; was 31 */
 
 	fmtinstall('T', tbdffmt);
 
@@ -455,8 +456,9 @@ pcicfginit(void)
 	}
 
 	list = &pciroot;
-	/* was bno = 0; trimslice needs to start at 1 */
-	for(bno = 1; bno <= pcimaxbno; bno++) {
+	/* trimslice used to need to start at 1 because 0 hung. */
+	delay(1000);		/* let ether8169 get its bearings */
+	for(bno = 0; bno <= pcimaxbno; bno++) {
 		bno = pcilscan(bno, list);
 		while(*list)
 			list = &(*list)->link;
@@ -489,9 +491,9 @@ tegracfgaddr(int tbdf, int rno)
 {
 	uintptr addr;
 
-	addr = soc.pci + (rno < 256? Cfgspace: Ecfgspace) + BUSBDF(tbdf) + rno;
-//	if (BUSBNO(tbdf) == 1)
-//		addr += Port1;
+	addr = soc.pci + Cfgspace + BUSBDF(tbdf) + rno;
+	if (rno >= 256)
+		addr += Ecfgspace - Cfgspace;
 	return (void *)addr;
 }
 
@@ -509,7 +511,6 @@ pcicfgrw8(int tbdf, int rno, int data, int read)
 		return x;
 
 	addr = tegracfgaddr(tbdf, rno);
-
 	lock(&pcicfglock);
 	if(read)
 		x = *(uchar *)addr;
@@ -584,13 +585,12 @@ pcicfgrw32(int tbdf, int rno, int data, int read)
 		return x;
 
 	addr = tegracfgaddr(tbdf, rno);
+	lock(&pcicfglock);
 	v = probeaddr((uintptr)addr);
 	if (v < 0)
-		return -1;
-
-	lock(&pcicfglock);
-	if(read)
-		x = *(ulong *)addr;
+		x = -1;
+	else if(read)
+		x = (ulong)v;
 	else
 		*(ulong *)addr = data;
 	unlock(&pcicfglock);
@@ -696,12 +696,9 @@ pcireset(void)
 	if(pcicfgmode == -1)
 		pcicfginit();
 
-	for(p = pcilist; p != nil; p = p->list) {
-		/* don't mess with the bridges */
-		if(p->ccrb == 0x06)
-			continue;
-		pciclrbme(p);
-	}
+	for(p = pcilist; p != nil; p = p->list)
+		if(p->ccrb != Pcibcbridge)  /* don't mess with the bridges */
+			pciclrbme(p);
 }
 
 void

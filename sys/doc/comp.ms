@@ -281,8 +281,6 @@ Process
 .PP
 Each CPU architecture supported by Plan 9 is identified by a single,
 arbitrary, alphanumeric character:
-.CW k
-for SPARC,
 .CW q
 for 32-bit Power PC,
 .CW v
@@ -293,6 +291,8 @@ for little-endian MIPS,
 for ARM v5 and later 32-bit architectures,
 .CW 6
 for AMD64,
+.CW 7
+for ARM64,
 .CW 8
 for Intel 386, and
 .CW 9

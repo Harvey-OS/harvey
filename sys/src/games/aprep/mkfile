@@ -1,0 +1,147 @@
+# /lib/audio mkfile
+BUILTINS=
+</$objtype/mkfile
+
+OFILES=\
+	main.$O\
+	search.$O\
+	sub.$O\
+	io.$O\
+	runeinf.$O\
+
+MAP8=\
+	/lib/audio/top100/map8.first\
+	/lib/audio/top100/map8.abc\
+	/lib/audio/top100/map8.def\
+	/lib/audio/top100/map8.ghi\
+	/lib/audio/top100/map8.jkl\
+	/lib/audio/top100/map8.mno\
+	/lib/audio/top100/map8.pqr\
+	/lib/audio/top100/map8.stuv\
+	/lib/audio/top100/map8.wxyz\
+	/lib/audio/top100/map8.various\
+	/lib/audio/top100/map8.movies\
+	/lib/audio/top100/map8.last\
+
+FILES=\
+	/lib/audio/top100/map1.first\
+	/lib/audio/top100/map1.0\
+	/lib/audio/top100/map1.1\
+	/lib/audio/top100/map1.2\
+	/lib/audio/top100/map1.3\
+	/lib/audio/top100/map1.4\
+	/lib/audio/top100/map1.5\
+	/lib/audio/top100/map1.6\
+	/lib/audio/top100/map1.7\
+	/lib/audio/top100/map1.8\
+	/lib/audio/top100/map1.9\
+	/lib/audio/top100/map1.last\
+	/lib/audio/top100/map2.first\
+	/lib/audio/top100/map2.0\
+	/lib/audio/top100/map2.1\
+	/lib/audio/top100/map2.2\
+	/lib/audio/top100/map2.3\
+	/lib/audio/top100/map2.4\
+	/lib/audio/top100/map2.5\
+	/lib/audio/top100/map2.6\
+	/lib/audio/top100/map2.7\
+	/lib/audio/top100/map2.8\
+	/lib/audio/top100/map2.9\
+	/lib/audio/top100/map2.last\
+	/lib/audio/top100/mapr1.first\
+	/lib/audio/top100/mapr1.4\
+	/lib/audio/top100/mapr1.5\
+	/lib/audio/top100/mapr1.6\
+	/lib/audio/top100/mapr1.7\
+	/lib/audio/top100/mapr1.8\
+	/lib/audio/top100/mapr1.9\
+	/lib/audio/top100/mapr1.last\
+	/lib/audio/top100/mapr2.first\
+	/lib/audio/top100/mapr2.4\
+	/lib/audio/top100/mapr2.5\
+	/lib/audio/top100/mapr2.6\
+	/lib/audio/top100/mapr2.7\
+	/lib/audio/top100/mapr2.8\
+	/lib/audio/top100/mapr2.9\
+	/lib/audio/top100/mapr2.last\
+	/lib/audio/top100/map6\
+	/lib/audio/top100/map7\
+	/lib/audio/top100/map9\
+	/lib/audio/top100/mapindian\
+	/lib/audio/top100/mapbest\
+	/lib/audio/top100/lyric1\
+	/lib/audio/top100/lyric2\
+	/lib/audio/top100/lyric3\
+	/lib/audio/top100/color1\
+	/lib/audio/top100/color2\
+	/lib/audio/top100/color3\
+	/lib/audio/top100/color4\
+	/lib/audio/top100/color5\
+	/lib/audio/top100/color6\
+	/lib/audio/top100/color7\
+
+DUPS=\
+	/lib/audio/top100/map1.first\
+	/lib/audio/top100/map1.0\
+	/lib/audio/top100/map1.1\
+	/lib/audio/top100/map1.2\
+	/lib/audio/top100/map1.3\
+	/lib/audio/top100/map1.4\
+	/lib/audio/top100/map1.5\
+	/lib/audio/top100/map1.6\
+	/lib/audio/top100/map1.7\
+	/lib/audio/top100/map1.8\
+	/lib/audio/top100/map1.9\
+	/lib/audio/top100/map1.last\
+	/lib/audio/top100/mapr1.first\
+	/lib/audio/top100/mapr1.4\
+	/lib/audio/top100/mapr1.5\
+	/lib/audio/top100/mapr1.6\
+	/lib/audio/top100/mapr1.7\
+	/lib/audio/top100/mapr1.8\
+	/lib/audio/top100/mapr1.9\
+	/lib/audio/top100/mapr1.last\
+
+HFILES=\
+	audio.h\
+	runeinf.h\
+
+default:V: 6.out
+
+audio:V: /bin/games/aprep
+	mv /lib/audio/rawmap /lib/audio/_rawmap
+	games/aprep -o /lib/audio/rawmap $FILES $MAP8
+	chmod +t /lib/audio/rawmap
+
+$O.out:	$OFILES
+	$LD $OFILES
+
+walken:V: /bin/games/aprep
+	games/aprep -f -o /usr/ken/walken/all.rawmap /usr/ken/walken/all.map $FILES $MAP8
+
+dup:V:	/bin/games/aprep
+	games/aprep -d -o /dev/null $DUPS $MAP8 |
+		grep dup: |
+		sed 's/dup: ([^;]*); (.*)$/\2; \1/' |
+		sort -u -o dup
+
+map8:V:	/bin/games/aprep
+	games/aprep -d -o ./rawmap $MAP8
+
+%.$O:	%.c
+	$CC -wFTV $stem.c
+
+%.$O:	$HFILES
+
+runeinf.$O:	runeinf.c
+	$CC -wFTV runeinf.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out
+
+install:V: $O.out
+	cp $O.out /$objtype/bin/games/aprep
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install

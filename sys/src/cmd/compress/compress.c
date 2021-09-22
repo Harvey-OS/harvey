@@ -36,20 +36,16 @@
  *		James A. Woods		(decvax!ihnp4!ames!jaw)
  *		Joe Orost		(decvax!vax135!petsd!joe)
  */
-#define _PLAN9_SOURCE
-#define _BSD_EXTENSION
-#define _POSIX_SOURCE
-
 #include <u.h>
+#include <libc.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <signal.h>
-#include <utime.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+
+/* import from unix */
+#define exit(n) exits((n) == 0? 0: "error")
+#define unlink remove
+
+#define time_t long
 
 #define	min(a,b)	((a>b) ? b : a)
 
@@ -170,12 +166,15 @@ char **argv;
 	char tempname[512];
 	char **filelist, **fileptr;
 	char *cp;
-	struct stat statbuf;
+	Dir statbuf;
+	Dir *dp;
 
+#ifdef TODO		/* signal -> note */
 	if ( (bgnd_flag = signal ( SIGINT, SIG_IGN )) != SIG_IGN ) {
 		signal(SIGINT, onintr);
 		signal(SIGSEGV, oops);
 	}
+#endif
 
 	filelist = fileptr = (char **)(malloc(argc * sizeof(*argv)));
 	*filelist = NULL;
@@ -323,8 +322,8 @@ nextarg:
 			perror(*fileptr);
 			continue;
 		}
-		(void) stat(*fileptr, &statbuf);
-		fsize = (long) statbuf.st_size;
+		statbuf = *dirstat(*fileptr);
+		fsize = (long) statbuf.length;
 		/*
 		 * tune hash table size for small files -- ad hoc,
 		 * but the sizes match earlier #defines, which
@@ -363,9 +362,10 @@ nextarg:
 		}
 		/* Check for overwrite of existing file */
 		if (overwrite == 0 && zcat_flg == 0 &&
-		   stat(ofname, &statbuf) == 0) {
+		   (dp = dirstat(ofname)) == 0) {
 			char response[2];
 
+			statbuf = *dp;
 			response[0] = 'n';
 			fprintf(stderr, "%s already exists;", ofname);
 			if (foreground()) {
@@ -373,7 +373,7 @@ nextarg:
 				    " do you wish to overwrite %s (y or n)? ",
 					ofname);
 				fflush(stderr);
-				(void) read(2, response, 2);
+				read(2, response, 2);
 				while (response[1] != '\n')
 					if (read(2, response+1, 1) < 0) {
 						/* Ack! */
@@ -978,16 +978,18 @@ void
 copystat(ifname, ofname)
 char *ifname, *ofname;
 {
-	int mode;
 	time_t timep[2];			/* should be struct utimbuf */
-	struct stat statbuf;
+	Dir statbuf;
+	Dir *dp;
 
 	fclose(stdout);
-	if (stat(ifname, &statbuf)) {		/* Get stat on input file */
+	dp = dirstat(ifname);
+	if (dp == 0) {		/* Get stat on input file */
 		perror(ifname);
 		return;
 	}
-	if (!S_ISREG(statbuf.st_mode)) {
+	statbuf = *dp;
+	if (statbuf.mode & DMDIR) {
 		if (quiet)
 			fprintf(stderr, "%s: ", ifname);
 		fprintf(stderr, " -- not a regular file: unchanged");
@@ -998,15 +1000,21 @@ char *ifname, *ofname;
 			fprintf(stderr, " -- file unchanged");
 	} else {			/* Successful Compression */
 		exit_stat = 0;
-		mode = statbuf.st_mode & 0777;
+#ifdef TODO		/* chmod -> wstat */
+		int mode;
+
+		mode = statbuf.mode & 0777;
 		if (chmod(ofname, mode))		/* Copy modes */
 			perror(ofname);
+#endif
 		/* Copy ownership */
-		chown(ofname, statbuf.st_uid, statbuf.st_gid);
-		timep[0] = statbuf.st_atime;
-		timep[1] = statbuf.st_mtime;
+//		chown(ofname, statbuf.uid, statbuf.gid);
+		timep[0] = statbuf.atime;
+		timep[1] = statbuf.mtime;
 		/* Update last accessed and modified times */
+#ifdef TODO		/* utime -> wstat */
 		utime(ofname, (struct utimbuf *)timep);
+#endif
 //		if (unlink(ifname))	/* Remove input file */
 //			perror(ifname);
 		return;			/* success */
@@ -1027,7 +1035,10 @@ foreground(void)
 	if(bgnd_flag)			/* background? */
 		return 0;
 	else				/* foreground */
+#ifdef TODO		/* isatty -> dirfstat(2), strcmp "/dev/cons" */
 		return isatty(2);	/* and stderr is a tty */
+#endif
+		return 1;
 }
 
 void

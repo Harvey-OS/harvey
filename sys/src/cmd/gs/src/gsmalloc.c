@@ -90,7 +90,7 @@ private const gs_memory_procs_t gs_malloc_memory_procs =
 #define malloc_block_data\
 	gs_malloc_block_t *next;\
 	gs_malloc_block_t *prev;\
-	uint size;\
+	uintptr_t size;\
 	gs_memory_type_ptr_t type;\
 	client_name_t cname
 struct malloc_block_data_s {
@@ -106,7 +106,8 @@ struct gs_malloc_block_s {
 };
 
 /* Initialize a malloc allocator. */
-private long heap_available(void);
+private uintptr_t heap_available(void);
+
 gs_malloc_memory_t *
 gs_malloc_memory_init(void)
 {
@@ -131,10 +132,17 @@ gs_malloc_memory_init(void)
  */
 #define max_malloc_probes 20
 #define malloc_probe_size 64000
-private long
-heap_available()
+private uintptr_t
+heap_available(void)
 {
-    long avail = 0;
+#if defined(Tamd64) || defined(Triscv64)
+	char dummy;
+	extern char end[];
+
+//	return (&dummy - end) / 2; /* half gap between initial heap and stack */
+	return 64*1024*1024;
+#else
+    uintptr_t avail = 0;
     void *probes[max_malloc_probes];
     uint n;
 
@@ -148,11 +156,12 @@ heap_available()
     while (n)
 	free(probes[--n]);
     return avail;
+#endif
 }
 
 /* Allocate various kinds of blocks. */
 private byte *
-gs_heap_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
+gs_heap_alloc_bytes(gs_memory_t * mem, uintptr_t size, client_name_t cname)
 {
     gs_malloc_memory_t *mmem = (gs_malloc_memory_t *) mem;
     byte *ptr = 0;
@@ -222,14 +231,10 @@ gs_heap_alloc_struct(gs_memory_t * mem, gs_memory_type_ptr_t pstype,
     return ptr;
 }
 private byte *
-gs_heap_alloc_byte_array(gs_memory_t * mem, uint num_elements, uint elt_size,
-			 client_name_t cname)
+gs_heap_alloc_byte_array(gs_memory_t * mem, uint num_elements,
+	uintptr_t elt_size, client_name_t cname)
 {
-    ulong lsize = (ulong) num_elements * elt_size;
-
-    if (lsize != (uint) lsize)
-	return 0;
-    return gs_heap_alloc_bytes(mem, (uint) lsize, cname);
+     return gs_heap_alloc_bytes(mem, num_elements * elt_size, cname);
 }
 private void *
 gs_heap_alloc_struct_array(gs_memory_t * mem, uint num_elements,
@@ -251,8 +256,8 @@ gs_heap_resize_object(gs_memory_t * mem, void *obj, uint new_num_elements,
     gs_malloc_memory_t *mmem = (gs_malloc_memory_t *) mem;
     gs_malloc_block_t *ptr = (gs_malloc_block_t *) obj - 1;
     gs_memory_type_ptr_t pstype = ptr->type;
-    uint old_size = gs_object_size(mem, obj) + sizeof(gs_malloc_block_t);
-    uint new_size =
+    uintptr_t old_size = gs_object_size(mem, obj) + sizeof(gs_malloc_block_t);
+    uintptr_t new_size =
 	gs_struct_type_size(pstype) * new_num_elements +
 	sizeof(gs_malloc_block_t);
     gs_malloc_block_t *new_ptr;
@@ -343,7 +348,7 @@ gs_heap_free_object(gs_memory_t * mem, void *ptr, client_name_t cname)
     }
 }
 private byte *
-gs_heap_alloc_string(gs_memory_t * mem, uint nbytes, client_name_t cname)
+gs_heap_alloc_string(gs_memory_t * mem, uintptr_t nbytes, client_name_t cname)
 {
     return gs_heap_alloc_bytes(mem, nbytes, cname);
 }
@@ -357,7 +362,7 @@ gs_heap_resize_string(gs_memory_t * mem, byte * data, uint old_num, uint new_num
     return gs_heap_resize_object(mem, data, new_num, cname);
 }
 private void
-gs_heap_free_string(gs_memory_t * mem, byte * data, uint nbytes,
+gs_heap_free_string(gs_memory_t * mem, byte * data, uintptr_t nbytes,
 		    client_name_t cname)
 {
     /****** SHOULD CHECK SIZE IF DEBUGGING ******/

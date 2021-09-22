@@ -1,3 +1,6 @@
+/*
+ * color graphics adapter in text mode via I/O ports
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -30,12 +33,13 @@ enum {
 	Poststrlen	= 0,
 	Postcodelen	= 2,
 	Postlen		= Poststrlen+Postcodelen,
+	Postcorner	= Width*Height - Postcodelen*2,
 };
 
 #define CGA		(BIOSSEG(0xb800))
 
 static Lock cgalock;
-static int cgapos;
+static uint cgapos;
 static int cgainitdone;
 
 static int
@@ -72,10 +76,8 @@ cgaputc(int c)
 
 	cga = CGA;
 
-	if(c == '\n'){
-		cgapos = cgapos/Width;
-		cgapos = (cgapos+1)*Width;
-	}
+	if(c == '\n')
+		cgapos = (cgapos/Width+1)*Width;
 	else if(c == '\t'){
 		i = 8 - ((cgapos/2)&7);
 		while(i-- > 0)
@@ -91,7 +93,7 @@ cgaputc(int c)
 		cga[cgapos++] = c;
 		cga[cgapos++] = Attr;
 	}
-	if(cgapos >= (Width*Height)-Postlen*2){
+	if(cgapos >= Width*Height - Postlen*2){
 		memmove(cga, &cga[Width], Width*(Height-1));
 		p = &cga[Width*(Height-1)-Postlen*2];
 		for(i = 0; i < Width/2; i++){
@@ -115,19 +117,18 @@ cgaconsputs(char* s, int n)
 void
 cgapost(int code)
 {
-	uchar *cga;
-
+	uchar *cgacode;
 	static char hex[] = "0123456789ABCDEF";
 
-	cga = CGA;
-	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0f];
-	cga[Width*Height-Postcodelen*2+1] = Attr;
-	cga[Width*Height-Postcodelen*2+2] = hex[code & 0x0f];
-	cga[Width*Height-Postcodelen*2+3] = Attr;
+	cgacode = (uchar *)CGA + Postcorner;
+	*cgacode++ = hex[(code>>4) & 0x0f];
+	*cgacode++ = Attr;
+	*cgacode++ = hex[code & 0x0f];
+	*cgacode   = Attr;
 }
 
 void
-cgainit(void)
+screeninit(void)
 {
 	ilock(&cgalock);
 	cgapos = cgaregr(0x0e)<<8;

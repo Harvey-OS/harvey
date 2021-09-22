@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+LIB=../kpathsea/libkpathsea.a$O
+
+BIN=/sys/lib/texmf/bin/$objtype
+TARG=kpsestat kpsewhich
+OFILES=
+
+</sys/src/cmd/mkmany
+
+CC=pcc
+CFLAGS=-I../kpathsea -I.. -D_POSIX_SOURCE -D_BSD_EXTENSION -DPlan9 -c

@@ -26,6 +26,7 @@ HFILES=sam.h\
 	errors.h\
 	mesg.h\
 
+LIB=/$objtype/lib/libnofp.a
 BIN=/$objtype/bin
 
 UPDATE=\

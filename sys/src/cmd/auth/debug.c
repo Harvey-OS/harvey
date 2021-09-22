@@ -247,7 +247,7 @@ authfutz(char *dom, char *user)
 	}
 	if(memcmp(t.chal, tr.chal, sizeof tr.chal) != 0){
 		print("\tbad challenge1 from auth server got %.*H wanted %.*H\n",
-			sizeof t.chal, t.chal, sizeof tr.chal, tr.chal);
+			(int)sizeof t.chal, t.chal, (int)sizeof tr.chal, tr.chal);
 		print("\tauth server is rogue\n");
 		return;
 	}
@@ -260,7 +260,7 @@ authfutz(char *dom, char *user)
 	}
 	if(memcmp(t.chal, tr.chal, sizeof tr.chal) != 0){
 		print("\tbad challenge2 from auth server got %.*H wanted %.*H\n",
-			sizeof t.chal, t.chal, sizeof tr.chal, tr.chal);
+			(int)sizeof t.chal, t.chal, (int)sizeof tr.chal, tr.chal);
 		print("\tauth server is rogue\n");
 		return;
 	}
@@ -283,7 +283,7 @@ authfutz(char *dom, char *user)
 	}
 	if(memcmp(t.chal, tr.chal, sizeof tr.chal) != 0){
 		print("\tbad challenge1 from auth server got %.*H wanted %.*H\n",
-			sizeof t.chal, t.chal, sizeof tr.chal, tr.chal);
+			(int)sizeof t.chal, t.chal, (int)sizeof tr.chal, tr.chal);
 		print("\tauth server is rogue\n");
 		return;
 	}
@@ -305,7 +305,7 @@ authfutz(char *dom, char *user)
 	}
 	if(memcmp(t.chal, tr.chal, sizeof tr.chal) != 0){
 		print("\tbad challenge2 from auth server got %.*H wanted %.*H\n",
-			sizeof t.chal, t.chal, sizeof tr.chal, tr.chal);
+			(int)sizeof t.chal, t.chal, (int)sizeof tr.chal, tr.chal);
 		print("\tauth server is rogue\n");
 		return;
 	}

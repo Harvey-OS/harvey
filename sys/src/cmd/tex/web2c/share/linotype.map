@@ -1,0 +1,52 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "linotype.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "52     137    1562",
+@c   docstring = "Linotype-Hell PostScript fonts."
+@c }
+@c From Pierre.
+lenb8r   EngraversLH-BoldFace
+lpi001   OlympicLH-Pi
+ltgb8rx  TradeGothicLH-BoldExtended
+ltgr8rx  TradeGothicLH-Extended
+lvcc8r   VectoraLH-Black
+lvcci8r  VectoraLH-BlackItalic
+lvcb8r   VectoraLH-Bold
+lvcbi8r  VectoraLH-BoldItalic
+lvcri8r  VectoraLH-Italic
+lvcl8r   VectoraLH-Light
+lvcli8r  VectoraLH-LightItalic
+lvcr8r   VectoraLH-Roman
+lpi002   WarningLH-Pi
+lpi003   AudioLH-Pi
+lcfcs8r  ClearfaceGothicLH-Black
+lcfbs8r  ClearfaceGothicLH-Bold
+lcfls8r  ClearfaceGothicLH-Light
+lcfms8r  ClearfaceGothicLH-Medium
+lcfrs8r  ClearfaceGothicLH-Roman
+lpi004   EECLH-Pi
+lffb8r   FairfieldLH-Bold
+lffbi8r  FairfieldLH-BoldItalic
+lffbc8r  FairfieldLH-BoldSC
+lffbd8r  FairfieldLH-CaptionBold
+lffhd8r  FairfieldLH-CaptionHeavy
+lffld8r  FairfieldLH-CaptionLight
+lffmd8r  FairfieldLH-CaptionMedium
+lffh8r   FairfieldLH-Heavy
+lffhi8r  FairfieldLH-HeavyItalic
+lffhc8r  FairfieldLH-HeavySC
+lffl8r   FairfieldLH-Light
+lffli8r  FairfieldLH-LightItalic
+lfflc8r  FairfieldLH-LightSC
+lffm8r   FairfieldLH-Medium
+lffmi8r  FairfieldLH-MediumItalic
+lffmc8r  FairfieldLH-MediumSC
+lffbiw7d FairfieldLH-SwBoldItalicOsF
+lffhiw7d FairfieldLH-SwHeavyItalicOsF
+lffliw7d FairfieldLH-SwLightItalicOsF
+lffmiw7d FairfieldLH-SwMediumItalicOsF

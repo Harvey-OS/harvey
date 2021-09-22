@@ -1,0 +1,25 @@
+</$objtype/mkfile
+
+OFILES=\
+	adler32.$O\
+	compress.$O\
+	crc32.$O\
+	deflate.$O\
+	gzio.$O\
+	infblock.$O\
+	infcodes.$O\
+	inffast.$O\
+	inflate.$O\
+	inftrees.$O\
+	infutil.$O\
+	trees.$O\
+	uncompr.$O\
+	zutil.$O\
+
+LIB=libzlib.a$O
+CLEANFILES=`{ls libzlib.a? >[2]/dev/null}
+
+</sys/src/cmd/mksyslib
+
+CC=pcc
+CFLAGS=-I.. -I. -I../src -I../zlib -DHAVE_CONFIG_H -B -D_BSD_EXTENSION -c 

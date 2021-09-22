@@ -1,0 +1,20 @@
+# String library tester.
+</$objtype/mkfile
+
+TARG=tester
+OFILES=tester.$O
+HFILES=
+
+BIN=.
+
+</sys/src/cmd/mkone
+
+SIZET = int
+VOIDSTAR = void *
+CONST = 
+
+CFLAGS = -I. -DSIZET='${SIZET}' -DVOIDSTAR='${VOIDSTAR}'  -DCONST='${CONST}'
+
+r:V:	$O.out
+	echo 'No news is good news.  Note: strerror() test is VERY system-dependent.'
+	$O.out

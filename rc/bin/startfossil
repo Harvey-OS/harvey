@@ -1,0 +1,33 @@
+#!/bin/rc
+# startfossil partition name - start a temporary fossil without venti backing
+#	on partition, with /srv names `name' and `fossil.name'.
+rfork e
+switch($#*) {
+case 2
+	part=$1
+	name=$2
+case *
+	echo usage: $0 partition srv-name >[1=2]
+	exit usage
+}
+if (! test -e $part) {
+	echo $0: no file $part >[1=2]
+	exit 'no partition'
+}
+if (test -e /srv/fossil.$name) {
+	echo $0: /srv/fossil.$name already running >[1=2]
+	exit 'already running'
+}
+
+# create a fossil configuration
+cat <<! >/tmp/foss$pid
+fsys main config $part
+fsys main open -Vc 20000
+fsys main
+
+srv -p fscons.$name
+srv fossil.$name
+srv -APW fossil.$name.open
+!
+
+fossil/fossil -m 2 -c '. /tmp/foss'$pid

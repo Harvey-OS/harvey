@@ -21,14 +21,18 @@ exclusions(void)
 
 	f = Bopen(patternfile, OREAD);
 	if(f == nil)
-		fatal("cannot open patternfile");
+		fatal("cannot open patternfile %s: %r", patternfile);
 	ni = 0;
 	nmaxi = 100;
-	include = emallocz(nmaxi*sizeof(*include));
+	include = malloc(nmaxi*sizeof(*include));
+	if(include == nil)
+		fatal("out of memory");
 	include[0] = nil;
 	ne = 0;
 	nmaxe = 100;
-	exclude = emallocz(nmaxe*sizeof(*exclude));
+	exclude = malloc(nmaxe*sizeof(*exclude));
+	if(exclude == nil)
+		fatal("out of memory");
 	exclude[0] = nil;
 	while(line = Brdline(f, '\n')){
 		line[Blinelen(f) - 1] = 0;
@@ -76,16 +80,16 @@ excludefile(char *path)
 	else
 		p = path+1;
 
-	DEBUG(DFD, "checking %s\n", p);
+	DEBUG(DFD, "checking %s\n", path);
 	for(re = include; *re != nil; re++){
 		if(regexec(*re, p, nil, 0) != 1){
-			DEBUG(DFD, "excluded+ %s\n", p);
+			DEBUG(DFD, "excluded+ %s\n", path);
 			return -1;
 		}
 	}
 	for(re = exclude; *re != nil; re++){
 		if(regexec(*re, p, nil, 0) == 1){
-			DEBUG(DFD, "excluded- %s\n", p);
+			DEBUG(DFD, "excluded- %s\n", path);
 			return -1;
 		}
 	}

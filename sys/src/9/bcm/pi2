@@ -12,7 +12,7 @@ dev
 	tls
 	cap
 	fs
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium
 	draw	screen
 	mouse	mouse
 	kbmap
@@ -55,7 +55,7 @@ misc
 	sdaoe	sdscsi
 	dma
 	vcore
-	vfp3
+	vfp3	coproc
 
 port
 	int cpuserver = 0;

@@ -1,0 +1,610 @@
+diff /n/dump/2014/0315/sys/src/cmd/cc/bits.c ./bits.c
+68c68
+< 			return 32*i + bitno(b);
+---
+> 			return BI2LONG*i + bitno(b);
+79c79,80
+< 	c.b[n/32] = 1L << (n%32);
+---
+> 	assert(n/BI2LONG < BITS);
+> 	c.b[n/BI2LONG] = 1L << (n%BI2LONG);
+86c87,88
+< 	if(a.b[n/32] & (1L << (n%32)))
+---
+> 	assert(n/BI2LONG < BITS);
+> 	if(a.b[n/BI2LONG] & (1L << (n%BI2LONG)))
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/cc.h ./cc.h
+26c26
+< #define	BUFSIZ		8192
+---
+> #define	BUFSIZ		(16*1024)
+33c33
+< #define	MAXALIGN	7
+---
+> #define	MAXALIGN	7		/* sizeof(uvlong) - 1 */
+35c35
+< #define	SIGN(n)		(1ULL<<(n-1))
+---
+> #define	SIGN(n)		(1ULL<<((n)-1))
+39c39,40
+< #define	NVAR	(BITS*sizeof(ulong)*8)
+---
+> #define BI2LONG (sizeof(ulong)*8)
+> #define	NVAR	(BITS*BI2LONG)
+341,343d341
+< 
+< 	/* adapt size of Rune to target system's size */
+< 	TRUNE = sizeof(TRune)==4? TUINT: TUSHORT,
+344a343,352
+> 
+> 	/*
+> 	 * adapt size of Rune to target system's size,
+> 	 * also type of L""[0].
+> 	 *
+> 	 * changing TUINT to TINT here, and Rune to int in all u.h's will
+> 	 * allow risc-v to compare rune==EOF.
+> 	 */
+> #define TRUNE (sizeof(TRune)==4? (thechar=='j'? TINT: TUINT): TUSHORT)
+> 
+667a677
+> int	castucom(Node*);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/cc.y ./cc.y
+67c67
+< %token	LRESTRICT LINLINE
+---
+> %token	LRESTRICT LINLINE LNORETURN
+1011c1011
+< 		sprint(symb, "_%d_", taggen);
+---
+> 		snprint(symb, sizeof symb, "_%d_", taggen);
+1036c1036
+< 		sprint(symb, "_%d_", taggen);
+---
+> 		snprint(symb, sizeof symb, "_%d_", taggen);
+1151a1152
+> |	LNORETURN { $$ = 0; }
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/com.c ./com.c
+64a65,70
+> is64bitptr(void)
+> {
+> 	return ewidth[TIND] > ewidth[TLONG];	/* 64-bit pointers on target? */
+> }
+> 
+> int
+182,185c188,195
+< 		if(!sametype(t, n->type) && !mixedasop(t, n->type)) {
+< 			r = new1(OCAST, n->right, Z);
+< 			r->type = t;
+< 			n->right = r;
+---
+> 		if(!mixedasop(t, n->type)) {
+> 			if(!sametype(t, n->type)) {
+> 				r = new1(OCAST, n->right, Z);
+> 				r->type = t;
+> 				n->right = r;
+> 				n->type = t;
+> 			}
+> 		}else
+187d196
+< 		}
+209,212c218,225
+< 		if(!sametype(t, n->type) && !mixedasop(t, n->type)) {
+< 			r = new1(OCAST, n->right, Z);
+< 			r->type = t;
+< 			n->right = r;
+---
+> 		if(!mixedasop(t, n->type)) {
+> 			if(!sametype(t, n->type)) {
+> 				r = new1(OCAST, n->right, Z);
+> 				r->type = t;
+> 				n->right = r;
+> 				n->type = t;
+> 			}
+> 		}else
+214d226
+< 		}
+585,586c597,599
+< 		n->vconst = convvtox(n->type->width, TINT);
+< 		n->type = types[TINT];
+---
+> 		o = is64bitptr();
+> 		n->vconst = convvtox(n->type->width, o? TVLONG: TINT);
+> 		n->type = types[o? TVLONG: TINT];
+604,605c617
+< 			if(l->type->down == T || l->type->down->etype == TOLD) {
+< 				nerrors--;
+---
+> 			if(l->type->down == T || l->type->down->etype == TOLD)
+607d618
+< 			}
+1033a1045,1061
+> 		if(n->op == OASMOD || n->op == OASLMOD || n->op == OASDIV || n->op == OASLDIV)
+> 		if(r->op == OCONST){
+> 			if(!typefd[r->type->etype] && r->vconst == 0) {
+> 				if(n->op == OASMOD || n->op == OASLMOD)
+> 					diag(n, "modulo by zero");
+> 				else
+> 					diag(n, "divide by zero");
+> 				r->vconst = ~0;
+> 			}
+> 			if(typefd[r->type->etype] && r->fconst == 0.) {
+> 				if(n->op == OASMOD || n->op == OASLMOD)
+> 					diag(n, "modulo by zero");
+> 				else
+> 					diag(n, "divide by zero");
+> 				r->fconst = 1e10;
+> 			}
+> 		}
+1042a1071,1072
+> 		if(castucom(n))
+> 			warn(n, "32-bit unsigned complement zero-extended to 64 bits");
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/com64.c ./com64.c
+65a66,70
+> Node*	nodaddd;
+> Node*	nodsubd;
+> Node*	nodmuld;
+> Node*	noddivd;
+> 
+162a168,172
+> 	nodaddd = fvn("_vasaddd", TVLONG);
+> 	nodsubd = fvn("_vassubd", TVLONG);
+> 	nodmuld = fvn("_vasmuld", TVLONG);
+> 	noddivd = fvn("_vasdivd", TVLONG);
+> 
+527c537
+< 	if(l->op == OFUNC) {
+---
+> 	while(l->op == OFUNC)
+529,530d538
+< 		goto setasop;
+< 	}
+532,536c540,544
+< 	t = new(OCONST, 0, 0);
+< 	t->vconst = etconv[l->type->etype];
+< 	t->type = types[TLONG];
+< 	t->addable = 20;
+< 	r = new(OLIST, t, r);
+---
+> 	if(mixedasop(n->left->type, n->right->type)) {
+> 		if(n->right->type->etype != TDOUBLE) {
+> 			r = new(OCAST, r, 0);
+> 			r->type = types[TDOUBLE];
+> 		}
+538,540c546,549
+< 	t = new(OADDR, a, 0);
+< 	t->type = typ(TIND, a->type);
+< 	r = new(OLIST, t, r);
+---
+> 		t = new(OADDR, l, 0);
+> 		t->type = typ(TIND, l->type);
+> 		t->complex = l->complex;
+> 		r = new(OLIST, t, r);
+542,545c551,557
+< 	t = new(OADDR, l, 0);
+< 	t->type = typ(TIND, l->type);
+< 	t->complex = l->complex;
+< 	r = new(OLIST, t, r);
+---
+> 		switch(n->op) {
+> 		case OASADD:	a = nodaddd; break;
+> 		case OASSUB:	a = nodsubd; break;
+> 		case OASMUL:	a = nodmuld; break;
+> 		case OASDIV:	a = noddivd; break;
+> 		default:	diag(n, "bad vasop %O", n->op); a = nodaddd; break;
+> 		}
+547,550c559,562
+< 	n->left = nodvasop;
+< 	n->right = r;
+< 	n->complex = FNX;
+< 	n->op = OFUNC;
+---
+> 		n->left = a;
+> 		n->right = r;
+> 		n->complex = FNX;
+> 		n->op = OFUNC;
+551a564,585
+> 	} else {
+> 		t = new(OCONST, 0, 0);
+> 		t->vconst = etconv[l->type->etype];
+> 		t->type = types[TLONG];
+> 		t->addable = 20;
+> 		r = new(OLIST, t, r);
+> 
+> 		t = new(OADDR, a, 0);
+> 		t->type = typ(TIND, a->type);
+> 		r = new(OLIST, t, r);
+> 
+> 		t = new(OADDR, l, 0);
+> 		t->type = typ(TIND, l->type);
+> 		t->complex = l->complex;
+> 		r = new(OLIST, t, r);
+> 
+> 		n->left = nodvasop;
+> 		n->right = r;
+> 		n->complex = FNX;
+> 		n->op = OFUNC;
+> 	}
+> 
+604c638
+< 		diag(Z, "bad type in castftox %s", tnames[et]);
+---
+> 		diag(Z, "bad type in convftox %s", tnames[et]);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/compat.c ./compat.c
+8c8
+< malloc(ulong n)
+---
+> malloc(uintptr n)
+14c14
+< calloc(ulong m, ulong n)
+---
+> calloc(uintptr m, uintptr n)
+20c20
+< realloc(void*, ulong)
+---
+> realloc(void*, uintptr)
+34c34
+< mallocz(ulong size, int clr)
+---
+> mallocz(uintptr size, int clr)
+45c45
+< setmalloctag(void*, ulong)
+---
+> setmalloctag(void*, uintptr)
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/dcl.c ./dcl.c
+384c384,385
+< 			if(a->op == OADDR)
+---
+> 			switch(a->op) {
+> 			case OADDR:
+385a387,392
+> 				break;
+> 			case ONAME:
+> 			case OIND:
+> 				diag(a, "initializer is not a constant: %s", s->name);
+> 				return Z;
+> 			}
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/dpchk.c ./dpchk.c
+78d77
+< 		fmt += runetochar(fmt, &c);
+80a80
+> 		fmt += runetochar(fmt, &c);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/funct.c ./funct.c
+225c225
+< 	// recognize generated tag of dorm _%d_
+---
+> 	// recognize generated tag of form _%d_
+265c265
+< 		sprint(str, "%s_%s_", t->tag->name, ftabinit[i].name);
+---
+> 		snprint(str, sizeof str, "%s_%s_", t->tag->name, ftabinit[i].name);
+299c299
+< 		sprint(str, "_%s%s_", gtabinit[i].name, t->tag->name);
+---
+> 		snprint(str, sizeof str, "_%s%s_", gtabinit[i].name, t->tag->name);
+308c308
+< 		sprint(str, "%s_%s_", t->tag->name, gtabinit[i].name);
+---
+> 		snprint(str, sizeof str, "%s_%s_", t->tag->name, gtabinit[i].name);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/lex.c ./lex.c
+14a15
+>  *	-f		print pragma settings
+25c26
+<  *	-r		print registerization
+---
+>  *	-R		print registerization
+27a29
+>  *	-T		pass type signatures on all external & global entities
+32a35
+>  *	-Z		emit pickling goo to file (%.c=%_pickle.c)
+41a45
+> 	Binit(&diagbuf, 1, OWRITE);
+160a165,168
+> /*
+>  * compile may be executed concurrently (once per separate process), but
+>  * is not currently called repeatedly within a single process.
+>  */
+164c172
+< 	char ofile[400], incfile[20];
+---
+> 	char ofile[400], incfile[200];
+202c210,213
+< 			sprint(incfile, "/%s/include", thestring);
+---
+> 			p = getenv("ccroot");
+> 			if(p == nil)
+> 				p = "";
+> 			snprint(incfile, sizeof(incfile), "%s/%s/include", p, thestring);
+204c215,221
+< 			setinclude("/sys/include");
+---
+> 			snprint(incfile, sizeof(incfile), "%s/sys/include", p);
+> 			setinclude(strdup(incfile));
+> 			if(*p != '\0') {
+> 				snprint(incfile, sizeof(incfile), "%s/include", p);
+> 				if(myaccess(incfile) >= 0)
+> 					setinclude(strdup(incfile));
+> 			}
+207,208d223
+< 	if (first)
+< 		Binit(&diagbuf, 1, OWRITE);
+211c226
+< 	 * outbuf.
+---
+> 	 * outbuf, since we may compile multiple source files.
+261c276
+< 				sprint(opt, "-D%s", defs[c]);
+---
+> 				snprint(opt, sizeof opt, "-D%s", defs[c]);
+265c280
+< 				sprint(opt, "-I%s", include[c]);
+---
+> 				snprint(opt, sizeof opt, "-I%s", include[c]);
+292a308,309
+> 	Bflush(&outbuf);
+> 	Bflush(&diagbuf);
+298a316,317
+> 	Bflush(&outbuf);
+> 	Bflush(&diagbuf);
+1147a1167
+> 	"_Noreturn",	LNORETURN,	0,
+1389c1409
+< 			sprint(s, "%s ", gnames[t->garb&~GINCOMPLETE]);
+---
+> 			snprint(s, sizeof s, "%s ", gnames[t->garb&~GINCOMPLETE]);
+1393c1413
+< 		sprint(s, "%s", tnames[et]);
+---
+> 		snprint(s, sizeof s, "%s", tnames[et]);
+1397c1417
+< 			sprint(s, "(%T", t1);
+---
+> 			snprint(s, sizeof s, "(%T", t1);
+1401c1421
+< 				sprint(s, ", %T", t1);
+---
+> 				snprint(s, sizeof s, ", %T", t1);
+1412c1432
+< 			sprint(s, "[%ld]", n);
+---
+> 			snprint(s, sizeof s, "[%ld]", n);
+1417c1437
+< 			sprint(s, " %d:%d", t->shift, t->nbits);
+---
+> 			snprint(s, sizeof s, " %d:%d", t->shift, t->nbits);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/macbody ./macbody
+21,22c21,22
+< Sym*
+< getsym(void)
+---
+> static void
+> nextsym(int c)
+24c24
+< 	int c;
+---
+> 	int c1;
+27,31d26
+< 	c = getnsc();
+< 	if(!isalpha(c) && c != '_' && c < Runeself) {
+< 		unget(c);
+< 		return S;
+< 	}
+33,34c28,39
+< 		if(cp <= symb+NSYMB-4)
+< 			*cp++ = c;
+---
+> 		if(c >= Runeself) {
+> 			for(c1=0;;) {
+> 				if(cp <= symb+NSYMB-UTFmax)
+> 					cp[c1++] = c;
+> 				if(fullrune(cp, c1))
+> 					break;
+> 				c = getc();
+> 			}
+> 			cp += c1;
+> 		}else
+> 			if(cp <= symb+NSYMB-UTFmax)
+> 				*cp++ = c;
+36c41
+< 		if(isalnum(c) || c == '_' || c >= Runeself)
+---
+> 		if(c >= Runeself || isalnum(c) || c == '_')
+42c47
+< 	if(cp > symb+NSYMB-4)
+---
+> 	if(cp > symb+NSYMB-UTFmax)
+43a49,61
+> }
+> 
+> Sym*
+> getsym(void)
+> {
+> 	int c;
+> 
+> 	c = getnsc();
+> 	if(c < Runeself && !isalpha(c) && c != '_') {
+> 		unget(c);
+> 		return S;
+> 	}
+> 	nextsym(c);
+196c214
+< 	char *args[NARG], *np, *base;
+---
+> 	char *args[NARG], *base;
+238,240c256,257
+< 		if(isalpha(c) || c == '_') {
+< 			np = symb;
+< 			*np++ = c;
+---
+> 		if(c >= Runeself || isalpha(c) || c == '_') {
+> 			nextsym(c);
+242,246d258
+< 			while(isalnum(c) || c == '_') {
+< 				*np++ = c;
+< 				c = getc();
+< 			}
+< 			*np = 0;
+298c310
+< 						if(c == '\n') {
+---
+> 						if(0 && c == '\n') {
+393c405
+< 		ecp = cp + sizeof(buf)-4;
+---
+> 		ecp = cp + sizeof(buf)-UTFmax;
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/mkfile ./mkfile
+26c26
+< CURCC=5c 6c 8c qc vc
+---
+> CURCC=5c 6c 7c 8c ic qc vc
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/omachcap.c ./omachcap.c
+5c5
+< machcap(Node*)
+---
+> machcap(Node *n)
+6a7
+> 	USED(n);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/pgen.c ./pgen.c
+291c291
+< 			diag(n, "switch expression must be integer");
+---
+> 			diag(n, "switch expression must be integer (not vlong)");
+576,577c576,577
+< 	/* this is not quite right yet, so ignore it for now */
+< 	if(0 && newvlongcode && typev[n->type->etype] && machcap(Z)) {
+---
+> 	if(newvlongcode && typev[n->type->etype] && machcap(Z)) {
+> 		nod = znode;
+585c585,586
+< 		cgen(b, Z);
+---
+> 		xcom(b);
+> 		boolgen(b, 1, Z);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/pickle.c ./pickle.c
+5c5
+< 	"$adt", "$aggr", "$append", "$complex", "$defn",
+---
+> 	"$adt", "$aggr", "$append", "$builtin", "$complex", "$defn",
+10c10
+< static char picklestr[] = "\tpickle(s, un, ";
+---
+> static char picklestr[] = "\tbp = pickle(bp, ep, un, ";
+156c156
+< 			Bprint(&outbuf, "\tpickle_%s(s, un, (%s*)((char*)addr+%ld+_i*%ld));\n",
+---
+> 			Bprint(&outbuf, "\tbp = pickle_%s(bp, ep, un, (%s*)((char*)addr+%ld+_i*%ld));\n",
+159c159
+< 			Bprint(&outbuf, "\tpickle_%s(s, un, &addr->%s);\n",
+---
+> 			Bprint(&outbuf, "\tbp = pickle_%s(bp, ep, un, &addr->%s);\n",
+198c198
+< 		Bprint(&outbuf, "void\npickle_%s(void *s, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
+---
+> 		Bprint(&outbuf, "uchar*\npickle_%s(uchar *bp, uchar *ep, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
+201c201
+< 		Bprint(&outbuf, "}\n\n");
+---
+> 		Bprint(&outbuf, "\treturn bp;\n}\n\n");
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/pswt.c ./pswt.c
+113c113,117
+< if(0){for(int k=0; k<(q-iql); k++)print("nh=%ld k=%d h=%#llux l=%#llux lab=%ld\n", nh, k, (vlong)iqh[nh].val,  (vlong)iql[k].val, iql[k].label);}
+---
+> 		if (0)
+> 			for (int k = 0; k < (q - iql); k++)
+> 				print("nh=%ld k=%d h=%#llux l=%#llux lab=%ld\n",
+> 					nh, k, (vlong)iqh[nh].val,
+> 					(vlong)iql[k].val, iql[k].label);
+120c124,127
+< if(0){for(int k=0; k<nh; k++)print("k*=%d h=%#llux lab=%ld\n", k, (vlong)iqh[k].val,  iqh[k].label);}
+---
+> 	if (0)
+> 		for (int k = 0; k < nh; k++)
+> 			print("k*=%d h=%#llux lab=%ld\n", k, (vlong)iqh[k].val,
+> 				iqh[k].label);
+
+diff /n/dump/2014/0315/sys/src/cmd/cc/sub.c ./sub.c
+253a254,255
+> 	case BVLONG|BUNSIGNED:
+> 	case BVLONG|BINT|BUNSIGNED:
+665c667
+< 	long w;
+---
+> 	long w, x;
+693a696
+> 		/* pointer subtraction */
+695c698,710
+< 		if(w < 1 || n->left->type->link == T || n->left->type->link->width < 1)
+---
+> 		if(w < 1) {
+> 			snap(n->right->type->link);
+> 			w = n->right->type->link->width;
+> 		}
+> 		x = 0;
+> 		if(n->left->type->link != T) {
+> 			x = n->left->type->link->width;
+> 			if(x < 1) {
+> 				snap(n->left->type->link);
+> 				x = n->left->type->link->width;
+> 			}
+> 		}
+> 		if(w < 1 || x < 1)
+698c713
+< 		if(1 && ewidth[TIND] > ewidth[TLONG]){
+---
+> 		if(ewidth[TIND] > ewidth[TLONG]){	/* 64-bit mach? */
+704c719
+< 			n->type = types[TLONG];
+---
+> 			n->type = types[TVLONG];  /* was TLONG, which seems wrong */
+706a722
+> 			/* scale down by width */
+919a936,939
+> 	case OCOM:
+> 	case ONEG:
+> 	case OPOS:
+> 	case OTST:
+951a972,973
+> 	case OFAS:
+> 	case OINDEX:
+962a985,988
+> 	case OREGPAIR:
+> 	case OEXREG:
+> 	case OREGISTER:
+> 	case OINDREG:
+1140c1166
+< 	for(i=0; i<32; i++)
+---
+> 	for(i=0; i < BI2LONG; i++)
+2031a2058,2075
+> }
+> 
+> 
+> /*
+>  * (uvlong)~ul creates a ul mask with top bits zero, which is usually wrong
+>  * an explicit cast to ulong after ~ suppresses the diagnostic
+>  */
+> int
+> castucom(Node *r)
+> {
+> 	Node *rl;
+> 
+> 	if(r->op == OCAST &&
+> 	   (rl = r->left)->op == OCOM &&
+> 	   (r->type->etype == TVLONG || r->type->etype == TUVLONG) &&
+> 	   typeu[rl->type->etype] && typechl[rl->type->etype])
+> 		return 1;
+> 	return 0;

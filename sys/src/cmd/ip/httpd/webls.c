@@ -125,7 +125,7 @@ allowed(char *dir)
 	while (okay && (re = getre(dio)) != nil) {
 		memset(&match, 0, sizeof(match));
 		okay = (regexec(re, dir, &match, 1) != 1);
-		free(re);
+		regfree(re);
 	}
 
 	/* go through accepts till we have a match */
@@ -134,7 +134,7 @@ allowed(char *dir)
 	while (!okay && (re = getre(aio)) != nil) {
 		memset(&match, 0, sizeof(match));
 		okay = (regexec(re, dir, &match, 1) == 1);
-		free(re);
+		regfree(re);
 	}
 	return(okay);
 }
@@ -226,7 +226,7 @@ dols(char *dir)
 		*p = '\0';
 		f = (*dir == '\0') ? "/" : dir;
 		if (!(*dir == '\0' && *(dir+1) == '\0') && allowed(f))
-			hprint(hout, "<a href=\"/magic/webls?dir=%H\">%s/</a>", f, nm);
+			hprint(hout, "<a href=\"/magic/webls?dir=%H/\">%s/</a>", f, nm);
 		else
 			hprint(hout, "%s/", nm);
 		*p = '/';
@@ -242,7 +242,7 @@ dols(char *dir)
 		f = smprint("%s/%s", dir, d[i].name);
 		cleanname(f);
 		if (d[i].mode & DMDIR) {
-			p = smprint("/magic/webls?dir=%H", f);
+			p = smprint("/magic/webls?dir=%H/", f);
 			free(f);
 			f = p;
 		}
@@ -258,7 +258,7 @@ dols(char *dir)
 	f = smprint("%s/..", dir);
 	cleanname(f);
 	if (strcmp(f, dir) != 0 && allowed(f))
-		hprint(hout, "\nGo to <a href=\"/magic/webls?dir=%H\">parent</a> directory\n", f);
+		hprint(hout, "\nGo to <a href=\"/magic/webls?dir=%H/\">parent</a> directory\n", f);
 	else
 		hprint(hout, "\nEnd of directory listing\n");
 	free(f);

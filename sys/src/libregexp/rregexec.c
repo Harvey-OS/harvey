@@ -147,38 +147,19 @@ rregexec1(Reprog *progp,	/* program to run */
 	return match;
 }
 
-static int
-rregexec2(Reprog *progp,	/* program to run */
-	Rune *bol,	/* string to run machine on */
-	Resub *mp,	/* subexpression elements */
-	int ms,		/* number of elements at mp */
-	Reljunk *j
-)
-{
-	Relist relist0[5*LISTSIZE], relist1[5*LISTSIZE];
-
-	/* mark space */
-	j->relist[0] = relist0;
-	j->relist[1] = relist1;
-	j->reliste[0] = relist0 + nelem(relist0) - 2;
-	j->reliste[1] = relist1 + nelem(relist1) - 2;
-
-	return rregexec1(progp, bol, mp, ms, j);
-}
-
 extern int
 rregexec(Reprog *progp,	/* program to run */
 	Rune *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms)		/* number of elements at mp */
 {
-	Reljunk j;
-	Relist relist0[LISTSIZE], relist1[LISTSIZE];
+	Reljunk j, jbig;
 	int rv;
 
 	/*
  	 *  use user-specified starting/ending location if specified
 	 */
+	memset(&j, 0, sizeof j);
 	j.rstarts = bol;
 	j.reol = 0;
 	if(mp && ms>0){
@@ -189,24 +170,28 @@ rregexec(Reprog *progp,	/* program to run */
 	}
 	j.starttype = 0;
 	j.startchar = 0;
+	if (progp == nil)
+		return -1;
+	assert(progp->startinst);
 	if(progp->startinst->type == RUNE && progp->startinst->r < Runeself) {
 		j.starttype = RUNE;
 		j.startchar = progp->startinst->r;
 	}
 	if(progp->startinst->type == BOL)
 		j.starttype = BOL;
+	jbig = j;
 
-	/* mark space */
-	j.relist[0] = relist0;
-	j.relist[1] = relist1;
-	j.reliste[0] = relist0 + nelem(relist0) - 2;
-	j.reliste[1] = relist1 + nelem(relist1) - 2;
-
+	if (_regalloclists(&j, LISTSIZE) < 0)
+		return -1;
 	rv = rregexec1(progp, bol, mp, ms, &j);
-	if(rv >= 0)
+	_regfreelists(&j, LISTSIZE);
+	if (rv >= 0)
 		return rv;
-	rv = rregexec2(progp, bol, mp, ms, &j);
-	if(rv >= 0)
-		return rv;
-	return -1;
+
+	if (_regalloclists(&jbig, BIGLISTSIZE) < 0)
+		return -1;
+	rv = rregexec1(progp, bol, mp, ms, &jbig);
+	_regfreelists(&jbig, BIGLISTSIZE);
+	return rv;
+
 }

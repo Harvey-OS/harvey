@@ -103,7 +103,7 @@ main(argc, argv)
 #endif
 
 	/* make sure argv[] is sane */
-	if (!*argv) {
+	if (!argv || !*argv) {
 		static const char	*empty_argv[] = {
 					    "pdksh", (char *) 0
 					};

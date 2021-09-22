@@ -81,6 +81,7 @@ typedef struct NdiscC NdiscC;
 	uchar	icmpid[2]; \
 	uchar	seq[2]
 
+/* this is packet layouts, so can't tolerate bogus padding */
 struct IPICMP {
 	ICMPHDR;
 	uchar	payload[];
@@ -369,7 +370,7 @@ icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)
 	memmove(np->target, targ, IPaddrlen);
 	if(suni != SRC_UNSPEC) {
 		np->otype = SRC_LLADDR;
-		np->olen = 1;		/* 1+1+6 = 8 = 1 8-octet */
+		np->olen = 1;		/* 1+1+6 = 8 bits = 1 8-octet */
 		memmove(np->lnaddr, mac, sizeof(np->lnaddr));
 	} else
 		nbp->wp -= NDPKTSZ - NDISCSZ;
@@ -658,7 +659,7 @@ valid(Proto *icmp, Ipifc *, Block *bp, Icmppriv6 *ipriv)
 		}
 		break;
 	case RedirectV6:
-		/* TODO: fill in */
+		/* TODO: fill in RedirectV6 */
 		break;
 	default:
 		goto err;
@@ -697,7 +698,7 @@ static void
 icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 {
 	int type;
-	char *msg, m2[128];
+	char *msg;
 	uchar pktflags;
 	uchar *packet, *src;
 	uchar lsrc[IPaddrlen];
@@ -748,12 +749,14 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 		break;
 	case TimeExceedV6:
 		if(p->code == 0){
-			snprint(m2, sizeof m2, "ttl exceeded at %I", p->src);
+			char m2[64];
+
 			bp->rp += IPICMPSZ;
 			if(blocklen(bp) < 8){
 				ipriv->stats[LenErrs6]++;
 				goto raise;
 			}
+			snprint(m2, sizeof m2, "ttl exceeded at %I", p->src);
 			p = (IPICMP *)bp->rp;
 			pr = Fsrcvpcolx(icmp->f, p->proto);
 			if(pr && pr->advise) {

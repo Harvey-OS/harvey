@@ -148,7 +148,7 @@ kick(Uart *uart)
 	coherence();
 }
 
-/* TODO */
+/* TODO dobreak */
 static void
 dobreak(Uart *uart, int ms)
 {

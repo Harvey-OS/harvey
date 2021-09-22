@@ -1,13 +1,16 @@
 /***** tl_spin: tl_main.c *****/
 
-/*
- * This file is part of the public release of Spin. It is subject to the
- * terms in the LICENSE file that is included in this source directory.
- * Tool documentation is available at http://spinroot.com
- *
- * Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper,
- * presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.
- */
+/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
+/* All Rights Reserved.  This software is for educational purposes only.  */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+
+/* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
+/* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
 
 #include "tl.h"
 
@@ -23,7 +26,7 @@ int	state_cnt = 0;
 unsigned long	All_Mem = 0;
 char	*claim_name;
 
-static char	*uform;
+static char	uform[4096];
 static int	hasuform=0, cnt=0;
 
 extern void cache_stats(void);
@@ -54,21 +57,10 @@ tl_balanced(void)
 
 	for (i = 0; i < hasuform; i++)
 	{	if (uform[i] == '(')
-		{	if (i > 0
-			&& ((uform[i-1] == '"'  && uform[i+1] == '"')
-			||  (uform[i-1] == '\'' && uform[i+1] == '\'')))
-			{	continue;
-			}
-			k++;
+		{	k++;
 		} else if (uform[i] == ')')
-		{	if (i > 0
-			&& ((uform[i-1] == '"'  && uform[i+1] == '"')
-			||  (uform[i-1] == '\'' && uform[i+1] == '\'')))
-			{	continue;
-			}
-			k--;
+		{	k--;
 	}	}
-
 	if (k != 0)
 	{	tl_errs++;
 		tl_yyerror("parentheses not balanced");
@@ -99,22 +91,17 @@ tl_stats(void)
 int
 tl_main(int argc, char *argv[])
 {	int i;
-	extern int xspin, s_trail;
+	extern int /* verbose, */ xspin;
 
 	tl_verbose = 0; /* was: tl_verbose = verbose; */
-	if (xspin && s_trail)
-	{	tl_clutter = 1;
-		/* generating claims for a replay should
-		   be done the same as when generating the
-		   pan.c that produced the error-trail */
-	} else
-	{	tl_clutter = 1-xspin;	/* use -X -f to turn off uncluttering */
-	}
+	tl_clutter = 1-xspin;	/* use -X -f to turn off uncluttering */
+
 	newstates  = 0;
 	state_cnt  = 0;
 	tl_errs    = 0;
 	tl_terse   = 0;
 	All_Mem = 0;
+	memset(uform, 0, sizeof(uform));
 	hasuform=0;
 	cnt=0;
 	claim_name = (char *) 0;
@@ -132,13 +119,12 @@ tl_main(int argc, char *argv[])
 		case 'f':	argc--; argv++;
 				for (i = 0; argv[1][i]; i++)
 				{	if (argv[1][i] == '\t'
+					||  argv[1][i] == '\"'
 					||  argv[1][i] == '\n')
 						argv[1][i] = ' ';
 				}
-				size_t len = strlen(argv[1]);
-                uform = tl_emalloc(len + 1);
 				strcpy(uform, argv[1]);
-				hasuform = (int) len;
+				hasuform = (int) strlen(uform);
 				break;
 		case 'v':	tl_verbose++;
 				break;
@@ -209,12 +195,6 @@ dump(Node *n)
 	case PREDICATE:
 		fprintf(tl_out, "(%s)", n->sym->name);
 		break;
-	case CEXPR:
-		fprintf(tl_out, "c_expr");
-		fprintf(tl_out, " {");
-		dump(n->lft);
-		fprintf(tl_out, "}");
-		break;
 	case -1:
 		fprintf(tl_out, " D ");
 		break;
@@ -242,7 +222,6 @@ tl_explain(int n)
 #ifdef NXT
 	case NEXT:	printf("X"); break;
 #endif
-	case CEXPR:	printf("c_expr"); break;
 	case TRUE:	printf("true"); break;
 	case FALSE:	printf("false"); break;
 	case ';':	printf("end of formula"); break;
@@ -256,14 +235,10 @@ tl_non_fatal(char *s1, char *s2)
 	int i;
 
 	printf("tl_spin: ");
-#if 1
-	printf(s1, s2);	/* prevent a compiler warning */
-#else
 	if (s2)
 		printf(s1, s2);
 	else
 		printf(s1);
-#endif
 	if (tl_yychar != -1 && tl_yychar != 0)
 	{	printf(", saw '");
 		tl_explain(tl_yychar);

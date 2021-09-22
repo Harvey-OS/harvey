@@ -1,0 +1,128 @@
+vm 11.25
+pI 39.7551, 104.8967	# iden (guess)
+pD 39.800472,104.886833	# den vor
+
+va 352
+vb 0-vm
+pa d pD,m(va-090),1.5
+pb d pD,m(va+090),2.5
+
+pc d pD,m(va-090),3.5
+pd d pD,m(va+090),4
+
+pe d pD,m(va+090),3
+
+pf d pD,m(va+000),1.75
+pg d pD,m(vb+180),3
+
+ph d pD,m(va+180),5
+
+pi xcln pI,7, pb,m(va)
+pj xcln pI,7, pd,m(va)
+pk xll pd,m(va), pf,m(va+090)
+pl xcle pI,7, pf,m(va+090)
+pm xcle pI,7, pg,m(vb+090)
+pn xll pe,m(va), pg,m(vb+090)
+po xcls pI,7, pe,m(va)
+pp xcls pI,7, pc,m(va)
+pq xll pc,m(va), ph,m(va+090)
+pr xclw pI,7, ph,m(va+090)
+ps xclw pI,7, pf,m(va+090)
+pt xll pc,m(va), pf,m(va+090)
+pu xcln pI,7, pc,m(va)
+pv xcln pI,7, pa,m(va)
+pw xcln pI,10, pa,m(va)
+px xcln pI,10, pb,m(va)
+
+n den_gnd\110
+ar pI,pi,pj
+s pj,pk
+s pk,pl
+ar pI,pl,pm
+s pm,pn
+s pn,po
+ar pI,po,pp
+s pp,pq
+s pq,pr
+ar pI,pr,ps
+s ps,pt
+s pt,pu
+ar pI,pu,pv
+s pv,pw
+ar pI,pw,px
+s px,pi
+
+py d pI,m(vb+180),8
+
+p*a xcle pI,16, pg,m(vb+090)
+p*b xcle pI,16, pf,m(va+090)
+p*c xcle pI,10, pf,m(va+090)
+p*d xcln pI,10, pd,m(va)
+p*e xcln pI,16, pd,m(va)
+p*f xcln pI,16, pc,m(va)
+p*g xcln pI,10, pc,m(va)
+p*h xclw pI,10, py,m(vb+090)
+p*i xll pc,m(va), py,m(vb+090)
+
+n den_70\110
+s pm,p*a
+al pI,p*a,p*b
+s p*b,p*c
+al pI,p*c,p*d
+s p*d,p*e
+al pI,p*e,p*f
+s p*f,p*g
+al pI,p*g,p*h
+s p*h,p*i
+s p*i,pp
+
+p*j xll pD,m148, py,m(vb+090)
+p*k xcle pI,16, pD,m148
+
+n den_75\110
+s p*i,p*j
+s p*j,p*k
+al pI,p*k,p*a
+s p*a,p*a
+
+pz d pD,m(vb-090),13.5
+
+p*m xcls pI,16, pz,m(vb)
+p*n xcln pI,16, pz,m(vb)
+p*o xcle pI,20, pg,m(vb+090)
+p*p xcle pI,20, pD,m148
+
+n den_80\110
+ar pI,p*k,p*m
+S p*m,p*n
+ar pI,p*n,p*f
+
+ar pI,p*e,p*b
+
+s p*a,p*o
+Ar pI,p*o,p*p
+s p*p,p*k
+
+p*l xcle pI,20, pf,m(va+090)
+p*q xcln pI,20, pd,m(va)
+p*r xcln pI,20, pc,m(va)
+
+n den_90\110
+Al pI,p*o,p*l
+s p*l,p*b
+
+s p*e,p*q
+Al pI,p*q,p*r
+s p*r,p*f
+
+p*s xcln pI,20, pz,m(vb)
+p*t xcls pI,20, pz,m(vb)
+
+n den_100\110
+Al pI,p*r,p*s
+S p*s,p*n
+
+Al pI,p*l,p*q
+
+Ar pI,p*p,p*t
+S p*t,p*m

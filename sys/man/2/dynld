@@ -4,19 +4,21 @@ dynfindsym, dynfreeimport, dynloadfd, dynloadgen, dynobjfree, dyntabsize \- load
 .SH SYNOPSIS
 .B #include <u.h>
 .br
+.B #include <libc.h>
+.br
 .B #include <a.out.h>
 .br
 .B #include <dynld.h>
 .PP
 .ta \w'\fLDynsym*** 'u
 .B
-Dynsym*	dynfindsym(char *name, Dynsym *syms, int nsym)
+Dynsym*	dynfindsym(char *name, Dynsym *syms, int nsym);
 .PP
 .B
 Dynobj*	dynloadfd(int fd, Dynsym *exports, int nexport,
 .br
 .B
-	  ulong maxsize)
+	  ulong maxsize);
 .PP
 .B
 Dynobj*	dynloadgen(void *file, long (*read)(void*,void*,long),
@@ -25,19 +27,19 @@ Dynobj*	dynloadgen(void *file, long (*read)(void*,void*,long),
 	  vlong (*seek)(void*,vlong,int), void (*err)(char*),
 .br
 .B
-	  Dynsym *exports, int nexport, ulong maxsize)
+	  Dynsym *exports, int nexport, ulong maxsize);
 .PP
 .B
-void*	dynimport(Dynobj *o, char *name, ulong sig)
+void*	dynimport(Dynobj *o, char *name, ulong sig);
 .PP
 .B
-void	dynfreeimport(Dynobj *o)
+void	dynfreeimport(Dynobj *o);
 .PP
 .B
-void	dynobjfree(Dynobj *o)
+void	dynobjfree(Dynobj *o);
 .PP
 .B
-int	dyntabsize(Dynsym *t)
+int	dyntabsize(Dynsym *t);
 .PP
 .B
 extern Dynsym  _exporttab[];
@@ -48,7 +50,7 @@ into the currently executing image.
 A dynamically-loadable file, called a
 .I module
 here, is a variant of the
-.IR a.out (10.6)
+.IR a.out (6)
 executable format with some extra components.
 The loader for the architecture
 (see
@@ -279,7 +281,7 @@ There is no reference counting: it is the caller's responsibility to decide whet
 a module is no longer needed.
 .SH SEE ALSO
 .IR 8l (1),
-.\".IR mach (2),
+.IR mach (2),
 .IR a.out (6)
 .SH DIAGNOSTICS
 Functions that return pointers return nil on error.

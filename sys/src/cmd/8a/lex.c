@@ -98,8 +98,9 @@ assemble(char *file)
 	strcpy(ofile, file);
 	p = utfrrune(ofile, pathchar());
 	if(p) {
-		include[0] = ofile;
 		*p++ = 0;
+		if(!debug['.'])
+			include[0] = ofile;
 	} else
 		p = ofile;
 	if(outfile == 0) {

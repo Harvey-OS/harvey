@@ -1,0 +1,269 @@
+0.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=0.0.0.0/8 | db=arin
+alia" address="00100 Roma" address=Italy | db=ripe
+1.0.0.0 status="ok" iprange="1.0.0.0 - 1.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+2.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=2.0.0.0/8 | db=arin
+3.0.0.0 status="ok" org="General Electric Company" address="1 Independence Way" address=Princeton address=NJ address=08540 country=US | iprange=3.0.0.0/8 | db=arin
+4.0.0.0 status="ok" iprange="4.0.0.0 - 4.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+5.0.0.0 status="ok" iprange="5.0.0.0 - 5.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+6.0.0.0 status="ok" iprange="6.0.0.0 - 6.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+7.0.0.0 status="ok" org="DoD Network Information Center" address="3990 E. Broad Street" address=Columbus address=OH address=43218 country=US | iprange=7.0.0.0/8 | db=arin
+8.0.0.0 status="ok" org="Level 3 Communications, Inc." address="1025 Eldorado Blvd." address=Broomfield address=CO address=80021 country=US | iprange=8.0.0.0/8 | db=arin
+9.0.0.0 status="ok" iprange="9.0.0.0 - 9.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+10.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=10.0.0.0/8 | db=arin
+11.0.0.0 status="ok" iprange="11.0.0.0 - 11.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+12.0.0.0 status="ok" iprange="12.0.0.0 - 12.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+13.0.0.0 status="ok" iprange="13.0.0.0 - 13.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+14.0.0.0 status="ok" iprange="14.0.0.0 - 14.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+15.0.0.0 status="ok" iprange="15.0.0.0 - 15.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+16.0.0.0 status="ok" org="Hewlett-Packard Company" address="3000 Hanover Street" address="Palo Alto" address=CA address=94304 country=US | iprange=16.0.0.0/8 | db=arin
+17.0.0.0 status="ok" iprange="17.0.0.0 - 17.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+18.0.0.0 status="ok" org="Massachusetts Institute of Technology" address="Room W92-190" address="77 Massachusetts Avenue" address=Cambridge address=MA address=02139-4307 country=US | iprange=18.0.0.0/8 | db=arin
+19.0.0.0 status="ok" org="Ford Motor Company" address="P.O. Box 2053, RM E-1121" address=Dearborn address=MI address=48121-2053 country=US | iprange=19.0.0.0/8 | db=arin
+20.0.0.0 status="ok" org="Computer Sciences Corporation" address="3170 Fairview Park Drive" address="Falls Church" address=VA address=22042 country=US | iprange=20.0.0.0/8 | db=arin
+21.0.0.0 status="ok" iprange="21.0.0.0 - 21.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+22.0.0.0 status="ok" org="DoD Network Information Center" address="3990 E. Broad Street" address=Columbus address=OH address=43218 country=US | iprange=22.0.0.0/8 | db=arin
+23.0.0.0 status="ok" iprange="23.0.0.0 - 23.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+24.0.0.0 status="ok" org="Comcast Cable Communications, IP Services" address="1800 Bishops Gate Blvd." address="Mount Laurel" address=NJ address=08054-4628 country=US | iprange=24.0.0.0/12 | address="3 Executive Campus" address="5th Floor" address="Cherry Hill" address=NJ address=08002 country=US | iprange=24.0.0.0/15 | db=arin
+25.0.0.0 status="ok" iprange="25.0.0.0 - 25.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+26.0.0.0 status="ok" iprange="26.0.0.0 - 26.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+27.0.0.0 status="ok" iprange="27.0.0.0 - 27.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+28.0.0.0 status="ok" org="DoD Network Information Center" address="3990 E. Broad Street" address=Columbus address=OH address=43218 country=US | iprange=28.0.0.0/8 | db=arin
+29.0.0.0 status="ok" org="DoD Network Information Center" address="3990 E. Broad Street" address=Columbus address=OH address=43218 country=US | iprange=29.0.0.0/8 | db=arin
+30.0.0.0 status="ok" org="DoD Network Information Center" address="3990 E. Broad Street" address=Columbus address=OH address=43218 country=US | iprange=30.0.0.0/8 | db=arin
+31.0.0.0 status="ok" iprange="31.0.0.0 - 31.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+32.0.0.0 status="ok" org="AT&T Global Network Services" address="3200 Lake Emma Road" address="Lake Mary" address=FL address=32746 country=US | iprange=32.0.0.0/8 | db=arin
+33.0.0.0 status="ok" iprange="33.0.0.0 - 33.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+34.0.0.0 status="ok" org="Halliburton Company" address="10200 Bellaire Blvd" address=Houston address=TX address=77072-5299 country=US | iprange=34.0.0.0/8 | db=arin
+35.0.0.0 status="ok" org="Merit Network Inc." address="1000 Oakbrook Drive, Suite 200" address="Ann Arbor" address=MI address=48104 country=US | iprange=35.0.0.0/8 | db=arin
+36.0.0.0 status="ok" iprange="36.0.0.0 - 36.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+37.0.0.0 status="ok" iprange="37.0.0.0 - 37.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+38.0.0.0 status="ok" iprange="38.0.0.0 - 38.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+39.0.0.0 status="ok" iprange="39.0.0.0 - 39.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+40.0.0.0 status="ok" iprange="40.0.0.0 - 40.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+41.0.0.0 status="ok" iprange="41.0.0.0 - 41.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+42.0.0.0 status="ok" iprange="42.0.0.0 - 42.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+43.0.0.0 status="ok" org="Japan Inet" address="Kokusai-Kougyou-Kanda Bldg." address="2-3-4 Uchikanda" address=Chiyoda-ku address=Tokyo address= address=101-0047 country=JP | iprange=43.0.0.0/8 | db=arin
+44.0.0.0 status="ok" org="Amateur Radio Digital Communications" address= address= address= address= country=US | iprange=44.0.0.0/8 | db=arin
+45.0.0.0 status="ok" iprange="45.0.0.0 - 45.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+46.0.0.0 status="ok" iprange="46.0.0.0 - 46.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+47.0.0.0 status="ok" iprange="47.0.0.0 - 47.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+48.0.0.0 status="ok" org="Prudential Securities Inc." address="1 New York Plaza" address="New York" address=NY address=10004 country=US | iprange=48.0.0.0/8 | db=arin
+49.0.0.0 status="ok" iprange="49.0.0.0 - 49.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+50.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=50.0.0.0/8 | db=arin
+51.0.0.0 status="ok" iprange="51.0.0.0 - 51.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+52.0.0.0 status="ok" iprange="52.0.0.0 - 52.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+53.0.0.0 status="ok" iprange="53.0.0.0 - 53.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+54.0.0.0 status="ok" org="Merck and Co., Inc." address="126 East Lincoln Avenue" address=Rahway address=NJ address=07095 country=US | iprange=54.0.0.0/8 | db=arin
+55.0.0.0 status="ok" org="DoD Network Information Center" address="3990 E. Broad Street" address=Columbus address=OH address=43218 country=US | iprange=55.0.0.0/8 | db=arin
+56.0.0.0 status="ok" iprange="56.0.0.0 - 56.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+57.0.0.0 status="ok" iprange="57.0.0.0 - 57.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+58.0.0.0 status="ok" iprange="58.0.0.0 - 58.1.255.255" country=JP | org="Japan Network Information Center" address="Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda" address="Chiyoda-ku, Tokyo 101-0047, Japan" country=JP | iprange="58.0.0.0 - 58.0.255.255" country=JP | db=apnic
+59.0.0.0 status="ok" iprange="59.0.0.0 - 59.31.255.255" country=KR | address="206, Jungja-Dong, Bundang-Gu, Sungnam, Gyunggi-Do, Seoul, 463-711" country=KR | db=apnic
+60.0.0.0 status="ok" iprange="60.0.0.0 - 60.10.255.255" country=CN | org="CNCGroup Hostmaster" address="No.156,Fu-Xing-Men-Nei Street," address=Beijing,100031,P.R.China country=CN | address="hebei province shijiazhuang" address="fanxi road No.19" country=CN | db=apnic
+61.0.0.0 status="ok" iprange="61.0.0.0 - 61.1.255.255" country=IN | org="NS Cell" address="Internet Cell" address="Bharat Sanchar Nigam Limited" address="8th Floor,148-B Statesman House" address="Barakhamba Road, New Delhi - 110 001" country=IN | org="CGM Data Networks" address="Lobby 1 , 4th Floor" address="Mahanagar Doorsanchar Sadan" address="9 CGO Complex , Lodhi Road , New Delhi" country=IN | db=apnic
+62.0.0.0 status="unknown" 
+63.0.0.0 status="unknown" 
+64.0.0.0 status="unknown" 
+65.0.0.0 status="unknown" 
+66.0.0.0 status="unknown" 
+67.0.0.0 status="unknown" 
+68.0.0.0 status="unknown" 
+69.0.0.0 status="unknown" 
+70.0.0.0 status="ok" org="Sprint PCS" address="12502 Sunrise Valley Dr" address=Reston address=VA address=20191 country=US | iprange="70.0.0.0/13, 70.8.0.0/14, 70.12.0.0/15, 70.14.0.0/16" | db=arin
+71.0.0.0 status="ok" iprange="71.0.0.0 - 71.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+72.0.0.0 status="ok" iprange="72.0.0.0 - 72.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+73.0.0.0 status="ok" iprange="73.0.0.0 - 73.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+74.0.0.0 status="ok" org="Covad Communications Co." address="2510 Zanker Rd." address="San Jose" address=CA address=95131 country=US | iprange=74.0.0.0/15 | db=arin
+75.0.0.0 status="ok" iprange="75.0.0.0 - 75.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+76.0.0.0 status="ok" iprange="76.0.0.0 - 76.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+80.0.0.0 status="unknown" 
+81.0.0.0 status="unknown" 
+82.0.0.0 status="ok" iprange="82.0.0.0 - 82.0.3.255" country=GB | org="NTLI Network Management Centre" address="NTL Internet" address="Crawley Court" address=Winchester address=Hampshire address="SO21 2QA" | address="Litton House" address="Global Busineip=87.0.0.0 status="ok" iprange="87.0.0.0 - 87.31.255.255" country=IT | address="VIA DI VAL CANNUTA 250" address=00166 address=ROME address=Italy | org="EASYIP STAFF" address="Via Val Cannuta, 250" address="I-00100 Roma" address=Italy | address="Telecom Itss Park , Saville Road Westwood" address=Peterborough address="PE3 7PR" | db=ripe
+83.0.0.0 status="ok" iprange="83.0.0.0 - 83.0.7.255" country=PL | org="TP S.A. Hostmaster" address="TP S.A. "POLPAK"" address="ul. Nowogrodzka 47A" address="00-695 Warszawa" address=Poland | db=ripe
+84.0.0.0 status="ok" iprange="84.0.0.0 - 84.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+85.0.0.0 status="unknown" 
+86.0.0.0 status="unknown" 
+88.0.0.0 status="ok" iprange="88.0.0.0 - 88.3.212.255" country=ES | address="TELEFONICA DE ESPANA" address="Emilio Vargas, 4" address=28043-MADRID address=SPAIN | address="TELEFONICA DE ESPANA" address="Emilio Vargas, 4" address=28043-MADRID address=SPAIN | address="TELEFONICA DE ESPANA" address="Emilio Vargas, 4" address=28043-MADRID address=SPAIN | address="TELEFONICA DE ESPANA" address="Emilio Vargas, 4" address=28043-MADRID address=SPAIN | db=ripe
+89.0.0.0 status="ok" iprange="80.0.0.0 - 91.255.255.255" country=EU | address="RIPE Network Coordination Centre" address="P.O. Box 10096" address="1001 EB Amsterdam" address="The Netherlands" | org="RIPE NCC Hostmaster Team" address="RIPE Network Coordination Centre" address="P.O. Box 10096" address="1001 EB Amsterdam" address="the Netherlands" | db=ripe
+90.0.0.0 status="ok" iprange="80.0.0.0 - 91.255.255.255" country=EU | address="RIPE Network Coordination Centre" address="P.O. Box 10096" address="1001 EB Amsterdam" address="The Netherlands" | org="RIPE NCC Hostmaster Team" address="RIPE Network Coordination Centre" address="P.O. Box 10096" address="1001 EB Amsterdam" address="the Netherlands" | db=ripe
+91.0.0.0 status="ok" iprange="91.0.0.0 - 91.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+
+124.0.0.0 status="ok" iprange="124.0.0.0 - 124.1.255.255" country=KR | address="199-15, Ulchiro-2Ga, Chung-Gu, Seoul, 100-192" country=KR | iprange="124.0.0.0 - 124.0.15.255" country=KR | country=KR | db=apnic
+125.0.0.0 status="ok" iprange="125.0.0.0 - 125.1.255.255" country=JP | org="Japan Network Information Center" address="Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda" address="Chiyoda-ku, Tokyo 101-0047, Japan" country=JP | iprange="125.0.0.0 - 125.0.255.255" country=JP | db=apnic
+126.0.0.0 status="ok" iprange="126.0.0.0 - 126.255.255.255" country=JP | address="Tokyo Shiodome Bldg." address="1-9-1, Higashi-Shimbashi, Minato-ku" address=Tokyo,105-7304 country=JP | db=apnic
+128.0.0.0 status="ok" iprange="128.0.0.0 - 128.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+129.0.0.0 status="ok" iprange="129.0.0.0 - 129.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+130.0.0.0 status="ok" iprange="130.0.0.0 - 130.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+131.0.0.0 status="ok" iprange="131.0.0.0 - 131.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+132.0.0.0 status="ok" iprange="132.0.0.0 - 132.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+133.0.0.0 status="ok" org="Japan Network Information Center" address="Kokusai-kougyou-Kanda Bldg 6F" address="2-3-4 Uchikanda" address=Chiyoda-ku address=Tokyo address=101-0047 country=JP | iprange=133.0.0.0/8 | db=arin
+134.0.0.0 status="ok" iprange="134.0.0.0 - 134.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+135.0.0.0 status="ok" iprange="135.0.0.0 - 135.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+136.0.0.0 status="ok" iprange="136.0.0.0 - 136.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+137.0.0.0 status="ok" iprange="137.0.0.0 - 137.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+138.0.0.0 status="ok" iprange="138.0.0.0 - 138.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+139.0.0.0 status="ok" iprange="139.0.0.0 - 139.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+140.0.0.0 status="ok" iprange="140.0.0.0 - 140.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+141.0.0.0 status="ok" iprange="141.0.0.0 - 141.255.255.255" country="EU # Country is really world wide" | address="see http" | org="Internet Assigned Numbers Authority" address="see http" | db=ripe
+142.0.0.0 status="ok" iprange="142.0.0.0 - 142.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+143.0.0.0 status="ok" iprange="143.0.0.0 - 143.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+144.0.0.0 status="ok" iprange="144.0.0.0 - 144.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+145.0.0.0 status="unknown" 
+146.0.0.0 status="ok" iprange="146.0.0.0 - 146.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+147.0.0.0 status="ok" iprange="147.0.0.0 - 147.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+148.0.0.0 status="ok" iprange="148.0.0.0 - 148.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+149.0.0.0 status="ok" iprange="149.0.0.0 - 149.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+150.0.0.0 status="ok" iprange="150.0.0.0 - 150.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+151.0.0.0 status="ok" iprange="151.0.0.0 - 151.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+152.0.0.0 status="ok" iprange="152.0.0.0 - 152.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+153.0.0.0 status="ok" iprange="153.0.0.0 - 153.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+154.0.0.0 status="ok" iprange="154.0.0.0 - 154.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+155.0.0.0 status="ok" iprange="155.0.0.0 - 155.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+156.0.0.0 status="ok" iprange="156.0.0.0 - 156.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+157.0.0.0 status="ok" iprange="157.0.0.0 - 157.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+158.0.0.0 status="ok" iprange="158.0.0.0 - 158.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+159.0.0.0 status="ok" iprange="159.0.0.0 - 159.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+160.0.0.0 status="ok" iprange="160.0.0.0 - 160.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+161.0.0.0 status="ok" iprange="161.0.0.0 - 161.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+162.0.0.0 status="ok" iprange="162.0.0.0 - 162.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+163.0.0.0 status="ok" iprange="163.0.0.0 - 163.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+164.0.0.0 status="ok" iprange="164.0.0.0 - 164.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+165.0.0.0 status="ok" iprange="165.0.0.0 - 165.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+166.0.0.0 status="ok" iprange="166.0.0.0 - 166.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+167.0.0.0 status="ok" iprange="167.0.0.0 - 167.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+168.0.0.0 status="ok" iprange="168.0.0.0 - 168.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+169.0.0.0 status="ok" iprange="169.0.0.0 - 169.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+170.0.0.0 status="ok" iprange="170.0.0.0 - 170.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+171.0.0.0 status="ok" iprange="171.0.0.0 - 171.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+172.0.0.0 status="ok" iprange="172.0.0.0 - 172.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+
+188.0.0.0 status="ok" iprange="188.0.0.0 - 188.255.255.255" country="EU # Country is really world wide" | address="RIPE Network Coordination Centre" address="P.O. Box 10096" address="1001 EB Amsterdam" address="The Netherlands" | org="Internet Assigned Numbers Authority" address="see http" | db=ripe
+189.0.0.0 status="ok" iprange="189.0.0.0 - 189.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+190.0.0.0 status="unknown" 
+191.0.0.0 status="ok" iprange="191.0.0.0 - 191.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+192.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=192.0.0.0/17 | org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=192.0.0.0/24 | db=arin
+193.0.0.0 status="unknown" 
+194.0.0.0 status="unknown" 
+195.0.0.0 status="ok" iprange="195.0.0.0 - 195.0.0.255" country=BE | address="Ernst & Young Accountants" address="Avenue Marcel Thiry 204" address="B-1200 Brussels" address=Belgium | db=lacnic
+196.0.0.0 status="ok" iprange="196.0.0.0 - 196.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+197.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=197.0.0.0/8 | db=arin
+198.0.0.0 status="ok" iprange="198.0.0.0 - 198.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+199.0.0.0 status="ok" org=Sprint address="12502 Sunrise Valley Drive" address=Reston address=VA address=20196 country=US | iprange=199.0.0.0/14 | db=arin
+200.0.0.0 status="unknown" 
+201.0.0.0 status="unknown" 
+202.0.0.0 status="ok" iprange="202.0.0.0 - 202.0.15.255" country=AU | address="Department of Mineral & Petroleum Resources" address="100 Plain Street" address="East Perth WA 6004" country=AU | db=apnic
+203.0.0.0 status="ok" iprange="203.0.0.0 - 203.0.0.255" country=AU | address="Fujitsu Australia Ltd" address="8-10 Kitchen Road, Dandenong" address=Melbourne country=AU | db=apnic
+204.0.0.0 status="unknown" 
+205.0.0.0 status="unknown" 
+206.0.0.0 status="unknown" 
+207.0.0.0 status="unknown" 
+208.0.0.0 status="ok" org=Sprint address="12502 Sunrise Valley Drive" address=Reston address=VA address=20196 country=US | iprange="208.0.0.0/11, 208.32.0.0/14" | db=arin
+209.0.0.0 status="unknown" 
+210.0.0.0 status="ok" iprange="210.0.0.0 - 210.0.31.255" country=AU | address="Optus Vision" address="Level 5 475 Victoria Avenue" address="Chatswood NSW 2067" address=AU-2067 country=AU | address="Optus Communications Pty. Ltd." address="Level 28 50 Miller Street" address="North Sydney NSW 2060" address=AU-2060 country=AU | db=apnic
+211.0.0.0 status="ok" iprange="211.0.0.0 - 211.7.255.255" country=JP | org="Japan Network Information Center" address="Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda" address="Chiyoda-ku, Tokyo 101-0047, Japan" country=JP | db=apnic
+212.0.0.0 status="unknown" 
+213.0.0.0 status="ok" iprange="213.0.0.0 - 213.0.3.255" country=ES | address="TELEFONICA DE ESPANA" address="Emilio Vargas, 4" address=28043-MADRID address=SPAIN | address="TELEFONICA DE ESPANA" address="Emilio Vargas, 4" address=28043-MADRID address=SPAIN | db=lacnic
+214.0.0.0 status="ok" iprange="214.0.0.0 - 214.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+215.0.0.0 status="ok" iprange="215.0.0.0 - 215.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+216.0.0.0 status="unknown" 
+217.0.0.0 status="unknown" 
+218.0.0.0 status="ok" iprange="218.0.0.0 - 218.0.0.3" country=CN | org="CHINANET-ZJ Ningbo" address="No.180 Jiefang Road(North),Ningbo,Zhejiang.315010" country=CN | address=Fenghua,Ningbo,Zhejiang.Postcode country=CN | db=apnic
+219.0.0.0 status="ok" iprange="219.0.0.0 - 219.63.255.255" country=JP | org="SoftbankBB ABUSE" address="24-1, Nihonbashi Hakozaki-Cho ,Chuo-Ku ,Tokyo" country=JP | db=apnic
+220.0.0.0 status="ok" iprange="220.0.0.0 - 220.63.255.255" country=JP | org="SoftbankBB ABUSE" address="24-1, Nihonbashi Hakozaki-Cho ,Chuo-Ku ,Tokyo" country=JP | db=apnic
+221.0.0.0 status="ok" iprange="221.0.0.0 - 221.3.127.255" country=CN | org="CNCGroup Hostmaster" address="No.156,Fu-Xing-Men-Nei Street," address=Beijing,100031,P.R.China country=CN | address="Jinan,Shandong P.R China" country=CN | db=apnic
+222.0.0.0 status="ok" iprange="222.0.0.0 - 222.15.255.255" country=JP | org="Japan Network Information Center" address="Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda" address="Chiyoda-ku, Tokyo 101-0047, Japan" country=JP | iprange="222.0.0.0 - 222.0.0.255" country=JP | db=apnic
+
+
+
+reserved by iana
+
+92.0.0.0 status="ok" iprange="92.0.0.0 - 92.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+93.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=92.0.0.0/6 | db=arin
+94.0.0.0 status="ok" iprange="94.0.0.0 - 94.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+95.0.0.0 status="ok" iprange="95.0.0.0 - 95.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+96.0.0.0 status="ok" iprange="96.0.0.0 - 96.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+97.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+98.0.0.0 status="ok" iprange="98.0.0.0 - 98.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+99.0.0.0 status="ok" iprange="99.0.0.0 - 99.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+100.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+101.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+102.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+103.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+104.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+105.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+106.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+107.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+108.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+109.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+110.0.0.0 status="ok" iprange="110.0.0.0 - 110.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+111.0.0.0 status="ok" iprange="111.0.0.0 - 111.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+112.0.0.0 status="ok" iprange="112.0.0.0 - 112.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+113.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+114.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+115.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+116.0.0.0 status="ok" iprange="116.0.0.0 - 116.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+117.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+118.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+119.0.0.0 status="ok" iprange="119.0.0.0 - 119.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+120.0.0.0 status="ok" iprange="120.0.0.0 - 120.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+121.0.0.0 status="ok" iprange="121.0.0.0 - 121.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+122.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange="96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6" | db=arin
+123.0.0.0 status="ok" iprange="123.0.0.0 - 123.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+
+127.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=127.0.0.0/8 | db=arin
+
+173.0.0.0 status="ok" iprange="173.0.0.0 - 173.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+174.0.0.0 status="ok" iprange="174.0.0.0 - 174.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+175.0.0.0 status="ok" iprange="175.0.0.0 - 175.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+176.0.0.0 status="ok" iprange="176.0.0.0 - 176.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+177.0.0.0 status="ok" iprange="177.0.0.0 - 177.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+178.0.0.0 status="ok" iprange="178.0.0.0 - 178.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+179.0.0.0 status="ok" iprange="179.0.0.0 - 179.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+180.0.0.0 status="ok" iprange="180.0.0.0 - 180.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+181.0.0.0 status="ok" iprange="181.0.0.0 - 181.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+182.0.0.0 status="ok" iprange="182.0.0.0 - 182.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+183.0.0.0 status="ok" iprange="183.0.0.0 - 183.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+184.0.0.0 status="ok" iprange="184.0.0.0 - 184.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+185.0.0.0 status="ok" iprange="185.0.0.0 - 185.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+186.0.0.0 status="ok" iprange="186.0.0.0 - 186.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+187.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=187.0.0.0/8 | db=arin
+
+
+223.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=223.0.0.0/8 | db=arin
+224.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+225.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+226.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=224.0.0.0/4 | db=arin
+227.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=224.0.0.0/4 | db=arin
+228.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+229.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=224.0.0.0/4 | db=arin
+230.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=224.0.0.0/4 | db=arin
+231.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+232.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+233.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+234.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=224.0.0.0/4 | db=arin
+235.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=224.0.0.0/4 | db=arin
+236.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+237.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=224.0.0.0/4 | db=arin
+238.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+239.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+240.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+241.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=240.0.0.0/4 | db=arin
+242.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=240.0.0.0/4 | db=arin
+243.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=240.0.0.0/4 | db=arin
+244.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+245.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+246.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+247.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+248.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+249.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+250.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+251.0.0.0 status="ok" org="Internet Assigned Numbers Authority" address="4676 Admiralty Way, Suite 330" address="Marina del Rey" address=CA address=90292-6695 country=US | iprange=240.0.0.0/4 | db=arin
+252.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+253.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+254.0.0.0 status="ok" iprange="0.0.0.0 - 255.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+255.0.0.0 status="ok" iprange="255.0.0.0 - 255.255.255.255" country=US | org="APNIC Hostmaster" address="Level 1" address="33 Park Road" address="Milton QLD 4064" country=AU | address="Level 1" address="33 Park Road" address="Milton QLD 4064" country=AU | db=apnic
+
+77.0.0.0 status="ok" iprange="77.0.0.0 - 77.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+78.0.0.0 status="ok" iprange="78.0.0.0 - 78.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+79.0.0.0 status="ok" iprange="79.0.0.0 - 79.255.255.255" country=AU | org="Internet Assigned Numbers Authority" address="see http" | db=apnic
+

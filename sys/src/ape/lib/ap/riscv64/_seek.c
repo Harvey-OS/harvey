@@ -1,4 +1,4 @@
-extern	long	__SEEK(long long*, int, long long, int);
+extern long __SEEK(long long*, int, long long, int);
 
 long long
 _SEEK(int fd, long long o, int p)
@@ -9,4 +9,3 @@ _SEEK(int fd, long long o, int p)
 		l = -1;
 	return l;
 }
-

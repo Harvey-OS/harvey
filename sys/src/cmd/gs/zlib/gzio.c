@@ -15,10 +15,6 @@
 #  define NO_GZCOMPRESS
 #endif
 
-#ifndef NO_DUMMY_DECL
-struct internal_state {int dummy;}; /* for buggy compilers */
-#endif
-
 #ifndef Z_BUFSIZE
 #  ifdef MAXSEG_64K
 #    define Z_BUFSIZE 4096 /* minimize memory usage for 16-bit DOS */

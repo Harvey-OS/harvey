@@ -1,0 +1,875 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "monotype.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "875    2041   29189",
+@c   docstring = "Monotype PostScript fonts."
+@c }
+@c Mostly from Pierre and Alan.
+ma1b8r   ArialMT-Bold
+ma1b8rn  ArialNarrowMT-Bold MArial-NarrowBold
+ma1b9s   ArialSFMT-Bold
+ma1bi8r  ArialMT-BoldItalic
+ma1bi8rn ArialNarrowMT-BoldItalic MArial-NarrowBoldItalic
+ma1bi9s  ArialSFMT-BoldItalic
+ma1bot8r ArialMonospacedMT-BoldObliq
+ma1br8rc ArialMT-CondensedBold
+ma1bt8r  ArialMonospacedMT-Bold
+ma1c8r   ArialMT-Black
+ma1ci8r  ArialMT-BlackItalic
+ma1l8r   ArialMT-Light
+ma1l8rc  ArialMT-CondensedLight
+ma1li8r  ArialMT-LightItalic
+ma1m8r   ArialMT-Medium
+ma1mi8r  ArialMT-MediumItalic
+ma1r8r   ArialMT
+ma1r8rc  ArialMT-Condensed
+ma1r8rn  ArialNarrowMT MArial-Narrow
+ma1r9s   ArialSFMT
+ma1ri8r  ArialMT-Italic
+ma1ri9s  ArialSFMT-Italic
+ma1rin8r ArialNarrowMT-Italic MArial-NarrowItalic
+ma1ro8r  ArialMonospacedMT-Oblique
+ma1rt8r  ArialMonospacedMT
+ma1x8r   ArialMT-ExtraBold
+ma1x8rc  ArialMT-CondensedExtraBold
+ma1xi8r  ArialMT-ExtraBoldItalic
+ma2b8r   AmasisMT-Bold
+ma2bi8r  AmasisMT-BoldItalic
+ma2c8r   AmasisMT-Black
+ma2ci8r  AmasisMT-BlackItalic
+ma2l8r   AmasisMT-Light
+ma2li8r  AmasisMT-LightItalic
+ma2m8r   AmasisMT-Medium
+ma2mi8r  AmasisMT-MediumItalic
+ma2r8r   AmasisMT
+ma2ri8r  AmasisMT-Italic
+magd8r   MAvantGardeGothicPS-Demi
+magdo8r  MAvantGardeGothicPS-DemiObl
+magk8r   MAvantGardeGothicPS-Book
+magko8r  MAvantGardeGothicPS-BookObl
+mahr8r   AshleyScriptMT
+maib8r   AbadiMT-Bold MAbadi-Bold
+maib8rc  AbadiMT-CondensedBold
+maibi8r  AbadiMT-BoldItalic MAbadi-BoldItalic
+maij8r   AbadiMT-ExtraLight MAbadi-ExtraLight
+maiji8r  AbadiMT-ExtraLightItalic MAbadi-ExtraLightItalic
+mail8r   AbadiMT-Light MAbadi-Light
+mail8rc  AbadiMT-CondensedLight
+maili8r  AbadiMT-LightItalic MAbadi-LightItalic
+mair8r   AbadiMT MAbadi
+mair8rc  AbadiMT-Condensed
+mairi8r  AbadiMT-Italic MAbadi-Italic
+maix8r   AbadiMT-ExtraBold MAbadi-ExtraBold
+maix8rc  AbadiMT-CondensedExtraBold
+maixi8r  AbadiMT-ExtraBoldItalic MAbadi-ExtraBoldItalic
+mall8r   MAlbertus-Light AlbertusMT-Light
+malr8r   MAlbertus AlbertusMT
+malri8r  MAlbertus-Italic AlbertusMT-Italic
+mapr8r   ApolloMT MApollo
+maprc8r  ApolloMT-SC
+mapri7d  ApolloMT-ItalicOsF
+mapri8r  ApolloMT-Italic MApollo-Italic
+mapri8x  ApolloMT-ItalicExpert
+maps7d   ApolloMT-SemiBoldOsF
+maps8r   ApolloMT-SemiBold MApollo-SemiBold
+maps8x   ApolloMT-SemiBoldExpert
+maqb8r   BookAntiqua-Bold
+maqbi8r  BookAntiqua-BoldItalic
+maqr8r   BookAntiqua
+maqri8r  BookAntiqua-Italic
+mb1ri8r  BladoMT-Italic MBlado-Italic
+mb1ri8x  BladoExpertMT-Italic
+mb2r8r   BinnyOldStyleMT
+mb2ri8r  BinnyOldStyleMT-Italic
+mb3r8r   MBraggadocio
+mbbb7a   Bembo-AltBold
+mbbb8r   Bembo-Bold
+mbbb8x   BemboExpert-Bold MBemboExpert-Bold
+mbbbi7a  Bembo-AltBoldItalic
+mbbbi8r  Bembo-BoldItalic
+mbbbi8x  BemboExpert-BoldItalic MBemboExpert-BoldItalic
+mbbbin8r BemboMT-SchlbkBoldItalic
+mbbbn8r  BemboMT-SchlbkBold
+mbbr7a   Bembo-Alt
+mbbr8r   Bembo
+mbbr8x   BemboExpert MBemboExpert
+mbbrd8r  BemboTitlingMT
+mbbrdi8r BemboTitlingMT-Italic
+mbbri7a  Bembo-AltItalic
+mbbri8r  Bembo-Italic
+mbbri8x  BemboExpert-Italic MBemboExpert-Italic
+mbbrin8r BemboMT-SchlbkItalic
+mbbrn8r  BemboMT-Schlbk
+mbbs7a   Bembo-AltSemiBold
+mbbs8r   Bembo-Semibold
+mbbs8x   BemboExpert-SemiBold MBemboExpert-SemiBold
+mbbsi7a  Bembo-AltSemiBoldItalic
+mbbsi8r  Bembo-SemiboldItalic
+mbbsi8x  BemboExpert-SemiBoldItalic MBemboExpert-SemiBoldItalic
+mbbx7a   Bembo-AltExtraBold
+mbbx8r   Bembo-ExtraBold
+mbbx8x   BemboExpert-ExtraBold MBemboExpert-ExtraBold
+mbbxi8r  Bembo-ExtraBoldItalic
+mbbxi8x  BemboExpert-ExtraBoldItalic MBemboExpert-ExtraBoldItalic
+mbdb8r   BodoniMT-Bold
+mbdb8rc  BodoniMT-CondensedBold MBodoni-BoldCondensed
+mbdbi8r  BodoniMT-BoldItalic
+mbdbi8rc BodoniMT-CondensedBoldItalic MBodoni-BoldCondensedItalic
+mbdc8r   BodoniMT-Black MBodoni-Black
+mbdci8r  BodoniMT-BlackItalic MBodoni-BlackItalic
+mbdk8r   BodoniMT-Book MBodoni-Book
+mbdki8r  BodoniMT-BookItalic MBodoni-BookItalic
+mbdr8r   BodoniMT
+mbdri8r  BodoniMT-Italic
+mbdu8r   BodoniMT-UltraBold MBodoni-UltraBold
+mbdui8r  BodoniMT-UltraBoldItalic MBodoni-UltraBoldItalic
+mbeb8r   BellMT-Bold MBell-Bold
+mbeb8x   BellExpertMT-Bold
+mbebi8r  BellMT-BoldItalic
+mbebi8x  BellExpertMT-BoldItalic
+mber7a   BellMT-Alt
+mber8r   BellMT MBell
+mber8x   BellExpertMT
+mbera8x  BellExpertMT-Alt
+mberi7a  BellMT-AltItalic
+mberi8r  BellMT-Italic MBell-Italic
+mberi8x  BellExpertMT-Italic
+mbes7a   BellMT-AltSemiBold
+mbes8r   BellMT-SemiBold MBell-SemiBold
+mbes8x   BellExpertMT-SemiBold
+mbesa8x  BellExpertMT-AltSemiBold
+mbesi7a  BellMT-AltSemiBoldItalic
+mbesi8r  BellMT-SemiBoldItalic
+mbesi8x  BellExpertMT-SemiBoldItalic
+mbfr8r   BiffoMT
+mbkd8r   MBookmanPS-Demi
+mbkdi8r  MBookmanPS-DemiItalic
+mbkl8r   MBookmanPS-Light
+mbkli8r  MBookmanPS-LightItalic
+mbmb7a   BulmerMT-BoldAlt
+mbmb8r   BulmerMT-Bold
+mbmb8x   BulmerMT-BoldExpert
+mbmbd7a  BulmerMT-BoldDisplayAlt
+mbmbd8r  BulmerMT-BoldDisplay
+mbmbdi7a BulmerMT-BoldItalDisplayAlt
+mbmbdi8r BulmerMT-BoldItalicDisplay
+mbmbi7a  BulmerMT-BoldItalicAlt
+mbmbi8r  BulmerMT-BoldItalic
+mbmbi8x  BulmerMT-BoldItalicExpert
+mbmr7a   BulmerMT-RegularAlt
+mbmr8r   BulmerMT-Regular
+mbmr8x   BulmerMT-RegularExpert
+mbmrc8r  BulmerMT-RegularSC
+mbmrd7a  BulmerMT-RegularDisplayAlt
+mbmrd8r  BulmerMT-RegularDisplay
+mbmrdi7a BulmerMT-ItalicDisplayAlt
+mbmrdi8r BulmerMT-ItalicDisplay
+mbmri7a  BulmerMT-ItalicAlt
+mbmri8r  BulmerMT-Italic
+mbmri8x  BulmerMT-ItalicExpert
+mbms7a   BulmerMT-SemiBoldAlt
+mbms8r   BulmerMT-SemiBold
+mbms8x   BulmerMT-SemiBoldExpert
+mbmsi7a  BulmerMT-SemiBoldItalicAlt
+mbmsi8r  BulmerMT-SemiBoldItalic
+mbmsi8x  BulmerMT-SemiBoldItalExpert
+mbmss8r  BulmerMT-SemiBoldSC
+mbnr8rc  BernardMT-Condensed
+mbtm     Boton-Medium
+mbtmi    Boton-MediumItalic
+mbtr     Boton-Regular
+mbtri    Boton-Italic
+mburw8r  BrushScriptMT
+mbvb8r   BaskervilleMT-Bold
+mbvb8x   BskvillExpMT-Bold MBaskervilleExpert-Bold
+mbvbi8r  BaskervilleMT-BoldItalic
+mbvbi8x  BskvillExpMT-BoldItalic MBaskervilleExpert-BoldItalic
+mbvr8r   BaskervilleMT
+mbvr8x   BskvillExpMT MBaskervilleExpert
+mbvri8r  BaskervilleMT-Italic
+mbvri8x  BskvillExpMT-Italic MBaskervilleExpert-Italic
+mbvs8r   BaskervilleMT-SemiBold
+mbvs8x   BskvillExpMT-SemiBold MBaskervilleExpert-SemiBold
+mbvsi8r  BaskervilleMT-SemiBoldItalic
+mbvsi8x  BskvillExpMT-SemiBoldItalic MBaskervilleExpt-SemiBoldIta
+mc1b8r   CalistoMT-Bold
+mc1bi8r  CalistoMT-BoldItalic
+mc1r8r   CalistoMT
+mc1ri8r  CalistoMT-Italic
+mc6b8r   ClarionMT-Bold MClarion-Bold
+mc6r8r   ClarionMT MClarion
+mc6ri8r  ClarionMT-Italic MClarion-Italic
+mc7b8r   CompactaMT-Bold
+mc8b8r   CalvertMT-Bold
+mc8l8r   CalvertMT-Light
+mc8m8r   CalvertMT-Medium
+mc8r8r   CalvertMT
+mcard8r  CaslonTitlingMT
+mcdr8r   ClarendonMT MtClarendon
+mcfb8r   ClearfaceMT-Bold
+mcfbs8r  ClearfaceGothicMT-Bold
+mcfds8r  ClearfaceGothicMT-DemiBold
+mcnb8r   CenturyMT-Bold MCentury-Bold
+mcnbi8r  CenturyMT-BoldItalic MCentury-BoldItalic
+mcnr8rx  CenturyMT-Expanded MCentury-Expanded
+mcnri8rx CenturyMT-ExpandedItalic MCentury-ExpandedItalic
+mcr8r12  CourierTwelveMT
+mcrb8r   CourierPS-Bold MCourierPS-Bold
+mcrbi8r  CourierPS-BoldItalic MCourierPS-BoldItalic
+mcrr8r   CourierPS MCourierPS
+mcrri8r  CourierPS-Italic MCourierPS-Italic
+mcsb8r   CenturySchbookMT-Bold MCenturySchoolbook-Bold
+mcsbi8r  CenturySchbookMT-BoldItalic MCenturySchoolbook-BoldItalic
+mcsr8r   CenturySchbookMT MCenturySchoolbook
+mcsri8r  MCenturySchoolbook-Italic
+mcub8r   CenturyOSMT-Bold MCenturyOldStyle-Bold
+mcubi8r  CenturyOSMT-BoldItalic MCenturyOldStyle-BoldItalic
+mcur8r   CenturyOSMT MCenturyOldStyle
+mcuri8r  CenturyOSMT-Italic MCenturyOldStyle-Italic
+mdmb8r   DelimaMT-Bold
+mdmbi8r  DelimaMT-BoldItalic
+mdml8r   DelimaMT-Light
+mdmli8r  DelimaMT-LightItalic
+mdmr8r   DelimaMT
+mdmri8r  DelimaMT-Italic
+mdms8r   DelimaMT-SemiBold
+mdmsi8r  DelimaMT-SemiBoldItalic
+mdmx8r   DelimaMT-ExtraBold
+mdmxi8r  DelimaMT-ExtraBoldItalic
+mdsr8r   DorchesterScriptMT
+mdtb7a   DanteMT-AltBold
+mdtb8r   DanteMT-Bold
+mdtb8x   DanteExpertMT-Bold
+mdtbi7a  DanteMT-AltBoldItalic
+mdtbi8r  DanteMT-BoldItalic
+mdtbi8x  DanteExpertMT-BoldItalic
+mdtm7a   DanteMT-AltMedium
+mdtm8r   DanteMT-Medium
+mdtm8x   DanteExpertMT-Medium
+mdtmi7a  DanteMT-AltMediumItalic
+mdtmi8r  DanteMT-MediumItalic
+mdtmi8x  DanteExpertMT-MediumItalic
+mdtr7a   DanteMT-Alt
+mdtr8r   DanteMT
+mdtr8x   DanteExpertMT
+mdtrd8r  DanteTitlingMT
+mdtri7a  DanteMT-AltItalic
+mdtri8r  DanteMT-Italic
+mdtri8x  DanteExpertMT-Italic
+mebm8r   BaskervilleBE-Medium
+mebmi8r  BaskervilleBE-MediumItalic
+mebr8r   BaskervilleBE-Regular
+mebri8r  BaskervilleBE-Italic
+meer8r   EgyptianMT-Extended MEgyptianExtended
+melb8r   EllingtonMT-Bold MEllington-Bold
+melbi8r  EllingtonMT-BoldItalic MEllington-BoldItalic
+mell8r   EllingtonMT-Light MEllington-Light
+melli8r  EllingtonMT-LightItalic MEllington-LightItalic
+melr8r   EllingtonMT MEllington
+melri8r  EllingtonMT-Italic MEllington-Italic
+melx8r   EllingtonMT-ExtraBold MEllington-ExtraBold
+melxi8r  EllingtonMT-ExtraBoldItalic MEllington-ExtraBoldItalic
+menb8r   EngraversMT-Bold
+menr8r   EngraversMT
+menrf8r  EngraversOldEnglishMT
+metr8r   EhrhardtMT
+metr8x   EhrhardtExpMT MEhrhardtExpt
+metri8r  EhrhardtMT-Italic
+metri8x  EhrhardtExpMT-Italic MEhrhardtExpt-Italic
+mets8r   EhrhardtMT-SemiBold
+mets8x   EhrhardtExpMT-SemiBold MEhrhardtExpt-SemiBold
+metsi8r  EhrhardtMT-SemiBoldItalic
+metsi8x  EhrhardtExpMT-SemiBoldItal MEhrhardtExpt-SemiBoldItalic
+mf1r7a   FournierMT-Alt
+mf1r8r   FournierMT
+mf1r8x   FournierExpertMT
+mf1rd8r  FournierMT-TallCaps
+mf1rdi8r FournierMT-TallCapsItalic
+mf1ri7a  FournierMT-AltItalic
+mf1ri8r  FournierMT-Italic
+mf1ri8x  FournierExpertMT-Italic
+mf1rp8r  FournierOrnamentsMT
+mf2r8rc  FacadeMT-Condensed
+mf3rd8r  FestivalTitlingMT
+mf4b8r   FootlightMT-Bold
+mf4bi8r  FootlightMT-BoldItalic
+mf4l8r   FootlightMT-Light
+mf4li8r  FootlightMT-LightItalic
+mf4r8r   FootlightMT
+mf4ri8r  FootlightMT-Italic
+mf4x8r   FootlightMT-ExtraBold
+mf4xi8r  FootlightMT-ExtraBoldItalic
+mfer8r   ForteMT MForte
+mfgr8rq  FrankGothMT-ExtraCondensed
+mfir8r   FigaroMT MFigaro
+mfsr8r   FalstaffMT MFalstaff
+mfsrd8r  FalstaffFestivalMT
+mfxr8r   FelixTitlingMT
+mg2rw    Giddyup
+mg4r8r   MGoudyModern
+mg4ri8r  MGoudyModern-Italic
+mg5r8r   GoudyCatalogueMT MGoudyCatalogue
+mg5ri8r  GoudyCatalogueMT-Italic MGoudyCatalogue-Italic
+mgmb8r   GaramondMT-Bold
+mgmb8x   GaramondExpertMT-Bold MGaramondExpert-Bold
+mgmbi8r  GaramondMT-BoldItalic
+mgmbi8x  GaramondExpertMT-BoldItalic MGaramondExpert-BoldItalic
+mgmr8r   GaramondMT
+mgmr8x   GaramondExpertMT MGaramondExpert
+mgmrd8r  GaramondMT-SwashCaps
+mgmri7a  GaramondMT-AlternativeItalic
+mgmri8r  GaramondMT-Italic
+mgmri8x  GaramondExpertMT-Italic MGaramondExpert-Italic
+mgmrw8r  GaramondMT-Swash
+mgor8r   GoudyOldStyleMT MGoudyOldStyle
+mgori8r  GoudyOldStyleMT-Italic MGoudyOldStyle-Italic
+mgqb8r   GrotesqueMT-Bold MGrotesque-Bold
+mgqb8rx  GrotesqueMT-BoldExtended
+mgqbd8rc GrotesqueDisplayMT-BoldCond
+mgqbd8rx GrotesqueDisplayMT-BoldExt
+mgqc8r   GrotesqueMT-Black MGrotesque-Black
+mgql8r   GrotesqueMT-Light MGrotesque-Light
+mgql8rc  GrotesqueMT-LightCondensed MGrotesque-LightCondensed
+mgqli8r  GrotesqueMT-LightItalic MGrotesque-LightItalic
+mgqr8r   GrotesqueMT MGrotesque
+mgqr8rc  GrotesqueMT-Condensed MGrotesque-Condensed
+mgqr8rq  GrotesqueMT-ExtraCondensed MGrotesque-ExtraCondensed
+mgqri8r  GrotesqueMT-Italic MGrotesque-Italic
+mgrb8r   GloucesMT-Bold MGloucester-Bold
+mgrb8rc  GloucesMT-CondensedBold MGloucester-BoldCondensed
+mgrb8ro  GloucesMT-ExtraCondensedBold MGloucester-BoldExtraCondensed
+mgrb8rx  GloucesMT-ExtendedBold MGloucester-BoldExtended
+mgrr8r   MGloucester-OldStyle
+mgs8rc   GillSans-Condensed
+mgsb7a   GillAltOneMT-Bold
+mgsb8r   GillSans-Bold
+mgsb8rc  GillSans-BoldCondensed
+mgsb8rq  GillSansMT-ExCondensedBold
+mgsbd8r  GillSansDisplayMT-Bold
+mgsbd8rc GillSansDisplayMT-CondBold
+mgsbi7a  GillAltOneMT-BoldItalic
+mgsbi8r  GillSans-BoldItalic
+mgsbin8r GillSansMT-SchlbkBoldItalic
+mgsbn8r  GillSansMT-SchlbkBold
+mgsh7a   GillAltOneMT-Heavy
+mgsh8r   GillSans-Heavy
+mgshi7a  GillAltOneMT-HeavyItalic
+mgshi8r  GillSans-HeavyItalic
+mgsk7a   GillAltOneMT-Book
+mgsk8r   GillSans-Book
+mgski7a  GillAltOneMT-BookItalic
+mgski8r  GillSans-BookItalic
+mgsl7a   GillAltOneMT-Light
+mgsl8r   GillSans-Light
+mgsli7a  GillAltOneMT-LightItalic
+mgsli8r  GillSans-LightItalic
+mgsr7a   GillAltOneMT
+mgsr8r   GillSans
+mgsr8rc  GillSans-Condensed
+mgsrh8r  GillSansMT-Shadow
+mgsri7a  GillAltOneMT-Italic
+mgsri8r  GillSans-Italic
+mgsrin8r GillSansMT-SchlbkItalic
+mgsrl8r  GillSansShadowedMT-Light
+mgsrn8r  GillSansMT-Schlbk
+mgsu8r   GillSans-UltraBold
+mgsu8rc  GillSans-UltraBoldCondensed
+mgsx8r   GillSans-ExtraBold
+mgsxd8r  GillSansDisplayMT-ExtraBold
+mgtr7a   GoudyTextMT-Alternate
+mgtr7c   GoudyTextMT-Dfr
+mgtr8r   MGoudyText GoudyTextMT
+mgtrd8r  GoudyTextMT-LombardicCapitals
+mgyb8r   GoudyMT-Bold MGoudyBold
+mgybi8r  GoudyMT-BoldItalic
+mgyrp8r  GoudySorts
+mgyx8r   GoudyMT-ExtraBold MGoudyExtraBold
+mhdr8r   HeadlineMT-Bold MHeadlineBold
+mhob8r   HorleyOSMT-Bold MHorleyOldStyle-Bold
+mhobi8r  HorleyOSMT-BoldItalic MHorleyOldStyle-BoldItalic
+mhol8r   HorleyOSMT-Light MHorleyOldStyle-Light
+mholi8r  HorleyOSMT-LightItalic MHorleyOldStyle-LightItalic
+mhor8r   HorleyOSMT MHorleyOldStyle
+mhori8r  HorleyOSMT-Italic MHorleyOldStyle-Italic
+mhos8r   HorleyOSMT-SemiBold MHorleyOldStyle-SemiBold
+mhosi8r  HorleyOSMT-SemiBoldItalic MHorleyOldStyle-SemiBolItalic
+mhrb8r   ArialRoundedMT-Bold
+mhrl8r   ArialRoundedMT-Light
+mhrr8r   ArialRoundedMT
+mhrx8r   ArialRoundedMT-ExtraBold
+mi0r8r   CommercialScriptMT
+micr8r   ImpactMT
+mifb8r   InflexMT-Bold MInflex-Bold
+miib8r   ImprintMT-Bold MImprint-Bold
+miib8x   ImprintExpertMT-Bold
+miibi8r  ImprintMT-BoldItalic MImprint-BoldItalic
+miibi8x  ImprintExpertMT-BoldItalic
+miir8r   ImprintMT MImprint
+miir8x   ImprintExpertMT
+miirh8r  ImprintMT-Shadow
+miirhi8r ImprintMT-ShadowItalic
+miiri8r  ImprintMT-Italic MImprint-Italic
+miiri8x  ImprintExpertMT-Italic
+miirp    ImprintExtras
+miob8r   IonicMT-Bold MIonic-Bold
+mior8r   IonicMT MIonic
+miori8r  IonicMT-Italic MIonic-Italic
+misb8r   ItalianOldStyleMT-Bold MItalianOldStyle-Bold
+misbi8r  ItalianOldStyleMT-BoldItalic MItalianOldStyle-BoldItalic
+misr8r   ItalianOldStyleMT MItalianOldStyle
+misri8r  ItalianOldStyleMT-Italic MItalianOldStyle-Italic
+mjnb8r   JansonMT-Bold MJanson-Bold
+mjnb8x   JansonExpertMT-Bold
+mjnbi8r  JansonMT-BoldItalic MJanson-BoldItalic
+mjnbi8x  JansonExpertMT-BoldItalic
+mjnr8r   JansonMT MJanson
+mjnr8x   JansonExpertMT
+mjnri8r  JansonMT-Italic MJanson-Italic
+mjnri8x  JansonExpertMT-Italic
+mjob7d   JoannaMT-BoldOSF
+mjob8r   JoannaMT-Bold
+mjob8x   JoannaMT-BoldExpert
+mjobi7d  JoannaMT-BoldItalicOSF
+mjobi8r  JoannaMT-BoldItalic
+mjobi8x  JoannaMT-BoldItalicExpert
+mjor8r   JoannaMT
+mjor8x   JoannaMT-Expert
+mjorc7d  JoannaMT-SCOSF
+mjori7d  JoannaMT-ItalicOSF
+mjori8r  JoannaMT-Italic
+mjori8x  JoannaMT-ItalicExpert
+mjos8r   JoannaMT-SemiBold
+mjos8x   JoannaMT-SemiBoldExpert
+mjosi7d  JoannaMT-SemiBoldItalicOSF
+mjosi8r  JoannaMT-SemiBoldItalic
+mjosi8x  JoannaMT-SemiBoldItaExpert
+mjoss7d  JoannaMT-SemiBoldSCOSF
+mjox7d   JoannaMT-ExtraBoldOSF
+mjox8r   JoannaMT-ExtraBold
+mjox8x   JoannaMT-ExtraBoldExpert
+mklr8r   KlangMT MKlang
+mkn8r    KinoMT
+mkob8r   BookmanOldStyle-Bold
+mkobi8r  BookmanOldStyle-BoldItalic
+mkor8r   BookmanOldStyle
+mkori8r  BookmanOldStyle-Italic
+mlgb8r   LetterGothicMT-Bold
+mlgbo8r  LetterGothicMT-BoldOblique
+mlgr8r   LetterGothicMT
+mlgro8r  LetterGothicMT-Oblique
+mlir8rc  LatinMT-Condensed
+mlyr8r   LydianMT
+mlyrw8r  LydianCursiveMT
+mm1r8r   MonolineScriptMT
+mm7r8r   MaturaMT
+mm7rw8r  MaturaMT-ScriptCapitals
+mm8bl8r  MonotypeOldStyleMT-BoldOut
+mmeb8r   MercuriusMT-BoldScript MercuriusScriptMT-Bold
+mmob8r   ModernMT-Bold MModern-Bold
+mmobi8r  ModernMT-BoldItalic MModern-BoldItalic
+mmor8r   ModernMT-Extended MModernExtended
+mmor8rc  ModernMT-Condensed
+mmor8rw  ModernMT-Wide
+mmori8r  ModernMT-CondensedItalic MModernExtended-Italic
+mmori8rw ModernMT-WideItalic
+mmori8rx ModernMT-ExtendedItalic
+mn1p8r   BinnerPosterMT
+mn1r8r   BinnerGothicMT
+mncb8r   MCenturySchoolbookPS-Bold
+mncbi8r  CentSchlbookPS-BoldItalic MCenturySchoolbookPS-BoldIta
+mncr8r   CentSchlbookPS MCenturySchoolbookPS
+mncri8r  CentSchlbookPS-Italic MCenturySchoolbookPS-Ita
+mngb8r   NewsGothicMT-Bold
+mngb8rc  NewsGothicMT-CondensedBold
+mngr8r   NewsGothicMT
+mngr8rc  NewsGothicMT-Condensed
+mngri8r  NewsGothicMT-Italic
+mnib8r   NimrodMT-Bold
+mnibi8r  NimrodMT-BoldItalic
+mnir8r   NimrodMT
+mniri8r  NimrodMT-Italic
+mnkr8r   NeographikMT
+mnnb8r   NewClarendonMT-Bold MNewClarendon-Bold
+mnnr8r   NewClarendonMT MNewClarendon
+mnpb8r   NewsPlantinMT-Bold
+mnpbi8r  NewsPlantinMT-BoldItalic
+mnpr8r   NewsPlantinMT
+mnpri8r  NewsPlantinMT-Italic
+mnrr8r   NewBerolinaMT
+mnsb8r   TimesNewRomanPS-Bold
+mnsb8x   TimesNRPSExpert-Bold
+mnsbi8r  TimesNewRomanPS-BoldItalic
+mnsbi8x  TimesNRPSExpert-BoldItalic
+mnsr8r   TimesNewRomanPS
+mnsr8x   TimesNRPSExpert
+mnsri8r  TimesNewRomanPS-Italic
+mnsri8x  TimesNRPSExpert-Italic
+mntb78r  TimesNRSevenMT-Bold
+mntb8r   TimesNRMT-Bold
+mntb8rc  TimesNewRomanMT-BoldCond TimesNRMT-CondensedBold
+mntb8x   TimesNRExpertMT-Bold MTimesNewRomanExpert-Bold
+mntb9s   TimesNewRomanSF-Bold
+mntbi78r TimesNRSevenMT-BoldItalic
+mntbi8r  TimesNRMT-BoldItalic
+mntbi8x  TimesNRExpertMT-BoldItalic MTimesNewRomanExpt-BoldItalic
+mntbi9s  TimesNewRomanSF-BoldItalic
+mntbk8r  MTimesNewRomanGreek-Bold
+mntbko8r MTimesNewRomanGreek-BoldInc
+mntboz8r MTimesNewRomanCyrillic-BolInc
+mntbz8r  MTimesNewRomanCyrillic-Bold
+mntm8r   TimesNRMT-Medium MTimesNewRoman-Medium
+mntmi8r  TimesNRMT-MediumItalic MTimesNewRoman-MediumItalic
+mntr78r  TimesNRSevenMT
+mntr8r   TimesNRMT
+mntr8rc  TimesNewRomanMT-Cond TimesNRMT-Condensed
+mntr8x   TimesNRExpertMT MTimesNewRomanExpert
+mntr9s   TimesNewRomanSF
+mntri78r TimesNRSevenMT-Italic
+mntri8r  TimesNRMT-Italic
+mntri8rc TimesNewRomanMT-CondItalic TimesNRMT-CondensedItalic
+mntri8x  TimesNRExpertMT-Italic MTimesNewRomanExpert-Italic
+mntri9s  TimesNewRomanSF-Italic
+mntrk8r  MTimesNewRomanGreek
+mntrko   MTimesNewRomanGreek-Inclined
+mntroz8r MTimesNewRomanCyrillic-Inc
+mntrz8r  MTimesNewRomanCyrillic
+mnts8r   TimesNRMT-SemiBold
+mntsi8r  TimesNRMT-SemiBoldItalic
+mntx8r   TimesNRMT-ExtraBold
+mo3r8r   ColonnaMT
+mo4b8r   OceanSansMT-Bold
+mo4bi8r  OceanSansMT-BoldItalic
+mo4ji8r  OceanSansMT-BookItalic
+mo4k8r   OceanSansMT-Book
+mo4l8r   OceanSansMT-Light
+mo4li8r  OceanSansMT-LightItalic
+mo4s8r   OceanSansMT-SemiBold
+mo4se8r  OceanSansMT-SemiBoldItalic
+mo4x8r   OceanSansMT-ExtraBold
+mo4xi8r  OceanSansMT-ExtraBoldItalic
+moer8r   OldEnglishTextMT MOldEnglishText
+molb7a   ColmcilleAltMT-Bold
+molb8r   ColmcilleMT-Bold
+molbi7a  ColmcilleAltMT-BoldItalic
+molbi8r  ColmcilleMT-BoldItalic
+molr7a   ColmcilleAltMT
+molr8r   ColmcilleMT
+molri7a  ColmcilleAltMT-Italic
+molri8r  ColmcilleMT-Italic
+molrp8r  ColmcilleOrnamentsMT
+mosb8r   OldStyleMT-Bold MOldStyle-Bold
+mosbi8r  OldStyleMT-BoldItalic MOldStyle-BoldItalic
+mosbl8r  MOldStyle-BoldOutline
+mosr8r   OldStyleMT MOldStyle
+mosri8r  OldStyleMT-Italic MOldStyle-Italic
+motb8r   CoronetMT-Bold
+movr8r   OctavianMT
+movr8x   OctavianMT-Expert
+movrc8r  OctavianMT-SC
+movri7d  OctavianMT-ItalicOsF
+movri8r  OctavianMT-Italic
+movri8x  OctavianMT-ItalicExpert
+moxr8r   MOnyx OnyxMT
+mp1r8r   PalaceScriptMT
+mp1rs8r  PalaceScriptMT-SemiBold
+mp2r8r   PepitaMT
+mp6b8r   BlueprintMT-Bold
+mp6bi8r  BlueprintMT-BoldItalic
+mp6r8r   BlueprintMT
+mp6ri8r  BlueprintMT-Italic
+mpdb8rc  PlacardMT-CondensedBold
+mpdr8rc  PlacardMT-Condensed
+mphb8r   PhotinaMT-Bold
+mphbi8r  PhotinaMT-BoldItalic
+mphr8r   PhotinaMT
+mphri8r  PhotinaMT-Italic
+mphs8r   PhotinaMT-SemiBold MPhotina-SemiBold
+mphsi8r  PhotinaMT-SemiBoldItalic MPhotina-SemiBoldItalic
+mphu8r   PhotinaMT-UltraBold MPhotina-UltraBold
+mphui8r  PhotinaMT-UltraBoldItalic MPhotina-UltraBoldItalic
+mpi001   RococoOrnamentsOne
+mpi002   RococoOrnamentsTwo
+mpi003   ArabesqueOrnamentsOne
+mpi101   AlmanacMT Almanac
+mpi102   BotanicalMT Botanical
+mpi103   DirectionsMT Directions
+mpi104   SportsOne SportsOneMT
+mpi105   SportsTwo SportsTwoMT
+mpi106   TransportMT Transport
+mpi107   VacationMT Vacation
+mpi108   SportsThree SportsThreeMT
+mpi109   SportsFour SportsFourMT
+mpi201   CircleFrameMT CircleFrame
+mpi202   CircleFrameNegMT CircleFrameNeg
+mpi203   SquareFrameMT SquareFrame
+mpi204   SquareFrameNegMT SquareFrameNeg
+mpi205   DiamondBodoni DiamondBodoni
+mpi206   DiamondPositive DiamondPositive
+mpi207   DiamondNegative DiamondNegative
+mpi208   OvalFrameMT @r{circled numerals}
+mpi209   OvalFrameNegativeMT @r{ditto}
+mpi300   Giddyup-Thangs
+mpi301   Petrucchio
+mpi302   AquaLifeMT @r{fish}
+mpi303   BonApetit @r{food}
+mpi304   DinosaursMT @r{dinosaurs}
+mpi305   FrontierMT @r{cowboys & indians}
+mpi306   Holidays @r{clip art}
+mpi307   KeystrokesExtrasMT @r{keyboards}
+mpi308   KeystrokesMT @r{ditto}
+mpi309   Melodies @r{musical instruments}
+mpi310   MilestonesOneMT @r{greeting card illos}
+mpi311   MilestonesTwoMT @r{ditto}
+mpi312   MonkeyBusiness @r{animals}
+mpi313   MonotypeSorts @r{dingbats}
+mpi314   NatureMT @r{animals}
+mpi315   Parties @r{clip art}
+mpi319   PlaytimeMT @r{toys}
+mpi320   SignsMT @r{signs}
+mpi321   SouthwestOrnamentsMT @r{geometrics}
+mpi322   KeystrokesShadowExtrasMT
+mpi323   KeystrokesShadowMT
+mpnb8r   Plantin-Bold
+mpnb8rc  Plantin-BoldCondensed
+mpnb8x   PlantinExp-Bold PlantinExpert-Bold
+mpnbd8rc PlantinHeadlineMT-BoldCond
+mpnbi8r  Plantin-BoldItalic
+mpnbi8x  PlantinExp-BoldItalic PlantinExpert-BoldItalic
+mpnbin8r PlantinMT-SchlbkBoldItalic
+mpnbn8r  PlantinMT-SchlbkBold
+mpnl8r   Plantin-Light
+mpnl8x   PlantinExp-Light MPlantinExpt-Light
+mpnld8rc PlantinHeadlineMT-LightCond
+mpnli8r  Plantin-LightItalic
+mpnli8x  PlantinExp-LightItalic MPlantinExpt-LightItalic
+mpnmd8rc PlantinHeadlineMT-MedCond
+mpnr8r   Plantin
+mpnr8x   PlantinExp PlantinExpert
+mpnra8x  PlantinExp-AltFigures
+mpnri8r  Plantin-Italic
+mpnri8x  PlantinExp-Italic PlantinExpert-Italic
+mpnrin8r PlantinMT-SchlbkItalic
+mpnrn8r  PlantinMT-Schlbk
+mpns8r   Plantin-Semibold
+mpns8x   PlantinExp-SemiBold MPlantinExpt-SemiBold
+mpnsi8r  Plantin-SemiboldItalic Plantin-SemiboldItalic
+mpnsi8x  PlantinExp-SemiBoldItalic MPlantinExpt-SemiBoldItalic
+mppb8r   Perpetua-Bold
+mppb8x   PerpetuaExpert-Bold MPerpetuaExpert-Bold
+mppbd8r  PerpetuaTitlingMT-Bold
+mppbi8r  Perpetua-BoldItalic
+mppbi8x  PerpetuaExpert-BoldItalic MPerpetuaExpert-BoldItalic
+mppld8r  PerpetuaTitlingMT-Light
+mppr8r   Perpetua
+mppr8x   PerpetuaExpert MPerpetuaExpert
+mpprd8r  PerpetuaTitlingMT
+mppri8r  Perpetua-Italic
+mppri8x  PerpetuaExpert-Italic MPerpetuaExpert-Italic
+mpum     PopplLaudatio-Medium
+mpumi    PopplLaudatio-MediumItalic
+mpur     PopplLaudatio-Regular
+mpuri    PopplLaudatio-Italic
+mpwb8r   PerrywoodMT-Bold
+mpwbi8r  PerrywoodMT-BoldItalic
+mpwl8r   PerrywoodMT-Light
+mpwli8r  PerrywoodMT-LightItalic
+mpwr8r   PerrywoodMT
+mpwri8r  PerrywoodMT-Italic
+mpws8r   PerrywoodMT-SemiBold
+mpwsi8r  PerrywoodMT-SemiBoldItalic
+mpwx8r   PerrywoodMT-ExtraBold
+mpwxi8r  PerrywoodMT-ExtraBoldItalic
+mpzr8r   PoliphilusMT MPoliphilus
+mpzr8x   PoliphilusExpertMT
+mqtr     Boulevard
+mr2b8r   CantoriaMT-Bold
+mr2bi8r  CantoriaMT-BoldItalic
+mr2l8r   CantoriaMT-Light
+mr2li8r  CantoriaMT-LightItalic
+mr2r8r   CantoriaMT
+mr2ri8r  CantoriaMT-Italic
+mr2s8r   CantoriaMT-SemiBold
+mr2si8r  CantoriaMT-SemiBoldItalic
+mr2x8r   CantoriaMT-ExtraBold
+mr2xi8r  CantoriaMT-ExtraBoldItalic
+mr5rw8r  FrenchScriptMT
+mrur8rc  RunicMT-Condensed
+mrwb8r   Rockwell-Bold
+mrwb8rc  Rockwell-BoldCondensed
+mrwbi8r  Rockwell-BoldItalic
+mrwl8r   Rockwell-Light
+mrwli8r  Rockwell-LightItalic
+mrwr8r   Rockwell
+mrwr8rc  Rockwell-Condensed
+mrwri8r  Rockwell-Italic
+mrwx8r   Rockwell-ExtraBold
+ms1r8r   ScotchRomanMT MScotchRoman
+ms1ri8r  ScotchRomanMT-Italic MScotchRoman-Italic
+ms2b8r   ScriptMT-Bold
+ms7bai   SassoonInfant-BoldAlt
+ms7bais  SassoonSanSlope-BoldAlt
+ms7bap   SassoonPrimary-BoldAlt
+ms7bas   SassoonSans-BoldAlt
+ms7bi    SassoonInfant-Bold
+ms7bis   SassoonSanSlope-Bold
+ms7bp    SassoonPrimary-Bold
+ms7bs    SassoonSans-Bold
+ms7mais  SassoonSanSlope-MediumAlt
+ms7mas   SassoonSans-MediumAlt
+ms7mis   SassoonSanSlope-Medium
+ms7ms    SassoonSans-Medium
+ms7rai   SassoonInfant-Alt
+ms7rais  SassoonSanSlope-Alt
+ms7rap   SassoonPrimary-Alt
+ms7ras   SassoonSans-Alt
+ms7ri    SassoonInfant
+ms7ris   SassoonSanSlope
+ms7rp    SassoonPrimary
+ms7rs    SassoonSans
+msbr8r   SabonMT MSabon
+msbrc7d  SabonMT-SCOSF
+msbri7d  SabonMT-ItalicOSF
+msbri8r  SabonMT-Italic MSabon-Italic
+msbs7c   SabonMT-SemiBoldOSF
+msbs8r   SabonMT-SemiBold MSabon-SemiBold
+msmr8r   SpectrumMT MSpectrum
+msmr8x   SpectrumMT-Expert
+msmrc8r  SpectrumMT-SC
+msmri7d  SpectrumMT-ItalicOsF
+msmri8r  SpectrumMT-Italic MSpectrum-Italic
+msmri8x  SpectrumMT-ItalicExpert
+msms7d   SpectrumMT-SemiBoldOsF
+msms8r   SpectrumMT-SemiBold MSpectrum-SemiBold
+msms8x   SpectrumMT-SemiBoldExpert
+msn8r1   MSpartan-SizeOne
+msn8r2   MSpartan-SizeTwo
+msn8r3   MSpartan-SizeThree
+msn8r4   MSpartan-SizeFour   SpartanFourMT
+msnb8r1  MSpartan-BoldSizeOne
+msnb8r12 SpartanOneTwoMT-Bold
+msnb8r13 SpartanOneThreeMT-Bold
+msnb8r2  MSpartan-BoldSizeTwo
+msnb8r24 SpartanTwoFourMT-Bold
+msnb8r3  MSpartan-BoldSizeThree
+msnb8r34 SpartanThreeFourMT-Bold
+msnb8r4  SpartanFourMT-Bold MSpartan-BoldSizeFour
+msni8r12 SpartanOneTwoMT-Italic
+msni8r13 SpartanOneThreeMT-Italic
+msni8r24 SpartanTwoFourMT-Italic
+msni8r34 SpartanThreeFourMT-Italic
+msnr8r12 SpartanOneTwoMT
+msnr8r13 SpartanOneThreeMT
+msnr8r24 SpartanTwoFourMT
+msnr8r34 SpartanThreeFourMT
+msnri8r1 MSpartan-ItalicSizeOne
+msnri8r2 MSpartan-ItalicSizeTwo
+msnri8r3 MSpartan-ItalicSizeThree
+msnri8r4 SpartanFourMT-Italic MSpartan-ItalicSizeFour
+mswb8r   SwingMT-Bold
+msyr     MSymbolPS SymbolPS
+mtlr8r   MCastellar CastellarMT
+mtmbg8r  TimesSmallTextMT-Bold MTimesSmallText-Bold
+mtmrg8r  TimesSmallTextMT MTimesSmallText
+mtmrgi8r TimesSmallTextMT-Italic MTimesSmallText-Italic
+mtwb8r   TwCenMT-Bold MTwentiethCentury-Bold
+mtwb8rc  TwCenMT-CondensedBold MTwentiethCentury-BoldCondensed
+mtwbi8r  TwCenMT-BoldItalic MTwentiethCentury-BoldItalic
+mtwl8r   TwCenMT-Light MTwentiethCentury-Light
+mtwli8r  TwCenMT-LightItalic MTwentiethCentury-LightItalic
+mtwm8r   TwCenMT-Medium MTwentiethCentury-Medium
+mtwm8rc  TwCenMT-CondensedMedium MTwentiethCentury-MediumCondensed
+mtwmi8r  TwCenMT-MediumItalic MTwentiethCentury-MediumItalic
+mtws8r   TwCenMT-SemiBold MTwentiethCentury-SemiBold
+mtwsm8r  TwCenMT-SemiMedium MTwentiethCentury-SemiMedium
+mtwu8r   TwCenMT-UltraBold MTwentiethCentury-UltraBold
+mtwu8rc  TwCenMT-CondensedUltraBold MTwentiethCentury-UltraBoldCondensed
+mtwui8r  TwCenMT-UltraBoldItalic MTwentiethCentury-UltraBoldItalic
+mtwx8r   TwCenMT-ExtraBold MTwentiethCentury-ExtraBold
+mtwx8rc  TwCenMT-CondensedExtraBold MTwentiethCentury-ExtraBoldCondensed
+mtwxi8r  TwCenMT-ExtraBoldItalic MTwentiethCentury-ExtraBoldItalic
+mtyr8r   TypewriterMT
+mtyre8r  TypewriterEliteMT
+mtyrs8r  TypewriterGothicMT
+mu0b8r   ColumbusMT-Bold
+mu0b8x   ColumbusExpMT-Bold
+mu0bi8r  ColumbusMT-BoldItalic
+mu0bi8x  ColumbusExpMT-BoldItalic
+mu0r8r   ColumbusMT
+mu0r8x   ColumbusExpMT
+mu0ri8r  ColumbusMT-Italic
+mu0ri8x  ColumbusExpMT-Italic
+mu0rp8r1 ColumbusOrnamentsOneMT
+mu0rp8r2 ColumbusOrnamentsTwoMT
+mu0s8r   ColumbusMT-SemiBold
+mu0s8x   ColumbusExpMT-SemiBold
+mu0si8r  ColumbusMT-SemiBoldItalic
+mu0si8x  ColumbusExpMT-SemiBoldItal
+murb7a   CentaurMT-AltBold
+murb8r   CentaurMT-Bold
+murb8x   CentaurExpertMT-Bold
+murbi7a  CentaurMT-AltBoldItalic
+murbi8r  CentaurMT-BoldItalic
+murbi8x  CentaurExpertMT-BoldItalic
+murr7a   CentaurMT-Alt
+murr8r   CentaurMT
+murr8x   CentaurExpertMT
+murrai   CentaurMT-ItalicA
+murri7a  CentaurMT-AltItalic
+murri8r  CentaurMT-Italic
+murri8x  CentaurExpertMT-Italic
+murrw8r  CentaurSwashMT
+mvdr8r   VanDijckMT MVanDijck
+mvdr8x   VanDijckExpertMT
+mvdra8x  VanDijckExpertMT-AltFigs
+mvdrai8x VanDijckExpertMT-AltFigsIta
+mvdri8r  VanDijckMT-Italic
+mvdri8x  VanDijckExpertMT-Italic
+mvird8rc VictoriaTitlingMT-Condensed
+mwbm8r   WalbaumMT-Medium MWalbaum-Medium
+mwbm8x   WalbaumExpMT-Medium
+mwbmi8r  WalbaumMT-MediumItalic MWalbaum-MediumItalic
+mwbmi8x  WalbaumExpMT-MediumItalic
+mwbr8r   WalbaumMT MWalbaum
+mwbr8x   WalbaumExpMT
+mwbri8r  WalbaumMT-Italic MWalbaum-Italic
+mwbri8x  WalbaumExpMT-Italic
+mwnr8r   WindsorMT
+mwrb8r   WitternbergerFraktMT-Bold
+mwrr8r   WitternbergerFraktMT
+mygb8r   CenturyGothic-Bold
+mygbi8r  CenturyGothic-BoldItalic
+mygr8r   CenturyGothic
+mygri8r  CenturyGothic-Italic
+myhb8r   StrayhornMT-Bold
+myhbi8r  StrayhornMT-BoldItalic
+myhl8r   StrayhornMT-Light
+myhli8r  StrayhornMT-LightItalic
+myhr8r   StrayhornMT-Regular
+myhri8r  StrayhornMT-Italic
+myhx8r   StrayhornMT-ExtraBold
+myhxi8r  StrayhornMT-ExtraBoldItalic
+mzab8r   MZAntiqua-Bold
+mzabi8r  MZAntiqua-BoldItalic
+mzar8r   MZAntiqua
+mzari8r  MZAntiqua-Italic
+mzcb8r   ZapfChancery-Bold
+mzcd8r   ZapfChancery-Demi
+mzcmi8r  MZapfChanceryPS-MediumItalic
+mzdr     MZapfDingbatsPS
+mztb8r   ZeitgeistMT-Bold
+mztb8x   ZeitgeistExpertMT-Bold
+mztr7a   ZeitgeistMT-Alternative
+mztr8r   ZeitgeistMT
+mztr8rc  ZeitgeistMT-Condensed
+mztr8x   ZeitgeistExpertMT
+mztr8xc  ZeitgeistExpertMT-Condensed
+mztri8r  ZeitgeistMT-Italic
+mztri8x  ZeitgeistExpertMT-Italic
+zmztcm8r ZeitgeistMT-Cameo
+zmztcz8r ZeitgeistMT-CrazyPaving
+zmztr8xc ZeitgeistExpertMT-Cameo

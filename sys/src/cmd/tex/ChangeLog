@@ -1,0 +1,525 @@
+Sat Mar 14 08:48:56 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* Kpathsea 3.2, Web2C 7.2, etc.
+
+Wed Mar 11 19:30:11 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* config.guess: Update (via Thomas).
+
+	* Makefile.in (distclean): Do disabled directories as well.
+
+Tue Mar 10 22:08:06 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* Makefile.in: Changes for selective disabling of compilation.
+	Partly from Thomas Esser.
+	(info,dvi,check,depend,*clean,install*): Fail make if a recursive make
+	fails.  From Thomas Esser.
+
+	* configure.in: Add the --without-* options.  Partly from Thomas
+ 	Esser.
+
+	* withenable.ac: New file, make selective disabling of compilation
+ 	of components possible.  Partly from Thomas Esser.
+
+Wed Mar  4 09:08:36 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* etc/autoconf/acsite.m4: Make some test $a = b forms more robust.
+
+	* etc/autoconf/acgeneral.m4: Some more changes in the handling of
+ 	ac_include.
+
+Tue Mar  3 10:05:04 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* etc/autoconf/acgeneral.m4: Use commas as sed substitution
+ 	delimiters in the implementation of ac_include, to lessen the need
+ 	to escape characters.
+
+Mon Feb 16 10:04:53 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* configure.in: Configure in tetex directory.
+
+	* Makefile.in: Add tetex directory to programs.
+
+	* etc/autoconf/acgeneral.m4: In the implementation of ac_include,
+ 	avoid the \x<pattern>x feature of sed, which is not universally
+ 	supported.  This appears to solve the problems NeXT(step) users
+ 	had to configure Web2C.
+
+Tue Feb  3 22:14:37 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in: Add a few more packages to programs variable.
+
+	* configure.in: Add a few more packages to AC_CONFIG_SUBDIRS.
+
+Fri Jan 23 15:10:56 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* configure.in: Add oxdvi to AC_CONFIG_SUBDIRS.
+
+	* Makefile.in: Add oxdvi to programs.
+
+Thu Jan  8 20:00:23 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acspecific.m4: Disable [] quote characters before
+ 	defining an array in C code.
+
+Tue Jan  6 14:27:54 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acgeneral.m4 (AC_CONFIG_HEADER): Quote
+ 	AC_LIST_HEADER to allow it to be redefined.  From Peter
+	Breitenlohner.
+
+Tue Dec 30 17:53:18 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* configure.in: Add seetexk, tex4htk to programs.
+
+	* Makefile.in: Add seetexk, tex4htk to programs.
+
+Thu Dec 18 20:41:52 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acspecific.m4: Correction for the yytext tests: lex
+ 	must be called for each of them.
+
+	* etc/autoconf/acgeneral.m4: In check for configure, look first in
+ 	current dir, just in case someone put a patched version of the
+ 	script there.
+
+Tue Dec 16 18:49:13 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acgeneral.m4: Change the ordering of some sed
+ 	expressions, to prevent colons in $ac_given_srcdir from being
+ 	expanded.
+
+Mon Dec 15 15:22:33 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acspecific.m4: Make MS-DOS a special case in the
+ 	'ln -s' test.
+
+Fri Dec 12 10:52:37 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* klibtool: Keep temp files within 8.3 limit.
+
+Wed Dec  3 17:46:53 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* configure.in: Add gsftopk to AC_CONFIG_SUBDIRS.
+
+	* Makefile.in: Add gsftopk to programs.
+
+Tue Dec  2 21:11:41 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acgeneral.m4: Changes to the ac_include
+ 	implementation, so that sed read commands are generated only for
+ 	those files actually present.
+
+Sun Nov 23 14:18:37 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acspecific.m4: Another test for executables
+ 	adapated for MS-DOS.
+
+Wed Nov 19 17:39:53 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acgeneral.m4: Numerous changes to support
+ 	generation of configure scripts that run on MS-DOS.
+
+	* Makefile.in [programs]: Remove omega and libwww; the first never
+ 	occurs, xdvik is responsible for the second.
+	(config.status): Ensure that --enable-maintainer-mode is retained if
+	the configure files are run again.
+
+	* configure.in: Remove omega from the AC_CONFIG_SUBDIRS list,
+ 	because it will never occur.
+
+	* klibtool: Some support for working undr MS-DOS.  From Eli
+ 	Zaretskii.
+
+	* etc/autoconf/acsite.m4: Improve formatting of
+ 	--enable-maintainer-mode help message.
+
+Fri Nov 14 00:24:23 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in [programs]: Add omega, odvipsk, ps2pkm, makeindexk,
+ 	libwww.
+
+	* configure.in (AC_CONFIG_SUBDIRS): Add omega, odvipsk, ps2pkm,
+ 	makeindexk, libwww.
+
+Thu Nov 13 20:23:06 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acconfig.h [WORDS_BIGENDIAN]: Since the special
+ 	NeXT stuff proved troublesome, it has been removed again.
+
+Thu Nov  6 11:48:40 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acconfig.h [WORDS_BIGENDIAN]: support NeXT's FAT
+ 	binaries.
+
+Tue Nov  4 19:09:16 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* configure.in: Add a test to ensure that autoconf 2.12.1 -- the
+ 	one with our own hacks -- is used.  This is possible now that we
+	have gotten rid of the 'a' in the version number.
+
+Fri Oct 31 12:38:10 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acgeneral.m4: Changed version number from 2.12a to
+ 	2.12.1 because the former caused problems.
+
+Tue Oct 28 22:34:09 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acspecific.m4: Include -Wl,-rpath,$x_libraries for
+ 	IRIX systems, on the off chance that these are self-compiled.
+	From Andreas Schott <ays@rzg.mpg.de>.
+
+Wed Oct 22 20:26:19 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* klibtool: Only rewrite the klibtool.config file if its contents
+ 	changed.  After Peter Breitenlohner.
+
+Thu Oct 16 09:57:01 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* etc/autoconf/acsite.m4: Typo: kbAC_LIBTOOL_REPLACE_FUNCS ->
+ 	kb_AC_LIBTOOL_REPLACE_FUNCS.
+
+	* klibtool: Remove $lib_base before trying to creating it as a
+ 	symlink.  From Peter Breitenlohner.
+
+Fri Oct  3 09:49:28 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* acklibtool.m4: --disable-static implies --enable-shared.
+	From Karl Berry.
+
+	* klibtool: Add support for shared libraries on irix5/irix6.
+
+Wed Oct  1 18:12:28 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Replace mkdirchain with mkinstalldirs (from libtool-1.0).
+
+Tue Sep 30 10:46:27 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Added add-info-toc script, from Karl Berry.
+
+	* etc/autoconf/acgeneral.m4: Change ac_dB to match up to
+	end-of-line.  This fixes the case where the VALUE contains spaces.
+
+	* etc/autoconf/acconfig.h: Add definitions to make autoheader
+	happy: YYTEXT_CHAR, YYTEXT_UCHAR.
+	* etc/autoconf/acspecific.m4: Add case for determining whether
+ 	yytext is array of unsigned char.  (From Thomas Esser
+        <te@informatik.uni-hannover.de>)
+
+	* mkdirchain: Do not assume the argument begins with a slash
+ 	(invalid on MS-DOS and related systems, as well as for relative
+ 	paths).
+
+Tue Sep 16 17:42:59 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in: Changed ac_dir to $(srcdir)/etc/autoconf, where we
+ 	have a full set of macro files.
+
+	* acklibtool.m4: Added support from klibtool --source-dir option.
+	* klibtool: Added --source-dir option, after suggestion by
+	"Jonathan I. Kamens" <jik@cam.ov.com>
+
+Thu Feb  6 17:33:11 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Kpathsea 3.0, Web2c 7.0, etc.
+
+Fri Jan 31 16:20:23 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* configure (yytext test): Only define yywrap if it's not #defined.
+	Reported by Wayne for HP-UX.
+
+Thu Jan 16 17:56:29 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* install-sh, config.guess, config.sub: New versions from /gd/gnu/lib.
+
+Thu Sep  5 19:07:41 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* configure.in: Include acklibtool.m4 here for the sake of getting the
+		--with and --enable options.
+
+Sat Jul 27 14:36:26 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* acsite.m4 (kbAC_LIBTOOL_REPLACE_FUNCS): New test.
+
+Sun Apr 28 15:24:19 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (pb_AC_ASM_UNDERSCORE): New test.
+        From: Peter Breitenlohner <peb@MPPMU.MPG.DE>.
+
+Tue Mar 12 15:28:42 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (sharedlib): Oops, hp700 is SHLIB_PATH, not SHLIB.
+
+Sat Feb 10 14:41:39 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (SunOS*5): Use -Kpic rather than -K pic.
+        Also, set up sharedlib_postlink.
+        From: pete@thi.informatik.uni-frankfurt.de (Peter Dyballa).
+
+Tue Dec 26 15:57:32 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * configure.in: Add all --with and --enable options here, so
+        configure --help will show them.
+
+Fri Dec 15 20:16:08 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (kb_AC_SYS_SHAREDLIB): Don't use $(sharedlib) as a
+        -soname target for linux, etc.
+  From: Thomas Peikenkamp <Thomas.Peikenkamp@arbi.informatik.uni-oldenburg.de>.
+
+Wed Dec 13 12:57:38 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (kb_AC_SYS_SHAREDLIB): Turn everything off if shared
+        libraries aren't supported on this system. Check for Elf under
+        Linux -- that's all we can support.
+
+Sun Dec 10 14:58:08 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (install-man, install-manpages): Remove these
+        top-level targets; we should have install-doc, if anything.
+        (mptriptrap): Back to just triptrap. Suggested by Ulrik.
+
+Tue Nov 21 17:26:41 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (kb_AC_SYS_SHAREDLIB) [HPUX] : Set sharedlib_linkflags
+        to -Wl,+s.
+
+Sat Nov 18 16:47:18 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (installargs): Do not pass down INSTALL, since then
+        install-sh is found in the wrong place. 
+
+        * Update for Autoconf 2.5.
+
+Fri Nov 17 15:31:25 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Use Autoconf 2.4.2.
+
+        * Makefile.in (AC_SYS_SHAREDLIB): Rename to kb_AC_...
+        Change sharedlib_postinstall to be the complete command.
+        In IRIX case, make symlink without the version number. (From Simon.)
+
+Thu Nov 16 16:49:22 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (installargs): No need to pass transform, we don't
+        use that.
+        (install-bases, install-mems, bases, mems): New targets.
+
+Mon Oct 30 17:11:51 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (AC_PATH_XTRA): Note that the Pyramis dcosx needs
+        -lnsl also. From chad@anasazi.com.
+        Also, use AC_DEFINE for X_DISPLAY_MISSING, rather than adding it
+        to X_CFLAGS, to try to keep command lines clean.
+
+Sun Oct 22 16:50:24 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (sharedlib_envvar): New subst variable.
+
+Fri Sep  8 19:24:11 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * acsite.m4 (AC_REPLACE_FUNCS): Define HAVE_FUNC if we do have the
+        func.
+
+Sun Aug 20 14:46:39 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (TAGS): Generate a single TAGS file here.
+        Suggestion from: Greg McGary <gkm@magilla.cichlid.com>.
+
+        * configure.in: Do AC_ISC_POSIX.
+        From: <uddeborg@carmen.se>.
+
+Wed Jul 19 15:38:29 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (*tr[ia]p*): Get rid of everything but `trip' and
+        `trap' themselves, as this has been vastly simplified.
+
+Tue Apr 25 15:53:34 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Update for Autoconf 2.3.
+
+Sun Jan  8 12:16:15 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * kpathsea 2.6/dviljk 2.5/dvipsk 5.58f/xdvik 18f.
+
+Fri Jan  6 09:05:42 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (programs): Add gsftopkk.
+
+Wed Jan  4 11:55:48 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: Use if ... instead of ||, for Ultrix make.
+
+Sun Jan  1 14:12:04 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * configure.in (AC_PROG_{CC,MAKE_SET}): Call these.
+        * Makefile.in: Include make/common.make instead of repeating most
+        of it.
+
+Sat Dec 31 17:47:46 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (install, install-data, install-exec): Just run the
+        same target in kpathsea.
+
+Sat Dec 24 15:09:55 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (CFLAGS): USe @CFLAGS@ instead of -g.  From
+        wls@astro.umd.edu.
+        ({dist,real}clean): Remove config.{cache,log}.  From
+        interran@uluru.Stanford.EDU (John Interrante) and others.
+
+Wed Dec 14 15:17:23 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * kpathsea 2.5/dviljk 2.4/dvipsk 5.58e/xdvik 18e.
+
+Tue Nov 15 16:19:18 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (makeargs): Change MAKEARGS to XMAKEARGS.
+
+Mon Nov  7 15:40:53 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * configure.in: Use AC_CONFIG_SUBDIRS instead of our handcrafted
+        version.
+
+Sun Nov  6 16:11:38 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * configure.in: Run autoupdate.
+
+Tue Oct 25 17:48:02 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * kpathsea 2.3/dviljk 2.3/dvipsk 5.58c/xdvik 18d.
+
+Fri Oct 14 10:31:35 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * kpathsea 2.2/dviljk 2.2/dvipsk 5.58b/xdvik 18c.
+
+Sun Sep 25 16:38:59 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (makeargs): Add MAKEARGS here.
+
+Mon Sep 12 11:05:53 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * kpathsea 2.1/dviljk 2.1/dvipsk 5.58a/xdvik 18b.
+
+Sun Sep 11 14:44:05 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * aclocal.m4: New file with my AC_FIND_XTRA replacement; use -lICE
+        when linking for -lSM.
+
+Sat Sep 10 14:01:54 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * configure.in: Use AC_PROG_INSTALL.
+
+        * Makefile.in (makeargs): Don't pass SHELL.
+
+Wed Sep  7 16:29:05 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * kpathsea 2.0/dviljk 2.0/dvipsk 5.55b/xdvik 18a.
+
+Sat Sep  3 07:43:19 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (install-kpathsea): Use $(MAKE) $(installargs).
+	(install*): Use installargs.
+	(installargs): New variable.
+        (install-exec): Do not depend on install-kpathsea.
+
+        * configure.in: chmod a+x kpathsea/config.status.
+
+Fri Sep  2 13:09:16 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (default): Make this the default target, not all.
+
+Sat Aug 27 18:58:01 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (install-{fmts,bases}): New web2c-only targets.
+
+Fri Aug 26 10:40:22 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (install-kpathsea): New target. Split up install*
+        and uninstall* targets, so the former depend on it.
+
+Sun Aug 21 12:11:15 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (all, install, etc.): use test ! -d ||, instead of
+        if, for brevity.
+        Use ac_include where possible.
+
+Thu Mar 24 08:40:05 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * configure.in: Exit if configure fails.
+
+Tue Mar 22 08:27:24 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * configure.in: Don't replace `xdvik/' with `kpathsea/' when
+        making kpathsea/config.status.
+
+Thu Mar 10 08:03:51 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * configure.in: Use ../ to get to subdir only if srcdir=.
+
+Thu Feb 24 13:54:36 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (programs): Add dviljk.
+        (makeargs): Pass install_fonts and {bh,cg,mt}_fontdir down.
+
+Mon Feb 21 13:32:30 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (triptrap ...): Defpend on do-kpathsea, to help
+        propagate the paths. From Martyn.
+
+        * configure.in: Merge srcdir ==/!= . cases.
+        Also: Change all $first_program's to `kpathsea'.
+        mkdir kpathsea before copying.
+        From simon.
+
+Tue Feb  1 10:32:26 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * configure.in: Allow for non-. srcdirs. From Andreas.
+
+        * Makefile.in (makeargs): Pass scriptdir, texmf_prefix, fontdir,
+        fmtdir, and basedir; and don't pass (the nonexistent) tex_prefix,
+        mf_prefix, and texfontdir. From Andreas.
+
+        * Makefile.in (CFLAGS): Define this.
+        (makeargs): Pass it down.
+
+Fri Jan 21 07:42:45 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in: (makeargs): Pass psmacrodir and default_texsize.
+        From Martyn.
+
+Sun Dec 19 17:31:54 1993  Karl Berry  (karl@cs.umb.edu)
+
+        * configure.in: rm -f conftest.stat. 
+
+Wed Dec 15 06:30:17 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (fmts): New web2c-only target.
+
+Sun Dec  5 13:49:11 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* configure.in: Rewrite kpathsea/config.status to only create a
+	Makefile and c-auto.h, instead of just doing the assignment on the
+	command line when we configure.
+
+	* configure.in (CONFIG_SHELL): Use this instead of $shell, and
+	allow the user to override.
+
+Sat Dec  4 11:26:09 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* configure.in: Echo value of srcdir in error msg.
+
+	* Makefile.in (triptrap, etc.): New targets for web2c.
+
+Fri Oct 22 13:31:18 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (makeargs): Don't pass the paths, since they're in
+	paths.h.in now. But do pass the dvips directories.
+
+	* configure.in: Makefile.in is in srcdir.  From simon@lia.di.epfl.ch.
+
+Thu Sep 30 14:27:17 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (*install*): Only do program directories.
+	(most targets): Add `else true' for stupid sh's.
+	* README: Update appropriately.

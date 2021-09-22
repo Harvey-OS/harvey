@@ -1,0 +1,235 @@
+diff pic.ape/arcgen.c pic/arcgen.c
+1,3c1,4
+< #include	<stdio.h>
+< #include	<math.h>
+< #include	"pic.h"
+---
+> #include <u.h>
+> #include <libc.h>
+> #include <stdio.h>
+> #include "pic.h"
+24a26
+> 	tox = toy = 0;
+diff pic.ape/blockgen.c pic/blockgen.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2d3
+< #include <stdlib.h>
+diff pic.ape/boxgen.c pic/boxgen.c
+1,2c1,4
+< #include	<stdio.h>
+< #include	"pic.h"
+---
+> #include <u.h>
+> #include <libc.h>
+> #include <stdio.h>
+> #include "pic.h"
+diff pic.ape/circgen.c pic/circgen.c
+1,2c1,4
+< #include	<stdio.h>
+< #include	"pic.h"
+---
+> #include <u.h>
+> #include <libc.h>
+> #include <stdio.h>
+> #include "pic.h"
+14a17
+> 	r = r2 = 0;
+diff pic.ape/for.c pic/for.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2d3
+< #include <stdlib.h>
+diff pic.ape/input.c pic/input.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,5d3
+< #include <stdlib.h>
+< #include <string.h>
+< #include <ctype.h>
+< #include <errno.h>
+6a5
+> #include <ctype.h>
+21a21,22
+> int	input(void);
+> 
+234a236
+> int
+422,428c424,426
+< 	extern int errno;
+< 
+< 	if (errno == EDOM) {
+< 		errno = 0;
+< 		ERROR "%s argument out of domain", s WARNING;
+< 	} else if (errno == ERANGE) {
+< 		errno = 0;
+---
+> 	if (isNaN(x)) {
+> 		ERROR "%s result is not a number", s WARNING;
+> 	} else if (isInf(x, +1) || isInf(x, -1)) {
+441d438
+< 	int ern = errno;	/* cause some libraries clobber it */
+446,450c443
+< 	fprintf(stderr, "%s: %s", cmdname, s);
+< 	if (ern > 0) {
+< 		errno = ern;
+< 		perror("???");
+< 	}
+---
+> 	fprintf(stderr, "%s: %s: %r", cmdname, s);
+455d447
+< 	errno = 0;
+diff pic.ape/linegen.c pic/linegen.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,4d3
+< #include <string.h>
+< #include <stdlib.h>
+< #include <math.h>
+diff pic.ape/main.c pic/main.c
+1,5c1,4
+< #include	<stdio.h>
+< #include	<signal.h>
+< #include	<stdlib.h>
+< #include	<string.h>
+< #include	"pic.h"
+---
+> #include <u.h>
+> #include <libc.h>
+> #include <stdio.h>
+> #include "pic.h"
+54c53
+< 	signal(SIGFPE, fpecatch);
+---
+> //	signal(SIGFPE, fpecatch);	// TODO: add note catcher?
+192c191
+< 	void reset(void), openpl(char *), closepl(char *), print(void);
+---
+> 	void reset(void), openpl(char *), closepl(char *), tblprint(void);
+237c236
+< 				openpl(&buf[3]);	/* puts out .PS, with ht & wid stuck in */
+---
+> 				openpl(&buf[3]); /* puts out .PS, with ht & wid stuck in */
+239c238
+< 				print();	/* assumes \n at end */
+---
+> 				tblprint();		/* assumes \n at end */
+248c247,248
+< 				printlf(curfile->lineno = ln, curfile->fname = tostring(buf1));
+---
+> 				printlf(curfile->lineno = ln,
+> 					curfile->fname = tostring(buf1));
+diff pic.ape/misc.c pic/misc.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,4d3
+< #include <string.h>
+< #include <stdlib.h>
+< #include <math.h>
+214a214
+> 	x1 = y1 = 0;
+diff pic.ape/mkfile pic/mkfile
+19a20
+> 	system.$O\
+28,31c29,30
+< CC=pcc
+< LD=pcc
+< CFLAGS=-FTV -c
+< YFLAGS=-S -d
+---
+> CFLAGS=-FTVw
+> YFLAGS=-d
+33c32
+< picy.c:	y.tab.c
+---
+> picy.c:D:	y.tab.c
+36,37c35,36
+< picl.c:	picl.lx
+< 	$LEX -t $prereq > $target
+---
+> picl.c:D:	picl.lx
+> 	{ echo '#include <u.h>'; echo '#include <libc.h>'; $LEX -t $prereq } >$target
+diff pic.ape/movegen.c pic/movegen.c
+1,2c1,4
+< #include	<stdio.h>
+< #include	"pic.h"
+---
+> #include <u.h>
+> #include <libc.h>
+> #include <stdio.h>
+> #include "pic.h"
+diff pic.ape/pic.h pic/pic.h
+219a220,224
+> 
+> /* import from unix */
+> #define exit(n) exits((n) == 0? 0: "error")
+> 
+> int	system(char *);
+diff pic.ape/picl.lx pic/picl.lx
+12c12,13
+< /* #include <stdio.h> lex puts one out for us */
+---
+> 
+> /* we insert includes for u.h and libc.h, and lex inserts include for stdio.h at the top */
+14d14
+< #include <stdlib.h>
+diff pic.ape/picy.y pic/picy.y
+1a2,3
+> #include <u.h>
+> #include <libc.h>
+4,6d5
+< #include <math.h>
+< #include <stdlib.h>
+< #include <string.h>
+diff pic.ape/pltroff.c pic/pltroff.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,3d3
+< #include <math.h>
+< #include <string.h>
+4a5
+> 
+263a265
+> 	USED(fill);
+311a314
+> 	USED(ddval, dashed);
+diff pic.ape/print.c pic/print.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2d3
+< #include <math.h>
+21c22
+< void print(void)
+---
+> void tblprint(void)
+27a29
+> 	x1 = y1 = 0;
+206a209
+> 		b = 0;
+diff pic.ape/symtab.c pic/symtab.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,4d3
+< #include <stdlib.h>
+< #include <ctype.h>
+< #include <string.h>
+5a5
+> #include <ctype.h>
+Only in pic: system.c
+diff pic.ape/textgen.c pic/textgen.c
+1,2c1,4
+< #include	<stdio.h>
+< #include	"pic.h"
+---
+> #include <u.h>
+> #include <libc.h>
+> #include <stdio.h>
+> #include "pic.h"

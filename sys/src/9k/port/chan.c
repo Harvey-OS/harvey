@@ -25,7 +25,7 @@ struct Elemlist
 {
 	char	*aname;	/* original name */
 	char	*name;	/* copy of name, so '/' can be overwritten */
-	int	nelems;
+	uint	nelems;
 	char	**elems;
 	int	*off;
 	int	mustbedir;
@@ -138,6 +138,8 @@ newchan(void)
 		unlock(&chanalloc);
 	}
 
+	/* if you get an error before associating with a dev,
+	   close calls rootclose, a nop */
 	c->dev = nil;
 	c->flag = 0;
 	c->ref = 1;
@@ -225,7 +227,6 @@ pathclose(Path *p)
 
 	if(p == nil)
 		return;
-//XXX
 	DBG("pathclose %#p %s ref=%d =>", p, p->s, p->ref);
 	for(i=0; i<p->mlen; i++)
 		DBG(" %#p", p->mtpt[i]);
@@ -843,6 +844,10 @@ ewalk(Chan *c, Chan *nc, char **name, int nname)
 
 	if(waserror())
 		return nil;
+	if (c == nil)
+		panic("ewalk: nil Chan");
+	if (c->dev == nil)
+		panic("ewalk: nil Chan->dev");
 	wq = c->dev->walk(c, nc, name, nname);
 	poperror();
 	return wq;
@@ -853,10 +858,12 @@ ewalk(Chan *c, Chan *nc, char **name, int nname)
  * *nerror is the number of names to display in an error message.
  */
 static char Edoesnotexist[] = "does not exist";
+
 int
 walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 {
-	int dc, devno, didmount, dotdot, i, n, nhave, ntry;
+	int devno, didmount, dotdot, i, n, nhave, ntry;
+	Rune dc;
 	Chan *c, *nc, *mtpt;
 	Path *path;
 	Mhead *mh, *nmh;
@@ -898,16 +905,14 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 		if(ntry > MAXWELEM)
 			ntry = MAXWELEM;
 		dotdot = 0;
-		for(i=0; i<ntry; i++){
+		for(i=0; i<ntry; i++)
 			if(isdotdot(names[nhave+i])){
-				if(i==0){
-					dotdot = 1;
-					ntry = 1;
-				}else
+				if(i==0)
+					dotdot = ntry = 1;
+				else
 					ntry = i;
 				break;
 			}
-		}
 
 		if(!dotdot && !nomount && !didmount)
 			domount(&c, &mh, &path);
@@ -953,19 +958,18 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 			n = 1;
 		}else{
 			nc = nil;
-			if(!nomount){
-				for(i=0; i<wq->nqid && i<ntry-1; i++){
+			if(!nomount)
+				for(i=0; i<wq->nqid && i<ntry-1; i++)
 					if(findmount(&nc, &nmh, dc, devno, wq->qid[i])){
 						didmount = 1;
 						break;
 					}
-				}
-			}
 			if(nc == nil){	/* no mount points along path */
 				if(wq->clone == nil){
 					cclose(c);
 					pathclose(path);
-					if(wq->nqid==0 || (wq->qid[wq->nqid-1].type & QTDIR)){
+					if(wq->nqid==0 ||
+					    (wq->qid[wq->nqid-1].type & QTDIR)){
 						if(nerror)
 							*nerror = nhave+wq->nqid+1;
 						strcpy(up->errstr, Edoesnotexist);
@@ -1006,7 +1010,6 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 	putmhead(mh);
 
 	c = cunique(c);
-
 	if(c->umh != nil){	//BUG
 		print("walk umh\n");
 		putmhead(c->umh);
@@ -1047,7 +1050,7 @@ createdir(Chan *c, Mhead *mh)
 		}
 	}
 	error(Enocreate);
-	return 0;
+	notreached();
 }
 
 static void
@@ -1183,6 +1186,176 @@ nameerror(char *name, char *err)
 }
 
 /*
+ *  convert up->genbuf to a Chan*, return Dev* via devp.
+ *
+ *  noattach is sandboxing.
+ *
+ *  the OK exceptions are:
+ *	|  it only gives access to pipes you create
+ *	d  this process's file descriptors
+ *	e  this process's environment
+ *  the iffy exceptions are:
+ *	c  time and pid, but also cons and consctl
+ *	p  control of your own processes (and unfortunately
+ *	   any others left unprotected)
+ */
+static Chan *
+devnamec(Dev **devp)
+{
+	int n;
+	Chan *c;
+	Dev *dev;
+	Rune r;
+
+	n = chartorune(&r, up->genbuf+1)+1;
+	/* actually / is caught by parsing earlier */
+	if(utfrune("M", r))
+		error(Enoattach);
+	if(up->pgrp->noattach && utfrune("|decp", r)==nil)
+		error(Enoattach);
+	*devp = dev = devtabget(r, 1);		//XDYNX
+	if(dev == nil)
+		error(Ebadsharp);
+	// if(waserror()){
+	//	devtabdecr(dev);
+	//	nexterror();
+	// }
+	c = dev->attach(up->genbuf+n);
+	// poperror();
+	// devtabdecr(dev);
+	return c;
+}
+
+Chan *
+namecopen(Chan *c, Mhead *mh, int omode)
+{
+	if(c->umh != nil){
+		print("cunique umh Open\n");
+		putmhead(c->umh);
+		c->umh = nil;
+	}
+	/* only save the mount head if it's a multiple element union */
+	if(mh && mh->mount && mh->mount->next)
+		c->umh = mh;
+	else
+		putmhead(mh);
+
+	if(omode == OEXEC)
+		c->flag &= ~CCACHE;
+
+	//open:					//XDYNX
+	// get dev
+	// open
+	// if no error and read/write
+	// then fill in c->dev and
+	// don't put
+	c = c->dev->open(c, omode & ~OCEXEC);
+	if(omode & OCEXEC)
+		c->flag |= CCEXEC;
+	if(omode & ORCLOSE)
+		c->flag |= CRCLOSE;
+	return c;
+}
+
+/*
+ * The semantics of the create(2) system call are that if the
+ * file exists and can be written, it is to be opened with truncation.
+ * On the other hand, the create(5) message fails if the file exists.
+ * If we get two create(2) calls happening simultaneously,
+ * they might both get here and send create(5) messages, but only
+ * one of the messages will succeed.  To provide the expected create(2)
+ * semantics, the call with the failed message needs to try the above
+ * walk again, opening for truncation.  This correctly solves the
+ * create/create race, in the sense that any observable outcome can
+ * be explained as one happening before the other.
+ * The create/create race is quite common.  For example, it happens
+ * when two rc subshells simultaneously update the same
+ * environment variable.
+ *
+ * The implementation still admits a create/create/remove race:
+ * (A) walk to file, fails
+ * (B) walk to file, fails
+ * (A) create file, succeeds, returns
+ * (B) create file, fails
+ * (A) remove file, succeeds, returns
+ * (B) walk to file, return failure.
+ *
+ * This is hardly as common as the create/create race, and is really
+ * not too much worse than what might happen if (B) got a hold of a
+ * file descriptor and then the file was removed -- either way (B)
+ * can't do anything with the result of the create call.  So we
+ * don't care about this race.
+ *
+ * Applications that care about more fine-grained decision of the races
+ * can use the OEXCL flag to get at the underlying create(5) semantics;
+ * by default we provide the common case.
+ *
+ * We need to stay behind the mount point in case we
+ * need to do the first walk again (should the create fail).
+ *
+ * We also need to cross the mount point and find the directory
+ * in the union in which we should be creating.
+ *
+ * The channel staying behind is c, the one moving forward is cnew.
+ */
+Chan *
+nameccreate(Chan *c, Elemlist *ep, Mhead **mhp, int omode, int perm,
+	int nomount, int *success)
+{
+	Chan *cnew;
+	Mhead *mh;
+
+	mh = nil;
+	cnew = nil;
+	*success = 1;
+	if(waserror()){				/* create failed? */
+		cclose(cnew);
+		if(mh)
+			putmhead(mh);
+		if(omode & OEXCL)
+			nexterror();
+		*success = 0;
+	} else {
+		/* try create */
+		if(!nomount && findmount(&cnew, &mh, c->dev->dc, c->devno, c->qid))
+			cnew = createdir(cnew, mh);
+		else{
+			cnew = c;
+			incref(cnew);
+		}
+
+		/*
+		 * We need our own copy of the Chan because we're
+		 * about to send a create, which will move it.  Once we have
+		 * our own copy, we can fix the name, which might be wrong
+		 * if findmount gave us a new Chan.
+		 */
+		cnew = cunique(cnew);
+		pathclose(cnew->path);
+		cnew->path = c->path;
+		incref(cnew->path);
+
+		//create:				//XDYNX
+		// like open regarding read/write?
+
+		cnew->dev->create(cnew, ep->elems[ep->nelems-1],
+			omode&~(OEXCL|OCEXEC), perm);
+		poperror();
+		if(omode & OCEXEC)
+			cnew->flag |= CCEXEC;
+		if(omode & ORCLOSE)
+			cnew->flag |= CRCLOSE;
+		if(mh)
+			putmhead(mh);
+		cclose(c);
+		c = cnew;
+		c->path = addelem(c->path, ep->elems[ep->nelems-1], nil);
+	}
+	*mhp = mh;
+	return c;
+}
+
+/*
  * Turn a name into a channel.
  * &name[0] is known to be a valid address.  It may be a kernel address.
  *
@@ -1201,14 +1374,12 @@ nameerror(char *name, char *err)
 Chan*
 namec(char *aname, int amode, int omode, int perm)
 {
-	int len, n, nomount;
-	Chan *c, *cnew;
+	int len, n, nomount, success;
+	Chan *c;
 	Path *path;
 	Elemlist e;
-	Rune r;
 	Mhead *mh;
-	char *createerr, tmperrbuf[ERRMAX];
-	char *name;
+	char *createerr, *name, tmperrbuf[ERRMAX];
 	Dev *dev;
 
 	if(aname[0] == '\0')
@@ -1232,7 +1403,10 @@ namec(char *aname, int amode, int omode, int perm)
 		c = up->slash;
 		incref(c);
 		break;
-
+	default:
+		c = up->dot;
+		incref(c);
+		break;
 	case '#':
 		nomount = 1;
 		up->genbuf[0] = '\0';
@@ -1243,39 +1417,7 @@ namec(char *aname, int amode, int omode, int perm)
 			up->genbuf[n++] = *name++;
 		}
 		up->genbuf[n] = '\0';
-		/*
-		 *  noattach is sandboxing.
-		 *
-		 *  the OK exceptions are:
-		 *	|  it only gives access to pipes you create
-		 *	d  this process's file descriptors
-		 *	e  this process's environment
-		 *  the iffy exceptions are:
-		 *	c  time and pid, but also cons and consctl
-		 *	p  control of your own processes (and unfortunately
-		 *	   any others left unprotected)
-		 */
-		n = chartorune(&r, up->genbuf+1)+1;
-		/* actually / is caught by parsing earlier */
-		if(utfrune("M", r))
-			error(Enoattach);
-		if(up->pgrp->noattach && utfrune("|decp", r)==nil)
-			error(Enoattach);
-		dev = devtabget(r, 1);			//XDYNX
-		if(dev == nil)
-			error(Ebadsharp);
-		//if(waserror()){
-		//	devtabdecr(dev);
-		//	nexterror();
-		//}
-		c = dev->attach(up->genbuf+n);
-		//poperror();
-		//devtabdecr(dev);
-		break;
-
-	default:
-		c = up->dot;
-		incref(c);
+		c = devnamec(&dev);
 		break;
 	}
 
@@ -1284,8 +1426,7 @@ namec(char *aname, int amode, int omode, int perm)
 	e.name = nil;
 	e.elems = nil;
 	e.off = nil;
-	e.nelems = 0;
-	e.nerror = 0;
+	e.nelems = e.nerror = 0;
 	if(waserror()){
 		cclose(c);
 		free(e.name);
@@ -1339,7 +1480,7 @@ namec(char *aname, int amode, int omode, int perm)
 	}
 
 	if(e.mustbedir && !(c->qid.type & QTDIR))
-		error("not a directory");
+		error(Enotdir);
 
 	if(amode == Aopen && (omode&3) == OEXEC && (c->qid.type & QTDIR))
 		error("cannot exec directory");
@@ -1355,10 +1496,12 @@ namec(char *aname, int amode, int omode, int perm)
 		c->umh = mh;
 		break;
 
+	Truncopen:
+		omode |= OTRUNC;
+		/* fall through */
 	case Aaccess:
 	case Aremove:
 	case Aopen:
-	Open:
 		/* save&update the name; domount might change c */
 		path = c->path;
 		incref(path);
@@ -1381,36 +1524,9 @@ namec(char *aname, int amode, int omode, int perm)
 		case Aremove:
 			putmhead(mh);
 			break;
-
 		case Aopen:
 		case Acreate:
-if(c->umh != nil){
-	print("cunique umh Open\n");
-	putmhead(c->umh);
-	c->umh = nil;
-}
-			/* only save the mount head if it's a multiple element union */
-			if(mh && mh->mount && mh->mount->next)
-				c->umh = mh;
-			else
-				putmhead(mh);
-
-			if(omode == OEXEC)
-				c->flag &= ~CCACHE;
-
-
-//open:							//XDYNX
-// get dev
-// open
-// if no error and read/write
-// then fill in c->dev and
-// don't put
-			c = c->dev->open(c, omode&~OCEXEC);
-
-			if(omode & OCEXEC)
-				c->flag |= CCEXEC;
-			if(omode & ORCLOSE)
-				c->flag |= CRCLOSE;
+			c = namecopen(c, mh, omode);
 			break;
 		}
 		break;
@@ -1443,93 +1559,13 @@ if(c->umh != nil){
 		if(walk(&c, e.elems+e.nelems-1, 1, nomount, nil) == 0){
 			if(omode&OEXCL)
 				error(Eexist);
-			omode |= OTRUNC;
-			goto Open;
+			goto Truncopen;
 		}
 
-		/*
-		 * The semantics of the create(2) system call are that if the
-		 * file exists and can be written, it is to be opened with truncation.
-		 * On the other hand, the create(5) message fails if the file exists.
-		 * If we get two create(2) calls happening simultaneously,
-		 * they might both get here and send create(5) messages, but only
-		 * one of the messages will succeed.  To provide the expected create(2)
-		 * semantics, the call with the failed message needs to try the above
-		 * walk again, opening for truncation.  This correctly solves the
-		 * create/create race, in the sense that any observable outcome can
-		 * be explained as one happening before the other.
-		 * The create/create race is quite common.  For example, it happens
-		 * when two rc subshells simultaneously update the same
-		 * environment variable.
-		 *
-		 * The implementation still admits a create/create/remove race:
-		 * (A) walk to file, fails
-		 * (B) walk to file, fails
-		 * (A) create file, succeeds, returns
-		 * (B) create file, fails
-		 * (A) remove file, succeeds, returns
-		 * (B) walk to file, return failure.
-		 *
-		 * This is hardly as common as the create/create race, and is really
-		 * not too much worse than what might happen if (B) got a hold of a
-		 * file descriptor and then the file was removed -- either way (B) can't do
-		 * anything with the result of the create call.  So we don't care about this race.
-		 *
-		 * Applications that care about more fine-grained decision of the races
-		 * can use the OEXCL flag to get at the underlying create(5) semantics;
-		 * by default we provide the common case.
-		 *
-		 * We need to stay behind the mount point in case we
-		 * need to do the first walk again (should the create fail).
-		 *
-		 * We also need to cross the mount point and find the directory
-		 * in the union in which we should be creating.
-		 *
-		 * The channel staying behind is c, the one moving forward is cnew.
-		 */
-		mh = nil;
-		cnew = nil;		/* is this assignment necessary? */
-		if(!waserror()){	/* try create */
-			if(!nomount && findmount(&cnew, &mh, c->dev->dc, c->devno, c->qid))
-				cnew = createdir(cnew, mh);
-			else{
-				cnew = c;
-				incref(cnew);
-			}
-
-			/*
-			 * We need our own copy of the Chan because we're
-			 * about to send a create, which will move it.  Once we have
-			 * our own copy, we can fix the name, which might be wrong
-			 * if findmount gave us a new Chan.
-			 */
-			cnew = cunique(cnew);
-			pathclose(cnew->path);
-			cnew->path = c->path;
-			incref(cnew->path);
-
-//create:						//XDYNX
-// like open regarding read/write?
-
-			cnew->dev->create(cnew, e.elems[e.nelems-1], omode&~(OEXCL|OCEXEC), perm);
-			poperror();
-			if(omode & OCEXEC)
-				cnew->flag |= CCEXEC;
-			if(omode & ORCLOSE)
-				cnew->flag |= CRCLOSE;
-			if(mh)
-				putmhead(mh);
-			cclose(c);
-			c = cnew;
-			c->path = addelem(c->path, e.elems[e.nelems-1], nil);
+		c = nameccreate(c, &e, &mh, omode, perm, nomount, &success);
+		if (success)
 			break;
-		}
-		/* create failed */
-		cclose(cnew);
-		if(mh)
-			putmhead(mh);
-		if(omode & OEXCL)
-			nexterror();
+
 		/* save error */
 		createerr = up->errstr;
 		up->errstr = tmperrbuf;
@@ -1539,11 +1575,10 @@ if(c->umh != nil){
 			error(createerr);	/* report true error */
 		}
 		up->errstr = createerr;
-		omode |= OTRUNC;
-		goto Open;
+		goto Truncopen;
 
 	default:
-		panic("unknown namec access %d\n", amode);
+		panic("unknown namec access %d", amode);
 	}
 
 	/* place final element in genbuf for e.g. exec */
@@ -1604,7 +1639,7 @@ validname0(char *aname, int slashok, int dup, uintptr pc)
 	Rune r;
 
 	name = aname;
-	if(!iskaddr(name)){
+	if(((uintptr)name & KZERO) != KZERO){		/* hmmmm */
 		if(!dup)
 			print("warning: validname* called from %#p with user pointer", pc);
 		ename = vmemchr(name, 0, (1<<16));
@@ -1633,10 +1668,11 @@ validname0(char *aname, int slashok, int dup, uintptr pc)
 		else{
 			if(isfrog[c])
 				if(!slashok || c!='/'){
-					snprint(up->genbuf, sizeof(up->genbuf), "%s: %q", Ebadchar, aname);
+					snprint(up->genbuf, sizeof(up->genbuf),
+						"%s: %q", Ebadchar, aname);
 					free(s);
 					error(up->genbuf);
-			}
+				}
 			name++;
 		}
 	}
@@ -1658,9 +1694,8 @@ validnamedup(char *aname, int slashok)
 void
 isdir(Chan *c)
 {
-	if(c->qid.type & QTDIR)
-		return;
-	error(Enotdir);
+	if(!(c->qid.type & QTDIR))
+		error(Enotdir);
 }
 
 /*

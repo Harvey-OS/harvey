@@ -1,6 +1,7 @@
 #include "u.h"
 
-/* mul64fract(uvlong*r, uvlong a, uvlong b)
+/*
+ * mul64fract(uvlong*r, uvlong a, uvlong b)
  *
  * Multiply two 64 numbers and return the middle 64 bits of the 128 bit result.
  *
@@ -21,19 +22,12 @@
 void
 mul64fract(uvlong *r, uvlong a, uvlong b)
 {
-	uvlong bh, bl;
-	uvlong ah, al;
-	uvlong res;
+	ulong ah, al, bh, bl;
 
-	bl = b & 0xffffffffULL;
+	bl = b;
 	bh = b >> 32;
-	al = a & 0xffffffffULL;
+	al = a;
 	ah = a >> 32;
-
-	res = (al*bl)>>32;
-	res += (al*bh);
-	res += (ah*bl);
-	res += (ah*bh)<<32;
-
-	*r = res;
+	*r = (((uvlong)al*bl)>>32) + (uvlong)al*bh + (uvlong)ah*bl +
+		(((uvlong)ah*bh)<<32);
 }

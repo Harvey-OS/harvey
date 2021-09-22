@@ -613,7 +613,8 @@ out:
 	if(n == D_PARAM)
 		for(z=0; z<BITS; z++)
 			params.b[z] |= bit.b[z];
-	if(v->etype != et || !typechlpfd[et])	/* funny punning */
+	if(v->etype != et || !(typechlpfd[et] || 
+	  (thechar == 'j' && typev[et])))	/* funny punning */
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];
 	if(t == D_CONST) {
@@ -875,6 +876,8 @@ allreg(ulong b, Rgn *r)
 	case TUINT:
 	case TLONG:
 	case TULONG:
+	case TVLONG:
+	case TUVLONG:
 	case TIND:
 	case TARRAY:
 		i = BtoR(~b);
@@ -1075,6 +1078,11 @@ paint3(Reg *r, int bn, long rb, int rn)
 			if(debug['R'])
 				print("%P", p);
 			addreg(&p->to, rn);
+			switch(p->as){
+			case AMOVW:
+			case AMOVWU:
+				p->as = AMOV;
+			}
 			if(debug['R'])
 				print("\t.c%P\n", p);
 		}
@@ -1122,26 +1130,28 @@ addreg(Adr *a, int rn)
  *	bit	reg
  *	0	R9
  *	1	R10
- *  ... ...
- *  6   R15
+ *	...	...
+ *	6	R15
+ * or
+ *	22	R31
  */
 long
 RtoB(int r)
 {
 
-	if(r < 9 || r > 15)
+	if(r < REGLOWALLOC || r > maxregalloc)
 		return 0;
-	return 1L << (r-9);
+	return 1L << (r-REGLOWALLOC);
 }
 
 int
 BtoR(long b)
 {
-
-	b &= 0x007fL;
+	b &= MASK(maxregalloc+1-REGLOWALLOC);
+	// b &= MASK(7);
 	if(b == 0)
 		return 0;
-	return bitno(b) + 9;
+	return bitno(b) + REGLOWALLOC;
 }
 
 /*
@@ -1164,7 +1174,7 @@ int
 BtoF(long b)
 {
 
-	b &= 0x03ffff80L;
+	b &= 0x03ffff80L;	/* bits 7-25 */
 	if(b == 0)
 		return 0;
 	return bitno(b) - 6;

@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+TARG=makeindex
+BIN=/sys/lib/texmf/bin/$objtype
+
+OFILES=\
+	genind.$O\
+	mkind.$O\
+	qsort.$O\
+	scanid.$O\
+	scanst.$O\
+	sortid.$O\
+
+HFILES=genind.h mkind.h scanid.h scanst.h
+
+</sys/src/cmd/mkone
+
+CC=pcc
+CFLAGS=-D_POSIX_SOURCE -c

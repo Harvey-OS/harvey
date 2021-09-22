@@ -37,6 +37,7 @@ enum {
 	Nowaitlock,
 	Waitlock,
 
+	NilBlock	= (~0UL),
 	MaxBlock	= (1UL<<31),
 };
 
@@ -59,6 +60,11 @@ enum {
 	UserTag = 32,		/* all other tags should be >= UserTag */
 };
 
+/*
+ * use of u32int for block numbers here limits fossil write buffer partitions
+ * to 32TB.  using wider integers will invalidate any existing superblocks.
+ * see also superPack and superUnpack.
+ */
 struct Super {
 	u16int version;
 	u32int epochLow;
@@ -78,7 +84,7 @@ struct Fs {
 	int	mode;		/* immutable */
 	int	noatimeupd;	/* immutable */
 	int	blockSize;	/* immutable */
-	VtConn *z;		/* immutable */
+	VtSession *z;		/* immutable */
 	Snap	*snap;		/* immutable */
 	/* immutable; copy here & Fsys to ease error reporting */
 	char	*name;
@@ -93,7 +99,7 @@ struct Fs {
 	 * Deletion and creation of snapshots occurs under a write lock of elk,
 	 * ensuring no file operations are occurring concurrently.
 	 */
-	RWLock	elk;		/* epoch lock */
+	VtLock	*elk;		/* epoch lock */
 	u32int	ehi;		/* epoch high */
 	u32int	elo;		/* epoch low */
 
@@ -135,7 +141,7 @@ struct Source {
 	Source	*parent;	/* immutable */
 	File	*file;		/* immutable; point back */
 
-	QLock	lk;
+	VtLock	*lk;
 	int	ref;
 	/*
 	 * epoch for the source
@@ -232,10 +238,10 @@ struct Block {
 	int	nlock;
 	uintptr	pc;		/* pc that fetched this block from the cache */
 
-	QLock	lk;
+	VtLock	*lk;
 
 	int 	part;
-	u32int	addr;
+	u32int	addr;			/* should be uvlong */
 	uchar	score[VtScoreSize];	/* score */
 	Label	l;
 
@@ -260,7 +266,7 @@ struct Block {
 
 	Block	*ionext;
 	int	iostate;
-	Rendez	ioready;
+	VtRendez *ioready;
 };
 
 /* tree walker, for gc and archiver */

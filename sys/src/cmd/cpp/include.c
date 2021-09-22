@@ -81,12 +81,12 @@ doinclude(Tokenrow *trp)
 		genline();
 	} else {
 		trp->tp = trp->bp+2;
-		error(ERROR, "Could not find include file %r", trp);
+		/* was ERROR, made into WARNING - geoff, 24 Jun 2015 */
+		error(WARNING, "Could not find include file %r", trp);
 	}
 	return;
 syntax:
 	error(ERROR, "Syntax error in #include");
-	return;
 }
 
 /*

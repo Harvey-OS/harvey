@@ -15,7 +15,7 @@ void	notifyf(void*, char*);
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dw] lock [command [file]...]\n", argv0);
+	fprint(2, "usage: %s [-dw] lock [command [arg]...]\n", argv0);
 	exits("usage");
 }
 

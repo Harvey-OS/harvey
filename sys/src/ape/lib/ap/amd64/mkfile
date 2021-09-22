@@ -1,9 +1,10 @@
 APE=/sys/src/ape
+objtype=amd64
 <$APE/config
 LIB=/$objtype/lib/ape/libap.a
 OFILES=\
-	atom.$O\
 	_seek.$O\
+	atom.$O\
 	cycles.$O\
 	lock.$O\
 	main9.$O\
@@ -16,5 +17,5 @@ OFILES=\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE
+CFLAGS=$CFLAGS -c -D_POSIX_SOURCE -D_PLAN9_SOURCE
 

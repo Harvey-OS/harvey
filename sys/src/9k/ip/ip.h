@@ -1,3 +1,6 @@
+#pragma	src	"/sys/src/libip"
+#pragma	lib	"libip.a"
+
 typedef struct	Conv	Conv;
 typedef struct	Fragment4 Fragment4;
 typedef struct	Fragment6 Fragment6;
@@ -37,7 +40,7 @@ enum
 {
 	Addrlen=	64,
 	Maxproto=	20,
-	Maxincall=	128,	/* max. conn.s in listen q not accepted yet */
+	Maxincall=	64,	/* max. conn.s in listen q not accepted yet */
 	Nchans=		1024,
 	MAClen=		16,		/* longest mac address */
 
@@ -121,6 +124,7 @@ struct Fragment6
 	ulong	age;
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
 struct Ipfrag
 {
 	ushort	foff;
@@ -150,6 +154,7 @@ struct IP
 };
 
 /* on the wire packet header */
+/* this is packet layout, so can't tolerate bogus padding */
 struct Ip4hdr
 {
 	uchar	vihl;		/* Version and header length */
@@ -721,16 +726,6 @@ extern ushort	ptclcsum(Block*, int, int);
 extern void	ip_init(Fs*);
 extern void	update_mtucache(uchar*, ulong);
 extern ulong	restrict_mtu(uchar*, ulong);
-/*
- * bootp.c
- */
-extern int	bootpread(char*, ulong, int);
-
-/*
- *  resolving inferno/plan9 differences
- */
-char*		commonuser(void);
-char*		commonerror(void);
 
 /*
  * chandial.c

@@ -61,7 +61,7 @@ flag queries the mouse and reports its type but does not set the device type.
 The
 .B -b
 flag sets the baud rate for communication; it is effectual only for serial mice.
-.SH
+.SS Accupoint
 .I Accupoint
 is a process, to be used with
 .IR pipefile (1),
@@ -89,8 +89,8 @@ or to a system-dependent configuration script in
 .B termrc
 (see
 .IR cpurc (8)):
-.EX
 .IP
+.EX
 pipefile -dr /bin/aux/accupoint /dev/mouse
 .EE
 .PP
@@ -113,8 +113,6 @@ Due to the limitations of
 .IR pipefile (1),
 when running
 .I accupoint
-it is difficult restart
+it is difficult to restart
 .IR rio (1)
 if it has exited.
-
-

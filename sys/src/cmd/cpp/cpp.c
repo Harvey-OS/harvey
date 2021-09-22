@@ -140,6 +140,8 @@ control(Tokenrow *trp)
 			break;
 		}
 		if ((np = lookup(tp, 0))) {
+			if (printpplines)		// TODO: experiment
+				cpprint(stdout, "// #undef %s\n", np->name);
 			if (np->flag&ISUNCHANGE) {
 				error(ERROR, "#defined token %t can't be undefined", tp);
 				return;
@@ -252,7 +254,6 @@ control(Tokenrow *trp)
 		break;
 	}
 	setempty(trp);
-	return;
 }
 
 void *
@@ -282,58 +283,83 @@ dofree(void *p)
 }
 
 void
-error(enum errtype type, char *string, ...)
+cpvprint(FILE *fp, char *string, va_list ap)
 {
-	va_list ap;
 	char *cp, *ep;
 	Token *tp;
 	Tokenrow *trp;
-	Source *s;
 	int i;
 	void *p;
 
+	flushout();
+	for (ep=string; *ep; ep++)
+		if (*ep!='%')
+			fputc(*ep, fp);
+		else
+			switch (*++ep) {
+			default:
+				fputc(*ep, fp);
+				break;
+
+			case 's':
+				cp = va_arg(ap, char *);
+				fprintf(fp, "%s", (cp? cp: "(null)"));
+				break;
+			case 'd':
+				i = va_arg(ap, int);
+				fprintf(fp, "%d", i);
+				break;
+			case 'p':
+				p = va_arg(ap, void *);
+				fprintf(fp, "%p", p);
+				break;
+			case 't':
+				tp = va_arg(ap, Token *);
+				if (tp == NULL)
+					fprintf(fp, "(no token)");
+				else
+					fprintf(fp, "%.*s", tp->len, tp->t);
+				break;
+
+			case 'r':
+				trp = va_arg(ap, Tokenrow *);
+				if (trp == NULL) {
+					fprintf(fp, "(no tokens)");
+					break;
+				}
+				for (tp=trp->tp; tp<trp->lp&&tp->type!=NL; tp++) {
+					if (tp>trp->tp && tp->wslen)
+						fputc(' ', fp);
+					fprintf(fp, "%.*s", tp->len, tp->t);
+				}
+				break;
+			}
+	fflush(fp);
+}
+
+void
+cpprint(FILE *fp, char *string, ...)
+{
+	va_list ap;
+
+	va_start(ap, string);
+	cpvprint(fp, string, ap);
+	va_end(ap);
+}
+
+void
+error(enum errtype type, char *string, ...)
+{
+	va_list ap;
+	Source *s;
+
+	flushout();
 	fprintf(stderr, "cpp: ");
 	for (s=cursource; s; s=s->next)
 		if (*s->filename)
 			fprintf(stderr, "%s:%d ", s->filename, s->line);
 	va_start(ap, string);
-	for (ep=string; *ep; ep++) {
-		if (*ep=='%') {
-			switch (*++ep) {
-
-			case 's':
-				cp = va_arg(ap, char *);
-				fprintf(stderr, "%s", cp);
-				break;
-			case 'd':
-				i = va_arg(ap, int);
-				fprintf(stderr, "%d", i);
-				break;
-			case 'p':
-				p = va_arg(ap, void *);
-				fprintf(stderr, "%p", p);
-				break;
-			case 't':
-				tp = va_arg(ap, Token *);
-				fprintf(stderr, "%.*s", tp->len, tp->t);
-				break;
-
-			case 'r':
-				trp = va_arg(ap, Tokenrow *);
-				for (tp=trp->tp; tp<trp->lp&&tp->type!=NL; tp++) {
-					if (tp>trp->tp && tp->wslen)
-						fputc(' ', stderr);
-					fprintf(stderr, "%.*s", tp->len, tp->t);
-				}
-				break;
-
-			default:
-				fputc(*ep, stderr);
-				break;
-			}
-		} else
-			fputc(*ep, stderr);
-	}
+	cpvprint(stderr, string, ap);
 	va_end(ap);
 	fputc('\n', stderr);
 	if (type==FATAL)

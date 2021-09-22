@@ -1,19 +1,62 @@
+/* devsd framework for scsi devices */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
-#include "ureg.h"
 #include "../port/error.h"
-
+#include "io.h"
 #include "../port/sd.h"
+
+int
+isscsiread(int cmd)
+{
+	switch (cmd) {
+	case ScmdRead:
+	case ScmdExtread:
+	case ScmdRead16:
+		return 1;
+	}
+	return 0;
+}
+
+int
+isscsiwrite(int cmd)
+{
+	switch (cmd) {
+	case ScmdWrite:
+	case ScmdExtwrite:
+	case ScmdExtwritever:
+	case ScmdWrite16:
+		return 1;
+	}
+	return 0;
+}
+
+/* see diskcmd.h */
+int
+scsicmdlen(uint cmd)
+{
+	if (cmd < 0x20)
+		return 6;
+	else if (cmd < 0x60)
+		return 10;
+	else if (cmd < 0x80) {
+		/* take error return */
+	} else if (cmd < 0xa0)
+		return 16;
+	else if (cmd < 0xc0)
+		return 12;
+	print("scsi cmd %#x length unknown\n", cmd);
+	return 6;
+}
 
 static int
 scsitest(SDreq* r)
 {
 	r->write = 0;
 	memset(r->cmd, 0, sizeof(r->cmd));
+	r->cmd[0] = ScmdTur;
 	r->cmd[1] = r->lun<<5;
 	r->clen = 6;
 	r->data = nil;
@@ -43,7 +86,7 @@ scsiverify(SDunit* unit)
 
 	memset(unit->inquiry, 0, sizeof(unit->inquiry));
 	r->write = 0;
-	r->cmd[0] = 0x12;
+	r->cmd[0] = ScmdInq;
 	r->cmd[1] = r->lun<<5;
 	r->cmd[4] = sizeof(unit->inquiry)-1;
 	r->clen = 6;
@@ -53,6 +96,7 @@ scsiverify(SDunit* unit)
 
 	r->status = ~0;
 	if(unit->dev->ifc->rio(r) != SDok){
+		free(inquiry);
 		free(r);
 		return 0;
 	}
@@ -62,7 +106,7 @@ scsiverify(SDunit* unit)
 	SET(status);
 	for(i = 0; i < 3; i++){
 		while((status = scsitest(r)) == SDbusy)
-			;
+			pause();
 		if(status == SDok || status != SDcheck)
 			break;
 		if(!(r->flags & SDvalidsense))
@@ -78,12 +122,11 @@ scsiverify(SDunit* unit)
 		 * If there's no medium, that's OK too, but don't
 		 * try to spin it up.
 		 */
-		if(r->sense[12] == 0x04){
+		if(r->sense[12] == 0x04)
 			if(r->sense[13] == 0x02 || r->sense[13] == 0x01){
 				status = SDok;
 				break;
 			}
-		}
 		if(r->sense[12] == 0x3A)
 			break;
 	}
@@ -96,7 +139,7 @@ scsiverify(SDunit* unit)
 		if((unit->inquiry[0] & SDinq0periphtype) == SDperdisk){
 			memset(r->cmd, 0, sizeof(r->cmd));
 			r->write = 0;
-			r->cmd[0] = 0x1B;
+			r->cmd[0] = ScmdStart;
 			r->cmd[1] = (r->lun<<5)|0x01;
 			r->cmd[4] = 1;
 			r->clen = 6;
@@ -155,9 +198,9 @@ scsirio(SDreq* r)
 			 * If unit is becoming ready, rather than not
 			 * not ready, wait a little then poke it again. 				 */
 			if(r->sense[12] == 0x3A)
-				break;
+				return 1;
 			if(r->sense[12] != 0x04 || r->sense[13] != 0x01)
-				break;
+				return 1;
 
 			while(waserror())
 				;
@@ -175,6 +218,14 @@ scsirio(SDreq* r)
 	return -1;
 }
 
+enum {
+	Capdlen = 2 * 4,	/* sectors & secsize */
+};
+
+/*
+ * Initialise a drive known to exist.
+ * Returns 0 on failure, >0 if it initialised okay.
+ */
 int
 scsionline(SDunit* unit)
 {
@@ -184,7 +235,7 @@ scsionline(SDunit* unit)
 
 	if((r = malloc(sizeof(SDreq))) == nil)
 		return 0;
-	if((p = sdmalloc(8)) == nil){
+	if((p = sdmalloc(Capdlen)) == nil){
 		free(r);
 		return 0;
 	}
@@ -206,7 +257,7 @@ scsionline(SDunit* unit)
 		r->cmd[1] = r->lun<<5;
 		r->clen = 10;
 		r->data = p;
-		r->dlen = 8;
+		r->dlen = Capdlen;
 		r->flags = 0;
 
 		r->status = ~0;
@@ -324,15 +375,9 @@ scsifmt10(SDreq *r, int write, int lun, ulong nb, uvlong bno)
 	uchar *c;
 
 	c = r->cmd;
-	if(write == 0)
-		c[0] = ScmdExtread;
-	else
-		c[0] = ScmdExtwrite;
+	c[0] = !write? ScmdExtread: ScmdExtwrite;
 	c[1] = lun<<5;
-	c[2] = bno>>24;
-	c[3] = bno>>16;
-	c[4] = bno>>8;
-	c[5] = bno;
+	beputl(&c[2], bno);
 	c[6] = 0;
 	c[7] = nb>>8;
 	c[8] = nb;
@@ -347,23 +392,10 @@ scsifmt16(SDreq *r, int write, int lun, ulong nb, uvlong bno)
 	uchar *c;
 
 	c = r->cmd;
-	if(write == 0)
-		c[0] = ScmdRead16;
-	else
-		c[0] = ScmdWrite16;
+	c[0] = !write? ScmdRead16: ScmdWrite16;
 	c[1] = lun<<5;		/* so wrong */
-	c[2] = bno>>56;
-	c[3] = bno>>48;
-	c[4] = bno>>40;
-	c[5] = bno>>32;
-	c[6] = bno>>24;
-	c[7] = bno>>16;
-	c[8] = bno>>8;
-	c[9] = bno;
-	c[10] = nb>>24;
-	c[11] = nb>>16;
-	c[12] = nb>>8;
-	c[13] = nb;
+	beputvl(&c[2], bno);
+	beputl(&c[10], nb);
 	c[14] = 0;
 	c[15] = 0;
 
@@ -382,10 +414,7 @@ scsibio(SDunit* unit, int lun, int write, void* data, long nb, uvlong bno)
 	r->lun = lun;
 again:
 	r->write = write;
-	if(bno >= (1ULL<<32))
-		scsifmt16(r, write, lun, nb, bno);
-	else
-		scsifmt10(r, write, lun, nb, bno);
+	(bno >= (1ULL<<32)? scsifmt16: scsifmt10)(r, write, lun, nb, bno);
 	r->data = data;
 	r->dlen = nb*unit->secsize;
 	r->flags = 0;

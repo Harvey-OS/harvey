@@ -1,7 +1,0 @@
-#!/bin/rc
-
-if(! ~ $#* 1) {
-	echo 'usage: hdrs file.9gz' >[1=2]
-	exit usage
-}
-gunzip < $1 | disk/mkext -h 

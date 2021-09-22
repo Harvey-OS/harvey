@@ -79,9 +79,9 @@ Nov 30, 1993:
 
 Nov 24, 1993:
 
-	Reordered code to keep the UNASNI scripts happy.
+	Reordered code to keep the UNANSI scripts happy.
 
-	Nroff dumped core reading terminal tables: apparenty under plan 9,
+	Nroff dumped core reading terminal tables: apparently under plan 9,
 	scanf includes the '\n'; added test for '\0' in parse in n10.c.
 
 	Relative tab settings (.ta +1C +2C) didn't work; anding the

@@ -63,7 +63,7 @@ char *icmpnames[Maxtype+1] =
 [InfoRequest]		"InfoRequest",
 [InfoReply]		"InfoReply",
 [AddrMaskRequest]	"AddrMaskRequest",
-[AddrMaskReply]	"AddrMaskReply",
+[AddrMaskReply]		"AddrMaskReply",
 };
 
 enum {
@@ -328,11 +328,9 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	Block	*r;
 	Proto	*pr;
 	char	*msg;
-	char	m2[128];
 	Icmppriv *ipriv;
 
 	ipriv = icmp->priv;
-
 	ipriv->stats[InMsgs]++;
 
 	p = (Icmp *)bp->rp;
@@ -350,13 +348,15 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	if(iplen > n){
 		ipriv->stats[LenErrs]++;
 		ipriv->stats[InErrors]++;
-		netlog(icmp->f, Logicmp, "icmp length %d\n", iplen);
+		netlog(icmp->f, Logicmp, "icmp length error n %d iplen %d\n",
+			n, iplen);
 		goto raise;
 	}
 	if(ptclcsum(bp, ICMP_IPSIZE, iplen - ICMP_IPSIZE)){
 		ipriv->stats[InErrors]++;
 		ipriv->stats[CsumErrs]++;
-		netlog(icmp->f, Logicmp, "icmp checksum error\n");
+		netlog(icmp->f, Logicmp, "icmp checksum error n %d iplen %d\n",
+			n, iplen);
 		goto raise;
 	}
 	if(p->type <= Maxtype)
@@ -393,13 +393,14 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 		break;
 	case TimeExceed:
 		if(p->code == 0){
-			snprint(m2, sizeof m2, "ttl exceeded at %V", p->src);
+			char m2[64];
 
 			bp->rp += ICMP_IPSIZE+ICMP_HDRSIZE;
 			if(blocklen(bp) < MinAdvise){
 				ipriv->stats[LenErrs]++;
 				goto raise;
 			}
+			snprint(m2, sizeof m2, "ttl exceeded at %V", p->src);
 			p = (Icmp *)bp->rp;
 			pr = Fsrcvpcolx(icmp->f, p->proto);
 			if(pr != nil && pr->advise != nil) {
@@ -408,9 +409,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 			}
 			bp->rp -= ICMP_IPSIZE+ICMP_HDRSIZE;
 		}
-
-		goticmpkt(icmp, bp);
-		break;
+		/* fall through */
 	default:
 		goticmpkt(icmp, bp);
 		break;

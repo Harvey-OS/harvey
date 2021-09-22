@@ -1,0 +1,25 @@
+</$objtype/mkfile
+
+CC=pcc
+CFLAGS=-c -I. -I../zlib
+
+LIB=libpng.a$O
+
+OFILES=png.$O pngset.$O pngget.$O pngrutil.$O pngtrans.$O pngwutil.$O \
+	pngread.$O pngrio.$O pngwio.$O pngwrite.$O pngrtran.$O \
+	pngwtran.$O pngmem.$O pngerror.$O pngpread.$O
+
+</sys/src/cmd/mklib
+
+
+
+install:V:	$LIB
+	date
+
+$LIB:	$LIBOBJ
+	ar vu $LIB $OFILES
+	$CC -c pngtest.c -I. -I../zlib
+	$CC -o pngtest  pngtest.$O libpng.a$O ../zlib/libz.a$O
+
+clean:V:
+	rm -f *.[$OS] *.a[$OS]

@@ -1,0 +1,74 @@
+.TH DVITYPE 1 "19 December 1994" "Web2C @VERSION@"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+dvitype \- translate a dvi file for humans
+.SH SYNOPSIS
+.B dvitype
+.I dvi_name[.dvi]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B dvitype
+program translates a DVI (DeVice Independent) file output by (for example)
+.BR tex (1)
+or
+.BR gftodvi (1),
+to a file that humans can read. It also serves as a DVI file-validating
+program (i.e., if
+.B dvitype
+can read it, it's correct) and as an example of a DVI-reading
+program for future device drivers.
+.PP
+The output file can include all commands, just the important
+ones, or none at all (in which case only errors are reported).
+A subinterval of pages may be selected for transliteration; the
+magnification and resolution of the ``output device'' may be
+changed; and so on. All options are specified with an on-line dialog.
+.PP
+The
+.I .dvi
+extension is supplied if omitted from 
+.IR dvi_name .
+The output goes to
+.IR stdout .
+.\"=====================================================================
+.SH ENVIRONMENT
+The environment variable TEXFONTS is used to search for the TFM files
+used in the DVI file.  See
+.BR tex (1)
+for the details of the searching.
+If TEXFONTS is not set, it uses the system default.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR gftype (1),
+.BR pktype (1).
+.br
+Donald E. Knuth,
+.IR \*(OXware .
+.\"=====================================================================
+.SH BUGS
+The interactive dialog should be replaced by command-line options, as
+with 
+.BR gftype .
+.SH AUTHORS
+Donald E. Knuth wrote the program.  It was published as part of the
+.I \*(OXware
+technical report, available from the \*(TX Users Group.
+Howard Trickey and Pavel Curtis originally ported it to Unix.

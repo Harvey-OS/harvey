@@ -1,0 +1,4 @@
+beginfig(1);
+label(btex foo etex, (0,0))
+endfig;
+end

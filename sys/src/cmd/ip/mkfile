@@ -6,7 +6,6 @@ TARG = 	6in4\
 	gping\
 	hogports\
 	httpfile\
-	iscsisrv\
 	linklocal\
 	ping\
 	pppoe\
@@ -22,6 +21,7 @@ TARG = 	6in4\
 	traceroute\
 	udpecho\
 	wol\
+# don't add ike yet; it still depends on /usr/sape/src/shrewd
 
 DIRS=ftpfs dhcpd httpd ipconfig ppp imap4d snoopy
 

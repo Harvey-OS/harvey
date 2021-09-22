@@ -60,7 +60,7 @@ search=yes
 while(~ $d 0) {
 	if(~ $#* 0) {
 		echo 'Usage: man [-bntpPSw] [0-9] [0-9] ... name1 name2 ...' >[1=2]
-		exit
+		exit usage
 	}
 	if(test -d $S/$1){
 		sec=($sec $1)
@@ -88,11 +88,12 @@ fils=()
 if(~ $search yes)
 for(i in $S/$sec){
 	if(/bin/test -f $i/INDEX){
-		try=`{grep -i $pat $i/INDEX | sed 's/^[^ ]* //' | sort -u}
+		try=`{grep -i $pat $i/INDEX | sed 's/^[^ ]+ //' | sort -u}
 		if(! ~ $#try 0)
 			fils=($fils $i/$try)
 	}
 }
+fils=`{echo $fils | tr ' ' '\12' | sort -u}		# de-dup
 # bug: should also do following loop if not all pages found
 if(~ $#fils 0) {
 	# nothing in INDEX. try for file of given name
@@ -147,3 +148,4 @@ for(i in $fils) {
 		}
 	}
 }
+exit ''

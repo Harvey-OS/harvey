@@ -161,7 +161,7 @@ rpc(char *dest, Secret *shared, Packet *req)
 		 * increased timeout from 4sec to 15sec because
 		 * corporate server really takes that long.
 		 */
-		alarm(15000);
+		alarm(2*15000);		/* cranked up again, 17 jun 2013 */
 		m = write(fd, buf, n);
 		if(m != n){
 			syslog(0, AUTHLOG, "%s: rpc write err %d %d: %r",

@@ -1,0 +1,45 @@
+vm 4.75
+pK 39.299222,94.717722	# mci apt
+pF 39.368333,94.914444	# flv apt
+pM 39.279361,94.591167	# mkc vor
+pN d pK,m215,6		# noahs ark
+
+pa d pM,m281,8.5
+pb xcln pK,4, pa,m005
+pc xcln pK,6, pa,m005
+pd xcce pK,6, pN,1
+pe xccw pK,6, pN,1
+pf xclw pK,6, pa,m265
+pg xclw pK,4, pa,m265
+
+n mci_gnd\80
+s pb,pc
+ar pK,pc,pd
+al pN,pd,pe
+ar pK,pe,pf
+s pf,pg
+ar pK,pg,pb
+
+ph d pK,m168,10
+pi d pK,m140,8.5
+pj d pK,m125,10
+pk xccn pK,10, pF,1.6
+pl xccs pK,10, pF,1.6
+
+n mci_24\80
+s ph,pi
+s pi,pj
+al pK,pj,pk
+ar pF,pk,pl
+al pK,pl,ph
+
+pm xcle pK,15, pj,api
+pn d pK,m170,15
+
+n mci_30\80
+s pj,pm
+al pK,pm,pn
+s pn,ph
+
+n mci_40\80
+C pK,20

@@ -1,10 +1,15 @@
 /*
  * memory-type region registers.
+ * keep the mtrr sets identical across all cpus.
+ * at least 8 variable mtrrs are guaranteed.
  *
  * due to the possibility of extended addresses (for PAE)
  * as large as 36 bits coming from the e820 memory map and the like,
  * we'll use vlongs to hold addresses and lengths, even though we don't
  * implement PAE in Plan 9.
+ *
+ * MTRR Physical base/mask in MSRs are indexed by
+ *	MTRRPhys{Base|Mask}N = MTRRPhys{Base|Mask}0 + 2*N
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -14,16 +19,6 @@
 #include "io.h"
 
 enum {
-	/*
-	 * MTRR Physical base/mask are indexed by
-	 *	MTRRPhys{Base|Mask}N = MTRRPhys{Base|Mask}0 + 2*N
-	 */
-	MTRRPhysBase0 = 0x200,
-	MTRRPhysMask0 = 0x201,
-	MTRRDefaultType = 0x2FF,
-	MTRRCap = 0xFE,
-	Nmtrr = 8,
-
 	/* cpuid extended function codes */
 	Exthighfunc = 1ul << 31,
 	Extprocsigamd,
@@ -39,11 +34,6 @@ enum {
 };
 
 enum {
-	CR4PageGlobalEnable	= 1 << 7,
-	CR0CacheDisable		= 1 << 30,
-};
-
-enum {
 	Uncacheable	= 0,
 	Writecomb	= 1,
 	Unknown1	= 2,
@@ -51,15 +41,6 @@ enum {
 	Writethru	= 4,
 	Writeprot	= 5,
 	Writeback	= 6,
-};
-
-enum {
-	Capvcnt = 0xff,		/* mask: # of variable-range MTRRs we have */
-	Capwc	= 1<<8,		/* flag: have write combining? */
-	Capfix	= 1<<10,	/* flag: have fixed MTRRs? */
-	Deftype = 0xff,		/* default MTRR type */
-	Deffixena = 1<<10,	/* fixed-range MTRR enable */
-	Defena	= 1<<11,	/* MTRR enable */
 };
 
 typedef struct Mtrreg Mtrreg;
@@ -84,7 +65,7 @@ static char *types[] = {
 [Writeback]	"wb",
 		nil
 };
-static Mtrrop *postedop;
+static Mtrrop *postedop;	/* op in progress across cpus */
 static Rendez oprend;
 
 static char *
@@ -114,8 +95,10 @@ physmask(void)
 
 	if (mask != -1)
 		return mask;
+	memset(regs, 0, sizeof regs);
 	cpuid(Exthighfunc, regs);
 	if(regs[0] >= Extaddrsz) {			/* ax */
+		memset(regs, 0, sizeof regs);
 		cpuid(Extaddrsz, regs);
 		mask = (1LL << (regs[0] & 0xFF)) - 1;	/* ax */
 	}
@@ -136,17 +119,17 @@ static int
 mtrrdec(Mtrreg *mtrr, uvlong *ptr, uvlong *size, int *type)
 {
 	sanity(mtrr);
-	*ptr =  mtrr->base & ~(BY2PG-1);
+	*ptr = PPN(mtrr->base);
 	*type = mtrr->base & 0xff;
-	*size = (physmask() ^ (mtrr->mask & ~(BY2PG-1))) + 1;
-	return (mtrr->mask >> 11) & 1;
+	*size = (physmask() ^ PPN(mtrr->mask)) + 1;
+	return mtrr->mask & Mtrrvalid;
 }
 
 static void
 mtrrenc(Mtrreg *mtrr, uvlong ptr, uvlong size, int type, int ok)
 {
 	mtrr->base = ptr | (type & 0xff);
-	mtrr->mask = (physmask() & ~(size - 1)) | (ok? 1<<11: 0);
+	mtrr->mask = (physmask() & ~(size - 1)) | (ok? Mtrrvalid: 0);
 	sanity(mtrr);
 }
 
@@ -157,7 +140,7 @@ mtrrenc(Mtrreg *mtrr, uvlong ptr, uvlong size, int type, int ok)
 static void
 mtrrget(Mtrreg *mtrr, uint i)
 {
-	if (i >= Nmtrr)
+	if (i >= (m->mtrrcap & Capvcnt))
 		error("mtrr index out of range");
 	rdmsr(MTRRPhysBase0 + 2*i, &mtrr->base);
 	rdmsr(MTRRPhysMask0 + 2*i, &mtrr->mask);
@@ -167,7 +150,7 @@ mtrrget(Mtrreg *mtrr, uint i)
 static void
 mtrrput(Mtrreg *mtrr, uint i)
 {
-	if (i >= Nmtrr)
+	if (i >= (m->mtrrcap & Capvcnt))
 		error("mtrr index out of range");
 	sanity(mtrr);
 	wrmsr(MTRRPhysBase0 + 2*i, mtrr->base);
@@ -175,15 +158,35 @@ mtrrput(Mtrreg *mtrr, uint i)
 }
 
 static void
-mtrrop(Mtrrop **op)
+flushtlbs(void)
+{
+	ulong cr4;
+
+	cr4 = getcr4();
+	if (cr4 & CR4pge)
+		putcr4(cr4 & ~CR4pge);
+	else
+		putcr3(getcr3());
+}
+
+/*
+ * perform an operation (postedop) on an mtrr on this cpu.
+ * waits for all the other cpus before starting.
+ * nils postedop when done on all cpus.
+ * this follows the general outline in intel's x86 vol. 3a, §11.11.8.
+ */
+static void
+mtrrop(void)
 {
 	int s;
 	ulong cr0, cr4;
-	vlong def;
 	static long bar1, bar2;
 
-	s = splhi();		/* avoid race with mtrrclock */
-
+	s = splhi();		/* avoid race with mtrrclock on this cpu */
+	if (postedop == nil) {
+		splx(s);
+		return;
+	}
 	/*
 	 * wait for all CPUs to sync here, so that the MTRR setup gets
 	 * done at roughly the same time on all processors.
@@ -191,22 +194,29 @@ mtrrop(Mtrrop **op)
 	ainc(&bar1);
 	while(bar1 < conf.nmach)
 		microdelay(10);
+	/* all cpus are now executing this code ~simultaneously */
 
-	cr4 = getcr4();
-	putcr4(cr4 & ~CR4PageGlobalEnable);
 	cr0 = getcr0();
+	cr4 = getcr4();
 	wbinvd();
-	putcr0(cr0 | CR0CacheDisable);
+	/* enter no-fill cache mode; maintains coherence */
+	putcr0((cr0 | CD) & ~NW);
 	wbinvd();
-	rdmsr(MTRRDefaultType, &def);
-	wrmsr(MTRRDefaultType, def & ~(vlong)Defena);
+	flushtlbs();
 
-	mtrrput((*op)->reg, (*op)->slot);
+	rdmsr(MTRRCap, &m->mtrrcap);
+	rdmsr(MTRRDefaultType, &m->mtrrdef);
+	wrmsr(MTRRDefaultType, m->mtrrdef & ~(vlong)Defena); /* disable mtrrs */
+
+	mtrrput(postedop->reg, postedop->slot);	/* change this cpu's mtrr */
+
+	m->mtrrdef |= Defena;
+	wrmsr(MTRRDefaultType, m->mtrrdef);	/* enable mtrrs */
 
 	wbinvd();
-	wrmsr(MTRRDefaultType, def);
-	putcr0(cr0);
-	putcr4(cr4);
+	flushtlbs();
+	putcr0(cr0);				/* restore caches */
+	putcr4(cr4);				/* restore paging config */
 
 	/*
 	 * wait for all CPUs to sync up again, so that we don't continue
@@ -215,20 +225,26 @@ mtrrop(Mtrrop **op)
 	ainc(&bar2);
 	while(bar2 < conf.nmach)
 		microdelay(10);
-	*op = nil;
+	/* all cpus are now executing this code ~simultaneously */
+
+	if (m->machno == 0)
+		postedop = nil;
 	adec(&bar1);
 	while(bar1 > 0)
 		microdelay(10);
+	/* all cpus are now executing this code ~simultaneously */
+
 	adec(&bar2);
-	wakeup(&oprend);
+	if (m->machno == 0)
+		wakeup(&oprend);
 	splx(s);
 }
 
 void
 mtrrclock(void)				/* called from clock interrupt */
 {
-	if(postedop != nil)
-		mtrrop(&postedop);
+	if(postedop != nil)	/* op waiting for this cpu's attention? */
+		mtrrop();
 }
 
 /* if there's an operation still pending, keep sleeping */
@@ -238,15 +254,59 @@ opavail(void *)
 	return postedop == nil;
 }
 
+static int
+findmtrr(uvlong base, uvlong size)
+{
+	int i, vcnt, mtype, mok;
+	uvlong mp, msize;
+	Mtrreg mtrr;
+
+	vcnt = m->mtrrcap & Capvcnt;
+	for(i = 0; i < vcnt; i++){
+		mtrrget(&mtrr, i);
+		mok = mtrrdec(&mtrr, &mp, &msize, &mtype);
+		if(mok && mp == base && msize == size)
+			return i;		/* overwrite matching mtrr */
+	}
+	for(i = 0; i < vcnt; i++){
+		mtrrget(&mtrr, i);
+		if(!mtrrdec(&mtrr, &mp, &msize, &mtype))
+			return i;		/* got a free mtrr */
+	}
+	for(i = 0; i < vcnt; i++){
+		mtrrget(&mtrr, i);
+		mok = mtrrdec(&mtrr, &mp, &msize, &mtype);
+		/* reuse any entry for addresses above 4GB */
+		if(mok && mp >= (1LL<<32))
+			return i;		/* got a too-big mtrr */
+	}
+	return -1;
+}
+
+static void
+chktype(int type)
+{
+	switch(type){
+	default:
+		error("mtrr unknown type");
+	case Writecomb:
+		if(!(m->mtrrcap & Capwc))
+			error("mtrr type wc (write combining) unsupported");
+		/* fallthrough */
+	case Uncacheable:
+	case Writethru:
+	case Writeprot:
+	case Writeback:
+		break;
+	}
+}
+
 int
 mtrr(uvlong base, uvlong size, char *tstr)
 {
-	int i, vcnt, slot, type, mtype, mok;
-	vlong def, cap;
-	uvlong mp, msize;
-	Mtrreg entry, mtrr;
+	int s, type;
+	Mtrreg entry;
 	Mtrrop op;
-	static int tickreg;
 	static QLock mtrrlk;
 
 	if(!(m->cpuiddx & Mtrr))
@@ -262,47 +322,32 @@ mtrr(uvlong base, uvlong size, char *tstr)
 
 	if((type = str2type(tstr)) == -1)
 		error("mtrr bad type");
+	chktype(type);
 
-	rdmsr(MTRRCap, &cap);
-	rdmsr(MTRRDefaultType, &def);
-
-	switch(type){
-	default:
-		error("mtrr unknown type");
-		break;
-	case Writecomb:
-		if(!(cap & Capwc))
-			error("mtrr type wc (write combining) unsupported");
-		/* fallthrough */
-	case Uncacheable:
-	case Writethru:
-	case Writeprot:
-	case Writeback:
-		break;
-	}
+	rdmsr(MTRRCap, &m->mtrrcap);
+	rdmsr(MTRRDefaultType, &m->mtrrdef);
 
 	qlock(&mtrrlk);
-	slot = -1;
-	vcnt = cap & Capvcnt;
-	for(i = 0; i < vcnt && i < Nmtrr; i++){
-		mtrrget(&mtrr, i);
-		mok = mtrrdec(&mtrr, &mp, &msize, &mtype);
-		/* reuse any entry for addresses above 4GB */
-		if(!mok || mp == base && msize == size || mp >= (1LL<<32)){
-			slot = i;
-			break;
-		}
+	if(waserror()){
+		qunlock(&mtrrlk);
+		nexterror();
 	}
-	if(slot == -1)
-		error("no free mtrr slots");
-
+	s = splhi();		/* avoid race with mtrrclock on this cpu */
+	/* wait for any mtrr op in progress to finish (e.g. from mtrrclock) */
 	while(postedop != nil)
 		sleep(&oprend, opavail, 0);
+
+	/* find a matching or free mtrr and overwrite it */
+	op.slot = findmtrr(base, size);
+	if(op.slot < 0)
+		error("no free mtrr slots");
 	mtrrenc(&entry, base, size, type, 1);
 	op.reg = &entry;
-	op.slot = slot;
-	postedop = &op;
-	mtrrop(&postedop);
+	postedop = &op;		/* make visible to other cpus */
+	mtrrop();		/* perform synchronised update on all cpus */
+	splx(s);
+
+	poperror();
 	qunlock(&mtrrlk);
 	return 0;
 }
@@ -313,22 +358,21 @@ mtrrprint(char *buf, long bufsize)
 	int i, vcnt, type;
 	long n;
 	uvlong base, size;
-	vlong cap, def;
 	Mtrreg mtrr;
 
 	n = 0;
 	if(!(m->cpuiddx & Mtrr))
 		return 0;
-	rdmsr(MTRRCap, &cap);
-	rdmsr(MTRRDefaultType, &def);
+	rdmsr(MTRRCap, &m->mtrrcap);
+	rdmsr(MTRRDefaultType, &m->mtrrdef);
 	n += snprint(buf+n, bufsize-n, "cache default %s\n",
-		type2str(def & Deftype));
-	vcnt = cap & Capvcnt;
-	for(i = 0; i < vcnt && i < Nmtrr; i++){
+		type2str(m->mtrrdef & Deftype));
+	vcnt = m->mtrrcap & Capvcnt;
+	for(i = 0; i < vcnt; i++){
 		mtrrget(&mtrr, i);
 		if (mtrrdec(&mtrr, &base, &size, &type))
 			n += snprint(buf+n, bufsize-n,
-				"cache 0x%llux %llud %s\n",
+				"cache %#llux %llud %s\n",
 				base, size, type2str(type));
 	}
 	return n;

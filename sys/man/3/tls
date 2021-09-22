@@ -265,7 +265,6 @@ This will always include
 .BR clear ,
 meaning no encryption or digesting.
 Currently implemented encryption algorithms are
-.BR 'rc4_128' ,
 .BR '3des_ede_cbc' ,
 .B 'aes_128_cbc'
 and
@@ -273,11 +272,26 @@ and
 Currently implemented hashing algorithms are
 .BR "md5" ,
 .BR "sha1" ,
+.BR "sha2_256" ,
+.BR "sha2_384" ,
 and
-.BR "sha2_256" .
+.BR "sha2_512" .
 .SH "SEE ALSO"
-.IR listen (8),
 .IR dial (2),
-.IR pushtls (2)
+.IR iounit (2),
+.IR pushtls (2),
+.IR listen (8)
 .SH SOURCE
 .B /sys/src/9/port/devtls.c
+.SH BUGS
+.IR tls
+currently has an iounit of its
+(implementation-specific) maximum record length of 16384,
+and
+.B MAXRPC
+in
+.IR mnt (3)
+needs to exceed it,
+to make mounting
+.IR srv (3)
+channels imported via TLS-encrypted 9P sessions work.

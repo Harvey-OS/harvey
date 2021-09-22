@@ -1,10 +1,12 @@
 /*
  * SIMD Floating Point.
  * Note: for x87 instructions which have both a 'wait' and 'nowait' version,
- * 6a only knows the 'wait' mnemonic but does NOT insert the WAIT prefix byte
+ * 8a only knows the 'wait' mnemonic but does NOT insert the WAIT prefix byte
  * (i.e. they act like their FNxxx variations) so WAIT instructions must be
  * explicitly placed in the code if necessary.
  */
+#include "amd64l.h"
+
 TEXT _clts(SB), 1, $-4
 	CLTS
 	RET
@@ -41,6 +43,6 @@ TEXT _ldmxcsr(SB), 1, $-4			/* Load MXCSR */
 
 TEXT _stts(SB), 1, $-4
 	MOVQ	CR0, AX
-	ORQ	$8, AX				/* Ts */
+	ORQ	$Ts, AX
 	MOVQ	AX, CR0
 	RET

@@ -171,7 +171,7 @@ enum {					/* Tsd0 */
 
 enum {
 	Rblen		= Rblen64K,	/* Receive Buffer Length */
-	Ntd		= 4,		/* Number of Transmit Descriptors */
+	Ntd		= 32,		/* Number of Transmit Descriptors */
 	Tdbsz		= ROUNDUP(sizeof(Etherpkt), 4),
 };
 
@@ -622,7 +622,7 @@ rtl8139receive(Ether* edev)
 	}
 }
 
-static void
+static int
 rtl8139interrupt(Ureg*, void* arg)
 {
 	Td *td;
@@ -635,7 +635,7 @@ rtl8139interrupt(Ureg*, void* arg)
 	if(ctlr == nil) {	/* not attached yet? (shouldn't happen) */
 		print("rtl8139interrupt: interrupt for unattached Ether %#p\n",
 			edev);
-		return;
+		return Intrnotforme;
 	}
 
 	while((isr = csr16r(ctlr, Isr)) != 0){
@@ -643,7 +643,8 @@ rtl8139interrupt(Ureg*, void* arg)
 		if(ctlr->alloc == nil) {
 			print("rtl8139interrupt: interrupt for unattached Ctlr "
 				"%#p port %#p\n", ctlr, (void *)ctlr->port);
-			return;	/* not attached yet (shouldn't happen) */
+			/* not attached yet (shouldn't happen) */
+			return Intrnotforme;
 		}
 		if(isr & (Fovw|PunLc|Rxovw|Rer|Rok)){
 			rtl8139receive(edev);
@@ -715,6 +716,7 @@ rtl8139interrupt(Ureg*, void* arg)
 				rtl8139init(edev);
 		}
 	}
+	return Intrunconverted;
 }
 
 static Ctlr*

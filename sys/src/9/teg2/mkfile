@@ -1,11 +1,11 @@
 CONF=ts
 CONFLIST=ts
-EXTRACOPIES=
+EXTRACOPIES=fsstand # pxe0
 
-# allegedly u-boot uses the bottom 4MB (up to 0x400000) so avoid that,
+# u-boot uses the bottom 4MB (up to 0x408000) so avoid that,
 # and leave 64K for plan9.ini.  loadaddr must match KTZERO in mem.h
 # and CONFADDR must be 0x10000 lower.
-loadaddr=0xc0410000
+loadaddr=0xc0420000
 
 objtype=arm
 </$objtype/mkfile
@@ -18,6 +18,8 @@ PORT=\
 	alloc.$O\
 	allocb.$O\
 	auth.$O\
+	awaitbit.$O\
+	byteserial.$O\
 	cache.$O\
 	chan.$O\
 	dev.$O\
@@ -41,6 +43,9 @@ PORT=\
 	sysproc.$O\
 	taslock.$O\
 	tod.$O\
+	ucalloc.$O\
+	ucallocb.$O\
+	watermarks.$O\
 	xalloc.$O\
 
 OBJ=\
@@ -48,12 +53,18 @@ OBJ=\
 	lexception.$O\
 	lproc.$O\
 	arch.$O\
+	caches.$O\
+	caches-v7.$O\
+	cache-l2-pl310.$O\
 	clock.$O\
 	clock-tegra.$O\
+	coproc.$O\
 	kbd.$O\
 	main.$O\
 	mmu.$O\
 	random.$O\
+	syscall.$O\
+	syscallfmt.$O\
 	trap.$O\
 	$CONF.root.$O\
 	$CONF.rootc.$O\
@@ -120,7 +131,9 @@ arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 
 archtegra.$O devether.$0 ether9221.$O: etherif.h ../port/netif.h
 archtegra.$O devflash.$O flashtegra.$O flashigep.$O: ../port/flashif.h
-ecc.$O flashtegra.$O flashigep.$O: ../port/nandecc.h io.h
+
+# ecc.$O flashtegra.$O flashigep.$O: ../port/nandecc.h io.h
+
 fpi.$O fpiarm.$O fpimem.$O: ../port/fpi.h
 l.$O lexception.$O lproc.$O mmu.$O: arm.s mem.h
 l.$O rebootcode.$O: cache.v7.s

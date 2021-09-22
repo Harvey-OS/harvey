@@ -68,8 +68,8 @@ struct Exec
 
 void		parseerror(char*, ...);
 void		error(char*, ...);
-void*	emalloc(long);
-void*	erealloc(void*, long);
+void*	emalloc(uintptr);
+void*	erealloc(void*, uintptr);
 char*	estrdup(char*);
 Ruleset**	readrules(char*, int);
 void		startfsys(void);

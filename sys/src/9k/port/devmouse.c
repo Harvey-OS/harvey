@@ -4,6 +4,7 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include	"io.h"
 
 #define	Image	IMAGE
 #include	<draw.h>
@@ -79,6 +80,7 @@ void	Cursortocursor(Cursor*);
 int	mousechanged(void*);
 
 static void mouseclock(void);
+static void xkbdmouse(int);
 
 enum{
 	Qdir,
@@ -103,12 +105,15 @@ static int mouseswap;
 static int scrollswap;
 static ulong mousetime;
 
-extern Memimage* gscreen;
+Memimage* gscreen;
 extern ulong kerndate;
 
 static void
 mousereset(void)
 {
+	if(!conf.monitor)
+		return;
+
 	curs = arrow;
 	Cursortocursor(&arrow);
 	/* redraw cursor about 30 times per second */
@@ -136,6 +141,9 @@ mousedevgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 static void
 mouseinit(void)
 {
+	if(!conf.monitor)
+		return;
+
 	curs = arrow;
 	Cursortocursor(&arrow);
 	cursoron(1);
@@ -146,6 +154,8 @@ mouseinit(void)
 static Chan*
 mouseattach(char *spec)
 {
+	if(!conf.monitor)
+		error(Egreg);
 	return devattach('m', spec);
 }
 
@@ -164,7 +174,7 @@ mousewalk(Chan *c, Chan *nc, char **name, int nname)
 	return wq;
 }
 
-long int
+static long
 mousestat(Chan *c, uchar *db, long n)
 {
 	return devstat(c, db, n, mousedir, nelem(mousedir), mousedevgen);
@@ -205,6 +215,8 @@ mouseopen(Chan *c, int omode)
 static void
 mousecreate(Chan*, char*, int, int)
 {
+	if(!conf.monitor)
+		error(Egreg);
 	error(Eperm);
 }
 
@@ -233,6 +245,7 @@ mouseread(Chan *c, void *va, long n, vlong off)
 {
 	char buf[1+4*12+1];
 	uchar *p;
+	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };
 	ulong offset = off;
 	Mousestate m;
 	int b;
@@ -668,7 +681,7 @@ m3mouseputc(Queue*, int c)
 int
 m5mouseputc(Queue*, int c)
 {
-	static uchar msg[3];
+	static uchar msg[4];
 	static int nb;
 	static ulong lasttick;
 	ulong m;

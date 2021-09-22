@@ -1,0 +1,200 @@
+Mon Mar 23 19:02:57 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* mktex.c (mktex_opt): Reflect change to mktex.opt.
+
+Wed Mar 18 18:47:34 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* mktex.c (is_caseinsensitive): Put all material requiring name
+ 	inside the ifdef MONOCASE_FILENAMES.
+
+	* mktex.c: Skip empty path components, like mktexlsr does.
+
+1998-03-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (main): Diagnose empty or bogus $TEXMFMAIN setting.
+	(read_mktexcnf): Don't free mtsite, as it is recorded in the hash
+	table.
+
+1998-03-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (do_mktexupdate): Call `mktexlsr', not `do_mktexlr', as
+	the latter doesn't redirect its output to the `ls-R' file.
+	(get_mode_from_mf): Fix the METAFONT command line.
+	(mktexlsr): Record the name of the temporary db_file_tmp.
+	(is_db_file_tmp): New function.
+	(print_path): Call it to check whether a file is the temporary
+	database itself, and if so, don't record it.
+
+1998-03-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (mktex_opt): Reinstate the sanity check of
+	$MT_VARTEXFONTS, like the script does.
+
+	* mktex.c (mktexpk): Revert to calling `system' instead of
+	`execute_command'.
+
+1998-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (do_mktexnames): Changes in the $VARTEXFONTS logic, to
+	track the shell script.
+
+	* variables.c (subst): If no match, return a copy of the original
+	string.  From Fabrice Popineau.
+
+	* stackenv.c (execute_command): New function, from Fabrice
+	Popineau.
+
+	* mktex.c (string_to_lower): New function, from Fabrice Popineau.
+	(do_mktexnames): Fold case when matching relfmt with stdfontpath,
+	on case-insensitive systems.  From Fabrice Popineau.
+	(do_mktextfm, mktexpk): Call `execute_command' instead of
+	`system'.  From Fabrice Popineau.
+
+1998-03-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (is_casesensitive): Use the CASE_SENSITIVE flag, not
+	CASE_PRESERVED, as the latter doesn't imply the former.  From
+	Fabrice Popineau.
+
+1998-03-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* stackenv.c (test_file): Let 'w' check stat mod bits, in addition
+	to `access', to make it more like "test -w foo".
+
+	* mktex.c (findmap): Fix the case where $SUPPLIER is shorter than
+	3 characters.
+	(do_mktexnames): Expand stdfontpath _after_ concatenation.
+	(path_included): Fold case only for case-insensitive filesystems.
+	(do_mktexnames): Fix comparison of $MT_DESTROOT and $SYSTEMXF.
+
+1998-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* stackenv.c (is_writable): Remove temporary file we created.
+
+	* mktex.c (mktexnam_opt): When dosnames is in effect, set
+	MT_PKBASE, not MT_PKNAME.
+
+1998-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dvihp.c (main): Catch SIGINT, SIGQUIT, SIGHUP and SIGTERM
+	signals, so we have a chance to clean up.  Create temporary
+	directory which is writeable only by owner.
+
+	* makempx.c (main): Catch SIGQUIT, SIGHUP and SIGTERM signals as
+	well, like the script does.
+
+	* mktex.c: Update the usage strings according to latest scripts.
+	(mktex_opt): Catch SIGHUP and SIGTERM signals as well, like the
+	scripts do.
+
+1998-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (main): Compute $MT_TEXMFMAIN, like all the scripts do
+	now.
+	(do_mktexmf): Compute $MT_MFNAME.
+	(do_mktexnames): Changes in $MT_xxx variables.
+	(mktexpk): Handle non-positional options, like the script does.
+	Mask off write access bits to the temporary file for group/other.
+	(mktextfm): Handle non-positional options, like the script does.
+	Mask off write access bits to the temporary files for
+	group/other.
+	(chmod_as_dir): Mask off some access bits as given by an
+	additional parameter MASK.
+	(do_makedir): Set permissions for created directories by calling
+	`chmod'.
+
+	* dvihp.c (main): Make `main' be __cdecl for the Win32 port.
+
+	* makempx.c (main): Ditto.
+
+	* mktex.c (mktexpk): Move $NAME.${DPI}pk to $PKNAME if the latter
+	isn't produced by `gftopk'.  
+	(mktex_opt): Remove computation of $TEXMFMAIN.	Support exported
+	cached $MT_xxx variables, like the scripts do.
+	(read_mktexcnf): Set $MT_MKTEX_CNF if unset.
+
+1998-02-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (do_mktexmf): Free unused strings.  Make division by 100
+	be in sync with the script.
+	(mktexmf): Remove redundant print-out before exiting.
+	(do_mktextfm): Free unused strings.  Move $NAME.log only if
+	non-empty, like the script does; fix the second argument to
+	`mvfile' when moving $NAME.log.
+	(get_mode_from_mf): Remove redundant backslashes.
+	(mktexpk): Free unused strings.  Move $NAME.log only if non-empty,
+	like the script does; fix the second argument to `mvfile' when
+	moving $NAME.log.
+
+1998-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (mktexnam_opt): Fix error messages.
+	(mktexnames): Print names separated by ENV_SEP_STRING, as the
+	script now does.  Remove redundant calls to `expand_var'.
+
+1998-02-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c [!S_ISLNK] (readlink): New function, a dummy version for
+	systems which don't support symlinks and therefore don't have
+	`readlink' in their libraries.
+	(mktexlsr): Follow symlinks, like the script does.  Set access
+	permissions for db_file_tmp before moving it to db_file.
+	(do_mktexnames): Use `setval' instead of `setval_default', to
+	track changes in the script.  Delete MT_xxPART variables, for the
+	same reason.  New way of computing the destination directory,
+	after the script.  Free `vars' and its elements.
+
+1998-02-10 +02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mktex.c (mktex_opt): Changes to track modifications in
+	kpathsea/mktex.opt.
+	(read_mktexcnf): Call kpse_find_file to find mktex.cnf.
+
+	* variables.c (setval_default): Only assign to unset variables,
+	leave set but empty ones unchanged.  Do not put the variable into
+	the environment.
+	(setval): Do not put the variable into the environment.
+	(expand_var): Remove leading "!!" from path elements.  Return NULL
+	for NULL argument.
+
+Tue Feb 10 18:06:31 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile: Add check target.
+
+	* dvihp.c: Patches from Eli Zaretskii.
+
+	* makempx.c: Patches from Eli Zaretskii.
+
+	* mktex.c: Patches from Eli Zaretskii.
+
+1998-02-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* stackenv.c (is_writable): Handle null or empty argument without
+	crashing.
+
+Fri Feb  6 18:04:36 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile: Add distclean target.
+
+Tue Feb  3 17:09:18 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile (clean): Add makempx and dvihp to list of programs to
+	be removed.
+
+Sun Feb  1 16:22:59 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* dvihp.c: Patch from Eli Zaretskii; replace D_OK with R_OK|W_OK.
+
+	* makempx.c: Patch from Eli Zaretskii.
+
+	* mktex.c: Patch from Eli Zaretskii; replace the kpathsea include
+ 	with kpathsea.h.
+
+	* stackenv.c: Patch from Eli Zaretskii.
+
+Wed Jan 28 20:19:07 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* C replacements for the mktex scripts.  Written by Fabrice
+ 	Popineau with help from Eli Zaretskii.  May not work on your
+ 	system.
+

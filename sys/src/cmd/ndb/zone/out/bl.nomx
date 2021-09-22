@@ -1,0 +1,15 @@
+# outside bell-labs.com zone dump from dirty, minus mx & cname records
+dom=security.bell-labs.com
+	ns=dirty.research.bell-labs.com
+
+dom=research.bell-labs.com
+	ns=dirty.research.bell-labs.com
+
+dom=cs.bell-labs.com
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+
+ip=204.178.31.10 dom=rontest.bell-labs.com
+ip=204.178.31.3 dom=ns1.cs.bell-labs.com
+ip=204.178.31.32 dom=plan9.bell-labs.com
+ip=204.178.31.4 dom=ns2.cs.bell-labs.com

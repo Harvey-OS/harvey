@@ -1,5 +1,7 @@
 /*
  * Vestigial Segmented Virtual Memory.
+ * Horrid x86 grot: weird descriptors, gates, MSRs.  No 8080 I/O ports.
+ *
  * To do:
  *	dynamic allocation and free of descriptors;
  *	IST should perhaps point to a different handler;
@@ -30,7 +32,7 @@ struct Tss {
 	u32int	rsp1[2];
 	u32int	rsp2[2];
 	u32int	_28_[2];
-	u32int	ist[14];
+	u32int	ist[14];   /* 7 64-bit intr stack ptrs, not vlong-aligned */
 	u16int	_92_[5];
 	u16int	iomap;
 };
@@ -54,7 +56,7 @@ static Sd gdt64[Ngdt] = {
 	0ull,					/* TSS lower */
 	0ull,					/* TSS upper */
 };
-static int ngdt64 = 10;
+// static int ngdt64 = 10;
 
 static Gd idt64[Nidt];
 
@@ -64,11 +66,11 @@ mksd(u64int base, u64int limit, u64int bits, u64int* upper)
 	Sd sd;
 
 	sd = bits;
-	sd |= (((limit & 0x00000000000f0000ull)>>16)<<48)
-	     |(limit & 0x000000000000ffffull);
-	sd |= (((base & 0x00000000ff000000ull)>>24)<<56)
-	     |(((base & 0x0000000000ff0000ull)>>16)<<32)
-	     |((base & 0x000000000000ffffull)<<16);
+	sd |= (((limit & 0x000f0000ull)>>16)<<48)
+	     |  (limit & 0x0000ffffull);
+	sd |= (((base & 0xff000000ull)>>24)<<56)
+	     |(((base & 0x00ff0000ull)>>16)<<32)
+	     | ((base & 0x0000ffffull)<<16);
 	if(upper != nil)
 		*upper = base>>32;
 
@@ -81,14 +83,15 @@ mkgd(Gd* gd, u64int offset, Ss ss, u64int bits, int ist)
 	Sd sd;
 
 	sd = bits;
-	sd |= (((offset & 0x00000000ffff0000ull)>>16)<<48)
-	     |(offset & 0x000000000000ffffull);
-	sd |= ((ss & 0x000000000000ffffull)<<16);
+	sd |= (((offset & 0xffff0000ull)>>16)<<48)
+	     |  (offset & 0x0000ffffull);
+	sd |= ((ss & 0x0000ffffull)<<16);
 	sd |= (ist & (SdISTM>>32))<<32;
 	gd->sd = sd;
 	gd->hi = offset>>32;
 }
 
+/* populate idt64 with pointers to idthandlers in descriptors */
 static void
 idtinit(void)
 {
@@ -101,7 +104,7 @@ idtinit(void)
 	offset = PTR2UINT(idthandlers);
 
 	for(v = 0; v < Nidt; v++){
-		ist = 0;
+		ist = 0;			/* no intr stack switch */
 		dpl = SdP|SdDPL0|SdIG;
 		switch(v){
 		default:
@@ -111,12 +114,13 @@ idtinit(void)
 			break;
 		case IdtUD:			/* #UD */
 		case IdtDF:			/* #DF */
-			ist = 1;
+			ist = 1;	/* switch to Tss's 1st intr stack */
 			break;
 		}
+		/* make vector (idt) at gd point to offset */
 		mkgd(gd, offset, SSEL(SiCS, SsTIGDT|SsRPL0), dpl, ist);
 		gd++;
-		offset += 6;
+		offset += 6;	/* sizeof CALL _intrp<>(SB); BYTE $v */	
 	}
 }
 
@@ -158,7 +162,7 @@ vsvminit(int size)
 	if(m->machno == 0)
 		idtinit();
 
-	m->gdt = m->vsvm;
+	m->gdt = m->vsvm;			/* start of our vsvmpage */
 	memmove(m->gdt, gdt64, sizeof(gdt64));
 	m->tss = &m->vsvm[ROUNDUP(sizeof(gdt64), 16)];
 
@@ -171,13 +175,13 @@ vsvminit(int size)
 	idtput(sizeof(idt64)-1, PTR2UINT(idt64));
 	trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
 
+	/* we use GSbase to load `m' in syscallentry */
 	wrmsr(FSbase, 0ull);
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
 	wrmsr(KernelGSbase, 0ull);
 
-	r = rdmsr(Efer);
-	r |= Sce;
-	wrmsr(Efer, r);
+	/* set up for SYSCALL instruction */
+	wrmsr(Efer, rdmsr(Efer) | Sce);
 	r = ((u64int)SSEL(SiU32CS, SsRPL3))<<48;
 	r |= ((u64int)SSEL(SiCS, SsRPL0))<<32;
 	wrmsr(Star, r);

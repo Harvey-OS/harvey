@@ -1,0 +1,480 @@
+@c @mapfile{
+@c		maintainer = "K. Berry",
+@c		version = "2.7",
+@c		date = "Jan 30 13:53:25 EST 1998",
+@c		filename = "special.map",
+@c		email = "kb@tug.org",
+@c		address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c		codetable = "ISO/ASCII",
+@c		checksum = "430    1532   10553",
+@c		docstring = "Abbreviations for nonstandard TeX font names."
+@c }
+@c First the extra CM fonts from the AMS, where the names must match exactly.
+cmbsy5		ams		cmextra
+cmbsy6		ams		cmextra
+cmbsy7		ams		cmextra
+cmbsy8		ams		cmextra
+cmbsy9		ams		cmextra
+cmcsc8		ams		cmextra
+cmcsc9		ams		cmextra
+cmex7		ams		cmextra
+cmex8		ams		cmextra
+cmmib5		ams		cmextra
+cmmib6		ams		cmextra
+cmmib7		ams		cmextra
+cmmib8		ams		cmextra
+cmmib9		ams		cmextra
+@c The 75 standard cm fonts (+cmex9) from Knuth. List them in all available
+@c pointsizes, since there also exists a sauter version of them.
+cmb10		public		cm
+cmbsy10		public		cm
+cmbx10		public		cm
+cmbx12		public		cm
+cmbx5		public		cm
+cmbx6		public		cm
+cmbx7		public		cm
+cmbx8		public		cm
+cmbx9		public		cm
+cmbxsl10	public		cm
+cmbxti10	public		cm
+cmcsc10		public		cm
+cmdunh10	public		cm
+cmex10		public		cm
+cmex9		public		cm
+cmff10		public		cm
+cmfi10		public		cm
+cmfib8		public		cm
+cmitt10		public		cm
+cmmi10		public		cm
+cmmi12		public		cm
+cmmi5		public		cm
+cmmi6		public		cm
+cmmi7		public		cm
+cmmi8		public		cm
+cmmi9		public		cm
+cmmib10		public		cm
+cmr10		public		cm
+cmr12		public		cm
+cmr17		public		cm
+cmr5		public		cm
+cmr6		public		cm
+cmr7		public		cm
+cmr8		public		cm
+cmr9		public		cm
+cmsl10		public		cm
+cmsl12		public		cm
+cmsl8		public		cm
+cmsl9		public		cm
+cmsltt10	public		cm
+cmss10		public		cm
+cmss12		public		cm
+cmss17		public		cm
+cmss8		public		cm
+cmss9		public		cm
+cmssbx10	public		cm
+cmssdc10	public		cm
+cmssi10		public		cm
+cmssi12		public		cm
+cmssi17		public		cm
+cmssi8		public		cm
+cmssi9		public		cm
+cmssq8		public		cm
+cmssqi8		public		cm
+cmsy10		public		cm
+cmsy5		public		cm
+cmsy6		public		cm
+cmsy7		public		cm
+cmsy8		public		cm
+cmsy9		public		cm
+cmtcsc10	public		cm
+cmtex10		public		cm
+cmtex8		public		cm
+cmtex9		public		cm
+cmti10		public		cm
+cmti12		public		cm
+cmti7		public		cm
+cmti8		public		cm
+cmti9		public		cm
+cmtt10		public		cm
+cmtt12		public		cm
+cmtt8		public		cm
+cmtt9		public		cm
+cmu10		public		cm
+cmvtt10		public		cm
+cminch		public		cm
+@c Next some extra CM fonts from Knuth (tex95.tar.gz:local/cm),
+@c mostly used in Font Specimens of Volume E.
+cmbxcd10	public		cmextra
+cmbxti7		public		cmextra
+cmbxti12	public		cmextra
+cmcscsl10	public		cmextra
+cmfibs8		public		cmextra
+cmitt9		public		cmextra
+cmitt12		public		cmextra
+cmsl6		public		cmextra
+cmsltt9		public		cmextra
+cmssbxo10	public		cmextra
+cmssu30		public		cmextra
+cmsslu30	public		cmextra
+cmvtti10	public		cmextra
+xbmc10		public		misc		% for TeX--XeT
+manfnt		public		misc
+random		public		misc
+cmman		public		misc
+dummy		public		misc
+black		public		misc
+gray		public		misc
+slant		public		misc
+cc		public		concrete
+xcc		public		concmath
+xec		public		ecc
+eocc		public		ecc
+eorm		public		ecc
+eosl		public		ecc
+eoti		public		ecc
+tcssdc10	public		ecc
+torm		public		ecc
+tosl		public		ecc
+toti		public		ecc
+@c Some LaTeX fonts. They also exist in the sauter package, so we list all
+@c available pointsizes.
+icmcsc10	public		latex
+icmex10		public		latex
+icmmi8		public		latex
+icmsy8		public		latex
+icmtt8		public		latex
+ilasy8		public		latex
+ilcmss8		public		latex
+ilcmssb8	public		latex
+ilcmssi8	public		latex
+lasy10		public		latex
+lasy5		public		latex
+lasy6		public		latex
+lasy7		public		latex
+lasy8		public		latex
+lasy9		public		latex
+lasyb10		public		latex
+lcircle10	public		latex
+circle10	public		latex
+lcirclew10	public		latex
+circlew10	public		latex
+lcirclew10	public		latex
+line10		public		latex
+linew10		public		latex
+lcm		public		latex
+logo		public		mflogo
+@c Avoid conflicts with Adobe New Century Schoolbook (pnc...).
+pnb		public		pandora
+pnr		public		pandora
+pnsl		public		pandora
+pnss		public		pandora
+pnssb		public		pandora
+pnssi		public		pandora
+pntt		public		pandora
+@c Ralph A. Smith's Formal Script:
+rsfs5		public		rsfs
+rsfs7		public		rsfs
+rsfs10		public		rsfs
+@c Additional symbols for math, physics, astronomy and other fields:
+wasy5		public		wasy
+wasy6		public		wasy
+wasy7		public		wasy
+wasy8		public		wasy
+wasy9		public		wasy
+wasy10		public		wasy
+wasyb10		public		wasy
+@c Gothic fonts:
+ysmfrak		public		gothic
+cmfrak		public		gothic
+dcfrak		public		gothic
+yfrak		public		gothic
+ygoth		public		gothic
+yinit		public		gothic
+yinitdd		public		gothic
+yswab		public		gothic
+suet		public		gothic
+schwell		public		gothic
+@c Fonts for typesetting music:
+beam		public		music
+music		public		music
+slur		public		music
+musix		public		musix
+xsl		public		musix
+xtie		public		musix
+xgreg		public		musix
+opus		opustex		opus
+osl		opustex		opus
+@c AMS fonts:
+euxm		public		euxm		% euxm by Don Knuth
+eu		ams		euler		% AMS euler family
+msam5		ams		symbols
+msam6		ams		symbols
+msam7		ams		symbols
+msam8		ams		symbols
+msam9		ams		symbols
+msam10		ams		symbols
+msbm5		ams		symbols
+msbm6		ams		symbols
+msbm7		ams		symbols
+msbm8		ams		symbols
+msbm9		ams		symbols
+msbm10		ams		symbols
+wncy		ams		cyrillic	% AMS cyrillic
+@c Computer Modern Blackboard: list them at all available pointsizes, since
+@c there also exist a sauter version of them.
+bbm5		public		bbm
+bbm6		public		bbm
+bbm7		public		bbm
+bbm8		public		bbm
+bbm9		public		bbm
+bbm10		public		bbm
+bbm12		public		bbm
+bbm17		public		bbm
+bbmb10		public		bbm
+bbmbx5		public		bbm
+bbmbx6		public		bbm
+bbmbx7		public		bbm
+bbmbx8		public		bbm
+bbmbx9		public		bbm
+bbmbx10		public		bbm
+bbmbx12		public		bbm
+bbmbxsl10	public		bbm
+bbmdunh10	public		bbm
+bbmfib8		public		bbm
+bbmsl8		public		bbm
+bbmsl9		public		bbm
+bbmsl10		public		bbm
+bbmsl12		public		bbm
+bbmsltt10	public		bbm
+bbmss8		public		bbm
+bbmss9		public		bbm
+bbmss10		public		bbm
+bbmss12		public		bbm
+bbmss17		public		bbm
+bbmssbx10	public		bbm
+bbmssdc10	public		bbm
+bbmssi8		public		bbm
+bbmssi9		public		bbm
+bbmssi10	public		bbm
+bbmssi12	public		bbm
+bbmssi17	public		bbm
+bbmssq8		public		bbm
+bbmssqi8	public		bbm
+bbmtt8		public		bbm
+bbmtt9		public		bbm
+bbmtt10		public		bbm
+bbmtt12		public		bbm
+bbmvtt10	public		bbm
+@c The bbold symbol font by Alan Jeffrey. Also exists in a sauter version, so
+@c we list all available pointsizes.
+bbold5		public		bbold
+bbold6		public		bbold
+bbold7		public		bbold
+bbold8		public		bbold
+bbold9		public		bbold
+bbold10		public		bbold
+bbold12		public		bbold
+bbold17		public		bbold
+@c Fonts from the Xy-Pic package:
+xyatip		public		xypic		% CTAN:macros/generic/diagrams/xypic
+xybsql		public		xypic
+xybtip		public		xypic
+xycirc		public		xypic
+xycmat		public		xypic
+xycmbt		public		xypic
+xyd		public		xypic
+xyeuat		public		xypic
+xyeubt		public		xypic
+xyline		public		xypic
+xymisc		public		xypic
+xyqc		public		xypic
+@c The St Mary's Road symbol font:
+stmary5		public		stmary		% CTAN:fonts/stmaryrd
+stmary6		public		stmary
+stmary7		public		stmary
+stmary8		public		stmary
+stmary9		public		stmary
+stmary10	public		stmary
+@c Fonts maintained by J"org Knappen:
+bashkir		jknappen	bashkiri
+idclb8		jknappen	dc
+idcli8		jknappen	dc
+idclo8		jknappen	dc
+idclq8		jknappen	dc
+dc		jknappen	dc
+fc		jknappen	fc
+tc		jknappen	tc
+ec		jknappen	ec
+iec		jknappen	ec
+bbm		jknappen	sauter
+bbold		jknappen	sauter
+cm		jknappen	sauter
+czinch		jknappen	sauter
+czssq		jknappen	sauter
+czssqi		jknappen	sauter
+icm		jknappen	sauter
+ilasy		jknappen	sauter
+ilcm		jknappen	sauter
+lasy		jknappen	sauter
+lcircle		jknappen	sauter
+line		jknappen	sauter
+msam		jknappen	sauter
+msbm		jknappen	sauter
+rsfs		jknappen	sauter
+wasy		jknappen	sauter
+stmary		jknappen	sauter
+@c Fonts for the mathptm package:
+zpsycm		adobe		mathptm
+zptmcm		adobe		mathptm
+zpzccm		adobe		mathptm
+zpplcm		adobe		mathppl
+@c Greek fonts:
+grib		public		ibygrk	% CTAN:fonts/greek/ibygrk
+kdbf		public		kdgreek	% CTAN:fonts/greek/kd
+kdgr		public		kdgreek
+kdsl		public		kdgreek
+kdti		public		kdgreek
+kdtt		public		kdgreek
+okdgr		public		kdgreek
+@c The malvern fonts:
+ma53a		public		malvern	% CTAN:fonts/malvern
+ma55a		public		malvern
+ma55b		public		malvern
+ma55c		public		malvern
+ma55g		public		malvern
+ma55s		public		malvern
+ma56a		public		malvern
+ma56b		public		malvern
+ma56g		public		malvern
+ma56s		public		malvern
+ma57a		public		malvern
+ma75a		public		malvern
+ma75b		public		malvern
+ma75s		public		malvern
+ma76a		public		malvern
+ma76b		public		malvern
+ma76s		public		malvern
+@c The LH fonts, created by Olga Lapko from CYRTuG. Also exist in wn variant
+@c for LWN encoding. Used by the "russian" option of babel.
+lha		public		lh	% CTAN:fonts/LH
+lhb		public		lh
+lhcsc		public		lh
+lhdunh		public		lh
+lhf		public		lh
+lhitt		public		lh
+lhr		public		lh
+lhsl		public		lh
+lhss		public		lh
+lhtcsc		public		lh
+lhti		public		lh
+lhtt		public		lh
+lhu		public		lh
+lhvtt		public		lh
+ilhcsc		public		lh
+wna		public		lh
+wnb		public		lh
+wncsc		public		lh
+wndunh		public		lh
+wnf		public		lh
+wnitt		public		lh
+wnr		public		lh
+wnsl		public		lh
+wnss		public		lh
+wntcsc		public		lh
+wnti		public		lh
+wntt		public		lh
+wnu		public		lh
+wnvtt		public		lh
+@c Fonts for typesetting circuit diagrams.
+csybimos	public		circ		% CTAN:macros/generic/diagrams/circ
+csycirc		public		circ
+csydiod		public		circ
+csym		public		circ
+csyrest		public		circ
+csysym		public		circ
+csywidko	public		circ
+@c GO fonts by Hanna Kolodziejska:
+go		public		go		% CTAN:fonts/go
+go1bla		public		go
+go1whi		public		go
+go2bla		public		go
+go2whi		public		go
+gosign		public		go
+@c chess font written by Piet Tutelaers (rcpt@urc.tue.nl)
+chess		public		chess		% CTAN:fonts/chess
+chess10f	public		chess		% CTAN:fonts/chess
+@c Other public fonts:
+bg		public		bg		% CTAN:macros/latex/contrib/other/bg
+callig		public		calligra	% CTAN:fonts/calligra
+twcal		public		twcal		% CTAN:fonts/twcal
+va14		public		va		% CTAN:fonts/va
+vacal		public		va
+la14		public		la		% CTAN:fonts/la
+arrsy		public		arrsy		% CTAN:generic/diagrams/kuvio/arrsy
+astrosym	public		astrosym	% CTAN:fonts/astro
+cirth		public		cirth		% CTAN:fonts/cirth
+futhol		public		futhark		% CTAN:fonts/futhark
+tengwar		public		tengwar		% CTAN:fonts/tengwar
+wbxipa		public		wsuipa		% CTAN:fonts/wsuipa
+wsuipa		public		wsuipa
+rgr		public		rgr		% CTAN:fonts/greek/yannis
+mrgr		public		rgr
+timing		public		timing		% CTAN:macros/latex/contrib/other/timing
+timing1s	public		timing
+timing2s	public		timing
+ulsy		public		ulsy		% CTAN:macros/latex/contrib/supported/ulsy
+umranda		public		niceframe	% CTAN:macros/latex/contrib/supported/niceframe
+umrandb		public		niceframe
+dingbat		public		niceframe
+yhcmex		public		yhmath		% CTAN:macros/latex/contrib/supported/yhmath
+musicbrb	public		music
+musikn		public		music
+optic		public		optic
+ocr		public		ocr
+ocm		public		ocm		% CTAN:fonts/cm/cmoutlines
+feta            public          lilypond
+@c
+@c original author Thomas Ziegler (zie@LTE.E-TECHNIK.uni-erlangen.de)
+@c enhancement and corrections  by
+@c Apostolos Syropoulos (apostolo@platon.ee.duth.gr)
+@c The Greek cb fonts.
+@c
+glic            public          cbgreek
+glin            public          cbgreek
+glio            public          cbgreek
+gljc            public          cbgreek
+gljn            public          cbgreek
+gljo            public          cbgreek
+glmc            public          cbgreek
+glmn            public          cbgreek
+glmo            public          cbgreek
+gltc            public          cbgreek
+gltn            public          cbgreek
+glto            public          cbgreek
+glwc            public          cbgreek
+glwn            public          cbgreek
+glwo            public          cbgreek
+glxc            public          cbgreek
+glxn            public          cbgreek
+glxo            public          cbgreek
+gomc            public          cbgreek
+gomn            public          cbgreek
+gomo            public          cbgreek
+goxc            public          cbgreek
+goxn            public          cbgreek
+goxo            public          cbgreek
+grmc            public          cbgreek
+grmn            public          cbgreek
+grmo            public          cbgreek
+grxc            public          cbgreek
+grxn            public          cbgreek
+grxo            public          cbgreek
+gsmc            public          cbgreek
+gsmn            public          cbgreek
+gsmo            public          cbgreek
+gsxc            public          cbgreek
+gsxn            public          cbgreek
+gsxo            public          cbgreek
+gttc            public          cbgreek
+gttn            public          cbgreek
+gtto            public          cbgreek

@@ -1,0 +1,69 @@
+# pcvm - terminal in a 386 virtual machine (parallels for now)
+dev
+	root
+	cons
+
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	cap
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+	kbin
+
+	uart
+	usb
+
+link
+	realmode
+	ether2000	ether8390
+	ethersink
+	ethermedium
+	netdevmedium
+	loopbackmedium
+	usbuhci
+	usbohci
+	usbehci		usbehcipc
+
+misc
+	archmp		mp apic
+
+	uarti8250
+
+	vgavesa
+	vgavmware	+cur
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	gre
+	ipmux
+	esp
+
+port
+	int cpuserver = 0;
+
+boot
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/386/bin/ip/ipconfig
+	/386/bin/auth/factotum
+	/386/bin/usb/usbd

@@ -1,0 +1,19 @@
+riscv(64) [ij]c function calling sequence
+
+assuming vlongs or ptrs as args; shorter args can alter offsets,
+but vlongs must be naturally aligned.
+
+in calling func, outgoing args are:
+R8		is first arg
+XLEN(SP)	is reserved for first arg
+(2*XLEN)(SP)	is second arg
+(3*XLEN)(SP)	is third arg
+
+in called func, incoming args are:
+R1		is return address at entry and exit
+0(SP)		is saved return address (after adjusting stack at entry;
+		assumes TEXT $0 or greater)
+-XLEN(SP)	first auto variable
+R8		is first arg, then return value
+XLEN(FP)	is second arg
+(2*XLEN)(FP)	is third arg

@@ -91,7 +91,8 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 					hprint(hout, "Date: %D\r\n", time(nil));
 					hprint(hout, "Server: Plan9\r\n");
 					hprint(hout, "Content-Range: bytes */%lld\r\n", length);
-					hprint(hout, "Content-Length: %d\r\n", STRLEN(BADRANGE));
+					hprint(hout, "Content-Length: %d\r\n",
+						(int)STRLEN(BADRANGE));
 					hprint(hout, "Content-Type: text/html\r\n");
 					if(c->head.closeit)
 						hprint(hout, "Connection: close\r\n");
@@ -126,7 +127,8 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		if(r == nil)
 			hprint(hout, "Content-Length: %lld\r\n", length);
 		else if(r->next == nil){
-			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, length);
+			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n",
+				r->start, r->stop, length);
 			hprint(hout, "Content-Length: %ld\r\n", r->stop - r->start);
 		}else{
 			multir = 1;
@@ -324,7 +326,7 @@ notaccept(HConnect *c, HContent *type, HContent *enc, char *which)
 	hprint(hout, "Server: Plan9\r\n");
 	hprint(hout, "Date: %D\r\n", time(nil));
 	hprint(hout, "Content-Type: text/html\r\n");
-	hprint(hout, "Content-Length: %lud\r\n", s - c->xferbuf);
+	hprint(hout, "Content-Length: %llud\r\n", (uvlong)(s - c->xferbuf));
 	if(c->head.closeit)
 		hprint(hout, "Connection: close\r\n");
 	else if(!http11(c))
@@ -346,9 +348,11 @@ checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag)
 	int m;
 
 	hout = &c->hout;
-	if(c->req.vermaj >= 1 && c->req.vermin >= 1 && !hcheckcontent(type, c->head.oktype, "Content-Type", 0))
+	if(c->req.vermaj >= 1 && c->req.vermin >= 1 &&
+	    !hcheckcontent(type, c->head.oktype, "Content-Type", 0))
 		return notaccept(c, type, enc, "Content-Type");
-	if(c->req.vermaj >= 1 && c->req.vermin >= 1 && !hcheckcontent(enc, c->head.okencode, "Content-Encoding", 0))
+	if(c->req.vermaj >= 1 && c->req.vermin >= 1 &&
+	    !hcheckcontent(enc, c->head.okencode, "Content-Encoding", 0))
 		return notaccept(c, type, enc, "Content-Encoding");
 
 	/*
@@ -364,7 +368,7 @@ checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag)
 		hprint(hout, "Server: Plan9\r\n");
 		hprint(hout, "Date: %D\r\n", time(nil));
 		hprint(hout, "Content-Type: text/html\r\n");
-		hprint(hout, "Content-Length: %d\r\n", STRLEN(UNMATCHED));
+		hprint(hout, "Content-Length: %d\r\n", (int)STRLEN(UNMATCHED));
 		if(c->head.closeit)
 			hprint(hout, "Connection: close\r\n");
 		else if(!http11(c))

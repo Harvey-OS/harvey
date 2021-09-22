@@ -1,0 +1,37 @@
+.TH TFTP 1
+.SH NAME
+tftp \- read or write remote file via TFTP
+.SH SYNOPSIS
+.B ip/tftp
+[
+.B -rw
+] [
+.B -x
+netmtpt
+]
+.I tftp-server
+.I remote-file
+.SH DESCRIPTION
+By default and under
+.BR -r ,
+.I tftp
+fetches
+.I remote-file
+from
+.I tftp-server
+via TFTP over UDP,
+and writes it to standard output.
+Under
+.BR -w ,
+it similarly copies standard input to
+.IR remote-file .
+.SH EXAMPLES
+.EX
+ip/tftp fs /lib/rfc/rfc783
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/tftp.c
+.SH SEE ALSO
+.B /lib/rfc/rfc783
+.SH BUGS
+Doesn't implement any TFTP options.

@@ -1,0 +1,8 @@
+#!/bin/rc
+# dircpmk src dst - copy trees with mkfs|mkext
+if (! ~ $#* 2) {
+	echo usage: $0 src dest >[1=2]
+	exit usage
+}
+# mkext -v will verbosely describe extraction
+disk/mkfs -a -s $1 <{echo +} | disk/mkext -ud $2 

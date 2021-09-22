@@ -30,6 +30,11 @@ enum {
 	K8		= 3,			/* AMD64 */
 
 	Twogigs		= 1ul << 31,
+
+	Perfcnten	= 1<<22,		/* enable counters */
+	Perfintren	= 1<<20,
+	Perfos		= 1<<17,
+	Perfuser	= 1<<16,
 };
 
 /*
@@ -46,26 +51,12 @@ interval(void)
 }
 
 static void
-runoncpu(int cpu)
-{
-	if (m->machno != cpu) {
-		if (up == nil)
-			panic("x86watchdog: nil up");
-		procwired(up, cpu);
-		sched();
-		if (m->machno != cpu)
-			panic("x86watchdog: runoncpu: can't switch to cpu%d",
-				cpu);
-	}
-}
-
-static void
 x86wdenable(void)
 {
 	Wd *wd;
 	vlong r, t;
-	int i, model;
-	u32int evntsel;
+	int i, fam, model;
+	ulong evntsel;
 
 	wd = &x86wd;
 	ilock(wd);
@@ -86,16 +77,17 @@ x86wdenable(void)
 	 * monitoring and that it has TSC, RDMSR/WRMSR and a local APIC.
 	 */
 	model = -1;
-	if(strncmp(m->cpuidid, "AuthenticAMD", 12) == 0){
-		if(X86FAMILY(m->cpuidax) == 0x06)
+	fam = X86FAMILY(conf.cpuidax);
+	if(conf.x86type == Amd){
+		if(fam == 0x06)
 			model = K6;
-		else if(X86FAMILY(m->cpuidax) == 0x0F)
-			model = K8;
+		else if(fam >= 0x0F)
+			model = K8;	/* or K10 or Jaguar */
 	}
-	else if(strncmp(m->cpuidid, "GenuineIntel", 12) == 0){
-		if(X86FAMILY(m->cpuidax) == 0x06)
+	else if(conf.x86type == Intel){
+		if(fam == 0x06)
 			model = P6;
-		else if(X86FAMILY(m->cpuidax) == 0x0F)
+		else if(fam == 0x0F)
 			model = P4;
 	}
 	if(model == -1 ||
@@ -114,33 +106,35 @@ x86wdenable(void)
 	/*
 	 * See the IA-32 Intel Architecture Software
 	 * Developer's Manual Volume 3: System Programming Guide,
-	 * Chapter 15 and the AMD equivalent for what all this
-	 * bit-whacking means.
+	 * Chapter 15 (now 18, Performance Monitoring) and the AMD equivalent
+	 * (bios & kernel guide; in family 10h, section 3.12)
+	 * for what all this bit-whacking means.
 	 */
 	t = interval();
 	switch(model){
 	case P6:
-		wrmsr(0x186, 0);			/* evntsel */
-		wrmsr(0x187, 0);
-		wrmsr(0xC1, 0);				/* perfctr */
-		wrmsr(0xC2, 0);
+		wrmsr(Msrpevsel0, 0);
+		wrmsr(Msrpevsel1, 0);
+		wrmsr(Msrpmc0, 0);
+		wrmsr(Msrpmc1, 0);
 
 		lapicnmienable();
-	
-		evntsel = 0x00130000|0x79;
-		wrmsr(0xC1, -t);
-		wrmsr(0x186, 0x00400000|evntsel);
+
+		/* 0x79 is cpu clock unhalted event */
+		evntsel = Perfintren|Perfos|Perfuser|0x79;
+		wrmsr(Msrpmc0, -t);
+		wrmsr(Msrpevsel0, Perfcnten|evntsel);	/* enable counters */
 		break;
 	case P4:
-		rdmsr(0x1A0, &r);
-		if(!(r & 0x0000000000000080LL))
+		rdmsr(Msrmiscen, &r);
+		if(!(r & 0x80LL))
 			return;
-	
+
 		for(i = 0; i < 18; i++)
 			wrmsr(0x300+i, 0);		/* perfctr */
 		for(i = 0; i < 18; i++)
 			wrmsr(0x360+i, 0);		/* ccr */
-	
+
 		for(i = 0; i < 31; i++)
 			wrmsr(0x3A0+i, 0);		/* escr */
 		for(i = 0; i < 6; i++)
@@ -149,33 +143,35 @@ x86wdenable(void)
 			wrmsr(0x3C8+i, 0);		/* escr */
 		for(i = 0; i < 2; i++)
 			wrmsr(0x3E0+i, 0);		/* escr */
-	
-		if(!(r & 0x0000000000001000LL)){
+
+		if(!(r & 0x1000LL)){
 			for(i = 0; i < 2; i++)
-				wrmsr(0x3F1+i, 0);	/* pebs */
+				wrmsr(Msrpebsen+i, 0);
 		}
-	
+
 		lapicnmienable();
-	
-		wrmsr(0x3B8, 0x000000007E00000CLL);	/* escr0 */
-		r = 0x0000000004FF8000ULL;
+
+		wrmsr(0x3B8, 0x7E00000CLL);		/* escr0 */
+		r = 0x04FF8000ULL;
 		wrmsr(0x36C, r);			/* cccr0 */
 		wrmsr(0x30C, -t);
-		wrmsr(0x36C, 0x0000000000001000LL|r);
+		wrmsr(0x36C, 0x1000LL|r);
 		break;
 	case K6:
 	case K8:
 		/*
+		 * AMD64 Vol. 2 (System Programming).
 		 * PerfEvtSel 0-3, PerfCtr 0-4.
 		 */
 		for(i = 0; i < 8; i++)
-			wrmsr(0xC0010000+i, 0);
-	
+			wrmsr(AMsrpevsel0+i, 0);
+
 		lapicnmienable();
-	
-		evntsel = 0x00130000|0x76;
-		wrmsr(0xC0010004, -t);
-		wrmsr(0xC0010000, 0x00400000|evntsel);
+
+		/* 0x76 is cpu clocks not halted event */
+		evntsel = Perfintren|Perfos|Perfuser|0x76;
+		wrmsr(AMsrpmc0, -t);
+		wrmsr(AMsrpevsel0, Perfcnten|evntsel);	/* enable counters */
 		break;
 	}
 	iunlock(wd);
@@ -203,7 +199,7 @@ x86wddisable(void)
 	lapicnmidisable();
 	switch(wd->model){
 	case P6:
-		wrmsr(0x186, 0);
+		wrmsr(Msrpevsel0, 0);
 		break;
 	case P4:
 		wrmsr(0x36C, 0);			/* cccr0 */
@@ -211,7 +207,7 @@ x86wddisable(void)
 		break;
 	case K6:
 	case K8:
-		wrmsr(0xC0010000, 0);
+		wrmsr(AMsrpevsel0, 0);
 		break;
 	}
 	wd->inuse = 0;
@@ -231,18 +227,18 @@ x86wdrestart(void)
 	ilock(wd);
 	switch(wd->model){
 	case P6:
-		wrmsr(0xC1, -t);
+		wrmsr(Msrpmc0, -t);
 		break;
 	case P4:
-		r = 0x0000000004FF8000LL;
+		r = 0x04FF8000LL;
 		wrmsr(0x36C, r);
 		lapicnmienable();
 		wrmsr(0x30C, -t);
-		wrmsr(0x36C, 0x0000000000001000LL|r);
+		wrmsr(0x36C, 0x1000LL|r);
 		break;
 	case K6:
 	case K8:
-		wrmsr(0xC0010004, -t);
+		wrmsr(AMsrpmc0, -t);
 		break;
 	}
 	wd->ticks++;

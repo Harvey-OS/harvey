@@ -19,7 +19,7 @@ enum {
  * before busy looping for a long time.
  */
 Watchdog*watchdog;
-int	watchdogon;
+int	watchdogon;		/* flag: if set, watchdog will be non-nil */
 
 static Watchdog *wd;
 static int wdautopet;
@@ -30,6 +30,7 @@ static Dirtab wddir[] = {
 	"wdctl",	{ Qwdctl, 0 },		0,		0664,
 };
 
+Dev wddevtab;
 
 void
 addwatchdog(Watchdog *wdog)
@@ -74,18 +75,20 @@ wdpet(void)
 static void
 wdautostart(void)
 {
-	if (wdautopet || !wd || !wdallowed())
+	if (wdautopet || !wd || !wdallowed()) {
+		print("watchdog: autostart failed\n");
 		return;
+	}
 	if (waserror()) {
 		print("watchdog: automatic enable failed\n");
-		return;
+		return;				/* oh well */
 	}
 	wd->enable();
 	poperror();
 
 	wdautopet = watchdogon = 1;
 	if (!wdclock0called) {
-		addclock0link(wdpet, 200);
+		addclock0link(wdpet, Wdogms);
 		wdclock0called = 1;
 	}
 }
@@ -116,7 +119,7 @@ wdinit(void)
 static Chan*
 wdattach(char *spec)
 {
-	return devattach('w', spec);
+	return devattach(wddevtab.dc, spec);
 }
 
 static Walkqid*
@@ -151,10 +154,9 @@ wdclose(Chan *c)
 static long
 wdread(Chan* c, void* a, long n, vlong off)
 {
-	long offset;
-	char s[READSTR];
+	ulong offset = off;
+	char *p;
 
-	offset = off;
 	switch((ulong)c->qid.path){
 	case Qdir:
 		return devdirread(c, a, n, wddir, nelem(wddir), devgen);
@@ -163,8 +165,19 @@ wdread(Chan* c, void* a, long n, vlong off)
 		if(wd == nil || wd->stat == nil)
 			return 0;
 
-		wd->stat(s, s + READSTR);
-		return readstr(offset, a, n, s);
+		p = malloc(READSTR);
+		if(p == nil)
+			error(Enomem);
+		if(waserror()){
+			free(p);
+			nexterror();
+		}
+
+		wd->stat(p, p + READSTR);
+		n = readstr(offset, a, n, p);
+		free(p);
+		poperror();
+		return n;
 
 	default:
 		error(Egreg);
@@ -176,6 +189,7 @@ wdread(Chan* c, void* a, long n, vlong off)
 static long
 wdwrite(Chan* c, void* a, long n, vlong off)
 {
+	ulong offset = off;
 	char *p;
 
 	switch((ulong)c->qid.path){
@@ -186,17 +200,23 @@ wdwrite(Chan* c, void* a, long n, vlong off)
 		if(wd == nil)
 			return n;
 
-		if(off != 0ll)
+		if(offset || n >= READSTR)
 			error(Ebadarg);
 
-		if(p = strchr(a, '\n'))
+		if((p = strchr(a, '\n')) != nil)
 			*p = 0;
 
-		if(!strncmp(a, "enable", n))
+		if(strncmp(a, "enable", n) == 0) {
+			if (waserror()) {
+				print("watchdog: enable failed\n");
+				nexterror();
+			}
 			wd->enable();
-		else if(!strncmp(a, "disable", n))
-			wd->disable();
-		else if(!strncmp(a, "restart", n))
+			poperror();
+			watchdogon = 1;
+		} else if(strncmp(a, "disable", n) == 0)
+			wdshutdown();
+		else if(strncmp(a, "restart", n) == 0)
 			wd->restart();
 		else
 			error(Ebadarg);

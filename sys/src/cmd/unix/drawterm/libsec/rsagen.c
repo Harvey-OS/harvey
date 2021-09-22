@@ -2,21 +2,6 @@
 #include <mp.h>
 #include <libsec.h>
 
-static void
-genrand(mpint *p, int n)
-{
-	mpdigit x;
-
-	// generate n random bits with high set
-	mpbits(p, n);
-	genrandom((uchar*)p->p, (n+7)/8);
-	p->top = (n+Dbits-1)/Dbits;
-	x = 1;
-	x <<= ((n-1)%Dbits);
-	p->p[p->top-1] &= (x-1);
-	p->p[p->top-1] |= x;
-}
-
 RSApriv*
 rsagen(int nlen, int elen, int rounds)
 {
@@ -31,8 +16,8 @@ rsagen(int nlen, int elen, int rounds)
 	phi = mpnew(nlen);
 
 	// create the prime factors and euclid's function
-	genstrongprime(p, nlen/2, rounds);
-	genstrongprime(q, nlen - mpsignif(p) + 1, rounds);
+	genprime(p, nlen/2, rounds);
+	genprime(q, nlen - mpsignif(p) + 1, rounds);
 	mpmul(p, q, n);
 	mpsub(p, mpone, e);
 	mpsub(q, mpone, d);
@@ -41,18 +26,21 @@ rsagen(int nlen, int elen, int rounds)
 	// find an e relatively prime to phi
 	t1 = mpnew(0);
 	t2 = mpnew(0);
-	genrand(e, elen);
+	mprand(elen, genrandom, e);
+	if(mpcmp(e,mptwo) <= 0)
+		itomp(3, e);
+	// See Menezes et al. p.291 "8.8 Note (selecting primes)" for discussion
+	// of the merits of various choices of primes and exponents.  e=3 is a
+	// common and recommended exponent, but doesn't necessarily work here
+	// because we chose strong rather than safe primes.
 	for(;;){
-		mpextendedgcd(e, phi, d, t1, t2);
-		if(mpcmp(d, mpone) == 0)
+		mpextendedgcd(e, phi, t1, d, t2);
+		if(mpcmp(t1, mpone) == 0)
 			break;
 		mpadd(mpone, e, e);
 	}
 	mpfree(t1);
 	mpfree(t2);
-
-	// d = e**-1 mod phi
-	mpinvert(e, phi, d);
 
 	// compute chinese remainder coefficient
 	c2 = mpnew(0);

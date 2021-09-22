@@ -3,7 +3,7 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
-#include <thread.h>
+#include <thread.h>		/* for Ref type, used in 9p.h */
 #include <9p.h>
 #include <disk.h>
 #include "dat.h"
@@ -15,6 +15,7 @@ struct Aux {
 	Otrack	*o;
 };
 
+/* use of ulongs for block numbers is okay up to 8TB */
 ulong	getnwa(Drive *);
 
 static void checktoc(Drive*);

@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+CC=pcc
+CFLAGS=-c -I. -D_POSIX_SOURCE
+
+LIB=libz.a$O
+
+OFILES=adler32.$O compress.$O crc32.$O gzio.$O uncompr.$O deflate.$O trees.$O \
+       zutil.$O inflate.$O infblock.$O inftrees.$O infcodes.$O infutil.$O inffast.$O
+
+
+</sys/src/cmd/mklib
+
+
+
+install:V:	$LIB
+	date
+
+$LIB:	$LIBOBJ
+	ar vu $LIB $OFILES
+
+clean:V:
+	rm -f *.[$OS] *.a[$OS]

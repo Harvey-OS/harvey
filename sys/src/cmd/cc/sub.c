@@ -251,6 +251,8 @@ simplet(long b)
 	case BVLONG|BLONG|BINT|BSIGNED:
 		return types[TVLONG];
 
+	case BVLONG|BUNSIGNED:
+	case BVLONG|BINT|BUNSIGNED:
 	case BVLONG|BLONG|BUNSIGNED:
 	case BVLONG|BLONG|BINT|BUNSIGNED:
 		return types[TUVLONG];
@@ -691,6 +693,7 @@ arith(Node *n, int f)
 	}
 	if(n->op == OSUB)
 	if(i == TIND && j == TIND) {
+		/* pointer subtraction */
 		w = n->right->type->link->width;
 		if(w < 1) {
 			snap(n->right->type->link);
@@ -707,15 +710,16 @@ arith(Node *n, int f)
 		if(w < 1 || x < 1)
 			goto bad;
 		n->type = types[ewidth[TIND] <= ewidth[TLONG]? TLONG: TVLONG];
-		if(1 && ewidth[TIND] > ewidth[TLONG]){
+		if(ewidth[TIND] > ewidth[TLONG]){	/* 64-bit mach? */
 			n1 = new1(OXXX, Z, Z);
 			*n1 = *n;
 			n->op = OCAST;
 			n->left = n1;
 			n->right = Z;
-			n->type = types[TLONG];
+			n->type = types[TVLONG];  /* was TLONG, which seems wrong */
 		}
 		if(w > 1) {
+			/* scale down by width */
 			n1 = new1(OXXX, Z, Z);
 			*n1 = *n;
 			n->op = ODIV;
@@ -1159,7 +1163,7 @@ bitno(long b)
 {
 	int i;
 
-	for(i=0; i<32; i++)
+	for(i=0; i < BI2LONG; i++)
 		if(b & (1L<<i))
 			return i;
 	diag(Z, "bad in bitno");
@@ -2064,7 +2068,8 @@ castucom(Node *r)
 	Node *rl;
 
 	if(r->op == OCAST &&
-	   (rl = r->left)->op == OCOM &&
+	   ((rl = r->left)->op == OCOM ||
+	    rl->op == OXOR) &&			/* ||XOR experiment - geoff */
 	   (r->type->etype == TVLONG || r->type->etype == TUVLONG) &&
 	   typeu[rl->type->etype] && typechl[rl->type->etype])
 		return 1;

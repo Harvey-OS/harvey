@@ -1,0 +1,429 @@
+#!/usr/local/bin/perl
+
+#
+# mkdvipspapers: a simple Perl script that generates a bunch of paper sizes
+# definitions for dvips.
+#
+# Copyright (C) 1995, Yves Arrouye <Yves.Arrouye@imag.fr> [06/15/95]
+#
+# THIS CODE IS PROVIDED AS IS, WITHOUT ANY WARRANTIES, EITHER EXPRESSED OR
+# IMPLIED, OF ITS FITNESS TO ANY PURPOSE. IT'S AUTHOR CANNOT BE HELD LIABLE
+# FOR ANY DAMAGES OCCURING DUE TO THE USE OF THIS CODE. USE AT YOUR OWN RISKS!
+
+# Known bugs: this script is written in Perl 5. (If you ever rewrite it in
+# Perl 4, I'm interested to get your version; I can provide a Perl-4 options
+# parser that is Getopt modified for it).
+
+# Last change: added the -p (--paper) option for specifying default size
+# (the first that will be generated). Arranged for the letter and a4 defs
+# be the first ones if nothing is specified (i.e. in the dvips default).
+# Note: the default paper size need not be in the chose ones, it is taken from
+# all the known papers sizes.
+
+# Read what follows for simple documentation and explanations.
+
+#
+# Options accepted by the script:
+#
+#  --help		print a small help message
+#  --version		print version
+#
+#  -s, --standard	generate standard definitions (Adobe ones)
+#  -n, --non-standard	generate dvips non-standard definitions
+#  -d, --dvips		generate dvips (i.e. standard + some) definitions
+#  -g, --gs		generate non-standard gs definitions
+#  -e, --extra		generate non-standard extra definitions
+#  -l, --local		generate local definitions
+#  -a, --all		generate all definitions
+#
+#  -p, --paper		default paper size
+#
+# default behaviour is the same as --dvips.
+#
+
+use Getopt::Long;
+
+#
+# The paper sizes definitions are stored in arrays with the following entries
+# for each paper size:
+#
+#   - the name of the paper for dvips, e.g. letter;
+#   - the name of the paper for the DSC PaperSize comment, e.g. Letter;
+#   - the name of an accessible PostScript operator that may select the
+#     correct paper size, e.g. letter;
+#   - the name of a PostScript operator in statusdict that may select the
+#     correct paper tray. e.g. lettertray (this is preferred);
+#   - the physical width and height of the paper, either in points (no units
+#     or bp, as in 4000bp), in inches (e.g 8.5in), centimeters (e.g. 21cm)
+#     or in millimeters (e.g. 297mm);
+#   - a flag indicating the orientation of the sheet, 0 meaning portrait and
+#     1 meaning landscape (this actually used only for gs' setpage operator).
+#
+# The PostScript code generated in the Setup section does the following.
+# First, we look in statusdict in order to look for a tray selection operator.
+# If there is none, but the specified PostScript operator is accessible with
+# the current dictionaries stacking order, we use it. If setpagedevice is
+# implemented and the other methods did fail, we use it. Otherwise, if the
+# setpage operator is present in statusdict, use this one. The setpage op. is
+# assumed to be
+#
+#	<width> <height> <orient> setpage --
+#
+# where <orient> is 0 for portrait and 1 for landscape (in which case <width>
+# and <height> are swapped!). 
+#
+
+#
+# This code has been tested with an Apple LaserWriter II, an Hewlett Packard
+# 4L laser printer, Ghostscript 3.33 and Ghostview 1.5 with success.
+#
+
+#
+# Enter your local definitions here in the same format as the examples
+# below.
+#
+# Papers defined here: (none).
+#
+
+@localpapersdefs = (
+);
+
+#
+# Standard (Adobe) names. Missing names are a4small and lettersmall, because
+# I don't have their definition handy.
+#
+# Papers defined here: 11x17, a3, a4, b5, ledger, legal, letter, note.
+#
+
+@stdpapersdefs = (
+    [
+	'letter',
+	'Letter',	'letter',	'lettertray',
+	'8.5in',	'11in',		0
+    ],
+    [
+	'a4',
+	'A4',		'a4',		'a4tray',
+	'210mm',	'297mm',	0
+    ],
+    [
+	'11x17',
+	'11x17',	'11x17',	'11x17tray',
+	'11in',		'17in',		0
+    ],
+    [
+	'a3',
+	'A3',		'a3',		'a3tray',
+	'297mm',	'420mm',	0
+    ],
+    [
+	'b5',
+	'B5',		'ab5',		'b5tray',
+	'177mm',	'250mm',	0
+    ],
+    [
+	'ledger',
+	'Ledger',	'ledger',	'ledgertray',
+	'11in',		'17in',		1
+    ],
+    [
+	'legal',
+	'Legal',	'legal',	'legaltray',
+	'8.5in',	'14in',		0
+    ],
+    [
+	'note',
+	'Note',		'note',		'notetray',
+	'7.5in',	'10in',		0
+    ]
+);
+
+#
+# Names that are present in the standard dvips distribution.
+#
+# Papers defined here: tabloid (aka 11x17).
+#
+
+@dvipspapersdefs = (
+    [
+	'tabloid',
+	'Tabloid',	'11x17',	'11x17tray',
+	'11in',		'17in',		0
+    ],
+);
+
+#
+# Names that are present in the standard gs distribution. (Some names are
+# currently missing...)
+#
+# Papers defined here: a0, a1, a2, a5, a6, a7, a8, a9, a10,
+#                      b0, b1, b2, b3, b4.
+#
+
+@gspapersdefs = (
+    [
+	'a0',
+	'A0',		'a0',		'a0tray',
+	'840mm',	'1188mm',	0
+    ],
+    [
+	'a1',
+	'A1',		'a1',		'a1tray',
+	'594mm',	'840mm',	0
+    ],
+    [
+	'a2',
+	'A2',		'a2',		'a2tray',
+	'420mm',	'594mm',	0
+    ],
+    [
+	'a5',
+	'A5',		'a5',		'a5tray',
+	'148mm',	'210mm',	0
+    ],
+    [
+	'a6',
+	'A6',		'a6',		'a6tray',
+	'105mm',	'148mm',	0
+    ],
+    [
+	'a7',
+	'A7',		'a7',		'a7tray',
+	'74mm',		'105mm',	0
+    ],
+    [
+	'a8',
+	'A8',		'a8',		'a8tray',
+	'52.5mm',	'74mm',	0
+    ],
+    [
+	'a9',
+	'A9',		'a9',		'a9tray',
+	'37mm',		'52.5mm',	0
+    ],
+    [
+	'a10',
+	'A10',		'a10',		'a10tray',
+	'26.25mm',	'37mm',	0
+    ],
+    [
+	'b0',
+	'B0',		'b0',		'b0tray',
+	'2836bp',	'4008bp',	0
+    ],
+    [
+	'b1',
+	'B1',		'b1',		'b1tray',
+	'2004bp',	'2836bp',	0
+    ],
+    [
+	'b2',
+	'B2',		'b2',		'b2tray',
+	'1418bp',	'2004bp',	0
+    ],
+    [
+	'b3',
+	'B3',		'b3',		'b3tray',
+	'1002bp',	'1418bp',	0
+    ],
+    [
+	'b4',
+	'B4',		'b4',		'b4tray',
+	'709bp',	'1002bp',	0
+    ],
+);
+
+@extrapapersdefs = (
+    [
+	'executive',
+	'Executive',	'executivepage',	'executivepagetray',
+	'7.25in',		'10.5in',		0
+    ],
+    [
+	'halfexecutive',
+	'HalfExecutive',	'halfexecutivepage',	'halfexecutivepagetray',
+	'5.25in',		'7.25in',		0
+    ]
+);
+
+sub basename {
+    local($fullname, $ext) = @_;
+    local($basename) = $fullname;
+
+    $basename =~ s,(.*/)?([^/]+),$2,;
+    $ext && $basename =~ s,$ext$,,;
+
+    $basename;
+}
+
+sub dumpsizes {
+    local($legend, @sizes) = @_;
+
+    print "$legend";
+
+    for $spec (@sizes) {
+	local(@array) = @$spec;
+	local($name) = @array;
+
+	print $name, " ";
+    }
+    print "\n";
+}
+
+sub usage {
+    local($exitcode) = @_;
+    local($myname) = &basename($0);
+
+    if ($exitcode) {
+    	select STDERR;
+    }
+
+    print "usage: $myname [ --version ] [ -h, --help ] [ -s, --standard ] [ -n, --non-standard ] [ -d, --dvips ] [ -g, --gs ] [ -e, --extra ] [ -l, --local ] [ -a, --all ] [ -p, --paper papername ]\n";
+
+    if ($exitcode == 0) {
+    	print "\n";
+    	print "options: --version\t\tprint version information\n";
+    	print "         -h, --help\t\tprint this help message\n";
+	print "         -s, --standard\t\tdefine standard paper sizes\n";
+	print "         -n, --non-standard\tdefine dvips' non-standard paper sizes\n";
+	print "         -d, --dvips\t\tdefine all dvips paper sizes\n";
+	print "         -g, --gs\t\tdefine gs' non-standard paper sizes\n";
+	print "         -e, --extra\t\tdefine extra paper sizes\n";
+	print "         -l, --local\t\tdefine local paper sizes\n";
+	print "         -a, --all\t\tdefine all previous paper sizes\n";
+	print "         -p, --paper papername\tspecify default paper size\n";
+	print "\npapers: "; &dumpsizes("--standard\t\t", @stdpapersdefs);
+	print "         "; &dumpsizes("--non-standard\t\t", @dvipspapersdefs);
+	print "         "; &dumpsizes("--gs\t\t\t", @gspapersdefs);
+	print "         "; &dumpsizes("--extra\t\t", @extrapapersdefs);
+	print "         "; &dumpsizes("--local\t\t", @localpapersdefs);
+    }
+
+    exit $exitcode;
+}
+
+sub pssize {
+    local ($size) = @_;
+    local $number = $size;
+
+    $number =~ s/\D+$//;
+
+    if ($size =~ /in$/) {
+	$number *= 72;
+    } elsif ($size =~ /cm$/) {
+	$number *= 72 / 2.54;
+    } elsif ($size =~ /mm$/) {
+	$number *= 72 / 25.4;
+    }
+
+    return int($number + .4);
+}
+
+sub genpaperdefs {
+    local ($papername, $dscname, $psname, $trayname,
+	$width, $height, $orient) = @$_;
+    local ($pswidth, $psheight) = (&pssize($width), &pssize($height));
+
+    local ($exch) = ($orient ==  1 ? " exch" : "");
+
+    if ($width =~ /^\d$/) { $width = "${width}bp"; }
+    if ($height =~ /^\d$/) { $height = "${height}bp"; }
+
+    print <<EPD
+@ $papername $width $height
+@+ ! %%DocumentPaperSizes: $dscname
+@+ %%PaperSize: $dscname
+@+ %%BeginPaperSize: $dscname
+@+ /setpagedevice where {
+@+   pop 1 dict dup /PageSize [ $pswidth $psheight$exch ] put setpagedevice
+@+ } {
+@+   statusdict /$trayname known {
+@+     statusdict begin $trayname end
+@+     /$psname where { pop $psname } if
+@+   } {
+@+     /$psname where {
+@+       pop $psname
+@+     } {
+@+       statusdict /setpage known {
+@+         statusdict begin
+@+           $pswidth $psheight $orient setpage
+@+         end
+@+       } if
+@+     } ifelse
+@+   } ifelse
+@+ } ifelse
+@+ %%EndPaperSize
+
+EPD
+}
+
+if (!&GetOptions("standard|s", "non-standard|n", "dvips|d", "gs|g", "extra|e",
+    "local|l", "all|a", "paper|p=s", "help|h", "version")) {
+    &usage(1);
+} elsif ($#ARGV != -1) {
+    &usage(1);
+} elsif ($opt_help) {
+    &usage(0);
+} elsif ($opt_version) {
+    print &basename($0),
+            " version 1.2, by Yves Arrouye <Yves.Arrouye\@imag.fr>\n";
+    exit(0);
+} else {
+    @allpapersdefs = (@stdpapersdefs, @dvipspapersdefs, @gspapersdefs,
+	    @extrapapersdefs, @localpapersdefs);
+    if ($opt_all) {
+	@paperdefs = @allpapersdefs;
+    } else {
+	@papersdefs = ();
+
+	if ($opt_dvips) {
+	    $opt_standard = 1;
+	    $opt_non_standard = 1;
+ 	}
+
+	if ($opt_standard && !$opt_dvips) {
+	    @papersdefs = (@papersdefs, @stdpapersdefs);
+	}
+	if ($opt_non_standard && !$opt_dvips) {
+	    @papersdefs = (@papersdefs, @dvipspapersdefs);
+	}
+	if ($opt_gs) {
+	    @papersdefs = (@papersdefs, @gsspapersdefs);
+	}
+	if ($opt_extra) {
+	    @papersdefs = (@papersdefs, @extrapapersdefs);
+	}
+	if ($opt_local) {
+	    @papersdefs = (@papersdefs, @localpapersdefs);
+	}
+
+	if ($#papersdefs == -1) {
+    	    @papersdefs = (@stdpapersdefs, @dvipspapersdefs);
+	}
+    }
+}
+
+# Find default paper def in *all* definitions and generate config
+
+if ($opt_paper) {
+    for (@allpapersdefs) {
+	local(@paper) = @$_;
+	local($papername) = @paper;
+
+	if ($papername eq $opt_paper) {
+	    genpaperdefs @paper;
+	    last;
+	}
+    }
+}
+
+# Generate config for all selected paper sizes but the default one
+
+for (@defaultpaper, @papersdefs) {
+    local($papername) = @$_;
+
+    if ($papername eq $opt_paper) { next; }
+
+    genpaperdefs $_;
+}
+

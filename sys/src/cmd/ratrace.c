@@ -4,7 +4,7 @@
 #include <thread.h>
 
 enum {
-	Stacksize	= 8*1024,
+	Stacksize	= 2048 * sizeof(uintptr),
 	Bufsize		= 8*1024,
 };
 

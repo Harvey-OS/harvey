@@ -33,9 +33,9 @@ struct Iotrack
 };
 
 enum{
-	Sectorsize = 512,
+	Sectorsize = 512,	/* would need change for 4k sectors */
 	Sect2trk = 9,
-	Trksize = Sectorsize*Sect2trk
+	Trksize = Sectorsize*Sect2trk,
 };
 
 struct Track

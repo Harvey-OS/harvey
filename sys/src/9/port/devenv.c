@@ -55,7 +55,8 @@ envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 
 	/* make sure name string continues to exist after we release lock */
 	kstrcpy(up->genbuf, e->name, sizeof up->genbuf);
-	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
+	devdir(c, e->qid, up->genbuf, e->len, eve, (c->aux != nil? 0644: 0666),
+		dp);
 	runlock(eg);
 	return 1;
 }

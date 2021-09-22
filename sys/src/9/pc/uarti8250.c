@@ -15,7 +15,7 @@ enum {
 	Uart1		= 0x2F8,	/* COM2 */
 	Uart1IRQ	= 3,
 
-	UartFREQ	= 1843200,
+	UartFREQ	= 1843200,	/* 16 * 115200 */
 };
 
 enum {					/* I/O ports */
@@ -430,7 +430,10 @@ i8250break(Uart* uart, int ms)
 
 	ctlr = uart->regs;
 	csr8w(ctlr, Lcr, Brk);
-	tsleep(&up->sleep, return0, 0, ms);
+	if (up == nil)
+		delay(ms);
+	else
+		tsleep(&up->sleep, return0, 0, ms);
 	csr8w(ctlr, Lcr, 0);
 }
 
@@ -459,7 +462,7 @@ i8250kick(Uart* uart)
 	}
 }
 
-static void
+static int
 i8250interrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
@@ -467,7 +470,6 @@ i8250interrupt(Ureg*, void* arg)
 	int iir, lsr, old, r;
 
 	uart = arg;
-
 	ctlr = uart->regs;
 	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)){
 		switch(iir & IirMASK){
@@ -525,6 +527,7 @@ i8250interrupt(Ureg*, void* arg)
 			break;
 		}
 	}
+	return Intrunconverted;
 }
 
 static void
@@ -543,10 +546,10 @@ i8250disable(Uart* uart)
 	ctlr->sticky[Ier] = 0;
 	csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 
-	if(ctlr->iena != 0){
-		if(intrdisable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf, uart->name) == 0)
+	if(ctlr->iena != 0)
+		if(intrdisable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf,
+		    uart->name) == 0)
 			ctlr->iena = 0;
-	}
 }
 
 static void
@@ -590,7 +593,8 @@ i8250enable(Uart* uart, int ie)
 	 */
 	if(ie){
 		if(ctlr->iena == 0){
-			intrenable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf, uart->name);
+			intrenable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf,
+				uart->name);
 			ctlr->iena = 1;
 		}
 		ctlr->sticky[Ier] = Ethre|Erda;
@@ -683,33 +687,43 @@ PhysUart i8250physuart = {
 	.putc		= i8250putc,
 };
 
+#ifndef DEFCONSBAUD
+#define DEFCONSBAUD 9600
+#endif
+
+long consbaud;
+
 void
 i8250config(char *p)
 {
 	Uart *uart;
-	int n;
+	int n, con;
 	char *cmd;
+	char buf[32];
 
-	if(p == nil)
-		return;
-	n = strtoul(p, &cmd, 0);
-	if(p == cmd)
-		return;
+	n = 0;
+	cmd = p;
+	if(p != nil) {
+		con = strtoul(p, &cmd, 0);
+		if(p != cmd)
+			n = con;
+	}
 	switch(n){
 	default:
 		return;
 	case 0:
-		uart = &i8250uart[0];
-		break;
 	case 1:
-		uart = &i8250uart[1];
+		uart = &i8250uart[n];
 		break;	
 	}
 
 	if(!uart->enabled)
 		(*uart->phys->enable)(uart, 0);
-	uartctl(uart, "b9600 l8 pn s1");
-	if(*cmd != '\0')
+	if (consbaud == 0)
+		consbaud = DEFCONSBAUD;
+	snprint(buf, sizeof buf, "b%ld l8 pn s1", consbaud);
+	uartctl(uart, buf);
+	if(cmd != nil && *cmd != '\0')
 		uartctl(uart, cmd);
 
 	consuart = uart;
@@ -744,5 +758,4 @@ i8250setmouseputc(char* which, int (*putc)(Queue*, int))
 	if(p == which || port < 0 || port > 1)
 		error(Ebadarg);
 	uartsetmouseputc(&i8250uart[port], putc);
-
 }

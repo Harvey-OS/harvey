@@ -1,6 +1,6 @@
 .TH RC4 2
 .SH NAME
-setupRC4state, rc4, rc4skip, rc4back  - alleged rc4 encryption
+setupRC4state, rc4, rc4skip, rc4back - alleged rc4 encryption
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -53,3 +53,6 @@ structure keeps track of the algorithm.
 .IR sechash (2),
 .IR prime (2),
 .IR rand (2)
+.SH BUGS
+.I Rc4
+is deprecated; it's too easy to crack by brute force.

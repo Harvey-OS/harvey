@@ -5,10 +5,6 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-enum {
-	Whinesecs = 10,		/* frequency of out-of-resources printing */
-};
-
 static Ref pgrpid;
 static Ref mountid;
 
@@ -85,7 +81,7 @@ closepgrp(Pgrp *p)
 	p->pgrpid = -1;
 
 	e = &p->mnthash[MNTHASH];
-	for(h = p->mnthash; h < e; h++) {
+	for(h = p->mnthash; h < e; h++)
 		for(f = *h; f; f = next) {
 			wlock(&f->lock);
 			cclose(f->from);
@@ -95,7 +91,6 @@ closepgrp(Pgrp *p)
 			wunlock(&f->lock);
 			putmhead(f);
 		}
-	}
 	wunlock(&p->ns);
 	qunlock(&p->debug);
 	free(p);
@@ -181,7 +176,7 @@ dupfgrp(Fgrp *f)
 	lock(f);
 	/* Make new fd list shorter if possible, preserving quantization */
 	new->nfd = f->maxfd+1;
-	i = new->nfd%DELTAFD;
+	i = new->nfd % DELTAFD;
 	if(i != 0)
 		new->nfd += DELTAFD - i;
 	new->fd = malloc(new->nfd*sizeof(Chan*));
@@ -193,12 +188,11 @@ dupfgrp(Fgrp *f)
 	new->ref = 1;
 
 	new->maxfd = f->maxfd;
-	for(i = 0; i <= f->maxfd; i++) {
+	for(i = 0; i <= f->maxfd; i++)
 		if(c = f->fd[i]){
 			incref(c);
 			new->fd[i] = c;
 		}
-	}
 	unlock(f);
 
 	return new;
@@ -210,10 +204,7 @@ closefgrp(Fgrp *f)
 	int i;
 	Chan *c;
 
-	if(f == 0)
-		return;
-
-	if(decref(f) != 0)
+	if(f == 0 || decref(f) != 0)
 		return;
 
 	/*
@@ -221,12 +212,11 @@ closefgrp(Fgrp *f)
 	 * will bail us out.
 	 */
 	up->closingfgrp = f;
-	for(i = 0; i <= f->maxfd; i++){
+	for(i = 0; i <= f->maxfd; i++)
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
 			cclose(c);
 		}
-	}
 	up->closingfgrp = nil;
 
 	free(f->fd);
@@ -256,12 +246,11 @@ forceclosefgrp(void)
 	}
 
 	f = up->closingfgrp;
-	for(i = 0; i <= f->maxfd; i++){
+	for(i = 0; i <= f->maxfd; i++)
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
 			ccloseq(c);
 		}
-	}
 }
 
 Mount*
@@ -299,22 +288,15 @@ mountfree(Mount *mount)
 void
 resrcwait(char *reason)
 {
-	ulong now;
 	char *p;
-	static ulong lastwhine;
 
 	if(up == nil)
-		panic("resrcwait");
+		panic("resrcwait: nil up");
 
 	p = up->psstate;
 	if(reason) {
 		up->psstate = reason;
-		now = seconds();
-		/* don't tie up the console with complaints */
-		if(now - lastwhine > Whinesecs) {
-			lastwhine = now;
-			print("%s\n", reason);
-		}
+		print("%s\n", reason);
 	}
 
 	tsleep(&up->sleep, return0, 0, 300);

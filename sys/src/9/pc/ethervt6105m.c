@@ -1,13 +1,13 @@
 /*
  * VIA VT6105M Fast Ethernet Controller (Rhine III).
  * To do:
- *	reorganise initialisation/shutdown/reset
- *	adjust Tx FIFO threshold on underflow - untested
+ *	reorganise initialisation/shutdown/reset.
+ *	adjust Tx FIFO threshold on underflow - untested.
  *	why does the link status never cause an interrupt?
  *	use the lproc as a periodic timer for stalls, etc.
- *	take non-HW stuff out of descriptor for 64-bit
- *	cleanliness
+ *	take non-HW stuff out of descriptor for 64-bit cleanliness.
  *	why does the receive buffer alloc have a +3?
+ *	perhaps to extend it to the next word out of paranoia.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -279,11 +279,11 @@ enum {						/* Tx Ds branch */
 
 enum {
 	Nrd		= 196,
-	Ntd		= 64,
+	Ntd		= 32,
 	Crcsz		= 4,
 	Bslop		= 48,
 	Rdbsz		= ETHERMAXTU+Crcsz+Bslop,
-	Maxus		= 1000000,  /* Soekris 5501s take a while to reset */
+	Maxus		= 1500000,  /* Soekris 5501s take a while to reset */
 
 	Nrxstats	= 8,
 	Ntxstats	= 9,
@@ -326,7 +326,7 @@ typedef struct Ctlr {
 	uint	txstats[Ntxstats];
 	ulong	totalt;
 	uint	intr;
-	uint	lintr;			
+	uint	lintr;
 	uint	lsleep;
 	uint	rintr;
 	uint	tintr;
@@ -665,7 +665,7 @@ vt6105Mattach(Ether* edev)
 
 		ds->bp = vt6105Mrballoc();
 		if(ds->bp == nil)
-			error("vt6105M: can't allocate receive ring\n");
+			error("vt6105M: can't allocate receive ring");
 		ds->bp->rp = (uchar*)ROUNDUP((ulong)ds->bp->rp, 4);
 		ds->addr = PCIWADDR(ds->bp->rp);
 
@@ -884,12 +884,12 @@ vt6105Mreceive(Ether* edev)
 	csr16w(ctlr, Cr, ctlr->cr);
 }
 
-static void
+static int
 vt6105Minterrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
-	int imr, isr, r, timeo;
+	int imr, isr, r, timeo, loops;
 	long t;
 
 	edev = arg;
@@ -901,12 +901,12 @@ vt6105Minterrupt(Ureg*, void* arg)
 	csr16w(ctlr, Imr, 0);
 	imr = ctlr->imr;
 	ctlr->intr++;
-	for(;;){
+	for(loops = 0; ; loops++){
 		if((isr = csr16r(ctlr, Isr)) != 0)
 			csr16w(ctlr, Isr, isr);
 		if((isr & ctlr->imr) == 0)
 			break;
-			
+
 		if(isr & Srci){
 			imr &= ~Srci;
 			ctlr->lwakeup = isr & Srci;
@@ -939,8 +939,8 @@ vt6105Minterrupt(Ureg*, void* arg)
 					csr8w(ctlr, Bcr1, r|ctlr->tft);
 				}
 			}
-			
-			
+
+
 			ctlr->totalt += lcycles() - t;
 			vt6105Mtransmit(edev);
 			t = lcycles();
@@ -948,13 +948,14 @@ vt6105Minterrupt(Ureg*, void* arg)
 			ctlr->tintr++;
 		}
 		if(isr)
-			panic("vt6105M: isr %4.4uX\n", isr);
+			panic("vt6105M: isr %4.4uX", isr);
 	}
 	ctlr->imr = imr;
 	csr16w(ctlr, Imr, ctlr->imr);
-	
+
 	ctlr->totalt += lcycles() - t;
 	iunlock(&ctlr->clock);
+	return loops > 0? Intrforme: Intrnotforme;
 }
 
 static int
@@ -1146,8 +1147,8 @@ vt6105Mpci(void)
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 		if((cls = pcicfgr8(p, PciCLS)) == 0 || cls == 0xFF)
-			cls = 0x10;
-		ctlr->cls = cls*4;
+			cls = conf.cachelinesz / BY2WD;
+		ctlr->cls = cls*BY2WD;
 		if(ctlr->cls < sizeof(Ds)){
 			print("vt6105M: cls %d < sizeof(Ds)\n", ctlr->cls);
 			iofree(port);
@@ -1199,7 +1200,7 @@ vt6105Mpnp(Ether* edev)
 	edev->irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
 	/*
-	 * Set to 1000Mb/s to fool the bsz calculation.  We need 
+	 * Set to 1000Mb/s to fool the bsz calculation.  We need
 	 * something better, though.
 	 */
 	edev->mbps = 1000;

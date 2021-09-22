@@ -1,0 +1,67 @@
+</$objtype/mkfile
+
+TARG=cvs
+
+OFILES=\
+	add.$O\
+	admin.$O\
+	annotate.$O\
+	buffer.$O\
+	checkin.$O\
+	checkout.$O\
+	classify.$O\
+	client.$O\
+	commit.$O\
+	create_adm.$O\
+	cvsrc.$O\
+	diff.$O\
+	edit.$O\
+	entries.$O\
+	error.$O\
+	expand_path.$O\
+	fileattr.$O\
+	filesubr.$O\
+	find_names.$O\
+	hardlink.$O\
+	hash.$O\
+	history.$O\
+	ignore.$O\
+	import.$O\
+	lock.$O\
+	log.$O\
+	login.$O\
+	logmsg.$O\
+	main.$O\
+	mkmodules.$O\
+	modules.$O\
+	myndbm.$O\
+	no_diff.$O\
+	parseinfo.$O\
+	patch.$O\
+	plan9.$O\
+	rcs.$O\
+	rcscmds.$O\
+	recurse.$O\
+	release.$O\
+	remove.$O\
+	repos.$O\
+	root.$O\
+	run.$O\
+	scramble.$O\
+	server.$O\
+	status.$O\
+	subr.$O\
+	tag.$O\
+	update.$O\
+	vers_ts.$O\
+	version.$O\
+	watch.$O\
+	wrapper.$O\
+	zlib.$O\
+
+LIB=../lib/libcvs.a$O ../zlib/libzlib.a$O ../diff/libdiff.a$O
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+CC=pcc
+CFLAGS=-I.. -I. -I../lib -I../diff -I../zlib -DHAVE_CONFIG_H -B -D_BSD_EXTENSION -D_REGEX_RE_COMP -c 

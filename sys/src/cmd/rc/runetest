@@ -1,0 +1,13 @@
+#!/bin/rc
+ifs=α {x=`{echo -n aβc}}
+if(! ~ $x aβc){
+	echo  rc does not parse utf correctly >[1=2]
+	exit 'rc does not parse utf correctly'
+}
+
+ifs=α {x=`{echo -n aαc}}
+if(! ~ $x(2) c){
+	echo  rc does not parse utf correctly >[1=2]
+	exit 'rc does not parse utf correctly'
+}
+exit ''

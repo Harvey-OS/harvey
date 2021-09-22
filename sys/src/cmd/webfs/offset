@@ -1,0 +1,65 @@
+client.c:38: 	return nclient-1;
+client.c:299: 	a = (void*)((uintptr)ctl+(int)t->offset);
+client.c:300: 	parseas(r, arg, t->type, a);
+client.c:312: 	a = (void*)((uintptr)c+(int)t->offset);
+client.c:313: 	parseas(r, arg, t->type, a);
+client.c:325: 	a = t->offset;
+client.c:326: 	parseas(r, arg, t->type, a);
+cookies.c:804: 	static char setcookie[] = "Set-Cookie:";
+fs.c:10:  *		content-type		mime content-type of body
+fs.c:128: 	else if(t->name)
+fs.c:129: 		d->name = estrdup(t->name);
+fs.c:134: 	d->qid.type = t->mode>>24;
+fs.c:135: 	d->mode = t->mode;
+fs.c:369: 	if((n&t->mode) != n){
+fs.c:408: 		if(t-tab >= Qclient)
+http.c:14: char PostContentType[] = "application/octet-stream";
+http.c:54: 	fmtprint(&f, "set-cookie: ");
+http.c:170: 	{ "content-type:", contenttype },
+http.c:171: 	{ "set-cookie:", setcookie },
+http.c:313: 		ioprint(io, fd, "Content-type: %s\r\n", PostContentType);
+http.c:314: 		ioprint(io, fd, "Content-length: %ud\r\n", c->npostbody);
+http.c:316: 			fprint(2, "<- Content-type: %s\n", PostContentType);
+http.c:317: 			fprint(2, "<- Content-length: %ud\n", c->npostbody);
+plumb.c:129: 		addattr(m, "content-type", ctype);
+url.c:172: 	/* |----user info-----|  |--------host----------------|  |-port-| */
+url.c:177: 	/* |--regular host--|     |-IPv6 literal-| */
+url.c:294: 	if(pdest>dest && *(pdest-1)=='.' && 
+url.c:295: 	  (pdest==dest+1 || *(pdest-2)=='/'))
+url.c:298: 	/* 6e: remove occurences of "seg/../", where seg != "..", left->right */
+url.c:312: 	if(pdest-3 > dest && memcmp(pdest-3, "/..", 3)==0){
+url.c:313: 		p = pdest-3 - 1;
+url.c:424: 		/* Is a current-doc reference; just copy the path from the base URL */
+url.c:551: 	if(!regx(t->prog, url, m, t->size)){
+url.c:558: 	su->scheme.s = m[t->ind[0]].sp;
+url.c:559: 	su->scheme.e = m[t->ind[0]].ep;
+url.c:560: 	su->authority.s = m[t->ind[1]].sp;
+url.c:561: 	su->authority.e = m[t->ind[1]].ep;
+url.c:562: 	su->path.s = m[t->ind[2]].sp;
+url.c:563: 	su->path.e = m[t->ind[2]].ep;
+url.c:564: 	su->query.s = m[t->ind[3]].sp;
+url.c:565: 	su->query.e = m[t->ind[3]].ep;
+url.c:566: 	su->fragment.s = m[t->ind[4]].sp;
+url.c:567: 	su->fragment.e = m[t->ind[4]].ep;
+url.c:631: 	if(!regx(t->prog, nil, m, t->size)){
+url.c:635: 	if(m[t->ind[0]].sp)
+url.c:636: 		u->user = estredup(m[t->ind[0]].sp, m[t->ind[0]].ep);
+url.c:637: 	if(m[t->ind[1]].sp)
+url.c:638: 		u->user = estredup(m[t->ind[1]].sp, m[t->ind[1]].ep);
+url.c:651: 	if(!regx(t->prog, nil, m, t->size)){
+url.c:656: 	assert(m[t->ind[0]].sp || m[t->ind[1]].sp);
+url.c:658: 	if(m[t->ind[0]].sp)	/* regular */
+url.c:659: 		u->host = estredup(m[t->ind[0]].sp, m[t->ind[0]].ep);
+url.c:661: 		u->host = estredup(m[t->ind[1]].sp, m[t->ind[1]].ep);
+url.c:677: 	if(!regx(t->prog, u->authority, m, t->size)){
+url.c:682: 	if(m[t->ind[0]].sp)
+url.c:683: 		if(parse_userinfo(m[t->ind[0]].sp, m[t->ind[0]].ep, u) < 0)
+url.c:685: 	if(m[t->ind[1]].sp)
+url.c:686: 		if(parse_host(m[t->ind[1]].sp, m[t->ind[1]].ep, u) < 0)
+url.c:688: 	if(m[t->ind[2]].sp)
+url.c:689: 		u->port = estredup(m[t->ind[2]].sp, m[t->ind[2]].ep);
+url.c:787: 	if(!regx(t->prog, u->path, m, t->size)){
+url.c:792: 	if(m[t->ind[0]].sp){
+url.c:793: 		u->ftp.path_spec = estredup(m[t->ind[0]].sp, m[t->ind[0]].ep);
+url.c:801: 	if(m[t->ind[1]].sp){
+url.c:802: 		u->ftp.type = estredup(m[t->ind[1]].sp, m[t->ind[1]].ep);

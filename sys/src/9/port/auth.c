@@ -39,7 +39,7 @@ sysfversion(ulong *arg)
 		nexterror();
 	}
 
-	m = mntversion(c, vers, msize, arglen);
+	m = mntversion(c, msize, vers, arglen);
 
 	cclose(c);
 	poperror();

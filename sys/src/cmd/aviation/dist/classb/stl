@@ -1,0 +1,48 @@
+vm 0-1.5
+pS 38.747636, 90.359862	# stl
+
+va 299
+
+pa d pS,m(va+90),8
+pb d pS,m(va-090),8
+
+n stl_gnd\80
+c pS,6
+
+n stl_20\80
+c pS,10
+
+n stl_30\80
+c pS,15
+
+pc xcle pS,15, pa,m(va)
+pd xcle pS,30, pa,m(va)
+pe xcle pS,30, pb,m(va)
+pf xcle pS,15, pb,m(va)
+
+pg xclw pS,15, pa,m(va)
+ph xclw pS,30, pa,m(va)
+pi xclw pS,30, pb,m(va)
+pj xclw pS,15, pb,m(va)
+
+pk xcle pS,20, pa,m(va)
+pl xclw pS,20, pa,m(va)
+pm xcle pS,20, pb,m(va)
+pn xclw pS,20, pb,m(va)
+
+n stl_45\80
+s pc,pk
+S pk,pd
+Ar pS,pd,pe
+S pe,pm
+s pm,pf
+
+s pg,pl
+S pl,ph
+Al pS,ph,pi
+S pi,pn
+s pn,pj
+
+n stl_50\80
+Al pS,pk,pl
+Ar pS,pm,pn

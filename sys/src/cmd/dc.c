@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <pool.h>
 
 typedef	void*	pointer;
 #pragma	varargck	type	"lx"	pointer
@@ -12,8 +13,8 @@ typedef	void*	pointer;
 #define TBLSZ 256			/* 1<<BI2BY */
 
 #define HEADSZ 1024
-#define STKSZ 100
-#define RDSKSZ 100
+#define STKSZ 128
+#define RDSKSZ 128
 #define ARRAYST 221
 #define MAXIND 2048
 
@@ -21,28 +22,40 @@ typedef	void*	pointer;
 #define NG 2
 #define NE 3
 
-#define length(p)	((p)->wt-(p)->beg)
+#define length(p)	((p)->wt - (p)->beg >= 0? (p)->wt - (p)->beg: 0)
 #define rewind(p)	(p)->rd=(p)->beg
 #define create(p)	(p)->rd = (p)->wt = (p)->beg
 #define fsfile(p)	(p)->rd = (p)->wt
 #define truncate(p)	(p)->wt = (p)->rd
-#define sfeof(p)	(((p)->rd==(p)->wt)?1:0)
-#define sfbeg(p)	(((p)->rd==(p)->beg)?1:0)
-#define sungetc(p,c)	*(--(p)->rd)=c
-#define sgetc(p)	(((p)->rd==(p)->wt)?-1:*(p)->rd++)
-#define skipc(p)	{if((p)->rd<(p)->wt)(p)->rd++;}
-#define slookc(p)	(((p)->rd==(p)->wt)?-1:*(p)->rd)
-#define sbackc(p)	(((p)->rd==(p)->beg)?-1:*(--(p)->rd))
-#define backc(p)	{if((p)->rd>(p)->beg) --(p)->rd;}
-#define sputc(p,c)	{if((p)->wt==(p)->last)more(p);\
-				*(p)->wt++ = c; }
-#define salterc(p,c)	{if((p)->rd==(p)->last)more(p);\
-				*(p)->rd++ = c;\
-				if((p)->rd>(p)->wt)(p)->wt=(p)->rd;}
+#define sfeof(p)	((p)->rd >= (p)->wt)
+#define sfbeg(p)	((p)->rd <= (p)->beg)
+#define sungetc(p,c)	*(--(p)->rd) = (c)
+#define skipc(p)	{if((p)->rd < (p)->wt) (p)->rd++;}
+
+#ifndef PDP11
+#define NEGBYTE 0200
+#define EOF (-1)
+#define MASK (~0377)
+#define sgetc(p)	( ((p)->rd==(p)->wt) ? EOF :( ((*(p)->rd & NEGBYTE) != 0) ? ( *(p)->rd++ | MASK): *(p)->rd++ ))
+#define slookc(p)	( ((p)->rd==(p)->wt) ? EOF :( ((*(p)->rd & NEGBYTE) != 0) ? (*(p)->rd | MASK) : *(p)->rd ))
+#define sbackc(p)	( ((p)->rd==(p)->beg) ? EOF :( ((*(--(p)->rd) & NEGBYTE) != 0) ? (*(p)->rd | MASK): *(p)->rd ))
+#else
+/* original plan 9 defines */
+#define sgetc(p)	(((p)->rd >= (p)->wt)? -1: *(p)->rd++)
+#define slookc(p)	(((p)->rd >= (p)->wt)?-1:*(p)->rd)
+#define sbackc(p)	(((p)->rd <= (p)->beg)?-1:*(--(p)->rd))
+#endif
+
+#define backc(p)	{if((p)->rd > (p)->beg) --(p)->rd;}
+#define sputc(p,c)	{if((p)->wt >= (p)->last) more(p);\
+				*(p)->wt++ = (c); }
+#define salterc(p,c)	{if((p)->rd >= (p)->last) more(p);\
+				*(p)->rd++ = (c);\
+				if((p)->rd > (p)->wt) (p)->wt=(p)->rd;}
 #define sunputc(p)	(*((p)->rd = --(p)->wt))
 #define sclobber(p)	((p)->rd = --(p)->wt)
-#define zero(p)		for(pp=(p)->beg;pp<(p)->last;)\
-				*pp++='\0'
+#define zero(p)		memset(p->beg, 0, p->last - p->beg)
+
 #define OUTC(x)		{Bputc(&bout,x); if(--count == 0){Bprint(&bout,"\\\n"); count=ll;} }
 #define TEST2		{if((count -= 2) <=0){Bprint(&bout,"\\\n");count=ll;}}
 #define EMPTY		if(stkerr != 0){Bprint(&bout,"stack empty\n"); continue; }
@@ -110,8 +123,6 @@ void	(*outdit)(Blk *p, int flg);
 int	logo;
 int	logten;
 int	count;
-char	*pp;
-char	*dummy;
 long	longest, maxsize, active;
 int	lall, lrel, lcopy, lmore, lbytes;
 int	inside;
@@ -761,10 +772,10 @@ commnds(void)
 			p = pop();
 			EMPTY;
 			if((readptr != &readstk[0]) && (*readptr != 0)) {
-				if((*readptr)->rd == (*readptr)->wt)
+				if((*readptr)->rd >= (*readptr)->wt)
 					release(*readptr);
 				else {
-					if(readptr++ == &readstk[RDSKSZ]) {
+					if(readptr++ >= &readstk[RDSKSZ]) {
 						error("nesting depth\n");
 					}
 				}
@@ -779,7 +790,7 @@ commnds(void)
 			}
 			continue;
 		case '?':
-			if(++readptr == &readstk[RDSKSZ]) {
+			if(++readptr >= &readstk[RDSKSZ]) {
 				error("nesting depth\n");
 			}
 			*readptr = 0;
@@ -1197,7 +1208,6 @@ init(int argc, char *argv[])
 			exits("open");
 		}
 	}
-/*	dummy = malloc(0);  /* prepare for garbage-collection */
 	scalptr = salloc(1);
 	sputc(scalptr,0);
 	basptr = salloc(1);
@@ -1234,19 +1244,18 @@ init(int argc, char *argv[])
 void
 pushp(Blk *p)
 {
-	if(stkptr == stkend) {
+	if(stkptr >= stkend) {
 		Bprint(&bout,"out of stack space\n");
 		return;
 	}
 	stkerr=0;
 	*++stkptr = p;
-	return;
 }
 
 Blk*
 pop(void)
 {
-	if(stkptr == stack) {
+	if(stkptr <= stack) {
 		stkerr=1;
 		return(0);
 	}
@@ -1281,7 +1290,7 @@ readin(void)
 			else
 				goto gotnum;
 			if(dp != 0) {
-				if(dpct >= 99)
+				if(dpct >= 100-1)
 					continue;
 				dpct++;
 			}
@@ -1313,7 +1322,7 @@ add0(Blk *p, int ct)
 {
 	Blk *q, *t;
 
-	q = salloc(length(p)+(ct+1)/2);
+	q = salloc(length(p) + (ct+1)/2);
 	while(ct>1) {
 		sputc(q,0);
 		ct -= 2;
@@ -1411,7 +1420,7 @@ chsign(Blk *p)
 		fsfile(p);
 		backc(p);
 		ct = sbackc(p);
-		if(ct == 99 /*&& !sfbeg(p)*/) {
+		if(ct == 100-1 /*&& !sfbeg(p)*/) {
 			truncate(p);
 			sputc(p,-1);
 		}
@@ -1421,7 +1430,6 @@ chsign(Blk *p)
 		if(ct == 0)
 			truncate(p);
 	}
-	return;
 }
 
 int
@@ -1461,7 +1469,6 @@ unreadc(char c)
 		sungetc(*readptr,c);
 	} else
 		Bungetc(curfile);
-	return;
 }
 
 void
@@ -1495,7 +1502,7 @@ dcprint(Blk *hptr)
 
 	rewind(hptr);
 	while(sfeof(hptr) == 0) {
-		if(sgetc(hptr)>99) {
+		if(sgetc(hptr) > 100-1) {
 			rewind(hptr);
 			while(sfeof(hptr) == 0) {
 				Bprint(&bout,"%c",sgetc(hptr));
@@ -1797,7 +1804,7 @@ add(Blk *a1, Blk *a2)
 	}
 	fsfile(p);
 	if(sfbeg(p) == 0 && sbackc(p) == -1) {
-		while((c = sbackc(p)) == 99) {
+		while((c = sbackc(p)) == 100-1) {
 			if(c == -1)
 				break;
 		}
@@ -2053,11 +2060,11 @@ salloc(int size)
 		maxsize = nbytes;
 	if(size > longest)
 		longest = size;
-	ptr = malloc((unsigned)size);
+	assert(size >= 0);
+//	ptr = malloc(size);
+	ptr = mallocz(size, 1);
 	if(ptr == 0){
-		garbage("salloc");
-		if((ptr = malloc((unsigned)size)) == 0)
-			ospace("salloc");
+		ospace("salloc");
 	}
 	if((hdr = hfree) == 0)
 		hdr = morehd();
@@ -2074,11 +2081,10 @@ morehd(void)
 
 	headmor++;
 	nbytes += HEADSZ;
-	hfree = h = (Blk *)malloc(HEADSZ);
+//	hfree = h = (Blk *)malloc(HEADSZ);
+	hfree = h = (Blk *)mallocz(HEADSZ, 1);
 	if(hfree == 0) {
-		garbage("morehd");
-		if((hfree = h = (Blk*)malloc(HEADSZ)) == 0)
-			ospace("headers");
+		ospace("headers");
 	}
 	kk = h;
 	while(h<hfree+(HEADSZ/BLK))
@@ -2097,6 +2103,7 @@ copy(Blk *hptr, int size)
 	all++;
 	lall++;
 	lcopy++;
+	assert(size >= 0);
 	nbytes += size;
 	lbytes += size;
 	if(size > longest)
@@ -2104,7 +2111,9 @@ copy(Blk *hptr, int size)
 	if(size > maxsize)
 		maxsize = size;
 	sz = length(hptr);
-	ptr = malloc(size);
+	assert((int)sz >= 0);
+//	ptr = malloc(size);
+	ptr = mallocz(size, 1);
 	if(ptr == 0) {
 		Bprint(&bout,"copy size %d\n",size);
 		ospace("copy");
@@ -2118,9 +2127,8 @@ copy(Blk *hptr, int size)
 	hdr->rd = hdr->beg = ptr;
 	hdr->last = ptr+size;
 	hdr->wt = ptr+sz;
-	ptr = hdr->wt;
-	while(ptr<hdr->last)
-		*ptr++ = '\0';
+	if (hdr->last - hdr->wt > 0)
+		memset(hdr->wt, 0, hdr->last - hdr->wt);
 	return(hdr);
 }
 
@@ -2154,19 +2162,17 @@ seekc(Blk *hptr, int n)
 		lbytes += nn - hptr->last;
 		if(n > longest)
 			longest = n;
-/*		free(hptr->beg); /**/
+		assert(n >= 0);
 		p = realloc(hptr->beg, n);
 		if(p == 0) {
-/*			hptr->beg = realloc(hptr->beg, hptr->last-hptr->beg);
-**			garbage("seekc");
-**			if((p = realloc(hptr->beg, n)) == 0)
-*/				ospace("seekc");
+			ospace("seekc");
 		}
 		hptr->beg = p;
 		hptr->wt = hptr->last = hptr->rd = p+n;
 		return;
 	}
 	hptr->rd = nn;
+	assert(hptr->rd >= hptr->beg);
 	if(nn>hptr->wt)
 		hptr->wt = nn;
 }
@@ -2177,7 +2183,7 @@ salterwd(Blk *ahptr, Blk *n)
 	Wblk *hptr;
 
 	hptr = (Wblk*)ahptr;
-	if(hptr->rdw == hptr->lastw)
+	if(hptr->rdw >= hptr->lastw)
 		more(ahptr);
 	*hptr->rdw++ = n;
 	if(hptr->rdw > hptr->wtw)
@@ -2190,8 +2196,9 @@ more(Blk *hptr)
 	unsigned size;
 	char *p;
 
-	if((size=(hptr->last-hptr->beg)*2) == 0)
-		size=2;
+	size = (hptr->last - hptr->beg)*2;
+	if((int)size <= 0)
+		size = 2;
 	nbytes += size/2;
 	if(nbytes > maxsize)
 		maxsize = nbytes;
@@ -2199,14 +2206,10 @@ more(Blk *hptr)
 		longest = size;
 	lbytes += size/2;
 	lmore++;
-/*	free(hptr->beg);/**/
+	assert((int)size >= 0);
 	p = realloc(hptr->beg, size);
-
-	if(p == 0) {
-/*		hptr->beg = realloc(hptr->beg, (hptr->last-hptr->beg));
-**		garbage("more");
-**		if((p = realloc(hptr->beg,size)) == 0)
-*/			ospace("more");
+	if(p == nil) {
+		ospace("more");
 	}
 	hptr->rd = p + (hptr->rd - hptr->beg);
 	hptr->wt = p + (hptr->wt - hptr->beg);
@@ -2239,6 +2242,7 @@ release(Blk *p)
 	p->rd = (char*)hfree;
 	hfree = p;
 	free(p->beg);
+	p->beg = nil;
 }
 
 Blk*
@@ -2247,7 +2251,7 @@ dcgetwd(Blk *p)
 	Wblk *wp;
 
 	wp = (Wblk*)p;
-	if(wp->rdw == wp->wtw)
+	if(wp->rdw >= wp->wtw)
 		return(0);
 	return(*wp->rdw++);
 }
@@ -2258,7 +2262,7 @@ putwd(Blk *p, Blk *c)
 	Wblk *wp;
 
 	wp = (Wblk*)p;
-	if(wp->wtw == wp->lastw)
+	if(wp->wtw >= wp->lastw)
 		more(p);
 	*wp->wtw++ = c;
 }
@@ -2269,7 +2273,7 @@ lookwd(Blk *p)
 	Wblk *wp;
 
 	wp = (Wblk*)p;
-	if(wp->rdw == wp->wtw)
+	if(wp->rdw >= wp->wtw)
 		return(0);
 	return(*wp->rdw);
 }

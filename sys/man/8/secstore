@@ -105,3 +105,7 @@ logs to
 .B /sys/src/cmd/auth/secstore
 .SH SEE ALSO
 .IR secstore (1)
+.SH BUGS
+The
+.I secstore
+protocol requires use of the now-deprecated RC4 and SSLv2.

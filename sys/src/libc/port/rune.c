@@ -1,11 +1,14 @@
+/*
+ * conversions between UTF-8 strings and Unicode characters (Runes)
+ */
 #include	<u.h>
 #include	<libc.h>
 
 #define Bit(i) (7-(i))
 /* N 0's preceded by i 1's, T(Bit(2)) is 1100 0000 */
-#define T(i) (((1 << (Bit(i)+1))-1) ^ 0xFF)
+#define T(i) (((1 << (Bit(i)+1)) - 1) ^ 0xFF)
 /* 0000 0000 0000 0111 1111 1111 */
-#define	RuneX(i) ((1 << (Bit(i) + ((i)-1)*Bitx))-1)
+#define	RuneX(i) ((1 << (Bit(i) + ((i)-1)*Bitx)) - 1)
 
 enum
 {
@@ -26,7 +29,7 @@ enum
 int
 chartorune(Rune *rune, char *str)
 {
-	int c[UTFmax], i;
+	int c[UTFmax], ch, i;
 	Rune l;
 
 	/*
@@ -37,20 +40,20 @@ chartorune(Rune *rune, char *str)
 	 *	10000-10FFFF => T4 Tx Tx Tx
 	 */
 
-	c[0] = *(uchar*)(str);
-	if(c[0] < Tx){
-		*rune = c[0];
+	l = *(uchar*)str;
+	if(l < Tx){				/* ascii? */
+		*rune = l;
 		return 1;
 	}
-	l = c[0];
 
+	c[0] = l;
 	for(i = 1; i < UTFmax; i++) {
-		c[i] = *(uchar*)(str+i);
-		c[i] ^= Tx;
-		if(c[i] & Testx)
+		ch = *(uchar*)(str+i) ^ Tx;
+		if(ch & Testx)
 			goto bad;
-		l = (l << Bitx) | c[i];
-		if(c[0] < T(i + 2)) {
+		l = (l << Bitx) | ch;
+		c[i] = ch;
+		if(c[0] < T(i + 2)) {		/* end of UTF-8 sequence? */
 			l &= RuneX(i + 1);
 			if(i == 1) {
 				if(c[0] < T(2) || l <= Rune1)
@@ -79,7 +82,7 @@ runetochar(char *str, Rune *rune)
 	Rune c;
 
 	c = *rune;
-	if(c <= Rune1) {
+	if(c <= Rune1) {			/* ascii? */
 		str[0] = c;
 		return 1;
 	}
@@ -93,6 +96,7 @@ runetochar(char *str, Rune *rune)
 	 *	0800-FFFF => T3 Tx Tx
 	 * four character sequence (21-bit value)
 	 *     10000-1FFFFF => T4 Tx Tx Tx
+	 *
 	 * If the Rune is out of range or a surrogate half,
 	 * convert it to the error rune.
 	 * Do this test when i==3 because the error rune encodes to three bytes.
@@ -101,13 +105,11 @@ runetochar(char *str, Rune *rune)
 	 */
 	for(i = 2; i < UTFmax + 1; i++){
 		if(i == 3){
-			if(c > Runemax)
-				c = Runeerror;
-			if(SurrogateMin <= c && c <= SurrogateMax)
+			if(c > Runemax || SurrogateMin <= c && c <= SurrogateMax)
 				c = Runeerror;
 		}
 		if (c <= RuneX(i) || i == UTFmax ) {
-			str[0] = T(i) |  (c >> (i - 1)*Bitx);
+			str[0] = T(i) | (c >> (i - 1)*Bitx);
 			for(j = 1; j < i; j++)
 				str[j] = Tx | ((c >> (i - j - 1)*Bitx) & Maskx);
 			return i;
@@ -135,15 +137,14 @@ runenlen(Rune *r, int nrune)
 	nb = 0;
 	while(nrune--) {
 		c = *r++;
-		if(c <= Rune1){
+		if(c <= Rune1)		/* ascii? */
 			nb++;
-		} else {
+		else
 			for(i = 2; i < UTFmax + 1; i++)
 				if(c <= RuneX(i) || i == UTFmax){
 					nb += i;
 					break;
 				}
-		}
 	}
 	return nb;
 }
@@ -157,7 +158,7 @@ fullrune(char *str, int n)
 	if(n <= 0)
 		return 0;
 	c = *(uchar*)str;
-	if(c < Tx)
+	if(c < Tx)			/* ascii? */
 		return 1;
 	for(i = 3; i < UTFmax + 1; i++)
 		if(c < T(i))

@@ -20,7 +20,7 @@ typedef struct {
 	char	*unit;			/* unit directory */
 	int	lun;
 	ulong	lbsize;
-	ulong	offset;			/* in blocks of lbsize bytes */
+	uvlong	offset;			/* in blocks of lbsize bytes */
 	int	fd;
 	Umsc	*umsc;			/* lun */
 	ScsiPtr	cmd;
@@ -91,8 +91,12 @@ enum {
 
 /* p arguments should be of type uchar* */
 #define GETBELONG(p) ((ulong)(p)[0]<<24 | (ulong)(p)[1]<<16 | (p)[2]<<8 | (p)[3])
+#define GETBEVLONG(p) ((uvlong)GETBELONG(p) << 32 | GETBELONG((p)+4))
+
 #define PUTBELONG(p, ul) ((p)[0] = (ul)>>24, (p)[1] = (ul)>>16, \
 			  (p)[2] = (ul)>>8,  (p)[3] = (ul))
+#define PUTBEVLONG(p, uvl) (PUTBELONG(p, uvl>>32), PUTBELONG((p)+4, uvl))
+
 #define GETBE24(p)	((ulong)(p)[0]<<16 | (p)[1]<<8 | (p)[2])
 #define PUTBE24(p, ul)	((p)[0] = (ul)>>16, (p)[1] = (ul)>>8, (p)[2] = (ul))
 
@@ -129,7 +133,7 @@ long	SRcdplay(ScsiReq*, int, long, long);
 long	SRcdstatus(ScsiReq*, uchar*, int);
 long	SRgetconf(ScsiReq*, uchar*, int);
 
-/*	old CD-R/CD-RW commands */
+/* old CD-R/CD-RW commands */
 long	SRfwaddr(ScsiReq*, uchar, uchar, uchar, uchar*);
 long	SRtreserve(ScsiReq*, long);
 long	SRtinfo(ScsiReq*, uchar, uchar*);

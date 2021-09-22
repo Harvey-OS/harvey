@@ -392,12 +392,13 @@ _ifmt(Fmt *f)
 		}
 	}
 	p = buf + sizeof buf - 1;
+	*p-- = '\0';
 	n = 0;
 	if(isv){
 		while(vu){
 			i = vu % base;
 			vu /= base;
-			if((fl & FmtComma) && n % 4 == 3){
+			if((fl & FmtComma) && (uint)n % 4 == 3){
 				*p-- = ',';
 				n++;
 			}
@@ -408,7 +409,7 @@ _ifmt(Fmt *f)
 		while(u){
 			i = u % base;
 			u /= base;
-			if((fl & FmtComma) && n % 4 == 3){
+			if((fl & FmtComma) && (uint)n % 4 == 3){
 				*p-- = ',';
 				n++;
 			}

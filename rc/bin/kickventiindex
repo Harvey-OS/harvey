@@ -1,0 +1,2 @@
+#!/bin/rc
+exec hget http://127.1:81/kickicache

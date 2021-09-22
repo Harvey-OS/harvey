@@ -55,13 +55,13 @@ int	quiet;
 void	flsh(void);
 int	match(char *s);
 vlong	number(vlong big);
-void	cnull(int cc);
-void	null(int c);
-void	ascii(int cc);
-void	unblock(int cc);
-void	ebcdic(int cc);
-void	ibm(int cc);
-void	block(int cc);
+void	cnull(uchar cc);
+void	null(uchar c);
+void	ascii(uchar cc);
+void	unblock(uchar cc);
+void	ebcdic(uchar cc);
+void	ibm(uchar cc);
+void	block(uchar cc);
 void	term(char*);
 void	stats(void);
 
@@ -70,122 +70,121 @@ void	stats(void);
 int
 main(int argc, char *argv[])
 {
-	void (*conv)(int);
-	char *ip;
-	char *key;
+	void (*conv)(uchar);
+	char *ip, *key;
 	int a, c;
 
 	conv = null;
-	for(c=1; c<argc; c++) {
+	for (c = 1; c < argc; c++) {
 		key = argv[c++];
-		if(c >= argc){
+		if (c >= argc) {
 			fprint(2, "dd: arg %s needs a value\n", key);
 			exits("arg");
 		}
 		string = argv[c];
-		if(iskey("ibs")) {
+		if (iskey("ibs")) {
 			ibs = number(BIG);
 			continue;
 		}
-		if(iskey("obs")) {
+		if (iskey("obs")) {
 			obs = number(BIG);
 			continue;
 		}
-		if(iskey("cbs")) {
+		if (iskey("cbs")) {
 			cbs = number(BIG);
 			continue;
 		}
-		if(iskey("bs")) {
+		if (iskey("bs")) {
 			bs = number(BIG);
 			continue;
 		}
-		if(iskey("if")) {
+		if (iskey("if")) {
 			ifile = string;
 			continue;
 		}
-		if(iskey("of")) {
+		if (iskey("of")) {
 			ofile = string;
 			continue;
 		}
-		if(iskey("trunc")) {
+		if (iskey("trunc")) {
 			dotrunc = number(BIG);
 			continue;
 		}
-		if(iskey("quiet")) {
+		if (iskey("quiet")) {
 			quiet = number(BIG);
 			continue;
 		}
-		if(iskey("skip")) {
+		if (iskey("skip")) {
 			skip = number(VBIG);
 			continue;
 		}
-		if(iskey("seek") || iskey("oseek")) {
+		if (iskey("seek") || iskey("oseek")) {
 			oseekn = number(VBIG);
 			continue;
 		}
-		if(iskey("iseek")) {
+		if (iskey("iseek")) {
 			iseekn = number(VBIG);
 			continue;
 		}
-		if(iskey("iseekb")) {
+		if (iskey("iseekb")) {
 			iseekb = number(VBIG);
 			continue;
 		}
-		if(iskey("oseekb")) {
+		if (iskey("oseekb")) {
 			oseekb = number(VBIG);
 			continue;
 		}
-		if(iskey("count")) {
+		if (iskey("count")) {
 			count = number(VBIG);
 			continue;
 		}
-		if(iskey("files")) {
+		if (iskey("files")) {
 			files = number(BIG);
 			continue;
 		}
-		if(iskey("conv")) {
-		cloop:
-			if(match(","))
+		if (iskey("conv")) {
+cloop:
+			if (match(","))
 				goto cloop;
-			if(*string == '\0')
+			if (*string == '\0')
 				continue;
-			if(match("ebcdic")) {
+			if (match("ebcdic")) {
 				conv = ebcdic;
 				goto cloop;
 			}
-			if(match("ibm")) {
+			if (match("ibm")) {
 				conv = ibm;
 				goto cloop;
 			}
-			if(match("ascii")) {
+			if (match("ascii")) {
 				conv = ascii;
 				goto cloop;
 			}
-			if(match("block")) {
+			if (match("block")) {
 				conv = block;
 				goto cloop;
 			}
-			if(match("unblock")) {
+			if (match("unblock")) {
 				conv = unblock;
 				goto cloop;
 			}
-			if(match("lcase")) {
+			if (match("lcase")) {
 				cflag |= LCASE;
 				goto cloop;
 			}
-			if(match("ucase")) {
+			if (match("ucase")) {
 				cflag |= UCASE;
 				goto cloop;
 			}
-			if(match("swab")) {
+			if (match("swab")) {
 				cflag |= SWAB;
 				goto cloop;
 			}
-			if(match("noerror")) {
+			if (match("noerror")) {
 				cflag |= NERR;
 				goto cloop;
 			}
-			if(match("sync")) {
+			if (match("sync")) {
 				cflag |= SYNC;
 				goto cloop;
 			}
@@ -195,47 +194,48 @@ main(int argc, char *argv[])
 		fprint(2, "dd: bad arg: %s\n", key);
 		exits("arg");
 	}
-	if(conv == null && cflag&(LCASE|UCASE))
+	if (conv == null && cflag & (LCASE | UCASE))
 		conv = cnull;
-	if(ifile)
+
+	if (ifile)
 		ibf = open(ifile, 0);
 	else
 		ibf = dup(0, -1);
-	if(ibf < 0) {
+	if (ibf < 0) {
 		fprint(2, "dd: open %s: %r\n", ifile);
 		exits("open");
 	}
-	if(ofile){
-		if(dotrunc)
+	if (ofile) {
+		if (dotrunc)
 			obf = create(ofile, 1, 0664);
 		else
 			obf = open(ofile, 1);
-		if(obf < 0) {
+		if (obf < 0) {
 			fprint(2, "dd: create %s: %r\n", ofile);
 			exits("create");
 		}
-	}else{
+	} else {
 		obf = dup(1, -1);
-		if(obf < 0) {
+		if (obf < 0) {
 			fprint(2, "dd: can't dup file descriptor: %s: %r\n", ofile);
 			exits("dup");
 		}
 	}
-	if(bs)
+	if (bs)
 		ibs = obs = bs;
-	if(ibs == obs && conv == null)
+	if (ibs == obs && conv == null)
 		fflag++;
-	if(ibs == 0 || obs == 0) {
+	if (ibs == 0 || obs == 0) {
 		fprint(2, "dd: counts: cannot be zero\n");
 		exits("counts");
 	}
 	ibuf = sbrk(ibs);
-	if(fflag)
+	if (fflag)
 		obuf = ibuf;
 	else
 		obuf = sbrk(obs);
 	sbrk(64);	/* For good measure */
-	if(ibuf == (char *)-1 || obuf == (char *)-1) {
+	if (ibuf == (char *) - 1 || obuf == (char *) - 1) {
 		fprint(2, "dd: not enough memory: %r\n");
 		exits("memory");
 	}
@@ -244,74 +244,71 @@ main(int argc, char *argv[])
 	cbc = 0;
 	op = obuf;
 
-/*
+	/*
 	if(signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, term);
 */
-	seek(obf, obs*oseekn, 1);
-	seek(ibf, ibs*iseekn, 1);
-	if(iseekb)
+	seek(obf, obs * oseekn, 1);
+	seek(ibf, ibs * iseekn, 1);
+	if (iseekb)
 		seek(ibf, iseekb, 0);
-	if(oseekb)
+	if (oseekb)
 		seek(obf, oseekb, 0);
-	while(skip) {
+	for (; skip; skip--)
 		read(ibf, ibuf, ibs);
-		skip--;
-	}
 
-	ip = 0;
-loop:
-	if(ibc-- == 0) {
-		ibc = 0;
-		if(count==0 || nifr+nipr!=count) {
-			if(cflag&(NERR|SYNC))
-			for(ip=ibuf+ibs; ip>ibuf;)
-				*--ip = 0;
-			ibc = read(ibf, ibuf, ibs);
-		}
-		if(ibc == -1) {
-			perror("read");
-			if((cflag&NERR) == 0) {
-				flsh();
-				term("errors");
+	ip = nil;
+	for (; ; )
+		if (ibc-- != 0)
+			(*conv)(*ip++ & 0377);
+		else {
+			ibc = 0;
+			if (count == 0 || nifr + nipr != count) {
+				if (cflag & (NERR | SYNC))
+					memset(ibuf, 0, ibs);
+				ibc = read(ibf, ibuf, ibs);
 			}
-			ibc = 0;
-			for(c=0; c<ibs; c++)
-				if(ibuf[c] != 0)
-					ibc = c+1;
-			seek(ibf, ibs, 1);
-			stats();
-		}else if(ibc == 0 && --files<=0) {
-			flsh();
-			term(nil);
+			if (ibc == -1) {
+				perror("read");
+				if ((cflag & NERR) == 0) {
+					flsh();
+					term("errors");
+				}
+				ibc = 0;
+				for (c = 0; c < ibs; c++)
+					if (ibuf[c] != 0)
+						ibc = c + 1;
+				seek(ibf, ibs, 1);
+				stats();
+			} else if (ibc == 0 && --files <= 0) {
+				flsh();
+				term(nil);
+			}
+			if (ibc != ibs) {
+				nipr++;
+				if (cflag & SYNC)
+					ibc = ibs;
+			} else
+				nifr++;
+
+			/* swap the bytes of each pair, if requested */
+			c = (ibc >> 1) & ~1;
+			if (cflag & SWAB && c) {
+				ip = ibuf;
+				do {
+					a = *ip++;
+					ip[-1] = *ip;
+					*ip++ = a;
+				} while (--c);
+			}
+
+			ip = ibuf;
+			if (fflag) {
+				obc = ibc;
+				flsh();
+				ibc = 0;
+			}
 		}
-		if(ibc != ibs) {
-			nipr++;
-			if(cflag&SYNC)
-				ibc = ibs;
-		} else
-			nifr++;
-		ip = ibuf;
-		c = (ibc>>1) & ~1;
-		if(cflag&SWAB && c)
-		do {
-			a = *ip++;
-			ip[-1] = *ip;
-			*ip++ = a;
-		} while(--c);
-		ip = ibuf;
-		if(fflag) {
-			obc = ibc;
-			flsh();
-			ibc = 0;
-		}
-		goto loop;
-	}
-	c = 0;
-	c |= *ip++;
-	c &= 0377;
-	(*conv)(c);
-	goto loop;
 }
 
 void
@@ -361,16 +358,9 @@ number(vlong big)
 	char *cs;
 	uvlong n;
 
-	cs = string;
-	n = 0;
-	while(*cs >= '0' && *cs <= '9')
-		n = n*10 + *cs++ - '0';
+	n = strtoull(string, &cs, 10);
 	for(;;)
 	switch(*cs++) {
-
-	case 'm':
-		n *= 1024*1024;
-		continue;
 
 	case 'k':
 		n *= 1024;
@@ -380,7 +370,7 @@ number(vlong big)
 		n *= 512;
 		continue;
 
-/*	case '*':*/
+/*	case '*': */
 	case 'x':
 		string = cs;
 		n *= number(VBIG);
@@ -395,25 +385,27 @@ number(vlong big)
 	/* never gets here */
 }
 
-void
-cnull(int cc)
+uchar
+convcase(int c)
 {
-	int c;
-
-	c = cc;
-	if((cflag&UCASE) && c>='a' && c<='z')
-		c += 'A'-'a';
-	if((cflag&LCASE) && c>='A' && c<='Z')
-		c += 'a'-'A';
-	null(c);
+	if (cflag & UCASE && c >= 'a' && c <= 'z')
+		return c + 'A' - 'a';
+	else if (cflag & LCASE && c >= 'A' && c <= 'Z')
+		return c + 'a' - 'A';
+	else
+		return c;
 }
 
 void
-null(int c)
+cnull(uchar c)
 {
+	null(convcase(c));
+}
 
-	*op = c;
-	op++;
+void
+null(uchar c)
+{
+	*op++ = c;
 	if(++obc >= obs) {
 		flsh();
 		op = obuf;
@@ -421,149 +413,65 @@ null(int c)
 }
 
 void
-ascii(int cc)
+unblock(uchar c)
 {
-	int c;
-
-	c = etoa[cc];
 	if(cbs == 0) {
 		cnull(c);
 		return;
 	}
-	if(c == ' ') {
+	if(c == ' ')
 		nspace++;
-		goto out;
-	}
-	while(nspace > 0) {
-		null(' ');
-		nspace--;
-	}
-	cnull(c);
-
-out:
-	if(++cbc >= cbs) {
-		null('\n');
-		cbc = 0;
-		nspace = 0;
-	}
-}
-
-void
-unblock(int cc)
-{
-	int c;
-
-	c = cc & 0377;
-	if(cbs == 0) {
-		cnull(c);
-		return;
-	}
-	if(c == ' ') {
-		nspace++;
-		goto out;
-	}
-	while(nspace > 0) {
-		null(' ');
-		nspace--;
-	}
-	cnull(c);
-
-out:
-	if(++cbc >= cbs) {
-		null('\n');
-		cbc = 0;
-		nspace = 0;
-	}
-}
-
-void
-ebcdic(int cc)
-{
-	int c;
-
-	c = cc;
-	if(cflag&UCASE && c>='a' && c<='z')
-		c += 'A'-'a';
-	if(cflag&LCASE && c>='A' && c<='Z')
-		c += 'a'-'A';
-	c = atoe[c];
-	if(cbs == 0) {
-		null(c);
-		return;
-	}
-	if(cc == '\n') {
-		while(cbc < cbs) {
-			null(atoe[' ']);
-			cbc++;
-		}
-		cbc = 0;
-		return;
-	}
-	if(cbc == cbs)
-		ntrunc++;
-	cbc++;
-	if(cbc <= cbs)
-		null(c);
-}
-
-void
-ibm(int cc)
-{
-	int c;
-
-	c = cc;
-	if(cflag&UCASE && c>='a' && c<='z')
-		c += 'A'-'a';
-	if(cflag&LCASE && c>='A' && c<='Z')
-		c += 'a'-'A';
-	c = atoibm[c] & 0377;
-	if(cbs == 0) {
-		null(c);
-		return;
-	}
-	if(cc == '\n') {
-		while(cbc < cbs) {
-			null(atoibm[' ']);
-			cbc++;
-		}
-		cbc = 0;
-		return;
-	}
-	if(cbc == cbs)
-		ntrunc++;
-	cbc++;
-	if(cbc <= cbs)
-		null(c);
-}
-
-void
-block(int cc)
-{
-	int c;
-
-	c = cc;
-	if(cflag&UCASE && c>='a' && c<='z')
-		c += 'A'-'a';
-	if(cflag&LCASE && c>='A' && c<='Z')
-		c += 'a'-'A';
-	c &= 0377;
-	if(cbs == 0) {
-		null(c);
-		return;
-	}
-	if(cc == '\n') {
-		while(cbc < cbs) {
+	else {
+		for(; nspace > 0; nspace--)
 			null(' ');
-			cbc++;
-		}
-		cbc = 0;
-		return;
+		cnull(c);
 	}
-	if(cbc == cbs)
-		ntrunc++;
-	cbc++;
-	if(cbc <= cbs)
+	if(++cbc >= cbs) {
+		null('\n');
+		cbc = 0;
+		nspace = 0;
+	}
+}
+
+void
+ascii(uchar cc)
+{
+	unblock(etoa[cc]);
+}
+
+void
+fromascii(uchar orig, uchar c, uchar pad)
+{
+	if(cbs == 0)
 		null(c);
+	else if(orig == '\n') {
+		for (; cbc < cbs; cbc++)
+			null(pad);
+		cbc = 0;
+	} else {
+		if(cbc == cbs)
+			ntrunc++;
+		if(++cbc <= cbs)
+			null(c);
+	}
+}
+
+void
+ebcdic(uchar cc)
+{
+	fromascii(cc, atoe[convcase(cc)], atoe[' ']);
+}
+
+void
+ibm(uchar cc)
+{
+	fromascii(cc, atoibm[convcase(cc)], atoibm[' ']);
+}
+
+void
+block(uchar cc)
+{
+	fromascii(cc, convcase(cc), ' ');
 }
 
 void

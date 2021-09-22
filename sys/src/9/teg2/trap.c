@@ -1,14 +1,13 @@
 /*
- * arm mpcore generic interrupt controller (gic) v1
+ * arm mpcore generic interrupt controller (gic) v1 in cortex-a9
  * traps, exceptions, interrupts, system calls.
+ * the cortex-a9 gic is similar to the pl390, but slightly different.
+ * beware security extensions.
  *
  * there are two pieces: the interrupt distributor and the cpu interface.
+ * most of their registers must be accessed as (u)longs, else you get:
  *
- * memset or memmove on any of the distributor registers generates an
- * exception like this one:
  *	panic: external abort 0x28 pc 0xc048bf68 addr 0x50041800
- *
- * we use l1 and l2 cache ops to force vectors to be visible everywhere.
  *
  * apparently irqs 0—15 (SGIs) are always enabled.
  */
@@ -17,21 +16,43 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "../port/error.h"
-
 #include "ureg.h"
 #include "arm.h"
 
 #define ISSGI(irq)	((uint)(irq) < Nsgi)
+#define ISPPI(irq)	((uint)(irq) < Nppi)
 
 enum {
-	Debug = 0,
+	Debug		= 0,
+	Measurestack	= 0,
+	Checkstack	= 0,
+
+	/*
+	 * arm uses backwards priority field values:
+	 * 0 is highest priority; 0xff is lowest.
+	 * actually using nested interrupts would require
+	 * something more nuanced than splhi/spllo
+	 * involving the primask registers.
+	 */
+	Prilowest= 0xff,
+	Prinorm	= 0,
+	Priclock= 0,
+
+	/*
+	 * constants fixed by hardware
+	 */
 
 	Nvec = 8,		/* # of vectors at start of lexception.s */
 	Bi2long = BI2BY * sizeof(long),
-	Nirqs = 1024,
-	Nsgi =	16,		/* software-generated (inter-processor) intrs */
-	Nppi =	32,		/* sgis + other private peripheral intrs */
+
+	Nsgi	= 16,		/* software-generated (inter-processor) intrs */
+	Nppi	= 32,		/* sgis + other private peripheral intrs */
+	Nusableirqs = 1020,
+	Nirqs	= 1024,
+
+	Nirqwords = Nirqs / Bi2long,
+	Cfgwidth = 2,
+	Cfgsperwd = Bi2long / Cfgwidth,
 };
 
 typedef struct Intrcpuregs Intrcpuregs;
@@ -50,30 +71,44 @@ struct Intrdistregs {			/* distributor */
 
 	/* botch: *[0] are banked per-cpu from here */
 	/* bit maps */
-	ulong	grp[32];		/* in group 1 (non-secure) */
-	ulong	setena[32];		/* forward to cpu interfaces */
-	ulong	clrena[32];
-	ulong	setpend[32];
-	ulong	clrpend[32];
-	ulong	setact[32];		/* active? */
-	ulong	clract[32];
+	ulong	grp[Nirqwords];		/* in group 1 (non-secure) */
+	ulong	setena[Nirqwords];	/* forward to cpu interfaces */
+	ulong	clrena[Nirqwords];
+	ulong	setpend[Nirqwords];	/* pending */
+	ulong	clrpend[Nirqwords];
+	ulong	active[Nirqwords];	/* active (ro) */
+	ulong	_pad1[Nirqwords];
 	/* botch: *[0] are banked per-cpu until here */
 
-	uchar	pri[1020];	/* botch: pri[0] — pri[7] are banked per-cpu */
+	uchar	pri[Nusableirqs];  /* botch: 0 — Nppi-1 are banked per-cpu */
 	ulong	_rsrvd1;
-	/* botch: targ[0] through targ[7] are banked per-cpu and RO */
-	uchar	targ[1020];	/* byte bit maps: cpu targets indexed by intr */
+	/* botch: 0 — Nppi-1 are banked per-cpu and RO */
+	uchar	targ[Nusableirqs]; /* byte bitmasks: cpu targets indexed by intr */
 	ulong	_rsrvd2;
-	/* botch: cfg[1] is banked per-cpu */
-	ulong	cfg[64];		/* bit pairs: edge? 1-N? */
-	ulong	_pad1[64];
-	ulong	nsac[64];		/* bit pairs (v2 only) */
+	/* botch: cfg[0] is RO, cfg[1] is banked per-cpu */
+	ulong	cfg[2*Nirqwords];	/* config bit pairs: edge? 1-N? */
+	ulong	ists[Nirqwords];
+	uchar	_pad2[0xdd4 - 0xd80];
 
+	/* test registers */
+	ulong	legacy_int;
+	uchar	_pad3[0xde0 - 0xdd8];
+	ulong	match;
+	ulong	enable;
+
+	uchar	_pad4[0xf00 - 0xde8];
 	/* software-generated intrs (a.k.a. sgi) */
-	ulong	swgen;			/* intr targets */
-	uchar	_pad2[0xf10 - 0xf04];
-	uchar	clrsgipend[16];		/* bit map (v2 only) */
-	uchar	setsgipend[16];		/* bit map (v2 only) */
+	ulong	swgen;			/* intr targets (wo) */
+	uchar	_pad5[0xf10 - 0xf04];
+
+	uchar	clrsgipend[Nsgi];	/* bit map (v2 only) */
+	uchar	setsgipend[Nsgi];	/* bit map (v2 only) */
+	uchar	_pad6[0xfc0 - 0xf30];
+	ulong	id8;
+	uchar	_pad7[0xfd0 - 0xfc4];
+	ulong	id4[4];			/* 4—7 */
+	ulong	id0[4];			/* 0—3 */
+	ulong	compid[4];		/* 0—3 */
 };
 
 enum {
@@ -81,6 +116,7 @@ enum {
 	Forw2cpuif =	1,
 
 	/* ctlrtype bits */
+	Tz	  =	1<<10,		/* trustzone: has (non)secure modes */
 	Cpunoshft =	5,
 	Cpunomask =	MASK(3),
 	Intrlines =	MASK(5),
@@ -109,7 +145,7 @@ struct Intrcpuregs {
 	ulong	hipripend;
 
 	/* aliased regs (secure, for group 1) */
-	ulong	alibinpt;
+	ulong	alibiunpt;
 	ulong	aliack;			/* (v2 only) */
 	ulong	aliend;			/* (v2 only) */
 	ulong	alihipripend;		/* (v2 only) */
@@ -120,14 +156,13 @@ struct Intrcpuregs {
 
 	uchar	_pad0[0xfc - 0xf0];
 	ulong	ifid;			/* ro */
-
-	uchar	_pad0[0x1000 - 0x100];
-	ulong	deact;			/* wo (v2 only) */
 };
 
 enum {
 	/* ctl bits */
-	Enable =	1,
+	Enablesec =	1<<0,
+	Enablens =	1<<1,
+	Ackctl =	1<<2,
 	Eoinodeact =	1<<9,		/* (v2 only) */
 
 	/* (ali) ack/end/hipriend/deact bits */
@@ -163,14 +198,16 @@ enum
 {
 	Ntimevec = 20		/* number of time buckets for each intr */
 };
+/* not used aside from increment; examined manually, if at all */
+#ifdef MEASURE
 ulong intrtimes[Nirqs][Ntimevec];
+#endif
 
-uvlong ninterrupt;
-uvlong ninterruptticks;
 int irqtooearly = 1;
 
-static ulong shadena[32];	/* copy of enable bits, saved by intcmaskall */
-static Lock distlock, nintrlock;
+static ulong shadena[Nirqwords]; /* copy of enable bits, saved by intcmaskall */
+static Lock distlock;
+static uint itlines, itwords;
 
 extern int notify(Ureg*);
 
@@ -196,7 +233,7 @@ dumpintrs(char *what, ulong *bits)
 	first = 1;
 	some = 0;
 	USED(idp);
-	for (i = 0; i < nelem(idp->setpend); i++) {
+	for (i = 0; i < itwords; i++) {
 		word = bits[i];
 		if (word) {
 			if (first) {
@@ -218,10 +255,10 @@ dumpintrpend(void)
 	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
 
 	iprint("\ncpu%d gic regs:\n", m->machno);
-	dumpintrs("group 1", idp->grp);
+	dumpintrs("secure", idp->grp);
 	dumpintrs("enabled", idp->setena);
 	dumpintrs("pending", idp->setpend);
-	dumpintrs("active ", idp->setact);
+	dumpintrs("active ", idp->active);
 }
 
 /*
@@ -240,7 +277,7 @@ intrtime(Mach*, int vno)
 	m->perf.inintr += diff;
 	if(up == nil && m->perf.inidle > diff)
 		m->perf.inidle -= diff;
-
+#ifdef MEASURE
 	if (m->cpumhz == 0)
 		return;			/* don't divide by zero */
 	diff /= m->cpumhz*100;		/* quantum = 100µsec */
@@ -249,12 +286,8 @@ intrtime(Mach*, int vno)
 	if ((uint)vno >= Nirqs)
 		vno = Nirqs-1;
 	intrtimes[vno][diff]++;
-}
-
-static ulong
-intack(Intrcpuregs *icp)
-{
-	return icp->ack & Intrmask;
+#endif
+	USED(vno);
 }
 
 static void
@@ -279,6 +312,9 @@ intcunmask(uint irq)
 
 	ilock(&distlock);
 	idp->setena[irq / Bi2long] = 1 << (irq % Bi2long);
+	/* keep a copy for secondary cpus */
+	if (m->machno == 0 && ISPPI(irq))
+		shadena[0] = idp->setena[0];
 	iunlock(&distlock);
 }
 
@@ -289,6 +325,9 @@ intcmask(uint irq)
 
 	ilock(&distlock);
 	idp->clrena[irq / Bi2long] = 1 << (irq % Bi2long);
+	/* keep a copy for secondary cpus */
+	if (m->machno == 0 && ISPPI(irq))
+		shadena[0] = idp->setena[0];
 	iunlock(&distlock);
 }
 
@@ -297,10 +336,10 @@ intcmaskall(Intrdistregs *idp)		/* mask all intrs for all cpus */
 {
 	int i;
 
-	for (i = 0; i < nelem(idp->setena); i++)
+	for (i = 0; i < itwords; i++) {
 		shadena[i] = idp->setena[i];
-	for (i = 0; i < nelem(idp->clrena); i++)
 		idp->clrena[i] = ~0;
+	}
 	coherence();
 }
 
@@ -309,75 +348,117 @@ intcunmaskall(Intrdistregs *idp)	/* unused */
 {
 	int i;
 
-	for (i = 0; i < nelem(idp->setena); i++)
+	for (i = 0; i < itwords; i++)
 		idp->setena[i] = shadena[i];
 	coherence();
 }
 
-static ulong
-permintrs(Intrdistregs *idp, int base, int r)
+static void
+intrdistcfgcpu0(Intrdistregs *idp, ulong ppicfg, ulong spicfg)
 {
-	ulong perms;
+	int i, cfgshift;
 
-	idp->clrena[r] = ~0;		/* disable all */
+	if (Debug)
+		iprint("gic v%ld part #%#lux tz %d\n",
+			(idp->id0[2] >> 4) & MASK(4),
+			(idp->id0[1] & MASK(4)) << 8 | idp->id0[0],
+			idp->ctlrtype & Tz? 1: 0);
+	itwords = (idp->ctlrtype & Intrlines) + 1;
+	itlines = Bi2long * itwords;
+
+	for (i = 0; i < itwords; i++)
+		idp->grp[i] = 0;		/* secure */
+	/* pri for irqs 0 to Nppi-1 are banked */
+	for (i = 0; i < itlines; i++)
+		idp->pri[i] = Prinorm;
+	idp->pri[Tn0irq] = idp->pri[Loctmrirq] = idp->pri[Wdtmrirq] =
+		Priclock;
+
+	/*
+	 * cfg for irqs 0 — Nsgi-1 is read-only;
+	 * for Nsgi — Nppi-1 are banked.
+	 */
+	idp->cfg[Nsgi/Cfgsperwd] = ppicfg;	/* non-sgi ppis */
+	for (i = Nppi/Cfgsperwd; i < nelem(idp->cfg); i++)
+		idp->cfg[i] = spicfg;
+	/*
+	 * timers are exceptions: they must be edge-triggered.
+	 * Tn0irq is only used by the watchdog.
+	 */
+	cfgshift = Cfgwidth * (Tn0irq % Cfgsperwd);
+	spicfg &= ~(MASK(Cfgwidth) << cfgshift);
+	spicfg |= (Edge | Toall) << cfgshift;
+	idp->cfg[Tn0irq / Cfgsperwd] = spicfg;
+
+	/* first Nppi targs are banked & read-only for SGIs and PPIs */
+	for (i = Nppi; i < itlines; i++)
+		idp->targ[i] = 1<<0;	/* route to cpu 0 */
 	coherence();
-	perms = idp->clrena[r];
-	if (perms) {
-		iprint("perm intrs:");
-		printrs(base, perms);
-		iprint("\n");
+
+	intcmaskall(idp);		/* makes a copy in shadena */
+	for (i = 0; i < itwords; i++) {
+		idp->clrpend[i] = ~0;
+		idp->active[i] = 0;
 	}
-	return perms;
+}
+
+
+static void
+intrdistcfgcpun(Intrdistregs *idp, ulong ppicfg)
+{
+	int i;
+
+	idp->grp[0] = 0;		/* secure */
+	/* pri for irqs 0 to Nppi-1 are banked */
+	for (i = 0; i < Nppi; i++)
+		idp->pri[i] = Prinorm;
+	idp->pri[Tn0irq] = idp->pri[Loctmrirq] = idp->pri[Wdtmrirq] =
+		Priclock;
+
+	/*
+	 * cfg for irqs 0 — Nsgi-1 is read-only;
+	 * for Nsgi — Nppi-1 are banked.
+	 */
+	idp->cfg[Nsgi/Cfgsperwd] = ppicfg;	/* non-sgi ppis */
+
+	/* first Nppi targs are banked & read-only for SGIs and PPIs */
+	coherence();
+
+	idp->clrpend[0] = idp->clrena[0] = ~0;
+	idp->active[0] = 0;
+	coherence();
+	/* on cpu1, irq Extpmuirq (118) is always pending here */
+	idp->clrpend[Extpmuirq / Bi2long] = 1 << (Extpmuirq % Bi2long);
+	coherence();
+	idp->clrena [Extpmuirq / Bi2long] = 1 << (Extpmuirq % Bi2long);
 }
 
 static void
-intrcfg(Intrdistregs *idp)
+intrdistcfg(Intrdistregs *idp)
 {
-	int i, cpumask;
-	ulong pat;
+	int i;
+	ulong ppicfg, spicfg;
 
-	/* set up all interrupts as level-sensitive, to one cpu (0) */
-	pat = 0;
-	for (i = 0; i < Bi2long; i += 2)
-		pat |= (Level | To1) << i;
+	/*
+	 * configure all interrupts as level-sensitive.
+	 * ppis go to one cpu, but spis go to all.
+	 */
+	ppicfg = spicfg = 0;
+	for (i = 0; i < Bi2long; i += Cfgwidth)
+		ppicfg |= (Level | To1) << i;
+	for (i = 0; i < Bi2long; i += Cfgwidth)
+		spicfg |= (Level | Toall) << i;
 
-	if (m->machno == 0) {			/* system-wide & cpu0 cfg */
-		for (i = 0; i < nelem(idp->grp); i++)
-			idp->grp[i] = 0;		/* secure */
-		for (i = 0; i < nelem(idp->pri); i++)
-			idp->pri[i] = 0;		/* highest priority */
-		/* set up all interrupts as level-sensitive, to one cpu (0) */
-		for (i = 0; i < nelem(idp->cfg); i++)
-			idp->cfg[i] = pat;
-		/* first Nppi are read-only for SGIs and PPIs */
-		cpumask = 1<<0;				/* just cpu 0 */
-		navailcpus = getncpus();
-		for (i = Nppi; i < sizeof idp->targ; i++)
-			idp->targ[i] = cpumask;
-		coherence();
-
-		intcmaskall(idp);
-		for (i = 0; i < nelem(idp->clrena); i++) {
-			// permintrs(idp, i * Bi2long, i);
-			idp->clrpend[i] = idp->clract[i] = idp->clrena[i] = ~0;
-		}
-	} else {				/* per-cpu config */
-		idp->grp[0] = 0;		/* secure */
-		for (i = 0; i < 8; i++)
-			idp->pri[i] = 0;	/* highest priority */
-		/* idp->targ[0 through Nppi-1] are supposed to be read-only */
-		for (i = 0; i < Nppi; i++)
-			idp->targ[i] = 1<<m->machno;
-		idp->cfg[1] = pat;
-		coherence();
-
-		// permintrs(idp, i * Bi2long, i);
-		idp->clrpend[0] = idp->clract[0] = idp->clrena[0] = ~0;
-		/* on cpu1, irq Extpmuirq (118) is always pending here */
-	}
+	if (m->machno == 0)			/* system-wide & cpu0 cfg */
+		intrdistcfgcpu0(idp, ppicfg, spicfg);
+	else					/* per-cpu config */
+		intrdistcfgcpun(idp, ppicfg);
+	coherence();
+	idp->setena[0] = MASK(Nppi - Nsgi);	/* enable non-sgi ppis */
 	coherence();
 }
 
+/* route irq to cpu */
 void
 intrto(int cpu, int irq)
 {
@@ -390,58 +471,51 @@ intrto(int cpu, int irq)
 }
 
 void
-intrsto(int cpu)			/* unused */
+intrcpu(int cpu, int dolock)
 {
-	int i;
 	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
 
-	/* first Nppi are read-only for SGIs and the like */
-	for (i = Nppi; i < sizeof idp->targ; i++)
-		intrto(cpu, i);
-	USED(idp);
+	if (dolock)
+		ilock(&distlock);
+	idp->swgen = Totargets | 1 << (cpu + 16) | m->machno;
+	if (dolock)
+		iunlock(&distlock);
+	else
+		coherence();
 }
 
-void
-intrcpu(int cpu)
+static void
+memmovewb(void *dest, void *src, uint size)
 {
-	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
-
-	ilock(&distlock);
-	idp->swgen = Totargets | 1 << (cpu + 16) | m->machno;
-	iunlock(&distlock);
+	memmove(dest, src, size);
+	allcacheswbse(dest, size);	 /* make visible to all */
 }
 
 /*
- *  set up for exceptions
+ * set up the exception vectors, high and low, and low-memory wfi loop.
+ *
+ * we can't use mva cache ops on HVECTORS address, since they
+ * work on virtual addresses, and only those that have a
+ * physical address == PADDR(virtual).
  */
 void
-trapinit(void)
+vecinit(void)
+{
+	if (m->machno != 0)
+		return;
+	memmove((Vpage0 *)HVECTORS, vectors, sizeof(Vpage0));
+	memmovewb((Vpage0 *)KADDR(0), vectors, sizeof(Vpage0));
+
+	wfiloop = (void (*)(void))KADDR(sizeof(Vpage0));
+	/* ugh: 2 is WFI, B */
+	memmovewb(wfiloop, _wfiloop, 2 * sizeof(ulong));
+	cacheiinv();
+}
+
+void
+exceptinit(void)
 {
 	int s;
-	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
-	Intrcpuregs *icp = (Intrcpuregs *)soc.intr;
-	Vpage0 *vpage0;
-	enum { Vecsize = sizeof vpage0->vectors + sizeof vpage0->vtable, };
-
-	/*
-	 * set up the exception vectors, high and low.
-	 *
-	 * we can't use cache ops on HVECTORS address, since they
-	 * work on virtual addresses, and only those that have a
-	 * physical address == PADDR(virtual).
-	 */
-	if (m->machno == 0) {
-		vpage0 = (Vpage0*)HVECTORS;
-		memmove(vpage0->vectors, vectors, sizeof(vpage0->vectors));
-		memmove(vpage0->vtable, vtable, sizeof(vpage0->vtable));
-
-		vpage0 = (Vpage0*)KADDR(0);
-		memmove(vpage0->vectors, vectors, sizeof(vpage0->vectors));
-		memmove(vpage0->vtable, vtable, sizeof(vpage0->vtable));
-
-		allcache->wbse(vpage0, Vecsize);
-		cacheiinv();
-	}
 
 	/*
 	 * set up the stack pointers for the exception modes for this cpu.
@@ -455,23 +529,50 @@ trapinit(void)
 	setr13(PsrMund, m->sund);
 	setr13(PsrMsys, m->ssys);
 	splx(s);
+}
+
+/*
+ *  set up for exceptions.  some of it is per-cpu.
+ */
+void
+trapinit(void)
+{
+	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
+	Intrcpuregs *icp = (Intrcpuregs *)soc.intr;
+
+	vecinit();
+	exceptinit();
 
 	assert((idp->distid & MASK(12)) == 0x43b);	/* made by arm */
 	assert((icp->ifid   & MASK(12)) == 0x43b);	/* made by arm */
 
 	ilock(&distlock);
-	idp->ctl = 0;
+	if (m->machno == 0) {
+		/* if intr ctlr is running, stop it */
+		idp->ctl = 0;
+		coherence();
+		delay(10);
+	}
+	icp->primask = Priclock;	/* let no priorities through */
+	icp->binpt = 0;
+	coherence();
 	icp->ctl = 0;
 	coherence();
+	delay(10);
 
-	intrcfg(idp);			/* some per-cpu cfg here */
+	intrdistcfg(idp);		/* some per-cpu cfg here */
 
-	icp->ctl = Enable;
-	icp->primask = (uchar)~0;	/* let all priorities through */
+	icp->primask = Prilowest;	/* let all priorities through */
+	icp->binpt = 0;
 	coherence();
-
-	idp->ctl = Forw2cpuif;
+	icp->ctl = Enablesec | Enablens | Ackctl;
 	iunlock(&distlock);
+	delay(10);
+
+	/* arm recommend enabling the distributor last */
+	idp->ctl = Forw2cpuif;	/* only needed on cpu0? */
+	coherence();
+	delay(10);
 }
 
 void
@@ -482,25 +583,34 @@ intrsoff(void)
 	iunlock(&distlock);
 }
 
+/* shutdown this cpu's part of the interrupt controller */
 void
 intrcpushutdown(void)
 {
 	Intrcpuregs *icp = (Intrcpuregs *)soc.intr;
+	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
 
+	icp->primask = Priclock;	/* let no priorities through */
+	coherence();
 	icp->ctl = 0;
-	icp->primask = 0;	/* let no priorities through */
+	coherence();
+	idp->clrena[0] = ~0;		/* turn off all local intrs */
 	coherence();
 }
 
-/* called from cpu0 after other cpus are shutdown */
+/*
+ * called from cpu0 after other cpus are shutdown to completely shutdown
+ * the interrupt controller.
+ */
 void
 intrshutdown(void)
 {
 	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
 
 	intrsoff();
-	idp->ctl = 0;
 	intrcpushutdown();
+	idp->ctl = 0;
+	coherence();
 }
 
 /*
@@ -513,7 +623,7 @@ irqenable(uint irq, void (*f)(Ureg*, void*), void* a, char *name)
 	Vctl *v;
 
 	if(irq >= nelem(vctl))
-		panic("irqenable irq %d", irq);
+		panic("irqenable: irq %d too big", irq);
 
 	if (irqtooearly) {
 		iprint("irqenable for %d %s called too early\n", irq, name);
@@ -560,6 +670,33 @@ irqenable(uint irq, void (*f)(Ureg*, void*), void* a, char *name)
 }
 
 /*
+ * spread the interrupt load from peripherals around.
+ * we only use timers, uart and ether.
+ */
+void
+irqreassign(void)
+{
+	int irq, cpu;
+
+	if (active.nmachs <= 1)
+		return;
+	for (irq = Nppi; irq < Nirqs; irq++)
+		if (vctl[irq] != nil) {
+			cpu = 0;
+			switch (irq) {
+			case Pcieirq:
+			case Pciemsiirq:
+				cpu = 1;
+				break;
+			}
+			if (cpu != 0)
+				iprint("irqenable: %s: route irq %d to cpu %d\n",
+					vctl[irq]->name, irq, cpu);
+			intrto(cpu, irq);
+		}
+}
+
+/*
  *  disable an irq interrupt
  */
 int
@@ -593,6 +730,17 @@ irqdisable(uint irq, void (*f)(Ureg*, void*), void* a, char *name)
 	return 0;
 }
 
+static void
+badfault(uintptr va, int read)
+{
+	char buf[ERRMAX];
+
+	/* don't dump registers; programs suicide all the time */
+	snprint(buf, sizeof buf, "sys: trap: fault %s va=%#p",
+		read? "read": "write", va);
+	postnote(up, 1, buf, NDebug);
+}
+
 /*
  *  called by trap to handle access faults
  */
@@ -612,17 +760,12 @@ faultarm(Ureg *ureg, uintptr va, int user, int read)
 	n = fault(va, read);		/* goes spllo */
 	splhi();
 	if(n < 0){
-		char buf[ERRMAX];
-
 		if(!user){
 			dumpstackwithureg(ureg);
 			panic("fault: cpu%d: kernel %sing %#p at %#p",
 				m->machno, read? "read": "writ", va, ureg->pc);
 		}
-		/* don't dump registers; programs suicide all the time */
-		snprint(buf, sizeof buf, "sys: trap: fault %s va=%#p",
-			read? "read": "write", va);
-		postnote(up, 1, buf, NDebug);
+		badfault(va, read);	/* no return */
 	}
 	up->insyscall = insyscall;
 }
@@ -635,21 +778,34 @@ static int
 irq(Ureg* ureg)
 {
 	int clockintr, ack;
-	uint irqno, handled, t, ticks;
+	uint irqno, handled;
 	Intrcpuregs *icp = (Intrcpuregs *)soc.intr;
+	Intrdistregs *idp = (Intrdistregs *)soc.intrdist;
 	Vctl *v;
+	void (*isr)(Ureg*, void*);
 
-	ticks = perfticks();
-	handled = 0;
-	ack = intack(icp);
+	ack = icp->hipripend;			/* erratum 801120 dummy read */
+	USED(ack);
+	coherence();
+
+	ack = icp->ack;
+	coherence();
 	irqno = ack & Intrmask;
-
+	if (irqno == 0 && !(idp->active[0] & (1<<0))) {
+		/*
+		 * erratum 733075: spurious interrupt: if ID is 0, 0x3FE or
+		 * 0x3FF, CPU interface may be locked-up.
+		 */
+		ack = idp->pri[0];
+		idp->pri[0] = ack;		/* unlock cpu interface */
+		coherence();
+		return 0;
+	}
 	if (irqno >= nelem(vctl)) {
-		iprint("trap: irq %d >= # vectors (%d)\n", irqno, nelem(vctl));
+		iprint("trap: irq %d >= # vectors (%d)\n", irqno, (int)nelem(vctl));
 		intdismiss(icp, ack);
 		return 0;
 	}
-
 	if (irqno == Loctmrirq)			/* this is a clock intr? */
 		m->inclockintr++;		/* yes, count nesting */
 	if(m->machno && m->inclockintr > 1) {
@@ -659,36 +815,23 @@ irq(Ureg* ureg)
 		return 0;
 	}
 
-	for(v = vctl[irqno]; v != nil; v = v->next)
-		if (v->f) {
-			if (islo())
-				panic("trap: pl0 before trap handler for %s",
-					v->name);
-			v->f(ureg, v->a);
-			if (islo())
-				panic("trap: %s lowered pl", v->name);
-//			splhi();		/* in case v->f lowered pl */
+	handled = 0;
+	for(v = vctl[irqno]; v != nil; v = v->next) {
+		isr = v->f;
+		if (isr) {
+			isr(ureg, v->a);
 			handled++;
 		}
+	}
 	if(!handled)
-		if (irqno >= 1022)
-			iprint("cpu%d: ignoring spurious interrupt\n", m->machno);
-		else {
+		if (irqno >= 1022) {
+			/* maybe count these instead of printing? */
+			// iprint("cpu%d: ignoring spurious interrupt\n", m->machno);
+		} else {
 			intcmask(irqno);
 			iprint("cpu%d: unexpected interrupt %d, now masked\n",
 				m->machno, irqno);
 		}
-	t = perfticks();
-	if (0) {			/* left over from another port? */
-		ilock(&nintrlock);
-		ninterrupt++;
-		if(t < ticks)
-			ninterruptticks += ticks-t;
-		else
-			ninterruptticks += t-ticks;
-		iunlock(&nintrlock);
-	}
-	USED(t, ticks);
 	clockintr = m->inclockintr == 1;
 	if (irqno == Loctmrirq)
 		m->inclockintr--;
@@ -716,11 +859,33 @@ writetomem(ulong inst)
 }
 
 static void
+badalign(Ureg *ureg, uintptr va)
+{
+	char buf[ERRMAX];
+
+	snprint(buf, sizeof buf, "sys: alignment: pc %#lux va %#p\n",
+		ureg->pc, va);
+	postnote(up, 1, buf, NDebug);
+}
+
+static void
+accviolation(Ureg *ureg, uintptr va)
+{
+	char buf[ERRMAX];
+
+	snprint(buf, sizeof buf, "sys: access violation: pc %#lux va %#p\n",
+		ureg->pc, va);
+	postnote(up, 1, buf, NDebug);
+}
+
+/* can't call validalign here */
+static void
 datafault(Ureg *ureg, int user)
 {
 	int x;
 	ulong inst, fsr;
 	uintptr va;
+	static ulong tottrapped;
 
 	va = farget();
 
@@ -733,7 +898,9 @@ datafault(Ureg *ureg, int user)
 		return;
 	}
 
-	inst = *(ulong*)(ureg->pc);
+	inst = 0;
+	if ((ureg->pc & (BY2WD-1)) == 0)
+		inst = *(ulong*)ureg->pc;
 	/* bits 12 and 10 have to be concatenated with status */
 	x = fsrget();
 	fsr = (x>>7) & 0x20 | (x>>6) & 0x10 | x & 0xf;
@@ -747,14 +914,9 @@ datafault(Ureg *ureg, int user)
 		break;
 	case 0x1:		/* alignment fault */
 	case 0x3:		/* access flag fault (section) */
-		if(user){
-			char buf[ERRMAX];
-
-			snprint(buf, sizeof buf,
-				"sys: alignment: pc %#lux va %#p\n",
-				ureg->pc, va);
-			postnote(up, 1, buf, NDebug);
-		} else {
+		if(user)
+			badalign(ureg, va);	/* no return */
+		else {
 			dumpstackwithureg(ureg);
 			panic("kernel alignment: pc %#lux va %#p", ureg->pc, va);
 		}
@@ -791,16 +953,11 @@ datafault(Ureg *ureg, int user)
 	case 0x9:
 	case 0xb:
 		/* domain fault, accessing something we shouldn't */
-		if(user){
-			char buf[ERRMAX];
-
-			snprint(buf, sizeof buf,
-				"sys: access violation: pc %#lux va %#p\n",
-				ureg->pc, va);
-			postnote(up, 1, buf, NDebug);
-		} else
-			panic("kernel access violation: pc %#lux va %#p",
-				ureg->pc, va);
+		if(user)
+			accviolation(ureg, va);		/* no return */
+		else
+			panic("cpu%d: kernel access violation: pc %#lux va %#p",
+				m->machno, ureg->pc, va);
 		break;
 	case 0xd:
 	case 0xf:
@@ -810,29 +967,138 @@ datafault(Ureg *ureg, int user)
 	}
 }
 
+enum {
+	Machstk,
+	Procstk,
+	Stks,
+};
+
+long bigstk[Stks];
+
+static void
+biggeststk(int stktype, int stksize)
+{
+	if (stksize > bigstk[stktype])
+		bigstk[stktype] = stksize;
+}
+
+static ulong
+howclean(ulong *base)
+{
+	ulong *wdp;
+
+	for (wdp = base; *wdp == 0; wdp++)
+		;
+	return (wdp - base)*sizeof(ulong);
+}
+
+static void
+prmachdirty(Mach *mach)
+{
+	ulong *wdp;
+
+	for (wdp = (ulong *)mach->stack; *wdp == 0; wdp++)
+		;
+	iprint("cpu%d clean Mach stack %ld bytes\n", mach->machno,
+		howclean((ulong *)mach->stack));
+}
+
+void
+prstkuse(void)
+{
+	int i;
+	ulong clean, leastclean;
+	Proc *p;
+
+	if (!Measurestack)
+		return;
+	iprint("biggest Mach stack %#ld\n", bigstk[0]);
+	iprint("biggest proc k stack %#ld\n", bigstk[1]);
+	for (i = 0; i < conf.nmach; i++)
+		prmachdirty(machaddr[i]);
+	leastclean = KSTKSIZE;
+	for(i=0; i<conf.nproc; i++){
+		p = proctab(i);
+		if (p && p->kstack) {
+			clean = howclean((ulong *)p->kstack);
+			if (clean < leastclean)
+				leastclean = clean;
+		}
+	}
+	iprint("least clean proc k stack %ld\n", leastclean);
+}
+
+/*
+ * ureg is the current stack pointer.  verify that it's within
+ * a plausible range.
+ */
+void
+ckstack(Ureg **uregp)
+{
+	int rem;
+	uintptr kstack;
+	Ureg *ureg;
+
+	/*
+	 * we assume that up != nil means that we are using a process's
+	 * kernel stack.
+	 */
+	USED(uregp);
+	if (Measurestack)
+		if(up != nil)
+			biggeststk(Procstk, (uintptr)up->kstack + KSTKSIZE -
+				(uintptr)uregp);
+		else
+			biggeststk(Machstk, (uintptr)m + MACHSIZE -
+				(uintptr)uregp);
+	if (!Checkstack)
+		return;
+	kstack = (up? (uintptr)up->kstack: (uintptr)m->stack);
+	rem = (uintptr)uregp - kstack;
+	/*
+	 * difference between sp at entry and maximum stack use
+	 * of 956 bytes has been seen, so be cautious.
+	 */
+	if(rem < 1200) {
+		char *which;
+
+		which = up != nil? "process": "mach";
+		ureg = *uregp;
+		dumpstackwithureg(ureg);
+		panic("trap: %d %s stack bytes left, up %#p ureg (sp) %#p "
+			"kstack %#p m %#p cpu%d at pc %#lux",
+			rem, which, up, ureg, kstack, m, m->machno, ureg->pc);
+	}
+}
+
+/* move stack usage for error case here */
+static void
+undef(Ureg *ureg)
+{
+	ulong inst;
+	char buf[ERRMAX];
+
+	inst = 0;
+	if ((ureg->pc & (BY2WD-1)) == 0)
+		inst = *(ulong *)ureg->pc;
+	snprint(buf, sizeof buf,
+		"undefined instruction: pc %#lux instr %#8.8lux\n",
+		ureg->pc, inst);
+	postnote(up, 1, buf, NDebug);
+}
+
 /*
  *  here on all exceptions other than syscall (SWI) and reset
  */
 void
 trap(Ureg *ureg)
 {
-	int clockintr, user, rem;
+	int clockintr, user;
 	uintptr va, ifar, ifsr;
 
-	splhi();			/* paranoia */
-	if(up != nil)
-		rem = ((char*)ureg)-up->kstack;
-	else
-		rem = ((char*)ureg)-((char*)m+sizeof(Mach));
-	if(rem < 1024) {
-		iprint("trap: %d stack bytes left, up %#p ureg %#p m %#p cpu%d at pc %#lux\n",
-			rem, up, ureg, m, m->machno, ureg->pc);
-		dumpstackwithureg(ureg);
-		panic("trap: %d stack bytes left, up %#p ureg %#p at pc %#lux",
-			rem, up, ureg, ureg->pc);
-	}
-
+	splhi();  /* paranoia - probably interferes with nested interrupts */
 	m->perf.intrts = perfticks();
+	ckstack(&ureg);
 	user = (ureg->psr & PsrMask) == PsrMusr;
 	if(user){
 		up->dbgreg = ureg;
@@ -843,7 +1109,7 @@ trap(Ureg *ureg)
 	 * All interrupts/exceptions should be resumed at ureg->pc-4,
 	 * except for Data Abort which resumes at ureg->pc-8.
 	 */
-	if(ureg->type == (PsrMabt+1))
+	if(ureg->type == PsrMabt+1)
 		ureg->pc -= 8;
 	else
 		ureg->pc -= 4;
@@ -857,14 +1123,16 @@ trap(Ureg *ureg)
 	case PsrMirq:
 		m->intr++;
 		clockintr = irq(ureg);
-		if(0 && up && !clockintr)
-			preempted();	/* this causes spurious suicides */
+		if (!clockintr) {
+			if(up)
+				preempted();
+			wakewfi();	/* may be (k)proc to run now */
+		}
 		break;
 	case PsrMabt:			/* prefetch (instruction) fault */
 		va = ureg->pc;
-		ifsr = cprdsc(0, CpFSR, 0, CpIFSR);
-		ifsr = (ifsr>>7) & 0x8 | ifsr & 0x7;
-		switch(ifsr){
+		ifsr = fsriget();
+		switch((ifsr>>7) & 0x8 | ifsr & 0x7){
 		case 0x02:		/* instruction debug event (BKPT) */
 			if(user)
 				postnote(up, 1, "sys: breakpoint", NDebug);
@@ -875,7 +1143,7 @@ trap(Ureg *ureg)
 			}
 			break;
 		default:
-			ifar = cprdsc(0, CpFAR, 0, CpIFAR);
+			ifar = fariget();
 			if (va != ifar)
 				iprint("trap: cpu%d: i-fault va %#p != ifar %#p\n",
 					m->machno, va, ifar);
@@ -888,10 +1156,10 @@ trap(Ureg *ureg)
 		break;
 	case PsrMund:			/* undefined instruction */
 		if(!user) {
-			if (ureg->pc & 3) {
+			if (ureg->pc & (BY2WD-1)) {
 				iprint("rounding fault pc %#lux down to word\n",
 					ureg->pc);
-				ureg->pc &= ~3;
+				ureg->pc &= ~(BY2WD-1);
 			}
 			if (Debug)
 				iprint("mathemu: cpu%d fpon %d instr %#8.8lux at %#p\n",
@@ -901,16 +1169,11 @@ trap(Ureg *ureg)
 			panic("cpu%d: undefined instruction: pc %#lux inst %#ux",
 				m->machno, ureg->pc, ((u32int*)ureg->pc)[0]);
 		} else if(seg(up, ureg->pc, 0) != nil &&
-		   *(u32int*)ureg->pc == 0xD1200070)
+		    (ureg->pc & (BY2WD-1)) == 0 &&
+		    *(u32int*)ureg->pc == 0xe1200070)	/* see libmach/5db.c */
 			postnote(up, 1, "sys: breakpoint", NDebug);
-		else if(fpuemu(ureg) == 0){	/* didn't find any FP instrs? */
-			char buf[ERRMAX];
-
-			snprint(buf, sizeof buf,
-				"undefined instruction: pc %#lux instr %#8.8lux\n",
-				ureg->pc, *(ulong *)ureg->pc);
-			postnote(up, 1, buf, NDebug);
-		}
+		else if(fpuemu(ureg) == 0)	/* didn't find any FP instrs? */
+			undef(ureg);
 		break;
 	}
 	splhi();
@@ -1067,6 +1330,7 @@ dumpregs(Ureg* ureg)
 vlong
 probeaddr(uintptr addr)
 {
+	ulong fetch;
 	vlong v;
 
 	ilock(&m->probelock);
@@ -1074,12 +1338,21 @@ probeaddr(uintptr addr)
 	m->probing = 1;
 	coherence();
 
-	v = *(ulong *)addr;	/* this may cause a fault */
+	/*
+	 * this fetch may cause a fault, but it may be imprecise
+	 * and asynchronous.
+	 */
+	fetch = *(volatile ulong *)addr;
 	coherence();
+	coherence();
+	delay(1);
 
 	m->probing = 0;
-	if (m->trapped)
+	if (m->trapped) {
 		v = -1;
+		m->trapped = 0;
+	} else
+		v = fetch;
 	iunlock(&m->probelock);
 	return v;
 }

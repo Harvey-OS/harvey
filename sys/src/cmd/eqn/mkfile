@@ -24,6 +24,7 @@ OFILES=main.$O\
 	sqrt.$O\
 	text.$O\
 	eqn.$O\
+	mbwc.$O\
 
 YFILES=eqn.y\
 
@@ -32,10 +33,8 @@ HFILES=e.h\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CC=pcc
-LD=pcc
-YFLAGS=-d -S
-CFLAGS=-FTV -c
+YFLAGS=-d
+CFLAGS=-FTVw
 
 eqn.c:	y.tab.c prevy.tab.h
 	mv y.tab.c $target

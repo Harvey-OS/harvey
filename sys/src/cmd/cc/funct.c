@@ -222,7 +222,7 @@ dclfunct(Type *t, Sym *s)
 	if(t->funct)
 		return;
 
-	// recognize generated tag of dorm _%d_
+	// recognize generated tag of form _%d_
 	if(t->tag == S)
 		goto bad;
 	for(i=0; c = t->tag->name[i]; i++) {

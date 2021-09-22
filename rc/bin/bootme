@@ -1,0 +1,17 @@
+#!/bin/rc
+rfork n
+cd /
+9fs boot		# in case of odd namespace
+
+kern=`{echo $terminal | sed 's;^([^ ]+) .*/([^/]+)$;/n/boot/'$cputype'/9\2;'}
+if (! test -e $kern) {
+	echo $0: $kern: no such kernel >[1=2]
+	exit 'no '$"kern
+}
+echo booting $kern
+echo reboot  $kern >/dev/reboot >[2]/dev/null
+
+# try boot image, if $kern is a raw binary
+kern=`{ echo $kern | sed 's;.*/;&s;' }
+echo booting $kern
+echo reboot  $kern >/dev/reboot

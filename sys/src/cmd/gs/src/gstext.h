@@ -144,6 +144,7 @@ typedef struct gs_text_enum_s gs_text_enum_t;
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#pragma incomplete gx_device
 #endif
 #ifndef gs_imager_state_DEFINED
 #  define gs_imager_state_DEFINED
@@ -152,6 +153,7 @@ typedef struct gs_imager_state_s gs_imager_state;
 #ifndef gx_device_color_DEFINED
 #  define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
+#pragma incomplete gx_device_color
 #endif
 #ifndef gs_font_DEFINED
 #  define gs_font_DEFINED

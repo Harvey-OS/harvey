@@ -1,0 +1,140 @@
+BUILTINS=
+</$objtype/mkfile
+
+OFILES=\
+	mag.$O\
+	subr.$O\
+	sphere.$O\
+
+ODFILES=\
+	$OFILES\
+	ft.$O\
+
+HFILES=\
+	obj.h\
+	sphere.h\
+
+JFILES=\
+	apr\
+	apt\
+	ils\
+	loc\
+	ndb\
+	sid\
+	tca\
+	vor\
+	gps\
+
+TARG=\
+	path\
+	ft\
+	fd\
+	sa\
+	aa\
+	cross\
+	dist\
+	dme\
+	plan\
+	$JFILES
+
+BIN=/$objtype/bin/aviation
+
+</sys/src/cmd/mkmany
+
+$O.dme:	dme.$O $OFILES
+	$LD -o $target $prereq
+
+$O.plan:	plan.$O $OFILES
+	$LD -o $target $prereq
+
+$O.cross:	cross.$O $OFILES
+	$LD -o $target $prereq
+
+$O.load:	load.$O $OFILES
+	$LD -o $target $prereq
+
+$O.path:	path.$O $OFILES
+	$LD -o $target $prereq
+
+$O.dist:	dist.$O $OFILES
+	$LD -o $target $prereq
+
+$O.ft:	ftdat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.fd:	fddat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.sa:	sadat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.aa:	aadat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.apr:	aprdat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.apt:	aptdat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.ils:	ilsdat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.loc:	locdat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.sid:	siddat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.vor:	vordat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.ndb:	ndbdat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.tca:	tcadat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.gps:	gpsdat.$O $ODFILES
+	$LD -o $target $prereq
+
+$O.azel:	azel.$O $OFILES
+	$LD -o $target $prereq
+
+$O.ckmag:	mag.v amag.v ckmag.v
+	$LD -o $target $prereq
+	./$O.ckmag
+
+#
+#  run this whenever /lib/aviation/airdb changes
+#
+reload:	$O.load
+	rm -f /lib/aviation/obj
+	./$O.load vor? air? ndb? spc?
+
+#
+#  run this whenever /lib/aviation/airdb changes
+#
+dat:V:
+	grep '^... sa ' /lib/weather/raw | sed -e 's/ .*//' -e 's/^//' | sort -u >x1
+	sed 's~.*~look & /lib/aviation/airdb~' x1 >x2
+	rc x2 >x3
+	sed -e 's/  */",/' -e 's/  */,/' -e 's/ .*/,0,0,/' -e 's/.*/	"&/' x3 >sadat
+	diff sadat sadat.c
+	grep '^... ft ' /lib/weather/raw | sed -e 's/ .*//' -e 's/^//' | sort -u >x1
+	sed 's~.*~look & /lib/aviation/airdb~' x1 >x2
+	rc x2 >x3
+	sed -e 's/  */",/' -e 's/  */,/' -e 's/ .*/,0,0,/' -e 's/.*/	"&/' x3 >ftdat
+	diff ftdat ftdat.c
+	rm -f x1 x2 x3
+
+dat1:V:
+	grep '^... .... ....... ....... ....... ....... ....... ...... ...... ......' /lib/weather/raw | sed -e 's/ .*//' -e 's/^//' | sort -u >x1
+	sed 's~.*~look & /lib/aviation/airdb~' x1 >x2
+	rc x2 >x3
+	sed -e 's/  */",/' -e 's/  */,/' -e 's/ .*/,0,0,/' -e 's/.*/	"&/' x3 >fddat
+	diff fddat fddat.c
+
+clean:V:
+	rm -f *.[5689qv] [5689qv].* $AFILES load azel ckmag
+

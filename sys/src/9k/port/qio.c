@@ -162,7 +162,7 @@ blockalloclen(Block *bp)
 }
 
 /*
- *  copy the  string of blocks into
+ *  copy the string of blocks into
  *  a single block and free the string
  */
 Block*
@@ -503,10 +503,9 @@ qdiscard(Queue *q, int len)
 int
 qconsume(Queue *q, void *vp, int len)
 {
-	Block *b;
 	int n, dowakeup;
 	uchar *p = vp;
-	Block *tofree = nil;
+	Block *b, *tofree = nil;
 
 	/* sync with qwrite */
 	ilock(q);
@@ -529,7 +528,7 @@ qconsume(Queue *q, void *vp, int len)
 		/* remember to free this */
 		b->next = tofree;
 		tofree = b;
-	};
+	}
 
 	if(n < len)
 		len = n;
@@ -569,7 +568,7 @@ qconsume(Queue *q, void *vp, int len)
 }
 
 int
-qpass(Queue *q, Block *b)
+qpasslim(Queue *q, Block *b, int lim)
 {
 	int dlen, len, dowakeup;
 
@@ -577,14 +576,14 @@ qpass(Queue *q, Block *b)
 	dowakeup = 0;
 	ilock(q);
 	if(q->len >= q->limit){
-		iunlock(q);
 		freeblist(b);
+		iunlock(q);
 		return -1;
 	}
-	if(q->state & Qclosed){
+	if (lim && q->state & Qclosed){
 		len = BALLOC(b);
-		iunlock(q);
 		freeblist(b);
+		iunlock(q);
 		return len;
 	}
 
@@ -622,52 +621,15 @@ qpass(Queue *q, Block *b)
 }
 
 int
+qpass(Queue *q, Block *b)
+{
+	return qpasslim(q, b, 1);	/* 1 = yes, limit */
+}
+
+int
 qpassnolim(Queue *q, Block *b)
 {
-	int dlen, len, dowakeup;
-
-	/* sync with qread */
-	dowakeup = 0;
-	ilock(q);
-
-	if(q->state & Qclosed){
-		len = BALLOC(b);
-		iunlock(q);
-		freeblist(b);
-		return len;
-	}
-
-	/* add buffer to queue */
-	if(q->bfirst)
-		q->blast->next = b;
-	else
-		q->bfirst = b;
-	len = BALLOC(b);
-	dlen = BLEN(b);
-	QDEBUG checkb(b, "qpass");
-	while(b->next){
-		b = b->next;
-		QDEBUG checkb(b, "qpass");
-		len += BALLOC(b);
-		dlen += BLEN(b);
-	}
-	q->blast = b;
-	q->len += len;
-	q->dlen += dlen;
-
-	if(q->len >= q->limit/2)
-		q->state |= Qflow;
-
-	if(q->state & Qstarve){
-		q->state &= ~Qstarve;
-		dowakeup = 1;
-	}
-	iunlock(q);
-
-	if(dowakeup)
-		wakeup(&q->rr);
-
-	return len;
+	return qpasslim(q, b, 0);	/* 0 = no limit */
 }
 
 /*
@@ -840,7 +802,7 @@ qbypass(void (*bypass)(void*, Block*), void *arg)
 	return q;
 }
 
-static int
+/* static */ int
 notempty(void *a)
 {
 	Queue *q = a;
@@ -1081,6 +1043,8 @@ qread(Queue *q, void *vp, int len)
 	Block *b, *first, **l;
 	int blen, n;
 
+	if (q == nil)
+		panic("qread nil q from %#p", getcallerpc(&q));
 	qlock(&q->rlock);
 	if(waserror()){
 		qunlock(&q->rlock);
@@ -1284,6 +1248,8 @@ qwrite(Queue *q, void *vp, int len)
 
 	QDEBUG if(!islo())
 		print("qwrite hi %#p\n", getcallerpc(&q));
+	if (q == nil)
+		panic("qwrite nil q from %#p", getcallerpc(&q));
 
 	sofar = 0;
 	do {
@@ -1323,6 +1289,8 @@ qiwrite(Queue *q, void *vp, int len)
 	Block *b;
 	uchar *p = vp;
 
+	if (q == nil)
+		panic("qiwrite nil q from %#p", getcallerpc(&q));
 	dowakeup = 0;
 
 	sofar = 0;

@@ -1,5 +1,6 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <math.h>
 #include "pic.h"
 #include "y.tab.h"
 
@@ -18,13 +19,14 @@ void troff(char *);
 void dot(void);
 void fillstart(double), fillend(int vis, int noedge);
 
-void print(void)
+void tblprint(void)
 {
 	obj *p;
 	int i, j, k, m;
 	int fill, vis, invis;
 	double x0, y0, x1, y1, ox, oy, dx, dy, ndx, ndy;
 
+	x1 = y1 = 0;
 	for (i = 0; i < nobj; i++) {
 		p = objlist[i];
 		ox = p->o_x;
@@ -204,6 +206,7 @@ void dotline(double x0, double y0, double x1, double y1, int ddtype, double ddva
 		numdots = d / (2 * prevval) + 1;	/* ceiling */
 		dashsize = prevval;
 		spacesize = (d - numdots * dashsize) / (numdots - 1);
+		b = 0;
 		for (i = 0; i < numdots-1; i++) {
 			a = i * (dashsize + spacesize) / d;
 			b = a + dashsize / d;

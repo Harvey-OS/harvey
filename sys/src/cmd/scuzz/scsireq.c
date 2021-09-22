@@ -1,10 +1,10 @@
-#include <u.h>
-#include <libc.h>
 /*
  * BUGS:
  *	no luns
  *	and incomplete in many other ways
  */
+#include <u.h>
+#include <libc.h>
 #include <disk.h>
 #include "scsireq.h"
 
@@ -113,6 +113,7 @@ SRrblimits(ScsiReq *rp, uchar *list)
 	return SRrequest(rp);
 }
 
+/* use the smallest cdb that will hold offset and length; return its size */
 static int
 dirdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 {
@@ -125,14 +126,26 @@ dirdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 		cmd[5] = 0;
 		return 6;
 	}
-	cmd[0] |= ScmdExtread;
-	cmd[1] = 0;
-	PUTBELONG(cmd+2, rp->offset);
-	cmd[6] = 0;
-	cmd[7] = n>>8;
-	cmd[8] = n;
-	cmd[9] = 0;
-	return 10;
+	if(rp->offset < (1ull<<32) && n < (1<<16)){
+		cmd[0] |= ScmdExtread;	/* relies on values of command codes */
+		cmd[1] = 0;
+		PUTBELONG(cmd+2, rp->offset);
+		cmd[6] = 0;
+		cmd[7] = n>>8;
+		cmd[8] = n;
+		cmd[9] = 0;
+		return 10;
+	} else {
+		/* this relies on knowledge of the values of the command codes */
+		cmd[0] &= 0xf;
+		cmd[0] |= ScmdRead16;
+		cmd[1] = 0;
+		PUTBEVLONG(cmd+2, rp->offset);
+		PUTBELONG(cmd+10, n);
+		cmd[14] = 0;		/* group # */
+		cmd[15] = 0;		/* control */
+		return 16;
+	}
 }
 
 static int
@@ -151,7 +164,7 @@ seqdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 long
 SRread(ScsiReq *rp, void *buf, long nbytes)
 {
-	uchar cmd[10];
+	uchar cmd[16];
 	long n;
 
 	if((nbytes % rp->lbsize) || nbytes > maxiosize){
@@ -219,7 +232,7 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 long
 SRwrite(ScsiReq *rp, void *buf, long nbytes)
 {
-	uchar cmd[10];
+	uchar cmd[16];
 	long n;
 
 	if((nbytes % rp->lbsize) || nbytes > maxiosize){
@@ -266,6 +279,10 @@ SRwrite(ScsiReq *rp, void *buf, long nbytes)
 	return n;
 }
 
+/*
+ * seek has been declared obsolete by t10 and the largest one takes
+ * only a 32-bit lba.
+ */
 long
 SRseek(ScsiReq *rp, long offset, int type)
 {

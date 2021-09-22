@@ -11,7 +11,8 @@ HFILES=\
 	lib/bzlib.h\
 	lib/plan9.h\
 
-LIB=lib/libbzip2.a$O
+LIB=lib/libbzip2.a$O\
+	/$objtype/lib/libnofp.a
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkmany

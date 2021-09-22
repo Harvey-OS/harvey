@@ -1,0 +1,32 @@
+the metacompiler syntax is as follows.
+	file	things
+	things	(info* thing)*
+	thing	file|virt|{things}|ref|rat
+
+file	path name of a file
+virt	same as file, but file does not exist, a placeholder
+ref	link to some other thing
+rat	creates a sorted list of all things by an artist
+
+info is anything of the form
+	a:	b
+
+known info's are
+	artist		# performer
+	class		# single letters for your own reference
+			# ie I instrumental, C country-western
+	music		# composer
+	path		# prepended to a file
+	text		# followed by { text }
+	title
+	various		# an artist that is not catalogued
+	volume		# postpended to a file
+
+flags are set
+	setup:	flag
+flags
+	sort		# sort elements in {}
+	nosplit		# dont bust elements in {} into pages
+	number		# number each element in {}
+
+map? are examples of metafiles

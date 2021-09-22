@@ -1,0 +1,42 @@
+#!/bin/rc
+# ipon [-g gwv4] ipv4 mask [netdir etherno ndbroot] - enable IP on netdir &
+#	ether-and-ip-stack-no with address ipv4 & optional ipv4 gateway gwv4
+rfork e
+fn usage {
+	echo usage: ipon '[-g gwv4] ipv4 mask [netdir ether&stack-no [ndbroot]]' >[1=2]
+	exit usage
+}
+switch ($1) {
+case -g
+	gw=(-g $2)
+	shift 2
+case -*
+	usage
+}
+switch ($#*) {
+case 2
+	netdir=/net
+	etherno=0
+	ndbroot=/lib/ndb/local
+case 4
+	netdir=$3
+	etherno=$4
+case 5
+	netdir=$3
+	etherno=$4
+	ndbroot=$5
+case *
+	usage
+}
+ipv4=$1
+mask=$2
+
+bind -b '#l'$etherno $netdir
+bind -b '#I'$etherno $netdir
+ip/ipconfig -x $netdir $gw ether $netdir/ether$etherno $ipv4 $mask
+if (~ $#ndbroot 1) {
+	ndb/cs	    -x $netdir -f $ndbroot
+	ndb/dns -r  -x $netdir -f $ndbroot
+}
+if not
+	exit ''

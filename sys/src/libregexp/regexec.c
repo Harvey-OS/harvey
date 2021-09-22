@@ -14,8 +14,7 @@ regexec1(Reprog *progp,	/* program to run */
 	char *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms,		/* number of elements at mp */
-	Reljunk *j
-)
+	Reljunk *j)
 {
 	int flag=0;
 	Reinst *inst;
@@ -81,7 +80,7 @@ regexec1(Reprog *progp,	/* program to run */
 			_renewemptythread(tl, progp->startinst, ms, s);
 
 		/* Execute machine until current list is empty */
-		for(tlp=tl; tlp->inst; tlp++){	/* assignment = */
+		for(tlp=tl; tlp->inst; tlp++){
 			for(inst = tlp->inst; ; inst = inst->next){
 				switch(inst->type){
 				case RUNE:	/* regular character */
@@ -155,50 +154,19 @@ regexec1(Reprog *progp,	/* program to run */
 	return match;
 }
 
-static int
-regexec2(Reprog *progp,	/* program to run */
-	char *bol,	/* string to run machine on */
-	Resub *mp,	/* subexpression elements */
-	int ms,		/* number of elements at mp */
-	Reljunk *j
-)
-{
-	int rv;
-	Relist *relist0, *relist1;
-
-	/* mark space */
-	relist0 = malloc(BIGLISTSIZE*sizeof(Relist));
-	if(relist0 == nil)
-		return -1;
-	relist1 = malloc(BIGLISTSIZE*sizeof(Relist));
-	if(relist1 == nil){
-		free(relist0);
-		return -1;
-	}
-	j->relist[0] = relist0;
-	j->relist[1] = relist1;
-	j->reliste[0] = relist0 + BIGLISTSIZE - 2;
-	j->reliste[1] = relist1 + BIGLISTSIZE - 2;
-
-	rv = regexec1(progp, bol, mp, ms, j);
-	free(relist0);
-	free(relist1);
-	return rv;
-}
-
 extern int
 regexec(Reprog *progp,	/* program to run */
 	char *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms)		/* number of elements at mp */
 {
-	Reljunk j;
-	Relist relist0[LISTSIZE], relist1[LISTSIZE];
+	Reljunk j, jbig;
 	int rv;
 
 	/*
  	 *  use user-specified starting/ending location if specified
 	 */
+	memset(&j, 0, sizeof j);
 	j.starts = bol;
 	j.eol = 0;
 	if(mp && ms>0){
@@ -209,24 +177,28 @@ regexec(Reprog *progp,	/* program to run */
 	}
 	j.starttype = 0;
 	j.startchar = 0;
+
+	if (progp == nil)
+		return -1;
+	assert(progp->startinst != nil);
 	if(progp->startinst->type == RUNE && progp->startinst->r < Runeself) {
 		j.starttype = RUNE;
 		j.startchar = progp->startinst->r;
 	}
 	if(progp->startinst->type == BOL)
 		j.starttype = BOL;
+	jbig = j;
 
-	/* mark space */
-	j.relist[0] = relist0;
-	j.relist[1] = relist1;
-	j.reliste[0] = relist0 + nelem(relist0) - 2;
-	j.reliste[1] = relist1 + nelem(relist1) - 2;
-
+	if (_regalloclists(&j, LISTSIZE) < 0)
+		return -1;
 	rv = regexec1(progp, bol, mp, ms, &j);
-	if(rv >= 0)
+	_regfreelists(&j, LISTSIZE);
+	if (rv >= 0)
 		return rv;
-	rv = regexec2(progp, bol, mp, ms, &j);
-	if(rv >= 0)
-		return rv;
-	return -1;
+
+	if (_regalloclists(&jbig, BIGLISTSIZE) < 0)
+		return -1;
+	rv = regexec1(progp, bol, mp, ms, &jbig);
+	_regfreelists(&jbig, BIGLISTSIZE);
+	return rv;
 }

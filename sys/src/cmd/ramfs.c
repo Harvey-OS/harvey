@@ -15,8 +15,7 @@ enum
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
 	Nram	= 1024,
 	Maxsize	= 768*1024*1024,
-	Maxfdata	= 16*1024,
-	Maxulong= (1ULL << 32) - 1,
+	Maxfdata= 16*1024,
 };
 
 typedef struct Fid Fid;
@@ -37,7 +36,7 @@ struct Ram
 {
 	short	busy;
 	short	open;
-	long	parent;		/* index in Ram array */
+	uintptr	parent;		/* index in Ram array */
 	Qid	qid;
 	long	perm;
 	char	*name;
@@ -47,7 +46,7 @@ struct Ram
 	char	*group;
 	char	*muid;
 	char	*data;
-	long	ndata;
+	uintptr	ndata;
 };
 
 enum
@@ -60,30 +59,30 @@ enum
 	Powner =	64,
 };
 
-ulong	path;		/* incremented for each new file */
 Fid	*fids;
-Ram	*ram;
 int	maxnram = Nram;
-int	nram;
-int	mfd[2];
-char	*user;
 uchar	mdata[IOHDRSZ+Maxfdata];
-uchar	rdata[Maxfdata];	/* buffer for data in reply */
-uchar statbuf[STATMAX];
-Fcall thdr;
-Fcall	rhdr;
 int	messagesize = sizeof mdata;
+int	mfd[2];
+int	nram;
+ulong	path;		/* incremented for each new file */
+Ram	*ram;
+uchar	rdata[Maxfdata];	/* buffer for data in reply */
+Fcall	rhdr;
+uchar	statbuf[STATMAX];
+Fcall	thdr;
+char	*user;
 
-Fid *	newfid(int);
-uint	ramstat(Ram*, uchar*, uint);
+void	*emalloc(uintptr);
+void	*erealloc(void*, uintptr);
 void	error(char*);
-void	io(void);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
 char	*estrdup(char*);
-void	usage(void);
+void	io(void);
+Fid*	newfid(int);
 int	perm(Fid*, Ram*, int);
 Ram	*ramexpand(Ram*);
+uint	ramstat(Ram*, uchar*, uint);
+void	usage(void);
 
 char	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
 	*rattach(Fid*), *rwalk(Fid*),
@@ -157,8 +156,7 @@ main(int argc, char *argv[])
 	Ram *r;
 	char *defmnt, *service;
 	int p[2];
-	int fd;
-	int stdio = 0;
+	int fd, stdio = 0;
 
 	service = "ramfs";
 	defmnt = "/tmp";
@@ -492,7 +490,7 @@ rcreate(Fid *f)
 	f->open = 1;
 	if(thdr.mode & ORCLOSE)
 		f->rclose = 1;
-	r->open = 1;
+	r->open++;
 	return 0;
 }
 
@@ -695,7 +693,7 @@ rwstat(Fid *f)
 	 * Because of lack of users file, leader=>group itself.
 	 */
 	if(dir.mode!=~0 && r->perm!=dir.mode ||
-	   dir.mtime!=~0 && dir.mtime!=r->mtime){
+	   dir.mtime!=~0 && r->mtime!=dir.mtime){
 		if(strcmp(f->user, r->user) != 0)
 		if(strcmp(f->user, r->group) != 0)
 			return Enotowner;
@@ -894,7 +892,7 @@ error(char *s)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uintptr n)
 {
 	void *p;
 
@@ -906,10 +904,10 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uintptr n)
 {
 	p = realloc(p, n);
-	if(n != 0 && !p)
+	if(n != 0 && p == nil)
 		error("out of memory");
 	return p;
 }
@@ -918,7 +916,7 @@ char *
 estrdup(char *q)
 {
 	char *p;
-	int n;
+	uintptr n;
 
 	n = strlen(q)+1;
 	p = malloc(n);

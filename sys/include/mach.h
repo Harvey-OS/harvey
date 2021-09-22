@@ -7,23 +7,21 @@
 /*
  *	Supported architectures:
  *		mips,
- *		68020,
  *		i386,
  *		amd64,
- *		sparc,
- *		mips2 (R4000)
- *		arm
+ *		mips2 (R4000),
+ *		arm,
  *		powerpc,
- *		powerpc64
- *		arm64
- *		riscv
+ *		powerpc64,
+ *		arm64,
+ *		riscv,
  *		riscv64
  */
 enum
 {
 	MMIPS,			/* machine types */
-	MSPARC,
-	M68020,
+	MSPARC,			/* retired */
+	M68020,			/* retired */
 	MI386,
 	MI960,			/* retired */
 	M3210,			/* retired */
@@ -44,11 +42,11 @@ enum
 	FNONE = 0,		/* unidentified */
 	FMIPS,			/* v.out */
 	FMIPSB,			/* mips bootable */
-	FSPARC,			/* k.out */
-	FSPARCB,		/* Sparc bootable */
-	F68020,			/* 2.out */
-	F68020B,		/* 68020 bootable */
-	FNEXTB,			/* Next bootable */
+	FSPARC,			/* retired k.out */
+	FSPARCB,		/* retired Sparc bootable */
+	F68020,			/* retired 2.out */
+	F68020B,		/* retired 68020 bootable */
+	FNEXTB,			/* retired Next bootable */
 	FI386,			/* 8.out */
 	FI386B,			/* I386 bootable */
 	FI960,			/* retired */
@@ -79,9 +77,9 @@ enum
 	ANONE = 0,		/* dissembler types */
 	AMIPS,
 	AMIPSCO,		/* native mips */
-	ASPARC,
-	ASUNSPARC,		/* native sun */
-	A68020,
+	ASPARC,			/* retired */
+	ASUNSPARC,		/* retired native sun */
+	A68020,			/* retired */
 	AI386,
 	AI8086,			/* oh god */
 	AI960,			/* retired */
@@ -96,8 +94,8 @@ enum
 	ARISCV,
 	ARISCV64,
 				/* object file types */
-	Obj68020 = 0,		/* .2 */
-	ObjSparc,		/* .k */
+	Obj68020 = 0,		/* retired .2 */
+	ObjSparc,		/* retired .k */
 	ObjMips,		/* .v */
 	Obj386,			/* .8 */
 	Obj960,			/* retired */
@@ -107,12 +105,12 @@ enum
 	ObjArm,			/* .5 */
 	ObjPower,		/* .q */
 	ObjMips2le,		/* .0 */
-	ObjAlpha,		/* retired */
+	ObjAlpha,		/* retired .7 */
 	ObjSparc64,		/* retired */
 	ObjAmd64,		/* .6 */
 	ObjSpim,		/* .0 */
 	ObjPower64,		/* .9 */
-	ObjArm64,		/* .4? */
+	ObjArm64,		/* .7 */
 	ObjRiscv,		/* .i */
 	ObjRiscv64,		/* .j */
 	Maxobjtype,

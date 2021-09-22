@@ -54,7 +54,7 @@ static	void	readtimezone(void);
 static	int	rd_name(char**, char*);
 static	int	rd_long(char**, long*);
 
-#define	TZSIZE	150
+#define	TZSIZE	((136*2)+10)		/* 1970-2106 */
 
 static
 struct
@@ -63,7 +63,7 @@ struct
 	char	dlname[4];
 	long	stdiff;
 	long	dldiff;
-	long	dlpairs[TZSIZE];
+	unsigned long	dlpairs[TZSIZE];
 } timezone;
 
 char*
@@ -77,7 +77,7 @@ gmtime_r(const time_t *timp, struct tm *result)
 {
 	int d0, d1;
 	long hms, day;
-	time_t tim;
+	unsigned long tim;
 
 	tim = *timp;
 	/*
@@ -146,8 +146,8 @@ struct tm*
 localtime_r(const time_t *timp, struct tm *result)
 {
 	struct tm *ct;
-	time_t t, tim;
-	long *p;
+	unsigned long t, tim;
+	unsigned long *p;
 	int dlflag;
 
 	tim = *timp;
@@ -162,7 +162,7 @@ localtime_r(const time_t *timp, struct tm *result)
 			dlflag++;
 			break;
 		}
-	ct = gmtime_r(&t, result);
+	ct = gmtime_r((time_t *)&t, result);
 	ct->tm_isdst = dlflag;
 	return ct;
 }
@@ -195,7 +195,7 @@ asctime_r(const struct tm *t, char *buf)
 	ct_numb(buf+17, t->tm_sec+100);
 	if(t->tm_year >= 100) {
 		buf[20] = '2';
-		buf[21] = t->tm_year >= 200? '1': '0';  
+		buf[21] = '0';
 	}
 	ct_numb(buf+22, t->tm_year+100);
 	return buf;
@@ -251,7 +251,7 @@ readtimezone(void)
 	if(rd_long(&p, &timezone.dldiff))
 		goto error;
 	for(i=0; i<TZSIZE; i++) {
-		if(rd_long(&p, &timezone.dlpairs[i]))
+		if(rd_long(&p, (long *)&timezone.dlpairs[i]))
 			goto error;
 		if(timezone.dlpairs[i] == 0)
 			return;

@@ -291,7 +291,7 @@ syncclock(void)
 			;
 		m->lastcount = rdcount();
 		m->fastticks = MACHP(0)->fastticks;
-		m->ticks = MACHP(0)->ticks;
+		m->ticks = sys->ticks;
 		wrcompare(rdcount()+m->maxperiod);
 		unlock(&mpsynclock);
 	}

@@ -10,6 +10,7 @@
 
 #include	<libsec.h>
 
+#define DEPRECATED 1		/* include rc4 while retiring it */
 #define NOSPOOKS 1
 
 typedef struct OneWay OneWay;
@@ -37,7 +38,7 @@ enum
 	Noencryption=	0,
 	DESCBC=		1,
 	DESECB=		2,
-	RC4=		3
+	RC4=		3		/* deprecated */
 };
 
 typedef struct Dstate Dstate;
@@ -51,7 +52,7 @@ struct Dstate
 	ushort	blocklen;	/* blocking length */
 
 	ushort	diglen;		/* length of digest */
-	DigestState *(*hf)(uchar*, ulong, uchar*, DigestState*);	/* hash func */
+	DigestState *(*hf)(uchar*, ulong, uchar*, DigestState*); /* hash func */
 
 	/* for SSL format */
 	int	max;		/* maximum unpadded data per msg */
@@ -83,6 +84,9 @@ static	Dstate	*dstate[Maxdstate];
 static	char	*encalgs;
 static	char	*hashalgs;
 
+static	char	Ebadcrypt[] = "unknown crypto algorithm";
+static	char	Esecshort[] = "secret too short";
+
 enum{
 	Qtopdir		= 1,	/* top level directory */
 	Qprotodir,
@@ -96,9 +100,9 @@ enum{
 	Qhashalgs,
 };
 
-#define TYPE(x) 	((x).path & 0xf)
-#define CONV(x) 	(((x).path >> 5)&(Maxdstate-1))
-#define QID(c, y) 	(((c)<<5) | (y))
+#define TYPE(x) 	((x).path & MASK(5))
+#define CONV(x) 	(((x).path >> 5) & (Maxdstate-1))
+#define QID(c, y) 	((c)<<5 | (y))
 
 static void	ensure(Dstate*, Block**, int);
 static void	consume(Block**, uchar*, int);
@@ -122,6 +126,8 @@ char *sslnames[] = {
 [Qencalgs]	"encalgs",
 [Qhashalgs]	"hashalgs",
 };
+
+Dev ssldevtab;
 
 static int
 sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
@@ -240,7 +246,7 @@ sslattach(char *spec)
 {
 	Chan *c;
 
-	c = devattach('D', spec);
+	c = devattach(ssldevtab.dc, spec);
 	c->qid.path = QID(0, Qtopdir);
 	c->qid.vers = 0;
 	c->qid.type = QTDIR;
@@ -868,7 +874,7 @@ initDESkey(OneWay *w)
 	else if(w->slen >= 8)
 		setupDESstate(w->state, w->secret, 0);
 	else
-		error("secret too short");
+		error(Esecshort);
 }
 
 /*
@@ -901,7 +907,7 @@ initDESkey_40(OneWay *w)
 	else if(w->slen >= 8)
 		setupDESstate(w->state, key, 0);
 	else
-		error("secret too short");
+		error(Esecshort);
 }
 
 static void
@@ -916,6 +922,7 @@ initRC4key(OneWay *w)
 	setupRC4state(w->state, w->secret, w->slen);
 }
 
+#ifdef DEPRECATED
 /*
  *  40 bit RC4 is the same as n-bit RC4.  However,
  *  we ignore all but the first 40 bits of the key.
@@ -936,6 +943,7 @@ initRC4key_40(OneWay *w)
 		error(Enomem);
 	setupRC4state(w->state, w->secret, w->slen);
 }
+#endif
 
 /*
  *  128 bit RC4 is the same as n-bit RC4.  However,
@@ -973,6 +981,7 @@ Hashalg hashtab[] =
 	{ "md5", MD5dlen, md5, },
 	{ "sha1", SHA1dlen, sha1, },
 	{ "sha", SHA1dlen, sha1, },
+	{ "sha2_512", SHA2_512dlen, sha2_512, },
 	{ 0 }
 };
 
@@ -1005,16 +1014,20 @@ struct Encalg
 #ifdef NOSPOOKS
 Encalg encrypttab[] =
 {
-	{ "descbc", 8, DESCBC, initDESkey, },           /* DEPRECATED -- use des_56_cbc */
-	{ "desecb", 8, DESECB, initDESkey, },           /* DEPRECATED -- use des_56_ecb */
+	{ "descbc", 8, DESCBC, initDESkey, },	/* DEPRECATED -- use des_56_cbc */
+	{ "desecb", 8, DESECB, initDESkey, },	/* DEPRECATED -- use des_56_ecb */
 	{ "des_56_cbc", 8, DESCBC, initDESkey, },
 	{ "des_56_ecb", 8, DESECB, initDESkey, },
 	{ "des_40_cbc", 8, DESCBC, initDESkey_40, },
 	{ "des_40_ecb", 8, DESECB, initDESkey_40, },
-	{ "rc4", 1, RC4, initRC4key_40, },              /* DEPRECATED -- use rc4_X      */
-	{ "rc4_256", 1, RC4, initRC4key, },
-	{ "rc4_128", 1, RC4, initRC4key_128, },
+#ifdef DEPRECATED
+	{ "rc4", 1, RC4, initRC4key_40, },	/* DEPRECATED -- use rc4_X */
 	{ "rc4_40", 1, RC4, initRC4key_40, },
+#endif
+	/* needed for secstore, libsec/tlshand.c? */
+	{ "rc4_128", 1, RC4, initRC4key_128, },
+	/* used by cpu (drawterm), import, exportfs, secstore for plan 9 auth */
+	{ "rc4_256", 1, RC4, initRC4key, },
 	{ 0 }
 };
 #else
@@ -1022,11 +1035,13 @@ Encalg encrypttab[] =
 {
 	{ "des_40_cbc", 8, DESCBC, initDESkey_40, },
 	{ "des_40_ecb", 8, DESECB, initDESkey_40, },
-	{ "rc4", 1, RC4, initRC4key_40, },              /* DEPRECATED -- use rc4_X      */
-	{ "rc4_40", 1, RC4, initRC4key_40, },
+#ifdef DEPRECATED
+	{ "rc4", 1, RC4, initRC4key_40, },	/* DEPRECATED -- use rc4_X */
+	{ "rc4_40", 1, RC4, initRC4key_40, },	/* DEPRECATED */
+#endif
 	{ 0 }
 };
-#endif NOSPOOKS
+#endif /* NOSPOOKS */
 
 static int
 parseencryptalg(char *p, Dstate *s)
@@ -1122,7 +1137,7 @@ sslwrite(Chan *c, void *a, long n, vlong)
 	}
 
 	if(n >= sizeof(buf))
-		error("arg too long");
+		error(Etoobig);
 	strncpy(buf, a, n);
 	buf[n] = 0;
 	p = strchr(buf, '\n');
@@ -1174,9 +1189,8 @@ sslwrite(Chan *c, void *a, long n, vlong)
 			if(np)
 				*np++ = 0;
 
-			if(parsehashalg(p, s) < 0)
-			if(parseencryptalg(p, s) < 0)
-				error("bad algorithm");
+			if(parsehashalg(p, s) < 0 && parseencryptalg(p, s) < 0)
+				error(Ebadcrypt);
 
 			if(np == 0)
 				break;
@@ -1184,7 +1198,7 @@ sslwrite(Chan *c, void *a, long n, vlong)
 		}
 
 		if(s->hf == 0 && s->encryptalg == Noencryption)
-			error("bad algorithm");
+			error(Ebadcrypt);
 
 		if(s->blocklen != 1){
 			s->max = (1<<15) - s->diglen - 1;
@@ -1194,14 +1208,14 @@ sslwrite(Chan *c, void *a, long n, vlong)
 		} else
 			s->maxpad = s->max = (1<<15) - s->diglen - 1;
 	} else if(strcmp(buf, "secretin") == 0 && p != 0) {
-		l = (strlen(p)*3)/2;
+		l = (strlen(p)*3u)/2;
 		x = smalloc(l);
 		t = dec64(x, l, p, strlen(p));
 		if(t <= 0)
 			error(Ebadarg);
 		setsecret(&s->in, x, t);
 	} else if(strcmp(buf, "secretout") == 0 && p != 0) {
-		l = (strlen(p)*3)/2 + 1;
+		l = (strlen(p)*3u)/2 + 1;
 		x = smalloc(l);
 		t = dec64(x, l, p, strlen(p));
 		if(t <= 0)
@@ -1302,9 +1316,11 @@ encryptb(Dstate *s, Block *b, int offset)
 			memmove(ds->ivec, p, 8);
 		}
 		break;
+#ifdef DEPRECATED
 	case RC4:
 		rc4(s->out.state, b->rp + offset, BLEN(b) - offset);
 		break;
+#endif
 	}
 	return b;
 }
@@ -1353,9 +1369,11 @@ decryptb(Dstate *s, Block *bin)
 				}
 			}
 			break;
+#ifdef DEPRECATED
 		case RC4:
 			rc4(s->in.state, b->rp, BLEN(b));
 			break;
+#endif
 		}
 	}
 	return bin;
@@ -1364,7 +1382,6 @@ decryptb(Dstate *s, Block *bin)
 static Block*
 digestb(Dstate *s, Block *b, int offset)
 {
-	uchar *p;
 	DigestState ss;
 	uchar msgid[4];
 	ulong n, h;
@@ -1381,12 +1398,7 @@ digestb(Dstate *s, Block *b, int offset)
 	(*s->hf)(b->rp + h, n, 0, &ss);
 
 	/* hash message id */
-	p = msgid;
-	n = w->mid;
-	*p++ = n>>24;
-	*p++ = n>>16;
-	*p++ = n>>8;
-	*p = n;
+	beputl(msgid, w->mid);
 	(*s->hf)(msgid, 4, b->rp + offset, &ss);
 
 	return b;
@@ -1395,7 +1407,6 @@ digestb(Dstate *s, Block *b, int offset)
 static void
 checkdigestb(Dstate *s, Block *bin)
 {
-	uchar *p;
 	DigestState ss;
 	uchar msgid[4];
 	int n, h;
@@ -1421,16 +1432,11 @@ checkdigestb(Dstate *s, Block *bin)
 	}
 
 	/* hash message id */
-	p = msgid;
-	n = w->mid;
-	*p++ = n>>24;
-	*p++ = n>>16;
-	*p++ = n>>8;
-	*p = n;
+	beputl(msgid, w->mid);
 	(*s->hf)(msgid, 4, digest, &ss);
 
 	if(memcmp(digest, bin->rp, s->diglen) != 0)
-		error("bad digest");
+		error("bad crypto digest");
 }
 
 /* get channel associated with an fd */

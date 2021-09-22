@@ -65,7 +65,7 @@ bnum(Bits a)
 
 	for(i=0; i<BITS; i++)
 		if(b = a.b[i])
-			return 32*i + bitno(b);
+			return BI2LONG*i + bitno(b);
 	diag(Z, "bad in bnum");
 	return 0;
 }
@@ -76,14 +76,16 @@ blsh(uint n)
 	Bits c;
 
 	c = zbits;
-	c.b[n/32] = 1L << (n%32);
+	assert(n/BI2LONG < BITS);
+	c.b[n/BI2LONG] = 1L << (n%BI2LONG);
 	return c;
 }
 
 int
 bset(Bits a, uint n)
 {
-	if(a.b[n/32] & (1L << (n%32)))
+	assert(n/BI2LONG < BITS);
+	if(a.b[n/BI2LONG] & (1L << (n%BI2LONG)))
 		return 1;
 	return 0;
 }

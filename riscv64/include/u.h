@@ -8,6 +8,7 @@ typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef vlong		intptr;
 typedef unsigned long long uintptr;
+/* not terribly useful; really should be uintptr */
 typedef unsigned long	usize;
 typedef	uint		Rune;
 typedef union FPdbleword FPdbleword;
@@ -24,22 +25,22 @@ typedef unsigned int	u32int;
 typedef unsigned long long u64int;
 
 /* FCR */
-#define	FPINEX	0
+#define	FPINEX	0		/* trap enables: none on risc-v */
 #define	FPUNFL	0
 #define	FPOVFL	0
 #define	FPZDIV	0
 #define	FPINVAL	0
-#define	FPRNR	(0<<5)
+#define	FPRNR	(0<<5)		/* rounding modes */
 #define	FPRZ	(1<<5)
 #define	FPRPINF	(3<<5)
 #define	FPRNINF	(2<<5)
-#define	FPRMASK	(15<<5)
-#define	FPPEXT	0
+#define	FPRMASK	(7<<5)
+#define	FPPEXT	0		/* precision */
 #define	FPPSGL	0
 #define	FPPDBL	0
 #define	FPPMASK	0
 /* FSR */
-#define	FPAINEX	(1<<0)
+#define	FPAINEX	(1<<0)		/* accrued exceptions */
 #define	FPAOVFL	(1<<2)
 #define	FPAUNFL	(1<<1)
 #define	FPAZDIV	(1<<3)
@@ -55,11 +56,15 @@ union FPdbleword
 };
 
 /* stdarg - little-endian 64-bit */
+/*
+ * types narrower than long are widened to long then pushed.
+ * types wider than long are pushed on vlong alignment boundaries.
+ */
 typedef	uintptr	va_list;
 #define va_start(list, start) list =\
 	(sizeof(start) < 4?\
-		(uintptr)((long*)&(start)+1):\
-		(uintptr)(&(start)+1))
+		(va_list)((long*)&(start)+1):\
+		(va_list)(&(start)+1))
 #define va_end(list)\
 	USED(list)
 #define va_arg(list, mode)\
@@ -69,6 +74,6 @@ typedef	uintptr	va_list;
 		((list += 4), (mode*)list)[-2]:\
 	(sizeof(mode) == 4)?\
 		((list += 4), (mode*)list)[-1]:\
-		((list += sizeof(mode)+7), (list &= ~7), (mode*)list)[-1])
+		((mode*)(list = (list + sizeof(mode)+7) & ~7))[-1])
 
-#define _BITS64		/* for ape */
+#define _BITS64		/* for pool allocator & ape */

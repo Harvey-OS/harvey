@@ -1,0 +1,19 @@
+#!/bin/rc
+# ttftp service net netdir
+#	(e.g., tcp17015 tcp /net/tcp/8)
+rfork e
+if (test -d /lib/tftpd)
+	cd  /lib/tftpd		# for relative paths
+
+args = `{read | tr -d '\015'}
+f = $args(1)
+mount -C /srv/main /n/main
+if (test -r /n/main$f)
+	f = /n/main$f
+
+echo `{date} $sysname sending $f to `{cat $3/remote} >>/sys/log/ttftp
+{ cp $f $3/data >>[2]/sys/log/ttftp; echo `{date} done >>/sys/log/ttftp } &
+
+# paranoia: ttftp/tcp into vms is painfully slow, so force fall back to tftp/udp
+sleep 16
+echo hangup >$3/ctl

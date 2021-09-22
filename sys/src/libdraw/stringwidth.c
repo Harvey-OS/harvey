@@ -19,7 +19,7 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 	}else
 		sptr = &s;
 	if(r == nil){
-		r = L"";
+		r = (Rune *)L"";	/* cast for risc-v w signed Rune */
 		rptr = nil;
 	}else
 		rptr = &r;

@@ -9,7 +9,7 @@ typedef	signed char	schar;
 typedef	struct	Vlong	Vlong;
 struct	Vlong
 {
-	ulong	lo;
+	ulong	lo;			/* little endian */
 	ulong	hi;
 };
 

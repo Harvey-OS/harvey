@@ -20,7 +20,7 @@ int	landscape = 0;
 int	line_no = 0;		/* line number on a page */
 int	linesperpage = 66;
 double	magnification = 1.0;
-int	page_no = 0;		/* page number in a document */
+unsigned page_no = 0;		/* page number in a document */
 int	pages_printed;
 char	*passthrough = 0;
 int	pointsize = 10;
@@ -153,10 +153,11 @@ struct strtab fontname[FONTABSIZE] = {
 /* This was taken from postprint */
 
 int
-cat(char *filename) {
+cat(char *filename)
+{
 	int n;
 	char buf[Bsize];
-	Biobuf *bfile;
+	Biobuf * bfile;
 
 	if ((bfile = Bopen(filename, OREAD)) == nil)
 		return(1);
@@ -164,13 +165,12 @@ cat(char *filename) {
 		if (Bwrite(bout, buf, n) != n)
 			break;
 	Bterm(bfile);
-	if (n != 0)
-		return(1);
-	return(0);
+	return n != 0;
 }
 
 void
-prologues(void) {
+prologues(void)
+{
 	char *ts;
 	int tabstop;
 
@@ -188,13 +188,13 @@ prologues(void) {
 
 	tabstop = 0;
 	ts = getenv("tabstop");
-	if(ts != nil)
+	if (ts != nil)
 		tabstop = strtol(ts, nil, 0);
-	if(tabstop == 0)
+	if (tabstop == 0)
 		tabstop = 8;
 	Bprint(bout, "/f {findfont pointsize scalefont setfont} bind def\n");
 	Bprint(bout, "/tabwidth /Courier f (");
-	while(tabstop--)
+	while (tabstop--)
 		Bputc(bout, 'n');
 	Bprint(bout, ") stringwidth pop def\n");
 	Bprint(bout, "/tab {tabwidth 0 ne {currentpoint 3 1 roll exch tabwidth mul add tabwidth\n");
@@ -209,15 +209,23 @@ prologues(void) {
 		Bprint(bout, "%s %d\n", FORMSPERPAGE, formsperpage);
 		Bprint(bout, "/formsperpage %d def\n", formsperpage);
 	}
-	if (aspectratio != 1) Bprint(bout, "/aspectratio %g def\n", aspectratio);
-	if (copies != 1) Bprint(bout, "/#copies %d store\n", copies);
-	if (landscape) Bprint(bout, "/landscape true def\n");
-	if (magnification != 1) Bprint(bout, "/magnification %g def\n", magnification);
-	if (pointsize != 10) Bprint(bout, "/pointsize %d def\n", pointsize);
-	if (xoffset != .25) Bprint(bout, "/xoffset %g def\n", xoffset);
-	if (yoffset != .25) Bprint(bout, "/yoffset %g def\n", yoffset);
+	if (aspectratio != 1)
+		Bprint(bout, "/aspectratio %g def\n", aspectratio);
+	if (copies != 1)
+		Bprint(bout, "/#copies %d store\n", copies);
+	if (landscape)
+		Bprint(bout, "/landscape true def\n");
+	if (magnification != 1)
+		Bprint(bout, "/magnification %g def\n", magnification);
+	if (pointsize != 10)
+		Bprint(bout, "/pointsize %d def\n", pointsize);
+	if (xoffset != .25)
+		Bprint(bout, "/xoffset %g def\n", xoffset);
+	if (yoffset != .25)
+		Bprint(bout, "/yoffset %g def\n", yoffset);
 	cat(ENCODINGDIR"/Latin1.enc");
-	if (passthrough != 0) Bprint(bout, "%s\n", passthrough);
+	if (passthrough != 0)
+		Bprint(bout, "%s\n", passthrough);
 	Bprint(bout, "setup\n");
 	if (formsperpage > 1) {
 		cat(FORMFILE);
@@ -229,17 +237,17 @@ prologues(void) {
 }
 
 int
-pageon(void) {
+pageon(void)
+{
 	if (pplist == 0 && page_no != 0)
 		return(1);	/* no page list, print all pages */
-	if (page_no/8 < pplistmaxsize && (pplist[page_no/8] & 1<<(page_no%8)))
-		return(1);
-	else
-		return(0);
+	return page_no/8 < pplistmaxsize &&
+		pplist[page_no/8] & (1 << (page_no%8));
 }
 
 void
-startpage(void) {
+startpage(void)
+{
 	++char_no;
 	++line_no;
 	++page_no;
@@ -253,7 +261,8 @@ startpage(void) {
 }
 
 void
-endpage(void) {
+endpage(void)
+{
 	line_no = 0;
 	char_no = 0;
 	if (pageon()) {
@@ -265,45 +274,53 @@ endpage(void) {
 }
 
 void
-startstring(void) {
+startstring(void)
+{
 	if (!in_string) {
-		if (pageon()) Bprint(bout, "(");
+		if (pageon())
+			Bprint(bout, "(");
 		in_string = 1;
 	}
 }
 
 void
-endstring(void) {
+endstring(void)
+{
 	if (in_string) {
-		if (pageon()) Bprint(bout, ") show ");
+		if (pageon())
+			Bprint(bout, ") show ");
 		in_string = 0;
 	}
 }
 
 void
-prspace(void) {
+prspace(void)
+{
 	if (spaces) {
 		endstring();
-		if (pageon()) Bprint(bout, "%d sp ", spaces);
+		if (pageon())
+			Bprint(bout, "%d sp ", spaces);
 		spaces = 0;
 	}
 }
 
 void
-prtab(void) {
+prtab(void)
+{
 	if (tabs) {
 		endstring();
-		if (pageon()) Bprint(bout, "%d tab ", tabs);
+		if (pageon())
+			Bprint(bout, "%d tab ", tabs);
 		tabs = 0;
 	}
 }
 
 void
-txt2post(void) {
-	int lastfont = -1;
-	int lastchar = -1;
+txt2post(void)
+{
+	int lastfont = -1, lastchar = -1;
 	int thisfont, thischar;
-	long r;
+	Rune r;
 
 	in_string = 0;
 	char_no = 0;
@@ -311,15 +328,17 @@ txt2post(void) {
 	page_no = 0;
 	spaces = 0;
 	fontname[0].used++;
-	while ((r = Bgetrune(bin)) >= 0) {
+	while ((r = Bgetrune(bin)) != (Rune)Beof) {
 		thischar = r & 0xff;
-		thisfont = (r>>8) & 0xff;
+		/* oh dear, this only covers 16-bit Runes */
+		thisfont = (r >> 8) & 0xff;
 
 		if (line_no == 0 && char_no == 0)
 			startpage();
 
 		if (line_no == 1 && char_no == 1) {
-			if (pageon()) Bprint(bout, " /%s f\n", fontname[thisfont].str);
+			if (pageon())
+				Bprint(bout, " /%s f\n", fontname[thisfont].str);
 			lastfont = thisfont;
 		}
 
@@ -334,7 +353,8 @@ txt2post(void) {
 		case '\n':
 		case '\f':
 			startstring();
-			if (pageon()) Bprint(bout, ")l\n");
+			if (pageon())
+				Bprint(bout, ")l\n");
 			char_no = 1;
 			in_string = 0;
 			spaces = 0;
@@ -353,7 +373,10 @@ txt2post(void) {
 			/* just toss out backspaces for now */
 			if (lastchar != -1) {
 				endstring();
-				if (pageon()) Bprint(bout, "(%s) stringwidth pop neg 0 rmoveto ", charcode[lastchar].str);
+				if (pageon())
+					Bprint(bout,
+						"(%s) stringwidth pop neg 0 rmoveto ",
+						charcode[lastchar].str);
 			}
 			char_no++;
 			lastchar = -1;
@@ -361,7 +384,7 @@ txt2post(void) {
 		}
 
 		/* do something if font is out of table range */
-		if (thisfont>=FONTABSIZE || fontname[thisfont].size == 0) {
+		if (thisfont >= FONTABSIZE || fontname[thisfont].size == 0) {
 			prspace();
 			prtab();
 			endstring();
@@ -373,16 +396,16 @@ txt2post(void) {
 
 		if (thisfont != lastfont) {
 			endstring();
-			if (pageon()) {
+			if (pageon())
 				Bprint(bout, "/%s f\n", fontname[thisfont].str);
-			}
 			fontname[thisfont].used++;
 		}
 		prspace();
 		prtab();
 		startstring();
-		if (pageon()) Bprint(bout, "%s", charcode[thischar].str);
-/*		if (pageon()) Bprint(bout, "%2.2x", thischar); /* try hex strings*/
+		if (pageon())
+			Bprint(bout, "%s", charcode[thischar].str);
+		/* if (pageon()) Bprint(bout, "%2.2x", thischar); /* try hex strings*/
 		char_no++;
 		lastchar = thischar;
 		lastfont = thisfont;
@@ -391,15 +414,17 @@ txt2post(void) {
 		if (char_no != 1) {
 			fprint(2, "premature EOF: newline appended\n");
 			startstring();
-			if (pageon()) Bprint(bout, ")l\n");
+			if (pageon())
+				Bprint(bout, ")l\n");
 		}
 		endpage();
 	}
 }
 
 void
-pagelist(char *list) {
-	char c;
+pagelist(char *list)
+{
+	unsigned char c;
 	int n, state, start;
 	unsigned m;
 
@@ -407,10 +432,10 @@ pagelist(char *list) {
 		return;
 	start = 0;
 	state = 1;
-	while ((c=*list) != '\0') {
+	while ((c = *list) != '\0') {
 		n = 0;
 		while (isdigit(c)) {
-			n = n * 10 + c - '0';
+			n = n*10 + c - '0';
 			c = *++list;
 		}
 		switch (state) {
@@ -418,13 +443,13 @@ pagelist(char *list) {
 			start = n;
 			/* fall through */
 		case 2:
-			if (n/8+1 > pplistmaxsize) {
-				pplistmaxsize = n/8+1;
-				if ((pplist = realloc(pplist, n/8+1)) == 0)
+			if (n/8 + 1 > pplistmaxsize) {
+				pplistmaxsize = n/8 + 1;
+				if ((pplist = realloc(pplist, pplistmaxsize)) == 0)
 					sysfatal("malloc");
 			}
-			for (m=start; m<=n; m++)
-				pplist[m/8] |= 1<<(m%8);
+			for (m = start; m <= n; m++)
+				pplist[m/8] |= 1 << (m%8);
 			break;
 		}
 		switch (c) {
@@ -443,14 +468,15 @@ pagelist(char *list) {
 }
 
 void
-finish(void) {
+finish(void)
+{
 	int i;
 
 	Bprint(bout, "%s", TRAILER);
 	Bprint(bout, "done\n");
 	Bprint(bout, "%s", DOCUMENTFONTS);
 
-	for (i=0; i<FONTABSIZE; i++)
+	for (i = 0; i < FONTABSIZE; i++)
 		if (fontname[i].used)
 			Bprint(bout, " %s", fontname[i].str);
 	Bprint(bout, "\n");
@@ -459,7 +485,8 @@ finish(void) {
 }
 
 void
-main(int argc, char *argv[]) {
+main(int argc, char *argv[])
+{
 	int i;
 	char *t;
 
@@ -468,7 +495,7 @@ main(int argc, char *argv[]) {
 	if (Binit(bout, 1, OWRITE) == Beof)
 		sysfatal("Binit");
 
-	ARGBEGIN{
+	ARGBEGIN {
 	case 'a':			/* aspect ratio */
 		aspectratio = atof(ARGF());
 		break;
@@ -477,7 +504,7 @@ main(int argc, char *argv[]) {
 		break;
 	case 'f':			/* primary font, for now */
 		t = ARGF();
-		fontname[0].str = malloc(strlen(t)+1);
+		fontname[0].str = malloc(strlen(t) + 1);
 		strcpy(fontname[0].str, t);
 		break;
 	case 'l':			/* lines per page */
@@ -493,10 +520,7 @@ main(int argc, char *argv[]) {
 		pagelist(ARGF());
 		break;
 	case 'p':			/* landscape or portrait mode */
-		if ( ARGF()[0] == 'l' )
-			landscape = 1;
-		else
-			landscape = 0;
+		landscape = ARGF()[0] == 'l';
 		break;
 	case 's':			/* point size */
 		pointsize = atoi(ARGF());
@@ -519,7 +543,7 @@ main(int argc, char *argv[]) {
 	default:
 		fprint(2, "unknown option %C\n", ARGC());
 		break;
-	}ARGEND;
+	} ARGEND;
 
 	prologues();
 	if (argc <= 0) {
@@ -527,7 +551,7 @@ main(int argc, char *argv[]) {
 			sysfatal("cannot Binit stdin");
 		txt2post();
 	}
-	for (i=0; i<argc; i++) {
+	for (i = 0; i < argc; i++) {
 		bin = Bopen(argv[i], OREAD);
 		if (bin == nil) {
 			fprint(2, "cannot open %s: %r\n", argv[i]);

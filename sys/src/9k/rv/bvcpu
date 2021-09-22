@@ -1,0 +1,216 @@
+# 9k risc-v cpu server for beagle v with rv32 e24 core + 2 × rv64 u74 cores
+dev +dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+#	rtc
+	ssl
+	tls
+	cap
+#	pnp		pci
+	kprof
+	segment
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium
+	uart
+	bridge		log
+	sd
+# needed for usb kbd input via scan codes
+#	kbin
+#	usb
+
+sd +dev
+	sdmmc		sddwc
+#	sdahci		pci sdscsi
+#	sdnvme		pci sdscsi
+
+uart +dev
+	uarti8250
+
+ip +dev
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+#	ipmux
+
+link +dev
+	ethersyngmac
+	ethermedium
+	loopbackmedium
+	netdevmedium
+#	usbehci		usbehcipc
+
+misc +dev
+	cache
+
+#
+#boot cpu
+#	int cpuflag = 1;
+#boot cpu boot $3
+#	int cpuflag = 1;
+#	char* bootdisk = "$3";
+#boot rootdir $3
+#	char* rootdir = "$3";
+#boot (bboot|romboot|dosboot)
+#	int cpuflag = 1;
+#	char* bootprog = $2;
+#boot boot $3
+#	char* bootdisk = "$3";
+#
+boot cpu
+	tcp
+
+rootdir
+	boot$CONF.out		boot
+	/riscv64/bin/auth/factotum
+	/riscv64/bin/ip/ipconfig
+
+conf
+	#include "riscv64.h"
+
+	int cpuserver = 1;
+	int idlepause = 1;		/* opensbi broke wfi? */
+	uvlong cpuhz = 1000*1000*1000;	/* rdtsc tick freq */
+	uvlong timebase = 6250*1000; /* clint tick freq; fdt rtcclk=6250000 */
+	Membank membanks[] = {		/* (address, size) pairs */
+		PHYSMEM, GB,		/* don't move Sys */
+		3ULL*GB, 144*MB,
+		/* skip devices in 2nd GB */
+		4ULL*GB, 6ULL*GB,
+		0
+	};
+	char defnvram[] = "#S/sdM0/nvram";
+
+	uintptr uart0regs  =   PAUart0;		/* uart 1 actually */
+	uintptr uartregs[] = { PAUart0 };
+	int nuart = nelem(uartregs);
+	vlong uartfreq = 100000000;	/* from beagle dev tree */
+	int prmsdelay = 600;
+
+	/* copied the mac address that u-boot uses */
+	uchar ether0mac[] = { 0x2c, 0xf7, 0xf1, 0x1b, 0xe3, 0xcb, };
+
+	/* guesswork so far, as the available beagle v docs are vague */
+	Soc soc = {
+		.clint	 = (char *)PAClint,
+		.ether[0]= (char *)0x10020000,
+		.l2cache = (char *)0x02010000,
+		// .pci	 = (char *)0x60000000,	/* ecam for cfg space */
+		// .pcictl  = (char *)0x100d0000,	/* bridge, ctrl regs */
+		// .pciess	 = (char *)0x02050000,	/* soft reset, etc. */
+		.plic    = (char *)0x0c000000,	/* common */
+		.uart	 = (char *)PAUart0,
+		.wdog0   = (char*)0x12480000,	/* watchdog reset */
+		.sdmmc   = (char *)0x10000000,	/* two sdio actually */
+	};
+	Ioconf ioconfs[] = {	/* devices whose drivers vmap their regs */
+		{ "ether", 64*KB, &soc.ether[0], 6, },
+		0
+	};
+	Ioconf socconf[] = { /* devices without drivers that vmap their regs */
+		{ "clint", 64*KB, &soc.clint, },
+		{ "l2cache", PGSZ, &soc.l2cache, },
+		//{ "pci",   2*MB, &soc.pci, },		/* pcie [01] ecam cfg */
+		//{ "pcictl", 4*8*KB, &soc.pcictl, },	/* pcie [01] br & ctl */
+		//{ "pciess", PGSZ, &soc.pciess, },
+		{ "plic",  64*MB, &soc.plic, },		/* common */
+		{ "uart",  PGSZ, &soc.uart, 0x49, },
+		{ "wdog",  PGSZ, &soc.wdog0, },
+		{ "sdmmc", 64*KB, &soc.sdmmc, 4, 0, },
+		// { "sdmmc", 64*KB, &soc.sdmmc, 5, 1, },
+		0
+	};
+
+	void iophysaddrset(void) {}
+
+dbgflg
+#	sysproc		'E'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#	archrv		'V'
+#	asm		'a'
+#	chan		'c'
+#	mmu		'm'
+#	main		'x'
+riscv64
+	start
+	begin
+	fakemtrap
+	strap
+	l64
+	main
+	arch
+	archbeagle
+	archrv
+	fp
+	fpu
+	ioconf
+#	kbd
+	map
+	memory
+	mmu
+	sane
+	sbi
+	sbicall
+	sbiecall
+	trap
+port
+	alarm
+	allocb
+	awaitbit
+	byteserial
+	chan
+	ctype
+	dev
+	devtab
+	edf
+	fault
+	image
+#	latin1
+	logpow
+	page
+	parse
+	pgrp
+	portclock
+	prf
+	print
+	proc
+	ps
+	qio
+	qlock
+	qmalloc
+	random
+	rebootcmd
+	segment
+	sysauth
+	syscall
+	syscallfmt
+	sysfile
+	sysproc
+	sysseg
+	systab
+	taslock
+	tod
+	watermarks
+
+#
+# controls which directories to look in for source files; must be relative to ..
+#
+dir
+	ip
+	port
+
+#lib
+#	libip
+#	libsec
+#	libmp
+#	libc

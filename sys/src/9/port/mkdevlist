@@ -40,7 +40,7 @@ END{
 	x = ""
 	for(i in obj)
 		x = x i "\n";
-	if(objtype ~ "386" && obj["pci" "'.$O'"])
-		x = x "bios32'.$O' \n";
+#	if(objtype ~ "386" && obj["pci" "'.$O'"])
+#		x = x "bios32'.$O' \n";
 	printf x;
 }' $*

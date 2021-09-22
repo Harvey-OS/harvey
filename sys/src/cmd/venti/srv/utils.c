@@ -139,7 +139,7 @@ now(void)
 int abortonmem = 1;
 
 void *
-emalloc(ulong n)
+emalloc(uintptr n)
 {
 	void *p;
 
@@ -147,16 +147,16 @@ emalloc(ulong n)
 	if(p == nil){
 		if(abortonmem)
 			abort();
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %llud", (uvlong)n);
 	}
 	memset(p, 0xa5, n);
 	setmalloctag(p, getcallerpc(&n));
-if(0)print("emalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+if(0)print("emalloc %#p-%#p by %#p\n", p, (char*)p+n, getcallerpc(&n));
 	return p;
 }
 
 void *
-ezmalloc(ulong n)
+ezmalloc(uintptr n)
 {
 	void *p;
 
@@ -164,22 +164,22 @@ ezmalloc(ulong n)
 	if(p == nil){
 		if(abortonmem)
 			abort();
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %llud", (uvlong)n);
 	}
 	memset(p, 0, n);
 	setmalloctag(p, getcallerpc(&n));
-if(0)print("ezmalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+if(0)print("ezmalloc %#p-%#p by %#p\n", p, (char*)p+n, getcallerpc(&n));
 	return p;
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uintptr n)
 {
 	p = realloc(p, n);
 	if(p == nil){
 		if(abortonmem)
 			abort();
-		sysfatal("out of memory allocating %lud", n);
+		sysfatal("out of memory allocating %llud", (uvlong)n);
 	}
 	setrealloctag(p, getcallerpc(&p));
 if(0)print("erealloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&p));
@@ -190,7 +190,7 @@ char *
 estrdup(char *s)
 {
 	char *t;
-	int n;
+	uintptr n;
 
 	n = strlen(s) + 1;
 	t = emalloc(n);

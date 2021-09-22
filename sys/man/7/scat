@@ -321,6 +321,9 @@ Show a pretty galaxy.
 .EE
 .SH FILES
 .B /lib/sky/*.scat
+.br
+.B /n/juke
+Digitized Sky Survey on CDs
 .SH SOURCE
 .B /sys/src/cmd/scat
 .SH SEE ALSO

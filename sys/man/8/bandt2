@@ -1,0 +1,152 @@
+.TH BANDT2 8
+.SH NAME
+bandt2 \- Viaduct bridge-and-tunnel client and server
+.SH SYNOPSIS
+.B aux/bandt2
+[
+.B -b
+.I bridge
+] [
+.B -c
+.I brickdb
+] [
+.B -h
+.I host
+] ... [
+.B -H
+.I hash
+] ... [
+.B -s
+.I secret
+] [
+.B -u
+.I user
+] [
+.B -x
+.I mtpt
+] [
+.B -Dr
+]
+.SH DESCRIPTION
+.I Bandt2
+establishes a compressed-then-encrypted tunnel over
+.IR sdp (3)
+on UDP port 7331,
+bridging all traffic from a user's home systems
+to the Murray Hill Research network.
+.I Bandt2
+is started in its client mode inside a Viaduct,
+which runs Plan 9 on a Power PC,
+and in its server mode on the Plan 9 systems
+.I vespine
+and
+.IR vespine2 ,
+which terminate the Viaduct traffic and bridge it.
+Should the tunnel connection break, the
+.I bandt2
+client will try repeatedly to re-establish it,
+when invoked with
+.BR -r ,
+which the Viaducts do.
+.PP
+Authentication is via 96-bit HMAC MD5 hash,
+encryption is 128-bit RC4,
+and
+compression uses the locally-developed
+.I thwack
+algorithm.
+.PP
+Other options are:
+.TF M
+.PD
+.TP
+.B b
+use
+.I bridge
+rather than
+.BR #B0/bridge0 .
+.TP
+.B c
+use
+.I brickdb
+rather than
+.BR /adm/brickdb .
+.TP
+.B D
+act as the
+.I bandt2
+server (daemon) instead of the client.
+.TP
+.B h
+adds
+.I host
+to the set of hosts to call in round-robin fashion.
+.TP
+.B H
+adds
+.I hash
+to the set of host hashes.
+These hashes correspond to the hosts with the same ordinal values
+(i.e., the invoker must supply
+.B -h
+and
+.B -H
+in the same order).
+.TP
+.B s
+use
+.I secret
+rather than
+.BR /adm/keydb/my.sec .
+.TP
+.B u
+use
+.I user
+instead of the system name returned by
+.I sysname
+in
+.IR getuser (2).
+.TP
+.B x
+use the network mounted at
+.I mtpt
+instead of
+.BR /net .
+.SH EXAMPLES
+Start a server.
+.IP
+.EX
+aux/bandt2 -D
+.EE
+.PP
+Start a client on a system with two Ethernet interfaces.
+.IP
+.EX
+echo -n bind ether `{cat /net.alt/ether1/addr} 0 /net.alt/ether1 \e
+	>/net/bridge0/ctl
+bind -a '#D' /net
+bind -a '#E' /net
+aux/bandt2 -r -h 135.104.9.65 -H some-hash -h 135.104.9.73 \e
+	-H other-hash -s /env/secret &
+.EE
+.SH FILES
+.PD 0
+.TF /adm/keydb/my.sec
+.TP
+.B /adm/brickdb
+database of which Viaducts are active and who owns them.
+.TP
+.B /adm/keydb/my.sec
+Viaduct's secret
+.PD
+.SH SOURCE
+.B /sys/src/cmd/aux/bandt2
+.SH SEE ALSO
+.IR bridge (3),
+.IR sdp (3)
+.br
+.B /sys/src/cmd/aux/bandt2/protocol.*
+.SH BUGS
+Appears not to bridge IPv6, only IPv4 and ARP,
+due to limitations in
+.IR bridge (3).

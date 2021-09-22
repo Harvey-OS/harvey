@@ -1,0 +1,247 @@
+%!PS-Adobe-2.0 Resource
+% 
+% This is the set of procedures that are necessary for using dvips with the 
+% -z flag to create PDF-ready PostScript from HyperTeX. 
+% Written by Tanmoy Bhattacharya and Mark D. Doyle 11/94. 
+% It is (C) Copyright 1994 by Tanmoy Bhattacharya, Mark D. Doyle
+% and the University of California. You may modify and use this program to
+% your heart's content, so long as you send modifications to Tanmoy
+% Bhattacharya and/or Mark Doyle.
+% Version number info
+%   1 0 Probably first release
+%   1 1 Added external handler to let ghostview work
+%   1 2 Attempt at using weblink plugin (not checked)
+%
+%   2 0 Complete rewrite.
+%   2 1 skipped (because testing remotely: it is a debugging version)
+%   2 2 Hopefully correct.
+%   2 3 weblink with anchors corrected.
+%   2 4 bug fix: cvn for dest added
+%   2 5 bug fix: No point of error message if not on a distiller.
+%   2 6 bug fix: stupid {..} error. Check destination name to avoid bad names.
+% 2 2 tested under (Being tested :-)
+%   unix distiller (old)
+%   mac 2.1
+%   mac 2.0
+%   windows 2.0
+%   ghostscript
+
+%%BeginResource: procset hps.lpro 2 6
+/HPSdict 20 dict dup begin
+
+/braindeaddistill 50 def
+
+/rfch % remove first charcter of string
+  {dup length 1 sub 1 exch getinterval} bind def
+
+/splituri % string splituri dest uri/file true_if_uri
+  {dup (#) search 
+    {exch pop}
+    {() exch}
+   ifelse
+   dup (file:) anchorsearch
+     {pop exch pop 3 -1 roll pop false}
+     {pop 3 -1 roll exch pop true}
+   ifelse} bind def
+
+/lookuptarget
+{exch rfch dup % drop the hashmark
+ /TargetAnchors where
+  {pop TargetAnchors dup
+   3 -1 roll known
+    {exch get true}
+    {pop (target unknown:)print == false}
+   ifelse}
+  {pop pop
+   (target dictionary unknown\012)print  false}
+ ifelse}
+bind def
+
+/savecount 0 def 
+
+/stackstopped % Like stopped, but clear to current mark on error
+{ count counttomark sub /savecount exch store
+  stopped
+  count savecount sub 1 sub dup 0 gt
+    {{exch pop} repeat}
+    {pop}
+  ifelse
+}
+bind def
+
+/tempstring 256 string def
+
+/targetvalidate
+ {1 index dup length 255 gt exch
+  dup (/) search 
+    {pop pop pop exch pop true exch}
+    {pop}
+  ifelse
+  cvn tempstring cvs
+  token pop pop length 0 ne or 
+  not} bind def
+
+/targetdump-hook where 
+  {pop} 
+  {/targetdump-hook 
+   {dup mark exch gsave initmat setmatrix 
+    {{ mark /Dest 4 2 roll 
+       targetvalidate
+        {aload pop exch pop
+         /Page 3 1 roll /View exch [ exch /FitH exch ]
+         /DEST pdfmark}
+        {cleartomark}
+        ifelse} forall} stackstopped pop
+    grestore} bind def }
+ifelse
+
+/baseurl
+{mark exch 1 dict dup 3 -1 roll
+ /Base exch put
+ /URI exch
+ /DOCVIEW {pdfmark} stackstopped pop}
+bind def
+   
+/externalhack systemdict /PDF known def
+/oldstyle true def
+
+/initmat matrix currentmatrix def
+/actiondict 2 dict dup /Subtype /URI put def
+/weblinkhandler
+{ dup 3 1 roll mark 4 1 roll
+  /Title 4 1 roll
+  splituri 3 -1 roll
+  dup length 0 gt
+    {cvn /Dest exch 4 2 roll}
+    {pop}
+  ifelse
+   {externalhack
+     {/HTTPFile exch}
+     {actiondict dup 3 -1 roll /URI exch put
+      /Action exch}
+    ifelse}
+   {externalhack
+     {/HTTPFile exch}
+     {/File exch /Action /GoToR}
+    ifelse
+    }
+  ifelse
+  counttomark 2 sub -1 roll
+  aload pop
+  /Rect 4 1 roll
+  /Border 3 1 roll
+  /Color exch
+  oldstyle 
+    {/LNK}
+    {/Subtype /Link /ANN}
+  ifelse
+  gsave initmat setmatrix
+  {pdfmark} stackstopped
+  grestore}
+bind def
+
+/externalhandler where
+{pop}
+{/externalhandler
+{ 2 copy
+  {weblinkhandler} exec
+    {/externalhack externalhack not store
+     2 copy
+     {weblinkhandler} exec
+      {/externalhack externalhack not store
+       /oldstyle false store
+       2 copy
+       {weblinkhandler} exec
+	{(WARNING: external refs disabled\012)print
+         /externalhandler {pop pop} bind store externalhandler}
+        {pop pop}
+        ifelse}
+      {pop pop /externalhack externalhack not store}
+     ifelse}
+     {pop pop /externalhandler {weblinkhandler pop} bind store}
+   ifelse}
+bind def}
+ifelse
+
+/pdfmnew
+{dup type /stringtype eq {externalhandler} {
+exch dup rfch exch 3 -1 roll
+lookuptarget
+  {mark 4 1 roll
+	/Title 4 1 roll
+   aload pop
+   exch
+	 pop
+   /Page 3 1 roll
+   /View exch
+   [ exch /FitH exch ]
+   5 -1 roll
+   aload pop
+   /Rect 4 1 roll
+   /Border 3 1 roll
+   /Color exch
+   /LNK gsave initmat setmatrix pdfmark grestore}
+  {pop pop}
+ ifelse} ifelse}
+bind def
+
+/pdfmold
+{dup type /stringtype eq {externalhandler} { 
+exch dup rfch exch 3 -1 roll
+lookuptarget
+ {mark 4 1 roll % put a mark below the source array and the array containing
+                % the page 
+                % the rectangle array of the destination and the FitH parameter
+								% and below the Title string
+	 /Title 4 1 roll % put /Title in front of Title string
+   aload pop    % put the array elements on the stack
+   exch         % exchange the FitH parameter and the Rect array
+   pop          % Get rid of the Rect array
+   /Page 3 1 roll     % put a /Page in front of the page number
+   /View exch        % put a /View below the FitH parameter
+   [ exch /FitH exch ] % put in the /FitH 
+   5 -1 roll
+   aload pop pop
+   0 3 getinterval
+   /Rect 3 1 roll
+   /Border exch
+   /LNK gsave initmat setmatrix pdfmark grestore}
+  {pop pop}
+ ifelse} ifelse}
+bind def
+
+/pdfm where 
+{pop}
+{/pdfm
+/currentdistillerparams where
+ {pop
+  currentdistillerparams 
+  dup /CoreDistVersion known
+   {/CoreDistVersion get}
+   {0}
+  ifelse dup
+  braindeaddistill le
+   {(WARNING: switching to old pdfm because version =)print  == /pdfmold}
+   {pop /pdfmnew}
+  ifelse load
+ }
+ {/pdfmark where
+  {pop {dup type /stringtype eq {externalhandler}
+   {2 copy mark 3 1 roll
+    {pdfmnew} stackstopped
+      {2 copy mark 3 1 roll
+       {pdfmold} stackstopped
+         {(WARNING: pdfm disabled\012) print
+          /pdfm {pop pop} store}
+         {(WARNING: new pdfm failed, switching to old pdfm\012)print
+          /pdfm /pdfmold load store}
+       ifelse}
+       {/pdfm /pdfmnew load store}
+     ifelse pop pop}ifelse}}
+  {{pop pop}}
+  ifelse}
+ ifelse bind def}
+ifelse
+end def
+%%EndResource
+%%EOF

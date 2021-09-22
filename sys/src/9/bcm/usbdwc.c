@@ -31,9 +31,6 @@ enum
 	Resetdelay	= 10,
 	ResetdelayHS	= 50,
 
-	Read		= 0,
-	Write		= 1,
-
 	/*
 	 * Workaround for an unexplained glitch where an Ack interrupt
 	 * is received without Chhltd, whereupon all channels remain

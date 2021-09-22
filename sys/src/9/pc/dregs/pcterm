@@ -1,0 +1,93 @@
+# pc - a minimal pc terminal
+dev
+	root
+	cons
+
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	cap
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+	kbin
+	uart
+	usb
+
+link
+	realmode
+#	devpccard
+#	devi82365
+
+	ether2000	ether8390
+	ether2114x	pci
+	ether589	etherelnk3
+	ether79c970	pci
+	ether8003	ether8390
+	ether8139	pci
+	ether8169	pci ethermii
+	ether82563	pci
+	ether82557	pci
+	ether83815	pci
+	etherbcm4401	pci ethermii
+	etherdp83820	pci
+	etherec2t	ether8390
+	etherelnk3	pci
+# big firmware
+#	etherga620	pci
+	etherigbe	pci ethermii
+	ethervgbe	pci ethermii
+	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
+	ethersink
+	ethersmc	devi82365 cis
+	etherwavelan	wavelan devi82365 cis pci
+	ethermedium
+#	etherm10g	pci		# vast firmware
+#	ether82598	pci
+
+#	pcmciamodem
+	netdevmedium
+	loopbackmedium
+
+	usbuhci
+	usbohci
+	usbehci		usbehcipc
+
+misc
+	archmp		mp apic mpacpi
+	mtrr
+	uarti8250
+	vgavesa
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+
+port
+	int cpuserver = 0;
+	int idle_spin = 1;
+
+boot
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/386/bin/ip/ipconfig
+	/386/bin/auth/factotum
+	/386/bin/usb/usbd

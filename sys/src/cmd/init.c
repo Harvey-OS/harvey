@@ -175,7 +175,8 @@ rcexec(void)
 	else if(manual || iscpu)
 		execl("/bin/rc", "rc", nil);
 	else if(strcmp(service, "terminal") == 0)
-		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
+		execl("/bin/rc", "rc", "-c",
+		   ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
 	else
 		execl("/bin/rc", "rc", nil);
 }

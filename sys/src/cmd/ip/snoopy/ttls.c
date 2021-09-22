@@ -76,7 +76,7 @@ p_seprint(Msg *m)
 		m->p = seprint(m->p, m->e, " totallen=%1d", NetL(h->ln));
 
 	/* these are not in the header, just print them for our convenience */
-	m->p = seprint(m->p, m->e, " dataln=%1ld", m->pe - m->ps);
+	m->p = seprint(m->p, m->e, " dataln=%1ld", (ulong)(m->pe - m->ps));
 	if ((h->flags & (FlagL|FlagS|FlagM)) == 0 && m->ps == m->pe)
 		m->p = seprint(m->p, m->e, " ack");
 

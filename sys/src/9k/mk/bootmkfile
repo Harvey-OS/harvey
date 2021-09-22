@@ -10,8 +10,8 @@ BOOTFILES=\
 	local.$O\
 	embed.$O\
 	settime.$O\
-	parts.$O\
 	paq.$O\
+	parts.$O\
 	printstub.$O\
 	usb.$O\
 
@@ -27,8 +27,7 @@ $BOOTFILES:	$BOOTDIR/boot.h
 %.$O:	$BOOTDIR/%.c
 	$CC -I$BOOTDIR $CFLAGS $BOOTDIR/$stem.c
 
-boot$CONF.out: ../mk/parse $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+boot$CONF.out: ../mk/parse $CONF print.$O $BOOTDIR/boot.c $BOOTLIB 
 	awk -f ../mk/parse -- -mkbootconf $CONF > boot$CONF.c
-	$CC $CFLAGS boot$CONF.c
-	$CC $CFLAGS ../boot/printstub.c
+	$CC $CFLAGS boot$CONF.c ../boot/printstub.c
 	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB printstub.$O

@@ -3,7 +3,7 @@
 #include "dat.h"
 
 void*
-emalloc(int size)
+emalloc(uintptr size)
 {
 	void *a;
 

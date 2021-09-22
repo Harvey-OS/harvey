@@ -15,8 +15,8 @@ struct AHash
 
 enum
 {
-	AHashSize	= 512,
-	Emergency	= 0,		/* flag: performing emergency surgery */
+	AHashSize = 512,
+	Shortarenasok = 1, /* flag: cope with shorter-than-expected arenas part'n */
 };
 
 static AHash	*ahash[AHashSize];
@@ -143,7 +143,7 @@ initarenapart(Part *part)
 	ap->narenas = amn.n;
 	ap->map = amn.map;
 	if(okamap(ap->map, ap->narenas, ap->arenabase, ap->size, "arena table") < 0){
-		if(!Emergency){
+		if(!Shortarenasok){
 			freearenapart(ap, 0);
 			return nil;
 		}
@@ -153,10 +153,11 @@ initarenapart(Part *part)
 	ap->arenas = MKNZ(Arena*, ap->narenas);
 	for(i = 0; i < ap->narenas; i++){
 		debugarena = i;
-		ap->arenas[i] = initarena(part, ap->map[i].start, ap->map[i].stop - ap->map[i].start, ap->blocksize);
+		ap->arenas[i] = initarena(part, ap->map[i].start,
+			ap->map[i].stop - ap->map[i].start, ap->blocksize);
 		if(ap->arenas[i] == nil){
 			seterr(ECorrupt, "%s: %r", ap->map[i].name);
-			if(!Emergency){
+			if(!Shortarenasok){
 				freearenapart(ap, 1);
 				return nil;
 			}else{
@@ -289,7 +290,8 @@ okamap(AMap *am, int n, u64int start, u64int stop, char *what)
 		last = am[i].stop;
 	}
 	if(last > stop){
-		seterr(ECorrupt, "invalid ending address in %s", what);
+		seterr(ECorrupt, "bad ending address %,lld beyond %,lld in %s",
+			last, stop, what);
 		return -1;
 	}
 	return 0;
@@ -303,11 +305,14 @@ maparenas(AMap *am, Arena **arenas, int n, char *what)
 	for(i = 0; i < n; i++){
 		arenas[i] = findarena(am[i].name);
 		if(arenas[i] == nil){
-			seterr(EAdmin, "can't find arena '%s' for '%s'\n", am[i].name, what);
+			if (Shortarenasok)
+				return i;
+			seterr(EAdmin, "can't find arena '%s' for '%s'\n",
+				am[i].name, what);
 			return -1;
 		}
 	}
-	return 0;
+	return n;
 }
 
 int

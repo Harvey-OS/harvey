@@ -32,7 +32,8 @@ blocksize(ulong size)
 }
 
 /*
- * convert malloced or non-malloced buffer to a Block.
+ * convert malloced or non-malloced buffer to a Block followed by
+ * the block's data.
  * used to build custom Block allocators.
  *
  * buf must be at least blocksize(usable) bytes.
@@ -46,13 +47,11 @@ mem2block(void *buf, ulong usable, int malloced)
 		return nil;
 
 	b = (Block *)buf;
-	b->next = nil;
-	b->list = nil;
-	b->free = 0;
+	b->next = b->list = nil;
+	b->free = nil;
 	b->flag = 0;
-	b->ref = 0;
+	b->ref = 1;			/* avoid ainc(&b->ref);	*/
 	b->magic = Bmagic;
-	ainc(&b->ref);
 
 	/* align start of data portion by rounding up */
 	b->base = (uchar*)ALIGNUP((ulong)b + sizeof(Block));
@@ -174,10 +173,7 @@ freeb(Block *b)
 
 	/* poison the block in case someone is still holding onto it */
 	b->next = dead;
-	b->rp = dead;
-	b->wp = dead;
-	b->lim = dead;
-	b->base = dead;
+	b->rp = b->wp = b->lim = b->base = dead;
 	b->magic = 0;
 
 	free(b);

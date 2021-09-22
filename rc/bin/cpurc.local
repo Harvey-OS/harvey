@@ -1,11 +1,54 @@
 #!/bin/rc
-# local cpu startup
+# site-local cpu startup
 
 # used only by upas, as default return domain appended to all unqualified
-# return addresses, even local ones
-site=DOM.EXAMPLE.COM
-# replace FILESERVER with the name of your file server
-# here we start with kfs, your local disk file system
-fileserver=kfs
-# replace FACEDOM with the local domain to be used in the faces database
-facedom=FACEDOM
+# return addresses, even local ones, and as one of the values of \l in rewrite.
+site=collyer.net
+fileserver=cpu
+facedom=astro
+cpu=cpu
+pccpu=fm			# 386 or arm to run gs, aux/pm, etc.
+
+# if no dns server yet, start one
+DNSSERVER=8.8.8.8
+
+# on file servers, configure network and ensure dns is running
+if(~ $sysname fs) {
+	# configure primary network
+	if(test -e /net/ipifc/clone) {
+		if (~ $#ip 1)
+			ip/ipconfig -g $ipgw ether /net/ether0 $ip $ipmask
+		if not
+			ip/ipconfig
+		ipconfiged=done
+	}
+	addroutes
+	if(! test -e /srv/dns && ! test -e /env/dns) {
+		echo -n dns...
+		ndb/dns -rR		# don't answer udp
+		dns=running		# tell cpurc we've already got one
+	}
+}
+
+9fs other >[2]/dev/null &
+
+# load keys into factotum; must be before listens
+# without dd, this takes 10s of seconds on pf
+if (test -r /adm/mailkeys) {
+	echo -n 'factotum mail & tls keys...'
+	dd -quiet 1 </adm/mailkeys -bs 8192 | read -m >>/mnt/factotum/ctl
+}
+echo -n secstore...
+# TODO: shouldn't need this any more, but factotum doesn't get it right
+auth/secstore -s p9auth.collyer.net -n -G factotum >>/mnt/factotum/ctl &
+
+echo -n pie...
+9fs pie &		# make /srv/labs available to export before listens
+
+sleep 2			# wait but don't hang
+
+# ipv6on invokes ip/config 4 times and takes just under 10 seconds
+{ ipv6on; addroutes } &
+
+if (test -e '#w/wdctl')
+	aux/watchdog &

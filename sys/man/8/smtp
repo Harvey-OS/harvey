@@ -31,7 +31,7 @@ smtp, smtpd \-  mail transport
 .ti -0.5i
 .B upas/smtpd
 [
-.B -adDfrg
+.B -aAdDfrg
 ] [
 .B -c
 .I certfile
@@ -150,6 +150,9 @@ The options are:
 .TP
 .B -a
 requires that all clients authenticate to be able to send mail.
+.TP
+.B -A
+disables use of the SMTP AUTH command.
 .TP
 .B -c
 specifies a certificate to use for TLS.  Without this

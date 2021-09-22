@@ -1,6 +1,7 @@
 #pragma src "/sys/src/libdisk"
 #pragma lib "libdisk.a"
 
+/* sorry, but the kernel uses these and we want only one set of definitions. */
 #include <diskcmd.h>
 
 /* SCSI interface */

@@ -1,7 +1,6 @@
 #include "tdef.h"
 #include "ext.h"
 #include "fns.h"
-#include <ctype.h>
 
 /*
  * n6.c -- width functions, sizes and fonts

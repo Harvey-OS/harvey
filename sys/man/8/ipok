@@ -1,0 +1,73 @@
+.TH IPOK 8
+.SH NAME
+ipok \- verify that an IP address belongs to a country approved of by the US government
+.SH SYNOPSIS
+.B aux/ipok
+.I IP
+\&...
+.SH DESCRIPTION
+.I Ipok
+consults various databases,
+including making
+.B whois
+queries, to determine what country a given
+.I IP
+address belongs to and compares that against a list of known `bad guys'.
+For each
+.IR IP ,
+.I ipok
+will print a line of the form
+.IP
+.EX
+.I
+okay address-range country address-range-name owner [other ...]
+.EE
+.LP
+where
+.I okay
+will be
+.L ok
+or
+.LR bad .
+.SH EXAMPLES
+See if
+.I mince
+is in a `terrorist' country.
+.PP
+.EX
+.B "% aux/ipok 135.104.24.16"
+.br
+.B
+ok 135.104.0.0-135.104.255.255 US LUCENT-135-104-0-0-B \e
+.br
+.B
+	'Bell Laboratories/Lucent Technologies ' (cached)
+.EE
+.PP
+See if
+.I inet
+is in a `terrorist' country.
+.PP
+.EX
+.B "% aux/ipok 2620:17a:4:1::1"
+.br
+.B
+ok 2620:17a::-2620:17a:fff:ffff:ffff:ffff:ffff:ffff \e
+.br
+.B
+	US ALCATEL-LUCENT Alcatel-Lucent
+.EE
+.SH FILES
+.TF /sys/lib/ipok.cache
+.TP
+.B /sys/lib/ipok.cache
+pre-loaded entries
+.SH SEE ALSO
+.IR ipokfs (4)
+.br
+US State Department's list of countries designated as
+supporting terrorist activities,
+defined by the Export Administration Act, section 6(j),
+listed for example in
+.br
+.BR http://www.bis.doc.gov/Licensing/BIS_Exports.pdf .

@@ -25,6 +25,7 @@ Bvprint(Biobufhdr *bp, char *fmt, va_list arg)
 
 	f.runes = 0;
 	f.stop = bp->ebuf;
+	assert(bp->ebuf != nil);	/* assert Binited/Bopened */
 	f.start = (char*)f.stop + bp->ocount;
 	f.to = f.start;
 	f.flush = fmtBflush;

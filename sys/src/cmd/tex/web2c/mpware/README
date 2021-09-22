@@ -1,0 +1,7 @@
+This directory is for the small C programs and shell scripts used by
+MetaPost to do TeX-ing for captions and so forth.
+
+It seems cleaner to put this stuff in a separate directory than mix it
+in with the WEB sources at the top level. Either way is painful. This
+way, all the .c files at the top level are generated and can be removed
+in one shot.

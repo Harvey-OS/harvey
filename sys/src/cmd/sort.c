@@ -929,7 +929,6 @@ doargs(int argc, char *argv[])
 		fprint(2, "sort: -c can have at most one input file\n");
 		done("option");
 	}
-	return;
 }
 
 uchar*

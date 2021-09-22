@@ -1,5 +1,5 @@
 /*
- * vga driver using just vesa bios to set up.
+ * vga driver using just vesa bios in real mode to set up.
  *
  * note that setting hwaccel to zero will cause cursor ghosts to be
  * left behind.  hwaccel set non-zero repairs this.
@@ -117,13 +117,14 @@ vbemodeinfo(int mode)
 static void
 vesalinear(VGAscr *scr, int, int)
 {
-	int i, mode, size, havesize;
+	int i, mode, havesize;
 	uchar *p;
-	ulong paddr;
+	ulong paddr, size;
 	Pcidev *pci;
+	Pcibar *bar;
 
 	if(hardscreen) {
-		scr->vaddr = 0;
+		scr->vaddr = nil;
 		scr->paddr = scr->apsize = 0;
 		return;
 	}
@@ -143,43 +144,42 @@ vesalinear(VGAscr *scr, int, int)
 		error("not in linear graphics mode");
 
 	paddr = LONG(p+40);
-	size = WORD(p+20)*WORD(p+16);
+	size = WORD(p+20) * WORD(p+16);
 	size = PGROUND(size);
 
 	/*
 	 * figure out max size of memory so that we have
 	 * enough if the screen is resized.
 	 */
-	pci = nil;
 	havesize = 0;
-	while(!havesize && (pci = pcimatch(pci, 0, 0)) != nil){
-		if(pci->ccrb != Pcibcdisp)
-			continue;
-		for(i=0; i<nelem(pci->mem); i++)
-			if(paddr == (pci->mem[i].bar&~0x0F)){
-				if(pci->mem[i].size > size)
-					size = pci->mem[i].size;
-				havesize = 1;
-				break;
+	pci = nil;
+	while(!havesize && (pci = pcimatch(pci, 0, 0)) != nil)
+		if(pci->ccrb == Pcibcdisp)
+			for(i=0; i<nelem(pci->mem); i++) {
+				bar = &pci->mem[i];
+				if(paddr == (bar->bar & ~0xF)){
+					if(bar->size > size)
+						size = bar->size;
+					havesize = 1;
+					break;
+				}
 			}
-	}
 
-	/* no pci - heuristic guess */
+	/* no pci vga - heuristic guess; never happens now */
 	if (!havesize)
-		if(size < 4*1024*1024)
-			size = 4*1024*1024;
+		if(size < 4*MB)
+			size = 4*MB;
 		else
-			size = ROUND(size, 1024*1024);
-	if(size > 16*1024*1024)		/* arbitrary */
-		size = 16*1024*1024;
+			size = ROUND(size, MB);
+	if(size > GB)			/* sanity */
+		size = GB;
 
 	vgalinearaddr(scr, paddr, size);
 	if(scr->apsize)
 		addvgaseg("vesascreen", scr->paddr, scr->apsize);
-
 	if(Usesoftscreen){
 		hardscreen = scr->vaddr;
-		scr->vaddr = 0;
+		scr->vaddr = nil;
 		scr->paddr = scr->apsize = 0;
 	}
 }

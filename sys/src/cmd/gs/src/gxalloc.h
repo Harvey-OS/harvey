@@ -205,7 +205,7 @@ extern_st(st_chunk);
 #define SCAN_CHUNK_OBJECTS(cp)\
 	{	obj_header_t *pre = (obj_header_t *)((cp)->cbase);\
 		obj_header_t *end = (obj_header_t *)((cp)->cbot);\
-		uint size;\
+		uintptr_t size;\
 \
 		for ( ; pre < end;\
 			pre = (obj_header_t *)((char *)pre + obj_size_round(size))\

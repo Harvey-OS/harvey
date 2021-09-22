@@ -478,3 +478,22 @@ kunmap(KMap *k)
 	cachedwbtlb(&m->kmapl2[i], sizeof(PTE));
 	mmuinvalidateaddr(va);
 }
+
+/*
+ * although needed by the pc port, this mapping can be trivial on our arm
+ * systems, which have less memory.
+ */
+void*
+vmap(uintptr pa, usize)
+{
+	return UINT2PTR(kseg0|pa);
+}
+
+void
+vunmap(void* v, usize size)
+{
+	/*
+	upafree(PADDR(v), size);
+	 */
+	USED(v, size);
+}

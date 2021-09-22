@@ -1,9 +1,8 @@
 %{
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
 #include "pic.h"
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 
 YYSTYPE	y;
 

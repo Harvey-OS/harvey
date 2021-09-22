@@ -37,10 +37,10 @@ initindex(char *name, ISect **sects, int n)
 	Index *ix;
 	ISect *is;
 	u32int last, blocksize, tabsize;
-	int i;
+	int i, na;
 
 	if(n <= 0){
-fprint(2, "bad n\n");
+fprint(2, "initindex: bad n (%d)\n", n);
 		seterr(EOk, "no index sections to initialize index");
 		return nil;
 	}
@@ -98,11 +98,16 @@ fprint(2, "no mem\n");
 	}
 
 	ix->arenas = MKNZ(Arena*, ix->narenas);
-	if(maparenas(ix->amap, ix->arenas, ix->narenas, ix->name) < 0){
+	/*
+	 * we expect ix->narenas arenas, but there could be fewer if the arenas
+	 * have been copied to a smaller partition than the original one.
+	 */
+	na = maparenas(ix->amap, ix->arenas, ix->narenas, ix->name);
+	if(na < 0){
 		freeindex(ix);
 		return nil;
 	}
-
+	ix->narenas = na;
 	return ix;
 }
 

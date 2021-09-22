@@ -1,0 +1,4 @@
+
+struct Procdata{
+	void	*reporter;
+};

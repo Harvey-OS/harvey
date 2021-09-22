@@ -14,8 +14,7 @@ utfecpy(char *to, char *e, char *from)
 		while(end>to && (*--end&0xC0)==0x80)
 			;
 		*end = '\0';
-	}else{
+	}else
 		end--;
-	}
 	return end;
 }

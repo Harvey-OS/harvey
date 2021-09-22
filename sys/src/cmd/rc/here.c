@@ -4,7 +4,7 @@
 #include "fns.h"
 
 struct here *here, **ehere;
-int ser = 0;
+static int ser = 0;
 char tmp[] = "/tmp/here0000.0000";
 char hex[] = "0123456789abcdef";
 
@@ -12,7 +12,7 @@ void psubst(io*, uchar*);
 void pstrs(io*, word*);
 
 void
-hexnum(char *p, int n)
+hexnum(char *p, ushort n)
 {
 	*p++ = hex[(n>>12)&0xF];
 	*p++ = hex[(n>>8)&0xF];
@@ -34,7 +34,7 @@ heredoc(tree *tag)
 		here = h;
 	ehere = &h->next;
 	h->tag = tag;
-	hexnum(&tmp[9], getpid());
+	hexnum(&tmp[9], getpid());	/* pid may not fit in ushort */
 	hexnum(&tmp[14], ser++);
 	h->name = strdup(tmp);
 	return token(tmp, WORD);
@@ -49,7 +49,8 @@ heredoc(tree *tag)
 void
 readhere(void)
 {
-	int c, subst;
+	int fd, subst;
+	Rune c;
 	char *s, *tag;
 	char line[NLINE+1];
 	io *f;
@@ -58,10 +59,10 @@ readhere(void)
 	for(h = here; h; h = nexth){
 		subst = !h->tag->quoted;
 		tag = h->tag->str;
-		c = Creat(h->name);
-		if(c < 0)
+		fd = Creat(h->name);
+		if(fd < 0)
 			yyerror("can't create here document");
-		f = openfd(c);
+		f = openfd(fd);
 		s = line;
 		pprompt();
 		while((c = rchr(runq->cmdfd)) != EOF){

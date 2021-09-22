@@ -1,0 +1,10 @@
+% This test should give no output on the terminal.
+\batchmode
+\font\test=xxx
+\errorstopmode
+\ifx\test=\nullfont
+% font not found
+\else
+% font found
+\fi
+\bye

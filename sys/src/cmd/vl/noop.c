@@ -7,7 +7,7 @@
  * and "{ echo moon; echo plot } | scat".
  */
 enum {
-	Mips24k	= 0,
+	Mips24k	= 1,
 };
 
 static int

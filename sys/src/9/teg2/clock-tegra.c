@@ -53,6 +53,8 @@ enum {
 	Divisormask =	MASK(8),
 };
 
+ulong initµs;			/* correction that fastticks must subtract */
+
 void
 tegclockintr(void)
 {
@@ -122,9 +124,10 @@ tegclockinit(void)
 
 	/* verify µs counter sanity */
 	assert(µs->cfg == 0xb);			/* set by u-boot */
-	old = µs->cntr;
+	initµs = old = µs->cntr;
 	delay(1);
-	assert(old != µs->cntr);
+	if (old == µs->cntr)
+		panic("tegclockinit: microsecond timer not ticking");
 }
 
 ulong

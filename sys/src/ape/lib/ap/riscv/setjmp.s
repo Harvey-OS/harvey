@@ -5,7 +5,7 @@ sp=2
 TEXT	setjmp(SB), 1, $-4
 	MOVW	R(sp), (R(arg+0))
 	MOVW	R(link), 4(R(arg+0))
-	MOVW	$0, R(arg)
+	MOVW	R0, R(arg)
 	RET
 
 TEXT	sigsetjmp(SB), 1, $-4
@@ -15,7 +15,7 @@ TEXT	sigsetjmp(SB), 1, $-4
 	MOVW	R2, 4(R(arg+0))
 	MOVW	R(sp), 8(R(arg+0))
 	MOVW	R(link), 12(R(arg+0))
-	MOVW	$0, R(arg+0)
+	MOVW	R0, R(arg+0)
 	RET
 
 TEXT	longjmp(SB), 1, $-4

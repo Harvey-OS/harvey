@@ -3,21 +3,23 @@
 TEXT	_main(SB), 1, $(16 + NPRIVATES*4)
 
 	MOVW	$setR30(SB), R30
-	MOVW	R1, _tos(SB)
+	MOVW	R1, _clock(SB)
 
-	MOVW	$p-64(SP), R1
-	MOVW	R1, _privates(SB)
-	MOVW	$NPRIVATES, R1
-	MOVW	R1, _nprivates(SB)
+	MOVW	$p-64(SP),R1
+	MOVW	R1,_privates+0(SB)
+	MOVW	$16,R1
+	MOVW	R1,_nprivates+0(SB)
 
-	MOVW	inargc-4(FP), R1
-	MOVW	$inargv+0(FP), R2
-	MOVW	R1, 4(R29)
-	MOVW	R2, 8(R29)
+	MOVW	inargc-8(FP), R1
+	MOVW	$inargv-4(FP), R2
+	ADD	$7, R29
+	AND	$~7, R29
+	MOVW	R1, 8(R29)
+	MOVW	R2, 12(R29)
 	JAL	main(SB)
 loop:
 	MOVW	$_exitstr<>(SB), R1
-	MOVW	R1, 4(R29)
+	MOVW	R1, 8(R29)
 	JAL	exits(SB)
 	JMP	loop
 

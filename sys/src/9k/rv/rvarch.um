@@ -1,0 +1,4 @@
+ARCH=um
+# must match KTZERO in mem.h
+KTZERO=0xffffffc080200000	# sv39 but skip first 2MB
+CONFDEF='-DMAINOFF=(2*MB)' -DSIFIVEUART

@@ -183,7 +183,7 @@ mmcswitchfunc(SDio *io, int arg)
 {
 	uchar *buf;
 	int n;
-	u32int r[4];
+	ulong r[4];
 
 	n = Funcbytes;
 	buf = sdmalloc(n);
@@ -203,7 +203,7 @@ static int
 mmconline(SDunit *unit)
 {
 	int hcs, i;
-	u32int r[4];
+	ulong r[4];
 	Ctlr *ctl;
 	SDio *io;
 
@@ -294,7 +294,7 @@ mmcbio(SDunit *unit, int lun, int write, void *data, long nb, uvlong bno)
 {
 	int len, tries;
 	ulong b;
-	u32int r[4];
+	ulong r[4];
 	uchar *buf;
 	Ctlr *ctl;
 	SDio *io;

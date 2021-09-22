@@ -225,7 +225,7 @@ threadmain(int argc, char *argv[])
 	Bloom *oldbloom, *newbloom;
 	Part *part;
 	u64int clumps, base;
-	u32int bcmem;
+	uintptr bcmem;
 	int fix, skipz, ok;
 
 	fix = 0;
@@ -271,7 +271,7 @@ threadmain(int argc, char *argv[])
 	}
 	if(bcmem < maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16))
 		bcmem = maxblocksize * (mainindex->narenas + mainindex->nsects * 4 + 16);
-	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+	if(0) fprint(2, "initialize %lld bytes of disk block cache\n", (vlong)bcmem);
 	initdcache(bcmem);
 
 	fprint(2, "checkindex: building entry list\n");

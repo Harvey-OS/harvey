@@ -1,0 +1,255 @@
+#!/bin/rc
+# 9fs filesystem - srv & mount filesystem, usually from plan 9
+
+rfork e
+arch=/lib/vac/arch		# archive mount point tree
+
+# mount netapp nfs servers
+fn mntnfs {	# name homedir-list
+	srvr=$1; shift
+	if (test -e /srv/$srvr.all) {
+		mount -C /srv/$srvr.all /n/$srvr
+		exit
+	}
+	if(! test -f /srv/$srvr)
+		nfs -p 666 -u /lib/ndb/1127.passwd /lib/ndb/1127.group $srvr
+	unmount /n/$srvr >[2]/dev/null
+	for (i)
+		mount -aC /srv/$srvr /n/$srvr /$i
+	rfork n
+	srvfs -p 666 $srvr.all /n/$srvr		# mainly for ftpd
+}
+
+switch($1){
+case ''
+	echo usage: 9fs service '[mountpoint]' >[1=2]
+	exit usage
+
+case main
+	mount -C /srv/boot /n/main main
+case dump
+	mount -C /srv/boot /n/dump main/archive
+	9fs archive
+	bind -a $arch/emelie /n/dump
+	bind -a $arch/emelie/2003 /n/dump/2003
+	bind -a $arch/bootes /n/dump
+case snap
+	mount -C /srv/boot /n/snap main/snapshot
+case other
+	if (test -e /srv/other)
+		mount -cC /srv/other /n/other && bind /n/other /n/fsother
+	if not
+		# importsrv net!edith!20564 /n/other && bind /n/other /n/fsother
+		srv -q -cC  net!edith!20564 other &&
+			mount -cC /srv/other /n/other &&
+			bind /n/other /n/fsother
+	9fs fsotherro
+#	importsrv edith /n/fs && {
+#		# started independent fossils, so they're not visible in /n/fs.
+#		# mount from /n/fs/srv
+#		mount -cC /n/fs/srv/fossil.spare /n/other
+#		mount -cC /n/fs/srv/fossil.other /n/other.ro
+#		bind /n/other.ro  /n/fsother.ro
+#	}
+case otherdb2
+	importsrv net!edith!20564 /n/other && bind /n/other /n/fsother
+	9fs fsotherro
+
+case fs
+	srv -q edith fs && mount -cC /srv/fs /n/fs main/active
+case fsmain
+	srv -q edith fs && mount -C /srv/fs /n/fsmain main
+case fsdump
+	srv -q edith fs && mount -C /srv/fs /n/fsdump main/archive
+case fssnap
+	srv -q edith fs && mount -C /srv/fs /n/fssnap main/snapshot
+case fsother
+	exec 9fs other
+#case fsspare
+#	srv -q edith fs && mount -cC /srv/fs /n/fsspare spare/active
+case fsboot
+	srv -q -cC net!edith!10564 $1 && mount -cC /srv/$1 /n/$1 # main/active
+case fsotherro
+	srv -q -cC net!edith!30564 other.ro && mount -cC /srv/other.ro /n/other.ro
+	bind /n/other.ro  /n/fsother.ro
+
+case outside outside.cs.bell-labs.com
+	exec importsrv net!outside!666 /n/$1
+
+case dusty scummy grubby
+	unmount /n/^$1 >/dev/null >[2]/dev/null
+	srv -m $1^.research.bell-labs.com $1 /n/^$1 && mount -c /srv/^$1 /n/^$1
+
+# the old jukeboxes' contents
+case archive bootes bootesdump fornax fornaxdump \
+    emelie emeliedump choline cholinedump jukes
+	mount -C /srv/jukes /n/jukes >[2]/dev/null || {
+		unmount /n/jukes >[2]/dev/null
+		rm -f /srv/jukes
+		if (~ $sysname yoshimi)
+			vacfs -h localhost -S jukes /lib/vac/jukes.vac
+		if not {
+			import -C -s jukes yoshimi /n/jukes
+			chmod +rw /srv/jukes >[2]/dev/null
+		}
+	}
+	mount -C /srv/jukes /n/jukes || exit 'can''t mount /srv/jukes'
+	if (! test -d /n/jukes/choline) {
+		echo $0: /n/jukes/choline missing! >[1=2]
+		exit no-choline
+	}
+	bind /n/jukes/bootes/1997/1231 /n/bootes
+	bind /n/jukes/fornax/1997/1231 /n/fornax
+	bind /n/jukes/emelie/2006/10301 /n/emelie
+	bind /n/jukes/choline/2006/0814 /n/choline
+
+	for (juke in bootes fornax emelie choline) {
+		bind /n/jukes/$juke /n/$juke^dump
+		# backward compatibility
+		bind /n/jukes/$juke $arch/$juke^dump
+		# should this be one of the above binds of a date?
+		bind /n/jukes/$juke $arch/$juke
+	}
+	bind $arch /n/archive		# backward compatibility
+case audio
+	9fs choline
+	9fs other
+	bind -a /n/choline/lib/audio /lib/audio	# stale rawmap
+	bind -b /n/other/audio /lib/audio	# current rawmap
+	bind -a /sys/lib/music /lib/audio/map
+
+case kfs
+	if(! test -f /srv/kfs)
+		disk/kfs
+	mount -cC /srv/kfs /n/kfs
+case localhost
+	srv -mC localhost
+case gridroot
+	import -C a.grid.bell-labs.com / /n/gridroot
+case grid
+	srv -mC a.grid.bell-labs.com grid /n/grid
+case home
+	srv -mC nslocum
+	bind /n/nslocum/home /home
+
+case martha	# martha local fossil
+	import -C sources.cs.bell-labs.com / /n/martha
+case sources	# martha network fossil
+	srv -mC net!sources!9fs sources /n/sources
+#	if (~ $status '')
+#		exit ''
+	if (! ~ $status '') {
+		rm -f /srv/sources
+		srv -mC net!sources!9fs sources /n/sources
+	}
+	# /n/sources is too much typing and /n/sources/plan9 is worse
+	bind /n/sources /n/src
+	if (test -e /n/src/adm)
+		bind /n/src/plan9 /n/p9
+case cm
+	# import net!cm.cs.bell-labs.com!666 / /n/cm	# no cm.cs any more
+	9fs alice
+	bind /n/alice/cm /n/cm
+case sourcesdump
+	9fs sources
+	mount -C /srv/sources /n/sourcesdump main/archive
+case sourcessnap
+	9fs sources
+	mount -C /srv/sources /n/sourcessnap main/snapshot
+
+# future main fs
+case yoshimi
+	srv -q yoshimi && mount -cC /srv/yoshimi /n/yoshimi main/active
+case yoshimimain
+	srv -q yoshimi && mount -cC /srv/yoshimi /n/yoshimimain main
+case yoshimidump
+	srv -q yoshimi && mount -C /srv/yoshimi /n/yoshimidump main/archive
+case yoshimisnap
+	srv -q yoshimi && mount -C /srv/yoshimi /n/yoshimisnap main/snapshot
+case yoshimistand
+	srv -q -cC net!yoshimi!10564 yoshimistand &&
+		mount -cC /srv/yoshimistand /n/yoshimistand main/active
+case yoshimiother
+	srv -q -cC net!yoshimi!20564 yoshimiother &&
+		mount -cC /srv/yoshimiother /n/yoshimiother main/active
+
+# temporary
+case nana
+	srv -q nana && mount -cC /srv/nana /n/nana main/active
+case nanamain
+	srv -q nana && mount -cC /srv/nana /n/nanamain main
+case nanasnap
+	srv -q nana && mount -cC /srv/nana /n/nanasnap main/snapshot
+
+#
+# obsolete
+#
+case jukeemelie
+	echo $0: sorry, emelie is frozen, effective 30 oct 2006 >[1=2]
+	exit frozen
+#	srv -q -cC emelie jemelie && mount -cC /srv/jemelie /n/emelie
+case jukeemeliedump
+	echo $0: sorry, emelie is frozen, effective 30 oct 2006 >[1=2]
+	exit frozen
+#	srv -q -cC emelie jemelie && mount -cC /srv/jemelie /n/emeliedump dump
+case emelietemp
+	echo $0: sorry, emelie is turned off, effective 30 oct 2006 >[1=2]
+	exit gone
+#	srv -q -cC emelie jemelie && mount -cC /srv/jemelie /n/emelietemp temp
+case emelieother
+	echo $0: sorry, emelie is turned off, effective 30 oct 2006 >[1=2]
+	exit gone
+#	srv -q -cC emelie jemelie && mount -cC /srv/jemelie /n/emelieother other
+
+#
+# netapp nfs servers
+#
+case bopp
+	mntnfs $1 (a0 b302 shome su0 su2 su3 v^(1 2 3 4 5 6 7 8 9) \
+		u^(0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j y z))
+case hale
+	mntnfs $1 (h002 h003 h101 h103 h104)
+case scone
+	mntnfs $1 (scone^(0 1 2 3 4))
+case washer
+	mntnfs $1 (vol)
+
+case cab
+	srv -m net!crash-and-burn.lcs.mit.edu!9fs cab /n/cab
+case vac:*
+	vacfs <{echo $1}
+case vac.*
+	vacfs -m /n/$1 <{echo $1 | sed 's/vac\./vac:/'}
+case wiki
+	srv -q 'net!204.178.31.2!wiki' wiki
+	mount /srv/wiki /mnt/wiki
+case boundary lookout
+	exec importsrv $1
+case log
+	9fs boundary
+	9fs lookout
+	bind -a /n/boundary/sys/log /sys/log
+	bind -a /n/lookout/sys/log /sys/log
+case freebsd
+#	exec srvssh $1 $1 /n/$1
+	exec srvssh -u /home/geoff/bin/386/u9fs $1 $1 /n/$1
+case saras65k wolverine wraith
+	exec srvssh -u /home/geoff/bin/sparc/u9fs $1 $1 /n/$1
+case ipv6
+	exec srvssh -u u9fs net!$1.cs.bell-labs.com $1 /n/$1
+case outfw
+	exec srvssh -u u9fs /net.alt/net!$1.cs.bell-labs.com $1 /n/$1
+case geoff-fw
+	exec srvssh -u /usr/local/bin/u9fs /net.alt/net!10.0.0.1 fw /n/fw
+case geoff-nfw
+	exec srvssh -u /usr/local/bin/u9fs /net.alt/net!10.0.0.2 nfw /n/nfw
+case geoff-nfw-ext
+	exec srvssh -u /usr/local/bin/u9fs /net.alt/net!netbsd.collyer.net nfw /n/nfw
+case *
+	switch($#*){
+	case 1
+		exec srv -mc $1
+	case *
+		exec srv -mc $1 $1 $2
+	}
+}

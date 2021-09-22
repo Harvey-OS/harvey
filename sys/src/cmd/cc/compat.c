@@ -5,19 +5,19 @@
  * fake mallocs
  */
 void*
-malloc(ulong n)
+malloc(uintptr n)
 {
 	return alloc(n);
 }
 
 void*
-calloc(ulong m, ulong n)
+calloc(uintptr m, uintptr n)
 {
 	return alloc(m*n);
 }
 
 void*
-realloc(void*, ulong)
+realloc(void*, uintptr)
 {
 	fprint(2, "realloc called\n");
 	abort();
@@ -31,7 +31,7 @@ free(void*)
 
 /* needed when profiling */
 void*
-mallocz(ulong size, int clr)
+mallocz(uintptr size, int clr)
 {
 	void *v;
 
@@ -42,6 +42,6 @@ mallocz(ulong size, int clr)
 }
 
 void
-setmalloctag(void*, ulong)
+setmalloctag(void*, uintptr)
 {
 }

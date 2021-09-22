@@ -34,6 +34,9 @@ word*
 newword(char *wd, word *next)
 {
 	word *p = new(word);
+
+	if (wd == 0)
+		panic("newword(nil)", 0);
 	p->word = strdup(wd);
 	p->next = next;
 	return p;
@@ -44,6 +47,8 @@ pushword(char *wd)
 {
 	if(runq->argv==0)
 		panic("pushword but no argv!", 0);
+	if (wd == 0)
+		panic("pushword(nil)", 0);
 	runq->argv->words = newword(wd, runq->argv->words);
 }
 
@@ -207,7 +212,8 @@ main(int argc, char *argv[])
 
 	kinit();
 	Trapinit();
-	Vinit();
+	Vinit();				/* read env vars */
+
 	inttoascii(num, mypid = getpid());
 	setvar("pid", newword(num, (word *)0));
 	setvar("cflag", flag['c']? newword(flag['c'], (word *)0): (word *)0);
@@ -215,6 +221,7 @@ main(int argc, char *argv[])
 
 	loadboot(bootstrap, nelem(bootstrap), (flag['m']? flag['m']: Rcmain));
 	start(bootstrap, 1, (var *)0);
+
 	/* prime bootstrap argv */
 	pushlist();
 	for(i = argc-1; i >= 0; --i)
@@ -238,7 +245,7 @@ main(int argc, char *argv[])
  * Xappend(file)[fd]			open file to append
  * Xassign(name, val)			assign val to name
  * Xasync{... Xexit}			make thread for {}, no wait
- * Xbackq(split){... Xreturn}		make thread for {}, push stdout
+ * Xbackq{... Xreturn}			make thread for {}, push stdout
  * Xbang				complement condition
  * Xcase(pat, value){...}		exec code on match, leave (value) on
  * 					stack
@@ -291,6 +298,7 @@ Xappend(void)
 {
 	char *file;
 	int f;
+
 	switch(count(runq->argv->words)){
 	default:
 		Xerror1(">> requires singleton");
@@ -302,7 +310,7 @@ Xappend(void)
 		break;
 	}
 	file = runq->argv->words->word;
-	if((f = open(file, 1))<0 && (f = Creat(file))<0){
+	if((f = open(file, OWRITE)) < 0 && (f = Creat(file)) < 0){
 		pfmt(err, "%s: ", file);
 		Xerror("can't open");
 		return;
@@ -351,6 +359,7 @@ Xexit(void)
 	struct var *trapreq;
 	struct word *starval;
 	static int beenhere = 0;
+
 	if(getpid()==mypid && !beenhere){
 		trapreq = vlook("sigexit");
 		if(trapreq->fn){
@@ -408,6 +417,7 @@ Xread(void)
 {
 	char *file;
 	int f;
+
 	switch(count(runq->argv->words)){
 	default:
 		Xerror1("< requires singleton\n");
@@ -419,7 +429,7 @@ Xread(void)
 		break;
 	}
 	file = runq->argv->words->word;
-	if((f = open(file, 0))<0){
+	if((f = open(file, OREAD)) < 0){
 		pfmt(err, "%s: ", file);
 		Xerror("can't open");
 		return;
@@ -467,6 +477,7 @@ void
 Xpopredir(void)
 {
 	struct redir *rp = runq->redir;
+
 	if(rp==0)
 		panic("turfredir null!", 0);
 	runq->redir = rp->next;
@@ -479,6 +490,7 @@ void
 Xreturn(void)
 {
 	struct thread *p = runq;
+
 	turfredir();
 	while(p->argv) poplist();
 	codefree(p->code);
@@ -861,6 +873,7 @@ void
 freewords(word *w)
 {
 	word *nw;
+
 	while(w){
 		efree(w->word);
 		nw = w->next;
@@ -875,6 +888,7 @@ Xfn(void)
 	var *v;
 	word *a;
 	int end;
+
 	end = runq->code[runq->pc].i;
 	globlist();
 	for(a = runq->argv->words;a;a = a->next){
@@ -894,6 +908,7 @@ Xdelfn(void)
 {
 	var *v;
 	word *a;
+
 	for(a = runq->argv->words;a;a = a->next){
 		v = gvlook(a->word);
 		if(v->fn)
@@ -938,6 +953,7 @@ Xrdcmds(void)
 {
 	struct thread *p = runq;
 	word *prompt;
+
 	flush(err);
 	nerror = 0;
 	if(flag['s'] && !truestatus())
@@ -1044,7 +1060,7 @@ truestatus(void)
 void
 Xdelhere(void)
 {
-	Unlink(runq->code[runq->pc++].s);
+	remove(runq->code[runq->pc++].s);
 }
 
 void

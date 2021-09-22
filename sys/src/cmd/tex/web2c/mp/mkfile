@@ -1,0 +1,8 @@
+TARG=mp
+<../texmfmp.mkfile
+
+mp.$CPUENDIAN.mem: $O.out
+	$O.out --mem'='mp.$CPUENDIAN --ini '\input' plain dump
+
+install-fmt:V:	mp.$CPUENDIAN.mem mp.pool
+	cp $newprereq /sys/lib/texmf/web2c

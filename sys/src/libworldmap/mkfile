@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libworldmap.a
+
+OFILES=\
+	map.$O\
+	coast.$O\
+	clockwise.$O\
+
+HFILES=mapimpl.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+all:V:	$LIB syms
+
+8.map: main.$O $LIB
+	8l -o 8.map main.$O
+
+8.convert: convert.$O
+	8l -o 8.convert convert.$O
+
+</sys/src/cmd/mklib
+
+syms: coast.c
+	$CC $INCLUDES -a coast.c	>syms
+
+clockwise.$O: $HFILES
+coast.$O: $HFILES
+map.$O: $HFILES

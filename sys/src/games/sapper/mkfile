@@ -1,0 +1,8 @@
+</$objtype/mkfile
+
+TARG=sapper
+OFILES=sapper.$O
+HFILES=
+
+</sys/src/cmd/mkone
+BIN=/$objtype/bin/games

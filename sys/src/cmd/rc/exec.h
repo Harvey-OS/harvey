@@ -39,22 +39,22 @@ struct redir{
 #define	RDUP	2			/* dup2(from, to); */
 #define	RCLOSE	3			/* close(from); */
 struct thread{
-	union code *code;		/* code for this thread */
-	int pc;				/* code[pc] is the next instruction */
-	struct list *argv;		/* argument stack */
-	struct redir *redir;		/* redirection stack */
-	struct redir *startredir;	/* redir inheritance point */
-	struct var *local;		/* list of local variables */
-	char *cmdfile;			/* file name in Xrdcmd */
-	struct io *cmdfd;		/* file descriptor for Xrdcmd */
-	int iflast;			/* static `if not' checking */
-	int eof;			/* is cmdfd at eof? */
-	int iflag;			/* interactive? */
-	int lineno;			/* linenumber */
-	int pid;			/* process for Xpipewait to wait for */
-	char status[NSTATUS];		/* status for Xpipewait */
-	tree *treenodes;		/* tree nodes created by this process */
-	thread *ret;		/* who continues when this finishes */
+	code	*code;		/* code for this thread */
+	int	pc;		/* code[pc] is the next instruction */
+	list	*argv;		/* argument stack */
+	redir	*redir;		/* redirection stack */
+	redir	*startredir;	/* redir inheritance point */
+	var	*local;		/* list of local variables */
+	char	*cmdfile;	/* file name in Xrdcmd */
+	io	*cmdfd;		/* file descriptor for Xrdcmd */
+	uchar	iflast;		/* static `if not' checking */
+	uchar	eof;		/* is cmdfd at eof? */
+	uchar	iflag;		/* interactive? */
+	int	lineno;		/* linenumber */
+	int	pid;		/* process for Xpipewait to wait for */
+	char	status[NSTATUS]; /* status for Xpipewait */
+	tree	*treenodes;	/* tree nodes created by this process */
+	thread	*ret;		/* who continues when this finishes */
 };
 thread *runq;
 code *codecopy(code*);
@@ -65,7 +65,7 @@ struct builtin{
 	char *name;
 	void (*fnc)(void);
 };
-extern struct builtin Builtin[];
+extern builtin Builtin[];
 int eflagok;			/* kludge flag so that -e doesn't exit in startup */
 int havefork;
 

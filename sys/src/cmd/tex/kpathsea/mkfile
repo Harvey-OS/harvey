@@ -1,0 +1,119 @@
+</$objtype/mkfile
+CPUS=mips 386	# not power, pcc doesn't know about it
+
+LIB=libkpathsea.a$O
+
+OFILES=\
+	putenv.$O\
+	tex-file.$O\
+	absolute.$O\
+	atou.$O\
+	basename.$O\
+	cnf.$O\
+	concat.$O\
+	concat3.$O\
+	concatn.$O\
+	db.$O\
+	debug.$O\
+	dir.$O\
+	elt-dirs.$O\
+	expand.$O\
+	extend-fname.$O\
+	file-p.$O\
+	find-suffix.$O\
+	fn.$O\
+	fontmap.$O\
+	getopt.$O\
+	getopt1.$O\
+	hash.$O\
+	kdefault.$O\
+	line.$O\
+	magstep.$O\
+	make-suffix.$O\
+	path-elt.$O\
+	pathsearch.$O\
+	proginit.$O\
+	progname.$O\
+	readable.$O\
+	rm-suffix.$O\
+	str-list.$O\
+	str-llist.$O\
+	strcasecmp.$O\
+	tex-glyph.$O\
+	tex-hush.$O\
+	tex-make.$O\
+	tilde.$O\
+	truncate.$O\
+	uppercasify.$O\
+	variable.$O\
+	version.$O\
+	xcalloc.$O\
+	xfopen.$O\
+	xfseek.$O\
+	xftell.$O\
+	xgetcwd.$O\
+	xmalloc.$O\
+	xopendir.$O\
+	xputenv.$O\
+	xrealloc.$O\
+	xstat.$O\
+	xstrdup.$O\
+
+HFILES=\
+	absolute.h\
+	acconfig.h\
+	c-auto.h\
+	c-ctype.h\
+	c-dir.h\
+	c-errno.h\
+	c-fopen.h\
+	c-limits.h\
+	c-memstr.h\
+	c-minmax.h\
+	c-namemx.h\
+	c-pathch.h\
+	c-pathmx.h\
+	c-proto.h\
+	c-stat.h\
+	c-std.h\
+	c-unistd.h\
+	c-vararg.h\
+	cnf.h\
+	concatn.h\
+	config.h\
+	db.h\
+	debug.h\
+	default.h\
+	expand.h\
+	fn.h\
+	fontmap.h\
+	getopt.h\
+	hash.h\
+	kpathsea.h\
+	lib.h\
+	line.h\
+	magstep.h\
+	paths.h\
+	pathsearch.h\
+	proginit.h\
+	progname.h\
+	readable.h\
+	str-list.h\
+	str-llist.h\
+	systypes.h\
+	tex-file.h\
+	tex-glyph.h\
+	tex-hush.h\
+	tex-make.h\
+	tilde.h\
+	truncate.h\
+	types.h\
+	variable.h\
+	win32lib.h\
+	xopendir.h\
+	xstat.h\
+
+</sys/src/cmd/mksyslib
+
+CC=pcc
+CFLAGS=-I. -I.. -D_POSIX_SOURCE -D_BSD_EXTENSION -DPlan9 -c

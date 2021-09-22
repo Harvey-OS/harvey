@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 		break;
 	case 'f':
 		file = EARGF(usage());
-		fo = create(file, 1, 0666);
+		fo = create(file, OWRITE, 0666);
 		if(fo < 0)
 			sysfatal("can't create %s: %r", file);
 		break;
@@ -79,8 +79,7 @@ main(int argc, char *argv[])
 			sysfatal("seek offset %lld must be non-negative", off);
 		break;
 	case 't':
-		tsize = atoll(EARGF(usage()));
-		tsize *= 10584000;		/* minutes */
+		tsize = atoll(EARGF(usage())) * 10584000;	/* minutes */
 		break;
 	} ARGEND
 	kilo <<= 10;
@@ -143,7 +142,7 @@ dooutput(int f)
 		if(n == 0) {
 			if(done)
 				break;
-			sleepunlocked(dsize);
+			sleepunlocked(dsize);	/* wait for input to appear */
 			continue;
 		}
 		if(verb && n > max) {
@@ -207,7 +206,7 @@ doinput(int f)
 	while(!done) {
 		n = kilo - (nin - nout);
 		if(n == 0) {
-			sleepunlocked(0);
+			sleepunlocked(0);	/* wait for output to drain */
 			continue;
 		}
 		l = nin % kilo;

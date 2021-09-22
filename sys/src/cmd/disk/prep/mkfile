@@ -9,6 +9,7 @@ OFILES=\
 	y.tab.$O\
 
 BIN=/$objtype/bin/disk
+LIB=/$objtype/lib/libnofp.a
 
 UPDATE=\
 	mkfile\

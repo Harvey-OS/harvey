@@ -1,4 +1,5 @@
 #include "e.h"
+#include <ctype.h>
 
 #define	MAXLINE	3600	/* maximum input line */
 
@@ -91,7 +92,7 @@ void settype(char *s)	/* initialize data for particular typesetter */
 getdata(void)
 {
 	int i, type, ln;
-	char fname[100];
+	char *fname;
 	extern int errno;
 
 	errno = 0;
@@ -125,11 +126,15 @@ getdata(void)
 		else if (type == lefteq)
 			inlineeq();
 		else if (in[0] == '.' && in[1] == 'l' && in[2] == 'f') {
-			if (sscanf(in+3, "%d %s", &ln, fname) == 2) {
+			curfile->lineno = ln = strtoul(in+3, &fname, 0);
+			while (isspace(*fname))
+				fname++;
+			if (fname != in+3 && *fname != '\0') {
 				free(curfile->fname);
-				printf(".lf %d %s\n", curfile->lineno = ln, curfile->fname = strsave(fname));
+				curfile->fname = strsave(fname);
+				printf(".lf %d %s\n", ln, fname);
 			} else
-				printf(".lf %d\n", curfile->lineno = ln);
+				printf(".lf %d\n", ln);
 		} else
 			printf("%s", in);
 	}
@@ -138,7 +143,7 @@ getdata(void)
 
 getline(char *s)
 {
-	register c;
+	int c;
 
 	while ((c=input()) != '\n' && c != EOF && c != lefteq) {
 		if (s >= in+MAXLINE) {

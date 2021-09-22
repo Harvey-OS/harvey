@@ -1,0 +1,11 @@
+Apparently I didn't enable L2 ECC in my previous work; perhaps u-boot
+had done so and I just left it on.
+
+The co-processor register is Crn = 9, Crm = 0, opcode1 == 1, opcode2 == 2
+(CpCLDl2aux, l2 auxiliary control) and these are the 2 bits to set:
+
+/*
+ * l2 cache aux. control
+ */
+#define CpCl2ecc	(1<<28)			/* use ecc, not parity */
+#define CpCl2eccparity	(1<<21)			/* enable ecc or parity */

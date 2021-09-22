@@ -518,13 +518,12 @@ static void
 segmentkproc(void *arg)
 {
 	Globalseg *g = arg;
-	int done;
-	int sno;
+	int done, sno;
 
 	for(sno = 0; sno < NSEG; sno++)
 		if(up->seg[sno] == nil && sno != ESEG)
 			break;
-	if(sno == NSEG)
+	if(sno >= NSEG)
 		panic("segmentkproc");
 	g->kproc = up;
 
@@ -554,6 +553,7 @@ segmentkproc(void *arg)
 		g->cmd = Cnone;
 		wakeup(&g->replywait);
 	}
+	pexit("", 1);
 }
 
 Dev segmentdevtab = {

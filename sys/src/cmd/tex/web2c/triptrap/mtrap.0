@@ -1,0 +1,35 @@
+%!PS
+%%BoundingBox: -36 -24 84 84 
+%%Creator: MetaPost
+%%CreationDate: 1998.01.28:1118
+%%Pages: 1
+%*Font: trapf 9.9628 9.96265 35:c008
+%%EndProlog
+%%Page: 1 1
+gsave newpath 50 0 moveto
+50 13.26082 44.73216 25.97853 35.35535 35.35535 curveto
+25.97853 44.73216 13.26082 50 0 50 curveto
+-13.26082 50 -25.97853 44.73216 -35.35535 35.35535 curveto
+-44.73216 25.97853 -50 13.26082 -50 0 curveto
+-50 -13.26082 -44.73216 -25.97853 -35.35535 -35.35535 curveto
+-25.97853 -44.73216 -13.26082 -50 0 -50 curveto
+13.26082 -50 25.97853 -44.73216 35.35535 -35.35535 curveto
+44.73216 -25.97853 50 -13.26082 50 0 curveto closepath clip
+grestore
+ 0 setgray 0 1 dtransform truncate idtransform setlinewidth pop
+ [] 0 setdash 0 setlinecap 0 setlinejoin 1 setmiterlimit
+newpath 1 1 moveto
+3 2 lineto stroke
+ 0.4 setgray
+newpath -36 -24 moveto
+84 -24 lineto
+0 84 lineto
+ closepath fill
+ 0 setgray
+gsave [0.86601 0.5 -0.5 0.86601 2 3 ] concat 0 0 moveto
+(A56) trapf 9.9628 fshow grestore
+gsave newpath 4 5 moveto
+8 1 lineto
+0.00064 1 scale stroke grestore
+showpage
+%%EOF

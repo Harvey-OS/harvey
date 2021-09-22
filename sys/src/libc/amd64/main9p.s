@@ -9,7 +9,7 @@ TEXT _mainp(SB), 1, $(2*8+NPRIVATES*8)
 	CALL	_profmain(SB)		/* _profmain(); */
 
 	MOVQ	_tos+0(SB), DX		/* _tos->prof.pp = _tos->prof.next; */
-	MOVQ	8(DX), CX
+	MOVQ	8(DX), CX		/* 8 for prof.next */
 	MOVQ	CX, (DX)
 
 	MOVL	inargc-8(FP), RARG	/* main(argc, argv); */
@@ -25,13 +25,8 @@ loop:
 
 TEXT	_savearg(SB), 1, $0
 	MOVQ	RARG, AX
-	RET
-
 TEXT	_saveret(SB), 1, $0
 	RET
-
-TEXT	_restorearg(SB), 1, $0
-	RET				/* we want RARG in RARG */
 
 TEXT	_callpc(SB), 1, $0
 	MOVQ	8(RARG), AX

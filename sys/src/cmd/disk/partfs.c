@@ -564,7 +564,7 @@ main(int argc, char **argv)
 	if((fd = open(file, rdonly? OREAD: ORDWR)) < 0)
 		sysfatal("open %s: %r", file);
 
-	sectsize = 512;			/* conventional */
+	sectsize = 512;		/* conventional; read ctlfd for geometry? */
 	dir = dirfstat(fd);
 	if (dir)
 		nsect = dir->length / sectsize;

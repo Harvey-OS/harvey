@@ -3,7 +3,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "../port/error.h"
+#include "io.h"
 
 /*
  * 8250 UART and compatibles.
@@ -105,11 +105,11 @@ enum {					/* Msr */
 };
 
 typedef struct Ctlr {
+	Intrcommon;
+	int	defirq;
 	int	io;
-	int	irq;
 	int	tbdf;
 	int	iena;
-	void*	vector;
 	int	poll;
 
 	uchar	sticky[8];
@@ -124,12 +124,12 @@ extern PhysUart i8250physuart;
 
 static Ctlr i8250ctlr[2] = {
 {	.io	= Uart0,
-	.irq	= Uart0IRQ,
+	.defirq	= Uart0IRQ,
 	.tbdf	= -1,
 	.poll	= 0, },
 
 {	.io	= Uart1,
-	.irq	= Uart1IRQ,
+	.defirq	= Uart1IRQ,
 	.tbdf	= -1,
 	.poll	= 0, },
 };
@@ -161,10 +161,8 @@ i8250status(Uart* uart, void* buf, long n, long offset)
 	Ctlr *ctlr;
 	uchar ier, lcr, mcr, msr;
 
-	p = malloc(READSTR);
-	if(p == nil)
-		error(Enomem);
 	ctlr = uart->regs;
+	p = malloc(READSTR);
 	mcr = ctlr->sticky[Mcr];
 	msr = csr8r(ctlr, Msr);
 	ier = ctlr->sticky[Ier];
@@ -218,9 +216,11 @@ i8250fifo(Uart* uart, int level)
 	 * the receive side, but it's possible to wait until
 	 * the transmitter is really empty.
 	 */
+	while(!(csr8r(ctlr, Lsr) & Temt))
+		pause();
 	ilock(ctlr);
 	while(!(csr8r(ctlr, Lsr) & Temt))
-		;
+		pause();
 
 	/*
 	 * Set the trigger level, default is the max.
@@ -274,7 +274,9 @@ i8250rts(Uart* uart, int on)
 	/*
 	 * Toggle RTS.
 	 */
+	assert(uart);
 	ctlr = uart->regs;
+	assert(ctlr);
 	if(on)
 		ctlr->sticky[Mcr] |= Rts;
 	else
@@ -434,7 +436,10 @@ i8250break(Uart* uart, int ms)
 
 	ctlr = uart->regs;
 	csr8w(ctlr, Lcr, Brk);
-	tsleep(&up->sleep, return0, 0, ms);
+	if (up == nil)
+		delay(ms);
+	else
+		tsleep(&up->sleep, return0, 0, ms);
 	csr8w(ctlr, Lcr, 0);
 }
 
@@ -463,7 +468,7 @@ i8250kick(Uart* uart)
 	}
 }
 
-static void
+static Intrsvcret
 i8250interrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
@@ -471,8 +476,11 @@ i8250interrupt(Ureg*, void* arg)
 	int iir, lsr, old, r;
 
 	uart = arg;
-
+	if (uart == nil)
+		panic("i8250interrupt: nil uart");
 	ctlr = uart->regs;
+	if (ctlr == nil)
+		panic("i8250interrupt: nil ctlr");
 	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)){
 		switch(iir & IirMASK){
 		case Ims:		/* Ms interrupt */
@@ -569,15 +577,18 @@ i8250enable(Uart* uart, int ie)
 	 * the transmitter is really empty.
 	 * Also, reading the Iir outwith i8250interrupt()
 	 * can be dangerous, but this should only happen
-	 * once before interrupts are enabled.
+	 * once, before interrupts are enabled.
 	 */
+	if(!ctlr->checkfifo)
+		while(!(csr8r(ctlr, Lsr) & Temt))
+			pause();
 	ilock(ctlr);
 	if(!ctlr->checkfifo){
 		/*
 		 * Wait until the transmitter is really empty.
 		 */
 		while(!(csr8r(ctlr, Lsr) & Temt))
-			;
+			pause();
 		csr8w(ctlr, Fcr, FIFOena);
 		if(csr8r(ctlr, Iir) & Ifena)
 			ctlr->hasfifo = 1;
@@ -592,18 +603,25 @@ i8250enable(Uart* uart, int ie)
 	 * early on not to try to enable interrupts as interrupt-
 	 * -enabling mechanisms might not be set up yet.
 	 */
+	ctlr->sticky[Ier] = 0;
+	ctlr->sticky[Mcr] &= ~Ie;
 	if(ie){
 		if(ctlr->iena == 0 && !ctlr->poll){
-			ctlr->vector = intrenable(ctlr->irq, i8250interrupt, uart, ctlr->tbdf, uart->name);
-			ctlr->iena = 1;
+			ctlr->irq = ctlr->defirq;
+			ctlr->tbdf = BUSUNKNOWN;
+			if (enableintr(ctlr, i8250interrupt, uart, uart->name)
+			    == 0)
+				ctlr->iena = 1;
+			else {			/* probably no such device */
+				ctlr->iena = ie = 0;
+				ctlr->poll = 1;
+				goto nointr;
+			}
 		}
 		ctlr->sticky[Ier] = Ethre|Erda;
 		ctlr->sticky[Mcr] |= Ie;
 	}
-	else{
-		ctlr->sticky[Ier] = 0;
-		ctlr->sticky[Mcr] = 0;
-	}
+nointr:
 	csr8w(ctlr, Ier, ctlr->sticky[Ier]);
 	csr8w(ctlr, Mcr, ctlr->sticky[Mcr]);
 
@@ -639,31 +657,40 @@ i8250alloc(int io, int irq, int tbdf)
 static Uart*
 i8250pnp(void)
 {
-	int i;
+	int i, nuart, lsr;
 	Ctlr *ctlr;
 	Uart *head, *uart;
 
+	nuart = 0;
 	head = i8250uart;
 	for(i = 0; i < nelem(i8250uart); i++){
 		/*
 		 * Does it exist?
 		 * Should be able to write/read the Scratch Pad
+		 * (except on COM1, where it seems to confuse the 8250)
 		 * and reserve the I/O space.
 		 */
 		uart = &i8250uart[i];
 		ctlr = uart->regs;
-		csr8o(ctlr, Scr, 0x55);
-		if(csr8r(ctlr, Scr) == 0x55)
+		if (0) {
+			csr8o(ctlr, Scr, 0x55);
+			if(csr8r(ctlr, Scr) == 0x55)
+				continue;
+		}
+		lsr = csr8r(ctlr, Lsr);
+		if ((lsr & (Thre|Temt)) != (Thre|Temt))
+			continue;		/* not an idle 8250 */
+		if(ioalloc(ctlr->io, 8, 0, uart->name) < 0) {
+			print("pnp: %s: I/O ports already allocated\n", uart->name);
 			continue;
-		if(ioalloc(ctlr->io, 8, 0, uart->name) < 0)
-			continue;
+		}
+		nuart++;
 		if(uart == head)
-			head = uart->next;
+			head = uart;
 		else
-			(uart-1)->next = uart->next;
+			(uart-1)->next = uart;
 	}
-
-	return head;
+	return nuart? head: nil;
 }
 
 static int
@@ -678,17 +705,38 @@ i8250getc(Uart* uart)
 }
 
 static void
-i8250putc(Uart* uart, int c)
+i8250drain(Ctlr *ctlr)
 {
 	int i;
+
+	for(i = 1000; !(csr8r(ctlr, Lsr) & Thre) && i > 0; i--)
+		delay(1);
+}
+
+static void
+i8250putc(Uart* uart, int c)
+{
 	Ctlr *ctlr;
 
 	ctlr = uart->regs;
-	for(i = 0; !(csr8r(ctlr, Lsr) & Thre) && i < 128; i++)
-		delay(1);
+	i8250drain(ctlr);
 	csr8o(ctlr, Thr, c);
-	for(i = 0; !(csr8r(ctlr, Lsr) & Thre) && i < 128; i++)
-		delay(1);
+	i8250drain(ctlr);
+}
+
+void
+_uartputs(char* s, int n)	/* debugging */
+{
+	char *e;
+	int lastc;
+
+	lastc = 0;
+	for(e = s+n; s < e; s++){
+		if(*s == '\n' && lastc != '\r')
+			i8250putc(&i8250uart[0], '\r');
+		i8250putc(&i8250uart[0], *s);
+		lastc = *s;
+	}
 }
 
 static void
@@ -743,7 +791,7 @@ i8250console(char* cfg)
 	ISAConf isa;
 
 	/*
-	 * Before i8250pnp() is run can only set the console
+	 * Before i8250pnp() is run, we can only set the console
 	 * to 0 or 1 because those are the only uart structs which
 	 * will be the same before and after that.
 	 */
@@ -752,76 +800,56 @@ i8250console(char* cfg)
 	i = strtoul(p, &cmd, 0);
 	if(p == cmd)
 		return nil;
-//WTF? Something to do with the PCIe-only machine?
-	if((uart = uartconsole(i, cmd)) != nil){
+	if((uart = uartconsole(i, cmd)) != nil){	/* already enabled? */
 		consuart = uart;
 		return uart;
 	}
+
+	/* set it up */
 	switch(i){
 	default:
 		return nil;
 	case 0:
-		uart = &i8250uart[0];
-		break;
 	case 1:
-		uart = &i8250uart[1];
+		uart = &i8250uart[i];
 		break;
 	}
 
-//Madness. Something to do with the PCIe-only machine?
 	memset(&isa, 0, sizeof(isa));
 	ctlr = uart->regs;
 	if(isaconfig("eia", i, &isa) != 0){
 		if(isa.port != 0)
 			ctlr->io = isa.port;
-		if(isa.irq != 0)
-			ctlr->irq = isa.irq;
+//		if(isa.irq != 0)			/* sorry */
+//			ctlr->irq = isa.irq;
 		if(isa.freq != 0)
 			uart->freq = isa.freq;
 	}
 
 	/*
 	 * Does it exist?
-	 * Should be able to write/read
-	 * the Scratch Pad.
+	 * Should be able to write/read the Scratch Pad (except COM1)
+	 * but it seems to confuse the 8250.
 	 */
-//	ctlr = uart->regs;
-//	csr8o(ctlr, Scr, 0x55);
-//	if(csr8r(ctlr, Scr) != 0x55)
-//		return nil;
+	if (0 && i > 0) {
+		csr8o(ctlr, Scr, 0x55);
+		if(csr8r(ctlr, Scr) != 0x55)
+			return nil;
+	}
+	if(ioalloc(ctlr->io, 8, 0, uart->name) < 0)
+		print("console: %s: I/O ports already allocated\n", uart->name);
 
-	if(!uart->enabled)
-		(*uart->phys->enable)(uart, 0);
-	uartctl(uart, "b9600 l8 pn s1 i1");
+	(*uart->phys->enable)(uart, 0);
+#ifdef CHANGE_SPEED		/* TODO */
+	uartctl(uart, "b9600");
+#else
+	/* leave speed alone */
+#endif
+	uartctl(uart, "l8 pn s1 i1");
 	if(*cmd != '\0')
 		uartctl(uart, cmd);
 
 	consuart = uart;
 	uart->console = 1;
-
 	return uart;
-}
-
-void
-i8250mouse(char* which, int (*putc)(Queue*, int), int setb1200)
-{
-	char *p;
-	int port;
-
-	port = strtol(which, &p, 0);
-	if(p == which || port < 0 || port > 1)
-		error(Ebadarg);
-	uartmouse(&i8250uart[port], putc, setb1200);
-}
-
-void
-i8250setmouseputc(char* which, int (*putc)(Queue*, int))
-{
-	char *p;
-	int port;
-
-	port = strtol(which, &p, 0);
-	if(p == which || port < 0 || port > 1)
-		error(Ebadarg);
-	uartsetmouseputc(&i8250uart[port], putc);
 }

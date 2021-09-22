@@ -10,7 +10,7 @@
 
 enum {
 	Mhz	= 1000 * 1000,
-	Dogsectimeout = 4,		/* must be ≤ 34 s. to fit in a ulong */
+	Dogsectimeout = 30,	/* must be ≤ 34 s. to fit interval in a ulong */
 };
 
 /*
@@ -24,18 +24,19 @@ enum {
 typedef struct Conf	Conf;
 typedef struct Confmem	Confmem;
 typedef struct FPsave	FPsave;
+typedef struct Fpinst	Fpinst;
+typedef ulong		Inst;			/* an arm instruction */
 typedef struct ISAConf	ISAConf;
-typedef struct Isolated Isolated;
 typedef struct Label	Label;
 typedef struct Lock	Lock;
 typedef struct Lowmemcache Lowmemcache;
 typedef struct Memcache	Memcache;
 typedef struct MMMU	MMMU;
 typedef struct Mach	Mach;
-typedef u32int Mreg;				/* Msr - bloody UART */
+typedef u32int		Mreg;			/* Msr - bloody UART */
 typedef struct Page	Page;
-typedef struct Pcisiz Pcisiz;
-typedef struct Pcidev Pcidev;
+typedef struct Pcisiz	Pcisiz;
+typedef struct Pcidev	Pcidev;
 typedef struct PhysUart	PhysUart;
 typedef struct PMMU	PMMU;
 typedef struct Proc	Proc;
@@ -76,21 +77,55 @@ enum {
 	Nfpctlregs	= 16,
 };
 
+/* vfp control regs.  most are read-only */
+enum {
+	Fpsid =	0,
+	Fpscr =	1,			/* rw */
+	Mvfr1 =	6,
+	Mvfr0 =	7,
+	Fpexc =	8,			/* rw */
+	Fpexinst= 9,			/* optional, for exceptions */
+	Fpexinst2=10,
+};
+
+#ifndef _FPI_H
+#define Vlong Fpivlong		/* avoid conflict with ../port/clock.c */
+#include "../port/fpi.h"
+#endif
+
 /*
  * emulated or vfp3 floating point
  */
+typedef union Fprepr Fprepr;
+union Fprepr {
+	struct {
+		Internal;	/* sw emulation representation */
+		Vlong	irepr;	/* integer when above is NaN (vmov, vcvt) */
+		int	useirepr; /* flag: use irepr, not Internal */
+	};
+	uvlong	dbl;		/* copy of double hardware reg */
+};
+
 struct FPsave
 {
 	ulong	status;
 	ulong	control;
-	/*
-	 * vfp3 with ieee fp regs; uvlong is sufficient for hardware but
-	 * each must be able to hold an Internal from fpi.h for sw emulation.
-	 */
-	ulong	regs[Maxfpregs][3];
-
+	Fprepr	regs[Maxfpregs];
 	int	fpstate;
 	uintptr	pc;		/* of failed fp instr. */
+};
+
+#undef Vlong
+
+/*
+ * the fp instruction to emulate, and its broken-out opcode
+ * and coproc fields; ureg->pc is its address.
+ */
+struct Fpinst {	
+	Inst	inst;
+	ulong	op;
+	ulong	coproc;
+	uint	vd;		/* vfp reg d */
 };
 
 /*
@@ -99,9 +134,9 @@ struct FPsave
 enum
 {
 	FPinit,
-	FPactive,
-	FPinactive,
-	FPemu,
+	FPactive,		/* hw enabled */
+	FPinactive,		/* hw present but off */
+	FPemu,			/* hw absent */
 
 	/* bit or'd with the state */
 	FPillegal= 0x100,
@@ -109,10 +144,10 @@ enum
 
 struct Confmem
 {
-	uintptr	base;
+	uintptr	base;		/* phys address */
 	usize	npage;
 	uintptr	limit;
-	uintptr	kbase;
+	uintptr	kbase;		/* set by xalloc for devproc */
 	uintptr	klimit;
 };
 
@@ -121,6 +156,7 @@ struct Conf
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
 	Confmem	mem[1];		/* physical memory */
+	/* npage may exclude kernel pages */
 	ulong	npage;		/* total physical pages of memory */
 	usize	upages;		/* user page pool */
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
@@ -132,6 +168,8 @@ struct Conf
 	ulong	hz;		/* processor cycle freq */
 	ulong	mhz;
 	int	monitor;	/* flag */
+	int	cpurev;
+	int	cpupart;
 };
 
 /*
@@ -140,20 +178,27 @@ struct Conf
 struct MMMU
 {
 	PTE*	mmul1;		/* l1 for this processor */
-	int	mmul1lo;
-	int	mmul1hi;
+	int	mmul1lo;	/* index of mmul1 after text+data ptes */
+	int	mmul1hi;	/* index of mmul1 of lowest stack pte */
 	int	mmupid;
 };
 
 /*
  *  MMU stuff in proc
  */
-#define NCOLOR	1		/* 1 level cache, don't worry about VCE's */
+/*
+ * for worst-case 64KB caches, address bits 12-13, use NCOLOR 4.
+ * we actually use 32KB L1 cache, 4K pages.
+ * in any case, the arm v7-a architecture hides the need to color pages.
+ */
+#define NCOLOR	1
 struct PMMU
 {
 	Page*	mmul2;
 	Page*	mmul2cache;	/* free mmu pages */
 };
+
+#define noprint (m == nil || !m->printok)
 
 #include "../port/portdat.h"
 
@@ -167,6 +212,7 @@ struct Mach
 
 	MMMU;
 	/* end of offsets known to asm */
+
 	int	flushmmu;		/* flush current proc mmu state */
 
 	ulong	ticks;			/* of the clock since boot time */
@@ -199,6 +245,7 @@ struct Mach
 	int	trapped;
 	Lock	probelock;
 	int	inidlehands;
+	int	printok;		/* initialised enough to print()? */
 
 	int	cpumhz;
 	uvlong	cpuhz;			/* speed of cpu */
@@ -223,7 +270,7 @@ struct Mach
 	u32int	smon[5];		/* probably not needed */
 	u32int	ssys[5];
 
-	int	stack[1];
+	int	stack[1];		/* 1248 bytes is typical usage */
 };
 
 /*
@@ -231,15 +278,15 @@ struct Mach
  */
 typedef void		KMap;
 #define	VA(k)		((uintptr)(k))
-#define	kmap(p)		(KMap*)((p)->pa|kseg0)
+#define	kmap(p)		(KMap*)((p)->pa|KZERO)
 #define	kunmap(k)
 
 struct
 {
 	Lock;
-	int	machs;			/* bitmap of active CPUs */
-	int	wfi;			/* bitmap of CPUs in WFI state */
-	int	stopped;		/* bitmap of CPUs stopped */
+	ulong	machsmap[(MAXMACH+BI2WD-1)/BI2WD];
+	int	nmachs;			/* number of bits set in machs(map) */
+	char	wfi[MAXMACH];		/* byte map of CPUs in WFI state */
 	int	exiting;		/* shutdown */
 	int	ispanic;		/* shutdown in response to a panic */
 	int	thunderbirdsarego;	/* lets the added processors continue to schedinit */
@@ -248,24 +295,14 @@ struct
 extern register Mach* m;			/* R10 */
 extern register Proc* up;			/* R9 */
 
-/* an object guaranteed to be in its own cache line */
-typedef uchar Cacheline[CACHELINESZ];
-struct Isolated {
-	Cacheline c0;
-	ulong	word;
-	Cacheline c1;
-};
-
 extern Memcache cachel[];		/* arm arch v7 supports 1-7 */
 extern ulong intrcount[MAXMACH];
 extern int irqtooearly;
-extern uintptr kseg0;
-extern Isolated l1ptstable;
-extern uchar *l2pages;
 extern Mach* machaddr[MAXMACH];
 extern ulong memsize;
 extern int navailcpus;
-extern int normalprint;
+extern ulong sgicnt[MAXMACH];
+void (*wfiloop)(void);
 
 /*
  *  a parsed plan9.ini line
@@ -288,21 +325,7 @@ struct ISAConf {
 #define	MACHP(n) machaddr[n]
 
 /*
- * Horrid. But the alternative is 'defined'.
- */
-#ifdef _DBGC_
-#define DBGFLG		(dbgflg[_DBGC_])
-#else
-#define DBGFLG		(0)
-#endif /* _DBGC_ */
-
-int vflag;
-extern char dbgflg[256];
-
-#define dbgprint	print		/* for now */
-
-/*
- *  hardware info about a device
+ *  hardware info about a device.  mainly for devsd.
  */
 typedef struct {
 	ulong	port;
@@ -347,17 +370,6 @@ enum {
 };
 
 /*
- * characteristics of cache level, kept at low, fixed address (CACHECONF).
- * all offsets are known to cache.v7.s.
- */
-struct Lowmemcache {
-	uint	l1waysh;		/* shifts for set/way register */
-	uint	l1setsh;
-	uint	l2waysh;
-	uint	l2setsh;
-};
-
-/*
  * cache capabilities.  write-back vs write-through is controlled
  * by the Buffered bit in PTEs.
  *
@@ -385,14 +397,7 @@ struct Cacheimpl {
 	void	(*wbse)(void *, int);
 	void	(*wbinvse)(void *, int);
 };
-/* extern */ Cacheimpl *l2cache, *allcache, *nocache, *l1cache;
-
-enum Dmamode {
-	Const,
-	Postincr,
-	Index,
-	Index2,
-};
+Cacheimpl *l2cache;
 
 /* pmu = power management unit */
 enum Irqs {
@@ -419,13 +424,14 @@ enum Irqs {
 	Uartirq		= Ctlr1base + 4,
 	Tn2irq		= Ctlr1base + 9,	/* tegra timers */
 	Tn3irq		= Ctlr1base + 10,
-	/* +24 is cpu0_pmu_intr, +25 is cpu1_pum_intr */
+	/* +24 is cpu0_pmu_intr, +25 is cpu1_pmu_intr */
 
 	Ctlr2base	= (1+2)*32,		/* ternary ctlr */
 	Extpmuirq	= Ctlr2base + 22,
 
 	Ctlr3base	= (1+3)*32,		/* quad ctlr */
-	Pcieirq		= Ctlr3base + 2,
+	Pcieirq		= Ctlr3base + 2,	/* ether8169 */
+	Pciemsiirq	= Ctlr3base + 3,
 };
 
 struct Soc {			/* addr's of SoC controllers */

@@ -13,14 +13,26 @@
 #define _POSIX_SYNC_IO -1
 #define _POSIX_VDISABLE -1
 
+#include "_apetypes.h"
+
 #ifndef _SIZE_T
 #define _SIZE_T
+#ifdef _BITS64
+typedef unsigned long long size_t;
+#else
 typedef unsigned long size_t;
 #endif
+#endif
+
 #ifndef _SSIZE_T
 #define _SSIZE_T
+#ifdef _BITS64
+typedef long long ssize_t;
+#else
 typedef long ssize_t;
 #endif
+#endif
+
 #ifndef NULL
 #ifndef NULL
 #ifdef __cplusplus

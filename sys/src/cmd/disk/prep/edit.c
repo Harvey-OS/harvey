@@ -79,7 +79,8 @@ addpart(Edit *edit, Part *p)
 		if(p->start < edit->part[i]->end && edit->part[i]->start < p->end) {
 			sprint(msg, "\"%s\" %lld-%lld overlaps with \"%s\" %lld-%lld",
 				p->name, p->start, p->end,
-				edit->part[i]->name, edit->part[i]->start, edit->part[i]->end);
+				edit->part[i]->name,
+				edit->part[i]->start, edit->part[i]->end);
 		//	return msg;
 		}
 	}
@@ -519,8 +520,10 @@ ctldiff(Edit *edit, int ctlfd)
 	for(i=0; i<edit->npart; i++) {
 		p = edit->part[i];
 		if(p->ctlname[0]) {
-			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname, offset+ctlstart(p), offset+ctlend(p)) < 0) {
-				fprint(2, "adding part failed: %s: %r\n", p->ctlname);
+			if(fprint(ctlfd, "part %s %lld %lld\n", p->ctlname,
+			    offset+ctlstart(p), offset+ctlend(p)) < 0) {
+				fprint(2, "adding part failed: %s: %r\n",
+					p->ctlname);
 				waserr = -1;
 			}
 		}

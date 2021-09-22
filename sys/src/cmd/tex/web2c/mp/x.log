@@ -1,0 +1,26 @@
+This is MetaPost, Version 0.641 (Web2C 7.2) (mem=mp.little 1999.10.23)  23 OCT 1999 21:08
+**&mp.little x.mp
+(x.mp
+>> syntax.error
+! Isolated expression.
+<to be read again> 
+                   addto
+draw->addto
+           .currentpicture.if.picture(EXPR0):also(EXPR0)else:doublepath(EXPR...
+<to be read again> 
+                   ;
+x.mp:4: draw fullcircle scaled 1cm;
+                                   
+? 
+! Emergency stop.
+<to be read again> 
+                   addto
+draw->addto
+           .currentpicture.if.picture(EXPR0):also(EXPR0)else:doublepath(EXPR...
+<to be read again> 
+                   ;
+x.mp:4: draw fullcircle scaled 1cm;
+                                   
+End of file on the terminal!
+
+

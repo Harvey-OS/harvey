@@ -8,9 +8,10 @@ int havefork = 1;
 void
 Xasync(void)
 {
-	int null = open("/dev/null", 0);
+	int null = open("/dev/null", OREAD);
 	int pid;
 	char npid[10];
+
 	if(null<0){
 		Xerror("Can't open /dev/null\n");
 		return;
@@ -44,6 +45,7 @@ Xpipe(void)
 	int lfd = p->code[pc++].i;
 	int rfd = p->code[pc++].i;
 	int pfd[2];
+
 	if(pipe(pfd)<0){
 		Xerror("can't get pipe");
 		return;
@@ -77,17 +79,16 @@ Xpipe(void)
 void
 Xbackq(void)
 {
-	int n, pid;
+	int pid;
 	int pfd[2];
+	Rune n, r;
 	char *stop;
 	char utf[UTFmax+1];
 	io *f, *wd;
+	var *ifs = vlook("ifs");
 	word *v, *nextv;
-	Rune r;
 
- 	stop = "";
- 	if(runq->argv && runq->argv->words)
- 		stop = runq->argv->words->word;	
+	stop = ifs->val? ifs->val->word: "";
 	if(pipe(pfd)<0){
 		Xerror("can't make pipe");
 		return;
@@ -130,7 +131,6 @@ Xbackq(void)
 		closeio(wd);
 		closeio(f);
 		Waitfor(pid, 0);
-		poplist();	/* ditch split in "stop" */
 		/* v points to reversed arglist -- reverse it onto argv */
 		while(v){
 			nextv = v->next;
@@ -151,6 +151,7 @@ Xpipefd(void)
 	char name[40];
 	int pfd[2];
 	int sidefd, mainfd;
+
 	if(pipe(pfd)<0){
 		Xerror("can't get pipe");
 		return;
@@ -190,6 +191,7 @@ void
 Xsubshell(void)
 {
 	int pid;
+
 	switch(pid = fork()){
 	case -1:
 		Xerror("try again");
@@ -210,8 +212,7 @@ Xsubshell(void)
 int
 execforkexec(void)
 {
-	int pid;
-	int n;
+	int n, pid;
 	char buf[ERRMAX];
 
 	switch(pid = fork()){

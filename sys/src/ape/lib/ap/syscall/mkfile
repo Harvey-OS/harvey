@@ -6,16 +6,18 @@ all:V: install
 install:V: genall gencall
 	genall
 
-# ugh. sources's build process can't hack absolute path names.
-# we're in /sys/src/ape/lib/ap/syscall.
-SRC=../../../../libc/9syscall # /sys/src/libc/9syscall
-gencall:D: $SRC/mkfile $SRC/sys.h
-	{
-		sed '/^#define._X[123]/d' $SRC/sys.h
-		echo '#!/bin/rc'
-		sed -n -e '/switch/,/\$AS /p' $SRC/mkfile
-	} | awk -f upper.awk >$target
-	chmod +x $target
+## ugh. sources's build process can't hack absolute path names.
+## we're in /sys/src/ape/lib/ap/syscall.
+#gencall:D: ../../../../libc/9syscall/mkfile	# /sys/src/libc/9syscall/mkfile
+#	{
+#		echo '#!/bin/rc'
+#		sed -n -e 's/seek/_SEEK/g' -e '/switch/,/\$AS /p' $prereq
+#	} >$target
+#	chmod +x $target
+
+# risv64 has complicated 9syscall/mkfile
+gencall:D: gencall.manual
+	cp -x gencall.manual $target
 
 nuke clean:V:
 	rm -f *.[$OS] *.s gencall

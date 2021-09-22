@@ -1,10 +1,13 @@
 /*
- * 9boot - load next 386 or amd64 kernel from disk and start it
+ * 9boot - load next 386 or amd64 kernel via pxe (bootp, (t)tftp) and start it
  *	and
- * 9load - load next 386 or amd64 kernel via pxe (bootp, tftp) and start it
+ * 9load - load next 386 or amd64 kernel from (fat) disk and start it
+*
+ * Protected-mode bootstrap, to be jumped to by a Primary Bootstrap Sector
+ * or PXE loader (or our decompressor).
+ * Load with -H3 -R4 -T0xNNNNNNNN to get a binary image with no header.
  *
- * intel says that pxe can only load into the bottom 640K, and
- * intel's pxe boot agent takes 128K, leaving only 512K for 9boot.
+ * intel says that pxe can only load into the bottom 639K (last 1K is EBDA).
  */
 #include	"u.h"
 #include	"../port/lib.h"
@@ -12,7 +15,7 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"io.h"
-#include	"ureg.h"
+
 #include	"pool.h"
 #include	"reboot.h"
 #include	"ip.h"		/* for eipfmt */
@@ -24,73 +27,23 @@ enum {
 
 Mach *m;
 
-ulong* mach0pdb;
-Mach* mach0m;
-Segdesc* mach0gdt;
-u32int memstart;
-u32int memend;
-int noclock;
-
-extern int pcivga;
 extern char hellomsg[];
+extern long consbaud;
 
 /*
  * Where configuration info is left for the loaded programme.
  */
-char bootdisk[KNAMELEN];
 Conf conf;
-
-uchar *sp;	/* user stack of init proc */
-int delaylink;
 int debug;
 int v_flag;
+int noclock;
 
-static void
-sanity(void)
+CTASSERT((BIOSTABLES/16)*16 == BIOSTABLES, biostables);
+
+void
+fpsavealloc(void)
 {
-	uintptr cr3;
-
-	cr3 = (uintptr)KADDR(getcr3());
-	if (cr3 == 0)
-		panic("zero cr3");
-	if ((uintptr)m->pdb != cr3 || (uintptr)mach0pdb != cr3)
-		panic("not all same: cr3 %#p m->pdb %#p mach0pdb %#p",
-			cr3, m->pdb, mach0pdb);
-	if (m != mach0m)
-		panic("m %#p != mach0m %#p", m, mach0m);
-	if (m->gdt != mach0gdt)
-		panic("m->gdt %#p != mach0gdt %#p", m->gdt, mach0gdt);
-	if (0)
-		iprint("m->pdb %#p m %#p sp %#p m->gdt %#p\n",
-			m->pdb, m, &cr3, m->gdt);
-}
-
-enum {
-	/* system control port a */
-	Sysctla=	0x92,
-	 Sysctlreset=	1<<0,
-	 Sysctla20ena=	1<<1,
-};
-
-static int
-isa20on(void)
-{
-	int r;
-	ulong o;
-	ulong *zp, *mb1p;
-
-	zp = 0;
-	mb1p = (ulong *)MB;
-	o = *zp;
-
-	*zp = 0x1234;
-	*mb1p = 0x8765;
-	mb586();
-	wbinvd();
-	r = *zp != *mb1p;
-
-	*zp = o;
-	return r;
+	/* no fp in bootstraps */
 }
 
 void
@@ -98,119 +51,130 @@ a20init(void)
 {
 	int b;
 
-	if (isa20on())
+	if (isa20on(0))			/* check first 4MB */
 		return;
 
 	i8042a20();			/* original method, via kbd ctlr */
-	if (isa20on())
+	if (isa20on(0))
 		return;
 
 	/* newer method, last resort */
 	b = inb(Sysctla);
 	if (!(b & Sysctla20ena))
 		outb(Sysctla, (b & ~Sysctlreset) | Sysctla20ena);
-	if (!isa20on()){
+	if (!isa20on(0)){
 		iprint("a20 didn't come on!\n");
 		for(;;)
-			;
+			halt();
 	}
 }
 
-void
-main(void)
+static void
+fmtinit(void)
 {
-	Proc *savup;
-	static ulong vfy = Datamagic;
-	static char novga[] = "\nno vga; serial console only\n";
-
-	savup = up;
-	up = nil;
-	/* m has been set by l32v.s */
-
-	/*
-	 * disable address wraps at 1MB boundaries.
-	 * if we're 9boot, ldecomp.s already did this.
-	 */
-	a20init();
-
-	mach0init();
-//	options();		/* we don't get options passed to us */
-	ioinit();
-	/* we later call i8250console after plan9.ini has been read */
-	i8250config("0");	/* configure serial port 0 with defaults */
 	quotefmtinstall();
  	fmtinstall('i', eipfmt);
  	fmtinstall('I', eipfmt);
  	fmtinstall('E', eipfmt);
  	fmtinstall('V', eipfmt);
  	fmtinstall('M', eipfmt);
-	screeninit();			/* cga setup */
-	cgapost(0xc);
+}
 
-	trapinit0();
-	mmuinit0();
-
-	kbdinit();
-	i8253init();
-	cpuidentify();
-	readlsconf();
-	meminit();
-	confinit();
-	archinit();
-	xinit();
-	if(i8237alloc != nil)
-		i8237alloc();		/* dma (for floppy) init */
-	trapinit();
-	printinit();
-	sanity();
-	cgapost(1);
-
-	/*
-	 * soekris servers have no built-in video but each has a serial port.
-	 * they must see serial output, if any, before cga output because
-	 * otherwise the soekris bios will translate cga output to serial
-	 * output, which will garble serial console output.
-	 */
-	pcimatch(nil, 0, 0);		/* force scan of pci table */
-	if (!pcivga) {
-		screenputs = nil;
-		uartputs(novga, sizeof novga - 1);
-	}
-	print(" %s\n\n", hellomsg);
+static void
+initsanity(Proc *savup)
+{
+	static ulong vfy = Datamagic;
 
 	if (vfy != Datamagic)
 		panic("data segment incorrectly aligned or loaded");
 	if (savup)
 		print("up was non-nil (%#p) upon entry to main; bss wasn't zeroed!\n",
 			savup);
+}
 
-//	xsummary();
-	cpuidprint();
+static void
+consolesinit(int apu)
+{
+	if (apu)
+		consbaud = 115200;	/* assume apu2 */
+	/* we later call i8250console after plan9.ini has been read */
+	i8250config("0");	/* configure serial port 0 with defaults */
+	fmtinit();
+	screeninit();			/* cga setup */
+	cgapost(0xc);
+}
+
+/* set up traps, mmu, clock, malloc, etc. */
+static void
+cpu0init(int apu)
+{
+	trapinit0();	/* minimal trap setup, enough to panic on traps */
+	mmuinit0();			/* set m->gdt */
+
+	kbdinit();
+	i8253init();			/* timer */
+	cpuidentify();
+	meminit();
+	confinit();
+	archinit();
+	xinit();
+	/* (s)malloc & xalloc are now available */
+
+	if (apu)
+		apueccon();		/* uses pci & malloc */
+	trapinit();
 	mmuinit();
-	if(arch->intrinit)	/* launches other processors on an mp */
-		arch->intrinit();
+}
+
+int isapu(void);
+
+/*
+ * there are no options passed to us, either via command line or /cfg/pxe.
+ */
+void
+main(void)
+{
+	int apu;
+	Proc *savup;
+
+	savup = up;
+	up = nil;
+	/* m has been set by l.s */
+
+	a20init(); /* if expand didn't, disable addr. wraps at 1MB boundaries */
+	mach0init();
+	ioinit();
+	apu = isapu();
+	consolesinit(apu);
+
+	print("\nPlan 9 from Bell Labs %s loader\n", hellomsg);
+	initsanity(savup);
+	cpu0init(apu);			/* set up traps, mmu, malloc, etc. */
+	printinit();			/* just allocates lineq */
+//	kmesginit();			/* uses vmap */
+	cgapost(1);
+
+	cpuidprint();
+	ifnotnil(arch->intrinit)();	/* launches other processors on an mp */
+	/* all Mach structs should now be allocated */
+
+	pciaddbuses(nil);
 	timersinit();
-	mathinit();
 	kbdenable();
 	/*
 	 * 9loadusb runs much faster if we don't use the clock.
 	 * perhaps we're competing with the bios for the use of it?
 	 */
-	if(!noclock && arch->clockenable)
-		arch->clockenable();
+	if(!noclock) ifnotnil(arch->clockenable)();
 	procinit0();
 	initseg();
-	if(delaylink){
-		bootlinks();
-		pcimatch(0, 0, 0);
-	}else
-		links();
-	conf.monitor = 1;
+	links();		/* generated by config, as is bootlinks() */
 	cgapost(0xcd);
 	chandevreset();
 	cgapost(2);
+
 	pageinit();	/* must follow xinit, and conf.mem must be populated */
-	i8253link();
+	i8253link();			/* timer, part 2 */
 	userinit();
 
 	active.thunderbirdsarego = 1;
@@ -222,14 +186,14 @@ void
 mach0init(void)
 {
 	conf.nmach = 1;
-	MACHP(0) = mach0m;
+	MACHP(0) = (Mach*)CPU0MACH;
+	m->pdb = (ulong*)CPU0PDB;
+	m->gdt = (Segdesc*)CPU0GDT;
 	m->machno = 0;
-	m->pdb = mach0pdb;
-	m->gdt = mach0gdt;
 
 	machinit();
 
-	active.machs = 1;
+	cpuactive(0);
 	active.exiting = 0;
 }
 
@@ -261,9 +225,6 @@ machinit(void)
 void
 init0(void)
 {
-	int i;
-	char buf[2*KNAMELEN];
-
 	up->nerrlab = 0;
 
 	spllo();
@@ -279,21 +240,10 @@ init0(void)
 
 	chandevinit();
 
-	if(0 && !waserror()){			/* not needed by boot */
-		snprint(buf, sizeof(buf), "%s %s", arch->id, conffile);
-		ksetenv("terminal", buf, 0);
-		ksetenv("cputype", "386", 0);
-		if(cpuserver)
-			ksetenv("service", "cpu", 0);
-		else
-			ksetenv("service", "terminal", 0);
-		for(i = 0; i < nconf; i++){
-			if(confname[i][0] != '*')
-				ksetenv(confname[i], confval[i], 0);
-			ksetenv(confname[i], confval[i], 1);
-		}
-		poperror();
-	}
+	/*
+	 * bootstrap does not set environment variables terminal, cputype, nor
+	 * service, and doesn't propagate non-* variables.
+	 */
 	kproc("alarm", alarmkproc, 0);
 
 	conschan = enamecopen("#c/cons", ORDWR);
@@ -325,7 +275,7 @@ userinit(void)
 	 * Kernel Stack
 	 *
 	 * N.B. make sure there's enough space for syscall to check
-	 *	for valid args and 
+	 *	for valid args and
 	 *	4 bytes for gotolabel's return PC
 	 */
 	p->sched.pc = (ulong)init0;
@@ -339,15 +289,14 @@ userinit(void)
 void
 confinit(void)
 {
-	int i, userpcnt;
+	int userpcnt;
 	ulong kpages;
 
 	userpcnt = 0;			/* bootstrap; no user mode  */
-	conf.npage = 0;
-	for(i=0; i<nelem(conf.mem); i++)
-		conf.npage += conf.mem[i].npage;
 
+	/* half-hearted; doesn't change memory maps (conf.mem, rmapram, etc.) */
 	conf.npage = MemMax / BY2PG;
+
 	conf.nproc = 20;		/* need a few kprocs */
 	if(cpuserver)
 		conf.nproc *= 3;
@@ -375,11 +324,11 @@ confinit(void)
 	 * (probably ~300KB).
 	 */
 	kpages *= BY2PG;
-	kpages -= conf.upages*sizeof(Page)
-		+ conf.nproc*sizeof(Proc)
-		+ conf.nimage*sizeof(Image)
-		+ conf.nswap
-		+ conf.nswppo*sizeof(Page*);
+	kpages -= conf.upages*sizeof(Page)	/* palloc.pages in pageinit */
+		+ conf.nproc*sizeof(Proc)  /* procalloc.free in procinit0 */
+		+ conf.nimage*sizeof(Image)	/* imagealloc.free in initseg */
+		+ conf.nswap		/* swapalloc.swmap in swapinit */
+		+ conf.nswppo*sizeof(Page*);	/* iolist in swapinit */
 	mainmem->maxsize = kpages;
 	if(!cpuserver){
 		/*
@@ -389,20 +338,6 @@ confinit(void)
 		 */
 		imagmem->maxsize = kpages;
 	}
-}
-
-/*
- *  math coprocessor segment overrun
- */
-static void
-mathover(Ureg*, void*)
-{
-	pexit("math overrun", 0);
-}
-
-void
-mathinit(void)
-{
 }
 
 /*
@@ -459,9 +394,9 @@ shutdown(int ispanic)
 	lock(&active);
 	if(ispanic)
 		active.ispanic = ispanic;
-	else if(m->machno == 0 && (active.machs & (1<<m->machno)) == 0)
+	else if(m->machno == 0 && !iscpuactive(m->machno))
 		active.ispanic = 0;
-	once = active.machs & (1<<m->machno);
+	once = iscpuactive(m->machno);
 	/*
 	 * setting exiting will make hzclock() on each processor call exit(0),
 	 * which calls shutdown(0) and arch->reset(), which on mp systems is
@@ -469,7 +404,7 @@ shutdown(int ispanic)
 	 * processors (to permit a reboot).  clearing our bit in machs avoids
 	 * calling exit(0) from hzclock() on this processor.
 	 */
-	active.machs &= ~(1<<m->machno);
+	cpuinactive(m->machno);
 	active.exiting = 1;
 	unlock(&active);
 
@@ -480,7 +415,7 @@ shutdown(int ispanic)
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
-		if(active.machs == 0 && consactive() == 0)
+		if(active.nmachs == 0 && consactive() == 0)
 			break;
 	}
 
@@ -496,8 +431,9 @@ shutdown(int ispanic)
 		delay(1000);
 }
 
+/* called from conswrite() */
 void
-reboot(void *entry, void *code, ulong size)
+reboot(void *phyentry, void *code, ulong size)
 {
 	int i;
 	void (*f)(ulong, ulong, ulong);
@@ -535,7 +471,7 @@ reboot(void *entry, void *code, ulong size)
 	/*
 	 * should be the only processor running now
 	 */
-	active.machs = 0;
+	memset(active.machsmap, 0, sizeof active.machsmap);
 	if (m->machno != 0)
 		print("on cpu%d (not 0)!\n", m->machno);
 
@@ -568,9 +504,8 @@ reboot(void *entry, void *code, ulong size)
 
 	/* off we go - never to return */
 	coherence();
-	(*f)(PADDR(entry), PADDR(code), size);
+	(*f)((ulong)phyentry, PADDR(code), size);
 }
-
 
 void
 exit(int ispanic)
@@ -611,33 +546,4 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 			isa->freq = strtoul(p+5, &p, 0);
 	}
 	return 1;
-}
-
-int less_power_slower;
-
-/*
- *  put the processor in the halt state if we've no processes to run.
- *  an interrupt will get us going again.
- */
-void
-idlehands(void)
-{
-	/*
-	 * we used to halt only on single-core setups. halting in an smp system 
-	 * can result in a startup latency for processes that become ready.
-	 * if less_power_slower is true, we care more about saving energy
-	 * than reducing this latency.
-	 */
-	if(conf.nmach == 1 || less_power_slower)
-		halt();
-}
-
-void
-trimnl(char *s)
-{
-	char *nl;
-
-	nl = strchr(s, '\n');
-	if (nl != nil)
-		*nl = '\0';
 }

@@ -10,9 +10,6 @@
 #include "ext.h"
 #include "dwbinit.h"
 
-#include <setjmp.h>
-#include <time.h>
-
 char	*Version	= "March 11, 1994";
 
 #ifndef DWBVERSION
@@ -52,9 +49,8 @@ main(int argc, char *argv[])
 	char *p;
 	int j;
 	Tchar i;
-	char buf[100];
+	char buf[200];
 
-	buf[0] = '\0';		/* make sure it's empty (silly 3b2) */
 	progname = argv[0];
 	if ((p = strrchr(progname, '/')) == NULL)
 		p = progname;
@@ -72,6 +68,7 @@ main(int argc, char *argv[])
 	nrehash();
 	numtabp[NL].val = -1;
 
+	buf[0] = '\0';
 	while (--argc > 0 && (++argv)[0][0] == '-')
 		switch (argv[0][1]) {
 
@@ -194,6 +191,7 @@ loop:
 			pchar(i = getch());
 		tflg = 0;
 		copyf--;			/* pointless */
+		USED(copyf);
 		goto loop;
 	}
 	if (j == cc || j == c2) {
@@ -221,7 +219,7 @@ Lt:
 void init2(void)
 {
 	int i;
-	char buf[100];
+	char buf[256];
 
 	for (i = NTRTAB; --i; )
 		trtab[i] = i;
@@ -239,9 +237,9 @@ void init2(void)
 	numtabp[NL].val = -1;
 	nfo = 0;
 	copyf = raw = 0;
-	sprintf(buf, ".ds .T %s\n", devname);
+	snprintf(buf, sizeof buf, ".ds .T %s\n", devname);
 	cpushback(buf);
-	sprintf(buf, ".ds .P %s\n", DWBhomedir);
+	snprintf(buf, sizeof buf, ".ds .P %s\n", DWBhomedir);
 	cpushback(buf);
 	numtabp[CD].val = -1;	/* compensation */
 	nx = mflg;
@@ -274,15 +272,15 @@ void init2(void)
 void cvtime(void)
 {
 	long tt;
-	struct tm *ltime;
+	Tm *ltime;
 
 	time(&tt);
-	ltime = localtime(&tt);
-	numtabp[YR].val = ltime->tm_year % 100;
+	ltime = localtime(tt);
+	numtabp[YR].val = ltime->year % 100;
 	numtabp[YR].fmt = 2;
-	numtabp[MO].val = ltime->tm_mon + 1;	/* troff uses 1..12 */
-	numtabp[DY].val = ltime->tm_mday;
-	numtabp[DW].val = ltime->tm_wday + 1;	/* troff uses 1..7 */
+	numtabp[MO].val = ltime->mon + 1;	/* troff uses 1..12 */
+	numtabp[DY].val = ltime->mday;
+	numtabp[DW].val = ltime->wday + 1;	/* troff uses 1..7 */
 }
 
 
@@ -744,10 +742,11 @@ Tchar get1ch(FILE *fp)	/* get one "character" from input, figure out what alphab
 		if ((c = getc(fp)) == EOF)
 			return c;
 		*p++ = c;
+		*p = '\0';
 		if ((n = mbtowc(&wc, buf, p-buf)) >= 0)
 			break;
 	}
-	if (n == 1)	/* real ascii, presumably */
+	if (n == 1)		/* real ascii, presumably */
 		return wc;
 	if (n == 0)
 		return p[-1];	/* illegal, but what else to do? */
@@ -1103,7 +1102,7 @@ void getpn(char *a)
 	if (neg)
 		*pnp++ = -9999;
 	*pnp = -INT_MAX;
-	print = 0;
+	doprint = 0;
 	pnp = pnlist;
 	if (*pnp != -INT_MAX)
 		chkpn();

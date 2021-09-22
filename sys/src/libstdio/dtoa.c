@@ -121,7 +121,7 @@ Balloc(int k)
 			rv = (Bigint * )pmem_next;
 			pmem_next += len;
 		} else
-			rv = (Bigint * )malloc(len * sizeof(double));
+			rv = (Bigint * )mallocz(len * sizeof(double), 1);
 		rv->k = k;
 		rv->maxwds = x;
 	}
@@ -793,6 +793,8 @@ nrv_alloc(char *s, char **rve, int n)
 void
 freedtoa(char *s)
 {
+	if (s == 0)
+		return;
 	Bigint * b = (Bigint * )((int *)s - 1);
 	b->maxwds = 1 << (b->k = *(int * )b);
 	Bfree(b);

@@ -3,12 +3,12 @@
 rfork e
 switch($#*){
 case 1
-	RE=`{echo *.c | sed 's/ /|/g; s/.*/^(&)$/'}
-	if(~ $RE '^(*.c)$')
-		LIST=`{builtin cd $1; ls *.c }
+	RE=`{echo *.[cs] | sed 's/ /|/g; s/.*/^(&)$/'}
+	if(~ $RE '^(*.[cs])$')
+		LIST=`{builtin cd $1; ls *.[cs] }
 	if not
-		LIST=`{builtin cd $1; ls *.c | grep -v ''$RE''}
-	echo $LIST | sed 's/\.c//g; s/ +/|/g'
+		LIST=`{builtin cd $1; ls *.[cs] | grep -v ''$RE''}
+	echo $LIST | sed 's/\.[cs]//g; s/ +/|/g'
 case *
 	exit 'usage'
 }

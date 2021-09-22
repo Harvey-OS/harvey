@@ -4,9 +4,6 @@
 #include "dat.h"
 #include "fns.h"
 #include "../port/error.h"
-#include "io.h"
-
-#include "../ip/ip.h"
 
 enum {
 	Qdir = 0,
@@ -152,7 +149,7 @@ Dev archdevtab = {
 static long
 cputyperead(Chan*, void *a, long n, vlong offset)
 {
-	char name[64], str[128];
+	char name[40], str[50];
 
 	cputype2name(name, sizeof name);
 	snprint(str, sizeof str, "ARM %s %llud\n", name, m->cpuhz / Mhz);
@@ -162,11 +159,10 @@ cputyperead(Chan*, void *a, long n, vlong offset)
 static long
 tbread(Chan*, void *a, long n, vlong offset)
 {
-	char str[16];
+	char str[16+1];
 	uvlong tb;
 
 	cycles(&tb);
-
 	snprint(str, sizeof(str), "%16.16llux", tb);
 	return readstr(offset, a, n, str);
 }
@@ -174,12 +170,12 @@ tbread(Chan*, void *a, long n, vlong offset)
 static long
 nsread(Chan*, void *a, long n, vlong offset)
 {
-	char str[16];
+	char str[16+1];
 	uvlong tb;
 
+	/* teg2 cycles actually returns microseconds currently */
 	cycles(&tb);
-
-	snprint(str, sizeof(str), "%16.16llux", (tb/700)* 1000);
+	snprint(str, sizeof(str), "%16.16llux", tb * 1000);
 	return readstr(offset, a, n, str);
 }
 
@@ -188,5 +184,5 @@ archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("timebase",0444, tbread, nil);
-//	addarchfile("nsec", 0444, nsread, nil);
+	addarchfile("nsec", 0444, nsread, nil);
 }

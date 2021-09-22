@@ -13,7 +13,7 @@ void
 mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 {
 	mpint *u, *A, *B, *C, *D;
-	int g;
+	int g, l;
 
 	if(a->sign < 0 || b->sign < 0){
 		mpassign(mpzero, v);
@@ -52,6 +52,7 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 	C = mpcopy(mpzero);
 	D = mpcopy(mpone);
 
+	l = 0;
 	for(;;) {
 //		print("%B %B %B %B %B %B\n", u, v, A, B, C, D);
 		while(iseven(u)){
@@ -85,10 +86,14 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 			mpsub(C, A, C);
 			mpsub(D, B, D);
 		}
-
 		if(u->top == 0)
 			break;
-
+		/* 700 iterations is not unusual */
+		if(++l > 10000) {		/* something is wrong? */
+			fprint(2, "mpextendedgcd has not converged after "
+				"10000 iterations with u->top %d\n", u->top);
+			break;
+		}
 	}
 	mpassign(C, x);
 	mpassign(D, y);
@@ -101,6 +106,4 @@ mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 	mpfree(u);
 	mpfree(a);
 	mpfree(b);
-
-	return;
 }

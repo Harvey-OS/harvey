@@ -3,11 +3,8 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
-#include	"pool.h"
+
 #include	"../port/error.h"
-#include	"../port/netif.h"
 #include	"dosfs.h"
 
 enum {
@@ -62,7 +59,7 @@ getclust(Dos *dos, long sector)
 	 */
 	for(p = bio; p < &bio[Nbio]; p++){
 		if(sector == p->sector && dos == p->dos){
-			p->age = m->ticks;
+			p->age = sys->ticks;
 			chat("getclust %ld in cache\n", sector);
 			return p;
 		}
@@ -98,7 +95,7 @@ getclust(Dos *dos, long sector)
 		return 0;
 	}
 	USED(fs);
-	p->age = m->ticks;
+	p->age = sys->ticks;
 	p->dos = dos;
 	p->sector = sector;
 	chat("getclust %ld read\n", sector);
@@ -323,13 +320,6 @@ lowercase(char *s)
 	for (; *s != '\0'; s++)
 		if (*s >= 'A' && *s <= 'Z')
 			*s -= 'A' - 'a';
-}
-
-void
-trim(char *s, int len)
-{
-	while(len > 0 && s[len-1] == ' ')
-		s[--len] = '\0';
 }
 
 /*
@@ -589,7 +579,7 @@ setname(Dosfile *fp, char *from)
 	}
 	while(to - fp->name < 8)
 		*to++ = ' ';
-	
+
 	/* from might be 12345678.123: don't save the '.' in ext */
 	if(*from == '.')
 		from++;

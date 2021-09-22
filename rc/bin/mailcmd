@@ -1,0 +1,31 @@
+#!/bin/rc
+# mailcmd [-m addr] cmd [arg] ... - run cmd with args; if it fails, send mail
+rfork ne
+ifs='
+'
+mailto=()
+while(~ $1 -m*){
+	if(~ $1 -m){
+		mailto=($mailto $2)
+		shift
+		shift
+	}
+	if not{
+		mailto=($mailto `{echo $1 | sed 's/-m//'})
+		shift
+	}
+}
+if(~ $#mailto 0)
+	mailto=(`{cat /dev/user})
+
+if(~ $#* 0){
+	echo 'usage: mailcmd [-m addr] ''cmd''' >[1=2]
+	exit usage
+}
+
+sysname=`{cat /dev/sysname}
+sysname=$"sysname
+ifs=()
+rc -c $"* >/tmp/mailcmd.$pid >[2=1] ||
+	mail -s $sysname': '$"* $mailto </tmp/mailcmd.$pid
+rm /tmp/mailcmd.$pid

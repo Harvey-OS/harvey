@@ -1,0 +1,69 @@
+vm 0-1
+pO 41.979556,87.904389	# ord airport
+pS 41.989318,88.101620	# schaumburg
+
+pg d pO, m015,5
+ph d pO, m025,10
+pb d pO, m090,5
+pc d pO, m090,6
+pk d pO, m164,10
+pl d pO, m166,10.5
+pm d pO, m194,10.5
+pn d pO, m194,10
+p*c d pO,m225,25
+p*b d pO,m228,15
+p*d d pO,m234,25
+p*e d pO,m240,20
+p*f d pO,m295,20
+p*g d pO,m302,25
+p*a d pO,m304,15
+p*h d pO,m310,25
+po d pO, m330,10
+pp d pO, m342,6
+pq d pO, m343,10
+pa d pO, m343,5
+pf d pO, m343,6
+
+pi d pg, aph, 1
+pd xccs pO,6, pS,t5
+pe xccn pO,6, pS,t5
+pj xcle pO,10, pg,m090
+
+n ord_gnd\100
+ar pO, pa,pb
+s pb,pc
+ar pO, pc,pd
+al pS, pd,pe
+ar pO, pe,pf
+s pf,pa
+
+n ord_19\100
+s pg,pi
+s pi,pj
+ar pO,pj,pk
+s pk,pl
+ar pO,pl,pm
+s pm,pn
+ar pO,pn,po
+s po,pp
+
+n ord_25\100
+s pi,ph
+ar pO,ph,pj
+ar pO,po,pq
+s pq,pa
+
+n ord_30\100
+c pO, 15
+
+n ord_36\100
+s p*b, p*c
+Al pO, p*c, p*h
+s p*h, p*a
+
+n ord_40\100
+Ar pO, p*c, p*d
+S p*d, p*e
+Ar pO, p*e, p*f
+S p*f, p*g
+Ar pO, p*g, p*h

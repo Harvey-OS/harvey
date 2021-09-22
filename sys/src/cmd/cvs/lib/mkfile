@@ -1,0 +1,27 @@
+</$objtype/mkfile
+
+OFILES=\
+	argmatch.$O\
+	fnmatch.$O\
+	ftruncate.$O\
+	getdate.$O\
+	getline.$O\
+	getopt.$O\
+	getopt1.$O\
+	hostname.$O\
+	md5.$O\
+	regex.$O\
+	savecwd.$O\
+	sighandle.$O\
+	stripslash.$O\
+	valloc.$O\
+	xgetwd.$O\
+	yesno.$O\
+
+LIB=libcvs.a$O
+CLEANFILES=`{ls libcvs.a? >[2]/dev/null}
+</sys/src/cmd/mksyslib
+
+CC=pcc
+CFLAGS=-I.. -I. -I../src -I../zlib -DHAVE_CONFIG_H -B -D_BSD_EXTENSION -D_REGEX_RE_COMP -DREGEX_MALLOC -c
+

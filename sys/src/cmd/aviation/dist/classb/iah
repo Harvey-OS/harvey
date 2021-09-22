@@ -1,0 +1,80 @@
+vm 5.5
+pI 29.956722, 95.345500	# iah vor
+pH 29.650000, 95.278750	# hub vor
+pE 29.605972, 95.159694	# efd vor
+
+va 355			# guess
+vb 360			# guess
+
+pa d pI,m061,8
+pb d pI,m061,10
+pc d pI,m082,10
+pd d pI,m082,8
+
+pe d pH,m(va),6
+pf xclw pH,8, pe,m(va+90)
+pg xcle pH,8, pe,m(va+90)
+ph xcln pH,8, pE,m(vb)
+pi d pE,m(vb),t5
+pj xccn pH,6, pE,t5
+pk d pH,m120,6
+pl d pH,m122,8
+pm d pH,m150,8
+pn d pH,m150,6
+po d pH,m205,6
+pp d pH,m205,8
+
+n iah_gnd\100
+s pa,pb
+ar pI,pb,pc
+s pc,pd
+ar pI,pd,pa
+
+s pf,pg
+ar pH,pg,ph
+s ph,pi
+al pE,pi,pj
+ar pH,pj,pk
+s pk,pl
+ar pH,pl,pm
+s pm,pn
+ar pH,pn,po
+s po,pp
+ar pH,pp,pf
+
+pq xcce pI,15, pH,15
+pr d pI,m200,15
+ps d pH,m265,15
+pt d pH,m205,15
+pu d pH,m205,10
+pv d pH,m150,10
+pw d pH,m150,15
+
+n iah_20\100
+al pI,pq,pr
+s pr,ps
+al pH,ps,pt
+s pt,pu
+al pH,pu,pv
+s pv,pw
+al pH,pw,pq
+
+p*a d pI,m110,30
+p*b d pH,m048,15
+p*c xcle pI,20, p*a,ap*b
+p*d xcle pH,20, p*a,ap*b
+p*e xclw pI,20, pr,aps
+
+n iah_30\100
+s p*b,p*c
+al pI,p*c,p*e
+al pH,pt,pw
+
+p*f d pI,m211,30
+p*g d pH,m252,20
+
+n iah_40\100
+S p*d,p*a
+Al pI,p*a,p*f
+S p*f,p*g
+Al pH,p*g,p*d

@@ -4,6 +4,7 @@ TARG=grep
 HFILES=\
 	grep.h\
 
+LIB=/$objtype/lib/libnofp.a
 OFILES=\
 	y.tab.$O\
 	main.$O\

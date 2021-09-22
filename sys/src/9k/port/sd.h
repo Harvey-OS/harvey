@@ -1,11 +1,11 @@
 /*
  * Storage Device.
+ * SCSI is the canonical model.
  */
 #include <diskcmd.h>
 
 typedef struct SDev SDev;
 typedef struct SDifc SDifc;
-typedef struct SDio SDio;
 typedef struct SDpart SDpart;
 typedef struct SDperm SDperm;
 typedef struct SDreq SDreq;
@@ -41,7 +41,7 @@ struct SDunit {
 	SDperm	ctlperm;
 
 	QLock	raw;			/* raw read or write in progress */
-	ulong	rawinuse;		/* really just a test-and-set */
+	int	rawinuse;		/* really just a test-and-set */
 	int	state;
 	SDreq*	req;
 	SDperm	rawperm;
@@ -133,6 +133,8 @@ enum {
 	SDcheck		= 0x02,		/* check condition */
 	SDbusy		= 0x08,		/* busy */
 
+	SDmedchanged	= 2,		/* from online() */
+
 	SDmaxio		= 2048*1024,
 	SDnpart		= 16,
 };
@@ -144,24 +146,29 @@ enum {
  * page-aligned (xen) for DMA.
  */
 #ifndef sdmalloc
-#define sdmalloc(n)	malloc(n)
+/*
+ * force NVME-page alignment for NVME buffers at least, to minimise page
+ * crossings, thus the need for more prp addresses.
+ */
+enum { Sdalign = 8*KB };
+#define sdmalloc(n)	mallocalign((n), Sdalign, 0, 0)
 #define sdfree(p)	free(p)
 #endif
 
 /*
  * mmc/sd/sdio host controller interface
  */
-
+typedef struct SDio SDio;
 struct SDio {
 	char	*name;
 	int	(*init)(void);
 	void	(*enable)(void);
-	int	(*inquiry)(char*, int);
-	int	(*cmd)(u32int, u32int, u32int*);
-	void	(*iosetup)(int, void*, int, int);
-	void	(*io)(int, uchar*, int);
+	int	(*inquiry)(int, char*, int);
+	int	(*cmd)(int, u32int, u32int, u32int*);
+	void	(*iosetup)(int, int, void*, int, int);
+	void	(*io)(int, int, uchar*, int);
+	int	(*cardintr)(int, int);
 };
-
 extern SDio sdio;
 
 /* devsd.c */
@@ -172,7 +179,6 @@ extern void sdaddpart(SDunit*, char*, uvlong, uvlong);
 extern int sdsetsense(SDreq*, int, int, int, int);
 extern int sdmodesense(SDreq*, uchar*, void*, int);
 extern int sdfakescsi(SDreq*, void*, int);
-extern int sdfakescsirw(SDreq*, uvlong*, int*, int*);
 
 /* sdscsi.c */
 extern int scsiverify(SDunit*);

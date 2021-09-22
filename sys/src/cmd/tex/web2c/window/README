@@ -1,0 +1,2 @@
+This directory contains the support for Metafont's online graphics.
+The various pieces are used and invoked from lib/texmfmp.c.

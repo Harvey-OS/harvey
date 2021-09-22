@@ -30,7 +30,7 @@ char *Fdprefix = "/fd/";
 void execfinit(void);
 void execbind(void);
 void execmount(void);
-void execnewpgrp(void);
+void execrfork(void);
 
 builtin Builtin[] = {
 	"cd",		execcd,
@@ -43,12 +43,12 @@ builtin Builtin[] = {
 	".",		execdot,
 	"finit",	execfinit,
 	"flag",		execflag,
-	"rfork",	execnewpgrp,
+	"rfork",	execrfork,
 	0
 };
 
 void
-execnewpgrp(void)
+execrfork(void)
 {
 	int arg;
 	char *s;
@@ -179,7 +179,7 @@ Vinit(void)
 	close(dir);
 }
 
-int envdir;
+static int envdir;
 
 void
 Xrdfn(void)
@@ -212,12 +212,13 @@ Xrdfn(void)
 	Xreturn();
 }
 
-union code rdfns[4];
+static union code rdfns[4];
 
 void
 execfinit(void)
 {
 	static int first = 1;
+
 	if(first){
 		rdfns[0].i = 1;
 		rdfns[1].f = Xrdfn;
@@ -226,7 +227,7 @@ execfinit(void)
 		first = 0;
 	}
 	Xpopm();
-	envdir = open("/env", 0);
+	envdir = open("/env", OREAD);
 	if(envdir<0){
 		pfmt(err, "rc: can't open /env: %r\n");
 		return;
@@ -245,7 +246,7 @@ Waitfor(int pid, int)
 		return 0;
 
 	while((w = wait()) != nil){
-		/* this would otherwise go unreported by rc */
+		/* load errors would otherwise go unreported by rc */
 		if(strstr(w->msg, "error in demand load") != nil)
 			pfmt(err, "rc: %s\n", w->msg);
 		delwaitpid(w->pid);
@@ -283,6 +284,7 @@ addenv(var *v)
 	word *w;
 	int f;
 	io *fd;
+
 	if(v->changed){
 		v->changed = 0;
 		if((f = createenv("", v->name)) >= 0) {
@@ -317,41 +319,12 @@ void
 Updenv(void)
 {
 	var *v, **h;
+
 	for(h = gvar;h!=&gvar[NVAR];h++)
 		for(v=*h;v;v = v->next)
 			addenv(v);
 	if(runq)
 		updenvlocal(runq->local);
-}
-
-/* not used on plan 9 */
-int
-ForkExecute(char *file, char **argv, int sin, int sout, int serr)
-{
-	int pid;
-
-	if(access(file, 1) != 0)
-		return -1;
-	switch(pid = fork()){
-	case -1:
-		return -1;
-	case 0:
-		if(sin >= 0)
-			dup(sin, 0);
-		else
-			close(0);
-		if(sout >= 0)
-			dup(sout, 1);
-		else
-			close(1);
-		if(serr >= 0)
-			dup(serr, 2);
-		else
-			close(2);
-		exec(file, argv);
-		exits(file);
-	}
-	return pid;
 }
 
 void
@@ -430,7 +403,8 @@ Opendir(char *name)
 {
 	Dir *db;
 	int f;
-	f = open(name, 0);
+
+	f = open(name, OREAD);
 	if(f==-1)
 		return f;
 	db = dirfstat(f);
@@ -541,24 +515,6 @@ Trapinit(void)
 	notify(notifyf);
 }
 
-void
-Unlink(char *name)
-{
-	remove(name);
-}
-
-long
-Write(int fd, void *buf, long cnt)
-{
-	return write(fd, buf, cnt);
-}
-
-long
-Read(int fd, void *buf, long cnt)
-{
-	return read(fd, buf, cnt);
-}
-
 int
 Executable(char *file)
 {
@@ -576,7 +532,7 @@ Executable(char *file)
 int
 Creat(char *file)
 {
-	return create(file, 1, 0666);
+	return create(file, OWRITE, 0666);
 }
 
 int
@@ -594,7 +550,14 @@ Dup1(int)
 void
 Exit(char *stat)
 {
+	extern int didchdir;
+	static int calls;
+
+	if (++calls > 1)
+		pstr(err, "Exit recursion\n");
 	Updenv();
+	if (didchdir && savedwdir && getpid() == mypid)
+		wrwdir(savedwdir);	/* restore wdir to entry value */
 	setstatus(stat);
 	exits(truestatus()?"":getstatus());
 }
@@ -612,19 +575,23 @@ Noerror(void)
 }
 
 int
+hassfx(char *s, char *sfx)
+{
+	int slen, sfxlen;
+
+	slen = strlen(s);
+	sfxlen = strlen(sfx);
+	return slen >= sfxlen && strcmp(s + slen - sfxlen, sfx) == 0;
+}
+
+int
 Isatty(int fd)
 {
 	char buf[64];
 
-	if(fd2path(fd, buf, sizeof buf) != 0)
-		return 0;
-
-	/* might be #c/cons during boot - fixed 22 april 2005, remove this later */
-	if(strcmp(buf, "#c/cons") == 0)
-		return 1;
-
-	/* might be /mnt/term/dev/cons */
-	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
+	/* buf might be /mnt/term/dev/cons or #c/cons */
+	return fd2path(fd, buf, sizeof buf) == 0 &&
+		(hassfx(buf, "/dev/cons") || strcmp(buf, "#c/cons") == 0);
 }
 
 void
@@ -635,14 +602,8 @@ Abort(void)
 	Exit("aborting");
 }
 
-void
-Memcpy(void *a, void *b, long n)
-{
-	memmove(a, b, n);
-}
-
 void*
-Malloc(ulong n)
+Malloc(uintptr n)
 {
 	return mallocz(n, 1);
 }

@@ -1,0 +1,157 @@
+vm 13.5
+pM 32.782139,117.224556 # mzb vor
+pJ 33.140417,116.585083 # jli vor
+pP 32.610278,116.978222 # pgy vor
+pO 33.240611,117.416861 # ocn vor
+pY 32.815944,117.139472	# montomgomery
+pN 32.868333,117.141667	# miramar
+pH 32.6802,117.1767	# hotel del
+
+pa d pJ,m176,31.5	# point is a guess
+pb d pM,m213,20		# point is a guess
+pc d pM,m270,24.5	# point is a guess
+pd d pJ,m247,43+18.2	# point is a guess
+pe xll pJ,m247, pO,m100
+pf xll pO,m100, pP,m006
+pg d pP,m006,18.5
+ph xll pg,m245, pO,m115
+pi xll pO,m115, pM,m070
+pj xll pM,m070, pJ,m176
+
+pk xll pP,m287, pa,apb
+pl xll pP,m056, pJ,m192
+pm xll pJ,m192, pM,m084
+pn xll pJ,m192, pO,m115
+
+po xcle pM,15, pP,m287
+pp xcle pM,15, pM,m084
+pq xcle pM,13, pP,m287
+pr xcle pM,13, pM,m084
+ps xcle pM,10, pP,m287
+pt xcle pM,10, pM,m084
+
+pu xcle pM,10, pP,m266
+pv xll pP,m266, pO,m156
+pw xll pP,m266, pb,apc
+
+p*a xll pO,m185, pb,apc
+p*b xll pO,m185, pJ,m242
+p*c xll pO,m167, pJ,m242
+p*d xll pO,m167, pP,m277
+p*e xll pO,m156, pP,m277
+
+p*f xll pJ,m247, pM,m310
+p*g xll pJ,m242, pM,m310
+
+p*h xll pM,m310, pO,m152
+p*i xll pY,m275, pO,m152	# m280 is a guess
+p*j xll pM,m295, pO,m152
+p*k xll pM,m264, pO,m156
+
+p*l xclw pN,t5, pJ,m232
+p*m xll pM,m353, pJ,m232
+p*n xll pM,m353, pJ,m242
+p*o xll pO,m120, pJ,m242
+p*p xll pO,m100, pJ,m242
+
+p*q xll pO,m120, pJ,m232
+p*r xll pO,m106, pP,m006
+p*s xll pO,m106, pJ,m232
+p*t xll pO,m115, pJ,m232
+p*u xll pP,m353, pg,aph
+p*v xll pP,m353, pO,m115
+p*w xll pO,m120, pg,aph
+p*x xcle pN,t5, pg,aph
+
+p*y xclw pN,t5, pY,ap*i
+p*z xll pP,m287, pM,apH
+
+
+n san_gnd\125
+s p*l, p*m
+s p*m, p*q
+s p*w, p*q
+s p*w, p*x
+s p*x, pN
+s pN, p*l
+s pt, pM
+s ps, p*z
+s p*z, p*e
+al pM, ps, pt
+s pM, p*k
+s p*k, p*e
+
+n san_18\125
+al pM, pq, pr
+s pq, ps
+s pr, pt
+s p*c, p*d
+s p*d, p*e
+s p*g, p*c
+s p*g, p*h
+s p*h, p*i
+s p*i, p*j
+s p*j, pM
+s p*t, p*q
+s p*u, p*v
+s p*v, p*t
+s p*u, p*w
+
+n san_20\125
+s pw, pv
+S pw, p*a
+s p*a, p*b
+s p*b, p*c
+s p*e, pv
+
+n san_28\125
+s pv, pu
+al pM, pu, ps
+
+n san_30\125
+al pM, po, pp
+s po, pq
+s pp, pr
+s p*m, p*n
+s p*n, p*o
+s p*q, p*o
+
+n san_35\125
+s pP, pl
+s pl, pm
+s pP, po
+s pp, pm
+
+n san_38\125
+s p*r, p*s
+s p*s, p*t
+S p*r, pg
+S pg, ph
+s ph, p*u
+
+n san_48\125
+s pk, pP
+s pm, pn
+s pn, pi
+S pk, pb
+S pb, pw
+S p*a, pc
+S pc, pd
+S pd, p*f
+s p*f, p*g
+s p*o, p*p
+S p*p, pf
+S pf, p*r
+s p*i, p*y
+ar pN, p*y, p*l
+S ph, pi
+
+n san_58\125
+S pi, pj
+S pj, pa
+S pa, pk
+
+n san_68\125
+s p*g, p*l
+S p*p, pe
+S pe, p*f

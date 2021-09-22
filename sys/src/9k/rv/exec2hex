@@ -1,0 +1,5 @@
+#!/bin/rc
+# exec2hex [file...] - convert text & data segs of standalone 9 binary to C hex
+#	(risc-v rv32 version)
+# have to strip a.out header
+xd -1x $* | sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'

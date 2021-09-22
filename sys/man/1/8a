@@ -1,6 +1,6 @@
 .TH 8A 1 
 .SH NAME
-0a, 5a, 6a, 8a, 9a, ka, qa, va \- assemblers
+0a, 5a, 6a, 7a, 8a, 9a, ia, ja, qa, va \- assemblers
 .SH SYNOPSIS
 .B 8a
 [
@@ -22,7 +22,8 @@ for the correspondence between an architecture and the character
 etc.) that specifies it.
 The assemblers handle the most common C preprocessor directives and the associated
 command-line options
-.BR -D
+.BR -D ,
+.BR -. ,
 and
 .BR -I .
 Other options are:

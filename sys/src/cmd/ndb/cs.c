@@ -784,7 +784,7 @@ rwrite(Job *job, Mfile *mf)
 	}
 
 	/*
-	 *  toggle debugging
+	 *  toggle paranoia
 	 */
 	if(strncmp(job->request.data, "paranoia", 8)==0){
 		paranoia ^= 1;
@@ -1197,8 +1197,7 @@ lookup(Mfile *mf)
 						mf->replylen[mf->nreply] = strlen(cp);
 						mf->reply[mf->nreply++] = cp;
 						rv++;
-					}else
-						free(cp);
+					}
 				}
 			}
 			ndbfree(nt);
@@ -1629,12 +1628,16 @@ dnsiplookup(char *host, Ndbs *s)
 	slave(host);
 
 	if(strcmp(ipattr(buf), "ip") == 0)
-		t = dnsquery(mntpt, buf, "ptr");
+		t = dnsquery(mntpt, buf, "ptr");	/* reverse lookup */
+	else if (!ipv6lookups)
+		t = dnsquery(mntpt, buf, "ip");		/* just v4 not v6 */
 	else {
-		t = dnsquery(mntpt, buf, "ip");
-		/* special case: query ipv6 (AAAA dns RR) too */
-		if (ipv6lookups)
+		t = dnsquery(mntpt, buf, "ipany");	/* either if known */
+		if (t == nil) {
+			/* get both; would be great to do them concurrently */
+			t = dnsquery(mntpt, buf, "ip");
 			t = dnsip6lookup(mntpt, buf, t);
+		}
 	}
 	s->t = t;
 

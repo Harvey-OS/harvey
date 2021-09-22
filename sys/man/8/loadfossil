@@ -37,6 +37,7 @@ root filesystem for a laptop from the local Plan 9 installation.
 .IP
 .EX
 sc=/sys/lib/sysconfig
+9fs boot
 loadfossil /dev/sdC0/fossil /n/boot $sc/proto/stand-usb \e
 	$sc/usb/fossil.conf
 .EE

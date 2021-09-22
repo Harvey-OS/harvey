@@ -1,0 +1,38 @@
+#
+#   Makefile for tie distribution		-	21 Dec 92
+#
+#   This file makes TIE and needs ctangle from cweb distribution.
+#   Try `touch tie.c' first, if you don't have ctangle.
+#
+
+CTANGLE=ctangle
+BINDIR=.
+TIE=$(BINDIR)/tie
+
+CFLAGS=
+LDFLAGS=-s
+
+default:        tie
+
+
+# TIE
+tie.o: tie.c
+
+tie: tie.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $(TIE) tie.o
+
+tie.c: tie.w
+	$(CTANGLE) tie
+
+
+clean:
+	rm -f tie.o tie.outc tie.outm tie.tex tie.log tie.toc tiedoc.log
+
+veryclean: clean
+	rm -f $(BINDIR)/tie tie.dvi tiedoc.dvi tiedoc.aux
+
+ttest:  $(TIE)
+	$(TIE) -c tie.outc tie.tie tie.cf?
+	diff tie.outc tie.chf.gen
+	$(TIE) -m tie.outm tie.tie tie.cf?
+	diff tie.outm tie.master.gen

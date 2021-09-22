@@ -531,6 +531,10 @@ runprog(char *argv[])
 	char *path, *ep, *p;
 	char arg0[256];
 
+	if(argv[0][0] == '/'){
+		exec(argv[0], argv);
+		fatal("exec");
+	}
 	path = rdenv("/env/path", &ep);
 	if(path == nil){
 		path = Defaultpath;

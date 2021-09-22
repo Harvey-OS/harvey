@@ -1,0 +1,83 @@
+vm 14.5
+pL 33.933139,118.431111	# lax vor
+pS 33.783278,118.053861	# sli vor
+pM 34.010250,118.455806	# smo vor
+pD 33.918333,117.529111	# pdz vor
+pO 34.078361,117.786167	# pom vor
+pV 34.115053,119.048558	# vtu vor
+
+pa xcls pL,25, pS,m315
+pb xcle pL,25, pD,m253
+pc xcle pL,25, pO,m251
+pd xcle pL,20, pD,m253
+pe xcle pL,20, pO,m251
+pf xclw pL,20, pV,m075
+pg xclw pL,20, pM,m255
+ph xclw pL,20, pS,m251
+pi xcle pL,15, pD,m253
+pj d pL, m046, 15
+pk xll pM,m042, pV,m075
+pl xll pL,m305, pV,m075
+pm xclw pL,11, pM,m255
+pn d pL, m192, 11
+po xll pL,m192, pS,m251
+pp xll pV,m092, pL,m305
+pq xll pS,m251, pL,m165
+pr xcle pL,12, pS,m251
+ps xcle pL,12, pM,m097
+pt d pL, m076, 10
+pu d pL, m009, 3	# 3 guess
+pv d pL, m046, 4	# 4 guess
+pw d pL, m076, 4	# 4 guess
+px d pL, m046, 10
+py xll pL,m009, pM,m042
+
+n lax_gnd\125
+s pn,pL
+s pL,pt
+al pL,pt,px
+s px,pv
+s pv,pu
+s pu,pp
+s pp,pm
+al pL,pm,pn
+
+n lax_20\125
+s pm,pg
+Al pL,pg,ph
+S ph,po
+s po,pn
+
+s pt,ps
+S ps,pi
+al pL,pi,pj
+s pj,px
+
+n lax_25\125
+s pu,py
+s py,pk
+S pk,pe
+ar pL,pe,pd
+s pd,pi
+
+n lax_40\125
+Ar pL,pg,pf
+S pf,pl
+s pl,pp
+
+s pd,pb
+Al pL,pb,pc
+S pc,pe
+
+S po,pq
+s pq,pL
+
+n lax_50\125
+S pq,pr
+Al pL,pr,ps
+
+S pl,pk
+
+n lax_60\125
+S pi,pa
+Al pL,pa,pb

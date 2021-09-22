@@ -26,12 +26,8 @@ system(const char *s)
 		_syserrno();
 		return -1;
 	}
-	for(;;) {
-		w = wait(&status);
-		if(w == -1 || w == pid)
-			break;
-	}
-
+	while((w = wait(&status)) != -1 && w != pid)
+		;
 	if(w == -1){
 		_syserrno();
 		return w;

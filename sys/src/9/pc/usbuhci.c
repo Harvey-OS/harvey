@@ -915,7 +915,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 	wakeup(qh->io);
 }
 
-static void
+static int
 interrupt(Ureg*, void *a)
 {
 	Hci *hp;
@@ -934,7 +934,7 @@ interrupt(Ureg*, void *a)
 	sts = INS(Status);
 	if((sts & Sall) == 0){		/* not for us; sharing irq */
 		iunlock(ctlr);
-		return;
+		return Intrnotforme;
 	}
 	OUTS(Status, sts & Sall);
 	cmd = INS(Cmd);
@@ -964,6 +964,7 @@ interrupt(Ureg*, void *a)
 		else if(qh->state == Qclose)
 			qhlinktd(qh, nil);
 	iunlock(ctlr);
+	return Intrforme;
 }
 
 /*
@@ -1273,7 +1274,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 		ep->dev->nb, ep->nb, io, count, ctlr->load);
 	if((debug > 1 || ep->debug > 1) && io->tok != Tdtokin){
 		seprintdata(buf, buf+sizeof(buf), a, count);
-		print("uchi epio: user data: %s\n", buf);
+		print("uhci epio: user data: %s\n", buf);
 	}
 	if(mustlock){
 		qlock(io);
@@ -1319,7 +1320,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 	ddeprint("uhci: load %uld ctlr load %uld\n", load, ctlr->load);
 	ilock(ctlr);
 	if(qh->state != Qclose){
-		io->iotime = TK2MS(MACHP(0)->ticks);
+		io->iotime = TK2MS(sys->ticks);
 		qh->state = Qrun;
 		coherence();
 		qhlinktd(qh, td0);
@@ -1450,7 +1451,7 @@ epread(Ep *ep, void *a, long count)
 		return epio(ep, &io[OREAD], a, count, 1);
 	case Tintr:
 		io = ep->aux;
-		delta = TK2MS(MACHP(0)->ticks) - io[OREAD].iotime + 1;
+		delta = TK2MS(sys->ticks) - io[OREAD].iotime + 1;
 		if(delta < ep->pollival / 2)
 			tsleep(&up->sleep, return0, 0, ep->pollival/2 - delta);
 		if(ep->clrhalt)
@@ -1587,7 +1588,7 @@ epwrite(Ep *ep, void *a, long count)
 		return tot;
 	case Tintr:
 		io = ep->aux;
-		delta = TK2MS(MACHP(0)->ticks) - io[OWRITE].iotime + 1;
+		delta = TK2MS(sys->ticks) - io[OWRITE].iotime + 1;
 		if(delta < ep->pollival)
 			tsleep(&up->sleep, return0, 0, ep->pollival - delta);
 		if(ep->clrhalt)
@@ -2104,11 +2105,11 @@ scanpci(void)
 			print("usbuhci: port %#ux in use\n", io);
 			continue;
 		}
-		if(p->intl == 0xFF || p->intl == 0){
+		/* don't do this; let intrenable() try msi */
+		if(0 && (p->intl == 0xff || p->intl == 0)) {
 			print("usbuhci: no irq assigned for port %#ux\n", io);
 			continue;
 		}
-
 		dprint("uhci: %#x %#x: port %#ux size %#x irq %d\n",
 			p->vid, p->did, io, p->mem[4].size, p->intl);
 

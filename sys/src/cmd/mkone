@@ -42,8 +42,9 @@ nuke:V:
 clean:V:
 	rm -f *.[$OS] [$OS].out y.tab.? lex.yy.c y.debug y.output $TARG $CLEANFILES
 
+# keep all old versions; necessary for long-running programs.
 safeinstall:V: $O.out
-	test -e $BIN/$TARG && mv $BIN/$TARG $BIN/_$TARG
+	@ { cd $BIN; saveold $TARG }
 	cp $prereq $BIN/$TARG
 
 update:V:

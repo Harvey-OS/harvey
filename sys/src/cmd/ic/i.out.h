@@ -21,7 +21,8 @@ enum
 	REGEXT		= 7,	/* extern reg from here down */
 	REGRET		= 8,	/* fn return value */
 	REGARG		= 8,	/* fn arg value */
-	REGALLOC	= 15,	/* highest reg to allocate (allow for RV32E) */
+	REGLOWALLOC	= 9,	/* first reg to allocate */
+	REGALLOC	= 31,	/* highest reg to allocate (15 for RV32E) */
 
 	FREGRET		= 0,	/* fn return value */
 	FREGEXT		= 27,	/* extern reg from here down */

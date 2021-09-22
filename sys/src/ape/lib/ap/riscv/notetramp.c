@@ -5,6 +5,7 @@
 
 /* A stack to hold pcs when signals nest */
 #define MAXSIGSTACK 20
+
 typedef struct Pcstack Pcstack;
 static struct Pcstack {
 	int sig;

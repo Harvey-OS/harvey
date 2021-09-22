@@ -11,7 +11,9 @@
 extern int verbose;
 
 char VERSION[] = "secstore";
-static char *feedback[] = {"alpha","bravo","charlie","delta","echo","foxtrot","golf","hotel"};
+static char *feedback[] = {
+	"alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel"
+};
 
 typedef struct PAKparams{
 	mpint *q, *p, *r, *g;

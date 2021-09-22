@@ -1,0 +1,32 @@
+# Makefile for the web2c library.
+
+ac_include ../make/common.make
+ac_include ../make/library.make
+ac_include kpathsea.make
+
+library = lib
+
+# We don't make `texmfmp.o', since TeX, Metafont, and MetaPost need to
+# use different routine names, hence they need different .o files. Maybe
+# we should change this via #define's someday ...
+objects = alloca.o basechsuffix.o chartostring.o coredump.o \
+  eofeoln.o fprintreal.o inputint.o input2int.o main.o \
+  openclose.o printversion.o uexit.o usage.o version.o zround.o
+
+default all: $(library).a
+$(library).a: $(objects)
+	rm -f $@
+	$(AR) $(ARFLAGS) $@ $(objects)
+	$(RANLIB) $@
+
+# Do not use CPPFLAGS for this, because including config.h might
+# result in a conflicting decl of xmalloc. How annoying.
+alloca.o: alloca.c 
+	$(CC) $(CFLAGS) -c $(srcdir)/alloca.c
+
+Makefile: Makefile.in ../config.status
+	cd .. && $(SHELL) config.status
+
+ac_include ../make/clean.make
+ac_include ../make/rdepend.make
+ac_include lib/depend.make

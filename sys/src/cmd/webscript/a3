@@ -1,0 +1,19 @@
+#!./o.webscript
+
+load "http://www.ups.com/WebTracking/track?loc=en_US"
+find textbox "InquiryNumber1"
+input "1z30557w0340175623"
+find next checkbox
+input "yes"
+find prev form
+submit
+if(find "Delivery Information"){
+	find outer table
+	print
+}else if(find "One or more"){
+	print
+}else{
+	print "Unexpected results."
+	find page
+	print
+}

@@ -1,1 +1,1 @@
-#include "../kw/syscall.c"
+#include "../teg2/syscall.c"

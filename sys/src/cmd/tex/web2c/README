@@ -1,0 +1,29 @@
+This directory contains Web2c, a system which converts TeX, Metafont,
+and other related WEB programs to C.  By itself, it is not a complete,
+ready-to-run, TeX distribution (I recommend teTeX for that, available on
+CTAN:/systems/tetex). Nor is it a general-purpose Pascal-to-C or
+WEB-to-C translator.
+
+Web2c is electronically distributed in two files: the web files, in
+web.tar.gz, and the Web2c-specific files, in web2c.tar.gz. If you
+already have the web files for a particular Knuthian version, you need
+not re-retrieve them. Web2c changes irregularly wrt Knuth's updates.
+
+See `NEWS' for changes by release, `ChangeLog` for all changes.
+See `INSTALL' for installation instructions.
+See `PROJECTS' for future improvements you might like to work on.
+See `../kpathsea/BUGS' for details on reporting bugs.
+
+If present, see etexdir/README, omegadir/README, and pdftexdir/README
+for details on building those packages.
+
+Web2c is free software.  The files I wrote (originally for the Free
+Software Foundation) are covered by the GNU General Public License --
+see the files COPYING*.  Knuth's original sources are covered by their
+own copyright -- see the beginning of tex.web, mf.web, etc.  You can get
+the original files on their own from CTAN:/systems/knuth; you can get
+MetaPost from ftp://netlib.att.com/netlib/research/metapost.tar.Z
+(see also http://cm.bell-labs.com/who/hobby/MetaPost.html).
+
+kb@mail.tug.org
+Member of the League for Programming Freedom -- write lpf@uunet.uu.net.

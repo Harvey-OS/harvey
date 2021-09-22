@@ -10,4 +10,4 @@ BIN=$APEBIN
 </sys/src/cmd/mkone
 
 YFLAGS=-S
-CFLAGS=-B -c
+CFLAGS=-FTVw -c

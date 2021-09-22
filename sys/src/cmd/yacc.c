@@ -162,7 +162,7 @@ typedef
 struct
 {
 	char*	name;
-	int	value;
+	int	value;		/* should be Rune */
 } Symb;
 
 typedef
@@ -1529,8 +1529,7 @@ finact(void)
 int
 defin(int nt, char *s)
 {
-	int val;
-	Rune rune;
+	Rune val, rune;
 
 	val = 0;
 	if(nt) {
@@ -2211,7 +2210,7 @@ output(void)
 							/* potential shift/reduce conflict */
 							precftn( lastred, k, i );
 					}
-				}
+			}
 		}
 		wract(i);
 	}

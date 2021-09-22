@@ -10,7 +10,7 @@ plumb(char *dir, char *dest, int *efd, char *here)
 	char name[128];
 	int n;
 
-	sprint(name, "%s/clone", dir);
+	snprint(name, sizeof name, "%s/clone", dir);
 	efd[0] = open(name, ORDWR);
 	if(efd[0] < 0)
 		return -1;
@@ -20,15 +20,15 @@ plumb(char *dir, char *dest, int *efd, char *here)
 		return -1;
 	}
 	buf[n] = 0;
-	sprint(name, "%s/%s/data", dir, buf);
+	snprint(name, sizeof name, "%s/%s/data", dir, buf);
 	if(here){
-		sprint(buf, "announce %s", here);
+		snprint(buf, sizeof buf, "announce %s", here);
 		if(sendmsg(efd[0], buf) < 0){
 			close(efd[0]);
 			return -1;
 		}
 	}
-	sprint(buf, "connect %s", dest);
+	snprint(buf, sizeof buf, "connect %s", dest);
 	if(sendmsg(efd[0], buf) < 0){
 		close(efd[0]);
 		return -1;
@@ -137,8 +137,9 @@ srvcreate(char *name, int fd)
 	snprint(buf, sizeof buf, "#s/%s", srvname);
 	f = create(buf, 1, 0666);
 	if(f < 0)
-		fatal(buf);
-	sprint(buf, "%d", fd);
+		return;		/* probably already exists */
+		// fatal(buf);
+	snprint(buf, sizeof buf, "%d", fd);
 	if(write(f, buf, strlen(buf)) != strlen(buf))
 		fatal("write");
 	close(f);
@@ -164,7 +165,7 @@ outin(char *prompt, char *def, int len)
 
 	if(cpuflag){
 		notify(catchint);
-		alarm(15*1000);
+		alarm(promptwait);
 	}
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);

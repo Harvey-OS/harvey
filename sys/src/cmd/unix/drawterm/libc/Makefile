@@ -34,9 +34,11 @@ OFILES=\
 	getfields.$O\
 	getpid.$O\
 	lock.$O\
+	lrand.$O\
 	mallocz.$O\
 	nan64.$O\
 	netmkaddr.$O\
+	nrand.$O\
 	nsec.$O\
 	pow10.$O\
 	pushssl.$O\

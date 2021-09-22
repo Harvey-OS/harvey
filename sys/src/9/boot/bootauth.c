@@ -14,6 +14,8 @@ authentication(int cpuflag)
 	char *argv[16], **av;
 	int ac;
 
+	print("factotum...");
+	fetchmissing("/bin/auth/factotum");
 	if(access("/boot/factotum", AEXEC) < 0){
 		glenda();
 		return;
@@ -34,12 +36,15 @@ authentication(int cpuflag)
 		av[ac++] = "-S";
 	else
 		av[ac++] = "-u";
-	av[ac++] = "-sfactotum";
+//	/* TODO: remove -n, which suppresses secstore fetch of keys */
+//		currently needed as secstore fails, at least on riscv64
+	av[ac++] = "-n";
+	av[ac++] = "-sfactotum";	/* service to post */
 	if(authaddr != nil){
 		av[ac++] = "-a";
 		av[ac++] = authaddr;
 	}
-	av[ac] = 0;
+	av[ac] = nil;
 	switch(fork()){
 	case -1:
 		fatal("starting factotum");
@@ -49,8 +54,8 @@ authentication(int cpuflag)
 	}
 
 	/* wait for agent to really be there */
-	while(access("/mnt/factotum", 0) < 0)
-		sleep(250);
+	while(access("/mnt/factotum", AEXIST) < 0)
+		sleep(50);
 }
 
 static void

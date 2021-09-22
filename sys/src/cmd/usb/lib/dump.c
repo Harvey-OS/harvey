@@ -26,7 +26,7 @@ classname(int c)
 	if(c >= 0 && c < nelem(cnames))
 		return cnames[c];
 	else{
-		seprint(buf, buf+30, "%d", c);
+		seprint(buf, buf+sizeof buf, "%d", c);
 		return buf;
 	}
 }

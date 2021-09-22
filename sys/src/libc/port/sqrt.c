@@ -12,19 +12,26 @@ double
 sqrt(double arg)
 {
 	double x, temp;
-	int exp, i;
+	int exp, i, maxiters;
 
+	if(isNaN(arg) || isInf(arg, 1))
+		return arg;
 	if(arg <= 0) {
 		if(arg < 0)
 			return NaN();
 		return 0;
 	}
-	if(isInf(arg, 1))
-		return arg;
+	/* split into (exp, frac) parts; validate result */
 	x = frexp(arg, &exp);
+	if(isNaN(x) || isInf(x, 0))
+		return x;
+	maxiters = 1000;
 	while(x < 0.5) {
 		x *= 2;
 		exp--;
+		/* don't loop forever, even if fp errs don't generate notes */
+		if (--maxiters <= 0)
+			break;
 	}
 	/*
 	 * NOTE
@@ -39,10 +46,14 @@ sqrt(double arg)
 	while(exp > 60) {
 		temp *= (1L<<30);
 		exp -= 60;
+		if (--maxiters <= 0)
+			break;
 	}
 	while(exp < -60) {
 		temp /= (1L<<30);
 		exp += 60;
+		if (--maxiters <= 0)
+			break;
 	}
 	if(exp >= 0)
 		temp *= 1L << (exp/2);

@@ -36,7 +36,7 @@ static RR*	soarr(Ndbtuple*, Ndbtuple*);
 static RR*	srvrr(Ndbtuple*, Ndbtuple*);
 static RR*	txtrr(Ndbtuple*, Ndbtuple*);
 
-static int	implemented[Tall] =
+static char	implemented[Tall] =
 {
 	[Ta]		1,
 	[Taaaa]		1,
@@ -116,6 +116,18 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 				rrcat(&rp, tp);
 				unlock(&dnlock);
 			}
+		return rp;
+	}
+	if(type == Tipall){
+		tp = dblookup(name, class, Ta, auth, ttl);
+		lock(&dnlock);
+		rrcat(&rp, tp);
+		unlock(&dnlock);
+
+		tp = dblookup(name, class, Taaaa, auth, ttl);
+		lock(&dnlock);
+		rrcat(&rp, tp);
+		unlock(&dnlock);
 		return rp;
 	}
 
@@ -238,6 +250,10 @@ dblookup1(char *name, int type, int auth, int ttl)
 		attr = "cname";
 		f = cnamerr;
 		break;
+	case Ttxt:
+		attr = "txtrr";
+		f = txtrr;
+		break;
 	case Taxfr:
 	case Tixfr:
 		return doaxfr(db, name);
@@ -341,10 +357,10 @@ addrrr(Ndbtuple *entry, Ndbtuple *pair)
 
 	USED(entry);
 	parseip(addr, pair->val);
-	if(isv4(addr))
-		rp = rralloc(Ta);
-	else
+	if (cistrcmp(pair->attr, "ipv6") == 0 || !isv4(addr))
 		rp = rralloc(Taaaa);
+	else
+		rp = rralloc(Ta);
 	rp->ip = dnlookup(pair->val, Cin, 1);
 	return rp;
 }

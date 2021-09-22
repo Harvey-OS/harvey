@@ -29,9 +29,8 @@ myipaddr(uchar *ip, char *net)
 	for(nifc = ifc; nifc; nifc = nifc->next)
 		for(lifc = nifc->lifc; lifc; lifc = lifc->next){
 			maskip(lifc->ip, loopbackmask, mynet);
-			if(ipcmp(mynet, loopbacknet) == 0){
+			if(ipcmp(mynet, loopbacknet) == 0)
 				continue;
-			}
 			if(ipcmp(lifc->ip, IPnoaddr) != 0){
 				ipmove(ip, lifc->ip);
 				return 0;

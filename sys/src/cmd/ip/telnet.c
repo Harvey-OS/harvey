@@ -556,7 +556,7 @@ islikeatty(int fd)
 }
 
 /*
- *  create a shared segment.  Make is start 2 meg higher than the current
+ *  create a shared segment.  Make it start 2 meg higher than the current
  *  end of process memory.
  */
 void*
@@ -570,7 +570,8 @@ share(ulong len)
 	vastart += 2*1024*1024;
 
 	if(segattach(0, "shared", vastart, len) == (void*)-1)
-		return 0;
+		sysfatal("can't attach shared segment at %#p of %ld: %r",
+			vastart, len);
 
 	return vastart;
 }

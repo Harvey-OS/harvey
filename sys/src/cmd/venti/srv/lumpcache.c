@@ -38,7 +38,7 @@ static int	upheap(int i, Lump *b);
 static Lump	*bumplump(void);
 
 void
-initlumpcache(u32int size, u32int nblocks)
+initlumpcache(uintptr size, u32int nblocks)
 {
 	Lump *last, *b;
 	int i;

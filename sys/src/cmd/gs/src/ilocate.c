@@ -522,7 +522,7 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
 		       gc_state_t * gcst)
 {
     const obj_header_t *pre = ptr - 1;
-    ulong size = pre_obj_contents_size(pre);
+    uintptr_t size = pre_obj_contents_size(pre);
     gs_memory_type_ptr_t otype = pre->o_type;
     const char *oname;
 

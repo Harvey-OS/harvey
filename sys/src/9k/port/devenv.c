@@ -7,13 +7,15 @@
 
 enum
 {
-	Maxenvsize = 16300,
+	Maxenvsize = 16300,	/* max size of a single /env file */
 };
 
 static Egrp	*envgrp(Chan *c);
 static int	envwriteable(Chan *c);
 
 static Egrp	confegrp;	/* global environment group containing the kernel configuration */
+
+Dev envdevtab;
 
 static Evalue*
 envlookup(Egrp *eg, char *name, ulong qidpath)
@@ -55,7 +57,8 @@ envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 
 	/* make sure name string continues to exist after we release lock */
 	kstrcpy(up->genbuf, e->name, sizeof up->genbuf);
-	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
+	devdir(c, e->qid, up->genbuf, e->len, eve, (c->aux != nil? 0644: 0666),
+		dp);
 	runlock(eg);
 	return 1;
 }
@@ -73,7 +76,7 @@ envattach(char *spec)
 			error(Ebadarg);
 	}
 
-	c = devattach('e', spec);
+	c = devattach(envdevtab.dc, spec);
 	c->aux = egrp;
 	return c;
 }
@@ -235,7 +238,7 @@ envread(Chan *c, void *a, long n, vlong off)
 {
 	Egrp *eg;
 	Evalue *e;
-	long offset;
+	ulong offset;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, envgen);
@@ -267,7 +270,7 @@ envwrite(Chan *c, void *a, long n, vlong off)
 	char *s;
 	Egrp *eg;
 	Evalue *e;
-	long len, offset;
+	ulong len, offset;
 
 	if(n <= 0)
 		return 0;
@@ -369,7 +372,7 @@ closeegrp(Egrp *eg)
 static Egrp*
 envgrp(Chan *c)
 {
-	if(c->aux == nil)
+	if(c->aux == nil)		/* #e (not #ec)? */
 		return up->egrp;
 	return c->aux;
 }

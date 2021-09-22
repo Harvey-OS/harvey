@@ -76,12 +76,14 @@ Both can be turned on at once by
 The digest mode
 .B sha
 may be replaced by
-.BR md5 .
+.BR "md4" ,
+.BR "md5" ,
+.BR "sha1" ,
+and
+.BR "sha2_512" .
 The encryption mode
 .B rc4_128
 may be replaced by
-.BR rc4_40 ,
-.BR rc4_128 ,
 .BR rc4_256 ,
 .BR des_40_ecb ,
 .BR des_40_cbc ,
@@ -117,8 +119,13 @@ and
 will give the actual space-separated list of algorithms implemented.
 .SH "SEE ALSO"
 .IR listen (8),
-.IR dial (2)
+.IR dial (2),
+.IR tls (3)
 .SH SOURCE
 .B /sys/src/9/port/devssl.c
 .SH BUGS
 Messages longer than 4096 bytes are truncated.
+Actually the limit appears to be 64K.
+.PP
+.I Rc4
+and SSLv2 are deprecated but still in use.

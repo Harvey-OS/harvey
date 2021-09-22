@@ -1,0 +1,67 @@
+## Starting application at 0x80200000 ...
+
+
+Plan 9 (risc-v RV64G)
+39-bit virtual addresses in use
+cpu0: risc-v RV64G at 1200 MHz
+5,017 clint ticks is 6,000,094 rdtsc cycs, or 1195 cycs/clint
+timebase given as 1,000,000
+ether0 mac unset; setting to 70b3d592f7ce
+#l0: gem: 1Gbps regs 0x10090000 irq 55: 70b3d592f7ce
+sbi starting hart 2
+sbi starting hart 3
+sbi starting hart 4
+1 2 3 4 cpus running
+16379M memory: 1040K+741M kernel, 15623M user, 14M unused
+boot...dhcp...factotum...can't open #S/sdM0/nvram: '/env/nvroff' file does not exist
+authid: bootes
+authdom: collyer.net
+auth password: 
+secstore password: 
+can't write key to nvram: '/env/nvroff' file does not exist
+tcp...version...ns...time...
+init...cpurc starting Thu Jul 1 03:30:31 PDT 2021
+factotum mail & tls keys...secstore...pie...import: caution: using clear encryption, not tls, for fs's /
+
+; cpu -h um
+Twilight ends at 22:33:53 PDT Twilight starts at 03:52:00 PDT
+rsc            5202    0:00   0:00 1710768K Rendez   8.portmapd
+: um; cat /dev/sysstat
+          0       13837      355289        7805        5296           0           0        2172          12           0 
+          1       15214      228149        6911        7449           0           0           0          17           0 
+          2       11150      226142       13330        6557           0           0           0          17           0 
+          3       21149      214805        6974        4957           0           0           0           1           0 
+: um; date
+Thu Jul  1 04:17:28 PDT 2021
+: um; date
+Thu Jul  1 04:17:28 PDT 2021
+: um; cat /dev/irqalloc
+ 55  55      11774  -  ether0
+188   0      39940  -  ipi
+192   0    1021869  -  clint clock (super)
+253   0          7  -  fpu (ill inst)
+263   0       8358  -  page faults (instr)
+264   0       8670  -  page faults (load)
+266   0       8664  -  page faults (store)
+: um; cd 9k/rv
+/sys/src/9k/rv
+: um; mk nuke
+rm -f *.[568ijv] *.root.[cs] *.out *.m *.acid errstr.h init.h
+mk um.clean
+@{cd ../root; mk clean}
+if(test -d ./root) @{cd ./root; mk -f ../../root/mkfile clean}; status=''	
+rm -f um^*.c [9bz]um^* [9bz]um^*.gz bootum^*.* 9um^*.list
+rm -f prktzero.[568ijv] [568ijv].prktzero
+rm -f *.[568ijv] *.a[568ijv] y.tab.? lex.yy.c y.debug y.output [568ijv].??* cpu $CLEANFILES
+mk um.nuke
+rm -f ../boot/libboot.aj *.dep *.elf *.rr
+@{cd ../root; mk nuke}
+if(test -d ./root) @{cd ./root; mk -f ../../root/mkfile nuke}; status=''
+rm -f riscv64^l.h reboot.h
+rm -f *.[568ijv] y.tab.? lex.yy.c y.debug y.output [568ijv].??* *.acid cpu
+: um; mk >/dev/null
+ar: creating ../boot/libboot.aj
+bootumcpu.c:
+../boot/printstub.c:
+11.21u 8.30s 4.88r 	 mk
+: um; 

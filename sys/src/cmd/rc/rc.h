@@ -13,8 +13,6 @@ typedef struct redir redir;
 typedef struct thread thread;
 typedef struct builtin builtin;
 
-#define isdigit(c) ((c) >= '0' && (c) <= '9')	/* NB: unsafe macro */
-
 #ifndef Unix
 /* plan 9 */
 #include <u.h>
@@ -36,7 +34,7 @@ typedef struct builtin builtin;
 #define	YYMAXDEPTH	500
 #ifndef YYPREFIX
 #ifndef PAREN
-#include "x.tab.h"
+#include "x.tab.h"	/* not if included from y.tab.c */
 #endif
 #endif
 
@@ -49,6 +47,8 @@ struct tree{
 	tree	*child[3];
 	tree	*next;
 };
+tree *cmdtree;
+
 tree *newtree(void);
 tree *token(char*, int), *klook(char*), *tree1(int, tree*);
 tree *tree2(int, tree*, tree*), *tree3(int, tree*, tree*, tree*);
@@ -56,7 +56,6 @@ tree *mung1(tree*, tree*), *mung2(tree*, tree*, tree*);
 tree *mung3(tree*, tree*, tree*, tree*), *epimung(tree*, tree*);
 tree *simplemung(tree*), *heredoc(tree*);
 void freetree(tree*);
-tree *cmdtree;
 
 /*
  * The first word of any code vector is a reference count.
@@ -74,8 +73,9 @@ int doprompt;
 
 #define	NTOK	8192		/* maximum bytes in a word (token) */
 
-char tok[NTOK + UTFmax];
+char tok[NTOK];
 
+/* tree->(r)type codes */
 #define	APPEND	1
 #define	WRITE	2
 #define	READ	3
@@ -101,10 +101,6 @@ var *gvar[NVAR];		/* hash for globals */
 
 #define	new(type)	((type *)emalloc(sizeof(type)))
 
-void *emalloc(long);
-void *Malloc(ulong);
-void efree(void *);
-
 struct here{
 	tree	*tag;
 	char	*name;
@@ -122,8 +118,6 @@ int mypid;
  */
 #define	GLOB	'\001'
 
-char **argp;
-char **args;
 int nerror;		/* number of errors encountered during compilation */
 int doprompt;		/* is it time for a prompt? */
 /*
@@ -141,9 +135,11 @@ char *Rcmain, *Fdprefix;
  * Used to ensure that -v flag doesn't print rcmain.
  */
 int ndot;
-char *getstatus(void);
+
 Rune lastc;
 int lastword;
+
+extern char *savedwdir;
 
 #define	NFLAG	128		/* limited to ascii */
 

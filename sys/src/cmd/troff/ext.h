@@ -97,7 +97,7 @@ extern	int	pnlist[];
 extern	int	po1;
 extern	int	po;
 extern	int	ppts;
-extern	int	print;
+extern	int	doprint;
 extern	FILE	*ptid;
 extern	int	pto;
 extern	int	quiet;

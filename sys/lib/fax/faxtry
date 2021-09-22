@@ -1,8 +1,0 @@
-#!/bin/rc
-shift
-sender=$1
-shift
-addr=$1
-shift
-mount -a /srv/telco /net
-aux/faxsend -v $addr $*

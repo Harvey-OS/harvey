@@ -1,0 +1,21 @@
+.de I
+.OF 2 \\f2 "\\$1" "\\$2" "\\$3"
+..
+.pm I
+.de OF		\" this is completely WRONG if any argument contains "'s
+.nr PQ \\n(.f
+.hy 0
+.if t .if "\\$3"" .ft \\$1
+.if t .if !"\\$3"" \{\
+\&\\$5\\$2\\$3\\f\\n(PQ\\$4
+.hy \\n(HY\}
+.if n \{\
+.	if \\n(.$=5 \&\\$5
+.	ie "\\$3"" .ul 1000
+.	el .ul 1
+.	if \\n(.$=3 \&\\$3
+.	if \\n(.$>3 \&\\$3\\c
+.	if \\n(.$>3 \&\\$4
+.	hy \\n(HY\}
+..
+.I rc

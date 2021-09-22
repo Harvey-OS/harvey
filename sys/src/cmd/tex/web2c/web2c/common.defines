@@ -1,0 +1,190 @@
+{This file is concatenated by ./convert to the beginning of the Pascal
+ code that tangle outputs.  The idea is to put all these symbols, which
+ can be defined as macros or functions, or as part of standard C, into
+ web2c's symbol table, so that we can access them from a change file.
+ Some are standard Pascal functions, others are simply used in our
+ implementation.
+
+ web2c.yacc can parse these @define statements.}
+
+{The fields in the memory_word structure, defined in
+ `mfware/gftodmem.h' and `common/texmf.h'.}
+@define @field qqqq;
+@define @field sc;
+
+{These fields are the ones defined by the getopt library.}
+@define @field name;
+@define @field hasarg;
+@define @field flag;
+@define @field val;
+
+{This is used by \TeX--XeT.}
+{@define @field rh;}
+
+@define const false;
+@define const FOPENRBINMODE;
+@define const FOPENRMODE;
+@define const input;
+@define const kpsebibformat;
+@define const kpsebstformat;
+@define const kpsedvipsconfigformat;
+@define const kpsegfformat;
+@define const kpsemfformat;
+@define const kpsemfpoolformat;
+@define const kpsemftformat;
+@define const kpsempformat;
+@define const kpsemppoolformat;
+@define const kpseocpformat;
+@define const kpseofmformat;
+@define const kpseoplformat;
+@define const kpseotpformat;
+@define const kpseovfformat;
+@define const kpseovpformat;
+@define const kpsepkformat;
+@define const kpsetexformat;
+@define const kpsetexpoolformat;
+@define const kpsetfmformat;
+@define const kpsevfformat;
+@define const maxint;
+@define const nil;
+@define const output;
+@define const stderr;
+@define const stdin;
+@define const stdout;
+@define const true;
+
+@define const BIBTEXHELP;
+@define const DVICOPYHELP;
+@define const DVITOMPHELP;
+@define const DVITYPEHELP;
+@define const ETEXHELP;
+@define const GFTODVIHELP;
+@define const GFTOPKHELP;
+@define const GFTYPEHELP;
+@define const MFTHELP;
+@define const ODVICOPYHELP;
+@define const ODVITYPEHELP;
+@define const OFM2OPLHELP;
+@define const OMEGAHELP;
+@define const OPL2OFMHELP;
+@define const OTANGLEHELP;
+@define const OVP2OVFHELP;
+@define const OVF2OVPHELP;
+@define const PATGENHELP;
+@define const PDFTEXHELP;
+@define const PKTOGFHELP;
+@define const PKTYPEHELP;
+@define const PLTOTFHELP;
+@define const POOLTYPEHELP;
+@define const TANGLEHELP;
+@define const TFTOPLHELP;
+@define const VFTOVPHELP;
+@define const VPTOVFHELP;
+@define const WEAVEHELP;
+
+@define function abs ();
+@define function addressof ();
+@define function aopenin ();
+@define function aopenout ();
+@define function atof ();
+@define function atoi ();
+@define function atou ();
+@define function basename ();
+@define function basenamechangesuffix ();
+@define function casttobytepointer ();
+@define function chartostring ();
+@define function chr ();
+@define function cmdline ();
+@define function eof ();
+@define function eoln ();
+@define function extendfilename ();
+@define function fabs ();
+@define function feof ();
+@define function findsuffix ();
+@define function ftell ();
+@define function fopen ();
+@define function getc ();
+@define function getoptlongonly ();
+@define function ISDIRSEP ();
+@define function kpsefindfile ();
+@define function kpsefindmf ();
+@define function kpsefindmft ();
+@define function kpsefindofm ();
+@define function kpsefindovf ();
+@define function kpsefindtex ();
+@define function kpsefindtfm ();
+@define function kpsefindvf ();
+@define function kpseopenfile ();
+@define function inputint ();
+@define function isprint ();
+@define function makebinaryfile ();
+@define function makesuffix ();
+@define function odd ();
+@define function ord ();
+@define function removesuffix ();
+@define function round ();
+@define function strcmp ();
+@define function strlen ();
+@define function strtol ();
+@define function toint ();
+@define function trunc ();
+@define function xftell ();
+@define function xmalloc ();
+@define function xrealloc ();
+@define function xstrdup ();
+@define function XTALLOC ();
+
+@define procedure aclose ();
+@define procedure BIBXRETALLOC (); {For BibTeX.}
+@define procedure decr ();
+@define procedure fflush (); {can't keep |break|, since it's a reserved word}
+@define procedure free ();
+@define procedure fprintreal ();
+@define procedure fputs ();
+@define procedure incr ();
+@define procedure input2ints ();
+@define procedure input3ints ();
+@define procedure kpseinitprog ();
+@define procedure kpsesetprogname ();
+@define procedure libcfree ();
+@define procedure printreal ();
+@define procedure printversionandexit ();
+@define procedure putbyte ();
+@define procedure read ();
+@define procedure readln ();
+@define procedure reset ();
+@define procedure resetbin ();
+@define procedure rewrite ();
+@define procedure rewritebin ();
+@define procedure setpaths ();
+@define procedure strcat ();
+@define procedure strcpy ();
+@define procedure usage ();
+@define procedure uexit ();
+@define procedure vgetc ();
+@define procedure write ();
+@define procedure writechunk ();
+@define procedure writeln ();
+@define procedure xfclose ();
+@define procedure xfseek ();
+
+@define type boolean = 0..1;
+@define type cinttype;
+@define type cstring;
+@define type char = 0..255;
+@define type getoptstruct;
+@define type integer;
+@define type memoryword; {for gftodvi, TeX, and Metafont}
+@define type pointertobyte;
+@define type real;
+@define type text;
+
+@define var argc;
+@define var argv;
+@define var kpathseaversionstring;
+@define var versionstring;
+
+{These are all set by getopt.  optiontable is really _getopt_long_options.}
+@define var optarg;
+@define var optind;
+@define var optiontable;

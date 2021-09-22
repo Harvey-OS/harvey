@@ -1,0 +1,7 @@
+This directory contains the Texinfo manual for Web2c, which includes
+nodes for all the TeX system programs in the distribution.
+
+The man pages are no longer supported, and are no longer in the distribution.
+I do not wish to take the time to maintain the same documentation in two
+source formats.  If you want to volunteer to keep the man pages in sync
+with the Texinfo manual, let me know.

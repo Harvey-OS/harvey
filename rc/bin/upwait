@@ -1,0 +1,11 @@
+#!/bin/rc
+# upwait
+rfork e
+if (~ $#* 0)
+	* = (fs cpu consoles fm apu pf ts mips)	# um pi
+for (sys)
+	if (! ~ $sys $sysname) {
+		rx $sys 'echo -n $sysname `{echo $terminal|sed ''s;.*/;;''}^''   ''' &
+	}
+wait
+echo

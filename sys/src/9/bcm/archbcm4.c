@@ -130,7 +130,7 @@ cputype2name(char *buf, int size)
 		p = seprint(buf, buf + size, "Unknown-%#x", part);
 		break;
 	}
-	seprint(p, buf + size, " r%ldp%ld",
+	seprint(p, buf + size, " r%udp%ud",
 		(r >> 20) & MASK(4), r & MASK(4));
 	return buf;
 }
@@ -241,7 +241,9 @@ archether(unsigned ctlrno, Ether *ether)
 	ether->ctlrno = ctlrno;
 	ether->irq = -1;
 	ether->nopt = 0;
-	ether->maxmtu = 9014;
+	ether->mbps = 1000;
+//	ether->maxmtu = 9014;
+	ether->maxmtu = ETHERMAXTU;
 	return 1;
 }
 

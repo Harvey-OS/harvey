@@ -1,8 +1,8 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
 #include "pic.h"
+#include <ctype.h>
 #include "y.tab.h"
 
 YYSTYPE getvar(char *s)	/* return value of variable s (usually pointer) */

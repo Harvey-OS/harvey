@@ -1,6 +1,6 @@
 .TH BACKUP 8
 .SH NAME
-backup, tobackup, dumparenas, restore \- backup venti arenas to blu-ray discs or restore from them
+backup, newset, tobackup, dumparenas, restore \- backup venti arenas to disks or blu-ray discs, or restore from them
 .SH SYNOPSIS
 .B backup
 [
@@ -13,8 +13,14 @@ backup, tobackup, dumparenas, restore \- backup venti arenas to blu-ray discs or
 .I set
 ]
 .br
+.B newset
+.I set
+.I type
+.br
 .B tobackup
 [
+.B -u
+] [
 .I set
 ]
 .br
@@ -33,7 +39,8 @@ These programs reside in
 .B /sys/lib/backup
 and provide a means to backup
 .IR venti (8)
-storage to Blu-ray (or other large optical) discs,
+storage to Blu-ray (or other large optical) discs
+or magnetic or flash disks
 while keeping track of which arenas have been written to which discs.
 Multiple backup sets are supported,
 as is (re)loading a
@@ -48,7 +55,8 @@ it will dump all sealed
 arenas.
 Thereafter,
 it will append only those sealed arenas not already written to a disc
-within the given backup set.
+within the given backup set
+(except that backing up to magnetic or flash disk will always write the current arena).
 The
 .B -s
 option uses a backup
@@ -56,9 +64,8 @@ option uses a backup
 other than the default.
 The
 .B -d
-option uses a disc burner
-other than the default
-.LR /dev/sdD0 .
+option uses a disc burner other than the default
+.LR /dev/sdE3 .
 The
 .B -n
 option goes through the motions but does not burn any tracks
@@ -74,10 +81,23 @@ unless the
 .B -p
 option is given.
 .PP
+.I Newset
+creates a new backup
+.I set
+of
+.IR type ,
+which must be
+.B bd
+or
+.BR disk .
+.PP
 .I Tobackup
 prints the names of all the sealed arenas not yet backed up to a disc
 in the current
 .IR set .
+Under
+.BR -u ,
+it prints only the unsealed arenas.
 .PP
 .I Dumparenas
 copies the named
@@ -162,6 +182,9 @@ subdirectory containing records for default backup set
 .TP
 .B /sys/log
 source of dump scores
+.TP
+.B /dev/fs/arena0
+the file server's arenas (assumed to contain all of them)
 .SH SOURCE
 .B /sys/lib/backup
 .SH SEE ALSO

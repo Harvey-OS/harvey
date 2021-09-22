@@ -1,0 +1,11 @@
+#!/bin/rc
+# loadcfgpxe - turn /cfg/pxe/$myether into rc variable assignments, execute them
+myeth=`{ndb/query sys $sysname ether}
+if (! ~ $#myeth 0) {
+	pxefile=/cfg/pxe/$myeth(1)
+	if (test -e $pxefile) {
+		# in case we booted directly, without 9boot
+		eval `{sed -e '/^#/d' -e '/=([^'']|$)/s/=(.*)/=''\1''/' $pxefile}
+		'*envloaded'=1
+	}
+}

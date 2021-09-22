@@ -31,6 +31,7 @@ for(i in $*){
 		' > $t2
 	mv $t2 $t1
 }
-sort $t1 | sed 's;/sys/man/;;
+# use /.*/man instead of /sys/man to allow private manual trees
+sort $t1 | sed 's;/.*/man/;;
 	s;(.*)/(.*);man \1 \2 # \2(\1);'
 exit ''

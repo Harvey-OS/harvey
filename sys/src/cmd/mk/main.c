@@ -17,10 +17,8 @@ int nreps = 1;
 Job *jobs;
 Biobuf bout;
 Rule *patrule;
+
 void badusage(void);
-#ifdef	PROF
-short buf[10000];
-#endif
 
 void
 main(int argc, char **argv)
@@ -28,12 +26,9 @@ main(int argc, char **argv)
 	Word *w;
 	char *s, *temp;
 	char *files[256], **f = files, **ff;
-	int sflag = 0;
-	int i;
-	int tfd = -1;
+	int sflag = 0, i, tfd = -1;
 	Biobuf tb;
-	Bufblock *buf;
-	Bufblock *whatif;
+	Bufblock *buf, *whatif;
 
 	/*
 	 *  start with a copy of the current environment variables
@@ -109,12 +104,6 @@ main(int argc, char **argv)
 			badusage();
 		}
 	}
-#ifdef	PROF
-	{
-		extern etext();
-		monitor(main, etext, buf, sizeof buf, 300);
-	}
-#endif
 
 	if(aflag)
 		iflag = 1;
@@ -159,7 +148,8 @@ main(int argc, char **argv)
 	symlook("MKFLAGS", S_VAR, (void *) stow(buf->start));
 	buf->current = buf->start;
 	for(i = 0; argv[i]; i++){
-		if(*argv[i] == 0) continue;
+		if(*argv[i] == 0)
+			continue;
 		if(i)
 			insert(buf, ' ');
 		bufcpy(buf, argv[i], strlen(argv[i]));
@@ -242,32 +232,33 @@ badusage(void)
 }
 
 void *
-Malloc(int n)
+Malloc(uintptr n)
 {
 	register void *s;
 
 	s = malloc(n);
 	if(!s) {
-		fprint(2, "mk: cannot alloc %d bytes\n", n);
+		fprint(2, "mk: cannot alloc %lld bytes\n", (vlong)n);
 		Exit();
 	}
 	return(s);
 }
 
 void *
-Realloc(void *s, int n)
+Realloc(void *s, uintptr n)
 {
 	if(s)
 		s = realloc(s, n);
 	else
 		s = malloc(n);
 	if(!s) {
-		fprint(2, "mk: cannot alloc %d bytes\n", n);
+		fprint(2, "mk: cannot alloc %lld bytes\n", (vlong)n);
 		Exit();
 	}
 	return(s);
 }
 
+/* override version in libregexp */
 void
 regerror(char *s)
 {

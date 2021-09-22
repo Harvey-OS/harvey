@@ -685,6 +685,8 @@ asmout(Prog *p, Optab *o, int aflag)
 
 	case 1:		/* slli $I,[R,]D */
 		v = p->from.offset & 0x3F;
+		if(thechar != 'j')
+			v &= 0x1F;
 		v |= (o->param<<5);
 		o1 = OP_I(r, p->to.reg, v);
 		break;

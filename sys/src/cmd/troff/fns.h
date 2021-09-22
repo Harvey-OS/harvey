@@ -226,7 +226,7 @@ Tchar	getlg(Tchar i);
 void	caselg(void);
 void	casefp(void);
 char	*strdupl(const char *);
-int	setfp(int pos, int f, char *truename, int print);
+int	setfp(int pos, int f, char *truename, int doprint);
 void	casecs(void);
 void	casebd(void);
 void	casevs(void);
@@ -314,7 +314,6 @@ int	getdesc(char *name);
 int	getfont(char *name, int pos);
 int	chadd(char *s, int, int);
 char*	chname(int n);
-int	getlig(FILE *fin);
 
 /*
  * n6.c

@@ -28,6 +28,7 @@ typedef struct gs_memory_s  gs_memory_t;
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s  gx_device;
+#pragma incomplete gx_device
 #endif
 
 #ifndef gx_device_halftone_DEFINED

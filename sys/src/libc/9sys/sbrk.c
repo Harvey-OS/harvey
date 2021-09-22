@@ -13,23 +13,24 @@ enum
 int
 brk(void *p)
 {
-	uintptr bl;
+	void * bl;
 
-	bl = ((uintptr)p + Round) & ~Round;
-	if(brk_((void*)bl) < 0)
+	bl = (void *)(((uintptr)p + Round) & ~Round);
+	if(brk_(bl) < 0)
 		return -1;
-	bloc = (char*)bl;
+	bloc = bl;
 	return 0;
 }
 
 void*
 sbrk(ulong n)
 {
-	uintptr bl;
+	char *bl, *nb;
 
-	bl = ((uintptr)bloc + Round) & ~Round;
-	if(brk_((void*)(bl+n)) < 0)
+	bl = bloc;
+	nb = (char *)((((uintptr)bl + n) + Round) & ~Round);
+	if(brk_(nb) < 0)
 		return (void*)-1;
-	bloc = (char*)bl + n;
-	return (void*)bl;
+	bloc = nb;
+	return bl;
 }

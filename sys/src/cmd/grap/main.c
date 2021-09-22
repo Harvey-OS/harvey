@@ -1,8 +1,7 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <signal.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <ctype.h>
 #include "grap.h"
 #include "y.tab.h"
 
@@ -33,15 +32,19 @@ extern int yyparse(void);
 extern void setdefaults(void);
 extern void getdata(void);
 extern	int	unlink(char *);
+extern void onintr(int), fpecatch(int);
 
 void
 main(int argc, char *argv[])
 {
-	extern void onintr(int), fpecatch(int);
-
+#ifdef TODO			/* signals */
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, onintr);
 	signal(SIGFPE, fpecatch);
+#endif
+	/* let us pass NaNs and Infs around without blowing a gasket. */
+	setfcr(getfcr() & ~FPINVAL);
+
 	cmdname = argv[0];
 	tmpnam(tempfile);
 	while (argc > 1 && *argv[1] == '-') {
@@ -86,7 +89,7 @@ main(int argc, char *argv[])
 
 void onintr(int n)
 {
-	n;
+	USED(n);
 	if (!dbg)
 		unlink(tempfile);
 	exit(1);
@@ -135,8 +138,9 @@ void setdefaults(void)	/* set default sizes for variables */
 
 void getdata(void)		/* read input */
 {
-	register FILE *fin;
-	char buf[1000], buf1[100];
+	FILE *fin;
+	char *fname;
+	char buf[1000];
 	int ln;
 
 	fin = curfile->fin;
@@ -154,11 +158,15 @@ void getdata(void)		/* read input */
 			printf(".lf %d\n", curfile->lineno+1);
 			fflush(stdout);
 		} else if (buf[0] == '.' && buf[1] == 'l' && buf[2] == 'f') {
-			if (sscanf(buf+3, "%d %s", &ln, buf1) == 2) {
+			curfile->lineno = ln = strtoul(buf+3, &fname, 0);
+			while (isspace(*fname))
+				fname++;
+			if (fname != buf+3 && *fname != '\0') {
 				free(curfile->fname);
-				printf(".lf %d %s\n", curfile->lineno = ln, curfile->fname = tostring(buf1));
+				curfile->fname = tostring(fname);
+				printf(".lf %d %s\n", ln, curfile->fname);
 			} else
-				printf(".lf %d\n", curfile->lineno = ln);
+				printf(".lf %d\n", ln);
 		} else
 			fputs(buf, stdout);
 	}

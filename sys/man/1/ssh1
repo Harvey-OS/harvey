@@ -352,7 +352,7 @@ System key ring file containing public keys for remote SSH clients and servers.
 Personal key ring file containing public keys for remote SSH clients and
 servers.
 .SH SOURCE
-.B /sys/src/cmd/ssh1
+.B /sys/src/cmd/ssh
 .SH "SEE ALSO"
 .B /lib/rfc/rfc425[0-6]
 .br

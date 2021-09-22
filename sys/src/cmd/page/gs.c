@@ -13,6 +13,7 @@
 
 static int gspid;	/* globals for atexit */
 static int gsfd;
+
 static void	killgs(void);
 
 static void
@@ -40,8 +41,7 @@ int
 spawnwriter(GSInfo *g, Biobuf *b)
 {
 	char buf[4096];
-	int n;
-	int fd;
+	int n, fd;
 
 	switch(fork()){
 	case -1:	return -1;
@@ -103,15 +103,12 @@ spawnmonitor(int fd)
 {
 	char buf[4096];
 	char *xbuf;
-	int n;
-	int out;
-	int first;
+	int n, out, first;
 
 	switch(rfork(RFFDG|RFNOTEG|RFPROC)){
 	case -1:
 	default:
 		return;
-
 	case 0:
 		break;
 	}
@@ -138,18 +135,17 @@ spawngs(GSInfo *g, char *safer)
 {
 	char *args[16];
 	char tb[32], gb[32];
-	int i, nargs;
-	int devnull;
-	int stdinout[2];
-	int dataout[2];
-	int errout[2];
+	int i, nargs, devnull;
+	int stdinout[2], dataout[2], errout[2];
 
 	/*
 	 * spawn gs
 	 *
  	 * gs's standard input is fed from stdinout.
-	 * gs output written to fd-2 (i.e. output we generate intentionally) is fed to stdinout.
-	 * gs output written to fd 1 (i.e. ouptut gs generates on error) is fed to errout.
+	 * gs output written to fd-2 (i.e. output we generate intentionally)
+	 * is fed to stdinout.
+	 * gs output written to fd 1 (i.e. output gs generates on error)
+	 * is fed to errout.
 	 * gs data output is written to fd 3, which is dataout.
 	 */
 	if(pipe(stdinout) < 0 || pipe(dataout)<0 || pipe(errout)<0)
@@ -229,10 +225,11 @@ gscmd(GSInfo *gs, char *fmt, ...)
 {
 	char buf[1024];
 	int n;
-
 	va_list v;
+
 	va_start(v, fmt);
 	n = vseprint(buf, buf+sizeof buf, fmt, v) - buf;
+	va_end(v);
 	if(n <= 0)
 		return n;
 
@@ -241,9 +238,8 @@ gscmd(GSInfo *gs, char *fmt, ...)
 		write(2, buf, n);
 	}
 
-	if(write(gs->gsfd, buf, n) != 0)
+	if(write(gs->gsfd, buf, n) != 0)	/* TODO: `!= n'? */
 		return -1;
-
 	return n;
 }
 
@@ -299,13 +295,14 @@ setdim(GSInfo *gs, Rectangle bbox, int ppi, int landscape)
 void
 waitgs(GSInfo *gs)
 {
-	/* we figure out that gs is done by telling it to
+	/*
+	 * we figure out that gs is done by telling it to
 	 * print something and waiting until it does.
 	 */
 	char *p;
 	Biobuf *b = &gs->gsrd;
 	uchar buf[1024];
-	int n;
+	int n, r;
 
 //	gscmd(gs, "(\\n**bstack\\n) print flush\n");
 //	gscmd(gs, "stack flush\n");
@@ -321,22 +318,22 @@ waitgs(GSInfo *gs)
 				break;
 			if(n > sizeof buf)
 				n = sizeof buf;
-			Bread(b, buf, n);
+			r = Bread(b, buf, n);
+			USED(r);
 			continue;
 		}
 		p[Blinelen(b)-1] = 0;
 		if(chatty) fprint(2, "p: ");
 		if(chatty) write(2, p, Blinelen(b)-1);
 		if(chatty) fprint(2, "\n");
-		if(strstr(p, "Error:")) {
+		if(strstr(p, "Error:") != nil) {
 			alarm(0);
 			fprint(2, "ghostscript error: %s\n", p);
 			wexits("gs error");
 		}
 
-		if(strstr(p, "//GO.SYSIN DD")) {
+		if(strstr(p, "//GO.SYSIN DD") != nil)
 			break;
-		}
 	}
 	alarm(0);
 }

@@ -1,3 +1,6 @@
+/*
+ * convert executable to Motorola S-records
+ */
 #include <u.h>
 #include <libc.h>
 #include <bio.h>

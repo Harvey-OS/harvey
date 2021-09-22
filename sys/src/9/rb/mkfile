@@ -25,6 +25,7 @@ PORT=\
 	alloc.$O\
 	allocb.$O\
 	auth.$O\
+	byteserial.$O\
 	cache.$O\
 	chan.$O\
 	dev.$O\
@@ -95,9 +96,9 @@ install:V:	$p$CONF
 <|../port/mkbootrules $CONF
 
 init.h:	init9.s ../port/initcode.c /sys/src/libc/9syscall/sys.h
-	$AS init9.s
-	$CC ../port/initcode.c
-	$LD -T$UTZERO -R4 -o init.out init9.$O initcode.$O
+	va init9.s
+	vc ../port/initcode.c
+	vl -T$UTZERO -R4 -o init.out init9.$O initcode.$O
 	{echo 'uchar initcode[]={'
 	 xd -r -1x init.out |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'

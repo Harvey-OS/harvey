@@ -17,7 +17,7 @@ myetheraddr(uchar *to, char *dev)
 	if(fd < 0)
 		return -1;
 
-	n = read(fd, buf, sizeof buf -1 );
+	n = read(fd, buf, sizeof buf - 1);
 	close(fd);
 	if(n <= 0)
 		return -1;

@@ -6,28 +6,20 @@ enum
 	ET_IP		= 0x800,
 
 	IP_VER		= 0x40,
-	IP_HLEN		= 0x05,			
+	IP_HLEN		= 0x05,
  	IP_UDPPROTO	= 17,
 
 	UDP_EHSIZE	= 22,
 	UDP_PHDRSIZE	= 12,
 	UDP_HDRSIZE	= 20,
 
+	Tftphdrsz	= 4,
+	Maxsegsize	= 2048,
+
 	BPportsrc	= 68,
 	BPportdst	= 67,
 	Bootrequest 	= 1,
 	Bootreply   	= 2,
-
-	TFTPport	= 69,
-//	Timeout		= 5000,	/* milliseconds */
-	Timeout		= 2000,	/* milliseconds */
-	Tftp_READ	= 1,
-	Tftp_WRITE	= 2,
-	Tftp_DATA	= 3,
-	Tftp_ACK	= 4,
-	Tftp_ERROR	= 5,
-	Tftp_OACK	= 6,		/* extension: option(s) ack */
-	Defsegsize	= 512,
 
 	/* lengths of some bootp fields */
 	Maxhwlen=	16,
@@ -43,7 +35,7 @@ enum
 /*
  *  user level udp headers with control message "headers"
  */
-enum 
+enum
 {
 	Udphdrsize=	52,	/* size of a Udphdr */
 };
@@ -91,4 +83,34 @@ struct Pxenetaddr
 	ushort	port;
 };
 
-extern int chatty;
+typedef struct Openeth Openeth;
+struct Openeth {
+	/* names */
+	int	ctlrno;
+	char	ethname[16];	/* ether%d */
+	char	netethname[32];	/* /net/ether%d */
+	char	filename[128];	/* from bootp, for tftp */
+
+	Chan	*ifcctl;	/* /net/ipifc/clone */
+	Chan	*ethctl;	/* /net/etherN/0/ctl, for promiscuous mode */
+
+	/* udp connection */
+	Chan	*udpctl;
+	Chan	*udpdata;
+	Pxenetaddr *netaddr;
+	int	rxactive;
+};
+
+typedef struct Tftp Tftp;
+struct Tftp {
+	uchar	header[Tftphdrsz];
+	uchar	data[Maxsegsize];
+};
+
+extern int chatty, progress, segsize;
+
+int	announce(Openeth *oe, char *port);
+void	closeudp(Openeth *oe);
+char	*filetoload(Openeth *oe, char *file, Bootp *rep);
+int	udprecv(Openeth *oe, Pxenetaddr *a, void *data, int dlen);
+void	udpsend(Openeth *oe, Pxenetaddr *a, void *data, int dlen);

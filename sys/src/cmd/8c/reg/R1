@@ -1,0 +1,102 @@
+n=1
+n=1
+n=2
+n=1
+n=1
+n=1
+n=1
+n=1
+n=1
+n=3
+	TEXT	f1+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v4+0(SB),AX
+	MOVL	AX,v3+0(SB)
+	RET	,
+	TEXT	f2+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v4+0(SB),AX
+	MOVL	AX,v3+0(SB)
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f3+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v4+0(SB),AX
+	IMULL	v3+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f4+0(SB),0,$0
+	INCL	,v1+0(SB)
+	INCL	,v3+0(SB)
+	RET	,
+	TEXT	f5+0(SB),0,$0
+	INCL	,v2+0(SB)
+	INCL	,v3+0(SB)
+	MOVL	v4+0(SB),AX
+	IMULL	v1+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f6+0(SB),0,$0
+	MOVL	v2+0(SB),AX
+	INCL	,AX
+	MOVL	AX,v2+0(SB)
+	MOVL	v3+0(SB),AX
+	NEGL	,AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f7+0(SB),0,$0
+	MOVL	v2+0(SB),DX
+	CMPL	DX,v3+0(SB)
+	JNE	,4(PC)
+	INCL	,v4+0(SB)
+	MOVL	DX,AX
+	JMP	,3(PC)
+	INCL	,v3+0(SB)
+	MOVL	v1+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f8+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v3+0(SB),CX
+	CMPL	CX,v1+0(SB)
+	JNE	,4(PC)
+	INCL	,v3+0(SB)
+	CMPL	v4+0(SB),$2
+	JEQ	,2(PC)
+	JMP	,3(PC)
+	MOVL	$1,AX
+	JMP	,2(PC)
+	MOVL	$0,AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f9+0(SB),0,$0
+	MOVL	v2+0(SB),AX
+	INCL	,v2+0(SB)
+	MOVL	AX,v1+0(SB)
+	RET	,
+	RET	,
+	TEXT	f10+0(SB),0,$16
+	MOVL	v2+0(SB),DX
+	MOVL	v3+0(SB),BX
+	MOVL	BX,v2+0(SB)
+	INCL	,v4+0(SB)
+	MOVL	DX,(SP)
+	CMPL	BX,v4+0(SB)
+	JNE	,4(PC)
+	MOVL	DX,AX
+	INCL	,AX
+	JMP	,3(PC)
+	MOVL	BX,AX
+	ADDL	$2,AX
+	MOVL	AX,4(SP)
+	MOVL	DX,AX
+	MOVL	DX,v1+0(SB)
+	INCL	,AX
+	MOVL	AX,8(SP)
+	CALL	,g+0(SB)
+	RET	,
+	GLOBL	v1+0(SB),$4
+	GLOBL	v2+0(SB),$4
+	GLOBL	v3+0(SB),$4
+	GLOBL	v4+0(SB),$4
+	END	,

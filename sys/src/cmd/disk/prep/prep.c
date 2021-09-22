@@ -7,10 +7,6 @@
 #include <disk.h>
 #include "edit.h"
 
-enum {
-	Maxpath = 128,
-};
-
 static int	blank;
 static int	file;
 static int	doautox;
@@ -289,7 +285,10 @@ mkpart(char *name, vlong start, vlong end, int changed)
 	return p;
 }
 
-/* plan9 partition is first sector of the disk */
+/*
+ * plan9 partition table is second sector of the plan9 (MBR) partition
+ * (follows the PBS).
+ */
 static void
 rdpart(Edit *edit)
 {
@@ -442,15 +441,17 @@ restore(Edit *edit, int ctlfd)
 {
 	int i;
 	vlong offset;
+	Disk *disk;
 
-	offset = edit->disk->offset;
+	disk = edit->disk;
+	offset = disk->offset;
 	fprint(2, "attempting to restore partitions to previous state\n");
-	if(seek(edit->disk->wfd, edit->disk->secsize, 0) != 0){
+	if(seek(disk->wfd, disk->secsize, 0) != 0){
 		fprint(2, "cannot restore: error seeking on disk\n");
 		exits("inconsistent");
 	}
 
-	if(write(edit->disk->wfd, osecbuf, edit->disk->secsize) != edit->disk->secsize){
+	if(write(disk->wfd, osecbuf, disk->secsize) != disk->secsize){
 		fprint(2, "cannot restore: couldn't write old partition table to disk\n");
 		exits("inconsistent");
 	}
@@ -459,7 +460,8 @@ restore(Edit *edit, int ctlfd)
 		for(i=0; i<edit->npart; i++)
 			fprint(ctlfd, "delpart %s", edit->part[i]->name);
 		for(i=0; i<nopart; i++){
-			if(fprint(ctlfd, "part %s %lld %lld", opart[i]->name, opart[i]->start+offset, opart[i]->end+offset) < 0){
+			if(fprint(ctlfd, "part %s %lld %lld", opart[i]->name,
+			    opart[i]->start+offset, opart[i]->end+offset) < 0){
 				fprint(2, "restored disk partition table but not kernel; reboot\n");
 				exits("inconsistent");
 			}
@@ -475,7 +477,6 @@ wrpart(Edit *edit)
 	Disk *disk;
 
 	disk = edit->disk;
-
 	memset(secbuf, 0, disk->secsize);
 	n = 0;
 	for(i=0; i<edit->npart; i++)
@@ -483,10 +484,10 @@ wrpart(Edit *edit)
 			edit->part[i]->name, edit->part[i]->start, edit->part[i]->end);
 
 	if(seek(disk->wfd, disk->secsize, 0) != disk->secsize){
-		fprint(2, "error seeking %d %lld on disk: %r\n", disk->wfd, disk->secsize);
+		fprint(2, "error seeking %d %lld on disk: %r\n",
+			disk->wfd, disk->secsize);
 		exits("seek");
 	}
-
 	if(write(disk->wfd, secbuf, disk->secsize) != disk->secsize){
 		fprint(2, "error writing partition table to disk\n");
 		restore(edit, -1);

@@ -67,10 +67,8 @@ Assume the server part of
 .I aan
 is encapsulated in
 .I exportfs
-on the machine
-.B sob
 and started through
-.B aux/listen
+.I aux/listen
 as follows:
 .IP
 .EX

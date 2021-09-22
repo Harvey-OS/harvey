@@ -1,0 +1,38 @@
+dbgflg
+#	apic		'A'
+#	sysproc		'E'
+#	ioapic		'I'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#	archk10		'V'
+#	asm		'a'
+#	chan		'c'
+#	mmu		'm'
+#	main		'x'
+#	sipi		'y'
+amd64
+	l32p
+	l64v
+	l64idt
+	l64syscall
+	l64fpu
+	apu
+	arch
+	archk10
+	asm
+	cga
+	bootconf
+	fpu
+	i8080
+	i8254
+	i8259
+# only needed for VMs
+	kbd
+	main
+	map
+	mmu
+	multiboot
+	noacpi
+	trap
+	vsvm

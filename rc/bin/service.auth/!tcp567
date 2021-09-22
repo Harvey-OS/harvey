@@ -1,0 +1,3 @@
+#!/bin/rc
+# auth/authsrv -d $3
+exec aux/trampoline -m $3 'tcp!lookout!567' >[2]/dev/null

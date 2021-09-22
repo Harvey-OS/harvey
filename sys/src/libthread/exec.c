@@ -5,6 +5,8 @@
 
 #define PIPEMNT	"/mnt/temp"
 
+void	_threadstkstats(Thread *t);
+
 void
 procexec(Channel *pidc, char *prog, char *args[])
 {
@@ -36,6 +38,8 @@ procexec(Channel *pidc, char *prog, char *args[])
 	 * then the proc doing the exec sends the errstr down the
 	 * pipe to us.
 	 */
+	_threadstkstats(t);
+
 	if(bind("#|", PIPEMNT, MREPL) < 0)
 		goto Bad;
 	if((p->exec.fd[0] = open(PIPEMNT "/data", OREAD)) < 0){
@@ -78,63 +82,3 @@ procexecl(Channel *pidc, char *f, ...)
 	procexec(pidc, f, &f+1);
 }
 
-static void
-execproc(void *v)
-{
-	Execjob *e;
-
-	e = v;
-	rfork(RFFDG);
-	dup(e->fd[0], 0);
-	dup(e->fd[1], 1);
-	dup(e->fd[2], 2);
-	procexec(e->c, e->cmd, e->argv);
-	threadexits(nil);
-}
-
-int
-threadspawn(int fd[3], char *cmd, char *argv[])
-{
-	int pid;
-	Execjob e;
-
-	e.fd = fd;
-	e.cmd = cmd;
-	e.argv = argv;
-	e.c = chancreate(sizeof(void*), 0);
-	proccreate(execproc, &e, 65536);
-	close(fd[0]);
-	close(fd[1]);
-	close(fd[2]);
-	pid = recvul(e.c);
-	chanfree(e.c);
-	return pid;
-}
-
-int
-threadspawnl(int fd[3], char *cmd, ...)
-{
-	char **argv, *s;
-	int n, pid;
-	va_list arg;
-
-	va_start(arg, cmd);
-	for(n=0; va_arg(arg, char*) != nil; n++)
-		;
-	n++;
-	va_end(arg);
-
-	argv = malloc(n*sizeof(argv[0]));
-	if(argv == nil)
-		return -1;
-
-	va_start(arg, cmd);
-	for(n=0; (s=va_arg(arg, char*)) != nil; n++)
-		argv[n] = s;
-	argv[n] = 0;
-	va_end(arg);
-
-	pid = threadspawn(fd, cmd, argv);
-	free(argv);
-	return pid;
-}

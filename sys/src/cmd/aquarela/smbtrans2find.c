@@ -238,7 +238,7 @@ done:
 	free(dir);
 	free(name);
 	smbdircachefree(&dc);
-	free(r);
+	regfree(r);
 	return pr;
 }
 

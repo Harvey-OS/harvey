@@ -1,0 +1,159 @@
+# Makefile for dvipsk -- kb@mail.tug.org. Public domain.
+version = 5.76a
+
+# Add -DDEFRES=dpi to DEFS to change the default resolution from 600.
+# Add -DSECURE if you will install dvips with special privileges.
+# Add -DNO_DEBUG to omit debugging support.
+# Add -DNO_EMTEX to omit EMTEX specials.
+# Add -DNO_HPS to omit hypertex support.
+# Add -DNO_TPIC to omit tpic support.
+# 
+# For VM/CMS or (perhaps) VMS or DOS compilation, need the corresponding
+# subdirectory from the original dvips distribution.  (Maybe dvipsk
+# won't work at all on such systems; if you have info one way or the
+# other, please let kb@cs.umb.edu know.)
+
+ac_include ../make/paths.make
+ac_include ../make/common.make
+ac_include ../make/programs.make
+ac_include ../make/texi.make
+prog_cflags = -DUNIX -DKPATHSEA -DNeedFunctionPrototypes
+
+# The `t[mp]-' business is so that we don't create an empty .pro file,
+# if running squeeze fails for some reason.  A dependency on squeeze
+# fails here, so we include it below.
+.SUFFIXES: .pro .lpro
+.lpro.pro:
+	./squeeze <$< >t-$@
+	mv t-$@ $@
+prologues = tex.pro texps.pro texc.pro special.pro finclude.pro \
+            color.pro crop.pro hps.pro
+
+objects = dospecial.o dviinput.o emspecial.o fontdef.o loadfont.o       \
+dvips.o tfmload.o download.o prescan.o scanpage.o skippage.o output.o   \
+scalewidth.o dosection.o dopage.o resident.o search.o unpack.o drawPS.o \
+header.o repack.o virtualfont.o dpicheck.o finclude.o t1part.o		\
+pprescan.o papersiz.o color.o bbox.o hps.o
+
+program = dvips
+programs = afm2tfm $(program)
+
+
+default all: $(programs) $(prologues) dvips.info
+
+$(program): $(kpathsea) $(objects)
+	$(kpathsea_link) $(objects) $(LOADLIBES)
+afm2tfm: $(kpathsea) afm2tfm.o
+	$(kpathsea_link) afm2tfm.o $(LOADLIBES)
+# Omit LOADLIBES since no need to dynamically link with kpathsea.
+squeeze: squeeze.o
+	$(link_command) squeeze.o $(LIBS) $(XLOADLIBES)
+
+$(prologues): squeeze
+texc.lpro: texc.script tex.lpro
+	$(SHELL) $(srcdir)/texc.script $(srcdir)/tex.lpro $@
+
+ac_include ../make/tkpathsea.make
+
+check: all
+	rm -f mtest.ps
+	-(TFMFONTS=$(srcdir)/testdata: VFFONTS=$(srcdir)/testdata: \
+	TEXPSHEADERS=$(srcdir)/testdata TEXCONFIG=$(srcdir)/testdata \
+	  ./dvips -D 300 $(srcdir)/testdata/dvipstst.xdv -o dvipstst.ps)
+	mv dvipstst.ps mtest.ps
+	-(TFMFONTS=$(srcdir)/testdata: VFFONTS=$(srcdir)/testdata: \
+	TEXPSHEADERS=$(srcdir)/testdata: TEXCONFIG=$(srcdir)/testdata: \
+	  ./dvips -D 300 $(srcdir)/testdata/dvipstst.xdv -o)
+	-diff $(srcdir)/testdata/dvipstst.xps dvipstst.ps
+
+install: install-exec install-data
+	$(POST_INSTALL)
+	@echo "Create $(psheaderdir)/base/config.ps if necessary (see ./INSTALL)."
+uninstall: uninstall-exec uninstall-data
+
+install-exec: all
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(bindir) $(scriptdir) $(fontdir)
+	for p in $(programs); do $(INSTALL_LIBTOOL_PROG) $(bindir) $$p; done
+uninstall-exec:
+	for p in $(programs); do rm -f $(bindir)/$$p; done
+
+install-data: $(program).info
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(mandir) $(infodir) $(psheaderdir)/base $(dvips_plain_macrodir)
+# PostScript prologues and encodings.
+	for h in $(prologues); do $(INSTALL_DATA) $$h $(psheaderdir)/base/$$h; done
+	cd $(srcdir)/reencode && \
+	  for e in *.enc; do $(INSTALL_DATA) $$e $(psheaderdir)/base/$$e; done
+# config.ps. Any one config.ps will be wrong for most people, so don't
+# install anything by default.
+#	if test ! -r $(psheaderdir)/base/config.ps				\
+#	   || grep 'original config.ps --' $(psheaderdir)/base/config.ps	\
+#	      >/dev/null; then	\
+#          $(INSTALL_DATA) $(srcdir)/config.ps $(psheaderdir)/base/config.ps;	\
+#        else true; fi
+# psfonts.map.
+	if test ! -r $(psheaderdir)/base/psfonts.map 			\
+	   || grep 'original psfonts.map --' $(psheaderdir)/base/psfonts.map \
+	      >/dev/null; then	\
+	  $(INSTALL_DATA) $(srcdir)/psfonts.map $(psheaderdir)/base/psfonts.map; \
+        else true; fi
+# Info files.
+	cd $(srcdir) && for i in $(program).i*; do \
+	  $(INSTALL_DATA) $$i $(infodir)/$$i; done
+# Man pages.
+	$(INSTALL_DATA) $(srcdir)/dvips.1 $(mandir)/dvips.$(manext)
+	$(INSTALL_DATA) $(srcdir)/afm2tfm.1 $(mandir)/afm2tfm.$(manext)
+# TeX macros.
+	cd $(srcdir)/tex && for m in *.tex; do \
+	  $(INSTALL_DATA) $$m $(dvips_plain_macrodir)/$$m; done
+	$(POSTINSTALL)
+	if $(SHELL) -c 'install-info --version' >/dev/null 2>&1; then \
+	  install-info --info-dir=$(infodir) $(infodir)/$(program).info; \
+	else true; fi
+
+uninstall-data:
+	rm -f $(infodir)/dvips.i*
+	for h in $(prologues); do rm -f $(psheaderdir)/base/$$h; done
+	cd $(srcdir)/reencode && for e in *.enc; do rm -f $(psheaderdir)/base/$$e; \
+	  done
+	if grep 'original config.ps --' $(psheaderdir)/base/config.ps	\
+             >/dev/null 2>&1; then rm -f $(psheaderdir)/base/config.ps;	\
+        else true; fi
+	if grep 'original psfonts.map --' $(psheaderdir)/base/psfonts.map	\
+              >/dev/null 2>&1; then rm -f $(psheaderdir)/base/psfonts.map;	\
+        else true; fi
+	rm -f $(mandir)/dvips.$(manext) $(mandir)/afm2tfm.$(manext)
+
+distname = dvipsk
+program_files = *.texi *.info* *.lpro psfonts.map *.1 texc.script \
+  dvips.help $(program).aux $(program).cps dvipstst.dvi
+version_files = dvips.h afm2tfm.c dvips.c
+
+pre-dist-$(distname): INSTALL $(program).info $(program).dvi
+post-dist-$(distname):
+	ln -s `pwd`/contrib `pwd`/tex $(distdir)
+	mkdir $(distdir)/reencode; ln -s $(fontname)/*.enc $(distdir)/reencode
+	ln -s `pwd`/README.reencode $(distdir)/reencode/README
+	rm -f $(distdir)/texc.lpro
+
+ac_include ../make/dist.make
+ac_include ../make/config.make
+
+info: $(program).info
+dvi: $(program).dvi
+
+@MAINT@INSTALL: $(program).texi
+@MAINT@	$(MAKEINFO) -D INSTALLONLY --no-headers --no-split --no-validate \
+@MAINT@	  $(MAKEINFO_FLAGS) $< -o $@
+@MAINT@	add-info-toc $@
+@MAINT@$(program).info: dvips.help
+@MAINT@dvips.help: dvips.c
+@MAINT@	./dvips --help | sed s/@/@@/g >$@
+@MAINT@doc: info INSTALL
+
+ac_include ../make/clean.make
+
+distclean::
+	rm -f *.pro texc.lpro
+
+ac_include ../make/rdepend.make
+ac_include depend.make

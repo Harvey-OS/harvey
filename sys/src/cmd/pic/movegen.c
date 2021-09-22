@@ -1,5 +1,7 @@
-#include	<stdio.h>
-#include	"pic.h"
+#include <u.h>
+#include <libc.h>
+#include <stdio.h>
+#include "pic.h"
 #include	"y.tab.h"
 
 obj *movegen(void)

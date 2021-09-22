@@ -1,0 +1,18 @@
+
+/* alternative definitions using labels */
+#ifdef notdef
+/* all barriers, clears all hazards; clobbers r/Reg */
+#define BARRIERS(r, Reg, label) \
+	SYNC; EHB; \
+	MOVW	$label(SB), Reg; \
+	JRHB(r); \
+TEXT label(SB), $-4; \
+	NOP
+#define UBARRIERS(r, Reg, label) \
+	SYNC; EHB; \
+	MOVW	$label(SB), Reg; \
+	OR	$KSEG1, Reg; \
+	JRHB(r); \
+TEXT label(SB), $-4; \
+	NOP
+#endif

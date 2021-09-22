@@ -22,23 +22,19 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20121220";
+char	*version = "version 19990602";
 
 #define DEBUG
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <locale.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
 #include "awk.h"
 #include "y.tab.h"
 
-extern	char	**environ;
 extern	int	nfields;
 
 int	dbg	= 0;
-Awkfloat	srand_seed = 1;
 char	*cmdname;	/* gets argv[0] for error messages */
 extern	FILE	*yyin;	/* lex input file */
 char	*lexprog;	/* points to program argument if it exists */
@@ -46,9 +42,7 @@ extern	int errorflag;	/* non-zero if any syntax errors; set by yyerror */
 int	compile_time = 2;	/* for error printing: */
 				/* 2 = cmdline, 1 = compile, 0 = running */
 
-#define	MAX_PFILE	20	/* max number of -f's */
-
-char	*pfile[MAX_PFILE];	/* program filenames from -f's */
+char	*pfile[20];	/* program filenames from -f's */
 int	npfile = 0;	/* number of filenames */
 int	curpfile = 0;	/* current filename */
 
@@ -56,31 +50,26 @@ int	safe	= 0;	/* 1 => "safe" mode */
 
 int main(int argc, char *argv[])
 {
-	const char *fs = NULL;
+	char *fs = NULL, *marg;
+	int temp;
 
-	setlocale(LC_CTYPE, "");
-	setlocale(LC_NUMERIC, "C"); /* for parsing cmdline & prog */
+	/* let us pass NaNs and Infs around without blowing a gasket. */
+	setfcr(getfcr() & ~FPINVAL);
+
 	cmdname = argv[0];
 	if (argc == 1) {
-		fprintf(stderr, 
-		  "usage: %s [-F fs] [-v var=value] [-f progfile | 'prog'] [file ...]\n", 
-		  cmdname);
+		fprintf(stderr, "Usage: %s [-F fieldsep] [-mf n] [-mr n] "
+			"[-v var=value] [-f programfile | 'program'] [file ...]\n",
+			cmdname);
 		exit(1);
 	}
+#ifdef TODO				/* signal -> note catcher */
 	signal(SIGFPE, fpecatch);
-
-	srand_seed = 1;
-	srand(srand_seed);
-
+#endif
 	yyin = NULL;
-	symtab = makesymtab(NSYMTAB/NSYMTAB);
+	symtab = makesymtab(NSYMTAB);
 	while (argc > 1 && argv[1][0] == '-' && argv[1][1] != '\0') {
-		if (strcmp(argv[1],"-version") == 0 || strcmp(argv[1],"--version") == 0) {
-			printf("awk %s\n", version);
-			exit(0);
-			break;
-		}
-		if (strncmp(argv[1], "--", 2) == 0) {	/* explicit end of args */
+		if (strcmp(argv[1], "--") == 0) {	/* explicit end of args */
 			argc--;
 			argv++;
 			break;
@@ -91,18 +80,11 @@ int main(int argc, char *argv[])
 				safe = 1;
 			break;
 		case 'f':	/* next argument is program filename */
-			if (argv[1][2] != 0) {  /* arg is -fsomething */
-				if (npfile >= MAX_PFILE - 1)
-					FATAL("too many -f options"); 
-				pfile[npfile++] = &argv[1][2];
-			} else {		/* arg is -f something */
-				argc--; argv++;
-				if (argc <= 1)
-					FATAL("no program filename");
-				if (npfile >= MAX_PFILE - 1)
-					FATAL("too many -f options"); 
-				pfile[npfile++] = argv[1];
-			}
+			argc--;
+			argv++;
+			if (argc <= 1)
+				FATAL("no program filename");
+			pfile[npfile++] = argv[1];
 			break;
 		case 'F':	/* set field separator */
 			if (argv[1][2] != 0) {	/* arg is -Fsomething */
@@ -121,19 +103,22 @@ int main(int argc, char *argv[])
 				WARNING("field separator FS is empty");
 			break;
 		case 'v':	/* -v a=1 to be done NOW.  one -v for each */
-			if (argv[1][2] != 0) {  /* arg is -vsomething */
-				if (isclvar(&argv[1][2]))
-					setclvar(&argv[1][2]);
-				else
-					FATAL("invalid -v option argument: %s", &argv[1][2]);
-			} else {		/* arg is -v something */
-				argc--; argv++;
-				if (argc <= 1)
-					FATAL("no variable name");
-				if (isclvar(argv[1]))
-					setclvar(argv[1]);
-				else
-					FATAL("invalid -v option argument: %s", argv[1]);
+			if (argv[1][2] == '\0' && --argc > 1 && isclvar((++argv)[1]))
+				setclvar(argv[1]);
+			break;
+		case 'm':	/* more memory: -mr=record, -mf=fields */
+				/* no longer needed */
+			marg = argv[1];
+			if (argv[1][3])
+				temp = atoi(&argv[1][3]);
+			else {
+				argv++; argc--;
+				temp = atoi(&argv[1][0]);
+			}
+			switch (marg[2]) {
+			case 'r':	recsize = temp; break;
+			case 'f':	nfields = temp; break;
+			default: FATAL("unknown option %s\n", marg);
 			}
 			break;
 		case 'd':
@@ -141,6 +126,10 @@ int main(int argc, char *argv[])
 			if (dbg == 0)
 				dbg = 1;
 			printf("awk %s\n", version);
+			break;
+		case 'V':	/* added for exptools "standard" */
+			printf("awk %s\n", version);
+			exit(0);
 			break;
 		default:
 			WARNING("unknown option %s ignored", argv[1]);
@@ -167,10 +156,11 @@ int main(int argc, char *argv[])
 	argv[0] = cmdname;	/* put prog name at front of arglist */
 	   dprintf( ("argc=%d, argv[0]=%s\n", argc, argv[0]) );
 	arginit(argc, argv);
-	if (!safe)
-		envinit(environ);
+	if (!safe) {
+		envsetup();		/* read '#e' into environ array */
+		envinit(environ);	/* convert it to ENVIRON awk array */
+	}
 	yyparse();
-	setlocale(LC_NUMERIC, ""); /* back to whatever it is locally */
 	if (fs)
 		*FS = qstring(fs, '\0');
 	   dprintf( ("errorflag=%d\n", errorflag) );
@@ -179,7 +169,8 @@ int main(int argc, char *argv[])
 		run(winner);
 	} else
 		bracecheck();
-	return(errorflag);
+	exit(errorflag);
+	return errorflag;
 }
 
 int pgetc(void)		/* get 1 character from awk program */

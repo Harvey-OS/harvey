@@ -76,25 +76,24 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 	e = &arp->cache[NCACHE];
 	a = arp->cache;
 	t = a->utime;
-	for(f = a; f < e; f++){
+	for(f = a; f < e; f++)
 		if(f->utime < t){
 			t = f->utime;
 			a = f;
 		}
-	}
 
 	/* dump waiting packets */
 	xp = a->hold;
 	a->hold = nil;
 
-	if(isv4(a->ip)){
+	if(isv4(a->ip))
 		while(xp){
 			next = xp->list;
 			freeblist(xp);
 			xp = next;
 		}
-	}
-	else { /* queue icmp unreachable for rxmitproc later on, w/o arp lock */
+	else
+		/* queue icmp unreachable for rxmitproc later on, w/o arp lock */
 		if(xp){
 			if(arp->dropl == nil)
 				arp->dropf = xp;
@@ -106,7 +105,6 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 			arp->dropl = xp;
 			wakeup(&arp->rxmtq);
 		}
-	}
 
 	/* take out of current chain */
 	l = &arp->hash[haship(a->ip)];
@@ -145,16 +143,14 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 			}
 			l = &f->nextrxt;
 		}
-		for(f = *l; f; f = f->nextrxt){
+		for(f = *l; f; f = f->nextrxt)
 			l = &f->nextrxt;
-		}
 		*l = a;
 		if(empty)
 			wakeup(&arp->rxmtq);
 	}
 
 	a->nextrxt = nil;
-
 	return a;
 }
 
@@ -165,8 +161,7 @@ cleanarpent(Arp *arp, Arpent *a)
 {
 	Arpent *f, **l;
 
-	a->utime = 0;
-	a->ctime = 0;
+	a->utime = a->ctime = 0;
 	a->type = 0;
 	a->state = 0;
 
@@ -539,8 +534,8 @@ arpread(Arp *arp, char *p, ulong offset, int len)
 	if(offset % Alinelen)
 		return 0;
 
-	offset = offset/Alinelen;
-	len = len/Alinelen;
+	offset /= Alinelen;
+	len    /= Alinelen;
 
 	n = 0;
 	for(a = arp->cache; len > 0 && a < &arp->cache[NCACHE]; a++){
@@ -590,24 +585,20 @@ rxmitsols(Arp *arp)
 		if((a->rxtsrem <= 0) || !(canrlock(ifc)) || (a->ifcid != ifc->ifcid)){
 			xp = a->hold;
 			a->hold = nil;
-
-			if(xp){
+			if(xp)
 				if(arp->dropl == nil)
 					arp->dropf = xp;
 				else
 					arp->dropl->list = xp;
-			}
-
 			cleanarpent(arp, a);
-		}
-		else
+		} else
 			break;
 	}
 	if(a == nil)
 		goto dodrops;
 
 
-	qunlock(arp);	/* for icmpns */
+	qunlock(arp);			/* for icmpns */
 	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC)
 		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac);
 
@@ -623,9 +614,8 @@ rxmitsols(Arp *arp)
 		}
 		l = &b->nextrxt;
 	}
-	for(b = *l; b; b = b->nextrxt){
+	for(b = *l; b; b = b->nextrxt)
 		l = &b->nextrxt;
-	}
 	*l = a;
 	a->rxtsrem--;
 	a->nextrxt = nil;
@@ -655,12 +645,9 @@ dodrops:
 static int
 rxready(void *v)
 {
-	Arp *arp = (Arp *) v;
-	int x;
+	Arp *arp = v;
 
-	x = ((arp->rxmt != nil) || (arp->dropf != nil));
-
-	return x;
+	return arp->rxmt != nil || arp->dropf != nil;
 }
 
 static void

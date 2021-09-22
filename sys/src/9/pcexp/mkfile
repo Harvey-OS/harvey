@@ -1,0 +1,64 @@
+# mkfile to build decompressing headers for normal and bootstrap pc kernels,
+# loaded via pxe and pbs.
+EXTRACOPIES=fsstand
+
+objtype=386
+</$objtype/mkfile
+BIN=/$objtype
+
+PROGS=$O.expand-pbs $O.expand-pxe
+HFILES=mem.h ../pc/mem.h
+CFILES=\
+	expand.c \
+	a20.c \
+	cga.c \
+	lunzip.guts.c \
+	print.c \
+	../pc/multiboot.c \
+	../pc/e820.c \
+
+all:V: $PROGS
+
+%.$O: %.c
+	$CC $CFLAGS $stem.c
+%.$O: %.s
+	$AS $AFLAGS $stem.s
+
+install:V: $PROGS
+	for (f in $prereq)
+		cp -x $f /$objtype/`{echo $f|sed 's/'$O'\.//'} &
+	for(i in $EXTRACOPIES) {
+		9fs $i &&
+		{ for (f in $prereq)
+			cp -x $f /n/$i/$objtype/`{echo $f|sed 's/'$O'\.//'} } &&
+				echo -n $i...
+	}
+	wait
+	echo
+
+clean:V:
+	rm -f 8.* *.8
+
+acid:V:
+	8c -a $CFLAGS expand.c >acid
+
+#
+# 8.expand-*: the decompressing headers for 9boot, 9load & 9pc*
+#
+# for pbs, 0x10000 (64K); for pxe, 0x7c00 (31K)
+
+expand.l.$O: $HFILES /sys/src/boot/pc/x16.h bios.s
+
+# normal kernels start at 1MB, boot kernels at 9MB, but expand can load either.
+expand.$O: $HFILES $CFILES
+	$CC $CFLAGS -o $target expand.c
+
+PXELOADADDR=0x7c00
+$O.expand-pxe: expand.l.$O expand.$O
+	$LD -a >$target.list -o $target^debug -R4 -T$PXELOADADDR $prereq
+	$LD -o $target -H3 -R4 -T$PXELOADADDR $prereq
+
+PBSLOADADDR=0x10000
+$O.expand-pbs: expand.l.$O expand.$O
+	$LD -a >$target.list -o $target^debug -R4 -T$PBSLOADADDR $prereq
+	$LD -o $target -H3 -R4 -T$PBSLOADADDR $prereq

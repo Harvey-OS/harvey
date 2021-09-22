@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+TARG=iscsifs
+BIN=/$objtype/bin/ip
+CFLAGS=$CFLAGS -I..
+
+HFILES=../iscsi.h
+OFILES=\
+	iscsifs.$O\
+	scsireq.$O\
+
+</sys/src/cmd/mkone
+
+test:V: 8.out
+#	8.out soylent iqn.2001-04.com.bell-labs.plan9:test
+	8.out fish iqn.2001-04.com.bell-labs.plan9:the-target
+	ls -l /n/iscsi/*

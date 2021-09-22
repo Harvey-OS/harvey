@@ -1,0 +1,213 @@
+# 9k risc-v cpu server for hifive unmatched in rv64
+dev +dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+#	rtc
+	ssl
+	tls
+	cap
+#	pnp		pci
+	kprof
+	segment
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium
+	uart
+	bridge		log
+	sd
+# needed for usb kbd input via scan codes
+#	kbin
+#	usb
+
+sd +dev
+#	sdmmc		sdpf	# don't know what the unmatched provides
+#	sdahci		pci sdscsi
+#	sdnvme		pci sdscsi
+
+uart +dev
+	uartsifive
+
+ip +dev
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+#	ipmux
+
+link +dev
+	ethergem
+	ethermedium
+	loopbackmedium
+	netdevmedium
+#	usbehci		usbehcipc
+
+misc +dev
+	cache
+
+#
+#boot cpu
+#	int cpuflag = 1;
+#boot cpu boot $3
+#	int cpuflag = 1;
+#	char* bootdisk = "$3";
+#boot rootdir $3
+#	char* rootdir = "$3";
+#boot (bboot|romboot|dosboot)
+#	int cpuflag = 1;
+#	char* bootprog = $2;
+#boot boot $3
+#	char* bootdisk = "$3";
+#
+boot cpu
+	tcp
+
+rootdir
+	boot$CONF.out		boot
+	/riscv64/bin/auth/factotum
+	/riscv64/bin/ip/ipconfig
+	/cfg/example/nvram.coll	nvram
+
+conf
+	#include "riscv64.h"
+
+	int cpuserver = 1;
+	/*
+	 * um seems to need idlepause==1, otherwise console output slows
+	 * to a crawl for no obvious reason, and time stops advancing.
+	 * has opensbi on u74 broken wfi?
+	 */
+	int idlepause = 1;
+	int hobbled = 1;	/* flag: hobbled boot core at hartid 0? */
+	uvlong cpuhz = 1200*1000*1000;	/* rdtsc tick freq */
+	uvlong timebase = 1000*1000;	/* clint tick freq */
+	Membank membanks[] = {		/* (address, size) pairs */
+		PHYSMEM, GB,		/* don't move Sys */
+		PHYSMEM+1ULL*GB, 15ULL*GB,
+		0
+	};
+	char defnvram[] = "/boot/nvram";
+
+	uintptr uart0regs  =   PAUart0;
+	uintptr uartregs[] = { PAUart0 };
+	int nuart = nelem(uartregs);
+	vlong uartfreq = 150000000;	/* wild guess; same as pf */
+	int prmsdelay = 200;
+
+	uchar ether0mac[] = { 0x70, 0xb3, 0xd5, 0x92, 0xf7, 0xce, };
+
+	Soc soc = {
+		.clint	 = (char *)PAClint,
+		.ether[0]= (char *)0x10090000,
+		.l2cache = (char *)0x02010000,	/* common */
+	//	.pci	 = (char *)0x60000000,	/* ecam for cfg space */
+	//	.pcictl  = (char *)0x100d0000,	/* bridge, ctrl regs */
+	//	.pciess	 = (char *)0x02050000,	/* soft reset, etc. */
+		.plic    = (char *)0x0c000000,	/* common */
+		.uart	 = (char *)PAUart0,
+		.sdmmc   = (char *)0x10050000,
+	};
+	Ioconf ioconfs[] = {	/* devices whose drivers vmap their regs */
+		{ "ether", 2*PGSZ, &soc.ether[0], 55, },
+		0
+	};
+	Ioconf socconf[] = { /* devices without drivers that vmap their regs */
+		{ "clint", 64*KB, &soc.clint, },
+		{ "l2cache", PGSZ, &soc.l2cache, },
+	//	{ "pci",   2*MB, &soc.pci, 56, },	/* pcie ecam cfg */
+	//	{ "pcictl", 4*8*KB, &soc.pcictl, },	/* pcie br & ctl */
+	//	{ "pciess", PGSZ, &soc.pciess, },
+		{ "plic",  64*MB, &soc.plic, },		/* common */
+		{ "uart",  PGSZ, &soc.uart, 39, },
+		{ "sdmmc", PGSZ, &soc.sdmmc, 43, },
+		0
+	};
+
+	void iophysaddrset(void) {}
+
+dbgflg
+#	sysproc		'E'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#	archrv		'V'
+#	asm		'a'
+#	chan		'c'
+#	mmu		'm'
+#	main		'x'
+riscv64
+	start
+	begin
+	fakemtrap
+	strap
+	l64
+	main
+	arch
+	archrv
+	fp
+	fpu
+	ioconf
+#	kbd
+	map
+	memory
+	mmu
+	sane
+	sbi
+	sbicall
+	sbiecall
+	trap
+port
+	alarm
+	allocb
+	awaitbit
+	byteserial
+	chan
+	ctype
+	dev
+	devtab
+	edf
+	fault
+	image
+#	latin1
+	logpow
+	page
+	parse
+	pgrp
+	portclock
+	noprf
+	print
+	proc
+	ps
+	qio
+	qlock
+	qmalloc
+	random
+	rebootcmd
+	segment
+	sysauth
+	syscall
+	syscallfmt
+	sysfile
+	sysproc
+	sysseg
+	systab
+	taslock
+	tod
+	watermarks
+
+# controls which directories to look in for source files; must be relative to ..
+dir
+	ip
+	port
+
+#lib
+#	libip
+#	libsec
+#	libmp
+#	libc

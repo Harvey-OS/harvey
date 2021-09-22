@@ -688,7 +688,6 @@ fsopen(Req *r)
 		break;
 	}
 	respond(r, "permission denied");
-	return;
 }
 
 static void

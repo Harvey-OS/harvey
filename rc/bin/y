@@ -1,0 +1,3 @@
+#!/bin/sh
+# yesterday, abbreviated
+exec yesterday $*

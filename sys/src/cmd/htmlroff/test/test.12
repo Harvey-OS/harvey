@@ -1,0 +1,27 @@
+.if 0 \{ multiline
+hello \}
+this should be seen
+so should this
+
+
+.if 1 \{ multiline true
+true true true \}
+this should be seen too.
+so shoudl this too.
+
+.ie 1 \{ line1
+line2 \}
+.el \{ unline1
+unline2
+.if 1 \{ unline3
+unline4\}
+unline5\}
+line3
+
+.\" does not work right now!
+.ie 1 line1
+.el .ie 1 unline1
+.el .ie 1 unline2
+.el .ie 0 unline3
+.el unline4
+

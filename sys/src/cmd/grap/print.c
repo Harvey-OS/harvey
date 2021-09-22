@@ -1,7 +1,6 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
 #include <ctype.h>
 #include "grap.h"
 #include "y.tab.h"
@@ -14,7 +13,7 @@ extern double sizexpr, lab_up, lab_rt;
 char	graphname[50] = "Graph";
 char	graphpos[200] = "";
 
-void print(void)	/* arrange final output */
+void grapprint(void)	/* arrange final output */
 {
 	FILE *fd;
 	Obj *p, *dfp;
@@ -135,7 +134,7 @@ void graph(char *s)	/* graph statement */
 
 	if (codegen) {
 		fprintf(stdout, "%s: [\n", graphname);
-		print();	/* pump out previous graph */
+		grapprint();		/* pump out previous graph */
 		fprintf(stdout, "\n] %s\n", graphpos);
 		reset();
 	}

@@ -345,7 +345,7 @@ The file
 controls information about IP routing.
 When read, it returns one line per routing entry.
 Each line contains six white-space-separated fields:
-target address, target mask, address of next hop, flags,
+target address, target IPv6 subnet mask, address of next hop, flags,
 tag, and interface number.
 The entry used for routing an IP packet is the one with
 the longest mask for which destination address ANDed with
@@ -719,9 +719,6 @@ TCP
 files support the following additional messages:
 .TF "\fLkeepalive\fI n\fR"
 .PD
-.TP
-.B close
-gracefully close down this TCP connection
 .TP
 .B hangup
 close down this TCP connection

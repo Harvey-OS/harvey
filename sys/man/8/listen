@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp995, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
+listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp995, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013, tcp17014 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -iq ]
@@ -125,12 +125,17 @@ remote execution.
 .B tcp17010
 server for
 .IR cpu (1)
-command.
+command via SSLv2.
 .TP
 .B tcp17013
-server for old
+server for old, pre-9P2000
 .IR cpu (1)
 command for compatibility with old clients.
+.TP
+.B tcp17014
+server for
+.IR cpu (1)
+command via TLS.
 .TP
 .B tcp7
 echo any bytes received (bit mirror)

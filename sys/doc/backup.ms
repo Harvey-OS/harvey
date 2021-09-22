@@ -91,7 +91,8 @@ There is provision for burning multiple backup sets, the default being
 To burn a second set, we would
 .DS
 .ft CW
-mkdir /sys/lib/backup/set2
+cd /sys/lib/backup
+newset set2 bd
 backup -s set2
 .ft
 .DE
@@ -172,6 +173,6 @@ in
 .I fossil (4)):
 .DS
 .ft CW
-fossil/flfmt -v c388...32b5 /dev/sdC0/fossil
+fossil/flfmt -v c388\fI...\fP32b5 /dev/sdC0/fossil
 .ft
 .DE

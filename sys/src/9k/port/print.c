@@ -1,3 +1,7 @@
+/*
+ * print - force use of kernel Locks, which differ from user Locks.
+ *	also avoid loading FP conversions.
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -31,7 +35,7 @@ mregfmt(Fmt* f)
 
 	mreg = va_arg(f->args, Mreg);
 	if(sizeof(Mreg) == sizeof(uvlong))
-		return fmtprint(f, "%#16.16llux", (uvlong)mreg);
+		return fmtprint(f, "%#16.16p", (uintptr)mreg);
 	return fmtprint(f, "%#8.8ux", (uint)mreg);
 }
 

@@ -44,9 +44,8 @@ onwhitelist(void)
 {
 	int lnlen;
 	char *line, *parse, *p;
-	char input[128];
+	char input[256];
 	uchar *mask;
-	uchar mask4[IPaddrlen], addr4[IPaddrlen];
 	uchar rmask[IPaddrlen], addr[IPaddrlen];
 	uchar ipmasked[IPaddrlen], addrmasked[IPaddrlen];
 	Biobuf *wl;
@@ -60,18 +59,18 @@ onwhitelist(void)
 
 		p = strpbrk(line, " \t");
 		if (p)
-			*p = 0;
+			*p = 0;			/* chop off fqdn after ip */
 		if (line[0] == '#' || line[0] == 0)
 			continue;
 
-		/* default mask is /24 (v4) or /128 (v6) for bare IP */
+		/* default mask is /24 (v4) or /64 (v6) for bare IP */
 		parse = line;
 		if (strchr(line, '/') == nil) {
 			strecpy(input, input + sizeof input - 5, line);
 			if (strchr(line, ':') != nil)	/* v6? */
-				strcat(input, "/128");
+				strcat(input, "/64");
 			else if (strchr(line, '.') != nil)
-				strcat(input, "/24");	/* was /32 */
+				strcat(input, "/24");
 			parse = input;
 		}
 		mask = rmask;
@@ -83,6 +82,8 @@ onwhitelist(void)
 			else
 				mask = IPallbits;
 		} else {
+			uchar mask4[IPv4addrlen], addr4[IPv4addrlen];
+
 			v4parsecidr(addr4, mask4, parse);
 			v4tov6(addr, addr4);
 			v4tov6(mask, mask4);

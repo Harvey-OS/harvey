@@ -1,0 +1,32 @@
+dbgflg
+#	apic		'A'
+#	sysproc		'E'
+#	ioapic		'I'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#	archic		'V'
+#	asm		'a'
+#	chan		'c'
+#	mmu		'm'
+#	main		'x'
+#	sipi		'y'
+riscv64
+	start
+	begin
+	mtrap
+	strap
+	l64
+	main
+	arch
+	archic
+	fp
+	fpu
+	ioconf
+	kbd
+	map
+	memory
+	mmu
+	sane
+	sbi
+	trap

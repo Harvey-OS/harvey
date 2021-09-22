@@ -30,7 +30,8 @@ enum
 /* allocation */
 void	mpsetminbits(int n);	/* newly created mpint's get at least n bits */
 mpint*	mpnew(int n);		/* create a new mpint with at least n bits */
-void	mpfree(mpint *b);
+void	_mpfree(mpint *b);
+#define mpfree(p) do { _mpfree(p); (p) = nil; USED(p); } while (0)
 void	mpbits(mpint *b, int n);	/* ensure that b has at least n bits */
 void	mpnorm(mpint *b);		/* dump leading zeros */
 mpint*	mpcopy(mpint *b);

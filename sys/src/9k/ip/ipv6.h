@@ -122,6 +122,7 @@ typedef struct Fraghdr6	Fraghdr6;
 	uchar	src[IPaddrlen]; \
 	uchar	dst[IPaddrlen]
 
+/* this is packet layouts, so can't tolerate bogus padding */
 struct	Ip6hdr {
 	IPV6HDR;
 	uchar	payload[];

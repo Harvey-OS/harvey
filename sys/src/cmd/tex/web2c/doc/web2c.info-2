@@ -1,0 +1,1261 @@
+This is Info file web2c.info, produced by Makeinfo version 1.68 from
+the input file web2c.texi.
+
+INFO-DIR-SECTION TeX
+START-INFO-DIR-ENTRY
+* Web2c: (web2c).                    TeX, Metafont, and companion programs.
+* bibtex: (web2c)bibtex invocation.             Maintaining bibliographies.
+* dmp: (web2c)dmp invocation.                   Troff->MPX (MetaPost pictures).
+* dvicopy: (web2c)dvicopy invocation.           Virtual font expansion
+* dvitomp: (web2c)dvitomp invocation.           DVI to MPX (MetaPost pictures).
+* dvitype: (web2c)dvitype invocation.           DVI to human-readable text.
+* gftodvi: (web2c)gftodvi invocation.           Generic font proofsheets.
+* gftopk: (web2c)gftopk invocation.             Generic to packed fonts.
+* gftype: (web2c)gftype invocation.             GF to human-readable text.
+* inimf: (web2c)inimf invocation.               Initial Metafont.
+* inimpost: (web2c)inimpost invocation.         Initial MetaPost.
+* initex: (web2c)initex invocation.             Initial TeX.
+* makempx: (web2c)makempx invocation.           MetaPost label typesetting.
+* mf: (web2c)mf invocation.                     Creating typeface families.
+* mft: (web2c)mft invocation.                   Prettyprinting Metafont source.
+* mltex: (web2c)MLTeX.                          Multi-lingual TeX.
+* mpost: (web2c)mpost invocation.               Creating technical diagrams.
+* mpto: (web2c)mpto invocation.                 MetaPost label extraction.
+* newer: (web2c)newer invocation.               Compare modification times.
+* patgen: (web2c)patgen invocation.             Creating hyphenation patterns.
+* pktogf: (web2c)pktogf invocation.             Packed to generic fonts.
+* pktype: (web2c)pktype invocation.             PK to human-readable text.
+* pltotf: (web2c)pltotf invocation.             Property list to TFM.
+* pooltype: (web2c)pooltype invocation.         Display WEB pool files.
+* tangle: (web2c)tangle invocation.             WEB to Pascal.
+* tex: (web2c)tex invocation.                   Typesetting.
+* tftopl: (web2c)tftopl invocation.             TFM -> property list.
+* vftovp: (web2c)vftovp invocation.             Virtual font -> virtual pl.
+* virmf: (web2c)virmf invocation.               Virgin Metafont.
+* virmpost: (web2c)virmpost invocation.         Virgin MetaPost.
+* virtex: (web2c)virtex invocation.             Virgin TeX.
+* vptovf: (web2c)vptovf invocation.             Virtual pl -> virtual font.
+* weave: (web2c)weave invocation.               WEB to TeX.
+END-INFO-DIR-ENTRY
+
+  This file documents the installation and use of the programs in Web2c,
+an implementation of Donald Knuth's TeX system.
+
+  Copyright (C) 1996, 97 K. Berry & O. Weber.
+
+  Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+  Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+  Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation
+
+
+File: web2c.info,  Node: TeX extensions,  Prev: IPC and TeX,  Up: TeX
+
+TeX extensions
+==============
+
+  The base TeX program has been extended in many ways.  Here's a
+partial list.  Please send information on extensions not listed here to
+the address in *Note Reporting bugs: (kpathsea)Reporting bugs.
+
+e-TeX
+     Adds many new primitives, including right-to-left typesetting.
+     Available from `http://www.vms.rhbnc.ac.uk/e-TeX/' and
+     `CTAN:/systems/e-tex'.
+
+Omega
+     Adds Unicode support, right-to-left typesetting, and more.
+     Available from `http://www.ens.fr/omega' and `CTAN:/systems/omega'.
+
+PDFTeX
+     A variant of TeX that produces PDF instead of DVI files.  It also
+     includes primitives for hypertext.  Available from
+     `CTAN:/systems/pdftex'.
+
+`TeX--XeT'
+     Adds primitives and DVI opcodes for right-to-left typesetting (as
+     used in Arabic, for example).  An old version for TeX 3.1415 is
+     available from `CTAN:/systems/knuth/tex--xet'.  A newer version is
+     included in e-TeX.
+
+File-handling TeX
+     Adds primitives for creating multiple DVI files in a single run;
+     and appending to output files as well as overwriting.  Web2c
+     implementation available in the distribution file
+     `web2c/contrib/file-handling-tex'.
+
+
+File: web2c.info,  Node: Metafont,  Next: MetaPost,  Prev: TeX,  Up: Top
+
+Metafont: Creating typeface families
+************************************
+
+  Metafont is a system for producing shapes; it was designed for
+producing complete typeface families, but it can also produce geometric
+designs, dingbats, etc.  And it has considerable mathematical and
+equation-solving capabilities which can be useful entirely on their own.
+
+  Metafont is a batch language, like C or Pascal: you compile a Metafont
+program into a corresponding font, rather than interactively drawing
+lines or curves.  This approach has both considerable disadvantages
+(people unfamiliar with conventional programming languages will be
+unlikely to find it usable) and considerable advantages (you can make
+your design intentions specific and parameterizable).  For a complete
+description of the Metafont language, see `The METAFONTbook' (*note
+References::.).
+
+* Menu:
+
+* mf invocation::               Invoking Metafont.
+* inimf invocation::            Initial Metafont.
+* virmf invocation::            Virgin Metafont.
+* Modes::                       Device definitions for Metafont.
+* Online Metafont graphics::    Seeing MF output online.
+* gftodvi invocation::          Making proofsheets for fonts.
+* mft invocation::              Prettyprinting Metafont sources.
+
+
+File: web2c.info,  Node: mf invocation,  Next: inimf invocation,  Up: Metafont
+
+`mf' invocation
+===============
+
+  Metafont (usually invoked as `mf') reads character definitions
+specified in the Metafont programming language, and outputs the
+corresponding font.  This section merely describes the options available
+in the Web2c implementation.  For a complete description of the Metafont
+language, see `The Metafontbook' (*note References::.).
+
+  Metafont processes its command line and determines its memory dump
+(base) file in a way exactly analogous to MetaPost and TeX (*note tex
+invocation::., and *note Memory dumps::.).  Synopses:
+
+     mf [OPTION]... [MFNAME[.mf]] [MF-COMMANDS]
+     mf [OPTION]... \FIRST-LINE
+     mf [OPTION]... &BASE ARGS
+
+  Most commonly, a Metafont invocation looks like this:
+     mf '\mode:=MODE; mag:=MAGNIFICATION; input MFNAME'
+
+(The single quotes avoid unwanted interpretation by the shell.)
+
+  Metafont searches the usual places for the main input file MFNAME
+(*note Supported file formats: (kpathsea)Supported file formats.),
+extending MFNAME with `.mf' if necessary.  To see all the relevant
+paths, set the environment variable `KPATHSEA_DEBUG' to `-1' before
+running the program.  By default, Metafont runs an external program
+named `mktexmf' to create any nonexistent Metafont source files you
+input.  You can disable this at configure-time or runtime (*note mktex
+configuration: (kpathsea)mktex configuration.).  This is mostly for the
+sake of the EC fonts, which can be generated at any size.
+
+  Metafont writes the main GF output to the file `BASEMFNAME.NNNgf',
+where NNN is the font resolution in pixels per inch, and BASEMFNAME is
+the basename of MFNAME, or `mfput' if no input file was specified.  A
+GF file contains bitmaps of the actual character shapes.  Usually GF
+files are converted immediately to PK files with GFtoPK (*note gftopk
+invocation::.), since PK files contain equivalent information, but are
+more compact.  (Metafont output in GF format rather than PK for only
+historical reasons.)
+
+  Metafont also usually writes a metric file in TFM format to
+`BASEMFNAME.tfm'.  A TFM file contains character dimensions, kerns, and
+ligatures, and spacing parameters.  TeX reads only this .tfm file, not
+the GF file.
+
+  The MODE in the example command above is a name referring to a device
+definition (*note Modes::.); for example, `localfont' or `ljfour'.
+These device definitions must generally be precompiled into the base
+file.  If you leave this out, the default is `proof' mode, as stated in
+`The Metafontbook', in which Metafont outputs at a resolution of
+2602dpi; this is usually not what you want.  The remedy is simply to
+assign a different mode--`localfont', for example.
+
+  The MAGNIFICATION assignment in the example command above is a
+magnification factor; for example, if the device is 600dpi and you
+specify `mag:=2', Metafont will produce output at 1200dpi.  Very often,
+the MAGNIFICATION is an expression such as `magstep(.5)', corresponding
+to a TeX "magstep", which are factors of 1.2 * sqrt(2).
+
+  After running Metafont, you can use the font in a TeX document as
+usual.  For example:
+     \font\myfont = newfont
+     \myfont Now I am typesetting in my new font (minimum hamburgers).
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-kpathsea-debug=NUMBER'
+`-ini'
+`-base=BASENAME'
+`-progname=STRING'
+     These options are common to TeX, Metafont, and MetaPost.  *Note
+     Common options::.
+
+`-mktex=FILETYPE'
+`-no-mktex=FILETYPE'
+     Turn on or off the `mktex' script associated with FILETYPE.  The
+     only value that makes sense for FILETYPE is `mf'.
+
+
+File: web2c.info,  Node: inimf invocation,  Next: virmf invocation,  Prev: mf invocation,  Up: Metafont
+
+`inimf' invocation
+==================
+
+  `inimf' is the "initial" form of Metafont, which does lengthy
+initializations avoided by the "virgin" (`vir') form, so as to be
+capable of dumping `.base' files (*note Memory dumps::.).  For a
+detailed comparison of virgin and initial forms, see *Note Initial and
+virgin::.
+
+  For a list of options and other information, see *Note mf
+invocation::.
+
+  The only memory dump file commonly used with Metafont is the default
+`plain.base', also known as `mf.base' (again, *note Memory dumps::.).
+It is created by default during installation, but you can also do so by
+hand if necessary (e.g., if a Metafont update is issued):
+     inimf '\input plain; input modes; dump'
+
+(The quotes prevent interpretation of the backslashes from the shell.)
+Then install the resulting `plain.base' in `$(basedir)'
+(`/usr/local/share/texmf/web2c' by default), and link `mf.base' to it.
+
+  For an explanation of the additional `modes.mf' file, see *Note
+Modes::.  This file has no counterpart in TeX or MetaPost.
+
+  In the past, it was sometimes useful to create a base file
+`cmmf.base' (a.k.a. `cm.base'), with the Computer Modern macros also
+included in the base file.  Nowadays, however, the additional time
+required to read `cmbase.mf' is exceedingly small, usually not enough
+to be worth the administrative hassle of updating the `cmmf.base' file
+when you install a new version of `modes.mf'.  People actually working
+on a typeface may still find it worthwhile to create their own base
+file, of course.
+
+
+File: web2c.info,  Node: virmf invocation,  Next: Modes,  Prev: inimf invocation,  Up: Metafont
+
+`virmf' invocation
+==================
+
+  `virmf' is the "virgin" form of Metafont, which avoids the lengthy
+initializations done by the "initial" (`ini') form, and is thus what is
+generally used for production work.  Usually it is invoked under the
+name `mf'.  For a detailed comparison of virgin and initial forms, see
+*Note Initial and virgin::.
+
+  For a list of options and other information, see *Note mf
+invocation::.
+
+
+File: web2c.info,  Node: Modes,  Next: Online Metafont graphics,  Prev: virmf invocation,  Up: Metafont
+
+Modes: Device definitions for Metafont
+======================================
+
+  Running Metafont and creating Metafont base files requires information
+that TeX and MetaPost do not: "mode" definitions which specify device
+characteristics, so Metafont can properly rasterize the shapes.
+
+  When making a base file, a file containing modes for locally-available
+devices should be input after `plain.mf'.  One commonly used file is
+`ftp://ftp.tug.org/tex/modes.mf'; it includes all known definitions.
+
+  If, however, for some reason you have decreased the memory available
+in your Metafont, you may need to copy `modes.mf' and remove the
+definitions irrelevant to you (probably most of them) instead of using
+it directly.  (Or, if you're a Metafont hacker, maybe you can suggest a
+way to redefine `mode_def' and/or `mode_setup'; right now, the amount
+of memory used is approximately four times the total length of the
+`mode_def' names, and that's a lot.)
+
+  If you have a device not included in `modes.mf', please see comments
+in that file for how to create the new definition, and please send the
+definition to <tex-fonts@mail.tug.org> to get it included in the next
+release of `modes.mf'.
+
+  Usually, when you run Metafont you must supply the name of a mode that
+was dumped in the base file.  But you can also define the mode
+characteristics dynamically, by invoking Metafont with an assignment to
+`smode' instead of `mode', like this:
+     mf '\smode:="newmode.mf"; mag:=MAGNIFICATION; input MFNAME'
+
+This is most useful when you are working on the definition of a new
+mode.
+
+  The MAGNIFICATION and MFNAME arguments are explained in *Note mf
+invocation::.  In the file `newmode.mf', you should have the following
+(with no `mode_def' or `enddef'), if you are using `modes.mf'
+conventions:
+     mode_param (pixels_per_inch, DPI);
+     mode_param (blacker, B);
+     mode_param (fillin, F);
+     mode_param (o_correction, O);
+     mode_common_setup_;
+
+(Of course, you should use real numbers for DPI, B, F, and O.)
+
+  For more information on the use of `smode', or if you are not using
+`modes.mf', see page 269 of `The Metafontbook'.
+
+
+File: web2c.info,  Node: Online Metafont graphics,  Next: gftodvi invocation,  Prev: Modes,  Up: Metafont
+
+Online Metafont graphics
+========================
+
+  The Web2c implementation of Metafont can do online graphics with a
+number of devices. (See the Metafont manual for more information about
+how to draw on your screen.)  By default, no graphics support is
+enabled.
+
+  Metafont examines the `MFTERM' environment variable or config file
+value at runtime, or the `TERM' environment variable if `MFTERM' is not
+set, to determine the device support to use.  Naturally, only the
+devices for which support has been compiled in can be selected.
+
+  Here is a table of the possibilities, showing the `MFTERM' value and
+the corresponding `configure' option(s) in parentheses.
+
+`epsf'
+     (`--with-epsfwin') Encapsulated PostScript pseudo-window server
+     (see `web2c/window/epsf.c'). This device produces an EPS file
+     containing the graphics which would be displayed online on other
+     devices. The name of the EPS file defaults to metafont.eps but can
+     be changed by setting the MFEPSF environment variable to the new
+     filename.  Contributed by Mathias Herberts.
+
+`hp2627'
+     (`--with-hp2627win') HP2627a color graphics terminals.
+
+`mftalk'
+     (`--with-mftalkwin') Generic window server (see
+     `web2c/window/mftalk.c').
+
+`next'
+     (`--with-next') NeXT window system. This requires a separate
+     program, called `DrawingServant', available separately. See the
+     `web2c/window/next.c'.
+
+`regis'
+     (`--with-regiswin') Regis terminals.
+
+`sun'
+     (`--with-suntoolswin') The old Suntools (not any flavor of X)
+     window system. (You can get the even older SunWindows `gfx' system
+     by using `sun-gfx.c'.)
+
+`tek'
+     (`--with-tektronixwin') Tektronix terminals.
+
+`uniterm'
+     (`--with-unitermwin') Uniterm, Simon Poole's emulator of a smart
+     Tektronix 4014 terminal.  This may work with regular Tektronix
+     terminals as well; it's faster than the driver `--with-tek'
+     selects.
+
+`xterm'
+     (`--with-x11win', `--with-x', `--with-x11') The X window system
+     (version 11).
+
+     There are two variants of the X11 support, one that works with the
+     Xt toolkit, and another that works directly with Xlib. The Xt
+     support is more efficient and has more functionality, so it is the
+     default. If you must use the Xlib support, use `configure --with-x
+     --with-x-toolkit=no'.
+
+     You cannot specify any of the usual X options (e.g., `-geometry')
+     on the Metafont command line, but you can specify X resources in
+     your `~/.Xdefaults' or `~/.Xresources' file. The class name is
+     `Metafont'. If you're using the Xt support, all the usual X toolkit
+     resources are supported.  If you're using the Xlib support, only
+     the `geometry' resource is supported.
+
+     You specify the X display to which Metafont connects in the
+     `DISPLAY' environment variable, as usual.
+
+  Writing support for a new device is straightforward. Aside from
+defining the basic drawing routines that Metafont uses (see `mf.web'),
+you only have to add another entry to the tables on the last page of
+`web2c/lib/texmfmp.c'.  Or you can write an independent program and use
+MFtalk (see `web2c/window/mftalk.c').
+
+
+File: web2c.info,  Node: gftodvi invocation,  Next: mft invocation,  Prev: Online Metafont graphics,  Up: Metafont
+
+GFtoDVI: Character proofs of fonts
+==================================
+
+  GFtoDVI makes "proof sheets" from a GF bitmap file as output by, for
+example, Metafont (*note Metafont::.).  This is an indispensable aid for
+font designers or Metafont hackers.  Synopsis:
+
+     gftodvi [OPTION]... GFNAME[gf]
+
+  The font GFNAME is searched for in the usual places (*note Glyph
+lookup: (kpathsea)Glyph lookup.).  To see all the relevant paths, set
+the environment variable `KPATHSEA_DEBUG' to `-1' before running the
+program.
+
+  The suffix `gf' is supplied if not already present.  This suffix is
+not an extension; no `.' precedes it: for instance `cmr10.600gf'.
+
+  The output filename is the basename of GFNAME extended with `.dvi',
+e.g., `gftodvi /wherever/foo.600gf' creates `./foo.dvi'.
+
+  The characters from GFNAME appear one per page in the DVI output,
+with labels, titles, and annotations, as specified in Appendix H
+(Hardcopy Proofs) of `The Metafontbook'.
+
+  GFtoDVI uses several fonts besides GFNAME itself:
+
+   * "gray font" (default `gray'): for the pixels that actually make up
+     the character.  Simply using black is not right, since then labels,
+     key points, and other information could not be shown.
+
+   * "title font" (default `cmr8'): for the header information at the
+     top of each output page.
+
+   * "label font" (default `cmtt10'): for the labels on key points of
+     the figure.
+
+   * "slant font" (no default): for diagonal lines, which are otherwise
+     simulated using horizontal and vertical rules.
+
+  To change the default fonts, you must use `special' commands in your
+Metafont source file.
+
+  The program accepts the following option, as well as the standard
+`-verbose', `-help', and `-version' (*note Common options::.):
+`-overflow-label-offset=POINTS'
+     Typeset the so-called overflow labels, if any, POINTS TeX points
+     from the right edge of the character bounding box.  The default is
+     a little over two inches (ten million scaled points, to be
+     precise).  Overflow equations are used to locate coordinates when
+     their actual position is too crowded with other information.
+
+
+File: web2c.info,  Node: mft invocation,  Prev: gftodvi invocation,  Up: Metafont
+
+MFT: Prettyprinting Metafont source
+===================================
+
+  MFT translates a Metafont program into a TeX document suitable for
+typesetting, with the aid of TeX macros defined in the file
+`mftmac.tex'.  Synopsis:
+
+     mft [OPTION]... MFNAME[.mf]
+
+  MFT searches the usual places for MFNAME (*note Supported file
+formats: (kpathsea)Supported file formats.).  To see all the relevant
+paths, set the environment variable `KPATHSEA_DEBUG' to `-1' before
+running the program.  The output goes to the basename of MFNAME extended
+with `.tex', e.g., `mft /wherever/foo.mf' creates `./foo.tex'.
+
+  Line breaks in the input are carried over into the output; moreover,
+blank spaces at the beginning of a line are converted to quads of
+indentation in the output. Thus, you have full control over the
+indentation and line breaks. Each line of input is translated
+independently of the others.
+
+  Further control is allowed via Metafont comments:
+   * Metafont comments following a single `%' should be valid TeX
+     input.  But Metafont material can be included within vertical bars
+     in a comment; this will be translated by MFT as if it were regular
+     Metafont code.  For example, a comment like `% |x2r| is the tip of
+     the bowl' will be translated into the TeX `% $x_{2r}$ is the ...',
+     i.e., the `x2r' is treated as an identifier.
+
+   * `%%' indicates that the remainder of an input line should be copied
+     verbatim to the output.  This is typically used to introduce
+     additional TeX material at the beginning or an MFT job, e.g. code
+     to modify the standard layout or the formatting macros defined in
+     `mftmac.tex', or to add a line saying `%%\bye' at the end of the
+     job.  (MFT doesn't add this automatically in order to allow
+     processing several files produces by MFT in the same TeX job.)
+
+   * `%%% TOKEN1 OTHER-TOKENS' introduces a change in MFT's formatting
+     rules; all the OTHER-TOKENS will henceforth be translated
+     according to the current conventions for TOKEN1. The tokens must
+     be symbolic (i.e., not numeric or string tokens). For example, the
+     input line
+          %%% addto fill draw filldraw
+
+     says to format the `fill', `draw', and `filldraw' operations of
+     plain Metafont just like the primitive token `addto', i.e., in
+     boldface type.  Without such reformatting commands, MFT would
+     treat `fill' like an ordinary tag or variable name.  In fact, you
+     need a `%%%' command even to get parentheses to act like
+     delimiters.
+
+   * `%%%%' introduces an MFT comment, i.e., MFT ignores the remainder
+     of such a line.
+
+   * Five or more `%' signs should not be used.
+
+  (The above description was edited from `mft.web', written by
+D.E. Knuth.)
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-change=CHFILE[.ch]'
+     Apply the change file CHFILE as with Tangle and Weave (*note
+     WEB::.).
+
+`-style=MFTFILE[.mft]'
+     Read MFTFILE before anything else; a MFT style file typically
+     contains only MFT directives as described above.  The default
+     style file is named `plain.mft', which defines this properly for
+     programs using plain Metafont.  The MFT files is searched along the
+     `MFTINPUTS' path; see *Note Supported file formats:
+     (kpathsea)Supported file formats.
+
+     Other examples of MFT style files are `cmbase.mft', which defines
+     formatting rules for the macros defined in `cm.base', and `e.mft',
+     which was used in the production of Knuth's Volume E, `Computer
+     Modern Typefaces'.
+
+     Using an appropriate MFT style file, it is also possible to
+     configure MFT for typesetting MetaPost sources.  However, MFT does
+     not search the usual places for MetaPost input files.
+
+  If you use eight-bit characters in the input file, they are passed on
+verbatim to the TeX output file; it is up to you to configure TeX to
+print these properly.
+
+
+File: web2c.info,  Node: MetaPost,  Next: BibTeX,  Prev: Metafont,  Up: Top
+
+MetaPost: Creating technical illustrations
+******************************************
+
+  MetaPost is a picture-drawing language similar to Metafont (*note
+Metafont::.), but instead of outputting bitmaps in a "font", it outputs
+PostScript commands.  It's primarily intended for creating technical
+illustrations.
+
+  MetaPost also provides for arbitrary integration of text and graphics
+in a natural way, using any typesetter (TeX and Troff are both
+supported) and a number of other subsidiary programs, described below.
+
+* Menu:
+
+* mpost invocation::            Invoking MetaPost.
+* inimpost invocation::         Initial MetaPost.
+* virmpost invocation::         Virgin MetaPost.
+* makempx invocation::          Create MPX files for labels.
+* dvitomp invocation::          DVI-to-MPX translation.
+* dmp invocation::              Ditroff-to-MPX translation.
+* mpto invocation::             Extracting labels from MetaPost programs.
+* newer invocation::            Is one file newer than another?
+
+
+File: web2c.info,  Node: mpost invocation,  Next: inimpost invocation,  Up: MetaPost
+
+`mpost' invocation
+==================
+
+  MetaPost (installed as `mpost') reads a series of pictures specified
+in the MetaPost programming language, and outputs corresponding
+PostScript code.  This section merely describes the options available
+in the Web2c implementation.  For a complete description of the
+MetaPost language, see AT&T technical report CSTR-162, generally
+available as the file `TEXMF/doc/metapost/mpman.ps', where TEXMF is the
+root of TeX directory structure.  See also
+`http://cm.bell-labs.com/who/hobby/MetaPost.html'.
+
+  Also, a standard MetaPost package for drawing graphs is documented in
+AT&T technical report CSTR-164, available as the file `mpgraph.ps',
+generally stored alongside `mpman.ps'.
+
+  MetaPost processes its command line and determines its memory dump
+(mem) file in a way exactly analogous to Metafont and TeX (*note `tex'
+invocation: tex invocation., and *note Memory dumps::.).  Synopses:
+
+     mpost [OPTION]... [MPNAME[.mp]] [MP-COMMANDS]
+     mpost [OPTION]... \FIRST-LINE
+     mpost [OPTION]... &MEM ARGS
+
+  MetaPost searches the usual places for the main input file MPNAME
+(*note Supported file formats: (kpathsea)Supported file formats.),
+extending MPNAME with `.mp' if necessary.  To see all the relevant
+paths, set the environment variable `KPATHSEA_DEBUG' to `-1' before
+running the program.
+
+  MetaPost writes its PostScript output to a series of files
+`BASEMPNAME.NNN' (or perhaps `BASEMPNAME.ps', very occasionally
+`BASEMPNAME.tfm'), where NNN are the figure numbers specified in the
+input, typically to the `beginfig' macro, and BASEMPNAME is the
+basename of MPNAME, or `mpout' if no input file was specified.
+MetaPost uses the `.ps' extension when the figure number is out of
+range, e.g., if you say `beginfig(-1)'.
+
+  You can use the output files as figures in a TeX document just as
+with any other PostScript figures. For example, with this TeX command:
+     \special{psfile="FILENAME"}
+
+or by using `epsf.tex' (*note EPSF macros: (dvips)EPSF macros.).
+
+  The MetaPost construct
+     btex ... TEX-INPUT ... etex
+
+calls MakeMPX to generate a MPX file containing a MetaPost picture
+expression corresponding to TEX-INPUT (*note makempx invocation::.).
+
+  The construct
+     verbatimtex ... TEX-INPUT ... etex
+
+simply passes the TEX-INPUT through to MakeMPX and thus to TeX. For
+example, if you are using LaTeX, your MetaPost input file must start
+with a `verbatimtex' block that gives the necessary `\documentclass'
+(or `\documentstyle') `\begin{document}' command.  You will also need
+to set the enviroment variable `TEX' to `latex' (*note makempx
+invocation::.).
+
+  TEX-INPUT need not be specifically TeX input; it could also be Troff.
+In that case, you will need the `-m pictures' Troff macro package
+(unfortunately absent from many Troff implementations), or an
+equivalent such as the `-m pspic' macros from GNU groff described in
+grops(1).
+
+  Other typesetters can be supported with no change to MetaPost itself;
+only MakeMPX needs to be updated.
+
+  Naturally, you must use fonts that are supported by the typesetter;
+specifically, you'll probably want to use standard PostScript fonts with
+Troff.  And only the TeX system understands Computer Modern or other
+Metafont fonts; you can also use PostScript fonts with TeX, of course.
+
+  MetaPost-generated PostScript figures which do use Computer Modern
+fonts for labels cannot be directly previewed or printed.  Instead, you
+must include them in a TeX document and run the resulting DVI file
+through Dvips to arrange for the downloading of the required fonts
+(*note Fonts in figures: (dvips)Fonts in figures.).  To help with this,
+the MetaPost distribution provides a small TeX file `mproof.tex' which
+is typically called as:
+     tex mproof MP-OUTPUT-FILES... ; dvips mproof -o
+
+The resulting file `mproof.ps' can then be printed or previewed.
+
+  To generate EPSF files, set the internal MetaPost variable
+`prologues' positive.  To make the output files self-contained, use
+only standard PostScript fonts.  MetaPost reads the same `psfonts.map'
+file as Dvips, to determine PostScript fonts that need to be downloaded
+(*note psfonts.map: (dvips)psfonts.map.).
+
+  MetaPost can write output files, via the `write' primitive; this
+opens a security hole.  *Note tex invocation::.
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-kpathsea-debug=NUMBER'
+`-ini'
+`-mem=MEMNAME'
+`-progname=STRING'
+     These options are common to TeX, Metafont, and MetaPost.  *Note
+     Common options::.
+
+`-T'
+`-troff'
+     Set the `prologues' internal variable to `1', and use `makempx
+     -troff' to generate MPX files.
+
+
+File: web2c.info,  Node: inimpost invocation,  Next: virmpost invocation,  Prev: mpost invocation,  Up: MetaPost
+
+`inimpost' invocation
+=====================
+
+  `inimpost' is the "initial" form of MetaPost, which does lengthy
+initializations avoided by the "virgin" (`vir') form, so as to be
+capable of dumping `.mem' files (*note Memory dumps::.).  For a
+detailed comparison of virgin and initial forms, see *Note Initial and
+virgin::.
+
+  For a list of options and other information, see *Note mpost
+invocation::.
+
+  The only memory dump file commonly used with MetaPost is the default,
+`plain.mem', also known as `mpost.mem' (again, *note Memory dumps::.).
+It is created by default during installation, but you can also do so by
+hand if necessary (e.g., if a MetaPost update is issued):
+     inimpost '\input plain dump'
+
+(The quotes prevent interpretation of the backslashes from the shell.)
+Then install the resulting `plain.mem' in `$(memdir)'
+(`/usr/local/share/texmf/web2c' by default), and link `mpost.mem' to it.
+
+  MetaPost also provides a mem file with all the features of plain
+Metafont, called `mfplain.mem'.  You can create that in the same way;
+just replace `plain' in the above command with `mfplain'.
+`mfplain.mem' file lets you directly process Metafont source files with
+MetaPost, producing character proofs (one file for each character)
+similar to those produced with Metafont in proof mode and GFtoDVI
+(*note gftodvi invocation::.).
+
+
+File: web2c.info,  Node: virmpost invocation,  Next: makempx invocation,  Prev: inimpost invocation,  Up: MetaPost
+
+`virmpost' invocation
+=====================
+
+  `virmpost' is the "virgin" form of MetaPost, which avoids the lengthy
+initializations done by the "initial" (`ini') form, and is thus what is
+generally used for production work.  For a detailed comparison of
+virgin and initial forms, see *Note Initial and virgin::.
+
+  For a list of options and other information, see *Note mpost
+invocation::.
+
+
+File: web2c.info,  Node: makempx invocation,  Next: dvitomp invocation,  Prev: virmpost invocation,  Up: MetaPost
+
+MakeMPX: Support MetaPost labels
+================================
+
+  In MetaPost, labels can be typeset using any document processor; the
+Web2c implementation supports TeX and Troff.  MakeMPX translates the
+labels from the typesetting language back into low-level MetaPost
+commands in a so-called "mpx file", so text can be manipulated like
+other graphic objects.  It is invoked automatically by MetaPost.
+Synopsis:
+
+     makempx [-troff] MPFILE MPXFILE
+
+The input comes from MPFILE (no path searching is done), and the output
+goes to MPXFILE.  However, if the file MPXFILE already exists, and is
+newer than MPFILE, then nothing is done (presumably the file is
+up-to-date).
+
+  Otherwise:
+  1. MPto is run to extract the label text from the MetaPost source
+     file MPFILE (*note mpto invocation::.).
+
+  2. The typesetting program itself is run, either TeX or Troff (see
+     below).  If TeX, and the file named by the `MPTEXPRE' environment
+     variable exists (`mptexpre.tex' by default), that file is
+     prepended to the input from the MetaPost file.
+
+  3. The typesetter output (a DVI file in the case of TeX, Ditroff
+     output for Troff) is translated back to MetaPost, by DVItoMP
+     (*note dvitomp invocation::.) or DMP (*note dmp invocation::.)
+     respectively.
+
+  If any of the above steps fail, for example if there was a typesetting
+mistake in the original MPFILE, output may be left in files named
+`mpxerr.{log,tex,dvi}' (TeX) or `mpxerr{,.t}' (Troff), so you can
+diagnose the problem.
+
+  The `-troff' option to MPto selects the Troff commands, rather than
+TeX.  MetaPost supplies this automatically if the `-T' or `-troff'
+option was specified to MetaPost.
+
+  The MPX file created by MakeMPX is a sequence of MetaPost picture
+expressions, one for every label in the original MetaPost input file.
+
+  The names of the commands run by MakeMPX, and the directory added to
+the shell search `PATH' for the commands' location, are overridden by
+environment variables.  Here is a list:
+
+`MAKEMPX_BINDIR'
+     The directory added to the `PATH'.  Default is the `$(bindir)'
+     Make directory, which in turn is set from the configure-time
+     `--bindir', `--exec-prefix' and `--prefix' options; if nothing
+     else is specified, the default is file `/usr/local'.
+
+`NEWER'
+     The command run to determine if MPXFILE is out of date with respect
+     to MPFILE; default is `newer'.
+
+`MPTOTEX'
+     The command run to extract MetaPost labels in TeX format; default
+     is `mpto -tex'.
+
+`MPTOTR'
+     Likewise, for Troff; default is `mpto -troff'.
+
+`DVITOMP'
+     The command run to convert TeX output back to MetaPost; default is
+     `dvitomp'.
+
+`DMP'
+     Likewise, for Troff; default is `dmp'.
+
+`TEX'
+     The command run to typeset the labels in TeX; default is `tex'.
+     If you use LaTeX, set this to `latex', and supply an appropriate
+     `verbatimtex' header in the MP source (*note mpost invocation::.).
+
+`TROFF'
+     Likewise, for Troff; default is `'eqn -d\$\$ | troff -Tpost''.  You
+     may need to replace `-Tpost' by `-TTERM', where TERM is the
+     PostScript device name for your Troff implementation, e.g., `ps'
+     or `psc'; see troff(1).
+
+     If you change this, you will also need to set the `TRFONTS'
+     environment variable or configuration value to point to the
+     appropriate font directory, traditionally `/usr/lib/font/devTERM'.
+
+
+File: web2c.info,  Node: dvitomp invocation,  Next: dmp invocation,  Prev: makempx invocation,  Up: MetaPost
+
+DVItoMP: DVI to MPX conversion
+==============================
+
+  DVItoMP converts DVI files into low-level MetaPost commands in a
+so-called MPX file.  This program is generally invoked only by MakeMPX
+(*note makempx invocation::.).  Synopsis:
+
+     dvitomp DVIFILE[.dvi] [MPXFILE[.mpx]]
+
+If MPXFILE is not specified, the output goes to the basename of DVIFILE
+extended with `.mpx', e.g., `dvitomp /wherever/foo.dvi' creates
+`./foo.mpx'.
+
+  The only options are `-help' and `-version' (*note Common options::.).
+
+
+File: web2c.info,  Node: dmp invocation,  Next: mpto invocation,  Prev: dvitomp invocation,  Up: MetaPost
+
+DMP: Ditroff to MPX conversion
+==============================
+
+  DMP converts device-independent Troff (ditroff) output files into
+low-level MetaPost commands in a so-called MPX file.  This program is
+generally invoked by MakeMPX (*note makempx invocation::.).  Synopsis:
+
+     dmp [DITROFF-FILE [MPXFILE]]
+
+If DITROFF-FILE is not specified, input comes from standard input; and
+if MPXFILE is not specified, output goes to standard output.
+
+  DMP was written to process the output of a Troff pipeline fed the
+output of `mpto -troff' (*note mpto invocation::.).  DMP understands all
+the `DC' graphics functions that `dpost' does, but it ignores `x X'
+device control functions such as `x X SetColor:...', `x X BeginPath:',
+and `x X DrawPath:...'.
+
+  The available font names are defined in the support file
+`trfonts.map', which DMP looks for along the `MPSUPPORT' path.
+
+  Another support file `trchars.adj', also looked for along the
+`MPSUPPORT' path, contains a character adjustment table which should
+reflect the shift amounts found in the standard PostScript prologue for
+Troff and dpost found in the `TRFONTS' directory.  Such an adjustment
+table is unnecessary for some Troff implementations, in which case
+`trchars.adj' should be replaced by an empty file--but it must still
+exist.
+
+  DMP was written for one particular Troff implementation, and it
+unfortunately has many built-in assumptions about the output and fonts
+file formats used by Troff, which may not be satisfied in other
+environments.  In particular, GNU groff uses some extensions in its file
+formats described in groff_font(5) and groff_out(5) which make its
+output completely unusable for DMP.  On the other hand, the Troff
+version found in Sun Solaris 2.x, and perhaps other systems derived from
+System V R4, works fine with the default settings.
+
+  If you run into trouble and want to adapt DMP to other systems, you
+might have to try the following (this is primarily for hackers):
+
+   * If DMP complains about a missing font table (e.g., `Cannot find
+     TR'), your Troff may not support the device `post'.
+
+     Check troff(1) for the devices supported by your Troff and set the
+     `TROFF' environment variable appropriately (see above).  Also,
+     locate the appropriate font directory and set the `TRFONTS'
+     variable as needed.
+
+   * If DMP complains about a missing font description file (e.g., `Font
+     TR was not in map file'), your version of Troff may be using
+     internal font names different from those in the distributed
+     `trfonts.map'; e.g., TR and TI instead of R and I for Times-Roman
+     and Times-Italic.
+
+     In this case, you may have to adapt `trfonts.map' and perhaps also
+     `trchars.adj' in the MetaPost support directory
+     (`texmf/metapost/support' by default).
+
+   * If DMP still complains that it cannot parse the font description
+     files or the Troff output (e.g., `TR has a bad line in its
+     description file', you are probably out of luck and have to hack
+     the DMP program (in `web2c/mpware/dmp.c').
+
+     Such problems may be caused by subtle differences in the file
+     formats, such as use of tabs vs. spaces as field separators or
+     decimal vs. octal vs. hex format for font metric data.
+
+     A reasonably good description of the expected Troff file formats
+     can be found in AT&T technical report CSTR-54 (`Troff User's
+     Manual', Revised 1992).  Documentation on the subtle differences
+     in other Troff implementation is harder to find except for GNU
+     groff, where it's all documented in the above-mentioned
+     groff_font(5) and groff_out(5).
+
+     Any contributions to improve the portability of DMP or to make it
+     work with GNU groff are welcome, of course.
+
+  (Some of the above description was edited from the `dmp.c' source
+file, written by John Hobby.)
+
+  The only options are `--help' and `--version' (*note Common
+options::.).
+
+
+File: web2c.info,  Node: mpto invocation,  Next: newer invocation,  Prev: dmp invocation,  Up: MetaPost
+
+MPto: Extract labels from MetaPost input
+========================================
+
+  MPto extracts the labels from a MetaPost input file; this is the
+contents of any `btex...etex' and `verbatimtex...etex' sections.  This
+program is generally invoked by MakeMPX (*note makempx invocation::.).
+Synopsis:
+
+     mpto [OPTION]... MPFILE
+
+The input comes from MPFILE; no path searching is done.  The output
+goes to standard output.  Leading and trailing spaces and tabs are
+removed, and various predefined typesetter commands are included at the
+beginning of and end of the file and of each section.
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-troff'
+     Surround the MetaPost sections with Troff commands.
+
+`-tex'
+     Surround the MetaPost sections with TeX commands. This is the
+     default.
+
+
+File: web2c.info,  Node: newer invocation,  Prev: mpto invocation,  Up: MetaPost
+
+Newer: Compare file modification times
+======================================
+
+  Newer compares file modification times.  Synopsis:
+
+     newer SRC DEPENDENT
+
+Newer exits successfully if the file SRC exists and is older as
+DEPENDENT, i.e., the modification time (mtime) of SRC is greater than
+that of DEPENDENT.  *Note Attribute Meanings: (libc)Attribute Meanings.
+
+  Although this could be written as a Perl script (*note File
+Operations: (perl)File Operations.) or using the `--full-time' option
+supported by `ls' (*note ls invocation: (fileutils)ls invocation.), it
+seems undesirable to depend on such independent, and sadly
+non-universal, programs.
+
+  This is used by MakeMPX (*note makempx invocation::.).
+
+
+File: web2c.info,  Node: BibTeX,  Next: WEB,  Prev: MetaPost,  Up: Top
+
+BibTeX: Bibliographies
+**********************
+
+  BibTeX automates much of the job of typesetting bibliographies, and
+makes bibliography entries reusable in many different contexts.
+
+* Menu:
+
+* bibtex invocation::
+* Basic BibTeX style files::    The standard and semi-standard styles.
+
+
+File: web2c.info,  Node: bibtex invocation,  Next: Basic BibTeX style files,  Up: BibTeX
+
+BibTeX invocation
+=================
+
+  BibTeX creates a printable bibliography (`.bbl') file from references
+in a `.aux' file, generally written by TeX or LaTeX.  The `.bbl' file
+is then incorporated on a subsequent run.  The basic bibliographic
+information comes from `.bib' files, and a BibTeX style (`.bst') file
+controls the precise contents of the `.bbl' file.  Synopsis:
+
+     bibtex [OPTION]... AUXFILE[.aux]
+
+The output goes to the basename of AUXFILE extended with `.bbl'; for
+example, `bibtex /wherever/foo.aux' creates `./foo.bbl'.  BibTeX also
+writes a log file to the basename of AUXFILE extended with `.blg'.
+
+  The names of the `.bib' and `.bst' files are specified in the `.aux'
+file as well, via the `\bibliography' and `\bibliographystyle' (La)TeX
+macros.  BibTeX searches for `.bib' files using the `BIBINPUTS' and
+`TEXBIB' paths, and for `.bst' files using `BSTINPUTS' (*note Supported
+file formats: (kpathsea)Supported file formats.).  It does no path
+searching for `.aux' files.
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-terse'
+     Suppress the program banner and progress reports normally output.
+
+`-min-crossrefs=N'
+     If at least N (2 by default) bibliography entries refer to another
+     entry E via their `crossref' field, include E in the .bbl file,
+     even if it was not explicitly referenced in the .aux file. For
+     example, E might be a conference proceedings as a whole, with the
+     cross-referencing entries being individual articles published in
+     the proceedings.  In some circumstances, you may want to avoid
+     these automatic inclusions altogether; to do this, make N a
+     sufficiently large number.
+
+  See also:
+`btxdoc.tex'
+     Basic LaTeXable documentation for general BibTeX users.
+
+`btxhak.tex'
+     LaTeXable documentation for style designers.
+
+`btxdoc.bib'
+     BibTeX database file for the two above documents.
+
+`xampl.bib'
+     Example database file with all the standard entry types.
+
+``ftp://ftp.math.utah.edu/pub/tex/bib/''
+     A very large `.bib' and `.bst' collection, including references
+     for all the standard TeX books and a complete bibliography for
+     TUGboat.
+
+
+File: web2c.info,  Node: Basic BibTeX style files,  Prev: bibtex invocation,  Up: BibTeX
+
+Basic BibTeX style files
+========================
+
+  Here are descriptions of the four standard and four semi-standard
+basic BibTeX styles.  `CTAN:/biblio/bibtex' contains these and many
+more (for CTAN info, *note unixtex.ftp: (kpathsea)unixtex.ftp.).
+
+`plain'
+     Sorts entries alphabetically, with numeric labels.  Generally
+     formatted according to van Leunen's `A Handbook for Scholars'.
+     The other style files listed here are based on `plain'.
+
+`abbrv'
+     First names, month names, and journal names are abbreviated.
+
+`acm'
+     Names are printed in small caps.
+
+`alpha'
+     Alphanumeric labels, e.g., `Knu66'.
+
+`apalike'
+     No labels at all; instead, the year appears in parentheses after
+     the author.  Should be used in conjunction with `apalike.tex'
+     (plain TeX) or `apalike.sty' (LaTeX), which also changes the
+     citations in the text to be `(AUTHOR, YEAR)'.
+
+`ieeetr'
+     Numeric labels, entries in citation order, IEEE abbreviations,
+     article titles in quotes.
+
+`siam'
+     Numeric labels, alphabetic order, `Math. Reviews' abbreviations,
+     names in small caps.
+
+`unsrt'
+     Lists entries in citation order, i.e., unsorted.
+
+`btxbst.doc'
+     The template file and documentation for the standard styles.
+
+
+File: web2c.info,  Node: WEB,  Next: DVI utilities,  Prev: BibTeX,  Up: Top
+
+WEB: Literate programming
+*************************
+
+  "WEB" languages allow you to write a single source file that can
+produce both a compilable program and a well-formatted document
+describing the program in as much detail as you wish to prepare.
+Writing in this kind of dual-purpose language is called "literate
+programming".  (The Usenet newsgroup `comp.programming.literate' and
+the mailing list <litprog@shsu.edu> are devoted to this subject; they
+are gatewayed to each other.)
+
+  WEB-like languages have been implemented with many pairs of base
+languages: Cweb provides C and Troff (*note References::.); CWEB
+provides C and TeX (`CTAN:/web/c_cpp/cweb'); Spiderweb provides C, C++,
+Awk, Ada, many others, and TeX (`CTAN:/web/spiderweb'); and, of course,
+the original WEB provides Pascal and TeX, the implementation languages
+for the original TeX, Metafont, MetaPost, and related programs to come
+from the TeX project at Stanford.
+
+  The original WEB language is documented in the file `webman.tex',
+which is included in the `ftp://ftp.tug.org/tex/lib.tar.gz' archive
+(and available in many other places, of course).
+
+* Menu:
+
+* tangle invocation::
+* weave invocation::
+* pooltype invocation::
+
+
+File: web2c.info,  Node: tangle invocation,  Next: weave invocation,  Up: WEB
+
+Tangle: Translate WEB to Pascal
+===============================
+
+  Tangle creates a compilable Pascal program from a WEB source file
+(*note WEB::.).  Synopsis:
+
+     tangle [OPTION]... WEBFILE[.web] [CHANGEFILE[.ch]]
+
+The Pascal output is written to the basename of WEBFILE extended with
+`.p'; for example, `tangle /wherever/foo.web' creates `./foo.p'.
+Tangle applies CHANGEFILE to WEBFILE before writing the output; by
+default, there is no change file.
+
+  If the program makes use of the WEB string facility, Tangle writes the
+string pool to the basename of WEBFILE extended with `.pool'.
+
+  The Pascal output is packed into lines of 72 characters or less, with
+the only concession to readability being the termination of lines at
+semicolons when this can be done conveniently.
+
+  The only options are `--help' and `--version' (*note Common
+options::.).
+
+
+File: web2c.info,  Node: weave invocation,  Next: pooltype invocation,  Prev: tangle invocation,  Up: WEB
+
+Weave: Translate WEB to TeX
+===========================
+
+  Weave creates a TeX document from a WEB source file (*note WEB::.),
+assuming various macros defined in `webmac.tex'.   It takes care of
+typographic details such as page layout, indentation, and italicizing
+identifiers.  It also automatically gathers and outputs extensive
+cross-reference information.  Synopsis:
+
+     weave [OPTION]... WEBFILE[.web] [CHANGEFILE[.ch]]
+
+The output is to the basename of WEBFILE extended with `.tex'; for
+example, `weave /wherever/foo.web' creates `./foo.tex'.  Weave applies
+CHANGEFILE to WEBFILE before writing the output; by default, there is
+no change file.
+
+  The program accepts the following option, as well as the standard
+`-verbose', `-help' and `-version' (*note Common options::.):
+`-x'
+     Omit the cross-reference information: the index, the list of WEB
+     module names, and the table of contents (an empty `CONTENTS.tex'
+     file will still be written when the Weave output file is processed
+     by TeX using the default `webmac.tex', though).
+
+  Conventionally, WEB programmers should define the TeX `\title' macro
+at the beginning of the source file.  Also, to get output of only
+changed modules, one can say `\let\maybe=\iffalse' (usually as the
+first change in the change file).
+
+
+File: web2c.info,  Node: pooltype invocation,  Prev: weave invocation,  Up: WEB
+
+Pooltype: Display WEB pool files
+================================
+
+  Pooltype shows the so-called "string number" of each string in a WEB
+pool file (*note WEB::.), as output by Tangle (*note tangle
+invocation::.), including the first 256 strings corresponding to the
+possible input characters.  Pooltype primarily serves as an example of
+WEB conventions to implementors of the TeX system.  Synopsis:
+
+     pooltype [OPTION]... POOLFILE[.pool]
+
+No path searching is done for POOLFILE.  Output is to standard output.
+
+  The only options are `--help' and `--version' (*note Common
+options::.).
+
+  As an example of the output, here is the (edited) output for
+`tex.pool':
+     0: "^^@"
+     1: "^^A"
+     ...
+     255: "^^ff"
+     256: "pool size"
+     ...
+     1314: "Using character substitution: "
+     (23617 characters in all.)
+
+  In Metafont and MetaPost, the first 256 characters are actually
+represented as single bytes (i.e., themselves), not in the `^^'
+notation.  Consider Pooltype as showing the results after conversion for
+output.
+
+
+File: web2c.info,  Node: DVI utilities,  Next: Font utilities,  Prev: WEB,  Up: Top
+
+DVI utilities
+*************
+
+  TeX outputs a file in "DVI" (DeVice Independent) format as a compact
+representation of the original document.  DVI files can be translated
+to meet the requirements of a real physical device, such as PostScript
+printers (*note Introduction: (dvips)Top.), PCL printers (see
+dvilj(1)), and X displays (see xdvi(1)).  In fact, DVI translators are
+available for virtually all common devices: see `CTAN:/dviware' (for
+CTAN info, *note unixtex.ftp: (kpathsea)unixtex.ftp.).
+
+  For the precise definition of the DVI file format, see (for example)
+the source file `web2c/dvitype.web'.
+
+  The DVI-processing programs in the Web2c distribution are not device
+drivers; they perform generic utility functions.
+
+* Menu:
+
+* dvicopy invocation::          Expand virtual fonts.
+* dvitype invocation::          DVI to human-readable text.
+
+
+File: web2c.info,  Node: dvicopy invocation,  Next: dvitype invocation,  Up: DVI utilities
+
+DVIcopy: Canonicalize virtual font references
+=============================================
+
+  DVIcopy reads a DVI file, expands any references to virtual fonts
+(*note Virtual fonts: (dvips)Virtual fonts.) to base fonts, and writes
+the resulting DVI file.  Thus you can use virtual fonts even if your DVI
+processor does not support them, by passing the documents through
+DVIcopy first.  Synopsis:
+
+     dvicopy [OPTION]... [INDVI[.dvi] [OUTDVI[.dvi]]]
+
+  DVIcopy reads standard input if INDVI is not specified, and writes
+standard output if OUTDVI is not specified.
+
+  The program accepts the following options, as well as the standard
+`-help' and `-version' (*note Common options::.):
+`-magnification=INTEGER'
+     Override existing magnification in INDVI with INTEGER; 1000
+     specifies no magnification.  This is equivalent to setting TeX's
+     `\mag' parameter.
+
+`-max-pages=N'
+     Process N pages; default is one million.
+
+`-page-start=PAGE-SPEC'
+     Start at the first page matching PAGE-SPEC, which is one or more
+     (signed) integers separated by periods, corresponding to TeX's
+     `\count0...9' parameters at `\shipout' time; `*' matches anything.
+     Examples: `3', `1.*.-4'.
+

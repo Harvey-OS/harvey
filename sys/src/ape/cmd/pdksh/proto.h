@@ -4,6 +4,8 @@
  * $Id: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $
  */
 
+#pragma incomplete Area
+
 /* alloc.c */
 Area *	ainit		ARGS((Area *ap));
 void 	afreeall	ARGS((Area *ap));

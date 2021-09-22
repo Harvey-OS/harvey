@@ -1,5 +1,5 @@
 /*
- * Stub.
+ * device table operations.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -15,8 +15,10 @@ devtabreset(void)
 {
 	int i;
 
-	for(i = 0; devtab[i] != nil; i++)
+	for(i = 0; devtab[i] != nil; i++) {
 		devtab[i]->reset();
+		splhi();		/* paranoia */
+	}
 }
 
 void
@@ -54,7 +56,7 @@ devtabget(int dc, int user)
 	}
 
 	if(user == 0)
-		panic("devtabget %C\n", dc);
+		panic("devtabget %C", dc);
 
 	return nil;
 }

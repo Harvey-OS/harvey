@@ -1,0 +1,13 @@
+.de a
+.de b
+hello, world
+\\..
+..
+.b
+before a
+.pm b
+.a
+after a
+.pm b
+.tm <<<<<<
+.b

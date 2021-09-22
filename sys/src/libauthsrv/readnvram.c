@@ -26,7 +26,7 @@ static struct {
 	int off;
 	int len;
 } nvtab[] = {
-	"sparc", "#r/nvram", 1024+850, sizeof(Nvrsafe),
+	"pc", "#S/sdn0/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sdC0/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sdC1/nvram", 0, sizeof(Nvrsafe),
@@ -41,18 +41,19 @@ static struct {
 	"pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sd01/9fat", -1, sizeof(Nvrsafe),
-	"pc", "#S/sd10/nvram", 0, sizeof(Nvrsafe),
-	"pc", "#S/sd10/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#f/fd0disk", -1, 512,	/* 512: #f requires whole sector reads */
 	"pc", "#f/fd1disk", -1, 512,
 	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
 	"power", "#F/flash/flash0", 0x440000, sizeof(Nvrsafe),
-	"power", "#F/flash/flash", 0x440000, sizeof(Nvrsafe),
+	"power", "#F/flash/flash",  0x440000, sizeof(Nvrsafe),
 	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
-	"power", "/nvram", 0, sizeof(Nvrsafe),	/* OK for Ucu */
+	"power", "/nvram", 0, sizeof(Nvrsafe),		/* OK for Ucu */
 	"arm", "#F/flash/flash0", 0x100000, sizeof(Nvrsafe),
-	"arm", "#F/flash/flash", 0x100000, sizeof(Nvrsafe),
+	"arm", "#F/flash/flash",  0x100000, sizeof(Nvrsafe),
+//	"sparc", "#r/nvram", 1024+850, sizeof(Nvrsafe),		// passé
+	"riscv64", "#S/sdM0/nvram", 0, sizeof(Nvrsafe),
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
+	"desperate", "/boot/nvram", 0, sizeof(Nvrsafe),
 };
 
 static char*
@@ -167,7 +168,8 @@ findnvram(Nvrwhere *locp)
 		cputype = getenv("cputype");
 	if(cputype == nil)
 		cputype = strdup("mips");
-	if(strcmp(cputype, "386")==0 || strcmp(cputype, "amd64")==0 || strcmp(cputype, "alpha")==0) {
+	if(strcmp(cputype, "386") == 0 || strcmp(cputype, "amd64") == 0 ||
+	   strcmp(cputype, "alpha") == 0) {
 		free(cputype);
 		cputype = strdup("pc");
 	}
@@ -236,8 +238,8 @@ findnvram(Nvrwhere *locp)
 }
 
 /*
- *  get key info out of nvram.  since there isn't room in the PC's nvram use
- *  a disk partition there.
+ *  get key info out of nvram.  since there isn't room in the
+ *  PC's nvram, use a disk partition there.
  */
 int
 readnvram(Nvrsafe *safep, int flag)

@@ -1,0 +1,115 @@
+diff -n ../5l/asm.c ./asm.c
+../5l/asm.c:219,228 d ./asm.c:218
+< 		strnput("\177ELF", 4);		/* e_ident */
+< 		cput(1);			/* class = 32 bit */
+< 		cput(2);			/* data = MSB */
+< 		cput(1);			/* version = CURRENT */
+< 		strnput("", 9);
+< 		lput((2L<<16)|40);		/* type = EXEC; machine = ARM */
+< 		lput(1L);			/* version = CURRENT */
+< 		lput(entryvalue());		/* entry vaddr */
+< 		lput(52L);			/* offset to first phdr */
+< 
+../5l/asm.c:230,270 c ./asm.c:220
+< 		if(debug['S']){
+< 			lput(HEADR+textsize+datsize+symsize);	/* offset to first shdr */
+< 			lput(0L);		/* flags = PPC */
+< 			lput((52L<<16)|32L);	/* Ehdr & Phdr sizes*/
+< 			lput((4L<<16)|40L);	/* # Phdrs & Shdr size */
+< 			lput((4L<<16)|2L);	/* # Shdrs & shdr string size */
+< 		}
+< 		else{
+< 			lput(0L);
+< 			lput(0L);		/* flags = PPC */
+< 			lput((52L<<16)|32L);	/* Ehdr & Phdr sizes*/
+< 			lput((4L<<16)|0L);	/* # Phdrs & Shdr size */
+< 			lput((4L<<16)|0L);	/* # Shdrs & shdr string size */
+< 		}
+< 
+< 		lput(1L);			/* text - type = PT_LOAD */
+< 		lput(HEADR);			/* file offset */
+< 		lput(INITTEXT);			/* vaddr */
+< 		lput(INITTEXT);			/* paddr */
+< 		lput(textsize);			/* file size */
+< 		lput(textsize);			/* memory size */
+< 		lput(0x05L);			/* protections = RX */
+< 		lput(0);			/* alignment */
+< 
+< 		lput(1L);			/* data - type = PT_LOAD */
+< 		lput(HEADR+textsize);		/* file offset */
+< 		lput(INITDAT);			/* vaddr */
+< 		lput(INITDAT);			/* paddr */
+< 		lput(datsize);			/* file size */
+< 		lput(datsize+bsssize);		/* memory size */
+< 		lput(0x07L);			/* protections = RWX */
+< 		lput(0);			/* alignment */
+< 
+< 		lput(0L);			/* data - type = PT_NULL */
+< 		lput(HEADR+textsize+datsize);	/* file offset */
+< 		lput(0L);			/* vaddr */
+< 		lput(0L);			/* paddr */
+< 		lput(symsize);			/* symbol table size */
+< 		lput(lcsize);			/* line number size */
+< 		lput(0x04L);			/* protections = R */
+< 		lput(0x04L);			/* alignment code?? */
+---
+> 		elf32(ARM, ELFDATA2LSB, 0, nil);
+../5l/asm.c:309 a ./asm.c:260,271
+> wputl(long l)
+> {
+> 
+> 	cbp[0] = l;
+> 	cbp[1] = l>>8;
+> 	cbp += 2;
+> 	cbc -= 2;
+> 	if(cbc <= 0)
+> 		cflush();
+> }
+> 
+> void
+../5l/asm.c:334 a ./asm.c:297,310
+> }
+> 
+> void
+> llput(vlong v)
+> {
+> 	lput(v>>32);
+> 	lput(v);
+> }
+> 
+> void
+> llputl(vlong v)
+> {
+> 	lputl(v);
+> 	lputl(v>>32);
+Only in .: elf.changes
+diff -n ../5l/l.h ./l.h
+../5l/l.h:4 a ./l.h:5
+> #include	"elf.h"
+../5l/l.h:226 a ./l.h:228
+> EXTERN	long	INITTEXTP;		/* text location (physical) */
+../5l/l.h:361 a ./l.h:364,365
+> void	llput(vlong);
+> void	llputl(vlong);
+../5l/l.h:399 a ./l.h:404
+> void	wputl(long);
+diff -n ../5l/mkfile ./mkfile
+../5l/mkfile:3 c ./mkfile:3
+< TARG=5l
+---
+> TARG=n5l
+../5l/mkfile:13 a ./mkfile:14
+> 	elf.$O\
+diff -n ../5l/obj.c ./obj.c
+../5l/obj.c:72 a ./obj.c:73
+> 	INITTEXTP = -1;
+../5l/obj.c:98 a ./obj.c:100,104
+> 	case 'F':
+> 		a = ARGF();
+> 		if(a)
+> 			INITTEXTP = atolwhex(a);
+> 		break;
+../5l/obj.c:219 a ./obj.c:226,227
+> 	if (INITTEXTP == -1)
+> 		INITTEXTP = INITTEXT;
+Only in .: opts.avail

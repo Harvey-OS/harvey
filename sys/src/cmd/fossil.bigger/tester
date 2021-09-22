@@ -1,0 +1,58 @@
+#!/bin/rc
+
+mk all
+fn resetfossil {
+	slay 8.flfmt  | rc
+	slay 8.fossil | rc
+	rm -f /srv/test.fossil /srv/test.fscons
+	unmount /n/fossil || status=''
+
+	{syscall seek 1 6400000000 0; echo} >>/tmp/fossil
+	chmod +t /tmp/fossil
+	8.flfmt -y /tmp/fossil
+	8.conf -w /tmp/fossil flproto
+	8.fossil -f /tmp/fossil
+	cat /srv/test.fscons &
+	echo fsys main >>/srv/test.fscons
+	mount /srv/test.fossil /n/fossil
+}
+
+fn startfossil {
+	slay 8.flfmt  | rc
+	slay 8.fossil | rc
+	rm -f /srv/test.fossil /srv/test.fscons
+	unmount /n/fossil || status=''
+
+	8.conf -w /tmp/fossil $1
+	8.fossil -f /tmp/fossil
+	cat /srv/test.fscons &
+	echo fsys main >>/srv/test.fscons
+	mount /srv/test.fossil /n/fossil
+}
+
+resetfossil
+# should see this.
+echo hello world >/n/fossil/tmp/a
+chmod +t /n/fossil/tmp/a
+echo sync >>/srv/test.fscons
+echo snap >>/srv/test.fscons
+sleep 1
+echo snap -a >>/srv/test.fscons
+sleep 1
+echo sync >>/srv/test.fscons
+sleep 1
+echo check >>/srv/test.fscons
+slay 8.fossil | rc
+slay 8.flfmt  | rc
+
+startfossil flproto.ro
+sleep 1
+echo
+if(! cat /n/fossil/tmp/a)
+	echo cat should have worked!
+mount /srv/test.fossil /n/snap main/snapshot
+if(cat /n/snap/*/*/*/tmp/a)
+	echo cat should not have worked!
+mount /srv/test.fossil /n/dump main/archive
+if(cat /n/dump/*/*/tmp/a)
+	echo cat should not have worked!

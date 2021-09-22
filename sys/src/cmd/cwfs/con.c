@@ -595,7 +595,7 @@ cmd_remove(int argc, char *argv[])
 static void
 cmd_version(int, char *[])
 {
-	print("%d-bit %s as of %T\n", sizeof(Off)*8 - 1, service, fs_mktime);
+	print("%lld-bit %s as of %T\n", (vlong)sizeof(Off)*8 - 1, service, fs_mktime);
 	print("\tlast boot %T\n", boottime);
 }
 

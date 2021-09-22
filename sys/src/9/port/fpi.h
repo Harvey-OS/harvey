@@ -1,3 +1,6 @@
+#ifndef _FPI_H		/* yuck */
+#define _FPI_H
+
 #ifndef nil
 #include <u.h>
 #endif
@@ -69,3 +72,4 @@ extern void fpii2s(void *, Internal *);
 extern void fpii2d(void *, Internal *);
 extern void fpii2w(Word *, Internal *);
 extern void fpii2v(Vlong *, Internal *);
+#endif			/* FPI_H */

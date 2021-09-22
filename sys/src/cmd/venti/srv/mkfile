@@ -1,5 +1,6 @@
 </$objtype/mkfile
 
+# omitting hproc is a big space saving
 LIBOFILES=\
 	arena.$O\
 	arenas.$O\
@@ -13,7 +14,7 @@ LIBOFILES=\
 	dump.$O\
 	graph.$O\
 	hdisk.$O\
-	hproc.$O\
+#	hproc.$O\
 	httpd.$O\
 	icache.$O\
 	icachewrite.$O\

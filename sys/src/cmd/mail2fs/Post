@@ -1,0 +1,100 @@
+#!/bin/rc
+#
+# As Send, but on-line and from acme or o/live
+
+rfork ne
+if(~ $#file 0 && ~ $#winid 0 ){
+	echo must run under o/live or acme >[1=2]
+	exit fail
+}
+
+d=`{pwd}
+if(~ $#file 0){
+	w = /mnt/acme/$winid
+	file = `{cat $w/tag | sed 's/ .*//'}
+}
+
+fn deliver {
+	sed '1,/^$/d' $1 > body.$1
+	sed '/^$/q' $1 > hdr.$1
+	addrs=`{grep -i '^To: ' hdr.$1 | sed 's/^[Tt][Oo]: //'}
+	ccs=`{grep -i '^Cc: ' hdr.$1 | sed 's/^[Cc][Cc]: //'}
+	atts=`{grep -i '^Attach: ' hdr.$1 | sed 's/^[Aa]ttach: //' }
+	incl=`{grep -i '^Include: ' hdr.$1 | sed 's/^[Ii]nclude: //' }
+	repl=`{grep -i '^Replying: ' hdr.$1 | sed 's/^[Rr]eplying: //' }
+	xaddrs=$addrs
+	xccs=$ccs
+	if (! ~ $#ccs 0)
+		ccs=-C^$ccs
+	if (! ~ $#atts 0)
+		atts=-a^$atts
+	if (! ~ $#incl 0)
+		incl=-A^$incl
+	if (! ~ $#repl 0){
+		if(! test -f $repl && test -f /mail/box/$user/msgs/$repl)
+			repl=/mail/box/$user/msgs/$repl
+		if(! test -f $repl){
+			arepl=`{echo $repl | sed 's,(.*)/([0-9]+)/raw,\1/a.\2/raw,'}
+			if(test -f $arepl)
+				repl=$arepl
+			if(test -f /mail/box/$user/msgs/$arepl)
+				repl=/mail/box/$user/msgs/$arepl
+		}
+		if(! test -f $repl){
+			echo orginal message not found >[1=2]
+			exit orig
+		}
+		upas/fs -p -f $repl
+		repl=-R/mail/fs/mbox/1
+	}
+	done=ok
+	{
+		for(t in $xaddrs)
+			echo 'To: '^$"t
+		for(t in $xccs)
+			echo 'Cc: '^$"t
+	} > addrs.$1
+	{ cat addrs.$1 ; grep -vi '^(To|Cc|Attach|Include|Replying): ' hdr.$1 ; cat body.$1 } | {
+		if(upas/marshal $repl $atts $incl $ccs $addrs >[2] errs.$1){
+			rm errs.$1 hdr.$1 body.$1 addrs.$1 $1
+		} 
+		if not {
+			done=failed
+			echo spool: upas/marshal $repl $atts $incl $ccs $addrs
+			cat errs.$1
+			{ cat errs.$1 ; q ': ' hdr.$1 body.$1 } | mail -s'returned mail' $user
+			mv $1 Fail.$1
+		}
+	}
+	if (! ~ $#repl 0)
+		unmount /mail/fs
+	if(~ $done ok)
+		status=''
+	if not
+		status='deliver failed'
+}
+
+cd /mail/box/$user/out || { echo no outgoing box >[1=2] ; exit nombox }
+
+
+if(! ~ $file /mail/box/$user/out/Out.*){
+	echo not an outgoing mail file to be posted
+	exit nopostfile
+}
+
+if(! ~ $#winid 0)
+	echo put >$w/ctl
+
+if(! test -e $file){
+	echo $file does not exist >[1=2]
+	exit noexist
+}
+
+if(deliver `{basename $file}){
+	~ $#winid 0 || echo del >$w/ctl
+}
+if not{
+	if(test -e /mail/box/$user/log)
+		echo `{date} Post delivered $f >>/mail/box/$user/log
+}
+exit ''

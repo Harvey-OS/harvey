@@ -3,8 +3,6 @@
  *	assumes A extension
  */
 
-#define LINK	R1
-#define SP	R2
 #define ARG	8
 
 #define SYNC	WORD $0xf	/* FENCE */

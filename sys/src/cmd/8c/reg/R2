@@ -1,0 +1,1323 @@
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:10
+   NAME "v2" 0 <10> INT t1.c:10
+   Z
+
+	ADDL	$1,v2+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (1) t1.c:10
+   NAME "v3" 0 <10> INT t1.c:10
+   NAME "v4" 0 <10> INT t1.c:10
+
+	MOVL	v4+0(SB),AX
+	MOVL	AX,v3+0(SB)
+	NOP	,
+	NOP	,
+n=1
+ == res ==
+AS INT t1.c:16
+   NAME "v1" 0 <1> INT t1.c:16
+   AS INT t1.c:16
+      NAME "v3" 0 <1> INT t1.c:16
+      NAME "v4" 0 <1> INT t1.c:16
+
+ == tree ==
+POSTINC INT t1.c:16
+   NAME "v2" 0 <1> INT t1.c:16
+   Z
+
+ == final ==
+COMMA INT t1.c:16
+   POSTINC INT t1.c:16
+      NAME "v2" 0 <1> INT t1.c:16
+      Z
+   AS INT t1.c:16
+      NAME "v1" 0 <1> INT t1.c:16
+      AS INT t1.c:16
+         NAME "v3" 0 <1> INT t1.c:16
+         NAME "v4" 0 <1> INT t1.c:16
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (2) t1.c:16
+   POSTINC INT (1) t1.c:16
+      NAME "v2" 0 <10> INT t1.c:16
+      Z
+   AS INT (1) t1.c:16
+      NAME "v1" 0 <10> INT t1.c:16
+      AS INT (1) t1.c:16
+         NAME "v3" 0 <10> INT t1.c:16
+         NAME "v4" 0 <10> INT t1.c:16
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:16
+   NAME "v2" 0 <10> INT t1.c:16
+   Z
+
+	ADDL	$1,v2+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (1) t1.c:16
+   NAME "v1" 0 <10> INT t1.c:16
+   AS INT (1) t1.c:16
+      NAME "v3" 0 <10> INT t1.c:16
+      NAME "v4" 0 <10> INT t1.c:16
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:16
+
+ == cgen ==
+AS INT (1) t1.c:16
+   NAME "v3" 0 <10> INT t1.c:16
+   NAME "v4" 0 <10> INT t1.c:16
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:16
+
+ == cgen ==
+NAME "v4" 0 <10> INT t1.c:16
+
+	MOVL	v4+0(SB),AX
+	MOVL	AX,v3+0(SB)
+	MOVL	AX,v1+0(SB)
+	NOP	,
+	NOP	,
+n=1
+ == res ==
+AS INT t1.c:22
+   NAME "v1" 0 <1> INT t1.c:22
+   MUL INT t1.c:22
+      NAME "v3" 0 <1> INT t1.c:22
+      NAME "v4" 0 <1> INT t1.c:22
+
+ == tree ==
+POSTINC INT t1.c:22
+   NAME "v2" 0 <1> INT t1.c:22
+   Z
+
+ == final ==
+COMMA INT t1.c:22
+   POSTINC INT t1.c:22
+      NAME "v2" 0 <1> INT t1.c:22
+      Z
+   AS INT t1.c:22
+      NAME "v1" 0 <1> INT t1.c:22
+      MUL INT t1.c:22
+         NAME "v3" 0 <1> INT t1.c:22
+         NAME "v4" 0 <1> INT t1.c:22
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (3) t1.c:22
+   POSTINC INT (1) t1.c:22
+      NAME "v2" 0 <10> INT t1.c:22
+      Z
+   AS INT (3) t1.c:22
+      NAME "v1" 0 <10> INT t1.c:22
+      MUL INT (3) t1.c:22
+         NAME "v3" 0 <10> INT t1.c:22
+         NAME "v4" 0 <10> INT t1.c:22
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:22
+   NAME "v2" 0 <10> INT t1.c:22
+   Z
+
+	ADDL	$1,v2+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (3) t1.c:22
+   NAME "v1" 0 <10> INT t1.c:22
+   MUL INT (3) t1.c:22
+      NAME "v3" 0 <10> INT t1.c:22
+      NAME "v4" 0 <10> INT t1.c:22
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:22
+
+ == cgen ==
+MUL INT (3) t1.c:22
+   NAME "v3" 0 <10> INT t1.c:22
+   NAME "v4" 0 <10> INT t1.c:22
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:22
+
+ == cgen ==
+NAME "v4" 0 <10> INT t1.c:22
+
+	MOVL	v4+0(SB),AX
+	IMULL	v3+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	NOP	,
+	NOP	,
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:28
+   NAME "v1" 0 <10> INT t1.c:28
+   Z
+
+	ADDL	$1,v1+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+PREINC INT (1) t1.c:28
+   NAME "v3" 0 <10> INT t1.c:28
+   Z
+
+	ADDL	$1,v3+0(SB)
+	NOP	,
+	NOP	,
+n=2
+ == res ==
+AS INT t1.c:34
+   NAME "v1" 0 <1> INT t1.c:34
+   MUL INT t1.c:34
+      NAME "v1" 0 <1> INT t1.c:34
+      NAME "v4" 0 <1> INT t1.c:34
+
+ == tree ==
+POSTINC INT t1.c:34
+   NAME "v3" 0 <1> INT t1.c:34
+   Z
+
+ == tree ==
+POSTINC INT t1.c:34
+   NAME "v2" 0 <1> INT t1.c:34
+   Z
+
+ == final ==
+COMMA INT t1.c:34
+   POSTINC INT t1.c:34
+      NAME "v2" 0 <1> INT t1.c:34
+      Z
+   COMMA INT t1.c:34
+      POSTINC INT t1.c:34
+         NAME "v3" 0 <1> INT t1.c:34
+         Z
+      AS INT t1.c:34
+         NAME "v1" 0 <1> INT t1.c:34
+         MUL INT t1.c:34
+            NAME "v1" 0 <1> INT t1.c:34
+            NAME "v4" 0 <1> INT t1.c:34
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (3) t1.c:34
+   POSTINC INT (1) t1.c:34
+      NAME "v2" 0 <10> INT t1.c:34
+      Z
+   COMMA INT (3) t1.c:34
+      POSTINC INT (1) t1.c:34
+         NAME "v3" 0 <10> INT t1.c:34
+         Z
+      AS INT (3) t1.c:34
+         NAME "v1" 0 <10> INT t1.c:34
+         MUL INT (3) t1.c:34
+            NAME "v1" 0 <10> INT t1.c:34
+            NAME "v4" 0 <10> INT t1.c:34
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:34
+   NAME "v2" 0 <10> INT t1.c:34
+   Z
+
+	ADDL	$1,v2+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (3) t1.c:34
+   POSTINC INT (1) t1.c:34
+      NAME "v3" 0 <10> INT t1.c:34
+      Z
+   AS INT (3) t1.c:34
+      NAME "v1" 0 <10> INT t1.c:34
+      MUL INT (3) t1.c:34
+         NAME "v1" 0 <10> INT t1.c:34
+         NAME "v4" 0 <10> INT t1.c:34
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:34
+   NAME "v3" 0 <10> INT t1.c:34
+   Z
+
+	ADDL	$1,v3+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (3) t1.c:34
+   NAME "v1" 0 <10> INT t1.c:34
+   MUL INT (3) t1.c:34
+      NAME "v1" 0 <10> INT t1.c:34
+      NAME "v4" 0 <10> INT t1.c:34
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:34
+
+ == cgen ==
+MUL INT (3) t1.c:34
+   NAME "v1" 0 <10> INT t1.c:34
+   NAME "v4" 0 <10> INT t1.c:34
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:34
+
+ == cgen ==
+NAME "v4" 0 <10> INT t1.c:34
+
+	MOVL	v4+0(SB),AX
+	IMULL	v1+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	NOP	,
+	NOP	,
+n=1
+ == res ==
+AS INT t1.c:40
+   NAME "v1" 0 <1> INT t1.c:40
+   NEG INT t1.c:40
+      NAME "v3" 0 <1> INT t1.c:40
+      Z
+
+ == tree ==
+AS INT t1.c:40
+   NAME "v2" 0 <1> INT t1.c:40
+   ADD INT t1.c:40
+      NAME "v2" 0 <1> INT t1.c:40
+      CONST "1" INT t1.c:40
+
+ == final ==
+COMMA INT t1.c:40
+   AS INT t1.c:40
+      NAME "v2" 0 <1> INT t1.c:40
+      ADD INT t1.c:40
+         NAME "v2" 0 <1> INT t1.c:40
+         CONST "1" INT t1.c:40
+   AS INT t1.c:40
+      NAME "v1" 0 <1> INT t1.c:40
+      NEG INT t1.c:40
+         NAME "v3" 0 <1> INT t1.c:40
+         Z
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (2) t1.c:40
+   AS INT (1) t1.c:40
+      NAME "v2" 0 <10> INT t1.c:40
+      ADD INT (1) t1.c:40
+         NAME "v2" 0 <10> INT t1.c:40
+         CONST "1" <20> INT t1.c:40
+   AS INT (1) t1.c:40
+      NAME "v1" 0 <10> INT t1.c:40
+      NEG INT (1) t1.c:40
+         NAME "v3" 0 <10> INT t1.c:40
+         Z
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (1) t1.c:40
+   NAME "v2" 0 <10> INT t1.c:40
+   ADD INT (1) t1.c:40
+      NAME "v2" 0 <10> INT t1.c:40
+      CONST "1" <20> INT t1.c:40
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:40
+
+ == cgen ==
+ADD INT (1) t1.c:40
+   NAME "v2" 0 <10> INT t1.c:40
+   CONST "1" <20> INT t1.c:40
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:40
+
+ == cgen ==
+NAME "v2" 0 <10> INT t1.c:40
+
+	MOVL	v2+0(SB),AX
+	ADDL	$1,AX
+	MOVL	AX,v2+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (1) t1.c:40
+   NAME "v1" 0 <10> INT t1.c:40
+   NEG INT (1) t1.c:40
+      NAME "v3" 0 <10> INT t1.c:40
+      Z
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:40
+
+ == cgen ==
+NEG INT (1) t1.c:40
+   NAME "v3" 0 <10> INT t1.c:40
+   Z
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:40
+
+ == cgen ==
+NAME "v3" 0 <10> INT t1.c:40
+
+	MOVL	v3+0(SB),AX
+	NEGL	,AX
+	MOVL	AX,v1+0(SB)
+	NOP	,
+	NOP	,
+n=1
+ == res ==
+NAME "v2" 0 <1> INT t1.c:46
+
+ == tree ==
+POSTINC INT t1.c:46
+   NAME "v4" 0 <1> INT t1.c:46
+   Z
+
+ == final ==
+COMMA <1> INT t1.c:46
+   POSTINC INT t1.c:46
+      NAME "v4" 0 <1> INT t1.c:46
+      Z
+   NAME "v2" 0 <1> INT t1.c:46
+
+n=1
+ == res ==
+NAME "v1" 0 <1> INT t1.c:46
+
+ == tree ==
+POSTINC INT t1.c:46
+   NAME "v3" 0 <1> INT t1.c:46
+   Z
+
+ == final ==
+COMMA <1> INT t1.c:46
+   POSTINC INT t1.c:46
+      NAME "v3" 0 <1> INT t1.c:46
+      Z
+   NAME "v1" 0 <1> INT t1.c:46
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (2) t1.c:46
+   NAME "v1" 0 <10> INT t1.c:46
+   COND INT (2) t1.c:46
+      EQ INT (1) t1.c:46
+         NAME "v2" 0 <10> INT t1.c:46
+         NAME "v3" 0 <10> INT t1.c:46
+      COMMA INT (1) t1.c:46
+         POSTINC INT (1) t1.c:46
+            NAME "v4" 0 <10> INT t1.c:46
+            Z
+         NAME "v2" 0 <10> INT t1.c:46
+      COMMA INT (1) t1.c:46
+         POSTINC INT (1) t1.c:46
+            NAME "v3" 0 <10> INT t1.c:46
+            Z
+         NAME "v1" 0 <10> INT t1.c:46
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:46
+
+ == cgen ==
+COND INT (2) t1.c:46
+   EQ INT (1) t1.c:46
+      NAME "v2" 0 <10> INT t1.c:46
+      NAME "v3" 0 <10> INT t1.c:46
+   COMMA INT (1) t1.c:46
+      POSTINC INT (1) t1.c:46
+         NAME "v4" 0 <10> INT t1.c:46
+         Z
+      NAME "v2" 0 <10> INT t1.c:46
+   COMMA INT (1) t1.c:46
+      POSTINC INT (1) t1.c:46
+         NAME "v3" 0 <10> INT t1.c:46
+         Z
+      NAME "v1" 0 <10> INT t1.c:46
+
+ == boolgen lhs ==
+Z
+
+ == boolgen ==
+EQ INT (1) t1.c:46
+   NAME "v2" 0 <10> INT t1.c:46
+   NAME "v3" 0 <10> INT t1.c:46
+
+ == cgen lhs ==
+REGISTER R9 <11> INT t1.c:46
+
+ == cgen ==
+NAME "v2" 0 <10> INT t1.c:46
+
+	MOVL	v2+0(SB),CX
+	CMPL	CX,v3+0(SB)
+	JNE	,
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:46
+
+ == cgen ==
+COMMA INT (1) t1.c:46
+   POSTINC INT (1) t1.c:46
+      NAME "v4" 0 <10> INT t1.c:46
+      Z
+   NAME "v2" 0 <10> INT t1.c:46
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:46
+   NAME "v4" 0 <10> INT t1.c:46
+   Z
+
+	ADDL	$1,v4+0(SB)
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:46
+
+ == cgen ==
+NAME "v2" 0 <10> INT t1.c:46
+
+	MOVL	v2+0(SB),AX
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:46
+
+ == cgen ==
+COMMA INT (1) t1.c:46
+   POSTINC INT (1) t1.c:46
+      NAME "v3" 0 <10> INT t1.c:46
+      Z
+   NAME "v1" 0 <10> INT t1.c:46
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:46
+   NAME "v3" 0 <10> INT t1.c:46
+   Z
+
+	ADDL	$1,v3+0(SB)
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:46
+
+ == cgen ==
+NAME "v1" 0 <10> INT t1.c:46
+
+	MOVL	v1+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	NOP	,
+	NOP	,
+n=1
+ == res ==
+EQ INT t1.c:52
+   NAME "v4" 0 <1> INT t1.c:52
+   CONST "2" INT t1.c:52
+
+ == tree ==
+POSTINC INT t1.c:52
+   NAME "v3" 0 <1> INT t1.c:52
+   Z
+
+ == final ==
+COMMA INT t1.c:52
+   POSTINC INT t1.c:52
+      NAME "v3" 0 <1> INT t1.c:52
+      Z
+   EQ INT t1.c:52
+      NAME "v4" 0 <1> INT t1.c:52
+      CONST "2" INT t1.c:52
+
+n=1
+ == res ==
+AS INT t1.c:52
+   NAME "v1" 0 <1> INT t1.c:52
+   ANDAND INT t1.c:52
+      EQ INT t1.c:52
+         NAME "v3" 0 <1> INT t1.c:52
+         NAME "v1" 0 <1> INT t1.c:52
+      COMMA INT t1.c:52
+         POSTINC INT t1.c:52
+            NAME "v3" 0 <1> INT t1.c:52
+            Z
+         EQ INT t1.c:52
+            NAME "v4" 0 <1> INT t1.c:52
+            CONST "2" INT t1.c:52
+
+ == tree ==
+POSTINC INT t1.c:52
+   NAME "v2" 0 <1> INT t1.c:52
+   Z
+
+ == final ==
+COMMA INT t1.c:52
+   POSTINC INT t1.c:52
+      NAME "v2" 0 <1> INT t1.c:52
+      Z
+   AS INT t1.c:52
+      NAME "v1" 0 <1> INT t1.c:52
+      ANDAND INT t1.c:52
+         EQ INT t1.c:52
+            NAME "v3" 0 <1> INT t1.c:52
+            NAME "v1" 0 <1> INT t1.c:52
+         COMMA INT t1.c:52
+            POSTINC INT t1.c:52
+               NAME "v3" 0 <1> INT t1.c:52
+               Z
+            EQ INT t1.c:52
+               NAME "v4" 0 <1> INT t1.c:52
+               CONST "2" INT t1.c:52
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (2) t1.c:52
+   POSTINC INT (1) t1.c:52
+      NAME "v2" 0 <10> INT t1.c:52
+      Z
+   AS INT (2) t1.c:52
+      NAME "v1" 0 <10> INT t1.c:52
+      ANDAND INT (2) t1.c:52
+         EQ INT (1) t1.c:52
+            NAME "v3" 0 <10> INT t1.c:52
+            NAME "v1" 0 <10> INT t1.c:52
+         COMMA INT (2) t1.c:52
+            POSTINC INT (1) t1.c:52
+               NAME "v3" 0 <10> INT t1.c:52
+               Z
+            EQ INT (1) t1.c:52
+               CONST "2" <20> INT t1.c:52
+               NAME "v4" 0 <10> INT t1.c:52
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:52
+   NAME "v2" 0 <10> INT t1.c:52
+   Z
+
+	ADDL	$1,v2+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (2) t1.c:52
+   NAME "v1" 0 <10> INT t1.c:52
+   ANDAND INT (2) t1.c:52
+      EQ INT (1) t1.c:52
+         NAME "v3" 0 <10> INT t1.c:52
+         NAME "v1" 0 <10> INT t1.c:52
+      COMMA INT (2) t1.c:52
+         POSTINC INT (1) t1.c:52
+            NAME "v3" 0 <10> INT t1.c:52
+            Z
+         EQ INT (1) t1.c:52
+            CONST "2" <20> INT t1.c:52
+            NAME "v4" 0 <10> INT t1.c:52
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:52
+
+ == cgen ==
+ANDAND INT (2) t1.c:52
+   EQ INT (1) t1.c:52
+      NAME "v3" 0 <10> INT t1.c:52
+      NAME "v1" 0 <10> INT t1.c:52
+   COMMA INT (2) t1.c:52
+      POSTINC INT (1) t1.c:52
+         NAME "v3" 0 <10> INT t1.c:52
+         Z
+      EQ INT (1) t1.c:52
+         CONST "2" <20> INT t1.c:52
+         NAME "v4" 0 <10> INT t1.c:52
+
+ == boolgen lhs ==
+REGISTER R8 <11> INT t1.c:52
+
+ == boolgen ==
+ANDAND INT (2) t1.c:52
+   EQ INT (1) t1.c:52
+      NAME "v3" 0 <10> INT t1.c:52
+      NAME "v1" 0 <10> INT t1.c:52
+   COMMA INT (2) t1.c:52
+      POSTINC INT (1) t1.c:52
+         NAME "v3" 0 <10> INT t1.c:52
+         Z
+      EQ INT (1) t1.c:52
+         CONST "2" <20> INT t1.c:52
+         NAME "v4" 0 <10> INT t1.c:52
+
+ == boolgen lhs ==
+Z
+
+ == boolgen ==
+EQ INT (1) t1.c:52
+   NAME "v3" 0 <10> INT t1.c:52
+   NAME "v1" 0 <10> INT t1.c:52
+
+ == cgen lhs ==
+REGISTER R9 <11> INT t1.c:52
+
+ == cgen ==
+NAME "v3" 0 <10> INT t1.c:52
+
+	MOVL	v3+0(SB),CX
+	CMPL	CX,v1+0(SB)
+	JNE	,
+ == boolgen lhs ==
+Z
+
+ == boolgen ==
+COMMA INT (2) t1.c:52
+   POSTINC INT (1) t1.c:52
+      NAME "v3" 0 <10> INT t1.c:52
+      Z
+   EQ INT (1) t1.c:52
+      CONST "2" <20> INT t1.c:52
+      NAME "v4" 0 <10> INT t1.c:52
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:52
+   NAME "v3" 0 <10> INT t1.c:52
+   Z
+
+	ADDL	$1,v3+0(SB)
+ == boolgen lhs ==
+Z
+
+ == boolgen ==
+EQ INT (1) t1.c:52
+   CONST "2" <20> INT t1.c:52
+   NAME "v4" 0 <10> INT t1.c:52
+
+	CMPL	v4+0(SB),$2
+	JEQ	,
+	MOVL	$1,AX
+	MOVL	$0,AX
+	MOVL	AX,v1+0(SB)
+	NOP	,
+	NOP	,
+n=1
+ == res ==
+CAST CHAR t1.c:58
+   COND INT t1.c:58
+      EQ INT t1.c:58
+         NAME "v3" 0 <1> INT t1.c:58
+         NAME "v4" 0 <1> INT t1.c:58
+      ADD INT t1.c:58
+         NAME "v1" 0 <1> INT t1.c:58
+         CONST "1" INT t1.c:58
+      ADD INT t1.c:58
+         NAME "v2" 0 <1> INT t1.c:58
+         CONST "2" INT t1.c:58
+   Z
+
+ == tree ==
+AS INT t1.c:58
+   NAME "v1" 0 <1> INT t1.c:58
+   POSTINC INT t1.c:58
+      NAME "v2" 0 <1> INT t1.c:58
+      Z
+
+ == final ==
+COMMA CHAR t1.c:58
+   AS INT t1.c:58
+      NAME "v1" 0 <1> INT t1.c:58
+      POSTINC INT t1.c:58
+         NAME "v2" 0 <1> INT t1.c:58
+         Z
+   CAST CHAR t1.c:58
+      COND INT t1.c:58
+         EQ INT t1.c:58
+            NAME "v3" 0 <1> INT t1.c:58
+            NAME "v4" 0 <1> INT t1.c:58
+         ADD INT t1.c:58
+            NAME "v1" 0 <1> INT t1.c:58
+            CONST "1" INT t1.c:58
+         ADD INT t1.c:58
+            NAME "v2" 0 <1> INT t1.c:58
+            CONST "2" INT t1.c:58
+      Z
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (1) t1.c:58
+   NAME "v1" 0 <10> INT t1.c:58
+   POSTINC INT (1) t1.c:58
+      NAME "v2" 0 <10> INT t1.c:58
+      Z
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:58
+
+ == cgen ==
+POSTINC INT (1) t1.c:58
+   NAME "v2" 0 <10> INT t1.c:58
+   Z
+
+	MOVL	v2+0(SB),AX
+	ADDL	$1,v2+0(SB)
+	MOVL	AX,v1+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS CHAR (2) <eof>
+   REGISTER R8 <11> LONG <eof>
+   CAST CHAR (2) t1.c:58
+      COND INT (2) t1.c:58
+         EQ INT (1) t1.c:58
+            NAME "v3" 0 <10> INT t1.c:58
+            NAME "v4" 0 <10> INT t1.c:58
+         ADD INT (1) t1.c:58
+            NAME "v1" 0 <10> INT t1.c:58
+            CONST "1" <20> INT t1.c:58
+         ADD INT (1) t1.c:58
+            NAME "v2" 0 <10> INT t1.c:58
+            CONST "2" <20> INT t1.c:58
+      Z
+
+ == cgen lhs ==
+REGISTER R8 <11> CHAR t1.c:58
+
+ == cgen ==
+CAST CHAR (2) t1.c:58
+   COND INT (2) t1.c:58
+      EQ INT (1) t1.c:58
+         NAME "v3" 0 <10> INT t1.c:58
+         NAME "v4" 0 <10> INT t1.c:58
+      ADD INT (1) t1.c:58
+         NAME "v1" 0 <10> INT t1.c:58
+         CONST "1" <20> INT t1.c:58
+      ADD INT (1) t1.c:58
+         NAME "v2" 0 <10> INT t1.c:58
+         CONST "2" <20> INT t1.c:58
+   Z
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:58
+
+ == cgen ==
+COND INT (2) t1.c:58
+   EQ INT (1) t1.c:58
+      NAME "v3" 0 <10> INT t1.c:58
+      NAME "v4" 0 <10> INT t1.c:58
+   ADD INT (1) t1.c:58
+      NAME "v1" 0 <10> INT t1.c:58
+      CONST "1" <20> INT t1.c:58
+   ADD INT (1) t1.c:58
+      NAME "v2" 0 <10> INT t1.c:58
+      CONST "2" <20> INT t1.c:58
+
+ == boolgen lhs ==
+Z
+
+ == boolgen ==
+EQ INT (1) t1.c:58
+   NAME "v3" 0 <10> INT t1.c:58
+   NAME "v4" 0 <10> INT t1.c:58
+
+ == cgen lhs ==
+REGISTER R9 <11> INT t1.c:58
+
+ == cgen ==
+NAME "v3" 0 <10> INT t1.c:58
+
+	MOVL	v3+0(SB),CX
+	CMPL	CX,v4+0(SB)
+	JNE	,
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:58
+
+ == cgen ==
+ADD INT (1) t1.c:58
+   NAME "v1" 0 <10> INT t1.c:58
+   CONST "1" <20> INT t1.c:58
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:58
+
+ == cgen ==
+NAME "v1" 0 <10> INT t1.c:58
+
+	MOVL	v1+0(SB),AX
+	ADDL	$1,AX
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:58
+
+ == cgen ==
+ADD INT (1) t1.c:58
+   NAME "v2" 0 <10> INT t1.c:58
+   CONST "2" <20> INT t1.c:58
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:58
+
+ == cgen ==
+NAME "v2" 0 <10> INT t1.c:58
+
+	MOVL	v2+0(SB),AX
+	ADDL	$2,AX
+	MOVBLSX	AX,AX
+	NOP	,
+	NOP	,
+	NOP	,
+n=3
+ == res ==
+FUNC INT t1.c:66
+   NAME "g" 0 <1> FUNC(INT, INT, INT) INT t1.c:66
+   NAME "v1" 0 <1> INT t1.c:66
+   COND INT t1.c:66
+      EQ INT t1.c:66
+         NAME "v3" 0 <1> INT t1.c:66
+         NAME "v4" 0 <1> INT t1.c:66
+      ADD INT t1.c:66
+         NAME "v1" 0 <1> INT t1.c:66
+         CONST "1" INT t1.c:66
+      ADD INT t1.c:66
+         NAME "v2" 0 <1> INT t1.c:66
+         CONST "2" INT t1.c:66
+   ADD INT t1.c:66
+      NAME "v1" 0 <1> INT t1.c:66
+      CONST "1" INT t1.c:66
+
+ == tree ==
+POSTINC INT t1.c:66
+   NAME "v4" 0 <1> INT t1.c:66
+   Z
+
+ == tree ==
+AS INT t1.c:66
+   NAME "v2" 0 <1> INT t1.c:66
+   NAME "v3" 0 <1> INT t1.c:66
+
+ == tree ==
+AS INT t1.c:66
+   NAME "v1" 0 <1> INT t1.c:66
+   POSTINC INT t1.c:66
+      NAME "v2" 0 <1> INT t1.c:66
+      Z
+
+ == final ==
+COMMA INT t1.c:66
+   AS INT t1.c:66
+      NAME "v1" 0 <1> INT t1.c:66
+      POSTINC INT t1.c:66
+         NAME "v2" 0 <1> INT t1.c:66
+         Z
+   COMMA INT t1.c:66
+      AS INT t1.c:66
+         NAME "v2" 0 <1> INT t1.c:66
+         NAME "v3" 0 <1> INT t1.c:66
+      COMMA INT t1.c:66
+         POSTINC INT t1.c:66
+            NAME "v4" 0 <1> INT t1.c:66
+            Z
+         FUNC INT t1.c:66
+            NAME "g" 0 <1> FUNC(INT, INT, INT) INT t1.c:66
+            NAME "v1" 0 <1> INT t1.c:66
+            COND INT t1.c:66
+               EQ INT t1.c:66
+                  NAME "v3" 0 <1> INT t1.c:66
+                  NAME "v4" 0 <1> INT t1.c:66
+               ADD INT t1.c:66
+                  NAME "v1" 0 <1> INT t1.c:66
+                  CONST "1" INT t1.c:66
+               ADD INT t1.c:66
+                  NAME "v2" 0 <1> INT t1.c:66
+                  CONST "2" INT t1.c:66
+            ADD INT t1.c:66
+               NAME "v1" 0 <1> INT t1.c:66
+               CONST "1" INT t1.c:66
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (100) t1.c:66
+   AS INT (1) t1.c:66
+      NAME "v1" 0 <10> INT t1.c:66
+      POSTINC INT (1) t1.c:66
+         NAME "v2" 0 <10> INT t1.c:66
+         Z
+   COMMA INT (100) t1.c:66
+      AS INT (1) t1.c:66
+         NAME "v2" 0 <10> INT t1.c:66
+         NAME "v3" 0 <10> INT t1.c:66
+      COMMA INT (100) t1.c:66
+         POSTINC INT (1) t1.c:66
+            NAME "v4" 0 <10> INT t1.c:66
+            Z
+         FUNC INT (100) t1.c:66
+            NAME "g" 0 <10> FUNC(INT, INT, INT) INT t1.c:66
+            NAME "v1" 0 <10> INT t1.c:66
+            COND INT (2) t1.c:66
+               EQ INT (1) t1.c:66
+                  NAME "v3" 0 <10> INT t1.c:66
+                  NAME "v4" 0 <10> INT t1.c:66
+               ADD INT (1) t1.c:66
+                  NAME "v1" 0 <10> INT t1.c:66
+                  CONST "1" <20> INT t1.c:66
+               ADD INT (1) t1.c:66
+                  NAME "v2" 0 <10> INT t1.c:66
+                  CONST "2" <20> INT t1.c:66
+            ADD INT (1) t1.c:66
+               NAME "v1" 0 <10> INT t1.c:66
+               CONST "1" <20> INT t1.c:66
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (1) t1.c:66
+   NAME "v1" 0 <10> INT t1.c:66
+   POSTINC INT (1) t1.c:66
+      NAME "v2" 0 <10> INT t1.c:66
+      Z
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+POSTINC INT (1) t1.c:66
+   NAME "v2" 0 <10> INT t1.c:66
+   Z
+
+	MOVL	v2+0(SB),AX
+	ADDL	$1,v2+0(SB)
+	MOVL	AX,v1+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (100) t1.c:66
+   AS INT (1) t1.c:66
+      NAME "v2" 0 <10> INT t1.c:66
+      NAME "v3" 0 <10> INT t1.c:66
+   COMMA INT (100) t1.c:66
+      POSTINC INT (1) t1.c:66
+         NAME "v4" 0 <10> INT t1.c:66
+         Z
+      FUNC INT (100) t1.c:66
+         NAME "g" 0 <10> FUNC(INT, INT, INT) INT t1.c:66
+         NAME "v1" 0 <10> INT t1.c:66
+         COND INT (2) t1.c:66
+            EQ INT (1) t1.c:66
+               NAME "v3" 0 <10> INT t1.c:66
+               NAME "v4" 0 <10> INT t1.c:66
+            ADD INT (1) t1.c:66
+               NAME "v1" 0 <10> INT t1.c:66
+               CONST "1" <20> INT t1.c:66
+            ADD INT (1) t1.c:66
+               NAME "v2" 0 <10> INT t1.c:66
+               CONST "2" <20> INT t1.c:66
+         ADD INT (1) t1.c:66
+            NAME "v1" 0 <10> INT t1.c:66
+            CONST "1" <20> INT t1.c:66
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+AS INT (1) t1.c:66
+   NAME "v2" 0 <10> INT t1.c:66
+   NAME "v3" 0 <10> INT t1.c:66
+
+	MOVL	v3+0(SB),AX
+	MOVL	AX,v2+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+COMMA INT (100) t1.c:66
+   POSTINC INT (1) t1.c:66
+      NAME "v4" 0 <10> INT t1.c:66
+      Z
+   FUNC INT (100) t1.c:66
+      NAME "g" 0 <10> FUNC(INT, INT, INT) INT t1.c:66
+      NAME "v1" 0 <10> INT t1.c:66
+      COND INT (2) t1.c:66
+         EQ INT (1) t1.c:66
+            NAME "v3" 0 <10> INT t1.c:66
+            NAME "v4" 0 <10> INT t1.c:66
+         ADD INT (1) t1.c:66
+            NAME "v1" 0 <10> INT t1.c:66
+            CONST "1" <20> INT t1.c:66
+         ADD INT (1) t1.c:66
+            NAME "v2" 0 <10> INT t1.c:66
+            CONST "2" <20> INT t1.c:66
+      ADD INT (1) t1.c:66
+         NAME "v1" 0 <10> INT t1.c:66
+         CONST "1" <20> INT t1.c:66
+
+ == cgen lhs ==
+Z
+
+ == cgen ==
+POSTINC INT (1) t1.c:66
+   NAME "v4" 0 <10> INT t1.c:66
+   Z
+
+	ADDL	$1,v4+0(SB)
+ == cgen lhs ==
+Z
+
+ == cgen ==
+FUNC INT (100) t1.c:66
+   NAME "g" 0 <10> FUNC(INT, INT, INT) INT t1.c:66
+   NAME "v1" 0 <10> INT t1.c:66
+   COND INT (2) t1.c:66
+      EQ INT (1) t1.c:66
+         NAME "v3" 0 <10> INT t1.c:66
+         NAME "v4" 0 <10> INT t1.c:66
+      ADD INT (1) t1.c:66
+         NAME "v1" 0 <10> INT t1.c:66
+         CONST "1" <20> INT t1.c:66
+      ADD INT (1) t1.c:66
+         NAME "v2" 0 <10> INT t1.c:66
+         CONST "2" <20> INT t1.c:66
+   ADD INT (1) t1.c:66
+      NAME "v1" 0 <10> INT t1.c:66
+      CONST "1" <20> INT t1.c:66
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+NAME "v1" 0 <10> INT t1.c:66
+
+	MOVL	v1+0(SB),AX
+	MOVL	AX,(SP)
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+COND INT (2) t1.c:66
+   EQ INT (1) t1.c:66
+      NAME "v3" 0 <10> INT t1.c:66
+      NAME "v4" 0 <10> INT t1.c:66
+   ADD INT (1) t1.c:66
+      NAME "v1" 0 <10> INT t1.c:66
+      CONST "1" <20> INT t1.c:66
+   ADD INT (1) t1.c:66
+      NAME "v2" 0 <10> INT t1.c:66
+      CONST "2" <20> INT t1.c:66
+
+ == boolgen lhs ==
+Z
+
+ == boolgen ==
+EQ INT (1) t1.c:66
+   NAME "v3" 0 <10> INT t1.c:66
+   NAME "v4" 0 <10> INT t1.c:66
+
+ == cgen lhs ==
+REGISTER R9 <11> INT t1.c:66
+
+ == cgen ==
+NAME "v3" 0 <10> INT t1.c:66
+
+	MOVL	v3+0(SB),CX
+	CMPL	CX,v4+0(SB)
+	JNE	,
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+ADD INT (1) t1.c:66
+   NAME "v1" 0 <10> INT t1.c:66
+   CONST "1" <20> INT t1.c:66
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+NAME "v1" 0 <10> INT t1.c:66
+
+	MOVL	v1+0(SB),AX
+	ADDL	$1,AX
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+ADD INT (1) t1.c:66
+   NAME "v2" 0 <10> INT t1.c:66
+   CONST "2" <20> INT t1.c:66
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+NAME "v2" 0 <10> INT t1.c:66
+
+	MOVL	v2+0(SB),AX
+	ADDL	$2,AX
+	MOVL	AX,4(SP)
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+ADD INT (1) t1.c:66
+   NAME "v1" 0 <10> INT t1.c:66
+   CONST "1" <20> INT t1.c:66
+
+ == cgen lhs ==
+REGISTER R8 <11> INT t1.c:66
+
+ == cgen ==
+NAME "v1" 0 <10> INT t1.c:66
+
+	MOVL	v1+0(SB),AX
+	ADDL	$1,AX
+	MOVL	AX,8(SP)
+	CALL	,g+0(SB)
+	NOP	,
+	NOP	,
+	TEXT	f1+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v4+0(SB),AX
+	MOVL	AX,v3+0(SB)
+	RET	,
+	TEXT	f2+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v4+0(SB),AX
+	MOVL	AX,v3+0(SB)
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f3+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v4+0(SB),AX
+	IMULL	v3+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f4+0(SB),0,$0
+	INCL	,v1+0(SB)
+	INCL	,v3+0(SB)
+	RET	,
+	TEXT	f5+0(SB),0,$0
+	INCL	,v2+0(SB)
+	INCL	,v3+0(SB)
+	MOVL	v4+0(SB),AX
+	IMULL	v1+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f6+0(SB),0,$0
+	MOVL	v2+0(SB),AX
+	INCL	,AX
+	MOVL	AX,v2+0(SB)
+	MOVL	v3+0(SB),AX
+	NEGL	,AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f7+0(SB),0,$0
+	MOVL	v2+0(SB),DX
+	CMPL	DX,v3+0(SB)
+	JNE	,4(PC)
+	INCL	,v4+0(SB)
+	MOVL	DX,AX
+	JMP	,3(PC)
+	INCL	,v3+0(SB)
+	MOVL	v1+0(SB),AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f8+0(SB),0,$0
+	INCL	,v2+0(SB)
+	MOVL	v3+0(SB),CX
+	CMPL	CX,v1+0(SB)
+	JNE	,4(PC)
+	INCL	,v3+0(SB)
+	CMPL	v4+0(SB),$2
+	JEQ	,2(PC)
+	JMP	,3(PC)
+	MOVL	$1,AX
+	JMP	,2(PC)
+	MOVL	$0,AX
+	MOVL	AX,v1+0(SB)
+	RET	,
+	TEXT	f9+0(SB),0,$0
+	MOVL	v2+0(SB),BX
+	MOVL	BX,AX
+	INCL	,BX
+	MOVL	BX,v2+0(SB)
+	MOVL	AX,v1+0(SB)
+	MOVL	v3+0(SB),CX
+	CMPL	CX,v4+0(SB)
+	JNE	,3(PC)
+	INCL	,AX
+	JMP	,3(PC)
+	MOVL	BX,AX
+	ADDL	$2,AX
+	MOVBLSX	AX,AX
+	RET	,
+	RET	,
+	TEXT	f10+0(SB),0,$16
+	MOVL	v2+0(SB),DX
+	MOVL	v3+0(SB),BX
+	MOVL	BX,v2+0(SB)
+	INCL	,v4+0(SB)
+	MOVL	DX,(SP)
+	CMPL	BX,v4+0(SB)
+	JNE	,4(PC)
+	MOVL	DX,AX
+	INCL	,AX
+	JMP	,3(PC)
+	MOVL	BX,AX
+	ADDL	$2,AX
+	MOVL	AX,4(SP)
+	MOVL	DX,AX
+	MOVL	DX,v1+0(SB)
+	INCL	,AX
+	MOVL	AX,8(SP)
+	CALL	,g+0(SB)
+	RET	,
+	GLOBL	v1+0(SB),$4
+	GLOBL	v2+0(SB),$4
+	GLOBL	v3+0(SB),$4
+	GLOBL	v4+0(SB),$4
+	END	,

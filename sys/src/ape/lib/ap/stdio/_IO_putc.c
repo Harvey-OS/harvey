@@ -12,9 +12,13 @@ void _IO_cleanup(void){
 int _IO_putc(int c, FILE *f){
 	int cnt;
 	static int first=1;
+
+	if (f == 0)
+		return EOF;
 	switch(f->state){
 	case RD:
 		f->state=ERR;
+		/* fall through */
 	case ERR:
 	case CLOSED:
 		return EOF;

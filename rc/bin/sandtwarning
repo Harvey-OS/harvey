@@ -1,0 +1,42 @@
+#!/bin/rc
+# sandtwarning - warn speaker and audience of next Show & Tell talk
+rfork ne
+recipient = bl1127
+
+ramfs			# here document needs a /tmp directory it can write
+
+if(~ `{calendar $* /lib/sandt | wc -l} 0){
+	echo No Show and Tell on Tuesday |
+		mail -s'Next Show and Tell' $recipient
+	exit
+}
+
+if(~ $#* 0){
+	speakers = `{calendar /lib/sandt | awk -F'	' '{print $2}'}
+	mail $speakers <<EOF
+}
+Subject: Show and Tell slides
+
+Your show and tell is due next; if you haven't done so yet,
+please mail a copy of your slides to sape@plan9.bell-labs.com
+so he can put them on the S&T website.  If you do so
+beforehand, people conferencing in to S&T can see the slides too.
+
+If you intend to use netmeeting, send a message to bl1127 identifying
+the name of the meeting.
+EOF
+
+next = `{calendar $* /lib/sandt}
+
+mail $recipient <<EOF
+Subject: Next Show and Tell
+
+The next Show and Tell will be:
+
+$next
+
+2pm, 2A-435
+
+Conference call number 877-237-7156  or 908-516-0200  426 426 (NEW!)
+
+EOF

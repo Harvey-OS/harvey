@@ -472,7 +472,7 @@ int
 eatomouse(Mouse *m, char *buf, int n)
 {
 	if(n != 1+4*12){
-		werrstr("atomouse: bad count");
+		werrstr("eatomouse: bad count");
 		return -1;
 	}
 

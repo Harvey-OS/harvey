@@ -14,7 +14,7 @@ usage(void)
 
 enum
 {
-	BlockSize = 16*1024,
+	BlockSize = 8*1024,
 };
 
 struct
@@ -712,3 +712,4 @@ warn(char *fmt, ...)
 	fprint(2, "\n");
 	va_end(arg);
 }
+

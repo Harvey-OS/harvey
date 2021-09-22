@@ -217,7 +217,7 @@ srvremove(Chan *c)
 	/*
 	 * No removing personal services.
 	 */
-	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) && !iseve())
+	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) != 0 && !iseve())
 		error(Eperm);
 
 	*l = sp->link;

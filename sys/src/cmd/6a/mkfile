@@ -13,6 +13,7 @@ HFILES=\
 YFILES=a.y\
 
 BIN=/$objtype/bin
+LIB=/$objtype/lib/libnofp.a
 UPDATE=\
 	mkfile\
 	a.y\

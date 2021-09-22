@@ -1,0 +1,12 @@
+#!/bin/rc
+# start timesync; usually run from cpurc
+rfork ens
+
+nets=`{ls -d /net*/udp | sed 's;/udp$;;'}
+timesrv=`{ndb/ipquery sys $sysname ntp | sed 's/ntp=//g'}
+aux/timesync -s^$nets -nl -d /sys/log/timesync.d $timesrv
+
+if (test -e '#r/rtc') @ {
+	sleep 300			# let timesync correct the time
+	awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
+} &

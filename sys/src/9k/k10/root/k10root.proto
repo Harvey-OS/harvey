@@ -1,5 +1,5 @@
 adm d775 sys sys /tmp/empty
-	nvram 400 sys sys ./root/nvram
+	nvram 400 sys sys ../root/nvram
 	timezone d775 sys sys /tmp/empty
 lib d775 sys sys /tmp/empty
 	namespace 664 sys sys ./root/k10root.namespace

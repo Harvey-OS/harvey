@@ -104,8 +104,6 @@ or
 .BR 386 ,
 plus
 .B mipsco
-and
-.BR sunsparc ,
 which cause disassembly to the manufacturer's syntax)
 instead of using the magic number to select
 the CPU type.
@@ -464,10 +462,8 @@ As
 .B i
 above, but print the machine instructions in
 an alternate form if possible:
-.B sunsparc
-and
 .B mipsco
-reproduce the manufacturers' syntax.
+reproduces the manufacturers' syntax.
 .TP
 .B M
 Print the addressed machine instruction in a

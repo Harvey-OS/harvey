@@ -211,7 +211,7 @@ command toggles whether
 can attach without such a chaperone.
 .PD
 .SH SOURCE
-.B /sys/src/cmd/disk/kfscmd.c
+.B /sys/src/cmd/disk/_unused/kfscmd.c
 .br
 .B /$objtype/bin/disk/ksync
 .SH "SEE ALSO"

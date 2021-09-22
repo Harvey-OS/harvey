@@ -1,0 +1,96 @@
+.TH ISCSIFS 4
+.SH NAME
+iscsifs \- iSCSI initiator: serve iSCSI target, with partitions
+.SH SYNOPSIS
+.B ip/iscsifs
+[
+.B -Dr
+] [
+.B -m
+.I mtpt
+] [
+.B -p
+.I 9load-parts
+] [
+.B -s
+.I srvname
+]
+.I dialstring
+.I target
+.SH DESCRIPTION
+.I Iscsifs
+presents the iSCSI
+.I target
+found by dialing
+.IR dialstring ,
+in the manner of
+.IR sd (3)
+on
+.IB mtpt / diskname
+(default
+.BR /n/iscsi ).
+The default port is TCP 3260.
+Changes made to the disk are written through to
+.I target
+unless the
+.B -r
+option is given.
+.PP
+When setting disk geometry with the
+.B geometry
+control message,
+the arguments are
+sectors and sector size.
+.PP
+The
+.B -m
+option causes
+.I iscsifs
+to mount its synthetic file system at
+.I mtpt
+instead of
+.BR /n/iscsi .
+.PP
+The
+.B -p
+option causes
+.I iscsifs
+to treat
+.I 9load-parts
+as a partition environment variable constructed by
+.I 9load
+(see
+.IR 9boot (8))
+and adds the defined partitions.
+This is used primarily by
+.IR boot (8)
+to assist booting from iSCSI disks.
+.PP
+The
+.B -s
+option causes
+.I iscsifs
+to post its 9P service at
+.BI /srv/ service \fR.
+.SH EXAMPLES
+Mount a target on machine
+.IR soylent :
+.IP
+.EX
+ip/iscsifs soylent iqn.2001-04.com.bell-labs.plan9:test
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/iscsifs
+.SH SEE ALSO
+.IR fs (3),
+.IR sd (3),
+.IR partfs (8),
+.IR prep (8)
+.SH BUGS
+Does not authenticate outgoing connections.
+.PP
+Implements only one connection per session.
+.PP
+Trusts TCP, so does not implement framing (FIM) nor CRCs (digests).
+.PP
+Speaks a restricted subset of the iSCSI protocol.

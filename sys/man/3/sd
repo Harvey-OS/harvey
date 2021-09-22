@@ -14,15 +14,22 @@ sd \- storage device interface
 .SH DESCRIPTION
 The storage device interface serves a two-level directory
 giving access to multiple storage units,
-typically ATA(PI) or SCSI discs.
+typically SATA, NVME, SDIO/MMC, ATA(PI) or SCSI discs.
 Each unit
 is accessed via files in the directory named by the controller
 to which it is attached,
 .IR C  ,
 and by its unit number
 .IR u .
-The controller naming convention for ATA(PI) units starts
-with the first controller being named
+The first NVME controller/drive combination is controller
+.LR n
+and the unit is always
+.LR 0 .
+The first SDIO/MMC controller is named
+.LR M .
+The first SATA controller is named
+.LR E .
+The first ATA(PI) controller is named
 .LR C ,
 the second
 .LR D ,
@@ -31,8 +38,7 @@ etc. up to a maximum of 4 controllers
 legacy controllers are always 'C' and 'D'.
 There can be a maximum of 2 units per ATA(PI) controller
 .RB ([ 01 ]).
-The controller naming convention for SCSI units starts with
-the first controller being named
+The first SCSI controller is named
 .LR 0 ,
 the second
 .LR 1 ,
@@ -240,8 +246,8 @@ or
 .SH SEE ALSO
 .IR scuzz (8)
 .SH BUGS
-LUNs (logical unit numbers) are not implemented.
-For (S)ATA drives,
+LUNs (logical unit numbers) are inconsistently implemented.
+The SCSI drivers implement them, but in the (S)ATA drivers,
 LUNs are not merely ignored but are actively
 prevented from working except for INQUIRY commands.
 .PP

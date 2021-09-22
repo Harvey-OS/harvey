@@ -1,0 +1,22 @@
+.de NH
+.fl
+.tm NH \\$1
+.ie '\\$1'' \{\\n+(n0.
+.nr n1 0 1\}
+.if '\\$1'1' \{\\n+(n0.
+.nr n1 0 1\}
+.if '\\$1'2' \\n(n0.\\n+(n1.
+..
+.nr n0 0 1
+.NH 1
+hello
+.fl
+.NH 2
+sub
+.fl
+.NH 2
+sub
+.NH 
+goodbye
+.NH 2
+sub

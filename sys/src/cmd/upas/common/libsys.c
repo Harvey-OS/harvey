@@ -32,8 +32,7 @@ extern char *
 getlog(void)
 {
 	static char user[64];
-	int fd;
-	int n;
+	int fd, n;
 
 	fd = open("/dev/user", 0);
 	if(fd < 0)
@@ -248,21 +247,18 @@ sysunlock(Mlock *l)
 /*
  *  Open a file.  The modes are:
  *
- *	l	- locked
- *	a	- set append permissions
- *	r	- readable
- *	w	- writable
  *	A	- append only (doesn't exist in Bio)
+ *	a	- set append permissions
+ *	c	- create if non-existent
+ *	l	- locked
+ *	r	- readable
+ *	t	- truncate
+ *	w	- writable
  */
 extern Biobuf *
 sysopen(char *path, char *mode, ulong perm)
 {
-	int sysperm;
-	int sysmode;
-	int fd;
-	int docreate;
-	int append;
-	int truncate;
+	int append, docreate, fd, sysmode, sysperm, truncate;
 	Dir *d, nd;
 	Biobuf *bp;
 
@@ -601,7 +597,7 @@ extern int
 sysisdir(char *file)
 {
 	Dir	*d;
-	int	rv;
+	int rv;
 
 	d = dirstat(file);
 	if(d == nil)

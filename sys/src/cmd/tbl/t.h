@@ -8,7 +8,7 @@
 # define MAXLIN 250
 # define MAXHEAD 44
 # define MAXCOL 30
- /* Do NOT make MAXCOL bigger with adjusting nregs[] in tr.c */
+ /* Do NOT make MAXCOL bigger without adjusting nregs[] in tr.c */
 # define MAXCHS 2000
 #define MAXLINLEN 300
 # define MAXRPT 100

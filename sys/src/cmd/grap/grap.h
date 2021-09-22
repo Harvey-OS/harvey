@@ -202,7 +202,6 @@ extern void plot(Attr *, Point);
 extern void plotnum(double, char *, Point);
 extern void drawdesc(int, Obj *, Attr *, char *);
 extern void next(Obj *, Point, Attr *);
-extern void print(void);
 extern void endstat(void);
 extern void graph(char *);
 extern void setup(void);
@@ -234,3 +233,9 @@ extern char *desc_str(Attr *);
 extern int sidelog(int, int);
 
 extern	Obj	*objlist;
+
+/* import from unix */
+#define exit(n) exits((n) == 0? 0: "error")
+#define unlink remove
+
+int	system(char *);

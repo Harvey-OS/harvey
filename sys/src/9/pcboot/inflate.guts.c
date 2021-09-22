@@ -76,22 +76,22 @@ header(Biobuf *bin)
 		print("unknown compression type\n");
 		return FlateCorrupted;
 	}
-	
+
 	flag = getc(bin);
-	
+
 	/* mod time */
 	get4(bin);
-	
+
 	/* extra flags */
 	getc(bin);
-	
+
 	/* OS type */
 	getc(bin);
 
 	if(flag & Fextra)
 		for(i=getc(bin); i>0; i--)
 			getc(bin);
-	
+
 	/* name */
 	if(flag&Fname)
 		while(getc(bin) != 0)
@@ -107,7 +107,7 @@ header(Biobuf *bin)
 		getc(bin);
 		getc(bin);
 	}
-		
+
 	return FlateOk;
 }
 

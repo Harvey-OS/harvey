@@ -31,7 +31,16 @@ than file servers, to export portions of a name space across networks.
 The service is started either by the
 .IR cpu (1)
 command or by a network listener process.  An initial protocol
-establishes a root directory for the exported name space.
+establishes a root directory for the exported name space,
+optional use of
+.IR aan (8),
+and type of encryption:
+.B clear
+(none),
+.B ssl
+(SSLv2),
+or
+.BR tls .
 The
 connection to
 .I exportfs
@@ -97,7 +106,8 @@ Log all 9P traffic to
 .B -e '\fIenc auth\fL'
 Set the encryption and authentication algorithms to use for
 encrypting the wire traffic (see
-.IR ssl (3)).
+.IR ssl (3))
+if using SSLv2.
 The defaults are
 .B rc4_256
 and
@@ -126,11 +136,15 @@ contains one regular expression per line,
 to be matched against path names
 relative to the current working directory
 and starting with
-.BR ./ .
-For a file to be exported, all lines with a prefix
-.B +
-must match and all those with prefix
-.B -
+.LR ./ .
+For a file to be exported,
+.I all
+lines with a prefix
+.L +
+must match and
+.I all
+those with prefix
+.L -
 must not match.
 .TP
 .B -R
@@ -262,6 +276,9 @@ cd /n/spy; ls
 .B /sys/src/cmd/srvfs.c
 .SH SEE ALSO
 .IR dial (2),
+.IR tls (3),
 .IR import (4),
 .IR aan (8),
 .IR listen (8)
+.SH BUGS
+SSLv2 and RC4 are deprecated.

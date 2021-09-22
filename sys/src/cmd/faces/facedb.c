@@ -172,11 +172,12 @@ translatedomain(char *dom, char *list)
 		}
 
 		if(regexec(exp, dom, 0, 0)){
-			free(exp);
+			regfree(exp);
 			ep = p+strlen(p);
 			q += strspn(q, " \t");
 			if(ep-q+2 > sizeof buf) {
-				fprint(2, "huge replacement in machinelist: %.*s\n", utfnlen(q, ep-q), q);
+				fprint(2, "huge replacement in machinelist: %.*s\n",
+					utfnlen(q, ep-q), q);
 				exits("bad big replacement");
 			}
 			strncpy(buf, q, ep-q);
@@ -187,7 +188,7 @@ translatedomain(char *dom, char *list)
 			free(file);
 			return buf;
 		}
-		free(exp);
+		regfree(exp);
 	}
 	free(file);
 

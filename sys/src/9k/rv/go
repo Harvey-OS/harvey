@@ -1,0 +1,3 @@
+#!/bin/rc
+fn go {mk install && cp -x 9um* /n/mac/users/geoff;ls -l 9*.bin;cat um}
+go

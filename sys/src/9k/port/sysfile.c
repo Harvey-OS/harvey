@@ -22,7 +22,7 @@ unlockfgrp(Fgrp *f)
 }
 
 static int
-growfd(Fgrp *f, int fd)	/* fd is always >= 0 */
+growfd(Fgrp *f, int fd)		/* fd is always >= 0 */
 {
 	Chan **newfd, **oldfd;
 
@@ -122,13 +122,13 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 	Chan *c;
 	Fgrp *f;
 
-	c = nil;
 	f = up->fgrp;
 
 	lock(f);
 	if(fd<0 || f->nfd<=fd || (c = f->fd[fd])==0) {
 		unlock(f);
 		error(Ebadfd);
+		notreached();
 	}
 	if(iref)
 		incref(c);
@@ -138,6 +138,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
+		notreached();
 	}
 
 	if(mode<0 || c->mode==ORDWR)
@@ -147,12 +148,14 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
+		notreached();
 	}
 
 	if((mode&~OTRUNC) != c->mode) {
 		if(iref)
 			cclose(c);
 		error(Ebadusefd);
+		notreached();
 	}
 
 	return c;
@@ -162,7 +165,7 @@ int
 openmode(int omode)
 {
 	omode &= ~(OTRUNC|OCEXEC|ORCLOSE);
-	if(omode > OEXEC)
+	if((uint)omode > OEXEC)
 		error(Ebadarg);
 	if(omode == OEXEC)
 		return OREAD;
@@ -205,8 +208,9 @@ syspipe(Ar0* ar0, va_list list)
 	 * int pipe(int fd[2]);
 	 */
 	a = va_arg(list, int*);
+	va_end(list);
 	a = validaddr(a, sizeof(fd), 1);
-	evenaddr(PTR2UINT(a));
+	evenaddr((uintptr)a);
 
 	c[0] = namec("#|", Atodir, 0, 0);
 	c[1] = nil;
@@ -628,7 +632,7 @@ mountfix(Chan *c, uchar *op, long n, long maxn)
 			l = nc->dev->stat(nc, buf, nbuf);
 			r = dirsetname(name, nname, buf, l, nbuf);
 			if(r == BIT16SZ)
-				error("dirsetname");
+				error("dirsetname failed in mountfix");
 			poperror();
 
 			/*
@@ -710,6 +714,7 @@ read(va_list list, int ispread)
 	}
 	else
 		off = c->offset;
+	va_end(list);
 
 	if(c->qid.type & QTDIR){
 		/*
@@ -787,6 +792,14 @@ write(va_list list, int ispwrite)
 	p = va_arg(list, void*);
 	r = n = va_arg(list, long);
 
+	if (fd < 0) {
+		// print("syspwrite %d %#p %ld: fd %d < 0\n", fd, p, n, fd);
+		error(Ebadfd);
+	}
+	if (n < 0) {
+		// print("syspwrite %d %#p %ld: len %ld < 0\n", fd, p, n, n);
+		error("write: negative length");
+	}
 	p = validaddr(p, n, 0);
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
@@ -808,6 +821,7 @@ write(va_list list, int ispwrite)
 	off = ~0LL;
 	if(ispwrite)
 		off = va_arg(list, vlong);
+	va_end(list);
 	if(off == ~0LL){	/* use and maintain channel's offset */
 		lock(c);
 		off = c->offset;
@@ -936,6 +950,8 @@ sysoseek(Ar0* ar0, va_list list)
 	 * long oseek(int fd, long n, int type);
 	 *
 	 * Deprecated; backwards compatibility only.
+	 * 9k postdates 9P2000, so this can never happen;
+	 * there are no old pre-9P2000 9k binaries.
 	 */
 	fd = va_arg(list, int);
 	offset = va_arg(list, long);
@@ -1067,6 +1083,7 @@ syschdir(Ar0* ar0, va_list list)
 	 * int chdir(char* dirname);
 	 */
 	aname = va_arg(list, char*);
+	va_end(list);
 	aname = validaddr(aname, 1, 0);
 
 	c = namec(aname, Atodir, 0, 0);
@@ -1117,7 +1134,7 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, int flag, char* 
 		if(waserror())
 			error(Ebadspec);
 		spec = validnamedup(spec, 1);
-		poperror();
+		poperror();			/* validnamedup */
 
 		if(waserror()){
 			free(spec);
@@ -1130,12 +1147,13 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, int flag, char* 
 			nexterror();
 		}
 		c0 = dev->attach((char*)&bogus);
-		poperror();
+		poperror();			/* attach */
 		//devtabdecr(dev);
 
-		poperror();	/* spec */
+		poperror();			/* spec */
 		free(spec);
-		poperror();	/* ac bc */
+
+		poperror();			/* ac bc */
 		if(ac)
 			cclose(ac);
 		cclose(bc);
@@ -1157,9 +1175,9 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, int flag, char* 
 
 	i = cmount(&c0, c1, flag, bogus.spec);
 
-	poperror();
+	poperror();			/* cclose(c1) */
 	cclose(c1);
-	poperror();
+	poperror();			/* cclose(c0) */
 	cclose(c0);
 	if(ismount)
 		fdclose(fd, 0);
@@ -1201,6 +1219,7 @@ sysmount(Ar0* ar0, va_list list)
 	old = va_arg(list, char*);
 	flag = va_arg(list, int);
 	aname = va_arg(list, char*);
+	va_end(list);
 
 	ar0->i = bindmount(1, fd, afd, nil, old, flag, aname);
 }
@@ -1222,6 +1241,7 @@ sys_mount(Ar0* ar0, va_list list)
 	old = va_arg(list, char*);
 	flag = va_arg(list, int);
 	aname = va_arg(list, char*);
+	va_end(list);
 
 	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
 }
@@ -1237,6 +1257,7 @@ sysunmount(Ar0* ar0, va_list list)
 	 */
 	name = va_arg(list, char*);
 	old = va_arg(list, char*);
+	va_end(list);
 	cmount = namec(validaddr(old, 1, 0), Amount, 0, 0);
 
 	cmounted = nil;
@@ -1287,6 +1308,7 @@ syscreate(Ar0* ar0, va_list list)
 	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
 	perm = va_arg(list, int);
+	va_end(list);
 
 	openmode(omode & ~OEXCL);	/* error check only; OEXCL okay here */
 	c = nil;
@@ -1314,6 +1336,7 @@ sysremove(Ar0* ar0, va_list list)
 	 * int remove(char* file);
 	 */
 	aname = va_arg(list, char*);
+	va_end(list);
 	c = namec(validaddr(aname, 1, 0), Aremove, 0, 0);
 
 	/*
@@ -1334,7 +1357,7 @@ sysremove(Ar0* ar0, va_list list)
 	/*
 	 * Remove clunks the fid, but we need to recover the Chan
 	 * so fake it up.  rootclose() is known to be a nop.
-Not sure this dicking around is right for Dev ref counts.
+	 * Not sure this dicking around is right for Dev ref counts.
 	 */
 	c->dev = nil;
 	poperror();

@@ -182,7 +182,6 @@ vtsendproc(void *v)
 	z->writeq = nil;
 	rwakeup(&z->rpcfork);
 	qunlock(&z->lk);
-	return;
 }
 
 Packet*

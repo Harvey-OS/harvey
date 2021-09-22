@@ -14,7 +14,14 @@
 #include <utf.h>
 #include <fmt.h>
 #include <signal.h>
-#include <time.h>
+// #include <time.h>
+#ifndef _SUSV2_SOURCE
+#define _SUSV2_SOURCE
+#include <inttypes.h>
+#undef	_SUSV2_SOURCE
+#else
+#include <inttypes.h>
+#endif
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
@@ -64,6 +71,37 @@ struct Waitmsg
 	char	*msg;
 } Waitmsg;
 
+/*
+ * Time-of-day
+ */
+
+typedef
+struct Tm
+{
+	int	sec;
+	int	min;
+	int	hour;
+	int	mday;
+	int	mon;
+	int	year;
+	int	wday;
+	int	yday;
+	char	zone[4];
+	int	tzoff;
+} Tm;
+
+extern	Tm*	gmtime(long);
+extern	Tm*	localtime(long);
+extern	char*	asctime(Tm*);
+extern	char*	ctime(long);
+extern	double	cputime(void);
+extern	long	times(long*);
+extern	long	tm2sec(Tm*);
+extern	vlong	nsec(void);
+
+extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+
+extern	long	time(long*);
 
 extern	int	_AWAIT(char*, int);
 extern	int	_ALARM(unsigned long);
@@ -89,10 +127,10 @@ extern	long	_PREAD(int, void*, long, long long);
 extern	long	_PWRITE(int, void*, long, long long);
 extern	long	_READ(int, void*, long);
 extern	int	_REMOVE(const char*);
-extern	int	_RENDEZVOUS(unsigned long, unsigned long);
+extern	void*	_RENDEZVOUS(void *, void *);
 extern	int	_RFORK(int);
-extern	int	_SEGATTACH(int, char*, void*, unsigned long);
-extern	int	_SEGBRK(void*, void*);
+extern	void*	_SEGATTACH(int, char*, void*, unsigned long);
+extern	void*	_SEGBRK(void*, void*);
 extern	int	_SEGDETACH(void*);
 extern	int	_SEGFLUSH(void*, unsigned long);
 extern	int	_SEGFREE(void*, unsigned long);
@@ -102,7 +140,7 @@ extern	int	_STAT(const char*, unsigned char*, int);
 extern	Waitmsg*	_WAIT(void);
 extern	long	_WRITE(int, const void*, long);
 extern	int	_WSTAT(const char*, unsigned char*, int);
-extern 	void *_MALLOCZ(int, int);
+extern 	void *_MALLOCZ(size_t, int);
 extern	int	_WERRSTR(char*, ...);
 extern	long	_READN(int, void*, long);
 extern	int	_IOUNIT(int);
@@ -125,7 +163,7 @@ extern	int	_IOUNIT(int);
 #define read _READ
 #define write _WRITE
 #define _exits(s) _exit(s && *(char*)s ? 1 : 0)
-#define exits(s) exit(s && *(char*)s ? 1 : 0)
+#define exits(s)   exit(s && *(char*)s ? 1 : 0)
 #define create _CREATE
 #define pread _PREAD
 #define readn _READN
@@ -139,7 +177,7 @@ extern	int	_IOUNIT(int);
 #define ERRMAX 128
 
 extern	void	setmalloctag(void*, ulong);
-extern	ulong	getcallerpc(void*);
+extern	uintptr_t getcallerpc(void*);
 
 /* Used in libsec.h and not picked up in earlier type definitions */
 typedef unsigned int u32int;
@@ -152,9 +190,54 @@ int  enc32(char *, int, uchar *, int);
 int  dec64(uchar *, int, char *, int);
 int  enc64(char *, int, uchar *, int);
 
-extern	vlong	nsec(void);
-
 extern void sysfatal(char*, ...);
 
 extern	ulong	truerand(void);			/* uses /dev/random */
 extern	int	getfields(char*, char**, int, int, char*);
+
+#pragma	varargck	type	"lld"	vlong
+#pragma	varargck	type	"llo"	vlong
+#pragma	varargck	type	"llx"	vlong
+#pragma	varargck	type	"llb"	vlong
+#pragma	varargck	type	"lld"	uvlong
+#pragma	varargck	type	"llo"	uvlong
+#pragma	varargck	type	"llx"	uvlong
+#pragma	varargck	type	"llb"	uvlong
+#pragma	varargck	type	"ld"	long
+#pragma	varargck	type	"lo"	long
+#pragma	varargck	type	"lx"	long
+#pragma	varargck	type	"lb"	long
+#pragma	varargck	type	"ld"	ulong
+#pragma	varargck	type	"lo"	ulong
+#pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"lb"	ulong
+#pragma	varargck	type	"d"	int
+#pragma	varargck	type	"o"	int
+#pragma	varargck	type	"x"	int
+#pragma	varargck	type	"c"	int
+#pragma	varargck	type	"C"	int
+#pragma	varargck	type	"b"	int
+#pragma	varargck	type	"d"	uint
+#pragma	varargck	type	"x"	uint
+#pragma	varargck	type	"c"	uint
+#pragma	varargck	type	"C"	uint
+#pragma	varargck	type	"b"	uint
+#pragma	varargck	type	"f"	double
+#pragma	varargck	type	"e"	double
+#pragma	varargck	type	"g"	double
+#pragma	varargck	type	"s"	char*
+#pragma	varargck	type	"q"	char*
+#pragma	varargck	type	"S"	Rune*
+#pragma	varargck	type	"Q"	Rune*
+#pragma	varargck	type	"r"	void
+#pragma	varargck	type	"%"	void
+#pragma	varargck	type	"n"	int*
+#pragma	varargck	type	"p"	ulong		/* uintptr */
+#pragma	varargck	type	"p"	void*
+#pragma	varargck	flag	','
+#pragma	varargck	flag	' '
+#pragma	varargck	flag	'h'
+#pragma varargck	type	"<"	void*
+#pragma varargck	type	"["	void*
+#pragma varargck	type	"H"	void*
+#pragma varargck	type	"lH"	void*

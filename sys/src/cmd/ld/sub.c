@@ -10,6 +10,7 @@ diag(char *fmt, ...)
 	char buf[STRINGSZ], *tn;
 	va_list arg;
 
+	Bflush(&bso);
 	tn = "??none??";
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;

@@ -1,0 +1,72 @@
+#!/bin/rc
+
+fn initfn {
+	dial/drain
+	dial/at -q H		# hangup
+	dial/at -q E0V1		# wordy dialog
+	dial/at -q '+IFC=2,2'	# hardware flow control
+	dial/at -q 'S0=0'	# default timeouts
+}
+
+fn dialfn {
+	dial/drain
+	dial/at 'd#19788'	# dial the universal verizon number
+}
+
+# the following can be inherited
+switch($dev){
+case ''
+	dev=/dev/eia1
+}
+switch($baud){
+case ''
+	baud=115200
+}
+
+{
+	# set up uart
+	if( test -e $dev^ctl ){
+		echo d1		# turn on dtr
+		echo m1		# enable hardware flow control
+		echo q64000	# increase buffer sizes to serial line
+		echo b^$baud	# set baud rate
+		echo n1		# non-blocking writes
+		echo c1		# hangup when we lose dcd
+	} > $dev^ctl
+
+	# get the modem's attention
+	while( ! initfn )
+		sleep 1
+
+	# dial
+	while( ! dialfn )
+		sleep 30
+		
+	echo connected to Verizon >[1=2]
+
+	# start ppp
+	bind '#I1' /net.alt
+	ip/ppp -s 9082296596@vzw3g.com:vzw -P -fx /net.alt
+} < $dev > $dev
+
+# supply unknowns with inside addresses
+if( ! grep -s 'auth=' /net.alt/ndb){
+	echo '	auth=204.178.31.2'>>/net.alt/ndb
+	echo '	authdom=cs.bell-labs.com'>>/net.alt/ndb
+}
+if( ! grep -s 'ntp=' /net.alt/ndb)
+	echo '	ntp=204.178.31.2'>>/net.alt/ndb
+if( ! grep -s 'dns=' /net.alt/ndb){
+	echo '	dns=204.178.31.3'>>/net.alt/ndb
+	echo '	dns=204.178.31.4'>>/net.alt/ndb
+}
+
+# start cs if it isn't already going
+if(! test -e /srv/cs_net.alt )
+	ndb/cs -rx /net.alt -f /lib/ndb/external
+if not mount -a /srv/cs_net.alt /net.alt
+
+# start dns if it isn't already going
+if(! test -e /srv/dns_net.alt )
+	ndb/dns -rx /net.alt -f /lib/ndb/external
+if not mount -a /srv/dns_net.alt /net.alt

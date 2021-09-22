@@ -1,0 +1,284 @@
+<HTML>
+<HEAD>
+<TITLE>MasterSwitch Outlet Control</TITLE>
+<script Language="JavaScript">
+<!--
+function send_authentication(formnumber) {
+document.forms[formnumber].submit()
+}
+// -->
+</script>
+</HEAD>
+<BODY bgcolor="#FFFFFF" text="#000000" link="#0000ff" vlink="#0000ff" alink="#0000ff">
+<basefont size="3" color="#000000" face="Verdana,Arial,Helvetica,sans-serif">
+
+<TABLE BORDER="0" WIDTH="100%" CELLSPACING="0" CELLPADDING="0" bgcolor="#666699"><TR> 
+<td HEIGHT="51" WIDTH="31%" bgcolor="#FFFFFF">
+
+
+<A HREF="http://www.apcc.com" target="_top">
+<IMG SRC="/Images/wwwapc.gif" ALT="Go to APC Homepage" BORDER="0"></A></TD>
+
+<td HEIGHT="51" WIDTH="7%" VALIGN=top><IMG SRC="/Images/bluetab.gif" WIDTH="55" HEIGHT="53"></TD>
+<td HEIGHT="51" WIDTH="62%" ALIGN=right VALIGN=bottom><FONT SIZE="5" color="#FFFFFF" face="Verdana,Arial,Helvetica,sans-serif"><B>
+
+Outlets
+&nbsp;</B></FONT></TD>
+</TR>
+<TR><TD COLSPAN="3">
+<IMG SRC="/Images/invis.gif" WIDTH="1" HEIGHT="8"></TD>
+</TR>
+</TABLE>
+
+
+<FORM METHOD="POST" ACTION="/Forms/outlets" NAME="HashForm1" METHOD="POST">
+<INPUT TYPE="HIDDEN" NAME="HashString" VALUE="hr">
+<INPUT TYPE="HIDDEN" NAME="HashString2" VALUE="hr">
+<INPUT TYPE="HIDDEN" NAME="C2" VALUE="cb2c44104fbc2f92749cd1a3c64bca60">
+
+<TABLE BORDER="0" WIDTH="100%"  CELLSPACING="1" CELLPADDING="1">
+<TR>
+<td WIDTH="100%" COLSPAN="3" bgcolor="#000000">
+  <table bgcolor="#000000" BORDER="0" WIDTH="100%" CELLSPACING="0" CELLPADDING="0">
+<TR>
+<td bgcolor="#000000"><FONT SIZE="2" color="#FFFFFF" face="Verdana,Arial,Helvetica,sans-serif"><B>&nbsp;
+Control and Status of Outlets
+
+</B></FONT>
+</TD>
+<TD ALIGN=right><A HREF="/hoview.htm#ms2outs"><IMG SRC="/Images/quesm.gif" ALT="Outlet Control Help" BORDER="0"></A></TD>
+
+</TR>
+</TABLE>
+</TD>
+</TR>
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="96%" COLSPAN="2" bgcolor="#696969"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#FFFFFF">&nbsp;Master Outlet Control for accessible outlets</FONT></TD>
+</TR>
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="66%" bgcolor="#CCCCCC"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#000000"><B>&nbsp;Master</B></FONT></TD>
+<td WIDTH="30%" bgcolor="#CCCCCC"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#000000"><B>&nbsp;Control Action</B></FONT></TD>
+</TR>
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="66%"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#000000"><B>ALL OUTLETS</B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="master_ctrl" SIZE="1">
+<OPTION>No Action
+<OPTION>Immediate On
+<OPTION>Immediate Off
+<OPTION>Immediate Reboot
+<OPTION>Delayed On
+<OPTION>Delayed Off
+<OPTION>Sequenced Reboot
+<OPTION>Delayed Reboot
+<OPTION>Delayed Sequenced Reboot
+<OPTION>Cancel Pending Commands
+</SELECT></TD>
+</TR>
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="96%" COLSPAN="2" ALIGN=left><INPUT TYPE="BUTTON" NAME="apply" VALUE="Apply" onClick="send_authentication(0)">
+<INPUT TYPE="RESET" VALUE="Cancel">
+</TD>
+</TR>
+</TABLE>
+
+</FORM>
+<FORM METHOD="POST" ACTION="/Forms/outlets2" NAME="HashForm2" METHOD="POST">
+<INPUT TYPE="HIDDEN" NAME="HashString" VALUE="hr">
+<INPUT TYPE="HIDDEN" NAME="HashString2" VALUE="hr">
+
+<TABLE BORDER="0" WIDTH="100%" bgcolor="#FFFFFF" CELLSPACING="1" CELLPADDING="1">
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="96%" COLSPAN="4" bgcolor="#696969"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#FFFFFF">&nbsp;Individual Outlet Control for accessible outlets</FONT></TD>
+</TR>
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%" bgcolor="#CCCCCC"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#000000"><B>&nbsp;Outlet</B></FONT></TD>
+<td WIDTH="36%" bgcolor="#CCCCCC"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#000000"><B>&nbsp;Name</B></FONT></TD>
+<td WIDTH="22%" bgcolor="#CCCCCC"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#000000"><B>&nbsp;State</B></FONT></TD>
+<td WIDTH="30%" bgcolor="#CCCCCC"><FONT SIZE="2" face="Verdana,Arial,Helvetica,sans-serif" color="#000000"><B>&nbsp;Control Action</B></FONT></TD>
+</TR>
+
+
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">1 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>yoshimi</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=65000000>No Action               
+<OPTION VALUE=66000000>Immediate On            
+<OPTION VALUE=67000000>Immediate Off           
+<OPTION VALUE=68000000>Immediate Reboot        
+<OPTION VALUE=69000000>Delayed On              
+<OPTION VALUE=6a000000>Delayed Off             
+<OPTION VALUE=6b000000>Delayed Reboot          
+<OPTION VALUE=6c000000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">2 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>Outlet 2</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=c9000000>No Action               
+<OPTION VALUE=ca000000>Immediate On            
+<OPTION VALUE=cb000000>Immediate Off           
+<OPTION VALUE=cc000000>Immediate Reboot        
+<OPTION VALUE=cd000000>Delayed On              
+<OPTION VALUE=ce000000>Delayed Off             
+<OPTION VALUE=cf000000>Delayed Reboot          
+<OPTION VALUE=d0000000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">3 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>Outlet 3</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=2d010000>No Action               
+<OPTION VALUE=2e010000>Immediate On            
+<OPTION VALUE=2f010000>Immediate Off           
+<OPTION VALUE=30010000>Immediate Reboot        
+<OPTION VALUE=31010000>Delayed On              
+<OPTION VALUE=32010000>Delayed Off             
+<OPTION VALUE=33010000>Delayed Reboot          
+<OPTION VALUE=34010000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">4 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>Outlet 4</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=91010000>No Action               
+<OPTION VALUE=92010000>Immediate On            
+<OPTION VALUE=93010000>Immediate Off           
+<OPTION VALUE=94010000>Immediate Reboot        
+<OPTION VALUE=95010000>Delayed On              
+<OPTION VALUE=96010000>Delayed Off             
+<OPTION VALUE=97010000>Delayed Reboot          
+<OPTION VALUE=98010000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">5 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>Outlet 5</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=f5010000>No Action               
+<OPTION VALUE=f6010000>Immediate On            
+<OPTION VALUE=f7010000>Immediate Off           
+<OPTION VALUE=f8010000>Immediate Reboot        
+<OPTION VALUE=f9010000>Delayed On              
+<OPTION VALUE=fa010000>Delayed Off             
+<OPTION VALUE=fb010000>Delayed Reboot          
+<OPTION VALUE=fc010000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">6 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>Outlet 4</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=59020000>No Action               
+<OPTION VALUE=5a020000>Immediate On            
+<OPTION VALUE=5b020000>Immediate Off           
+<OPTION VALUE=5c020000>Immediate Reboot        
+<OPTION VALUE=5d020000>Delayed On              
+<OPTION VALUE=5e020000>Delayed Off             
+<OPTION VALUE=5f020000>Delayed Reboot          
+<OPTION VALUE=60020000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">7 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>Outlet 7</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=bd020000>No Action               
+<OPTION VALUE=be020000>Immediate On            
+<OPTION VALUE=bf020000>Immediate Off           
+<OPTION VALUE=c0020000>Immediate Reboot        
+<OPTION VALUE=c1020000>Delayed On              
+<OPTION VALUE=c2020000>Delayed Off             
+<OPTION VALUE=c3020000>Delayed Reboot          
+<OPTION VALUE=c4020000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="8%"><A HREF= "/arakfram.htm?8:1" target="_top" ><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><CENTER><B><font color="#000000">8 </font></B></CENTER>
+</FONT></TD>
+<td WIDTH="36%"><A HREF= "" target="_top"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B>Outlet 8</B></FONT></TD>
+<td WIDTH="22%"><FONT SIZE="2" color="#000000" face="Verdana,Arial,Helvetica,sans-serif"><B><font color="#008000">ON</font></B></FONT></TD>
+<td WIDTH="30%"><FONT SIZE="2" color="#000000" face="Courier">
+<SELECT NAME="OutCtl" SIZE="1">
+<OPTION VALUE=21030000>No Action               
+<OPTION VALUE=22030000>Immediate On            
+<OPTION VALUE=23030000>Immediate Off           
+<OPTION VALUE=24030000>Immediate Reboot        
+<OPTION VALUE=25030000>Delayed On              
+<OPTION VALUE=26030000>Delayed Off             
+<OPTION VALUE=27030000>Delayed Reboot          
+<OPTION VALUE=28030000>Cancel          
+</SELECT></TD>
+</TR>
+
+
+<TR>
+<td WIDTH="4%"></TD>
+<td WIDTH="96%" COLSPAN="4" ALIGN=left><INPUT TYPE="BUTTON" NAME="apply" VALUE="Apply" onClick="send_authentication(1)">
+<INPUT TYPE="RESET" VALUE="Cancel">
+</TD>
+</TR>
+</TABLE>
+
+</FORM>
+
+
+
+</BODY>
+</HTML>

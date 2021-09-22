@@ -1,3 +1,6 @@
+/*
+ * smtpd - receive mail via smtp
+ */
 #include "common.h"
 #include "smtpd.h"
 #include "smtp.h"
@@ -32,6 +35,7 @@ int	fflag;
 int	gflag;
 int	rflag;
 int	sflag;
+int	noauthcmd;
 int	authenticate;
 int	authenticated;
 int	passwordinclear;
@@ -126,6 +130,9 @@ main(int argc, char **argv)
 	case 'a':
 		authenticate = 1;
 		break;
+	case 'A':
+		noauthcmd = 1;
+		break;
 	case 'c':
 		tlscert = EARGF(usage());
 		break;
@@ -203,9 +210,8 @@ main(int argc, char **argv)
 	parseinit();
 	sayhi();
 
-	/* allow 45 minutes to parse the header */
 	atnotify(catchalarm, 1);
-	alarm(45*60*1000);
+	alarm(3*60*Minute);  /* allow this long to parse the header; was 45m */
 	zzparse();
 	exits(0);
 }
@@ -288,15 +294,22 @@ reset(void)
 void
 sayhi(void)
 {
+	Biobuf *bads;
 	Dir *dp;
 
 	reply("220-%s ESMTP\r\n", dom);
 	sleep(3000);
 	dp = dirfstat(0);
 	if (dp && dp->length > 0) {
+		bads = sysopen("/sys/lib/badips", "acw", 0666);
+		if (bads) {
+			if (strchr(nci->rsys, '.') != nil)
+				Bprint(bads, "%s\n", nci->rsys);	/* v4 */
+			sysclose(bads);
+		}
 		syslog(0, "smtpd", "Hung up on impatient spammer %s", nci->rsys);
 		if(Dflag)
-			sleep(delaysecs()*1000);
+			sleep(delaysecs()*Second);
 		reply("554 5.7.0 Spammer!\r\n");
 		exits("spammer didn't wait for greeting to finish");
 	}
@@ -304,43 +317,11 @@ sayhi(void)
 	reply("220 \r\n");
 }
 
-/*
- * make callers from class A networks infested by spammers
- * wait longer.
- */
-
-static char netaspam[256] = {
-	[58]	1,
-	[66]	1,
-	[71]	1,
-
-	[76]	1,
-	[77]	1,
-	[78]	1,
-	[79]	1,
-	[80]	1,
-	[81]	1,
-	[82]	1,
-	[83]	1,
-	[84]	1,
-	[85]	1,
-	[86]	1,
-	[87]	1,
-	[88]	1,
-	[89]	1,
-
-	[190]	1,
-	[201]	1,
-	[217]	1,
-};
-
 static int
 delaysecs(void)
 {
 	if (trusted)
 		return 0;
-	if (0 && netaspam[rsysip[0]])
-		return 20;
 	return 12;
 }
 
@@ -372,7 +353,7 @@ Liarliar:
 					"Hung up on %s; claimed to be %s",
 					nci->rsys, him);
 				if(Dflag)
-					sleep(delaysecs()*1000);
+					sleep(delaysecs()*Second);
 				reply("554 5.7.0 Liar!\r\n");
 				exits("client pretended to be us");
 				return;
@@ -441,13 +422,15 @@ Liarliar:
 		him = nci->rsys;
 
 	if(Dflag)
-		sleep(delaysecs()*1000);
+		sleep(delaysecs()*Second);
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
 		reply("250-ENHANCEDSTATUSCODES\r\n");	/* RFCs 2034 and 3463 */
 		if(tlscert != nil)
 			reply("250-STARTTLS\r\n");
-		if (passwordinclear)
+		if (noauthcmd)
+			reply("250 \r\n");
+		else if (passwordinclear)
 			reply("250 AUTH CRAM-MD5 PLAIN LOGIN\r\n");
 		else
 			reply("250 AUTH CRAM-MD5\r\n");
@@ -712,7 +695,9 @@ quit(void)
 		fprint(2, "# %d sent 221 reply to QUIT %s\n",
 			getpid(), thedate());
 	}
+	sleep(Second);		/* let the 221 reply transit the network */
 	close(0);
+	sleep(Second);
 	exits(0);
 }
 
@@ -1085,6 +1070,7 @@ pipemsg(int *byteswritten)
 {
 	int n, nbytes, sawdot, status, nonhdr, bpr;
 	char *cp;
+	Biobuf *fp;
 	Field *f;
 	Link *l;
 	Node *p;
@@ -1093,21 +1079,21 @@ pipemsg(int *byteswritten)
 	pipesig(&status);	/* set status to 1 on write to closed pipe */
 	sawdot = 0;
 	status = 0;
+	fp = pp->std[0]->fp;
 
 	/*
 	 *  add a 'From ' line as envelope
 	 */
-	nbytes = 0;
-	nbytes += Bprint(pp->std[0]->fp, "From %s %s remote from \n",
+	nbytes = Bprint(fp, "From %s %s remote from \n",
 		s_to_c(senders.first->p), thedate());
 
 	/*
 	 *  add our own Received: stamp
 	 */
-	nbytes += Bprint(pp->std[0]->fp, "Received: from %s ", him);
+	nbytes += Bprint(fp, "Received: from %s ", him);
 	if(nci->rsys)
-		nbytes += Bprint(pp->std[0]->fp, "([%s]) ", nci->rsys);
-	nbytes += Bprint(pp->std[0]->fp, "by %s; %s\n", me, thedate());
+		nbytes += Bprint(fp, "([%s]) ", nci->rsys);
+	nbytes += Bprint(fp, "by %s; %s\n", me, thedate());
 
 	/*
 	 *  read first 16k obeying '.' escape.  we're assuming
@@ -1150,20 +1136,19 @@ pipemsg(int *byteswritten)
 	 */
 	if(originator == 0){
 		if(senders.last == nil || senders.last->p == nil)
-			nbytes += Bprint(pp->std[0]->fp, "From: /dev/null@%s\n",
-				him);
+			nbytes += Bprint(fp, "From: /dev/null@%s\n", him);
 		else
-			nbytes += Bprint(pp->std[0]->fp, "From: %s\n",
+			nbytes += Bprint(fp, "From: %s\n",
 				s_to_c(senders.last->p));
 	}
 	if(destination == 0){
-		nbytes += Bprint(pp->std[0]->fp, "To: ");
+		nbytes += Bprint(fp, "To: ");
 		for(l = rcvers.first; l; l = l->next){
 			if(l != rcvers.first)
-				nbytes += Bprint(pp->std[0]->fp, ", ");
-			nbytes += Bprint(pp->std[0]->fp, "%s", s_to_c(l->p));
+				nbytes += Bprint(fp, ", ");
+			nbytes += Bprint(fp, "%s", s_to_c(l->p));
 		}
-		nbytes += Bprint(pp->std[0]->fp, "\n");
+		nbytes += Bprint(fp, "\n");
 	}
 
 	/*
@@ -1174,10 +1159,10 @@ pipemsg(int *byteswritten)
 	for(f = firstfield; cp != nil && f; f = f->next){
 		for(p = f->node; cp != 0 && p; p = p->next) {
 			bpr = 0;
-			cp = bprintnode(pp->std[0]->fp, p, &bpr);
+			cp = bprintnode(fp, p, &bpr);
 			nbytes += bpr;
 		}
-		if(status == 0 && Bprint(pp->std[0]->fp, "\n") < 0){
+		if(status == 0 && Bprint(fp, "\n") < 0){
 			piperror = "write error";
 			status = 1;
 		}
@@ -1190,7 +1175,7 @@ pipemsg(int *byteswritten)
 
 	/* write anything we read following the header */
 	nonhdr = s_to_c(hdr) + s_len(hdr) - cp;
-	if(status == 0 && Bwrite(pp->std[0]->fp, cp, nonhdr) < 0){
+	if(status == 0 && Bwrite(fp, cp, nonhdr) < 0){
 		piperror = "write error 2";
 		status = 1;
 	}
@@ -1219,7 +1204,7 @@ pipemsg(int *byteswritten)
 			n--;
 		}
 		nbytes += n;
-		if(status == 0 && Bwrite(pp->std[0]->fp, cp, n) < 0){
+		if(status == 0 && Bwrite(fp, cp, n) < 0){
 			piperror = "write error 3";
 			status = 1;
 		}
@@ -1231,14 +1216,14 @@ pipemsg(int *byteswritten)
 		piperror = pipbuf;
 		if (pp->pid > 0) {
 			syskillpg(pp->pid);
-			/* none can't syskillpg, so try a variant */
+			/* user none can't syskillpg, so try a variant */
 			sleep(500);
 			syskill(pp->pid);
 		}
 		status = 1;
 	}
 
-	if(status == 0 && Bflush(pp->std[0]->fp) < 0){
+	if(status == 0 && Bflush(fp) < 0){
 		piperror = "write error 4";
 		status = 1;
 	}
@@ -1390,12 +1375,10 @@ data(void)
 		fprint(2, "# sent 354; accepting DATA %s\n", thedate());
 	}
 
-
 	/*
-	 *  allow 145 more minutes to move the data
+	 *  allow this long to move the data
 	 */
-	alarm(145*60*1000);
-
+	alarm(6*60*Minute);		/* was 145m */
 	status = pipemsg(&nbytes);
 
 	/*
@@ -1586,7 +1569,8 @@ starttls(void)
 	if (fd < 0) {
 		free(cert);
 		free(conn);
-		syslog(0, "smtpd", "TLS start-up failed with %s", him);
+		syslog(0, "smtpd", "TLS start-up with %s failed using %s: %r",
+			him, tlscert);
 
 		/* force the client to hang up */
 		close(Bfildes(&bin));		/* probably fd 0 */
@@ -1610,6 +1594,8 @@ auth(String *mech, String *resp)
 	String *s_resp1_64 = nil, *s_resp2_64 = nil, *s_resp1 = nil;
 	String *s_resp2 = nil;
 
+	if (noauthcmd)
+		goto bad_sequence;
 	if (rejectcheck())
 		goto bomb_out;
 

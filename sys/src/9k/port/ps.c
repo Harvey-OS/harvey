@@ -1,3 +1,6 @@
+/*
+ * allocate and look up Procs, including hashing them.
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -9,7 +12,7 @@ pshash(Proc *p)
 {
 	int h;
 
-	h = p->pid % nelem(procalloc.ht);
+	h = (uint)p->pid % nelem(procalloc.ht);
 	lock(&procalloc);
 	p->pidhash = procalloc.ht[h];
 	procalloc.ht[h] = p;
@@ -22,7 +25,7 @@ psunhash(Proc *p)
 	int h;
 	Proc **l;
 
-	h = p->pid % nelem(procalloc.ht);
+	h = (uint)p->pid % nelem(procalloc.ht);
 	lock(&procalloc);
 	for(l = &procalloc.ht[h]; *l != nil; l = &(*l)->pidhash)
 		if(*l == p){
@@ -33,11 +36,10 @@ psunhash(Proc *p)
 }
 
 int
-psindex(int pid)
+psindex(uint pid)
 {
 	Proc *p;
-	int h;
-	int s;
+	int h, s;
 
 	s = -1;
 	h = pid % nelem(procalloc.ht);
@@ -78,23 +80,43 @@ psrelease(Proc* p)
 	procalloc.free = p;
 }
 
+static void
+noprocpanic(char *msg)
+{
+	/*
+	 * setting exiting will make hzclock() on each processor call exit(0).
+	 * clearing our bit in machs avoids calling exit(0) from hzclock()
+	 * on this processor.
+	 */
+	ilock(&active);
+	cpuinactive(m->machno);
+	active.exiting = 1;
+	iunlock(&active);
+
+	procdump();
+	delay(1000);
+	panic(msg);
+}
+
 Proc*
 psalloc(void)
 {
+	char msg[64];
 	Proc *p;
 
 	lock(&procalloc);
-	for(;;) {
-		if(p = procalloc.free)
-			break;
-
-		unlock(&procalloc);
-		resrcwait("no procs");
-		lock(&procalloc);
+	if((p = procalloc.free) == nil) {
+		/*
+		 * the situation is unlikely to heal itself.
+		 * dump the proc table and restart.
+		 */
+		snprint(msg, sizeof msg, "no procs; %s forking",
+			up? up->text: "kernel");
+		noprocpanic(msg);
 	}
 	procalloc.free = p->qnext;
+	p->hang = p->procctl = 0;	/* probably unnecessary paranoia */
 	unlock(&procalloc);
-
 	return p;
 }
 
@@ -106,7 +128,8 @@ psinit(void)
 
 	procalloc.free = malloc(PROCMAX*sizeof(Proc));
 	if(procalloc.free == nil)
-		panic("cannot allocate %ud procs (%udMB)\n", PROCMAX, PROCMAX*sizeof(Proc)/MiB);
+		panic("cannot allocate %ud procs (%lludMB)",
+			PROCMAX, (vlong)PROCMAX*sizeof(Proc)/MB);
 	procalloc.arena = procalloc.free;
 
 	p = procalloc.free;

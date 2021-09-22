@@ -9,11 +9,10 @@ Segment *
 newseg(int type, uintptr base, uintptr top)
 {
 	Segment *s;
-	int mapsize;
-	usize size;
+	uintptr mapsize, size;
 
 	if((base|top) & (PGSZ-1))
-		panic("newseg");
+		panic("newseg: base %#p or top %#p not page-aligned", base, top);
 
 	size = (top-base)/PGSZ;
 	if(size > (SEGMAPSIZE*PTEPERTAB))
@@ -26,16 +25,22 @@ newseg(int type, uintptr base, uintptr top)
 	s->top = top;
 	s->size = size;
 	s->lg2pgsize = PGSHFT;
-	s->ptemapmem = PTEPERTAB<<s->lg2pgsize;
+	s->ptemapmem = (uintptr)PTEPERTAB << s->lg2pgsize;
 	s->sema.prev = &s->sema;
 	s->sema.next = &s->sema;
 
-	mapsize = HOWMANY(size, PTEPERTAB);
-	if(mapsize > nelem(s->ssegmap)){
-		mapsize *= 2;
+	mapsize = HOWMANY(size, PTEPERTAB);	/* Pte maps needed */
+	if(mapsize > nelem(s->ssegmap)){  /* more than in default seg map? */
+		mapsize *= 2;		/* assume we'll need twice as much */
 		if(mapsize > SEGMAPSIZE)
-			mapsize = SEGMAPSIZE;
-		s->map = smalloc(mapsize*sizeof(Pte*));
+			mapsize = SEGMAPSIZE;	/* cap the map size */
+		/*
+		 * don't smalloc, which could sleep, while holding a Lock,
+		 * e.g. from attachimage.
+		 */
+		s->map = malloc(mapsize*sizeof(Pte*));
+		if (s->map == nil)
+			error(Enomem);
 		s->mapsize = mapsize;
 	}
 	else{
@@ -52,11 +57,11 @@ putseg(Segment *s)
 	Pte **pp, **emap;
 	Image *i;
 
-	if(s == nil)
+	if(s == 0)
 		return;
 
 	i = s->image;
-	if(i != nil) {
+	if(i != 0) {
 		lock(i);
 		lock(s);
 		if(i->s == s && s->ref == 1)
@@ -79,13 +84,13 @@ putseg(Segment *s)
 
 	emap = &s->map[s->mapsize];
 	for(pp = s->map; pp < emap; pp++)
-		if(*pp != nil)
+		if(*pp)
 			freepte(s, *pp);
 
 	qunlock(&s->lk);
 	if(s->map != s->ssegmap)
 		free(s->map);
-	if(s->profile != nil)
+	if(s->profile != 0)
 		free(s->profile);
 	free(s);
 }
@@ -129,13 +134,11 @@ dupseg(Segment **seg, int segno, int share)
 	case SG_PHYSICAL:
 		goto sameseg;
 
-	case SG_STACK:
-		n = newseg(s->type, s->base, s->top);
-		break;
-
 	case SG_BSS:		/* Just copy on write */
 		if(share)
 			goto sameseg;
+		/* fall through */
+	case SG_STACK:
 		n = newseg(s->type, s->base, s->top);
 		break;
 
@@ -154,13 +157,11 @@ dupseg(Segment **seg, int segno, int share)
 		n->image = s->image;
 		n->fstart = s->fstart;
 		n->flen = s->flen;
-		n->lg2pgsize = s->lg2pgsize;
-		n->color = s->color;
 		break;
 	}
 	size = s->mapsize;
 	for(i = 0; i < size; i++)
-		if((pte = s->map[i]) != nil)
+		if(pte = s->map[i])
 			n->map[i] = ptecpy(pte);
 
 	n->flushme = s->flushme;
@@ -183,9 +184,6 @@ segpage(Segment *s, Page *p)
 	Pte **pte;
 	uintptr soff;
 	Page **pg;
-
-	if(s->color == NOCOLOR)
-		s->color = p->color;
 
 	if(p->va < s->base || p->va >= s->top)
 		panic("segpage");
@@ -210,8 +208,7 @@ void
 mfreeseg(Segment *s, uintptr start, uintptr top)
 {
 	int i, j, size;
-	usize pages;
-	uintptr soff;
+	uintptr pages, soff;
 	Page *pg;
 	Page *list;
 
@@ -264,7 +261,7 @@ out:
 }
 
 Segment*
-isoverlap(Proc* p, uintptr va, usize len)
+isoverlap(Proc* p, uintptr va, uintptr len)
 {
 	int i;
 	Segment *ns;
@@ -273,9 +270,10 @@ isoverlap(Proc* p, uintptr va, usize len)
 	newtop = va+len;
 	for(i = 0; i < NSEG; i++) {
 		ns = p->seg[i];
-		if(ns == nil)
+		if(ns == 0)
 			continue;
-		if(newtop > ns->base && va < ns->top)
+		if((newtop > ns->base && newtop <= ns->top) ||
+		   (va >= ns->base && va < ns->top))
 			return ns;
 	}
 	return nil;
@@ -287,7 +285,7 @@ segclock(uintptr pc)
 	Segment *s;
 
 	s = up->seg[TSEG];
-	if(s == nil || s->profile == nil)
+	if(s == 0 || s->profile == 0)
 		return;
 
 	s->profile[0] += TK2MS(1);

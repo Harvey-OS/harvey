@@ -1,0 +1,3 @@
+#!/bin/rc
+9fs log
+grep 'archive vac:' /sys/log/fs | tail -1 | sed 's/.*vac://'

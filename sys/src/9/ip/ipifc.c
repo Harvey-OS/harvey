@@ -12,7 +12,6 @@
 
 enum {
 	Maxmedia	= 32,
-	Nself		= Maxmedia*5,
 	NHASH		= 1<<6,
 	NCACHE		= 256,
 	QMAX		= 192*1024-1,
@@ -56,7 +55,7 @@ struct Ipmcast
 };
 
 /* quick hash for ip addresses */
-#define hashipa(a) ( ( ((a)[IPaddrlen-2]<<8) | (a)[IPaddrlen-1] )%NHASH )
+#define hashipa(a) ((((a)[IPaddrlen-2]<<8) | (a)[IPaddrlen-1]) % NHASH)
 
 static char tifc[] = "ifc ";
 
@@ -226,10 +225,12 @@ ipifcstate(Conv *c, char *state, int n)
 {
 	Ipifc *ifc;
 	Iplifc *lifc;
-	int m;
+	char *e, *s;
 
 	ifc = (Ipifc*)c->ptcl;
-	m = snprint(state, n, sfixedformat,
+	s = state;
+	e = s+n;
+	s = seprint(s, e, sfixedformat,
 		ifc->dev, ifc->maxtu, ifc->sendra6, ifc->recvra6,
 		ifc->rp.mflag, ifc->rp.oflag, ifc->rp.maxraint,
 		ifc->rp.minraint, ifc->rp.linkmtu, ifc->rp.reachtime,
@@ -237,13 +238,13 @@ ipifcstate(Conv *c, char *state, int n)
 		ifc->in, ifc->out, ifc->inerr, ifc->outerr);
 
 	rlock(ifc);
-	for(lifc = ifc->lifc; lifc && n > m; lifc = lifc->next)
-		m += snprint(state+m, n - m, slineformat, lifc->local,
+	for(lifc = ifc->lifc; lifc && s < e; lifc = lifc->next)
+		s = seprint(s, e, slineformat, lifc->local,
 			lifc->mask, lifc->remote, lifc->validlt, lifc->preflt);
 	if(ifc->lifc == nil)
-		m += snprint(state+m, n - m, "\n");
+		s = seprint(s, e, "\n");
 	runlock(ifc);
-	return m;
+	return s - state;
 }
 
 static int
@@ -252,20 +253,21 @@ ipifclocal(Conv *c, char *state, int n)
 	Ipifc *ifc;
 	Iplifc *lifc;
 	Iplink *link;
-	int m;
+	char *e, *s;
 
 	ifc = (Ipifc*)c->ptcl;
-	m = 0;
+	s = state;
+	e = s+n;
 
 	rlock(ifc);
-	for(lifc = ifc->lifc; lifc; lifc = lifc->next){
-		m += snprint(state+m, n - m, "%-40.40I ->", lifc->local);
+	for(lifc = ifc->lifc; lifc && s < e; lifc = lifc->next){
+		s = seprint(s, e, "%-40.40I ->", lifc->local);
 		for(link = lifc->link; link; link = link->lifclink)
-			m += snprint(state+m, n - m, " %-40.40I", link->self->a);
-		m += snprint(state+m, n - m, "\n");
+			s = seprint(s, e, " %-40.40I", link->self->a);
+		s = seprint(s, e, "\n");
 	}
 	runlock(ifc);
-	return m;
+	return s - state;
 }
 
 static int
@@ -526,7 +528,7 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 
 	/* register the address on this network for address resolution */
 	if(isv4(ip) && ifc->medium->areg != nil)
-		(*ifc->medium->areg)(ifc, ip);
+		(*ifc->medium->areg)(ifc, ip);	/* e.g., send garp */
 
 out:
 	wunlock(ifc);
@@ -1031,41 +1033,41 @@ enum
 long
 ipselftabread(Fs *f, char *cp, ulong offset, int n)
 {
-	int i, m, nifc, off;
+	int i, nifc, off;
 	Ipself *p;
 	Iplink *link;
-	char state[8];
+	char *e, *s, state[8];
 
-	m = 0;
+	s = cp;
+	e = s+n;
 	off = offset;
 	qlock(f->self);
-	for(i = 0; i < NHASH && m < n; i++){
-		for(p = f->self->hash[i]; p != nil && m < n; p = p->next){
+	for(i = 0; i < NHASH && s < e; i++){
+		for(p = f->self->hash[i]; p != nil && s < e; p = p->next){
 			nifc = 0;
 			for(link = p->link; link; link = link->selflink)
 				nifc++;
 			routetype(p->type, state);
-			m += snprint(cp + m, n - m, stformat, p->a, nifc, state);
+			s = seprint(s, e, stformat, p->a, nifc, state);
 			if(off > 0){
-				off -= m;
-				m = 0;
+				off -= s - cp;
+				s = cp;
 			}
 		}
 	}
 	qunlock(f->self);
-	return m;
+	return s - cp;
 }
 
 int
 iptentative(Fs *f, uchar *addr)
 {
- 	Ipself *p;
+	Ipself *p;
 
 	p = f->self->hash[hashipa(addr)];
-	for(; p; p = p->next){
+	for(; p; p = p->next)
 		if(ipcmp(addr, p->a) == 0)
 			return p->link->lifc->tentative;
-	}
 	return 0;
 }
 
@@ -1082,10 +1084,9 @@ ipforme(Fs *f, uchar *addr)
 	Ipself *p;
 
 	p = f->self->hash[hashipa(addr)];
-	for(; p; p = p->next){
+	for(; p; p = p->next)
 		if(ipcmp(addr, p->a) == 0)
 			return p->type;
-	}
 
 	/* hack to say accept anything */
 	if(f->self->acceptall)
@@ -1481,7 +1482,7 @@ ipifcremmulti(Conv *c, uchar *ma, uchar *ia)
 
 	multi = *l;
 	if(multi == nil)
-		return;	/* we don't have it open */
+		return;		/* we don't have it open */
 
 	*l = multi->next;
 
@@ -1599,10 +1600,6 @@ adddefroute6(Fs *f, uchar *gate, int force)
 	v6addroute(f, "ra", v6Unspecified, v6Unspecified, gate, 0);
 }
 
-enum {
-	Ngates = 3,
-};
-
 char*
 ipifcadd6(Ipifc *ifc, char**argv, int argc)
 {
@@ -1643,8 +1640,8 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 	if (plen < 0)
 		return "negative ipv6 prefix length";
 	/* i think that this length limit is bogus - geoff */
-//	if (plen > 64)
-//		return "ipv6 prefix length greater than 64;
+//	if (plen > 64)			/* slaac won't work if > 64 */
+//		return "ipv6 prefix length greater than 64";
 	if (islinklocal(prefix))
 		return "ipv6 prefix is link-local";
 
@@ -1658,7 +1655,13 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 	/* issue "add" ctl msg for v6 link-local addr and prefix len */
 	if(!ifc->medium->pref2addr)
 		return "no pref2addr on interface";
-	ifc->medium->pref2addr(prefix, ifc->mac);	/* mac → v6 link-local addr */
+	/*
+	 * is this right? it seems to pick up non-prefix bits that
+	 * we may not want (e.g. for venti, 2620:17a:4:1::/120, we want
+	 * the low bits to be zero).  see the rfc(s) and ip(3).
+	 * maybe we can't use RAs for venti but need explicit routing.
+	 */
+	ifc->medium->pref2addr(prefix, ifc->mac); /* mac → v6 link-local addr */
 	snprint(addr, sizeof addr, "%I", prefix);
 	snprint(preflen, sizeof preflen, "/%d", plen);
 	params[0] = "add";

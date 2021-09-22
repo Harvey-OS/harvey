@@ -6,9 +6,6 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
-#include	"pool.h"
 
 /* stubs to emulate random.c */
 ulong
@@ -29,12 +26,12 @@ randominit(void)
 
 #define	LEN	607
 #define	TAP	273
-#define	MASK	0x7fffffffL
+#define	MAXINTMASK 0x7fffffffL
 #define	A	48271
 #define	M	2147483647
 #define	Q	44488
 #define	R	3399
-#define	NORM	(1.0/(1.0+MASK))
+#define	NORM	(1.0/(1.0+MAXINTMASK))
 
 static	ulong	rng_vec[LEN];
 static	ulong*	rng_tap = rng_vec;
@@ -90,7 +87,7 @@ lrand(void)
 	rng_feed--;
 	if(rng_feed < rng_vec)
 		rng_feed += LEN;
-	x = (*rng_feed + *rng_tap) & MASK;
+	x = (*rng_feed + *rng_tap) & MAXINTMASK;
 	*rng_feed = x;
 	return x;
 }

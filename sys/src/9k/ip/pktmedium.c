@@ -4,9 +4,9 @@
 #include "dat.h"
 #include "fns.h"
 #include "../port/error.h"
-
+#include "../port/netif.h"
+#include "etherif.h"
 #include "ip.h"
-
 
 static void	pktbind(Ipifc*, int, char**);
 static void	pktunbind(Ipifc*);
@@ -16,10 +16,10 @@ static void	pktin(Fs*, Ipifc*, Block*);
 Medium pktmedium =
 {
 .name=		"pkt",
-.hsize=		14,
+.hsize=		ETHERHDRSIZE,
 .mintu=		40,
 .maxtu=		4*1024,
-.maclen=	6,
+.maclen=	Eaddrlen,
 .bind=		pktbind,
 .unbind=	pktunbind,
 .bwrite=	pktbwrite,

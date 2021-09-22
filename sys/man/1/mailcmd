@@ -1,0 +1,28 @@
+.TH MAILCMD 1
+.SH NAME
+mailcmd \- mail the output of a failed command
+.SH SYNOPSIS
+.B mailcmd
+[
+.B -m
+.I addr
+]...
+.I command
+.I line
+.SH DESCRIPTION
+.I Mailcmd
+runs the command line using
+.IR rc (1).
+If the command exits with an error status,
+.I mailcmd
+mails the command's output to the named addresses
+(by default, the current user).
+.PP
+.I Mailcmd
+is typically used to run automatic scripts such as those
+started by
+.IR cron (8).
+.SH SOURCE
+.B /rc/bin/mailcmd
+.SH "SEE ALSO
+.IR cron (8)

@@ -42,9 +42,10 @@ installall:V:
 	for(objtype in $CPUS)
 		mk $MKFLAGS install
 
+# keep all old versions; necessary for long-running programs.
 %.safeinstall:V:
 	mk $O.$stem
-	test -e $BIN/$stem && mv $BIN/$stem $BIN/_$stem
+	@ { cd $BIN; saveold $stem }
 	mk $stem.install
 
 %.safeinstallall:V:

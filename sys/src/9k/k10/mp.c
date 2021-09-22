@@ -4,37 +4,42 @@
 #include "dat.h"
 #include "fns.h"
 
-#include "io.h"
 #include "apic.h"
 #include "mp.h"
+
+#undef	DBGFLG
+#define	DBGFLG 0
+#undef	DBG
+#define DBG(...) do { if(!DBGFLG) {} else { dbgprint(__VA_ARGS__); \
+	delay(1000); } } while (0)
 
 /*
  * MultiProcessor Specification Version 1.[14].
  */
 typedef struct {				/* MP Floating Pointer */
-	u8int	signature[4];			/* "_MP_" */
-	u8int	addr[4];			/* PCMP */
-	u8int	length;				/* 1 */
-	u8int	revision;			/* [14] */
-	u8int	checksum;
-	u8int	feature[5];
+	uchar	signature[4];			/* "_MP_" */
+	uchar	addr[4];			/* PCMP */
+	uchar	length;				/* 1 */
+	uchar	revision;			/* [14] */
+	uchar	checksum;
+	uchar	feature[5];
 } _MP_;
 
 typedef struct {				/* MP Configuration Table */
-	u8int	signature[4];			/* "PCMP" */
-	u8int	length[2];
-	u8int	revision;			/* [14] */
-	u8int	checksum;
-	u8int	string[20];			/* OEM + Product ID */
-	u8int	oaddr[4];			/* OEM table pointer */
-	u8int	olength[2];			/* OEM table length */
-	u8int	entry[2];			/* entry count */
-	u8int	apicpa[4];			/* local APIC address */
-	u8int	xlength[2];			/* extended table length */
-	u8int	xchecksum;			/* extended table checksum */
-	u8int	reserved;
+	uchar	signature[4];			/* "PCMP" */
+	uchar	length[2];
+	uchar	revision;			/* [14] */
+	uchar	checksum;
+	uchar	string[20];			/* OEM + Product ID */
+	uchar	oaddr[4];			/* OEM table pointer */
+	uchar	olength[2];			/* OEM table length */
+	uchar	entry[2];			/* entry count */
+	uchar	apicpa[4];			/* local APIC address */
+	uchar	xlength[2];			/* extended table length */
+	uchar	xchecksum;			/* extended table checksum */
+	uchar	reserved;
 
-	u8int	entries[];
+	uchar	entries[];
 } PCMP;
 
 typedef struct {
@@ -51,10 +56,11 @@ static Mpbus* mpbus[Nbus];
 int mpisabusno = -1;
 
 static void
-mpintrprint(char* s, u8int* p)
+mpintrprint(char* s, uchar* p)
 {
 	char buf[128], *b, *e;
-	char format[] = " type %d flags %#ux bus %d IRQ %d APIC %d INTIN %d\n";
+	static char format[] =
+		" type %d flags %#ux bus %d IRQ %d APIC %d INTIN %d\n";
 
 	b = buf;
 	e = b + sizeof(buf);
@@ -66,7 +72,7 @@ mpintrprint(char* s, u8int* p)
 }
 
 static u32int
-mpmkintr(u8int* p)
+mpmkintr(uchar* p)
 {
 	u32int v;
 	Apic *apic;
@@ -101,7 +107,8 @@ mpmkintr(u8int* p)
 				return 0;
 			}
 			if(p[7] >= apic->nrdt){
-				mpintrprint("IO INTIN out of range", p);
+				if (DBGFLG)
+					mpintrprint("IO INTIN out of range", p);
 				return 0;
 			}
 			break;
@@ -119,7 +126,8 @@ mpmkintr(u8int* p)
 		}
 	}
 	n = l16get(p+2);
-	if((polarity = (n & PcmpPOMASK)) == 2 || (trigger = ((n>>2) & PcmpPOMASK)) == 2){
+	if((polarity = (n & PcmpPOMASK)) == 2 ||
+	    (trigger = ((n>>2) & PcmpPOMASK)) == 2){
 		mpintrprint("invalid polarity/trigger", p);
 		return 0;
 	}
@@ -176,142 +184,143 @@ mpmkintr(u8int* p)
 }
 
 static void
-mpparse(PCMP* pcmp)
+mpparse(PCMP *pcmp)
 {
 	u32int lo;
-	u8int *e, *p;
-	int i, n, bustype;
+	uchar *e, *p;
+	int devno, i, n;
 
 	p = pcmp->entries;
-	e = ((uchar*)pcmp)+l16get(pcmp->length);
-	while(p < e) switch(*p){
-	default:
-		print("mpparse: unknown PCMP type %d (e-p %#ld)\n", *p, e-p);
-		for(i = 0; p < e; i++){
-			if(i && ((i & 0x0f) == 0))
-				print("\n");
-			print(" %#2.2ux", *p);
-			p++;
-		}
-		print("\n");
-		break;
-	case PcmpPROCESSOR:
-		/*
-		 * Initialise the APIC if it is enabled (p[3] & 0x01).
-		 * p[1] is the APIC ID, the memory mapped address comes
-		 * from the PCMP structure as the addess is local to the
-		 * CPU and identical for all. Indicate whether this is
-		 * the bootstrap processor (p[3] & 0x02).
-		 */
-		DBG("mpparse: APIC %d pa %#ux useable %d\n",
-			p[1], l32get(pcmp->apicpa), p[3] & 0x01);
-		if(p[3] & 0x01)
-			apicinit(p[1], l32get(pcmp->apicpa), p[3] & 0x02);
-		p += 20;
-		break;
-	case PcmpBUS:
-		DBG("mpparse: bus: %d type %6.6s\n", p[1], (char*)p+2);
-		if(mpbus[p[1]] != nil){
-			print("mpparse: bus %d already allocated\n", p[1]);
-			p += 8;
+	e = (uchar *)pcmp + l16get(pcmp->length);
+	while (p < e)
+		switch (*p) {
+		default:
+			print("mpparse: unknown PCMP type %d (e-p %#lld)\n",
+				*p, (vlong)(e - p));
+			for (i = 0; p < e; i++) {
+				if (i && ((i & 0x0f) == 0))
+					print("\n");
+				print(" %#2.2ux", *p++);
+			}
+			print("\n");
 			break;
-		}
-		for(i = 0; i < nelem(mpbusdef); i++){
-			if(memcmp(p+2, mpbusdef[i].type, 6) != 0)
-				continue;
-			if(memcmp(p+2, "ISA   ", 6) == 0){
-				if(mpisabusno != -1){
-					print("mpparse: bus %d already have ISA bus %d\n",
-						p[1], mpisabusno);
+		case PcmpPROCESSOR:
+			/*
+			 * Initialise the APIC if it is enabled.
+			 * p[1] is the APIC ID, the memory mapped address comes
+			 * from the PCMP structure as the addess is local to the
+			 * CPU and identical for all. Indicate whether this is
+			 * the bootstrap processor.
+			 */
+			DBG("mpparse: APIC %d pa %#ux useable %d\n",
+				p[1], l32get(pcmp->apicpa), p[3] & PcmpEN);
+			if (p[3] & PcmpEN)
+				apicinit(p[1], l32get(pcmp->apicpa),
+					p[3] & PcmpBP);
+			p += 20;
+			break;
+		case PcmpBUS:
+			DBG("mpparse: bus: %d type %6.6s\n",
+				p[1], (char *)p + 2);
+			if (mpbus[p[1]] != nil) {
+				print("mpparse: bus %d already allocated\n", p[1]);
+				p += 8;
+				break;
+			}
+			for (i = 0; i < nelem(mpbusdef); i++) {
+				if (memcmp(p + 2, mpbusdef[i].type, 6) != 0)
 					continue;
+				if (memcmp(p + 2, "ISA   ", 6) == 0) {
+					if (mpisabusno != -1) {
+						print("mpparse: bus %d already have ISA bus %d\n",
+							p[1], mpisabusno);
+						continue;
+					}
+					mpisabusno = p[1];
 				}
-				mpisabusno = p[1];
+				mpbus[p[1]] = &mpbusdef[i];
+				break;
 			}
-			mpbus[p[1]] = &mpbusdef[i];
-			break;
-		}
-		if(mpbus[p[1]] == nil)
-			print("mpparse: bus %d type %6.6s unknown\n",
-				p[1], (char*)p+2);
+			if (mpbus[p[1]] == nil)
+				print("mpparse: bus %d type %6.6s unknown\n",
+					p[1], (char * )p + 2);
 
-		p += 8;
-		break;
-	case PcmpIOAPIC:
-		/*
-		 * Initialise the IOAPIC if it is enabled (p[3] & 0x01).
-		 * p[1] is the APIC ID, p[4-7] is the memory mapped address.
-		 */
-		DBG("mpparse: IOAPIC %d pa %#ux useable %d\n",
-			p[1], l32get(p+4), p[3] & 0x01);
-		if(p[3] & 0x01)
-			ioapicinit(p[1], l32get(p+4));
-
-		p += 8;
-		break;
-	case PcmpIOINTR:
-		/*
-		 * p[1] is the interrupt type;
-		 * p[2-3] contains the polarity and trigger mode;
-		 * p[4] is the source bus;
-		 * p[5] is the IRQ on the source bus;
-		 * p[6] is the destination APIC;
-		 * p[7] is the INITIN pin on the destination APIC.
-		 */
-		if(p[6] == 0xff){
-			mpintrprint("routed to all IOAPICs", p);
 			p += 8;
 			break;
-		}
-		if((lo = mpmkintr(p)) == 0){
+		case PcmpIOAPIC:
+			/*
+			 * Initialise the IOAPIC if it is enabled.
+			 * p[1] is the APIC ID, p[4-7] is the memory-mapped
+			 * address.
+			 */
+			DBG("mpparse: IOAPIC %d pa %#ux useable %d\n",
+				p[1], l32get(p + 4), p[3] & PcmpEN);
+			if (p[3] & PcmpEN)
+				ioapicinit(p[1], l32get(p + 4));
+
 			p += 8;
 			break;
-		}
-		if(DBGFLG)
-			mpintrprint(nil, p);
-
-		/*
-		 * Always present the device number in the style
-		 * of a PCI Interrupt Assignment Entry. For the ISA
-		 * bus the IRQ is the device number but unencoded.
-		 * May need to handle other buses here in the future
-		 * (but unlikely).
-		 */
-		bustype = -1;
-		if(memcmp(mpbus[p[4]]->type, "PCI   ", 6) == 0)
-			bustype = BusPCI;
-		else if(memcmp(mpbus[p[4]]->type, "ISA   ", 6) == 0)
-			bustype = BusISA;
-		if(bustype != -1)
-			ioapicintrinit(bustype, p[4], p[6], p[7], p[5], lo);
-
-		p += 8;
-		break;
-	case PcmpLINTR:
-		/*
-		 * Format is the same as IOINTR above.
-		 */
-		if((lo = mpmkintr(p)) == 0){
-			p += 8;
-			break;
-		}
-		if(DBGFLG)
-			mpintrprint(nil, p);
-
-		/*
-		 * Everything was checked in mpmkintr above.
-		 */
-		if(p[6] == 0xff){
-			for(i = 0; i < Napic; i++){
-				if(!ioapic[i].useable || ioapic[i].addr != nil)
-					continue;
-				ioapic[i].lvt[p[7]] = lo;
+		case PcmpIOINTR:
+			/*
+			 * p[1] is the interrupt type;
+			 * p[2-3] contains the polarity and trigger mode;
+			 * p[4] is the source bus;
+			 * p[5] is the IRQ on the source bus;
+			 * p[6] is the destination APIC;
+			 * p[7] is the INITIN pin on the destination APIC.
+			 */
+			if (p[6] == 0xff) {
+				mpintrprint("routed to all IOAPICs", p);
+				p += 8;
+				break;
 			}
+			if ((lo = mpmkintr(p)) == 0) {
+				p += 8;
+				break;
+			}
+			if (DBGFLG)
+				mpintrprint(nil, p);
+
+			/*
+			 * Always present the device number in the style
+			 * of a PCI Interrupt Assignment Entry. For the ISA
+			 * bus the IRQ is the device number but unencoded.
+			 * May need to handle other buses here in the future
+			 * (but unlikely).
+			 */
+			devno = p[5];
+			if (memcmp(mpbus[p[4]]->type, "PCI   ", 6) != 0)
+				devno <<= 2;
+			ioapicintrinit(p[4], p[6], p[7], devno, lo);
+
+			p += 8;
+			break;
+		case PcmpLINTR:
+			/*
+			 * Format is the same as IOINTR above.
+			 */
+			if ((lo = mpmkintr(p)) == 0) {
+				p += 8;
+				break;
+			}
+			if (DBGFLG)
+				mpintrprint(nil, p);
+
+			/*
+			 * Everything was checked in mpmkintr above.
+			 */
+			if (p[6] == 0xff) {
+				for (i = 0; i < Napic; i++) {
+					if (!ioapic[i].useable ||
+					    ioapic[i].addr != nil)
+						continue;
+					ioapic[i].lvt[p[7]] = lo;
+				}
+			} else
+				ioapic[p[6]].lvt[p[7]] = lo;
+			p += 8;
+			break;
 		}
-		else
-			ioapic[p[6]].lvt[p[7]] = lo;
-		p += 8;
-		break;
-	}
 
 	/*
 	 * There's nothing of real interest in the extended table,
@@ -319,75 +328,77 @@ mpparse(PCMP* pcmp)
 	 */
 	p = e;
 	e = p + l16get(pcmp->xlength);
-	while(p < e) switch(*p){
-	default:
-		n = p[1];
-		print("mpparse: unknown extended entry %d length %d\n", *p, n);
-		for(i = 0; i < n; i++){
-			if(i && ((i & 0x0f) == 0))
-				print("\n");
-			print(" %#2.2ux", *p);
-			p++;
+	while (p < e)
+		switch (*p) {
+		default:
+			n = p[1];
+			print("mpparse: unknown extended entry %d length %d\n",
+				*p, n);
+			for (i = 0; i < n; i++) {
+				if (i && ((i & 0x0f) == 0))
+					print("\n");
+				print(" %#2.2ux", *p++);
+			}
+			print("\n");
+			break;
+		case PcmpSASM:
+			DBG("address space mapping\n");
+			DBG(" bus %d type %d base %#llux length %#llux\n",
+				p[2], p[3], l64get(p + 4), l64get(p + 12));
+			p += p[1];
+			break;
+		case PcmpHIERARCHY:
+			DBG("bus hierarchy descriptor\n");
+			DBG(" bus %d sd %d parent bus %d\n", p[2], p[3], p[4]);
+			p += p[1];
+			break;
+		case PcmpCBASM:
+			DBG("compatibility bus address space modifier\n");
+			DBG(" bus %d pr %d range list %d\n",
+				p[2], p[3], l32get(p + 4));
+			p += p[1];
+			break;
 		}
-		print("\n");
-		break;
-	case PcmpSASM:
-		DBG("address space mapping\n");
-		DBG(" bus %d type %d base %#llux length %#llux\n",
-			p[2], p[3], l64get(p+4), l64get(p+12));
-		p += p[1];
-		break;
-	case PcmpHIERARCHY:
-		DBG("bus hierarchy descriptor\n");
-		DBG(" bus %d sd %d parent bus %d\n",
-			p[2], p[3], p[4]);
-		p += p[1];
-		break;
-	case PcmpCBASM:
-		DBG("compatibility bus address space modifier\n");
-		DBG(" bus %d pr %d range list %d\n",
-			p[2], p[3], l32get(p+4));
-		p += p[1];
-		break;
-	}
 }
 
 static int
 sigchecksum(void* address, int length)
 {
-	u8int *p, sum;
+	uchar *p, sum;
 
 	sum = 0;
 	for(p = address; length-- > 0; p++)
 		sum += *p;
-
 	return sum;
 }
 
 static void*
-sigscan(u8int* address, int length, char* signature)
+sigscan(uchar* address, int length, char* signature)
 {
-	u8int *e, *p;
+	uchar *e, *p;
 	int siglength;
 
 	DBG("check for %s in system base memory @ %#p\n", signature, address);
 
 	e = address+length;
 	siglength = strlen(signature);
-	for(p = address; p+siglength < e; p += 16){
-		if(memcmp(p, signature, siglength))
-			continue;
-		return p;
-	}
-
+	for(p = address; p+siglength < e; p += 16)
+		if(memcmp(p, signature, siglength) == 0)
+			return p;
 	return nil;
 }
 
-static void*
+/* returns number of bytes of free base (conventional) memory */
+uintptr
+freebasemem(void)
+{
+	return L16GET((uchar *)(KZERO+0x413)) * KB;
+}
+
+void*
 sigsearch(char* signature)
 {
 	uintptr p;
-	u8int *bda;
 	void *r;
 
 	/*
@@ -398,34 +409,46 @@ sigsearch(char* signature)
 	 * 3) within the BIOS ROM address space between 0xf0000 and 0xfffff
 	 *    (but will actually check 0xe0000 to 0xfffff).
 	 */
-	bda = BIOSSEG(0x40);
-	if(memcmp(KADDR(0xfffd9), "EISA", 4) == 0){
-		if((p = (bda[0x0f]<<8)|bda[0x0e]) != 0){
-			if((r = sigscan(BIOSSEG(p), 1024, signature)) != nil)
-				return r;
-		}
-	}
-
-	if((p = ((bda[0x14]<<8)|bda[0x13])*1024) != 0){
-		if((r = sigscan(KADDR(p-1024), 1024, signature)) != nil)
+	if((p = (uintptr)BIOSSEG(L16GET((uchar *)EBDAADDR))) != 0)
+		if((r = sigscan((void *)p, LOWMEMEND - p, signature)) != nil)
 			return r;
-	}
-	if((r = sigscan(KADDR(0xa0000-1024), 1024, signature)) != nil)
+
+	p = freebasemem();
+	if (0)
+		iprint("free base mem %#p = %,lld\n", p, p);
+	if(p == 0)
+		/* hack for virtualbox: look in last KiB below 0xa0000 */
+		p = LOWMEMEND;
+	else
+		p += KZERO;
+	if((r = sigscan((uchar *)p - KB, KB, signature)) != nil)
 		return r;
 
-	return sigscan(BIOSSEG(0xe000), 0x20000, signature);
+	r = sigscan(BIOSSEG(0xe000), 0x20000, signature);
+	if (r)
+		return r;
+
+	/* desperate last attempt for vbox; found at 0x9fc00 = 654336 */
+	r = sigscan(KADDR(0), MB, signature);
+	if (r) {
+		iprint("sigsearch's last resort match at %#p\n", r);
+		vmbotch(Virtualbox, "sigsearch's last resort match");
+	}
+	return r;
 }
 
 void
 mpsinit(void)
 {
-	u8int *p;
+	uchar *p;
 	int i, n;
 	_MP_ *mp;
 	PCMP *pcmp;
 
-	if((mp = sigsearch("_MP_")) == nil)
+	if((mp = sigsearch("_MP_")) == nil) {
+		vmbotch(Virtualbox, "there no MPS table!  WTF?");
 		return;
+	}
 	if(DBGFLG){
 		DBG("_MP_ @ %#p, addr %#ux length %ud rev %d",
 			mp, l32get(mp->addr), mp->length, mp->revision);
@@ -446,6 +469,7 @@ mpsinit(void)
 	}
 	n = l16get(pcmp->length) + l16get(pcmp->xlength);
 	vunmap(pcmp, sizeof(PCMP));
+
 	if((pcmp = vmap(l32get(mp->addr), n)) == nil)
 		return;
 	if(sigchecksum(pcmp, l16get(pcmp->length)) != 0){
@@ -465,7 +489,7 @@ mpsinit(void)
 			l16get(pcmp->xlength), pcmp->xchecksum);
 	}
 	if(pcmp->xchecksum != 0){
-		p = ((u8int*)pcmp) + l16get(pcmp->length);
+		p = ((uchar*)pcmp) + l16get(pcmp->length);
 		i = sigchecksum(p, l16get(pcmp->xlength));
 		if(((i+pcmp->xchecksum) & 0xff) != 0){
 			print("extended table checksums to %#ux\n", i);
@@ -480,7 +504,6 @@ mpsinit(void)
 	 * startup.
 	 */
 	mpparse(pcmp);
-	mpacpi();
 
 	apicdump();
 	ioapicdump();

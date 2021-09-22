@@ -4,17 +4,18 @@ LIB=/$objtype/lib/ape/libap.a
 OFILES=\
 	atom.$O\
 #	cycles.$O\
-	getfcr.$O\
+#	div.$O\
+#	getfcr.$O\
 	lock.$O\
 	main9.$O\
-#	main9p.$O\
-	memmove.$O\
-	memset.$O\
+	main9p.$O\
+#	memmove.$O\
+#	memset.$O\
 	notetramp.$O\
 	setjmp.$O\
-	strchr.$O\
-	strcmp.$O\
-	strcpy.$O\
+#	strchr.$O\
+#	strcmp.$O\
+#	strcpy.$O\
 	tas.$O\
 	vlop.$O\
 	vlrt.$O\

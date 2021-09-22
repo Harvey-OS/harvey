@@ -1,0 +1,50 @@
+</$objtype/mkfile
+CPUS=mips 386
+
+BIN=/sys/lib/texmf/bin/$objtype
+
+TARG=\
+	bibtex\
+	dvicopy\
+	dvitomp\
+	dvitype\
+	gftodvi\
+	gftopk\
+	gftype\
+	mft\
+	patgen\
+	pktogf\
+	pktype\
+	pltotf\
+	pooltype\
+	tangle\
+	tftopl\
+	vftovp\
+	vptovf\
+	weave\
+
+LIB=../lib/lib.a$O ../../kpathsea/libkpathsea.a$O
+
+</sys/src/cmd/mkmany
+
+# convert generates C files that depend on being able
+# to automatically cast between (char*) and (uchar*), which
+# our compiler (correctly) doesn't.   so i edit the C files.
+# thus we don't want these rules clobbering them.
+#
+# %.c:	%.p
+# 	srcdir=.. ../web2c/convert $stem
+
+# %.p:	%.web %.ch
+# 	tangle $stem.web $stem.ch >/dev/null
+
+CC=pcc
+CFLAGS=-I.. -I../.. -D_POSIX_SOURCE -D_BSD_EXTENSION -c
+
+/sys/lib/texmf/bin/$objtype/bibtex:V: /$objtype/bin/bibtex
+	#
+
+
+/$objtype/bin/bibtex: $O.bibtex
+	cp $O.bibtex /$objtype/bin/bibtex
+

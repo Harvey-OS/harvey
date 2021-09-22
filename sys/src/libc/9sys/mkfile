@@ -2,6 +2,7 @@
 
 LIB=/$objtype/lib/libc.a
 OFILES=\
+	_readtimezone.$O\
 	abort.$O\
 	access.$O\
 	announce.$O\
@@ -29,7 +30,6 @@ OFILES=\
 	nulldir.$O\
 	postnote.$O\
 	privalloc.$O\
-	procsetname.$O\
 	pushssl.$O\
 	pushtls.$O\
 	putenv.$O\

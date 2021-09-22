@@ -1,0 +1,40 @@
+there's a trick, called `virtual page table', used on 386 and amd64 systems
+to insert the address of the root page table into the root page table, thus
+allowing a virtual view of the page table tree as a contiguous array with
+holes for missing pagge tables.  this is possible because one can't tell
+(ignoring the Page Size bit) from looking at a 386/amd64 PTE what level of
+the tree it corresponds to.  on risc-v each PTE identifies itself as leaf
+or interior node, so the trick doesn't seem to be possible.
+
+the KSEG1PTROOT trickery seems to be intended to map each machine's root
+page table at the same address, so you always see your own, and to present
+the page tables as a sparse contiguous array.
+
+Here's an explanation of the trick on the 386:
+---
+But the processor has no concept of page directories, page tables, and
+pages being anything other than plain memory.  So there's nothing that says
+a particular page in memory can't serve as two or three of these at once.
+The processor just follows pointers: pd = lcr3(); pt = *(pd+4*PDX); page =
+*(pt+4*PTX);
+
+Diagramatically, it starts at CR3, follows three arrows, and then stops.
+
+If we put a pointer into the page directory that points back to itself at
+index Z, then when we try to translate a virtual address with PDX and PTX
+equal to V, following three arrows leaves us at the page directory.  So
+that virtual page translates to the page holding the page directory.  In
+Jos, V is 0x3BD, so the virtual address of the VPD is 0x3BD<<22|0x3BD<<12.
+
+Now, if we try to translate a virtual address with PDX = V but an arbitrary
+PTX != V, then following three arrows from CR3 ends one level up from usual
+(instead of two as in the last case), which is to say in the page tables.
+So the set of virtual pages with PDX=V form a 4MB region whose page
+contents, as far as the processor is concerned, are the page tables
+themselves.  In Jos, V is 0x3BD so the virtual address of the VPT is
+0x3BD<<22.
+
+So because of the "no-op" arrow we've cleverly inserted into the page
+directory, we've mapped the pages being used as the page directory and page
+table (which are normally virtually invisible) into the virtual address
+space.

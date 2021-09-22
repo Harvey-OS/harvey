@@ -306,7 +306,6 @@ subprop(Reg *r0)
 		case AAND:
 		case AEOR:
 		case AMUL:
-		case AMULU:
 		case ADIV:
 		case ADIVU:
 
@@ -978,7 +977,6 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AAND:
 	case AEOR:
 	case AMUL:
-	case AMULU:
 	case ADIV:
 	case ADIVU:
 	case AADDF:
@@ -1114,7 +1112,6 @@ a2type(Prog *p)
 	case AAND:
 	case AEOR:
 	case AMUL:
-	case AMULU:
 	case ADIV:
 	case ADIVU:
 		return D_REG;
@@ -1356,6 +1353,14 @@ joinsplit(Reg *r, Joininfo *j)
 		if (r->s2) {
 			j->end = r->s2;
 			return Branch;
+		}
+		switch(r->prog->as) {
+		case ADIV:
+		case ADIVU:
+		case AMOD:
+		case AMODU:
+			j->end = r->s1;
+			return Toolong;
 		}
 		if (modifiescpsr(r->prog)) {
 			j->end = r->s1;

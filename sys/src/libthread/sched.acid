@@ -41,12 +41,12 @@ sizeofFmt = 48;
 aggr Fmt
 {
 	'b' 0 runes;
-	'X' 4 start;
-	'X' 8 to;
-	'X' 12 stop;
-	'X' 16 flush;
-	'X' 20 farg;
-	'D' 24 nfmt;
+	'D' 4 nfmt;
+	'X' 8 start;
+	'X' 12 to;
+	'X' 16 stop;
+	'X' 20 flush;
+	'X' 24 farg;
 	'X' 28 args;
 	'D' 32 r;
 	'D' 36 width;
@@ -58,12 +58,12 @@ defn
 Fmt(addr) {
 	complex Fmt addr;
 	print("	runes	", addr.runes, "\n");
+	print("	nfmt	", addr.nfmt, "\n");
 	print("	start	", addr.start\X, "\n");
 	print("	to	", addr.to\X, "\n");
 	print("	stop	", addr.stop\X, "\n");
 	print("	flush	", addr.flush\X, "\n");
 	print("	farg	", addr.farg\X, "\n");
-	print("	nfmt	", addr.nfmt, "\n");
 	print("	args	", addr.args\X, "\n");
 	print("	r	", addr.r, "\n");
 	print("	width	", addr.width, "\n");
@@ -115,6 +115,26 @@ Tm(addr) {
 	print("	tzoff	", addr.tzoff, "\n");
 };
 
+sizeof_Timezone = 1144;
+aggr _Timezone
+{
+	'a' 0 stname;
+	'a' 4 dlname;
+	'D' 8 stdiff;
+	'D' 12 dldiff;
+	'a' 16 dlpairs;
+};
+
+defn
+_Timezone(addr) {
+	complex _Timezone addr;
+	print("	stname	", addr.stname, "\n");
+	print("	dlname	", addr.dlname, "\n");
+	print("	stdiff	", addr.stdiff, "\n");
+	print("	dldiff	", addr.dldiff, "\n");
+	print("	dlpairs	", addr.dlpairs, "\n");
+};
+
 PNPROC = 1;
 PNGROUP = 2;
 Profoff = 0;
@@ -140,16 +160,16 @@ sizeofQLp = 12;
 aggr QLp
 {
 	'D' 0 inuse;
-	'A' QLp 4 next;
-	'C' 8 state;
+	'C' 4 state;
+	'A' QLp 8 next;
 };
 
 defn
 QLp(addr) {
 	complex QLp addr;
 	print("	inuse	", addr.inuse, "\n");
-	print("	next	", addr.next\X, "\n");
 	print("	state	", addr.state, "\n");
+	print("	next	", addr.next\X, "\n");
 };
 
 sizeofQLock = 20;
@@ -412,6 +432,7 @@ Chanrecv = 3;
 RENDHASH = 13;
 Printsize = 2048;
 NPRIV = 8;
+Stackyellow = 2048;
 sizeofRgrp = 60;
 aggr Rgrp
 {

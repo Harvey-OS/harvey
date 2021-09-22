@@ -1,7 +1,6 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
 #include "pic.h"
 #include "y.tab.h"
 

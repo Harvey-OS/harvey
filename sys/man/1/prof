@@ -28,7 +28,7 @@ option of
 or other loader.
 The symbol table in the
 named program file
-.RL ( 2.out
+.RL ( 8.out
 etc., according to
 .BR $objtype ,
 by default)
@@ -73,8 +73,7 @@ option
 .B -r
 prints the full call graph.
 .PP
-The size of the buffer
-in
+The size of the buffer in
 .I program
 used to hold the profiling
 data, by default 2000 entries,
@@ -86,17 +85,20 @@ If the buffer fills, subsequent function calls may not be recorded.
 .PP
 The profiling code provided by the linker initializes itself to profile the current pid,
 producing a file called
-.B prof.\f2pid\fP.
+.BI prof. pid.
 If a process forks, only the parent will continue to be profiled.  Forked children
-can cause themselves to be profile by calling
+can cause themselves to be profiled by calling
 .IP
 .EX
 prof(fn, arg, entries, what)
 .EE
 .LP
-which causes the function \f2fn\fP(\f2arg\fP) to be profiled.  When \f2fn\fP
-returns 
-.B prof.\f2pid\fP
+which causes the function
+.IB fn ( arg )
+to be profiled.  When
+.I fn
+returns,
+.BI prof. pid
 is produced for the current process pid.
 .PP
 The environment variable

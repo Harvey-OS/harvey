@@ -11,15 +11,15 @@ typedef struct Convfmt Convfmt;
 struct Convfmt
 {
 	Rune	c;
-	volatile	Fmts	fmt;	/* for spin lock in fmtfmt; avoids race due to write order */
+	volatile Fmts fmt; /* for spin lock in fmtfmt; avoids race due to write order */
 };
 
-struct
+static struct
 {
 	/* lock by calling _fmtlock, _fmtunlock */
 	int	nfmt;
 	Convfmt	fmt[Maxfmt];
-} fmtalloc;
+} fmtalloc = { 0, };
 
 static Convfmt knownfmt[] = {
 	' ',	_flagfmt,
@@ -61,7 +61,7 @@ _fmtinstall(Rune c, Fmts f)
 {
 	Convfmt *p, *ep;
 
-	if(c<=0 || c>=65536)
+	if(c<=0 || c>=65536)		/* not a 16-bit Rune? */
 		return -1;
 	if(!f)
 		f = _badfmt;
@@ -105,7 +105,7 @@ fmtfmt(Rune c)
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
 	for(p=fmtalloc.fmt; p<ep; p++)
 		if(p->c == c){
-			while(p->fmt == nil)	/* loop until value is updated */
+			while(p->fmt == nil)  /* loop until value is updated */
 				;
 			return p->fmt;
 		}

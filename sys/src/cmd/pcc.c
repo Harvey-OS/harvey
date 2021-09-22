@@ -13,19 +13,17 @@ typedef struct Objtype {
 /* sync with /sys/src/ape/cmd/cc.c */
 Objtype objtype[] = {
 	{"spim",	"0c", "0l", "0", "0.out"},
-	{"mips64",	"4c", "4l", "4", "4.out"},
 	{"arm",		"5c", "5l", "5", "5.out"},
 	{"amd64",	"6c", "6l", "6", "6.out"},
+	{"arm64",	"7c", "7l", "7", "7.out"},
 	{"386",		"8c", "8l", "8", "8.out"},
 	{"power64",	"9c", "9l", "9", "9.out"},
-	{"sparc",	"kc", "kl", "k", "k.out"},
-	{"power",	"qc", "ql", "q", "q.out"},
-	{"mips",	"vc", "vl", "v", "v.out"},
 	{"riscv",	"ic", "il", "i", "i.out"},
 	{"riscv64",	"jc", "jl", "j", "j.out"},
-	{"spim64",	"xc", "xl", "x", "x.out"},
+	{"power",	"qc", "ql", "q", "q.out"},
+	{"mips",	"vc", "vl", "v", "v.out"},
 };
-char	*allos = "05689kqvij";
+char	*allos = "056789ijqv";
 
 enum {
 	Nobjs = (sizeof objtype)/(sizeof objtype[0]),
@@ -47,6 +45,13 @@ void	dopipe(char *, List *, char *, List *);
 void	fatal(char *);
 Objtype	*findoty(void);
 void	printlist(List *);
+
+static void
+usage(void)
+{
+	fprint(2, "usage: %s [-+BEFNPSTVWacfpvw] [-o out] [-x export] "
+		"[-Dsym[=val]] [-Usym] [-Idir] name ... [-llib ...]\n", argv0);
+}
 
 void
 main(int argc, char *argv[])
@@ -135,6 +140,7 @@ main(int argc, char *argv[])
 			break;
 		default:
 			fprint(2, "pcc: flag -%c ignored\n", ARGC());
+			usage();
 			break;
 		} ARGEND
 		if(argc > 0) {

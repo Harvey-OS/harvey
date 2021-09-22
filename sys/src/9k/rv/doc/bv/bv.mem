@@ -1,0 +1,59 @@
+From miller@hamnavoe.com Sun May  2 01:09:20 PDT 2021
+Received: from balrog.mythic-beasts.com ([46.235.227.24]) by collyer.net; Sun May  2 01:09:19 PDT 2021
+Received: from [88.97.27.83] (port=39089 helo=hamnavoe.com)
+	by balrog.mythic-beasts.com with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:256)
+	(Exim 4.92.3)
+	(envelope-from <miller@hamnavoe.com>)
+	id 1ld79g-00085u-OM
+	for geoff@collyer.net; Sun, 02 May 2021 09:08:48 +0100
+Message-ID: <ec076dc8ca74b59684b33659e906af7d@hamnavoe.com>
+To: geoff@collyer.net
+Subject: Re: beaglev
+From: Richard Miller <miller@hamnavoe.com>
+Date: Sun, 2 May 2021 09:08:17 +0100
+In-Reply-To: <7411a28c404740b22a0eb2e638706f73@collyer.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-BlackCat-Spam-Score: 0
+X-Spam-Status: No, score=-0.1
+
+> "meminfo" may be spelled "bdinfo", depending on your u-boot.
+
+BeagleV # meminfo
+DRAM:  8 GiB
+BeagleV # bdinfo
+boot_params = 0x0000000080000000
+DRAM bank   = 0x0000000000000000
+-> start    = 0x0000000080000000
+-> size     = 0x0000000200000000
+flashstart  = 0x0000000000000000
+flashsize   = 0x0000000000000000
+flashoffset = 0x0000000000000000
+baudrate    = 115200 bps
+relocaddr   = 0x00000000fff56000
+reloc off   = 0x000000007ff36000
+Build       = 64-bit
+current eth = dwmac.10020000
+ethaddr     = 2c:f7:f1:1b:e3:cb
+IP addr     = 192.168.120.200
+fdt_blob    = 0x00000000fffd0d40
+new_fdt     = 0x0000000000000000
+fdt_size    = 0x0000000000000000
+lmb_dump_all:
+    memory.cnt		   = 0x1
+    memory.size		   = 0x0
+    memory.reg[0x0].base   = 0x80000000
+		   .size   = 0x200000000
+
+    reserved.cnt	   = 0x4
+    reserved.size	   = 0x0
+    reserved.reg[0x0].base = 0xc9000000
+		     .size = 0x4000000
+    reserved.reg[0x1].base = 0xd0000000
+		     .size = 0x28000000
+    reserved.reg[0x2].base = 0xf9000000
+		     .size = 0x1000000
+    reserved.reg[0x3].base = 0xfb000000
+		     .size = 0x2000000
+

@@ -8,7 +8,7 @@
 long
 dynmagic(void)
 {
-	return DYN_MAGIC | Z_MAGIC;
+	return DYN_MAGIC | V_MAGIC;
 }
 
 char*

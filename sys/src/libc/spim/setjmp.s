@@ -1,10 +1,10 @@
-TEXT	setjmp(SB), 1, $-4
+TEXT	setjmp(SB), 1, $0
 	MOVW	R29, (R1)
 	MOVW	R31, 4(R1)
 	MOVW	$0, R1
 	RET
 
-TEXT	longjmp(SB), 1, $-4
+TEXT	longjmp(SB), 1, $0
 	MOVW	r+4(FP), R3
 	BNE	R3, ok		/* ansi: "longjmp(0) => longjmp(1)" */
 	MOVW	$1, R3		/* bless their pointed heads */
@@ -12,3 +12,11 @@ ok:	MOVW	(R1), R29
 	MOVW	4(R1), R31
 	MOVW	R3, R1
 	RET
+
+/*
+ * trampoline functions because the kernel smashes r1
+ * in the uregs given to notejmp
+ */
+TEXT	__noterestore(SB), 1, $0
+	MOVW	R2, R1
+	JMP	(R3)

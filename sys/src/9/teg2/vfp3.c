@@ -1,5 +1,5 @@
 /*
- * VFPv2 or VFPv3 floating point unit
+ * ARM VFPv2 or VFPv3 floating point unit
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -9,28 +9,23 @@
 #include "ureg.h"
 #include "arm.h"
 
+enum {
+	Debug	= 0,
+	Pretendnovfp = 0, /* non-0: debug vfp emulation despite having vfp hw */
+};
+
 /* subarchitecture code in m->havefp */
 enum {
 	VFPv2	= 2,
 	VFPv3	= 3,
 };
 
-/* fp control regs.  most are read-only */
-enum {
-	Fpsid =	0,
-	Fpscr =	1,			/* rw */
-	Mvfr1 =	6,
-	Mvfr0 =	7,
-	Fpexc =	8,			/* rw */
-	Fpinst= 9,			/* optional, for exceptions */
-	Fpinst2=10,
-};
 enum {
 	/* Fpexc bits */
 	Fpex =		1u << 31,
 	Fpenabled =	1 << 30,
 	Fpdex =		1 << 29,	/* defined synch exception */
-//	Fp2v =		1 << 28,	/* Fpinst2 reg is valid */
+//	Fp2v =		1 << 28,	/* Fpexinst2 reg is valid */
 //	Fpvv =		1 << 27,	/* if Fpdex, vecitr is valid */
 //	Fptfv = 	1 << 26,	/* trapped fault is valid */
 //	Fpvecitr =	MASK(3) << 8,
@@ -54,8 +49,10 @@ enum {
 enum {
 	/* CpCPaccess bits */
 	Cpaccnosimd =	1u << 31,
-	Cpaccd16 =	1 << 30,
+	Cpaccd16 =	1 << 30,	/* have only 16 fp regs, not 32 */
 };
+
+static void fpsave(FPsave *fps);
 
 static char *
 subarch(int impl, uint sa)
@@ -83,12 +80,14 @@ implement(uchar impl)
 		return "unknown";
 }
 
-static int
+int
 havefp(void)
 {
 	int gotfp;
 	ulong acc, sid;
 
+	if (Pretendnovfp)
+		return 0;
 	if (m->havefpvalid)
 		return m->havefp;
 
@@ -109,7 +108,8 @@ havefp(void)
 		m->havefpvalid = 1;
 		return 0;
 	}
-	m->fpon = 1;			/* don't panic */
+
+	m->fpon = 1;			/* lie to avoid panic in fprd */
 	sid = fprd(Fpsid);
 	m->fpon = 0;
 	switch((sid >> 16) & MASK(7)){
@@ -125,8 +125,8 @@ havefp(void)
 		break;
 	}
 	if (m->machno == 0)
-		print("fp: %d registers, %s simd\n", m->fpnregs,
-			(acc & Cpaccnosimd? " no": ""));
+		print("fp: %d registers,%s simd\n",
+			m->fpnregs, (acc & Cpaccnosimd? " no": ""));
 	m->havefpvalid = 1;
 	return 1;
 }
@@ -162,11 +162,10 @@ fpcfg(void)
 	ulong sid;
 	static int printed;
 
+	if (!havefp())
+		return;
 	/* clear pending exceptions; no traps in vfp3; all v7 ops are scalar */
-	m->fpscr = Dn | FPRNR | (FPINVAL | FPZDIV | FPOVFL) & ~Alltraps;
-	/* VFPv2 needs software support for underflows, so force them to zero */
-	if(m->havefp == VFPv2)
-		m->fpscr |= Fz;
+	m->fpscr = Dn | Fz | FPRNR | (FPINVAL | FPZDIV | FPOVFL) & ~Alltraps;
 	fpwr(Fpscr, m->fpscr);
 	m->fpconfiged = 1;
 
@@ -203,13 +202,18 @@ fpon(void)
 void
 fpclear(void)
 {
-//	ulong scr;
-
+	if (!havefp())
+		return;
 	fpon();
-//	scr = fprd(Fpscr);
-//	m->fpscr = scr & ~Allexc;
-//	fpwr(Fpscr, m->fpscr);
+	if (!m->fpon)
+		return;
+	if (0) {
+		ulong scr;
 
+		scr = fprd(Fpscr);
+		m->fpscr = scr & ~Allexc;
+		fpwr(Fpscr, m->fpscr);
+	}
 	fpwr(Fpexc, fprd(Fpexc) & ~Fpmbc);
 }
 
@@ -270,7 +274,7 @@ fpusysrforkchild(Proc *p, Ureg *, Proc *up)
 }
 
 /* should only be called if p->fpstate == FPactive */
-void
+static void
 fpsave(FPsave *fps)
 {
 	int n;
@@ -279,7 +283,7 @@ fpsave(FPsave *fps)
 	fps->control = fps->status = fprd(Fpscr);
 	assert(m->fpnregs);
 	for (n = 0; n < m->fpnregs; n++)
-		fpsavereg(n, (uvlong *)fps->regs[n]);
+		fpsavereg(n, &fps->regs[n].dbl);
 	fpoff();
 }
 
@@ -293,7 +297,7 @@ fprestore(Proc *p)
 	m->fpscr = fprd(Fpscr) & ~Allcc;
 	assert(m->fpnregs);
 	for (n = 0; n < m->fpnregs; n++)
-		fprestreg(n, *(uvlong *)p->fpsave.regs[n]);
+		fprestreg(n, p->fpsave.regs[n].dbl);
 }
 
 /*
@@ -308,7 +312,7 @@ fpuprocsave(Proc *p)
 {
 	if(p->fpstate == FPactive){
 		if(p->state == Moribund)
-			fpoff();
+			fpclear();
 		else{
 			/*
 			 * Fpsave() stores without handling pending
@@ -381,7 +385,10 @@ mathemu(Ureg *)
 {
 	switch(up->fpstate){
 	case FPemu:
-		error("illegal instruction: VFP opcode in emulated mode");
+		if (!m->fpon && havefp())
+			error("sys: illegal instruction: "
+				"VFP opcode in emulated mode");
+		break;
 	case FPinit:
 		fpinit();
 		up->fpstate = FPactive;
@@ -402,7 +409,8 @@ mathemu(Ureg *)
 		up->fpstate = FPactive;
 		break;
 	case FPactive:
-		error("sys: illegal instruction: bad vfp fpu opcode");
+		if (!m->fpon && havefp())
+			error("sys: illegal instruction: bad vfp fpu opcode");
 		break;
 	}
 	fpclear();
@@ -411,6 +419,10 @@ mathemu(Ureg *)
 void
 fpstuck(uintptr pc)
 {
+	if (!Debug) {
+		USED(pc);
+		return;
+	}
 	if (m->fppc == pc && m->fppid == up->pid) {
 		m->fpcnt++;
 		if (m->fpcnt > 4)
@@ -424,93 +436,77 @@ fpstuck(uintptr pc)
 	}
 }
 
-enum {
-	N = 1<<31,
-	Z = 1<<30,
-	C = 1<<29,
-	V = 1<<28,
-	REGPC = 15,
-};
-
-static int
-condok(int cc, int c)
+/* will call error() if given a bad pc */
+int
+getfpinst(uintptr pc, Fpinst *fpin)
 {
-	switch(c){
-	case 0:	/* Z set */
-		return cc&Z;
-	case 1:	/* Z clear */
-		return (cc&Z) == 0;
-	case 2:	/* C set */
-		return cc&C;
-	case 3:	/* C clear */
-		return (cc&C) == 0;
-	case 4:	/* N set */
-		return cc&N;
-	case 5:	/* N clear */
-		return (cc&N) == 0;
-	case 6:	/* V set */
-		return cc&V;
-	case 7:	/* V clear */
-		return (cc&V) == 0;
-	case 8:	/* C set and Z clear */
-		return cc&C && (cc&Z) == 0;
-	case 9:	/* C clear or Z set */
-		return (cc&C) == 0 || cc&Z;
-	case 10:	/* N set and V set, or N clear and V clear */
-		return (~cc&(N|V))==0 || (cc&(N|V)) == 0;
-	case 11:	/* N set and V clear, or N clear and V set */
-		return (cc&(N|V))==N || (cc&(N|V))==V;
-	case 12:	/* Z clear, and either N set and V set or N clear and V clear */
-		return (cc&Z) == 0 && ((~cc&(N|V))==0 || (cc&(N|V))==0);
-	case 13:	/* Z set, or N set and V clear or N clear and V set */
-		return (cc&Z) || (cc&(N|V))==N || (cc&(N|V))==V;
-	case 14:	/* always */
-		return 1;
-	case 15:	/* never (reserved) */
-		return 0;
-	}
-	return 0;	/* not reached */
+	Inst inst;
+
+	validaddr(pc, sizeof(Inst), 0);	/* verify legal mapped address */
+	validalign(pc, sizeof(Inst));
+	fpin->inst = inst = *(Inst *)pc;
+	fpin->op = OPCODE(inst);
+	fpin->coproc = COPROC(inst);
+	fpin->vd = VFPREGD(inst);
+	return ISCPOP(fpin->op) && ISFPOP(fpin->coproc);
 }
 
-/* only called to deal with user-mode instruction faults */
+/*
+ * only called from trap() to deal with user-mode instruction faults.
+ * returns number of consecutive FP instructions seen (emulated or restarted).
+ */
 int
 fpuemu(Ureg* ureg)
 {
-	int s, nfp, cop, op;
-	uintptr pc;
-	static int already;
+	int s, nfp;
+	Fpinst fpin;
 
 	if(waserror()){
 		postnote(up, 1, up->errstr, NDebug);
 		return 1;
 	}
 
+	if(up == nil)
+		panic("fpu trap from kernel mode");
 	if(up->fpstate & FPillegal)
-		error("floating point in note handler");
+		error("sys: floating point in note handler");
 
+	if (!getfpinst(ureg->pc, &fpin)) {
+		iprint("fpuemu: invoked on non-coproc instr %#8.8lux at %#p\n",
+			fpin.inst, ureg->pc);
+		error("sys: fpuemu: invoked on non-coproc instruction");
+	}
+	if(!condok(ureg->psr, CONDITION(fpin.inst)))
+		iprint("fpuemu: instruction condition false\n");
+
+	if(Debug && m->fpon)
+		fpstuck(ureg->pc);
 	nfp = 0;
-	pc = ureg->pc;
-	validaddr(pc, 4, 0);
-	op  = (*(ulong *)pc >> 24) & MASK(4);
-	cop = (*(ulong *)pc >>  8) & MASK(4);
-	if(m->fpon)
-		fpstuck(pc);		/* debugging; could move down 1 line */
-	if (ISFPAOP(cop, op)) {		/* old arm 7500 fpa opcode? */
+	switch (fpin.coproc) {
+	case CpDFP:				/* vfp */
+	case CpFP:
+		if (!m->fpon && havefp()) {
+			mathemu(ureg);	/* enable fpu; will retry the instr */
+			nfp = 1;		/* saw one fp instr */
+			break;
+		}
+		/* else fall through to emulate */
+	case CpOFPA:				/* old arm 7500 fpa */
 		s = spllo();
-		if(!already++)
-			pprint("warning: emulated arm7500 fpa instr %#8.8lux at %#p\n", *(ulong *)pc, pc);
 		if(waserror()){
 			splx(s);
 			nexterror();
 		}
-		nfp = fpiarm(ureg);	/* advances pc past emulated instr(s) */
-		if (nfp > 1)		/* could adjust this threshold */
+		nfp = fpiarm(ureg, &fpin); /* advances pc past emulated inst's */
+		if (Debug && nfp > 1)		/* made progress, not stuck? */
 			m->fppc = m->fpcnt = 0;
 		splx(s);
 		poperror();
-	} else if (ISVFPOP(cop, op)) {	/* if vfp, fpu off or unsupported instruction */
-		mathemu(ureg);		/* enable fpu & retry */
-		nfp = 1;
+		break;
+	default:
+		iprint("fpuemu: invoked on unknown coproc %ld; instr %#8.8lux at %#p\n",
+			fpin.coproc, fpin.inst, ureg->pc);
+		error("sys: fpuemu: invoked on unknown coproc");
 	}
 
 	poperror();

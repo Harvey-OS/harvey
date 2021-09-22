@@ -1,0 +1,15 @@
+exit
+
+unmount /n/jep1
+rm -f /n/emelieother/ken/jep1
+ls '#W'/cd0/d01 >/dev/null
+pump '#W'/cd0/d01 >/n/emelieother/ken/jep1
+
+unmount /n/jep2
+rm -f /n/emelieother/ken/jep2
+ls '#W'/cd0/d01 >/dev/null
+pump '#W'/cd0/d01 >/n/emelieother/ken/jep2
+
+9fs emelieother
+pump '#S'/sd03/data >/n/emelieother/ken/jep1
+pump '#S'/sd03/data >/n/emelieother/ken/jep2

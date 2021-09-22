@@ -9,12 +9,18 @@
 
 #include "whack.h"
 
+enum {
+	KB = 1024,
+	MB = 1024*1024,
+	GB = 1024*1024*1024,
+};
+
 typedef struct Allocs Allocs;
 struct Allocs {
-	u32int	mem;
-	u32int	bcmem;
-	u32int	icmem;
-	u32int	stfree;				/* free memory at start */
+	uintptr	mem;
+	uintptr	bcmem;
+	uintptr	icmem;
+	uvlong	stfree;				/* free memory at start */
 	uint	mempcnt;
 };
 
@@ -25,7 +31,20 @@ VtSrv *ventisrv;
 
 static void	ventiserver(void*);
 
-static ulong
+/*
+ * cap allocations to keep sizes within 32 bits on 32-bit machines.
+ * malloc implementations may restrict its arguments further (and
+ * Plan 9's does, so reduce the maximum size further).
+ */
+static uvlong
+capmalloc(uvlong size)
+{
+	if (sizeof(void *) < sizeof(vlong) && size > 1600ULL * MB)
+		return 1600ULL * MB;
+	return size;
+}
+
+static uvlong
 freemem(void)
 {
 	int nf, pgsize = 0;
@@ -34,7 +53,7 @@ freemem(void)
 	char *fields[2];
 	Biobuf *bp;
 
-	size = 64*1024*1024;
+	size = 64*MB;
 	bp = Bopen("#c/swap", OREAD);
 	if (bp != nil) {
 		while ((ln = Brdline(bp, '\n')) != nil) {
@@ -56,54 +75,49 @@ freemem(void)
 		if (pgsize > 0 && userpgs > 0 && userused > 0)
 			size = (userpgs - userused) * pgsize;
 	}
-	/* cap it to keep the size within 32 bits */
-	if (size >= 3840UL * 1024 * 1024)
-		size = 3840UL * 1024 * 1024;
 	return size;
 }
 
 static void
 allocminima(Allocs *all)			/* enforce minima for sanity */
 {
-	if (all->icmem < 6 * 1024 * 1024)
-		all->icmem = 6 * 1024 * 1024;
-	if (all->mem < 1024 * 1024 || all->mem == Unspecified)  /* lumps */
-		all->mem = 1024 * 1024;
-	if (all->bcmem < 2 * 1024 * 1024)
-		all->bcmem = 2 * 1024 * 1024;
+	if (all->icmem < 6 * MB)
+		all->icmem = 6 * MB;
+	if (all->mem < MB || all->mem == Unspecified)  /* lumps */
+		all->mem = MB;
+	if (all->bcmem < 2 * MB)
+		all->bcmem = 2 * MB;
 }
 
 /* automatic memory allocations sizing per venti(8) guidelines */
 static Allocs
-allocbypcnt(u32int mempcnt, u32int stfree)
+allocbypcnt(uint mempcnt, uvlong stfree)
 {
-	u32int avail;
-	vlong blmsize;
+	vlong avail, blmsize;
 	Allocs all;
-	static u32int free;
+	static uvlong nowfree;
 
 	all.mem = Unspecified;
 	all.bcmem = all.icmem = 0;
 	all.mempcnt = mempcnt;
 	all.stfree = stfree;
 
-	if (free == 0)
-		free = freemem();
-	blmsize = stfree - free;
-	if (blmsize <= 0)
+	if (nowfree == 0)
+		nowfree = freemem();
+	blmsize = stfree - nowfree;
+	if (blmsize <= 0)		/* we have more free than at start? */
 		blmsize = 0;
-	avail = ((vlong)stfree * mempcnt) / 100;
-	if (blmsize >= avail || (avail -= blmsize) <= (1 + 2 + 6) * 1024 * 1024)
+	/* plan 9 pool allocator may be 32-bit */
+	avail = capmalloc((stfree / 100) * mempcnt);
+	if (blmsize >= avail || (avail -= blmsize) <= (1 + 2 + 6) * MB)
 		fprint(2, "%s: bloom filter bigger than mem pcnt; "
 			"resorting to minimum values (9MB total)\n", argv0);
 	else {
-		if (avail >= 3840UL * 1024 * 1024)
-			avail = 3840UL * 1024 * 1024;	/* sanity */
 		avail /= 2;
-		all.icmem = avail;
+		all.icmem = capmalloc(avail);
 		avail /= 3;
-		all.mem = avail;
-		all.bcmem = 2 * avail;
+		all.mem   = capmalloc(avail);
+		all.bcmem = capmalloc(2 * avail);
 	}
 	return all;
 }
@@ -159,10 +173,17 @@ void
 threadmain(int argc, char *argv[])
 {
 	char *configfile, *haddr, *vaddr, *webroot;
-	u32int mem, icmem, bcmem, minbcmem, mempcnt, stfree;
+	uintptr mem, icmem, bcmem, minbcmem;
+	int mempcnt;
+	uvlong stfree;
 	Allocs allocs;
 	Config config;
 
+	/*
+	 * not sure why this helps, but it prevents malloc from dying later
+	 * after large allocations.
+	 */
+	malloc(8);
 	traceinit();
 	threadsetname("main");
 	mempcnt = 0;
@@ -265,8 +286,8 @@ threadmain(int argc, char *argv[])
 	mem = allocs.mem;
 	bcmem = allocs.bcmem;
 	icmem = allocs.icmem;
-	fprint(2, "%s: mem %,ud bcmem %,ud icmem %,ud...",
-		argv0, mem, bcmem, icmem);
+	fprint(2, "%s: mem %,llud bcmem %,llud icmem %,llud...",
+		argv0, (vlong)mem, (vlong)bcmem, (vlong)icmem);
 
 	/*
 	 * default other configuration-file parameters
@@ -282,18 +303,19 @@ threadmain(int argc, char *argv[])
 	if(queuewrites == 0)
 		queuewrites = config.queuewrites;
 
-	if(haddr){
+	if(haddr){		/* uses FP; needed for per-arena backups */
 		fprint(2, "httpd %s...", haddr);
 		if(httpdinit(haddr, webroot) < 0)
 			fprint(2, "warning: can't start http server: %r");
 	}
+	USED(haddr, webroot);
 	fprint(2, "init...");
 
 	/*
 	 * lump cache
 	 */
-	if(0) fprint(2, "initialize %d bytes of lump cache for %d lumps\n",
-		mem, mem / (8 * 1024));
+	if(0) fprint(2, "initialize %lld bytes of lump cache for %lld lumps\n",
+		(vlong)mem, (vlong)mem / (8 * 1024));
 	initlumpcache(mem, mem / (8 * 1024));
 
 	/*
@@ -309,7 +331,8 @@ threadmain(int argc, char *argv[])
 		(mainindex->narenas + mainindex->nsects*4 + 16);
 	if(bcmem < minbcmem)
 		bcmem = minbcmem;
-	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+	if(0) fprint(2, "initialize %lld bytes of disk block cache\n",
+		(vlong)bcmem);
 	initdcache(bcmem);
 
 	if(mainindex->bloom)

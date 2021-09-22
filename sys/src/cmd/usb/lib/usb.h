@@ -49,10 +49,6 @@ enum {
 	Rsetiface	= 11,
 	Rsynchframe	= 12,
 
-	/* standard requests (USB3.0) */
-	Rsethubdepth	= 12,
-	Rgetporterrcnt	= 13,
-
 	Rgetcur	= 0x81,
 	Rgetmin	= 0x82,
 	Rgetmax	= 0x83,
@@ -173,8 +169,6 @@ struct Dev
 	int	id;		/* usb id for device or ep. number */
 	int	dfd;		/* descriptor for the data file */
 	int	cfd;		/* descriptor for the control file */
-	int	isusb3;		/* this is a usb3 device */
-	int	depth;		/* hub depth for usb3 hubs */
 	int	maxpkt;		/* cached from usb description */
 	Ref	nerrs;		/* number of errors in requests */
 	Usbdev*	usb;		/* USB description */
@@ -325,6 +319,7 @@ struct DEp
 #define Proto(csp)	(((csp)>>16) & 0xff)
 #define CSP(c, s, p)	((c) | (s)<<8 | (p)<<16)
 
+/* little-endian conversions */
 #define	GET2(p)		(((p)[1] & 0xFF)<<8 | ((p)[0] & 0xFF))
 #define	PUT2(p,v)	{(p)[0] = (v); (p)[1] = (v)>>8;}
 #define	GET4(p)		(((p)[3]&0xFF)<<24 | ((p)[2]&0xFF)<<16 | \

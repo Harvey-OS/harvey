@@ -65,10 +65,8 @@ cache(int fd)
 		close(fd);
 		dup(p[0], 1);
 		close(p[0]);
-		if(fflag)
-			execl("/boot/cfs", "bootcfs", "-rs", "-f", partition, 0);
-		else
-			execl("/boot/cfs", "bootcfs", "-s", "-f", partition, 0);
+		execl("/boot/cfs", "bootcfs", (fflag? "-rs": "-s"), "-f",
+			partition, nil);
 		break;
 	default:
 		close(p[0]);

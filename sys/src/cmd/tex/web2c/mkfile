@@ -1,0 +1,93 @@
+</$objtype/mkfile
+CPUS=mips 386
+
+
+DIRS=lib tex mf mp misc web2c mpware
+LIB=lib/lib.a$O ../kpathsea/libkpathsea.a$O
+
+all install installall clean nuke:V:
+	for(i in $DIRS) @{
+		cd $i; mk $target
+	}
+
+install-fmt:V:
+	for(i in tex mf mp) @{
+		cd $i; mk $target
+	}
+
+(.*)/(.*):VR:
+	@{cd $stem1; mk $stem2 }
+
+# can't run mftrap, mptrap at same time due to output file conflicts
+triptrap:V:
+	mk trip
+	mk mftrap
+	mk mptap
+
+# run TeX trip test suite
+# acceptable diff output is in triptrap/trip.diffs
+#
+dviargs='-output-level=2' '-dpi=72.27' '-page-start=*.*.*.*.*.*.*.*.*.*'
+trip:V: misc/$O.pltotf misc/$O.tftopl tex/$O.out misc/$O.dvitype
+	misc/$O.pltotf triptrap/trip.pl trip.tfm
+	misc/$O.tftopl trip.tfm trip.pl
+	diff triptrap/trip.pl trip.pl || status=''
+	cp triptrap/trip.tex .
+	TEXMFCNF=triptrap tex/$O.out --progname'='initex < triptrap/trip1.in > tripin.fot || status=''
+	mv trip.log tripin.log
+	diff triptrap/tripin.log tripin.log || status=''
+	TEXMFCNF=triptrap tex/$O.out <triptrap/trip2.in >trip.fot || status=''
+	diff triptrap/trip.fot trip.fot || status=''
+	diff triptrap/trip.log trip.log || status=''
+	TEXMFCNF=triptrap misc/$O.dvitype $dviargs trip.dvi >trip.typ || status=''
+	diff triptrap/trip.typ trip.typ || status=''
+
+# run MF trap test suite
+# acceptable diff output is in triptrap/mftrap.diffs
+#
+mftrap:V: misc/$O.tftopl misc/$O.gftype mf/$O.out
+	cp triptrap/trap.mf .
+	TEXMFCNF=triptrap mf/$O.out '--progname=inimf' <triptrap/mftrap1.in >mftrapin.fot ||status=''
+	mv trap.log mftrapin.log
+	diff triptrap/mftrapin.log mftrapin.log ||status=''
+	TEXMFCNF=triptrap mf/$O.out <triptrap/mftrap2.in >mftrap.fot ||status=''
+	mv trap.log mftrap.log
+	mv trap.tfm mftrap.tfm
+	diff triptrap/mftrap.fot mftrap.fot ||status=''
+	diff triptrap/mftrap.log mftrap.log ||status=''
+	misc/$O.tftopl ./mftrap.tfm mftrap.pl
+	TEXMFCNF=triptrap misc/$O.gftype -m -i ./trap.72270gf >trap.typ ||status=''
+	diff triptrap/trap.typ trap.typ ||status=''
+
+# run MP trap test suite
+# acceptable diff output is in triptrap/mptrap.diffs
+#
+mptrap:V: misc/$O.pltotf mp/$O.out misc/$O.tftopl
+	cp triptrap/mtrap.mp .
+	misc/$O.pltotf triptrap/trapf.pl trapf.tfm
+	TEXMFCNF=triptrap mp/$O.out '--progname=inimpost' mtrap ||status=''
+	diff triptrap/mtrap.log mtrap.log ||status=''
+	diff triptrap/mtrap.0 mtrap.0 ||status=''
+	diff triptrap/mtrap.1 mtrap.1 ||status=''
+	diff triptrap/writeo writeo ||status=''
+	diff triptrap/writeo.2 writeo.2 ||status=''
+	cp triptrap/trap.mp .
+	cp triptrap/trap.mpx .
+	TEXMFCNF=triptrap mp/$O.out '--progname=inimpost' <triptrap/mptrap1.in >mptrapin.fot ||status=''
+	mv trap.log mptrapin.log
+	diff triptrap/mptrapin.log mptrapin.log ||status=''
+	TEXMFCNF=triptrap mp/$O.out '--progname=inimpost' <triptrap/mptrap2.in >mptrap.fot ||status=''
+	mv trap.log mptrap.log
+	mv trap.tfm mptrap.tfm
+	diff triptrap/mptrap.fot mptrap.fot ||status=''
+	diff triptrap/mptrap.log mptrap.log ||status=''
+	diff triptrap/trap.5 trap.5 ||status=''
+	diff triptrap/trap.6 trap.6 ||status=''
+	diff triptrap/trap.148 trap.148 ||status=''
+	diff triptrap/trap.149 trap.149 ||status=''
+	diff triptrap/trap.150 trap.150 ||status=''
+	diff triptrap/trap.151 trap.151 ||status=''
+	diff triptrap/trap.197 trap.197 ||status=''
+	diff triptrap/trap.200 trap.200 ||status=''
+	misc/$O.tftopl ./mptrap.tfm mptrap.pl
+	diff triptrap/mptrap.pl mptrap.pl ||status=''

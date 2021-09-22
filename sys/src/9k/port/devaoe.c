@@ -93,11 +93,6 @@ enum {
 	Cid		= 0xec,
 };
 
-enum {
-	Read,
-	Write,
-};
-
 /*
  * unified set of flags
  * a Netlink + Aoedev most both be jumbo capable
@@ -160,13 +155,12 @@ typedef struct Srb Srb;
 struct Srb {
 	Rendez;
 	Srb	*next;
-	int	shared;	/* Srb shared with kproc (don't free) */
 	ulong	ticksent;
 	ulong	len;
 	vlong	sector;
 	short	write;
 	short	nout;
-	char	*error;
+	char	*err;
 	void	*dp;
 	void	*data;
 };
@@ -257,6 +251,12 @@ static Ref	drivevers;
 static int	debug;
 static int	autodiscover	= 1;
 static int	rediscover;
+static	char	Ebadshelf[] = "bad aoe shelf";
+static	char	Edevnotbound[] = "aoe device not bound";
+
+char 	Enotup[] 	= "aoe device is down";
+
+Dev aoedevtab;
 
 static Srb*
 srballoc(ulong sz)
@@ -268,7 +268,6 @@ srballoc(ulong sz)
 		error(Enomem);
 	srb->dp = srb->data = srb+1;
 	srb->ticksent = sys->ticks;
-	srb->shared = 0;
 	return srb;
 }
 
@@ -282,24 +281,17 @@ srbkalloc(void *db, ulong)
 		error(Enomem);
 	srb->dp = srb->data = db;
 	srb->ticksent = sys->ticks;
-	srb->shared = 0;
 	return srb;
 }
 
-static void
-srbfree(Srb *srb)
-{
-	while(srb->shared)
-		sched();
-	free(srb);
-}
+#define srbfree(srb) free(srb)
 
 static void
 srberror(Srb *srb, char *s)
 {
-	srb->error = s;
+	srb->err = s;
 	srb->nout--;
-	if(srb->nout == 0)
+	if (srb->nout == 0)
 		wakeup(srb);
 }
 
@@ -395,7 +387,7 @@ eventlog(char *fmt, ...)
 static int
 eventcount(void)
 {
-	int n;
+	uint n;
 
 	lock(&events);
 	if(*events.rp == 0)
@@ -439,7 +431,7 @@ downdev(Aoedev *d, char *err)
 	f = d->frames;
 	e = f + d->nframes;
 	for(; f < e; f->tag = Tfree, f->srb = nil, f++)
-		frameerror(d, f, Eaoedown);
+		frameerror(d, f, Enotup);
 	d->inprocess = nil;
 	eventlog("%æ: removed; %s\n", d, err);
 }
@@ -525,7 +517,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 	memmove(h->src, l->nl->ea, sizeof h->src);
 	hnputs(h->type, Aoetype);
 	h->verflag = Aoever << 4;
-	h->error = 0;
+	h->err = 0;
 	hnputs(h->major, d->major);
 	h->minor = d->minor;
 	h->cmd = cmd;
@@ -740,7 +732,7 @@ aoeattach(char *spec)
 	if(*spec)
 		error(Enonexist);
 	aoeinit();
-	c = devattach(L'æ', spec);
+	c = devattach(aoedevtab.dc, spec);
 	mkqid(&c->qid, Qzero, 0, QTDIR);
 	return c;
 }
@@ -951,7 +943,7 @@ aoeopen(Chan *c, int omode)
 		nexterror();
 	}
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	c = devopen(c, omode, 0, 0, aoegen);
 	d->nopen++;
 	poperror();
@@ -1055,7 +1047,7 @@ aoeerror(Aoehdr *h)
 
 	if((h->verflag & AFerr) == 0)
 		return 0;
-	n = h->error;
+	n = h->err;
 	if(n > nelem(errs))
 		n = 0;
 	return errs[n];
@@ -1090,7 +1082,7 @@ srbready(void *v)
 	Srb *s;
 
 	s = v;
-	return s->error || (s->nout == 0 && s->len == 0);
+	return s->err || (!s->nout && !s->len);
 }
 
 static Frame*
@@ -1146,7 +1138,6 @@ strategy(Aoedev *d, Srb *srb)
 	d->tail = srb;
 	if(d->head == nil)
 		d->head = srb;
-	srb->shared = 1;
 	work(d);
 	poperror();
 	qunlock(d);
@@ -1157,6 +1148,8 @@ strategy(Aoedev *d, Srb *srb)
 	poperror();
 }
 
+#define iskaddr(a)	((uintptr)(a) > KZERO)
+
 static long
 rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 {
@@ -1165,13 +1158,13 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	Srb *srb;
 
 	if((off|len) & (Aoesectsz-1))
-		error("offset and length must be sector multiple.\n");
+		error("offset and length must be sector multiples");
 	if(off > d->bsize || len == 0)
 		return 0;
 	if(off + len > d->bsize)
 		len = d->bsize - off;
 	copy = 0;
-	if(isdmaok(db, len, 32)){
+	if(iskaddr(db)){
 		srb = srbkalloc(db, len);
 		copy = 1;
 	}else
@@ -1194,8 +1187,8 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 		if(write && !copy)
 			memmove(srb->data, db, n);
 		strategy(d, srb);
-		if(srb->error)
-			error(srb->error);
+		if(srb->err)
+			error(srb->err);
 		if(!write && !copy)
 			memmove(db, srb->data, n);
 		nlen -= n;
@@ -1280,11 +1273,11 @@ unitread(Chan *c, void *db, long len, vlong off)
 		return rw(d, Read, db, len, off);
 	case Qconfig:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->config, d->nconfig);
 	case Qident:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->ident, sizeof d->ident);
 	}
 }
@@ -1399,7 +1392,7 @@ configwrite(Aoedev *d, void *db, long len)
 	Srb *srb;
 
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	if(len > ETHERMAXTU - AOEQCSZ)
 		error(Etoobig);
 	srb = srballoc(len);
@@ -1407,7 +1400,6 @@ configwrite(Aoedev *d, void *db, long len)
 	if(s == nil)
 		error(Enomem);
 	memmove(s, db, len);
-
 	if(waserror()){
 		srbfree(srb);
 		free(s);
@@ -1424,7 +1416,6 @@ configwrite(Aoedev *d, void *db, long len)
 			break;
 		poperror();
 		qunlock(d);
-
 		if(waserror())
 			nexterror();
 		tsleep(&up->sleep, return0, 0, 100);
@@ -1433,16 +1424,8 @@ configwrite(Aoedev *d, void *db, long len)
 	f->nhdr = AOEQCSZ;
 	memset(f->hdr, 0, f->nhdr);
 	ch = (Aoeqc*)f->hdr;
-	if(hset(d, f, ch, ACconfig) == -1) {
-		/*
-		 * these refer to qlock & waserror in the above for loop.
-		 * there's still the first waserror outstanding.
-		 */
-		poperror();
-		qunlock(d);
+	if(hset(d, f, ch, ACconfig) == -1)
 		return 0;
-	}
-	srb->shared = 1;
 	f->srb = srb;
 	f->dp = s;
 	ch->verccmd = AQCfset;
@@ -1451,14 +1434,17 @@ configwrite(Aoedev *d, void *db, long len)
 	srb->nout++;
 	f->dl->npkt++;
 	f->dlen = len;
-	/* these too */
+	/*
+	 * these refer to qlock & waserror in the above for loop.
+	 * there's still the first waserror outstanding.
+	 */
 	poperror();
 	qunlock(d);
 
 	f->nl->dc->dev->bwrite(f->nl->dc, allocfb(f), 0);
 	sleep(srb, srbready, srb);
-	if(srb->error)
-		error(srb->error);
+	if(srb->err)
+		error(srb->err);
 
 	qlock(d);
 	if(waserror()){
@@ -1721,9 +1707,9 @@ newdev(long major, long minor, int n)
 	d->flag = Djumbo;
 	d->unit = newunit();		/* bzzt.  inaccurate if units removed */
 	if(d->unit == -1){
-		free(d->frames);
 		free(d);
-		error("too many units");
+		free(d->frames);
+		error("too many aoe units");
 	}
 	d->dl = d->dltab;
 	return d;
@@ -1948,7 +1934,6 @@ qcfgrsp(Block *b, Netlink *nl)
 		memmove(f->dp, ch + 1, cslen);
 		f->srb->nout--;
 		wakeup(f->srb);
-		f->srb->shared = 0;
 		d->nout--;
 		f->srb = nil;
 		f->tag = Tfree;
@@ -2078,7 +2063,7 @@ static int
 identify(Aoedev *d, ushort *id)
 {
 	vlong osectors, s;
-	uchar oserial[21];
+	uchar oserial[sizeof d->serial];
 
 	s = aoeidentify(d, id);
 	if(s == -1)
@@ -2135,15 +2120,15 @@ atarsp(Block *b)
 		eventlog("%æ: ata error cmd %.2ux stat %.2ux\n",
 			d, ahout->cmdstat, ahin->cmdstat);
 		if(srb)
-			srb->error = Eio;
+			srb->err = Eio;
 	} else {
 		n = ahout->scnt * Aoesectsz;
 		switch(ahout->cmdstat){
 		case Crd:
 		case Crdext:
 			if(BLEN(b) - AOEATASZ < n){
-				eventlog("%æ: runt read blen %ld expect %d\n",
-					d, BLEN(b), n);
+				eventlog("%æ: runt read blen %lld expect %d\n",
+					d, (vlong)BLEN(b), n);
 				goto bail;
 			}
 			memmove(f->dp, (uchar *)ahin + AOEATASZ, n);
@@ -2160,8 +2145,8 @@ atarsp(Block *b)
 			break;
 		case Cid:
 			if(BLEN(b) - AOEATASZ < 512){
-				eventlog("%æ: runt identify blen %ld expect %d\n",
-					d, BLEN(b), n);
+				eventlog("%æ: runt identify blen %lld expect %d\n",
+					d, (vlong)BLEN(b), n);
 				goto bail;
 			}
 			identify(d, (ushort*)((uchar *)ahin + AOEATASZ));
@@ -2172,10 +2157,8 @@ atarsp(Block *b)
 		}
 	}
 
-	if(srb && --srb->nout == 0 && srb->len == 0){
+	if(srb && --srb->nout == 0 && srb->len == 0)
 		wakeup(srb);
-		srb->shared = 0;
-	}
 	f->srb = nil;
 	f->tag = Tfree;
 	d->nout--;
@@ -2327,7 +2310,7 @@ netunbind(char *path)
 			break;
 	unlock(&netlinks);
 	if (n >= e)
-		error("device not bound");
+		error(Edevnotbound);
 
 	/*
 	 * hunt down devices using this interface; disable
@@ -2440,11 +2423,10 @@ removeaoedev(Aoedev *d)
 	 * does not change the version number.
 	 */
 	// newvers(d);
-
 	d->ndl = 0;
 	qunlock(d);
 	for(i = 0; i < d->nframes; i++)
-		frameerror(d, d->frames+i, Eaoedown);
+		frameerror(d, d->frames+i, Enotup);
 
 	if(p)
 		p->next = d->next;
@@ -2469,7 +2451,7 @@ removedev(char *name)
 			return;
 		}
 	wunlock(&devs);
-	error("device not bound");
+	error(Edevnotbound);
 }
 
 static void
@@ -2486,12 +2468,12 @@ discoverstr(char *f)
 
 	shelf = sh = strtol(f, &s, 0);
 	if(s == f || sh > 0xffff)
-		error("bad shelf");
+		error(Ebadshelf);
 	f = s;
 	if(*f++ == '.'){
 		slot = strtol(f, &s, 0);
 		if(s == f || slot > 0xff)
-			error("bad shelf");
+			error(Ebadshelf);
 	}else
 		slot = 0xff;
 	discover(shelf, slot);

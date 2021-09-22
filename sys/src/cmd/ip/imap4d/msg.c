@@ -772,6 +772,7 @@ unixFrom(char *s)
 	headStr = (uchar*)s;
 	t = emalloc(strlen(s) + 2);
 	e = headAddrSpec(t, nil);
+debuglog("unixFrom: %s = headAddrSpec(%s, nil)\n", e, t);
 	if(e == nil)
 		a = nil;
 	else{
@@ -1152,6 +1153,7 @@ headAddress(void)
 	if(c == '.' || c == '@' || c == ',' || c == '\n' || c == '\0'){
 		lastWhite = headStr;
 		e = headAddrSpec(s, w);
+debuglog("headAddress 1: %s = headAddrSpec(%s, %s)\n", e, s, w);
 		if(personal == nil){
 			hs = headStr;
 			headStr = lastWhite;
@@ -1207,7 +1209,10 @@ headAddress(void)
 		}
 
 		if(e != nil)
+{
 			e = headAddrSpec(s, nil);
+debuglog("headAddress 2: %s = headAddrSpec(%s, nil)\n", e, s);
+}
 		if(headChar(1) != '>')
 			e = nil;
 	}
@@ -1267,29 +1272,33 @@ headPhrase(char *e, char *w)
 
 /*
  * addr-spec	: local-part '@' domain
- *		| local-part			extension to allow ! and local names
+ *		| local-part		extension to allow ! and local names
  * local-part	: word
  *		| local-part '.' word
  *
  * if no '@' is present, rewrite d!e!f!u as @d,@e:u@f,
  * where d, e, f are valid domain components.
  * the @d,@e: is ignored, since routes are ignored.
- * perhaps they should be rewritten as e!f!u@d, but that is inconsistent with upas.
+ * perhaps they should be rewritten as e!f!u@d,
+ * but that is inconsistent with upas.
  *
  * returns a pointer to '@', the end if none, or nil if there was an error
  */
 static char*
 headAddrSpec(char *e, char *w)
 {
-	char *s, *at, *b, *bang, *dom;
+	char *s, *at, *b, *bang, *dom, *copy;
 	int c;
 
+	copy = strdup(e);
 	s = e;
 	for(;;){
 		if(w == nil){
 			w = headWord();
-			if(w == nil)
+			if(w == nil){
+				free(copy);
 				return nil;
+			}
 		}
 		strcpy(e, w);
 		free(w);
@@ -1306,13 +1315,21 @@ headAddrSpec(char *e, char *w)
 
 	if(c != '@'){
 		/*
-		 * extenstion: allow name without domain
+		 * extension: allow name without domain
 		 * check for domain!xxx
 		 */
 		bang = domBang(s);
-		if(bang == nil)
+		if(bang == nil){
+			/*
+			 * for the sake of replies, add our default domain.
+			 * this introduces a small memory leak.
+			 */
+			if (site)
+				e = headAddrSpec(smprint("%s@%s", copy, site), w);
+			free(copy);
 			return e;
-
+		}
+		free(copy);
 		/*
 		 * if dom1!dom2!xxx, ignore dom1!
 		 */
@@ -1341,6 +1358,7 @@ headAddrSpec(char *e, char *w)
 			e[-1] = '\0';
 		return bang;
 	}
+	free(copy);
 	headChar(1);
 
 	at = e;
@@ -1420,6 +1438,7 @@ mimeId(Header *h)
 	e = s;
 	*e++ = '<';
 	e = headAddrSpec(e, nil);
+debuglog("mimeId: %s = headAddrSpec(%s, nil)\n", e, e);
 	if(e == nil || headChar(1) != '>'){
 		free(s);
 		return;

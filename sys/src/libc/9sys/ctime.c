@@ -47,20 +47,9 @@ static	char	dmsize[12] =
 static	int	dysize(int);
 static	void	ct_numb(char*, int);
 
-#define	TZSIZE	((136*2)+10)		/* 1970-2106; match tm2sec.c */
+void	_readtimezone(_Timezone *);
 
-static	void	readtimezone(void);
-static	int	rd_name(char**, char*);
-static	int	rd_long(char**, long*);
-static
-struct
-{
-	char	stname[4];
-	char	dlname[4];
-	long	stdiff;
-	long	dldiff;
-	ulong	dlpairs[TZSIZE];
-} timezone;
+_Timezone _timezone;
 
 char*
 ctime(long t)
@@ -76,24 +65,24 @@ localtime(long atim)		/* should be ulong, but it's too late */
 	int dlflag;
 
 	tim = atim;
-	if(timezone.stname[0] == 0)
-		readtimezone();
-	t = tim + timezone.stdiff;
+	if(_timezone.stname[0] == 0)
+		_readtimezone(&_timezone);
+	t = tim + _timezone.stdiff;
 	dlflag = 0;
-	for(p = timezone.dlpairs; *p; p += 2)
+	for(p = _timezone.dlpairs; *p; p += 2)
 		if(t >= p[0])
 		if(t < p[1]) {
-			t = tim + timezone.dldiff;
+			t = tim + _timezone.dldiff;
 			dlflag++;
 			break;
 		}
 	ct = gmtime(t);
 	if(dlflag){
-		strcpy(ct->zone, timezone.dlname);
-		ct->tzoff = timezone.dldiff;
+		strcpy(ct->zone, _timezone.dlname);
+		ct->tzoff = _timezone.dldiff;
 	} else {
-		strcpy(ct->zone, timezone.stname);
-		ct->tzoff = timezone.stdiff;
+		strcpy(ct->zone, _timezone.stname);
+		ct->tzoff = _timezone.stdiff;
 	}
 	return ct;
 }
@@ -186,7 +175,7 @@ asctime(Tm *t)
 	cbuf[22] = *ncp;
 	if(t->year >= 100) {
 		cbuf[24] = '2';
-		cbuf[25] = '0';
+		cbuf[25] = t->year >= 200? '1': '0';
 	}
 	ct_numb(cbuf+26, t->year+100);
 	return cbuf;
@@ -210,99 +199,4 @@ ct_numb(char *cp, int n)
 	if(n >= 10)
 		cp[0] = (n/10)%10 + '0';
 	cp[1] = n%10 + '0';
-}
-
-static
-void
-readtimezone(void)
-{
-	char buf[TZSIZE*11+30], *p;
-	int i;
-
-	memset(buf, 0, sizeof(buf));
-	i = open("/env/timezone", 0);
-	if(i < 0)
-		goto error;
-	if(read(i, buf, sizeof(buf)) >= sizeof(buf)){
-		close(i);
-		goto error;
-	}
-	close(i);
-	p = buf;
-	if(rd_name(&p, timezone.stname))
-		goto error;
-	if(rd_long(&p, &timezone.stdiff))
-		goto error;
-	if(rd_name(&p, timezone.dlname))
-		goto error;
-	if(rd_long(&p, &timezone.dldiff))
-		goto error;
-	for(i=0; i<TZSIZE; i++) {
-		if(rd_long(&p, (long *)&timezone.dlpairs[i]))
-			goto error;
-		if(timezone.dlpairs[i] == 0)
-			return;
-	}
-	/* array too small for input */
-error:
-	timezone.stdiff = 0;
-	strcpy(timezone.stname, "GMT");
-	timezone.dlpairs[0] = 0;
-}
-
-static
-rd_name(char **f, char *p)
-{
-	int c, i;
-
-	for(;;) {
-		c = *(*f)++;
-		if(c != ' ' && c != '\n')
-			break;
-	}
-	for(i=0; i<3; i++) {
-		if(c == ' ' || c == '\n')
-			return 1;
-		*p++ = c;
-		c = *(*f)++;
-	}
-	if(c != ' ' && c != '\n')
-		return 1;
-	*p = 0;
-	return 0;
-}
-
-static
-rd_long(char **f, long *p)
-{
-	int c, s;
-	long l;
-
-	s = 0;
-	for(;;) {
-		c = *(*f)++;
-		if(c == '-') {
-			s++;
-			continue;
-		}
-		if(c != ' ' && c != '\n')
-			break;
-	}
-	if(c == 0) {
-		*p = 0;
-		return 0;
-	}
-	l = 0;
-	for(;;) {
-		if(c == ' ' || c == '\n')
-			break;
-		if(c < '0' || c > '9')
-			return 1;
-		l = l*10 + c-'0';
-		c = *(*f)++;
-	}
-	if(s)
-		l = -l;
-	*p = l;
-	return 0;
 }

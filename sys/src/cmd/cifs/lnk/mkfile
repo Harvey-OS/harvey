@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+CFLAGS=$CFLAGS -T 
+
+TARG=lnk
+BIN=/$objtype/bin/aux
+OFILES= lnk.$O
+
+</sys/src/cmd/mkone
+

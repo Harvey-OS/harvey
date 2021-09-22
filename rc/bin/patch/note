@@ -16,13 +16,13 @@ if(! test -d /n/sources/patch/$1){
 	exit nopatch
 }
 
-builtin cd /n/sources/patch/$1 || exit nopatch
+cd /n/sources/patch/$1 || exit nopatch
 if(! patch/okay .){
 	echo 'bad patch: '$status >[1=2]
 	exit badpatch
 }
 
-if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && ~ `{ls -l /dev/consctl | awk '{print $1}'} *w*){
+if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && ~ `{ls -l /dev/consctl | awk '{print $1}'} *rw*){
 	>/dev/consctl {
 		echo holdon
 		{echo `{date} `{cat /dev/user}

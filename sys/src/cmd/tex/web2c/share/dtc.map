@@ -1,0 +1,30 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "dtc.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "30      95     992",
+@c   docstring = "Digital Typeface Corporation PostScript fonts."
+@c }
+@c From mackay@cs.washington.edu.
+dhvc8rc  SansBlackCondensed-DTC
+dhvco8rc SansBlackCondensed-Oblique-DTC
+dhvm8rx  SansExtended-Medium-DTC
+dhvr8rx  SansExtended-Regular-DTC
+dhvro8rc SansExtended-RegularOblique-DTC
+dhvx8rc  SansExtraBlackCondensed-DTC
+dhvl8rx  SansLightExtended-DTC
+dhvh8rc  SansThinCondensed-DTC
+dhvho8rc SansThinCondensed-Oblique-DTC
+dnbb8r   NewBaskerville-Bold-DTC
+dnbbi8r  NewBaskerville-BoldItalic-DTC
+dnbri8r  NewBaskerville-RomanItalic-DTC
+dnbr8r   NewBaskerville-Roman-DTC
+dopr8r   Optimum-Roman-DTC
+dopb8r   Optimum-Bold-DTC
+dopbo8r  Optimum-BoldItalic-DTC
+doro8r   Optimum-RomanItalic-DTC
+dpll8r   Palton-Light-DTC

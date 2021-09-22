@@ -12,6 +12,7 @@
  *	-B		non ANSI
  *	-d		print declarations
  *	-D name		define
+ *	-f		print pragma settings
  *	-F		format specification check
  *	-i		print initialization
  *	-I path		include
@@ -22,14 +23,16 @@
  *	-n		print acid to file (%.c=%.acid) (with -a or -aa)
  *	-o file		output file
  *	-p		use standard cpp ANSI preprocessor (not on windows)
- *	-r		print registerization
+ *	-R		print registerization
  *	-s		print structure offsets (with -a or -aa)
  *	-S		print assembly
+ *	-T		pass type signatures on all external & global entities
  *	-t		print type trees
  *	-V		enable void* conversion warnings
  *	-v		verbose printing
  *	-w		print warnings
  *	-X		abort on error
+ *	-Z		emit pickling goo to file (%.c=%_pickle.c)
  *	-.		Inhibit search for includes in source directory
  */
 
@@ -39,6 +42,7 @@ main(int argc, char *argv[])
 	char **defs, **np, *p;
 	int nproc, nout, status, i, c, ndef, maxdef;
 
+	Binit(&diagbuf, 1, OWRITE);
 	memset(debug, 0, sizeof(debug));
 	tinit();
 	cinit();
@@ -94,7 +98,8 @@ main(int argc, char *argv[])
 		break;
 	} ARGEND
 	if(argc < 1 && outfile == 0) {
-		print("usage: %cc [-options] files\n", thechar);
+		print("usage: %cc [-o obj] [-Iinc ...] [-Ddef=val ...] "
+			"[-options] file.c [...]\n", thechar);
 		errorexit();
 	}
 	if(argc > 1 && systemtype(Windows)){
@@ -158,6 +163,10 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
+/*
+ * compile may be executed concurrently (once per separate process), but
+ * is not currently called repeatedly within a single process.
+ */
 int
 compile(char *file, char **defs, int ndef)
 {
@@ -213,11 +222,9 @@ compile(char *file, char **defs, int ndef)
 			}
 		}
 	}
-	if (first)
-		Binit(&diagbuf, 1, OWRITE);
 	/*
 	 * if we're writing acid to standard output, don't keep scratching
-	 * outbuf.
+	 * outbuf, since we may compile multiple source files.
 	 */
 	if((debug['a'] || debug['Z']) && !debug['n']) {
 		if (first) {
@@ -299,12 +306,16 @@ compile(char *file, char **defs, int ndef)
 	yyparse();
 	if(!debug['a'] && !debug['Z'])
 		gclean();
+	Bflush(&outbuf);
+	Bflush(&diagbuf);
 	return nerrors;
 }
 
 void
 errorexit(void)
 {
+	Bflush(&outbuf);
+	Bflush(&diagbuf);
 	if(outfile)
 		remove(outfile);
 	exits("error");
@@ -1154,6 +1165,7 @@ struct
 	ushort	type;
 } itab[] =
 {
+	"_Noreturn",	LNORETURN,	0,
 	"auto",		LAUTO,		0,
 	"break",	LBREAK,		0,
 	"case",		LCASE,		0,

@@ -4,6 +4,7 @@ void
 span(void)
 {
 	Prog *p, *q;
+	Sym *fs;
 	long v, c, idat;
 	int m, n, again;
 
@@ -96,8 +97,14 @@ loop:
 	if(debug['v'])
 		Bprint(&bso, "etext = %lux\n", c);
 	Bflush(&bso);
-	for(p = textp; p != P; p = p->pcond)
-		p->from.sym->value = p->pc;
+	for(p = textp; p != P; p = p->pcond) {
+		fs = p->from.sym;
+		/* nil may mean JMP to label without (SB) across TEXTs */
+		if (fs == nil)
+			diag("internal error: nil from.sym in %P", p);
+		else
+			fs->value = p->pc;
+	}
 	textsize = c - INITTEXT;
 }
 

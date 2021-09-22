@@ -1,8 +1,13 @@
 < /$objtype/mkfile
 BIN=/$objtype/bin/aux
 
-TARG=vga
+TARG=vesacvt\
+	vga\
+
 OFILES=\
+	mkvesacvt.$O\
+
+VGAOFILES=\
 	3dfx.$O\
 	ark2000pv.$O\
 	att20c49x.$O\
@@ -64,7 +69,8 @@ OFILES=\
 
 HFILES=\
 	pci.h\
-	vga.h
+	vga.h\
+	vesacvt.h\
 
 UPDATE=\
 	mkfile\
@@ -74,6 +80,12 @@ UPDATE=\
 	riva_tbl.h\
 
 
-</sys/src/cmd/mkone
+</sys/src/cmd/mkmany
+
+$O.vga:	$VGAOFILES $OFILES
+	$LD $LDFLAGS -o $target $prereq
+
+$O.vesacvt:	vesacvt.$O $OFILES
+	$LD $LDFLAGS -o $target $prereq
 
 nvidia.$O:	riva_tbl.h

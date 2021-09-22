@@ -1,0 +1,18 @@
+#!/bin/rc
+# straddledns [dnsopts] - start straddling dns server
+@ {
+	rfork ne
+	echo -n outside...
+	outside &
+	x=''
+	while (! test -e /net.alt/tcp && ! ~ $x ..........) {
+		echo -n .
+		sleep 2
+		outside &
+		x=.$x
+	}
+	echo -n dns...
+	ndb/dns -so $*
+	echo
+}
+mount -a /srv/dns /net

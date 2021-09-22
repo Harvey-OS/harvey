@@ -1,6 +1,6 @@
 .TH SEMACQUIRE 2
 .SH NAME
-semacquire, tsemacquire, semrelease - user level semaphores
+semacquire, tsemacquire, semrelease - semaphores
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -119,3 +119,6 @@ Use locks, rendezvous points, or channels instead.
 .SH DIAGNOSTICS
 These functions set
 .IR errstr .
+.SH BUGS
+.I Semrelease
+is more general than its name implies.

@@ -1,0 +1,17 @@
+#!/bin/rc
+rfork e
+cd /mail/box/$user/msgs
+oldones=`{ls -d [21][09]???[0-9] | sort -r | tail +2}
+for(m in $oldones){
+	if(test -e $m/[ds].*)
+		echo 'for (f in '^$m^'/[ds].*) { rm -r $f }'
+	test -e $m.l* || {
+		echo msgs -a /mail/box/$user/msgs $m
+		msgs -a /mail/box/$user/msgs $m > $m.l
+	}
+}
+for(tag in 9fans gsyc inferno sp9sss){
+	echo $tag
+	grep -hi $tag *.l* >$tag
+}
+

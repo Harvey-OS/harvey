@@ -30,6 +30,10 @@ execve(const char *name, const char *argv[], const char *envp[])
 		fi = &_fdinfo[n];
 		flags = fi->flags;
 		if(flags&FD_CLOEXEC){
+			/*
+			 * bug: if _EXEC fails, this fd should still be open.
+			 * probably hard to arrange.
+			 */
 			_CLOSE(n);
 			fi->flags = 0;
 			fi->oflags = 0;

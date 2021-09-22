@@ -1,0 +1,96 @@
+.TH AUDIO 7
+.SH NAME
+audio \- digital audio jukebox
+.SH SYNOPSIS
+.B audio
+.SH DESCRIPTION
+.I Audio
+is a shell script that binds in the
+.I lib/audio
+directory from appropriate places and then
+execs
+.IR games/agui ,
+which is a digital audio jukebox.
+This program is a GUI that can walk through a
+database of songs.
+If the GUI is asked to play a song,
+it runs
+.I games/pac4dec
+which decompresses PAC audio files in real time.
+For this to work,
+the computer must be equipped with an audio device,
+it must be fast enough to do the conversion (about 50 Mips)
+and the bandwidth to the converter must be on the order
+of 20Kbs.
+.SS Mouse buttons
+.TF "Button"
+.PD
+.TP
+Button 1
+is used to walk around the menu and exercise
+options.
+Pointing at a line of text and clicking button 1 will
+isolate that line and expand any structure below it.
+.TP
+Button 2
+queues songs to be played.
+Pointing and clicking button 2 on a song will play that song.
+Clicking on a collection of songs will play all of the songs
+in the collection.
+.TP
+Button 3
+saves songs in a list for later recall.
+Pointing and clicking button 3 on a song or a collection
+of songs will append the identities of those songs
+to the file
+.BR $home/tmp/agui/def .
+.SS Keyboard
+Typing a word at the keyboard will search for
+all songs that contain that word in either the
+artist field or the title field.
+Typing more that one word will search
+for songs containing all the words.
+A word may end in * and will match all
+words starting with the string before the *.
+A word starting with . will fetch a list of
+songs from the file
+.BI $home/tmp/agui/ word \fR.
+Files of this form may be created with button 3
+described above.
+This mechanism is used to define private
+play lists.
+.SH FILES
+.TF /lib/audio/rawmap
+.TP
+.B /lib/audio/rawmap
+database description.
+.TP
+.B /lib/audio/...
+audio files.
+.SH SOURCE
+.TF /sys/src/games/pac4dec
+.TP
+.B /sys/src/games/agui
+the graphical user interface.
+.TP
+.B /sys/src/games/pac4dec
+PAC audio format decoder.
+.TP
+.B /sys/src/games/pacenc
+PAC audio format encoder.
+.SH CAVEAT
+Bell Labs Licensing has OKed the jukebox
+to expand from a private toy
+to a communal research tool.
+Under 
+.I fair
+.I use
+we can pool all our CDs and
+put them in the library.
+Any use larger than this,
+especially any public demonstrations,
+should seek a
+.I performance
+license.
+The current (Oct 1999) database contains 30,000
+songs totaling 100 Gbytes.

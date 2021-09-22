@@ -15,7 +15,7 @@
 # If you need <inttypes.h> copy sun-inttypes.h to inttypes.h.
 #
 #CC=cc
-CFLAGS=-g -I.
+CFLAGS=-g -I. -D_SUSV2_SOURCE -D_BSD_EXTENSION -DHAVE_SOCK_OPTS
 LD=cc
 LDFLAGS=
 LDTAIL=

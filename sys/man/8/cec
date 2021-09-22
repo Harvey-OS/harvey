@@ -143,8 +143,6 @@ SR shelf 1> >>> q
 .EE
 .SH SOURCE
 .B /sys/src/cmd/cec
-.\" .SH "SEE ALSO"
-.\" .IR cec (3)
 .SH BUGS
 The CEC protocol should be integrated with the console server.
 The arbitration between the keyboard and network is suboptimal.

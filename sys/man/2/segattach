@@ -164,5 +164,7 @@ returns
 .B (void*)-1
 on error.
 .SH BUGS
-There is a small fixed limit on the number of segments that may be attached,
+There is a small fixed limit
+(e.g., 4)
+on the number of segments that may be attached to a process,
 as well as a maximum segment size.

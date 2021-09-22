@@ -1,8 +1,8 @@
-#include	<stdio.h>
-#include	<signal.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	"pic.h"
+#include <u.h>
+#include <libc.h>
+#include <stdio.h>
+#include <ctype.h>
+#include "pic.h"
 #include	"y.tab.h"
 
 char	*version = "version July 5, 1993";
@@ -51,7 +51,10 @@ main(int argc, char *argv[])
 {
 	char buf[20];
 
-	signal(SIGFPE, fpecatch);
+//	signal(SIGFPE, fpecatch);	// TODO: add note catcher?
+	/* let us pass NaNs and Infs around without blowing a gasket. */
+	setfcr(getfcr() & ~FPINVAL);
+
 	cmdname = argv[0];
 	while (argc > 1 && *argv[1] == '-') {
 		switch (argv[1][1]) {
@@ -63,7 +66,7 @@ main(int argc, char *argv[])
 			break;
 		case 'V':
 			fprintf(stderr, "%s\n", version);
-			return 0;
+			exit(0);
 		}
 		argc--;
 		argv++;
@@ -94,6 +97,7 @@ main(int argc, char *argv[])
 			fclose(curfile->fin);
 			free(curfile->fname);
 		}
+	exit(anyerr);
 	return anyerr;
 }
 
@@ -106,10 +110,7 @@ char *grow(char *ptr, char *name, int num, int size)	/* make array bigger */
 {
 	char *p;
 
-	if (ptr == NULL)
-		p = malloc(num * size);
-	else
-		p = realloc(ptr, num * size);
+	p = realloc(ptr, num * size);
 	if (p == NULL)
 		ERROR "can't grow %s to %d", name, num * size FATAL;
 	return p;
@@ -187,9 +188,10 @@ void checkscale(char *s)	/* if s is "scale", adjust default variables */
 
 void getdata(void)
 {
-	char *p, buf[1000], buf1[100];
+	char *p, *fname, *prev, *next, buf[1000];
 	int ln;
-	void reset(void), openpl(char *), closepl(char *), print(void);
+	double d;
+	void reset(void), openpl(char *), closepl(char *), tblprint(void);
 	int yyparse(void);
 
 	curfile->lineno = 0;
@@ -201,11 +203,17 @@ void getdata(void)
 				;
 			if (*p++ == '<') {
 				Infile svfile;
+
 				svfile = *curfile;
-				sscanf(p, "%s", buf1);
-				if ((curfile->fin=fopen(buf1, "r")) == NULL)
-					ERROR "can't open %s", buf1 FATAL;
-				curfile->fname = tostring(buf1);
+				if (isspace(*p))
+					p++;
+				fname = p;
+				if (*p != '\0' && !isspace(*p))
+					p++;
+				*p = '\0';
+				if ((curfile->fin=fopen(fname, "r")) == NULL)
+					ERROR "can't open %s", fname FATAL;
+				curfile->fname = tostring(fname);
 				getdata();
 				fclose(curfile->fin);
 				free(curfile->fname);
@@ -219,8 +227,16 @@ void getdata(void)
 			deltx = (xmax - xmin) / getfval("scale");
 			delty = (ymax - ymin) / getfval("scale");
 			if (buf[3] == ' ') {	/* next things are wid & ht */
-				if (sscanf(&buf[4],"%lf %lf", &deltx, &delty) < 2)
-					delty = deltx * (ymax-ymin) / (xmax-xmin);
+				prev = buf+4;
+				d = strtod(prev, &next);
+				if (next != prev) {	/* delta x present? */
+					deltx = d;
+					prev = next;
+					delty = strtod(prev, &next);
+					if (next == prev) /* no delta y? */
+						delty = deltx * (ymax-ymin) /
+							(xmax-xmin);
+				}
 				/* else {
 				/*	double xfac, yfac; */
 				/*	xfac = deltx / (xmax-xmin);
@@ -234,20 +250,23 @@ void getdata(void)
 			}
 			dprintf("deltx = %g, delty = %g\n", deltx, delty);
 			if (codegen && !synerr) {
-				openpl(&buf[3]);	/* puts out .PS, with ht & wid stuck in */
+				openpl(&buf[3]); /* puts out .PS, with ht & wid stuck in */
 				printlf(curfile->lineno+1, NULL);
-				print();	/* assumes \n at end */
+				tblprint();		/* assumes \n at end */
 				closepl(PEstring);	/* does the .PE/F */
 				free(PEstring);
 			}
 			printlf(curfile->lineno+1, NULL);
 			fflush(stdout);
 		} else if (buf[0] == '.' && buf[1] == 'l' && buf[2] == 'f') {
-			if (sscanf(buf+3, "%d %s", &ln, buf1) == 2) {
+			curfile->lineno = ln = strtoul(buf+3, &fname, 0);
+			while (isspace(*fname))
+				fname++;
+			if (fname != buf+3 && *fname != '\0') {
 				free(curfile->fname);
-				printlf(curfile->lineno = ln, curfile->fname = tostring(buf1));
+				printlf(ln, curfile->fname = tostring(fname));
 			} else
-				printlf(curfile->lineno = ln, NULL);
+				printlf(ln, NULL);
 		} else
 			fputs(buf, stdout);
 	}

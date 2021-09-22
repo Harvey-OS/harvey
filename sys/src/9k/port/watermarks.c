@@ -26,7 +26,11 @@ notemark(Watermark *wp, int val)
 
 	if (val > wp->highwater) {
 		wp->highwater = val;
-		if (val == wp->max && wp->curr < val)
+		/*
+		 * `>=' because with rings, we may not be able to fill the last
+		 * slot.
+		 */
+		if (val >= wp->max-1 && wp->curr < val)
 			wp->hitmax++;
 	}
 	wp->curr = val;

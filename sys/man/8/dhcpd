@@ -1,6 +1,6 @@
 .TH DHCPD 8
 .SH NAME
-dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
+dhcpd, dhcpleases, tftpd \- Internet booting
 .SH SYNOPSIS
 .PP
 .B ip/dhcpd
@@ -19,6 +19,7 @@ dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
 ] ...
 .PP
 .B ip/dhcpleases
+.ig
 .PP
 .B ip/rarpd
 .RB [ -d ]
@@ -26,6 +27,7 @@ dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
 .IR etherdev ]
 .RB [ -x
 .IR netmtpt ]
+..
 .PP
 .B ip/tftpd
 .RB [ -dr ]
@@ -40,9 +42,11 @@ allow other systems to be booted.
 .I Dhcpd
 and
 .I tftpd
-are used to boot everything;
+are used to boot everything.
+.ig
 .I rarpd
 is an extra piece just for Suns.
+..
 .PP
 .I Dhcpd
 runs the
@@ -225,6 +229,7 @@ as the minimum lease time for static addresses.
 prints out the currently valid DHCP leases found in the
 .B /lib/ndb/dhcp
 directory.
+.ig
 .PP
 .I Rarpd
 performs the Reverse Address Resolution Protocol, translating
@@ -244,6 +249,7 @@ The IP stack to use is mounted at
 The default is
 .BR /net .
 .PD
+..
 .PP
 .I Tftpd
 transfers files to systems that are booting.
@@ -278,13 +284,16 @@ Change directory to
 The default is
 .BR /lib/tftpd .
 All requests for files with non-rooted file names are served starting at this
-directory with the exception of files of the form
+directory
+.ig
+with the exception of files of the form
 .BR xxxxxxxx.SUNyy .
-These are Sparc kernel boot files where
+These were Sparc kernel boot files where
 .B xxxxxxxx
 is the hex IP address of the machine requesting the kernel and
 .B yy
 is an architecture identifier.
+..
 .I Tftpd
 looks up the file in the network database using
 .I ipinfo

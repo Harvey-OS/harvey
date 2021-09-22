@@ -1,7 +1,7 @@
 /*
  * arm v7 reboot code
  *
- * must fit in 11K to avoid stepping on PTEs; see mem.h.
+ * must fit in 4K to avoid stepping on PTEs; see mem.h.
  * cache parameters are at CACHECONF.
  */
 #include "arm.s"
@@ -19,7 +19,7 @@ TEXT	main(SB), 1, $-4
 	CPSID				/* splhi */
 
 PUTC('R')
-	BL	cachesoff(SB)
+	BL	doublemap(SB)
 	/* now back in 29- or 26-bit addressing, mainly for SB */
 	/* double mapping of PHYSDRAM & KZERO now in effect */
 
@@ -32,7 +32,7 @@ PUTC('e')
 	BIC	R7, R12			/* adjust SB */
 	ORR	R0, R12
 
-	BL	_r15warp(SB)
+	BL	warpregs(SB)
 	/* don't care about saving R14; we're not returning */
 
 	/*
@@ -52,6 +52,11 @@ PUTC('o')
 	MFCP	CpSC, 0, R0, C(CpCONTROL), C(0)
 	BIC	$CpCmmu, R0
 	MTCP	CpSC, 0, R0, C(CpCONTROL), C(0)
+	BARRIERS
+
+	/* invalidate mmu mappings */
+	MOVW	$KZERO, R0			/* some valid virtual address */
+	MTCP	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinv
 	BARRIERS
 
 PUTC('o')
@@ -82,6 +87,43 @@ PUTC('t')
 	MOVW	R5, 12(SP)		/* push size */
 	BL	memmove(SB)
 
+	SUB	$12, SP			/* stack space for args+link */
+	BL	cachedwbinv(SB)
+	ADD	$12, SP
+
+	MFCP	CpSC, 0, R0, C(CpCONTROL), C(0)
+	BIC	$(CpCdcache), R0
+	MTCP	CpSC, 0, R0, C(CpCONTROL), C(0)	/* L1 D cache off */
+	BARRIERS
+	/*
+	 * D caches are off
+	 */
+
+	BARRIERS
+	MOVW	$0, R0
+	MTCP	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinviis), CpCACHEall
+	ISB
+
+	/*
+	 * flush stale TLB entries
+	 */
+	BARRIERS
+	MOVW	$KZERO, R0			/* some valid virtual address */
+	MTCP	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinv
+	BARRIERS
+
+	/* turn off SMP & FW, withdraw from coherency */
+	MFCP	CpSC, 0, R1, C(CpCONTROL), C(0), CpAuxctl
+	BIC	$(CpACsmpcoher | CpACmaintbcast), R1
+	MTCP	CpSC, 0, R1, C(CpCONTROL), C(0), CpAuxctl
+	BARRIERS
+
+	/* turn off SCU */
+	MOVW	$PHYSSCU, R1
+	MOVW	$0, R2
+	MOVW	R2, 0(R1)	/* scu->ctl = 0 */
+	BARRIERS
+
 PUTC('-')
 PUTC('>')
 	DELAY(printloopret, 1)
@@ -95,32 +137,19 @@ PUTC('\n')
  */
 	MOVW	44(SP), R6		/* restore R6 (dest/entry) */
 	ORR	R6, R6			/* NOP: avoid link bug */
-	B	(R6)
-PUTC('?')
-PUTC('?')
-	B	0(PC)
+	B	(R6)			/* to the new kernel; no return */
 
 /*
- * turn the caches off, double map PHYSDRAM & KZERO, invalidate TLBs, revert
- * to tiny addresses.  upon return, it will be safe to turn off the mmu.
+ * double map PHYSDRAM & KZERO, invalidate TLBs, revert to tiny addresses.
+ * upon return, it will be safe to turn off the mmu.
  */
-TEXT cachesoff(SB), 1, $-4
+TEXT doublemap(SB), 1, $-4
 	MOVM.DB.W [R14,R1-R10], (R13)		/* save regs on stack */
 	CPSID
-	BARRIERS
 
-	SUB	$12, SP				/* paranoia */
+	SUB	$12, SP			/* stack space for args + link */
 	BL	cacheuwbinv(SB)
-	ADD	$12, SP				/* paranoia */
-
-	MFCP	CpSC, 0, R0, C(CpCONTROL), C(0)
-	BIC	$(CpCicache|CpCdcache), R0
-	MTCP	CpSC, 0, R0, C(CpCONTROL), C(0)	/* caches off */
-	BARRIERS
-
-	/*
-	 * caches are off
-	 */
+	ADD	$12, SP
 
 	/* invalidate stale TLBs before changing them */
 	MOVW	$KZERO, R0			/* some valid virtual address */
@@ -131,14 +160,14 @@ TEXT cachesoff(SB), 1, $-4
 	MOVW	$PHYSDRAM, R3
 	CMP	$KZERO, R3
 	BEQ	noun2map
-	MOVW	$(L1+L1X(PHYSDRAM)), R4		/* address of PHYSDRAM's PTE */
+	MOVW	$(L1CPU0+L1X(PHYSDRAM)), R4	/* addr of PHYSDRAM's PTE */
 	MOVW	$PTEDRAM, R2			/* PTE bits */
 	MOVW	$DOUBLEMAPMBS, R5
 _ptrdbl:
 	ORR	R3, R2, R1		/* first identity-map 0 to 0, etc. */
 	MOVW	R1, (R4)
-	ADD	$4, R4				/* bump PTE address */
-	ADD	$MiB, R3			/* bump pa */
+	ADD	$BY2WD, R4			/* bump PTE address */
+	ADD	$MB, R3				/* bump pa */
 	SUB.S	$1, R5
 	BNE	_ptrdbl
 noun2map:
@@ -146,7 +175,6 @@ noun2map:
 	/*
 	 * flush stale TLB entries
 	 */
-
 	BARRIERS
 	MOVW	$KZERO, R0			/* some valid virtual address */
 	MTCP	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinv
@@ -169,7 +197,7 @@ noun2map:
 
 	RET
 
-TEXT _r15warp(SB), 1, $-4
+TEXT warpregs(SB), 1, $-4
 	BIC	R7, R14			/* link */
 	ORR	R0, R14
 
@@ -186,10 +214,11 @@ TEXT pczeroseg(SB), 1, $-4	/* stub */
 
 #include "cache.v7.s"
 
+#ifdef DEBUGGING
 /* modifies R0, R3—R6 */
 TEXT printhex(SB), 1, $-4
 	MOVW	R0, R3
-	MOVW	$(32-4), R5	/* bits to shift right */
+	MOVW	$(BI2BY*BY2WD-4), R5	/* bits to shift right */
 nextdig:
 	SRA	R5, R3, R4
 	AND	$0xf, R4
@@ -206,3 +235,4 @@ nothex:
 	PUTC('\n')
 	DELAY(proct, 50)
 	RET
+#endif

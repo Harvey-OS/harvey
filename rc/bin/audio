@@ -1,0 +1,11 @@
+#!/bin/rc
+# audio - set up namespaces and run agui
+rfork n
+if (test -e '#A/audio')
+	bind -a '#A' /dev			>/dev/null >[2=1]
+if (! test -e /dev/audio)
+	mount -b /srv/usbaudio.$sysname	/dev	>/dev/null >[2=1]
+if (! test -e /dev/audio)
+	usb/usbaudio -V -s usbaudio.$sysname
+9fs audio
+exec games/agui $*

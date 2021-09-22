@@ -247,7 +247,6 @@ loadmodule(char *s)
 	silent = 0;
 	yyparse();
 	popio();
-	return;
 }
 
 void

@@ -699,7 +699,7 @@ mkcap(char *from, char *to)
 	cap = emalloc(ncap);
 	snprint(cap, ncap, "%s@%s", from, to);
 	memrandom(rand, sizeof(rand));
-	key = cap+nfrom+1+nto+1;
+	key = cap + nfrom + 1 + nto + 1;
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */

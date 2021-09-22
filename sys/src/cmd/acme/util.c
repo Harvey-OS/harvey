@@ -366,18 +366,12 @@ savemouse(Window *w)
 	mousew = w;
 }
 
-int
+void
 restoremouse(Window *w)
 {
-	int did;
-
-	did = 0;
-	if(mousew!=nil && mousew==w){
+	if(mousew!=nil && mousew==w)
 		moveto(mousectl, prevmouse);
-		did = 1;
-	}
 	mousew = nil;
-	return did;
 }
 
 void

@@ -421,11 +421,15 @@ buildtbls(void)
 				}
 				else
 					f = files;
+				if (f == nil)
+					 break;
 				f->hist = hp;
 				f->sym = 0;
 				f->addr = 0;
 				nh = 0;
 			}
+			if (f == nil)
+				 break;
 				/* alloc one slot extra as terminator */
 			f->hist[nh].name = p->name;
 			f->hist[nh].line = p->value;

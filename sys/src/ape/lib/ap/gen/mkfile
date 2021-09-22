@@ -61,4 +61,4 @@ OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=$CFLAGS -c -D_POSIX_SOURCE
+CFLAGS=$CFLAGS -c -D_POSIX_SOURCE -D_SUSV2_SOURCE

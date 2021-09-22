@@ -1,25 +1,26 @@
 /*
  *	risc-v test-and-set
- *	assumes A extension
+ *	assumes the standard A extension
  */
 
-#define LINK	R1
-#define SP	R2
 #define ARG	8
 
-#define SYNC	WORD $0xf	/* FENCE */
-#define LRW(rs2, rs1, rd) \
-	WORD $((2<<27)|(    0<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057)
+#define MASK(w)	((1<<(w))-1)
+#define FENCE	WORD $(0xf | MASK(8)<<20)  /* all i/o, mem ops before & after */
+#define AQ	(1<<26)			/* acquire */
+#define RL	(1<<25)			/* release */
+#define LRW(rs1, rd) \
+	WORD $((2<<27)|(    0<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057|AQ)
 #define SCW(rs2, rs1, rd) \
-	WORD $((3<<27)|((rs2)<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057)
+	WORD $((3<<27)|((rs2)<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057|AQ|RL)
 
-/* atomically set (RARG) non-zero and return previous contents */
-	TEXT	_tas(SB), $-4
-	MOVW	R(ARG), R12		/* address of key */
-	MOVW	$1, R10
-	SYNC
+/* atomically set *keyp non-zero and return previous contents */
+TEXT	_tas(SB), $-4			/* int _tas(ulong *keyp) */
+	MOV	R(ARG), R12		/* address of key */
+	MOV	$1, R10
+	FENCE
 tas1:
-	LRW(0, 12, ARG)	// LR_W R0, R12, RARG /* (R12) -> R(ARG) */
-	SCW(10, 12, 14) // SC_W R10, R12, R14 /* R10 -> (R12) maybe, R14=0 if ok */
+	LRW(12, ARG)			/* (R12) -> R(ARG) */
+	SCW(10, 12, 14)			/* R10 -> (R12) maybe, R14=0 if ok */
 	BNE	R14, tas1
 	RET

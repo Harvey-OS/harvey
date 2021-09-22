@@ -305,3 +305,9 @@ It is an error for a program to
 when it holds a lock in shared memory, since this will result
 in two processes holding the same lock at the same time,
 which should not happen.
+.PP
+All lock data structures shared between processes
+(rather than threads)
+should be elsewhere than the stack,
+since each process has a unique stack at the same range of addresses,
+of necessity.

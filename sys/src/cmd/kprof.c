@@ -47,8 +47,8 @@ main(int argc, char *argv[])
 	char *name;
 	Biobuf outbuf;
 	struct COUNTER *cp;
-	Fhdr f;
 	Dir *d;
+	Fhdr f;
 	Symbol s;
 
 	if(argc != 3)
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 		error(0, "no text symbols");
 
 	tbase = mach->kbase;
- 	if(tbase != (s.value & ~0xFFF)) {
+	if(tbase != (s.value & ~0xFFF)) {
 		print("warning: kbase %.8llux != tbase %.8llux\n",
 			tbase, s.value&~0xFFF);
 		tbase = s.value;

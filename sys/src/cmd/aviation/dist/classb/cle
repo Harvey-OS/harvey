@@ -1,0 +1,29 @@
+vm 0-6.5
+pC 41.410833, 81.849528	# cle apt
+pB 41.517444, 81.683472	# bkl apt
+pX d pC,m250,5.4
+pY d pC,m190,5.1
+
+pa xccn pC,5, pX,1
+pb xccs pC,5, pX,1
+pc xccw pC,5, pY,1
+pd xcce pC,5, pY,1
+
+n cle_gnd\80
+ar pX,pa,pb
+al pC,pb,pc
+ar pY,pc,pd
+al pC,pd,pa
+
+pe xccn pC,8.5, pB,2.3
+pf xccs pC,8.5, pB,2.3
+
+n cle_19\80
+al pB,pe,pf
+ar pC,pf,pe
+
+n cle_30\80
+c pC,15
+
+n cle_40\80
+C pC,20

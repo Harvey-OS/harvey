@@ -58,7 +58,8 @@ void
 setupuser(AuthInfo *ai)
 {
 	Waitmsg *w;
-	int pid;
+	int pid, srvfd;
+	char *srvname;
 
 	if(ai){
 		strecpy(username, username+sizeof username, ai->cuid);
@@ -81,12 +82,34 @@ setupuser(AuthInfo *ai)
 	if(myChdir(mboxDir) < 0)
 		bye("can't open user's mailbox");
 
+	/*
+	 * if /mail/fs/ctl exists, use /mail/fs.
+	 * else if /srv/upasfs.$user exists, mount it on /mail/fs and use.
+	 * else start upas/fs -nps.
+	 * TODO: this seems to confuse clients; figure out why.
+	 * doing the mount in /lib/namespace* is a good idea.
+	 */
+	if (access("/mail/fs/ctl", AEXIST) >= 0)
+		return;
+	srvname = smprint("/srv/upasfs.%s", username);
+	if (access(srvname, AEXIST) >= 0) {
+		srvfd = open(srvname, ORDWR);
+		if (srvfd >= 0 &&
+		    mount(srvfd, -1, "/mail/fs", MREPL|MCREATE, username) >= 0){
+			free(srvname);
+			return;
+		}
+		close(srvfd);
+		fprint(2, "imap4d: mount -c %s /mail/fs: %r\n", srvname);
+	}
+	free(srvname);
+
 	switch(pid = fork()){
 	case -1:
 		bye("can't initialize mail system");
 		break;
 	case 0:
-		execl("/bin/upas/fs", "upas/fs", "-np", nil);
+		execl("/bin/upas/fs", "upas/fs", "-nps", nil);
 _exits("rob1");
 		_exits(0);
 		break;

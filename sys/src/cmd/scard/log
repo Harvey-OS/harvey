@@ -1,0 +1,38 @@
+about to read
+<- 00 ca 5f 52 00 
+-> 6e 00 
+tagrd: get data failed getdata:  icc: error, class not supported
+
+
+tagrd: detected atr 19
+<- 00 a4 00 00 02 3f 00 
+-> 61 25 
+<- 00 c0 00 00 25 
+-> 6f 23 83 02 3f 00 88 01 00 8a 01 05 82 02 3f 00 8d 02 ef 03 84 00 8c 05 0f 01 01 01 ff ab 06 84 01 30 9e 01 01 90 00 
+TAG: 6f - 83 02 3f 00 88 01 00 8a 01 05 82 02 3f 00 8d 02 ef 03 84 00 8c 05 0f 01 01 01 ff ab 06 84 01 30 9e 01 01 
+	TAG: [file identifier] 83, tlen,4 - 3f 00 
+	TAG: [short EF id] 88, tlen,3 - 00 
+	TAG: [LCS] 8a, tlen,3 - 05 
+	TAG: [file descriptor byte/data coding?/max record size 2B?/N records 1B || 2 B] 82, tlen,4 - 3f 00 
+	TAG: [id of EF with sec environ templates] 8d, tlen,4 - ef 03 
+	TAG: [DF name] 84, tlen,2 - 
+	TAG: [sec attr in compact format] 8c, tlen,7 - 0f 01 01 01 ff 
+	TAG: [sec attr in expanded format] ab, tlen,8 - 84 01 30 9e 01 01 
+<- 00 ca 02 ff 00 
+-> 6e 00 
+tagrd: get data failed getdata:  icc: error, class not supported
+
+
+<- 00 a4 00 00 02 ef 03 
+-> 61 1e 
+<- 00 c0 00 00 1e 
+-> 6f 1c 83 02 ef 03 88 01 03 8a 01 05 82 06 0c 00 00 10 00 05 8c 06 4f ff ff ff ff 00 ab 00 90 00 
+TAG: 6f - 83 02 ef 03 88 01 03 8a 01 05 82 06 0c 00 00 10 00 05 8c 06 4f ff ff ff ff 00 ab 00 
+	TAG: [file identifier] 83, tlen,4 - ef 03 
+	TAG: [short EF id] 88, tlen,3 - 03 
+	TAG: [LCS] 8a, tlen,3 - 05 
+	TAG: [file descriptor byte/data coding?/max record size 2B?/N records 1B || 2 B] 82, tlen,8 - 0c 00 00 10 00 05 
+	TAG: [sec attr in compact format] 8c, tlen,8 - 4f ff ff ff ff 00 
+	TAG: [sec attr in expanded format] ab, tlen,2 - 
+<- 00 b2 00 00 10 
+-> 80 01 01 a4 06 83 01 01 95 01 08 ff ff ff ff ff 90 00 

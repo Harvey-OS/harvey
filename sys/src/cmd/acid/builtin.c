@@ -940,13 +940,14 @@ regexp(Node *r, Node *args)
 		return;
 
 	expr(av[1], &res);
-	if(res.type != TSTRING)
+	if(res.type != TSTRING) {
+		regfree(rp);
 		error("regexp(pattern, string): bad string");
-
+	}
 	r->fmt = 'D';
 	r->type = TINT;
 	r->ival = regexec(rp, res.string->string, 0, 0);
-	free(rp);
+	regfree(rp);
 }
 
 void

@@ -1,0 +1,164 @@
+.TH RTCP 8
+.SH NAME
+rtcp, stcp \- measure TCP bandwidth
+.SH SYNOPSIS
+.B ip/rtcp
+[
+.B -dftv
+]
+[
+.B -a
+.I announce-str
+]
+[
+.B -i
+.I secs
+]
+[
+.B -L
+.I log
+]
+[
+.B -l
+.I readsize
+]
+[
+.B -T
+.I secs
+]
+.PP
+.B ip/stcp
+[
+.B -sv
+]
+[
+.B -f
+.I file
+]
+[
+.B -F
+.I maxfrag
+]
+[
+.B -l
+.I writesize
+]
+[
+.B -T
+.I totsize
+]
+.I target
+.SH DESCRIPTION
+.I Rtcp
+and
+.I stcp
+together measure TCP bandwidth between the two machines
+on which they are run.
+.I Rtcp
+should be run first on the target system,
+then
+.I stcp
+on the local system.
+When
+.I rtcp
+is interrupted or exits,
+.I stcp
+will print the average megabytes-per-second transferred
+during the session.
+By default, the TCP service used is
+.L ttcp
+(port 5117).
+.PP
+.IR Rtcp 's
+options are:
+.TF "\fL-F
+.TP
+.B -a
+Use an alternate
+.IR announce-str .
+.TP
+.B -d
+Enable verbose debugging output.
+.TP
+.B -f
+Use floating point to compute throughput.
+.TP
+.B -i
+Print throughput every
+.I interval
+seconds
+(default 1).
+.TP
+.B -l
+Read
+.I readsize
+bytes at a time instead of the default 8192.
+.TP
+.B -L
+Write
+.I log
+file.
+.TP
+.B -t
+Shuffle bytes read one byte to the left.
+.TP
+.B -T
+Receive for
+.I secs
+seconds only.
+.TP
+.B -v
+Print more.
+.PD
+.PP
+.IR Stcp 's
+options are:
+.TF "\fL-F
+.TP
+.B -f
+Read from
+.I filename
+instead of standard input.
+.TP
+.B -F
+Set the TCP maximum fragment size to
+.IR maxfragsize .
+.TP
+.B -l
+Write
+.I writesize
+bytes at a time instead of the 8192.
+.TP
+.B -s
+Wait for the receiving process to exit.
+.TP
+.B -T
+Transmit only
+.I totsize
+bytes.
+.TP
+.B -v
+Print more.
+.SH EXAMPLES
+Measure bandwidth to
+.IR go .
+On
+.IR go ,
+run
+.IP
+.EX
+ip/rtcp
+.EE
+.LP
+On the local system, run
+.IP
+.EX
+ip/stcp -T10000000 go
+.EE
+.\" .SH FILES
+.SH SOURCE
+.B /sys/src/cmd/ip/rtcp
+.SH SEE ALSO
+.IR ping (8)
+.\" .SH DIAGNOSTICS
+.\" .SH BUGS

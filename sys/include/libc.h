@@ -2,14 +2,14 @@
 #pragma	src	"/sys/src/libc"
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
-#define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#define	offsetof(s, m)	(uintptr)(&(((s *)0)->m))
 #define	assert(x)	if(x){}else _assert("x")
 
 /*
  * mem routines
  */
 extern	void*	memccpy(void*, void*, int, ulong);
-extern	void*	memset(void*, int, ulong);
+extern	void*	memset(void*, int, uintptr);
 extern	int	memcmp(void*, void*, ulong);
 extern	void*	memcpy(void*, void*, ulong);
 extern	void*	memmove(void*, void*, ulong);
@@ -92,31 +92,32 @@ extern	int	isupperrune(Rune);
 /*
  * malloc
  */
-extern	void*	malloc(ulong);
-extern	void*	mallocz(ulong, int);
+extern	void*	malloc(uintptr);
+extern	void*	mallocz(uintptr, int);
 extern	void	free(void*);
-extern	ulong	msize(void*);
-extern	void*	mallocalign(ulong, ulong, long, ulong);
-extern	void*	calloc(ulong, ulong);
-extern	void*	realloc(void*, ulong);
-extern	void	setmalloctag(void*, ulong);
-extern	void	setrealloctag(void*, ulong);
-extern	ulong	getmalloctag(void*);
-extern	ulong	getrealloctag(void*);
+extern	uintptr	msize(void*);
+extern	void*	mallocalign(uintptr, uintptr, vlong, uintptr);
+extern	void*	calloc(uintptr, uintptr);
+extern	void*	realloc(void*, uintptr);
+extern	void	setmalloctag(void*, uintptr);
+extern	void	setrealloctag(void*, uintptr);
+extern	uintptr	getmalloctag(void*);
+extern	uintptr	getrealloctag(void*);
 extern	void*	malloctopoolblock(void*);
 
 /*
  * print routines
+ * if you change Fmt, change the kernel declaration too (in port/lib.h).
  */
 typedef struct Fmt	Fmt;
 struct Fmt{
 	uchar	runes;			/* output buffer is runes or chars? */
+	int	nfmt;			/* num chars formatted so far */
 	void	*start;			/* of buffer */
 	void	*to;			/* current place in the buffer */
 	void	*stop;			/* end of the buffer; overwritten if flush fails */
 	int	(*flush)(Fmt *);	/* called when to == stop */
 	void	*farg;			/* to make flush a closure */
-	int	nfmt;			/* num chars formatted so far */
 	va_list	args;			/* args passed to dofmt */
 	int	r;			/* % format Rune */
 	int	width;
@@ -274,6 +275,7 @@ extern	void	setfsr(ulong);
 extern	ulong	getfsr(void);
 extern	void	setfcr(ulong);
 extern	double	NaN(void);
+extern	double	qNaN(void);
 extern	double	Inf(int);
 extern	int	isNaN(double);
 extern	int	isInf(double, int);
@@ -333,27 +335,17 @@ extern	long	times(long*);
 extern	long	tm2sec(Tm*);
 extern	vlong	nsec(void);
 
-extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+#define	_TZSIZE	((136*2)+10)		/* 1970-2106 */
 
-/*
- * endian conversion
- */
-extern u16int	le16get(uchar *t,  uchar **r);
-extern u32int	le24get(uchar *t,  uchar **r);
-extern u32int	le32get(uchar *t,  uchar **r);
-extern u64int	le64get(uchar *t,  uchar **r);
-extern uchar*	le16put(uchar *t, u16int r);
-extern uchar*	le24put(uchar *t, u32int r);
-extern uchar*	le32put(uchar *t, u32int r);
-extern uchar*	le64put(uchar *t, u64int r);
-extern u16int	be16get(uchar *t,  uchar **r);
-extern u32int	be24get(uchar *t,  uchar **r);
-extern u32int	be32get(uchar *t,  uchar **r);
-extern u64int	be64get(uchar *t,  uchar **r);
-extern uchar*	be16put(uchar *t, u16int r);
-extern uchar*	be24put(uchar *t, u32int r);
-extern uchar*	be32put(uchar *t, u32int r);
-extern uchar*	be64put(uchar *t, u64int r);
+typedef struct _Timezone {
+	char	stname[4];
+	char	dlname[4];
+	long	stdiff;
+	long	dldiff;
+	ulong	dlpairs[_TZSIZE];
+} _Timezone;
+
+extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
 
 /*
  * one-of-a-kind
@@ -403,7 +395,6 @@ extern	void	notejmp(void*, jmp_buf, int);
 extern	void	perror(char*);
 extern	int	postnote(int, int, char *);
 extern	double	pow10(int);
-extern	void	procsetname(char*, ...);
 extern	int	putenv(char*, char*);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
 extern	int	setjmp(jmp_buf);
@@ -435,19 +426,21 @@ extern	void	prof(void (*fn)(void*), void *arg, int entries, int what);
 /*
  * atomic
  */
+
 long	ainc(long*);
 long	adec(long*);
-int	cas32(u32int*, u32int, u32int);
+int	cas(uint*, int, int);
+int	casv(uvlong*, uvlong, uvlong);
 int	casp(void**, void*, void*);
-int	casl(ulong*, ulong, ulong);
 
 /*
  *  synchronization
  */
 typedef
 struct Lock {
-	long	key;
-	long	sem;
+	long	key;	/* 0 is unlocked, 1 is locked; >1 is procs waiting */
+			/* on semaphore + 1 */
+	long	sem;	/* used when there is contention on key (key > 1) */
 } Lock;
 
 extern int	_tas(int*);
@@ -457,11 +450,11 @@ extern	void	unlock(Lock*);
 extern	int	canlock(Lock*);
 
 typedef struct QLp QLp;
-struct QLp
+struct QLp		/* rearranged for compactness on 64-bit systems */
 {
 	int	inuse;
-	QLp	*next;
 	char	state;
+	QLp	*next;
 };
 
 typedef
@@ -584,8 +577,8 @@ extern	void		freenetconninfo(NetConnInfo*);
 
 #define	NCONT	0	/* continue after note */
 #define	NDFLT	1	/* terminate after note */
-#define	NSAVE	2	/* clear note but hold state */
-#define	NRSTR	3	/* restore saved state */
+#define	NSAVE	2	/* clear note but hold state (APE) */
+#define	NRSTR	3	/* restore saved state (APE) */
 
 /* bits in Qid.type */
 #define QTDIR		0x80		/* type bit for directories */
@@ -678,6 +671,8 @@ extern	int	close(int);
 extern	int	create(char*, int, ulong);
 extern	int	dup(int, int);
 extern	int	errstr(char*, uint);
+/* some experimental kernels contain exportfs */
+// extern	int	exportfs(int fd, char *dir, int flags);
 extern	int	exec(char*, char*[]);
 extern	int	execl(char*, ...);
 extern	int	fork(void);

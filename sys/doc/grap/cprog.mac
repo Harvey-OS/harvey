@@ -1,0 +1,67 @@
+.ig
+	Brian's crummy macros for including programs.
+	.P1
+	program text, with tabs...
+	.P2
+	This will keep it all on one page; insert
+	.P3 at will for optional page breaks.
+
+The following are settable number registers:
+..
+.nr dP 1	\" delta point size for program
+		\" 1 makes it 1 smaller than text
+.nr dV 1	\" delta vertical for programs; ditto
+.nr dT 8	\" tab stops this far apart in .P1/.P2
+.nr NH .5v	\" adds extra space before NH or SH heading
+.nr ds .5i	\" default indent for programs
+.hy 14		\" set hyphenation: 2=not last lines; 4= no -xx; 8=no xx-
+.\"
+.\"
+.de UC		\" print 1st arg in smaller size (upper case)
+.		\" .UC smaller after before
+.		\" e.g., .UC UNIX .)
+\&\\$3\s-1\\$1\\s0\&\\$2
+..
+.de IT		\" italicize first argument; same convention for 2nd, 3rd args
+.nr ff \\n(.f
+\&\\$3\f2\\$1\f\\n(ff\^\&\\$2
+..
+.de UL		\" print 1st arg in CW font.  don't ask why the name
+.nr ff \\n(.f
+\%\&\\$3\f(CW\\$1\f\\n(ff\&\\$2
+..
+.de UI		\" print first arg in CW, second in italic
+.nr ff \\n(.f
+\%\&\\$3\f(CW\\$1\f2\\$2\f\\n(ff
+..
+.de BI		\" makes bold italic
+.nr ff \\n(.f
+\&\\$3\f4\\$1\f\\n(ff\^\&\\$2
+..
+.de P1		\" start a program display
+.ie \\n(.$ .DS I \\$1
+.el .DS I \\n(dsu
+.nf
+.lg 0
+.ps -\\n(dP
+.vs -\\n(dV
+.ft CW
+.nr t \\n(dT*\\w'x'u
+.ta 1u*\\ntu 2u*\\ntu 3u*\\ntu 4u*\\ntu 5u*\\ntu 6u*\\ntu 7u*\\ntu 8u*\\ntu 9u*\\ntu 10u*\\ntu 11u*\\ntu 12u*\\ntu 13u*\\ntu 14u*\\ntu
+.lg 0
+..
+.de P2		\" end a program display
+.ps \\n(PS
+.vs \\n(VSp
+.ft 1
+.fi
+.DE
+.lg
+..
+.de P3		\" provides optional break in P1/P2
+.nr x \\n(DV
+.nr DV 0
+.P2
+.P1 \\n(P1u
+.nr DV \\nx
+..

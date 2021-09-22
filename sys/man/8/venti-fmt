@@ -4,6 +4,7 @@ buildindex,
 checkarenas,
 checkindex,
 conf,
+fixarenas,
 fmtarenas,
 fmtbloom,
 fmtindex,
@@ -94,6 +95,30 @@ fmtisect \- prepare and maintain a venti server
 .B -afv 
 ]
 .I file
+.PP
+.in +0.5i
+.ti -0.5i
+.B venti/fixarenas
+[
+.B -fvU
+] [
+.B -a
+.I arena-size
+] [
+.B -b
+.I block-size
+] [
+.B -n
+.I basename
+] [
+.B -x
+.I dumpbase
+]
+.I file
+[
+.I arena-range(s)
+]
+.in -0.5i
 .SH DESCRIPTION
 These commands aid in the setup, maintenance, and debugging of
 venti servers.
@@ -397,6 +422,59 @@ Attempt to fix any errors that are found.
 .B -v
 Increase the verbosity of output.
 .PD
+.PP
+.I Fixarenas
+examines the Venti arenas in
+.I arenas-range(s),
+or all by default,
+contained in the given
+.IR file .
+The program detects various error conditions, and optionally attempts
+to fix any errors that are found.
+It makes heroic efforts compared to
+.IR checkarenas ,
+and should be a last resort.
+It can be used to correct an arena partition
+copied from a larger arena partition,
+given that the omitted arenas at the end were unused.
+.PP
+Options to 
+.I fixarenas
+are:
+.TP
+.B -a
+Assume
+.IR arena-size .
+.TP
+.B -b
+Assume
+.IR block-size .
+.TP
+.B -f
+Attempt to fix any errors that are found;
+without this, errors will be reported but not repaired.
+.TP
+.B -n
+Assume
+.IR basename .
+.TP
+.B -U
+Okay to unseal arenas?
+.TP
+.B -v
+Increase the verbosity of output.
+.TP
+.B -x
+Assume
+.IR dumpbase .
+.PD
+.SH EXAMPLES
+Correct an arena partition smaller than the one it was copied from,
+truncated in arena 3576.
+.IP
+.EX
+venti/fixarenas -f arena0 1,3575-
+.EE
 .SH SOURCE
 .B /sys/src/cmd/venti/srv
 .SH SEE ALSO

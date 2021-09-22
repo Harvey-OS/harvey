@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 
 	snprint(mntpt, sizeof mntpt, "/net%s", ext);
 	if(myipaddr(ipaddr, mntpt) < 0)
-		sysfatal("can't read my ip address");
+		sysfatal("can't read my ip address on %s", mntpt);
 	dnslog("dnstcp call from %s to %I", caller, ipaddr);
 	memset(callip, 0, sizeof callip);
 	parseip(callip, caller);

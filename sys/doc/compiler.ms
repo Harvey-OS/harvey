@@ -26,11 +26,8 @@ Six of the compilers
 (Intel 386, AMD64, PowerPC, PowerPC 64-bit, ARM, MIPS R3000)
 are considered active and are used to compile
 current versions of Plan 9.
-One of the compilers (SPARC)
-is maintained but is for older machines
-for which we have no current ports of Plan 9;
-we are unlikely to port to any SPARC machines.
-The DEC Alpha and Motorola 68020 compilers have been retired.
+An ARM64 compiler is in progress and can compile some programs.
+The DEC Alpha, Sun/Oracle SPARC, and Motorola 68020 compilers have been retired.
 Several others (Motorola 68000, Intel 960, AMD 29000)
 have had only limited use, such as
 to program peripherals or experimental devices.
@@ -61,7 +58,6 @@ are as follows:
 .de Ta
 \\$1	\f(CW\\$2\fP  \f(CW\\$3\fP  \f(CW\\$4\fP
 ..
-.Ta SPARC kc kl ka
 .Ta PowerPC qc ql qa
 .Ta MIPS vc vl va
 .Ta MIPS\ little-endian 0c 0l 0a

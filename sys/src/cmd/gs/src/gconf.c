@@ -64,6 +64,7 @@
 
 /* Declare devices, image types, init procedures, and IODevices as extern. */
 #define compositor_(comp_type) extern gs_composite_type_t comp_type;
+#pragma incomplete gx_device
 #define device_(dev) extern gx_device dev;
 #define device2_(dev) extern const gx_device dev;
 #define halftone_(dht) extern DEVICE_HALFTONE_RESOURCE_PROC(dht);
@@ -90,6 +91,7 @@ private const gs_composite_type_t *const gx_compositor_list[] = {
 #undef compositor_
 
 /* Set up the device table. */
+#pragma incomplete gx_device
 #define device_(dev) (const gx_device *)&dev,
 #define device2_(dev) &dev,
 private const gx_device *const gx_device_list[] = {

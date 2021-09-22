@@ -12,8 +12,8 @@ struct Document {
 	void *extra;
 };
 
-void *emalloc(int);
-void *erealloc(void*, int);
+void *emalloc(uintptr);
+void *erealloc(void*, uintptr);
 char *estrdup(char*);
 int spawncmd(char*, char **, int, int, int);
 

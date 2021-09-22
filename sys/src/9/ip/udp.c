@@ -30,6 +30,7 @@ enum
 	Udpmaxxmit	= 10,
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
 typedef struct Udp4hdr Udp4hdr;
 struct Udp4hdr
 {
@@ -91,7 +92,6 @@ struct Udppriv
 	ulong		lenerr;			/* short packet */
 };
 
-void (*etherprofiler)(char *name, int qlen);
 void udpkick(void *x, Block *bp);
 
 /*
@@ -179,17 +179,15 @@ udpclose(Conv *c)
 void
 udpkick(void *x, Block *bp)
 {
-	Conv *c = x;
-	Udp4hdr *uh4;
-	Udp6hdr *uh6;
+	int dlen, ptcllen, version;
 	ushort rport;
 	uchar laddr[IPaddrlen], raddr[IPaddrlen];
-	Udpcb *ucb;
-	int dlen, ptcllen;
-	Udppriv *upriv;
+	Conv *rc, *c = x;
 	Fs *f;
-	int version;
-	Conv *rc;
+	Udp4hdr *uh4;
+	Udp6hdr *uh6;
+	Udpcb *ucb;
+	Udppriv *upriv;
 
 	upriv = c->p->priv;
 	f = c->p->f;
@@ -221,20 +219,19 @@ udpkick(void *x, Block *bp)
 		break;
 	}
 
-	if(ucb->headers) {
+	if(ucb->headers)
 		if(memcmp(laddr, v4prefix, IPv4off) == 0
 		|| ipcmp(laddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
-	} else {
-		if( (memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
-			memcmp(c->laddr, v4prefix, IPv4off) == 0)
-			|| ipcmp(c->raddr, IPnoaddr) == 0)
+	else
+		if((memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
+		    memcmp(c->laddr, v4prefix, IPv4off) == 0) ||
+		    ipcmp(c->raddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
-	}
 
 	dlen = blocklen(bp);
 
@@ -324,18 +321,16 @@ udpkick(void *x, Block *bp)
 void
 udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 {
-	int len;
-	Udp4hdr *uh4;
-	Udp6hdr *uh6;
-	Conv *c;
-	Udpcb *ucb;
+	int len, ottl, oviclfl, olen, version;
+	uchar *p;
 	uchar raddr[IPaddrlen], laddr[IPaddrlen];
 	ushort rport, lport;
-	Udppriv *upriv;
+	Conv *c;
 	Fs *f;
-	int version;
-	int ottl, oviclfl, olen;
-	uchar *p;
+	Udp4hdr *uh4;
+	Udp6hdr *uh6;
+	Udpcb *ucb;
+	Udppriv *upriv;
 
 	upriv = udp->priv;
 	f = udp->f;
@@ -344,8 +339,10 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	uh4 = (Udp4hdr*)(bp->rp);
 	version = ((uh4->vihl&0xF0)==IP_VER6) ? 6 : 4;
 
-	/* Put back pseudo header for checksum
-	 * (remember old values for icmpnoconv()) */
+	/*
+	 * Put back pseudo header for checksum
+	 * (remember old values for icmpnoconv())
+	 */
 	switch(version) {
 	case V4:
 		ottl = uh4->Unused;
@@ -359,14 +356,13 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		lport = nhgets(uh4->udpdport);
 		rport = nhgets(uh4->udpsport);
 
-		if(nhgets(uh4->udpcksum)) {
-			if(ptclcsum(bp, UDP4_PHDR_OFF, len+UDP4_PHDR_SZ)) {
-				upriv->ustats.udpInErrors++;
-				netlog(f, Logudp, "udp: checksum error %I\n", raddr);
-				DPRINT("udp: checksum error %I\n", raddr);
-				freeblist(bp);
-				return;
-			}
+		if(nhgets(uh4->udpcksum) &&
+		    ptclcsum(bp, UDP4_PHDR_OFF, len+UDP4_PHDR_SZ)) {
+			upriv->ustats.udpInErrors++;
+			netlog(f, Logudp, "udp: checksum error %I\n", raddr);
+			DPRINT("udp: checksum error %I\n", raddr);
+			freeblist(bp);
+			return;
 		}
 		uh4->Unused = ottl;
 		hnputs(uh4->udpplen, olen);
@@ -377,12 +373,13 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		oviclfl = nhgetl(uh6->viclfl);
 		olen = nhgets(uh6->len);
 		ottl = uh6->hoplimit;
+		hnputl(uh6->viclfl, len);
+
 		ipmove(raddr, uh6->udpsrc);
 		ipmove(laddr, uh6->udpdst);
 		lport = nhgets(uh6->udpdport);
 		rport = nhgets(uh6->udpsport);
 		memset(uh6, 0, 8);
-		hnputl(uh6->viclfl, len);
 		uh6->hoplimit = IP_UDPPROTO;
 		if(ptclcsum(bp, UDP6_PHDR_OFF, len+UDP6_PHDR_SZ)) {
 			upriv->ustats.udpInErrors++;
@@ -427,30 +424,28 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	}
 	ucb = (Udpcb*)c->ptcl;
 
-	if(c->state == Announced){
-		if(ucb->headers == 0){
-			/* create a new conversation */
-			if(ipforme(f, laddr) != Runi) {
-				switch(version){
-				case V4:
-					v4tov6(laddr, ifc->lifc->local);
-					break;
-				case V6:
-					ipmove(laddr, ifc->lifc->local);
-					break;
-				default:
-					panic("udpiput3: version %d", version);
-				}
+	if(c->state == Announced && ucb->headers == 0){
+		/* create a new conversation */
+		if(ipforme(f, laddr) != Runi) {
+			switch(version){
+			case V4:
+				v4tov6(laddr, ifc->lifc->local);
+				break;
+			case V6:
+				ipmove(laddr, ifc->lifc->local);
+				break;
+			default:
+				panic("udpiput3: version %d", version);
 			}
-			c = Fsnewcall(c, raddr, rport, laddr, lport, version);
-			if(c == nil){
-				qunlock(udp);
-				freeblist(bp);
-				return;
-			}
-			iphtadd(&upriv->ht, c);
-			ucb = (Udpcb*)c->ptcl;
 		}
+		c = Fsnewcall(c, raddr, rport, laddr, lport, version);
+		if(c == nil){
+			qunlock(udp);
+			freeblist(bp);
+			return;
+		}
+		iphtadd(&upriv->ht, c);
+		ucb = (Udpcb*)c->ptcl;
 	}
 
 	qlock(c);
@@ -505,10 +500,8 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		freeblist(bp);
 		return;
 	}
-
 	qpass(c->rq, bp);
 	qunlock(c);
-
 }
 
 char*
@@ -555,7 +548,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 		break;
 	default:
 		panic("udpadvise: version %d", version);
-		return;	/* to avoid a warning */
+		return;  /* to avoid a warning */
 	}
 
 	/* Look for a connection */

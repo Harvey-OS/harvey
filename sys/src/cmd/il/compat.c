@@ -4,7 +4,7 @@
  * fake malloc
  */
 void*
-malloc(ulong n)
+malloc(uintptr n)
 {
 	void *p;
 
@@ -18,6 +18,23 @@ malloc(ulong n)
 	return p;
 }
 
+void*
+mallocz(uintptr n, int clr)
+{
+	void *p;
+
+	while(n & 7)
+		n++;
+	while(nhunk < n)
+		gethunk();
+	p = hunk;
+	if (clr)
+		memset(p, 0, n);
+	nhunk -= n;
+	hunk += n;
+	return p;
+}
+
 void
 free(void *p)
 {
@@ -25,7 +42,7 @@ free(void *p)
 }
 
 void*
-calloc(ulong m, ulong n)
+calloc(uintptr m, uintptr n)
 {
 	void *p;
 
@@ -36,7 +53,7 @@ calloc(ulong m, ulong n)
 }
 
 void*
-realloc(void*, ulong)
+realloc(void*, uintptr)
 {
 	fprint(2, "realloc called\n");
 	abort();
@@ -44,7 +61,7 @@ realloc(void*, ulong)
 }
 
 void
-setmalloctag(void *v, ulong pc)
+setmalloctag(void *v, uintptr pc)
 {
 	USED(v, pc);
 }

@@ -103,6 +103,7 @@ linear(Vga* vga)
 	 * kernel memory map then read the base-address back.
 	 * vga->linear is a compatibility hack.
 	 */
+trace("vga->linear %d\n", vga->linear);
 	if(vga->linear == 0){
 		vga->ctlr->flag &= ~Ulinear;
 		return;
@@ -112,10 +113,14 @@ linear(Vga* vga)
 		 * If there's already an aperture don't bother trying
 		 * to set up a new one.
 		 */
+trace("Ulinear, read addr\n");
 		vgactlr("addr", buf);
 		if(atoi(buf)==0 && (buf[0]!='p' || buf[1]!=' ' || atoi(buf+2)==0)){
-			sprint(buf, "0x%lux 0x%lux", vga->apz ? vga->apz : vga->vmz, vga->vma);
+			snprint(buf, sizeof buf, "0x%lux 0x%lux",
+				vga->apz ? vga->apz : vga->vmz, vga->vma);
+trace("write linear\n");
 			vgactlw("linear", buf);
+trace("read addr 2\n");
 			vgactlr("addr", buf);
 		}
 		trace("linear->addr %s\n", buf);
@@ -132,7 +137,10 @@ linear(Vga* vga)
 			vga->vmb = strtoul(buf, 0, 0);
 	}
 	else
+{
+trace("not Ulinear\n");
 		vgactlw("linear", "0");
+}
 }
 
 char*
@@ -149,7 +157,8 @@ chanstr[32+1] = {
 static void
 usage(void)
 {
-	fprint(2, "usage: aux/vga [ -BcdilpvV ] [ -b bios-id ] [ -m monitor ] [ -x db ] [ mode [ virtualsize ] ]\n");
+	fprint(2, "usage: aux/vga [-BcdilpvV] [-b bios-id] [-m monitor] [-x db]"
+		" [mode [virtualsize]]\n");
 	exits("usage");
 }
 
@@ -168,7 +177,7 @@ main(int argc, char** argv)
 	bios = getenv("vgactlr");
 	if((type = getenv("monitor")) == 0)
 		type = "vga";
-	psize = vsize = "640x480x8";
+	psize = vsize = "1024x768x8";
 
 	ARGBEGIN{
 	default:
@@ -262,7 +271,7 @@ main(int argc, char** argv)
 				argv0, dbname);
 			dumpbios(256);
 			type = "vga";
-			vsize = psize = "640x480x1";
+			vsize = psize = "1024x768x1";
 			virtual = 0;
 			vga->ctlr = &generic;
 			vga->link = &generic;
@@ -369,7 +378,8 @@ main(int argc, char** argv)
 			if(vga->mode->z < nelem(chanstr) && chanstr[vga->mode->z])
 				strcpy(vga->mode->chan, chanstr[vga->mode->z]);
 			else
-				error("%s: unknown channel type to use for depth %d\n", vga->ctlr->name, vga->mode->z);
+				error("%s: unknown channel type to use for depth %d\n",
+					vga->ctlr->name, vga->mode->z);
 		}
 
 		if(iflag || pflag)
@@ -392,6 +402,7 @@ main(int argc, char** argv)
 				vtype = vga->ctlr->name;
 			vgactlw("type", vtype);
 
+trace("1 vga->vesa %#p\n", vga->vesa);	// DEBUG
 			/*
 			 * VESA must be set up before linear.
 			 * Set type to vesa for linear.
@@ -400,6 +411,7 @@ main(int argc, char** argv)
 				vesa.load(vga, vga->vesa);
 				if(vga->vesa->flag&Ferror)
 					error("vesa load error\n");
+trace("set type to %s\n", vesa.name);
 				vgactlw("type", vesa.name);
 			}
 
@@ -407,18 +419,21 @@ main(int argc, char** argv)
 			 * The new draw device needs linear mode set
 			 * before size.
 			 */
+trace("2 vga->vesa %#p\n", vga->vesa);	// DEBUG
 			linear(vga);
 
 			/*
 			 * Linear is over so switch to other driver for
 			 * acceleration.
 			 */
+trace("3 vga->vesa %#p\n", vga->vesa);	// DEBUG
 			if(vga->vesa)
 				vgactlw("type", vtype);
 
-			sprint(buf, "%ludx%ludx%d %s",
+			snprint(buf, sizeof buf, "%ludx%ludx%d %s",
 				vga->virtx, vga->virty,
 				vga->mode->z, vga->mode->chan);
+trace("switching to %s, vga->vesa %#p\n", buf, vga->vesa);	// DEBUG
 			if(rflag){
 				vgactlr("size", sizeb);
 				if(rflag < 2 && strcmp(buf, sizeb) != 0)
@@ -432,6 +447,7 @@ main(int argc, char** argv)
 			 * No fiddling with registers if VESA set 
 			 * things up already.  Sorry.
 			 */
+trace("4 vga->vesa %#p\n", vga->vesa);	// DEBUG
 			if(!vga->vesa){
 				/*
 				 * Turn off the display during the load.
@@ -462,7 +478,8 @@ main(int argc, char** argv)
 			}
 
 			if(vga->virtx != vga->mode->x || vga->virty != vga->mode->y){
-				sprint(buf, "%dx%d", vga->mode->x, vga->mode->y);
+				snprint(buf, sizeof buf, "%dx%d",
+					vga->mode->x, vga->mode->y);
 				vgactlw("actualsize", buf);
 				if(vga->panning)
 					vgactlw("panning", "on");

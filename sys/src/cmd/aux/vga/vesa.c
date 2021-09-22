@@ -6,6 +6,7 @@ typedef struct Ureg Ureg;
 
 #include "pci.h"
 #include "vga.h"
+#include "vesacvt.h"
 
 typedef struct Vbe Vbe;
 typedef struct Vmode Vmode;
@@ -14,7 +15,7 @@ typedef struct Edid Edid;
 
 enum
 {
-	MemSize = 1024*1024,
+	MemSize = 4096*4096*sizeof(ulong),	/* max fb size? */
 	PageSize = 4096,
 	RealModeBuf = 0x9000,
 };
@@ -46,15 +47,15 @@ struct Vmode
 };
 
 struct Edid {
-	char		mfr[4];		/* manufacturer */
-	char		serialstr[16];	/* serial number as string (in extended data) */
-	char		name[16];		/* monitor name as string (in extended data) */
-	ushort	product;		/* product code, 0 = unused */
+	char	mfr[4];		/* manufacturer */
+	char	serialstr[16];	/* serial number as string (in extended data) */
+	char	name[16];	/* monitor name as string (in extended data) */
+	ushort	product;	/* product code, 0 = unused */
 	ulong	serial;		/* serial number, 0 = unused */
 	uchar	version;		/* major version number */
 	uchar	revision;		/* minor version number */
 	uchar	mfrweek;		/* week of manufacture, 0 = unused */
-	int		mfryear;		/* year of manufacture, 0 = unused */
+	int	mfryear;		/* year of manufacture, 0 = unused */
 	uchar 	dxcm;		/* horizontal image size in cm. */
 	uchar	dycm;		/* vertical image size in cm. */
 	int		gamma;		/* gamma*100 */
@@ -65,7 +66,7 @@ struct Edid {
 	ulong	pclkmax;		/* maximum pixel clock */
 	int		flags;
 
-	Modelist	*modelist;		/* list of supported modes */
+	Modelist *modelist;		/* list of supported modes */
 };
 
 struct Modelist
@@ -90,6 +91,7 @@ enum {
 
 static Vbe *vbe;
 static Edid edid;
+static int edidvalid;
 
 Vbe *mkvbe(void);
 int vbecheck(Vbe*);
@@ -100,13 +102,13 @@ int vbesetmode(Vbe*, int);
 void vbeprintinfo(Vbe*);
 void vbeprintmodeinfo(Vbe*, int, char*);
 int vbesnarf(Vbe*, Vga*);
-void vesaddc(void);
 int vbeddcedid(Vbe *vbe, Edid *e);
 void printedid(Edid*);
 
 int
 dbvesa(Vga* vga)
 {
+	trace("dbvesa\n");
 	vbe = mkvbe();
 	if(vbe == nil){
 		fprint(2, "mkvbe: %r\n");
@@ -125,63 +127,185 @@ dbvesa(Vga* vga)
 	*vga->link->link = softhwgc;
 	vga->hwgc = vga->link->link;
 
+	trace("dbvesa done\n");
 	return 1;
+}
+
+static void
+restomode(char *res, Mode *mp)
+{
+	char *rescp;
+	char *reses[4];
+
+	rescp = strdup(res);
+	if(gettokens(rescp, reses, nelem(reses), "x") >= 3){
+		mp->x = atoi(reses[0]);
+		mp->y = atoi(reses[1]);
+		mp->z = atoi(reses[2]);
+	}
+	free(rescp);
+}
+
+/* edid returns 0 for depth, so don't compare z members */
+static int
+resmatch(char *mode, Mode *mp)
+{
+	Mode fakemode;
+
+	memset(&fakemode, 0, sizeof fakemode);
+	restomode(mode, &fakemode);
+	return mp->x == fakemode.x && mp->y == fakemode.y;
+}
+
+/* p is vbemodes(vbe).  if true, *vmp will be filled in upon return. */
+static int
+isvesabiosmode(Mode *mode, uchar *p, Vmode *vmp)
+{
+	int i;
+	uchar *ep;
+
+	for(ep=p+1024; (p[0]!=0xFF || p[1]!=0xFF) && p<ep; p+=2)
+		if(vbemodeinfo(vbe, WORD(p), vmp) >= 0 &&
+		    resmatch(vmp->name, mode))
+			return 1;
+
+	/* scan unoffered vesa modes */
+	for(i=0x100; i<0x200; i++)
+		if(vbemodeinfo(vbe, i, vmp) >= 0 && resmatch(vmp->name, mode))
+			return 1;
+	return 0;
+}
+
+/* sort Modes into reverse order of (x,y) */
+int
+modecmp(void *a, void *b)
+{
+	Vmode *ma, *mb;
+
+	ma = a;
+	mb = b;
+	return ((mb->dx<<16) + mb->dy) - ((ma->dx<<16) + ma->dy);
+}
+
+static uvlong
+divround(uvlong a, uvlong b)
+{
+	return (a + b/2) / b;
 }
 
 Mode*
 dbvesamode(char *mode)
 {
-	int i;
-	uchar *p, *ep;
-	Vmode vm;
+	int nmode;
+	ulong hbporch, hfporch, hfreq, fieldfreq;
+	uchar *p;
+	Cvt *cvt;
+	Mode fakemode;
 	Mode *m;
-	
-	if(vbe == nil)
+	Modelist *l;
+	Vmode vm, vms[100];
+
+	if(vbe == nil || (p = vbemodes(vbe)) == nil)
 		return nil;
 
-	p = vbemodes(vbe);
-	if(p == nil)
-		return nil;
-	for(ep=p+1024; (p[0]!=0xFF || p[1]!=0xFF) && p<ep; p+=2){
-		if(vbemodeinfo(vbe, WORD(p), &vm) < 0)
-			continue;
-		if(strcmp(vm.name, mode) == 0)
-			goto havemode;
-	}
-	if(1){
-		fprint(2, "warning: scanning for unoffered vesa modes\n");
-		for(i=0x100; i<0x200; i++){
-			if(vbemodeinfo(vbe, i, &vm) < 0)
-				continue;
-			if(strcmp(vm.name, mode) == 0)
-				goto havemode;
+	memset(&fakemode, 0, sizeof fakemode);
+	memset(&vm, 0, sizeof vm);
+	memset(vms, 0, sizeof vms);
+
+	restomode(mode, &fakemode);
+	if(!isvesabiosmode(&fakemode, p, &vm)) {
+		print("mode %s not a vesa bios mode\n", mode);
+		/*
+		 * last resort: ignore mode (except depth), run through
+		 * edid->modelist (monitor's advertised modes), see if
+		 * each is a vesa mode known to the vesa bios.  sort the
+		 * resulting set, pick the largest.  l->z is always zero,
+		 * so don't compare against it.
+		 */
+		nmode = 0;
+		if(vbeddcedid(vbe, &edid) >= 0)
+			for(l = edid.modelist; l && nmode < nelem(vms);
+			    l = l->next)
+				if(isvesabiosmode(l, p, &vms[nmode]))
+					nmode++;
+		if (nmode == 0) {
+			werrstr("no such vesa mode");
+			return nil;
 		}
+		qsort(vms, nmode, sizeof vms[0], modecmp);
+		vm = vms[0];
+		vm.depth = fakemode.z;	/* assume, because edid returns z==0 */
+		print("settling for highest resolution common to vesa bios "
+			"& monitor: %dx%dx%d\n", vm.dx, vm.dy, vm.depth);
 	}
-	werrstr("no such vesa mode");
-	return nil;
 
-havemode:
+	cvt = vesacvt(vm.dx, vm.dy, 60, 1);	/* 60 Hz, reduced blanking */
+	if (cvt == nil)
+		sysfatal("no memory: %r");
+	hbporch = cvt->hblank / 2;
+	hfporch = cvt->hblank - hbporch - cvt->hsync;
+	hfreq = divround(cvt->pixfreq, cvt->totpix * 1000LL);	/* KHz */
+	fieldfreq = divround(1000 * hfreq, cvt->totvlines);	/* Hz */
+	USED(fieldfreq);
+
 	m = alloc(sizeof(Mode));
 	strcpy(m->type, "vesa");
 	strcpy(m->size, vm.name);
 	strcpy(m->chan, vm.chan);
-	m->frequency = 100;
+	trace("cvt->pixfreq %lud\n", cvt->pixfreq);
+	m->frequency = cvt->pixfreq / 1000000;
 	m->x = vm.dx;
 	m->y = vm.dy;
 	m->z = vm.depth;
-	m->ht = m->x;
-	m->shb = m->x;
-	m->ehb = m->x;
-	m->shs = m->x;
-	m->ehs = m->x;
-	m->vt = m->y;
-	m->vrs = m->y;
-	m->vre = m->y;
+	if(m->z < 16){
+		m->z = 16;
+		strncpy(m->chan, chanstr[m->z], sizeof m->chan - 1);
+		snprint(m->size, sizeof m->size, "%dx%dx%d", m->x, m->y, m->z);
+	}
+	if (cvt->reducedblank) {
+		m->hsync = '+';		/* reduced blanking cvt */
+		m->vsync = '-';
+	} else {
+		m->hsync = '-';		/* crt cvt */
+		m->vsync = '+';
+	}
+	m->interlace = 0;
+
+	m->shb = cvt->wid;
+	m->shs = m->shb + hfporch;
+	m->ehs = m->shs + cvt->hsync;
+	m->ehb = m->ehs + hbporch;
+	m->ht  = m->ehb;
+
+	m->vbs = cvt->ht;
+	m->vrs = m->vbs + cvt->vfporch;
+	m->vre = m->vrs + cvt->vsync;
+	m->vbe = m->vre + cvt->vbporch;
+	m->vt  = m->vbe;
+
+	print("m->type %s\n", m->type);
+	print("m->size %s\n", m->size);
+	print("m->chan %s\n", m->chan);
+	print("m->frequency %d\n", m->frequency);
+	print("m->x %d\n", m->x);
+	print("m->y %d\n", m->y);
+	print("m->z %d\n", m->z);
+	print("m->shb %d\n", m->shb);
+	print("m->shs %d\n", m->shs);
+	print("m->ehs %d\n", m->ehs);
+	print("m->ehb %d\n", m->ehb);
+	print("m->ht %d\n", m->ht);
+	print("m->vbs %d\n", m->vbs);
+	print("m->vrs %d\n", m->vrs);
+	print("m->vre %d\n", m->vre);
+	print("m->vbe %d\n", m->vbe);
+	print("m->vt %d\n", m->vt);
 
 	m->attr = alloc(sizeof(Attr));
 	m->attr->attr = "id";
 	m->attr->val = alloc(32);
-	sprint(m->attr->val, "0x%x", vm.id);
+	snprint(m->attr->val, 32, "0x%x", vm.id);
+	trace("vm.id %d\n", vm.id);
 	return m;
 }
 
@@ -223,18 +347,16 @@ dump(Vga*, Ctlr*)
 	memset(did, 0, sizeof did);
 	vbeprintinfo(vbe);
 	p = vbemodes(vbe);
-	if(p){
+	if(p)
 		for(ep=p+1024; (p[0]!=0xFF || p[1]!=0xFF) && p<ep; p+=2){
 			vbeprintmodeinfo(vbe, WORD(p), "");
 			if(WORD(p) < nelem(did))
 				did[WORD(p)] = 1;
 		}
-	}
 	for(i=0x100; i<0x1FF; i++)
 		if(!did[i])
 			vbeprintmodeinfo(vbe, i, " (unoffered)");
-				
-	
+
 	if(vbeddcedid(vbe, &edid) < 0)
 		fprint(2, "warning: reading edid: %r\n");
 	else
@@ -303,7 +425,8 @@ static Flag directcolorflags[] = {
 };
 
 static char *modelstr[] = {
-	"text", "cga", "hercules", "planar", "packed", "non-chain4", "direct", "YUV"
+	"text", "cga", "hercules", "planar",
+	"packed", "non-chain4", "direct", "YUV"
 };
 
 static void
@@ -375,6 +498,9 @@ vbesetup(Vbe *vbe, Ureg *u, int ax)
 int
 vbecall(Vbe *vbe, Ureg *u)
 {
+	ushort func;
+
+	func = u->ax;
 	u->trap = 0x10;
 	if(pwrite(vbe->memfd, vbe->buf, PageSize, RealModeBuf) != PageSize)
 		error("write /dev/realmodemem: %r\n");
@@ -385,7 +511,10 @@ vbecall(Vbe *vbe, Ureg *u)
 	if(pread(vbe->memfd, vbe->buf, PageSize, RealModeBuf) != PageSize)
 		error("read /dev/realmodemem: %r\n");
 	if((u->ax&0xFFFF) != 0x004F){
-		werrstr("VBE error %#.4lux", u->ax&0xFFFF);
+		werrstr("VBE error %#.4lux: func %#ux %ssupported, call %s",
+			u->ax&0xFFFF, func,
+			(u->ax&0xff) == 0x4f? "": "not ",
+			((u->ax>>8)&0xff) == 0? "ok": "failed");
 		return -1;
 	}
 	memset(vbe->isvalid, 0, MemSize/PageSize);
@@ -628,23 +757,45 @@ static Flag edidflags[] = {
 
 int parseedid128(Edid *e, void *v);
 
+/*
+ * try first two controllers.  0 is supposed to be primary, but some
+ * machines (with nvidia card) only respond for 1 (maybe 0 is unused
+ * motherboard graphics controller).
+ */
+
 int
-vbeddcedid(Vbe *vbe, Edid *e)
+vbeddcedidctlr(Vbe *vbe, Edid *e, int ctlr)
 {
 	uchar *p;
 	Ureg u;
-	
-	p = vbesetup(vbe, &u, 0x4F15);
-	u.bx = 0x0001;
+
+	if(edidvalid)
+		return 0;
+	p = vbesetup(vbe, &u, 0x4F15);	/* vbe/ddc services */
+	u.bx = 1;			/* read edid */
+	u.cx = ctlr;
+	u.dx = 0;			/* edid block # */
 	if(vbecall(vbe, &u) < 0)
 		return -1;
 	if(parseedid128(e, p) < 0){
 		werrstr("parseedid128: %r");
 		return -1;
 	}
+	edidvalid = 1;
 	return 0;
 }
-	
+
+int
+vbeddcedid(Vbe *vbe, Edid *e)
+{
+	int i;
+
+	for (i = 0; i < 2; i++)
+		if (vbeddcedidctlr(vbe, e, i) >= 0)
+			return 0;
+	return -1;
+}
+
 void
 printedid(Edid *e)
 {
@@ -679,8 +830,11 @@ printedid(Edid *e)
 	
 	for(l=e->modelist; l; l=l->next){
 		printitem("edid", l->name);
-		Bprint(&stdout, "\n\t\tclock=%g\n\t\tshb=%d ehb=%d ht=%d\n\t\tvrs=%d vre=%d vt=%d\n\t\thsync=%c vsync=%c %s\n",
-			l->frequency/1.e6, l->shb, l->ehb, l->ht, l->vrs, l->vre, l->vt, l->hsync?l->hsync:'?', l->vsync?l->vsync:'?', l->interlace?"interlace=v" : "");
+		Bprint(&stdout, "\n\t\tclock=%g\n\t\tshb=%d ehb=%d ht=%d\n"
+			"\t\tvrs=%d vre=%d vt=%d\n\t\thsync=%c vsync=%c %s\n",
+			l->frequency/1.e6, l->shb, l->ehb, l->ht, l->vrs,
+			l->vre, l->vt, l->hsync?l->hsync:'?',
+			l->vsync?l->vsync:'?', l->interlace?"interlace=v" : "");
 	}
 }
 
@@ -703,12 +857,11 @@ addmode(Modelist *l, Mode m)
 	if(m.vbe == 0)
 		m.vbe = m.vbs+1;
 
-	for(lp=&l; *lp; lp=&(*lp)->next){
+	for(lp=&l; *lp; lp=&(*lp)->next)
 		if(strcmp((*lp)->name, m.name) == 0){
 			(*lp)->Mode = m;
 			return l;
 		}
-	}
 
 	*lp = alloc(sizeof(**lp));
 	(*lp)->Mode = m;
@@ -772,8 +925,8 @@ decodedtb(Mode *m, uchar *p)
 	vb = ((p[7] & 0x0F)<<8) | p[6];		/* vertical blanking */
 	hso = ((p[11] & 0xC0)<<2) | p[8];	/* horizontal sync offset */
 	hspw = ((p[11] & 0x30)<<4) | p[9];	/* horizontal sync pulse width */
-	vso = ((p[11] & 0x0C)<<2) | ((p[10] & 0xF0)>>4);	/* vertical sync offset */
-	vspw = ((p[11] & 0x03)<<4) | (p[10] & 0x0F);		/* vertical sync pulse width */
+	vso = (p[11] & 0x0C)<<2 | (p[10] & 0xF0)>>4;	/* vertical sync offset */
+	vspw = (p[11] & 0x03)<<4 | (p[10] & 0x0F); /* vertical sync pulse width */
 
 	/* dxmm = (p[14] & 0xF0)<<4) | p[12]; 	/* horizontal image size (mm) */
 	/* dymm = (p[14] & 0x0F)<<8) | p[13];	/* vertical image size (mm) */
@@ -826,9 +979,7 @@ decodedtb(Mode *m, uchar *p)
 	/* p[17] & 0x01 is another stereo bit, only referenced if p[17] & 0x60 != 0 */
 
 	rr = (m->frequency+m->ht*m->vt/2) / (m->ht*m->vt);
-
 	snprint(m->name, sizeof m->name, "%dx%d@%dHz", m->x, m->y, rr);
-
 	return 0;
 }
 
@@ -872,7 +1023,7 @@ decodesti(Mode *m, uchar *p)
 	}
 	rr = (p[1] & 0x1F) + 60;
 
-	sprint(str, "%dx%d@%dHz", x, y, rr);
+	snprint(str, sizeof str, "%dx%d@%dHz", x, y, rr);
 	return vesalookup(m, str);
 }
 
@@ -901,10 +1052,11 @@ parseedid128(Edid *e, void *v)
 	}
 	p += 8;
 
-	assert(p == (uchar*)v+8);	/* assertion offsets from pp. 12-13 of the standard */
+	/* assertion offsets from pp. 12-13 of the standard */
+	assert(p == (uchar*)v+8);
 	/*
-	 * Manufacturer name is three 5-bit ascii letters, packed
-	 * into a big endian [sic] short in big endian order.  The high bit is unused.
+	 * Manufacturer name is three 5-bit ascii letters, packed into a big
+	 * endian [sic] short in big endian order.  The high bit is unused.
 	 */
 	i = (p[0]<<8) | p[1];
 	p += 2;
@@ -967,7 +1119,7 @@ parseedid128(Edid *e, void *v)
 
 	assert(p == (uchar*)v+8+10+2+5);
 	/*
-	 * Color characteristics currently ignored.
+	 * Color characteristics are currently ignored.
 	 */
 	p += 10;
 
@@ -996,21 +1148,21 @@ parseedid128(Edid *e, void *v)
 	/*
 	 * Detailed Timings
 	 */
-fprint(2, "dt\n");
+// fprint(2, "dt\n");
 	for(i=0; i<4; i++, p+=18) {
-fprint(2, "%.8H\n", p);
-		if(p[0] || p[1]) {	/* detailed timing block: p[0] or p[1] != 0 */
+// fprint(2, "%.8H\n", p);
+		if(p[0] || p[1]){ /* detailed timing block: p[0] or p[1] != 0 */
 			if(decodedtb(&mode, p) == 0)
 				e->modelist = addmode(e->modelist, mode);
 		} else if(p[2]==0) {	/* monitor descriptor block */
 			switch(p[3]) {
-			case 0xFF:	/* monitor serial number (13-byte ascii, 0A terminated) */
+			case 0xFF: /* monitor serial number (13-byte ascii, 0A terminated) */
 				if(q = memchr(p+5, 0x0A, 13))
 					*q = '\0';
 				memset(e->serialstr, 0, sizeof(e->serialstr));
 				strncpy(e->serialstr, (char*)p+5, 13);
 				break;
-			case 0xFE:	/* ascii string (13-byte ascii, 0A terminated) */
+			case 0xFE: /* ascii string (13-byte ascii, 0A terminated) */
 				break;
 			case 0xFD:	/* monitor range limits */
 				print("fd %.18H\n", p);
@@ -1021,7 +1173,7 @@ fprint(2, "%.8H\n", p);
 				if(p[9] != 0xFF)
 					e->pclkmax = p[9]*10*1000000;
 				break;
-			case 0xFC:	/* monitor name (13-byte ascii, 0A terminated) */
+			case 0xFC: /* monitor name (13-byte ascii, 0A terminated) */
 				if(q = memchr(p+5, 0x0A, 13))
 					*q = '\0';
 				memset(e->name, 0, sizeof(e->name));
@@ -1029,10 +1181,11 @@ fprint(2, "%.8H\n", p);
 				break;
 			case 0xFB:	/* extra color point data */
 				break;
-			case 0xFA:	/* extra standard timing identifications */
+			case 0xFA:	/* extra standard timing id's */
 				for(i=0; i<6; i++)
 					if(decodesti(&mode, p+5+2*i) == 0)
-						e->modelist = addmode(e->modelist, mode);
+						e->modelist = addmode(e->modelist,
+							mode);
 				break;
 			}
 		}

@@ -40,7 +40,7 @@ getehci(Ctlr* ctlr)
 				break;
 			delay(10);
 		}
-		if(i == 100)
+		if(i >= 100)
 			dprint("ehci %#p: bios timed out\n", ctlr->capio);
 		pcicfgw32(ctlr->pcidev, ptr+CLcontrol, 0);	/* no SMIs */
 		ctlr->opio->config = 0;
@@ -54,6 +54,7 @@ ehcireset(Ctlr *ctlr)
 {
 	Eopio *opio;
 	int i;
+	uint cmd;
 
 	ilock(ctlr);
 	dprint("ehci %#p reset\n", ctlr->capio);
@@ -71,8 +72,11 @@ ehcireset(Ctlr *ctlr)
 	 */
 	getehci(ctlr);
 
-	/* clear high 32 bits of address signals if it's 64 bits capable.
+	/*
+	 * clear high 32 bits of address signals if it's 64 bits capable.
 	 * This is probably not needed but it does not hurt and others do it.
+	 * This must be done to all ehci controllers in a system before further
+	 * initialisation of them is done, in theory.  We haven't done that yet.
 	 */
 	if((ctlr->capio->capparms & C64) != 0){
 		dprint("ehci: 64 bits\n");
@@ -88,13 +92,15 @@ ehcireset(Ctlr *ctlr)
 				break;
 			delay(1);
 		}
-		if(i == 100)
-			print("ehci %#p controller reset timed out\n", ctlr->capio);
+		if(i >= 100)
+			print("ehci: %#p controller reset timed out after %d ms\n",
+				ctlr->capio, i);
 	}
 
 	/* requesting more interrupts per µframe may miss interrupts */
-	opio->cmd &= ~Citcmask;
-	opio->cmd |= 1 << Citcshift;		/* max of 1 intr. per 125 µs */
+	cmd = opio->cmd & ~Citcmask;
+	/* start by assuming fast devices attached; see setintrrate */
+	opio->cmd = cmd | 1 << Citcshift;	/* max of 1 intr. per 125 µs */
 	coherence();
 	switch(opio->cmd & Cflsmask){
 	case Cfls1024:
@@ -129,6 +135,9 @@ shutdown(Hci *hp)
 	ctlr = hp->aux;
 	ilock(ctlr);
 	opio = ctlr->opio;
+	opio->cmd &= ~Chcreset;	  /* paranoia: ensure a transition below */
+	coherence();
+	delay(1);
 	opio->cmd |= Chcreset;		/* controller reset */
 	coherence();
 	for(i = 0; i < 100; i++){
@@ -136,11 +145,16 @@ shutdown(Hci *hp)
 			break;
 		delay(1);
 	}
-	if(i >= 100)
-		print("ehci %#p controller reset timed out\n", ctlr->capio);
+	if(i >= 100) {
+		print("ehci: %#p controller reset timed out after %d ms\n",
+			ctlr->capio, i);
+		opio->cmd &= ~Chcreset;	/* force it out of reset */
+		coherence();
+	}
 	delay(100);
 	ehcirun(ctlr, 0);
 	opio->frbase = 0;
+	opio->intr = 0;
 	iunlock(ctlr);
 }
 
@@ -181,7 +195,8 @@ scanpci(void)
 				p->vid, p->did);
 			continue;
 		}
-		if(p->intl == 0xff || p->intl == 0) {
+		/* don't do this; let intrenable() try msi */
+		if(0 && (p->intl == 0xff || p->intl == 0)) {
 			print("usbehci: no irq assigned for port %#lux\n", io);
 			continue;
 		}
@@ -192,10 +207,12 @@ scanpci(void)
 		if (ctlr == nil)
 			panic("usbehci: out of memory");
 		ctlr->pcidev = p;
+		ctlr->physio = io;
 		capio = ctlr->capio = vmap(io, p->mem[0].size);
 		ctlr->opio = (Eopio*)((uintptr)capio + (capio->cap & 0xff));
 		pcisetbme(p);
 		pcisetpms(p, 0);
+		ctlr->hci = nil;		/* reset will fill this in */
 		for(i = 0; i < Nhcis; i++)
 			if(ctlrs[i] == nil){
 				ctlrs[i] = ctlr;
@@ -213,6 +230,7 @@ scanpci(void)
 			print("usbehci: ignoring controllers after first %d, "
 				"at %#p\n", maxehci, io);
 			ctlrs[i] = nil;
+			free(ctlr);
 		}
 	}
 }
@@ -232,6 +250,8 @@ reset(Hci *hp)
 		maxehci = atoi(s);
 	if(maxehci == 0 || getconf("*nousbehci"))
 		return -1;
+	if(maxehci > Nhcis)
+		maxehci = Nhcis;
 
 	ilock(&resetlck);
 	scanpci();
@@ -255,6 +275,7 @@ reset(Hci *hp)
 
 	p = ctlr->pcidev;
 	hp->aux = ctlr;
+	ctlr->hci = hp;			/* point back */
 	hp->port = (uintptr)ctlr->capio;
 	hp->irq = p->intl;
 	hp->tbdf = p->tbdf;
@@ -262,7 +283,7 @@ reset(Hci *hp)
 	capio = ctlr->capio;
 	hp->nports = capio->parms & Cnports;
 
-	ddprint("echi: %s, ncc %lud npcc %lud\n",
+	ddprint("ehci: %s, ncc %lud npcc %lud\n",
 		capio->parms & 0x10000 ? "leds" : "no leds",
 		(capio->parms >> 12) & 0xf, (capio->parms >> 8) & 0xf);
 	ddprint("ehci: routing %s, %sport power ctl, %d ports\n",
@@ -279,6 +300,20 @@ reset(Hci *hp)
 	hp->shutdown = shutdown;
 	hp->debug = setdebug;
 	return 0;
+}
+
+void
+ehciclockpoll(void)
+{
+	int i;
+	Ctlr *ctlr;
+	Hci *hci;
+
+	for(i = 0; i < Nhcis && (ctlr = ctlrs[i]) != nil; i++) {
+		hci = ctlr->hci;
+		if (ctlr->opio->sts & Sintrs && hci) /* work waiting for us? */
+			ehciintr(hci);
+	}
 }
 
 void

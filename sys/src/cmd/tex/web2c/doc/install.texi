@@ -1,0 +1,350 @@
+@ifclear version
+@defcodeindex cm
+@defcodeindex fl
+@defcodeindex op
+@end ifclear
+
+@node Installation
+@chapter Installation
+
+@cindex configuration
+@cindex compilation
+@cindex installation
+
+@ifset version
+(A copy of this chapter is in the distribution file @file{web2c/INSTALL}.)
+@end ifset
+
+Installing Web2c is mostly the same as installing any other
+Kpathsea-using program.  Therefore, for the basic steps involved,
+see @ref{Installation,,, kpathsea, Kpathsea}.  (A copy is in the file
+@file{kpathsea/INSTALL}.)
+
+One peculiarity to Web2c is that the source distribution comes in two
+files: @file{web.tar.gz} and @file{web2c.tar.gz}.  You must retrieve and
+unpack them both.  (We have two because the former archive contains the
+very large and seldom-changing original WEB source files.)
+@xref{unixtex.ftp,,, kpathsea, Kpathsea}.
+
+@pindex mpost@r{, reason for name change}
+Another peculiarity is the MetaPost program.  Although it has been
+installed previously as @code{mp}, as of Web2c 7.0 the installed name is
+now @code{mpost}, to avoid conflict with the @code{mp} program that does
+prettyprinting.  This approach was recommended by the MetaPost author,
+John Hobby.  If you as the @TeX{} administrator wish to make it
+available under its shorter name as well, you will have to set up a link
+or some such yourself.  And of course individual users can do the same.
+
+For solutions to common installation problems and information on how to
+report a bug, see the file @file{kpathsea/BUGS} (@pxref{Bugs,,,
+kpathsea, Kpathsea}).  See also the Web2c home page,
+@url{http://www.tug.org/web2c}.
+
+Points worth repeating:
+
+@itemize @bullet
+@item
+@cindex directory structure
+@cindex basic fonts and macros
+@cindex fonts, basic
+@cindex macros, basic
+Before starting the standard compilation and installation you must
+install the basic fonts, macros, and other library files.
+@xref{Installation,,,kpathsea, Kpathsea}.
+
+@item
+If you do not wish to use the standard file locations, see @ref{Changing
+search paths,,, kpathsea, Kpathsea}.
+
+@item
+Some Web2c features are enabled or disabled at @code{configure} time,
+as described in the first section below.
+
+@end itemize
+
+@menu
+* configure options::           Especially --with and --enable.
+* Compile-time options::        Unusual -D's.
+* Additional targets::		Breaking down the task.
+* Triptrap::                    Running the torture tests.
+* Runtime options::             Array sizes and the like.
+@end menu
+
+
+@node configure options
+@section @code{configure} options
+
+@cindex configuration, compile-time
+@cindex compile-time options
+@pindex configure --with/--enable @r{options}
+This section gives pointers to descriptions of the @samp{--with} and
+@samp{--enable} @code{configure} arguments that Web2c accepts.  Some are
+specific to Web2c, others are generic to all Kpathsea-using programs.
+
+For a list of all the options @code{configure} accepts, run
+@samp{configure --help}.  The generic options are listed first, and the
+package-specific options come last.
+
+For a description of the generic options (which mainly allow you to
+specify installation directories) and basic @code{configure} usage,
+see @ref{Invoking configure,, Running @code{configure} scripts, autoconf,
+Autoconf}, a copy is in the file @file{kpathsea/CONFIGURE}.
+
+@table @samp
+@item --disable-dump-share
+Do not make fmt/base/mem files sharable across different endian
+architectures.  @xref{Hardware and memory dumps}.
+
+@item --without-maketexmf-default
+@itemx --without-maketexpk-default
+@itemx --without-maketextfm-default
+@itemx --with-maketextex-default
+Enable or disable the dynamic generation programs.  @xref{mktex
+configuration,,, kpathsea, Kpathsea}.  The defaults are the inverse of
+the options, i.e., everything is enabled except @code{mktextex}.
+
+@item --enable-auto-core
+Dump @file{core} if the input file is
+@file{HackyInputFileNameForCoreDump.tex}.  @xref{Preloaded executables}.
+
+@item --enable-shared
+Build Kpathsea as a shared library.  @xref{Shared library,,, kpathsea,
+Kpathsea}.
+
+@item --with-editor=@var{cmd}
+Change the default editor invoked by the @samp{e} interactive command.
+@xref{Editor invocation}.
+
+@item --with-epsfwin
+@itemx --with-hp2627win
+@itemx --with-mftalkwin
+@itemx --with-nextwin
+@itemx --with-regiswin
+@itemx --with-suntoolswin
+@itemx --with-tektronixwin
+@itemx --with-unitermwin
+@itemx --with-x
+@itemx --with-x-toolkit=KIT
+@itemx --with-x11win
+@itemx --with-x11
+Define Metafont graphics support; by default, no graphics support is
+enabled.  @xref{Online Metafont graphics}.
+
+@item --x-includes=@var{dir}
+@itemx --x-libraries=@var{dir}
+Define the locations of the X11 include files and libraries; by default,
+@code{configure} does its best to guess).  @xref{Optional Features,,,
+autoconf, Autoconf}.  A copy is in @file{kpathsea/CONFIGURE}.
+@end table
+
+
+@node Compile-time options
+@section Compile-time options
+
+@cindex compile-time options
+@cindex @samp{#define} options
+@opindex -D @r{compiler options}
+In addition to the @code{configure} options listed in the previous
+section, there are a few things that can be affected at compile-time
+with C definitions, rather than with @code{configure}.  Using any of
+these is unusual.
+
+To specify extra compiler flags (@samp{-D@var{name}} in this case), the
+simplest thing to do is:
+@example
+make XCFLAGS="@var{ccoptions}"
+@end example
+@noindent You can also set the @code{CFLAGS} environment variable before
+running @code{configure}.  @xref{configure environment,,, kpathsea, Kpathsea}.
+
+Anyway, here are the possibilities:
+
+@table @samp
+@item -DFIXPT
+@itemx -DNO_MF_ASM
+@vindex FIXPT
+@cindex fixed-point arithmetic
+@cindex floating-point arithmetic
+@cindex assembly language routines
+@cindex fraction routines
+Use the original WEB fixed-point routines for Metafont and MetaPost
+arithmetic calculations regarding fractions.  By default,
+assembly-language routines are used on x86 hardware with GNU C (unless
+@samp{NO_MF_ASM} is defined), and floating-point routines are used
+otherwise.
+
+@item -DIPC_DEBUG
+@vindex IPC_DEBUG
+Report on various interprocess communication activities.  @xref{IPC and
+TeX,, IPC and @TeX{}}.
+@end table
+
+
+@node Additional targets
+@section Additional targets
+
+@cindex additional Make targets
+@cindex targets, additional Make
+@cindex Make targets, additional
+
+Web2c has several Make targets besides the standard ones.  You can invoke
+these either in the top level directory of the source distribution (the
+one containing @file{kpathsea/} and @file{web2c/}), or in the
+@file{web2c/} directory.
+
+@table @samp
+@item c-sources
+@cmindex c-sources @r{Makefile target}
+@cindex non-Unix system, compiling on
+Make only the C files, translated from the Web sources, presumably
+because you want to take them to a non-Unix machine.
+
+@item formats
+@itemx install-formats
+@cmindex formats @r{Make target}
+@cmindex install-formats @r{Make target}
+Make or install all the memory dumps (@pxref{Memory dumps}).  By
+default, the standard plain formats plus @file{latex.fmt} are made.  You
+can add other formats by redefining the @code{fmts}, @code{bases}, and
+@code{mems} variables.  See the top of @file{web2c/Makefile} for the
+possibilities.
+
+@item fmts
+@itemx install-fmts
+@cmindex fmts @r{Make target}
+@cmindex install-fmts @r{Make target}
+Make or install the @TeX{} @file{.fmt} files. @xref{initex invocation}.
+
+@item bases
+@itemx install-bases
+@cmindex bases @r{Make target}
+@cmindex install-bases @r{Make target}
+Make or install the Metafont @file{.base} files.  @xref{inimf invocation}.
+
+@item mems
+@itemx install-mems
+@cmindex mems @r{Make target}
+@cmindex install-mems @r{Make target}
+Make or install the MetaPost @file{.mem} files.  @xref{inimpost invocation}.
+
+@item triptrap
+@itemx trip
+@itemx trap
+@itemx mptrap
+@cmindex triptrap @r{Make target}
+@findex trip @r{Make target}
+@findex trap @r{Make target}
+@findex mptrap @r{Make target}
+To run the torture tests for @TeX{}, Metafont, and MetaPost
+(respectively).  See the next section.
+
+@end table
+
+
+@node Triptrap
+@section Trip, trap, and mptrap: Torture tests
+
+@cindex Gruff, Billy Goat
+@cindex trip test
+@cindex trap test
+@cindex mptrap test
+@cindex torture tests
+
+@flindex tripman.tex
+@flindex trapman.tex
+@flindex mptrap.readme
+To validate your @TeX{}, Metafont, and MetaPost executables, run
+@samp{make triptrap}.  This runs the trip, trap, and mptrap ``torture
+tests''.  See the files @file{triptrap/tripman.tex},
+@file{triptrap/trapman.tex}, and @file{triptrap/mptrap.readme} for
+detailed information and background on the tests.
+
+The differences between your executables' behavior and the standard
+values will show up on your terminal.  The usual differences (these are
+all acceptable) are:
+
+@itemize @bullet
+@item string usage and table sizes;
+@item glue set ratios;
+@item @samp{down4}, @samp{right4}, and @samp{y4} commands in DVItype output;
+@item dates and times.
+@end itemize
+
+@noindent Any other differences are trouble. The most common culprit in
+the past has been compiler bugs, especially when optimizing.
+@xref{TeX or Metafont failing,, @TeX{} or Metafont failing, kpathsea,
+Kpathsea}.
+
+The files @file{trip.diffs}, @file{mftrap.diffs}, and
+@file{mptrap.diffs} in the @file{triptrap} directory show the standard
+diffs against the original output.  If you diff your diffs against these
+files, you should come up clean.  For example
+@example
+make trip >&mytrip.diffs
+diff triptrap/trip.diffs mytrip.diffs
+@end example
+
+To run the tests separately, use the targets @code{trip}, @code{trap},
+and @code{mptrap}.
+
+To run simple tests for all the programs as well as the torture tests,
+run @samp{make check}.  You can compare the output to the distributed
+file @file{tests/check.log} if you like.
+
+
+@node Runtime options
+@section Runtime options
+
+@cindex runtime options
+
+@cindex configuration file values
+@cindex array sizes
+Besides the configure- and compile-time options described in the
+previous sections, you can control a number of parameters (in
+particular, array sizes) in the @file{texmf.cnf} runtime file read by
+Kpathsea (@pxref{Config files,,, kpathsea, Kpathsea}).
+
+Rather than exhaustively listing them here, please see the last section
+of the distributed @file{kpathsea/texmf.cnf}.  Some of the more
+interesting values:
+
+@vtable @samp
+@item main_memory
+Total words of memory available, for @TeX{}, Metafont, and MetaPost.
+Must remake the format file after changing.
+
+@item extra_mem_bot
+@cindex boxes, memory for
+@cindex glue, memory for
+@cindex breakpoints, memory for
+@cindex PiC@TeX{}, increasing memory for
+Extra space for ``large'' @TeX{} data structures: boxes, glue,
+breakpoints, et al.  If you use PiC@TeX{}, you may well want to set this.
+
+@item font_mem_size
+@cindex TFM files, memory for
+Words of font info available for @TeX{}; this is approximately the total
+size of all TFM files read.
+
+@item hash_extra
+@cindex control sequence names, space for
+@cindex hash table, increasing size of
+Additional space for the hash table of control sequence names.
+Approximately 10,000 control sequences can be stored in the main hash
+table; if you have a large book with numerous cross-references, 
+this might not be enough, and thus you will want to set @code{hash_extra}.
+
+@end vtable
+
+@cindex array limit, fixed
+@cindex swap space, as array limit
+@cindex reallocation of arrays
+@cindex dynamic array allocation
+Of course, ideally all arrays would be dynamically expanded as
+necessary, so the only limiting factor would be the amount of swap space
+available.  Unfortunately, implementing this is extremely difficult, as
+the fixed size of arrays is assumed in many places throughout the source
+code.  These runtime limits are a practical compromise between the
+compile-time limits in previous versions, and truly dynamic arrays.  (On
+the other hand, the Web2c Bib@TeX{} implementation does do dynamic
+reallocation of some arrays.)

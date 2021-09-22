@@ -1,0 +1,34 @@
+vm 3.75
+pM 29.993167,90.257861	# kmsy
+pK 30.025000,90.399806	# ms
+pN 30.042219,90.028186	# new
+pH 29.850000,90.002778	# hrv vor
+pn d pH,m195,1		# nas no
+
+pa xccs pK,1.5, pM,7
+pb xccn pK,1.5, pM,7
+
+pc xccs pN,t5, pM,15
+pd xccn pN,t5, pM,15
+
+pe xccs pn,t5, pM,15
+pf xccn pn,t5, pM,15
+
+pg d pN,m(360-90),2
+ph xcln pN,t5, pg,m360
+pi xcls pN,t5, pg,m360
+
+n msy_gnd\70
+ar pK, pa,pb
+ar pM, pb,pa
+
+n msy_20\70
+ar pM, pe,pd
+al pN, pd,ph
+s ph,pi
+al pN, pi,pc
+ar pM, pc,pf
+al pn, pf,pe
+
+n msy_40\70
+C pM, 20

@@ -531,18 +531,16 @@ confinit(void)
 	/*
 	 * pi4 extra memory (beyond video ram) indicated by board id
 	 */
-	switch(getboardrev()&0xF00000){
-	case 0xA00000:
+	switch(getboardrev()&0xFFFFFF){
+	case 0xA03111:
 		break;
-	case 0xB00000:
+	case 0xB03111:
+	case 0xB03112:
 		conf.mem[1].base = 1*GiB;
 		conf.mem[1].limit = 2*GiB;
 		break;
-	case 0xC00000:
-		conf.mem[1].base = 1*GiB;
-		conf.mem[1].limit = 0xFFF00000;
-		break;
-	case 0xD00000:
+	case 0xC03111:
+	case 0xC03112:
 		conf.mem[1].base = 1*GiB;
 		conf.mem[1].limit = 0xFFF00000;
 		break;
@@ -608,7 +606,7 @@ confinit(void)
 		+ conf.nproc*sizeof(Proc)
 		+ conf.nimage*sizeof(Image)
 		+ conf.nswap
-		+ conf.nswppo*sizeof(Page*);
+		+ conf.nswppo*sizeof(Page);
 	mainmem->maxsize = kpages;
 	if(!cpuserver)
 		/*

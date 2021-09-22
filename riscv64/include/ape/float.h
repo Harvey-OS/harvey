@@ -38,7 +38,7 @@ typedef 	union FPdbleword FPdbleword;
 union FPdbleword
 {
 	double	x;
-	struct {	/* big endian */
+	struct {	/* risc-v is little endian */
 		long lo;
 		long hi;
 	};
@@ -46,30 +46,31 @@ union FPdbleword
 
 #ifdef _RESEARCH_SOURCE
 /* define stuff needed for floating conversion */
-#define IEEE_8087	1
+#define IEEE_MC68k	1
 #define Sudden_Underflow 1
 #endif
+
 #ifdef _PLAN9_SOURCE
 /* FCR */
-#define	FPINEX	0
+#define	FPINEX	0		/* trap enables: none on risc-v */
 #define	FPUNFL	0
 #define	FPOVFL	0
 #define	FPZDIV	0
 #define	FPINVAL	0
-#define	FPRNR	(0<<5)
+#define	FPRNR	(0<<5)		/* rounding modes */
 #define	FPRZ	(1<<5)
 #define	FPRPINF	(3<<5)
 #define	FPRNINF	(2<<5)
-#define	FPRMASK	(15<<5)
-#define	FPPEXT	0
+#define	FPRMASK	(7<<5)
+#define	FPPEXT	0		/* precision */
 #define	FPPSGL	0
 #define	FPPDBL	0
 #define	FPPMASK	0
 /* FSR */
-#define	FPAINEX	(1<<0)
+#define	FPAINEX	(1<<0)		/* accrued exceptions */
 #define	FPAOVFL	(1<<2)
 #define	FPAUNFL	(1<<1)
 #define	FPAZDIV	(1<<3)
-#define	FPAINVAL	(1<<4)
+#define	FPAINVAL (1<<4)
 #endif
 #endif /* __FLOAT */

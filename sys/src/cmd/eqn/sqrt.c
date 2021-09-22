@@ -1,6 +1,6 @@
 #include "e.h"
 
-void sqrt(int p2)
+void eqnsqrt(int p2)
 {
 	static int af = 0;
 	int nps;	/* point size for radical */

@@ -1,0 +1,58 @@
+\.TH PROF 2
+.SH NAME
+prof - accumulate histogram of process execution
+.SH SYNOPSIS
+.nf
+.B "#include <u.h>"
+.B "#include <libc.h>"
+.sp 0.3v
+.B
+void	prof(void (*fn)(void*), void *arg, int entries, int what);
+.fi
+.SH DESCRIPTION
+.I Prof
+arranges to accumulate
+.I entries
+of
+.I what
+data into a histogram
+by kernel sampling from clock interrupts and recording PCs,
+calls
+.BR fn(arg) ,
+and finally dumps the accumulated profile.
+Possible values of
+.I what
+are:
+.TF "\fLProfsample"
+.TP
+.B Profoff
+No profiling.
+.TP
+.B Profuser
+Measure user time only.
+.TP
+.B Profkernel
+Measure user + kernel time.
+.TP
+.B Proftime
+Measure total time.
+.TP
+.B Profsample
+Use clock interrupt to sample.
+.PD
+.\" .SH EXAMPLES
+.SH FILES
+.TF \fLprof.out
+.TP
+.B prof.out
+histogram
+.TP
+.BI prof. pid
+histogram for
+.IR pid .
+.PD
+.SH SOURCE
+.B /sys/src/libc/port/profile.c
+.SH SEE ALSO
+.IR prof (1),
+.IR exec (2)

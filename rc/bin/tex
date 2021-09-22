@@ -1,0 +1,14 @@
+#!/bin/rc
+rfork en
+tex=/sys/lib/texmf
+
+#if(~ $NEWTEX no)
+#	exec $tex/bin/$cputype/virtex '&tex' $*
+
+bind -b $tex/bin/$cputype /bin
+bind -b $tex/bin/rc /bin
+
+if (test -r $tex/web2c/tex.$cputype.fmt)
+	exec $tex/bin/$cputype/_tex '&'tex.$cputype $*
+if not
+	exec $tex/bin/$cputype/_tex '&'tex.`{endian} $*

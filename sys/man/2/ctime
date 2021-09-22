@@ -112,6 +112,9 @@ Greenwich Mean Time is represented by
 .EX
 GMT 0
 .EE
+.SH FILES
+.B /adm/timezone
+timezone descriptions
 .SH SOURCE
 .B /sys/src/libc/9sys
 .SH "SEE ALSO"

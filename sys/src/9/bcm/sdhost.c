@@ -197,7 +197,7 @@ sdhostenable(void)
 }
 
 static int
-sdhostcmd(u32int cmd, u32int arg, u32int *resp)
+sdhostcmd(ulong cmd, ulong arg, ulong *resp)
 {
 	u32int *r;
 	u32int c;

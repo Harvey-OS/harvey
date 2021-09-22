@@ -411,3 +411,6 @@ It may be necessary to set
 .I max-xfer
 to exactly the block size used to write a tape
 in order to read it on some drives.
+.LP
+Should be updated to use 16-byte read and write commands to cope
+with disks bigger than 2 TB.

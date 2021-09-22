@@ -1,0 +1,3 @@
+#!/bin/rc
+rfork s
+8.out </mail/box/rsc/virus.txt 

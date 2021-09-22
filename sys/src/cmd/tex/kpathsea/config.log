@@ -1,0 +1,44 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:557: checking for gcc
+configure:636: checking whether the C compiler (c89  ) works
+configure:650: c89 -o conftest    conftest.c  1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+configure:670: checking whether the C compiler (c89  ) is a cross-compiler
+configure:675: checking whether we are using GNU C
+configure:762: checking for a BSD compatible install
+configure:813: checking whether ln -s works
+configure:836: checking whether make sets ${MAKE}
+configure:868: checking for dirent.h that defines DIR
+configure:906: checking for opendir in -ldir
+configure:989: checking how to run the C preprocessor
+configure:1050: checking for ANSI C header files
+configure:1154: checking whether closedir returns void
+configure:1195: checking for assert.h
+configure:1195: checking for float.h
+configure:1195: checking for limits.h
+configure:1195: checking for memory.h
+configure:1195: checking for pwd.h
+configure:1195: checking for stdlib.h
+configure:1195: checking for string.h
+configure:1195: checking for sys/param.h
+configure:1195: checking for unistd.h
+configure:1237: checking for ranlib
+configure:1271: checking host system type
+configure:1295: checking for libtool object types
+configure:1347: checking for basename
+configure:1347: checking for putenv
+configure:1347: checking for strcasecmp
+configure:1347: checking for strtol
+configure:1347: checking for strstr
+configure:1405: checking for bcopy
+configure:1405: checking for getcwd
+configure:1405: checking for getwd
+configure:1459: checking for working const
+configure:1536: checking whether the compiler accepts prototypes
+configure:1569: checking whether program_invocation_name is predefined
+configure:1605: checking whether putenv uses malloc
+configure:1690: checking whether getcwd uses fork or vfork
+configure:1735: checking whether to enable maintainer-specific portions of Makefiles
+configure:1831: checking host system type
+configure:1863: checking where the main texmf tree is located

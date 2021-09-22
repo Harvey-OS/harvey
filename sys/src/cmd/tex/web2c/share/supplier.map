@@ -1,0 +1,34 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "supplier.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "34     149    1172",
+@c   docstring = "Typeface supplier (foundry) abbreviations and
+@c                directory names for TeX fonts."
+@c }
+9 unknown
+a autologi      @r{Autologic}
+b bitstrea      @r{Bitstream}
+c cg            @r{Compugraphic}
+d dtc           @r{Digital Typeface Corporation}
+e apple         @r{Apple}
+f public        @r{small foundries}
+g gnu           @r{Free Software Foundation}
+h bh            @r{Bigelow & Holmes}
+i itc           @r{International Typeface Corporation}
+k softkey       @r{SoftKey}
+l linotype      @r{Linotype}
+m monotype      @r{Monotype}
+n ibm           @r{IBM}
+o corel         @r{Corel}
+p adobe         @r{Adobe (@samp{p} for PostScript)}
+r -             @r{raw (for [obsolete] use with virtual fonts)}
+s sun           @r{Sun}
+t paragrap      @r{ParaGraph}
+u urw           @r{URW}
+z -             @r{bizarre (fontname is nonstandard)}
+- jknappen      @r{Joerg Knappen}

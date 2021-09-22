@@ -1,0 +1,164 @@
+TEXT mb386(SB), $0				/* never used; too old */
+	POPL	AX				/* return PC */
+	PUSHFL
+	PUSHL	CS
+	PUSHL	AX
+	IRETL
+
+/*
+ * 386 has no compare-and-swap instruction.
+ * Run it with interrupts turned off instead.
+ * Never needed.
+ */
+static int
+cmpswap386(long *addr, long old, long new)
+{
+	int r, s;
+
+	s = splhi();
+	if(r = (*addr == old))
+		*addr = new;
+	splx(s);
+	return r;
+}
+
+static long
+archctlread(Chan*, void *a, long nn, vlong offset)
+{
+	int n;
+	char *buf, *p, *ep;
+	uvlong mwaitcycles;
+
+	p = buf = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
+	ep = p + READSTR;
+	p = seprint(p, ep, "cpu %s %lud%s\n",
+		cputype->name, (ulong)(m->cpuhz+999999)/1000000,
+		m->havepge ? " pge" : "");
+	p = seprint(p, ep, "pge %s\n", getcr4()&CR4pge ? "on" : "off");
+	p = seprint(p, ep, "id %s\n", conf.cpuidid);
+	p = seprint(p, ep, "brand %s\n", conf.brand);
+	if(conf.vm)
+		p = seprint(p, ep, "vm %s\n", hypename);
+	p = seprint(p, ep, "cache-line-size %ld\n", conf.cachelinesz);
+	if (monitorme != nil && conf.monmax != 0) {
+		p = seprint(p, ep, "mwait-line-size %d", conf.monmin);
+		if (conf.monmin != conf.monmax)
+			p = seprint(p, ep, "-%d", conf.monmax);
+		p = seprint(p, ep, "\n");
+		SET(mwaitcycles); USED(mwaitcycles);
+#ifdef MEASURE
+		mwaitcycles = 0;
+		for (n = 0; n < conf.nmach; n++)
+			mwaitcycles += MACHP(n)->mwaitcycles;
+		p = seprint(p, ep, "mwait %ld cpus %,llud cycles = %llud s.\n",
+			conf.nmach, mwaitcycles, mwaitcycles / m->cpuhz);
+#endif
+		p = seprint(p, ep, "mwait %s extension to break on intrs always\n",
+			conf.cpuid5cx & Mwaitintrhi? "has": "doesn't have");
+	}
+	p = seprint(p, ep, "coherence ");
+#ifdef OBSOLETE
+	if(coherence == mb386)
+		p = seprint(p, ep, "mb386\n");
+	else
+#endif
+	if(coherence == mb586)
+		p = seprint(p, ep, "mb586\n");
+	else if(coherence == mfence)
+		p = seprint(p, ep, "mfence\n");
+	else if(coherence == nop)
+		p = seprint(p, ep, "nop\n");
+	else
+		p = seprint(p, ep, "%#p\n", coherence);
+	p = seprint(p, ep, "cmpswap ");
+#ifdef OBSOLETE
+	if(cmpswap == cmpswap386)
+		p = seprint(p, ep, "cmpswap386\n");
+	else
+#endif
+	if(cmpswap == cmpswap486)
+		p = seprint(p, ep, "cmpswap486\n");
+	else
+		p = seprint(p, ep, "%#p\n", cmpswap);
+
+	p = seprint(p, ep, "i8253set %s\n", doi8253set ? "on" : "off");
+	n = (p - buf) + mtrrprint(p, ep - p);
+	buf[n] = '\0';
+
+	n = readstr(offset, a, nn, buf);
+	free(buf);
+	return n;
+}
+
+static long
+archctlwrite(Chan*, void *a, long n, vlong)
+{
+	uvlong base, size;
+	Cmdbuf *cb;
+	Cmdtab *ct;
+	char *ep;
+
+	cb = parsecmd(a, n);
+	if(waserror()){
+		free(cb);
+		nexterror();
+	}
+	ct = lookupcmd(cb, archctlmsg, nelem(archctlmsg));
+	switch(ct->index){
+	case CMpge:
+		if(!m->havepge)
+			error("processor does not support pge");
+		if(strcmp(cb->f[1], "on") == 0)
+			putcr4(getcr4() | CR4pge);
+		else if(strcmp(cb->f[1], "off") == 0)
+			putcr4(getcr4() & ~CR4pge);
+		else
+			cmderror(cb, "invalid pge ctl");
+		break;
+	case CMcoherence:
+#ifdef OBSOLETE
+		if(strcmp(cb->f[1], "mb386") == 0)
+			coherence = mb386;
+		else
+#endif
+		if(strcmp(cb->f[1], "mb586") == 0){
+			if(!cpuispost486())		/* never true */
+				error(Eincoher);
+			coherence = mb586;
+		}else if(strcmp(cb->f[1], "mfence") == 0){
+			if((m->cpuiddx & Sse2) == 0)
+				error(Eincoher);
+			coherence = mfence;
+		}else if(strcmp(cb->f[1], "nop") == 0){
+			/* only safe on vmware */
+			if(conf.nmach > 1)
+				error("cannot disable coherence on a multiprocessor");
+			coherence = nop;
+		}else
+			cmderror(cb, "invalid coherence ctl");
+		break;
+	case CMi8253set:
+		if(strcmp(cb->f[1], "on") == 0)
+			doi8253set = 1;
+		else if(strcmp(cb->f[1], "off") == 0){
+			doi8253set = 0;
+			(*arch->timerset)(0);
+		}else
+			cmderror(cb, "invalid i2853set ctl");
+		break;
+	case CMcache:
+		base = strtoull(cb->f[1], &ep, 0);
+		if(*ep)
+			error("cache: parse error: base not a number?");
+		size = strtoull(cb->f[2], &ep, 0);
+		if(*ep)
+			error("cache: parse error: size not a number?");
+		mtrr(base, size, cb->f[3]);
+		break;
+	}
+	free(cb);
+	poperror();
+	return n;
+}

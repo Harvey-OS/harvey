@@ -1,0 +1,48 @@
+</$objtype/mkfile
+HOST=Plan9
+
+TARG=7l
+OFILES=\
+	$HOST.$O\
+	asm.$O\
+	asmout.$O\
+	bits.$O\
+	cnam.$O\
+	dyn.$O\
+	elf.$O\
+	enam.$O\
+	falloc.$O\
+	list.$O\
+	mod.$O\
+	noop.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	pobj.$O\
+	span.$O\
+	sub.$O\
+
+HFILES=\
+	l.h\
+	../7c/7.out.h\
+	../ld/elf.h\
+	../ld/ld.h\
+
+BIN=/$objtype/bin
+CFLAGS=$CFLAGS -. -I.
+</sys/src/cmd/mkone
+
+../7c/enam.c: ../7c/7.out.h
+	@ { cd ../7c; mk enam.c }
+
+cnam.c:	l.h
+	rc ../ld/mkcname
+
+enam.$O:	../7c/enam.c
+	$CC $CFLAGS ../7c/enam.c
+%.$O:	../ld/%.c
+	$CC $CFLAGS ../ld/$stem.c
+
+x:V:	$O.out
+	$O.out -la -o/dev/null x.7
+

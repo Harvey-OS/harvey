@@ -1,0 +1,24 @@
+#!/bin/rc
+# mkfossilconf name
+rfork e
+name = $1
+
+cat <<!
+# fossil.$name.conf for /dev/fs/$name
+srv -p fscons.$name
+
+fsys $name config
+fsys $name venti localhost
+fsys $name open -c 13977
+fsys $name snaptime -a 0500 -s 720 -t 11520
+# fsys $name snaptime -a none -s none -t none
+fsys $name
+
+# listen tcp!*!564
+msg -m 500 -p 80
+
+srv $name
+srv fossil.$name
+srv -APW $name.open
+srv -APW fossil.$name.open
+!

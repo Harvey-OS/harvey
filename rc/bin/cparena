@@ -1,0 +1,3 @@
+#!/bin/rc
+date
+time venti/wrarena -h fs -o $1 /dev/sdC0/arena0

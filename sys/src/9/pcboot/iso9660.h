@@ -26,7 +26,7 @@ enum {
 };
 
 enum {
-	Cdsec	= 2048,
+	Cdsec	= 2048,		/* sector size of all optical media */
 	Maxname = 256,
 };
 

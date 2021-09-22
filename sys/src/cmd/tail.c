@@ -8,6 +8,10 @@
  * the simple command tail -c, legal in v10, is illegal
  */
 
+enum {
+	Pause = 500,		/* was 5000 */
+};
+
 long	count;
 int	anycount;
 int	follow;
@@ -111,13 +115,14 @@ main(int argc, char **argv)
 	else
 	if(units==LINES && origin==BEG)
 		skip();
-	if(follow && seekable)
+	if(follow && seekable || follow > 1)
 		for(;;) {
 			static Dir *sb0, *sb1;
+
 			trunc(sb1, &sb0);
 			copy();
 			trunc(sb0, &sb1);
-			sleep(5000);
+			sleep(Pause);
 		}
 	exits(0);
 }
@@ -267,6 +272,7 @@ reverse(void)
 	long len = 0;
 	long n = 0;
 	long bufsiz = 0;
+	long got;
 	char *buf = 0;
 	vlong pos = tseek(0LL, 2);
 
@@ -281,8 +287,13 @@ reverse(void)
 		memmove(buf+n, buf, len);
 		len += n;
 		tseek(pos, 0);
-		if(tread(buf, n) != n)
-			fatal("length error");
+		got = tread(buf, n);
+		if(got != n) {
+			fprint(2,
+			  "at offset %lld, asked for %ld bytes but got %ld\n",
+				pos, n, got);
+			fatal("short read");
+		}
 		if(first && buf[len-1]!='\n')
 			buf[len++] = '\n';
 		for(n=len-1 ; n>0 && count>0; n--)
@@ -346,15 +357,12 @@ getnumber(char *s)
 	if(count < 0 ||	(int)count != count)
 		fatal("too big");
 	return 1;
-}	
+}
 
-void		
+void
 fatal(char *s)
 {
-	char buf[ERRMAX];
-
-	errstr(buf, sizeof buf);
-	fprint(2, "tail: %s: %s\n", s, buf);
+	fprint(2, "tail: %s: %r\n", s);
 	exits(s);
 }
 
@@ -365,17 +373,21 @@ usage(void)
 	exits("usage");
 }
 
-/* return true if seeks work and if the file is > 0 length.
+/* return true if seeks work and if the file is > 0 length
+ * (so zero-length files, such as synthetic ones, are read start to end).
  * this will eventually bite me in the ass if seeking a file
  * is not conservative. - presotto
  */
 static int
 isseekable(int fd)
-{	
-	vlong m;
+{
+	vlong old, end;
 
-	m = seek(fd, 0, 1);
-	if(m < 0)
+	old = seek(fd, 0, 1);
+	if (old < 0)
 		return 0;
-	return 1;
+	end = seek(fd, 0, 2);
+	if (seek(fd, old, 0) < 0)		/* restore pointer */
+		return 0;
+	return end > 0;
 }

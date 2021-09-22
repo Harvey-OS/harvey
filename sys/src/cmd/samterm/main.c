@@ -27,10 +27,29 @@ char	hasunlocked = 0;
 int	maxtab = 8;
 int	autoindent;
 
+/* borrowed from flresize and modified */
+Rectangle
+rectsanity(Rectangle r, Font *font)
+{
+	int minht;
+	Rectangle dr = screen->clipr;
+
+	if(r.max.x-r.min.x<100)			/* make at least 100 wide */
+		r.min.x = dr.min.x;
+	if(r.max.x-r.min.x<100)
+		r.max.x = dr.max.x;
+	minht = 2*FLMARGIN + 2*font->height;	/* tall enough to use, barely */
+	if(r.max.y-r.min.y < minht)
+		r.min.y = dr.min.y;
+	if(r.max.y-r.min.y < minht)
+		r.max.y = dr.max.y;
+	return r;
+}
+
 void
 threadmain(int argc, char *argv[])
 {
-	int i, got, scr;
+	int i, got, scr, dyr;
 	Text *t;
 	Rectangle r;
 	Flayer *nwhich;
@@ -40,8 +59,13 @@ threadmain(int argc, char *argv[])
 	initio();
 	scratch = alloc(100*RUNESIZE);
 	nscralloc = 100;
+
+	/* command window */
 	r = screen->r;
-	r.max.y = r.min.y+Dy(r)/5;
+	dyr = Dy(r);
+	r.min.y += 35 * dyr / 100;	/* 35% down the window */
+	r.max.y = r.min.y + dyr/12;	/* default height: 8% of samterm */
+	r = rectsanity(r, font);
 	flstart(screen->clipr);
 	rinit(&cmd.rasp);
 	flnew(&cmd.l[0], gettext, 1, &cmd);
@@ -49,6 +73,7 @@ threadmain(int argc, char *argv[])
 	cmd.nwin = 1;
 	which = &cmd.l[0];
 	cmd.tag = Untagged;
+
 	outTs(Tversion, VERSION);
 	startnewfile(Tstartcmdfile, &cmd);
 
@@ -104,10 +129,6 @@ threadmain(int argc, char *argv[])
 					scroll(which, 3);
 				else
 					menu3hit();
-			}else if((mousep->buttons&8)){
-				scroll(which, 4);
-			}else if((mousep->buttons&16)){
-				scroll(which, 5);
 			}
 			mouseunblock();
 		}
@@ -436,7 +457,6 @@ flushtyping(int clearesc)
 #define	PAGEUP	Kpgup
 #define	RIGHTARROW	Kright
 #define	SCROLLKEY	Kdown
-#define Kstx		0x02
 
 int
 nontypingkey(int c)
@@ -452,7 +472,6 @@ nontypingkey(int c)
 	case PAGEUP:
 	case RIGHTARROW:
 	case SCROLLKEY:
-	case Kstx:
 		return 1;
 	}
 	return 0;
@@ -610,19 +629,6 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 				}
 			}
 		}
-	}else if((mousep->buttons&8)){
-		scroll(which, 4);
-	}else if((mousep->buttons&16)){
-		scroll(which, 5);
-	}else if(c == Kstx){
-		t = &cmd;
-		for(l=t->l; l->textfn==0; l++)
-			;
-		current(l);
-		flushtyping(0);
-		a = t->rasp.nrunes;
-		flsetselect(l, a, a);
-		center(l, a);
 	}else{
 		if(c==ESC && typeesc>=0){
 			l->p0 = typeesc;

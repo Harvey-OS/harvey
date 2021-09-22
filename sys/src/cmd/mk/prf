@@ -1,0 +1,2 @@
+#!/bin/rc
+>/dev/kpctl echo start;time mk;>/dev/kpctl echo stop;kprof /riscv64/9pf64cpu /dev/kpdata|p

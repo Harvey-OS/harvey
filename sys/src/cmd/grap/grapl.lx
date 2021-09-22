@@ -3,8 +3,8 @@
 %{
 #undef	input
 #undef	unput
-#include <stdio.h>
-#include <stdlib.h>
+
+/* we insert includes for u.h and libc.h, and lex inserts include for stdio.h at the top */
 #include <ctype.h>
 #include "grap.h"
 #include "y.tab.h"

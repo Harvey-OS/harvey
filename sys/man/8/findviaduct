@@ -1,0 +1,29 @@
+.TH FINDVIADUCT 8
+.SH NAME
+findviaduct \- look up data about Viaduct bridging-and-tunnelling clients
+.SH SYNOPSIS
+.B findviaduct
+.I ip
+.br
+.B findviaduct
+.B -n
+.I viaduct-name
+.SH DESCRIPTION
+.I Findviaduct
+prints the Viaduct name, user and bridge
+corresponding to an
+.I ip
+address,
+or under
+.BR -n ,
+prints bridging and tunnelling information for a named Viaduct.
+.SH FILES
+.B /sys/log/ipboot
+.br
+.B /adm/brickdb/owners
+.SH SOURCE
+.B /rc/bin/findviaduct
+.SH "SEE ALSO"
+.IR bridge (3)
+.br
+.B /usr/ehg/doc/viaduct

@@ -1,0 +1,69 @@
+*
+*   See config.lino for more info.
+*   With a virtual machine, we can claim 1M of memory.
+*
+m 470000
+*
+*   And send output by default to the printer.
+*
+* o !lpr
+*
+*  Additional .map files
+*
+* p +cmfonts.map
+* p +lafonts.map
+* p +cyrfonts.map
+* p +eufonts.map
+*
+*   Default resolution.
+*
+D 300
+*
+*   Last resort sizes.
+*
+R  240 270 300 329 360 432 518 622 746 896
+*
+*   Paper size information.  First definition is the default.
+*
+*   If your default is a4 uncomment the following definition
+*   and comment out the letterSize definition.
+@ a4size 210mm 297mm
+@+ %%PaperSize: a4
+
+*@ letterSize 8.5in 11in
+
+@ letter 8.5in 11in
+@+ %%BeginPaperSize: Letter
+@+ %%letter
+@+ %%EndPaperSize
+
+@ legal 8.5in 14in
+@+ ! %%DocumentPaperSizes: Legal
+@+ %%BeginPaperSize: Legal
+@+ %%legal
+@+ %%EndPaperSize
+
+@ ledger 17in 11in
+@+ ! %%DocumentPaperSizes: Ledger
+@+ %%BeginPaperSize: Ledger
+@+ %%ledger
+@+ %%EndPaperSize
+
+@ tabloid 11in 17in
+@+ ! %%DocumentPaperSizes: Tabloid
+@+ %%BeginPaperSize: Tabloid
+@+ %%11x17
+@+ %%EndPaperSize
+
+@ a4 210mm 297mm
+@+ ! %%DocumentPaperSizes: a4
+@+ %%BeginPaperSize: a4
+@+ %%a4
+@+ %%EndPaperSize
+
+@ a3 297mm 420mm
+@+ ! %%DocumentPaperSizes: a3
+@+ %%BeginPaperSize: a3
+@+ %%a3
+@+ %%EndPaperSize
+

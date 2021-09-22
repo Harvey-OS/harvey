@@ -1,0 +1,29 @@
+</$objtype/mkfile
+
+HTTP=hget
+
+TARG=webscript
+BIN=/$objtype/bin
+OFILES=\
+	cmd.$O\
+	find.$O\
+	fmt.$O\
+	focus.$O\
+	form.$O\
+	html.$O\
+	http-$HTTP.$O\
+	lex.$O\
+	load.$O\
+	main.$O\
+	util.$O\
+	y.tab.$O\
+	
+YFILES=gram.y
+
+HFILES=\
+	dat.h\
+	y.tab.h\
+	/sys/include/html.h\
+
+</sys/src/cmd/mkone
+

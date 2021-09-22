@@ -28,3 +28,6 @@ the device an error is returned instead.
 Swapping to a file served by a local user-level process, such as
 .IR kfs (4),
 can lead to deadlock; use raw devices or remote files instead.
+.PP
+.I 9k
+doesn't implement swapping, only demand loading of executables.

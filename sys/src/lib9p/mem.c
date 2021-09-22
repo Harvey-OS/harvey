@@ -5,29 +5,32 @@
 #include <thread.h>
 #include "9p.h"
 
+static void
+outofmem(vlong sz)
+{
+	fprint(2, "out of memory allocating %llud\n", sz);
+	exits("mem");
+}
+
 void*
-emalloc9p(ulong sz)
+emalloc9p(uintptr sz)
 {
 	void *v;
 
-	if((v = malloc(sz)) == nil) {
-		fprint(2, "out of memory allocating %lud\n", sz);
-		exits("mem");
-	}
+	if((v = malloc(sz)) == nil)
+		outofmem(sz);
 	memset(v, 0, sz);
 	setmalloctag(v, getcallerpc(&sz));
 	return v;
 }
 
 void*
-erealloc9p(void *v, ulong sz)
+erealloc9p(void *v, uintptr sz)
 {
 	void *nv;
 
-	if((nv = realloc(v, sz)) == nil) {
-		fprint(2, "out of memory allocating %lud\n", sz);
-		exits("mem");
-	}
+	if((nv = realloc(v, sz)) == nil)
+		outofmem(sz);
 	if(v == nil)
 		setmalloctag(nv, getcallerpc(&v));
 	setrealloctag(nv, getcallerpc(&v));
@@ -46,4 +49,3 @@ estrdup9p(char *s)
 	setmalloctag(t, getcallerpc(&s));
 	return t;
 }
-

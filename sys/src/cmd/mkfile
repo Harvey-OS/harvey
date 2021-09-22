@@ -7,16 +7,16 @@ PROGS=${TARG:%=$O.%}
 LDFLAGS=
 YFLAGS=-d
 
-NOTSYS=sml|dup|.+\..+
-BUGGERED=unix
+NOTSYS=sml|dup|.+\..+|_.+
+# links has ape type signature problems for bind
+BUGGERED=unix|python|scard|links
 OUTOFDATE=old
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
 
 cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
-APEDIRS=awk bzip2 compress cvs eqn grap gs lp pic postscript spin \
-	tex troff
+APEDIRS=bzip2 compress cvs gs links lp postscript spin tex
 
 none:VQ:
 	echo usage: mk cmds, dirs, all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
@@ -39,8 +39,15 @@ dirs:V:
 
 all:V:	$PROGS dirs
 
-^([$OS])\.(.*):R:	\2.\1
+# only a handful of simple commands use floating point
+fp=clock|du|factor|gview|histogram|mug|primes|prof|random|resample|seq|stats|units
+fpc=`{echo $"fp^'|' | tr '|' ' ' | sed 's/([^ ]+) /\1.c /g;s/units\.c/& units.y/'}
+nofp=`{mknofp $fpc | sed '/\.tab\.c$/d;s/\..$//' | tr '\12' '|'; echo no.such}
+
+^([$OS])\.($fp)'$':R:	\2.\1
 	$stem1^l $LDFLAGS -o $target $stem2.$stem1
+^([$OS])\.($nofp)'$':R:	\2.\1
+	$stem1^l $LDFLAGS -o $target $stem2.$stem1 /$objtype/lib/libnofp.a
 
 .*\.[$OS]:R:	$HFILES
 
@@ -59,7 +66,7 @@ $cpuobjtype._cp:	/bin/cp
 	cp $prereq $target
 
 %.safeinstall:	$O.% $cpuobjtype._cp
-	test -e $BIN/$stem && mv $BIN/$stem $BIN/_$stem
+	@ { cd $BIN; saveold $stem }
 	$cpuobjtype._cp $O.$stem $BIN/$stem
 
 %.safeinstallall:
@@ -122,15 +129,16 @@ $O.cj:	cj.$O
 %.update:V:
 	update $stem.c /386/bin/$stem
 
+# modified to just build the ones we use
 compilers:V:
-	for(i in ?c)
+	for(i in [568i][cal])
 		if(! ~ $i cc rc) @{
 			cd $i
 			mk clean
 			objtype=$cputype mk install
 			mk clean
 		}
-	for(i in ?c)
+	for(i in [568i][cal])
 		if(! ~ $i cc rc) @{
 			cd $i
 			mk clean

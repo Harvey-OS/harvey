@@ -4,6 +4,7 @@
 #define	ARFMAG	"`\n"
 #define SARNAME	16
 
+/* this is file layout, so can't tolerate bogus padding */
 struct	ar_hdr
 {
 	char	name[SARNAME];
@@ -14,4 +15,4 @@ struct	ar_hdr
 	char	size[10];
 	char	fmag[2];
 };
-#define	SAR_HDR	(SARNAME+44)
+#define	SAR_HDR	(SARNAME+44)	/* don't include struct rounding */

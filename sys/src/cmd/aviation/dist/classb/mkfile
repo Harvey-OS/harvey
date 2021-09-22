@@ -1,0 +1,76 @@
+BUILTINS=
+</$objtype/mkfile
+
+OFILES=\
+	tca.$O\
+	subr.$O\
+	sphere.$O\
+	y.tab.$O\
+
+TFILES=\
+	atl.t\
+	bos.t\
+	cle.t\
+	clt.t\
+	dca.t\
+	den.t\
+	dfw.t\
+	dtw.t\
+	iah.t\
+	las.t\
+	lax.t\
+	mci.t\
+	mem.t\
+	mia.t\
+	msp.t\
+	msy.t\
+	nyc.t\
+	ord.t\
+	orl.t\
+	phl.t\
+	phx.t\
+	pit.t\
+	san.t\
+	sea.t\
+	sfo.t\
+	slc.t\
+	stl.t\
+	tpa.t\
+
+HFILES=\
+	tca.h\
+	sphere.h\
+
+run:V:	huf
+	exec tiger huf
+
+huf:	$TFILES
+	cat $TFILES >x
+	huff x
+
+$O.out:	$OFILES
+	$LD $OFILES
+
+%.t:	% $O.out
+	$O.out $stem >$stem.t
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+y.tab.c y.tab.h:	tca.y
+	yacc -D1 tca.y
+
+%.$O:	$HFILES
+
+go:V:
+	>x
+	huff x
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.* x huf *.t
+
+install:V:	$O.out
+	cp $O.out /usr/ken/bin/$objtype/tca
+
+installall:V:
+	for(objtype in $CPUS) mk install

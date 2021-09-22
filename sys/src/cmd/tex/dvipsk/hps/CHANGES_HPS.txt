@@ -1,0 +1,45 @@
+History of changes to dvips source to include hypertex support
+
+last modified Tue Oct 31 10:26:45 MST 1995
+
+Version 0.3c:
+
+1) added a fixed version of hps.lpro (version 2.6 now).
+
+Version 0.3b:
+
+1) corrected hps.c to handle line breaks in external links correctly.
+2) added a fixed version of hps.lpro (version 2.4 now).
+
+Version 0.3a:
+
+1) corrected the support for exteranl url's so that the 2.1 distiller can put
+in proper weblinks. (this just means a new hps.lpro by Tanmoy Bhattacharya.)
+2) fixed a bug in dopage.c that prevented virtual fonts from working.
+
+Version 0.3:
+
+1) added better support for external url's, notably support for
+breaking them across lines.
+2) modified hps.pro to better handle external url's to maintain
+compatibility with Tanmoy Bhattacharya's hacked ghostview
+(hyperpostscript viewer).
+3) Fixed bug so that newlines are now correctly added after
+%%BeginDocument line for included ps files.
+
+Version 0.2:
+
+1) added support for hyperlinks that break across lines and
+pages. Your mileage may vary, but it seems to work fairly well.
+
+Version 0.1:
+
+1) Added hps.c and hps.pro to dvips distribution and modified several
+source files to create hyperPostScript. Added -DHPS compilation option
+and -z flag to get this behavior. Otherwise everything should be
+identical to dvips5.58. 
+
+Mark Doyle
+http://nqcd.lanl.gov/people/doyle/
+doyle@mmm.lanl.gov
+

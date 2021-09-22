@@ -1,0 +1,67 @@
+%% Name is "ad.enc".
+%% This draft file is for DEMO version
+%% It is used as "Base Vector"
+
+/AdobeEncoding [
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+
+%%   040
+  /space /exclam /quotedbl /numbersign /dollar /percent /ampersand
+  /quoteright /parenleft /parenright /asterisk /plus /comma /hyphen
+  /period /slash
+
+%%   060
+  /zero /one /two /three /four /five /six /seven /eight /nine /colon
+  /semicolon /less /equal /greater /question
+
+%%  0100
+  /at /A /B /C /D /E /F /G /H /I /J /K /L /M /N /O
+
+%%  0120
+  /P /Q /R /S /T /U /V /W /X /Y /Z /bracketleft /backslash
+  /bracketright /asciicircum /underscore
+
+%%  0140
+  /quoteleft /a /b /c /d /e /f /g /h /i /j /k /l /m /n /o
+
+%%  0160
+  /p /q /r /s /t /u /v /w /x /y /z /braceleft /bar /braceright /asciitilde
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+  /.notdef /.notdef   /.notdef   /.notdef /.notdef /.notdef  /.notdef /.notdef
+  /.notdef
+
+%%  0240
+  /.notdef /exclamdown /cent /sterling /fraction /yen /florin /section
+  /currency /quotesingle /quotedblleft /guillemotleft /guilsinglleft
+  /guilsinglright /fi /fl
+
+%%  0260
+  /.notdef /endash /dagger /daggerdbl  /periodcentered  /.notdef
+  /paragraph /bullet /quotesinglbase /quotedblbase /quotedblright
+  /guillemotright /ellipsis /perthousand /.notdef /questiondown
+  /.notdef /grave /acute /circumflex /tilde /macron /breve /dotaccent
+  /dieresis /.notdef /ring /cedilla /.notdef
+  /hungarumlaut /ogonek /caron
+
+%%  0320
+  /emdash  /.notdef
+  /.notdef /.notdef  /.notdef  /.notdef  /.notdef  /.notdef  /.notdef
+  /.notdef /.notdef  /.notdef  /.notdef  /.notdef  /.notdef  /.notdef
+
+%%  0340
+   /.notdef /AE /.notdef /ordfeminine /.notdef /.notdef /.notdef /.notdef
+
+%%  0350
+  /Lslash /Oslash /OE /ordmasculine /.notdef /.notdef /.notdef /.notdef
+
+%%  0360
+  /.notdef /ae /.notdef /.notdef /.notdef  /dotlessi  /.notdef /.notdef
+
+%%  0370
+  /lslash /oslash /oe /germandbls /.notdef  /.notdef /.notdef /.notdef
+] def

@@ -1,8 +1,7 @@
 %{
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include "grap.h"
 
 #define	RAND_MAX 32767	/* if your rand() returns bigger, change this too */

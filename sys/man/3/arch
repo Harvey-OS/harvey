@@ -7,7 +7,6 @@ arch \- architecture-specific information and control
 .sp 0.3v
 .B /dev/archctl
 .B /dev/cputype
-.B /dev/cputemp
 .B /dev/ioalloc
 .B /dev/iob
 .B /dev/iol
@@ -20,11 +19,6 @@ user-level control of the I/O ports on x86-class machines.
 Reads from
 .I cputype
 recover the processor type and clock rate in MHz.
-Reads from
-.I cputemp
-recover one line containing per processor containing
-two fields: the processor temperature and precision
-in degrees Celsius.
 Reads from
 .I archctl
 yield at least data of this form:
@@ -105,17 +99,23 @@ and
 .PP
 Reads from
 .I ioalloc
-return I/O ranges used by each device, one line
+return I/O port ranges used by each device, one line
 per range.
 Each line contains three fields separated by white space: first address
 in hexadecimal,
 last address, name of device.
+Only present on machines that implement I/O ports.
 .PP
 Reads from
 .I irqalloc
-return the enabled interrupts, one line per
-interrupt.  Each line contains four fields separated by white space:
-the trap number, the IRQ it is assigned to, the type of interrupt,
+return the enabled interrupts, one line per interrupt.
+Each line contains five fields separated by white space:
+the trap (vector) number, the IRQ it is assigned to,
+the number of interrupts processed,
+the type of interrupt routing (\c
+.B \-
+or
+.BR msi ),
 and the name of the device using it.
 .PP
 Reads and writes to
@@ -146,4 +146,4 @@ inportb(unsigned port)
 }
 .EE
 .SH SOURCE
-.B /sys/src/9/pc/devarch.c
+.B /sys/src/9/*/devarch.c

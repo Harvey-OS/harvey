@@ -33,7 +33,7 @@ no white space after the keywords
 .LR while ,
 etc.
 .IP •
-no braces around single-line blocks (e.g.,
+no braces around single-statement blocks (e.g.,
 .LR if ,
 .LR for ,
 and
@@ -74,6 +74,10 @@ nor
 .LR "if(memcmp(a, b, c))" ;
 always explicitly compare the result of string or memory
 comparison with zero using a relational operator.
+.IP •
+omit most leading zeros; they don't make the number more precise,
+and in a 64-bit world they are just tedious.
+.LR "0x00000000 == 0" .
 .PP
 Ultimately, the goal is to write code that fits in with the other code
 around it and the system as a whole.  If the file you are editing
@@ -95,8 +99,10 @@ Do the simple thing.  Don't optimize unless you've measured the code
 and it is too slow.  Fix the data structures and the algorithms
 instead of going for little 5% tunings.
 .SH SEE ALSO
-``Notes on Programming in C'', Rob Pike,
+.IR cb (1),
+.IR prof (1)
 .br
+``Notes on Programming in C'', Rob Pike,
 .B http://www.literateprogramming.com/pikestyle.pdf
 .SH BUGS
 Some programs use very different styles, for example,

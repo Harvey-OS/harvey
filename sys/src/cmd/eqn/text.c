@@ -1,7 +1,6 @@
 #include "e.h"
 #include "y.tab.h"
 #include <ctype.h>
-#include <utf.h>
 
 #define	CSSIZE	1000
 char	cs[CSSIZE+20];	/* text string converted into this */
@@ -35,7 +34,7 @@ int class[LAST][LAST] ={	/* guesswork, tuned to times roman postscript */
 extern void shim(int, int);
 extern void roman(int);
 extern void sadd(char *);
-extern void cadd(int);
+extern void cadd(wchar_t);
 extern int trans(int, char *);
 
 int textc(void)	/* read next UTF rune from psp */
@@ -111,11 +110,6 @@ void text(int t, char *p1)	/* convert text string p1 of type t */
 	dprintf(".\t%dtext: S%d <- %s; b=%g,h=%g,lf=%c,rf=%c,ps=%d\n",
 		t, yyval, p, ebase[yyval], eht[yyval], lfont[yyval], rfont[yyval], ps);
 	printf(".ds %d \"%s\n", yyval, p);
-}
-
-int isdigitrune(int c)
-{
-	return ('0'<=c && c<='9');
 }
 
 int
@@ -284,7 +278,7 @@ void sadd(char *s)		/* add string s to cs */
 		cadd(*s++);
 }
 
-void cadd(int c)		/* add character c to end of cs */
+void cadd(wchar_t c)		/* add character c to end of cs */
 {
 	char *p;
 	int w;

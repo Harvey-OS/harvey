@@ -1,0 +1,14 @@
+This directory contains a port of the Plan 9 9k kernel to 64-bit RISC-V
+systems, specifically RV64GC systems.  It currently only runs on the Microchip
+Polarfire Icicle, Hifive Unmatched, and discontinued pre-release Beagle V
+boards, but should be easily adaptable to future RV64GC systems.  Set RVARCH
+to the target architecture (e.g., "pf" for icicle, "um" for Unmatched).
+
+See doc/*.ms for details.
+
+To compute KTZERO for the current RVARCH,
+
+	mk -f ktzmkfile
+
+This ignores the value of KTZERO in arch.$RVARCH and computes it from other
+constants, notably BANK0SIZE, which is GB by default.

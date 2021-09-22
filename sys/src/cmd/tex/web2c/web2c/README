@@ -1,0 +1,18 @@
+This directory contains the programs that convert the original web
+sources to C.
+
+The convert shell script is the thing that actually gets invoked from
+the Makefile.  It runs web2c, fixwrites, and splitup in turn, plus
+various sed nonsense.  web2c parses Pascal and outputs C; fixwrites
+shouldn't be necessary, it converts multiple-argument writes into C;
+splitup splits the output file into pieces for the sake of broken
+compilers.
+
+To define a new symbol (e.g., a function) to be used in the change
+files, it's necessary to add it to texmf.defines (if it's only used in
+TeX/MF/MP) or common.defines (otherwise) here, as well as making the
+actual definition.  New functions in the libraryshould be declared
+somewhere, probably cpascal.h.  Of course no underscores are allowed,
+since tangle removes them.
+
+

@@ -67,17 +67,17 @@ struct Ctlr {
 	SDev	*dev;
 	SDio	*io;
 	/* SD card registers */
-	u16int	rca;
-	u32int	ocr;
-	u32int	cid[4];
-	u32int	csd[4];
+	ushort	rca;
+	ulong	ocr;
+	ulong	cid[4];
+	ulong	csd[4];
 };
 
 extern SDifc sdmmcifc;
 extern SDio sdio;
 
 static uint
-rbits(u32int *p, uint start, uint len)
+rbits(ulong *p, uint start, uint len)
 {
 	uint w, off, v;
 
@@ -94,7 +94,7 @@ rbits(u32int *p, uint start, uint len)
 }
 
 static void
-identify(SDunit *unit, u32int *csd)
+identify(SDunit *unit, ulong *csd)
 {
 	uint csize, mult;
 
@@ -107,7 +107,7 @@ identify(SDunit *unit, u32int *csd)
 		break;
 	case 1:				/* CSD version 2 */
 		csize = CSD(69, 48);
-		unit->sectors = (csize+1) * 512LL*KiB / unit->secsize;
+		unit->sectors = (csize+1) * 512LL*KB / unit->secsize;
 		break;
 	}
 	if(unit->secsize == 1024){
@@ -168,10 +168,21 @@ mmcenable(SDev* dev)
 }
 
 static int
+mmcdisable(SDev* dev)
+{
+	Ctlr *ctl;
+
+	ctl = dev->ctlr;
+	if (ctl->io->disable)
+		ctl->io->disable();
+	return 1;
+}
+
+static int
 mmconline(SDunit *unit)
 {
 	int hcs, i;
-	u32int r[4];
+	ulong r[4];
 	Ctlr *ctl;
 	SDio *io;
 
@@ -237,12 +248,12 @@ mmcrctl(SDunit *unit, char *p, int l)
 		if(unit->sectors == 0)
 			return 0;
 	}
-	n = snprint(p, l, "rca %4.4ux ocr %8.8ux\ncid ", ctl->rca, ctl->ocr);
+	n = snprint(p, l, "rca %4.4ux ocr %8.8lux\ncid ", ctl->rca, ctl->ocr);
 	for(i = nelem(ctl->cid)-1; i >= 0; i--)
-		n += snprint(p+n, l-n, "%8.8ux", ctl->cid[i]);
+		n += snprint(p+n, l-n, "%8.8lux", ctl->cid[i]);
 	n += snprint(p+n, l-n, " csd ");
 	for(i = nelem(ctl->csd)-1; i >= 0; i--)
-		n += snprint(p+n, l-n, "%8.8ux", ctl->csd[i]);
+		n += snprint(p+n, l-n, "%8.8lux", ctl->csd[i]);
 	n += snprint(p+n, l-n, "\ngeometry %llud %ld\n",
 		unit->sectors, unit->secsize);
 	return n;
@@ -253,7 +264,7 @@ mmcbio(SDunit *unit, int lun, int write, void *data, long nb, uvlong bno)
 {
 	int len, tries;
 	ulong b;
-	u32int r[4];
+	ulong r[4];
 	uchar *buf;
 	Ctlr *ctl;
 	SDio *io;
@@ -311,4 +322,5 @@ SDifc sdmmcifc = {
 	.rctl	= mmcrctl,
 	.bio	= mmcbio,
 	.rio	= mmcrio,
+	.disable= mmcdisable,
 };

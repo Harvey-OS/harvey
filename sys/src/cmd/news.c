@@ -26,8 +26,9 @@ char*	ignore[] =
 typedef
 struct
 {
-	long	time;
+	ulong	time;
 	char	*name;
+	char	*uid;
 	vlong	length;
 } File;
 File*	n_list;
@@ -37,9 +38,9 @@ Biobuf	bout;
 
 int	fcmp(void *a, void *b);
 void	read_dir(int update);
-void	print_item(char *f);
-void	eachitem(void (*emit)(char*), int all, int update);
-void	note(char *s);
+void	print_item(char *f, File *);
+void	eachitem(void (*emit)(char*, File *), int all, int update);
+void	note(char *s, File *);
 
 void
 main(int argc, char *argv[])
@@ -67,21 +68,41 @@ main(int argc, char *argv[])
 		exits("usage");
 	}ARGEND
 	for(i=0; i<argc; i++)
-		print_item(argv[i]);
+		print_item(argv[i], nil);
 	exits(0);
 }
 
 int
 fcmp(void *a, void *b)
 {
-	long x;
+	vlong x;
 
-	x = ((File*)b)->time - ((File*)a)->time;
+	x = (vlong)((File*)b)->time - (vlong)((File*)a)->time;
 	if(x < 0)
 		return -1;
 	if(x > 0)
 		return 1;
 	return 0;
+}
+
+static void
+addfile(Dir *dir, int *nap, char *name, ulong mtime, vlong len)
+{
+	int j;
+	File *fp;
+
+	for(j=0; ignore[j]; j++)
+		if(strcmp(ignore[j], name) == 0)
+			return;
+	if(*nap <= n_count) {
+		*nap += NINC;
+		n_list = realloc(n_list, *nap*sizeof(File));
+	}
+	fp = &n_list[n_count++];
+	fp->name = strdup(name);
+	fp->time = mtime;
+	fp->uid = strdup(dir->muid[0]? dir->muid: dir->uid);
+	fp->length = len;
 }
 
 /*
@@ -94,20 +115,17 @@ read_dir(int update)
 {
 	Dir *d;
 	char newstime[100], *home;
-	int i, j, n, na, fd;
+	int i, n, na, fd;
 
 	n_count = 0;
 	n_list = malloc(NINC*sizeof(File));
 	na = NINC;
 	home = getenv("home");
 	if(home) {
-		sprint(newstime, TFILE, home);
+		snprint(newstime, sizeof newstime,  TFILE, home);
 		d = dirstat(newstime);
 		if(d != nil) {
-			n_list[n_count].name = strdup("");
-			n_list[n_count].time =d->mtime-1;
-			n_list[n_count].length = 0;
-			n_count++;
+			addfile(d, &na, "", d->mtime-1, 0);
 			free(d);
 		}
 		if(update) {
@@ -117,27 +135,12 @@ read_dir(int update)
 		}
 	}
 	fd = open(NEWS, OREAD);
-	if(fd < 0) {
-		fprint(2, "news: ");
-		perror(NEWS);
-		exits(NEWS);
-	}
+	if(fd < 0)
+		sysfatal("%s: %r", NEWS);
 
 	n = dirreadall(fd, &d);
-	for(i=0; i<n; i++) {
-		for(j=0; ignore[j]; j++)
-			if(strcmp(ignore[j], d[i].name) == 0)
-				goto ign;
-		if(na <= n_count) {
-			na += NINC;
-			n_list = realloc(n_list, na*sizeof(File));
-		}
-		n_list[n_count].name = strdup(d[i].name);
-		n_list[n_count].time = d[i].mtime;
-		n_list[n_count].length = d[i].length;
-		n_count++;
-	ign:;
-	}
+	for(i=0; i<n; i++)
+		addfile(d, &na, d[i].name, d[i].mtime, d[i].length);
 	free(d);
 
 	close(fd);
@@ -145,14 +148,13 @@ read_dir(int update)
 }
 
 void
-print_item(char *file)
+print_item(char *file, File *fp)
 {
+	int f, c, bol, bop;
 	char name[4096], *p, *ep;
 	Dir *dbuf;
-	int f, c;
-	int bol, bop;
 
-	sprint(name, "%s/%s", NEWS, file);
+	snprint(name, sizeof name, "%s/%s", NEWS, file);
 	f = open(name, OREAD);
 	if(f < 0) {
 		fprint(2, "news: ");
@@ -160,13 +162,17 @@ print_item(char *file)
 		return;
 	}
 	strcpy(name, "...");
-	dbuf = dirfstat(f);
-	if(dbuf == nil)
-		return;
-	Bprint(&bout, "\n%s (%s) %s\n", file,
-		dbuf->muid[0]? dbuf->muid : dbuf->uid,
-		asctime(localtime(dbuf->mtime)));
-	free(dbuf);
+	if(fp == nil) {
+		dbuf = dirfstat(f);
+		if(dbuf == nil)
+			return;
+		Bprint(&bout, "\n%s (%s) %s\n", file,
+			dbuf->muid[0]? dbuf->muid : dbuf->uid,
+			asctime(localtime(dbuf->mtime)));
+		free(dbuf);
+	} else
+		Bprint(&bout, "\n%s (%s) %s\n", fp->name, fp->uid,
+			asctime(localtime(fp->time)));
 
 	bol = 1;	/* beginning of line ...\n */
 	bop = 1;	/* beginning of page ...\n\n */
@@ -200,26 +206,37 @@ print_item(char *file)
 	close(f);
 }
 
-void
-eachitem(void (*emit)(char*), int all, int update)
+static int
+seen(File *fp)
 {
 	int i;
 
+	for (i = 0; i < fp - n_list; i++)
+		if (strcmp(n_list[i].name, fp->name) == 0)
+			return 1;	/* duplicate in union dir. */
+	return 0;
+}
+
+void
+eachitem(void (*emit)(char *, File *), int all, int update)
+{
+	int i;
+	File *fp;
+
 	read_dir(update);
 	for(i=0; i<n_count; i++) {
-		if(n_list[i].name[0] == 0) {	/* newstime */
+		fp = &n_list[i];
+		if(fp->name[0] == 0) {	/* newstime */
 			if(all)
 				continue;
 			break;
-		}
-		if(n_list[i].length == 0)		/* in progress */
-			continue;
-		(*emit)(n_list[i].name);
+		} else if(fp->length > 0 && !seen(fp)) /* not in progress */
+			(*emit)(fp->name, fp);
 	}
 }
 
 void
-note(char *file)
+note(char *file, File *)
 {
 
 	if(!n_items)

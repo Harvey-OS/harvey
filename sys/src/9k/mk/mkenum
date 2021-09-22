@@ -27,7 +27,7 @@ inenum && /^};$/{
 	inenum = 0;
 }
 
-inenum && $0 ~ /^[ \t]+[_A-Za-z][_0-9A-Za-z]+[ \t]+=[ \t]+[0-9A-Z_a-z()<> ]+,/{
+inenum && $0 ~ /^[ \t]+[_A-Za-z][_0-9A-Za-z]+[ \t]*=[ \t]*[0-9A-Z_a-z()<>|&~*+ ]+,/{
 	tab = "\t";
 	if(length($1) < 8)
 		sep = tab tab;
@@ -47,8 +47,8 @@ inenum && $0 ~ /^[ \t]+[_A-Za-z][_0-9A-Za-z]+[ \t]+=[ \t]+[0-9A-Z_a-z()<> ]+,/{
 	printf "\n"
 }
 
-!inenum && /^#(define|include) /{
-	printf "%s\n", $0;
+!inenum && /^# *(define|include|ifn?def|else|endif)($|[ \t])/{
+	print
 }
 
 /^$/{

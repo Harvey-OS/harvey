@@ -1,0 +1,4 @@
+#!/bin/rc
+rfork n
+bind -a /bin/aux /bin
+pdup $* | dupstat

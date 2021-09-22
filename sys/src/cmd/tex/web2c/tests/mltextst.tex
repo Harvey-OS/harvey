@@ -1,0 +1,200 @@
+% This is MLTEXTST.TEX (Version 1.2) in text format, as of Dec 07, 1995.
+% Test file to check MLTeX implementations.
+%
+% Copyright (C) 1995 by B.Raichle; all rights are reserved.
+%
+% Usage:
+%
+%   Run iniTeX on this file.  Do not try to use plain-TeX or LaTeX.
+%   Needs the font metric files:  cmr10.tfm, cmti10.tfm
+%
+%
+% Changes:
+%
+%  95/12/05 v1.0
+%           - initial version
+%  95/12/06 v1.1
+%           - don't show tracing output
+%           - \nonstopmode and additional test for bug 2.
+%  95/12/07 v1.2
+%           - added MLTeX version numbers (and release dates)
+%           - added test for MLTeX version 2.2
+%
+%
+% History of MLTeX for TeX 3.x:
+%
+%  90/04/02 Version ??   (for TeX 3.0)
+%           \charsublist, \charsublistmax
+%  ??/??/?? Version 1.0
+%  92/02/03 Version 2    (for TeX 3.1--3.141)
+%           |effective_char| uses explicit font information
+%  93/10/29 Version 2.01
+%           fix \*leaders problem
+%  95/12/06 Version 2.2  (for TeX 3.14159)
+%           fix font loading bug
+%           fix invalid |font_info| access
+%  in work  Version 3.0
+%           complete re-implementation
+%
+%
+\catcode`\{=1 \catcode`\}=2 \catcode`\#=6
+%
+\immediate\write16{}
+\immediate\write16{Test for bugs in MLTeX (1995/12/07 v1.2 [br])}
+\immediate\write16{}
+%
+% check for plain-TeX:
+% we have to ensure that _no_ fonts are preloaded
+\expandafter\ifx\csname active\endcsname\relax \else
+  \message{Please (Ini)TeX this file, no plain-TeX, no LaTeX!}
+  \expandafter\endinput\expandafter\end\fi
+% check for MLTeX
+\expandafter\ifx\csname charsubdef\endcsname\relax
+  \message{This test file can only be used with MLTeX!}
+  \expandafter\endinput\fi
+%
+\nonstopmode
+%%%\tracingonline=1 \tracingoutput=1 \showboxbreadth=255
+%%%\tracinglostchars=100 \tracingcharsubdef=1
+\hsize=5in
+%
+%
+% 1. Check for bug accessing the wrong character metrics:
+%    (in versions before Feb 1992)
+%
+\font\tenrm=cmr10\relax
+%
+% The group is only necessary, if you want to use this
+% test in your own macros.  \charsubdefmax is saved
+% explicitly for very old versions of MLTeX which have
+% an additional bug when assigning this special integer.
+\begingroup
+  \count255=\charsubdefmax
+  \charsubdefmax=256 % enable all substitutions
+  % very old versions of MLTeX will
+  \charsubdef`\i=1 `\M % substitute "i" by "M"
+  \setbox0=\hbox{\tenrm i}% <-- here
+  \dimen0=\wd0 % get width of box (either "i" or "M")
+  % get width of "i"
+  \charsubdefmax=-1 % disable all substitutions
+  \setbox0=\hbox{\tenrm i}%
+  \dimen2=\wd0 % get width of box
+  % restore former value of \charsubdefmax
+  \charsubdefmax=\count255
+\expandafter\endgroup
+\ifdim\dimen0=\dimen2\relax
+  \immediate\write16{..... Ok, this is a newer MLTeX version (>= 2.0).}
+  \immediate\write16{}
+\else
+  \immediate\write16{%
+..... This is a very old version of MLTeX < 2.0 (released before Feb. 1992)}
+  \immediate\write16{%
+..... immediately update to the newest MLTeX version!}
+  \immediate\write16{}
+  \expandafter\endinput\expandafter\end
+\fi
+%
+%
+% 2. Check for font loading bug:
+%    (in versions before Dec 1995)
+%
+%    - Define a \charsubdef of an existing character with
+%      a non-existing base character
+%
+\charsubdef `A=`a 128
+%%%\message{now: \string\charsubdefmax=\number\charsubdefmax}
+%
+%    - now load font  (do not preload this font!!!!!!)
+%
+\immediate\write16{}
+\immediate\write16{..... If there will be an error "Bad metric (TFM) file",}
+\immediate\write16{..... please update to the newest MLTeX version!}
+\immediate\write16{}
+\font\test=cmti10\relax
+\begingroup
+  \setbox0=\hbox{\test A}
+\expandafter\endgroup
+\ifdim\wd0>0pt\relax \else
+  \immediate\write16{}
+  \immediate\write16{%
+..... This seems to be MLTeX version 2.0 or 2.01 (released before Dec. 1995)}
+  \immediate\write16{%
+..... this version has bugs,}
+  \immediate\write16{%
+..... please update to the newest MLTeX version!}
+  \immediate\write16{}
+  \expandafter\endinput\expandafter\end
+\fi
+\immediate\write16{..... Good, no "Bad metric (TFM) file" bug,}
+\immediate\write16{..... seems to be the a MLTeX version > 2.01.}
+%
+%
+% 3. Check for invalid |font_info| access:
+%
+\immediate\write16{}
+\font\tenrm=cmr10\relax
+%
+\setbox0=\hbox{\tenrm \char`a}\dimen1=\wd0
+\setbox0=\hbox{\tenrm \char`M}\dimen3=\wd0
+\setbox0=\hbox{\tenrm \char0}\dimen5=\wd0
+%
+\charsubdef 128=`a `a
+\setbox0=\hbox{\tenrm \char128}
+\dimen0=\wd0 % get width of `a
+%
+% Now the \charsubdef is changed using
+% an existing base character:
+\charsubdef 128=`a `M
+\setbox0=\hbox{\unhbox0}
+\dimen2=\wd0 % get width of `a or `M
+%
+% And then we remove it.  MLTeX will try to access the 128th
+% entry in the |char_base| array, which is the first entry in
+% the width index array.
+% For MLTeX 2.2 this was "fixed", now it will report a warning
+% "Missing char... no substitution for ..." and MLTeX will use
+% the first character of the font.
+\charsubdefmax=-1
+\setbox0=\hbox{\unhbox0}%
+\dimen4=\wd0
+%
+%%%\message{\the\dimen0-\the\dimen1-\the\dimen2-\the\dimen3-%
+%%%  \the\dimen4-\the\dimen5-}
+%
+\def\x#1\fi\fi{\fi\fi#1}
+\ifdim\dimen0=\dimen2\relax \ifdim\dimen0=\dimen4\relax
+  \immediate\write16{}
+  \immediate\write16{%
+...... Seems to be MLTeX version 3.x (unreleased),}
+  \immediate\write16{%
+...... from whom did you get this version? :-)}
+  \immediate\write16{}
+  \immediate\write16{%
+Congratulations, you have the best MLTeX version!}
+  \immediate\write16{}
+  \x{\endinput\csname end\endcsname}%
+\fi\fi
+%
+\def\x#1\fi{\fi#1}
+\ifdim\dimen4=\dimen5\relax \else
+  \immediate\write16{}
+  \immediate\write16{%
+..... Seems to be MLTeX version 2.0 or 2.01 (released before Dec. 1995)}
+  \immediate\write16{%
+..... this version has bugs,}
+  \immediate\write16{%
+..... please update to the newest MLTeX version!}
+  \immediate\write16{}
+  \expandafter\endinput\expandafter\end
+\fi
+%
+\immediate\write16{}
+\immediate\write16{%
+...... Seems to be MLTeX version 2.2 (released Dec. 1995).}
+\immediate\write16{}
+\immediate\write16{%
+Congratulations, you have a MLTeX version with all known bugs fixed.}
+\immediate\write16{}
+\end
+%
+%%% END OF FILE %%%

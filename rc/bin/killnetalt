@@ -1,0 +1,5 @@
+#!/bin/rc
+# killnetalt - emit commands to kill all processes with fd's to /net.alt
+grep /net.alt /proc/*/fd |
+	sed 's^/proc/(.*)/fd.*^chmod +rw /proc/\1/ctl; echo kill >/proc/\1/ctl^' |
+	sort -u

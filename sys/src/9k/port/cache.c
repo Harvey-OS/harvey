@@ -7,7 +7,7 @@
 enum
 {
 	NHASH		= 128,
-	MAXCACHE	= 1024*1024,
+	MAXCACHE	= 1024*1024, /* cache <= this much of a file's start */
 	NFILE		= 4096,
 	NEXTENT		= 200,		/* extent allocation size */
 };
@@ -57,7 +57,6 @@ struct Ecache
 static Image fscache;
 static Cache cache;
 static Ecache ecache;
-static int maxcache = MAXCACHE;
 
 static void
 extentfree(Extent* e)
@@ -93,10 +92,10 @@ extentalloc(void)
 
 	e = ecache.head;
 	ecache.head = e->next;
-	memset(e, 0, sizeof(Extent));
 	ecache.free--;
 	unlock(&ecache);
 
+	memset(e, 0, sizeof(Extent));
 	return e;
 }
 
@@ -110,8 +109,6 @@ cinit(void)
 		panic("cinit: no memory");
 	mc = cache.head;
 
-	/* a good algorithm to set maxcache would be nice */
-
 	for(i = 0; i < NFILE-1; i++) {
 		mc->next = mc+1;
 		mc->prev = mc-1;
@@ -119,8 +116,7 @@ cinit(void)
 	}
 
 	cache.tail = mc;
-	cache.tail->next = 0;
-	cache.head->prev = 0;
+	cache.tail->next = cache.head->prev = 0;
 
 	fscache.notext = 1;
 }
@@ -167,15 +163,12 @@ ctail(Mntcache *mc)
 	if(cache.tail) {
 		mc->prev = cache.tail;
 		cache.tail->next = mc;
-		mc->next = 0;
-		cache.tail = mc;
-	}
-	else {
+	} else {
 		cache.head = mc;
-		cache.tail = mc;
 		mc->prev = 0;
-		mc->next = 0;
 	}
+	mc->next = 0;
+	cache.tail = mc;
 }
 
 void
@@ -270,7 +263,7 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 	int o, l, total;
 	ulong offset;
 
-	if(off+len > maxcache)
+	if(off+len > MAXCACHE)
 		return 0;
 
 	mc = c->mc;
@@ -356,7 +349,7 @@ cchain(uchar *buf, ulong offset, int len, Extent **tail)
 		if(e == 0)
 			break;
 
-		p = auxpage(PGSHFT);
+		p = auxpage();
 		if(p == 0) {
 			extentfree(e);
 			break;
@@ -441,7 +434,7 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 	int o, ee, eblock;
 	ulong offset;
 
-	if(off > maxcache || len == 0)
+	if(off > MAXCACHE || len == 0)
 		return;
 
 	mc = c->mc;
@@ -532,7 +525,7 @@ cwrite(Chan* c, uchar *buf, int len, vlong off)
 	Extent *p, *f, *e, *tail;
 	ulong offset;
 
-	if(off > maxcache || len == 0)
+	if(off > MAXCACHE || len == 0)
 		return;
 
 	mc = c->mc;

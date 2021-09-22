@@ -14,21 +14,14 @@ mpvecadd(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *sum)
 		x = *a++;
 		y = *b++;
 		x += carry;
-		if(x < carry)
-			carry = 1;
-		else
-			carry = 0;
+		carry = x < carry;
 		x += y;
-		if(x < y)
-			carry++;
+		carry += x < y;
 		*sum++ = x;
 	}
 	for(; i < alen; i++){
 		x = *a++ + carry;
-		if(x < carry)
-			carry = 1;
-		else
-			carry = 0;
+		carry = x < carry;
 		*sum++ = x;
 	}
 	*sum = carry;

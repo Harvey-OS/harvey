@@ -1,0 +1,24 @@
+#
+# Generated file, no not edit
+#
+
+dom=security.bell-labs.com
+	soa=
+	ns=dirty.research.bell-labs.com
+	mbox=ram@bell-labs.com
+	serial=38
+	refresh=21600
+	retry=3600
+	expire=604800
+	min=600
+	mx=hoemail1.alcatel.com	pref=10
+	ns=dirty.research.bell-labs.com
+
+ipnet=net-169.237 ip=169.237.0.0 mask=255.255.0.0
+ipnet=net-137.175 ip=137.175.0.0 mask=255.255.0.0
+ipnet=net-135.245 ip=135.245.0.0 mask=255.255.0.0
+
+ip=135.245.0.10 dom=rickhull.security.bell-labs.com
+ip=137.175.32.10 dom=db.security.bell-labs.com
+ip=137.175.32.11 dom=asterisk.security.bell-labs.com
+ip=169.237.43.11 dom=pcp000001pcs.security.bell-labs.com

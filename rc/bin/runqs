@@ -1,0 +1,12 @@
+#!/bin/rc
+# runqs [queuedir...] - run various mail queues
+rfork e
+if (~ $#* 0)
+	* = (/mail/queue)
+# -n limit was 10
+for (q) {
+	rm=/mail/lib/remotemail
+	if (~ $q *.ext)
+		rm=$rm^.ext
+	upas/runq -asn 4 $q $rm
+}

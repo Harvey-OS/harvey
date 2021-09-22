@@ -1,0 +1,146 @@
+vm 20
+pS 47.435556,122.308389	# sea
+pL d pS,m(158+90),9
+pR d pS,m(158-90),8
+
+pa d pS,m345,2
+pb d pS,m141,2
+pc d pS,m141,6
+pd d pS,m170,6
+pe d pS,m170,2
+pf d pS,m320,2
+pg d pS,m320,4
+ph d pS,m345,4
+
+pi d pS,m141,4
+pj d pS,m360,4
+pk d pS,m360,12
+pl d pS,m345,12
+
+pm d pS,m345,6
+pn d pS,m320,6
+
+po d pS,m320,12
+pp d pS,m170,4
+pq d pS,m170,12
+pr d pS,m141,12
+
+ps xll pS,m010, pR,m158
+pt xll pS,m115, pR,m158
+pu d pS,m115,18
+pv d pS,m210,18
+pw xll pS,m210, pL,m158
+px xll pS,m300, pL,m158
+py d pS,m300,18
+pz d pS,m010,18
+
+n sea_gnd\100
+ar pS, pa,pb
+s pb,pc
+ar pS, pc,pd
+s pd,pe
+ar pS, pe,pf
+s pf,pg
+ar pS, pg,ph
+s ph,pa
+
+n sea_20\100
+al pS, pi,pj
+s pj,pk
+al pS, pk,pl
+s pl,ph
+
+n sea_11\100
+al pS, pm,pn
+s pn,pg
+
+n sea_18\100
+al pS, pl,po
+s po,pn
+
+n sea_20\100
+al pS, pg,pp
+
+n sea_16\100
+s pd,pq
+al pS, pq,pr
+s pr,pc
+
+n sea_30\100
+s ps,pt
+s pt,pu
+ar pS, pu,pv
+s pv,pw
+s pw,px
+s px,py
+ar pS, py,pz
+s pz,ps
+
+p*a xll pS,m095, pR,m158
+p*b d pS,m095,18
+p*c xll pS,m030, pR,m158
+p*d d pS,m030,18
+p*e d pS,m095,30
+p*f d pS,m115,30
+p*g d pS,m115,25
+p*h d pS,m141,25
+p*i d pS,m141,18
+p*j d pS,m141,30
+p*k d pS,m170,30
+p*l d pS,m170,25
+p*m d pS,m170,18
+
+p*n d pS,m197,25
+p*o d pS,m197,30
+p*p d pS,m210,30
+p*q d pS,m210,25
+
+p*r d pS,m300,22
+p*s d pS,m300,30
+p*t d pS,m320,22
+p*u d pS,m320,30
+p*v d pS,m010,22
+p*w d pS,m010,30
+p*x d pS,m030,30
+
+n sea_50\100
+s p*a,p*b
+ar pS, p*b,pu
+s p*c,p*d
+al pS, p*d,pz
+ar pS, p*h,p*l
+s p*l, p*m
+S py,p*r
+ar pS, p*r, p*v
+s p*v,pz
+
+n sea_60\100
+Al pS, p*b,p*d
+
+s pu,p*g
+Ar pS, p*g,p*h
+s p*h,p*i
+
+S p*h,p*j
+Ar pS, p*j,p*k
+S p*k,p*l
+Ar pS, p*l,p*n
+ar pS, p*n,p*q
+S p*q,pv
+Ar pS, pv,py
+Ar pS, p*u,p*w
+s p*v,p*w
+s p*u,p*t
+
+n sea_80\100
+S p*b,p*e
+Ar pS, p*e,p*f
+S p*f,p*g
+
+S p*n,p*o
+Ar pS, p*o,p*p
+S p*p,p*q
+S p*r,p*s
+Ar pS, p*s,p*u
+Ar pS, p*w,p*x
+S p*x,p*d

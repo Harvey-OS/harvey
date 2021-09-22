@@ -1,0 +1,316 @@
+% Date: Thu, 25 May 1995 19:00:36 +0200 (MET DST)
+% From: Petr Sojka <sojka@daeron.ics.muni.cz>
+%
+% some of our (CSTUG- czech TeX Users Group) users want to support
+% 8bit font coding such that:
+% -- lower 7bit  is exactly OT1 (but with differences imposed
+%   by DEK -- e.g. layout of cmr is different from cmtt)
+% -- upper part is taken from ISO-Latin 2 (iso 8859-2),
+%    but some of empty positions are filled with useful characters
+%    usually available in type-1 font (permill sign etc.)
+/XL2encoding [
+%%%%%   '000 = "00
+   /Gamma
+   /Delta
+   /Theta
+   /Lambda
+   /Xi
+   /Pi
+   /Sigma
+   /Upsilon
+%%%%%   '010 = "08
+   /Phi
+   /Psi
+   /Omega
+   /ff
+   /fi
+   /fl
+   /ffi
+   /ffl
+%%%%%   '020 = "10
+   /dotlessi
+   /dotlessj
+   /grave
+   /acute
+   /caron
+   /breve
+   /macron
+   /ring
+%%%%%   '030 = "18
+   /cedilla
+   /germandbls
+   /ae
+   /oe
+   /oslash
+   /AE
+   /OE
+   /Oslash
+%%%%%   '040 = "20
+   /.notdef
+   /exclam
+   /quotedblright
+   /numbersign
+   /dollar
+   /percent
+   /ampersand
+   /quoteright
+%%%%%   '050 = "28
+   /parenleft
+   /parenright
+   /asterisk
+   /plus
+   /comma
+   /hyphen
+   /period
+   /slash
+%%%%%   '060 = "30
+   /zero
+   /one
+   /two
+   /three
+   /four
+   /five
+   /six
+   /seven
+%%%%%   '070 = "38
+   /eight
+   /nine
+   /colon
+   /semicolon
+   /exclamdown
+   /equal
+   /questiondown
+   /question
+%%%%%   '100 = "40
+   /at
+   /A
+   /B
+   /C
+   /D
+   /E
+   /F
+   /G
+%%%%%   '110 = "48
+   /H
+   /I
+   /J
+   /K
+   /L
+   /M
+   /N
+   /O
+%%%%%   '120 = "50
+   /P
+   /Q
+   /R
+   /S
+   /T
+   /U
+   /V
+   /W
+%%%%%   '130 = "58
+   /X
+   /Y
+   /Z
+   /bracketleft
+   /quotedblleft
+   /bracketright
+   /circumflex
+   /dotaccent
+%%%%%   '140 = "60
+   /quoteleft
+   /a
+   /b
+   /c
+   /d
+   /e
+   /f
+   /g
+%%%%%   '150 = "68
+   /h
+   /i
+   /j
+   /k
+   /l
+   /m
+   /n
+   /o
+%%%%%   '160 = "70
+   /p
+   /q
+   /r
+   /s
+   /t
+   /u
+   /v
+   /w
+%%%%%   '170 = "78
+   /x
+   /y
+   /z
+   /endash
+   /emdash
+   /hungarumlaut
+   /tilde
+   /dieresis
+%%%%%   '200 = "80
+   /ellipsis
+   /dagger
+   /daggerdbl
+   /bullet
+   /sterling
+   /paragraph
+   /.notdef
+   /.notdef
+%%%%%   '210 = "88
+   /.notdef
+   /.notdef
+   /.notdef
+   /.notdef
+   /.notdef
+   /perthousand
+   /.notdef
+   /.notdef
+%%%%%   '220 = "90
+   /.notdef
+   /.notdef
+   /.notdef
+   /.notdef
+   /.notdef
+   /.notdef
+   /.notdef
+   /.notdef
+%%%%%   '230 = "98
+   /Agrave
+   /.notdef
+   /.notdef
+   /.notdef
+   /hyphen
+   /ogonek
+   /guillemotleft
+   /guillemotright
+%%%%%   '240 = "A0
+   /.notdef
+   /Aogonek
+   /breve
+   /Lslash
+   /currency
+   /Lcaron
+   /Sacute
+   /section
+%%%%%   '250 = "A8
+   /dieresis
+   /Scaron
+   /Scedilla
+   /Tcaron
+   /Zacute
+   /.notdef
+   /Zcaron
+   /Zdotaccent
+%%%%%   '260 = "B0
+   /ring
+   /aogonek
+   /cedilla
+   /lslash
+   /acute
+   /lcaron
+   /sacute
+   /caron
+%%%%%   '270 = "B8
+   /agrave
+   /scaron
+   /scedilla
+   /tcaron
+   /zacute
+   /hungarumlaut
+   /zcaron
+   /zdotaccent
+%%%%%   '300 = "C0
+   /Racute
+   /Aacute
+   /Acircumflex
+   /Abreve
+   /Adieresis
+   /Lacute
+   /Cacute
+   /Ccedilla
+%%%%%   '310 = "C8
+   /Ccaron
+   /Eacute
+   /Eogonek
+   /Edieresis
+   /Ecaron
+   /Iacute
+   /Icircumflex
+   /Dcaron
+%%%%%   '320 = "D0
+   /Eth
+   /Nacute
+   /Ncaron
+   /Oacute
+   /Ocircumflex
+   /Ohungarumlaut
+   /Odieresis
+   /multiply
+%%%%%   '330 = "D8
+   /Rcaron
+   /Uring
+   /Uacute
+   /Uhungarumlaut
+   /Udieresis
+   /Yacute
+   /Togonek
+   /germandbls
+%%%%%   '340 = "E0
+   /racute
+   /aacute
+   /acircumflex
+   /abreve
+   /adieresis
+   /lacute
+   /cacute
+   /ccedilla
+%%%%%   '350 = "E8
+   /ccaron
+   /eacute
+   /eogonek
+   /edieresis
+   /ecaron
+   /iacute
+   /icircumflex
+   /dcaron
+%%%%%   '360 = "F0
+   /eth
+   /nacute
+   /ncaron
+   /oacute
+   /ocircumflex
+   /ohungarumlaut
+   /odieresis
+   /divide
+%%%%%   '370 = "F8
+   /rcaron
+   /uring
+   /uacute
+   /uhungarumlaut
+   /udieresis
+   /yacute
+   /quotedblbase
+   /quotedblleft
+] def
+
+% LIGKERN hyphen hyphen =: endash ; endash hyphen =: emdash ;
+% LIGKERN quoteleft quoteleft =: quotedblleft ;
+% LIGKERN quoteright quoteright =: quotedblright ;
+% LIGKERN exclamdown exclamdown =: guillemotleft ;
+% frenchdblquotes
+% LIGKERN questiondown questiondown =: guillemotright ;
+% csquoteleft
+% LIGKERN comma comma =: quotedblbase ;
+% LIGKERN space {} * ; * {} space ; zero {} * ; * {} zero ;
+% LIGKERN one {} * ; * {} one ; two {} * ; * {} two ;
+% LIGKERN three {} * ; * {} three ; four {} * ; * {} four ;
+% LIGKERN five {} * ; * {} five ; six {} * ; * {} six ;
+% LIGKERN seven {} * ; * {} seven ; eight {} * ; * {} eight ;
+% LIGKERN nine {} * ; * {} nine ;
+% LIGKERN question {} quoteleft ; exclam {} quoteleft ;

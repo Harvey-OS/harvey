@@ -132,11 +132,11 @@
 			BYTE $0xEA; LONG $o; WORD $s
 #define	DELAY		BYTE $0xEB;		/* jmp .+2 */		\
 			BYTE $0x00
-#define BIOSCALL(b)	INT $b			/* INT $b */
+#define BIOSCALL(b)	INT $(b)
 
-#define PEEKW		BYTE $0x26;		/* MOVW	rES:[rBX], rAX  */	\
+#define PEEKW		BYTE $0x26;		/* MOVW	rES:[rBX], rAX  */ \
 			BYTE $0x8B; BYTE $0x07
-#define POKEW		BYTE $0x26;		/* MOVW	rAX, rES:[rBX] */	\
+#define POKEW		BYTE $0x26;		/* MOVW	rAX, rES:[rBX] */ \
 			BYTE $0x89; BYTE $0x07
 #define OUTPORTB(p, d)	LBI(d, rAL);		/* d -> I/O port p */	\
 			BYTE $0xE6;					\
@@ -147,13 +147,13 @@
 #define PUSHI(i)	BYTE $0x68; WORD $i;	/* i -> --(rSP) */
 #define POPA		BYTE $0x61
 #define POPR(r)		BYTE $(0x58|r)		/* (rSP++) -> r */
-#define POPS(rS)	BYTE $(0x07|((rS)<<3))	/* (rSP++) -> r */
+#define POPS(rS)	BYTE $(0x07|((rS)<<3))	/* (rSP++) -> rS */
 #define NOP		BYTE $0x90		/* nop */
+#define HLT		BYTE $0xF4
 
-#define LGDT(gdtptr)	BYTE $0x0F;		/* LGDT */			\
-			BYTE $0x01; BYTE $0x16;					\
+#define LGDT(gdtptr)	BYTE $0x0F;		/* LGDT */		\
+			BYTE $0x01; BYTE $0x16;				\
 			WORD $gdtptr
 
 /* operand size switch. */
 #define OPSIZE		BYTE $0x66
-

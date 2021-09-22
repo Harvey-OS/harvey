@@ -11,12 +11,18 @@ int	pflag;
 int	aflag;
 int	rflag;
 
+static void
+usage(void)
+{
+	fprint(2, "usage: %s [-apr]\n", argv0);
+	exits(0);
+}
+
 void
 main(int argc, char *argv[])
 {
 	int fd, i, tot, none = 1;
 	Dir *dir, **mem;
-
 
 	ARGBEGIN {
 	case 'a':
@@ -28,7 +34,13 @@ main(int argc, char *argv[])
 	case 'r':
 		rflag++;
 		break;
+	default:
+		usage();
+		break;
 	} ARGEND;
+	if (argc != 0)
+		usage();
+
 	Binit(&bout, 1, OWRITE);
 	if(chdir("/proc")==-1)
 		error("/proc");

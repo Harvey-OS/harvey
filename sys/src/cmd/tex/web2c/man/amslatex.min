@@ -1,0 +1,108 @@
+.TH AMSLATEX 1 "23 January 1994"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if t .ds AX \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(TX
+.if n .ds AX AmSTeX
+.if t .ds AY \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(LX
+.if n .ds AY AmSLaTeX
+.if t .ds LZ \
+\fRL\
+\\h'-0.3m'\\v'-0.21v'\s-2A\s0\\v'0.21v'\
+\\h'-0.15m'\\v'0.188v'M\\v'-0.188v'\
+\\h'-0.125m'S\
+\fP-\*(TX
+.if n .ds LZ LAmS-TeX
+.if t .ds OZ \
+\fIL\
+\\h'-0.3m'\\v'-0.21v'\s-2A\s0\\v'0.21v'\
+\\h'-0.15m'\\v'0.188v'M\\v'-0.188v'\
+\\h'-0.125m'S\
+\fP-\*(OX
+.if n .ds OZ LAmS-TeX
+.\"=====================================================================
+.SH NAME
+amslatex \- structured text formatting and typesetting
+.SH SYNOPSIS
+.B amslatex
+[ first line ]
+.\"=====================================================================
+.SH DESCRIPTION
+\*(AY is an extension of \*(LX (see
+.IR "\*(LX \- A Document Preparation System" )
+that provides the powerful mathematical typesetting macros of
+\*(AX (see
+.IR "The Joy of \*(OX" )
+within the syntax of \*(LX.  It should be contrasted with
+\*(LZ
+.RB ( lamstex (1)),
+which extends \*(AX with \*(LX-like features.
+.PP
+\*(AY documents can be processed
+by
+.BR latex (1),
+so a separate executable program named
+.B amslatex
+is not usually provided.
+.PP
+\*(AY is a \*(TX macro package, not a modification to the \*(TX source
+program, so all the capabilities described in
+.BR tex (1)
+are present.
+.PP
+The \*(AY macros encourage writers to think about the content of their
+documents, rather than the form.  The ideal, not always realized, is to
+have no formatting commands (like ``switch to italic'' or ``skip 2
+picas'') in the document at all; instead, everything is done
+by specific markup instructions: ``emphasize'', ``start a section''.
+.PP
+\*(AX is the official typesetting system of the American Mathematical
+Society, and nearly all of its publications are typeset using \*(AX.  The
+online version of AMS Math Reviews uses \*(AX input syntax for display of
+mathematical material.  AMS authors can provide editors with
+computer-readable \*(AX or \*(AY files.
+.PP
+\*(AY will become deprecated in favor of \*(LX 2e, when the latter is
+released.
+.\"=====================================================================
+.SH FILES
+.TP \w'@@'u+2n
+.I "@DEFAULT_TEXMF@/doc/ams/amslatex/amsldoc.tex"
+Documentation for \*(AY, typesettable by \*(LX.
+This supersedes
+.IR "The Joy of \*(OX" ,
+but \*(AY users may still find that book a convenient supplement.
+.TP
+.I "@TEXINPUTDIR@/doc/ams/amslatex/testart.tex"
+Sample \*(LA document illustrating the
+.I amsart
+document style.
+.TP
+.I "@TEXINPUTDIR@/doc/ams/amslatex/testbook.tex"
+Sample \*(LA document illustrating the
+.I amsbook
+document style.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR amstex (1),
+.BR lamstex (1),
+.BR latex (1),
+.BR tex (1),
+.BR slitex (1).
+.br
+Leslie Lamport,
+.IR "\*(LX \- A Document Preparation System" ,
+Addison-Wesley, 1985, ISBN 0-201-15790-X.
+.br
+Michael Spivak,
+.IR "The Joy of \*(OX" ,
+2nd edition, Addison-Wesley, 1990, ISBN 0-8218-2997-1.

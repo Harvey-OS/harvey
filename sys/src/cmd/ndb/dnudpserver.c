@@ -65,8 +65,6 @@ clientrxmit(DNSmsg *req, uchar *buf)
 	empty->id = req->id;
 	empty->owner = req->qd->owner;
 	empty->type = req->qd->type;
-	if (empty->type != req->qd->type)
-		dnslog("clientrxmit: bogus req->qd->type %d", req->qd->type);
 	memmove(&empty->uh, uh, Udphdrsize);
 	empty->inuse = 1;
 	return empty;
@@ -320,6 +318,10 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 			rrname(rep->qd->type, tname, sizeof tname),
 			rep->qd, rep->an, rep->ns, rep->ar);
 
+	/*
+	 * we're conservative about payload size; if we know that the remote
+	 * can handle more (e.g., it does edns0), we could raise it.
+	 */
 	len = convDNS2M(rep, &buf[Udphdrsize], Maxdnspayload);
 	len += Udphdrsize;
 	if(write(fd, buf, len) != len)

@@ -53,7 +53,7 @@ service.
 The default port used is TCP 17007.
 If
 .I mountpoint
-is omitted
+is omitted,
 .I import
 uses the name of the remote
 .I file
@@ -83,18 +83,23 @@ Run in ``backwards'' mode, described below.
 Push an authentication protocol on its network connection.
 The supported protocols are
 .B clear
-(the default, no protocol)
+(no protocol),
+.BR ssl ,
 and
-.BR ssl .
-There are plans to make
-.B tls
-available.
+.BR tls .
+The default is to try
+.BR tls ,
+.BR ssl ,
+and
+.B clear
+until one succeeds or they all fail.
 .TP
 .B -e '\fIenc auth\fR'
 Specify the encryption and authentication algorithms to use for
 encrypting the wire traffic
 (see
-.IR ssl (3)).
+.IR ssl (3))
+if using SSLv2.
 The defaults are
 .B rc4_256
 and
@@ -106,11 +111,6 @@ Use
 to select a key to authenticate to the remote side
 (see
 .IR auth (2)).
-.TP
-.B -o -O
-These equivalent flags run
-.I import
-in a pre-9P2000 compatibility mode to import from ancient servers.
 .TP
 .B -p
 Push the
@@ -222,10 +222,42 @@ to restart
 .SH SEE ALSO
 .IR bind (1),
 .IR ssl (3),
+.IR tls (3),
 .IR exportfs (4),
 .IR srv (4),
+.IR intro (5),
 .IR aan (8),
 .IR listen (8),
 .B cs
 in
 .IR ndb (8)
+.SH BUGS
+.IR mnt (3)
+seems to interfere with mounting a
+.IR srv (3)
+channel which is itself mounted via an encrypted import,
+probably by breaking up long records, thus requiring
+.RB ` -E
+.BR clear '
+in
+.PP
+.RS
+.EX
+import -E clear moscvax / /n/moscvax &&
+	mount /n/moscvax/srv/kremlin /n/kremlin
+.EE
+.RE
+.PP
+.IR tls
+currently has an iounit of its
+(implementation-specific) maximum record length of 16384,
+and
+.B MAXRPC
+in
+.IR mnt (3)
+needs to exceed it,
+to make mounting
+.IR srv (3)
+channels imported via TLS-encrypted 9P sessions work.
+.PP
+SSLv2 and RC4 are deprecated.

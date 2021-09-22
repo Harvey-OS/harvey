@@ -4,16 +4,28 @@ HFILES=\
 	/sys/include/httpd.h\
 	httpsrv.h\
 
+# wikipost permits wiki updates via http rather than acme,
+# and we don't want to permit that
 TARG=\
 	httpd\
+	9down\
+	9down.in\
+	P\
+	coffee\
+	echo\
+	eg\
 	imagemap\
 	man2html\
-	save\
 	netlib_find\
 	netlib_history\
+	post_find\
+	save\
+	sources\
+	spin_register\
+	test9down\
+	to\
 	webls\
-	wikipost\
-	websocket\
+#	wikipost\
 
 XTARG=\
 	httpd\
@@ -23,7 +35,6 @@ XTARG=\
 	man2html\
 	save\
 	wikipost\
-	websocket\
 
 LIB=libhttps.a$O
 
@@ -70,7 +81,23 @@ none:VQ:
 	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
 	echo usage: mk safeinstall, safeinstallall, cmd.safeinstallall, or cmd.safeinstallall
 
-$O.9down: 9down.$O whois.$O classify.$O $LIB
+clean:V: clean-eg
+clean-eg:V:
+	@ { cd eg && mk clean }
+
+$O.9down: 9down.$O $LIB
+	$LD -o $target $prereq
+
+$O.9down.in: 9down.in.$O $LIB
+	$LD -o $target $prereq
+
+$O.sources: $O.9down
+	cp $O.9down $target
+
+$O.9down4e: 9down4e.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+
+$O.9down4e2: 9down4e2.$O whois.$O classify.$O $LIB
 	$LD -o $target $prereq
 
 $O.test9down: 9down4e.$O whois.$O classify.$O $LIB
@@ -79,3 +106,5 @@ $O.test9down: 9down4e.$O whois.$O classify.$O $LIB
 $O.testclassify: testclassify.$O whois.$O classify.$O $LIB
 	$LD -o $target $prereq
 
+$O.eg: eg
+	@ { cd eg && mk $O.out && cp $O.out ../$target }

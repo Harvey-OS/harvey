@@ -12,7 +12,6 @@
 
 enum {
 	Maxmedia	= 32,
-	Nself		= Maxmedia*5,
 	NHASH		= 1<<6,
 	NCACHE		= 256,
 	QMAX		= 192*1024-1,
@@ -56,7 +55,7 @@ struct Ipmcast
 };
 
 /* quick hash for ip addresses */
-#define hashipa(a) ( ( ((a)[IPaddrlen-2]<<8) | (a)[IPaddrlen-1] )%NHASH )
+#define hashipa(a) ((((a)[IPaddrlen-2]<<8) | (a)[IPaddrlen-1]) % NHASH)
 
 static char tifc[] = "ifc ";
 
@@ -529,7 +528,7 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 
 	/* register the address on this network for address resolution */
 	if(isv4(ip) && ifc->medium->areg != nil)
-		(*ifc->medium->areg)(ifc, ip);
+		(*ifc->medium->areg)(ifc, ip);	/* e.g., send garp */
 
 out:
 	wunlock(ifc);
@@ -1066,10 +1065,9 @@ iptentative(Fs *f, uchar *addr)
 	Ipself *p;
 
 	p = f->self->hash[hashipa(addr)];
-	for(; p; p = p->next){
+	for(; p; p = p->next)
 		if(ipcmp(addr, p->a) == 0)
 			return p->link->lifc->tentative;
-	}
 	return 0;
 }
 
@@ -1086,10 +1084,9 @@ ipforme(Fs *f, uchar *addr)
 	Ipself *p;
 
 	p = f->self->hash[hashipa(addr)];
-	for(; p; p = p->next){
+	for(; p; p = p->next)
 		if(ipcmp(addr, p->a) == 0)
 			return p->type;
-	}
 
 	/* hack to say accept anything */
 	if(f->self->acceptall)
@@ -1575,7 +1572,7 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uchar *ip)
 			for(lifc = nifc->lifc; lifc; lifc = lifc->next){
 				maskip(ip, lifc->mask, net);
 				if(ipcmp(net, lifc->remote) == 0){
-					(*medium->areg)(nifc, ip);
+					(*medium->areg)(nifc, ip); /* e.g., send garp */
 					break;
 				}
 			}
@@ -1602,10 +1599,6 @@ adddefroute6(Fs *f, uchar *gate, int force)
 	v6delroute(f, v6Unspecified, v6Unspecified, 1);
 	v6addroute(f, "ra", v6Unspecified, v6Unspecified, gate, 0);
 }
-
-enum {
-	Ngates = 3,
-};
 
 char*
 ipifcadd6(Ipifc *ifc, char**argv, int argc)
@@ -1647,8 +1640,8 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 	if (plen < 0)
 		return "negative ipv6 prefix length";
 	/* i think that this length limit is bogus - geoff */
-//	if (plen > 64)
-//		return "ipv6 prefix length greater than 64;
+//	if (plen > 64)			/* slaac won't work if > 64 */
+//		return "ipv6 prefix length greater than 64";
 	if (islinklocal(prefix))
 		return "ipv6 prefix is link-local";
 
@@ -1662,7 +1655,13 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 	/* issue "add" ctl msg for v6 link-local addr and prefix len */
 	if(!ifc->medium->pref2addr)
 		return "no pref2addr on interface";
-	ifc->medium->pref2addr(prefix, ifc->mac);	/* mac → v6 link-local addr */
+	/*
+	 * is this right? it seems to pick up non-prefix bits that
+	 * we may not want (e.g. for venti, 2620:17a:4:1::/120, we want
+	 * the low bits to be zero).  see the rfc(s) and ip(3).
+	 * maybe we can't use RAs for venti but need explicit routing.
+	 */
+	ifc->medium->pref2addr(prefix, ifc->mac); /* mac → v6 link-local addr */
 	snprint(addr, sizeof addr, "%I", prefix);
 	snprint(preflen, sizeof preflen, "/%d", plen);
 	params[0] = "add";

@@ -1,0 +1,65 @@
+vm 0-5.5
+pD 42.215222, 83.348694	# dtw
+pY 42.237889, 83.530472	# yip
+pI 42.2328, 83.3488	# idtw (look up)
+pC 42.048028, 83.457694	# crl vor
+pS 42.408833, 83.594250	# svm vor
+
+pG d pC,m68,30.5	# yqg vor (look up)
+
+pa xcce pS,10, pY,t5
+pb xcce pS,12, pI,8
+pc xcle pI,7, pa,apb
+pd xccs pI,7, pY,t5
+pe d pI,m100,8
+pf d pI,m100,10
+pg xcle pI,11, pC,m085
+ph xccw pI,11, pC,5.5
+
+pi xcle pI,11, pG,m280
+pj d pG,m297,11.3
+pk d pG,m323,8
+pl xclw pI,19, pG,m323
+pm xcle pI,19, pS,m050
+pn d pS,m050,5
+po xcce pS,5, pI,11
+pp d pS,m200,5
+pq xcls pI,17, pS,m200
+pr xccs pI,17, pG,19
+ps xcln pI,20, pG,apr
+pt xcle pI,20, pG,m323
+pu xcls pI,20, pS,m200
+pv xccs pI,20, pG,25
+
+n dtw_gnd\80
+s pa,pc
+ar pI,pc,pd
+al pY,pd,pa
+
+n dtw_25\80
+s pc,pb
+ar pI,pb,pe
+s pe,pf
+s pf,pg
+ar pI,pg,ph
+s ph,pd
+
+n dtw_30\80
+s pi,pj
+s pj,pk
+S pk,pt
+Ar pI,pt,ps
+S ps,pr
+ar pI,pr,pq
+S pq,pp
+Al pS,pp,po
+ar pI,po,pi
+
+n dtw_40\80
+Al pS,po,pn
+S pn,pm
+Ar pI,pm,pl
+S pl,pk
+S pq,pu
+Al pI,pu,pv
+S pv,pr

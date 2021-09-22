@@ -1,0 +1,9 @@
+</$objtype/mkfile
+
+TARG=srs
+OFILES=srs.$O
+BIN=/$objtype/bin/upas
+
+UPDATE=mkfile ${OFILES:%.$O=%.c}
+
+</sys/src/cmd/mkone

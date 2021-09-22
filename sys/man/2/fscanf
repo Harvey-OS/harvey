@@ -384,7 +384,7 @@ Trailing white space (including newline characters) is left unread
 unless matched by a directive.
 The success of literal matches and suppressed assignments is not
 directly determinable other than via the
-.B %n
+.L %n
 directive.
 .PP
 The return value from
@@ -397,8 +397,28 @@ is returned.
 .SH SOURCE
 .B /sys/src/libstdio
 .SH "SEE ALSO"
+.IR atof (2),
+.IR bio (2),
 .IR fopen (2),
-.IR fgetc (2)
+.IR fgetc (2),
+.IR getfields (2),
+.IR yacc (1)
 .SH BUGS
 Does not know about
 .SM UTF.
+.PP
+Drags in a fair bit of floating-point conversion code
+in case you use
+.LR %e ,
+.LR %f ,
+or
+.LR %g .
+.PP
+Bare
+.L %s
+is an invitation to buffer overruns.
+.PP
+Parsing input, with validation, is harder than
+generating output.
+.I Scanf
+isn't really up to the task.

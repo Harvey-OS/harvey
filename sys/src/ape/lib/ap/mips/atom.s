@@ -7,7 +7,6 @@
 #define	NOOP		WORD	$0x27
 
 TEXT ainc(SB), 1, $-4			/* long ainc(long *); */
-TEXT _xinc(SB), 1, $-4			/* void _xinc(long *); */
 	MOVW	R1, R2			/* address of counter */
 loop:	MOVW	$1, R3
 	LL(2, 1)
@@ -20,7 +19,6 @@ loop:	MOVW	$1, R3
 	RET
 
 TEXT adec(SB), 1, $-4			/* long adec(long*); */
-TEXT _xdec(SB), 1, $-4			/* long _xdec(long *); */
 	MOVW	R1, R2			/* address of counter */
 loop1:	MOVW	$-1, R3
 	LL(2, 1)

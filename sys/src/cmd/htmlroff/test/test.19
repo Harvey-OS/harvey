@@ -1,0 +1,5 @@
+.de font
+..
+sub\dscript\u super\uscript\d
+
+font\s8change\s0

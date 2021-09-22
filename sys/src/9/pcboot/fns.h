@@ -7,19 +7,24 @@ void changeconf(char *fmt, ...);
 Dir *dirchstat(Chan *chan);
 int getstr(char *prompt, char *buf, int size, char *def, int timeout);
 int gunzip(uchar*, int, uchar*, int);
+#define ifnotnil(f)	if (f) (f)
+int lunzip(uchar*, int, uchar*, int);
 void i8042a20(void);
 void (*i8237alloc)(void);
-void impulse(void);
+void intrsoff(void);
 uintptr mapping(uintptr);
-void mkmultiboot(void);
 void mmuinit0(void);
 long mountfix(Chan *c, uchar *op, long n, long maxn);
 void mountrewind(Chan *c);
 int mountrockread(Chan *c, uchar *op, long n, long *nn);
 Chan *namecopen(char *, int);
-void readlsconf(void);
+void pagingoff(ulong);
+#define runoncpu(cpu)
+void stopio(void);
+void tftprandinit(void);
 void trimnl(char *s);
 void unionrewind(Chan *c);
+void warp9(ulong);
 void warp64(uvlong);
 
 /* boot.c */

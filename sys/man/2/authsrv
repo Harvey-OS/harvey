@@ -130,7 +130,7 @@ struct Nvrsafe
 };
 .EE
 .PP
-On Sparc, MIPS, and SGI machines this information is
+On MIPS, and SGI machines this information is
 in non-volatile ram, accessible in the file
 .BR #r/nvram .
 On x86s

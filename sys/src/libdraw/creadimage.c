@@ -7,13 +7,17 @@ creadimage(Display *d, int fd, int dolock)
 {
 	char hdr[5*12+1];
 	Rectangle r;
-	int m, nb, miny, maxy, new, ldepth, ncblock;
+	int m, n, nb, miny, maxy, new, ldepth, ncblock;
 	uchar *buf, *a;
 	Image *i;
 	ulong chan;
 
-	if(readn(fd, hdr, 5*12) != 5*12)
+	hdr[5*12] = '\0';
+	n = readn(fd, hdr, 5*12);
+	if(n != 5*12) {
+		werrstr("creadimage: header too short: %d bytes instead of 60", n);
 		return nil;
+	}
 
 	/*
 	 * distinguish new channel descriptor from old ldepth.
@@ -61,13 +65,11 @@ creadimage(Display *d, int fd, int dolock)
 		setmalloctag(i, getcallerpc(&d));
 		if(dolock)
 			unlockdisplay(d);
-		if(i == nil)
-			return nil;
-	}else{
+	}else
 		i = mallocz(sizeof(Image), 1);
-		if(i == nil)
-			return nil;
-	}
+	if(i == nil)
+		return nil;
+
 	ncblock = _compblocksize(r, chantodepth(chan));
 	buf = malloc(ncblock);
 	if(buf == nil)

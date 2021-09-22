@@ -1,11 +1,16 @@
 /*
  *  substitution list
+ *
+ * before dynamic allocation, NSUBEXP limited the size of Resublist->m[].
+ * it was initially 32, but a kernel mkfile needed at least 58 for an r.e.;
+ * now it's grown as needed.
  */
-#define NSUBEXP 32
 typedef struct Resublist	Resublist;
 struct	Resublist
 {
-	Resub	m[NSUBEXP];
+	short	alloced;	/* elements of m */
+	Resub	*m;		/* dynamically allocated */
+	int	id;		/* debugging */
 };
 
 /*
@@ -37,13 +42,16 @@ struct	Resublist
  *  regexec execution lists
  */
 #define LISTSIZE	10
-#define BIGLISTSIZE	(25*LISTSIZE)
+#define BIGLISTSIZE	(25*LISTSIZE)	/* normal size */
+
 typedef struct Relist	Relist;
 struct Relist
 {
 	Reinst*		inst;		/* Reinstruction of the thread */
 	Resublist	se;		/* matched subexpressions in this thread */
 };
+
+/* internal state */
 typedef struct Reljunk	Reljunk;
 struct	Reljunk
 {
@@ -57,7 +65,9 @@ struct	Reljunk
 	Rune*	reol;
 };
 
-extern Relist*	_renewthread(Relist*, Reinst*, int, Resublist*);
-extern void	_renewmatch(Resub*, int, Resublist*);
+extern int	_regalloclists(Reljunk *j, int elems);
+extern void	_regfreelists(Reljunk *j, int elems);
 extern Relist*	_renewemptythread(Relist*, Reinst*, int, char*);
+extern void	_renewmatch(Resub*, int, Resublist*);
+extern Relist*	_renewthread(Relist*, Reinst*, int, Resublist*);
 extern Relist*	_rrenewemptythread(Relist*, Reinst*, int, Rune*);

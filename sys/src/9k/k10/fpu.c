@@ -15,47 +15,47 @@
 #include "ureg.h"
 
 enum {						/* FCW, FSW and MXCSR */
-	I		= 0x00000001,		/* Invalid-Operation */
-	D		= 0x00000002,		/* Denormalized-Operand */
-	Z		= 0x00000004,		/* Zero-Divide */
-	O		= 0x00000008,		/* Overflow */
-	U		= 0x00000010,		/* Underflow */
-	P		= 0x00000020,		/* Precision */
+	I		= 0x0001,		/* Invalid-Operation */
+	D		= 0x0002,		/* Denormalized-Operand */
+	Z		= 0x0004,		/* Zero-Divide */
+	O		= 0x0008,		/* Overflow */
+	U		= 0x0010,		/* Underflow */
+	P		= 0x0020,		/* Precision */
 };
 
 enum {						/* FCW */
-	PCs		= 0x00000000,		/* Precision Control -Single */
-	PCd		= 0x00000200,		/* -Double */
-	PCde		= 0x00000300,		/* -Double Extended */
-	RCn		= 0x00000000,		/* Rounding Control -Nearest */
-	RCd		= 0x00000400,		/* -Down */
-	RCu		= 0x00000800,		/* -Up */
-	RCz		= 0x00000C00,		/* -Toward Zero */
+	PCs		= 0x0000,		/* Precision Control -Single */
+	PCd		= 0x0200,		/* -Double */
+	PCde		= 0x0300,		/* -Double Extended */
+	RCn		= 0x0000,		/* Rounding Control -Nearest */
+	RCd		= 0x0400,		/* -Down */
+	RCu		= 0x0800,		/* -Up */
+	RCz		= 0x0C00,		/* -Toward Zero */
 };
 
 enum {						/* FSW */
-	Sff		= 0x00000040,		/* Stack Fault Flag */
-	Es		= 0x00000080,		/* Error Summary Status */
-	C0		= 0x00000100,		/* ZF - Condition Code Bits */
-	C1		= 0x00000200,		/* O/U# */
-	C2		= 0x00000400,		/* PF */
-	C3		= 0x00004000,		/* ZF */
-	B		= 0x00008000,		/* Busy */
+	Sff		= 0x0040,		/* Stack Fault Flag */
+	Es		= 0x0080,		/* Error Summary Status */
+	C0		= 0x0100,		/* ZF - Condition Code Bits */
+	C1		= 0x0200,		/* O/U# */
+	C2		= 0x0400,		/* PF */
+	C3		= 0x4000,		/* ZF */
+	B		= 0x8000,		/* Busy */
 };
 
 enum {						/* MXCSR */
-	Daz		= 0x00000040,		/* Denormals are Zeros */
-	Im		= 0x00000080,		/* I Mask */
-	Dm		= 0x00000100,		/* D Mask */
-	Zm		= 0x00000200,		/* Z Mask */
-	Om		= 0x00000400,		/* O Mask */
-	Um		= 0x00000800,		/* U Mask */
-	Pm		= 0x00001000,		/* P Mask */
-	Rn		= 0x00000000,		/* Round to Nearest */
-	Rd		= 0x00002000,		/* Round Down */
-	Ru		= 0x00004000,		/* Round Up */
-	Rz		= 0x00006000,		/* Round toward Zero */
-	Fz		= 0x00008000,		/* Flush to Zero for Um */
+	Daz		= 0x0040,		/* Denormals are Zeros */
+	Im		= 0x0080,		/* I Mask */
+	Dm		= 0x0100,		/* D Mask */
+	Zm		= 0x0200,		/* Z Mask */
+	Om		= 0x0400,		/* O Mask */
+	Um		= 0x0800,		/* U Mask */
+	Pm		= 0x1000,		/* P Mask */
+	Rn		= 0x0000,		/* Round to Nearest */
+	Rd		= 0x2000,		/* Round Down */
+	Ru		= 0x4000,		/* Round Up */
+	Rz		= 0x6000,		/* Round toward Zero */
+	Fz		= 0x8000,		/* Flush to Zero for Um */
 };
 
 enum {						/* PFPU.state */
@@ -63,7 +63,7 @@ enum {						/* PFPU.state */
 	Busy		= 1,			/* The FPU is being used */
 	Idle		= 2,			/* The FPU has been used */
 
-	Hold		= 4,			/* Handling an FPU note */
+	Hold		= 1<<2,			/* Handling an FPU note */
 };
 
 extern void _clts(void);
@@ -75,6 +75,13 @@ extern void _fxsave(Fxsave*);
 extern void _fwait(void);
 extern void _ldmxcsr(u32int);
 extern void _stts(void);
+
+static Fxsave *
+fpalign(void *buf)
+{
+	return (Fxsave *)(((uintptr)(buf) + FPalign - 1) &
+		~((uintptr)FPalign - 1));
+}
 
 int
 fpudevprocio(Proc* proc, void* a, long n, uintptr offset, int write)
@@ -92,20 +99,27 @@ fpudevprocio(Proc* proc, void* a, long n, uintptr offset, int write)
 		return 0;
 	if((p = proc->fpusave) == nil)
 		return 0;
+	if(offset+n > sizeof(Fxsave))
+		n = sizeof(Fxsave) - offset;
 	switch(write){
 	default:
-		if(offset+n > sizeof(Fxsave))
-			n = sizeof(Fxsave) - offset;
 		memmove(p+offset, a, n);
 		break;
 	case 0:
-		if(offset+n > sizeof(Fxsave))
-			n = sizeof(Fxsave) - offset;
 		memmove(a, p+offset, n);
 		break;
 	}
 
 	return n;
+}
+
+static void
+fpuidle(Proc *p)
+{
+	_fxsave(p->fpusave);	/* relatively costly; dumps much state */
+	m->fpsaves++;
+	_stts();
+	p->fpustate = Idle;
 }
 
 void
@@ -118,11 +132,8 @@ fpunotify(Ureg*)
 	 * the state is marked (after saving if necessary) and
 	 * checked in the Device Not Available handler.
 	 */
-	if(up->fpustate == Busy){
-		_fxsave(up->fpusave);
-		_stts();
-		up->fpustate = Idle;
-	}
+	if(up->fpustate == Busy)
+		fpuidle(up);
 	up->fpustate |= Hold;
 }
 
@@ -146,12 +157,8 @@ fpusysrfork(Ureg*)
 	 * Save the state so that it can be easily copied
 	 * to the child process later.
 	 */
-	if(up->fpustate != Busy)
-		return;
-
-	_fxsave(up->fpusave);
-	_stts();
-	up->fpustate = Idle;
+	if(up->fpustate == Busy)
+		fpuidle(up);
 }
 
 void
@@ -163,11 +170,27 @@ fpusysrforkchild(Proc* child, Proc* parent)
 	 * Copy the parent FPU state to the child.
 	 */
 	child->fpustate = parent->fpustate;
-	child->fpusave = (void*)((PTR2UINT(up->fxsave) + 15) & ~15);
-	if(child->fpustate == Init)
-		return;
+	child->fpusave = fpalign(up->fxsave);
+	if(child->fpustate != Init)
+		memmove(child->fpusave, parent->fpusave, sizeof(Fxsave));
+}
 
-	memmove(child->fpusave, parent->fpusave, sizeof(Fxsave));
+static void
+initfpustate(Proc *p)
+{
+	Mpl pl;
+
+	pl = splhi();  /* don't let an interrupt set Ts until after _fnclex */
+	_clts();
+	/*
+	 * _fnclex got #NM in troff or hangs about every 2 weeks only on cpu.
+	 * Xeon E3 bug?  use _fninit+(load state) instead of _fnclex?
+	 */
+	_fnclex();		/* will fault if Ts (or Em) set */
+	_fwait();		/* ensure completion before _stts */
+	_stts();
+	p->fpustate = Init;
+	splx(pl);
 }
 
 void
@@ -189,10 +212,7 @@ fpuprocsave(Proc* p)
 	 * next.
 	 */
 	if(p->state == Moribund){
-		_clts();
-		_fnclex();
-		_stts();
-		p->fpustate = Init;
+		initfpustate(p);
 		return;
 	}
 
@@ -205,9 +225,7 @@ fpuprocsave(Proc* p)
 	 * Device Not Available exception fault to activate
 	 * the FPU.
 	 */
-	_fxsave(p->fpusave);
-	_stts();
-	p->fpustate = Idle;
+	fpuidle(p);
 }
 
 void
@@ -230,12 +248,8 @@ fpusysprocsetup(Proc* p)
 	 * Called from sysexec() via sysprocsetup() to
 	 * set the FPU for the new process.
 	 */
-	if(p->fpustate != Init){
-		_clts();
-		_fnclex();
-		_stts();
-		p->fpustate = Init;
-	}
+	if(p->fpustate != Init)
+		initfpustate(p);
 }
 
 static void
@@ -252,16 +266,14 @@ fpupostnote(void)
 	 */
 	fpusave = up->fpusave;
 	fsw = (fpusave->fsw & ~fpusave->fcw) & (Sff|P|U|O|Z|D|I);
-	if(fsw & I){
-		if(fsw & Sff){
+	if(fsw & I)
+		if(fsw & Sff)
 			if(fsw & C1)
 				m = "Stack Overflow";
 			else
 				m = "Stack Underflow";
-		}
 		else
 			m = "Invalid Operation";
-	}
 	else if(fsw & D)
 		m = "Denormal Operand";
 	else if(fsw & Z)
@@ -284,7 +296,6 @@ static void
 fpuxf(Ureg* ureg, void*)
 {
 	u32int mxcsr;
-	Fxsave *fpusave;
 	char *m, n[ERRMAX];
 
 	/*
@@ -294,13 +305,10 @@ fpuxf(Ureg* ureg, void*)
 	/*
 	 * Save FPU state to check out the error.
 	 */
-	fpusave = up->fpusave;
-	_fxsave(fpusave);
-	_stts();
-	up->fpustate = Idle;
+	fpuidle(up);
 
 	if(ureg->ip & KZERO)
-		panic("#MF: ip=%#p", ureg->ip);
+		panic("#XF: kernel ip=%#p", ureg->ip);
 
 	/*
 	 * Notify the user process.
@@ -308,7 +316,7 @@ fpuxf(Ureg* ureg, void*)
 	 * in fpupostnote above but without the fpupostnote()
 	 * call.
 	 */
-	mxcsr = fpusave->mxcsr;
+	mxcsr = ((Fxsave *)up->fpusave)->mxcsr;
 	if((mxcsr & (Im|I)) == I)
 		m = "Invalid Operation";
 	else if((mxcsr & (Dm|D)) == D)
@@ -331,8 +339,6 @@ fpuxf(Ureg* ureg, void*)
 static void
 fpumf(Ureg* ureg, void*)
 {
-	Fxsave *fpusave;
-
 	/*
 	 * #MF - x87 Floating Point Exception Pending (Vector 16).
 	 */
@@ -340,13 +346,11 @@ fpumf(Ureg* ureg, void*)
 	/*
 	 * Save FPU state to check out the error.
 	 */
-	fpusave = up->fpusave;
-	_fxsave(fpusave);
-	_stts();
-	up->fpustate = Idle;
+	fpuidle(up);
 
 	if(ureg->ip & KZERO)
-		panic("#MF: ip=%#p rip=%#p", ureg->ip, fpusave->rip);
+		panic("#MF: kernel ip=%#p rip=%#p",
+			ureg->ip, ((Fxsave *)up->fpusave)->rip);
 
 	/*
 	 * Notify the user process.
@@ -373,7 +377,7 @@ fpunm(Ureg* ureg, void*)
 	 * #NM - Device Not Available (Vector 7).
 	 */
 	if(up == nil)
-		panic("#NM: fpu in kernel: ip %#p\n", ureg->ip);
+		panic("#NM: fpu in kernel: ip %#p", ureg->ip);
 
 	/*
 	 * Someone tried to use the FPU in a note handler.
@@ -383,14 +387,25 @@ fpunm(Ureg* ureg, void*)
 		postnote(up, 1, "sys: floating point in note handler", NDebug);
 		return;
 	}
-	if(ureg->ip & KZERO)
-		panic("#NM: proc %d %s state %d ip %#p\n",
-			up->pid, up->text, up->fpustate, ureg->ip);
+
+	/*
+	 * was getting here from _fnclex from initfpustate with fpustate == 2
+	 * (Idle) so presumably from fpuprocsave, only on cpu, and only after
+	 * about two weeks up.  Xeon E3 bug?  NB: up->fpustate is logical
+	 * state, not physical m->fcw.
+	 */
+	if(ureg->ip & KZERO) {
+		/* we hope it's spurious */
+		iprint("#NM: kernel ip %#p proc %d %s up->fpustate %d cr0 %#llux\n",
+			ureg->ip, up->pid, up->text, up->fpustate,
+			(uvlong)cr0get());
+		return;
+	}
 
 	switch(up->fpustate){
 	case Busy:
 	default:
-		panic("#NM: state %d ip %#p\n", up->fpustate, ureg->ip);
+		panic("#NM: bad fpu state %d ip %#p", up->fpustate, ureg->ip);
 		break;
 	case Init:
 		/*
@@ -404,9 +419,9 @@ fpunm(Ureg* ureg, void*)
 		_clts();
 		_fninit();
 		_fwait();
-		_fldcw(m->fcw);
-		_ldmxcsr(m->mxcsr);
-		up->fpusave = (void*)((PTR2UINT(up->fxsave) + 15) & ~15);
+		_fldcw(m->fcw);			/* x87 control */
+		_ldmxcsr(m->mxcsr);		/* sse control */
+		up->fpusave = fpalign(up->fxsave);
 		up->fpustate = Busy;
 		break;
 	case Idle:
@@ -426,7 +441,8 @@ fpunm(Ureg* ureg, void*)
 		 */
 		fpusave->fcw &= ~Sff;
 		_clts();
-		_fxrstor(fpusave);
+		_fxrstor(fpusave);  /* relatively costly; inhales much state */
+		m->fprestores++;
 		up->fpustate = Busy;
 		break;
 	}
@@ -437,39 +453,40 @@ fpuinit(void)
 {
 	u64int r;
 	Fxsave *fxsave;
-	uchar buf[sizeof(Fxsave)+15];
+	uchar buf[sizeof(Fxsave)+FPalign-1];
 
 	/*
 	 * It's assumed there is an integrated FPU, so Em is cleared;
 	 */
-	r = cr0get();
-	r &= ~(Ts|Em);
-	r |= Ne|Mp;
-	cr0put(r);
+	r = cr0get() & ~(Ts|Em);
+	cr0put(r | Ne | Mp);
 
-	r = cr4get();
-	r |= Osxmmexcpt|Osfxsr;
-	cr4put(r);
+	cr4put(cr4get() | Osxmmexcpt | Osfxsr);
 
 	_fninit();
-	fxsave = (Fxsave*)((PTR2UINT(buf) + 15) & ~15);
+	fxsave = fpalign(buf);
 	memset(fxsave, 0, sizeof(Fxsave));
 	_fxsave(fxsave);
-	m->fcw = RCn|PCd|P|U|D;
+	m->fpsaves = m->fprestores = 0;
+	m->fcw = RCn|PCd|P|U|D;			/* x87: signal I|Z|O */
 	if(fxsave->mxcsrmask == 0)
-		m->mxcsrmask = 0x0000FFBF;
+		m->mxcsrmask = MASK(16) & ~FPDAZ;
 	else
 		m->mxcsrmask = fxsave->mxcsrmask;
-	m->mxcsr = (Rn|Pm|Um|Dm) & m->mxcsrmask;
+	m->mxcsr = (Rn|Pm|Um|Dm) & m->mxcsrmask; /* sse: signal I|Z|O */
 	_stts();
-
-	if(m->machno != 0)
-		return;
 
 	/*
 	 * Set up the exception handlers.
 	 */
-	trapenable(IdtNM, fpunm, 0, "#NM");
-	trapenable(IdtMF, fpumf, 0, "#MF");
-	trapenable(IdtXF, fpuxf, 0, "#XF");
+	if(m->machno == 0) {
+		trapenable(IdtNM, fpunm, 0, "#NM");
+		trapenable(IdtMF, fpumf, 0, "#MF");
+		trapenable(IdtXF, fpuxf, 0, "#XF");
+	}
+}
+
+void
+fpsts2ureg(Ureg *)
+{
 }

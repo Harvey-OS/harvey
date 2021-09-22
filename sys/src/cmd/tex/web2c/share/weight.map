@@ -1,0 +1,25 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "weight.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "25      90     518",
+@c   docstring = "Weight abbreviations for TeX font names."
+@c }
+a Thin Hairline
+b Bold
+c Black
+d Demi
+h Heavy Heavyface
+j ExtraLight
+k Book
+l Light
+m Medium
+p Poster
+r Regular Roman
+s Semibold
+u Ultra UltraBlack
+x ExtraBold ExtraBlack

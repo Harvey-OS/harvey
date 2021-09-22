@@ -108,11 +108,10 @@ The environment variable
 .B $cputype
 is set to the name of the kernel's CPU's architecture: one of
 .BR mips ,
-.BR sparc ,
-.B power
-(Power PC),
-.BR 386
-(386, 486, Pentium, ...)
+.BR amd64 ,
+.B 386
+(Intel Pentium or newer),
+.BR arm ,
 etc.
 The environment variable
 .B $objtype

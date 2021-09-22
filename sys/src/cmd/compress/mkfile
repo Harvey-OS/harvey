@@ -4,7 +4,6 @@ TARG=compress
 OFILES=compress.$O
 
 BIN=/$objtype/bin
+LIB=/$objtype/lib/libnofp.a
 </sys/src/cmd/mkone
-CC=pcc
-LD=pcc
-CFLAGS=-FTV -c
+CFLAGS=-FTVw

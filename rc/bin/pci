@@ -4,8 +4,8 @@ rfork e
 fn verbose {
 	if (! test -f /lib/pci)
 		echo $0: no /lib/pci >[1=2]
-	awk '
 
+	awk '
 	function lower(s) {
 		gsub(/A/, "a", s)
 		gsub(/B/, "b", s)
@@ -19,12 +19,11 @@ fn verbose {
 		file="/lib/pci"
 		FS="\t"
 		while(getline <file > 0){
-			if(/^;/) continue
-			if(/^[0-9a-fA-F]/){
+			if(/^[;#]/) continue
+			if(/^[0-9a-fA-F][0-9a-fA-F]/){
 				vid=lower($1)
 				vendor[vid] = $2
-			}
-			if(/^	[0-9a-fA-F]/){
+			} else if(/^	[0-9a-fA-F][0-9a-fA-F]/){
 				did=lower($2)
 				id[vid "/" did] = $3
 			}
@@ -86,10 +85,24 @@ builtin cd '#$/pci' && grep . *ctl | {
 	s/:	05/:	mem  05/
 	s/:	06/:	brg  06/
 	s/:	07/:	ser  07/
+	s/:	08/:	base 08/
 	s/:	0c\.03/:	usb  0c.03/
 	s/:	0c\.05/:	smb  0c.05/
 	s/:	0d/:	rad  0d/
 	s/:	10/:	cryp 10/
 	t
 	s/	/	---  /
-' | $filter
+' | $filter | sed '
+	s/ Co\.? / /g
+	s/ Connection//g
+	s/ Controller//g
+	s/ Corporation//g
+	s/ Electronics//g
+	s/ Inc\.? / /g
+	s/ Ltd\.? / /g
+	s/ PCI\\[^ ]*//g
+	s/ Series//g
+	s/ Technology//g
+	s/\(R\)//g
+	s/Intel Intel/Intel/g
+'

@@ -63,7 +63,7 @@ if this is not the same as requested.
 .PP
 .I Pread
 and
-.I Pwrite
+.I pwrite
 are equivalent to a
 .IR seek (2)
 to

@@ -8,11 +8,8 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
-#include	"pool.h"
+
 #include	"../port/error.h"
-#include	"../port/netif.h"
 #include	"dosfs.h"
 #include	"../port/sd.h"
 #include	"iso9660.h"
@@ -24,8 +21,7 @@ enum {
 	Parttrace = 0,
 	Debugboot = 0,
 
-	Maxsec	= 2048,
-	Normsec	= 512,			/* mag disks */
+	Normsec	= 512,			/* normal mag disks, 4K for new ones */
 
 	/* from devsd.c */
 	PartLOG		= 8,
@@ -351,7 +347,7 @@ part9660(PSDunit *unit)
 	ulong a, n, i, j;
 	uchar drecsz;
 	uchar *p;
-	uchar buf[Maxsec];
+	uchar buf[Cdsec];
 	Drec *rootdrec, *drec;
 	Voldesc *v;
 	static char stdid[] = "CD001\x01";
@@ -439,8 +435,8 @@ partition(PSDunit *unit)
 		type = NEW|OLD;
 
 	if(mbrbuf == nil) {
-		mbrbuf = malloc(Maxsec);
-		partbuf = malloc(Maxsec);
+		mbrbuf = malloc(unit->secsize);
+		partbuf = malloc(unit->secsize);
 		if(mbrbuf==nil || partbuf==nil) {
 			free(mbrbuf);
 			free(partbuf);
@@ -529,8 +525,8 @@ setpartitions(char *name, Chan *ctl, Chan *data)
 	kstrdup(&part0->name, "data");
 	part0->valid = 1;
 
-	mbrbuf = malloc(Maxsec);
-	partbuf = malloc(Maxsec);
+	mbrbuf = malloc(unit->secsize);
+	partbuf = malloc(unit->secsize);
 	partition(unit);
 	free(unit->part);
 	unit->part = nil;

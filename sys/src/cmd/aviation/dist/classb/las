@@ -1,0 +1,132 @@
+vm 14
+pL 36.079722, 115.158972	# las vor
+pV 36.212500, 115.196111	# vgt
+pH 35.976389, 115.131944	# l15
+
+va	t2.7
+vb	t2.5
+
+pa d pL,m031,10
+pb d pL,m031,25
+pc d pL,m018,25
+pd d pL,m018,20
+pe d pL,m007,15			# guess
+pf d pL,m350,15
+pg xcln pV,va, pL,m350
+ph xccw pV,va, pL,6
+pi d pL,m165,6
+pj xcln pH,vb, pL,m165
+pk d pL,m100,10
+pl xcle pH,vb, pk,m76
+
+n las_gnd\90
+s pa,pb
+al pL,pb,pc
+s pc,pd
+s pd,pe
+al pL,pe,pf
+s pf,pg
+ar pV,pg,ph
+al pL,ph,pi
+s pi,pj
+ar pH,pj,pl
+s pl,pk
+al pL,pk,pa
+
+pm d pL,m165,8
+pn d pL,m280,8
+po d pL,m280,6
+
+n las_40\90
+s pi,pm
+ar pL,pm,pn
+s pn,po
+
+pp d pL,m280,10
+pq d pL,m327,10
+pr d pL,m320,20
+ps xcln pL,11, pq,apr
+pt d pL,m350,11
+pu d pL,m031,15
+pv d pL,m100,15
+
+pw d pL,m220,10
+px d pL,m220,15
+py d pL,m170,15
+pz d pL,m170,10
+p*a xcln pL,15, pq,apr
+p*b d pL,m018,30
+p*c d pL,m031,30
+
+p*d d pL,m110,15
+p*e d pL,m110,20
+p*f d pL,m031,20
+
+p*j d pL,m045,25
+p*k d pL,m068,25
+p*l d pL,m100,25
+p*m d pL,m220,20
+p*n d pL,m045,20
+p*o d pL,m068,20
+p*p d pL,m100,20
+
+p*g d pL,m018,36
+p*h d pL,m031,36
+
+p*i xcln pL,36, pL,m351
+
+n las_45\90
+s pn,pp
+Ar pL,pp,pq
+S pq,ps
+ar pL,ps,pt
+
+ar pL,pu,pv
+s pv,pk
+
+n las_50\90
+ar pL,pk,pz
+s pz,py
+ar pL,py,px
+S px,pw
+Ar pL,pw,pp
+
+S ps,p*a
+ar pL,p*a,pf
+
+s pc,p*b
+ar pL,p*b,p*c
+S p*c,pb
+
+n las_60\90
+al pL,py,pv
+
+n las_65\90
+ar pL,p*f,p*n
+Ar pL,p*n,p*o
+ar pL,p*o,p*p
+Ar pL,p*p,p*e
+s p*e,p*d
+
+S p*a,pr
+ar pL,pr,pd
+
+n las_70\90
+s p*b,p*g
+Ar pL,p*g,p*h
+S p*h,p*c
+
+n las_75\90
+S pr,p*i
+Ar pL,p*i,p*g
+
+n las_80\90
+Ar pL,pb,p*j
+S p*j,p*n
+
+S p*o,p*k
+Ar pL,p*k,p*l
+S p*l,p*p
+
+Ar pL,p*e,p*m
+S p*m,px

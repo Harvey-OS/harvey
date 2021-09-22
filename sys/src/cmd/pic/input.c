@@ -1,9 +1,8 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <errno.h>
 #include "pic.h"
+#include <ctype.h>
 #include "y.tab.h"
 
 Infile	infile[10];
@@ -18,6 +17,8 @@ int	nextchar(void);
 int	getarg(char *);
 void	freedef(char *);
 int	baldelim(int, char *);
+
+int	input(void);
 
 void pushsrc(int type, char *ptr)	/* new input source */
 {
@@ -232,6 +233,7 @@ extern	int	thru;
 extern	struct symtab	*thrudef;
 extern	char	*untilstr;
 
+int
 input(void)
 {
 	register int c;
@@ -419,13 +421,9 @@ void pbstr(char *s)
 
 double errcheck(double x, char  *s)
 {
-	extern int errno;
-
-	if (errno == EDOM) {
-		errno = 0;
-		ERROR "%s argument out of domain", s WARNING;
-	} else if (errno == ERANGE) {
-		errno = 0;
+	if (isNaN(x)) {
+		ERROR "%s result is not a number", s WARNING;
+	} else if (isInf(x, +1) || isInf(x, -1)) {
 		ERROR "%s result out of range", s WARNING;
 	}
 	return x;
@@ -438,21 +436,15 @@ void	eprint(void);
 void yyerror(char *s)
 {
 	extern char *cmdname;
-	int ern = errno;	/* cause some libraries clobber it */
 
 	if (synerr)
 		return;
 	fflush(stdout);
-	fprintf(stderr, "%s: %s", cmdname, s);
-	if (ern > 0) {
-		errno = ern;
-		perror("???");
-	}
+	fprintf(stderr, "%s: %s: %r", cmdname, s);
 	fprintf(stderr, " near %s:%d\n",
 		curfile->fname, curfile->lineno+1);
 	eprint();
 	synerr = 1;
-	errno = 0;
 }
 
 void eprint(void)	/* try to print context around error */

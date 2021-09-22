@@ -5,6 +5,6 @@ typedef struct Bin	Bin;
 
 #pragma incomplete Bin
 
-void	*binalloc(Bin **, ulong size, int zero);
-void	*bingrow(Bin **, void *op, ulong osize, ulong size, int zero);
+void	*binalloc(Bin **, uintptr size, int zero);
+void	*bingrow(Bin **, void *op, uintptr osize, uintptr size, int zero);
 void	binfree(Bin **);

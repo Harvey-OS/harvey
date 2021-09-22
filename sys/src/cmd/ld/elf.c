@@ -78,14 +78,12 @@ static void
 elf32sectab(void (*putl)(long))
 {
 	seek(cout, HEADR+textsize+datsize+symsize, 0);
-	elf32shdr(putl, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0);
 	elf32shdr(putl, Stitext, Progbits, Salloc|Sexec, INITTEXT,
 		HEADR, textsize, 0, 0, INITRND, 0);
 	elf32shdr(putl, Stidata, Progbits, Salloc|Swrite, INITDAT,
 		HEADR+textsize, datsize, 0, 0, INITRND, 0);
 	elf32shdr(putl, Stistrtab, Strtab, 1 << 5, 0,
-		HEADR+textsize+datsize+symsize+4*Shdr32sz, 22, 0, 0, 1, 0);
+		HEADR+textsize+datsize+symsize+3*Shdr32sz, 22, 0, 0, 1, 0);
 	elfstrtab();
 }
 
@@ -121,11 +119,11 @@ elf32(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 	putl(0L);			/* flags */
 	putw(Ehdr32sz);
 	putw(Phdr32sz);
-	putw(3 + addpsects);		/* # of Phdrs */
+	putw(2 + addpsects);		/* # of Phdrs */
 	putw(Shdr32sz);
 	if(debug['S']){
-		putw(4);		/* # of Shdrs */
-		putw(3);		/* Shdr table index */
+		putw(3);		/* # of Shdrs */
+		putw(2);		/* Shdr table index */
 	}else{
 		putw(0);
 		putw(0);
@@ -195,14 +193,12 @@ static void
 elf64sectab(void (*putl)(long), void (*putll)(vlong))
 {
 	seek(cout, HEADR+textsize+datsize+symsize, 0);
-	elf64shdr(putl, putll, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0);
 	elf64shdr(putl, putll, Stitext, Progbits, Salloc|Sexec, INITTEXT,
 		HEADR, textsize, 0, 0, INITRND, 0);
 	elf64shdr(putl, putll, Stidata, Progbits, Salloc|Swrite, INITDAT,
 		HEADR+textsize, datsize, 0, 0, INITRND, 0);
 	elf64shdr(putl, putll, Stistrtab, Strtab, 1 << 5, 0,
-		HEADR+textsize+datsize+symsize+4*Shdr64sz, 22, 0, 0, 1, 0);
+		HEADR+textsize+datsize+symsize+3*Shdr64sz, 22, 0, 0, 1, 0);
 	elfstrtab();
 }
 
@@ -244,8 +240,8 @@ elf64(int mach, int bo, int addpsects, void (*putpsects)(Putl))
 	putw(3 + addpsects);		/* # of Phdrs */
 	putw(Shdr64sz);
 	if(debug['S']){
-		putw(4);		/* # of Shdrs */
-		putw(3);		/* Shdr table index */
+		putw(3);		/* # of Shdrs */
+		putw(2);		/* Shdr table index */
 	}else{
 		putw(0);
 		putw(0);

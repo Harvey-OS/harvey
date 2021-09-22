@@ -7,54 +7,10 @@
 #include <bio.h>
 #include <ip.h>
 #include <ndb.h>
+#include "tftp.h"
 
-enum
-{
-	Maxpath=	128,
-	Maxerr=		256,
-
+enum {
 	Debug=		0,
-
-	Opsize=		sizeof(short),
-	Blksize=	sizeof(short),
-	Hdrsize=	Opsize + Blksize,
-
-	Ackerr=		-1,
-	Ackok=		0,
-	Ackrexmit=	1,
-
-	/* op codes */
-	Tftp_READ	= 1,
-	Tftp_WRITE	= 2,
-	Tftp_DATA	= 3,
-	Tftp_ACK	= 4,
-	Tftp_ERROR	= 5,
-	Tftp_OACK	= 6,		/* option acknowledge */
-
-	Errnotdef	= 0,		/* see textual error instead */
-	Errnotfound	= 1,
-	Errnoaccess	= 2,
-	Errdiskfull	= 3,
-	Errbadop	= 4,
-	Errbadtid	= 5,
-	Errexists	= 6,
-	Errnouser	= 7,
-	Errbadopt	= 8,		/* really bad option value */
-
-	Defsegsize	= 512,
-	Maxsegsize	= 65464,	/* from rfc2348 */
-
-	/*
-	 * bandt (viaduct) tunnels use smaller mtu than ether's
-	 * (1400 bytes for tcp mss of 1300 bytes).
-	 */
-	Bandtmtu	= 1400,
-	/*
-	 * maximum size of block's data content, excludes hdrs,
-	 * notably IP/UDP and TFTP, using worst-case (IPv6) sizes.
-	 */
-	Bandtblksz	= Bandtmtu - 40 - 8,
-	Bcavium		= 1432,		/* cavium's u-boot demands this size */
 };
 
 typedef struct Opt Opt;
@@ -65,13 +21,13 @@ struct Opt {
 	int	max;
 };
 
-int 	dbg;
+int 	dbg = Debug;
 int	restricted;
 int	pid;
 
 /* options */
 int	blksize = Defsegsize;		/* excluding 4-byte header */
-int	timeout = 5;			/* seconds */
+int	timeout = 2;			/* seconds */
 int	tsize;
 static Opt option[] = {
 	"timeout",	&timeout,	1,	255,
@@ -126,7 +82,7 @@ main(int argc, char **argv)
 
 	setnetmtpt(net, sizeof net, nil);
 	ARGBEGIN{
-	case 'd':
+	case 'd':			/* chatter on the console too */
 		dbg++;
 		break;
 	case 'h':
@@ -152,9 +108,11 @@ main(int argc, char **argv)
 	fmtinstall('E', eipfmt);
 	fmtinstall('I', eipfmt);
 
+	if (rfork(RFENVG|RFNAMEG) < 0)
+		sysfatal("can't make new pgrp");
 	/*
 	 * setuser calls newns, and typical /lib/namespace files contain
-	 * "cd /usr/$user", so call setuser before chdir.
+	 * "cd /usr/$user", so call setuser before chdir, not after announce.
 	 */
 	setuser();
 	if(chdir(dir) < 0)
@@ -175,7 +133,6 @@ main(int argc, char **argv)
 	if (cfd < 0)
 		sysfatal("announcing on %s: %r", buf);
 	syslog(dbg, flog, "tftpd started on %s dir %s", buf, adir);
-//	setuser();
 	for(;;) {
 		lcfd = listen(adir, ldir);
 		if(lcfd < 0)
@@ -194,10 +151,9 @@ main(int argc, char **argv)
 				pid, raddr, ldir);
 			doserve(dfd);
 			exits("done");
-			break;
 		default:
 			close(lcfd);
-			continue;
+			break;
 		}
 	}
 }
@@ -533,8 +489,8 @@ awaitack(int net, int block)
 					"waiting for ack from %s", pid, raddr);
 			return Ackerr;
 		} else if(op != Tftp_ACK) {
-			syslog(dbg, flog, "tftpd %d rcvd %s op from %s", pid,
-				(op < nelem(opnames)? opnames[op]: "gok"),
+			syslog(dbg, flog, "tftpd %d rcvd %s op (not ack) from %s",
+				pid, (op < nelem(opnames)? opnames[op]: "gok"),
 				raddr);
 			return Ackerr;
 		}
@@ -614,7 +570,7 @@ sendfile(int net, char *name, char *mode, int opts)
 		}
 		else {
 			syslog(dbg, flog, "tftpd %d rexmit %d %s:%d to %s",
-				pid, Hdrsize+n, name, block, raddr);
+				pid, (int)(Hdrsize+n), name, block, raddr);
 			txtry++;
 		}
 
@@ -705,6 +661,8 @@ recvfile(int net, char *name, char *mode)
 				}
 				ack(net, block);
 				block++;
+				if (n < blksize)
+					break;
 			} else
 				ack(net, 0xffff);	/* tell him to resend */
 		}
@@ -743,15 +701,18 @@ nak(int fd, int code, char *msg)
 	n = strlen(msg) + 4 + 1;
 	if(write(fd, buf, n) < n)
 		sysfatal("write nak: %r");
+	syslog(dbg, flog, "tftpd %d nak (%s) to %s", pid, msg, raddr);
 }
 
 void
 setuser(void)
 {
-	int fd;
+	int fd, len;
+	char none[] = "none";
 
+	len = strlen(none);
 	fd = open("#c/user", OWRITE);
-	if(fd < 0 || write(fd, "none", strlen("none")) < 0)
+	if(fd < 0 || write(fd, none, len) != len)
 		sysfatal("can't become none: %r");
 	close(fd);
 	if(newns("none", nil) < 0)

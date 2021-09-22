@@ -1,0 +1,102 @@
+.de AX
+.ft 1
+.rs
+.ce 1000
+.if n .ul 0
+.ps \\n(PS
+.ie \\n(VS>=41 .vs \\n(VSu
+.el .vs \\n(VSp
+.if t \{\
+.	sp
+.	A1
+.	sp 0.5
+.	ns
+.	I1
+.	if \\n(NA-1 .sp
+.	A2
+.	if \\n(NA-1 .sp 0.5
+.	ns
+.	I2
+.	if \\n(NA-2 .sp
+.	A3
+.	if \\n(NA-2 .sp 0.5
+.	ns
+.	I3
+.	if \\n(NA-3 .sp
+.	A4
+.	if \\n(NA-3 .sp 0.5
+.	ns
+.	I4
+.	if \\n(NA-4 .sp
+.	A5
+.	if \\n(NA-4 .sp 0.5
+.	ns
+.	I5
+.	if \\n(NA-5 .sp
+.	A6
+.	if \\n(NA-5 .sp 0.5
+.	ns
+.	I6
+.	if \\n(NA-6 .sp
+.	A7
+.	if \\n(NA-6 .sp 0.5
+.	ns
+.	I7
+.	if \\n(NA-7 .sp
+.	A8
+.	if \\n(NA-7 .sp 0.5
+.	ns
+.	I8
+.	if \\n(NA-8 .sp
+.	A9
+.	if \\n(NA-8 .sp 0.5
+.	ns
+.	I9\}
+.if n \{\
+.	sp 2
+.	A1
+.	sp 
+.	ns
+.	I1
+.	if \\n(NA-1 .sp 2
+.	A2
+.	if \\n(NA-1 .sp
+.	ns
+.	I2
+.	if \\n(NA-2 .sp 2
+.	A3
+.	if \\n(NA-2 .sp
+.	ns
+.	I3
+.	if \\n(NA-3 .sp 2
+.	A4
+.	if \\n(NA-3 .sp
+.	ns
+.	I4
+.	if \\n(NA-4 .sp 2
+.	A5
+.	if \\n(NA-4 .sp
+.	ns
+.	I5
+.	if \\n(NA-5 .sp 2
+.	A6
+.	if \\n(NA-5 .sp
+.	ns
+.	I6
+.	if \\n(NA-6 .sp 2
+.	A7
+.	if \\n(NA-6 .sp
+.	ns
+.	I7
+.	if \\n(NA-7 .sp 2
+.	A8
+.	if \\n(NA-7 .sp
+.	ns
+.	I8
+.	if \\n(NA-8 .sp 2
+.	A9
+.	if \\n(NA-8 .sp
+.	ns
+.	I9\}
+..
+.AX

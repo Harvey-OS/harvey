@@ -197,9 +197,11 @@ main(int argc, char *argv[])
 	if(argc != 0)
 		usage();
 
+#ifdef DEBUG
 	if(testing)
 		mainmem->flags |= POOL_NOREUSE | POOL_ANTAGONISM;
 	mainmem->flags |= POOL_ANTAGONISM;
+#endif
 	rfork(RFREND|RFNOTEG);
 
 	cfg.inside = (*mntpt == '\0' || strcmp(mntpt, "/net") == 0);
@@ -209,7 +211,7 @@ main(int argc, char *argv[])
 	dninit();
 	/* this really shouldn't be fatal */
 	if(myipaddr(ipaddr, mntpt) < 0)
-		sysfatal("can't read my ip address");
+		sysfatal("can't read my ip address on %s", mntpt);
 	dnslog("starting %s%sdns %s%s%son %I's %s",
 		(cfg.straddle? "straddling ": ""),
 		(cfg.cachedb? "caching ": ""),
@@ -765,8 +767,10 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		debug ^= 1;
 	else if(strcmp(job->request.data, "dump")==0)
 		dndump("/lib/ndb/dnsdump");
+#ifdef DEBUG
 	else if(strcmp(job->request.data, "poolcheck")==0)
 		poolcheck(mainmem);
+#endif
 	else if(strcmp(job->request.data, "refresh")==0)
 		needrefresh = 1;
 	else if(strcmp(job->request.data, "restart")==0)

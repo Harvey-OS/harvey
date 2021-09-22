@@ -21,8 +21,10 @@ addrule(char *head, Word *tail, char *body, Word *ahead, int attr, int hline, ch
 				break;
 			}
 	}
-	if(r == 0)
+	if(r == 0) {
 		r = (Rule *)Malloc(sizeof(Rule));
+		r->pat = nil;
+	}
 	r->target = head;
 	r->tail = tail;
 	r->recipe = body;
@@ -49,6 +51,8 @@ addrule(char *head, Word *tail, char *body, Word *ahead, int attr, int hline, ch
 			return;
 		if(attr&REGEXP){
 			patrule = r;
+			if (r->pat)
+				regfree(r->pat);
 			r->pat = regcomp(head);
 		}
 		if(metarules == 0)
@@ -60,6 +64,8 @@ addrule(char *head, Word *tail, char *body, Word *ahead, int attr, int hline, ch
 	} else {
 		if(reuse)
 			return;
+		if (r->pat)
+			regfree(r->pat);
 		r->pat = 0;
 		if(rules == 0)
 			rules = lr = r;
@@ -76,7 +82,8 @@ dumpr(char *s, Rule *r)
 	Bprint(&bout, "%s: start=%p\n", s, r);
 	for(; r; r = r->next){
 		Bprint(&bout, "\tRule %p: %s:%d attr=%x next=%p chain=%p alltarget='%s'",
-			r, r->file, r->line, r->attr, r->next, r->chain, wtos(r->alltargets, ' '));
+			r, r->file, r->line, r->attr, r->next, r->chain,
+			wtos(r->alltargets, ' '));
 		if(r->prog)
 			Bprint(&bout, " prog='%s'", r->prog);
 		Bprint(&bout, "\n\ttarget=%s: %s\n", r->target, wtos(r->tail,' '));
@@ -89,10 +96,10 @@ rcmp(Rule *r, char *target, Word *tail)
 {
 	Word *w;
 
-	if(strcmp(r->target, target))
+	if(strcmp(r->target, target) != 0)
 		return 1;
 	for(w = r->tail; w && tail; w = w->next, tail = tail->next)
-		if(strcmp(w->s, tail->s))
+		if(strcmp(w->s, tail->s) != 0)
 			return 1;
 	return(w || tail);
 }

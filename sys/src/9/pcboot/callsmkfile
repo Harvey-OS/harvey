@@ -8,7 +8,7 @@ PORTC=\
 	../port/devcons.c\
 	../port/devroot.c\
 	../port/devuart.c\
-	../port/edf.c\
+#	edf.c\
 	../port/fault.c\
 	../port/latin1.c\
 	../port/netif.c\
@@ -33,7 +33,6 @@ IPC=../ip/arp.c\
 	../ip/ethermedium.c\
 	../ip/icmp.c\
 	../ip/icmp6.c\
-	../ip/inferno.c\
 	../ip/ip.c\
 	../ip/ipaux.c\
 	../ip/ipifc.c\
@@ -49,24 +48,25 @@ IPC=../ip/arp.c\
 COMMON=\
 	boot.c\
 	conf.c\
-	cga.c\
-	devarch.c\
-	devrtc.c\
-	i8253.c\
-	i8259.c\
-	kbd.c\
+	../pc/cga.c\
+	../pc/devarch.c\
+	../pc/devrtc.c\
+	../pc/i8253.c\
+	../pc/i8259.c\
+	../pc/kbd.c\
 	memory.c\
 	mmu.c\
 	multiboot.c\
-	pci.c\
+	noedf.c\
+	../pc/pci.c\
 	stub.c\
 	trap.c\
-	uarti8250.c\
+	../pc/uarti8250.c\
 	warp64.c\
 	$CONF.rootc.c\
 
 # print it in landscape orientation; it's way more useful than 80 columns
-disk.calls:D: main.c $CONF.c $COMMON $PORTC diskload.c	#  ${DEVS:%.$O=%.c}
+disk.calls:D: `{klocate main.c $CONF.c $COMMON $PORTC diskload.c}
 	calls -w 132 -f main -I. -I../pc -I../port -I../ip $prereq |
 		grep -v '\[external\]' >main.$target
 	calls -w 132 -f bootloadproc -I. -I../pc -I../port -I../ip $prereq |
@@ -74,8 +74,8 @@ disk.calls:D: main.c $CONF.c $COMMON $PORTC diskload.c	#  ${DEVS:%.$O=%.c}
 	calls -w 132 -I. -I../pc -I../port -I../ip $prereq |
 		grep -v '\[external\]' >$target
 
-pxe.calls:D: main.c $CONF.c $COMMON $IPC $PORTC devether.c ethermii.c \
-	ether82563.c pxeload.c rand.c uarti8250.c	#  ${DEVS:%.$O=%.c}
+pxe.calls:D: `{klocate main.c $CONF.c $COMMON $IPC $PORTC devether.c ethermii.c \
+	etherigbe.c ipload.c rand.c uarti8250.c}
 	calls -w 132 -f main -I. -I../pc -I../port -I../ip $prereq |
 		grep -v '\[external\]' >main.$target
 	calls -w 132 -f bootloadproc -I. -I../pc -I../port -I../ip $prereq |

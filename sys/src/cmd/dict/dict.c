@@ -352,13 +352,13 @@ search(char *pat, int dofold)
 	Rune entry[Fieldlen];
 	char fpat[Plen];
 
+	re = nil;
 	prelen = getpref(pat+1, pre);
 	if(pat[prelen+1] == 0 || pat[prelen+1] == '$') {
 		runescpy(lit, pre);
 		if(dofold)
 			fold(lit);
 		needre = 0;
-		SET(re);
 	} else {
 		needre = 1;
 		if(dofold) {
@@ -369,8 +369,10 @@ search(char *pat, int dofold)
 	}
 	fold(pre);
 	ioff = locate(pre);
-	if(ioff < 0)
+	if(ioff < 0) {
+		regfree(re);
 		return 0;
+	}
 	dot->n = 0;
 	Bseek(bindex, ioff, 0);
 	for(;;) {
@@ -412,6 +414,7 @@ search(char *pat, int dofold)
 	}
 	sortaddr(dot);
 	dot->cur = 0;
+	regfree(re);
 	return dot->n;
 }
 

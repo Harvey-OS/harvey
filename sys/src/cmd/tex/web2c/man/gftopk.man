@@ -1,0 +1,103 @@
+.TH GFTOPK 1 "14 December 1993" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+gftopk \- convert generic font files to packed font files
+.SH SYNOPSIS
+.B gftopk
+[
+.B \-v
+]
+.I gf_file_name
+[
+.I pk_file_name
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B gftopk
+program converts a generic font file output by, for example,
+.BR mf (1),
+to a
+packed font file for use by DVI-reading programs. Packed
+font files
+.RI ( pk " files)"
+are much smaller than the corresponding
+.I gf
+files,
+so they are generally the font format of choice.
+.PP
+The
+.I gf_file_name
+on the command line must be complete. Because
+the resolution is part of the extension, it would not make
+sense to append a default extension as is done with \*(TX or
+DVI-reading software. The
+.I pk_file_name
+defaults to the same (stripped) name as
+.IR gf_file_name ,
+and it is placed in the current
+working directory with the
+.I pk
+suffix replacing
+.IR gf .
+For example, the input file
+.I cmr10.300gf
+would become
+.IR cmr10.300pk .
+.\"=====================================================================
+.SH OPTIONS
+Unless the
+.B \-v
+switch is given,
+.B gftopk
+operates silently.  With
+.BR \-v ,
+the version number of the program and statistics about the
+packing are output to
+.IR stdout .
+.\"=====================================================================
+.SH ENVIRONMENT
+.B gftopk
+looks for
+.I gf_file_name
+first in the current directory.  If it is not present there, it uses the
+environment variable GFFONTS.  If that is not set, it uses the variable
+TEXFONTS.  If that is not set, it uses the system default.
+.PP
+See
+.BR tex (1)
+for the details of the searching.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR gftype (1),
+.BR pktogf (1),
+.BR pktype (1).
+.br
+Donald E. Knuth et al.,
+.IR \*(MFware .
+.\"=====================================================================
+.SH AUTHORS
+Tomas Rokicki wrote the program. It was published as
+part of the
+.I \*(MFware
+technical report, available from the \*(TX Users Group.
+Paul Richards originally ported it to Unix.

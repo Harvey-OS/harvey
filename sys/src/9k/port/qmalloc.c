@@ -4,6 +4,8 @@
  *	Uses Quickfit (see SIGPLAN Notices October 1988)
  *	with allocator from Kernighan & Ritchie
  *
+ * allocates from KSEG0 space (sys->vmunused to sys->vmend).
+ *
  * This is a placeholder.
  */
 #include "u.h"
@@ -12,6 +14,10 @@
 #include "dat.h"
 #include "fns.h"
 
+enum {
+	Morestats = 0,		/* flag */
+};
+
 typedef double Align;
 typedef union Header Header;
 typedef struct Qlist Qlist;
@@ -19,7 +25,7 @@ typedef struct Qlist Qlist;
 union Header {
 	struct {
 		Header*	next;
-		uint	size;
+		uintptr	size;
 	} s;
 	Align	al;
 };
@@ -28,7 +34,7 @@ struct Qlist {
 	Lock	lk;
 	Header*	first;
 
-	uint	nalloc;
+	uintptr	nalloc;
 };
 
 enum {
@@ -38,57 +44,22 @@ enum {
 #define	NUNITS(n)	(HOWMANY(n, Unitsz) + 1)
 #define	NQUICK		((4096/Unitsz)+1)
 
+int mallocok;
+
 static	Qlist	quicklist[NQUICK+1];
 static	Header	misclist;
 static	Header	*rover;
-static	unsigned tailsize;
-static	unsigned availnunits;
+static	uintptr tailsize;		/* in units of Header */
+static	uintptr availnunits;
 static	Header	*tailbase;
 static	Header	*tailptr;
 static	Header	checkval;
-static	int	morecore(unsigned);
 
-enum
-{
-	QSmalign = 0,
-	QSmalignquick,
-	QSmalignrover,
-	QSmalignfront,
-	QSmalignback,
-	QSmaligntail,
-	QSmalignnottail,
-	QSmalloc,
-	QSmallocrover,
-	QSmalloctail,
-	QSfree,
-	QSfreetail,
-	QSfreequick,
-	QSfreenext,
-	QSfreeprev,
-	QSmax
-};
-
-static	char*	qstatstr[QSmax] = {
-[QSmalign]		"malign",
-[QSmalignquick]	"malignquick",
-[QSmalignrover]	"malignrover",
-[QSmalignfront]	"malignfront",
-[QSmalignback]	"malignback",
-[QSmaligntail]	"maligntail",
-[QSmalignnottail]	"malignnottail",
-[QSmalloc]		"malloc",
-[QSmallocrover]	"mallocrover",
-[QSmalloctail]	"malloctail",
-[QSfree]		"free",
-[QSfreetail]	"freetail",
-[QSfreequick]	"freequick",
-[QSfreenext]	"freenext",
-[QSfreeprev]	"freeprev",
-};
-
-static	void*	qmalloc(usize);
+static	uintptr	morecore(uintptr);
+static	void*	qmalloc(uintptr);
 static	void	qfreeinternal(void*);
-static	int	qstats[QSmax];
+
+static	int	qstats[32];
 
 static	Lock		mainlock;
 
@@ -97,23 +68,110 @@ static	Lock		mainlock;
 #define QLOCK(l)	ilock(l)
 #define QUNLOCK(l)	iunlock(l)
 
-#define	tailalloc(p, n)	((p)=tailptr, tailsize -= (n), tailptr+=(n),\
+#define	tailalloc(p, n)	assert(tailptr); \
+			((p)=tailptr, tailsize -= (n), tailptr += (n),\
 			 (p)->s.size=(n), (p)->s.next = &checkval)
 
-#define ISPOWEROF2(x)	(/*((x) != 0) && */!((x) & ((x)-1)))
-#define ALIGNHDR(h, a)	(Header*)((((uintptr)(h))+((a)-1)) & ~((a)-1))
-#define ALIGNED(h, a)	((((uintptr)(h)) & (a-1)) == 0)
+#define ISPOWEROF2(x)	(/* (x) != 0 && */ (((x) & ((x)-1)) == 0))
+#define ALIGNHDR(h, a)	(Header*)(((uintptr)(h)+((a)-1)) & ~((uintptr)(a)-1))
+#ifndef ALIGNED
+#define ALIGNED(h, a)	(((uintptr)(h) & ((a)-1)) == 0)
+#endif
+
+static void
+qmfreefrag(Header *r, uintptr n, int qsidx)
+{
+	r->s.size = n;
+	r->s.next = &checkval;
+	qfreeinternal(r+1);
+	qstats[qsidx]++;
+}
+
+static void *
+qmremblk(Header *p, Header *q, uintptr nunits, int align, uintptr aligned)
+{
+	uintptr n;
+	Header *r;
+
+	q->s.next = p->s.next;
+	rover = q;
+	qstats[7]++;
+
+	/*
+	 * Free any runt in front of the alignment.
+	 */
+	if(!aligned){
+		r = p;
+		p = ALIGNHDR(p+1, align) - 1;
+		n = p - r;
+		p->s.size = r->s.size - n;
+		if (n > 0)
+			qmfreefrag(r, n, 8);
+	}
+
+	/*
+	 * Free any residue after the aligned block.
+	 */
+	if(p->s.size > nunits){
+		r = p+nunits;
+		qmfreefrag(r, p->s.size - nunits, 9);
+		p->s.size = nunits;
+	}
+
+	p->s.next = &checkval;
+	return p+1;
+}
+
+static void *
+qmaddcore(Header *q, uintptr align, uintptr nunits)
+{
+	uintptr naligned, n;
+	Header *p, *r;
+
+	if (nunits == 0)		/* sanity */
+		nunits = NUNITS(1);
+	naligned = NUNITS(align)-1;
+	if(tailsize < nunits+naligned){
+		/*
+		 * There are at least nunits, get enough for alignment.
+		 */
+		if((n = morecore(naligned)) == 0)
+			/* we can't recover */
+			panic("qmaddcore: out of memory. pid %d %s",
+				up? up->pid: 0, up? up->text: "");
+		tailsize += n;
+	}
+	/*
+	 * Save the residue before the aligned allocation
+	 * and free it after the tail pointer has been bumped
+	 * for the main allocation.
+	 */
+	n = q - tailptr - 1;
+	tailalloc(r, n);
+	tailalloc(p, nunits);
+	qstats[11]++;
+	qfreeinternal(r+1);
+	return p;
+}
 
 static void*
-qmallocalign(usize nbytes, uintptr align, long offset, usize span)
+qmallocalign(uintptr nbytes, uintptr align, vlong offset, uintptr span)
 {
 	Qlist *qlist;
 	uintptr aligned;
-	Header **pp, *p, *q, *r;
-	uint naligned, nunits, n;
+	Header **pp, *p, *q;
+	uintptr naligned, nunits, n;
 
-	if(nbytes == 0 || offset != 0 || span != 0)
+	if (!mallocok) {
+		mallocinit();
+		print("qmallocalign(%llud): called before mallocinit; doing so\n",
+			(uvlong)nbytes);
+	}
+	if(nbytes == 0 || offset != 0 || span != 0) {
+		print("qmallocalign: bad args %lld %lld %lld\n",
+			(vlong)nbytes, offset, (vlong)span);
 		return nil;
+	}
 
 	if(!ISPOWEROF2(align))
 		panic("qmallocalign");
@@ -121,7 +179,7 @@ qmallocalign(usize nbytes, uintptr align, long offset, usize span)
 	if(align <= sizeof(Align))
 		return qmalloc(nbytes);
 
-	qstats[QSmalign]++;
+	qstats[5]++;
 	nunits = NUNITS(nbytes);
 	if(nunits <= NQUICK){
 		/*
@@ -136,7 +194,7 @@ qmallocalign(usize nbytes, uintptr align, long offset, usize span)
 				*pp = p->s.next;
 				p->s.next = &checkval;
 				QUNLOCK(&qlist->lk);
-				qstats[QSmalignquick]++;
+				qstats[6]++;
 				return p+1;
 			}
 			pp = &p->s.next;
@@ -147,7 +205,7 @@ qmallocalign(usize nbytes, uintptr align, long offset, usize span)
 	MLOCK;
 	if(nunits > tailsize) {
 		/* hard way */
-		if((q = rover) != nil){
+		if((q = rover) != nil)
 			do {
 				p = q->s.next;
 				if(p->s.size < nunits)
@@ -161,46 +219,17 @@ qmallocalign(usize nbytes, uintptr align, long offset, usize span)
 				 * This block is big enough, remove it
 				 * from the list.
 				 */
-				q->s.next = p->s.next;
-				rover = q;
-				qstats[QSmalignrover]++;
-
-				/*
-				 * Free any runt in front of the alignment.
-				 */
-				if(!aligned){
-					r = p;
-					p = ALIGNHDR(p+1, align) - 1;
-					n = p - r;
-					p->s.size = r->s.size - n;
-
-					r->s.size = n;
-					r->s.next = &checkval;
-					qfreeinternal(r+1);
-					qstats[QSmalignfront]++;
-				}
-
-				/*
-				 * Free any residue after the aligned block.
-				 */
-				if(p->s.size > nunits){
-					r = p+nunits;
-					r->s.size = p->s.size - nunits;
-					r->s.next = &checkval;
-					qstats[QSmalignback]++;
-					qfreeinternal(r+1);
-
-					p->s.size = nunits;
-				}
-
-				p->s.next = &checkval;
+				p = qmremblk(p, q, nunits, align, aligned);
 				MUNLOCK;
-				return p+1;
+				return p;
 			} while((q = p) != rover);
-		}
+
+		/* nothing fits, so add more core */
 		if((n = morecore(nunits)) == 0){
 			MUNLOCK;
-			return nil;
+			/* we can't recover */
+			panic("qmallocalign: out of memory. pid %d %s",
+				up? up->pid: 0, up? up->text: "");
 		}
 		tailsize += n;
 	}
@@ -208,50 +237,31 @@ qmallocalign(usize nbytes, uintptr align, long offset, usize span)
 	q = ALIGNHDR(tailptr+1, align);
 	if(q == tailptr+1){
 		tailalloc(p, nunits);
-		qstats[QSmaligntail]++;
-	}
-	else{
-		naligned = NUNITS(align)-1;
-		if(tailsize < nunits+naligned){
-			/*
-			 * There are at least nunits,
-			 * get enough for alignment.
-			 */
-			if((n = morecore(naligned)) == 0){
-				MUNLOCK;
-				return nil;
-			}
-			tailsize += n;
-		}
-		/*
-		 * Save the residue before the aligned allocation
-		 * and free it after the tail pointer has been bumped
-		 * for the main allocation.
-		 */
-		n = q-tailptr - 1;
-		tailalloc(r, n);
-		tailalloc(p, nunits);
-		qstats[QSmalignnottail]++;
-		qfreeinternal(r+1);
-	}
+		qstats[10]++;
+	}else
+		p = qmaddcore(q, align, nunits);
 	MUNLOCK;
-
 	return p+1;
 }
 
 static void*
-qmalloc(usize nbytes)
+qmalloc(uintptr nbytes)
 {
 	Qlist *qlist;
 	Header *p, *q;
-	uint nunits, n;
+	uintptr nunits, n;
 
-///* FIXME: (ignore for now)
-	if(nbytes == 0)
+	if(nbytes == 0) {
+		print("qmalloc: nbytes == 0\n");
+		delay(500);
 		return nil;
-//*/
+	}
+	if (!mallocok) {
+		mallocinit();
+		print("qmalloc: called before mallocinit; doing so\n");
+	}
 
-	qstats[QSmalloc]++;
+	qstats[0]++;			/* heavily trafficked */
 	nunits = NUNITS(nbytes);
 	if(nunits <= NQUICK){
 		qlist = &quicklist[nunits];
@@ -259,6 +269,7 @@ qmalloc(usize nbytes)
 		if((p = qlist->first) != nil){
 			qlist->first = p->s.next;
 			qlist->nalloc++;
+			qstats[1]++;	/* heavily trafficked ~85% */
 			QUNLOCK(&qlist->lk);
 			p->s.next = &checkval;
 			return p+1;
@@ -266,10 +277,11 @@ qmalloc(usize nbytes)
 		QUNLOCK(&qlist->lk);
 	}
 
+	/* uncommon path ~15% */
 	MLOCK;
 	if(nunits > tailsize) {
 		/* hard way */
-		if((q = rover) != nil){
+		if((q = rover) != nil)
 			do {
 				p = q->s.next;
 				if(p->s.size >= nunits) {
@@ -281,23 +293,36 @@ qmalloc(usize nbytes)
 						q->s.next = p->s.next;
 					p->s.next = &checkval;
 					rover = q;
-					qstats[QSmallocrover]++;
+					qstats[2]++;
 					MUNLOCK;
 					return p+1;
 				}
 			} while((q = p) != rover);
-		}
+
+		/* nothing fits, so add more core */
 		if((n = morecore(nunits)) == 0){
 			MUNLOCK;
-			return nil;
+			/* we can't recover */
+			panic("qmalloc: out of memory. pid %d %s",
+				up? up->pid: 0, up? up->text: "");
 		}
 		tailsize += n;
 	}
-	qstats[QSmalloctail]++;
+	qstats[3]++;			/* moderately trafficked (~15%) */
 	tailalloc(p, nunits);
 	MUNLOCK;
-
 	return p+1;
+}
+
+static void
+ckcorrupt(char *func, Header *p)
+{
+	if(p->s.size == 0)
+		panic("%s: corrupt allocation arena: p->s.size 0, p %#p",
+			func, p);
+	if(p->s.next != &checkval)
+		panic("%s: corrupt allocation arena: bad p->s.next %#p, p %#p",
+			func, p->s.next, p);
 }
 
 static void
@@ -305,20 +330,22 @@ qfreeinternal(void* ap)
 {
 	Qlist *qlist;
 	Header *p, *q;
-	uint nunits;
+	uintptr nunits;
 
 	if(ap == nil)
 		return;
-	qstats[QSfree]++;
+	qstats[16]++;			/* heavily trafficked */
 
+	if (isuseraddr(ap))
+		panic("free of user address %#p; pc=%#p", ap, getcallerpc(&ap));
 	p = (Header*)ap - 1;
-	if((nunits = p->s.size) == 0 || p->s.next != &checkval)
-		panic("malloc: corrupt allocation arena");
-	if(tailptr != nil && p+nunits == tailptr) {
+	ckcorrupt("qfreeinternal", p);
+	nunits = p->s.size;
+	if(tailptr != nil && p+nunits == tailptr) {	/* ~5% */
 		/* block before tail */
 		tailptr = p;
 		tailsize += nunits;
-		qstats[QSfreetail]++;
+		qstats[17]++;
 		return;
 	}
 	if(nunits <= NQUICK) {
@@ -327,9 +354,11 @@ qfreeinternal(void* ap)
 		p->s.next = qlist->first;
 		qlist->first = p;
 		QUNLOCK(&qlist->lk);
-		qstats[QSfreequick]++;
+		qstats[18]++;		/* heavily trafficked */
 		return;
 	}
+
+	/* uncommon path ~5% */
 	if((q = rover) == nil) {
 		q = &misclist;
 		q->s.size = 0;
@@ -341,19 +370,19 @@ qfreeinternal(void* ap)
 	if(p+p->s.size == q->s.next) {
 		p->s.size += q->s.next->s.size;
 		p->s.next = q->s.next->s.next;
-		qstats[QSfreenext]++;
+		qstats[19]++;		/* virtually never reached */
 	} else
 		p->s.next = q->s.next;
 	if(q+q->s.size == p) {
 		q->s.size += p->s.size;
 		q->s.next = p->s.next;
-		qstats[QSfreeprev]++;
+		qstats[20]++;		/* virtually never reached */
 	} else
 		q->s.next = p;
 	rover = q;
 }
 
-static void
+static int
 mallocreadfmt(char* s, char* e)
 {
 	char *p;
@@ -362,9 +391,9 @@ mallocreadfmt(char* s, char* e)
 	Qlist *qlist;
 
 	p = s;
-	p = seprint(p, e, "%lud/%lud kernel malloc\n",
-		(tailptr-tailbase)*sizeof(Header),
-		(tailsize+availnunits + tailptr-tailbase)*sizeof(Header));
+	p = seprint(p, e, "%llud/%llud kernel malloc\n",
+		(vlong)(tailptr-tailbase)*sizeof(Header),
+		(vlong)(tailsize+availnunits + tailptr-tailbase)*sizeof(Header));
 	p = seprint(p, e, "0/0 kernel draw\n"); // keep scripts happy
 
 	t = 0;
@@ -373,15 +402,15 @@ mallocreadfmt(char* s, char* e)
 		qlist = &quicklist[i];
 		QLOCK(&qlist->lk);
 		for(q = qlist->first; q != nil; q = q->s.next){
-//			if(q->s.size != i)
-//				p = seprint(p, e, "q%d\t%#p\t%ud\n",
-//					i, q, q->s.size);
+			if(Morestats && q->s.size != i)
+				p = seprint(p, e, "q%d\t%#p\t%llud\n",
+					i, q, (vlong)q->s.size);
 			n++;
 		}
 		QUNLOCK(&qlist->lk);
 
-//		if(n != 0)
-//			p = seprint(p, e, "q%d %d\n", i, n);
+		if(Morestats && n != 0)
+			p = seprint(p, e, "q%d %d\n", i, n);
 		t += n * i*sizeof(Header);
 	}
 	p = seprint(p, e, "quick: %ud bytes total\n", t);
@@ -392,34 +421,38 @@ mallocreadfmt(char* s, char* e)
 		do {
 			t += q->s.size;
 			i++;
-//			p = seprint(p, e, "m%d\t%#p\n", q->s.size, q);
+			if (Morestats)
+				p = seprint(p, e, "m%lld\t%#p\n",
+					(vlong)q->s.size, q);
 		} while((q = q->s.next) != rover);
 
-		p = seprint(p, e, "rover: %d blocks %ud bytes total\n",
-			i, t*sizeof(Header));
+		p = seprint(p, e, "rover: %d blocks %llud bytes total\n",
+			i, (vlong)t*sizeof(Header));
 	}
 
-	for(i = 0; i < nelem(qstats); i++){
-		if(qstats[i] == 0)
-			continue;
-//		p = seprint(p, e, "%s %ud\n", qstatstr[i], qstats[i]);
-	}
-	USED(p);
+	for(i = 0; i < nelem(qstats); i++)
+		if(Morestats && qstats[i])
+			p = seprint(p, e, "qstats[%d] %ud\n", i, qstats[i]);
+	*p = '\0';
 	MUNLOCK;
+	return p - s;
 }
 
 long
 mallocreadsummary(Chan*, void *a, long n, long offset)
 {
+	int bytes;
 	char *alloc;
 
-	alloc = malloc(16*READSTR);
+	if (n < 0)
+		return n;
+	alloc = malloc(4*READSTR);
 	if(waserror()){
 		free(alloc);
 		nexterror();
 	}
-	mallocreadfmt(alloc, alloc+16*READSTR);
-	n = readstr(offset, a, n, alloc);
+	bytes = mallocreadfmt(alloc, alloc+4*READSTR);
+	n = readstr(offset, a, MIN(bytes, n), alloc);
 	poperror();
 	free(alloc);
 
@@ -440,7 +473,7 @@ mallocsummary(void)
 		QLOCK(&qlist->lk);
 		for(q = qlist->first; q != nil; q = q->s.next){
 			if(q->s.size != i)
-				DBG("q%d\t%#p\t%ud\n", i, q, q->s.size);
+				DBG("q%d\t%#p\t%llud\n", i, q, (uvlong)q->s.size);
 			n++;
 		}
 		QUNLOCK(&qlist->lk);
@@ -459,19 +492,16 @@ mallocsummary(void)
 	}
 	MUNLOCK;
 
-	if(i != 0){
-		print("rover: %d blocks %ud bytes total\n",
-			i, t*sizeof(Header));
-	}
-	print("total allocated %lud, %ud remaining\n",
-		(tailptr-tailbase)*sizeof(Header),
-		(tailsize+availnunits)*sizeof(Header));
+	if(i != 0)
+		print("rover: %d blocks %llud bytes total\n",
+			i, (vlong)t*sizeof(Header));
+	print("total allocated %llud, %llud remaining\n",
+		(vlong)(tailptr-tailbase)*sizeof(Header),
+		(vlong)(tailsize+availnunits)*sizeof(Header));
 
-	for(i = 0; i < nelem(qstats); i++){
-		if(qstats[i] == 0)
-			continue;
-		print("%s %ud\n", qstatstr[i], qstats[i]);
-	}
+	for(i = 0; i < nelem(qstats); i++)
+		if(qstats[i])
+			print("qstats[%d] %ud\n", i, qstats[i]);
 }
 
 void
@@ -483,98 +513,98 @@ free(void* ap)
 }
 
 void*
-malloc(ulong size)
-{
-	void* v;
-
-	if((v = qmalloc(size)) != nil)
-		memset(v, 0, size);
-
-	return v;
-}
-
-void*
-mallocz(ulong size, int clr)
+mallocz(uintptr size, int clr)
 {
 	void *v;
 
 	if((v = qmalloc(size)) != nil && clr)
 		memset(v, 0, size);
-
 	return v;
 }
 
 void*
-mallocalign(ulong nbytes, ulong align, long offset, ulong span)
+malloc(uintptr size)
+{
+	return mallocz(size, 1);
+}
+
+void*
+mallocalign(uintptr nbytes, uintptr align, vlong offset, uintptr span)
 {
 	void *v;
 
 	if(span != 0 && align <= span){
-		if(nbytes > span)
+		if(nbytes > span) {
+			print("mallocalign: nbytes %llud > span %llud\n",
+				(uvlong)nbytes, (uvlong)span);
 			return nil;
+		}
 		align = span;
 		span = 0;
 	}
 
 	/*
 	 * Should this memset or should it be left to the caller?
+	 * kernel allocation always zeroes.
 	 */
 	if((v = qmallocalign(nbytes, align, offset, span)) != nil)
 		memset(v, 0, nbytes);
-
 	return v;
 }
 
 void*
-smalloc(ulong size)
+smalloc(uintptr size)
 {
+	int first = 1;
 	void *v;
 
-	while((v = malloc(size)) == nil)
+	while((v = malloc(size)) == nil) {
+		if (first) {
+			if (up == nil)
+				panic("smalloc %lld: nil up", (vlong)size);
+			print("smalloc %lld stuck retrying; proc %s pid %d\n",
+				(vlong)size, up->text, up->pid);
+		}
 		tsleep(&up->sleep, return0, 0, 100);
-	memset(v, 0, size);
-
+		first = 0;
+	}
 	return v;
 }
 
 void*
-realloc(void* ap, ulong size)
+realloc(void* ap, uintptr size)
 {
 	void *v;
 	Header *p;
-	ulong osize;
-	uint nunits, ounits;
-	int delta;
+	uintptr osize, nunits, ounits;
+	vlong delta;
 
 	/*
 	 * Easy stuff:
-	 * free and return nil if size is 0
-	 * (implementation-defined behaviour);
+	 * free and return nil if size is 0 (implementation-defined behaviour);
 	 * behave like malloc if ap is nil;
 	 * check for arena corruption;
 	 * do nothing if units are the same.
 	 */
+	if (ap != nil && isuseraddr(ap))
+		panic("realloc of user address %#p; pc=%#p",
+			ap, getcallerpc(&ap));
 	if(size == 0){
-		MLOCK;
-		qfreeinternal(ap);
-		MUNLOCK;
-
+		free(ap);
 		return nil;
 	}
 	if(ap == nil)
-		return qmalloc(size);
+		return malloc(size);	/* kernel allocations always zero */
 
 	p = (Header*)ap - 1;
-	if((ounits = p->s.size) == 0 || p->s.next != &checkval)
-		panic("realloc: corrupt allocation arena");
-
+	ckcorrupt("realloc", p);
+	ounits = p->s.size;
 	if((nunits = NUNITS(size)) == ounits)
 		return ap;
 
 	/*
 	 * Slightly harder:
-	 * if this allocation abuts the tail, try to just
-	 * adjust the tailptr.
+	 * if this allocation abuts the tail, try to just adjust the tailptr.
 	 */
 	MLOCK;
 	if(tailptr != nil && p+ounits == tailptr){
@@ -592,30 +622,30 @@ realloc(void* ap, ulong size)
 	/*
 	 * Worth doing if it's a small reduction?
 	 * Do it anyway if <= NQUICK?
-	if((ounits-nunits) < 2)
+	if(ounits - nunits < 2)
 		return ap;
 	 */
 
 	/*
-	 * Too hard (or can't be bothered):
-	 * allocate, copy and free.
+	 * Too hard (or can't be bothered): allocate, copy and free.
 	 * What does the standard say for failure here?
 	 */
-	if((v = qmalloc(size)) != nil){
+	v = qmalloc(size);
+	if(v != nil){
 		osize = (ounits-1)*sizeof(Header);
 		if(size < osize)
-			osize = size;
+			osize = size;	/* shrinking: copy only new size */
 		memmove(v, ap, osize);
-		MLOCK;
-		qfreeinternal(ap);
-		MUNLOCK;
+		/* growing: zero new bytes; kernel allocations always zero */
+		if (size > osize)
+			memset((char *)v + osize, 0, size - osize);
+		free(ap);
 	}
-
 	return v;
 }
 
 void
-setmalloctag(void*, ulong)
+setmalloctag(void*, uintptr)
 {
 }
 
@@ -625,23 +655,24 @@ mallocinit(void)
 	if(tailptr != nil)
 		return;
 
-	tailbase = UINT2PTR(sys->vmunused);
-	tailptr = tailbase;
+	tailptr = tailbase = (Header *)sys->vmunused;
 	availnunits = HOWMANY(sys->vmend - sys->vmunused, Unitsz);
-	print("base %#p ptr %#p nunits %ud\n", tailbase, tailptr, availnunits);
+if(0)	print("malloc: base %#p end %#p nunits %llud\n",	
+		tailbase, sys->vmend, (uvlong)availnunits);
+	mallocok = 1;
 }
 
-static int
-morecore(uint nunits)
+static uintptr
+morecore(uintptr nunits)
 {
 	/*
 	 * First (simple) cut.
 	 * Pump it up when you don't really need it.
 	 * Pump it up until you can feel it.
 	 */
-	if(nunits < NUNITS(128*KiB))
-		nunits = NUNITS(128*KiB);
- 	if(nunits > availnunits)
+	if(nunits < NUNITS(128*KB))
+		nunits = NUNITS(128*KB);
+	if(nunits > availnunits)
 		nunits = availnunits;
 	availnunits -= nunits;
 

@@ -1,3 +1,6 @@
+/*
+ * manipulate Images (program text segments)
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -7,7 +10,7 @@
 
 #define NFREECHAN	64
 #define IHASHSIZE	64
-#define ihash(s)	imagealloc.hash[s%IHASHSIZE]
+#define ihash(s)	imagealloc.hash[(s)%IHASHSIZE]
 
 enum
 {
@@ -100,8 +103,9 @@ imagechanreclaim(void)
 	qunlock(&imagealloc.fcreclaim);
 }
 
+/* returns a locked Image* */
 Image*
-attachimage(int type, Chan *c, int color, uintptr base, uintptr top)
+attachimage(int type, Chan *c, uintptr base, uintptr top)
 {
 	Image *i, **l;
 
@@ -150,7 +154,6 @@ attachimage(int type, Chan *c, int color, uintptr base, uintptr top)
 	i->qid = c->qid;
 	i->mqid = c->mqid;
 	i->mchan = c->mchan;
-	i->color = color;
 	l = &ihash(c->qid.path);
 	i->hash = *l;
 	*l = i;
@@ -165,7 +168,6 @@ found:
 		}
 		i->s = newseg(type, base, top);
 		i->s->image = i;
-		i->s->color = color;
 		i->ref++;
 		poperror();
 	}
@@ -185,38 +187,38 @@ putimage(Image *i)
 		return;
 
 	lock(i);
-	if(--i->ref == 0) {
-		l = &ihash(i->qid.path);
-		mkqid(&i->qid, ~0, ~0, QTFILE);
+	if(--i->ref > 0) {
 		unlock(i);
-		c = i->c;
-
-		lock(&imagealloc);
-		for(f = *l; f; f = f->hash) {
-			if(f == i) {
-				*l = i->hash;
-				break;
-			}
-			l = &f->hash;
-		}
-
-		i->next = imagealloc.free;
-		imagealloc.free = i;
-
-		/* defer freeing channel till we're out of spin lock's */
-		if(imagealloc.nfreechan == imagealloc.szfreechan){
-			imagealloc.szfreechan += NFREECHAN;
-			cp = malloc(imagealloc.szfreechan*sizeof(Chan*));
-			if(cp == nil)
-				panic("putimage");
-			memmove(cp, imagealloc.freechan, imagealloc.nfreechan*sizeof(Chan*));
-			free(imagealloc.freechan);
-			imagealloc.freechan = cp;
-		}
-		imagealloc.freechan[imagealloc.nfreechan++] = c;
-		unlock(&imagealloc);
-
 		return;
 	}
+
+	l = &ihash(i->qid.path);
+	mkqid(&i->qid, ~0, ~0, QTFILE);
 	unlock(i);
+	c = i->c;
+
+	lock(&imagealloc);
+	for(f = *l; f; f = f->hash) {
+		if(f == i) {
+			*l = i->hash;
+			break;
+		}
+		l = &f->hash;
+	}
+
+	i->next = imagealloc.free;
+	imagealloc.free = i;
+
+	/* defer freeing channel till we're out of spin lock's */
+	if(imagealloc.nfreechan == imagealloc.szfreechan){
+		imagealloc.szfreechan += NFREECHAN;
+		cp = malloc(imagealloc.szfreechan*sizeof(Chan*));
+		if(cp == nil)
+			panic("putimage");
+		memmove(cp, imagealloc.freechan, imagealloc.nfreechan*sizeof(Chan*));
+		free(imagealloc.freechan);
+		imagealloc.freechan = cp;
+	}
+	imagealloc.freechan[imagealloc.nfreechan++] = c;
+	unlock(&imagealloc);
 }

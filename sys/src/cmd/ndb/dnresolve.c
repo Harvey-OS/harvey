@@ -35,8 +35,8 @@ enum
 
 	Maxtrans=	5,	/* maximum transmissions to a server */
 	Maxretries=	5, /* cname+actual resends: was 32; have pity on user */
-	Maxwaitms=	5000,	/* wait no longer for a remote dns query */
-	Minwaitms=	500,	/* willing to wait for a remote dns query */
+	Maxwaitms=	4000,	/* wait no longer for a remote dns query */
+	Minwaitms=	750,	/* willing to wait for a remote dns query */
 
 	Destmagic=	0xcafebabe,
 	Querymagic=	0xdeadbeef,
@@ -88,8 +88,8 @@ struct Query {
 
 /* estimated % probability of such a record existing at all */
 int likely[] = {
-	[Ta]		95,
-	[Taaaa]		10,
+	[Ta]		70,
+	[Taaaa]		45,
 	[Tcname]	15,
 	[Tmx]		60,
 	[Tns]		90,
@@ -628,6 +628,10 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 	rp = rralloc(type);
 	rp->owner = dp;
 	initdnsmsg(&m, rp, flags, reqno);
+	/*
+	 * we're conservative about payload size; if we know that the remote
+	 * can handle more (e.g., it does edns0), we could raise it.
+	 */
 	len = convDNS2M(&m, &buf[Udphdrsize], Maxdnspayload);
 	rrfreelistptr(&m.qd);
 	memset(&m, 0, sizeof m);		/* cause trouble */
@@ -659,8 +663,8 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 
 	len = -1;			/* pessimism */
 	ms = endms - NS2MS(startns);
-	if (ms <= 0)
-		return -1;		/* taking too long */
+	if (ms < Minreqtm)
+		ms = Minreqtm;		/* give it a fighting chance */
 
 	reply = ibuf;
 	memset(srcip, 0, IPaddrlen);
@@ -687,15 +691,16 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 			dnslog("readnet: %s: tcp fd unset for dest %I",
 				qp->dp->name, qp->tcpip);
 		else if (readn(fd, lenbuf, 2) != 2) {
-			dnslog("readnet: short read of 2-byte tcp msg size from %I",
-				qp->tcpip);
+			dnslog("readnet: short read of 2-byte tcp msg size "
+				"from %I after %ld ms", qp->tcpip, ms);
 			/* probably a time-out */
 			notestats(startns, 1, qp->type);
 		} else {
 			len = lenbuf[0]<<8 | lenbuf[1];
 			if (readn(fd, ibuf, len) != len) {
-				dnslog("readnet: short read of tcp data from %I",
-					qp->tcpip);
+				dnslog("readnet: short read of tcp data "
+					"from %I after %ld ms",
+					qp->tcpip, ms);
 				/* probably a time-out */
 				notestats(startns, 1, qp->type);
 				len = -1;
@@ -1527,10 +1532,6 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	static QLock mntlck;
 	static ulong lastmount;
 
-	/* use alloced buffers rather than ones from the stack */
-	ibuf = emalloc(64*1024);		/* max. tcp reply size */
-	obuf = emalloc(Maxpayload+Udphdrsize);
-
 	fd = udpport(mntpt);
 	while (fd < 0 && cfg.straddle && strcmp(mntpt, "/net.alt") == 0) {
 		/* HACK: remount /net.alt */
@@ -1574,6 +1575,10 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	reqtm = (patient? 2 * Maxreqtm: Maxreqtm);
 	wait = weight(reqtm / 3, pcntprob);	/* time for one udp query */
 	qp->req->aborttime = timems() + 3*wait; /* for all udp queries */
+
+	/* use alloced buffers rather than ones from the stack */
+	ibuf = emalloc(64*1024);		/* max. tcp reply size */
+	obuf = emalloc(Maxpayload+Udphdrsize);
 
 	qp->udpfd = fd;
 	rv = queryns(qp, depth, ibuf, obuf, wait, inns);

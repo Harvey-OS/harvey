@@ -91,6 +91,8 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 
 	mlo = 0;
 	d.d = darg;
+	if (rve)
+		*rve = 0;
 	if (result) {
 		result->k = result_k;
 		result->maxwds = 1 << result_k;
@@ -108,7 +110,8 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 
 #if defined(IEEE_Arith) + defined(VAX)
 #ifdef IEEE_Arith
-	if ((word0(d) & Exp_mask) == Exp_mask)
+//	if ((word0(d) & Exp_mask) == Exp_mask)
+	if (isNaN(darg) || isInf(darg, 0))
 #else
 	if (word0(d)  == 0x8000)
 #endif
@@ -117,9 +120,9 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 		*decpt = 9999;
 		s =
 #ifdef IEEE_Arith
-			!word1(d) && !(word0(d) & 0xfffff) ? "Infinity" :
+//			!word1(d) && !(word0(d) & 0xfffff) ? "Infinity" : "NaN";
+			isNaN(darg)? "NaN": "Infinity";
 #endif
-				"NaN";
 		if (rve)
 			*rve =
 #ifdef IEEE_Arith

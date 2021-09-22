@@ -2,7 +2,10 @@
 #include <libc.h>
 #include <auth.h>
 #include	"9p1.h"
+
 #pragma	varargck	type	"D"	Dir*	/* from fcall.h */
+
+#define VMASK(w) ((1ull << (w)) - 1)
 
 static void dumpsome(char*, char*, long);
 
@@ -355,7 +358,7 @@ convD2M9p1(Dir *f, char *ap)
 	STRING(uid, NAMEREC);
 	STRING(gid, NAMEREC);
 
-	q = f->qid.path & ~0x80000000;
+	q = f->qid.path & VMASK(31);
 	if(f->qid.type & QTDIR)
 		q |= 0x80000000;
 	VLONG(q);
@@ -582,7 +585,7 @@ convM2D9p1(char *ap, Dir *f)
 	p += NAMEREC;
 
 	LONG(qid.path);
-	f->qid.path &= ~0x80000000;
+	f->qid.path &= VMASK(31);
 
 	LONG(qid.vers);
 	LONG(mode);

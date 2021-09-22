@@ -1,3 +1,4 @@
+/* this is a copy of dynld-power64.c and may be wrong for arm64 */
 #include <u.h>
 #include <libc.h>
 #include <a.out.h>
@@ -8,7 +9,7 @@
 long
 dynmagic(void)
 {
-	return DYN_MAGIC | R_MAGIC;
+	return DYN_MAGIC | V_MAGIC;
 }
 
 char*

@@ -1,11 +1,12 @@
 /* qsort -- qsort interface implemented by faster quicksort */
 #include <stdlib.h>
+#include <inttypes.h>
 
 #define SWAPINIT(a, es) swaptype =                            \
-    (a - (char*) 0) % sizeof(long) || es % sizeof(long) ? 2 : \
-    es == sizeof(long) ? 0 : 1;
+    (uintptr_t)(a) % sizeof(size_t) || es % sizeof(size_t) ? 2 : \
+    es == sizeof(size_t) ? 0 : 1;
 #define swapcode(TYPE, parmi, parmj, n) {  \
-    long i = (n) / (int) sizeof(TYPE);     \
+    size_t i = (n) / (int) sizeof(TYPE);     \
     register TYPE *pi = (TYPE *) (parmi);  \
     register TYPE *pj = (TYPE *) (parmj);  \
     do {                                   \
@@ -14,22 +15,29 @@
         *pj++ = t;                         \
     } while (--i > 0);                     \
 }
-static void swapfunc(char *a, char *b, int n, int swaptype)
-{   if (swaptype <= 1) swapcode(long, a, b, n)
-    else swapcode(char, a, b, n)
+
+static void
+swapfunc(char *a, char *b, int n, int swaptype)
+{
+	if (swaptype <= 1)
+		swapcode(size_t, a, b, n)
+	else
+		swapcode(char, a, b, n)
 }
 #define swap(a, b) {                       \
     if (swaptype == 0) {                   \
-        long t = * (long *) (a);           \
-        * (long *) (a) = * (long *) (b);   \
-        * (long *) (b) = t;                \
+        size_t t = * (size_t *) (a);           \
+        * (size_t *) (a) = * (size_t *) (b);   \
+        * (size_t *) (b) = t;                \
     } else                                 \
         swapfunc(a, b, es, swaptype);      \
 }
 #define vecswap(a, b, n) { if (n > 0) swapfunc(a, b, n*es, swaptype); }
 
-static char *med3func(char *a, char *b, char *c, int (*cmp)(const void *, const void *))
-{	return cmp(a, b) < 0 ?
+static char *
+med3func(char *a, char *b, char *c, int (*cmp)(const void *, const void *))
+{
+	return cmp(a, b) < 0 ?
 		  (cmp(b, c) < 0 ? b : (cmp(a, c) < 0 ? c : a ) )
 		: (cmp(b, c) > 0 ? b : (cmp(a, c) < 0 ? a : c ) );
 }
@@ -38,7 +46,7 @@ static char *med3func(char *a, char *b, char *c, int (*cmp)(const void *, const 
 void qsort(void *va, size_t n, size_t es, int (*cmp)(const void *, const void *))
 {
 	char *a, *pa, *pb, *pc, *pd, *pl, *pm, *pn;
-	int  r, swaptype, na, nb, nc, nd, d;
+	int r, swaptype, na, nb, nc, nd, d;
 
 	a = va;
 	SWAPINIT(a, es);

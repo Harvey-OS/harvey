@@ -10,7 +10,7 @@ rune2html(Rune r)
 	static Biobuf b;
 	static int fd = -1;
 	static Rune **tcscache[256];
-	int p[2];
+	int totcs[2], fromtcs[2];
 	char *q;
 	
 	if(r == '\n')
@@ -26,21 +26,24 @@ rune2html(Rune r)
 		return tcscache[r>>8][r&0xFF];
 
 	if(fd < 0){
-		if(pipe(p) < 0)
+		/* use 2 pipes.  with a single pipe, tcs holds both ends open */
+		if(pipe(totcs) < 0 || pipe(fromtcs) < 0)
 			sysfatal("pipe: %r");
 		switch(fork()){
 		case -1:
 			sysfatal("fork: %r");
 		case 0:
-			dup(p[0], 0);
-			dup(p[1], 1);
-			close(p[0]);
-			close(p[1]);
+			dup(totcs[0], 0);
+			dup(fromtcs[1], 1);
+			close(totcs[0]);
+			close(totcs[1]);
+			close(fromtcs[0]);
+			close(fromtcs[1]);
 			execl("/bin/tcs", "tcs", "-t", "html", nil);
-			_exits(0);
+			_exits("no tcs");
 		default:
-			fd = p[1];
-			Binit(&b, p[0], OREAD);
+			fd = totcs[1];
+			Binit(&b, fromtcs[0], OREAD);
 			break;
 		}
 	}

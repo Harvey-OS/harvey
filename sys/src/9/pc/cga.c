@@ -1,3 +1,9 @@
+/*
+ * color graphics adapter - use as dumb text console
+ *
+ * there are two bytes in cga memory for each byte displayed:
+ * the character and its attributes (e.g. color).
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -20,39 +26,41 @@ enum {
 
 	Yellow = Bright|Brown,
 	White = Bright|Grey,
+
+	Pindex	= 0x3d4,			/* motorola 6845 i/o ports */
+	Pdata,
 };
-	
+
 enum {
 	Width		= 80*2,
 	Height		= 25,
 
-	Attr		= (Black<<4)|Grey,	/* high nibble background
-						 * low foreground
-						 */
+			/* high nibble background, low foreground */
+	Attr		= (Black<<4)|Grey,
 
-	Poststrlen	= 0,
-	Postcodelen	= 2,
-	Postlen		= Poststrlen+Postcodelen,
+	Postcodewid	= 2,			/* in characters */
+
+	Pcode		= 0x80,			/* post-code display port */
 };
 
-#define CGASCREENBASE	((uchar*)KADDR(0xB8000))
-#define CGA		CGASCREENBASE
+#define CGA	((uchar*)CGAMEM)		/* screen base */
 
-static int cgapos;
+static unsigned cgapos;
 static Lock cgascreenlock;
 
+/* access 6845 registers via i/o ports */
 static uchar
-cgaregr(int index)
+cgaregr(uchar index)
 {
-	outb(0x3D4, index);
-	return inb(0x3D4+1) & 0xFF;
+	outb(Pindex, index);
+	return inb(Pdata) & 0xFF;
 }
 
 static void
-cgaregw(int index, int data)
+cgaregw(uchar index, uchar data)
 {
-	outb(0x3D4, index);
-	outb(0x3D4+1, data);
+	outb(Pindex, index);
+	outb(Pdata, data);
 }
 
 static void
@@ -60,7 +68,7 @@ movecursor(void)
 {
 	cgaregw(0x0E, (cgapos/2>>8) & 0xFF);
 	cgaregw(0x0F, cgapos/2 & 0xFF);
-	CGASCREENBASE[cgapos+1] = Attr;
+	CGA[cgapos+1] = Attr;
 }
 
 static void
@@ -70,8 +78,8 @@ cgascreenputc(int c)
 	uchar *p;
 
 	if(c == '\n'){
-		cgapos = cgapos/Width;
-		cgapos = (cgapos+1)*Width;
+		cgapos /= Width;		/* ordinal of current line */
+		cgapos = (cgapos+1)*Width;	/* advance to start of next */
 	}
 	else if(c == '\t'){
 		i = 8 - ((cgapos/2)&7);
@@ -85,17 +93,17 @@ cgascreenputc(int c)
 		cgapos -= 2;
 	}
 	else{
-		CGASCREENBASE[cgapos++] = c;
-		CGASCREENBASE[cgapos++] = Attr;
+		CGA[cgapos++] = c;
+		CGA[cgapos++] = Attr;
 	}
-	if(cgapos >= Width*Height){
-		memmove(CGASCREENBASE, &CGASCREENBASE[Width], Width*(Height-1));
-		p = &CGASCREENBASE[Width*(Height-1)];
+	if(cgapos >= Width*Height){		/* if off-screen, scroll */
+		memmove(CGA, &CGA[Width], Width*(Height-1));
+		p = &CGA[Width*(Height-1)];
 		for(i=0; i<Width/2; i++){
 			*p++ = ' ';
 			*p++ = Attr;
 		}
-		cgapos = Width*(Height-1);
+		cgapos = Width*(Height-1);	/* bottom left of screen */
 	}
 	movecursor();
 }
@@ -125,19 +133,25 @@ char hex[] = "0123456789ABCDEF";
 void
 cgapost(int code)
 {
-	uchar *cga;
+	uchar *post;
 
-	cga = CGA;
-	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0F];
-	cga[Width*Height-Postcodelen*2+1] = Attr;
-	cga[Width*Height-Postcodelen*2+2] = hex[code & 0x0F];
-	cga[Width*Height-Postcodelen*2+3] = Attr;
+	post = &CGA[Width*Height - Postcodewid*2];  /* bottom right of screen */
+	*post++ = hex[(code>>4) & 0x0F];
+	*post++ = Attr;
+	*post++ = hex[code & 0x0F];
+	*post   = Attr;
+
+	outb(Pcode, code);
+	/*
+	 * adding a delay here caused /dev/sysstat to report as very low, even
+	 * 0, m->syscall & m->pfault counts for cpus other than 0 (mar 2018).
+	 */
+	// delay(100);			/* ensure visibility */
 }
 
 void
 screeninit(void)
 {
-
 	cgapos = cgaregr(0x0E)<<8;
 	cgapos |= cgaregr(0x0F);
 	cgapos *= 2;

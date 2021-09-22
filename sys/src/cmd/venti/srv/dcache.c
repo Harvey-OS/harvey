@@ -75,11 +75,11 @@ static void	flushproc(void*);
 static void	writeproc(void*);
 
 void
-initdcache(u32int mem)
+initdcache(uintptr mem)
 {
 	DBlock *b, *last;
-	u32int nblocks, blocksize;
-	int i;
+	u32int blocksize;
+	uintptr nblocks, i;
 	u8int *p;
 
 	if(mem < maxblocksize * 2)

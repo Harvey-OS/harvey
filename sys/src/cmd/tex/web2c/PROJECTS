@@ -1,0 +1,60 @@
+Here are some things left to do.  If you would like to contribute, send
+mail to me (kb@mail.tug.org) first.
+
+* Give TeX more options: 
+  output filename:lineno: msg on error
+  change prompt from `\n*' (for simpler cut-and-paste)
+
+* Have bibtex -verbose print full pathnames.
+
+* Make TeX--XeT a configure-time or runtime option?
+
+* Deal with the configure tests that prevent cross-compilation:
+  - Remove use of schar (in dvicopy, mf, pktogf, and tangle).
+  - Learn endianness at runtime, include both Big and LittleEndian
+    versions in code, call appropriate one.
+  - Figure out what to do about the sizeof long test.
+
+* Reallocate memory arrays as needed instead of just allocating once at
+  the beginning.
+
+* Possibly use spiff when doing the triptrap comparisons, so acceptable
+  differences can be eliminated.
+  
+* Make web2c handle fields correctly, i.e., to put the field identifier
+  in the symbol table of the type, instead of the global symbol table. 
+  This would simplify the GFtoDVI change file a fair amount.
+
+* Make web2c handle variant records.  This would make the TeX, Metafont,
+  and GFtoDVI change files all simpler.
+
+* Implement overflow checking for adding and subtracting dimensions.
+  According to Knuth "a few dozen checks" would be needed (section 104).
+  Knuth calls the chances of it occuring unlikely, but unfortunately you
+  will get a bad DVI file when it does.  The following source demonstrates
+  the problem.
+%
+\newcount \loopcount
+\newcount \limit
+\limit = 3570
+\hfuzz = \maxdimen
+\showboxdepth = -\maxdimen
+\showboxbreadth = -\maxdimen
+\overfullrule = 0 pt
+\tracingonline = 1 \scrollmode
+\loop
+\message {\the \limit}
+\setbox 0 = \hbox
+{\loopcount = 0
+ \loop
+	M%
+ \ifnum \loopcount < \limit
+       \advance \loopcount by 1
+ \repeat
+}%
+\message {\the \wd 0}
+\advance \limit by 1
+\iftrue
+\repeat
+\end
+%

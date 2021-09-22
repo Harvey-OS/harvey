@@ -1,10 +1,12 @@
+/*
+ * kernel profiling device
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-
 
 #define LRES	3		/* log of PC resolution */
 #define SZ	4		/* sizeof of count cell; well known as 4 */
@@ -16,6 +18,7 @@ struct
 	int	nbuf;
 	int	time;
 	ulong	*buf;
+	Lock;
 }kprof;
 
 enum{
@@ -29,18 +32,21 @@ Dirtab kproftab[]={
 	"kpctl",	{Kprofctlqid},		0,	0600,
 };
 
+Dev kprofdevtab;
+
 static void
 _kproftimer(uintptr pc)
 {
-	if(kprof.time == 0)
+	if(kprof.time == 0 || kprof.buf == nil)
 		return;
 	/*
 	 *  if the pc is coming out of spllo or splx,
 	 *  use the pc saved when we went splhi.
 	 */
-	if(pc>=PTR2UINT(spllo) && pc<=PTR2UINT(spldone))
+	if(pc >= (uintptr)spllo && pc <= (uintptr)spldone)
 		pc = m->splpc;
 
+	ilock(&kprof);		/* only 1 cpu at a time updates profile */
 	kprof.buf[0] += TK2MS(1);
 	if(kprof.minpc<=pc && pc<kprof.maxpc){
 		pc -= kprof.minpc;
@@ -48,6 +54,7 @@ _kproftimer(uintptr pc)
 		kprof.buf[pc] += TK2MS(1);
 	}else
 		kprof.buf[1] += TK2MS(1);
+	iunlock(&kprof);
 }
 
 static void
@@ -64,17 +71,18 @@ kprofattach(char *spec)
 	ulong n;
 
 	/* allocate when first used */
-	kprof.minpc = KTZERO;
-	kprof.maxpc = PTR2UINT(etext);
-	kprof.nbuf = (kprof.maxpc-kprof.minpc) >> LRES;
-	n = kprof.nbuf*SZ;
-	if(kprof.buf == 0) {
+	if(kprof.buf == nil) {
+		kprof.minpc = KTZERO;
+		kprof.maxpc = (uintptr)etext;
+		/* one more in case difference isn't a multiple of 2^LRES */
+		kprof.nbuf = ((kprof.maxpc-kprof.minpc) >> LRES) + 1;
+		n = kprof.nbuf*SZ;
 		kprof.buf = malloc(n);
-		if(kprof.buf == 0)
+		if(kprof.buf == nil)
 			error(Enomem);
+		kproftab[1].length = n;
 	}
-	kproftab[1].length = n;
-	return devattach('K', spec);
+	return devattach(kprofdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -92,10 +100,8 @@ kprofstat(Chan *c, uchar *db, long n)
 static Chan*
 kprofopen(Chan *c, int omode)
 {
-	if(c->qid.type & QTDIR){
-		if(omode != OREAD)
-			error(Eperm);
-	}
+	if(c->qid.type & QTDIR && omode != OREAD)
+		error(Eperm);
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
@@ -110,10 +116,9 @@ kprofclose(Chan*)
 static long
 kprofread(Chan *c, void *va, long n, vlong off)
 {
-	ulong end;
-	ulong w, *bp;
 	uchar *a, *ea;
-	ulong offset = off;
+	ulong end, offset = off;
+	ulong *bp;
 
 	switch((int)c->qid.path){
 	case Kprofdirqid:
@@ -133,13 +138,8 @@ kprofread(Chan *c, void *va, long n, vlong off)
 		a = va;
 		ea = a + n;
 		bp = kprof.buf + offset/SZ;
-		while(a < ea){
-			w = *bp++;
-			*a++ = w>>24;
-			*a++ = w>>16;
-			*a++ = w>>8;
-			*a++ = w>>0;
-		}
+		while(a < ea)
+			a = beputl(a, *bp++);
 		break;
 
 	default:
@@ -155,7 +155,9 @@ kprofwrite(Chan *c, void *a, long n, vlong)
 	switch((int)(c->qid.path)){
 	case Kprofctlqid:
 		if(strncmp(a, "startclr", 8) == 0){
-			memset((char *)kprof.buf, 0, kprof.nbuf*SZ);
+			kprof.time = 0;	/* prevent updates while zeroing */
+			if (kprof.buf != nil)
+				memset((char *)kprof.buf, 0, kprof.nbuf*SZ);
 			kprof.time = 1;
 		}else if(strncmp(a, "start", 5) == 0)
 			kprof.time = 1;

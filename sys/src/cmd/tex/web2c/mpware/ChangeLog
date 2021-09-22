@@ -1,0 +1,269 @@
+Mon Mar 23 19:18:12 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* Makefile.in (dmp, makempx): Correct dependencies.  From Eli
+ 	Zaretskii.
+
+Thu Jan 29 16:11:25 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* dmp.c: Update for 0.64.
+
+Thu Dec 18 20:36:37 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* dmp.c (fsearch): Use binmode field.
+
+	* dmp.c (fsearch): Assume kpse_truetype_format and
+ 	kpse_type42_format are for binary files.
+
+Mon Dec  1 20:21:13 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* makempx.in: Use --interaction=batchmode instead of '\batchmode'.
+  	Now TeX can look at the mpx$$.tex file to see if a %&format line
+ 	is present.
+
+Wed Nov 19 17:12:32 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* dmp.c (fsearch): Add kpse_tex-ps_header_format and
+ 	kpse_pict_format to the binary modes.
+
+Mon Oct 20 08:38:01 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* mpto.c, newer.c [WIN32]: Include string.h.  From Fabrice Popineau.
+
+Sun Oct 19 11:00:35 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* makempx.in: Removed web2c maintainer's name.
+
+	* newer.c (main): Removed web2c maintainer's name.  Use int main,
+	not void main.
+
+	* mpto.c (main): Removed web2c maintainer's name.  Main returns
+ 	and int, not void.
+
+Fri Oct 17 14:07:21 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* dmp.c: Include the GROFF NOTES comments by Ulrik Vieth.
+
+Wed Oct 15 17:47:09 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* dmp.c (search): Select binary mode to open file for some
+ 	formats, just like kpse_file_open does.  After Eli Zaretskii
+ 	<eliz@is.elta.co.il>.
+
+	* makempx.in: Fix message about `cat' failure.  From Eli Zaretskii
+ 	<eliz@is.elta.co.il>.
+
+Fri Oct  3 11:54:56 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* mpto.c: Correct TROFF line directives (in the troff_pre*
+ 	variables).
+
+	* newer.c: Include stdlib.h.  From Fabrice Popineau.
+	* mpto.c: Include stdlib.h (for exit).
+	* dmp.c: Add prototype for printversionandexit.  After Fabrice
+	Popineau.
+
+Tue Sep 30 16:29:17 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in: Insert version string into makempx.
+	* makempx.in (mode): Modified to get version string from Makefile.
+
+	* newer.c, mpto.c: Modified to use version string from c-auto.h.
+
+	* mpto.c: suppress the printing of a comment if the first
+	*tex..etex block encountered is a verbatimtex..etex block.
+
+Thu Feb 13 16:18:39 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (install-exec): makempx is in the build directory,
+	not srcdir.
+	From: Andreas Schott <ays@rzg.mpg.de>.
+
+Mon Jan 20 17:30:44 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Version 7.0.
+
+Mon Dec  9 01:31:55 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* makempx.in: Use `basename $0` in usage and version messages 
+	for consistency with other programs and scripts.
+
+	* makempx.in: Fix a confusion between TROFF_INERR and TROFF_OUTERR.
+
+	* makempx.in: Remove unfinished $MPXFILE if an error occurs rather
+	than leaving behind a broken version that might confuse $NEWER.
+
+	* newer.c, mpto.c, dmp.c: Reformat usage message for consistency.
+	
+	* newer.c (main): Back out unnecessary usage() function again.
+	All cases of incorrect input were already caught before.
+
+	* mpto.c (main): Issue "Need exactly one file arg. Try --help" 
+	message if called with no arguments.
+ 	
+	* dmp.c (main): Issue "Need one or two file args. Try --help"
+ 	message if called with no arguments.
+	This makes it impossible to use dmp as a filter reading from
+ 	stdin, but it's more in line with the behavior of dvitomp.
+
+	* dmp.c (main): Exit after perror() if file opening failed.
+  	This might have been the reason for some remaining seg faults.
+	
+Tue Dec  3 18:06:46 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* makempx.in: Must use `eval $TROFF' to get the `eqn | troff' 
+	pipeline to work as intended.
+
+Tue Dec  3 00:42:20 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* newer.c (main): Don't seg fault if no args.
+	* newer.c (usage): New separate routine.
+
+	* dmp.c (copy_spec_char): Fix call of fsearch().
+	Refer to DIR_SEP_STRING instead of hard-wired "/".
+	
+Mon Nov 18 13:26:52 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* makempx.in: Missing ` in --version.  From Ulrik.
+
+Sun Nov 10 16:00:41 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* newer.c (main): Do not refer to dmp in the --version output.
+
+	* mpto.c (main): Don't seg fault if no args.
+	Do not refer to dmp in the --version output.
+	From Ulrik.
+
+Tue Oct 15 17:20:18 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* newer.c, mpto.c: Oops, can't use printversionandexit after all
+	without linking with kpathsea.  Not worth it.
+	Just write out the notice.
+
+Tue Oct  8 16:46:17 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* *.c: Call printversionandexit for --version.
+	* makempx.in: Change --version output.
+
+Sat Sep  7 16:20:17 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* makempx.in (PATH): Include MAKEMPX_BINDIR, not compile_bindir.
+
+	* dmp.c (dmp_usage): Include bug reporting address.
+	* mpto.c (usage): Likewise.
+	* newer.c (main): Likewise.
+	* makempx.in (usage): Likewise.
+
+Sat Aug 10 13:27:54 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dmp.c: Oops, forgot to declare kpathsea_version_string.
+
+Sun Aug  4 15:39:42 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dmp.c: Also print kpathsea_version_string if --version.
+	Give perror if open of argument files for reading/writing fail.
+
+	* Makefile.in (newer, mpto): Include $(proglib) for versionstring.
+
+Fri Jul 26 15:47:57 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in: Remove co.make.
+
+Sat Jun  8 13:15:01 1996  K. Berry  <kb@cs.umb.edu>
+
+	* Makefile.in (newer, mpto): Use $(LIBS) $(XLOADLIBES) for these
+        standalone programs instead of $(LOADLIBES), a la squeeze
+        (dmp): Use $(kpathsea_link).
+
+Fri Apr 26 17:55:06 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * makempx.in: Add mptexpre feature. From John Hobby.
+
+Sat Apr 20 17:44:39 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * newer.c (main): Recognize --help and --version.
+
+Tue Mar 26 17:37:13 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * dmp.c: Include c-ctype.h.
+
+Fri Dec 29 17:16:09 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: misc.make is now clean.make.
+
+Tue Dec 12 16:52:00 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dmp.c: Correct --version output. From Ulrik.
+
+Thu Nov 16 16:23:53 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dmp.c: Call kpse_set_progname. From Gregor Hoffleit.
+
+        * makempx.in: Use filename.tex if converting to TeX. From Ulrik.
+
+        * mpto.c (main): Check mpfile for the fopen failing, not mpname.
+        Implement a -E <errfile> option.
+        (usage): Have a -E option on the Amiga.
+        From Andreas Scherer.
+
+Sat Sep 30 15:56:47 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * makempx.in: Quote "$1" for unusual filenames.
+
+Tue Aug 22 14:13:52 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: Include rdepend.make and depend.make.
+
+Mon Jul 31 15:45:12 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * mpto.c (usage): Improve help message.
+
+        * dmp.c: Convert to use kpathsea.
+
+Sun Jul 30 11:10:10 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * makempx.in (mode): Merge troffmpx into this.
+
+Thu Apr 13 16:40:08 1995  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* makempx, troffmpx: replaced by templates makempx.in, troffmpx.in.
+	The actual shell scripts are produced by sed, replacing @BINDIR@
+	by the actual installation directory $(bindir), which is known to
+	the Makefile when invoked as a sub-make from the top-level Makefile.
+
+	* newer.c: include "c-auto.h" as a replacement for "site.h".
+
+	* mptotex.c, mptotr.c: no changes needed. 
+
+	* dvitomp.ch: complete rewrite, incorporating material from
+	../dviutil/dviutil.ch and the original dvitomp.ch.
+
+	* dmp.c: include "c-auto.h" as a replacement for "site.h".  
+	Also include a special header file "dmp.h" containing MetaPost 
+	specific stuff that isn't found in "c-auto.h".  Use MPSUPPORT
+	instead of MPPOOL as the directory for troff support files.
+
+	* dmp.h.in: added new template file for "dmp.h". The actual header
+	file is produced by sed, repacing @TEXMF@ by the actual library
+	directory $(texmf), which is known to the Makefile when invoked
+	as a sub-make from the top-level Makefile.
+
+	* pathexp.c: include "c-auto.h" as a replacement for "site.h".
+	Use `#ifdef HAVE_DIRENT_H' and `#ifdef HAVE_STRING_H' instead
+	of `#ifdef BSD'.  (There still remains one case of `#ifdef SYSV'
+	that needs to be checked.)
+
+Wed Apr 12 18:56:19 1995  Ulrik Vieth  <vieth@macbeth>
+
+	* Makefile: discarded, will be regenerated from Makefile.in 
+	during configure run.
+
+	* Makefile.in: complete rewrite, based on ../dviutil/Makefile.in.
+
+	* convert: discarded, using ../lib/convert instead.
+
+	* mpware.def: discarded, using ../lib/common.defines instead.
+
+	* mpware.h: discarded, using the web2c header files from ../lib.
+
+	* dvimpext.c: discarded, using routines from ../lib/lib.a instead.
+	

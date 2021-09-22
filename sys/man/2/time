@@ -46,7 +46,8 @@ opening that file when first called,
 and maintaining a static file descriptor;
 however,
 the maintenance of file descriptors in the face
-of process forks is overly complex and prone to error.
+of process forks is overly complex and prone to error,
+and this process added considerable jitter.
 .SH SOURCE
 .B /sys/src/libc/9sys/time.c
 .br

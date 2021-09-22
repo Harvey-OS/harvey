@@ -622,86 +622,12 @@ fop(int as, int f1, int f2, Node *t)
 	regfree(&nod3);
 }
 
-static void
-floattofix(Node *f, Node *t)
-{
-	Node nod, fxrat;
-
-	regalloc(&nod, f, Z);
-	regsalloc(&fxrat, &fconstnode);
-	gins(AFCTIWZ, f, &nod);
-	gins(AFMOVD, &nod, &fxrat);
-	regfree(&nod);
-	fxrat.type = nodrat->type;
-	fxrat.etype = nodrat->etype;
-	fxrat.xoffset += 4;
-	gins(AMOVW, &fxrat, t);
-	gmove(t, t);
-}
-
-static void
-fixtofloat(Node *f, Node *t)
-{
-	int a, ft, tt;
-	Prog *p1;
-	Node nod, fxc0, fxc1, fxc2, fxrat;
-
-	ft = f->type->etype;
-	tt = t->type->etype;
-
-	/*
-	 * rat[0] = 0x43300000; rat[1] = f^0x80000000;
-	 * t = *(double*)rat - FREGCVI;
-	 * is-unsigned(t) => if(t<0) t += 2^32;
-	 * could be streamlined for int-to-float
-	 */
-	regalloc(&fxc0, f, Z);
-	regalloc(&fxc2, f, Z);
-	regsalloc(&fxrat, &fconstnode);	/* should be type float */
-	gins(AMOVW, nodconst(0x43300000L), &fxc0);
-	gins(AMOVW, f, &fxc2);
-	gins(AMOVW, &fxc0, &fxrat);
-	gins(AXOR, nodconst(0x80000000L), &fxc2);
-	fxc1 = fxrat;
-	fxc1.type = nodrat->type;
-	fxc1.etype = nodrat->etype;
-	fxc1.xoffset += SZ_LONG;
-	gins(AMOVW, &fxc2, &fxc1);
-	regfree(&fxc2);
-	regfree(&fxc0);
-	regalloc(&nod, t, t);	/* should be type float */
-	gins(AFMOVD, &fxrat, &nod);
-	nodreg(&fxc1, t, NREG+FREGCVI);
-	gins(AFSUB, &fxc1, &nod);
-	a = AFMOVD;
-	if(tt == TFLOAT)
-		a = AFRSP;
-	gins(a, &nod, t);
-	regfree(&nod);
-	if(ft == TULONG) {
-		regalloc(&nod, t, Z);
-		gins(AFCMPU, t, Z);
-		p->to.type = D_FREG;
-		p->to.reg = FREGZERO;
-		gins(ABGE, Z, Z);
-		p1 = p;
-		if(tt == TFLOAT) {
-			gins(AFMOVS, nodfconst(4294967296.), &nod);
-			gins(AFADDS, &nod, t);
-		} else {
-			gins(AFMOVD, nodfconst(4294967296.), &nod);
-			gins(AFADD, &nod, t);
-		}
-		patch(p1, pc);
-		regfree(&nod);
-	}
-}
-
 void
 gmove(Node *f, Node *t)
 {
 	int ft, tt, a;
-	Node nod;
+	Node nod, fxc0, fxc1, fxc2, fxrat;
+	Prog *p1;
 	double d;
 
 	ft = f->type->etype;
@@ -801,7 +727,7 @@ gmove(Node *f, Node *t)
 			break;
 		}
 		if(typev[ft]) {
-			if(typev[tt] || typefd[tt]) {
+			if(typev[tt]) {
 				regalloc(&nod, f, t);
 				/* low order first, because its value will be used first */
 				f->xoffset += SZ_LONG;
@@ -906,11 +832,16 @@ gmove(Node *f, Node *t)
 		case TCHAR:
 		case TUCHAR:
 			/* BUG: not right for unsigned long */
-			floattofix(f, t);
-			return;
-		case TVLONG:
-		case TUVLONG:
-			diag(f, "unimplemented double->vlong");
+			regalloc(&nod, f, Z);	/* should be type float */
+			regsalloc(&fxrat, &fconstnode);
+			gins(AFCTIWZ, f, &nod);
+			gins(AFMOVD, &nod, &fxrat);
+			regfree(&nod);
+			fxrat.type = nodrat->type;
+			fxrat.etype = nodrat->etype;
+			fxrat.xoffset += 4;
+			gins(AMOVW, &fxrat, t);
+			gmove(t, t);
 			return;
 		}
 		break;
@@ -922,8 +853,7 @@ gmove(Node *f, Node *t)
 		switch(tt) {
 		case TDOUBLE:
 		case TFLOAT:
-			fixtofloat(f, t);
-			return;
+			goto fxtofl;
 		case TINT:
 		case TUINT:
 		case TLONG:
@@ -941,8 +871,7 @@ gmove(Node *f, Node *t)
 		switch(tt) {
 		case TDOUBLE:
 		case TFLOAT:
-			fixtofloat(f, t);
-			return;
+			goto fxtofl;
 		case TINT:
 		case TUINT:
 		case TLONG:
@@ -962,8 +891,7 @@ gmove(Node *f, Node *t)
 		switch(tt) {
 		case TDOUBLE:
 		case TFLOAT:
-			fixtofloat(f, t);
-			return;
+			goto fxtofl;
 		case TINT:
 		case TUINT:
 		case TLONG:
@@ -983,8 +911,7 @@ gmove(Node *f, Node *t)
 		switch(tt) {
 		case TDOUBLE:
 		case TFLOAT:
-			fixtofloat(f, t);
-			return;
+			goto fxtofl;
 		case TINT:
 		case TUINT:
 		case TLONG:
@@ -1004,7 +931,58 @@ gmove(Node *f, Node *t)
 		switch(tt) {
 		case TDOUBLE:
 		case TFLOAT:
-			fixtofloat(f, t);
+		fxtofl:
+			/*
+			 * rat[0] = 0x43300000; rat[1] = f^0x80000000;
+			 * t = *(double*)rat - FREGCVI;
+			 * is-unsigned(t) => if(t<0) t += 2^32;
+			 * could be streamlined for int-to-float
+			 */
+			regalloc(&fxc0, f, Z);
+			regalloc(&fxc2, f, Z);
+			regsalloc(&fxrat, &fconstnode);	/* should be type float */
+			gins(AMOVW, nodconst(0x43300000L), &fxc0);
+			gins(AMOVW, f, &fxc2);
+			gins(AMOVW, &fxc0, &fxrat);
+			gins(AXOR, nodconst(0x80000000L), &fxc2);
+			fxc1 = fxrat;
+			fxc1.type = nodrat->type;
+			fxc1.etype = nodrat->etype;
+			fxc1.xoffset += SZ_LONG;
+			gins(AMOVW, &fxc2, &fxc1);
+			regfree(&fxc2);
+			regfree(&fxc0);
+			regalloc(&nod, t, t);	/* should be type float */
+			gins(AFMOVD, &fxrat, &nod);
+			nodreg(&fxc1, t, NREG+FREGCVI);
+			gins(AFSUB, &fxc1, &nod);
+			a = AFMOVD;
+			if(tt == TFLOAT)
+				a = AFRSP;
+			gins(a, &nod, t);
+			regfree(&nod);
+			if(ft == TULONG) {
+				regalloc(&nod, t, Z);
+				if(tt == TFLOAT) {
+					gins(AFCMPU, t, Z);
+					p->to.type = D_FREG;
+					p->to.reg = FREGZERO;
+					gins(ABGE, Z, Z);
+					p1 = p;
+					gins(AFMOVS, nodfconst(4294967296.), &nod);
+					gins(AFADDS, &nod, t);
+				} else {
+					gins(AFCMPU, t, Z);
+					p->to.type = D_FREG;
+					p->to.reg = FREGZERO;
+					gins(ABGE, Z, Z);
+					p1 = p;
+					gins(AFMOVD, nodfconst(4294967296.), &nod);
+					gins(AFADD, &nod, t);
+				}
+				patch(p1, pc);
+				regfree(&nod);
+			}
 			return;
 		case TINT:
 		case TUINT:

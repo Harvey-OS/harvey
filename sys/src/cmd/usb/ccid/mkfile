@@ -1,0 +1,40 @@
+</$objtype/mkfile
+
+TARG=ccid
+OFILES=main.$O
+LIBDOFILES=ccid.$O tagrd.$O eprpc.$O le.$O atr.$O scr3310.$O client.$O poller.$O
+HFILES=\
+	../lib/usb.h\
+	tagrd.h\
+	ccid.h\
+	eprpc.h\
+	le.h\
+	atr.h\
+	scr3310.h\
+
+LIBD=../lib/usbdev.a$O
+LIBU=../lib/usb.a$O
+LIB=\
+	$LIBD\
+	$LIBU\
+
+BIN=/$objtype/bin/usb
+
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+CFLAGS=-I../lib $CFLAGS
+
+$LIBU:
+	cd ../lib
+	mk install
+	mk clean
+
+$LIBD:V: $LIBDOFILES
+	ar vu $LIBD $newprereq
+	rm $newprereq
+

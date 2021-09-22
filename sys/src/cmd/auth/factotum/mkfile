@@ -13,7 +13,6 @@ PROTO=\
 	pass.$O\
 	rsa.$O\
 	wep.$O\
-	wpapsk.$O\
 
 FOFILES=\
 	$PROTO\
@@ -39,7 +38,7 @@ UPDATE=\
 </sys/src/cmd/mkmany
 
 $O.factotum: $FOFILES
-	$LD -o $target $prereq
+	$LD -o $target $prereq -lnofp
 
 $O.fgui: fgui.$O
 	$LD -o $target $prereq

@@ -1,8 +1,8 @@
 /*
- * arm-specific definitions for cortex-a8 and -a9
+ * arm-specific definitions for cortex-a9
  * these are used in C and assembler
  *
- * `cortex' refers to the cortex-a8 or -a9.
+ * unqualified `cortex' refers to the cortex-a8 or -a9.
  */
 
 #define NREGS		15	/* general-purpose regs, R0 through R14 */
@@ -24,16 +24,21 @@
 #define PsrDfiq		0x00000040		/* disable FIQ interrupts */
 #define PsrDirq		0x00000080		/* disable IRQ interrupts */
 #define PsrDasabt	0x00000100		/* disable asynch aborts */
-#define PsrBigend	0x00000200
+#define PsrBigend	0x00000200		/* E: big-endian data */
 
+#define PsrGe		0x000f0000		/* `>=' bits */
+#define PsrMbz20	0x00f00000		/* MBZ: 20 - 23 */
 #define PsrJaz		0x01000000		/* java mode */
+#define PsrIT		0x0600fc00		/* IT: if-then thumb state */
+#define PsrQ		0x08000000		/* cumulative saturation */
 
 #define PsrV		0x10000000		/* overflow */
 #define PsrC		0x20000000		/* carry/borrow/extend */
 #define PsrZ		0x40000000		/* zero */
 #define PsrN		0x80000000		/* negative/less than */
 
-#define PsrMbz		(PsrJaz|PsrThumb|PsrBigend) /* these bits must be 0 */
+/* these bits must be 0 */
+#define PsrMbz		(PsrQ|PsrJaz|PsrMbz20|PsrThumb|PsrBigend|PsrDasabt)
 
 /*
  * MCR and MRC are anti-mnemonic.
@@ -44,17 +49,31 @@
 #define MTCP	MCR
 #define MFCP	MRC
 
-/* instruction decoding */
+/*
+ * instruction decoding
+ */
+
+#define CONDITION(inst)	((ulong)(inst) >> 28)
+#define OPCODE(inst)	(((inst)>>24) & MASK(4))	/* co-proc opcode */
+#define CPUREGN(inst)	(((inst)>>16) & MASK(4))	/* Rn */
+#define CPUREGD(inst)	(((inst)>>12) & MASK(4))	/* Rd */
+#define COPROC(inst)	(((inst)>> 8) & MASK(4))	/* co-proc number */
+
+/* for double-word moves, use VFPREGD for Rt, VFPREGN for Rt2 */
+#define VFPREGN(inst)	(((inst)>>16) & MASK(4))	/* Vn */
+#define VFPREGD(inst)	(((inst)>>12) & MASK(4))	/* Vd */
+
+/* op must be OPCODE(inst) */
 #define ISCPOP(op)	((op) == 0xE || ((op) & ~1) == 0xC)
-#define ISFPAOP(cp, op)	((cp) == CpOFPA && ISCPOP(op))
-#define ISVFPOP(cp, op)	(((cp) == CpDFP || (cp) == CpFP) && ISCPOP(op))
+/* assume ISCPOP() is true; cp must be COPROC(inst) */
+#define ISFPOP(cp)	((cp) == CpOFPA || (cp) == CpDFP || (cp) == CpFP)
 
 /*
  * Coprocessors
  */
 #define CpOFPA		1			/* ancient 7500 FPA */
-#define CpFP		10			/* float FP, VFP cfg. */
-#define CpDFP		11			/* double FP */
+#define CpFP		10			/* float VFP and config */
+#define CpDFP		11			/* double VFP */
 #define CpSC		15			/* System Control */
 
 /*
@@ -82,6 +101,19 @@
 #define CpTTBctl	2			/* v7 */
 
 /*
+ * CpTTB[01] low-order bits (for MP)
+ */
+#define TTBIRGNwb	(1<<6)			/* inner write-back */
+#define TTBNos		(1<<5)			/* inner shareable */
+#define TTBRGNnowralloc	(1<<4)			/* outer no write alloc */
+#define TTBRGNwb	(1<<3)			/* outer write-back */
+#define TTBShare	(1<<1)			/* shareable */
+#define TTBIRGNnowralloc (1<<0)			/* inner no write alloc */
+
+/* we want normal, shareable, write-back, write-allocate cacheable memory */
+#define TTBlow		(TTBIRGNwb|TTBRGNwb|TTBShare|TTBNos)
+
+/*
  * CpFSR op1==0, Crm==0 opcode 2 values.
  */
 #define CpDFSR		0			/* data fault status */
@@ -97,6 +129,7 @@
  * CpID Secondary (CRm) registers.
  */
 #define CpIDidct	0
+#define CpIDidmmfr	1			/* memory model features */
 
 /*
  * CpID CpIDidct op1==0 opcode2 fields.
@@ -117,6 +150,11 @@
 #define CpIDclvlid	1			/* cache-level id */
 
 /*
+ * CpID CpIDidmmfr op1==0 opcode 2 fields.
+ */
+#define CpIDidmmfr0	4			/* base of 4 regs */
+
+/*
  * CpCONTROL op2 codes, op1==0, Crm==0.
  */
 #define CpMainctl	0		/* sctlr */
@@ -128,91 +166,101 @@
  * main control register.
  * cortex/armv7 has more ops and CRm values.
  */
-#define CpCmmu		0x00000001	/* M: MMU enable */
-#define CpCalign	0x00000002	/* A: alignment fault enable */
-#define CpCdcache	0x00000004	/* C: data cache on */
-#define CpBigend	(1<<7)
-#define CpCsw		(1<<10)		/* SW: SWP(B) enable (deprecated in v7) */
-#define CpCpredict	0x00000800	/* Z: branch prediction (armv7) */
-#define CpCicache	0x00001000	/* I: instruction cache on */
-#define CpChv		0x00002000	/* V: high vectors */
-#define CpCrr		(1<<14)	/* RR: round robin vs random cache replacement */
-#define CpCha		(1<<17)		/* HA: hw access flag enable */
-#define CpCdz		(1<<19)		/* DZ: divide by zero fault enable (not cortex-a9) */
-#define CpCfi		(1<<21)		/* FI: fast intrs */
-#define CpCve		(1<<24)		/* VE: intr vectors enable */
-#define CpCee		(1<<25)		/* EE: exception endianness: big */
-#define CpCnmfi		(1<<27)		/* NMFI: non-maskable fast intrs. (RO) */
-#define CpCtre		(1<<28)		/* TRE: TEX remap enable */
-#define CpCafe		(1<<29)		/* AFE: access flag (ttb) enable */
-#define CpCte		(1<<30)		/* TE: thumb exceptions */
+#define CpCmmu		(1<<0)	/* M: MMU enable */
+#define CpCalign	(1<<1)	/* A: alignment fault enable */
+#define CpCdcache	(1<<2)	/* C: data and unified caches on */
+#define CpC15ben	(1<<5)	/* cp15 barrier enable */
+#define CpCbigend	(1<<7)	/* B: big-endian data */
+#define CpCsw		(1<<10)	/* SW: SWP(B) enable (deprecated in v7) */
+#define CpCpredict	(1<<11)	/* Z: branch prediction (armv7) */
+#define CpCicache	(1<<12)	/* I: instruction cache on */
+#define CpChv	(1<<13)		/* V: use high vectors at 0xffff0000 */
+#define CpCrr	(1<<14)		/* RR: round robin vs random cache replacement */
+#define CpCha	(1<<17)		/* HA: hw access flag enable */
+#define CpCwxn	(1<<19)		/* WXN: write implies XN (VE) */
+#define CpCuwxn	(1<<20) /* UWXN: force XN for unpriv. writeable regions (VE) */
+#define CpCfi	(1<<21)		/* FI: fast intrs */
+#define CpCve	(1<<24)		/* VE: intr vectors enable */
+#define CpCee	(1<<25)		/* EE: exception endianness: big */
+#define CpCnmfi	(1<<27)		/* NMFI: non-maskable fast intrs. (RO) */
+#define CpCtre	(1<<28)		/* TRE: TEX remap enable */
+#define CpCafe	(1<<29)		/* AFE: access flag (ttb) enable */
+#define CpCte	(1<<30)		/* TE: thumb exceptions */
 
+/* must-be-0 bits (armv7) */
 #define CpCsbz (1<<31 | CpCte | CpCafe | CpCtre | 1<<26 | CpCee | CpCve | \
-	CpCfi | 3<<19 | CpCha | 1<<15 | 3<<8 | CpBigend) /* must be 0 (armv7) */
-#define CpCsbo (3<<22 | 1<<18 | 1<<16 | CpChv | CpCsw | 017<<3)	/* must be 1 (armv7) */
+	CpCfi | CpCuwxn | CpCwxn | CpCha | 1<<15 | 3<<8 | CpCbigend)
+/* must be 1 (armv7) */
+/* CpCrr is for erratum 716044 */
+#define CpCsbo (3<<22 | 1<<18 | 1<<16 | CpCrr | CpCsw | 1<<6 | \
+	CpC15ben | 3<<3)
 
 /*
  * CpCONTROL: op1==0, CRm==0, op2==CpAuxctl.
  * Auxiliary control register on cortex-a9.
  * these differ from even the cortex-a8 bits.
  */
-#define CpACparity		(1<<9)
-#define CpACca1way		(1<<8)	/* cache in a single way */
-#define CpACcaexcl		(1<<7)	/* exclusive cache */
-#define CpACsmp			(1<<6)	/* SMP l1 caches coherence; needed for ldrex/strex */
-#define CpAClwr0line		(1<<3)	/* write full cache line of 0s; see Fullline0 */
-#define CpACl1pref		(1<<2)	/* l1 prefetch enable */
-#define CpACl2pref		(1<<1)	/* l2 prefetch enable */
-#define CpACmaintbcast		(1<<0)	/* broadcast cache & tlb maint. ops */
+#define CpACparity	(1<<9)
+#define CpACca1way	(1<<8)	/* cache in a single way */
+#define CpACcaexcl	(1<<7)	/* exclusive cache */
+#define CpACsmpcoher	(1<<6)	/* SMP: scu keeps caches coherent; */
+				/* needed for ldrex/strex */
+#define CpAClwr0line	(1<<3)	/* write full cache line of 0s; see Fullline0 */
+#define CpACl1pref	(1<<2)	/* l1 prefetch enable */
+#define CpACl2pref	(1<<1)	/* l2 prefetch enable */
+#define CpACmaintbcast	(1<<0)	/* FW: broadcast cache & tlb maint. ops */
 
 /*
  * CpCONTROL Secondary (CRm) registers and opcode2 fields.
  */
 #define CpCONTROLscr	1
 
-#define CpSCRscr	0			/* secure configuration */
+#define CpSCRscr	0		/* secure configuration */
+#define CpSCRdebug	1		/* undocumented errata workaround */
 
 /*
  * CpCACHE Secondary (CRm) registers and opcode2 fields.  op1==0.
  * In ARM-speak, 'flush' means invalidate and 'clean' means writeback.
  */
-#define CpCACHEintr	0			/* interrupt (op2==4) */
-#define CpCACHEisi	1			/* inner-sharable I cache (v7) */
-#define CpCACHEpaddr	4			/* 0: phys. addr (cortex) */
-#define CpCACHEinvi	5			/* instruction, branch table */
-#define CpCACHEinvd	6			/* data or unified */
-// #define CpCACHEinvu	7			/* unified (not on cortex) */
-#define CpCACHEva2pa	8			/* va -> pa translation (cortex) */
-#define CpCACHEwb	10			/* writeback */
-#define CpCACHEinvdse	11			/* data or unified by mva */
-#define CpCACHEwbi	14			/* writeback+invalidate */
+//#define CpCACHEintr	0		/* interrupt (op2==4) */
+#define CpCACHEinviis	1		/* inv i-cache to inner-sharable (v7) */
+//#define CpCACHEpaddr	4		/* 0: phys. addr (cortex) */
+#define CpCACHEinvi	5		/* inv i-cache to pou, branch table */
+#define CpCACHEinvd	6		/* inv data or unified to poc */
+// #define CpCACHEinvu	7		/* unified (not on cortex) */
+#define CpCACHEva2pa	8		/* va -> pa translation (cortex) */
+#define CpCACHEwb	10		/* writeback to poc */
+#define CpCACHEwbsepou	11		/* wb data or unified by mva to pou */
+#define CpCACHEwbi	14		/* writeback+invalidate to poc */
 
-#define CpCACHEall	0			/* entire (not for invd nor wb(i) on cortex) */
-#define CpCACHEse	1			/* single entry */
-#define CpCACHEsi	2			/* set/index (set/way) */
-#define CpCACHEtest	3			/* test loop */
-#define CpCACHEwait	4			/* wait (prefetch flush on cortex) */
-#define CpCACHEdmbarr	5			/* wb only (cortex) */
-#define CpCACHEflushbtc	6			/* flush branch-target cache (cortex) */
-#define CpCACHEflushbtse 7			/* ⋯ or just one entry in it (cortex) */
+#define CpCACHEall	0		/* entire (not for invd nor wb(i) on cortex) */
+#define CpCACHEse	1		/* single entry by va */
+#define CpCACHEsi	2		/* set/index (set/way) */
+#define CpCACHEinvuis	3		/* inv. u. tlb to is */
+#define CpCACHEwait	4		/* wait (prefetch flush on cortex) */
+//#define CpCACHEdmbarr	5		/* wb only (cortex) */
+#define CpCACHEflushbtc 6		/* flush branch-target cache (cortex) */
+#define CpCACHEflushbtse 7		/* ⋯ or just one entry in it (cortex) */
 
 /*
- * CpTLB Secondary (CRm) registers and opcode2 fields.
+ * CpTLB op1==0 Secondary (CRm) registers and opcode2 fields
  */
-#define CpTLBinvi	5			/* instruction */
-#define CpTLBinvd	6			/* data */
-#define CpTLBinvu	7			/* unified */
+#define CpTLBinvuis	3		/* unified on all inner sharable cpus */
+#define CpTLBinvi	5		/* instruction (deprecated) */
+#define CpTLBinvd	6		/* data (deprecated) */
+#define CpTLBinvu	7		/* unified */
 
-#define CpTLBinv	0			/* invalidate all */
-#define CpTLBinvse	1			/* invalidate single entry */
-#define CpTBLasid	2			/* by ASID (cortex) */
+#define CpTLBinv	0		/* invalidate all */
+#define CpTLBinvse	1		/* invalidate by mva */
+#define CpTLBasid	2		/* by ASID (cortex) */
+#define CpTLBallasid	3		/* by mva, all ASIDs (cortex) */
 
 /*
  * CpCLD Secondary (CRm) registers and opcode2 fields for op1==0. (cortex)
  */
-#define CpCLDena	12			/* enables */
-#define CpCLDcyc	13			/* cycle counter */
-#define CpCLDuser	14			/* user enable */
+#define CpCLDena	12		/* enables */
+#define CpCLDcyc	13		/* cycle counter */
+#define CpCLDuser	14		/* user enable */
 
 #define CpCLDenapmnc	0
 #define CpCLDenacyc	1
@@ -220,9 +268,9 @@
 /*
  * CpCLD Secondary (CRm) registers and opcode2 fields for op1==1.
  */
-#define CpCLDl2		0			/* l2 cache */
+#define CpCLDl2		0		/* l2 cache */
 
-#define CpCLDl2aux	2			/* auxiliary control */
+#define CpCLDl2aux	2		/* auxiliary control */
 
 /*
  * l2 cache aux. control
@@ -255,16 +303,38 @@
 #define CpVECSmon	1			/* secure monitor base addr */
 
 /*
+ * CpDTLB Secondary (CRm) registers and opcode 1 and 2 fields.
+ */
+#define CpDTLBmisc	0
+
+/* op1 */
+#define CpDTLBmisc1	0
+#define CpDTLBcbar1	4	/* config base address (periphbase for scu) */
+
+/* op2 for op1==0 (CpDTLBmisc1) */
+#define CpDTLBpower	0	/* power control */
+#define CpDTLBdiag	1	/* `undocumented diagnostic register' */
+
+/* op2 for op1==CpDTLBcbar1 */
+#define CpDTLBcbar2	0	/* config base address (periphbase for scu) */
+
+/*
  * MMU page table entries.
  * memory must be cached, buffered, sharable and wralloc to participate in
  * automatic L1 cache coherency.
+ *
+ * the Noexec* bits prevent prefetching, which is otherwise speculative and
+ * aggressive in the cortex-a9, particularly translation table walks.
+ * this property is documented in the (vast, legalistic) v7-a arch. arm. in
+ * §B3.7.2, but I first saw it discussed by Adeneo Embedded (and it fixed
+ * many crashes for them) in https://community.nxp.com/docs/DOC-103079.
  */
-#define Mbz		(0<<4)			/* L1 page tables: must be 0 */
+#define L1pagesmbz	(0<<4)			/* L1 page tables: must be 0 */
 #define Noexecsect	(1<<4)			/* L1 sections: no execute */
 #define Fault		0x00000000		/* L[12] pte: unmapped */
 
-#define Coarse		(Mbz|1)			/* L1: page table */
-#define Section		(Mbz|2)			/* L1 1MB */
+#define Coarse		(L1pagesmbz|1)		/* L1: page table */
+#define Section		(L1pagesmbz|2)		/* L1 1MB */
 /*
  * next 2 bits (L1wralloc & L1sharable) and Buffered and Cached must be
  * set in l1 ptes for LDREX/STREX to work.
@@ -275,7 +345,7 @@
 #define Nonsecuresect	(1<<19)			/* L1 sections */
 
 #define Large		0x00000001		/* L2 64KB */
-#define Noexecsmall	1			/* L2: no execute */
+#define Noexecsmall	1			/* L2 4KB page: no execute */
 #define Small		0x00000002		/* L2 4KB */
 /*
  * next 3 bits (Buffered, Cached, L2wralloc) & L2sharable must be set in
@@ -305,5 +375,3 @@
 #define L1AP(ap)	(AP(3, (ap)))
 #define L2AP(ap)	(AP(0, (ap)))		/* armv7 */
 #define DAC(n, v)	F((v), (n)*2, 2)
-
-#define HVECTORS	0xffff0000

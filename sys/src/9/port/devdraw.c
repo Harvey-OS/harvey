@@ -2204,9 +2204,9 @@ drawactive(int active)
 {
 	if(active){
 		drawblankscreen(0);
-		sdraw.blanktime = MACHP(0)->ticks;
+		sdraw.blanktime = sys->ticks;
 	}else{
-		if(blanktime && sdraw.blanktime && TK2SEC(MACHP(0)->ticks - sdraw.blanktime)/60 >= blanktime)
+		if(blanktime && sdraw.blanktime && TK2SEC(sys->ticks - sdraw.blanktime)/60 >= blanktime)
 			drawblankscreen(1);
 	}
 }
@@ -2214,5 +2214,5 @@ drawactive(int active)
 int
 drawidletime(void)
 {
-	return TK2SEC(MACHP(0)->ticks - sdraw.blanktime)/60;
+	return TK2SEC(sys->ticks - sdraw.blanktime)/60;
 }

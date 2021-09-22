@@ -1,15 +1,20 @@
+/*
+ * import a namespace from a remote system
+ */
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
 #include <libsec.h>
 
 enum {
+	Encunspec,
 	Encnone,
 	Encssl,
 	Enctls,
 };
 
 static char *encprotos[] = {
+	[Encunspec] =	"unspec",	/* unspecified; not sent over the net */
 	[Encnone] =	"clear",
 	[Encssl] =	"ssl",
 	[Enctls] = 	"tls",
@@ -18,21 +23,20 @@ static char *encprotos[] = {
 
 char		*keyspec = "";
 char		*filterp;
-char		*ealgs = "rc4_256 sha1";
-int		encproto = Encnone;
+char		*ealgs = "rc4_256 sha1";	/* ssl only */
+int		encproto = Encunspec;
 char		*aan = "/bin/aan";
 AuthInfo 	*ai;
 int		debug;
 int		doauth = 1;
 int		timedout;
 
-int	connect(char*, char*, int);
-int	passive(void);
-int	old9p(int);
 void	catcher(void*, char*);
+int	connect(char*, char*);
+int	filter(int, char *, char *);
+int	passive(void);
 void	sysfatal(char*, ...);
 void	usage(void);
-int	filter(int, char *, char *);
 
 static void	mksecret(char *, uchar *);
 
@@ -88,15 +92,114 @@ lookup(char *s, char *l[])
 	return -1;
 }
 
+static int
+pushtlsclient(int fd)
+{
+	int efd;
+	TLSconn conn;
+
+	memset(&conn, 0, sizeof conn);
+	efd = tlsClient(fd, &conn);
+	free(conn.cert);
+	return efd;
+}
+
+static int
+tryenc(int fd, char *host, int encproto, AuthInfo *ai)
+{
+	uchar key[16], digest[SHA1dlen];
+	char fromclientsecret[21], fromserversecret[21];
+	int i, tls;
+
+	memmove(key+4, ai->secret, ai->nsecret);
+
+	/* exchange random numbers */
+	srand(truerand());
+	for(i = 0; i < 4; i++)
+		key[i] = rand();
+	if(write(fd, key, 4) != 4)
+		sysfatal("can't write key part: %r");
+	if(readn(fd, key+12, 4) != 4) {
+		werrstr("can't read key part: %r");
+		close(fd);
+		return -1;
+	}
+
+	/* scramble into two secrets */
+	sha1(key, sizeof(key), digest, nil);
+	mksecret(fromclientsecret, digest);
+	mksecret(fromserversecret, digest+10);
+
+	if (filterp)
+		fd = filter(fd, filterp, host);
+
+	/* set up encryption */
+	assert(encproto != Encunspec);
+	tls = encproto == Enctls;
+	procsetname("push%s client", tls? "tls": "ssl");
+	if (tls)
+		fd = pushtlsclient(fd);
+	else
+		fd = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
+	if(fd < 0)
+		werrstr("can't establish %s connection: %r", tls? "tls": "ssl");
+	return fd;
+}
+
+/*
+ * if fd < 0, connect and set fd.  optionally add encryption and aan to fd.
+ */
+static int
+connectenc(int fd, int encproto, char *host, char *tree)
+{
+	if (fd < 0)
+		fd = connect(host, tree);
+	if (fd < 0)
+		return fd;
+
+	assert(encproto != Encunspec);
+	fprint(fd, "impo %s %s\n", filterp? "aan": "nofilter",
+		encprotos[encproto]);
+	if (encproto != Encnone && encproto != Encunspec && ealgs && ai)
+		fd = tryenc(fd, host, encproto, ai);
+	else if (filterp)
+		fd = filter(fd, filterp, host);
+	return fd;
+}
+
+/*
+ * post fd and mount it.
+ */
+static int
+postmnt(int fd, char *host, char *tree, char *mntpt, int mntflags, char *srvpost)
+{
+	char srvfile[64];
+
+	if(srvpost){
+		sprint(srvfile, "/srv/%s", srvpost);
+		remove(srvfile);
+		post(srvfile, srvpost, fd);
+	}
+
+	procsetname("mount on %s", mntpt);
+	if(mount(fd, -1, mntpt, mntflags, "") < 0)
+		sysfatal("can't mount %s's %s on %s: %r", host, tree, mntpt);
+
+	assert(encproto != Encunspec);
+	if (encproto != Enctls)
+		fprint(2, "%s: caution: using %s encryption, not tls, for %s's %s\n",
+			argv0, encprotos[encproto], host, tree);
+	return 0;
+}
+
 void
 main(int argc, char **argv)
 {
-	char *mntpt, *srvpost, srvfile[64];
-	int backwards = 0, fd, mntflags, oldserver, notree;
+	char *mntpt, *srvpost, *host, *tree;
+	int i, backwards = 0, fd, mntflags, notree;
 
 	quotefmtinstall();
 	srvpost = nil;
-	oldserver = 0;
 	notree = 0;
 	mntflags = MREPL;
 	ARGBEGIN{
@@ -105,6 +208,9 @@ main(int argc, char **argv)
 		break;
 	case 'a':
 		mntflags = MAFTER;
+		break;
+	case 'B':
+		backwards = 1;
 		break;
 	case 'b':
 		mntflags = MBEFORE;
@@ -118,13 +224,6 @@ main(int argc, char **argv)
 	case 'd':
 		debug++;
 		break;
-	case 'f':
-		/* ignored but allowed for compatibility */
-		break;
-	case 'O':
-	case 'o':
-		oldserver = 1;
-		break;
 	case 'E':
 		if ((encproto = lookup(EARGF(usage()), encprotos)) < 0)
 			usage();
@@ -134,8 +233,14 @@ main(int argc, char **argv)
 		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
 			ealgs = nil;
 		break;
+	case 'f':
+		/* ignored but allowed for compatibility */
+		break;
 	case 'k':
 		keyspec = EARGF(usage());
+		break;
+	case 'm':
+		notree = 1;
 		break;
 	case 'p':
 		filterp = aan;
@@ -143,25 +248,17 @@ main(int argc, char **argv)
 	case 's':
 		srvpost = EARGF(usage());
 		break;
-	case 'B':
-		backwards = 1;
-		break;
-	case 'm':
-		notree = 1;
-		break;
 	default:
 		usage();
 	}ARGEND;
 
 	mntpt = 0;		/* to shut up compiler */
+	tree = nil;
 	if(backwards){
-		switch(argc) {
-		default:
+		if (argc > 0)
 			mntpt = argv[0];
-			break;
-		case 0:
+		else
 			usage();
-		}
 	} else {
 		switch(argc) {
 		case 2:
@@ -176,73 +273,44 @@ main(int argc, char **argv)
 			usage();
 		}
 	}
-
-	if (encproto == Enctls)
-		sysfatal("%s: tls has not yet been implemented", argv[0]);
+	if (!notree)
+		tree = argv[1];
 
 	notify(catcher);
 	alarm(60*1000);
 
-	if(backwards)
-		fd = passive();
-	else if(notree)
-		fd = connect(argv[0], nil, oldserver);
-	else
-		fd = connect(argv[0], argv[1], oldserver);
-
-	if (!oldserver)
-		fprint(fd, "impo %s %s\n", filterp? "aan": "nofilter",
-			encprotos[encproto]);
-
-	if (encproto != Encnone && ealgs && ai) {
-		uchar key[16];
-		uchar digest[SHA1dlen];
-		char fromclientsecret[21];
-		char fromserversecret[21];
-		int i;
-
-		memmove(key+4, ai->secret, ai->nsecret);
-
-		/* exchange random numbers */
-		srand(truerand());
-		for(i = 0; i < 4; i++)
-			key[i] = rand();
-		if(write(fd, key, 4) != 4)
-			sysfatal("can't write key part: %r");
-		if(readn(fd, key+12, 4) != 4)
-			sysfatal("can't read key part: %r");
-
-		/* scramble into two secrets */
-		sha1(key, sizeof(key), digest, nil);
-		mksecret(fromclientsecret, digest);
-		mksecret(fromserversecret, digest+10);
-
-		if (filterp)
-			fd = filter(fd, filterp, argv[0]);
-
-		/* set up encryption */
-		procsetname("pushssl");
-		fd = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
-		if(fd < 0)
-			sysfatal("can't establish ssl connection: %r");
+	host = argv[0];
+	if(backwards) {
+		if (encproto == Encunspec)
+			sysfatal("must specify encryption: tls, ssl or clear");
+		fd = connectenc(passive(), encproto, host, tree);
+		if (fd < 0)
+			sysfatal("%r");
+		postmnt(fd, host, tree, mntpt, mntflags, srvpost);
+		if(argc > 1){
+			alarm(0);
+			exec(argv[1], &argv[1]);
+			sysfatal("exec: %r");
+		}
+		exits(0);
 	}
-	else if (filterp)
-		fd = filter(fd, filterp, argv[0]);
 
-	if(srvpost){
-		sprint(srvfile, "/srv/%s", srvpost);
-		remove(srvfile);
-		post(srvfile, srvpost, fd);
-	}
-	procsetname("mount on %s", mntpt);
-	if(mount(fd, -1, mntpt, mntflags, "") < 0)
-		sysfatal("can't mount %s: %r", argv[1]);
+	/* normal forward cases */
+	if (encproto == Encunspec) {
+		/* try tls, ssl and finally none */
+		static int tryencs[] = { Enctls, Encssl, Encnone };
+
+		fd = -1;
+		for (i = 0; fd < 0 && i < nelem(tryencs); i++) {
+			encproto = tryencs[i];
+			fd = connectenc(-1, encproto, host, tree);
+		}
+	} else
+		fd = connectenc(-1, encproto, host, tree);
+	if (fd < 0)
+		sysfatal("%r");
 	alarm(0);
-
-	if(backwards && argc > 1){
-		exec(argv[1], &argv[1]);
-		sysfatal("exec: %r");
-	}
+	postmnt(fd, host, tree, mntpt, mntflags, srvpost);
 	exits(0);
 }
 
@@ -256,62 +324,24 @@ catcher(void*, char *msg)
 }
 
 int
-old9p(int fd)
-{
-	int p[2];
-
-	procsetname("old9p");
-	if(pipe(p) < 0)
-		sysfatal("pipe: %r");
-
-	switch(rfork(RFPROC|RFFDG|RFNAMEG)) {
-	case -1:
-		sysfatal("rfork srvold9p: %r");
-	case 0:
-		if(fd != 1){
-			dup(fd, 1);
-			close(fd);
-		}
-		if(p[0] != 0){
-			dup(p[0], 0);
-			close(p[0]);
-		}
-		close(p[1]);
-		if(0){
-			fd = open("/sys/log/cpu", OWRITE);
-			if(fd != 2){
-				dup(fd, 2);
-				close(fd);
-			}
-			execl("/bin/srvold9p", "srvold9p", "-ds", nil);
-		} else
-			execl("/bin/srvold9p", "srvold9p", "-s", nil);
-		sysfatal("exec srvold9p: %r");
-	default:
-		close(fd);
-		close(p[0]);
-	}
-	return p[1];
-}
-
-int
-connect(char *system, char *tree, int oldserver)
+connect(char *system, char *tree)
 {
 	char buf[ERRMAX], dir[128], *na;
-	int fd, n;
+	int fd, n, oalarm;
 	char *authp;
 
 	na = netmkaddr(system, 0, "exportfs");
 	procsetname("dial %s", na);
-	if((fd = dial(na, 0, dir, 0)) < 0)
-		sysfatal("can't dial %s: %r", system);
+	oalarm = alarm(30*1000);		/* adjust to taste */
+	fd = dial(na, 0, dir, 0);
+	alarm(oalarm);
+	if(fd < 0) {
+		werrstr("can't dial %s: %r", system);
+		return -1;
+	}
 
 	if(doauth){
-		if(oldserver)
-			authp = "p9sk2";
-		else
-			authp = "p9any";
-
+		authp = "p9any";
 		procsetname("auth_proxy auth_getkey proto=%q role=client %s",
 			authp, keyspec);
 		ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s",
@@ -337,9 +367,6 @@ connect(char *system, char *tree, int oldserver)
 			sysfatal("bad remote tree: %s", buf);
 		}
 	}
-
-	if(oldserver)
-		return old9p(fd);
 	return fd;
 }
 
@@ -372,7 +399,7 @@ passive(void)
 void
 usage(void)
 {
-	fprint(2, "usage: import [-abcCm] [-A] [-E clear|ssl|tls] "
+	fprint(2, "usage: import [-abcCm] [-A] [-E unspec|clear|ssl|tls] "
 "[-e 'crypt auth'|clear] [-k keypattern] [-p] host remotefs [mountpoint]\n");
 	exits("usage");
 }

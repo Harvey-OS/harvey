@@ -122,7 +122,7 @@ struct	Renv
 	Node*	scope;
 };
 
-#define	NRGN	1000
+#define	NRGN	600
 struct	Rgn
 {
 	Reg*	enter;
@@ -157,7 +157,7 @@ EXTERN	char	string[NSNAME];
 EXTERN	Sym*	symrathole;
 EXTERN	Node	znode;
 EXTERN	Prog	zprog;
-EXTERN	int	reg[D_XREG];
+EXTERN	int	reg[D_NONE];
 EXTERN	long	exregoffset;
 EXTERN	long	exfregoffset;
 EXTERN	uchar	typechlpv[NTYPE];
@@ -167,7 +167,7 @@ EXTERN	uchar	typechlpv[NTYPE];
 #define	LOAD(r)		(~r->refbehind.b[z] & r->refahead.b[z])
 #define	STORE(r)	(~r->calbehind.b[z] & r->calahead.b[z])
 
-#define	bset(a,n)	((a).b[(n)/32]&(1L<<(n)%32))
+#define	bset(a,n)	((a).b[(n)/BI2LONG] & (1L << (n)%BI2LONG))
 
 #define	CLOAD	5
 #define	CREF	5
@@ -242,7 +242,7 @@ void	gclean(void);
 void	nextpc(void);
 void	gargs(Node*, Node*, Node*);
 void	garg1(Node*, Node*, Node*, int, Node**);
-Node*	nodconst(long);
+Node*	nodconst(vlong);
 Node*	nodfconst(double);
 Node*	nodgconst(vlong, Type*);
 int	nodreg(Node*, Node*, int);
@@ -334,6 +334,9 @@ long	RtoB(int);
 long	FtoB(int);
 int	BtoR(long);
 int	BtoF(long);
+
+#define	D_HI	D_NONE
+#define	D_LO	D_NONE
 
 #define	isregtype(t)	((t)>= D_AX && (t)<=D_R15)
 

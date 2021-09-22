@@ -4,7 +4,7 @@
  * fake malloc
  */
 void*
-malloc(usize n)
+malloc(uintptr n)
 {
 	return halloc(n);
 }
@@ -16,7 +16,7 @@ free(void *p)
 }
 
 void*
-calloc(usize m, usize n)
+calloc(uintptr m, uintptr n)
 {
 	void *p;
 
@@ -30,7 +30,7 @@ calloc(usize m, usize n)
  * not used by compiler or loader, but Windows needs it
  */
 void*
-realloc(void *p, usize n)
+realloc(void *p, uintptr n)
 {
 	void *new;
 
@@ -41,7 +41,7 @@ realloc(void *p, usize n)
 }
 
 void
-setmalloctag(void *v, ulong pc)
+setmalloctag(void *v, uintptr pc)
 {
 	USED(v);
 	USED(pc);

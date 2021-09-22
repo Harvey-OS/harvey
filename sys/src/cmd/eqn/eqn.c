@@ -246,9 +246,6 @@ long	yytok3[] =
    0
 };
 #define YYFLAG 		-1000
-#define YYERROR		goto yyerrlab
-#define YYACCEPT	return(0)
-#define YYABORT		return(1)
 #define	yyclearin	yychar = -1
 #define	yyerrok		yyerrflag = 0
 
@@ -265,6 +262,9 @@ char*	yystates[1];		/* for debugging */
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
 
+extern	int	fprint(int, char*, ...);
+extern	int	snprint(char*, int, char*, ...);
+
 char*
 yytokname(int yyc)
 {
@@ -273,7 +273,7 @@ yytokname(int yyc)
 	if(yyc > 0 && yyc <= sizeof(yytoknames)/sizeof(yytoknames[0]))
 	if(yytoknames[yyc-1])
 		return yytoknames[yyc-1];
-	sprintf(x, "<%d>", yyc);
+	snprint(x, sizeof x, "<%d>", yyc);
 	return x;
 }
 
@@ -285,7 +285,7 @@ yystatname(int yys)
 	if(yys >= 0 && yys < sizeof(yystates)/sizeof(yystates[0]))
 	if(yystates[yys])
 		return yystates[yys];
-	sprintf(x, "<%d>\n", yys);
+	snprint(x, sizeof x, "<%d>\n", yys);
 	return x;
 }
 
@@ -325,7 +325,7 @@ out:
 	if(c == 0)
 		c = yytok2[1];	/* unknown char */
 	if(yydebug >= 3)
-		printf("lex %.4lX %s\n", yychar, yytokname(c));
+		fprint(2, "lex %.4lux %s\n", yychar, yytokname(c));
 	return c;
 }
 
@@ -339,9 +339,9 @@ yyparse(void)
 	} yys[YYMAXDEPTH], *yyp, *yypt;
 	short *yyxi;
 	int yyj, yym, yystate, yyn, yyg;
+	long yychar;
 	YYSTYPE save1, save2;
 	int save3, save4;
-	long yychar;
 
 	save1 = yylval;
 	save2 = yyval;
@@ -373,7 +373,7 @@ ret:
 yystack:
 	/* put a state and value onto the stack */
 	if(yydebug >= 4)
-		printf("char %s in %s", yytokname(yychar), yystatname(yystate));
+		fprint(2, "char %s in %s", yytokname(yychar), yystatname(yystate));
 
 	yyp++;
 	if(yyp >= &yys[YYMAXDEPTH]) {
@@ -427,12 +427,11 @@ yydefault:
 		switch(yyerrflag) {
 		case 0:   /* brand new error */
 			yyerror("syntax error");
-			if(yydebug >= 1) {
-				printf("%s", yystatname(yystate));
-				printf("saw %s\n", yytokname(yychar));
-			}
-yyerrlab:
 			yynerrs++;
+			if(yydebug >= 1) {
+				fprint(2, "%s", yystatname(yystate));
+				fprint(2, "saw %s\n", yytokname(yychar));
+			}
 
 		case 1:
 		case 2: /* incompletely recovered error ... try again */
@@ -449,7 +448,7 @@ yyerrlab:
 
 				/* the current yyp has no shift onn "error", pop stack */
 				if(yydebug >= 2)
-					printf("error recovery pops state %d, uncovers %d\n",
+					fprint(2, "error recovery pops state %d, uncovers %d\n",
 						yyp->yys, (yyp-1)->yys );
 				yyp--;
 			}
@@ -457,8 +456,8 @@ yyerrlab:
 			goto ret1;
 
 		case 3:  /* no shift yet; clobber input char */
-			if(yydebug >= YYEOFCODE)
-				printf("error recovery discards %s\n", yytokname(yychar));
+			if(yydebug >= 2)
+				fprint(2, "error recovery discards %s\n", yytokname(yychar));
 			if(yychar == YYEOFCODE)
 				goto ret1;
 			yychar = -1;
@@ -468,7 +467,7 @@ yyerrlab:
 
 	/* reduction by production yyn */
 	if(yydebug >= 2)
-		printf("reduce %d in:\n\t%s", yyn, yystatname(yystate));
+		fprint(2, "reduce %d in:\n\t%s", yyn, yystatname(yystate));
 
 	yypt = yyp;
 	yyp -= yyr2[yyn];
@@ -564,7 +563,7 @@ case 27:
 { fatbox(yypt[-0].yyv); } break;
 case 28:
 #line	61	"/sys/src/cmd/eqn/eqn.y"
-{ sqrt(yypt[-0].yyv); } break;
+{ eqnsqrt(yypt[-0].yyv); } break;
 case 29:
 #line	62	"/sys/src/cmd/eqn/eqn.y"
 {ps -= deltaps;} break;

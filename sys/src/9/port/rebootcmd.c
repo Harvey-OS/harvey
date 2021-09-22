@@ -17,6 +17,8 @@ enum {
 	Shdr64sz	= 64,
 };
 
+int (*isokkernel)(int);
+
 static uchar elfident[] = {
 	'\177', 'E', 'L', 'F',
 };
@@ -116,14 +118,22 @@ rebootcmd(int argc, char *argv[])
 		nexterror();
 	}
 
+	memset(&exec, 0, sizeof exec);
 	readn(c, &exec, sizeof(Exec));
 	magic = l2be(exec.magic);
+#ifdef NOTYET
+	uvlong stva;
+
+	stva = 0;
+	if(magic & HDR_MAGIC)
+		readn(c, &stva, sizeof stva);
+#endif
 	/*
 	 * AOUT_MAGIC is sometimes defined like this:
 	 * #define AOUT_MAGIC	V_MAGIC || magic==M_MAGIC
 	 * so we can only use it in a fairly stylized manner.
 	 */
-	if(magic == AOUT_MAGIC) {
+	if((magic == AOUT_MAGIC) || isokkernel && isokkernel(magic)) {
 		entry = l2be(exec.entry);
 		text = l2be(exec.text);
 		data = l2be(exec.data);
@@ -138,6 +148,14 @@ rebootcmd(int argc, char *argv[])
 		return;				/* for the compiler */
 	}
 
+	/*
+	 * entry may be a virtual address with a different KZERO.
+	 * on 64-bit systems, it may be a physical address, with the virtual
+	 * address in the header expansion.
+	 * convert it to a physical address.
+	 */
+	entry &= ~KSEGM;
+
 	/* round text out to page boundary */
 	rtext = ROUNDUP(entry+text, BY2PG) - entry;
 	size = rtext + data;
@@ -145,12 +163,11 @@ rebootcmd(int argc, char *argv[])
 	if(p == nil)
 		error(Enomem);
 
-	if(waserror()){
+	if(up && waserror()){
 		free(p);
 		nexterror();
 	}
 
-	memset(p, 0, size);
 	readn(c, p, text);
 	readn(c, p + rtext, data);
 

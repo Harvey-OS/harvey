@@ -174,7 +174,7 @@ globnext(Globlist *gl, char *pattern)
 		/* run input list as directories */
 		for(g = inlist; g != nil; g = g->next)
 			globdir(gl, s_to_c(g->glob), re);
-		free(re);
+		regfree(re);
 	}
 	s_free(np);
 	globfree(inlist);

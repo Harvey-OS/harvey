@@ -4,14 +4,15 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include	<ctype.h>
 
 /*
  *  real time clock and non-volatile ram
  */
 
 enum {
-	Addr=		0x70,	/* address port */
-	Data=		0x71,	/* data port */
+	Addr=		NVRADDR,	/* address I/O port */
+	Data=		NVRDATA,	/* data I/O port */
 
 	Seconds=	0x00,
 	Minutes=	0x02,
@@ -26,6 +27,14 @@ enum {
 
 	Nbcd=		6,
 };
+
+/*
+ *  the world starts jan 1 1970
+ */
+enum {
+	Epochyear	= 1970,
+};
+
 
 typedef struct Rtc	Rtc;
 struct Rtc
@@ -51,6 +60,8 @@ Dirtab rtcdir[]={
 	"rtc",		{Qrtc, 0},	0,	0664,
 };
 
+extern Dev rtcdevtab;
+
 static ulong rtc2sec(Rtc*);
 static void sec2rtc(ulong, Rtc*);
 
@@ -64,7 +75,7 @@ rtcinit(void)
 static Chan*
 rtcattach(char* spec)
 {
-	return devattach('r', spec);
+	return devattach(rtcdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -138,10 +149,7 @@ rtcextract(void)
 	rtc.mon = GETBCD(4);
 	rtc.year = GETBCD(5);
 
-	/*
-	 *  the world starts jan 1 1970
-	 */
-	if(rtc.year < 70)
+	if(rtc.year < Epochyear % 100)
 		rtc.year += 2000;
 	else
 		rtc.year += 1900;
@@ -185,8 +193,7 @@ rtcread(Chan* c, void* buf, long n, vlong off)
 
 	switch((ulong)c->qid.path){
 	case Qrtc:
-		t = rtctime();
-		n = readnum(offset, buf, n, t, 12);
+		n = readnum(offset, buf, n, rtctime(), 12);
 		return n;
 	case Qnvram:
 		if(n == 0)
@@ -215,7 +222,7 @@ rtcread(Chan* c, void* buf, long n, vlong off)
 		return t - offset;
 	}
 	error(Ebadarg);
-	return 0;
+	notreached();
 }
 
 #define PUTBCD(n,o) bcdclock[o] = (n % 10) | (((n / 10) % 10)<<4)
@@ -234,7 +241,6 @@ rtcwrite(Chan* c, void* buf, long n, vlong off)
 	if(offset!=0)
 		error(Ebadarg);
 
-
 	switch((ulong)c->qid.path){
 	case Qrtc:
 		/*
@@ -243,7 +249,7 @@ rtcwrite(Chan* c, void* buf, long n, vlong off)
 		cp = ep = buf;
 		ep += n;
 		while(cp < ep){
-			if(*cp>='0' && *cp<='9')
+			if (isdigit(*cp))
 				break;
 			cp++;
 		}
@@ -299,7 +305,7 @@ rtcwrite(Chan* c, void* buf, long n, vlong off)
 		return t - offset;
 	}
 	error(Ebadarg);
-	return 0;
+	notreached();
 }
 
 Dev rtcdevtab = {
@@ -352,7 +358,7 @@ yrsize(int y)
 }
 
 /*
- *  compute seconds since Jan 1 1970
+ *  compute seconds since epoch
  */
 static ulong
 rtc2sec(Rtc *rtc)
@@ -366,7 +372,7 @@ rtc2sec(Rtc *rtc)
 	/*
 	 *  seconds per year
 	 */
-	for(i = 1970; i < rtc->year; i++){
+	for(i = Epochyear; i < rtc->year; i++){
 		d2m = yrsize(i);
 		secs += d2m[0] * SEC2DAY;
 	}
@@ -387,7 +393,7 @@ rtc2sec(Rtc *rtc)
 }
 
 /*
- *  compute rtc from seconds since Jan 1 1970
+ *  compute rtc from seconds since epoch
  */
 static void
 sec2rtc(ulong secs, Rtc *rtc)
@@ -419,10 +425,10 @@ sec2rtc(ulong secs, Rtc *rtc)
 	 * year number
 	 */
 	if(day >= 0)
-		for(d = 1970; day >= *yrsize(d); d++)
+		for(d = Epochyear; day >= *yrsize(d); d++)
 			day -= *yrsize(d);
 	else
-		for (d = 1970; day < 0; d--)
+		for(d = Epochyear; day < 0; d--)
 			day += *yrsize(d-1);
 	rtc->year = d;
 
@@ -434,8 +440,6 @@ sec2rtc(ulong secs, Rtc *rtc)
 		day -= d2m[d];
 	rtc->mday = day + 1;
 	rtc->mon = d;
-
-	return;
 }
 
 uchar

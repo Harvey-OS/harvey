@@ -187,7 +187,7 @@ main(int argc, char **argv)
 					exits(nil);
 				}
 			break;
-		case 2:
+		case Ekeyboard:
 			switch(e.kbdc) {
 			case 127:
 			case 'q':

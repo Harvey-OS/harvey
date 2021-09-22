@@ -2,7 +2,6 @@
 
 PORTDIRS=9sys 9syscall fmt port
 DIRS=$PORTDIRS $CPUS
-OLDCPUS=
 
 all install:V:
 	for(i in $PORTDIRS $objtype)@{
@@ -43,9 +42,9 @@ installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install
 
 everything:V:
-	rm -f */*.[0245689kqv]
-	for(objtype in $CPUS $OLDCPUS)@{
+	rm -f */*.[02456789kqv]
+	for(objtype in $CPUS)@{
 		echo $objtype
 		mk $MKFLAGS install
 	}
-	rm -f */*.[0245689kqv]
+	rm -f */*.[02456789kqv]

@@ -11,6 +11,10 @@ main(int argc, char **argv)
 	int oargc;
 	char **oargv;
 
+	if ((p = getenv("JREGALLOC")) != nil)
+		maxregalloc = atoi(p);
+	if (maxregalloc < REGALLOC || maxregalloc >= NREG)
+		maxregalloc = REGALLOC;
 	thechar = 'i';
 	p = strrchr(argv[0], '/');
 	if(p == nil)
@@ -326,7 +330,7 @@ tmpreg(void)
 {
 	int i;
 
-	for(i=REGRET+1; i<REGALLOC; i++)
+	for(i=REGRET+1; i<=maxregalloc; i++)
 		if(reg[i] == 0)
 			return i;
 	diag(Z, "out of fixed registers");
@@ -337,7 +341,7 @@ void
 regalloc(Node *n, Node *tn, Node *o)
 {
 	int i, j;
-	static int lasti;
+	static int lasti = 0;
 
 	switch(tn->type->etype) {
 	case TCHAR:
@@ -356,9 +360,10 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(i > 0 && i < NREG)
 				goto out;
 		}
+		lasti = 0;	/* reuse lower registers to aid compression */
 		j = lasti + REGRET+1;
-		for(i=REGRET+1; i<=REGALLOC; i++) {
-			if(j > REGALLOC)
+		for(i=REGRET+1; i<=maxregalloc; i++) {
+			if(j > maxregalloc)
 				j = REGRET+1;
 			if(reg[j] == 0) {
 				i = j;
@@ -376,7 +381,7 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(i >= NREG && i < NREG+NREG)
 				goto out;
 		}
-		for(j=NREG; j<NREG+16; j++) {
+		for(j=NREG; j<NREG+FREGEXT-2; j++) {
 			if(reg[j] == 0) {
 				i = j;
 				goto out;
@@ -390,9 +395,6 @@ err:
 	nodreg(n, tn, 0);
 	return;
 out0:
-	lasti++;
-	if(lasti >= 5)
-		lasti = 0;
 out:
 	reg[i]++;
 	nodreg(n, tn, i);
@@ -417,7 +419,7 @@ regfree(Node *n)
 	if(n->op != OREGISTER && n->op != OINDREG)
 		goto err;
 	i = n->reg;
-	if(i < 0 || i >= sizeof(reg))
+	if(i < 0 || i >= nelem(reg))
 		goto err;
 	if(reg[i] <= 0)
 		goto err;

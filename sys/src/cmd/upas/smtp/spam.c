@@ -44,7 +44,7 @@ static Keyword actions[] = {
 static	int	hisaction;
 static	List	ourdoms;
 static	List 	badguys;
-static	ulong	v4peerip;
+static	uchar	peerip[IPaddrlen];
 
 static	char*	getline(Biobuf*);
 static	int	cidrcheck(char*);
@@ -109,11 +109,12 @@ getconf(void)
 	Biobuf *bp;
 	char *cp, *p;
 	String *s;
+	vlong v;
 	char buf[512];
-	uchar addr[4];
 
-	v4parseip(addr, nci->rsys);
-	v4peerip = nhgetl(addr);
+	v = parseip(peerip, nci->rsys);
+	if (v < 0)			/* bad address? */
+		memset(peerip, 0, sizeof peerip);
 
 	trusted = istrusted(nci->rsys);
 	hisaction = getaction(nci->rsys, "ip");
@@ -126,10 +127,7 @@ getconf(void)
 	if(bp == 0)
 		return;
 
-	for(;;){
-		cp = getline(bp);
-		if(cp == 0)
-			break;
+	while ((cp = getline(bp)) != nil) {
 		p = cp+strlen(cp)+1;
 		switch(findkey(cp, options)){
 		case NORELAY:
@@ -159,8 +157,6 @@ getconf(void)
 				listadd(&ourdoms, s);
 				p += strlen(p)+1;
 			}
-			break;
-		default:
 			break;
 		}
 	}
@@ -401,40 +397,58 @@ masquerade(String *path, char *him)
 	return rv;
 }
 
-/* this is a v4 only check */
+/*
+ * called if a mask isn't specified.  we build a minimal mask
+ * instead of using the default mask for that net.
+ * in this case we never allow a class A mask (0xff000000).
+ */
+static void
+v4minclassb(uchar *mask, char *ip)
+{
+	ulong m;
+	char *p;
+
+	m = 0xff000000;
+	for(p = strchr(ip, '.'); p && p[1]; p = strchr(p+1, '.'))
+		m = (m>>8)|0xff000000;
+
+	/* force at least a class B */
+	hnputl(mask, m | 0xffff0000);
+}
+
 static int
 cidrcheck(char *cp)
 {
 	char *p;
-	ulong a, m;
-	uchar addr[IPv4addrlen];
-	uchar mask[IPv4addrlen];
-
-	if(v4peerip == 0)
-		return 0;
+	vlong v;
+	uchar addr[IPaddrlen], mask[IPaddrlen], peermasked[IPaddrlen];
 
 	/* parse a list of CIDR addresses comparing each to the peer IP addr */
-	while(cp && *cp){
-		v4parsecidr(addr, mask, cp);
-		a = nhgetl(addr);
-		m = nhgetl(mask);
-		/*
-		 * if a mask isn't specified, we build a minimal mask
-		 * instead of using the default mask for that net.  in this
-		 * case we never allow a class A mask (0xff000000).
-		 */
-		if(strchr(cp, '/') == 0){
-			m = 0xff000000;
-			p = cp;
-			for(p = strchr(p, '.'); p && p[1]; p = strchr(p+1, '.'))
-					m = (m>>8)|0xff000000;
+	for (; cp && *cp; cp += strlen(cp)+1) {
+		/* parse v4 or v6 address and optional mask */
+		v = parseip(addr, cp);
+		if (v < 0)
+			continue;
+		if (v == 6) {		/* v6 doesn't have a parsecidr() */
+			p = strchr(cp, '/');
+			if (p) {
+				v = parseipmask(mask, p);
+				if (v < 0)
+					continue;
+			} else
+				memset(mask, 0, sizeof mask);
+		} else {
+			uchar addr4[IPv4addrlen], mask4[IPv4addrlen];
 
-			/* force at least a class B */
-			m |= 0xffff0000;
+			v4parsecidr(addr4, mask4, cp);
+			if(strchr(cp, '/') == nil)	/* no mask? */
+				v4minclassb(mask4, cp);	/* make one from addr */
+			v4tov6(addr, addr4);
+			v4tov6(mask, mask4);
 		}
-		if((v4peerip&m) == a)
+		maskip(peerip, mask, peermasked);
+		if (equivip6(peermasked, addr))
 			return 1;
-		cp += strlen(cp)+1;
 	}		
 	return 0;
 }

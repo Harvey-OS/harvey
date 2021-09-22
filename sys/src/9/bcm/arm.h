@@ -17,13 +17,25 @@
 #define PsrMsys		0x0000001F	/* `privileged user mode for OS' (trustzone) */
 #define PsrMask		0x0000001F
 
+#define PsrThumb	0x00000020		/* beware hammers */
 #define PsrDfiq		0x00000040		/* disable FIQ interrupts */
 #define PsrDirq		0x00000080		/* disable IRQ interrupts */
+#define PsrDasabt	0x00000100		/* disable asynch aborts */
+#define PsrBigend	0x00000200		/* E: big-endian data */
+
+#define PsrGe		0x000f0000		/* `>=' bits */
+#define PsrMbz20	0x00f00000		/* MBZ: 20 - 23 */
+#define PsrJaz		0x01000000		/* java mode */
+#define PsrIT		0x0600fc00		/* IT: if-then thumb state */
+#define PsrQ		0x08000000		/* cumulative saturation */
 
 #define PsrV		0x10000000		/* overflow */
 #define PsrC		0x20000000		/* carry/borrow/extend */
 #define PsrZ		0x40000000		/* zero */
 #define PsrN		0x80000000		/* negative/less than */
+
+/* these bits must be 0 */
+#define PsrMbz		(PsrQ|PsrJaz|PsrMbz20|PsrThumb|PsrBigend|PsrDasabt)
 
 /* instruction decoding */
 #define ISCPOP(op)	((op) == 0xE || ((op) & ~1) == 0xC)
@@ -314,3 +326,6 @@
 #define DAC(n, v)	F((v), (n)*2, 2)
 
 #define HVECTORS	0xffff0000
+#define NREGS		15	/* general-purpose regs, R0 through R14 */
+#define RFEV7W(r)   WORD $(0xf8900a00 | (r) << 16 | OP_WB)	/* RFE.W */
+#define OP_WB 0x00200000	/* .W: `write-back updated register' bit */

@@ -1,0 +1,306 @@
+diff ../awk.ape/awk.h ./awk.h
+14a15
+> #undef DEBUG
+67a69,70
+> #undef nelem
+> 
+162c165,167
+< #define notlegal(n)	(n <= FIRSTTOKEN || n >= LASTTOKEN || proctab[n-FIRSTTOKEN] == nullproc)
+---
+> #define notlegal(n)	((unsigned)(n) <= FIRSTTOKEN || \
+> 	(unsigned)(n) >= LASTTOKEN || \
+> 	proctab[(unsigned)(n)-FIRSTTOKEN] == nullproc)
+184a190,205
+> 
+> /* importing from posix */
+> #define MB_CUR_MAX	UTFmax
+> #define wchar_t		Rune
+> 
+> #define exit(n)		exits((n) == 0? nil: "awk error")
+> #define wctomb(s, wc)	runetochar(s, &(wc))
+> 
+> #undef ARGC
+> 
+> int errno;
+> Rune dummyr;
+> char **environ;
+> 
+> void	envsetup(void);
+> int	mblen(char *s, int n);
+diff ../awk.ape/awkgram.y ./awkgram.y
+25a26,27
+> #include <u.h>
+> #include <libc.h>
+27d28
+< #include <string.h>
+Only in ../awk.ape: awkupd
+Only in ../awk.ape: bwk
+Only in .: env.c
+diff ../awk.ape/lex.c ./lex.c
+24a25,26
+> #include <u.h>
+> #include <libc.h>
+26,27d27
+< #include <stdlib.h>
+< #include <string.h>
+42,43c42,43
+< 	int	sub;
+< 	int	type;
+---
+> 	unsigned short	sub;
+> 	unsigned short	type;
+92a93
+> #undef DEBUG
+diff ../awk.ape/lib.c ./lib.c
+24a25
+> #undef DEBUG
+25a27,29
+> 
+> #include <u.h>
+> #include <libc.h>
+27d30
+< #include <string.h>
+29,31d31
+< #include <errno.h>
+< #include <stdlib.h>
+< #include <stdarg.h>
+644,647c644,645
+< 
+< 	if (errno == EDOM) {
+< 		errno = 0;
+< 		WARNING("%s argument out of domain", s);
+---
+> 	if (isNaN(x)) {
+> 		WARNING("%s result is not a number", s);
+649,650c647
+< 	} else if (errno == ERANGE) {
+< 		errno = 0;
+---
+> 	} else if (isInf(x, +1) || isInf(x, -1)) {
+704c701
+< 	if (ep == s || r == HUGE_VAL || errno == ERANGE)
+---
+> 	if (ep == s || isInf(r, +1) || isInf(r, -1))
+711a709,718
+> }
+> 
+> int
+> mblen(char *s, int n)
+> {
+> 	Rune dummyr;
+> 
+> 	if (s == 0 || *s == '\0')
+> 		return 0;
+> 	return chartorune(&dummyr, s);
+diff ../awk.ape/main.c ./main.c
+27a28,29
+> #include <u.h>
+> #include <libc.h>
+30,32d31
+< #include <stdlib.h>
+< #include <string.h>
+< #include <signal.h>
+36d34
+< extern	char	**environ;
+60c58,60
+< 		fprintf(stderr, "Usage: %s [-F fieldsep] [-mf n] [-mr n] [-v var=value] [-f programfile | 'program'] [file ...]\n", cmdname);
+---
+> 		fprintf(stderr, "Usage: %s [-F fieldsep] [-mf n] [-mr n] "
+> 			"[-v var=value] [-f programfile | 'program'] [file ...]\n",
+> 			cmdname);
+62a63
+> #ifdef TODO				/* signal -> note catcher */
+63a65
+> #endif
+154,155c156,159
+< 	if (!safe)
+< 		envinit(environ);
+---
+> 	if (!safe) {
+> 		envsetup();		/* read '#e' into environ array */
+> 		envinit(environ);	/* convert it to ENVIRON awk array */
+> 	}
+165c169,170
+< 	return(errorflag);
+---
+> 	exit(errorflag);
+> 	return errorflag;
+diff ../awk.ape/maketab.c ./maketab.c
+30a31,32
+> #include <u.h>
+> #include <libc.h>
+32,33d33
+< #include <string.h>
+< #include <stdlib.h>
+113c113
+< int main(int argc, char *argv[])
+---
+> void main(int argc, char *argv[])
+120a121,122
+> 	printf("#include <u.h>\n");
+> 	printf("#include <libc.h>\n");
+167,168c169
+< 	exit(0);
+< 	return 0;
+---
+> 	exits(0);
+Only in .: math.h
+diff ../awk.ape/mkfile ./mkfile
+10a11
+> 	env.$O\
+12a14,15
+> 	popen.$O\
+> 	system.$O\
+31,35c34,35
+< CFLAGS=-FTV -c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -D_BSD_EXTENSION -DUTF
+< YFLAGS=-S -d -v
+< CC=pcc
+< LD=pcc
+< cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+---
+> CFLAGS=-FTV
+> YFLAGS=-d -v
+46,47c46,47
+< proctab.c:	$cpuobjtype.maketab
+< 	./$cpuobjtype.maketab >proctab.c
+---
+> proctab.c:D:	$O.maketab
+> 	./$O.maketab >proctab.c
+49,51c49,50
+< $cpuobjtype.maketab:	y.tab.h maketab.c
+< 	objtype=$cputype
+< 	mk maketab.$cputype
+---
+> $O.maketab:	y.tab.h maketab.c
+> 	mk maketab.$objtype
+53c52
+< maketab.$cputype:V:	y.tab.h maketab.$O
+---
+> maketab.$objtype:V:	y.tab.h maketab.$O
+diff ../awk.ape/parse.c ./parse.c
+25a26,27
+> #include <u.h>
+> #include <libc.h>
+27,28d28
+< #include <string.h>
+< #include <stdlib.h>
+263c263
+< int ptoi(void *p)	/* convert pointer to integer */
+---
+> uintptr ptoi(void *p)	/* convert pointer to integer */
+265c265
+< 	return (int) (long) p;	/* swearing that p fits, of course */
+---
+> 	return (uintptr)p;
+268c268
+< Node *itonp(int i)	/* and vice versa */
+---
+> Node *itonp(uintptr i)	/* and vice versa */
+270c270
+< 	return (Node *) (long) i;
+---
+> 	return (Node *)i;
+Only in .: popen.c
+Only in .: posix-to-9-diffs
+diff ../awk.ape/proctab.c ./proctab.c
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+diff ../awk.ape/proto.h ./proto.h
+76,77c76,77
+< extern	int	ptoi(void *);
+< extern	Node	*itonp(int);
+---
+> extern	uintptr	ptoi(void *);
+> extern	Node	*itonp(uintptr);
+176c176
+< extern	FILE	*popen(const char *, const char *);
+---
+> extern	FILE	*popen(char *, const char *);
+177a178
+> extern	int	system(char *);
+diff ../awk.ape/re.c ./re.c
+26a27,28
+> #include <u.h>
+> #include <libc.h>
+29d30
+< #include <setjmp.h>
+31,33d31
+< #include <string.h>
+< #include <stdlib.h>
+< #include <time.h>
+201,205c199,203
+< 	m.s.sp = start;
+< 	m.e.ep = 0;
+< 	if (regexec((Reprog *) p, (char *) s, &m, 1)) {
+< 		patbeg = m.s.sp;
+< 		patlen = m.e.ep-m.s.sp;
+---
+> 	m.sp = start;
+> 	m.ep = 0;
+> 	if (regexec((Reprog *)p, s, &m, 1)) {
+> 		patbeg = m.sp;
+> 		patlen = m.ep-m.sp;
+diff ../awk.ape/run.c ./run.c
+24a25
+> #undef DEBUG
+25a27,29
+> 
+> #include <u.h>
+> #include <libc.h>
+28d31
+< #include <setjmp.h>
+30,33d32
+< #include <string.h>
+< #include <stdlib.h>
+< #include <time.h>
+< #include <utf.h>
+37c36
+< #define tempfree(x)	if (istemp(x)) tfree(x); else
+---
+> #define tempfree(x)	do { if (istemp(x)) tfree(x); } while (0)
+52,61d50
+< #ifdef _NFILE
+< #ifndef FOPEN_MAX
+< #define FOPEN_MAX _NFILE
+< #endif
+< #endif
+< 
+< #ifndef	FOPEN_MAX
+< #define	FOPEN_MAX	40	/* max number of open files */
+< #endif
+< 
+108a98
+> 
+1504c1494
+< 			u = time((time_t *)0);
+---
+> 			u = time((long *)0);
+Only in .: system.c
+diff ../awk.ape/tran.c ./tran.c
+25a26,27
+> #include <u.h>
+> #include <libc.h>
+29,30d30
+< #include <string.h>
+< #include <stdlib.h>
+355c355
+< 	char s[100];	/* BUG: unchecked */
+---
+> 	char s[100];
+368c368
+< 			sprintf(s, "%.30g", vp->fval);
+---
+> 			snprintf(s, sizeof s, "%.30g", vp->fval);
+370c370
+< 			sprintf(s, *CONVFMT, vp->fval);
+---
+> 			snprintf(s, sizeof s, *CONVFMT, vp->fval);
+396c396
+< 	if ((buf = (char *) malloc(strlen(s)+3)) == NULL)
+---
+> 	if ((buf = (char *) malloc(strlen(s)+2+1)) == NULL)
+432c432
+< 	*bp++ = 0;
+---
+> 	*bp = '\0';

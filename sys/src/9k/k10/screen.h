@@ -105,7 +105,7 @@ struct VGAscr {
 
 	ulong	io;				/* device specific registers */
 	ulong	*mmio;
-
+	
 	ulong	colormap[Pcolours][3];
 	int	palettedepth;
 
@@ -160,7 +160,7 @@ extern ulong	blanktime;
 extern void	setscreenimageclipr(Rectangle);
 extern void	drawflush(void);
 extern int drawidletime(void);
-extern QLock	drawlock;
+QLock	drawlock;
 
 /* vga.c */
 extern void	vgascreenwin(VGAscr*);

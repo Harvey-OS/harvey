@@ -1,0 +1,1269 @@
+make[1]: Entering directory `/home/olaf/web2c/src/texk/web2c'
+cd ../kpathsea && make -w CC='gcc' CFLAGS='-pipe -g ' 
+make[2]: Entering directory `/home/olaf/web2c/src/texk/kpathsea'
+make[2]: Nothing to be done for `default'.
+make[2]: Leaving directory `/home/olaf/web2c/src/texk/kpathsea'
+cd lib && make -w CC='gcc' CFLAGS='-pipe -g ' 
+make[2]: Entering directory `/home/olaf/web2c/src/texk/web2c/lib'
+make[2]: Nothing to be done for `default'.
+make[2]: Leaving directory `/home/olaf/web2c/src/texk/web2c/lib'
+test -f tests/exampl.aux || \
+  cp ./tests/exampl.aux tests/exampl.aux
+BSTINPUTS=./tests ./bibtex tests/exampl
+This is BibTeX, Version 0.99c (Web2C 7.2)
+The top-level auxiliary file: tests/exampl.aux
+The style file: apalike.bst
+Database file #1: xampl.bib
+Warning--empty author in whole-journal
+Warning--empty title in whole-journal
+Warning--empty year in booklet-minimal
+Warning--empty year in manual-minimal
+Warning--empty year in misc-minimal
+Warning--empty year in unpublished-minimal
+Warning--empty year in random-note-crossref
+(There were 7 warnings)
+./dvicopy ./tests/story tests/xstory.dvi
+This is DVIcopy, Version 1.5 (Web2C 7.2)
+Copyright (C) 1990,95 Peter Breitenlohner
+Distributed under terms of GNU General Public License
+DVI file: ' TeX output 1992.05.17:0844',
+   num=25400000, den=473628672, mag=1000.
+DVI: font 33 = cmsl10.
+DVI: font 23 = cmbx10.
+DVI: font 0 = cmr10.
+DVI: processing page 1.
+DVI: font 23 = cmbx10.
+TFM: font 1 = cmbx10.
+OUT: font 1 = cmbx10.
+DVI: font 33 = cmsl10.
+TFM: font 0 = cmsl10.
+OUT: font 0 = cmsl10.
+DVI: font 0 = cmr10.
+TFM: font 2 = cmr10.
+OUT: font 2 = cmr10.
+OUT file: 692 bytes, 1 page written.
+(No errors were found.)
+(TFMFONTS=./tests: ./dvicopy <./tests/pplr.dvi \
+  >tests/xpplr.dvi) 2>&1
+This is DVIcopy, Version 1.5 (Web2C 7.2)
+Copyright (C) 1990,95 Peter Breitenlohner
+Distributed under terms of GNU General Public License
+DVI file: ' TeX output 1995.05.27:1708',
+   num=25400000, den=473628672, mag=1000.
+DVI: font 50 = pplr.
+DVI: font 36 = cmti10.
+DVI: font 31 = cmtt8.
+DVI: font 29 = cmtt10.
+DVI: font 3 = cmr7.
+DVI: font 0 = cmr10.
+DVI: processing page 1.
+DVI: font 3 = cmr7.
+TFM: font 4 = cmr7.
+OUT: font 4 = cmr7.
+DVI: font 31 = cmtt8.
+TFM: font 2 = cmtt8.
+OUT: font 2 = cmtt8.
+DVI: font 0 = cmr10.
+TFM: font 5 = cmr10.
+OUT: font 5 = cmr10.
+DVI: font 36 = cmti10.
+TFM: font 1 = cmti10.
+OUT: font 1 = cmti10.
+DVI: font 29 = cmtt10.
+TFM: font 3 = cmtt10.
+OUT: font 3 = cmtt10.
+DVI: font 50 = pplr.
+TFM: font 0 = pplr.
+VF file: 'Created by afm2tfm /teTeX/share/texmf/fonts/afm/adobe/palatino/pplr8a.afm -u -p 8r.enc -t dvips.enc -v pplr.vpl',
+   for font 0 = pplr.
+VF: font 0 = pplr8r.
+TFM: font 6 = pplr8r.
+OUT: font 6 = pplr8r.
+OUT file: 11992 bytes, 1 page written.
+(No errors were found.)
+./dvitomp ./tests/story.dvi tests/xstory.mpx
+TFMFONTS=./tests: VFFONTS=./tests: \
+  ./dvitomp ./tests/ptmr 
+mv ptmr.mpx tests/xptmr.mpx
+./dvitype -show-opcodes ./tests/story >tests/xstory.dvityp
+./dvitype --p=\*.\*.2 ./tests/pagenum.dvi >tests/xpagenum.typ
+*** TRIP test for e-TeX in compatibility mode ***.
+./pltotf ./triptrap/trip.pl trip.tfm
+./tftopl ./trip.tfm trip.pl
+diff ./triptrap/trip.pl trip.pl
+rm -f trip.tex; ln -s ./triptrap/trip.tex . # get same filename in log
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./etex --progname=einitex <./triptrap/trip1.in >ctripin.fot'
+mv trip.log ctripin.log
+diff ./triptrap/tripin.log ctripin.log
+1c1
+< This is TeX, Version 3.14159 (INITEX)  8 MAR 1995 14:24
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (INITEX)  24 MAR 1998 19:57
+449,451c449,451
+< Beginning to dump on file trip.fmt
+<  (preloaded format=trip 95.3.8)
+< 1320 strings of total length 23539
+---
+> Beginning to dump on file trip.efmt
+>  (format=trip 1998.3.24)
+> 1449 strings of total length 24764
+461c461
+< Hyphenation trie of length 273 has 9 ops out of 500
+---
+> Hyphenation trie of length 273 has 9 ops out of 1501
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./etex <./triptrap/trip2.in >ctrip.fot'
+mv trip.log ctrip.log
+diff ./triptrap/trip.fot ctrip.fot
+1,3c1,2
+< This is TeX, Version 3.14159 (INITEX)
+< ** &trip  trip 
+< (trip.tex ##
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+> **(trip.tex ##
+diff  ./triptrap/trip.log ctrip.log
+1c1
+< This is TeX, Version 3.14159 (preloaded format=trip 95.3.8)  8 MAR 1995 14:24
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (format=trip 1998.3.24)  24 MAR 1998 19:57
+58a59,62
+> \openout0 = `8terminal.tex'.
+> 
+> \openout10 = `tripos.tex'.
+> 
+1405c1409
+< \vbox(16383.99998+0.0)x1000.0, glue set 16342.0fil
+---
+> \vbox(16383.99998+0.0)x1000.0, glue set 16341.99998fil
+2018c2022
+< \vbox(16383.99998+1.0)x100.0, glue set 16239.0fil
+---
+> \vbox(16383.99998+1.0)x100.0, glue set 16238.99998fil
+2533c2537
+< \vbox(16383.99998+0.0)x20.0, glue set 16331.0fil
+---
+> \vbox(16383.99998+0.0)x20.0, glue set 16330.99998fil
+3326c3330
+< \vbox(10000.0+2.0)x28.0, glue set 9737.58789fil
+---
+> \vbox(10000.0+2.0)x28.0, glue set 9737.58742fil
+3864c3868
+< \vbox(16383.99998+2.0)x100.0, glue set 16318.0fil
+---
+> \vbox(16383.99998+2.0)x100.0, glue set 16317.99997fil
+4034c4038
+< \vbox(16383.99998+0.0)x8236.0, glue set 16344.0fil
+---
+> \vbox(16383.99998+0.0)x8236.0, glue set 16343.99998fil
+4420c4424
+< \vbox(16383.99998+0.0)x100.0, glue set 16332.0fil
+---
+> \vbox(16383.99998+0.0)x100.0, glue set 16331.99998fil
+4742c4746
+< \vbox(16383.99998+0.0)x205.12613, glue set 16344.0fil
+---
+> \vbox(16383.99998+0.0)x205.12613, glue set 16343.99998fil
+7296,7297c7300,7301
+<  47 strings out of 1680
+<  267 string characters out of 8461
+---
+>  37 strings out of 1851
+>  203 string characters out of 9236
+7299c7303
+<  370 multiletter control sequences out of 2100
+---
+>  370 multiletter control sequences out of 10000+0
+7301c7305
+<  2 hyphenation exceptions out of 307
+---
+>  1 hyphenation exception out of 659
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./dvitype -output-level=2 -dpi=72.27 -page-start='*.*.*.*.*.*.*.*.*.*' trip.dvi >ctrip.typ'
+diff  ./triptrap/trip.typ ctrip.typ
+1c1
+< This is DVItype, Version 3.5
+---
+> This is DVItype, Version 3.5 (Web2C 7.2)
+9c9
+< ' TeX output 1995.03.08:1424'
+---
+> ' TeX output 1998.03.24:1957'
+419c419
+< 1121: down4 639342208 
+---
+> 1121: down4 639342177 
+1087,1088c1087,1088
+< 2535: y4 203921760 
+< 2540: y0 203921760 
+---
+> 2535: y4 203921756 
+> 2540: y0 203921756 
+1215d1214
+<  
+*** TRIP test for e-TeX in extended mode ***.
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./etex --progname=einitex <./etexdir/etrip/etrip1.in >xtripin.fot'
+mv trip.log xtripin.log
+diff ctripin.log xtripin.log
+1,2c1,3
+< This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (INITEX)  24 MAR 1998 19:57
+< **\input trip
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (INITEX)  24 MAR 1998 19:58
+> entering extended mode
+> ***\input trip
+36,41d36
+< ! Bad register code (256).
+< l.29 ...{1} \toksdef\tokens=256 
+<                                 \show\errorstopmode
+< A register number must be between 0 and 255.
+< I changed this one to zero.
+< 
+452,453c447,448
+< 471 memory locations dumped; current usage is 96&278
+< 341 multiletter control sequences
+---
+> 509 memory locations dumped; current usage is 134&278
+> 407 multiletter control sequences
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./etex <./etexdir/etrip/trip2.in >xtrip.fot'
+mv trip.log xtrip.log
+diff ctrip.fot xtrip.fot
+2c2,3
+< **(trip.tex ##
+---
+> **entering extended mode
+> ## (trip.tex
+16c17
+< Memory usage before: 159&313; after: 102&278; still untouched: 1613
+---
+> Memory usage before: 151&313; after: 102&278; still untouched: 1613
+74c75
+< Memory usage before: 334&428; after: 292&415; still untouched: 175
+---
+> Memory usage before: 330&428; after: 292&415; still untouched: 175
+76a78,80
+> 
+> ### semi simple group (level 1) entered at line 429 (begingroup)
+> ### bottom level
+diff  ctrip.log xtrip.log
+1,3c1,4
+< This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (format=trip 1998.3.24)  24 MAR 1998 19:57
+< ** &trip  trip
+< (trip.tex ##
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (format=trip 1998.3.24)  24 MAR 1998 19:58
+> entering extended mode
+> **&trip \toksdef\tokens=0 \input trip
+>  (trip.tex
+77c78
+< Memory usage before: 159&313; after: 102&278; still untouched: 1613
+---
+> Memory usage before: 151&313; after: 102&278; still untouched: 1613
+1773d1773
+< {restoring \fam=-1}
+1783d1782
+< {restoring \displayindent=0.0pt}
+1837d1835
+< {restoring \fam=-1}
+2139c2137
+< .\hbox(0.0+0.0)x0.0, shifted 50.0
+---
+> .\hbox(0.0+0.0)x0.0, shifted 50.0, display
+2142c2140
+< .\hbox(0.0+0.0)x0.0, shifted 100.0
+---
+> .\hbox(0.0+0.0)x0.0, shifted 100.0, display
+2574c2572
+< .\hbox(0.0+0.0)x15.0, glue set 0.1875, shifted 5.0
+---
+> .\hbox(0.0+0.0)x15.0, glue set 0.1875, shifted 5.0, display
+2839d2836
+< {restoring current font=\ip}
+3227d3223
+< {restoring \fam=-1}
+3376c3372
+< .\hbox(68.26251+98.15005)x19.0, glue set - 1.0, shifted 9.0
+---
+> .\hbox(68.26251+98.15005)x19.0, glue set - 1.0, shifted 9.0, display
+3561c3557
+< .\hbox(20.5+50.80002)x8.27895, shifted 19.72105
+---
+> .\hbox(20.5+50.80002)x8.27895, shifted 19.72105, display
+3770d3765
+< {restoring \fam=-1}
+3843d3837
+< {restoring \fam=-1}
+3899c3893
+< ..\hbox(12.0+4.0)x8.1778
+---
+> ..\hbox(12.0+4.0)x8.1778, display
+3921c3915
+< ..\hbox(0.0+13.00002)x-0.1778, glue set - 57.67767fil
+---
+> ..\hbox(0.0+13.00002)x-0.1778, glue set - 57.67767fil, display
+3929c3923
+< ....\hbox(7.0+1.0)x5.0, shifted 47.5
+---
+> ....\hbox(7.0+1.0)x5.0, shifted 47.5, display
+4015d4008
+< {restoring \fam=-1}
+4051c4044
+< .\hbox(0.0+0.0)x1009.0, shifted 7227.0
+---
+> .\hbox(0.0+0.0)x1009.0, shifted 7227.0, display
+4055c4048
+< .\hbox(0.0+0.0)x-7127.0, shifted 7227.0
+---
+> .\hbox(0.0+0.0)x-7127.0, shifted 7227.0, display
+7159c7152
+< Memory usage before: 895&436; after: 290&417; still untouched: 175
+---
+> Memory usage before: 851&436; after: 290&417; still untouched: 175
+7292c7285
+< Memory usage before: 334&428; after: 292&415; still untouched: 175
+---
+> Memory usage before: 330&428; after: 292&415; still untouched: 175
+7295a7289,7291
+> 
+> ### semi simple group (level 1) entered at line 429 (begingroup)
+> ### bottom level
+7303c7299
+<  370 multiletter control sequences out of 10000+0
+---
+>  436 multiletter control sequences out of 10000+0
+7306c7302
+<  5i,7n,9p,113b,38s stack positions out of 200i,40n,60p,500b,600s
+---
+>  5i,7n,9p,136b,40s stack positions out of 200i,40n,60p,500b,600s
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./dvitype -output-level=2 -dpi=72.27 -page-start='*.*.*.*.*.*.*.*.*.*' trip.dvi >xtrip.typ'
+diff  ctrip.typ xtrip.typ
+9c9
+< ' TeX output 1998.03.24:1957'
+---
+> ' TeX output 1998.03.24:1958'
+*** e-TeX specific part of e-TRIP test ***.
+./pltotf ./etexdir/etrip/etrip.pl etrip.tfm
+./tftopl ./etrip.tfm etrip.pl
+diff ./etexdir/etrip/etrip.pl etrip.pl
+rm -f etrip.tex; ln -s ./etexdir/etrip/etrip.tex . # get same filename in log
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./etex --progname=einitex <./etexdir/etrip/etrip2.in >etripin.fot'
+mv etrip.log etripin.log
+diff ./etexdir/etrip/etripin.log etripin.log
+1c1
+< This is e-TeX, Version 3.14159-2.0 (INITEX)  6 MAR 1998 19:21
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (INITEX)  24 MAR 1998 19:59
+13c13
+< \hbox(8.0+2.0)x16383.99998, glue set 1166.92856 []
+---
+> \hbox(8.0+2.0)x16383.99998, glue set 1166.92857 []
+24,26c24,26
+< Beginning to dump on file etrip.fmt
+<  (preloaded format=etrip 98.3.6)
+< 1435 strings of total length 24587
+---
+> Beginning to dump on file etrip.efmt
+>  (format=etrip 1998.3.24)
+> 1450 strings of total length 24794
+35c35
+< Hyphenation trie of length 434 has 12 ops out of 500
+---
+> Hyphenation trie of length 434 has 12 ops out of 1501
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./etex <./etexdir/etrip/etrip3.in >etrip.fot'
+diff ./etexdir/etrip/etrip.fot etrip.fot
+1,3c1,2
+< This is e-TeX, Version 3.14159-2.0 (INITEX)
+< **&etrip etrip
+< entering extended mode
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+> **entering extended mode
+45a45,46
+> 
+> \openout1 = `etrip.out'.
+diff  ./etexdir/etrip/etrip.log etrip.log
+1c1
+< This is e-TeX, Version 3.14159-2.0 (preloaded format=etrip 98.3.6)  6 MAR 1998 19:21
+---
+> This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (format=etrip 1998.3.24)  24 MAR 1998 19:59
+670a671,672
+> \openout1 = `etrip.out'.
+> 
+4265,4266c4267,4268
+<  22 strings out of 1665
+<  132 string characters out of 8413
+---
+>  13 strings out of 1850
+>  89 string characters out of 9206
+4268c4270
+<  408 multiletter control sequences out of 2100
+---
+>  408 multiletter control sequences out of 10000+0
+4270c4272
+<  10 hyphenation exceptions out of 307
+---
+>  9 hyphenation exceptions out of 659
+diff ./etexdir/etrip/etrip.out etrip.out
+/bin/sh -c 'TEXMFCNF=./etexdir/etrip ./dvitype -output-level=2 -dpi=72.27 -page-start='*.*.*.*.*.*.*.*.*.*' etrip.dvi >etrip.typ'
+diff  ./etexdir/etrip/etrip.typ etrip.typ
+1c1
+< This is DVItype, Version 3.5
+---
+> This is DVItype, Version 3.5 (Web2C 7.2)
+9c9
+< ' TeX output 1998.03.06:1921'
+---
+> ' TeX output 1998.03.24:1959'
+./etex --output-comment="`cat ./PROJECTS`" \
+  ./tests/hello 2>/dev/null \
+  && ./dvitype hello.dvi | grep kb@mail.tug.org >/dev/null
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+entering extended mode
+(./tests/hello.tex [1] )
+Output written on hello.dvi (1 page, 456 bytes).
+Transcript written on hello.log.
+./etex ./tests/openout && grep xfoo openout.log
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+entering extended mode
+(./tests/openout.tex )
+No pages of output.
+Transcript written on openout.log.
+\openout0 = `xfoo.out'.
+./etex ./tests/one.two && ls -l one.two.log
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+entering extended mode
+(./tests/one.two.tex jobname = one.two )
+No pages of output.
+Transcript written on one.two.log.
+-rw-rw-r--   1 olaf     olaf          192 Mar 24 19:59 one.two.log
+./etex ./tests/uno.dos && ls -l uno.log
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+entering extended mode
+(./tests/uno.dos )
+No pages of output.
+Transcript written on uno.log.
+-rw-rw-r--   1 olaf     olaf          170 Mar 24 19:59 uno.log
+./etex ./tests/just.texi && ls -l just.log
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+entering extended mode
+(./tests/just.texi )
+No pages of output.
+Transcript written on just.log.
+-rw-rw-r--   1 olaf     olaf          174 Mar 24 19:59 just.log
+./etex ./tests/batch.tex
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+entering extended mode
+(./tests/batch.tex
+ )
+No pages of output.
+Transcript written on batch.log.
+./etex --shell ./tests/write18 | grep echo
+(./tests/write18.texthis is write18 output from echo
+./etex --mltex --progname=einitex ./tests/mltextst
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2) (INITEX)
+MLTeX v2.2 enabled
+(./tests/mltextst.tex
+
+Test for bugs in MLTeX (1995/12/07 v1.2 [br])
+
+
+..... Ok, this is a newer MLTeX version (>= 2.0).
+
+
+..... If there will be an error "Bad metric (TFM) file",
+..... please update to the newest MLTeX version!
+
+..... Good, no "Bad metric (TFM) file" bug,
+..... seems to be the a MLTeX version > 2.01.
+
+
+...... Seems to be MLTeX version 2.2 (released Dec. 1995).
+
+Congratulations, you have a MLTeX version with all known bugs fixed.
+
+ )
+(see the transcript file for additional information)
+No pages of output.
+Transcript written on mltextst.log.
+./etex </dev/null
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+**
+! End of file on the terminal... why?
+PATH=`pwd`:../kpathsea:./../kpathsea:$PATH \
+  WEB2C=./../kpathsea TMPDIR=.. \
+  ./etex '\nonstopmode\font\foo=nonesuch\end'
+This is e-TeX, Version 3.14159-2.0 (Web2C 7.2)
+entering extended mode
+
+! Font \foo=nonesuch not loadable: Metric (TFM) file not found.
+<to be read again> 
+                   \end 
+<*> \nonstopmode\font\foo=nonesuch\end
+                                      
+(see the transcript file for additional information)
+No pages of output.
+Transcript written on texput.log.
+TFMFONTS=./tests: ./gftodvi -verbose \
+  ./tests/cmr10.600gf
+This is GFtoDVI, Version 3.0 (Web2C 7.2)
+[1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] [13] 
+[14] [15] [16] [17] [18] [19] [20] [21] [22] [23] [24] [25] [26] 
+[27] [28] [29] [30] [31] [32] [33] [34] [35] [36] [37] [38] [39] 
+[40] [41] [42] [43] [44] [45] [46] [47] [48] [49] [50] [51] [52] 
+[53] [54] [55] [56] [57] [58] [59] [60] [61] [62] [63] [64] [65] 
+[66] [67] [68] [69] [70] [71] [72] [73] [74] [75] [76] [77] [78] 
+[79] [80] [81] [82] [83] [84] [85] [86] [87] [88] [89] [90] [91] 
+[92] [93] [94] [95] [96] [97] [98] [99] [100] [101] [102] [103] [104] 
+[105] [106] [107] [108] [109] [110] [111] [112] [113] [114] [115] [116] [117] 
+[118] [119] [120] [121] [122] [123] [124] [125] [126] [127] [128]  
+mv cmr10.dvi tests/xcmr10.dvi
+./gftopk -verbose ./tests/cmr10.600gf tests/xcmr10.pk
+This is GFtoPK, Version 2.3 (Web2C 7.2)
+'METAFONT output 1993.11.11:0921'
+24148 bytes packed to 11048 bytes.
+./gftopk ./tests/cmr10.600gf cmr10.pk && rm cmr10.pk
+./gftype ./tests/cmr10.600gf >tests/xcmr10.gft1
+./gftype -m -i ./tests/cmr10.600gf >tests/xcmr10.gft2
+rm -f trap.mf; ln -s ./triptrap/trap.mf . # get same filename in log
+/bin/sh -c 'TEXMFCNF=./triptrap ./mf --progname=inimf <./triptrap/mftrap1.in >mftrapin.fot'
+mv trap.log mftrapin.log
+diff ./triptrap/mftrapin.log mftrapin.log
+1c1
+< This is METAFONT, Version 2.718 (INIMF)  8 MAR 1995 14:44
+---
+> This is METAFONT, Version 2.718 (Web2C 7.2) (INIMF)  24 MAR 1998 20:00
+150c150
+< String usage 26&83 (895&11534 still untouched)
+---
+> String usage 28&90 (6393&79987 still untouched)
+176,177c176,177
+<  (preloaded base=trap 95.3.8)
+< 1113 strings of total length 20515
+---
+>  (base=trap 1998.3.24)
+> 1115 strings of total length 20055
+/bin/sh -c 'TEXMFCNF=./triptrap ./mf <./triptrap/mftrap2.in >mftrap.fot'
+mv trap.log mftrap.log
+mv trap.tfm mftrap.tfm
+diff ./triptrap/mftrap.fot mftrap.fot
+1,3c1,2
+< This is METAFONT, Version 2.718 (INIMF)
+< ** &trap  trap 
+< (trap.mf
+---
+> This is METAFONT, Version 2.718 (Web2C 7.2)
+> **(trap.mf
+39c38
+< String usage 39&162 (821&7732 still untouched)
+---
+> String usage 43&176 (6315&76178 still untouched)
+diff ./triptrap/mftrap.log mftrap.log
+1c1
+< This is METAFONT, Version 2.718 (preloaded base=trap 95.3.8)  8 MAR 1995 14:44
+---
+> This is METAFONT, Version 2.718 (Web2C 7.2) (base=trap 1998.3.24)  24 MAR 1998 20:00
+1808c1808
+< String usage 21&86 (866&11413 still untouched)
+---
+> String usage 23&93 (6362&79866 still untouched)
+2721c2721
+< Calling BLANKRECTANGLE(100,100,0,1)
+---
+> Calling BLANKRECTANGLE(1664,1664,0,1)
+4218c4218
+< String usage 39&162 (821&7732 still untouched)
+---
+> String usage 43&176 (6315&76178 still untouched)
+4234,4235c4234,4235
+<  66 strings out of 887
+<  3753 string characters out of 11485
+---
+>  70 strings out of 6385
+>  3767 string characters out of 79945
+4237,4238c4237,4238
+<  289 symbolic tokens out of 2100
+<  8i,43n,14r,8p,167b stack positions out of 30i,100n,300r,150p,500b
+---
+>  289 symbolic tokens out of 9500
+>  8i,43n,14r,8p,167b stack positions out of 300i,300n,1000r,150p,3000b
+4246c4246
+<   out of 256w,16h,16d,64i,5000l,500k,256e,50p)
+---
+>   out of 256w,16h,16d,64i,15000l,2500k,256e,60p)
+./tftopl ./mftrap.tfm mftrap.pl
+diff ./triptrap/mftrap.pl mftrap.pl
+/bin/sh -c 'TEXMFCNF=./triptrap ./gftype -m -i ./trap.72270gf >trap.typ'
+diff ./triptrap/trap.typ trap.typ
+1c1
+< This is GFtype, Version 3.1
+---
+> This is GFtype, Version 3.1 (Web2C 7.2)
+3c3
+< ' METAFONT output 1995.03.08:1444'
+---
+> ' METAFONT output 1998.03.24:2000'
+./mf '&./mf \tracingstats:=1; end.'
+This is METAFONT, Version 2.718 (Web2C 7.2)
+Transcript written on mfput.log.
+./mf ./tests/online
+This is METAFONT, Version 2.718 (Web2C 7.2)
+(./tests/online.mf [0] )
+Output written on online.2602gf (1 character, 248 bytes).
+Transcript written on online.log.
+./mf ./tests/one.two
+This is METAFONT, Version 2.718 (Web2C 7.2)
+(./tests/one.two.mf
+one.two )
+Transcript written on one.two.log.
+./mf ./tests/uno.dos
+This is METAFONT, Version 2.718 (Web2C 7.2)
+(./tests/uno.dos )
+Transcript written on uno.log.
+./mft ./tests/io; mv io.tex tests/io.tex
+This is MFT, Version 2.0 (Web2C 7.2)
+
+(No errors were found.)
+rm -f mtrap.mp; ln -s ./triptrap/mtrap.mp . # get same filename in log
+./pltotf ./triptrap/trapf.pl trapf.tfm
+/bin/sh -c 'TEXMFCNF=./triptrap ./mpost --progname=inimpost mtrap'
+This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)
+(mtrap.mp
+diff ./triptrap/mtrap.log mtrap.log
+1,2c1,2
+< This is MetaPost, C Version 0.64 (INIMP)  28 JAN 1998 11:18
+< **mtrap 
+---
+> This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)  24 MAR 1998 20:00
+> **mtrap
+5c5
+< String usage 4&24 (1306&9877 now untouched)
+---
+> String usage 5&29 (1304&17874 now untouched)
+300c300
+< String usage 8&32 (1302&9869 now untouched)
+---
+> String usage 9&37 (1300&17866 now untouched)
+302c302
+< String usage 10&42 (1300&9859 now untouched)
+---
+> String usage 11&47 (1298&17856 now untouched)
+304c304
+< String usage 11&45 (1299&9856 now untouched)
+---
+> String usage 12&50 (1297&17853 now untouched)
+306c306
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+317c317
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+342c342
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+359c359
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+375c375
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+405c405
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+443c443
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+481c481
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+497c497
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+538c538
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+551c551
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+595c595
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+611c611
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+660c660
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+669c669
+< String usage 18&75 (1292&9826 now untouched)
+---
+> String usage 19&80 (1290&17823 now untouched)
+671c671
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+722c722
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+725c725
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+818c818
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+848c848
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+873c873
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+898c898
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+920c920
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+943c943
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+950c950
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+953c953
+< String usage 20&78 (1287&9809 now untouched)
+---
+> String usage 21&83 (1285&17806 now untouched)
+989c989
+< String usage 22&84 (1247&8769 now untouched)
+---
+> String usage 23&89 (1245&16766 now untouched)
+994c994
+< String usage 22&84 (1206&7603 now untouched)
+---
+> String usage 23&89 (1204&15600 now untouched)
+1000c1000,1004
+< String usage 24&110 (1197&7522 now untouched)
+---
+> String usage 25&115 (1195&15519 now untouched)
+> write0 = `writeo'.
+> 
+> write1 = `writeo.2'.
+> 
+1002c1006
+< String usage 26&125 (1148&7358 now untouched)
+---
+> String usage 27&130 (1146&15355 now untouched)
+1010c1014,1016
+< String usage 25&135 (1144&7308 now untouched)
+---
+> String usage 26&140 (1142&15305 now untouched)
+> write0 = `writeo'.
+> 
+1014c1020
+< String usage 26&141 (1195&1840 now untouched)
+---
+> String usage 27&146 (1267&16497 now untouched)
+1039c1045
+< String usage 26&141 (1195&1840 now untouched)
+---
+> String usage 27&146 (1267&16497 now untouched)
+1049c1055
+< String usage 27&149 (1194&1832 now untouched)
+---
+> String usage 28&154 (1266&16489 now untouched)
+1098c1104
+< String usage 27&149 (1193&1824 now untouched)
+---
+> String usage 28&154 (1265&16481 now untouched)
+1101,1102c1107,1108
+<  32 strings out of 1310
+<  561 string characters out of 9901
+---
+>  33 strings out of 1309
+>  566 string characters out of 17903
+1104,1106c1110,1112
+<  237 symbolic tokens out of 2100
+<  5i,33n,6p,100b stack positions out of 30i,100n,150p,500b
+<  3 string compactions (moved 1368 characters, 89 strings)
+---
+>  237 symbolic tokens out of 9500
+>  5i,33n,6p,99b stack positions out of 300i,300n,150p,3000b
+>  2 string compactions (moved 892 characters, 63 strings)
+diff ./triptrap/mtrap.0 mtrap.0
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/mtrap.1 mtrap.1
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/writeo writeo
+diff ./triptrap/writeo.2 writeo.2
+rm -f trap.mp; ln -s ./triptrap/trap.mp .
+rm -f trap.mpx; ln -s ./triptrap/trap.mpx .
+/bin/sh -c 'TEXMFCNF=./triptrap ./mpost --progname=inimpost <./triptrap/mptrap1.in >mptrapin.fot'
+mv trap.log mptrapin.log
+diff ./triptrap/mptrapin.log mptrapin.log
+1c1
+< This is MetaPost, C Version 0.632 (INIMP)  24 JAN 1997 11:13
+---
+> This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)  24 MAR 1998 20:00
+162c162
+< String usage 28&93 (1282&9362 now untouched)
+---
+> String usage 29&97 (1279&17801 now untouched)
+195,196c195,196
+<  (preloaded mem=trap 97.1.24)
+< at most 1226 strings of total length 22670
+---
+>  (mem=trap 1998.3.24)
+> at most 1229 strings of total length 22219
+198c198
+< 279 symbolic tokens
+---
+> 280 symbolic tokens
+/bin/sh -c 'TEXMFCNF=./triptrap ./mpost --progname=inimpost <./triptrap/mptrap2.in >mptrap.fot'
+mv trap.log mptrap.log
+mv trap.tfm mptrap.tfm
+diff ./triptrap/mptrap.fot mptrap.fot
+0a1
+> This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)
+35c36
+< String usage 73&277 (1110&5373 now untouched)
+---
+> String usage 74&281 (1110&13823 now untouched)
+diff ./triptrap/mptrap.log mptrap.log
+1c1
+< This is MetaPost, C Version 0.632 (preloaded mem=trap 97.1.24)  24 JAN 1997 11:13
+---
+> This is MetaPost, Version 0.641 (Web2C 7.2) (mem=trap 1998.3.24)  24 MAR 1998 20:00
+1622c1622
+< String usage 22&84 (1244&9177 now untouched)
+---
+> String usage 23&88 (1243&17626 now untouched)
+2665c2665
+< dashed (on 3 off 0) shifted 0
+---
+> dashed (on 0 off 0) shifted 0
+3510c3510
+< String usage 68&249 (1155&8794 now untouched)
+---
+> String usage 69&253 (1154&17243 now untouched)
+3521c3521
+< String usage 66&241 (1154&8790 now untouched)
+---
+> String usage 67&245 (1153&17239 now untouched)
+4379c4379
+< String usage 73&279 (1138&8717 now untouched)
+---
+> String usage 74&283 (1137&17166 now untouched)
+4385c4385
+< String usage 73&279 (1138&8717 now untouched)
+---
+> String usage 74&283 (1137&17166 now untouched)
+4674c4674
+< String usage 73&277 (1110&5373 now untouched)
+---
+> String usage 74&281 (1110&13823 now untouched)
+4739,4740c4739,4740
+<  75 strings out of 1277
+<  768 string characters out of 9330
+---
+>  76 strings out of 1275
+>  772 string characters out of 17781
+4742,4743c4742,4743
+<  337 symbolic tokens out of 2100
+<  8i,35n,8p,167b stack positions out of 30i,100n,150p,500b
+---
+>  338 symbolic tokens out of 9500
+>  8i,35n,8p,167b stack positions out of 300i,300n,150p,3000b
+4752c4752
+<   out of 256w,16h,16d,64i,5000l,500k,256e,50p)
+---
+>   out of 256w,16h,16d,64i,15000l,2500k,256e,50p)
+diff ./triptrap/trap.5 trap.5
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/trap.6 trap.6
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/trap.148 trap.148
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/trap.149 trap.149
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/trap.150 trap.150
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/trap.151 trap.151
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/trap.197 trap.197
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+diff ./triptrap/trap.200 trap.200
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:2000
+./tftopl ./mptrap.tfm mptrap.pl
+diff ./triptrap/mptrap.pl mptrap.pl
+./mpost '&./mpost \tracingstats:=1; end.'
+This is MetaPost, Version 0.641 (Web2C 7.2)
+Transcript written on mpout.log.
+MAKEMPX_BINDIR=`pwd`:`pwd`/mpware MPXCOMMAND=mpware/makempx \
+  ./mpost ./tests/mptest
+This is MetaPost, Version 0.641 (Web2C 7.2)
+(./tests/mptest.mp
+* Test for string length bug:
+Length of string "^^I"
+==> 1
+Length of string "^^I"
+==> 1
+* Test for big numbers in btex...etex: )
+Transcript written on mptest.log.
+./mpost ./tests/one.two
+This is MetaPost, Version 0.641 (Web2C 7.2)
+(./tests/one.two.mp
+one.two )
+Transcript written on one.two.log.
+./mpost ./tests/uno.dos
+This is MetaPost, Version 0.641 (Web2C 7.2)
+(./tests/uno.dos )
+Transcript written on uno.log.
+./patgen ./tests/dict ./tests/patterns tests/xout \
+   ./tests/translate <./tests/patgen.in
+This is PATGEN, Version 2.3 (Web2C 7.2)
+left_hyphen_min = 2, right_hyphen_min = 3, 26 letters
+0 patterns read in
+pattern trie has 256 nodes, trie_max = 256, 0 outputs
+hyph_start, hyph_finish: pat_start, pat_finish: good weight, bad weight, threshold: processing dictionary with pat_len = 1, pat_dot = 0
+ 
+0 good, 0 bad, 0 missed
+0 patterns, 256 nodes in count trie, triec_max = 256
+0 good and 27 bad patterns added 
+finding 0 good and 0 bad hyphens 
+pattern trie has 256 nodes, trie_max = 256, 1 outputs
+processing dictionary with pat_len = 1, pat_dot = 1
+ 
+0 good, 0 bad, 0 missed
+0 patterns, 256 nodes in count trie, triec_max = 256
+0 good and 27 bad patterns added 
+finding 0 good and 0 bad hyphens 
+pattern trie has 256 nodes, trie_max = 256, 2 outputs
+0 nodes and 2 outputs deleted
+total of 0 patterns at hyph_level 1
+hyphenate word list? writing pattmp.1
+ 
+0 good, 0 bad, 0 missed
+./pktogf -verbose ./tests/cmr10.pk tests/xcmr10.600gf
+This is PKtoGF, Version 1.1
+{METAFONT output 1993.11.11:0921}
+11048 bytes unpacked to 24148 bytes.
+./pktogf ./tests/cmr10.pk && rm cmr10.gf
+./pktype ./tests/cmr10.pk >tests/xcmr10.pktyp
+./pltotf -verbose ./tests/cmr10 tests/xcmr10
+This is PLtoTF, Version 3.5 (Web2C 7.2)
+'000 '001 '002 '003 '004 '005 '006 '007 
+'010 '011 '012 '013 '014 '015 '016 '017 
+'020 '021 '022 '023 '024 '025 '026 '027 
+'030 '031 '032 '033 '034 '035 '036 '037 
+'040 '041 '042 '043 '044 '045 '046 '047 
+'050 '051 '052 '053 '054 '055 '056 '057 
+'060 '061 '062 '063 '064 '065 '066 '067 
+'070 '071 '072 '073 '074 '075 '076 '077 
+'100 '101 '102 '103 '104 '105 '106 '107 
+'110 '111 '112 '113 '114 '115 '116 '117 
+'120 '121 '122 '123 '124 '125 '126 '127 
+'130 '131 '132 '133 '134 '135 '136 '137 
+'140 '141 '142 '143 '144 '145 '146 '147 
+'150 '151 '152 '153 '154 '155 '156 '157 
+'160 '161 '162 '163 '164 '165 '166 '167 
+'170 '171 '172 '173 '174 '175 '176 '177.
+./pooltype tex.pool >tests/xtexpool.typ
+./pltotf ./triptrap/trip.pl trip.tfm
+./tftopl ./trip.tfm trip.pl
+diff ./triptrap/trip.pl trip.pl
+rm -f trip.tex; ln -s ./triptrap/trip.tex . # get same filename in log
+/bin/sh -c 'TEXMFCNF=./triptrap ./tex --progname=initex <./triptrap/trip1.in >tripin.fot'
+mv trip.log tripin.log
+diff ./triptrap/tripin.log tripin.log
+1c1
+< This is TeX, Version 3.14159 (INITEX)  8 MAR 1995 14:24
+---
+> This is TeX, Version 3.14159 (Web2C 7.2) (INITEX)  24 MAR 1998 20:01
+450,451c450,451
+<  (preloaded format=trip 95.3.8)
+< 1320 strings of total length 23539
+---
+>  (format=trip 1998.3.24)
+> 1334 strings of total length 23286
+461c461
+< Hyphenation trie of length 273 has 9 ops out of 500
+---
+> Hyphenation trie of length 273 has 9 ops out of 1501
+/bin/sh -c 'TEXMFCNF=./triptrap ./tex <./triptrap/trip2.in >trip.fot'
+diff ./triptrap/trip.fot trip.fot
+1,3c1,2
+< This is TeX, Version 3.14159 (INITEX)
+< ** &trip  trip 
+< (trip.tex ##
+---
+> This is TeX, Version 3.14159 (Web2C 7.2)
+> **(trip.tex ##
+diff  ./triptrap/trip.log trip.log
+1c1
+< This is TeX, Version 3.14159 (preloaded format=trip 95.3.8)  8 MAR 1995 14:24
+---
+> This is TeX, Version 3.14159 (Web2C 7.2) (format=trip 1998.3.24)  24 MAR 1998 20:01
+58a59,62
+> \openout0 = `8terminal.tex'.
+> 
+> \openout10 = `tripos.tex'.
+> 
+1405c1409
+< \vbox(16383.99998+0.0)x1000.0, glue set 16342.0fil
+---
+> \vbox(16383.99998+0.0)x1000.0, glue set 16341.99998fil
+2018c2022
+< \vbox(16383.99998+1.0)x100.0, glue set 16239.0fil
+---
+> \vbox(16383.99998+1.0)x100.0, glue set 16238.99998fil
+2533c2537
+< \vbox(16383.99998+0.0)x20.0, glue set 16331.0fil
+---
+> \vbox(16383.99998+0.0)x20.0, glue set 16330.99998fil
+3326c3330
+< \vbox(10000.0+2.0)x28.0, glue set 9737.58789fil
+---
+> \vbox(10000.0+2.0)x28.0, glue set 9737.58742fil
+3864c3868
+< \vbox(16383.99998+2.0)x100.0, glue set 16318.0fil
+---
+> \vbox(16383.99998+2.0)x100.0, glue set 16317.99997fil
+4034c4038
+< \vbox(16383.99998+0.0)x8236.0, glue set 16344.0fil
+---
+> \vbox(16383.99998+0.0)x8236.0, glue set 16343.99998fil
+4420c4424
+< \vbox(16383.99998+0.0)x100.0, glue set 16332.0fil
+---
+> \vbox(16383.99998+0.0)x100.0, glue set 16331.99998fil
+4742c4746
+< \vbox(16383.99998+0.0)x205.12613, glue set 16344.0fil
+---
+> \vbox(16383.99998+0.0)x205.12613, glue set 16343.99998fil
+7296,7297c7300,7301
+<  47 strings out of 1680
+<  267 string characters out of 8461
+---
+>  37 strings out of 1666
+>  203 string characters out of 16714
+7299c7303
+<  370 multiletter control sequences out of 2100
+---
+>  370 multiletter control sequences out of 10000+0
+7301c7305
+<  2 hyphenation exceptions out of 307
+---
+>  1 hyphenation exception out of 659
+/bin/sh -c 'TEXMFCNF=./triptrap ./dvitype -output-level=2 -dpi=72.27 -page-start='*.*.*.*.*.*.*.*.*.*' trip.dvi >trip.typ'
+diff  ./triptrap/trip.typ trip.typ
+1c1
+< This is DVItype, Version 3.5
+---
+> This is DVItype, Version 3.5 (Web2C 7.2)
+9c9
+< ' TeX output 1995.03.08:1424'
+---
+> ' TeX output 1998.03.24:2001'
+419c419
+< 1121: down4 639342208 
+---
+> 1121: down4 639342177 
+1087,1088c1087,1088
+< 2535: y4 203921760 
+< 2540: y0 203921760 
+---
+> 2535: y4 203921756 
+> 2540: y0 203921756 
+1215d1214
+<  
+./tex --output-comment="`cat ./PROJECTS`" \
+    ./tests/hello 2>/dev/null \
+  && ./dvitype hello.dvi | grep kb@mail.tug.org >/dev/null
+This is TeX, Version 3.14159 (Web2C 7.2)
+(./tests/hello.tex [1] )
+Output written on hello.dvi (1 page, 456 bytes).
+Transcript written on hello.log.
+./tex ./tests/openout && grep xfoo openout.log
+This is TeX, Version 3.14159 (Web2C 7.2)
+(./tests/openout.tex )
+No pages of output.
+Transcript written on openout.log.
+\openout0 = `xfoo.out'.
+./tex ./tests/one.two && ls -l one.two.log
+This is TeX, Version 3.14159 (Web2C 7.2)
+(./tests/one.two.tex jobname = one.two )
+No pages of output.
+Transcript written on one.two.log.
+-rw-rw-r--   1 olaf     olaf          162 Mar 24 20:01 one.two.log
+./tex ./tests/uno.dos && ls -l uno.log
+This is TeX, Version 3.14159 (Web2C 7.2)
+(./tests/uno.dos )
+No pages of output.
+Transcript written on uno.log.
+-rw-rw-r--   1 olaf     olaf          140 Mar 24 20:01 uno.log
+./tex ./tests/just.texi && ls -l just.log
+This is TeX, Version 3.14159 (Web2C 7.2)
+(./tests/just.texi )
+No pages of output.
+Transcript written on just.log.
+-rw-rw-r--   1 olaf     olaf          144 Mar 24 20:01 just.log
+./tex ./tests/batch.tex
+This is TeX, Version 3.14159 (Web2C 7.2)
+(./tests/batch.tex
+ )
+No pages of output.
+Transcript written on batch.log.
+./tex --shell ./tests/write18 | grep echo
+(./tests/write18.texthis is write18 output from echo
+./tex --mltex --progname=initex ./tests/mltextst
+This is TeX, Version 3.14159 (Web2C 7.2) (INITEX)
+MLTeX v2.2 enabled
+(./tests/mltextst.tex
+
+Test for bugs in MLTeX (1995/12/07 v1.2 [br])
+
+
+..... Ok, this is a newer MLTeX version (>= 2.0).
+
+
+..... If there will be an error "Bad metric (TFM) file",
+..... please update to the newest MLTeX version!
+
+..... Good, no "Bad metric (TFM) file" bug,
+..... seems to be the a MLTeX version > 2.01.
+
+
+...... Seems to be MLTeX version 2.2 (released Dec. 1995).
+
+Congratulations, you have a MLTeX version with all known bugs fixed.
+
+ )
+(see the transcript file for additional information)
+No pages of output.
+Transcript written on mltextst.log.
+./tex </dev/null
+This is TeX, Version 3.14159 (Web2C 7.2)
+**
+! End of file on the terminal... why?
+PATH=`pwd`:../kpathsea:./../kpathsea:$PATH \
+  WEB2C=./../kpathsea TMPDIR=.. \
+  ./tex '\nonstopmode\font\foo=nonesuch\end'
+This is TeX, Version 3.14159 (Web2C 7.2)
+
+! Font \foo=nonesuch not loadable: Metric (TFM) file not found.
+<to be read again> 
+                   \end 
+<*> \nonstopmode\font\foo=nonesuch\end
+                                      
+(see the transcript file for additional information)
+No pages of output.
+Transcript written on texput.log.
+./tftopl -verbose ./tests/cmr10 tests/xcmr10
+This is TFtoPL, Version 3.1 (Web2C 7.2)
+'000 '001 '002 '003 '004 '005 '006 '007 
+'010 '011 '012 '013 '014 '015 '016 '017 
+'020 '021 '022 '023 '024 '025 '026 '027 
+'030 '031 '032 '033 '034 '035 '036 '037 
+'040 '041 '042 '043 '044 '045 '046 '047 
+'050 '051 '052 '053 '054 '055 '056 '057 
+'060 '061 '062 '063 '064 '065 '066 '067 
+'070 '071 '072 '073 '074 '075 '076 '077 
+'100 '101 '102 '103 '104 '105 '106 '107 
+'110 '111 '112 '113 '114 '115 '116 '117 
+'120 '121 '122 '123 '124 '125 '126 '127 
+'130 '131 '132 '133 '134 '135 '136 '137 
+'140 '141 '142 '143 '144 '145 '146 '147 
+'150 '151 '152 '153 '154 '155 '156 '157 
+'160 '161 '162 '163 '164 '165 '166 '167 
+'170 '171 '172 '173 '174 '175 '176 '177.
+TFMFONTS=./tests ./vftovp -verbose ./tests/ptmr ptmr tests/xptmr
+This is VFtoVP, Version 1.2 (Web2C 7.2)
+Created by afm2tfm Times-Roman -v ptmr_raw, then edited for Greek 
+MAPFONT 0: rptmr at 10.00pt
+MAPFONT 1: rpsyr at 10.00pt
+'000 '001 '002 '003 '004 '005 '006 '007 
+'010 '011 '012 '013 '014 '015 '016 '017 
+'020 '022 '023 '024 '025 '026 '027 '030 
+'031 '032 '033 '034 '035 '036 '037 '040 
+'041 '042 '043 '044 '045 '046 '047 '050 
+'051 '052 '053 '054 '055 '056 '057 '060 
+'061 '062 '063 '064 '065 '066 '067 '070 
+'071 '072 '073 '074 '075 '076 '077 '100 
+'101 '102 '103 '104 '105 '106 '107 '110 
+'111 '112 '113 '114 '115 '116 '117 '120 
+'121 '122 '123 '124 '125 '126 '127 '130 
+'131 '132 '133 '134 '135 '136 '137 '140 
+'141 '142 '143 '144 '145 '146 '147 '150 
+'151 '152 '153 '154 '155 '156 '157 '160 
+'161 '162 '163 '164 '165 '166 '167 '170 
+'171 '172 '173 '174 '175 '176 '177 '200 
+'201 '202 '203 '204 '205 '206 '207 '210 
+'211 '212 '213 '214 '215 '216 '217 '220 
+'221 '222 '223 '224 '225 '226 '227 '230 
+'231 '232 '233 '234 '235 '236 '237 '240 
+'241 '242 '243 '244 '245 '246 '247 '250 
+'251 '252 '253 '254 '255 '256 '257 '260 
+'261 '262 '263 '264 '265 '266 '267 '270 
+'271 '272 '273 '274 '275 '276 '277 '300 
+'301 '302 '303 '304 '305 '306 '307 '310 
+'311 '312 '313 '314 '315 '316 '317 '320 
+'321 '322 '323 '324 '325 '326 '327 '330 
+'343 '350 '353 '370.
+./vptovf ./tests/ptmr tests/xptmr tests/xptmr
+./weave ./pooltype
+This is WEAVE, Version 4.4 (Web2C 7.2)
+*1*4*12*21*22
+Writing the output file...*1*4*12*21*22
+Writing the index...Done.
+(No errors were found.)
+make[1]: Leaving directory `/home/olaf/web2c/src/texk/web2c'

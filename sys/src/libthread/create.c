@@ -27,13 +27,22 @@ newthread(Proc *p, void (*f)(void *arg), void *arg, uint stacksize, char *name, 
 	int id;
 	Thread *t;
 
-	if(stacksize < 32)
-		sysfatal("bad stacksize %d", stacksize);
 	t = _threadmalloc(sizeof(Thread), 1);
+	/*
+	 * adequate stack sizes are hard to estimate, which is why Unix and
+	 * Plan 9 grow the stack segment as needed.  existing sizes have been
+	 * adequate so far for 32-bit systems, but probably need to be
+	 * doubled on 64-bit systems.
+	 */
+	if (stacksize < 64 * sizeof(ulong))	/* sanity: enforce minimum */
+		stacksize = 64 * sizeof(ulong);
+	stacksize *= sizeof(uintptr) / sizeof(ulong);	/* scale size */
+	stacksize += Stackyellow;
 	t->stksize = stacksize;
 	t->stk = _threadmalloc(stacksize, 0);
 	memset(t->stk, 0xFE, stacksize);
 	_threadinitstack(t, f, arg);
+
 	t->grp = grp;
 	if(name)
 		t->cmdname = strdup(name);
@@ -111,17 +120,46 @@ proccreate(void (*f)(void*), void *arg, uint stacksize)
 }
 
 void
+_threadstkstats(Thread *t)
+{
+	uchar *p, *e;
+	// TODO: remove stats printing
+	static int log = -1;
+
+	if (log < 0)
+		log = open("/sys/log/plumber", OWRITE);
+	if (t->stk[0] != 0xfe && t->stk[0] != 0)
+		fprint(log, "%s: thread %s stack %d bytes overrun\n",
+			argv0, t->cmdname, t->stksize);
+	else {
+		p = t->stk;
+		e = p + t->stksize;
+		while (p < e && *p != 0xfe && *p != 0)
+			p++;
+		fprint(log, "%s: thread %s stack usage %d/%d bytes\n",
+			argv0, t->cmdname, (int)(e - p), t->stksize);
+	}
+}
+
+static void
+freethread(Thread *t)
+{
+	if (t->cmdname)
+		free(t->cmdname);
+	assert(t->stk != nil);
+	_threadstkstats(t);		// TODO: remove stats printing
+	free(t->stk);
+	free(t);
+}
+
+void
 _freeproc(Proc *p)
 {
 	Thread *t, *nextt;
 
 	for(t = p->threads.head; t; t = nextt){
-		if(t->cmdname)
-			free(t->cmdname);
-		assert(t->stk != nil);
-		free(t->stk);
 		nextt = t->nextt;
-		free(t);
+		freethread(t);
 	}
 	free(p);
 }
@@ -143,10 +181,5 @@ _freethread(Thread *t)
 		}
 	}
 	unlock(&p->lock);
-	if (t->cmdname)
-		free(t->cmdname);
-	assert(t->stk != nil);
-	free(t->stk);
-	free(t);
+	freethread(t);
 }
-

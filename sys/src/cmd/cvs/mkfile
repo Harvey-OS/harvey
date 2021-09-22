@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+default:V: all
+
+DIRS=lib zlib diff src
+all clean nuke:V:
+	for (i in $DIRS)
+		@{cd $i; mk $target}
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+
+install:V:
+	for(i in $DIRS)
+		@{cd $i; mk install}

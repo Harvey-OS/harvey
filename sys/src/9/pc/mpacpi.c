@@ -13,7 +13,7 @@
 #include "mp.h"
 #include "mpacpi.h"
 
-/* 8c says: out of fixed registers */
+/* if we use this outside l64get, 8c says: out of fixed registers */
 #define L64GET(p)	((uvlong)L32GET((p)+4) << 32 | L32GET(p))
 
 enum {
@@ -30,20 +30,18 @@ enum {
 	Apiclx2,
 	Apiclx2nmi,
 
-	PcmpUsed = 1ul<<31,		/* Apic->flags addition */
-
-	Lapicbase = 0x1b,		/* msr */
-
-	Lapicae	= 1<<11,		/* apic enable in Lapicbase */
+	/* Msrapicbase bits */
+	Lapicbsp= 1<<8,			/* flag: boot cpu? */
+	Lapicx2 = 1<<10,		/* enable x2apic mode */
+	Lapicae	= 1<<11,		/* apic enable */
 };
 
 #define dprint(...)	if(mpdebug) print(__VA_ARGS__); else USED(mpdebug)
 
 /* from mp.c */
 int	mpdebug;
-int	mpmachno;
 Apic	mpapic[MaxAPICNO+1];
-int	machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
+int	mpnewproc(Apic *apic, int apicno, int flags);
 
 Apic	*bootapic;
 
@@ -55,41 +53,11 @@ l64get(uchar *p)
 	return L64GET(p);
 }
 
-int
-apicset(Apic *apic, int type, int apicno, int f)
-{
-	if(apicno > MaxAPICNO)
-		return -1;
-	apic->type = type;
-	apic->apicno = apicno;
-	apic->flags = f | PcmpEN | PcmpUsed;
-	return 0;
-}
-
-int
-mpnewproc(Apic *apic, int apicno, int f)
-{
-	if(apic->flags & PcmpUsed) {
-		print("mpnewproc: apic already enabled\n");
-		return -1;
-	}
-	if (apicset(apic, PcmpPROCESSOR, apicno, f) < 0)
-		return -1;
-	apic->lintr[1] = apic->lintr[0] = ApicIMASK;
-	/* botch! just enumerate */
-	if(apic->flags & PcmpBP)
-		apic->machno = 0;
-	else
-		apic->machno = ++mpmachno;
-	machno2apicno[apic->machno] = apicno;
-	return 0;
-}
-
 static int
-mpacpiproc(uchar *p, ulong laddr)
+mpacpiproc(uchar *p, ulong laddr, ulong **vladdrp)
 {
-	int id, f;
-	ulong *vladdr;
+	int f;
+	unsigned id;
 	vlong base;
 	char *already;
 	Apic *apic;
@@ -100,7 +68,6 @@ mpacpiproc(uchar *p, ulong laddr)
 	if((L32GET(p+4) & 1) == 0 || id > MaxAPICNO)
 		return -1;
 
-	vladdr = nil;
 	already = "";
 	f = 0;
 	apic = &mpapic[id];
@@ -108,31 +75,30 @@ mpacpiproc(uchar *p, ulong laddr)
 	apic->paddr = laddr;
 	if (nprocid++ == 0) {
 		f = PcmpBP;
-		vladdr = vmap(apic->paddr, 1024);
-		if(apic->addr == nil){
-			print("proc apic %d: failed to map %#p\n", id,
-				apic->paddr);
-			already = "(fail)";
-		}
+		*vladdrp = vmap(apic->paddr, 1024);
 		bootapic = apic;
 	}
-	apic->addr = vladdr;
+	apic->addr = *vladdrp;
+	if(apic->addr == nil){
+		print("proc apic %d: failed to map %#p\n", id, apic->paddr);
+		already = "(fail)";
+	}
 
 	if(apic->flags & PcmpUsed)
 		already = "(on)";
 	else
 		mpnewproc(apic, id, f);
 
-	if (0)
+	if (1)
 		dprint("\tapic proc %d/%d apicid %d flags%s%s %s\n", nprocid-1,
 			apic->machno, id, f & PcmpBP? " boot": "",
 			f & PcmpEN? " enabled": "", already);
 	USED(already);
 
-	rdmsr(Lapicbase, &base);
-	if (!(base & Lapicae)) {
-		dprint("mpacpiproc: enabling lapic\n");
-		wrmsr(Lapicbase, base | Lapicae);
+	rdmsr(Msrapicbase, &base);
+	if ((base & (Lapicae|Lapicx2)) != Lapicae) {
+		dprint("mpacpiproc: enabling normal lapic\n");
+		wrmsr(Msrapicbase, (base | Lapicae) & ~Lapicx2);
 	}
 	return 0;
 }
@@ -142,6 +108,7 @@ mpacpicpus(Madt *madt)
 {
 	int i, n;
 	ulong laddr;
+	ulong *vladdr;
 	uchar *p;
 
 	laddr = L32GET(madt->addr);
@@ -150,12 +117,14 @@ mpacpicpus(Madt *madt)
 
 	n = L32GET(&madt->sdthdr[4]);
 	p = madt->structures;
+	vladdr = nil;
 	dprint("\t%d structures at %#p\n",n, p);
 	/* byte 0 is assumed to be type, 1 is assumed to be length */
 	for(i = offsetof(Madt, structures[0]); i < n; i += p[1], p += p[1])
 		switch(p[0]){
 		case Apiclproc:
-			mpacpiproc(p, laddr);
+			if (mpacpiproc(p, laddr, &vladdr) < 0)
+				return;
 			break;
 		}
 }
@@ -164,15 +133,14 @@ mpacpicpus(Madt *madt)
 static void *
 mpacpirsdchecksum(void* addr, int length)
 {
-	uchar *p, sum;
+	uchar sum;
 
-	sum = 0;
-	for(p = addr; length-- > 0; p++)
-		sum += *p;
+	sum = checksum(addr, length);
 	return sum == 0? addr: nil;
 }
 
 /* call func for each acpi table found */
+/* will these tables even exist under uefi? */
 static void
 mpacpiscan(void (*func)(uchar *))
 {
@@ -191,7 +159,7 @@ mpacpiscan(void (*func)(uchar *))
 		rsd, L32GET(rsd->raddr), L32GET(rsd->length),
 		l64get(rsd->xaddr), rsd->revision, (char*)rsd->oemid);
 
-	if(rsd->revision == 2){
+	if(rsd->revision >= 2){
 		if(mpacpirsdchecksum(rsd, 36) == nil)
 			return;
 		asize = 8;

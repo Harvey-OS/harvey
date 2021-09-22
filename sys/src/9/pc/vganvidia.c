@@ -1,4 +1,3 @@
-
 /* Portions of this file derived from work with the following copyright */
 
  /***************************************************************************\
@@ -40,6 +39,8 @@
 |*                                                                           *|
  \***************************************************************************/
 
+/* wow, magic numbers 'r' us! */
+
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -56,11 +57,11 @@
 #include "nv_dma.h"
 
 enum {
-	Pramin = 0x00710000,
-	Pramdac = 0x00680000,
-	Fifo = 0x00800000,
-	Pgraph = 0x00400000,
-	Pfb = 0x00100000
+	Pramin =	0x00710000,
+	Pramdac =	0x00680000,
+	Fifo =		0x00800000,
+	Pgraph =	0x00400000,
+	Pfb =		0x00100000
 };
 
 enum {
@@ -125,32 +126,32 @@ nvidiaenable(VGAscr* scr)
 	case 0x00A0:
 		q = (void*)((uchar*)scr->mmio + Pfb);
 		tmp = *q;
-		if (tmp & 0x0100) {
-			scr->storage = ((tmp >> 12) & 0x0F) * 1024 + 1024 * 2;
-		} else {
-			tmp &= 0x03;
+		if (tmp & 0x0100)
+			scr->storage = ((tmp >> 12) & 0x0F) * KB + 2*KB;
+		else {
+			tmp &= 3;
 			if (tmp)
-				scr->storage = (1024*1024*2) << tmp;
+				scr->storage = (MB*2) << tmp;
 			else
-				scr->storage = 1024*1024*32;
+				scr->storage = MB*32;
 		}
 		break;
 	case 0x01A0:
 		p = pcimatchtbdf(MKBUS(BusPCI, 0, 0, 1));
 		tmp = pcicfgr32(p, 0x7C);
-		scr->storage = (((tmp >> 6) & 31) + 1) * 1024 * 1024;
+		scr->storage = (((tmp >> 6) & 31) + 1) * MB;
 		break;
 	case 0x01F0:
 		p = pcimatchtbdf(MKBUS(BusPCI, 0, 0, 1));
 		tmp = pcicfgr32(p, 0x84);
-		scr->storage = (((tmp >> 4) & 127) + 1) * 1024 * 1024;
+		scr->storage = (((tmp >> 4) & 127) + 1) * MB;
 		break;
 	default:
 		q = (void*)((uchar*)scr->mmio + Pfb + 0x020C);
 		tmp = (*q >> 20) & 0xFFF;
 		if (tmp == 0)
 			tmp = 16;
-		scr->storage = tmp*1024*1024;
+		scr->storage = tmp*MB;
 		break;
 	}
 }
@@ -158,10 +159,8 @@ nvidiaenable(VGAscr* scr)
 static void
 nvidiacurdisable(VGAscr* scr)
 {
-	if(scr->mmio == 0)
-		return;
-
-	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~0x01);
+	if(scr->mmio)
+		vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~1);
 }
 
 
@@ -176,7 +175,7 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 	if(scr->mmio == 0)
 		return;
 
-	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~0x01);
+	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~1);
 
 	switch (scr->id & 0x0ff0) {
 	case 0x0020:
@@ -186,10 +185,9 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 	default:
 		/*
 		 * Reset the cursor location, since the kernel may
-		 * have allocated less storage than aux/vga
-		 * expected.
+		 * have allocated less storage than aux/vga expected.
 		 */
-		tmp = scr->apsize - 96*1024;
+		tmp = scr->apsize - 96*KB;
 		p = (void*)((uchar*)scr->vaddr + tmp);
 		vgaxo(Crtx, 0x30, 0x80|(tmp>>17));
 		vgaxo(Crtx, 0x31, (tmp>>11)<<2);
@@ -206,14 +204,13 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 				tmp |= 0x80000000;
 			else if(c&0x8000)
 				tmp |= 0xFFFF0000;
-			if (j&0x1){
+			if (j&1){
 				*p++ = tmp;
 				tmp = 0;
-			} else {
-				tmp>>=16;
-			}
-			c<<=1;
-			s<<=1;
+			} else
+				tmp >>= 16;
+			c <<= 1;
+			s <<= 1;
 		}
 		for (j=0; j<8; j++)
 			*p++ = 0;
@@ -222,9 +219,7 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 		*p++ = 0;
 
 	scr->offset = curs->offset;
-	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) | 0x01);
-
-	return;
+	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) | 1);
 }
 
 static int
@@ -253,7 +248,7 @@ nvidiacurenable(VGAscr* scr)
 	nvidiacurload(scr, &arrow);
 	nvidiacurmove(scr, ZP);
 
-	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) | 0x01);
+	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) | 1);
 }
 
 void
@@ -309,10 +304,12 @@ nvdmawait(VGAscr *scr, int size)
 			if(nv.dmafree < size) {
 				nvdmanext(0x20000000);
 				if(dmaget <= SKIPS) {
-					if (nv.dmaput <= SKIPS) /* corner case - will be idle */
+					/* corner case - will be idle */
+					if (nv.dmaput <= SKIPS)
 						writeput(scr, SKIPS + 1);
-					do { dmaget = readget(scr); }
-					while(dmaget <= SKIPS);
+					do {
+						dmaget = readget(scr);
+					} while(dmaget <= SKIPS);
 				}
 				writeput(scr, SKIPS);
 				nv.dmacurrent = nv.dmaput = SKIPS;
@@ -345,14 +342,16 @@ waitforidle(VGAscr *scr)
 	while((readget(scr) != nv.dmaput) && x++ < 1000000)
 		;
 	if(x >= 1000000)
-		iprint("idle stat %lud put %d scr %#p pc %#p\n", readget(scr), nv.dmaput, scr, getcallerpc(&scr));
+		iprint("nvidia: idle stat %lud put %d scr %#p pc %#p\n",
+			readget(scr), nv.dmaput, scr, getcallerpc(&scr));
 
 	x = 0;
-	while(pgraph[0x00000700/4] & 0x01 && x++ < 1000000)
+	while(pgraph[0x00000700/4] & 1 && x++ < 1000000)
 		;
 
 	if(x >= 1000000)
-		iprint("idle stat %lud scrio %#p scr %#p pc %#p\n", *pgraph, scr->mmio, scr, getcallerpc(&scr));
+		iprint("nvidia: idle stat %lud scrio %#p scr %#p pc %#p\n",
+			*pgraph, scr->mmio, scr, getcallerpc(&scr));
 }
 
 static void
@@ -369,13 +368,15 @@ nvresetgraphics(VGAscr *scr)
 	 */
 	if(nv.dmabase == nil){
 		if(scr->storage <= scr->apsize)
-			nv.dmabase = (ulong*)((uchar*)scr->vaddr + scr->storage - 128*1024);
+			nv.dmabase = (ulong*)((uchar*)scr->vaddr +
+				scr->storage - 128*KB);
 		else{
-			nv.dmabase = (void*)vmap(scr->paddr + scr->storage - 128*1024, 128*1024);
+			nv.dmabase = (void*)vmap(scr->paddr +
+				scr->storage - 128*KB, 128*KB);
 			if(nv.dmabase == 0){
 				hwaccel = 0;
 				hwblank = 0;
-				print("vmap nvidia dma failed\n");
+				print("nvidia: vmap dma failed\n");
 				return;
 			}
 		}

@@ -6,6 +6,13 @@
 #include	"io.h"
 #include	"../port/error.h"
 
+#undef CHANGE_SPEED
+/* can we print uart error messages on the console? should trigger recursion */
+#define print(...)
+#define iprint(...)
+#undef	DBG
+#define DBG(...)
+
 enum {
 	Qdir		= 0,
 	Qdata,
@@ -13,9 +20,9 @@ enum {
 	Qstat,
 };
 
-#define UARTTYPE(x)	(((unsigned)x)&0x1f)
-#define UARTID(x)	((((unsigned)x))>>5)
-#define UARTQID(i, t)	((((unsigned)i)<<5)|(t))
+#define UARTTYPE(x)	((unsigned)(x) & MASK(5))
+#define UARTID(x)	((unsigned)(x) >> 5)
+#define UARTQID(i, t)	((unsigned)(i) << 5 | (t))
 
 enum
 {
@@ -42,24 +49,31 @@ struct Uartalloc {
 static void	uartclock(void);
 static void	uartflow(void*);
 
+Dev uartdevtab;
+
 /*
  *  enable/disable uart and add/remove to list of enabled uarts
  */
-Uart*
+static Uart*
 uartenable(Uart *p)
 {
 	Uart **l;
 
-	if(p->enabled)
-		return p;
+	if (p == nil) {
+		iprint("uartenable of nil\n");
+		return nil;
+	}
 	if(p->iq == nil){
-		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil)
+		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil) {
+			print("uartenable: can't allocate iq\n");
 			return nil;
+		}
 	}
 	else
 		qreopen(p->iq);
 	if(p->oq == nil){
 		if((p->oq = qopen(8*1024, 0, uartkick, p)) == nil){
+			print("uartenable: can't allocate oq\n");
 			qfree(p->iq);
 			p->iq = nil;
 			return nil;
@@ -87,14 +101,12 @@ uartenable(Uart *p)
 		uartctl(p, "s1");
 	if(p->parity == 0)
 		uartctl(p, "pn");
+#ifdef CHANGE_SPEED
 	if(p->baud == 0)
 		uartctl(p, "b9600");
+#endif
 	(*p->phys->enable)(p, 1);
 
-	/*
-	 * use ilock because uartclock can otherwise interrupt here
-	 * and would hang on an attempt to lock uartalloc.
-	 */
 	ilock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p)
@@ -106,7 +118,6 @@ uartenable(Uart *p)
 	}
 	p->enabled = 1;
 	iunlock(&uartalloc);
-
 	return p;
 }
 
@@ -115,8 +126,10 @@ uartdisable(Uart *p)
 {
 	Uart **l;
 
-	if(!p->enabled)
+	if (p == nil) {
+		iprint("uartdisable of nil\n");
 		return;
+	}
 	(*p->phys->disable)(p);
 
 	ilock(&uartalloc);
@@ -135,8 +148,14 @@ uartconsole(int i, char *cmd)
 {
 	Uart *p;
 
-	if(i >= uartnuart || (p = uart[i]) == nil)
+	if (uart == nil) {
+		print("uartconsole: no uarts (before uartreset)\n");
 		return nil;
+	}
+	if((uint)i >= uartnuart || (p = uart[i]) == nil) {
+		print("uartconsole: no uart%d\n", i);
+		return nil;
+	}
 
 	qlock(p);
 	if(!p->console){
@@ -146,7 +165,17 @@ uartconsole(int i, char *cmd)
 		}
 		p->opens++;
 
+		if (p->iq == nil) {
+			iprint("uartconsole with nil p->iq\n");
+			qunlock(p);
+			return nil;
+		}
 		addkbdq(p->iq, -1);
+		if (p->oq == nil) {
+			iprint("uartconsole with nil p->oq\n");
+			qunlock(p);
+			return nil;
+		}
 		addconsdev(p->oq, uartputs, 2, 0);
 		p->putc = kbdcr2nl;
 		if(cmd != nil && *cmd != '\0')
@@ -159,33 +188,6 @@ uartconsole(int i, char *cmd)
 	return p;
 }
 
-void
-uartmouse(Uart* p, int (*putc)(Queue*, int), int setb1200)
-{
-	qlock(p);
-	if(p->opens++ == 0 && uartenable(p) == nil){
-		qunlock(p);
-		error(Enodev);
-	}
-	if(setb1200)
-		uartctl(p, "b1200");
-	p->putc = putc;
-	p->special = 1;
-	qunlock(p);
-}
-
-void
-uartsetmouseputc(Uart* p, int (*putc)(Queue*, int))
-{
-	qlock(p);
-	if(p->opens == 0 || p->special == 0){
-		qunlock(p);
-		error(Enodev);
-	}
-	p->putc = putc;
-	qunlock(p);
-}
-
 static void
 uartsetlength(int i)
 {
@@ -195,15 +197,17 @@ uartsetlength(int i)
 		p = uart[i];
 		if(p && p->opens && p->iq)
 			uartdir[1+3*i].length = qlen(p->iq);
-	} else for(i = 0; i < uartnuart; i++){
-		p = uart[i];
-		if(p && p->opens && p->iq)
-			uartdir[1+3*i].length = qlen(p->iq);
-	}
+	} else
+		for(i = 0; i < uartnuart; i++){
+			p = uart[i];
+			if(p && p->opens && p->iq)
+				uartdir[1+3*i].length = qlen(p->iq);
+		}
 }
 
 /*
  *  set up the '#t' directory
+ *  requires malloc to be available
  */
 static void
 uartreset(void)
@@ -214,9 +218,8 @@ uartreset(void)
 
 	tail = nil;
 	for(i = 0; physuart[i] != nil; i++){
-		if(physuart[i]->pnp == nil)
-			continue;
-		if((p = physuart[i]->pnp()) == nil)
+		p = nil;
+		if(physuart[i]->pnp && (p = physuart[i]->pnp()) == nil)
 			continue;
 		if(uartlist != nil)
 			tail->next = p;
@@ -227,17 +230,18 @@ uartreset(void)
 		uartnuart++;
 	}
 
-//fix the case of uartnuart == 0, will panic below
-	if(uartnuart)
+	/* cope with uartnuart == 0, else will panic below */
+	if (uartnuart == 0)
+		uart = malloc(sizeof(Uart*));		/* dummy */
+	else
 		uart = malloc(uartnuart*sizeof(Uart*));
 
 	uartndir = 1 + 3*uartnuart;
 	uartdir = malloc(uartndir * sizeof(Dirtab));
-	if(uart == nil || uartdir == nil){
-		panic("uartreset: no memory %#p (%ud) %#p (%ud)",
-			uart, uartnuart*sizeof(Uart*),
-			uartdir, uartndir * sizeof(Dirtab));
-	}
+	if(uart == nil || uartdir == nil)
+		panic("uartreset: no memory %#p (%llud) %#p (%llud)",
+			uart, (vlong)uartnuart*sizeof(Uart*),
+			uartdir, (vlong)uartndir * sizeof(Dirtab));
 	dp = uartdir;
 	strcpy(dp->name, ".");
 	mkqid(&dp->qid, 0, 0, QTDIR);
@@ -291,7 +295,7 @@ uartreset(void)
 static Chan*
 uartattach(char *spec)
 {
-	return devattach('t', spec);
+	return devattach(uartdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -424,6 +428,10 @@ uartctl(Uart *p, char *cmd)
 	char *f[16];
 	int i, n, nf;
 
+	if (p == nil) {
+		iprint("uartctl of nil\n");
+		return -1;
+	}
 	nf = tokenize(cmd, f, nelem(f));
 	for(i = 0; i < nf; i++){
 		if(strncmp(f[i], "break", 5) == 0){
@@ -542,8 +550,13 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 	if(c->qid.type & QTDIR)
 		error(Eperm);
 
+	if (uart == nil)
+		panic("uartwrite: no uarts yet");
 	p = uart[UARTID(c->qid.path)];
-
+	if (p == nil) {
+		iprint("uartwrite of nil\n");
+		error(Egreg);
+	}
 	switch(UARTTYPE(c->qid.path)){
 	case Qdata:
 		qlock(p);
@@ -559,8 +572,6 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 		break;
 	case Qctl:
 		cmd = malloc(n+1);
-		if(cmd == nil)
-			error(Enomem);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
 		qlock(p);
@@ -616,13 +627,23 @@ uartpower(int on)
 	}
 }
 
+void
+uartshutdown(void)
+{
+	Uart *p;
+
+	for(p = uartlist; p != nil; p = p->next)
+		if(p->phys->disable)
+			(*p->phys->disable)(p);
+}
+
 Dev uartdevtab = {
 	't',
 	"uart",
 
 	uartreset,
 	devinit,
-	devshutdown,
+	uartshutdown,
 	uartattach,
 	uartwalk,
 	uartstat,
@@ -647,7 +668,7 @@ uartflow(void *v)
 	Uart *p;
 
 	p = v;
-	if(p->modem)
+	if(p->modem && p->phys && p->phys->rts)
 		(*p->phys->rts)(p, 1);
 }
 
@@ -676,11 +697,12 @@ uartkick(void *v)
 {
 	Uart *p = v;
 
-	if(p->blocked)
+	if(p == nil || p->blocked)
 		return;
 
 	ilock(&p->tlock);
-	(*p->phys->kick)(p);
+	if (p->phys && p->phys->kick)
+		(*p->phys->kick)(p);
 	iunlock(&p->tlock);
 
 	if(p->drain && uartdrained(p)){
@@ -708,6 +730,10 @@ uartstageinput(Uart *p)
 		else{
 			iw = p->iw;
 			p->ir = p->iw;
+		}
+		if(p->iq == nil) {
+			iprint("uartstageinput: nil p->iq\n");
+			return;
 		}
 		if((n = qproduce(p->iq, ir, iw - ir)) < 0){
 			p->serr++;
@@ -739,7 +765,7 @@ uartrecv(Uart *p,  char ch)
 	/* receive the character */
 	if(p->putc)
 		p->putc(p->iq, ch);
-	else if (p->iw) {		/* maybe the line isn't enabled yet */
+	else{
 		ilock(&p->rlock);
 		next = p->iw + 1;
 		if(next == p->ie)
@@ -805,7 +831,7 @@ Uart* consuart;
 int
 uartgetc(void)
 {
-	if(consuart == nil || consuart->phys->getc == nil)
+	if(consuart == nil || consuart->phys == nil || consuart->phys->getc == nil)
 		return -1;
 	return consuart->phys->getc(consuart);
 }
@@ -813,31 +839,28 @@ uartgetc(void)
 void
 uartputc(int c)
 {
-	char c2;
-
-	if(consuart == nil || consuart->phys->putc == nil) {
-		c2 = c;
-		if (lprint)
-			(*lprint)(&c2, 1);
+	if(consuart == nil || consuart->phys == nil || consuart->phys->putc == nil)
 		return;
-	}
 	consuart->phys->putc(consuart, c);
 }
 
+/* also called from devcons for (i)print */
 void
 uartputs(char *s, int n)
 {
+	uchar c;
 	char *e;
+	void (*putc)(Uart*, int);
+	static uchar lastc = '\n';
 
-	if(consuart == nil || consuart->phys->putc == nil) {
-		if (lprint)
-			(*lprint)(s, n);
+	if(consuart == nil || consuart->phys == nil ||
+	    (putc = consuart->phys->putc) == nil)
 		return;
-	}
 	e = s+n;
 	for(; s<e; s++){
-		if(*s == '\n')
-			consuart->phys->putc(consuart, '\r');
-		consuart->phys->putc(consuart, *s);
+		if((c = *s) == '\n' && lastc != '\r')
+			putc(consuart, '\r');
+		putc(consuart, c);
+		lastc = c;
 	}
 }

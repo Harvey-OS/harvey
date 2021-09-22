@@ -1,0 +1,24 @@
+.dp xx cat >/tmp/a
+hello, world.
+this is being run through cat >/tmp/a
+look, html: <a>
+xx
+.sp
+here is /tmp/a:
+.cf /tmp/a
+.sp
+.fl
+.tm >>> now trying inside macro
+.de PS
+.tm in PS
+.dp .PE cat >/tmp/b
+.tm here goes the output.
+..
+.pm PS
+.PS
+this would be a picture
+.PE
+.sp
+here is /tmp/b:
+.cf /tmp/b
+

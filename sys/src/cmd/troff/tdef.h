@@ -1,12 +1,7 @@
-#define _BSD_EXTENSION
-#define _POSIX_SOURCE
-
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 #include <ctype.h>
-#include <string.h>
 
 #define	NROFF	(!TROFF)
 
@@ -23,16 +18,18 @@
 #define NTERMDIR	"lib/term/tab."
 #endif
 #ifndef TDEVNAME
-#define TDEVNAME	"post"
+#define TDEVNAME	"utf"		/* was "post" */
 #endif
 #ifndef NDEVNAME
-#define NDEVNAME	"37"
+#define NDEVNAME	"utf"		/* was "37" */
 #endif
 #ifndef TEXHYPHENS
-#define	TEXHYPHENS	"/usr/lib/tex/macros/hyphen.tex"
+#define	TEXHYPHENS	"sys/lib/texmf/tex/generic/hyphen/hyphen.tex"
+			/* was "/usr/lib/tex/macros/hyphen.tex" */
 #endif
 #ifndef ALTHYPHENS
-#define	ALTHYPHENS	"lib/tmac/hyphen.tex"	/* another place to look */
+#define	ALTHYPHENS	TEXHYPHENS
+			/* was "lib/tmac/hyphen.tex"  /* another place to look */
 #endif
 
 typedef	unsigned char	Uchar;
@@ -56,18 +53,14 @@ typedef	struct	Wcache	Wcache;
 typedef	struct	Tbuf	Tbuf;
 
 /* this simulates printf into a buffer that gets flushed sporadically */
-/* the BSD goo is because SunOS sprintf doesn't return anything useful */
 
-#ifdef BSD4_2
-#define	OUT		(obufp += strlen(sprintf(obufp,
-#define	PUT		))) > obuf+BUFSIZ ? flusho() : 1
-#else
-#define	OUT		(obufp += sprintf(obufp,
+#define	OUT		junk = (obufp += sprintf(obufp,
 #define	PUT		)) > obuf+BUFSIZ ? flusho() : 1
-#endif
+
+int junk;
 
 #define	oputs(a)	OUT "%s", a PUT
-#define	oput(c)		( *obufp++ = (c), obufp > obuf+BUFSIZ ? flusho() : 1 )
+#define	oput(c)		junk = (*obufp++ = (c), obufp > obuf+BUFSIZ? flusho(): 1)
 
 extern	char	errbuf[];
 #define	ERROR	sprintf(errbuf,
@@ -274,6 +267,7 @@ extern	int	realcbits(Tchar);
 #define	SHORTMASK 0XFFFF
 #define	SHORT	 16
 
+#define INT_MAX	(~0u >> 1)
 #define	TABMASK	 ((unsigned) INT_MAX >> 1)
 #define	RTAB	((TABMASK << 1) & ~TABMASK)
 #define	CTAB	(RTAB << 1)
@@ -672,3 +666,15 @@ struct Numerr {
 	char	escarg;	/* argument of esc's like \D'l' */
 	unsigned int	req;	/* was request or macro named req */
 };
+
+/* import from unix */
+#define MB_CUR_MAX UTFmax
+#define wchar_t	Rune
+
+#define exit(n)		exits((n) == 0? nil: "error")
+#define wctomb(s, wc)	runetochar(s, &(wc))
+
+int	mbtowc(Rune *, char *, int);
+int	system(char *);
+char	*skipspace(char *);
+char	*skipword(char *);

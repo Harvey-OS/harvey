@@ -1,0 +1,88 @@
+Uncomplete driver for the touchatag reader/SCR3310 aka belgium id
+reader :-) Even more uncomplete version of the CCID standard (I will
+only implement things I can test with this two).  I am going to try to
+provide a (not so) general smartcard framework.  Icc is too much, so I
+will do many things for the tagrd by hand.  I'll try to keep them
+contained for the next smartcard programmer...
+
+hget http://ludovic.rousseau.free.fr/softwares/pcsc-tools/smartcard_list.txt > scard.txt
+
+_____________________SMARTCARD USB DRIVER____________________
+Things the driver has to take care of (high level).
+
+1) Multiplex access to different cards types (drivers) and different
+smartcards (plug in and out).
+
+2) Provide interfaces for unlocking memory, memory and keys.
+This goes outside and depends on the smart card driver itself.
+
+3) Events, smart-card detection.
+
+Things the driver has to take care of (low level):
+
+1) Setparameters of the reader (global thing), negotiating voltages...
+NOTE: the voltage and so are set after init is called. This is because
+the only one requiring an init now is the ttag reader which requires
+it to unlock the firmware version and so...
+2) rpc accounting, breaking up and putting together APDU, nseq...
+3) For each ATR, knowing who to send it for.
+
+Arquitecture:
+
+Provide one file /raw you can write ccid messages to it and they go
+verbatim to the reader. If there is any one with /rpc open, you cannot
+open it and you get an error. 
+It is exclusive. You may want to use this to configure
+the smart card reader itself (though this should be done automatically
+if it can be done by the driver).
+
+Provide one file /rpc multiplexed:
+
+Open it, write ATR.
+
+If someone wrote the same ATR before, error.
+If when you write the is an Fid->aux  already 
+error. Fid->aux will have a chan or something to
+communicate with ATRs... 
+Else, block till there is a card of that kind.
+
+You can write APDU's for RPC's on it. This is the data part of the xfr.
+A 0 bytes write aborts the last RPC (except
+everything is synchronous, so this only should be done for strange
+circumstances). If the
+card disappears, any new read or write will give you an error.
+Taking fid->aux out does the trick.
+
+Only one slot supported. I haven't seen things with more than one.
+I try to keep it clean and pass the nsl parameter around in case  they
+appear.
+
+A ctl to see parameters is nice...
+________________________________________________________
+
+checked:
+
+atr.h
+atr.c		-> lookup atr on scard.txt, match atr to description
+
+ccid.h
+ccid.c	-> usb driver itself, filesystem
+
+eprpc.h
+eprpc.c	-> smartcard protocol, packing, unpacking, rpc
+
+le.c
+le.h		-> little endian unpacking
+
+_________________________________________
+
+cat ctl
+enabled control rw speed full maxpkt 32 pollival 0 samplesz 0 hz 0 hub 2 port 2 idle
+11 csp 0x00000b vid 0x04e6 did 0x5116 'SCM Microsystems Inc.' 'SCR3310 v2.0 USB Smart Card Reader'
+term% 
+
+--------------------------------------------
+Clients:
+
+On /usr/paurea/src/tagrd/ there is a tikitag client, with a general
+icc.h icc.c library to write smartcards applications, development is ongoing.

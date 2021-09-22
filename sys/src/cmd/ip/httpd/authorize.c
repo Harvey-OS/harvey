@@ -67,7 +67,7 @@ authorize(HConnect *c, char *file)
 	hprint(hout, "Date: %D\r\n", time(nil));
 	hprint(hout, "WWW-Authenticate: Basic realm=\"%s\"\r\n", t[0]);
 	hprint(hout, "Content-Type: text/html\r\n");
-	hprint(hout, "Content-Length: %d\r\n", STRLEN(UNAUTHED));
+	hprint(hout, "Content-Length: %d\r\n", (int)STRLEN(UNAUTHED));
 	if(c->head.closeit)
 		hprint(hout, "Connection: close\r\n");
 	else if(!http11(c))

@@ -1,0 +1,4 @@
+#!/bin/rc
+
+touch /usr/web/ctl/RESTART
+echo will take effect within five minutes

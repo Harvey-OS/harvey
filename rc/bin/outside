@@ -1,0 +1,8 @@
+#!/bin/rc
+exit ''
+#if (! test -d /net.alt/tcp) {
+	unmount /net.alt >[2]/dev/null
+#	import outside /net.alt
+	importsrv outside && bind /n/outside/net.alt /net.alt
+	#	&& bind /net.alt /usr/inferno/net.alt
+#}

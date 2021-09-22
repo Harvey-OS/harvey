@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libbstdio.a
+OFILES=\
+	bstdio.$O\
+	bsmain.$O\
+	bsthrmain.$O\
+
+HFILES=/sys/include/bstdio.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib
+

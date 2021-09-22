@@ -1,0 +1,15 @@
+0x02050000	pciess_main soft_reset: set to zero to stop reset
+
+0x03004000	pcie bridge+cfg 0 (axi_base_addr in linux pcie-microchip-host.c)
+	+0xe4	bar 0/1 dw 0: flags & 32-bit bar size mask
+	+0xe8	bar 0/1 dw 1: bar size mask
+0x03006000	pcie 0 ctrl
+0x03008000	pcie bridge+cfg 1
+0x0300a000	pcie 1 ctrl
+
+0x60000000	apb
+0x70000000	ecam, requires axi4 setup first
+
+root vid/did	0x1556/0x1100
+		0x11aa is microsemi (was actel)
+		0x1556 is PLDA

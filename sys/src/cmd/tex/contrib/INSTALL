@@ -1,0 +1,12 @@
+To build the replacement programs, chdir to this directory and type
+"make".  This builds the main programs mktex, makempx and dvihp, and
+the mktex... programs which are really symlinks to mktex.
+
+To install the compiled programs, copy them all into the same directory
+where you install the other binaries ($prefix/bin, which is usually
+/usr/local/bin).
+
+The supplied Makefile was tested with DJGPP, but it should also work
+with any reasonable Unix setup.  For platforms other than these two,
+you might need to tweak the Makefile a bit; the macros $EXE, $O, $LN_S
+and $RM are provided to make this easier.

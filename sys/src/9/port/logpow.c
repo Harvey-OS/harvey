@@ -15,6 +15,17 @@
  */
 
 int
+countbits(ulong u)
+{
+	int n;
+
+	for (n = 0; u != 0; n++)
+		/* clear highest set bit */
+		u &= ~(1u << (BI2BY*sizeof(Clzuint) - 1 - clz(u)));
+	return n;
+}
+
+int
 ispow2(uvlong uvl)
 {
 	return ISPOW2(uvl);
@@ -34,7 +45,7 @@ log2(ulong n)
 {
 	int i;
 
-	i = BI2BY*BY2WD - 1 - clz(n);
+	i = BI2BY * sizeof(Clzuint) - 1 - clz(n);
 	if (n == 0 || !ISPOW2(n))
 		i++;
 	return i;

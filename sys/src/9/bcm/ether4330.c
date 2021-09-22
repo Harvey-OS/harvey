@@ -335,7 +335,7 @@ dump(char *s, void *a, int n)
 static ulong
 sdiocmd_locked(int cmd, ulong arg)
 {
-	u32int resp[4];
+	ulong resp[4];
 
 	sdio.cmd(cmd, arg, resp);
 	return resp[0];
@@ -821,7 +821,7 @@ sbinit(Ctlr *ctl)
 	sbwindow(Enumbase);
 	r = cfgreadl(Fn1, Enumbase);
 	chipid = r & 0xFFFF;
-	sprint(buf, chipid > 43000 ? "%d" : "%#x", chipid);
+	snprint(buf, sizeof buf, chipid > 43000 ? "%d" : "%#x", chipid);
 	print("ether4330: chip %s rev %ld type %ld\n", buf, (r>>16)&0xF, (r>>28)&0xF);
 	switch(chipid){
 		case 0x4330:

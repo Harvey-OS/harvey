@@ -1,0 +1,85 @@
+#!/bin/rc
+# usbfat: [disk [mtpt]] - mount a USB disk's MS FAT file system
+rfork e
+disk = ()
+mtpt = /n/usb
+
+test -e /dev/fs/ctl || bind -b '#k' /dev
+
+test -e /dev/usb || bind -a '#u' /dev || {
+	echo no '#u/usb' >[1=2]
+	exit nousb
+}
+test -e /dev/usbdctl || mount -a /srv/usb /dev || {
+	echo cannot mount /srv/usb >[1=2]
+	exit nousbd
+}
+
+disks=()
+mtpt=()
+
+diskmtpt=''
+
+switch ($#*) {
+case 0
+	;
+case 1
+	disks = $1
+case 2
+	disks = $1
+	mtpt = $2
+case *
+	echo usage: $0 ' [disk [mtpt]]' >[1=2]
+	exit usage
+}
+
+if(test -e /dev/sdU*/data){
+	diskmtpt=/dev
+}
+if(test -e /n/disk/sdU*/data){
+	diskmtpt=/n/disk
+}
+
+if(~ $diskmtpt ''){
+	echo no usb disks >[1=2]
+	exit nodisk
+}
+if (~ $#disks 0){
+	disks = `{echo $diskmtpt^/sdU*/data}
+}
+
+for(d in $disks){
+	if(~ $d sdU*.[0-9]*)
+		d=$diskmtpt^/$d/data
+	if(test -e $d){
+		name=`{echo $d | sed 's/.*(sdU[0-9]+\.[0-9]+).*/\1/'}
+		if(~ $#mtpt 0)
+			mnt=/n/$name
+		if not
+			mnt=$mtpt
+		if(! test -e $mnt/*)
+		if(grep -s geometry $diskmtpt^/$name/ctl){
+			# clear old partitions with the same name
+			# (removed disks)
+			echo del $name^parts/'*' >/dev/fs/ctl >[2] /dev/null
+			# create all partitions in fs(3)
+			{
+				echo disk $name^parts 512 $d
+				disk/fdisk -p $d
+			} > /dev/fs/ctl
+			# mount all dos partitions
+			for(part in /dev/$name^parts/dos*){
+				suffix=`{echo $part|sed 's/.*dos//'}
+				if(~ $#suffix 0)
+					xmnt=$mnt
+				if not
+					xmnt=$mnt.$suffix
+				mount -c <{dossrv -sf $part >[2]/dev/null } $xmnt &&
+					echo $xmnt
+			}
+		}
+	}
+	if not
+		echo $d does not exist
+}
+exit ''

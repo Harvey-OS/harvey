@@ -288,3 +288,15 @@ statement must have all three
 A
 .L quit
 is interpreted when read, not when executed.
+.PP
+In
+.LR "bc -l" ,
+after
+.LR scale=52 ,
+.L 4*a(1)
+is incorrect but
+.L a(1)*4
+is correct
+.RI ( pi ).
+The bug could be in
+.IR dc .

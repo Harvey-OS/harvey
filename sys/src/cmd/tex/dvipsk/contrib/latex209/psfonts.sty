@@ -1,0 +1,266 @@
+% psfonts.sty - re-work of lfonts.tex to allow postscript fonts
+% to replace cmr fonts.  Original by LA Carr.  Hacked by Van
+% Jacobson.
+%
+% $Header: psfonts.sty,v 1.2 88/01/23 17:52:49 van Exp $
+%
+\def\@@getfont#1#2#3#4#5#6#7{%
+\@ifundefined{\string #1\string #5}{\global\expandafter
+    \font \csname \string #1\string #5\endcsname #4\@ptscale{#5}\relax}{}%
+\@ifundefined{\string #1\string #6}{\global\expandafter
+    \font \csname \string #1\string #6\endcsname #4\@ptscale{#6}\relax}{}%
+\@ifundefined{\string #1\string #7}{\global\expandafter
+    \font \csname \string #1\string #7\endcsname #4\@ptscale{#7}\relax}{}%
+\@ifundefined{\string #1\string #3}{\global\expandafter
+    \let \csname \string #1\string #3\endcsname #3\relax 
+     \@addfontinfo#3{\textfont #2\csname \string #1\string #5\endcsname 
+     \scriptfont #2\csname \string #1\string #6\endcsname 
+     \scriptscriptfont #2\csname \string #1\string #7\endcsname 
+     \def#1{\fam #2\csname\string #1\string #5\endcsname}}}{}#3#1}
+\def\@@@getfont#1#2#3#4#5{%
+\@ifundefined{\string #1\string #5}{\global\expandafter
+    \font \csname \string #1\string #5\endcsname #4\@ptscale{#5}\relax}{}%
+\@ifundefined{\string #1\string #3}{\global\expandafter
+    \let \csname \string #1\string #3\endcsname #3\relax 
+     \@addfontinfo#3{\def#1{\fam #2\csname\string #1\string #5\endcsname}}}{}#3#1}
+
+\def\@psfonts#1#2#3#4{%
+\def\prm{\@@getfont\prm\z@#1\@mrm{#2}{#3}{#4}}%
+\def\pit{\@@getfont\pit\itfam#1\@mit{#2}{#3}{#4}}%
+\def\psl{\@@getfont\psl\slfam#1\@msl{#2}{#3}{#4}}%
+\def\pbf{\@@getfont\pbf\bffam#1\@mbf{#2}{#3}{#4}}%
+\def\ptt{\@@getfont\ptt\ttfam#1\@mtt{#2}{#3}{#4}%
+\@nohyphens\ptt {#2}\@nohyphens\ptt {#3}\@nohyphens\ptt {#4}}%
+\def\psf{\@@getfont\psf\sffam#1\@mss{#2}{#3}{#4}}%
+\def\psc{\@@getfont\psc\scfam#1\@mcsc{#2}{#3}{#4}}}
+
+% math stuff: we want to use cmr operator characters but Times
+% letters.  So, we make a new family to hold cmrX & re-mathcode
+% to force the operators to come from that family.
+\newfam\@cmrfam
+\newcount\@cmrscale
+\def\@mathmap#1{\@cmrscale=\@cmrfam \multiply\@cmrscale by 256
+\advance\@cmrscale by \the\mathcode#1 \mathcode#1=\@cmrscale\relax}
+\def\@cmrset#1#2#3{\textfont\@cmrfam #1%
+\scriptfont\@cmrfam #2\scriptscriptfont\@cmrfam #3\relax}
+
+\@mathmap{`\(}
+\@mathmap{`\)}
+\@mathmap{`\+}
+\@mathmap{`\=}
+\@mathmap{`\[}
+\@mathmap{`\]}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\vpt{\textfont\z@\fivrm 
+  \scriptfont\z@\fivrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\fivmi \scriptfont\@ne\fivmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\fivsy \scriptfont\tw@\fivsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+  \unboldmath\fam\@ne\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@vpt555%
+\@cmrset\fivrm\fivrm\fivrm%
+\def\ly{\fam\lyfam\fivly}\textfont\lyfam\fivly 
+    \scriptfont\lyfam\fivly \scriptscriptfont\lyfam\fivly 
+\@setstrut\rm}
+\def\@vpt{}
+\def\vipt{\textfont\z@\sixrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\sixrm
+\textfont\@ne\sixmi \scriptfont\@ne\sixmi \scriptscriptfont\@ne\sixmi
+\textfont\tw@\sixsy \scriptfont\tw@\sixsy \scriptscriptfont\tw@\sixsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+  \unboldmath\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@vipt666%
+\@cmrset\sixrm\sixrm\sixrm%
+\def\ly{\fam\lyfam\sixly}\textfont\lyfam\sixly 
+    \scriptfont\lyfam\sixly \scriptscriptfont\lyfam\sixly 
+\@setstrut\rm}
+\def\@vipt{}
+\def\viipt{\textfont\z@\sevrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\sevmi \scriptfont\@ne\fivmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\sevsy \scriptfont\tw@\fivsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+\unboldmath\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@viipt755%
+\@cmrset\sevrm\sixrm\fivrm%
+\def\ly{\fam\lyfam\sevly}\textfont\lyfam\sevly 
+    \scriptfont\lyfam\fivly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+\def\@viipt{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\viiipt{\textfont\z@\egtrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\egtmi \scriptfont\@ne\sixmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\egtsy \scriptfont\tw@\sixsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath
+\unboldmath\@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@viiipt865%
+\@cmrset\egtrm\sixrm\fivrm%
+\def\ly{\fam\lyfam\egtly}\textfont\lyfam\egtly 
+    \scriptfont\lyfam\sixly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+\def\@viiipt{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ixpt{\textfont\z@\ninrm 
+  \scriptfont\z@\sixrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\ninmi \scriptfont\@ne\sixmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\ninsy \scriptfont\tw@\sixsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+    \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@ixpt965%
+\@cmrset\ninrm\sixrm\fivrm%
+\def\ly{\fam\lyfam\ninly}\textfont\lyfam\ninly 
+   \scriptfont\lyfam\sixly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+\def\@ixpt{}
+\def\xpt{\textfont\z@\tenrm 
+  \scriptfont\z@\sevrm \scriptscriptfont\z@\fivrm
+\textfont\@ne\tenmi \scriptfont\@ne\sevmi \scriptscriptfont\@ne\fivmi
+\textfont\tw@\tensy \scriptfont\tw@\sevsy \scriptscriptfont\tw@\fivsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\tenmi 
+          \textfont\tw@\tensy \textfont\lyfam\tenly
+          \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{tenmib}{\global\font\tenmib\@mbi 
+   \global\font\tensyb\@mbsy 
+   \global\font\tenlyb\@lasyb\relax\@addfontinfo\@xpt
+   {\def\boldmath{\everymath{\mit}\everydisplay{\mit}\@prtct\@nomathbold
+        \textfont\@ne\tenmib \textfont\tw@\tensyb 
+        \textfont\lyfam\tenlyb \@prtct\@boldtrue}}}{}\@xpt\boldmath}%
+\@psfonts\@xpt{10}75%
+\@cmrset\tenrm\sevrm\fivrm%
+\def\ly{\fam\lyfam\tenly}\textfont\lyfam\tenly 
+   \scriptfont\lyfam\sevly \scriptscriptfont\lyfam\fivly 
+\@setstrut \rm}
+\def\@xpt{}
+\def\xipt{\textfont\z@\elvrm 
+  \scriptfont\z@\egtrm \scriptscriptfont\z@\sixrm
+\textfont\@ne\elvmi \scriptfont\@ne\egtmi \scriptscriptfont\@ne\sixmi
+\textfont\tw@\elvsy \scriptfont\tw@\egtsy \scriptscriptfont\tw@\sixsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\elvmi \textfont\tw@\elvsy 
+          \textfont\lyfam\elvly \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{elvmib}{\global\font\elvmib\@mbi\@halfmag 
+         \global\font\elvsyb\@mbsy\@halfmag
+         \global\font\elvlyb\@lasyb\@halfmag\relax\@addfontinfo\@xipt
+         {\def\boldmath{\everymath{\mit}\everydisplay{\mit}\@prtct\@nomathbold
+                \textfont\@ne\elvmib \textfont\tw@\elvsyb 
+                \textfont\lyfam\elvlyb\@prtct\@boldtrue}}}{}\@xipt\boldmath}%
+\@psfonts\@xipt{11}86%
+\@cmrset\elvrm\egtrm\sixrm%
+\def\ly{\fam\lyfam\elvly}\textfont\lyfam\elvly 
+   \scriptfont\lyfam\egtly \scriptscriptfont\lyfam\sixly 
+\@setstrut \rm}
+\def\@xipt{}
+\def\xiipt{\textfont\z@\twlrm 
+  \scriptfont\z@\egtrm \scriptscriptfont\z@\sixrm
+\textfont\@ne\twlmi \scriptfont\@ne\egtmi \scriptscriptfont\@ne\sixmi
+\textfont\tw@\twlsy \scriptfont\tw@\egtsy \scriptscriptfont\tw@\sixsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\twlmi 
+          \textfont\tw@\twlsy \textfont\lyfam\twlly
+          \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{twlmib}{\global\font\twlmib\@mbi\@magscale1\global
+        \font\twlsyb\@mbsy \@magscale1\global\font
+         \twllyb\@lasyb\@magscale1\relax\@addfontinfo\@xiipt
+              {\def\boldmath{\everymath
+                {\mit}\everydisplay{\mit}\@prtct\@nomathbold
+                \textfont\@ne\twlmib \textfont\tw@\twlsyb 
+                \textfont\lyfam\twllyb\@prtct\@boldtrue}}}{}\@xiipt\boldmath}%
+\@psfonts\@xiipt{12}86%
+\@cmrset\twlrm\egtrm\sixrm%
+\def\ly{\fam\lyfam\twlly}\textfont\lyfam\twlly 
+   \scriptfont\lyfam\egtly \scriptscriptfont\lyfam\sixly
+ \@setstrut \rm}
+\def\@xiipt{}
+\def\xivpt{\textfont\z@\frtnrm 
+  \scriptfont\z@\tenrm \scriptscriptfont\z@\sevrm
+\textfont\@ne\frtnmi \scriptfont\@ne\tenmi \scriptscriptfont\@ne\sevmi
+\textfont\tw@\frtnsy \scriptfont\tw@\tensy \scriptscriptfont\tw@\sevsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath 
+          \textfont\@ne\frtnmi \textfont\tw@\frtnsy 
+          \textfont\lyfam\frtnly \@boldfalse}\@boldfalse
+\def\boldmath{\@ifundefined{frtnmib}{\global\font
+        \frtnmib\@mbi\@magscale2\global\font\frtnsyb\@mbsy\@magscale2
+         \global\font\frtnlyb\@lasyb\@magscale2\relax\@addfontinfo\@xivpt
+               {\def\boldmath{\everymath
+                {\mit}\everydisplay{\mit}\@prtct\@nomathbold
+              \textfont\@ne\frtnmib \textfont\tw@\frtnsyb 
+              \textfont\lyfam\frtnlyb\@prtct\@boldtrue}}}{}\@xivpt\boldmath}%
+\@psfonts\@xivpt{14}{10}7%
+\@cmrset\frtnrm\tenrm\sevrm%
+\def\ly{\fam\lyfam\frtnly}\textfont\lyfam\frtnly 
+   \scriptfont\lyfam\tenly \scriptscriptfont\lyfam\sevly 
+\@setstrut \rm}
+\def\@xivpt{}
+\def\xviipt{\textfont\z@\svtnrm 
+  \scriptfont\z@\twlrm \scriptscriptfont\z@\tenrm
+\textfont\@ne\svtnmi \scriptfont\@ne\twlmi \scriptscriptfont\@ne\tenmi
+\textfont\tw@\svtnsy \scriptfont\tw@\twlsy \scriptscriptfont\tw@\tensy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+          \textfont\@ne\svtnmi \textfont\tw@\svtnsy \textfont\lyfam\svtnly
+          \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@xviipt{17}{12}{10}%
+\@cmrset\svtnrm\twlrm\tenrm%
+\def\ly{\fam\lyfam\svtnly}\textfont\lyfam\svtnly 
+   \scriptfont\lyfam\twlly   \scriptscriptfont\lyfam\tenly
+\@setstrut \rm}
+\def\@xviipt{}
+\def\xxpt{\textfont\z@\twtyrm 
+  \scriptfont\z@\frtnrm \scriptscriptfont\z@\twlrm
+\textfont\@ne\twtymi \scriptfont\@ne\frtnmi \scriptscriptfont\@ne\twlmi
+\textfont\tw@\twtysy \scriptfont\tw@\frtnsy \scriptscriptfont\tw@\twlsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+        \textfont\@ne\twtymi \textfont\tw@\twtysy \textfont\lyfam\twtyly
+        \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@xxpt{20}{14}{12}%
+\@cmrset\twtyrm\frtnrm\twlrm%
+\def\ly{\fam\lyfam\twtyly}\textfont\lyfam\twtyly 
+   \scriptfont\lyfam\frtnly \scriptscriptfont\lyfam\twlly 
+\@setstrut \rm}
+\def\@xxpt{}
+\def\xxvpt{\textfont\z@\twfvrm 
+  \scriptfont\z@\twtyrm \scriptscriptfont\z@\svtnrm
+\textfont\@ne\twtymi \scriptfont\@ne\twtymi \scriptscriptfont\@ne\svtnmi
+\textfont\tw@\twtysy \scriptfont\tw@\twtysy \scriptscriptfont\tw@\svtnsy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\unboldmath{\everymath{}\everydisplay{}\@nomath\unboldmath
+        \textfont\@ne\twtymi \textfont\tw@\twtysy \textfont\lyfam\twtyly
+        \@boldfalse}\@boldfalse
+\def\boldmath{\@subfont\boldmath\unboldmath}%
+\@psfonts\@xxvpt{25}{20}{17}%
+\@cmrset\twfvrm\twtyrm\svtnrm%
+\def\ly{\fam\lyfam\twtyly}\textfont\lyfam\twtyly 
+   \scriptfont\lyfam\twtyly \scriptscriptfont\lyfam\svtnly 
+\@setstrut \rm}
+\def\@xxvpt{}
+%
+%   Fix accents for PostScript fonts (but break them for non-PostScript
+%   fonts.)   -tgr, 6 April 91.
+%
+\def\H#1{{\accent"CD #1}}\def\.#1{{\accent"C7 #1}}
+\def\dot{\mathaccent"70C7 }
+\newdimen\aadimen
+\def\AA{\leavevmode\setbox0\hbox{h}\aadimen\ht0
+  \advance\aadimen-1ex\setbox0\hbox{A}\rlap{\raise.67\aadimen
+  \hbox to \wd0{\hss\char'27\hss}}A}
+\def\pounds{\char163}

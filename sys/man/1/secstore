@@ -223,3 +223,7 @@ When using
 .IR ipso ,
 secrets will appear as plain text in the editor window,
 so use the command in private.
+.PP
+The
+.I secstore
+protocol requires use of the now-deprecated RC4 and SSLv2.

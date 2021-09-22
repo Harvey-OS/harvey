@@ -99,6 +99,18 @@ is written to
 .B consctl
 or this file is closed.
 .PP
+If the string
+.B ctlpoff
+has been written to the
+.B consctl
+file and the file is still open,
+typing control-P on the console will have no effect.
+Writing
+.B ctlpon
+to
+.B consctl
+reverses the effect.
+.PP
 A
 .I write
 (see
@@ -230,7 +242,7 @@ back to zero between subsequent accesses.
 A read of
 .B bintime
 returns 24 bytes, three 8 byte numbers, representing nanoseconds
-since start of epoch, clock ticks, and clock frequency.
+since start of epoch, clock ticks since boot, and clock frequency.
 .PP
 A write to
 .B bintime
@@ -281,7 +293,7 @@ The
 .B time
 file holds one 32-bit number representing the seconds since start of epoch
 and three 64-bit numbers, representing nanoseconds since
-start of epoch, clock ticks, and clock frequency.
+start of epoch, clock ticks since boot, and clock frequency.
 .PP
 A write of a decimal number to
 .B time

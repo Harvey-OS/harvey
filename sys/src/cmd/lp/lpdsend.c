@@ -1,25 +1,22 @@
+/*
+ * lpdsend
+ */
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/param.h>
-
-#define	REDIALTIMEOUT	15
-#ifdef PLAN9
-#include <Plan9libnet.h>
-#endif
 
 enum {
-	TIMEOUT = 30*60,
-	SBSIZE = 8192,
+	REDIALTIMEOUT	= 15*1000,		/* in ms. */
+	TIMEOUT		= 30*60*1000,
+	SBSIZE		= 8192,
+	MAXHOSTNAMELEN	= 64,
 };
 
+#define exit(n) exits((n) == 0? nil: "error")
+#define lseek seek
+
 char tmpfilename[L_tmpnam+1];
-unsigned char sendbuf[SBSIZE];
+uchar sendbuf[SBSIZE];
 
 int alarmstate = 0;
 int debugflag = 0;
@@ -29,7 +26,7 @@ int statflag = 0;
 void
 cleanup(void)
 {
-	unlink(tmpfilename);
+	remove(tmpfilename);
 }
 
 void
@@ -40,7 +37,7 @@ debug(char *str)
 }
 
 void
-alarmhandler(int sig)
+alarmhandler(int)
 {
 	fprintf(stderr, "timeout occurred, check printer.\n");
 	exit(2);
@@ -52,34 +49,36 @@ alarmhandler(int sig)
 int
 copyfile(int in, int out, long tosend)
 {
-	int n;
-	int sent = 0;
-	int percent = 0;
+	int lastc, n, nw, sent = 0, percent = 0;
 
+	lastc = '\n';
 	if (debugflag)
 		fprintf(stderr, "lpdsend: copyfile(%d,%d,%ld)\n",
 			in, out, tosend);
-	while ((n=read(in, sendbuf, SBSIZE)) > 0) {
+	while ((n = read(in, sendbuf, SBSIZE)) > 0) {
 		if (debugflag)
 			fprintf(stderr, "lpdsend: copyfile read %d bytes from %d\n",
 				n, in);
 		alarm(TIMEOUT);
 		alarmstate = 1;
-		if (write(out, sendbuf, n) != n) {
-			alarm(0);
+		nw = write(out, sendbuf, n);
+		alarm(0);
+		if (nw != n) {
 			fprintf(stderr, "write to fd %d failed\n", out);
 			return(0);
 		}
-		alarm(0);
 		if (debugflag)
 			fprintf(stderr, "lpdsend: copyfile wrote %d bytes to %d\n",
-				n, out);
-		sent += n;
+				nw, out);
+		lastc = sendbuf[n-1];
+		sent += nw;
 		if (tosend && sent*100/tosend >= percent+WARNPC) {
 			percent += WARNPC;
 			fprintf(stderr, ": %5.2f%% sent\n", sent*100.0/tosend);
 		}
 	}
+	if (lastc != '\n' && (out == 1 || out == 2))
+		write(out, "\n", 1);
 	if (debugflag)
 		fprintf(stderr, "lpdsend: copyfile read %d bytes from %d\n",
 			n, in);
@@ -110,7 +109,8 @@ killjob(int printerfd)
 		fprintf(stderr, "no job to kill\n");
 		exit(1);
 	}
-	sprintf(strbuf, "%c%s %s %s\n", '\5', printername, username, killarg);
+	snprintf(strbuf, sizeof strbuf, "%c%s %s %s\n",
+		'\5', printername, username, killarg);
 	strlength = strlen(strbuf);
 	if (write(printerfd, strbuf, strlength) != strlength) {
 		fprintf(stderr, "write(printer) error\n");
@@ -122,10 +122,9 @@ killjob(int printerfd)
 void
 checkqueue(int printerfd)
 {
-	int n, strlength;
-	unsigned char sendbuf[1];
+	int strlength;
 
-	sprintf(strbuf, "%c%s\n", '\4', printername);
+	snprintf(strbuf, sizeof strbuf, "%c%s\n", '\4', printername);
 	strlength = strlen(strbuf);
 	if (write(printerfd, strbuf, strlength) != strlength) {
 		fprintf(stderr, "write(printer) error\n");
@@ -133,10 +132,12 @@ checkqueue(int printerfd)
 	}
 	copyfile(printerfd, 2, 0L);
 /*
-	while ((n=read(printerfd, sendbuf, 1)) > 0) {
+	int n;
+	uchar sendbuf[1];
+
+	while ((n=read(printerfd, sendbuf, 1)) > 0)
 		write(2, sendbuf, n);
-	}
-*/
+ */
 }
 
 void
@@ -163,9 +164,11 @@ sendctrl(int printerfd)
 	char cntrlstrbuf[256];
 	int strlength, cntrlen;
 
-	sprintf(cntrlstrbuf, "H%s\nP%s\n%cdfA%3.3d%s\n", hostname, username, filetype, seqno, hostname);
+	snprintf(cntrlstrbuf, sizeof cntrlstrbuf, "H%s\nP%s\n%cdfA%3.3d%s\n",
+		hostname, username, filetype, seqno, hostname);
 	cntrlen = strlen(cntrlstrbuf);
-	sprintf(strbuf, "%c%d cfA%3.3d%s\n", '\2', cntrlen, seqno, hostname);
+	snprintf(strbuf, sizeof strbuf, "%c%d cfA%3.3d%s\n",
+		'\2', cntrlen, seqno, hostname);
 	strlength = strlen(strbuf);
 	if (write(printerfd, strbuf, strlength) != strlength) {
 		fprintf(stderr, "write(printer) error\n");
@@ -189,7 +192,8 @@ senddata(int inputfd, int printerfd, long size)
 {
 	int strlength;
 
-	sprintf(strbuf, "%c%d dfA%3.3d%s\n", '\3', size, seqno, hostname);
+	snprintf(strbuf, sizeof strbuf, "%c%d dfA%3.3d%s\n",
+		'\3', size, seqno, hostname);
 	strlength = strlen(strbuf);
 	if (write(printerfd, strbuf, strlength) != strlength) {
 		fprintf(stderr, "write(printer) error\n");
@@ -211,14 +215,15 @@ senddata(int inputfd, int printerfd, long size)
 void
 sendjob(int inputfd, int printerfd)
 {
-	struct stat statbuf;
 	int strlength;
+	Dir *dir;
 
-	if (fstat(inputfd, &statbuf) < 0) {
+	dir = dirfstat(inputfd);
+	if (dir == nil) {
 		fprintf(stderr, "fstat(%s) failed\n", inputname);
 		exit(1);
 	}
-	sprintf(strbuf, "%c%s\n", '\2', printername);
+	snprintf(strbuf, sizeof strbuf, "%c%s\n", '\2', printername);
 	strlength = strlen(strbuf);
 	if (write(printerfd, strbuf, strlength) != strlength) {
 		fprintf(stderr, "write(printer) error\n");
@@ -226,10 +231,10 @@ sendjob(int inputfd, int printerfd)
 	}
 	getack(printerfd, 2);
 	debug("send data\n");
-	senddata(inputfd, printerfd, statbuf.st_size);
+	senddata(inputfd, printerfd, dir->length);
 	debug("send control info\n");
 	sendctrl(printerfd);
-	fprintf(stderr, "%ld bytes sent, status: end of job\n", statbuf.st_size);
+	fprintf(stderr, "%ld bytes sent, status: end of job\n", dir->length);
 }
 
 /*
@@ -273,94 +278,102 @@ netmkaddr(char *linear, char *defnet, char *defsrv)
 	 */
 	if(defsrv == 0)
 		return linear;
-	sprintf(addr, "%s!%s", linear, defsrv);
-
+	snprintf(addr, sizeof addr, "%s!%s", linear, defsrv);
 	return addr;
+}
+
+static void
+usage(void)
+{
+	fprintf(stderr, "usage: to send a job - %s -d printer -H hostname -P "
+		"username [-s seqno] [-t[cdfgklnoprtvz]] desthost [filename]\n",
+		argv0);
+	fprintf(stderr, "     to check status - %s -d printer -q desthost\n",
+		argv0);
+	fprintf(stderr, "       to kill a job - %s -d printer -P username -k "
+		"jobname desthost\n", argv0);
+	exits("usage");
 }
 
 void
 main(int argc, char *argv[])
 {
-	int c, usgflg = 0, inputfd, printerfd, sendport;
+	int c, inputfd, printerfd, sendport, optind;
 	char *desthostname, *hnend;
 	char portstr[4];
 
+#ifdef notdef
 	if (signal(SIGALRM, alarmhandler) == SIG_ERR) {
 		fprintf(stderr, "failed to set alarm handler\n");
 		exit(1);
 	}
-	while ((c = getopt(argc, argv, "Dd:k:qs:t:H:P:")) != -1)
-		switch (c) {
-		case 'D':
-			debugflag = 1;
-			debug("debugging on\n");
-			break;
+#endif
+	optind = 0;
+	c = 0;
+	inputfd = printerfd = -1;
+	ARGBEGIN {
+	case 'D':
+		debugflag = 1;
+		debug("debugging on\n");
+		break;
+	case 'd':
+		printername = EARGF(usage());
+		break;
+	case 'k':
+		if (statflag) {
+			fprintf(stderr, "cannot have both -k and -q flags\n");
+			exit(1);
+		}	
+		killflag = 1;
+		killarg = EARGF(usage());
+		break;
+	case 'q':
+		if (killflag) {
+			fprintf(stderr, "cannot have both -q and -k flags\n");
+			exit(1);
+		}	
+		statflag = 1;
+		break;
+	case 's':
+		seqno = strtol(EARGF(usage()), NULL, 10);
+		if (seqno < 0 || seqno > 999)
+			seqno = 0;
+		break;
+	case 't':
+		switch (filetype) {
+		case 'c':
 		case 'd':
-			printername = optarg;
-			break;
-		case 'k':
-			if (statflag) {
-				fprintf(stderr, "cannot have both -k and -q flags\n");
-				exit(1);
-			}	
-			killflag = 1;
-			killarg = optarg;
-			break;
-		case 'q':
-			if (killflag) {
-				fprintf(stderr, "cannot have both -q and -k flags\n");
-				exit(1);
-			}	
-			statflag = 1;
-			break;
-		case 's':
-			seqno = strtol(optarg, NULL, 10);
-			if (seqno < 0 || seqno > 999)
-				seqno = 0;
-			break;
+		case 'f':
+		case 'g':
+		case 'l':
+		case 'n':
+		case 'o':
+		case 'p':
+		case 'r':
 		case 't':
-			switch (filetype) {
-			case 'c':
-			case 'd':
-			case 'f':
-			case 'g':
-			case 'l':
-			case 'n':
-			case 'o':
-			case 'p':
-			case 'r':
-			case 't':
-			case 'v':
-			case 'z':
-				filetype = optarg[0];
-				break;
-			default:
-				usgflg++;
-				break;
-			}
-			break;
-		case 'H':
-			strncpy(hostname, optarg, MAXHOSTNAMELEN);
-			break;
-		case 'P':
-			username = optarg;
+		case 'v':
+		case 'z':
+			filetype = EARGF(usage())[0];
 			break;
 		default:
-		case '?':
-			fprintf(stderr, "unknown option %c\n", c);
-			usgflg++;
+			usage();
+			break;
 		}
-	if (argc < 2) usgflg++;
-	if (optind < argc) {
-		desthostname = argv[optind++];
-	} else
-		usgflg++;
-	if (usgflg) {
-		fprintf(stderr, "usage: to send a job - %s -d printer -H hostname -P username [-s seqno] [-t[cdfgklnoprtvz]] desthost [filename]\n", argv[0]);
-		fprintf(stderr, "     to check status - %s -d printer -q desthost\n", argv[0]);
-		fprintf(stderr, "       to kill a job - %s -d printer -P username -k jobname desthost\n", argv[0]);
-		exit(1);
-	}
+		break;
+	case 'H':
+		strncpy(hostname, EARGF(usage()), MAXHOSTNAMELEN);
+		break;
+	case 'P':
+		username = EARGF(usage());
+		break;
+	default:
+	case '?':
+		fprintf(stderr, "unknown option %c\n", c);
+		usage();
+	} ARGEND
+	if (argc < 1 || optind >= argc)
+		usage();
+	desthostname = argv[optind++];
 
 /* make sure the file to send is here and ready
  * otherwise the TCP connection times out.
@@ -369,7 +382,7 @@ main(int argc, char *argv[])
 		if (optind < argc) {
 			inputname = argv[optind++];
 			debug("open("); debug(inputname); debug(")\n");
-			inputfd = open(inputname, O_RDONLY);
+			inputfd = open(inputname, OREAD);
 			if (inputfd < 0) {
 				fprintf(stderr, "open(%s) failed\n", inputname);
 				exit(1);
@@ -378,7 +391,7 @@ main(int argc, char *argv[])
 			inputname = "stdin";
 			tmpnam(tmpfilename);
 			debug("using stdin\n");
-			if ((inputfd = open(tmpfilename, O_RDWR|O_CREAT, 0600)) < 0) {
+			if ((inputfd = create(tmpfilename, ORDWR|ORCLOSE, 0600)) < 0) {
 				fprintf(stderr, "open(%s) failed\n", tmpfilename);
 				exit(1);
 			}
@@ -396,13 +409,16 @@ main(int argc, char *argv[])
 			}
 		}
 	}
+	USED(optind);
 
-	sprintf(strbuf, "%s", netmkaddr(desthostname, "tcp", "printer"));
+	snprintf(strbuf, sizeof strbuf, "%s",
+		netmkaddr(desthostname, "tcp", "printer"));
 	fprintf(stderr, "connecting to %s\n", strbuf);
 	for (sendport=721; sendport<=731; sendport++) {
-		sprintf(portstr, "%3.3d", sendport);
+		snprintf(portstr, sizeof portstr, "%3.3d", sendport);
 		fprintf(stderr, " trying from port %s...", portstr);
-		debug(" dial("); debug(strbuf); debug(", "); debug(portstr); debug(", 0, 0) ...");
+		debug(" dial("); debug(strbuf); debug(", ");
+		debug(portstr); debug(", 0, 0) ...");
 		printerfd = dial(strbuf, portstr, 0, 0);
 		if (printerfd >= 0) {
 			fprintf(stderr, "connected\n");
@@ -418,16 +434,8 @@ main(int argc, char *argv[])
 		fprintf(stderr, "-  If all else fails, cycle the power!\n");
 		exit(1);
 	}
-/*	hostname[8] = '\0'; */
-#ifndef PLAN9
-	if (gethostname(hostname, sizeof(hostname)) < 0) {
-		perror("gethostname");
-		exit(1);
-	}
-#endif
-/*	if ((hnend = strchr(hostname, '.')) != NULL)
+	if (0 && (hnend = strchr(hostname, '.')) != NULL)
 		*hnend = '\0';
- */
 	if (statflag) {
 		checkqueue(printerfd);
 	} else if (killflag) {

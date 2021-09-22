@@ -86,6 +86,12 @@ dodefine(Tokenrow *trp)
 		dofree(args->bp);
 		args = tap;
 	}
+	if (printpplines)		// TODO: experiment
+		if (args)
+			cpprint(stdout, "// #define %s(%r) %r\n",
+				np->name, args, def);
+		else
+			cpprint(stdout, "// #define %s %r\n", np->name, def);
 	np->ap = args;
 	np->vp = def;
 	np->flag |= ISDEFINED;
@@ -229,7 +235,6 @@ expand(Tokenrow *trp, Nlist *np, int inmacro)
 	insertrow(trp, ntokc, &ntr);
 	trp->tp -= rowlen(&ntr);
 	dofree(ntr.bp);
-	return;
 }	
 
 /*

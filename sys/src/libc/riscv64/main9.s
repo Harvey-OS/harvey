@@ -1,3 +1,5 @@
+/* assume vlong alignment of SP */
+
 #define NPRIVATES	16
 
 TEXT	_main(SB), 1, $(4*XLEN + NPRIVATES*XLEN)
@@ -17,7 +19,7 @@ TEXT	_main(SB), 1, $(4*XLEN + NPRIVATES*XLEN)
 	JAL	R1, main(SB)
 loop:
 	MOV	$_exitstr<>(SB), R8
-	MOV	R8, XLEN(R2)
+	MOV	R8, XLEN(SP)
 	JAL	R1, exits(SB)
 	JMP	loop
 

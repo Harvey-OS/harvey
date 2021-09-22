@@ -1,0 +1,61 @@
+navigation programs:
+
+all run from an object database.
+database source is in files
+air1, air2, air3	airports
+vor1			vors
+ndb1			ndbs
+spc1 spc2		other - mostly intersections
+
+an object is specified by name or name.type
+type is a, v, n, i for airport, vor, ndb, intersection.
+
+the database is created (in /usr/ken/lib/obj) by
+the program load. see the makefile. the pathname
+is defined in obj.h.
+
+the basic program is
+dist obj1 obj2 ...
+gives the great circle distances and magnetic
+bearings between the objects.
+
+dme obj radial dist
+will print a latitude, longitude in the form
+of the object source files. this is used
+to create more objects, especially intersections.
+note that the database has to exist.
+
+plan obj1 obj2
+will give a minimun distance path from obj1 to
+obj2 such that you are never more than 50 miles
+from a vor. an option will change the 50.
+
+path obj1 obj2 ...
+will calculate a great circle route connecting
+the objects. it will print all objects
+that are within 50 miles of the route. it prints
+the distance along the route and the lateral
+distance to the object, + is right - is left.
+an option will change the 50.
+
+cross obj
+will print all objects within 100 miles of the
+given object along with distance and magnetic bearing.
+this program has bugs.
+
+ft obj1 obj2 ...
+will print all terminal forecast weather stations
+that are closest to some point along the great
+circle route of objects. the output is meant to
+be piped into w.
+
+fp obj1 obj2 ...
+same as ft, but prints area forcasts.
+
+fd obj1 obj2 ...
+same as ft, but prints winds aloft forcasts.
+
+warning: the database files are very stale.
+do not use for navigation. the program also
+generates routes over water, through prohibited
+areas and generally in straight lines.

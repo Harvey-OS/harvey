@@ -15,9 +15,10 @@ enum {
 	Resettime	= 1000,
 	E2pbusytime	= 1000,
 	Afcdefault	= 0xF830A1,
-	Hsburst		= 24,
+//	Hsburst		= 37,	/* from original linux driver */
+	Hsburst		= 8,
 	Fsburst		= 129,
-	Defbulkdly	= 1000,
+	Defbulkdly	= 0x2000,
 
 	Ethp8021q	= 0x8100,
 	MACoffset 	= 1,
@@ -57,9 +58,10 @@ enum {
 		Phyint	= 1<<15,
 	Bulkdelay	= 0x6C,
 	Maccr		= 0x100,
-		Mcpas	= 1<<19,
-		Prms	= 1<<18,
+		Mcpas	= 1<<19,		/* multicast */
+		Prms	= 1<<18,		/* promiscuous */
 		Hpfilt	= 1<<13,
+		Bcast	= 1<<11,
 		Txen	= 1<<3,
 		Rxen	= 1<<2,
 	Addrh		= 0x104,
@@ -100,8 +102,6 @@ enum {
 		Anegcomp= 1<<6,
 		Linkdown= 1<<4,
 };
-
-static int burstcap = Hsburst, bulkdelay = Defbulkdly;
 
 static int
 wr(Dev *d, int reg, int val)
@@ -238,24 +238,23 @@ smscinit(Ether *ether)
 	wr(d, Addrl, GET4(ether->addr));
 	wr(d, Addrh, GET2(ether->addr+4));
 	if(Doburst){
-		wr(d, Hwcfg, (rr(d,Hwcfg)&~Rxdoff)|Bir|Mef|Bce);
-		wr(d, Burstcap, burstcap);
-		wr(d, Bulkdelay, bulkdelay);
+		wr(d, Hwcfg, (rr(d, Hwcfg) & ~Rxdoff) | Bir|Mef|Bce);
+		wr(d, Burstcap, Hsburst);
 	}else{
-		wr(d, Hwcfg, (rr(d,Hwcfg)&~(Rxdoff|Mef|Bce))|Bir);
+		wr(d, Hwcfg, (rr(d, Hwcfg) & ~(Rxdoff|Mef|Bce)) | Bir);
 		wr(d, Burstcap, 0);
-		wr(d, Bulkdelay, 0);
 	}
+	wr(d, Bulkdelay, Defbulkdly);
 	wr(d, Intsts, ~0);
 	wr(d, Ledgpio, Ledspd|Ledlnk|Ledfdx);
 	wr(d, Flow, 0);
 	wr(d, Afccfg, Afcdefault);
 	wr(d, Vlan1, Ethp8021q);
-	wr(d, Coecr, rr(d,Coecr)&~(Txcoe|Rxcoe)); /* TODO could offload checksums? */
+	wr(d, Coecr, rr(d, Coecr) & ~(Txcoe|Rxcoe)); /* TODO could offload checksums? */
 
 	wr(d, Hashh, 0);
 	wr(d, Hashl, 0);
-	wr(d, Maccr, rr(d,Maccr)&~(Prms|Mcpas|Hpfilt));
+	wr(d, Maccr, rr(d, Maccr) & ~(Prms|Mcpas|Hpfilt));
 
 	phyinit(d);
 
@@ -276,7 +275,7 @@ smscbread(Ether *e, Buf *bp)
 	rbp = e->aux;
 	if(rbp->ndata < 4){
 		rbp->rp = rbp->data;
-		rbp->ndata = read(e->epin->dfd, rbp->rp, Doburst? burstcap*512:
+		rbp->ndata = read(e->epin->dfd, rbp->rp, Doburst? Hsburst*512:
 			Maxpkt);
 		if(rbp->ndata < 0)
 			return -1;
@@ -287,24 +286,20 @@ smscbread(Ether *e, Buf *bp)
 		return 0;
 	}
 	hd = GET4(rbp->rp);
-	rbp->rp += 4;
-	rbp->ndata -= 4;
 	n = hd >> 16;
-	if(n < 6 || n > rbp->ndata){
+	m = (n + 4 + 3) & ~3;
+	if(n < 6 || m > rbp->ndata){
 		werrstr("frame length");
 		fprint(2, "smsc length error packet %d buf %d\n", n, rbp->ndata);
 		rbp->ndata = 0;
 		return 0;
 	}
-	m = n;
-	if(rbp->ndata - m < 4)
-		m = rbp->ndata;
 	if(hd & Rxerror){
 		fprint(2, "smsc rx error %8.8ux\n", hd);
 		n = 0;
 	}else{
 		bp->rp = bp->data + Hdrsize;
-		memmove(bp->rp, rbp->rp, n);
+		memmove(bp->rp, rbp->rp+4, n);
 	}
 	bp->ndata = n;
 	rbp->rp += m;
@@ -327,36 +322,41 @@ smscbwrite(Ether *e, Buf *bp)
 }
 
 static int
-smscpromiscuous(Ether *e, int on)
+smscpromiscuous(Ether *ether, int on)
 {
+	int cr;
 	Dev *d;
-	int rxctl;
 
-	d = e->dev;
-	rxctl = rr(d, Maccr);
+	if(ether->cid != S95xx)
+		return -1;
+	deprint(2, "%s: smscpromiscuous %d\n", argv0, on);
+	d = ether->dev;
+	cr = rr(d, Maccr);
 	if(on)
-		rxctl |= Prms;
+		cr |= Prms;
 	else
-		rxctl &= ~Prms;
-	return wr(d, Maccr, rxctl);
+		cr &= ~Prms;
+	return wr(d, Maccr, cr);
 }
 
 static int
-smscmulticast(Ether *e, uchar *addr, int on)
+smscmulticast(Ether *ether, uchar *addr, int on)
 {
-	int rxctl;
+	int cr;
 	Dev *d;
 
-	USED(addr, on);
+	if(ether->cid != S95xx)
+		return -1;
+	deprint(2, "%s: smscmulticast %d\n", argv0, on);
+	d = ether->dev;
 	/* BUG: should write multicast filter */
-	d = e->dev;
-	rxctl = rr(d, Maccr);
-	if(e->nmcasts != 0)
-		rxctl |= Mcpas;
+	USED(addr);
+	cr = rr(d, Maccr);
+	if(on)
+		cr |= Mcpas;
 	else
-		rxctl &= ~Mcpas;
-	deprint(2, "%s: smscmulticast %d\n", argv0, e->nmcasts);
-	return wr(d, Maccr, rxctl);
+		cr &= ~Mcpas;
+	return wr(d, Maccr, cr);
 }
 
 static void
@@ -383,7 +383,7 @@ smscreset(Ether *ether)
 			deprint(2, "%s: smsc reset done\n", argv0);
 			ether->name = "smsc";
 			if(Doburst){
-				ether->bufsize = burstcap*512;
+				ether->bufsize = Hsburst*512;
 				ether->aux = emallocz(sizeof(Buf) +
 					ether->bufsize - Maxpkt, 1);
 			}else{

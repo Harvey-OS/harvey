@@ -129,7 +129,6 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	Route *r, *sr;
 	IP *ip;
 	int rv = 0;
-	uchar v4dst[IPv4addrlen];
 
 	ip = f->ip;
 
@@ -168,25 +167,19 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	ifc = r->ifc;
 	if(r->type & (Rifc|Runi))
 		gate = eh->dst;
-	else
-	if(r->type & (Rbcast|Rmulti)) {
-		if(nhgetl(r->v4.gate) == 0){
-			hnputl(v4dst, r->v4.address);
-			gate = v4dst;
-		}else
-			gate = eh->dst;
+	else if(r->type & (Rbcast|Rmulti)) {
+		gate = eh->dst;
 		sr = v4lookup(f, eh->src, nil);
 		if(sr != nil && (sr->type & Runi))
 			ifc = sr->ifc;
-	}
-	else
+	} else
 		gate = r->v4.gate;
 
-	if(!gating)
-		eh->vihl = IP_VER4|IP_HLEN4;
 	eh->ttl = ttl;
-	if(!gating)
+	if(!gating) {
+		eh->vihl = IP_VER4|IP_HLEN4;
 		eh->tos = tos;
+	}
 
 	if(!canrlock(ifc))
 		goto free;
@@ -240,17 +233,14 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	}
 
 	dlen = len - IP4HDR;
-	xp = bp;
 	if(gating)
 		lid = nhgets(eh->id);
 	else
 		lid = incref(&ip->id4);
 
 	offset = IP4HDR;
-	while(xp != nil && offset && offset >= BLEN(xp)) {
+	for(xp = bp; xp != nil && offset && offset >= BLEN(xp); xp = xp->next)
 		offset -= BLEN(xp);
-		xp = xp->next;
-	}
 	xp->rp += offset;
 
 	if(gating)
@@ -268,16 +258,14 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		if((fragoff + seglen) >= dlen) {
 			seglen = dlen - fragoff;
 			hnputs(feh->frag, fragoff>>3);
-		}
-		else
+		} else
 			hnputs(feh->frag, (fragoff>>3)|IP_MF);
 
 		hnputs(feh->length, seglen + IP4HDR);
 		hnputs(feh->id, lid);
 
 		/* Copy up the data area */
-		chunk = seglen;
-		while(chunk) {
+		for(chunk = seglen; chunk; chunk -= blklen) {
 			if(!xp) {
 				ip->stats[OutDiscards]++;
 				ip->stats[FragFails]++;
@@ -291,7 +279,6 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 			memmove(nb->wp, xp->rp, blklen);
 			nb->wp += blklen;
 			xp->rp += blklen;
-			chunk -= blklen;
 			if(xp->rp == xp->wp)
 				xp = xp->next;
 		}
@@ -698,15 +685,12 @@ ipcsum(uchar *addr)
 
 	sum = 0;
 	len = (addr[0]&0xf)<<2;
-
 	while(len > 0) {
-		sum += addr[0]<<8 | addr[1] ;
 		len -= 2;
+		sum += addr[0]<<8 | addr[1];	/* big-endian */
 		addr += 2;
 	}
-
 	sum = (sum & 0xffff) + (sum >> 16);
 	sum = (sum & 0xffff) + (sum >> 16);
-
-	return (sum^0xffff);
+	return (sum ^ 0xffff);
 }

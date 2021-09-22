@@ -63,7 +63,7 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 		v = ~0 + (1L << b->type->nbits);
 		gopcode(OAND, tfield, nodconst(v), n1);
 	} else {
-		sh = 32 - b->type->shift - b->type->nbits;
+		sh = tfield->width*8 - b->type->shift - b->type->nbits;
 		if(sh > 0)
 			gopcode(OASHL, tfield, nodconst(sh), n1);
 		sh += b->type->shift;
@@ -333,7 +333,8 @@ zname(Biobuf *b, Sym *s, int t)
 	char *n;
 	ulong sig;
 
-	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
+	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE &&
+	    s->type != types[TENUM] && s != symrathole){
 		sig = sign(s);
 		Bputc(b, ASIGNAME);
 		Bputc(b, ASIGNAME>>8);

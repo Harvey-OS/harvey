@@ -1,0 +1,36 @@
+	Changes since the last rc I put on sources (roughly 1 April 2014).
+	Geoff Collyer
+	Fri Aug 12 14:33:10 PDT 2016
+
+the general assumption is now that rc is first a plan 9 shell, with
+POSIX supported secondarily.  non-plan-9 code is pushed into foreign.
+`cd foreign; make' builds on APE at least, with result in
+foreign/build/rc.  No idea if it will compile on Windows and that
+matters less each day.
+
+utf parsing is more careful and now processes badrunes/badrunes and
+badrunes/badrunes.old correctly.  utf is assumed throughout, not ascii
+nor some generic multi-byte character encoding.  the usual plan 9 utf
+and rune functions are used instead of rc's own.  made unicode chars
+acceptable in identifiers.
+
+getflags.[ch] are gone.
+
+rc.h reorganised to remove some #ifdefs.
+
+removed a limit on environment variable length and stopped using
+*print and libString, which saves a little space and makes better use
+of rc's own mechanisms.  (yacc still uses *print for debugging.) made
+rewind() work on openstr buffers.
+
+catch and print wait status messages containing "error in demand
+load".  in particular, this makes visible failures when running some
+binaries (e.g., openssl) via vacfs (and changes to vacfs will be
+forthcoming to cope).
+
+error messages now identify the input file and line number of syntax
+errors and the like.
+
+	Jul 5  2017
+
+added interactive cd spelling correction per td.

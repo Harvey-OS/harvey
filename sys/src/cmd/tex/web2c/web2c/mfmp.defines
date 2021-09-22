@@ -1,0 +1,5 @@
+{We optimize these functions with C definitions (in cpascal.h) for
+ Metafont and MetaPost, but TeX's definition is different, and it's not
+ worth dealing with. But then we can't @define half when we process TeX.}
+@define function half ();
+@define function halfp ();

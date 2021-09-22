@@ -1,0 +1,13 @@
+%% plain tex file for testing memory overflow
+\tracingstats=2
+\newcount\cnt
+\chardef\nil=0
+\cnt=0
+\let\tempa=\relax
+\setbox\nil\hbox{}
+\def\tempb{\copy\nil}
+\def\list{\tempa}
+\def\again{\xdef\list{\list\list}\let\tempa\tempb\leavevmode\list\vfill\eject
+    \let\tempa\relax\advance\cnt1 \ifnum\cnt>19 \let\again\relax\fi\again}
+\again
+\end

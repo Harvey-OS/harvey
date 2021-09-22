@@ -1,16 +1,6 @@
 .TH USB 4
 .SH NAME
-audio,
-ccid,
-disk,
-ether,
-kb,
-print,
-probe,
-serial,
-usbeject,
-usbfat:
-\- Universal Serial Bus device drivers
+audio, ccid, disk, ether, kb, print, probe, serial, usbeject, usbfat: \- Universal Serial Bus device drivers
 .SH SYNOPSIS
 .B usb/kb
 [
@@ -495,14 +485,17 @@ at once, with one action per line.
 .IR usbd (4),
 .IR partfs (8)
 .SH BUGS
-The various device drivers are generic USB drivers and
-may work only for certain devices on each class.
+The various device drivers are meant to be generic USB drivers, but
+may work only for certain devices in each class.
 .PP
 USB ATA storage devices are not supported.
+Disks are better handled by NVME and SATA (see
+.IR sd (3)).
 .PP
-The Ethernet device works only for certain ASIX-based cards and for CDC devices.
-Both the Ethernet and printer drivers have not
-been tested and it is likely they will fail.
+The Ethernet device works only for certain ASIX-based cards and for CDC devices,
+and is greatly slowed by USB.
+.PP
+The printer driver has not been tested and likely will fail.
 .PP
 The serial driver works only for the Prolific chip and Ftdi,
 and control of the

@@ -426,8 +426,9 @@ doflush(Display *d)
 
 	if((nn=write(d->fd, d->buf, n)) != n){
 		if(_drawdebug)
-			fprint(2, "flushimage fail: d=%p: n=%d nn=%d %r\n", d, n, nn); /**/
-		d->bufp = d->buf;	/* might as well; chance of continuing */
+			fprint(2, "flushimage fail: d=%p: n=%d nn=%d %r\n",
+				d, n, nn); /**/
+		d->bufp = d->buf; /* might as well; chance of continuing */
 		return -1;
 	}
 	d->bufp = d->buf;
@@ -440,7 +441,7 @@ flushimage(Display *d, int visible)
 	if(d == nil)
 		return 0;
 	if(visible){
-		*d->bufp++ = 'v';	/* five bytes always reserved for this */
+		*d->bufp++ = 'v'; /* five bytes always reserved for this */
 		if(d->_isnewdisplay){
 			BPLONG(d->bufp, d->screenimage->id);
 			d->bufp += 4;

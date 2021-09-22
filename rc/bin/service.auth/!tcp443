@@ -1,0 +1,5 @@
+#!/bin/rc
+#https service net dir
+echo '=====' `{date} `{cat $3/remote} >> /adm/brickdb/have/tls-log
+exec tlssrv -k/sys/lib/ssl -r`{cat $3/remote} /$cputype/bin/aux/haveViaduct -r`{cat $3/remote} >>[2] /adm/brickdb/have/tls-log
+# exec tlssrv -c/sys/lib/ssl/cert.pem -r`{cat $3/remote} /$cputype/bin/aux/haveViaduct -r`{cat $3/remote} >>[2] /adm/brickdb/have/tls-log

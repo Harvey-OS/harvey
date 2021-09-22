@@ -69,7 +69,7 @@ httpdinit(char *address, char *dir)
 	httpdobj("/emptydcache", hdcacheempty);
 	httpdobj("/disk", hdisk);
 	httpdobj("/debug", hdebug);
-	httpdobj("/proc/", hproc);
+//	httpdobj("/proc/", hproc); /* TODO: restore? bloats venti binary w libmach */
 
 	if(vtproc(listenproc, address) < 0)
 		return -1;

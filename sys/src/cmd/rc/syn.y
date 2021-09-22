@@ -83,8 +83,7 @@ comword: '$' word		{$$=tree1('$', $2);}
 |	'"' word		{$$=tree1('"', $2);}
 |	COUNT word		{$$=tree1(COUNT, $2);}
 |	WORD
-|	'`' brace		{$$=tree2('`', (struct tree*)0, $2);}
-|	'`' word brace		{$$=tree2('`', $2, $3);}
+|	'`' brace		{$$=tree1('`', $2);}
 |	'(' words ')'		{$$=tree1(PAREN, $2);}
 |	REDIR brace		{$$=mung1($1, $2); $$->type=PIPEFD;}
 keyword: FOR|IN|WHILE|IF|NOT|TWIDDLE|BANG|SUBSHELL|SWITCH|FN

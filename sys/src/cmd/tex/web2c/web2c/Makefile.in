@@ -1,0 +1,59 @@
+# Makefile for TeX-project WEB sources to C conversion programs.
+
+# These get expanded from the parent directory, not this one.
+ac_include ../make/common.make
+ac_include ../make/programs.make
+ac_include kpathsea.make
+
+LEX = @LEX@
+LEXLIB = @LEXLIB@
+LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
+YACC = @YACC@
+
+proglib = ../lib/lib.a
+programs = web2c fixwrites splitup
+
+web2c_objects = main.o y_tab.o $(LEX_OUTPUT_ROOT).o
+all: $(programs)
+web2c: $(web2c_objects)
+	$(kpathsea_link) $(web2c_objects) $(LEXLIB) $(LOADLIBES) 
+
+# We use y_tab.* for the sake of MS-DOS.
+main.o: main.c y_tab.h
+y_tab.c y_tab.h: web2c.y
+	@echo Expect one shift/reduce conflict.
+	$(YACC) -d -v $(srcdir)/web2c.y
+	-test -f y.tab.c && mv -f y.tab.c y_tab.c
+	-test -f y.tab.h && mv -f y.tab.h y_tab.h
+$(LEX_OUTPUT_ROOT).o: y_tab.h
+$(LEX_OUTPUT_ROOT).c: web2c.l
+	$(LEX) $(srcdir)/web2c.l
+
+fixwrites: fixwrites.o
+	$(kpathsea_link) fixwrites.o $(LOADLIBES)
+splitup: splitup.o
+	$(kpathsea_link) splitup.o $(LOADLIBES)
+regfix: regfix.o
+	$(kpathsea_link) regfix.o $(LOADLIBES)
+
+$(programs): $(proglib) $(kpathsea)
+
+@MAINT@# It's really not worth srcdir etc. here.
+@MAINT@lib_sources = $(addprefix ../lib/,alloca.c basechsuffix.c chartostring.c \
+@MAINT@  eofeoln.c fprintreal.c input2int.c inputint.c main.c openclose.c \
+@MAINT@  uexit.c usage.c version.c zround.c)
+@MAINT@$(proglib): $(lib_sources)
+@MAINT@	cd ../lib && $(MAKE)
+@MAINT@always:
+
+Makefile: Makefile.in ../config.status
+	cd .. && $(SHELL) config.status
+
+ac_include ../make/tkpathsea.make
+ac_include ../make/clean.make
+
+clean::
+	rm -f y_tab.c y_tab.h y.out* yacc.* $(LEX_OUTPUT_ROOT).c
+
+ac_include ../make/rdepend.make
+ac_include web2c/depend.make

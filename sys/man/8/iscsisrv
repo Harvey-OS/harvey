@@ -8,26 +8,21 @@ iscsisrv \- iSCSI target: provide remote access via iSCSI
 ] [
 .B -l
 .I len
-] [
-.B -a
-.I dialstring
 ]
 .I target
+[
+.I dialstring
+]
 .SH DESCRIPTION
 .I Iscsisrv
 presents the file
 .I target
-by speaking a restricted form of the iSCSI protocol.
-It defaults to communicating on file descriptors 0 and 1,
-assumed to be a network connection as passed from
+by speaking a restricted form of the iSCSI protocol
+on file descriptors 0 and 1, assumed to be a network connection.
+It is intended to be invoked by 
 .IR listen (8)
 via
 .BR /bin/service/tcp3260 .
-If the
-.B -a
-option is supplied, it will instead listen for connections on
-the specified dialstring.
-.P
 Changes are written through to
 .I target
 unless the
@@ -50,10 +45,10 @@ Export a target,
 disk/iscsisrv /dev/sdC0/iscsi-test
 .EE
 .PP
-Export a dummy target over TCP:
+Export a dummy target:
 .IP
 .EX
-disk/iscsisrv -rl 10240000 -a tcp!*!3260 /dev/zero
+disk/iscsisrv -l 10240000 /dev/zero
 .EE
 .SH SOURCE
 .B /sys/src/cmd/ip/iscsisrv.c

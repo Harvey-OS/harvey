@@ -835,7 +835,6 @@ static char *help =
 	"A name - set partition active\n"
 	"P - print table in ctl format\n"
 	"R - restore disk back to initial configuration and exit\n"
-	"e - show empty dos partitions\n"
 	"t name [type] - set partition type\n";
 
 static char*

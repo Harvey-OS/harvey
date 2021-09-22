@@ -45,8 +45,15 @@ OFILES=\
 	rsagen.$O\
 	rsaprivtopub.$O\
 	sha1.$O\
+	sha1block.$O\
 	sha1pickle.$O\
-	smallprimes.$O
+	sha2_128.$O\
+	sha2_64.$O\
+	sha2block128.$O\
+	sha2block64.$O\
+	smallprimes.$O\
+	tlshand.$O\
+	x509.$O\
 
 default: $(LIB)
 $(LIB): $(OFILES)

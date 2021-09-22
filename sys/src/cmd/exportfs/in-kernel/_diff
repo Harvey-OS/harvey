@@ -1,0 +1,210 @@
+diff ../exportfs.c ./exportfs.c
+49c49
+< char	*ealgs = "rc4_256 sha1";	/* ssl only */
+---
+> char	*ealgs = "rc4_256 sha1";
+52d51
+< char	*tlscert = "/sys/lib/ssl/cert.pem";
+62d60
+< void	procsetname(char *fmt, ...);
+87,108d84
+< static int
+< pushtlsserver(int fd, char *tlscert)
+< {
+< 	int efd, certlen;
+< 	uchar *cert;
+< 	TLSconn conn;
+< 
+< 	if (tlscert == nil)
+< 		return fd;
+< 	memset(&conn, 0, sizeof conn);
+< 	cert = readcert(tlscert, &certlen);
+< 	if (cert == nil) {
+< 		syslog(0, "cpu", "cpu -R: can't read cert %s: %r", tlscert);
+< 		return fd;
+< 	}
+< 	conn.cert = cert;
+< 	conn.certlen = certlen;
+< 	efd = tlsServer(fd, &conn);
+< 	free(conn.cert);
+< 	return efd;
+< }
+< 
+132a109
+> 
+135a113
+> 
+140a119
+> 
+143a123
+> 
+146a127
+> 
+149a131
+> 
+152a135
+> 
+155a139
+> 
+158a143
+> 
+161a147
+> 
+164a151
+> 
+167a155
+> 
+170a159
+> 
+173a163
+> 
+176a167
+> 
+181a173
+> 
+189,192c181,184
+< 		 * We use p9any so we don't have to visit this code again, with
+< 		 * the cost that this code is incompatible with the old world,
+< 		 * which requires p9sk2.  (The two differ in who talks first,
+< 		 * so compatibility is awkward.)
+---
+> 		 * We use p9any so we don't have to visit this code again, with the
+> 		 * cost that this code is incompatible with the old world, which
+> 		 * requires p9sk2. (The two differ in who talks first, so compatibility
+> 		 * is awkward.)
+194,195c186
+< 		ai = auth_proxy(0, auth_getkey, "proto=p9any role=server %s",
+< 			keyspec);
+---
+> 		ai = auth_proxy(0, auth_getkey, "proto=p9any role=server %s", keyspec);
+205c196,197
+< 	if(srvfdfile && (srvfd = open(srvfdfile, ORDWR)) < 0)
+---
+> 	if(srvfdfile){
+> 		if((srvfd = open(srvfdfile, ORDWR)) < 0)
+206a199
+> 	}
+217,218c210
+< 		ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client %s",
+< 			keyspec);
+---
+> 		ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client %s", keyspec);
+247c239
+< 			messagesize = 16*1024+IOHDRSZ;	/* 16K was 8K */
+---
+> 			messagesize = 8192+IOHDRSZ;
+265,270c257
+< 		if(chdir(srv) < 0) {
+< 			errstr(ebuf, sizeof ebuf);
+< 			fprint(0, "chdir(\"%s\"): %s\n", srv, ebuf);
+< 			DEBUG(DFD, "chdir(\"%s\"): %s\n", srv, ebuf);
+< 			exits(ebuf);
+< 		}
+---
+> 		chdir(srv);
+280,281c267,268
+< 			fprint(0, "read(0): %s\n", buf);
+< 			DEBUG(DFD, "read(0): %s\n", buf);
+---
+> 			fprint(0, "read(0): %s", buf);
+> 			DEBUG(DFD, "read(0): %s", buf);
+287,288c274,275
+< 			fprint(0, "chdir(%d:\"%s\"): %s\n", n, buf, ebuf);
+< 			DEBUG(DFD, "chdir(%d:\"%s\"): %s\n", n, buf, ebuf);
+---
+> 			fprint(0, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
+> 			DEBUG(DFD, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
+302c289
+< 		fatal("can't read initial string: %r");
+---
+> 		fatal("can't read initial string: %r\n");
+313c300
+< 				fatal("can't read impo arguments: %r");
+---
+> 				fatal("can't read impo arguments: %r\n");
+316c303
+< 				fatal("connection closed while reading arguments");
+---
+> 				fatal("connection closed while reading arguments\n");
+325c312
+< 			fatal("impo arguments invalid: impo%s...", buf);
+---
+> 			fatal("impo arguments invalid: impo%s...\n", buf);
+330c317
+< 			fatal("import filter argument unsupported: %s", args[0]);
+---
+> 			fatal("import filter argument unsupported: %s\n", args[0]);
+337c324,327
+< 			fatal("import encryption proto unsupported: %s", args[1]);
+---
+> 			fatal("import encryption proto unsupported: %s\n", args[1]);
+> 
+> 		if (encproto == Enctls)
+> 			sysfatal("%s: tls has not yet been implemented", argv[0]);
+355c345
+< 			fatal("Protocol botch: old import");
+---
+> 			fatal("Protocol botch: old import\n");
+357c347
+< 			fatal("can't read key part; %r");
+---
+> 			fatal("can't read key part; %r\n");
+360c350
+< 			fatal("can't write key part; %r");
+---
+> 			fatal("can't write key part; %r\n");
+370d359
+< 		procsetname("push%s server", encproto == Enctls? "tls": "ssl");
+377,378d365
+< 			netfd = pushtlsserver(netfd, tlscert);
+< 			break;
+380c367
+< 			fatal("Unsupported encryption protocol");
+---
+> 			fatal("Unsupported encryption protocol\n");
+388c375
+< 			fatal("Protocol botch: don't know how to deal with this");
+---
+> 			fatal("Protocol botch: don't know how to deal with this\n");
+391a379,384
+> 	/* use the system call */
+> 	if (exportfs(netfd, ".", 0) < 0)
+> 		sysfatal("exportfs: %r");
+> 	exits("can't happen");
+> 
+> if (0) {
+410a404
+> }
+931c925
+< 			fatal("filter: Cannot dup to 1; %r");
+---
+> 			fatal("filter: Cannot dup to 1; %r\n");
+933c927
+< 			fatal("filter: Cannot dup to 0; %r");
+---
+> 			fatal("filter: Cannot dup to 0; %r\n");
+
+diff ../exportsrv.c ./exportsrv.c
+8,15d7
+< enum {
+< 	/*
+< 	 * reduce output messages this much to leave room for encapsulations
+< 	 * (e.g., 9P in TLS in 9P)
+< 	 */
+< 	Encaproom = 0,
+< };
+< 
+607c599
+< 	snprint(mbuf, sizeof mbuf, "-m%lud", messagesize-IOHDRSZ-Encaproom);
+---
+> 	snprint(mbuf, sizeof mbuf, "-m%lud", messagesize-IOHDRSZ);
+726d717
+< 	long mszlim;
+736,740c727
+< 	mszlim = messagesize-IOHDRSZ;
+< 	mszlim -= Encaproom;
+< 	if (mszlim < 256)
+< 		mszlim = messagesize-IOHDRSZ;
+< 	n = (work->count > mszlim)? mszlim: work->count;
+---
+> 	n = (work->count > messagesize-IOHDRSZ) ? messagesize-IOHDRSZ : work->count;

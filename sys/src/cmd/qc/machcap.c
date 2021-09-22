@@ -18,11 +18,9 @@ machcap(Node *n)
 
 	case OMUL:
 	case OLMUL:
+	case OASMUL:
 	case OASLMUL:
 		return 1;
-
-	case OASMUL:
-		return !mixedasop(n->type, n->right->type);
 
 	case OLSHR:
 	case OASHR:
@@ -60,8 +58,6 @@ machcap(Node *n)
 
 	case OASADD:
 	case OASSUB:
-		return !mixedasop(n->type, n->right->type);
-
 	case OASAND:
 	case OASOR:
 	case OASXOR:

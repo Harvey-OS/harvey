@@ -1,0 +1,38 @@
+</$objtype/mkfile
+
+DIRS=dist jep
+
+all:V:
+	for (i in $DIRS) @{
+		cd $i
+		mk all
+	}
+
+clean:V:
+	for (i in $DIRS) @{
+		cd $i
+		mk clean
+	}
+
+nuke:V:	clean
+	for (i in $DIRS) @{
+		cd $i
+		mk nuke
+	}
+	
+
+install:V:
+	for (i in $DIRS) @{
+		cd $i
+		mk install
+	}
+
+installall:V:
+	for (i in $DIRS) @{
+		cd $i
+		mk installall
+	}
+	for (i in $DIRS) @{
+		cd $i
+		mk clean
+	}

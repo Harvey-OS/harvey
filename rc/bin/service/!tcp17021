@@ -1,0 +1,2 @@
+#!/bin/rc
+if(~ $sysname achille) /bin/aux/trampoline 'tcp!tailfan!17021' $3 >[2]/dev/null

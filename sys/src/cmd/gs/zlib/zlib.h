@@ -31,6 +31,15 @@
 #ifndef ZLIB_H
 #define ZLIB_H
 
+#ifndef _SUSV2_SOURCE
+#define _SUSV2_SOURCE
+#endif
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "zconf.h"
 
 #ifdef __cplusplus
@@ -74,11 +83,13 @@ extern "C" {
   crash even in case of corrupted input.
 */
 
-typedef voidpf (*alloc_func) OF((voidpf opaque, uInt items, uInt size));
+typedef voidpf (*alloc_func) OF((voidpf opaque, uInt items, size_t size));
 typedef void   (*free_func)  OF((voidpf opaque, voidpf address));
 
+#pragma incomplete struct internal_state
 struct internal_state;
 
+#pragma incomplete struct z_stream_s
 typedef struct z_stream_s {
     Bytef    *next_in;  /* next input byte */
     uInt     avail_in;  /* number of bytes available at next_in */
@@ -100,7 +111,7 @@ typedef struct z_stream_s {
     uLong   reserved;   /* reserved for future use */
 } z_stream;
 
-typedef z_stream FAR *z_streamp;
+typedef z_stream *z_streamp;
 
 /*
    The application must update next_in and avail_in when avail_in has
@@ -296,7 +307,7 @@ ZEXTERN int ZEXPORT deflate OF((z_streamp strm, int flush));
 */
 
 
-ZEXTERN int ZEXPORT deflateEnd OF((z_streamp strm));
+ZEXTERN int ZEXPORT deflateEnd(z_streamp strm);
 /*
      All dynamically allocated data structures for this stream are freed.
    This function discards any unprocessed input and does not flush any
@@ -1184,10 +1195,6 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_stream FAR *strm, int windowBits,
         inflateBackInit_((strm), (windowBits), (window), \
         ZLIB_VERSION, sizeof(z_stream))
 
-
-#if !defined(ZUTIL_H) && !defined(NO_DUMMY_DECL)
-    struct internal_state {int dummy;}; /* hack for buggy compilers */
-#endif
 
 ZEXTERN const char   * ZEXPORT zError           OF((int));
 ZEXTERN int            ZEXPORT inflateSyncPoint OF((z_streamp z));

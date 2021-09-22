@@ -1,0 +1,7 @@
+Known bugs:
+
+You can't upload large files; it takes _lots_ of memory.
+
+You shouldn't press '^Z' when you are in a viewer
+
+vim: textwidth=80

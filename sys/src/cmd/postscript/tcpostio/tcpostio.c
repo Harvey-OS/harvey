@@ -31,19 +31,22 @@ int debug = 0;
 #define	SNDSELTIMEOUT	300
 
 void
-rdtmout(void) {
+rdtmout(void)
+{
 	fprintf(stderr, "read timeout occurred, check printer\n");
 }
 
 int
-getline(int fd, char *buf, int len) {
+getline(int fd, char *buf, int len)
+{
 	char *bp, c;
 	int i = 0, n;
 
 	bp = buf;
-	while (alarm(READTIMEOUT),(n=read(fd, bp, 1)) == 1) {
+	while (alarm(READTIMEOUT), (n=read(fd, bp, 1)) == 1) {
 		alarm(0);
-		if (*bp == '\r') continue;
+		if (*bp == '\r')
+			continue;
 		i += n;
 
 		c = *bp++;
@@ -112,15 +115,16 @@ Status	statuslist[] = {
  * if it exists.  Otherwise, it points to the end of str1.
  */
 char *
-find(char *str1, char *str2) {
+find(char *str1, char *str2)
+{
 	char *s1, *s2;
 
 	for (; *str1!='\0'; str1++) {
-		for (s1=str1,s2=str2; *s2!='\0'&&*s1==*s2; s1++,s2++) ;
+		for (s1=str1,s2=str2; *s2!='\0'&&*s1==*s2; s1++,s2++)
+			;
 		if ( *s2 == '\0' )
 	    		break;
 	}
-
 	return(str1);
 }
 
@@ -131,7 +135,8 @@ int blocksize = 1920;		/* 19200/10, with 1 sec delay between transfers
 char	mesg[MESGSIZE];			/* exactly what came back on ttyi */
 
 int
-parsmesg(char *buf) {
+parsmesg(char *buf)
+{
 	static char sbuf[MESGSIZE];
 	char	*s;		/* start of printer messsage in mesg[] */
 	char	*e;		/* end of printer message in mesg[] */
@@ -143,23 +148,25 @@ parsmesg(char *buf) {
 		strcpy(sbuf, s+3);	/* don't change mesg[] */
 		sbuf[e-(s+3)] = '\0';	/* ignore the trailing " ]%" */
 
-		for (key=strtok(sbuf, " :"); key != NULL; key=strtok(NULL, " :"))  {
+		for (key=strtok(sbuf, " :"); key != NULL; key=strtok(NULL, " :")) {
 			if (strcmp(key, "Error") == 0)
 				return(ERROR);
-			if ((val=strtok(NULL, ";")) != NULL && strcmp(key, "status") == 0)
+			if ((val=strtok(NULL, ";")) != NULL &&
+			    strcmp(key, "status") == 0)
 				key = val;
 
-	    		for (; *key == ' '; key++) ;	/* skip any leading spaces */
-			for (p = key; *p; p++)		/* convert to lower case */
+	    		for (; *key == ' '; key++)
+				;		/* skip any leading spaces */
+			for (p = key; *p; p++)	/* convert to lower case */
 				if (*p == ':')  {
 					*p = '\0';
 					break;
-				} else if (isupper(*p)) *p = tolower(*p);
+				} else if (isupper(*p))
+					*p = tolower(*p);
 
-			for (i=0; statuslist[i].state != NULL; i++) {
+			for (i=0; statuslist[i].state != NULL; i++)
 				if (strcmp(statuslist[i].state, key) == 0)
 					return(statuslist[i].val);
-			}
 		}
 	}
 	return(UNKNOWN);
@@ -179,12 +186,10 @@ readprinter(int printerfd, int pipefd)
 	int tocount = 0;
 	int c, printstat, lastprintstat, n, nfds;
 
-
 	nfds = ((pipefd>printerfd)?pipefd:printerfd) + 1;
 	printstat = 0;
 	signal(SIGALRM, rdtmout);
 	do {
-
 reselect:
 		/* ask sending process to request printer status */
 		if (write(pipefd, Req_stat, 1) != 1) {
@@ -211,9 +216,8 @@ reselect:
 		if (n > 0 && FD_ISSET(printerfd, &exceptfds)) {
 			/* printer problem */
 			fprintf(stderr, "printer exception\n");
-			if (write(pipefd, Fatal_error, 1) != 1) {
+			if (write(pipefd, Fatal_error, 1) != 1)
 				fprintf(stderr, "'fatal error' write to pipe failed\n");
-			}
 			progstate = FATAL_ERROR;
 			continue;
 		}
@@ -349,22 +353,16 @@ dowait:
 		if (n > 0) {
 			fprintf(stderr, "more fds selected than requested!\n");
 			exit(1);
-		};
+		}
 	} while ((progstate != FATAL_ERROR) && (progstate != OVER_AND_OUT));
-
-	if (progstate == FATAL_ERROR)
-		return(1);
-	else
-		return(0);
+	return progstate == FATAL_ERROR;
 }
 
 int
 sendfile(int infd, int printerfd, int pipefd)
 {
 	unsigned char proto;
-	int progstate = START;
-	int i, n, nfds;
-	int bytesread,  bytesent = 0;
+	int i, n, nfds, bytesread, bytesent = 0, progstate = START;
 
 	nfds = ((pipefd>printerfd)?pipefd:printerfd) + 1;
 
@@ -375,6 +373,7 @@ sendfile(int infd, int printerfd, int pipefd)
 	do {
 		FD_ZERO(&readfds);	/* lets be anal */
 		FD_SET(pipefd, &readfds);
+		/* select is overkill: just need read pipefd with an alarm */
 		n = select(nfds, &readfds, (fd_set *)0, (fd_set *)0, &sndtimeout);
 		if (debug&02) fprintf(stderr, "sendfile select returned %d\n", n);
 		if (n > 0 && FD_ISSET(pipefd, &readfds)) {
@@ -411,27 +410,22 @@ sendfile(int infd, int printerfd, int pipefd)
 					} else if (write(pipefd, Sent_data, 1)!=1) {
 						perror("sendfile:write:");
 						progstate = FATAL_ERROR;
-					} else {
+					} else
 						bytesent += bytesread;
-					}
 					fprintf(stderr, "%d sent\n", bytesent);
 					fflush(stderr);
 
 				/* we have reached the end of the input file */
 				}
-				if (i == 0) {
-					if (progstate != WAIT_FOR_EOJ) {
-						if (write(printerfd, "\004", 1)!=1) {
-							perror("sendfile:write:");
-							progstate = FATAL_ERROR;
-						} else if (write(pipefd, Wait_for_eoj, 1)!=1) {
-							perror("sendfile:write:");
-							progstate = FATAL_ERROR;
-						} else {
-							progstate = WAIT_FOR_EOJ;
-						}
-					}
-				}
+				if (i == 0 && progstate != WAIT_FOR_EOJ)
+					if (write(printerfd, "\004", 1)!=1) {
+						perror("sendfile:write:");
+						progstate = FATAL_ERROR;
+					} else if (write(pipefd, Wait_for_eoj, 1)!=1) {
+						perror("sendfile:write:");
+						progstate = FATAL_ERROR;
+					} else
+						progstate = WAIT_FOR_EOJ;
 				break;
 			case REQ_STAT:
 				if (write(printerfd, "\024", 1)!=1) {
@@ -464,9 +458,10 @@ sendfile(int infd, int printerfd, int pipefd)
 		return(0);
 }
 
-void main(int argc, char *argv[]) {
-	int c, usgflg=0, infd, printerfd;
-	int cpid, sprv;
+void
+main(int argc, char *argv[])
+{
+	int c, usgflg=0, infd, printerfd, cpid, sprv;
 	int pipefd[2];
 	char *dialstr;
 	unsigned long rprv;

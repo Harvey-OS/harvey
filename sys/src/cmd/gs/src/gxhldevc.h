@@ -61,6 +61,7 @@ typedef struct gs_imager_state_s gs_imager_state;
 #ifndef gx_device_color_DEFINED
 #  define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
+#pragma incomplete gx_device_color
 #endif
 
 /*

@@ -12,10 +12,8 @@ strtoll(char *nptr, char **endptr, int base)
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;
-	neg = 0;
 	n = 0;
-	ndig = 0;
-	ovfl = 0;
+	neg = ndig = ovfl = 0;
 
 	/*
 	 * White space
@@ -52,28 +50,24 @@ strtoll(char *nptr, char **endptr, int base)
 				base = 16;
 			}
 		}
-	} else
-	if(base==16 && *p=='0') {
+	} else if(base==16 && *p=='0') {
 		if(p[1]=='x' || p[1]=='X')
 			p += 2;
-	} else
-	if(base<0 || 36<base)
+	} else if(base<0 || 36<base)
 		goto Return;
 
 	/*
 	 * Non-empty sequence of digits
 	 */
 	m = VLONG_MAX/base;
-	for(;; p++,ndig++) {
+	for(;; p++, ndig++) {
 		c = *p;
 		v = base;
 		if('0'<=c && c<='9')
 			v = c - '0';
-		else
-		if('a'<=c && c<='z')
+		else if('a'<=c && c<='z')
 			v = c - 'a' + 10;
-		else
-		if('A'<=c && c<='Z')
+		else if('A'<=c && c<='Z')
 			v = c - 'A' + 10;
 		if(v >= base)
 			break;

@@ -1,0 +1,13 @@
+sys	- sys sys
+	src	- sys sys
+		cmd	- sys sys
+			cvs	- sys sys
+				+	- sys sys
+	man	- sys sys
+		1pub	- sys sys
+			cvs	- sys sys
+		6pub	- sys sys
+			cvs	- sys sys
+386	- sys sys
+	bin	- sys sys
+		cvs	- sys sys

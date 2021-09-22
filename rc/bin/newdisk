@@ -1,0 +1,15 @@
+#!/bin/rc
+# newdisk /dev/sdXn - prepare a disk per the example in prep(8),
+#	but without a fossil or cache
+if (! ~ $#* 1) {
+	echo usage: $0 device
+	exit usage
+}
+rfork en
+bind -a /bin/disk /bin
+
+dev=$1
+mbr -m /386/mbr $dev/data
+fdisk -baw $dev/data
+prep -bw -a^(9fat nvram swap) $dev/plan9
+format -b /386/pbslba -d -r 2 $dev/9fat /386/9load

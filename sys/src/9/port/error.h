@@ -41,7 +41,7 @@ extern char Enoswap[];		/* swap space full */
 extern char Esoverlap[];	/* segments overlap */
 extern char Emouseset[];	/* mouse type already set */
 extern char Eshort[];		/* i/o count too small */
-extern char Egreg[];		/* jmk added reentrancy for threads */
+extern char Egreg[];		/* ken has left the building */
 extern char Ebadspec[];		/* bad attach specifier */
 extern char Enoreg[];		/* process has no saved registers */
 extern char Enoattach[];	/* mount/attach disallowed */
@@ -55,4 +55,3 @@ extern char Echange[];		/* media or partition has changed */
 extern char Estalled[];		/* endpoint stalled */
 extern char Edetach[];		/* device is detached */
 extern char Enotconf[];		/* endpoint not configured */
-extern char Eaoedown[];		/* aoe device is down */

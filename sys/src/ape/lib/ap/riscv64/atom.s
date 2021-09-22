@@ -1,60 +1,58 @@
 /*
  *	RISC-V atomic operations
  *	assumes A extension
+ *	LR/SC only work on cached regions
  */
 
-#define LINK	R1
-#define SP	R2
 #define ARG	8
 
-#define SYNC	WORD $0xf	/* FENCE */
-#define LRW(rs2, rs1, rd) \
-	WORD $((2<<27)|(    0<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057)
+#define MASK(w)	((1<<(w))-1)
+#define FENCE	WORD $(0xf | MASK(8)<<20)  /* all i/o, mem ops before & after */
+#define AQ	(1<<26)			/* acquire */
+#define RL	(1<<25)			/* release */
+#define LRW(rs1, rd) \
+	WORD $((2<<27)|(    0<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057|AQ)
 #define SCW(rs2, rs1, rd) \
-	WORD $((3<<27)|((rs2)<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057)
-
-TEXT ainc(SB), 1, $-4			/* long ainc(long *); */
-	MOV 	R(ARG), R12		/* address of counter */
-	SYNC
-loop:
-	MOV	$1, R13
-	LRW(0, 12, ARG)	// LR_W	R0, R12, R(ARG) /* (R12) -> R(ARG) */
-	ADD	R(ARG), R13
-	MOV	R13, R(ARG)		/* return new value */
-	SCW(13, 12, 14)	// SC_W	R13, R12, R14 /* R13 -> (R12) maybe, R14=0 if ok */
-	BNE	R14, loop
-	RET
+	WORD $((3<<27)|((rs2)<<20)|((rs1)<<15)|(2<<12)|((rd)<<7)|057|AQ|RL)
+#define SEXT_W(r) ADDW R0, r
 
 TEXT adec(SB), 1, $-4			/* long adec(long*); */
+	MOV	$-1, R9
+	JMP	ainctop
+TEXT ainc(SB), 1, $-4			/* long ainc(long *); */
+	MOV	$1, R9
+ainctop:
 	MOV	R(ARG), R12		/* address of counter */
-	SYNC
-loop1:
-	MOV	$-1, R13
-	LRW(0, 12, ARG)	// LR_W	R0, R12, R(ARG) /* (R12) -> R(ARG) */
-	ADD	R(ARG), R13
-	MOV	R13, R(ARG)		/* return new value */
-	SCW(13, 12, 14)	// SC_W R13, R12, R14 /* R13 -> (R12) maybe, R14=0 if ok */
-	BNE	R14, loop1
+	FENCE
+loop:
+	LRW(12, ARG)			/* (R12) -> R(ARG) */
+	ADD	R9, R(ARG)		/* return new value */
+	SCW(ARG, 12, 14)		/* R(ARG) -> (R12) maybe, R14=0 if ok */
+	BNE	R14, loop
+	FENCE
+	SEXT_W(R(ARG))
 	RET
 
 /*
  * int cas(uint* p, int ov, int nv);
  *
  * compare-and-swap: atomically set *addr to nv only if it contains ov,
- * and returns the old value.  this version returns 1 on success, 0 on failure
+ * and returns the old value.  this version returns 0 on failure, 1 on success
  * instead.
  */
 TEXT cas(SB), 1, $-4
-	MOVW	ov+8(FP), R12
-	MOVW	nv+12(FP), R13
-	SYNC
+	MOVWU	ov+XLEN(FP), R12
+	MOVWU	nv+(XLEN+4)(FP), R13
+	FENCE
 spincas:
-	LRW(0, ARG, 14)	// LR_W	R0, R(ARG), R14 /* (R(ARG)) -> R14 */
+	LRW(ARG, 14)		/* (R(ARG)) -> R14 */
+	SLL	$32, R14
+	SRL	$32, R14	/* don't sign extend */
 	BNE	R12, R14, fail
-	SCW(13, ARG, 14) // SC_W R13, R(ARG), R14 /* R13 -> (R(ARG)) maybe, R14=0 if ok */
+	SCW(13, ARG, 14)	/* R13 -> (R(ARG)) maybe, R14=0 if ok */
 	BNE	R14, spincas	/* R14 != 0 means store failed */
 	MOV	$1, R(ARG)
 	RET
 fail:
-	MOV	$0, R(ARG)
+	MOV	R0, R(ARG)
 	RET

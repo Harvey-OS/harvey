@@ -24,6 +24,8 @@ exp(double arg)
 	double fract, temp1, temp2, xsq;
 	int ent;
 
+	if(isNaN(arg) || isInf(arg, 0))
+		return arg;
 	if(arg == 0)
 		return 1;
 	if(arg < -maxf)

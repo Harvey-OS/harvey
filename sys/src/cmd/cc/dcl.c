@@ -1031,7 +1031,7 @@ sigind(Type *t, Typetab *tt)
 		if(sametype(*p, t))
 			return p-a;
 	if((n&15) == 0){
-		na = malloc((n+16)*sizeof(Type*));
+		na = mallocz((n+16)*sizeof(Type*), 1);
 		memmove(na, a, n*sizeof(Type*));
 		free(a);
 		a = tt->a = na;

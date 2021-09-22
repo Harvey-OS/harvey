@@ -1,8 +1,7 @@
 /*
- * cpu.c - Make a connection to a cpu server
+ * cpu.c - Make an encrypted connection to a cpu server
  *
- *	   Invoked by listen as 'cpu -R | -N service net netdir'
- *	    	   by users  as 'cpu [-h system] [-c cmd args ...]'
+ *	   Invoked by users  as 'cpu [-h system] [-c cmd arg...]'
  */
 
 #include <u.h>
@@ -14,8 +13,10 @@
 #include "args.h"
 #include "drawterm.h"
 
-#define Maxfdata 8192
-#define MaxStr 128
+enum {
+	Maxfdata	= 16*1024,
+	MaxStr		= 128,
+};
 
 static void	fatal(int, char*, ...);
 static void	usage(void);
@@ -29,10 +30,11 @@ static AuthInfo *p9any(int);
 static char	*system;
 static int	cflag;
 extern int	dbg;
+static int	tls;
 extern char*   base;   // fs base for devroot 
 
 static char	*srvname = "ncpu";
-static char	*ealgs = "rc4_256 sha1";
+static	char	*ealgs = "rc4_256 sha1";		/* for ssl only */
 
 /* message size for exportfs; may be larger so we can do big graphics in CPU window */
 static int	msgsize = Maxfdata+IOHDRSZ;
@@ -55,7 +57,7 @@ struct AuthMethod {
 	{ "p9",		p9auth,		srvp9auth,},
 	{ "netkey",	netkeyauth,	netkeysrvauth,},
 //	{ "none",	noauth,		srvnoauth,},
-	{ 0 }
+	{ nil,	nil}
 };
 AuthMethod *am = authmethod;	/* default is p9 */
 
@@ -236,10 +238,8 @@ fatal(int syserr, char *fmt, ...)
 
 char *negstr = "negotiating authentication method";
 
-char bug[256];
-
 char*
-rexcall(int *fd, char *host, char *service)
+rexcallsec(int *fd, char *host, char *service)
 {
 	char *na;
 	char dir[MaxStr];
@@ -247,7 +247,7 @@ rexcall(int *fd, char *host, char *service)
 	char msg[MaxStr];
 	int n;
 
-	na = netmkaddr(host, "tcp", "17010");
+	na = netmkaddr(host, "tcp", service);
 	if((*fd = dial(na, 0, dir, 0)) < 0)
 		return "can't dial";
 
@@ -270,6 +270,26 @@ rexcall(int *fd, char *host, char *service)
 	if(*fd < 0)
 		return "can't authenticate";
 	return 0;
+}
+
+/* always try tls first; if tls is not required, try ssl upon failure */
+char*
+rexcall(int *fd, char *host, char *service)
+{
+	int savedtls;
+	char *err;
+
+	savedtls = tls;
+	tls = 1;
+	err = rexcallsec(fd, host, "cpu-tls");
+	tls = savedtls;
+
+	if (err && !tls) {		/* failed & tls not required? try ssl */
+		err = rexcallsec(fd, host, service);
+		if (!err && *fd >= 0)
+			fprint(2, "using ssl with %s\n", ealgs);
+	}
+	return err;
 }
 
 void
@@ -362,8 +382,21 @@ mksecret(char *t, uchar *f)
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
 }
 
+static int
+pushtlsclient(int fd)
+{
+	int efd;
+	TLSconn conn;
+
+	memset(&conn, 0, sizeof conn);
+	efd = tlsClient(fd, &conn);
+	free(conn.cert);
+	return efd;
+}
+
 /*
- *  plan9 authentication followed by rc4 encryption
+ *  perform plan9 authentication on fd, followed by pushing encryption
+ *  and returning a new fd which encrypts.
  */
 static int
 p9auth(int fd)
@@ -396,9 +429,12 @@ p9auth(int fd)
 	mksecret(fromserversecret, digest+10);
 
 	/* set up encryption */
-	i = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
+	if (tls)
+		i = pushtlsclient(fd);
+	else
+		i = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
 	if(i < 0)
-		werrstr("can't establish ssl connection: %r");
+		werrstr("can't establish %s connection: %r", tls? "tls": "ssl");
 	return i;
 }
 
@@ -583,8 +619,9 @@ p9any(int fd)
 	if(write(fd, buf2, strlen(buf2)+1) != strlen(buf2)+1)
 		fatal(1, "cannot write user/domain choice in p9any");
 	if(v2){
+		memset(buf, 0, sizeof buf);
 		if(readstr(fd, buf, sizeof buf) < 0)
-			fatal(1, "cannot read OK in p9any: got %d %s", n, buf);
+			fatal(1, "cannot read OK in p9any");
 		if(memcmp(buf, "OK\0", 3) != 0)
 			fatal(1, "did not get OK in p9any");
 	}

@@ -9,6 +9,8 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
+int	archether(unsigned, Ether *);
+
 static Ether *etherxx[MaxEther];
 
 Chan*
@@ -119,7 +121,7 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 	if(bp == nil)
 		return;
 	memmove(bp->wp, pkt->d, n);
-	i = TK2MS(MACHP(0)->ticks);
+	i = TK2MS(sys->ticks);
 	bp->wp[58] = len>>8;
 	bp->wp[59] = len;
 	bp->wp[60] = i>>24;
@@ -128,6 +130,14 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 	bp->wp[63] = i;
 	bp->wp += 64;
 	qpass(f->in, bp);
+}
+
+static void
+softovflow(Ether *ether, char *context)
+{
+	if (0)
+		iprint("etheriq: soverflow for %s\n", context);
+	ether->soverflows++;
 }
 
 Block*
@@ -142,25 +152,19 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	ether->inpackets++;
 
 	pkt = (Etherpkt*)bp->rp;
-	len = BLEN(bp);
-	type = (pkt->type[0]<<8)|pkt->type[1];
-	fx = 0;
-	ep = &ether->f[Ntypes];
-
 	multi = pkt->d[0] & 1;
 	/* check for valid multicast addresses */
 	if(multi && memcmp(pkt->d, ether->bcast, sizeof(pkt->d)) != 0 &&
-	    ether->prom == 0){
-		if(!activemulti(ether, pkt->d, sizeof(pkt->d))){
-			if(fromwire){
-				freeb(bp);
-				bp = 0;
-			}
-			return bp;
+	    ether->prom == 0 && !activemulti(ether, pkt->d, sizeof(pkt->d))){
+		if(fromwire){
+			freeb(bp);
+			bp = nil;
 		}
+		return bp;
 	}
+
 	/* is it for me? */
-	tome = memcmp(pkt->d, ether->ea, sizeof(pkt->d)) == 0;
+	tome   = memcmp(pkt->d, ether->ea, sizeof(pkt->d)) == 0;
 	fromme = memcmp(pkt->s, ether->ea, sizeof(pkt->s)) == 0;
 
 	/*
@@ -169,39 +173,39 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	 * attempt to simply pass it into one of the connections, thereby
 	 * saving a copy of the data (usual case hopefully).
 	 */
-	for(fp = ether->f; fp < ep; fp++){
-		if((f = *fp) != nil && (f->type == type || f->type < 0) &&
-		    (tome || multi || f->prom)){
-			/* Don't want to hear bridged packets */
-			if(f->bridge && !fromwire && !fromme)
-				continue;
-			if(!f->headersonly){
-				if(fromwire && fx == 0)
-					fx = f;
-				else if(xbp = iallocb(len)){
-					memmove(xbp->wp, pkt, len);
-					xbp->wp += len;
-					if(qpass(f->in, xbp) < 0)
-						ether->soverflows++;
-				}
-				else
-					ether->soverflows++;
-			}
-			else
-				etherrtrace(f, pkt, len);
-		}
-	}
+	fx = nil;
+	len = BLEN(bp);
+	type = (pkt->type[0]<<8)|pkt->type[1];
+	ep = &ether->f[Ntypes];
+	for(fp = ether->f; fp < ep; fp++)
+		if((f = *fp) == nil || f->type != type && f->type >= 0)
+			continue;
+		else if(!tome && !multi && !f->prom)
+			continue;
+		/* Don't want to hear bridged packets */
+		else if(f->bridge && !fromwire && !fromme)
+			continue;
+		else if(f->headersonly)
+			etherrtrace(f, pkt, len);
+		else if(fromwire && fx == nil)
+			fx = f;
+		else if(xbp = iallocb(len)){
+			memmove(xbp->wp, pkt, len);
+			xbp->wp += len;
+			if(qpass(f->in, xbp) < 0)
+				softovflow(ether, "fx->in copy");
+		} else
+			softovflow(ether, "iallocb");
 
 	if(fx){
 		if(qpass(fx->in, bp) < 0)
-			ether->soverflows++;
-		return 0;
-	}
-	if(fromwire){
+			softovflow(ether, "fx->in normal");
+		return nil;
+	} else if(fromwire){
 		freeb(bp);
-		return 0;
-	}
-	return bp;
+		return nil;
+	} else
+		return bp;
 }
 
 static int
@@ -231,6 +235,7 @@ etheroq(Ether* ether, Block* bp)
 	}
 
 	if(!loopback){
+		allcacheswbse(pkt, len);	/* force pkt to ram */
 		qbwrite(ether->oq, bp);
 		if(ether->transmit != nil)
 			ether->transmit(ether);
@@ -378,13 +383,10 @@ etherreset(void)
 		if(archether(ctlrno, ether) <= 0)
 			continue;
 
-		if(isaconfig("ether", ctlrno, ether) == 0){
-//			free(ether);
-//			return nil;
-			continue;
-		}
+		if(isaconfig("ether", ctlrno, ether) == 0)
+			continue;	/* used to free ether & return */
 		for(n = 0; cards[n].type; n++){
-			if(cistrcmp(cards[n].type, ether->type))
+			if(cistrcmp(cards[n].type, ether->type) != 0)
 				continue;
 			for(i = 0; i < ether->nopt; i++)
 				if(cistrncmp(ether->opt[i], "ea=", 3) == 0){
@@ -417,7 +419,7 @@ etherreset(void)
 				ether->ea[0], ether->ea[1], ether->ea[2],
 				ether->ea[3], ether->ea[4], ether->ea[5]);
 			snprint(buf+i, sizeof buf - i, "\n");
-			iprint("%s", buf);  /* it may be too early for print */
+			print("%s", buf);  /* it may be too early for print */
 
 			if(ether->mbps >= 1000)
 				netifinit(ether, name, Ntypes, 4*1024*1024);

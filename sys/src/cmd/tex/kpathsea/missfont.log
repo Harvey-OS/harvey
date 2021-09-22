@@ -1,0 +1,4 @@
+mktexpk --mfmode / --bdpi 300 --mag 2+181/300 --dpi 781 cmr10
+mktextfm  foozler99
+mktexpk --mfmode / --bdpi 600 --mag 1+181/600 --dpi 781 cmr10
+mktextfm  foozler99

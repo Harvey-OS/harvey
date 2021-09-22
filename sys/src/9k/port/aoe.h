@@ -39,7 +39,7 @@ typedef struct {
 	uchar	src[Eaddrlen];
 	uchar	type[2];
 	uchar	verflag;
-	uchar	error;
+	uchar	err;
 	uchar	major[2];
 	uchar	minor;
 	uchar	cmd;
@@ -73,3 +73,6 @@ typedef struct {
 } Aoeqc;
 
 #define AOEQCSZ		offsetof(Aoeqc, payload[0])
+
+extern char Echange[];
+extern char Enotup[];

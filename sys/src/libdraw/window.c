@@ -129,15 +129,12 @@ topbottom(Image **w, int n, int top)
 	uchar *b;
 	Display *d;
 
-	if(n < 0){
-    Ridiculous:
+	if(n == 0)
+		return;
+	if(n < 0 || n > (w[0]->display->bufsize-100)/4){
 		fprint(2, "top/bottom: ridiculous number of windows\n");
 		return;
 	}
-	if(n == 0)
-		return;
-	if(n > (w[0]->display->bufsize-100)/4)
-		goto Ridiculous;
 	/*
 	 * this used to check that all images were on the same screen.
 	 * we don't know the screen associated with images we acquired

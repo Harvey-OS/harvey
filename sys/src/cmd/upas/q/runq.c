@@ -1,8 +1,11 @@
+/*
+ * process (mail) queues - attempt to run their C. files
+ */
 #include "common.h"
 #include <ctype.h>
 
 void	doalldirs(void);
-void	dodir(char*);
+void	dodir(char*, char*);
 void	dofile(Dir*);
 void	rundir(char*);
 char*	file(char*, char);
@@ -40,23 +43,21 @@ int	Rflag;			/* no giving up, ever */
 void
 usage(void)
 {
-	fprint(2, "usage: runq [-adsE] [-q dir] [-l load] [-t time] [-r nfiles] [-n nprocs] q-root cmd\n");
+	fprint(2, "usage: runq [-adsER] [-q dir] [-l load] [-t time] "
+		"[-r nfiles] [-n nprocs] q-root cmd\n");
 	exits("");
 }
 
 void
 main(int argc, char **argv)
 {
-	char *qdir, *x;
+	char *qdir;
 
+	quotefmtinstall();
 	qdir = 0;
-
 	ARGBEGIN{
 	case 'l':
-		x = ARGF();
-		if(x == 0)
-			usage();
-		load = atoi(x);
+		load = atoi(EARGF(usage()));
 		if(load < 0)
 			load = 0;
 		break;
@@ -73,23 +74,19 @@ main(int argc, char **argv)
 		debug++;
 		break;
 	case 'r':
-		limit = atoi(ARGF());
+		limit = atoi(EARGF(usage()));
 		break;
 	case 's':
 		sflag++;
 		break;
 	case 't':
-		giveup = 60*60*atoi(ARGF());
+		giveup = 60*60*atoi(EARGF(usage()));
 		break;
 	case 'q':
-		qdir = ARGF();
-		if(qdir == 0)
-			usage();
+		qdir = EARGF(usage());
 		break;
 	case 'n':
-		npid = atoi(ARGF());
-		if(npid == 0)
-			usage();
+		npid = atoi(EARGF(usage()));
 		break;
 	}ARGEND;
 
@@ -114,8 +111,12 @@ main(int argc, char **argv)
 	doload(1);
 	if(aflag)
 		doalldirs();
-	else
-		dodir(qdir);
+	else {
+		char subtree[1024];
+
+		getwd(subtree, sizeof subtree);
+		dodir(qdir, subtree);
+	}
 	doload(0);
 	exits(0);
 }
@@ -145,13 +146,11 @@ emptydir(char *name)
 int
 forkltd(void)
 {
-	int i;
-	int pid;
+	int i, pid;
 
-	for(i = 0; i < npid; i++){
+	for(i = 0; i < npid; i++)
 		if(pidlist[i] <= 0)
 			break;
-	}
 
 	while(i >= npid){
 		pid = waitpid();
@@ -177,8 +176,9 @@ doalldirs(void)
 	Dir *db;
 	int fd;
 	long i, n;
+	char subtree[1024];
 
-
+	getwd(subtree, sizeof subtree);
 	fd = open(".", OREAD);
 	if(fd == -1){
 		warning("reading %s", root);
@@ -198,10 +198,8 @@ doalldirs(void)
 				case 0:
 					if(sysdetach() < 0)
 						error("%r", 0);
-					dodir(db[i].name);
+					dodir(db[i].name, subtree);
 					exits(0);
-				default:
-					break;
 				}
 			}
 		}
@@ -214,7 +212,7 @@ doalldirs(void)
  *  cd to a user directory and run it
  */
 void
-dodir(char *name)
+dodir(char *name, char *subtree)
 {
 	curdir = name;
 
@@ -225,7 +223,8 @@ dodir(char *name)
 	if(debug)
 		fprint(2, "running %s\n", name);
 	rundir(name);
-	chdir("..");
+	if (chdir("..") < 0)
+		chdir(subtree);
 }
 
 /*
@@ -270,10 +269,9 @@ remmatch(char *name)
 
 	syslog(0, runqlog, "removing %s/%s", curdir, name);
 
-	for(i=0; i<nfiles; i++){
+	for(i=0; i<nfiles; i++)
 		if(strcmp(&dirbuf[i].name[1], &name[1]) == 0)
 			sysremove(dirbuf[i].name);
-	}
 
 	/* error file (may have) appeared after we read the directory */
 	/* stomp on data file in case of phase error */
@@ -300,126 +298,105 @@ keeplockalive(char *path, int fd)
 
 	/* fork process to keep lock alive until sysunlock(l) */
 	switch(l->pid = rfork(RFPROC)){
-	default:
-		break;
 	case 0:
 		fd = l->fd;
-		for(;;){
+		do {
 			sleep(1000*60);
-			if(pread(fd, buf, 1, 0) < 0)
-				break;
-		}
+		} while (pread(fd, buf, 1, 0) >= 0);
 		_exits(0);
 	}
+	/* parent */
 	return l;
 }
 
-/*
- *  try a message
- */
 void
-dofile(Dir *dp)
+dofilechild(Dir *dp, int dfd, char *cmd, char **av)
 {
+	int efd, ac;
+
+	if(debug) {
+		fprint(2, "Starting %s", cmd);
+		for(ac = 0; av[ac]; ac++)
+			fprint(2, " %s", av[ac]);
+		fprint(2, "\n");
+	}
+	logit("execing", dp->name, av);
+	close(0);
+	dup(dfd, 0);
+	close(dfd);
+	close(2);
+
+	efd = open(file(dp->name, 'E'), OWRITE);
+	if(efd < 0){
+		if(debug)
+			syslog(0, "runq", "open %s as %s: %r",
+				file(dp->name,'E'), getuser());
+		efd = create(file(dp->name, 'E'), OWRITE, 0666);
+		if(efd < 0){
+			if(debug)
+				syslog(0, "runq", "create %s as %s: %r",
+					file(dp->name, 'E'), getuser());
+			exits("could not open error file - Retry");
+		}
+	}
+	seek(efd, 0, 2);
+
+	exec(cmd, av);
+	error("can't exec %s", cmd);
+}
+
+/*
+ *  retry times depend on the age of the errors file
+ */
+int
+shouldretry(Dir *dp, ulong dtime)
+{
+	long sincenew, sincerun;
+	ulong etime;
 	Dir *d;
-	int dfd, ac, dtime, efd, pid, i, etime;
-	char *buf, *cp, **av;
-	Waitmsg *wm;
-	Biobuf *b;
-	Mlock *l = nil;
 
-	if(debug)
-		fprint(2, "dofile %s\n", dp->name);
-	/*
-	 *  if no data file or empty control or data file, just clean up
-	 *  the empty control file must be 15 minutes old, to minimize the
-	 *  chance of a race.
-	 */
-	d = dirstat(file(dp->name, 'D'));
-	if(d == nil){
-		syslog(0, runqlog, "no data file for %s", dp->name);
-		remmatch(dp->name);
-		return;
-	}
-	if(dp->length == 0){
-		if(time(0)-dp->mtime > 15*60){
-			syslog(0, runqlog, "empty ctl file for %s", dp->name);
-			remmatch(dp->name);
-		}
-		return;
-	}
-	dtime = d->mtime;
+	if(Eflag)
+		return 1;
+	if((d = dirstat(file(dp->name, 'E'))) == nil)
+		return 1;
+	etime = d->mtime;
 	free(d);
+	sincenew = etime - dtime;
+	sincerun = time(0) - etime;
+	if(sincenew < 15*60)	/* up to the first 15 min.s, every 30 seconds */
+		return sincerun >= 30;
+	else if(sincenew < 60*60) /* up to the first hour, try every 15 min.s */
+		return sincerun >= 15*60;
+	else			/* after the first hour, try once an hour */
+		return sincerun >= 60*60;
+}
 
-	/*
-	 *  retry times depend on the age of the errors file
-	 */
-	if(!Eflag && (d = dirstat(file(dp->name, 'E'))) != nil){
-		etime = d->mtime;
-		free(d);
-		if(etime - dtime < 15*60){
-			/* up to the first 15 minutes, every 30 seconds */
-			if(time(0) - etime < 30)
-				return;
-		} else if(etime - dtime < 60*60){
-			/* up to the first hour, try every 15 minutes */
-			if(time(0) - etime < 15*60)
-				return;
-		} else {
-			/* after the first hour, try once an hour */
-			if(time(0) - etime < 60*60)
-				return;
-		}
+/*
+ *  make arg list
+ *	- read args into (malloc'd) buffer
+ *	- malloc a vector and copy pointers to args into it
+ */
+char **
+mkarglist(Dir *dp, Biobuf *b, char **bufp)
+{
+	int ac;
+	char *buf, *cp;
+	char **av;
 
-	}
-
-	/*
-	 *  open control and data
-	 */
-	b = sysopen(file(dp->name, 'C'), "rl", 0660);
-	if(b == 0) {
-		if(debug)
-			fprint(2, "can't open %s: %r\n", file(dp->name, 'C'));
-		return;
-	}
-	dfd = open(file(dp->name, 'D'), OREAD);
-	if(dfd < 0){
-		if(debug)
-			fprint(2, "can't open %s: %r\n", file(dp->name, 'D'));
-		Bterm(b);
-		sysunlockfile(Bfildes(b));
-		return;
-	}
-
-	/*
-	 *  make arg list
-	 *	- read args into (malloc'd) buffer
-	 *	- malloc a vector and copy pointers to args into it
-	 */
-	buf = malloc(dp->length+1);
-	if(buf == 0){
+	*bufp = buf = malloc(dp->length+1);
+	if(buf == nil){
 		warning("buffer allocation", 0);
-		Bterm(b);
-		sysunlockfile(Bfildes(b));
-		close(dfd);
-		return;
+		return nil;
 	}
 	if(Bread(b, buf, dp->length) != dp->length){
 		warning("reading control file %s\n", dp->name);
-		Bterm(b);
-		sysunlockfile(Bfildes(b));
-		close(dfd);
-		free(buf);
-		return;
+		return nil;
 	}
 	buf[dp->length] = 0;
 	av = malloc(2*sizeof(char*));
 	if(av == 0){
 		warning("argv allocation", 0);
-		close(dfd);
-		free(buf);
-		Bterm(b);
-		sysunlockfile(Bfildes(b));
-		return;
+		return nil;
 	}
 	for(ac = 1, cp = buf; *cp; ac++){
 		while(isspace(*cp))
@@ -430,36 +407,140 @@ dofile(Dir *dp)
 		av = realloc(av, (ac+2)*sizeof(char*));
 		if(av == 0){
 			warning("argv allocation", 0);
-			close(dfd);
-			free(buf);
-			Bterm(b);
-			sysunlockfile(Bfildes(b));
-			return;
+			return nil;
 		}
 		av[ac] = cp;
-		while(*cp && !isspace(*cp)){
+		while(*cp && !isspace(*cp))
 			if(*cp++ == '"'){
 				while(*cp && *cp != '"')
 					cp++;
 				if(*cp)
 					cp++;
 			}
-		}
 	}
 	av[0] = cmd;
 	av[ac] = 0;
+	return av;
+}
 
-	if(!Eflag &&time(0) - dtime > giveup){
+void
+reportstatus(Dir *dp, Waitmsg *wm, char **av)
+{
+	char *msg;
+
+	if(wm == nil)
+		error("wait failed: %r", "");
+	msg = wm->msg;
+	if(debug)
+		fprint(2, "wm->pid %d msg == %s\n", wm->pid, msg);
+	if(msg[0] == '\0'){
+		remmatch(dp->name);	/* it worked, so remove the message */
+		return;
+	}
+
+	if(debug)
+		fprint(2, "[%d] msg == %s\n", getpid(), msg);
+	syslog(0, runqlog, "message: %s\n", msg);
+	if(strstr(msg, "Ignore") != nil){
+		/* fix for fish/chips, leave message alone */
+		logit("ignoring", dp->name, av);
+	}else if(!Rflag && strstr(msg, "Retry") == nil){
+		/* return the message and remove it */
+		if(returnmail(av, dp->name, msg) != 0)
+			logit("returnmail failed", dp->name, av);
+		remmatch(dp->name);
+	} else {
+		/* add sys to bad list and try again later */
+		nbad++;
+		badsys = realloc(badsys, nbad*sizeof(char*));
+		badsys[nbad-1] = strdup(av[3]);
+	}
+}
+
+/*
+ *  if no data file or empty control or data file, just clean up
+ *  the empty control file must be 15 minutes old, to minimize the
+ *  chance of a race.
+ */
+ulong
+createtime(Dir *dp)
+{
+	Dir *d;
+	ulong dtime;
+
+	d = dirstat(file(dp->name, 'D'));
+	if(d == nil){
+		syslog(0, runqlog, "no data file for %s", dp->name);
+		remmatch(dp->name);
+		dtime = 0;
+	} else {
+		dtime = d->mtime;
+		free(d);
+	}
+	if(dp->length == 0){
+		if(time(0) - dp->mtime > 15*60){
+			syslog(0, runqlog, "empty ctl file for %s", dp->name);
+			remmatch(dp->name);
+		}
+		dtime = 0;
+	}
+	return dtime;
+}
+
+/*
+ *  try a message
+ */
+void
+dofile(Dir *dp)
+{
+	int dfd, pid, i;
+	ulong dtime;
+	char *buf, **av;
+	Biobuf *b;
+	Mlock *l = nil;
+	Waitmsg *wm;
+
+	dfd = -1;
+	buf = nil;
+	av = nil;
+	wm = nil;
+	if(debug)
+		fprint(2, "dofile %s\n", dp->name);
+	dtime = createtime(dp);
+	if (dtime == 0 || !shouldretry(dp, dtime))
+		return;
+
+	/*
+	 *  open control and data
+	 */
+	b = sysopen(file(dp->name, 'C'), "rl", 0660);
+	if(b == 0) {
+		if(debug)
+			fprint(2, "can't open %s: %r\n", file(dp->name, 'C'));
+		goto done;
+	}
+	dfd = open(file(dp->name, 'D'), OREAD);
+	if(dfd < 0){
+		if(debug)
+			fprint(2, "can't open %s: %r\n", file(dp->name, 'D'));
+		goto done;
+	}
+
+	av = mkarglist(dp, b, &buf);
+	if (av == nil)
+		goto done;
+
+	/* return stuck mail */
+	if(!Eflag && time(0) - dtime > giveup){
 		if(returnmail(av, dp->name, "Giveup") != 0)
 			logit("returnmail failed", dp->name, av);
 		remmatch(dp->name);
 		goto done;
 	}
 
-	for(i = 0; i < nbad; i++){
+	for(i = 0; i < nbad; i++)
 		if(strcmp(av[3], badsys[i]) == 0)
 			goto done;
-	}
 
 	/*
 	 * Ken's fs, for example, gives us 5 minutes of inactivity before
@@ -478,77 +559,32 @@ dofile(Dir *dp)
 		syslog(0, runqlog, "out of procs");
 		exits(0);
 	case 0:
-		if(debug) {
-			fprint(2, "Starting %s", cmd);
-			for(ac = 0; av[ac]; ac++)
-				fprint(2, " %s", av[ac]);
-			fprint(2, "\n");
-		}
-		logit("execing", dp->name, av);
-		close(0);
-		dup(dfd, 0);
-		close(dfd);
-		close(2);
-		efd = open(file(dp->name, 'E'), OWRITE);
-		if(efd < 0){
-			if(debug) syslog(0, "runq", "open %s as %s: %r", file(dp->name,'E'), getuser());
-			efd = create(file(dp->name, 'E'), OWRITE, 0666);
-			if(efd < 0){
-				if(debug) syslog(0, "runq", "create %s as %s: %r", file(dp->name, 'E'), getuser());
-				exits("could not open error file - Retry");
-			}
-		}
-		seek(efd, 0, 2);
-		exec(cmd, av);
-		error("can't exec %s", cmd);
-		break;
-	default:
-		for(;;){
-			wm = wait();
-			if(wm == nil)
-				error("wait failed: %r", "");
-			if(wm->pid == pid)
-				break;
-			free(wm);
-		}
-		if(debug)
-			fprint(2, "wm->pid %d wm->msg == %s\n", wm->pid, wm->msg);
-
-		if(wm->msg[0]){
-			if(debug)
-				fprint(2, "[%d] wm->msg == %s\n", getpid(), wm->msg);
-			syslog(0, runqlog, "message: %s\n", wm->msg);
-			if(strstr(wm->msg, "Ignore") != nil){
-				/* fix for fish/chips, leave message alone */
-				logit("ignoring", dp->name, av);
-			}else if(!Rflag && strstr(wm->msg, "Retry")==0){
-				/* return the message and remove it */
-				if(returnmail(av, dp->name, wm->msg) != 0)
-					logit("returnmail failed", dp->name, av);
-				remmatch(dp->name);
-			} else {
-				/* add sys to bad list and try again later */
-				nbad++;
-				badsys = realloc(badsys, nbad*sizeof(char*));
-				badsys[nbad-1] = strdup(av[3]);
-			}
-		} else {
-			/* it worked remove the message */
-			remmatch(dp->name);
-		}
-		free(wm);
-
+		dofilechild(dp, dfd, cmd, av);
+		/* not reached */
+		exits(0);
 	}
+
+	/* parent process */
+	while ((wm = wait()) != nil) {
+		if(wm->pid == pid)
+			break;
+		free(wm);
+	}
+	reportstatus(dp, wm, av);
 done:
+	free(wm);
 	if (l)
 		sysunlock(l);
-	Bterm(b);
-	sysunlockfile(Bfildes(b));
+	if (b) {
+		Bterm(b);
+		sysunlockfile(Bfildes(b));
+		free(b);
+	}
 	free(buf);
 	free(av);
-	close(dfd);
+	if (dfd >= 0)
+		close(dfd);
 }
-
 
 /*
  *  return a name starting with the given character
@@ -566,21 +602,39 @@ file(char *name, char type)
 
 /*
  *  send back the mail with an error message
+ */
+void
+returnmailchild(char **av, char *name, int pfd[2], char *sender)
+{
+	char buf[256], attachment[256];
+
+	logit("returning", name, av);
+	close(pfd[1]);
+	close(0);
+	dup(pfd[0], 0);
+	close(pfd[0]);
+	putenv("upasname", "/dev/null");
+	snprint(buf, sizeof(buf), "%s/marshal", UPASBIN);
+	snprint(attachment, sizeof(attachment), "%s", file(name, 'D'));
+	execl(buf, "send", "-A", attachment, "-s", "permanent failure", sender,
+		nil);
+	error("can't exec", 0);
+}
+
+/*
+ *  send back the mail with an error message
  *
  *  return 0 if successful
  */
 int
 returnmail(char **av, char *name, char *msg)
 {
+	int fd, i, n;
 	int pfd[2];
-	Waitmsg *wm;
-	int fd;
-	char buf[256];
-	char attachment[256];
-	int i;
-	long n;
-	String *s;
 	char *sender;
+	char buf[1024];
+	String *s;
+	Waitmsg *wm;
 
 	if(av[1] == 0 || av[2] == 0){
 		logit("runq - dumping bad file", name, av);
@@ -592,34 +646,28 @@ returnmail(char **av, char *name, char *msg)
 
 	if(!returnable(sender) || strcmp(sender, "postmaster") == 0) {
 		logit("runq - dumping p to p mail", name, av);
+		s_free(s);
 		return 0;
 	}
 
 	if(pipe(pfd) < 0){
 		logit("runq - pipe failed", name, av);
+		s_free(s);
 		return -1;
 	}
 
 	switch(rfork(RFFDG|RFPROC|RFENVG)){
 	case -1:
 		logit("runq - fork failed", name, av);
+		s_free(s);
 		return -1;
 	case 0:
-		logit("returning", name, av);
-		close(pfd[1]);
-		close(0);
-		dup(pfd[0], 0);
-		close(pfd[0]);
-		putenv("upasname", "/dev/null");
-		snprint(buf, sizeof(buf), "%s/marshal", UPASBIN);
-		snprint(attachment, sizeof(attachment), "%s", file(name, 'D'));
-		execl(buf, "send", "-A", attachment, "-s", "permanent failure", sender, nil);
-		error("can't exec", 0);
-		break;
-	default:
-		break;
+		returnmailchild(av, name, pfd, sender);
+		/* not reached */
+		return -1;
 	}
 
+	/* parent process, feeding child via pfd[1] */
 	close(pfd[0]);
 	fprint(pfd[1], "\n");	/* get out of headers */
 	if(av[1]){
@@ -630,15 +678,12 @@ returnmail(char **av, char *name, char *msg)
 	fprint(pfd[1], "'' failed (code %s).\nThe symptom was:\n\n", msg);
 	fd = open(file(name, 'E'), OREAD);
 	if(fd >= 0){
-		for(;;){
-			n = read(fd, buf, sizeof(buf));
-			if(n <= 0)
-				break;
+		while ((n = read(fd, buf, sizeof buf)) > 0)
 			if(write(pfd[1], buf, n) != n){
+				/* close pfd[1]? or it's assumed bad? */
 				close(fd);
 				goto out;
 			}
-		}
 		close(fd);
 	}
 	close(pfd[1]);
@@ -647,6 +692,7 @@ out:
 	if(wm == nil){
 		syslog(0, "runq", "wait: %r");
 		logit("wait failed", name, av);
+		s_free(s);
 		return -1;
 	}
 	i = 0;
@@ -656,6 +702,7 @@ out:
 		logit("returnmail child failed", name, av);
 	}
 	free(wm);
+	s_free(s);
 	return i;
 }
 
@@ -691,16 +738,14 @@ error(char *f, void *a)
 void
 logit(char *msg, char *file, char **av)
 {
-	int n, m;
+	int n;
 	char buf[256];
 
 	n = snprint(buf, sizeof(buf), "%s/%s: %s", curdir, file, msg);
 	for(; *av; av++){
-		m = strlen(*av);
-		if(n + m + 4 > sizeof(buf))
+		if(n + strlen(*av) + 4 > sizeof(buf))	/* 4: SP ' ' NUL */
 			break;
-		sprint(buf + n, " '%s'", *av);
-		n += m + 3;
+		n += sprint(buf + n, " %q", *av);
 	}
 	syslog(0, runqlog, "%s", buf);
 }

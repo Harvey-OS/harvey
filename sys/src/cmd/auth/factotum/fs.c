@@ -12,6 +12,7 @@ Keyring	*ring;
 char		*service;
 int		sflag;
 int		uflag;
+char		*argv0 = "factotum";
 
 extern Srv		fs;
 static void		notifyf(void*, char*);
@@ -40,7 +41,6 @@ prototab[] =
 	&rsa,
 	&vnc,
 	&wep,
-	&wpapsk,
 	nil,
 };
 

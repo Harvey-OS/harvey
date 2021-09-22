@@ -4,10 +4,8 @@
 #include "dat.h"
 #include "fns.h"
 #include "../port/error.h"
-
 #include <tos.h>
 #include "ureg.h"
-
 #include "arm.h"
 
 /*
@@ -28,10 +26,10 @@ setkernur(Ureg* ureg, Proc* p)
 }
 
 /*
- * called in syscallfmt.c, sysfile.c, sysproc.c
+ * called in sysfile.c (and FP emulation)
  */
 void
-validalign(uintptr addr, unsigned align)
+validalign(ulong addr, ulong align)
 {
 	/*
 	 * Plan 9 is a 32-bit O/S, and the hardware it runs on
@@ -56,7 +54,7 @@ validalign(uintptr addr, unsigned align)
 	/*NOTREACHED*/
 }
 
-/* go to user space */
+/* prepare to return to user space */
 void
 kexit(Ureg*)
 {
@@ -70,9 +68,6 @@ kexit(Ureg*)
 	tos->pcycles = up->pcycles;
 	tos->cyclefreq = m->cpuhz;
 	tos->pid = up->pid;
-
-	/* make visible immediately to user phase */
-	l1cache->wbse(tos, sizeof *tos);
 }
 
 /*
@@ -155,8 +150,6 @@ procsave(Proc* p)
 	p->pcycles += t;
 
 	fpuprocsave(p);
-	l1cache->wbse(p, sizeof *p);		/* is this needed? */
-	l1cache->wb();				/* is this needed? */
 }
 
 void
@@ -169,10 +162,9 @@ procrestore(Proc* p)
 	cycles(&t);
 	p->pcycles -= t;
 	wakewfi();		/* in case there's another runnable proc */
+	clrex();
 
-	/* let it fault in at first use */
-//	fpuprocrestore(p);
-	l1cache->wb();			/* system is more stable with this */
+	/* don't call fpuprocrestore; let it fault in at first use */
 }
 
 int

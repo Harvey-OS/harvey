@@ -1,0 +1,96 @@
+web2c/triptrap -- The trip and trap tests are Knuth's torture tests for
+TeX and Metafont.  The MetaPost test is also named `trap', so I've
+renamed the conflicting files to `mftrap...' and `mptrap...'.  (The
+contents of all files remain absolutely unaltered, of course.)
+
+The tests are exercised in the web2c distribution via `make trip trap mptrap'
+(from the top-level or web2c/ directories).  They do not and cannot
+exercise the path searching capabilities; for that, a few ``normal''
+test runs before and after installation should suffice.
+
+{trip,mftrap,mptrap}.diffs -- show the diffs from Knuth's originals as
+generated on my development machine. tripman.tex, trapman.tex, and
+mptrap.readme explain precisely what is and is not acceptable.
+Generally, for trap and MetaPost trap, dates and times, a number of
+  constants and one call to BLANKRECTANGLE will be different.
+For trip, again some constants will be different. The floating point
+  numbers in glue set ratios may be slightly different (but all the box
+  dimensions must be the same), and the y* and down* commands in the
+  trip.dvi file may be somewhat different. The hyphenation exceptions
+  are different because the exception routine now does not count
+  identical hyphenations separately, i.e., \hyphenation{a-a a-a} only
+  generates one exception in the table.  See the messages below for why
+  this is a good/necessary thing (if the hyphenation exception table is
+  to be dynamic at all).
+
+texmf.cnf -- sets up various constants the way the tests want them.  Not
+all constants can be changed, alas, but this suffices to avoid building
+a separate binary just to run the tests.
+
+*.in -- fed to the programs as standard input, to avoid manual intervention.
+
+All the other files are test sources and output.
+It's a mistake to change them.
+
+
+About the hyphenation exception thing:
+
+Date: Mon, 1 Apr 96 11:04:29 BST
+From: wgs@maths.ucd.ie (Wayne G. Sullivan)
+To: kb@cs.umb.edu (K. Berry)
+Subject: Re: hyph_size +1
+
+Upon consideration I found another change needed for dynamic hyph_size.
+Actually, it is one I used earlier but removed for the sake of the trip.log.
+Knuth's treatment of hyhpenation exceptions has an unpleasant "feature"
+in that if the same "word" is given in \hyphenation{...}, the code does not
+replace the existing entry, but adds a new entry which comes before all
+other entries of the specific "word" (which includes the language code
+as its last "letter"), so that the earlier entries are inaccessible. The
+point is that the exceptions table retains useless data. 
+Try this with the current version of TeX:
+        \hyphenation{ab ab ab ab ... ab ab}
+Use any word you like for "ab" so long as it has at least two letters. With
+\tracingstats>0, you get lots of hyphen exceptions, but only the last for
+"ab" is accessible. I could copy this behavior using a simple hash code,
+but it seems [pointless]. Instead, when a word is repeated in "\hyphenation"
+the new code simply replaces the old entry, so no extra space in the
+exception tables is consumed. Since there is no way to recover the previous
+entry for a hyphenation exception which has been superseded, I can see no
+point in keeping the old data. The location of hyphens is kept as a linked
+list in TeX's mem array. This data for a superseded hyphenation exception
+could also be flushed, but it makes more differences in trip.log because
+the memory stats are different. These entries are unlikely to consume much
+space, so there is little harm in leaving them.
+
+Anyway the additional change needed corresponds to the following:
+
+diff -c tex.ch.old tex.ch
+*** tex.ch.old  Fri Mar 29 17:25:28 1996
+--- tex.ch      Mon Apr  1 10:08:54 1996
+***************
+*** 2177,2182 ****
+--- 2177,2183 ----
+  until u=str_start[k+1];
+  {repeat hyphenation exception; flushing old data}
+  flush_string; s:=hyph_word[h]; {avoid |slow_make_string|!}
++ decr(hyph_count);
+  { We could also |flush_list(hyph_list[h]);|, but it interferes
+    with the trip.log. }
+  goto found;
+
+Thus it is only additional change is to decrement the hyph_count when a
+repeat hyphenation exception is encountered. This is really essential only
+for the "ini" version. The reason is to know exactly how many hyphenation
+exceptions to undump. The change might as well be included in all versions,
+because it handles repeated hyphenation exceptions in a more efficient way
+than the original code. I checked through trip.tex. There is only one word
+included in hyphenation exceptions, but it is given two different hyphenations.
+Thus the original trip.log states 2 hyphenation exceptions, while the one
+using simple hashing shows only 1 -- the single exception has been entered
+twice. 
+
+[...]
+
+Wayne
+

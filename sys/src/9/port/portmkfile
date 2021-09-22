@@ -1,3 +1,5 @@
+BASE=`{pbd | sed 's/(boot|exp).*$//'}
+
 PORTFILES=`{../port/mkfilelist ../port}
 ^($PORTFILES)\.$O:R:	'../port/\1.c'
 	$CC $CFLAGS -I. ../port/$stem1.c
@@ -40,7 +42,9 @@ clean:V:
 nuke:V:	clean
 	rm -f ../boot/libboot.a$O *.elf *.rr
 
-%.$O:	/$objtype/include/u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
+%.$O:	/$objtype/include/u.h ../port/lib.h ../$BASE/mem.h ../$BASE/dat.h \
+	../$BASE/fns.h ../$BASE/io.h ../port/error.h ../port/portdat.h \
+	../port/portfns.h
 
 ../port/systab.h:	/sys/src/libc/9syscall/sys.h ../port/mksystab
 	rc ../port/mksystab > ../port/systab.h
@@ -76,7 +80,7 @@ sdscsi.$O:	/$objtype/include/ureg.h
 trap.$O:	/$objtype/include/ureg.h
 devproc.$O:	/$objtype/include/ureg.h
 main.$O:	init.h
-trap.$O:	../port/systab.h
+syscall.$O trap.$O:	../port/systab.h
 devpipe.$O:	../port/netif.h
 netif.$O:	../port/netif.h
 devuart.$O:	../port/netif.h
@@ -92,6 +96,5 @@ devproc.$O edf.$O proc.$O: /sys/include/trace.h
 
 boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c
-	$CC $CFLAGS boot$CONF.c
-	$CC $CFLAGS ../boot/printstub.c
+	$CC $CFLAGS boot$CONF.c ../boot/printstub.c
 	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB printstub.$O

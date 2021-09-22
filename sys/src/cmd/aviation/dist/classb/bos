@@ -1,0 +1,22 @@
+vm 0-16
+pB 42.357361, 70.990056	# bos vor
+
+n bos_gnd\70
+c pB,8
+
+n bos_20\70
+c pB,10.5
+
+pa d pB,m246,15		# guess
+pb d pB,m246,20
+pc d pB,m022,20		# guess
+pd d pB,m022,15
+
+n bos_30\70
+s pa,pb
+Al pB,pb,pc
+s pc,pd
+al pB,pd,pa
+
+n bos_40\70
+Al pB,pc,pb

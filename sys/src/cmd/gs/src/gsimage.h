@@ -133,6 +133,7 @@ gs_image_enum *gs_image_enum_alloc(gs_memory_t *, client_name_t);
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#pragma incomplete gx_device
 #endif
 
 /* Initialize an enumerator for an ImageType 1 image. */

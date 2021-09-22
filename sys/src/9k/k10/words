@@ -1,0 +1,43 @@
+amd64 k10 & later; compatible intel64 systems
+verified to work on
+	asus p10s ws motherboards,
+	super-micro x11scl-f motherboards,
+	pc engines apu2c4 and apu2e4 systems, and
+	intel nuc5i7s.
+deliberately omitting support for obsolete or really annoying hardware.
+
+64-bit capable; 48 address bits usable currently.
+	no use of 5-level page tables.
+can use arbitrary amounts of RAM, BIOS permitting: needs 2GB contiguous at 0.
+	needs 1GB of kernel RAM to describe 32GB of user RAM.
+	4, 16, 32 and 64 GB have all been used.
+cpu and file server
+	has been exercised as both
+beginnings of a terminal; still needs vga & real mode support
+serial console (optional)
+serial ports on PCI(E) card
+igbe & xgbe intel ethers
+sata & nvme disks; ata & aoe can be easily made to work if needed
+ehci usb might work on some hardware, if configured in;
+	xhci presence seems to interfere
+rebooting by direct loading of 386 9 and amd64 9k kernels now works,
+	notably lzipped ones.
+intel has a lot to answer for.
+
+magic memory sizes by page table level
+4K	small page, pte level
+2M	large page, pd level
+1G	pdp level
+512G	pml4 level
+256T	pml4 total
+
+kernel vm map, from top of memory down:
+-2M	PMAPADDR unknown size & use
+-8M	PDMAP, unknown size, should be <= 6M
+-512M	VMAP, 256M
+-2G	KSEG0, 1.5G, kernel low memory to -512M above (VMAP),
+	includes PDMAP in last kernel GB, may include Page structs.
+-1T	KSEG1, 512G, only embedded PML4 & page tables
+-128T	KSEG2, all non-KSEG0 physical memory above.
+	Page structs often go here.
+-256T	PML4 base, holds entire addr space

@@ -1,0 +1,95 @@
+diff /n/dump/2019/1205/sys/src/cmd/compress/compress.c ./compress.c
+39,42d38
+< #define _PLAN9_SOURCE
+< #define _BSD_EXTENSION
+< #define _POSIX_SOURCE
+< 
+43a40
+> #include <libc.h>
+46,52d42
+< #include <stdlib.h>
+< #include <unistd.h>
+< #include <string.h>
+< #include <signal.h>
+< #include <utime.h>
+< #include <sys/types.h>
+< #include <sys/stat.h>
+53a44,49
+> /* import from unix */
+> #define exit(n) exits((n) == 0? 0: "error")
+> #define unlink remove
+> 
+> #define time_t long
+> 
+173c169,170
+< 	struct stat statbuf;
+---
+> 	Dir statbuf;
+> 	Dir *dp;
+174a172
+> #ifdef TODO		/* signal -> note */
+178a177
+> #endif
+326,327c325,326
+< 		(void) stat(*fileptr, &statbuf);
+< 		fsize = (long) statbuf.st_size;
+---
+> 		statbuf = *dirstat(*fileptr);
+> 		fsize = (long) statbuf.length;
+366c365
+< 		   stat(ofname, &statbuf) == 0) {
+---
+> 		   (dp = dirstat(ofname)) == 0) {
+368a368
+> 			statbuf = *dp;
+376c376
+< 				(void) read(2, response, 2);
+---
+> 				read(2, response, 2);
+983c983,984
+< 	struct stat statbuf;
+---
+> 	Dir statbuf;
+> 	Dir *dp;
+986c987,988
+< 	if (stat(ifname, &statbuf)) {		/* Get stat on input file */
+---
+> 	dp = dirstat(ifname);
+> 	if (dp == 0) {		/* Get stat on input file */
+990c992,993
+< 	if (!S_ISREG(statbuf.st_mode)) {
+---
+> 	statbuf = *dp;
+> 	if (statbuf.mode & DMDIR) {
+1001c1004,1005
+< 		mode = statbuf.st_mode & 0777;
+---
+> #ifdef TODO		/* chmod -> wstat */
+> 		mode = statbuf.mode & 0777;
+1003a1008
+> #endif
+1005,1007c1010,1012
+< 		chown(ofname, statbuf.st_uid, statbuf.st_gid);
+< 		timep[0] = statbuf.st_atime;
+< 		timep[1] = statbuf.st_mtime;
+---
+> //		chown(ofname, statbuf.uid, statbuf.gid);
+> 		timep[0] = statbuf.atime;
+> 		timep[1] = statbuf.mtime;
+1008a1014
+> #ifdef TODO		/* utime -> wstat */
+1009a1016
+> #endif
+1029a1037
+> #ifdef TODO		/* isatty -> dirfstat(2), strcmp "/dev/cons" */
+1030a1039,1040
+> #endif
+> 		return 1;
+Common subdirectories: /n/dump/2019/1205/sys/src/cmd/compress/doc and ./doc
+diff /n/dump/2019/1205/sys/src/cmd/compress/mkfile ./mkfile
+8,10c8
+< CC=pcc
+< LD=pcc
+< CFLAGS=-FTV -c
+---
+> CFLAGS=-FTVw

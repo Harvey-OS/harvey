@@ -1,3 +1,15 @@
 #!/bin/rc
-
-exec tlssrv -c/sys/lib/ssl/cert.pem -limap4d -r`{cat $3/remote} /bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/sys/log/imap4d
+# tcp993 - imap4 service over tls
+rfork en
+remote=`{cat $3/remote}
+echo imap $* >>/sys/log/imap4d
+if(~ $sysname debug-host){		# this is for debugging only
+	9fs other
+	exec tlssrv -c/sys/lib/ssl/cert.pem -limap4d -r$remote \
+		/sys/src/cmd/ip/imap4d/8.relay /sys/src/cmd/ip/imap4d/8.out \
+		-pdcollyer.net -r$remote>[2]/sys/log/imap4d
+	exit
+}
+exec tlssrv -c/sys/lib/ssl/cert.pem -limap4d -r$remote \
+	/bin/ip/imap4d -pdcollyer.net -r$remote \
+	>[2]/sys/log/imap4d

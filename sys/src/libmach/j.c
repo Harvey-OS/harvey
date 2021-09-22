@@ -104,7 +104,7 @@ Mach mriscv64 =
 	0x1000,		/* page size */
 	/* these are Sv39 values */
 	0xffffffc080000000ULL,	/* kernel base */
-	0x8000000000000000ULL,	/* kernel text mask for all Sv* */
+	0xffffffc080000000ULL,	/* kernel text mask for Sv39 */
 	0x0000003fffffffffULL,	/* user stack top */
 	2,		/* quantization of pc */
 	8,		/* szaddr */

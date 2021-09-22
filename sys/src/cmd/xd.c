@@ -79,6 +79,7 @@ main(int argc, char *argv[])
 	int i, err;
 	Arg *ap;
 
+	argv0 = argv[0];
 	Binit(&bout, 1, OWRITE);
 	err = 0;
 	ap = 0;
@@ -301,10 +302,7 @@ swizz(void)
 	int i;
 	uchar swdata[Nsee];
 
-	p = data;
-	q = swdata;
-	for(i=0; i<Nsee; i++)
-		*q++ = *p++;
+	memmove(swdata, data, Nsee);
 	p = data;
 	q = swdata;
 	for(i=0; i<4; i++){
@@ -351,10 +349,8 @@ fmt3(char *f)
 		v = (data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3];
 		v <<= 32;
 		v |= (data[i+4]<<24)|(data[i+1+4]<<16)|(data[i+2+4]<<8)|data[i+3+4];
-		if(Bprint(&bout, f, v)<0){
-			fprint(2, "xd: i/o error\n");
-			exits("i/o error");
-		}
+		if(Bprint(&bout, f, v)<0)
+			sysfatal("write error: %r");
 	}
 }
 
@@ -431,9 +427,7 @@ xprint(char *fmt, ...)
 	va_list arglist;
 
 	va_start(arglist, fmt);
-	if(Bvprint(&bout, fmt, arglist)<0){
-		fprint(2, "xd: i/o error\n");
-		exits("i/o error");
-	}
+	if(Bvprint(&bout, fmt, arglist)<0)
+		sysfatal("write error: %r");
 	va_end(arglist);
 }

@@ -1,0 +1,27 @@
+#!/bin/rc
+# dumpvacroots - dumps all the vac scores ever stored to the venti server
+# if nothing else, this illustrates that you have to control access
+# to the physical disks storing the archive!
+
+ventihttp=`{
+#	echo $venti | sed 's/^[a-z]+!([0-9\.]+)![a-z0-9]+$/\1/
+#		s/^[a-z]+!([0-9\.]+)/\1/; s/$/:8000/'
+	echo $venti | sed 's/^[a-z]+!([0-9\.]+)![a-z0-9]+$/\1/
+		s/^[a-z]+!([0-9\.]+)/\1/'
+}
+
+hget http://$ventihttp:81/index |
+	awk '
+ 		/^index=/ { blockSize = 0 + substr($3, 11) }
+ 		/^arena=/ { arena = substr($1, 7) }
+ 		/^	arena=/ {
+			# anum computation depends on format of arena names
+			anum = substr(arena, 8) + 0
+			if (anum < 1514)	# just process final arenas
+				next
+			start = (0 + substr($5, 2)) - blockSize
+			printf("venti/printarena -o %.0f %s\n", start, $3 "")
+		}
+	' |
+	rc |
+	awk '$3 == 16 { printf("vac:%s\n", $2 "") }'

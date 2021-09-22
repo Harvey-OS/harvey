@@ -8,15 +8,13 @@ utflen(char *s)
 	long n;
 	Rune rune;
 
-	n = 0;
-	for(;;) {
+	for(n = 0; ; n++) {
 		c = *(uchar*)s;
-		if(c < Runeself) {
+		if(c < Runeself) {		/* ascii? */
 			if(c == 0)
 				return n;
 			s++;
 		} else
 			s += chartorune(&rune, s);
-		n++;
 	}
 }

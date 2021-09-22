@@ -1,0 +1,7 @@
+#!/bin/rc
+
+for(i in `{man -w $*}){
+	x=`{echo $i | sed 's;/sys/man/(.*)/(.*);\1 \2;'}
+	troff -N -man $i | uniq | 
+	 plumb -i -d edit -a 'action=showdata filename=/man/'$x(2)^'('$x(1)^')'
+}

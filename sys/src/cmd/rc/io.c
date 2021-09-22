@@ -86,7 +86,8 @@ rchr(io *b)
 int
 rutf(io *b, char *buf, Rune *r)
 {
-	int i, c;
+	int i;
+	Rune c;
 
 	c = rchr(b);
 	if(c == EOF) {
@@ -230,8 +231,8 @@ flush(io *f)
 	}
 	else{
 		n = f->bufp-f->buf;
-		if(n && Write(f->fd, f->buf, n) != n){
-			Write(2, "Write error\n", 12);
+		if(n && write(f->fd, f->buf, n) != n){
+			write(2, "Write error\n", 12);
 			if(ntrap)
 				dotrap();
 		}
@@ -273,11 +274,11 @@ opencore(char *s, int len)
 	io *f = new(struct io);
 	uchar *buf = emalloc(len);
 
-	f->fd = -1 /*open("/dev/null", 0)*/;
+	f->fd = -1 /*open("/dev/null", OREAD)*/;
 	f->bufp = f->strp = buf;
 	f->ebuf = buf+len;
 	f->output = 0;
-	Memcpy(buf, s, len);
+	memmove(buf, s, len);
 	return f;
 }
 
@@ -309,7 +310,7 @@ emptybuf(io *f)
 {
 	int n;
 
-	if(f->fd == -1 || (n = Read(f->fd, f->buf, NBUF))<=0)
+	if(f->fd == -1 || (n = read(f->fd, f->buf, NBUF))<=0)
 		return EOF;
 	f->bufp = f->buf;
 	f->ebuf = f->buf + n;

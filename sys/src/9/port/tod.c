@@ -114,7 +114,7 @@ todset(vlong t, vlong delta, int n)
 			delta = 0;
 		} else
 			delta /= n;
-		tod.sstart = MACHP(0)->ticks;
+		tod.sstart = sys->ticks;
 		tod.send = tod.sstart + n;
 		tod.delta = delta;
 	}
@@ -145,7 +145,7 @@ todget(vlong *ticksp)
 
 	/* add in correction */
 	if(tod.sstart != tod.send){
-		t = MACHP(0)->ticks;
+		t = sys->ticks;
 		if(t >= tod.send)
 			t = tod.send;
 		tod.off = tod.off + tod.delta*(t - tod.sstart);

@@ -1,0 +1,49 @@
+% @(#)2a4.ps 1.0 95/10/30 pete
+%
+% The following code defines PostScript procedures to work dvips.
+% they must be downloaded or sent as a header file together with
+% the PostScript version of your (La)TeX file.
+%
+% Originated probably by Piet van Oostrum, Department of Computer Science,
+% Utrecht University, Padualaan 14, P.O. Box 80.089, 3508 TB Utrecht
+% Phone +31 30 531806
+% Fax   +31 30 513791
+%      <piet@cs.ruu.nl>		uunet!mcsun!ruuinf!piet
+%
+% it is now re-written to work with dvips(k)-5.58f by Peter Dyballa
+% Johann Wolfgang Goethe-Universit\"at		Robert-Mayer-Str. 11-15      
+% Fachbereich 20 - Theoretische Informatik	D 60325 Frankfurt am Main    
+% (Department for Computer Science)		(Federal Republic of Germany)
+% 
+%
+%   To use 2a4.ps include this on invocation of dvips:
+%	-h 2a4.ps -t landscape
+%
+%   do not include this in your (La)TeX source:
+%	\special{landscape}\special{header=2a4.ps}
+%
+/isoddpage true def
+/orig-showpage /showpage load def
+/factor 0.707106781187 def
+/showpage {
+	isoddpage not { orig-showpage } if
+	/isoddpage isoddpage not store
+	  } def
+
+/bop-hook {
+	/vsize 1 factor add neg def
+	isoddpage {factor factor scale
+		   842  412 translate }
+		  {  0 -595 translate } ifelse
+	  } def
+
+/end-hook {
+	isoddpage not { orig-showpage } if
+	  } def
+%
+%     Theses measures are for those paper formats:
+%
+%	DIN A4			letter			legal
+% 148mm = 412 PS pt	5.5in = 396 PS pt	  7in =  504 PS pt	
+% 210mm = 595 PS pt	8.5in = 612 PS pt	8.5in =  612 PS pt	
+% 297mm = 842 PS pt	 11in = 792 PS pt	 14in = 1008 PS pt	

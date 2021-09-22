@@ -1,0 +1,17 @@
+#!/bin/rc
+# saveold binary - keep all old versions of binary in bin;
+# necessary for long-running programs.  manually remove _* at fs reboot.
+# the for loop moves the version with the most leading underscores
+# first, partly due to unicode's collating sequence.
+switch ($#*) {
+case 1
+	rfork e
+	targ=$1
+	for (exe in _*_$targ _$targ $targ)
+		if (test -e $exe)
+			mv $exe _$exe
+	exit ''
+case *
+	echo usage: $0 binary >[1=2]
+	exit usage
+}

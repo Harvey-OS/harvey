@@ -1,0 +1,20 @@
+#! /bin/rc
+# set -x
+# trget: convert files for troff so troff doesn't tizzify
+s1='s/\\/\\e/g'
+s2='s/^/\\\&/'
+switch($#*){
+	case [01]
+		echo usage trget nargs input line1 line2 exitline >[1=2]; exit usage
+}
+switch($1){
+case 2
+	cmd='-e $s1 -e $s2'
+case 3
+	cmd='-n -e $s1 -e $s2 -e $3{;p;q;}'
+case 4
+	cmd='-n -e $3,$4{;$s1;$s2;p;}'
+case *
+	cmd='-n -e $5{;$s1;$s2;p;q;} -e $3,$4{;$s1;$s2;p;}'
+}
+{eval sed $cmd} < $2

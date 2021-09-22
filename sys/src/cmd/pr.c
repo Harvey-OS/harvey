@@ -108,6 +108,14 @@ extern	void	put(long);
 extern	void	putpage(void);
 extern	void	putspace(void);
 
+void
+usage(void)
+{
+	fprint(2, "usage: pr [-n] [+n] [-bdhfmpt] [-e spaces] [-i spaces] [-l len]\n"
+		"\t[-n width] [-o offset] [-s c] [-w width] [file ...]\n");
+	exits("usage");
+}
+
 /*
  * return date file was last modified
  */
@@ -160,7 +168,7 @@ main(int argc, char *argv[])
 			nfdone++;
 		}
 	if(!nfdone)			/* no files named, use stdin */
-		pr(nulls);		/* on GCOS, use current file, if any */
+		pr(nulls);
 	errprint();			/* print accumulated error reports */
 	exits(error? "error": 0);
 }
@@ -182,7 +190,8 @@ findopt(int argc, char *argv[])
 					--*argv;
 					Ncols = atoix(argv);
 				} else
-				switch(c = TOLOWER(c)) {
+				// switch(c = TOLOWER(c)) {	/* } WTF?! GCOS is dead */
+				switch(c) {
 				case '+':
 					if((Fpage = atoix(argv)) < 1)
 						Fpage = 1;
@@ -236,7 +245,7 @@ findopt(int argc, char *argv[])
 					Padodd = 1;
 					continue;
 				default:
-					die("bad option");
+					usage();
 				}
 			} while((c = *++*argv) != '\0');
 			if(Head == argv[1])
@@ -397,8 +406,9 @@ void
 nexbuf(void)
 {
 	Rune *s = Buffer;
+	Rune c;
 	Colp p = Colpts;
-	int j, c, bline = 0;
+	int j, bline = 0;
 
 	for(;;) {
 		p->c_ptr0 = p->c_ptr = s;

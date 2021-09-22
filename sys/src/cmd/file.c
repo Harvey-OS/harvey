@@ -9,9 +9,9 @@
  */
 #define	LENDIAN(p)	((p)[0] | ((p)[1]<<8) | ((p)[2]<<16) | ((p)[3]<<24))
 
-uchar	buf[6001];
+uchar	buf[8192+1];
 short	cfreq[140];
-short	wfreq[50];
+short	wfreq[50];			/* why 50, not I3+1? */
 int	nbuf;
 Dir*	mbuf;
 int	fd;
@@ -40,21 +40,26 @@ struct
 	int	class;
 } dict[] =
 {
+	"MODE",		Aword,
+	"NOP",		Aword,
 	"PATH",		Lword,
+	"RET",		Aword,
 	"TEXT",		Aword,
 	"adt",		Alword,
 	"aggr",		Alword,
 	"alef",		Alword,
 	"array",	Lword,
+	"bio",		I2,
 	"block",	Fword,
 	"char",		Cword,
 	"common",	Fword,
 	"con",		Lword,
 	"data",		Fword,
+	"define",	Cword,
 	"dimension",	Fword,
 	"double",	Cword,
+	"enum",		Cword,
 	"extern",	Cword,
-	"bio",		I2,
 	"float",	Cword,
 	"fn",		Lword,
 	"function",	Fword,
@@ -77,24 +82,29 @@ struct
 	"stdio",	I2,
 	"struct",	Cword,
 	"subroutine",	Fword,
+	"typedef",	Cword,
 	"u",		I2,
+	"uchar",	Cword,
+	"ulong",	Cword,
+	"unsigned",	Cword,
+	"uvlong",	Cword,
 	"void",		Cword,
 };
 
 /* codes for 'mode' field in language structure */
-enum	{
-		Normal	= 0,
-		First,		/* first entry for language spanning several ranges */
-		Multi,		/* later entries "   "       "  ... */
-		Shared,		/* codes used in several languages */
-	};
+enum {
+	Normal	= 0,
+	First,		/* first entry for language spanning several ranges */
+	Multi,		/* later entries "   "       "  ... */
+	Shared,		/* codes used in several languages */
+};
 
 struct
 {
 	int	mode;		/* see enum above */
 	int 	count;
-	int	low;
-	int	high;
+	Rune	low;
+	Rune	high;
 	char	*name;
 
 } language[] =
@@ -134,7 +144,7 @@ enum
 	Futf,		/* UTF character set */
 	Fbinary,	/* binary */
 	Feascii,	/* ASCII with control chars */
-	Fnull,		/* NULL in file */
+	Fnull,		/* NUL in file */
 } guess;
 
 void	bump_utf_count(Rune);
@@ -150,6 +160,7 @@ int	ishtml(void);
 int	isrfc822(void);
 int	ismbox(void);
 int	islimbo(void);
+int	ismpeg(void);
 int	ismung(void);
 int	isp9bit(void);
 int	isp9font(void);
@@ -183,16 +194,17 @@ int	(*call[])(void) =
 	isrfc822,	/* email file */
 	ismbox,		/* mail box */
 	istar,		/* recognizable by tar checksum */
-	ishtml,		/* html keywords */
 	iscint,		/* compiler/assembler intermediate */
-	islimbo,	/* limbo source */
 	isc,		/* c & alef compiler key words */
 	isas,		/* assembler key words */
+	ishtml,		/* html keywords */
+	islimbo,	/* limbo source */
 	isp9font,	/* plan 9 font */
 	isp9bit,	/* plan 9 image (as from /dev/window) */
 	isrtf,		/* rich text format */
 	ismsdos,	/* msdos exe (virus file attachement) */
 	isface,		/* ascii face file */
+	ismpeg,		/* mpeg-4 audio/video */
 
 	/* last resorts */
 	ismung,		/* entropy compressed/encrypted */
@@ -202,8 +214,9 @@ int	(*call[])(void) =
 
 int mime;
 
-char OCTET[] =	"application/octet-stream\n";
-char PLAIN[] =	"text/plain\n";
+char OCTETMIME[] =	"application/octet-stream";
+char OCTET[] =		"application/octet-stream\n";
+char PLAIN[] =		"text/plain\n";
 
 void
 main(int argc, char *argv[])
@@ -317,14 +330,15 @@ filetype(int fd)
 		else if (r <= 0x7f) {
 			if (!isprint(r) && !isspace(r))
 				f = Ceascii;	/* ASCII control char */
-			else f = r;
-		} else if (r == 0x80) {
+			else
+				f = r;
+		} else if (r == Runeerror) {
 			bump_utf_count(r);
 			f = Cutf;
-		} else if (r < 0xA0)
-			f = Cbinary;	/* Invalid Runes */
+		} else if (r < 0xA0)		/* upper latin1 control chars */
+			f = Cbinary;
 		else if (r <= 0xff)
-			f = Clatin;	/* Latin 1 */
+			f = Clatin;
 		else {
 			bump_utf_count(r);
 			f = Cutf;		/* UTF extension */
@@ -341,6 +355,8 @@ filetype(int fd)
 	else if (cfreq[Clatin])
 		guess = Flatin;
 	else if (cfreq[Ceascii])
+		guess = Feascii;
+	else if (cfreq[Cnull] && cfreq[Clatin])
 		guess = Feascii;
 	else if (cfreq[Cnull])
 		guess = Fbinary;
@@ -388,8 +404,10 @@ bump_utf_count(Rune r)
 			if (r <= language[mid].high) {
 				language[mid].count++;
 				break;
-			} else low = mid+1;
-		} else high = mid;
+			} else
+				low = mid+1;
+		} else
+			high = mid;
 	}
 }
 
@@ -406,8 +424,6 @@ utf_count(void)
 			case First:
 				count++;
 				break;
-			default:
-				break;
 			}
 	return count;
 }
@@ -417,10 +433,10 @@ chkascii(void)
 {
 	int i;
 
-	for (i = 'a'; i < 'z'; i++)
+	for (i = 'a'; i <= 'z'; i++)
 		if (cfreq[i])
 			return 1;
-	for (i = 'A'; i < 'Z'; i++)
+	for (i = 'A'; i <= 'Z'; i++)
 		if (cfreq[i])
 			return 1;
 	return 0;
@@ -476,6 +492,8 @@ print_utf(void)
 		}
 	if(!printed)
 		print("UTF");
+	if (cfreq[Cnull])
+		print(" with NULs");
 	print(" text\n");
 }
 
@@ -521,44 +539,48 @@ struct Filemagic {
 	char *mime;
 };
 
+#define ALL ~0ul
+
 /*
  * integers in this table must be as seen on a little-endian machine
  * when read from a file.
  */
 Filemagic long0tab[] = {
-	0xF16DF16D,	0xFFFFFFFF,	"pac1 audio file\n",	OCTET,
+	0xF16DF16D,	ALL,	"pac1 audio file\n",	OCTET,
 	/* "pac1" */
-	0x31636170,	0xFFFFFFFF,	"pac3 audio file\n",	OCTET,
+	0x31636170,	ALL,	"pac3 audio file\n",	OCTET,
 	/* "pXc2 */
-	0x32630070,	0xFFFF00FF,	"pac4 audio file\n",	OCTET,
-	0xBA010000,	0xFFFFFFFF,	"mpeg system stream\n",	OCTET,
-	0x43614c66,	0xFFFFFFFF,	"FLAC audio file\n",	OCTET,
-	0x30800CC0,	0xFFFFFFFF,	"inferno .dis executable\n", OCTET,
-	0x04034B50,	0xFFFFFFFF,	"zip archive\n", "application/zip",
-	070707,		0xFFFF,		"cpio archive\n", OCTET,
-	0x2F7,		0xFFFF,		"tex dvi\n", "application/dvi",
-	0xfaff,		0xfeff,		"mp3 audio\n",	"audio/mpeg",
-	0xf0ff,		0xf6ff,		"aac audio\n",	"audio/mpeg",
-	0xfeff0000,	0xffffffff,	"utf-32be\n",	"text/plain charset=utf-32be",
-	0xfffe,		0xffffffff,	"utf-32le\n",	"text/plain charset=utf-32le",
-	0xfeff,		0xffff,		"utf-16be\n",	"text/plain charset=utf-16be",
-	0xfffe,		0xffff,		"utf-16le\n",	"text/plain charset=utf-16le",
+	0x32630070,	0xFFFF00FF, "pac4 audio file\n",	OCTET,
+	0xBA010000,	ALL,	"mpeg system stream\n",	OCTET,
+	0x43614c66,	ALL,	"FLAC audio file\n",	OCTET,
+	0x30800CC0,	ALL,	"inferno .dis executable\n", OCTET,
+	0x04034B50,	ALL,	"zip archive\n", "application/zip",
+	070707,		0xFFFF,	"cpio archive\n", OCTET,
+	0x2F7,		0xFFFF,	"tex dvi\n", "application/dvi",
+	0xfaff,		0xfeff,	"mp3 audio\n",	"audio/mpeg",
+	0xff3166fa,	ALL,	"intel boot program\n", OCTET,
+	0xf0ff,		0xf6ff,	"aac audio\n",	"audio/mpeg",
+	0xfeff0000,	ALL,	"utf-32be\n",	"text/plain charset=utf-32be",
+	0xfffe,		ALL,	"utf-32le\n",	"text/plain charset=utf-32le",
+	0xfeff,		0xffff,	"utf-16be\n",	"text/plain charset=utf-16be",
+	0xfffe,		0xffff,	"utf-16le\n",	"text/plain charset=utf-16le",
 	/* 0xfeedface: this could alternately be a Next Plan 9 boot image */
-	0xcefaedfe,	0xFFFFFFFF,	"32-bit power Mach-O executable\n", OCTET,
+	0xcefaedfe,	ALL,	"32-bit power Mach-O executable\n", OCTET,
 	/* 0xfeedfacf */
-	0xcffaedfe,	0xFFFFFFFF,	"64-bit power Mach-O executable\n", OCTET,
+	0xcffaedfe,	ALL,	"64-bit power Mach-O executable\n", OCTET,
 	/* 0xcefaedfe */
-	0xfeedface,	0xFFFFFFFF,	"386 Mach-O executable\n", OCTET,
+	0xfeedface,	ALL,	"386 Mach-O executable\n", OCTET,
 	/* 0xcffaedfe */
-	0xfeedfacf,	0xFFFFFFFF,	"amd64 Mach-O executable\n", OCTET,
+	0xfeedfacf,	ALL,	"amd64 Mach-O executable\n", OCTET,
 	/* 0xcafebabe */
-	0xbebafeca,	0xFFFFFFFF,	"Mach-O universal executable\n", OCTET,
+	0xbebafeca,	ALL,	"Mach-O universal executable\n", OCTET,
+	0x223e9f78,	ALL,	"microsoft TNEF\n", OCTET,
 	/*
 	 * these magic numbers are stored big-endian on disk,
 	 * thus the numbers appear reversed in this table.
 	 */
-	0xad4e5cd1,	0xFFFFFFFF,	"venti arena\n", OCTET,
-	0x2bb19a52,	0xFFFFFFFF,	"paq archive\n", OCTET,
+	0xad4e5cd1,	ALL,	"venti arena\n", OCTET,
+	0x2bb19a52,	ALL,	"paq archive\n", OCTET,
 };
 
 int
@@ -595,10 +617,10 @@ Fileoffmag longofftab[] = {
 	 * these magic numbers are stored big-endian on disk,
 	 * thus the numbers appear reversed in this table.
 	 */
-	256*1024, 0xe7a5e4a9, 0xFFFFFFFF, "venti arenas partition\n", OCTET,
-	256*1024, 0xc75e5cd1, 0xFFFFFFFF, "venti index section\n", OCTET,
-	128*1024, 0x89ae7637, 0xFFFFFFFF, "fossil write buffer\n", OCTET,
-	4,	  0x31647542, 0xFFFFFFFF, "OS X finder properties\n", OCTET,
+	256*1024, 0xe7a5e4a9, ALL, "venti arenas partition\n", OCTET,
+	256*1024, 0xc75e5cd1, ALL, "venti index section\n", OCTET,
+	128*1024, 0x89ae7637, ALL, "fossil write buffer\n", OCTET,
+	4,	  0x31647542, ALL, "OS X finder properties\n", OCTET,
 };
 
 int
@@ -720,9 +742,9 @@ struct	FILE_STRING
 	char	*mime;
 } file_string[] =
 {
-	"!<arch>\n__.SYMDEF",	"archive random library",	16,	"application/octet-stream",
-	"!<arch>\n",		"archive",			8,	"application/octet-stream",
-	"070707",		"cpio archive - ascii header",	6,	"application/octet-stream",
+	"!<arch>\n__.SYMDEF",	"archive random library",	16,	OCTETMIME,
+	"!<arch>\n",		"archive",			8,	OCTETMIME,
+	"070707",		"cpio archive - ascii header",	6,	OCTETMIME,
 	"#!/bin/rc",		"rc executable file",		9,	"text/plain",
 	"#!/bin/sh",		"sh executable file",		9,	"text/plain",
 	"%!",			"postscript",			2,	"application/postscript",
@@ -744,13 +766,14 @@ struct	FILE_STRING
 	"\377\330\377\341",	"jpeg",				4,	"image/jpeg",
 	"\377\330\377\333",	"jpeg",				4,	"image/jpeg",
 	"BM",			"bmp",				2,	"image/bmp",
-	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	"application/octet-stream",
+	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	OCTETMIME,
 	"<MakerFile ",		"FrameMaker file",		11,	"application/framemaker",
-	"\033E\033",	"HP PCL printer data",		3,	OCTET,
-	"\033&",	"HP PCL printer data",		2,	OCTET,
+	"\033E\033",	"HP PCL printer data",		3,	OCTETMIME,
+	"\033&",	"HP PCL printer data",		2,	OCTETMIME,
 	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",
-	"\033Lua",		"Lua bytecode",		4,	OCTET,
+	"\033Lua",		"Lua bytecode",		4,	OCTETMIME,
 	"ID3",			"mp3 audio with id3",	3,	"audio/mpeg",
+	"admp",			"agui audio map",	4,	OCTETMIME,
 	"\211PNG",		"PNG image",		4,	"image/png",
 	"P3\n",			"ppm",				3,	"image/ppm",
 	"P6\n",			"ppm",				3,	"image/ppm",
@@ -778,6 +801,7 @@ struct	FILE_STRING
 	"process snapshot ",	"process snapshot",	-1,	"application/snapfs",
 	"BEGIN:VCARD\r\n",	"vCard",		13,	"text/directory;profile=vcard",
 	"BEGIN:VCARD\n",	"vCard",		12,	"text/directory;profile=vcard",
+	"go object ",		"go object",		10,	OCTETMIME,
 	0,0,0,0
 };
 
@@ -817,7 +841,7 @@ struct offstr
 	ulong	off;
 	struct FILE_STRING;
 } offstrs[] = {
-	32*1024, "\001CD001\001",	"ISO9660 CD image",	7,	OCTET,
+	32*1024, "\001CD001\001", "ISO9660 CD image",	7,	OCTETMIME,
 	0, 0, 0, 0, 0
 };
 
@@ -860,8 +884,7 @@ iff(void)
 		else if (strncmp((char*)buf+8, "AVI ", 4) == 0)
 			print("%s\n", mime? "video/avi": "avi video");
 		else
-			print("%s\n", mime? "application/octet-stream":
-				"riff file");
+			print("%s\n", mime? OCTETMIME: "riff file");
 		return 1;
 	}
 	return 0;
@@ -1044,7 +1067,7 @@ yes:
 		print(PLAIN);
 		return 1;
 	}
-	if(wfreq[Alword] > 0)
+	if(wfreq[Alword] > 2)
 		print("alef program\n");
 	else
 		print("c program\n");
@@ -1054,10 +1077,6 @@ yes:
 int
 islimbo(void)
 {
-
-	/*
-	 * includes
-	 */
 	if(wfreq[Lword] < 4)
 		return 0;
 	print(mime ? PLAIN : "limbo program\n");
@@ -1067,13 +1086,39 @@ islimbo(void)
 int
 isas(void)
 {
-
-	/*
-	 * includes
-	 */
 	if(wfreq[Aword] < 2)
 		return 0;
 	print(mime ? PLAIN : "as program\n");
+	return 1;
+}
+
+/* incomplete.  extend with experience. */
+int
+ismpeg(void)
+{
+	int nbuf;
+	char buf[64];
+
+	seek(fd, 0, 0);
+	/* may be reading a pipe on standard input */
+	nbuf = readn(fd, buf, sizeof(buf)-1);
+	if(nbuf < 0) {
+		print("cannot read: %r\n");
+		return 1;
+	}
+	if (memcmp(buf+4, "ftyp", 4) != 0 || memcmp(buf+28, "mp41", 4) != 0)
+		return 0;
+	if(mime)
+		print("video/mpeg\n");
+	else
+		print("mpeg-4 v1 video\n");
+	return 1;
+}
+
+int
+proctet(char *s)
+{
+	print(mime ? OCTET : s);
 	return 1;
 }
 
@@ -1092,23 +1137,21 @@ ismung(void)
 	for(i=nbuf-64; i<nbuf; i++)
 		bucket[(buf[i]>>5)&07] += 1;
 
+	if(buf[0]==0x1f && buf[1]==0x9d)
+		return proctet("compressed\n");
+	else if(buf[0]==0x1f && buf[1]==0x8b)
+		return proctet("gzip compressed\n");
+	else if(memcmp(buf, "BZh", 3) == 0)
+		return proctet("bzip2 compressed\n");
+	else if(memcmp(buf, "LZIP", 4) == 0)
+		return proctet("lzip compressed\n");
+
 	cs = 0.;
 	for(i=0; i<8; i++)
 		cs += (bucket[i]-8)*(bucket[i]-8);
 	cs /= 8.;
-	if(cs <= 24.322) {
-		if(buf[0]==0x1f && buf[1]==0x9d)
-			print(mime ? OCTET : "compressed\n");
-		else
-		if(buf[0]==0x1f && buf[1]==0x8b)
-			print(mime ? OCTET : "gzip compressed\n");
-		else
-		if(buf[0]=='B' && buf[1]=='Z' && buf[2]=='h')
-			print(mime ? OCTET : "bzip2 compressed\n");
-		else
-			print(mime ? OCTET : "encrypted\n");
-		return 1;
-	}
+	if(cs <= 24.322)
+		return proctet("encrypted\n");
 	return 0;
 }
 
@@ -1426,6 +1469,7 @@ iself(void)
 	[50]	"IA-64",
 	[62]	"AMD64",
 	[75]	"VAX",
+	[243]	"RISC-V"
 	};
 	static char *type[] = {
 	[1]	"relocatable object",

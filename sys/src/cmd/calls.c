@@ -453,6 +453,17 @@ output(Rname *func, int tabc)
 	backup();
 }
 
+int
+dumped(Rname *np)
+{
+	Root *rp;
+
+	for (rp = roots; rp != nil; rp = rp->next)
+		if (STREQ(rp->func, np->namer))	/* np is a root? */
+			return 1;
+	return 0;
+}
+
 /*
  * Dumptree() lists out the calling stacks.  All names will be listed out
  * unless some function names are specified in -f options.
@@ -464,22 +475,22 @@ dumptree(void)
 	Root *rp;
 	Rname *np;
 
-	if (roots != nil)
-		for (rp = roots; rp != nil; rp = rp->next)
-			if ((np = lookfor(rp->func)) != nil) {
+	/* print roots's subtrees first */
+	for (rp = roots; rp != nil; rp = rp->next)
+		if ((np = lookfor(rp->func)) != nil) {
+			output(np, 0);
+			print("\n\n");
+		} else
+			fprint(2, "%s: function '%s' not found\n",
+				argv0, rp->func);
+
+	/* print everything else */
+	for (buck = 0; buck < Hashsize; buck++)
+		for (np = nameshash[buck].head; np != nil; np = np->next)
+			if (!np->rnamecalled && !dumped(np)) {
 				output(np, 0);
 				print("\n\n");
-			} else
-				fprint(2, "%s: function '%s' not found\n",
-					argv0, rp->func);
-	else
-		/* print everything */
-		for (buck = 0; buck < Hashsize; buck++)
-			for (np = nameshash[buck].head; np != nil; np = np->next)
-				if (!np->rnamecalled) {
-					output(np, 0);
-					print("\n\n");
-				}
+			}
 }
 
 /*
@@ -863,6 +874,12 @@ usage(void)
 	exits("usage");
 }
 
+static int
+shquote(int c)
+{
+	return c == '"';	/* plus the usual rc special characters */
+}
+
 void
 main(int argc, char **argv)
 {
@@ -900,7 +917,8 @@ main(int argc, char **argv)
 	case 'U':
 		s_append(cppopt, " -");
 		s_putc(cppopt, ARGC());
-		s_append(cppopt, EARGF(usage()));
+		doquote = shquote;	/* quote suitably for sh */
+		s_append(cppopt, quotestrdup(EARGF(usage())));
 		break;
 	default:
 		usage();

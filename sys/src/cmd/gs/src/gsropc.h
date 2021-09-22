@@ -36,7 +36,7 @@
 #ifndef gx_device_color_DEFINED
 #  define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
-
+#pragma incomplete gx_device_color
 #endif
 
 typedef struct gs_composite_rop_params_s {

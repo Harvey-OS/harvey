@@ -1,0 +1,366 @@
+.TH TEX 1 "6 December 1997" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if n .ds WB Web
+.if t .ds WB W\s-2EB\s0
+.\"=====================================================================
+.SH NAME
+tex, virtex, initex \- text formatting and typesetting
+.SH SYNOPSIS
+.B tex
+.RI [ options ]
+.RI [ commands ]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+\*(TX
+formats the interspersed text and commands contained in the named
+files
+and outputs a typesetter independent file (called
+.IR DVI ,
+which is short for
+.IR "DeVice Independent" ).
+\*(TX's capabilities and language are described in
+.IR "The \*(OXbook" .
+\*(TX
+is normally used with a large body of precompiled macros,
+and there are several specific formatting systems, such as
+\*(LX,
+which require the support of several macro files.
+.PP
+This version of \*(TX looks at its command line to see what name it
+was called under.  Both
+.B initex
+and
+.B virtex
+are symlinks to the
+.B tex
+executable.  When called as
+.BR initex
+(or when the
+.B --ini
+option is given) it can be used to precompile macros into a
+.I .fmt
+file.  When called as
+.B virtex
+it will use the
+.I plain
+format.  When called under any other name, \*(TX will use that name as
+the name of the format to use.  For example, when called as
+.B tex
+the
+.I tex
+format is used, which is identical to the
+.I plain
+format.  The commands defined by the
+.I plain
+format are documented in
+.IR "The \*(OXbook" .
+Other formats that are often available include
+.I latex
+and
+.IR amstex .
+.PP
+The
+.I commands
+given on the command line to the
+\*(TX
+program are passed to it as the first input line.  (But it is often
+easier to type extended arguments as the first input line, since UNIX
+shells tend to gobble up or misinterpret \*(TX's favorite symbols,
+like backslashes, unless you quote them.)
+As described in
+.IR "The \*(OXbook" ,
+that first line should begin with a filename, a
+.IR \econtrolsequence ,
+or a
+.IR &formatname .
+.PP
+The normal usage is to say
+.RS
+.I tex paper
+.RE
+to start processing
+.IR paper.tex .
+The name
+.I paper
+will be the ``jobname'', and is used in forming
+output filenames.
+If \*(TX doesn't get a filename in the first line, the jobname is
+.IR texput .
+When looking for a file, \*(TX looks for the name with and without the
+default extension
+.RI ( .tex )
+appended, unless the name already contains that extension.  If
+.I paper
+is the ``jobname'',
+a log of error messages, with rather more detail than normally appears
+on the screen, will appear in
+.IR paper.log ,
+and the output file will be in
+.IR paper.dvi .
+.PP
+\*(TX will look in the first line of the file
+.I paper.tex
+to see if it begins with the magic sequence
+.IR %& .
+If the first line begins with
+.I %&ini
+then \*(TX will run in
+.B initex
+mode.  Otherwise, a
+.I %&format
+line names a format to be used.
+.PP
+The
+.I e
+response to \*(TX's error prompt causes the system default editor to
+start up at the current line of the current file.  The environment
+variable TEXEDIT can be used to change the editor used.  It may
+contain a string with "%s" indicating where the filename goes and "%d"
+indicating where the decimal line number (if any) goes.  For example,
+a TEXEDIT string for
+.B emacs
+can be set with the
+.B sh
+command
+.RS
+\fITEXEDIT="emacs +%d %s"; export TEXEDIT\fP
+.RE
+.PP
+A convenient file in the library is
+.IR null.tex ,
+containing nothing.
+When \*(TX can't find a file it thinks you want to input, it keeps
+asking you for another filename; responding `null' gets you out
+of the loop if you don't want to input anything.  You can also type your
+EOF character (usually control-D).
+.PP
+.\"=====================================================================
+.SH OPTIONS
+This version of \*(TX understands the following command line options.
+.TP
+.BI --fmt \ format
+.rb
+Use
+.I format
+as the name of the format to be used, instead of the name by which
+\*(TX was called or a
+.I %&
+line.
+.TP
+.B --help
+.rb
+Print help message and exit.
+.TP
+.B --ini
+.rb
+Be
+.BR initex ,
+for dumping formats; this is implicitly true if the program is called
+as
+.BR initex .
+.TP
+.BI --interaction \ mode
+.rb
+Sets the interaction mode.  The mode can be one of
+.IR batchmode ,
+.IR nonstopmode ,
+.IR scrollmode ,
+and
+.IR errorstopmode .
+The meaning of these modes is the same as that of the corresponding
+\ecommands.
+.TP
+.B --ipc
+.rb
+Send DVI output to a socket as well as the usual output file.  Whether
+this option is available is the choice of the installer.
+.TP
+.B --ipc-start
+.rb
+As
+.BR --ipc ,
+and starts the server at the other end as well.  Whether this option
+is available is the choice of the installer.
+.TP
+.BI --kpathsea-debug \ bitmask
+.rb
+Sets path searching debugging flags according to the bitmask.  See the
+.I Kpathsea
+manual for details.
+.TP
+.BI --maketex \ fmt
+.rb
+Enable
+.RI mktex fmt ,
+where
+.I fmt
+must be one of
+.I tex
+or
+.IR tfm .
+.TP
+.B --mltex
+.rb
+Enable ML\*(TX extensions.
+.TP
+.BI --no-maketex \ fmt
+.rb
+Disable
+.RI mktex fmt ,
+where
+.I fmt
+must be one of
+.I tex
+or
+.IR tfm .
+.TP
+.BI --output-comment \ string
+.rb
+Use
+.I string
+for the DVI file comment instead of the date.
+.TP
+.BI --progname \ name
+.rb
+Pretend to be program
+.IR name .
+This affects both the format used and the search paths.
+.TP
+.B --shell-escape
+.rb
+Enable the
+.BI \ewrite18{ command }
+construct.  The
+.I command
+can be any Bourne shell command.  This construct is normally
+disallowed for security reasons.
+.TP
+.B --version
+.rb
+Print version information and exit.
+.\"=====================================================================
+.SH ENVIRONMENT
+See the Kpathsearch library documentation (the `Path specifications'
+node) for precise details of how the environment variables are used.
+The
+.B kpsewhich
+utility can be used to query the values of the variables.
+.PP
+One caveat: In most \*(TX formats, you cannot use ~ in a filename you
+give directly to \*(TX, because ~ is an active character, and hence is
+expanded, not taken as part of the filename.  Other programs, such as
+\*(MF, do not have this problem.
+.PP
+.TP
+TEXMFOUTPUT
+Normally, \*(TX puts its output files in the current directory.  If
+any output file cannot be opened there, it tries to open it in the
+directory specified in the environment variable TEXMFOUTPUT.
+There is no default value for that variable.  For example, if you say
+.I tex paper
+and the current directory is not writable, if TEXMFOUTPUT has
+the value
+.IR /tmp ,
+\*(TX attempts to create
+.I /tmp/paper.log
+(and
+.IR /tmp/paper.dvi ,
+if any output is produced.)
+.TP
+TEXINPUTS
+Search path for
+.I \einput
+and
+.I \eopenin
+files.
+This should probably start with ``.'', so
+that user files are found before system files.
+.TP
+TEXEDIT
+Command template for switching to editor.  The default, usually
+.BR vi ,
+is set when \*(TX is compiled.
+.\"=====================================================================
+.SH FILES
+The location of the files mentioned below varies from system to
+system.  Use the
+.B kpsewhich
+utility to find their locations.
+.TP
+.I tex.pool
+Encoded text of \*(TX's messages.
+.TP
+.I texfonts.map
+Filename mapping definitions.
+.TP
+.I *.tfm
+Metric files for \*(TX's fonts.
+.TP
+.I *.fmt
+Predigested \*(TX format (.\|fmt) files.
+.TP
+.I $TEXMFMAIN/tex/plain/base/plain.tex
+The basic macro package described in the \*(OXbook.
+.br
+.\"=====================================================================
+.SH BUGS
+This version of \*(TX fails to trap arithmetic overflow when
+dimensions are added or subtracted.  Cases where this occurs are rare,
+but when it does the generated
+.I DVI
+file will be invalid.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR mf (1),
+.BR undump (1),
+.br
+Donald E. Knuth,
+.IR "The \*(OXbook" ,
+Addison-Wesley, 1986, ISBN 0-201-13447-0.
+.br
+Leslie Lamport,
+.IR "\*(LX \- A Document Preparation System" ,
+Addison-Wesley, 1985, ISBN 0-201-15790-X.
+.br
+K. Berry,
+.IR "Eplain: Expanded plain \*(TX" ,
+ftp://ftp.cs.umb.edu/pub/tex/eplain/doc.
+.br
+Michael Spivak,
+.IR "The Joy of \*(OX" ,
+2nd edition, Addison-Wesley, 1990, ISBN 0-8218-2997-1.
+.br
+.I TUGboat
+(the journal of the \*(TX Users Group).
+.\"=====================================================================
+.SH TRIVIA
+\*(TX, pronounced properly, rhymes with ``blecchhh.''  The proper
+spelling in typewriter-like fonts is ``TeX'' and not ``TEX'' or ``tex.''
+.\"=====================================================================
+.SH AUTHORS
+\*(TX was designed by Donald E. Knuth,
+who implemented it using his \*(WB system for Pascal programs.
+It was ported to Unix at Stanford by Howard Trickey, and
+at Cornell by Pavel Curtis.
+The version now offered with the Unix \*(TX distribution is that
+generated by the \*(WB to C system
+.RB ( web2c ),
+originally written by Tomas Rokicki and Tim Morgan.

@@ -1,0 +1,27 @@
+% Written by DVItoMP, C Version 0.60
+begingroup save _p,_r,_s,_n; picture _p; _p=nullpicture;
+string _n[];
+vardef _s(expr _t,_f,_m,_x,_y)=
+  addto _p also _t infont _f scaled _m shifted (_x,_y); enddef;
+_n0="trapf";
+_s("Aqua",_n0,1.00000,0.0000,0.0000);
+interim linecap:=0;
+vardef _r(expr _a,_w) =
+  addto _p doublepath _a withpen pencircle scaled _w enddef;
+_r((8.1693,-3.9851)..(8.1693,15.9402), 0.3985);
+_n1="trapf";
+_s("Brass",_n1,2.00000,8.3686,0.0000);
+setbounds _p to (0,-3.9851)--(18.3313,-3.9851)--
+ (18.3313,15.9402)--(0,15.9402)--cycle;
+_p endgroup
+mpxbreak
+begingroup save _p,_r,_s,_n; picture _p; _p=nullpicture;
+string _n[];
+vardef _s(expr _t,_f,_m,_x,_y)=
+  addto _p also _t infont _f scaled _m shifted (_x,_y); enddef;
+_n0="trapf";
+_s("ast",_n0,1.00000,0.0000,0.0000);
+setbounds _p to (0,-0.9963)--(1.9925,-0.9963)--
+ (1.9925,6.9738)--(0,6.9738)--cycle;
+_p endgroup
+mpxbreak

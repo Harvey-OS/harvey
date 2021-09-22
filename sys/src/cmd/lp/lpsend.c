@@ -1,5 +1,6 @@
-#ifdef plan9
-
+/*
+ * lpsend
+ */
 #include <u.h>
 #include <libc.h>
 
@@ -8,29 +9,6 @@ enum {
 	RDNETIMEOUT = 30*60*1000,
 	WRNETIMEOUT = RDNETIMEOUT,
 };
-#else
-
-/* not for plan 9 */
-#include <stdio.h>
-#include <errno.h>
-#include <time.h>
-#include <fcntl.h>
-#include <signal.h>
-
-#define	create	creat
-#define	seek	lseek
-#define	fprint	fprintf
-#define	sprint	sprintf
-#define	exits	exit
-
-#define	ORDWR	O_RDWR
-#define	OTRUNC	O_TRUNC
-#define	ORCLOSE	0
-
-#define RDNETIMEOUT	60
-#define WRNETIMEOUT	60
-
-#endif
 
 #define MIN(a,b)	((a<b)?a:b)
 
@@ -41,6 +19,7 @@ enum {
 
 #define LNBFSZ	4096
 char lnbuf[LNBFSZ];
+
 int dbgstate = 0;
 char *dbgstrings[] = {
 	"",
@@ -50,8 +29,6 @@ char *dbgstrings[] = {
 	"response",
 	"done"
 };
-
-#ifdef plan9
 
 void
 error(int level, char *s1, ...)
@@ -75,46 +52,27 @@ error(int level, char *s1, ...)
 }
 
 int
-alarmhandler(void *foo, char *note) {
+alarmhandler(void *foo, char *note)
+{
 	USED(foo);
 	if(strcmp(note, "alarm")==0) {
-		fprint(stderr, "alarm at %d - %s\n", dbgstate, dbgstrings[dbgstate]);
+		fprint(stderr, "alarm at %d - %s\n", dbgstate,
+			dbgstrings[dbgstate]);
 		return(1);
-	} else return(0);
+	} else
+		return(0);
 }
 
-#else
-
-void
-error(int level, char *s1, ...)
-{
-	time_t thetime;
-	char *chartime;
-
-	if (level == 0) {
-		time(&thetime);
-		chartime = ctime(&thetime);
-		fprintf(stderr, "%.15s ", &(chartime[4]));
-	}
-	fprintf(stderr, s1, &s1 + 1);
-}
-
-void
-alarmhandler() {
-	fprintf(stderr, "alarm at %d - %s\n", dbgstate, dbgstrings[dbgstate]);
-}
-
-#endif
-
-/* get a line from inpfd using nonbuffered input.  The line is truncated if it is too
- * long for the buffer.  The result is left in lnbuf and the number of characters
- * read in is returned.
+/*
+ * get a line from inpfd using nonbuffered input.  The line is truncated if
+ * it is too long for the buffer.  The result is left in lnbuf and the number
+ * of characters read in is returned.
  */
 int
 readline(int inpfd)
 {
-	register char *ap;
-	register int i;
+	char *ap;
+	int i;
 
 	ap = lnbuf;
 	i = 0;
@@ -123,13 +81,13 @@ readline(int inpfd)
 			error(0, "read error in readline, fd=%d\n", inpfd);
 			break;
 		}
-	} while ((++i < LNBFSZ - 2) && *ap++ != '\n');
+	} while (++i < LNBFSZ - 2 && *ap++ != '\n');
 	if (i == LNBFSZ - 2) {
 		*ap = '\n';
 		i++;
 	}
 	*ap = '\0';
-	return(i);
+	return i;
 }
 
 #define	RDSIZE 512
@@ -179,29 +137,21 @@ prereadfile(int inpfd)
 int
 tempfile(void)
 {
-	static tindx = 0;
+	static int tindx = 0;
 	char tmpf[20];
 	int tmpfd;
 
-	sprint(tmpf, "/tmp/lp%d.%d", getpid(), tindx++);
-	if((tmpfd=create(tmpf,
-#ifdef plan9
-		ORDWR|OTRUNC,
-#endif
-	    0666)) < 0) {
+	snprint(tmpf, sizeof tmpf, "/tmp/lp%d.%d", getpid(), tindx++);
+	if((tmpfd=create(tmpf, ORDWR|OTRUNC, 0666)) < 0) {
 		error(0, "cannot create temp file %s\n", tmpf);
 		exits("cannot create temp file");
 	}
 	close(tmpfd);
-	if((tmpfd=open(tmpf, ORDWR
-#ifdef plan9
-		|ORCLOSE|OTRUNC
-#endif
-	    )) < 0) {
+	if((tmpfd=open(tmpf, ORDWR|ORCLOSE|OTRUNC)) < 0) {
 		error(0, "cannot open temp file %s\n", tmpf);
 		exits("cannot open temp file");
 	}
-	return(tmpfd);
+	return tmpfd;
 }
 
 int
@@ -218,7 +168,8 @@ recvACK(int netfd)
 		else
 			error(1, "received <%#x> instead\n", (uchar)*jobbuf);
 		rv = 0;
-	} else rv = 1;
+	} else
+		rv = 1;
 	alarm(0);
 	return(rv);
 }
@@ -227,9 +178,6 @@ void
 main(int argc, char *argv[])
 {
 	int i, rv, netfd, bsize, datafd;
-#ifndef plan9
-	void (*oldhandler)();
-#endif
 
 	/* make connection */
 	if (argc != 2) {
@@ -259,7 +207,7 @@ main(int argc, char *argv[])
 	}
 
 	/* send the size of the file to be sent */
-	sprint(lnbuf, "%d\n", bsize);
+	snprint(lnbuf, sizeof lnbuf, "%d\n", bsize);
 	i = strlen(lnbuf);
 	if ((rv=write(netfd, lnbuf, i)) != i) {
 		perror("write error while sending size");
@@ -273,11 +221,7 @@ main(int argc, char *argv[])
 	}
 	/* mirror performance in readfile() in lpdaemon */
 
-#ifdef plan9
 	atnotify(alarmhandler, 1);
-#else
-	oldhandler = signal(SIGALRM, alarmhandler);
-#endif
 
 	dbgstate = 1;
 	if(!recvACK(netfd)) {
@@ -299,20 +243,14 @@ main(int argc, char *argv[])
 
 	/* get response, as from lp -q */
 	dbgstate = 4;
-	while((rv=read(netfd, jobbuf, RDSIZE)) > 0) {
+	while((rv=read(netfd, jobbuf, RDSIZE)) > 0)
 		if((write(1, jobbuf, rv)) != rv) {
 			error(0, "write error while sending to stdout\n");
 			exits("write error while sending to stdout");
 		}
-	}
 	dbgstate = 5;
 
-#ifdef plan9
 	atnotify(alarmhandler, 0);
 	/* close down network connections and go away */
-	exits("");
-#else
-	signal(SIGALRM, oldhandler);
-	exit(0);
-#endif
+	exits(0);
 }

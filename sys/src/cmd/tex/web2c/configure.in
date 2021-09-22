@@ -1,0 +1,202 @@
+dnl Process this file with Autoconf to produce a configure script for Web2c.
+dnl
+dnl Some things are no longer configurable:
+dnl - SMALL{TeX,MF,BibTeX}: too painful to maintain the separate patch
+dnl   files, and, for TeX, texmfmem.h would have to be fixed to support
+dnl   more than 256 fonts.
+dnl - NONASCII: necessary for the character translation feature.
+dnl - REGFIX: modern compilers mostly ignore register declarations, anyway.
+dnl The code for these things remains (where applicable), so you can
+dnl get these features if you are willing to hack the sources. If not,
+dnl it'll take a good argument to convince me to invest the time to make
+dnl them configurable.
+dnl 
+dnl We don't use (for example) tex/tex.web because people who only want
+dnl to build part of the distribution may not have any given program.
+dnl Even main.c isn't guaranteed, but then nothing is, really ...
+AC_INIT(web2c/main.c)
+
+WEB2CVERSION=7.2
+AC_SUBST(WEB2CVERSION)
+AC_DEFINE_UNQUOTED(WEB2CVERSION," (Web2C $WEB2CVERSION)")
+
+sinclude(../kpathsea/common.ac)
+
+AC_PROG_YACC
+AC_PROG_LEX
+AC_PROG_RANLIB
+AC_CHECK_FUNCS(strerror)
+
+AC_TYPE_SIGNAL
+
+AC_DECL_YYTEXT
+pb_AC_ASM_UNDERSCORE
+
+# Needed on A/UX 3.0. I don't want to pull in other -lposix's, though.
+# From: bernt@weinberg.pop.bio.aau.dk (Bernt Guldbrandtsen)
+if test `(uname) 2>/dev/null` = aux; then
+  AC_CHECK_LIB(posix, sigemptyset)
+fi
+
+dnl These tests prevent reliable cross-compilation.  Sigh.
+AC_C_CHAR_UNSIGNED
+AC_C_BIGENDIAN
+AC_CHECK_SIZEOF(long)
+
+# --with and --enable options.
+test "x$with_x_toolkit" = xyes && with_x=yes
+: ${with_x=no} # tell PATH_XTRA no X by default, if not specified.
+sinclude(withenable.ac)
+
+
+# For Omega.
+if test -d $srcdir/omegadir; then
+  test "${with_omega+set}" = set || with_omega=yes
+else
+  if test "x$with_omega" = xyes; then
+    AC_MSG_WARN(The Omega sources are not available.)
+  fi
+  with_omega=no
+fi
+if test "x$with_omega" = xyes; then
+  OMEGA=
+  otpsmakefile=otps/Makefile
+else
+  OMEGA='#O#'
+fi
+AC_SUBST(OMEGA)
+
+
+# For PDFTeX.
+if test -d $srcdir/pdftexdir; then
+  test "${with_pdftex+set}" = set || with_pdftex=yes
+else
+  if test "x$with_pdftex" = xyes; then
+    AC_MSG_WARN(The PDFTeX sources are not available.)
+  fi
+  with_pdftex=no
+fi
+if test "x$with_pdftex" = xyes; then
+  PTEX=
+else
+  PTEX='#P#'
+fi
+AC_SUBST(PTEX)
+
+
+# For e-TeX, three choices: no, yes, and tex.  In the latter case, we
+# have to comment out the normal TeX build (TEX), as well as enable the
+# e-TeX build (ETEX) and the replacement of TeX with e-TeX in compatibilty
+# mode(CTEX).
+if test -d $srcdir/etexdir; then
+  test "${with_etex+set}" = set || with_etex=yes
+else
+  if test "x$with_etex" = xyes || test "x$with_etex" = xtex; then
+    AC_MSG_WARN(The e-TeX sources are not available.)
+  fi
+  with_etex=no
+fi
+if test "x$with_etex" = xtex; then
+  CTEX=
+  ETEX=
+  TEX='#T#'
+elif test "x$with_etex" = xyes; then
+  CTEX='#C#'
+  ETEX=
+  TEX=
+else
+  CTEX='#C#'
+  ETEX='#E#'
+  TEX=
+fi
+AC_SUBST(CTEX)
+AC_SUBST(ETEX)
+AC_SUBST(TEX)
+
+
+# --with-x* options: Distinguish no X at all, no toolkit, or toolkit.
+if test "x$with_x" = xyes; then
+  if test -n "$x_libraries"; then
+    XLFLAG="-L$x_libraries"
+    wlibs="-lX11 $wlibs $XLFLAG"
+  else
+    wlibs="-lX11 $wlibs"
+  fi
+  if test -z "$x_ext_lib"; then # allow envvar override
+    AC_CHECK_LIB(Xext, XextCreateExtension,
+                 x_ext_lib=-lXext, :, $wlibs $X_EXTRA_LIBS $XLFLAG)
+  fi
+  if test "x$with_x_toolkit" = xno; then
+    wfile=x11-Xlib.c
+  else
+    # Effectively demote --with-x-toolkit=athena to xt since 
+    # the code does not distinguish.
+    x_tool_libs="-lXt $x_tool_libs"
+    wfile=x11-Xt.c
+  fi
+  test -d window || mkdir window
+  case "$srcdir" in
+    /*) wfile=$srcdir/window/$wfile;;
+    .)  ;;
+    *)  wfile=../$srcdir/window/$wfile;;
+  esac
+  (cd window && (rm -f x11.c; $LN_S $wfile x11.c))
+  AC_DEFINE(X11WIN)
+fi
+AC_SUBST(x_ext_lib)
+AC_SUBST(x_tool_libs)
+AC_SUBST(wlibs)
+
+# Don't bother with pdflib unless PDFTeX is requested.
+if test "$with_pdftex" = yes; then
+
+  if test "$with_system_zlib" = yes; then
+    AC_CHECK_LIB(z, inflate,
+      zlibinc=; zlib='-lz'; pdftexlibsdep=,
+      AC_MSG_WARN(Standard ZLIB library not found. Compiling my own.)
+      with_system_zlib=no)
+    if test "$with_system_zlib" = yes; then
+      AC_CHECK_HEADERS(zlib.h)
+      if test "$ac_cv_header_zlib_h" != yes; then
+        AC_MSG_WARN(Have not found zlib.h. Using my own zlib sources.)
+        with_system_zlib=no
+      fi
+    fi
+  fi
+  if test "$with_system_zlib" = no; then
+    zlib=pdftexdir/zlib/libz.a
+    pdftexlibsdep=pdftexdir/zlib/libz.a
+    zlibinc='-I$(srcdir)/zlib -I$(srcdir)/../zlib'
+  fi
+
+  if test "$with_system_pnglib" = yes; then
+    AC_CHECK_LIB(png, png_set_read_fn,
+      pnglib=-lpng,
+      AC_MSG_WARN(Standard PNG library not found. Compiling my own.)
+      with_system_pnglib=no,
+      -lz -lm)
+  fi
+  if test "$with_system_pnglib" = no; then
+    pnglib=pdftexdir/libpng/libpng.a
+    pdftexlibsdep="$pnglib $pdftexlibsdep"
+  fi
+
+  # We always create all the makefiles.
+  libpdfmakefile=pdftexdir/Makefile
+  zlibmakefile=pdftexdir/zlib/Makefile
+  pnglibmakefile=pdftexdir/libpng/Makefile
+fi
+AC_SUBST(pnglib)
+AC_SUBST(zlib)
+AC_SUBST(pdftexlibsdep)
+AC_SUBST(zlibinc)
+
+dnl Create tests subdirectory.
+test -d tests || mkdir tests
+
+dnl Generate `Makefile's, `config.status', and our header file.
+AC_OUTPUT(Makefile doc/Makefile lib/Makefile man/Makefile mpware/Makefile 
+          web2c/Makefile window/Makefile $libpdfmakefile
+          $pnglibmakefile $zlibmakefile $otpsmakefile)
+dnl Update stamp-auto, since we just remade `c-auto.h'.
+date >stamp-auto

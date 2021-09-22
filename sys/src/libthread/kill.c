@@ -49,7 +49,6 @@ threadxxx(int id, int dokill)
 	}
 	unlock(&_threadpq.lock);
 	_threaddebug(DBGNOTE, "Can't find thread to kill");
-	return;
 }
 
 void

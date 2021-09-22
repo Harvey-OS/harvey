@@ -3,6 +3,9 @@
 #include <bio.h>
 #include <mach.h>
 
+/*
+ * PCs should really be uintptr, but the prof.out format is fixed and uses ulong.
+ */
 typedef struct Data	Data;
 typedef struct Pc	Pc;
 typedef struct Acc	Acc;
@@ -237,8 +240,7 @@ symind(ulong pc)
 	for (mid = (bot+top)/2; mid < top; mid = (bot+top)/2) {
 		if (pc < acc[mid].pc)
 			top = mid;
-		else
-		if (mid != nsym-1 && pc >= acc[mid+1].pc)
+		else if (mid != nsym-1 && pc >= acc[mid+1].pc)
 			bot = mid;
 		else
 			return mid;
@@ -251,7 +253,7 @@ sum(ulong i)
 {
 	long j, dtime, time;
 	int k;
-	static indent;
+	static int indent;
 
 	if(i >= ndata){
 		fprint(2, "prof: index out of range %ld [max %ld]\n", i, ndata);
@@ -334,10 +336,9 @@ indent(int ind)
 char*	trans[] =
 {
 	"386",		"8.out",
-	"68020",	"2.out",
-	"alpha",	"7.out",
 	"amd64",	"6.out",
 	"arm",		"5.out",
+	"arm64",	"7.out",
 	"mips",		"v.out",
 	"power",	"q.out",
 	"power64",	"9.out",

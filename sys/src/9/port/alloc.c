@@ -20,7 +20,8 @@ struct Private {
 static Private pmainpriv;
 static Pool pmainmem = {
 	.name=	"Main",
-	.maxsize=	4*1024*1024,
+	/* overwritten by memory sizing, typically in confinit() */
+	.maxsize=	64*1024*1024,
 	.minarena=	128*1024,
 	.quantum=	32,
 	.alloc=	xalloc,
@@ -38,7 +39,8 @@ static Pool pmainmem = {
 static Private pimagpriv;
 static Pool pimagmem = {
 	.name=	"Image",
-	.maxsize=	16*1024*1024,
+	/* in terminals, overwritten by memory sizing, typically in confinit() */
+	.maxsize=	64*1024*1024,
 	.minarena=	2*1024*1024,
 	.quantum=	32,
 	.alloc=	xalloc,
@@ -113,7 +115,7 @@ punlock(Pool *p)
 
 	memmove(msg, pv->msg, sizeof msg);
 	iunlock(&pv->lk);
-	iprint("%.*s", sizeof pv->msg, msg);
+	iprint("%.*s", (int)sizeof pv->msg, msg);
 }
 
 void
@@ -174,6 +176,8 @@ smalloc(ulong size)
 		v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
 		if(v != nil)
 			break;
+		if (up == nil)
+			panic("smalloc: nil up");
 		tsleep(&up->sleep, return0, 0, 100);
 	}
 	if(Npadlong){

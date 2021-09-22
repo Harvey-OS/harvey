@@ -67,6 +67,7 @@ sys_fsession(Ar0* ar0, va_list list)
 	 */
 	fd = va_arg(list, int);
 	trbuf = va_arg(list, char*);
+	va_end(list);
 
 	USED(fd);
 	trbuf = validaddr(trbuf, 1, 1);
@@ -87,6 +88,7 @@ sysfauth(Ar0* ar0, va_list list)
 	 */
 	fd = va_arg(list, int);
 	aname = va_arg(list, char*);
+	va_end(list);
 
 	aname = validaddr(aname, 1, 0);
 	aname = validnamedup(aname, 1);

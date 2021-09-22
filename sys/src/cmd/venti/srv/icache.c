@@ -278,10 +278,9 @@ scachemiss(u64int addr)
  */
 
 void
-initicache(u32int mem0)
+initicache(uintptr mem0)
 {
-	u32int mem;
-	int i, entries, scache;
+	uintptr mem, i, entries, scache;
 	
 	icache.full.l = &icache.lock;
 
@@ -295,7 +294,7 @@ initicache(u32int mem0)
 		scache = 16;
 	if(entries < 1000)
 		entries = 1000;
-fprint(2, "icache %,d bytes = %,d entries; %d scache\n", mem0, entries, scache);
+fprint(2, "icache %,lld bytes = %,lld entries; %lld scache\n", (vlong)mem0, (vlong)entries, (vlong)scache);
 
 	icache.clean.prev = icache.clean.next = &icache.clean;
 	icache.dirty.prev = icache.dirty.next = &icache.dirty;

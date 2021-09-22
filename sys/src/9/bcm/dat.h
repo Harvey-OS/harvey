@@ -22,6 +22,7 @@ typedef struct Lock	Lock;
 typedef struct Memcache	Memcache;
 typedef struct MMMU	MMMU;
 typedef struct Mach	Mach;
+typedef struct Notsave	Notsave;
 typedef struct Page	Page;
 typedef struct PhysUart	PhysUart;
 typedef struct PMMU	PMMU;
@@ -140,6 +141,15 @@ enum {
 	Alt5	= 0x2,
 };
 
+
+
+/*
+ *  things saved in the Proc structure during a notify
+ */
+struct Notsave {
+	int	emptiness;
+};
+
 /*
  *  MMU stuff in Mach.
  */
@@ -241,9 +251,15 @@ extern void kunmap(KMap*);
 struct
 {
 	Lock;
-	int	machs;			/* bitmap of active CPUs */
+	union {
+		ulong	machs;
+		ulong	machsmap[(MAXMACH+BI2WD-1)/BI2WD];  /* bitmap of active CPUs */
+	};
+	int	nmachs;			/* number of bits set in machs(map) */
 	int	exiting;		/* shutdown */
 	int	ispanic;		/* shutdown in response to a panic */
+	int	thunderbirdsarego; /* let added processors continue to schedinit */
+	int	rebooting;		/* just idle cpus > 0 */
 }active;
 
 extern register Mach* m;			/* R10 */

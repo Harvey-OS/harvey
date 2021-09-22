@@ -1,0 +1,89 @@
+vm 0-3.25
+pO 28.542444, 81.335222	# orl vor
+
+va 180
+vb 248
+
+pj d pO,m312,12.6
+pk d pO,m046,11.0
+
+pa d pO,m(vb),6.0
+pb d pO,m(vb+180),4.0
+pc d pk,m(va),6.5
+pd d pk,m(va),21
+pe d pO,m162,15.4
+pf d pO,m206,14.3
+pg d pk,m(va),28.7
+ph d pj,m(va),29.4
+pi xll pO,m(vb), pj,m(va)
+
+pl d pO,m321,24.5
+pn d pO,m008,19.8
+pp d pO,m037,23.1
+pr d pO,m132,25.1
+ps d pO,m158,32.1
+pt d pO,m211,33.5
+pv d pO,m284,23.5
+
+pm d pl,apn,2.5
+po d pn,app,5.5
+pq d pp,apr,25
+pu d pt,apv,10
+pw d pv,apl,4.5
+
+n orl_gnd\100
+s pa,pb
+s pb,pc
+s pc,pd
+s pd,pe
+s pe,pf
+s pf,pa
+
+n orl_15\100
+s pd,pg
+s pg,ph
+s ph,pi
+s pi,pa
+
+n orl_16\100
+s pi,pj
+s pj,pk
+s pk,pc
+
+n orl_30\100
+s pl,pm
+S pm,pn
+S pn,po
+s po,pp
+s pp,pq
+S pq,pr
+S pr,ps
+S ps,pt
+s pt,pu
+S pu,pv
+S pv,pw
+s pw,pl
+
+p*a d ps,apt,36
+p*b d pO,m226,32
+p*c d pO,m303,30
+p*d d pO,m321,30
+p*f 29,81
+p*e xll p*f,270, po,0
+p*g xcln pO,27, p*f,180
+p*h xcle pO,27, pO,apq
+
+n orl_60\100
+S pt,p*a
+S p*a,p*b
+S p*b,pu
+
+S pw,p*c
+S p*c,p*d
+S p*d,pm
+
+S po,p*e
+S p*e,p*f
+S p*f,p*g
+Ar pO,p*g,p*h
+S p*h,pq

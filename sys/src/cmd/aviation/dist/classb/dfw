@@ -1,0 +1,69 @@
+vm 7
+pD 32.865778,97.027778	# dfw vor
+
+pa d pD, m209, 30
+pb d pD, m321, 30
+pc d pD, m209, 20
+pd d pD, m292, 20
+pe d pD, m321, 20
+pf d pD, m100, 20	# fix
+pg d pD, m121, 20
+ph d pD, m090, 15	# fix
+pi d pD, m121, 15
+pj d pD, m209, 13
+pk d pD, m292, 13
+pl d pD, m015, 13
+pm d pD, m121, 13
+pn d pD, m161, 13
+po d pD, m121, 10
+pp d pD, m161, 10
+pq d pD, m292, 10
+pr d pD, m302, 10
+ps d pD, m015, 10
+pt d pD, m080, 10	# fix
+pu d pD, m161, 7
+pv d pD, m302, 7
+
+n dfw_gnd\100
+s pp,pu
+ar pD,pu,pv
+s pv,pr
+ar pD,pr,pt
+s pt,ph
+ar pD,ph,pi
+s pi,po
+ar pD,po,pp
+
+n dfw_20\100
+ar pD,pp,pr
+
+s pq,pk
+ar pD,pk,pl
+s pl,ps
+
+n dfw_25\100
+s ph,pf
+ar pD,pf,pg
+s pg,pi
+
+ar pD,pm,pn
+s pn,pp
+
+n dfw_30\100
+ar pD,pg,pc
+s pc,pj
+ar pD,pj,pk
+
+s pk,pd
+ar pD,pd,pf
+
+n dfw_40\100
+ar pD,pc,pd
+
+s pe,pb
+Ar pD,pb,pa
+s pa,pc
+
+
+n dfw_50\100
+Ar pD, pa, pb

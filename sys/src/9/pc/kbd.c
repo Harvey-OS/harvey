@@ -1,18 +1,18 @@
 /*
- * keyboard input
+ * PS/2 keyboard input
  */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
 #include	"../port/error.h"
+#include	"io.h"
 
 enum {
-	Data=		0x60,		/* data port */
+	Data=		KBDATA,		/* data I/O port */
 
-	Status=		0x64,		/* status port */
+	Status=		KBDCMD,		/* status I/O port */
 	 Inready=	0x01,		/*  input character ready */
 	 Outbusy=	0x02,		/*  output busy */
 	 Sysflag=	0x04,		/*  system flag */
@@ -22,7 +22,7 @@ enum {
 	 Rtimeout=	0x40,		/*  general timeout */
 	 Parity=	0x80,
 
-	Cmd=		0x64,		/* command port (write only) */
+	Cmd=		KBDCMD,		/* command I/O port (write only) */
 
 	Spec=		0xF800,		/* Unicode private space */
 	PF=		Spec|0x20,	/* num pad function key */
@@ -63,7 +63,7 @@ enum {
  * The codes at 0x79 and 0x7b are produced by the PFU Happy Hacking keyboard.
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
-Rune kbtab[Nscan] = 
+Rune kbtab[Nscan] =
 {
 [0x00]	No,	0x1b,	'1',	'2',	'3',	'4',	'5',	'6',
 [0x08]	'7',	'8',	'9',	'0',	'-',	'=',	'\b',	'\t',
@@ -145,17 +145,17 @@ Rune kbtabaltgr[Nscan] =
 
 Rune kbtabctrl[Nscan] =
 {
-[0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'', 
+[0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'',
 [0x08]	'', 	'', 	'', 	'', 	'', 	'', 	'\b',	'\t',
 [0x10]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'\t',
-[0x18]	'', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'', 
-[0x20]	'', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'', 
-[0x28]	'', 	No, 	Shift,	'', 	'', 	'', 	'', 	'', 
+[0x18]	'', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'',
+[0x20]	'', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'',
+[0x28]	'', 	No, 	Shift,	'', 	'', 	'', 	'', 	'',
 [0x30]	'', 	'', 	'', 	'', 	'', 	'', 	Shift,	'\n',
-[0x38]	Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'', 
-[0x40]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
-[0x48]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
-[0x50]	'', 	'', 	'', 	'', 	No,	No,	No,	'', 
+[0x38]	Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'',
+[0x40]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'',
+[0x48]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'',
+[0x50]	'', 	'', 	'', 	'', 	No,	No,	No,	'',
 [0x58]	'', 	No,	No,	No,	No,	No,	No,	No,
 [0x60]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x68]	No,	No,	No,	No,	No,	No,	No,	No,
@@ -177,10 +177,10 @@ enum
 int mouseshifted;
 void (*kbdmouse)(int);
 
+static int nokbd = 1;			/* flag: no PS/2 keyboard */
 static Lock i8042lock;
 static uchar ccc;
 static void (*auxputc)(int, int);
-static int nokbd = 1;			/* flag: no PS/2 keyboard */
 
 /*
  *  wait for output no longer busy
@@ -214,6 +214,13 @@ inready(void)
 	return 0;
 }
 
+static int
+outbyte(int port, int c)
+{
+	outb(port, c);
+	return outready();
+}
+
 /*
  *  ask 8042 to enable the use of address bit 20
  */
@@ -221,10 +228,43 @@ void
 i8042a20(void)
 {
 	outready();
-	outb(Cmd, 0xD1);
-	outready();
-	outb(Data, 0xDF);
-	outready();
+	outbyte(Cmd, 0xD1);
+	outbyte(Data, 0xDF);
+}
+
+static int
+isaliased(ulong mb, ulong off)
+{
+	int r;
+	ulong oz, omb1;
+	ulong *zp, *mb1p;
+
+	zp =   (ulong *)(KZERO|(mb*MB + off));
+	mb1p = (ulong *)(KZERO|((mb+1)*MB + off));
+	oz = *zp;
+	omb1 = *mb1p;
+
+	*zp = 0x1234;
+	*mb1p = 0x8765;
+	mb586();
+	wbinvd();
+	r = *zp == *mb1p;
+
+	*zp = oz;
+	*mb1p = omb1;
+	return r;
+}
+
+int
+isa20on(int justzero)
+{
+	if (isaliased(0, 0))
+		return 0;
+	if (!justzero) {
+		if (isaliased(1, 256*KB) || isaliased(2, 512*KB))
+			return 0;
+	}
+	return 1;
 }
 
 /*
@@ -238,14 +278,13 @@ i8042reset(void)
 	if(nokbd)
 		return;
 
-	*((ushort*)KADDR(0x472)) = 0x1234;	/* BIOS warm-boot flag */
+	*(ushort*)WARMBOOT = 0x1234;	/* BIOS warm-boot flag */
 
 	/*
-	 *  newer reset the machine command
+	 *  newer reset-the-machine command
 	 */
 	outready();
-	outb(Cmd, 0xFE);
-	outready();
+	outbyte(Cmd, 0xFE);
 
 	/*
 	 *  Pulse it by hand (old somewhat reliable)
@@ -254,8 +293,7 @@ i8042reset(void)
 	for(i = 0; i < 5; i++){
 		x ^= 1;
 		outready();
-		outb(Cmd, 0xD1);
-		outready();
+		outbyte(Cmd, 0xD1);
 		outb(Data, x);	/* toggle reset */
 		delay(100);
 	}
@@ -270,22 +308,14 @@ i8042auxcmd(int cmd)
 
 	if(badkbd)
 		return -1;
-	c = 0;
-	tries = 0;
-
+	c = tries = 0;
 	ilock(&i8042lock);
 	do{
-		if(tries++ > 2)
-			break;
-		if(outready() < 0)
-			break;
-		outb(Cmd, 0xD4);
-		if(outready() < 0)
-			break;
-		outb(Data, cmd);
-		if(outready() < 0)
-			break;
-		if(inready() < 0)
+		if(tries++ > 2 ||
+		    outready() < 0 ||
+		    outbyte(Cmd, 0xD4) < 0 ||
+		    outbyte(Data, cmd) < 0 ||
+		    inready() < 0)
 			break;
 		c = inb(Data);
 	} while(c == 0xFE || c == 0);
@@ -306,10 +336,8 @@ i8042auxcmds(uchar *cmd, int ncmd)
 
 	ilock(&i8042lock);
 	for(i=0; i<ncmd; i++){
-		if(outready() < 0)
-			break;
-		outb(Cmd, 0xD4);
-		if(outready() < 0)
+		if(outready() < 0 ||
+		    outbyte(Cmd, 0xD4) < 0)
 			break;
 		outb(Data, cmd[i]);
 	}
@@ -329,7 +357,7 @@ struct Kbscan {
 	int	shift;
 	int	collecting;
 	int	nk;
-	Rune	kc[5];
+	Rune	kc[1+2*UTFmax+1];	/* worst case: "x12345678\0" */
 	int	buttons;
 };
 
@@ -405,12 +433,6 @@ kbdputsc(int c, int external)
 
 	keyup = c & 0x80;
 	c &= 0x7f;
-	if(c > sizeof kbtab){
-		c |= keyup;
-		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
-			print("unknown key %ux\n", c);
-		return;
-	}
 
 	if(kbscan->esc1){
 		c = kbtabesc1[c];
@@ -509,7 +531,7 @@ kbdputsc(int c, int external)
 			 * to make the VM give up keyboard and mouse focus.
 			 * This has the unfortunate side effect that when you
 			 * come back into focus, Plan 9 thinks you want to type
-			 * a compose sequence (you just typed alt). 
+			 * a compose sequence (you just typed alt).
 			 *
 			 * As a clumsy hack around this, we look for ctl-alt
 			 * and don't treat it as the start of a compose sequence.
@@ -549,7 +571,7 @@ kbdputsc(int c, int external)
 /*
  *  keyboard interrupt
  */
-static void
+static int
 i8042intr(Ureg*, void*)
 {
 	int s, c;
@@ -561,7 +583,7 @@ i8042intr(Ureg*, void*)
 	s = inb(Status);
 	if(!(s&Inready)){
 		iunlock(&i8042lock);
-		return;
+		return Intrnotforme;
 	}
 
 	/*
@@ -576,53 +598,37 @@ i8042intr(Ureg*, void*)
 	if(s & Minready){
 		if(auxputc != nil)
 			auxputc(c, kbscans[Int].shift);
-		return;
-	}
-
-	kbdputsc(c, Int);
+	} else
+		kbdputsc(c, Int);
+	return Intrforme;
 }
 
 void
 i8042auxenable(void (*putc)(int, int))
 {
-	char *err = "i8042: aux init failed\n";
+	static char err[] = "i8042: aux init failed\n";
 
 	/* enable kbd/aux xfers and interrupts */
 	ccc &= ~Cauxdis;
 	ccc |= Cauxint;
 
 	ilock(&i8042lock);
-	if(outready() < 0)
+	if(outready() < 0 ||
+	    outbyte(Cmd, 0x60) < 0 ||	/* write control register */
+	    outbyte(Data, ccc) < 0)
 		print(err);
-	outb(Cmd, 0x60);			/* write control register */
-	if(outready() < 0)
-		print(err);
-	outb(Data, ccc);
-	if(outready() < 0)
-		print(err);
-	outb(Cmd, 0xA8);			/* auxiliary device enable */
-	if(outready() < 0){
-		iunlock(&i8042lock);
-		return;
+	if(outbyte(Cmd, 0xA8) >= 0){	/* auxiliary device enabled ok? */
+		auxputc = putc;
+		intrenable(IrqAUX, i8042intr, 0, BUSUNKNOWN, "kbdaux");
 	}
-	auxputc = putc;
-	intrenable(IrqAUX, i8042intr, 0, BUSUNKNOWN, "kbdaux");
 	iunlock(&i8042lock);
 }
 
-static char *initfailed = "i8042: kbdinit failed\n";
-
-static int
-outbyte(int port, int c)
-{
-	outb(port, c);
-	if(outready() < 0) {
-		print(initfailed);
-		return -1;
-	}
-	return 0;
-}
-
+/*
+ * Modern (c. 2017) machines tend to not have 8042 keyboard controllers,
+ * but get their input from USB keyboards or serial ports.
+ * Thus, don't complain about init failure; it's quite normal now.
+ */
 void
 kbdinit(void)
 {
@@ -635,10 +641,8 @@ kbdinit(void)
 			inb(Data);
 		delay(1);
 	}
-	if (try <= 0) {
-		print(initfailed);
+	if (try <= 0)
 		return;
-	}
 
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
@@ -651,10 +655,8 @@ kbdinit(void)
 	/* enable kbd xfers and interrupts */
 	ccc &= ~Ckbddis;
 	ccc |= Csf | Ckbdint | Cscs1;
-	if(outready() < 0) {
-		print(initfailed);
+	if(outready() < 0)
 		return;
-	}
 
 	nokbd = 0;
 
@@ -706,7 +708,7 @@ kbdputmap(ushort m, ushort scanc, Rune r)
 	case 3:
 		kbtabaltgr[scanc] = r;
 		break;
-	case 4:	
+	case 4:
 		kbtabctrl[scanc] = r;
 		break;
 	}
@@ -717,7 +719,7 @@ kbdgetmap(uint offset, int *t, int *sc, Rune *r)
 {
 	if ((int)offset < 0)
 		error(Ebadarg);
-	*t = offset/Nscan;
+	*t =  offset/Nscan;
 	*sc = offset%Nscan;
 	switch(*t) {
 	default:

@@ -197,63 +197,58 @@ netifopen(Netif *nif, Chan *c, int omode)
 }
 
 long
-netifread(Netif *nif, Chan *c, void *a, long n, vlong off)
+netifread(Netif *nif, Chan *c, void *a, long n, vlong offset)
 {
-	int i, j;
+	int i;
 	Netfile *f;
-	char *p;
-	long offset;
+	char *p, *s, *e;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, (Dirtab*)nif, 0, netifgen);
 
-	offset = off;
 	switch(NETTYPE(c->qid.path)){
 	case Ndataqid:
 		f = nif->f[NETID(c->qid.path)];
 		return qread(f->iq, a, n);
 	case Nctlqid:
 		return readnum(offset, a, n, NETID(c->qid.path), NUMSIZE);
-	case Nstatqid:
-		p = malloc(READSTR);
-		if(p == nil)
-			error(Enomem);
-		j = snprint(p, READSTR, "in: %llud\n", nif->inpackets);
-		j += snprint(p+j, READSTR-j, "link: %d\n", nif->link);
-		j += snprint(p+j, READSTR-j, "out: %llud\n", nif->outpackets);
-		j += snprint(p+j, READSTR-j, "crc errs: %d\n", nif->crcs);
-		j += snprint(p+j, READSTR-j, "overflows: %d\n", nif->overflows);
-		j += snprint(p+j, READSTR-j, "soft overflows: %d\n", nif->soverflows);
-		j += snprint(p+j, READSTR-j, "framing errs: %d\n", nif->frames);
-		j += snprint(p+j, READSTR-j, "buffer errs: %d\n", nif->buffs);
-		j += snprint(p+j, READSTR-j, "output errs: %d\n", nif->oerrs);
-		j += snprint(p+j, READSTR-j, "prom: %d\n", nif->prom);
-		j += snprint(p+j, READSTR-j, "mbps: %d\n", nif->mbps);
-		j += snprint(p+j, READSTR-j, "addr: ");
-		for(i = 0; i < nif->alen; i++)
-			j += snprint(p+j, READSTR-j, "%2.2ux", nif->addr[i]);
-		snprint(p+j, READSTR-j, "\n");
-		n = readstr(offset, a, n, p);
-		free(p);
-		return n;
-	case Naddrqid:
-		p = malloc(READSTR);
-		if(p == nil)
-			error(Enomem);
-		j = 0;
-		for(i = 0; i < nif->alen; i++)
-			j += snprint(p+j, READSTR-j, "%2.2ux", nif->addr[i]);
-		n = readstr(offset, a, n, p);
-		free(p);
-		return n;
 	case Ntypeqid:
 		f = nif->f[NETID(c->qid.path)];
 		return readnum(offset, a, n, f->type, NUMSIZE);
 	case Nifstatqid:
 		return 0;
+	case Nstatqid:
+		s = p = malloc(READSTR);
+		e = p + READSTR - 1;
+		s = seprint(s, e, "in: %d\n", nif->inpackets);
+		s = seprint(s, e, "link: %d\n", nif->link);
+		s = seprint(s, e, "out: %d\n", nif->outpackets);
+		s = seprint(s, e, "crc errs: %d\n", nif->crcs);
+		s = seprint(s, e, "overflows: %d\n", nif->overflows);
+		s = seprint(s, e, "soft overflows: %d\n", nif->soverflows);
+		s = seprint(s, e, "framing errs: %d\n", nif->frames);
+		s = seprint(s, e, "buffer errs: %d\n", nif->buffs);
+		s = seprint(s, e, "output errs: %d\n", nif->oerrs);
+		s = seprint(s, e, "prom: %d\n", nif->prom);
+		s = seprint(s, e, "mbps: %d\n", nif->mbps);
+		s = seprint(s, e, "addr: ");
+		for(i = 0; i < nif->alen; i++)
+			s = seprint(s, e, "%2.2ux", nif->addr[i]);
+		seprint(s, e, "\n");
+		break;
+	case Naddrqid:
+		s = p = malloc(READSTR);
+		e = p + READSTR - 1;
+		for(i = 0; i < nif->alen; i++)
+			s = seprint(s, e, "%2.2ux", nif->addr[i]);
+		break;
+	default:
+		error(Ebadarg);
+		notreached();
 	}
-	error(Ebadarg);
-	return -1;	/* not reached */
+	n = readstr(offset, a, n, p);
+	free(p);
+	return n;
 }
 
 Block*
@@ -344,13 +339,13 @@ netifwrite(Netif *nif, Chan *c, void *a, long n)
 		f->headersonly = 1;
 	} else if((p = matchtoken(buf, "addmulti")) != 0){
 		if(parseaddr(binaddr, p, nif->alen) < 0)
-			error("bad address");
+			error(Ebadip);
 		p = netmulti(nif, f, binaddr, 1);
 		if(p)
 			error(p);
 	} else if((p = matchtoken(buf, "remmulti")) != 0){
 		if(parseaddr(binaddr, p, nif->alen) < 0)
-			error("bad address");
+			error(Ebadip);
 		p = netmulti(nif, f, binaddr, 0);
 		if(p)
 			error(p);
@@ -399,7 +394,7 @@ void
 netifclose(Netif *nif, Chan *c)
 {
 	Netfile *f;
-	int t;
+	uint t;
 	Netaddr *ap;
 
 	if((c->flag & COPEN) == 0)
@@ -451,14 +446,13 @@ netifclose(Netif *nif, Chan *c)
 	qunlock(f);
 }
 
-Lock netlock;
+static Lock netlock;
 
 static int
 netown(Netfile *p, char *o, int omode)
 {
 	static int access[] = { 0400, 0200, 0600, 0100 };
-	int mode;
-	int t;
+	int mode, t;
 
 	lock(&netlock);
 	if(*p->owner){
@@ -470,13 +464,8 @@ netown(Netfile *p, char *o, int omode)
 			mode = p->mode<<6;		/* Other */
 
 		t = access[omode&3];
-		if((t & mode) == t){
-			unlock(&netlock);
-			return 0;
-		} else {
-			unlock(&netlock);
-			return -1;
-		}
+		unlock(&netlock);
+		return (t & mode) == t? 0: -1;
 	}
 	strncpy(p->owner, o, KNAMELEN);
 	p->mode = 0660;
@@ -539,7 +528,7 @@ openfile(Netif *nif, int id)
 		return fp - nif->f;
 	}
 	error(Enodev);
-	return -1;	/* not reached */
+	notreached();
 }
 
 /*
@@ -552,7 +541,7 @@ matchtoken(char *p, char *token)
 	int n;
 
 	n = strlen(token);
-	if(strncmp(p, token, n))
+	if(strncmp(p, token, n) != 0)
 		return 0;
 	p += n;
 	if(*p == 0)
@@ -567,23 +556,13 @@ matchtoken(char *p, char *token)
 void
 hnputv(void *p, uvlong v)
 {
-	uchar *a;
-
-	a = p;
-	hnputl(a, v>>32);
-	hnputl(a+4, v);
+	beputvl(p, v);
 }
 
 void
 hnputl(void *p, uint v)
 {
-	uchar *a;
-
-	a = p;
-	a[0] = v>>24;
-	a[1] = v>>16;
-	a[2] = v>>8;
-	a[3] = v;
+	beputl(p, v);
 }
 
 void
@@ -639,12 +618,8 @@ activemulti(Netif *nif, uchar *addr, int alen)
 	Netaddr *hp;
 
 	for(hp = nif->mhash[hash(addr, alen)]; hp; hp = hp->hnext)
-		if(memcmp(addr, hp->addr, alen) == 0){
-			if(hp->ref)
-				return 1;
-			else
-				break;
-		}
+		if(memcmp(addr, hp->addr, alen) == 0)
+			return hp->ref != 0;
 	return 0;
 }
 
@@ -678,7 +653,7 @@ static char*
 netmulti(Netif *nif, Netfile *f, uchar *addr, int add)
 {
 	Netaddr **l, *ap;
-	int i;
+	uint i, byte, bit;
 	ulong h;
 
 	if(nif->multicast == nil)
@@ -693,6 +668,8 @@ netmulti(Netif *nif, Netfile *f, uchar *addr, int add)
 		l = &ap->next;
 	}
 
+	byte = i / 8;
+	bit = 1 << (i % 8);
 	if(add){
 		if(ap == 0){
 			*l = ap = smalloc(sizeof(*ap));
@@ -702,17 +679,16 @@ netmulti(Netif *nif, Netfile *f, uchar *addr, int add)
 			h = hash(addr, nif->alen);
 			ap->hnext = nif->mhash[h];
 			nif->mhash[h] = ap;
-		} else {
+		} else
 			ap->ref++;
-		}
 		if(ap->ref == 1){
 			nif->nmaddr++;
 			nif->multicast(nif->arg, addr, 1);
 		}
-		if(i < 8*sizeof(f->maddr)){
-			if((f->maddr[i/8] & (1<<(i%8))) == 0)
+		if(byte < sizeof(f->maddr)){
+			if((f->maddr[byte] & bit) == 0)
 				f->nmaddr++;
-			f->maddr[i/8] |= 1<<(i%8);
+			f->maddr[byte] |= bit;
 		}
 	} else {
 		if(ap == 0 || ap->ref == 0)
@@ -722,10 +698,10 @@ netmulti(Netif *nif, Netfile *f, uchar *addr, int add)
 			nif->nmaddr--;
 			nif->multicast(nif->arg, addr, 0);
 		}
-		if(i < 8*sizeof(f->maddr)){
-			if((f->maddr[i/8] & (1<<(i%8))) != 0)
+		if(byte < sizeof(f->maddr)){
+			if((f->maddr[byte] & bit) != 0)
 				f->nmaddr--;
-			f->maddr[i/8] &= ~(1<<(i%8));
+			f->maddr[byte] &= ~bit;
 		}
 	}
 	return 0;

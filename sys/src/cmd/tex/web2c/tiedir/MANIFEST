@@ -1,0 +1,21 @@
+README		guess what, but read it before proceeding
+MANIFEST	this list of files
+
+Makefile.cweb	UN*X Makefile to create tie from the sources
+		(requires a working ctangle processor for source changes)
+tie.w		the source of tie, written in CWEB
+tie.c		a pretangled version of tie.w
+
+tie.tie		a small test suite (master) 
+tie.cf1		 with several change files
+tie.cf2
+tie.cf3
+tie.chf.gen	the supposed to be generated merged change file
+tie.master.gen	the supposed to be generated new master file
+
+tiedoc.tex	a short introduction on tie (LaTeX source)
+
+tie.1		a UN*X style man page for tie
+tie.1.dvi	a `groff'ed version on man page tie.1
+tie.1.nroffed	an `nroff'ed version of man page tie.1, backspaces
+			for underlining or overstriking removed

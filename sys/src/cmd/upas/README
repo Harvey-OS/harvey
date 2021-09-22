@@ -1,6 +1,6 @@
 Once upon a time Upas ran on many versions of Unix.
 This is a partial rewrite to ANSI C specifically for Plan 9.
-It uses's Plan 9's bio library instead of stdio and Plan 9's
+It uses Plan 9's bio library instead of stdio and Plan 9's
 regular expression library.
 
 I've tried to make portability possible but it has
@@ -12,8 +12,8 @@ never been ported.  To port Upas to another system:
 	  file contains all the really system dependent code that differs between
 	  Plan 9 and each Unix.  This includes file management, signal
 	  handling, process control and error handling.
-	- change the important directory trees in common/mail.c to reflect
-	  where you want things like 
+	- change the important directory trees in common/config.c to reflect
+	  where you want things like binaries and configuration files.
 	- get the ARGBEGIN/ARGEND/ARGF macros from Plan 9's libc.h
 	- get the include files correct in common/sys.h
 	- rewrite smtp/mxdial to use the conventions of that system

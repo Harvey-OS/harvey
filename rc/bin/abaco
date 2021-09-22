@@ -1,0 +1,6 @@
+#!/bin/rc
+rfork n
+webfs
+webcookies
+bind -a /sys/src/cmd/abaco /lib/font/bit/lucidasans # for passwd.6.font
+exec /$cputype/bin/abaco $*

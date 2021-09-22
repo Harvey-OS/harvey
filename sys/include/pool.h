@@ -1,20 +1,20 @@
 typedef struct Pool Pool;
 struct Pool {
 	char*	name;
-	ulong	maxsize;
+	uintptr	maxsize;
 
-	ulong	cursize;
-	ulong	curfree;
-	ulong	curalloc;
+	uintptr	cursize;
+	uintptr	curfree;
+	uintptr	curalloc;
 
-	ulong	minarena;	/* smallest size of new arena */
-	ulong	quantum;	/* allocated blocks should be multiple of */
-	ulong	minblock;	/* smallest newly allocated block */
+	uintptr	minarena;	/* smallest size of new arena */
+	uintptr	quantum;	/* allocated blocks should be multiple of (2^n) */
+	uintptr	minblock;	/* smallest newly allocated block */
 
 	void*	freeroot;	/* actually Free* */
 	void*	arenalist;	/* actually Arena* */
 
-	void*	(*alloc)(ulong);
+	void*	(*alloc)(uintptr);
 	int	(*merge)(void*, void*);
 	void	(*move)(void* from, void* to);
 
@@ -31,11 +31,11 @@ struct Pool {
 	void*	private;
 };
 
-extern void*	poolalloc(Pool*, ulong);
-extern void*	poolallocalign(Pool*, ulong, ulong, long, ulong);
+extern void*	poolalloc(Pool*, uintptr);
+extern void*	poolallocalign(Pool*, uintptr, uintptr, vlong, uintptr);
 extern void	poolfree(Pool*, void*);
-extern ulong	poolmsize(Pool*, void*);
-extern void*	poolrealloc(Pool*, void*, ulong);
+extern uintptr	poolmsize(Pool*, void*);
+extern void*	poolrealloc(Pool*, void*, uintptr);
 extern void	poolcheck(Pool*);
 extern int	poolcompact(Pool*);
 extern void	poolblockcheck(Pool*, void*);

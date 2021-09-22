@@ -1,0 +1,5 @@
+! Error in testex1 at line 16: string does not end
+! Error in testex1 at line 17: unmatched etex
+! Error in testex1 at line 18: verbatimtex in TeX mode
+! Error in testex1 at line 19: btex in TeX mode
+! Error in testex1 at line 21: string does not end

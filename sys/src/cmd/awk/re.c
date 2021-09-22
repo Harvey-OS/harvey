@@ -24,13 +24,11 @@ THIS SOFTWARE.
 
 
 #define DEBUG
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <setjmp.h>
 #include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
 #include "awk.h"
 #include "y.tab.h"
 #include "regexp.h"
@@ -74,7 +72,7 @@ static struct pat_list		/* dynamic pattern cache */
 
 static int npats;		/* cache fill level */
 
-	/* Compile a pattern */
+	/* Compile a pattern, not always malloced */
 void
 *compre(char *pat)
 {
@@ -198,11 +196,11 @@ pmatch(void *p, char *s, char *start)
 {
 	Resub m;
 
-	m.s.sp = start;
-	m.e.ep = 0;
-	if (regexec((Reprog *) p, (char *) s, &m, 1)) {
-		patbeg = m.s.sp;
-		patlen = m.e.ep-m.s.sp;
+	m.sp = start;
+	m.ep = 0;
+	if (regexec((Reprog *)p, s, &m, 1)) {
+		patbeg = m.sp;
+		patlen = m.ep-m.sp;
 		return 1;
 	}
 	patlen = -1;

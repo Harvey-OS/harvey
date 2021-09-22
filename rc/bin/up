@@ -1,0 +1,2 @@
+#!/bin/rc
+await 5 upwait $*

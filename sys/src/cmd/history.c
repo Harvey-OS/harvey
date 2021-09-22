@@ -3,7 +3,7 @@
 
 #define	MINUTE(x)	((long)(x)*60L)
 #define	HOUR(x)		(MINUTE(x)*60L)
-#define	YEAR(x)		(HOUR(x)*24L*360L)
+#define	YEAR(x)		(HOUR(x)*24L*365L)
 
 int	verb;
 int	uflag;

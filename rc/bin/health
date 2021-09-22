@@ -1,0 +1,18 @@
+#!/bin/rc
+# health [system ...] - report systems' ill-health
+rfork en
+sts=''
+if (~ $#* 0)
+	* = (fs cpu consoles fm ts apu)	# xtc mips
+
+for (sys) {
+	{
+		if (! ip/ping -q -i 250 -n 15 $sys) {
+			echo $sys down
+#			sts = $sts^' '^$sys^' down'
+		}
+	} &
+}
+# exit $sts
+wait
+# tail -1 /sys/log/cron

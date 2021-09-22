@@ -27,6 +27,7 @@ OFILES=arc.$O\
 HFILES=fns.h\
 	mk.h\
 
+LIB=/$objtype/lib/libnofp.a
 BIN=/$objtype/bin
 
 UPDATE=\

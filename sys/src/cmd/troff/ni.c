@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "tdef.h"
 #include "fns.h"
 #include "ext.h"
@@ -29,7 +28,7 @@ Numtab numtab[NN] = {
 int	alphabet	= 256;	/* latin-1 */
 int	pto	= 10000;
 int	pfrom	= 1;
-int	print	= 1;
+int	doprint	= 1;
 char	nextf[NS]	= TMACDIR;
 char	mfiles[NMF][NS];
 int	nmfi	= 0;

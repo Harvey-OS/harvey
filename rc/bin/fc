@@ -1,0 +1,210 @@
+#!/bin/ape/sh
+# f77-style shell script to compile and load fortran, C, and assembly codes
+#	usage:	f77 [-g] [-O] [-o absfile] [-c] files [-l library]
+#		-o objfile	Override default executable name a.out.
+#		-c		Do not call linker, leave relocatables in *.o.
+#		-C		Check that subscripts are in bounds.
+#		-S		leave assembler output on file.s
+#		-l library	(passed to ld).
+#		-u		complain about undeclared variables
+#		-w		omit all warning messages
+#		-w66		omit Fortran 66 compatibility warning messages
+#		files		FORTRAN source files ending in .f .
+#				FORTRAN with cpp preprocessor directives
+#					ending in .F .
+#				C source files ending in .c .
+#				Assembly language files ending in .s .
+#				efl source files ending in .e .
+#				RATFOR files ending in .r .
+#		-D def		passed to C compiler (for .c files)
+#		-I includepath	passed to C compiler (for .c files)
+#		-Ntnnn		allow nnn entries in table t
+
+eval `grep -v '^/bin/sh' /bin/ape/psh`
+
+s=/tmp/stderr_$$
+t=/tmp/f77_$$.o
+CC=${CC_f2c:-'cc'}
+EFL=${EFL:-efl}
+EFLFLAGS=${EFLFLAGS:-'system=portable deltastno=10'}
+RATFOR=${RATFOR:-ratfor}
+RFLAGS=${RFLAGS:-'-6& -C'}
+F2C=${F2C:-f2c}
+F2CFLAGS=${F2CFLAGS:='-ARw8 -Nn802'}
+CPP=${CPP:-cpp}
+rc=0
+trap "rm -f $s $t; exit \$rc" 0
+lib=/usr/geoff/lib/$objtype
+OUTF=a.out
+cOPT=1
+set -- `getopt cCD:gI:N:Oo:Suw6 "$@"`
+case $? in
+0)	;;
+*)	exit 1;;
+esac
+CCFLAGS=
+while
+	test X"$1" != X--
+do
+	case "$1"
+	in
+	-C)	F2CFLAGS="$F2CFLAGS -C"
+		shift;;
+
+	-c)	cOPT=0
+		shift
+		;;
+
+	-D)	CCFLAGS="$CCFLAGS -D$2"
+		shift 2
+		;;
+
+	-g)	CFLAGS="$CFLAGS -g"
+		CCFLAGS="$CCFLAGS -g"
+		F2CFLAGS="$F2CFLAGS -g"
+		shift;;
+
+	-I)	CCFLAGS="$CCFLAGS -I$2"
+		shift 2
+		;;
+
+	-o)	OUTF=$2
+		shift 2
+		;;
+
+	-O)	case $2 in -1) O=-O1;; -2) O=-O2;; -3) O=-O3;; *) O=-O;; esac
+		case $O in -O);; *) shift;; esac
+		# lcc ignores -O...
+		shift
+		;;
+
+	-u)	F2CFLAGS="$F2CFLAGS -u"
+		shift
+		;;
+
+	-w)	F2CFLAGS="$F2CFLAGS -w"
+		case $2 in -6) F2CFLAGS="$F2CFLAGS"66; shift
+			case $2 in -6) shift;; esac;; esac
+		shift
+		;;
+
+	-N)	F2CFLAGS="$F2CFLAGS $1""$2"
+		shift 2
+		;;
+
+	-S)	CFLAGS="$CFLAGS -S"
+		cOPT=0
+		shift
+		;;
+
+	*)
+		echo "invalid parameter $1" 1>&2
+		shift
+		;;
+	esac
+done
+shift
+while
+	test -n "$1"
+do
+	case "$1"
+	in
+	*.[fF])
+		case "$1" in *.f) f=".f";; *.F) f=".F";; esac
+		case "$1" in
+			*.f)	b=`basename $1 .f`
+				$F2C $F2CFLAGS $1
+				rc=$?
+				;;
+			*.F)	b=`basename $1 .F`
+				$CPP $1 >$b.i
+				rc=$?
+				case $rc in 0)
+					$F2C $F2CFLAGS <$b.i >$b.c
+					rc=$?
+					;;esac
+				rm $b.i
+				;;
+			esac
+		case $rc in 0);; *) exit $rc;; esac
+                $CC -c $CFLAGS $b.c 2>$s
+		rc=$?
+		sed '/parameter .* is not referenced/d;/warning: too many parameters/d' $s 1>&2
+		case $rc in 0);; *) exit;; esac
+		OFILES="$OFILES $b.o"
+		rm $b.c
+		case $cOPT in 1) cOPT=2;; esac
+		shift
+		;;
+	*.e)
+		b=`basename $1 .e`
+		$EFL $EFLFLAGS $1 >$b.f
+		case $? in 0);; *) exit;; esac
+		$F2C $F2CFLAGS $b.f
+		case $? in 0);; *) exit;; esac
+                $CC -c $CFLAGS $b.c
+		case $? in 0);; *) exit;; esac
+		OFILES="$OFILES $b.o"
+		rm $b.[cf]
+		case $cOPT in 1) cOPT=2;; esac
+		shift
+		;;
+	*.r)
+		b=`basename $1 .r`
+		$RATFOR $RFLAGS $1 >$b.f
+		case $? in 0);; *) exit;; esac
+		$F2C $F2CFLAGS $b.f
+		case $? in 0);; *) exit;; esac
+		$CC -c $CFLAGS $b.c
+		case $? in 0);; *) exit;; esac
+		OFILES="$OFILES $b.o"
+		rm $b.[cf]
+		case $cOPT in 1) cOPT=2;; esac
+		shift
+		;;
+	*.s)
+		echo $1: 1>&2
+		OFILE=`basename $1 .s`.o
+		${AS:-/usr/bin/as} -o $OFILE $AFLAGS $1
+		case $? in 0);; *) exit;; esac
+		OFILES="$OFILES $OFILE"
+		case $cOPT in 1) cOPT=2;; esac
+		shift
+		;;
+	*.c)
+		echo $1: 1>&2
+		OFILE=`basename $1 .c`.o
+                $CC -c $CFLAGS $CCFLAGS $1
+		rc=$?; case $rc in 0);; *) exit;; esac
+		OFILES="$OFILES $OFILE"
+		case $cOPT in 1) cOPT=2;; esac
+		shift
+		;;
+	*.o)
+		OFILES="$OFILES $1"
+		case $cOPT in 1) cOPT=2;; esac
+		shift
+		;;
+	-l)
+		OFILES="$OFILES -l$2"
+		shift 2
+		case $cOPT in 1) cOPT=2;; esac
+		;;
+	-l*)
+		OFILES="$OFILES $1"
+		shift
+		case $cOPT in 1) cOPT=2;; esac
+		;;
+	-o)
+		OUTF=$2; shift 2;;
+	*)
+		OFILES="$OFILES $1"
+		shift
+		case $cOPT in 1) cOPT=2;; esac
+		;;
+	esac
+done
+
+case $cOPT in 2) $CC -o $OUTF -u MAIN__ $OFILES -lF77 -lI77 -lm;; esac
+rc=$?
+exit $rc

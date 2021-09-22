@@ -68,19 +68,17 @@ remote systems.
 .TP
 .B /386
 .TP
-.B /68000
-.TP
-.B /68020
-.TP
-.B /alpha
+.B /amd64
 .TP
 .B /arm
+.TP
+.B /arm64
 .TP
 .B /mips
 .TP
 .B /power
 .TP
-.B /sparc
+.B /power64
 Each CPU architecture supported by Plan 9 has a directory in the root containing
 architecture-specific files, to be selected according to
 .B $objtype

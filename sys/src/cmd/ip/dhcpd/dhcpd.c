@@ -409,13 +409,13 @@ proto(Req *rp, int n)
 
 /*
  * since we are single-threaded, this causes us to effectively
- * stop listening while we sleep.
+ * stop listening for two seconds.
  */
 static void
 slowdelay(Req *rp)
 {
 	if(slowstat && rp->staticbinding || slowdyn && !rp->staticbinding)
-		sleep(1000);
+		sleep(2000);
 }
 
 void

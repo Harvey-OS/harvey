@@ -34,5 +34,4 @@ allprint(int c)
 			USED(c);
 		break;
 	}
-	return;
 }

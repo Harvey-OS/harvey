@@ -78,6 +78,18 @@ Print the list of directories searched when
 .I #include
 is found.
 Last listed are searched first.
+.TP
+.B -p
+Print
+.B #define
+and
+.B #undef
+lines as C++-style
+.B //
+comments.
+This output can be grepped to determine if a given symbol is defined
+(and as what and where) anywhere in a program,
+including in deeply-nested include files.
 .PD
 .PP
 In the absence of the
@@ -116,4 +128,5 @@ directory for machine-dependent include files
 .SH SOURCE
 .B /sys/src/cmd/cpp
 .SH SEE ALSO
-.IR 8c (1)
+.IR 8c (1),
+.IR pcc (1)

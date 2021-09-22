@@ -180,7 +180,7 @@ vgactlw(char* attr, char* val)
 		ctlfd = devopen("#v/vgactl", ORDWR);
 
 	seek(ctlfd, 0, 0);
-	len = sprint(buf, "%s %s", attr, val);
+	len = snprint(buf, sizeof buf, "%s %s", attr, val);
 	trace("+vgactlw %s\n", buf);
 	if(write(ctlfd, buf, len) != len)
 		error("vgactlw: <%s>: %r\n",  buf);

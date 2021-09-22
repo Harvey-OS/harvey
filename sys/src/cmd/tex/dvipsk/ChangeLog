@@ -1,0 +1,1811 @@
+Mon Mar  9 10:31:44 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* clean reencoding/asex.enc; small fix to copyright year (from
+	Thomas Esser)
+
+Fri Mar  6 10:56:28 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* dvips.h (BANNER): changed to 5.78, as per Tom. also afm2tfm.c
+	and dvips.c
+
+	* tex.lpro: (from Tom Rokicki)
+	Richard Sites of Adobe found a bug in dvips that
+ 	causes dvips-generated output, when piped through Distiller, to
+ 	fail.  The problem is that dvips uses names in its encoding array
+ 	that are `illegal' according to distiller.  I've encouraged him to
+ 	patch up distiller to `do the right thing', but I need to fix
+ 	dvips too. The patch I've come up with is to change, in tex.lpro,
+
+	    0 1 255 {IE S 1 string dup 0 3 index put cvn put} for
+	 to
+
+	 2 string 0 1 255 { IE S dup 360 add 36 4 index cvrs cvn put } for pop
+
+Tue Mar  3 10:15:37 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* afm2tfm.c: Tom Browder <tbrowde@asi-fwb.com>. To fix the case
+	where the afm file has a -1 for the CC encoding position
+
+Wed Feb 25 10:52:19 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* patches to add facility to shift characters below 32 to higher
+	positions, if possible, activated by -G. By default, this is not
+	activated, needs -DSHIFTLOWCHARS in the Makefile, as I am not sure
+	about it, but the conditional code is there to study for those who
+	want to experiment
+
+Tue Feb 24 11:56:52 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* Makefile.in: clean up check target to be self-contained
+
+Mon Feb 23 10:11:57 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* resident.c: changed parsing of "<<" so that the font is passed
+	through to be treated as a font, not a procset. it will still be
+	partially downloaded, though.
+
+Tue Feb 17 10:17:40 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* dvips.c: logic of #ifdef Omega was reversed for help message,
+	corrected
+
+Mon Feb 16 12:33:30 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* afm2tfm.c: fixes for explicit extension by Thomas Esser:
+	Several things did not work as expected:
+  - removing the suffix by putting \0 at the position found by
+    find_suffix(outname) does not work, as find_suffix returns the
+    position *after* the last dot
+  - memmove(outname, p, strlen(p)) (where p = basename(outname))
+    should be memmove(outname, p, strlen(p)+1), but I think that
+    we should just use two strcpy calls since memmove is not
+    available on every platform.
+
+
+Mon Feb  9 10:56:25 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* put data files for "make check" into testdata/, to avoid them
+	being zapped by "make extraclean"
+
+	* patch to dvips.texi from Thomas Esser
+	
+Mon Feb  2 11:32:32 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* small fix in make check target of Makefile.in
+
+Tue Jan 27 14:32:25 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* configure etc: new configure.in, c-auto.in, Makefile.in from
+	Olaf Weber
+	
+Tue Jan 27 13:49:11 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* ChangeLog: changes to "check" target (explicit -D
+	300). regenerated .xps file.
+
+Mon Jan 19 20:45:15 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* renamed contrib/volker config.* files to *.cfg, and to shorter
+	names (screen to scr) for DOS 8+3 naming
+
+	* added .tfm and .vf files for make check to directory;
+	changed permissions of dvips.texi
+
+Sat Jan 17 15:08:57 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	*  assorted patches from Peter Breitenlohner, Olaf Weber, 
+ 	Fabrice Popineau etc. Hope it all still works.
+
+Fri Jan 16 21:28:44 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* dvips.c: patch from John Plaice for odvips, to flag odvips as program
+	name 
+
+Thu Jan  1 10:59:29 1998  Sebastian Rahtz  <s.rahtz@elsevier.co.uk>
+
+	* provided prebuilt dvipstst.xdv and dvipstst.xps to allow
+	check target to work. 
+
+Wed Aug 27 20:18:20 1997  Peter Breitenlohner  <peb@mppmu.mpg.de>
+
+	* stamp-auto: Remove this file, should be in build tree, not in
+	source tree.
+
+	* configure.in: Make `configure' rebuild the `stamp-auto' file.
+
+Sun Aug 24 18:04:14 1997  Peter Breitenlohner  <peb@mppmu.mpg.de>
+
+	* Makefile.in: Allow `make check' when $(srcdir) is not `.'.
+
+Fri Mar 07 12:10:46 1997  Fabrice POPINEAU  <popineau@ese-metz.fr>
+
+	* config.h: introduce prototyping when __STDC__ is defined.
+	* dvips.h: defines a PROTO() macro according to __STDC__.
+	* dvips.h: getenv() is declared here.
+
+	* dvips.c:
+	* emspecial.c:
+	* output.c:
+	* resident.c: use the PROTO() declaration.
+	* resident.c: bad_config was called whitout argument.
+	* squeeze.c: exit() declaration.
+	
+Thu Feb  6 17:34:06 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Version 5.66a.
+
+Sat Feb  1 17:15:39 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* t1part.c: Changes to avoid compiler warnings.  From Tom.
+
+	* Makefile.in (program_files): dvipstst.dvi should be included
+	for make check.
+	From: Joern Clausen <joern@techfak.uni-bielefeld.de>.
+
+Sun Jan 19 12:47:37 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (version): Now 5.66a.
+	* dvips.texi: Update version number.
+	* download, finclude.c, output.c: Update for new version.
+
+Fri Jan 17 10:06:25 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (version): Now 5.64a.
+
+	* finclude.c, t1part.[ch], resident.c, output.c, download.c,
+		dopage.c: Update for dvips 5.64.
+
+	* afm2tfm.c (writevpl): No vname in CHARACTER property.
+	(version): Now 8.1.
+
+Tue Jan 14 14:50:27 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* hps.c (PAGESIZE): #undef.
+
+Mon Jan 13 14:25:07 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* dvips.h (BANNER): Add www.radicaleye.com per Tom.
+
+Sun Jan 12 10:57:34 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* texps.lpro: Change /setfont line to use cvx instead of load.
+	Fix from Tom, reported by poortom@apmisc.ibm.co.jp for the QMS 1725.
+
+Sun Jan  5 12:05:54 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in: Remove special case for t1part.c, and add it to
+	objects.  We compile it normally now.
+	* bbox.c, dospecial.c, drawPS.c, dvips.c, dvips.h, tex/epsf.tex,
+	search.c, virtualfont.c, tex.lpro, finclude.c
+	afm2tfm.c: Updates for dvips 5.62.
+
+Mon Dec  9 17:24:58 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* t1part.c (CHAR) [WIN32]: #define as CHARACTER to work around
+	<windows.h> typedef.
+
+Sat Dec  7 17:21:37 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dospecial.c (system): Don't bother to declare, it returns an int.
+
+	* afm2tfm.c, dvips.c, emspecial.c, output.c, resident.c: Various
+	WIN32 changes from Fabrice.
+
+Tue Dec  3 01:25:28 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* afm2tfm.c: Fix version message.
+
+Mon Dec  9 01:29:41 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* afm2tfm.c: Reformat usage message slightly for consistency.
+	Issue "Try --help" message if called with no args.
+
+Tue Dec  3 01:25:28 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* afm2tfm.c: Fix version message.
+
+Thu Nov 28 09:33:13 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* resident.c: Pass explicit error strings to bad_config.
+	* dvips.h (INT_FORMAT) [SHORTINT]: Define as %ld or %d.
+
+	* t1part.c (ScanChars): Cast label[counter].select, which is a char,
+	to int, for the sake of machines where char is unsigned by default,
+	such as the RS/6000.
+
+Wed Nov 27 10:06:27 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (program_files): Don't bother to include dvipstst.dvi.
+
+Fri Nov 15 16:22:42 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (install-exec): Use INSTALL_LIBTOOL_PROG for
+	binaries.
+
+Sun Nov 10 16:29:31 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* t1part.c (PartialPFB): Return value from fread is an int,
+	not a pointer, so don't compare to NULL.
+
+Thu Nov  7 14:53:08 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* papersiz.c (myatodim, myatol): If error, give the erroneous string.
+
+Sun Oct 27 16:20:58 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (check): Don't run TeX.
+	(program_files): Distribute dvipstst.dvi.
+
+	* resident.c (c_lineno): Remove invalid second declaration.
+
+	* t1part.c (PartialPFA): Cast UniRealloc result to avoid warning
+	from SunOS cc.
+	(UniRealloc) [KPATHSEA_TYPES_H]: Define as xrealloc, not just realloc.
+
+Sun Oct 20 11:25:27 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (install-data): mkdirchain dvips_plain_macrodir.
+	(post-dist): Link in tex.
+	*.tex: Move to tex/ subdirectory.
+
+Fri Oct 18 14:51:03 1996  Karl Berry  <karl@cs.umb.edu>
+
+	From: Marek Rouchal <marek@btfmd1.fs.uni-bayreuth.de>.
+	These changes finish implementing multiple epsf output files.
+	* bbox.c (findbb): Pass in bop location.
+	* dvips.c: for -i, default section size to one page.
+	Change call to initprinter.
+	* output.c (epsftest): Change call to findbb.
+	(initprinter): Take sectiontype as parameter instead of page count.
+
+Mon Oct 14 11:25:13 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Changes for NT from Fabrice POPINEAU <popineau@esemetz.ese-metz.fr>.
+	* hps.c: Rename Rectangle to dvipsRectangle.
+	* dvips.h (ERROR, NO_ERROR): #undef.
+	* paths.h (DVIPSRC) [WIN32]: Define as dvips.ini
+	* output.c: WIN32 conditionals a la MSDOS.
+
+Sun Oct 13 13:40:26 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dvips.c (main),
+	* output.c (epsftest): Remove condition that document be a single
+ 	page for -E.
+ 	Suggested by: Marek Rouchal <marek@btfmd1.fs.uni-bayreuth.de>.
+
+	* bbox.c, dosection.c, download.c, drawPS.c, dvips.c, finclude.c,
+        fontdef.c, prescan.c, resident.c, virtualfont.c: Keep mag as a
+	real instead of an integer.
+	From: "Melissa O'Neill" <oneill@cs.sfu.ca>.
+
+Tue Oct  8 16:47:13 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in (version_files): Add dvips.c.
+
+Sat Oct  5 17:00:53 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dvips.c (main),
+	* afm2tfm.c (version): Change to the new standard GNU format.
+
+	* Makefile.in (install-data): Call install-info.
+	* dvips.texi: Use @url, @email, and @dircategory/@direntry.
+	
+Sat Sep  7 16:01:38 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dvips.c (help): Include bug reporting address.
+	* afm2tfm.c (usage): Likewise.
+
+Fri Sep  6 19:05:23 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* output.c, dospecial: Call output_with_perror for PostScript
+	output file open failure.
+	* dvips.c (error_with_perror): New routine.
+
+Fri Aug 23 16:57:39 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dvips.c (main): Better bad first/last page errors.
+
+Sun Aug  4 15:56:50 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* dospecial.c: Updates from d.love, PAGEUS_INTERUPPTUS is now
+	page_interrupt, etc.
+
+	* hps.c: Use mymalloc instead of malloc where we don't check the
+	return value.
+
+	* dvips.c (main): Also print kpathsea_version_string if --version.
+
+Fri Jul 26 15:47:20 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in: Remove co.make.
+
+Thu Jul 11 19:17:52 1996  Karl Berry  <karl@laurie>
+
+	* resident.c: Include variable.h.
+
+Mon Jun 10 11:00:35 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* hps.c: Update again from Dave, the last patch got corrupted.
+
+Fri Jun  7 18:46:46 1996  K. Berry  <kb@cs.umb.edu>
+
+	* Makefile.in (afm2tfm, $(program)): Use $(kpathsea_link).
+        (squeeze): Include $(XLOADLIBES).
+
+Sat Jun  1 14:36:39 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* resident.c (getdefaults): Use envvar/config value DVIPSRC if set.
+
+Thu May 16 22:41:15 1996  Dave Love  <d.love@dl.ac.uk>
+
+	* texc.lpro: Update to dvihps 0.4 (mostly robuster anchors?).
+	* dopage.c, hps.c: Likewise.
+
+Wed May  1 16:37:00 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * paths.h (DVIPSRC): Prepend $HOME/, so we only search for .dvips
+        in the user's home directory. (Original dvips behavior,
+        unwittingly changed, just noted by Michel Goossens.)
+
+Fri Apr 26 13:36:25 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (install-data): Install the plain macro files in
+        $(dvips_plain_macrodir), and avoid $(CP_R).
+	From: Pierre Asselin <pa@magtsm.tdh.qntm.com>.
+
+Sun Apr 21 16:32:43 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (main): Do not pass in !dontmakefont to kpse_init_prog.
+        In 'M' command line case, call the new kpse_set_enabled fn.
+
+Fri Mar  8 14:39:03 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * hps.c: qoutes -> quotes.
+
+        * dospecial.c: Don't complain about unknown specials if TEX_HUSH.
+
+Thu Mar  7 11:15:34 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (check_checksum): New routine.
+        * bbox.c, loadfont.c, tfmload.c, virtualfont.c: Call it.
+
+        * t1part.c (perror): Remove spurious #define, and change return's
+        to exit's after calling perror.
+        New copyright notice from Sergey.
+
+Sun Mar  3 12:26:01 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * t1part.c: New version (1.59) from Sergey, fixing the problem
+        with lbma.
+
+Wed Feb 28 15:19:30 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.texi: Document the new MISSFONT_LOG variable.
+
+        * Installed following update from Dave Love:
+        
+Tue Jan 23 13:55:52 1996  D.J.G.Love  <d.love@dl.ac.uk>
+
+        * hps.c (PAGESIZE): Don't hardcode.
+
+Mon Jan 22 19:34:38 1996  Dave Love  <d.love@dl.ac.uk>
+
+        * dopage.c: Update to dvihps 0.3c.
+        * dospecial.c: Likewise.
+        * hps.c: Likewise.
+        * hps.lpro: Likewise.
+
+Tue Feb 27 17:06:42 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * afm2tfm.c (main): Need to call kpse_set_progname now that we are
+        using the afm search path.
+
+        * resident.c (addentry): Oops, another mistake in the partial
+        download merge.
+
+Sun Feb 18 15:59:18 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * afm2tfm.c: Search for AFM file along new AFM path.
+
+        * hps.c: Use mymalloc, not plain malloc.
+        And replace dup_str with the existing xstrdup.
+
+Thu Feb 15 13:56:07 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (main): Set kpse_make_tex_discard_errors = quiet.
+
+Sat Feb 10 14:03:12 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * afm2tfm.c (assignchars): Avoid creating texnum's > 255, since we
+         can't handle it.  Happens with an AFM line like:
+         C 256 ; WX 402 ; N c256 ; B 4 0 402 630 ;
+        Also, don't try to output kern equivalences for unencoded characters.
+        From: "Dr Peter J. Braam" <braam@stlawrence.maths.ox.ac.uk>.
+
+Fri Feb  9 15:28:03 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * afm2tfm.c (usage): Include kpathsea_version_string in output.
+        Recognize --version and --help.
+
+        * tex.lpro: I had fixed texc.lpro, but that's not a source file.
+
+        * hps.c (PAGESIZE): Compute dynamically.
+        From: Dave Love <d.love@dl.ac.uk>.
+
+Sat Feb  3 15:44:19 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (DEFS): Moved to common.make.
+
+Fri Dec 29 17:17:14 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: misc.make is now clean.make.
+
+Tue Dec 26 17:18:39 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (initialize): Initialize dontmakefont to
+        !MAKE_TEX_PK_BY_DEFAULT.
+
+Wed Dec 20 15:38:31 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (INSTALL): Use -D INSTALLONLY, rather than sed.
+        Manual changes to match.
+
+Wed Dec 13 14:29:11 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (DEFRES): Change to 600.
+
+        * afm2tfm.c: Do oslash <> o and Oslash <> O.
+        From: "Young U. Ryu" <ryoung@utdallas.edu>.
+
+Sun Dec 10 16:41:05 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dospecial.c (specerror): Hint that they're using an unsupported
+        macro package, most likely.
+
+Fri Dec  1 16:08:52 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * test.tex: Rename to dvipstst.tex for clarity and include in
+        distribution.
+	From: Joern Clausen <joern@techfak.uni-bielefeld.de>.
+	
+Thu Nov 16 13:32:50 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * search.c: Avoid popen on the Amiga.
+        * dvips.h (close_file): Make function declaration extern for the
+        Amiga. From Andreas Scherer.
+
+Tue Nov 14 14:07:17 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * loadfont.c (pkopen): If font was substituted, don't say chars
+        will be left blank (they won't).
+
+        * resident.c (getdefaults): For R case, use line as a string,
+        changing whitespaces to colons, instead of doing numbers here.
+
+Mon Nov 13 17:22:20 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c: Set kpathsea debugging bits even if -d is not first.
+
+Sat Nov 11 16:01:24 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * texc.lpro: Add `Color LaserWriter 12/600 PS' to the list of
+        products that need the alternate rule definition.
+
+        * loadfont.c, dvips.c, virtualfont.c: Remove remaining MEM debugs
+        as too voluminous and not useful enough.
+        * debug.h (D_CONFIG): Reuse the D_MEM bit.
+        * resident.c (getdefaults): Output debugging info if requested.
+
+Sun Oct 22 16:57:56 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (squeeze): Use LIBS instead of LOADLIBES.
+
+Sun Sep 24 13:49:43 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (mymalloc): Test a local variable for debug output,
+        instead of DD_MEM.
+
+Fri Sep 22 13:43:38 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c: If invalid option given, say what it was, and don't try
+        to list all the valid ones.
+        
+        * dvips.c (case o): make -o - output to stdout.
+
+Thu Sep 14 14:49:53 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * config.ps: The default paper size cannot use setpagedevice.
+        From te.
+
+Sat Sep  9 13:12:24 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * drawPS.c: Merge hyperdvi changes.
+        From: Dave Love <d.love@dl.ac.uk>.
+        
+        * config.h: Define TPIC and EMTEX by default.
+        * Makefile.in (DEFS): Instead of in DEFS.
+
+Sat Sep  2 11:37:40 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * tex.lpro: Oops, missing if in the new code.
+
+        * epsf.tex: Don't do \new... if we've already been read.
+
+        * config.ps: Update from Yves.
+
+Wed Aug 23 11:55:59 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * config.h (headerpath): This is now kpse_ps_header_format, since
+        xdvi uses it, too.
+
+        * search.c (search): Try assigning to name and realnameoffile,
+        instead of copying.
+        * tfmload.c (name): Remove this static.
+        * loadfont.c (name): Declare as a pointer, instead of a fixed-size
+        array.
+
+Sat Aug 12 13:42:22 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * tex.lpro: Check for LaserWriter 16/600 as well as Display and
+        NeXT when setting RMat.  From Tom R., reported by Rik Faith.
+
+Fri Aug 11 14:42:14 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * resident.c (N): If we're doing -E, don't disable them.
+
+Thu Aug 10 13:28:37 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * header.c, dvips.c (lastheadermem): Remove this global. It's no
+        longer used.
+        From: "Christopher J. Duncan" <cduncan@phys.psu.edu>
+        
+        * dvips.texi: Many updates.
+
+Tue Aug  8 19:25:18 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (post-dist): Include a README in reencode, update
+        for new fontname organization, don't include adobe file or fonts.
+        (install-data): Don't install fonts.
+
+Mon Aug  7 17:46:43 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c: Rearrange help message.
+
+Mon May 29 15:56:43 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (install-data): Use $(srcdir)/{tex,fonts}; from zoo.
+        (But, we probably won't have inputs or fonts by release time anyway.)
+
+Mon Apr 17 10:02:30 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (squeeze, afm2tfm, $(program)): Use link_command.
+
+Mon Mar 20 11:07:32 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * output.c: Print the > after reading the file, not before.
+
+Fri Mar  3 14:49:16 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * afm2tfm.c (checksum): Use cyclic left shift, so we're not just
+        using the last four characters. From Piet.
+        (vname): New routine to better document the ligtable in the vpl.
+        (writevpl): If the base encoding is the same as the output
+        encoding, only output it once.
+        Also, don't output checksums; let vptovf and vftovp do that.
+        (addkern): New routine.
+        (checkligkern): If <>, make one character's kerning (Zcaron) be
+        the same as another's (Z).
+        (staticligkern): Define the default kerning equivalents.
+
+Fri Feb 24 14:03:02 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (main): Don't give `W' output if -q(uiet).
+
+        * config.ps (N): Don't define this by default.
+
+Fri Feb 10 15:39:50 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c: Doc fix.
+
+        * Makefile.in (texc.lpro): Use $(srcdir)/tex.lpro. From Andreas.
+
+Sun Jan  8 12:13:48 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Version 5.58f.
+
+Sun Jan  1 14:16:52 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (DEFS): Include -DEMTEX by default. Suggested by Joachim.
+
+Sat Dec 31 17:33:14 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: Don't include tmptk.make any more.
+        (install-exec): Don't depend on install-MakeTeXPK, either.
+
+Mon Dec 26 07:58:37 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (main): Don't set mfmode to / here, do it in kpse_init_prog.
+
+Sat Dec 24 15:20:50 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * emspecial.c (TRUE, FALSE) [TRUE]: Make definitions conditional.
+        From Joachim Schrod <schrod@iti.informatik.th-darmstadt.de>.
+
+Wed Dec 14 15:16:53 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Version 5.58e.
+
+Mon Dec 12 07:11:14 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * MakeTeXPK.in (pattern): Give right name in error message. From
+        nickc@cs.st-andrews.ac.uk.
+
+Mon Dec  5 15:32:48 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * MakeTeXPK.in: Use $SAVEPWD instead of $PWD, for bash's sake.
+        From bas@phys.uva.nl (Bas de Bakker).
+
+Sun Dec  4 16:34:59 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * dospecial.c (predospecial): Avoid scanning compressed files for
+        font comments. From Peter Whaite <peta@cim.mcgill.ca>.
+
+Sun Nov 27 11:39:42 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * output.c: Remove unmatched ( in output.c.  From Philippe
+        Charnier <charnier@lirmm.fr>.
+
+        * Makefile.in (install-data): Test for nonexistence of config.ps
+        and psfonts.map before grepping in them, to avoid spurious error
+        or unnecessary redirection.
+
+        * config.h (MFMODE): Don't bother with this.
+        * dvips.c (main): If mfmode is not set, set it to /, not a
+        compile-time default.
+
+Fri Nov 25 11:05:58 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * resident.c (getdefaults): Don't set oname in case 'o' if the
+        cmdline already did.
+        * dvips.c (oname_option): New global.
+        (main): Set if.
+
+        * dvips.c, resident.c: Make config.$PRINTER mode value override
+        config.ps. From heiko@lotte.sax.de and Michael
+        C. Grant <mcgrant@rascals.stanford.edu> (independently).
+
+        * MakeTeXPK.in: Restore the umask 0. Requested by
+        Yves.Arrouye@imag.fr and others.
+
+        * texc.script: Don't pass single - arg to ed; Linux loses.  From
+        heiko@lotte.sax.de (Heiko Schlittermann).
+
+Tue Nov 15 16:20:48 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (targets.make): This is split up now.
+
+Sun Nov  6 16:10:33 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * configure.in: Run autoupdate.
+
+Sun Oct 30 16:17:22 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (post-dist): Remove texc.lpro. From
+        interran@uluru.Stanford.EDU.
+
+Tue Oct 25 17:47:48 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Version 5.58c.
+
+Sun Oct 23 17:41:24 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * config.h (MFMODE) [!MFMODE]: Define to be "cx".
+        * dvips.c (mfmode): Initalize to MFMODE, new option -mode to set it.
+        * resident.c (getdefaults): For case M, only get the new mode if
+        it wasn't specified on the command line.
+
+Tue Oct 18 07:15:42 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * MakeTeXPK.in: Reformat the MakeTeXPK.site line so Autoconf will
+        substitute for both occurrences. (Actually, I think was my bug in
+        make/targets.make for not doing global sed substitutions.)
+
+Sun Oct 16 20:42:47 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.texi: Distinguish somewhat more clearly between dvips and
+        Dvipsk.
+
+        * dospecial.c (dospecial): In " case, there was never supposed to
+        *be* a closing quote in the \special, so go back to the original.
+
+Fri Oct 14 10:32:38 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Version 5.58b.
+
+Tue Oct 11 15:28:44 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (install-exec): mkdirchain $(fontdir), for the sake
+        of MakeTeXPK.
+
+        * dospecial.c (dospecial): In "..." case, don't send closing quote.
+
+Sun Oct  9 16:57:25 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * MakeTeXPK.in: Source $psheaderdir/MakeTeXPK.site if it exists.
+        Also, add pk/ into the default destination path if we have map files.
+
+Thu Oct  6 14:36:41 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c: Don't call help () twice for -?, and support --help and
+        --version.
+
+Sun Oct  2 16:42:25 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * resident.c (SET_CLIENT_PATH): New macro; strdup path values from
+        the config file.
+        (getdefaults): Call it.
+
+        * psfonts.map: Add more obliques for the standard fonts.  From
+        te@informatik.uni-hannover.de.
+
+        * search.c (secure) [SECURE]: Put this back.  From
+        hank@automat.uni-essen.de.
+
+Sat Oct  1 20:25:42 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * MakeTeXPK.in: Make egrep pattern search for the base font, not
+        just $NAME.
+
+Sat Sep 24 16:53:36 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c (o and f cases): Do not set noenv.  This makes dvips
+        always read the config files.
+
+Thu Sep 22 15:35:22 1994  Karl Berry  <karl@cs.umb.edu>
+
+        * dvips.c: Remove `got a new papersize' messages.
+        * resident.c (getpsinfo): Allow multiple spec's a la download's.
+
+Mon Sep 19 11:55:13 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (post-dist): Just link to the fontname dvips
+        directory, since it has all the encoding files.
+
+Mon Sep 12 11:04:46 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 5.58a.
+
+        * dospecial.c: Remove my warning stuff; Tom did it his way.
+
+Sun Sep 11 14:49:31 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Update for dvips 558.
+
+        * Makefile.in (psconfigfile): Remove this variable, and just use
+        config.ps; we would never install anything else anyway.
+        (uninstall-data): Install psfonts.map and config.ps if they didn't
+        exist.
+
+Sat Sep 10 13:45:28 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * MakeTeXPK.in (ps_to_pk case): Only parse psfonts.map if we are ps2pk.
+
+        * dvips.texi: Fix overfull boxes.
+
+        * Makefile.in (post-dist-*): Include .aux/.cps in distribution.
+
+Wed Sep  7 12:04:36 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 5.55b.
+
+        * afm2tfm.c (assignchars): Forget the outenname stuff; I just
+        noticed -u (pedantic).
+
+Sun Sep  4 07:19:05 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * loadfont.c: Include c-pathmx.h.
+
+Sat Sep  3 13:03:55 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (install-data): Install the .enc files.
+        (uninstall-data): And uninstall them.
+
+Fri Sep  2 11:55:34 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (default): New target.
+        (makeargs): No need for this.
+
+        * psfonts.map: Include entries for *0, to accomodate the !@#$% latex2e.
+
+Tue Aug 30 14:21:42 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * dospecial.c (dospecial, GetKeyVal): Add case for warning.
+
+        * dvips.texi (Special Font Effects): Mention outlined fonts.
+
+        * bbox.c (floor): Do not declare this.
+
+        * Makefile.in (distclean): Don't need this.
+
+Mon Aug 29 16:53:48 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * configure.in (AC_OUTPUT): No more fonts/Makefile.
+        * Makefile.in (install-data): Use CP_R.
+
+Thu Aug 25 14:19:18 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * config.h (D_SEARCH): New debug bit.
+        * dvips.c (dvips): Set it.
+        * dvips.texi: Document it.
+
+Tue Aug 23 14:21:06 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * afm2tfm.c (assignchars): Don't add additional characters if
+        an explicit output encoding was specified.
+
+        * MakeTeXPK.in: Remove ;landscape hacks.
+
+Sun Aug 21 10:58:11 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (mtp_destroot): Toss this.
+        (MakeTeXPK): Substitute fontdir instead.
+
+Sat Aug 20 16:13:28 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * MakeTeXPK.in (DESTDIR): Deal with ;landscape in the mode.
+
+Fri Aug 19 13:42:22 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * MakeTeXPK.in: Consistently use mf instead of $mf.
+        (MODE): If `default', guess, so users can specify a destdir with
+        no mode.
+
+Tue Aug 16 09:28:35 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (sauterdir): Change to .../src.
+        (MakeTeXPK): Substitute for it.
+
+        * MakeTeXPK.in: Don't echo the args; let kpathsea do it.
+
+Sat Aug 13 17:14:54 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in: Use $@ where possible.
+
+Fri Aug 12 10:54:19 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * dopage.c (floor): Do not declare.
+
+Tue Aug  9 13:53:12 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * dvips.c (-D): Set mfmode to the empty string.
+
+        * MakeTeXPK.in: Don't bother trying at +-1 now.
+        * fontdef.c (newfontdesc): kpse_magstep_fix the dpi calculation.
+
+Sun Aug  7 19:34:57 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * loadfont.c (pkopen): Free the filename if necessary.
+
+Tue Aug  2 15:02:59 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * config.h, dvips.c (D_DB_BUILD): Replace with D_HASH.
+
+Sun Jul 31 14:49:22 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * special.lpro (startTexFig): Set magscale to true. From Tom.
+
+        * MakeTeXPK.in (pointsize): Improve sed expression to extract
+        this. From jsacco@ssl.com.
+
+Fri Jul 29 12:01:50 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in: Use ac_include.
+        (install-{exec,data}): Different strategy for ensuring always-true
+        exit status.
+
+Thu Jul 28 15:38:04 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (install-exec): Check for MakeTeXPK in $(scriptdir),
+        not $(bindir). From john@minster.york.ac.uk.
+
+Fri Jul 15 11:46:20 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * virtualfont.c (vfopen): Don't append .vf here, kpathsea does it.
+        * tfmload.c (tfmopen): Likewise.
+
+        * dvips.c (main): Call kpse_set_progname first.
+
+Tue Jul  5 14:01:33 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * MakeTeXPK.in (DVIPSHEADERS): Set this, and export it for
+        gsftopk.
+
+Fri Jun 24 17:09:19 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * config.h (D_*): Add defns to pass to kpathsea.
+        (*path): Define as the kpse enum constants.
+        * most files: Remove extern char * decls of path variables.
+        * search.c: Pass in the format, not the path.
+        * resident.c (checkenv): #if 0 out.
+
+Thu Jun 23 16:56:50 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * loadfont.c (pkopen): Don't set the ..._ENABLED bit; kpathsea
+        does that now.
+        * paths.h (*_ENVS): Move these to kpathsea.
+        * dvips.c (tfmpath, pkpath, etc.): Delete these; they're in the
+        kpathsea structure now.
+
+Tue Jun 14 12:41:48 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (depend_encies): Remove.
+
+Mon Jun 13 10:09:09 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * loadfont.c (pkopen): Don't call kpse_set_maketex_mag here,
+        let kpathsea do it. Also don't set MAKETEX_DPI, it's not used.
+
+Sat May 28 19:08:50 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * PSfonts: Rename to fonts, for consistency with dviljk.
+        * Makefile.in: Change the cd's.
+
+Thu May 26 16:29:54 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * loadfont.c (name): Make size be PATH_MAX.
+        * search.c (search, pksearch): Set name.
+        * virtualfont.c (name): Replace definition with extern.
+
+        * virtualfont.c (virtualfont) [DEBUG]: Print memory stats if
+        D_MEM, not D_FONTS.
+        * loadfont.c (loadfont): Likewise.
+
+        * resident.c (getpsinfo): Ignore whitespace after a <.
+
+Tue May 24 13:14:08 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * resident.c (checkenv): Always set MAKETEX_BASE_DPI, for the sake
+        of missfont.log, even if dontmakefont.
+
+Thu Apr 28 12:14:50 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * output.c (cleanprinter): Call perror if file writing failed.
+
+Thu Apr 21 13:24:58 1994  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * config.h (SHORTINT): Define if SIZEOF_INT < 4.
+
+Sun Apr 17 16:13:16 1994  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * debug.h (fopen): Do not define this; we'll use kpathsea's fopen
+        debugging support now.
+        * dvips.c (main): 'd' flag calls KPSE_DEBUG_SET (KPSE_DEBUG_FOPEN).
+
+        * Makefile.in (texc.lpro): Use $(SHELL) to run texc.script.
+        (top_srcdir): Define this for configure to substitute.
+
+Tue Apr  5 11:51:32 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * MakeTeXPK.in (sauterdir): Substitute for this value.
+        Various other Sauter fixes from barthel@uaimzm.Mathematik.Uni-Mainz.DE.
+        * Makefile.in (sauterdir): Make it a variable.
+
+Sun Apr  3 10:21:41 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 5.55a.
+
+Fri Apr  1 11:52:42 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * resident.c (checkenv): Allow envvars {DVIPS,TEX}SIZES to
+        override the R config file line.
+
+        * Update for dvips 5.55.
+
+Thu Mar 24 10:43:03 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * search.c (search): must_exist is false for VF files.
+
+Tue Mar 15 07:21:04 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (distclean): Remove PSfonts/Makefile. From John I.
+
+Fri Mar 11 14:51:04 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * MakeTeXPK.in: Echo `gsftopk failed' to stderr, not stdout.
+
+Thu Mar  3 08:51:50 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 5.528a.
+
+Thu Feb 24 16:19:55 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (installargs): Pass fontdir and ps_fontdir.
+
+Tue Feb 22 11:41:13 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (c-auto.h.in): Include SMART_PUTENV.
+
+Mon Feb 21 16:47:21 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * MakeTeXPK.in: Default to appending the mode, and allow an extra
+        arg to specify the destination directory. From neal.
+
+        * dvips.c (newoutname): | means pipe.
+
+        * afm2tfm.c: Remove declarations of exit.
+
+        * loadfont.c (pkopen): Cast args to kpse_bitmap_tolerance for the
+        sake of non-ANSI compilers.
+
+Sun Feb 13 11:32:48 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Update for dvips 5.528.
+
+Wed Feb  2 09:06:20 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 5.526b.
+
+        * loadfont.c (pkopen): Don't complain if the two dpi's can
+        tolerate each other.
+
+        * dvips.c (helparr): Mention -pp.
+
+        * dvips.1: Change char92 to \. From karney@theory.pppl.gov.
+
+Tue Feb  1 11:31:30 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (install-data): Add || true to the install_fonts, so
+        Ultrix make doesn't quit prematurely.
+
+        * Makefile.in (c-auto.h.in): New target.
+
+Sat Jan 22 14:25:02 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 5.526a.
+
+        * loadfont.c (pkopen): Set dontmakefont=1 at the first failure.
+
+Thu Jan 20 14:17:04 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * search.c (search) [SECURE]: Don't allow reading of an absolute_p
+        file. From maj@cl.cam.ac.uk.
+
+Sun Jan 16 14:55:08 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (mtp_destdir): Change to $(fontdir)/pk.
+
+Fri Jan 14 15:27:17 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Update for dvips 5.523.
+
+        * MakeTeXPK (MODE): Remove guess for lview monitor, that no one in
+        the world uses but me.
+
+Sat Dec 18 12:49:10 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* dvips.texi (Config File Options): Enumerate the envvars that
+	override the P path. (From worsch@ira.uka.de.)
+
+Thu Dec 16 12:32:21 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in: Say where gsftopk can be ftp'd.
+
+Fri Dec 10 15:29:34 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* finclude.c (scanvm): Remove declaration of atol, as it causes
+	trouble with glibc.  From kayvan@satyr.sylvan.com.
+
+Thu Dec  9 09:44:34 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in: Add gsftopk stuff, guess ljfour for 600 dpi, allow
+	user envvars to override, other cleanups. gsftopk stuff from
+	R.Kooijman@et.tudelft.nl.
+
+Tue Dec  7 14:01:30 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* loadfont.c (pkopen): Call kpse_set_maketex_mag instead of
+	find_mag_str.
+	* Makefile.in (objects): Remove makefont.o.
+
+	* dvips.texi (Installation): Mention that MakeTeXPK's interface is
+	different in dvipsk.
+
+	* dvips.c (main): Make -v print the version number and exit.
+
+Sat Nov 27 14:55:28 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (INIT_PATH): Use the current value for the default,
+	also. Change calls.
+
+	* resident.c (getdefaults): Improve error message.
+	(getpath): Expand a default value here; change callers to pass
+	compile-time default, instead of previous value.
+
+Sun Nov 21 15:34:21 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (checkenv) [DEBUG]: Correct #endif placement.  From
+	pnoma@wk.estec.esa.nl.
+
+Sun Nov 14 11:56:19 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (mtp_destdir): texfontdir has been renamed.
+
+Fri Nov 12 19:42:21 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in: Document the final echo in no uncertain terms.
+
+Thu Nov 11 10:58:41 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in (pointsize): Don't assume the fontname starts with `cm'.
+
+Sat Nov  6 07:15:17 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in: test $d should have been test -d.
+
+Wed Nov  3 14:43:05 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.521a.
+
+Fri Oct 29 13:24:01 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (program_rm): Take out paths.h.
+
+Tue Oct 26 11:38:35 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* drawPS.c (arc): Consistently check for nonsquare aspect ratios.
+	From Ulf.Niemeyer@fernuni-hagen.de.
+
+Sun Oct 24 19:26:37 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (checkenv): Let TEXCONFIG override the config path,
+	as it's supposed to.
+
+Sat Oct 23 14:51:37 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in: Check for the GF file being at +1 or -1 of the dpi
+	we were asked for. Apparently the DC fonts are generated this way.
+
+Fri Oct 22 13:09:29 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (checkenv): Set kpse_override_path to pkpath, so a
+	config file value will be found.
+
+	* emspecial.c, dospecial.c (atoi): Do not declare here, as it
+	conflicts with the Linux system decl.
+
+	* dvips.texi (Install): Be more precise about when config.ps and
+	MakeTeXPK are overwritten.  From gv@me.umn.edu.
+
+	* paths.h.in: Move paths to kpathsea/paths.h.in, and rename to paths.h.
+	* Makefile.in (paths.h): Remove this dependency.
+
+	* Makefile.in ($(kpathsea)): Depend on files in kpathsea_srcdir.
+	(install-exec): MakeTeXPK is not in srcdir anymore.
+	(install-data): The prologues aren't in srcdir. The info files
+	might be in either place.
+	From simon@lia.di.epfl.ch.
+
+Tue Oct 19 12:07:25 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MACHINES: New entries from simon.
+
+Sat Oct  9 07:06:26 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (MakeTeXPK): Make executable.
+
+	* Makefile.in (distclean): MakeTeXPK removed at mostlyclean now.
+
+Thu Oct  7 09:58:48 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in: Missing ", and don't assume sauterdir exists.
+
+Wed Oct  6 08:50:06 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.519b.
+
+Sat Oct  2 17:30:45 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install-*): Don't reassign PATH, just invoke
+	mkdirchain explicitly.
+
+	* Makefile.in (dvips_makeargs): Delete, since now unused.
+
+Fri Oct  1 07:09:29 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK.in: Don't try to put the MF command into a variable;
+	quoting rules are too confused.
+
+Wed Sep 29 15:21:49 1993    (karl@terminus.cs.umb.edu)
+
+	* Version 5.519a.
+
+Tue Sep 28 13:23:45 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (print_path): Don't compare char to NULL.
+
+	* resident.c (lastresortsizes): Declare as an unsigned array.
+
+	* loadfont.c (pkopen): ifdef out the dead code.
+
+Sat Sep 25 11:33:21 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (mtp_destdir): New variable.
+	(MakeTeXPK): New target.
+	* MakeTeXPK.in: New file.
+
+	* resident.c (getdefaults): Set envvar MAKETEX_MODE in M case.
+
+Fri Sep 24 11:47:55 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (checkenv): Initialize kpse_fallback_font.
+
+Thu Sep 23 17:53:48 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (checkenv): Check for DVIPSFONTS.
+	* dvips.texi (Environment variables): Document it.
+
+Sun Aug 29 11:45:52 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c: No leading spaces before #'s.
+
+	* Makefile.in (install-*): Use $(PATH) instead of $$PATH.
+
+	* config.h (DEBUG) [NO_DEBUG]: Define this.
+
+Fri Aug 27 10:27:34 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* paths.h.in (DVIPS_{HEADER,PICT}_ENVS): New defines.
+	* resident.c (getpath): Make a copy.
+	(getdefaults): Go back to calling getpath.
+	(checkenv): Change kpse_init_path calls to pass default.
+	* dvips.c (*path): Initialize to default paths.
+
+	* dvips.c (tfmpath, pkpath, vfpath, figpath, headerpath): All
+	strings now, not string *'s.
+	* tfmload.c (tfmpath): Likewise.
+
+Wed Aug 25 14:35:30 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Update for dvips 5.519.
+
+Sun Aug 22 19:13:42 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install-data): Install the fonts last.
+
+	* Makefile.in (install-*): mkdirchain is in the top level.
+
+Tue Aug 10 10:34:30 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: Remove reference to -DFONTLIB.
+	(objects): Remove flib.o.
+
+Fri Aug  6 09:04:45 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c (checkenv): Look for DVIPSHEADERS.
+
+Thu Aug  5 09:03:31 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.518a.
+
+	* Makefile.in (default_config_path): Add ~.
+
+Wed Aug  4 13:50:36 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK: Announce that we're running.
+
+	* Makefile.in: Major surgery to conform to new scheme.
+
+Sat Jul 31 11:36:15 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* configure.in: Remove AC_PREFIX.
+
+Tue Jul 27 15:00:44 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Update for dvips 5.518.
+
+Sun Jul 25 10:43:45 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install*): Add $(srcdir) to PATH for mkdirchain, not .
+
+Wed Jul 21 19:46:22 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (configclean): New target.
+
+Sun Jul 11 16:20:41 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK: Output the filename we generate to stdout, if we succeed.
+
+Tue Jul  6 08:40:25 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK: Send all output to stderr.
+
+Mon Jul  5 09:32:30 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: Various configuration changes from xdvik.
+
+	* paths.h.in (DEFAULT_{TFM,PK,VF}_PATH): Remove.
+
+Fri Jul  2 12:00:05 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* configure.in: sinclude common.ac.
+
+Tue May 25 10:09:02 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* configure.in (AC_HAVE_HEADERS): Test for `pwd.h'.
+
+Sat May 22 11:21:34 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (dist): Run gzip -9.
+
+Fri May 21 10:14:25 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* resident.c: Change #if DEBUG to #ifdef.
+
+Thu May 20 11:48:28 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* psfonts.map: Add URW fonts.
+
+Tue May 18 13:58:55 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install-*): mkdirchain on install dirs, and put
+	mkdirchain in the dist.
+
+Sun May 16 17:47:26 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* dvips.texi: Do paragraph indentation from command.
+	* Makefile.in (MAKEINFO_FLAGS): New variable.
+
+Mon May 10 07:13:29 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.516a.
+
+Sun May  9 10:35:58 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (extraclean): add *.i and *.s.
+
+Sat May  8 13:11:16 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (dist): Rewrite for kpathsea.
+	* <many>.c, config.h: Use <kpathsea/foo.h> instead of "foo.h".
+
+Tue May  4 14:56:57 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (info, dvi): New targets.
+
+Sat May  1 16:21:41 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Update for dvips 5.516, and kpathsea library.
+
+Fri Apr 23 16:46:29 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* configure.in (AC_CONST): Add this.
+
+Tue Apr 20 06:58:31 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* pathshare from web2c.
+
+Sun Apr 11 18:57:39 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.515b.
+
+Sat Apr 10 14:58:56 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* config.h (UNIX_ST_NLINK): Define unless on foreign OS.
+
+	* Makefile.in (uninstall*): New targets.
+
+	* Makefile.in (scriptdir): New variable.
+        (install): Install MakeTeXPK there.
+
+	* configure.in: Do AC_XENIR_DIR after AC_DIR_HEADER.
+
+Mon Mar 29 08:28:22 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.515a.
+
+	* Makefile.in (default_tfm_path): Put . first.
+
+Sun Mar 28 16:43:50 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Update for dvips 5.515.
+
+Mon Mar 22 06:12:25 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.12c.
+
+Sun Mar 14 14:51:03 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK (MFINPUTS): Append a colon to be sure and get the
+	system default path.
+
+Sat Mar 13 11:04:26 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (CPPFLAGS): Add @DEFS@, for -DHAVE_CONFIG_H.
+
+Mon Mar  8 06:27:11 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.12b.
+
+Mon Mar  1 06:26:28 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.512a.
+
+Sun Feb 28 12:03:16 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (dist): Get lucida.sty.
+
+Thu Feb 25 14:02:02 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK (MFINPUTS): Include the old cwd before changing to
+	TEMPDIR.
+
+Tue Feb 23 16:51:38 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (dist): Copy info files to my local info directory.
+
+Mon Feb 22 06:19:46 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.499c.
+
+Wed Feb 17 06:45:29 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (INSTALL): Use tr instead of grep to remove the
+	Info control characters.
+
+Sun Feb 14 17:11:10 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install): Split into install-exec and install-data.
+
+Fri Feb 12 08:34:45 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* dvips.1: Don't refer to dvips.tex.
+
+Tue Feb  9 20:27:50 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* MakeTeXPK: Create DESTDIR if it doesn't exist.
+
+Sun Feb  7 10:01:25 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.499b.
+
+	* Makefile.in (install): dir is a shell variable, not a make
+	variable; fix logic for original MakeTeXPK, etc.
+
+Tue Feb  2 11:41:10 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install): Don't install over a modified MakeTeXPK,
+	config.ps, or psfonts.map.
+
+	* Version 5.499a.
+
+Sun Jan 31 07:08:44 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install): Allow install_subdirs to be empty.
+
+Fri Jan 29 17:38:04 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (CPPFLAGS): Don't bother with `-I.'.
+
+Wed Jan 20 07:53:36 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* config.h (FATAL*): Now in lib.h.
+
+	* Version 5.497c.
+
+Mon Jan 18 08:19:57 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* PSfonts: Merge PStfms and PSvfs.
+
+Sat Jan  9 15:21:30 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (configure, config.status): cd $(srcdir) first.
+
+Sun Jan  3 19:43:20 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* config.h: Move some includes to c-std.h.
+
+Fri Jan  1 13:57:24 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* configure.in, c-auto.h.in, c-memstr.h, dirio.h: Changes for
+	new Autoconf.
+
+Wed Dec 23 06:57:20 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.497b.
+
+Thu Dec 17 07:13:35 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* dvips.c (main) [DEBUG]: Missing part of fprintf.
+
+	* resident.c (checkenv) [DEBUG]: Had figpath instead of pkpath.
+
+Mon Dec 14 07:27:39 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.497a.
+
+Fri Dec 11 15:23:58 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* afm2tfm.c, dospecial.c, emspecial.c, finclude.c: Change ctype
+	references to use uppercase macros.
+
+Thu Dec 10 10:36:13 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* GNUmakefile.in (GNUmakefile): Add $(srcdir) to dependency, and
+	use $(SHELL) instead of sh.
+        (config.status): Use $(SHELL).
+
+Tue Dec  8 07:19:52 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (.texi.info): Add `-o $@'.
+
+Sat Dec  5 18:50:09 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Update for version 5.497.
+
+Sun Nov 29 17:25:52 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* finclude.c (atof) [!STDC_HEADERS]: Make declaration conditional.
+
+Sun Nov 22 11:11:24 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install): Test for non-null install_subdirs.
+
+Sat Oct 31 07:56:41 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* encodings/texm{sym,ital,ext}.enc: New files.
+
+	* dvips.texi: Remove the `eg$ ' from examples.
+
+Wed Oct 28 07:43:50 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Version 5.495b.
+
+Tue Oct 27 06:07:20 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (.lpro.pro): Depend on squeeze; also, use a temp
+	file to avoid creating empty files.
+
+	* Makefile.in (checkenv) [DEBUG]: Conditionalize use of D_PATH.
+
+	* Makefile.in (.texi.info): New suffix rule, to avoid use of $< in
+	normal rules.
+
+	* Makefile.in (distclean): Remove */Makefile.
+
+Sat Oct 24 11:48:14 1992  Karl Berry  (karl@ds3.cs.umb.edu)
+
+	* Makefile.in (install): Quote $(install_subdirs), in case it's
+	been set to empty.
+
+	* Makefile.in (texfontdir): New variable.
+        (install): mkdir it and the ps subdirectories.
+
+Sat Oct 17 16:39:02 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (install_subdirs, subdirs): New variables.
+        (install): make install in $(install_subdirs).
+        (dist): Dist $(subdirs).
+        (installargs): Make arguments to pass to subdirs.
+        (ps{tfm,vf}dir): New target directories.
+        * configure.in (AC_OUTPUT): Create Makefiles in the install subdirs.
+
+	* Makefile.in (paths.h): Don't depend on Makefile and Makefile.in
+	-- they change too often for other reasons than paths.
+
+	* Makefile.in (check): New target.
+
+	* Makefile.in (objects): Include `emspecial.o'.
+
+	* Update for dvips 5.495.
+
+Thu Oct 15 08:34:33 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* configure: Ran Autoconf 1.2.
+
+Sat Oct 10 12:20:02 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (dist): Don't copy any subdirs.
+        * README: Document what we've changed and what we haven't.
+
+Wed Sep 23 07:51:13 1992  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 5.493c.
+
+Sun Sep 20 12:52:24 1992  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in (config.status): use sh to run configure --no-create.
+
+        * Makefile.in (realclean): OK, don't remove configure.
+
+Thu Sep 17 07:40:27 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.493b.
+
+Mon Sep 14 17:59:53 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (config.status): new target.
+        (Makefile): depend on config.status.
+
+Thu Sep 10 08:57:33 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (dist): include COPYING*.
+
+        * Makefile.in (realclean): remove configure.
+
+        * MakeTeXPK: run gftopk ./<filename>, in case an old version of
+          gftopk is installed.
+
+Wed Sep  9 06:26:30 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.493a.
+
+Tue Sep  8 16:51:25 1992  Karl Berry  (karl@hayley)
+
+        * c-auto.h.in (_MINIX, _{ALL,POSIX,POSIX_1}_SOURCE): add #undef's
+          for configure to define.
+
+        * configure.in: test for more Unix variants.
+
+Fri Sep  4 17:27:52 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (extraclean): new target.
+
+        * Update to version 5.493.
+
+Thu Aug 27 08:57:06 1992  Karl Berry  (karl@hayley)
+
+        * configure: regenerated from Autoconf 1.1.
+
+Tue Aug 11 07:00:15 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490s.
+
+        * Makefile.in (dist): copy MakeTeXPK.
+
+Fri Jul 31 19:14:15 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (dist): include our aclocal.m4.
+
+Wed Jul 29 08:52:01 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490r (ran pathshare).
+
+Fri Jul 24 06:49:56 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490q.
+
+Wed Jul 22 09:10:03 1992  Karl Berry  (karl@hayley)
+
+        * configure.in: update for Autoconf 1.0.
+
+Tue Jul 21 08:52:21 1992  Karl Berry  (karl@hayley)
+
+        * resident.c (print_path): new function.
+        (checkenv): call it, if we are debugging paths.
+
+        * resident.c (checkenv): don't reset envvars if they are already set.
+        (getdefaults): pass the user envvars when setting values from the
+          config files, so they will override.
+
+Thu Jul 16 06:56:31 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490p.
+
+Sun Jul 12 06:20:11 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (dist): forgot to include the config files.
+
+Sat Jul 11 11:52:48 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (dist): copy texinfo.tex and `adobe' from their
+          original directory, instead of using the versions here.
+
+Fri Jul 10 06:52:51 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490o.
+
+Thu Jul  2 15:25:00 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (CPPFLAGS): new variable.
+        (.c.o): use it.
+        (CFLAGS): define as -g.
+        (cdebug): remove.
+        (LDFLAGS): use CFLAGS instead of cdebug.
+
+        * Run Autoconf 0.119.
+
+Wed Jul  1 07:48:33 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490n.
+
+Sat Jun 27 11:03:09 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (paths.h): depend on Makefile.in and Makefile.
+
+Thu Jun 25 09:57:54 1992  Karl Berry  (karl@hayley)
+
+        * All these $(srcdir) changes from or inspired by zoo@cygnus.com.
+
+        * Makefile.in (paths.h): use $(srcdir) for paths.h.in.
+
+Wed Jun 24 11:57:21 1992  Karl Berry  (karl@hayley)
+
+        * structures.h (BANNER): name this program kdvips.
+        * Makefile.in (distdir): ditto for the directory.
+
+        * Makefile.in (CCFLAGS): new variable to replace $(CFLAGS).
+        (.c.o): new implicit rule to use it.
+        (.lpro.pro): use $< instead of $*.lpro, since I
+          guess it's marginally more portable.
+        (texc.lpro, install): use $(srcdir).
+        (Makefile): new target.
+
+        * Makefile (install): mkdir more of the top level directories.
+
+        * Makefile (dist): distribute the config* files (except
+          config.status).
+
+        * README: say that %-specifiers don't work.
+
+Tue Jun 23 08:50:06 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490m.
+
+Fri Jun 19 09:26:14 1992  Karl Berry  (karl@hayley)
+
+        * psfonts.map: update for new (old by now, actually) change in the
+          way ExtendFont and SlantFont work.
+
+Tue Jun 16 06:13:31 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490l.
+
+Sat Jun 13 07:13:07 1992  Karl Berry  (karl@hayley)
+
+        * loadfont.c (pkopen): fix remaining sprintf-with-too-many-%'s.
+
+Thu Jun 11 08:45:25 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (.NOEXPORT): new target, since Autoconf doesn't add
+          it automatically any more.
+
+Wed Jun 10 06:34:24 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.490k.
+
+Fri Jun  5 07:58:45 1992  Karl Berry  (karl@hayley)
+
+        * squeeze.c, afm2tfm.c (main): `return 0' instead of `exit (0)'.
+          (From Paul Eggert)  Also declare as `int'.
+
+        * Makefile (install): `black.tex' is now `blackdvi.tex', etc.
+
+Thu Jun  4 08:25:51 1992  Karl Berry  (karl@hayley)
+
+        * main.c (main): `return 0' instead of `exit (0)'.  (From Paul Eggert)
+
+        * Update for dvips 5.490.
+
+        * configure.in (AC_HEADER_FILE): rename to AC_CONFIG_HEADER, for
+          Autoconf 0.115.
+
+Wed Jun  3 08:19:53 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.487l.
+
+Fri May 29 11:28:16 1992  Karl Berry  (karl@hayley)
+
+        * Below changes from Paul Eggert.
+
+        * dvips.c (main): declare as returning an int.
+
+        * dvips.c (exit): do not declare.
+
+        * resident.c (pagecopies) [DEBUG]: declare unconditionally.
+
+        * resident.c (exit): do not declare.
+
+        * unpack.c (flip): don't use a variable `howmany', since Sun has a
+          macro called that.
+
+        * config.h (FATAL): don't assume an ANSI cpp.

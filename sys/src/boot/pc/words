@@ -1,0 +1,2 @@
+x16.h is included by /sys/src/9/pc*/*.s.
+dosfs.h has been moved to /sys/src/9/boot.

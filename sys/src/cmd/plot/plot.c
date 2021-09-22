@@ -494,22 +494,28 @@ process(Biobuf *fd){
 		case TEXT:	strarg();   text(argstr); pplots=0; break;
 		case VEC:	numargs(2); vec(x[0], x[1]); break;
 		default:
-			fprint(2, "plot: missing case %ld\n", pplots-plots);
+			fprint(2, "plot: missing case %lld\n",
+				(uvlong)(pplots - plots));
 			exits("internal error");
 		}
 	}
 	return 1;
 }
+
 char *names = 0;
 char *enames = 0;
 char *bstash = 0;
 char *estash = 0;
 unsigned size = 1024;
 char *nstash = 0;
-void define(char *a){
+
+void
+define(char *a)
+{
 	char	*ap;
 	short	i, j;
 	int curly = 0;
+
 	ap = a;
 	while(isalpha(*ap))ap++;
 	if(ap == a){

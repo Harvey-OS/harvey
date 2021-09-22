@@ -15,6 +15,9 @@
 #include "etherif.h"
 #include "../port/aoe.h"
 
+extern	char	Echange[];
+extern	char	Enotup[];
+
 #define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
 
 enum {
@@ -112,7 +115,7 @@ static int
 identify(Ctlr *c, ushort *id)
 {
 	int i;
-	uchar oserial[21];
+	uchar oserial[sizeof c->serial];
 	uvlong osectors, s;
 
 	osectors = c->sectors;
@@ -444,18 +447,11 @@ aoerio(SDreq *r)
 
 	unit = r->unit;
 	c = unit->dev->ctlr;
-//	if(c->feat & Datapi)
-//		return aoeriopkt(r, d);
 
 	cmd = r->cmd;
 	name = unit->name;
 
 	if(*cmd == ScmdSynccache || *cmd == ScmdSynccache16)
-//		qlock(c);
-//		i = flushcache();
-//		qunlock(c);
-//		if(i == 0)
-//			return sdsetsense(r, SDok, 0, 0, 0);
 		return sdsetsense(r, SDcheck, 3, 0xc, 2);
 
 	if((i = sdfakescsi(r, c->ident, sizeof c->ident)) != SDnostatus){
@@ -490,11 +486,11 @@ aoerio(SDreq *r)
 	count *= Aoesectsz;
 
 	if(r->dlen < count)
-		count = r->dlen & ~0x1ff;
+		count = r->dlen & ~VMASK(9);
 
 	if(waserror()){
 		if(strcmp(up->errstr, Echange) == 0 ||
-		    strcmp(up->errstr, Eaoedown) == 0)
+		    strcmp(up->errstr, Enotup) == 0)
 			unit->sectors = 0;
 		nexterror();
 	}

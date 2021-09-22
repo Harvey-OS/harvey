@@ -1,0 +1,105 @@
+.TH EPLAIN 1 "14 December 1993" "Web2C @VERSION@"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if t .ds AX \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(TX
+.if n .ds AX AmSTeX
+.if t .ds AY \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(LX
+.if n .ds AY AmSLaTeX
+.\"=====================================================================
+.SH NAME
+eplain \- extended plain TeX
+.SH SYNOPSIS
+.B eplain
+[ first line ]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+.B eplain
+is an extension of plain \*(TX described in the book
+.IR "\*(OX for the Impatient" .
+It adds these features (among others) to plain \*(TX:
+.RS
+.TP \w'\(bu'u+2n
+\(bu
+left-justified displays
+.TP
+\(bu
+double-column output
+.TP
+\(bu
+tables of contents
+.TP
+\(bu
+.I \ehrule
+and
+.I \evrule
+with a different default than 0.4pt
+.TP
+\(bu
+time of day
+.TP
+\(bu
+verbatim file listing
+.TP
+\(bu
+generalized footnotes
+.TP
+\(bu
+blank and black boxes
+.TP
+\(bu
+citations using \*(BX
+.RE
+.\"=====================================================================
+.SH FILES
+.TP
+.I eplain/doc/eplain.texi
+\*(TXable documentation of
+.B etex
+macros in
+.B texinfo
+format.
+.TP
+.I eplain.info*
+Online GNU Emacs
+.BR info (1)
+files produced from
+.IR eplain.texi .
+.PP
+The complete
+.I eplain
+distribution is available via anonymous ftp to the Internet host
+.I ftp.cs.umb.edu
+from the file
+.I pub/tex/eplain.tar.Z
+which is linked to another file containing the most recent version of
+the package.  Major \*(TX archive sites should also have it.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR emacs (1),
+.BR info (1),
+.BR initex (1),
+.BR tex (1),
+.BR xinfo (1).
+.br
+Karl Berry,
+.IR eplain ,
+TUGboat 11(4), 571--572, 1990.
+.br
+Paul W. Abrahams with Karl Berry and Kathryn A. Hargreaves,
+.IR "\*(OX for the Impatient" ,
+Addison-Wesley, 1990, ISBN 0-201-51375-7.

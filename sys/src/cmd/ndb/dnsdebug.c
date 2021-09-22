@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 	dninit();
 	fmtinstall('R', prettyrrfmt);
 	if(myipaddr(ipaddr, mntpt) < 0)
-		sysfatal("can't read my ip address");
+		sysfatal("can't read my ip address on %s", mntpt);
 	opendatabase();
 
 	if(cfg.resolver)
@@ -375,8 +375,8 @@ void
 doquery(char *name, char *tstr)
 {
 	int len, type, rooted;
-	char *p, *np;
-	char buf[1024];
+	char *rev;
+	char buf[256];
 	RR *rr, *rp;
 	Request req;
 
@@ -398,27 +398,19 @@ doquery(char *name, char *tstr)
 	} else
 		rooted = 0;
 
-	/* inverse queries may need to be permuted */
+	/* inverse queries without ".arpa" need to be permuted */
 	strncpy(buf, name, sizeof buf);
-	if(strcmp("ptr", tstr) == 0 && cistrstr(name, ".arpa") == nil){
-		/* TODO: reversing v6 addrs is harder */
-		for(p = name; *p; p++)
-			;
-		*p = '.';
-		np = buf;
-		len = 0;
-		while(p >= name){
-			len++;
-			p--;
-			if(*p == '.'){
-				memmove(np, p+1, len);
-				np += len;
-				len = 0;
-			}
+	if(strcmp("ptr", tstr) == 0 && cistrstr(buf, ".arpa") == nil){
+		if (strchr(buf, ':') != nil)
+			rev = revv6(buf);
+		else
+			rev = revv4(buf);
+		if (rev == nil)
+			fprint(2, "can't reverse addr %s", buf);
+		else {
+			snprint(buf, sizeof buf, "%s", rev);
+			free(rev);
 		}
-		memmove(np, p+1, len);
-		np += len;
-		strcpy(np, "in-addr.arpa");	/* TODO: ip6.arpa for v6 */
 	}
 
 	/* look it up */

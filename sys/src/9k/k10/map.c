@@ -1,44 +1,44 @@
+/*
+ * mapping twixt kernel-virtual and physical addresses.
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 
-#define _KADDR(pa)	UINT2PTR(kseg0+((uintptr)(pa)))
-#define _PADDR(va)	PTR2UINT(((uintptr)(va)) - kseg0)
-
 void*
 KADDR(uintptr pa)
 {
-	u8int* va;
-
-	va = UINT2PTR(pa);
-	if(pa < TMFM)
-		return KSEG0+va;
-	return KSEG2+va;
+	return (uchar *)pa + (pa < kernmem? KSEG0: KSEG2);
 }
 
 uintmem
 PADDR(void* va)
 {
-	uintmem pa;
+	uintptr pa;
 
-	pa = PTR2UINT(va);
-	if(pa >= KSEG0 && pa < KSEG0+TMFM)
+	pa = (uintptr)va;
+	if(pa >= KSEG0 && pa < KSEG0+kernmem)
 		return pa-KSEG0;
-	if(pa > KSEG2)
+	if(pa >= KSEG2)
 		return pa-KSEG2;
 
-	panic("PADDR: va %#p pa #%p @ %#p\n", va, _PADDR(va), getcallerpc(&va));
-	return 0;
+	panic("PADDR: va %#p pa #%p @ %#p", va, (uintptr)va - KSEG0,
+		getcallerpc(&va));
+	notreached();
 }
 
+/* return a working virtual address for page->pa */
 KMap*
 kmap(Page* page)
 {
-//	print("kmap(%#llux) @ %#p: %#p %#p\n",
-//		page->pa, getcallerpc(&page),
-//		page->pa, KADDR(page->pa));
+	void *va;
 
-	return KADDR(page->pa);
+	va = KADDR(page->pa);
+//	print("kmap(%#llux) @ %#p: %#p %#p\n",
+//		page->pa, getcallerpc(&page), page->pa, va);
+	if (mmuphysaddr((uintptr)va) == ~0ull)
+		print("kmap: no mapped pa for va %#p\n", va);
+	return va;
 }

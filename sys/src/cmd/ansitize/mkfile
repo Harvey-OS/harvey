@@ -1,0 +1,29 @@
+</$objtype/mkfile
+
+TARG=ansitize
+OFILES=\
+	ansitize.$O\
+	cfg-comp.$O\
+	cfg-gram.$O\
+	cfg-rule.$O\
+	cfg-set.$O\
+	cfg-sym.$O\
+	glr-parse.$O\
+	glr-state.$O\
+	dfa.$O\
+	hash.$O\
+	list.$O\
+	name.$O\
+	parse.$O\
+	slr-comp.$O\
+	slr-dump.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+cgrammar.c:D: c.g
+	cat c.g | sed 's/\\/\\\\/g; s/"/\\"/g; s/.*/"&\\n"/' >cgrammar.c
+
+ansitize.$O: cgrammar.c
+
+CFLAGS=$CFLAGS -p

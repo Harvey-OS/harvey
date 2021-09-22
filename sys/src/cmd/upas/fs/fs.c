@@ -49,8 +49,8 @@ Mailbox	*mbl;
 Fid		*newfid(int);
 void		error(char*);
 void		io(void);
-void		*erealloc(void*, ulong);
-void		*emalloc(ulong);
+void		*erealloc(void*, uintptr);
+void		*emalloc(uintptr);
 void		usage(void);
 void		reader(void);
 int		readheader(Message*, char*, int, int);
@@ -1640,7 +1640,7 @@ post(char *name, char *envname, int srvfd)
 	int fd;
 	char buf[32];
 
-	fd = create(name, OWRITE, 0600);
+	fd = create(name, OWRITE, 0600|ORCLOSE);
 	if(fd < 0)
 		error("post failed");
 	sprint(buf, "%d",srvfd);

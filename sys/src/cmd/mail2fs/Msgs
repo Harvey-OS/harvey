@@ -1,0 +1,31 @@
+#!/bin/rc
+rfork e
+if (~ $#file 0){
+	echo must run under omero. Acme has its own reader. >[1=2]
+	exit omero
+}
+if(~ $#* 0)
+	mbox=/mail/box/$user/msgs
+if not
+	mbox=$1
+
+fn isforeign {
+	fk=`{file <{sed -n '/^$/,$p' $1/text}}
+	if(~ $"fk *apanese* *yrillic* *rabic* *hinese* *ussian*)
+		status=''
+	if not
+		status='not foreign'
+}
+
+fn spam {
+	aname=`{echo $1 | sed 's,/(.\.)?([0-9]*)$,/s.\2,'}
+	~ $1 $aname || mv $1 $aname
+}
+
+if(test -e $mbox/*/[0-9]*)
+for(m in $mbox/*/[0-9]*){
+	if(isforeign $m)
+		spam $m
+}
+
+msgs $* 

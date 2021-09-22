@@ -1,0 +1,263 @@
+Mon Mar 23 19:04:03 1998  Olaf Weber  <olaf@infovore.xs4all.nl>
+
+	* mftalk.c (mf_mftalk_initscreen): Correction from Mathias
+ 	Herberts.
+
+Wed Feb 11 17:19:54 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* epsf.c: New version from Mathias Herberts.
+
+Tue Feb 10 21:10:20 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* mftalk.c: Patches to improve handling of pipes, after Mathias
+ 	Herberts.
+
+	* epsf.c: Pseudo-window EPS server contributed by Mathias Herberts
+ 	<herberts@infini.fr>
+
+	* Makefile.in: Add epsf.o to objects.
+
+Fri Jan 23 14:59:22 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* win32.c: Patches from Fabrice Popineau.
+
+Sat Jan 17 09:45:20 1998  Olaf Weber  <infovore@xs4all.nl>
+
+	* mftalk.c (app_type): Wrong prototype.
+	(mf_talk_initscreen): We use the calling sequence of execl, not
+ 	execve.  Undefine input and output, as these are macros on some
+ 	machines.  From Mathias Herberts <Mathias.Herberts@irisa.fr>
+
+Thu Nov 13 19:17:42 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* next.c (mf_next_paintrow): Forgot to add the P4C macro name.
+
+Fri Oct 24 13:42:15 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* trap.c: By way of boilerplating, cast to long, not int, for
+ 	printing.
+
+	* win32.c, x11-Xlib.c, x11-Xt.c, uniterm.c trap.c, tek.c,
+	suntools.c, regis.c, next.c, mftalk.c, hp2627.c, amiga.c:
+	Prototypes for the mf_*_{blankrectangle,paintrow} functions.
+
+Mon Oct 20 08:48:51 1997  Olaf Weber  <infovore@xs4all.nl>
+
+	* Makefile.in [objects]: Add win32.o.
+
+	* trap.c: Insert casts to ensure that the arguments to fprintf
+ 	match the format.
+
+	* win32.c: Nef file, adds support for win32 graphical output.
+	From Fabrice Popineau.
+
+Thu Feb 13 16:13:13 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* x11-Xt.c (wchar_t) [FOIL_X_WCHAR_T]: Had polarity of #if test wrong.
+	From: Olaf Weber <Olaf.Weber@cwi.nl>.
+
+Mon Jan 20 17:30:15 1997  Karl Berry  <karl@cs.umb.edu>
+
+	* Version 7.0.
+
+Tue Dec  3 15:10:13 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* Makefile.in (prog_cflags): Oops, the previous change didn't work. 
+	Have to set this to -I.. -I$(srcdir)/.. $(x_cppflags).
+
+Tue Dec  3 00:19:27 1996  Ulrik Vieth  <vieth@thphy.uni-duesseldorf.de>
+
+	* Makefile.in (prog_cflags): Set this to $(x_cppflags) so that 
+	the X include path will eventually end up in ALL_CPPFLAGS.
+
+Tue Dec  3 00:19:27 1996  Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
+
+	* Makefile.in (prog_cflags): Set this to $(x_cppflags) so that 
+	the X include path will eventually end up in ALL_CPPFLAGS.
+
+Mon Aug  5 16:30:17 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* x11-Xlib.c (mf_x11_initscreen): tvect - 1 should be just tvect.
+	From DEK et al.
+
+Fri Jul 26 15:47:50 1996  Karl Berry  <karl@cs.umb.edu>
+
+	* Makefile.in: Remove co.make.
+
+Wed May 15 16:58:01 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * mftalk.c: Doc fix.
+
+Tue Feb 13 16:10:54 1996  Karl Berry  <karl@cs.umb.edu>
+
+        * x11-Xt.c: Missing close-comment.
+
+        * Makefile.in: Include rdepend.make.
+
+Fri Dec 29 17:15:38 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in: misc.make is now clean.make.
+
+Sat Nov 18 17:11:26 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (distclean): New target to remove x11.c. From Peter
+        Dyballa.
+
+Thu Nov 16 16:28:22 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * amiga.c: Replacement file.
+        * trap.c (EXTERN): Define as extern, just as with the rest of the
+        modules. From Andreas Scherer.
+
+Mon Oct  9 16:51:17 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * Makefile.in (x11.c): Use $(srcdir). From Simon.
+
+Fri Jul 21 15:48:25 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * mftalk.c: The FSF has a new address.
+
+Tue Jul 18 15:16:15 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * mftalk.c (app_type): Don't just fail under Unix.
+
+Tue Jun 13 11:37:37 1995  Karl Berry  <karl@cs.umb.edu>
+
+        * x11-Xt.c (mf_x11_paintrow): Use tvect, not tvect - 1.
+	From: FUKUI Rei <fkr@tooyoo1.l.u-tokyo.ac.jp>.
+ 
+MFwindow:
+Fri Jul 29 11:50:19 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * x11-Xt.c: Make the default be to *not* foil X's wchar_t.
+
+Mon Feb 21 17:49:30 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * x11-Xt.c: Include systypes.h for still more wchar_t kludgery.
+
+Wed Feb  2 11:01:09 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 6.1.
+
+Tue Feb  1 11:24:11 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Makefile.in: Change ../../$(srcdir) to $(srcdir)/../.. throughout.
+
+Mon Jan 24 07:28:00 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * Version 6.0.
+
+Sun Jan 23 16:25:58 1994  Karl Berry  (karl@cs.umb.edu)
+
+        * x11-Xt.c (wchar_t): No, remove that condition.
+
+Fri Dec 24 13:15:07 1993  Karl Berry  (karl@sorrel.hq.ileaf.com)
+
+	* x11.c (wchar_t) [! __INT_WCHAR_T_H]: Conditionalize for aviion.
+
+|Tue Dec 21 19:33:59 1993  Karl Berry  (karl@cs.umb.edu)
+
+        * x11-Xt.c (X_WCHAR): Define.
+
+Sat Dec 18 14:55:59 1993  Karl Berry  (karl@cs.umb.edu)
+
+        * x11.c (wchar_t): Define this to a nonsense symbol, to avoid
+        redefinitions.
+
+Sat Dec  4 11:42:36 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (xincludedir): This is now x_include_flags.
+
+Sun Nov 14 16:19:13 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: Don't need kpathsea definitions?
+
+Thu Nov 11 15:51:55 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* x11-Xt.c: Merge changes from Rainer for the Alpha and reformat.
+
+Sat Nov  6 13:18:07 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (objs): Add next.o and regis.o.
+	* next.c, regis.c: New file from joe@rilgp.tamri.com.
+
+Sun Oct  3 13:27:35 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (*clean): Include standard targets.
+
+Fri May 21 14:23:06 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* x11-Xt.c (mf_x11_updatescreen): Remove unused variable `event'.
+	(mf_max_x, etc.) [MF_XT_DEBUG]: Conditionalize declaration.
+
+Sun May  9 10:44:35 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (CPPFLAGS): Add -I for kpathsea.
+
+Fri Apr  9 16:22:17 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* x11-Xt.c (_GCC_WCHAR_T): Define.
+
+Sat Mar 13 11:26:57 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* uniterm.c (tek_dummy): Rename to uniterm_dummy, to avoid warning.
+
+Fri Feb 12 07:29:19 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (xincludedir): Include $(xincludedir).
+
+Sun Jan  3 13:30:10 1993  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (distclean): Remove Makefile.
+
+Sat Dec 19 18:57:02 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in ({sun,x11}.c): New targets.
+
+Sun Dec 13 14:27:15 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in (c-sources): New target.
+
+Sat Dec 12 15:10:49 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* Makefile.in: Rewrite from Makefile.
+
+Sun Oct 18 13:48:49 1992  Karl Berry  (karl@cs.umb.edu)
+
+	* tek.c (bcopy, bzero) [SYSV]: Remove these; they're already
+	defined in c-memstr.h.
+
+Sun Jul  5 07:29:40 1992  Karl Berry  (karl@hayley)
+
+        * sun-sunview.c: give return types to all fns.
+
+        * sun-sunview.c (mf_sun_initscreen): avoid line >= 80 chars.
+        * uniterm.c (mf_uniterm_paintrow): likewise.
+        * sun-xview.c (mf_xview_updatescreen): likewise.
+
+Fri Jul  3 11:22:47 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (CFLAGS): define as -g.
+        (CPPFLAGS): new var.
+        (.c.o): use it.
+        (distclean): synonym for realclean.
+
+        * sun-sunview.c: changes from Pierre (like the following).
+        * sun-gfx.c: rename from sun-suntools.c.
+        * sun-xview.c: new file.
+        * sun.c: remove and remake as a link to sun-sunview.c.
+
+Fri Mar 20 16:53:52 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Fri Jan 24 09:21:15 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Sun Jan 12 12:53:24 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (CFLAGS): include config, two levels up.

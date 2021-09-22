@@ -1,0 +1,93 @@
+# pccpudisk - home cpu server with cfs cache
+dev
+	root
+	cons
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+#	bridge		log
+#	sdp		thwack unthwack
+	cap
+	kprof
+	fs
+	segment
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	sd
+
+	uart
+	usb
+	kbin
+
+link
+#	realmode	# no longer needed
+
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.
+	ether2000	ether8390
+	ether79c970	pci
+	ether8003	ether8390
+	ether8139	pci
+	ether8169	pci ethermii
+	ether82557	pci
+	etherelnk3	pci
+	etherigbe	pci ethermii
+	etherigbepcie	pci
+	ethersink
+	ethervt6105m	pci ethermii
+	etherxgbe	pci
+
+	ethermedium
+	netdevmedium
+	loopbackmedium
+
+#	usbuhci
+#	usbohci
+	usbehci		usbehcipc
+
+misc
+	mp		apic mpacpi
+
+	uarti8250
+	uartpci		pci
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+	sdahci		pci sdscsi
+	sdnvme		pci sdscsi
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	gre
+	ipmux
+	esp
+	rudp
+
+port
+	int cpuserver = 1;
+
+boot cpu
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/386/bin/ip/ipconfig ipconfig
+	/386/bin/auth/factotum
+	/386/bin/cfs
+	/386/bin/usb/usbd

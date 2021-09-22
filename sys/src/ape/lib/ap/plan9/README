@@ -1,0 +1,4 @@
+Note that select() is only used by links, python, tcpostio and
+drawterm.  links and python aren't really vital to Plan 9, and
+drawterm won't run on APE due to absence of X11 and it only uses
+select for microsecond resolution timing.

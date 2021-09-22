@@ -1,0 +1,6 @@
+#!/bin/rc
+for (f) {
+	echo $f:
+	diff -rw `{y -20200216 $f} $f
+	echo
+}

@@ -1,0 +1,8 @@
+error.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/error.h
+error.acid: error.c /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/error.h
+report.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/worker.h /sys/include/error.h /sys/include/tos.h
+report.acid: report.c /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/worker.h /sys/include/error.h /sys/include/tos.h
+worker.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/error.h /sys/include/worker.h
+worker.acid: worker.c /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/error.h /sys/include/worker.h
+timer.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/worker.h
+timer.acid: timer.c /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/worker.h

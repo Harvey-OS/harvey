@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=axfr
+OFILES=axfr.$O
+BIN=/$objtype/bin/ndb
+</sys/src/cmd/mkone
+
+install:
+	cp zonefresh.rc /rc/bin/zonefresh
+

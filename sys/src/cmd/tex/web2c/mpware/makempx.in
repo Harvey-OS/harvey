@@ -1,0 +1,169 @@
+#!/bin/sh
+# '$Id: makempx.in,v 1.7 1997/12/01 19:21:12 olaf Exp $'
+# Make an MPX file from the labels in a MetaPost source file,
+# using mpto and either dvitomp (TeX) or dmp (troff).
+# From John Hobby's original (though there's not much of it left by now).
+# Public domain.
+
+rcs_revision='$Revision: 1.7 $'
+version=`set - $rcs_revision; echo $2`
+
+: ${DMP=dmp}
+: ${DVITOMP=dvitomp}
+: ${MAKEMPX_BINDIR=@BINDIR@}
+: ${MPTEXPRE=mptexpre.tex}
+: ${MPTOTEX="mpto -tex"}
+: ${MPTOTR="mpto -troff"}
+: ${NEWER=newer}
+: ${TEX=tex}
+: ${TROFF='eqn -d\$\$ | troff -Tpost'}
+
+PATH=$MAKEMPX_BINDIR:/bin:/usr/bin:$PATH
+
+# These names are documented in the MetaPost manual, so it's
+# unwise to change them.
+ERRLOG=mpxerr.log		# file for an error log if necessary
+TEXERR=mpxerr.tex		# file for erroneous TeX if any
+DVIERR=mpxerr.dvi		# troublesome dvi file if any
+TROFF_INERR=mpxerr		# file for erroneous troff input, if any
+TROFF_OUTERR=mpxerr.t		# file for troublesome troff output, if any
+
+
+usage="Usage: $0 [-tex|-troff] MPFILE MPXFILE.
+  If MPXFILE is older than MPFILE, translate the labels from the MetaPost
+  input file MPFIle to low-level commands in MPXFILE, by running
+    $MPTOTEX, $TEX, and $DVITOMP
+  by default; or, if -troff is specified,
+    $MPTOTR, $TROFF, and $DMP.
+
+  The current directory is used for writing temporary files.  Errors are
+  left in mpxerr.{tex,log,dvi}.
+
+  If the file named in \$MPTEXPRE (mptexpre.tex by default) exists, it is
+  prepended to the output in tex mode.
+
+Email bug reports to tex-k@mail.tug.org."
+
+
+mode=tex
+
+while test $# -gt 0; do
+  case "$1" in
+    -help|--help) 
+      echo "$usage"; exit 0;;
+    -version|--version)
+      echo "`basename $0` (Web2c @web2cver@) $version"
+      echo "There is NO warranty.  This script is public domain.
+Primary author: John Hobby."
+      exit 0;;
+    -troff|--troff) mode=troff;;
+    -tex|--tex) mode=tex;;
+    -*) 
+      echo "$0: Invalid option: $1." >&2
+      echo "Try \``basename $0` --help' for more information." >&2 
+      exit 1;;
+    *) 
+      if test -z "$MPFILE"; then
+        MPFILE=$1                   # input file
+      elif test -z "$MPXFILE"; then
+        MPXFILE=$1                  # output file
+      else
+        echo "$0: Extra argument $1." >&2 
+        echo "Try \``basename $0` --help' for more information." >&2
+        exit 1
+      fi;;
+  esac
+  shift
+done
+
+if test -z "$MPFILE" || test -z "$MPXFILE"; then
+  echo "$0: Need exactly two file arguments." >&2
+  echo "Try \``basename $0` --help' for more information." >&2
+  exit 1
+fi
+
+trap "rm -f mpx$$.* $ERRLOG; exit 4" 1 2 3 15
+
+# If MPX file is up-to-date, do nothing.
+if $NEWER $MPFILE $MPXFILE; then
+
+  # Have to remake.
+  # Step 0: Check typesetter mode for consistency.
+  case "$mode" in
+      tex) MPTO="$MPTOTEX";;
+    troff) MPTO="$MPTOTR";;
+        *) echo "$0: Unknown typesetter mode: $mode" >&2
+           exit 1;;
+  esac
+  
+  # Step 1: Extract typesetter source from MetaPost source.
+  if $MPTO $MPFILE >mpx$$.tex 2>$ERRLOG; then :;
+    # success
+  else
+    # failure
+    echo "$0: Command failed: $MPTO $MPFILE" >&2
+    cat $ERRLOG >&2
+    rm -f mpx$$.tex
+    exit 1
+  fi
+  if test "$mode" = troff; then
+    mv -f mpx$$.tex mpx$$.i
+  fi
+  
+  # Step 2: Run typesetter.
+  if test "$mode" = tex; then
+    if test -r $MPTEXPRE; then
+      # Prepend user file.
+      cat $MPTEXPRE mpx$$.tex >mpx$$.tmp
+      mv mpx$$.tmp mpx$$.tex
+    fi
+
+    if $TEX --interaction=batchmode mpx$$.tex </dev/null >/dev/null; then
+      WHATEVER_TO_MPX="$DVITOMP"
+      INFILE=mpx$$.dvi
+      INERROR=$DVIERR
+    else
+      # failure
+      mv -f mpx$$.tex $TEXERR
+      mv -f mpx$$.log $ERRLOG
+      echo "$0: Command failed: $TEX $TEXERR; see $ERRLOG" >&2
+      exit 2
+    fi
+  elif test "$mode" = troff; then
+    if cat mpx$$.i | eval $TROFF >mpx$$.t; then
+      # success, prepare for step 3.
+      WHATEVER_TO_MPX="$DMP"
+      INFILE=mpx$$.t
+      INERROR=$TROFF_OUTERR
+    else
+      # failure
+      mv -f mpx$$.i $TROFF_INERR
+      echo "$0: Command failed: cat $TROFF_INERR | $TROFF" >&2
+      rm -f mpx$$.t
+      exit 2
+    fi
+  else
+    echo "$0: Unknown typesetter mode: $mode; how did this happen?" >&2
+    exit 2
+  fi
+
+  # Step 3: Translate typesetter output to a MetaPost MPX.
+  if $WHATEVER_TO_MPX $INFILE $MPXFILE >$ERRLOG; then
+    : # success
+  else 
+    # failure
+    mv -f $INFILE $INERROR
+    test $mode = troff && mv -f mpx$$.i $TROFF_INERR
+    echo "$0: Command failed: $WHATEVER_TO_MPX $INERROR $MPXFILE" >&2
+    # Better to remove $MPXFILE if something went wrong rather than
+    # leaving behind an unfinished or unusable version since $NEWER
+    # might think that all is fine if $MPXFILE exists.
+    rm -f $MPXFILE
+    cat $ERRLOG >&2
+    exit 3
+  fi
+
+  rm -f $ERRLOG mpx$$.*
+fi
+
+exit 0

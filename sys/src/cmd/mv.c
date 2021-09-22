@@ -88,8 +88,8 @@ mv1(char *from, Dir *dirb, char *todir, char *toelem)
 	}
 	j = strlen(todir);
 	if(i + j + 2 > sizeof toname){
-		fprint(2, "mv: path too big (max %d): %s/%s\n",
-			sizeof toname, todir, toelem);
+		fprint(2, "mv: path too big (max %lld): %s/%s\n",
+			(vlong)sizeof toname, todir, toelem);
 		return -1;
 	}
 	memmove(toname, todir, j);

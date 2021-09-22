@@ -1,0 +1,8 @@
+load "http://apc-reset/outlets.htm"
+find "yoshimi"
+find next select
+input "Immediate Reboot"
+submit
+find "yoshimi"
+find prev row
+print

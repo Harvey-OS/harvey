@@ -1,0 +1,130 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:583: checking for a BSD compatible install
+configure:636: checking whether build environment is sane
+configure:693: checking whether make sets ${MAKE}
+configure:739: checking for working aclocal
+configure:752: checking for working autoconf
+configure:765: checking for working automake
+configure:778: checking for working autoheader
+configure:791: checking for working makeinfo
+configure:818: checking for gcc
+configure:931: checking whether the C compiler (gcc  ) works
+configure:947: gcc -o conftest    conftest.c  1>&5
+configure:973: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:978: checking whether we are using GNU C
+configure:1006: checking whether gcc accepts -g
+configure:1046: checking for EMX
+configure:1077: checking for typeof
+configure:1110: checking for long long
+configure:1146: checking for dirent.h that defines DIR
+configure:1184: checking for opendir in -ldir
+configure:1267: checking how to run the C preprocessor
+configure:1347: checking for ANSI C header files
+configure:1451: checking for sys/wait.h that is POSIX.1 compatible
+configure:1496: checking for fcntl.h
+configure:1496: checking for limits.h
+configure:1496: checking for sys/ioctl.h
+configure:1496: checking for sys/time.h
+configure:1496: checking for time.h
+configure:1496: checking for unistd.h
+configure:1496: checking for math.h
+configure:1496: checking for ieee.h
+configure:1496: checking for endian.h
+configure:1536: checking for values.h
+configure:1576: checking for sigaction.h
+configure:1616: checking for netinet/in_systm.h
+configure:1656: checking for netinet/in_system.h
+configure:1696: checking for netinet/ip.h
+configure:1736: checking for sys/select.h
+configure:1776: checking for sys/resource.h
+configure:1816: checking for sys/utsname.h
+configure:1856: checking for sys/un.h
+configure:1896: checking for sys/fmutex.h
+configure:1936: checking for sys/cygwin.h
+configure:1976: checking for io.h
+configure:2016: checking for setjmp.h
+configure:2056: checking for langinfo.h
+configure:2094: checking for working const
+configure:2169: checking for inline
+configure:2209: checking for size_t
+configure:2242: checking whether time.h and sys/time.h may both be included
+configure:2277: checking whether struct tm is in sys/time.h or time.h
+configure:2320: checking size of short
+configure:2359: checking size of unsigned short
+configure:2398: checking size of int
+configure:2437: checking size of unsigned
+configure:2476: checking size of long
+configure:2515: checking size of unsigned long
+configure:2554: checking for big endian
+configure:2591: checking for little endian
+configure:2643: checking whether gcc needs -traditional
+configure:2689: checking for 8-bit clean memcmp
+configure:2725: checking return type of signal handlers
+configure:2766: checking for strftime
+configure:2862: checking for vprintf
+configure:2969: checking for calloc
+configure:3024: checking for snprintf
+configure:3079: checking for gettimeofday
+configure:3079: checking for mkdir
+configure:3079: checking for select
+configure:3079: checking for strcspn
+configure:3079: checking for strerror
+configure:3079: checking for strstr
+configure:3079: checking for strtol
+configure:3079: checking for strtoul
+configure:3079: checking for alarm
+configure:3079: checking for chmod
+configure:3134: checking for getpid
+configure:3134: checking for setpgid
+configure:3134: checking for getpgid
+configure:3134: checking for setpgrp
+configure:3134: checking for getpgrp
+configure:3189: checking for popen
+configure:3244: checking for uname
+configure:3299: checking for strptime
+configure:3354: checking for setlocale
+configure:3409: checking for nl_langinfo
+configure:3463: checking for sigsetjmp/siglongjmp
+configure:3497: checking for atan in -lm
+configure:3545: checking for socket
+configure:3643: checking for setsockopt
+configure:3745: checking for gethostbyname
+configure:3889: checking for herror
+configure:3940: checking for cfmakeraw
+configure:3994: checking for cygwin_conv_to_full_win32_path
+configure:4048: checking if you want to enable javascript
+configure:4078: checking if you want to use graphics
+configure:4090: checking for Gpm_Open in -lgpm
+configure:4141: checking for gpm.h
+configure:4181: checking for OS/2 threads
+configure:4230: checking for atheos/threads.h
+configure:4269: checking for spawn_thread
+configure:4324: checking for resume_thread
+configure:4378: checking for MouOpen
+configure:4429: checking for _read_kbd
+configure:4481: checking for XFree for OS/2
+configure:4547: checking for dlopen in -ldl
+configure:4602: checking for OpenSSL
+configure:4623: gcc -o conftest -g -O2   conftest.c -lssl -lcrypto -ldl -lgpm -lm  1>&5
+configure:4685: checking for inflate in -lz
+configure:4735: checking for png.h
+configure:4735: checking for libpng/png.h
+configure:4772: checking for png_create_info_struct in -lpng
+configure:4825: checking for png_set_rgb_to_gray
+configure:4879: checking if you can include both setjmp.h and png.h
+configure:4926: checking for jpeglib.h
+configure:4963: checking for jpeg_destroy_decompress in -ljpeg
+configure:5031: checking for tiffio.h
+configure:5068: checking for TIFFOpen in -ltiff
+configure:5165: checking for svgalib
+configure:5380: checking for directfb-config
+configure:5439: checking for X
+configure:5778: checking for pmshell
+configure:5826: checking for gui/view.h
+configure:5866: checking for gui/window.h
+configure:5906: checking for gui/desktop.h
+configure:5946: checking for gui/bitmap.h
+configure:5986: checking for util/locker.h
+configure:6026: checking for util/application.h

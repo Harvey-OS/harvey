@@ -41,13 +41,13 @@ int	setvbuf(FILE *f, char *buf, int type, long size)
 void	setbuf(FILE *f, char *buf)
 .PP
 .B
-int	fgetpos(FILE *f, long *pos)
+int	fgetpos(FILE *f, fpos_t *pos)
 .PP
 .B
 long	ftell(FILE *f)
 .PP
 .B
-int	fsetpos(FILE *f, long *pos)
+int	fsetpos(FILE *f, fpos_t *pos)
 .PP
 .B
 int	fseek(FILE *f, long offset, int whence)
@@ -231,6 +231,11 @@ delivering any unwritten buffered data to the host file.
 There is a
 .I file position indicator
 associated with each stream.
+Integers of type
+.B fpos_t
+(defined in
+.BR stdio.h )
+suffice to hold a file's position.
 It starts out pointing at the first character (unless the file is opened
 with append mode, in which case the indicator is always ignored).
 The file position indicator is maintained by the reading and writing

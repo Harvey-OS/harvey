@@ -1,0 +1,34 @@
+# build kernels
+
+ARCH=\
+	k10\
+	rv\
+
+default:V: all
+all installall install clean nuke:V:
+	for(i in $ARCH) @{
+		cd $i
+		mk $target
+	}
+
+unused:V:
+	nl='
+	'
+	fn check {
+		f=$1; shift
+		tr -cs 'a-zA-Z0-9_'^$nl ' ' <$f | awk '{print $2}' |
+			grep . | sort -u >/tmp/u.1
+		cat $* | tr -cs 'a-zA-Z0-9_' $nl | grep . | sort -u >/tmp/u.2
+		comm -23 /tmp/u.1 /tmp/u.2
+	}
+	check port/portfns.h */*.c
+	for(i in $ARCH){
+		files=($i/*.c $i/*.s port/*.c 386/*.[cs])
+		# if(~ $i alphapc arm)
+		#	files=($files pc/*.c)
+		check $i/fns.h $files | sed 's/^/'$i'\//g'
+	}
+dist:V:
+	# don't ship everything
+	mkdir /tmp/9 && dircp . /tmp/9 && cd /tmp/9 && mk clean &&
+		rm -rf _* */_* */*/_* && tar czf /tmp/9.tlz *

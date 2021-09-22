@@ -1,0 +1,10 @@
+#!/bin/rc
+
+rfork ne
+ramfs
+cat >/tmp/msg.$pid
+cat /tmp/msg.$pid | upas/send $*
+echo From $user >/tmp/msgo.$pid
+cat /tmp/msg.$pid >>/tmp/msgo.$pid
+mail2fs -a /tmp/msgo.$pid
+exit ''

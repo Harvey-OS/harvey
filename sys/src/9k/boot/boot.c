@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
+#include <tos.h>		/* just for debugging */
 #include "../boot/boot.h"
 
 #define PARTSRV "partfs.sdXX"
@@ -9,6 +10,9 @@
 enum {
 	Dontpost,
 	Post,
+};
+enum {
+	Alignmagic = 0x12345678,
 };
 
 char	cputype[64];
@@ -20,6 +24,8 @@ int	fflag;
 int	kflag;
 int	debugboot;
 int	nousbboot;
+int	promptwait = 15*1000;
+static int alignmagic = Alignmagic;
 
 char	*bargv[Nbarg];
 int	bargc;
@@ -87,7 +93,7 @@ partinit(void)
 	char *rdparts;
 
 	rdparts = getenv("readparts");
-	if(rdparts == nil || strcmp(rdparts, "0") != 0)
+	if(!rdparts || strcmp(rdparts, "1") == 0)
 		readparts();
 	free(rdparts);
 }
@@ -127,10 +133,11 @@ connectroot(Method *mp, int islocal, int ishybrid)
 	int fd, n;
 	char buf[32];
 
+	print("%s...", mp->name);
 	fd = (*mp->connect)();
 	if(fd < 0)
 		fatal("can't connect to file server");
-	if(getenv("srvold9p"))
+	if(0 && getenv("srvold9p"))	// TDDO: restore
 		fd = old9p(fd);
 	if(!islocal && !ishybrid){
 		if(cfs)
@@ -168,7 +175,7 @@ nsinit(int fd, char **rspp)
 		if(ai == nil)
 			print("authentication failed (%r), trying mount anyways\n");
 	}
-	if(mount(fd, afd, "/root", MREPL|MCREATE, rp) < 0)
+	if(mount(fd, afd, "/root", MREPL|MCREATE|MCACHE, rp) < 0)
 		fatal("mount /");
 	rsp = rp;
 	rp = getenv("rootdir");
@@ -198,6 +205,23 @@ nsinit(int fd, char **rspp)
 	return afd;
 }
 
+int
+chmod(char *file, int mode)
+{
+	Dir *dir;
+
+	dir = dirstat(file);
+	if (dir == nil) {
+		dprint("can't stat %s: %r\n", file);
+		return -1;
+	}
+	dir->mode &= ~0777;
+	dir->mode |= mode & 0777;
+	dirwstat("/srv/" PARTSRV, dir);
+	free(dir);
+	return 0;
+}
+
 static void
 execinit(void)
 {
@@ -207,7 +231,7 @@ execinit(void)
 	/* exec init */
 	cmd = getenv("init");
 	if(cmd == nil){
-		sprint(cmdbuf, "/%s/init -%s%s", cputype,
+		snprint(cmdbuf, sizeof cmdbuf, "/%s/init -%s%s", cputype,
 			cpuflag ? "c" : "t", mflag ? "m" : "");
 		cmd = cmdbuf;
 	}
@@ -227,16 +251,37 @@ execinit(void)
 	fatal(cmd);
 }
 
+static void
+dumpstk(int *p)
+{
+	for (; (uintptr)p < (uintptr)_tos; p++)
+		print("%#p: %#ux\n", p, *p);
+}
+
+char *fakeargv[] = { "", 0 };
+
+/* called from main in generated boot$CONF.c */
 void
 boot(int argc, char *argv[])
 {
 	int fd, afd, islocal, ishybrid;
-	char *rsp;
+	char *rsp, *p;
 	Method *mp;
 
-	fmtinstall('r', errfmt);
+	if (alignmagic != Alignmagic)
+		write(2, "boot data seg unaligned!\n", 29);
+//	fmtinstall('r', errfmt);		// %r is now standard
 	opencons();
+	if (alignmagic != Alignmagic)
+		write(2, "boot data seg unaligned!\n", 29);
 	bindenvsrv();
+	if (argv == 0 || *argv == 0) {
+		/* common problem with new ports; check sysexec & main9.s */
+		fprint(2, "argc %d argv %#p; defaulting to no args\n",
+			argc, argv);
+		argc = 1;
+		argv = fakeargv;
+	}
 	debuginit(argc, argv);
 
 	ARGBEGIN{
@@ -253,18 +298,26 @@ boot(int argc, char *argv[])
 
 	readfile("#e/cputype", cputype, sizeof(cputype));
 
+	if ((p = getenv("bootpromptwait")) != nil)
+		promptwait = atoi(p);
+
+#ifdef USB
 	/*
 	 *  set up usb keyboard & mouse, if any.
 	 *  starts partfs on first disk, if any, to permit nvram on usb.
 	 */
 	if (!nousbboot)
 		usbinit(Dontpost);
+#endif
 
 	dprint("pickmethod...");
 	mp = pickmethod(argc, argv);
+	if (mp == nil)
+		exits("no method picked");
 	islocal = strcmp(mp->name, "local") == 0;
 	ishybrid = strcmp(mp->name, "hybrid") == 0;
 
+	/* if root is via tcp, ether0 should be configured here */
 	kbmap();			/*  load keymap if it's there. */
 
 	/* don't trigger aoe until the network has been configured */
@@ -277,9 +330,12 @@ boot(int argc, char *argv[])
 
 	doauth(cpuflag);	/* authentication usually changes hostowner */
 	rfork(RFNAMEG);		/* leave existing subprocs in own namespace */
+#ifdef USB
 	if (!nousbboot)
 		usbinit(Post);	/* restart partfs under the new hostowner id */
+#endif
 	fd = connectroot(mp, islocal, ishybrid);
+write(1, "ns...", 5);
 	afd = nsinit(fd, &rsp);
 	close(fd);
 
@@ -287,6 +343,7 @@ boot(int argc, char *argv[])
 	if(afd > 0)
 		close(afd);
 	swapproc();
+write(1, "init...", 7);
 	execinit();
 	exits("failed to exec init");
 }

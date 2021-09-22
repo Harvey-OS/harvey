@@ -1,3 +1,6 @@
+/*
+ * process inbound multiboot table, including memory map and options.
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -25,18 +28,18 @@ struct Mbi {
 };
 
 enum {						/* flags */
-	Fmem		= 0x00000001,		/* mem* valid */
-	Fbootdevice	= 0x00000002,		/* bootdevice valid */
-	Fcmdline	= 0x00000004,		/* cmdline valid */
-	Fmods		= 0x00000008,		/* mod* valid */
-	Fsyms		= 0x00000010,		/* syms[] has a.out info */
-	Felf		= 0x00000020,		/* syms[] has ELF info */
-	Fmmap		= 0x00000040,		/* mmap* valid */
-	Fdrives		= 0x00000080,		/* drives* valid */
-	Fconfigtable	= 0x00000100,		/* configtable* valid */
-	Fbootloadername	= 0x00000200,		/* bootloadername* valid */
-	Fapmtable	= 0x00000400,		/* apmtable* valid */
-	Fvbe		= 0x00000800,		/* vbe[] valid */
+	Fmem		= 0x0001,		/* mem* valid */
+	Fbootdevice	= 0x0002,		/* bootdevice valid */
+	Fcmdline	= 0x0004,		/* cmdline valid */
+	Fmods		= 0x0008,		/* mod* valid */
+	Fsyms		= 0x0010,		/* syms[] has a.out info */
+	Felf		= 0x0020,		/* syms[] has ELF info */
+	Fmmap		= 0x0040,		/* mmap* valid */
+	Fdrives		= 0x0080,		/* drives* valid */
+	Fconfigtable	= 0x0100,		/* configtable* valid */
+	Fbootloadername	= 0x0200,		/* bootloadername* valid */
+	Fapmtable	= 0x0400,		/* apmtable* valid */
+	Fvbe		= 0x0800,		/* vbe[] valid */
 };
 
 typedef struct Mod Mod;
@@ -55,19 +58,72 @@ struct MMap {
 	u32int	type;
 };
 
+static void
+rdmbimmap(Mbi *mbi, int vflag)
+{
+	int n;
+	MMap *mmap;
+	u64int addr, len;
+
+	mmap = KADDR(mbi->mmapaddr);
+	n = 0;
+	while(n < mbi->mmaplength){
+		addr = (((u64int)mmap->base[1])<<32)|mmap->base[0];
+		len = (((u64int)mmap->length[1])<<32)|mmap->length[0];
+		if (vflag) {
+			print("%#16.16llux %#16.16llux %15,llud ",
+				addr, addr+len, len);
+			switch(mmap->type){
+			default:
+				print("type %ud", mmap->type);
+				break;
+			case AsmNONE:
+				print("none");
+				break;
+			case AsmDEV:
+				print("device");
+				break;
+			case AsmMEMORY:
+				print("Memory");
+				break;
+			case AsmRESERVED:
+				print("reserved");
+				break;
+			case AsmACPIRECLAIM:
+				print("ACPI Reclaim Memory");
+				break;
+			case AsmACPINVS:
+				print("ACPI NVS Memory");
+				break;
+			}
+			print("\n");
+		} else
+			switch(mmap->type){
+			case AsmMEMORY:
+			case AsmRESERVED:
+			case AsmACPIRECLAIM:
+			case AsmACPINVS:
+				asmmapinit(addr, len, mmap->type);
+				break;
+			}
+
+		n += mmap->size + sizeof(mmap->size);
+		mmap = KADDR(mbi->mmapaddr + n);
+	}
+}
+
+/* if vflag, print what would be done, but don't do it. */
 int
 multiboot(u32int magic, u32int pmbi, int vflag)
 {
 	char *p;
-	int i, n;
+	int i;
 	Mbi *mbi;
 	Mod *mod;
-	MMap *mmap;
-	u64int addr, len;
 
 	if(vflag)
 		print("magic %#ux pmbi %#ux\n", magic, pmbi);
-	if(magic != 0x2badb002)
+	if(magic != 0x2badb002 || pmbi == 0)
 		return -1;
 
 	mbi = KADDR(pmbi);
@@ -78,70 +134,21 @@ multiboot(u32int magic, u32int pmbi, int vflag)
 		if(vflag)
 			print("cmdline <%s>\n", p);
 		else
-			optionsinit(p);
+			mboptinit(p);
 	}
-	if(mbi->flags & Fmods){
+	if(mbi->flags & Fmods)
 		for(i = 0; i < mbi->modscount; i++){
 			mod = KADDR(mbi->modsaddr + i*16);
-			if(mod->string != 0)
-				p = KADDR(mod->string);
-			else
-				p = "";
+			p = (mod->string != 0? KADDR(mod->string): "");
 			if(vflag)
 				print("mod %#ux %#ux <%s>\n",
 					mod->modstart, mod->modend, p);
 			else
 				asmmodinit(mod->modstart, mod->modend, p);
 		}
-	}
-	if(mbi->flags & Fmmap){
-		mmap = KADDR(mbi->mmapaddr);
-		n = 0;
-		while(n < mbi->mmaplength){
-			addr = (((u64int)mmap->base[1])<<32)|mmap->base[0];
-			len = (((u64int)mmap->length[1])<<32)|mmap->length[0];
-			switch(mmap->type){
-			default:
-				if(vflag)
-					print("type %ud", mmap->type);
-				break;
-			case 1:
-				if(vflag)
-					print("Memory");
-				else
-					asmmapinit(addr, len, mmap->type);
-				break;
-			case 2:
-				if(vflag)
-					print("reserved");
-				else
-					asmmapinit(addr, len, mmap->type);
-				break;
-			case 3:
-				if(vflag)
-					print("ACPI Reclaim Memory");
-				else
-					asmmapinit(addr, len, mmap->type);
-				break;
-			case 4:
-				if(vflag)
-					print("ACPI NVS Memory");
-				else
-					asmmapinit(addr, len, mmap->type);
-				break;
-			}
-			if(vflag)
-				print("\n\t%#16.16llux %#16.16llux (%llud)\n",
-					addr, addr+len, len);
-
-			n += mmap->size+sizeof(mmap->size);
-			mmap = KADDR(mbi->mmapaddr+n);
-		}
-	}
-	if(vflag && (mbi->flags & Fbootloadername)){
-		p = KADDR(mbi->bootloadername);
-		print("bootloadername <%s>\n", p);
-	}
-
+	if(mbi->flags & Fmmap)
+		rdmbimmap(mbi, vflag);
+	if(vflag && mbi->flags & Fbootloadername)
+		print("bootloadername <%s>\n", KADDR(mbi->bootloadername));
 	return 0;
 }

@@ -1,0 +1,334 @@
+make[1]: Entering directory `/home/olaf/web2c/src/texk/web2c'
+cd ../kpathsea && make -w CC='gcc' CFLAGS='-pipe -g ' 
+make[2]: Entering directory `/home/olaf/web2c/src/texk/kpathsea'
+make[2]: Nothing to be done for `default'.
+make[2]: Leaving directory `/home/olaf/web2c/src/texk/kpathsea'
+cd lib && make -w CC='gcc' CFLAGS='-pipe -g ' 
+make[2]: Entering directory `/home/olaf/web2c/src/texk/web2c/lib'
+make[2]: Nothing to be done for `default'.
+make[2]: Leaving directory `/home/olaf/web2c/src/texk/web2c/lib'
+rm -f mtrap.mp; ln -s ./triptrap/mtrap.mp . # get same filename in log
+./pltotf ./triptrap/trapf.pl trapf.tfm
+/bin/sh -c 'TEXMFCNF=./triptrap ./mpost --progname=inimpost mtrap'
+This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)
+(mtrap.mp
+diff ./triptrap/mtrap.log mtrap.log
+1,2c1,2
+< This is MetaPost, C Version 0.64 (INIMP)  28 JAN 1998 11:18
+< **mtrap 
+---
+> This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)  24 MAR 1998 19:57
+> **mtrap
+5c5
+< String usage 4&24 (1306&9877 now untouched)
+---
+> String usage 5&29 (1304&17874 now untouched)
+300c300
+< String usage 8&32 (1302&9869 now untouched)
+---
+> String usage 9&37 (1300&17866 now untouched)
+302c302
+< String usage 10&42 (1300&9859 now untouched)
+---
+> String usage 11&47 (1298&17856 now untouched)
+304c304
+< String usage 11&45 (1299&9856 now untouched)
+---
+> String usage 12&50 (1297&17853 now untouched)
+306c306
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+317c317
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+342c342
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+359c359
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+375c375
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+405c405
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+443c443
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+481c481
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+497c497
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+538c538
+< String usage 14&51 (1296&9850 now untouched)
+---
+> String usage 15&56 (1294&17847 now untouched)
+551c551
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+595c595
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+611c611
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+660c660
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+669c669
+< String usage 18&75 (1292&9826 now untouched)
+---
+> String usage 19&80 (1290&17823 now untouched)
+671c671
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+722c722
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+725c725
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+818c818
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+848c848
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+873c873
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+898c898
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+920c920
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+943c943
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+950c950
+< String usage 17&64 (1293&9837 now untouched)
+---
+> String usage 18&69 (1291&17834 now untouched)
+953c953
+< String usage 20&78 (1287&9809 now untouched)
+---
+> String usage 21&83 (1285&17806 now untouched)
+989c989
+< String usage 22&84 (1247&8769 now untouched)
+---
+> String usage 23&89 (1245&16766 now untouched)
+994c994
+< String usage 22&84 (1206&7603 now untouched)
+---
+> String usage 23&89 (1204&15600 now untouched)
+1000c1000,1004
+< String usage 24&110 (1197&7522 now untouched)
+---
+> String usage 25&115 (1195&15519 now untouched)
+> write0 = `writeo'.
+> 
+> write1 = `writeo.2'.
+> 
+1002c1006
+< String usage 26&125 (1148&7358 now untouched)
+---
+> String usage 27&130 (1146&15355 now untouched)
+1010c1014,1016
+< String usage 25&135 (1144&7308 now untouched)
+---
+> String usage 26&140 (1142&15305 now untouched)
+> write0 = `writeo'.
+> 
+1014c1020
+< String usage 26&141 (1195&1840 now untouched)
+---
+> String usage 27&146 (1267&16497 now untouched)
+1039c1045
+< String usage 26&141 (1195&1840 now untouched)
+---
+> String usage 27&146 (1267&16497 now untouched)
+1049c1055
+< String usage 27&149 (1194&1832 now untouched)
+---
+> String usage 28&154 (1266&16489 now untouched)
+1098c1104
+< String usage 27&149 (1193&1824 now untouched)
+---
+> String usage 28&154 (1265&16481 now untouched)
+1101,1102c1107,1108
+<  32 strings out of 1310
+<  561 string characters out of 9901
+---
+>  33 strings out of 1309
+>  566 string characters out of 17903
+1104,1106c1110,1112
+<  237 symbolic tokens out of 2100
+<  5i,33n,6p,100b stack positions out of 30i,100n,150p,500b
+<  3 string compactions (moved 1368 characters, 89 strings)
+---
+>  237 symbolic tokens out of 9500
+>  5i,33n,6p,99b stack positions out of 300i,300n,150p,3000b
+>  2 string compactions (moved 892 characters, 63 strings)
+diff ./triptrap/mtrap.0 mtrap.0
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/mtrap.1 mtrap.1
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/writeo writeo
+diff ./triptrap/writeo.2 writeo.2
+rm -f trap.mp; ln -s ./triptrap/trap.mp .
+rm -f trap.mpx; ln -s ./triptrap/trap.mpx .
+/bin/sh -c 'TEXMFCNF=./triptrap ./mpost --progname=inimpost <./triptrap/mptrap1.in >mptrapin.fot'
+mv trap.log mptrapin.log
+diff ./triptrap/mptrapin.log mptrapin.log
+1c1
+< This is MetaPost, C Version 0.632 (INIMP)  24 JAN 1997 11:13
+---
+> This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)  24 MAR 1998 19:57
+162c162
+< String usage 28&93 (1282&9362 now untouched)
+---
+> String usage 29&97 (1279&17801 now untouched)
+195,196c195,196
+<  (preloaded mem=trap 97.1.24)
+< at most 1226 strings of total length 22670
+---
+>  (mem=trap 1998.3.24)
+> at most 1229 strings of total length 22219
+198c198
+< 279 symbolic tokens
+---
+> 280 symbolic tokens
+/bin/sh -c 'TEXMFCNF=./triptrap ./mpost --progname=inimpost <./triptrap/mptrap2.in >mptrap.fot'
+mv trap.log mptrap.log
+mv trap.tfm mptrap.tfm
+diff ./triptrap/mptrap.fot mptrap.fot
+0a1
+> This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)
+35c36
+< String usage 73&277 (1110&5373 now untouched)
+---
+> String usage 74&281 (1110&13823 now untouched)
+diff ./triptrap/mptrap.log mptrap.log
+1c1
+< This is MetaPost, C Version 0.632 (preloaded mem=trap 97.1.24)  24 JAN 1997 11:13
+---
+> This is MetaPost, Version 0.641 (Web2C 7.2) (mem=trap 1998.3.24)  24 MAR 1998 19:57
+1622c1622
+< String usage 22&84 (1244&9177 now untouched)
+---
+> String usage 23&88 (1243&17626 now untouched)
+2665c2665
+< dashed (on 3 off 0) shifted 0
+---
+> dashed (on 0 off 0) shifted 0
+3510c3510
+< String usage 68&249 (1155&8794 now untouched)
+---
+> String usage 69&253 (1154&17243 now untouched)
+3521c3521
+< String usage 66&241 (1154&8790 now untouched)
+---
+> String usage 67&245 (1153&17239 now untouched)
+4379c4379
+< String usage 73&279 (1138&8717 now untouched)
+---
+> String usage 74&283 (1137&17166 now untouched)
+4385c4385
+< String usage 73&279 (1138&8717 now untouched)
+---
+> String usage 74&283 (1137&17166 now untouched)
+4674c4674
+< String usage 73&277 (1110&5373 now untouched)
+---
+> String usage 74&281 (1110&13823 now untouched)
+4739,4740c4739,4740
+<  75 strings out of 1277
+<  768 string characters out of 9330
+---
+>  76 strings out of 1275
+>  772 string characters out of 17781
+4742,4743c4742,4743
+<  337 symbolic tokens out of 2100
+<  8i,35n,8p,167b stack positions out of 30i,100n,150p,500b
+---
+>  338 symbolic tokens out of 9500
+>  8i,35n,8p,167b stack positions out of 300i,300n,150p,3000b
+4752c4752
+<   out of 256w,16h,16d,64i,5000l,500k,256e,50p)
+---
+>   out of 256w,16h,16d,64i,15000l,2500k,256e,50p)
+diff ./triptrap/trap.5 trap.5
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/trap.6 trap.6
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/trap.148 trap.148
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/trap.149 trap.149
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/trap.150 trap.150
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/trap.151 trap.151
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/trap.197 trap.197
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+diff ./triptrap/trap.200 trap.200
+4c4
+< %%CreationDate: 1998.01.28:1118
+---
+> %%CreationDate: 1998.03.24:1957
+./tftopl ./mptrap.tfm mptrap.pl
+diff ./triptrap/mptrap.pl mptrap.pl
+make[1]: Leaving directory `/home/olaf/web2c/src/texk/web2c'

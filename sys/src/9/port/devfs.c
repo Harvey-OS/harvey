@@ -302,10 +302,10 @@ deltree(Tree *t)
 	for(i = 0; i < ntrees; i++)
 		if(trees[i] == t){
 			if(i > 0){		/* "fs" never goes away */
+				trees[i] = nil;
 				free(t->name);
 				free(t->devs);
 				free(t);
-				trees[i] = nil;
 			}
 			return;
 		}
@@ -627,7 +627,7 @@ mconfig(char* a, long n)
 Fail:
 		for(i = 1; i < cb->nf; i++)
 			if(idev != nil && idev[i-1] != nil)
-				cclose(idev[i]);
+				cclose(idev[i-1]);
 		if(mp != nil)
 			mdeldev(mp);
 		free(idev);

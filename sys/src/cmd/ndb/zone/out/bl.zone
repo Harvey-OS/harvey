@@ -1,0 +1,378 @@
+#
+# Generated file, no not edit
+#
+
+dom=blrcsv.china.bell-labs.com
+	mx=hoemail1.alcatel.com	pref=10
+	mx=ihemail1.lucent.com	pref=20
+
+dom=suvo-mon.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=pathstar.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=fwadm2.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=intern.china.bell-labs.com
+	mx=hoemail1.alcatel.com	pref=10
+	mx=hoemail2.alcatel.com	pref=10
+	mx=ihemail1.lucent.com	pref=20
+
+dom=blog.china.bell-labs.com
+	mx=hoemail1.alcatel.com	pref=10
+	mx=hoemail2.alcatel.com	pref=10
+	mx=ihemail1.lucent.com	pref=20
+
+dom=security.bell-labs.com
+	ns=dirty.research.bell-labs.com
+
+dom=china.bell-labs.com
+	mx=hoemail1.alcatel.com	pref=10
+	mx=hoemail2.alcatel.com	pref=10
+	mx=ihemail1.lucent.com	pref=20
+
+dom=amc.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=www-out.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=uk.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=bell-labs-gw.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=*.web.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=blrccsv.china.bell-labs.com
+	mx=hoemail2.alcatel.com	pref=10
+
+dom=lists.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=fwbrick2.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=www.blades.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=mach.pr.bell-labs.com
+	mx=mach.pr.lucent.com	pref=10
+
+dom=jharna-2.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=*.invent.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=nomad.bell-labs.com
+	mx=nomad.bell-labs.com	pref=10
+
+dom=physics.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=*.pez.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=license.blades.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=tribe-fwnet.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=*.equal.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=research.bell-labs.com
+	ns=dirty.research.bell-labs.com
+
+dom=mapweb.china.bell-labs.com
+	mx=hoemail1.alcatel.com	pref=10
+	mx=hoemail2.alcatel.com	pref=10
+	mx=ihemail1.lucent.com	pref=20
+
+dom=web.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=equal.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=blrc.china.bell-labs.com
+	mx=hoemail1.alcatel.com	pref=10
+	mx=hoemail2.alcatel.com	pref=10
+	mx=ihemail1.lucent.com	pref=20
+
+dom=*.tempo.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=fwbrick.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=bell-labs.com
+	soa=
+	ns=dirty.research.bell-labs.com
+	mbox=ram@bell-labs.com
+	serial=183
+	refresh=3600
+	retry=600
+	expire=1209600
+	min=600
+	mx=hoemail1.alcatel.com	pref=10
+	mx=hoemail2.alcatel.com	pref=10
+	mx=ihemail3.lucent.com	pref=10
+	mx=ihemail4.lucent.com	pref=10
+	mx=ihemail1.lucent.com	pref=20
+	mx=ihemail2.lucent.com	pref=20
+	ns=dirty.research.bell-labs.com
+
+dom=tempo.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=macbeth.web.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=*.uk.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=*.multimedia.bell-labs.com
+	mx=mmrsvr1.multimedia.bell-labs.com	pref=10
+
+dom=cs.bell-labs.com
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+
+dom=dave1.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=science.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=pez.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=blades.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=inmail.bell-labs.com
+	mx=hoemail1.alcatel.com	pref=10
+
+dom=www1.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=invent.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=*.pathstar.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+dom=multimedia.bell-labs.com
+	mx=mmrsvr1.multimedia.bell-labs.com	pref=10
+
+dom=fwadm.bell-labs.com
+	mx=inmail1.bell-labs.com	pref=10
+	mx=inmail3.bell-labs.com	pref=10
+	mx=inmail2.bell-labs.com	pref=20
+
+
+ipnet=net-192.11.237 ip=192.11.237.0 mask=255.255.255.0
+ipnet=net-169.237 ip=169.237.0.0 mask=255.255.0.0
+ipnet=net-204.178.20 ip=204.178.20.0 mask=255.255.255.0
+ipnet=net-204.178.31 ip=204.178.31.0 mask=255.255.255.0
+ipnet=net-204.178.25 ip=204.178.25.0 mask=255.255.255.0
+ipnet=net-135.104 ip=135.104.0.0 mask=255.255.0.0
+ipnet=net-192.160.6 ip=192.160.6.0 mask=255.255.255.0
+ipnet=net-204.178.22 ip=204.178.22.0 mask=255.255.255.0
+ipnet=net-204.178.16 ip=204.178.16.0 mask=255.255.255.0
+ipnet=net-135.245 ip=135.245.0.0 mask=255.255.0.0
+
+dom=cm.bell-labs.com cname=plan9.bell-labs.com
+dom=db.bell-labs.com cname=www-db.research.bell-labs.com
+dom=db-out.bell-labs.com cname=www-db.research.bell-labs.com
+dom=ds.bell-labs.com cname=www-db.research.bell-labs.com
+dom=*.fightclub10.bell-labs.com cname=fightclub10.bell-labs.com
+dom=*.fightclub11.bell-labs.com cname=fightclub11.bell-labs.com
+dom=*.fightclub12.bell-labs.com cname=fightclub12.bell-labs.com
+dom=*.fightclub13.bell-labs.com cname=fightclub13.bell-labs.com
+dom=*.fightclub14.bell-labs.com cname=fightclub14.bell-labs.com
+dom=*.fightclub15.bell-labs.com cname=fightclub15.bell-labs.com
+dom=*.fightclub2.bell-labs.com cname=fightclub2.bell-labs.com
+dom=*.fightclub3.bell-labs.com cname=fightclub3.bell-labs.com
+dom=*.fightclub4.bell-labs.com cname=fightclub4.bell-labs.com
+dom=*.fightclub5.bell-labs.com cname=fightclub5.bell-labs.com
+dom=*.fightclub6.bell-labs.com cname=fightclub6.bell-labs.com
+dom=*.fightclub7.bell-labs.com cname=fightclub7.bell-labs.com
+dom=*.fightclub8.bell-labs.com cname=fightclub8.bell-labs.com
+dom=*.fightclub9.bell-labs.com cname=fightclub9.bell-labs.com
+dom=*.fightclub.bell-labs.com cname=fightclub.bell-labs.com
+dom=inferno.bell-labs.com cname=plan9.bell-labs.com
+dom=jc-cond-mat.bell-labs.com cname=www.bell-labs.com
+dom=ltap.bell-labs.com cname=www-db.research.bell-labs.com
+dom=mars.bell-labs.com cname=plan9.bell-labs.com
+dom=netlib.bell-labs.com cname=plan9.bell-labs.com
+dom=starfish.bell-labs.com cname=svcs.research.bell-labs.com
+dom=stat.bell-labs.com cname=plan9.bell-labs.com
+dom=www-db.bell-labs.com cname=www-db.research.bell-labs.com
+dom=www-db-out.bell-labs.com cname=www-db.research.bell-labs.com
+dom=www.stat.bell-labs.com cname=plan9.bell-labs.com
+
+ip=135.104.20.143 dom=lists.bell-labs.com
+ip=135.104.20.144 dom=arnoext.bell-labs.com
+ip=135.104.20.145 dom=fightclub.bell-labs.com
+	dom=fightclubx.bell-labs.com
+ip=135.104.20.146 dom=fightclub2.bell-labs.com
+ip=135.104.20.147 dom=fightclub3.bell-labs.com
+ip=135.104.20.148 dom=fightclub4.bell-labs.com
+ip=135.104.20.149 dom=fightclub5.bell-labs.com
+ip=135.104.20.150 dom=fightclub6.bell-labs.com
+ip=135.104.20.151 dom=fightclub7.bell-labs.com
+ip=135.104.20.152 dom=fightclub8.bell-labs.com
+ip=135.104.20.153 dom=fightclub9.bell-labs.com
+ip=135.104.20.154 dom=fightclub10.bell-labs.com
+ip=135.104.20.155 dom=fightclub11.bell-labs.com
+ip=135.104.20.156 dom=fightclub12.bell-labs.com
+ip=135.104.20.157 dom=fightclub13.bell-labs.com
+ip=135.104.20.158 dom=fightclub14.bell-labs.com
+ip=135.104.20.159 dom=fightclub15.bell-labs.com
+ip=135.104.20.161 dom=cbahr-alba.bell-labs.com
+ip=135.104.20.162 dom=mitvserver1.bell-labs.com
+ip=135.245.0.33 dom=inmail3.bell-labs.com
+ip=135.245.1.14 dom=www.bell-labs.com
+ip=169.237.43.243 dom=dls.bell-labs.com
+ip=192.11.237.234 dom=sip.bell-labs.com
+ip=192.160.6.148 dom=inmail1.bell-labs.com
+ip=192.160.6.149 dom=inmail2.bell-labs.com
+ip=204.178.16.1 dom=bell-labs-gw.bell-labs.com
+ip=204.178.16.10 dom=rontest1.bell-labs.com
+ip=204.178.16.11 dom=qip-srv.bell-labs.com
+ip=204.178.16.126 dom=tmprt.bell-labs.com
+ip=204.178.16.16 dom=virtual.bell-labs.com
+ip=204.178.16.17 dom=wander.bell-labs.com
+ip=204.178.16.18 dom=pipe25.bell-labs.com
+ip=204.178.16.19 dom=epics.bell-labs.com
+ip=204.178.16.20 dom=nomad.bell-labs.com
+ip=204.178.16.43 dom=www1.bell-labs.com
+ip=204.178.16.45 dom=cant.bell-labs.com
+ip=204.178.16.46 dom=wont.bell-labs.com
+ip=204.178.16.5 dom=www-out.bell-labs.com
+ip=204.178.16.50 dom=dave1.bell-labs.com
+ip=204.178.16.59 dom=jharna-2.bell-labs.com
+ip=204.178.16.6 dom=dirty.research.bell-labs.com
+	dom=z3950.bell-labs.com
+ip=204.178.16.63 dom=UNKNOWN63.bell-labs.com
+ip=204.178.16.77 dom=extreme.bell-labs.com
+ip=204.178.16.78 dom=tupac.bell-labs.com
+ip=204.178.20.1 dom=bell-labs-gw.bell-labs.com
+ip=204.178.20.2 dom=tribe-fwnet.bell-labs.com
+ip=204.178.20.3 dom=fwadm2.bell-labs.com
+ip=204.178.20.4 dom=fwbrick2.bell-labs.com
+ip=204.178.20.6 dom=fwadm.bell-labs.com
+ip=204.178.20.7 dom=fwbrick.bell-labs.com
+ip=204.178.20.8 dom=suvo-mon.bell-labs.com
+ip=204.178.20.9 dom=stanik-billing.bell-labs.com
+ip=204.178.22.100 dom=krr-ext-100.bell-labs.com
+ip=204.178.22.101 dom=krr-ext-101.bell-labs.com
+ip=204.178.22.102 dom=krr-ext-102.bell-labs.com
+ip=204.178.22.103 dom=krr-ext-103.bell-labs.com
+ip=204.178.22.104 dom=krr-ext-104.bell-labs.com
+ip=204.178.22.105 dom=krr-ext-105.bell-labs.com
+ip=204.178.22.106 dom=krr-ext-106.bell-labs.com
+ip=204.178.22.107 dom=krr-ext-107.bell-labs.com
+	dom=krr-ext-127.bell-labs.com
+ip=204.178.22.108 dom=krr-ext-108.bell-labs.com
+ip=204.178.22.109 dom=krr-ext-109.bell-labs.com
+ip=204.178.22.110 dom=krr-ext-110.bell-labs.com
+ip=204.178.22.111 dom=krr-ext-111.bell-labs.com
+ip=204.178.22.112 dom=krr-ext-112.bell-labs.com
+ip=204.178.22.113 dom=krr-ext-113.bell-labs.com
+ip=204.178.22.114 dom=krr-ext-114.bell-labs.com
+ip=204.178.22.115 dom=krr-ext-115.bell-labs.com
+ip=204.178.22.116 dom=krr-ext-116.bell-labs.com
+ip=204.178.22.117 dom=krr-ext-117.bell-labs.com
+ip=204.178.22.118 dom=krr-ext-118.bell-labs.com
+ip=204.178.22.119 dom=krr-ext-119.bell-labs.com
+ip=204.178.22.120 dom=krr-ext-120.bell-labs.com
+ip=204.178.22.121 dom=krr-ext-121.bell-labs.com
+ip=204.178.22.122 dom=krr-ext-122.bell-labs.com
+ip=204.178.22.123 dom=krr-ext-123.bell-labs.com
+ip=204.178.22.124 dom=krr-ext-124.bell-labs.com
+ip=204.178.22.125 dom=krr-ext-125.bell-labs.com
+ip=204.178.22.126 dom=krr-ext-126.bell-labs.com
+ip=204.178.22.97 dom=krr-ext-97.bell-labs.com
+ip=204.178.22.98 dom=krr-ext-98.bell-labs.com
+ip=204.178.22.99 dom=krr-ext-99.bell-labs.com
+ip=204.178.25.1 dom=blgw-bamt1ho.bell-labs.com
+ip=204.178.25.129 dom=blgw-bam.bell-labs.com
+ip=204.178.25.177 dom=utopia.bell-labs.com
+ip=204.178.31.10 dom=rontest.bell-labs.com
+ip=204.178.31.3 dom=ns1.cs.bell-labs.com
+ip=204.178.31.32 dom=plan9.bell-labs.com
+ip=204.178.31.4 dom=ns2.cs.bell-labs.com
+

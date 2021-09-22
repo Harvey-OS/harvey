@@ -18,11 +18,14 @@
  * Added support for true-color bitmaps, 6/7/02
  */
 
+#define _SUSV2_SOURCE
+
 #include "gdevprn.h"
 #include "gsparam.h"
 #include "gxlum.h"
 #include "gxstdio.h"
 #include <stdlib.h>
+#include <stdint.h>
 
 #define nil ((void*)0)
 enum {
@@ -150,8 +153,8 @@ plan9_rgb2cmap(gx_device *dev, gx_color_value *rgb)
 }
 
 private int 
-plan9_cmap2rgb(gx_device *dev, gx_color_index color,
-  gx_color_value rgb[3]) {
+plan9_cmap2rgb(gx_device *dev, gx_color_index color, gx_color_value rgb[3])
+{
 	int shift, i;
 	plan9_device *idev;
 
@@ -253,23 +256,19 @@ plan9_open(gx_device *dev)
 private int
 plan9_print_page(gx_device_printer *pdev, FILE *f)
 {
+	int depth, dither, gsbpl, ldepth, xmod, y;
 	char *chanstr;
 	uchar *buf;	/* [8192*3*8/Nbits] BUG: malloc this */
-	uchar *p;
-	WImage *w;
-	int bpl, y;
-	int x, xmod;
-	int ldepth;
-	int ppb[] = {8, 4, 2, 1};	/* pixels per byte */
-	int bpp[] = {1, 2, 4, 8};	/* bits per pixel */
-	int gsbpl;
-	int dither;
-	int depth;
-	ulong u;
+	uchar *p, *r;
+	uint x;
 	ushort us;
-	Rectangle rect;
+	ulong u;
+	uintptr_t bpl;
 	plan9_device *idev;
-	uchar *r;
+	Rectangle rect;
+	WImage *w;
+	static int ppb[] = {8, 4, 2, 1};	/* pixels per byte */
+	static int bpp[] = {1, 2, 4, 8};	/* bits per pixel */
 
 	gsbpl = gdev_prn_raster(pdev);
 	buf = gs_malloc(pdev->memory, gsbpl, 1, "plan9_print_page");
@@ -327,6 +326,8 @@ plan9_print_page(gx_device_printer *pdev, FILE *f)
 	 * to save all the ldepth lookups.
 	 */
 	for(y=0; y<pdev->height; y++) {
+		uint psub;
+
 		gdev_prn_get_bits(pdev, y, buf, &p);
 		r = p+2;
 		switch(depth){
@@ -334,19 +335,23 @@ plan9_print_page(gx_device_printer *pdev, FILE *f)
 			return_error(gs_error_Fatal);
 		case 1:
 			for(x=0; x<pdev->width; x++){
+				psub = x/8;
 				if((x%8) == 0)
-					p[x/8] = (*r>>4)&1;
+					p[psub] = 0;
 				else
-					p[x/8] = (p[x/8]<<1) | (*r>>4)&1;
+					p[psub] <<= 1;
+				p[psub] |= (*r>>4) & 1;
 				r += 3;
 			}
 			break;
 		case 4:
 			for(x=0; x<pdev->width; x++){
+				psub = x/2;
 				if((x%2) == 0)
-					p[x/2] = (*r>>4) & 0xF;
+					p[psub] = 0;
 				else
-					p[x/2] = (p[x/2]<<4) | ((*r>>4)&0xF);
+					p[psub] <<= 4;
+				p[psub] |= (*r>>4) & 0xF;
 				r += 3;
 			}
 			break;
@@ -357,7 +362,7 @@ plan9_print_page(gx_device_printer *pdev, FILE *f)
 		/* pad last byte over if we didn't fill it */
 		xmod = pdev->width % ppb[ldepth];
 		if(xmod && ldepth<3)
-			p[(x-1)/ppb[ldepth]] <<= ((ppb[ldepth]-xmod)*bpp[ldepth]);
+			p[(x-1)/ppb[ldepth]] <<= (ppb[ldepth]-xmod)*bpp[ldepth];
 
 		if(writeimageblock(w, p, bpl) == ERROR) {
 			gs_free(pdev->memory, buf, gsbpl, 1, "plan9_print_page");
@@ -388,7 +393,7 @@ plan9_print_page(gx_device_printer *pdev, FILE *f)
 #define	NDUMP	128		/* maximum length of dump */
 #define	NCBLOCK	6000		/* size of compressed blocks */
 
-#define	HSHIFT	3	/* HSHIFT==5 runs slightly faster, but hash table is 64x bigger */
+#define	HSHIFT	3 /* HSHIFT==5 runs slightly faster, but hash table is 64x bigger */
 #define	NHASH	(1<<(HSHIFT*NMATCH))
 #define	HMASK	(NHASH-1)
 #define	hupdate(h, c)	((((h)<<HSHIFT)^(c))&HMASK)
@@ -397,25 +402,25 @@ typedef struct Dump	Dump;
 typedef struct Hlist Hlist;
 
 struct Hlist{
-	ulong p;
-	Hlist *next, *prev;
+	uintptr_t p;
+	Hlist	*next, *prev;
 };
 
 struct Dump {
-	int ndump;
-	uchar *dumpbuf;
-	uchar buf[1+NDUMP];
+	int	ndump;
+	uchar	*dumpbuf;
+	uchar	buf[1+NDUMP];
 };
 
 struct WImage {
-	FILE *f;
+	FILE	*f;
 
 	/* image attributes */
 	Rectangle origr, r;
-	int bpl;
+	int	bpl;
 
 	/* output buffer */
-	uchar outbuf[NCBLOCK], *outp, *eout, *loutp;
+	uchar	outbuf[NCBLOCK], *outp, *eout, *loutp;
 
 	/* sliding input window */
 	/*
@@ -426,21 +431,21 @@ struct WImage {
 	 * the ulongs in the Hlist structures are just
 	 * pointers relative to ibase.
 	 */
-	uchar *inbuf;	/* inbuf should be at least NMEM+NRUN+NMATCH long */
-	uchar *ibase;
-	int minbuf;	/* size of inbuf (malloc'ed bytes) */
-	int ninbuf;	/* size of inbuf (filled bytes) */
-	ulong line;	/* the beginning of the line we are currently encoding,
+	uchar	*inbuf;	/* inbuf should be at least NMEM+NRUN+NMATCH long */
+	uchar	*ibase;
+	uintptr_t minbuf;	/* size of inbuf (malloc'ed bytes) */
+	uintptr_t ninbuf;	/* size of inbuf (filled bytes) */
+	ulong	line;	/* the beginning of the line we are currently encoding,
 			 * relative to inbuf (NOT relative to ibase) */
 
 	/* raw dump buffer */
-	Dump dump;
+	Dump	dump;
 
 	/* hash tables */
-	Hlist hash[NHASH];
-	Hlist chain[NMEM], *cp;
-	int h;
-	int needhash;
+	Hlist	hash[NHASH];
+	Hlist	chain[NMEM], *cp;
+	int	h;
+	int	needhash;
 };
 
 private void
@@ -455,18 +460,20 @@ zerohash(WImage *w)
 private int
 addbuf(WImage *w, uchar *buf, int nbuf)
 {
-	int n;
+	uintptr_t n;
+
 	if(buf == nil || w->outp+nbuf > w->eout) {
-		if(w->loutp==w->outbuf){	/* can't really happen -- we checked line length above */
+		if(w->loutp==w->outbuf){
+			/* can't really happen -- we checked line length above */
 			errprintf("buffer too small for line\n");
 			return ERROR;
 		}
-		n=w->loutp-w->outbuf;
-		fprintf(w->f, "%11d %11d ", w->r.max.y, n);
+		n = w->loutp - w->outbuf;
+		fprintf(w->f, "%11d %11lld ", w->r.max.y,
+			(unsigned long long)n);
 		fwrite(w->outbuf, 1, n, w->f);
-		w->r.min.y=w->r.max.y;
-		w->outp=w->outbuf;
-		w->loutp=w->outbuf;
+		w->r.min.y = w->r.max.y;
+		w->outp = w->loutp = w->outbuf;
 		zerohash(w);
 		return -1;
 	}
@@ -485,8 +492,8 @@ flushdump(WImage *w)
 	if(n == 0)
 		return 0;
 
-	w->dump.buf[0] = 0x80|(n-1);
-	if((n=addbuf(w, w->dump.buf, n+1)) == ERROR)
+	w->dump.buf[0] = 0x80 | (n-1);
+	if((n = addbuf(w, w->dump.buf, n+1)) == ERROR)
 		return ERROR;
 	if(n < 0)
 		return -1;
@@ -498,8 +505,7 @@ private void
 updatehash(WImage *w, uchar *p, uchar *ep)
 {
 	uchar *q;
-	Hlist *cp;
-	Hlist *hash;
+	Hlist *cp, *hash;
 	int h;
 
 	hash = w->hash;
@@ -534,7 +540,8 @@ updatehash(WImage *w, uchar *p, uchar *ep)
 private int
 gobbleline(WImage *w)
 {
-	int runlen, n, offs;
+	int runlen, offs;
+	uintptr_t n;
 	uchar *eline, *es, *best, *p, *s, *t;
 	Hlist *hp;
 	uchar buf[2];
@@ -547,23 +554,24 @@ gobbleline(WImage *w)
 		w->needhash = 0;
 	}
 	w->dump.ndump=0;
-	eline=w->inbuf+w->line+w->bpl;
-	for(p=w->inbuf+w->line;p!=eline;){
+	eline = w->inbuf + w->line + w->bpl;
+	for(p = w->inbuf + w->line; p != eline; ){
 		es = (eline < p+NRUN) ? eline : p+NRUN;
 
 		best=nil;
 		runlen=0;
 		/* hash table lookup */
-		for(hp=w->hash[w->h].next;hp;hp=hp->next){
+		for(hp = w->hash[w->h].next; hp; hp = hp->next){
 			/*
 			 * the next block is an optimization of 
 			 * for(s=p, t=w->ibase+hp->p; s<es && *s == *t; s++, t++)
 			 * 	;
 			 */
+			{
+				uchar *ss, *tt;
 
-			{	uchar *ss, *tt;
-				s = p+runlen;
-				t = w->ibase+hp->p+runlen;
+				s = p + runlen;
+				t = w->ibase + hp->p + runlen;
 				for(ss=s, tt=t; ss>=p && *ss == *tt; ss--, tt--)
 					;
 				if(ss < p)
@@ -571,11 +579,10 @@ gobbleline(WImage *w)
 						s++, t++;
 			}
 
-			n = s-p;
-
+			n = s - p;
 			if(n > runlen) {
 				runlen = n;
-				best = w->ibase+hp->p;
+				best = w->ibase + hp->p;
 				if(p+runlen == es)
 					break;
 			}
@@ -592,8 +599,8 @@ gobbleline(WImage *w)
 				if(rv < 0)
 					return 0;
 			}
-			w->dump.dumpbuf[w->dump.ndump++]=*p;
-			runlen=1;
+			w->dump.dumpbuf[w->dump.ndump++] = *p;
+			runlen = 1;
 		}else{
 		/*
 		 * otherwise, assuming the dump buffer is empty,
@@ -603,9 +610,9 @@ gobbleline(WImage *w)
 				return ERROR;
 			if(rv < 0)
 				return 0;
-			offs=p-best-1;
-			buf[0] = ((runlen-NMATCH)<<2)|(offs>>8);
-			buf[1] = offs&0xff;
+			offs = p - best - 1;
+			buf[0] = ((runlen-NMATCH)<<2) | (offs>>8);
+			buf[1] = offs & 0xff;
 			if(addbuf(w, buf, 2) < 0)
 				return 0;
 		}
@@ -613,7 +620,7 @@ gobbleline(WImage *w)
 		/*
 		 * add to hash tables what we just encoded
 		 */
-		updatehash(w, p, p+runlen);
+		updatehash(w, p, p + runlen);
 		p += runlen;
 	}
 
@@ -622,7 +629,7 @@ gobbleline(WImage *w)
 	if(rv < 0)
 		return 0;
 	w->line += w->bpl;
-	w->loutp=w->outp;
+	w->loutp = w->outp;
 	w->r.max.y++;
 	return w->bpl;
 }
@@ -644,13 +651,12 @@ shiftwindow(WImage *w, uchar *data, uchar *edata)
 	/* fill right with data if available */
 	if(w->minbuf > w->ninbuf && edata > data) {
 		m = w->minbuf - w->ninbuf;
-		if(edata-data < m)
-			m = edata-data;
+		if(edata - data < m)
+			m = edata - data;
 		memmove(w->inbuf+w->ninbuf, data, m);
 		data += m;
 		w->ninbuf += m;
 	}
-
 	return data;
 }
 
@@ -666,12 +672,11 @@ initwriteimage(FILE *f, Rectangle r, char *chanstr, int depth)
 		return nil;
 	}
 
-	n = NMEM+NMATCH+NRUN+bpl*2;
+	n = NMEM + NMATCH + NRUN + bpl*2;
 	w = malloc(n+sizeof(*w));
 	if(w == nil)
 		return nil;
-	w->inbuf = (uchar*) &w[1];
-	w->ibase = w->inbuf;
+	w->ibase = w->inbuf = (uchar*) &w[1];
 	w->line = 0;
 	w->minbuf = n;
 	w->ninbuf = 0;
@@ -708,9 +713,9 @@ writeimageblock(WImage *w, uchar *data, int ndata)
 		return 0;
 	}
 
-	edata = data+ndata;
+	edata = data + ndata;
 	data = shiftwindow(w, data, edata);
-	while(w->ninbuf >= w->line+w->bpl+NMATCH) {
+	while(w->ninbuf >= w->line + w->bpl + NMATCH) {
 		if(gobbleline(w) == ERROR)
 			return ERROR;
 		data = shiftwindow(w, data, edata);

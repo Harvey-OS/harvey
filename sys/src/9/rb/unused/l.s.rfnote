@@ -1,0 +1,5 @@
+/* this appears to be a dreg from the distant past */
+TEXT	rfnote(SB), $0
+	MOVW	R1, R26			/* 1st arg is &uregpointer */
+	JMP	restore
+	  SUBU	$(BY2WD), R26, SP	/* delay slot: pc hole */

@@ -1,0 +1,84 @@
+--- src/gpm.c_	Sat Jun  8 14:14:19 2002
++++ src/gpm.c	Sat Jun  8 14:51:18 2002
+@@ -106,6 +106,11 @@
+ static int mouse_argc[3]; /* 0 for default (unused) and two mice */
+ static char **mouse_argv[3]; /* 0 for default (unused) and two mice */
+ 
++/* pixel-level mouse delta. Should be in event, but I don't want to break interface */
++static int smooth_dx, smooth_dy;
++
++static int number_of_smooth_clients = 0;
++
+ /*===================================================================*/
+ /*
+  *      first, all the stuff that used to be in gpn.c (i.e., not main-loop)
+@@ -317,7 +322,15 @@
+ 
+    /* WARNING */ /* This can generate a SIGPIPE... I'd better catch it */
+    MAGIC_P((write(fd,&magic, sizeof(int))));
+-   write(fd,event, sizeof(Gpm_Event));
++   if (info.eventMask & info.defaultMask & GPM_SMOOTH && !m_type->absolute) {
++      Gpm_Event new = *event;
++      new.dx = smooth_dx;
++      new.dy = smooth_dy;
++      new.type |= GPM_SMOOTH;
++      write(fd,&new, sizeof(Gpm_Event));
++   } else {
++      write(fd,event, sizeof(Gpm_Event));
++   }
+ 
+    return info.defaultMask & GPM_HARD ? res : 1; /* HARD forces pass-on */
+ 
+@@ -503,6 +516,7 @@
+ 
+    /* use fine delta values now, if delta is the information */
+    if (!(m_type)->absolute) {
++      smooth_dx=event->dx;            smooth_dy=event->dy;
+       fine_dx+=event->dx;             fine_dy+=event->dy;
+       event->dx=fine_dx/opt_scale;    event->dy=fine_dy/opt_scaley;
+       fine_dx %= opt_scale;           fine_dy %= opt_scaley;
+@@ -511,7 +525,7 @@
+    /* up and down, up and down, ... who does a do..while(0) loop ???
+       and then makes a break into it... argh ! */
+ 
+-   if (!event->dx && !event->dy && (event->buttons==oldB))
++   if (!event->dx && !event->dy && (event->buttons==oldB) && !number_of_smooth_clients)
+       do { /* so to break */
+          static long awaketime;
+          /*
+@@ -680,6 +694,7 @@
+       FD_CLR(ci->fd,&readySet);
+       if (cinfo[vc]->fd == ci->fd) { /* it was on top of the stack */
+          cinfoPtr = cinfo[vc];
++	 if (cinfoPtr->data.eventMask & cinfoPtr->data.defaultMask & GPM_SMOOTH) number_of_smooth_clients--;
+          cinfo[vc]=cinfo[vc]->next; /* pop the stack */
+          free(cinfoPtr);
+          return -1;
+@@ -850,6 +865,8 @@
+       }
+       free(tty); /* at least here it's not needed anymore */
+    }
++
++   if (info->data.eventMask & info->data.defaultMask & GPM_SMOOTH) number_of_smooth_clients++;
+ 
+    /* register the connection information in the right place */
+    info->next=next=cinfo[vc];
+--- src/headers/gpm.h_	Sat Jun  8 13:20:25 2002
++++ src/headers/gpm.h	Sat Jun  8 14:52:35 2002
+@@ -102,8 +102,15 @@
+                    used event to pass over to another handler */
+ 
+   GPM_ENTER=512,            /* enter event, user in Roi's */
+-  GPM_LEAVE=1024            /* leave event, used in Roi's */
++  GPM_LEAVE=1024,           /* leave event, used in Roi's */
++
++  GPM_SMOOTH=2048,          /* if application want to receive smooth movement,
++                   it sets GPM_SMOOTH in both eventMask and defaultMask.
++                   In returned event, type GPM_SMOOTH signals that dx and dy
++		   are smooth */
+ };
++
++#define GPM_HAVE_SMOOTH     /* so that apps can #ifdef for old/new version */
+ 
+ #define Gpm_StrictSingle(type) (((type)&GPM_SINGLE) && !((type)&GPM_MFLAG))
+ #define Gpm_AnySingle(type)     ((type)&GPM_SINGLE)

@@ -1,5 +1,6 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include "grap.h"
 #include "y.tab.h"
 

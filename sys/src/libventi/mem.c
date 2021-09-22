@@ -11,13 +11,12 @@ enum {
 void
 vtfree(void *p)
 {
-	if(p == 0)
-		return;
-	free(p);
+	if(p)
+		free(p);
 }
 
 void *
-vtmalloc(int size)
+vtmalloc(uintptr size)
 {
 	void *p;
 
@@ -29,16 +28,17 @@ vtmalloc(int size)
 }
 
 void *
-vtmallocz(int size)
+vtmallocz(uintptr size)
 {
 	void *p = vtmalloc(size);
+
 	memset(p, 0, size);
 	setmalloctag(p, getcallerpc(&size));
 	return p;
 }
 
 void *
-vtrealloc(void *p, int size)
+vtrealloc(void *p, uintptr size)
 {
 	if(p == nil)
 		return vtmalloc(size);

@@ -1,0 +1,70 @@
+#!/bin/rc
+#
+# Reply to message shown in the Acme window
+# where it runs, or to the 1st mail named in
+# std. input or compose a new mail otherwise.
+
+rfork e
+if(~ $#file 0 && ~ $#winid 0 ){
+	echo must run under o/live or acme >[1=2]
+	exit fail
+}
+d=`{pwd}
+if(~ $#file 0){
+	w = /mnt/acme/$winid
+	file = `{cat $w/tag | sed 's/ .*//'}
+}
+
+fname=/mail/box/$user/out/Out.$pid
+
+if(! ~ $"file *text){
+	file=`{sed 1q | sed 's,(.* )?(20[0-9][0-9][0-9][0-9])/(.?\.?[0-9]*)/text.*,\2/\3/text,'}
+	if(! ~ $"file *text){
+		file=new
+		{
+			echo 'To: '
+			echo 'Subject: '
+			echo
+		} > $fname
+	}
+	if not
+		file=`{pwd}^/^$"file
+}
+
+switch($file){
+case /mail/*/text
+	m=`{echo $file | sed 's,/text$,,'}
+	upas/fs -p -f $m/raw
+	rt=`{cat /mail/fs/mbox/1/replyto}
+	f=`{cat /mail/fs/mbox/1/from}
+	cc=`{cat /mail/fs/mbox/1/cc}
+	if(! ~ $#cc 0)
+		cc=`{echo $cc ; echo ; cat /mail/fs/mbox/1/to}
+	if not
+		cc=`{cat /mail/fs/mbox/1/to}
+	attachs=`{for (f in `{ls $m | grep -v '/(text|L.mbox|raw)$'}) { test -d $f || echo $f }}
+	{
+		if (~ $#rt 0)
+			echo To: $f
+		if not
+			echo To: $rt
+		if (! ~ $#cc 0)
+			echo Cc: $cc
+		grep '^Subject: ' $m/text | sed 1q
+		echo Replying: $m/raw
+		for(a in $attachs)
+			echo Attach: $a
+		echo
+		q '> ' $m/text 
+	} > $fname
+	unmount /mail/fs
+}
+if(test -e /mnt/ui/appl/*ox*/ctl){
+	ox=`{ls -d /mnt/ui/appl/*ox*/ctl | sed 1q}
+	echo look $fname >$ox
+}
+if not
+	plumb $fname
+
+
+exit ''

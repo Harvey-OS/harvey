@@ -8,6 +8,7 @@ extern void armtimerset(int);
 extern void cachedwb(void);
 extern void cachedwbinv(void);
 extern void cachedinvse(void*, int);
+#define allcacheswbse cachedwbse
 extern void cachedwbse(void*, int);
 extern void cachedwbinvse(void*, int);
 extern void cachedwbtlb(void*, int);
@@ -18,6 +19,7 @@ extern uintptr cankaddr(uintptr pa);
 extern int cas32(void*, u32int, u32int);
 extern int cas(ulong*, ulong, ulong);
 extern void checkmmu(uintptr, uintptr);
+extern void ckstack(Ureg **);
 extern void clockinit(void);
 extern void clockshutdown(void);
 extern int cmpswap(long*, long, long);
@@ -63,7 +65,7 @@ extern void gpiopullup(uint);
 extern void gpiopulloff(uint);
 extern void gpiopulldown(uint);
 extern void gpioout(uint, int);
-extern int gpioin(uint);
+extern int gpioin(unit);
 extern void i2csetup(int);
 extern long i2crecv(I2Cdev*, void*, long, ulong);
 extern long i2csend(I2Cdev*, void*, long, ulong);
@@ -110,10 +112,10 @@ extern int userureg(Ureg*);
 extern void vectors(void);
 extern void vgpinit(void);
 extern void vgpset(uint, int);
+extern void *vmap(uintptr pa, usize);
 extern void vtable(void);
 extern void wdogoff(void);
 extern void wdogfeed(void);
-extern int xhcireset(int devaddr);
 
 /*
  * floating point emulation
@@ -146,9 +148,10 @@ extern void ucfreeb(Block*);
  * Things called from port.
  */
 extern void delay(int);				/* only scheddump() */
+extern void idlehands(void);
 extern int islo(void);
 extern void microdelay(int);			/* only edf.c */
-extern void idlehands(void);
+#define pause()
 extern void setkernur(Ureg*, Proc*);		/* only devproc.c */
 extern void* sysexecregs(uintptr, ulong, int);
 extern void sysprocsetup(Proc*);
@@ -168,4 +171,6 @@ extern void kexit(Ureg*);
 #define KADDR(pa)	UINT2PTR(KZERO    | ((uintptr)(pa) & ~KSEGM))
 #define PADDR(va)	PTR2UINT(PHYSDRAM | ((uintptr)(va) & ~KSEGM))
 
+#ifndef MASK
 #define MASK(v)	((1UL << (v)) - 1)	/* mask `v' bits wide */
+#endif

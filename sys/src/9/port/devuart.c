@@ -80,7 +80,8 @@ uartenable(Uart *p)
 		uartctl(p, "pn");
 	if(p->baud == 0)
 		uartctl(p, "b9600");
-	(*p->phys->enable)(p, 1);
+	if(p->phys->enable)
+		(*p->phys->enable)(p, 1);
 
 	/*
 	 * use ilock because uartclock can otherwise interrupt here
@@ -189,16 +190,16 @@ uartreset(void)
 		uartnuart++;
 	}
 
-	if(uartnuart) {
+	if(uartnuart)
 		uart = xalloc(uartnuart*sizeof(Uart*));
-		if (uart == nil)
-			panic("uartreset: no memory");
-	}
-
+	else
+		uart = xalloc(sizeof(Uart*));		/* dummy */
+	if (uart == nil)
+		panic("uartreset: no memory for Uarts");
 	uartndir = 1 + 3*uartnuart;
 	uartdir = xalloc(uartndir * sizeof(Dirtab));
 	if (uartdir == nil)
-		panic("uartreset: no memory");
+		panic("uartreset: no memory for Dirtabs");
 	dp = uartdir;
 	strcpy(dp->name, ".");
 	mkqid(&dp->qid, 0, 0, QTDIR);
@@ -278,11 +279,12 @@ uartopen(Chan *c, int omode)
 	case Ndataqid:
 		p = uart[NETID(c->qid.path)];
 		qlock(p);
-		if(p->opens++ == 0 && uartenable(p) == nil){
+		if(p->opens == 0 && uartenable(p) == nil){
 			qunlock(p);
 			c->flag &= ~COPEN;
 			error(Enodev);
 		}
+		p->opens++;
 		qunlock(p);
 		break;
 	}
@@ -303,7 +305,8 @@ uartdrained(void* arg)
 static void
 uartdrainoutput(Uart *p)
 {
-	if(!p->enabled)
+	/* can't use waserror nor sleep if up is nil */
+	if(!p->enabled || up == nil)
 		return;
 
 	p->drain = 1;

@@ -1,0 +1,291 @@
+\message{timesmat.sty - original by KHC, edited by DIL for pt sizes}
+% This style uses Times Roman as much as possible in math mode.
+% It is a replacement for times.sty, not an addition
+%
+\def\fileversion{PSNFSS 2.4}
+\def\filedate{16.7.93}
+\immediate\write\sixt@@n{File: `timesmat.sty'
+\fileversion\ <\filedate> (KHC, DIL, SH)}
+% Copyright 1993 by Kin Hoong Chung.
+% 
+% You are allowed to distribute this file.  You are not allowed to
+% charge money for the distribution of this file.
+% 
+% May need further hacking, depending on the version of Times encoding
+% that you use.  The version I use has the various capital Greek
+% letters hacked in from Symbol.  This is not fully tested... it may
+% be missing some other maths characters or text characters for TeX.
+% Seems to be compatible with AMS-LaTeX.
+% 
+% Altered by Dave Laurenson (dil@castle.ed.ac.uk) to work with
+% oldlfont.sty and 10pt, 11pt and 12pt document styles.
+% The same changes also made by Sven Heemeyer. Thanks to both.
+%
+% merged together by S Rahtz July 1993
+% ------------------------------------------------------------
+% Known bugs:
+% 
+% Times italic maths characters should have their own TFM, AFM, etc, for
+% better spacing of fonts.
+% 
+% Room for directly addressable maths mode fonts seems to be limited, I
+% don't know why yet...
+% 
+% Postscript accents behave in a different way to CMR accents, so that
+% there is \mathaccent fails.  Present correction merely replaces the
+% Times accents with CMR ones.  Accents in maths mode should be Times accents.
+
+% check if nfss exists
+\@ifundefined{selectfont}
+     {\@latexerr{`timesmat' style option can only be used
+                  with the new font selection scheme}\@eha
+      \endinput}{}
+% 
+\ifx\declare@font\undefined
+  \input{psnfss.sup}\fi
+% 
+% load required PostScript (tm) fonts.
+\def\load@courier{%
+\postscript@fontdef{Courier}{courier}%
+{pcrr}{pcrro}{pcrb}{pcrbo}{pcrr}{pcrr}
+}
+\def\load@helvetica{%
+\postscript@fontdef[.85333]{Helvetica}{helvetica}%
+{phvr}{phvro}{phvb}{phvbo}{phvrc}{phvro}
+}
+\def\load@times{%
+\postscript@fontdef{Times}{times}%
+{ptmr}{ptmri}{ptmb}{ptmbi}{ptmrc}{ptmro}
+}
+% 
+\romanfont{times} %make default Roman font Times-Roman.
+\sansfont{helvetica} %Sans serif is Helvetica
+\typewriterfont{courier} %\tt is Courier
+
+\def\default@family{times} %Tell AMS-LaTeX that Times-Roman is default.
+
+% put back dotless i,j
+% \def\i{{\family{cmr}\selectfont\char"10}}
+\def\j{{\family{cmr}\selectfont\char"11}}
+
+% Make Times the default maths font.
+\late@define@mathgroup\mv@normal{0}
+                 {times}{m}{n}
+\late@define@mathgroup\mv@normal{1}
+                 {times}{m}{it}
+% Tell TeX that Times is the default maths font.
+
+\expandafter\font\csname times/m/n/10\endcsname=ptmr
+\textfont0=\csname times/m/n/10\endcsname
+\scriptfont0=\csname times/m/n/10\endcsname
+\scriptscriptfont0=\csname times/m/n/10\endcsname
+
+\expandafter\font\csname times/m/it/10\endcsname=ptmri
+\textfont1=\csname times/m/it/10\endcsname
+\scriptfont1=\csname times/m/it/10\endcsname
+\scriptscriptfont1=\csname times/m/it/10\endcsname
+
+% make the \boldmath option work in Times.
+\late@define@mathgroup\mv@bold{0}
+                 {times}{bx}{n}
+\late@define@mathgroup\mv@bold{1}
+                 {times}{bx}{it}
+
+% Put cmmi back into TeX, as a new maths alphabet, so that we can get
+% back the Greek & other characters missing in Times.
+\def\cmmath{\protect\pcmmath}
+\def\pcmmath{\RIfM@\expandafter\cmmath@\else
+                 \expandafter\nonmatherr@\expandafter\cmmath\fi}
+\late@newmathalphabet\cmmath@
+% find out which \textfont holds cmmi
+\edef\@tempa{\number\cmmath@@group}%
+% Tell TeX where cmmi is.
+% Assumes \@ptsize is defined by article, report, book
+\ifcase \@ptsize
+  \textfont\@tempa=\csname cmm/m/it/10\endcsname
+  \scriptfont\@tempa=\csname cmm/m/it/7\endcsname
+  \scriptscriptfont\@tempa=\csname cmm/m/it/5\endcsname
+\or
+  \textfont\@tempa=\csname cmm/m/it/11\endcsname
+  \scriptfont\@tempa=\csname cmm/m/it/7\endcsname
+  \scriptscriptfont\@tempa=\csname cmm/m/it/5\endcsname
+\or
+  \textfont\@tempa=\csname cmm/m/it/12\endcsname
+  \scriptfont\@tempa=\csname cmm/m/it/8\endcsname
+  \scriptscriptfont\@tempa=\csname cmm/m/it/6\endcsname
+\fi
+% make sure bold version gets bold characters
+\late@define@mathgroup\mv@normal{\@tempa}
+                 {cmm}{m}{it}
+\late@define@mathgroup\mv@bold{\@tempa}
+                 {cmm}{b}{it}
+\edef\@tempa{\hexnumber@\cmmath@@group}%
+
+% cmmi and Times-italic have different positions for some punctuation marks
+% \mathcode`\ ="8000 % \space
+% \mathcode`\!="5021
+% \mathcode`\'="8000 % ^\prime
+% \mathcode`\(="4028
+% \mathcode`\)="5029
+% \mathcode`\*="22.4 % \ast
+% \mathcode`\+="202B
+\mathcode`\,="602C
+% \mathcode`\-="2200
+\mathcode`\.="002E
+\mathcode`\/="002F
+% \mathcode`\:="303A
+% \mathcode`\;="603B
+\mathcode`\<="303C
+% \mathcode`\=="303D
+\mathcode`\>="303E
+% \mathcode`\?="503F
+% \mathcode`\[="405B
+% \mathcode`\\="026E % \backslash
+% \mathcode`\]="505D
+% \mathcode`\_="8000 % \_
+% \mathcode`\{="4266
+% \mathcode`\|="026A
+% \mathcode`\}="5267
+\mathchardef\ldotp="602E % ldot as a punctuation mark
+ 
+% Put back the missing lowercase Greek characters.
+\mathchardef\alpha="0\@tempa 0B
+\mathchardef\beta="0\@tempa 0C
+\mathchardef\gamma="0\@tempa 0D
+\mathchardef\delta="0\@tempa 0E
+\mathchardef\epsilon="0\@tempa 0F
+\mathchardef\zeta="0\@tempa 10
+\mathchardef\eta="0\@tempa 11
+\mathchardef\theta="0\@tempa 12
+\mathchardef\iota="0\@tempa 13
+\mathchardef\kappa="0\@tempa 14
+\mathchardef\lambda="0\@tempa 15
+\mathchardef\mu="0\@tempa 16
+\mathchardef\nu="0\@tempa 17
+\mathchardef\xi="0\@tempa 18
+\mathchardef\pi="0\@tempa 19
+\mathchardef\rho="0\@tempa 1A
+\mathchardef\sigma="0\@tempa 1B
+\mathchardef\tau="0\@tempa 1C
+\mathchardef\upsilon="0\@tempa 1D
+\mathchardef\phi="0\@tempa 1E
+\mathchardef\chi="0\@tempa 1F
+\mathchardef\psi="0\@tempa 20
+\mathchardef\omega="0\@tempa 21
+\mathchardef\varepsilon="0\@tempa 22
+\mathchardef\vartheta="0\@tempa 23
+\mathchardef\varpi="0\@tempa 24
+\mathchardef\varrho="0\@tempa 25
+\mathchardef\varsigma="0\@tempa 26
+\mathchardef\varphi="0\@tempa 27
+
+% Put back other missing characters.
+\mathchardef\imath="0110
+\mathchardef\jmath="0\@tempa 7C
+\mathchardef\ell="0\@tempa 60
+\mathchardef\wp="0\@tempa 7D
+\mathchardef\partial="0\@tempa 40
+\mathchardef\flat="0\@tempa 5B
+\mathchardef\natural="0\@tempa 5C
+\mathchardef\sharp="0\@tempa 5D
+\mathchardef\smile="3\@tempa 5E
+\mathchardef\frown="3\@tempa 5F
+\mathchardef\leftharpoonup="3\@tempa 28
+\mathchardef\leftharpoondown="3\@tempa 29
+\mathchardef\rightharpoonup="3\@tempa 2A
+\mathchardef\rightharpoondown="3\@tempa 2B
+\mathchardef\lhook="3\@tempa 2C \def\hookrightarrow{\lhook\joinrel\rightarrow}
+\mathchardef\rhook="3\@tempa 2D \def\hookleftarrow{\leftarrow\joinrel\rhook}
+\mathchardef\star="2\@tempa 3F
+\mathchardef\vecMC="0\@tempa 7E
+\def\vec{\mathaccent\the\vecMC }
+
+% Get all the missing cmr characters back for maths mode
+\def\cmrmath{\protect\pcmrmath}
+\def\pcmrmath{\RIfM@\expandafter\cmrmath@\else
+                 \expandafter\nonmatherr@\expandafter\cmrmath\fi}
+\late@newmathalphabet\cmrmath@
+% find out which \textfont holds cmr
+\edef\@tempa{\number\cmrmath@@group}%
+% Tell TeX where cmr is.
+\ifcase\@ptsize
+  \textfont\@tempa=\csname cmr/m/n/10\endcsname
+  \scriptfont\@tempa=\csname cmr/m/n/7\endcsname
+  \scriptscriptfont\@tempa=\csname cmr/m/n/5\endcsname%
+\or
+  \textfont\@tempa=\csname cmr/m/n/11\endcsname
+  \scriptfont\@tempa=\csname cmr/m/n/7\endcsname
+  \scriptscriptfont\@tempa=\csname cmr/m/n/5\endcsname%
+\or
+  \textfont\@tempa=\csname cmr/m/n/12\endcsname
+  \scriptfont\@tempa=\csname cmr/m/n/8\endcsname
+  \scriptscriptfont\@tempa=\csname cmr/m/n/6\endcsname
+\fi
+% make sure bold version gets bold characters
+\late@define@mathgroup\mv@normal{\@tempa}
+                 {cmr}{m}{n}
+\late@define@mathgroup\mv@bold{\@tempa}
+                 {cmr}{bx}{n}
+\edef\@tempa{\hexnumber@\cmrmath@@group}%
+ 
+% %Put back the missing capital Greek letters.
+% \mathchardef\Gamma="7\@tempa 00
+% \mathchardef\Delta="7\@tempa 01
+% \mathchardef\Theta="7\@tempa 02
+% \mathchardef\Lambda="7\@tempa 03
+% \mathchardef\Xi="7\@tempa 04
+% \mathchardef\Pi="7\@tempa 05
+% \mathchardef\Sigma="7\@tempa 06
+% \mathchardef\Upsilon="7\@tempa 07
+% \mathchardef\Phi="7\@tempa 08
+% \mathchardef\Psi="7\@tempa 09
+% \mathchardef\Omega="7\@tempa 0A
+ 
+% Postscript accents behave differently to the way TeX expects... and
+% \mathaccent is a primitive command, so it cannot be changed!!!
+\mathchardef\acuteMC="7\@tempa 13
+\def\acute{\mathaccent\the\acuteMC }
+\mathchardef\graveMC="7\@tempa 12
+\def\grave{\mathaccent\the\graveMC }
+\mathchardef\ddotMC="7\@tempa 7F
+\def\ddot{\mathaccent\the\ddotMC }
+\mathchardef\tildeMC="7\@tempa 7E
+\def\tilde{\mathaccent\the\tildeMC }
+\mathchardef\barMC="7\@tempa 16
+\def\bar{\mathaccent\the\barMC }
+\mathchardef\breveMC="7\@tempa 15
+\def\breve{\mathaccent\the\breveMC }
+\mathchardef\checkMC="7\@tempa 14
+\def\check{\mathaccent\the\checkMC }
+\mathchardef\hatMC="7\@tempa 5E
+\def\hat{\mathaccent\the\hatMC }
+\mathchardef\dotMC="7\@tempa 5F
+\def\dot{\mathaccent\the\dotMC }
+
+\ifx\csname amstex.sty\endcsname\relax
+{}
+\else
+\def\Makeacce@#1#2{\def#1{\RIfM@\DN@{\mathaccent@
+ {#2 }}\else\DN@{\nonmatherr@{#1}}\fi\next@}}
+
+\Makeacce@\Hat{\the\hatMC }
+\Makeacce@\Check{\the\checkMC }
+\Makeacce@\Tilde{\the\tildeMC }
+\Makeacce@\Acute{\the\acuteMC }
+\Makeacce@\Grave{\the\graveMC }
+\Makeacce@\Dot{\the\dotMC }
+\Makeacce@\Ddot{\the\ddotMC }
+\Makeacce@\Breve{\the\breveMC }
+\Makeacce@\Bar{\the\barMC }
+\def\Vec{\RIfM@\DN@{\mathaccent@{\the\vecMC }}}
+\fi
+
+% fix \bold in AMS-LaTeX so it produces bold Times-Roman text rather than
+% bold Computer-Modern-Roman.  If you are not using AMS-LaTeX, you may get
+% \bold as a new maths mode operator for free.
+\late@newmathalphabet*{\timesrmbf}{times}{bx}{n}
+\def\bold{\timesrmbf}
+
+\def\hbar{{\mathchar'26\mkern-7muh}}
+\def\neq{{\not\mkern1.5mu=}} \let\ne=\neq
+\endinput

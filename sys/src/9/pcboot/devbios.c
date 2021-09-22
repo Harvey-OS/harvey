@@ -13,11 +13,9 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
 #include	"ureg.h"
-#include	"pool.h"
+
 #include	"../port/error.h"
-#include	"../port/netif.h"
 #include	"../port/sd.h"
 #include	"dosfs.h"
 
@@ -250,7 +248,7 @@ biosinit0(void)
 		return 0;
 	beenhere = 1;
 
-	ndrive = *(uchar *)KADDR(0x475);		/* from bda */
+	ndrive = *(uchar *)NBIOSDRIVES;		/* from bda */
 	if (Debug)
 		print("%d bios drive(s)\n", ndrive);
 	mask = lastbit = 0;

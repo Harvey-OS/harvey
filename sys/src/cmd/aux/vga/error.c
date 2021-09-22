@@ -15,7 +15,7 @@ error(char* format, ...)
 	int n;
 
 	sequencer(0, 1);
-	n = sprint(buf, "%s: ", argv0);
+	n = snprint(buf, sizeof buf, "%s: ", argv0);
 	va_start(arg, format);
 	out = vseprint(buf+n, buf+sizeof(buf)-n, format, arg);
 	va_end(arg);

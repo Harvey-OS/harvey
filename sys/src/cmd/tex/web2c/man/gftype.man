@@ -1,0 +1,97 @@
+.TH GFTYPE 1 "14 December 1993" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+gftype \- translate a generic font file for humans to read
+.SH SYNOPSIS
+.B gftype
+[
+.B \-i
+]
+[
+.B \-m
+]
+.I gf_file_name
+[
+.I output_file_name
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B gftype
+program
+translates a
+.I gf
+(generic font) file output by, for example,
+.BR mf (1),
+to a file that humans can read.
+It also serves as a
+.I gf
+file-validating
+program (i.e., if
+.B gftype
+can read it, it's correct) and as an example of a
+.IR gf -reading
+program for other software that wants to read
+.I gf
+files.
+.PP
+The
+.I gf_file_name
+on the command line must be complete. Because
+the resolution is part of the extension, it would not make
+sense to append a default extension as is done with \*(TX or
+DVI-reading software. If no
+.I output_file_name
+is specified, the output goes to
+.IR stdout .
+.\"=====================================================================
+.SH OPTIONS
+The output file includes
+bitmap images of the characters, if
+.B \-i
+is given on the command line, and a symbolic listing of the
+.I gf
+commands, if
+.B \-m
+is specified.
+.\"=====================================================================
+.SH ENVIRONMENT
+.B gftype
+looks for
+.I gf_file_name
+using the
+environment variable GFFONTS.  If that is not set, it uses the variable
+TEXFONTS.  If that is not set, it uses the system default.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR dvitype (1),
+.BR pktype (1).
+.br
+Donald E. Knuth et al.,
+.IR \*(MFware .
+.\"=====================================================================
+.SH AUTHORS
+David Fuchs and Don Knuth wrote the program.  It was published as
+part of the
+.I \*(MFware
+technical report, available from the \*(TX Users Group.
+Paul Richards originally ported it to Unix.

@@ -311,14 +311,15 @@
 ./obj/gxdhtserial.o \
 ./obj/gxclfile.o \
 ./obj/gdevplan9.o \
-./obj/gdevbj10.o \
-./obj/gdevcdj.o \
+# ./obj/gdevbj10.o \
+# ./obj/gdevcdj.o \
 ./obj/gdevpcl.o \
-./obj/gdevcd8.o \
+# ./obj/gdevcd8.o \
 ./obj/gdevdfax.o \
 ./obj/gdevtfax.o \
 ./obj/gdevfax.o \
 ./obj/gdevtifs.o \
+./obj/gdevepsc.o \
 ./obj/gdevps.o \
 ./obj/gdevpsu.o \
 ./obj/gdevpsdi.o \

@@ -33,7 +33,7 @@
 
 	 /* ---------------- Cache sizes ---------------- */
 
-#define ARCH_CACHE1_SIZE 4096
+#define ARCH_CACHE1_SIZE 131072
 #define ARCH_CACHE2_SIZE 4194304
 
 	 /* ---------------- Miscellaneous ---------------- */
@@ -44,3 +44,7 @@
 #define ARCH_ARITH_RSHIFT 2
 #define ARCH_CAN_SHIFT_FULL_LONG 0
 #define ARCH_DIV_NEG_POS_TRUNCATES 1
+
+#ifndef _GNUC_LONG64_
+#define _GNUC_LONG64_
+#endif

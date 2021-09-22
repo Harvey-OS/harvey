@@ -67,14 +67,17 @@ mpdiv(mpint *dividend, mpint *divisor, mpint *quotient, mpint *remainder)
 		mpdigdiv(up-1, *vp, &qd);
 
 		// D3a: rule out trial divisors 2 greater than real divisor
-		if(vn > 1) for(;;){
-			memset(t->p, 0, 3*Dbytes);	// mpvecdigmuladd adds to what's there
-			mpvecdigmuladd(vp-1, 2, qd, t->p);
-			if(mpveccmp(t->p, 3, up-2, 3) > 0)
-				qd--;
-			else
-				break;
-		}
+		if(vn > 1)
+			// potentially infinite loops are a hazard.
+			for(;;){
+				memset(t->p, 0, 3*Dbytes);
+				// mpvecdigmuladd adds to what's there
+				mpvecdigmuladd(vp-1, 2, qd, t->p);
+				if(mpveccmp(t->p, 3, up-2, 3) > 0)
+					qd--;
+				else
+					break;
+			}
 
 		// D4: u -= v*qd << j*Dbits
 		sign = mpvecdigmulsub(v->p, vn, qd, up-vn);

@@ -1,5 +1,5 @@
 /*
- * keyboard input
+ * PS/2 keyboard input via intel 8042
  */
 #include	"u.h"
 #include	"../port/lib.h"
@@ -7,13 +7,13 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-
+#include	<ctype.h>
 #include	"io.h"
 
 enum {
-	Data=		0x60,		/* data port */
+	Data=		KBDATA,		/* data I/O port */
 
-	Status=		0x64,		/* status port */
+	Status=		KBDCMD,		/* status I/O port */
 	 Inready=	0x01,		/*  input character ready */
 	 Outbusy=	0x02,		/*  output busy */
 	 Sysflag=	0x04,		/*  system flag */
@@ -23,7 +23,7 @@ enum {
 	 Rtimeout=	0x40,		/*  general timeout */
 	 Parity=	0x80,
 
-	Cmd=		0x64,		/* command port (write only) */
+	Cmd=		KBDCMD,		/* command I/O port (write only) */
 
 	Spec=		0xF800,		/* Unicode private space */
 	PF=		Spec|0x20,	/* num pad function key */
@@ -144,7 +144,7 @@ Rune kbtabaltgr[Nscan] =
 [0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
 };
 
-Rune kbtabctrl[Nscan] =
+Rune kbtabctrl[] =
 {
 [0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'',
 [0x08]	'', 	'', 	'', 	'', 	'', 	'', 	'\b',	'\t',
@@ -175,15 +175,14 @@ enum
 	Ckbdint=	(1<<0),		/* kbd interrupt enable */
 };
 
-static Queue *kbdq;
-
 int mouseshifted;
 void (*kbdmouse)(int);
 
+static Queue *kbdq;		/* is ignored as first arg to kbdputc */
+static int nokbd = 1;		/* flag: no PS/2 keyboard */
 static Lock i8042lock;
 static uchar ccc;
 static void (*auxputc)(int, int);
-static int nokbd = 1;			/* flag: no PS/2 keyboard */
 
 /*
  *  wait for output no longer busy
@@ -217,123 +216,27 @@ inready(void)
 	return 0;
 }
 
-/*
- *  ask 8042 to enable the use of address bit 20
- */
-void
-i8042a20(void)
+static int
+outbyte(int port, int c)
 {
-	outready();
-	outb(Cmd, 0xD1);
-	outready();
-	outb(Data, 0xDF);
-	outready();
-}
-
-/*
- *  ask 8042 to reset the machine
- */
-void
-i8042reset(void)
-{
-	int i, x;
-
-	if(nokbd)
-		return;
-
-	*((ushort*)KADDR(0x472)) = 0x1234;	/* BIOS warm-boot flag */
-
-	/*
-	 *  newer reset the machine command
-	 */
-	outready();
-	outb(Cmd, 0xFE);
-	outready();
-
-	/*
-	 *  Pulse it by hand (old somewhat reliable)
-	 */
-	x = 0xDF;
-	for(i = 0; i < 5; i++){
-		x ^= 1;
-		outready();
-		outb(Cmd, 0xD1);
-		outready();
-		outb(Data, x);	/* toggle reset */
-		delay(100);
-	}
-}
-
-int
-i8042auxcmd(int cmd)
-{
-	unsigned int c;
-	int tries;
-	static int badkbd;
-
-	if(badkbd)
-		return -1;
-	c = 0;
-	tries = 0;
-
-	ilock(&i8042lock);
-	do{
-		if(tries++ > 2)
-			break;
-		if(outready() < 0)
-			break;
-		outb(Cmd, 0xD4);
-		if(outready() < 0)
-			break;
-		outb(Data, cmd);
-		if(outready() < 0)
-			break;
-		if(inready() < 0)
-			break;
-		c = inb(Data);
-	} while(c == 0xFE || c == 0);
-	iunlock(&i8042lock);
-
-	if(c != 0xFA){
-		print("i8042: %2.2ux returned to the %2.2ux command\n", c, cmd);
-		badkbd = 1;	/* don't keep trying; there might not be one */
-		return -1;
-	}
-	return 0;
-}
-
-int
-i8042auxcmds(uchar *cmd, int ncmd)
-{
-	int i;
-
-	ilock(&i8042lock);
-	for(i=0; i<ncmd; i++){
-		if(outready() < 0)
-			break;
-		outb(Cmd, 0xD4);
-		if(outready() < 0)
-			break;
-		outb(Data, cmd[i]);
-	}
-	iunlock(&i8042lock);
-	return i;
+	outb(port, c);
+	return outready();
 }
 
 typedef struct Kbscan Kbscan;
 struct Kbscan {
-	int	esc1;
-	int	esc2;
-	int	alt;
-	int	altgr;
-	int	caps;
-	int	ctl;
-	int	num;
-	int	shift;
-	int	collecting;
-	int	nk;
-	Rune	kc[5];
-	int	buttons;
+	int esc1;
+	int esc2;
+	int alt;
+	int altgr;
+	int caps;
+	int ctl;
+	int num;
+	int shift;
+	int collecting;
+	int nk;
+	Rune kc[1+2*UTFmax+1];	/* worst case: "x12345678\0" */
+	int buttons;
 };
 
 Kbscan kbscans[Nscans];	/* kernel and external scan code state */
@@ -408,12 +311,6 @@ kbdputsc(int c, int external)
 
 	keyup = c & 0x80;
 	c &= 0x7f;
-	if(c > sizeof kbtab){
-		c |= keyup;
-		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
-			print("unknown key %ux\n", c);
-		return;
-	}
 
 	if(kbscan->esc1){
 		c = kbtabesc1[c];
@@ -552,10 +449,13 @@ kbdputsc(int c, int external)
 /*
  *  keyboard interrupt
  */
-static void
+static Intrsvcret
 i8042intr(Ureg*, void*)
 {
-	int s, c;
+	int s, c, i, keyup;
+	Kbscan *kbscan;
+
+	kbscan = &kbscans[Int];
 
 	/*
 	 *  get status
@@ -564,7 +464,7 @@ i8042intr(Ureg*, void*)
 	s = inb(Status);
 	if(!(s&Inready)){
 		iunlock(&i8042lock);
-		return;
+		return Intrnotforme;
 	}
 
 	/*
@@ -582,66 +482,157 @@ i8042intr(Ureg*, void*)
 		return;
 	}
 
-	kbdputsc(c, Int);
-}
-
-void
-i8042auxenable(void (*putc)(int, int))
-{
-	char *err = "i8042: aux init failed\n";
-
-	/* enable kbd/aux xfers and interrupts */
-	ccc &= ~Cauxdis;
-	ccc |= Cauxint;
-
-	ilock(&i8042lock);
-	if(outready() < 0)
-		print(err);
-	outb(Cmd, 0x60);			/* write control register */
-	if(outready() < 0)
-		print(err);
-	outb(Data, ccc);
-	if(outready() < 0)
-		print(err);
-	outb(Cmd, 0xA8);			/* auxiliary device enable */
-	if(outready() < 0){
-		iunlock(&i8042lock);
+	/*
+	 *  e0's is the first of a 2 character sequence, e1 the first
+	 *  of a 3 character sequence (on the safari)
+	 */
+	if(c == 0xe0){
+		kbscan->esc1 = 1;
+		return;
+	} else if(c == 0xe1){
+		kbscan->esc2 = 2;
 		return;
 	}
-	auxputc = putc;
-	intrenable(IrqAUX, i8042intr, 0, BUSUNKNOWN, "kbdaux");
-	iunlock(&i8042lock);
-}
 
-static char *initfailed = "i8042: kbdinit failed\n";
+	keyup = c & 0x80;
+	c &= 0x7f;
 
-static int
-outbyte(int port, int c)
-{
-	outb(port, c);
-	if(outready() < 0) {
-		print(initfailed);
-		return -1;
+	if(kbscan->esc1){
+		c = kbtabesc1[c];
+		kbscan->esc1 = 0;
+	} else if(kbscan->esc2){
+		kbscan->esc2--;
+		return;
+	} else if(kbscan->shift)
+		c = kbtabshift[c];
+	else if(kbscan->altgr)
+		c = kbtabaltgr[c];
+	else if(kbscan->ctl)
+		c = kbtabctrl[c];
+	else
+		c = kbtab[c];
+
+	if(kbscan->caps)
+		c = toupper(c);
+
+	/*
+	 *  keyup only important for shifts
+	 */
+	if(keyup){
+		switch(c){
+		case Latin:
+			kbscan->alt = 0;
+			break;
+		case Shift:
+			kbscan->shift = mouseshifted = 0;
+			break;
+		case Ctrl:
+			kbscan->ctl = 0;
+			break;
+		case Altgr:
+			kbscan->altgr = 0;
+			break;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbscan->buttons &= ~(1<<(c-Kmouse-1));
+			if(kbdmouse)
+				kbdmouse(kbscan->buttons);
+			break;
+		}
+		return;
 	}
-	return 0;
+
+	/*
+	 *  normal character
+	 */
+	if(!(c & (Spec|KF))){
+		if(kbscan->ctl && kbscan->alt && c == Del)  /* PC reboot seq? */
+			exit(0);
+		if(!kbscan->collecting){
+			kbdputc(kbdq, c);
+			return;
+		}
+		if (kbscan->nk < nelem(kbscan->kc))
+			kbscan->kc[kbscan->nk++] = c;
+		c = latin1(kbscan->kc, kbscan->nk);
+		if(c < -1)			/* need more keystrokes */
+			return;
+		if(c != -1)			/* valid sequence */
+			kbdputc(kbdq, c);
+		else				/* dump characters */
+			for(i=0; i<kbscan->nk; i++)
+				kbdputc(kbdq, kbscan->kc[i]);
+		kbscan->nk = kbscan->collecting = 0;
+		return;
+	} else
+		switch(c){
+		case Caps:
+			kbscan->caps ^= 1;
+			return;
+		case Num:
+			kbscan->num ^= 1;
+			return;
+		case Shift:
+			kbscan->shift = mouseshifted = 1;
+			return;
+		case Latin:
+			kbscan->alt = 1;
+			/*
+			 * VMware and Qemu use Ctl-Alt as the key combination
+			 * to make the VM give up keyboard and mouse focus.
+			 * This has the unfortunate side effect that when you
+			 * come back into focus, Plan 9 thinks you want to type
+			 * a compose sequence (you just typed alt).
+			 *
+			 * As a clumsy hack around this, we look for ctl-alt
+			 * and don't treat it as the start of a compose sequence.
+			 */
+			if(!kbscan->ctl){
+				kbscan->collecting = 1;
+				kbscan->nk = 0;
+			}
+			return;
+		case Ctrl:
+			kbscan->ctl = 1;
+			return;
+		case Altgr:
+			kbscan->altgr = 1;
+			return;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbscan->buttons |= 1<<(c-Kmouse-1);
+			if(kbdmouse)
+				kbdmouse(kbscan->buttons);
+			return;
+		}
+	kbdputc(kbdq, c);
 }
 
+/*
+ * Modern (c. 2017) machines tend to not have 8042 keyboard controllers,
+ * but get their console input from USB keyboards or serial ports.
+ * Thus, don't complain about init failure; it's quite normal now.
+ */
 void
 kbdinit(void)
 {
 	int c, try;
 
-	/* wait for a quiescent controller */
-	try = 500;
+	/* wait for a quiescent controller, if any */
+	try = 1000;
 	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
 		if(c & Inready)
 			inb(Data);
 		delay(1);
 	}
-	if (try <= 0) {
-		print(initfailed);
-		return;
-	}
+	if (try <= 0)
+		return;			/* no controller */
 
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
@@ -654,27 +645,19 @@ kbdinit(void)
 	/* enable kbd xfers and interrupts */
 	ccc &= ~Ckbddis;
 	ccc |= Csf | Ckbdint | Cscs1;
-	if(outready() < 0) {
-		print(initfailed);
+	if(outready() < 0)
 		return;
-	}
-
 	nokbd = 0;
-
 	/* disable mouse */
 	if (outbyte(Cmd, 0x60) < 0 || outbyte(Data, ccc) < 0)
 		print("i8042: kbdinit mouse disable failed\n");
-
-	/* see http://www.computer-engineering.org/ps2keyboard for codes */
-	if(getconf("*typematic") != nil)
-		/* set typematic rate/delay (0 -> delay=250ms & rate=30cps) */
-		if(outbyte(Data, 0xf3) < 0 || outbyte(Data, 0) < 0)
-			print("i8042: kbdinit set typematic rate failed\n");
 }
 
 void
 kbdenable(void)
 {
+	if (nokbd)
+		return;
 	kbdq = qopen(4*1024, 0, 0, 0);
 	if(kbdq == nil)
 		panic("kbdinit");
@@ -685,11 +668,9 @@ kbdenable(void)
 	ioalloc(Cmd, 1, 0, "kbd");
 
 	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "kbd");
-
-	kbscans[Int].num = 0;
-	setleds(&kbscans[Int]);
 }
 
+#ifdef USB			/* might be needed by usb kbd */
 void
 kbdputmap(ushort m, ushort scanc, Rune r)
 {
@@ -719,27 +700,30 @@ kbdputmap(ushort m, ushort scanc, Rune r)
 int
 kbdgetmap(uint offset, int *t, int *sc, Rune *r)
 {
+	int scanc;
+
 	if ((int)offset < 0)
 		error(Ebadarg);
-	*t = offset/Nscan;
-	*sc = offset%Nscan;
+	*t =  offset/Nscan;
+	*sc = scanc = offset%Nscan;
 	switch(*t) {
 	default:
 		return 0;
 	case 0:
-		*r = kbtab[*sc];
+		*r = kbtab[scanc];
 		return 1;
 	case 1:
-		*r = kbtabshift[*sc];
+		*r = kbtabshift[scanc];
 		return 1;
 	case 2:
-		*r = kbtabesc1[*sc];
+		*r = kbtabesc1[scanc];
 		return 1;
 	case 3:
-		*r = kbtabaltgr[*sc];
+		*r = kbtabaltgr[scanc];
 		return 1;
 	case 4:
-		*r = kbtabctrl[*sc];
+		*r = kbtabctrl[scanc];
 		return 1;
 	}
 }
+#endif

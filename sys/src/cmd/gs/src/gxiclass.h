@@ -26,6 +26,7 @@ typedef struct gx_image_enum_s gx_image_enum;
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#pragma incomplete gx_device
 #endif
 
 /*

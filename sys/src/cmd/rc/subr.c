@@ -4,7 +4,7 @@
 #include "fns.h"
 
 void *
-emalloc(long n)
+emalloc(uintptr n)
 {
 	void *p = Malloc(n);
 

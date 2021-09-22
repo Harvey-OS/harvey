@@ -92,10 +92,10 @@ typedef struct obj_header_data_s {
 	    unsigned _:1, back:obj_mb_bits;
 	} b;
     } f;
-    uint size;
+    uintptr_t size;
     union _t {
 	gs_memory_type_ptr_t type;
-	uint reloc;
+	uintptr_t reloc;
     } t;
 #   if IGC_PTR_STABILITY_CHECK
     unsigned space_id:3; /* r_space_bits + 1 bit for "instability". */
@@ -130,17 +130,16 @@ typedef struct obj_header_data_s {
 #endif
 #define obj_align_mask (obj_align_mod-1)
 #define obj_align_round(siz)\
-  (uint)(((siz) + obj_align_mask) & -obj_align_mod)
+  (uintptr_t)(((siz) + obj_align_mask) & -obj_align_mod)
 #define obj_size_round(siz)\
   obj_align_round((siz) + sizeof(obj_header_t))
 
 /* Define the real object header type, taking alignment into account. */
-struct obj_header_s {		/* must be a struct because of forward reference */
+struct obj_header_s {	/* must be a struct because of forward reference */
     union _d {
 	obj_header_data_t o;
 	byte _pad[ROUND_UP(sizeof(obj_header_data_t), obj_align_mod)];
-    }
-    d;
+    } d;
 };
 
 /* Define some reasonable abbreviations for the fields. */

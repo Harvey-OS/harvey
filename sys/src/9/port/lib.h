@@ -9,29 +9,33 @@
  * mem routines
  */
 extern	void*	memccpy(void*, void*, int, ulong);
-extern	void*	memset(void*, int, ulong);
+extern	void*	memset(void*, int, uintptr);
 extern	int	memcmp(void*, void*, ulong);
 extern	void*	memmove(void*, void*, ulong);
 extern	void*	memchr(void*, int, ulong);
+
+/*
+ * char routines
+ */
+extern int	tolower(int);
 
 /*
  * string routines
  */
 extern	char*	strcat(char*, char*);
 extern	char*	strchr(char*, int);
-extern	char*	strrchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
-extern	char*	strncat(char*, char*, long);
-extern	char*	strncpy(char*, char*, long);
-extern	int	strncmp(char*, char*, long);
 extern	long	strlen(char*);
+extern	char*	strncat(char*, char*, long);
+extern	int	strncmp(char*, char*, long);
+extern	char*	strncpy(char*, char*, long);
+extern	char*	strrchr(char*, int);
 extern	char*	strstr(char*, char*);
-extern	int	atoi(char*);
-extern	int	fullrune(char*, int);
 extern	int	cistrcmp(char*, char*);
 extern	int	cistrncmp(char*, char*, int);
+extern	int	tokenize(char*, char**, int);
 
 enum
 {
@@ -48,12 +52,25 @@ enum
  */
 extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
-extern	char*	utfrune(char*, long);
+extern	int	runelen(long);
+extern	int	fullrune(char*, int);
 extern	int	utflen(char*);
 extern	int	utfnlen(char*, long);
-extern	int	runelen(long);
+extern	char*	utfrune(char*, long);
 
-extern	int	abs(int);
+/*
+ * malloc
+ */
+extern	void	free(void*);
+extern	ulong	getmalloctag(void*);
+extern	ulong	getrealloctag(void*);
+extern	void*	mallocalign(ulong, ulong, long, ulong);
+extern	void	mallocsummary(void);
+extern	void*	malloc(ulong);
+extern	void*	mallocz(ulong, int);
+extern	void*	realloc(void*, ulong);
+extern	void	setmalloctag(void*, ulong);
+extern	void	setrealloctag(void*, ulong);
 
 /*
  * print routines
@@ -62,12 +79,12 @@ typedef struct Fmt	Fmt;
 typedef int (*Fmts)(Fmt*);
 struct Fmt{
 	uchar	runes;			/* output buffer is runes or chars? */
+	int	nfmt;			/* num chars formatted so far */
 	void	*start;			/* of buffer */
 	void	*to;			/* current place in the buffer */
 	void	*stop;			/* end of the buffer; overwritten if flush fails */
 	int	(*flush)(Fmt *);	/* called when to == stop */
 	void	*farg;			/* to make flush a closure */
-	int	nfmt;			/* num chars formatted so far */
 	va_list	args;			/* args passed to dofmt */
 	int	r;			/* % format Rune */
 	int	width;
@@ -79,13 +96,15 @@ extern	char*	seprint(char*, char*, char*, ...);
 extern	char*	vseprint(char*, char*, char*, va_list);
 extern	int	snprint(char*, int, char*, ...);
 extern	int	vsnprint(char*, int, char*, va_list);
-extern	int	sprint(char*, char*, ...);
+/* don't declare sprint, so that using it will be an error. */
+// extern	int	sprint(char*, char*, ...);
+extern	int	encodefmt(Fmt*);
 
 #pragma	varargck	argpos	fmtprint	2
 #pragma	varargck	argpos	print		1
 #pragma	varargck	argpos	seprint		3
 #pragma	varargck	argpos	snprint		3
-#pragma	varargck	argpos	sprint		2
+// #pragma	varargck	argpos	sprint		2
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
@@ -111,31 +130,37 @@ extern	int	sprint(char*, char*, ...);
 #pragma	varargck	type	"p"	void*
 #pragma	varargck	flag	','
 
-extern	int	fmtstrinit(Fmt*);
 extern	int	fmtinstall(int, int (*)(Fmt*));
-extern	void	quotefmtinstall(void);
 extern	int	fmtprint(Fmt*, char*, ...);
 extern	int	fmtstrcpy(Fmt*, char*);
 extern	char*	fmtstrflush(Fmt*);
+extern	int	fmtstrinit(Fmt*);
+
+/*
+ * quoted strings
+ */
+extern	void	quotefmtinstall(void);
+
+/*
+ * Time-of-day
+ */
+// extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
 
 /*
  * one-of-a-kind
  */
+extern	int	abs(int);
+extern	int	atoi(char*);
 extern	char*	cleanname(char*);
-extern	ulong	getcallerpc(void*);
-
-extern	long	strtol(char*, char**, int);
-extern	ulong	strtoul(char*, char**, int);
-extern	vlong	strtoll(char*, char**, int);
-extern	uvlong	strtoull(char*, char**, int);
-extern	char	etext[];
-extern	char	edata[];
-extern	char	end[];
-extern	int	getfields(char*, char**, int, int, char*);
-extern	int	tokenize(char*, char**, int);
 extern	int	dec64(uchar*, int, char*, int);
-extern	int	encodefmt(Fmt*);
+extern	uintptr	getcallerpc(void*);
+extern	int	getfields(char*, char**, int, int, char*);
+extern	int	gettokens(char *, char **, int, char *);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
+extern	long	strtol(char*, char**, int);
+extern	vlong	strtoll(char*, char**, int);
+extern	ulong	strtoul(char*, char**, int);
+extern	uvlong	strtoull(char*, char**, int);
 
 /*
  * Syscall data structures
@@ -223,3 +248,7 @@ struct Waitmsg
 	ulong	time[3];	/* of loved one and descendants */
 	char	msg[ERRMAX];	/* actually variable-size in user mode */
 };
+
+extern	char	etext[];
+extern	char	edata[];
+extern	char	end[];

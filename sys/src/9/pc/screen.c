@@ -184,9 +184,8 @@ flushmemscreen(Rectangle r)
 
 	switch(scr->gscreen->depth){
 	default:
-		len = 0;
-		panic("flushmemscreen: depth\n");
-		break;
+		// len = 0;
+		panic("flushmemscreen: depth");
 	case 8:
 		len = Dx(r);
 		break;

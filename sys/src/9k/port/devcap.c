@@ -48,10 +48,12 @@ Dirtab capdir[] =
 };
 int ncapdir = nelem(capdir);
 
+Dev capdevtab;
+
 static Chan*
 capattach(char *spec)
 {
-	return devattach(L'¤', spec);
+	return devattach(capdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -112,7 +114,7 @@ hashstr(uchar *hash)
 	int i;
 
 	for(i = 0; i < Hashlen; i++)
-		seprint(buf+2*i, &buf[sizeof buf], "%2.2ux", hash[i]);
+		snprint(buf+2*i, 3, "%2.2ux", hash[i]);
 	buf[2*Hashlen] = 0;
 	return buf;
 }
@@ -188,9 +190,8 @@ capread(Chan *c, void *va, long n, vlong)
 
 	default:
 		error(Eperm);
-		break;
+		notreached();
 	}
-	return n;
 }
 
 static long

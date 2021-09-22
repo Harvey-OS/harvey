@@ -50,40 +50,44 @@ alters aspects of the interface.
 The possible
 .I ctl
 messages are:
-.TF cacheflush
+.TF cacheflus
 .PD
 .TP
-.BI "bind ether " "name ownhash path"
+.BI "bind ether" " port ownhash ethmed"
 Treat the device mounted at
-.I path
+.I ethmed
 (e.g.,
 .LR /net/ether0 )
 as an Ethernet medium
 and associate it with this bridge (forward its packets to the
-other interfaces associated with this bridge).
+other interfaces associated with this bridge)
+as
+.IR port .
 .I Ownhash
 is an `owner hash'.
 .TP
-.BI "bind tunnel " "name ownhash path path2
+.BI "bind tunnel" " port ownhash tun ethmed
 Treat the device mounted at
-.I path
+.I tun
 as a network tunnel (of IPv4 in IPv4),
-the device mounted at
-.I path2
-as an Ethernet medium
+and the device mounted at
+.I ethmed
+as an Ethernet medium,
 and associate them with this bridge
 (forward its packets to the
-other interfaces associated with this bridge).
-Read packets from the
-.I path
+other interfaces associated with this bridge)
+as
+.IR port .
+Also read packets from the
+.I tun
 interface and write them to the
-.I path2
+.I ethmed
 interface.
 Such tunnels have an MTU of 1400 bytes.
 .TP
-.BI "unbind " "type address [ownhash]"
+.BI "unbind " "type port [ownhash]"
 Disassociate the interface associated with
-.I address
+.I port
 from this bridge.
 .I Type
 must be

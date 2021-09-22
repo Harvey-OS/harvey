@@ -1,0 +1,100 @@
+vm 16.5
+pS 37.619556,122.372806	# sfo vor
+pU 37.855407,122.521667	# sau vor
+pP 38.079833,122.866722	# pye vor
+pO 37.726000,122.222500	# oak vor
+
+pa xcls pS,25, pP,m144
+pb d pS, m090, 25
+pc d pS, m055, 25
+pe d pS, m150, 20
+pf d pS, m090, 20
+pg d pS, m055, 20
+ph xcle pS,20, pU,m035
+pi d pS, m120, 15
+pj d pS, m090, 15
+pk d pS, m055, 15
+pl xclw pS,15, pP,m108
+pm xll pU,m035, pP,apl
+pn xcln pS,15, pP,m144
+po d pS, m120, 10
+pp d pS, m090, 10
+pq d pS, m230, 10
+pr xll pS,m230, pP,m144
+ps xll pS,m200, pP,m144
+pt d pS, m230, 5
+pu d pS, m200, 5
+pv d pS, m150, 5
+pw d pS, m120, 5
+px d pS, m110, 5
+py d pS, m110, 7
+pz d pS, m090, 7
+p*a d pS, m230, 7
+p*b xccn pS,7, pO,3
+p*c xccs pS,7, pO,3
+p*d d pS,m242,7
+p*e d pS,m244,5.5
+p*f d pS,m287,7
+
+p*g 38,122
+p*h xll pU,m035, p*g,090
+p*i xcle pS,25, p*g,090
+
+n sfo_gnd\80
+ar pS,px,pt
+s pt,p*a
+ar pS,p*a,p*d
+s p*d,p*e
+s p*e,p*f
+ar pS,p*f,p*b
+al pO,p*b,p*c
+ar pS,p*c,py
+s py,px
+
+n sfo_15\80
+s pz,pp
+ar pS,pp,po
+s po,pw
+
+ar pS,p*d,p*f
+
+n sfo_21\80
+al pS,pp,pq
+s p*a, pq
+
+n sfo_25\80
+s pp,pj
+ar pS,pj,pi
+s pi,po
+
+n sfo_30\80
+s pq,pr
+S pr,pn
+Ar pS,pn,pl
+ar pS,pl,pk
+Ar pS,pk,pj
+
+n sfo_40\80
+S pj,pf
+ar pS,pf,pe
+s pe,pv
+
+n sfo_45\80
+S pl,pm
+S pm,ph
+ar pS,ph,pg
+S pg,pk
+
+n sfo_50\80
+S pr,ps
+s ps,pu
+
+n sfo_60\80
+S pf,pb
+Ar pS,pb,pa
+S pa,ps
+
+S ph,p*h
+S p*h,p*i
+Ar pS,p*i,pc
+S pc, pg

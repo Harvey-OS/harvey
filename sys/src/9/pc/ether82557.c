@@ -594,8 +594,9 @@ multicast(void* ether, uchar *addr, int add)
 {
 	USED(addr);
 	/*
-	 * TODO: if (add) add addr to list of mcast addrs in controller
-	 *	else remove addr from list of mcast addrs in controller
+	 * if we still cared about 100Mb/s ether, we could do:
+	 * if (add) add addr to list of mcast addrs in controller
+	 * else remove addr from list of mcast addrs in controller;
 	 * enable multicast input (see CbMAS) instead of promiscuous mode.
 	 */
 	if (add)
@@ -694,18 +695,18 @@ receive(Ether* ether)
 	}
 }
 
-static void
+static int
 interrupt(Ureg*, void* arg)
 {
 	Cb* cb;
 	Ctlr *ctlr;
 	Ether *ether;
-	int status;
+	int status, loops;
 
 	ether = arg;
 	ctlr = ether->ctlr;
 
-	for(;;){
+	for(loops = 0; ; loops++){
 		ilock(&ctlr->rlock);
 		status = csr16r(ctlr, Status);
 		csr8w(ctlr, Ack, (status>>8) & 0xFF);
@@ -760,8 +761,9 @@ interrupt(Ureg*, void* arg)
 		}
 
 		if(status & (StatCX|StatFR|StatCNA|StatRNR|StatMDI|StatSWI))
-			panic("#l%d: status %#ux\n", ether->ctlrno, status);
+			iprint("#l%d: status %#ux\n", ether->ctlrno, status);
 	}
+	return loops > 0? Intrforme: Intrnotforme;
 }
 
 static void
@@ -938,7 +940,7 @@ i82557pci(void)
 
 	p = nil;
 	nop = 0;
-	while(p = pcimatch(p, 0x8086, 0)){
+	while(p = pcimatch(p, Vintel, 0)){
 		switch(p->did){
 		default:
 			continue;

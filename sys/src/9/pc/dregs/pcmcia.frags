@@ -1,0 +1,79 @@
+typedef struct PCMmap	PCMmap;
+
+void	pcmcisread(PCMslot*);
+int	pcmcistuple(int, int, int, void*, int);
+PCMmap*	pcmmap(int, ulong, int, int);
+int	(*_pcmspecial)(char *, ISAConf *);
+int	pcmspecial(char*, ISAConf*);
+void	(*_pcmspecialclose)(int);
+void	pcmspecialclose(int);
+void	pcmunmap(int, PCMmap*);
+
+int (*_pcmspecial)(char*, ISAConf*);
+void (*_pcmspecialclose)(int);
+
+#ifdef FAKE_OUT
+void	*_jnkptr[2];
+int	_jnkint[2];
+#define pcmspecial(a, b)  (_jnkint[0] = (_jnkptr[0] = (a), _jnkptr[1] = (b), -1))
+#define pcmspecialclose(s)  (_jnkint[0] = (s), _jnkint[1] = -1)
+#endif
+
+/*
+ *  call either the pcmcia or pccard device setup
+ */
+int
+pcmspecial(char *idstr, ISAConf *isa)
+{
+	return (_pcmspecial != nil)? _pcmspecial(idstr, isa): -1;
+}
+
+/*
+ *  call either the pcmcia or pccard device teardown
+ */
+void
+pcmspecialclose(int a)
+{
+	if (_pcmspecialclose != nil)
+		_pcmspecialclose(a);
+}
+
+/* from just before final return of atapnp() */
+#ifdef DREGS
+    if(0){
+	int port;
+	ISAConf isa;
+
+	/*
+	 * Hack for PCMCIA drives.
+	 * This will be tidied once we figure out how the whole
+	 * removeable device thing is going to work.
+	 */
+	memset(&isa, 0, sizeof(isa));
+	isa.port = 0x180;		/* change this for your machine */
+	isa.irq = 11;			/* change this for your machine */
+
+	port = isa.port+0x0C;
+	channel = pcmspecial("MK2001MPL", &isa);
+	if(channel == -1)
+		channel = pcmspecial("SunDisk", &isa);
+	if(channel == -1){
+		isa.irq = 10;
+		channel = pcmspecial("CF", &isa);
+	}
+	if(channel == -1){
+		isa.irq = 10;
+		channel = pcmspecial("OLYMPUS", &isa);
+	}
+	if(channel == -1){
+		port = isa.port+0x204;
+		channel = pcmspecial("ATA/ATAPI", &isa);
+	}
+	if(channel >= 0 && (sdev = ataprobe(isa.port, port, isa.irq)) != nil){
+		if(head != nil)
+			tail->next = sdev;
+		else
+			head = sdev;
+	}
+    }
+#endif

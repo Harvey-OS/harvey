@@ -133,14 +133,17 @@ for
 and
 .BR .tgz ;
 .I bzip2
-(see
-.IR gzip (1))
 for
 .BR .tar.bz ,
 .BR .tbz ,
 .BR .tar.bz2 ,
 and
 .BR .tbz2 ;
+.IR lzip
+for
+.B .tar.lz
+and
+.BR .tlz ;
 .I compress
 for
 .B .tar.Z
@@ -175,6 +178,7 @@ does this.
 .SH SEE ALSO
 .IR ar (1),
 .IR bundle (1),
+.IR gzip (1),
 .IR tapefs (4),
 .IR mkfs (8)
 .SH BUGS

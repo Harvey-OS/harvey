@@ -1,0 +1,128 @@
+-	W or X suffix instead of register type? currently W and none,
+-	internal .W as size flag? not always simple flag, though. sometimes other constraints. eg, LDAR
+-	sign-extension for 32->64 in 64-bit ops as optimisation
+	
+-	D_ADDR for relocation
+-	ADR and ADRP parameters? LO12(label)?
+
+-	C_BAUTO	unsigned constant 12 bits 0 - 4095
+	C_UAUTO8K	halfword aligned, 12 bits	0 to 8190
+	C_UAUTO16K	32-bit aligned, 12 bits	0 to 16380
+	C_UAUTO32K	64-bit aligned, 12 bits	0 to 32760
+	C_UAUTO64K 128-bit aligned, 12 bits	0 to 65520
+
+	C_TAUTO	-256 to 255, unscaled, 9 bits
+	C_PAUTO	-512 to 504	for 7 bit field for 64-bit register pairs, multiple of 8
+
+	also 7 bit signed and scaled for register pair: -256 to 252 (4), -512 to 504 (8)
+	similarly for EXT and OREG, ACON, ECON
+	UAUTO can't match BAUTO etc because of negative values: need to split ranges
+
+For external addressing:
+	ADRP + 12 bit offset
+	    ADRP	addr(SB), Rt
+	or
+	    MOVt	$addr(SB).LO(Rt), Rd
+or?
+	first N words of SB forms power table for addressing
+	MOVW	x(SB), Rt
+	MOVt	o(Rt), Rd
+
+DecodeRegExtend:
+	0	UXTB
+	1	UXTH
+	2	UXTW
+	3	UXTX
+	4	SXTB
+	5	SXTH
+	6	SXTW
+	7	SXTX
+
+DecodeShift
+	0	LSL
+	1	LSR
+	2	ASR
+	3	ROR
+
+p 394: add extended register: Rd = Rn + LSL(extend(Rm), imm3) where imm3 <= 4 ins has (imm3&7)<<10
+
+	width spec: W when option 00x | 010 | 10x | 110
+		            X when option x11
+
+	for 32 bits: UXTB, UXTH, LSL|UXTW, UXTX, ...
+	LSL form only when at least one of Rd or Rn is WSP; in that case is also default(?)
+	otherwise <extend> must be present
+	similarly for 64-bit form and SP.
+	<amount> is left shift amount in range 0 to 4, optional; default of 0 when <ext
+
+
+Add extended, immediate, shifted register
+	- LSR 0, LSR 1 ASR 2; shift 0 to 31/63 in imm6 Rd = Rn + shift(Rm, amount)
+
+And/EOR/OR/
+
+AT (p 419) alias of SYS
+
+CCMN (p436) CCMN takes cond
+
+p C5-448 CMN as alias of ADDS with WZR/XZR
+C5-449 CMP as alias of SUBS
+453 NEG as alias of CSNEG
+457 CSET as alias of CSINC
+
+perhaps load pair of registers LDP -> MOVP
+LDR -> MOVW, MOVX
+p 520
+MOVW/MOVB/MOVH are signed
+MOVWU/MOVBU/MOVHU are unsigned
+MOVT/MOVTW -> LDTR/LDTRW
+MOVTB/MOVTH etc
+LDXP/LDXPW
+LDXR/LDXRW/LDXRB/LDXRH
+MOV to/from SP p. 600 alias of ADD
+p 603 bitmask immediate
+
+Not sure about MOVZ/N/K
+PRFM also PRFUM
+
+The logical immediate instructions accept a bitmask immediate bimm32 or bimm64. Such an immediate consists
+EITHER of a single consecutive sequence with at least one non-zero bit, and at least one zero bit, within an
+element of 2, 4, 8, 16, 32 or 64 bits; the element then being replicated across the register width, or the bitwise
+inverse of such a value. The immediate values of all-zero and all-ones may not be encoded as a bitmask
+immediate, so an assembler must either generate an error for a logical instruction with such an immediate, or a
+programmer-friendly assembler may transform it into some other instruction which achieves the intended result.
+
+Need 32-bit versions of load signed byte/halfword instructions?
+
+FCMPE
+
+MOVI	#bimm, Rn	 -> MOV
+Edit x s/(.)<<30 .*(.)<<23.*(.)<<22.*(.)<<21.*(.)<<15/LDSTX(\1,\2,\3,\4,\5)
+
+
+		if(s != A && regzer(s))
+			return 0;	/* r31 is sp not zr, don't touch */
+
+		r = 32;
+		if(p->as == AMOV)
+			r = 64;
+		d = p->from.offset;
+		s = movcon(d);
+		if(s < 0 || s >= r){
+			d = ~d;
+			s = movcon(d);
+			if(s < 0 || s >= r)
+				diag("impossible move wide: %#llux\n%P", p->from.offset, p);
+			if(p->as == AMOV)
+				o1 = opirr(AMOVN);
+			else
+				o1 = opirr(AMOVNW);
+		}else{
+			if(p->as == AMOV)
+				o1 = opirr(AMOVZ);
+			else
+				o1 = opirr(AMOVZW);
+		}
+		rt = p->to.reg;
+		o1 |= (((d>>(s*16))& 0xFFFF) << 5) | ((s&3)<<21) | rt;
+		break;

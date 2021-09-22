@@ -1,7 +1,7 @@
-#define X86STEPPING(x)	((x) & 0x0F)
-/* incorporates extended-model and -family bits */
+/* incorporates extended-model and -family bits from cpuid instruction */
+#define X86FAMILY(x)	((((x)>>8) & 0x0F) + (((x)>>20) & 0xFF))
 #define X86MODEL(x)	((((x)>>4) & 0x0F) | (((x)>>16) & 0x0F)<<4)
-#define X86FAMILY(x)	((((x)>>8) & 0x0F) | (((x)>>20) & 0xFF)<<4)
+#define X86STEPPING(x)	((x) & 0x0F)
 
 enum {
 	VectorNMI	= 2,		/* non-maskable interrupt */
@@ -10,6 +10,7 @@ enum {
 	VectorCNA	= 7,		/* coprocessor not available */
 	Vector2F	= 8,		/* double fault */
 	VectorCSO	= 9,		/* coprocessor segment overrun */
+	VectorGPF	= 13,		/* general protection fault */
 	VectorPF	= 14,		/* page fault */
 	Vector15	= 15,		/* reserved */
 	VectorCERR	= 16,		/* coprocessor error */
@@ -38,45 +39,38 @@ enum {
 	IrqSPURIOUS	= 31,		/* must have bits [3-0] == 0x0F */
 	MaxIrqLAPIC	= 31,
 
-	VectorSYSCALL	= 64,
+	/* See mem.h for VectorSYSCALL, since it's used by assembler too. */
 
 	VectorAPIC	= 65,		/* external APIC interrupts */
 	MaxVectorAPIC	= 255,
 };
 
+/* list node of vector handlers */
 typedef struct Vctl {
 	Vctl*	next;			/* handlers on this vector */
+	int	(*f)(Ureg*, void*);	/* handler to call */
+	void*	a;			/* argument to call it with */
 
-	char	name[KNAMELEN];		/* of driver */
 	int	isintr;			/* interrupt or fault/trap */
 	int	irq;
 	int	tbdf;
 	int	(*isr)(int);		/* get isr bit for this irq */
-	int	(*eoi)(int);		/* eoi */
+	int	(*eoi)(int);		/* end interrupt service: dismiss it */
+	int	ismsi;			/* is msi interrupt? */
 
-	void	(*f)(Ureg*, void*);	/* handler to call */
-	void*	a;			/* argument to call it with */
+	char	name[KNAMELEN];		/* of driver */
+	/* no longer need lock for ulong count as we use ainc() */
+	ulong	count;			/* interrupt count; could be uvlong */
+	ulong	unclaimed;		/* # of interrupts unclaimed */
+	ulong	intrunknown;		/* # of interrupts via intrunknown */
+	int	cpu;			/* targetted cpu */
+	int	lapic;			/* lapic of " ", if any */
 } Vctl;
 
-enum {
-	BusCBUS		= 0,		/* Corollary CBUS */
-	BusCBUSII,			/* Corollary CBUS II */
-	BusEISA,			/* Extended ISA */
-	BusFUTURE,			/* IEEE Futurebus */
-	BusINTERN,			/* Internal bus */
-	BusISA,				/* Industry Standard Architecture */
-	BusMBI,				/* Multibus I */
-	BusMBII,			/* Multibus II */
-	BusMCA,				/* Micro Channel Architecture */
-	BusMPI,				/* MPI */
-	BusMPSA,			/* MPSA */
-	BusNUBUS,			/* Apple Macintosh NuBus */
-	BusPCI,				/* Peripheral Component Interconnect */
-	BusPCMCIA,			/* PC Memory Card International Association */
-	BusTC,				/* DEC TurboChannel */
-	BusVL,				/* VESA Local bus */
-	BusVME,				/* VMEbus */
-	BusXPRESS,			/* Express System Bus */
+enum Buses {		/* indices for bustypes and buses */
+	BusINTERN,	/* Internal bus */
+	BusISA,		/* Industry Standard Architecture */
+	BusPCI,		/* Peripheral Component Interconnect (Express) */
 };
 
 #define MKBUS(t,b,d,f)	(((t)<<24)|(((b)&0xFF)<<16)|(((d)&0x1F)<<11)|(((f)&0x07)<<8))
@@ -104,13 +98,15 @@ enum {					/* type 0 & type 1 pre-defined header */
 	PciCCRp		= 0x09,		/* programming interface class code */
 	PciCCRu		= 0x0A,		/* sub-class code */
 	PciCCRb		= 0x0B,		/* base class code */
-	PciCLS		= 0x0C,		/* cache line size */
+	PciCLS		= 0x0C,		/* cache line size; unused in pci-e */
 	PciLTR		= 0x0D,		/* latency timer */
 	PciHDT		= 0x0E,		/* header type */
 	PciBST		= 0x0F,		/* BIST */
 
 	PciBAR0		= 0x10,		/* base address */
 	PciBAR1		= 0x14,
+
+	PciCP		= 0x34,		/* capabilities pointer */
 
 	PciINTL		= 0x3C,		/* interrupt line */
 	PciINTP		= 0x3D,		/* interrupt pin */
@@ -143,10 +139,14 @@ enum {
 	/* mass storage */
 	Pciscscsi	= 0,		/* SCSI */
 	Pciscide	= 1,		/* IDE (ATA) */
+	Pciscraid	= 4,		/* RAID */
 	Pciscsata	= 6,		/* SATA */
+	Pciscnvm	= 8,		/* non-volatile memory (flash) */
+	Pciscstgeneric	= 0x80,		/* mass storage */
 
 	/* network */
 	Pciscether	= 0,		/* Ethernet */
+	Pciscnetgeneric	= 0x80,		/* some network */
 
 	/* display */
 	Pciscvga	= 0,		/* VGA */
@@ -154,8 +154,12 @@ enum {
 	Pcisc3d		= 2,		/* 3D */
 
 	/* bridges */
-	Pcischostpci	= 0,		/* host/pci */
-	Pciscpcicpci	= 1,		/* pci/pci */
+	Pciscbrhost	= 0,		/* host-pci (e.g., southbridge) */
+	Pciscbrisa	= 1,		/* pci-isa */
+	Pciscbrpci	= 4,		/* pci-pci */
+	Pciscbrcard	= 7,		/* obsolete card bus */
+	Pciscbrpci½trans= 9,		/* pci semi-transparent */
+	Pciscbrgeneric	= 0x80,		/* some bridge */
 
 	/* simple comms */
 	Pciscserial	= 0,		/* 16450, etc. */
@@ -214,21 +218,31 @@ enum {					/* type 2 pre-defined header */
 	PciCBLMBAR	= 0x44,		/* legacy mode base address */
 };
 
-/* capabilities */
 enum {
-	PciCapPMG	= 0x01,		/* power management */
-	PciCapAGP	= 0x02,
-	PciCapVPD	= 0x03,		/* vital product data */
-	PciCapSID	= 0x04,		/* slot id */
-	PciCapMSI	= 0x05,
-	PciCapCHS	= 0x06,		/* compact pci hot swap */
-	PciCapPCIX	= 0x07,
-	PciCapHTC	= 0x08,		/* hypertransport irq conf */
-	PciCapVND	= 0x09,		/* vendor specific information */
-	PciCapPCIe	= 0x10,
-	PciCapMSIX	= 0x11,
-	PciCapSATA	= 0x12,
-	PciCapHSW	= 0x0c,		/* hot swap */
+	/* bar bits */
+	Baraddrmask	= ~MASK(4),	/* NB: 32-bit mask */
+	Barioaddr	= 1<<0,		/* i/o port (not memory addr) */
+	Barwidthshift	= 1,
+	Barwidthmask	= MASK(2),
+	Barwidth32	= 0,
+	Barfirstmg	= 1,
+	Barwidth64	= 2,
+	Barprefetch	= 1<<3,
+};
+
+enum {					/* PSR bits */
+	Pcicap		= 1<<4,
+};
+
+enum {					/* pci 2.2 capability ids */
+	Pcicappwr	= 1,		/* power management */
+	Pcicapagp	= 2,		/* accelerated graphics port */
+	Pcicapvpd	= 3,		/* vital product data */
+	Pcicapbridge	= 4,		/* bridge info */
+	Pcicapmsi	= 5,		/* message-signaled interrupts */
+	Pcicaphot	= 6,		/* CompactPCI hot swap */
+	Pcicappcie	= 0x10,		/* pci-express */
+	Pcicapmsix	= 0x11,		/* msi-x */
 };
 
 typedef struct Pcisiz Pcisiz;
@@ -239,6 +253,12 @@ struct Pcisiz
 	int	bar;
 };
 
+typedef struct Pcibar Pcibar;
+struct Pcibar {
+	ulong	bar;			/* base address */
+	int	size;
+};
+
 typedef struct Pcidev Pcidev;
 struct Pcidev
 {
@@ -246,7 +266,7 @@ struct Pcidev
 	ushort	vid;			/* vendor ID */
 	ushort	did;			/* device ID */
 
-	ushort	pcr;
+	ushort	pcr;			/* sw copy of PciPCR (command) */
 
 	uchar	rid;
 	uchar	ccrp;
@@ -255,42 +275,61 @@ struct Pcidev
 	uchar	cls;
 	uchar	ltr;
 
-	struct {
-		ulong	bar;		/* base address */
-		int	size;
-	} mem[6];
+	Pcibar	mem[6];
 
-	struct {
-		ulong	bar;	
-		int	size;
-	} rom;
+	Pcibar	rom;			/* only used by devpccard */
 	uchar	intl;			/* interrupt line */
 
-	Pcidev*	list;
-	Pcidev*	link;			/* next device on this bno */
+	Pcidev*	list;			/* next device */
+	Pcidev*	link;			/* next device on this bno (bus no) */
 
 	Pcidev*	bridge;			/* down a bus */
-	struct {
-		ulong	bar;
-		int	size;
-	} ioa, mema;
+	Pcibar	ioa, mema;
 
-	int	pmrb;			/* power management register block */
+	short	pmrb;			/* power management reg. block ptr */
+	short	msiptr;			/* msi capability ptr */
+	short	msixptr;		/* msi-x capability ptr */
+	short	pcieptr;		/* pci-express cap. ptr */
+};
+
+struct Msi {				/* msi pci capability */
+	ushort	ctl;
+	uvlong	addr;
+	ushort	data;
 };
 
 enum {
-	/* vendor ids */
+	/* msi control reg. */
+	Msienable	= 1<<0,
+	Msiaddr64	= 1<<7,		/* 64-bit address register? */
+
+	/* msi address reg. */
+	Msiphysdest	= 0<<2,		/* iff RH == 1, physical mode (DM) */
+	Msilogdest	= 1<<2,		/* iff RH == 1, logical mode (DM) */
+	Msirhtocpuid	= 0<<3,		/* deliver to cpu lapic id (RH) */
+	Msirhcomplex	= 1<<3,		/* more complex options (RH) */
+
+	/* msi data reg. */
+	Msitrglevel	= 1 << 15,	/* trigger on level */
+	Msitrglvlassert	= 1 << 14,	/* trigger on level asserted */
+	Msidlvfixed	= 0 << 8,	/* delivery mode: fixed */
+};
+
+enum {
+	/* pci vendor ids */
+	Vamd	= 0x1022,
 	Vatiamd	= 0x1002,
 	Vintel	= 0x8086,
 	Vjmicron= 0x197b,
 	Vmarvell= 0x1b4b,
 	Vmyricom= 0x14c1,
+	Voracle	= 0x80ee,
+	Vparallels= 0x1ab8,
+	Vvmware	= 0x15ad,
 };
 
 #define PCIWINDOW	0
 #define PCIWADDR(va)	(PADDR(va)+PCIWINDOW)
-#define ISAWINDOW	0
-#define ISAWADDR(va)	(PADDR(va)+ISAWINDOW)
 
 /* SMBus transactions */
 enum
@@ -316,85 +355,6 @@ struct SMBus {
 	ulong	base;	/* port or memory base of smbus */
 	int	busy;
 	void	(*transact)(SMBus*, int, int, int, uchar*);
-};
-
-/*
- * PCMCIA support code.
- */
-
-typedef struct PCMslot		PCMslot;
-typedef struct PCMconftab	PCMconftab;
-
-/*
- * Map between ISA memory space and PCMCIA card memory space.
- */
-struct PCMmap {
-	ulong	ca;			/* card address */
-	ulong	cea;			/* card end address */
-	ulong	isa;			/* ISA address */
-	int	len;			/* length of the ISA area */
-	int	attr;			/* attribute memory */
-	int	ref;
-};
-
-/* configuration table entry */
-struct PCMconftab
-{
-	int	index;
-	ushort	irqs;		/* legal irqs */
-	uchar	irqtype;
-	uchar	bit16;		/* true for 16 bit access */
-	struct {
-		ulong	start;
-		ulong	len;
-	} io[16];
-	int	nio;
-	uchar	vpp1;
-	uchar	vpp2;
-	uchar	memwait;
-	ulong	maxwait;
-	ulong	readywait;
-	ulong	otherwait;
-};
-
-/* a card slot */
-struct PCMslot
-{
-	Lock;
-	int	ref;
-
-	void	*cp;		/* controller for this slot */
-	long	memlen;		/* memory length */
-	uchar	base;		/* index register base */
-	uchar	slotno;		/* slot number */
-
-	/* status */
-	uchar	special;	/* in use for a special device */
-	uchar	already;	/* already inited */
-	uchar	occupied;
-	uchar	battery;
-	uchar	wrprot;
-	uchar	powered;
-	uchar	configed;
-	uchar	enabled;
-	uchar	busy;
-
-	/* cis info */
-	ulong	msec;		/* time of last slotinfo call */
-	char	verstr[512];	/* version string */
-	int	ncfg;		/* number of configurations */
-	struct {
-		ushort	cpresent;	/* config registers present */
-		ulong	caddr;		/* relative address of config registers */
-	} cfg[8];
-	int	nctab;		/* number of config table entries */
-	PCMconftab	ctab[8];
-	PCMconftab	*def;	/* default conftab */
-
-	/* memory maps */
-	Lock	mlock;		/* lock down the maps */
-	int	time;
-	PCMmap	mmap[4];	/* maps, last is always for the kernel */
 };
 
 #pragma varargck	type	"T"	int

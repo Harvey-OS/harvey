@@ -29,7 +29,7 @@ enum
 	Qdata0,
 	Qdata1,
 
-	PIPEQSIZE = 256*KiB,
+	PIPEQSIZE = 256*KB,
 };
 
 Dirtab pipedir[] =
@@ -40,9 +40,11 @@ Dirtab pipedir[] =
 };
 #define NPIPEDIR 3
 
-#define PIPETYPE(x)	(((unsigned)x)&0x1f)
-#define PIPEID(x)	((((unsigned)x))>>5)
-#define PIPEQID(i, t)	((((unsigned)i)<<5)|(t))
+#define PIPETYPE(x)	((unsigned)(x) & MASK(5))
+#define PIPEID(x)	((unsigned)(x) >> 5)
+#define PIPEQID(i, t)	((unsigned)(i) << 5 | (t))
+
+Dev pipedevtab;
 
 /*
  *  create a pipe, no streams are created until an open
@@ -53,7 +55,7 @@ pipeattach(char *spec)
 	Pipe *p;
 	Chan *c;
 
-	c = devattach('|', spec);
+	c = devattach(pipedevtab.dc, spec);
 	p = malloc(sizeof(Pipe));
 	if(p == 0)
 		exhausted("memory");
@@ -111,7 +113,7 @@ pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 		break;
 	}
 	mkqid(&q, PIPEQID(PIPEID(c->qid.path), tab->qid.path), 0, QTFILE);
-	devdir(c, q, tab->name, len, eve, p->perm, dp);
+	devdir(c, q, tab->name, len, eve, tab->perm, dp);
 	return 1;
 }
 
@@ -304,8 +306,8 @@ piperead(Chan *c, void *va, long n, vlong)
 		return qread(p->q[1], va, n);
 	default:
 		panic("piperead");
+		notreached();
 	}
-	return -1;	/* not reached */
 }
 
 static Block*

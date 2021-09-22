@@ -1,0 +1,22 @@
+This directory contains: replacement mktex... programs which emulate
+the mktex... shell scripts in ../kpathsea directory; a replacement for
+the makempx script from ../web2c/mpware; and a replacement for the
+dvihp script from ../dviljk.  These C programs are primarily for use
+in those environments where the standard Unix shell and utilities
+invoked by the scripts are not readily available.  However, they can
+also be used on Unix platforms, although they were tested almost
+exclusively on MS-DOS and MS-Windows systems.
+
+Caveats: currently, the emulation programs don't support edited *.opt
+files, they emulate internally the effect of the original *.opt files
+distributed with Web2c sources.  Variables set from the mktex.cnf file
+*are* supported.
+
+All of the programs except dvihp.c were written by Fabrice Popineau
+<popineau@esemetz.ese-metz.fr>.  dvihp.c was written by Eli Zaretskii
+<eliz@is.elta.co.il>.
+
+See `INSTALL' for instructions to build and install.
+
+This is free software.  See the files COPYING* for copying permissions.
+

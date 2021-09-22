@@ -58,8 +58,8 @@ i2cattach(char* spec)
 	d->salen = 0;
 	d->tenbit = addr >= 128;
 	memmove(d->tab, i2ctab, sizeof(d->tab));
-	sprint(d->tab[1].name, "i2c.%lux.data", addr);
-	sprint(d->tab[2].name, "i2c.%lux.ctl", addr);
+	snprint(d->tab[1].name, sizeof d->tab[1].name, "i2c.%lux.data", addr);
+	snprint(d->tab[2].name, sizeof d->tab[1].name, "i2c.%lux.ctl", addr);
 
 	c = devattach('J', spec);
 	c->aux = d;

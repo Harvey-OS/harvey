@@ -18,7 +18,7 @@
 char	*braslist[NBRA];
 char	*braelist[NBRA];
 int	nbra, ebra;
-char *loc1, *loc2, *locs;
+char	*loc1, *loc2, *locs;
 int	sed;
 
 int	circf;
@@ -37,20 +37,13 @@ char	bittab[] = {
 };
 
 char *
-compile(instring, ep, endbuf, seof)
-register char *ep;
-char *instring, *endbuf;
+compile(char *instring, char *ep, char *endbuf, int seof)
 {
 	INIT	/* Dependent declarations and initializations */
-	register c;
-	register eof = seof;
-	char *lastep = instring;
-	int cclcnt;
+	char *lastep /* = instring */;
 	char bracket[NBRA], *bracketp;
-	int closed;
 	char neg;
-	int lc;
-	int i, cflg;
+	int lc, i, cflg, c, cclcnt, closed, eof = seof;
 
 	lastep = 0;
 	if((c = GETC()) == eof) {
@@ -247,12 +240,11 @@ register char *p1, *p2;
 	return(0);
 }
 
-advance(lp, ep)
-register char *lp, *ep;
+int
+advance(char *lp, char *ep)
 {
-	register char *curlp;
 	char c;
-	char *bbeg;
+	char *curlp, *bbeg;
 	int ct;
 
 	for (;;) switch (*ep++) {
@@ -389,20 +381,18 @@ register char *lp, *ep;
 				return(1);
 		} while (lp > curlp);
 		return(0);
-
 	}
 }
 
-getrnge(str)
-register char *str;
+void
+getrnge(char *str)
 {
 	low = *str++ & 0377;
-	size = *str == 255 ? 20000 : (*str &0377) - low;
+	size = (unsigned char)*str == 255 ? 20000 : (*str & 0377) - low;
 }
 
-ecmp(a, b, count)
-register char	*a, *b;
-register	count;
+int
+ecmp(char *a, char *b, int count)
 {
 	while(count--)
 		if(*a++ != *b++)	return(0);

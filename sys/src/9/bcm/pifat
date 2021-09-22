@@ -8,7 +8,7 @@ dev
 	srv
 	dup
 	arch
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium
 	draw	screen vcore
 	mouse	mouse
 	kbin	kbd latin1
@@ -38,7 +38,7 @@ misc
 	uartmini	gpio
 	sdmmc	emmc
 	dma
-	vfp3
+	vfp3	coproc
 
 port
 	int cpuserver = 0;

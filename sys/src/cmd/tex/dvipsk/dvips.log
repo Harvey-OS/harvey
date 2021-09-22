@@ -1,0 +1,202 @@
+This is TeX, Version 3.14159 (Web2C 7.2) (format=tex.little 1999.4.2)  4 APR 1999 23:22
+**&tex.little dvips.texi
+(dvips.texi (/sys/lib/texmf/tex/texinfo/texinfo.tex
+Loading texinfo package [Version 2.196]: Basics,
+\bindingoffset=\dimen16
+\normaloffset=\dimen17
+\pagewidth=\dimen18
+\pageheight=\dimen19
+\cornerlong=\dimen20
+\cornerthick=\dimen21
+\topandbottommargin=\dimen22
+\outerhsize=\dimen23
+\outervsize=\dimen24
+\headlinebox=\box16
+\footlinebox=\box17
+\margin=\insert252
+\EMsimple=\toks12
+\singlespaceskip=\skip18
+\groupinvalidhelp=\toks13
+\mil=\dimen25
+\exdentamount=\skip19
+\inmarginspacing=\skip20
+ fonts,
+\sffam=\fam8
+\fontdepth=\count26
+ page headings,
+\titlepagetopglue=\skip21
+\titlepagebottomglue=\skip22
+\evenheadline=\toks14
+\oddheadline=\toks15
+\evenfootline=\toks16
+\oddfootline=\toks17
+ tables,
+\tableindent=\dimen26
+\itemindent=\dimen27
+\itemmargin=\dimen28
+\itemmax=\dimen29
+\itemno=\count27
+\multitableparskip=\skip23
+\multitableparindent=\skip24
+\multitablecolspace=\dimen30
+\multitablelinespace=\skip25
+\colcount=\count28
+
+indexing,
+\initialskipamount=\skip26
+\secondaryindent=\skip27
+\partialpage=\box18
+\doublecolumnhsize=\dimen31
+ sectioning,
+\chapno=\count29
+\secno=\count30
+\subsecno=\count31
+\subsubsecno=\count32
+\appendixno=\count33
+\contentsfile=\write0
+\absseclevel=\count34
+\secbase=\count35
+\chapheadingskip=\skip28
+\secheadingskip=\skip29
+\subsecheadingskip=\skip30
+ toc printing,
+\contentsrightmargin=\skip31
+\shortappendixwidth=\dimen32
+\tocindent=\dimen33
+ environments,
+\dblarrowbox=\box19
+\longdblarrowbox=\box20
+\pushcharbox=\box21
+\bullbox=\box22
+\equivbox=\box23
+\errorbox=\box24
+\lispnarrowing=\skip32
+\envskipamount=\skip33
+\circthick=\dimen34
+\cartouter=\dimen35
+\cartinner=\dimen36
+\normbskip=\skip34
+\normpskip=\skip35
+\normlskip=\skip36
+\lskip=\skip37
+\rskip=\skip38
+ defuns,
+\defbodyindent=\skip39
+\defargsindent=\skip40
+\deftypemargin=\skip41
+\deflastargmargin=\skip42
+\parencount=\count36
+ cross reference,
+\auxfile=\write1
+\footnoteno=\count37
+
+and turning on texinfo input format.
+\defaultparindent=\dimen37
+) (dvips.aux)
+@cpindfile=@write2
+@fnindfile=@write3
+@vrindfile=@write4
+@tpindfile=@write5
+@kyindfile=@write6
+@pgindfile=@write7
+@flindfile=@write8
+@opindfile=@write9
+ [1
+\openout1 = `dvips.aux'.
+
+\openout0 = `dvips.toc'.
+
+\openout2 = `dvips.cp'.
+
+\openout3 = `dvips.fn'.
+
+\openout4 = `dvips.vr'.
+
+\openout5 = `dvips.tp'.
+
+\openout6 = `dvips.ky'.
+
+\openout7 = `dvips.pg'.
+
+\openout8 = `dvips.fl'.
+
+\openout9 = `dvips.op'.
+
+] [2] Chapter1 Chapter2
+[1] (contrib/config.proto [2]) [3] [4] [5] [6] Chapter3 [7] (dvips.help
+[8]) [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] Chapter4 [19] [20]
+[21] Chapter5 [22] [23] [24] [25] [26] [27] [28] [29] [30] [31] [32]
+Overfull \hbox (26.43913pt too wide) in paragraph at lines 2765--2765
+ []@texttt \special{html:<a href="http://www.maths.tcd.ie/~tim/ch1.dvi#equation
+.1.1">}[] |
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 28.90755
+.@hbox(0.0+0.0)x0.0
+.@texttt \
+.@texttt s
+.@texttt p
+.etc.
+
+Chapter6 [33] [34] [35] [36] [37] [38] [39] [40] [41] [42] [43] [44] [45]
+Overfull \hbox (20.69044pt too wide) in paragraph at lines 3935--3935
+ []@texttt pstrn8r StoneInformal "TeXBase1Encoding ReEncodeFont" <8r.enc <pstrn
+8a.pfb[] |
+
+@hbox(6.69167+2.43333)x433.62
+.@glue(@leftskip) 28.90755
+.@hbox(0.0+0.0)x0.0
+.@texttt p
+.@texttt s
+.@texttt t
+.etc.
+
+
+Overfull \hbox (26.43913pt too wide) in paragraph at lines 3951--3951
+ []@texttt pstrn8r StoneInformal "TeXBase1Encoding ReEncodeFont" <[8r.enc <pstr
+n8a.pfb[] |
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 28.90755
+.@hbox(0.0+0.0)x0.0
+.@texttt p
+.@texttt s
+.@texttt t
+.etc.
+
+[46] Chapter7 [47] [48] [49] [50] [51] (Index) [52]
+Overfull \vbox (6.0pt too high) has occurred while \output is active
+\vbox(38.14322+2.25)x207.80492
+.\glue(\topskip) 37.39322
+.\hbox(6.75+2.25)x207.80492, glue set 104.30484fil
+..\hbox(0.0+0.0)x15.0
+..\indrm (
+..\indrm I
+..\indrm n
+..\indrm d
+..etc.
+
+
+Overfull \vbox (6.0pt too high) has occurred while \output is active
+\vbox(38.14322+2.25)x207.80492
+.\glue(\topskip) 37.39322
+.\hbox(6.75+2.25)x207.80492, glue set 104.30484fil
+..\hbox(0.0+0.0)x15.0
+..\indrm (
+..\indrm I
+..\indrm n
+..\indrm d
+..etc.
+
+ [53]
+(dvips.toc) [-1] (dvips.toc [-2]) [-3] ) 
+Here is how much of TeX's memory you used:
+ 1203 strings out of 13019
+ 14998 string characters out of 97351
+ 35975 words of memory out of 263001
+ 2084 multiletter control sequences out of 10000+0
+ 28049 words of font info for 97 fonts, out of 200000 for 1000
+ 18 hyphenation exceptions out of 1000
+ 14i,5n,12p,201b,253s stack positions out of 300i,100n,500p,30000b,4000s
+
+Output written on dvips.dvi (58 pages, 202692 bytes).

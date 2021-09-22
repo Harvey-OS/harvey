@@ -1,0 +1,400 @@
+% The TRAP manual: How to validate MF --- last updated by D E Knuth on 4 Dec 89
+\font\eighttt= cmtt8
+\font\eightrm= cmr8
+\font\titlefont=cmssdc10 at 40pt
+\let\mc=\eightrm
+\font\logo=manfnt % font used for the METAFONT logo
+\def\MF{{\logo META}\-{\logo FONT}}
+\rm
+\let\mainfont=\tenrm
+
+\def\.#1{\hbox{\tt#1}}
+\def\\#1{\hbox{\it#1\/\hskip.05em}} % italic type for identifiers
+
+\parskip 2pt plus 1pt
+\baselineskip 12pt plus .25pt
+
+\def\verbatim#1{\begingroup \frenchspacing
+  \def\do##1{\catcode`##1=12 } \dospecials
+  \parskip 0pt \parindent 0pt
+  \catcode`\ =\active \catcode`\^^M=\active
+  \tt \def\par{\ \endgraf} \obeylines \obeyspaces
+  \input #1 \endgroup}
+% a blank line will be typeset at the end of the file;
+% if you're unlucky it will appear on a page by itself!
+{\obeyspaces\global\let =\ }
+
+\output{\shipout\box255\global\advance\pageno by 1} % for the title page only
+\null
+\vfill
+\centerline{\titlefont A Torture Test}
+\vskip8pt
+\centerline{\titlefont for \logo ()*+,-.*}
+\vskip 24pt
+\centerline{by Donald E. Knuth}
+\centerline{Stanford University}
+\vskip 6pt
+\centerline{({\sl Version 2, January 1990\/})}
+\vfill
+\centerline{\vbox{\hsize 4in
+\noindent Programs that claim to be implementations of \MF84 are
+supposed to be able to process the test routine contained in this
+report, producing the outputs contained in this report.}}
+\vskip 24pt
+{\baselineskip 9pt
+\eightrm\noindent
+The preparation of this report was supported in part by the National Science
+Foundation under grants IST-8201926 and MCS-8300984,
+and by the System Development Foundation.
+{\logo opqrstuq} is a trademark of Addison-Wesley Publishing Company.
+  
+
+}\pageno=0\eject
+
+\output{\shipout\vbox{ % for subsequent pages
+    \baselineskip0pt\lineskip0pt
+    \hbox to\hsize{\strut
+      \ifodd\pageno \hfil\eightrm\firstmark\hfil
+        \mainfont\the\pageno
+      \else\mainfont\the\pageno\hfil
+        \eightrm\firstmark\hfil\fi}
+    \vskip 10pt
+    \box255}
+  \global\advance\pageno by 1}
+\let\runninghead=\mark
+\outer\def\section#1.{\noindent{\bf#1.}\quad
+  \runninghead{\uppercase{#1} }\ignorespaces}
+
+\section Introduction.
+People often think that their programs are ``debugged'' when large applications
+have been run successfully. But system programmers know that a typical large
+application tends to use at most about 50 per cent of the instructions
+in a typical compiler. Although the other half of the code---which tends
+to be the ``harder half''---might be riddled with errors, the system seems
+to be working quite impressively until an unusual case shows up on the
+next day. And on the following day another error manifests itself, and so on;
+months or years go by before certain parts of the compiler are even
+activated, much less tested in combination with other portions of the system,
+if user applications provide the only tests.
+
+How then shall we go about testing a compiler? Ideally we would like to
+have a formal proof of correctness, certified by a computer.
+This would give us a lot of confidence,
+although of course the formal verification program might itself be incorrect.
+A more serious drawback of automatic verification is that the formal
+specifications of the compiler are likely to be wrong, since they aren't
+much easier to write than the compiler itself. Alternatively, we can
+substitute an informal proof of correctness: The programmer writes his or
+her code in a structured manner and checks that appropriate relations
+remain invariant, etc. This helps greatly to reduce errors, but it cannot
+be expected to remove them completely; the task of checking a large
+system is sufficiently formidable that human beings cannot do it without
+making at least a few slips here and there.
+
+Thus, we have seen that test programs are unsatisfactory if they are simply
+large user applications; yet some sort of test program is needed because
+proofs of correctness aren't adequate either. People have proposed schemes
+for constructing test data automatically from a program text, but such
+approaches run the risk of circularity, since they cannot assume that a
+given program has the right structure.
+
+I have been having good luck with a somewhat different approach,
+first used in 1960 to debug an {\mc ALGOL} compiler. The idea is to
+construct a test file that is about as different from a typical user
+application as could be imagined. Instead of testing things that people
+normally want to do, the file tests complicated things that people would
+never dare to think of, and it embeds these complexities in still
+more arcane constructions. Instead of trying to make the compiler do the
+right thing, the goal is to make it fail (until the bugs have all been found).
+
+To write such a fiendish test routine, one simply gets into a nasty frame
+of mind and tries to do everything in the unexpected way. Parameters
+that are normally positive are set negative or zero; borderline cases
+are pushed to the limit; deliberate errors are made in hopes that the
+compiler will not be able to recover properly from them.
+
+A user's application tends to exercise 50\%\ of a compiler's logic,
+but my first fiendish tests tend to improve this to about 90\%. As the
+next step I generally make use of frequency-counting software to identify
+the instructions that have still not been called upon. Then I add ever more
+fiendishness to the test routine, until more than 99\%\ of the code
+has been used at least once. (The remaining bits are things that
+can occur only if the source program is really huge, or if certain
+fatal errors are detected; or they are cases so similar to other well-tested
+things that there can be little doubt of their validity.)
+
+Of course, this is not guaranteed to work. But my experience in 1960 was
+that only two bugs were ever found in that {\mc ALGOL} compiler after it
+correctly translated that original fiendish test. And one of those bugs
+was actually present in the results of the test; I simply had failed to
+notice that the output was incorrect. Similar experiences occurred later
+during the 60s and 70s, with respect to a few assemblers, compilers,
+and simulators that I wrote.
+
+This method of debugging, combined with the methodology of structured
+programming and informal proofs (otherwise known as careful desk checking),
+leads to greater reliability of production software than any other
+method I know. Therefore I have used it in developing \MF84, and the
+main bulk of this report is simply a presentation of the test program
+that was used to get the bugs out of \MF.
+
+Such a test file is useful also after a program has been debugged, since
+it can be used to give some assurance that subsequent modifications don't
+mess things up.
+
+The test file is called \.{TRAP.MF}, because of my warped sense of humor:
+\MF's companion system, \TeX, has a similar test file called \.{TRIP}, and I
+couldn't help thinking about Billy Goat Gruff and the story of ``trip,
+trap, trip, trap.''
+
+The contents of this test file are so remote from what people actually
+do with \MF, I feel apologetic if I have to explain the correct
+translation of \.{TRAP.MF}; nobody really cares about most of the
+nitty-gritty rules that are involved. Yet I believe \.{TRAP} exemplifies
+the sort of test program that has outstanding diagnostic ability, as
+explained above.
+
+If somebody claims to have a correct implementation of \MF, I will not
+believe it until I see that \.{TRAP.MF} is translated properly.
+I propose, in fact, that a program must meet two criteria before it
+can justifiably be called \MF: (1)~The person who wrote it must be
+happy with the way it works at his or her installation; and (2)~the
+program must produce the correct results from \.{TRAP.MF}.
+
+\MF\ is in the public domain, and its algorithms are published;
+I've done this since I do not want to discourage its use by placing
+proprietary restrictions on the software. However, I don't want
+faulty imitations to masquerade as \MF\ processors, since users
+want \MF\ to produce identical results on different machines.
+Hence I am planning to do whatever I can to suppress any systems that
+call themselves \MF\ without meeting conditions (1) and~(2).
+I have copyrighted the programs so that I have some chance to forbid
+unauthorized copies; I explicitly authorize copying of correct
+\MF\ implementations, and not of incorrect ones!
+
+The remainder of this report consists of appendices, whose contents ought
+to be described briefly here:
+
+Appendix A explains in detail how to carry out a test of \MF, given
+a tape that contains copies of the other appendices.
+
+Appendix B is \.{TRAP.MF}, the fiendish test file that has already
+been mentioned. People who think that they understand \MF\ are challenged
+to see if they know what \MF\ is supposed to do with this file.
+People who know only a little about \MF\ might still find it
+interesting to study Appendix~B, just to get some insights into the
+methodology advocated here.
+
+Appendix C is \.{TRAPIN.LOG}, a correct transcript file \.{TRAP.LOG}
+that results if \.{INIMF} is applied to \.{TRAP.MF}. (\.{INIMF} is
+the name of a version of \MF\ that does certain initializations;
+this run of \.{INIMF} also creates a binary base file called \.{TRAP.BASE}.)
+
+Appendix D is a correct transcript file \.{TRAP.LOG} that results if
+\.{INIMF} or any other version of \MF\ is applied to \.{TRAP.MF}
+with base file \.{TRAP.BASE}.
+
+Appendix E is \.{TRAP.TYP}, the symbolic version of a correct output
+file \.{TRAP.72270GF} that was produced at the same time as the \.{TRAP.LOG}
+file of Appendix~D.
+
+Appendix F is \.{TRAP.PL}, the symbolic version of a correct output
+file \.{TRAP.TFM} that was produced at the same time as the \.{TRAP.LOG}
+file of Appendix~D.
+
+Appendix G is \.{TRAP.FOT}, an abbreviated version of Appendix D that
+appears on the user's terminal during the run that produces \.{TRAP.LOG},
+\.{TRAP.72270GF}, and \.{TRAP.TFM}.
+
+The debugging of \MF\ and the testing of the adequacy of \.{TRAP.MF}
+could not have been done nearly as well as reported here except for
+the magnificent software support provided by my colleague David R. Fuchs.
+In particular, he extended our local Pascal compiler so that
+frequency counting and a number of other important features were added
+to its online debugging abilities.
+
+The method of testing advocated here has one chief difficulty that deserves
+comment: I had to verify by hand that \MF\ did the right things
+to \.{TRAP.MF}. This took many hours, and perhaps I have missed
+something (as I did in 1960); I must confess that I have not checked
+every single number in Appendices D, E, and~F. However, I'm willing to pay
+$\$$81.92 to the first finder of any remaining bug in \MF, and I will
+be surprised if that bug doesn't show up also in one of these appendices.
+
+\vfill\eject
+
+\section Appendix A: How to test \MF.
+
+\item{0.} Let's assume that you have a tape containing \.{TRAP.MF},
+\.{TRAPIN.LOG}, \.{TRAP.LOG}, \.{TRAP.TYP}, \.{TRAP.PL}, and \.{TRAP.FOT},
+as in Appendices B, C, D, E, F, and~G. Furthermore, let's suppose that you
+have a working \.{WEB} system, and that you have working programs
+\.{TFtoPL} and \.{GFtype}, as described in the \TeX ware and \MF ware reports.
+
+\item{1.} Prepare a version of \.{INIMF}. (This means that your \.{WEB}
+change file should have {\bf init} and {\bf tini} defined to be null.)
+The {\bf debug} and {\bf gubed} macros should be null, in order to
+activate special printouts that occur when $\\{tracingedges}>1.0$.
+The {\bf stat} and {\bf tats} macros should also be null, so that
+statistics are kept. Set \\{mem\_top} and \\{mem\_max} to 3000
+(or to \\{mem\_min} plus 3000, if \\{mem\_min} isn't zero),
+for purposes of this test version.
+Also set $\\{error\_line}=64$, $\\{half\_error\_line}=32$,
+$\\{max\_print\_line}=72$, $\\{screen\_width}=100$, and
+$\\{screen\_depth}=200$; these parameters affect many of the lines of
+the test output, so your job will be much easier if you use the same
+settings that were used to produce Appendix~E. Also (if possible) set
+$\\{gf\_buf\_size}=8$, since this tests more parts of the program.
+You probably should also use the ``normal'' settings of other parameters
+found in \.{MF.WEB} (e.g., $\\{max\_internal}=100$, $\\{buf\_size}=500$,
+etc.), since these show up in a few lines of the test output. Finally,
+change \MF's screen-display routines by putting the following simple lines
+in the change file:
+$$\vbox{\halign{\tt#\hfil\cr
+\char`\@x Screen routines:\cr
+begin init\char`\_screen:=false;\cr
+\char`\@y\cr
+begin init\char`\_screen:=true;
+ \char`\{screen instructions will be logged\char`\}\cr
+\char`\@z\cr}}$$
+None of the other screen routines (\\{update\_screen}, \\{blank\_rectangle},
+\\{paint\_row}) should be changed in any way; the effect will be to have
+\MF's actions recorded in the transcript files instead of on the screen,
+in a machine-independent way.
+
+\item{2.} Run the \.{INIMF} prepared in step 1. In response to the first
+`\.{**}' prompt, type carriage return (thus getting another `\.{**}').
+Then type `\.{\char`\\input trap}'. You should get an output that matches
+the file \.{TRAPIN.LOG} (Appendix~C). Don't be alarmed by the error
+messages that you see, unless they are different from those in Appendix~C.
+
+\def\sp{{\char'40}}
+\item{3.} Run \.{INIMF} again. This time type `\.{\sp\&trap\sp\sp trap\sp}'.
+(The spaces in this input help to check certain parts of \MF\ that
+aren't otherwise used.) You should get outputs \.{TRAP.LOG}, \.{TRAP.72270GF},
+and \.{TRAP.TFM}.
+Furthermore, your terminal should receive output that matches \.{TRAP.FOT}
+(Appendix~G). During the middle part of this test, however, the terminal
+will not be getting output, because \.{batchmode} is being
+tested; don't worry if nothing seems to be happening for a while---nothing
+is supposed to.
+
+\item{4.} Compare the \.{TRAP.LOG} file from step 3 with the ``master''
+\.{TRAP.LOG} file of step~0. (Let's hope you put that master file in a
+safe place so that it wouldn't be clobbered.) There should be perfect
+agreement between these files except in the following respects:
+
+\itemitem{a)} The dates and possibly the file names will
+naturally be different.
+
+\itemitem{b)} If you had different values for \\{stack\_size}, \\{buf\_size},
+etc., the corresponding capacity values will be different when they
+are printed out at the end.
+
+\itemitem{c)} Help messages may be different; indeed, the author encourages
+non-English help messages in versions of \MF\ for people who don't
+understand English as well as some other language.
+
+\itemitem{d)} The total number and length of strings at the end and/or
+``still untouched'' may well be different.
+
+\itemitem{e)} If your \MF\ uses a different memory allocation or
+packing scheme, the memory usage statistics may change.
+
+\itemitem{f)} If you use a different storage allocation scheme, the
+capsule numbers will probably be different, but the order of variables
+should be unchanged when dependent variables are shown. \MF\ should also
+choose the same variables to be dependent.
+
+\itemitem{g)} If your computer handles integer division of negative operands
+in a nonstandard way, you may get results that are rounded differently.
+Although \TeX\ is careful to be machine-independent in this regard,
+\MF\ is not, because integer divisions are present in so many places.
+
+\item{5.} Use \.{GFtype} to convert your file \.{TRAP.72270GF} to a file
+\.{TRAP.TYP}. (Both of \.{GFtype}'s options, i.e., mnemonic output and image
+output, should be enabled so that you get the maximum amount of output.)
+The resulting file should agree with the master \.{TRAP.TYP} file of step~0,
+assuming that your \.{GFtype} has the ``normal'' values of compile-time
+constants ($\\{top\_pixel}=69$, etc.).
+
+\item{6.} Use \.{TFtoPL} to convert your file \.{TRAP.TFM} to a file
+\.{TRAP.PL}. The resulting file should agree with the master \.{TRAP.PL}
+file of step~0.
+
+\item{7.} You might also wish to test \.{TRAP} with other versions of
+\MF\ (i.e., \.{VIRMF} or a production version with another base file
+preloaded). It should work unless \MF's primitives have been redefined in
+the base file. However, this step isn't essential, since all the code of
+\.{VIRMF} appears in \.{INIMF}; you probably won't catch any more errors
+this way, unless they would already become obvious from normal use of
+the~system.
+
+\vfill\eject
+
+\section Appendix B: The \.{TRAP.MF} file.
+The contents of the test routine are prefixed here with line numbers, for
+ease in comparing this file with the error messages printed later; the
+line numbers aren't actually present.
+\runninghead{APPENDIX B: \.{TRAP.MF} (CONTINUED)}
+
+\vskip 8pt
+\begingroup\count255=0
+\everypar{\global\advance\count255 by 1
+  \hbox to 20pt{\sevenrm\hfil\the\count255\ \ }}
+\verbatim{trap.mf}
+\endgroup
+\vfill\eject
+
+\section Appendix C: The \.{TRAPIN.LOG} file.
+When \.{INIMF} makes the \.{TRAP.BASE} file, it also creates a file called
+\.{TRAP.LOG} that looks like this.
+\runninghead{APPENDIX C: \.{TRAPIN.LOG} (CONTINUED)}
+
+\vskip8pt
+\verbatim{trapin.log}
+\vfill\eject
+
+\section Appendix D: The \.{TRAP.LOG} file.
+Here is the major output of the \.{TRAP} test; it is generated by running
+\.{INIMF} and loading \.{TRAP.BASE}, then reading \.{TRAP.MF}.
+\runninghead{APPENDIX D: \.{TRAP.LOG} (CONTINUED)}
+
+{\let\tt=\eighttt\leftskip 1in\baselineskip 9pt plus .1pt minus .1pt
+\vskip8pt
+\verbatim{trap.log}
+}
+\vfill\eject
+
+\section Appendix E: The \.{TRAP.TYP} file.
+Here is another major component of the test. It shows the output of \.{GFtype}
+applied to the file \.{TRAP.72270GF} that is created at the same time
+Appendix D was produced.
+\runninghead{APPENDIX E: \.{TRAP.TYP} (CONTINUED)}
+
+{\let\tt=\eighttt\leftskip 1in\baselineskip 9pt plus .1pt minus .1pt
+\vskip8pt
+\verbatim{trap.typ}
+}
+\vfill\eject
+
+\section Appendix F: The \.{TRAP.PL} file.
+In this case we have the output of \.{TFtoPL}
+applied to the file \.{TRAP.TFM} that is created at the same time
+Appendix D was produced.
+\runninghead{APPENDIX F: \.{TRAP.PL} (CONTINUED)}
+
+{\let\tt=\eighttt\leftskip 1in\baselineskip 9pt plus .1pt minus .1pt
+\vskip8pt
+\verbatim{trap.pl}
+}
+\vfill\eject
+
+\section Appendix G: The \.{TRAP.FOT} file.
+This shows what appeared on the terminal while Appendix D was being produced.
+\runninghead{APPENDIX G: \.{TRAP.FOT} (CONTINUED)}
+
+\vskip8pt
+\verbatim{trap.fot}
+
+\vfill\end

@@ -1,0 +1,73 @@
+vm 0-3.5
+pM 25.792778,80.290556	# mia apt
+pT 25.647500,80.433000	# tmb apt
+
+va 000+090		# ew lines
+
+pa d pM,m(va-090),4
+pb xclw pM,6, pa,m(va)
+pc xcle pM,6, pa,m(va)
+
+n mia_gnd\70
+s pb,pc
+ar pM,pc,pb
+
+pd xclw pM,10, pa,m(va)
+pe xcle pM,10, pa,m(va)
+pf xccw pM,10, pT,t5
+pg d pM,m(va+090),7.5
+ph xclw pM,10, pg,m(va)
+pi xcle pT,t5, pg,m(va)
+pj xcle pM,10, pg,m(va)
+
+n mia_15\70
+s pb,pd
+al pM,pd,pf
+ar pT,pf,pi
+s pi,pj
+al pM,pj,pe
+s pe,pc
+
+pk d pM,m322,10
+pl d pb,apc,1.5
+
+n mia_20\70
+ar pM,pd,pk
+s pk,pl
+al pM,pf,ph
+s ph,pi
+
+pm d pM,m(va-090),10
+
+pn xclw pM,20, pm,m(va)
+po xclw pM,15, pm,m(va)
+pp d pM,m344,15
+pq d pM,m340,20
+pr xcle pM,15, pm,m(va)
+ps xcle pM,20, pm,m(va)
+pt d pM,m160,20
+pu d pM,m165,15
+pv d pM,m205,15
+pw d pi,apj,1.2
+px xclw pM,15, pg,m(va)
+py xclw pM,20, pg,m(va)
+
+n mia_30\70
+s ph,px
+S px,py
+Ar pM,py,pn
+s pn,po
+ar pM,po,pp
+Ar pM,pp,pr
+S pr,ps
+Ar pM,ps,pt
+S pt,pu
+Ar pM,pu,pv
+s pv,pw
+
+n mia_40\70
+Ar pM,pn,pq
+S pq,pp
+
+n mia_50\70
+Ar pM,pv,px

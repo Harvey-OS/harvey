@@ -1,0 +1,9 @@
+#
+# Test filesystem (read-only)
+#
+fsys main config /tmp/fossil
+fsys main open -r
+fsys main 
+srv -p test.fscons
+srv test.fossil
+srv -N test.none

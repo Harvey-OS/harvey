@@ -1,0 +1,9 @@
+This is MetaPost, Version 0.641 (Web2C 7.2) (INIMP)  23 OCT 1999 21:04
+**\input plain dump
+(/sys/lib/texmf/metapost/base/plain.mp
+Preloading the plain mem file, version 0.62)
+Beginning to dump on file mp.little.mem
+ (mem=mp.little 1999.10.23)
+at most 1418 strings of total length 23599
+3296 memory locations dumped; current usage is 979&2225
+476 symbolic tokens

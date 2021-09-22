@@ -10,21 +10,21 @@
  */
 TEXT touser(SB), 1, $-4
 	/* store the user stack pointer into the USR_r13 */
-	MOVM.DB.W [R0], (R13)
+	MOVM.DB.W [R0], (SP)
 	/* avoid the ambiguity described in notes/movm.w. */
-	MOVM.S	(R13), [R13]
-	ADD	$4, R13			/* pop new user SP */
+	MOVM.S	(SP), [SP]
+	ADD	$BY2WD, SP		/* pop new user SP */
 
 	/* set up a PSR for user level */
 	MOVW	$(PsrMusr), R0
 	MOVW	R0, SPSR
 
 	/* push new user PSR */
-	MOVM.DB.W [R0], (R13)
+	MOVM.DB.W [R0], (SP)
 
 	/* push the new user PC on the stack */
 	MOVW	$(UTZERO+0x20), R0
-	MOVM.DB.W [R0], (R13)
+	MOVM.DB.W [R0], (SP)
 
 	RFEV7W(13)
 
@@ -32,7 +32,7 @@ TEXT touser(SB), 1, $-4
  *  here to jump to a newly forked process
  */
 TEXT forkret(SB), 1, $-4
-	ADD	$(4*NREGS), R13		/* make r13 point to ureg->type */
-	MOVW	8(R13), R14		/* restore link */
-	MOVW	4(R13), R0		/* restore SPSR */
+	ADD	$(BY2WD*NREGS), SP	/* make r13 point to ureg->type */
+	MOVW	(2*BY2WD)(SP), R14	/* restore link */
+	MOVW	BY2WD(SP), R0		/* restore SPSR */
 	B	rfue(SB)

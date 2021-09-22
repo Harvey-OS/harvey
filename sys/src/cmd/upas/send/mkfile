@@ -21,8 +21,6 @@ SMOBJ=main.$O\
 	gateway.$O\
 	cat_mail.$O\
 
-LIB=../common/libcommon.av\
-
 HFILES=send.h\
 	../common/common.h\
 	../common/sys.h\

@@ -1,0 +1,111 @@
+.TH ATOM 2
+.SH NAME
+ainc, adec, cas, casv, casp, loadlink, storecond, _tas \- atomic read-modify-write operations
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+long ainc(long *addr);
+.PP
+.B
+long adec(long *addr);
+.PP
+.B
+int cas(int *addr, int ov, int nv);
+.PP
+.B
+int casv(u64int *addr, u64int ov, u64int nv);
+.PP
+.B
+int casp(void **addr, void *ov, void *nv);
+.PP
+.B
+int _tas(ulong *addr);
+.PP
+.B
+ulong loadlink(ulong*);
+.PP
+.B
+int storecond(ulong*, ulong);
+.SH DESCRIPTION
+.I Ainc
+atomically increments the value pointed to by
+.I addr
+and returns the new value.
+.I Adec
+is similar but decrements.
+.PP
+.IR Cas ,
+.I casv
+and
+.I casp
+implement
+.I Compare-and-Swap
+(atomically set
+.B *addr
+to
+.B nv
+only if it contains
+.BR ov ,
+and return the old value or boolean success)
+on, respectively,
+.IR int ,
+.I vlong
+and
+.I void*
+values.
+The availability of these functions depends on the
+\s-2CPU\s0 architecture:  Pentium III and later, as well as AMD64
+have 64-bit CAS instructions; other architectures don't.
+ARM v5 architecture processors and earlier do not have CAS (nor have they
+.I Load-Linked
+or
+.IR Store-Conditional ).
+These instructions are, however, emulated by the Plan 9 kernel.
+All other architectures have 32-bit CAS.
+.PP
+.I _tas
+implements
+.I Test-and-Set
+(atomically set
+.B *addr
+non-zero and return previous contents),
+which is available on all architectures and used for the implementation
+of kernel locks
+(see
+.IR lock (2)
+and
+.IR thread (2)).
+.PP
+.I Loadlink
+and
+.I storecond
+access the
+.I load-linked
+and
+.I store-conditional
+instructions present on
+MIPS (LL/SC), ARM (Strex/Ldrex), PowerPC (LWAR/STWCCC), and RISC-V (LR/SC).
+These are not present on Pentium or AMD64.
+On the architectures that have
+.I load-linked
+and
+.IR store-conditional ,
+these may be used to implement
+.IR compare-and-swap .
+.SH SOURCE
+.B /sys/src/libc/*/atom.s
+.br
+.B /sys/src/libc/*/tas.s
+.SH SEE ALSO
+.IR lock (2),
+.IR semacquire (2),
+.IR thread (2)
+.SH DIAGNOSTICS
+The
+.I cas*
+functions and
+.I storecond
+return 0 for failure and 1 for success.

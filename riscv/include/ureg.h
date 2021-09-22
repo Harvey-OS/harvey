@@ -54,4 +54,5 @@ struct Ureg
 	uintptr	tval;			/* faulting address */
 
 	uintptr	curmode;
+	uintptr	_align;
 };

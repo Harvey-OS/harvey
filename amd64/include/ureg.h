@@ -21,8 +21,11 @@ struct Ureg {
 	u16int	gs;
 
 	u64int	type;
-	u64int	error;				/* error code (or zero) */
-	u64int	ip;				/* pc */
+	u64int	err;				/* error code (or zero) */
+	union{
+		u64int	ip;			/* pc, in intel jargon */
+		u64int	pc;			/* port code name */
+	};
 	u64int	cs;				/* old context */
 	u64int	flags;				/* old flags */
 	u64int	sp;				/* sp */

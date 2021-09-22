@@ -95,12 +95,10 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	else
 		gate = r->v6.gate;
 
-	if(!gating)
-		eh->vcf[0] = IP_VER6;
 	eh->ttl = ttl;
 	if(!gating) {
-		eh->vcf[0] |= tos >> 4;
-		eh->vcf[1]  = tos << 4;
+		eh->vcf[0] = IP_VER6 | (uchar)tos >> 4;
+		eh->vcf[1] = tos << 4;
 	}
 
 	if(!canrlock(ifc))
@@ -160,17 +158,12 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	hnputl(fraghdr.id, lid);
 
 	xp = bp;
-	offset = uflen;
-	while (xp && offset && offset >= BLEN(xp)) {
+	for (offset = uflen; xp && offset && offset >= BLEN(xp); xp = xp->next)
 		offset -= BLEN(xp);
-		xp = xp->next;
-	}
 	xp->rp += offset;
 
-	fragoff = 0;
 	morefrags = 1;
-
-	for(; fragoff < flen; fragoff += seglen) {
+	for(fragoff = 0; fragoff < flen; fragoff += seglen) {
 		nb = allocb(uflen + IP6FHDR + seglen);
 
 		if(fragoff + seglen >= flen) {
@@ -188,8 +181,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		nb->wp += IP6FHDR;
 
 		/* Copy data */
-		chunk = seglen;
-		while (chunk) {
+		for (chunk = seglen; chunk; chunk -= blklen) {
 			if(!xp) {
 				ip->stats[OutDiscards]++;
 				ip->stats[FragFails]++;
@@ -201,10 +193,8 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 			if(BLEN(xp) < chunk)
 				blklen = BLEN(xp);
 			memmove(nb->wp, xp->rp, blklen);
-
 			nb->wp += blklen;
 			xp->rp += blklen;
-			chunk -= blklen;
 			if(xp->rp == xp->wp)
 				xp = xp->next;
 		}
@@ -491,8 +481,7 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 
 	/*
 	 *  if this isn't a fragmented packet, accept it
-	 *  and get rid of any fragments that might go
-	 *  with it.
+	 *  and get rid of any fragments that might go with it.
 	 */
 	if(nhgets(fraghdr->offsetRM) == 0) {	/* 1st frag is also last */
 		if(f) {

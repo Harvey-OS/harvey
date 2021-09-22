@@ -96,7 +96,7 @@ mpbits(mpint *b, int m)
 }
 
 void
-mpfree(mpint *b)
+_mpfree(mpint *b)
 {
 	if(b == nil)
 		return;

@@ -1,0 +1,11 @@
+#!/bin/rc
+# mount /n/labsdump
+rfork e
+mtpt=labsdump
+arch=/lib/vac/arch		# archive mount-point tree
+
+mountlabs
+bind -a $arch/piedump /n/$mtpt
+bind -a $arch/emelie /n/$mtpt
+bind -a $arch/emelie/2003 /n/$mtpt/2003
+bind -b $arch/bootes /n/$mtpt

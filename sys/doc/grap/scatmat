@@ -1,0 +1,100 @@
+awk '
+# Default values and initial output
+BEGIN {	spreadtext="0"
+	symboltext="circle"
+	fname="XXX"
+	white[" "]=1; white["\t"]=1 # white space
+	print ".G1"
+	print "graph " fname "01"
+	print "	ticks off; frame ht 0 wid 0 invis"
+}
+
+# Parse all commands, global first then for each var
+		{ rest="" }   # rest = input line after $1
+NF>1		{ i=0
+		  while ( white[substr($0,++i,1)]);
+		  while (!white[substr($0,++i,1)]);
+		  rest=substr($0,i+1) }
+$1=="frames"	{ frametext=rest }
+$1=="spread"	{ spreadtext=$2 }
+$1=="file"	{ filetext=$2 }
+$1=="symbol"	{ symboltext=rest }
+$1=="allticks"	{ alltickstext=rest }
+$1=="alllog"	{ wantalllog=1 }
+$1=="allrange"	{ allrangeset=1; allrangelo=$2; allrangehi=$3 }
+$1=="once"	{ print rest }
+$1=="eachgraph"	{ graphtext[++graphcnt]=rest }
+$1=="eachline"	{ linetext[++linecnt]=rest }
+$1=="diagdown"	{ diagdown=1 }
+
+$1=="name"	{ if (substr(rest,1,1) != "\"") rest="\"" rest "\""
+		  var++; nametext[var]=rest
+		}
+$1=="ticks"	{ tickstext[var]=rest }
+$1=="range"	{ rangeset[var]=1; rangelo[var]=$2; rangehi[var]=$3 }
+$1=="log"	{ wantlog[var]=1 }
+$1=="field"	{ fieldtext[var]=$2 }
+
+# Generate all var**2 graphs
+END {
+  if (allrangeset) for (i=1; i<=var; i++) {
+	rangeset[i]=1; rangelo[i]=allrangelo; rangehi[i]=allrangehi
+  }
+  if (frametext=="") {
+	wid=((6.5-spreadtext)/var)-spreadtext
+	frametext= "ht " wid " wid " wid
+  }
+  bottomrow=1; if (diagdown) bottomrow=var
+  for (row=1; row<=var; row++) {
+    for (col=1; col<=var; col++) {
+	# graph statement
+	if (col==1) {
+	    place = "with .Frame.s at " fname row-1 col\
+		    ".Frame.n + (0," spreadtext ")"
+	    if (diagdown) place = "with .Frame.n at " fname row-1 col\
+			".Frame.s - (0," spreadtext ")"
+	} else {
+	    place = "with .Frame.w at " fname row col-1\
+			".Frame.e + (" spreadtext ",0)"
+	}
+	print "graph", fname row col, place
+	# frame statement
+	print "	frame " frametext
+	# coord statement
+	s=""
+	if (rangeset[col]) s=s " x " rangelo[col] "," rangehi[col]
+	if (rangeset[row]) s=s " y " rangelo[row] "," rangehi[row]
+	if (wantlog[col])  s=s " log x"
+	if (wantlog[row])  s=s " log y"
+ 	if (wantalllog)    s=s " log log"
+	if (s!="") print "	coord" s
+	# ticks statements
+	print "	ticks off"
+	if (col==1) print	  "	ticks left "  alltickstext, tickstext[row]
+	if (row==bottomrow) print "	ticks bot "   alltickstext, tickstext[col]
+	# copy file or print label
+	if (row==col) {
+	    print "	coord abs x 0,1 y 0,1"
+	    print "	" nametext[row] " at abs .5, .5"
+	    if (symboltext!="") {
+		print "	copy " filetext " thru @"
+		print "	  rowval=" fieldtext[row]
+		print "	  \"\" at rowval, rowval"
+		print "	@"
+	    }
+	} else {
+	    print "	rownum=" row "; colnum=" col
+	    for (i=1; i<=graphcnt; i++) print "	" graphtext[i]
+	    print "	copy " filetext " thru @"
+	    print "	  rowval=" fieldtext[row] "; colval=" fieldtext[col]
+	    for (i=1; i<=linecnt; i++) print "	  " linetext[i]
+	    if (symboltext!="") {
+		print "	  " symboltext " at colval, rowval"
+	    }
+	    print "	@"
+	}
+    }
+  }
+print ".G2"
+}
+' $*

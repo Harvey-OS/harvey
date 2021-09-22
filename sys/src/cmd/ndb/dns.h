@@ -73,13 +73,14 @@ enum
 	Tmailb=	253,	/* { Tmb, Tmg, Tmr } */
 	Tmaila= 254,	/* obsolete */
 	Tall=	255,	/* all records */
+	Tipall=	48000,	/* local invention: either ip vers */
 
 	/* classes */
 	Csym=	0,	/* internal symbols */
 	Cin=	1,	/* internet */
 	Ccs,		/* CSNET (obsolete) */
-	Cch,		/* Chaos net */
-	Chs,		/* Hesiod (?) */
+	Cch,		/* Chaos net (obsolete MIT & Lisp machines) */
+	Chs,		/* Hesiod (obsolete MIT Athena) */
 
 	/* class queries (all class types are also queries) */
 	Call=	255,	/* all classes */
@@ -160,8 +161,9 @@ enum
 	/* parallelism: tune; was 32; allow lots */
 	Maxactive=	250,
 
-	/* tune; was 60*1000; keep it short */
-	Maxreqtm=	8*1000,	/* max. ms to process a request */
+	/* tune; was 60*1000; keep them short */
+	Maxreqtm=	8*1000, /* max. ms. to process a request */
+	Minreqtm=	3*1000,	/* give each outgoing query this many ms. */
 
 	Notauthoritative = 0,
 	Authoritative,
@@ -551,6 +553,10 @@ void	dntcpserver(char*);
 /* dnnotify.c */
 void	dnnotify(DNSmsg*, DNSmsg*, Request*);
 void	notifyproc(void);
+
+/* dnrev.c */
+char*	revv4(char *dom);
+char*	revv6(char *dom);
 
 /* convDNS2M.c */
 int	convDNS2M(DNSmsg*, uchar*, int);

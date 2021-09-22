@@ -1,5 +1,6 @@
 /*
- * Etherlink III, Fast EtherLink and Fast EtherLink XL adapters.
+ * 3com Etherlink III, Fast EtherLink and Fast EtherLink XL adapters.
+ *
  * To do:
  *	check robustness in the face of errors (e.g. busmaster & rxUnderrun);
  *	RxEarly and busmaster;
@@ -363,7 +364,7 @@ enum {						/* 3C90x extended register set */
  * and this structure size must be a multiple of 8.
  */
 typedef struct Pd Pd;
-typedef struct Pd {
+struct Pd {
 	ulong	np;			/* next pointer */
 	ulong	control;		/* FSH or UpPktStatus */
 	ulong	addr;
@@ -371,10 +372,10 @@ typedef struct Pd {
 
 	Pd*	next;
 	Block*	bp;
-} Pd;
+};
 
 typedef struct Ctlr Ctlr;
-typedef struct Ctlr {
+struct Ctlr {
 	int	port;
 	Pcidev*	pcidev;
 	int	irq;
@@ -428,7 +429,7 @@ typedef struct Ctlr {
 	int	dnenabled;
 	ulong	cbfnpa;			/* CardBus functions */
 	ulong*	cbfn;
-} Ctlr;
+};
 
 static Ctlr* ctlrhead;
 static Ctlr* ctlrtail;
@@ -516,7 +517,7 @@ startdma(Ether* ether, ulong address)
 	wp = KADDR(inl(port+MasterAddress));
 	status = ins(port+MasterStatus);
 	if(status & (masterInProgress|targetAbort|masterAbort))
-		print("#l%d: BM status 0x%uX\n", ether->ctlrno, status);
+		print("#l%d: BM status %#uX\n", ether->ctlrno, status);
 	outs(port+MasterStatus, masterMask);
 	outl(port+MasterAddress, address);
 	outs(port+MasterLen, sizeof(Etherpkt));
@@ -964,7 +965,7 @@ ejectable(int did)
 	}
 }
 
-static void
+static int
 interrupt(Ureg*, void* arg)
 {
 	Ether *ether;
@@ -980,7 +981,7 @@ interrupt(Ureg*, void* arg)
 	if(!(status & (interruptMask|interruptLatch))){
 		ctlr->bogusinterrupts++;
 		iunlock(&ctlr->wlock);
-		return;
+		return Intrnotforme;
 	}
 	w = (status>>13) & 0x07;
 	COMMAND(port, SelectRegisterWindow, Wop);
@@ -1005,10 +1006,10 @@ interrupt(Ureg*, void* arg)
 			if (status == 0xFFFF && x == 0xFFFF && ejectable(ctlr->did)) {
 				print("#l%d: Card ejected?\n", ether->ctlrno);
 				iunlock(&ctlr->wlock);
-				return;
+				return Intrforme;
 			}
 
-			print("#l%d: status 0x%uX, diag 0x%uX\n",
+			print("#l%d: status %#uX, diag %#uX\n",
 			    ether->ctlrno, status, x);
 
 			if(x & txOverrun){
@@ -1108,7 +1109,7 @@ interrupt(Ureg*, void* arg)
 			}
 
 			if(s & ~(txStatusComplete|maxCollisions))
-				print("#l%d: txstatus 0x%uX, threshold %d\n",
+				print("#l%d: txstatus %#uX, threshold %d\n",
 			    		ether->ctlrno, s, ctlr->txthreshold);
 			COMMAND(port, TxEnable, 0);
 			ether->oerrs++;
@@ -1147,7 +1148,7 @@ interrupt(Ureg*, void* arg)
 		 * Panic if there are any interrupts not dealt with.
 		 */
 		if(status & interruptMask)
-			panic("#l%d: interrupt mask 0x%uX\n", ether->ctlrno, status);
+			panic("#l%d: interrupt mask %#uX\n", ether->ctlrno, status);
 
 		COMMAND(port, AcknowledgeInterrupt, interruptLatch);
 		if(ctlr->cbfn != nil)
@@ -1162,6 +1163,7 @@ interrupt(Ureg*, void* arg)
 
 	COMMAND(port, SelectRegisterWindow, w);
 	iunlock(&ctlr->wlock);
+	return Intrforme;
 }
 
 static long
@@ -1375,7 +1377,7 @@ tcm509isa(void)
 	 */
 	while(port = activate()){
 		if(ioalloc(port, 0x10, 0, "tcm509isa") < 0){
-			print("tcm509isa: port 0x%uX in use\n", port);
+			print("tcm509isa: port %#uX in use\n", port);
 			continue;
 		}
 
@@ -1425,7 +1427,7 @@ tcm5XXeisa(void)
 	 * Check if this is an EISA machine.
 	 * If not, nothing to do.
 	 */
-	if(strncmp((char*)KADDR(0xFFFD9), "EISA", 4))
+	if(strncmp((char*)KADDR(0xFFFD9), "EISA", 4) != 0)
 		return;
 
 	/*
@@ -1437,7 +1439,7 @@ tcm5XXeisa(void)
 	for(slot = 1; slot < MaxEISA; slot++){
 		port = slot*0x1000;
 		if(ioalloc(port, 0x1000, 0, "tcm5XXeisa") < 0){
-			print("tcm5XXeisa: port 0x%uX in use\n", port);
+			print("tcm5XXeisa: port %#uX in use\n", port);
 			continue;
 		}
 		if(ins(port+0xC80+ManufacturerID) != 0x6D50){
@@ -1470,7 +1472,7 @@ tcm59Xpci(void)
 
 	p = nil;
 	while(p = pcimatch(p, 0x10B7, 0)){
-		if(p->ccrb != 0x02 || p->ccru != 0)
+		if(p->ccrb != Pcibcnet || p->ccru != Pciscether)
 			continue;
 		/*
 		 * Not prepared to deal with memory-mapped
@@ -1481,7 +1483,7 @@ tcm59Xpci(void)
 		port = p->mem[0].bar & ~0x01;
 		if((port = ioalloc((port == 0)? -1: port,  p->mem[0].size, 
 					  0, "tcm59Xpci")) < 0){
-			print("tcm59Xpci: port 0x%uX in use\n", port);
+			print("tcm59Xpci: port %#uX in use\n", port);
 			continue;
 		}
 		irq = p->intl;
@@ -1518,6 +1520,7 @@ static char* tcmpcmcia[] = {
 static Ctlr*
 tcm5XXpcmcia(Ether* ether)
 {
+#ifdef DREGS					/* pcmcia */
 	int i;
 	Ctlr *ctlr;
 
@@ -1531,7 +1534,9 @@ tcm5XXpcmcia(Ether* ether)
 		ctlr->active = 1;
 		return ctlr;
 	}
-
+#else
+	USED(ether);
+#endif
 	return nil;
 }
 
@@ -1765,7 +1770,7 @@ resetctlr(Ctlr *ctlr)
 
 	txrxreset(port);
 	x = ins(port+ResetOp905B);
-	XCVRDEBUG("905[BC] reset ops 0x%uX\n", x);
+	XCVRDEBUG("905[BC] reset ops %#uX\n", x);
 	x &= ~0x4010;
 	if(ctlr->did == 0x5157){
 		x |= 0x0010;			/* Invert LED */
@@ -1943,7 +1948,7 @@ etherelnk3reset(Ether* ether)
 		resetctlr(ctlr);
 		break;
 	}
-	XCVRDEBUG("xcvr selected: %uX, did 0x%uX\n", ctlr->xcvr, ctlr->did);
+	XCVRDEBUG("xcvr selected: %uX, did %#uX\n", ctlr->xcvr, ctlr->did);
 
 	switch(ctlr->xcvr){
 	case xcvrMii:

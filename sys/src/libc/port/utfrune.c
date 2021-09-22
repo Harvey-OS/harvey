@@ -4,7 +4,6 @@
 char*
 utfrune(char *s, long c)
 {
-	long c1;
 	Rune r;
 	int n;
 
@@ -12,16 +11,13 @@ utfrune(char *s, long c)
 		return strchr(s, c);
 
 	for(;;) {
-		c1 = *(uchar*)s;
-		if(c1 < Runeself) {	/* one byte rune */
-			if(c1 == 0)
+		r = *(uchar*)s;
+		if(r < Runeself) {	/* one-byte rune */
+			if(r == '\0')
 				return 0;
-			if(c1 == c)
-				return s;
-			s++;
-			continue;
-		}
-		n = chartorune(&r, s);
+			n = 1;
+		} else
+			n = chartorune(&r, s);
 		if(r == c)
 			return s;
 		s += n;

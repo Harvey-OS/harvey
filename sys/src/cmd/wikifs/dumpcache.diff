@@ -1,0 +1,63 @@
+61,122d60
+< static int
+< estrlen(char *s)
+< {
+< 	return s == nil? 0: strlen(s);
+< }
+< 
+< static long
+< dumppage(Wpage *wp)
+< {
+< 	long n;
+< 
+< 	if (wp == nil)
+< 		return 0;
+< 	n = estrlen(wp->text) + estrlen(wp->url);
+< 	if (n != 0)
+< 		fprint(2, "%ld bytes (text, url)\n", n);
+< 	return n + dumppage(wp->next);
+< }
+< 
+< static long
+< dumphist(Whist *wh)
+< {
+< 	long n;
+< 	Wdoc *wd;
+< 
+< 	if (wh == nil)
+< 		return 0;
+< 	wd = wh->doc;
+< 	if (wd == nil)
+< 		return 0;
+< 	n = estrlen(wd->author) + estrlen(wd->comment);
+< 	if (n != 0)
+< 		fprint(2, "%ld bytes (author, comment)\n", n);
+< 	return n + dumppage(wd->wtxt);
+< }
+< 
+< void
+< dumpcache(void)
+< {
+< 	int b;
+< 	long n, t;
+< 	Wcache *w;
+< 
+< 	fprint(2, "cache dump:\n");
+< 	t = 0;
+< 	rlock(&cachelock);
+< 	for(b = 0; b < ncache; b++) {
+< 		fprint(2, "hash bucket %d of %d:\n", b, ncache);
+< 		for(w=tab[b]; w; w=w->hash) {
+< 			fprint(2, "bucket %d cache item %d:\n", b, w->n);
+< 			n = dumphist(w->hist);
+< 			n += dumphist(w->current);
+< 			if (n != 0)
+< 			fprint(2, "bucket %d cache item %d total %ld:\n",
+< 				b, w->n, n);
+< 			t += n;
+< 		}
+< 	}
+< 	runlock(&cachelock);
+< 	fprint(2, "cache total bytes: %ld\n\n", t);
+< }
+< 

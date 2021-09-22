@@ -1,0 +1,413 @@
+% The TRIP manual: How to validate TeX --- last updated by D E Knuth on 4 Dec 89
+\font\eighttt= cmtt8
+\font\eightrm= cmr8
+\font\titlefont= cmr7 scaled\magstep5
+\let\mc=\eightrm
+\rm
+\let\mainfont=\tenrm
+
+\def\.#1{\hbox{\tt#1}}
+\def\\#1{\hbox{\it#1\/\hskip.05em}} % italic type for identifiers
+
+\parskip 2pt plus 1pt
+\baselineskip 12pt plus .25pt
+
+\def\verbatim#1{\begingroup \frenchspacing
+  \def\do##1{\catcode`##1=12 } \dospecials
+  \parskip 0pt \parindent 0pt
+  \catcode`\ =\active \catcode`\^^M=\active
+  \tt \def\par{\ \endgraf} \obeylines \obeyspaces
+  \input #1 \endgroup}
+% a blank line will be typeset at the end of the file;
+% if you're unlucky it will appear on a page by itself!
+{\obeyspaces\global\let =\ }
+
+\output{\shipout\box255\global\advance\pageno by 1} % for the title page only
+\null
+\vfill
+\centerline{\titlefont A torture test for \TeX}
+\vskip 18pt
+\centerline{by Donald E. Knuth}
+\centerline{Stanford University}
+\vskip 6pt
+\centerline{({\sl Version 3, January 1990\/})}
+\vfill
+\centerline{\vbox{\hsize 4in
+\noindent Programs that claim to be implementations of \TeX82 are
+supposed to be able to process the test routine contained in this
+report, producing the outputs contained in this report.}}
+\vskip 24pt
+{\baselineskip 9pt
+\eightrm\noindent
+The preparation of this report was supported in part by the National Science
+Foundation under grants IST-8201926 and MCS-8300984,
+and by the System Development Foundation.
+`\TeX' is a trademark of the American Mathematical Society.
+
+}\pageno=0\eject
+
+\output{\shipout\vbox{ % for subsequent pages
+    \baselineskip0pt\lineskip0pt
+    \hbox to\hsize{\strut
+      \ifodd\pageno \hfil\eightrm\firstmark\hfil
+        \mainfont\the\pageno
+      \else\mainfont\the\pageno\hfil
+        \eightrm\firstmark\hfil\fi}
+    \vskip 10pt
+    \box255}
+  \global\advance\pageno by 1}
+\let\runninghead=\mark
+\outer\def\section#1.{\noindent{\bf#1.}\quad
+  \runninghead{\uppercase{#1} }\ignorespaces}
+
+\section Introduction.
+People often think that their programs are ``debugged'' when large applications
+have been run successfully. But system programmers know that a typical large
+application tends to use at most about 50 per cent of the instructions
+in a typical compiler. Although the other half of the code---which tends
+to be the ``harder half''---might be riddled with errors, the system seems
+to be working quite impressively until an unusual case shows up on the
+next day. And on the following day another error manifests itself, and so on;
+months or years go by before certain parts of the compiler are even
+activated, much less tested in combination with other portions of the system,
+if user applications provide the only tests.
+
+How then shall we go about testing a compiler? Ideally we would like to
+have a formal proof of correctness, certified by a computer.
+This would give us a lot of confidence,
+although of course the formal verification program might itself be incorrect.
+A more serious drawback of automatic verification is that the formal
+specifications of the compiler are likely to be wrong, since they aren't
+much easier to write than the compiler itself. Alternatively, we can
+substitute an informal proof of correctness: The programmer writes his or
+her code in a structured manner and checks that appropriate relations
+remain invariant, etc. This helps greatly to reduce errors, but it cannot
+be expected to remove them completely; the task of checking a large
+system is sufficiently formidable that human beings cannot do it without
+making at least a few slips here and there.
+
+Thus, we have seen that test programs are unsatisfactory if they are simply
+large user applications; yet some sort of test program is needed because
+proofs of correctness aren't adequate either. People have proposed schemes
+for constructing test data automatically from a program text, but such
+approaches run the risk of circularity, since they cannot assume that a
+given program has the right structure.
+
+I have been having good luck with a somewhat different approach,
+first used in 1960 to debug an {\mc ALGOL} compiler. The idea is to
+construct a test file that is about as different from a typical user
+application as could be imagined. Instead of testing things that people
+normally want to do, the file tests complicated things that people would
+never dare to think of, and it embeds these complexities in still
+more arcane constructions. Instead of trying to make the compiler do the
+right thing, the goal is to make it fail (until the bugs have all been found).
+
+To write such a fiendish test routine, one simply gets into a nasty frame
+of mind and tries to do everything in the unexpected way. Parameters
+that are normally positive are set negative or zero; borderline cases
+are pushed to the limit; deliberate errors are made in hopes that the
+compiler will not be able to recover properly from them.
+
+A user's application tends to exercise 50\%\ of a compiler's logic,
+but my first fiendish tests tend to improve this to about 90\%. As the
+next step I generally make use of frequency-counting software to identify
+the instructions that have still not been called upon. Then I add ever more
+fiendishness to the test routine, until more than 99\%\ of the code
+has been used at least once. (The remaining bits are things that
+can occur only if the source program is really huge, or if certain
+fatal errors are detected; or they are cases so similar to other well-tested
+things that there can be little doubt of their validity.)
+
+Of course, this is not guaranteed to work. But my experience in 1960 was
+that only two bugs were ever found in that {\mc ALGOL} compiler after it
+correctly translated that original fiendish test. And one of those bugs
+was actually present in the results of the test; I simply had failed to
+notice that the output was incorrect. Similar experiences occurred later
+during the 60s and 70s, with respect to a few assemblers, compilers,
+and simulators that I wrote.
+
+This method of debugging, combined with the methodology of structured
+programming and informal proofs (otherwise known as careful desk checking),
+leads to greater reliability of production software than any other
+method I know. Therefore I have used it in developing \TeX82, and the
+main bulk of this report is simply a presentation of the test program
+that was used to get the bugs out of \TeX.
+
+Such a test file is useful also after a program has been debugged, since
+it can be used to give some assurance that subsequent modifications don't
+mess things up.
+
+The test file is called \.{TRIP.TEX}, because of my warped sense of humor:
+\TeX\ is pronounced ``techhh'', so the name reminded me of a
+triptych (and besides, I wanted to take a trip through the program while
+tripping it up, etc.).
+
+The contents of this test file are so remote from what people actually
+do with \TeX, I feel apologetic if I have to explain the correct
+translation of \.{TRIP.TEX}; nobody really cares about most of the
+nitty-gritty rules that are involved. Yet I believe \.{TRIP} exemplifies
+the sort of test program that has outstanding diagnostic ability, as
+explained above.
+
+If somebody claims to have a correct implementation of \TeX, I will not
+believe it until I see that \.{TRIP.TEX} is translated properly.
+I propose, in fact, that a program must meet two criteria before it
+can justifiably be called \TeX: (1)~The person who wrote it must be
+happy with the way it works at his or her installation; and (2)~the
+program must produce the correct results from \.{TRIP.TEX}.
+
+\TeX\ is in the public domain, and its algorithms are published;
+I've done this since I do not want to discourage its use by placing
+proprietary restrictions on the software. However, I don't want
+faulty imitations to masquerade as \TeX\ processors, since users
+want \TeX\ to produce identical results on different machines.
+Hence I am planning to do whatever I can to suppress any systems that
+call themselves \TeX\ without meeting conditions (1) and~(2).
+I have copyrighted the programs so that I have some chance to forbid
+unauthorized copies; I explicitly authorize copying of correct
+\TeX\ implementations, and not of incorrect ones!
+
+The remainder of this report consists of appendices, whose contents ought
+to be described briefly here:
+
+Appendix A explains in detail how to carry out a test of \TeX, given
+a tape that contains copies of the other appendices.
+
+Appendix B is \.{TRIP.TEX}, the fiendish test file that has already
+been mentioned. People who think that they understand \TeX\ are challenged
+to see if they know what \TeX\ is supposed to do with this file.
+People who know only a little about \TeX\ might still find it
+interesting to study Appendix~B, just to get some insights into the
+methodology advocated here.
+
+Appendix C is \.{TRIP.PL}, the property-list description of a
+special font called \.{trip}. This is the only font used by \.{TRIP.TEX}.
+There are no graphic characters associated with \.{trip} that could
+possibly be printed; indeed, \.{TRIP.PL} describes the properties of a font
+that is as weird as the ``document'' described by \.{TRIP.TEX}.
+
+Appendix D is \.{TRIPIN.LOG}, a correct transcript file \.{TRIP.LOG}
+that results if \.{INITEX} is applied to \.{TRIP.TEX}. (\.{INITEX} is
+the name of a version of \TeX\ that does certain initializations;
+this run of \.{INITEX} also creates a binary format file called \.{TRIP.FMT}.)
+
+Appendix E is a correct transcript file \.{TRIP.LOG} that results if
+\.{INITEX} or any other version of \TeX\ is applied to \.{TRIP.TEX}
+with format \.{TRIP.FMT}.
+
+Appendix F is \.{TRIP.TYP}, the symbolic version of a correct output
+file \.{TRIP.DVI} that was produced at the same time as the \.{TRIP.LOG}
+file of Appendix~E.
+
+Appendix G is \.{TRIPOS.TEX}, a short file written out and read in
+by \TeX\ when it processes \.{TRIP.TEX}.
+
+Appendix H is \.{TRIP.FOT}, an abbreviated version of Appendix E that
+appears on the user's terminal during the run that produces \.{TRIP.LOG}
+and \.{TRIP.DVI}.
+
+The debugging of \TeX\ and the testing of the adequacy of \.{TRIP.TEX}
+could not have been done nearly as well as reported here except for
+the magnificent software support provided by my colleague David R. Fuchs.
+In particular, he extended our local Pascal compiler so that
+frequency counting and a number of other important features were added
+to its online debugging abilities.
+
+The method of testing advocated here has one chief difficulty that deserves
+comment: I had to verify by hand that \TeX\ did the right things
+to \.{TRIP.TEX}. This took many hours, and perhaps I have missed
+something (as I did in 1960); I must confess that I have not checked
+every single number in Appendices E and~F. However, I'm willing to pay
+\$327.68 to the first finder of any remaining bug in \TeX, and I will
+be surprised if that bug doesn't show up also in Appendix~E. (I plan to
+write a technical report about all of the errors ultimately found in \TeX; that
+report will tell whether any bugs are discovered between now and~then!)
+
+\vfill\eject
+
+\section Appendix A: How to test \TeX.
+
+\item{0.} Let's assume that you have a tape containing \.{TRIP.TEX},
+\.{TRIP.PL}, \.{TRIPIN.LOG}, \.{TRIP.LOG}, \.{TRIP.TYP}, and \.{TRIP.FOT},
+as in Appendices B, C, D, E, F, and~G. Furthermore, let's suppose that you
+have a working \.{WEB} system, and that you have working programs \.{TFtoPL},
+\.{PLtoTF}, \.{DVItype}, as described in the \TeX ware report.
+
+\item{1.} Use \.{PLtoTF} to convert \.{TRIP.PL} into \.{TRIP.TFM}.
+Then use \.{TFtoPL} to convert \.{TRIP.TFM} into \.{TMP.PL}. Check that
+\.{TMP.PL} is identical to \.{TRIP.PL} (this is a partial test of \.{PLtoTF}
+and \.{TFtoPL}). Install \.{TRIP.TFM} in the standard file area for
+\TeX\ font metric files.
+
+\item{2.} Prepare a special version of \.{INITEX}. (This means that your \.{WEB}
+change file should have {\bf init} and {\bf tini} defined to be null.)
+The {\bf stat} and {\bf tats} macros should also be null, so that
+statistics are kept and other special features are enabled.  Set
+\\{mem\_min} and \\{mem\_bot} equal to~1, and set \\{mem\_top} and
+\\{mem\_max} equal to~3000, for purposes of this test version.  Also set
+$\\{error\_line}=64$, $\\{half\_error\_line}=32$, and
+$\\{max\_print\_line}=72$; these parameters affect many of the lines of
+the test output, so your job will be much easier if you use the same
+settings that were used to produce Appendix~E. You probably should also
+use the ``normal'' settings of other parameters found in \.{TEX.WEB}
+(e.g., $\\{stack\_size}=200$, $\\{font\_max}=75$, etc.), since these show
+up in a few lines of the test output. Your test version should not
+change the default definition of unprintable characters (\S49 of the program).
+
+\item{3.} Run the \.{INITEX} prepared in step 2. In response to the first
+`\.{**}' prompt, type carriage return (thus getting another `\.{**}').
+Then type `\.{\char`\\input trip}'. You should get an output that matches
+the file \.{TRIPIN.LOG} (Appendix~D). Don't be alarmed by the error
+messages that you see, unless they are different from those in Appendix~D.
+
+\def\sp{{\char'40}}
+\item{4.} Run \.{INITEX} again. This time type `\.{\sp\&trip\sp\sp trip\sp}'.
+(The spaces in this input help to check certain parts of \TeX\ that
+aren't otherwise used.) You should get outputs \.{TRIP.LOG}, \.{TRIP.DVI},
+and \.{TRIPOS.TEX}; there will also be an empty file \.{8TERMINAL.TEX}.
+Furthermore, your terminal should receive output that matches \.{TRIP.FOT}
+(Appendix~H). During the middle part of this test, however, the terminal
+will not be getting output, because \.{\char'134batchmode} is being
+tested; don't worry if nothing seems to be happening for a while---nothing
+is supposed to.
+
+\item{5.} Compare the \.{TRIP.LOG} file from step 4 with the ``master''
+\.{TRIP.LOG} file of step~0. (Let's hope you put that master file in a
+safe place so that it wouldn't be clobbered.) There should be perfect
+agreement between these files except in the following respects:
+
+\itemitem{a)} The dates and possibly the file names will
+naturally be different.
+
+\itemitem{b)} Glue settings in the displays of \TeX\ boxes are subject
+to system-dependent rounding, so slight deviations are permissible. However,
+such deviations apply only to the `\.{glue set}' values that appear at the
+end of an \.{\char'134hbox} or \.{\char'134vbox} line;
+all other numbers should agree exactly, since they are computed with
+integer arithmetic in a prescribed system-independent manner.
+
+\itemitem{c)} The amount of space in kerns that are marked ``for accent''
+are, similarly, subject to system-dependent rounding.
+
+\itemitem{d)} If you had different values for \\{stack\_size}, \\{buf\_size},
+etc., the corresponding capacity values will be different when they
+are printed out at the end.
+
+\itemitem{e)} Help messages may be different; indeed, the author encourages
+non-English help messages in versions of \TeX\ for people who don't
+understand English as well as some other language.
+
+\itemitem{f)} The total number and length of strings at the end may well
+be different.
+
+\itemitem{g)} If your \TeX\ uses a different memory allocation or
+packing scheme or \.{DVI} output logic, the memory usage statistics may change.
+
+\item{6.} Use \.{DVItype} to convert your file \.{TRIP.DVI} to a file
+\.{TRIP.TYP}. The following options should be set when using \.{DVItype}:
+$$\vbox{\halign{#\hfil&\hfil#\cr
+Output level = 2\cr
+Starting page = \.{*.*.*.*.*.*.*.*.*.*}\hskip-20pt\cr
+Number of pages = 1000000&(this is the default)\cr
+Resolution = 7227/100&(this is one point per pixel)\cr
+New magnification = 0&(this is the default)\cr}}$$
+The resulting file should agree with the master \.{TRIP.TYP} file of step~0,
+except that some of the values might be a little off due to floating-point
+rounding discrepancies. Furthermore there may be differences between
+`\\{right}' and `\\w' and `\\x' commands, and between `\\{down}' and `\\y'
+and `\\z'; the key thing is that all characters and rules and \\{xxx}'s should
+be in almost the same positions as specified in Appendix~F.
+(If your \.{DVI}-writing routines differ substantially from those in
+\.{TEX.WEB}, you may want to write a \.{DVIcompare} program that
+detects any substantive differences between two given \.{DVI} files. Such
+a routine would be of general use besides.
+On the other hand, if you have set \\{dvi\_buf\_size} to 800, then your
+\.{DVI} file should be virtually identical to the one supplied.)
+
+\item{7.} You might also wish to test \.{TRIP} with other versions of
+\TeX\ (i.e., \.{VIRTEX} or a production version with other fonts and
+macros preloaded). It should work unless \TeX's primitives have been
+redefined. However, this step isn't essential, since all the code of
+\.{VIRTEX} appears in \.{INITEX}; you probably won't catch any more errors
+this way, unless they would already become obvious from normal use of
+the~system.
+
+\vfill\eject
+
+\section Appendix B: The \.{TRIP.TEX} file.
+The contents of the test routine are prefixed here with line numbers, for
+ease in comparing this file with the error messages printed later; the
+line numbers aren't actually present.
+\runninghead{APPENDIX B: \.{TRIP.TEX} (CONTINUED)}
+
+\vskip 8pt
+\begingroup\count255=0
+\everypar{\global\advance\count255 by 1
+  \hbox to 20pt{\sevenrm\hfil\the\count255\ \ }}
+\verbatim{trip.tex}
+\endgroup
+\vfill\eject
+
+\section Appendix C: The \.{TRIP.PL} file.
+The ``font'' defined here has only a few characters, but they include all
+the complexities that \TeX\ must deal with: ligatures, kerns,
+lists of characters, and extensible characters. Some of the dimensions
+are negative, just to make things worse yet. (The format of property-list
+files like this is explained in the documentation to \.{PLtoTF}, in
+the \TeX ware report.)
+\runninghead{APPENDIX C: \.{TRIP.PL} (CONTINUED)}
+
+\vskip8pt
+\verbatim{trip.pl}
+\vfill\eject
+
+\section Appendix D: The \.{TRIPIN.LOG} file.
+When \.{INITEX} makes the \.{TRIP.FMT} file, it also creates a file called
+\.{TRIP.LOG} that looks like this.
+\runninghead{APPENDIX D: \.{TRIPIN.LOG} (CONTINUED)}
+
+\vskip8pt
+\verbatim{tripin.log}
+\vfill\eject
+
+\section Appendix E: The \.{TRIP.LOG} file.
+Here is the major output of the \.{TRIP} test; it is generated by running
+\.{INITEX} and loading \.{TRIP.FMT}, then reading \.{TRIP.TEX}.
+\runninghead{APPENDIX E: \.{TRIP.LOG} (CONTINUED)}
+
+{\let\tt=\eighttt\leftskip 1in\baselineskip 9pt plus .1pt minus .1pt
+\vskip8pt
+\verbatim{trip.log}
+}
+\vfill\eject
+
+\section Appendix F: The \.{TRIP.TYP} file.
+Here is another major component of the test. It shows the output of \.{DVItype}
+applied to the file \.{TRIP.DVI} that was created at the same time
+Appendix E was produced.
+\runninghead{APPENDIX F: \.{TRIP.TYP} (CONTINUED)}
+
+{\let\tt=\eighttt\leftskip 1in\baselineskip 9pt plus .1pt minus .1pt
+\vskip8pt
+\verbatim{trip.typ}
+}
+\vfill\eject
+
+\section Appendix G: The \.{TRIPOS.TEX} file.
+This short file was written out once and read in twice, during the time
+Appendix E was being produced. There are only three lines, the first of
+which is blank.
+\runninghead{APPENDIX G: \.{TRIPOS.TEX} (CONTINUED)}
+
+\vskip8pt
+\verbatim{tripos.tex}
+\vfill\eject
+
+\section Appendix H: The \.{TRIP.FOT} file.
+This shows what appeared on the terminal while Appendix E was being produced.
+\runninghead{APPENDIX H: \.{TRIP.FOT} (CONTINUED)}
+
+\vskip8pt
+\verbatim{trip.fot}
+
+\vfill\end

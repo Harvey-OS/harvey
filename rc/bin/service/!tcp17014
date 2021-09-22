@@ -1,0 +1,3 @@
+#!/bin/rc
+# dd -quiet 1 -if /adm/mailkeys | read -m >>/mnt/factotum/ctl
+exec cpu -t -C /sys/lib/ssl/cert.pem -R

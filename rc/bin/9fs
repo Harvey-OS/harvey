@@ -2,54 +2,145 @@
 # 9fs filesystem [mountpoint] - srv & mount filesystem, usually from plan 9
 
 rfork e
-switch($1){
-case ''
+arch=/lib/vac/arch		# archive mount-point tree
+
+fn usage {
 	echo usage: 9fs service '[mountpoint]' >[1=2]
 	exit usage
+}
+
+switch($1){
+case '' -*
+	usage
+
+# main fs
+case dump
+	9fs boot && mount -cC /srv/boot /n/dump main/archive
+case snap
+	9fs boot && mount -C /srv/boot /n/snap main/snapshot
+
+case fs fsmain
+	srv -q fs && mount -cC /srv/fs /n/$1 main/active
+case fsdump
+	srv -q fs && mount -C /srv/fs /n/$1 main/archive
+case fssnap
+	srv -q fs && mount -C /srv/fs /n/$1 main/snapshot
+case fsstand
+	srv -q -cC net!fs!10564 $1 && mount -cC /srv/$1 /n/$1 main/active
+case stand
+	9fs fsstand
+	bind /n/fsstand /n/stand
+case fsstandsnap
+	srv -q -cC net!fs!10564 $1 && mount -C /srv/$1 /n/$1 main/snapshot
+case fsother other
+	srv -q -cC net!fs!20564 $1 && mount -cC /srv/$1 /n/$1 main/active
+case fsothersnap
+	srv -q -cC net!fs!20564 $1 && mount -C /srv/$1 /n/$1 main/snapshot
+case extother newother
+	import -cC fs /n/$1
+
+case alldumps
+	9fs dump
+	mountlabsdump
+	bind /n/dump /n/$1
+	bind -a /n/labsdump /n/$1
+# the labs
+case labsdump		# the complete and utter history of Plan 9 since 1990
+	mountlabsdump
+case labs archive bootes bootesdump fornax fornaxdump emelie emeliedump \
+	choline cholinedump pie piedump
+	mountlabs
+case audio
+	bind -a /sys/lib/music /lib/audio/maps
+
 case kfs
 	if(! test -f /srv/kfs)
 		disk/kfs
-	mount -c /srv/kfs /n/kfs
-case dump
-	mount /srv/boot /n/dump dump >[2]/dev/null ||
-		mount /srv/boot /n/dump main/archive ||
-		mount /srv/boot /n/dump dump	# again to print error
-case snap
-	mount /srv/boot /n/snap main/snapshot
-case other
-	mount -C /srv/boot /n/other other
-case juke					# ye olde file server
-	srv -q il!jukefs && mount /srv/il!jukefs /n/juke
-case sources
-	srv -nq tcp!9p.io sources /n/sources
+	mount -cC /srv/kfs /n/kfs
+
+#
+# the outside world
+#
+#cs=cs.bell-labs.com
+
+case wiki
+	srv -q 'tcp!p9f.org!wiki' wiki
+	mount /srv/wiki /mnt/wiki
+
+case sources 9p.io
+#	9fs 9p.io &&
+	9fs 148.251.6.120 && bind /n/148.251.6.120 /n/9p.io &&	# temp hack
+		bind /n/9p.io /n/sources
+case bl-sources
+#	srv net!sources.$cs!9fs sources &&
+#		mount -C -k 'user='^$user /srv/sources /n/sources
+#	if (! ~ $status '') {
+#		rm -f /srv/sources
+#		srv net!sources.$cs!9fs sources &&
+#			mount -C -k 'user='^$user /srv/sources /n/sources
+#	}
+#	# /n/sources is too much typing and /n/sources/plan9 is worse
+#	bind /n/sources /n/src
+#	if (test -e /n/src/plan9)
+#		bind /n/src/plan9 /n/p9
+	echo sources is down forever. >[1=2]
+	exit 'sources down'
 case sourcesdump
-	9fs sources
-	mount -n /srv/sources /n/sourcesdump main/archive
+#	9fs sources && mount -C /srv/sources /n/$1 main/archive
+	echo sources is down forever. >[1=2]
+	exit 'sources down'
 case sourcessnap
-	9fs sources
-	mount -n /srv/sources /n/sourcessnap main/snapshot
+#	9fs sources && mount -C /srv/sources /n/$1 main/snapshot
+	echo sources is down forever. >[1=2]
+	exit 'sources down'
+
 # arbitrary venti archives
 case vac:*
-	vacfs <{echo $1}
-case *.vac
-	if (test -e $1)
-		score=$1
-	if not if (! ~ $1 /* && test -e $home/lib/vac/$1)
-		score=$home/lib/vac/$1
-	if not if (! ~ $1 /* && test -e /lib/vac/$1)
-		score=/lib/vac/$1
-	if not {
-		echo $0: $1: no such score file >[1=2]
-		exit 'no score file'
-	}
-	vacfs -m /n/`{basename $1 .vac} `{cat $score}
-case wiki
-	srv -m 'net!9p.io!wiki' wiki /mnt/wiki
+	vacfs -p <{echo $1}
+case vac.*
+	vacfs -m /n/$1 <{echo $1 | sed 's/vac\./vac:/'}
+case oldlog
+	vacfs -m /n/$1 `{ls -t /sys/log/vac/[12]???.vac | sed 1q}
+
+case log
+	9fs consoles
+	9fs stand
+	bind -a /n/consoles/sys/log /sys/log
+	bind -a /n/stand/sys/log /sys/log
+
+# misc. unix machines
+case fw
+	exec srvssh -u /usr/local/bin/u9fs fw fw /n/fw
+case mac imacpro
+	srv -mcC imacpro && bind /n/imacpro /n/mac
+#case mac imacpro
+# ssh is too hard nowadays
+#	exec srvssh -u u9fs tcp!imacpro!myssh mac /n/mac
+case mac-nfs imacpro-nfs
+	nfs -u /lib/nfs/passwd.mac /lib/nfs/group.mac imacpro >[2]/dev/null
+	mount /srv/imacpro /n/mac / && bind /n/mac /n/imacpro
+	# catalina weirdness
+	mount /srv/imacpro /n/mac/System/Volumes/Data /System/Volumes/Data
+	cd /n/mac/System/Volumes/Data &&
+		for (dir in *)
+			bind -bc $dir /n/mac/$dir >[2]/dev/null
+
+# general case
 case *
 	switch($#*){
 	case 1
-		srv -m $1
+		exec srv -mcC $1
 	case *
-		srv -m $1 $1 $2
+		exec srv -mcC $1 $1 $2
 	}
+}
+
+# only special cases recognised above get here
+switch($#*){
+case 1
+	;
+case 2
+	bind /n/$1 $2
+case *
+	usage
 }

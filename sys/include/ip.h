@@ -116,6 +116,7 @@ enum {
 	V6initprobedelay= 5000,
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
 /* V6 header on the wire */
 typedef struct Ip6hdr Ip6hdr;
 struct Ip6hdr {

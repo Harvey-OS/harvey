@@ -1,0 +1,89 @@
+% triptrap/texmf.cnf -- configuration for the trip and trap tests.
+
+% These values apply to all the programs, and they are necessary for any
+% kind of reasonable diff.
+error_line = 64
+half_error_line = 32
+max_print_line = 72
+		
+% TeX, Metafont, and MetaPost.
+main_memory.tex      = 2999 % can't change mem_bot, it stays 0
+main_memory.mf       = 3000 % Knuth's log has 3001, and it changes the capsules.
+main_memory.mpost    = 4500
+
+% In case you happen to run an ini* link by hand.
+main_memory.initex   = 2999 % can't change mem_bot, it stays 0
+main_memory.inimf    = 3000 % Knuth's log has 3001, and the capsules change.
+main_memory.inimpost = 4500
+
+% Actually, Metafont currently ignores the settings for max_strings,
+% string_vacancies and pool_size specified here, but it doesn't hurt
+% to supply the correct values, just in case this changes one day.
+
+max_strings.tex      = 3000
+max_strings.mf       = 2000
+max_strings.mpost    = 2500
+
+% In case you happen to run an ini* link by hand.
+max_strings.initex   = 3000
+max_strings.inimf    = 2000
+max_strings.inimpost = 2500
+
+string_vacancies = 8000
+pool_size = 40000
+
+% TeX only.
+font_mem_size = 20000
+font_max = 75
+stack_size = 200
+nest_size = 40
+buf_size = 500
+save_size = 600
+dvi_buf_size = 800
+% Although hyph_size is settable, it can't be <hyph_prime, which is 607,
+% and the original trip setting is 307, so no point in changing the default.
+
+% Metafont only.
+gf_buf_size = 8   % trapman.tex says to use this.
+MFTERM = trap     % get the right screen output
+% trapman.tex says these values will help reduce the diffs, but it
+% actually only gives us one extra hunk (a BLANKRECTANGLE), so they
+% don't seem worth dynamicizing.
+%screen_width = 100
+%screen_depth = 200
+
+% MetaPost only.  Turn off callmakempx, i.e., makempx,
+% since we can only test tex and dvitomp, and we'll test those in other
+% places anyway.  (mpto fails because of the unending string constant
+% check in trap.mp.)
+MPXCOMMAND = 0
+
+% Avoid running any MakeTeX* program.
+MAKETEXTFM = 0
+MAKETEXTEX = 0
+MAKETEXMF = 0
+
+% Avoid reading any texfonts.map:
+TEXFONTMAPS = triptrap
+
+% Search paths. 
+% trip.tex:
+TEXINPUTS = .
+% trap.mf:
+MFINPUTS = .
+% trap.mp, mtrap.mp:
+MPINPUTS = .
+% trip.tfm, trap.tfm, trapf.tfm:
+TFMFONTS = .
+% trip.fmt:
+TEXFORMATS = .
+% trap.base:
+MFBASES = .
+% trap.mem:
+MPMEMS = .
+% tex.pool:
+TEXPOOL = tex
+% mf.pool:
+MFPOOL = mf
+% mp.pool:
+MPPOOL = mp

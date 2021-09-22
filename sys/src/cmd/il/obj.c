@@ -12,9 +12,9 @@ char	thechar		= 'i';
 char	*thestring 	= "riscv";
 
 /*
- *	-H1						is headerless
+ *	-H1 -R4				is headerless (-R8 for jl)
  *	-H2 -T4128 -R4096		is plan9 format
- *	-H5 -T0x4000A0 -R4		is elf executable
+ *	-H5 -T0x4000A0 -R4		is elf executable (-R8 for jl)
  */
 
 int little;
@@ -223,8 +223,8 @@ out:
 	if(debug['v']) {
 		Bprint(&bso, "%5.2f cpu time\n", cputime());
 		Bprint(&bso, "%ld memory used\n", thunk);
-		Bprint(&bso, "%d sizeof adr\n", sizeof(Adr));
-		Bprint(&bso, "%d sizeof prog\n", sizeof(Prog));
+		Bprint(&bso, "%lld sizeof adr\n", (vlong)sizeof(Adr));
+		Bprint(&bso, "%lld sizeof prog\n", (vlong)sizeof(Prog));
 	}
 	Bflush(&bso);
 	errorexit();
@@ -673,7 +673,7 @@ ldobj(int f, long c, char *pn)
 	char **nfilen;
 
 	if((files&15) == 0){
-		nfilen = malloc((files+16)*sizeof(char*));
+		nfilen = mallocz((files+16)*sizeof(char*), 1);
 		memmove(nfilen, filen, files*sizeof(char*));
 		free(filen);
 		filen = nfilen;
@@ -950,6 +950,7 @@ loop:
 			}
 		}
 		p->to.offset = autosize;
+		//autosize += ptrsize;
 		s = p->from.sym;
 		if(s == S) {
 			diag("TEXT must have a name\n%P", p);

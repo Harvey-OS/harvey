@@ -111,9 +111,10 @@ typedef struct {
 
 static Compress comps[] = {
 	"gzip",		"gunzip",	{ ".tar.gz", ".tgz" },	/* default */
-	"compress",	"uncompress",	{ ".tar.Z",  ".tz" },
+	"lzip",		"lunzip",	{ ".tar.lz", ".tlz" },
 	"bzip2",	"bunzip2",	{ ".tar.bz", ".tbz",
 					  ".tar.bz2",".tbz2" },
+	"compress",	"uncompress",	{ ".tar.Z",  ".tz" },
 };
 
 typedef struct {
@@ -310,8 +311,7 @@ initblks(void)
 static char *
 refill(int ar, char *bufs, int justhdr)
 {
-	int i, n;
-	unsigned bytes = Tblock * nblock;
+	uint i, n,  bytes = Tblock * nblock;
 	static int done, first = 1, seekable;
 
 	if (done)
@@ -355,6 +355,7 @@ refill(int ar, char *bufs, int justhdr)
 	return bufs;
 }
 
+/* fills buffers at tpblk from fd `ar' */
 static Hdr *
 getblk(int ar, Refill rfp, int justhdr)
 {
@@ -471,7 +472,7 @@ chksum(Hdr *hp)
 static int
 isustar(Hdr *hp)
 {
-	return strcmp(hp->magic, "ustar") == 0;
+	return strncmp(hp->magic, "ustar", sizeof hp->magic) == 0;
 }
 
 /*
@@ -616,6 +617,7 @@ parsecksum(char *cksum, char *name)
 		name, "checksum");
 }
 
+/* returns a pointer into the buffers at tpblk */
 static Hdr *
 readhdr(int ar)
 {
@@ -1113,7 +1115,7 @@ copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
 				fname, arname);
 		blksread = gothowmany(blksleft);
 		if (blksread <= 0) {
-			fprint(2, "%s: got %ld blocks reading %s!\n",
+			fprint(2, "%s: got %lud blocks reading %s!\n",
 				argv0, blksread, fname);
 			blksread = 0;
 		}
@@ -1129,7 +1131,7 @@ copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
 		assert(bytes >= 0);
 	}
 	if (bytes > 0)
-		fprint(2, "%s: %lld bytes uncopied at EOF on archive %s; "
+		fprint(2, "%s: %llud bytes uncopied at EOF on archive %s; "
 			"%s not fully extracted\n", argv0, bytes, arname, fname);
 }
 
@@ -1196,7 +1198,7 @@ extract1(int ar, Hdr *hp, char *fname)
 	else if (verbose) {
 		char *cp = ctime(mtime);
 
-		print("%M %8lld %-12.12s %-4.4s %s\n",
+		print("%M %8llud %-12.12s %-4.4s %s\n",
 			mode, bytes, cp+4, cp+24, fname);
 	} else
 		print("%s\n", fname);
@@ -1208,8 +1210,8 @@ extract1(int ar, Hdr *hp, char *fname)
 	ustar = isustar(hp);
 	user = group = nil;
 	if (ustar && settime) {
-		user  = hp->uname? strdup(hp->uname): nil;
-		group = hp->gname? strdup(hp->gname): nil;
+		user  = strdup(hp->uname);
+		group = strdup(hp->gname);
 	}
 	copyfromar(ar, fd, fname, blksleft, bytes);
 

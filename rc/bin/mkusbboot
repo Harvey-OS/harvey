@@ -75,7 +75,7 @@ case 386
 	k=/tmp/9pccpuf.gz
 	gzip -9 </$objtype/9pccpuf >$k
 case amd64
-	k=/$objtype/9k8cpu
+	k=/$objtype/9k10cpu
 case *
 	echo $0: 'can''t cope with architecture' $objtype >[1=2]
 	exit unknown-arch

@@ -1,0 +1,3 @@
+#!/bin/rc
+# mknofp name... - list C files in current dir not matched by names
+comm -13 <{ls $* >[2]/dev/null} <{ls *.[cy] >[2]/dev/null}

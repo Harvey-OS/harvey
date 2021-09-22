@@ -20,7 +20,7 @@ static char type2char(int);
 static void skip(Biobuf*, int);
 
 int
-_is7(char *s)
+_is7a(char *s)
 {
 	return  s[0] == ANAME				/* ANAME */
 		&& s[1] == D_FILE			/* type */
@@ -29,7 +29,7 @@ _is7(char *s)
 }
 
 int
-_read7(Biobuf *bp, Prog *p)
+_read7a(Biobuf *bp, Prog *p)
 {
 	int as, n;
 	Addr a;

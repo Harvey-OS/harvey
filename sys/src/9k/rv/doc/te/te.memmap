@@ -1,0 +1,9 @@
+tiny emu @ 2GHz + uart
+0x00200000	plic hart base (prio threshes & claim/complete?)
+0x02000000	clint
+0x10010000	uart
+0x40008000	simple debugging text console (htif)
+0x40100000	plic (prios, pending, enables?)
+0x41000000	frame buffer
+0x80000000	1gb ram
+0xc0000000	after ram

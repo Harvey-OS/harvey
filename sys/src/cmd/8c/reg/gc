@@ -1,0 +1,16 @@
+$global
+	long a;
+$main
+$lhs
+	a
+$op
+	/
+$op0
+	a
+$op1
+	2
+	-2
+	4
+	-4
+	0x40000
+	-0x400000

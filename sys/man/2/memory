@@ -23,7 +23,7 @@ void*	memcpy(void *s1, void *s2, ulong n)
 void*	memmove(void *s1, void *s2, ulong n)
 .PP
 .B
-void*	memset(void *s, int c, ulong n)
+void*	memset(void *s, int c, uintptr n)
 .SH DESCRIPTION
 These functions operate efficiently on memory areas
 (arrays of bytes bounded by a count, not terminated by a zero byte).
@@ -124,3 +124,20 @@ If
 and
 .I memmove
 are handed a negative count, they abort.
+.PP
+The last argument to
+.I memset
+is traditionally
+.IR ulong ,
+but that isn't adequate on 64-bit systems.
+.PP
+All the
+.I ulong
+.I n
+arguments should be
+.I uintptr
+instead;
+.I memset
+is the critical one for zeroing
+.I malloc
+results.

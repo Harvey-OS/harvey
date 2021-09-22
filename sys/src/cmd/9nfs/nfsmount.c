@@ -159,8 +159,8 @@ srvinit(int fd, char *file, char *addr)
 	xp->name = "/";
 	xf = xfid("none", xp, 1);
 	xf->urfid = f;
-	clog("service=%s uid=%s fid=%ld\n",
-		s->service, xf->uid, xf->urfid - s->fids);
+	clog("service=%s uid=%s fid=%lld\n",
+		s->service, xf->uid, (vlong)(xf->urfid - s->fids));
 	if(tail)
 		tail->next = s;
 	else

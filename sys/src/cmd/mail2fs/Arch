@@ -1,0 +1,6 @@
+#!/bin/rc
+#
+# Archive the message shown in the Acme window
+# where it runs, or messages named in std. input.
+
+exec Mvmesg a $*

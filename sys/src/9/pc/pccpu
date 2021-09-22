@@ -2,6 +2,7 @@
 dev
 	root
 	cons
+
 	arch
 	pnp		pci
 	env
@@ -14,99 +15,87 @@ dev
 	ssl
 	tls
 	bridge		log
-	sdp		thwack unthwack
 	cap
 	kprof
-	fs
+#	fs
 	segment
 
 	ether		netif
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
-	kbmap
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386
+
+#	kbmap
+# usb kbd and mouse need these
 	kbin
+#	mouse		mouse
 
 	sd
-	floppy		dma
-	aoe
+#	aoe
 
-	audio		dma
 	uart
 	usb
-
 	wd
 
 link
-	realmode
-
 # order of ethernet drivers should match that in ../pcboot/boot so that
 # devices are detected in the same order by bootstraps and kernels
-# and thus given the same controller numbers.
+# and thus given the same controller numbers.  put fastest first.
+# 10 Gb/s
+	etherxgbe	pci
+# gigabit
+	etherigbepci	pci ethermii
+	etherigbe	pci
+	ether8169	pci ethermii
+# 100 Mb/s
+	ether82557	pci
+	ether8139	pci
+	etherelnk3	pci
+	ethervt6105m	pci ethermii
+# dog slow, mainly for use in virtual machines
 	ether2000	ether8390
-	ether2114x	pci
-	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
-	ether8139	pci
-	ether8169	pci ethermii
-	ether82543gc	pci
-	ether82557	pci
-	ether82563	pci
-	ether83815	pci
-	etherdp83820	pci
-	etherec2t	ether8390
-	etherelnk3	pci
-	etherga620	pci
-	etherigbe	pci ethermii
-	ethervgbe	pci ethermii
-	ethervt6102	pci ethermii
-	ethervt6105m	pci ethermii
 	ethersink
-	ethersmc	devi82365 cis
-	etherwavelan	wavelan devi82365 cis pci
-	etherm10g	pci ethermii
-	ether82598	pci
-	ethervirtio	pci
 
 	ethermedium
 	netdevmedium
 	loopbackmedium
 
+# we don't really see usb 1 controllers any more
 	usbuhci
 	usbohci
 	usbehci		usbehcipc
+# disable goddamn xhci
+#	usbxhci		usbxhcipc
 
 	x86watchdog
 
 misc
-	archmp		mp apic mpacpi
-	mtrr
+	mp		apic mpacpi
 
 	uarti8250
 	uartpci		pci
-	uartaxp		pci
+#	uartox		pci
 
+	sdnvme		pci sdscsi
+	sdahci		pci sdscsi
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
-	sdmv50xx	pci sdscsi
 	sdmylex		pci sdscsi
-	sdiahci		pci sdscsi
-	sdaoe		sdscsi
-	sdvirtio	pci sdscsi
+	sd53c8xx	pci sdscsi
+#	sdaoe		sdscsi
 
 ip
 	tcp
 	udp
-	rudp
+#	rudp
 	ipifc
 	icmp
 	icmp6
-	gre
+#	gre
 	ipmux
 	esp
 
 port
 	int cpuserver = 1;
-	int idle_if_nproc = 5;
 
 boot cpu
 	tcp
@@ -114,5 +103,12 @@ boot cpu
 bootdir
 	boot$CONF.out boot
 	/386/bin/ip/ipconfig
+	/386/bin/ramfs
+# enabled for 9vm, 30 mar 2019
 	/386/bin/auth/factotum
+# compiling usbd in allows early keyboard and partfs use
+# costs about 56K of compressed 9pccpulz
+# enabled 22 sep 2018 to enable initial boot of dan (nuc)
 	/386/bin/usb/usbd
+# for puget bring-up
+	/cfg/example/nvram

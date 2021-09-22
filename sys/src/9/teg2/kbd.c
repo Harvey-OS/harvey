@@ -8,7 +8,6 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
 #include	"../port/error.h"
 
 enum {
@@ -346,7 +345,7 @@ kbdputsc(int c, int external)
 void
 kbdenable(void)
 {
-#ifdef notdef
+#ifdef PHYSICAL_KBD
 	kbdq = qopen(4*1024, 0, 0, 0);
 	if(kbdq == nil)
 		panic("kbdinit");

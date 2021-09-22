@@ -28,9 +28,6 @@ void	quit(char*);
 char*	rcptto(char*);
 char	*rewritezone(char *);
 
-#define Retry	"Retry, Temporary Failure"
-#define Giveup	"Permanent Failure"
-
 String	*reply;		/* last reply */
 String	*toline;
 
@@ -112,7 +109,7 @@ main(int argc, char **argv)
 	char hellodomain[256];
 	String *from, *fromm, *sender;
 
-	alarmscale = 60*1000;	/* minutes */
+	alarmscale = Minute;
 	quotefmtinstall();
 	errs = malloc(argc*sizeof(char*));
 	reply = s_new();
@@ -149,7 +146,7 @@ main(int argc, char **argv)
 		okunksecure = 1;
 		break;
 	case 'p':
-		alarmscale = 10*1000;	/* tens of seconds */
+		alarmscale = 20*Second;		/* was 10*Second */
 		ping = 1;
 		break;
 	case 's':
@@ -230,10 +227,9 @@ main(int argc, char **argv)
 		goto error;
 
 	ok = 0;
-	rcvrs = 0;
 	/* if any rcvrs are ok, we try to send the message */
-	for(i = 0; i < argc; i++){
-		if((trv = rcptto(argv[i])) != 0){
+	for(rcvrs = 0; rcvrs < argc; rcvrs++)
+		if((trv = rcptto(argv[rcvrs])) != 0){
 			/* remember worst error */
 			if(rv != Giveup)
 				rv = trv;
@@ -243,11 +239,9 @@ main(int argc, char **argv)
 			ok++;
 			errs[rcvrs] = 0;
 		}
-		rcvrs++;
-	}
 
 	/* if no ok rcvrs or worst error is retry, give up */
-	if(ok == 0 || rv == Retry)
+	if(ok == 0 || rv == Retry)	// TODO: Retry -> Giveup ?
 		goto error;
 
 	if(ping){
@@ -268,7 +262,8 @@ main(int argc, char **argv)
 	fprint(2, "%s connect to %s:\n", thedate(), addr);
 	for(i = 0; i < rcvrs; i++){
 		if(errs[i]){
-			syslog(0, "smtp.fail", "delivery to %s at %s failed: %s", argv[i], addr, errs[i]);
+			syslog(0, "smtp.fail", "delivery to %s at %s failed: %s",
+				argv[i], addr, errs[i]);
 			fprint(2, "  mail to %s failed: %s", argv[i], errs[i]);
 		}
 	}
@@ -294,11 +289,12 @@ error:
 static char *
 connect(char* net)
 {
+	char *status;
 	char buf[Errlen];
 	int fd;
 
-	fd = mxdial(net, ddomain, gdomain);
-
+	status = nil;
+	fd = mxdial(net, ddomain, gdomain, &status);
 	if(fd < 0){
 		rerrstr(buf, sizeof(buf));
 		Bprint(&berr, "smtp: %s (%s)\n", buf, net);
@@ -307,6 +303,8 @@ connect(char* net)
 		|| strstr(buf, "unknown")
 		|| strstr(buf, "can't translate"))
 			return Giveup;
+		else if (status != nil)
+			return status;
 		else
 			return Retry;
 	}
@@ -469,7 +467,7 @@ hello(char *me, int encrypted)
 {
 	int ehlo;
 	String *r;
-	char *ret, *s, *t;
+	char *ret, *s, *t, *line;
 
 	if (!encrypted) {
 		/*
@@ -484,6 +482,21 @@ hello(char *me, int encrypted)
 		}
 		switch(getreply()){
 		case 2:
+			/*
+			 * if reply starts with our hellodomain (me), quit.
+			 * 4 is strlen("220-").
+			 * TODO: could permit this for smtp -p so we can send
+			 * mail nominally from collyer.net but from elsewhere.
+			 * It does catch spammers.
+			 */
+			line = s_to_c(reply);
+			if (strlen(line) >= 4 &&
+			    strncmp(line+4, me, strlen(me)) == 0) {
+				if (debug)
+					fprint(2, "we dialed ourselves!\n");
+				syslog(0, "smtp.fail", "dialed ourselves");
+				return Giveup;
+			}
 			break;
 		case 5:
 			return Giveup;

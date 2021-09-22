@@ -1,0 +1,1 @@
+unmatch# load mmc 0:3 0x80200000 /9umcpu.bin; go 0x80200000

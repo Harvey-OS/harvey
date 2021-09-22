@@ -1,0 +1,2 @@
+This directory contains the web2c library, just a few functions mostly
+common to both the TeX programs and the web2c conversion itself.

@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+<../config
+
+TARG=tcpostio
+OFILES= tcpostio.$O
+
+BIN=$POSTBIN
+
+</sys/src/cmd/mkone
+
+syms:V:
+	vc $CFLAGS -a tcpostio.c > syms

@@ -1,0 +1,5 @@
+drawdot(35,70); showit;
+drawdot(65,70); showit;
+draw (20,40)..(50,25)..(80,40); showit;
+shipit;
+end.

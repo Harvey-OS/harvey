@@ -1,8 +1,8 @@
 typedef	long	long	vlong;
 typedef	unsigned long long uvlong;
-typedef 	unsigned char uchar;
+typedef unsigned char uchar;
 typedef	unsigned short ushort;
-typedef 	unsigned int uint;
+typedef unsigned uint;
 typedef	unsigned long ulong;
 
 #define	GBIT8(p)	((p)[0])

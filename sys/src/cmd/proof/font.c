@@ -348,7 +348,7 @@ map(Rune rp[], int font)	/* figure out mapping for char in this font */
 	m = fmap[font];
 	if(m >= nelem(charmap)) {
 		dprint(2, "map: fmap[font] %ud >= nelem(charmap) (%d)\n",
-			m, nelem(charmap));
+			m, (int)nelem(charmap));
 		return 0;
 	}
 	if(rp[1] == 0 && rp[0] < QUICK)		/* fast lookup */

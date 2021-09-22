@@ -5,7 +5,7 @@
 /*
  * pANS stdio -- data (put here, since loader won't load a separate file)
  */
-FILE _IO_stream[]={
+FILE _IO_stream[]={		/* whole array is initialised data */
 	{ .fd 0, .state OPEN, },
 	{ .fd 1, .state OPEN, },
 	{ .fd 2, .state OPEN, },

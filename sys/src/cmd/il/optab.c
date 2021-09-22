@@ -45,9 +45,9 @@ Optab	optab[] =
  /* andi	*/	AAND,		C_SCON,		C_REG,		2,13,	4,	OOP_IMM,	7,	0,
 
  /* addiw	*/	AADDW,		C_SCON,		C_REG,		2,23,	4,	OOP_IMM_32,	0,	0,
- /* slliw	*/	ASLLW,		C_SCON,		C_REG,		2,0,	4,	OOP_IMM_32,	1,	0,
- /* srliw	*/	ASRLW,		C_SCON,		C_REG,		2,0,	4,	OOP_IMM_32,	5,	0,
- /* sraiw	*/	ASRAW,		C_SCON,		C_REG,		2,0,	4,	OOP_IMM_32,	5,	0x20,
+ /* slliw	*/	ASLLW,		C_SCON,		C_REG,		1,0,	4,	OOP_IMM_32,	1,	0,
+ /* srliw	*/	ASRLW,		C_SCON,		C_REG,		1,0,	4,	OOP_IMM_32,	5,	0,
+ /* sraiw	*/	ASRAW,		C_SCON,		C_REG,		1,0,	4,	OOP_IMM_32,	5,	0x20,
 
  /* beq		*/	ABEQ,		C_REG,		C_SBRA,		3,14,	4,	OBRANCH,	0,	0,
  /* bne		*/	ABNE,		C_REG,		C_SBRA,		3,15,	4,	OBRANCH,	1,	0,

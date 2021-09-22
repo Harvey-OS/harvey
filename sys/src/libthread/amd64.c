@@ -21,6 +21,6 @@ _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 	*--tos = (uvlong)f;
 	*--tos = 0;	/* first arg to launcheramd64 */
 	t->sched[JMPBUFPC] = (uvlong)launcheramd64+JMPBUFDPC;
-	t->sched[JMPBUFSP] = (uvlong)tos - 2*8;		/* old PC and new PC */
+	t->sched[JMPBUFSP] = (uvlong)tos - 2*sizeof(uvlong); /* old PC and new PC */
 }
 

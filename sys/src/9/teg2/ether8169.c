@@ -1,11 +1,11 @@
 /*
  * Realtek RTL8110/8168/8169 Gigabit Ethernet Controllers.
+ * This driver uses memory-mapped registers, not PC I/O ports.
+ *
  * There are some magic register values used which are not described in
  * any datasheet or driver but seem to be necessary.
  * There are slight differences between the chips in the series so some
  * tweaks may be needed.
- *
- * we use l1 and l2 cache ops; data must reach ram for dma.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -19,12 +19,45 @@
 #include "etherif.h"
 #include "ethermii.h"
 
+/* backward compatibility with pc i/o ports */
+#define csr8r(regs, r)	(*((uchar *) (regs)+(r)))
+#define csr16r(regs, r)	(*((ushort *)(regs)+((r)/2)))
+#define csr32p(regs, r)	((ulong *)   (regs)+((r)/4))
+#define csr32r(regs, r)	(*csr32p(regs, r))
+
+#define csr8w(regs, r, b)	(*((uchar *) (regs)+(r))     = (b))
+#define csr16w(regs, r, w)	(*((ushort *)(regs)+((r)/2)) = (w))
+#define csr32w(regs, r, v)	(*csr32p(regs, r) = (v))
+
 typedef struct Ctlr Ctlr;
-typedef struct D D;			/* Transmit/Receive Descriptor */
+typedef struct Desc Desc;		/* Transmit/Receive Descriptor */
 typedef struct Dtcc Dtcc;
 
 enum {
-	Debug = 0,  /* beware: > 1 interferes with correct operation */
+	Debug = 0,	/* beware: > 1 interferes with correct operation */
+};
+
+enum {					/* descriptor ring sizes (<= 1024) */
+	Ntd		= 64,		/* Transmit Ring */
+	/* at 1Gb/s, it can take only 12 ms. to fill a 1024-buffer ring */
+	Nrd		= 512,		/* Receive Ring */
+
+	Nrb		= 1024,		/* > Nrd */
+
+	Mps		= ETHERMAXTU+32, /* +32 slop for vlans, etc. */
+};
+
+enum {						/* Variants */
+	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E: pci -e */
+	Rtl8169c	= (0x0116<<16)|0x16EC,	/* RTL8169C+ (USR997902) */
+	Rtl8169sc	= (0x8167<<16)|0x10EC,	/* RTL8169SC */
+	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B: pci-e crock */
+	Rtl8169		= (0x8169<<16)|0x10EC,	/* RTL8169 */
+	/*
+	 * trimslice is 10ec/8168 (8168b) Macv25 (8168D) but
+	 * compulab says 8111dl.
+	 *	oui 0x732 (aaeon) phyno 1, macv = 0x28000000 phyv = 0x0002
+	 */
 };
 
 enum {					/* registers */
@@ -107,6 +140,10 @@ enum {					/* Tcr */
 	Ifg2		= 0x00080000,	/* Interframe Gap 2 */
 	HwveridSHIFT	= 23,		/* Hardware Version ID */
 	HwveridMASK	= 0x7C800000,
+	/*
+	 * the commented out devices may work, i just haven't verified
+	 * their mac numbers against reality yet.
+	 */
 	Macv01		= 0x00000000,	/* RTL8169 */
 	Macv02		= 0x00800000,	/* RTL8169S/8110S */
 	Macv03		= 0x04000000,	/* RTL8169S/8110S */
@@ -125,7 +162,7 @@ enum {					/* Tcr */
 //	Macv8168spin3	= 0x38400000,
 	Macv15		= 0x38800000,	/* RTL8100E */
 	Macv12a		= 0x3c000000,	/* RTL8169C/8111C */
-//	Macv19		= 0x3c000000,	/* dup Macv12a: RTL8111c-gr */
+//	Macv19		= 0x3c000000,	/* dup of Macv12a: RTL8111c-gr */
 //	Macv8168cspin2	= 0x3c400000,
 //	Macv8168cp	= 0x3c800000,
 //	Macv8139	= 0x60000000,
@@ -183,9 +220,9 @@ enum {					/* Phyar */
 enum {					/* Phystatus */
 	Fd		= 0x01,		/* Full Duplex */
 	Linksts		= 0x02,		/* Link Status */
-	Speed10		= 0x04,		/* */
-	Speed100	= 0x08,		/* */
-	Speed1000	= 0x10,		/* */
+	Speed10		= 0x04,		/* 10Mb/s link speed */
+	Speed100	= 0x08,		/* 100Mb/s */
+	Speed1000	= 0x10,		/* 1Gb/s */
 	Rxflow		= 0x20,		/* */
 	Txflow		= 0x40,		/* */
 	Entbi		= 0x80,		/* */
@@ -201,11 +238,11 @@ enum {					/* Cplusc */
 	Endian		= 0x0200,	/* Endian Mode */
 };
 
-struct D {
-	u32int	control;
-	u32int	vlan;
-	u32int	addrlo;
-	u32int	addrhi;
+struct Desc {
+	ulong	control;
+	ulong	vlan;
+	ulong	addrlo;
+	ulong	addrhi;
 };
 
 enum {					/* Transmit Descriptor control */
@@ -242,97 +279,68 @@ enum {					/* General Descriptor control */
 	Own		= 0x80000000,	/* Ownership: belongs to hw */
 };
 
-/*
- */
-enum {					/* Ring sizes  (<= 1024) */
-	Ntd		= 1024,		/* Transmit Ring */
-	/* at 1Gb/s, it only takes 12 ms. to fill a 1024-buffer ring */
-	Nrd		= 1024,		/* Receive Ring */
-	Nrb		= 4096,
-
-	Mtu		= ETHERMAXTU,
-	Mps		= ROUNDUP(ETHERMAXTU+4, 128),
-//	Mps		= Mtu + 8 + 14,	/* if(mtu>ETHERMAXTU) */
-};
-
 struct Dtcc {
-	u64int	txok;
-	u64int	rxok;
-	u64int	txer;
-	u32int	rxer;
-	u16int	misspkt;
-	u16int	fae;
-	u32int	tx1col;
-	u32int	txmcol;
-	u64int	rxokph;
-	u64int	rxokbrd;
-	u32int	rxokmu;
-	u16int	txabt;
-	u16int	txundrn;
-};
-
-enum {						/* Variants */
-	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E: pci -e */
-	Rtl8169c	= (0x0116<<16)|0x16EC,	/* RTL8169C+ (USR997902) */
-	Rtl8169sc	= (0x8167<<16)|0x10EC,	/* RTL8169SC */
-	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B: pci-e */
-	Rtl8169		= (0x8169<<16)|0x10EC,	/* RTL8169 */
-	/*
-	 * trimslice is 10ec/8168 (8168b) Macv25 (8168D) but
-	 * compulab says 8111dl.
-	 *	oui 0x732 (aaeon) phyno 1, macv = 0x28000000 phyv = 0x0002
-	 */
+	uvlong	txok;
+	uvlong	rxok;
+	uvlong	txer;
+	ulong	rxer;
+	ushort	misspkt;
+	ushort	fae;
+	ulong	tx1col;
+	ulong	txmcol;
+	uvlong	rxokph;
+	uvlong	rxokbrd;
+	ulong	rxokmu;
+	ushort	txabt;
+	ushort	txundrn;
 };
 
 struct Ctlr {
 	void*	nic;
-	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	Ether*	ether;			/* point back */
-	int	active;
-
-	QLock	alock;			/* attach */
-	Lock	ilock;			/* init */
-	int	init;			/*  */
-
-	int	pciv;			/*  */
-	int	macv;			/* MAC version */
-	int	phyv;			/* PHY version */
-	int	pcie;			/* flag: pci-express device? */
-
-	uvlong	mchash;			/* multicast hash */
-
 	Mii*	mii;
-
-//	Lock	tlock;			/* transmit */
-	Rendez	trendez;
-	D*	td;			/* descriptor ring */
-	Block**	tb;			/* transmit buffers */
-	int	ntd;
-
-	int	tdh;			/* head - producer index (host) */
-	int	tdt;			/* tail - consumer index (NIC) */
-	int	ntdfree;
-	int	ntq;
-
-	int	nrb;
-
-//	Lock	rlock;			/* receive */
-	Rendez	rrendez;
-	D*	rd;			/* descriptor ring */
-	Block**	rb;			/* receive buffers */
-	int	nrd;
-
-	int	rdh;			/* head - producer index (NIC) */
-	int	rdt;			/* tail - consumer index (host) */
-	int	nrdfree;
+	int	port;
+	int	active;
 
 	Lock	reglock;
 	int	tcr;			/* transmit configuration register */
 	int	rcr;			/* receive configuration register */
 	int	imr;
 	int	isr;			/* sw copy for kprocs */
+	int	intrignbits;		/* causes we don't care about */
+
+	Rendez	trendez;
+	Desc*	td;			/* descriptor ring */
+	Block**	tb;			/* transmit buffers */
+	uint	tdh;			/* head - producer index (host) */
+	uint	tdt;			/* tail - consumer index (NIC) */
+	int	ntdfree;
+	int	ntq;
+
+	Rendez	rrendez;
+	Desc*	rd;			/* descriptor ring */
+	Block**	rb;			/* receive buffers */
+	uint	rdh;			/* head - producer index (NIC) */
+	uint	rdt;			/* tail - consumer index (host) */
+	int	nrdfree;
+	Lock	replenlock;
+
+	int	pciv;
+	int	macv;			/* MAC version */
+	int	phyv;			/* PHY version */
+	int	pcie;			/* flag: pci-express device? */
+
+	uvlong	mchash;			/* multicast hash */
+
+	QLock	alock;			/* attach */
+	Lock	ilock;			/* init */
+	int	init;
+	int	halted;
+
+	Watermark wmrd;
+	Watermark wmtd;
 
 	QLock	slock;			/* statistics */
 	Dtcc*	dtcc;
@@ -356,36 +364,31 @@ static Ctlr* rtl8169ctlrtail;
 static Lock rblock;			/* free receive Blocks */
 static Block* rbpool;
 
-#define csr8r(c, r)	(*((uchar *) ((c)->nic)+(r)))
-#define csr16r(c, r)	(*((u16int *)((c)->nic)+((r)/2)))
-#define csr32p(c, r)	((u32int *)  ((c)->nic)+((r)/4))
-#define csr32r(c, r)	(*csr32p(c, r))
-
-#define csr8w(c, r, b)	(*((uchar *) ((c)->nic)+(r))     = (b), coherence())
-#define csr16w(c, r, w)	(*((u16int *)((c)->nic)+((r)/2)) = (w), coherence())
-#define csr32w(c, r, v)	(*csr32p(c, r) = (v), coherence())
+static void	restart(Ether *edev, char *why);
 
 static int
 rtl8169miimir(Mii* mii, int pa, int ra)
 {
 	uint r;
 	int timeo;
+	void *regs;
 	Ctlr *ctlr;
 
 	if(pa != 1)
 		return -1;
 	ctlr = mii->ctlr;
+	regs = ctlr->nic;
 	r = (ra<<16) & RegaddrMASK;
-	csr32w(ctlr, Phyar, r);
+	csr32w(regs, Phyar, r);
+	coherence();
 	delay(1);
 	for(timeo = 0; timeo < 2000; timeo++){
-		if((r = csr32r(ctlr, Phyar)) & Flag)
+		if((r = csr32r(regs, Phyar)) & Flag)
 			break;
 		microdelay(100);
 	}
 	if(!(r & Flag))
 		return -1;
-
 	return (r & DataMASK)>>DataSHIFT;
 }
 
@@ -394,22 +397,24 @@ rtl8169miimiw(Mii* mii, int pa, int ra, int data)
 {
 	uint r;
 	int timeo;
+	void *regs;
 	Ctlr *ctlr;
 
 	if(pa != 1)
 		return -1;
 	ctlr = mii->ctlr;
+	regs = ctlr->nic;
 	r = Flag|((ra<<16) & RegaddrMASK)|((data<<DataSHIFT) & DataMASK);
-	csr32w(ctlr, Phyar, r);
+	csr32w(regs, Phyar, r);
+	coherence();
 	delay(1);
 	for(timeo = 0; timeo < 2000; timeo++){
-		if(!((r = csr32r(ctlr, Phyar)) & Flag))
+		if(!((r = csr32r(regs, Phyar)) & Flag))
 			break;
 		microdelay(100);
 	}
 	if(r & Flag)
 		return -1;
-
 	return 0;
 }
 
@@ -434,7 +439,7 @@ rtl8169mii(Ctlr* ctlr)
 	ilock(&ctlr->reglock);
 	ctlr->phyv = rtl8169miimir(ctlr->mii, 1, Phyidr2) & 0x0F;
 	if(ctlr->macv == Macv02){
-		csr8w(ctlr, 0x82, 1);				/* magic */
+		csr8w(ctlr->nic, 0x82, 1);			/* magic */
 		rtl8169miimiw(ctlr->mii, 1, 0x0B, 0x0000);	/* magic */
 	}
 
@@ -444,8 +449,9 @@ rtl8169mii(Ctlr* ctlr)
 		ctlr->mii = nil;
 		return -1;
 	}
-	print("rtl8169: oui %#ux phyno %d, macv = %#8.8ux phyv = %#4.4ux\n",
-		phy->oui, phy->phyno, ctlr->macv, ctlr->phyv);
+//	print("rtl8169: oui %#ux phyno %d, macv = %#8.8ux phyv = %#4.4ux\n",
+//		phy->oui, phy->phyno, ctlr->macv, ctlr->phyv);
+	USED(phy);
 
 	miiane(ctlr->mii, ~0, ~0, ~0);
 	iunlock(&ctlr->reglock);
@@ -462,16 +468,22 @@ rballoc(void)
 	if((bp = rbpool) != nil){
 		rbpool = bp->next;
 		bp->next = nil;
-		ainc(&bp->ref);	/* prevent bp from being freed */
+		ainc(&bp->ref);		/* prevent bp from being freed */
 	}
 	iunlock(&rblock);
 	return bp;
 }
 
+/*
+ * bp->rp must be a multiple of 8, which is assured because
+ * BLOCKALIGN is CACHELINESZ is 32, thus bp->base is a multiple.
+ */
 static void
 rbfree(Block *bp)
 {
-	bp->wp = bp->rp = bp->lim - Mps;
+	bp->wp = bp->rp = (uchar *)ROUNDDN((ulong)bp->lim - Mps, BLOCKALIGN);
+	assert(bp->rp >= bp->base);
+	assert(((ulong)bp->rp & (BLOCKALIGN-1)) == 0);
  	bp->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 
 	ilock(&rblock);
@@ -495,7 +507,7 @@ rtl8169promiscuous(void* arg, int on)
 		ctlr->rcr |= Aap;
 	else
 		ctlr->rcr &= ~Aap;
-	csr32w(ctlr, Rcr, ctlr->rcr);
+	csr32w(ctlr->nic, Rcr, ctlr->rcr);
 	iunlock(&ctlr->reglock);
 	iunlock(&ctlr->ilock);
 }
@@ -536,6 +548,7 @@ swabl(ulong l)
 static void
 rtl8169multicast(void* ether, uchar *eaddr, int add)
 {
+	void *regs;
 	Ether *edev;
 	Ctlr *ctlr;
 
@@ -544,31 +557,40 @@ rtl8169multicast(void* ether, uchar *eaddr, int add)
 
 	edev = ether;
 	ctlr = edev->ctlr;
+	regs = ctlr->nic;
 	ilock(&ctlr->ilock);
 	ilock(&ctlr->reglock);
 
 	ctlr->mchash |= 1ULL << (ethercrcbe(eaddr, Eaddrlen) >> 26);
 
 	ctlr->rcr |= Am;
-	csr32w(ctlr, Rcr, ctlr->rcr);
+	csr32w(regs, Rcr, ctlr->rcr);
 
 	/* pci-e variants reverse the order of the hash byte registers */
 	if (ctlr->pcie) {
-		csr32w(ctlr, Mar0,   swabl(ctlr->mchash>>32));
-		csr32w(ctlr, Mar0+4, swabl(ctlr->mchash));
+		csr32w(regs, Mar0,   swabl(ctlr->mchash>>32));
+		csr32w(regs, Mar0+4, swabl(ctlr->mchash));
 	} else {
-		csr32w(ctlr, Mar0,   ctlr->mchash);
-		csr32w(ctlr, Mar0+4, ctlr->mchash>>32);
+		csr32w(regs, Mar0,   ctlr->mchash);
+		csr32w(regs, Mar0+4, ctlr->mchash>>32);
 	}
 
 	iunlock(&ctlr->reglock);
 	iunlock(&ctlr->ilock);
 }
 
+static int
+fmtstat(char *p, int l, char *name, uvlong val)
+{
+	if (val == 0)
+		return l;
+	return l + snprint(p+l, READSTR-l, "%s: %llud\n", name, val);
+}
+
 static long
 rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 {
-	char *p;
+	char *p, *s, *e;
 	Ctlr *ctlr;
 	Dtcc *dtcc;
 	int i, l, r, timeo;
@@ -585,17 +607,19 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	/* copy hw statistics into ctlr->dtcc */
 	dtcc = ctlr->dtcc;
-	allcache->invse(dtcc, sizeof *dtcc);
+	allcachesinvse(dtcc, sizeof *dtcc);
 	ilock(&ctlr->reglock);
-	csr32w(ctlr, Dtccr+4, 0);
-	csr32w(ctlr, Dtccr, PCIWADDR(dtcc)|Cmd);	/* initiate dma? */
+	csr32w(ctlr->nic, Dtccr+4, 0);
+	coherence();
+	csr32w(ctlr->nic, Dtccr, PCIWADDR(dtcc)|Cmd);	/* initiate dma? */
+	coherence();
 	for(timeo = 0; timeo < 1000; timeo++){
-		if(!(csr32r(ctlr, Dtccr) & Cmd))
+		if(!(csr32r(ctlr->nic, Dtccr) & Cmd))
 			break;
 		delay(1);
 	}
 	iunlock(&ctlr->reglock);
-	if(csr32r(ctlr, Dtccr) & Cmd)
+	if(csr32r(ctlr->nic, Dtccr) & Cmd)
 		error(Eio);
 
 	edev->oerrs = dtcc->txer;
@@ -612,35 +636,36 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	if((p = malloc(READSTR)) == nil)
 		error(Enomem);
+	e = p + READSTR;
 
-	l = snprint(p, READSTR, "TxOk: %llud\n", dtcc->txok);
-	l += snprint(p+l, READSTR-l, "RxOk: %llud\n", dtcc->rxok);
-	l += snprint(p+l, READSTR-l, "TxEr: %llud\n", dtcc->txer);
-	l += snprint(p+l, READSTR-l, "RxEr: %ud\n", dtcc->rxer);
-	l += snprint(p+l, READSTR-l, "MissPkt: %ud\n", dtcc->misspkt);
-	l += snprint(p+l, READSTR-l, "FAE: %ud\n", dtcc->fae);
-	l += snprint(p+l, READSTR-l, "Tx1Col: %ud\n", dtcc->tx1col);
-	l += snprint(p+l, READSTR-l, "TxMCol: %ud\n", dtcc->txmcol);
-	l += snprint(p+l, READSTR-l, "RxOkPh: %llud\n", dtcc->rxokph);
-	l += snprint(p+l, READSTR-l, "RxOkBrd: %llud\n", dtcc->rxokbrd);
-	l += snprint(p+l, READSTR-l, "RxOkMu: %ud\n", dtcc->rxokmu);
-	l += snprint(p+l, READSTR-l, "TxAbt: %ud\n", dtcc->txabt);
-	l += snprint(p+l, READSTR-l, "TxUndrn: %ud\n", dtcc->txundrn);
+	l = fmtstat(p, 0, "TxOk", dtcc->txok);
+	l = fmtstat(p, l, "RxOk", dtcc->rxok);
+	l = fmtstat(p, l, "TxEr", dtcc->txer);
+	l = fmtstat(p, l, "RxEr", dtcc->rxer);
+	l = fmtstat(p, l, "MissPkt", dtcc->misspkt);
+	l = fmtstat(p, l, "FAE", dtcc->fae);
+	l = fmtstat(p, l, "Tx1Col", dtcc->tx1col);
+	l = fmtstat(p, l, "TxMCol", dtcc->txmcol);
+	l = fmtstat(p, l, "RxOkPh", dtcc->rxokph);
+	l = fmtstat(p, l, "RxOkBrd", dtcc->rxokbrd);
+	l = fmtstat(p, l, "RxOkMu", dtcc->rxokmu);
+	l = fmtstat(p, l, "TxAbt", dtcc->txabt);
+	l = fmtstat(p, l, "TxUndrn", dtcc->txundrn);
 
-	l += snprint(p+l, READSTR-l, "txdu: %ud\n", ctlr->txdu);
-	l += snprint(p+l, READSTR-l, "tcpf: %ud\n", ctlr->tcpf);
-	l += snprint(p+l, READSTR-l, "udpf: %ud\n", ctlr->udpf);
-	l += snprint(p+l, READSTR-l, "ipf: %ud\n", ctlr->ipf);
-	l += snprint(p+l, READSTR-l, "fovf: %ud\n", ctlr->fovf);
-	l += snprint(p+l, READSTR-l, "ierrs: %ud\n", ctlr->ierrs);
-	l += snprint(p+l, READSTR-l, "rer: %ud\n", ctlr->rer);
-	l += snprint(p+l, READSTR-l, "rdu: %ud\n", ctlr->rdu);
-	l += snprint(p+l, READSTR-l, "punlc: %ud\n", ctlr->punlc);
-	l += snprint(p+l, READSTR-l, "fovw: %ud\n", ctlr->fovw);
+	l = fmtstat(p, l, "txdu", ctlr->txdu);
+	l = fmtstat(p, l, "tcpf", ctlr->tcpf);
+	l = fmtstat(p, l, "udpf", ctlr->udpf);
+	l = fmtstat(p, l, "ipf", ctlr->ipf);
+	l = fmtstat(p, l, "fovf", ctlr->fovf);
+	l = fmtstat(p, l, "ierrs", ctlr->ierrs);
+	l = fmtstat(p, l, "rer", ctlr->rer);
+	l = fmtstat(p, l, "rdu", ctlr->rdu);
+	l = fmtstat(p, l, "punlc", ctlr->punlc);
+	l = fmtstat(p, l, "fovw", ctlr->fovw);
 
 	l += snprint(p+l, READSTR-l, "tcr: %#8.8ux\n", ctlr->tcr);
 	l += snprint(p+l, READSTR-l, "rcr: %#8.8ux\n", ctlr->rcr);
-	l += snprint(p+l, READSTR-l, "multicast: %ud\n", ctlr->mcast);
+	l = fmtstat(p, l, "multicast", ctlr->mcast);
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
 		l += snprint(p+l, READSTR, "phy:   ");
@@ -652,6 +677,10 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
+	s = p + l + 1;
+	s = seprintmark(s, e, &ctlr->wmrd);
+	s = seprintmark(s, e, &ctlr->wmtd);
+	USED(s);
 
 	n = readstr(offset, a, n, p);
 
@@ -665,27 +694,37 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 static void
 rtl8169halt(Ctlr* ctlr)
 {
+	void *regs;
+
+	if (ctlr->halted)
+		return;		/* don't try to talk to it if it's halted */
+	regs = ctlr->nic;
 	ilock(&ctlr->reglock);
-	csr32w(ctlr, Timerint, 0);
-	csr8w(ctlr, Cr, 0);
-	csr16w(ctlr, Imr, 0);
-	csr16w(ctlr, Isr, ~0);
+	csr32w(regs, Timerint, 0);
+	csr8w(regs, Cr, 0);
+	csr16w(regs, Imr, 0);
+	csr16w(regs, Isr, ~0);
 	iunlock(&ctlr->reglock);
+	ctlr->halted = 1;
 }
 
 static int
 rtl8169reset(Ctlr* ctlr)
 {
-	u32int r;
+	ulong r;
 	int timeo;
+	void *regs;
 
 	/*
 	 * Soft reset the controller.
 	 */
+	regs = ctlr->nic;
 	ilock(&ctlr->reglock);
-	csr8w(ctlr, Cr, Rst);
+	csr8w(regs, Cr, Rst);
+	coherence();
+	delay(1);
 	for(r = timeo = 0; timeo < 1000; timeo++){
-		r = csr8r(ctlr, Cr);
+		r = csr8r(regs, Cr);
 		if(!(r & Rst))
 			break;
 		delay(1);
@@ -694,8 +733,11 @@ rtl8169reset(Ctlr* ctlr)
 
 	rtl8169halt(ctlr);
 
-	if(r & Rst)
+	if(r & Rst) {
+		iprint("8169: ctlr didn't reset\n");
 		return -1;
+	}
+	delay(1);	/* hold it in reset, hope it settles its brains */
 	return 0;
 }
 
@@ -706,50 +748,42 @@ rtl8169shutdown(Ether *ether)
 }
 
 static int
-rtl8169replenish(Ether *edev)
+rtl8169replenish(Ctlr *ctlr)
 {
-	int rdt;
+	uint rdt;
 	Block *bp;
-	Ctlr *ctlr;
-	D *d;
+	Block **rbp;
+	Desc *rd;
 
-	ctlr = edev->ctlr;
-	if (ctlr->nrd == 0) {
-		iprint("rtl8169replenish: not yet initialised\n");
-		return -1;
-	}
 	rdt = ctlr->rdt;
-	assert(ctlr->rb);
-	assert(ctlr->rd);
-	while(NEXT(rdt, ctlr->nrd) != ctlr->rdh){
-		d = &ctlr->rd[rdt];
-		if (d == nil)
+	while(NEXT(rdt, Nrd) != ctlr->rdh){
+		rd = &ctlr->rd[rdt];
+		if (rd == nil)
 			panic("rtl8169replenish: nil ctlr->rd[%d]", rdt);
-		if (d->control & Own) {	/* ctlr owns it? shouldn't happen */
-			iprint("replenish: descriptor owned by hw\n");
+		if (rd->control & Own) {  /* ctlr owns it? shouldn't happen */
+			iprint("rtl8169replenish: descriptor owned by hw\n");
 			break;
 		}
-		if(ctlr->rb[rdt] == nil){
+		rbp = &ctlr->rb[rdt];
+		if(*rbp == nil){
 			bp = rballoc();
 			if(bp == nil){
-				iprint("rtl8169: no available buffers\n");
+				iprint("rtl8169replenish: no available buffers\n");
 				break;
 			}
-			ctlr->rb[rdt] = bp;
-			d->addrhi = 0;
+			/* qpkt() invalidates the buffer's cache after dma */
+			rd->addrhi = 0;
+			rd->addrlo = PCIWADDR(bp->rp);
 			coherence();
-			d->addrlo = PCIWADDR(bp->rp);
-			coherence();
+			*rbp = bp;
 		} else
-			iprint("8169: replenish: rx overrun\n");
-		d->control = (d->control & ~RxflMASK) | Mps | Own;
-		coherence();
-
-		rdt = NEXT(rdt, ctlr->nrd);
+			iprint("rtl8169replenish: rx overrun\n");
+		rd->control = (rd->control & ~RxflMASK) | Mps | Own;
+		rdt = NEXT(rdt, Nrd);
 		ctlr->nrdfree++;
 	}
-	ctlr->rdt = rdt;
 	coherence();
+	ctlr->rdt = rdt;
 	return 0;
 }
 
@@ -766,47 +800,51 @@ ckrderrs(Ctlr *ctlr, Block *bp, ulong control)
 		if(control & Tcpf){
 			iprint("8169: bad tcp checksum\n");
 			ctlr->tcpf++;
-			break;
-		}
-		bp->flag |= Btcpck;
+		} else
+			bp->flag |= Btcpck;
 		break;
 	case Pid1:
 		if(control & Udpf){
 			iprint("8169: bad udp checksum\n");
 			ctlr->udpf++;
-			break;
-		}
-		bp->flag |= Budpck;
+		} else
+			bp->flag |= Budpck;
 		break;
 	case Pid1|Pid0:
 		if(control & Ipf){
 			iprint("8169: bad ip checksum\n");
 			ctlr->ipf++;
-			break;
-		}
-		bp->flag |= Bipck;
+		} else
+			bp->flag |= Bipck;
 		break;
 	}
 }
 
-static void
+static ulong
 badpkt(Ether *edev, int rdh, ulong control)
 {
+	int link;
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
 	/* Res is only valid if Fs is set */
-	if(control & Res)
+	if((control & (Fs|Res)) == (Fs|Res))
 		iprint("8169: rcv error; d->control %#.8lux\n", control);
-	else if (control == 0) {		/* buggered? */
-		if (edev->link)
-			iprint("8169: rcv: d->control==0 (wtf?)\n");
-	} else {
+	else if ((control & ~Eor) == 0) {
+		ilock(&ctlr->reglock);
+		link = edev->link;
+		restart(edev, "read desc. marked filled but not "
+			"yet given back to hw & control==0");
+		iprint("... rdh %d link %d\n", rdh, link);
+		iunlock(&ctlr->reglock);
+		return ~0;
+	} else if ((control & (Fs|Ls)) != (Fs|Ls)) {
 		ctlr->frag++;
 		iprint("8169: rcv'd frag; d->control %#.8lux\n", control);
-	}
-	if (ctlr->rb[rdh])
-		freeb(ctlr->rb[rdh]);
+	} else
+		iprint("8169: rcv confused; d->control %#.8lux\n", control);
+	freeb(ctlr->rb[rdh]);
+	return 0;
 }
 
 void
@@ -824,10 +862,18 @@ qpkt(Ether *edev, int rdh, ulong control)
 		else if (len > Mps)
 			panic("8169: received pkt too big");
 	bp = ctlr->rb[rdh];
+	if (bp == nil) {
+		iprint("8169: nil Block* at ctlr->rb[%d]\n", rdh);
+		return;
+	}
+	/*
+	 * invalidate cache for buffer after dma filled it, in case the
+	 * caches have prefetched old (pre-dma) data in them.
+	 */
+	allcachesinvse(bp->rp, len);
 	bp->wp = bp->rp + len;
 	bp->next = nil;
 
-	allcache->invse(bp->rp, len);	/* clear any stale cached packet */
 	ckrderrs(ctlr, bp, control);
 	etheriq(edev, bp, 1);
 
@@ -840,17 +886,18 @@ pktstoread(void* v)
 {
 	Ctlr *ctlr = v;
 
-	return ctlr->isr & (Fovw|Rdu|Rer|Rok) &&
+	return ctlr->isr & ((Fovw|Rdu|Rer|Rok) & ~ctlr->intrignbits) &&
+//		NEXT(ctlr->rdt, Nrd) != ctlr->rdh &&
 		!(ctlr->rd[ctlr->rdh].control & Own);
 }
 
 static void
 rproc(void* arg)
 {
-	int rdh;
+	uint rdh, passed;
 	ulong control;
 	Ctlr *ctlr;
-	D *rd;
+	Desc *rd;
 	Ether *edev;
 
 	edev = arg;
@@ -858,8 +905,8 @@ rproc(void* arg)
 	for(;;){
 		/* wait for next interrupt */
 		ilock(&ctlr->reglock);
-		ctlr->imr |= Fovw|Rdu|Rer|Rok;
-		csr16w(ctlr, Imr, ctlr->imr);
+		ctlr->imr |= (Fovw|Rdu|Rer|Rok) & ~ctlr->intrignbits;
+		csr16w(ctlr->nic, Imr, ctlr->imr);
 		iunlock(&ctlr->reglock);
 
 		sleep(&ctlr->rrendez, pktstoread, ctlr);
@@ -869,31 +916,74 @@ rproc(void* arg)
 		ctlr->isr &= ~(Fovw|Rdu|Rer|Rok);
 		iunlock(&ctlr->reglock);
 
-		rdh = ctlr->rdh;
-		for (rd = &ctlr->rd[rdh]; !(rd->control & Own);
-		     rd = &ctlr->rd[rdh]){
+		passed = 0;
+		while (passed < Nrd - 64) {
+			rdh = ctlr->rdh;
+			/* if ring is empty, rdh's Own bit might be invalid */
+//			if (NEXT(ctlr->rdt, Nrd) == rdh)
+//				break;
+			rd = &ctlr->rd[rdh];
 			control = rd->control;
-			if((control & (Fs|Ls|Res)) == (Fs|Ls))
+			if (control & Own)
+				break;
+			if((control & (Fs|Ls|Res)) == (Fs|Ls)) {
 				qpkt(edev, rdh, control);
-			else
-				badpkt(edev, rdh, control);
-			ctlr->rb[rdh] = nil;
-			coherence();
-			rd->control &= Eor;
-			coherence();
+				passed++;
+			} else if (badpkt(edev, rdh, control) == ~0)
+				break;	/* ctlr was reset; start again */
 
+			/* reuse this descriptor */
+			ilock(&ctlr->replenlock);
+			ctlr->rb[rdh] = nil;
+			rd->control &= Eor;	/* zero unless end of ring */
+			ctlr->rdh = NEXT(rdh, Nrd);
 			ctlr->nrdfree--;
-			rdh = NEXT(rdh, ctlr->nrd);
-			if(ctlr->nrdfree < ctlr->nrd/2) {
-				/* replenish reads ctlr->rdh */
-				ctlr->rdh = rdh;
-				rtl8169replenish(edev);
-				/* if replenish called restart, rdh is reset */
-				rdh = ctlr->rdh;
-			}
+			rtl8169replenish(ctlr);
+			iunlock(&ctlr->replenlock);
 		}
-		ctlr->rdh = rdh;
+		if (passed > 0)
+			/* note how many rds had full buffers */
+			notemark(&ctlr->wmrd, passed);
 	}
+}
+
+static int
+kickxmit(Ctlr *ctlr)			/* return 1 if xmiter kicked */
+{
+	if (ctlr->ntq > 0) {
+		coherence();
+		csr8w(ctlr->nic, Tppoll, Npq);	/* kick xmiter again */
+		coherence();
+		return 1;
+	}
+	return 0;
+}
+
+static int
+newtdt(Ctlr *ctlr, int x)
+{
+	ctlr->tdt = x;
+	return kickxmit(ctlr);
+}
+
+static void
+reclaimtxblks(Ctlr *ctlr)
+{
+	uint x;
+	Desc *td;
+
+	/* reclaim transmitted Blocks */
+	for(x = ctlr->tdh; ctlr->ntq > 0; x = NEXT(x, Ntd)){
+		td = &ctlr->td[x];
+		if(td == nil || td->control & Own)
+			break;
+		freeb(ctlr->tb[x]);	/* not freeblist() */
+		ctlr->tb[x] = nil;
+		td->control &= Eor;
+		ctlr->ntq--;
+	}
+	coherence();
+	ctlr->tdh = x;
 }
 
 static int
@@ -902,17 +992,17 @@ pktstosend(void* v)
 	Ether *edev = v;
 	Ctlr *ctlr = edev->ctlr;
 
-	return ctlr->isr & (Ter|Tok) &&
-		!(ctlr->td[ctlr->tdh].control & Own) && edev->link;
+	return ctlr->isr & (Ter|Tok) && !(ctlr->td[ctlr->tdh].control & Own) &&
+		edev->link;
 }
 
 static void
 tproc(void* arg)
 {
-	int x, len;
+	uint tdt, kicked;
 	Block *bp;
 	Ctlr *ctlr;
-	D *d;
+	Desc *td;
 	Ether *edev;
 
 	edev = arg;
@@ -921,7 +1011,7 @@ tproc(void* arg)
 		/* wait for next interrupt */
 		ilock(&ctlr->reglock);
 		ctlr->imr |= Ter|Tok;
-		csr16w(ctlr, Imr, ctlr->imr);
+		csr16w(ctlr->nic, Imr, ctlr->imr);
 		iunlock(&ctlr->reglock);
 
 		sleep(&ctlr->trendez, pktstosend, edev);
@@ -931,133 +1021,54 @@ tproc(void* arg)
 		ctlr->isr &= ~(Ter|Tok);
 		iunlock(&ctlr->reglock);
 
-		/* reclaim transmitted Blocks */
-		for(x = ctlr->tdh; ctlr->ntq > 0; x = NEXT(x, ctlr->ntd)){
-			d = &ctlr->td[x];
-			if(d == nil || d->control & Own)
-				break;
+		reclaimtxblks(ctlr);
+		kickxmit(ctlr);
+		kicked = 0;
 
-			/*
-			 * Free it up.
-			 * Need to clean the descriptor here? Not really.
-			 * Simple freeb for now (no chain and freeblist).
-			 * Use ntq count for now.
-			 */
-			freeb(ctlr->tb[x]);
-			ctlr->tb[x] = nil;
-			d->control &= Eor;
-			coherence();
-
-			ctlr->ntq--;
-		}
-		ctlr->tdh = x;
-
-		if (ctlr->ntq > 0)
-			csr8w(ctlr, Tppoll, Npq); /* kick xmiter to keep it going */
 		/* copy as much of my output q as possible into output ring */
-		x = ctlr->tdt;
-		while(ctlr->ntq < (ctlr->ntd-1)){
+		tdt = ctlr->tdt;
+		while(ctlr->ntq < Ntd-1){
 			if((bp = qget(edev->oq)) == nil)
 				break;
 
-			/* make sure the whole packet is in ram */
-			len = BLEN(bp);
-			allcache->wbse(bp->rp, len);
-
-			d = &ctlr->td[x];
-			assert(d);
-			assert(!(d->control & Own));
-			d->addrhi = 0;
-			d->addrlo = PCIWADDR(bp->rp);
-			ctlr->tb[x] = bp;
+			/* devether has ensured that whole packet is in ram */
+			td = &ctlr->td[tdt];
+			// td->control & Own should be false
+			td->addrhi = 0;
+			td->addrlo = PCIWADDR(bp->rp);
+			ctlr->tb[tdt] = bp;
 			coherence();
-			d->control = (d->control & ~TxflMASK) |
-				Own | Fs | Ls | len;
-			coherence();
-
+			td->control = (td->control & ~TxflMASK) |
+				Own | Fs | Ls | BLEN(bp);
 			if(Debug > 1)
-				iprint("T%d ", len);
+				iprint("T%ld ", BLEN(bp));
 
-			x = NEXT(x, ctlr->ntd);
+			/* note size of queue of tds awaiting transmission */
+			notemark(&ctlr->wmtd, (tdt + Ntd - ctlr->tdh) % Ntd);
 			ctlr->ntq++;
-
-			ctlr->tdt = x;
-			coherence();
-			csr8w(ctlr, Tppoll, Npq);	/* kick xmiter again */
+			tdt = NEXT(tdt, Ntd);
+			if (!kicked)
+				kicked = newtdt(ctlr, tdt);
 		}
-		if(x != ctlr->tdt){		/* added new packet(s)? */
-			ctlr->tdt = x;
-			coherence();
-			csr8w(ctlr, Tppoll, Npq);
-		}
-		else if(ctlr->ntq >= (ctlr->ntd-1))
+		if(tdt != ctlr->tdt)		/* added new packet(s)? */
+			newtdt(ctlr, tdt);
+		else if(ctlr->ntq >= Ntd - 1)
 			ctlr->txdu++;
 	}
 }
 
-static int
-rtl8169init(Ether* edev)
+/* called with ilock and reglock held */
+static ushort
+macmagic(Ctlr *ctlr)
 {
-	u32int r;
-	Ctlr *ctlr;
 	ushort cplusc;
-
-	ctlr = edev->ctlr;
-	ilock(&ctlr->ilock);
-	rtl8169reset(ctlr);
-
-	ilock(&ctlr->reglock);
-	switch(ctlr->pciv){
-	case Rtl8169sc:
-		csr8w(ctlr, Cr, 0);
-		break;
-	case Rtl8168b:
-	case Rtl8169c:
-		/* 8168b manual says set c+ reg first, then command */
-		csr16w(ctlr, Cplusc, 0x2000);		/* magic */
-		csr8w(ctlr, Cr, 0);
-		break;
-	}
-
-	/*
-	 * MAC Address is not settable on some (all?) chips.
-	 * Must put chip into config register write enable mode.
-	 */
-	csr8w(ctlr, Cr9346, Eem1|Eem0);
-
-	/*
-	 * Transmitter.
-	 */
-	memset(ctlr->td, 0, sizeof(D)*ctlr->ntd);
-	ctlr->tdh = ctlr->tdt = 0;
-	ctlr->ntq = 0;
-	ctlr->td[ctlr->ntd-1].control = Eor;
-
-	/*
-	 * Receiver.
-	 * Need to do something here about the multicast filter.
-	 */
-	memset(ctlr->rd, 0, sizeof(D)*ctlr->nrd);
-	ctlr->nrdfree = ctlr->rdh = ctlr->rdt = 0;
-	ctlr->rd[ctlr->nrd-1].control = Eor;
-
-	rtl8169replenish(edev);
-
-	switch(ctlr->pciv){
-	default:
-		ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Apm;
-		break;
-	case Rtl8168b:
-	case Rtl8169c:
-		ctlr->rcr = Rxfthnone|6<<MrxdmaSHIFT|Ab|Apm; /* DMA max 1024 */
-		break;
-	}
+	ulong r;
 
 	/*
 	 * Setting Mulrw in Cplusc disables the Tx/Rx DMA burst
 	 * settings in Tcr/Rcr; the (1<<14) is magic.
 	 */
-	cplusc = csr16r(ctlr, Cplusc) & ~(1<<14);
+	cplusc = csr16r(ctlr->nic, Cplusc) & ~(1<<14);
 	switch(ctlr->pciv){
 	case Rtl8168b:
 	case Rtl8169c:
@@ -1081,11 +1092,11 @@ rtl8169init(Ether* edev)
 		 * in the manufacturer-supplied driver, it could
 		 * be wrong. Untested.
 		 */
-		r = csr8r(ctlr, Config2) & 0x07;
+		r = csr8r(ctlr->nic, Config2) & 0x07;
 		if(r == 0x01)				/* 66MHz PCI */
-			csr32w(ctlr, 0x7C, 0x0007FFFF);	/* magic */
+			csr32w(ctlr->nic, 0x7C, 0x0007FFFF);	/* magic */
 		else
-			csr32w(ctlr, 0x7C, 0x0007FF00);	/* magic */
+			csr32w(ctlr->nic, 0x7C, 0x0007FF00);	/* magic */
 		pciclrmwi(ctlr->pcidev);
 		break;
 	case Macv13:
@@ -1108,25 +1119,74 @@ rtl8169init(Ether* edev)
 	case Macv25:
 		break;
 	}
+	return cplusc;
+}
+
+/* called with ilock and reglock held */
+static void
+ringsinit(Ctlr *ctlr)
+{
+	/*
+	 * Transmitter.
+	 */
+	memset(ctlr->td, 0, sizeof(Desc)*Ntd);
+	ctlr->tdh = ctlr->tdt = 0;
+	ctlr->ntq = 0;
+	ctlr->td[Ntd-1].control = Eor;
 
 	/*
-	 * Enable receiver/transmitter.
-	 * Need to do this first or some of the settings below
-	 * won't take.
+	 * Receiver.
+	 * Need to do something here about the multicast filter.
 	 */
+	memset(ctlr->rd, 0, sizeof(Desc)*Nrd);
+	ctlr->nrdfree = ctlr->rdh = ctlr->rdt = 0;
+	ctlr->rd[Nrd-1].control = Eor;
+
+	rtl8169replenish(ctlr);
+}
+
+/* called with ilock and reglock held */
+static void
+enablerxtx(Ctlr *ctlr)
+{
+	void *regs;
+
+	regs = ctlr->nic;
 	switch(ctlr->pciv){
 	default:
-		csr8w(ctlr, Cr, Te|Re);
-		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
-		csr32w(ctlr, Rcr, ctlr->rcr);
+		csr8w(regs, Cr, Te|Re);
+		csr32w(regs, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr32w(regs, Rcr, ctlr->rcr);
+		coherence();
 		break;
 	case Rtl8169sc:
 	case Rtl8168b:
 		break;
 	}
 	ctlr->mchash = 0;
-	csr32w(ctlr, Mar0,   0);
-	csr32w(ctlr, Mar0+4, 0);
+	csr32w(regs, Mar0,   0);
+	csr32w(regs, Mar0+4, 0);
+}
+
+static int
+setintrbits(Ctlr *ctlr)
+{
+	switch(ctlr->pciv){
+	case Rtl8169sc:
+	case Rtl8168b:
+		/* alleged workaround for rx fifo overflow on 8168[bd] */
+		return Rdu;
+	default:
+		return 0;
+	}
+}
+
+/* called with ilock and reglock held */
+static void
+cfgintrs(Ctlr *ctlr, ushort cplusc)
+{
+	ulong r;
+	void *regs;
 
 	/*
 	 * Interrupts.
@@ -1139,17 +1199,13 @@ rtl8169init(Ether* edev)
 	 * (e.g., 8168) are 8ns, and only the buggy 8168 seems to need to use
 	 * timeouts to keep from stalling.
 	 */
-	csr32w(ctlr, Tctr, 0);
+	regs = ctlr->nic;
+	csr32w(regs, Tctr, 0);
+	ctlr->intrignbits = setintrbits(ctlr);
 	/* Tok makes the whole system run faster */
-	ctlr->imr = Serr|Fovw|Punlc|Rdu|Ter|Tok|Rer|Rok;
-	switch(ctlr->pciv){
-	case Rtl8169sc:
-	case Rtl8168b:
-		/* alleged workaround for rx fifo overflow on 8168[bd] */
-		ctlr->imr &= ~Rdu;
-		break;
-	}
-	csr16w(ctlr, Imr, ctlr->imr);
+	ctlr->imr = (Serr|Fovw|Punlc|Rdu|Rer|Rok|Tdu|Ter|Tok) &
+		~ctlr->intrignbits;
+	csr16w(regs, Imr, ctlr->imr);
 
 	/*
 	 * Clear missed-packet counter;
@@ -1159,50 +1215,100 @@ rtl8169init(Ether* edev)
 	 * no early-receive interrupts.
 	 *
 	 * note: the maximum rx size is a filter.  the size of the buffer
-	 * in the descriptor ring is still honored.  we will toss >Mtu
-	 * packets because they've been fragmented into multiple
-	 * rx buffers.
+	 * in the descriptor ring is still honored.  we will toss >ETHERMAXTU
+	 * packets because they've been fragmented into multiple rx buffers.
 	 */
-	csr32w(ctlr, Mpc, 0);
+	csr32w(regs, Mpc, 0);
 	if (ctlr->pcie)
-		csr8w(ctlr, Mtps, Mps / 128);
+		csr8w(regs, Mtps, ROUNDUP(Mps, 128) / 128);
 	else
-		csr8w(ctlr, Etx, 0x3f);		/* max; no early transmission */
-	csr32w(ctlr, Tnpds+4, 0);
-	csr32w(ctlr, Tnpds, PCIWADDR(ctlr->td));
-	csr32w(ctlr, Rdsar+4, 0);
-	csr32w(ctlr, Rdsar, PCIWADDR(ctlr->rd));
-	csr16w(ctlr, Rms, 2048);		/* was Mps; see above comment */
-	r = csr16r(ctlr, Mulint) & 0xF000;	/* no early rx interrupts */
-	csr16w(ctlr, Mulint, r);
-	csr16w(ctlr, Cplusc, cplusc);
-	csr16w(ctlr, Coal, 0);
+		csr8w(regs, Etx, 0x3f);		/* max; no early transmission */
+	csr32w(regs, Tnpds+4, 0);
+	csr32w(regs, Tnpds, PCIWADDR(ctlr->td));
+	csr32w(regs, Rdsar+4, 0);
+	csr32w(regs, Rdsar, PCIWADDR(ctlr->rd));
+	csr16w(regs, Rms, 2048);		/* was Mps; see above comment */
+	r = csr16r(regs, Mulint) & 0xF000;	/* no early rx interrupts */
+	csr16w(regs, Mulint, r);
+	csr16w(regs, Cplusc, cplusc);
+	csr16w(regs, Coal, 0);
+}
+
+static int
+rtl8169init(Ether* edev)
+{
+	Ctlr *ctlr;
+	ushort cplusc;
+	void *regs;
+
+	ctlr = edev->ctlr;
+	regs = ctlr->nic;
+	ilock(&ctlr->ilock);
+	rtl8169reset(ctlr);
+
+	ilock(&ctlr->reglock);
+	switch(ctlr->pciv){
+	case Rtl8168b:
+	case Rtl8169c:
+		/* 8168b manual says set c+ reg first, then command */
+		csr16w(regs, Cplusc, 0x2000);		/* magic */
+		/* fall through */
+	case Rtl8169sc:
+		csr8w(regs, Cr, 0);
+		break;
+	}
+
+	/*
+	 * MAC Address is not settable on some (all?) chips.
+	 * Must put chip into config register write enable mode.
+	 */
+	csr8w(regs, Cr9346, Eem1|Eem0);
+
+	ringsinit(ctlr);
+
+	switch(ctlr->pciv){
+	default:
+		ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Apm;
+		break;
+	case Rtl8168b:
+	case Rtl8169c:
+		ctlr->rcr = Rxfthnone|6<<MrxdmaSHIFT|Ab|Apm; /* DMA max 1024 */
+		break;
+	}
+
+	cplusc = macmagic(ctlr);
+	/*
+	 * Enable receiver/transmitter.
+	 * Need to do this first or some of the settings below
+	 * won't take.
+	 */
+	enablerxtx(ctlr);
+	cfgintrs(ctlr, cplusc);
 
 	/*
 	 * Set configuration.
 	 */
 	switch(ctlr->pciv){
 	case Rtl8169sc:
-		csr8w(ctlr, Cr, Te|Re);
-		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
-		csr32w(ctlr, Rcr, ctlr->rcr);
+		csr8w(regs, Cr, Te|Re);
+		csr32w(regs, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr32w(regs, Rcr, ctlr->rcr);
 		break;
 	case Rtl8168b:
 	case Rtl8169c:
-		csr16w(ctlr, Cplusc, 0x2000);		/* magic */
-		csr8w(ctlr, Cr, Te|Re);
-		csr32w(ctlr, Tcr, Ifg1|Ifg0|6<<MtxdmaSHIFT); /* DMA max 1024 */
-		csr32w(ctlr, Rcr, ctlr->rcr);
+		csr16w(regs, Cplusc, 0x2000);		/* magic */
+		csr8w(regs, Cr, Te|Re);
+		csr32w(regs, Tcr, Ifg1|Ifg0|6<<MtxdmaSHIFT); /* DMA max 1024 */
+		csr32w(regs, Rcr, ctlr->rcr);
 		break;
 	}
-	ctlr->tcr = csr32r(ctlr, Tcr);
-	csr8w(ctlr, Cr9346, 0);
+	ctlr->tcr = csr32r(regs, Tcr);
+	csr8w(regs, Cr9346, 0);
+	ctlr->halted = 0;
 
 	iunlock(&ctlr->reglock);
 	iunlock(&ctlr->ilock);
-
-//	rtl8169mii(ctlr);
-
+	/* we used to call rtl8169mii here, but it was called in rtl8169pci */
 	return 0;
 }
 
@@ -1222,15 +1328,16 @@ rtl8169attach(Ether* edev)
 		splx(s);
 		return;
 	}
-	ctlr->td = ucallocalign(sizeof(D)*Ntd, 256, 0);
+	ctlr->td = ucallocalign(sizeof(Desc)*Ntd, 256, 0);
 	ctlr->tb = malloc(Ntd*sizeof(Block*));
-	ctlr->ntd = Ntd;
 
-	ctlr->rd = ucallocalign(sizeof(D)*Nrd, 256, 0);
+	ctlr->rd = ucallocalign(sizeof(Desc)*Nrd, 256, 0);
 	ctlr->rb = malloc(Nrd*sizeof(Block*));
-	ctlr->nrd = Nrd;
 
-	ctlr->dtcc = mallocalign(sizeof(Dtcc), 64, 0, 0);
+	/*
+	 * round up so that cache ops on dtcc only operate on dtcc.
+	 */
+	ctlr->dtcc = mallocalign(ROUNDUP(sizeof(Dtcc), CACHELINESZ), 64, 0, 0);
 	if(waserror()){
 		free(ctlr->td);
 		free(ctlr->tb);
@@ -1243,34 +1350,60 @@ rtl8169attach(Ether* edev)
 	   ctlr->rb == nil || ctlr->dtcc == nil)
 		error(Enomem);
 
-	/* allocate private receive-buffer pool */
-	ctlr->nrb = Nrb;
+	/*
+	 * allocate private receive-buffer pool.  round up so that cache ops
+	 * on the buffer only operate on the buffer.  we must be in a process
+	 * context (up != nil) for *allocb().
+	 */
 	for(i = 0; i < Nrb; i++){
-		if((bp = allocb(Mps)) == nil)
+		if((bp = allocb(ROUNDUP(Mps, CACHELINESZ))) == nil)
 			error(Enomem);
 		bp->free = rbfree;
 		freeb(bp);
 	}
 
-	rtl8169init(edev);
+	rtl8169init(edev);			/* enables rx & tx */
+	initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
+	initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 	ctlr->init = 1;
 	qunlock(&ctlr->alock);
 	splx(s);
 	poperror();				/* free */
 	poperror();				/* qunlock */
 
-	/* signal secondary cpus that l1 ptes are stable */
-	l1ptstable.word = 1;
-	allcache->wbse(&l1ptstable, sizeof l1ptstable);
-
 	s = spllo();
-	/* Don't wait long for link to be ready. */
-	for(timeo = 0; timeo < 50 && miistatus(ctlr->mii) != 0; timeo++)
-//		tsleep(&up->sleep, return0, 0, 100); /* fewer miistatus msgs */
-		delay(100);
+	if (miistatus(ctlr->mii) != 0) {
+		iprint("#l%d: mii wait...", edev->ctlrno);
+		delay(1);
+	}
+	/* This can take seconds.  Don't wait long for link to be ready. */
+	for(timeo = 0; timeo < 100 && miistatus(ctlr->mii) != 0; timeo++)
+		delay(10);
 
-	while (!edev->link)
-		tsleep(&up->sleep, return0, 0, 10);
+	if (!edev->link) {
+		iprint("#l%d: link wait...", edev->ctlrno);
+		delay(1);
+		for(timeo = 0; timeo < 500 && !edev->link; timeo++)
+			tsleep(&up->sleep, return0, 0, 10);
+		/* maybe it's unplugged; proceed */
+	}
+
+	/*
+	 * signal other cpus that cpu0's l1 ptes are stable and kernel mappings
+	 * are in their final configuration.  this may seem an odd place
+	 * for it, but we just allocated uncached storage, thus completing
+	 * the kernel mappings.  once another cpu starts scheduling,
+	 * genrandom can grind away on it for a while.
+	 */
+	signall1ptstable();
+
+	if (!edev->link) {
+		for(timeo = 0; timeo < 2500 && !edev->link; timeo++)
+			tsleep(&up->sleep, return0, 0, 10);
+		if (!edev->link)
+			iprint("#l%d: link still down; proceeding\n",
+				edev->ctlrno);
+	}
 	splx(s);
 
 	snprint(name, KNAMELEN, "#l%drproc", edev->ctlrno);
@@ -1284,26 +1417,28 @@ rtl8169attach(Ether* edev)
 static void
 rtl8169link(Ether* edev)
 {
-	uint r;
+	uint r, ombps;
 	int limit;
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-
-	if(!((r = csr8r(ctlr, Phystatus)) & Linksts)){
+	if(!((r = csr8r(ctlr->nic, Phystatus)) & Linksts)){
 		if (edev->link) {
 			edev->link = 0;
-			csr8w(ctlr, Cr, Re);
+			csr8w(ctlr->nic, Cr, Re);
+			coherence();
 			iprint("#l%d: link down\n", edev->ctlrno);
 		}
 		return;
 	}
 	if (edev->link == 0) {
 		edev->link = 1;
-		csr8w(ctlr, Cr, Te|Re);
+		csr8w(ctlr->nic, Cr, Te|Re);
+		coherence();
 		iprint("#l%d: link up\n", edev->ctlrno);
 	}
 	limit = 256*1024;
+	ombps = edev->mbps;
 	if(r & Speed10){
 		edev->mbps = 10;
 		limit = 65*1024;
@@ -1311,6 +1446,9 @@ rtl8169link(Ether* edev)
 		edev->mbps = 100;
 	else if(r & Speed1000)
 		edev->mbps = 1000;
+	if (edev->mbps != ombps)
+		iprint("8169: link at %d Mb/s, with %d-byte oq\n",
+			edev->mbps, limit);
 
 	if(edev->oq != nil)
 		qsetlimit(edev->oq, limit);
@@ -1322,7 +1460,7 @@ rtl8169transmit(Ether* edev)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
-	if (ctlr == nil || ctlr->ntd == 0) {
+	if (ctlr == nil) {
 		iprint("rtl8169transmit: not yet initialised\n");
 		return;
 	}
@@ -1336,56 +1474,51 @@ rtl8169transmit(Ether* edev)
 static void
 restart(Ether *edev, char *why)
 {
-	int i, s, del;
+	int i, del;
 	Ctlr *ctlr;
 	static int inrestart;
 	static Lock rstrtlck;
 
 	/* keep other cpus out */
-	s = splhi();
-	if (inrestart) {
-		splx(s);
+	if (inrestart)
 		return;
-	}
+
 	ilock(&rstrtlck);
-
 	ctlr = edev->ctlr;
-	if (ctlr == nil || !ctlr->init) {
+	if (ctlr == nil || !ctlr->init || inrestart) {
 		iunlock(&rstrtlck);
-		splx(s);
 		return;
 	}
-
-	if (Debug)
-		iprint("#l%d: restart due to %s\n", edev->ctlrno, why);
 	inrestart = 1;
+	iprint("#l%d: restart due to %s\n", edev->ctlrno, why);
 
 	/* process any pkts in the rings */
 	wakeup(&ctlr->rrendez);
 	coherence();
 	rtl8169transmit(edev);
-	/* allow time to drain 1024-buffer ring */
+	/* allow time to drain a 1024-buffer ring */
 	for (del = 0; del < 13 && ctlr->ntq > 0; del++)
-		delay(1);			
+		delay(1);
 
-	iunlock(&ctlr->reglock);
+	iunlock(&ctlr->reglock);	/* release reglock for reset */
 	rtl8169reset(ctlr);
+	ilock(&ctlr->reglock);
+
 	/* free any remaining unprocessed input buffers */
-	for (i = 0; i < ctlr->nrd; i++) {
+	for (i = 0; i < Nrd; i++) {
 		freeb(ctlr->rb[i]);
 		ctlr->rb[i] = nil;
 	}
+
+	iunlock(&ctlr->reglock);	/* release reglock for init */
 	rtl8169init(edev);
 	ilock(&ctlr->reglock);
 
 	rtl8169link(edev);
 	rtl8169transmit(edev);		/* drain any output queue */
-	wakeup(&ctlr->rrendez);
-
 	inrestart = 0;
-
+	wakeup(&ctlr->rrendez);
 	iunlock(&rstrtlck);
-	splx(s);
 }
 
 static ulong
@@ -1394,6 +1527,7 @@ rcvdiag(Ether *edev, ulong isr)
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
+	isr &= ~ctlr->intrignbits;
 	if(!(isr & (Punlc|Rok)))
 		ctlr->ierrs++;
 	if(isr & Rer)
@@ -1405,8 +1539,12 @@ rcvdiag(Ether *edev, ulong isr)
 	if(isr & Fovw)
 		ctlr->fovw++;
 	if (isr & (Fovw|Rdu|Rer)) {
-		if (isr & ~(Tdu|Tok|Rok))		/* harmless */
-			iprint("#l%d: isr %8.8#lux\n", edev->ctlrno, isr);
+		if (isr & Fovw)
+			iprint("#l%d: rcv fifo overflow\n", edev->ctlrno);
+		if (isr & Rdu)
+			iprint("#l%d: rcv desc unavailable\n", edev->ctlrno);
+		if (isr & Rer)
+			iprint("#l%d: read error\n", edev->ctlrno);
 		restart(edev, "rcv error");
 		isr = ~0;
 	}
@@ -1418,15 +1556,18 @@ rtl8169interrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
-	u32int isr;
+	ulong isr;
+	void *regs;
 
 	edev = arg;
 	ctlr = edev->ctlr;
+	regs = ctlr->nic;
 	ilock(&ctlr->reglock);
-
-	while((isr = csr16r(ctlr, Isr)) != 0 && isr != 0xFFFF){
+	while((isr = csr16r(regs, Isr)) != 0 && isr != 0xFFFF){
 		ctlr->isr |= isr;		/* merge bits for [rt]proc */
-		csr16w(ctlr, Isr, isr);		/* dismiss? */
+		csr16w(regs, Isr, isr);		/* dismiss? */
+		coherence();
+		isr &= ~ctlr->intrignbits;
 		if((isr & ctlr->imr) == 0)
 			break;
 		if(isr & Fovw && ctlr->pciv == Rtl8168b) {
@@ -1440,7 +1581,8 @@ rtl8169interrupt(Ureg*, void* arg)
 		}
 		if(isr & (Fovw|Punlc|Rdu|Rer|Rok)) {
 			ctlr->imr &= ~(Fovw|Rdu|Rer|Rok);
-			csr16w(ctlr, Imr, ctlr->imr);
+			csr16w(regs, Imr, ctlr->imr);
+			coherence();
 			wakeup(&ctlr->rrendez);
 
 			if (isr & (Fovw|Punlc|Rdu|Rer)) {
@@ -1452,28 +1594,26 @@ rtl8169interrupt(Ureg*, void* arg)
 		}
 		if(isr & (Ter|Tok)){
 			ctlr->imr &= ~(Ter|Tok);
-			csr16w(ctlr, Imr, ctlr->imr);
+			csr16w(regs, Imr, ctlr->imr);
+			coherence();
 			wakeup(&ctlr->trendez);
 
 			if (isr & Ter)
-				iprint("xmit err; isr %8.8#ux\n", isr);
+				iprint("8169: xmit err; isr %8.8#lux\n", isr);
 			isr &= ~(Ter|Tok);
 		}
-
 		if(isr & Punlc){
 			rtl8169link(edev);
 			isr &= ~Punlc;
 		}
-
 		/*
 		 * Some of the reserved bits get set sometimes...
 		 */
-		if(isr & (Serr|Fovw|Punlc|Rdu|Ter|Tok|Rer|Rok))
-			panic("rtl8169interrupt: imr %#4.4ux isr %#4.4ux",
-				csr16r(ctlr, Imr), isr);
+		isr &= ~(Tdu|Tok|Rok);			/* harmless */
+		if(isr & ~(Serr|Fovw|Punlc|Rdu|Rer|Rok|Tdu|Ter|Tok))
+			panic("rtl8169interrupt: imr %#4.4ux isr %#4.4lux",
+				csr16r(regs, Imr), isr);
 	}
-	if (edev->link && ctlr->ntq > 0)
-		csr8w(ctlr, Tppoll, Npq); /* kick xmiter to keep it going */
 	iunlock(&ctlr->reglock);
 	/*
 	 * extinguish pci-e controller interrupt source.
@@ -1486,7 +1626,7 @@ rtl8169interrupt(Ureg*, void* arg)
 int
 vetmacv(Ctlr *ctlr, uint *macv)
 {
-	*macv = csr32r(ctlr, Tcr) & HwveridMASK;
+	*macv = csr32r(ctlr->nic, Tcr) & HwveridMASK;
 	switch(*macv){
 	default:
 		return -1;
@@ -1520,7 +1660,7 @@ rtl8169pci(void)
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
-		if(p->ccrb != 0x02 || p->ccru != 0)
+		if(p->ccrb != Pcibcnet || p->ccru != Pciscether)
 			continue;
 
 		pcie = 0;
@@ -1528,7 +1668,7 @@ rtl8169pci(void)
 		default:
 			continue;
 		case Rtl8100e:			/* RTL810[01]E ? */
-		case Rtl8168b:			/* RTL8168B */
+		case Rtl8168b:			/* RTL8168B: buggy */
 			pcie = 1;
 			break;
 		case Rtl8169c:			/* RTL8169C */
@@ -1541,8 +1681,6 @@ rtl8169pci(void)
 		}
 
 		bar = p->mem[2].bar & ~0x0F;
-		assert(bar != 0);
-		assert(!(p->mem[2].bar & Barioaddr));
 		if(0) iprint("rtl8169: %d-bit register accesses\n",
 			((p->mem[2].bar >> Barwidthshift) & Barwidthmask) ==
 			 Barwidth32? 32: 64);
@@ -1602,7 +1740,7 @@ rtl8169pci(void)
 static int
 rtl8169pnp(Ether* edev)
 {
-	u32int r;
+	ulong r;
 	Ctlr *ctlr;
 	uchar ea[Eaddrlen];
 	static int once;
@@ -1630,11 +1768,11 @@ rtl8169pnp(Ether* edev)
 	edev->ctlr = ctlr;
 	ctlr->ether = edev;
 	edev->port = ctlr->port;
-//	edev->irq = ctlr->pcidev->intl;	/* incorrect on trimslice */
+	/* edev->irq != ctlr->pcidev->intl on trimslice */
 	edev->irq = Pcieirq;		/* trimslice: non-msi pci-e intr */
 	edev->tbdf = ctlr->pcidev->tbdf;
 	edev->mbps = 1000;
-	edev->maxmtu = Mtu;
+	edev->maxmtu = ETHERMAXTU;
 
 	/*
 	 * Check if the adapter's station address is to be overridden.
@@ -1642,22 +1780,22 @@ rtl8169pnp(Ether* edev)
 	 */
 	memset(ea, 0, Eaddrlen);
 	if(memcmp(ea, edev->ea, Eaddrlen) == 0){
-		r = csr32r(ctlr, Idr0);
+		r = csr32r(ctlr->nic, Idr0);
 		edev->ea[0] = r;
 		edev->ea[1] = r>>8;
 		edev->ea[2] = r>>16;
 		edev->ea[3] = r>>24;
-		r = csr32r(ctlr, Idr0+4);
+		r = csr32r(ctlr->nic, Idr0+4);
 		edev->ea[4] = r;
 		edev->ea[5] = r>>8;
 	}
 
+	edev->arg = edev;
 	edev->attach = rtl8169attach;
 	edev->transmit = rtl8169transmit;
 	edev->interrupt = rtl8169interrupt;
 	edev->ifstat = rtl8169ifstat;
 
-	edev->arg = edev;
 	edev->promiscuous = rtl8169promiscuous;
 	edev->multicast = rtl8169multicast;
 	edev->shutdown = rtl8169shutdown;

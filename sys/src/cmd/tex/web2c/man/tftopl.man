@@ -1,0 +1,117 @@
+.TH TFTOPL 1 "17 December 1994" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+tftopl \- convert TeX font metric (tfm) files to property lists
+.SH SYNOPSIS
+.B tftopl
+[
+.BI \-charcode-format =format
+]
+[
+.B \-verbose
+]
+.I tfm_name[.tfm]
+[
+.I pl_name[.pl]
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B tftopl
+program translates a (program-oriented) font metric file to a
+(human-oriented) property list file.  Thus, you can edit the contents of
+the TFM files, if the font designer has not done his or her job
+properly, or if you're encountering strange difficulties, or if you're
+just curious.  It also serves as a TFM-file validating program, i.e., if
+no error messages are given, the input file is correct.
+.PP
+The
+.I pl_name
+is extended with
+.I .pl
+if it lacks a suffix.
+If
+.I pl_name
+is not given, standard output is used. Likewise, 
+.I tfm_name
+is extended with
+.I .tfm
+if it lacks a suffix.  Also, path searching is done for the
+.I .tfm
+file
+using the environment variable TEXFONTS.  If that is not set, 
+.B tftopl
+uses the system default.
+.PP
+See
+.BR tex (1)
+for the details of the searching.
+.\"=====================================================================
+.SH OPTIONS
+The argument
+.I format
+to
+.B \-charcode-format
+specifies how character codes are output in the PL file.  By
+default, only letters and digits are output using the
+.B C
+integer code (i.e., in ASCII); the others are output in octal.  (Unless
+the font's coding scheme starts with
+.B "TeX math sy"
+or
+.BR "TeX math ex" ,
+in which case all character codes are output in octal.)  If
+.I format
+is
+.BR ascii ,
+all character codes that correspond to graphic characters, besides the
+left and right parentheses, are output in ASCII.  Finally, if
+.I format
+is
+.BR octal ,
+all character codes are output in octal.
+.PP
+Without the
+.B \-verbose
+option,
+.B tftopl
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR pltotf (1),
+.br
+Donald E. Knuth,
+.IR "\*(OXware" .
+.br
+Donald E. Knuth,
+.I "The \*(MFbook"
+(Volume C of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13445-4.
+.\"=====================================================================
+.SH AUTHORS
+Donald E. Knuth wrote the program. It was published as
+part of the
+.I \*(OXware
+technical report, available from the \*(TX Users Group.
+Howard Trickey and Pavel Curtis originally ported it to Unix.

@@ -1,0 +1,44 @@
+#!/bin/sh
+# rebuild
+# (c) 2002 Karel 'Clock' Kulhavy, Mikulas Patocka, Petr 'Brain' Kulhavy
+# This file is a part of the Links program, released under GPL.
+
+rm -f config.h Makefile config.cache &&
+if [ "$1" = reconf ]; then
+	echo NEPOUZIVAT pokud nebylo zmeneno configure.in nebo Makefile.am !!! &&
+        echo DO NOT use unless configure.in or Makefile.am has been changed !!! &&
+	echo rebuild reconf se NESMI prerusit protoze pak by pri nasledujicim commitu byly commitnuty spatne dependence a pri kompilaci by tise vznikaly zahadne neodladitelne chyby!!! &&
+	echo rebuild reconf MUST NOT be interrupted because after the following commit bad dependencies would be commited and during compilation, mysterious and undebuggable bugs would originate!!! &&
+	echo Timto mistoprisezne prohlasuji ze toto skutecne nastalo a ze proces neprerusim. &&
+	echo I hereby affirm that this really has happened and I won\'t break the process. &&
+	read kecy &&
+	if [ "$kecy" = "ano" -o "$kecy" = "Ano" -o "$kecy" = "yes" -o "$kecy" = "Yes" ]; then
+		echo Zodpovednost prijata. &&
+		echo Responsibility accepted. &&
+		rm -rf .deps missing depcomp aclocal.m4 &&
+		autoheader &&
+		rm -f autoh* &&
+		aclocal &&
+		automake --add-missing &&
+		autoconf
+	else
+		exit
+	fi
+fi &&
+if [ "$1" = reconf_aby_to_brain_nepouzival ]; then
+	echo "Mikulasi, vyser si voko!" &&
+	exit
+fi &&
+#cd Unicode;./gen; cd ..
+#cd intl; ./synclang; cd ..
+export CFLAGS="$CFLAGS -Wall -g -O2 -pipe -ansi -U__STRICT_ANSI__ -fno-common" &&
+#export CFLAGS="-Wall -g -O2 -pipe"
+export CXXFLAGS="$CXXFLAGS -Wall -g -O2 -pipe" &&
+./configure --enable-graphics --enable-javascript &&
+make clean &&
+make &&
+if [ "$1" = reconf ]; then
+	autoheader &&
+	automake --add-missing --include-deps --build-dir=. --srcdir-name=. --output-dir=. &&
+	./configure --enable-graphics --enable-javascript
+fi

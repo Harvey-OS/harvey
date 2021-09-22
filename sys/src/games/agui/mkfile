@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+# CPUS=mips 386
+TARG=agui
+OFILES=\
+	main.$O\
+	player.$O\
+	sub.$O\
+	gui.$O\
+	io.$O\
+
+HFILES=\
+	audio.h\
+
+BIN=/$objtype/bin/games
+</sys/src/cmd/mkone

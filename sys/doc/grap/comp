@@ -1,0 +1,1 @@
+eqn '-d$$' memo | troff -ms -i >memo.out

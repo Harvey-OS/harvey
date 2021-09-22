@@ -1,0 +1,80 @@
+.TH REPORT 2
+.SH NAME
+report, reportdata, reporting, reportcheck - report debugging and monitoring information
+.SH SYNOPSIS
+.EX
+.ta 8n +8n +8n +8n
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include <worker.h>
+#include <error.h>
+.sp
+typedef struct Debugs {
+	char *name;
+	ulong val;
+} Debugs;
+.sp
+#define report if(!Reporting){}else _report
+#define reportcheck(x) (Reporting?_reportcheck(x):0)
+#define reportdata if(!Reporting){}else _reportdata
+.sp
+void	_report(ulong event, char *, ...)
+int	_reportcheck(ulong event)
+void	reporting(char *eventname)
+void	_reportdata(ulong event, char *name, void *addr, int size, int count)
+.sp
+extern int Reporting;
+extern Debugs debugs[];
+.EE
+.SH DESCRIPTION
+.B Report
+belongs to a set of routines for conveniently printing debugging
+reports in an application.  Its first parameter is an event type
+which consists of one (or more) bits in a variable that is matched against
+an event mask to decide whether or not to print the event.
+.PP
+.B Report
+and
+.B reportdata
+print the time (since program start, in µs) followed by the information
+indicated if
+.B "event & eventmask
+is non-nil.
+.PP
+.B report
+takes a format string as in
+.IR print (2).
+.B Reportdata
+prints
+.I name
+followed by a dump of
+.I count
+variables of
+.I size
+bytes (1, 2, 4, or 8) starting at
+.IR addr .
+.PP
+.I Reportcheck
+returns
+.BR "event & eventmask" .
+.PP
+The user-supplied
+.B debugs
+array gives a list of event types (typically a bit in a long int)
+and their names.
+.PP
+.B Reporting
+toggles the named event in the event mask (turning on or off printing
+for that reporting event).
+.PP
+The user-supplied integer
+.B Reporting
+enables or disables printing altogether.
+.SH SOURCE
+.B /sys/src/libworker
+.SH "SEE ALSO
+.IR error (2),
+.IR worker (2)
+.SH AUTHOR
+Sape Mullender

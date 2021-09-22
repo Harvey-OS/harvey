@@ -10,7 +10,7 @@ OFILES =\
 	SConn.$O\
 	util.$O\
 
-
+LIB=/$objtype/lib/libnofp.a
 TARG = secstore secstored secuser aescbc	# descbc
 DEBUG = secchk
 

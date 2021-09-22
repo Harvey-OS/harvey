@@ -1,0 +1,149 @@
+NOTE S Rahtz 1998/01/18: renamed files to suite 8+3 <name>.cfg style
+********************************************************************
+
+Release 1.13, 21 Aug 1995
+Release 1.12, 02 Mar 1995
+Release 1.0,  20 Feb 1995
+
+This is a set of files which can be used with dvips to control certain
+parameters of the printer, like simplex/duplex printing, or screen
+frequencies of images.
+
+Put together by Volker Kuhlmann, VOLKER@ELEC.CANTERBURY.AC.NZ.  
+No copyright. Freely distributable. If you make additions, please send
+me a copy.
+
+
+LIST OF FILES
+=============
+
+README		This file.
+config.*        Configuration files and header files for dvips. Special
+		format which serves both purposes.
+
+
+INSTALLATION
+============
+
+Copy these files into a directory which is searched by dvips both for
+configuration files and for header files. dvips looks in $TEXCONFIG for
+configuration files, and in $DVIPSHEADERS for header files. For details
+please see the dvips documentation.
+
+
+USAGE
+=====
+
+dvips reads the instructions in a configuration file <configfilename>
+with the -P option:
+
+	dvips -P <configfilename>
+
+All these configuration files contain the PostScript code for the
+respective operation as well, and can be used as header file as they are.
+
+Now to the stuff provided:
+
+-P simplex      On a duplex printer, force printing in simplex mode. On
+		a simplex printer, this will be ignored.
+-P duplong      On a duplex printer, force duplex printing with binding
+		on the long edge. On a simplex printer, this will be
+		ignored.
+-P dupshort	On a duplex printer, force duplex printing with binding
+		on the short edge. On a simplex printer, this will be
+		ignored.
+-P a3		Print on A3 paper.
+		Note: this is just a demo - use "-t a3" instead!
+-P inv          Print all pages inverted, i.e. white letters on black
+		background.
+		Note: this currently does not work properly. Any
+		      hints/fixes greatly appreciated!
+-P screenN	Print images with a screen frequency of N lpi at
+		45 degrees. 
+		N = {70, 80, 85, 90, 100, 110, 120, 130, 140, 150}
+-P screen100-0	Print images with a screen frequency of 100lpi
+		at 0 degrees.
+
+Note:   When working with screen frequencies, it is possible that
+	turning the printer off and back on solves the problem of the
+	screen commands not having any effect.
+
+
+CONTROLLING SCREEN FREQUENCIES
+==============================
+
+Various PostScript commands for controlling the screen frequencies of
+images exist, but not all work on all printers. See fragments of
+PostScript code and comments below. The form working on most printers is
+
+	LPI DEGREES {FUNCTION} setscreen
+
+Insert numbers for LPI and DEGREES, and a function for FUNCTION about
+which I only know (right or wrong?):
+
+	"Should read 2 values from the stack (x, y coordinates in a
+	halftone cell), and return one in the range -1 to 1. The return
+	values determine the order in which pixels within a halftone
+	cell are whitened to produce any desired shade of gray."
+
+The simplest function is {pop}, creating a "linescreen" pattern. There
+is also a function "Dot" (currently used) and "Ellipse". For any other
+frequencies/angles/functions put the instructions in a file, and load
+the file with
+
+	dvips -h <filename>
+
+Thanks to osakari@unda.fi (Olavi Sakari) for some help, and the "Dot"
+and "Ellipse" code.
+
+Notes follow:
+
+
+%currentscreen 3 1 roll pop pop 70 45 3 -1 roll setscreen
+% Works on HP LJ3Si, HP LJ4m. Ignored on HP LJ4mv (VK).
+
+
+%currentscreen 3 1 roll pop pop 70 45 3 -1 roll sethalftone
+% Ignored on HP LJ4mv (VK).
+
+
+%70 45 {pop} setscreen
+% Produces a funny, 1-diagonal pattern ("linescreen") on HP LJ4mv (VK).
+
+
+% "Dot":
+%70 45 {abs exch abs 2 copy add 1 gt {1 sub dup mul exch 1 sub dup mul add 1
+%    sub }{dup mul exch dup mul add 1 exch sub }ifelse} setscreen
+% Works on HP LJ3Si, HP LJ4m, HP LJ4mv (VK).
+
+
+% "Ellipse":
+%70 45 {dup 5 mul 8 div mul exch dup mul exch add sqrt 1 exch sub} setscreen
+% Works on HP LJ4mv (VK).
+
+
+%70 45
+%<<
+%     /HalftoneType 1
+		%  0 gives range check error, 2 gives undefined error (VK).
+%     /Frequency 150
+%     /Angle 20
+		% the values for /Frequency, /Angle are irrelevant
+%     /SpotFunction {pop}
+%>>
+%setscreen	
+% 70 45 seem to replace /Frequency and /Angle in dict
+% - Note: NO curly braces around the dict!
+% Works on HP LJ4m, produces errors with HP LJ3Si, 
+% Produces "linescreen" on HP LJ4mv caused by {pop} (VK).
+
+
+%<<
+%     /HalftoneType 1
+%		%  0 gives range check error, 2 gives undefined error (VK).
+%     /Frequency 70
+%     /Angle 45
+%     /SpotFunction {pop}
+%>>
+%sethalftone  % Level 2 only
+% Produces "linescreen" on HP LJ4mv caused by {pop} (VK).

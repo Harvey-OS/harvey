@@ -5,13 +5,21 @@
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
+
+char *savedwdir;
+int didchdir;
+
+static char wdir[] = "/dev/wdir";
+static int wdirfd = -2;
+
 /*
  * Search through the following code to see if we're just going to exit.
  */
 int
 exitnext(void)
 {
-	union code *c=&runq->code[runq->pc];
+	code *c = &runq->code[runq->pc];
+
 	while(c->f==Xpopredir) c++;
 	return c->f==Xexit;
 }
@@ -24,6 +32,7 @@ Xsimple(void)
 	var *v;
 	struct builtin *bp;
 	int pid;
+
 	globlist();
 	a = runq->argv->words;
 	if(a==0){
@@ -72,7 +81,8 @@ Xsimple(void)
 		}
 	}
 }
-struct word nullpath = { "", 0};
+
+static struct word nullpath = { "", 0};
 
 void
 doredir(redir *rp)
@@ -100,6 +110,7 @@ word*
 searchpath(char *w)
 {
 	word *path;
+
 	if(strncmp(w, "/", 1)==0
 	|| strncmp(w, "#", 1)==0
 	|| strncmp(w, "./", 2)==0
@@ -126,6 +137,7 @@ void
 execfunc(var *func)
 {
 	word *starval;
+
 	popword();
 	starval = runq->argv->words;
 	runq->argv->words = 0;
@@ -137,20 +149,55 @@ execfunc(var *func)
 }
 
 int
-dochdir(char *word)
+wrwdir(char *word)
 {
-	/* report to /dev/wdir if it exists and we're interactive */
-	static int wdirfd = -2;
-	if(chdir(word)<0) return -1;
-	if(flag['i']!=0){
-		if(wdirfd==-2)	/* try only once */
-			wdirfd = open("/dev/wdir", OWRITE|OCEXEC);
-		if(wdirfd>=0) {
+	if (flag['i'] != 0 || runq && runq->iflag) {
+		if (wdirfd == -2)
+			wdirfd = open(wdir, OWRITE | OCEXEC);
+		if (wdirfd >= 0) {
 			unixclsexec(wdirfd);
+			seek(wdirfd, 0, 0);
 			write(wdirfd, word, strlen(word));
 		}
 	}
+	flush(err);
 	return 1;
+}
+
+static int
+readwdir(char *file)
+{
+	int n, wfd;
+	char buf[NTOK];
+
+	wfd = open(file, OREAD|OCEXEC);
+	if (wfd < 0)
+		return -1;
+	n = readn(wfd, buf, sizeof buf - 1);
+	buf[n < 0? 0: n] = '\0';
+	close(wfd);
+	savedwdir = strdup(buf);
+	return 0;
+}
+
+void
+savewdir(void)
+{
+	if (savedwdir != nil)
+		return;
+	if (flag['i'] != 0 || runq && runq->iflag)
+		if (readwdir(wdir) < 0)
+			readwdir("/mnt/term/dev/wdir");
+}
+
+int
+dochdir(char *word)
+{
+	savewdir();
+	if (chdir(word) < 0)
+		return -1;
+	didchdir = 1;
+	return wrwdir(word);
 }
 
 static char *
@@ -173,9 +220,11 @@ appfile(char *dir, char *comp)
 void
 execcd(void)
 {
+	int score, bestscore = 1000;
 	word *a = runq->argv->words;
 	word *cdpath;
-	char *dir;
+	char *dir, *dir1, *bestplace, *nextwd;
+	Dir *dp;
 
 	setstatus("can't cd");
 	cdpath = vlook("cdpath")->val;
@@ -184,26 +233,49 @@ execcd(void)
 		pfmt(err, "Usage: cd [directory]\n");
 		break;
 	case 2:
-		if(a->next->word[0]=='/' || cdpath==0)
+		nextwd = a->next->word;
+		/* absolute path or no cdpath? */
+		if(nextwd[0]=='/' || nextwd[0]=='#' || cdpath==0)
 			cdpath = &nullpath;
+		bestplace = nil;
 		for(; cdpath; cdpath = cdpath->next){
 			if(cdpath->word[0] != '\0')
-				dir = appfile(cdpath->word, a->next->word);
+				dir = appfile(cdpath->word, nextwd);
 			else
-				dir = strdup(a->next->word);
+				dir = strdup(nextwd);
 
+			cleanname(dir);
 			if(dochdir(dir) >= 0){
 				if(cdpath->word[0] != '\0' &&
 				    strcmp(cdpath->word, ".") != 0)
 					pfmt(err, "%s\n", dir);
 				free(dir);
+				bestscore = 1000;
 				setstatus("");
 				break;
 			}
+
+			/* if interactive, try spelling correction on dir */
+			dp = nil;
+			if (flag['i'] && (dir1 = spname(dir, &score)) &&
+			    (dp = dirstat(dir1)) && dp->mode & DMDIR &&
+			     dp->mode & 0111 && score < bestscore) {
+				/* dir1 is a searchable dir. with best score */
+				free(bestplace);
+				bestplace = strdup(dir1);
+				bestscore = score;
+			}
+			free(dp);
 			free(dir);
 		}
-		if(cdpath==0)
-			pfmt(err, "Can't cd %s: %r\n", a->next->word);
+		if (bestplace)
+			cleanname(bestplace);
+		if (bestscore < 1000 && dochdir(bestplace) >= 0) {
+			pfmt(err, "%s\n", bestplace);
+			setstatus("");
+		} else if(cdpath==0)
+			pfmt(err, "Can't cd %s: %r\n", nextwd);
+		free(bestplace);
 		break;
 	case 1:
 		a = vlook("home")->val;
@@ -282,12 +354,14 @@ mapfd(int fd)
 	}
 	return fd;
 }
-union code rdcmds[4];
+
+static union code rdcmds[4];
 
 void
 execcmds(io *f)
 {
 	static int first = 1;
+
 	if(first){
 		rdcmds[0].i = 1;
 		rdcmds[1].f = Xrdcmds;
@@ -305,6 +379,7 @@ execeval(void)
 	char *cmdline, *s, *t;
 	int len = 0;
 	word *ap;
+
 	if(count(runq->argv->words)<=1){
 		Xerror1("Usage: eval cmd ...");
 		return;
@@ -373,7 +448,7 @@ execdot(void)
 		else
 			file = strdup(zero);
 
-		fd = open(file, 0);
+		fd = open(file, OREAD);
 		free(file);
 		if(fd >= 0)
 			break;

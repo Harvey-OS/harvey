@@ -1,0 +1,80 @@
+.TH PATGEN 1 "27 December 1992" "Web2C @VERSION@"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+patgen \- generate patterns for TeX hyphenation
+.SH SYNOPSIS
+.B patgen
+dictionary_file pattern_file log_file translate_file
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B patgen
+program reads the
+.I dictionary_file
+and produces the
+.IR pattern_file ,
+writing a transcript of its actions on the
+.IR log_file .
+The
+.I dictionary_file
+should contain a list of hyphenated words and
+previously-generated patterns.
+.PP
+The patterns thus generated can be read by
+.B initex
+for use in hyphenating words. For a (very) long example of
+.IR patgen 's
+output, see
+.IR $TEXMFMAIN/generic/hyphen/hyphen.tex ,
+which contains the patterns \*(TX uses for English.
+At some sites, patterns for several other languages may be available,
+and the local
+.B tex
+programs may have them preloaded; consult your
+.I Local Guide
+or your system administrator for details.
+.PP
+All filenames must be complete; no adding of default
+extensions or path searching is done.
+.PP
+.\"=====================================================================
+.SH FILES
+.TP \w'@@'u+2n
+.I $TEXMFMAIN/generic/hyphen/hyphen.tex
+Patterns for English.
+.\"=====================================================================
+.SH "SEE ALSO"
+Frank Liang,
+.IR "Word hy-phen-a-tion by com-puter" ,
+STAN-CS-83-977,
+Stanford University Ph.D. thesis, 1983.
+.br
+Donald E. Knuth,
+.IR "The \*(OXbook" ,
+Addison-Wesley, 1986, ISBN 0-201-13447-0, Appendix H.
+.\"=====================================================================
+.SH AUTHORS
+Frank Liang wrote the first version of this program.  Peter
+Breitenlohner made a
+substantial revision in 1991 for \*(TX 3.
+The first version was published as the appendix to the
+.I \*(OXware
+technical report, available from the \*(TX Users Group. Howard Trickey
+originally ported it to Unix.

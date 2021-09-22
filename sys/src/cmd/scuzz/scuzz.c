@@ -273,6 +273,10 @@ cmdwrite(ScsiReq *rp, int argc, char *argv[])
 	return total;
 }
 
+/*
+ * seek has been declared obsolete by t10 and the largest one takes
+ * only a 32-bit lba.
+ */
 static long
 cmdseek(ScsiReq *rp, int argc, char *argv[])
 {

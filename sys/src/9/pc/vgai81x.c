@@ -56,7 +56,7 @@ i81xpcimatch(void)
 	Pcidev *p;
 
 	p = nil;
-	while((p = pcimatch(p, 0x8086, 0)) != nil){
+	while((p = pcimatch(p, Vintel, 0)) != nil){
 		switch(p->did){
 		default:
 			continue;

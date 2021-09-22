@@ -76,6 +76,7 @@
 #define BI2BY		8			/* bits per byte */
 #define BY2SE		4
 #define BY2WD		4
+#define BI2WD		32
 #define BY2V		8			/* only used in xalloc.c */
 
 #define	PTEMAPMEM	(1024*1024)

@@ -1,0 +1,43 @@
+
+more complete (server crossing) DFS support
+
+MAC signing
+also put modified mschap interface into factotum
+
+Support for FindNotify rather thn 1 second timer for directory caching
+
+Jumbo packets
+
+reference count open files so multiple opens on the same file causes
+a single open at the server.
+
+multithread the client
+
+queue multiple requests to implement large reads/writes rather than
+un-signed requests.
+
+make use of AndX to combine requests?
+
+implement permissions off ACLs - Everyone is known, need to find group and user.
+
+why can I not make multiple connections from the same server, I use a random number
+for the MUID already
+
+RPC support for file owner/group and ACL/permissioms.
+
+DFS lookups should occur on every use not just on walks,
+this will allow timeout and refresh of DFS referals.
+
+ping cache entries should timeout - maybe after 1 hour,
+could be done by a background process.
+
+also need to validate the MACs used for each host as we can have 2 hosts
+with 2 IP addresses but the same MAC (Microsoft Redundant Blade setup).
+
+attach specifier
+	windows printer support - use a special attach verb "print"
+
+	use atatch specifier "ctrl" for control files
+
+	default attach specifier is "files"
+

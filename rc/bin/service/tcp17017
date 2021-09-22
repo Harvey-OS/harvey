@@ -1,0 +1,14 @@
+#!/bin/rc
+# tcp17017 - export choline for anthony
+rfork en
+netdir=`{echo $3 | sed 's;/[0-9]+$;!*!0;'}
+err = /sys/log/choline.err
+pat = /usr/bootes/pattern-choline
+# mountlabs >/dev/null >[2=1]
+
+cd /n/choline
+# only if /mnt must be visible
+# echo '+ ^.?/+(n(/choline(/.*)?)?|mnt(/.*)?)$' >$pat
+if (test ! -f $pat)
+	echo '+ ^.?/+(n(/choline(/.*)?)?)$' >$pat
+exec /bin/exportfs -P $pat -R -a -A $netdir >>[2]$err

@@ -1,0 +1,74 @@
+#!/bin/rc
+
+# if(! ~ `{cat /dev/user} rsc){
+# echo no more updates.  sorry.  mail rsc.  >[1=2]
+# exit byebye
+# }
+
+rfork e
+
+path = (/bin/)
+
+d = /n/sources/plan9
+
+if(! test -e $d) {
+	if(! 9fs sources)
+		exit $status
+}
+
+nflag = no
+
+fn mtime{
+	/bin/mtime $1 | awk '{print $1}'
+}
+
+fn update{
+	if(test -d $1){
+		echo $1 is a directory -- cannot update it
+	}
+	if not{
+		if(! test -e $1 && test -e $d/$1){
+			echo '	remove' $d/$1
+			if(~ $nflag no) rm $d/$1
+		}
+		if not
+		if(! cmp -s $1 $d/$1){
+			xxnflag=$nflag
+			if(test -e $d/$1){
+				echo '	update' $1
+				if(test `{mtime $1} -le `{mtime $d/$1}){
+					echo '		older than '$d/$1'; not copying'
+					xxnflag=yes
+				}
+			}
+			if not{
+				echo '	update' $1 '# (does not exist in dist)'
+				if(~ $1 *.[v4586xq7] */[v4586xq7].* *.a[v4586xq7] sd53c8xx.i){
+					echo '		name looks like intermediate file; not copying'
+					xxnflag=yes
+				}
+			}
+			if(~ $xxnflag no) cp $1 $d/$1
+		}
+	}
+}
+
+for(i in $*){
+	switch($i){
+	case -b
+		shift
+		/bin/update $*
+		/bin/update -D $*
+		exit ''
+	case -n
+		nflag = yes
+	case -D
+		d = /n/roro/usr/rob/testplan9
+	case /*
+		update $i
+	case *
+		update  `{cleanname -d `{pwd} $i}
+	}
+}
+
+exit ''

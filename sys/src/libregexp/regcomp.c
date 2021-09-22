@@ -3,8 +3,12 @@
 #include "regexp.h"
 #include "regcomp.h"
 
-#define	TRUE	1
-#define	FALSE	0
+enum {
+	FALSE, TRUE,
+	Debug	= 0,
+	NCCRUNE = 2*256,  /* twice the max. rune ranges per character class */
+	NSTACK = 20,
+};
 
 /*
  * Parser Information
@@ -16,13 +20,6 @@ struct Node
 	Reinst*	last;
 }Node;
 
-/* max character classes per program is nelem(reprog->class) */
-static Reprog	*reprog;
-
-/* max rune ranges per character class is nelem(classp->spans)/2 */
-#define NCCRUNE	nelem(classp->spans)
-
-#define	NSTACK	20
 static	Node	andstack[NSTACK];
 static	Node	*andp;
 static	int	atorstack[NSTACK];
@@ -40,6 +37,9 @@ static	Reinst*	freep;
 static	int	errors;
 static	Rune	yyrune;		/* last lex'd rune */
 static	Reclass*yyclassp;	/* last lex'd class */
+
+static char Ebadcc[] = "malformed '[]'";
+static char Enomem[] = "out of memory";
 
 /* predeclared crap */
 static	void	operator(int);
@@ -91,8 +91,9 @@ operator(int t)
 	if(t==RBRA && --nbra<0)
 		rcerror("unmatched right paren");
 	if(t==LBRA){
-		if(++cursubid >= NSUBEXP)
-			rcerror ("too many subexpressions");
+		++cursubid;
+//		if(cursubid >= NSUBEXP)
+//			rcerror("too many subexpressions; increase NSUBEXP");
 		nbra++;
 		if(lastwasand)
 			operator(CAT);
@@ -106,23 +107,33 @@ operator(int t)
 }
 
 static	void
-regerr2(char *s, int c)
+regerr2(char *s, char c)
 {
+	int len;
 	char buf[100];
-	char *cp = buf;
-	while(*s)
-		*cp++ = *s++;
-	*cp++ = c;
-	*cp = '\0';
+
+	strncpy(buf, s, sizeof buf);
+	len = strlen(buf);
+	if (len + 2 <= sizeof buf) {
+		buf[len++] = c;
+		buf[len] = '\0';
+	}
 	rcerror(buf);
 }
 
 static	void
 cant(char *s)
 {
+	int len, slen;
 	char buf[100];
-	strncpy(buf, "can't happen: ", sizeof(buf));
-	strcat(buf, s);
+
+	strcpy(buf, "can't happen: ");
+	len = strlen(buf) + 1;
+	slen = strlen(s);
+	if (len + slen > sizeof buf)
+		slen = sizeof buf - len;	/* truncate s */
+	strncat(buf, s, slen);
+	buf[sizeof buf - 1] = '\0';
 	rcerror(buf);
 }
 
@@ -235,11 +246,9 @@ evaluntil(int pri)
 static	Reprog*
 optimize(Reprog *pp)
 {
+	uintptr size, diff;
 	Reinst *inst, *target;
-	int size;
 	Reprog *npp;
-	Reclass *cl;
-	int diff;
 
 	/*
 	 *  get rid of NOOP chains
@@ -273,8 +282,12 @@ optimize(Reprog *pp)
 		case CCLASS:
 		case NCCLASS:
 			*(char **)&inst->right += diff;
-			cl = inst->cp;
-			*(char **)&cl->end += diff;
+			if (0) { /* cl->end now points into alloc'd cl->spans */
+				Reclass *cl;
+
+				cl = inst->cp;
+				*(char **)&cl->end += diff;
+			}
 			break;
 		}
 		*(char **)&inst->left += diff;
@@ -283,9 +296,12 @@ optimize(Reprog *pp)
 	return npp;
 }
 
-#ifdef	DEBUG
 static	void
-dumpstack(void){
+dumpstack(void)
+{
+	if (!Debug)
+		return;
+
 	Node *stk;
 	int *ip;
 
@@ -300,13 +316,19 @@ dumpstack(void){
 static	void
 dump(Reprog *pp)
 {
+	if (!Debug) {
+		USED(pp);
+		return;
+	}
+
 	Reinst *l;
 	Rune *p;
 
 	l = pp->firstinst;
 	do{
-		print("%d:\t0%o\t%d\t%d", l-pp->firstinst, l->type,
-			l->left-pp->firstinst, l->right-pp->firstinst);
+		print("%llud:\t0%o\t%llud\t%llud", (uvlong)(l - pp->firstinst),
+			l->type, (uvlong)(l->left - pp->firstinst),
+			(uvlong)(l->right - pp->firstinst));
 		if(l->type == RUNE)
 			print("\t%C\n", l->r);
 		else if(l->type == CCLASS || l->type == NCCLASS){
@@ -323,12 +345,11 @@ dump(Reprog *pp)
 			print("\n");
 	}while(l++->type);
 }
-#endif
 
 static	Reclass*
 newclass(void)
 {
-	if(nclass >= nelem(reprog->class))
+	if(nclass >= nelem(((Reprog *)nil)->class))
 		rcerror("too many character classes; increase Reprog.class size");
 	return &(classp[nclass++]);
 }
@@ -392,14 +413,18 @@ lex(int literal, int dot_type)
 static int
 bldcclass(void)
 {
-	int type;
-	Rune r[NCCRUNE];
-	Rune *p, *ep, *np;
+	int type, pairs, quoted, badcc;;
 	Rune rune;
-	int quoted;
+	Rune *r;
+	Rune *p, *ep, *np;
 
 	/* we have already seen the '[' */
 	type = CCLASS;
+	r = mallocz(NCCRUNE * sizeof(Rune), 1);
+	if (r == nil) {
+		rcerror(Enomem);
+		return 0;
+	}
 	yyclassp = newclass();
 
 	/* look ahead for negation */
@@ -414,22 +439,23 @@ bldcclass(void)
 	}
 
 	/* parse class into a set of spans */
+	badcc = 0;
 	while(ep < &r[NCCRUNE-1]){
 		if(rune == 0){
-			rcerror("malformed '[]'");
-			return 0;
+			badcc = 1;
+			break;
 		}
 		if(!quoted && rune == L']')
 			break;
 		if(!quoted && rune == L'-'){
 			if(ep == r){
-				rcerror("malformed '[]'");
-				return 0;
+				badcc = 1;
+				break;
 			}
 			quoted = nextc(&rune);
 			if((!quoted && rune == L']') || rune == 0){
-				rcerror("malformed '[]'");
-				return 0;
+				badcc = 1;
+				break;
 			}
 			*(ep-1) = rune;
 		} else {
@@ -438,13 +464,17 @@ bldcclass(void)
 		}
 		quoted = nextc(&rune);
 	}
-	if(ep >= &r[NCCRUNE-1]) {
-		rcerror("char class too large; increase Reclass.spans size");
+	if (badcc || ep >= &r[NCCRUNE-1]) {
+		if (badcc)
+			rcerror(Ebadcc);
+		else
+			rcerror("r.e. char class too large; increase NCCRUNE");
+		free(r);
 		return 0;
 	}
 
 	/* sort on span start */
-	for(p = r; p < ep; p += 2){
+	for(p = r; p < ep; p += 2)
 		for(np = p; np < ep; np += 2)
 			if(*np < *p){
 				rune = np[0];
@@ -454,9 +484,18 @@ bldcclass(void)
 				np[1] = p[1];
 				p[1] = rune;
 			}
-	}
 
-	/* merge spans */
+	/* merge spans from r to yyclassp->scans */
+	pairs = ep - r;
+	if (pairs == 0)
+		pairs = 1;
+	/*
+	 * now we know the required size of spans.
+	 * this allocation will leak unless regfree is called.
+	 */
+	yyclassp->spans = mallocz(pairs * 2 * sizeof(Rune), 1);
+	if (yyclassp->spans == nil)
+		regerror(Enomem);
 	np = yyclassp->spans;
 	p = r;
 	if(r == ep)
@@ -476,8 +515,22 @@ bldcclass(void)
 			}
 		yyclassp->end = np+2;
 	}
-
+	free(r);
 	return type;
+}
+
+/* free dynamic allocations attached to prog, and prog. */
+void
+regfree(Reprog *prog)
+{
+	int i;
+
+	if (prog == nil)
+		return;
+	for (i = 0; i < nelem(prog->class); i++)
+		free(prog->class[i].spans);
+	memset(prog, 0, sizeof *prog);		/* prevent accidents */
+	free(prog);
 }
 
 static	Reprog*
@@ -487,9 +540,9 @@ regcomp1(char *s, int literal, int dot_type)
 	Reprog *pp;
 
 	/* get memory for the program */
-	pp = malloc(sizeof(Reprog) + 6*sizeof(Reinst)*strlen(s));
+	pp = mallocz(sizeof(Reprog) + 6*sizeof(Reinst)*strlen(s), 1);
 	if(pp == 0){
-		regerror("out of memory");
+		regerror(Enomem);
 		return 0;
 	}
 	freep = pp->firstinst;
@@ -525,24 +578,19 @@ regcomp1(char *s, int literal, int dot_type)
 	/* Force END */
 	operand(END);
 	evaluntil(START);
-#ifdef DEBUG
 	dumpstack();
-#endif
 	if(nbra)
 		rcerror("unmatched left paren");
 	--andp;	/* points to first and only operand */
 	pp->startinst = andp->first;
-#ifdef DEBUG
 	dump(pp);
-#endif
 	pp = optimize(pp);
-#ifdef DEBUG
-	print("start: %d\n", andp->first-pp->firstinst);
+	if (Debug)
+		print("start: %llud\n", (uvlong)(andp->first - pp->firstinst));
 	dump(pp);
-#endif
 out:
 	if(errors){
-		free(pp);
+		regfree(pp);
 		pp = 0;
 	}
 	return pp;

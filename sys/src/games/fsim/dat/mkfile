@@ -1,0 +1,20 @@
+BUILTINS=
+</$objtype/mkfile
+
+OFILES=\
+	mka.$O\
+
+$O.out:	$OFILES
+	$LD $OFILES
+
+%.$O:	%.c
+	$CC -wFV $stem.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out
+
+install:V:	$O.out
+	cp $O.out /usr/ken/bin/$objtype/xxx
+
+installall:V:
+	for(objtype in $CPUS) mk install

@@ -1,0 +1,25 @@
+#!/bin/rc
+# addroutes [netdir] - add local routes to network
+if (~ $#* 0)
+	cd /net
+if not
+	cd $1
+if(! test -e iproute)	# 9vx potentially doesn't have /net/iproute
+	exit ''
+
+if(grep -s '^10\.0\.' ipselftab) {	# on private network 10 only
+	# default v6 route towards internet via nat.
+	echo add :: /0 2603:3024:9fd:60f1::6 >iproute
+}
+if not {				# on public network
+	# default v6 route to comcast-gw via fw & net 10
+	echo add :: /0 2603:3024:9fd:60f2::2 >iproute
+
+	# route to private network from public via nat in fw.
+	# NB: subnet masks are v6, even for v4 addresses
+	echo add 10.0.0.0 /120 96.78.174.36 >iproute
+	echo add 2603:3024:9fd:60f1:: /64 2603:3024:9fd:60f2::2 >iproute
+
+	# remove bogus private v6 address until we find out where it comes from
+	echo remove 2603:3024:9fd:60f1:: /64 >iproute
+}

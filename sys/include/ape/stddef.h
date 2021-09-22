@@ -12,14 +12,26 @@
 #define offsetof(ty,mem) ((size_t) &(((ty *)0)->mem))
 #endif
 
+#include "_apetypes.h"
+
+#ifdef _BITS64
+typedef long long ptrdiff_t;
+#else
 typedef long ptrdiff_t;
+#endif
+
 #ifndef _SIZE_T
 #define _SIZE_T
+#ifdef _BITS64
+typedef unsigned long long size_t;
+#else
 typedef unsigned long size_t;
 #endif
+#endif
+
 #ifndef _WCHAR_T
 #define _WCHAR_T
-typedef unsigned short wchar_t;
+typedef unsigned long wchar_t;
 #endif
 
 #endif /* __STDDEF_H */

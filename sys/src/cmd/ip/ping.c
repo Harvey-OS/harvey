@@ -11,8 +11,16 @@ enum {
 	MAXMSG		= 32,
 	SLEEPMS		= 1000,
 
+	/* intervals in nanoseconds */
 	SECOND		= 1000000000LL,
 	MINUTE		= 60*SECOND,
+
+	/*
+	 * tos/qos/vcf dscp codes
+	 */
+	Af11		= 012,		/* assured forwarding: priority */
+	Ef		= 056,		/* expedited forwarding (os x) */
+	Dscpshift	= 2,  /* shifted this many bits left in tos (rfc2474) */
 };
 
 typedef struct Req Req;
@@ -66,7 +74,7 @@ static void
 usage(void)
 {
 	fprint(2,
-	    "usage: %s [-6alq] [-s msgsize] [-i millisecs] [-n #pings] dest\n",
+	    "usage: %s [-6alqr] [-s msgsize] [-i millisecs] [-n #pings] dest\n",
 		argv0);
 	exits("usage");
 }
@@ -168,12 +176,14 @@ clean(ushort seq, vlong now, void *v)
 		}
 
 		if(now-r->time > MINUTE){
-			*l = r->next;
+			*l = r->next;		/* unlink this Req */
 			r->rtt = now-r->time;
 			if(v)
 				r->ttl = ttl;
 			if(r->replied == 0)
 				lost(r, v);
+			r->time = r->ttl = r->replied = 0;
+			r->rtt = 0;
 			free(r);
 		}else{
 			last = r;
@@ -279,15 +289,16 @@ sender(int fd, int msglen, int interval, int n)
 		r->seq = seq;
 		r->next = nil;
 		r->replied = 0;
-		r->time = nsec();	/* avoid early free in reply! */
+
 		lock(&listlock);
 		if(first == nil)
 			first = r;
 		else
 			last->next = r;
 		last = r;
+		r->time = nsec();  /* avoid early free in clean after unlock! */
 		unlock(&listlock);
-		r->time = nsec();
+
 		if(write(fd, buf, msglen) < msglen){
 			fprint(2, "%s: write failed: %r\n", argv0);
 			return;
@@ -311,8 +322,8 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 	while(lostmsgs+rcvdmsgs < nmsg){
 		alarm((nmsg-lostmsgs-rcvdmsgs)*interval+waittime);
 		n = read(fd, buf, sizeof buf);
-		alarm(0);
 		now = nsec();
+		alarm(0);
 		if(n <= 0){	/* read interrupted - time to go */
 			clean(0, now+MINUTE, nil);
 			continue;
@@ -487,7 +498,7 @@ isv4name(char *name)
 void
 main(int argc, char **argv)
 {
-	int fd, msglen, interval, nmsg;
+	int fd, msglen, interval, nmsg, cfd;
 	char *ds;
 
 	nsec();		/* make sure time file is already open */
@@ -526,7 +537,7 @@ main(int argc, char **argv)
 	case 'q':
 		quiet = 1;
 		break;
-	case 'r':
+	case 'r':			/* random interval */
 		rint = 1;
 		break;
 	case 's':
@@ -559,7 +570,8 @@ main(int argc, char **argv)
 	if (!isv4name(argv[0]))
 		proto = &v6pr;
 	ds = netmkaddr(argv[0], proto->net, "1");
-	fd = dial(ds, 0, 0, 0);
+	cfd = -1;
+	fd = dial(ds, 0, 0, &cfd);
 	if(fd < 0){
 		fprint(2, "%s: couldn't dial %s: %r\n", argv0, ds);
 		exits("dialing");
@@ -568,6 +580,10 @@ main(int argc, char **argv)
 	if (!quiet)
 		print("sending %d %d byte messages %d ms apart to %s\n",
 			nmsg, msglen, interval, ds);
+	if (cfd >= 0)
+		fprint(cfd, "tos %d", Ef << Dscpshift);
+	else
+		fprint(2, "can't set tos\n");
 
 	switch(rfork(RFPROC|RFMEM|RFFDG)){
 	case -1:

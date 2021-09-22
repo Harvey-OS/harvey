@@ -55,7 +55,7 @@ extern sigset_t	_psigblocked;
 typedef struct {
 	sigset_t set;
 	sigset_t blocked;
-	unsigned long long jmpbuf[2];
+	jmp_buf jmpbuf;
 } sigjmp_buf_amd64;
 
 void

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <mp.h>
 #include <libsec.h>
 
@@ -13,8 +14,10 @@ readfile(char *name)
 	fd = open(name, OREAD);
 	if(fd < 0)
 		return nil;
-	if((d = dirfstat(fd)) == nil)
+	if((d = dirfstat(fd)) == nil) {
+		close(fd);
 		return nil;
+	}
 	s = malloc(d->length + 1);
 	if(s == nil || readn(fd, s, d->length) != d->length){
 		free(s);
@@ -36,15 +39,28 @@ readcert(char *filename, int *pcertlen)
 
 	pem = readfile(filename);
 	if(pem == nil){
-		werrstr("can't read %s", filename);
+		werrstr("can't read %s: %r", filename);
 		return nil;
 	}
-	binary = decodepem(pem, "CERTIFICATE", pcertlen);
+	binary = decodePEM(pem, "CERTIFICATE", pcertlen, nil);
 	free(pem);
 	if(binary == nil){
 		werrstr("can't parse %s", filename);
 		return nil;
 	}
 	return binary;
+}
+
+PEMChain *
+readcertchain(char *filename)
+{
+	char *chfile;
+
+	chfile = readfile(filename);
+	if (chfile == nil) {
+		werrstr("can't read %s: %r", filename);
+		return nil;
+	}
+	return decodepemchain(chfile, "CERTIFICATE");
 }
 

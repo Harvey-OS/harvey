@@ -1,0 +1,14 @@
+.\" emit troff output version
+.de Ti
+.ft R
+.br
+.ne 3
+.ie h \{\
+\\$3 
+...\}
+.el \{\
+.ta \\n(LLuR
+\\$3 \a\|\|\\$1
+...\}
+.br
+..

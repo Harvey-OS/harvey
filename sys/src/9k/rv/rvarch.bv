@@ -1,0 +1,4 @@
+ARCH=bv
+# must match KTZERO in mem.h
+KTZERO=0xffffffc080020000	# sv39 but skip first 128K
+CONFDEF='-DPAUart0=0x12440000' '-DMAINOFF=(128*KB)'

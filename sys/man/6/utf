@@ -65,13 +65,13 @@ a rune x is converted to a multibyte
 sequence
 as follows:
 .PP
-01.   x in [000000.00000000.0bbbbbbb] → 0bbbbbbb
+01.   x in [00000.00000000.0bbbbbbb] → 0bbbbbbb
 .br
-10.   x in [000000.00000bbb.bbbbbbbb] → 110bbbbb, 10bbbbbb
+10.   x in [00000.00000bbb.bbbbbbbb] → 110bbbbb, 10bbbbbb
 .br
-11.   x in [000000.bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb
+11.   x in [00000.bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb
 .br
-100. x in [bbbbbb.bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb, 10bbbbbb
+100.  x in [bbbbb.bbbbbbbb.bbbbbbbb] → 11110bbb, 10bbbbbb, 10bbbbbb, 10bbbbbb
 .br
 .PP
 Conversion 01 provides a one-byte sequence that spans the

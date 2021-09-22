@@ -1,0 +1,537 @@
+% original psfonts.map -- match TFM filenames to PostScript FontNames.
+% (If you change or delete `original' on the previous line, dvips won't
+% install its psfonts.map over this file.)
+% 
+% This file includes mappings for the standard 35 PostScript fonts, plus
+% freely available high-quality fonts, plus fonts that come with various
+% commercial Unixes. (dvips.texi gives the precise directories for the latter.)
+% 
+% The fontname distribution contains listings of many more commercially
+% available fonts.  See /tex-archive/info/fontname on CTAN hosts,
+% mirrored from ftp://ftp.tug.org/tex/fontname.
+
+% The standard 35 fonts built in to almost all (but very old) PostScript
+% printers, plus a few variants afm2tfm can construct.
+rpagk	 AvantGarde-Book
+rpagko	 AvantGarde-BookOblique
+rpagd	 AvantGarde-Demi
+rpagdo	 AvantGarde-DemiOblique
+
+rpbkl	 Bookman-Light
+rpbkli	 Bookman-LightItalic
+rpbkd	 Bookman-Demi
+rpbkdi	 Bookman-DemiItalic
+
+rpcrr	 Courier
+rpcrro	 Courier-Oblique
+rpcrb	 Courier-Bold
+rpcrbo	 Courier-BoldOblique
+
+rphvr	 Helvetica
+rphvro	 Helvetica-Oblique
+rphvb	 Helvetica-Bold
+rphvbo	 Helvetica-BoldOblique
+rphvrrn	 Helvetica		".82 ExtendFont"
+rphvron	 Helvetica-Oblique	".82 ExtendFont"
+rphvbrn	 Helvetica-Bold		".82 ExtendFont"
+rphvbon	 Helvetica-BoldOblique	".82 ExtendFont"
+
+rpncr	 NewCenturySchlbk-Roman
+rpncri	 NewCenturySchlbk-Italic
+rpncb	 NewCenturySchlbk-Bold
+rpncbi	 NewCenturySchlbk-BoldItalic
+
+rpplr	 Palatino-Roman
+rpplri	 Palatino-Italic
+rpplro	 Palatino-Roman		".167 SlantFont"
+rpplb	 Palatino-Bold
+rpplbi	 Palatino-BoldItalic
+rpplbu	 Palatino-BoldItalic	"-.1763 SlantFont"
+rpplru	 Palatino-Italic	"-.1763 SlantFont"
+rpplrrn	 Palatino-Roman		".82 ExtendFont"
+rpplrre	 Palatino-Roman		"1.2 ExtendFont"
+
+psyr	 Symbol
+rpsyr	 Symbol
+psyro	 Symbol			".167 SlantFont"
+rpsyro	 Symbol			".167 SlantFont"
+
+rptmr	 Times-Roman
+rptmri	 Times-Italic
+rptmro	 Times-Roman		".167 SlantFont"
+rptmb	 Times-Bold
+rptmbi	 Times-BoldItalic
+rptmbo	 Times-Bold		".167 SlantFont"
+rptmrrn	 Times-Roman		".8 ExtendFont"
+rptmrre	 Times-Roman		"1.2 ExtendFont"
+
+pzdr	 ZapfDingbats
+rpzdr	 ZapfDingbats
+
+rpzcmi	 ZapfChancery-MediumItalic
+
+%  Some fonts that have been contributed by vendors to the X
+% consortium (also Courier). You can get TFM and VF files for these
+% from ftp://ftp.tug.org/tex (and on ctan).
+rputr	 Utopia-Regular			<putr.pfa
+rputri	 Utopia-Italic			<putri.pfa
+rputb	 Utopia-Bold			<putb.pfa
+rputbi	 Utopia-BoldItalic		<putbi.pfa
+
+rbchr	 CharterBT-Roman		<bchr.pfb
+rbchri	 CharterBT-Italic		<bchri.pfb
+rbchb	 CharterBT-Bold			<bchb.pfb
+rbchbi	 CharterBT-BoldItalic		<bchbi.pfb
+
+% NimbusRoman is actually Times, and NimbusSans is Helvetica.
+ruaqrrc	 URWAntiquaT-RegularCondensed	<uaqrrc.pfa
+rugqb	 URWGroteskT-Bold		<ugqb.pfa
+runmr	 NimbusRomanNo9L-Regular	<unmr.pfa
+runmrs	 NimbusSansL-Regular		<unmrs.pfa
+
+% Bigelow&Holmes have made this freely available to linguists.
+hlcr5s	 LucidaSansIPA			<hlcr5s.pfa
+hlcr5as	 LucidaSansPhoneticAlternate	<hlcr5as.pfa
+
+
+%  These fonts come with NeXT computers. Also AvantGarde, Bookman,
+% Helvetica Narrow, New Century Schoolbook, Palatino, Zapf Chancery, and
+% Zapf Dingbats.
+rpaab	 Aachen-Bold			<paab.pfa
+
+rpadr	 AGaramond-Regular		<padr.pfa
+rpadri	 AGaramond-Italic		<padri.pfa
+rpads	 AGaramond-Semibold		<pads.pfa
+rpadsi	 AGaramond-SemiboldItalic	<padsi.pfa
+rpadb	 AGaramond-Bold			<padb.pfa
+rpadbi	 AGaramond-BoldItalic		<padbi.pfa
+rpadrd	 AGaramond-Titling		<padrd.pfa
+rpadrx	 AGaramondExp-Regular		<padrx.pfa
+rpadrix	 AGaramondExp-Italic		<padrix.pfa
+rpadsx	 AGaramondExp-Semibold		<padsx.pfa
+rpadbx	 AGaramondExp-Bold		<padbx.pfa
+rpadbix	 AGaramondExp-BoldItalic	<padbix.pfa
+
+rpbdr	 Bodoni				<pbdr.pfa
+rpbdri	 Bodoni-Italic			<pbdri.pfa
+rpbdb	 Bodoni-Bold			<pbdb.pfa
+rpbdbi	 Bodoni-BoldItalic		<pbdbi.pfa
+rpbdp	 Bodoni-Poster			<pbdp.pfa
+
+rpburw	 BrushScript			<pburw.pfa
+
+rpc5r	 CaslonFiveForty-Roman		<pc5r.pfa
+rpc5ri	 CaslonFiveForty-Italic		<pc5ri.pfa
+
+rpc3r	 CaslonThree-Roman		<pc3r.pfa
+rpc3ri	 CaslonThree-Italic		<pc3ri.pfa
+
+rphvrrc	 Helvetica-Condensed		<phvrrc.pfa
+rphvroc	 Helvetica-Condensed-Oblique	<phvroc.pfa
+rphvbrc	 Helvetica-Condensed-Bold	<phvbrc.pfa
+rphvboc	 Helvetica-Condensed-BoldObl	<phvboc.pfa
+
+rpubr	 BauerBodoni-Roman		<pubr.pfa
+rpubri	 BauerBodoni-Italic		<pubri.pfa
+rpubb	 BauerBodoni-Bold		<pubb.pfa
+rpubbi	 BauerBodoni-BoldItalic		<pubbi.pfa
+
+
+%  These fonts come with DEC Ultrix and DEC OSF. Also
+% Courier, Symbol, and Times.
+rplbk	 LubalinGraph-Book		<plbk.pfa
+rplbko	 LubalinGraph-BookOblique	<plbko.pfa
+rplbd	 LubalinGraph-Demi		<plbd.pfa
+rplbdo	 LubalinGraph-DemiOblique	<plbdo.pfa
+
+rpsvl	 Souvenir-Light			<psvl.pfa
+rpsvli	 Souvenir-LightItalic		<psvli.pfa
+rpsvd	 Souvenir-Demi			<psvd.pfa
+rpsvdi	 Souvenir-DemiItalic		<psvdi.pfa
+
+
+%  These fonts come with IBM AIX. See INSTALL.  Also AvantGarde,
+% Courier, Helvetica, New Century Schoolbook, Symbol, and Times.
+rphbr	 Hobo				<phbr.pfa
+
+rpslr	 Stencil			<pslr.pfa
+
+
+%  Adobe Lucida.  You have to buy the outlines from Adobe, but
+% ftp.tug.org///tex/lucida.tar.gz has TFM and VF's for TeX
+% (including the math fonts).
+rplcr	 Lucida				<plcr.pfa
+rplcri	 Lucida-Italic			<plcri.pfa
+rplcro	 Lucida				<plcr.pfa ".167 SlantFont"
+rplcb	 Lucida-Bold			<plcb.pfa
+rplcbi	 Lucida-BoldItalic		<plcbi.pfa
+rplcrs	 LucidaSans			<plcrs.pfa
+rplcris	 LucidaSans-Italic		<plcris.pfa
+rplcbs	 LucidaSans-Bold		<plcbs.pfa
+rplcbis	 LucidaSans-BoldItalic		<plcbis.pfa
+rplcrb	 LucidaBrightNormal		<plcrb.pfa
+rplcrbi	 LucidaBrightItalic		<plcrbi.pfa
+rplcbb	 LucidaBrightBold		<plcbb.pfa
+rplcrst	 LucidaSansTypNormal		<plcrst.pfa
+rplcrm	 LucidaMath-Italic		<plcrm.pfa
+rplcrv	 LucidaMath-Extension		<plcrv.pfa
+rplcry	 LucidaMath-Symbol		<plcry.pfa
+
+%  Y&Y Lucida.  They have their own names, which it doesn't hurt to include.
+
+rylhr	 LucidaBright			<ylhr.pfb
+lbr	 LucidaBright			<lbr.pfb
+rylhri	 LucidaBright-Italic		<ylhri.pfb
+lbi	 LucidaBright-Italic		<lbi.pfb
+rylhro	 LucidaBright-Oblique		<ylhro.pfb
+lbsl	 LucidaBright-Oblique		<lbsl.pfb
+rylhd	 LucidaBright-Demi		<ylhd.pfb
+lbd	 LucidaBright-Demi		<lbd.pfb
+rylhdi	 LucidaBright-DemiItalic	<ylhdi.pfb
+lbdi	 LucidaBright-DemiItalic	<lbdi.pfb
+rylcrs	 LucidaSans			<ylcrs.pfb
+lsr	 LucidaSans			<lsr.pfb
+rylcds	 LucidaSans-Demi		<ylcds.pfb
+lsd	 LucidaSans-Demi		<lsd.pfb
+rylcdis	 LucidaSans-DemiItalic		<ylcdis.pfb
+lsdi	 LucidaSans-DemiItalic		<lsdi.pfb
+rylcrst	 LucidaSans-Typewriter		<ylcrst.pfb
+lstr	 LucidaSans-Typewriter		<lstr.pfb
+rylcrost LucidaSans-TypewriterOblique	<ylcrost.pfb
+lsto	 LucidaSans-TypewriterOblique	<lsto.pfb
+rylcbst	 LucidaSans-TypewriterBold	<ylcbst.pfb
+lstb	 LucidaSans-TypewriterBold	<lstb.pfb
+rylcbost LucidaSans-TypewriterBoldOblique	<ylcbost.pfb
+lstbo	 LucidaSans-TypewriterBoldOblique	<lstbo.pfb
+rylcr4	 LucidaFax			<ylcr4.pfb
+lfr	 LucidaFax			<lfr.pfb
+rylcr4i	 LucidaFax-Italic		<ylcr4i.pfb
+lfi	 LucidaFax-Italic		<lfi.pfb
+rylcd4	 LucidaFax-Demi			<ylcd4.pfb
+lfd	 LucidaFax-Demi			<lfd.pfb
+rylcd4i	 LucidaFax-DemiItalic		<ylcd4i.pfb
+lfdi	 LucidaFax-DemiItalic		<lfdi.pfb
+rylcrf	 LucidaBlackletter		<ylcrf.pfb
+lbl	 LucidaBlackletter		<lbl.pfb
+rylcrihw LucidaHandwriting-Italic	<ylcrihw.pfb
+lbh	 LucidaHandwriting-Italic	<lbh.pfb
+rylcris	 LucidaSans-Italic		<ylcris.pfb
+lsi	 LucidaSans-Italic		<lsi.pfb
+rylcriw	 LucidaCalligraphy-Italic	<ylcriw.pfb
+lbc	 LucidaCalligraphy-Italic	<lbc.pfb
+
+%  Two random fonts CG donated to typography research at UMB.
+rcggr	 CgGarthGraphic			<cggr.pfa
+rcggri	 CgGarthGraphicIt		<cggri.pfa
+rcggb	 CgGarthGraphicBd		<cggb.pfa
+rcggbi	 CgGarthGraphicBdIt		<cggbi.pfa
+
+rcshr	 CgShannon			<cshr.pfa
+rcshro	 CgShannonOb			<cshro.pfa
+rcshb	 CgShannonBd			<cshb.pfa
+rcshx	 CgShannonExBd			<cshx.pfa
+
+%  The same for 8r (new base encoding).
+bchbo8r	CharterBT-Bold ".167 SlantFont "	<bchb.pfa
+bchro8r CharterBT-Roman ".167 SlantFont "	<bchr.pfa
+pbkdo8r Bookman-Demi ".167 SlantFont"
+pbklo8r Bookman-Light ".167 SlantFont"
+pncbo8r NewCenturySchlbk-Bold ".167 SlantFont"
+pncro8r NewCenturySchlbk-Roman ".167 SlantFont"
+pplbo8r Palatino-Bold ".167 SlantFont"
+putbo8r Utopia-Bold ".167 SlantFont "		<putb8r.pfa
+putro8r Utopia-Regular ".167 SlantFont "	<putr.pfa
+pagk8r	 AvantGarde-Book	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pagko8r	 AvantGarde-BookOblique	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pagd8r	 AvantGarde-Demi	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pagdo8r	 AvantGarde-DemiOblique	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbkl8r	 Bookman-Light	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbkli8r	 Bookman-LightItalic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbkd8r	 Bookman-Demi	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbkdi8r	 Bookman-DemiItalic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pcrr8r	 Courier	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pcrro8r	 Courier-Oblique	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pcrb8r	 Courier-Bold	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pcrbo8r	 Courier-BoldOblique	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvr8r	 Helvetica	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvro8r	 Helvetica-Oblique	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvb8r	 Helvetica-Bold	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvbo8r	 Helvetica-BoldOblique	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvrrn8r	 Helvetica		".82 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvron8r	 Helvetica-Oblique	".82 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvbrn8r	 Helvetica-Bold		".82 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvbon8r	 Helvetica-BoldOblique	".82 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pncr8r	 NewCenturySchlbk-Roman	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pncri8r	 NewCenturySchlbk-Italic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pncb8r	 NewCenturySchlbk-Bold	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pncbi8r	 NewCenturySchlbk-BoldItalic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplr8r	 Palatino-Roman	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplri8r	 Palatino-Italic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplro8r	 Palatino-Roman		".167 SlantFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplb8r	 Palatino-Bold	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplbi8r	 Palatino-BoldItalic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplbu8r	 Palatino-BoldItalic		"-.1763 SlantFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplru8r	 Palatino-Italic		"-.1763 SlantFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplrrn8r	 Palatino-Roman		".82 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pplrre8r	 Palatino-Roman		"1.2 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmr8r	 Times-Roman	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmri8r	 Times-Italic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmro8r	 Times-Roman		".167 SlantFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmb8r	 Times-Bold	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmbi8r	 Times-BoldItalic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmbo8r	 Times-Bold		".167 SlantFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmrrn8r	 Times-Roman		".8 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ptmrre8r	 Times-Roman		"1.2 ExtendFont"	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pzcmi8r	 ZapfChancery-MediumItalic	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+putr8r	 Utopia-Regular			<putr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+putri8r	 Utopia-Italic			<putri.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+putb8r	 Utopia-Bold			<putb.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+putbi8r	 Utopia-BoldItalic		<putbi.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+bchr8r	 CharterBT-Roman		<bchr.pfb	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+bchri8r	 CharterBT-Italic		<bchri.pfb	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+bchb8r	 CharterBT-Bold			<bchb.pfb	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+bchbi8r	 CharterBT-BoldItalic		<bchbi.pfb	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+uaqrrc8r	 URWAntiquaT-RegularCondensed	<uaqrrc.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+ugqb8r	 URWGroteskT-Bold		<ugqb.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+unmr8r	 NimbusRomanNo9L-Regular	<unmr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+unmrs8r	 NimbusSansL-Regular		<unmrs.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+paab8r	 Aachen-Bold			<paab.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padr8r	 AGaramond-Regular		<padr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padri8r	 AGaramond-Italic		<padri.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pads8r	 AGaramond-Semibold		<pads.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padsi8r	 AGaramond-SemiboldItalic	<padsi.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padb8r	 AGaramond-Bold			<padb.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padbi8r	 AGaramond-BoldItalic		<padbi.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padrd8r	 AGaramond-Titling		<padrd.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padrx8r	 AGaramondExp-Regular		<padrx.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padrix8r	 AGaramondExp-Italic		<padrix.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padsx8r	 AGaramondExp-Semibold		<padsx.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padbx8r	 AGaramondExp-Bold		<padbx.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+padbix8r	 AGaramondExp-BoldItalic	<padbix.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbdr8r	 Bodoni				<pbdr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbdri8r	 Bodoni-Italic			<pbdri.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbdb8r	 Bodoni-Bold			<pbdb.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbdbi8r	 Bodoni-BoldItalic		<pbdbi.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pbdp8r	 Bodoni-Poster			<pbdp.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pburw8r	 BrushScript			<pburw.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pc5r8r	 CaslonFiveForty-Roman		<pc5r.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pc5ri8r	 CaslonFiveForty-Italic		<pc5ri.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pc3r8r	 CaslonThree-Roman		<pc3r.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pc3ri8r	 CaslonThree-Italic		<pc3ri.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvrrc8r	 Helvetica-Condensed		<phvrrc.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvroc8r	 Helvetica-Condensed-Oblique	<phvroc.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvbrc8r	 Helvetica-Condensed-Bold	<phvbrc.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phvboc8r	 Helvetica-Condensed-BoldObl	<phvboc.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pubr8r	 BauerBodoni-Roman		<pubr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pubri8r	 BauerBodoni-Italic		<pubri.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pubb8r	 BauerBodoni-Bold		<pubb.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pubbi8r	 BauerBodoni-BoldItalic		<pubbi.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+plbk8r	 LubalinGraph-Book		<plbk.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+plbko8r	 LubalinGraph-BookOblique	<plbko.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+plbd8r	 LubalinGraph-Demi		<plbd.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+plbdo8r	 LubalinGraph-DemiOblique	<plbdo.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+psvl8r	 Souvenir-Light			<psvl.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+psvli8r	 Souvenir-LightItalic		<psvli.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+psvd8r	 Souvenir-Demi			<psvd.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+psvdi8r	 Souvenir-DemiItalic		<psvdi.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+phbr8r	 Hobo				<phbr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+pslr8r	 Stencil			<pslr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+plcr8r	 Lucida				<plcr.pfa	"TeXBase1Encoding ReEncodeFont"	<8r.enc
+plcri8r	 Lucida-Italic			<plcri.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcro8r	 Lucida				<plcr.pfa ".167 SlantFont"	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcb8r	 Lucida-Bold			<plcb.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcbi8r	 Lucida-BoldItalic		<plcbi.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcrs8r	 LucidaSans			<plcrs.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcris8r	 LucidaSans-Italic		<plcris.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcbs8r	 LucidaSans-Bold		<plcbs.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcbis8r	 LucidaSans-BoldItalic		<plcbis.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcrb8r	 LucidaBrightNormal		<plcrb.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcrbi8r	 LucidaBrightItalic		<plcrbi.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcbb8r	 LucidaBrightBold		<plcbb.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcrst8r	 LucidaSansTypNormal		<plcrst.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcrm8r	 LucidaMath-Italic		<plcrm.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcrv8r	 LucidaMath-Extension		<plcrv.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+plcry8r	 LucidaMath-Symbol		<plcry.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylhr8r	 LucidaBright			<ylhr.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylhri8r	 LucidaBright-Italic		<ylhri.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylhro8r	 LucidaBright-Oblique		<ylhro.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylhd8r	 LucidaBright-Demi		<ylhd.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylhdi8r	 LucidaBright-DemiItalic	<ylhdi.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcrs8r	 LucidaSans			<ylcrs.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcds8r	 LucidaSans-Demi		<ylcds.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcdis8r	 LucidaSans-DemiItalic		<ylcdis.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcrst8r	 LucidaSans-Typewriter		<ylcrst.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcrost8r	 LucidaSans-TypewriterOblique	<ylcrost.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcbst8r	 LucidaSans-TypewriterBold	<ylcbst.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcbost8r	 LucidaSans-TypewriterBoldOblique	<ylcbost.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcr48r	 LucidaFax			<ylcr4.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcr4i8r	 LucidaFax-Italic		<ylcr4i.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcd48r	 LucidaFax-Demi			<ylcd4.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcd4i8r	 LucidaFax-DemiItalic		<ylcd4i.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcrf8r	 LucidaBlackletter		<ylcrf.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcrihw8r	 LucidaHandwriting-Italic	<ylcrihw.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcris8r	 LucidaSans-Italic		<ylcris.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+ylcriw8r	 LucidaCalligraphy-Italic	<ylcriw.pfb	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cggr8r	 CgGarthGraphic			<cggr.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cggri8r	 CgGarthGraphicIt		<cggri.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cggb8r	 CgGarthGraphicBd		<cggb.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cggbi8r	 CgGarthGraphicBdIt		<cggbi.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cshr8r	 CgShannon			<cshr.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cshro8r	 CgShannonOb			<cshro.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cshb8r	 CgShannonBd			<cshb.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+cshx8r	 CgShannonExBd			<cshx.pfa	"TeXBase1Encoding ReEncodeFont" <8r.enc
+
+%  The same for 0 (old lwnfss).
+pagk0	 AvantGarde-Book
+pagko0	 AvantGarde-BookOblique
+pagd0	 AvantGarde-Demi
+pagdo0	 AvantGarde-DemiOblique
+pbkl0	 Bookman-Light
+pbkli0	 Bookman-LightItalic
+pbklo0 Bookman-Light ".167 SlantFont"
+pbkd0	 Bookman-Demi
+pbkdi0	 Bookman-DemiItalic
+pbkdo0 Bookman-Demi ".167 SlantFont"
+pcrr0	 Courier
+pcrro0	 Courier-Oblique
+pcrb0	 Courier-Bold
+pcrbo0	 Courier-BoldOblique
+phvr0	 Helvetica
+phvro0	 Helvetica-Oblique
+phvb0	 Helvetica-Bold
+phvbo0	 Helvetica-BoldOblique
+phvrrn0	 Helvetica		".82 ExtendFont"
+phvron0	 Helvetica-Oblique	".82 ExtendFont"
+phvbrn0	 Helvetica-Bold		".82 ExtendFont"
+phvbon0	 Helvetica-BoldOblique	".82 ExtendFont"
+pncr0	 NewCenturySchlbk-Roman
+pncri0	 NewCenturySchlbk-Italic
+pncro0 NewCenturySchlbk-Roman ".167 SlantFont"
+pncb0	 NewCenturySchlbk-Bold
+pncbi0	 NewCenturySchlbk-BoldItalic
+pncbo0 NewCenturySchlbk-Bold ".167 SlantFont"
+pplr0	 Palatino-Roman
+pplri0	 Palatino-Italic
+pplro0	 Palatino-Roman		".167 SlantFont"
+pplb0	 Palatino-Bold
+pplbi0	 Palatino-BoldItalic
+pplbo0 Palatino-Bold ".167 SlantFont"
+pplbu0	 Palatino-BoldItalic	"-.1763 SlantFont"
+pplru0	 Palatino-Italic	"-.1763 SlantFont"
+pplrrn0	 Palatino-Roman		".82 ExtendFont"
+pplrre0	 Palatino-Roman		"1.2 ExtendFont"
+ptmr0	 Times-Roman
+ptmri0	 Times-Italic
+ptmro0	 Times-Roman		".167 SlantFont"
+ptmb0	 Times-Bold
+ptmbi0	 Times-BoldItalic
+ptmbo0	 Times-Bold		".167 SlantFont"
+ptmrrn0	 Times-Roman		".8 ExtendFont"
+ptmrre0	 Times-Roman		"1.2 ExtendFont"
+pzcmi0	 ZapfChancery-MediumItalic
+putr0	 Utopia-Regular			<putr.pfa
+putri0	 Utopia-Italic			<putri.pfa
+putro0 Utopia-Regular ".167 SlantFont " <putr.pfa
+putb0	 Utopia-Bold			<putb.pfa
+putbi0	 Utopia-BoldItalic		<putbi.pfa
+putbo0 Utopia-Bold ".167 SlantFont " <putb.pfa
+bchr0	 CharterBT-Roman		<bchr.pfb
+bchri0	 CharterBT-Italic		<bchri.pfb
+bchro0 CharterBT-Roman ".167 SlantFont " <bchr.pfa
+bchb0	 CharterBT-Bold			<bchb.pfb
+bchbi0	 CharterBT-BoldItalic		<bchbi.pfb
+bchbo0 CharterBT-Bold ".167 SlantFont " <bchb.pfa
+uaqrrc0	 URWAntiquaT-RegularCondensed	<uaqrrc.pfa
+ugqb0	 URWGroteskT-Bold		<ugqb.pfa
+unmr0	 NimbusRomanNo9L-Regular	<unmr.pfa
+unmrs0	 NimbusSansL-Regular		<unmrs.pfa
+paab0	 Aachen-Bold			<paab.pfa
+padr0	 AGaramond-Regular		<padr.pfa
+padri0	 AGaramond-Italic		<padri.pfa
+pads0	 AGaramond-Semibold		<pads.pfa
+padsi0	 AGaramond-SemiboldItalic	<padsi.pfa
+padb0	 AGaramond-Bold			<padb.pfa
+padbi0	 AGaramond-BoldItalic		<padbi.pfa
+padrd0	 AGaramond-Titling		<padrd.pfa
+padrx0	 AGaramondExp-Regular		<padrx.pfa
+padrix0	 AGaramondExp-Italic		<padrix.pfa
+padsx0	 AGaramondExp-Semibold		<padsx.pfa
+padbx0	 AGaramondExp-Bold		<padbx.pfa
+padbix0	 AGaramondExp-BoldItalic	<padbix.pfa
+pbdr0	 Bodoni				<pbdr.pfa
+pbdri0	 Bodoni-Italic			<pbdri.pfa
+pbdb0	 Bodoni-Bold			<pbdb.pfa
+pbdbi0	 Bodoni-BoldItalic		<pbdbi.pfa
+pbdp0	 Bodoni-Poster			<pbdp.pfa
+pburw0	 BrushScript			<pburw.pfa
+pc5r0	 CaslonFiveForty-Roman		<pc5r.pfa
+pc5ri0	 CaslonFiveForty-Italic		<pc5ri.pfa
+pc3r0	 CaslonThree-Roman		<pc3r.pfa
+pc3ri0	 CaslonThree-Italic		<pc3ri.pfa
+phvrrc0	 Helvetica-Condensed		<phvrrc.pfa
+phvroc0	 Helvetica-Condensed-Oblique	<phvroc.pfa
+phvbrc0	 Helvetica-Condensed-Bold	<phvbrc.pfa
+phvboc0	 Helvetica-Condensed-BoldObl	<phvboc.pfa
+pubr0	 BauerBodoni-Roman		<pubr.pfa
+pubri0	 BauerBodoni-Italic		<pubri.pfa
+pubb0	 BauerBodoni-Bold		<pubb.pfa
+pubbi0	 BauerBodoni-BoldItalic		<pubbi.pfa
+plbk0	 LubalinGraph-Book		<plbk.pfa
+plbko0	 LubalinGraph-BookOblique	<plbko.pfa
+plbd0	 LubalinGraph-Demi		<plbd.pfa
+plbdo0	 LubalinGraph-DemiOblique	<plbdo.pfa
+psvl0	 Souvenir-Light			<psvl.pfa
+psvli0	 Souvenir-LightItalic		<psvli.pfa
+psvd0	 Souvenir-Demi			<psvd.pfa
+psvdi0	 Souvenir-DemiItalic		<psvdi.pfa
+phbr0	 Hobo				<phbr.pfa
+pslr0	 Stencil			<pslr.pfa
+plcr0	 Lucida				<plcr.pfa
+plcri0	 Lucida-Italic			<plcri.pfa
+plcro0	 Lucida				<plcr.pfa ".167 SlantFont"
+plcb0	 Lucida-Bold			<plcb.pfa
+plcbi0	 Lucida-BoldItalic		<plcbi.pfa
+plcrs0	 LucidaSans			<plcrs.pfa
+plcris0	 LucidaSans-Italic		<plcris.pfa
+plcbs0	 LucidaSans-Bold		<plcbs.pfa
+plcbis0	 LucidaSans-BoldItalic		<plcbis.pfa
+plcrb0	 LucidaBrightNormal		<plcrb.pfa
+plcrbi0	 LucidaBrightItalic		<plcrbi.pfa
+plcbb0	 LucidaBrightBold		<plcbb.pfa
+plcrst0	 LucidaSansTypNormal		<plcrst.pfa
+plcrm0	 LucidaMath-Italic		<plcrm.pfa
+plcrv0	 LucidaMath-Extension		<plcrv.pfa
+plcry0	 LucidaMath-Symbol		<plcry.pfa
+ylhr0	 LucidaBright			<ylhr.pfb
+ylhri0	 LucidaBright-Italic		<ylhri.pfb
+ylhro0	 LucidaBright-Oblique		<ylhro.pfb
+ylhd0	 LucidaBright-Demi		<ylhd.pfb
+ylhdi0	 LucidaBright-DemiItalic	<ylhdi.pfb
+ylcrs0	 LucidaSans			<ylcrs.pfb
+ylcds0	 LucidaSans-Demi		<ylcds.pfb
+ylcdis0	 LucidaSans-DemiItalic		<ylcdis.pfb
+ylcrst0	 LucidaSans-Typewriter		<ylcrst.pfb
+ylcrost0 LucidaSans-TypewriterOblique	<ylcrost.pfb
+ylcbst0	 LucidaSans-TypewriterBold	<ylcbst.pfb
+ylcbost0 LucidaSans-TypewriterBoldOblique	<ylcbost.pfb
+ylcr40	 LucidaFax			<ylcr4.pfb
+ylcr4i0	 LucidaFax-Italic		<ylcr4i.pfb
+ylcd40	 LucidaFax-Demi			<ylcd4.pfb
+ylcd4i0	 LucidaFax-DemiItalic		<ylcd4i.pfb
+ylcrf0	 LucidaBlackletter		<ylcrf.pfb
+ylcrihw0 LucidaHandwriting-Italic	<ylcrihw.pfb
+ylcris0	 LucidaSans-Italic		<ylcris.pfb
+ylcriw0	 LucidaCalligraphy-Italic	<ylcriw.pfb
+cggr0	 CgGarthGraphic			<cggr.pfa
+cggri0	 CgGarthGraphicIt		<cggri.pfa
+cggb0	 CgGarthGraphicBd		<cggb.pfa
+cggbi0	 CgGarthGraphicBdIt		<cggbi.pfa
+cshr0	 CgShannon			<cshr.pfa
+cshro0	 CgShannonOb			<cshro.pfa
+cshb0	 CgShannonBd			<cshb.pfa
+cshx0	 CgShannonExBd			<cshx.pfa
+
+% 	
+% Local variables:
+% page-delimiter: "^% \f"
+% End:

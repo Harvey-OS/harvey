@@ -82,9 +82,6 @@ Cinfo cinfo[] =
 	{0x0424, 0x9505, S95xx},
 	{0x0424, 0x9E00, S95xx},
 	{0x0424, 0x9E01, S95xx},
-	/* LAN78xx family - gigabit ethernet
-	 */
-	{0x0424, 0x7800, S78xx},	/* raspberry pi 3 B+ */
 	{0, 0, 0},
 };
 
@@ -124,7 +121,6 @@ Resetf ethers[] =
 {
 	asixreset,
 	smscreset,
-	lan78xxreset,
 	cdcreset,	/* keep last */
 };
 
@@ -1149,34 +1145,29 @@ etherinit(Ether *e, int *ei, int *eo)
 static int
 kernelproxy(Ether *e)
 {
-	int ctlfd, n, i;
-	char ename[20];
+	int ctlfd, n;
 	char eaddr[13];
 
+	ctlfd = open("#l0/ether0/clone", ORDWR);
+	if(ctlfd < 0){
+		deprint(2, "%s: etherusb bind #l0: %r\n", argv0);
+		return -1;
+	}
 	close(e->epin->dfd);
 	close(e->epout->dfd);
-	for(i = 0; i < 10; i++){
-		sprint(ename, "#l%d/ether%d/clone", i, i);
-		ctlfd = open(ename, ORDWR);
-		if(ctlfd < 0){
-			deprint(2, "%s: etherusb bind %.3s: %r\n", argv0, ename);
-			break;
-		}
-		seprintaddr(eaddr, eaddr+sizeof(eaddr), e->addr);
-		n = fprint(ctlfd, "bind %s #u/usb/ep%d.%d/data #u/usb/ep%d.%d/data %s %d %d",
-			e->name, e->dev->id, e->epin->id, e->dev->id, e->epout->id,
-			eaddr, e->bufsize, e->epout->maxpkt);
-		if(n < 0){
-			deprint(2, "%s: etherusb bind %.3s: %r\n", argv0, ename);
-			close(ctlfd);
-			continue;
-		}
+	seprintaddr(eaddr, eaddr+sizeof(eaddr), e->addr);
+	n = fprint(ctlfd, "bind %s #u/usb/ep%d.%d/data #u/usb/ep%d.%d/data %s %d %d",
+		e->name, e->dev->id, e->epin->id, e->dev->id, e->epout->id,
+		eaddr, e->bufsize, e->epout->maxpkt);
+	if(n < 0){
+		deprint(2, "%s: etherusb bind #l0: %r\n", argv0);
+		opendevdata(e->epin, OREAD);
+		opendevdata(e->epout, OWRITE);
 		close(ctlfd);
-		return 0;
+		return -1;
 	}
-	opendevdata(e->epin, OREAD);
-	opendevdata(e->epout, OWRITE);
-	return -1;
+	close(ctlfd);
+	return 0;
 }
 
 int
@@ -1231,18 +1222,8 @@ ethermain(Dev *dev, int argc, char **argv)
 
 	if(openeps(e, epin, epout) < 0)
 		return -1;
-	if(kernelproxy(e) == 0){
-		if(e->multicast != nil){
-			/*
-			 * Until there is an interface for the kernel etherusb driver
-			 * to write to usb/ether ctl file, multicast needs to be on
-			 * by default so ipv6 will work.
-			 */
-			e->nmcasts++;
-			e->multicast(e, nil, 1);
-		}
+	if(kernelproxy(e) == 0)
 		return 0;
-	}
 	e->fs = etherfs;
 	snprint(e->fs.name, sizeof(e->fs.name), "etherU%d", devid);
 	e->fs.dev = dev;

@@ -1,0 +1,220 @@
+# 9k risc-v cpu server for polarfire icicle in rv64
+dev +dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+#	rtc
+	ssl
+	tls
+	cap
+	pnp		pci
+	kprof
+	segment
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium
+	uart
+	bridge		log
+	sd
+# needed for usb kbd input via scan codes
+#	kbin
+#	usb
+
+sd +dev
+	sdmmc		sdpf
+#	sdahci		pci sdscsi
+#	sdnvme		pci sdscsi
+
+uart +dev
+	uarti8250
+
+ip +dev
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+#	ipmux
+
+link +dev
+	ethergem
+	ethermedium
+	loopbackmedium
+	netdevmedium
+#	usbehci		usbehcipc
+
+misc +dev
+	cache
+
+#
+#boot cpu
+#	int cpuflag = 1;
+#boot cpu boot $3
+#	int cpuflag = 1;
+#	char* bootdisk = "$3";
+#boot rootdir $3
+#	char* rootdir = "$3";
+#boot (bboot|romboot|dosboot)
+#	int cpuflag = 1;
+#	char* bootprog = $2;
+#boot boot $3
+#	char* bootdisk = "$3";
+#
+boot cpu
+	tcp
+
+rootdir
+	boot$CONF.out		boot
+	/riscv64/bin/auth/factotum
+	/riscv64/bin/ip/ipconfig
+
+conf
+	#include "riscv64.h"
+
+	int cpuserver = 1;
+	int hobbled = 1;	/* flag: hobbled boot core at hartid 0? */
+	uvlong cpuhz = 600*1000*1000;	/* rdtsc tick freq */
+	uvlong timebase = 1000*1000;	/* clint tick freq */
+	Membank membanks[] = {		/* (address, size) pairs */
+		PHYSMEM, GB,
+	//	0x1040000000LL, GB,	// TODO: working on my board?
+		0,
+	};
+	char defnvram[] = "#S/sdM0/nvram";
+
+	uintptr uart0regs  =   PAUart0;		/* uart 1 actually */
+	uintptr uartregs[] = { PAUart0 };
+	int nuart = nelem(uartregs);
+	vlong uartfreq = 150000000;	/* from pf docs & dev tree */
+
+	/* copied the mac address that u-boot uses */
+	uchar ether0mac[] = { 0x56, 0x34, 0x12, 0x00, 0xfc, 0x00, };
+
+	Soc soc = {
+		.clint	= (char *)PAClint,
+		.ether[0]= (char *)0x20112000,  /* 2nd ether: dhcp uses it */
+		.ether[1]= (char *)0x20110000,	/* first ether */
+		.l2cache = (char *)0x02010000,
+		.pci	 = (char *)0x70000000,	/* ecam for cfg space */
+					/* moves to 0x2000000000 in newer hss */
+		.pcictl  = (char *)0x03008000,	/* axi: 2nd bridge, ctrl regs */
+		.pciess	 = (char *)0x02050000,	/* soft reset, etc. */
+		.plic    = (char *)0x0c000000,	/* common */
+	//	.rtc	 = (char *)0x20122400,
+	//	.timer   = (char *)0x20125000,
+		.uart	 = (char *)PAUart0,
+	//	.wdog0   = (char *)0x20001000,
+		.sdmmc   = (char *)0x20008000,
+		.sdiosel = (char *)0x4f000000,
+	};
+	Ioconf ioconfs[] = {	/* devices whose drivers vmap their regs */
+		/* physically-second ether is used by u-boot pxe boot */
+		{ "ether", 2*PGSZ, &soc.ether[0], 70, },
+		{ "ether", 2*PGSZ, &soc.ether[1], 64, 1, },
+		0
+	};
+	Ioconf socconf[] = { /* devices without drivers that vmap their regs */
+		{ "clint", 64*KB, &soc.clint, },
+		{ "l2cache", PGSZ, &soc.l2cache, },
+		{ "pci",   2*MB, &soc.pci, },		/* pcie [01] ecam cfg */
+		{ "pcictl", 2*32*KB, &soc.pcictl, },	/* pcie [01] brg, ctl */
+		{ "pciess", PGSZ, &soc.pciess, },
+		{ "plic",  64*MB, &soc.plic, },		/* common */
+	//	{ "rtc",   PGSZ, &soc.rtc, 81, },	/* unused */
+	//	{ "timer", PGSZ, &soc.timer, 82, },	/* unused */
+		{ "uart",  PGSZ, &soc.uart, 91, },
+	//	{ "wdog",  PGSZ, &soc.wdog0, },		/* unused */
+		{ "sdmmc", PGSZ, &soc.sdmmc, 88, },
+		{ "sdiosel", PGSZ, &soc.sdiosel, },
+		0
+	};
+
+	void iophysaddrset(void) {}
+
+dbgflg
+#	sysproc		'E'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#	archrv		'V'
+#	asm		'a'
+#	chan		'c'
+#	mmu		'm'
+#	main		'x'
+riscv64
+	start
+	begin
+	fakemtrap
+	strap
+	l64
+	main
+	arch
+	archrv
+	fp
+	fpu
+	ioconf
+#	kbd
+	map
+	memory
+	mmu
+	sane
+	sbi
+	sbicall
+	sbiecall
+	trap
+port
+	alarm
+	allocb
+	awaitbit
+	byteserial
+	chan
+	ctype
+	dev
+	devtab
+	edf
+	fault
+	image
+#	latin1
+	logpow
+	page
+	parse
+	pgrp
+	portclock
+	noprf
+	print
+	proc
+	ps
+	qio
+	qlock
+	qmalloc
+	random
+	rebootcmd
+	segment
+	sysauth
+	syscall
+	syscallfmt
+	sysfile
+	sysproc
+	sysseg
+	systab
+	taslock
+	tod
+	watermarks
+
+#
+# controls which directories to look in for source files; must be relative to ..
+#
+dir
+	ip
+	port
+
+#lib
+#	libip
+#	libsec
+#	libmp
+#	libc

@@ -6,12 +6,13 @@
 #include "page.h"
 
 void*
-emalloc(int sz)
+emalloc(uintptr sz)
 {
 	void *v;
+
 	v = malloc(sz);
 	if(v == nil) {
-		fprint(2, "out of memory allocating %d\n", sz);
+		fprint(2, "out of memory allocating %lld\n", (uvlong)sz);
 		wexits("mem");
 	}
 	memset(v, 0, sz);
@@ -19,11 +20,11 @@ emalloc(int sz)
 }
 
 void*
-erealloc(void *v, int sz)
+erealloc(void *v, uintptr sz)
 {
 	v = realloc(v, sz);
 	if(v == nil) {
-		fprint(2, "out of memory allocating %d\n", sz);
+		fprint(2, "out of memory allocating %lld\n", (uvlong)sz);
 		wexits("mem");
 	}
 	return v;
@@ -33,6 +34,7 @@ char*
 estrdup(char *s)
 {
 	char *t;
+
 	if((t = strdup(s)) == nil) {
 		fprint(2, "out of memory in strdup(%.10s)\n", s);
 		wexits("mem");
@@ -105,6 +107,7 @@ stdinpipe(uchar *ibuf, int in)
 	uchar buf[8192];
 	int n;
 	int p[2];
+
 	if(pipe(p) < 0){
 		fprint(2, "pipe fails: %r\n");	
 		wexits("pipe");

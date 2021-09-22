@@ -347,5 +347,4 @@ mutual exclusion lock for altering mbox
 .IR nedmail (1),
 .IR qer (8),
 .IR rewrite (6),
-.IR send (8),
-.IR upasfs (4)
+.IR send (8)

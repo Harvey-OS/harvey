@@ -66,7 +66,7 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 
 	/* second level contains clone plus all the conversations */
 	t = NETTYPE(c->qid.path);
-	if(t == N2ndqid || t == Ncloneqid || t == Naddrqid || t == Nstatqid || t == Nifstatqid){
+	if(t == N2ndqid || t == Ncloneqid || t == Naddrqid || t == Nmtuqid){
 		switch(i) {
 		case DEVDOTDOT:
 			q.type = QTDIR;
@@ -89,8 +89,12 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 			q.path = Nifstatqid;
 			devdir(c, q, "ifstats", 0, eve, 0444, dp);
 			break;
+		case 4:
+			q.path = Nmtuqid;
+			devdir(c, q, "mtu", 0, eve, 0444, dp);
+			break;
 		default:
-			i -= 4;
+			i -= 5;
 			if(i >= nif->nfile)
 				return -1;
 			if(nif->f[i] == 0)
@@ -220,12 +224,16 @@ netifread(Netif *nif, Chan *c, void *a, long n, ulong offset)
 		j += snprint(p+j, READSTR-j, "out: %llud\n", nif->outpackets);
 		j += snprint(p+j, READSTR-j, "crc errs: %d\n", nif->crcs);
 		j += snprint(p+j, READSTR-j, "overflows: %d\n", nif->overflows);
-		j += snprint(p+j, READSTR-j, "soft overflows: %d\n", nif->soverflows);
+		j += snprint(p+j, READSTR-j, "soft overflows: %d\n",
+			nif->soverflows);
 		j += snprint(p+j, READSTR-j, "framing errs: %d\n", nif->frames);
 		j += snprint(p+j, READSTR-j, "buffer errs: %d\n", nif->buffs);
 		j += snprint(p+j, READSTR-j, "output errs: %d\n", nif->oerrs);
 		j += snprint(p+j, READSTR-j, "prom: %d\n", nif->prom);
-		j += snprint(p+j, READSTR-j, "mbps: %d\n", nif->mbps);
+		if (nif->mbps < 1000)
+			j += snprint(p+j, READSTR-j, "Mb/s: %d\n", nif->mbps);
+		else
+			j += snprint(p+j, READSTR-j, "Gb/s: %d\n", nif->mbps/1000);
 		j += snprint(p+j, READSTR-j, "addr: ");
 		for(i = 0; i < nif->alen; i++)
 			j += snprint(p+j, READSTR-j, "%2.2ux", nif->addr[i]);
@@ -248,6 +256,10 @@ netifread(Netif *nif, Chan *c, void *a, long n, ulong offset)
 		return readnum(offset, a, n, f->type, NUMSIZE);
 	case Nifstatqid:
 		return 0;
+	case Nmtuqid:
+		snprint(up->genbuf, sizeof up->genbuf, "%11.ud %11.ud %11.ud\n",
+			nif->minmtu, nif->mtu, nif->maxmtu);
+		return readstr(offset, a, n, up->genbuf);
 	}
 	error(Ebadarg);
 	return -1;	/* not reached */
@@ -291,7 +303,7 @@ long
 netifwrite(Netif *nif, Chan *c, void *a, long n)
 {
 	Netfile *f;
-	int type;
+	int type, mtu;
 	char *p, buf[64];
 	uchar binaddr[Nmaxaddr];
 
@@ -335,6 +347,15 @@ netifwrite(Netif *nif, Chan *c, void *a, long n)
 			f->scan = type;
 			nif->scan++;
 		}
+	} else if((p = matchtoken(buf, "mtu")) != 0){
+		mtu = atoi(p);
+		/* zero resets default. */
+		if(mtu != 0 && (mtu < nif->minmtu || mtu > nif->maxmtu))
+			error(Ebadarg);
+		if(nif->hwmtu)
+			nif->mtu = nif->hwmtu(nif->arg, mtu);
+		else
+			nif->mtu = mtu;
 	} else if(matchtoken(buf, "bridge")){
 		f->bridge = 1;
 	} else if(matchtoken(buf, "headersonly")){
@@ -378,10 +399,8 @@ netifwstat(Netif *nif, Chan *c, uchar *db, int n)
 		free(dir);
 		error(Eshortstat);
 	}
-	if(!emptystr(dir[0].uid)){
-		strncpy(f->owner, dir[0].uid, KNAMELEN-1);
-		f->owner[KNAMELEN-1] = 0;
-	}
+	if(!emptystr(dir[0].uid))
+		strncpy(f->owner, dir[0].uid, KNAMELEN);
 	if(dir[0].mode != ~0UL)
 		f->mode = dir[0].mode;
 	free(dir);
@@ -477,8 +496,7 @@ netown(Netfile *p, char *o, int omode)
 			return -1;
 		}
 	}
-	strncpy(p->owner, o, KNAMELEN-1);
-	p->owner[KNAMELEN-1] = 0;
+	strncpy(p->owner, o, KNAMELEN);
 	p->mode = 0660;
 	unlock(&netlock);
 	return 0;

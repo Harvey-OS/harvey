@@ -57,7 +57,7 @@ strprint(int fd)
 
 	for(bin = stab; bin < stab+STRHASH; bin++)
 		for(x=*bin; x; x=x->next)
-			fprint(fd, "%ld %s\n", bin-stab, x->str);
+			fprint(fd, "%lld %s\n", (vlong)(bin - stab), x->str);
 }
 
 static long

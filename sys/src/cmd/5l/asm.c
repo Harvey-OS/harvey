@@ -1161,15 +1161,27 @@ PP = p;
 		break;
 
 	/* old arm 7500 fp using coproc 1 (1<<8) */
+	/* vfp alternative treats FPCR and FPSR both as aliases for FPCSR (=1) */
 	case 56:	/* move to FP[CS]R */
+		if(vfp){
+			o1 = ((p->scond & C_SCOND) << 28) | (0xee << 20) | (0xa<<8) | (1<<4);
+			o1 |= (1 << 16) | (p->from.reg << 12);
+			break;
+		}
 		o1 = ((p->scond & C_SCOND) << 28) | (0xe << 24) | (1<<8) | (1<<4);
 		o1 |= ((p->to.reg+1)<<21) | (p->from.reg << 12);
 		break;
 
 	case 57:	/* move from FP[CS]R */
+		if(vfp){
+			o1 = ((p->scond & C_SCOND) << 28) | (0xef << 20) | (0xa<<8) | (1<<4);
+			o1 |= (1 << 16) | (p->to.reg << 12);
+			break;
+		}
 		o1 = ((p->scond & C_SCOND) << 28) | (0xe << 24) | (1<<8) | (1<<4);
 		o1 |= ((p->from.reg+1)<<21) | (p->to.reg<<12) | (1<<20);
 		break;
+
 	case 58:	/* movbu R,R */
 		o1 = oprrr(AAND, p->scond);
 		o1 |= immrot(0xff);

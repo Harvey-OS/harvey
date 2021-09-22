@@ -1,0 +1,77 @@
+.TH WEAVE 1 "4 May 1993" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if n .ds TX TeX
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.\" the same but obliqued
+.el .ds OX TeX\" for nroff
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.\" BX definition must follow TX so BX can use TX
+.if n .ds BX BibTeX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.\" LX definition must follow TX so LX can use TX
+.if n .ds LX LaTeX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds WB Web
+.if t .ds WB W\s-2EB\s0
+.\"=====================================================================
+.SH NAME
+weave \- translate WEB to TeX
+.SH SYNOPSIS
+.B weave
+[
+.B \-x
+]
+.I webfile[.web]
+[
+.I changefile[.ch]
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B weave
+program is used to create a \*(TX file for viewing a \*(WB program.
+It takes appropriate care of typographic details like page
+layout and the use of indentation, italics, boldface, etc., and it supplies
+extensive cross-index information that it gathers automatically.
+The command line arguments are the same as for
+.B tangle
+except for the option:
+.B \-x
+says to omit the index, module name list, and table of contents pages.
+(A
+.I CONTENTS.tex
+file will still be written when the \*(TX file is processed,
+however, unless some macros in
+.I webmac.tex
+are redefined.)
+.PP
+The output \*(TX file name is formed by adding
+.I .tex
+to the root of the \*(WB file name.
+.PP
+There are several macros
+that probably should be redefined by
+the programmer at the beginning of the \*(WB file.
+It is a good idea to set \\title
+to the name of the program.
+And, to cause output of only changed modules, one can say
+\\let\\maybe=\\iffalse (usually as the first change in the
+change file).
+.\"=====================================================================
+.SH FILES
+.TP \w'@@'u+2n
+.I $TEXMFMAIN/plain/base/webmac.tex
+\*(TX macros used by
+.B weave
+output.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR tangle (1)
+for references, authors, and other information.

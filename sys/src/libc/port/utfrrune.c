@@ -14,17 +14,17 @@ utfrrune(char *s, long c)
 	s1 = 0;
 	for(;;) {
 		c1 = *(uchar*)s;
-		if(c1 < Runeself) {	/* one byte rune */
+		if(c1 < Runeself) {	/* one-byte rune */
 			if(c1 == 0)
 				return s1;
 			if(c1 == c)
 				s1 = s;
 			s++;
-			continue;
+		} else {
+			c1 = chartorune(&r, s);
+			if(r == c)
+				s1 = s;
+			s += c1;
 		}
-		c1 = chartorune(&r, s);
-		if(r == c)
-			s1 = s;
-		s += c1;
 	}
 }

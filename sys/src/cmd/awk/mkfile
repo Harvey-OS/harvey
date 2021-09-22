@@ -8,8 +8,11 @@ OFILES=re.$O\
 	proctab.$O\
 	tran.$O\
 	lib.$O\
+	env.$O\
 	run.$O\
 	awkgram.$O\
+	popen.$O\
+	system.$O\
 
 HFILES=awk.h\
 	y.tab.h\
@@ -28,11 +31,8 @@ UPDATE=\
 	${TARG:%=/386/bin/%}\
 
 </sys/src/cmd/mkone
-CFLAGS=-FTV -c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -D_BSD_EXTENSION -DUTF
-YFLAGS=-S -d -v
-CC=pcc
-LD=pcc
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+CFLAGS=-FTV # -DUSE_BSTDIO
+YFLAGS=-d -v
 
 y.tab.h awkgram.c:	$YFILES
 	$YACC -o awkgram.c $YFLAGS $prereq
@@ -43,12 +43,16 @@ clean:V:
 nuke:V:
 	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug y.output awkgram.c $TARG
 
-proctab.c:	$cpuobjtype.maketab
-	./$cpuobjtype.maketab >proctab.c
+objtype=$cputype
 
-$cpuobjtype.maketab:	y.tab.h maketab.c
-	objtype=$cputype
-	mk maketab.$cputype
+proctab.c:D:	$O.maketab
+	if (test -e   orig/proctab.c)
+		cp -x orig/proctab.c .
+	if not
+		./$O.maketab >proctab.c
+
+$O.maketab:	y.tab.h maketab.c
+	mk 'CFLAGS=-FTV' maketab.$cputype
 
 maketab.$cputype:V:	y.tab.h maketab.$O
 	$LD -o $O.maketab maketab.$O

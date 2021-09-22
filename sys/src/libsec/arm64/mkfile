@@ -1,0 +1,11 @@
+objtype=arm
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libsec.a
+OFILES=	\
+
+HFILES=/sys/include/libsec.h
+
+UPDATE=mkfile
+
+</sys/src/cmd/mksyslib

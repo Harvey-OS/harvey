@@ -1,0 +1,23 @@
+#!/bin/rc
+
+switch($#*) {
+case 0
+	args=g0
+case *
+	args=$*
+}
+
+new=(8.out)
+new=(8.out -B)
+
+for(i in $args) {
+	echo $i':'
+	gen.awk < $i > g.c
+	8c g.c
+	8l -o gold g.8
+	$new g.c
+	8l -o gnew g.8
+	gold > /tmp/gold.out
+	gnew > /tmp/gnew.out
+	diff /tmp/gold.out /tmp/gnew.out
+}

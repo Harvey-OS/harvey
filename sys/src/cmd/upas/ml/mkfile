@@ -7,8 +7,6 @@ TARG=ml\
 OFILES=\
 	common.$O\
 
-LIB=../common/libcommon.av\
-
 UHFILES= ../common/common.h\
 	../common/sys.h\
 	dat.h\

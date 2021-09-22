@@ -1,6 +1,10 @@
 #!/bin/rc
 # C system - connect to system's console
 rfork en
+if (~ $#* 0) {
+	echo usage: $0 '[-r]' system >[1=2]
+	exit usage
+}
 oflag=()
 opt=-r
 while(~ $1 -*)
@@ -17,11 +21,13 @@ while(~ $1 -*)
 	}
 
 switch($1){
+# usually you should add a 'console=<console-server>' clause
+# to the target machine's ndb entry, not modify this script.
 case ella
 	exec C office0
 	exit
-case erika
-	exec C office1
+case Rella
+	exec C office2 < /dev/null
 	exit
 case *
 	# look for server in /lib/ndb
@@ -29,7 +35,7 @@ case *
 	switch($server){
 	case ''
 		echo C: unknown console server for $1
-		exit 1
+		exit 'unknown console server'
 	}
 }
 
@@ -37,7 +43,10 @@ case *
 switch($server){
 case dinar bones
 	ssh $server C $1
-	exit 0
+	exit ''
+case out?* roku?*
+	outside
+	bind /net.alt /net
 }
 
 if(! test -e /mnt/consoles/$1){
@@ -45,7 +54,13 @@ if(! test -e /mnt/consoles/$1){
 	case $server
 		mount /srv/consoles /mnt/consoles
 	case *
-		import $oflag $server /mnt/consoles
+		import -E clear $oflag $server /mnt/consoles
+		x=`{ls /mnt/consoles}
+		if (~ $#x 0) {
+			import -E clear $oflag $server / /n/$server
+			# gets: i/o on hungup channel
+			mount /n/$server/srv/consoles /mnt/consoles
+		}
 	}
 }
 

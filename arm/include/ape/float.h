@@ -46,7 +46,7 @@ union FPdbleword
 
 #ifdef _RESEARCH_SOURCE
 /* define stuff needed for floating conversion */
-#define IEEE_8087	1
+#define IEEE_MC68k	1
 #define Sudden_Underflow 1
 #endif
 #ifdef _PLAN9_SOURCE

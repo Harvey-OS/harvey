@@ -1,0 +1,165 @@
+#!/bin/rc
+# '$Id: makempx.in,v 1.7 1997/12/01 19:21:12 olaf Exp $'
+# Make an MPX file from the labels in a MetaPost source file,
+# using mpto and either dvitomp (TeX) or dmp (troff).
+# From John Hobby's original (though there's not much of it left by now).
+# Public domain.
+
+rfork e
+
+rcs_revision='$Revision: 1.7 $'
+version=1.7
+DMP=dmp
+DVITOMP=dvitomp
+MAKEMPX_BINDIR=/sys/lib/texmf/bin/$objtype
+MPFILE=''
+MPXFILE=''
+MPTEXPRE=mptexpre.tex
+MPTOTEX=(mpto -tex)
+MPTOTR=(mpto -troff)
+NEWER=newer
+TEX=tex
+TROFF='eqn -d$$ | troff -Tpost'
+
+# These names are documented in the MetaPost manual, so it's
+# unwise to change them.
+ERRLOG=mpxerr.log		# file for an error log if necessary
+TEXERR=mpxerr.tex		# file for erroneous TeX if any
+DVIERR=mpxerr.dvi		# troublesome dvi file if any
+TROFF_INERR=mpxerr		# file for erroneous troff input, if any
+TROFF_OUTERR=mpxerr.t		# file for troublesome troff output, if any
+
+
+usage='Usage: '$0' [-tex|-troff] MPFILE MPXFILE.
+  If MPXFILE is older than MPFILE, translate the labels from the MetaPost
+  input file MPFIle to low-level commands in MPXFILE, by running
+    $MPTOTEX, $TEX, and $DVITOMP
+  by default; or, if -troff is specified,
+    $MPTOTR, $TROFF, and $DMP.
+
+  The current directory is used for writing temporary files.  Errors are
+  left in mpxerr.{tex,log,dvi}.
+
+  If the file named in \$MPTEXPRE (mptexpre.tex by default) exists, it is
+  prepended to the output in tex mode.
+
+Email bug reports to tex-k@mail.tug.org.'
+
+
+mode=tex
+
+while(! ~ $#* 0) {
+	switch($1){
+	case -help --help
+		echo $usage
+		exit usage
+	case -version --version
+		echo `{basename $0} '(Web2c 7.2)' $version
+		echo 'There is NO warranty.  This script is public domain.
+Primary author: John Hobby'
+		exit
+	case -troff --troff
+		mode=troff
+	case -tex --tex
+		mode=tex
+	case -*
+		echo $0': Invalid option: '$1 >[1=2]
+		echo 'Try '$0' --help for more information.' >[1=2]
+		exit usage
+	case *
+		if(~ $MPFILE '')
+			MPFILE=$1
+		if not if(~ $MPXFILE '')
+			MPXFILE=$1
+		if not {
+			echo $0': Extra argument '$1 >[1=2]
+			echo 'Try '$0' --help for more information.' >[1=2]
+			exit badusage
+		}
+	}
+	shift
+}
+
+if(~ $MPFILE '' || ~ $MPXFILE '') {
+	echo $0': need exactly two arguments' >[1=2]
+	exit usage
+}
+
+# trap "rm -f mpx$$.* $ERRLOG; exit 4" 1 2 3 15
+
+if($NEWER $MPFILE $MPXFILE) {
+	switch($mode){
+	case tex
+		MPTO=$MPTOTEX
+	case troff
+		MPTO=$MPTOTR
+	case *
+		echo $0': unknown typesetter mode '$mode >[1=2]
+		exit typeset
+	}
+
+	# Step 1: Extract typesetter source from MetaPost source.
+	if(! $MPTO $MPFILE >mpx$pid.tex >[2]$ERRLOG) {
+		echo $0': command failed:' $MPTO $MPFILE >[1=2]
+		cat $ERRLOG >[1=2]
+		rm -f mpx$pid.tex
+		exit error
+	}
+
+	if(~ $mode troff)
+		mv -f mpx$pid.tex mpx$pid.i
+
+	# Step 2: Run typesetter.
+	if(~ $mode tex) {
+		if(test -r $MPTEXPRE) {
+			cat $MPTEXPRE mpx$pid.tex >mpx$pid.tmp
+			mv mpx$pid.tmp mpx$pid.tex
+		}
+
+		if($TEX --interaction'='batchmode mpx$pid.tex </dev/null >/dev/null) {
+			WHATEVER_TO_MPX=$DVITOMP
+			INFILE=mpx$pid.dvi
+			INERROR=$DVIERR
+		} 
+		if not {
+			mv -f mpx$pid.tex $TEXERR
+			mv -f mpx$pid.log $ERRLOG
+			echo $0': command failed:' $TEX $TEXERR; see $ERRLOG >[1=2]
+			exit texfail
+		}
+	}
+	if not if(~ $mode troff) {
+		if(cat mpx$pid.i | eval $TROFF >mpx$pid.t) {
+			WHATEVER_TO_MPX=$DMP
+			INFILE=mpx$pid.t
+			INERROR=$TROFF_OUTERR
+		}
+		if not {
+			mv -f mpx$pid.i $TROFF_INERR
+			echo $0': command failed:' cat $TROFF_INERR '|' $TROFF >[1=2]
+			rm -f mpx$pid.t
+			exit trofffail
+		}
+	}
+	if not {
+		echo can''''t happen >[1=2]
+		exit coredump
+	}
+
+	# Step 3: Translate typesetter output to a MetaPost MPX.
+	if(! $WHATEVER_TO_MPX $INFILE $MPXFILE >$ERRLOG) {
+		mv -f $INFILE $INERROR
+		~ $mode troff && mv -f mpx$pid.i $TROFF_INERR
+		echo $0': command failed:' $WHATEVER_TO_MPX $INERROR $MPXFILE >[1=2]
+
+		# Better to remove $MPXFILE if something went wrong rather than
+		# leaving behind an unfinished or unusable version since $NEWER
+		# might think that all is fine if $MPXFILE exists.
+		rm -f $MPXFILE
+		cat $ERRLOG >[1=2]
+		exit trofffail
+	}
+	rm -f $ERRLOG mpx$pid.*
+}
+
+exit ''

@@ -330,7 +330,7 @@ xfwalkcr(int type, Xfid *xf, String *elem, long perm)
 		newxf->urfid = nfid;
 		nfid->owner = &newxf->urfid;
 	}else if(newxf->urfid){
-		chat("old xfid %ld...", newxf->urfid-s->fids);
+		chat("old xfid %lld...", (vlong)(newxf->urfid - s->fids));
 		clunkfid(s, nfid);
 	}else{
 		newxf->urfid = nfid;

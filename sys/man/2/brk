@@ -29,7 +29,9 @@ In the alternate function
 .I incr
 more bytes are added to the
 program's data space and a pointer to the
-start of the new area is returned.
+start of the newly-available area
+(the old break)
+is returned.
 Rounding occurs as with
 .IR brk .
 .PP
@@ -60,3 +62,14 @@ The error return from
 .I sbrk
 is
 .BR (void*)-1 .
+.SH BUGS
+Currently even the 64-bit kernels take only a
+.I ulong
+argument to
+.IR sbrk ,
+so allocating more than a few gigabytes requires
+calling
+.I brk
+directly, or
+.I sbrk
+repeatedly.

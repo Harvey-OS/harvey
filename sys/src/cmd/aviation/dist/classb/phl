@@ -1,0 +1,30 @@
+vm 0-11
+pP 39.870250, 75.245389	# phl
+
+pa d pP,m185,20
+pb d pP,m081,20
+pc d pP,m230,1.5
+pd xcls pP,6, pc,181
+pe xclw pP,6, pc,270
+
+n phl_gnd\70
+s pd,pc
+s pc,pe
+ar pP,pe,pd
+
+n phl_06\70
+ar pP,pd,pe
+
+n phl_15\70
+c pP,11
+
+pf xcls pP,15, pa,apb
+pg xcln pP,15, pa,apb
+
+n phl_30\70
+s pg,pf
+ar pP,pf,pg
+
+n phl_40\70
+S pb,pa
+Ar pP,pa,pb

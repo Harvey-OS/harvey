@@ -1,0 +1,5 @@
+This decompressing header can be built for normal and bootstrap
+kernels.  It can expand 386 and amd64 kernels and start them.  It
+currently understands lzip compression.  It is mostly self-contained,
+but includes ../pc/mem.h, ../pc/multiboot.[ch], ../pc/e820.c, and
+../pcboot/lunzip.guts.c.

@@ -58,7 +58,7 @@ box	: '{' eqn '}'	{ $$ = $2; }
 	| size box	%prec SIZE	{ size($1, $2); }
 	| font box	%prec FONT	{ font($1, $2); }
 	| FAT box			{ fatbox($2); }
-	| SQRT box			{ sqrt($2); }
+	| SQRT box			{ eqnsqrt($2); }
 	| box SUB {ps -= deltaps;} box sbox	%prec SUB	{ subsup($1, $4, $5); }
 	| box SUP {ps -= deltaps;} box		%prec SUP	{ subsup($1, 0, $4); }
 	| int SUB {ps -= deltaps;} box sbox	%prec SUB	{ integral($1, $4, $5); }

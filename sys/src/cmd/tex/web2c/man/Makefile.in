@@ -1,0 +1,77 @@
+# Makefile for web2c manual pages.
+# 
+# You need to change the variables and the pathnames only if this
+# Makefile is invoked on its own, instead of from `../Makefile'.
+
+version = @WEB2CVERSION@
+
+SHELL = /bin/sh
+top_srcdir = @top_srcdir@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+ac_include ../make/common.make
+ac_include kpathsea.make
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+
+DITROFF = ditroff
+DITROFF = groff
+
+# These pathnames are used to customize the manual pages with local
+# directory names.  They should match the system directories so the
+# documentation and the programs will be consistent. They are overridden
+# by make from web2c/Makefile.
+ac_include ../make/paths.make
+
+localmodes = modes
+
+# If you like, delete the man pages for programs you aren't installing.
+# The programs are listed in alphabetical order.
+# 
+manfiles=		\
+	amstex.1	\
+	bibtex.1	\
+	dmp.1		\
+	dvicopy.1	\
+	dvitype.1	\
+	eplain.1	\
+	etex.1		\
+	gftodvi.1	\
+	gftopk.1	\
+	gftype.1	\
+	latex.1		\
+	makempx.1	\
+	mf.1		\
+	mft.1		\
+	mpost.1		\
+	mpto.1		\
+	newer.1		\
+	omega.1		\
+	patgen.1	\
+	pdftex.1	\
+	pktogf.1	\
+	pktype.1	\
+	pltotf.1	\
+	pooltype.1	\
+	tangle.1	\
+	tex.1 		\
+	tftopl.1	\
+	vftovp.1	\
+	vptovf.1	\
+	weave.1
+
+default all: manfiles
+
+ac_include ../make/man.make
+
+install install-data: install-man
+
+Makefile: Makefile.in ../config.status
+	(cd ..; $(SHELL) config.status)
+
+ac_include ../make/clean.make
+
+# Prevent GNU make 3 from overflowing arg limit on system V.
+.NOEXPORT:

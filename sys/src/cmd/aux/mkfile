@@ -14,7 +14,8 @@ TARG=\
 	depend\
 	disksim\
 	getflags\
-	htmlsanitize\
+	ipok\
+	ipokfs\
 	lines\
 	listen\
 	listen1\
@@ -36,10 +37,10 @@ TARG=\
 	trampoline\
 	usage\
 	watchdog\
-	wpa\
 	write\
 	zerotrunc\
 
+LIB=/$objtype/lib/libnofp.a
 BIN=/$objtype/bin/aux
 
 UPDATE=\
@@ -50,12 +51,14 @@ UPDATE=\
 
 </sys/src/cmd/mkmany
 
-DIRS=mnihongo\
+DIRS=\
+#	antiword\
+#	bandt2\
 	flashfs\
 	gps\
+	mnihongo\
 	na\
-	vga\
-	realemu
+	vga
 
 all:V:	$DIRS
 

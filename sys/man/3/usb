@@ -17,7 +17,7 @@ usb \- USB Host Controller Interface
 \&...
 .fi
 .SH DESCRIPTION
-The Universal Serial Bus is a complex yet popular bus
+The Universal Serial Bus is a complex, inefficient and demanding yet popular bus
 for connecting all kind of devices to a computer.
 It is a four-wire tree-shaped bus that provides both communication and (limited)
 power to devices.
@@ -41,7 +41,7 @@ UHCI and OHCI for USB 1 (up to 12 Mb/s),
 EHCI for USB 2 (up to 480 Mb/s)
 and
 XHCI for USB 3 (up to 5 Gb/s).
-We currently support all but XHCI, which is still quite new.
+We currently support all but XHCI.
 .PP
 The USB bus is fully controlled by the host; all devices are polled.
 Hubs are passive in the sense that they do not poll the devices attached
@@ -533,5 +533,7 @@ to that of the slowest device connected to any one of them.
 .PP
 Isochronous input streams are not implemented for OHCI.
 .PP
+USB controllers interrupt far too often, which hurts performance.
+.PP
 Some EHCI controllers drop completion interrupts and so must
-be polled, which hurts throughput.
+be polled, which hurts throughput even more.

@@ -198,7 +198,7 @@ fdirconv(char *buf, char *e, Dir *d)
 static uint
 dumpsome(char *ans, char *e, char *buf, long count)
 {
-	int i, printable;
+	uint i, printable;
 	char *p;
 
 	if(buf == nil){

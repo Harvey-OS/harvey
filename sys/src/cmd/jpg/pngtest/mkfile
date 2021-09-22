@@ -1,0 +1,12 @@
+test:V:
+	for(i in *.ppm) mk `{echo $i | sed s/.ppm/.test/}
+
+%.test:VQ: %.png %.ppm
+	echo -n $stem.png...
+	../8.png -9t $stem.png | iconv -uc r8g8b8 >png.img
+	ppm -9t $stem.ppm | iconv -uc r8g8b8 >ppm.img
+	if(cmp -s png.img ppm.img)
+		echo ok
+	if not
+		echo failed
+

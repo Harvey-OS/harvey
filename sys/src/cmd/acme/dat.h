@@ -27,7 +27,7 @@ enum
 enum
 {
 	Blockincr =	256,
-	Maxblock = 	16*1024,
+	Maxblock = 	16*1024,		/* related to MAXRPC? */
 	NRange =		10,
 	Infinity = 		0x7FFFFFFF,	/* huge value for regexp address */
 };
@@ -211,7 +211,7 @@ uint		textload(Text*, uint, char*, int);
 Rune		textreadc(Text*, uint);
 void		textredraw(Text*, Rectangle, Font*, Image*, int);
 void		textreset(Text*);
-int		textresize(Text*, Rectangle, int);
+int		textresize(Text*, Rectangle);
 void		textscrdraw(Text*);
 void		textscroll(Text*, int);
 void		textselect(Text*);
@@ -235,7 +235,6 @@ struct Window
 	uchar	filemenu;
 	uchar	dirty;
 	uchar	autoindent;
-	uchar	showdel;
 	int		id;
 	Range	addr;
 	Range	limit;
@@ -264,11 +263,6 @@ struct Window
 	int		utflastqid;
 	int		utflastboff;
 	int		utflastq;
-	int		tagsafe;		/* taglines is correct */
-	int		tagexpand;
-	int		taglines;
-	Rectangle	tagtop;
-	QLock	editoutlk;
 };
 
 void	wininit(Window*, Window*, Rectangle);
@@ -281,7 +275,7 @@ void	winsetname(Window*, Rune*, int);
 void	winsettag(Window*);
 void	winsettag1(Window*);
 void	wincommit(Window*, Text*);
-int	winresize(Window*, Rectangle, int, int);
+int	winresize(Window*, Rectangle, int);
 void	winclose(Window*);
 void	windelete(Window*);
 int	winclean(Window*, int);

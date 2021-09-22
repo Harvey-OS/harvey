@@ -298,6 +298,9 @@ main(int argc, char* argv[])	/* hoc6 */
 	extern int yydebug;
 	yydebug=3;
 #endif
+	/* let us pass NaNs and Infs around without blowing a gasket. */
+	setfcr(getfcr() & ~FPINVAL);
+
 	progname = argv[0];
 	init();
 	if (argc == 1) {	/* fake an argument list */

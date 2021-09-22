@@ -1,0 +1,200 @@
+// pick up the common data structures
+
+rc("cd /sys/src/cmd/fossil; mk 9fsys.acid");
+include("/sys/src/cmd/fossil/9fsys.acid");
+rc("cd /sys/src/cmd/fossil; mk cache.acid");
+include("/sys/src/cmd/fossil/cache.acid");
+rc("cd /sys/src/cmd/fossil; mk disk.acid");
+include("/sys/src/cmd/fossil/disk.acid");
+rc("cd /sys/src/cmd/fossil; mk fs.acid");
+include("/sys/src/cmd/fossil/fs.acid");
+rc("cd /sys/src/liboventi; mk plan9-thread.acid");
+include("/sys/src/liboventi/plan9-thread.acid");
+
+// make a list of pids from a list of Thread structures
+defn _threadlist(t)
+{
+	local l;
+
+	l = {};
+	while t do {
+		t = (Thread)t;
+		l = append l, t.pid;
+		t = t.next;
+	}
+	return l;
+}
+
+// print info about a VtRendez
+defn vtrendez(r)
+{
+	local l, t, w, q;
+
+	r = (VtRendez)r;
+	w = _threadlist(r.wfirst);
+	if match(pid, w) >= 0 then
+		print("\twaiting for wakeup\n");
+
+	l = (VtLock)r.lk;
+	q = _threadlist(l.qfirst);
+	if match(pid, q) >= 0 then
+		print("\tawakened; waiting for lock\n");
+
+	print("\tr=(VtRendez)", r\X, "\n");
+	print("\tl=(VtLock)", l\X, "\n");
+	if l.writer != 0 then {
+		t = (Thread)l.writer;
+		print("\tvtLock is held by ", t.pid\D, "\n");
+	}
+}
+
+// print info about a VtLock
+defn vtlock(l)
+{
+	local t;
+
+	l = (VtLock)l;
+	print("\tl=(VtLock)", l\X, "\n");
+	if l.writer then {
+		t = (Thread)l.writer;
+		print("\tvtLock is held by ", t.pid\D, "\n");
+	} else if l.readers then
+		print("\tvtLock is held by ", l.readers\D, " readers\n");
+	else 
+		print("\tvtLock is not held!\n");
+}
+
+// try to say something intelligent about why a process is stuck.
+_pauses = {
+	open,
+	pread,
+	pwrite,
+	sleep,
+	vtSleep,
+	vtLock,
+	vtRLock,
+};
+
+defn deadlocklist(l)
+{
+	while l do {
+		setproc(head l);
+		deadlock();
+		l = tail l;
+	}
+}
+
+defn deadlock()
+{
+	local stk, frame, name, stallframe, fossilframe, stallname;
+
+	stk = strace(*PC, *SP, linkreg(0));
+
+	print("setproc(", pid, ") // ", readfile("/proc/"+itoa(pid)+"/args"), "\n");
+	stallframe = 0;
+	stallname = "";
+	fossilframe = 0;
+	frame = {0};
+	while stk do {
+		lastframe = frame;
+		frame = head stk;
+		name = fmt(frame[0], 'a');
+		if !stallframe && match(name, _pauses) >= 0 then {
+			stallframe = frame;
+			stallname = name;
+			print("\t", fmt(frame[0], 'a'), "(");
+			params(frame[2]);
+			print(") ", pcfile(frame[0]), ":", pcline(frame[0]));
+			print("\n\t\tcalled from ", fmt(frame[1], 'a'), " ");
+			pfl(frame[1]);
+		}
+		if !fossilframe && regexp("^/sys/src/cmd/fossil/.*", pcfile(frame[0])) then {
+			if !stallframe then {
+				stallframe = lastframe;
+				stallname = fmt(lastframe[0], 'a');
+				print("\tunexpected stall: ", stallname, "\n");
+				if match(stallname, _pauses) >= 0 then
+					print("\t\t but it matches!\n");
+			}
+			fossilframe = frame;
+			print("\t", fmt(frame[0], 'a'), "(");
+			params(frame[2]);
+			print(") ", pcfile(frame[0]), ":", pcline(frame[0]));
+			print("\n\t\tcalled from ", fmt(frame[1], 'a'), " ");
+			pfl(frame[1]);
+
+			if name == cacheLocalLookup && stallname == vtLock then
+				print("\twaiting to lock block b=(Block)", *cacheLocalLookup:b\X, "\n");
+			if name == cacheLocal && stallname == vtSleep then
+				print("\tsleeping on block b=(Block)", *cacheLocal:b\X, "\n");
+			if name == blockWrite && stallname == vtSleep then
+				print("\tsleeping on block b=(Block)", *blockFlush:b\X, "\n");
+		}
+		stk = tail stk;
+	}
+
+	if stallname == vtSleep then
+		vtrendez(*vtSleep:q);
+	if stallname == vtLock then
+		vtlock(*vtLock:p);
+	if !stallframe || !fossilframe then {
+		print("\tconfused:");
+		if !stallframe then print(" stallframe?");
+		if !fossilframe then print(" fossilframe?");
+		print("\n");
+	}
+	print("\n");
+}
+
+// fetch fsys
+defn
+fsysGet(name)
+{
+	return fsysmain;
+}
+
+// dump information about the cache
+defn
+cacheDump(c)
+{
+	local i, b, x;
+
+	c = (Cache)c;
+	x = c.blocks;
+	i=0;
+	loop 1,c.nblocks do {
+		b = (Block)(x+i);
+		print(b\X, " ", b.pc\X, " ", b.ref\D, "\n");
+		i = i+sizeofBlock;
+	}
+}
+
+// print block info
+defn
+printblist(bl)
+{
+	bl = (BList)bl;
+	while bl != 0 do {
+		print("[", bl.part\D, " ", bl.addr\X, " ", bl.vers\D, "]");
+		bl = bl.next;
+		if bl != 0 then
+			print(", ");
+	}
+}
+
+defn
+block(b)
+{
+	local i;
+	
+	b = (Block)b;
+	print("b=(Block)", b\X, "\n");
+	print("\tref ", b.ref\D, " nlock ", b.nlock\D, "\n");
+	print("\tpav=[", b.part\D, " ", b.addr\X, " ", b.vers\D, "]\n");
+	print("\tprior=");
+	printblist(b.prior);
+	print("\n");
+	print("\tunlink=");
+	printblist(b.uhead);
+	print("\n");
+}

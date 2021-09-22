@@ -1,0 +1,344 @@
+.TH ANSITIZE 1
+.SH NAME
+ansitize \- translate Plan 9 C to ANSI C
+.SH SYNOPSIS
+.B ansitize
+[
+.B -c
+.I conf
+]
+[
+.B -I
+.I dir
+]...
+[
+.B -p
+.I preload
+]...
+[
+.I file
+]
+.SH DESCRIPTION
+.I Ansitize
+translates programs written in the Plan 9 C dialect
+into standard ANSI C programs,
+preserving comments and formatting.
+.PP
+The options are:
+.TP
+.BI -c " conf
+Read configuration information from the file
+.IR conf .
+The format of the configuration file is discussed below.
+.TP
+.BI -I " dir
+Add
+.I dir
+to the list of directories searched for
+.L #include
+files.
+.B /386/include
+and
+.B /sys/include
+are added to the list after processing the
+.B -I
+options.
+.TP
+.BI -p " preload
+Before processing
+.IR file ,
+process the file
+.IR preload ,
+but do not print its translation.
+This option is useful mainly for translating
+header files.  See the examples below.
+.PD
+.PP
+.I Ansitize 
+translates many constructs from Plan 9 C, described below.
+It does not translate types or other features present in the
+Plan 9 C environment when those features can be provided
+by appropriate program context.
+For example,
+.I ansitize
+removes long character constants and strings but
+still assumes that
+.B Rune
+is a defined type.
+.PP
+.I Ansitize
+translates the following constructs.
+.SS "anonymous structures or unions
+Plan 9 C allows anonymous structures and unions.
+.I Ansitize 
+gives these explicit names and translates references
+to reflect the new names.
+If a 
+.B struct
+(or
+.BR union )
+.I name
+is declared anonymously, 
+.I ansitize
+uses 
+.BI _ name
+in the new declaration.
+Otherwise, unions are named
+.BR u ,
+.BR u2 ,
+etc.,
+and structures are named
+.BR _1 ,
+.BR _2 ,
+etc.
+For example, by default
+.I ansitize
+translates the first structure definition
+into the second:
+.IP
+.EX
+struct A {          struct A {          struct A {
+    union {             union {             union {
+        int x;              int x;              int x;
+        int y;              int y;              int y;
+    };                  } u;                } au;
+    struct B;           struct B _B;        struct B b;
+};                  };                  };
+.EE
+.LP
+These default names can be overridden by 
+a configuration line
+.B rename
+.I old
+.IR new ,
+where
+.I old
+is a single
+.I name
+or is 
+.IB tag . name \fR,
+which restricts the renaming to the elements of
+.B struct
+(or
+.IR union )
+.IR tag .
+For example, using a configuration:
+.IP
+.EX
+rename A.u au
+rename _B b
+\fR(or \fPrename A._b b\fR)
+.EE
+.LP
+would produce the third structure definition above.
+.SS "anonymous structure promotions
+Plan 9 C allows pointers to structures
+with anonymous elements to be passed to functions
+expecting pointers to the anonymous elements.
+For example, given the structure definition above,
+if a 
+.B struct
+.B A 
+.B *a
+is passed to a function expecting a
+.B struct
+.BR B* ,
+the C compiler instead passes a pointer to the 
+.B B
+inside the 
+.BR A .
+.I Ansitize
+does the same transformation, in this case rewriting
+.B f(a)
+to
+.BR f(&a->b) .
+The same conversion applies to simple assignment
+of 
+.B struct
+.B A*
+to
+.B struct
+.BR B* .
+.SS "anonymous function parameters
+Plan 9 C does not require unused function parameters
+to be named in the function definition.
+.I Ansitize
+names these parameters
+.BR _1 ,
+.BR _2 ,
+etc.
+For example,
+.I ansitize
+rewrites
+.IP
+.EX
+void main(int, char**) { }
+.EE
+.LP
+into
+.IP
+.EX
+void main(int _1, char** _2) { }
+.EE
+.SS "structure displays
+Plan 9 C allows casted initializer lists as
+structure values, as in
+.BR "(Point){1,2}" .
+.I Ansitize
+can rewrite these into function calls, as in
+.BR pt(1,2) ,
+but only does so if directed by a configuration line
+.B reconstruct
+.I struct-name
+.IR function-name ,
+as in
+.B reconstruct
+.B Point
+.BR pt .
+.SS "Unicode identifiers
+.I Ansitize
+rewrites identifiers containing Unicode characters
+into ASCII equivalents,
+replacing Greek letters with their names and other
+Unicode characters with
+.BI _ xxxx \fR,
+where
+.I xxxx
+is the hexadecimal value of the character.
+.SS "long character constants
+.I Ansitize
+rewrites long character constants like
+.BR L'\en' ,
+.BR L'a' ,
+or
+.B L'ÿ'
+into equivalent expressions like
+.BR '\en' ,
+.BR 'a' ,
+or
+.BR (Rune)0x00FF .
+.SS "long string constants
+.I Ansitize
+replaces Rune string constants like
+.B L"abc"
+with references to statically declared arrays
+with names derived from the string data.
+It recognizes the special case where a Rune string
+is being used to initialize a Rune array and 
+replaces the string in that case with an array.
+For example,
+.I ansitize
+rewrites the first program into the second:
+.IP
+.EX
+                            Rune L_abc[] = {'a','b','c',0};
+Rune *x  = L"abc";          Rune *x  = L_abc;
+Rune y[] = L"def";          Rune y[] = {'d','e','f',0};
+.EE
+.LP
+.SS "\fL#pragma\fP lines
+.I Ansitize
+places
+.B #pragma
+lines inside
+.B /*
+.B */
+comments. 
+.B #pragma
+.B varargck
+lines are handled separately and are placed inside
+.B #ifdef
+.B VARARGCK
+/
+.B #endif
+pairs.
+(At least one compiler under development for Unix
+recognizes these
+.BR #pragma s.)
+.SS "integer/pointer casts
+Some overeager Unix compilers complain about casts from
+integer to pointer, even when the pointer is as wide
+as or wider than the integer.
+.I Ansitize
+inserts an extra
+.B (uintptr)
+cast to silence these warnings:
+.L p=(void*)i
+becomes
+.LR p=(void*)(uintptr)i .
+.SS "\fL<ctype.h>\fP casts
+The macros defined in Plan 9's
+.B <ctype.h>
+cast their arguments to 
+.B uchar
+so that either signed or unsigned character arguments
+can be passed to them.
+Unix's
+.B <ctype.h>
+requires the use of unsigned character arguments.
+.I Ansitize
+adds casts as necessary to the arguments of
+.BR isalpha ,
+.BR isdigit ,
+.BR toupper ,
+etc.
+.SH EXAMPLES
+A configuration file for translating the
+.IR regexp (2)
+library:
+.IP
+.EX
+rename Resub.u s
+rename Resub.u1 e
+rename Reinst.u u1
+rename Reinst.u1 u2
+.EE
+.LP
+Translate the source files:
+.IP
+.EX
+cd /sys/src/libregexp
+for(i in *.c)
+	ansitize -c conf $i >$i.ansi
+.EE
+.LP
+Translate the header file, reading
+.B <u.h>
+and
+.B <libc.h>
+first for context:
+.IP
+.EX
+cd /sys/include
+ansitize -p /386/include/u.h -p libc.h regexp.h >regexp.h.ansi
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ansitize
+.SH SEE ALSO
+.IR 8c (1),
+.IR fortune (1)
+.PP
+Rob Pike,
+``How to use the Plan 9 C Compiler''
+.SH BUGS
+.I Ansitize
+stops short of full checking of the input program.
+Test that they compile using
+.IR 8c (1)
+before running
+.IR ansitize .
+.PP
+.I Ansitize
+ignores
+.B #ifdef
+and
+.BR #define ,
+limiting the kinds of macros that can be used.
+In particular, macros that introduce new
+control flow constructs will confuse the
+parser.
+(The parser contains extra grammar productions to accommodate
+the
+.IR arg (2)
+macros and
+.BR va_arg .)

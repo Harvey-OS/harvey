@@ -306,7 +306,7 @@ sdiocardintr(int wait)
 }
 
 static int
-emmccmd(u32int cmd, u32int arg, u32int *resp)
+emmccmd(ulong cmd, ulong arg, ulong *resp)
 {
 	u32int *r;
 	u32int c;
@@ -368,7 +368,7 @@ emmccmd(u32int cmd, u32int arg, u32int *resp)
 			break;
 	if((i&(Cmddone|Err)) != Cmddone){
 		if((i&~(Err|Cardintr)) != Ctoerr)
-			print("emmc: cmd %ux arg %ux error intr %ux stat %ux\n", c, arg, i, r[Status]);
+			print("emmc: cmd %ux arg %lux error intr %ux stat %ux\n", c, arg, i, r[Status]);
 		WR(Interrupt, i);
 		if(r[Status]&Cmdinhibit){
 			WR(Control1, r[Control1]|Srstcmd);
@@ -398,9 +398,9 @@ emmccmd(u32int cmd, u32int arg, u32int *resp)
 		tsleep(&emmc.r, datadone, 0, 3000);
 		i = r[Interrupt];
 		if((i & Datadone) == 0)
-			print("emmcio: no Datadone after CMD%d\n", cmd);
+			print("emmcio: no Datadone after CMD%ld\n", cmd);
 		if(i & Err)
-			print("emmcio: CMD%d error interrupt %ux\n",
+			print("emmcio: CMD%ld error interrupt %ux\n",
 				cmd, r[Interrupt]);
 		WR(Interrupt, i);
 	}

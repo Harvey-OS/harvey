@@ -21,14 +21,14 @@ enum {
 
 struct Cache
 {
-	QLock	lk;
+	VtLock	*lk;
 	int 	ref;
 	int	mode;
 
 	Disk 	*disk;
 	int	size;			/* block size */
 	int	ndmap;		/* size of per-block dirty pointer map used in blockWrite */
-	VtConn *z;
+	VtSession *z;
 	u32int	now;			/* ticks for usage timestamps */
 	Block	**heads;		/* hash table for finding address */
 	int	nheap;			/* number of available victims */
@@ -38,7 +38,7 @@ struct Cache
 	u8int	*mem;			/* memory for all block data & blists */
 
 	BList	*blfree;
-	Rendez	blrend;
+	VtRendez *blrend;
 
 	int 	ndirty;			/* number of dirty blocks in the cache */
 	int 	maxdirty;		/* max number of dirty blocks */
@@ -48,11 +48,11 @@ struct Cache
 
 	FreeList *fl;
 
-	Rendez die;			/* daemon threads should die when QLock != nil */
+	VtRendez *die;			/* daemon threads should die when != nil */
 
-	Rendez flush;
-	Rendez flushwait;
-	Rendez heapwait;
+	VtRendez *flush;
+	VtRendez *flushwait;
+	VtRendez *heapwait;
 	BAddr *baddr;
 	int bw, br, be;
 	int nflush;
@@ -62,7 +62,7 @@ struct Cache
 	/* unlink daemon */
 	BList *uhead;
 	BList *utail;
-	Rendez unlink;
+	VtRendez *unlink;
 
 	/* block counts */
 	int nused;
@@ -95,7 +95,7 @@ struct BAddr {
 };
 
 struct FreeList {
-	QLock lk;
+	VtLock *lk;
 	u32int last;		/* last block allocated */
 	u32int end;		/* end of data partition */
 	u32int nused;		/* number of used blocks */
@@ -123,41 +123,41 @@ static void doRemoveLink(Cache*, BList*);
  */
 int vtType[BtMax] = {
 	VtDataType,		/* BtData | 0  */
-	VtDataType+1,		/* BtData | 1  */
-	VtDataType+2,		/* BtData | 2  */
-	VtDataType+3,		/* BtData | 3  */
-	VtDataType+4,		/* BtData | 4  */
-	VtDataType+5,		/* BtData | 5  */
-	VtDataType+6,		/* BtData | 6  */
-	VtDataType+7,		/* BtData | 7  */
+	VtPointerType0,		/* BtData | 1  */
+	VtPointerType1,		/* BtData | 2  */
+	VtPointerType2,		/* BtData | 3  */
+	VtPointerType3,		/* BtData | 4  */
+	VtPointerType4,		/* BtData | 5  */
+	VtPointerType5,		/* BtData | 6  */
+	VtPointerType6,		/* BtData | 7  */
 	VtDirType,		/* BtDir | 0  */
-	VtDirType+1,		/* BtDir | 1  */
-	VtDirType+2,		/* BtDir | 2  */
-	VtDirType+3,		/* BtDir | 3  */
-	VtDirType+4,		/* BtDir | 4  */
-	VtDirType+5,		/* BtDir | 5  */
-	VtDirType+6,		/* BtDir | 6  */
-	VtDirType+7,		/* BtDir | 7  */
+	VtPointerType0,		/* BtDir | 1  */
+	VtPointerType1,		/* BtDir | 2  */
+	VtPointerType2,		/* BtDir | 3  */
+	VtPointerType3,		/* BtDir | 4  */
+	VtPointerType4,		/* BtDir | 5  */
+	VtPointerType5,		/* BtDir | 6  */
+	VtPointerType6,		/* BtDir | 7  */
 };
 
 /*
  * Allocate the memory cache.
  */
 Cache *
-cacheAlloc(Disk *disk, VtConn *z, ulong nblocks, int mode)
+cacheAlloc(Disk *disk, VtSession *z, uvlong nblocks, int mode)
 {
-	int i;
+	uvlong i, nbl;
 	Cache *c;
 	Block *b;
 	BList *bl;
 	u8int *p;
-	int nbl;
 
-	c = vtmallocz(sizeof(Cache));
+	c = vtMemAllocZ(sizeof(Cache));
 
 	/* reasonable number of BList elements */
 	nbl = nblocks * 4;
 
+	c->lk = vtLockAlloc();
 	c->ref = 1;
 	c->disk = disk;
 	c->z = z;
@@ -168,20 +168,21 @@ bwatchSetBlockSize(c->size);
 	c->ndmap = (c->size/20 + 7) / 8;
 	c->nblocks = nblocks;
 	c->hashSize = nblocks;
-	c->heads = vtmallocz(c->hashSize*sizeof(Block*));
-	c->heap = vtmallocz(nblocks*sizeof(Block*));
-	c->blocks = vtmallocz(nblocks*sizeof(Block));
-	c->mem = vtmallocz(nblocks * (c->size + c->ndmap) + nbl * sizeof(BList));
-	c->baddr = vtmallocz(nblocks * sizeof(BAddr));
+	c->heads = vtMemAllocZ(c->hashSize*sizeof(Block*));
+	c->heap = vtMemAllocZ(nblocks*sizeof(Block*));
+	c->blocks = vtMemAllocZ(nblocks*sizeof(Block));
+	c->mem = vtMemAllocZ(nblocks * (c->size + c->ndmap) + nbl * sizeof(BList));
+	c->baddr = vtMemAllocZ(nblocks * sizeof(BAddr));
 	c->mode = mode;
 	c->vers++;
 	p = c->mem;
 	for(i = 0; i < nblocks; i++){
 		b = &c->blocks[i];
+		b->lk = vtLockAlloc();
 		b->c = c;
 		b->data = p;
 		b->heap = i;
-		b->ioready.l = &b->lk;
+		b->ioready = vtRendezAlloc(b->lk);
 		c->heap[i] = b;
 		p += c->size;
 	}
@@ -199,22 +200,22 @@ bwatchSetBlockSize(c->size);
 		p += c->ndmap;
 	}
 
-	c->blrend.l = &c->lk;
+	c->blrend = vtRendezAlloc(c->lk);
 
 	c->maxdirty = nblocks*(DirtyPercentage*0.01);
 
 	c->fl = flAlloc(diskSize(disk, PartData));
 
-	c->unlink.l = &c->lk;
-	c->flush.l = &c->lk;
-	c->flushwait.l = &c->lk;
-	c->heapwait.l = &c->lk;
+	c->unlink = vtRendezAlloc(c->lk);
+	c->flush = vtRendezAlloc(c->lk);
+	c->flushwait = vtRendezAlloc(c->lk);
+	c->heapwait = vtRendezAlloc(c->lk);
 	c->sync = periodicAlloc(cacheSync, c, 30*1000);
 
 	if(mode == OReadWrite){
 		c->ref += 2;
-		proccreate(unlinkThread, c, STACK);
-		proccreate(flushThread, c, STACK);
+		vtThread(unlinkThread, c);
+		vtThread(flushThread, c);
 	}
 	cacheCheck(c);
 
@@ -230,38 +231,42 @@ cacheFree(Cache *c)
 	int i;
 
 	/* kill off daemon threads */
-	qlock(&c->lk);
-	c->die.l = &c->lk;
+	vtLock(c->lk);
+	c->die = vtRendezAlloc(c->lk);
 	periodicKill(c->sync);
-	rwakeup(&c->flush);
-	rwakeup(&c->unlink);
+	vtWakeup(c->flush);
+	vtWakeup(c->unlink);
 	while(c->ref > 1)
-		rsleep(&c->die);
+		vtSleep(c->die);
 
 	/* flush everything out */
 	do {
 		unlinkBody(c);
-		qunlock(&c->lk);
+		vtUnlock(c->lk);
 		while(cacheFlushBlock(c))
 			;
 		diskFlush(c->disk);
-		qlock(&c->lk);
+		vtLock(c->lk);
 	} while(c->uhead || c->ndirty);
-	qunlock(&c->lk);
+	vtUnlock(c->lk);
 
 	cacheCheck(c);
 
 	for(i = 0; i < c->nblocks; i++){
 		assert(c->blocks[i].ref == 0);
+		vtRendezFree(c->blocks[i].ioready);
+		vtLockFree(c->blocks[i].lk);
 	}
 	flFree(c->fl);
-	vtfree(c->baddr);
-	vtfree(c->heads);
-	vtfree(c->blocks);
-	vtfree(c->mem);
+	vtMemFree(c->baddr);
+	vtMemFree(c->heads);
+	vtMemFree(c->blocks);
+	vtMemFree(c->mem);
+	vtLockFree(c->lk);
 	diskFree(c->disk);
+	vtRendezFree(c->blrend);
 	/* don't close vtSession */
-	vtfree(c);
+	vtMemFree(c);
 }
 
 static void
@@ -283,7 +288,6 @@ cacheCheck(Cache *c)
 {
 	u32int size, now;
 	int i, k, refed;
-	static uchar zero[VtScoreSize];
 	Block *b;
 
 	size = c->size;
@@ -291,22 +295,22 @@ cacheCheck(Cache *c)
 
 	for(i = 0; i < c->nheap; i++){
 		if(c->heap[i]->heap != i)
-			sysfatal("mis-heaped at %d: %d", i, c->heap[i]->heap);
+			vtFatal("mis-heaped at %d: %d", i, c->heap[i]->heap);
 		if(i > 0 && c->heap[(i - 1) >> 1]->used - now > c->heap[i]->used - now)
-			sysfatal("bad heap ordering");
+			vtFatal("bad heap ordering");
 		k = (i << 1) + 1;
 		if(k < c->nheap && c->heap[i]->used - now > c->heap[k]->used - now)
-			sysfatal("bad heap ordering");
+			vtFatal("bad heap ordering");
 		k++;
 		if(k < c->nheap && c->heap[i]->used - now > c->heap[k]->used - now)
-			sysfatal("bad heap ordering");
+			vtFatal("bad heap ordering");
 	}
 
 	refed = 0;
 	for(i = 0; i < c->nblocks; i++){
 		b = &c->blocks[i];
-		if(b->data != &c->mem[i * size])
-			sysfatal("mis-blocked at %d", i);
+		if(b->data != &c->mem[(uintptr)i * size])
+			vtFatal("mis-blocked at %d", i);
 		if(b->ref && b->heap == BadHeap){
 			refed++;
 		}
@@ -346,8 +350,8 @@ cacheBumpBlock(Cache *c)
 	printed = 0;
 	if(c->nheap == 0){
 		while(c->nheap == 0){
-			rwakeup(&c->flush);
-			rsleep(&c->heapwait);
+			vtWakeup(c->flush);
+			vtSleep(c->heapwait);
 			if(c->nheap == 0){
 				printed = 1;
 				fprint(2, "%s: entire cache is busy, %d dirty "
@@ -408,27 +412,27 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 	/*
 	 * look for the block in the cache
 	 */
-	qlock(&c->lk);
+	vtLock(c->lk);
 	for(b = c->heads[h]; b != nil; b = b->next){
 		if(b->part == part && b->addr == addr)
 			break;
 	}
 	if(b == nil || b->vers != vers){
-		qunlock(&c->lk);
+		vtUnlock(c->lk);
 		return nil;
 	}
-	if(!waitlock && !canqlock(&b->lk)){
+	if(!waitlock && !vtCanLock(b->lk)){
 		*lockfailure = 1;
-		qunlock(&c->lk);
+		vtUnlock(c->lk);
 		return nil;
 	}
 	heapDel(b);
 	b->ref++;
-	qunlock(&c->lk);
+	vtUnlock(c->lk);
 
 	bwatchLock(b);
 	if(waitlock)
-		qlock(&b->lk);
+		vtLock(b->lk);
 	b->nlock = 1;
 
 	for(;;){
@@ -446,15 +450,15 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 			return b;
 		case BioReading:
 		case BioWriting:
-			rsleep(&b->ioready);
+			vtSleep(b->ioready);
 			break;
 		case BioVentiError:
 			blockPut(b);
-			werrstr("venti i/o error block 0x%.8ux", addr);
+			vtSetError("venti i/o error block 0x%.8ux", addr);
 			return nil;
 		case BioReadError:
 			blockPut(b);
-			werrstr("error reading block 0x%.8ux", addr);
+			vtSetError("error reading block 0x%.8ux", addr);
 			return nil;
 		}
 	}
@@ -484,14 +488,14 @@ _cacheLocal(Cache *c, int part, u32int addr, int mode, u32int epoch)
 	/*
 	 * look for the block in the cache
 	 */
-	qlock(&c->lk);
+	vtLock(c->lk);
 	for(b = c->heads[h]; b != nil; b = b->next){
 		if(b->part != part || b->addr != addr)
 			continue;
 		if(epoch && b->l.epoch != epoch){
 fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
-			qunlock(&c->lk);
-			werrstr(ELabelMismatch);
+			vtUnlock(c->lk);
+			vtSetError(ELabelMismatch);
 			return nil;
 		}
 		heapDel(b);
@@ -514,7 +518,7 @@ fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 		b->prev = &c->heads[h];
 	}
 
-	qunlock(&c->lk);
+	vtUnlock(c->lk);
 
 	/*
 	 * BUG: what if the epoch changes right here?
@@ -528,7 +532,7 @@ fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 
 if(0)fprint(2, "%s: cacheLocal: %d: %d %x\n", argv0, getpid(), b->part, b->addr);
 	bwatchLock(b);
-	qlock(&b->lk);
+	vtLock(b->lk);
 	b->nlock = 1;
 
 	if(part == PartData && b->iostate == BioEmpty){
@@ -541,7 +545,7 @@ if(0)fprint(2, "%s: cacheLocal: %d: %d %x\n", argv0, getpid(), b->part, b->addr)
 	if(epoch && b->l.epoch != epoch){
 		blockPut(b);
 fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
-		werrstr(ELabelMismatch);
+		vtSetError(ELabelMismatch);
 		return nil;
 	}
 
@@ -560,19 +564,19 @@ fprint(2, "%s: _cacheLocal want epoch %ud got %ud\n", argv0, epoch, b->l.epoch);
 			/* fall through */
 		case BioEmpty:
 			diskRead(c->disk, b);
-			rsleep(&b->ioready);
+			vtSleep(b->ioready);
 			break;
 		case BioClean:
 		case BioDirty:
 			return b;
 		case BioReading:
 		case BioWriting:
-			rsleep(&b->ioready);
+			vtSleep(b->ioready);
 			break;
 		case BioReadError:
 			blockSetIOState(b, BioEmpty);
 			blockPut(b);
-			werrstr("error reading block 0x%.8ux", addr);
+			vtSetError("error reading block 0x%.8ux", addr);
 			return nil;
 		}
 	}
@@ -601,7 +605,7 @@ cacheLocalData(Cache *c, u32int addr, int type, u32int tag, int mode, u32int epo
 	if(b->l.type != type || b->l.tag != tag){
 		fprint(2, "%s: cacheLocalData: addr=%d type got %d exp %d: tag got %ux exp %ux\n",
 			argv0, addr, b->l.type, type, b->l.tag, tag);
-		werrstr(ELabelMismatch);
+		vtSetError(ELabelMismatch);
 		blockPut(b);
 		return nil;
 	}
@@ -635,7 +639,7 @@ cacheGlobal(Cache *c, uchar score[VtScoreSize], int type, u32int tag, int mode)
 	/*
 	 * look for the block in the cache
 	 */
-	qlock(&c->lk);
+	vtLock(c->lk);
 	for(b = c->heads[h]; b != nil; b = b->next){
 		if(b->part != PartVenti || memcmp(b->score, score, VtScoreSize) != 0 || b->l.type != type)
 			continue;
@@ -661,10 +665,10 @@ if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
 			b->next->prev = &b->next;
 		b->prev = &c->heads[h];
 	}
-	qunlock(&c->lk);
+	vtUnlock(c->lk);
 
 	bwatchLock(b);
-	qlock(&b->lk);
+	vtLock(b->lk);
 	b->nlock = 1;
 	b->pc = getcallerpc(&c);
 
@@ -672,27 +676,27 @@ if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
 	default:
 		abort();
 	case BioEmpty:
-		n = vtread(c->z, score, vtType[type], b->data, c->size);
-		if(n < 0 || vtsha1check(score, b->data, n) < 0){
+		n = vtRead(c->z, score, vtType[type], b->data, c->size);
+		if(n < 0 || !vtSha1Check(score, b->data, n)){
 			blockSetIOState(b, BioVentiError);
 			blockPut(b);
-			werrstr(
+			vtSetError(
 			"venti error reading block %V or wrong score: %r",
 				score);
 			return nil;
 		}
-		vtzeroextend(vtType[type], b->data, n, c->size);
+		vtZeroExtend(vtType[type], b->data, n, c->size);
 		blockSetIOState(b, BioClean);
 		return b;
 	case BioClean:
 		return b;
 	case BioVentiError:
 		blockPut(b);
-		werrstr("venti i/o error or wrong score, block %V", score);
+		vtSetError("venti i/o error or wrong score, block %V", score);
 		return nil;
 	case BioReadError:
 		blockPut(b);
-		werrstr("error reading block %V", b->score);
+		vtSetError("error reading block %V", b->score);
 		return nil;
 	}
 	/* NOT REACHED */
@@ -716,12 +720,12 @@ cacheAllocBlock(Cache *c, int type, u32int tag, u32int epoch, u32int epochLow)
 	n = c->size / LabelSize;
 	fl = c->fl;
 
-	qlock(&fl->lk);
+	vtLock(fl->lk);
 	addr = fl->last;
 	b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
 	if(b == nil){
-		fprint(2, "%s: cacheAllocBlock: xxx %r\n", argv0);
-		qunlock(&fl->lk);
+		fprint(2, "%s: cacheAllocBlock: xxx %R\n", argv0);
+		vtUnlock(fl->lk);
 		return nil;
 	}
 	nwrap = 0;
@@ -730,16 +734,16 @@ cacheAllocBlock(Cache *c, int type, u32int tag, u32int epoch, u32int epochLow)
 			addr = 0;
 			if(++nwrap >= 2){
 				blockPut(b);
-				werrstr("disk is full");
+				vtSetError("disk is full");
 				/*
 				 * try to avoid a continuous spew of console
 				 * messages.
 				 */
 				if (fl->last != 0)
-					fprint(2, "%s: cacheAllocBlock: xxx1 %r\n",
+					fprint(2, "%s: cacheAllocBlock: xxx1 %R\n",
 						argv0);
 				fl->last = 0;
-				qunlock(&fl->lk);
+				vtUnlock(fl->lk);
 				return nil;
 			}
 		}
@@ -748,8 +752,8 @@ cacheAllocBlock(Cache *c, int type, u32int tag, u32int epoch, u32int epochLow)
 			b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
 			if(b == nil){
 				fl->last = addr;
-				fprint(2, "%s: cacheAllocBlock: xxx2 %r\n", argv0);
-				qunlock(&fl->lk);
+				fprint(2, "%s: cacheAllocBlock: xxx2 %R\n", argv0);
+				vtUnlock(fl->lk);
 				return nil;
 			}
 		}
@@ -765,7 +769,7 @@ Found:
 	blockPut(b);
 	b = cacheLocal(c, PartData, addr, OOverWrite);
 	if(b == nil){
-		fprint(2, "%s: cacheAllocBlock: xxx3 %r\n", argv0);
+		fprint(2, "%s: cacheAllocBlock: xxx3 %R\n", argv0);
 		return nil;
 	}
 assert(b->iostate == BioLabel || b->iostate == BioClean);
@@ -776,17 +780,17 @@ assert(b->iostate == BioLabel || b->iostate == BioClean);
 	lab.epoch = epoch;
 	lab.epochClose = ~(u32int)0;
 	if(!blockSetLabel(b, &lab, 1)){
-		fprint(2, "%s: cacheAllocBlock: xxx4 %r\n", argv0);
+		fprint(2, "%s: cacheAllocBlock: xxx4 %R\n", argv0);
 		blockPut(b);
 		return nil;
 	}
-	vtzeroextend(vtType[type], b->data, 0, c->size);
+	vtZeroExtend(vtType[type], b->data, 0, c->size);
 if(0)diskWrite(c->disk, b);
 
 if(0)fprint(2, "%s: fsAlloc %ud type=%d tag = %ux\n", argv0, addr, type, tag);
 	lastAlloc = addr;
 	fl->nused++;
-	qunlock(&fl->lk);
+	vtUnlock(fl->lk);
 	b->pc = getcallerpc(&c);
 	return b;
 }
@@ -809,11 +813,11 @@ cacheCountUsed(Cache *c, u32int epochLow, u32int *used, u32int *total, u32int *b
 	fl = c->fl;
 	n = c->size / LabelSize;
 	*bsize = c->size;
-	qlock(&fl->lk);
+	vtLock(fl->lk);
 	if(fl->epochLow == epochLow){
 		*used = fl->nused;
 		*total = fl->end;
-		qunlock(&fl->lk);
+		vtUnlock(fl->lk);
 		return;
 	}
 	b = nil;
@@ -823,7 +827,7 @@ cacheCountUsed(Cache *c, u32int epochLow, u32int *used, u32int *total, u32int *b
 			blockPut(b);
 			b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
 			if(b == nil){
-				fprint(2, "%s: flCountUsed: loading %ux: %r\n",
+				fprint(2, "%s: flCountUsed: loading %ux: %R\n",
 					argv0, addr/n);
 				break;
 			}
@@ -844,8 +848,7 @@ cacheCountUsed(Cache *c, u32int epochLow, u32int *used, u32int *total, u32int *b
 	}
 	*used = nused;
 	*total = fl->end;
-	qunlock(&fl->lk);
-	return;
+	vtUnlock(fl->lk);
 }
 
 static FreeList *
@@ -853,7 +856,8 @@ flAlloc(u32int end)
 {
 	FreeList *fl;
 
-	fl = vtmallocz(sizeof(*fl));
+	fl = vtMemAllocZ(sizeof(*fl));
+	fl->lk = vtLockAlloc();
 	fl->last = 0;
 	fl->end = end;
 	return fl;
@@ -862,7 +866,8 @@ flAlloc(u32int end)
 static void
 flFree(FreeList *fl)
 {
-	vtfree(fl);
+	vtLockFree(fl->lk);
+	vtMemFree(fl);
 }
 
 u32int
@@ -906,8 +911,8 @@ if(0)fprint(2, "%s: blockPut: %d: %d %x %d %s\n", argv0, getpid(), b->part, b->a
 
 	/*
 	 * b->nlock should probably stay at zero while
-	 * the block is unlocked, but diskThread and rsleep
-	 * conspire to assume that they can just qlock(&b->lk); blockPut(b),
+	 * the block is unlocked, but diskThread and vtSleep
+	 * conspire to assume that they can just vtLock(b->lk); blockPut(b),
 	 * so we have to keep b->nlock set to 1 even
 	 * when the block is unlocked.
 	 */
@@ -916,12 +921,12 @@ if(0)fprint(2, "%s: blockPut: %d: %d %x %d %s\n", argv0, getpid(), b->part, b->a
 //	b->pc = 0;
 
 	bwatchUnlock(b);
-	qunlock(&b->lk);
+	vtUnlock(b->lk);
 	c = b->c;
-	qlock(&c->lk);
+	vtLock(c->lk);
 
 	if(--b->ref > 0){
-		qunlock(&c->lk);
+		vtUnlock(c->lk);
 		return;
 	}
 
@@ -942,7 +947,7 @@ if(0)fprint(2, "%s: blockPut: %d: %d %x %d %s\n", argv0, getpid(), b->part, b->a
 	case BioDirty:
 		break;
 	}
-	qunlock(&c->lk);
+	vtUnlock(c->lk);
 }
 
 /*
@@ -1090,12 +1095,12 @@ blockDirty(Block *b)
 		return 1;
 	assert(b->iostate == BioClean || b->iostate == BioLabel);
 
-	qlock(&c->lk);
+	vtLock(c->lk);
 	b->iostate = BioDirty;
 	c->ndirty++;
 	if(c->ndirty > (c->maxdirty>>1))
-		rwakeup(&c->flush);
-	qunlock(&c->lk);
+		vtWakeup(c->flush);
+	vtUnlock(c->lk);
 
 	return 1;
 }
@@ -1280,7 +1285,7 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 		 * queue to the cache unlink queue.
 		 */
 		if(b->iostate == BioDirty || b->iostate == BioWriting){
-			qlock(&c->lk);
+			vtLock(c->lk);
 			c->ndirty--;
 			b->iostate = iostate;	/* change here to keep in sync with ndirty */
 			b->vers = c->vers++;
@@ -1288,13 +1293,13 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 				/* add unlink blocks to unlink queue */
 				if(c->uhead == nil){
 					c->uhead = b->uhead;
-					rwakeup(&c->unlink);
+					vtWakeup(c->unlink);
 				}else
 					c->utail->next = b->uhead;
 				c->utail = b->utail;
 				b->uhead = nil;
 			}
-			qunlock(&c->lk);
+			vtUnlock(c->lk);
 		}
 		assert(!b->uhead);
 		dowakeup = 1;
@@ -1305,9 +1310,9 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 		 * Bump a version count, leave it dirty.
 		 */
 		if(b->iostate == BioWriting){
-			qlock(&c->lk);
+			vtLock(c->lk);
 			b->vers = c->vers++;
-			qunlock(&c->lk);
+			vtUnlock(c->lk);
 			dowakeup = 1;
 		}
 		break;
@@ -1319,9 +1324,9 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 		 * This is here because we need to lock c->lk to
 		 * manipulate the ref count.
 		 */
-		qlock(&c->lk);
+		vtLock(c->lk);
 		b->ref++;
-		qunlock(&c->lk);
+		vtUnlock(c->lk);
 		break;
 	case BioReadError:
 	case BioVentiError:
@@ -1336,7 +1341,7 @@ if(0) fprint(2, "%s: iostate part=%d addr=%x %s->%s\n", argv0, b->part, b->addr,
 	 * Now that the state has changed, we can wake the waiters.
 	 */
 	if(dowakeup)
-		rwakeupall(&b->ioready);
+		vtWakeupAll(b->ioready);
 }
 
 /*
@@ -1563,11 +1568,11 @@ doRemoveLink(Cache *c, BList *p)
 	l.state |= BsClosed;
 	l.epochClose = p->epoch;
 	if(l.epochClose == l.epoch){
-		qlock(&c->fl->lk);
+		vtLock(c->fl->lk);
 		if(l.epoch == c->fl->epochLow)
 			c->fl->nused--;
 		blockSetLabel(b, &l, 0);
-		qunlock(&c->fl->lk);
+		vtUnlock(c->fl->lk);
 	}else
 		blockSetLabel(b, &l, 0);
 	blockPut(b);
@@ -1595,7 +1600,7 @@ blistAlloc(Block *b)
 	}
 
 	c = b->c;
-	qlock(&c->lk);
+	vtLock(c->lk);
 	if(c->blfree == nil){
 		/*
 		 * No free BLists.  What are our options?
@@ -1603,7 +1608,7 @@ blistAlloc(Block *b)
 	
 		/* Block has no priors? Just write it. */
 		if(b->prior == nil){
-			qunlock(&c->lk);
+			vtUnlock(c->lk);
 			diskWriteAndWait(c->disk, b);
 			return nil;
 		}
@@ -1621,8 +1626,8 @@ blistAlloc(Block *b)
 		 * so it can't deadlock like we can.)
 		 */
 		while(c->blfree == nil){
-			rwakeup(&c->flush);
-			rsleep(&c->blrend);
+			vtWakeup(c->flush);
+			vtSleep(c->blrend);
 			if(c->blfree == nil)
 				fprint(2, "%s: flushing for blists\n", argv0);
 		}
@@ -1630,18 +1635,18 @@ blistAlloc(Block *b)
 
 	p = c->blfree;
 	c->blfree = p->next;
-	qunlock(&c->lk);
+	vtUnlock(c->lk);
 	return p;
 }
 
 static void
 blistFree(Cache *c, BList *bl)
 {
-	qlock(&c->lk);
+	vtLock(c->lk);
 	bl->next = c->blfree;
 	c->blfree = bl;
-	rwakeup(&c->blrend);
-	qunlock(&c->lk);
+	vtWakeup(c->blrend);
+	vtUnlock(c->lk);
 }
 
 char*
@@ -1835,7 +1840,7 @@ heapIns(Block *b)
 {
 	assert(b->heap == BadHeap);
 	upHeap(b->c->nheap++, b);
-	rwakeup(&b->c->heapwait);
+	vtWakeup(b->c->heapwait);
 }
 
 /*
@@ -1876,9 +1881,9 @@ unlinkBody(Cache *c)
 	while(c->uhead != nil){
 		p = c->uhead;
 		c->uhead = p->next;
-		qunlock(&c->lk);
+		vtUnlock(c->lk);
 		doRemoveLink(c, p);
-		qlock(&c->lk);
+		vtLock(c->lk);
 		p->next = c->blfree;
 		c->blfree = p;
 	}
@@ -1892,19 +1897,19 @@ unlinkThread(void *a)
 {
 	Cache *c = a;
 
-	threadsetname("unlink");
+	vtThreadSetName("unlink");
 
-	qlock(&c->lk);
+	vtLock(c->lk);
 	for(;;){
-		while(c->uhead == nil && c->die.l == nil)
-			rsleep(&c->unlink);
-		if(c->die.l != nil)
+		while(c->uhead == nil && c->die == nil)
+			vtSleep(c->unlink);
+		if(c->die != nil)
 			break;
 		unlinkBody(c);
 	}
 	c->ref--;
-	rwakeup(&c->die);
-	qunlock(&c->lk);
+	vtWakeup(c->die);
+	vtUnlock(c->lk);
 }
 
 static int
@@ -1935,9 +1940,9 @@ flushFill(Cache *c)
 	BAddr *p;
 	Block *b;
 
-	qlock(&c->lk);
+	vtLock(c->lk);
 	if(c->ndirty == 0){
-		qunlock(&c->lk);
+		vtUnlock(c->lk);
 		return;
 	}
 
@@ -1961,7 +1966,7 @@ flushFill(Cache *c)
 			argv0, c->ndirty, ndirty);
 		c->ndirty = ndirty;
 	}
-	qunlock(&c->lk);
+	vtUnlock(c->lk);
 
 	c->bw = p - c->baddr;
 	qsort(c->baddr, c->bw, sizeof(BAddr), baddrCmp);
@@ -2035,11 +2040,11 @@ flushThread(void *a)
 	Cache *c = a;
 	int i;
 
-	threadsetname("flush");
-	qlock(&c->lk);
-	while(c->die.l == nil){
-		rsleep(&c->flush);
-		qunlock(&c->lk);
+	vtThreadSetName("flush");
+	vtLock(c->lk);
+	while(c->die == nil){
+		vtSleep(c->flush);
+		vtUnlock(c->lk);
 		for(i=0; i<FlushSize; i++)
 			if(!cacheFlushBlock(c)){
 				/*
@@ -2065,12 +2070,12 @@ flushThread(void *a)
 			 */
 			sleep(100);
 		}
-		qlock(&c->lk);
-		rwakeupall(&c->flushwait);
+		vtLock(c->lk);
+		vtWakeupAll(c->flushwait);
 	}
 	c->ref--;
-	rwakeup(&c->die);
-	qunlock(&c->lk);
+	vtWakeup(c->die);
+	vtUnlock(c->lk);
 }
 
 /*
@@ -2079,18 +2084,18 @@ flushThread(void *a)
 void
 cacheFlush(Cache *c, int wait)
 {
-	qlock(&c->lk);
+	vtLock(c->lk);
 	if(wait){
 		while(c->ndirty){
 		//	consPrint("cacheFlush: %d dirty blocks, uhead %p\n",
 		//		c->ndirty, c->uhead);
-			rwakeup(&c->flush);
-			rsleep(&c->flushwait);
+			vtWakeup(c->flush);
+			vtSleep(c->flushwait);
 		}
 	//	consPrint("cacheFlush: done (uhead %p)\n", c->ndirty, c->uhead);
 	}else if(c->ndirty)
-		rwakeup(&c->flush);
-	qunlock(&c->lk);
+		vtWakeup(c->flush);
+	vtUnlock(c->lk);
 }
 
 /*

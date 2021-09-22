@@ -1,0 +1,56 @@
+vm 0-1.5
+pM 35.062556,89.981500	# mem
+pG 35.346944, 90.478056	# gqe vor
+pH 34.770167, 89.496417	# hli vor
+
+va 360			# look up
+
+pa d pM,m072,5
+pb d pM,m072,7
+pc d pM,m272,7
+pd d pM,m272,5
+
+pe d pM,m(va+90),8
+pf d pM,m(va-90),8
+pg xcln pM,13, pe,m(va)
+ph xcln pM,10, pe,m(va)
+pi xcls pM,10, pe,m(va)
+pj xcls pM,15, pe,m(va)
+
+pk xcln pM,13, pf,m(va)
+pl xcln pM,11, pf,m(va)
+pm xcls pM,11, pf,m(va)
+pn xcls pM,15, pf,m(va)
+
+po d pG,m(050+90),2
+pp xclw pM,30, po,m050
+pq xcle pM,30, po,m050
+
+pr d pH,m(222+90),2
+ps xcle pM,30, pr,m222
+pt xclw pM,30, pr,m222
+
+n mem_gnd\100
+s pa,pb
+ar pM,pb,pc
+s pc,pd
+ar pM,pd,pa
+
+n mem_18\100
+s pg,ph
+ar pM,ph,pi
+s pi,pj
+ar pM,pj,pn
+s pn,pm
+ar pM,pm,pl
+s pl,pk
+ar pM,pk,pg
+
+n mem_30\100
+c pM,20
+
+n mem_50\100
+S pp,pq
+Ar pM,pq,ps
+S ps,pt
+Ar pM,pt,pp

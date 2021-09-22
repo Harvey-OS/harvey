@@ -1,0 +1,22 @@
+#! /bin/sh
+
+# Script to stick bounding box finder in front of a postscript file
+#    Adapted from Ned's original
+
+# $Header: bbfig,v 1.3 90/06/27 21:54:49 cosell Exp $
+
+# BBPSDIR=<wherever>  # Define this if bb.ps doesn't live in same
+                      #   directory as bbfig
+
+if [ ! -f ${BBPSDIR=`dirname $0`}/bb.ps ]
+then
+    echo >&2 "Can't locate bb.ps"
+    exit 1
+fi
+
+case $# in
+    0)    cat $BBPSDIR/bb.ps -
+	  ;;
+    *)    cat $BBPSDIR/bb.ps "$@"
+	  ;;
+esac

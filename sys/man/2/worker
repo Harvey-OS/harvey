@@ -1,0 +1,112 @@
+.TH REPORT 2
+.SH NAME
+report, reportdata, reporting, reportcheck —
+print debugging/monitoring information
+.SH SYNOPSIS
+.EX
+.ta 8n +8n +8n +8n
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include <worker.h>
+#include <error.h>
+.sp
+#define report if(!Reporting){}else _report
+#define reportcheck(x) (Reporting?_reportcheck(x):0)
+#define reportdata if(!Reporting){}else _reportdata
+.sp
+struct Request {
+	void	(*func)(Worker*, void*);
+	void	*arg;
+};
+.sp
+struct Worker {
+	char	name[64];
+	Request	*r;		/* Pointer to work to do */
+	ulong	version;	/* Incremented when accepting new work */
+	Channel	*chan;		/* for allocating work */
+	Channel *event;		/* for signalling worker */
+	void	*arg;		/* set to func's arg */
+	void	*aux;		/* unused by library */
+};
+.sp
+void	workerdispatch(void (*f)(Worker*,void*), void *arg)
+Timer*	timerdispatch(void (*f)(Worker*, void*), void *arg, vlong when)
+int	timerrecall(Timer*)
+int	recvt(Channel *c, void **v, vlong when)
+int	sendt(Channel *c, void *v, vlong when)
+.EE
+.SH DESCRIPTION
+Typical Plan 9 servers create threads to handle incoming requests.
+The worker library allows these threads to be recycled  so they can be
+reused for a next request.
+.PP
+.I Workerdispatch
+finds a waiting worker thread, or creates one if there are none and
+causes the thread to execute the function
+.I f
+in that thread.  This function is called with two arguments, a pointer
+to the
+.I Worker
+structure and the argument
+.I arg
+provided by the caller of
+.IR workerdispatch .
+.PP
+When the function returns, the worker thread makes itself available
+for the next request.  Up to
+.I Nworker
+worker threads can be queued.
+.PP
+.I Timerdispatch
+calls
+.I workerdispatch
+in the future, at time
+.IR when ,
+which is given in nanoseconds (see
+.IR nsec (2)).
+If
+.I when
+is in the past, the function is called immediately.
+It returns an address for use in
+.I timerrecall .
+.PP
+.I Timerrecall
+finds an outstanding
+.I timerdispatch
+event by the address returned by
+.I timerdisplatch
+and attempts to cancel it.
+If cancellation succeeds, it returns 1; if there is a race condition,
+or the function has already been called, it returns 0.
+.PP
+.I recvt
+and
+.I sendt
+execute send and receive operations with timeouts.
+The calls return 1 if the operation succeeded normally,
+0 if it timed out and -1 if it was interrupted.
+.SH FILES
+.TF /sys/lib/acid/worker
+.TP
+.B /sys/lib/acid/worker
+useful
+.IR acid (1)
+functions for debugging worker programs.
+.SH SOURCE
+.B /sys/src/libworker
+.SH "SEE ALSO
+.IR thread (2)
+.IR error (2)
+.IR nsec (2)
+.SH DIAGNOSTICS
+Uncaught errors (see
+.IR error (2))
+in the function
+.I f
+cause the function to be exited and the worker thread to requeue
+itself.
+.SH BUGS
+The Stack for worker threads is only Wstack bytes
+.SH AUTHOR
+Sape Mullender

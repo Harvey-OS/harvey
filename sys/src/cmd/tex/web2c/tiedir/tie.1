@@ -1,0 +1,42 @@
+.TH TIE 1L 9/24/92
+.SH NAME
+tie \- merge or apply WEB change files
+.SH SYNOPSIS
+.B tie
+.B \-c|\-m
+.I outputfile masterfile changefile1
+[
+.I ... changefile9
+]
+
+.SH DESCRIPTION
+The
+.I tie
+program is  used to process multiple change  files  used  with the WEB
+system  for  literate  programming. The WEB programs  allow  to  apply
+patches to a source file (the
+.IR masterfile )
+by  means of a number of change files (often only a single change file
+is allowed).
+.I Tie
+can be used  to either merge up to nine change files into a single one
+or to apply the changes to the
+.I masterfile
+in order to create a new one. Output of either the  new change file or
+the patched master file goes into
+.I outputfile.
+.SS OPTIONS
+.TP
+.B \-c
+Create a single change file from the given
+.I changefiles.
+.TP
+.B \-m
+Create a new master file by applying the given
+.I changefiles.
+.SH "SEE ALSO"
+.br
+web(1), cweb(1l).
+.SH "AUTHOR"
+Klaus Guntermann, TH Darmstadt, Institut f. Theoretische Informatik. Man page
+by Joachim Schnitter, TH Darmstadt, Phys. Chemie I.

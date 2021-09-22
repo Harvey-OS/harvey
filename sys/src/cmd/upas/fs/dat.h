@@ -116,8 +116,8 @@ extern Mailboxinit	planbvmbox;
 
 char*		syncmbox(Mailbox*, int);
 char*		geterrstr(void);
-void*		emalloc(ulong);
-void*		erealloc(void*, ulong);
+void*		emalloc(uintptr);
+void*		erealloc(void*, uintptr);
 Message*	newmessage(Message*);
 void		delmessage(Mailbox*, Message*);
 void		delmessages(int, char**);

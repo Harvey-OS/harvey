@@ -1,5 +1,6 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <string.h>
 #include "grap.h"
 #include "y.tab.h"
 
@@ -64,7 +65,7 @@ void label(int label_side, Attr *stringlist)	/* stick label on label_side */
 	}
 	lab_adjust();
 	fprintf(tfd, "\n");
-	label_side = BOT;
+//	label_side = BOT;		/* no-op */
 }
 
 void lab_adjust(void)	/* add a string to adjust labels, ticks, etc. */

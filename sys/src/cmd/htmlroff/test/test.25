@@ -1,0 +1,4 @@
+.lg 0
+.ds sd #9/tmac
+.\"	RT -  reset everything to normal state
+hello, world

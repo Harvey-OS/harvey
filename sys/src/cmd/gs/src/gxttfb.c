@@ -292,9 +292,11 @@ private void *gx_ttfMemory__alloc_struct(ttfMemory *this, const ttfMemoryDescrip
 
 private void gx_ttfMemory__free(ttfMemory *this, void *p,  const char *cname)
 {
-    gs_memory_t *mem = ((gx_ttfMemory *)this)->memory;
+#if !defined(Tamd64) && !defined(Triscv64)
+   gs_memory_t *mem = ((gx_ttfMemory *)this)->memory;
 
     gs_free_object(mem, p, cname);
+#endif
 }
 
 /*----------------------------------------------*/

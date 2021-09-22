@@ -50,6 +50,7 @@ typedef struct gs_pattern2_template_s {
 #ifndef gx_device_color_DEFINED
 #  define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
+#pragma incomplete gx_device_color
 #endif
 
 typedef struct gs_pattern2_instance_s {
@@ -71,6 +72,7 @@ typedef struct gx_path_s gx_path;
 #ifndef gx_device_DEFINED
 #define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#pragma incomplete gx_device
 #endif
 
 extern const gx_device_color_type_t gx_dc_pattern2;

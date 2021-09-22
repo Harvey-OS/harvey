@@ -73,7 +73,7 @@ with the quotes evaluated.
 The
 .I rune
 versions of these functions do the same for
-.CW Rune
+.B Rune
 strings (see
 .IR runestrcat (2)).
 .PP

@@ -313,3 +313,8 @@ will consume its standard input by copying it to the remote system,
 so redirect it from
 .BR /dev/null
 if that's not what you want.
+.PP
+.I Rx
+does not normally encrypt its connection.
+An exception is when it falls back to using
+.IR ssh1 (1).

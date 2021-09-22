@@ -1,0 +1,121 @@
+.TH TANGLE 1 "12 February 1993" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if n .ds WB Web
+.if t .ds WB W\s-2EB\s0
+.\"=====================================================================
+.SH NAME
+tangle \- translate WEB to Pascal
+.SH SYNOPSIS
+.B tangle
+.I webfile[.web]
+[
+.I changefile[.ch]
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B tangle
+program converts a \*(WB
+source document into a Pascal program that may be compiled in the usual
+way with the on-line Pascal compiler (e.g.,
+.BR pc (1)).
+The output file is all in lower case
+and packed into lines of 72 characters or less, with the only concession
+to readability being the termination of lines at semicolons when this can
+be done conveniently.
+.PP
+The \*(WB language allows you to prepare a single document containing all
+the information that is needed both to produce a compilable Pascal
+program and to produce a well-formatted document describing the program
+in as much detail as the writer may desire.  The user of \*(WB must be
+familiar with both \*(TX and Pascal.  \*(WB also provides a relatively
+simple, although adequate, macro facility that permits a Pascal program
+to be written in small easily-understood modules.
+.PP
+The command line should have either one or two names on it.
+The first is taken as the \*(WB file (and
+.I .web
+is added if there is no
+extension).
+If there is another name, it is a change file (and
+.I .ch
+is added if there is
+no extension).  The change file overrides parts of the \*(WB file,
+as described in the \*(WB system documentation.
+.PP
+The output files are a Pascal file and a string pool file,
+whose names are formed by adding
+.I .p
+and
+.I .pool
+respectively to the root of the \*(WB file name.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR pc (1),
+.BR pxp (1)
+(for formatting
+.B tangle
+output when debugging),
+.BR tex (1).
+.PP
+Donald E. Knuth,
+.IR "The \*(WB System of Structured Documentation" .
+.PP
+Donald E. Knuth,
+.IR "Literate Programming" ,
+Computer Journal
+.BR 27 ,
+97\-111, 1984.
+.PP
+Wayne Sewell,
+.IR "Weaving a Program" ,
+Van Nostrand Reinhold, 1989, ISBN 0-442-31946-0.
+.PP
+Donald E. Knuth,
+.I "\*(OX: The Program"
+(Volume B of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13437-3.
+.PP
+Donald E. Knuth,
+.I "\*(MF: The Program"
+(Volume D of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13438-1.
+.PP
+These last two are by far the largest extant examples of \*(WB
+programs.
+.PP
+There is an active Internet electronic mail discussion list on the
+subject of literate programming; send a subscription request to
+.I litprog-request@shsu.edu
+to join.
+.\"=====================================================================
+.SH AUTHORS
+\*(WB was designed by Donald E. Knuth, based on an earlier system
+called DOC (implemented by Ignacio Zabala).
+The
+.B tangle
+and
+.B weave
+programs are themselves written in \*(WB. The system
+was originally ported to Unix at Stanford by Howard Trickey, and at
+Cornell by Pavel Curtis.

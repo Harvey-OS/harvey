@@ -35,7 +35,6 @@ decref(Ref *r)
 	unlock(r);
 	if(x < 0)
 		panic("decref pc=%#p", getcallerpc(&r));
-
 	return x;
 }
 #endif /* decref */
@@ -51,6 +50,7 @@ procrestore(Proc *p)
 	p->pcycles -= t;
 
 	fpuprocrestore(p);
+//	idlewake();			/* other runnable procs? */
 }
 
 /*
@@ -67,6 +67,7 @@ procsave(Proc *p)
 	fpuprocsave(p);
 
 	/*
+	 * flush mmu contents so another proc on this cpu can start fresh.
 	 */
 	mmuflushtlb(m->pml4->pa);
 }
@@ -93,27 +94,4 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 
 	p->kpfun = func;
 	p->kparg = arg;
-}
-
-static int idle_spin;
-
-/*
- *  put the processor in the halt state if we've no processes to run.
- *  an interrupt will get us going again.
- */
-void
-idlehands(void)
-{
-	/*
-	 * we used to halt only on single-core setups. halting in an smp system
-	 * can result in a startup latency for processes that become ready.
-	 * if idle_spin is zero, we care more about saving energy
-	 * than reducing this latency.
-	 *
-	 * the performance loss with idle_spin == 0 seems to be slight
-	 * and it reduces lock contention (thus system time and real time)
-	 * on many-core systems with large values of NPROC.
-	 */
-	if(sys->nonline == 1 || idle_spin == 0)
-		halt();
 }

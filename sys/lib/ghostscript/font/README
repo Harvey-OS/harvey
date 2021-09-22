@@ -1,9 +1,0 @@
-This directory contains only the fonts in a
-standard GS font distribution, e.g. 
-gnu-gs-fonts-std-6.0.tar.gz.  It does not,
-for example, contain the Utopia or Hershey fonts.
-See the Ghostscript documentation for information
-on obtaining these.
-
-The fonts in this directory are covered by the GNU General Public License.
-See /LICENSE.gpl for details.

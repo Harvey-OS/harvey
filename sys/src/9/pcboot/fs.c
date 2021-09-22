@@ -3,11 +3,8 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
-#include	"pool.h"
+
 #include	"../port/error.h"
-#include	"../port/netif.h"
 #include	"dosfs.h"
 
 enum {

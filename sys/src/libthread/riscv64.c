@@ -5,10 +5,10 @@
 
 /* first argument goes in a register; simplest just to ignore it */
 static void
-launcherriscv(int, void (*f)(void *arg), void *arg)
+launcherriscv64(int, void (*f)(void *arg), void *arg)
 {
 	if (f == nil)
-		sysfatal("launcherriscv: nil f passed: arg %#p", arg);
+		sysfatal("launcherriscv64: nil f passed: arg %#p", arg);
 	(*f)(arg);
 	threadexits(nil);
 }
@@ -21,6 +21,6 @@ _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 	tos = (uintptr *)&t->stk[t->stksize&~7];
 	*--tos = (uintptr)arg;
 	*--tos = (uintptr)f;
-	t->sched[JMPBUFPC] = (uintptr)launcherriscv+JMPBUFDPC;
+	t->sched[JMPBUFPC] = (uintptr)launcherriscv64+JMPBUFDPC;
 	t->sched[JMPBUFSP] = (uintptr)tos - 2*sizeof(uintptr); /* 1st arg, return PC */
 }

@@ -135,7 +135,7 @@ gs_ignore_free_object(gs_memory_t * mem, void *data, client_name_t cname)
 {
 }
 void
-gs_ignore_free_string(gs_memory_t * mem, byte * data, uint nbytes,
+gs_ignore_free_string(gs_memory_t * mem, byte * data, uintptr_t nbytes,
 		      client_name_t cname)
 {
 }
@@ -151,7 +151,7 @@ gs_free_const_object(gs_memory_t * mem, const void *data, client_name_t cname)
     gs_free_object(mem, u.w, cname);
 }
 void
-gs_free_const_string(gs_memory_t * mem, const byte * data, uint nbytes,
+gs_free_const_string(gs_memory_t * mem, const byte * data, uintptr_t nbytes,
 		     client_name_t cname)
 {
     union { const byte *r; byte *w; } u;

@@ -128,7 +128,6 @@ edfinit(Proc*p)
 	p->edf = malloc(sizeof(Edf));
 	if(p->edf == nil)
 		error(Enomem);
-	return;
 }
 
 static void
@@ -370,7 +369,8 @@ edfadmit(Proc *p)
 	}
 	e->flags |= Admitted;
 
-	edflock(p);
+	if (edflock(p) == nil)		/* the ilock on thelock is not held */
+		return "edflock failed";
 
 	if(p->trace && (pt = proctrace))
 		pt(p, SAdmit, 0);

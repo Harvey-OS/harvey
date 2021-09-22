@@ -1,0 +1,6 @@
+#!/bin/rc
+# pac2mp3 input - recode pac input as mp3 output
+# -p for ecc seems to bugger playback, at least through iTunes
+games/pac4dec $* /fd/1 |
+	dd -quiet 1 -conv swab -bs 4096 |
+	games/mp3enc -q0 -b 320

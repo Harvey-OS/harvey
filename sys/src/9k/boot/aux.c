@@ -137,7 +137,8 @@ srvcreate(char *name, int fd)
 	snprint(buf, sizeof buf, "#s/%s", srvname);
 	f = create(buf, 1, 0666);
 	if(f < 0)
-		fatal(buf);
+		return;		/* probably already exists */
+		// fatal(buf);
 	snprint(buf, sizeof buf, "%d", fd);
 	if(write(f, buf, strlen(buf)) != strlen(buf))
 		fatal("write");
@@ -164,7 +165,7 @@ outin(char *prompt, char *def, int len)
 
 	if(cpuflag){
 		notify(catchint);
-		alarm(15*1000);
+		alarm(promptwait);
 	}
 	print("%s[%s]: ", prompt, *def ? def : "no default");
 	memset(buf, 0, sizeof buf);
@@ -174,10 +175,8 @@ outin(char *prompt, char *def, int len)
 		notify(0);
 	}
 
-	if(n < 0){
-		print("\n");
+	if(n < 0)
 		return 1;
-	}
 	if(n > 1){
 		buf[n-1] = 0;
 		strcpy(def, buf);

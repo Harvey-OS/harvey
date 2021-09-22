@@ -93,28 +93,28 @@ typedef struct Mode {
 	char	type[Namelen+1];	/* monitor type e.g. "vs1782" */
 	char	size[Namelen+1];	/* size e.g. "1376x1024x8" */
 	char	chan[Namelen+1];	/* channel descriptor, e.g. "m8" or "r8g8b8a8" */
-	char name[Namelen+1];	/* optional */
+	char	name[Namelen+1];	/* optional */
 
-	int	frequency;		/* Dot Clock (MHz) */
-	int	deffrequency;		/* Default dot clock if calculation can't be done */
-	int	x;			/* Horizontal Display End (Crt01), from .size[] */
-	int	y;			/* Vertical Display End (Crt18), from .size[] */
-	int	z;			/* depth, from .size[] */
+	int	frequency;	/* Dot Clock (MHz) */
+	int	deffrequency;	/* Default dot clock if calculation can't be done */
+	int	x;	/* Horizontal Display End (Crt01), from .size[] */
+	int	y;	/* Vertical Display End (Crt12), from .size[] */
+	int	z;	/* depth, from .size[] */
 
-	int	ht;			/* Horizontal Total (Crt00) */
-	int	shb;			/* Start Horizontal Blank (Crt02) */
-	int	ehb;			/* End Horizontal Blank (Crt03) */
+	int	ht;	/* Horizontal Total (Crt00) */
+	int	shb;	/* Start Horizontal Blank (Crt02) */
+	int	ehb;	/* End Horizontal Blank (Crt03) */
 
-	int	shs;			/* optional Start Horizontal Sync (Crt04) */
-	int	ehs;			/* optional End Horizontal Sync (Crt05) */
+	int	shs;	/* optional Start Horizontal Sync (Crt04) */
+	int	ehs;	/* optional End Horizontal Sync (Crt05) */
 
-	int	vt;			/* Vertical Total (Crt06) */
-	int	vrs;			/* Vertical Retrace Start (Crt10) */
-	int	vre;			/* Vertical Retrace End (Crt11) */
+	int	vt;	/* Vertical Total (Crt06) */
+	int	vrs;	/* Vertical Retrace Start (Crt10) */
+	int	vre;	/* Vertical Retrace End (Crt11) */
 
-	int		vbs;		/* optional Vertical Blank Start */
-	int		vbe;		/* optional Vertical Blank End */
-	
+	int	vbs;	/* optional Vertical Blank Start (Crt15) */
+	int	vbe;	/* optional Vertical Blank End (Crt16) */
+
 	ulong	videobw;
 
 	char	hsync;

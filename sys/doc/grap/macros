@@ -1,0 +1,54 @@
+.ig
+	.get file
+		includes copy of file right here.
+		normally used as
+		.P1
+		.get file
+		.P2
+
+	.grap file
+		runs file thru grap and pic, inserts output here
+		input file assumed to include .G1/.G2
+
+	.dot file
+		runs file thru dot, grap and pic, inserts output here
+		input file does NOT include .G1/.G2
+
+	.scat file
+		runs file thru scatmat, grap and pic, inserts output here
+		input file does NOT include .G1/.G2
+
+	.d file
+		prints the first 5 and last line of the file
+		(pretty dumb so far)
+		normally needs .P1/.P2
+
+..
+.so cprog.mac
+.de ge	\" assumes .ge called as .get
+.sy trget \\n(.$ \\$2 '\\$3' '\\$4' '\\$5' | sed '/^.&.G[12]/d' >junk.\\n($$
+.so junk.\\n($$
+.sy rm junk.\\n($$
+..
+.ds g grap	\" what grap to run
+.de gr	\" assumes called as .grap
+.sy \\*g \\$2 | pic | eqn '-d$$' >junk.\\n($$
+.so junk.\\n($$
+.sy rm junk.\\n($$
+..
+.de d
+....sy sed -n -e 1,5p -e '6s/.*/  .../p' -e '$p' \\$1 >junk.\\n($$
+.sy awk '{if(NR<=5)print;else x=$0} END {if(NR>5){print "\\\\\\\\\\e&...";print x}}' \\$1 >junk.\\n($$
+.so junk.\\n($$
+...sy rm junk.\\n($$
+..
+.de do	\" assumes called as .dot
+.sy dot \\$2 | \\*g | pic | eqn '-d$$' >junk.\\n($$
+.so junk.\\n($$
+.sy rm junk.\\n($$
+..
+.de sc	\" assumes called as .scat
+.sy scatmat \\$2 | \\*g | pic | eqn '-d$$' >junk.\\n($$
+.so junk.\\n($$
+.sy rm junk.\\n($$
+..

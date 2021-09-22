@@ -548,9 +548,10 @@ overflow(Ether *ether)
 		regw(ctlr, Cr, Page0|RdABORT|Txp|Sta);
 }
 
-static void
+static int
 interrupt(Ureg*, void* arg)
 {
+	int loops;
 	Ether *ether;
 	Dp8390 *ctlr;
 	uchar isr, r;
@@ -562,9 +563,11 @@ interrupt(Ureg*, void* arg)
 	 * While there is something of interest,
 	 * clear all the interrupts and process.
 	 */
+	loops = 0;
 	ilock(ctlr);
 	regw(ctlr, Imr, 0x00);
 	while(isr = (regr(ctlr, Isr) & (Cnt|Ovw|Txe|Rxe|Ptx|Prx))){
+		loops++;
 		if(isr & Ovw){
 			overflow(ether);
 			regw(ctlr, Isr, Ovw);
@@ -609,6 +612,7 @@ interrupt(Ureg*, void* arg)
 	}
 	regw(ctlr, Imr, Cnt|Ovw|Txe|Rxe|Ptx|Prx);
 	iunlock(ctlr);
+	return loops > 0? Intrforme: Intrnotforme;
 }
 
 static uchar allmar[8] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };

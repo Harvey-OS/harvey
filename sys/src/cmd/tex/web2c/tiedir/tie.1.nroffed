@@ -1,0 +1,66 @@
+
+
+
+     TIE(1L)                     (9/24/92)                     TIE(1L)
+
+
+
+     NAME
+          tie - merge or apply WEB change files
+
+     SYNOPSIS
+          tie -c|-m outputfile masterfile changefile1 [ ...
+            changefile9 ]
+
+
+     DESCRIPTION
+          The  tie  program is  used to process multiple change  files
+          used  with  the  WEB system  for  literate  programming. The
+          WEB  programs  allow  to apply patches to a source file (the
+          masterfile) by  means of  a number  of change  files  (often
+          only a single change file is allowed).  Tie  can  be used to
+          either merge up to nine change files into a single one or to
+          apply the changes to the masterfile in order to create a new
+          one. Output of  either  the  new  change file or the patched
+          master file goes into outputfile.
+
+        OPTIONS
+          -c   Create a single change file from the given masterfile.
+
+          -m   Create a new master file by applying the given
+               changefiles.
+
+     SEE ALSO
+          web(1), cweb(1l).
+
+     AUTHOR
+          Klaus Guntermann, TH Darmstadt, Institut f. Theoretische
+          Informatik. Man page by Joachim Schnitter, TH Darmstadt,
+          Phys. Chemie I.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 1                                         (printed 12/17/92)
+
+
+

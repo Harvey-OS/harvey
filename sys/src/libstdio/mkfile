@@ -31,6 +31,7 @@ OFILES=\
 	getc.$O\
 	gets.$O\
 	printf.$O\
+	printfp.$O\
 	putc.$O\
 	puts.$O\
 	rewind.$O\

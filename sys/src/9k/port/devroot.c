@@ -1,3 +1,6 @@
+/*
+ * in-memory root tree
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -50,6 +53,8 @@ static Dirlist bootlist =
 	1,
 	Nbootfiles
 };
+
+Dev rootdevtab;
 
 /*
  *  add a file to the list
@@ -109,7 +114,7 @@ rootreset(void)
 static Chan*
 rootattach(char *spec)
 {
-	return devattach('/', spec);
+	return devattach(rootdevtab.dc, spec);
 }
 
 static int
@@ -151,10 +156,8 @@ rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 		}
 		if(t >= l->ndir)
 			return -1;
-if(t < 0){
-print("rootgen %#llux %d %d\n", c->qid.path, s, t);
-panic("whoops");
-}
+		if(t < 0)
+			panic("rootgen %#llux %d %d", c->qid.path, s, t);
 		d = &l->dir[t];
 		devdir(c, d->qid, d->name, d->length, eve, d->perm, dp);
 		return 1;
@@ -228,7 +231,7 @@ static long
 rootwrite(Chan*, void*, long, vlong)
 {
 	error(Egreg);
-	return 0;
+	notreached();
 }
 
 Dev rootdevtab = {

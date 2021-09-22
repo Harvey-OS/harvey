@@ -63,5 +63,6 @@ struct Ureg
 
 	uvlong	curmode;
 };
+#undef uvlong
 
 #endif

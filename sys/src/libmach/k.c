@@ -4,7 +4,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include "/sparc/include/ureg.h"
+#include "sparc/ureg.h"
 #include <mach.h>
 
 #define	REGOFF(x)	(ulong)(&((struct Ureg *) 0)->x)

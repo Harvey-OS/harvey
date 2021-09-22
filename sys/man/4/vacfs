@@ -45,7 +45,7 @@ are:
 .PD
 .TP
 .BI -c " cachesize
-The number of file system blocks to cache in memory. The default is 1000 blocks.
+The number of file system blocks to cache in memory. The default is 256 blocks.
 .TP
 .B -d
 Print debugging information to standard error.

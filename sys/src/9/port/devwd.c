@@ -12,6 +12,8 @@
 enum {
 	Qdir,
 	Qwdctl,
+
+	Wdogms = 200,
 };
 
 /*
@@ -19,7 +21,7 @@ enum {
  * before busy looping for a long time.
  */
 Watchdog*watchdog;
-int	watchdogon;
+int	watchdogon;		/* flag: if set, watchdog will be non-nil */
 
 static Watchdog *wd;
 static int wdautopet;
@@ -77,15 +79,15 @@ wdautostart(void)
 	if (wdautopet || !wd || !wdallowed())
 		return;
 	if (waserror()) {
-		print("watchdog: automatic enable failed\n");
-		return;
+		// print("watchdog: automatic enable failed\n");
+		return;				/* oh well */
 	}
 	wd->enable();
 	poperror();
 
 	wdautopet = watchdogon = 1;
 	if (!wdclock0called) {
-		addclock0link(wdpet, 200);
+		addclock0link(wdpet, Wdogms);
 		wdclock0called = 1;
 	}
 }

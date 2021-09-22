@@ -1,3 +1,7 @@
+/*
+ * implementation of rfork, exec, wait, exits, and
+ * note and synchronisation system calls
+ */
 #include	"u.h"
 #include	"tos.h"
 #include	"../port/lib.h"
@@ -8,14 +12,91 @@
 
 #include	"../port/edf.h"
 #include	<a.out.h>
-#include	<ptrace.h>
+
+enum {
+	Procarglen = 128,
+};
 
 void
 sysr1(Ar0* ar0, va_list list)
 {
 	USED(list);
-
 	ar0->i = 0;
+}
+
+static void
+sysrforknoproc(int flag)
+{
+	Fgrp *ofg;
+	Pgrp *opg;
+	Rgrp *org;
+	Egrp *oeg;
+
+	if(flag & (RFMEM|RFNOWAIT))
+		error(Ebadarg);
+	if(flag & (RFFDG|RFCFDG)) {
+		ofg = up->fgrp;
+		up->fgrp = dupfgrp(flag & RFFDG? ofg: nil);
+		closefgrp(ofg);
+	}
+	if(flag & (RFNAMEG|RFCNAMEG)) {
+		opg = up->pgrp;
+		up->pgrp = newpgrp();
+		if(flag & RFNAMEG)
+			pgrpcpy(up->pgrp, opg);
+		/* inherit noattach */
+		up->pgrp->noattach = opg->noattach;
+		closepgrp(opg);
+	}
+	if(flag & RFNOMNT)
+		up->pgrp->noattach = 1;
+	if(flag & RFREND) {
+		org = up->rgrp;
+		up->rgrp = newrgrp();
+		closergrp(org);
+	}
+	if(flag & (RFENVG|RFCENVG)) {
+		oeg = up->egrp;
+		up->egrp = smalloc(sizeof(Egrp));
+		up->egrp->ref = 1;
+		if(flag & RFENVG)
+			envcpy(up->egrp, oeg);
+		closeegrp(oeg);
+	}
+	if(flag & RFNOTEG)
+		up->noteid = incref(&noteidalloc);
+}
+
+static void
+initnewproc(Proc *p)
+{
+	p->trace = up->trace;
+	p->scallnr = up->scallnr;
+	memmove(p->arg.arg, up->arg.arg, sizeof(up->arg.arg));
+	p->nerrlab = 0;
+	p->slash = up->slash;
+	p->dot = up->dot;
+	incref(p->dot);
+
+	memmove(p->note, up->note, sizeof(p->note));
+	p->privatemem = up->privatemem;
+	p->nnote = up->nnote;
+	p->notified = 0;
+	p->lastnote = up->lastnote;
+	p->notify = up->notify;
+	p->ureg = up->ureg;
+	p->dbgreg = 0;
+
+	p->hang = up->hang;
+	p->procmode = up->procmode;
+	p->basepri = p->priority = up->basepri;
+	p->fixedpri = up->fixedpri;
+
+	memset(p->time, 0, sizeof(p->time));
+	p->time[TReal] = sys->ticks;
+
+	kstrdup(&p->text, up->text);
+	kstrdup(&p->user, up->user);
 }
 
 void
@@ -23,13 +104,7 @@ sysrfork(Ar0* ar0, va_list list)
 {
 	Proc *p;
 	int flag, i, n, pid;
-	Fgrp *ofg;
-	Pgrp *opg;
-	Rgrp *org;
-	Egrp *oeg;
 	Mach *wm;
-	void (*pt)(Proc*, int, vlong, vlong);
-	u64int ptarg;
 
 	/*
 	 * int rfork(int);
@@ -45,65 +120,13 @@ sysrfork(Ar0* ar0, va_list list)
 		error(Ebadarg);
 
 	if((flag&RFPROC) == 0) {
-		if(flag & (RFMEM|RFNOWAIT))
-			error(Ebadarg);
-		if(flag & (RFFDG|RFCFDG)) {
-			ofg = up->fgrp;
-			if(flag & RFFDG)
-				up->fgrp = dupfgrp(ofg);
-			else
-				up->fgrp = dupfgrp(nil);
-			closefgrp(ofg);
-		}
-		if(flag & (RFNAMEG|RFCNAMEG)) {
-			opg = up->pgrp;
-			up->pgrp = newpgrp();
-			if(flag & RFNAMEG)
-				pgrpcpy(up->pgrp, opg);
-			/* inherit noattach */
-			up->pgrp->noattach = opg->noattach;
-			closepgrp(opg);
-		}
-		if(flag & RFNOMNT)
-			up->pgrp->noattach = 1;
-		if(flag & RFREND) {
-			org = up->rgrp;
-			up->rgrp = newrgrp();
-			closergrp(org);
-		}
-		if(flag & (RFENVG|RFCENVG)) {
-			oeg = up->egrp;
-			up->egrp = smalloc(sizeof(Egrp));
-			up->egrp->ref = 1;
-			if(flag & RFENVG)
-				envcpy(up->egrp, oeg);
-			closeegrp(oeg);
-		}
-		if(flag & RFNOTEG)
-			up->noteid = incref(&noteidalloc);
-
+		sysrforknoproc(flag);
 		ar0->i = 0;
 		return;
 	}
 
 	p = newproc();
-
-	p->trace = up->trace;
-	p->scallnr = up->scallnr;
-	memmove(p->arg, up->arg, sizeof(up->arg));
-	p->nerrlab = 0;
-	p->slash = up->slash;
-	p->dot = up->dot;
-	incref(p->dot);
-
-	memmove(p->note, up->note, sizeof(p->note));
-	p->privatemem = up->privatemem;
-	p->nnote = up->nnote;
-	p->notified = 0;
-	p->lastnote = up->lastnote;
-	p->notify = up->notify;
-	p->ureg = up->ureg;
-	p->dbgreg = 0;
+	initnewproc(p);
 
 	/* Make a new set of memory segments */
 	n = flag & RFMEM;
@@ -113,18 +136,14 @@ sysrfork(Ar0* ar0, va_list list)
 		nexterror();
 	}
 	for(i = 0; i < NSEG; i++)
-		if(up->seg[i] != nil)
+		if(up->seg[i])
 			p->seg[i] = dupseg(up->seg, i, n);
 	qunlock(&p->seglock);
 	poperror();
 
 	/* File descriptors */
-	if(flag & (RFFDG|RFCFDG)) {
-		if(flag & RFFDG)
-			p->fgrp = dupfgrp(up->fgrp);
-		else
-			p->fgrp = dupfgrp(nil);
-	}
+	if(flag & (RFFDG|RFCFDG))
+		p->fgrp = dupfgrp(flag & RFFDG? up->fgrp: nil);
 	else {
 		p->fgrp = up->fgrp;
 		incref(p->fgrp);
@@ -137,8 +156,7 @@ sysrfork(Ar0* ar0, va_list list)
 			pgrpcpy(p->pgrp, up->pgrp);
 		/* inherit noattach */
 		p->pgrp->noattach = up->pgrp->noattach;
-	}
-	else {
+	} else {
 		p->pgrp = up->pgrp;
 		incref(p->pgrp);
 	}
@@ -158,16 +176,14 @@ sysrfork(Ar0* ar0, va_list list)
 		p->egrp->ref = 1;
 		if(flag & RFENVG)
 			envcpy(p->egrp, up->egrp);
-	}
-	else {
+	} else {
 		p->egrp = up->egrp;
 		incref(p->egrp);
 	}
-	p->hang = up->hang;
-	p->procmode = up->procmode;
 
-	/* Craft a return frame which will cause the child to pop out of
-	 * the scheduler in user mode with the return register zero
+	/*
+	 * Craft a return frame which will cause the child to pop out of
+	 * the scheduler in user mode with the return register zero.
 	 */
 	sysrforkchild(p, up);
 
@@ -183,30 +199,17 @@ sysrfork(Ar0* ar0, va_list list)
 	if((flag&RFNOTEG) == 0)
 		p->noteid = up->noteid;
 
-	pid = p->pid;
-	memset(p->time, 0, sizeof(p->time));
-	p->time[TReal] = sys->ticks;
-
-	kstrdup(&p->text, up->text);
-	kstrdup(&p->user, up->user);
 	/*
 	 *  since the bss/data segments are now shareable,
 	 *  any mmu info about this process is now stale
 	 *  (i.e. has bad properties) and has to be discarded.
 	 */
+	pid = p->pid;
 	mmuflush();
-	p->basepri = up->basepri;
-	p->priority = up->basepri;
-	p->fixedpri = up->fixedpri;
 	p->mp = up->mp;
 	wm = up->wired;
-	if(wm != nil)
+	if(wm)
 		procwired(p, wm->machno);
-	if(p->trace && (pt = proctrace) != nil){
-		strncpy((char*)&ptarg, p->text, sizeof ptarg);
-		pt(p, SName, 0, ptarg);
-	}
-	p->color = up->color;
 	ready(p);
 	sched();
 
@@ -219,11 +222,11 @@ vl2be(uvlong v)
 	uchar *p;
 
 	p = (uchar*)&v;
-	return ((uvlong)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
-	      |((uvlong)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
+	return ((uvlong)((p[0]<<24 | p[1]<<16 | p[2]<<8) | p[3])<<32)
+	      | ((uvlong)(p[4]<<24 | p[5]<<16 | p[6]<<8) | p[7]);
 }
 
-ulong
+static ulong
 l2be(long l)
 {
 	uchar *cp;
@@ -232,206 +235,144 @@ l2be(long l)
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 
-typedef struct {
+/* data extracted (or deduced) from Exec header and exec() arg.s */
+typedef struct Execdata Execdata;
+struct Execdata {
+	long	hdrsz;
+	long	magic;
+	long	textsz;
+	long	datasz;
+	long	bsssz;
+	uintptr	textlim;
+	uintptr	textmin;
+	uintptr	datalim;
+	uintptr	bsslim;
+	uintptr	entry;
+
+	uintptr	stack;
+	int	argc;
+
+	char	line[sizeof(Exec)];		/* tokenised into progarg */
+	char	*progarg[sizeof(Exec)/2+1];
+	char	elem[sizeof(up->genbuf)];
+};
+
+/* this is file layout, so can't tolerate bogus padding */
+typedef struct Hdr Hdr;
+struct Hdr {
 	Exec;
 	uvlong hdr[1];
-} Hdr;
+};
 
-void
-sysexec(Ar0* ar0, va_list list)
+static void
+checkhdr(Execdata *ed, Hdr *hdrp)
 {
-	Hdr hdr;
-	Fgrp *f;
-	Tos *tos;
-	Chan *chan;
-	Image *img;
-	Segment *s;
-	int argc, i, n, nargs;
-	char *a, *args, **argv, elem[sizeof(up->genbuf)], *file, *p;
-	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
-	long hdrsz, magic, textsz, datasz, bsssz;
-	uintptr textlim, textmin, datalim, bsslim, entry, stack;
-	void (*pt)(Proc*, int, vlong, vlong);
-	u64int ptarg;
-
-	/*
-	 * void* exec(char* name, char* argv[]);
-	 */
-
-	/*
-	 * Remember the full name of the file,
-	 * open it, and remember the final element of the
-	 * name left in up->genbuf by namec.
-	 */
-	p = va_arg(list, char*);
-	p = validaddr(p, 1, 0);
-	file = validnamedup(p, 1);
-	if(waserror()){
-		free(file);
-		nexterror();
-	}
-	chan = namec(file, Aopen, OEXEC, 0);
-	if(waserror()){
-		cclose(chan);
-		nexterror();
-	}
-	strncpy(elem, up->genbuf, sizeof(elem));
-
-	/*
-	 * Read the header.
-	 * If it's a #!, fill in progarg[] with info then read a new header
-	 * from the file indicated by the #!.
-	 * The #! line must be less than sizeof(Exec) in size,
-	 * including the terminating \n.
-	 */
-	hdrsz = chan->dev->read(chan, &hdr, sizeof(Hdr), 0);
-	if(hdrsz < 2)
-		error(Ebadexec);
-	p = (char*)&hdr;
-	argc = 0;
-	if(p[0] == '#' && p[1] == '!'){
-		p = memccpy(line, (char*)&hdr, '\n', MIN(sizeof(Exec), hdrsz));
-		if(p == nil)
-			error(Ebadexec);
-		*(p-1) = '\0';
-		argc = tokenize(line+2, progarg, nelem(progarg));
-		if(argc == 0)
-			error(Ebadexec);
-
-		/* The original file becomes an extra arg after #! line */
-		progarg[argc++] = file;
-
-		/*
-		 * Take the #! $0 as a file to open, and replace
-		 * $0 with the original path's name.
-		 */
-		p = progarg[0];
-		progarg[0] = elem;
-		poperror();			/* chan */
-		cclose(chan);
-
-		chan = namec(p, Aopen, OEXEC, 0);
-		if(waserror()){
-			cclose(chan);
-			nexterror();
-		}
-		hdrsz = chan->dev->read(chan, &hdr, sizeof(Hdr), 0);
-		if(hdrsz < 2)
-			error(Ebadexec);
-	}
-
 	/*
 	 * #! has had its chance, now we need a real binary.
 	 */
-	magic = l2be(hdr.magic);
-	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC)
-		error(Ebadexec);
-	if(magic & HDR_MAGIC){
-		entry = vl2be(hdr.hdr[0]);
-		hdrsz = sizeof(Hdr);
-	}
-	else{
-		entry = l2be(hdr.entry);
-		hdrsz = sizeof(Exec);
+	ed->magic = l2be(hdrp->magic);
+	if(ed->hdrsz != sizeof(Hdr) || ed->magic != AOUT_MAGIC)
+		error(Ebadexec); /* error("exec header too small or bad magic"); */
+	if(ed->magic & HDR_MAGIC){
+		ed->entry = vl2be(hdrp->hdr[0]);
+		ed->hdrsz = sizeof(Hdr);
+	} else {
+		ed->entry = l2be(hdrp->entry);
+		ed->hdrsz = sizeof(Exec);
 	}
 
-	textsz = l2be(hdr.text);
-	datasz = l2be(hdr.data);
-	bsssz = l2be(hdr.bss);
+	ed->textsz = l2be(hdrp->text);
+	ed->datasz = l2be(hdrp->data);
+	ed->bsssz = l2be(hdrp->bss);
 
-	textmin = ROUNDUP(UTZERO+hdrsz+textsz, PGSZ);
-	textlim = UTROUND(textmin);
-	datalim = ROUNDUP(textlim+datasz, PGSZ);
-	bsslim = ROUNDUP(textlim+datasz+bsssz, PGSZ);
+	ed->textmin = ROUNDUP(UTZERO+ed->hdrsz+ed->textsz, PGSZ);
+	ed->textlim = UTROUND(ed->textmin);
+	ed->datalim = ROUNDUP(ed->textlim+ed->datasz, PGSZ);
+	ed->bsslim = ROUNDUP(ed->textlim+ed->datasz+ed->bsssz, PGSZ);
 
 	/*
 	 * Check the binary header for consistency,
 	 * e.g. the entry point is within the text segment and
 	 * the segments don't overlap each other.
 	 */
-	if(entry < UTZERO+hdrsz || entry >= UTZERO+hdrsz+textsz)
-		error(Ebadexec);
+	if(ed->entry < UTZERO+ed->hdrsz ||
+	    ed->entry >= UTZERO+ed->hdrsz+ed->textsz)
+		error(Ebadexec); /* error("exec header entry inconsistent"); */
 
-	if(textsz >= textlim || datasz > datalim || bsssz > bsslim
-	|| textlim >= USTKTOP || datalim >= USTKTOP || bsslim >= USTKTOP
-	|| datalim < textlim || bsslim < datalim)
-		error(Ebadexec);
+	if(ed->textsz >= ed->textlim || ed->datasz > ed->datalim ||
+	    ed->bsssz > ed->bsslim || ed->textlim >= USTKTOP ||
+	    ed->datalim >= USTKTOP || ed->bsslim >= USTKTOP ||
+	    ed->datalim < ed->textlim || ed->bsslim < ed->datalim)
+		error(Ebadexec); /* error("exec header sizes inconsistent"); */
+}
 
-	up->color = corecolor(m->machno);
+/*
+ * The new stack is created in ESEG, temporarily mapped elsewhere.
+ * The stack contains, in descending address order:
+ *	a structure containing housekeeping and profiling data (Tos);
+ *	argument strings;
+ *	array of vectors to the argument strings with a terminating nil (argv).
+ * When the exec is committed, this temporary stack in ESEG will become SSEG.
+ * The architecture-dependent code which jumps to the new image will
+ * also push a count of the argument array onto the stack (argc).
+ *
+ * Called with up->seglock held.
+ */
+static void
+newstack(Execdata *ed)
+{
+	Tos *tos;
 
-	/*
-	 * The new stack is created in ESEG, temporarily mapped elsewhere.
-	 * The stack contains, in descending address order:
-	 *	a structure containing housekeeping and profiling data (Tos);
-	 *	argument strings;
-	 *	array of vectors to the argument strings with a terminating
-	 *	nil (argv).
-	 * When the exec is committed, this temporary stack in ESEG will
-	 * become SSEG.
-	 * The architecture-dependent code which jumps to the new image
-	 * will also push a count of the argument array onto the stack (argc).
-	 */
-	qlock(&up->seglock);
-	if(waserror()){
-		if(up->seg[ESEG] != nil){
-			putseg(up->seg[ESEG]);
-			up->seg[ESEG] = nil;
-		}
-		qunlock(&up->seglock);
-		nexterror();
-	}
 	up->seg[ESEG] = newseg(SG_STACK, TSTKTOP-USTKSIZE, TSTKTOP);
-	up->seg[ESEG]->color = up->color;
+	coherence();
 
 	/*
 	 * Stack is a pointer into the temporary stack
 	 * segment, and will move as items are pushed.
-	 */
-	stack = TSTKTOP-sizeof(Tos);
-
-	/*
 	 * First, the top-of-stack structure.
 	 */
-	tos = (Tos*)stack;
-	tos->cyclefreq = m->cyclefreq;
+	ed->stack = TOS(TSTKTOP);
+	tos = (Tos*)ed->stack;
+	tos->cyclefreq = m->cpuhz;
 	cycles((uvlong*)&tos->pcycles);
 	tos->pcycles = -tos->pcycles;
 	tos->kcycles = tos->pcycles;
 	tos->clock = 0;
+}
 
-	/*
-	 * As the pass is made over the arguments and they are pushed onto
-	 * the temporary stack, make a good faith copy in args for up->args.
-	 */
-	args = smalloc(128);
-	if(waserror()){
-		free(args);
-		nexterror();
-	}
-	nargs = 0;
-
-	/*
-	 * Next push any arguments found from a #! header.
-	 */
-	for(i = 0; i < argc; i++){
-		n = strlen(progarg[i])+1;
-		stack -= n;
-		memmove(UINT2PTR(stack), progarg[i], n);
-
-		if((n = MIN(n, 128-nargs)) <= 0)
-			continue;
-		memmove(&args[nargs], progarg[i], n);
+static int
+stashprocargs(char *dst, char *src, int n, int nargs)
+{
+	n = MIN(n, Procarglen - nargs);
+	if(n > 0) {
+		memmove(dst, src, n);
 		nargs += n;
 	}
+	return nargs;
+}
 
-	/*
-	 * Copy the strings pointed to by the syscall argument argv into
-	 * the temporary stack segment, being careful to check both argv and
-	 * the strings it points to are valid.
-	 */
-	argv = va_arg(list, char**);
+void
+dumpstk(void *stk)
+{
+	ulong *lp;
+
+	for (lp = stk; lp < (ulong *)(up->kstack + KSTACK); lp++)
+		iprint("%#p: %#lux\n", lp, *lp);
+}
+
+/*
+ * Copy the strings pointed to by the syscall argument argv into
+ * the temporary stack segment, being careful to check both argv and
+ * the strings it points to are valid.
+ */
+static int
+copyargs(Execdata *ed, char **argv, char *args, int nargs)
+{
+	int i, n;
+	char *a, *p;
+
 	evenaddr(PTR2UINT(argv));
-	for(i = 0;; i++, argv++){
+	for(i = 0; ; i++, argv++){
 		a = *(char**)validaddr(argv, sizeof(char**), 0);
 		if(a == nil)
 			break;
@@ -440,10 +381,9 @@ sysexec(Ar0* ar0, va_list list)
 
 		/*
 		 * This futzing is so argv[0] gets validated even
-		 * though it will be thrown away if this is a shell
-		 * script.
+		 * though it will be thrown away if this is a shell script.
 		 */
-		if(argc > 0 && i == 0)
+		if(ed->argc > 0 && i == 0)
 			continue;
 
 		/*
@@ -451,46 +391,87 @@ sysexec(Ar0* ar0, va_list list)
 		 * which might involve a demand-page, check the string
 		 * will not overflow the bottom of the stack.
 		 */
-		stack -= n;
-		if(stack < TSTKTOP-USTKSIZE)
+		ed->stack -= n;
+		if(ed->stack < TSTKTOP-USTKSIZE)
 			error(Enovmem);
-		p = UINT2PTR(stack);
+		p = UINT2PTR(ed->stack);
 		memmove(p, a, n);
-		p[n-1] = 0;
-		argc++;
-
-		if((n = MIN(n, 128-nargs)) <= 0)
-			continue;
-		memmove(&args[nargs], p, n);
-		nargs += n;
+		p[n-1] = '\0';
+		ed->argc++;
+		nargs = stashprocargs(&args[nargs], p, n, nargs);
 	}
-	if(argc < 1)
-		error(Ebadexec);
+	if(ed->argc < 1)
+		error(Ebadexec); /* error("exec header #! no args (2)"); */
+	return nargs;
+}
 
+/*
+ * Before pushing the argument pointers onto the temporary stack,
+ * which might involve a demand-page, check there is room for the
+ * terminating nil pointer, plus pointers, plus some slop for however
+ * argc might be passed on the stack by sysexecregs (give a page
+ * of slop, it is an overestimate, but why not).
+ * Sysexecstack does any architecture-dependent stack alignment.
+ * Keep a copy of the start of the argument strings before alignment
+ * so up->args can be created later.
+ * Although the argument vectors are being pushed onto the stack in
+ * the temporary segment, the values must be adjusted to reflect
+ * the segment address after it replaces the current SSEG.
+ */
+static char **
+newargv(Execdata *ed)
+{
+	int i;
+	char *p;
+	char **argv;
+
+	p = UINT2PTR(ed->stack);
 	/*
-	 * Before pushing the argument pointers onto the temporary stack,
-	 * which might involve a demand-page, check there is room for the
-	 * terminating nil pointer, plus pointers, plus some slop for however
-	 * argc might be passed on the stack by sysexecregs (give a page
-	 * of slop, it is an overestimate, but why not).
-	 * Sysexecstack does any architecture-dependent stack alignment.
-	 * Keep a copy of the start of the argument strings before alignment
-	 * so up->args can be created later.
-	 * Although the argument vectors are being pushed onto the stack in
-	 * the temporary segment, the values must be adjusted to reflect
-	 * the segment address after it replaces the current SSEG.
+	 * the second arg was ed->argc, followed by ed->argc+1 in next line.
+	 * +2 is for a nil ptr & 64-bit alignment padding.
 	 */
-	p = UINT2PTR(stack);
-	stack = sysexecstack(stack, argc);
-	if(stack-(argc+1)*sizeof(char**)-segpgsize(up->seg[ESEG]) < TSTKTOP-USTKSIZE)
-		error(Ebadexec);
+	ed->stack = sysexecstack(ed->stack, ed->argc + 2);
+	if(ed->stack - (ed->argc+2)*sizeof(char**) - PGSZ < TSTKTOP-USTKSIZE)
+		error(Ebadexec);	/* error("exec: stack too small"); */
 
-	argv = (char**)stack;
+	argv = (char**)ed->stack;
 	*--argv = nil;
-	for(i = 0; i < argc; i++){
+	for(i = 0; i < ed->argc; i++){
 		*--argv = p + (USTKTOP-TSTKTOP);
 		p += strlen(p) + 1;
 	}
+	return argv;
+}
+
+static char **
+copystack(Execdata *ed, char *args, va_list *listp)
+{
+	int i, n, nargs;
+	char **argv;
+
+	nargs = 0;
+	/*
+	 * Push any arguments found from a #! header.
+	 */
+	for(i = 0; i < ed->argc; i++){
+		n = strlen(ed->progarg[i])+1;
+		ed->stack -= n;
+		memmove(UINT2PTR(ed->stack), ed->progarg[i], n);
+		nargs = stashprocargs(&args[nargs], ed->progarg[i], n, nargs);
+	}
+
+	/*
+	 * Copy the strings pointed to by the syscall argument argv into
+	 * the temporary stack segment, being careful to check both argv and
+	 * the strings it points to are valid.
+	 */
+	argv = va_arg(*listp, char**);
+	nargs = copyargs(ed, argv, args, nargs);
+
+	/*
+	 * construct a new argv vector on the new stack.
+	 */
+	argv = newargv(ed);
 
 	/*
 	 * Fix up the up->args copy in args. The length must be > 0 as it
@@ -508,68 +489,77 @@ sysexec(Ar0* ar0, va_list list)
 	/*
 	 * All the argument processing is now done, ready to commit.
 	 */
-	kstrdup(&up->text, elem);
+	kstrdup(&up->text, ed->elem);
 	free(up->args);
 	up->args = args;
 	up->nargs = nargs;
-	poperror();				/* args */
+	return argv;
+}
 
-	/*
-	 * Close on exec
-	 */
+static void
+closeonexec(void)
+{
+	int i;
+	Fgrp *f;
+
 	f = up->fgrp;
 	for(i=0; i<=f->maxfd; i++)
 		fdclose(i, CCEXEC);
+}
 
-	/*
-	 * Free old memory.
-	 * Special segments maintained across exec.
-	 */
+/*
+ * Free old memory.
+ * Special segments maintained across exec.
+ */
+static void
+freeoldmem(void)
+{
+	int i;
+	Segment *s;
+
 	for(i = SSEG; i <= BSEG; i++) {
 		putseg(up->seg[i]);
 		up->seg[i] = nil;		/* in case of error */
 	}
 	for(i = BSEG+1; i< NSEG; i++) {
 		s = up->seg[i];
-		if(s && (s->type&SG_CEXEC)) {
+		if(s && s->type & SG_CEXEC) {
 			putseg(s);
 			up->seg[i] = nil;
 		}
 	}
+}
 
-	if(up->trace && (pt = proctrace) != nil){
-		strncpy((char*)&ptarg, elem, sizeof ptarg);
-		pt(up, SName, 0, ptarg);
-	}
+static void
+adjnewsegs(Chan *chan, Execdata *ed)
+{
+	Image *img;
+	Segment *s;
 
-	/* Text.  Shared. Attaches to cache image if possible */
-	/* attachimage returns a locked cache image */
-
-	img = attachimage(SG_TEXT|SG_RONLY, chan, up->color, UTZERO, textmin);
+	/*
+	 * Text.  Shared.  Attaches to cache image if possible.
+	 * attachimage returns a locked cache image.
+	 */
+	img = attachimage(SG_TEXT|SG_RONLY, chan, UTZERO, ed->textmin);
 	s = img->s;
 	up->seg[TSEG] = s;
 	s->flushme = 1;
 	s->fstart = 0;
-	s->flen = hdrsz+textsz;
-	if(img->color != up->color){
-		up->color = img->color;
-	}
+	s->flen = ed->hdrsz+ed->textsz;
 	unlock(img);
 
 	/* Data. Shared. */
-	s = newseg(SG_DATA, textlim, datalim);
+	s = newseg(SG_DATA, ed->textlim, ed->datalim);
 	up->seg[DSEG] = s;
-	s->color = up->color;
 
 	/* Attached by hand */
 	incref(img);
 	s->image = img;
-	s->fstart = hdrsz+textsz;
-	s->flen = datasz;
+	s->fstart = ed->hdrsz+ed->textsz;
+	s->flen = ed->datasz;
 
 	/* BSS. Zero fill on demand */
-	up->seg[BSEG] = newseg(SG_BSS, datalim, bsslim);
-	up->seg[BSEG]->color= up->color;
+	up->seg[BSEG] = newseg(SG_BSS, ed->datalim, ed->bsslim);
 
 	/*
 	 * Move the stack
@@ -583,13 +573,142 @@ sysexec(Ar0* ar0, va_list list)
 	s->base = USTKTOP-USTKSIZE;
 	s->top = USTKTOP;
 	relocateseg(s, USTKTOP-TSTKTOP);
+}
 
+static void
+setpris(Chan *chan)
+{
 	/*
 	 *  '/' processes are higher priority.
 	 */
 	if(chan->dev->dc == L'/')
 		up->basepri = PriRoot;
 	up->priority = up->basepri;
+}
+
+static void
+cleanuser(void)
+{
+	mmuflush();
+	qlock(&up->debug);
+	up->nnote = up->notified = 0;
+	up->notify = 0;
+	up->privatemem = 0;
+	sysprocsetup(up);
+	qunlock(&up->debug);
+	if(up->hang)
+		up->procctl = Proc_stopme;
+}
+
+/* this shouldn't be so long, but use of waserror() complicates it. */
+void
+sysexec(Ar0* ar0, va_list list)
+{
+	char *args, *file;
+	char **argv;
+	char *p;
+	Chan *chan;
+	Execdata exhdrargs;
+	Execdata *ed;
+	Hdr hdr;
+	static int beenhere;
+
+	/*
+	 * void* exec(char* name, char* argv[]);
+	 */
+	ed = &exhdrargs;
+	memset(ed, 0, sizeof *ed);
+
+	/*
+	 * Remember the full name of the file, open it, and remember the
+	 * final element of the name left in up->genbuf by namec.
+	 */
+	file = validnamedup(validaddr(va_arg(list, char*), 1, 0), 1);
+	if(waserror()){
+		free(file);
+		nexterror();
+	}
+	chan = namec(file, Aopen, OEXEC, 0);
+	if(waserror()){
+		cclose(chan);
+		nexterror();
+	}
+	strncpy(ed->elem, up->genbuf, sizeof(ed->elem));
+
+	/*
+	 * Read the header and populate hdr and *ed.
+	 * If it's a #!, fill in ed->progarg[] with info then read a new header
+	 * from the file indicated by the #!.
+	 * The #! line must be shorter than sizeof(Exec),
+	 * including the terminating \n.
+	 */
+	memset(&hdr, 0, sizeof hdr);
+	p = (char*)&hdr;
+	ed->hdrsz = chan->dev->read(chan, p, sizeof(Hdr), 0);
+	if(ed->hdrsz < 2)
+		error(Ebadexec);	/* error("exec header too small"); */
+	ed->argc = 0;
+	if(p[0] == '#' && p[1] == '!'){
+		p = memccpy(ed->line, p, '\n', MIN(sizeof(Exec), ed->hdrsz));
+		if(p == nil)
+			error(Ebadexec); /* error("exec header #! no newline"); */
+		*(p-1) = '\0';
+		ed->argc = tokenize(ed->line+2, ed->progarg, nelem(ed->progarg));
+		if(ed->argc == 0)
+			error(Ebadexec); /* error("exec header #! no args"); */
+
+		/* The original file becomes an extra arg after #! line */
+		ed->progarg[ed->argc++] = file;
+
+		/*
+		 * Take the #! $0 as a file to open, and replace
+		 * $0 with the original path's name.
+		 */
+		p = ed->progarg[0];
+		ed->progarg[0] = ed->elem;
+		poperror();			/* chan; replaced below */
+		cclose(chan);
+
+		/* open interpreter binary on replacement channel */
+		chan = namec(p, Aopen, OEXEC, 0);
+		if(waserror()){
+			cclose(chan);
+			nexterror();
+		}
+		ed->hdrsz = chan->dev->read(chan, &hdr, sizeof(Hdr), 0);
+		if(ed->hdrsz < 2)
+			error(Ebadexec); /* error("exec header too small"); */
+	}
+	checkhdr(ed, &hdr);
+
+	qlock(&up->seglock);
+	if(waserror()){
+		if(up->seg[ESEG] != nil){
+			putseg(up->seg[ESEG]);
+			up->seg[ESEG] = nil;
+		}
+		qunlock(&up->seglock);
+		nexterror();
+	}
+	newstack(ed);
+
+	/*
+	 * As the pass is made over the arguments and they are pushed onto
+	 * the temporary stack, make a good faith copy in args for up->args. 
+	 */
+	args = smalloc(Procarglen);
+	if(waserror()){
+		free(args);
+		nexterror();
+	}
+	argv = copystack(ed, args, &list);
+	poperror();				/* args */
+
+	closeonexec();
+	freeoldmem();
+	adjnewsegs(chan, ed);	/* unlocks seglock & pops error for it */
+	setpris(chan);
+
 	poperror();				/* chan */
 	cclose(chan);
 	poperror();				/* file */
@@ -599,18 +718,14 @@ sysexec(Ar0* ar0, va_list list)
 	 *  At this point, the mmu contains info about the old address
 	 *  space and needs to be flushed
 	 */
-	mmuflush();
-	qlock(&up->debug);
-	up->nnote = 0;
-	up->notify = 0;
-	up->notified = 0;
-	up->privatemem = 0;
-	sysprocsetup(up);
-	qunlock(&up->debug);
-	if(up->hang)
-		up->procctl = Proc_stopme;
+	cleanuser();
 
-	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), argc);
+	/*
+	 * this return value (base of Tos on user stack) becomes the
+	 * argument to _main in libc's main9.s.  ar0 typically points
+	 * at the return register on the Ureg on the stack.
+	 */
+	ar0->v = sysexecregs(ed->entry, TSTKTOP - PTR2UINT(argv), ed->argc);
 }
 
 int
@@ -667,8 +782,8 @@ sysexits(Ar0*, va_list list)
 	 * void exits(char *msg);
 	 */
 	status = va_arg(list, char*);
-
-	if(status){
+	va_end(list);
+	if(status)
 		if(waserror())
 			status = inval;
 		else{
@@ -680,8 +795,6 @@ sysexits(Ar0*, va_list list)
 			}
 			poperror();
 		}
-
-	}
 	pexit(status, 1);
 }
 
@@ -698,6 +811,7 @@ sys_wait(Ar0* ar0, va_list list)
 	 * Deprecated; backwards compatibility only.
 	 */
 	ow = va_arg(list, OWaitmsg*);
+	va_end(list);
 	if(ow == nil){
 		ar0->i = pwait(nil);
 		return;
@@ -721,8 +835,7 @@ sys_wait(Ar0* ar0, va_list list)
 void
 sysawait(Ar0* ar0, va_list list)
 {
-	int i;
-	int pid;
+	int i, pid;
 	Waitmsg w;
 	usize n;
 	char *p;
@@ -811,6 +924,7 @@ sys_errstr(Ar0* ar0, va_list list)
 	 * Deprecated; backwards compatibility only.
 	 */
 	p = va_arg(list, char*);
+	va_end(list);
 	generrstr(p, 64);
 
 	ar0->i = 0;
@@ -825,7 +939,7 @@ sysnotify(Ar0* ar0, va_list list)
 	 * int notify(void (*f)(void*, char*));
 	 */
 	f = (void (*)(void*, char*))va_arg(list, void*);
-
+	va_end(list);
 	if(f != nil)
 		validaddr(f, sizeof(void (*)(void*, char*)), 0);
 	up->notify = f;
@@ -833,6 +947,7 @@ sysnotify(Ar0* ar0, va_list list)
 	ar0->i = 0;
 }
 
+/* mostly a no-op here, but see noted() call in syscall() */
 void
 sysnoted(Ar0* ar0, va_list list)
 {
@@ -842,7 +957,7 @@ sysnoted(Ar0* ar0, va_list list)
 	 * int noted(int v);
 	 */
 	v = va_arg(list, int);
-
+	va_end(list);
 	if(v != NRSTR && !up->notified)
 		error(Egreg);
 
@@ -853,8 +968,7 @@ void
 sysrendezvous(Ar0* ar0, va_list list)
 {
 	Proc *p, **l;
-	uintptr tag, val, pc;
-	void (*pt)(Proc*, int, vlong, vlong);
+	uintptr tag, val;
 
 	/*
 	 * void* rendezvous(void*, void*);
@@ -862,7 +976,7 @@ sysrendezvous(Ar0* ar0, va_list list)
 	tag = PTR2UINT(va_arg(list, void*));
 
 	l = &REND(up->rgrp, tag);
-	up->rendval = ~0;
+	up->rendval = ~0ull;
 
 	lock(up->rgrp);
 	for(p = *l; p; p = p->rendhash) {
@@ -870,7 +984,7 @@ sysrendezvous(Ar0* ar0, va_list list)
 			*l = p->rendhash;
 			val = p->rendval;
 			p->rendval = PTR2UINT(va_arg(list, void*));
-
+			va_end(list);
 			while(p->mach != 0)
 				;
 			ready(p);
@@ -885,13 +999,10 @@ sysrendezvous(Ar0* ar0, va_list list)
 	/* Going to sleep here */
 	up->rendtag = tag;
 	up->rendval = PTR2UINT(va_arg(list, void*));
+	va_end(list);
 	up->rendhash = *l;
 	*l = up;
 	up->state = Rendezvous;
-	if(up->trace && (pt = proctrace) != nil){
-		pc = (uintptr)sysrendezvous;
-		pt(up, SSleep, 0, Rendezvous|(pc<<8));
-	}
 	unlock(up->rgrp);
 
 	sched();
@@ -1032,9 +1143,9 @@ semrelease(Segment* s, int* addr, int delta)
 {
 	int value;
 
-	do
+	do {
 		value = *addr;
-	while(!CASW(addr, value, value+delta));
+	} while(!CASW((uint *)addr, value, value+delta));
 	semwakeup(s, addr, delta);
 
 	return value+delta;
@@ -1046,11 +1157,9 @@ canacquire(int* addr)
 {
 	int value;
 
-	while((value = *addr) > 0){
-		if(CASW(addr, value, value-1))
+	while((value = *addr) > 0)
+		if(CASW((uint *)addr, value, value-1))
 			return 1;
-	}
-
 	return 0;
 }
 
@@ -1213,7 +1322,7 @@ syssemrelease(Ar0* ar0, va_list list)
 }
 
 void
-sysnsec(Ar0* ar0, va_list)
+sysnsec(Ar0 *ar0, va_list)
 {
 	ar0->vl = todget(nil);
 }

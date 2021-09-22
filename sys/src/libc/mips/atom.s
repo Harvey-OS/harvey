@@ -4,12 +4,14 @@
 
 #define	LL(base, rt)	WORD	$((060<<26)|((base)<<21)|((rt)<<16))
 #define	SC(base, rt)	WORD	$((070<<26)|((base)<<21)|((rt)<<16))
+#define SYNC		WORD	$0xf		/* all sync barriers */
 #define	NOOP		WORD	$0x27
 
 TEXT ainc(SB), 1, $-4			/* long ainc(long *); */
-TEXT _xinc(SB), 1, $-4			/* void _xinc(long *); */
 	MOVW	R1, R2			/* address of counter */
-loop:	MOVW	$1, R3
+	SYNC
+loop:
+	MOVW	$1, R3
 	LL(2, 1)
 	NOOP
 	ADDU	R1, R3
@@ -17,12 +19,14 @@ loop:	MOVW	$1, R3
 	SC(2, 3)
 	NOOP
 	BEQ	R3,loop
+	NOOP
 	RET
 
 TEXT adec(SB), 1, $-4			/* long adec(long*); */
-TEXT _xdec(SB), 1, $-4			/* long _xdec(long *); */
 	MOVW	R1, R2			/* address of counter */
-loop1:	MOVW	$-1, R3
+	SYNC
+loop1:
+	MOVW	$-1, R3
 	LL(2, 1)
 	NOOP
 	ADDU	R1, R3
@@ -30,6 +34,7 @@ loop1:	MOVW	$-1, R3
 	SC(2, 3)
 	NOOP
 	BEQ	R3,loop1
+	NOOP
 	RET
 
 /*

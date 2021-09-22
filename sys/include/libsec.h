@@ -74,42 +74,6 @@ void	bfECBencrypt(uchar*, int, BFstate*);
 void	bfECBdecrypt(uchar*, int, BFstate*);
 
 /*
- * Chacha definitions
- */
-
-enum{
-	ChachaBsize=	64,
-	ChachaKeylen=	256/8,
-	ChachaIVlen=	96/8
-};
-
-typedef struct Chachastate Chachastate;
-struct Chachastate
-{
-	/*
-	 * 0-3:	a constant (sigma or tau)
-	 * 4-11:	the key
-	 * 12:	block counter
-	 * 13-15:	IV
-	 */
-	union{
-		u32int	input[16];
-		struct{
-			u32int	constant[4];
-			u32int	key[8];
-			u32int	counter;
-			u32int	iv[3];
-		};
-	};
-	int	rounds;
-};
-
-void	setupChachastate(Chachastate*, uchar*, usize, uchar*, int);
-void	chacha_setblock(Chachastate*, u32int);
-void	chacha_encrypt(uchar*, usize, Chachastate*);
-void	chacha_encrypt2(uchar*, uchar*, usize, Chachastate*);
-
-/*
  * DES definitions
  */
 
@@ -438,7 +402,3 @@ int	okThumbprint(uchar *sha1, Thumbprint *ok);
 /* readcert.c */
 uchar	*readcert(char *filename, int *pcertlen);
 PEMChain*readcertchain(char *filename);
-
-/* password-based key derivation function 2 (rfc2898) */
-void pbkdf2_x(uchar *p, ulong plen, uchar *s, ulong slen, ulong rounds, uchar *d, ulong dlen,
-	DigestState* (*x)(uchar*, ulong, uchar*, ulong, uchar*, DigestState*), int xlen);

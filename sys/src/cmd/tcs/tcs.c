@@ -356,7 +356,9 @@ intable(int fd, long *table, struct convert *out)
 			c = table[*p];
 			if(c < 0){
 				if(squawk)
-					EPR "%s: bad char 0x%x near byte %ld in %s\n", argv0, *p, ninput+(p-e), file);
+					EPR "%s: bad char 0x%x near byte %lld in %s\n",
+						argv0, *p,
+						(uvlong)ninput+(p-e), file);
 				nerrors++;
 				if(clean)
 					continue;

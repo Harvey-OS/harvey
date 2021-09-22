@@ -400,8 +400,8 @@ main(int argc, char **argv)
 		break;
 	}ARGEND;
 
-	fmtinstall('B', mpconv);
-	fmtinstall('Q', mpconv);
+	fmtinstall('B', mpfmt);
+	fmtinstall('Q', mpfmt);
 	srand(0);
 	mpsetminbits(2*Dbits);
 	testshift("1111111111111111");

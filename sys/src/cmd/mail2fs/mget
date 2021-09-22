@@ -1,0 +1,15 @@
+#!/bin/rc
+rfork ne
+ramfs	# do not rewrite /tmp/msgs.$user
+mail2fs
+mspool
+# set +t on the current month dir, which will keep spam
+# as temp until cleaned up.
+# also, generate a cached listing for the current month.
+cd /mail/box/$user/msgs || exit nodir
+
+last=`{ls -d [21][09]???[0-9] | sort | tail -1}
+if (test -d $last){
+	chmod +t $last
+}
+exit ''

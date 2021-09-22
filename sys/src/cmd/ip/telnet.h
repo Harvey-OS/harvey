@@ -342,8 +342,8 @@ fatal(char *fmt, void *a0, void *a1)
 {
 	char buf[128];
 
-	sprint(buf, fmt, a0, a1);
-	fprint(2, "%s: %s\n", argv0, buf);
+	snprint(buf, sizeof buf, fmt, a0, a1);
+	fprint(2, "%s: %s: %r\n", argv0, buf);
 	exits(buf);
 }
 

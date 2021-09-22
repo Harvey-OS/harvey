@@ -81,11 +81,17 @@ struct	Fcall
 
 /* STATFIXLEN includes leading 16-bit count */
 /* The count, however, excludes itself; total size is BIT16SZ+count */
-#define STATFIXLEN	(BIT16SZ+QIDSZ+5*BIT16SZ+4*BIT32SZ+1*BIT64SZ)	/* amount of fixed length data in a stat buffer */
+/* amount of fixed length data in a stat buffer */
+#define STATFIXLEN	(BIT16SZ+QIDSZ+5*BIT16SZ+4*BIT32SZ+1*BIT64SZ)
 
 #define	NOTAG		(ushort)~0U	/* Dummy tag */
 #define	NOFID		(u32int)~0U	/* Dummy fid */
 #define	IOHDRSZ		24	/* ample room for Twrite/Rread header (iounit) */
+#ifdef TODO
+#define MAXFDATA	(16*1024)
+#define MAXRPC		(MAXFDATA + IOHDRSZ)
+#define IOOPTIM		(16*1024)	/* MAXRPC - IOHDRSZ */
+#endif
 
 enum
 {

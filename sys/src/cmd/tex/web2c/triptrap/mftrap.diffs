@@ -1,0 +1,88 @@
+make[1]: Entering directory `/home/olaf/web2c/src/texk/web2c'
+cd ../kpathsea && make -w CC='gcc' CFLAGS='-pipe -g ' 
+make[2]: Entering directory `/home/olaf/web2c/src/texk/kpathsea'
+make[2]: Nothing to be done for `default'.
+make[2]: Leaving directory `/home/olaf/web2c/src/texk/kpathsea'
+cd lib && make -w CC='gcc' CFLAGS='-pipe -g ' 
+make[2]: Entering directory `/home/olaf/web2c/src/texk/web2c/lib'
+make[2]: Nothing to be done for `default'.
+make[2]: Leaving directory `/home/olaf/web2c/src/texk/web2c/lib'
+rm -f trap.mf; ln -s ./triptrap/trap.mf . # get same filename in log
+/bin/sh -c 'TEXMFCNF=./triptrap ./mf --progname=inimf <./triptrap/mftrap1.in >mftrapin.fot'
+mv trap.log mftrapin.log
+diff ./triptrap/mftrapin.log mftrapin.log
+1c1
+< This is METAFONT, Version 2.718 (INIMF)  8 MAR 1995 14:44
+---
+> This is METAFONT, Version 2.718 (Web2C 7.2) (INIMF)  24 MAR 1998 19:56
+150c150
+< String usage 26&83 (895&11534 still untouched)
+---
+> String usage 28&90 (6393&79987 still untouched)
+176,177c176,177
+<  (preloaded base=trap 95.3.8)
+< 1113 strings of total length 20515
+---
+>  (base=trap 1998.3.24)
+> 1115 strings of total length 20055
+/bin/sh -c 'TEXMFCNF=./triptrap ./mf <./triptrap/mftrap2.in >mftrap.fot'
+mv trap.log mftrap.log
+mv trap.tfm mftrap.tfm
+diff ./triptrap/mftrap.fot mftrap.fot
+1,3c1,2
+< This is METAFONT, Version 2.718 (INIMF)
+< ** &trap  trap 
+< (trap.mf
+---
+> This is METAFONT, Version 2.718 (Web2C 7.2)
+> **(trap.mf
+39c38
+< String usage 39&162 (821&7732 still untouched)
+---
+> String usage 43&176 (6315&76178 still untouched)
+diff ./triptrap/mftrap.log mftrap.log
+1c1
+< This is METAFONT, Version 2.718 (preloaded base=trap 95.3.8)  8 MAR 1995 14:44
+---
+> This is METAFONT, Version 2.718 (Web2C 7.2) (base=trap 1998.3.24)  24 MAR 1998 19:56
+1808c1808
+< String usage 21&86 (866&11413 still untouched)
+---
+> String usage 23&93 (6362&79866 still untouched)
+2721c2721
+< Calling BLANKRECTANGLE(100,100,0,1)
+---
+> Calling BLANKRECTANGLE(1664,1664,0,1)
+4218c4218
+< String usage 39&162 (821&7732 still untouched)
+---
+> String usage 43&176 (6315&76178 still untouched)
+4234,4235c4234,4235
+<  66 strings out of 887
+<  3753 string characters out of 11485
+---
+>  70 strings out of 6385
+>  3767 string characters out of 79945
+4237,4238c4237,4238
+<  289 symbolic tokens out of 2100
+<  8i,43n,14r,8p,167b stack positions out of 30i,100n,300r,150p,500b
+---
+>  289 symbolic tokens out of 9500
+>  8i,43n,14r,8p,167b stack positions out of 300i,300n,1000r,150p,3000b
+4246c4246
+<   out of 256w,16h,16d,64i,5000l,500k,256e,50p)
+---
+>   out of 256w,16h,16d,64i,15000l,2500k,256e,60p)
+./tftopl ./mftrap.tfm mftrap.pl
+diff ./triptrap/mftrap.pl mftrap.pl
+/bin/sh -c 'TEXMFCNF=./triptrap ./gftype -m -i ./trap.72270gf >trap.typ'
+diff ./triptrap/trap.typ trap.typ
+1c1
+< This is GFtype, Version 3.1
+---
+> This is GFtype, Version 3.1 (Web2C 7.2)
+3c3
+< ' METAFONT output 1995.03.08:1444'
+---
+> ' METAFONT output 1998.03.24:1956'
+make[1]: Leaving directory `/home/olaf/web2c/src/texk/web2c'

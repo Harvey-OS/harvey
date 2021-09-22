@@ -14,7 +14,7 @@ typedef struct {
 	union{
 		struct {
 			Exec;		/* a.out.h */
-			uvlong hdr[1];
+			uvlong hdr[1];	/* potential expansion header */
 		};
 		Ehdr;			/* elf.h */
 		E64hdr;
@@ -58,15 +58,15 @@ typedef struct Exectable{
 } ExecTable;
 
 extern	Mach	mmips;
-//extern	Mach	mmips2le;
-//extern	Mach	mmips2be;
-extern	Mach	mmips64;
+extern	Mach	mmips2le;
+extern	Mach	mmips2be;
 extern	Mach	msparc;
 extern	Mach	msparc64;
 extern	Mach	m68020;
 extern	Mach	mi386;
 extern	Mach	mamd64;
 extern	Mach	marm;
+extern	Mach	marm64;
 extern	Mach	mpower;
 extern	Mach	mpower64;
 extern	Mach	malpha;
@@ -93,21 +93,21 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		adotout },
-	{ M_MAGIC,			/* Mips64 4.out */
-		"mips64 plan 9 executable BE",
-		"mips64 plan 9 dlm BE",
+	{ M_MAGIC,			/* Mips 4.out */
+		"mips 4k plan 9 executable BE",
+		"mips 4k plan 9 dlm BE",
 		FMIPS2BE,
 		1,
-		&mmips64,
+		&mmips2be,
 		sizeof(Exec),
 		beswal,
 		adotout },
-	{ N_MAGIC,			/* Mips64 x.out */
-		"mips64 plan 9 executable LE",
-		"mips64 plan 9 dlm LE",
+	{ N_MAGIC,			/* Mips 0.out */
+		"mips 4k plan 9 executable LE",
+		"mips 4k plan 9 dlm LE",
 		FMIPS2LE,
 		1,
-		&mmips64,
+		&mmips2le,
 		sizeof(Exec),
 		beswal,
 		adotout },
@@ -125,7 +125,7 @@ ExecTable exectab[] =
 		nil,
 		FMIPSB,
 		0,
-		&mmips64,
+		&mmips2be,
 		sizeof(struct mips4kexec),
 		beswal,
 		mips4kboot },
@@ -237,6 +237,15 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		leswal,
 		armdotout },
+	{ R_MAGIC,			/* Arm64 7.out and boot image */
+		"arm64 plan 9 executable",
+		"arm64 plan 9 dlm",
+		FARM64,
+		1,
+		&marm64,
+		sizeof(Exec)+8,
+		nil,
+		commonllp64 },
 	{ L_MAGIC,			/* alpha 7.out */
 		"alpha plan 9 executable",
 		"alpha plan 9 dlm",
@@ -255,8 +264,8 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
-	{ Z_MAGIC,			/* riscv i.out */
-		"riscv executable",
+	{ Z_MAGIC,			/* riscv i.out and boot image */
+		"riscv plan 9 executable",
 		nil,
 		FRISCV,
 		0,
@@ -264,8 +273,8 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
-	{ Y_MAGIC,			/* riscv j.out */
-		"riscv64 executable",
+	{ Y_MAGIC,			/* riscv64 j.out and boot image */
+		"riscv64 plan 9 executable",
 		nil,
 		FRISCV64,
 		0,
@@ -441,10 +450,16 @@ commonboot(Fhdr *fp)
 		break;
 	case FRISCV:
 		fp->type = FRISCVB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = mach->kbase;
 		fp->name = "riscv plan 9 boot image";
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		break;
+	case FRISCV64:
+		fp->type = FRISCV64B;
+		fp->txtaddr = mach->kbase | (u32int)fp->entry;
+		fp->name = "riscv64 plan 9 boot image";
+		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
+  		break;
 	default:
 		return;
 	}

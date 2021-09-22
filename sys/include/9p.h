@@ -230,8 +230,8 @@ void		threadlistensrv(Srv *s, char *addr);
  */
 int		hasperm(File*, char*, int);
 
-void*	emalloc9p(ulong);
-void*	erealloc9p(void*, ulong);
+void*	emalloc9p(uintptr);
+void*	erealloc9p(void*, uintptr);
 char*	estrdup9p(char*);
 
 enum {

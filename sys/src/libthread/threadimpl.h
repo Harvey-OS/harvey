@@ -24,7 +24,6 @@ typedef struct Rgrp		Rgrp;
 typedef struct Tqueue	Tqueue;
 typedef struct Thread	Thread;
 typedef struct Execargs	Execargs;
-typedef struct Execjob	Execjob;
 typedef struct Proc		Proc;
 
 /* must match list in sched.c */
@@ -49,6 +48,11 @@ enum
 	RENDHASH = 13,
 	Printsize = 2048,
 	NPRIV = 8,
+	/*
+	 * stack sizes are difficult to estimate; watch for a stack pointer
+	 * in yellow zone (lowest addresses of stack), indicating an overflow.
+	 */
+	Stackyellow = 512*sizeof(uintptr),
 };
 
 struct Rgrp
@@ -92,7 +96,7 @@ struct Thread
 	Chanstate	chan;		/* which channel operation is current */
 	Alt		*alt;		/* pointer to current alt structure (debugging) */
 
-	void*	udata[NPRIV];	/* User per-thread data pointer */
+	void*		udata[NPRIV];	/* User per-thread data pointer */
 };
 
 struct Execargs
@@ -100,14 +104,6 @@ struct Execargs
 	char		*prog;
 	char		**args;
 	int		fd[2];
-};
-
-struct Execjob
-{
-	int *fd;
-	char *cmd;
-	char **argv;
-	Channel *c;
 };
 
 struct Proc
@@ -152,14 +148,14 @@ struct Pqueue {		/* Proc queue */
 
 struct Ioproc
 {
-	int tid;
-	Channel *c, *creply;
-	int inuse;
-	long (*op)(va_list*);
-	va_list arg;
-	long ret;
-	char err[ERRMAX];
-	Ioproc *next;
+	int	tid;
+	Channel	*c, *creply;
+	int	inuse;
+	long	(*op)(va_list*);
+	va_list	arg;
+	long	ret;
+	char	err[ERRMAX];
+	Ioproc	*next;
 };
 
 void	_freeproc(Proc*);
@@ -182,15 +178,13 @@ void	_threadflagrendez(Thread*);
 Proc*	_threadgetproc(void);
 void	_threadsetproc(Proc*);
 void	_threadinitstack(Thread*, void(*)(void*), void*);
-void*	_threadmalloc(long, int);
+void*	_threadmalloc(uintptr, int);
 void	_threadnote(void*, char*);
 void	_threadready(Thread*);
 void*	_threadrendezvous(void*, void*);
 void	_threadsignal(void);
 void	_threadsysfatal(char*, va_list);
 void**	_workerdata(void);
-void	_xinc(long*);
-long	_xdec(long*);
 
 extern int			_threaddebuglevel;
 extern char*		_threadexitsallstatus;

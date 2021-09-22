@@ -1,7 +1,7 @@
 objtype=386
 </$objtype/mkfile
 BIN=/386
-EXTRACOPIES=
+EXTRACOPIES=lookout boundary piestand bovril
 
 TARG=\
 	mbr\

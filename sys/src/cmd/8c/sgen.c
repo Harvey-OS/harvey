@@ -67,7 +67,6 @@ indexing(Node *n)
 	return 0;
 }
 
-
 /*
  *	calculate addressability as follows
  *		NAME ==> 10/11		name+value(SB/SP)
@@ -185,7 +184,7 @@ xcom(Node *n)
 				n->addable = 8;
 			break;
 		}
-		if(n->addable == 8 && !indexing(n) && !side(n)){
+		if(n->addable == 8 && !indexing(n) && !side(n)) {
 			indx(n);
 			l = new1(OINDEX, idx.basetree, idx.regtree);
 			l->scale = idx.scale;

@@ -40,9 +40,11 @@
 
 /* See Drivers.htm for documentation of the driver interface. */
 
+#pragma incomplete struct gx_device_s
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#pragma incomplete gx_device
 #endif
 
 /* ---------------- Memory management ---------------- */
@@ -931,7 +933,12 @@ typedef struct gs_param_list_s gs_param_list;
   dev_t_proc_copy_rop(proc, gx_device)
 
 		/* Added in release 3.60, changed in 3.68. */
-
+#pragma incomplete gx_device
+#pragma incomplete gs_imager_state
+#pragma incomplete gx_clip_path
+#pragma incomplete gx_drawing_color
+#pragma incomplete gx_fill_params
+#pragma incomplete gx_path
 #define dev_t_proc_fill_path(proc, dev_t)\
   int proc(dev_t *dev,\
     const gs_imager_state *pis, gx_path *ppath,\

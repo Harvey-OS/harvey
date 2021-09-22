@@ -24,7 +24,7 @@ qlock(QLock *q)
 		print("qlock: %#p: nlocks %lud\n", getcallerpc(&q), up->nlocks.ref);
 
 	if(q->use.key == 0x55555555)
-		panic("qlock: q %#p, key 5*\n", q);
+		panic("qlock: q %#p, key 5*", q);
 	lock(&q->use);
 	rwstats.qlock++;
 	if(!q->locked) {
@@ -81,11 +81,13 @@ qunlock(QLock *q)
 			q->tail = 0;
 		unlock(&q->use);
 		ready(p);
-		return;
+	} else {
+		q->locked = 0;
+		q->qpc = 0;
+		unlock(&q->use);
 	}
-	q->locked = 0;
-	q->qpc = 0;
-	unlock(&q->use);
+	if (lockwake)
+		lockwake();	/* wake up idling cpus waiting for qlocks */
 }
 
 void

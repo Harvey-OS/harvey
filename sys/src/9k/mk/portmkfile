@@ -10,6 +10,9 @@
 %.acid:	%.c
 	$CC $CFLAGS -a $stem.c >$stem.acid
 
+#%.acid:	../rv32/%.c
+#	$CC $CFLAGS -a -I.  ../rv32/$stem.c >$stem.acid
+
 %.acid:	../ip/%.c
 	$CC $CFLAGS -a -I.  ../ip/$stem.c >$stem.acid
 
@@ -18,6 +21,9 @@
 
 %.db:	main.$O
 	$CC -s$stem main.c | dbfmt > $stem.db
+
+# $CONF:D: $CONF.parts ../mk/ipdevs ../mk/portdevs ../mk/portfiles
+#	include $CONF.parts >$target
 
 %.$O:	/$objtype/include/u.h
 %.$O:	../port/lib.h
@@ -63,16 +69,18 @@ portclock.$O:	/$objtype/include/ureg.h
 proc.$O:	../port/error.h ../port/edf.h errstr.h
 proc.$O:	/sys/include/trace.h
 qio.$O:		../port/error.h
+random.$O:	../port/error.h
 rdb.$O:		/$objtype/include/ureg.h
 rebootcmd.$O:	../port/error.h
 rebootcmd.$O:	/sys/include/a.out.h
-sdaoe.$O:	../port/error.h ../port/netif.h ../port/sd.h
-sdaoe.$O:	etherif.h ../port/aoe.h
-sdscsi.$O:	../port/error.h io.h /$objtype/include/ureg.h ../port/sd.h
+sdaoe.$O:	../port/netif.h etherif.h ../port/aoe.h
+sd%.$O:		io.h /$objtype/include/ureg.h ../port/error.h ../port/sd.h
 segment.$O:	../port/error.h
 swap.$O:	../port/error.h
 sysauth.$O:	../port/error.h
 sysauth.$O:	/sys/include/authsrv.h
+syscall.$O:	../port/error.h /sys/src/libc/9syscall/sys.h
+syscall.$O:	/sys/include/tos.h /$objtype/include/ureg.h
 sysfile.$O:	../port/error.h
 sysproc.$O:	../port/error.h ../port/edf.h
 sysproc.$O:	/sys/include/a.out.h
@@ -82,7 +90,7 @@ taslock.$O:	../port/edf.h
 ../port/latin1.h:	/lib/keyboard
 	aux/mklatinkbd /lib/keyboard > $target
 
-../port/systab.c:	../mk/parse /sys/src/libc/9syscall/sys.h
+../port/systab.c:	../mk/parse /sys/src/libc/9syscall/sys.h $CONF
 	awk -f ../mk/parse -- -mksystab /sys/src/libc/9syscall/sys.h $CONF > $target
 
 systab.$O:	../port/systab.c
@@ -91,8 +99,11 @@ systab.$O:	../port/systab.c
 errstr.h:	../mk/parse ../port/error.h
 	awk -f ../mk/parse -- -mkerrstr > $target
 
+# this is a user-mode program, but fits in a single page, thus -R.
+# -R1 & -R8 work for amd64 & risc-v.
 init.out:	init9.$O initcode.$O /$objtype/lib/libc.a
-	$LD -l -R1 -s -o init.out init9.$O initcode.$O -lc
+	$LD -l -R8 -s -o init.out init9.$O initcode.$O -lc
+	# $LD -l -R1 -s -o init.out init9.$O initcode.$O -lc
 
 init.h:		init.out
 	{echo 'uchar initcode[]={'
@@ -115,6 +126,10 @@ $CONF.c:	../mk/parse $CONF
 
 ../root/$O.%:	../root/%.c
 	@{cd ../root; mk $O.$stem}
+
+installall:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i install
 
 all:V:
 	for(i in $CONFLIST)

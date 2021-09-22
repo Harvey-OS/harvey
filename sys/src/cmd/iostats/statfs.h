@@ -11,7 +11,7 @@
 
 enum{
 	Maxfdata	= 16*1024,	/* max size of data in 9P message */
-	Maxrpc		= 20000,/* number of RPCs we'll log */
+	Maxrpc		= 20000,	/* number of RPCs we'll log */
 };
 
 typedef struct Fsrpc Fsrpc;

@@ -23,8 +23,8 @@ sqrt(double arg)
 		double	d;
 		struct
 		{
-			long	ls;
 			long	ms;
+			long	ls;
 		};
 	} u;
 
@@ -76,7 +76,7 @@ sqrt(double arg)
 /*
  * this is the program that generated the table.
  * it calls sqrt by some other means.
- *
+ * 
  * void
  * main(void)
  * {
@@ -86,11 +86,11 @@ sqrt(double arg)
  * 		double	d;
  * 		struct
  * 		{
- * 			long	ls;
  * 			long	ms;
+ * 			long	ls;
  * 		};
  * 	} u;
- *
+ * 
  * 	for(i=0; i<64; i++) {
  * 		u.ms = (i<<15) | 0x3fe04000;
  * 		u.ls = 0;

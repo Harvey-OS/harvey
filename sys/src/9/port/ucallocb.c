@@ -24,7 +24,6 @@ static Block*
 _ucallocb(int size)
 {
 	Block *b;
-	ulong addr;
 
 	if((b = ucalloc(sizeof(Block)+size+Hdrspc)) == nil)
 		return nil;
@@ -33,26 +32,19 @@ _ucallocb(int size)
 	b->list = nil;
 	b->free = 0;
 	b->flag = 0;
-	b->ref = 0;
-	ainc(&b->ref);
+	b->ref = 1;			/* avoid ainc(&b->ref); */
 
 	/* align start of data portion by rounding up */
-	addr = (ulong)b;
-	addr = ROUND(addr + sizeof(Block), BLOCKALIGN);
-	b->base = (uchar*)addr;
+	b->base = (uchar*)(ROUND((ulong)b + sizeof(Block), BLOCKALIGN));
 
 	/* align end of data portion by rounding down */
-	b->lim = ((uchar*)b) + msize(b);
-	addr = (ulong)(b->lim);
-	addr = addr & ~(BLOCKALIGN-1);
-	b->lim = (uchar*)addr;
+	b->lim = (uchar*)b + msize(b);
+	b->lim = (uchar*)((ulong)b->lim & ~(BLOCKALIGN-1));
 
 	/* leave sluff at beginning for added headers */
-	b->rp = b->lim - ROUND(size, BLOCKALIGN);
+	b->wp = b->rp = b->lim - ROUND(size, BLOCKALIGN);
 	if(b->rp < b->base)
-		panic("_ucallocb");
-	b->wp = b->rp;
-
+		panic("_ucallocb: b->rp < b->base");
 	return b;
 }
 
@@ -61,16 +53,9 @@ ucallocb(int size)
 {
 	Block *b;
 
-	/*
-	 * Check in a process and wait until successful.
-	 * Can still error out of here, though.
-	 */
-	if(up == nil)
-		panic("ucallocb without up: %#p", getcallerpc(&size));
 	if((b = _ucallocb(size)) == nil)
 		panic("ucallocb: no memory for %d bytes", size);
 	setmalloctag(b, getcallerpc(&size));
-
 	return b;
 }
 

@@ -1,0 +1,65 @@
+#!/bin/rc
+
+rfork ne
+
+
+fn deliver {
+	sed '1,/^$/d' $1 > body.$1
+	sed '/^$/q' $1 > hdr.$1
+	addrs=`{grep -i '^To: ' hdr.$1 | sed 's/^To: //'}
+	ccs=`{grep -i '^Cc: ' hdr.$1 | sed 's/^Cc: //'}
+	atts=`{grep -i '^Attach: ' hdr.$1 | sed 's/^Attach: //' }
+	incl=`{grep -i '^Include: ' hdr.$1 | sed 's/^Include: //' }
+	repl=`{grep -i '^Replying: ' hdr.$1 | sed 's/^Replying: //' }
+	xaddrs=$addrs
+	xccs=$ccs
+	if (! ~ $#ccs 0)
+		ccs=-C^$ccs
+	if (! ~ $#atts 0)
+		atts=-a^$atts
+	if (! ~ $#incl 0)
+		incl=-A^$incl
+	if (! ~ $#repl 0){
+		if(! test -f $repl && test -f /mail/box/$user/msgs/$repl)
+			repl=/mail/box/$user/msgs/$repl
+		if(! test -f $repl){
+			arepl=`{echo $repl | sed 's,(.*)/([0-9]+)/raw,\1/a.\2/raw,'}
+			if(test -f $arepl)
+				repl=$arepl
+			if(test -f /mail/box/$user/msgs/$arepl)
+				repl=/mail/box/$user/msgs/$arepl
+		}
+		if(! test -f $repl){
+			echo orginal message not found >[1=2]
+			exit orig
+		}
+		upas/fs -p -f $repl
+		repl=-R/mail/fs/mbox/1
+	}
+	{
+		for(t in $xaddrs)
+			echo 'To: '^$"t
+		for(t in $xccs)
+			echo 'Cc: '^$"t
+	} > addrs.$1
+	{ cat addrs.$1 ; grep -vi '^(To|Cc|Attach|Include|Replying): ' hdr.$1 ; cat body.$1 } | {
+		if ( upas/marshal $repl $atts $incl $ccs $addrs >[2] errs.$1 ) {
+			rm  errs.$1 hdr.$1  body.$1 addrs.$1 $1
+		} 
+		if not {
+			echo spool: upas/marshal $repl $atts $incl $ccs $addrs
+			{ cat errs.$1 ; q ': ' hdr.$1 body.$1 } | mail -s'returned mail' $user
+			mv $1 Fail.$1
+		}
+	}
+	unmount /mail/fs
+}
+
+mkdir -p /mail/box/$user/out
+cd /mail/box/$user/out || exit nombox
+
+for (m in [0-9]*) {
+	if (test -e $m)
+		deliver $m
+}
+exit ''

@@ -1,25 +1,27 @@
 /***** spin: dstep.c *****/
 
-/*
- * This file is part of the public release of Spin. It is subject to the
- * terms in the LICENSE file that is included in this source directory.
- * Tool documentation is available at http://spinroot.com
- */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
+/* All Rights Reserved.  This software is for educational purposes only.  */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
-#include <assert.h>
 #include "spin.h"
 #include "y.tab.h"
 
 #define MAXDSTEP	2048	/* was 512 */
 
-char	*NextLab[64];	/* must match value in pangen2.c:41 */
+char	*NextLab[64];
 int	Level=0, GenCode=0, IsGuard=0, TestOnly=0;
 
 static int	Tj=0, Jt=0, LastGoto=0;
 static int	Tojump[MAXDSTEP], Jumpto[MAXDSTEP], Special[MAXDSTEP];
 static void	putCode(FILE *, Element *, Element *, Element *, int);
 
-extern int	Pid_nr, separate, OkBreak;
+extern int	Pid, separate, OkBreak;
 
 static void
 Sourced(int n, int special)
@@ -78,11 +80,10 @@ Mopup(FILE *fd)
 	}
 	for (j = i = 0; j < Tj; j++)
 		if (Special[j])
-		{	if (i >= MAXDSTEP)
-			{	fatal("cannot happen (dstep.c)", (char *)0);
-			}
-			Tojump[i] = Tojump[j];
+		{	Tojump[i] = Tojump[j];
 			Special[i] = 2;
+			if (i >= MAXDSTEP)
+			fatal("cannot happen (dstep.c)", (char *)0);
 			i++;
 		}
 	Tj = i;	/* keep only the global exit-labels */
@@ -163,7 +164,7 @@ CollectGuards(FILE *fd, Element *e, int inh)
 			break;
 		case ELSE:
 			if (inh++ > 0) fprintf(fd, " || ");
-/* 4.2.5 */		if (!pid_is_claim(Pid_nr))
+/* 4.2.5 */		if (!pid_is_claim(Pid))
 				fprintf(fd, "(boq == -1 /* else */)");
 			else
 				fprintf(fd, "(1 /* else */)");
@@ -183,17 +184,17 @@ CollectGuards(FILE *fd, Element *e, int inh)
 		case 's':
 			if (inh++ > 0) fprintf(fd, " || ");
 			fprintf(fd, "("); TestOnly=1;
-/* 4.2.1 */		if (!pid_is_claim(Pid_nr)) fprintf(fd, "(boq == -1) && ");
+/* 4.2.1 */		if (!pid_is_claim(Pid)) fprintf(fd, "(boq == -1) && ");
 			putstmnt(fd, ee->n, ee->seqno);
 			fprintf(fd, ")"); TestOnly=0;
 			break;
 		case 'c':
 			if (inh++ > 0) fprintf(fd, " || ");
 			fprintf(fd, "("); TestOnly=1;
-			if (!pid_is_claim(Pid_nr))
+			if (!pid_is_claim(Pid))
 				fprintf(fd, "(boq == -1 && ");
 			putstmnt(fd, ee->n->lft, e->seqno);
-			if (!pid_is_claim(Pid_nr))
+			if (!pid_is_claim(Pid))
 				fprintf(fd, ")");
 			fprintf(fd, ")"); TestOnly=0;
 			break;
@@ -203,8 +204,7 @@ CollectGuards(FILE *fd, Element *e, int inh)
 
 int
 putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
-{	int isg=0;
-	static char buf[64];
+{	int isg=0; char buf[64];
 
 	NextLab[0] = "continue";
 	filterbad(s->frst);
@@ -215,7 +215,6 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 		return putcode(fd, s->frst->n->sl->this, nxt, 0, ln, seqno);
 	case NON_ATOMIC:
 		(void) putcode(fd, s->frst->n->sl->this, ZE, 1, ln, seqno);
-		if (justguards) return 0;	/* 6.2.5 */
 		break;
 	case IF:
 		fprintf(fd, "if (!(");
@@ -246,7 +245,7 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 	case 's':
 		fprintf(fd, "if (");
 #if 1
-/* 4.2.1 */	if (!pid_is_claim(Pid_nr)) fprintf(fd, "(boq != -1) || ");
+/* 4.2.1 */	if (!pid_is_claim(Pid)) fprintf(fd, "(boq != -1) || ");
 #endif
 		fprintf(fd, "!("); TestOnly=1;
 		putstmnt(fd, s->frst->n, s->frst->seqno);
@@ -254,7 +253,7 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 		break;
 	case 'c':
 		fprintf(fd, "if (!(");
-		if (!pid_is_claim(Pid_nr)) fprintf(fd, "boq == -1 && ");
+		if (!pid_is_claim(Pid)) fprintf(fd, "boq == -1 && ");
 		TestOnly=1;
 		putstmnt(fd, s->frst->n->lft, s->frst->seqno);
 		fprintf(fd, "))\n\t\t\tcontinue;"); TestOnly=0;
@@ -263,31 +262,19 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 		fprintf(fd, "if (boq != -1 || (");
 		if (separate != 2) fprintf(fd, "trpt->");
 		fprintf(fd, "o_pm&1))\n\t\t\tcontinue;");
-		{	extern FILE *fd_th;
-			fprintf(fd_th, "#ifndef ELSE_IN_GUARD\n");
-			fprintf(fd_th, "	#define ELSE_IN_GUARD\n");
-			fprintf(fd_th, "#endif\n");
-		}
 		break;
 	case ASGN:	/* new 3.0.8 */
 		fprintf(fd, "IfNotBlocked");
 		break;
-	default:
-		fprintf(fd, "/* default %d */\n\t\t", s->frst->n->ntyp);
 	}
-
-	/* 6.2.5 : before TstOnly */
-	fprintf(fd, "\n\n\t\treached[%d][%d] = 1;\n\t\t", Pid_nr, seqno);
-	fprintf(fd, "reached[%d][t->st] = 1;\n\t\t", Pid_nr); /* next state */
-	fprintf(fd, "reached[%d][tt] = 1;\n", Pid_nr);	/* current state */
-
-	/* 6.2.5 : before sv_save() */
-	if (s->frst->n->ntyp != NON_ATOMIC)
-	fprintf(fd, "\n\t\tif (TstOnly) return 1;\n"); /* if called from enabled() */
-
 	if (justguards) return 0;
 
 	fprintf(fd, "\n\t\tsv_save();\n\t\t");
+#if 1
+	fprintf(fd, "reached[%d][%d] = 1;\n\t\t", Pid, seqno);
+	fprintf(fd, "reached[%d][t->st] = 1;\n\t\t", Pid);	/* true next state */
+	fprintf(fd, "reached[%d][tt] = 1;\n", Pid);		/* true current state */
+#endif
 	sprintf(buf, "Uerror(\"block in d_step seq, line %d\")", ln);
 	NextLab[0] = buf;
 	putCode(fd, s->frst, s->extent, nxt, isg);
@@ -372,7 +359,7 @@ putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 			case '.':
 				if (LastGoto) break;
 				if (e->nxt && (e->nxt->status & DONE2))
-				{	i = e->nxt->Seqno;
+				{	i = e->nxt?e->nxt->Seqno:0;
 					fprintf(fd, "\t\tgoto S_%.3d_0;", i);
 					fprintf(fd, " /* '.' */\n");
 					Dested(i);
@@ -388,7 +375,7 @@ putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 				break;
 			}
 			i = e->nxt?e->nxt->Seqno:0;
-			if (e->nxt && (e->nxt->status & DONE2) && !LastGoto)
+			if (e->nxt && e->nxt->status & DONE2 && !LastGoto)
 			{	fprintf(fd, "\t\tgoto S_%.3d_0; ", i);
 				fprintf(fd, "/* ';' */\n");
 				Dested(i);

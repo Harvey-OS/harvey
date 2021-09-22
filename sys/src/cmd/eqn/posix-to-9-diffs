@@ -1,0 +1,71 @@
+diff eqn.ape/e.h eqn/e.h
+0a1,2
+> #include <u.h>
+> #include <libc.h>
+2,3d3
+< #include <stdlib.h>
+< #include <string.h>
+155c155
+< extern void sqrt(int);
+---
+> extern void eqnsqrt(int);
+165a166,175
+> 
+> /* importing from posix */
+> #define MB_CUR_MAX	UTFmax
+> #define wchar_t		Rune
+> 
+> #define mbtowc(rp, s, len) chartorune(rp, s)
+> #define exit(n)		exits((n) == 0? nil: "error")
+> #define wctomb(s, wc)	runetochar(s, &(wc))
+> 
+> int errno;
+diff eqn.ape/eqn.y eqn/eqn.y
+61c61
+< 	| SQRT box			{ sqrt($2); }
+---
+> 	| SQRT box			{ eqnsqrt($2); }
+diff eqn.ape/input.c eqn/input.c
+4d3
+< #include <errno.h>
+diff eqn.ape/lex.c eqn/lex.c
+50c50
+< 		yylval = (int) &token[0];
+---
+> 		yylval = (int)&token[0]; /* NB: token isn't on stack, so works on amd64 */
+144c144
+< 	yylval = (int) s;
+---
+> 	yylval = (int) s;	/* hope s isn't on the stack on amd64 */
+diff eqn.ape/mkfile eqn/mkfile
+35,38c35,36
+< CC=pcc
+< LD=pcc
+< YFLAGS=-d -S
+< CFLAGS=-FTV -c
+---
+> YFLAGS=-d
+> CFLAGS=-FTVw
+Only in eqn: regdata
+diff eqn.ape/sqrt.c eqn/sqrt.c
+3c3
+< void sqrt(int p2)
+---
+> void eqnsqrt(int p2)
+diff eqn.ape/text.c eqn/text.c
+4d3
+< #include <utf.h>
+38c37
+< extern void cadd(int);
+---
+> extern void cadd(wchar_t);
+116,120d114
+< int isdigitrune(int c)
+< {
+< 	return ('0'<=c && c<='9');
+< }
+< 
+287c281
+< void cadd(int c)		/* add character c to end of cs */
+---
+> void cadd(wchar_t c)		/* add character c to end of cs */

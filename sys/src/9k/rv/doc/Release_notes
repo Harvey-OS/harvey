@@ -1,0 +1,7 @@
+gem ethernet is gigabit only.  other speeds will require phy fiddling.
+ether1 (actually the first ethernet) isn't working at all; again, may
+require phy fiddling.
+
+sdio access to an sd card requires Icicle 2020.12 or later firmware.
+
+pci-e access will take some work.

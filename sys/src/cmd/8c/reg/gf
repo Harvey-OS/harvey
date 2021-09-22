@@ -1,0 +1,15 @@
+$global
+	ulong a = 0x12345, b = -0x12345;
+	long e = 0x12345, f[1] = {-0x12345};
+	int o = 0;
+$main
+	ulong c;
+$lhs
+	c
+$op
+	*
+$op0
+	a
+	f[o]
+$op1
+	4

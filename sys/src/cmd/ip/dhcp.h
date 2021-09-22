@@ -4,7 +4,8 @@ enum
 	OfferTimeout=	60,		/* when an offer times out */
 	MaxLease=	60*60,		/* longest lease for dynamic binding */
 	MinLease=	15*60,		/* shortest lease for dynamic binding */
-	StaticLease=	30*60,		/* lease for static binding */
+//	StaticLease=	30*60,		/* lease for static binding */
+	StaticLease=	24*60*60,	/* lease for static binding */
 
 	IPUDPHDRSIZE=	28,		/* size of an IP plus UDP header */
 	MINSUPPORTED=	576,		/* biggest IP message the client must support */
@@ -114,8 +115,6 @@ enum
 	ODpxearch=		93,	/* see rfc 4578 */
 	ODpxeni=		94,
 	ODpxeguid=		97,
-
-	ODcstaticroutes=	121, /* see rfc 3442 */
 
 	/* plan9 vendor info options, v4 addresses only (deprecated) */
 	OP9fsv4=		128,	/* plan9 file servers */

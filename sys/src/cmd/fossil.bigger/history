@@ -1,0 +1,49 @@
+changes since initial alpha release
+
+5 jan 2003
+	add -v flag to flfmt as documented
+	add "con /srv/fscons" to fossilcons(8) synopsis
+	add -AWP to the initialization example in fossil(4).
+	change users to print "no file" if the user table is 
+		not backed by a file.
+	change snapClose not to die when s==nil
+	correct handling of file truncation to specific size
+	disable the close command for now
+
+7 jan 2003
+	make fossil chatter a bit less to stderr.  errors
+	still go to stderr.
+
+11 jan 2003
+	add console prints on auth failure, for debugging
+	mark vtConnect message as warning
+	fix create command in user command
+	add background process to sync disk periodically
+	allow multiple snapshots per minute
+	fix bugs in soft updates
+	add double-check of ndirty to flushFill.  i've seen metadata
+		not get updated when you change it right before a reboot,
+		and i don't understand why.
+
+10 feb 2003
+	better error messages for fossil console functions
+
+18 feb 2003
+	correct handling of flush messages
+	add msgWrite procs to handle output queues
+	comment out an overeager assert in source.c.
+	move setting of fid->qid.path higher in rTcreate for exclAlloc.
+
+20 feb 2003
+	flfmt -v was trying to create /active; bug fixed.
+
+16 apr 2003
+	df command, who command, halt, unhalt
+
+15 jun 2003
+	make df easier to understand
+	read config out of fossil disk (-f option)
+	fossil/conf
+	automatic deletion of snapshots
+
+

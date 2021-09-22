@@ -1,6 +1,6 @@
 #define NPRIVATES	16
 
-TEXT	_main(SB), 1, $(8+NPRIVATES*4)
+TEXT	_main(SB), 1, $(2*4+NPRIVATES*4)
 	MOVL	AX, _tos(SB)
 	LEAL	8(SP), AX
 	MOVL	AX, _privates(SB)

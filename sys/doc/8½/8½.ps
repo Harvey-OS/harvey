@@ -3194,10 +3194,6 @@ cleartomark
 /inch {72 mul} bind def
 /min {2 copy gt {exch} if pop} bind def
 
-/show {{//show} 0 get exec} bind def	% so later references don't bind
-/widthshow {{//widthshow} 0 get exec} bind def
-/stringwidth {{//stringwidth} 0 get exec} bind def
-
 /setup {
 	counttomark 2 idiv {def} repeat pop
 
@@ -15212,49 +15208,52 @@ mark
 (An example) 720 6180 w
 10 /LucidaSansUnicode00 f
 (Here) 970 6336 w
-(is) 1293 6336 w
-(a) 1469 6336 w
-(complete) 1621 6336 w
-(program) 2164 6336 w
-(that) 2677 6336 w
-(runs) 2965 6336 w
-(under) 3278 6336 w
-(8\275.) 3659 6336 w
-(It) 3963 6336 w
-(prints) 4126 6336 w
-(the) 4506 6336 w
-(string) 4758 6336 w
+(is) 1253 6336 w
+(a) 1389 6336 w
+(complete) 1500 6336 w
+(program) 2002 6336 w
+(that) 2474 6336 w
+(runs) 2721 6336 w
+(under) 2993 6336 w
+(8\275.) 3333 6336 w
+(It) 3596 6336 w
+(prints) 3718 6336 w
+(the) 4057 6336 w
+(string) 4269 6336 w
 10 /LucidaTypewriter f
-("hello world") 720 6456 w
+("hello) 4608 6336 w
+(world") 720 6456 w
 10 /LucidaSansUnicode00 f
-(wherever) 1706 6456 w
-(the) 2197 6456 w
-(left) 2402 6456 w
-(mouse) 2611 6456 w
-(button) 2984 6456 w
-(is) 3356 6456 w
-(depressed,) 3486 6456 w
-(and) 4067 6456 w
-(exits) 4296 6456 w
-(when) 4579 6456 w
-(the) 4885 6456 w
-(right) 720 6576 w
-(mouse) 994 6576 w
-(button) 1360 6576 w
-(is) 1725 6576 w
-(depressed.) 1848 6576 w
-(It) 2455 6576 w
-(also) 2564 6576 w
-(prints) 2803 6576 w
-(the) 3130 6576 w
-(string) 3329 6576 w
-(in) 3655 6576 w
-(the) 3790 6576 w
-(center) 3989 6576 w
-(of) 4336 6576 w
-(its) 4478 6576 w
-(window,) 4639 6576 w
-(and maintains that string when the window is resized.) 720 6696 w
+(wherever) 1191 6456 w
+(the) 1671 6456 w
+(left) 1864 6456 w
+(mouse) 2061 6456 w
+(button) 2422 6456 w
+(is) 2782 6456 w
+(depressed,) 2900 6456 w
+(and) 3470 6456 w
+(exits) 3688 6456 w
+(when) 3960 6456 w
+(the) 4255 6456 w
+(right) 4448 6456 w
+(mouse) 4717 6456 w
+(button) 720 6576 w
+(is) 1078 6576 w
+(depressed.) 1195 6576 w
+(It) 1796 6576 w
+(also) 1899 6576 w
+(prints) 2132 6576 w
+(the) 2452 6576 w
+(string) 2644 6576 w
+(in) 2963 6576 w
+(the) 3091 6576 w
+(center) 3283 6576 w
+(of) 3623 6576 w
+(its) 3758 6576 w
+(window,) 3912 6576 w
+(and) 4350 6576 w
+(maintains) 4567 6576 w
+(that string when the window is resized.) 720 6696 w
 cleartomark
 showpage
 saveobj restore

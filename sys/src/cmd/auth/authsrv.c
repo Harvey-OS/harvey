@@ -283,7 +283,6 @@ changepasswd(Ticketreq *tr)
 	prbuf[0] = AuthOK;
 	write(1, prbuf, 1);
 	succeed(tr->uid);
-	return;
 }
 
 void

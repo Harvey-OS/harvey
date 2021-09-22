@@ -59,32 +59,29 @@ uintptr
 ibrk(uintptr addr, int seg)
 {
 	Segment *s, *ns;
-	uintptr newtop, pgsize;
-	usize newsize;
+	uintptr newtop, pgsize, newsize;
 	int i, mapsize;
 	Pte **map;
 
 	s = up->seg[seg];
-	if(s == nil)
+	if(s == 0)
 		error(Ebadarg);
 
 	if(addr == 0)
 		return s->top;
 
 	qlock(&s->lk);
-	if(waserror()){
-		qunlock(&s->lk);
-		nexterror();
-	}
 
 	/* We may start with the bss overlapping the data */
 	if(addr < s->base) {
-		if(seg != BSEG || up->seg[DSEG] == nil || addr < up->seg[DSEG]->base)
+		if(seg != BSEG || up->seg[DSEG] == 0 || addr < up->seg[DSEG]->base) {
+			qunlock(&s->lk);
 			error(Enovmem);
+		}
 		addr = s->base;
 	}
 
-	pgsize = segpgsize(s);
+	pgsize = 1LL<<s->lg2pgsize;
 	newtop = ROUNDUP(addr, pgsize);
 	newsize = (newtop-s->base)/pgsize;
 	if(newtop < s->top) {
@@ -93,11 +90,12 @@ ibrk(uintptr addr, int seg)
 		 * to-be-freed address space may have been passed to the kernel
 		 * already by another proc and is past the validaddr stage.
 		 */
-		if(s->ref > 1)
+		if(s->ref > 1){
+			qunlock(&s->lk);
 			error(Einuse);
+		}
 		mfreeseg(s, newtop, s->top);
 		s->top = newtop;
-		poperror();
 		s->size = newsize;
 		qunlock(&s->lk);
 		mmuflush();
@@ -106,16 +104,21 @@ ibrk(uintptr addr, int seg)
 
 	for(i = 0; i < NSEG; i++) {
 		ns = up->seg[i];
-		if(ns == nil || ns == s)
+		if(ns == 0 || ns == s)
 			continue;
-		if(newtop > ns->base && s->base < ns->top)
+		if(newtop >= ns->base && newtop < ns->top) {
+			qunlock(&s->lk);
 			error(Esoverlap);
+		}
 	}
 
 	mapsize = HOWMANY(newsize, PTEPERTAB);
-	if(mapsize > SEGMAPSIZE)
+	if(mapsize > SEGMAPSIZE) {
+		qunlock(&s->lk);
 		error(Enovmem);
+	}
 	if(mapsize > s->mapsize){
+		/* may need attention eventually: uintptr mapsize & memmove */
 		map = smalloc(mapsize*sizeof(Pte*));
 		memmove(map, s->map, s->mapsize*sizeof(Pte*));
 		if(s->map != s->ssegmap)
@@ -126,8 +129,6 @@ ibrk(uintptr addr, int seg)
 
 	s->top = newtop;
 	s->size = newsize;
-
-	poperror();
 	qunlock(&s->lk);
 
 	return newtop;
@@ -157,10 +158,12 @@ syssegbrk(Ar0* ar0, va_list list)
 			error(Ebadarg);
 		default:
 			addr = PTR2UINT(va_arg(list, void*));
+			va_end(list);
 			ar0->v = UINT2PTR(ibrk(addr, i));
 			return;
 		}
 	}
+	va_end(list);
 	error(Ebadarg);
 }
 
@@ -172,9 +175,11 @@ sysbrk_(Ar0* ar0, va_list list)
 	/*
 	 * int brk(void*);
 	 *
-	 * Deprecated; should be for backwards compatibility only.
+	 * Called from libc's brk() and sbrk().  Otherwise, it is
+	 * deprecated.
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
+	va_end(list);
 
 	ibrk(addr, BSEG);
 
@@ -187,11 +192,10 @@ segattach(Proc* p, int attr, char* name, uintptr va, usize len)
 	int sno;
 	Segment *s, *os;
 	Physseg *ps;
-	uintptr pgsize;
 
 	/* BUG: Only ok for now */
-	if((va != 0 && va < UTZERO) || iskaddr(va))
-		error("virtual address in kernel");
+	if((va != 0 && va < UTZERO) || (va & KZERO) == KZERO)
+		error("segment virtual address in kernel");
 
 	vmemchr(name, 0, ~0);
 
@@ -214,16 +218,9 @@ segattach(Proc* p, int attr, char* name, uintptr va, usize len)
 		}
 	}
 
-	for(ps = physseg; ps->name; ps++)
-		if(strcmp(name, ps->name) == 0)
-			goto found;
-
-	error("segment not found");
-found:
-	pgsize = physsegpgsize(ps);
-	len = ROUNDUP(len, pgsize);
+	len = ROUNDUP(len, PGSZ);
 	if(len == 0)
-		error("length overflow");
+		error("segment length overflow");
 
 	/*
 	 * Find a hole in the address space.
@@ -246,11 +243,20 @@ found:
 		}
 	}
 
-	va = va&~(pgsize-1);
+	va &= ~((uintptr)PGSZ-1);
 	if(isoverlap(p, va, len) != nil)
 		error(Esoverlap);
 
-	if((len/pgsize) > ps->size)
+	for(ps = physseg; ps->name; ps++)
+		if(strcmp(name, ps->name) == 0)
+			goto found;
+
+	error("segment not found");
+found:
+	if (ps->size == 0)
+		iprint("segattach: segment %s has size %llud\n",
+			ps->name, (uvlong)ps->size);
+	if((len/PGSZ) > ps->size)
 		error("len > segment size");
 
 	attr &= ~SG_TYPE;		/* Turn off what is not allowed */
@@ -272,8 +278,6 @@ syssegattach(Ar0* ar0, va_list list)
 	usize len;
 
 	/*
-	 * long segattach(int, char*, void*, ulong);
-	 * should be
 	 * void* segattach(int, char*, void*, usize);
 	 */
 	attr = va_arg(list, int);
@@ -295,6 +299,7 @@ syssegdetach(Ar0* ar0, va_list list)
 	 * int segdetach(void*);
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
+	va_end(list);
 
 	qlock(&up->seglock);
 	if(waserror()){
@@ -302,7 +307,6 @@ syssegdetach(Ar0* ar0, va_list list)
 		nexterror();
 	}
 
-	s = 0;
 	for(i = 0; i < NSEG; i++)
 		if(s = up->seg[i]) {
 			qlock(&s->lk);
@@ -313,7 +317,7 @@ syssegdetach(Ar0* ar0, va_list list)
 		}
 
 	error(Ebadarg);
-
+	notreached();
 found:
 	/*
 	 * Can't detach the initial stack segment
@@ -323,6 +327,7 @@ found:
 	if(s == up->seg[SSEG]){
 		qunlock(&s->lk);
 		error(Ebadarg);
+		notreached();
 	}
 	up->seg[i] = 0;
 	qunlock(&s->lk);
@@ -340,7 +345,7 @@ void
 syssegfree(Ar0* ar0, va_list list)
 {
 	Segment *s;
-	uintptr from, to, pgsize;
+	uintptr from, to;
 	usize len;
 
 	/*
@@ -353,13 +358,12 @@ syssegfree(Ar0* ar0, va_list list)
 	if(s == nil)
 		error(Ebadarg);
 	len = va_arg(list, usize);
-	pgsize = segpgsize(s);
-	to = (from + len) & ~(pgsize-1);
+	to = (from + len) & ~((uintptr)PGSZ-1);
 	if(to < from || to > s->top){
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}
-	from = ROUNDUP(from, pgsize);
+	from = ROUNDUP(from, PGSZ);
 
 	mfreeseg(s, from, to);
 	qunlock(&s->lk);
@@ -372,18 +376,22 @@ static void
 pteflush(Pte *pte, int s, int e)
 {
 	int i;
+	Page *p;
 
-	for(i = s; i < e; i++)
-		mmucachectl(pte->pages[i], PG_TXTFLUSH);
+	for(i = s; i < e; i++) {
+		p = pte->pages[i];
+		if(pagedout(p) == 0)
+			memset(p->cachectl, PG_TXTFLUSH, sizeof(p->cachectl));
+	}
 }
 
 void
 syssegflush(Ar0* ar0, va_list list)
 {
 	Segment *s;
-	uintptr addr, pgsize;
+	uintptr addr, pgsize, l, len, pe, ps;
 	Pte *pte;
-	usize chunk, l, len, pe, ps;
+	usize chunk;
 
 	/*
 	 * int segflush(void*, ulong);
@@ -399,7 +407,7 @@ syssegflush(Ar0* ar0, va_list list)
 			error(Ebadarg);
 
 		s->flushme = 1;
-		pgsize = segpgsize(s);
+		pgsize = 1LL<<s->lg2pgsize;
 	more:
 		l = len;
 		if(addr+l > s->top)

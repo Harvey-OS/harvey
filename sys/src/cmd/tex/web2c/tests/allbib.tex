@@ -1,0 +1,13 @@
+% Test many bib files and many entries.
+% 
+%\ifx\undefined\eplain \input eplain \fi
+\input btxmac
+
+\let\mbox = \hbox
+
+\bibliography{tugboat,texbook2,texbook3,master,texjourn,texnique}
+\bibliographystyle{plain}
+
+\nocite{*}
+
+\end

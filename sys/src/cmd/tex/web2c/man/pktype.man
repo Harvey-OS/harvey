@@ -1,0 +1,85 @@
+.TH PKTYPE 1 "13 March 1996" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+pktype \- verify and translate a packed font bitmap file to plain text
+.SH SYNOPSIS
+.B pktype
+.I pk_file
+[
+.I output_file
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B pktype
+program translates a packed font file
+.RI ( pk )
+(output by, for example,
+.BR gftopk (1)
+to a file that humans can read. It also serves as a
+.I pk
+file-validating program (i.e., if
+.B pktype
+can read it, it's correct) and as an example of a
+.IR pk -reading
+program for other software that wants to read
+.I pk
+files.
+.PP
+The
+.I pk_file
+on the command line must be complete. Because
+the resolution is part of the extension, it would not make
+sense to append a default extension as is done with \*(TX or
+DVI-reading software. If no
+.I output_file
+is specified, the plain text translation is written to standard output.
+.PP
+The output file gives a compact encoding of the packed encoding, using
+conventions described in the source code. Run lengths of black pixels
+alternate with parenthesized run lengths of white pixels, and brackets
+are used to indicate when a row should be repeated.
+.\"=====================================================================
+.SH ENVIRONMENT
+.B pktype
+looks for
+.I pk_file
+using the environment variable PKFONTS.  If that is not set, it uses
+the variable TEXPKS.  If that is not set, it uses TEXFONTS.  If that
+is not set, it uses the system default.
+.PP
+See
+.BR tex (1)
+for the details of the searching.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR dvitype (1),
+.BR gftopk (1),
+.BR gftype (1).
+.br
+Donald E. Knuth et al.,
+.IR \*(MFware .
+.\"=====================================================================
+.SH AUTHORS
+Tomas Rokicki wrote the program.
+Donald E. Knuth originally ported it to Unix.
+Pierre MacKay adapted it for compilation with Web2c.

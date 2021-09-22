@@ -1,3 +1,4 @@
+/* buffering for APE's emulated file descriptors, mainly for select */
 #define  _BSDTIME_EXTENSION
 #define _LOCK_EXTENSION
 #include "lib.h"
@@ -10,7 +11,7 @@
 #include <lock.h>
 #include <sys/time.h>
 #include <sys/select.h>
-#include <unistd.h>
+#include <inttypes.h>
 #include "sys9.h"
 
 typedef struct Muxseg {
@@ -23,7 +24,6 @@ typedef struct Muxseg {
 	Muxbuf	bufs[INITBUFS];		/* can grow, via segbrk() */
 } Muxseg;
 
-#define MUXADDR ((void*)0x6000000)
 static Muxseg *mux = 0;			/* shared memory segment */
 
 /* _muxsid and _killmuxsid are known in libbsd's listen.c */
@@ -57,22 +57,25 @@ _startbuf(int fd)
 
 	if(mux == 0){
 		_RFORK(RFREND);
-		mux = (Muxseg*)_SEGATTACH(0, "shared", MUXADDR, sizeof(Muxseg));
-		if((long)mux == -1){
+		mux = (Muxseg*)_SEGATTACH(0, "shared", 0, sizeof(Muxseg));
+		if((intptr_t)mux == -1){
 			_syserrno();
 			return -1;
 		}
 		/* segattach has returned zeroed memory */
 		atexit(_killmuxsid);
 	}
+	if((intptr_t)mux == -1){
+		_syserrno();
+		return -1;
+	}
 
 	if(fd == -1)
 		return 0;
-
 	lock(&mux->lock);
 	slot = mux->curfds++;
 	if(mux->curfds > INITBUFS) {
-		if(_SEGBRK(mux, mux->bufs+mux->curfds) < 0){
+		if(_SEGBRK(mux, mux->bufs+mux->curfds) == (void *)-1){
 			_syserrno();
 			unlock(&mux->lock);
 			return -1;
@@ -99,7 +102,7 @@ _startbuf(int fd)
 		for(i=0; i<OPEN_MAX; i++)
 			if(i!=fd && (_fdinfo[i].flags&FD_ISOPEN))
 				_CLOSE(i);
-		_RENDEZVOUS(0, _muxsid);
+		_RENDEZVOUS(0, (void *)_muxsid);
 		_copyproc(fd, b);
 	}
 
@@ -108,7 +111,7 @@ _startbuf(int fd)
 	f->buf = b;
 	f->flags |= FD_BUFFERED;
 	unlock(&mux->lock);
-	_muxsid = _RENDEZVOUS(0, 0);
+	_muxsid = (int)(unsigned long long)_RENDEZVOUS(0, 0);
 	/* leave fd open in parent so system doesn't reuse it */
 	return 0;
 }
@@ -152,7 +155,7 @@ _copyproc(int fd, Muxbuf *b)
 				/* sleep until there's room */
 				b->roomwait = 1;
 				unlock(&mux->lock);
-				_RENDEZVOUS((unsigned long)&b->roomwait, 0);
+				_RENDEZVOUS(&b->roomwait, 0);
 			}
 		} else
 			unlock(&mux->lock);
@@ -174,15 +177,15 @@ _copyproc(int fd, Muxbuf *b)
 			if(mux->selwait && FD_ISSET(fd, &mux->ewant)) {
 				mux->selwait = 0;
 				unlock(&mux->lock);
-				_RENDEZVOUS((unsigned long)&mux->selwait, fd);
+				_RENDEZVOUS(&mux->selwait, (void *)fd);
 			} else if(b->datawait) {
 				b->datawait = 0;
 				unlock(&mux->lock);
-				_RENDEZVOUS((unsigned long)&b->datawait, 0);
+				_RENDEZVOUS(&b->datawait, 0);
 			} else if(mux->selwait && FD_ISSET(fd, &mux->rwant)) {
 				mux->selwait = 0;
 				unlock(&mux->lock);
-				_RENDEZVOUS((unsigned long)&mux->selwait, fd);
+				_RENDEZVOUS(&mux->selwait, (void *)fd);
 			} else
 				unlock(&mux->lock);
 			_exit(0);
@@ -195,12 +198,12 @@ _copyproc(int fd, Muxbuf *b)
 					b->datawait = 0;
 					unlock(&mux->lock);
 					/* wake up _bufreading process */
-					_RENDEZVOUS((unsigned long)&b->datawait, 0);
+					_RENDEZVOUS(&b->datawait, 0);
 				} else if(mux->selwait && FD_ISSET(fd, &mux->rwant)) {
 					mux->selwait = 0;
 					unlock(&mux->lock);
 					/* wake up selecting process */
-					_RENDEZVOUS((unsigned long)&mux->selwait, fd);
+					_RENDEZVOUS(&mux->selwait, (void *)fd);
 				} else
 					unlock(&mux->lock);
 			} else
@@ -237,7 +240,7 @@ goteof:
 		/* sleep until there's data */
 		b->datawait = 1;
 		unlock(&mux->lock);
-		_RENDEZVOUS((unsigned long)&b->datawait, 0);
+		_RENDEZVOUS(&b->datawait, 0);
 		lock(&mux->lock);
 		ngot = b->putnext - b->getnext;
 	}
@@ -255,7 +258,7 @@ goteof:
 		b->roomwait = 0;
 		unlock(&mux->lock);
 		/* wake up copy process */
-		_RENDEZVOUS((unsigned long)&b->roomwait, 0);
+		_RENDEZVOUS(&b->roomwait, 0);
 	} else
 		unlock(&mux->lock);
 	return ngot;
@@ -273,7 +276,7 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 	else
 		t = -1;
 	if(!((rfds && FD_ANYSET(rfds)) || (wfds && FD_ANYSET(wfds))
-			|| (efds && FD_ANYSET(efds)))) {
+	    || (efds && FD_ANYSET(efds)))) {
 		/* no requested fds */
 		if(t > 0)
 			_SLEEP(t);
@@ -348,7 +351,7 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 	}
 	mux->selwait = 1;
 	unlock(&mux->lock);
-	fd = _RENDEZVOUS((unsigned long)&mux->selwait, 0);
+	fd = (int)(unsigned long long)_RENDEZVOUS(&mux->selwait, 0);
 	if(fd >= 0) {
 		b = _fdinfo[fd].buf;
 		if(FD_ISSET(fd, &mux->rwant)) {
@@ -394,7 +397,7 @@ _timerproc(void)
 		signal(SIGALRM, alarmed);
 		for(i=0; i<OPEN_MAX; i++)
 				_CLOSE(i);
-		_RENDEZVOUS(1, 0);
+		_RENDEZVOUS((void *)1, 0);
 		for(;;) {
 			_SLEEP(mux->waittime);
 			if(timerreset) {
@@ -405,7 +408,7 @@ _timerproc(void)
 					mux->selwait = 0;
 					mux->waittime = LONGWAIT;
 					unlock(&mux->lock);
-					_RENDEZVOUS((unsigned long)&mux->selwait, -2);
+					_RENDEZVOUS(&mux->selwait, (void *)-2);
 				} else {
 					mux->waittime = LONGWAIT;
 					unlock(&mux->lock);
@@ -415,7 +418,7 @@ _timerproc(void)
 	}
 	atexit(_killtimerproc);
 	/* parent process continues */
-	_RENDEZVOUS(1, 0);
+	_RENDEZVOUS((void *)1, 0);
 }
 
 static void

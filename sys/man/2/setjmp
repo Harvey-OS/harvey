@@ -79,10 +79,10 @@ char stack[NSTACK];
 void
 setlabel(void)
 {
-	label[JMPBUFPC] = ((ulong)f+JMPBUFDPC);
+	label[JMPBUFPC] = ((uintptr)f+JMPBUFDPC);
 	/* -2 leaves room for old pc and new pc in frame */
 	label[JMPBUFSP] =
-	        (ulong)(&stack[NSTACK-2*sizeof(ulong*)]);
+	        (uintptr)(&stack[NSTACK-2*sizeof(ulong*)]);
 }
 .EE
 .SH SOURCE

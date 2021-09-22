@@ -1,5 +1,6 @@
 /*
  * iscsisrv target - serve target via iscsi
+ * (threaded version using 3 procs).
  *
  * invoked by listen(8) via /bin/service/tcp3260,
  * so tcp connection is on fds 0-2.
@@ -9,6 +10,7 @@
 #include <auth.h>
 #include <disk.h>			/* for scsi cmds */
 #include <pool.h>
+#include <thread.h>
 #include "iscsi.h"
 
 #define	ROUNDUP(s, sz)	(((s) + ((sz)-1)) & ~((sz)-1))
@@ -21,6 +23,10 @@ enum {
 	Maxtargs= 256,
 
 	Inqlen = 36,		/* bytes of inquiry data returned */
+
+	Stksize = 8*1024,
+	Chanlen = 256,
+	Cmdqlen = 4,		/* works with 1, trying 2 */
 };
 
 int net;			/* fd of tcp conn. to target */
@@ -48,6 +54,8 @@ static char *agreekeys[] = {
 };
 
 Iscsistate istate;
+Channel *replchan;
+Channel *workchan;
 
 void *
 emalloc(uint n)
@@ -177,7 +185,7 @@ setbhdrseqs(Pkts *pk)
 			istate.stsseq, istate.expcmdseq, istate.expcmdseq + 1);
 	putbe4(resp->stsseq, istate.stsseq);
 	putbe4(resp->expcmdseq, istate.expcmdseq);
-	putbe4(resp->maxcmdseq, istate.expcmdseq + 1);
+	putbe4(resp->maxcmdseq, istate.expcmdseq + Cmdqlen);
 }
 
 /*
@@ -874,7 +882,7 @@ execcdb(Pkts *pk)
 int
 icmd(Pkts *pk)
 {
-	int follow, rd, wr, attr, rlen, repl;
+	int follow, rd, wr, attr, repl;
 	vlong lun;
 	Iscsicmdresp *resp;
 	Iscsicmdreq *req;
@@ -936,25 +944,11 @@ icmd(Pkts *pk)
 
 	/* in case of a realloc above */
 	resp = (Iscsicmdresp *)pk->resppkt;
-	dpkt = pk->datapkt;
 
 	putbe4(resp->expdataseq, 0);
 	putbe4(resp->readresid, 0);
 	putbe4(resp->resid, 0);
 
-	if (rd) {
-		/* if execcdb produced a data-in packet, send it */
-		if (pk->datalen > Bhdrsz) {
-			rlen = ROUNDUP(pk->datalen, 4);
-			if (debug)
-				fprint(2, "-> sending data-in pkt of %d bytes\n",
-					rlen);
-			if (write(net, dpkt, rlen) != rlen)
-				sysfatal("error sending data pkt: %r");
-		}
-		free(dpkt);
-		pk->datapkt = nil;
-	}
 	if (debug && repl) {
 		fprint(2, "-> replying to cmd req, %d bytes:\n", pk->resplen);
 		dump(resp, Bhdrsz);
@@ -1029,21 +1023,19 @@ ilogout(Pkts *pk)
 void
 process(int net, Iscsijustbhdr *bhdr)
 {
-	int op, repl, rlen;
 	long n;
 	uchar *pkt;
 	Pkts *pk;
 
-	op = bhdr->op & ~(Immed | Oprsrvd);
-
 	pk = emalloc(sizeof *pk);	/* holds pointers to in & out pkts */
+	pk->op = bhdr->op & ~(Immed | Oprsrvd);
 	pk->immed = (bhdr->op & Immed) != 0;
 	pk->totahslen = bhdr->totahslen * sizeof(ulong);
 	pk->dseglen = getbe3(bhdr->dseglen);
 	pk->itt = getbe4(bhdr->itt);
-	if (op != Iopnopout && debug)
+	if (pk->op != Iopnopout && debug)
 		fprint(2, "\n<- iscsi op %#x totahslen %ld dseglen %ld itt %ld\n",
-			op, pk->totahslen, pk->dseglen, pk->itt);
+			pk->op, pk->totahslen, pk->dseglen, pk->itt);
 
 	/*
 	 * read the rest of the packet: variable bhdr part, ahses & data
@@ -1063,117 +1055,105 @@ process(int net, Iscsijustbhdr *bhdr)
 	pk->resplen = sizeof *pk->resppkt;
 	pk->resppkt = emalloc(pk->resplen);
 	req2resp((Iscsijustbhdr *)pk->resppkt, (Iscsijustbhdr *)pk->pkt);
-	repl = 0;
 
-	switch (op) {
-	case Iopnopout:
-		repl = inop(pk);
-		break;
-	case Iopcmd:
-		repl = icmd(pk);
-		break;
-	case Ioptask:
-		repl = itask(pk);
-		break;
-	case Ioplogin:
-		repl = ilogin(pk);
-		break;
-	case Ioptext:
-		repl = itext(pk);
-		break;
-	case Ioplogout:
-		repl = ilogout(pk);
-		break;
+	sendp(workchan, pk);
+}
 
-	case Iopdataout:		/* do not want */
-	case Iopsnack:
-		repl = ireject(pk);
-		break;
-	default:
-		sysfatal("bad iscsi opcode %#x", op);
+void
+workproc(void *v)
+{
+	int repl;
+	Channel *workchan;
+	Pkts *pkts;
+
+	workchan = v;
+	while ((pkts = recvp(workchan)) != nil) {
+		repl = 0;
+		switch (pkts->op) {
+		case Iopnopout:
+			repl = inop(pkts);
+			break;
+		case Iopcmd:
+			repl = icmd(pkts);
+			break;
+		case Ioptask:
+			repl = itask(pkts);
+			break;
+		case Ioplogin:
+			repl = ilogin(pkts);
+			break;
+		case Ioptext:
+			repl = itext(pkts);
+			break;
+		case Ioplogout:
+			repl = ilogout(pkts);
+			break;
+	
+		case Iopdataout:		/* do not want */
+		case Iopsnack:
+			repl = ireject(pkts);
+			break;
+		default:
+			sysfatal("bad iscsi opcode %#x", pkts->op);
+		}
+		if (!repl) {
+			free(pkts->resppkt);
+			pkts->resppkt = nil;
+		}
+		sendp(replchan, pkts);
 	}
-	if (repl) {
-		rlen = ROUNDUP(pk->resplen, 4);
-		if (write(net, pk->resppkt, rlen) != rlen)
-			sysfatal("error sending response pkt: %r");
+	sendp(replchan, nil);
+	threadexits(nil);
+}
+
+void
+replyproc(void *v)
+{
+	int rlen;
+	Channel *replchan;
+	Pkts *pkts;
+
+	replchan = v;
+	while ((pkts = recvp(replchan)) != nil) {
+		/* if execcdb produced a data-in packet, send it */
+		if (pkts->datapkt && pkts->datalen > Bhdrsz) {
+			rlen = ROUNDUP(pkts->datalen, 4);
+			if (debug)
+				fprint(2, "-> sending data-in pkt of %d bytes\n",
+					rlen);
+			if (write(net, pkts->datapkt, rlen) != rlen)
+				sysfatal("error sending data pkt: %r");
+		}
+		free(pkts->datapkt);
+		pkts->datapkt = nil;
+
+		if (pkts->resppkt) {
+			rlen = ROUNDUP(pkts->resplen, 4);
+			if (write(net, pkts->resppkt, rlen) != rlen)
+				sysfatal("error sending response pkt: %r");
+			free(pkts->resppkt);
+		}
+		free(pkts->pkt);
+		free(pkts);
 	}
-	free(pk->resppkt);
-	free(pkt);
-	memset(pk, 0, sizeof *pk);
-	free(pk);
+	threadexits(nil);
 }
 
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-dr] [-l len] [-a dialstring] target\n", argv0);
-	exits("usage");
+	fprint(2, "usage: %s [-dr] [-l len] target\n", argv0);
+	threadexitsall("usage");
 }
 
 void
-callhandler(void)
+threadmain(int argc, char **argv)
 {
 	Iscsijustbhdr justbhdr;
-
-	if (debug)
-		mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA | POOL_NOREUSE;
-
-	if (debug)
-		fprint(2, "\nserving target %s\n", targfile);
-	while (readn(net, &justbhdr, sizeof justbhdr) == sizeof justbhdr)
-		process(net, &justbhdr);
-	if (debug)
-		fprint(2, "\ninitiator closed connection\n");
-}
-
-void
-tcpserver(char *dialstring)
-{
-	char dir[40], ndir[40];
-	int ctl, nctl;
-
-	ctl = announce(dialstring, dir);
-	if (ctl < 0) {
-		fprint(2, "Can't announce on %s: %r\n", dialstring);
-		exits("announce");
-	}
-
-	for (;;) {
-		nctl = listen(dir, ndir);
-		if (nctl < 0) {
-			fprint(2, "Listen failed: %r\n");
-			exits("listen");
-		}
-
-		switch(rfork(RFFDG|RFNOWAIT|RFPROC)) {
-		case -1:
-			close(nctl);
-			fprint(2, "failed to fork, exiting: %r\n");
-			exits("fork");
-		case 0:
-			net = accept(nctl, ndir);
-			if (net < 0) {
-				fprint(2, "Accept failed: %r\n");
-				exits("accept");
-			}
-			callhandler();
-			exits(nil);
-		default:
-			close(nctl);
-		}
-	}
-}
-
-
-void
-main(int argc, char **argv)
-{
-	char *dialstring;
 
 	quotefmtinstall();
 	time0 = time(0);
 	debug = 0;
-	dialstring = nil;
 
 	ARGBEGIN{
 	case 'd':
@@ -1185,9 +1165,6 @@ main(int argc, char **argv)
 	case 'r':
 		rdonly = 1;
 		break;
-	case 'a':
-		dialstring = EARGF(usage());
-		break;
 	default:
 		usage();
 	}ARGEND
@@ -1195,12 +1172,22 @@ main(int argc, char **argv)
 	if (argc != 1)
 		usage();
 	targfile = argv[0];
-
-	if (dialstring) {
-		tcpserver(dialstring);
-		exits(nil);
-	}
 	net = 0;
-	callhandler();
-	exits(nil);
+	if (debug)
+		mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA | POOL_NOREUSE;
+
+	if (debug)
+		fprint(2, "\nserving target %s\n", targfile);
+
+	replchan = chancreate(sizeof(Pkts *), Chanlen);
+	workchan = chancreate(sizeof(Pkts *), Chanlen);
+	proccreate(replyproc, replchan, Stksize);
+	proccreate(workproc,  workchan, Stksize);
+
+	while (readn(net, &justbhdr, sizeof justbhdr) == sizeof justbhdr)
+		process(net, &justbhdr);
+	if (debug)
+		fprint(2, "\ninitiator closed connection\n");
+	sendp(workchan, nil);
+	threadexits(nil);
 }

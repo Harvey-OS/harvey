@@ -8,7 +8,6 @@
 #include "fns.h"
 #include "ext.h"
 
-
 int	regcnt = NNAMES;
 int	falsef	= 0;	/* on if inside false branch of if */
 
@@ -117,7 +116,7 @@ void setn(void)
 			i = ne;
 			break;
 		case 'P':
-			i = print;
+			i = doprint;
 			break;
 		case 'L':
 			i = ls;
@@ -373,7 +372,7 @@ int roman0(int i, int (*f)(Tchar), char *onesp, char *fivesp)
 			i = *(onesp + 1);
 		else
 			i = *fivesp;
-		return(k += (*f)(i | nrbits));
+		return(k + (*f)(i | nrbits));
 	}
 	if (q)
 		k += (*f)(*fivesp | nrbits);
@@ -531,14 +530,11 @@ a0:
 long ckph(void)
 {
 	Tchar i;
-	long j;
 
 	if (cbits(i = getch()) == '(')
-		j = atoi0();
-	else {
-		j = atoi1(i);
-	}
-	return(j);
+		return atoi0();
+	else
+		return atoi1(i);
 }
 
 
@@ -547,15 +543,16 @@ long ckph(void)
  */
 void prnumerr(void)
 {
-	char err_buf[40];
+	char err_buf[128];
 	static char warn[] = "Numeric argument expected";
 	int savcd = numtabp[CD].val;
 
 	if (numerr.type == RQERR)
-		sprintf(err_buf, "%c%s: %s", nb ? cbits(c2) : cbits(cc),
-						unpair(numerr.req), warn);
+		snprintf(err_buf, sizeof err_buf, "%c%s: %s",
+			nb ? cbits(c2) : cbits(cc), unpair(numerr.req), warn);
 	else
-		sprintf(err_buf, "\\%c'%s': %s", numerr.esc, &numerr.escarg,
+		snprintf(err_buf, sizeof err_buf, "\\%c'%s': %s",
+			numerr.esc, &numerr.escarg,
 									warn);
 	if (frame != stk)	/* uncertainty correction */
 		numtabp[CD].val--;
@@ -570,7 +567,6 @@ long atoi1(Tchar ii)
 	double acc;	/* this is the only double in troff! */
 	int neg, abs, field, decpnt;
 	extern int ifnum;
-
 
 	neg = abs = field = decpnt = digits = 0;
 	acc = 0;
@@ -657,7 +653,7 @@ a1:
 	if (neg)
 		acc = -acc;
 	if (!noscale) {
-		acc = (acc * j) / i;
+		acc = (acc * j) / (i? i: 1);
 	}
 	if (field != digits && digits > 0)
 		while (digits--)
@@ -816,7 +812,10 @@ int quant(int n, int m)
 		n = -n;
 	}
 	/* better as i = ((n + m/2)/m)*m */
-	i = n / m;
+	if (m != 0)
+		i = n / m;
+	else
+		i = n;
 	if (n - m * i > m / 2)
 		i += 1;
 	i *= m;

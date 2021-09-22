@@ -1,31 +1,29 @@
 #!/bin/rc
-# patch/move target patch-tree... - move patch tree(s) to target dir
+
 rfork e
-pats=/n/sources/patch
 if(~ $#* 0 1){
 	echo 'usage: patch/move dst patch-name...' >[1=2]
 	exit usage
 }
 
-if(! test -d $pats){
+if(! test -d /n/sources/patch){
 	rfork n
 	9fs sources
 }
-cd $pats
 
 dst=$1
 shift
-for(src){
-	patbase = `{basename $src}
-	patdest = $dst/$patbase
-	if (~ $dst $src $patbase)
-		echo $0: skipping $src >[1=2]
-	if not if(! test -d $src)
-		echo $0: no such patch $pats/$src >[1=2]
-	if not if(test -d $patdest)
-		echo $0: already have $pats/$patdest >[1=2]
+for(i){
+	j=`{basename $i}
+	if(! test -d /n/sources/patch/$i)
+		echo 'no such patch' /n/sources/patch/$i >[1=2]
+	if not if(test -d /n/sources/patch/$dst/$j)
+		echo 'already have' /n/sources/patch/$dst/$j >[1=2]
 	if not
-		ls -ldp $src >$src/origls &&
-			mkdir $patdest && dircp $src $patdest && rm -rf $src &&
-			test -s $patdest/email && patch/notify $patdest
+		ls -ldp /n/sources/patch/$i >/n/sources/patch/$i/origls &&
+		mkdir /n/sources/patch/$dst/$j && 
+		dircp /n/sources/patch/$i /n/sources/patch/$dst/$j &&
+		rm -rf /n/sources/patch/$i &&
+		test -s /n/sources/patch/$dst/$j/email &&
+		patch/notify $dst/$j
 }

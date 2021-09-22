@@ -1,0 +1,58 @@
+</$objtype/mkfile
+
+CC=pcc
+CFLAGS=-c -I.
+LDFLAGS=
+
+LIB=libjpeg.a$O
+
+OFILES=jcapimin.$O jcapistd.$O jccoefct.$O jccolor.$O jcdctmgr.$O jchuff.$O \
+        jcinit.$O jcmainct.$O jcmarker.$O jcmaster.$O jcomapi.$O jcparam.$O \
+        jcphuff.$O jcprepct.$O jcsample.$O jctrans.$O jdapimin.$O jdapistd.$O \
+        jdatadst.$O jdatasrc.$O jdcoefct.$O jdcolor.$O jddctmgr.$O jdhuff.$O \
+        jdinput.$O jdmainct.$O jdmarker.$O jdmaster.$O jdmerge.$O jdphuff.$O \
+        jdpostct.$O jdsample.$O jdtrans.$O jerror.$O jfdctflt.$O jfdctfst.$O \
+        jfdctint.$O jidctflt.$O jidctfst.$O jidctint.$O jidctred.$O jquant1.$O \
+        jquant2.$O jutils.$O jmemmgr.$O jmemansi.$O
+
+TARG=cjpeg djpeg jpegtran rdjpgcom wrjpgcom
+PROGS=${TARG:%=$O.%} $LIB
+
+
+OCJPEG=cjpeg.$O rdppm.$O rdgif.$O rdtarga.$O rdrle.$O rdbmp.$O rdswitch.$O cdjpeg.$O
+ODJPEG=djpeg.$O wrppm.$O wrgif.$O wrtarga.$O wrrle.$O wrbmp.$O rdcolmap.$O cdjpeg.$O
+OJPEGTRAN=jpegtran.$O rdswitch.$O cdjpeg.$O transupp.$O
+ORDJPGCOM=rdjpgcom.$O
+OWRJPGCOM=wrjpgcom.$O
+
+
+
+</sys/src/cmd/mklib
+
+$LIB:	$LIBOBJ 
+	ar vu $LIB $OFILES
+ 
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+$O.cjpeg:	  $OCJPEG $LIB 
+	$LD $LDFLAGS -o $target $prereq
+$O.djpeg:	  $ODJPEG $LIB 
+	$LD $LDFLAGS -o $target $prereq
+$O.jpegtran:	  $OJPEGTRAN $LIB 
+	$LD $LDFLAGS -o $target $prereq
+$O.rdjpgcom:	  $ORDJPGCOM $LIB 
+	$LD $LDFLAGS -o $target $prereq
+$O.wrjpgcom:	  $OWRJPGCOM $LIB 
+	$LD $LDFLAGS -o $target $prereq
+
+
+default:V:		$PROGS
+all:V:			$PROGS
+none:VQ:		$PROGS
+
+install:V:	$LIB
+	date
+
+clean:V:
+	rm -f *.[$OS] $PROGS *.a[$OS]

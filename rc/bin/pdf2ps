@@ -1,26 +1,19 @@
 #!/bin/rc
-# pdf2ps [-e] [gs-options] [input.pdf [output.ps]] - generate (e)ps from pdf
+# pdf2ps [gs-options] [input.pdf] [output.ps] - generate PS from PDF
 rfork e
 
+fn cleanup { }
 fn usage {
-	echo 'usage: pdf2ps [-e] [gs-options] [input.pdf [output.ps]]' >[1=2]
+	echo 'usage: pdf2ps [gs-options] [input.pdf] [output.ps]' >[1=2]
 	exit usage
 }
 
-outdev=pswrite
-fin=/fd/0
-fout=/fd/1
 lang=(-'dLanguageLevel=2')
 opt=()
 while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 - --){
 	if(~ $1 '-dLanguageLevel='*)
 		lang=()
-	if not if(~ '-?' $1)
-		usage
-	if(~ $1 -e)
-		outdev=epswrite
-	if not
-		opt=($opt $1)
+	opt=($opt $1)
 	shift
 }
 if(~ $1 --)
@@ -28,9 +21,11 @@ if(~ $1 --)
 
 switch($#*){
 case 0
-	;
+	fin=-
+	fout=-
 case 1
 	fin=$1
+	fout=-
 case 2
 	fin=$1
 	fout=$2
@@ -38,8 +33,12 @@ case *
 	usage
 }
 
-if(~ $fin -)
+if(~ $fin -){
+	# fin=/tmp/pdf2ps.$pid.^`{date -n}
+	# fn cleanup { rm -f $fin }
+	# cat >$tmp
 	fin=/fd/0
+}
 if(~ $fout -)
 	fout=/fd/1
 
@@ -47,5 +46,8 @@ if(~ $fout -)
 # pages.  We have to include the options twice because -I only takes
 # effect if it appears before other options.
 
-exec gs $opt -dSAFER -dNOPAUSE -dBATCH -q -s'DEVICE='$outdev $opt $lang \
-	-s'OutputFile=-' -c save pop -f $fin >$fout
+gs $opt -dSAFER -dNOPAUSE -dBATCH -q -s'DEVICE=pswrite' \
+	$opt $lang \
+	-s'OutputFile='$fout -c save pop -f $fin
+
+cleanup

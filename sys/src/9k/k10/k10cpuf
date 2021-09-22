@@ -1,3 +1,4 @@
+# k10 cpu server w local fossil root
 dev +dev
 	root
 	cons
@@ -12,24 +13,31 @@ dev +dev
 	ssl
 	tls
 	cap
+	pnp		pci
 	kprof
-	acpi
-
+	segment
 	ether		netif
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
-
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium
+	fs
 	uart
-
 	sd
 
+#	draw		screen vga vgax
+#	mouse		mouse
+#	vga
+#	kbmap
+# needed for usb kbd input via scan codes
+#	kbin
+#	usb
+
 sd +dev
-	sdata		pci sdscsi
-	sdiahci		pci sdscsi
-	sdvirtio	pci sdscsi
+	sdahci		pci sdscsi
+	sdnvme		pci sdscsi
 
 uart +dev
 	uarti8250
-	uartpci		pci
+#	uartpci		pci
+#	uartox		pci
 
 ip +dev
 	tcp
@@ -37,26 +45,26 @@ ip +dev
 	ipifc
 	icmp
 	icmp6
+#	ipmux
 
 link +dev
-	ether8139	pci
-	ether8169	pci ethermii
-	ether82557	pci
-	ether82563	pci
-	ether82598	pci
-	etherigbe	pci ethermii
-	etherm10g	pci
-	ethervirtio	pci
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.  put fastest first.
+# 10 Gb/s
+	etherxgbe	pci
+# gigabit
+#	etherigbepci	pci ethermii
+	etherigbe	pci
+
 	ethermedium
 	loopbackmedium
 	netdevmedium
-
-#	acpi		hpet
-#	ht
+#	usbehci		usbehcipc
 
 misc +dev
 	cache
-	mp		apic ioapic pci sipi mpacpi
+	mp		apic ioapic pci sipi
 
 #
 #boot cpu
@@ -72,99 +80,94 @@ misc +dev
 #boot boot $3
 #	char* bootdisk = "$3";
 #
-boot cpu
+boot cpu boot #S/sdE0/
 	tcp
 	local
 
 rootdir
-	bootk10cpuf.out boot
-	/amd64/bin/auth/factotum factotum
+	boot$CONF.out boot
 	/amd64/bin/ip/ipconfig ipconfig
-	/amd64/bin/fossil/fossil fossil
-	/amd64/bin/venti/venti venti
-	../root/nvram nvram
+	/amd64/bin/ramfs
+	/amd64/bin/auth/factotum factotum
+# compiling it in allows early keyboard and partfs use
+#	/amd64/bin/usb/usbd
+	/amd64/bin/fossil/fossil
+	/amd64/bin/venti/venti
+# needed to boot from a usb key and use its fossil
+	/amd64/bin/disk/partfs
 
 conf
 	int cpuserver = 1;
 
-#
-#dbgflg
-#	chan		'c'
+dbgflg
 #	apic		'A'
-#	acpi		'C'
-#	hpet		'H'
-#	ht		'H'
+#	sysproc		'E'
 #	ioapic		'I'
 #	mp		'M'
 #	pci		'P'
 #	arch		'V'
-#
-dbgflg
-	apic		'A'
-	devacpi		'C'
-	hpet		'H'
-	ht		'H'
-	ioapic		'I'
-	mp		'M'
-	arch		'V'
-	archk10		'V'
-	sysproc		'E'
-	main		'x'
-	mmu		'm'
-	asm		'a'
-	sipi		'y'
-
-amd64 +dev
+#	archk10		'V'
+#	asm		'a'
+#	chan		'c'
+#	mmu		'm'
+#	main		'x'
+#	sipi		'y'
+amd64
 	l32p
 	l64v
 	l64idt
 	l64syscall
 	l64fpu
-	l64cpuid
+	apu
 	arch
 	archk10
 	asm
 	cga
-	crap
+	bootconf
 	fpu
+	i8080
 	i8254
 	i8259
+# only needed for VMs
 	kbd
 	main
 	map
-	memory
 	mmu
 	multiboot
-	qmalloc
-	random
-	syscall
+	noacpi
 	trap
 	vsvm
-	physalloc
-
 port
 	alarm
 	allocb
+	awaitbit
+	byteserial
 	chan
+	ctype
 	dev
 	devtab
 	edf
 	fault
 	image
 	latin1
+	logpow
 	page
-	pager
 	parse
 	pgrp
 	portclock
+	prf
 	print
 	proc
 	ps
 	qio
 	qlock
+	qmalloc
+	random
 	rebootcmd
 	segment
 	sysauth
+	syscall
+	syscallfmt
 	sysfile
 	sysproc
 	sysseg
@@ -174,6 +177,7 @@ port
 	watermarks
 
 #
+# controls which directories to look in for source files; must be relative to ..
 #dir
 # pc		-.I.
 #

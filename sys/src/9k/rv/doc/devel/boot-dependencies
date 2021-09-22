@@ -1,0 +1,18 @@
+Several things are needed early in system start up, and they often
+have circular dependencies:
+
+- on a risc, set static base register
+- interrupts off
+- park secondary cpus
+- zeroed bss
+- set up stack for function calls.  can probably call C now.
+- printing, maybe by uart, for debugging, including formatted output
+	- should work even before malloc does
+
+- malloc, including memory sizing
+- timed delays for drivers
+- mmu on for paging, initially with identity map.
+	also, map device registers uncached into KSEG0 space.
+- clock interrupts
+
+- call C if not already in C

@@ -1,0 +1,73 @@
+## Starting application at 0x00410000 ...
+
+Plan 9 from Bell Labs
+
+127 holes free 213372928 bytes free
+l1: int split i&d, 4 ways 256 sets 32 bytes/line; can WB; can write-allocate; l1 I policy VIPT
+l2: ext unified,   8 ways 512 sets 32 bytes/line; can WT; can WB; can write-allocate
+fp: arm arch VFPv3+ with null subarch
+1000 mips (single-issue), 1980 mips (dual-issue)
+cpu0: 1000MHz ARM Cortex-A9
+rtl8169: 64-bit register accesses
+oui 0x732 phyno 1, macv = 0x28000000 phyv = 0x0002
+#l0: rtl8169: 1000Mbps port 0xa0000000 irq 130: 0001c00bfb98
+1019M memory: 205M kernel data, 813M user, 3866M swap
+link...8169 inactive; kicking. imr 0xc0ef isr 0x0000 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+version...time...
+date
+wc -l
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+mntgen -s slashn
+chmod 666 /srv/slashn
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+ndb/cs
+cat /dev/sysname
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+test -e /rc/bin/cpurc.local
+. /rc/bin/cpurc.local
+echo add 204.178.31.0 255.255.255.192 135.104.9.8
+ipv6on
+test -e /cfg/ts/cpurc
+grep u /net/ipselftab
+grep -sv 127.0.0.1
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+grep -s 127.0.0.1 /net/ipselftab
+ip/ipconfig loopback /dev/null 127.1
+test -e /srv/dns
+test -e /env/dns
+ndb/dns -rF
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+8169 inactive; kicking. imr 0xc0ef isr 0x0000 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+aux/reboot
+rm '#¤/caphash'
+netstat -n
+grep -s '^tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010|17013) .*'
+aux/listen -q
+ps
+grep -s timesync
+ndb/ipquery sys ts ntp
+sed 's/ntp=//g'
+aux/timesync -s /net -nl -d /sys/log/timesync.d chips time1.net.lucent.com time2.net.lucent.com
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+rx fifo overflow; resetting...imr 0xc0ef isr 0x0040 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+
+8169 inactive; kicking. imr 0xc0ef isr 0x0000 tx cfg 0x2b1007c0 rx cfg 0x0000c70e
+test -e '#r/rtc'
+test -e /cfg/ts/cpustart
+auth/secstore -s lookout -n -G factotum
+secstore: null password, skipping secstore login
+dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
+date
+echo Thu Feb 2 18:17:39 EST 2012 ts
+exit ''
+
+init: starting /bin/rc
+ts# 

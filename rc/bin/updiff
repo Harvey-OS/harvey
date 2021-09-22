@@ -1,0 +1,26 @@
+#!/bin/rc
+# updiff [-bcnrw] file...
+rfork e
+dflag=(-n)
+while(~ $1 -[bcnrw]){
+	dflag=($dflag $1)
+	shift
+}
+
+path = (/bin/)
+
+d = /n/sources/plan9
+if(! test -e $d)
+	9fs sources
+
+for(i in $*){
+#	echo '=====' $i '====='
+#	ls -lmd $i
+	switch($i){
+	case /*
+		diff -m $dflag $d/$i $i 
+	case *
+		i = `{cleanname -d `{pwd} $i}
+		diff -m $dflag $d/$i $i
+	}
+}

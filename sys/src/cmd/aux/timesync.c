@@ -283,6 +283,7 @@ main(int argc, char **argv)
 
 	/* figure out our time interface and initial frequency */
 	inittime();
+	hz = 0;
 	gettime(0, 0, &hz);
 	minhz = hz/10;
 	maxhz = hz*10;
@@ -680,6 +681,12 @@ long2be(uchar *t, long from)
 	return t+sizeof(long);
 }
 
+static int
+isclosefreq(vlong oldhz, vlong newhz)
+{
+	return vabs(newhz - oldhz) < oldhz/2;
+}
+
 /*
  * read ticks and local time in nanoseconds
  */
@@ -687,6 +694,7 @@ static int
 gettime(vlong *nsec, uvlong *ticks, uvlong *hz)
 {
 	int i, n;
+	vlong nhz;
 	uchar ub[3*8], *p;
 	char b[2*24+1];
 
@@ -707,8 +715,12 @@ gettime(vlong *nsec, uvlong *ticks, uvlong *hz)
 		if(ticks != nil)
 			be2vlong((vlong*)ticks, p);
 		p += sizeof(vlong);
-		if(hz != nil)
-			be2vlong((vlong*)hz, p);
+		if(hz != nil) {
+			be2vlong(&nhz, p);
+			/* check new freq for plausibility */
+			if (nhz >= 1 && (*hz == 0 || isclosefreq(*hz, nhz)))
+				*hz = nhz;
+		}
 		return 0;
 	case Itiming:
 		n = sizeof(vlong);

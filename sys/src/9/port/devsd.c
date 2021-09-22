@@ -31,7 +31,7 @@ enum {
 enum {
 	Qtopdir		= 1,		/* top level directory */
 	Qtopbase,
-	Qtopctl		 = Qtopbase,
+	Qtopctl		= Qtopbase,
 
 	Qunitdir,			/* directory per unit */
 	Qunitbase,
@@ -40,26 +40,24 @@ enum {
 	Qpart,
 
 	TypeLOG		= 4,
-	NType		= (1<<TypeLOG),
-	TypeMASK	= (NType-1),
+	NType		= 1<<TypeLOG,
+	TypeMASK	= NType-1,
 	TypeSHIFT	= 0,
 
 	PartLOG		= 8,
-	NPart		= (1<<PartLOG),
-	PartMASK	= (NPart-1),
+	NPart		= 1<<PartLOG,
+	PartMASK	= NPart-1,
 	PartSHIFT	= TypeLOG,
 
 	UnitLOG		= 8,
-	NUnit		= (1<<UnitLOG),
-	UnitMASK	= (NUnit-1),
-	UnitSHIFT	= (PartLOG+TypeLOG),
+	NUnit		= 1<<UnitLOG,
+	UnitMASK	= NUnit-1,
+	UnitSHIFT	= PartLOG+TypeLOG,
 
 	DevLOG		= 8,
-	NDev		= (1 << DevLOG),
-	DevMASK		= (NDev-1),
-	DevSHIFT	 = (UnitLOG+PartLOG+TypeLOG),
-
-	Ncmd = 20,
+	NDev		= 1 << DevLOG,
+	DevMASK		= NDev-1,
+	DevSHIFT	= UnitLOG+PartLOG+TypeLOG,
 };
 
 #define TYPE(q)		((((ulong)(q).path)>>TypeSHIFT) & TypeMASK)
@@ -69,6 +67,7 @@ enum {
 #define QID(d,u, p, t)	(((d)<<DevSHIFT)|((u)<<UnitSHIFT)|\
 					 ((p)<<PartSHIFT)|((t)<<TypeSHIFT))
 
+static int	unconfigure(char*);
 
 void
 sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
@@ -347,9 +346,11 @@ sdadddevs(SDev *sdev)
 		sdev->unitflg = (int*)malloc(sdev->nunit * sizeof(int));
 		if(sdev->unit == nil || sdev->unitflg == nil){
 			print("sdadddevs: out of memory\n");
-		giveup:
+giveup:
 			free(sdev->unit);
 			free(sdev->unitflg);
+			sdev->unit = nil;
+			sdev->unitflg = nil;
 			if(sdev->ifc->clear)
 				sdev->ifc->clear(sdev);
 			free(sdev);
@@ -365,7 +366,8 @@ sdadddevs(SDev *sdev)
 			if(devs[j = (id+i)%nelem(devs)] == nil){
 				sdev->idno = devletters[j];
 				devs[j] = sdev;
-				snprint(sdev->name, sizeof sdev->name, "sd%c", devletters[j]);
+				snprint(sdev->name, sizeof sdev->name, "sd%c",
+					devletters[j]);
 				break;
 			}
 		}
@@ -377,14 +379,30 @@ sdadddevs(SDev *sdev)
 	}
 }
 
-// void
-// sdrmdevs(SDev *sdev)
-// {
-// 	char buf[2];
-//
-// 	snprint(buf, sizeof buf, "%c", sdev->idno);
-// 	unconfigure(buf);
-// }
+void
+sdrmdevs(SDev *sdev)
+{
+	char buf[UTFmax+1];
+
+	snprint(buf, sizeof buf, "%c", sdev->idno);
+	unconfigure(buf);
+}
+
+/*
+ * Shutdown all known controller types.
+ */
+static void
+sdshutdown(void)
+{
+	int i;
+	SDev *sdev;
+
+	for(i = 0; i < nelem(devs); i++) {
+		sdev = devs[i];
+		if (sdev)
+			sdrmdevs(sdev);
+	}
+}
 
 void
 sdaddallconfs(void (*addconf)(SDunit *))
@@ -550,11 +568,12 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 		 * Check for media change.
 		 * If one has already been detected, sectors will be zero.
 		 * If there is one waiting to be detected, online
-		 * will return > 1.
+		 * will return >= 2.
 		 * Online is a bit of a large hammer but does the job.
 		 */
 		if(unit->sectors == 0
-		|| (unit->dev->ifc->online && unit->dev->ifc->online(unit) > 1))
+		|| (unit->dev->ifc->online && unit->dev->ifc->online(unit) >=
+		    SDmedchanged))
 			sdinitpart(unit);
 
 		i = s+Qunitbase;
@@ -931,13 +950,16 @@ sdmodesense(SDreq *r, uchar *cmd, void *info, int ilen)
 	 * return the drive info.
 	 */
 	if((cmd[2] & 0x3F) != 0 && (cmd[2] & 0x3F) != 0x3F)
+		/* bad cdb field */
 		return sdsetsense(r, SDcheck, 0x05, 0x24, 0);
 	len = (cmd[7]<<8)|cmd[8];
 	if(len == 0)
 		return SDok;
 	if(len < 8+ilen)
+		/* parameter list length error */
 		return sdsetsense(r, SDcheck, 0x05, 0x1A, 0);
 	if(r->data == nil || r->dlen < len)
+		/* bad op code: access denied */
 		return sdsetsense(r, SDcheck, 0x05, 0x20, 1);
 	data = r->data;
 	memset(data, 0, 8);
@@ -961,7 +983,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	unit = r->unit;
 
 	/*
-	 * Rewrite read(6)/write(6) into read(10)/write(10).
+	 * Rewrite read(6)/write(6) into read(10)/write(10) in place.
 	 */
 	switch(cmd[0]){
 	case ScmdRead:
@@ -975,7 +997,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 		cmd[3] = cmd[1] & 0x0F;
 		cmd[2] = 0;
 		cmd[1] &= 0xE0;
-		cmd[0] |= 0x20;
+		cmd[0] |= 0x20;		/* relies on command code values */
 		break;
 	}
 
@@ -985,10 +1007,12 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	 * will return 'logical unit not supported'.
 	 */
 	if((cmd[1]>>5) && cmd[0] != ScmdInq)
+		/* logical unit not supported */
 		return sdsetsense(r, SDcheck, 0x05, 0x25, 0);
 
 	switch(cmd[0]){
 	default:
+		/* bad op code: access denied */
 		return sdsetsense(r, SDcheck, 0x05, 0x20, 0);
 
 	case ScmdTur:		/* test unit ready */
@@ -1024,8 +1048,10 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 
 	case ScmdRcapacity:	/* read capacity */
 		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
+			/* bad cdb field */
 			return sdsetsense(r, SDcheck, 0x05, 0x24, 0);
 		if(r->data == nil || r->dlen < 8)
+			/* bad op code: access denied */
 			return sdsetsense(r, SDcheck, 0x05, 0x20, 1);
 
 		/*
@@ -1047,11 +1073,13 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 
 	case ScmdRcapacity16:	/* long read capacity */
 		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
+			/* bad cdb field */
 			return sdsetsense(r, SDcheck, 0x05, 0x24, 0);
 		if(r->data == nil || r->dlen < 8)
+			/* bad op code: access denied */
 			return sdsetsense(r, SDcheck, 0x05, 0x20, 1);
 		/*
-		 * Read capcity returns the LBA of the last sector.
+		 * Read capacity returns the LBA of the last sector.
 		 */
 		len = unit->sectors - 1;
 		p = r->data;
@@ -1080,58 +1108,6 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 	case ScmdWrite16:
 		return SDnostatus;
 	}
-}
-
-int
-sdfakescsirw(SDreq *r, uvlong *llba, int *nsec, int *rwp)
-{
-	uchar *c;
-	int rw, count;
-	uvlong lba;
-
-	c = r->cmd;
-	rw = 0;
-	if((c[0] & 0xf) == 0xa)
-		rw = 1;
-	switch(c[0]){
-	case 0x08:	/* read6 */
-	case 0x0a:
-		lba = (c[1] & 0xf)<<16 | c[2]<<8 | c[3];
-		count = c[4];
-		break;
-	case 0x28:	/* read10 */
-	case 0x2a:
-		lba = c[2]<<24 | c[3]<<16 | c[4]<<8 | c[5];
-		count = c[7]<<8 | c[8];
-		break;
-	case 0xa8:	/* read12 */
-	case 0xaa:
-		lba = c[2]<<24 | c[3]<<16 | c[4]<<8 | c[5];
-		count = c[6]<<24 | c[7]<<16 | c[8]<<8 | c[9];
-		break;
-	case 0x88:	/* read16 */
-	case 0x8a:
-		/* ata commands only go to 48-bit lba */
-		if(c[2] || c[3])
-			return sdsetsense(r, SDcheck, 3, 0xc, 2);
-		lba = (uvlong)c[4]<<40 | (uvlong)c[5]<<32;
-		lba |= c[6]<<24 | c[7]<<16 | c[8]<<8 | c[9];
-		count = c[10]<<24 | c[11]<<16 | c[12]<<8 | c[13];
-		break;
-	default:
-		print("%s: bad cmd 0x%.2ux\n", r->unit->name, c[0]);
-		r->status  = sdsetsense(r, SDcheck, 0x05, 0x20, 0);
-		return SDcheck;
-	}
-	if(r->data == nil)
-		return SDok;
-	if(r->dlen < count * r->unit->secsize)
-		count = r->dlen/r->unit->secsize;
-	if(rwp)
-		*rwp = rw;
-	*llba = lba;
-	*nsec = count;
-	return SDnostatus;
 }
 
 static long
@@ -1538,12 +1514,13 @@ unconfigure(char* spec)
 			free(unit->name);
 			free(unit->user);
 			free(unit);
+			sdev->unit[i] = nil;
 		}
 	}
 
 	if(sdev->ifc->clear)
 		sdev->ifc->clear(sdev);
-	free(sdev);
+//	free(sdev);	/* getting double-free here, apparently unsafe */
 	return 0;
 }
 
@@ -1561,7 +1538,7 @@ Dev sddevtab = {
 
 	sdreset,
 	devinit,
-	devshutdown,
+	sdshutdown,
 	sdattach,
 	sdwalk,
 	sdstat,
@@ -1591,9 +1568,9 @@ struct Confdata {
 static void
 parseswitch(Confdata* cd, char* option)
 {
-	if(!strcmp("on", option))
+	if(strcmp("on", option) == 0)
 		cd->on = 1;
-	else if(!strcmp("off", option))
+	else if(strcmp("off", option) == 0)
 		cd->on = 0;
 	else
 		error(Ebadarg);

@@ -1,22 +1,25 @@
+#include "mem.h"
 #include "amd64l.h"
+
+/* instructions not known to assembler */
+#define MONITOR	BYTE $0x0f; BYTE $0x01; BYTE $0xc8
+#define MWAIT	BYTE $0x0f; BYTE $0x01; BYTE $0xc9
+#define PAUSE	BYTE $0xf3; BYTE $0x90
 
 MODE $64
 
 /*
- * Port I/O.
+ * Port I/O.  Welcome to 1969 (the 4004), at the latest; probably actually
+ * to 1948.  In 1970, the PDP-11 provided memory-mapped I/O registers, even
+ * for DMA.  Intel was slow on the uptake, unsurprisingly.
+ *
+ * We don't use the string variants of in & out, other than a few by sdata.c.
  */
+
 TEXT inb(SB), 1, $-4
 	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
 	XORL	AX, AX
 	INB
-	RET
-
-TEXT insb(SB), 1, $-4
-	MOVL	RARG, DX
-	MOVQ	address+8(FP), DI
-	MOVL	count+16(FP), CX
-	CLD
-	REP;	INSB
 	RET
 
 TEXT ins(SB), 1, $-4
@@ -25,25 +28,9 @@ TEXT ins(SB), 1, $-4
 	INW
 	RET
 
-TEXT inss(SB), 1, $-4
-	MOVL	RARG, DX
-	MOVQ	address+8(FP), DI
-	MOVL	count+16(FP), CX
-	CLD
-	REP;	INSW
-	RET
-
 TEXT inl(SB), 1, $-4
 	MOVL	RARG, DX
 	INL
-	RET
-
-TEXT insl(SB), 1, $-4
-	MOVL	RARG, DX
-	MOVQ	address+8(FP), DI
-	MOVL	count+16(FP), CX
-	CLD
-	REP; INSL
 	RET
 
 TEXT outb(SB), 1, $-1
@@ -52,18 +39,28 @@ TEXT outb(SB), 1, $-1
 	OUTB
 	RET
 
-TEXT outsb(SB), 1, $-4
-	MOVL	RARG, DX
-	MOVQ	address+8(FP), SI
-	MOVL	count+16(FP), CX
-	CLD
-	REP; OUTSB
-	RET
-
 TEXT outs(SB), 1, $-4
 	MOVL	RARG, DX
 	MOVL	short+8(FP), AX
 	OUTW
+	RET
+
+TEXT outl(SB), 1, $-4
+	MOVL	RARG, DX
+	MOVL	long+8(FP), AX
+	OUTL
+	RET
+
+/*
+ * only sdata.c uses these string variants.
+ */
+#ifdef SDATA
+TEXT inss(SB), 1, $-4
+	MOVL	RARG, DX
+	MOVQ	address+8(FP), DI
+	MOVL	count+16(FP), CX
+	CLD
+	REP;	INSW
 	RET
 
 TEXT outss(SB), 1, $-4
@@ -73,20 +70,7 @@ TEXT outss(SB), 1, $-4
 	CLD
 	REP; OUTSW
 	RET
-
-TEXT outl(SB), 1, $-4
-	MOVL	RARG, DX
-	MOVL	long+8(FP), AX
-	OUTL
-	RET
-
-TEXT outsl(SB), 1, $-4
-	MOVL	RARG, DX
-	MOVQ	address+8(FP), SI
-	MOVL	count+16(FP), CX
-	CLD
-	REP; OUTSL
-	RET
+#endif
 
 /*
  * Load/store segment descriptor tables:
@@ -166,16 +150,17 @@ TEXT cr4put(SB), 1, $-4
 	MOVQ	AX, CR4
 	RET
 
+/* tsc is reset only by processor reset */
 TEXT rdtsc(SB), 1, $-4				/* Time Stamp Counter */
+	LFENCE
 	RDTSC
-	XCHGL	DX, AX				/* swap lo/hi, zero-extend */
-	SHLQ	$32, AX				/* hi<<32 */
-	ORQ	DX, AX				/* (hi<<32)|lo */
-	RET
+	LFENCE
+	JMP	_swap
 
 TEXT rdmsr(SB), 1, $-4				/* Model-Specific Register */
 	MOVL	RARG, CX
 	RDMSR
+_swap:
 	XCHGL	DX, AX				/* swap lo/hi, zero-extend */
 	SHLQ	$32, AX				/* hi<<32 */
 	ORQ	DX, AX				/* (hi<<32)|lo */
@@ -189,6 +174,7 @@ TEXT wrmsr(SB), 1, $-4
 	RET
 
 /*
+ * cache or tlb invalidation
  */
 TEXT invlpg(SB), 1, $-4
 	MOVQ	RARG, va+0(FP)
@@ -202,143 +188,87 @@ TEXT wbinvd(SB), 1, $-4
 /*
  * Serialisation.
  */
-TEXT lfence(SB), 1, $-4
-	LFENCE
-	RET
-
 TEXT mfence(SB), 1, $-4
 	MFENCE
 	RET
-
-TEXT sfence(SB), 1, $-4
-	SFENCE
+#ifdef unused
+TEXT lfence(SB), 1, $-4
+	LFENCE
 	RET
+#endif
 
 /*
  * Note: CLI and STI are not serialising instructions.
  * Is that assumed anywhere?
+ * Added fences to test this, 20 july 2021.  Seems like a good idea.
  */
 TEXT splhi(SB), 1, $-4
+_splhi:
 	PUSHFQ
 	POPQ	AX
-	TESTQ	$If, AX				/* If - Interrupt Flag */
-	JNZ	_splgohi
-	RET
-
-_splgohi:
+	TESTQ	$If, AX				/* If - Interrupt enable Flag */
+	JEQ	_spldone			/* already disabled? done */
 	MOVQ	(SP), BX
 	MOVQ	BX, 8(RMACH) 			/* save PC in m->splpc */
-	CLI
+	CLI					/* disable intrs */
+_spldone:
+	MFENCE
 	RET
 
-TEXT spllo(SB), 1, $-4
+TEXT spllo(SB), 1, $-4				/* marker for devkprof */
+_spllo:
 	PUSHFQ
 	POPQ	AX
-	TESTQ	$If, AX				/* If - Interrupt Flag */
-	JZ	_splgolo
-	RET
-
-_splgolo:
+	TESTQ	$If, AX				/* If - Interrupt enable Flag */
+	JNZ	_spldone			/* already enabled? done */
 	MOVQ	$0, 8(RMACH)			/* clear m->splpc */
-	STI
+	MFENCE
+	STI					/* enable intrs */
 	RET
 
+/* assumed between spllo and spldone by devkprof */
 TEXT splx(SB), 1, $-4
-	TESTQ	$If, RARG			/* If - Interrupt Flag */
-	JNZ	_splxlo
+	TESTQ	$If, RARG			/* If - Interrupt enable Flag */
+	JNZ	_spllo				/* want intrs enabled again? */
+	JMP	_splhi				/* want intrs disabled */
 
-	PUSHFQ
-	POPQ	AX
-	TESTQ	$If, AX				/* If - Interrupt Flag */
-	JNZ	_splxgohi
-	RET
-
-_splxgohi:
-	MOVQ	(SP), BX
-	MOVQ	BX, 8(RMACH) 			/* save PC in m->splpc */
-	CLI
-	RET
-
-_splxlo:
-	PUSHFQ
-	POPQ	AX
-	TESTQ	$If, AX				/* If - Interrupt Flag */
-	JZ	_splxgolo
-	RET
-
-_splxgolo:
-	MOVQ	$0, 8(RMACH)			/* clear m->splpc */
-	STI
-	RET
-
-TEXT spldone(SB), 1, $-4
+TEXT spldone(SB), 1, $-4			/* marker for devkprof */
 	RET
 
 TEXT islo(SB), 1, $-4
 	PUSHFQ
 	POPQ	AX
-	ANDQ	$If, AX				/* If - Interrupt Flag */
+	ANDQ	$If, AX				/* If - Interrupt enable Flag */
 	RET
 
 /*
- * Synchronisation
+ * atomic operations
  */
-TEXT ainc(SB), 1, $-4				/* int ainc(int*); */
-	MOVL	$1, AX
-	LOCK; XADDL AX, (RARG)
-	ADDL	$1, AX				/* overflow if -ve or 0 */
-	JGT	_aincreturn
-_ainctrap:
+
+TEXT aincnonneg(SB), 1, $0			/* int aincnonneg(int*); */
+	CALL	ainc(SB)
+	JGT	_aincdone
+	/* <= 0 after incr, so overflowed, so blow up */
 	XORQ	BX, BX
 	MOVQ	(BX), BX			/* over under sideways down */
-_aincreturn:
+_aincdone:
 	RET
 
-TEXT adec(SB), 1, $-4				/* int adec(int*); */
-	MOVL	$-1, AX
-	LOCK; XADDL AX, (RARG)
-	SUBL	$1, AX				/* underflow if -ve */
-	JGE	_adecreturn
-_adectrap:
+TEXT adecnonneg(SB), 1, $0			/* int adecnonneg(int*); */
+	CALL	adec(SB)
+	JGE	_aincdone
+	/* <0, so underflow.  use own copy of XORQ/MOVQ to disambiguate PC */
 	XORQ	BX, BX
 	MOVQ	(BX), BX			/* over under sideways down */
-_adecreturn:
 	RET
 
 TEXT aadd(SB), 1, $-4				/* int aadd(int*, int); */
 	MOVL	addend+8(FP), AX	
 	MOVL	AX, BX
+	MFENCE
 	LOCK; XADDL BX, (RARG)
+	MFENCE
 	ADDL	BX, AX
-	RET
-
-TEXT tas32(SB), 1, $-4
-	MOVL	$0xdeaddead, AX
-	XCHGL	AX, (RARG)			/*  */
-	RET
-
-TEXT cas32(SB), 1, $-4
-	MOVL	exp+8(FP), AX
-	MOVL	new+16(FP), BX
-	LOCK; CMPXCHGL BX, (RARG)
-	MOVL	$1, AX
-	JNZ	_cas32r0
-_cas32r1:
-	RET
-_cas32r0:
-	DECL	AX
-	RET
-
-TEXT cas64(SB), 1, $-4
-	MOVQ	exp+8(FP), AX
-	MOVQ	new+16(FP), BX
-	LOCK; CMPXCHGQ BX, (RARG)
-	MOVL	$1, AX
-	JNZ	_cas64r0
-_cas64r1:
-	RET
-_cas64r0:
-	DECL	AX
 	RET
 
 /*
@@ -354,18 +284,21 @@ TEXT monitor(SB), 1, $-4
 	MOVQ	RARG, AX			/* address */
 	MOVL	extensions+8(FP), CX		/* (c|sh)ould be 0 currently */
 	MOVL	hints+16(FP), DX		/* (c|sh)ould be 0 currently */
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc8	/* MONITOR */
+	MONITOR
 	RET
 
 TEXT mwait(SB), 1, $-4
 	MOVL	RARG, CX			/* extensions */
 	MOVL	hints+8(FP), AX
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc9	/* MWAIT */
+	MFENCE
+	MWAIT	/* an interrupt or any store to monitored word will resume */
+	MFENCE
 	RET
 
 /*
  * int k10waitfor(int* address, int val);
  *
+ * Suspend the CPU until an interrupt or *address changes from val.
  * Combined, thought to be usual, case of monitor+mwait
  * with no extensions or hints, and return on interrupt even
  * if val didn't change.
@@ -380,16 +313,32 @@ TEXT k10waitfor(SB), 1, $-4
 	MOVQ	RARG, AX			/* linear address to monitor */
 	XORL	CX, CX				/* no optional extensions yet */
 	XORL	DX, DX				/* no optional hints yet */
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc8	/* MONITOR */
+	MONITOR
 
 	CMPL	(RARG), R8			/* changed yet? */
 	JNE	_wwdone
 
 	XORL	AX, AX				/* no optional hints yet */
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc9	/* MWAIT */
+	MFENCE
+	MWAIT		/* an interrupt or any store to (RARG) will resume */
+	MFENCE
 
 _wwdone:
 	MOVL	(RARG), AX
+	RET
+
+/* really only useful on old, uniprocessor VMs.  returns spllo(). */
+TEXT halt(SB), 1, $-4
+	CLI
+	CMPL	nrdy(SB), $0
+	JEQ	_nothingready
+	STI
+	RET
+
+_nothingready:
+	MFENCE
+	STI
+	HLT
 	RET
 
 /*
@@ -406,23 +355,7 @@ TEXT setlabel(SB), 1, $-4
 	MOVQ	SP, 0(RARG)			/* store SP */
 	MOVQ	0(SP), BX			/* store return PC */
 	MOVQ	BX, 8(RARG)
-	MOVL	$0, AX				/* return 0 */
-	RET
-
-TEXT pause(SB), 1, $-4
-	PAUSE
-	RET
-
-TEXT halt(SB), 1, $-4
-	CLI
-	CMPL	nrdy(SB), $0
-	JEQ	_nothingready
-	STI
-	RET
-
-_nothingready:
-	STI
-	HLT
+	XORL	AX, AX				/* return 0 */
 	RET
 
 TEXT mul64fract(SB), 1, $-4
@@ -432,10 +365,57 @@ TEXT mul64fract(SB), 1, $-4
 	MOVQ	AX, (RARG)
 	RET
 
+/*
+ * Miscellany
+ */
+
+/*
+ * The CPUID instruction is always supported on the amd64.
+ * It's a serialising instruction and can be executed in user mode.
+ */
+TEXT cpuid(SB), $-4
+	MOVL	RARG, AX			/* function in AX */
+	MOVLQZX	cx+8(FP), CX			/* iterator/index/etc. */
+
+	CPUID
+
+	MOVQ	info+16(FP), BP
+	MOVL	AX, 0(BP)
+	MOVL	BX, 4(BP)
+	MOVL	CX, 8(BP)
+	MOVL	DX, 12(BP)
+	RET
+
+/*
+ * Basic timing loop to determine CPU frequency.
+ * The AAM instruction is not available in 64-bit mode.
+ * It was really slow (Intel Skylake-x cpus issued 11 µops).  Divide
+ * instructions are as slow or slower, but not many others are
+ * (other than the simd/vector/graphics instructions).
+ * LOOP lab is equivalent to DECQ CX; JNZ lab, but much slower.
+ */
+TEXT aamloop(SB), 1, $-4
+	MOVLQZX	RARG, CX
+aaml1:
+//	AAM; LOOP	aaml1		/* old 386 version */
+	PAUSE
+	PAUSE
+	DECQ	CX
+	JNZ	aaml1
+	RET
+
+TEXT pause(SB), 1, $-4
+	MFENCE
+	PAUSE
+	RET
+
+TEXT bsr(SB), $0
+	BSRQ	RARG, AX		/* return bit index of leftmost 1 bit */
+	RET
+
 ///*
 // * Testing.
 // */
 //TEXT ud2(SB), $-4
 //	BYTE $0x0f; BYTE $0x0b
 //	RET
-//

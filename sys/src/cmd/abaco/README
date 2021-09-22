@@ -1,0 +1,10 @@
+Abaco: lame web browser for Plan 9, eternally a work in progress.
+
+Build:
+	mk
+	cp passwd.6.font /lib/font/bit/lucidasans/
+	check ./plumbing
+
+Enjoy!
+
+Federico G. Benavento - benavento@gmail.com

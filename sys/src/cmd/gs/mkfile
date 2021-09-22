@@ -64,18 +64,18 @@ BIN=/$objtype/bin
 TARG=gs
 OFILES=\
 	obj/gs.$O\
-	`{sed 's#^./obj/(.*)\.o .*#obj/\1.$O#' src/ld.tr >[2] /dev/null | sort}
+	`{sed -e '/^#/d' -e 's#^./obj/(.*)\.o .*#obj/\1.$O#' src/ld.tr >[2] /dev/null | sort}
 
 # The first driver is the default.
 DRIVERS=\
 	plan9\
-	bj10e\
-	bjc600\
-	bjc800\
-	cdj1600\
-	cdj670\
-	cdj850\
-	cdj890\
+#	bj10e\
+#	bjc600\
+#	bjc800\
+#	cdj1600\
+#	cdj670\
+#	cdj850\
+#	cdj890\
 	dfaxlow\
 	epsonc\
 	epswrite\
@@ -124,7 +124,8 @@ update:V:
 
 
 CC=pcc
-CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION\
+# -T still generates a dozen or so obscure type signature clashes
+CFLAGS=-FV -c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION\
 	-I. -Isrc -Ijpeg -Izlib -Iicclib -DT$objtype '-DGS_INIT="gs_init.ps"'
 LD=pcc
 

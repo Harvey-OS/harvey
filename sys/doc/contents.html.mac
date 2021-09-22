@@ -1,0 +1,23 @@
+.\" emit html version
+.de Ti
+.ft R
+.ie h \{\
+\\$3 
+(\c
+.if !'\\$2'troff' \! \<a href="\\$2.html"\>html\</a\> |
+\! \<a href="\\$2.ps"\>ps\</a\> |
+\! \<a href="\\$2.pdf"\>pdf\</a\>)
+...\}
+.el \{\
+.ta \\n(LLuR
+\\$3 \a\|\|\\$1
+...\}
+.br
+..
+.
+.de Hp
+.if h \{\
+.sp 1
+\! \<center\>\<a href="/plan9/"\>Plan 9 Home Page\</a\>\</center\>
+...\}
+..

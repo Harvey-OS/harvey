@@ -1,0 +1,21 @@
+#!/bin/rc
+# URL and POST syntax derived from
+# http://aa.usno.navy.mil/data/docs/RS_OneDay.html
+
+today = `{ date |
+	awk '{	ms["Jan"] = 1; ms["Feb"] = 2; ms["Mar"] = 3;
+		ms["Apr"] = 4; ms["May"] = 5; ms["Jun"] = 6;
+		ms["Jul"] = 7; ms["Aug"] = 8; ms["Sep"] = 9;
+		ms["Oct"] = 10; ms["Nov"] = 11; ms["Dec"] = 12;
+
+		printf "xxy=%s&xxm=%d&xxd=%s", $6, ms[$2], $3;
+	}'
+}
+state = NJ
+place = newark
+url = http://aa.usno.navy.mil/cgi-bin/aa_pap.pl
+post = 'FFX=1&ID=plan9&'^$today^'&st='^$state^'&place='^$place^'&ZZZ=END'
+hget -p $post $url |
+	htmlfmt |
+	grep -v '====' |
+	grep -v Census

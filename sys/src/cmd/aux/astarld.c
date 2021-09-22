@@ -1,3 +1,6 @@
+/*
+ * load firmware into an Avanstar serial-port multiplexor
+ */
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
@@ -255,7 +258,7 @@ rdcpline(Biobuf *b, Cpline *cpl)
 
 	cpl->dlen = cpl->bytes[0];
 	if(cpl->dlen + 5 != up - cpl->bytes){
-		fprint(2, "%d %ld\n", cpl->dlen + 5, up - cpl->bytes);
+		fprint(2, "%d %lld\n", cpl->dlen + 5, (vlong)(up - cpl->bytes));
 		return "bad data length";
 	}
 

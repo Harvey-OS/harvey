@@ -1,0 +1,67 @@
+.TH LAMSTEX 1 "27 December 1992"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if t .ds AX \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(TX
+.if n .ds AX AmSTeX
+.if t .ds AY \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(LX
+.if n .ds AY AmSLaTeX
+.if t .ds LZ \
+\fRL\
+\\h'-0.3m'\\v'-0.21v'\s-2A\s0\\v'0.21v'\
+\\h'-0.15m'\\v'0.188v'M\\v'-0.188v'\
+\\h'-0.125m'S\
+\fP-\*(TX
+.if n .ds LZ LAmS-TeX
+.if t .ds OZ \
+\fIL\
+\\h'-0.3m'\\v'-0.21v'\s-2A\s0\\v'0.21v'\
+\\h'-0.15m'\\v'0.188v'M\\v'-0.188v'\
+\\h'-0.125m'S\
+\fP-\*(OX
+.if n .ds OZ LAmS-TeX
+.\"=====================================================================
+.SH NAME
+lamstex \- structured text formatting and typesetting
+.SH SYNOPSIS
+.B lamstex
+[ first line ]
+.\"=====================================================================
+.SH DESCRIPTION
+The \*(LZ language is described in the book
+.IR "\*(OZ: The Synthesis" .
+\*(LZ is a new system that augments \*(AX with \*(LX-like features,
+but retains the syntactical flavor of \*(AX.  It can be compared with
+\*(AY, which augments \*(LX with \*(AX-like features.
+.PP
+\*(LZ is a \*(TX macro package, not a modification to the \*(TX source
+program, so all the capabilities described in
+.BR tex (1)
+are present.
+.PP
+The \*(LZ macros encourage writers to think about the content of their
+documents, rather than the form.  The ideal, not always realized, is to
+have no formatting commands (like ``switch to italic'' or ``skip 2
+picas'') in the document at all; instead, everything is done
+by specific markup instructions: ``emphasize'', ``start a section''.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR amslatex (1),
+.BR amstex (1),
+.BR latex (1),
+.BR tex (1),
+.BR slitex (1).
+.br
+Michael Spivak,
+.IR "\*(OZ: The Synthesis" ,
+The \*(TXplorators Corporation, 3701 W. Alabama, Suite 450-273,
+Houston, TX 77027, USA, 1989.

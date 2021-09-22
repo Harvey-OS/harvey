@@ -1,0 +1,15 @@
+#!/bin/rc
+# bootcfg - generate START & KTZERO variables if not yet set.
+# we now compress all bootstraps, so these don't vary.
+rfork e
+O=8
+
+# would set to l16r.$O if uncompressed
+if (test ! -e /env/START)
+	echo 'START='
+
+# if uncompressed, would set to 0x80007c00 if loaded by pxe
+# or 0x80010000 if loaded by pbs, based on $CONF.
+if (test ! -e /env/KTZERO)
+	echo 'KTZERO='$BOOTBASE		# expand puts us here
+exit ''

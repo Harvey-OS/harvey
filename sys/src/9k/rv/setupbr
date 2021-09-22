@@ -1,0 +1,15 @@
+#!/bin/rc
+rfork e
+br=0			# bridge number
+
+bridgeio &
+test -d /dev/bridge0 || bind -a '#B' /dev || exit 'no bridge'
+while (test ! -f /srv/bridgepipe -o ! -f /srv/emupipe) {
+	echo -n .
+	sleep 0.1
+}
+
+cd /dev/bridge$br
+ownhash=0
+echo bind tunnel ethert $ownhash /srv/bridgepipe /srv/bridgepipe >ctl
+echo bind  ether ether0 $ownhash /net/ether0			 >ctl

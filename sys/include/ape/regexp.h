@@ -6,7 +6,7 @@
 #pragma lib "/$M/lib/ape/libregexp.a"
 
 #ifdef	UTF
-#define	Runeself	0xA0
+#define	Runeself	0x80
 #else
 #define	Runeself	0
 #endif

@@ -1,0 +1,10 @@
+#!/bin/rc
+# klocate file ... - print location of kernel source file relative to .
+for (f) {
+	if (test -e $f)
+		echo $f
+	if not
+		for (dir in port ip pc)
+			if (test -e ../$dir/$f)
+				echo ../$dir/$f
+}

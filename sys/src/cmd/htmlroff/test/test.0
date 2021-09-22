@@ -1,0 +1,18 @@
+.nr a 1
+.nr b 4
+.nr c 9
+.nr d 10
+.nr e 11
+.nr f 14
+.nr g 15
+.nr h 1999
+.af a i
+.af b i
+.af c i
+.af d i
+.af e I
+.af f I
+.af g I
+.af h I
+\na (\ga) \nb (\gb) \nc (\gc) \nd (\gd)
+\ne (\ge) \nf (\gf) \ng (\gg) \nh (\gh)

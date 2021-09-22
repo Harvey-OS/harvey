@@ -1,0 +1,124 @@
+.TH IKE 4
+.SH NAME
+ike \- IPsec Internet Key Exchange file server
+.SH SYNOPSIS
+.B ike
+[
+.B -v
+] [
+.B -d
+.I what
+] ... [
+.B -k
+.I key-prefix
+]
+.SH DESCRIPTION
+.I Ike
+implements the IPsec Internet Key Exchange, version 2.
+It announces on UDP port 500
+and represents Security Associations
+as directories, conventionally in
+.BR /n/ike .
+.PP
+.B -v
+increases verbosity;
+.B -d
+enables debugging output for
+.IR what .
+Known values of
+.I what
+include
+.BR Certdebug ,
+.BR Datadump ,
+.BR Encrdebug ,
+.BR Encrdump ,
+.BR Fsdebug ,
+.BR IKEdebug ,
+.BR Parsedebug ,
+and
+.BR Verbose .
+Keys, certificates, etc. are found in files whose name begin with
+.IR key-prefix ;
+.I key-prefix
+defaults to
+.LR keys/left .
+See
+.B FILES
+for suffices.
+.PP
+Writing a message of the form
+.RB ` newsa
+.I saname
+.IR ip '
+to
+.B /n/ike/ctl
+will create a Security Association for
+.I ip
+named
+.IR saname ,
+and create the directory
+.BI /n/ike/ saname\fR,
+which initially will contain just a
+.B ctl
+file.
+Removing
+.BI /n/ike/ saname
+will shut down the Security Association
+.IR saname .
+.SH EXAMPLES
+Initiate a Security Association with
+.L 135.104.9.152
+named
+.L bla.
+.IP
+.EX
+% ike
+% mount /srv/ike /n/ike
+% cd /n/ike
+% echo newsa bla 135.104.9.152 >>ctl
+% cat bla/ctl
+name: bla
+yraddr: 135.104.9.152
+role: Initiator
+state: resp_state_auth
+.EE
+.SH FILES
+.TF /sys/lib/ssl/*.pem
+.TP
+.B /srv/ike
+posted file server connection
+.TP
+.B /n/ike
+usual mount point
+.TP
+.B /sys/lib/ssl/*.pem
+PEM certificates
+.TP
+.B keys/left
+default key prefix
+.TP
+.B Cert.cer
+key suffices
+.TP
+.B Cert.pem
+.TP
+.B KeyClear.asn
+.TP
+.B KeyClear.pem
+.SH SOURCE
+.B /usr/src/cmd/ip/ike
+.SH SEE ALSO
+.IR rsa (2),
+.IR ip (3),
+.IR rsa (8)
+.br
+.B /lib/rfc/rfc4306
+.SH BUGS
+Doesn't yet allow creation of child SAs.
+.PP
+Doesn't yet get keys from
+.IR factotum (4).
+.PP
+IKE could be simpler, but apparently IKE v1 was even worse.
+Negotiates anything that could possibly be negotiated,
+and uses ASN.1.

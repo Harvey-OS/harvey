@@ -1,0 +1,13 @@
+#! /bin/sh
+# rename: rename files accoring to expression.
+# Copyright 1997 Olaf Weber <infovore@xs4all.nl>
+# Public Domain.
+
+expr="$1"
+shift
+
+for i
+do
+	j=`echo "$i" | sed "$expr"`
+	mv $i $j
+done

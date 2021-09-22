@@ -7,25 +7,22 @@ if(! test -d /n/sources/patch){
 }
 
 pref=''
-builtin cd /n/sources/patch || {
+cd /n/sources/patch || {
 	echo 'can''t cd /n/sources/patch' >[2=1]
 	exit no-sources
 }
 
-if(~ $1 applied saved sorry maybe bad){
+if(~ $1 saved sorry applied undecided){
 	pref=$1^'/'
 	shift
 }
 if(~ $#* 0)
-	*=(`{
-		if(~ $pref *?*)
-			builtin cd $pref
-		ls -t | grep -v '^(applied|saved|sorry|maybe|bad)$'
-	})
+	*=(`{if(~ $pref *?*) cd $pref; ls -t | grep -v '^(saved|sorry|applied|undecided)$'})
 
 trunc=(sed 5q)
 if(~ $#* 1)
 	trunc=cat
+
 
 {
 for(i in $*){
@@ -48,6 +45,7 @@ for(i in $*){
 		echo '	'bad patch: $status >[2=1]
 	echo
 }
+
 } >/tmp/patchtmp.$pid
 
 cat /tmp/patchtmp.$pid

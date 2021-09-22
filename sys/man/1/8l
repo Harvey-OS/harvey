@@ -1,6 +1,6 @@
 .TH 8L 1 
 .SH NAME
-0l, 5l, 6l, 8l, 9l, il, jl, kl, ql, vl \- loaders
+0l, 5l, 6l, 7l, 8l, 9l, il, jl, ql, vl \- loaders
 .SH SYNOPSIS
 .B 8l
 [
@@ -116,11 +116,6 @@ Print the object code in assembly language, with addresses.
 .B -v
 Print debugging output that annotates the activities of the load.
 .TP
-.BI -M
-.RI ( Kl
-only) Generate instructions rather than calls to emulation routines
-for multiply and divide.
-.TP
 .BI -E symbol
 The entry point for the binary is
 .I symbol
@@ -159,19 +154,23 @@ Move strings into the text segment.
 (\c
 .I 5l
 only)
-Generate VFP hardware floating-point instructions.
+Generate VFP hardware floating-point instructions (now default).
 Without this option,
 .I 5l
-generates arm7500 floating-point
+generated arm7500 floating-point
 instructions which are emulated in the kernel.
+.br
+.ne 6
 .TP
 .B -c
 (\c
 .I il
-and
-.I jl
 only)
-don't generate compressed instructions
+By default,
+.I il
+generates compressed instructions where possible;
+.B -c
+suppresses them.
 .br
 .ne 6
 .TP
@@ -269,3 +268,12 @@ The list of loaders given above is only partial,
 not all architectures are supported on all systems,
 some have been retired and some
 are provided by third parties.
+.PP
+.I Jl
+uses mainly 32-bit addresses internally,
+so text and static data must fit in 4GB,
+which is unlikely to be a problem.
+It is possible to specify any 64-bit
+.L -T
+address,
+and symbol tables will contain 64-bit addresses.

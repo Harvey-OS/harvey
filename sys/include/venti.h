@@ -134,8 +134,7 @@ enum
 	_VtEntryDir = 1<<1,		/* a directory */
 	_VtEntryDepthShift = 2,		/* shift for pointer depth */
 	_VtEntryDepthMask = 7<<2,	/* mask for pointer depth */
-	VtEntryLocal = 1<<5,		/* for local storage only */
-	VtEntryNoArchive = 1<<6		/* for local storage only */
+	VtEntryLocal = 1<<5		/* for local storage only */
 };
 enum
 {
@@ -207,9 +206,9 @@ int vtscorefmt(Fmt*);
  * error-checking malloc et al.
  */
 void	vtfree(void *);
-void*	vtmalloc(int);
-void*	vtmallocz(int);
-void*	vtrealloc(void *p, int);
+void*	vtmalloc(uintptr);
+void*	vtmallocz(uintptr);
+void*	vtrealloc(void *p, uintptr);
 void*	vtbrk(int n);
 char*	vtstrdup(char *);
 
@@ -335,9 +334,7 @@ struct VtConn
 };
 
 VtConn*	vtconn(int infd, int outfd);
-int	vtreconn(VtConn*, int, int);
 VtConn*	vtdial(char*);
-int	vtredial(VtConn*, char*);
 void	vtfreeconn(VtConn*);
 int	vtsend(VtConn*, Packet*);
 Packet*	vtrecv(VtConn*);
@@ -380,10 +377,6 @@ Packet*	vtreadpacket(VtConn*, uchar score[VtScoreSize], uint type, int n);
 int	vtwritepacket(VtConn*, uchar score[VtScoreSize], uint type, Packet *p);
 int	vtsync(VtConn*);
 int	vtping(VtConn*);
-
-/* sha1 */
-void	vtsha1(uchar score[VtScoreSize], uchar*, int);
-int	vtsha1check(uchar score[VtScoreSize], uchar*, int);
 
 /*
  * Data blocks and block cache.

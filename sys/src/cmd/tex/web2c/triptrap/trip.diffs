@@ -1,0 +1,110 @@
+make[1]: Entering directory `/home/olaf/web2c/src/texk/web2c'
+./pltotf ./triptrap/trip.pl trip.tfm
+./tftopl ./trip.tfm trip.pl
+diff ./triptrap/trip.pl trip.pl
+rm -f trip.tex; ln -s ./triptrap/trip.tex . # get same filename in log
+/bin/sh -c 'TEXMFCNF=./triptrap ./tex --progname=initex <./triptrap/trip1.in >tripin.fot'
+mv trip.log tripin.log
+diff ./triptrap/tripin.log tripin.log
+1c1
+< This is TeX, Version 3.14159 (INITEX)  8 MAR 1995 14:24
+---
+> This is TeX, Version 3.14159 (Web2C 7.2) (INITEX)  15 MAR 1998 20:32
+450,451c450,451
+<  (preloaded format=trip 95.3.8)
+< 1320 strings of total length 23539
+---
+>  (format=trip 1998.3.15)
+> 1334 strings of total length 23286
+461c461
+< Hyphenation trie of length 273 has 9 ops out of 500
+---
+> Hyphenation trie of length 273 has 9 ops out of 1501
+/bin/sh -c 'TEXMFCNF=./triptrap ./tex <./triptrap/trip2.in >trip.fot'
+diff ./triptrap/trip.fot trip.fot
+1,3c1,2
+< This is TeX, Version 3.14159 (INITEX)
+< ** &trip  trip 
+< (trip.tex ##
+---
+> This is TeX, Version 3.14159 (Web2C 7.2)
+> **(trip.tex ##
+diff  ./triptrap/trip.log trip.log
+1c1
+< This is TeX, Version 3.14159 (preloaded format=trip 95.3.8)  8 MAR 1995 14:24
+---
+> This is TeX, Version 3.14159 (Web2C 7.2) (format=trip 1998.3.15)  15 MAR 1998 20:32
+58a59,62
+> \openout0 = `8terminal.tex'.
+> 
+> \openout10 = `tripos.tex'.
+> 
+1405c1409
+< \vbox(16383.99998+0.0)x1000.0, glue set 16342.0fil
+---
+> \vbox(16383.99998+0.0)x1000.0, glue set 16341.99998fil
+2018c2022
+< \vbox(16383.99998+1.0)x100.0, glue set 16239.0fil
+---
+> \vbox(16383.99998+1.0)x100.0, glue set 16238.99998fil
+2533c2537
+< \vbox(16383.99998+0.0)x20.0, glue set 16331.0fil
+---
+> \vbox(16383.99998+0.0)x20.0, glue set 16330.99998fil
+3326c3330
+< \vbox(10000.0+2.0)x28.0, glue set 9737.58789fil
+---
+> \vbox(10000.0+2.0)x28.0, glue set 9737.58742fil
+3864c3868
+< \vbox(16383.99998+2.0)x100.0, glue set 16318.0fil
+---
+> \vbox(16383.99998+2.0)x100.0, glue set 16317.99997fil
+4034c4038
+< \vbox(16383.99998+0.0)x8236.0, glue set 16344.0fil
+---
+> \vbox(16383.99998+0.0)x8236.0, glue set 16343.99998fil
+4420c4424
+< \vbox(16383.99998+0.0)x100.0, glue set 16332.0fil
+---
+> \vbox(16383.99998+0.0)x100.0, glue set 16331.99998fil
+4742c4746
+< \vbox(16383.99998+0.0)x205.12613, glue set 16344.0fil
+---
+> \vbox(16383.99998+0.0)x205.12613, glue set 16343.99998fil
+7296,7297c7300,7301
+<  47 strings out of 1680
+<  267 string characters out of 8461
+---
+>  37 strings out of 1666
+>  203 string characters out of 16714
+7299c7303
+<  370 multiletter control sequences out of 2100
+---
+>  370 multiletter control sequences out of 10000+0
+7301c7305
+<  2 hyphenation exceptions out of 307
+---
+>  1 hyphenation exception out of 659
+/bin/sh -c 'TEXMFCNF=./triptrap ./dvitype -output-level=2 -dpi=72.27 -page-start='*.*.*.*.*.*.*.*.*.*' trip.dvi >trip.typ'
+diff  ./triptrap/trip.typ trip.typ
+1c1
+< This is DVItype, Version 3.5
+---
+> This is DVItype, Version 3.5 (Web2C 7.2)
+9c9
+< ' TeX output 1995.03.08:1424'
+---
+> ' TeX output 1998.03.15:2032'
+419c419
+< 1121: down4 639342208 
+---
+> 1121: down4 639342177 
+1087,1088c1087,1088
+< 2535: y4 203921760 
+< 2540: y0 203921760 
+---
+> 2535: y4 203921756 
+> 2540: y0 203921756 
+1215d1214
+<  
+make[1]: Leaving directory `/home/olaf/web2c/src/texk/web2c'

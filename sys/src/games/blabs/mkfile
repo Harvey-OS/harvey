@@ -22,10 +22,11 @@ FACES=\
 	
 </sys/src/cmd/mkone
 
-%.bits:
-	mkface $stem
+# mkface uses fb/enc2bit, which went away in 3rd ed.
+#%.bits:
+#	mkface $stem
 
 blabs.$O: $FACES
 
 clean:V:
-	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG *.bits
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG

@@ -83,12 +83,12 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 	epoch = b->l.epoch;
 	if(mode == OReadWrite){
 		if(e.snap != 0){
-			werrstr(ESnapRO);
+			vtSetError(ESnapRO);
 			return nil;
 		}
 	}else if(e.snap != 0){
 		if(e.snap < fs->elo){
-			werrstr(ESnapOld);
+			vtSetError(ESnapOld);
 			return nil;
 		}
 		if(e.snap >= fs->ehi)
@@ -96,20 +96,21 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 		epoch = e.snap;
 	}
 
-	r = vtmallocz(sizeof(Source));
+	r = vtMemAllocZ(sizeof(Source));
 	r->fs = fs;
 	r->mode = mode;
 	r->issnapshot = issnapshot;
 	r->dsize = e.dsize;
 	r->gen = e.gen;
-	r->dir = (e.flags & _VtEntryDir) != 0;
+	r->dir = (e.flags & VtEntryDir) != 0;
+	r->lk = vtLockAlloc();
 	r->ref = 1;
 	r->parent = p;
 	if(p){
-		qlock(&p->lk);
+		vtLock(p->lk);
 		assert(mode == OReadOnly || p->mode == OReadWrite);
 		p->ref++;
-		qunlock(&p->lk);
+		vtUnlock(p->lk);
 	}
 	r->epoch = epoch;
 //	consPrint("sourceAlloc: have %V be.%d fse.%d %s\n", b->score,
@@ -125,7 +126,7 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot
 	return r;
 Bad:
 	free(pname);
-	werrstr(EBadEntry);
+	vtSetError(EBadEntry);
 	return nil;
 }
 
@@ -143,7 +144,7 @@ sourceRoot(Fs *fs, u32int addr, int mode)
 		consPrint("sourceRoot: fs->ehi = %ud, b->l = %L\n",
 			fs->ehi, &b->l);
 		blockPut(b);
-		werrstr(EBadRoot);
+		vtSetError(EBadRoot);
 		return nil;
 	}
 
@@ -162,7 +163,7 @@ sourceOpen(Source *r, ulong offset, int mode, int issnapshot)
 	if(r->mode == OReadWrite)
 		assert(r->epoch == r->b->l.epoch);
 	if(!r->dir){
-		werrstr(ENotDir);
+		vtSetError(ENotDir);
 		return nil;
 	}
 
@@ -188,7 +189,7 @@ sourceCreate(Source *r, int dsize, int dir, u32int offset)
 	assert(sourceIsLocked(r));
 
 	if(!r->dir){
-		werrstr(ENotDir);
+		vtSetError(ENotDir);
 		return nil;
 	}
 
@@ -218,7 +219,7 @@ sourceCreate(Source *r, int dsize, int dir, u32int offset)
 		blockPut(b);
 		if(offset == size){
 			fprint(2, "sourceCreate: cannot happen\n");
-			werrstr("sourceCreate: cannot happen");
+			vtSetError("sourceCreate: cannot happen");
 			return nil;
 		}
 		offset = size;
@@ -231,10 +232,10 @@ Found:
 	assert(psize && dsize);
 	e.flags = VtEntryActive;
 	if(dir)
-		e.flags |= _VtEntryDir;
+		e.flags |= VtEntryDir;
 	e.depth = 0;
 	e.size = 0;
-	memmove(e.score, vtzeroscore, VtScoreSize);
+	memmove(e.score, vtZeroScore, VtScoreSize);
 	e.tag = 0;
 	e.snap = 0;
 	e.archive = 0;
@@ -293,7 +294,7 @@ sourceKill(Source *r, int doremove)
 	e.depth = 0;
 	e.size = 0;
 	e.tag = 0;
-	memmove(e.score, vtzeroscore, VtScoreSize);
+	memmove(e.score, vtZeroScore, VtScoreSize);
 	entryPack(&e, b->data, r->offset % r->epb);
 	blockDirty(b);
 	if(addr != NilBlock)
@@ -369,7 +370,7 @@ sourceShrinkSize(Source *r, Entry *e, uvlong size)
 		i = (size+ptrsz-1)/ptrsz;
 		for(; i<ppb; i++){
 			addr = globalToLocal(b->data+i*VtScoreSize);
-			memmove(b->data+i*VtScoreSize, vtzeroscore, VtScoreSize);
+			memmove(b->data+i*VtScoreSize, vtZeroScore, VtScoreSize);
 			blockDirty(b);
 			if(addr != NilBlock)
 				blockRemoveLink(b, addr, type-1, e->tag, 1);
@@ -419,7 +420,7 @@ sourceSetSize(Source *r, uvlong size)
 		return sourceTruncate(r);
 
 	if(size > VtMaxFileSize || size > ((uvlong)MaxBlock)*r->dsize){
-		werrstr(ETooBig);
+		vtSetError(ETooBig);
 		return 0;
 	}
 
@@ -636,7 +637,7 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 		type++;
 		e->tag = tag;
 		e->flags |= VtEntryLocal;
-		blockDependency(bb, b, 0, vtzeroscore, nil);
+		blockDependency(bb, b, 0, vtZeroScore, nil);
 		blockPut(b);
 		b = bb;
 		blockDirty(b);
@@ -717,7 +718,7 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 	blockDirty(p);
 
 	/* (ii) */
-	memmove(ob->data, vtzeroscore, VtScoreSize);
+	memmove(ob->data, vtZeroScore, VtScoreSize);
 	blockDependency(ob, p, 0, b->score, nil);
 	blockDirty(ob);
 
@@ -760,7 +761,7 @@ _sourceBlock(Source *r, ulong bn, int mode, int early, ulong tag)
 		return nil;
 	if(r->issnapshot && (e.flags & VtEntryNoArchive)){
 		blockPut(b);
-		werrstr(ENotArchived);
+		vtSetError(ENotArchived);
 		return nil;
 	}
 
@@ -769,7 +770,7 @@ _sourceBlock(Source *r, ulong bn, int mode, int early, ulong tag)
 			e.tag = tag;
 		else if(e.tag != tag){
 			fprint(2, "tag mismatch\n");
-			werrstr("tag mismatch");
+			vtSetError("tag mismatch");
 			goto Err;
 		}
 	}
@@ -778,7 +779,7 @@ _sourceBlock(Source *r, ulong bn, int mode, int early, ulong tag)
 	memset(index, 0, sizeof(index));
 	for(i=0; bn > 0; i++){
 		if(i >= VtPointerDepth){
-			werrstr(EBadAddr);
+			vtSetError(EBadAddr);
 			goto Err;
 		}
 		index[i] = bn % np;
@@ -787,7 +788,7 @@ _sourceBlock(Source *r, ulong bn, int mode, int early, ulong tag)
 
 	if(i > e.depth){
 		if(mode == OReadOnly){
-			werrstr(EBadAddr);
+			vtSetError(EBadAddr);
 			goto Err;
 		}
 		if(!sourceGrowDepth(r, b, &e, i))
@@ -826,18 +827,19 @@ sourceClose(Source *r)
 {
 	if(r == nil)
 		return;
-	qlock(&r->lk);
+	vtLock(r->lk);
 	r->ref--;
 	if(r->ref){
-		qunlock(&r->lk);
+		vtUnlock(r->lk);
 		return;
 	}
 	assert(r->ref == 0);
-	qunlock(&r->lk);
+	vtUnlock(r->lk);
 	if(r->parent)
 		sourceClose(r->parent);
+	vtLockFree(r->lk);
 	memset(r, ~0, sizeof(*r));
-	vtfree(r);
+	vtMemFree(r);
 }
 
 /*
@@ -856,7 +858,6 @@ sourceLoadBlock(Source *r, int mode)
 {
 	u32int addr;
 	Block *b;
-	char e[ERRMAX];
 
 	switch(r->mode){
 	default:
@@ -911,8 +912,7 @@ sourceLoadBlock(Source *r, int mode)
 		 * a snapshot.  (Or else the file system is read-only, but then
 		 * the archiver isn't going around deleting blocks.)
 		 */
-		rerrstr(e, sizeof e);
-		if(strcmp(e, ELabelMismatch) == 0){
+		if(strcmp(vtGetError(), ELabelMismatch) == 0){
 			if(!sourceLock(r->parent, OReadOnly))
 				return nil;
 			b = sourceBlock(r->parent, r->offset/r->epb, OReadOnly);
@@ -932,7 +932,7 @@ sourceLoadBlock(Source *r, int mode)
 int
 sourceLock(Source *r, int mode)
 {
-	Block *b;
+	Block *b, *xb;
 
 	if(mode == -1)
 		mode = r->mode;
@@ -941,11 +941,28 @@ sourceLock(Source *r, int mode)
 	if(b == nil)
 		return 0;
 	/*
+	 * From: Richard Miller <miller@hamnavoe.com>
+	 * Date: Sun, 14 Mar 2021 11:50:39 +0000
+	 *
+	 * I think it's a local fix for an assertion failure I was getting when
+	 * fossil is being hammered by golang tests.  The original assert,
+	 * assert(r->b == nil), turns out to be too strong.
+	 */
+	/*
 	 * The fact that we are holding b serves as the
 	 * lock entitling us to write to r->b.
 	 */
-	assert(r->b == nil);
-	r->b = b;
+	while(!casp(&r->b, nil, b)){
+		xb = r->b;
+		if(xb != nil && xb != b)
+			fprint(2, "sourceLock: %x (%V) != %x (%V)\n",
+				xb->addr, xb->score, b->addr, b->score);
+		else
+			fprint(2, "sourceLock: %x (%V) waiting\n",
+				b->addr, b->score);
+		if (xb != nil)
+			sleep(1000);
+	}
 	if(r->mode == OReadWrite)
 		assert(r->epoch == r->b->l.epoch);
 	return 1;
@@ -1027,7 +1044,7 @@ sourceLoad(Source *r, Entry *e)
 	if(!entryUnpack(e, b->data, r->offset % r->epb))
 		return nil;
 	if(e->gen != r->gen){
-		werrstr(ERemoved);
+		vtSetError(ERemoved);
 		return nil;
 	}
 	blockDupLock(b);

@@ -15,18 +15,14 @@ Volume 2
 .sp |6i
 .ft I
 .ce
-Fourth Edition
+Fifth Edition
 .ce
-2000
+2021
 .sp |9i-1
+.ft
+.ft I
 .ce
-Computing Science Research Center
-.ce
-Bell Laboratories
-.ce
-Lucent Technologies
-.ce
-Murray Hill, New Jersey
+Plan 9 Foundation
 .bp
 .ft 1
 .ll 5.5i
@@ -41,6 +37,3 @@ Portions Copyright © 1988, 1995 Aladdin Enterprises. All Rights Reserved.
 Portions Copyright © 1994 by Sun Microsystems Computer Company. All rights reserved.
 Portions Copyright © 2000 Compaq Computer Corporation.
 Portions Copyright © 1999, Keith Packard.
-.sp 3
-.ps 10
-Cover Design: Gerard J. Holzmann

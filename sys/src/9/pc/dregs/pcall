@@ -1,0 +1,153 @@
+# pcall - a pc kernel with the kitchen sink thrown in,
+# mainly to verify that it all builds
+dev
+	root
+	cons
+	wd
+
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	bridge		log
+	sdp		thwack unthwack
+	cap
+	kprof
+	fs
+	segment
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+	kbmap
+	kbin
+
+	sd
+	floppy		dma
+#	aoe
+	lpt
+
+#	audio		dma
+	pccard
+	i82365		cis
+	uart
+	usb
+#	usbcons
+
+link
+	realmode
+	devpccard
+	devi82365
+
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.
+	ether2000	ether8390
+	ether2114x	pci
+	ether589	etherelnk3
+	ether79c970	pci
+	ether8003	ether8390
+	ether8139	pci
+	ether8169	pci ethermii
+	ether82543gc	pci
+	ether82557	pci
+	ether82563	pci
+	ether83815	pci
+	etherbcm4401	pci ethermii
+	etherdp83820	pci
+	etherec2t	ether8390
+	etherelnk3	pci
+	etherga620	pci
+	etherigbe	pci ethermii
+	ethervgbe	pci ethermii
+	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
+	ethersink
+	ethersmc	devi82365 cis
+	etherwavelan	wavelan devi82365 cis pci
+	etherm10g	pci
+	ether82598	pci
+
+	ethermedium
+	pcmciamodem
+	netdevmedium
+	loopbackmedium
+
+	usbuhci
+	usbohci
+	usbehci		usbehcipc
+
+	x86watchdog
+
+misc
+	archmp		mp apic mpacpi
+	mtrr
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+	sdiahci		pci sdscsi
+#	sdaoe
+
+	uarti8250
+	uartpci		pci
+	uartisa
+
+#	usbcons
+
+	vga3dfx		+cur
+	vgaark2000pv	+cur
+	vgabt485	=cur
+	vgaclgd542x	+cur
+	vgaclgd546x	+cur
+	vgact65545	+cur
+	vgacyber938x	+cur
+	vgaet4000	+cur
+	vgahiqvideo	+cur
+	vgai81x		+cur
+	vgamach64xx	+cur
+	vgamga2164w	+cur
+	vgamga4xx	+cur
+	vganeomagic	+cur
+	vganvidia	+cur
+	vgaradeon	+cur
+	vgargb524	=cur
+	vgas3		+cur vgasavage
+	vgat2r4		+cur
+	vgatvp3020	=cur
+	vgatvp3026	=cur
+	vgavesa
+	vgavmware	+cur
+
+ip
+	tcp
+	udp
+	rudp
+	ipifc
+	icmp
+	icmp6
+	gre
+	ipmux
+	esp
+
+port
+	int cpuserver = 0;
+
+boot
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/386/bin/ip/ipconfig
+	/386/bin/auth/factotum
+	/386/bin/usb/usbd

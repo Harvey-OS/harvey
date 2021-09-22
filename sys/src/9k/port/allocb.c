@@ -8,7 +8,6 @@ enum
 {
 	Hdrspc		= 64,		/* leave room for high-level headers */
 	Bdead		= 0x51494F42,	/* "QIOB" */
-	Bmagic		= 0x0910b10c,
 };
 
 struct
@@ -36,10 +35,9 @@ _allocb(int size)
 	b->list = nil;
 	b->free = 0;
 	b->flag = 0;
-	b->magic = Bmagic;
 
 	/* align base and bounds of data */
-	b->lim = (uchar*)(PTR2UINT(b) & ~(BLOCKALIGN-1));
+	b->lim = (uchar*)((uintptr)b & ~((uintptr)BLOCKALIGN-1));
 
 	/* align start of writable data, leaving space below for added headers */
 	b->rp = b->lim - ROUNDUP(size, BLOCKALIGN);
@@ -63,11 +61,8 @@ allocb(int size)
 	if(up == nil)
 		panic("allocb without up: %#p", getcallerpc(&size));
 	if((b = _allocb(size)) == nil){
-		splhi();
 		mallocsummary();
-		delay(500);
-		panic("allocb: no memory for %d bytes; caller %#p", size,
-			getcallerpc(&size));
+		panic("allocb: no memory for %d bytes", size);
 	}
 
 	return b;
@@ -79,35 +74,31 @@ ialloclimit(ulong limit)
 	ialloc.limit = limit;
 }
 
+static Block *
+exceeded(char *msg, uint *cntp)
+{
+	static uint mp;
+
+	if((*cntp)++ % (1<<13) == 0){
+		if(mp++ > 1000){
+			active.exiting = 1;
+			exit(0);
+		}
+		iprint("iallocb: %s %lud/%lud\n", msg, ialloc.bytes, ialloc.limit);
+	}
+	return nil;
+}
+
 Block*
 iallocb(int size)
 {
 	Block *b;
-	static int m1, m2, mp;
+	static uint m1, m2;
 
-	if(ialloc.bytes > ialloc.limit){
-		if((m1++%10000)==0){
-			if(mp++ > 1000){
-				active.exiting = 1;
-				exit(0);
-			}
-			iprint("iallocb: limited %lud/%lud\n",
-				ialloc.bytes, ialloc.limit);
-		}
-		return nil;
-	}
-
-	if((b = _allocb(size)) == nil){
-		if((m2++%10000)==0){
-			if(mp++ > 1000){
-				active.exiting = 1;
-				exit(0);
-			}
-			iprint("iallocb: no memory %lud/%lud\n",
-				ialloc.bytes, ialloc.limit);
-		}
-		return nil;
-	}
+	if(ialloc.bytes > ialloc.limit)
+		return exceeded("limited", &m1);
+	if((b = _allocb(size)) == nil)
+		return exceeded("no memory", &m2);
 	b->flag = BINTR;
 
 	ilock(&ialloc);
@@ -120,14 +111,10 @@ iallocb(int size)
 void
 freeb(Block *b)
 {
-	void *dead = (void*)Bdead;
 	uchar *p;
 
 	if(b == nil)
 		return;
-	if(Bmagic && b->magic != Bmagic)
-		panic("freeb: bad magic %#lux in Block %#p; caller pc %#p",
-			b->magic, b, getcallerpc(&b));
 
 	/*
 	 * drivers which perform non cache coherent DMA manage their own buffer
@@ -146,12 +133,8 @@ freeb(Block *b)
 	p = b->base;
 
 	/* poison the block in case someone is still holding onto it */
-	b->next = dead;
-	b->rp = dead;
-	b->wp = dead;
-	b->lim = dead;
-	b->base = dead;
-	b->magic = 0;
+	b->next = (void*)Bdead;
+	b->rp = b->wp = b->lim = b->base = (void*)Bdead;
 
 	free(p);
 }
@@ -170,8 +153,7 @@ checkb(Block *b, char *msg)
 		print("checkb: rp %#p wp %#p\n", b->rp, b->wp);
 		panic("checkb dead: %s", msg);
 	}
-	if(Bmagic && b->magic != Bmagic)
-		panic("checkb: bad magic %#lux in Block %#p", b->magic, b);
+
 	if(b->base > b->lim)
 		panic("checkb 0 %s %#p %#p", msg, b->base, b->lim);
 	if(b->rp < b->base)

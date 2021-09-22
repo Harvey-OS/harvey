@@ -20,6 +20,11 @@
 #ifndef gstypes_INCLUDED
 #  define gstypes_INCLUDED
 
+#ifndef _SUSV2_SOURCE
+#define _SUSV2_SOURCE
+#endif
+#include <stdint.h>
+
 /*
  * Define a type used internally for unique IDs of various kinds
  * (primarily, but not exclusively, character and halftone bitmaps).
@@ -42,13 +47,13 @@ typedef ulong gs_id;
  */
 #define GS_STRING_COMMON\
     byte *data;\
-    uint size
+    uintptr_t size
 typedef struct gs_string_s {
     GS_STRING_COMMON;
 } gs_string;
 #define GS_CONST_STRING_COMMON\
     const byte *data;\
-    uint size
+    uintptr_t size
 typedef struct gs_const_string_s {
     GS_CONST_STRING_COMMON;
 } gs_const_string;

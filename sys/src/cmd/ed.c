@@ -10,8 +10,8 @@ enum
 {
 	FNSIZE	= 128,		/* file name */
 	LBSIZE	= 4096,		/* max line size */
-	BLKSIZE	= 4096,		/* block size in temp file */
-	NBLK	= 8191,		/* max size of temp file */
+	BLKSIZE	= 8192,		/* block size in temp file */
+	NBLK	= (1ul<<31)/BLKSIZE-1,	/* max size of temp file */
 	ESIZE	= 256,		/* max size of reg exp */
 	GBSIZE	= 256,		/* max size of global command */
 	MAXSUB	= 9,		/* max number of sub reg exp */
@@ -38,7 +38,7 @@ int	iblock;
 int	ichanged;
 int	io;
 Biobuf	iobuf;
-int	lastc;
+Rune	lastc;
 char	line[70];
 Rune*	linebp;
 Rune	linebuf[LBSIZE];
@@ -51,7 +51,7 @@ int	nleft;
 int	oblock;
 int	oflag;
 Reprog	*pattern;
-int	peekc;
+Rune	peekc;
 int	pflag;
 int	rescuing;
 Rune	rhsbuf[LBSIZE/sizeof(Rune)];
@@ -78,7 +78,7 @@ int	vflag	= 1;
 
 void	add(int);
 int*	address(void);
-int	append(int(*)(void), int*);
+int	append(Rune (*)(void), int*);
 void	browse(void);
 void	callunix(void);
 void	commands(void);
@@ -90,13 +90,13 @@ int	match(int*);
 void	exfile(int);
 void	filename(int);
 Rune*	getblock(int, int);
-int	getchr(void);
-int	getcopy(void);
-int	getfile(void);
+Rune	getchr(void);
+Rune	getcopy(void);
+Rune	getfile(void);
 Rune*	getline(int);
 int	getnum(void);
-int	getsub(void);
-int	gettty(void);
+Rune	getsub(void);
+Rune	gettty(void);
 void	global(int);
 void	init(void);
 void	join(void);
@@ -106,7 +106,7 @@ void	nonzero(void);
 void	notifyf(void*, char*);
 Rune*	place(Rune*, Rune*, Rune*);
 void	printcom(void);
-void	putchr(int);
+void	putchr(Rune);
 void	putd(void);
 void	putfile(void);
 int	putline(void);
@@ -166,9 +166,10 @@ main(int argc, char *argv[])
 void
 commands(void)
 {
-	int *a1, c, temp;
+	int *a1, temp;
 	char lastsep;
 	Dir *d;
+	Rune c;
 
 	for(;;) {
 		if(pflag) {
@@ -427,7 +428,8 @@ printcom(void)
 int*
 address(void)
 {
-	int sign, *a, opcnt, nextopand, *b, c;
+	int sign, *a, opcnt, nextopand, *b;
+	Rune c;
 
 	nextopand = -1;
 	sign = 1;
@@ -504,7 +506,8 @@ address(void)
 int
 getnum(void)
 {
-	int r, c;
+	int r;
+	Rune c;
 
 	r = 0;
 	for(;;) {
@@ -549,7 +552,7 @@ squeeze(int i)
 void
 newline(void)
 {
-	int c;
+	Rune c;
 
 	c = getchr();
 	if(c == '\n' || c == EOF)
@@ -572,8 +575,7 @@ void
 filename(int comm)
 {
 	char *p1, *p2;
-	Rune rune;
-	int c;
+	Rune c, rune;
 
 	count = 0;
 	c = getchr();
@@ -594,7 +596,7 @@ filename(int comm)
 		error(Q);
 	p1 = file;
 	do {
-		if(p1 >= &file[sizeof(file)-6] || c == ' ' || c == EOF)
+		if(p1 >= &file[sizeof(file)-2*UTFmax] || c == ' ' || c == EOF)
 			error(Q);
 		rune = c;
 		p1 += runetochar(p1, &rune);
@@ -611,7 +613,6 @@ filename(int comm)
 void
 exfile(int om)
 {
-
 	if(om == OWRITE)
 		if(Bflush(&iobuf) < 0)
 			error(Q);
@@ -626,7 +627,7 @@ exfile(int om)
 void
 error1(char *s)
 {
-	int c;
+	Rune c;
 
 	wrapp = 0;
 	listf = 0;
@@ -696,7 +697,7 @@ notifyf(void *a, char *s)
 	abort();
 }
 
-int
+Rune
 getchr(void)
 {
 	if(lastc = peekc) {
@@ -713,10 +714,10 @@ getchr(void)
 	return lastc;
 }
 
-int
+Rune
 gety(void)
 {
-	int c;
+	Rune c;
 	Rune *gf, *p;
 
 	p = linebuf;
@@ -740,10 +741,10 @@ gety(void)
 	}
 }
 
-int
+Rune
 gettty(void)
 {
-	int rc;
+	Rune rc;
 
 	rc = gety();
 	if(rc)
@@ -753,16 +754,16 @@ gettty(void)
 	return 0;
 }
 
-int
+Rune
 getfile(void)
 {
-	int c;
+	Rune c;
 	Rune *lp;
 
 	lp = linebuf;
 	do {
 		c = Bgetrune(&iobuf);
-		if(c < 0) {
+		if(c == Beof) {
 			if(lp > linebuf) {
 				putst("'\\n' appended");
 				c = '\n';
@@ -785,7 +786,7 @@ putfile(void)
 {
 	int *a1;
 	Rune *lp;
-	long c;
+	Rune c;
 
 	a1 = addr1;
 	do {
@@ -807,7 +808,7 @@ putfile(void)
 }
 
 int
-append(int (*f)(void), int *a)
+append(Rune (*f)(void), int *a)
 {
 	int *a1, *a2, *rdot, nline, tl;
 
@@ -816,7 +817,7 @@ append(int (*f)(void), int *a)
 	while((*f)() == 0) {
 		if((dol-zero) >= nlall) {
 			nlall += 512;
-			a1 = realloc(zero, (nlall+5)*sizeof(int*));
+			a1 = realloc(zero, (nlall+2*UTFmax)*sizeof(int*));
 			if(a1 == 0) {
 				error("MEM?");
 				rescue();
@@ -894,15 +895,15 @@ browse(void)
 void
 callunix(void)
 {
-	int c, pid;
-	Rune rune;
+	int pid;
+	Rune c, rune;
 	char buf[512];
 	char *p;
 
 	setnoaddr();
 	p = buf;
 	while((c=getchr()) != EOF && c != '\n')
-		if(p < &buf[sizeof(buf) - 6]) {
+		if(p < &buf[sizeof(buf) - 2*UTFmax]) {
 			rune = c;
 			p += runetochar(p, &rune);
 		}
@@ -1026,7 +1027,7 @@ putline(void)
 		}
 	}
 	nl = tline;
-	tline += ((lp-linebuf) + 03) & 077776;
+	tline += ((lp-linebuf) + 03) & ~1;
 	return nl;
 }
 
@@ -1034,16 +1035,14 @@ void
 blkio(int b, uchar *buf, long (*iofcn)(int, void *, long))
 {
 	seek(tfile, b*BLKSIZE, 0);
-	if((*iofcn)(tfile, buf, BLKSIZE) != BLKSIZE) {
+	if((*iofcn)(tfile, buf, BLKSIZE) != BLKSIZE)
 		error(T);
-	}
 }
 
 Rune*
 getblock(int atl, int iof)
 {
 	int bno, off;
-	
 	static uchar ibuff[BLKSIZE];
 	static uchar obuff[BLKSIZE];
 
@@ -1100,7 +1099,8 @@ void
 global(int k)
 {
 	Rune *gp, globuf[GBSIZE];
-	int c, *a1;
+	Rune c;
+	int *a1;
 
 	if(globp)
 		error(Q);
@@ -1227,7 +1227,7 @@ substitute(int inglob)
 int
 compsub(void)
 {
-	int seof, c;
+	Rune seof, c;
 	Rune *p;
 
 	seof = getchr();
@@ -1265,7 +1265,7 @@ compsub(void)
 	return 0;
 }
 
-int
+Rune
 getsub(void)
 {
 	Rune *p1, *p2;
@@ -1283,7 +1283,8 @@ void
 dosub(void)
 {
 	Rune *lp, *sp, *rp;
-	int c, n;
+	Rune c;
+	int n;
 
 	lp = linebuf;
 	sp = genbuf;
@@ -1387,7 +1388,7 @@ reverse(int *a1, int *a2)
 	}
 }
 
-int
+Rune
 getcopy(void)
 {
 	if(addr1 > addr2)
@@ -1413,7 +1414,7 @@ compile(int eof)
 		return;
 	}
 	if(pattern) {
-		free(pattern);
+		regfree(pattern);
 		pattern = 0;
 	}
 	ep = expbuf;
@@ -1500,14 +1501,12 @@ putshst(Rune *sp)
 }
 
 void
-putchr(int ac)
+putchr(Rune c)
 {
 	char *lp;
-	int c;
 	Rune rune;
 
 	lp = linp;
-	c = ac;
 	if(listf) {
 		if(c == '\n') {
 			if(linp != line && linp[-1] == ' ') {
@@ -1515,7 +1514,7 @@ putchr(int ac)
 				*lp++ = 'n';
 			}
 		} else {
-			if(col > (72-6-2)) {
+			if(col > (72-2*UTFmax-2)) {
 				col = 8;
 				*lp++ = '\\';
 				*lp++ = '\n';
@@ -1546,7 +1545,7 @@ putchr(int ac)
 	rune = c;
 	lp += runetochar(lp, &rune);
 
-	if(c == '\n' || lp >= &line[sizeof(line)-5]) {
+	if(c == '\n' || lp >= &line[sizeof(line)-2*UTFmax]) {
 		linp = line;
 		write(oflag? 2: 1, line, lp-line);
 		return;

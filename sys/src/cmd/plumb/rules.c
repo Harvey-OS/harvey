@@ -505,7 +505,7 @@ freerule(Rule *r)
 {
 	free(r->arg);
 	free(r->qarg);
-	free(r->regex);
+	regfree(r->regex);
 }
 
 void

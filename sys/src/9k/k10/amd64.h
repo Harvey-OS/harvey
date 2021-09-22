@@ -29,6 +29,7 @@ enum {						/* Cr4 */
 	Pce		= 0x00000100,		/* Performance Monitoring Counter Enable */
 	Osfxsr		= 0x00000200,		/* FXSAVE/FXRSTOR Support */
 	Osxmmexcpt	= 0x00000400,		/* Unmasked Exception Support */
+	La57		= (1<<12),		/* 5-level page tbls, 57-bit VAs */
 };
 
 enum {						/* Rflags */
@@ -38,7 +39,7 @@ enum {						/* Rflags */
 	Zf		= 0x00000040,		/* Zero Flag */
 	Sf		= 0x00000080,		/* Sign Flag */
 	Tf		= 0x00000100,		/* Trap Flag */
-	If		= 0x00000200,		/* Interrupt Flag */
+	If		= 0x00000200,		/* Interrupt enable Flag */
 	Df		= 0x00000400,		/* Direction Flag */
 	Of		= 0x00000800,		/* Overflow Flag */
 	Iopl0		= 0x00000000,		/* I/O Privilege Level */
@@ -55,6 +56,9 @@ enum {						/* Rflags */
 };
 
 enum {						/* MSRs */
+	Tscr		= 0x10,			/* time-stamp counter */
+	Pwroncfg	= 0x2a,
+	Fsbfreqr	= 0x2c,
 	Efer		= 0xc0000080,		/* Extended Feature Enable */
 	Star		= 0xc0000081,		/* Legacy Target IP and [CS]S */
 	Lstar		= 0xc0000082,		/* Long Mode Target IP */
@@ -67,7 +71,7 @@ enum {						/* MSRs */
 
 enum {						/* Efer */
 	Sce		= 0x00000001,		/* System Call Extension */
-	Lme		= 0x00000100,		/* Long Mode Enable */
+	Lme		= 0x00000100,		/* Long Mode Enable when paging */
 	Lma		= 0x00000400,		/* Long Mode Active */
 	Nxe		= 0x00000800,		/* No-Execute Enable */
 	Svme		= 0x00001000,		/* SVM Extension Enable */
@@ -75,19 +79,20 @@ enum {						/* Efer */
 };
 
 enum {						/* PML4E/PDPE/PDE/PTE */
-	PteP		= 0x0000000000000001ull,/* Present */
-	PteRW		= 0x0000000000000002ull,/* Read/Write */
-	PteU		= 0x0000000000000004ull,/* User/Supervisor */
-	PtePWT		= 0x0000000000000008ull,/* Page-Level Write Through */
-	PtePCD		= 0x0000000000000010ull,/* Page Level Cache Disable */
-	PteA		= 0x0000000000000020ull,/* Accessed */
-	PteD		= 0x0000000000000040ull,/* Dirty */
-	PtePS		= 0x0000000000000080ull,/* Page Size */
+	PteP		= 0x01ull,		/* Present */
+	PteRW		= 0x02ull,		/* Read/Write */
+	PteU		= 0x04ull,		/* User/Supervisor */
+	PtePWT		= 0x08ull,		/* Page-Level Write Through */
+	PtePCD		= 0x10ull,		/* Page Level Cache Disable */
+	PteA		= 0x20ull,		/* Accessed */
+	PteD		= 0x40ull,		/* Dirty */
+	/* Page Size: 2MB page in PDE; 1GB page in PDPTE (optional) */
+	PtePS		= 0x80ull,
 	Pte4KPAT	= PtePS,		/* PTE PAT */
-	PteG		= 0x0000000000000100ull,/* Global */
-	Pte2MPAT	= 0x0000000000001000ull,/* PDE PAT */
+	PteG		= 0x00000100ull,	/* Global */
+	Pte2MPAT	= 0x00001000ull,	/* PDE PAT */
 	Pte1GPAT	= Pte2MPAT,		/* PDPE PAT */
-	PteNX		= 0x8000000000000000ull,/* No Execute */
+	PteNX		= (1ull<<63), 		/* No Execute */
 };
 
 enum {						/* Exceptions */

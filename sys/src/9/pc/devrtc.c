@@ -10,8 +10,8 @@
  */
 
 enum {
-	Paddr=		0x70,	/* address port */
-	Pdata=		0x71,	/* data port */
+	Addr=		NVRADDR,	/* address I/O port */
+	Data=		NVRDATA,	/* data I/O port */
 
 	Seconds=	0x00,
 	Minutes=	0x02,
@@ -57,7 +57,7 @@ static void sec2rtc(ulong, Rtc*);
 void
 rtcinit(void)
 {
-	if(ioalloc(Paddr, 2, 0, "rtc/nvr") < 0)
+	if(ioalloc(Addr, 2, 0, "rtc/nvr") < 0)
 		panic("rtcinit: ioalloc failed");
 }
 
@@ -103,7 +103,7 @@ rtcclose(Chan*)
 #define GETBCD(o) ((bcdclock[o]&0xf) + 10*(bcdclock[o]>>4))
 
 static long	 
-_rtctime(void)
+rtcextract(void)
 {
 	uchar bcdclock[Nbcd];
 	Rtc rtc;
@@ -111,20 +111,20 @@ _rtctime(void)
 
 	/* don't do the read until the clock is no longer busy */
 	for(i = 0; i < 10000; i++){
-		outb(Paddr, Status);
-		if(inb(Pdata) & 0x80)
+		outb(Addr, Status);
+		if(inb(Data) & 0x80)
 			continue;
 
 		/* read clock values */
-		outb(Paddr, Seconds);	bcdclock[0] = inb(Pdata);
-		outb(Paddr, Minutes);	bcdclock[1] = inb(Pdata);
-		outb(Paddr, Hours);	bcdclock[2] = inb(Pdata);
-		outb(Paddr, Mday);	bcdclock[3] = inb(Pdata);
-		outb(Paddr, Month);	bcdclock[4] = inb(Pdata);
-		outb(Paddr, Year);	bcdclock[5] = inb(Pdata);
+		outb(Addr, Seconds);	bcdclock[0] = inb(Data);
+		outb(Addr, Minutes);	bcdclock[1] = inb(Data);
+		outb(Addr, Hours);	bcdclock[2] = inb(Data);
+		outb(Addr, Mday);	bcdclock[3] = inb(Data);
+		outb(Addr, Month);	bcdclock[4] = inb(Data);
+		outb(Addr, Year);	bcdclock[5] = inb(Data);
 
-		outb(Paddr, Status);
-		if((inb(Pdata) & 0x80) == 0)
+		outb(Addr, Status);
+		if((inb(Data) & 0x80) == 0)
 			break;
 	}
 
@@ -159,16 +159,16 @@ rtctime(void)
 	ilock(&nvrtlock);
 
 	/* loop till we get two reads in a row the same */
-	t = _rtctime();
+	t = rtcextract();
 	for(i = 0; i < 100; i++){
 		ot = t;
-		t = _rtctime();
+		t = rtcextract();
 		if(ot == t)
 			break;
 	}
-	if(i == 100) print("we are boofheads\n");
-
 	iunlock(&nvrtlock);
+
+	if(i == 100) print("we are boofheads\n");
 
 	return t;
 }
@@ -185,8 +185,7 @@ rtcread(Chan* c, void* buf, long n, vlong off)
 
 	switch((ulong)c->qid.path){
 	case Qrtc:
-		t = rtctime();
-		n = readnum(offset, buf, n, t, 12);
+		n = readnum(offset, buf, n, rtctime(), 12);
 		return n;
 	case Qnvram:
 		if(n == 0)
@@ -199,8 +198,8 @@ rtcread(Chan* c, void* buf, long n, vlong off)
 		for(t = offset; t < offset + n; t++){
 			if(t >= Nvsize)
 				break;
-			outb(Paddr, Nvoff+t);
-			*a++ = inb(Pdata);
+			outb(Addr, Nvoff+t);
+			*a++ = inb(Data);
 		}
 		iunlock(&nvrtlock);
 
@@ -264,12 +263,12 @@ rtcwrite(Chan* c, void* buf, long n, vlong off)
 		 *  write the clock
 		 */
 		ilock(&nvrtlock);
-		outb(Paddr, Seconds);	outb(Pdata, bcdclock[0]);
-		outb(Paddr, Minutes);	outb(Pdata, bcdclock[1]);
-		outb(Paddr, Hours);	outb(Pdata, bcdclock[2]);
-		outb(Paddr, Mday);	outb(Pdata, bcdclock[3]);
-		outb(Paddr, Month);	outb(Pdata, bcdclock[4]);
-		outb(Paddr, Year);	outb(Pdata, bcdclock[5]);
+		outb(Addr, Seconds);	outb(Data, bcdclock[0]);
+		outb(Addr, Minutes);	outb(Data, bcdclock[1]);
+		outb(Addr, Hours);	outb(Data, bcdclock[2]);
+		outb(Addr, Mday);	outb(Data, bcdclock[3]);
+		outb(Addr, Month);	outb(Data, bcdclock[4]);
+		outb(Addr, Year);	outb(Data, bcdclock[5]);
 		iunlock(&nvrtlock);
 		return n;
 	case Qnvram:
@@ -290,8 +289,8 @@ rtcwrite(Chan* c, void* buf, long n, vlong off)
 		for(t = offset; t < offset + n; t++){
 			if(t >= Nvsize)
 				break;
-			outb(Paddr, Nvoff+t);
-			outb(Pdata, *a++);
+			outb(Addr, Nvoff+t);
+			outb(Data, *a++);
 		}
 		iunlock(&nvrtlock);
 
@@ -434,8 +433,6 @@ sec2rtc(ulong secs, Rtc *rtc)
 		day -= d2m[d];
 	rtc->mday = day + 1;
 	rtc->mon = d;
-
-	return;
 }
 
 uchar
@@ -444,8 +441,8 @@ nvramread(int addr)
 	uchar data;
 
 	ilock(&nvrtlock);
-	outb(Paddr, addr);
-	data = inb(Pdata);
+	outb(Addr, addr);
+	data = inb(Data);
 	iunlock(&nvrtlock);
 
 	return data;
@@ -455,7 +452,7 @@ void
 nvramwrite(int addr, uchar data)
 {
 	ilock(&nvrtlock);
-	outb(Paddr, addr);
-	outb(Pdata, data);
+	outb(Addr, addr);
+	outb(Data, data);
 	iunlock(&nvrtlock);
 }

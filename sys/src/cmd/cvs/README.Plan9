@@ -1,0 +1,32 @@
+This is CVS 1.11.1p1 from ftp.cvshome.org/pub/cvs-1.11.1/cvs-1.11.1p1.tar.gz.
+
+Don't run configure; use the mkfiles provided.
+Many files commonly in the root are in doc.
+Many files are gone (e.g., vms, windows-NT sources).
+
+To port a new version of CVS:
+
+	cd /sys/src/cmd
+	hget ftp://ftp.cvshome.org/pub/cvs-1.11.1/cvs-1.11.1p1.tar.gz | gunzip | tar x
+	new=/sys/src/cmd/cvs-1.11.1p1
+	old=/sys/src/cmd/cvs
+	cd $new
+	fn find {
+		du -a |awk '{print $2}' | grep $1
+	}
+	chmod o-w `{find .}
+	rm `{find '\.(dsp|dsw|com|in|m4|am|el)'}
+	rm -rf windows-NT vms os2 emx missing depcomp \
+		cvsnt.mak acconfig.h install-sh mkinstalldirs .cvsignore \
+		cvs.spec tools
+	rm `{find /configure}
+	mv ChangeLog doc/ChangeLog.root
+	mv [A-Z]* doc
+	@{cd $old; tar c `{cat copyfiles}} | @{cd $new; tar x}
+	# try mk
+	# update files, perhaps updating copy files
+	# rm -rf $old
+	# mv $new $old
+
+Russ Cox
+October 2001

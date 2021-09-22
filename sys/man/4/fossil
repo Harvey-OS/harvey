@@ -9,7 +9,7 @@ fossil, flchk, flfmt \- archival file server
 [
 .B -c
 .I cmd
-]...
+] ...
 [
 .B -f
 .I file
@@ -512,3 +512,12 @@ option currently assumes a block size of 8K bytes,
 and a single file system per
 .I fossil
 instance.
+.PP
+.I Fossil
+currently uses
+.IR int s
+to hold block numbers in some places,
+notably superblocks.
+At 8KB per block, that implicitly limits
+.I fossil
+filesystems to 32TB.

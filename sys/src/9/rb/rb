@@ -17,7 +17,7 @@ dev
 #	fs
 
 	ether		ethermii netif
-	ip		arp chandial inferno ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium
 
 	uart
 link
@@ -52,4 +52,4 @@ bootdir
 	boot$CONF.out boot
 	/mips/bin/ip/ipconfig
 	/mips/bin/auth/factotum
-	nvram
+	/cfg/example/nvram

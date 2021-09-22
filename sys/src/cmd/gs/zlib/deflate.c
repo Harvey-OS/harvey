@@ -520,9 +520,7 @@ local void flush_pending(strm)
 }
 
 /* ========================================================================= */
-int ZEXPORT deflate (strm, flush)
-    z_streamp strm;
-    int flush;
+ZEXTERN int ZEXPORT deflate (z_streamp strm, int flush)
 {
     int old_flush; /* value of flush param for previous deflate call */
     deflate_state *s;
@@ -696,8 +694,7 @@ int ZEXPORT deflate (strm, flush)
 }
 
 /* ========================================================================= */
-int ZEXPORT deflateEnd (strm)
-    z_streamp strm;
+int ZEXPORT deflateEnd (z_streamp strm)
 {
     int status;
 

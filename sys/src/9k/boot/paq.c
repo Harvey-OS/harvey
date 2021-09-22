@@ -55,6 +55,7 @@ connectpaq(void)
 		dup(p[1], 1);
 		close(p[0]);
 		close(p[1]);
+		fetchmissing("/bin/paqfs");
 		exec("/boot/paqfs", arg);
 		fatal("can't exec paqfs");
 	default:

@@ -1,0 +1,46 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/
+
+TARG=tagrd
+
+HFILES=reader.h icc.h mifare.h nfc.h tlv.h file.h sec.h
+
+OFILES=icc.$O\
+
+OSFILES = scard.$O\
+		tlv.$O\
+		file.$O\
+		sec.$O\
+		acos.$O
+
+OTFILES = tagrd.$O\
+ 		reader.$O\
+		mifare.$O\
+		nfc.$O\
+		atr.$O\
+		tlv.$O\
+
+OAFILES = atrparse.$O\
+		atr.$O\
+		tlv.$O\
+		file.$O
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${OSFILES:%.$O=%.c}\
+	${OTFILES:%.$O=%.c}\
+	${OAFILES:%.$O=%.c}\
+
+
+default:V:	all
+
+</sys/src/cmd/mkmany
+
+$O.scard: $OSFILES
+
+$O.tagrd: $OTFILES
+
+$O.atrparse: $OAFILES

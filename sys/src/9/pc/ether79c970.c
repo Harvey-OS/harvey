@@ -366,12 +366,12 @@ transmit(Ether* ether)
 	iunlock(ctlr);
 }
 
-static void
+static int
 interrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *ether;
-	int csr0, len;
+	int csr0, len, loops;
 	Dre *dre;
 	Block *bp;
 
@@ -382,6 +382,7 @@ interrupt(Ureg*, void* arg)
 	 * Acknowledge all interrupts and whine about those that shouldn't
 	 * happen.
 	 */
+	loops = 0;
 intrloop:
 	csr0 = ctlr->ior(ctlr, Rdp) & 0xFFFF;
 	ctlr->iow(ctlr, Rdp, Babl|Cerr|Miss|Merr|Rint|Tint|Iena);
@@ -394,8 +395,9 @@ intrloop:
 	//if(csr0 & (Babl|Miss|Merr))
 	//	print("#l%d: csr0 = 0x%uX\n", ether->ctlrno, csr0);
 	if(!(csr0 & (Rint|Tint)))
-		return;
+		return loops > 0? Intrforme: Intrnotforme;
 
+	loops++;
 	/*
 	 * Receiver interrupt: run round the descriptor ring logging
 	 * errors and passing valid receive data up to the higher levels

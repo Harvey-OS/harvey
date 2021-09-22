@@ -1,0 +1,136 @@
+.TH ERROR 2
+.SH NAME
+waserror,
+poperror,
+nexterror,
+error,
+fmterror,
+silenterror \- exception handling for threaded programs
+.SH SYNOPSIS
+.EX
+.ta 8n +8n +8n +8n
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include <error.h>
+.sp
+int	waserror(void);
+void	poperror(void)
+void	nexterror(void);
+void	error(char *err);
+void	fmterror(char *fmt, ...);
+void	silenterror(char *fmt, ...);
+.EE
+.SH DESCRIPTION
+The functions in this library provide an aexception handling
+mechanism modelled on that in the Plan 9 kernel.
+A construct such as
+.EX
+.ta 8n +8n +8n +8n
+	try{
+		⋯
+		if(⋯) raise(exception);
+		⋯
+	}except{
+		\f2handle exception\fP
+	}
+.EE
+using this library becomes:
+.EX
+.ta 8n +8n +8n +8n
+	if(waserror()){
+		\f2handle exception\fP
+	}
+	⋯
+	if(⋯) error("exception");
+	⋯
+	poperror();
+.EE
+.I Waserror
+and
+.I poperror
+are the bracketing elements around the code in which an exception
+might be raied with a call to
+.IR error .
+.PP
+.I Waserror
+sets a point to which control returns if an exception occurs
+and returns zero.  If the exception occurs, control transfers back to
+.I waserror
+and it then clears the point previously set and returns non-zero.
+.PP
+.I Poperror
+clears the exception-return point previously set by
+.IR waserror .
+.PP
+.IR Error ,
+.I fmterror
+and
+.I silenterror
+all raise an error and they all set the error string.
+.I Fmterror
+and
+.I silenterror
+take a format string, while
+.I error
+just takes a simple string.
+.I Error
+and
+.I fmterror
+print the string on standard error as well.
+.I Silenterror
+does not.
+.PP
+Exception contexts bracketed by
+.I waserror
+and
+.I poperror
+can be nested.
+When an exception has been handled in the innermost context, a call to
+.I nexterror
+transfers it to the next larger context.
+.SH EXAMPLES
+Using exceptions to free dynamic memory:
+.EX
+	if(waserror()){
+		free(p);
+		nexterror();
+	}
+	p = malloc(something);
+	⋯
+	if(⋯)
+		fmterror("%s: %r", x);
+	⋯
+	free(p);
+	poperror();
+.EE
+Excerpt from the worker library.  The worker calls a user-spcified
+function that may raise an error.  The error is caught and the
+worker prepares for the next customer:
+.EX
+	static void
+	worker(void *arg)
+	{
+		Worker *w;
+
+		w = arg;
+		for(;;){
+			w->r = recvp(w->chan);
+			if(!waserror()){
+				w->r->func(w, w->r->arg);
+				poperror();
+			}
+			reqfree(w->r);
+			sendp(workerthreads, w);
+		}
+	}
+.EE
+.SH DIAGNOSTICS
+.I Waserror
+returns non-zero when an error was raised.
+.SH "SEE ALSO
+.IR worker (2)
+.SH BUGS
+The error stack is only 32 levels deep.
+.SH AUTHOR
+Sape Mullender

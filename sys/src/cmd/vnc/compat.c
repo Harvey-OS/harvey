@@ -8,7 +8,6 @@
 ulong	kerndate;
 Proc	**privup;
 char	*eve;
-extern void *mainmem;
 
 void
 _assert(char *fmt)

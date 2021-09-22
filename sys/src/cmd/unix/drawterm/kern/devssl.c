@@ -9,6 +9,7 @@
 
 #include	"libsec.h"
 
+#define DEPRECATED 1		/* include rc4 while retiring it */
 #define NOSPOOKS 1
 
 typedef struct OneWay OneWay;
@@ -36,7 +37,7 @@ enum
 	Noencryption=	0,
 	DESCBC=		1,
 	DESECB=		2,
-	RC4=		3
+	RC4=		3		/* deprecated */
 };
 
 typedef struct Dstate Dstate;
@@ -50,7 +51,7 @@ struct Dstate
 	ushort	blocklen;	/* blocking length */
 
 	ushort	diglen;		/* length of digest */
-	DigestState *(*hf)(uchar*, ulong, uchar*, DigestState*);	/* hash func */
+	DigestState *(*hf)(uchar*, ulong, uchar*, DigestState*); /* hash func */
 
 	/* for SSL format */
 	int	max;		/* maximum unpadded data per msg */
@@ -72,15 +73,15 @@ struct Dstate
 enum
 {
 	Maxdmsg=	1<<16,
-	Maxdstate=	128,	/* must be a power of 2 */
+	Maxdstate=	512,	/* max. open ssl conn's; must be a power of 2 */
 };
 
-Lock	dslock;
-int	dshiwat;
-char	*dsname[Maxdstate];
-Dstate	*dstate[Maxdstate];
-char	*encalgs;
-char	*hashalgs;
+static	Lock	dslock;
+static	int	dshiwat;
+static	char	*dsname[Maxdstate];
+static	Dstate	*dstate[Maxdstate];
+static	char	*encalgs;
+static	char	*hashalgs;
 
 enum{
 	Qtopdir		= 1,	/* top level directory */
@@ -113,28 +114,23 @@ static void	dsnew(Chan *c, Dstate **);
 static long	sslput(Dstate *s, Block * volatile b);
 
 char *sslnames[] = {
-	/* unused */ 0,
-	/* topdir */ 0,
-	/* protodir */ 0,
-	"clone",
-	/* convdir */ 0,
-	"data",
-	"ctl",
-	"secretin",
-	"secretout",
-	"encalgs",
-	"hashalgs",
+[Qclonus]	"clone",
+[Qdata]		"data",
+[Qctl]		"ctl",
+[Qsecretin]	"secretin",
+[Qsecretout]	"secretout",
+[Qencalgs]	"encalgs",
+[Qhashalgs]	"hashalgs",
 };
 
 static int
-sslgen(Chan *c, char *n, Dirtab *d, int nd, int s, Dir *dp)
+sslgen(Chan *c, char*dummy, Dirtab *d, int nd, int s, Dir *dp)
 {
 	Qid q;
 	Dstate *ds;
 	char name[16], *p, *nm;
 	int ft;
 
-	USED(n);
 	USED(nd);
 	USED(d);
 
@@ -172,7 +168,7 @@ sslgen(Chan *c, char *n, Dirtab *d, int nd, int s, Dir *dp)
 			else
 				nm = eve;
 			if(dsname[s] == nil){
-				sprint(name, "%d", s);
+				snprint(name, sizeof name, "%d", s);
 				kstrdup(&dsname[s], name);
 			}
 			devdir(c, q, dsname[s], 0, nm, 0555, dp);
@@ -237,7 +233,6 @@ sslgen(Chan *c, char *n, Dirtab *d, int nd, int s, Dir *dp)
 		devdir(c, c->qid, sslnames[TYPE(c->qid)], 0, nm, 0660, dp);
 		return 1;
 	}
-	return -1;
 }
 
 static Chan*
@@ -358,7 +353,7 @@ sslwstat(Chan *c, uchar *db, int n)
 
 	if(!emptystr(dir->uid))
 		kstrdup(&s->user, dir->uid);
-	if(dir->mode != ~0)
+	if(dir->mode != ~(ulong)0)
 		s->perm = dir->mode;
 
 	free(dir);
@@ -549,7 +544,7 @@ qtake(Block **l, int n, int discard)
  *  consumed before the last ensure.
  */
 static Block*
-sslbread(Chan *c, long n, ulong o)
+sslbread(Chan *c, long n, ulong dummy)
 {
 	Dstate * volatile s;
 	Block *b;
@@ -557,7 +552,6 @@ sslbread(Chan *c, long n, ulong o)
 	int toconsume;
 	int len, pad;
 
-	USED(o);
 	s = dstate[CONV(c->qid)];
 	if(s == 0)
 		panic("sslbread");
@@ -677,7 +671,7 @@ sslread(Chan *c, void *a, long n, vlong off)
 		error(Ebadusefd);
 	case Qctl:
 		ft = CONV(c->qid);
-		sprint(buf, "%d", ft);
+		snprint(buf, sizeof buf, "%d", ft);
 		return readstr(offset, a, n, buf);
 	case Qdata:
 		b = sslbread(c, n, offset);
@@ -717,16 +711,15 @@ static void
 randfill(uchar *buf, int len)
 {
 	while(len-- > 0)
-		*buf++ = fastrand();
+		*buf++ = nrand(256);
 }
 
 static long
-sslbwrite(Chan *c, Block *b, ulong o)
+sslbwrite(Chan *c, Block *b, ulong dummy)
 {
 	Dstate * volatile s;
 	long rv;
 
-	USED(o);
 	s = dstate[CONV(c->qid)];
 	if(s == nil)
 		panic("sslbwrite");
@@ -766,9 +759,8 @@ sslput(Dstate *s, Block * volatile b)
 	int offset;
 
 	if(waserror()){
-iprint("error: %s\n", up->errstr);
 		if(b != nil)
-			free(b);
+			freeb(b);
 		nexterror();
 	}
 
@@ -901,6 +893,8 @@ initDESkey_40(OneWay *w)
 	}
 
 	w->state = malloc(sizeof(DESstate));
+	if(w->state == nil)
+		error(Enomem);
 	if(w->slen >= 16)
 		setupDESstate(w->state, key, w->secret+8);
 	else if(w->slen >= 8)
@@ -921,6 +915,7 @@ initRC4key(OneWay *w)
 	setupRC4state(w->state, w->secret, w->slen);
 }
 
+#ifdef DEPRECATED
 /*
  *  40 bit RC4 is the same as n-bit RC4.  However,
  *  we ignore all but the first 40 bits of the key.
@@ -937,8 +932,11 @@ initRC4key_40(OneWay *w)
 		w->slen = 5;
 
 	w->state = malloc(sizeof(RC4state));
+	if(w->state == nil)
+		error(Enomem);
 	setupRC4state(w->state, w->secret, w->slen);
 }
+#endif
 
 /*
  *  128 bit RC4 is the same as n-bit RC4.  However,
@@ -956,9 +954,10 @@ initRC4key_128(OneWay *w)
 		w->slen = 16;
 
 	w->state = malloc(sizeof(RC4state));
+	if(w->state == nil)
+		error(Enomem);
 	setupRC4state(w->state, w->secret, w->slen);
 }
-
 
 typedef struct Hashalg Hashalg;
 struct Hashalg
@@ -974,6 +973,7 @@ Hashalg hashtab[] =
 	{ "md5", MD5dlen, md5, },
 	{ "sha1", SHA1dlen, sha1, },
 	{ "sha", SHA1dlen, sha1, },
+	{ "sha2_512", SHA2_512dlen, sha2_512, },
 	{ 0 }
 };
 
@@ -1006,16 +1006,20 @@ struct Encalg
 #ifdef NOSPOOKS
 Encalg encrypttab[] =
 {
-	{ "descbc", 8, DESCBC, initDESkey, },           /* DEPRECATED -- use des_56_cbc */
-	{ "desecb", 8, DESECB, initDESkey, },           /* DEPRECATED -- use des_56_ecb */
+	{ "descbc", 8, DESCBC, initDESkey, },	/* DEPRECATED -- use des_56_cbc */
+	{ "desecb", 8, DESECB, initDESkey, },	/* DEPRECATED -- use des_56_ecb */
 	{ "des_56_cbc", 8, DESCBC, initDESkey, },
 	{ "des_56_ecb", 8, DESECB, initDESkey, },
 	{ "des_40_cbc", 8, DESCBC, initDESkey_40, },
 	{ "des_40_ecb", 8, DESECB, initDESkey_40, },
-	{ "rc4", 1, RC4, initRC4key_40, },              /* DEPRECATED -- use rc4_X      */
-	{ "rc4_256", 1, RC4, initRC4key, },
-	{ "rc4_128", 1, RC4, initRC4key_128, },
+#ifdef DEPRECATED
+	{ "rc4", 1, RC4, initRC4key_40, },	/* DEPRECATED -- use rc4_X */
 	{ "rc4_40", 1, RC4, initRC4key_40, },
+#endif
+	/* needed for secstore, libsec/tlshand.c? */
+	{ "rc4_128", 1, RC4, initRC4key_128, },
+	/* used by cpu (drawterm), import, exportfs, secstore for plan 9 auth */
+	{ "rc4_256", 1, RC4, initRC4key, },
 	{ 0 }
 };
 #else
@@ -1023,8 +1027,10 @@ Encalg encrypttab[] =
 {
 	{ "des_40_cbc", 8, DESCBC, initDESkey_40, },
 	{ "des_40_ecb", 8, DESECB, initDESkey_40, },
-	{ "rc4", 1, RC4, initRC4key_40, },              /* DEPRECATED -- use rc4_X      */
-	{ "rc4_40", 1, RC4, initRC4key_40, },
+#ifdef DEPRECATED
+	{ "rc4", 1, RC4, initRC4key_40, },	/* DEPRECATED -- use rc4_X */
+	{ "rc4_40", 1, RC4, initRC4key_40, },	/* DEPRECATED */
+#endif
 	{ 0 }
 };
 #endif /* NOSPOOKS */
@@ -1049,7 +1055,7 @@ parseencryptalg(char *p, Dstate *s)
 }
 
 static long
-sslwrite(Chan *c, void *a, long n, vlong o)
+sslwrite(Chan *c, void *a, long n, vlong dummy)
 {
 	Dstate * volatile s;
 	Block * volatile b;
@@ -1057,7 +1063,7 @@ sslwrite(Chan *c, void *a, long n, vlong o)
 	char *p, *np, *e, buf[128];
 	uchar *x;
 
-	USED(o);
+	x = nil;
 	s = dstate[CONV(c->qid)];
 	if(s == 0)
 		panic("sslwrite");
@@ -1073,9 +1079,8 @@ sslwrite(Chan *c, void *a, long n, vlong o)
 			nexterror();
 		}
 		qlock(&s->out.q);
+
 		p = a;
-if(0) iprint("write %d %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux\n",
-	n, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
 		e = p + n;
 		do {
 			m = e - p;
@@ -1095,9 +1100,7 @@ if(0) iprint("write %d %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux\n",
 
 			p += m;
 		} while(p < e);
-		p = a;
-if(0) iprint("wrote %d %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux\n",
-	n, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
+
 		poperror();
 		qunlock(&s->out.q);
 		return n;
@@ -1136,6 +1139,10 @@ if(0) iprint("wrote %d %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux\n",
 	if(p)
 		*p++ = 0;
 
+	if(waserror()){
+		free(x);
+		nexterror();
+	}
 	if(strcmp(buf, "fd") == 0){
 		s->c = buftochan(p);
 
@@ -1155,9 +1162,8 @@ if(0) iprint("wrote %d %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux\n",
 
 		s->state = Sclear;
 		s->maxpad = s->max = (1<<15) - s->diglen - 1;
-		if(strcmp(p, "clear") == 0){
-			goto out;
-		}
+		if(strcmp(p, "clear") == 0)
+			goto outx;
 
 		if(s->in.secret && s->out.secret == 0)
 			setsecret(&s->out, s->in.secret, s->in.slen);
@@ -1198,17 +1204,21 @@ if(0) iprint("wrote %d %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux %.2ux\n",
 		m = (strlen(p)*3)/2;
 		x = smalloc(m);
 		t = dec64(x, m, p, strlen(p));
+		if(t <= 0)
+			error(Ebadarg);
 		setsecret(&s->in, x, t);
-		free(x);
 	} else if(strcmp(buf, "secretout") == 0 && p != 0) {
 		m = (strlen(p)*3)/2 + 1;
 		x = smalloc(m);
 		t = dec64(x, m, p, strlen(p));
+		if(t <= 0)
+			error(Ebadarg);
 		setsecret(&s->out, x, t);
-		free(x);
 	} else
 		error(Ebadarg);
-
+outx:
+	free(x);
+	poperror();
 out:
 	qunlock(&s->in.ctlq);
 	qunlock(&s->out.q);
@@ -1299,9 +1309,11 @@ encryptb(Dstate *s, Block *b, int offset)
 			memmove(ds->ivec, p, 8);
 		}
 		break;
+#ifdef DEPRECATED
 	case RC4:
 		rc4(s->out.state, b->rp + offset, BLEN(b) - offset);
 		break;
+#endif
 	}
 	return b;
 }
@@ -1350,9 +1362,11 @@ decryptb(Dstate *s, Block *bin)
 				}
 			}
 			break;
+#ifdef DEPRECATED
 		case RC4:
 			rc4(s->in.state, b->rp, BLEN(b));
 			break;
+#endif
 		}
 	}
 	return bin;

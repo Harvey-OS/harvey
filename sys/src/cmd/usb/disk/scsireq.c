@@ -179,14 +179,26 @@ dirdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 		cmd[5] = 0;
 		return 6;
 	}
-	cmd[0] |= ScmdExtread;
-	cmd[1] = 0;
-	PUTBELONG(cmd+2, rp->offset);
-	cmd[6] = 0;
-	cmd[7] = n>>8;
-	cmd[8] = n;
-	cmd[9] = 0;
-	return 10;
+	if(rp->offset < (1ull<<32) && n < (1<<16)){
+		cmd[0] |= ScmdExtread;	/* relies on values of command codes */
+		cmd[1] = 0;
+		PUTBELONG(cmd+2, rp->offset);
+		cmd[6] = 0;
+		cmd[7] = n>>8;
+		cmd[8] = n;
+		cmd[9] = 0;
+		return 10;
+	} else {
+		/* this relies on knowledge of the values of the command codes */
+		cmd[0] &= 0xf;
+		cmd[0] |= ScmdRead16;
+		cmd[1] = 0;
+		PUTBEVLONG(cmd+2, rp->offset);
+		PUTBELONG(cmd+10, n);
+		cmd[14] = 0;		/* group # */
+		cmd[15] = 0;		/* control */
+		return 16;
+	}
 }
 
 static int
@@ -207,7 +219,7 @@ extern int diskdebug;
 long
 SRread(ScsiReq *rp, void *buf, long nbytes)
 {
-	uchar cmd[10];
+	uchar cmd[16];
 	long n;
 
 	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){
@@ -271,7 +283,7 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 long
 SRwrite(ScsiReq *rp, void *buf, long nbytes)
 {
-	uchar cmd[10];
+	uchar cmd[16];
 	long n;
 
 	if(rp->lbsize == 0 || (nbytes % rp->lbsize) || nbytes > Maxiosize){

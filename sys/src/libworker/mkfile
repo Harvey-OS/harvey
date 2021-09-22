@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libworker.a
+
+CFILES=\
+	error.c \
+	report.c \
+	worker.c\
+	timer.c\
+
+OFILES = ${CFILES:%.c=%.$O}
+
+HFILES=\
+	/sys/include/error.h\
+	/sys/include/worker.h\
+
+</sys/src/cmd/mksyslib
+
+dep:Q:
+	mkdep $CFILES > mk.dep
+
+< mk.dep

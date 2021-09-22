@@ -326,7 +326,8 @@ copyfile(File *f, Dir *d, int permonly)
 
 /*
  * check if file to is up to date with
- * respect to the file represented by df
+ * respect to the file represented by df.
+ * if `to' is missing, it's not up to date.
  */
 int
 uptodate(Dir *df, char *to)

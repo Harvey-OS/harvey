@@ -1,0 +1,13 @@
+target speed: macpro using dd:
+cruzer usb 2GB		dd read 8MB		0.30 s	= 26.66 MB/s
+
+Mar 28 2011
+iogear usb 8GB CF	dd read 8MB		7.09 s	= 1.12 MB/s
+cruzer usb 2GB		dd read 8MB		6.15 s
+corsair usb 4GB		dd read 8MB		6.15 s
+survivor usb 64GB	dd read 8MB		6.15 s
+
+Mar 29 17:15:05 2011
+transcend usb 8GB CF	dd read 1024 8K recs	3.07 s	= 2.6 MB/s
+transcend usb 8GB CF	pump write 6400 8K recs	14.79 s	= 3.38 MB/s
+iogear usb 8BG CF	pump write 6400 8K recs	16.21 s = 3.08 MB/s

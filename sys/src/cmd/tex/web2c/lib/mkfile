@@ -1,0 +1,11 @@
+</$objtype/mkfile
+CPUS=mips 386
+
+LIB=lib.a$O
+
+OFILES=`{ls *.c | sed 's/\.c/.$O/'}
+
+</sys/src/cmd/mksyslib
+
+CC=pcc
+CFLAGS=-D_BSD_EXTENSION -D_POSIX_SOURCE -I../.. -I.. -B -c

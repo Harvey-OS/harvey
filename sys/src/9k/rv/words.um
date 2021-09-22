@@ -1,0 +1,58 @@
+sifive hifive unmatched
+
+1.2GHz risc-v sifive FU740-C000:
+	4 × sifive U74 RV64GC + S7 RV64IMAC (handles booting).
+• U74 are pipelined dual-issue cores.
+16GB ecc memory at 0x80000000 (physmem)
+39-bit virtual addresses in rv64 (48-bit in tinyemu)
+proprietary l2 cache controller, 2MB
+all cpus, memory caches and dma are coherent!
+has standard clint & plic interrupt controllers
+serial console (2 uarts) sifive's 8250-incompatible through micro-usb connector
+Cadence Gb ether (GEM)
+has watchdog timers, usb, pcie slot, 2 m.2 slots (m for nvme & e key)
+	nvme and all the usb controllers are attached via pcie
+firmware is opensbi 0.9 (sbi 0.3? with HSM), hss 2020.10, and u-boot 2020.01.
+• boots opensbi, then u-boot
+cpu server only; no video hardware
+
+linux skips first (reserved) 2MB, with kernel at 0x80200000.
+69 plic interrupts and 9 contexts (thus, hobbled).
+fu-740's pcie: 64K @ 0x60080000, mem @ 0x60090000 - 0x70ffffff,
+	mem @ 0x2000000000 - 0x3fffffffff.  bridge windows for buses
+	0x60200000 - 0x605fffff and 0x2000000000 - 0x200fffffff
+
+progress
+ 5 jul 2021 9k/rv02 boots, clock runs, uart works quickly with idlepause==1.
+		but consumes more power than WFI.
+ 2 jul 2021 boots, clock advances, uart works but slowly w idlepause==0.
+ 1 jul 2021 boots all the way, but clock doesn't advance.  uart sometimes
+		gets stuck on output.
+30 jun 2021 gets to main from high memory.  updated prf.c for sifive's uart.
+
+hart ids vs machnos
+hart 0 is an E51, which can't run user procs (no FD, no super mode).
+machno = hartid - 1
+
+virtual map for sv39
+kseg0	0xffffffc000000000 (-256GB)
+kzero	0xffffffc080000000 (kseg0 + physmem)
+
+virtual map for sv48
+kseg0	0xffff800000000000 (-128TB)
+kzero	0xffff800080000000 (kseg0 + physmem)
+
+virtual map for sv57
+kseg0	0xff00000000000000 (-64PB)
+
+virtual map for sv64
+kseg0	0x8000000000000000 (-8EB)
+
+intrs/irqs (via plic)
+name		irq	phy
+msi		1-10
+uart0		39
+uart1		40
+mmc (qspi2)	43
+ether		55
+pcie		56-64

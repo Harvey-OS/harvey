@@ -1,3 +1,4 @@
+/* mouse support, mainly for USB these days */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -108,7 +109,7 @@ ps2mouseputc(int c, int shift)
 		nb = 0;
 	lasttick = m;
 
-	/*
+	/* 
 	 *  check byte 0 for consistency
 	 */
 	if(nb==0 && (c&0xc8)!=0x08)
@@ -148,9 +149,9 @@ ps2mouseputc(int c, int shift)
 				 * and generate a single button 4 or 5 click
 				 * accordingly.
 				 */
-				if((msg[3] >> 3) & 1)
+				if((msg[3] >> 3) & 1) 
 					buttons |= 1<<3;
-				else if(msg[3] & 0x7)
+				else if(msg[3] & 0x7) 
 					buttons |= 1<<4;
 			}
 		}
@@ -158,7 +159,6 @@ ps2mouseputc(int c, int shift)
 		dy = -msg[2];
 		mousetrack(dx, dy, buttons, TK2MS(sys->ticks));
 	}
-	return;
 }
 
 /*
@@ -170,10 +170,10 @@ ps2mouse(void)
 	if(mousetype == MousePS2)
 		return;
 
-	i8042auxenable(ps2mouseputc);
+	// i8042auxenable(ps2mouseputc);
 	/* make mouse streaming, enabled */
-	i8042auxcmd(0xEA);
-	i8042auxcmd(0xF4);
+	// i8042auxcmd(0xEA);
+	// i8042auxcmd(0xF4);
 
 	mousetype = MousePS2;
 	packetsize = 3;
@@ -198,7 +198,7 @@ setaccelerated(int x)
 	if(mousehwaccel){
 		switch(mousetype){
 		case MousePS2:
-			i8042auxcmd(0xE7);
+			// i8042auxcmd(0xE7);
 			return;
 		}
 	}
@@ -212,7 +212,7 @@ setlinear(void)
 	if(mousehwaccel){
 		switch(mousetype){
 		case MousePS2:
-			i8042auxcmd(0xE6);
+			// i8042auxcmd(0xE6);
 			return;
 		}
 	}
@@ -225,8 +225,8 @@ setres(int n)
 	resolution = n;
 	switch(mousetype){
 	case MousePS2:
-		i8042auxcmd(0xE8);
-		i8042auxcmd(n);
+		// i8042auxcmd(0xE8);
+		// i8042auxcmd(n);
 		break;
 	}
 }
@@ -238,15 +238,15 @@ setintellimouse(void)
 	packetsize = 4;
 	switch(mousetype){
 	case MousePS2:
-		i8042auxcmd(0xF3);	/* set sample */
-		i8042auxcmd(0xC8);
-		i8042auxcmd(0xF3);	/* set sample */
-		i8042auxcmd(0x64);
-		i8042auxcmd(0xF3);	/* set sample */
-		i8042auxcmd(0x50);
+		// i8042auxcmd(0xF3);	/* set sample */
+		// i8042auxcmd(0xC8);
+		// i8042auxcmd(0xF3);	/* set sample */
+		// i8042auxcmd(0x64);
+		// i8042auxcmd(0xF3);	/* set sample */
+		// i8042auxcmd(0x50);
 		break;
 	case Mouseserial:
-		i8250setmouseputc(mouseport, m5mouseputc);
+		// i8250setmouseputc(mouseport, m5mouseputc);
 		break;
 	}
 }
@@ -257,11 +257,11 @@ resetmouse(void)
 	packetsize = 3;
 	switch(mousetype){
 	case MousePS2:
-		i8042auxcmd(0xF6);
-		i8042auxcmd(0xEA);	/* streaming */
-		i8042auxcmd(0xE8);	/* set resolution */
-		i8042auxcmd(3);
-		i8042auxcmd(0xF4);	/* enabled */
+		// i8042auxcmd(0xF6);
+		// i8042auxcmd(0xEA);	/* streaming */
+		// i8042auxcmd(0xE8);	/* set resolution */
+		// i8042auxcmd(3);
+		// i8042auxcmd(0xF4);	/* enabled */
 		break;
 	}
 }
@@ -315,15 +315,15 @@ mousectl(Cmdbuf *cb)
 		if(mousetype == Mouseserial)
 			error(Emouseset);
 
-		if(cb->nf > 2){
-			if(strcmp(cb->f[2], "M") == 0)
-				i8250mouse(cb->f[1], m3mouseputc, 0);
-			else if(strcmp(cb->f[2], "MI") == 0)
-				i8250mouse(cb->f[1], m5mouseputc, 0);
-			else
-				i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
-		} else
-			i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
+//		if(cb->nf > 2){
+//			if(strcmp(cb->f[2], "M") == 0)
+//				i8250mouse(cb->f[1], m3mouseputc, 0);
+//			else if(strcmp(cb->f[2], "MI") == 0)
+//				i8250mouse(cb->f[1], m5mouseputc, 0);
+//			else
+//				i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
+//		} else
+//			i8250mouse(cb->f[1], mouseputc, cb->nf == 1);
 
 		mousetype = Mouseserial;
 		strncpy(mouseport, cb->f[1], sizeof(mouseport)-1);

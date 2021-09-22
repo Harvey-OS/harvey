@@ -1,6 +1,12 @@
+/*
+ * 9k (64-bit) data structures
+ */
+#define PLAN9K			/* use sparingly; mainly in ether drivers */
+
 typedef struct Alarms	Alarms;
 typedef struct Block	Block;
 typedef struct Chan	Chan;
+typedef uvlong Clzuint;
 typedef struct Cmdbuf	Cmdbuf;
 typedef struct Cmdtab	Cmdtab;
 typedef struct Confmem	Confmem;
@@ -10,38 +16,40 @@ typedef struct Dirtab	Dirtab;
 typedef struct Edf	Edf;
 typedef struct Egrp	Egrp;
 typedef struct Evalue	Evalue;
-typedef struct Execvals	Execvals;
-typedef struct Fastcall Fastcall;
 typedef struct Fgrp	Fgrp;
+typedef struct Hci	Hci;
 typedef struct Image	Image;
+typedef struct Intrcommon Intrcommon;
 typedef struct Log	Log;
 typedef struct Logflag	Logflag;
+typedef struct Mhead	Mhead;
+typedef struct Mnt	Mnt;
 typedef struct Mntcache Mntcache;
-typedef struct Mount	Mount;
 typedef struct Mntrpc	Mntrpc;
 typedef struct Mntwalk	Mntwalk;
-typedef struct Mnt	Mnt;
-typedef struct Mhead	Mhead;
+typedef struct Mount	Mount;
 typedef struct Note	Note;
 typedef struct Page	Page;
-typedef struct Path	Path;
 typedef struct Palloc	Palloc;
-typedef struct Pallocpg	Pallocpg;
+typedef struct Pallocmem	Pallocmem;
+typedef struct Path	Path;
 typedef struct Perf	Perf;
-typedef struct PhysUart	PhysUart;
 typedef struct Pgrp	Pgrp;
+typedef struct PhysUart	PhysUart;
 typedef struct Physseg	Physseg;
 typedef struct Proc	Proc;
 typedef struct Procalloc	Procalloc;
 typedef struct Pte	Pte;
 typedef struct QLock	QLock;
 typedef struct Queue	Queue;
+typedef struct RWlock	RWlock;
 typedef struct Ref	Ref;
 typedef struct Rendez	Rendez;
 typedef struct Rgrp	Rgrp;
-typedef struct RWlock	RWlock;
 typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
+typedef struct Sysargs	Sysargs;
+typedef struct Systab	Systab;
 typedef struct Sema	Sema;
 typedef struct Timer	Timer;
 typedef struct Timers	Timers;
@@ -54,6 +62,7 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 #pragma incomplete DevConf
 #pragma incomplete Edf
+#pragma incomplete Intrcommon
 #pragma incomplete Mntcache
 #pragma incomplete Mntrpc
 #pragma incomplete Queue
@@ -79,7 +88,6 @@ struct QLock
 	Proc	*head;		/* next process waiting for object */
 	Proc	*tail;		/* last process waiting for object */
 	int	locked;		/* flag */
-	uintptr	qpc;		/* pc of the holder */
 };
 
 struct RWlock
@@ -124,12 +132,12 @@ enum
 /* flag values */
 enum
 {
-	BINTR	=	(1<<0),
+	BINTR	=	(1<<0),		/* allocated at interrupt time */
 
-	Bipck	=	(1<<2),		/* ip checksum */
-	Budpck	=	(1<<3),		/* udp checksum */
-	Btcpck	=	(1<<4),		/* tcp checksum */
-	Bpktck	=	(1<<5),		/* packet checksum */
+	Bipck	=	(1<<2),		/* ip checksum known good */
+	Budpck	=	(1<<3),		/* udp checksum known good */
+	Btcpck	=	(1<<4),		/* tcp checksum known good */
+	Bpktck	=	(1<<5),		/* packet checksum (crc?) known good */
 };
 
 struct Block
@@ -142,8 +150,7 @@ struct Block
 	uchar*	base;			/* start of the buffer */
 	void	(*free)(Block*);
 	ushort	flag;
-	ushort	checksum;		/* IP checksum of complete packet (minus media header) */
-	ulong	magic;
+	ushort	checksum; /* IP checksum of complete packet (minus media header) */
 };
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
@@ -168,7 +175,7 @@ struct Chan
 	int	uri;			/* union read index */
 	int	dri;			/* devdirread index */
 	uchar*	dirrock;		/* directory entry rock for translations */
-	int	nrock;
+	uintptr	nrock;			/* holds ptr. diff. */
 	int	mrock;
 	QLock	rockqlock;
 	int	ismtpt;
@@ -197,7 +204,7 @@ struct Path
 
 struct Dev
 {
-	int	dc;
+	Rune	dc;
 	char*	name;
 
 	void	(*reset)(void);
@@ -306,6 +313,9 @@ enum
 
 	PG_MOD		= 0x01,		/* software modified bit */
 	PG_REF		= 0x02,		/* software referenced bit */
+
+	Nozeropage	= 0,		/* "clear" arg. to newpage() */
+	Zeropage	= 1,
 };
 
 struct Page
@@ -313,19 +323,19 @@ struct Page
 	Lock;
 	uintptr	pa;			/* Physical address in memory */
 	uintptr	va;			/* Virtual address for user */
-	ulong	daddr;			/* Disc address in file */
+	/* Disc address in file, or # of user mappings in top-level PT */
+	ulong	daddr;
 	int	ref;			/* Reference count */
 	uchar	modref;			/* Simulated modify/reference bits */
 	uchar	color;			/* Cache coloring */
 	uchar	lg2size;		/* log2(pagesize) */
+	/* we really only need 2 bits per cpu */
 	char	cachectl[MACHMAX];	/* Cache flushing control for mmuput */
 	Image	*image;			/* Associated image (text) */
 	Page	*next;			/* Lru free list */
 	Page	*prev;
 	Page	*hash;			/* Image hash chains */
 };
-
-#define	pagesize(p)	(1<<(p)->lg2size)
 
 struct Image
 {
@@ -334,13 +344,12 @@ struct Image
 	Qid 	qid;			/* Qid for page cache coherence */
 	Qid	mqid;
 	Chan	*mchan;
-	int	dc;			/* Device type of owning channel */
+	Rune	dc;			/* Device type of owning channel */
 //subtype
 	Segment *s;			/* TEXT segment for image if running */
 	Image	*hash;			/* Qid hash chains */
 	Image	*next;			/* Free list */
 	int	notext;			/* no file associated */
-	int	color;
 };
 
 struct Pte
@@ -361,26 +370,23 @@ enum
 	SG_SHARED	= 04,
 	SG_PHYSICAL	= 05,
 
-	SG_CACHED	= 0020,		/* Physseg can be cached */
 	SG_RONLY	= 0040,		/* Segment is read only */
 	SG_CEXEC	= 0100,		/* Detach at exec */
 };
 #define pagedout(s)	((s) == nil)	/* only on demand, no swap */
 
-#define SEGMAXSIZE	(SEGMAPSIZE*PTEMAPMEM)
+#define SEGMAXSIZE	((uvlong)SEGMAPSIZE*PTEMAPMEM)
 
 struct Physseg
 {
 	ulong	attr;			/* Segment attributes */
 	char	*name;			/* Attach name */
 	uintptr	pa;			/* Physical address */
-	usize	size;			/* Maximum segment size in pages */
+	uintptr	size;			/* Maximum segment size in pages */
 	Page	*(*pgalloc)(Segment*, uintptr);	/* Allocation if we need it */
 	void	(*pgfree)(Page*);
 	uchar	lg2pgsize;		/* log2(size of pages in segment) */
 };
-
-#define	physsegpgsize(ps)	(1<<(ps)->lg2pgsize)
 
 struct Sema
 {
@@ -391,18 +397,16 @@ struct Sema
 	Sema*	prev;
 };
 
-#define NOCOLOR -1
-
 struct Segment
 {
 	Ref;
 	QLock	lk;
 	ushort	steal;		/* Page stealer lock */
 	ushort	type;		/* segment type */
-	int	color;
 	uintptr	base;		/* virtual base */
 	uintptr	top;		/* virtual top */
-	usize	size;		/* size in pages */
+	uintptr	size;		/* size in pages */
+	/* fstart & flen are limited in width by a.out format */
 	ulong	fstart;		/* start address in file for demand load */
 	ulong	flen;		/* length of segment in file */
 	uchar	lg2pgsize;	/* log2(size of pages in segment) */
@@ -412,13 +416,11 @@ struct Segment
 	ulong*	profile;	/* Tick profile area */
 	uintptr	ptemapmem;	/* space mapped by one Pte in this segment */
 	Pte	**map;
-	int	mapsize;
+	uintptr	mapsize;
 	Pte	*ssegmap[SSEGMAPSIZE];
 	Lock	semalock;
 	Sema	sema;
 };
-
-#define	segpgsize(s)	(1<<(s)->lg2pgsize)
 
 enum
 {
@@ -427,7 +429,7 @@ enum
 	MNTLOG	=	5,
 	MNTHASH =	1<<MNTLOG,	/* Hash to walk mount table */
 	NFD =		100,		/* per process file descriptors */
-	PGHLOG  =	9,
+	PGHLOG  =	12,		/* was 9 in 9/pc; k10s are bigger */
 	PGHSIZE	=	1<<PGHLOG,	/* Page hash for image lookup */
 };
 #define REND(p,s)	((p)->rendhash[(s)&((1<<RENDLOG)-1)])
@@ -473,29 +475,32 @@ struct Fgrp
 {
 	Ref;
 	Chan	**fd;
-	int	nfd;			/* number allocated */
-	int	maxfd;			/* highest fd in use */
+	uint	nfd;			/* number allocated */
+	uint	maxfd;			/* highest fd in use */
 	int	exceed;			/* debugging */
 };
 
 enum
 {
-	DELTAFD	= 20		/* incremental increase in Fgrp.fd's */
+	DELTAFD	= 16		/* incremental increase in Fgrp.fd's */
 };
 
-struct Pallocpg
+struct Pallocmem
 {
-	Page	*head;		/* most recently used */
-	Page	*tail;		/* least recently used */
-	ulong	count;		/* how many pages made */
-	ulong	freecount;	/* how many pages on free list now */
+	uintmem	base;
+	uintmem	limit;
+	int	color;
 };
 
 struct Palloc
 {
 	Lock;
-	Pallocpg	avail[32];	/* indexed by log2 of page size (Page.lgsize) */
-	ulong	user;			/* how many user pages */
+	Pallocmem mem[32];		/* banks (ranges) of memory */
+	Page	*head;			/* most recently used */
+	Page	*tail;			/* least recently used */
+	uintptr	freecount;		/* how many pages on free list now */
+	Page	*pages;			/* array of all pages */
+	uintptr	user;			/* how many user pages */
 	Page	*hash[PGHSIZE];
 	Lock	hashlock;
 	Rendez	r;			/* Sleep for free mem */
@@ -527,8 +532,7 @@ struct Timer
 	/* Internal */
 	Lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
-	Tval	tticks;		/* tns converted to ticks */
-	Tval	twhen;		/* ns represented in fastticks */
+	vlong	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
 };
 
@@ -553,7 +557,7 @@ enum
  */
 enum
 {
-	SSEG, TSEG, DSEG, BSEG, ESEG, LSEG, SEG1, SEG2, SEG3, SEG4, NSEG
+	SSEG, TSEG, DSEG, BSEG, ESEG, LSEG, NSEG = LSEG + 1 + 4,
 };
 
 enum
@@ -606,24 +610,37 @@ struct Schedq
 	int	n;
 };
 
+/*
+ * almost all return values go into the return register (e.g., ureg->arg)
+ * but nsec's vlong goes into the next register too, on 32-bit systems.
+ * on at least riscv64, we also have to sign-extend the return register.
+ */
 typedef union Ar0 Ar0;
-union Ar0 {
-	uintptr	i;
-	uintptr	l;
+union Ar0 {			/* possible types of syscall return values */
+#ifdef _BITS64
+	/* notably for riscv64 */
+	vlong	i;
+	vlong	l;
+	vlong	u;
+#else
+	int	i;
+	long	l;
+	usize	u;		/* usize is silly & doesn't allow -1 on error */
+#endif
 	uintptr	p;
-	usize	u;
 	void*	v;
 	vlong	vl;
 };
 
 struct Proc
 {
-	Label	sched;		/* known to l.s */
-	char	*kstack;	/* known to l.s */
+	Label	sched;		/* offset known to l.s */
+	char	*kstack;	/* offset known to l.s */
 	Mach	*mach;		/* machine running this proc */
+
 	char	*text;
 	char	*user;
-	char	*args;
+	char	*args;		/* exec arguments */
 	int	nargs;		/* number of bytes of args */
 	Proc	*rnext;		/* next process in run queue */
 	Proc	*qnext;		/* next process on queue for a QLock */
@@ -697,14 +714,23 @@ struct Proc
 	void	*kparg;
 
 	int	scallnr;	/* system call number */
-	uchar	arg[MAXSYSARG*sizeof(void*)];	/* system call arguments */
+	/*
+	 * arg needs to be aligned as the original copy on the stack is.
+	 * this is needed for va_arg(args, vlong) on riscv, at least.
+	 */
+	struct Sysargs {
+		void	*linksave;
+		uintptr	arg[MAXSYSARG];	/* system call arguments */
+	} arg;
 	int	nerrlab;
 	Label	errlab[NERR];
-	char	*syserrstr;	/* last error from a system call, errbuf0 or 1 */
-	char	*errstr;	/* reason we're unwinding the error stack, errbuf1 or 0 */
+	/* syserrstr and errstr point at either errbuf[01] */
+	char	*syserrstr;	/* last error from a system call */
+	char	*errstr;	/* reason we're unwinding the error stack */
 	char	errbuf0[ERRMAX];
 	char	errbuf1[ERRMAX];
-	char	genbuf[128];	/* buffer used e.g. for last name element from namec */
+	/* increased genbuf to 256 bytes, per fossil limit */
+	char	genbuf[KCOMPLEN]; /* buffer used e.g. for last name element from namec */
 	Chan	*slash;
 	Chan	*dot;
 
@@ -729,22 +755,21 @@ struct Proc
 	ulong	lastupdate;
 	ulong	readytime;	/* time process came ready */
 	ulong	movetime;	/* last time process switched processors */
-	int	preempted;	/* true if this process hasn't finished the interrupt
-				 *  that last preempted it
+	int	preempted;	/* true if this process hasn't finished the
+				 *  interrupt that last preempted it
 				 */
 	Edf	*edf;		/* if non-null, real-time proc, edf contains scheduling params */
 	int	trace;		/* process being traced? */
 
 	uintptr	qpc;		/* pc calling last blocking qlock */
 
-	int	setargs;
+	int	setargs;	/* flag */
 
 	void	*ureg;		/* User registers for notes */
 	void	*dbgreg;	/* User registers for devproc */
-	int	color;
 
-	Fastcall* fc;
-	int	fcount;
+//	Fastcall* fc;
+//	int	fcount;
 	char*	syscalltrace;
 
 	/*
@@ -753,11 +778,12 @@ struct Proc
 	PFPU;
 	PMMU;
 	PNOTIFY;
+	double	_align1;
 };
 
 enum
 {
-	PROCMAX	= 2000,			/* maximum number of processes */
+	PROCMAX	= 2000,		/* maximum number of processes; see procinit */
 };
 
 struct Procalloc
@@ -770,40 +796,42 @@ struct Procalloc
 
 enum
 {
+	Read, Write,		/* common flag values */
+
 	PRINTSIZE =	256,
 	NUMSIZE	=	12,		/* size of formatted number */
 	/* READSTR was 1000, which is way too small for usb's ctl file */
 	READSTR =	4000,		/* temporary buffer size for device reads */
 };
 
-struct Execvals {
-	uvlong	entry;
-	ulong	textsize;
-	ulong	datasize;
+struct Systab {
+	char*	n;
+	void	(*f)(Ar0*, va_list);
+	Ar0	r;			/* error return value */
 };
 
+extern 	char	cant[];
 extern	char*	conffile;
 extern	char	configfile[];
+/* flag: set service=cpu, scale net chans, recognise ^p on console */
 extern	int	cpuserver;
 extern	char*	eve;
 extern	char	hostdomain[];
 extern	uchar	initcode[];
-extern	int	kbdbuttons;
 extern	Ref	noteidalloc;
+/* typically 8 (2 in use), see $CONF.c from ../mk/parse */
 extern	int	nphysseg;
 extern	int	nsyscall;
 extern	Palloc	palloc;
-	int	(*parseboothdr)(Chan *, ulong, Execvals *);
 extern	Physseg	physseg[];
 extern	Procalloc	procalloc;
 extern	uint	qiomaxatomic;
 extern	char*	statename[];
 extern	char*	sysname;
-extern struct {
-	char*	n;
-	void (*f)(Ar0*, va_list);
-	Ar0	r;
-} systab[];
+extern 	Systab	systab[];
+
+	Watchdog*watchdog;
+	int	watchdogon;
 
 enum
 {
@@ -888,7 +916,7 @@ enum {
  */
 struct Uart
 {
-	void*	regs;			/* hardware stuff */
+	void*	regs;			/* hardware stuff or Ctlr */
 	void*	saveregs;		/* place to put registers on power down */
 	char*	name;			/* internal name */
 	ulong	freq;			/* clock frequency */
@@ -945,8 +973,6 @@ struct Uart
 
 extern	Uart*	consuart;
 
-void (*lprint)(char *, int);
-
 /*
  *  performance timers, all units in perfticks
  */
@@ -978,6 +1004,27 @@ struct Watermark
 	char	*name;
 };
 
+/*
+ * interrupts
+ */
+
+/* 9/pc interrupt service return values; unused in 9k */
+#define Intrnotforme
+#define Intrforme
+#define Intrtrap
+#define Intrunconverted
+
+struct Intrcommon {
+	Pcidev	*pcidev;
+	void	*vector;		/* for 9k */
+	short	irq;
+	uchar	intrenabled;		/* flag */
+};
+
+enum {					/* arguments to exit, shutdown */
+	Shutreboot,
+	Shutpanic,
+};
 
 /* queue state bits,  Qmsg, Qcoalesce, and Qkick can be set in qopen */
 enum
@@ -991,7 +1038,14 @@ enum
 	Qkick		= (1<<5),	/* always call the kick routine after qwrite */
 };
 
-#define DEVDOTDOT -1
+enum {
+	Couldmalloc,
+	Mustmalloc,
+
+	Clzbits		= BI2BY * sizeof(Clzuint),
+};
+
+#define DEVDOTDOT (-1)
 
 #pragma	varargck	type	"I"	uchar*
 #pragma	varargck	type	"V"	uchar*
@@ -999,4 +1053,11 @@ enum
 #pragma	varargck	type	"M"	uchar*
 
 #pragma	varargck	type	"m"	Mreg
-#pragma	varargck	type	"P"	uintmem
+
+#define MASK(w)		((1u  <<(w)) - 1)
+#define VMASK(w)	((1ull<<(w)) - 1)
+
+char cputype[];
+int polledprint;
+int prmsdelay;
+uintptr uart0regs;

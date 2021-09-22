@@ -18,10 +18,10 @@ static	int	maxlibdir = 0;
 /*
  *	-H0 -T0x40004C -D0x10000000	is garbage unix
  *	-H1 -T0xd0 -R4			is unix coff
- *	-H2 -T4128 -R4096		is plan9 format
+ *	-H2 -T4128 -R4096		is plan9 format (default)
  *	-H3 -Tx -Rx			is MS-DOS .COM
  *	-H4 -Tx -Rx			is fake MS-DOS .EXE
- *	-H5 -T0x80100020 -R4096		is ELF
+ *	-H5 -T0x80100020 -R4096		is ELF kernel
  */
 
 void
@@ -357,8 +357,8 @@ main(int argc, char *argv[])
 		Bprint(&bso, "%5.2f cpu time\n", cputime());
 		Bprint(&bso, "%ld symbols\n", nsymbol);
 		Bprint(&bso, "%ld memory used\n", thunk);
-		Bprint(&bso, "%d sizeof adr\n", sizeof(Adr));
-		Bprint(&bso, "%d sizeof prog\n", sizeof(Prog));
+		Bprint(&bso, "%lld sizeof adr\n", (vlong)sizeof(Adr));
+		Bprint(&bso, "%lld sizeof prog\n", (vlong)sizeof(Prog));
 	}
 	Bflush(&bso);
 

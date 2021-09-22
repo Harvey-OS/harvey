@@ -3,6 +3,7 @@
 #define _RESEARCH_SOURCE
 #include <u.h>
 #include <lock.h>
+#include <inttypes.h>
 #include <qlock.h>
 #include <stdlib.h>
 #include "sys9.h"
@@ -73,7 +74,8 @@ qlock(QLock *q)
 	unlock(&q->lock);
 
 	/* wait */
-	while((*_rendezvousp)((ulong)mp, 1) == ~0)
+	while((unsigned long long)(*_rendezvousp)(mp, (void *)1) ==
+	    ~(uintptr_t)0)
 		;
 	mp->inuse = 0;
 }
@@ -91,7 +93,8 @@ qunlock(QLock *q)
 		if(q->head == nil)
 			q->tail = nil;
 		unlock(&q->lock);
-		while((*_rendezvousp)((ulong)p, 0x12345) == ~0)
+		while((unsigned long long)(*_rendezvousp)(p, (void *)0x12345) ==
+		    ~(uintptr_t)0)
 			;
 		return;
 	}

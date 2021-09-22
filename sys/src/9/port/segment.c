@@ -55,6 +55,7 @@ initseg(void)
 	imagealloc.szfreechan = NFREECHAN;
 }
 
+/* size is in units of pages (BY2PG) */
 Segment *
 newseg(int type, ulong base, ulong size)
 {
@@ -73,11 +74,11 @@ newseg(int type, ulong base, ulong size)
 	s->sema.prev = &s->sema;
 	s->sema.next = &s->sema;
 
-	mapsize = ROUND(size, PTEPERTAB)/PTEPERTAB;
-	if(mapsize > nelem(s->ssegmap)){
-		mapsize *= 2;
+	mapsize = ROUND(size, PTEPERTAB)/PTEPERTAB;  /* Pte maps needed */
+	if(mapsize > nelem(s->ssegmap)){  /* more than in default seg map? */
+		mapsize *= 2;		/* assume we'll need twice as much */
 		if(mapsize > SEGMAPSIZE)
-			mapsize = SEGMAPSIZE;
+			mapsize = SEGMAPSIZE;	/* cap the map size */
 		s->map = smalloc(mapsize*sizeof(Pte*));
 		s->mapsize = mapsize;
 	}
@@ -344,8 +345,6 @@ imagereclaim(void)
 			if(p->ref == 0) {
 				n++;
 				uncachepage(p);
-				pageunchain(p);
-				pagechainhead(p);
 			}
 			unlock(p);
 		}
@@ -486,7 +485,7 @@ ibrk(ulong addr, int seg)
 		ns = up->seg[i];
 		if(ns == 0 || ns == s)
 			continue;
-		if(newtop > ns->base && s->base < ns->top) {
+		if(newtop >= ns->base && newtop < ns->top) {
 			qunlock(&s->lk);
 			error(Esoverlap);
 		}
@@ -588,7 +587,8 @@ isoverlap(Proc *p, ulong va, int len)
 		ns = p->seg[i];
 		if(ns == 0)
 			continue;
-		if(newtop > ns->base && va < ns->top)
+		if((newtop > ns->base && newtop <= ns->top) ||
+		   (va >= ns->base && va < ns->top))
 			return ns;
 	}
 	return nil;

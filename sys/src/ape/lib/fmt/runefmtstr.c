@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "utf.h"
 #include "fmt.h"
 #include "fmtdef.h"
@@ -22,9 +23,9 @@ static int
 runeFmtStrFlush(Fmt *f)
 {
 	Rune *s;
-	int n;
+	uintptr_t n;
 
-	n = (int)f->farg;
+	n = (uintptr_t)f->farg;
 	n += 256;
 	f->farg = (void*)n;
 	s = (Rune*)f->start;

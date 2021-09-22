@@ -1,0 +1,19 @@
+@x
+line 1
+changed line 2
+changed line 3
+inserted line
+line 4
+@y
+final line 2
+final line 3
+changed line 4
+@z
+
+@x
+changed line 7
+line 8
+@y
+final line 7
+final line 8
+@z

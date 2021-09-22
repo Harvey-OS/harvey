@@ -109,7 +109,9 @@ dev_bbox_proc_in_rect(bbox_default_in_rect);
 	gs_fixed_rect bbox;\
 	gx_color_index black, white;\
 	gx_color_index transparent /* white or gx_no_color_index */
+#pragma incomplete struct gx_device_bbox_s
 typedef struct gx_device_bbox_s gx_device_bbox;
+#pragma incomplete gx_device_bbox
 #define gx_device_bbox_common_initial(fs, foc, wio)\
   0 /* target */,\
   fs, foc, {0}, 0, wio,\

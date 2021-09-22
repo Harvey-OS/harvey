@@ -224,11 +224,11 @@ checkaddr(char *arg)
 			if(rp == nil)
 				continue;
 			if(regexec(rp, s_to_c(s), nil, 0)){
-				free(rp);
+				regfree(rp);
 				free(s);
 				return p;
 			}
-			free(rp);
+			regfree(rp);
 			break;
 		}
 	s_free(s);

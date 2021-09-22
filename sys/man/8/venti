@@ -511,3 +511,9 @@ Sean Quinlan and Sean Dorward,
 2002.
 .SH BUGS
 Setting up a venti server is too complicated.
+.PP
+.I Venti
+currently uses
+.IR int s
+to hold block numbers in index sections.
+At 8KB per block, that implicitly limits them to 32TB.

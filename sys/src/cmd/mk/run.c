@@ -86,26 +86,25 @@ sched(void)
 		usage();
 		nrunning++;
 		if(DEBUG(D_EXEC))
-			fprint(1, "pid for target %s = %d\n", wtos(j->t, ' '), events[slot].pid);
+			fprint(1, "pid for target %s = %d\n", wtos(j->t, ' '),
+				events[slot].pid);
 	}
 }
+
+extern int runerrs;
 
 int
 waitup(int echildok, int *retstatus)
 {
-	Envy *e;
-	int pid;
-	int slot;
-	Symtab *s;
-	Word *w;
-	Job *j;
+	int done, pid, slot, uarg = 0;
 	char buf[ERRMAX];
 	Bufblock *bp;
-	int uarg = 0;
-	int done;
+	Envy *e;
+	Job *j;
 	Node *n;
 	Process *p;
-	extern int runerrs;
+	Symtab *s;
+	Word *w;
 
 	/* first check against the proces slist */
 	if(retstatus)
@@ -193,7 +192,8 @@ nproc(void)
 		fprint(1, "nprocs = %d\n", nproclimit);
 	if(nproclimit > nevents){
 		if(nevents)
-			events = (Event *)Realloc((char *)events, nproclimit*sizeof(Event));
+			events = (Event *)Realloc((char *)events,
+				nproclimit*sizeof(Event));
 		else
 			events = (Event *)Malloc(nproclimit*sizeof(Event));
 		while(nevents < nproclimit)

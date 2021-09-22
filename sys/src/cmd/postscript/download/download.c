@@ -412,7 +412,8 @@ copyfonts(list)
 		sprintf(path, "%s/%s", hostfontdir, map[n].file);
 		cat(path);
 		free(path);
-	    } else cat(map[n].file);
+	    } else
+		cat(map[n].file);
 	    map[n].downloaded = TRUE;
 	}
     }
@@ -451,31 +452,23 @@ lookup(font)
  *
  * Looks for *font in the map table. Return the map table index if found and
  * not yet downloaded - otherwise return next.
- *
  */
-
     for ( i = 0; i < next; i++ )
 	if ( strcmp(font, map[i].font) == 0 ) {
 	    if ( map[i].downloaded == TRUE )
 		i = next;
 	    break;
-	}   /* End if */
-
-    return(i);
-
-}   /* End of lookup */
+	}
+    return i;
+}
 
 /*
- * Allocates space for num Map elements. Calls malloc() if ptr is NULL and
- * realloc() otherwise.
+ * Allocates space for num Map elements.
  */
 Map *
 allocate(Map *ptr, int num)
 {
-	if (ptr == NULL)
-		ptr = (Map *)malloc(num * sizeof(Map));
-	else
-		ptr = (Map *)realloc(ptr, num * sizeof(Map));
+	ptr = (Map *)realloc(ptr, num * sizeof(Map));
 	if (ptr == NULL)
 		error(FATAL, "no map memory");
 	return ptr;

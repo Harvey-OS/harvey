@@ -635,7 +635,7 @@ convftox(double d, int et)
 {
 
 	if(!typefd[et])
-		diag(Z, "bad type in castftox %s", tnames[et]);
+		diag(Z, "bad type in convftox %s", tnames[et]);
 	return d;
 }
 

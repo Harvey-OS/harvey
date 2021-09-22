@@ -1,0 +1,3 @@
+#!/bin/rc
+cat `{grep $"1 | awk '{print $1}' }
+

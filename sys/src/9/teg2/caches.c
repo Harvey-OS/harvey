@@ -1,12 +1,12 @@
 /*
- * operations on all memory data or unified caches, a no-op cache,
- * and an l1-only cache ops cache.
+ * operations on all memory data or unified caches.
  * i-caches are not handled here.
  *
  * there are only three cache operations that we care about:
  * force cache contents to memory (before dma out or shutdown),
  * ignore cache contents in favour of memory (initialisation, after dma in),
- * both (update page tables and force cpu to read new contents).
+ * both (update page tables and force cpu to read new contents, mainly for
+ * cpu errata).
  */
 
 #include "u.h"
@@ -14,13 +14,9 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
-#include "../port/error.h"
-
-static Cacheimpl allcaches, nullcaches, l1caches;
 
 void
-cachesinfo(Memcache *cp)
+allcachesinfo(Memcache *cp)
 {
 	memset(cp, 0, sizeof *cp);
 	cp->setsways = Cara | Cawa | Cawt | Cawb;
@@ -32,167 +28,86 @@ void
 allcacheson(void)
 {
 	l2pl310init();
-	allcache = &allcaches;
-	nocache = &nullcaches;
-	l1cache = &l1caches;
 }
 
 void
-cachesoff(void)
+allcachesoff(void)
 {
-	l2cache->off();
+	if (l2cache)
+		l2cache->off();
 }
 
 void
-cachesinvse(void *va, int bytes)
+allcachesinvse(void *va, int bytes)
 {
 	int s;
 
 	s = splhi();
-	l2cache->invse(va, bytes);
+	if (l2cache)
+		l2cache->invse(va, bytes);
 	cachedinvse(va, bytes);
 	splx(s);
 }
 
 void
-cacheswbse(void *va, int bytes)
+allcacheswbse(void *va, int bytes)
 {
 	int s;
 
 	s = splhi();
 	cachedwbse(va, bytes);
-	l2cache->wbse(va, bytes);
+	if (l2cache)
+		l2cache->wbse(va, bytes);
 	splx(s);
 }
 
 void
-cacheswbinvse(void *va, int bytes)
+allcacheswbinvse(void *va, int bytes)
 {
 	int s;
 
 	s = splhi();
 	cachedwbse(va, bytes);
-	l2cache->wbinvse(va, bytes);
-	cachedwbinvse(va, bytes);
+	if (l2cache)
+		l2cache->wbinvse(va, bytes);
+	cachedwbinvse(va, bytes);		/* NB: wbinv */
 	splx(s);
 }
 
 
 void
-cachesinv(void)
+allcachesinv(void)
 {
 	int s;
 
 	s = splhi();
-	l2cache->inv();
+	if (l2cache)
+		l2cache->inv();
 	cachedinv();
 	splx(s);
 }
 
 void
-cacheswb(void)
+allcacheswb(void)
 {
 	int s;
 
 	s = splhi();
 	cachedwb();
-	l2cache->wb();
+	if (l2cache)
+		l2cache->wb();
 	splx(s);
 }
 
 void
-cacheswbinv(void)
+allcacheswbinv(void)
 {
 	int s;
 
 	s = splhi();
 	cachedwb();
-	l2cache->wbinv();
-	cachedwbinv();
+	if (l2cache)
+		l2cache->wbinv();
+	cachedwbinv();			/* NB: wbinv */
 	splx(s);
 }
-
-static Cacheimpl allcaches = {
-	.info	= cachesinfo,
-	.on	= allcacheson,
-	.off	= cachesoff,
-
-	.inv	= cachesinv,
-	.wb	= cacheswb,
-	.wbinv	= cacheswbinv,
-
-	.invse	= cachesinvse,
-	.wbse	= cacheswbse,
-	.wbinvse= cacheswbinvse,
-};
-
-
-/*
- * null cache ops
- */
-
-void
-nullinfo(Memcache *cp)
-{
-	memset(cp, 0, sizeof *cp);
-	cp->log2linelen = 2;
-}
-
-void
-nullon(void)
-{
-	nocache = &nullcaches;
-}
-
-void
-nullop(void)
-{
-}
-
-void
-nullse(void *, int)
-{
-}
-
-static Cacheimpl nullcaches = {
-	.info	= nullinfo,
-	.on	= nullon,
-	.off	= nullop,
-
-	.inv	= nullop,
-	.wb	= nullop,
-	.wbinv	= nullop,
-
-	.invse	= nullse,
-	.wbse	= nullse,
-	.wbinvse= nullse,
-};
-
-/*
- * l1-only ops
- */
-
-void
-l1cachesinfo(Memcache *)
-{
-}
-
-void
-l1cacheson(void)
-{
-	l1cache = &l1caches;
-}
-
-static Cacheimpl l1caches = {
-	.info	= l1cachesinfo,
-	.on	= l1cacheson,
-	.off	= nullop,
-
-	.inv	= cachedinv,
-	.wb	= cachedwb,
-	.wbinv	= cachedwbinv,
-
-	.invse	= cachedinvse,
-	.wbse	= cachedwbse,
-	.wbinvse= cachedwbinvse,
-};

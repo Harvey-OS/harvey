@@ -1,0 +1,100 @@
+.TH VFTOVP 1 "19 December 1994" "Web2C @VERSION@"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+vftovp \- convert virtual font (vf) files to virtual property lists (vpl)
+.SH SYNOPSIS
+.B vftovp
+[
+.BI \-charcode-format =format
+]
+[
+.B \-verbose
+]
+.I vf_name[.vf]
+.I tfm_name[.tfm]
+[
+.I vpl_name[.vpl]
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B vftovp
+program translates a (program-oriented) virtual font file and its
+accompanying \*(TX font metric file to a (human-oriented) property list file.
+Thus, the virtual font can be edited, and its exact contents can be
+displayed mnemonically.  It also serves as a VF-file validating program;
+if no error messages are given, the input files are correct.
+.PP
+The filenames are extended with the appropriate extension if necessary.
+.\"=====================================================================
+.SH OPTIONS
+The argument
+.I format
+to
+.B \-charcode-format
+specifies how character codes are output in the VPL file.  By
+default, only letters and digits are output using the
+.B C
+integer code (i.e., in ASCII); the others are output in octal.  (Unless
+the font's coding scheme starts with
+.B "TeX math sy"
+or
+.BR "TeX math ex" ,
+when all are output in octal.)  If
+.I format
+is
+.BR ascii ,
+all character codes that correspond to graphic characters, besides the
+left and right parentheses, are output in ASCII.  On the other hand, if
+.I format
+is
+.BR octal ,
+all character codes are output in octal.
+.PP
+Without the
+.B \-verbose
+option,
+.B vftovp
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+.\"=====================================================================
+.SH ENVIRONMENT
+.B vftovp
+looks for
+.I vf_name
+using the
+environment variable VFFONTS.  If that is not set, it uses the variable
+TEXFONTS.  If that is not set, it uses the system default.
+.PP
+See
+.BR tex (1)
+for the details of the searching.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR pltotf (1),
+.BR tftopl (1),
+.BR vptovf (1).
+.\"=====================================================================
+.SH AUTHORS
+Donald E. Knuth wrote the program, based in part on an idea of David Fuchs,
+starting with the code for
+.BR tftopl (1).
+Karl Berry adapted it for compilation with
+.BR web2c .

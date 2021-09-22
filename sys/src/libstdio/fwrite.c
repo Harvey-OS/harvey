@@ -5,47 +5,55 @@
 
 #define BIGN (BUFSIZ/2)
 
-long fwrite(const void *p, long recl, long nrec, FILE *f){
+static long
+_write(void *s, long n, FILE *f)
+{
+	long d;
+
+	d = write(f->fd, s, n);
+	if (d != n) {
+		f->state = ERR;
+		return EOF;
+	}
+	return d;
+}
+
+long
+fwrite(const void *p, long recl, long nrec, FILE *f)
+{
 	char *s;
 	int n, d;
 
-	s=(char *)p;
-	n=recl*nrec;
-	while(n>0){
-		d=f->rp-f->wp;
-		if(d>0){
-			if(d>n)
-				d=n;
-			memmove(f->wp, s, d);
-			f->wp+=d;
-		}else{
-			if(n>=BIGN && f->state==WR && !(f->flags&(STRING|LINEBUF)) && f->buf!=f->unbuf){
-				d=f->wp-f->buf;
-				if(d>0){
-					if(f->flags&APPEND)
-						seek(f->fd, 0, SEEK_END);
-					if(write(f->fd, f->buf, d)!=d){
-						f->state=ERR;
-						goto ret;
-					}
-					f->wp=f->rp=f->buf;
-				}
-				if(f->flags&APPEND)
-					seek(f->fd, 0, SEEK_END);
-				d=write(f->fd, s, n);
-				if(d<=0){
-					f->state=ERR;
-					goto ret;
-				}
-			}else{
-				if(_IO_putc(*s, f)==EOF)
-					goto ret;
-				d=1;
+	s = (char *)p;
+	for (n = recl * nrec; n > 0; n -= d) {
+		d = f->rp - f->wp;
+		if (d > 0) {
+			if (d > n)
+				d = n;
+			memmove(f->wp, s, d);	/* buffer what fits */
+			f->wp += d;
+		} else if (n >= BIGN && f->state == WR &&
+		    !(f->flags & (STRING | LINEBUF)) && f->buf != f->unbuf) {
+			if (f->flags & APPEND)
+				seek(f->fd, 0, SEEK_END);
+			d = f->wp - f->buf;
+			if (d > 0) {		/* buffered output? flush it */
+				if (_write(f->buf, d, f) == EOF)
+					break;
+				f->wp = f->rp = f->buf;
 			}
+			d = _write(s, n, f);
+			if (d == EOF)
+				break;
+		} else {
+			if (_IO_putc(*s, f) == EOF)
+				break;
+			d = 1;
 		}
-		s+=d;
-		n-=d;
+		s += d;
 	}
-    ret:
-	return (s-(char *)p)/(recl?recl:1);
+	if (recl > 1)
+		return (s - (char *)p) / recl;
+	else
+		return s - (char *)p;
 }

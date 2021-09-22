@@ -1,38 +1,40 @@
-# load - 9load (not 9pxeload) as a variant of 9pccpu.
-#	has to fit in bottom 640K, currently is about 378K.
+# load - plan 9 disk loader as a variant of 9pccpu.
+#	has to fit in bottom 640K, currently is 182K.
 dev
 	root
 	cons
 	arch
 	rtc
-#	floppy
 	sd
-
 	uart
+#	floppy		dma
 
 misc
+	mp		apic mpacpi
+	nomtrr
 	bootld
 	conf
 	dir
 	diskload
-#	dma
 	dosboot
 	fs
 	inflate
-	nomtrr
+	lunzip
+	noedf
+	notftp
 	parts
 	pci
 	rand
 	stub
 	uarti8250
 
+	sdahci		pci sdscsi
+	sdnvme		pci sdscsi
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
-	sdiahci		pci sdscsi
-#	sdflop
-	sdvirtio	pci sdscsi
+#	sdflop		sdscsi
 
 port
 	int cpuserver = 1;
-	char hellomsg[] = "disk loader";
+	char hellomsg[] = "disk";

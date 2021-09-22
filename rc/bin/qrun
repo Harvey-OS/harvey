@@ -1,0 +1,31 @@
+#!/bin/rc
+# qrun [queue remotemail] - run queue frequently in the background
+rfork nes
+outside=no
+switch ($#*) {
+case 0
+	args=(/mail/queue /mail/lib/remotemail)
+case 2
+	args=$*
+	outside=yes
+case *
+	echo usage: $0 '[queue remotemail]' >[1=2]
+	exit usage
+}
+
+cd $args(1) || exit no-queue
+if (! test -x $args(2)) {
+	echo $0: $args(2) is not executable >[1=2]
+	exit no-remotemail
+}
+
+@ {
+	while() {
+		if (~ $outside yes && ! test -e /net.alt/tcp)
+			outside >/dev/null >[2]/dev/null
+		date=`{date}
+		echo $sysname $"date^: upas/runq -a $args >>/sys/log/qrun
+		upas/runq -ad $args >>/sys/log/qrun >[2=1] &
+		sleep  300
+	}
+} &

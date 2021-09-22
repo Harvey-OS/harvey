@@ -123,4 +123,7 @@ mount point for
 .IR Plumber 's
 file name space is fixed, so it is difficult to plumb
 messages that involve files in newly mounted services.
-
+.PP
+.I Plumber
+creates threads casually that never exit,
+and their stacks' memory allocations can become substantial.

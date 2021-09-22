@@ -1,0 +1,15 @@
+# to update: cp /usr/$user/lib/plumbing /mnt/plumb/rules
+
+editor = acme
+
+include basic
+
+
+# 
+# data    matches 'ttag[a-zA-Z0-9_@ :.\-]*'
+# plumb to tag
+type is text
+data    matches 'ttag\..*'
+src is tag
+plumb to tag
+plumb start window -r 203 87 981 616 rc -c ''''echo tag $0; sleep 5''''

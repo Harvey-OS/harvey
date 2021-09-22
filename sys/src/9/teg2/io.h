@@ -82,10 +82,14 @@ enum {
 	/* mass storage */
 	Pciscscsi	= 0,		/* SCSI */
 	Pciscide	= 1,		/* IDE (ATA) */
+	Pciscraid	= 4,		/* RAID */
 	Pciscsata	= 6,		/* SATA */
+	Pciscnvm	= 8,		/* non-volatile memory (flash) */
+	Pciscstgeneric	= 0x80,		/* mass storage */
 
 	/* network */
 	Pciscether	= 0,		/* Ethernet */
+	Pciscnetgeneric	= 0x80,		/* some network */
 
 	/* display */
 	Pciscvga	= 0,		/* VGA */
@@ -93,8 +97,10 @@ enum {
 	Pcisc3d		= 2,		/* 3D */
 
 	/* bridges */
-	Pcischostpci	= 0,		/* host/pci */
-	Pciscpcicpci	= 1,		/* pci/pci */
+	Pciscbrhost	= 0,		/* host */
+	Pciscbrisa	= 1,		/* isa */
+	Pciscbrpci	= 4,		/* pci */
+	Pciscbrgeneric	= 0x80,		/* some bridge */
 
 	/* simple comms */
 	Pciscserial	= 0,		/* 16450, etc. */

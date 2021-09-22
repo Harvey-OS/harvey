@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+BIN=/sys/lib/texmf/bin/$objtype
+TARG=mktexlsr endian delatex dviselect
+LIB=
+
+</sys/src/cmd/mkmany
+
+delatex.c: delatex.lex
+	lex delatex.lex && mv lex.yy.c delatex.c
+
+$O.dviselect: dviselect.c
+	pcc -Bo $target dviselect.c
+
+$O.delatex: delatex.c
+	pcc -o $target delatex.c
+
+/sys/lib/texmf/bin/$objtype/delatex:V: /$objtype/bin/delatex
+	#
+
+/sys/lib/texmf/bin/$objtype/dviselect:V: /$objtype/bin/dviselect
+	#
+
+/$objtype/bin/delatex: $O.delatex
+	cp $O.delatex /$objtype/bin/delatex
+
+/$objtype/bin/dviselect: $O.dviselect
+	cp $O.dviselect /$objtype/bin/dviselect

@@ -65,10 +65,8 @@ Assume instructions are for the given CPU type
 etc., as listed in
 .IR 8c (1),
 or
-.B sunsparc
-or
 .B mipsco
-for the  manufacturer-defined instruction notation for those processors)
+for the manufacturer-defined instruction notation for those processors)
 instead of using the magic number to select
 the CPU type.
 .TP

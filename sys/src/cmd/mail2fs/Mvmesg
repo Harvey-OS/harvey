@@ -1,0 +1,67 @@
+#!/bin/rc
+#
+# Move the message shown in the Acme or o/live window
+# where it runs, or messages named in std. input.
+
+rfork e
+
+if(~ $#file 0 && ~ $#winid 0 ){
+	echo must run under o/live or acme >[1=2]
+	exit fail
+}
+
+if(~ $#* 0){
+	echo usage: Mvmesg char ... >[1=2]
+	exit usage
+}
+chr=$1 ; shift
+
+if(! ~$#* 0){
+	for(f in $*)
+		echo $f | $0 $chr >/dev/null
+	exit ''
+}
+
+if(~ $#file 0)
+	file = `{cat /mnt/acme/$winid/tag | sed 's/ .*//'}
+if not
+	file=`{echo $file | sed 's/\[(.*)[\] ] ?.*/\1/'}
+
+switch($file){
+case */text
+	d=`{echo $file | sed 's,/text,,'}
+	if (! test -d $d || ! ~ $d /mail/box/$user/* ) {
+		echo $d is not a mail directory
+		exit not
+	}
+	dd=`{basename -d  $d}
+	dn=`{basename $d}
+	# touch "text" to let other programs know this file is new
+	# e.g., let content search tools re-index the file for this new path
+	mv $dd/$dn $dd/$chr.$dn && touch $dd/$chr.$dn/text >[2]/dev/null
+
+	if(! ~ $#winid 0){
+		echo clean >/mnt/acme/$winid/ctl
+		echo del >/mnt/acme/$winid/ctl
+	}
+
+case /mail/box/$user/*
+	d=`{pwd}
+	tee /tmp/mvmesg.$pid | \
+		sed 's,(.* )?(20[0-9][0-9][0-9][0-9])/([^0-9]?\.?)([0-9]*)/text.*,mv \2/\3\4 \2/'^$chr^'.\4,' | \
+		rc >[2]/dev/null
+	cat /tmp/mvmesg.$pid | sed 'sx([0-9])/[a-z]?\.?([0-9])x\1/'^$chr^'.\2x'
+
+	mv /tmp/mvmesg.$pid /tmp/mvmesg.$user	# in case we want to undo...
+case *
+	echo Mail command in a strange place?
+	echo file was $file
+}
+
+# plumb a mail event so mail list is updated 
+# for those not running mailplumb. 
+if(! ~ $#winid 0)
+	plumb -s plumb -d seemail -t text \
+		-a 'filetype=vwhois mailtype=delete sender=any'  /mail/box/$user/msgs
+
+exit ''

@@ -1,0 +1,61 @@
+vm 0-8
+pP 40.491472,80.232639	# pit
+va 095
+vb 140
+vc 015
+
+pa d pP,m(va-vc),10
+pb d pP,m(va-vc),12.5
+
+pc d pP,m(va+vc),12.5
+pd d pP,m(va+vc),10
+
+pi d pP,m(va+180-vc),10
+pj d pP,m(va+180-vc),14
+pk d pP,m(va+180+vc),14
+pl d pP,m(va+180+vc),10
+
+pe d pP,m(vb-vc),10
+pf d pP,m(vb-vc),12
+pg d pP,m(vb+vc),12
+ph d pP,m(vb+vc),10
+
+pm d pP,m(va-vc),20
+pn d pP,m(va-vc),30
+po d pP,m(va+vc),30
+pp d pP,m(va+vc),20
+
+pq d pP,m(va+180-vc),20
+pr d pP,m(va+180-vc),30
+ps d pP,m(va+180+vc),30
+pt d pP,m(va+180+vc),20
+
+n pit_gnd\80
+c pP,7
+
+n pit_25\80
+c pP,10
+
+n pit_30\80
+s pa,pb
+ar pP,pb,pc
+s pc,pd
+
+s pe,pf
+ar pP,pf,pg
+s pg,ph
+
+s pi,pj
+ar pP,pj,pk
+s pk,pl
+ar pP,pl,pa
+
+n pit_40\80
+S pm,pn
+Ar pP,pn,po
+S po,pp
+Ar pP,pp,pq
+S pq,pr
+Ar pP,pr,ps
+S ps,pt
+Ar pP,pt,pm

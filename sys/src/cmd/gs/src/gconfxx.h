@@ -6,18 +6,19 @@ compositor_(gs_composite_pdf14trans_type)
 #endif
 #ifdef device_
 device_(gs_plan9_device)
-device_(gs_bj10e_device)
-device_(gs_bjc600_device)
-device_(gs_bjc800_device)
+//device_(gs_bj10e_device)
+//device_(gs_bjc600_device)
+//device_(gs_bjc800_device)
 #endif
 #ifdef device2_
-device2_(gs_cdj1600_device)
-device2_(gs_cdj670_device)
-device2_(gs_cdj850_device)
-device2_(gs_cdj890_device)
+//device2_(gs_cdj1600_device)
+//device2_(gs_cdj670_device)
+//device2_(gs_cdj850_device)
+//device2_(gs_cdj890_device)
 #endif
 #ifdef device_
 device_(gs_dfaxlow_device)
+device_(gs_epsonc_device)
 #endif
 #ifdef device2_
 device2_(gs_epswrite_device)

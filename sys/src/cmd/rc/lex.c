@@ -6,7 +6,7 @@
 Rune getnext(void);
 
 int
-wordchr(Rune c)		/* is c in the alphabet of words (non-delimiters)? */
+wordchr(Rune c)	/* is c in the alphabet of words (non-delimiters)? */
 {
 	return c != EOF &&
 		(c >= Runeself || strchr("\n \t#;&|^$=`'{}()<>", c) == nil);
@@ -16,7 +16,7 @@ wordchr(Rune c)		/* is c in the alphabet of words (non-delimiters)? */
  * is c in the alphabet of identifiers?  as in the c compiler, treat
  * non-ascii as alphabetic.
  */
-int
+Rune
 idchr(Rune c)
 {
 	/*
@@ -57,6 +57,7 @@ advance(void)
 	future = EOF;
 	return c;
 }
+
 /*
  * read a character from the input stream
  */
@@ -100,6 +101,7 @@ void
 pprompt(void)
 {
 	var *prompt;
+
 	if(runq->iflag){
 		pstr(err, promptstr);
 		flush(err);
@@ -170,8 +172,8 @@ addutf(char *p, Rune c)
 {
 	if(p==0)
 		return 0;
-	if(p >= &tok[NTOK-1-UTFmax*2]){
-		*p = 0;
+	if(p >= &tok[sizeof tok - (UTFmax+1)]){
+		*p = '\0';
 		yyerror("token buffer too short");
 		return 0;
 	}

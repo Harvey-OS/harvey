@@ -14,21 +14,14 @@ mpvecsub(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *diff)
 		x = *a++;
 		y = *b++;
 		y += borrow;
-		if(y < borrow)
-			borrow = 1;
-		else
-			borrow = 0;
-		if(x < y)
-			borrow++;
+		borrow = y < borrow;
+		borrow += x < y;
 		*diff++ = x - y;
 	}
 	for(; i < alen; i++){
 		x = *a++;
 		y = x - borrow;
-		if(y > x)
-			borrow = 1;
-		else
-			borrow = 0;
+		borrow = y > x;
 		*diff++ = y;
 	}
 }

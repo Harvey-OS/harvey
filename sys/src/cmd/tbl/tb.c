@@ -92,7 +92,7 @@ release(void)
 {
 			/* give back unwanted space in some vectors */
 			/* this should call free; it does not because
-				alloc() is so buggy */
+				alloc() was so buggy (in ~1974) */
 	spcount = 0;
 	tpcount = -1;
 	exstore = 0;

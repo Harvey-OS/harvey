@@ -184,7 +184,7 @@ sysrfork(ulong *arg)
 	p->fpstate = up->fpstate & ~FPillegal;
 	pid = p->pid;
 	memset(p->time, 0, sizeof(p->time));
-	p->time[TReal] = MACHP(0)->ticks;
+	p->time[TReal] = sys->ticks;
 
 	kstrdup(&p->text, up->text);
 	kstrdup(&p->user, up->user);
@@ -421,6 +421,13 @@ sysexec(ulong *arg)
 		}
 	}
 
+	/*
+	 * Close on exec
+	 */
+	f = up->fgrp;
+	for(i=0; i<=f->maxfd; i++)
+		fdclose(i, CCEXEC);
+
 	/* Text.  Shared. Attaches to cache image if possible */
 	/* attachimage returns a locked cache image */
 	img = attachimage(SG_TEXT|SG_RONLY, tc, UTZERO, (t-UTZERO)>>PGSHIFT);
@@ -473,7 +480,6 @@ sysexec(ulong *arg)
 	flushmmu();
 	qlock(&up->debug);
 	up->nnote = 0;
-	up->notepending = 0;
 	up->notify = 0;
 	up->notified = 0;
 	up->privatemem = 0;
@@ -481,13 +487,6 @@ sysexec(ulong *arg)
 	qunlock(&up->debug);
 	if(up->hang)
 		up->procctl = Proc_stopme;
-
-	/*
-	 * Close on exec
-	 */
-	f = up->fgrp;
-	for(i=0; i<=f->maxfd; i++)
-		fdclose(i, CCEXEC);
 
 	return execregs(entry, ssize, nargs);
 }

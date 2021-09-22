@@ -1,0 +1,95 @@
+Links 2.1pre14 -- How To Install
+--------------------------------
+
+Follow this step-by-step:
+0) Check you have installed the following libraries and are able to compile with
+   them. On a package-driven distribution, you will need both "library" and
+   "library-dev(el)":
+
+   libpng - required to compile links in graphics mode (not required in text
+            mode).
+   IJG libjpeg - if you want to display JPEG's (probably yes).
+   TIFF Library - if you want TIFFs.
+   SVGAlib - if you want Links to be able to display on SVGAlib.
+   OpenSSL - if you want SSL connections.
+
+   If any of the library is not present on the system or is unusably old and you cannot install it
+   (typically because you are not a root), then go to 11) Compiling with
+   user-supplied libraries.
+1) Do not forget to run "ldconfig" if you have installed any new libraries :-)
+2) "./configure --help"
+   Read the output and choose which options you want to give ./configure.
+   Probably you will want --enable-graphics and --enable-javascript and some
+   more
+3) "./configure <your options>"
+4) Check the output of ./configure (in the table at the end) whether you really
+   get what you want
+5) "make"
+6) If you are a root, "make install" with root privileges. If not, copy the 
+   resulting "links" executable into some suitable place, preferrably within 
+   your $PATH. The whole browser is just one executable.
+7) If you haven't got a permanent Internet connection, save the "doc/"
+   subdirectory into some suitable place (/usr/share/, /usr/local/share). The
+   most important part is the "doc/links_cal/" subdirectory which contains a calibration pattern
+   (calibration.html in English, kalibrace.html in Czech)
+   you will need to get a flawless picture on your monitor.
+8) If you want to supply a Links icon into your X Window System windowmanager,
+   you will find a suitable 48x48 icon in graphics/links.xpm
+9) Delete the archive and source directory - no more needed
+10) The browser is ready now. You just have to calibrate it to get a flawless
+   picture (see doc/calibration.html or the Links homepage, which is in default
+   bookmarks).
+
+11) Compiling with user-supplied libraries.
+    This describes how to compile Links with user-supplied libraries zlib,
+    libpng, libpjpeg and libtiff. If you want to use any of these libraries from
+    the system, omit appropriate references. The versions are just for example:
+
+    Download libpng-1.2.3, zlib-1.1.4, libjpeg-6b and libtiff-v3.5.7
+    archives and unpack them. Build the libraries according to their
+    instructions to get static (*.a) library in each.
+
+    export CPPFLAGS="-I../zlib-1.1.4 -I../libpng-1.2.3 -I../jpeg-6b
+	-I../tiff-v3.5.7/libtiff"
+    export LDFLAGS="=L../zlib-1.1.4 -L../libpng-1.2.3 -L../jpeg-6b
+        -L ../tiff-v3.5.7/libtiff"
+    goto 2)
+
+PITFALLS
+--------
+
+Compile:
+
+Unix - use ./configure; make
+	in some FreeBSD 3 distributions you have to set CFLAGS=-aout before
+	running ./configure
+	Tested on Linux, FreeBSD, Solaris, IRIX
+
+OS/2 - use ./configure; make
+	You must have GNU bash and GNU text/shell/file utilities so that
+	configure can run
+	The only supported compiler is EMX, you probably won't be able to
+	compile it with anything else
+
+	configure under OS/2 needs to know paths to gcc, make anb bash. Set (for
+	example):
+	SET HOSTTYPE=i586
+	SET MACHTYPE=i586-pc-os2
+	SET CONFIG_SHELL=d:/prg/gnu/bin/bash.exe
+	SET CC=d:/prg/emx/bin/gcc.exe
+	SET MAKE=d:/prg/emx/bin/make.exe
+	SET EMXOPT=-h100
+
+Dos, Windows - port it yourself
+
+Install:
+
+Unix - make install
+
+OS/2 - copy file links.exe somewhere to your path or create CMD file that runs
+	links
+
+WARNING: EMX has nasty limit of open files. Links will work badly or won't work
+	with default settings. Set variable EMXOPT=-h100 before you run links.
+
+vim: textwidth=80

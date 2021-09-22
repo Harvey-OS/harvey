@@ -41,8 +41,6 @@ threadid,
 threadpid,
 threadsetgrp,
 threadsetname,
-threadspawn,
-threadspawnl,
 threadwaitchan,
 yield \- thread and proc management
 .SH SYNOPSIS
@@ -130,8 +128,6 @@ int	chanprint(Channel *c, char *fmt, ...)
 int	chanclose(Channel *c);
 int	chanclosing(Channel *c);
 .XX
-int	threadspawnl(int fd[3], char *file, ...)
-int	threadspawn(int fd[3], char *file, char *args[])
 void	procexecl(Channel *cpid, char *file, ...)
 void	procexec(Channel *cpid, char *file, char *args[])
 Channel*	threadwaitchan(void)
@@ -164,7 +160,7 @@ function that sets up a proc with a single thread executing
 .I threadmain
 on a stack of size
 .I mainstacksize
-(default eight kilobytes).
+(default 8 KB).
 To set
 .IR mainstacksize ,
 declare a global variable
@@ -184,6 +180,11 @@ on a stack of size
 .IR stacksize .
 Thread stacks are allocated in shared memory, making it valid to pass
 pointers to stack variables between threads and procs.
+The thread library attempts to detect approaching stack overflow,
+but can be defeated by enough automatic storage,
+with often puzzling consequences, so be generous.
+A minimum size is silently enforced
+and stack sizes are doubled on 64-bit architectures.
 .I Procrfork
 creates a new proc, and inside that proc creates
 a single thread as
@@ -241,7 +242,6 @@ Calls that do this are
 .IR procexec ,
 .IR procexecl ,
 .IR threadexits ,
-.IR threadspawn ,
 .IR alt ,
 .IR send ,
 and
@@ -366,17 +366,6 @@ Note that the mount point
 must exist;
 .I procexec(l)
 mount pipes there.
-.PP
-.I Threadspawnl
-and
-.I threadspawn
-are like
-.I threadexecl
-and
-.I threadexec
-but do not replace the current thread.
-They return the pid of the invoked program on success, or
-\-1 on error.
 .PP
 .I Threadwaitchan
 returns a channel of pointers to

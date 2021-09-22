@@ -1,0 +1,2 @@
+#!/bin/rc
+exec aux/trampoline -m $3 'tcp!geoff-soekris-50!10564' >[2]/dev/null

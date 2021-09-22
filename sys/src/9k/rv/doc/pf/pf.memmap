@@ -1,0 +1,64 @@
+physical memory map for icicle's U54 (Sifive U5)
+
+/* on-core devices */
+0x02000000	clint
+0x02010000	l2 cache controller
+0x02050000	pciess main
+0x03000000	dma controller
+0x03004000	pcie0 bridge
+0x03006000	pcie0 ctrl
+0x03008000	pcie1 bridge
+0x0300a000	pcie1 ctrl
+0x0c000000	plic
+/* off-core i/o */
+0x20000000	uart 0 of 4	actel 16550
+0x20001000	watchdog 0 for hart 0 (e51)
+0x20002000	mss_sysreg: clock enables, resets, and much more
+0x20005000	pmp & seg registers; seg0 at offset 0xd00, seg1 at 0xe00
+0x20007000	? used by hss
+0x20080000	ddr controller
+0x20100000	uart 1
+0x20101000	watchdog 1 for hart 1 (u54 #1)
+0x20102000	uart 2
+0x20103000	watchdog 2
+0x20104000	uart 3
+0x20105000	watchdog 3
+0x20106000	uart 4
+0x20107000	watchdog 4
+0x20110000	mac0		gem phy 8
+0x20112000	mac1		gem phy 9
+0x20124000	rtc
+0x20125000	timer
+0x20200000	envm controller
+0x20201000	usb (otg)
+0x20220000	reset address, eNVM, 128KB (opensbi)
+0x36500000	sgmii phy lane 0,1 soft reset, used by hss
+0x36510000	sgmii phy lane 2,3 soft reset, used by hss
+0x3e100000	? used by hss
+0x3e400000	? used by hss
+0x60000000	up to ram, ahb mmio	# apb_addr in pcie
+0x60020000		dma controller
+0x61000000		lsram
+0x63000000		pcie_apb
+0x64000000		uart
+0x70000000	pcie_axi		# ecam_addr in pcie
+/* source for config space: Padmarao Begari of Microchip */
+0x70000000		pcie configuration space for root (bdf=0)
+			(use pcie_apb to configure)
+0x70100000		pcie configuration space for end point (bdf=1/0/0)
+0x71000000		endpoint bar0 space
+0x72000000		endpoint bar2 space
+0x73000000		root port axi master - ram
+
+/*
+ * on-core memory; source: Cyril Jean of Microchip.
+ * see ug0880 §5.5 Segmentation Blocks: SEG0 register configures cached
+ * accesses, SEG1 configures uncached accesses.
+ */
+0x80000000	1GB cached memory; ether can use these without fences
+0xc0000000	uncached access to 256MB at 0x80000000 by default
+0xd0000000	uncached awrite-combining access to 256MB at 0x80000000 default
+0x1000000000	cached access to up to 16GB; by default accesses 0x80000000
+0x1400000000	uncached access to up to 16GB; by default accesses 0x80000000
+0x1800000000	uncached awrite-combining access to up to 16GB;
+		by default accesses 0x80000000

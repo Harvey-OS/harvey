@@ -1,0 +1,16 @@
+BUILTINS=
+</$objtype/mkfile
+
+TARG=	jep2ps\
+	jepget\
+
+BIN=/$objtype/bin/aviation
+</sys/src/cmd/mkmany
+
+HFILES=\
+	jep.h\
+
+$O.jep2ps: jep2ps.$O data.$O ps.$O dr.$O pr.$O
+
+$O.jepget: jepget.$O
+

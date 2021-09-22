@@ -56,9 +56,9 @@ querydns(int fd, char *line, int n)
 static void
 query(int fd)
 {
-	int n, len;
-	char *lp, *p, *np;
-	char buf[1024], line[1024];
+	int n;
+	char *lp, *p, *rev;
+	char line[256];
 	Biobuf in;
 
 	Binit(&in, 0, OREAD);
@@ -71,6 +71,8 @@ query(int fd)
 			lp++;
 			n--;
 		}
+		if (n > sizeof line - 1)
+			continue;
 		if(!*lp)
 			continue;
 		strcpy(line, lp);
@@ -85,33 +87,23 @@ query(int fd)
 				n += 3;
 			}
 
-		/* inverse queries may need to be permuted */
+		/* inverse queries without ".arpa" need to be permuted */
 		if(n > 4 && strcmp(" ptr", &line[n-4]) == 0 &&
 		    cistrstr(line, ".arpa") == nil){
-			/* TODO: reversing v6 addrs is harder */
-			for(p = line; *p; p++)
-				if(*p == ' '){
-					*p = '.';
-					break;
-				}
-			np = buf;
-			len = 0;
-			while(p >= line){
-				len++;
-				p--;
-				if(*p == '.'){
-					memmove(np, p+1, len);
-					np += len;
-					len = 0;
-				}
+			p = strchr(line, ' ');
+			*p = '\0';
+			if (strchr(line, ':') != nil)
+				rev = revv6(line);
+			else
+				rev = revv4(line);
+			if (rev == nil) {
+				fprint(2, "can't reverse addr %s", line);
+				n = strlen(line);
+			} else {
+				n = snprint(line, sizeof line, "%s ptr", rev);
+				free(rev);
 			}
-			memmove(np, p+1, len);
-			np += len;
-			strcpy(np, "in-addr.arpa ptr");	/* TODO: ip6.arpa for v6 */
-			strcpy(line, buf);
-			n = strlen(line);
 		}
-
 		querydns(fd, line, n);
 	}
 	Bterm(&in);

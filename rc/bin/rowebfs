@@ -1,0 +1,58 @@
+#!/bin/rc
+while(){
+	if(! test -e /n/alice/cm/cs/who ){
+		unmount /n/alice >[2] /dev/null
+		rm -f /srv/alice
+		srv alice
+		mount -C /srv/alice /n/alice
+
+		unmount /n/emelie >[2] /dev/null
+		rm -f /srv/emelie
+		srv emelie
+		mount -C /srv/emelie /n/emelie
+
+		unmount /usr/web >[2] /dev/null
+
+		if( test -e /n/alice/cm/cs/who ){
+			# netlib
+			bind /netlib/pub /usr/web/netlib
+			mount -a /srv/histnetlib /usr/web/historic
+			mount -b /srv/netlib.depend.pub /usr/web/netlib.depend
+			# don't need to bind to /usr/web/math etc. because of /sys/lib/http-rewrite
+		
+			# who what why when where
+			bind -b /n/alice/cm /usr/web/cm
+			bind /usr/web/cm/who /usr/web/who
+			bind -b /usr/web/cm/physics/who /usr/web/who
+			bind -b /usr/web/cm/blrsv/who /usr/web/who
+			bind -b /usr/web/cm/ss/who /usr/web/who
+			bind -b /usr/web/cm/ms/who /usr/web/who
+			bind -b /usr/web/cm/china/who /usr/web/who
+			bind -b /usr/web/cm/cs/who /usr/web/who
+			bind /usr/web/cm/ms/what/wavelet /usr/web/wavelet
+			
+			# formerly ftp.research.bell-labs.com
+			bind -b /n/alice/usr/ftp /usr/web/dist
+			
+			# plan 9 distribution
+			bind /sys/lib/dist/web /usr/web/plan9dist
+			
+			# new plan9 distribution
+			bind /sys/lib/dist/web2 /usr/web/plan9dist2
+			
+			# just so people will find something under plan9
+			bind /usr/web/plan9dist /usr/web/plan9
+			
+			# man2html expects man pages under /usr/web/sys/man
+			bind /sys/man /usr/web/sys/man
+			bind /sys/doc /usr/web/sys/doc
+			
+			# 9fans archives (questions to rsc)
+			# mount /srv/9fans /usr/web/9fans
+
+			exportfs -R -r /usr/web -B tcp!cm.cs.bell-labs.com!667
+			unmount /n/alice
+		}
+	}
+	sleep 60
+}

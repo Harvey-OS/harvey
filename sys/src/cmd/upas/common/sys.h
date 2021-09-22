@@ -1,6 +1,8 @@
 /*
  * System dependent header files for research
  */
+#pragma	lib	"/sys/src/cmd/upas/common/libcommon.a$O"
+#pragma	src	"/sys/src/cmd/upas/common"
 
 #include <u.h>
 #include <libc.h>

@@ -6,11 +6,11 @@
 #include "../port/error.h"
 
 #include "../port/netif.h"
+#include "etherif.h"
 #include "ip.h"
 #include "ipv6.h"
 
-#include "etherif.h"
-
+/* this is packet layout, so can't tolerate bogus padding */
 typedef struct Etherhdr Etherhdr;
 struct Etherhdr
 {
@@ -60,23 +60,6 @@ Medium ethermedium =
 .pref2addr=	etherpref2addr,
 };
 
-Medium gbemedium =
-{
-.name=		"gbe",
-.hsize=		ETHERHDRSIZE,
-.mintu=		ETHERMINTU,
-.maxtu=		9014,
-.maclen=	Eaddrlen,
-.bind=		etherbind,
-.unbind=	etherunbind,
-.bwrite=	etherbwrite,
-.addmulti=	etheraddmulti,
-.remmulti=	etherremmulti,
-.ares=		arpenter,
-.areg=		sendgarp,
-.pref2addr=	etherpref2addr,
-};
-
 typedef struct	Etherrock Etherrock;
 struct Etherrock
 {
@@ -98,8 +81,14 @@ enum
 {
 	ARPREQUEST	= 1,
 	ARPREPLY	= 2,
+
+	/* ethernet packet types */
+	ETARP		= 0x0806,
+	ETIP4		= 0x0800,
+	ETIP6		= 0x86DD,
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
 typedef struct Etherarp Etherarp;
 struct Etherarp
 {
@@ -195,7 +184,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 		ptr += 6;
 		ifc->mbps = atoi(ptr);
 	} else
-		ifc->mbps = 100;
+		ifc->mbps = 1000;
 
 	/*
 	 *  open arp conversation
@@ -550,9 +539,10 @@ sendgarp(Ipifc *ifc, uchar *ip)
 	Etherarp *e;
 	Etherrock *er = ifc->arg;
 
-	/* don't arp for our initial non address */
-	if(ipcmp(ip, IPnoaddr) == 0)
-		return;
+	if(ipcmp(ip, IPnoaddr) == 0) {
+		print("sendgarp with broadcast return address\n");
+		ip = IPv4bcast;
+	}
 
 	n = sizeof(Etherarp);
 	if(n < ifc->medium->mintu)
@@ -609,7 +599,7 @@ recvarp(Ipifc *ifc)
 
 		/* make sure we're not entering broadcast addresses */
 		if(ipcmp(ip, ipbroadcast) == 0 ||
-			!memcmp(e->sha, etherbroadcast, sizeof(e->sha))){
+			memcmp(e->sha, etherbroadcast, sizeof e->sha) == 0){
 			print("arprep: 0x%E/0x%E cannot register broadcast address %I\n",
 				e->s, e->sha, e->spa);
 			break;
@@ -626,16 +616,17 @@ recvarp(Ipifc *ifc)
 		/* check for machine using my ip or ether address */
 		v4tov6(ip, e->spa);
 		if(iplocalonifc(ifc, ip) || ipproxyifc(er->f, ifc, ip)){
-			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) != 0){
-				if (memcmp(eprinted, e->spa, sizeof(e->spa))){
-					/* print only once */
-					print("arpreq: 0x%E also has ip addr %V\n", e->sha, e->spa);
-					memmove(eprinted, e->spa, sizeof(e->spa));
-				}
+			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) != 0 &&
+			    memcmp(eprinted, e->spa, sizeof(e->spa)) != 0){
+				/* print only once */
+				print("arpreq: 0x%E also has ip addr %V\n",
+					e->sha, e->spa);
+				memmove(eprinted, e->spa, sizeof(e->spa));
 			}
 		} else {
 			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) == 0){
-				print("arpreq: %V also has ether addr %E\n", e->spa, e->sha);
+				print("arpreq: %V also has ether addr %E\n",
+					e->spa, e->sha);
 				break;
 			}
 		}
@@ -749,14 +740,13 @@ void
 ethermediumlink(void)
 {
 	addipmedium(&ethermedium);
-	addipmedium(&gbemedium);
 }
 
 
 static void
 etherpref2addr(uchar *pref, uchar *ea)
 {
-	pref[8] = ea[0] | 0x2;
+	pref[8] = ea[0] | 0x2;	/* 0x2 is inverted U/L bit; see rfc4291 */
 	pref[9] = ea[1];
 	pref[10] = ea[2];
 	pref[11] = 0xFF;

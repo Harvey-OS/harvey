@@ -1,5 +1,9 @@
 #include "u.h"
 #include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include <ctype.h>
 
 /*
  * The code makes two assumptions: strlen(ld) is 1 or 2; latintab[i].ld can be a
@@ -22,19 +26,16 @@ static long
 unicode(Rune *k, int n)
 {
 	long c;
+	Rune rune;
 	Rune *r;
 
 	c = 0;
 	for(r = &k[1]; r<&k[n]; r++){		/* +1 to skip [Xx] */
 		c <<= 4;
-		if('0'<=*r && *r<='9')
-			c += *r-'0';
-		else if('a'<=*r && *r<='f')
-			c += 10 + *r-'a';
-		else if('A'<=*r && *r<='F')
-			c += 10 + *r-'A';
-		else
+		rune = *r;
+		if (!isascii(rune) || !isxdigit(rune))
 			return -1;
+		c += hexvalc(rune);
 	}
 	return c;
 }

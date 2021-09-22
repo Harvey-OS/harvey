@@ -93,14 +93,14 @@ with mode ORDWR.
 .PP
 Create a one megabyte segment at address 0x10000000:
 .EX
-	% bind '#g' /mnt/segment
-	% mkdir /mnt/segment/example
-	% echo 'va 0x10000000 0x100000' > /mnt/segment/example/ctl
+	% bind -c '#g' /n/segment
+	% mkdir /n/segment/example
+	% echo 'va 0x10000000 0x100000' > /n/segment/example/ctl
 .EE
 .PP
 Put the string ``hi mom'' at the start of the segment:
 .EX
-	% echo -n hi mom > /mnt/segment/example/data
+	% echo -n hi mom > /n/segment/example/data
 .EE
 .PP
 Attach the segment to a process:
@@ -115,3 +115,7 @@ Attach the segment to a process:
 .IR segattach (2)
 .SH SOURCE
 .B /sys/src/9/port/devsegment.c
+.SH BUGS
+There is a system-wide limit
+(e.g., 128)
+on the number of segments that may exist at once.

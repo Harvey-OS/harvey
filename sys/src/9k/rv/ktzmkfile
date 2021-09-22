@@ -1,0 +1,15 @@
+# rv ktzmkfile - mkfile to print ktzero for RVARCH
+
+</$cputype/mkfile
+<rvarch.$RVARCH
+
+CFLAGS=$CFLAGS $CONFDEF
+
+ktzero:V: $O.prktzero
+	$O.prktzero
+prktzero.$O: prktzero.c
+	$CC $CFLAGS $prereq
+$O.prktzero: prktzero.$O
+	$LD -o $target $prereq
+clean:V:
+	rm -f prktzero.$O $O.prktzero

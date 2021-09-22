@@ -19,7 +19,7 @@
 	int	ln;
 	char*	ttp;
 	char*	ss = "";
-	int	bstack[10] = { 0 };
+	int	bstack[50] = { 0 };
 	char*	numb[15] =
 	{
 		" 0", " 1", " 2", " 3", " 4", " 5",
@@ -746,7 +746,7 @@ restart:
 		yylval.cptr = str;
 		while((c=getch()) != '"'){
 			*str++ = c;
-			if(str >= &string[999]){
+			if(str >= &string[sizeof string - 1]){
 				yyerror("string space exceeded");
 				getout();
 			}

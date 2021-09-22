@@ -1,0 +1,4 @@
+ARCH=pf
+# must match KTZERO in mem.h
+KTZERO=0xffffffc080000000	# sv39
+CONFDEF='-DPAUart0=0x20100000'	# actually uart 1, used by u-boot

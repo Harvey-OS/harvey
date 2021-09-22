@@ -1,0 +1,82 @@
+.TH WEBSCRIPT 1
+.SH NAME
+webscript \- web interaction scripting language
+.SH SYNOPSIS
+.B webscript
+[
+.B -vx
+]
+[
+.I file
+\&...
+]
+.SH DESCRIPTION
+.I Webscript
+is a simple language for scripting web interactions.
+The language is described below.
+.PP
+.I Webscript
+reads and executes each
+.I file
+in turn.
+If no files are listed, 
+.I webscript
+reads from standard input.
+The
+.B -x
+option causes
+.I webscript
+to print each simple command as it executes.
+The
+.B -v 
+option causes
+.I webscript
+to print verbose debugging output.
+.PP
+Web scripts are sequences of commands
+separated by semicolons or newlines.
+The commands manipulate
+the current HTML document and the current
+.I focus
+within the document.
+The focus may be the entire document, 
+a table, a row, a cell, a form, or a form field.
+.PP
+The commands are:
+.TP
+.BI load " url"
+Load the document at the given
+.IR url ,
+a quoted string.
+The focus is initialized to be the entire document.
+.TP
+.BI find "\fR [ \fIwhere\fR ] \fIthing\fR ] [ \fItext\fR ]
+Find a given XXX.
+.TP
+.BI print "\fR [ \fItext\fR ]
+If
+.IR text ,
+a quoted string, is specified, print that string.
+With no arguments, print a text representation of the
+current document focus.
+.TP
+.BI input "\fR \fIvalue\fR
+.TP
+.BI submit
+.TP
+.BI ! command
+.TP
+.BI if( command ) " command " else " command
+.TP
+.BI while( command ) " command"
+.TP
+.BI { " command \fR... " }
+The
+.L #
+character causes the rest of the line to be treated as a comment.
+.SH SOURCE
+.B /sys/src/cmd/webscript
+.SH "SEE ALSO
+.IR hget (1),
+.IR webcookies (4),
+.IR webfs (4)

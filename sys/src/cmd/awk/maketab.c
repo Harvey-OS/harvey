@@ -28,16 +28,16 @@ THIS SOFTWARE.
  * it finds the indices in y.tab.h, produced by yacc.
  */
 
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "awk.h"
 #include "y.tab.h"
 
 struct xx
 {	int token;
-	const char *name;
-	const char *pname;
+	char *name;
+	char *pname;
 } proc[] = {
 	{ PROGRAM, "program", NULL },
 	{ BOR, "boolop", " || " },
@@ -102,22 +102,26 @@ struct xx
 	{ CALL, "call", "call" },
 	{ ARG, "arg", "arg" },
 	{ VARNF, "getnf", "NF" },
-	{ GETLINE, "awkgetline", "getline" },
+	{ GETLINE, "getline", "getline" },
 	{ 0, "", "" },
 };
 
 #define SIZE	(LASTTOKEN - FIRSTTOKEN + 1)
-const char *table[SIZE];
+char *table[SIZE];
 char *names[SIZE];
 
-int main(int argc, char *argv[])
+void main(int argc, char *argv[])
 {
-	const struct xx *p;
+	struct xx *p;
 	int i, n, tok;
 	char c;
 	FILE *fp;
-	char buf[200], name[200], def[200];
+	char buf[200];
+	char *name;
+	char *tokens[3];
 
+	printf("#include <u.h>\n");
+	printf("#include <libc.h>\n");
 	printf("#include <stdio.h>\n");
 	printf("#include \"awk.h\"\n");
 	printf("#include \"y.tab.h\"\n\n");
@@ -131,12 +135,16 @@ int main(int argc, char *argv[])
 	printf("static char *printname[%d] = {\n", SIZE);
 	i = 0;
 	while (fgets(buf, sizeof buf, fp) != NULL) {
-		n = sscanf(buf, "%1c %s %s %d", &c, def, name, &tok);
-		if (c != '#' || (n != 4 && strcmp(def,"define") != 0))	/* not a valid #define */
+		if (buf[0] != '#')
 			continue;
+		n = tokenize(buf+1, tokens, sizeof tokens/sizeof tokens[0]);
+		if (n != 3 && strcmp(tokens[0], "define") != 0)
+			continue;		/* not a valid #define */
+		name = tokens[1];
+		tok = atoi(tokens[2]);
 		if (tok < FIRSTTOKEN || tok > LASTTOKEN) {
-			/* fprintf(stderr, "maketab funny token %d %s ignored\n", tok, buf); */
-			continue;
+			fprintf(stderr, "maketab funny token %d %s\n", tok, buf);
+			exit(1);
 		}
 		names[tok-FIRSTTOKEN] = (char *) malloc(strlen(name)+1);
 		strcpy(names[tok-FIRSTTOKEN], name);
@@ -159,10 +167,10 @@ int main(int argc, char *argv[])
 	printf("{\n");
 	printf("	static char buf[100];\n\n");
 	printf("	if (n < FIRSTTOKEN || n > LASTTOKEN) {\n");
-	printf("		sprintf(buf, \"token %%d\", n);\n");
+	printf("		snprintf(buf, sizeof buf, \"token %%d\", n);\n");
 	printf("		return buf;\n");
 	printf("	}\n");
 	printf("	return printname[n-FIRSTTOKEN];\n");
 	printf("}\n");
-	return 0;
+	exits(0);
 }

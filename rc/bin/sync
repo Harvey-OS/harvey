@@ -1,0 +1,45 @@
+#!/bin/rc
+# sync - sync (flush) all file servers
+rfork e
+if (! ~ $#* 0) {
+	echo usage: $0 >[1=2]
+	exit usage
+}
+
+path=(/bin)
+builtin cd /
+
+f=`{ls /srv/fscons*>[2]/dev/null}
+k=`{ls /srv/kfs*cmd >[2]/dev/null|sort -r}
+
+echo -n syncing...
+for(i in $f) @ {
+	echo -n $i...
+	{
+		echo
+		dial/drain &
+		drainpid=$apid
+		sleep 3
+		if (test -e /proc/$drainpid/ctl)
+			@ { echo kill >/proc/$drainpid/ctl } >/dev/null >[2=1]
+		echo fsys all sync
+		if(! dial/expect -t 060 ': ')
+			echo -n 'not synced...' > /dev/cons
+	} < $i >> $i
+}
+
+echo -n venti...
+venti/sync -h localhost >[2]/dev/null &
+venti/sync >[2]/dev/null &
+
+for (i in $k){
+	echo -n $i... 
+	switch($i){
+	case /srv/kfs.cmd
+		disk/kfscmd sync
+	case *
+		disk/kfscmd -n `{echo $i | sed -n 's%/srv/kfs.(.*).cmd%\1%p'} sync
+	}
+	sleep 3
+}
+echo

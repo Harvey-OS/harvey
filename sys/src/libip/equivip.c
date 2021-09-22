@@ -5,21 +5,11 @@
 int
 equivip4(uchar *a, uchar *b)
 {
-	int i;
-
-	for(i = 0; i < 4; i++)
-		if(a[i] != b[i])
-			return 0;
-	return 1;
+	return memcmp(a, b, IPv4addrlen) == 0;
 }
 
 int
 equivip6(uchar *a, uchar *b)
 {
-	int i;
-
-	for(i = 0; i < IPaddrlen; i++)
-		if(a[i] != b[i])
-			return 0;
-	return 1;
+	return memcmp(a, b, IPaddrlen) == 0;
 }

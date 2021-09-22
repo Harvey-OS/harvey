@@ -1,0 +1,391 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:602: checking for gcc
+configure:681: checking whether the C compiler (c89  ) works
+configure:695: c89 -o conftest    conftest.c  1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+configure:715: checking whether the C compiler (c89  ) is a cross-compiler
+configure:720: checking whether we are using GNU C
+configure:807: checking for a BSD compatible install
+configure:858: checking whether ln -s works
+configure:881: checking whether make sets ${MAKE}
+configure:913: checking for dirent.h that defines DIR
+configure:951: checking for opendir in -ldir
+configure:1034: checking how to run the C preprocessor
+configure:1095: checking for ANSI C header files
+configure:1199: checking whether closedir returns void
+configure:1240: checking for assert.h
+configure:1240: checking for float.h
+configure:1240: checking for limits.h
+configure:1240: checking for memory.h
+configure:1240: checking for pwd.h
+configure:1240: checking for stdlib.h
+configure:1240: checking for string.h
+configure:1240: checking for sys/param.h
+configure:1240: checking for unistd.h
+configure:1282: checking for ranlib
+configure:1316: checking host system type
+configure:1340: checking for libtool object types
+configure:1392: checking for basename
+configure:1392: checking for putenv
+configure:1392: checking for strcasecmp
+configure:1392: checking for strtol
+configure:1392: checking for strstr
+configure:1450: checking for bcopy
+configure:1450: checking for getcwd
+configure:1450: checking for getwd
+configure:1504: checking for working const
+configure:1581: checking whether the compiler accepts prototypes
+configure:1614: checking whether program_invocation_name is predefined
+configure:1650: checking whether putenv uses malloc
+configure:1735: checking whether getcwd uses fork or vfork
+configure:1780: checking whether to enable maintainer-specific portions of Makefiles
+configure:1876: checking host system type
+configure:1908: checking where the main texmf tree is located
+configure:1951: checking for bison
+configure:1951: checking for byacc
+configure:1984: checking for flex
+configure:2018: checking for yywrap in -ll
+configure:2037: c89 -o conftest -g   conftest.c -ll   -ldir 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+configure:2062: checking for ranlib
+configure:2092: checking for strerror
+configure:2120: c89 -o conftest -g   conftest.c  -ldir 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+configure:2146: checking return type of signal handlers
+configure:2168: c89 -c -g  conftest.c 1>&5
+configure:2188: checking lex output file root
+configure:2210: checking whether yytext is a pointer
+configure:2238: c89 -o conftest -g   conftest.c  -ldir -ll 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+/usr/rsc/tex/web2c/web2c/configure:2509[stdin:574] external redeclaration of: yytext
+	IND CHAR; ARRAY[200] CHAR
+cc: cpp: 8c 40179:error
+configure: failed program was:
+#line 2231 "configure"
+#include "confdefs.h"
+typedef unsigned char Uchar;
+# include <stdio.h>
+# define U(x) x
+# define NLSTATE yyprevious=YYNEWLINE
+# define BEGIN yybgin = yysvec + 1 +
+# define INITIAL 0
+# define YYLERR yysvec
+# define YYSTATE (yyestate-yysvec-1)
+# define YYOPTIM 1
+# define YYLMAX 200
+# define output(c) putc(c,yyout)
+# define input() (((yytchar=yysptr>yysbuf?U(*--yysptr):getc(yyin))==10?(yylineno++,yytchar):yytchar)==EOF?0:yytchar)
+# define unput(c) {yytchar= (c);if(yytchar=='\n')yylineno--;*yysptr++=yytchar;}
+# define yymore() (yymorfg=1)
+# define ECHO fprintf(yyout, "%s",yytext)
+# define REJECT { nstr = yyreject(); goto yyfussy;}
+int yyleng; extern char yytext[];
+int yymorfg;
+extern Uchar *yysptr, yysbuf[];
+int yytchar;
+FILE *yyin = {stdin}, *yyout = {stdout};
+extern int yylineno;
+struct yysvf { 
+	struct yywork *yystoff;
+	struct yysvf *yyother;
+	int *yystops;};
+struct yysvf *yyestate;
+extern struct yysvf yysvec[], *yybgin;
+int yylook(void), yywrap(void), yyback(int *, int);
+#define YYNEWLINE 10
+yylex(void){
+int nstr; extern int yyprevious;
+while((nstr = yylook()) >= 0)
+yyfussy: switch(nstr){
+case 0:
+if(yywrap()) return(0); break;
+case -1:
+break;
+default:
+fprintf(yyout,"bad switch yylook %d",nstr);
+} return(0); }
+/* end of yylex */
+int yyvstop[] = {
+0,
+0};
+# define YYTYPE Uchar
+struct yywork { YYTYPE verify, advance; } yycrank[] = {
+0,0,	0,0,	0,0,	0,0,	
+0,0};
+struct yysvf yysvec[] = {
+0,	0,	0,
+yycrank+0,	0,		0,	
+yycrank+0,	0,		0,	
+0,	0,	0};
+struct yywork *yytop = yycrank+0;
+struct yysvf *yybgin = yysvec+1;
+Uchar yymatch[] = {
+00  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+01  ,01  ,01  ,01  ,01  ,01  ,01  ,01  ,
+0};
+Uchar yyextra[] = {
+0,0,0,0,0,0,0,0,
+0};
+#pragma lib	"libl.a"
+int yylineno =1;
+# define YYU(x) x
+char yytext[YYLMAX];
+struct yysvf *yylstate [YYLMAX], **yylsp, **yyolsp;
+Uchar yysbuf[YYLMAX];
+Uchar *yysptr = yysbuf;
+int *yyfnd;
+extern struct yysvf *yyestate;
+int yyprevious = YYNEWLINE;
+# ifdef LEXDEBUG
+extern void allprint(char);
+# endif
+yylook(void){
+	struct yysvf *yystate, **lsp;
+	struct yywork *yyt;
+	struct yysvf *yyz;
+	int yych;
+	struct yywork *yyr;
+# ifdef LEXDEBUG
+	int debug;
+# endif
+	Uchar *yylastch;
+	/* start off machines */
+# ifdef LEXDEBUG
+	debug = 0;
+# endif
+	if (!yymorfg)
+		yylastch = (Uchar*)yytext;
+	else {
+		yymorfg=0;
+		yylastch = (Uchar*)yytext+yyleng;
+		}
+	for(;;){
+		lsp = yylstate;
+		yyestate = yystate = yybgin;
+		if (yyprevious==YYNEWLINE) yystate++;
+		for (;;){
+# ifdef LEXDEBUG
+			if(debug)fprintf(yyout,"state %d\n",yystate-yysvec-1);
+# endif
+			yyt = yystate->yystoff;
+			if(yyt == yycrank){		/* may not be any transitions */
+				yyz = yystate->yyother;
+				if(yyz == 0)break;
+				if(yyz->yystoff == yycrank)break;
+				}
+			*yylastch++ = yych = input();
+		tryagain:
+# ifdef LEXDEBUG
+			if(debug){
+				fprintf(yyout,"char ");
+				allprint(yych);
+				putchar('\n');
+				}
+# endif
+			yyr = yyt;
+			if ( (int)yyt > (int)yycrank){
+				yyt = yyr + yych;
+				if (yyt <= yytop && yyt->verify+yysvec == yystate){
+					if(yyt->advance+yysvec == YYLERR)	/* error transitions */
+						{unput(*--yylastch);break;}
+					*lsp++ = yystate = yyt->advance+yysvec;
+					goto contin;
+					}
+				}
+# ifdef YYOPTIM
+			else if((int)yyt < (int)yycrank) {		/* r < yycrank */
+				yyt = yyr = yycrank+(yycrank-yyt);
+# ifdef LEXDEBUG
+				if(debug)fprintf(yyout,"compressed state\n");
+# endif
+				yyt = yyt + yych;
+				if(yyt <= yytop && yyt->verify+yysvec == yystate){
+					if(yyt->advance+yysvec == YYLERR)	/* error transitions */
+						{unput(*--yylastch);break;}
+					*lsp++ = yystate = yyt->advance+yysvec;
+					goto contin;
+					}
+				yyt = yyr + YYU(yymatch[yych]);
+# ifdef LEXDEBUG
+				if(debug){
+					fprintf(yyout,"try fall back character ");
+					allprint(YYU(yymatch[yych]));
+					putchar('\n');
+					}
+# endif
+				if(yyt <= yytop && yyt->verify+yysvec == yystate){
+					if(yyt->advance+yysvec == YYLERR)	/* error transition */
+						{unput(*--yylastch);break;}
+					*lsp++ = yystate = yyt->advance+yysvec;
+					goto contin;
+					}
+				}
+			if ((yystate = yystate->yyother) && (yyt= yystate->yystoff) != yycrank){
+# ifdef LEXDEBUG
+				if(debug)fprintf(yyout,"fall back to state %d\n",yystate-yysvec-1);
+# endif
+				goto tryagain;
+				}
+# endif
+			else
+				{unput(*--yylastch);break;}
+		contin:
+# ifdef LEXDEBUG
+			if(debug){
+				fprintf(yyout,"state %d char ",yystate-yysvec-1);
+				allprint(yych);
+				putchar('\n');
+				}
+# endif
+			;
+			}
+# ifdef LEXDEBUG
+		if(debug){
+			fprintf(yyout,"stopped at %d with ",*(lsp-1)-yysvec-1);
+			allprint(yych);
+			putchar('\n');
+			}
+# endif
+		while (lsp-- > yylstate){
+			*yylastch-- = 0;
+			if (*lsp != 0 && (yyfnd= (*lsp)->yystops) && *yyfnd > 0){
+				yyolsp = lsp;
+				if(yyextra[*yyfnd]){		/* must backup */
+					while(yyback((*lsp)->yystops,-*yyfnd) != 1 && lsp > yylstate){
+						lsp--;
+						unput(*yylastch--);
+						}
+					}
+				yyprevious = YYU(*yylastch);
+				yylsp = lsp;
+				yyleng = yylastch-(Uchar*)yytext+1;
+				yytext[yyleng] = 0;
+# ifdef LEXDEBUG
+				if(debug){
+					fprintf(yyout,"\nmatch '%s'", yytext);
+					fprintf(yyout," action %d\n",*yyfnd);
+					}
+# endif
+				return(*yyfnd++);
+				}
+			unput(*yylastch);
+			}
+		if (yytext[0] == 0  /* && feof(yyin) */)
+			{
+			yysptr=yysbuf;
+			return(0);
+			}
+		yyprevious = input();
+		yytext[0] = yyprevious;
+		if (yyprevious>0)
+			output(yyprevious);
+		yylastch = (Uchar*)yytext;
+# ifdef LEXDEBUG
+		if(debug)putchar('\n');
+# endif
+		}
+	return(0);	/* shut up the compiler; i have no idea what should be returned */
+	}
+yyback(int *p, int m)
+{
+if (p==0) return(0);
+while (*p)
+	{
+	if (*p++ == m)
+		return(1);
+	}
+return(0);
+}
+	/* the following are only used in the lex library */
+yyinput(void){
+	return(input());
+}
+void
+yyoutput(int c)
+{
+	output(c);
+}
+void
+yyunput(int c)
+{
+	unput(c);
+}
+extern char *yytext;
+#ifndef yywrap
+int yywrap () { return 1; }
+#endif
+int main() {
+
+; return 0; }
+configure:2259: checking whether yytext is an array of char
+configure:2289: c89 -o conftest -g   conftest.c  -ldir -ll 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+configure:2363: checking whether gcc asm needs underscore
+configure:2392: c89 -o conftest -g   conftest.c  -ldir 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+configure:2464: checking whether char is unsigned
+configure:2503: c89 -o conftest -g   conftest.c  -ldir 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+configure: failed program was:
+#line 2493 "configure"
+#include "confdefs.h"
+/* volatile prevents gcc2 from optimizing the test away on sparcs.  */
+#if !defined(__STDC__) || __STDC__ != 1
+#define volatile
+#endif
+main() {
+  volatile char c = 255; exit(c < 0);
+}
+configure:2527: checking whether byte ordering is bigendian
+configure:2545: c89 -c -g  conftest.c 1>&5
+/sys/include/ape/sys/param.h:5[stdin:232] not a function
+/sys/include/ape/sys/param.h:5[stdin:232] syntax error, last name: header
+cc: cpp: 8c 40220:error
+configure: failed program was:
+#line 2534 "configure"
+#include "confdefs.h"
+#include <sys/types.h>
+#include <sys/param.h>
+int main() {
+
+#if !BYTE_ORDER || !BIG_ENDIAN || !LITTLE_ENDIAN
+ bogus endian macros
+#endif
+; return 0; }
+configure:2593: c89 -o conftest -g   conftest.c  -ldir 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+configure:2617: checking size of long
+configure:2636: c89 -o conftest -g   conftest.c  -ldir 1>&5 && (ls -l conftest | grep x) >/dev/null 2>&1
+cc: can't find library for -l
+configure:2937: checking for X

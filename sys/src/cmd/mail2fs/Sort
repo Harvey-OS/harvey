@@ -1,0 +1,2 @@
+#!/bin/rc
+grep '^[0-9]' | sort -t/ +0nr | sort -t/ +1r | mlist 

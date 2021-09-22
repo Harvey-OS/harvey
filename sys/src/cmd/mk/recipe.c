@@ -24,9 +24,11 @@ dorecipe(Node *node)
 	if(r == 0){
 		if(!(node->flags&VIRTUAL) && !(node->flags&NORECIPE)){
 			if(getwd(cwd, sizeof cwd))
-				fprint(2, "mk: no recipe to make '%s' in directory %s\n", node->name, cwd);
+				fprint(2, "mk: no recipe to make '%s' in directory %s\n",
+					node->name, cwd);
 			else
-				fprint(2, "mk: no recipe to make '%s'\n", node->name);
+				fprint(2, "mk: no recipe to make '%s'\n",
+					node->name);
 			Exit();
 		}
 		if(strchr(node->name, '(') && node->time == 0)
@@ -92,7 +94,8 @@ dorecipe(Node *node)
 					addw(&ln, a->n->name);
 					if(explain)
 						fprint(1, "%s(%ld) < %s(%ld)\n",
-							n->name, n->time, a->n->name, a->n->time);
+							n->name, n->time,
+							a->n->name, a->n->time);
 				}
 			} else {
 				if(explain)

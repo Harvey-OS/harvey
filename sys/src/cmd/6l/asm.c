@@ -1,4 +1,7 @@
 #include	"l.h"
+#define Sym Aoutsym
+#include	<a.out.h>
+#undef Sym
 
 #define	Dbufslop	100
 
@@ -205,17 +208,16 @@ asmb(void)
 	switch(HEADTYPE) {
 	default:
 	case 2:	/* plan9 */
-		magic = 4*26*26+7;
-		magic |= 0x00008000;		/* fat header */
+		magic = S_MAGIC;		/* has a fat header */
 		if(dlm)
-			magic |= 0x80000000;	/* dlm */
+			magic |= DYN_MAGIC;
 		lput(magic);			/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
 		lput(symsize);			/* nsyms */
 		vl = entryvalue();
-		lput(PADDR(vl));		/* va of entry */
+		lput(PADDR(vl));		/* pa of entry */
 		lput(spsize);			/* sp offsets */
 		lput(lcsize);			/* line offsets */
 		llput(vl);			/* va of entry */

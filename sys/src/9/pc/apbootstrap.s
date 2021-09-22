@@ -10,7 +10,11 @@
  */
 #include "mem.h"
 
-#define NOP		BYTE $0x90		/* NOP */
+/*
+ * use this (data) definition instead of the built-in instruction
+ * to avoid 8l deleting NOPs after a jump.  this matters to alignment.
+ */
+#define NOP		BYTE $0x90
 #define LGDT(gdtptr)	BYTE $0x0F;		/* LGDT */			\
 			BYTE $0x01; BYTE $0x16;					\
 			WORD $gdtptr
@@ -30,8 +34,8 @@
  * and page tables. Note that these are assembler-specific hence
  * the '<<2'.
  */
-#define PDO(a)		(((((a))>>22) & 0x03FF)<<2)
-#define PTO(a)		(((((a))>>12) & 0x03FF)<<2)
+#define PDO(a)		(((((a))>>XPGSHIFT) & 0x03FF)<<2)
+#define PTO(a)		(((((a))>>PGSHIFT) & 0x03FF)<<2)
 
 TEXT apbootstrap(SB), $0
 	FARJUMP16(0, _apbootstrap(SB))
@@ -48,7 +52,7 @@ TEXT _apbootstrap(SB), $0			/* address APBOOTSTRAP+0x14 */
 	LGDT(gdtptr(SB))			/* load a basic gdt */
 
 	MOVL	CR0, AX
-	ORL	$1, AX
+	ORL	$PE, AX
 	MOVL	AX, CR0				/* turn on protected mode */
 	DELAY					/* JMP .+2 */
 
@@ -74,8 +78,9 @@ TEXT _ap32(SB), $0
 	MOVL	CX, CR3				/* load and flush the mmu */
 
 	MOVL	CR0, DX
-	ORL	$0x80010000, DX			/* PG|WP */
-	ANDL	$~0x6000000A, DX		/* ~(CD|NW|TS|MP) */
+	ORL	$(PG|WP), DX
+	/* CD and NW clear enables write-back caches */
+	ANDL	$~(CD|NW|TS|MP), DX
 
 	MOVL	$_appg(SB), AX
 	MOVL	DX, CR0				/* turn on paging */
@@ -87,7 +92,7 @@ TEXT _appg(SB), $0
 	MOVL	$0, (PDO(0))(AX)		/* undo double-map of KZERO at 0 */
 	MOVL	CX, CR3				/* load and flush the mmu */
 
-	MOVL	$(MACHADDR+MACHSIZE-4), SP
+	MOVL	$(MACHADDR+MACHSIZE-BY2WD), SP
 
 	MOVL	$0, AX
 	PUSHL	AX

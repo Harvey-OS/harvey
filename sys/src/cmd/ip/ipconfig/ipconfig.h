@@ -26,7 +26,6 @@ struct Conf
 	uchar	fs[2*IPaddrlen];
 	uchar	auth[2*IPaddrlen];
 	uchar	ntp[IPaddrlen];
-	uchar	iproutes[6*IPaddrlen]; /* mask, network, gateway */
 	int	mtu;
 
 	/* dhcp specific */
@@ -199,6 +198,8 @@ enum {
 	IP_MAX		= 32*1024,
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
+// #pragma pack _1
 struct Headers {
 	uchar	dst[IPaddrlen];
 	uchar	src[IPaddrlen];
@@ -257,6 +258,7 @@ struct Mtuopt {
 	uchar	reserv[2];
 	uchar	mtu[4];
 };
+// #pragma pack off
 
 void	ea2lla(uchar *lla, uchar *ea);
 void	ipv62smcast(uchar *smcast, uchar *a);

@@ -1,0 +1,107 @@
+< /sys/doc/fonts
+NPROC = 1
+
+# /sys/lib/dist/mkfile and subordinates maintain /n/other/crp
+PUB = /n/other/srcs.copy/sys/doc
+ALL=\
+	9k-riscv
+
+ALLPS=${ALL:%=%.ps}
+HTML=${ALL:%=%.html} release3.html release4.html release.html index.html
+PDF=${ALL:%=%.pdf} release3.pdf release4.pdf release.pdf
+FILES=`{mkfilelist $ALL}
+NAMES=$FILES
+
+all:V: ${FILES:%=%.pdf}
+
+clean:V:
+	rm -f *.ps *.pdf *.html *.png
+	# some postscript files in subdirectories can't be regenerated easily
+	rm -f */*.pdf */*.html */*.png
+
+print:V: $ALLPS
+	lp -H -i0 $prereq
+
+title.ps:D:	title
+	troff $prereq | lp -dstdout > $target
+	cleanps $target
+
+trademarks.ps:D:	/sys/lib/man/trademarks
+	troff $prereq | lp -dstdout > $target
+	cleanps $target
+
+colophon.ps:D:	/sys/lib/man/colophon
+	troff $prereq | lp -dstdout > $target
+	cleanps $target
+
+# troff gets some scary-looking errors but they're okay
+([^/]+)\.ps:R: \1.ms
+	mac=(-ms)
+	if(~ $stem1 XXX) mac=($mac -mnihongo)
+	aux=()
+	{ echo $FONTS; cat $aux $stem1.ms } | refer -e -s | pic | tbl | eqn | 
+		troff $mac | lp -dstdout > $target
+	cleanps $target
+
+%.trout:D:	%.ms
+	mac=(-ms)
+	if(~ $stem XXX) mac=($mac -mnihongo)
+	aux=()
+	if(~ $stem contents) aux=contents.type.mac
+	{ echo $FONTS; cat $aux $stem.ms } | refer -e -s | pic | tbl | eqn | 
+		troff $mac > $target
+
+html:V: $HTML
+
+9.trout 9.ps 9.html: network.pic
+
+%.html: /$objtype/bin/htmlroff /sys/lib/tmac/tmac.s
+
+index.html: contents.html
+	cp contents.html index.html
+
+&.html:D:	&.ms
+	aux=()
+	pic $aux $stem.ms | tbl | eqn | htmlroff -ms -mhtml >$target
+
+pdf:V: $PDF
+
+^(8½|acme|fs|net|sam|venti)/([^/]*\.(pdf|ps|html))'$':R:
+	cd $stem1
+	mk $stem2
+
+^(8½|acme|fs|net|sam|venti)\.html'$':R: \1/\1.html
+	cp $stem1/$stem1.html .
+
+%.pdf: %.ps
+	cat docfonts $stem.ps >_$stem.ps
+	ps2pdf _$stem.ps $stem.pdf && rm -f _$stem.ps
+
+%.all:V:
+	mk $stem.ps $stem.pdf $stem.html
+
+# assume `mk all' before `mk install'
+%.install:V:	# %.html %.pdf %.ps
+	9fs other
+	test -e $PUB		# make sure it mounted
+	files=`{ls   $stem.^(html png jpg gif ps pdf) >[2]/dev/null}
+	whatis stem
+#	whatis files
+	if (! ~ $#files 0 && cp -x $files $PUB)
+		echo
+	if not
+		echo
+
+%.page:V:	%.ps
+	page -w $stem.ps
+
+# push it out to where it will be visible from outside on the web
+install:V: ${NAMES:%=%.install} release.install release4.install release3.install index.install
+	# cd $PUB; cp index.htm index.html
+
+# ignore these
+IGNHTML=title trademarks colophon troff
+IGN=${IGNHTML:%=%.html} ${IGNHTML:%=%.install}
+
+$IGN:QV:
+	# nothing

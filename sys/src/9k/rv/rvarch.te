@@ -1,0 +1,6 @@
+ARCH=te
+# must match KTZERO in mem.h
+KTZERO=0xffff800080000000	# sv48, works
+#KTZERO=0xffffffc080000000	# sv48 faults
+CONFDEF=-DTINYEMU -DFAKEPCI
+LDFLAGS=-c			# uncompressed is much faster on tinyemu

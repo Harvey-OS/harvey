@@ -1,6 +1,6 @@
 .TH CPU 1
 .SH NAME
-cpu \- connection to CPU server
+cpu \- secure connection to CPU server
 .SH SYNOPSIS
 .B cpu
 [
@@ -9,6 +9,8 @@ cpu \- connection to CPU server
 ] [
 .B -u
 .I user
+] [
+.B -sStv
 ] [
 .B -a
 .I auth-method
@@ -28,8 +30,12 @@ cpu \- connection to CPU server
 .PP
 .B cpu
 [
-.B -R
+.B -C
+.I cert
+] [
+.B -t
 ]
+.B -R
 .SH DESCRIPTION
 .I Cpu
 starts an
@@ -95,7 +101,7 @@ the remote system.
 .PP
 The
 .B -a
-command allows the user to specify the authentication mechanism used
+option allows the user to specify the authentication mechanism used
 when connecting to the remote system.  The two possibilities for
 .I auth-method
 are:
@@ -122,10 +128,24 @@ the server or if the user wants to log into the server as a different
 user.
 .PD
 .PP
+The connection will be encrypted.
+.I Cpu
+will attempt to establish a TLS connection first, to service
+.BR cpu-tls .
+TLS will negotiate encryption algorithms common to client and server.
+If a TLS connection fails, and in the absence of
+.BR -t ,
+.I cpu
+will attempt a less-secure SSLv2 connection to service
+.BR ncpu .
+With
+.BR -s ,
+only SSL will be attempted
+(forces compatibility with old systems).
 The
 .B -e
 option specifies an encryption and/or hash algorithm to
-use for the connection.  If both are specified, they must
+use for any SSLv2 connection.  If both are specified, they must
 be space separated and comprise a single argument, so they
 must be quoted if in a shell command.  The default is
 .L rc4_256
@@ -133,16 +153,22 @@ encryption and
 .L sha1
 hashing.  See
 .IR ssl (3)
-for details on possible algorithms.  The argument
+for details on possible (weak) algorithms.
+The argument
 .L clear
-specifies no encryption algorithm and can be used to talk
-to older versions of the
+specifies no SSLv2 encryption, primarily for debugging.
+The
+.B -v
+option prints connection attempts, identifying the protocol used.
+The
+.B -S
+option makes
 .I cpu
-service.
+much more tolerant of a slow remote system.
 .PP
 The
 .B -k
-flag specifies a key pattern to use to restrict the keys
+option specifies a key pattern to use to restrict the keys
 selected by the
 .I auth_proxy
 call used for authentication.
@@ -163,12 +189,30 @@ environment variables reflect the server's architecture.
 .PP
 The
 .B -R
-flag causes
+option causes
 .I cpu
-to run the server (remote) side of the protocol.
+to run the server (remote) side of the protocol,
+and must be the final option.
 It is run from service files such as
-.BR /bin/service/tcp17010 .
+.BR /bin/service/tcp1701[04] .
+With
+.BR -t ,
+.I cpu
+will expect a TLS connection;
+without it,
+.I cpu
+will expect an SSLv2 connection.
+.B -C
+names an alternate
+.IR pem (8)-encoded
+.I cert
+for TLS,
+and implies
+.BR -t .
 .SH FILES
+.B /sys/lib/ssl/cert.pem
+	default certificate
+.PP
 The name space of the terminal side of the
 .I cpu
 command is mounted, via
@@ -183,7 +227,9 @@ are bound to their standard locations from there.
 .SH SEE ALSO
 .IR rc (1) ,
 .IR rio (1) ,
-.IR exportfs (4)
+.IR tls (3),
+.IR exportfs (4),
+.IR drawterm (8)
 .SH BUGS
 Binds and mounts done after the terminal
 .B lib/profile
@@ -194,3 +240,5 @@ When using the
 option to `log in' as another user, be aware that
 resources in the local name space will be made
 available to that user.
+.PP
+SSLv2 is deprecated.

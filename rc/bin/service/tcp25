@@ -1,5 +1,21 @@
 #!/bin/rc
-#smtp serv net incalldir user
-
+# smtp serv net incalldir user - outside smtp service
+rfork en
+MAILSERVER=`{cat /mail/lib/blessed}
+if(! ~ $sysname $MAILSERVER){
+	echo 550 this is not an mx, see our mx records
+	exit not-mx
+}
 user=`{cat /dev/user}
-exec upas/smtpd -n $3
+mailservice=outside
+#{
+#	# removed so smtpd recipient verification (which uses send) can work:
+#	bind /mail/lib/rewrite.in /mail/lib/rewrite
+#	bind /mail/lib/blocked.ext /mail/lib/blocked
+#	bind /mail/lib/smtpd.conf.ext /mail/lib/smtpd.conf
+#} > /dev/null >[2=1]
+
+# -c lets people use tls to reach us
+# -A disable the smtp auth command
+exec upas/smtpd -n $3 -gDA -c /sys/lib/ssl/cert.pem \
+	-k^`{cat /sys/lib/badips} # -d

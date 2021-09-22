@@ -1,4 +1,6 @@
+#define RARG	R8
+
 TEXT	getcallerpc(SB), $0
-	MOVW	0(SP), R8
+	MOVW	0(SP), RARG
 	RET
 

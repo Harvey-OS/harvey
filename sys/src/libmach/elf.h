@@ -126,7 +126,7 @@ enum {
 	ARM = 40,		/* ARM */
 	AMD64 = 62,		/* Amd64 */
 	ARM64 = 183,		/* ARM64 */
-	RISCV = 243,	/* RISC-V */
+	RISCV = 243,		/* RISC-V */
 
 	NO_VERSION = 0,		/* version, ident[VERSION] */
 	CURRENT = 1,

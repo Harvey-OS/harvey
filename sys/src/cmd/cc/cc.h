@@ -23,20 +23,21 @@ typedef	struct	Bits	Bits;
 typedef	Rune	TRune;	/* target system type */
 
 #define	NHUNK		50000L
-#define	BUFSIZ		16*1024
+#define	BUFSIZ		(16*1024)
 #define	NSYMB		1500
 #define	NHASH		1024
 #define	STRINGSZ	200
 #define	HISTSZ		20
 #define YYMAXDEPTH	1500
 #define	NTERM		10
-#define	MAXALIGN	7
+#define	MAXALIGN	7		/* sizeof(uvlong) - 1 */
 
-#define	SIGN(n)		((uvlong)1<<(n-1))
+#define	SIGN(n)		(1ULL<<((n)-1))
 #define	MASK(n)		(SIGN(n)|(SIGN(n)-1))
 
 #define	BITS	5
-#define	NVAR	(BITS*sizeof(ulong)*8)
+#define BI2LONG (sizeof(ulong)*8)
+#define	NVAR	(BITS*BI2LONG)
 struct	Bits
 {
 	ulong	b[BITS];
@@ -338,10 +339,17 @@ enum
 	TFILE,
 	TOLD,
 	NALLTYPES,
-
-	/* adapt size of Rune to target system's size */
-	TRUNE = sizeof(TRune)==4? TUINT: TUSHORT,
 };
+
+	/*
+	 * adapt size of Rune to target system's size, also type of L""[0].
+	 *
+	 * changing TUINT to TINT here, and Rune to int in all u.h's will
+	 * allow risc-v to compare rune==EOF.
+	 */
+// #define TRUNE (sizeof(TRune)==4? (thechar=='j'? TINT: TUINT): TUSHORT)
+#define TRUNE (sizeof(TRune)==4? TUINT: TUSHORT)
+
 enum
 {
 	CXXX,
@@ -358,11 +366,13 @@ enum
 	CEXREG,
 	NCTYPES,
 };
+/* garbage words; should match gnamesinit[] in sub.c */
 enum
 {
 	GXXX		= 0,
 	GCONSTNT	= 1<<0,
 	GVOLATILE	= 1<<1,
+//	GNORETURN	= 1<<2,			/* future */
 	NGTYPES		= 1<<2,
 
 	GINCOMPLETE	= 1<<2,
@@ -450,8 +460,8 @@ EXTERN	Type*	lastdcl;
 EXTERN	long	lastfield;
 EXTERN	Type*	lasttype;
 EXTERN	long	lineno;
-EXTERN	int	maxinclude;
 EXTERN	long	nearln;
+EXTERN	int	maxinclude;
 EXTERN	int	nerrors;
 EXTERN	int	newflag;
 EXTERN	long	nhunk;

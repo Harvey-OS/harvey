@@ -45,7 +45,7 @@ usage(void)
 }
 
 void*
-emalloc(int n)
+emalloc(uintptr n)
 {
 	void *v;
 

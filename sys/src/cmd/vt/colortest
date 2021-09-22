@@ -1,0 +1,24 @@
+[0mdefault
+[30mblack  [31mred    [32mgreen  [33mbrown
+[34mblue   [35mpurple [36mcyan   [37mwhite
+[0m
+[40mblack  [41mred    [42mgreen  [43mbrown[0m
+[44mblue   [45mpurple [46mcyan   [47mwhite
+[0m
+
+[0;1mhigh-intensity
+[30mblack  [31mred    [32mgreen  [33mbrown
+[34mblue   [35mpurple [36mcyan   [37mwhite
+[0;1m
+[40mblack  [41mred    [42mgreen  [43mbrown[0m
+[44mblue   [45mpurple [46mcyan   [47mwhite
+[0m
+
+[0;7mreverse
+[30mblack  [31mred    [32mgreen  [33mbrown
+[34mblue   [35mpurple [36mcyan   [37mwhite
+[0;7m
+[40mblack  [41mred    [42mgreen  [43mbrown[0m
+[44mblue   [45mpurple [46mcyan   [47mwhite
+[0m
+

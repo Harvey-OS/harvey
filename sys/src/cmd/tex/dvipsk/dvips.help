@@ -1,0 +1,35 @@
+Usage: dvips [OPTION]... FILENAME[.dvi]
+  Translate the given DVI file to PostScript.
+
+a*  Conserve memory, not time      A   Print only odd (TeX) pages
+b # Page copies, e.g., for posters B   Print only even (TeX) pages
+c # Uncollated copies              C # Collated copies
+d # Debugging                      D # Resolution
+e # Maxdrift value                 E*  Create minimal EPSF
+f*  Run as filter                  F*  Send control-D at end
+h f Add header file f              H f Same as h
+i*  Separate file per section
+j*  Partially download Type 1's
+k*  Print crop marks               K*  Pull comments from inclusions
+l # Last page
+m*  Manual feed                    M*  Don't make fonts
+n # Maximum number of pages        N*  No structured comments
+o f Output file                    O c Set/change paper offset
+p # First page                     P s Load config.$s
+q*  Run quietly
+r*  Reverse order of pages         R   Run securely
+s*  Enclose output in save/restore S # Max section size in pages
+t s Paper format                   T c Specify desired page size
+                                   U*  Disable string param trick
+                                   V*  Send downloadable PS fonts as PK
+x # Override dvi magnification     X # Horizontal resolution
+y # Multiply by dvi magnification  Y # Vertical resolution
+z*  Hyperdvi to HyperPostScript    Z*  Compress bitmap fonts
+-   Query interactively for options
+pp #-# First-last page
+mode s Set mode to s
+
+    # = number   f = file   s = string   * = suffix, 0 to turn off
+    c = comma-separated dimension pair (e.g., 3.1in,-41.5cm)
+
+Email bug reports to tex-k@@mail.tug.org.

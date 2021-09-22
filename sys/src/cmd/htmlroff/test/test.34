@@ -1,0 +1,9 @@
+First,
+.CW factotum
+prompts for a user name that the local kernel
+will use:
+.P1
+user[none]: \f6\s9gre\s0
+.P2
+(Default responses appear in square brackets.)
+The kernel then starts accessing local resources

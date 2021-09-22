@@ -58,7 +58,8 @@ ralloc(Deter *d, int ninst)
 {
 	Reiset *t;
 
-	t = binalloc(&d->bin, sizeof(Reiset)+2*d->nc*sizeof(Reiset*)+sizeof(uint)*ninst, 0);
+	t = binalloc(&d->bin, sizeof(Reiset) + 2*d->nc*sizeof(Reiset*) +
+		sizeof(uint)*ninst, 0);
 	if(t == nil)
 		longjmp(d->kaboom, 1);
 	t->delta = (Reiset**)&t[1];
@@ -689,12 +690,14 @@ Bprintdfa(Biobuf *b, Dreprog *p)
 	for(i=0; i<p->ninst; i++)
 		nc += p->inst[i].nc;
 	Bprint(b, "%d %d %ld %ld %ld %ld\n", p->ninst, nc,
-		p->start[0]-p->inst, p->start[1]-p->inst,
-		p->start[2]-p->inst, p->start[3]-p->inst);
+		(ulong)(p->start[0] - p->inst), (ulong)(p->start[1] - p->inst),
+		(ulong)(p->start[2] - p->inst), (ulong)(p->start[3] - p->inst));
 	for(i=0; i<p->ninst; i++){
-		Bprint(b, "%d %d %d", p->inst[i].isfinal, p->inst[i].isloop, p->inst[i].nc);
+		Bprint(b, "%d %d %d", p->inst[i].isfinal, p->inst[i].isloop,
+			p->inst[i].nc);
 		for(j=0; j<p->inst[i].nc; j++)
-			Bprint(b, " %d %ld", p->inst[i].c[j].start, p->inst[i].c[j].next-p->inst);
+			Bprint(b, " %d %ld", p->inst[i].c[j].start,
+				(ulong)(p->inst[i].c[j].next - p->inst));
 		Bprint(b, "\n");
 	}
 }

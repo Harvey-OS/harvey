@@ -1,0 +1,62 @@
+# Makefile for Web2c documentation.
+
+ac_include ../make/paths.make
+ac_include ../make/common.make
+ac_include ../make/texi.make
+
+info: web2c.info
+dvi: web2c.dvi
+
+web2c.info: install.texi ref.txi
+all: web2c.info web2c.dvi
+
+@MAINT@INSTALL: install.texi
+@MAINT@	$(MAKEINFO) $(one_info) $(MAKEINFO_FLAGS) $< -o $@
+@MAINT@	$(SHELL) $(top_srcdir)/../add-info-toc $@
+@MAINT@doc: info INSTALL
+@MAINT@
+@MAINT@ref.txi: ref.bbl
+@MAINT@	sed -e 's/~/ /g' \
+@MAINT@	    -e 's/\\[-`'\''"c^]//g' \
+@MAINT@	    -e 's/\\emdash */---/g' \
+@MAINT@	    -e 's/metapost/MetaPost/g' \
+@MAINT@	    -e 's/\\MF/Metafont/g' \
+@MAINT@	    -e 's/\\METAFONT/METAFONT/g' \
+@MAINT@	    -e 's/\\TUB/TUGboat/g' \
+@MAINT@	    -e 's/\\LaTeX/La@TeX/g' \
+@MAINT@	    -e 's/\\AMSTEX/AMS@TeX/g' \
+@MAINT@	    -e 's/\\AmSTeX/AMS@TeX/g' \
+@MAINT@	    -e 's/\\TeX/@TeX/g' \
+@MAINT@	    -e 's/\\noopsort{[^}]*}//g' \
+@MAINT@	    -e 's/[{}\]//g' \
+@MAINT@	    -e 's/@\[/{/g' \
+@MAINT@	    -e 's/@\]/}/g' \
+@MAINT@	    -e 's/@TeX/@TeX{}/g' \
+@MAINT@	$< >$@
+@MAINT@
+@MAINT@ref.bbl: ref.aux texinfo.bst
+@MAINT@	-bibtex ref
+@MAINT@
+@MAINT@ref.aux: ref.tex
+@MAINT@	rm -f ref.bbl
+@MAINT@	tex '\nonstopmode \input ref'
+
+Makefile: Makefile.in ../config.status
+	cd .. && $(SHELL) config.status
+
+install: install-exec install-data
+install-exec:
+install-data: web2c.info
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(infodir)
+	test -r web2c.info || cd $(srcdir) && for i in web2c.i*; do \
+	  $(INSTALL_DATA) $$i $(infodir)/$$i; done
+	$(POSTINSTALL)
+	if $(SHELL) -c 'install-info --version' >/dev/null 2>&1; then \
+	  install-info --info-dir=$(infodir) $(infodir)/web2c.info; \
+	else true; fi
+
+check: all
+
+#html: texi2html -expandinfo -number -menu -split_chapter
+
+ac_include ../make/clean.make

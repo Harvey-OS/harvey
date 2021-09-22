@@ -58,13 +58,16 @@ pageinit(void)
 		if(conf.mem[i].npage)
 			m += conf.mem[i].npage*BY2PG;
 	k = PGROUND(end - (char*)KTZERO);
-	print("%ldM memory: ", (m+k+1024*1024-1)/(1024*1024));
-	print("%ldM kernel data, ", (m+k-pkb*1024+1024*1024-1)/(1024*1024));
-	print("%ldM user, ", pkb/1024);
-	print("%ldM swap\n", vkb/1024);
+	print("%ldM memory: ", (m+k+MB-1)/MB);
+	print("%ldM kernel data", (m+k-pkb*1024+MB-1)/MB);
+	if (pkb)
+		print(", %ldM user", pkb/1024);
+	if (vkb)
+		print(", %ldM swap", vkb/1024);
+	print("\n");
 }
 
-void
+static void
 pageunchain(Page *p)
 {
 	if(canlock(&palloc))
@@ -279,7 +282,7 @@ retry:
 		print("duppage %d, up %p\n", retries, up);
 		dupretries += 100;
 		if(dupretries > 100000)
-			panic("duppage\n");
+			panic("duppage");
 		uncachepage(p);
 		return 1;
 	}

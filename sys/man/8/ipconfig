@@ -78,16 +78,10 @@ entry.
 .I Type
 may be
 .BR ether ,
-.BR gbe ,
 .BR ppp ,
 .BR pkt ,
 or
 .BR loopback .
-The
-.B gbe
-type is equivalent to
-.B ether
-except that it allows jumbo packets (up to ~9KB).
 The
 .B pkt
 interface passes all IP packets to and from a user program.
@@ -395,7 +389,10 @@ ip/ipconfig ra6 recvra 1
 .B /lib/rfc/rfc2373
 for IPv6's modified EUI-64
 .SH BUGS
-Currently, SLAAC relies on each
+Currently,
+.I ipv6on
+relies for SLAAC on each
+.I ndb
 .B ipnet
 declaration containing an
 .B ipv6pfx

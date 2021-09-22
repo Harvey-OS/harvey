@@ -23,6 +23,8 @@ enum {
 	ICMP6LEN=	4,
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
+// #pragma pack _1
 typedef struct Hdr Hdr;
 struct Hdr			/* ICMP v4 & v6 header */
 {
@@ -31,6 +33,7 @@ struct Hdr			/* ICMP v4 & v6 header */
 	uchar	cksum[2];	/* Checksum */
 	uchar	data[];
 };
+// #pragma pack off
 
 char *icmpmsg6[Maxtype6+1] =
 {
@@ -158,7 +161,7 @@ ea2lla(uchar *lla, uchar *ea)
 	memset(lla, 0, IPaddrlen);
 	lla[0]  = 0xFE;
 	lla[1]  = 0x80;
-	lla[8]  = ea[0] | 0x2;
+	lla[8]  = ea[0] | 0x2;	/* 0x2 is inverted U/L bit; see rfc4291 */
 	lla[9]  = ea[1];
 	lla[10] = ea[2];
 	lla[11] = 0xFF;
@@ -348,7 +351,7 @@ dialicmp(uchar *dst, int dport, int *ctlfd)
 {
 	int fd, cfd, n, m;
 	char cmsg[100], name[128], connind[40];
-	char hdrs[] = "headers";
+	static char hdrs[] = "headers";
 
 	snprint(name, sizeof name, "%s/icmpv6/clone", conf.mpoint);
 	cfd = open(name, ORDWR);
@@ -386,7 +389,8 @@ int
 ip6cfg(int autoconf)
 {
 	int dupfound = 0, n, nf;
-	char *p, *fields[4];
+	char *p;
+	char *fields[4];
 	char buf[256];
 	uchar ethaddr[6];
 	Biobuf *bp;
@@ -460,9 +464,9 @@ ip6cfg(int autoconf)
 static int
 recvra6on(char *net, int conn)
 {
-	Ipifc* ifc;
+	static Ipifc* ifc = nil;
 
-	ifc = readipifc(net, nil, conn);
+	ifc = readipifc(net, ifc, conn);
 	if (ifc == nil)
 		return 0;
 	else if (ifc->sendra6 > 0)
@@ -487,7 +491,7 @@ sendrs(int fd)
 	rs->type = ICMP6_RS;
 
 	if(write(fd, rs, sizeof buff) < sizeof buff)
-		ralog("sendrs: write failed, pkt size %d", sizeof buff);
+		ralog("sendrs: write failed, pkt size %d", (int)sizeof buff);
 	else
 		ralog("sendrs: sent solicitation to %I from %I on %s",
 			rs->dst, rs->src, conf.dev);

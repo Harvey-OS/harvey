@@ -1,6 +1,6 @@
 .TH REGEXP 2
 .SH NAME
-regcomp, regcomplit, regcompnl, regexec, regsub, rregexec, rregsub, regerror \- regular expression
+regcomp, regcomplit, regcompnl, regexec, regsub, rregexec, rregsub, regfree, regerror \- match regular expression
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -35,6 +35,9 @@ int  rregexec(Reprog *prog, Rune *string, Resub *match, int msize)
 void rregsub(Rune *source, Rune *dest, int dlen, Resub *match, int msize)
 .PP
 .B
+void regfree(Reprog *prog)
+.PP
+.B
 void regerror(char *msg)
 .SH DESCRIPTION
 .I Regcomp
@@ -44,7 +47,7 @@ a pointer to the generated description.
 The space is allocated by
 .IR malloc (2)
 and may be released by
-.IR free .
+.IR regfree .
 Regular expressions are exactly as in
 .IR regexp (6).
 .PP
@@ -157,8 +160,17 @@ is replaced by the string delimited by
 .B match[0].sp
 and
 .BR match[0].ep .
-The substitution will always be null terminated and
-trimmed to fit into dlen bytes.
+The substitution will always be NUL-terminated and
+trimmed to fit into
+.I dlen
+bytes.
+.PP
+.I Regfree
+frees any dynamically-allocated storage associated with
+.IR prog ,
+and
+.I prog
+itself.
 .PP
 .IR Regerror ,
 called whenever an error is detected in
@@ -209,4 +221,15 @@ if
 .I string
 is not matched.
 .SH BUGS
-There is no way to specify or match a NUL character; NULs terminate patterns and strings.
+There is no way to specify or match a NUL character;
+NULs terminate patterns and strings.
+.PP
+This implementation uses some global variables, so beware of
+concurrent compilation.
+.PP
+There is a fairly generous limit on the number of ranges in a character class
+(e.g., 256).
+.PP
+.I Regfree
+must be called to free dynamically allocated character-class ranges;
+otherwise that memory will leak.

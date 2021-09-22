@@ -353,14 +353,13 @@ parse_args(argv, what, setargsp)
 				break;
 			}
 			i = option(go.optarg);
-			if (i >= 0 && set == Flag(i))
+			if (i >= 0 && set == Flag(i)) {
 				/* Don't check the context if the flag
 				 * isn't changing - makes "set -o interactive"
 				 * work if you're already interactive.  Needed
 				 * if the output of "set +o" is to be used.
 				 */
-				;
-			else if (i >= 0 && (options[i].flags & what))
+			} else if (i >= 0 && (options[i].flags & what))
 				change_flag((enum sh_flag) i, what, set);
 			else {
 				bi_errorf("%s: bad option", go.optarg);

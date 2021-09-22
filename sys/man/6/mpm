@@ -1,0 +1,138 @@
+.TH MPM 6
+.CT 1 writing_troff
+.SH NAME
+mpm \- macros for page makeup
+.SH SYNOPSIS
+.B troff -mpm
+.I file ...
+.SH DESCRIPTION
+This macro package defines troff macros
+compatible with 
+.IR ms (6).
+These macros provide extra information for and quietly invoke
+a program for automatic page makeup, including
+figure placement, widow avoidance, and vertical justification.
+Vertical padding space may be added before
+.BR .PP ,
+.BR .LP ,
+.BR .IP ,
+.BR .QP ,
+.BR .SH ,
+.BR .NH ,
+and around
+.BR .DS / .DE ,
+.BR .EQ / .EN ,
+.BR .TS / .TE ,
+.BR .PS / .PE ,
+.BR .P1 / .P2 ,
+.BR .QS / .QE .
+.PP
+The following macros are different from or not part of
+.BR -ms .
+Values denoted
+.I n
+have default value
+.BR 1v .
+.PP
+.TF .SP\ n
+.TP
+.BR .BP ,
+.BR .FL ,
+.BR .FC
+Begin page, flush figures, flush column.
+.TP
+.BI .KF \ m
+Floating keep, with preferred center at vertical position
+.IR m ;
+default is top margin.
+.TP
+.BI .NE \ n
+Start new page if remaining vertical space on this page
+is less than
+.I n .
+.TP
+.BI .P1
+Begin a program display (Courier font).
+.TP
+.BI .P2
+End program display.
+.TP
+.BI .P3
+Insert optional break point in program display.
+.TP
+.BI .SP \ n
+Add paddable space of height
+.I n.
+.TP
+.BI .Tm " any text"
+Cause page number and
+.I "any text
+to appear on the standard error output.
+.TP
+.BI .X " any text"
+Cause
+.I "any text
+to be presented to the hidden page-makeup program
+as part of a device-dependent output sequence
+.BR x
+.BR X
+.IR "any text" .
+Equivalent to
+.BR \eX'\f2any\ text\fP' .
+.PD
+.PP
+Useful number registers:
+.PD 0
+.TP
+.B HM
+header margin; default 1 inch.
+.TP
+.B FM
+footer margin; default 1 inch.
+.TP
+.B FO
+page footer; default 10 inches.
+.TP
+.B %#
+Page number of current page.
+.TP
+.BR dP , dV
+Shrinkage of point size and vertical spacing for
+.BR .P1 ,
+in points.
+.PD
+.PP
+Useful strings:
+.PD 0
+.TP
+.BR %e , %o
+Even and odd page title commands, as
+.BR .tl\ '''' .
+.PD
+.PP
+Page layout is automatic.
+The primary control is to move floating figures forward or backwards in the input;
+this will eventually change the layout, perhaps in the desired way.
+Position arguments on
+.B .KF
+commands will also help.
+.SH FILES
+.B /sys/lib/tmac/tmac.pm
+.br
+.B /bin/aux/pm
+.SH "SEE ALSO"
+.IR ms (6), 
+.IR troff (1)
+.SH BUGS
+Compatibility with
+.B -ms
+is imperfect.
+Among the missing:
+lines that separate footnotes from the body of text,
+keeps that can be declared to occupy a separate page,
+disused document styles such as ``Engineer's Notes,''
+and, for the moment, all document styles except the
+.B -ms
+default.
+.br
+Only single and double column output are supported.

@@ -1,6 +1,7 @@
 /*
  * Interrupt/exception handling.
  */
+#include "mem.h"
 #include "amd64l.h"
 
 MODE $64
@@ -20,6 +21,7 @@ _intrcommon:
 	CMPW	48(SP), $SSEL(SiCS, SsTIGDT|SsRPL0)	/* old CS */
 	JEQ	_intrnested
 
+	/* interrupted user mode, so save the works */
 	MOVQ	RUSER, 0(SP)
 	MOVQ	RMACH, 8(SP)
 	MOVW	DS, 16(SP)
@@ -29,7 +31,7 @@ _intrcommon:
 
 	SWAPGS
 	BYTE $0x65; MOVQ 0, RMACH		/* m-> (MOVQ GS:0x0, R15) */
-	MOVQ	16(RMACH), RUSER		/* up */
+	MOVQ	16(RMACH), RUSER		/* up = m->proc */
 
 _intrnested:
 	PUSHQ	R13
@@ -70,6 +72,7 @@ TEXT _intrr<>(SB), 1, $-4			/* so ktrace can pop frame */
 	CMPQ	48(SP), $SSEL(SiCS, SsTIGDT|SsRPL0)
 	JEQ	_iretnested
 
+	/* returning to user mode, so restore the works */
 	SWAPGS
 	MOVW	22(SP), GS
 	MOVW	20(SP), FS
@@ -82,6 +85,7 @@ _iretnested:
 	ADDQ	$40, SP
 	IRETQ
 
+/* actual vectors (at idt64) point to one of these */
 TEXT idthandlers(SB), 1, $-4
 	CALL _intrp<>(SB); BYTE $IdtDE		/* #DE Divide-by-Zero Error */
 	CALL _intrp<>(SB); BYTE $IdtDB		/* #DB Debug */
@@ -101,6 +105,7 @@ TEXT idthandlers(SB), 1, $-4
 	CALL _intrp<>(SB); BYTE $Idt0F		/* reserved */
 	CALL _intrp<>(SB); BYTE $IdtMF		/* #MF x87 FPE-Pending */
 	CALL _intre<>(SB); BYTE $IdtAC		/* #AC Alignment-Check */
+	/* rest are CALL _intrp<>(SB) */
 	CALL _intrp<>(SB); BYTE $IdtMC		/* #MC Machine-Check */
 	CALL _intrp<>(SB); BYTE $IdtXF		/* #XF SIMD Floating-Point */
 	CALL _intrp<>(SB); BYTE $0x14		/* reserved */
@@ -145,9 +150,13 @@ TEXT idthandlers(SB), 1, $-4
 	CALL _intrp<>(SB); BYTE $0x3b
 	CALL _intrp<>(SB); BYTE $0x3c
 	CALL _intrp<>(SB); BYTE $0x3d
-	CALL _intrp<>(SB); BYTE $0x3e
+//	CALL _intrp<>(SB); BYTE $0x3e	/* IdtIPI real mode */
+MODE $16
+	MOVW $(SIPIHANDLER-KZERO), AX; BYTE $0xff; BYTE $0xe0
+	/* unrecognised JMP* AX */
+MODE $64
 	CALL _intrp<>(SB); BYTE $0x3f
-	CALL _intrp<>(SB); BYTE $0x40
+	CALL _intrp<>(SB); BYTE $0x40	/* not actually used for syscall */
 	CALL _intrp<>(SB); BYTE $0x41
 	CALL _intrp<>(SB); BYTE $0x42
 	CALL _intrp<>(SB); BYTE $0x43

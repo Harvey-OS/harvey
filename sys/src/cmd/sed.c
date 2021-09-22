@@ -890,13 +890,13 @@ ycomp(SedCom *r)
 			tsp++;
 		}
 		if(rp[c] == seof || rp[c] == L'\0') {
-			free(r->re1);
+			regfree(r->re1);
 			r->re1 = nil;
 			return 0;
 		}
 	}
 	if(*tsp != seof) {
-		free(r->re1);
+		regfree(r->re1);
 		r->re1 = nil;
 		return 0;
 	}

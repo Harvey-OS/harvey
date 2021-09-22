@@ -241,5 +241,3 @@ and which ones are started automatically.
 .I Usbd
 is not supposed to be restarted.
 This is arguable.
-.PP
-Not heavily exercised yet.

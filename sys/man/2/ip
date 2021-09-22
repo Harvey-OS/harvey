@@ -136,8 +136,10 @@ is a
 formatter for Ethernet (verb
 .BR E )
 addresses,
-IP V6 (verb
-.BR I )
+IP V6 (verbs
+.B I
+and
+.BR i )
 addresses,
 IP V4 (verb
 .BR V )
@@ -145,6 +147,13 @@ addresses,
 and IP V6 (verb
 .BR M )
 masks.
+.B I
+takes a
+.BR "uchar*" ;
+.I i
+takes a
+.B "ulong*"
+argument.
 .PP
 .I Parseip
 converts a string pointed to by
@@ -209,7 +218,9 @@ operates on v4 addresses,
 operates on v6 addresses.
 .I Ipcmp
 is a macro that compares V6 addresses per
-.IR memcmp (2)).
+.I memcmp
+(see
+.IR memory (2)).
 .PP
 .I Defmask
 returns the standard class A, B, or C mask for
@@ -218,7 +229,7 @@ returns the standard class A, B, or C mask for
 .I Isv4
 returns non-zero if the V6 address is in the V4 space, that is,
 if it starts with
-.BR 0:0:0:0:0:0:FFFF .
+.BR 0:0:0:0:0:FFFF .
 .I V4tov6
 converts the 4-byte V4 address,
 .IR v4ip ,
@@ -234,7 +245,7 @@ to a 4-byte V4 address and puts the result in
 .I hnputl
 and
 .I hnputv
-are used to store 16-bit, 32-bit, and 64-bit integers, respectively, into IP big-endian form.
+store 16-bit, 32-bit, and 64-bit integers, respectively, into IP big-endian form.
 .IR Nhgets ,
 .I nhgetl
 and

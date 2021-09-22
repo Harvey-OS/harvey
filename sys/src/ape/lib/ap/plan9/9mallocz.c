@@ -2,7 +2,7 @@
 #include <string.h>
 
 void*
-_MALLOCZ(int n, int clr)
+_MALLOCZ(size_t n, int clr)
 {
 	void *v;
 

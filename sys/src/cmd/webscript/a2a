@@ -1,0 +1,4 @@
+load "http://apc-reset/outlets.htm"
+find "yoshimi"
+find prev row
+print

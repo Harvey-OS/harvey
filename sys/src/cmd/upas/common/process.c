@@ -49,6 +49,8 @@ stream_free(stream *sp)
 {
 	int fd;
 
+	if (sp == nil)
+		return;
 	close(sp->fd);
 	fd = Bfildes(sp->fp);
 	Bterm(sp->fp);
@@ -58,7 +60,8 @@ stream_free(stream *sp)
 
 /* start a new process */
 extern process *
-noshell_proc_start(char **av, stream *inp, stream *outp, stream *errp, int newpg, char *who)
+noshell_proc_start(char **av, stream *inp, stream *outp, stream *errp,
+	int newpg, char *who)
 {
 	process *pp;
 	int i, n;

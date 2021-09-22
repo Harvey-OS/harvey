@@ -1,0 +1,82 @@
+window -m
+
+these three clean usbsnoop...
+Edit , s/.*Flags.*(IN|OUT).*/ 1\1/g
+ Edit , s/( |	)*[^0-9][^0-9][^0-9][^0-9][^0-9].*\n//g
+Edit , s/\[.*(IN|OUT)/\1/g
+
+icc -> client is programmed (working)
+user -> icc -> client is not (the user should check if there is an sl when he goes in)
+
+window -m rc -c  '/usr/paurea/src/trytag/8.out `{ls /dev/ccid*/*|grep rpc}; read; '
+
+kill read|rc
+kill 8.scard|rc
+kill 8.tagrd|rc
+kill 8.out|rc
+window -scroll -r 0 0 598 717 rc -c ' ''8.out
+					window -m; 
+					window -m -r 617 0 1022 764 rc -c  ''''echo about to read; /usr/paurea/src/scard/8.scard `{ls /dev/ccid*/*|grep rpc}; read; /usr/paurea/src/scard/8.scard `{ls /dev/ccid*/*|grep rpc}; echo about to read;  read; /usr/paurea/src/scard/8.scard `{ls /dev/ccid*/*|grep rpc};read;''''
+					read '' '
+
+
+kill read|rc
+kill 8.scard|rc
+kill 8.tagrd|rc
+kill 8.out|rc
+window -scroll -r 0 0 598 717 rc -c ' ''8.out -dd 
+					window -m; 
+					window -m -r 617 0 1022 764 rc -c  ''''echo about to read; /usr/paurea/src/scard/8.scard `{ls /dev/ccid*/*|grep rpc}; read; /usr/paurea/src/scard/8.scard `{ls /dev/ccid*/*|grep rpc}; echo about to read;  read; /usr/paurea/src/scard/8.scard `{ls /dev/ccid*/*|grep rpc};read;''''
+					read '' '
+
+kill read|rc
+kill 8.tagrd|rc
+kill 8.out|rc
+kill 8.scard|rc
+window -scroll -r 0 0 598 717 rc -c ' ''8.out -dd
+					window -m -r 617 0 1022 764 rc -c  ''''echo about to read; /usr/paurea/src/scard/8.tagrd -D `{ls /dev/ccid*/*|grep rpc}; read; /usr/paurea/src/scard/8.tagrd -D `{ls /dev/ccid*/*|grep rpc}; echo about to read;  read; /usr/paurea/src/scard/8.tagrd -D `{ls /dev/ccid*/*|grep rpc}; read;''''
+					read '' '
+
+
+kill read|rc
+kill 8.tagrd|rc
+kill 8.out|rc
+kill 8.scard|rc
+window -scroll -r 0 0 598 717 rc -c ' ''8.out -dd
+					window -m -r 617 0 1022 764 rc -c  ''''echo about to read; /usr/paurea/src/scard/8.tagrd `{ls /dev/ccid*/*|grep rpc}; read; /usr/paurea/src/scard/8.tagrd `{ls /dev/ccid*/*|grep rpc}; echo about to read;  read; /usr/paurea/src/scard/8.tagrd `{ls /dev/ccid*/*|grep rpc}; read;''''
+					read '' '
+
+kill read|rc
+kill 8.tagrd|rc
+kill 8.out|rc
+kill 8.scard|rc
+window -scroll -r 0 0 598 717 rc -c ' ''8.out
+					window -m -r 617 0 1022 764 rc -c  ''''echo about to read; /usr/paurea/src/scard/8.tagrd `{ls /dev/ccid*/*|grep rpc}; read; /usr/paurea/src/scard/8.tagrd `{ls /dev/ccid*/*|grep rpc}; echo about to read;  read; /usr/paurea/src/scard/8.tagrd `{ls /dev/ccid*/*|grep rpc}; read;''''
+					read '' '
+
+ttag.be/m04C2C9F9232580 UID:04C2C9F9232580
+/usr/paurea/src/trytag/
+/usr/paurea/src/scard/
+
+oyster
+d5 61 01 10 09 01 00 04 88 04 d5 d1 54 21 90 00 
+
+d5 61 01 10 0c 01 03 44 20 07 04 96 59 31 80 1d 80 90 00 
+d5 61 01 10 0c 01 00 44 00 07 04 dc 9a f9 23 25 80 90 00 
+
+d5 61 01 10 0c 01 03 44 20 07 04 96 59 31 80 1d 80 90 00 
+d5 61 01 10 0c 01 00 44 00 07 04 dc 9a f9 23 25 80 90 00 
+
+ATQA (SENS_RES): 00 44 
+ UID (NFCID1): 04 8c 84 f9 23 25 80 
+ SAK (SEL_RES): 00 
+
+d5 61 01 10 0c 01 03 44 20 07 04 96 59 31 80 1d 80 90 00 
+d5 61 01 10 0c 01 00 44 00 07 04 dc 9a f9 23 25 80 90 00 
+                                            ^^ sel res
+                                                  ^^ len
+                                                        ^^^^^^^^^^^^^^^ UID
+                                   ^^^^     sens_res
+            ^^  number of tag found
+                 ^^   tag number	
+		    ^^len

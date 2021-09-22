@@ -5,14 +5,10 @@
 int
 encodefmt(Fmt *f)
 {
-	char *out;
-	char *buf;
-	int len;
-	int ilen;
-	int rv;
-	uchar *b;
-	char *p;
+	int ilen, len, rv;
+	char *buf, *out, *p;
 	char obuf[64];	// rsc optimization
+	uchar *b;
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
 		goto error;

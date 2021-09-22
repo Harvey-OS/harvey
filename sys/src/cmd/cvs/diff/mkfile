@@ -1,0 +1,27 @@
+</$objtype/mkfile
+
+OFILES=\
+	analyze.$O\
+	cmpbuf.$O\
+	context.$O\
+	diff.$O\
+	diff3.$O\
+	dir.$O\
+	ed.$O\
+	ifdef.$O\
+	io.$O\
+	normal.$O\
+	side.$O\
+	util.$O\
+	version.$O\
+
+
+LIB=libdiff.a$O
+CLEANFILES=`{ls libdiff.a? >[2]/dev/null}
+</sys/src/cmd/mksyslib
+
+CC=pcc
+CFLAGS=-I.. -I. -I../src -I../zlib -I../lib -DHAVE_CONFIG_H -B -D_BSD_EXTENSION -c 
+
+$O.gnudiff: diff.$O libdiff.a$O
+	$LD -o $target $prereq

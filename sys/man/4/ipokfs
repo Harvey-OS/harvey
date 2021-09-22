@@ -1,0 +1,43 @@
+.TH IPOKFS 4
+.SH NAME
+ipokfs \- `terrorist' IP address file system
+.SH SYNOPSIS
+.B aux/ipokfs
+[
+.B -s
+.I service
+]
+.SH DESCRIPTION
+.I Ipokfs
+consults
+.I ipok
+to determine if given IP addresses belong to
+countries approved of by the US government,
+and caches the answer.
+If
+.BI /mnt/ipok/ok/ IP
+exists,
+.I IP
+is deemed to be from a non-terrorist country.
+.PP
+The
+.B s
+option posts a mountable file descriptor as
+.BI /srv/ service.
+.SH EXAMPLES
+See if
+.I ehime
+is in a `terrorist' country.
+.IP
+.EX
+% ls /mnt/ipok/ok/135.104.9.17
+/mnt/ipok/ok/135.104.9.17
+.EE
+.SH FILES
+.TF /mnt/ipok/ok
+.TP
+.B /mnt/ipok
+mount point for
+.I ipokfs
+.SH SEE ALSO
+.IR ipok (8)

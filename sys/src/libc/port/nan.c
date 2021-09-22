@@ -3,6 +3,7 @@
 
 #define	NANEXP	(2047<<20)
 #define	NANMASK	(2047<<20)
+#define NANQUIET (1<<19)		/* quiet NaN iff set */
 #define	NANSIGN	(1<<31)
 
 double
@@ -10,8 +11,18 @@ NaN(void)
 {
 	FPdbleword a;
 
-	a.hi = NANEXP;
+	a.hi = NANEXP;			/* no NANQUIET, so signalling NaN */
 	a.lo = 1;
+	return a.x;
+}
+
+double
+qNaN(void)
+{
+	FPdbleword a;
+
+	a.hi = NANEXP | NANQUIET;
+	a.lo = 2;
 	return a.x;
 }
 

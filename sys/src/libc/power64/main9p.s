@@ -25,6 +25,7 @@ loop:
 	BR	loop
 
 TEXT	_savearg(SB), 1, $0
+TEXT	_saveret(SB), 1, $0
 	RETURN
 
 TEXT	_callpc(SB), 1, $0

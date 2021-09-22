@@ -1,6 +1,7 @@
-#include	<stdio.h>
-#include	<math.h>
-#include	"pic.h"
+#include <u.h>
+#include <libc.h>
+#include <stdio.h>
+#include "pic.h"
 #include	"y.tab.h"
 
 void arc_extreme(double, double, double, double, double, double);
@@ -22,6 +23,7 @@ obj *arcgen(int type)	/* handles circular and (eventually) elliptical arcs */
 	double fromx, fromy, tox, toy, fillval = 0;
 	Attr *ap;
 
+	tox = toy = 0;
 	prevrad = getfval("arcrad");
 	prevh = getfval("arrowht");
 	prevw = getfval("arrowwid");

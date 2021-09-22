@@ -130,22 +130,13 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 {
 	Document *d;
 	PSInfo *ps;
-	char *p;
-	char *q, *r;
+	char *p, *q, *r;
 	char eol;
 	char *nargv[1];
-	char fdbuf[20];
-	char tmp[32];
-	int fd;
-	int i;
-	int incomments;
-	int cantranslate;
-	int trailer=0;
-	int nesting=0;
-	int dumb=0;
-	int landscape=0;
-	long psoff;
-	long npage, mpage;
+	char fdbuf[20], tmp[32];
+	int cantranslate, dumb = 0, fd, i, incomments, landscape = 0;
+	int nesting = 0, trailer = 0;
+	long psoff, npage, mpage;
 	Page *page;
 	Rectangle bbox = Rect(0,0,0,0);
 
@@ -157,7 +148,7 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 	fprint(2, "reading through postscript...\n");
 	if(b == nil){	/* standard input; spool to disk (ouch) */
 		fd = spooltodisk(buf, nbuf, nil);
-		sprint(fdbuf, "/fd/%d", fd);
+		snprint(fdbuf, sizeof fdbuf, "/fd/%d", fd);
 		b = Bopen(fdbuf, OREAD);
 		if(b == nil){
 			fprint(2, "cannot open disk spool file\n");
@@ -434,7 +425,7 @@ psdrawpage(Document *d, int page)
 	write(ps->gsfd, "\n", 1);
 	im = readimage(display, ps->gsdfd, 0);
 	if(im == nil) {
-		fprint(2, "fatal: readimage error %r\n");
+		fprint(2, "page: ps readimage error %r\n");
 		wexits("readimage");
 	}
 	waitgs(ps);

@@ -1,6 +1,6 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 enum charclass {
 	OTHER, OLET, ILET, DIG, LPAR, RPAR, SLASH, PLUS, ILETF, ILETJ, VBAR,
@@ -152,7 +152,7 @@ extern void shift2(int, int, int);
 extern void setsize(char *);
 extern void size(int, int);
 extern void globsize(void);
-extern void sqrt(int);
+extern void eqnsqrt(int);
 extern void text(int, char *);
 extern void boverb(int, int);
 extern void lineup(int);
@@ -163,3 +163,14 @@ extern void pile(int);
 extern int startcol(int);
 extern void column(int, int);
 extern void matrix(int);
+
+/* importing from posix */
+#define MB_CUR_MAX	UTFmax
+#define wchar_t		Rune
+
+#define exit(n)		exits((n) == 0? nil: "error")
+#define wctomb(s, wc)	runetochar(s, &(wc))
+
+int	mbtowc(Rune *, char *, int);
+
+int errno;

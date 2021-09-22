@@ -234,7 +234,7 @@ acid: x\eo
 12
 .P2
 The supported format characters are:
-.RS
+.\" .RS
 .IP \f(CWo\fP
 Print two-byte integer in octal.
 .IP \f(CWO\fP
@@ -302,7 +302,7 @@ and
 reproduce the manufacturers' syntax.
 .IP \f(CWa\fP
 Print the value in symbolic form.
-.RE
+.\".RE
 .SH
 Complex types
 .PP

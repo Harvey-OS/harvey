@@ -1,0 +1,14 @@
+$global
+	uvlong ru, a[1] = {27}, u = 0x01;
+	char c = 6, d = 36;
+	int i = 1, j = 0xFFF;
+$main
+	vlong rv, v = 0x7;
+$lhs
+	rv
+$op
+	-
+$op0
+	0x8000000100000000LL
+$op1
+	(char)(j - u)

@@ -729,7 +729,7 @@ write(ulong *arg, vlong *offp)
 	if(waserror()) {
 		if(offp == nil){
 			lock(c);
-			c->offset -= n;
+			c->offset -= n;		/* restore chan offset */
 			unlock(c);
 		}
 		cclose(c);
@@ -756,7 +756,7 @@ write(ulong *arg, vlong *offp)
 
 	if(offp == nil && m < n){
 		lock(c);
-		c->offset -= n - m;
+		c->offset -= n - m;	/* correct offset for short write */
 		unlock(c);
 	}
 
@@ -1234,7 +1234,7 @@ packoldstat(uchar *buf, Dir *d)
 	p += 28;
 	strncpy((char*)p, d->gid, 28);
 	p += 28;
-	q = d->qid.path & ~(uvlong)DMDIR;	/* make sure doesn't accidentally look like directory */
+	q = d->qid.path & ~(uvlong)DMDIR; /* make sure doesn't accidentally look like directory */
 	if(d->qid.type & QTDIR)	/* this is the real test of a new directory */
 		q |= DMDIR;
 	PBIT32(p, q);

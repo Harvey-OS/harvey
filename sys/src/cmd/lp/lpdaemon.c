@@ -1,58 +1,49 @@
+/*
+ * lpdaemon
+ */
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 
-/* for Plan 9 */
-#ifdef PLAN9
-#define LP	"/bin/lp"
-#define TMPDIR "/sys/lib/lp/tmp"
+#define LP		"/bin/lp"
+#define TMPDIR		"/sys/lib/lp/tmp"
 #define LPDAEMONLOG	"/sys/lib/lp/log/lpdaemonl"
-#endif
-/* for Tenth Edition systems */
-#ifdef V10
-#define LP	"/usr/bin/lp"
-#define TMPDIR "/tmp"
-#define LPDAEMONLOG	"/tmp/lpdaemonl"
-#endif
-/* for System V or BSD systems */
-#if defined(SYSV) || defined(BSD)
-#define LP	"/v/bin/lp"
-#define TMPDIR "/tmp"
-#define LPDAEMONLOG	"/tmp/lpdaemonl"
-#endif
 
 #define ARGSIZ 4096
 #define NAMELEN 30
 
-unsigned char argvstr[ARGSIZ];		/* arguments after parsing */
-unsigned char *argvals[ARGSIZ/2+1];	/* pointers to arguments after parsing */
-int ascnt = 0, argcnt = 0;	/* number of arguments parsed */
+#define dup2 dup
+#define exit(n) exits((n) == 0? nil: "error")
+#define lseek seek
+
+enum {
+	Shorttmout = 60*1000,
+};
+
+uchar argvstr[ARGSIZ];		/* arguments after parsing */
+uchar *argvals[ARGSIZ/2+1];	/* pointers to arguments after parsing */
+int ascnt = 0, argcnt = 0;		/* number of arguments parsed */
 /* for 'stuff' gleened from lpr cntrl file */
 struct jobinfo {
-	char user[NAMELEN+1];
-	char host[NAMELEN+1];
+	char	user[NAMELEN+1];
+	char	host[NAMELEN+1];
 } *getjobinfo();
 
 #define MIN(a,b)	((a<b)?a:b)
 
-#define	CPYFIELD(src, dst)	{ while (*(src)!=' ' && *(src)!='\t' && *(src)!='\r' && *(src)!='\n' && *(src)!='\0') *(dst)++ = *(src)++; }
+#define	CPYFIELD(src, dst)	{ \
+	while (*(src)!=' ' && *(src)!='\t' && *(src)!='\r' && *(src)!='\n' && *(src)!='\0') \
+		*(dst)++ = *(src)++; \
+}
 
 #define	ACK()	write(1, "", 1)
 #define NAK()	write(1, "\001", 1)
 
 #define LNBFSZ	4096
-unsigned char lnbuf[LNBFSZ];
+uchar	lnbuf[LNBFSZ];
 
 #define	RDSIZE 512
-unsigned char jobbuf[RDSIZE];
+uchar	jobbuf[RDSIZE];
 
 int datafd[400], cntrlfd = -1;
 
@@ -69,48 +60,49 @@ char *dbgstrings[] = {
 void
 error(char *s1, ...)
 {
+	char	*chartime;
+	char	*args[8];
+	int	argno = 0;
 	FILE *fp;
-	long thetime;
-	char *chartime;
 	va_list ap;
-	char *args[8];
-	int argno = 0;
 
-	if((fp=fopen(LPDAEMONLOG, "a"))==NULL) {
+	if ((fp = fopen(LPDAEMONLOG, "a")) == NULL) {
 		fprintf(stderr, "cannot open %s in append mode\n", LPDAEMONLOG);
 		return;
 	}
-	time(&thetime);
-	chartime = ctime(&thetime);
-	fprintf(fp, "%.15s [%5.5d] ", &(chartime[4]), getpid());
+	chartime = ctime(time(nil));
+	fprintf(fp, "%.15s [%5.5d] ", &chartime[4], getpid());
+
 	va_start(ap, s1);
-	while((args[argno++] = va_arg(ap, char*)) && argno<8)
+	while ((args[argno++] = va_arg(ap, char *)) && argno < nelem(args))
 		;
 	va_end(ap);
-	fprintf(fp, s1, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+	fprintf(fp, s1, args[0], args[1], args[2], args[3], args[4], args[5],
+		args[6], args[7]);
 	fclose(fp);
 }
 
 void
 forklp(int inputfd)
 {
-	int i, cpid;
-	unsigned char *bp, *cp;
-	unsigned char logent[LNBFSZ];
+	int	i, cpid;
+	uchar	*bp, *cp;
+	uchar	logent[LNBFSZ];
 
 	/* log this call to lp */
 	cp = logent;
-	for (i=1; i<argcnt; i++) {
+	for (i = 1; i < argcnt; i++) {
 		bp = argvals[i];
-		if (cp+strlen((const char *)bp)+1 < logent+LNBFSZ-1) {
+		if (cp + strlen((char *)bp) + 1 < logent + LNBFSZ - 1) {
 			CPYFIELD(bp, cp);
 			*cp++ = ' ';
 		}
 	}
 	*--cp = '\n';
 	*++cp = '\0';
-	error((const char *)logent);
-	switch((cpid=fork())){
+	error((char *)logent);
+
+	switch ((cpid = fork())) {
 	case -1:
 		error("fork error\n");
 		exit(2);
@@ -118,36 +110,30 @@ forklp(int inputfd)
 		if (inputfd != 0)
 			dup2(inputfd, 0);
 		dup2(1, 2);
-		lseek(0, 0L, 0);
-		execvp(LP, (const char **)argvals);
+		lseek(0, 0, 0);
+		exec(LP, (char **)argvals);
 		error("exec failed\n");
 		exit(3);
 	default:
-		while(wait((int *)0) != cpid)
+		while (waitpid() != cpid)
 			;
+		break;
 	}
 }
 
 int
 tempfile(void)
 {
-	static tindx = 0;
-	char tmpf[sizeof(TMPDIR)+64];
-	int crtfd, tmpfd;
+	char	tmpf[sizeof(TMPDIR)+64];
+	int	tmpfd;
+	static int tindx = 0;
 
-	sprintf(tmpf, "%s/lp%d.%d", TMPDIR, getpid(), tindx++);
-	if((crtfd=creat(tmpf, 0666)) < 0) {
+	snprintf(tmpf, sizeof tmpf, "%s/lp%d.%d", TMPDIR, getpid(), tindx++);
+	if ((tmpfd = create(tmpf, ORDWR|ORCLOSE, 0666)) < 0) {
 		error("cannot create temp file %s\n", tmpf);
 		NAK();
 		exit(3);
 	}
-	if((tmpfd=open(tmpf, 2)) < 0) {
-		error("cannot open temp file %s\n", tmpf);
-		NAK();
-		exit(3);
-	}
-	close(crtfd);
-	unlink(tmpf);	/* comment out for debugging */
 	return(tmpfd);
 }
 
@@ -157,61 +143,62 @@ readfile(int outfd, int bsize)
 	int rv;
 
 	dbgstate = 1;
-	alarm(60);
+	alarm(Shorttmout);
 	ACK();
 	dbgstate = 2;
-	for(; bsize > 0; bsize -= rv) {
-		alarm(60);
-		if((rv=read(0, jobbuf, MIN(bsize,RDSIZE))) < 0) {
+	for (; bsize > 0; bsize -= rv) {
+		alarm(Shorttmout);
+		if ((rv = read(0, jobbuf, MIN(bsize, RDSIZE))) < 0) {
 			error("error reading input, %d unread\n", bsize);
 			exit(4);
 		} else if (rv == 0) {
 			error("connection closed prematurely\n");
 			exit(4);
-		} else if((write(outfd, jobbuf, rv)) != rv) {
+		} else if ((write(outfd, jobbuf, rv)) != rv) {
 			error("error writing temp file, %d unread\n", bsize);
 			exit(5);
 		}
 	}
 	dbgstate = 3;
-	alarm(60);
-	if (((rv=read(0, jobbuf, 1))==1) && (*jobbuf=='\0')) {
-		alarm(60);
+	alarm(Shorttmout);
+	if ((rv = read(0, jobbuf, 1)) == 1 && *jobbuf == '\0') {
+		alarm(Shorttmout);
 		ACK();
 		dbgstate = 4;
 		alarm(0);
-		return(outfd);
+		return outfd;
 	}
 	alarm(0);
 	error("received bad status <%d> from sender\n", *jobbuf);
 	error("rv=%d\n", rv);
 	NAK();
-	return(-1);
+	return -1;
 }
 
-/* reads a line from the input into lnbuf
+/*
+ * reads a line from the input into lnbuf.
  * if there is no error, it returns
- *   the number of characters in the buffer
+ *   the number of characters in the buffer.
  * if there is an error and there where characters
  *   read, it returns the negative value of the
- *   number of characters read
+ *   number of characters read.
  * if there is an error and no characters were read,
  *   it returns the negative value of 1 greater than
- *   the size of the line buffer
+ *   the size of the line buffer.
  */
 int
 readline(int inpfd)
 {
-	unsigned char *ap;
+	uchar	*ap;
 	int i, rv;
 
 	ap = lnbuf;
 	lnbuf[0] = '\0';
 	i = 0;
-	alarm(60);
+	alarm(Shorttmout);
 	do {
 		rv = read(inpfd, ap, 1);
-	} while (rv==1 && ++i && *ap != '\n' && ap++ && (i < LNBFSZ - 2));
+	} while (rv == 1 && ++i && *ap != '\n' && ap++ && i < LNBFSZ - 2);
 	alarm(0);
 	if (i != 0 && *ap != '\n') {
 		*++ap = '\n';
@@ -220,31 +207,33 @@ readline(int inpfd)
 	*++ap = '\0';
 	if (rv < 0) {
 		error("read error; lost connection\n");
-		if (i==0) i = -(LNBFSZ+1);
-		else i = -i;
+		if (i == 0)
+			i = -(LNBFSZ + 1);
+		else
+			i = -i;
 	}
-	return(i);
+	return i;
 }
 
 int
 getfiles(void)
 {
-	unsigned char *ap;
+	uchar	*ap;
 	int filecnt, bsize, rv;
 
 	filecnt = 0;
 	/* get a line, hopefully containing a ctrl char, size, and name */
-	for(;;) {
+	for (; ; ) {
 		ap = lnbuf;
-		if ((rv=readline(0)) < 0) NAK();
-		if (rv <= 0) {
-			return(filecnt);
-		}
-		switch(*ap++) {
-		case '\1':		/* cleanup - data sent was bad (whatever that means) */
+		if ((rv = readline(0)) < 0)
+			NAK();
+		if (rv <= 0)
+			return filecnt;
+		switch (*ap++) {
+		case '\1': /* cleanup - data sent was bad (whatever that means) */
 			break;
 		case '\2':		/* read control file */
-			bsize = atoi((const char *)ap);
+			bsize = atoi((char *)ap);
 			cntrlfd = tempfile();
 			if (readfile(cntrlfd, bsize) < 0) {
 				close(cntrlfd);
@@ -253,7 +242,7 @@ getfiles(void)
 			}
 			break;
 		case '\3':		/* read data file */
-			bsize = atoi((const char *)ap);
+			bsize = atoi((char *)ap);
 			datafd[filecnt] = tempfile();
 			if (readfile(datafd[filecnt], bsize) < 0) {
 				close(datafd[filecnt]);
@@ -263,21 +252,22 @@ getfiles(void)
 			filecnt++;
 			break;
 		default:
-			error("protocol error <%d>\n", *(ap-1));
+			error("protocol error <%d>\n", *(ap - 1));
 			NAK();
+			break;
 		}
 	}
-	return(filecnt);
 }
 
 struct jobinfo *
 getjobinfo(int fd)
 {
-	unsigned char *ap;
+	uchar	*ap;
 	int rv;
 	static struct jobinfo info;
 
-	if (fd < 0) error("getjobinfo: bad file descriptor\n");
+	if (fd < 0)
+		error("getjobinfo: bad file descriptor\n");
 	if (lseek(fd, 0L, 0) < 0) {
 		error("error seeking in temp file\n");
 		exit(7);
@@ -287,10 +277,11 @@ getjobinfo(int fd)
 	 */
 	strncpy(info.user, "daemon", NAMELEN);
 	strncpy(info.host, "nowhere", NAMELEN);
-	/* there may be a space after the name and host.  It will be filtered out
-	 * by CPYFIELD.
+	/*
+	 * there may be a space after the name and host.
+	 * It will be filtered out by CPYFIELD.
 	 */
-	while ((rv=readline(fd)) > 0) {
+	while ((rv = readline(fd)) > 0) {
 		ap = lnbuf;
 		ap[rv-1] = '\0';	/* remove newline from string */
 		switch (*ap) {
@@ -298,110 +289,131 @@ getjobinfo(int fd)
 			if (ap[1] == '\0')
 				strncpy(info.host, "unknown", NAMELEN);
 			else
-				strncpy(info.host, (const char *)&ap[1], NAMELEN);
+				strncpy(info.host, (char *)&ap[1], NAMELEN);
 			info.host[NAMELEN] = '\0';
 			break;
 		case 'P':
 			if (ap[1] == '\0')
 				strncpy(info.user, "unknown", NAMELEN);
 			else
-				strncpy(info.user, (const char *)&ap[1], NAMELEN);
+				strncpy(info.user, (char *)&ap[1], NAMELEN);
 			info.user[NAMELEN] = '\0';
 			break;
 		}
 	}
-	return(&info);
+	return &info;
 }
 
 void
-alarmhandler(int sig) {
+alarmhandler(int)
+{
+/*
 	signal(sig, alarmhandler);
+ */
 	error("alarm at %d - %s\n", dbgstate, dbgstrings[dbgstate]);
 }
 
 void
-main()
+main(void)
 {
-	unsigned char *ap, *bp, *cp, *savbufpnt;
+	uchar *ap, *bp, *cp, *savbufpnt;
 	int i, blen, rv, saveflg, savargcnt;
 	struct jobinfo *jinfop;
 
+/*
 	signal(SIGHUP, SIG_IGN);
 	signal(SIGALRM, alarmhandler);
-	cp = argvstr;
+ */
+
 	/* setup argv[0] for exec */
+	cp = argvstr;
 	argvals[argcnt++] = cp;
-	for (bp = (unsigned char *)LP, i = 0; (*bp != '\0') && (i < ARGSIZ-1); *cp++ = *bp++, i++);
+	for (bp = (uchar *)LP, i = 0; *bp != '\0' && i < ARGSIZ - 1;
+	    *cp++ = *bp++, i++)
+		;
 	*cp++ = '\0';
+
 	/* get the first line sent and parse it as arguments for lp */
-	if ((rv=readline(0)) < 0)
+	if (readline(0) < 0)
 		exit(1);
-	bp = lnbuf;
+
 	/* setup the remaining arguments */
 	/* check for BSD style request */
 	/* ^A, ^B, ^C, ^D, ^E (for BSD lpr) */
+	bp = lnbuf;
 	switch (*bp) {
 	case '\001':
 	case '\003':
 	case '\004':
-		bp++;	/* drop the ctrl character from the input */
+		bp++;		/* drop the ctrl character from the input */
 		argvals[argcnt++] = cp;
-		*cp++ = '-'; *cp++ = 'q'; *cp++ = '\0';		/* -q */
+		*cp++ = '-';
+		*cp++ = 'q';
+		*cp++ = '\0';			/* -q */
 		argvals[argcnt++] = cp;
-		*cp++ = '-'; *cp++ = 'd'; 			/* -d */
-		CPYFIELD(bp, cp);				/* printer */
-		*cp++ = '\0';
+		*cp++ = '-';
+		*cp++ = 'd'; 			/* -d */
+		CPYFIELD(bp, cp);		/* printer */
+		*cp = '\0';
 		break;
 	case '\002':
-		bp++;	/* drop the ctrl character from the input */
+		bp++;		/* drop the ctrl character from the input */
 		argvals[argcnt++] = cp;
-		*cp++ = '-'; *cp++ = 'd'; 			/* -d */
-		CPYFIELD(bp, cp);				/* printer */
+		*cp++ = '-';
+		*cp++ = 'd'; 			/* -d */
+		CPYFIELD(bp, cp);		/* printer */
 		*cp++ = '\0';
 		ACK();
 		savargcnt = argcnt;
 		savbufpnt = cp;
-		while ((rv=getfiles())) {
+		while ((rv = getfiles())) {
 			jinfop = getjobinfo(cntrlfd);
 			close(cntrlfd);
 			argcnt = savargcnt;
 			cp = savbufpnt;
 			argvals[argcnt++] = cp;
-			*cp++ = '-'; *cp++ = 'M'; 			/* -M */
-			bp = (unsigned char *)jinfop->host;
-			CPYFIELD(bp, cp);				/* host name */
+			*cp++ = '-';
+			*cp++ = 'M'; 		/* -M */
+			bp = (uchar *)jinfop->host;
+			CPYFIELD(bp, cp);	/* host name */
 			*cp++ = '\0';
 			argvals[argcnt++] = cp;
-			*cp++ = '-'; *cp++ = 'u'; 			/* -u */
-			bp = (unsigned char *)jinfop->user;
-			CPYFIELD(bp, cp);				/* user name */
+			*cp++ = '-';
+			*cp++ = 'u'; 		/* -u */
+			bp = (uchar *)jinfop->user;
+			CPYFIELD(bp, cp);	/* user name */
 			*cp++ = '\0';
-			for(i=0;i<rv;i++)
+			for (i = 0; i < rv; i++)
 				forklp(datafd[i]);
 		}
 		exit(0);
 	case '\005':
-		bp++;	/* drop the ctrl character from the input */
+		bp++;		/* drop the ctrl character from the input */
 		argvals[argcnt++] = cp;
-		*cp++ = '-'; *cp++ = 'k'; *cp++ = '\0';		/* -k */
+		*cp++ = '-';
+		*cp++ = 'k';
+		*cp++ = '\0';			/* -k */
 		argvals[argcnt++] = cp;
-		*cp++ = '-'; *cp++ = 'd'; 			/* -d */
-		CPYFIELD(bp, cp);				/* printer */
+		*cp++ = '-';
+		*cp++ = 'd'; 			/* -d */
+		CPYFIELD(bp, cp);		/* printer */
 		*cp++ = '\0';
 		argvals[argcnt++] = cp;
-		*cp++ = '-'; ap = cp; *cp++ = 'u'; 		/* -u */
-		CPYFIELD(bp, cp);				/* username */
+		*cp++ = '-';
+		ap = cp;
+		*cp++ = 'u'; 			/* -u */
+		CPYFIELD(bp, cp);		/* username */
 
 		/* deal with bug in lprng where the username is not supplied
 		 */
-		if (ap == (cp-1)) {
-			ap = (unsigned char *)"none";
+		if (ap == (cp - 1)) {
+			ap = (uchar *)"none";
 			CPYFIELD(ap, cp);
 		}
 
-		*cp++ = '\0';
+		*cp = '\0';
 		datafd[0] = tempfile();
-		blen = strlen((const char *)bp);
+		blen = strlen((char *)bp);
 		if (write(datafd[0], bp, blen) != blen) {
 			error("write error\n");
 			exit(6);
@@ -415,30 +427,34 @@ main()
 		/* otherwise get my lp arguments */
 		do {
 			/* move to next non-white space */
-			while (*bp==' '||*bp=='\t')
+			while (*bp == ' ' || *bp == '\t')
 				++bp;
-			if (*bp=='\n') continue;
+			if (*bp == '\n')
+				continue;
+
 			/* only accept arguments beginning with -
 			 * this is done to prevent the printing of
 			 * local files from the destination host
 			 */
-			if (*bp=='-') {
+			if (*bp == '-') {
 				argvals[argcnt++] = cp;
 				saveflg = 1;
 			} else
 				saveflg = 0;
-			/* move to next white space copying text to argument buffer */
-			while (*bp!=' ' && *bp!='\t' && *bp!='\n'
-			    && *bp!='\0') {
+
+			/* move to next whitespace, copying text to argument buffer */
+			while (*bp != ' ' && *bp != '\t' && *bp != '\n' &&
+			    *bp != '\0') {
 				*cp = *bp++;
 				cp += saveflg;
 			}
 			*cp = '\0';
 			cp += saveflg;
-		} while (*bp!='\n' && *bp!='\0');
-		if (readline(0) < 0) exit(7);
+		} while (*bp != '\n' && *bp != '\0');
+		if (readline(0) < 0)
+			exit(7);
 		datafd[0] = tempfile();
-		if(readfile(datafd[0], atoi((const char *)lnbuf)) < 0) {
+		if (readfile(datafd[0], atoi((char *)lnbuf)) < 0) {
 			error("readfile failed\n");
 			exit(8);
 		}

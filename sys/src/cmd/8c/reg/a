@@ -1,0 +1,154 @@
+compar HI (NAME/CONST) VLONG UVLONG -8000000000000000 7fffffffffffffff 7fffffffffffffff
+compar LE (NAME/CONST) INT VLONG -80000000 -80000000 7fffffff
+compar GT (NAME/CONST) INT VLONG -80000000 -80000000 7fffffff
+compar GE (NAME/CONST) INT VLONG -80000000 7fffffff 7fffffff
+compar LT (NAME/CONST) INT VLONG -80000000 7fffffff 7fffffff
+compar LS (NAME/CONST) UINT INT 0 0 ffffffff
+compar LO (NAME/CONST) UINT VLONG 0 ffffffff ffffffff
+compar HS (NAME/CONST) UINT VLONG 0 ffffffff ffffffff
+compar HS (NAME/CONST) UINT INT 0 1 ffffffff
+compar LE (NAME/CONST) SHORT VLONG -8000 -8000 7fff
+compar GT (NAME/CONST) SHORT VLONG -8000 -8000 7fff
+compar GE (NAME/CONST) SHORT VLONG -8000 7fff 7fff
+compar LT (NAME/CONST) SHORT VLONG -8000 7fff 7fff
+compar LS (NAME/CONST) USHORT INT 0 0 ffff
+compar LO (NAME/CONST) USHORT VLONG 0 ffff ffff
+compar HS (NAME/CONST) USHORT VLONG 0 ffff ffff
+compar HS (NAME/CONST) USHORT INT 0 1 ffff
+compar LE (NAME/CONST) CHAR VLONG -80 -80 7f
+compar GT (NAME/CONST) CHAR VLONG -80 -80 7f
+compar GE (NAME/CONST) CHAR VLONG -80 7f 7f
+compar LT (NAME/CONST) CHAR VLONG -80 7f 7f
+compar LS (NAME/CONST) UCHAR INT 0 0 ff
+compar LO (NAME/CONST) UCHAR VLONG 0 ff ff
+compar HS (NAME/CONST) UCHAR VLONG 0 ff ff
+compar HS (NAME/CONST) UCHAR INT 0 1 ff
+compar LE (NAME/CONST) VLONG VLONG -8000000000000000 -8000000000000000 7fffffffffffffff
+compar GT (NAME/CONST) VLONG VLONG -8000000000000000 -8000000000000000 7fffffffffffffff
+compar HS (NAME/CONST) VLONG UVLONG -8000000000000000 7fffffffffffffff 7fffffffffffffff
+compar LO (NAME/CONST) VLONG UVLONG -8000000000000000 7fffffffffffffff 7fffffffffffffff
+compar LS (NAME/CONST) UVLONG INT 0 0 -1
+compar LO (NAME/CONST) UVLONG UVLONG 0 -1 -1
+compar HS (NAME/CONST) UVLONG UVLONG 0 -1 -1
+compar HS (NAME/CONST) UVLONG INT 0 1 -1
+compar LT (NAME/CONST) INT VLONG -80000000 -80000000 7fffffff
+compar LE (NAME/CONST) INT VLONG -80000000 -80000001 7fffffff
+compar GE (NAME/CONST) INT VLONG -80000000 -80000000 7fffffff
+compar GT (NAME/CONST) INT VLONG -80000000 -80000001 7fffffff
+compar GT (NAME/CONST) INT VLONG -80000000 7fffffff 7fffffff
+compar GE (NAME/CONST) INT VLONG -80000000 80000000 7fffffff
+compar LE (NAME/CONST) INT VLONG -80000000 7fffffff 7fffffff
+compar LT (NAME/CONST) INT VLONG -80000000 80000000 7fffffff
+compar LO (NAME/CONST) UINT INT 0 0 ffffffff
+compar LS (NAME/CONST) UINT INT 0 -1 ffffffff
+compar HS (NAME/CONST) UINT INT 0 0 ffffffff
+compar HI (NAME/CONST) UINT INT 0 -1 ffffffff
+compar HI (NAME/CONST) UINT VLONG 0 ffffffff ffffffff
+compar HS (NAME/CONST) UINT VLONG 0 100000000 ffffffff
+compar LS (NAME/CONST) UINT VLONG 0 ffffffff ffffffff
+compar LO (NAME/CONST) UINT VLONG 0 100000000 ffffffff
+compar LT (NAME/CONST) SHORT VLONG -8000 -8000 7fff
+compar LE (NAME/CONST) SHORT VLONG -8000 -8001 7fff
+compar GE (NAME/CONST) SHORT VLONG -8000 -8000 7fff
+compar GT (NAME/CONST) SHORT VLONG -8000 -8001 7fff
+compar GT (NAME/CONST) SHORT VLONG -8000 7fff 7fff
+compar GE (NAME/CONST) SHORT VLONG -8000 8000 7fff
+compar LE (NAME/CONST) SHORT VLONG -8000 7fff 7fff
+compar LT (NAME/CONST) SHORT VLONG -8000 8000 7fff
+compar LO (NAME/CONST) USHORT INT 0 0 ffff
+compar LS (NAME/CONST) USHORT INT 0 -1 ffff
+compar HS (NAME/CONST) USHORT INT 0 0 ffff
+compar HI (NAME/CONST) USHORT INT 0 -1 ffff
+compar HI (NAME/CONST) USHORT VLONG 0 ffff ffff
+compar HS (NAME/CONST) USHORT VLONG 0 10000 ffff
+compar LS (NAME/CONST) USHORT VLONG 0 ffff ffff
+compar LO (NAME/CONST) USHORT VLONG 0 10000 ffff
+compar LT (NAME/CONST) CHAR VLONG -80 -80 7f
+compar LE (NAME/CONST) CHAR VLONG -80 -81 7f
+compar GE (NAME/CONST) CHAR VLONG -80 -80 7f
+compar GT (NAME/CONST) CHAR VLONG -80 -81 7f
+compar GT (NAME/CONST) CHAR VLONG -80 7f 7f
+compar GE (NAME/CONST) CHAR VLONG -80 80 7f
+compar LE (NAME/CONST) CHAR VLONG -80 7f 7f
+compar LT (NAME/CONST) CHAR VLONG -80 80 7f
+compar LO (NAME/CONST) UCHAR INT 0 0 ff
+compar LS (NAME/CONST) UCHAR INT 0 -1 ff
+compar HS (NAME/CONST) UCHAR INT 0 0 ff
+compar HI (NAME/CONST) UCHAR INT 0 -1 ff
+compar HI (NAME/CONST) UCHAR VLONG 0 ff ff
+compar HS (NAME/CONST) UCHAR VLONG 0 100 ff
+compar LS (NAME/CONST) UCHAR VLONG 0 ff ff
+compar LO (NAME/CONST) UCHAR VLONG 0 100 ff
+compar LT (NAME/CONST) VLONG VLONG -8000000000000000 -8000000000000000 7fffffffffffffff
+compar GE (NAME/CONST) VLONG VLONG -8000000000000000 -8000000000000000 7fffffffffffffff
+compar HI (NAME/CONST) VLONG UVLONG -8000000000000000 7fffffffffffffff 7fffffffffffffff
+compar HS (NAME/CONST) VLONG UVLONG -8000000000000000 -8000000000000000 7fffffffffffffff
+compar LS (NAME/CONST) VLONG UVLONG -8000000000000000 7fffffffffffffff 7fffffffffffffff
+compar LO (NAME/CONST) VLONG UVLONG -8000000000000000 -8000000000000000 7fffffffffffffff
+compar LO (NAME/CONST) UVLONG INT 0 0 -1
+compar LS (NAME/CONST) UVLONG INT 0 -1 -1
+compar HS (NAME/CONST) UVLONG INT 0 0 -1
+compar HI (NAME/CONST) UVLONG INT 0 -1 -1
+compar HI (NAME/CONST) UVLONG UVLONG 0 -1 -1
+compar LS (NAME/CONST) UVLONG UVLONG 0 -1 -1
+warning: x.c:36 useless comparison: VLONG > 0x7fffffffffffffff: always false
+warning: x.c:74 useless comparison: INT < -0x80000000: always false
+warning: x.c:75 useless comparison: INT <= -0x80000001: always false
+warning: x.c:76 useless comparison: INT >= -0x80000000: always true
+warning: x.c:77 useless comparison: INT > -0x80000001: always true
+warning: x.c:78 useless comparison: INT > 0x7fffffff: always false
+warning: x.c:79 useless comparison: INT >= 0x80000000: always false
+warning: x.c:80 useless comparison: INT <= 0x7fffffff: always true
+warning: x.c:81 useless comparison: INT < 0x80000000: always true
+warning: x.c:82 useless comparison: UINT < 0: always false
+warning: x.c:83 useless comparison: UINT <= -1: always false
+warning: x.c:84 useless comparison: UINT >= 0: always true
+warning: x.c:85 useless comparison: UINT > -1: always true
+warning: x.c:86 useless comparison: UINT > 0xffffffff: always false
+warning: x.c:87 useless comparison: UINT >= 0x100000000: always false
+warning: x.c:88 useless comparison: UINT <= 0xffffffff: always true
+warning: x.c:89 useless comparison: UINT < 0x100000000: always true
+warning: x.c:90 useless comparison: SHORT < -0x8000: always false
+warning: x.c:91 useless comparison: SHORT <= -0x8001: always false
+warning: x.c:92 useless comparison: SHORT >= -0x8000: always true
+warning: x.c:93 useless comparison: SHORT > -0x8001: always true
+warning: x.c:94 useless comparison: SHORT > 0x7fff: always false
+warning: x.c:95 useless comparison: SHORT >= 0x8000: always false
+warning: x.c:96 useless comparison: SHORT <= 0x7fff: always true
+warning: x.c:97 useless comparison: SHORT < 0x8000: always true
+warning: x.c:98 useless comparison: USHORT < 0: always false
+warning: x.c:99 useless comparison: USHORT <= -1: always false
+warning: x.c:100 useless comparison: USHORT >= 0: always true
+warning: x.c:101 useless comparison: USHORT > -1: always true
+warning: x.c:102 useless comparison: USHORT > 0xffff: always false
+warning: x.c:103 useless comparison: USHORT >= 0x10000: always false
+warning: x.c:104 useless comparison: USHORT <= 0xffff: always true
+warning: x.c:105 useless comparison: USHORT < 0x10000: always true
+warning: x.c:106 useless comparison: CHAR < -0x80: always false
+warning: x.c:107 useless comparison: CHAR <= -0x81: always false
+warning: x.c:108 useless comparison: CHAR >= -0x80: always true
+warning: x.c:109 useless comparison: CHAR > -0x81: always true
+warning: x.c:110 useless comparison: CHAR > 0x7f: always false
+warning: x.c:111 useless comparison: CHAR >= 0x80: always false
+warning: x.c:112 useless comparison: CHAR <= 0x7f: always true
+warning: x.c:113 useless comparison: CHAR < 0x80: always true
+warning: x.c:114 useless comparison: UCHAR < 0: always false
+warning: x.c:115 useless comparison: UCHAR <= -1: always false
+warning: x.c:116 useless comparison: UCHAR >= 0: always true
+warning: x.c:117 useless comparison: UCHAR > -1: always true
+warning: x.c:118 useless comparison: UCHAR > 0xff: always false
+warning: x.c:119 useless comparison: UCHAR >= 0x100: always false
+warning: x.c:120 useless comparison: UCHAR <= 0xff: always true
+warning: x.c:121 useless comparison: UCHAR < 0x100: always true
+warning: x.c:122 useless comparison: VLONG < -0x8000000000000000: always false
+warning: x.c:123 useless comparison: VLONG >= -0x8000000000000000: always true
+warning: x.c:124 useless comparison: VLONG > 0x7fffffffffffffff: always false
+warning: x.c:125 useless comparison: VLONG >= 0x8000000000000000: always false
+warning: x.c:126 useless comparison: VLONG <= 0x7fffffffffffffff: always true
+warning: x.c:127 useless comparison: VLONG < 0x8000000000000000: always true
+warning: x.c:128 useless comparison: UVLONG < 0: always false
+warning: x.c:129 useless comparison: UVLONG <= -1: always false
+warning: x.c:130 useless comparison: UVLONG >= 0: always true
+warning: x.c:131 useless comparison: UVLONG > -1: always true
+warning: x.c:132 useless comparison: UVLONG > 0xffffffffffffffff: always false
+warning: x.c:133 useless comparison: UVLONG <= 0xffffffffffffffff: always true

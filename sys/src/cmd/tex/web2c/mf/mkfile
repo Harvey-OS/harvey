@@ -1,0 +1,11 @@
+</$objtype/mkfile 
+
+TARG=mf
+EXTRA_OFILES=trap.$O
+<../texmfmp.mkfile
+
+mf.$CPUENDIAN.base: $O.out
+	$O.out --base'='mf.$CPUENDIAN --ini '\input' plain input modes dump </dev/null
+
+install-fmt:V:	mf.pool mf.$CPUENDIAN.base
+	cp $newprereq /sys/lib/texmf/web2c

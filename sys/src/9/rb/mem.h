@@ -29,8 +29,6 @@
 #define ICACHESIZE	(64*1024)		/* rb450g */
 #define DCACHESIZE	(32*1024)		/* rb450g */
 
-#define MASK(w)		FMASK(0, w)
-
 /*
  * Time
  */

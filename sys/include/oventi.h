@@ -220,9 +220,9 @@ void packetStats(void);
 /* portability stuff - should be a seperate library */
 
 void vtMemFree(void *);
-void *vtMemAlloc(int);
-void *vtMemAllocZ(int);
-void *vtMemRealloc(void *p, int);
+void *vtMemAlloc(uintptr);
+void *vtMemAllocZ(uintptr);
+void *vtMemRealloc(void *p, uintptr);
 void *vtMemBrk(int n);
 char *vtStrDup(char *);
 void vtFatal(char *, ...);

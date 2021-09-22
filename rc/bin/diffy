@@ -12,5 +12,10 @@ if(! ~ $#* 1)
 	diffopts=($diffopts -m)
 if (~ $#* 0)
 	* = (.)
-for(f)
-	diff $diffopts `{yesterday $f} $f
+for(f) {
+	dumpdir=`{yesterday $f}
+	if (test -e $dumpdir)
+		diff $diffopts $dumpdir $f
+	if not
+		echo $dumpdir missing >[1=2]
+}

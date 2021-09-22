@@ -1,0 +1,258 @@
+.TH PDFTEX 1 "27 December 1997" "Web2C @VERSION@"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if t .ds AX \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(TX
+.if n .ds AX AmSTeX
+.if t .ds AY \fRA\\h'-0.1667m'\\v'0.20v'M\\v'-0.20v'\\h'-0.125m'S\fP\*(LX
+.if n .ds AY AmSLaTeX
+.\"=====================================================================
+.SH NAME
+pdftex, pdfinitex, pdfvirtex \- PDF output from TeX
+.SH SYNOPSIS
+.B pdftex
+.RI [ options ]
+.RI [ commands ]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+pdf\*(TX is a version of \*(TX that can create
+.I PDF
+files as well as
+.I DVI
+files.
+.PP
+The typical use of pdf\*(TX is with a pregenerated formats for which
+PDF output has been enabled.  The
+.B pdftex
+command uses the equivalent of the plain \*(TX format, and the
+.B pdflatex
+command uses the equivalent of the \*(LX format.
+.PP
+The
+.B pdfinitex
+and
+.B pdfvirtex
+commands are pdf\*(TX's analogues to the
+.B initex
+and
+.B virtex
+commands.  In this installation, they are symlinks to the
+.B pdftex
+executable.
+.PP
+pdf\*(TX's handling of its command-line arguments is similar to that of
+\*(TX.
+.PP
+pdf\*(TX is beta software.
+.\"=====================================================================
+.SH OPTIONS
+This version of pdf\*(TX understands the following command line options.
+.TP
+.BI --fmt \ format
+.rb
+Use
+.I format
+as the name of the format to be used, instead of the name by which
+pdf\*(TX was called or a
+.I %&
+line.
+.TP
+.B --help
+.rb
+Print help message and exit.
+.TP
+.B --ini
+.rb
+Be
+.BR pdfinitex ,
+for dumping formats; this is implicitly true if the program is called
+as
+.BR pdfinitex .
+.TP
+.BI --interaction \ mode
+.rb
+Sets the interaction mode.  The mode can be one of
+.IR batchmode ,
+.IR nonstopmode ,
+.IR scrollmode ,
+and
+.IR errorstopmode .
+The meaning of these modes is the same as that of the corresponding
+\ecommands.
+.TP
+.B --ipc
+.rb
+Send DVI or PDF output to a socket as well as the usual output file.
+Whether this option is available is the choice of the installer.
+.TP
+.B --ipc-start
+.rb
+As
+.BR --ipc ,
+and starts the server at the other end as well.  Whether this option
+is available is the choice of the installer.
+.TP
+.BI --kpathsea-debug \ bitmask
+.rb
+Sets path searching debugging flags according to the bitmask.  See the
+.I Kpathsea
+manual for details.
+.TP
+.BI --maketex \ fmt
+.rb
+Enable
+.RI mktex fmt ,
+where
+.I fmt
+must be one of
+.I tex
+or
+.IR tfm .
+.TP
+.BI --no-maketex \ fmt
+.rb
+Disable
+.RI mktex fmt ,
+where
+.I fmt
+must be one of
+.I tex
+or
+.IR tfm .
+.TP
+.BI --output-comment \ string
+.rb
+Use
+.I string
+for the DVI file comment instead of the date.
+.TP
+.BI --progname \ name
+.rb
+Pretend to be program
+.IR name .
+This affects both the format used and the search paths.
+.TP
+.B --shell-escape
+.rb
+Enable the
+.BI \ewrite18{ command }
+construct.  The
+.I command
+can be any Bourne shell command.  This construct is normally
+disallowed for security reasons.
+.TP
+.B --version
+.rb
+Print version information and exit.
+.\"=====================================================================
+.SH ENVIRONMENT
+See the Kpathsearch library documentation (the `Path specifications'
+node) for precise details of how the environment variables are used.
+The
+.B kpsewhich
+utility can be used to query the values of the variables.
+.PP
+One caveat: In most pdf\*(TX formats, you cannot use ~ in a filename you
+give directly to pdf\*(TX, because ~ is an active character, and hence is
+expanded, not taken as part of the filename.  Other programs, such as
+\*(MF, do not have this problem.
+.PP
+.TP
+TEXMFOUTPUT
+Normally, pdf\*(TX puts its output files in the current directory.  If
+any output file cannot be opened there, it tries to open it in the
+directory specified in the environment variable TEXMFOUTPUT.
+There is no default value for that variable.  For example, if you say
+.I tex paper
+and the current directory is not writable, if TEXMFOUTPUT has
+the value
+.IR /tmp ,
+pdf\*(TX attempts to create
+.I /tmp/paper.log
+(and
+.IR /tmp/paper.pdf ,
+if any output is produced.)
+.TP
+TEXINPUTS
+Search path for
+.I \einput
+and
+.I \eopenin
+files.
+This should probably start with ``.'', so
+that user files are found before system files.
+.TP
+TEXFONTS
+Search path for font metric
+.RI ( .tfm )
+files.
+.TP
+TEXFORMATS
+Search path for format files.
+.TP
+TEXPOOL
+search path for
+.B pdfinitex
+internal strings.
+.TP
+TEXEDIT
+Command template for switching to editor.  The default, usually
+.BR vi ,
+is set when pdf\*(TX is compiled.
+.\"=====================================================================
+.SH FILES
+The location of the files mentioned below varies from system to
+system.  Use the
+.B kpsewhich
+utility to find their locations.
+.TP
+.I pdftex.pool
+Encoded text of pdf\*(TX's messages.
+.TP
+.I texfonts.map
+Filename mapping definitions.
+.TP
+.I *.tfm
+Metric files for pdf\*(TX's fonts.
+.TP
+.I *.fmt
+Predigested pdf\*(TX format (.\|fmt) files.
+.br
+.\"=====================================================================
+.SH BUGS
+This version of pdf\*(TX fails to trap arithmetic overflow when
+dimensions are added or subtracted.  Cases where this occurs are rare,
+but when it does the generated
+.I DVI
+file will be invalid.
+.PP
+pdf\*(TX is beta software.  Subscribe to the pdftex mailing list
+.B pdftex@tug.org
+if you intend to use it.  This is a mojordomo list, to subscribe send
+a message containing
+.I subscribe pdftex
+to
+.BR majordomo@tug.org .
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR tex (1),
+.BR mf (1),
+.BR undump (1).
+.\"=====================================================================
+.SH AUTHORS
+The primary authors of pdf\*(TX are Han The Thanh, Petr Sojka, and
+Jiri Zlatuska.

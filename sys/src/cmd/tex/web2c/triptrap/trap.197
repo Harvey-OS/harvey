@@ -1,0 +1,14 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: -2 -4 8 4 
+%%Creator: MetaPost
+%%CreationDate: 1998.01.28:1118
+%%Pages: 1
+%%DocumentFonts: trapf
+ /trapf /trapf def
+/fshow {exch findfont exch scalefont setfont show}bind def
+%%EndProlog
+%%Page: 1 1
+gsave [0 -0.9428 0.9428 0.4714 0 0 ] concat 0 0 moveto
+(curb) trapf 10.56706 fshow grestore
+showpage
+%%EOF

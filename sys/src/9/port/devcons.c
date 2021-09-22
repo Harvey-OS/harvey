@@ -8,6 +8,8 @@
 
 #include	<authsrv.h>
 
+#define CTRL(c) ((c) & 037)
+
 void	(*consdebug)(void) = nil;
 void	(*screenputs)(char*, int) = nil;
 
@@ -67,6 +69,8 @@ Cmdtab rebootmsg[] =
 	CMpanic,	"panic",	0,
 };
 
+static int	iprintcanlock(Lock *l);
+
 void
 printinit(void)
 {
@@ -93,45 +97,124 @@ prflush(void)
 	while(consactive())
 		if(m->ticks - now >= HZ)
 			break;
+ 	delay(1000);			/* drain uart */
 }
 
 /*
  * Log console output so it can be retrieved via /dev/kmesg.
  * This is good for catching boot-time messages after the fact.
+ * We have moved it to the top of available memory in the hope
+ * that it may persist across at least some reboots.
  */
-struct {
-	Lock lk;
-	char buf[KMESGSIZE];
-	uint n;
-} kmesg;
+enum {
+	Persistmagic = 0xf001dea1,
+};
+
+typedef struct Kmesg Kmesg;
+struct Kmesg {
+	ulong	magic;
+	uint	used;			/* valid bytes from start of buf */
+	char	buf[KMESGSIZE];
+} earlykmesg;
+
+uchar *kmsgbase;			/* set in confinit; phys addr. */
+
+static Kmesg *kmsgp = &earlykmesg;	/* use earlykmesg until kmesginit */
+static Lock kmesglck;
+
+/* paranoia: stay within array bounds */
+static int
+inbounds(int val, int low, int high)
+{
+	if (val < low)
+		val = low;
+	if (val > high)
+		val = high;
+	return val;
+}
+
+static int
+inkmbuf(int val)
+{
+	return inbounds(val, 0, sizeof kmsgp->buf);
+}
 
 static void
 kmesgputs(char *str, int n)
 {
-	uint nn, d;
+	int used, skip, shift, excess, unused, copy;
+	uint s;
 
-	ilock(&kmesg.lk);
-	/* take the tail of huge writes */
-	if(n > sizeof kmesg.buf){
-		d = n - sizeof kmesg.buf;
-		str += d;
-		n -= d;
+	/* paranoia: memory corruption? */
+	if (kmsgp != &earlykmesg && kmsgp->magic != Persistmagic)
+		return;
+	if (n <= 0)
+		return;
+	s = splhi();
+	if (!iprintcanlock(&kmesglck)) {
+		splx(s);
+		return;
 	}
 
-	/* slide the buffer down to make room */
-	nn = kmesg.n;
-	if(nn + n >= sizeof kmesg.buf){
-		d = nn + n - sizeof kmesg.buf;
-		if(d)
-			memmove(kmesg.buf, kmesg.buf+d, sizeof kmesg.buf-d);
-		nn -= d;
+	/* take the tail of huge writes by adjusting args */
+	skip = n - sizeof kmsgp->buf;
+	if(skip > 0){
+		str += skip;
+		n = sizeof kmsgp->buf;
+	}
+
+	/* slide the buffer down to make room if needed */
+	used = inkmbuf(kmsgp->used);
+	excess = used + n - sizeof kmsgp->buf;
+	if(excess > 0){
+		/*
+		 * need room for excess bytes, but the buffer may
+		 * not all be valid.  only copy valid bytes.
+		 */
+		unused = sizeof kmsgp->buf - used;
+		shift = inkmbuf(excess - unused);
+		copy = inkmbuf(used - shift);
+		if (shift > 0 && copy > 0) {
+			memmove(kmsgp->buf, kmsgp->buf + shift, copy);
+			used = copy;
+		}
 	}
 
 	/* copy the data in */
-	memmove(kmesg.buf+nn, str, n);
-	nn += n;
-	kmesg.n = nn;
-	iunlock(&kmesg.lk);
+	unused = sizeof kmsgp->buf - used;
+	if (n > unused)
+		n = unused;
+	memmove(kmsgp->buf + used, str, n);
+	kmsgp->used = inkmbuf(used + n);
+	unlock(&kmesglck);
+	splx(s);
+}
+
+void
+kmesginit(void)				/* uses vmap, thus mmu */
+{
+	Kmesg *msgs;
+
+	if (kmsgbase == nil || kmsgp != &earlykmesg)
+		return;
+	/*
+	 * kmsgbase should be at end of usable memory, thus potentially out
+	 * of kernel address space.  vmap may make the region uncached, alas.
+	 */
+	msgs = vmap((uintptr)kmsgbase, sizeof(Kmesg));	/* make accessible */
+	if (msgs == nil) {
+		print("devcons: can't vmap kmesg buffer at %#p\n", kmsgbase);
+		return;
+	}
+
+	/* if present, use existing high-memory Kmesg struct */
+	if (msgs->magic != Persistmagic || msgs->used > sizeof kmsgp->buf) {
+		/* initialise Kmesg struct in high memory. */
+		msgs->used = 0;
+		msgs->magic = Persistmagic;
+	}
+	kmsgp = msgs;
+	kmesgputs(earlykmesg.buf, earlykmesg.used);
 }
 
 /*
@@ -145,9 +228,11 @@ putstrn0(char *str, int n, int usewrite)
 {
 	int m;
 	char *t;
+	int (*qwr)(Queue*, void*, int);
 
 	if(!islo())
 		usewrite = 0;
+	qwr = usewrite? qwrite: qiwrite;
 
 	/*
 	 *  how many different output devices do we need?
@@ -163,12 +248,9 @@ putstrn0(char *str, int n, int usewrite)
 	 *  if there's a serial line being used as a console,
 	 *  put the message there.
 	 */
-	if(kprintoq != nil && !qisclosed(kprintoq)){
-		if(usewrite)
-			qwrite(kprintoq, str, n);
-		else
-			qiwrite(kprintoq, str, n);
-	}else if(screenputs != nil)
+	if(kprintoq != nil && !qisclosed(kprintoq))
+		qwr(kprintoq, str, n);
+	else if(screenputs != nil)
 		screenputs(str, n);
 
 	if(serialoq == nil){
@@ -176,26 +258,16 @@ putstrn0(char *str, int n, int usewrite)
 		return;
 	}
 
-	while(n > 0) {
+	for(; n > 0; n -= m+1) {
 		t = memchr(str, '\n', n);
-		if(t && !kbd.raw) {
-			m = t-str;
-			if(usewrite){
-				qwrite(serialoq, str, m);
-				qwrite(serialoq, "\r\n", 2);
-			} else {
-				qiwrite(serialoq, str, m);
-				qiwrite(serialoq, "\r\n", 2);
-			}
-			n -= m+1;
-			str = t+1;
-		} else {
-			if(usewrite)
-				qwrite(serialoq, str, n);
-			else
-				qiwrite(serialoq, str, n);
+		if(t == nil || kbd.raw) {
+			qwr(serialoq, str, n);
 			break;
 		}
+		m = t-str;
+		qwr(serialoq, str, m);
+		qwr(serialoq, "\r\n", 2);
+		str = t+1;
 	}
 }
 
@@ -205,8 +277,6 @@ putstrn(char *str, int n)
 	putstrn0(str, n, 0);
 }
 
-int noprint;
-
 int
 print(char *fmt, ...)
 {
@@ -214,14 +284,13 @@ print(char *fmt, ...)
 	va_list arg;
 	char buf[PRINTSIZE];
 
-	if(noprint)
-		return -1;
-
 	va_start(arg, fmt);
 	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
-	putstrn(buf, n);
-
+	if (noprint)		/* early: locks or uart may not be enabled */
+		iprint("%.*s", n, buf);
+	else
+		putstrn(buf, n);
 	return n;
 }
 
@@ -232,11 +301,14 @@ print(char *fmt, ...)
  * Make a good faith effort.
  */
 static Lock iprintlock;
+
 static int
 iprintcanlock(Lock *l)
 {
 	int i;
-	
+
+	if (noprint)
+		return 0;
 	for(i=0; i<1000; i++){
 		if(canlock(l))
 			return 1;
@@ -262,10 +334,10 @@ iprint(char *fmt, ...)
 	if(screenputs != nil && iprintscreenputs)
 		screenputs(buf, n);
 	uartputs(buf, n);
+	kmesgputs(buf, n);
 	if(locked)
 		unlock(&iprintlock);
 	splx(s);
-
 	return n;
 }
 
@@ -278,8 +350,15 @@ panic(char *fmt, ...)
 
 	kprintoq = nil;	/* don't try to write to /dev/kprint */
 
+	/* simplify life by shutting off any watchdog */
+	if (watchdogon) {
+		watchdog->disable();
+		watchdogon = 0;
+	}
+
 	if(panicking)
-		for(;;);
+		for(;;)
+			delay(10);
 	panicking = 1;
 
 	s = splhi();
@@ -296,20 +375,26 @@ panic(char *fmt, ...)
 	putstrn(buf, n+1);
 	dumpstack();
 
-	exit(1);
+	exit(Shutpanic);
 }
 
 /* libmp at least contains a few calls to sysfatal; simulate with panic */
 void
 sysfatal(char *fmt, ...)
 {
-	char err[256];
+	char err[PRINTSIZE];
 	va_list arg;
 
 	va_start(arg, fmt);
 	vseprint(err, err + sizeof err, fmt, arg);
 	va_end(arg);
 	panic("sysfatal: %s", err);
+}
+
+void
+abort(void)
+{
+	panic("abort");
 }
 
 void
@@ -364,7 +449,7 @@ echoscreen(char *buf, int n)
 			p = ebuf;
 		}
 		x = *buf++;
-		if(x == 0x15){
+		if(x == CTRL('u')){
 			*p++ = '^';
 			*p++ = 'U';
 			*p++ = '\n';
@@ -393,7 +478,7 @@ echoserialoq(char *buf, int n)
 		if(x == '\n'){
 			*p++ = '\r';
 			*p++ = '\n';
-		} else if(x == 0x15){
+		} else if(x == CTRL('u')){
 			*p++ = '^';
 			*p++ = 'U';
 			*p++ = '\n';
@@ -403,6 +488,8 @@ echoserialoq(char *buf, int n)
 	if(p != ebuf)
 		qiwrite(serialoq, ebuf, p - ebuf);
 }
+
+void (*fpprint)(void);
 
 static void
 echo(char *buf, int n)
@@ -417,13 +504,13 @@ echo(char *buf, int n)
 	e = buf+n;
 	for(p = buf; p < e; p++){
 		switch(*p){
-		case 0x10:	/* ^P */
+		case CTRL('p'):
 			if(cpuserver && !kbd.ctlpoff){
 				active.exiting = 1;
 				return;
 			}
 			break;
-		case 0x14:	/* ^T */
+		case CTRL('t'):
 			ctrlt++;
 			if(ctrlt > 2)
 				ctrlt = 2;
@@ -477,6 +564,10 @@ echo(char *buf, int n)
 			return;
 		case 'r':
 			exit(0);
+			return;
+		case 'f':
+			if (fpprint)
+				fpprint();
 			return;
 		}
 	}
@@ -739,6 +830,16 @@ consclose(Chan *c)
 	}
 }
 
+static int
+percent(ulong a, ulong b)
+{
+	if (b == 0)
+		b = 1;		/* don't divide by zero */
+	if (a >= b)
+		return 100;	/* cap at 100% */
+	return (a * 100ull) / b;
+}
+
 static long
 consread(Chan *c, void *buf, long n, vlong off)
 {
@@ -780,14 +881,14 @@ consread(Chan *c, void *buf, long n, vlong off)
 					if(kbd.x > 0)
 						kbd.x--;
 					break;
-				case 0x15:	/* ^U */
+				case CTRL('u'):
 					kbd.x = 0;
 					break;
 				case '\n':
-				case 0x04:	/* ^D */
+				case CTRL('d'):
 					send = 1;
 				default:
-					if(ch != 0x04)
+					if(ch != CTRL('d'))
 						kbd.line[kbd.x++] = ch;
 					break;
 				}
@@ -812,7 +913,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 		for(i=0; i<6 && NUMSIZE*i<k+n; i++){
 			l = up->time[i];
 			if(i == TReal)
-				l = MACHP(0)->ticks - l;
+				l = sys->ticks - l;
 			l = TK2MS(l);
 			readnum(0, tmp+NUMSIZE*i, NUMSIZE, l, NUMSIZE);
 		}
@@ -822,19 +923,22 @@ consread(Chan *c, void *buf, long n, vlong off)
 	case Qkmesg:
 		/*
 		 * This is unlocked to avoid tying up a process
-		 * that's writing to the buffer.  kmesg.n never 
+		 * that's writing to the buffer.  kmsgp->n never 
 		 * gets smaller, so worst case the reader will
 		 * see a slurred buffer.
 		 */
-		if(off >= kmesg.n)
+		k = inbounds(kmsgp->used, 0, sizeof kmsgp->buf);
+		if(off >= k)
 			n = 0;
 		else{
-			if(off+n > kmesg.n)
-				n = kmesg.n - off;
-			memmove(buf, kmesg.buf+off, n);
+			if(off+n > k)
+				n = k - off;
+			n = inbounds(n, 0, sizeof kmsgp->buf);
+			if (n > 0)
+				memmove(buf, kmsgp->buf+off, n);
 		}
 		return n;
-		
+
 	case Qkprint:
 		return qread(kprintoq, buf, n);
 
@@ -871,11 +975,15 @@ consread(Chan *c, void *buf, long n, vlong off)
 	case Qsysstat:
 		b = smalloc(conf.nmach*(NUMSIZE*11+1) + 1);	/* +1 for NUL */
 		bp = b;
-		for(id = 0; id < MAXMACH; id++) {
+		for(id = 0; id < MAXMACH; id++)
 			if(iscpuactive(id)) {
 				mp = MACHP(id);
-				readnum(0, bp, NUMSIZE, id, NUMSIZE);
-				bp += NUMSIZE;
+				if (id == mp->machno) {
+					readnum(0, bp, NUMSIZE, id, NUMSIZE);
+					bp += NUMSIZE;
+				} else
+					bp += snprint(bp, NUMSIZE+1, "%d!=%d",
+						id, mp->machno);
 				readnum(0, bp, NUMSIZE, mp->cs, NUMSIZE);
 				bp += NUMSIZE;
 				readnum(0, bp, NUMSIZE, mp->intr, NUMSIZE);
@@ -890,17 +998,16 @@ consread(Chan *c, void *buf, long n, vlong off)
 				bp += NUMSIZE;
 				readnum(0, bp, NUMSIZE, mp->load, NUMSIZE);
 				bp += NUMSIZE;
-				readnum(0, bp, NUMSIZE,
-					(mp->perf.avg_inidle*100)/mp->perf.period,
+				readnum(0, bp, NUMSIZE, percent(
+					mp->perf.avg_inidle, mp->perf.period),
 					NUMSIZE);
 				bp += NUMSIZE;
-				readnum(0, bp, NUMSIZE,
-					(mp->perf.avg_inintr*100)/mp->perf.period,
+				readnum(0, bp, NUMSIZE, percent(
+					mp->perf.avg_inintr, mp->perf.period),
 					NUMSIZE);
 				bp += NUMSIZE;
 				*bp++ = '\n';
 			}
-		}
 		if(waserror()){
 			free(b);
 			nexterror();
@@ -1078,7 +1185,7 @@ conswrite(Chan *c, void *va, long n, vlong off)
 		break;
 
 	case Qsysstat:
-		for(id = 0; id < MAXMACH; id++) {
+		for(id = 0; id < MAXMACH; id++)
 			if(iscpuactive(id)) {
 				mp = MACHP(id);
 				mp->cs = 0;
@@ -1088,7 +1195,6 @@ conswrite(Chan *c, void *va, long n, vlong off)
 				mp->tlbfault = 0;
 				mp->tlbpurge = 0;
 			}
-		}
 		break;
 
 	case Qswap:
@@ -1166,7 +1272,7 @@ nrand(int n)
 {
 	if(randn == 0)
 		seedrand();
-	randn = randn*1103515245 + 12345 + MACHP(0)->ticks;
+	randn = randn*1103515245 + 12345 + sys->ticks;
 	return (randn>>16) % n;
 }
 

@@ -18,54 +18,56 @@ dev
 	fs
 
 	ether		netif
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386
 
 	kbin
 
 	sd
-	floppy		dma
-	aoe
+#	aoe
 
 	uart
 	usb
+	wd
 
 link
 # order of ethernet drivers should match that in ../pcboot/boot so that
 # devices are detected in the same order by bootstraps and kernels
-# and thus given the same controller numbers.
+# and thus given the same controller numbers.  put fastest first.
+# 10 Gb/s
+	etherxgbe	pci
+# gigabit
+	etherigbepci	pci ethermii
+	etherigbe	pci
+# 100 Mb/s
 	ether82557	pci
-	ether82563	pci
-	etherdp83820	pci
-	etherga620	pci
-	etherigbe	pci ethermii
 	ethervt6105m	pci ethermii
 	ethersink
-	ethervirtio	pci
+
 	ethermedium
 	netdevmedium
 	loopbackmedium
-	usbuhci
-	usbohci
+
+#	usbuhci
+#	usbohci
 	usbehci		usbehcipc
 
 misc
-	realmode
-	archmp		mp apic mpacpi
-	mtrr
+#	realmode			# no longer needed
+	mp		apic mpacpi
 
 	uarti8250
 
-	sdaoe
+	sdnvme		pci sdscsi
+	sdahci		pci sdscsi
 	sdata		pci sdscsi
-	sdiahci		pci sdscsi
-	sd53c8xx	pci sdscsi
-	sdmylex		pci sdscsi
-	sdvirtio	pci sdscsi
+#	sdmylex		pci sdscsi
+#	sd53c8xx	pci sdscsi
+#	sdaoe
 
 ip
 	tcp
 	udp
-	rudp
+#	rudp
 	ipifc
 	icmp
 	icmp6
@@ -95,6 +97,7 @@ bootdir
 	/386/bin/disk/fdisk
 	/386/bin/disk/prep
 	/386/bin/echo
+	/386/bin/grep
 	/386/bin/ls
 	/386/bin/mount
 	/386/bin/read

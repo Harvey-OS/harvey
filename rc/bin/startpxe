@@ -1,0 +1,8 @@
+#!/bin/rc
+# start normal pxe (dhcpd & tftpd) inside service
+
+ip/dhcpd 135.104.9.145 26 \
+	 135.104.50.93 37 \
+	 135.104.50.6  18 \
+	 135.2.104.100 10
+ip/tftpd

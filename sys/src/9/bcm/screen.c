@@ -326,11 +326,6 @@ screeninit(void)
 	set = screensize() == 0;
 	fb = fbinit(set, &xgscreen.r.max.x, &xgscreen.r.max.y, &xgscreen.depth);
 	if(fb == nil){
-		xgscreen.r.max = Pt(640, 480);
-		xgscreen.depth = 16;
-		fb = fbinit(set, &xgscreen.r.max.x, &xgscreen.r.max.y, &xgscreen.depth);
-	}
-	if(fb == nil){
 		print("can't initialise %dx%dx%d framebuffer \n",
 			xgscreen.r.max.x, xgscreen.r.max.y, xgscreen.depth);
 		return;
@@ -349,7 +344,7 @@ screeninit(void)
 		chan = rgbswap? RGB24 : BGR24;
 		break;
 	case 32:
-		chan = rgbswap? XRGB32 : XBGR32;
+		chan = ARGB32;
 		break;
 	}
 	memsetchan(&xgscreen, chan);

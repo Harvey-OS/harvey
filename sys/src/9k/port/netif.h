@@ -5,7 +5,7 @@ typedef struct Netif	Netif;
 enum
 {
 	Nmaxaddr=	64,
-	Nmhash=		31,
+	Nmhash=		31,		/* must be <= 8*sizeof Netfile->maddr */
 
 	Ncloneqid=	1,
 	Naddrqid,
@@ -16,15 +16,14 @@ enum
 	Nstatqid,
 	Ntypeqid,
 	Nifstatqid,
-	Nmtuqid,
 };
 
 /*
  *  Macros to manage Qid's used for multiplexed devices
  */
-#define NETTYPE(x)	(((ulong)x)&0x1f)
-#define NETID(x)	((((ulong)x))>>5)
-#define NETQID(i,t)	((((ulong)i)<<5)|(t))
+#define NETTYPE(x)	((ulong)(x) & MASK(5))
+#define NETID(x)	((ulong)(x) >> 5)
+#define NETQID(i,t)	(((ulong)(i) << 5) | (t))
 
 /*
  *  one per multiplexed connection
@@ -72,13 +71,10 @@ struct Netif
 	Netfile	**f;
 
 	/* about net */
-	int	limit;			/* flow control */
+	uint	limit;			/* flow control */
 	int	alen;			/* address length */
 	int	mbps;			/* megabits per sec */
 	int	link;			/* link status */
-	int	minmtu;
-	int 	maxmtu;
-	int	mtu;
 	uchar	addr[Nmaxaddr];
 	uchar	bcast[Nmaxaddr];
 	Netaddr	*maddr;			/* known multicast addresses */
@@ -92,8 +88,8 @@ struct Netif
 
 	/* statistics */
 	int	misses;
-	uvlong	inpackets;
-	uvlong	outpackets;
+	int	inpackets;
+	int	outpackets;
 	int	crcs;			/* input crc errors */
 	int	oerrs;			/* output errors */
 	int	frames;			/* framing errors */
@@ -105,7 +101,6 @@ struct Netif
 	void	*arg;
 	void	(*promiscuous)(void*, int);
 	void	(*multicast)(void*, uchar*, int);
-	int	(*hwmtu)(void*, int);	/* get/set mtu */
 	void	(*scanbs)(void*, uint);	/* scan for base stations */
 };
 

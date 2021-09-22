@@ -680,7 +680,8 @@ static struct
 	"exportfs", 17007,
 	"rexexec", 17009,
 	"ncpu", 17010,
-	"cpu", 17013,
+	"cpu", 17013,			/* obsolete; pre-9p2k */
+	"cpu-tls", 17014,
 	"glenglenda1", 17020,
 	"glenglenda2", 17021,
 	"glenglenda3", 17022,

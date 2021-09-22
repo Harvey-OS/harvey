@@ -21,19 +21,11 @@
 void
 mul64fract(uvlong *r, uvlong a, uvlong b)
 {
-	uvlong bh, bl;
-	uvlong ah, al;
-	uvlong res;
+	uvlong ah, al, bh, bl;
 
-	bl = b & 0xffffffffULL;
+	bl = b & (ulong)~0ul;
 	bh = b >> 32;
-	al = a & 0xffffffffULL;
+	al = a & (ulong)~0ul;
 	ah = a >> 32;
-
-	res = (al*bl)>>32;
-	res += (al*bh);
-	res += (ah*bl);
-	res += (ah*bh)<<32;
-
-	*r = res;
+	*r = ((al*bl)>>32) + al*bh + ah*bl + ((ah*bh)<<32);
 }

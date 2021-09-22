@@ -7,39 +7,37 @@ enum {
 	ChunkSize 	= 128*1024,
 };
 
-
 void
 vtMemFree(void *p)
 {
-	if(p == 0)
-		return;
-	free(p);
+	if(p)
+		free(p);
 }
 
-
 void *
-vtMemAlloc(int size)
+vtMemAlloc(uintptr size)
 {
 	void *p;
 
 	p = malloc(size);
 	if(p == 0)
-		vtFatal("vtMemAlloc: out of memory");
+		vtFatal("vtMemAlloc: out of memory allocating %lud", size);
 	setmalloctag(p, getcallerpc(&size));
 	return p;
 }
 
 void *
-vtMemAllocZ(int size)
+vtMemAllocZ(uintptr size)
 {
 	void *p = vtMemAlloc(size);
+
 	memset(p, 0, size);
 	setmalloctag(p, getcallerpc(&size));
 	return p;
 }
 
 void *
-vtMemRealloc(void *p, int size)
+vtMemRealloc(void *p, uintptr size)
 {
 	if(p == nil)
 		return vtMemAlloc(size);
@@ -56,8 +54,7 @@ vtMemBrk(int n)
 {
 	static Lock lk;
 	static uchar *buf;
-	static int nbuf;
-	static int nchunk;
+	static int nbuf, nchunk;
 	int align, pad;
 	void *p;
 

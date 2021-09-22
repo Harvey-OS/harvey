@@ -214,7 +214,7 @@ static int nInstrCount=0;
   /* Instruction dispatch function, as used by the interpreter */
   typedef void  (*TInstruction_Function)( INS_ARG );
 
-#define BOUNDS(x,n)  ( x < 0 || x >= n )
+#define BOUNDS(x,n)  ( (x) < 0 || (x) >= (n) )
 
 #ifndef ABS
 #define ABS(x)  ( (x) < 0 ? -(x) : (x) )

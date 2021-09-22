@@ -48,7 +48,8 @@ faulterror(char *s, Chan *c, int freemem)
 	char buf[ERRMAX];
 
 	if(c && c->path){
-		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
+		snprint(buf, sizeof buf, "sys: %s accessing %s: %s",
+			s, c->path->s, up->errstr);
 		s = buf;
 	}
 	if(up->nerrlab) {
@@ -283,7 +284,7 @@ done:
 }
 
 /*
- * Called only in a system call
+ * Called only in a system call (or FP emulation)
  */
 int
 okaddr(ulong addr, ulong len, int write)

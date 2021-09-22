@@ -54,8 +54,8 @@ enum {
 	SmbusSpace	= 0x04,
 	CmosSpace	= 0x05,
 	PcibarSpace	= 0x06,
-	FixedhwSpace	= 0x08,
 	IpmiSpace	= 0x07,
+	FixedhwSpace = 0x08,
 };
 
 typedef struct Amlio Amlio;

@@ -1,6 +1,6 @@
 .TH VI 1
 .SH NAME
-5i, ki, vi, qi \- instruction simulators
+5i, 7i, vi, qi \- instruction simulators
 .SH SYNOPSIS
 .B vi
 [
@@ -18,12 +18,12 @@
 .B 5i
 .I pid
 .br
-.B ki
+.B 7i
 [
 .I textfile
 ]
 .br
-.B ki
+.B 7i
 .I pid
 .br
 .B qi
@@ -46,12 +46,12 @@ slower than normal\(embut faster than
 single stepping under
 .IR db .
 .IR 5i ,
-.IR ki ,
+.IR 7i ,
 and
 .IR qi
 are similar to
 .I vi
-but interpret ARM, SPARC, and PowerPC binaries.
+but interpret ARM, ARM64, and PowerPC binaries.
 The following discussion refers to
 .I vi
 but applies to the others
@@ -96,8 +96,6 @@ offers only MIPS
 .BR -mmipsco )
 mnemonics for
 machine instructions.
-.I Ki
-offers both Plan 9 and Sun SPARC formats.
 .PP
 Several extra commands allow
 extended tracing and printing of statistics:

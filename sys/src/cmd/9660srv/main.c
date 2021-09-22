@@ -31,8 +31,6 @@ static int	openflags(int);
 static void	rmservice(void);
 static void	usage(void);
 
-#define Reqsize (sizeof(Fcall)+Maxfdata)
-
 Fcall *req;
 Fcall *rep;
 

@@ -1,0 +1,32 @@
+.TH INCLUDE 1
+.SH NAME
+include \- file inclusion processor
+.SH SYNOPSIS
+.B include
+[
+.I file
+] ...
+.SH DESCRIPTION
+.I Include\^
+copies its input
+.IR file s
+(default standard input)
+to standard output,
+replacing lines of the form
+.PP
+.RS
+.EX
+.BI include\  file
+.EE
+.RE
+.PP
+with the contents of
+.IR file .
+Leading whitespace before
+.L include
+is allowed,
+and included files may include other files.
+.SH SOURCE
+.B /rc/bin/include
+.SH SEE ALSO
+.IR cpp (1)

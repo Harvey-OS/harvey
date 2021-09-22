@@ -129,15 +129,16 @@ uchar v6solicitednodemask[IPaddrlen] = {
 };
 int v6snpreflen = 13;
 
+/* checksum of a packet in multiple Blocks, starting offset bytes in */
 ushort
 ptclcsum(Block *bp, int offset, int len)
 {
 	uchar *addr;
 	ulong losum, hisum;
 	ushort csum;
-	int odd, blocklen, x;
+	int odd, blocklen;
 
-	/* Correct to front of data area */
+	/* skip to front of data area */
 	while(bp != nil && offset && offset >= BLEN(bp)) {
 		offset -= BLEN(bp);
 		bp = bp->next;
@@ -148,28 +149,21 @@ ptclcsum(Block *bp, int offset, int len)
 	addr = bp->rp + offset;
 	blocklen = BLEN(bp) - offset;
 
-	if(bp->next == nil) {
-		if(blocklen < len)
-			len = blocklen;
-		return ~ptclbsum(addr, len) & 0xffff;
-	}
+	if(bp->next == nil)		/* only 1 Block left? */
+		return ~ptclbsum(addr, blocklen < len? blocklen: len) & 0xffff;
 
-	losum = 0;
-	hisum = 0;
-
-	odd = 0;
+	losum = hisum = odd = 0;
 	while(len) {
-		x = blocklen;
-		if(len < x)
-			x = len;
+		if(len < blocklen)
+			blocklen = len;
 
-		csum = ptclbsum(addr, x);
+		csum = ptclbsum(addr, blocklen);
 		if(odd)
 			hisum += csum;
 		else
 			losum += csum;
-		odd = (odd+x) & 1;
-		len -= x;
+		odd = (odd+blocklen) & 1;
+		len -= blocklen;
 
 		bp = bp->next;
 		if(bp == nil)
@@ -185,13 +179,6 @@ ptclcsum(Block *bp, int offset, int len)
 
 	return ~losum & 0xffff;
 }
-
-enum
-{
-	Isprefix= 16,
-};
-
-#define CLASS(p) ((*(uchar*)(p))>>6)
 
 void
 ipv62smcast(uchar *smcast, uchar *a)
@@ -238,7 +225,8 @@ parsemac(uchar *to, char *from, int len)
 ulong
 iphash(uchar *sa, ushort sp, uchar *da, ushort dp)
 {
-	return ((sa[IPaddrlen-1]<<24) ^ (sp << 16) ^ (da[IPaddrlen-1]<<8) ^ dp ) % Nipht;
+	return ((sa[IPaddrlen-1]<<24) ^ (sp << 16) ^ (da[IPaddrlen-1]<<8) ^ dp)
+		% Nipht;
 }
 
 void

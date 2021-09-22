@@ -3,12 +3,12 @@
 LIBS=\
 	lib9p\
 	libString\
-	libaml\
 	libauth\
 	libauthsrv\
 	libavl\
 	libbin\
 	libbio\
+	libbstdio\
 	libc\
 	libcomplete\
 	libcontrol\
@@ -27,6 +27,7 @@ LIBS=\
 	libmemlayer\
 	libmp\
 	libndb\
+	libnofp\
 	liboventi\
 	libplumb\
 	libregexp\
@@ -36,6 +37,7 @@ LIBS=\
 	libsunrpc\
 	libthread\
 	libventi\
+#	libworker\
 
 
 CMDS=cmd\
@@ -94,3 +96,9 @@ updatelibs:V:
 		cd $i
 		mk update
 	}
+
+# ship kernels, changed doc, includes, man, src
+9dist:V: /tmp/9changed.tlz
+/tmp/9changed.tlz:D:
+	chd=`{ls -t /sys/src/_changes | sed 1q}
+	cd $chd && mkdist new

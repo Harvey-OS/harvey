@@ -1,0 +1,686 @@
+.TH MSGS 1
+.SH NAME
+Msgs, mail2fs, M, Mg, mspool, mailplumb, msgs, Arch, Spam, Reply, Send, Post, Delmesg, Save \- file based mail reader
+.SH SYNOPSIS
+.B mail2fs
+[
+.B -acDnor
+]
+[
+.B -d
+.I mdir
+]
+[
+.I mbox
+]
+.PP
+.B msgs
+[
+.B -aD
+]
+[
+.B -s
+.I runes
+]
+[
+.I mdir
+]
+[
+.I monthdir
+]
+.PP
+.B M
+.I cmd
+[
+.I dir
+.B ...
+]
+.PP
+.B Mg
+[
+.B -h
+]
+[
+.I regexp
+]
+.PP
+.B mspool
+.PP
+.B mailplumb
+[
+.B -dho
+]
+[
+.I mdir
+]
+.PP
+.B Msgs
+[
+.B -a
+]
+[
+.I mdir
+[
+.I monthdir
+]
+]
+.PP
+.B Arch
+[
+.I file
+.B ...
+]
+.PP
+.B Spam
+[
+.I file
+.B ...
+]
+.PP
+.B Reply
+.PP
+.B Send
+.PP
+.B Delmesg
+[
+.I file
+.B ...
+]
+.PP
+.B Post
+.PP
+.B Save
+.I file
+.PP
+.B mlist
+.SH DESCRIPTION
+These programs cooperate to provide mail reading and delivering facilities
+by using files from a shared file server. Msgs are stored in a convenient way
+to read or process them just by browsing files, using a Plan B mail box format.
+.SS Mail box format
+In Plan B, msgs for users are parsed and decoded first,
+and then stored in a file hierarchy where these and other
+tools can be used to process them.  A mailbox is a directory, usually under
+.BR /mail/box/$user/ ,
+that contains one directory per month (e.g.,
+.BR 200603/
+for msgs processed on March 2006). 
+In these diretories there is one directory per message. The
+convention is that (message directory) names starting with
+.L a.
+correspond to archived messages not to be usually shown to the user. Names starting with
+.L s.
+correspond to messages that seem to be spam (not usually shown either). Names
+starting with
+.L d.
+correspond to deleted messages not yet removed from the file system.
+Any other rune can be used instead of
+.L a ,
+.L s
+or
+.L d
+as a convenience (the meaning would be up to the user). But for this optional
+prefix, messages use a
+serial message number as their directory name.
+.PP
+The directory for a message contains at least two files:
+.B text
+and
+.BR raw .
+The
+.B text
+file has the mail headers and body already processed for reading, and
+.B raw
+has the original mail headers without any processing, including the
+UNIX header line (for debugging and also for obtaining message ids when
+replying to msgs).
+As an option,
+.B raw
+may contain the entire original mail without processing and not just
+the headers.
+Any attachment in the mail is kept stored in a separate file (possibly
+with the file name indicated in the MIME headers) ready to be used,
+that is, decoded. When the attachment is a mail, the message is
+stored in a subdirectory following the same conventions stated above.
+For msgs with attachments, the
+.B text
+file contains additional text indicating the relative path names (from the
+mail's directory) that can be used to open the attachments. This is
+convenient to
+.IR plumb (1)
+them while reading.
+.PP
+Because all these files have been already processed for reading,
+the usual file handling tools can be used to read, edit, copy, or
+remove them.
+.PP
+The mailbox used by default is
+.BR /mail/box/$user/msgs ,
+and corresponds to the inbox.
+.PP
+A Plan B mail box also contains two files:
+.B seq
+and
+.BR digest .
+Messages are given sequence numbers as added to the mail box. The
+file
+.B seq
+contains the sequence number for the last message (or zero) and is
+.B DMEXCL
+to provide locking for multiple programs using the mail box.
+The file
+.B digest
+contains digests for msgs added to the mailbox using
+.I mail2fs
+(and not for those added by hand using file tools).
+When a message has a digest that was already seen in the past
+the
+message is silently discarded as a dupplicate.
+.PP
+Programs described below are parsimonious enough in the format
+of the mail box so that they will work even if messages are edited by
+hand, other files are created, or some of them are removed.
+.PP
+Virtual mail folders may be created by storing text files with
+mail lists that contain a mail description per line starting with
+the path for each mail. Copying the text shown for some messages
+in a mail listing into another text file would ``save'' such messages
+into that file. The program
+.I mlist
+writes to standard output a clean listing for messages with paths
+found in the standard input.
+.PP
+A file (a virtual folder) named like a
+per-month directory with
+.L .l
+or
+.L .la
+appended is considered a cache of the listing for that directory. But only if the directory has
+not been modified after the file. For example,
+a text file named
+.B 200909.l
+(containing a mail listing in the format shown by
+.I msgs )
+will be used to list msgs on September 2009, instead of the
+.B 200909
+directory and its contents. This file will be ignored for mailbox listings if the
+directory is modified after the file and the cache is, therefore, out of date.
+A file named
+.B 200909.la
+behaves like before, but is known to contain only archived msgs. It is, therefore,
+ignored when listing non-archived msgs. The
+.I msgs
+program automatically renames
+.L .l
+files to
+.L la
+when the file lists only archived mail.
+.SS Reading mail
+Mail is converted from a Plan 9 mailbox into a Plan B mailbox using
+.IR mail2fs .
+This program may be run using
+.IR cron (8)
+or directly from the
+.B pipeto
+file described in
+.IR mail (1).
+It uses
+.BR upas/fs ,
+described in
+.IR upasfs (4),
+to parse the Plan 9 mail box.
+.PP
+By default
+.B /mail/box/$user/mbox
+is the source (Plan 9) mail box. Messages found on it are moved into
+(in Plan B mailbox format).
+The argument
+.I mbox
+specifies another mail source, to be used instead of the default.
+Option
+.B -d
+changes the destination to
+.IR mdir .
+.PP
+Messages are deleted from the Plan 9 mailbox unless flag
+.B -n
+is given. The Plan B mailbox is created if it does not exist only
+if flag
+.B -c
+is given.
+.PP
+Flag
+.B -a
+makes
+.I mail2fs
+add new messages as archived to the Plan B mailbox. This is
+useful to add messages to a mailbox for further reference, 
+not for listing when asking the mail index for the mailbox. For
+example, to archive outgoing mail in the default mail box.
+.PP
+Flag
+.B -o
+asks
+.I mail2fs
+to use the date from the mail to determine where to archive it,
+instead of using today's. See the examples section.
+.PP
+Flag
+.B -r
+asks
+.I mail2fs
+to store the entire original message in the
+.B raw
+file, and not just message headers.
+.PP
+Flag
+.B -D
+(accepted by
+.I mail2fs
+and other programs) enables debug diagnostics.
+.PP
+The program
+.I msgs
+is a convenience tool for reading mail. It
+generates a mail index. Flag
+.B -a
+generates a list for all msgs in the mailbox, archived or not. This may
+take some time if the mailbox is is big enough.
+Flag
+.B -s
+can be used to include in the list msgs starting with any rune in
+.IR runes ,
+for example,
+.L s
+for spam. The mailbox is the standard
+.B msgs
+inbox unless a different one is supplied as an argument.
+As an option, both the mail box path and the name of
+a per-month directory can be indicated, to ask
+for a list of msgs for just one month. This is useful to
+generate per-month mail lists that can be used to quickly
+browse existing msgs without going through all msgs in the box.
+See the
+.I Month
+script supplied as an example.
+.PP
+As an aid for other programs,
+.I msgs
+places a list of the directories for the msgs listed at
+.BR /tmp/msgs.$user ,
+which can be useful for retrieve the paths for the msgs
+the user is working with.
+.PP
+Programs just described are the basic toolkit to handle msgs.
+Other programs described here are a convenience for the user. Users
+are encouraged to customize them and/or to write their own versions.
+.PP
+.I M
+is a script that applies the operation indicated by
+.I cmd
+to one or more msgs. It applies
+.I cmd
+to all msgs
+last
+listed by
+.IR msgs ,
+(as described by
+the paths in
+.BR /tmp/msgs.$user ),
+when no mail directories are given
+as arguments. Arguments selecting msgs only need to mention
+paths to the mail directories, but may refer to particular files
+within them, as a convenience, to permit using names from
+somewhere else without editing.
+.I Cmd
+may be any of the following:
+.TF reply
+.TP
+.B arch
+To archive the msgs as read.
+.TP
+.B spam
+To archive the msgs as spam.
+.TP
+.B inbox
+To archive the msgs as unread.
+.TP
+.B rm
+To print commands to remove the msgs.
+.TP
+.B print
+To print the text of the msgs.
+.TP
+.B list
+To list the directories for the msgs.
+.TP
+.B mime
+To list the attachments for the msgs.
+.TP
+.B reply
+To plumb a reply message to the editor.
+.PD
+.PP
+The single letters
+.BR a ,
+.BR s ,
+.BR i ,
+.BR d ,
+.BR p ,
+.BR l ,
+.BR m ,
+and
+.B r
+can be used instead of the full
+.I cmd
+name (in the same order). Note that the letter is the initial for
+the command, but for deletion.
+.PP
+.I Mg
+is not strictly necessary, but is supplied as a convenience
+script to call
+.IR grep (1)
+to locate msgs containing the expression given as an
+argument. Flag
+.B -h
+makes it search only in headers. Like the previous program,
+.I Mg
+only considers msgs listed in
+.BR /tmp/msgs.$user .
+.PP
+.I Mailplumb
+is used to send
+.IR plumb (1)
+messages to maintain
+.IR faces (1)
+and other programs aware
+of msgs in the user's Plan B mailbox, or in
+.I mdir
+when supplied. Flag
+.B -h
+makes the program notify existing msgs as new ones.
+Flag
+.B -o
+makes
+.I mailplumb
+post events for the Octopus, using
+.IR  ports (4)
+instead of
+.IR plumber  (4).
+.SS Reading mail in Acme
+The program
+.I Msgs
+(see
+.BR /acme/msgs )
+is an Acme interface for reading mail.
+Its arguments are the same of
+.I msgs .
+Executing
+.I Msgs
+within Acme displays a window with the default (or indicated)
+mailbox. It understands both the standard mailbox format
+(described above) and the virtual folder format (a text file,
+see above).
+.PP
+The program listens to
+.I plumber
+events for mail and tries to maintain the mail list up to date.
+.PP
+To read a mail simply click button-3 on the mail file name shown
+in the mail list. Archiving, marking a spam, replying, and deleting
+messages is achieved by executing the scripts
+.IR Arch ,
+.IR Spam ,
+.IR Reply
+and
+.IR Delmesg
+respectivelly. Most of them may be used either from a message
+window or to process standard input (usually at the mail box
+directory). Some of them also accept message paths as arguments.
+For example, to archive a series of msgs, select them
+in the mail list and execute
+.B |Arch
+in that window.
+.PP
+Msgs can be sent using
+.I Reply
+and
+.I Post
+as described later.
+.PP
+.I Save
+archives one or more messages, adding them to the named file.
+.SS Reading mail in O/live
+In general, reading mail in
+.IR olive (1)
+is similar to reading mail in Acme. The main difference is that
+there is no need for a mail listing command. That is, there is no
+.I Msgs
+program.
+.PP
+Executing
+.B !Msgs
+at
+.B /mail/box/$user/msgs
+produces an initial list of msgs. This list can be refreshed
+by executing
+.B ,<Msgs
+for the panel containing the mail list.
+To read a mail just click (button-3) on the mail path.
+.PP
+To select msgs according to text shown in the mail index
+use the Sam command language. For example,
+.B ,x/9fans/+-p
+produces a mail index for msgs comming from
+.LR 9fans .
+.PP
+To archive a set of msgs send their index text as
+standard input to
+.IR Arch .
+For example,
+.B ,>Arch
+archives all msgs listed in the panel.
+In the same way,
+.I Spam
+flags msgs as spam.
+.PP
+As in Acme, most scripts can be used
+for a panel showing a single message, for standard input, or
+for messages given as argument.
+.SS Sending mail
+.I Mspool
+is a program that takes text files from
+.B /mail/box/$user/out
+reprensenting msgs to be sent, and sends them. It only
+operates on files whose names are numbers. To send
+a mail, the user creates a file with a randomized name like
+.BR /mail/box/$user/out/Out.3452 ,
+edits it, and renames the file to just the random number.
+.PP
+The file format is similar to that used by the
+.IR acme (1)
+mail composition window. It includes one text line per header,
+a blank line, and the body. Attachments are added by
+lines starting with
+.B Attach:
+in the header. Inline attachments are added by lines starting
+with
+.B Include:
+in the header. Replies to other msgs should contain a
+.B Replying:
+header containing the path to the mail being replied to
+(its
+.B raw
+file in a Plan B mailbox).
+.PP
+Messages are sent using
+.IR marshal (1).
+.PP
+The script
+.I Reply
+is available to send messages from either
+.IR olive (1)
+or
+.IR acme (1).
+Similar to
+.I Arch
+and
+.IR Spam ,
+it replies to the mail shown when executed in a message window (or panel);
+it replies to the mail listed in its standard input otherwise. For example,
+selecting a mail in the index and executing
+.BR .>Reply
+in
+.I Olive
+or
+.BR >Reply
+in
+.I Acme
+would reply to it.
+.PP
+When uncertain regarding the mail to reply to, it creates a window to
+edit and send a new mail.
+.PP
+Mail is delivered by writing the panel created by
+.I Reply
+and then executing either
+.B Send
+or
+.BR Post .
+The former spools the message using
+.I mspool ,
+the latter attempts to immediatelly deliver the message.
+.SH EXAMPLES
+Users are expected to customize the scripts supplied to their
+needs. All of them are to be considered examples of how to
+use the mail system.
+.PP
+Move all msgs from the Plan 9 mailbox to the Plan B one,
+and creates the later if it does not exist.
+.EX
+; mail2fs -c
+.EE
+.PP
+List msgs:
+.EX
+; msgs omsgs
+200712/4/text       Ralph Corderoy  Re: [9fans] Hi 
+200712/3/text       Juan Manuel Se  Re: reunion      
+200712/2/text       "Raquel Martin  Re: [Diet] reunion 
+200712/1/text       "Fco. J. Balle  reunion      
+.EE
+.PP
+From now on,
+.B /tmp/msgs.$user
+contains a list of mail directories for
+.I M
+to work with. For example, 
+display them.
+.EX
+; M p
+/mail/box/nemo/msgs/200712/4
+To: 9fans@cse.psu.edu
+From: Ralph Corderoy <ralph@inputplus.co.uk>
+Subject: Re: [9fans] Hi together | a few newbie questions
+Sender: 9fans-admin@cse.psu.edu
+.I ...
+;
+.EE
+.PP
+List their directories and plumb all PDF attachments:
+.EX
+; M l
+/mail/box/nemo/msgs/200712/4
+/mail/box/nemo/msgs/200712/3
+/mail/box/nemo/msgs/200712/2
+/mail/box/nemo/msgs/200712/1
+; plumb `{M l}^*.pdf
+.EE
+.PP
+Reply to the second,
+mark the first as spam, and archive the others.
+.EX
+; M r 200712/3
+; M s 200712/4/text
+; M a
+;
+.EE
+.PP
+Prepare to use the script
+.I M
+(like above) but only for messages from
+december 2007 that contain PDF attachments
+and are kept in the
+.B omsgs
+mailbox:
+.EX
+; ls /mail/box/nemo/omsgs/200712/*/*.pdf >/tmp/msgs.nemo
+;
+.EE
+.PP
+Use
+.B mailplumb
+to see in faces messages in the Plan B mailbox:
+.EX
+; plumber
+; mailplumb
+; faces -m /mail/box/$user/msgs
+.EE
+.PP
+This is a guide for reading mail using
+.IR olive (1):
+.EX
+!Msgs	# ask for mail index
+!Arch	# archive this mail
+!Spam	# mark this mail as spam
+X/text/D	# delete all panels showing msgs
+, <Msgs	# update mail index
+, >Arch	# archive all msgs listed
+. >Spam	# mark all messages selected in index as spam
+, x/9fans/+-p	# list all 9fans messages shown
+.EE
+.PP
+The script
+.B /sys/src/cmd/mail2fs/Month
+is an example of a per-month cleanup script. Usually the
+directory for the last month is declared as
+.B DMTEMP
+and this permission is cleared when all spam has been
+dealt with. The script also creates cached listings for all but
+the current month.
+.PP
+Add msgs from the UNIX-format
+.I oldmbox
+to the standard
+.I msgs
+folder, honoring their dates and inserting them as
+archived, and produce a listing for them kept at
+.I newfolder
+.EX
+; mail2fs -aon  oldmbox > /tmp/archived
+; mlist </tmp/archived >newfolder
+.EE
+.PP
+Create a cache for September, 2009, to be used by tools
+listing msgs.
+.EX
+; cd /mail/box/$user/msgs
+; msgs -a msgs 200909 > 200909.l
+.EE
+.SH FILES
+.TF /mail/box/$user/longname
+.TP
+.B /mail/box/$user/mbox
+Standard Plan 9 mail box.
+.TP
+.B /mail/box/$user/msgs/
+Standard Plan B mail box.
+.TP
+.BR /tmp/msgs.$user
+List of msgs being processed by the user.
+.SH SOURCE
+.B /sys/src/cmd/upas/mail2fs
+and
+.B /acme/msgs
+.SH SEE ALSO
+.IR mail (1).

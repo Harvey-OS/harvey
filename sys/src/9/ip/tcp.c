@@ -1,3 +1,7 @@
+/*
+ * transmission control protocol - reliable byte streams
+ * (see many rfcs)
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -111,6 +115,7 @@ struct Tcptimer
 	void	*arg;
 };
 
+/* this is packet layout, so can't tolerate bogus padding */
 /*
  *  v4 and v6 pseudo headers used for
  *  checksuming tcp
@@ -126,8 +131,8 @@ struct Tcp4hdr
 	uchar	Unused;
 	uchar	proto;
 	uchar	tcplen[2];
-	uchar	tcpsrc[4];
-	uchar	tcpdst[4];
+	uchar	tcpsrc[IPv4addrlen];
+	uchar	tcpdst[IPv4addrlen];
 	/* same as v6 from here on */
 	uchar	tcpsport[2];
 	uchar	tcpdport[2];
@@ -707,7 +712,7 @@ tcpcongestion(Tcpctl *tcb)
 }
 
 enum {
-	L	= 2,	/* aggressive slow start; legal values ∈ (1.0, 2.0) */
+	L = 2,		/* aggressive slow start; legal values ∈ (1.0, 2.0) */
 };
 
 static void
@@ -1440,16 +1445,6 @@ sndrst(Proto *tcp, uchar *source, uchar *dest, ushort length, Tcp *seg, uchar ve
 }
 
 /*
- * close the conversation
- */
-static char*
-tcpclose2(Conv *s)
-{
-	tcpclose(s);
-	return nil;
-}
-
-/*
  *  send a reset to the remote side and close the conversation
  *  called with s qlocked
  */
@@ -1462,7 +1457,7 @@ tcphangup(Conv *s)
 
 	tcb = (Tcpctl*)s->ptcl;
 	if(waserror())
-		return commonerror();
+		return up->errstr;
 	if(ipcmp(s->raddr, IPnoaddr) != 0) {
 		if(!waserror()){
 			memset(&seg, 0, sizeof seg);
@@ -2434,7 +2429,7 @@ reset:
 			break;
 		case Closing:
 			update(s, &seg);
-			if(qlen(s->wq)+tcb->flgcnt == 0) {
+			if(qlen(s->wq)+tcb->flgcnt == 0){
 				tcphalt(tpriv, &tcb->rtt_timer);
 				tcphalt(tpriv, &tcb->acktimer);
 				tcphalt(tpriv, &tcb->katimer);
@@ -2983,7 +2978,7 @@ tcprxmit(Conv *s)
 }
 
 /*
- *  TODO: RFC 4138 F-RTO
+ *  TODO: RFC 4138 Forward-RTO, mainly for lossy mobile uses
  */
 static void
 tcptimeout(void *arg)
@@ -3329,8 +3324,6 @@ tcpporthogdefensectl(char *val)
 static char*
 tcpctl(Conv* c, char** f, int n)
 {
-	if(n == 1 && strcmp(f[0], "close") == 0)
-		return tcpclose2(c);
 	if(n == 1 && strcmp(f[0], "hangup") == 0)
 		return tcphangup(c);
 	if(n == 1 && strcmp(f[0], "hangupxmit") == 0)

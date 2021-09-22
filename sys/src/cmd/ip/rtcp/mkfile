@@ -1,0 +1,8 @@
+</$objtype/mkfile
+
+TARG=rtcp stcp
+
+BIN=/$objtype/bin/ip
+
+</sys/src/cmd/mkmany
+

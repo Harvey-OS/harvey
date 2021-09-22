@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+TARG=lockmailbox
+
+HFILES=	../common/common.h\
+	../common/sys.h\
+
+OFILES=	lockmailbox.$O
+
+LIB=../common/libcommon.a$O\
+
+BIN=/$objtype/bin/upas
+UPDATE=\
+	mkfile\
+	lockmailbox.c\
+
+</sys/src/cmd/mkone
+CFLAGS=$CFLAGS -I../common

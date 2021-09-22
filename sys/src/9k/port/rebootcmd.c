@@ -6,23 +6,18 @@
 #include	"../port/error.h"
 
 #include	<a.out.h>
-#include 	"/sys/src/libmach/elf.h"
 
-enum {
-	Ehdr32sz	= 52,
-	Phdr32sz	= 32,
-	Shdr32sz	= 40,
+static ulong
+l2be(long l)
+{
+	uchar *cp;
 
-	Ehdr64sz	= 64,
-	Phdr64sz	= 56,
-	Shdr64sz	= 64,
-};
+	cp = (uchar*)&l;
+	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
+}
 
-static uchar elfident[] = {
-	'\177', 'E', 'L', 'F',
-};
 
-void
+static void
 readn(Chan *c, void *vp, long n)
 {
 	char *p;
@@ -37,49 +32,6 @@ readn(Chan *c, void *vp, long n)
 		p += nn;
 		n -= nn;
 	}
-}
-
-/* assume the elf header is in the byte order of this machine */
-int
-readelfhdr(Chan *c, ulong, Execvals *evp)
-{
-	Ehdr ehdr;
-	Phdr phdrs[3];
-
-	c->offset = 0;			/* back up */
-	readn(c, &ehdr, sizeof ehdr);
-	if(memcmp(&ehdr.ident[MAG0], elfident, sizeof elfident) != 0 ||
-	    ehdr.ident[CLASS] != ELFCLASS32)
-		return -1;
-
-	/* get textsize and datasize from Phdrs */
-	readn(c, phdrs, sizeof phdrs);
-	evp->entry = ehdr.elfentry;
-	evp->textsize = phdrs[0].filesz;
-	evp->datasize = phdrs[1].filesz;
-	c->offset = ROUNDUP(Ehdr32sz + 3*Phdr32sz, 16);	/* position for text */
-	return 0;
-}
-
-static int
-readelf64hdr(Chan *c, ulong, Execvals *evp)
-{
-	E64hdr ehdr;
-	P64hdr phdrs[3];
-
-	c->offset = 0;			/* back up */
-	readn(c, &ehdr, sizeof ehdr);
-	if(memcmp(&ehdr.ident[MAG0], elfident, sizeof elfident) != 0 ||
-	    ehdr.ident[CLASS] != ELFCLASS64)
-		return -1;
-
-	/* get textsize and datasize from Phdrs */
-	readn(c, phdrs, sizeof phdrs);
-	evp->entry = ehdr.elfentry;
-	evp->textsize = phdrs[0].filesz;
-	evp->datasize = phdrs[1].filesz;
-	c->offset = ROUNDUP(Ehdr64sz + 3*Phdr64sz, 16);	/* position for text */
-	return 0;
 }
 
 static void
@@ -105,11 +57,11 @@ rebootcmd(int argc, char *argv[])
 {
 	Chan *c;
 	Exec exec;
-	Execvals ev;
 	ulong magic, text, rtext, entry, data, size;
+	uvlong stva;
 	uchar *p;
 
-	if(argc == 0)
+	if(argc == 0)			/* just `halt'? */
 		exit(0);
 
 	c = namec(argv[0], Aopen, OEXEC, 0);
@@ -118,27 +70,17 @@ rebootcmd(int argc, char *argv[])
 		nexterror();
 	}
 
+	memset(&exec, 0, sizeof exec);
 	readn(c, &exec, sizeof(Exec));
 	magic = l2be(exec.magic);
-	/*
-	 * AOUT_MAGIC is sometimes defined like this:
-	 * #define AOUT_MAGIC	V_MAGIC || magic==M_MAGIC
-	 * so we can only use it in a fairly stylized manner.
-	 */
-	if(magic == AOUT_MAGIC) {
-		entry = l2be(exec.entry);
-		text = l2be(exec.text);
-		data = l2be(exec.data);
-	} else if(parseboothdr && (*parseboothdr)(c, magic, &ev) >= 0 ||
-	    readelfhdr(c, magic, &ev) >= 0 ||
-	    readelf64hdr(c, magic, &ev) >= 0){
-		entry = ev.entry;
-		text = ev.textsize;
-		data = ev.datasize;
-	} else {
+	entry = l2be(exec.entry);
+	text = l2be(exec.text);
+	data = l2be(exec.data);
+	if(magic != AOUT_MAGIC)
 		error(Ebadexec);
-		return;				/* for the compiler */
-	}
+	stva = 0;
+	if(magic & HDR_MAGIC)
+		readn(c, &stva, sizeof stva);
 
 	/* round text out to page boundary */
 	rtext = ROUNDUP(entry+text, PGSZ)-entry;
@@ -152,7 +94,6 @@ rebootcmd(int argc, char *argv[])
 		nexterror();
 	}
 
-	memset(p, 0, size);
 	readn(c, p, text);
 	readn(c, p + rtext, data);
 

@@ -1,0 +1,16 @@
+TEXT	setfcr(SB), $0
+	MOV	RARG, FPCR
+	RETURN
+
+TEXT	getfcr(SB), $0
+	MOV	FPCR, R0
+	RETURN
+
+TEXT	getfsr(SB), $0
+	MOV	FPSR, R0
+	RETURN
+
+TEXT	setfsr(SB), $0
+	MOV	RARG, FPSR
+	RETURN
+

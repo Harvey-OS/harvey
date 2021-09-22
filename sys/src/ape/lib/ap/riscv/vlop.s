@@ -1,3 +1,4 @@
+/* _mulv(&result, x.lo, x.hi, y.lo, y.hi) */
 TEXT	_mulv(SB), $0
 	MOVW	4(FP), R9	// x.lo
 	MOVW	8(FP), R10	// x.hi

@@ -1,3 +1,6 @@
+/*
+ * kernel profiling device
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -5,17 +8,17 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-
 #define	LRES	3		/* log of PC resolution */
 #define	SZ	4		/* sizeof of count cell; well known as 4 */
 
 struct
 {
-	int	minpc;
-	int	maxpc;
+	ulong	minpc;
+	ulong	maxpc;
 	int	nbuf;
-	int	time;
+	int	time;		/* flag: profiling on? */
 	ulong	*buf;
+	Lock;
 }kprof;
 
 enum{
@@ -24,7 +27,7 @@ enum{
 	Kprofctlqid,
 };
 Dirtab kproftab[]={
-	".",	{Kprofdirqid, 0, QTDIR},		0,	DMDIR|0550,
+	".",	{Kprofdirqid, 0, QTDIR},	0,	DMDIR|0550,
 	"kpdata",	{Kprofdataqid},		0,	0600,
 	"kpctl",	{Kprofctlqid},		0,	0600,
 };
@@ -43,13 +46,16 @@ _kproftimer(ulong pc)
 	if(pc>=(ulong)spllo && pc<=(ulong)spldone)
 		pc = m->splpc;
 
-	kprof.buf[0] += TK2MS(1);
 	if(kprof.minpc<=pc && pc<kprof.maxpc){
 		pc -= kprof.minpc;
 		pc >>= LRES;
-		kprof.buf[pc] += TK2MS(1);
 	}else
-		kprof.buf[1] += TK2MS(1);
+		pc = 1;
+
+	ilock(&kprof);		/* only 1 cpu at a time updates profile */
+	kprof.buf[0]  += TK2MS(1);
+	kprof.buf[pc] += TK2MS(1);
+	iunlock(&kprof);
 }
 
 static void
@@ -65,17 +71,18 @@ kprofattach(char *spec)
 {
 	ulong n;
 
-	/* allocate when first used */
-	kprof.minpc = KTZERO;
-	kprof.maxpc = (ulong)etext;
-	kprof.nbuf = (kprof.maxpc-kprof.minpc) >> LRES;
-	n = kprof.nbuf*SZ;
-	if(kprof.buf == 0) {
+	if (kprof.buf == 0) {
+		/* allocate when first used */
+		kprof.minpc = KTZERO;
+		kprof.maxpc = (ulong)etext;
+		/* one more in case difference isn't a multiple of 2^LRES */
+		kprof.nbuf = ((kprof.maxpc-kprof.minpc) >> LRES) + 1;
+		n = kprof.nbuf*SZ;
 		kprof.buf = xalloc(n);
 		if(kprof.buf == 0)
 			error(Enomem);
+		kproftab[1].length = n;
 	}
-	kproftab[1].length = n;
 	return devattach('K', spec);
 }
 
@@ -94,7 +101,7 @@ kprofstat(Chan *c, uchar *db, int n)
 static Chan*
 kprofopen(Chan *c, int omode)
 {
-	if(c->qid.type == QTDIR){
+	if(c->qid.type & QTDIR){
 		if(omode != OREAD)
 			error(Eperm);
 	}
@@ -157,6 +164,7 @@ kprofwrite(Chan *c, void *a, long n, vlong)
 	switch((int)(c->qid.path)){
 	case Kprofctlqid:
 		if(strncmp(a, "startclr", 8) == 0){
+			kprof.time = 0;	/* prevent updates while zeroing */
 			memset((char *)kprof.buf, 0, kprof.nbuf*SZ);
 			kprof.time = 1;
 		}else if(strncmp(a, "start", 5) == 0)

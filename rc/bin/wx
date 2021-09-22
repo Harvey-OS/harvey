@@ -1,0 +1,72 @@
+#!/bin/rc
+
+rfork en
+outside
+args=()
+if (~ $#* 0) while (f=`{read}) args=($args $f)
+if not args=$*
+for (i in $args) {
+	AIRPORT=`{echo $i | tr a-z A-Z}
+	switch ($AIRPORT) {
+	case ???
+		KAIRPORT=K^$AIRPORT
+	case EH??
+		hget http://www.knmi.nl/product/luchtv/nedactbe.htm
+		hget http://www.knmi.nl/product/luchtv/nedvlver.htm
+	case ????
+		KAIRPORT=$AIRPORT
+		AIRPORT=`{echo $AIRPORT | sed -e s/^K//}
+	}
+	airport=`{echo $AIRPORT | tr A-Z a-z}
+	kairport=`{echo $KAIRPORT | tr A-Z a-z}
+
+	echo
+	look $airport' ' /lib/weather/anames | tr ~ \012
+
+	SA=`{/bin/aviation/sa $airport >[2]/dev/null}
+	if (~ $SA $airport) {
+		echo METAR:
+		hget -p 'cccc='$KAIRPORT http://weather.noaa.gov/cgi-bin/mgetmetar.pl |\
+			sed -e '1,/size = "5"/d' -e '/^$/,$d'
+	}
+	FT=`{/bin/aviation/ft $airport >[2]/dev/null}
+	if (~ $FT $airport) {
+		echo TAF:
+		hget -p 'cccc='$KAIRPORT http://weather.noaa.gov/cgi-bin/mgettaf.pl |\
+			sed -e '1,/size = "5"/d' -e 's/<pre>//' -e '/<\/pre>/,$d'
+	}
+	FD=`{/bin/aviation/fd $airport >[2]/dev/null | tr a-z A-Z}
+	if (~ $FD $AIRPORT) {
+		echo WINDS ALOFT:
+		switch ($AIRPORT) {
+		case BDL BGR CAR PWM ACK BOS BML ALB BUF JFK PLB SYR CLE CMH CVG AGC AVP PSB ORF RIC ROA CRW BKN
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/boston_fd1.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/boston_fd2.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/boston_fd3.shtml
+		case EYW JAX MIA MLB PFN PIE TLH ATL CSG SAV HAT ILM RDU CAE CHS FLO GDP 2XG
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/miami_fd1.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/miami_fd2.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/miami_fd3.shtml
+		case BRL DBQ DSM MCW JOT SPI EVV FWA IND GCK GLD ICT SLN LOU ECK MKG MQT SSM TVC AXN DLH INL MSP CGI COU MKC SGF STL DIK GFK MOT BFF GRI OMA ONL ABR FSD PIR RAP GRB LSE
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/chicago_fd1.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/chicago_fd2.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/chicago_fd3.shtml
+		case BIH BLH FAT FOT ONT RBL SAC SAN SBA SFO SIY WJF AST IMB LKV OTH PDX RDM GEG SEA YKM 
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/sfo_fd1.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/sfo_fd2.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/sfo_fd3.shtml
+		case PHX PRC TUS ALS DEN GJT PUB BOI LWS PIH BIL DLN FCA GGW GTF MLS BAM ELY LAS RNO ABQ FMN ROW TCC ZUN BCE SLC CZI LND MBW RKS
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/slc_fd1.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/slc_fd2.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/slc_fd3.shtml
+		case BHM HSV MGM MOB FSM LIT LCH MSY SHV JAN GAG OKC TUL BNA MEM TRI TYS ABI AMA BRO CLL CRP DAL DRT ELP HOU INK LBB LRD MRF PSX SAT SPS T01 T06 T07 4J3 H51 H52 H61
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/ftworth_fd1.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/ftworth_fd2.shtml
+			hget http://aviationweather.gov/products/nws/fdwinds/dynamic/ftworth_fd3.shtml
+		} | awk '/DATA BASED ON/ { print $0 }
+		/^VALID/ { print $0 }
+		/^FT/ { print $0 }
+		/^'$FD'/ { print $0 }' | sed -e 's/<PRE>//g'
+	}
+} | tr -d  | tr A-Z a-z
+

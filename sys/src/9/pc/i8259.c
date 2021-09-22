@@ -95,12 +95,17 @@ i8259init(void)
 			if(inb(Elcr1) == 0x20)
 				i8259elcr = x;
 			outb(Elcr1, x & 0xFF);
-			print("ELCR: %4.4uX\n", i8259elcr);
+			if (i8259elcr)
+				print("ELCR: %4.4uX\n", i8259elcr);
 		}
 	}
 	iunlock(&i8259lock);
 }
 
+/*
+ * return in-service bit for vector vno.
+ * also dismisses highest-priority interrupt.
+ */
 int
 i8259isr(int vno)
 {
@@ -127,6 +132,9 @@ i8259isr(int vno)
 	return isr & (1<<irq);
 }
 
+/*
+ * Return -1 or the chosen vector number.
+ */
 int
 i8259enable(Vctl* v)
 {
@@ -156,10 +164,11 @@ i8259enable(Vctl* v)
 	else
 		outb(Int1aux, (i8259mask>>8) & 0xFF);
 
+	v->eoi = v->isr = nil;
 	if(i8259elcr & irqbit)
-		v->eoi = i8259isr;
+		v->eoi = i8259isr;  /* dismiss level-triggered at isr end */
 	else
-		v->isr = i8259isr;
+		v->isr = i8259isr;  /* dismiss edge-triggered at isr start */
 	iunlock(&i8259lock);
 
 	return VectorPIC+irq;

@@ -1,0 +1,9 @@
+download from hget -o png.tar.gz http://www.schaik.com/pngsuite/PngSuite.tar.gz
+
+fn xssh { ssh $* </dev/null }
+fn xscp { scp $* </dev/null }
+xssh trex0 rm -rf pngtest
+xssh trex0 mkdir pngtest
+xscp [~x]*.png trex0:pngtest
+xssh trex0 'cd pngtest; for i in *.png; do echo $i; convert $i `echo $i | sed s/png/ppm/`; done'
+xscp trex0:pngtest/*.ppm .

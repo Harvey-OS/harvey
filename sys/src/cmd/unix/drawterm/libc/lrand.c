@@ -49,7 +49,7 @@ isrand(long seed)
 }
 
 void
-srand(long seed)
+p9_srand(long seed)
 {
 	lock(&lk);
 	isrand(seed);

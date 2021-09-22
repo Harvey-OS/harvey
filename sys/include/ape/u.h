@@ -4,11 +4,13 @@
    This header file is an extension to ANSI/POSIX
 #endif
 
+#include "_apetypes.h"
+
 #define nil		((void*)0)
 typedef	unsigned short	ushort;
 typedef	unsigned char	uchar;
 typedef unsigned long	ulong;
-typedef unsigned int	uint;
+typedef unsigned	uint;
 typedef   signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;

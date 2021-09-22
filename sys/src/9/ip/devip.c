@@ -11,7 +11,6 @@ enum
 	Qtopdir=	1,		/* top level directory */
 	Qtopbase,
 	Qarp=		Qtopbase,
-	Qbootp,
 	Qndb,
 	Qiproute,
 	Qipselftab,
@@ -44,8 +43,8 @@ enum
 
 	Nfs=		128,
 };
-#define TYPE(x)	( ((ulong)(x).path) & Masktype )
-#define CONV(x)	( (((ulong)(x).path) >> Shiftconv) & Maskconv )
+#define TYPE(x)		( ((ulong)(x).path) & Masktype )
+#define CONV(x)		( (((ulong)(x).path) >> Shiftconv) & Maskconv )
 #define PROTO(x)	( (((ulong)(x).path) >> Shiftproto) & Maskproto )
 #define QID(p, c, y)	( ((p)<<(Shiftproto)) | ((c)<<Shiftconv) | (y) )
 
@@ -144,9 +143,6 @@ ip1gen(Chan *c, int i, Dir *dp)
 		p = "arp";
 		prot = 0664;
 		break;
-	case Qbootp:
-		p = "bootp";
-		break;
 	case Qndb:
 		p = "ndb";
 		len = strlen(f->ndb);
@@ -197,7 +193,6 @@ ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		s -= f->np;
 		return ip1gen(c, s+Qtopbase, dp);
 	case Qarp:
-	case Qbootp:
 	case Qndb:
 	case Qlog:
 	case Qiproute:
@@ -304,18 +299,18 @@ static Chan*
 ipattach(char* spec)
 {
 	Chan *c;
-	int dev;
+	int devno;
 
-	dev = atoi(spec);
-	if(dev >= Nfs)
+	devno = atoi(spec);
+	if(devno >= Nfs)
 		error("bad specification");
 
-	ipgetfs(dev);
+	ipgetfs(devno);
 	c = devattach('I', spec);
 	mkqid(&c->qid, QID(0, 0, Qtopdir), 0, QTDIR);
-	c->dev = dev;
+	c->dev = devno;
 
-	c->aux = newipaux(commonuser(), "none");
+	c->aux = newipaux(up->user, "none");
 
 	return c;
 }
@@ -390,7 +385,6 @@ ipopen(Chan* c, int omode)
 	case Qremote:
 	case Qlocal:
 	case Qstats:
-	case Qbootp:
 	case Qipselftab:
 		if(omode != OREAD)
 			error(Eperm);
@@ -637,9 +631,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		return devdirread(ch, a, n, 0, 0, ipgen);
 	case Qarp:
 		return arpread(f->arp, a, offset, n);
- 	case Qbootp:
- 		return bootpread(a, offset, n);
- 	case Qndb:
+	case Qndb:
 		return readstr(offset, a, n, f->ndb);
 	case Qiproute:
 		return routeread(f, a, offset, n);
@@ -1451,7 +1443,7 @@ ndbwrite(Fs *f, char *a, ulong off, int n)
 ulong
 scalednconv(void)
 {
-	if(cpuserver && conf.npage*BY2PG >= 128*MB)
+	if(cpuserver)
 		return Nchans*4;
 	return Nchans;
 }

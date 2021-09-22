@@ -61,7 +61,7 @@ static	int	arminstlen(Map*, uvlong);
  */
 Machdata armmach =
 {
-	{0x70, 0x00, 0x20, 0xE1},		/* break point */	/* E1200070 */
+	{0x70, 0x00, 0x20, 0xE1},	/* break point: E1200070 */
 	4,			/* break point size */
 
 	leswab,			/* short to local byte order */
@@ -711,7 +711,7 @@ armmaddr(Map *map, Rgetter rget, Instr *i)
 	ulong rn;
 
 	rn = (i->w >> 16) & 0xf;
-	snprint(buf, sizeof buf, "R%ld", rn);
+	snprint(buf, sizeof buf,"R%ld", rn);
 
 	v = rget(map, buf);
 	nb = nbits(i->w & ((1 << 15) - 1));

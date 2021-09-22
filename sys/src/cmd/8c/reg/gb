@@ -1,0 +1,15 @@
+$global
+	vlong b, c;
+	vlong a(void) { return 27; }
+$main
+	int s;
+	uint u;
+$lhs
+	c
+$op
+	?
+$op0
+	a() < b
+$op1
+	b : c
+	b : a()

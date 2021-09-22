@@ -121,8 +121,12 @@
 #ifdef Tamd64
   typedef unsigned long long* PStorage;
 #else
+#ifdef Triscv64
+  typedef unsigned long long* PStorage;
+#else
   typedef unsigned int* PStorage;
-#endif
+#endif	/* Triscv64 */
+#endif	/* Tamd64 */
 #elif   ARCH_SIZEOF_PTR == SIZEOF_LONG
   typedef long*  PStorage;
 #elif ARCH_SIZEOF_PTR == SIZEOF_INT

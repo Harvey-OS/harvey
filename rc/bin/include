@@ -1,0 +1,15 @@
+#!/bin/rc
+# general include processor.  lines starting "include file" read "file".
+# the $0 recursion is a bit subtle.
+# requires an awk that invokes rc for system().
+exec awk 'BEGIN { me = "'$0'" }
+$1 == "include" && NF == 2 {
+	r = system("if (! test -e " $2 ") exit missing; " me " " $2)
+	if (r) {
+		print $2 " missing" >"/dev/stderr"
+		exit 1
+	}
+	next
+}
+	{ print }' $*
+

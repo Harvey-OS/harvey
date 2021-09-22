@@ -93,11 +93,6 @@ enum {
 	Cid		= 0xec,
 };
 
-enum {
-	Read,
-	Write,
-};
-
 /*
  * unified set of flags
  * a Netlink + Aoedev most both be jumbo capable
@@ -252,11 +247,16 @@ static struct {
 } netlinks;
 
 extern Dev 	aoedevtab;
+
 static Ref 	units;
 static Ref	drivevers;
 static int	debug;
 static int	autodiscover	= 1;
 static int	rediscover;
+static	char	Ebadshelf[] = "bad aoe shelf";
+static	char	Edevnotbound[] = "aoe device not bound";
+
+char 	Enotup[] 	= "aoe device is down";
 
 static Srb*
 srballoc(ulong sz)
@@ -267,7 +267,7 @@ srballoc(ulong sz)
 	if(srb == nil)
 		error(Enomem);
 	srb->dp = srb->data = srb+1;
-	srb->ticksent = MACHP(0)->ticks;
+	srb->ticksent = sys->ticks;
 	srb->shared = 0;
 	return srb;
 }
@@ -281,7 +281,7 @@ srbkalloc(void *db, ulong)
 	if(srb == nil)
 		error(Enomem);
 	srb->dp = srb->data = db;
-	srb->ticksent = MACHP(0)->ticks;
+	srb->ticksent = sys->ticks;
 	srb->shared = 0;
 	return srb;
 }
@@ -299,7 +299,7 @@ srberror(Srb *srb, char *s)
 {
 	srb->error = s;
 	srb->nout--;
-	if(srb->nout == 0)
+	if (srb->nout == 0)
 		wakeup(srb);
 }
 
@@ -411,7 +411,7 @@ tsince(int tag)
 {
 	int n;
 
-	n = MACHP(0)->ticks & 0xffff;
+	n = sys->ticks & 0xffff;
 	n -= tag & 0xffff;
 	if(n < 0)
 		n += 1<<16;
@@ -425,7 +425,7 @@ newtag(Aoedev *d)
 
 	do {
 		t = ++d->lasttag << 16;
-		t |= MACHP(0)->ticks & 0xffff;
+		t |= sys->ticks & 0xffff;
 	} while (t == Tfree || t == Tmgmt);
 	return t;
 }
@@ -439,7 +439,7 @@ downdev(Aoedev *d, char *err)
 	f = d->frames;
 	e = f + d->nframes;
 	for(; f < e; f->tag = Tfree, f->srb = nil, f++)
-		frameerror(d, f, Eaoedown);
+		frameerror(d, f, Enotup);
 	d->inprocess = nil;
 	eventlog("%æ: removed; %s\n", d, err);
 }
@@ -506,10 +506,10 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 	int i;
 	Devlink *l;
 
-	if(f->srb && MACHP(0)->ticks - f->srb->ticksent > Maxreqticks){
+	if(f->srb && sys->ticks - f->srb->ticksent > Maxreqticks){
 		eventlog("%æ: srb timeout\n", d);
 		if(cmd == ACata && f->srb && Nofail(d, s))
-			f->srb->ticksent = MACHP(0)->ticks;
+			f->srb->ticksent = sys->ticks;
 		else
 			frameerror(d, f, Etimedout);
 		return -1;
@@ -534,7 +534,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 	f->dl = l;
 	f->nl = l->nl;
 	f->eaidx = i;
-	f->ticksent = MACHP(0)->ticks;
+	f->ticksent = sys->ticks;
 
 	return f->tag;
 }
@@ -622,7 +622,7 @@ loop:
 		}
 		nbc = Nbcms/Nms;
 	}
-	starttick = MACHP(0)->ticks;
+	starttick = sys->ticks;
 	rlock(&devs);
 	for(d = devs.d; d; d = d->next){
 		if(!canqlock(d))
@@ -645,7 +645,7 @@ loop:
 			if(d->nout == d->maxout){
 				if(d->maxout > 1)
 					d->maxout--;
-				d->lastwadj = MACHP(0)->ticks;
+				d->lastwadj = sys->ticks;
 			}
 			a = (Aoeata*)f->hdr;
 			if(a->scnt > Dbcnt / Aoesectsz &&
@@ -664,14 +664,14 @@ loop:
 			}
 		}
 		if(d->nout == d->maxout && d->maxout < d->nframes &&
-		   TK2MS(MACHP(0)->ticks - d->lastwadj) > 10*1000){ /* more magic */
+		   TK2MS(sys->ticks - d->lastwadj) > 10*1000){ /* more magic */
 			d->maxout++;
-			d->lastwadj = MACHP(0)->ticks;
+			d->lastwadj = sys->ticks;
 		}
 		qunlock(d);
 	}
 	runlock(&devs);
-	i = Nms - TK2MS(MACHP(0)->ticks - starttick);
+	i = Nms - TK2MS(sys->ticks - starttick);
 	if(i > 0)
 		tsleep(&up->sleep, return0, 0, i);
 	goto loop;
@@ -759,7 +759,7 @@ unit2dev(ulong unit)
 			return d;
 		}
 	runlock(&devs);
-	uprint("unit lookup failure: %lux pc %#p", unit, getcallerpc(&unit));
+	uprint("unit lookup failure: %#lux pc %#p", unit, getcallerpc(&unit));
 	error(up->genbuf);
 	return nil;
 }
@@ -951,7 +951,7 @@ aoeopen(Chan *c, int omode)
 		nexterror();
 	}
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	c = devopen(c, omode, 0, 0, aoegen);
 	d->nopen++;
 	poperror();
@@ -1167,7 +1167,7 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	Srb *srb;
 
 	if((off|len) & (Aoesectsz-1))
-		error("offset and length must be sector multiple.\n");
+		error("offset and length must be sector multiples");
 	if(off > d->bsize || len == 0)
 		return 0;
 	if(off + len > d->bsize)
@@ -1282,11 +1282,11 @@ unitread(Chan *c, void *db, long len, vlong off)
 		return rw(d, Read, db, len, off);
 	case Qconfig:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->config, d->nconfig);
 	case Qident:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->ident, sizeof d->ident);
 	}
 }
@@ -1401,7 +1401,7 @@ configwrite(Aoedev *d, void *db, long len)
 	Srb *srb;
 
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	if(len > ETHERMAXTU - AOEQCSZ)
 		error(Etoobig);
 	srb = srballoc(len);
@@ -1934,7 +1934,7 @@ qcfgrsp(Block *b, Netlink *nl)
 		f = getframe(d, n);
 		if(f == nil){
 			qunlock(d);
-			eventlog("%æ: unknown response tag %ux\n", d, n);
+			eventlog("%æ: unknown response tag %#ux\n", d, n);
 			return;
 		}
 		cslen = nhgets(ch->cslen);
@@ -2080,7 +2080,7 @@ static int
 identify(Aoedev *d, ushort *id)
 {
 	vlong osectors, s;
-	uchar oserial[21];
+	uchar oserial[sizeof d->serial];
 
 	s = aoeidentify(d, id);
 	if(s == -1)
@@ -2126,7 +2126,7 @@ atarsp(Block *b)
 	n = nhgetl(ahin->tag);
 	f = getframe(d, n);
 	if(f == nil){
-		dprint("%æ: unexpected response; tag %ux\n", d, n);
+		dprint("%æ: unexpected response; tag %#ux\n", d, n);
 		goto bail;
 	}
 	rtupdate(f->dl, tsince(f->tag));
@@ -2329,7 +2329,7 @@ netunbind(char *path)
 			break;
 	unlock(&netlinks);
 	if (n >= e)
-		error("device not bound");
+		error(Edevnotbound);
 
 	/*
 	 * hunt down devices using this interface; disable
@@ -2446,7 +2446,7 @@ removeaoedev(Aoedev *d)
 	d->ndl = 0;
 	qunlock(d);
 	for(i = 0; i < d->nframes; i++)
-		frameerror(d, d->frames+i, Eaoedown);
+		frameerror(d, d->frames+i, Enotup);
 
 	if(p)
 		p->next = d->next;
@@ -2471,7 +2471,7 @@ removedev(char *name)
 			return;
 		}
 	wunlock(&devs);
-	error("device not bound");
+	error(Edevnotbound);
 }
 
 static void
@@ -2488,12 +2488,12 @@ discoverstr(char *f)
 
 	shelf = sh = strtol(f, &s, 0);
 	if(s == f || sh > 0xffff)
-		error("bad shelf");
+		error(Ebadshelf);
 	f = s;
 	if(*f++ == '.'){
 		slot = strtol(f, &s, 0);
 		if(s == f || slot > 0xff)
-			error("bad shelf");
+			error(Ebadshelf);
 	}else
 		slot = 0xff;
 	discover(shelf, slot);

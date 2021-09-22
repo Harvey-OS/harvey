@@ -1,10 +1,10 @@
-# pcflop - tiny kernel used to install from floppy.
+# pcflop - tiny kernel with compressed root used to install from floppy & cd.
 # has minimal vga drivers, no usb support and only some ether drivers,
-# and in general no frills.  probably only useful in quite old systems.
+# and in general no frills.  compressed stripped size:
+# --rw-rw-r-- M 79850 geoff sys 1209815 May 21 17:45 9pcflop.gz
 dev
 	root
 	cons
-
 	arch
 	pnp		pci
 	env
@@ -14,74 +14,59 @@ dev
 	srv
 	dup
 	rtc
+#	ssl
+#	tls
 	cap
+#	fs
 
 	ether		netif
-	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386
 
 	draw		screen vga vgax
 	mouse		mouse
 	vga
 
 	sd
-	floppy		dma
-
-	pccard
-	i82365		cis
 	uart
 
 link
-	realmode
-	devpccard
-	devi82365
-
 # order of ethernet drivers should match that in ../pcboot/boot so that
 # devices are detected in the same order by bootstraps and kernels
-# and thus given the same controller numbers.
+# and thus given the same controller numbers.  put fastest first.
+# 10 Gb/s
+	etherxgbe	pci
+# gigabit
+	etherigbepci	pci ethermii
+	etherigbe	pci
+	ether8169	pci ethermii
+# 100 Mb/s
+	ether82557	pci
+	ether8139	pci
+	etherelnk3	pci
+	ethervt6105m	pci ethermii
+# dog slow, mainly for use in virtual machines
 	ether2000	ether8390
-	ether2114x	pci
-	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
-	ether8139	pci
-	ether8169	pci ethermii
-#	ether82543gc	pci
-	ether82557	pci
-	ether82563	pci
-	ether83815	pci
-#	etherdp83820	pci
-	etherec2t	ether8390
-	etherelnk3	pci
-# vast firmware
-#	etherga620
-	etherigbe	pci ethermii
-	ethervgbe	pci ethermii
-	ethervt6102	pci ethermii
-#	ethervt6105m	pci ethermii
-#	ethersink
-	ethersmc	devi82365 cis
-	etherwavelan	wavelan devi82365 cis pci
-#	etherm10g	pci ethermii		# vast firmware
-#	ether82598	pci
-	ethervirtio	pci
 
 	ethermedium
-	pcmciamodem
 	netdevmedium
 	loopbackmedium
 
 misc
-	mtrr
+	mp		apic mpacpi
+#	nomp
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
-	sdiahci		pci sdscsi
-	sdvirtio	pci sdscsi
+	sdahci		pci sdscsi
+#	sdnvme		pci sdscsi
 
 	uarti8250
 
-	vgavesa
+# add vgavmware? is there room?
+	vgavesa		realmode
 
 ip
 	tcp

@@ -1,0 +1,7 @@
+for i in $*
+do
+	echo $i:
+	/usr/bwk/grap/a.out  $i >foo1
+	/bin/grap $i >foo2
+	diff -b foo2 foo1 | ind
+done

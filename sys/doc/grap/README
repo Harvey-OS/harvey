@@ -1,0 +1,12 @@
+To print the grap manual, you need to
+
+	chmod +x trget *.awk
+	eqn memo | troff -ms | lp -m.9 -dstdout >memo.ps
+
+Note the -ms!  Also note that grap is
+called only indirectly, via suitably
+clever and obscure macros in the file
+"macros".  If things don't work, this
+is the place to start looking.  (The
+cleverness is necessary to successfully
+include source files containing \'s.)

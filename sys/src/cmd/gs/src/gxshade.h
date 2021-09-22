@@ -205,6 +205,7 @@ void shade_init_fill_state(shading_fill_state_t * pfs,
 #ifndef gx_device_color_DEFINED
 #  define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
+#pragma incomplete gx_device_color
 #endif
 int shade_fill_path(const shading_fill_state_t * pfs, gx_path * ppath,
 		    gx_device_color * pdevc, const gs_fixed_point *fill_adjust);

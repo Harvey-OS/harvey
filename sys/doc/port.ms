@@ -38,6 +38,7 @@ The behavior of floating-point programs is much like on the 68040:
 the operating system emulates where necessary to get past non-trapping
 underflow and overflow, but does not handle gradual underflow or
 denormalized numbers or not-a-numbers.
+.ig
 .SH
 The SPARC compiler
 .PP
@@ -60,6 +61,7 @@ In any modern lab, in which SPARCS have the instructions, it would be worth enab
 flag by default.
 .PP
 The floating point story is the same as on the MIPS.
+..
 .SH
 The Intel i386 compiler
 .PP
@@ -125,6 +127,32 @@ but
 .CW 5l
 .CW -f
 instead generates VFP instructions for coprocessors 10 and 11.
+VFP instructions will use only the first 16 floating-point registers.
+.
+.SH
+The ARM64 compiler
+.PP
+The ARM64 compiler doesn't yet compile the entire system.
+The compiler supports the ARMv8 and later 64-bit architectures.
+.
+.SH
+The RISC-V compilers
+.PP
+There are compiler suites for RV32GC
+.I ic , (
+etc.)
+and RV64GC
+.I jc , (
+etc.),
+built from common source.
+They have compiled the entire system successfully,
+apart from a few apparent anomalies, which may lie elsewhere
+in system source.
+Unusually,
+the RV64 architecture requires natural alignment for scalars,
+up to and including pointers and
+.I vlong s.
+The loaders by default produce compressed instructions where possible.
 .
 .SH
 The IBM PC operating system
@@ -136,42 +164,57 @@ command; see
 .I prep (8).
 Plan 9 runs in 32-bit mode\(emwhich requires a 386 or later model x86 processor\(emand
 has an interrupt-driven I/O system, so it does not
-use the BIOS (except for a small portion of the boot program and floppy boot block).
+use the BIOS
+(except for a small portion of the boot program and floppy boot block,
+and a bit of kernel memory map and VGA initialisation).
 This helps performance but limits the set of I/O devices that it can support without
 special code.
+It currently expects a pre-(U)EFI BIOS, or at least one with CSM enabled.
 .PP
-Plan 9 supports the ISA, EISA, and PCI buses as well as PCMCIA and PC card devices.
+Some older code for machines that are no longer available has been dropped.
+In practice, you'll need a Pentium or newer (not much of a restriction)
+and PCI or PCI-Express add-in cards.
+We intend that machines built after 2000 should work; earlier ones may not.
+.PP
+Plan 9 supports the ISA,
+.\" EISA,
+PCI, and PCI-Express buses.
+.\" as well as PCMCIA and PC card devices.
+There is some support for USB devices, but they are inherently speed-limited.
 It is infeasible to list all the supported machines, because
 the PC-clone marketplace is too volatile and there is
 no guarantee that the machine you buy today will contain the
 same components as the one you bought yesterday.
 (For our lab, we buy components and assemble the machines
 ourselves in an attempt to lessen this effect.)
-IDE/ATA, SATA and SCSI disks are supported.
-CD-ROMs are supported two ways, either on the SCSI bus, or as ATA(PI) devices.
-The SCSI adapter must be a member of the Mylex Multimaster (old Buslogic BT-*) series
-or the Symbios 53C8XX series.
+IDE/ATA, SATA, SCSI and NVMe disks (magnetic or solid-state) are supported.
+Optical disc (CD, DVD, BD) readers and writers are supported
+on the SCSI bus, USB bus, or as (S)ATA(PI) devices.
+The SCSI adapter must be a member of the Mylex Multimaster
+(old Buslogic BT-*) series or the Symbios 53C8XX series.
 .PP
 Supported Ethernet cards include the
 AMD79C790,
-3COM Etherlink III and 3C589 series,
-Lucent Wavelan and compatibles,
+.\" 3COM Etherlink III and 3C589 series,
+.\" Lucent Wavelan and compatibles,
 NE2000,
-WD8003,
+.\" WD8003,
 WD8013,
 Realtek 8139,
 SMC Elite and Elite Ultra,
-Linksys Combo EthernetCard and EtherFast 10/100,
+.\" Linksys Combo EthernetCard and EtherFast 10/100,
 and a variety of controllers based on the
-Intel i8255[789] and Digital (now Intel) 21114x chips.
+Intel i8255[789]
+.\" and Digital (now Intel) 21114x
+chips at 10 or 100 Mb/s.
+These slower interfaces are supported primarily to aid running
+Plan 9 in a virtual machine.
 We support Gigabit Ethernet via
 Realtek 8110S/8169S,
 and
-Intel 8254[013467], 8256[36], and 8257[1-79] controllers.
-We support 10-Gigabit Ethernet via
-Intel's 8259[89],
-and
-Myricom's 10g-pcie-8a.
+Intel 8254[013467], 8256[367], 8257[1-79], and i21[078] controllers.
+We support 10-Gigabit Ethernet via Intel's 8259[89] and x540 controllers.
+.\" and Myricom's 10g-pcie-8a.
 We mostly use Intel and Realtek gigabit controllers,
 so those drivers may be more robust.
 .PP
@@ -186,37 +229,56 @@ For more details see
 .PP
 Over the years,
 Plan 9 has run on a number of VGA cards.
-Recent changes to the graphics system have not been
-tested on most of the older cards; some effort may be needed to get them working again.
+Changes circa 2000 to the graphics system have not been
+tested on most of the older cards;
+some effort may be needed to get them working again.
 In our lab, most of our machines use the ATI or Nvidia chips,
-so such devices are probably
-the most reliable.
+so such devices are probably the most reliable.
 The system requires a hardware cursor.
+Vesa mode should work on any card,
+though the higher resolutions have not been tested.
 For more details see
 .I vgadb (6)
 and
 .I vga (8).
-The wiki
-.CW http://plan9.bell-labs.com/wiki/plan9 ) (
-contains the definitive list of cards that are known to work; see the ``supported PC hardware''
-page.
+.\" The wiki
+.\" .CW http://plan9.bell-labs.com/wiki/plan9 ) (
+.\" contains the definitive list of cards that are known to work;
+.\" see the ``supported PC hardware'' page.
 .PP
-For audio, Plan 9 supports the Sound Blaster 16 and compatibles.
-(Note that audio doesn't work under Plan 9 with 8-bit Sound Blasters.)
-There is also user-level support for USB audio devices; see 
+For audio, Plan 9 has
+.\" supports the Sound Blaster 16 and compatibles.
+.\" (Note that audio doesn't work under Plan 9 with 8-bit Sound Blasters.)
+.\" There is also
+user-level support for USB audio devices; see 
 .I usb (4).
 .PP
 Finally, it's important to have a three-button mouse with Plan 9.
 The system currently works only with mice on the PS/2 port or USB.
 Serial mouse support should return before long.
 .PP
-Once you have Plan 9 installed (see the wiki's installation document),
+Once you have Plan 9 installed,
 use PXE or a boot disk to load the system.  See
 .I booting (8),
 .I 9boot (8),
 and
 .I prep (8)
 for more information.
+.
+.SH
+The AMD64 operating system
+.PP
+A variant 64-bit kernel,
+.I 9k ,
+contains a single port to the AMD64 processors from the K10 forward,
+and compatible modern Intel64 processors.
+It started out as the PC port and shares slightly-modified
+device drivers with it.
+.I 9boot
+can load these kernels.
+It is only a CPU kernel;
+arranging to run video would be quite complicated.
+It has been quite solid and used to run largish file and CPU servers.
 .
 .SH
 The Routerboard 450G operating system
@@ -258,6 +320,7 @@ and at present only a single CPU is permitted.
 We have ports to the Xilinx Virtex 4 and 5 FPGAs
 which use PowerPC 405 and 440 processors, respectively.
 .
+.ig
 .SH
 The Marvell Kirkwood operating system
 .PP
@@ -301,30 +364,63 @@ Initially, there are drivers for the SMSC 9221 100Mb/s Ethernet
 interface in the IGEPv2 and Overo,
 and the console serial port;
 we hope to add USB, flash memory and video drivers.
+..
 .SH
 The Nvidia Tegra2 operating system
 .PP
 This is an ARM kernel for the dual Cortex-A9 processors
-in the Nvidia Tegra2 system-on-a-chip
-and it emulates ARM 7500 floating-point and
-CAS (compare-and-swap) instructions, but
+in the Nvidia Tegra2 system-on-a-chip.
+It emulates ARM 7500 FPA
+.I and
+VFP floating-point, but
 the hardware includes VFP3 floating-point.
-It runs on the Compulab Trimslice.
+It runs on the Compulab Trimslice, with its unintegrated L2 cache.
 There are many features of the system-on-a-chip that it does not exploit.
 Initially, there are drivers for the Ethernet interface
 and the console serial port;
-we hope to add USB, flash memory and video drivers.
+one could add USB, flash memory and video drivers.
 .SH
 The Broadcom 2835 operating system
 .PP
 This consists of terminal and CPU kernels for the ARM1176 processor
 in the Broadcom 2835 system-on-a-chip.
 The hardware includes VFP2 floating-point.
-It runs on the Raspberry Pi Models A and B.
-Since it relies upon USB Ethernet and the Plan 9 USB Ethernet
-driver doesn't implement multicast, this port can't speak IPv6.
+It runs on the 32-bit Raspberry Pis Models A and B.
+.
+.SH
+The RISC-V operating systems
+.PP
+These are CPU kernels for RV64GC RISC-V systems.
+They can be configured to run on bare hardware in `machine' mode or
+with HSS, SBI and U-boot in `supervisor' mode.
+Floating-point hardware is assumed.
+Machine-mode kernels can be run in a modified
+.I tinyemu
+emulator which adds a UART,
+emulating bare hardware with a single `hart' (core, processor, CPU).
+.PP
+The RV64 kernel can also be run in supervisor mode
+on the Polarfire Icicle board,
+which contains one management core
+(an E51 with no floating-point and no supervisor mode)
+and four full 600MHz RISC-V RV64GC cores (U54).
+There are four UARTS, which appear as 16550s to the RISC-V cores
+but present a single physical micro-USB interface carrying all four UARTS
+as USB serial ports.
+The second Ethernet interface is known to work;
+the first is present but untested.
+Ethernet speed is fixed at a gigabit/second.
+There are as-yet unsupported devices, including
+an FPGA,
+a USB interface,
+and
+an open PCI-E slot.
+.PP
+The RV64 kernel also runs on the pre-release (now discontinued) Beagle V
+board and the HiFive Unmatched board.
 .
 .ig
+.\" historical text
 .SH
 The file server
 .PP
@@ -358,9 +454,7 @@ the PC file server has the same hardware requirements as
 the regular PC operating system.
 However, only a subset of the supported SCSI (Adaptec 1542, Mylex Multimaster,
 and Symbios 53C8XX) and Ethernet (Digital 2114x,
-Intel 8255x, and 3Com) controllers
-may be
-used.
+Intel 8255x, and 3Com) controllers may be used.
 Any of the boot methods described in
 .I 9load (8)
 will work.

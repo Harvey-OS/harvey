@@ -72,7 +72,7 @@ struct I8253
 
 	ulong	periodset;
 };
-I8253 i8253;
+static I8253 i8253;
 
 void
 i8253init(void)
@@ -100,7 +100,7 @@ i8253init(void)
 	x = inb(T2ctl);
 	x |= T2gate;
 	outb(T2ctl, x);
-	
+
 	/*
 	 * Introduce a little delay to make sure the count is
 	 * latched and the timer is counting down; with a fast
@@ -157,7 +157,7 @@ guesscpuhz(int aalcycles)
 	incr = 16000000/(aalcycles*HZ*2);
 	x = 2000;
 	for(loops = incr; loops < 64*1024; loops += incr) {
-	
+
 		/*
 		 *  measure time for the loop
 		 *
@@ -180,7 +180,7 @@ guesscpuhz(int aalcycles)
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;
-	
+
 		if(x < 0)
 			x += Freq/HZ;
 
@@ -198,7 +198,7 @@ guesscpuhz(int aalcycles)
 	cpufreq = (vlong)loops*((aalcycles*2*Freq)/x);
 	m->loopconst = (cpufreq/1000)/aalcycles;	/* AAM+LOOP's for 1 ms */
 
-	if(m->havetsc && a != b){  /* a == b means virtualbox has confused us */
+	if(conf.havetsc && a != b){  /* a == b means virtualbox has confused us */
 		/* counter goes up by 2*Freq */
 		b = (b-a)<<1;
 		b *= Freq;
@@ -234,7 +234,7 @@ i8253timerset(uvlong next)
 	period = MaxPeriod;
 	if(next != 0){
 		want = next>>Tickshift;
-		now = i8253.ticks;	/* assuming whomever called us just did fastticks() */
+		now = i8253.ticks; /* assuming whomever called us just did fastticks() */
 
 		period = want - now;
 		if(period < MinPeriod)
@@ -258,10 +258,11 @@ i8253timerset(uvlong next)
 	}
 }
 
-static void
+static int
 i8253clock(Ureg* ureg, void*)
 {
 	timerintr(ureg, 0);
+	return Intrforme;
 }
 
 void
@@ -316,39 +317,66 @@ i8253read(uvlong *hz)
 	return ticks<<Tickshift;
 }
 
+enum {
+	Maxaamloops = 2000*1000*1000,		/* must fit in an int */
+	Mstons = 1000 * 1000,
+};
+
+static vlong wdogloops;
+
+/* delay for at least loops cycles, avoiding the watchdog if necessary */
+static void
+indelay(vlong loops)
+{
+	int aamloops;
+
+	if (loops <= 0)
+		return;
+	if (loops > Maxaamloops)
+		aamloops = Maxaamloops;			/* cap to fit an int */
+	else
+		aamloops = loops;
+
+	/* when islo(), clock interrupts will restart the dog */
+	if (watchdogon && m->machno == 0 && !islo()) {
+		if (wdogloops == 0)
+			wdogloops = ((vlong)Wdogms - 50) * m->loopconst;
+		if (aamloops > wdogloops)		/* cap for wdog */
+			aamloops = wdogloops;
+		watchdog->restart();
+		for (; loops > aamloops; loops -= aamloops) {
+			aamloop(aamloops);
+			watchdog->restart();
+		}
+	} else
+		for (; loops > aamloops; loops -= aamloops)
+			aamloop(aamloops);
+	if(loops > 0)
+		aamloop(loops);
+}
+
 void
 delay(int millisecs)
 {
 	if (millisecs > 10*1000)
 		iprint("delay(%d) from %#p\n", millisecs,
 			getcallerpc(&millisecs));
-	if (watchdogon && m->machno == 0 && !islo())
-		for (; millisecs > Wdogms; millisecs -= Wdogms) {
-			delay(Wdogms);
-			watchdog->restart();
-		}
-	millisecs *= m->loopconst;
-	if(millisecs <= 0)
-		millisecs = 1;
-	aamloop(millisecs);
+	indelay((vlong)millisecs * m->loopconst);	/* convert to cycles */
 }
 
 void
 microdelay(int microsecs)
 {
-	if (watchdogon && m->machno == 0 && !islo())
-		for (; microsecs > Wdogms*1000; microsecs -= Wdogms*1000) {
-			delay(Wdogms);
-			watchdog->restart();
-		}
-	microsecs *= m->loopconst;
-	microsecs /= 1000;
-	if(microsecs <= 0)
-		microsecs = 1;
-	aamloop(microsecs);
+	indelay((vlong)microsecs * m->loopconst / 1000); /* convert to cycles */
 }
 
-/*  
+void
+nanodelay(uvlong nanosecs)
+{
+	indelay(nanosecs * m->loopconst / Mstons);	/* convert to cycles */
+}
+
+/*
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
  */
@@ -357,7 +385,7 @@ perfticks(void)
 {
 	uvlong x;
 
-	if(m->havetsc)
+	if(conf.havetsc)
 		cycles(&x);
 	else
 		x = 0;

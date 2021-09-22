@@ -1,0 +1,575 @@
+.TH MF 1 "27 May 1994" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.if n .ds WB Web
+.if t .ds WB W\s-2EB\s0
+.\"=====================================================================
+.SH NAME
+mf, inimf, virmf \- Metafont, a language for font and logo design
+.SH SYNOPSIS
+.B mf
+.RI [ options ]
+.RI [ commands ]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+\*(MF reads the program in the specified files
+and outputs font rasters (in
+.I gf
+format) and font metrics (in
+.I tfm
+format).  The \*(MF
+language is described in
+.IR "The \*(MF\^book" .
+.PP
+Like
+\*(TX, \*(MF
+is normally used with a large body of precompiled macros, and font generation
+in particular requires the support of several macro files.  This
+version of \*(MF looks at its command line to see what name it was
+called under.  Both
+.B inimf
+and
+.B virmf
+are symlinks to the
+.B mf
+executable.  When called as
+.BR inimf
+(or when the
+.B --ini
+option is given) it can be used to precompile macros into a
+.I .base
+file.  When called as
+.B virmf
+it will use the
+.I plain
+base.  When called under any other name, \*(MF will use that name as
+the name of the base to use.   For example, when called as
+.B mf
+the
+.I mf
+base is used, which is identical to the
+.I plain
+base.  Other bases than
+.I plain
+are rarely used.
+.PP
+The
+.I commands
+given on the command line to the \*(MF program are passed to it as the
+first input line.  (But it is often easier to type extended arguments
+as the first input line, since UNIX shells tend to gobble up or
+misinterpret \*(MF's favorite symbols, like semicolons, unless you
+quote them.)  As described in
+.IR "The \*(MF\^book" ,
+that first line should begin with a filename, a
+.RI \e controlsequence ,
+or a
+.IR &basename .
+.PP
+The normal usage is to say
+.IP
+\fBmf\ \fP '\\\|mode=<printengine>\^;\^ [\^mag=magstep(\fI\^n\fP\^)\^;\^]' input\ \^\fI font \fP
+.PP
+to start processing
+.IR font.mf .
+The single quotes are the best way of keeping the Unix
+shell from misinterpreting the semicolons and
+from removing the \\ character, which is needed here to
+keep \*(MF from thinking that you want to produce a font called
+.IR mode .
+(Or you can just say
+.I mf
+and give the other stuff on the next line, without quotes.) Other
+control sequences, such as
+.I batchmode
+(for silent operation) can also appear.
+The name
+.I font
+will be the ``jobname'', and is used in forming
+output file names.
+If \*(MF doesn't get a file name in the first line,
+the jobname is
+.IR mfput .
+The default extension,
+.IR .mf ,
+can be overridden by specifying an extension explicitly.
+.PP
+A log of error messages goes into the file \fIjobname\fP\fB\^.\^\fP\fIlog\fP.
+The output files are \fIjobname\fP\fB\^.\^\fP\fItfm\fP and
+\fIjobname\fP\fB\^.\^\fP\fI<\fP\^number\^\fI>gf\fP, where <number> depends on
+the resolution and magnification of the font.  The
+.I mode
+in this
+example is shown generically as <printengine>, a symbolic term for which
+the name of an actual device or, most commonly, the name
+.I localfont
+(see below) must
+be substituted. If the mode is not specified or is not valid for your
+site, \*(MF will default to
+.I proof
+mode which produces
+large character images for use in font design and refinement.  Proof
+mode can be recognized by the suffix
+.I .2602gf
+after the jobname.  Examples of proof mode output can be found
+in
+.I "Computer Modern Typefaces"
+(Volume E of
+.IR "Computers and Typesetting" ).
+The system of
+.I magsteps
+is identical to the system used by
+\*(TX,
+with values generally in the range 0.5, 1.0, 2.0, 3.0, 4.0 and 5.0.
+A listing of
+.I gf
+numbers for 118-dpi, 240-dpi and 300-dpi fonts
+is shown below.
+.ds f. mf.tbl \" tbl output inserted here
+.TS
+.if \n+(b.=1 .nr d. \n(.c-\n(c.-1
+.de 35
+.ps \n(.s
+.vs \n(.vu
+.in \n(.iu
+.if \n(.u .fi
+.if \n(.j .ad
+.if \n(.j=0 .na
+..
+.nf
+.nr #~ 0
+.if n .nr #~ 0.6n
+.ds #d .d
+.if \(ts\n(.z\(ts\(ts .ds #d nl
+.fc
+.nr 33 \n(.s
+.rm 80 81 82 83
+.nr 80 0
+.nr 38 \w\s-2MAGSTEP\s0
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(0)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(0.5)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(1)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(2)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(3)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(4)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(5)
+.if \n(80<\n(38 .nr 80 \n(38
+.80
+.rm 80
+.nr 81 0
+.nr 38 \w118 dpi
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w118
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w129
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w142
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w170
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w204
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w245
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w294
+.if \n(81<\n(38 .nr 81 \n(38
+.81
+.rm 81
+.nr 82 0
+.nr 38 \w240 dpi
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w240
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w263
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w288
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w346
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w415
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w498
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w597
+.if \n(82<\n(38 .nr 82 \n(38
+.82
+.rm 82
+.nr 83 0
+.nr 38 \w300 dpi
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w300
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w329
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w360
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w432
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w518
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w622
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w746
+.if \n(83<\n(38 .nr 83 \n(38
+.83
+.rm 83
+.nr 38 1n
+.nr 79 0
+.nr 40 \n(79+(0*\n(38)
+.nr 80 +\n(40
+.nr 41 \n(80+(3*\n(38)
+.nr 81 +\n(41
+.nr 42 \n(81+(3*\n(38)
+.nr 82 +\n(42
+.nr 43 \n(82+(3*\n(38)
+.nr 83 +\n(43
+.nr TW \n(83
+.if t .if \n(TW>\n(.li .tm Table at line 13 file mf.tbl is too wide - \n(TW units
+.nr #I \n(.i
+.in +(\n(.lu-\n(TWu-\n(.iu)/2u
+.fc  
+.nr #T 0-1
+.nr #a 0-1
+.eo
+.de T#
+.ds #d .d
+.if \(ts\n(.z\(ts\(ts .ds #d nl
+.mk ##
+.nr ## -1v
+.ls 1
+.ls
+..
+.ec
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'\s-2MAGSTEP\s0\h'|\n(41u'118 dpi\h'|\n(42u'240 dpi\h'|\n(43u'300 dpi
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(0)\h'|\n(41u'118\h'|\n(42u'240\h'|\n(43u'300
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(0.5)\h'|\n(41u'129\h'|\n(42u'263\h'|\n(43u'329
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(1)\h'|\n(41u'142\h'|\n(42u'288\h'|\n(43u'360
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(2)\h'|\n(41u'170\h'|\n(42u'346\h'|\n(43u'432
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(3)\h'|\n(41u'204\h'|\n(42u'415\h'|\n(43u'518
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(4)\h'|\n(41u'245\h'|\n(42u'498\h'|\n(43u'622
+.ta \n(80u \n(81u \n(82u \n(83u
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(5)\h'|\n(41u'294\h'|\n(42u'597\h'|\n(43u'746
+.fc
+.nr T. 1
+.T# 1
+.in \n(#Iu
+.35
+.TE
+.if \n-(b.=0 .nr c. \n(.c-\n(d.-12
+.PP
+Magnification can also be specified not as a magstep but as an
+arbitrary value, such as 1.315, to create special character sizes.
+.PP
+Before font production can begin, it is necessary to set up the
+appropriate base files.  The minimum set of components for font
+production for a given print-engine is the
+.I plain.mf
+macro file
+and the local
+.I mode_def
+file.  The macros in
+.I plain.mf
+can be
+studied in an appendix to the
+.IR "\*(MF\^book" ;
+they were developed by Donald E. Knuth, and this file should never be
+altered except when it is officially upgraded.
+Each
+.I mode_def
+specification helps adapt fonts to a particular print-engine.
+There is a regular discussion of
+.IR mode_def s
+in
+.IR TUGboat ,
+the journal of the
+\*(TX
+Users Group.
+The local ones in use on this computer should be in
+.IR modes.mf .
+.PP
+The
+.I e
+response to \*(MF\|'s error-recovery mode invokes the
+system default
+editor at the erroneous line of the source file.
+There is an environment variable, MFEDIT,
+that overrides the default editor.
+It should contain a string with "%s" indicating where the
+filename goes and "%d" indicating where the decimal linenumber (if any) goes.
+For example, an MFEDIT string for the
+.B vi
+editor can be set with the
+.B csh
+command
+.RS
+\fIsetenv MFEDIT "/usr/ucb/vi +%d %s"\fP
+.RE
+.PP
+A convenient file in the library is
+.IR null.mf ,
+containing nothing.
+When
+.B mf
+can't find the file it thinks you want to input, it keeps
+asking you for another file name; responding `null' gets you out
+of the loop if you don't want to input anything.
+.\"=====================================================================
+.SH "ONLINE GRAPHICS OUTPUT"
+\*(MF can use most modern displays, so you can see its output
+without printing.  Chapter 23 of
+.I "The \*(MF\^book"
+describes what you can do.  This implementation of \*(MF uses
+environment variables to determine which display device you want to use.
+First it looks for a variable MFTERM, and then for TERM.
+If it can't find either, you get no online output.  Otherwise, the value
+of the variable determines the device to use:
+.BR hp2627 ,
+.B sun
+(for old SunView),
+.BR tek ,
+.B uniterm
+(for an Atari ST Tek 4014 emulator),
+.B xterm
+(for either X10 or X11).
+Some of these devices may not be supported in all \*(MF
+executables; the choice is made at compilation time.
+.\"=====================================================================
+.SH OPTIONS
+This version of \*(MF understands the following command line options.
+.TP
+.BI --base \ base
+.rb
+Use
+.I base
+as the name of the base to be used, instead of the name by which
+\*(MF was called or a
+.I %&
+line.
+.TP
+.B --help
+.rb
+Print help message and exit.
+.TP
+.B --ini
+.rb
+Be
+.BR inimf ,
+for dumping bases; this is implicitly true if the program is called
+as
+.BR inimf .
+.TP
+.BI --interaction \ mode
+.rb
+Sets the interaction mode.  The mode can be one of
+.IR batchmode ,
+.IR nonstopmode ,
+.IR scrollmode ,
+and
+.IR errorstopmode .
+The meaning of these modes is the same as that of the corresponding
+commands.
+.TP
+.BI --kpathsea-debug \ bitmask
+.rb
+Sets path searching debugging flags according to the bitmask.  See the
+.I Kpathsea
+manual for details.
+.TP
+.BI --maketex \ fmt
+.rb
+Enable
+.RI mktex fmt ,
+where
+.I fmt
+must be
+.IR mf .
+.TP
+.BI --no-maketex \ fmt
+.rb
+Disable
+.RI mktex fmt ,
+where
+.I fmt
+must be
+.IR mf .
+.TP
+.BI --progname \ name
+.rb
+Pretend to be program
+.IR name .
+This affects both the format used and the search paths.
+.TP
+.B --version
+.rb
+Print version information and exit.
+.\"=====================================================================
+.SH ENVIRONMENT
+See the Kpathsearch library documentation (the `Path specifications'
+node) for the details of how the environment variables are use when
+searching.  The
+.B kpsewhich
+utility can be used to query the values of the variables.
+.PP
+If the environment variable
+TEXMFOUTPUT is set, \*(MF attempts to put its output
+files in it, if they cannot be put in the current directory.  Again, see
+.BR tex (1).
+.TP
+MFINPUTS
+Search path for
+.I input
+and
+.I openin
+files.
+.TP
+MFEDIT
+Command template for switching to editor.
+.TP
+MFTERM
+Determines the online graphics display. If MFTERM is not set,
+and DISPLAY is set, the Metafont window support for X is used.
+(DISPLAY must be set to a valid X server specification, as usual.)
+If neither MFTERM nor DISPLAY is set, TERM is used to guess the window
+support to use.
+.\"=====================================================================
+.SH "FONT UTILITIES"
+A number of utility programs are available.
+The following is a partial list of available utilities and their purpose.
+Consult your local \*(MF guru for details.
+.br
+.TP \w'gftodvi'u+2n
+.B gftopk
+Takes a
+.I gf
+file and produces a more tightly packed
+.I pk
+font file.
+.TP
+.B gftodvi
+Produces proof sheets for fonts.
+.TP
+.B gftype
+Displays the contents of a
+.I gf
+file in mnemonics and/or images.
+.TP
+.B pktype
+Mnemonically displays the contents of a
+.I pk
+file.
+.TP
+.B mft
+Formats a source file as shown in
+.IR "Computer Modern Typefaces" .
+.\"=====================================================================
+.SH "FILES"
+.TP
+.I "mf.pool"
+Encoded text of \*(MF's messages.
+.TP
+.I *.base
+Predigested \*(MF base files.
+.TP
+.I $TEXMFMAIN/metafont/base/plain.mf
+The standard base.
+.TP
+.I $TEXMFMAIN/metafont/misc/modes.mf
+The file of
+.IR mode_def s
+for your site's various printers
+.\"=====================================================================
+.SH "SUGGESTED READING"
+Donald E. Knuth,
+.I "The \*(MF\^book"
+(Volume C of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13445-4.
+.br
+Donald E. Knuth,
+.I "\*(MF:\^ The Program"
+(Volume D of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13438-1.
+.br
+Donald E. Knuth,
+.I Computer Modern Typefaces
+(Volume E of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13446-2.
+.br
+.I TUGboat
+(the journal of the \*(TX Users Group).
+.\"=====================================================================
+.SH COMMENTS
+Warning: ``Type design can be hazardous to your other interests.
+Once you get hooked, you will develop intense feelings about letterforms;
+the medium will intrude on the messages that you read.
+And you will perpetually be thinking of improvements to the fonts that
+you see everywhere, especially those of your own design.''
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR gftopk (1),
+.BR gftodvi (1),
+.BR gftype (1),
+.BR mft (1),
+.BR pltotf (1),
+.BR tftopl (1).
+.\"=====================================================================
+.SH BUGS
+On January 4, 1986 the ``final'' bug in \*(MF was discovered
+and removed. If an error still lurks in the code, Donald E. Knuth promises to
+pay a finder's fee which doubles every year to the first person who finds
+it.  Happy hunting.
+.\"=====================================================================
+.SH AUTHORS
+\*(MF was designed by Donald E. Knuth, who implemented it
+using his \*(WB system for Pascal programs.  It was originally
+ported to Unix by Paul Richards at the University of Illinois at
+Urbana-Champaign.  This page was mostly written by Pierre MacKay.

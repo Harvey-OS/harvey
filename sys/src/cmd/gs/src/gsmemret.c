@@ -173,7 +173,7 @@ gs_forward_consolidate_free(gs_memory_t * mem)
     DO_FORWARD(target->procs.consolidate_free(target));
 }
 private byte *
-gs_retrying_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
+gs_retrying_alloc_bytes(gs_memory_t * mem, uintptr_t size, client_name_t cname)
 {
     RETURN_RETRYING(
 		    byte *,
@@ -181,7 +181,7 @@ gs_retrying_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
 		    );
 }
 private byte *
-gs_retrying_alloc_bytes_immovable(gs_memory_t * mem, uint size,
+gs_retrying_alloc_bytes_immovable(gs_memory_t * mem, uintptr_t size,
 				client_name_t cname)
 {
     RETURN_RETRYING(
@@ -208,7 +208,7 @@ gs_retrying_alloc_struct_immovable(gs_memory_t * mem,
 		    );
 }
 private byte *
-gs_retrying_alloc_byte_array(gs_memory_t * mem, uint num_elements, uint elt_size,
+gs_retrying_alloc_byte_array(gs_memory_t * mem, uint num_elements, uintptr_t elt_size,
 			   client_name_t cname)
 {
     RETURN_RETRYING(
@@ -219,7 +219,7 @@ gs_retrying_alloc_byte_array(gs_memory_t * mem, uint num_elements, uint elt_size
 }
 private byte *
 gs_retrying_alloc_byte_array_immovable(gs_memory_t * mem, uint num_elements,
-				     uint elt_size, client_name_t cname)
+				     uintptr_t elt_size, client_name_t cname)
 {
     RETURN_RETRYING(
 		    byte *,
@@ -275,7 +275,7 @@ gs_forward_free_object(gs_memory_t * mem, void *ptr, client_name_t cname)
     DO_FORWARD(target->procs.free_object(target, ptr, cname));
 }
 private byte *
-gs_retrying_alloc_string(gs_memory_t * mem, uint nbytes, client_name_t cname)
+gs_retrying_alloc_string(gs_memory_t * mem, uintptr_t nbytes, client_name_t cname)
 {
     RETURN_RETRYING(
 		    byte *,
@@ -283,7 +283,7 @@ gs_retrying_alloc_string(gs_memory_t * mem, uint nbytes, client_name_t cname)
 		    );
 }
 private byte *
-gs_retrying_alloc_string_immovable(gs_memory_t * mem, uint nbytes,
+gs_retrying_alloc_string_immovable(gs_memory_t * mem, uintptr_t nbytes,
 				 client_name_t cname)
 {
     RETURN_RETRYING(
@@ -303,7 +303,7 @@ gs_retrying_resize_string(gs_memory_t * mem, byte * data, uint old_num,
 		    );
 }
 private void
-gs_forward_free_string(gs_memory_t * mem, byte * data, uint nbytes,
+gs_forward_free_string(gs_memory_t * mem, byte * data, uintptr_t nbytes,
 		      client_name_t cname)
 {
     DO_FORWARD(target->procs.free_string(target, data, nbytes, cname));

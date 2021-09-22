@@ -1,5 +1,6 @@
 </$objtype/mkfile
 BIN=/$objtype/bin
+LIB=/$objtype/lib/libnofp.a
 
 TARG=acme
 

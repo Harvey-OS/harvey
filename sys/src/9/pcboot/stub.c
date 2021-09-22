@@ -26,7 +26,7 @@ mntauth(Chan *, char *)
 }
 
 long
-mntversion(Chan *, char *, int, int)
+mntversion(Chan *, int, char *, int)
 {
 	return 0;
 }
@@ -281,8 +281,10 @@ namecopen(char *name, int mode)
 {
 	Chan *c;
 
-	if (waserror())
+	if (waserror()) {
+		print("namecopen(%s): %s\n", name, up->errstr);
 		return nil;
+	}
 	c = namec(name, Aopen, mode, 0);
 	poperror();
 	return c;
@@ -380,16 +382,6 @@ dumpfile(char *file)
 /* main.c */
 
 void
-fpx87restore(FPsave*)
-{
-}
-
-void
-fpx87save(FPsave*)
-{
-}
-
-void
 fpssesave(FPsave *)
 {
 }
@@ -406,4 +398,32 @@ l2be(long l)
 
 	cp = (uchar*)&l;
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
+}
+
+/* syscall.c */
+
+/*
+ *  Syscall is called directly from assembler without going through trap().
+ */
+void
+syscall(Ureg*)
+{
+}
+
+/*
+ *  Call user, if necessary, with note.
+ *  Pass user the Ureg struct and the note on his stack.
+ */
+int
+notify(Ureg*)
+{
+	return -1;
+}
+
+/*
+ *   Return user to state before notify()
+ */
+void
+noted(Ureg*, ulong)
+{
 }

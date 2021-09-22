@@ -1,0 +1,375 @@
+.TH MP 1
+.SH NAME
+mp \- MetaPost, a system for drawing pictures
+.SH SYNOPSIS
+.B mp
+[ 
+.I options
+]
+[
+.I commands
+]
+.SH DESCRIPTION
+.I Mp
+interprets the MetaPost language and produces PostScript pictures.
+The MetaPost language is similar to Knuth's MetaFont
+with additional features for including
+.IR tex (1)
+or
+.IR troff (1)
+commands and accessing features of PostScript not found in MetaFont.
+.PP
+The
+.I commands
+given on the command line to
+.I mp
+are passed to it as the
+first input line.  The first line should begin with a filename, a
+control sequence,
+or 
+.RB &memname.
+.PP
+The normal usage is to say
+.B "mp figs
+to process the file
+.BR figs.mp .
+The basename of
+.I figs
+becomes the ``jobname'',
+and is used in forming output file names.  If no file is named, the
+jobname becomes
+.IR mpout .
+The default extension,
+.IR .mp ,
+can be overridden by specifying an extension explicitly.
+.PP
+There is normally one output file for each picture generated,
+and the output files are named 
+.IR jobname . nnn ,
+where
+.I nnn
+is a number passed to the
+.I beginfig
+macro.  The output file name
+can also be 
+.IR jobname . ps
+if this number is negative.
+.PP
+The output files can be used as figures in a 
+.IR tex (1)
+document by including
+.ce
+.BI "\especial{psfile=" jobname.nnn }
+in the \*(TX document.  Alternatively, one can
+.B \einput epsf.tex
+and then use the macro
+.BI "\eepsfbox{" jobname.nnn }
+to produce a box of the appropriate size containing the figure.
+.TP
+.BI btex " TeX commands " etex
+This causes
+.I mp
+to generate a picture expression that corresponds to the
+.I tex
+commands.  If the 
+.I tex
+commands generate
+more than one line of text, it must be in a
+.I \evbox
+or a minipage environment.
+.TP
+.BI verbatimtex " TeX commands " etex
+This is ignored by
+.I mp
+except that the 
+.I tex
+commands are passed on to
+.IR tex . 
+When using
+.I latex
+instead of 
+.I tex
+the input file must start with a
+.B verbatimtex
+block that gives the
+.BI \edocumentstyle
+and
+.B "\ebegin{document}"
+commands.  You can use the `%&' construct in the first verbatimtex
+block to ensure that the correct 
+.I tex
+format is used to process the
+commands.
+.PP
+Since most 
+.I tex
+ fonts have to be downloaded as bitmaps, the
+.B btex
+feature works best when the output of
+.I mp
+is to be included in a 
+.I tex
+document so that
+.B dvips
+(see
+.IR tex (1))
+can download the fonts.  For self-contained PostScript output that can be
+used directly or included in a
+.I troff
+document, start your 
+input file with the command
+.B "prologues:=1"
+and stick to standard PostScript fonts.  
+.I Tex
+and 
+.I mp
+use the names in the
+third column of the file
+.IR trfonts.map ,
+which can be found in the directories with support files for 
+.IR mp .
+.PP
+.I Mp
+output can be included in a
+.I troff
+document via the
+.IR mpictures (6)
+macro package.  In this case
+.I mp
+should be invoked with the
+.B -T
+flag so that the commands between
+.B btex
+and
+.B etex
+or between
+.B verbatimtex
+and
+.B etex
+are interpreted as
+.I troff
+instead of
+.IR tex .  
+(This automatically sets
+.BR "prologues:=1" ).
+.\"=====================================================================
+.SH OPTIONS
+This version of 
+.I mp
+understands the following command line options.
+.TP
+.BI --mem \ mem
+Use
+.I mem
+as the name of the mem to be used, instead of the name by which
+.I mp
+was called or a
+.I %&
+line.
+.TP
+.B --help
+Print help message and exit.
+.TP
+.B --ini
+Be
+.BR inimpost ,
+for dumping bases; this is implicitly true if the program is called
+as
+.BR inimpost .
+.TP
+.BI --interaction \ mode
+Sets the interaction mode.  The mode can be one of
+.IR batchmode ,
+.IR nonstopmode ,
+.IR scrollmode ,
+and
+.IR errorstopmode .
+The meaning of these modes is the same as that of the corresponding
+commands.
+.TP
+.BI --kpathsea-debug \ bitmask
+Sets path searching debugging flags according to the bitmask.  See the
+.I Kpathsea
+manual for details.
+.TP
+.BI --progname \ name
+Pretend to be program
+.IR name .
+This affects both the format used and the search paths.
+.TP
+.B -T
+Produce TROFF output.
+.TP
+.B --troff
+As
+.BR -T .
+.TP
+.B --version
+Print version information and exit.
+.\"=====================================================================
+.SH ENVIRONMENT
+See the paths section of
+.IR tex (1)
+for the details of how the environment variables are used when
+searching.  The
+.B kpsewhich
+utility can be used to query the values of the variables.
+.PP
+If the environment variable
+.B TEXMFOUTPUT 
+is set, 
+.I mp
+attempts to put its output
+files in it, if they cannot be put in the current directory.
+.PP
+Here is a list of the environment variables affect the behavior of
+.IR mp :
+.TP
+.B MPINPUTS
+Search path for
+input
+files.
+.TP
+.B MFINPUTS
+Auxiliary search path for
+input
+files with
+.I .mf
+extensions.
+.TP
+.B MPSUPPORT
+Directory for various tables for handling included
+.I tex
+and
+.IR troff .
+.TP
+.B MPXCOMMAND
+The name of a shell script that converts embedded typesetting commands
+to a form that 
+.I mp
+understands.  Defaults:
+.I makempx
+for
+.I tex
+and
+.I troffmpx
+for
+.IR troff .
+.TP
+.B TEX
+The version of 
+.I tex
+or
+.I latex
+to use when processing
+.B btex
+and
+.B verbatimtex
+commands.  Default
+.IR tex .
+This version of 
+.I mp
+allows you to use a `%&format' line instead.
+.TP
+.B TROFF
+The
+.I troff
+pipeline for
+.B btex
+and
+.B verbatimtex
+commands.  Default
+.BR "eqn -d$$ | troff" .
+.TP
+.B MPEDIT
+A command template for invoking an editor.
+.PP
+A
+.I .mem
+file is a binary file that permits fast loading of macro packages.
+.I Mp
+reads the default
+.I plain.mem
+unless another
+.I .mem
+file is specified at the start of the first line with an
+.I &
+just before it.  There is also an
+.F mfplain.mem
+that simulates plain MetaFont so that
+.I mp
+can read
+.I .mf
+fonts.
+.PP
+Experts can create
+.I .mem
+files be invoking
+.I inimpost
+and giving macro definitions followed by a
+.I dump
+command.
+.PP
+The MetaPost language is similar to MetaFont, but the manual
+.I "A User's Manual for MetaPost
+assumes no knowledge of MetaFont.  
+.I Mp 
+does not have bitmap
+output commands or 
+MetaFont's online display mechanism.
+.\"=====================================================================
+.SH FILES
+.TP
+.B mpost.pool
+Encoded text of \*(MP's messages.
+.TP
+.B *.mem
+Predigested \*(MP mem files.
+.TP
+.B plain.mp
+The standard mem file.
+.TP
+.B mfplain.mp
+The \*(MF-compatible mem file. 
+.TP
+.B /sys/lib/texmf/metapost/base/*.mp
+The standard \*(MP macros included in the original distribution.
+.TP
+.B /sys/lib/texmf/metapost/support/*
+Various tables for handling included
+.I tex
+and
+.IR troff .
+.TP
+.B /sys/lib/texmf/metapost/support/trfonts.map
+Table of corresponding font names for
+.I troff 
+and PostScript.
+.TP
+.B psfonts.map
+Table of corresponding font names for
+.I tex
+and PostScript.
+.TP
+.B /sys/lib/texmf/doc/metapost/examples.mp
+The source file for a few sample figures
+that are part of a 
+.I latex
+document
+.B mpintro.tex 
+that describes the MetaPost system 
+in a little more detail.
+.SH "SEE ALSO"
+.IR troff (1),
+.IR tex (1).
+.br
+John D. Hobby,
+.IR "A User's Manual for MetaPost" ,
+CSTR 162, AT&T Bell Labs,
+.br
+John D. Hobby,
+.IR "Drawing Graphs with MetaPost" ,
+CSTR 164, AT&T Bell Labs.
+.br
+Donald E. Knuth,
+.IR "The MetaFont book" .

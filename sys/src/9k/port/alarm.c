@@ -62,10 +62,9 @@ procalarm(ulong time)
 	Proc **l, *f;
 	ulong when, old;
 
-	if(up->alarm)
+	old = 0;
+	if(up->alarm && up->alarm > sys->ticks)
 		old = tk2ms(up->alarm - sys->ticks);
-	else
-		old = 0;
 	if(time == 0) {
 		up->alarm = 0;
 		return old;

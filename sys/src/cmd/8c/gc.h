@@ -122,7 +122,7 @@ struct	Renv
 	Node*	scope;
 };
 
-#define	NRGN	1000
+#define	NRGN	600
 struct	Rgn
 {
 	Reg*	enter;

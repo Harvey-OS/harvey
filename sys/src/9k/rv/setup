@@ -1,0 +1,6 @@
+fn go {
+	mk install && temu
+}
+
+if (! test -e /srv/bridgepipe)
+	setupbr

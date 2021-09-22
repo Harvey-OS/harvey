@@ -58,8 +58,8 @@ enum {
 	Intd	= 1<<8,		/* interrupt on done */
 	Start	= 1<<7,		/* aka ST, start a transfer */
 	Clear	= 1<<4,		/* clear fifo */
-	Read	= 1<<0,		/* read transfer */
-	Write	= 0<<0,		/* write transfer */
+//	Read	= 1<<0,		/* read transfer */
+//	Write	= 0<<0,		/* write transfer */
 
 	/* stat */
 	Clkt	= 1<<9,		/* clock stretch timeout */

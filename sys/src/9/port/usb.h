@@ -37,10 +37,11 @@ enum
 	Devmax	= 0x7F,		/* max dev. addr */
 
 	/* Speeds */
-	Fullspeed = 0,
-	Lowspeed,
-	Highspeed,
+	Fullspeed = 0,		/* 480Mb/s, usb 2 */
+	Lowspeed,		/* 1.5Mb/s */
+	Highspeed,		/* 12Mb/s */
 	Nospeed,
+	/* usb 3 (xhci) adds Superspeed 5Gb/s */
 
 	/* request type */
 	Rh2d = 0<<7,
@@ -86,21 +87,25 @@ enum
 };
 
 /*
- * Services provided by the driver.
+ * Services provided by an Hci driver.
+ *
  * epopen allocates hardware structures to prepare the endpoint
- * for I/O. This happens when the user opens the data file.
- * epclose releases them. This happens when the data file is closed.
+ * for I/O when the user opens the data file.
+ * epclose releases them when the data file is closed.
+ *
  * epwrite tries to write the given bytes, waiting until all of them
  * have been written (or failed) before returning; but not for Iso.
  * epread does the same for reading.
+ *
  * It can be assumed that endpoints are DMEXCL but concurrent
  * read/writes may be issued and the controller must take care.
  * For control endpoints, device-to-host requests must be followed by
  * a read of the expected length if needed.
- * The port requests are called when usbd issues commands for root
- * hubs. Port status must return bits as a hub request would do.
+ *
+ * The port requests are called when usbd issues commands for root hubs.
+ * Port status must return bits as a hub request would do.
  * Toggle handling and other details are left for the controller driver
- * to avoid mixing too much the controller and the comon device.
+ * to avoid mixing too much the controller and the common device.
  * While an endpoint is closed, its toggles are saved in the Ep struct.
  */
 struct Hciimpl
@@ -108,7 +113,7 @@ struct Hciimpl
 	void	*aux;				/* for controller info */
 	void	(*init)(Hci*);			/* init. controller */
 	void	(*dump)(Hci*);			/* debug */
-	void	(*interrupt)(Ureg*, void*);	/* service interrupt */
+	Intrsvcret (*interrupt)(Ureg*, void*);	/* service interrupt */
 	void	(*epopen)(Ep*);			/* prepare ep. for I/O */
 	void	(*epclose)(Ep*);		/* terminate I/O on ep. */
 	long	(*epread)(Ep*,void*,long);	/* transmit data for ep */
@@ -119,6 +124,7 @@ struct Hciimpl
 	int	(*portstatus)(Hci*, int);	/* get port status */
 	void	(*shutdown)(Hci*);		/* shutdown for reboot */
 	void	(*debug)(Hci*, int);		/* set/clear debug flag */
+	void	(*setintrrate)(Hci*);		/* set suitable max intr rate */
 };
 
 struct Hci
@@ -128,7 +134,13 @@ struct Hci
 	int	ctlrno;				/* controller number */
 	int	nports;				/* number of ports in hub */
 	int	highspeed;
-	Hciimpl;					/* HCI driver  */
+
+	/* interrupt reduction */
+	unsigned nonhubdevs;			/* # of non-hub devs */
+	unsigned nonhubfsdevs;			/* # of usb 2 non-hub devs */
+//	int	pollme;
+
+	Hciimpl;				/* HCI driver  */
 };
 
 /*
@@ -187,6 +199,22 @@ struct Udev
 	int	port;		/* port number in the parent hub */
 	Ep*	eps[Ndeveps];	/* end points for this device (cached) */
 };
+
+typedef struct Intrtypes Intrtypes;
+struct Intrtypes {
+	ulong	not_ours;
+	ulong	no_work;
+	ulong	qh;
+	ulong	tderr;
+	ulong	isohs;
+	ulong	isohsact;
+	ulong	isofs;
+	ulong	isofsact;
+
+	/* not a type really */
+	ulong	async_wake;
+};
+Intrtypes intrtypes;
 
 void	addhcitype(char *type, int (*reset)(Hci*));
 

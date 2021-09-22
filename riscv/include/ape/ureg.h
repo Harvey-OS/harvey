@@ -4,60 +4,64 @@
     This header file is an extension to ANSI/POSIX
 #endif
 
+#define ulong unsigned long
+
 struct Ureg
 {
 	union {
-		unsigned long	pc;
-		unsigned long regs[1];
+		ulong	pc;
+		ulong regs[1];
 	};
-	unsigned long	r1;		/* link */
+	ulong	r1;		/* link */
 	union{
-		unsigned long	r2;
-		unsigned long	sp;
-		unsigned long	usp;
+		ulong	r2;
+		ulong	sp;
+		ulong	usp;
 	};
-	unsigned long	r3;		/* sb */
-	unsigned long	r4;
-	unsigned long	r5;
-	unsigned long	r6;		/* up in kernel */
-	unsigned long	r7;		/* m in kernel */
+	ulong	r3;		/* sb */
+	ulong	r4;
+	ulong	r5;
+	ulong	r6;		/* up in kernel */
+	ulong	r7;		/* m in kernel */
 	union{
-		unsigned long	r8;
-		unsigned long arg;
-		unsigned long ret;
+		ulong	r8;
+		ulong arg;
+		ulong ret;
 	};
-	unsigned long	r9;
-	unsigned long	r10;
-	unsigned long	r11;
-	unsigned long	r12;
-	unsigned long	r13;
-	unsigned long	r14;
-	unsigned long	r15;
-	unsigned long	r16;
-	unsigned long	r17;
-	unsigned long	r18;
-	unsigned long	r19;
-	unsigned long	r20;
-	unsigned long	r21;
-	unsigned long	r22;
-	unsigned long	r23;
-	unsigned long	r24;
-	unsigned long	r25;
-	unsigned long	r26;
-	unsigned long	r27;
-	unsigned long	r28;
-	unsigned long	r29;
-	unsigned long	r30;
-	unsigned long	r31;
+	ulong	r9;
+	ulong	r10;
+	ulong	r11;
+	ulong	r12;
+	ulong	r13;
+	ulong	r14;
+	ulong	r15;
+	ulong	r16;
+	ulong	r17;
+	ulong	r18;
+	ulong	r19;
+	ulong	r20;
+	ulong	r21;
+	ulong	r22;
+	ulong	r23;
+	ulong	r24;
+	ulong	r25;
+	ulong	r26;
+	ulong	r27;
+	ulong	r28;
+	ulong	r29;
+	ulong	r30;
+	ulong	r31;
 
 	/* csrs: generally supervisor ones */
-	unsigned long	status;
-	unsigned long	ie;
+	ulong	status;
+	ulong	ie;
 	union {
-		unsigned long	cause;
-		unsigned long	type;
+		ulong	cause;
+		ulong	type;
 	};
-	unsigned long	tval;			/* faulting address */
+	ulong	tval;			/* faulting address */
+
+	ulong	curmode;
 };
 
 #endif

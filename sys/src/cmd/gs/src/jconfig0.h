@@ -252,7 +252,7 @@ extern_inline int xyz(<<parameters>>)
  * the right operand is a sizeof(...), which is unsigned for this compiler.
  * Therefore, we replace the relevant uses of sizeof with size_of:
  */
-#define size_of(x) ((int)(sizeof(x)))
+#define size_of(x) ((long long)(sizeof(x)))
 
 /*
  * far_data was formerly used for static data that had to be assigned its
@@ -280,10 +280,10 @@ extern_inline int xyz(<<parameters>>)
  */
 #ifdef __MWERKS__
 #define offset_of(type, memb)\
- ((int) &((type *) 0)->memb)
+ ((uintptr_t) &((type *) 0)->memb)
 #else
 #define offset_of(type, memb)\
- ((int) ( (char *)&((type *)0)->memb - (char *)((type *)0) ))
+ ((uintptr_t) ( (char *)&((type *)0)->memb - (char *)((type *)0) ))
 #endif
 
 /*
@@ -292,7 +292,7 @@ extern_inline int xyz(<<parameters>>)
  * works on all reasonable systems.
  */
 #define ALIGNMENT_MOD(ptr, modu)\
-  ((uint)( ((const char *)(ptr) - (const char *)0) & ((modu) - 1) ))
+  ((uintptr_t)( ((const char *)(ptr) - (const char *)0) & ((modu) - 1) ))
 
 /* Define short names for the unsigned types. */
 typedef unsigned char byte;

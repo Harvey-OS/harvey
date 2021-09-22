@@ -10,22 +10,22 @@ pooldump \- general memory management routines
 .B #include <pool.h>
 .PP
 .B
-void*	poolalloc(Pool* pool, ulong size)
+void*	poolalloc(Pool* pool, uintptr size)
 .PP
 .B
-void*	poolallocalign(Pool *pool, ulong size, 
+void*	poolallocalign(Pool *pool, uintptr size, 
 .br
 .B
-                ulong align, long offset, ulong span)
+                uintptr align, vlong offset, uintptr span)
 .PP
 .B
 void	poolfree(Pool* pool, void* ptr)
 .PP
 .B
-ulong	poolmsize(Pool* pool, void* ptr)
+uintptr	poolmsize(Pool* pool, void* ptr)
 .PP
 .B
-void*	poolrealloc(Pool* pool, void* ptr, ulong size)
+void*	poolrealloc(Pool* pool, void* ptr, uintptr size)
 .PP
 .B
 void	poolcompact(Pool* pool)
@@ -129,21 +129,21 @@ The
 structure itself provides much of the setup interface.
 .IP
 .EX
-.ta \w'\fL    'u +\w'\fLulong 'u +\w'\fLlastcompact;  'u
+.ta \w'\fL    'u +\w'\fLuintptr 'u +\w'\fLlastcompact;  'u
 typedef struct Pool Pool;
 struct Pool {
 	char*	name;
-	ulong	maxsize;	/* of entire Pool */
-	ulong	cursize;	/* of Pool */
-	ulong	curfree;	/* total free bytes in Pool */
-	ulong	curalloc;	/* total allocated bytes in Pool */
-	ulong	minarena;	/* smallest size of new arena */
-	ulong	quantum;	/* allocated blocks should be multiple of */
-	ulong	minblock;	/* smallest newly allocated block */
+	uintptr	maxsize;	/* of entire Pool */
+	uintptr	cursize;	/* of Pool */
+	uintptr	curfree;	/* total free bytes in Pool */
+	uintptr	curalloc;	/* total allocated bytes in Pool */
+	uintptr	minarena;	/* smallest size of new arena */
+	uintptr	quantum;	/* allocated blocks should be multiple of */
+	uintptr	minblock;	/* smallest newly allocated block */
 	int	flags;
 	int	nfree;	/* number of calls to free */
 	int	lastcompact;	/* nfree at time of last poolcompact */
-	void*	(*alloc)(ulong);
+	void*	(*alloc)(uintptr);
 	int	(*merge)(void*, void*);
 	void	(*move)(void* from, void* to);
 	void	(*lock)(Pool*);

@@ -20,9 +20,11 @@
 #ifndef gsdevice_INCLUDED
 #  define gsdevice_INCLUDED
 
+#pragma incompete struct gx_device_s
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#pragma incompete gx_device
 #endif
 
 #ifndef gx_device_memory_DEFINED

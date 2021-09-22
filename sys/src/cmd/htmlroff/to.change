@@ -1,0 +1,118 @@
+current problem:
+
+	diversions accumulate html, but then when invoked
+	(in .nf mode, of course)
+	we get all screwed up.
+
+
+
+
+
+t11.c - maybe accumulate little spaces
+t14.c - implement .tl
+
+t19.c - implement .sy, .pi
+
+t4.c - implement .ce
+
+t5.c - check whether .ns should be in environments
+	turn .ns off when output happens!
+	check blank line is like .sp
+	
+t7.c - implement .it
+	should e_backslash trigger on a different letter 
+		when backslash != backslash? (yes!  amazing)
+	TRAPS!
+
+t9.c - implement everything
+
+need concept of in output or not.
+perhaps wrap all output in <p style="...">.
+need to trigger 0 traps.
+
+see mockup.html - can justify!
+
+em (height of elements font)
+ex (height of letter x)
+px (relative to canvas resolution)
+
+in
+cm
+mm
+pt
+pc
+
+text-align: left, right, center, justify
+margin-left:
+margin-top:
+margin-bottom:
+margin-right:
+
+font:
+	font-style: normal, italic, oblique, 
+	font-variant
+	font-weight
+	font-size
+	line-height
+	font-family: serif, sans-serif, cursive, fantasy, monospace
+	font-stretch
+	font-size-adjust
+	font-variant: small-caps
+g '\.i'
+
+.ps 10pt previous
+.pl 11i	11i	v
+.po	1i;0	previous	v
+.ne	-	N=1v	v
+.ll 6.5i	previous	m
+.in	N=0	previous	m
+.ti	-	ignored	m
+
+	if(argc < 2)
+		ll(0);
+	else if(argv[1][0] == '+')
+		ll(getnr(L(".l"))+evalscale(argv[1]+1, 'v'));
+	else if(argv[1][0] == '-')
+		ll(getnr(L(".l"))-evalscale(argv[1]+1, 'v'));
+	else
+		ll(evalscale(argv[1], 'm'));
+	if(argc > 2)
+		warn("extra arguments to .ll");
+g r_ti
+
+move into tmac.s:
+
+.nr fo 0 1
+.de FS
+.if \n+(fo=1 \{.da footnote
+.sp
+.B "Notes
+.sp
+.da \}
+.ihtml a <a href="#\n(fo">
+[\n(fo]
+.ihtml a
+.da footnote
+.ihtml a <a name="\n(fo">
+[\n(fo]
+.ihtml a
+..
+.de FE
+.sp
+.da
+..
+.de footnote
+..
+.em footnote
+
+
+move into base:
+
+.de eof
+.sp 0.5i
+..
+.de ..
+..
+.de font
+xxx
+..

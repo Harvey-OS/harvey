@@ -2,9 +2,13 @@
 #define __SETJMP_H
 #pragma lib "/$M/lib/ape/libap.a"
 
-typedef int jmp_buf[10];
+#undef	_SUSV2_SOURCE
+#define _SUSV2_SOURCE
+#include <inttypes.h>
+
+typedef uintptr_t jmp_buf[4];	/* need 4 pointers for sigsetjmp on riscv64 */
 #ifdef _POSIX_SOURCE
-typedef int sigjmp_buf[10];
+typedef uintptr_t sigjmp_buf[4];
 #endif
 
 #ifdef __cplusplus

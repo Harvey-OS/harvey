@@ -1,0 +1,10 @@
+#!/bin/rc
+
+if(~ $NEWTEX no) 
+	exec /sys/lib/texmf/bin/$cputype/old.dvips $*
+
+rfork en
+bind -b /sys/lib/texmf/bin/$cputype /bin
+bind -b /sys/lib/texmf/bin/rc /bin
+
+/sys/lib/texmf/bin/$cputype/_dvips $*

@@ -1,0 +1,68 @@
+This is a reasonably solid Plan 9 port to the Compulab Trimslice,
+containing a Tegra 2 SoC: a dual-core, dual-issue, out-of-order,
+aggressively speculatively prefetching, 1GHz Cortex-A9
+v7a-architecture ARM system, *and* it comes in a case, not flopping
+around loose.  VFP 3 floating-point hardware is present and supported,
+and 5l can now be made to generate those instructions, though you have
+to request it.  The kernel will emulate them on other arm systems
+*and* the old 7500-style floating point instructions for compatibility
+with old binaries.
+
+This is the first multiprocessor ARM port we've done, and much of the
+code should be reusable in future ports.
+
+
+What's implemented as of 8 May 2017.
+
+A cpu server with both cpus running concurrently with level 1 and 2
+caches enabled.  We make better use now of the cache coherency
+hardware and spend less time explicitly flushing caches, but have to
+do some, around DMA and to work around hardware errata.  We save about
+20% of system time compared to the 2013 release.
+
+Realtek 8168 Ethernet.  It's a slightly dimmer 8169; has to be jabbed
+with an electric cattle prod by software about once per day when it
+wedges.
+
+Profiling.  Charles Forsyth fixed various bugs to make user-mode
+profiling on ARMs work for the first time ever.  A minor fix to
+kprof(1) made kernel profiling work too.
+
+Reboots.  Cpu1 used to get no interrupts after an fshalt -r restart.
+The system is now robust enough to turn off cpu1 at boot time if it
+isn't receiving interrupts.  However, the problem has ultimately been
+worked-around by asserting nPERIPHRESET briefly when starting cpu0,
+which resets the interrupt controller, among other things.
+
+Also after an fshalt -r restart, accesses on cpu1 to pci configuration
+registers in the newly-loaded kernel sometimes hung, so I've
+restricted the range of buses and devices that the kernel probes.
+
+Printing.  (i)print now work reliably, and even work before printinit()
+and i8250console(), for early debugging.
+
+
+What's not implemented.
+
+USB; the HCIs aren't PCI and probably just need initialisation.
+NOR flash.
+Video.
+In-line 64-bit arithmetic in 5[cl].
+And the really horrid peripherals: NAND flash and MMC.
+
+
+Known problems.
+
+This port has been more fragile than I would like during development
+when both CPUs are in use.  The CPU and L2 cache have a lot of errata
+(and that's just the published ones).  I believe all the relevant
+published errata have been worked around.  If the hardware isn't
+configured *just so*, processes mysteriously commit suicide,
+apparently at random, especially under heavy load.  I *have* recently
+built all the kernels with NPROC=4 (my usual stress test) without a
+suicide, and using the current faster mmul1empty() implementation.
+
+Cooling.  Computer problems are aggravated by heat, despite Compulab's
+assurances that running hot is fine.  Stand your trimslice on one
+side, so that it stands vertically, for better cooling.  It might be
+worth pointing a small fan at it.

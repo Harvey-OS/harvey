@@ -22,7 +22,7 @@
 #define	PTR	256		/*     convert a void * (%p) */
 #define	VLONG	512		/* 'll' convert a long long integer */
 
-static int lflag[] = {	/* leading flags */
+static short lflag[] = {	/* leading flags */
 0,	0,	0,	0,	0,	0,	0,	0,	/* ^@ ^A ^B ^C ^D ^E ^F ^G */
 0,	0,	0,	0,	0,	0,	0,	0,	/* ^H ^I ^J ^K ^L ^M ^N ^O */
 0,	0,	0,	0,	0,	0,	0,	0,	/* ^P ^Q ^R ^S ^T ^U ^V ^W */
@@ -58,7 +58,7 @@ ZPAD,	0,	0,	0,	0,	0,	0,	0,	/*  0  1  2  3  4  5  6  7 */
 0,	0,	0,	0,	0,	0,	0,	0,
 };
 
-static int tflag[] = {	/* trailing flags */
+static short tflag[] = {	/* trailing flags */
 0,	0,	0,	0,	0,	0,	0,	0,	/* ^@ ^A ^B ^C ^D ^E ^F ^G */
 0,	0,	0,	0,	0,	0,	0,	0,	/* ^H ^I ^J ^K ^L ^M ^N ^O */
 0,	0,	0,	0,	0,	0,	0,	0,	/* ^P ^Q ^R ^S ^T ^U ^V ^W */
@@ -153,6 +153,8 @@ vfprintf(FILE *f, const char *as, va_list args)
 	int tfl, flags, width, precision;
 	unsigned char *s;
 
+	if (f == 0)
+		return -1;
 	nprint = 0;
 	s = (unsigned char *)as;
 	while(*s){
@@ -319,6 +321,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 		else num = va_arg(*args, unsigned int);
 	}
 	if(num == 0) prefix = "";
+	if(radix <= 1) radix = 10;		/* don't loop forever */
 	dp = digits;
 	do{
 		*dp++ = alphabet[num%radix];
@@ -458,7 +461,10 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 	char *eptr;
 	double d;
 
-	digits = eptr = 0;
+	if (f == 0)
+		return 0;
+	digits = edigits = 0;
+	exponent = sign = 0;
 	echr = 'e';
 	fmt = afmt;
 	d = va_arg(*args, double);
@@ -523,8 +529,8 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 	if(fmt=='f' && exponent>0) nout += exponent;	/* digits before decimal point */
 	else nout++;					/* there's always at least one */
 	if(sign || flags&(SPACE|SIGN)) nout++;		/* sign */
+	eptr = ebuf;
 	if(fmt != 'f'){					/* exponent */
-		eptr = ebuf;
 		for(i=exponent<=0?1-exponent:exponent-1; i; i/=10)
 			*eptr++ = '0' + i%10;
 		while(eptr<ebuf+2) *eptr++ = '0';
@@ -543,19 +549,26 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 			putc('0', f);
 			nout++;
 		}
+	if (digits == 0) {		/* not supposed to happen */
+		digits = "0";
+		ndig = 1;
+		precision = 1;
+		exponent = 0;
+	}
+	if (f == 0)
+		abort();
 	if(fmt == 'f'){
 		for(i=0; i<exponent; i++) putc(i<ndig?digits[i]:'0', f);
 		if(i == 0) putc('0', f);
 		if(precision>0 || flags&ALT) putc('.', f);
-		for(i=0; i!=precision; i++)
+		for(i=0; i<precision; i++)
 			putc(0<=i+exponent && i+exponent<ndig?digits[i+exponent]:'0', f);
 	}
 	else{
 		putc(digits[0], f);
 		if(precision>0 || flags&ALT) putc('.', f);
-		for(i=0; i!=precision; i++) putc(i<ndig-1?digits[i+1]:'0', f);
-	}
-	if(fmt != 'f'){
+		for(i=0; i<precision; i++) putc(i<ndig-1?digits[i+1]:'0', f);
+
 		putc(echr, f);
 		putc(exponent<=0?'-':'+', f);
 		while(eptr>ebuf) putc(*--eptr, f);

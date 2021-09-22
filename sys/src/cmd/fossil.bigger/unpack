@@ -1,0 +1,13 @@
+#!/bin/rc
+
+D=/n/ehime/testplan9
+
+time cp /sys/lib/dist/web.protect/plan9.iso.bz2 /n/ehime
+time bunzip2 -c /n/ehime/plan9.iso.bz2 > /n/ehime/plan9.iso
+rm /srv/9660
+9660srv
+mount /srv/9660 /n/sid /n/ehime/plan9.iso
+rm -rf $D
+mkdir $D
+time dircp /n/sid $D
+mkdir $D/n/emelieother  # for lp

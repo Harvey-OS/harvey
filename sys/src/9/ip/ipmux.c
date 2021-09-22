@@ -128,13 +128,13 @@ parseop(char **pp)
 	p = skipwhite(p);
 	if(strncmp(p, "dst", 3) == 0){
 		type = Tdst;
-		off = (ulong)(ipoff->dst);
+		off = (uintptr)(ipoff->dst);
 		len = IPv4addrlen;
 		p += 3;
 	}
 	else if(strncmp(p, "src", 3) == 0){
 		type = Tsrc;
-		off = (ulong)(ipoff->src);
+		off = (uintptr)(ipoff->src);
 		len = IPv4addrlen;
 		p += 3;
 	}
@@ -146,7 +146,7 @@ parseop(char **pp)
 	}
 	else if(strncmp(p, "proto", 5) == 0){
 		type = Tproto;
-		off = (ulong)&(ipoff->proto);
+		off = (uintptr)&(ipoff->proto);
 		len = 1;
 		p += 5;
 	}
@@ -346,8 +346,8 @@ ipmuxcmp(Ipmux *a, Ipmux *b)
 		return n;
 
 	/* compare offsets, call earlier ones more specific */
-	n = (a->off+((int)a->skiphdr)*(ulong)ipoff->data) -
-		(b->off+((int)b->skiphdr)*(ulong)ipoff->data);
+	n = (a->off+((int)a->skiphdr)*(uintptr)ipoff->data) -
+		(b->off+((int)b->skiphdr)*(uintptr)ipoff->data);
 	if(n != 0)
 		return n;
 
@@ -716,7 +716,8 @@ ipmuxiput(Proto *p, Ipifc *ifc, Block *bp)
 				goto yes;
 			break;
 		case Cmifc:
-			if((*(ulong*)(ifc->lifc->local + IPv4off) & (*((ulong*)mux->mask))) == *((ulong*)mux->val))
+			if((*(ulong*)(ifc->lifc->local + IPv4off) &
+			    *(ulong*)mux->mask) == *(ulong*)mux->val)
 				goto yes;
 			break;
 		default:
@@ -781,9 +782,10 @@ ipmuxsprint(Ipmux *mux, int level, char *buf, int len)
 		n += snprint(buf+n, len-n, "\n");
 		return n;
 	}
-	n += snprint(buf+n, len-n, "h[%d:%d]&",
-               mux->off+((int)mux->skiphdr)*((int)ipoff->data),
-               mux->off+(((int)mux->skiphdr)*((int)ipoff->data))+mux->len-1);
+	n += snprint(buf+n, len-n, "h[%lld:%lld]&",
+               (vlong)(mux->off+((int)mux->skiphdr)*((uintptr)ipoff->data)),
+               (vlong)(mux->off+(((int)mux->skiphdr)*((uintptr)ipoff->data)) +
+			mux->len-1));
 	for(i = 0; i < mux->len; i++)
 		n += snprint(buf+n, len - n, "%2.2ux", mux->mask[i]);
 	n += snprint(buf+n, len-n, "=");

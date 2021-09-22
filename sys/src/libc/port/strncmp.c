@@ -4,7 +4,7 @@
 int
 strncmp(char *s1, char *s2, long n)
 {
-	unsigned c1, c2;
+	uchar c1, c2;
 
 	while(n > 0) {
 		c1 = *s1++;

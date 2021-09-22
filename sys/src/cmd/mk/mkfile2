@@ -1,0 +1,12 @@
+MKSHELL=rc
+
+TARG=foo
+SFX=
+CLEANFILES=$TARG$SFX bar
+
+n=
+v=k
+list=1 x$v 2 x$n 3 x$v$n 4 x$n$v$n 5 x$v${n} 6 x$v${n}$v $CLEANFILES
+ctest:V:
+       d=($list)
+       echo $#d

@@ -330,7 +330,6 @@ rcreate(Fcall *f)
 	fidp->node = np;
 	fidp->open = 1;
 	reply(f, 0);
-	return;
 }
 
 /*
@@ -501,7 +500,6 @@ rstat(Fcall *f)
 		reply(f, "ratfs: convD2M");
 	else
 		reply(f, 0);
-	return;
 }
 
 static void

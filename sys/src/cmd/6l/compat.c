@@ -4,7 +4,7 @@
  * fake malloc
  */
 void*
-malloc(ulong n)
+malloc(uintptr n)
 {
 	void *p;
 
@@ -25,7 +25,7 @@ free(void *p)
 }
 
 void*
-calloc(ulong m, ulong n)
+calloc(uintptr m, uintptr n)
 {
 	void *p;
 
@@ -36,7 +36,7 @@ calloc(ulong m, ulong n)
 }
 
 void*
-realloc(void*, ulong)
+realloc(void*, uintptr)
 {
 	fprint(2, "realloc called\n");
 	abort();
@@ -50,10 +50,8 @@ mysbrk(ulong size)
 }
 
 void
-setmalloctag(void *v, ulong pc)
+setmalloctag(void*, uintptr)
 {
-	USED(v);
-	USED(pc);
 }
 
 int

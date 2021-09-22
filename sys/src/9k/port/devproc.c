@@ -70,11 +70,12 @@ enum{
 	Emask = Nevents - 1,
 };
 
-#define STATSIZE	(2*KNAMELEN+12+9*12)
+#define SNAMELEN	28	/* fixed by proc(3): old, pre-9P2000 KNAMELEN */
+#define STATSIZE	(2*SNAMELEN+12+9*12)
 /*
- * Status, fd, and ns are left fully readable (0444) because of their use in debugging,
- * particularly on shared servers.
- * Arguably, ns and fd shouldn't be readable; if you'd prefer, change them to 0000
+ * Status, fd, and ns are left fully readable (0444) because of their use in
+ * debugging, particularly on shared servers.  Arguably, ns and fd shouldn't
+ * be readable; if you'd prefer, change them to 0000.
  */
 Dirtab procdir[] =
 {
@@ -133,7 +134,7 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 
 /*
  * Qids are, in path:
- *	 5 bits of file type (qids above)
+ *	 5 bits of file type (for 20 Q* qids above)
  *	26 bits of process slot number + 1
  *	     in vers,
  *	32 bits of pid, for consistency checking
@@ -141,10 +142,10 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
  */
 #define QSHIFT	5	/* location in qid of proc slot # */
 
-#define QID(q)		((((ulong)(q).path) & ((1<<QSHIFT)-1)) >> 0)
-#define SLOT(q)		(((((ulong)(q).path) & ~(1UL<<31)) >> QSHIFT) - 1)
-#define PID(q)		((q).vers)
-#define NOTEID(q)	((q).vers)
+#define	QID(q)		(((ulong)(q).path & MASK(QSHIFT)) >> 0)
+#define	SLOT(q)		((((ulong)(q).path & ~(1UL<<31)) >> QSHIFT) - 1)
+#define PID(q)		(q).vers
+#define NOTEID(q)	(q).vers
 
 static void	procctlreq(Proc*, char*, int);
 static int	procctlmemio(Proc*, uintptr, int, void*, int);
@@ -158,6 +159,10 @@ static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
 
+Dev procdevtab;
+
+void (*proctrace)(Proc*, int, vlong);
+
 static void
 profclock(Ureg *ur, Timer *)
 {
@@ -168,7 +173,7 @@ profclock(Ureg *ur, Timer *)
 
 	/* user profiling clock */
 	if(userureg(ur)){
-		tos = (Tos*)(USTKTOP-sizeof(Tos));
+		tos = (Tos*)TOS(USTKTOP);
 		tos->clock += TK2MS(1);
 		segclock(userpc(ur));
 	}
@@ -238,7 +243,6 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 	tab = &procdir[s];
 	path = c->qid.path&~(((1<<QSHIFT)-1));	/* slot component */
 
-	/* p->procmode determines default mode for files in /proc */
 	if((p = psincref(SLOT(c->qid))) == nil)
 		return -1;
 	perm = tab->perm;
@@ -268,7 +272,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 }
 
 static void
-_proctrace(Proc* p, Tevent etype, vlong ts, vlong)
+_proctrace(Proc* p, Tevent etype, vlong ts)
 {
 	Traceevent *te;
 
@@ -297,7 +301,7 @@ procinit(void)
 static Chan*
 procattach(char *spec)
 {
-	return devattach('p', spec);
+	return devattach(procdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -389,7 +393,6 @@ procopen(Chan *c, int omode)
 		tc = proctext(c, p);
 		tc->offset = 0;
 		poperror();
-		cclose(c);
 		qunlock(&p->debug);
 		psdecref(p);
 		return tc;
@@ -507,7 +510,6 @@ procwstat(Chan *c, uchar *db, long n)
 		else
 			kstrdup(&p->user, d->uid);
 	}
-	/* p->procmode determines default mode for files in /proc */
 	if(d->mode != ~0UL)
 		p->procmode = d->mode&0777;
 
@@ -685,18 +687,18 @@ eventsavailable(void *)
 static long
 procread(Chan *c, void *va, long n, vlong off)
 {
-	Proc *p;
+	int i, j, navail, ne, pid, rsize;
 	long l, r;
+	uintptr offset, klimit;
+	uvlong u;
+	char flag[10], *sps, *srv, statbuf[NSEG*64];
+	uchar *rptr;
+	Proc *p;
 	Waitq *wq;
 	Ureg kur;
-	uchar *rptr;
 	Asm *asm;
 	Mntwalk *mw;
 	Segment *sg, *s;
-	int i, j, navail, ne, pid, rsize;
-	char flag[10], *sps, *srv, statbuf[NSEG*64];
-	uintptr offset, klimit;
-	uvlong u;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, va, n, 0, 0, procgen);
@@ -755,7 +757,7 @@ procread(Chan *c, void *va, long n, vlong off)
 		return readstr(offset, va, n, p->syscalltrace);
 
 	case Qmem:
-		if(!iskaddr(offset)
+		if(offset < KZERO
 		|| (offset >= USTKTOP-USTKSIZE && offset < USTKTOP)){
 			r = procctlmemio(p, offset, n, va, 1);
 			psdecref(p);
@@ -892,11 +894,11 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(sps == 0)
 			sps = statename[p->state];
 		memset(statbuf, ' ', sizeof statbuf);
-		sprint(statbuf, "%-*.*s%-*.*s%-12.11s",
-			KNAMELEN, KNAMELEN-1, p->text,
-			KNAMELEN, KNAMELEN-1, p->user,
+		snprint(statbuf, sizeof statbuf, "%-*.*s%-*.*s%-12.11s",
+			SNAMELEN, SNAMELEN-1, p->text,
+			SNAMELEN, SNAMELEN-1, p->user,
 			sps);
-		j = 2*KNAMELEN + 12;
+		j = 2*SNAMELEN + 12;
 
 		for(i = 0; i < 6; i++) {
 			l = p->time[i];
@@ -992,8 +994,6 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(p->pgrp == nil || p->pid != PID(c->qid))
 			error(Eprocdied);
 		mw = c->aux;
-		if(mw == nil)
-			error(Enomem);
 		if(mw->cddone){
 			poperror();
 			qunlock(&p->debug);
@@ -1034,7 +1034,7 @@ procread(Chan *c, void *va, long n, vlong off)
 		return r;
 	}
 	error(Egreg);
-	return 0;			/* not reached */
+	notreached();
 }
 
 static void
@@ -1055,9 +1055,9 @@ mntscan(Mntwalk *mw, Proc *p)
 	if(mw->mh)
 		last = mw->cm->mountid;
 
-	for(i = 0; i < MNTHASH; i++) {
-		for(f = pg->mnthash[i]; f; f = f->hash) {
-			for(t = f->mount; t; t = t->next) {
+	for(i = 0; i < MNTHASH; i++)
+		for(f = pg->mnthash[i]; f; f = f->hash)
+			for(t = f->mount; t; t = t->next)
 				if(mw->mh == 0 ||
 				  (t->mountid > last && t->mountid < best)) {
 					mw->cm = t;
@@ -1065,9 +1065,6 @@ mntscan(Mntwalk *mw, Proc *p)
 					best = mw->cm->mountid;
 					nxt = 1;
 				}
-			}
-		}
-	}
 	if(nxt == 0)
 		mw->mh = 0;
 
@@ -1254,10 +1251,8 @@ proctext(Chan *c, Proc *p)
 		error(Eprocdied);
 	}
 
-	if(p->pid != PID(c->qid)){
-		cclose(tc);
+	if(p->pid != PID(c->qid))
 		error(Eprocdied);
-	}
 
 	poperror();
 	unlock(i);
@@ -1320,6 +1315,10 @@ procctlclosefiles(Proc *p, int all, int fd)
 		error(Eprocdied);
 
 	lock(f);
+	if(!all && (fd < 0 || fd > f->maxfd)){
+		unlock(f);
+		error(Ebadarg);
+	}
 	f->ref++;
 	if(all)
 		for(i = 0; i < f->maxfd; i++)
@@ -1370,9 +1369,10 @@ procctlreq(Proc *p, char *va, int n)
 	int npc, pri;
 	Cmdbuf *cb;
 	Cmdtab *ct;
+	Edf *edf;
 	vlong time;
 	char *e;
-	void (*pt)(Proc*, int, vlong, vlong);
+	void (*pt)(Proc*, int, vlong);
 
 	if(p->kp)	/* no ctl requests to kprocs */
 		error(Eperm);
@@ -1383,8 +1383,8 @@ procctlreq(Proc *p, char *va, int n)
 		nexterror();
 	}
 
+	edf = p->edf;
 	ct = lookupcmd(cb, proccmd, nelem(proccmd));
-
 	switch(ct->index){
 	case CMclose:
 		procctlclosefiles(p, 0, atoi(cb->f[1]));
@@ -1479,63 +1479,58 @@ procctlreq(Proc *p, char *va, int n)
 			p->trace = (atoi(cb->f[1]) != 0);
 			break;
 		default:
-			error("args");
+			error(Ecmdargs);
 		}
 		break;
+
 	/* real time */
 	case CMperiod:
-		if(p->edf == nil)
-			edfinit(p);
-		if(e=parsetime(&time, cb->f[1]))	/* time in ns */
-			error(e);
-		edfstop(p);
-		p->edf->T = time/1000;			/* Edf times are µs */
-		break;
 	case CMdeadline:
-		if(p->edf == nil)
-			edfinit(p);
-		if(e=parsetime(&time, cb->f[1]))
-			error(e);
-		edfstop(p);
-		p->edf->D = time/1000;
-		break;
 	case CMcost:
-		if(p->edf == nil)
+		if(edf == nil) {
 			edfinit(p);
-		if(e=parsetime(&time, cb->f[1]))
+			edf = p->edf;
+		}
+		if(e = parsetime(&time, cb->f[1]))	/* time in ns */
 			error(e);
 		edfstop(p);
-		p->edf->C = time/1000;
+		time /= 1000;				/* Edf times are µs */
+		if (ct->index == CMperiod)
+			edf->T = time;
+		else if (ct->index == CMdeadline)
+			edf->D = time;
+		else if (ct->index == CMcost)
+			edf->C = time;
 		break;
 	case CMsporadic:
-		if(p->edf == nil)
+		if(edf == nil)
 			edfinit(p);
 		p->edf->flags |= Sporadic;
 		break;
 	case CMdeadlinenotes:
-		if(p->edf == nil)
+		if(edf == nil)
 			edfinit(p);
 		p->edf->flags |= Sendnotes;
 		break;
+	case CMextra:
+		if(edf == nil)
+			edfinit(p);
+		p->edf->flags |= Extratime;
+		break;
 	case CMadmit:
-		if(p->edf == 0)
+		if(edf == nil)
 			error("edf params");
 		if(e = edfadmit(p))
 			error(e);
 		break;
-	case CMextra:
-		if(p->edf == nil)
-			edfinit(p);
-		p->edf->flags |= Extratime;
-		break;
 	case CMexpel:
-		if(p->edf)
+		if(edf)
 			edfstop(p);
 		break;
 	case CMevent:
 		pt = proctrace;
 		if(up->trace && pt)
-			pt(up, SUser, 0, 0);
+			pt(up, SUser, 0);
 		break;
 	}
 
@@ -1577,7 +1572,7 @@ procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
 			s->steal--;
 			nexterror();
 		}
-		if(fixfault(s, offset, read, 0, s->color) == 0)
+		if(fixfault(s, offset, read, 0) == 0)
 			break;
 		poperror();
 		s->steal--;
@@ -1590,7 +1585,7 @@ procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
 	if(pagedout(pg))
 		panic("procctlmemio1");
 
-	pgsize = segpgsize(s);
+	pgsize = 1LL<<s->lg2pgsize;
 	l = pgsize - (offset&(pgsize-1));
 	if(n > l)
 		n = l;
@@ -1612,7 +1607,7 @@ procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
 
 	/* Ensure the process sees text page changes */
 	if(s->flushme)
-		mmucachectl(pg, PG_TXTFLUSH);
+		memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 
 	s->steal--;
 

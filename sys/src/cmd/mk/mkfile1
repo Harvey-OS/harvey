@@ -1,0 +1,14 @@
+MKSHELL=rc
+
+E=
+N=n
+
+LIST=$N -$E -$N -$E$N -$N$E $E- $N- $E$N- $N$E- $E x
+
+x:V:
+	l=($LIST)
+	whatis LIST
+	echo $#LIST
+	whatis l
+	echo $#l
+

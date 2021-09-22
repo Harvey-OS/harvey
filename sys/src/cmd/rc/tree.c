@@ -134,6 +134,8 @@ token(char *str, int type)
 	return t;
 }
 
+/*
+ * not actually used anywhere
 void
 freetree(tree *p)
 {
@@ -146,3 +148,4 @@ freetree(tree *p)
 		efree(p->str);
 	efree((char *)p);
 }
+ */

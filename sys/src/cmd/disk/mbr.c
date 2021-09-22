@@ -23,6 +23,8 @@ enum {
 	Toffset = 0x1BE,		/* offset of partition table */
 
 	Type9	= 0x39,
+
+	Maxsects = 1ull << 32,
 };
 
 /*
@@ -53,7 +55,7 @@ static char defmbr[512] = {
 void
 usage(void)
 {
-	fprint(2, "usage: disk/mbr [-m mbrfile] disk\n");
+	fprint(2, "usage: disk/mbr [-9] [-m mbrfile] disk\n");
 	exits("usage");
 }
 
@@ -154,6 +156,12 @@ main(int argc, char **argv)
 	if(disk->secsize != secsize)
 		fprint(2, "%s: sector size %lld not %ld, should be okay\n",
 			argv0, disk->secsize, secsize);
+	if (disk->secs >= Maxsects) {
+		fprint(2, "%s: sector count %,lld too big for MBR; "
+			"using only first 2^32 sectors\n", argv0, disk->secs);
+		disk->secs = Maxsects - 1;
+		disk->c = disk->secs / (disk->h * disk->s);
+	}
 
 	buf = malloc(secsize*(disk->s+1));
 	mbr = malloc(secsize*disk->s);
@@ -178,7 +186,8 @@ main(int argc, char **argv)
 		if((nmbr = read(sysfd, buf, secsize*(disk->s+1))) < 0)
 			fatal("read %s: %r", mbrfile);
 		if(nmbr > secsize*disk->s)
-			fatal("master boot record too large %d > %d", nmbr, secsize*disk->s);
+			fatal("master boot record too large %d > %d",
+				nmbr, secsize*disk->s);
 		if(nmbr < secsize)
 			nmbr = secsize;
 		close(sysfd);

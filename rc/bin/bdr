@@ -1,0 +1,3 @@
+#!/bin/rc
+# print names of device directories of local BD-R devices
+grep -l '^(inquiry|model).*(BLU|BD)' '#S'/sd*/ctl | sed 's;/ctl$;;' | sort -u

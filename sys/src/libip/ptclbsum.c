@@ -1,6 +1,5 @@
 #include	<u.h>
 #include	<libc.h>
-#include	<ip.h>
 
 static	short	endian	= 1;
 static	uchar*	aendian	= (uchar*)&endian;
@@ -9,41 +8,29 @@ static	uchar*	aendian	= (uchar*)&endian;
 ushort
 ptclbsum(uchar *addr, int len)
 {
-	ulong losum, hisum, mdsum, x;
-	ulong t1, t2;
+	register ulong mdsum;
+	register ushort *shp;
+	ulong losum, hisum, odd;
 
-	losum = 0;
-	hisum = 0;
-	mdsum = 0;
-
-	x = 0;
-	if((uintptr)addr & 1) {
-		if(len) {
-			hisum += addr[0];
-			len--;
-			addr++;
-		}
-		x = 1;
+	losum = hisum = mdsum = 0;
+	odd = (uintptr)addr & 1;
+	if(odd && len) {
+		len--;
+		hisum += *addr++;
 	}
-	while(len >= 16) {
-		t1 = *(ushort*)(addr+0);
-		t2 = *(ushort*)(addr+2);	mdsum += t1;
-		t1 = *(ushort*)(addr+4);	mdsum += t2;
-		t2 = *(ushort*)(addr+6);	mdsum += t1;
-		t1 = *(ushort*)(addr+8);	mdsum += t2;
-		t2 = *(ushort*)(addr+10);	mdsum += t1;
-		t1 = *(ushort*)(addr+12);	mdsum += t2;
-		t2 = *(ushort*)(addr+14);	mdsum += t1;
-		mdsum += t2;
-		len -= 16;
-		addr += 16;
+	shp = (ushort *)addr;
+	while(len >= 8*2) {
+		len -= 8*2;
+		mdsum += shp[0] + shp[1] + shp[2] + shp[3] +
+			 shp[4] + shp[5] + shp[6] + shp[7];
+		shp += 8;
 	}
 	while(len >= 2) {
-		mdsum += *(ushort*)addr;
 		len -= 2;
-		addr += 2;
+		mdsum += *shp++;
 	}
-	if(x) {
+	addr = (uchar *)shp;
+	if(odd) {
 		if(len)
 			losum += addr[0];
 		if(LITTLE)
@@ -64,5 +51,5 @@ ptclbsum(uchar *addr, int len)
 	while(hisum = losum>>16)
 		losum = hisum + (losum & 0xffff);
 
-	return losum & 0xffff;
+	return losum;
 }

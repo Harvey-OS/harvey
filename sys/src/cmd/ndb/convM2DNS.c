@@ -11,10 +11,10 @@ struct Scan
 	uchar	*ep;		/* byte after the end */
 
 	char	*err;
-	char	errbuf[256];	/* hold a formatted error sometimes */
 	int	rcode;		/* outgoing response codes (reply flags) */
 	int	stop;		/* flag: stop processing */
 	int	trunc;		/* flag: input truncated */
+	char	errbuf[256];	/* hold a formatted error sometimes */
 };
 
 static int
@@ -405,10 +405,8 @@ retry:
 		USHORT(rp->pref);
 		dn = NAME(dname);
 		rp->host = dnlookup(dn, Cin, 1);
-		if(strchr((char *)rp->host, '\n') != nil) {
-			dnslog("newline in mx text for %s", dn);
+		if(strchr((char *)rp->host, '\n') != nil)
 			sp->trunc = 1;		/* try again via tcp */
-		}
 		break;
 	case Ta:
 		V4ADDR(rp->ip);
@@ -495,9 +493,9 @@ retry:
 		if (type == Tcname && sp->p - data == 2 && len == 0)
 			return rp;
 		if (len > sp->p - data){
-			dnslog("bad %s RR len (%d bytes nominal, %lud actual): %R",
+			dnslog("bad %s RR len (%d bytes nominal, %llud actual): %R",
 				rrname(type, ptype, sizeof ptype), len,
-				sp->p - data, rp);
+				(vlong)(sp->p - data), rp);
 			rrfree(rp);
 			rp = nil;
 		}

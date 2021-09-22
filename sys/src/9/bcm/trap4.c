@@ -418,6 +418,16 @@ intrcpu(int cpu)
 }
 
 /*
+ * ureg is the current stack pointer.  verify that it's within
+ * a plausible range.
+ */
+void
+ckstack(Ureg **uregp)
+{
+	USED(uregp);
+}
+
+/*
  *  set up for exceptions
  */
 void

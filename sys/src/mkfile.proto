@@ -2,8 +2,10 @@
 # common mkfile parameters shared by all architectures
 #
 
-OS=568ijqv
-CPUS=amd64 arm 386 riscv riscv64 power mips
+# include i for mk clean
+OS=568ijv
+# omit arm64 until 7[cal] can build everything
+CPUS=amd64 arm 386 riscv64 mips
 CFLAGS=-FTVw
 LEX=lex
 YACC=yacc

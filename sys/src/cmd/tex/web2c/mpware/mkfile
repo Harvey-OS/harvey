@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+BIN=/sys/lib/texmf/bin/$objtype
+TARG=dmp mpto newer
+
+LIB=../../kpathsea/libkpathsea.a$O ../lib/lib.a$O
+
+</sys/src/cmd/mkmany
+
+$O.makempx:
+	touch $O.makempx
+
+makempx.install:V: /sys/lib/texmf/bin/rc/makempx
+
+/sys/lib/texmf/bin/rc/makempx: makempx.rc
+	cp $prereq $target
+
+CC=pcc
+CFLAGS=-I../.. -I.. -I. -B -D_POSIX_SOURCE -D_BSD_EXTENSION -c

@@ -90,6 +90,7 @@ typedef struct gs_halftone_s gs_halftone;
 #ifndef gx_device_color_DEFINED
 #  define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
+#pragma incomplete gx_device_color
 #endif
 #ifndef gx_device_halftone_DEFINED
 #  define gx_device_halftone_DEFINED

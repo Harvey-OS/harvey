@@ -1,0 +1,15 @@
+vm 4
+pM 44.881944,93.233000	# msp
+pI 44.8744,93.2040	# imsp
+
+n msp_gnd\80
+c pI, 6
+
+n msp_23\80
+c pI, 8.5
+
+n msp_30\80
+c pI, 12
+
+n msp_40\80
+C pI, 20

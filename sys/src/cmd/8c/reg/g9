@@ -1,0 +1,15 @@
+$global
+	uvlong ru, a[7] = {[6]27}, u = 0x01;
+	vlong b[8] = { 3, 4 };
+	char c = 6, d = 36;
+	int i = 1, j = 6;
+$main
+	vlong rv, v = 0x7;
+$lhs
+	rv
+$op
+	<
+$op0
+	b[i]
+$op1
+	6

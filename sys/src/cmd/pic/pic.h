@@ -217,3 +217,8 @@ extern	double	errcheck(double, char *);
 #define	Log10(x) errcheck(log10(x), "log")
 #define	Exp(x)	errcheck(exp(x), "exp")
 #define	Sqrt(x)	errcheck(sqrt(x), "sqrt")
+
+/* import from unix */
+#define exit(n) exits((n) == 0? 0: "error")
+
+int	system(char *);

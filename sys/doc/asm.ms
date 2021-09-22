@@ -10,17 +10,17 @@ rob@plan9.bell-labs.com
 .SH
 Machines
 .PP
-There is an assembler for each of the MIPS, SPARC, Intel 386, AMD64,
-Power PC, ARM, and RISC-V.
+There is an assembler for each of the MIPS, SPARC (retired), Intel 386, AMD64,
+Power PC, 64-bit Power PC, ARM, ARM64, and RISC-V.
 The 68020 assembler,
-.CW 2a ,
-(no longer distributed)
+.CW 2a
+(no longer distributed),
 is the oldest and in many ways the prototype.
 The assemblers are really just variations of a single program:
 they share many properties such as left-to-right assignment order for
 instruction operands and the synthesis of macro instructions
 such as
-.CW MOVE
+.CW MOV
 to hide the peculiarities of the load and store structure of the machines.
 To keep things concrete, the first part of this manual is
 specifically about the 68020.
@@ -84,7 +84,7 @@ is the first argument,
 is the second, and so on.
 .CW SP
 is the local stack pointer, where automatic variables are held
-(SP is a pseudo-register only on the 68020);
+(SP is a pseudo-register on the 68020);
 .CW 0(SP)
 is the first automatic, and so on as with
 .CW FP .
@@ -498,6 +498,7 @@ instruction, or any other instruction not known to the assembler, use a
 pseudo-instruction.
 Such instructions on RISCs are not scheduled by the loader and must have
 their delay slots filled manually.
+.
 .SH
 MIPS
 .PP
@@ -635,6 +636,7 @@ pseudo-op disables instruction scheduling
 re-enables it.
 Branch folding, code copying, and dead code elimination are
 disabled for instructions that are not scheduled.
+.ig
 .SH
 SPARC
 .PP
@@ -695,6 +697,7 @@ The official no-op instruction is:
 .P1
 	ORN	R0, R0, R0
 .P2
+..
 .SH
 i960
 .PP
@@ -736,6 +739,7 @@ is as in the manual:
 for ordinal,
 .CW W
 for signed, etc.
+.
 .SH
 i386
 .PP
@@ -765,7 +769,7 @@ with an
 .CW W ,
 or
 .CW B
-appended to identify 32-bit, 
+appended to identify 32-bit,
 16-bit, and 8-bit operations.
 The exceptions are loads, stores, and conditionals.
 All load and store opcodes to and from general registers, special registers
@@ -891,6 +895,7 @@ stand-alone opcodes that precede the strings, for example
 Segment override prefixes in
 .CW MOD/RM
 fields are not supported.
+.
 .SH
 AMD64
 .PP
@@ -1160,7 +1165,7 @@ The assembler knows the commonly used special purpose registers:
 and
 .CW XER .
 The rest, which are often architecture-dependent, are referenced as
-.CW SPR(n) . 
+.CW SPR(n) .
 The segment registers of the 60x series are similarly
 .CW SEG(n) ,
 but
@@ -1222,6 +1227,7 @@ producing
 or
 .CW mtfsfi ,
 as appropriate.
+.
 .SH
 ARM
 .PP
@@ -1369,12 +1375,120 @@ Conversion instructions are also specified by moves:
 .CW MOVFD ,
 and
 .CW MOVDF .
+.
+.SH
+ARM64
+.PP
+The assembler provides access to
+.CW R0
+through
+.CW R31 .
+The stack pointer is
+.CW R31 ,
+the link register is
+.CW R30 ,
+the frame pointer is
+.CW R29 ,
+and the static base register is
+.CW R28 .
+.CW R0
+is the return register and also the register holding
+the first argument to a subroutine.
+The external registers in Plan 9's C are allocated from
+.CW R27
+down.
+.CW R17
+is used by the loader as a temporary register.
+The assembler supports the
+.CW CPSR
+and
+.CW SPSR
+registers.
+It also knows about system registers.
+Floating registers are
+.CW F0
+through
+.CW F31 ,
+.CW FPSR
+and
+.CW FPCR .
+.PP
+As with the other architectures, loads and stores are called
+.CW MOV ,
+e.g.
+.CW MOVW
+for load or store 32-bit word,
+depending on the operands.
+.PP
+Shifts and rotates in addressing modes are supported by binary operators
+.CW <<
+(logical left shift),
+.CW >>
+(logical right shift),
+.CW ->
+(arithmetic right shift), and
+.CW @>
+(rotate right); for example
+.CW "R7>>R2" or
+.CW "R2@>2" .
+The assembler does not support indexing by a shifted expression;
+only names can be doubly indexed.
+.PP
+Arithmetic
+and logical instructions
+can have an
+.CW S
+suffix, as ARM allows, to set condition codes.
+.PP
+The syntax of the
+.CW MSR
+and
+.CW MRS
+system-register instructions is largely as in the manual,
+with the usual adjustments.
+The assembler directly supports only the ARM floating-point
+operations used by the compiler:
+.CW CMP ,
+.CW ADD ,
+.CW SUB ,
+.CW MUL ,
+and
+.CW DIV ,
+all with
+.CW F
+or
+.CW D
+suffix selecting single or double precision.
+Floating-point load or store become
+.CW MOVF
+and
+.CW MOVD .
+Conversion instructions are also specified by moves:
+.CW MOVWD ,
+.CW MOVWF ,
+.CW MOVDW ,
+.CW MOVWD ,
+.CW MOVFD ,
+and
+.CW MOVDF .
+.
 .SH
 RISC-V
 .PP
-The riscv and riscv64 assemblers support RV32GC and RV64GC instruction sets,
+There are assemblers for 32-bit and 64-bit RISC-V.
+The
+.CW RV32IMAFDC
+(a.k.a.,
+.CW RV32GC )
+instruction set
+(base integer plus multiply and divide, atomics, float, double and compressed)
+and RV64GC are supported by the assemblers,
 conforming as usual to Plan 9 syntax rather than the form described
 in the RISC-V specification.
+General-purpose operating systems will generally assume
+.CW RV32G
+or
+.CW RV64G .
 .PP
 Registers are
 .CW R0
@@ -1388,21 +1502,38 @@ as stack pointer,
 .CW R3
 as static base,
 .CW R8
-used for the first function argument and function return value, and
+used for the first non-FP function argument and return value, and
 .CW R4
 as the loader temporary.
-These register conventions are different from the usual Plan 9 model,
-for compatibility with the
-compressed instruction set extension. For example, the compressed
+Register external variables are assigned from
+.CW R7
+downward.
+Note that these register conventions are compatible with the
+compressed instruction set extension \(em for example, the compressed
 form of the
 .CW JAL
 instruction assumes that the link register is
 .CW R1 .
-There are no separate opcode mnemonics for compressed instructions.
-The loader will generate the compressed (2 byte) form of instructions
-where possible, unless it is invoked with the
-.CW -c
-option.
+.CW FP
+is a pseudo-register which denotes the address of the first argument;
+.CW SP
+is a pseudo-register which denotes the address at the end of the auto variables.
+Both are offsets from
+.CW R2 .
+Floating registers are
+.CW F0
+through
+.CW F31 ,
+and
+.CW CSR(1)
+through
+.CW CSR(3) .
+.CW F28
+through
+.CW F31
+are initialised as for the Power PC.
+FP arguments are always passed on the stack and FP values are returned in
+.CW F0 .
 .PP
 Three-operand logical and arithmetic instructions are written in the order
 .P1
@@ -1431,11 +1562,11 @@ may be omitted to indicate comparison with
 (which always contains zero).
 For example:
 .P1
-	SUB	R1, R2, R3	/* R3 = R2 - R1 */
-	SUB	$1, R2, R3	/* R3 = R2 - 1 */
-	ADD	R4, R3		/* R3 += R4 */
-	BLT	R1, R3, done	/* if (R3 < R1) goto done */
-	BNE	R1, done	/* if (R1 != 0) goto done */
+	SUB	R11, R12, R13	/* R13 = R12 - R11 */
+	SUB	$1, R12, R13	/* R13 = R12 - 1 */
+	ADD	R14, R13	/* R13 += R14 */
+	BLT	R11, R13, done	/* if (R13 < R11) goto done */
+	BNE	R11, done	/* if (R11 != 0) goto done */
 .P2
 Mnemonics for conditional branches (some of which are pseudo-ops) are
 as in the RISC-V specification:
@@ -1452,10 +1583,10 @@ and
 .CW BLEU .
 The function call instruction
 .CW JAL
-uses an explicit link register operand, but the
+takes an explicit link register operand, but the
 .CW RET
 pseudo-op assumes the link register is
-.CW 1 .
+.CW R1 .
 The unconditional branch is
 .CW JMP ,
 which generates a
@@ -1465,79 +1596,68 @@ with
 as the link register.
 To branch to an address in a register use
 .CW JMP
-with indirect addressing mode.
+with indirect addressing mode,
+or
+.CW JAL
+for a function call.
 .PP
-To allow for common source code files to be used with both riscv and riscv64
-assemblers, the built-in constant
-.CW XLEN
-represents the register width in bytes (4 or 8),
-and some opcode mnemonics will generate different machine instructions
-for each instruction set architecture. For data movement (loads, stores and
-register transfers), the
+Data movement instructions (loads, stores, and register transfers) all use
 .CW MOV
-opcode always denotes the native register width. When used with a memory
-operand it will generate an
-.CW lw
-or
-.CW sw
-instruction for riscv, and an
-.CW ld
-or
-.CW sd
-instruction for riscv64.
-.CW MOV
-should also be used to load a constant or copy one register to another.
-On the other hand,
-.CW MOVW
-on either architecture
-will move a 32-bit word. With a memory operand it will generate
-.CW lw
-or
-.CW sw .
-When used to load a constant or copy between registers,
-.CW MOVW
-on riscv is a synonym for
-.CW MOV ;
-on riscv64 will generate code for a 32-bit move with sign extension.
-The mnemonic
-.CW MOVWU
-can be used for a 32-bit move with zero extension on riscv64;
-on riscv it is another synonym for
-.CW MOV .
-.PP
-Some other opcodes also have native-width and 32-bit variants:
-.CW ADDW ,
-.CW SUBW ,
-.CW SLLW ,
-.CW SRLW ,
-.CW SRAW ,
-.CW MULW ,
-.CW DIVW ,
-and
-.CW REMW
-will each generate an instruction which performs a 32-bit operation with
-sign or zero extension for riscv64 (which would cause
-an illegal instruction trap on riscv), and generate the corresponding
-register-width instruction
-.CW ADD ,
-.CW SUB
-etc
-for riscv.
-.PP
-Loads and stores of [unsigned] halfword and byte operands use the opcodes
+and variants
+.CW MOVW[U] ,
 .CW MOVH[U]
 and
-.CW MOVB[U] ,
-which generate the same machine instructions on both architectures.
-.PP
+.CW MOVB[U]
+for register-width data,
+[unsigned] 32-bit word, halfword and byte operands.
 If
 .CW MOV
 is used with a constant source operand to load a value which doesn't
 fit into the 12-bit signed immediate field, the loader will generate
-a two instruction sequence to construct the value if possible,
-otherwise will generate a load instruction and place a literal value
-in the data segment.
+.CW LUI
+and
+.CW ADD
+instructions as appropriate.
 .PP
-Atomic instructions are not yet implemented; they need to be
-constructed by hand using
-.CW WORD .
+The
+.CW SYSTEM
+instruction is implemented:
+.CW SYS
+.CW $0
+is a system call, which expects its number in
+.CW R8
+and arguments on the user's stack.
+In general,
+.CW SYS
+.CW $\fP\fIn\fP
+generates a
+.CW SYSTEM
+instruction with
+.I n
+shifted left 20 bits.
+CSRs can be accessed simply via
+.P1
+	MOV CSR(n), Rd
+.P2
+and
+.P1
+	MOV Rs, CSR(n)
+.P2
+The more complex swap, set and clear instructions
+.CW CSRRW ,
+.CW CSRRS ,
+and
+.CW CSRRC
+are recognised with this syntax:
+.P1
+	CSRRx  CSR(n), Rs, Rd
+.P2
+or
+.P1
+	CSRRx  CSR(n), $imm, Rd
+.P2
+.PP
+The symbol
+.CW XLEN
+is defined by the assembler as the size in bytes of
+general registers (and pointers).

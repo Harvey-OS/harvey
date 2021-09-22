@@ -1,0 +1,4 @@
+.ds 1 Right
+.ds 2 \*1
+.ds 1 Wrong
+\*2

@@ -16,9 +16,21 @@
  * connection.
  */
 
-#define MAXRPC (IOHDRSZ+16*1024)	/* maybe a larger size will be faster */
+/*
+ * 16K reduces elapsed time for heavy i/o loads by 30% compared to 8K.
+ * keep this below devtls's iounit (currently 16K).
+ */
+#define MAXRPC (IOHDRSZ+16*1024-512)
 /* use a known-good common size for initial negotiation */
 #define MAXCMNRPC (IOHDRSZ+8192)
+
+enum {
+	/*
+	 * reduce output messages this much to leave room for encapsulations
+	 * (e.g., 9P in TLS in 9P)
+	 */
+	Encaproom = 0,
+};
 
 struct Mntrpc
 {
@@ -77,6 +89,7 @@ Chan*	mntchan(void);
 char	Esbadstat[] = "invalid directory entry received from server";
 char	Enoversion[] = "version not established for mount channel";
 
+Dev mntdevtab;
 
 void (*mntstats)(int, Chan*, uvlong, ulong);
 
@@ -108,7 +121,8 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	vlong oo;
 	char buf[128];
 
-	qlock(&c->umqlock);	/* make sure no one else does this until we've established ourselves */
+	/* make sure no one else does this until we've established ourselves */
+	qlock(&c->umqlock);
 	if(waserror()){
 		qunlock(&c->umqlock);
 		nexterror();
@@ -123,14 +137,13 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	if(v == nil || v[0] == '\0')
 		v = VERSION9P;
 
-	///* validity */
-	//if(msize < 0)	pointless if msize unsigned, but but should it be?
+	/* validity */
+	//if(msize < 0)	pointless if msize unsigned, but should it be?
 	//	error("bad iounit in version call");
 	if(strncmp(v, VERSION9P, strlen(VERSION9P)) != 0)
 		error("bad 9P version specification");
 
 	mnt = c->mux;
-
 	if(mnt != nil){
 		qunlock(&c->umqlock);
 		poperror();
@@ -138,7 +151,8 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 		strecpy(buf, buf+sizeof buf, mnt->version);
 		k = strlen(buf);
 		if(strncmp(buf, v, k) != 0){
-			snprint(buf, sizeof buf, "incompatible 9P versions %s %s", mnt->version, v);
+			snprint(buf, sizeof buf, "incompatible 9P versions %s %s",
+				mnt->version, v);
 			error(buf);
 		}
 		if(returnlen != 0){
@@ -149,6 +163,7 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 		return k;
 	}
 
+	/* prepare Tversion RPC & send it */
 	f.type = Tversion;
 	f.tag = NOTAG;
 	f.msize = msize;
@@ -170,7 +185,6 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	unlock(c);
 
 	l = c->dev->write(c, msg, k, oo);
-
 	if(l < k){
 		lock(c);
 		c->offset -= k - l;
@@ -178,7 +192,7 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 		error("short write in fversion");
 	}
 
-	/* message sent; receive and decode reply */
+	/* message sent; receive and decode Rversion reply */
 	n = c->dev->read(c, msg, MAXCMNRPC, c->offset);
 	if(n <= 0)
 		error("EOF receiving fversion reply");
@@ -238,7 +252,7 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	mnt->rip = 0;
 
 	c->flag |= CMSG;
-	c->mux = mnt;
+	c->mux = mnt;		/* mnt could now be accessed via c */
 	mnt->c = c;
 	unlock(mnt);
 
@@ -255,7 +269,6 @@ mntauth(Chan *c, char *spec)
 	Mntrpc *r;
 
 	mnt = c->mux;
-
 	if(mnt == nil){
 		mntversion(c, MAXRPC, VERSION9P, 0);
 		mnt = c->mux;
@@ -317,7 +330,6 @@ mntattach(char *muxattach)
 	c = bogus.chan;
 
 	mnt = c->mux;
-
 	if(mnt == nil){
 		mntversion(c, 0, nil, 0);
 		mnt = c->mux;
@@ -371,7 +383,7 @@ mntchan(void)
 {
 	Chan *c;
 
-	c = devattach('M', 0);
+	c = devattach(mntdevtab.dc, 0);
 	lock(&mntalloc);
 	c->devno = mntalloc.id++;
 	unlock(&mntalloc);
@@ -408,8 +420,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 	if(nc == nil){
 		nc = devclone(c);
 		/*
-		 * Until the other side accepts this fid,
-		 * we can't mntclose it.
+		 * Until the other side accepts this fid, we can't mntclose it.
 		 * nc->dev remains nil for now.
 		 */
 		alloc = 1;
@@ -697,6 +708,7 @@ mntrdwr(int type, Chan *c, void *buf, long n, vlong off)
 	Mntrpc *r;
 	char *uba;
 	int cache;
+	long mszlim;
 	ulong cnt, nr, nreq;
 
 	mnt = mntchk(c);
@@ -716,8 +728,14 @@ mntrdwr(int type, Chan *c, void *buf, long n, vlong off)
 		r->request.offset = off;
 		r->request.data = uba;
 		nr = n;
-		if(nr > mnt->msize-IOHDRSZ)
-			nr = mnt->msize-IOHDRSZ;
+		mszlim = mnt->msize-IOHDRSZ;
+		if(type == Twrite) {
+			mszlim -= Encaproom;
+			if (mszlim < 256)
+				mszlim = mnt->msize-IOHDRSZ;
+		}
+		if(nr > mszlim)
+			nr = mszlim;
 		r->request.count = nr;
 		mountrpc(mnt, r);
 		nreq = r->request.count;
@@ -804,7 +822,7 @@ mountio(Mnt *mnt, Mntrpc *r)
 	if(n < 0)
 		panic("bad message type in mountio");
 	if(mnt->c->dev->write(mnt->c, r->rpc, n, 0) != n)
-		error(Emountrpc);
+		error(Emountrpc);	/* probably due to dropped connection */
 	r->stime = fastticks(nil);
 	r->reqlen = n;
 
@@ -825,7 +843,7 @@ mountio(Mnt *mnt, Mntrpc *r)
 	unlock(mnt);
 	while(r->done == 0) {
 		if(mntrpcread(mnt, r) < 0)
-			error(Emountrpc);
+			error(Emountrpc); /* probably due to dropped connection */
 		mountmux(mnt, r);
 	}
 	mntgate(mnt);
@@ -1142,12 +1160,13 @@ mntchk(Chan *c)
 	/* This routine is mostly vestiges of prior lives; now it's just sanity checking */
 
 	if(c->mchan == nil)
-		panic("mntchk 1: nil mchan c %s\n", chanpath(c));
+		panic("mntchk 1: nil mchan c %s", chanpath(c));
 
 	mnt = c->mchan->mux;
 
 	if(mnt == nil)
-		print("mntchk 2: nil mux c %s c->mchan %s \n", chanpath(c), chanpath(c->mchan));
+		print("mntchk 2: nil mux c %s c->mchan %s \n",
+			chanpath(c), chanpath(c->mchan));
 
 	/*
 	 * Was it closed and reused (was error(Eshutdown); now, it cannot happen)

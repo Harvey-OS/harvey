@@ -37,11 +37,11 @@ collect && section == "link"{
 	link[nlink++] = $1;
 }
 collect && section == "misc"{
-	sub(/^[ \t]*/, "");
+	sub(/^[ \t]*/, "");	# NB: this affects section name match below
 	misc[nmisc++] = $1;
 	if($1 ~ "^arch.*")
 		arch[narch++] = $1;
-	else if($1 ~ "^ad.*")
+	else if($1 ~ "^ad.*")		# no longer used
 		adifc[nadifc++] = $1;
 	else if($1 ~ "^sd.*")
 		sdifc[nsdifc++] = $1;
@@ -64,7 +64,7 @@ collect && section == "port"{
 	port[nport++] = $0;
 }
 $0 ~ /^[^ \t]/{
-	if($1 ~ "(bootdir|dev|ip|link|misc|port)"){
+	if($1 ~ "^(bootdir|dev|ip|link|misc|port)$"){
 		section = $1;
 		collect = 1;
 	}
@@ -109,7 +109,7 @@ END{
 		printf "\t%slink();\n", link[i];
 	printf "}\n\n";
 
-	if(narch || objtype == "386"){
+	if(narch){
 		for(i = 0; i < narch; i++)
 			printf "extern PCArch %s;\n", arch[i];
 		printf "PCArch* knownarch[] = {\n";

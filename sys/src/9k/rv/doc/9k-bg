@@ -1,0 +1,56 @@
+	Derivation of 9k
+	Geoff Collyer
+
+AMD64
+
+Jim McKie created 9k for the amd64 architecture, as a cpu server kernel,
+primarily to explore high-performance computing (HPC, or supercomputing) on
+larger (64-bit) systems.  It's more careful about using varargs for system
+call arguments and about sizes of integers generally; it uses uintptr a lot
+where 9 used ulong.  Jim made some other changes (e.g., created the Sys
+struct, rewrote sysexec and removed swapping).  He didn't bother with a lot
+of drivers for old crufty hardware (e.g., 10Mb/s ethernet) and put no
+effort into creating a terminal kernel, so omitted USB and VGA.  I think
+USB would be easy to restore, but I haven't needed nor wanted it.
+
+VGA is of course a can of worms: aside from the churn in video cards, the
+9/pc implementation requires using real mode and providing access to
+hardware registers via #v, and once a cpu is in 64-bit long mode, it's
+going to be quite painful to revert to real mode and back.  It was bad
+enough reverting to 32-bit protected mode in order to implement graceful
+reboot.
+
+I picked up the 2014 /sys/src/9k in 2019, when I upgraded my Xeon servers.
+It could only support 600MB of ram, got stray traps, had outdated drivers,
+and some (mainly pci-e) drivers for modern devices had never been brought
+forward to 9k.  I fixed all of that.  I didn't expect anyone else to run my
+copy of the system, so I have done some refactoring (notably main and
+sysexec) and made other changes to suit my taste.  I find long functions
+(over a page, say) harder to follow, so have broken some up.  I moved a few
+almost-portable files like syscall.c to port with only minor changes to
+factor out the unportabilities.  With a bit of work to smooth over 9 vs.
+9k differences, the important drivers (igbe, xgbe, ahci, nvme) are either
+identical in my 9 and 9k, or very close to identical.  I still run 9/pc on
+a couple of systems: a console server, and a cpu server for mpm and
+ghostscript.
+
+RISC-V
+
+The riscv rv port is derived from the amd64 port.  It's initially for the
+RV64GC Polarfire Icicle.  There was an assumption that memory started at
+physical address 0; I think I have removed that assumption.  I generally
+link the system for 0x80000000 (KZERO), which seems to also be the usual
+physical address of the start of ram for RISC-V; it's strongly encouraged
+by machine mode having no paging.  The console is expected to be on the
+second uart (uart 1).
+
+It expects to usually be started in supervisor mode in rv64 mode.  It runs
+in tinyemu, starting in machine mode.  The rv64 port implements 39-bit and
+48-bit virtual addresses, as available.  57- and 64-bit addressing are
+implemented but untested.
+
+I haven't got the details of how to access PCI configuration space, so the
+PCI support code isn't working yet, but it should only require changing the
+access functions.  Graceful reboot works.  Commands seem to work correctly
+in general; ghostscript never really works correctly.  I have built APE,
+though I can build awk (and thus build a kernel) without it.

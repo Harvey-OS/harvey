@@ -14,6 +14,7 @@ OFILES=\
 	plot.$O\
 	label.$O\
 	misc.$O\
+	system.$O\
 
 HFILES=grap.h\
 	y.tab.h\
@@ -24,16 +25,14 @@ LFILES=grapl.lx\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CC=pcc
-LD=pcc
-YFLAGS = -d -S
-CFLAGS=-FTV -c
+YFLAGS = -d
+CFLAGS=-FTVw
 
 grap.c:	y.tab.c
 	mv $prereq $target
 
 grapl.c:	$LFILES
-	$LEX -t $prereq > $target
+	{ echo '#include <u.h>'; echo '#include <libc.h>'; $LEX -t $prereq } >$target
 
 clean:V:
 	rm -f [$OS].out *.[$OS] y.tab.? lex.yy.c grapl.c grap.c grap

@@ -1,0 +1,24 @@
+#!/bin/rc
+# importsrv system [mntpt] - import but first look for /srv file to mount.
+#	be careful about exit status so we can invoke this from mkfiles.
+rfork e
+switch ($#*) {
+case 2
+	mntpt=$2
+case 1
+	mntpt=/n/$1
+case *
+	echo usage: $0 system >[1=2]
+	exit usage
+}
+sys=$1
+srv=`{echo $sys.$user | sed 's/^tcp!//'}
+
+#if (test -e $mntpt/adm)		# unsafe optimisation
+#	exit ''
+mount -cC /srv/$srv $mntpt >[2]/dev/null
+if (~ $status '')
+	exit ''
+rm -f /srv/$srv
+# permissions don't work right via srv, thus use import
+import -s $srv $sys / $mntpt && mount -cC /srv/$srv $mntpt

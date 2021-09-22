@@ -1,0 +1,34 @@
+.TH WRBENCH 1
+.SH NAME
+wrbench \- tool for measuring i/o write throughput.
+.SH SYNOPSIS
+.B wrbench
+[
+.B -l
+.I writesize
+] [
+.B -T
+.I totsize
+]
+[
+.I dialstring
+]
+.SH DESCRIPTION
+.I Wrbench
+tests the write throughput of a given file or network connection by writing
+.I totsize
+bytes of data
+(default 1 gigabyte)
+in
+.I writesize
+buffers (default 8192 bytes).
+.I Wrbench
+then prints the amount of time in nanoseconds in the first column and the amount of data written in the second column.
+.PP
+.I Wrbench
+can differentiate between files and dialstrings so
+.I dialstring
+can also be an undecorated filename.
+.SH SOURCE
+.B /sys/src/cmd/wrbench.c
+

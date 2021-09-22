@@ -1,0 +1,15 @@
+#!/bin/rc
+# uniquery pattern... - print hex & glyph of any chars matching pattern
+#	in /lib/unicode
+sts=''
+for (pat) {
+	hexes = `{grep $pat /lib/unicode | column 1}
+	if (~ $#hexes 0) {
+		echo $0: no such unicode chars: $pat >[1=2]
+		sts='no such chars'
+	}
+	if not
+		for (hex in $hexes)
+			unicode $hex-$hex
+}
+exit $sts

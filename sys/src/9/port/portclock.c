@@ -71,7 +71,6 @@ tadd(Timers *tt, Timer *nt)
 static uvlong
 tdel(Timer *dt)
 {
-
 	Timer *t, **last;
 	Timers *tt;
 
@@ -113,7 +112,6 @@ timeradd(Timer *nt)
 	iunlock(tt);
 	iunlock(nt);
 }
-
 
 void
 timerdel(Timer *dt)
@@ -159,6 +157,10 @@ hzclock(Ureg *ur)
 		exit(0);
 	}
 
+	/*
+	 * you might think that we only need to run checkalarms on cpu0,
+	 * but that's empirically not true; the system misbehaves if we do that.
+	 */
 	checkalarms();
 
 	if(up && up->state == Running)
@@ -268,26 +270,26 @@ addclock0link(void (*f)(void), int ms)
 /*
  *  This tk2ms avoids overflows that the macro version is prone to.
  *  It is a LOT slower so shouldn't be used if you're just converting
- *  a delta.
+ *  a delta, *iff* 1000%HZ != 0, else it's the same.
  */
 ulong
 tk2ms(ulong ticks)
 {
-	uvlong t, hz;
-
-	t = ticks;
-	hz = HZ;
-	t *= 1000L;
-	t = t/hz;
-	ticks = t;
-	return ticks;
+	if (1000%HZ == 0)
+		return ticks * MS2HZ;
+	else
+		return (ticks * 1000ULL)/HZ;
 }
 
 ulong
 ms2tk(ulong ms)
 {
-	/* avoid overflows at the cost of precision */
-	if(ms >= 1000000000/HZ)
-		return (ms/1000)*HZ;
-	return (ms*HZ+500)/1000;
+	if (1000%HZ == 0)
+		return ms / MS2HZ;
+	else {
+		/* avoid overflows at the cost of precision */
+		if(ms >= 1000000000/HZ)
+			return (ms/1000)*HZ;
+		return (ms*HZ+500)/1000;
+	}
 }

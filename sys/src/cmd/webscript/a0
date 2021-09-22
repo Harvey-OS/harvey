@@ -1,0 +1,5 @@
+load "http://www.google.com"
+find textbox
+input "Plan 9 from Bell Labs"
+submit
+print

@@ -9,10 +9,10 @@
  * Generous estimate of number of fields, including terminal nil pointer
  */
 static int
-ncmdfield(char *p, int n)
+ncmdfield(uchar *p, int n)
 {
 	int white, nwhite;
-	char *ep;
+	uchar *ep;
 	int nf;
 
 	if(p == nil)
@@ -20,9 +20,9 @@ ncmdfield(char *p, int n)
 
 	nf = 0;
 	ep = p+n;
-	white = 1;	/* first text will start field */
+	white = 1;			/* first text will start field */
 	while(p < ep){
-		nwhite = (strchr(" \t\r\n", *p++ & 0xFF) != 0);	/* UTF is irrelevant */
+		nwhite = strchr(" \t\r\n", *p++) != 0; /* UTF is irrelevant */
 		if(white && !nwhite)	/* beginning of field */
 			nf++;
 		white = nwhite;
@@ -40,7 +40,7 @@ parsecmd(char *p, int n)
 	int nf;
 	char *sp;
 
-	nf = ncmdfield(p, n);
+	nf = ncmdfield((uchar *)p, n);
 
 	/* allocate Cmdbuf plus string pointers plus copy of string including \0 */
 	sp = smalloc(sizeof(*cb) + nf * sizeof(char*) + n + 1);

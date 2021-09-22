@@ -12,15 +12,15 @@ utfnlen(char *s, long m)
 	es = s + m;
 	for(n = 0; s < es; n++) {
 		c = *(uchar*)s;
-		if(c < Runeself){
+		if(c < Runeself){		/* ascii? */
 			if(c == '\0')
 				break;
 			s++;
-			continue;
+		} else {
+			if(!fullrune(s, es-s))
+				break;
+			s += chartorune(&rune, s);
 		}
-		if(!fullrune(s, es-s))
-			break;
-		s += chartorune(&rune, s);
 	}
 	return n;
 }

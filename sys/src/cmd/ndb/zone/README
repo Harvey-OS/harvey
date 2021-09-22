@@ -1,0 +1,14 @@
+axfr does zone transfer from a remote dns server.  zonefresh.rc is a
+script that tries to format axfr's output nicely as a plan9 NDB file
+to standard output.
+
+zonefresh has one option, -s which causes it to write its output to
+/lib/ndb/sec.domain.dom, taking care not to truncate the file if the
+zone transfer fails.
+
+This is typically used to keep a local ndb file for a remote dns
+server up to date so we can provide a seccondary dns service.
+
+run from cron as:
+
+15 5 * * *	cpu	zonefresh  -s ns.domain.dom domain.dom

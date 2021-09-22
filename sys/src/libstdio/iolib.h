@@ -18,7 +18,6 @@
  */
 #include <u.h>
 #include <libc.h>
-#undef END
 #include <stdio.h>
 /*
  * Flag bits
@@ -37,6 +36,14 @@
 #define	WR	4	/* open, buffer allocated, ok to write but not read */
 #define	ERR	5	/* open, but an uncleared error occurred */
 #define	END	6	/* open, but at eof */
+/*
+ * Leading flags
+ */
+#define	SPACE	1		/* ' ' prepend space if no sign printed */
+#define	ALT	2		/* '#' use alternate conversion */
+#define	SIGN	4		/* '+' prepend sign, even if positive */
+#define	LEFT	8		/* '-' left-justify */
+#define	ZPAD	16		/* '0' zero-pad */
 
 int _IO_setvbuf(FILE *);
 
@@ -46,3 +53,11 @@ extern QLock _stdiolk;
 /* internal functions */
 char	*dtoa(double, int, int, int*, int*, char**);
 void	freedtoa(char*);
+
+/* map internal names to reserved names, per ansi rules */
+#define ocvt_e	_IO_cvt_e
+#define ocvt_f	_IO_cvt_f
+#define ocvt_g	_IO_cvt_g
+#define ocvt_E	_IO_cvt_E
+#define ocvt_G	_IO_cvt_G
+#define ocvt_flt _IO_cvt_flt

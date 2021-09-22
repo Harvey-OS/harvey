@@ -23,11 +23,11 @@ struct Resub{
 };
 
 /*
- *	character class, each pair of rune's defines a range
+ *	character class, each pair of runes defines a range
  */
 struct Reclass{
-	Rune	*end;
-	Rune	spans[64];
+	Rune	*end;			/* points into spans */
+	Rune	*spans;			/* dynamically allocated */
 };
 
 /*
@@ -50,6 +50,7 @@ struct Reinst{
 /*
  *	Reprogram definition
  */
+/* max character classes per program is nelem(reprog->class) */
 struct Reprog{
 	Reinst	*startinst;	/* start pc */
 	Reclass	class[16];	/* .data */
@@ -60,6 +61,7 @@ extern Reprog	*regcomp(char*);
 extern Reprog	*regcomplit(char*);
 extern Reprog	*regcompnl(char*);
 extern void	regerror(char*);
+extern void	regfree(Reprog*);
 extern int	regexec(Reprog*, char*, Resub*, int);
 extern void	regsub(char*, char*, int, Resub*, int);
 extern int	rregexec(Reprog*, Rune*, Resub*, int);

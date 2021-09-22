@@ -23,9 +23,9 @@ THIS SOFTWARE.
 ****************************************************************/
 
 #define DEBUG
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "awk.h"
 #include "y.tab.h"
 
@@ -239,11 +239,6 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 		SYNTAX( "`%s' is an array name and a function name", v->nval );
 		return;
 	}
-	if (isarg(v->nval) != -1) {
-		SYNTAX( "`%s' is both function name and argument name", v->nval );
-		return;
-	}
-
 	v->tval = FCN;
 	v->sval = (char *) st;
 	n = 0;	/* count arguments */
@@ -253,7 +248,7 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 	dprintf( ("defining func %s (%d args)\n", v->nval, n) );
 }
 
-int isarg(const char *s)		/* is s in argument list for current function? */
+int isarg(char *s)		/* is s in argument list for current function? */
 {			/* return -1 if not, otherwise arg # */
 	extern Node *arglist;
 	Node *p = arglist;
@@ -265,12 +260,12 @@ int isarg(const char *s)		/* is s in argument list for current function? */
 	return -1;
 }
 
-int ptoi(void *p)	/* convert pointer to integer */
+uintptr ptoi(void *p)	/* convert pointer to integer */
 {
-	return (int) (long) p;	/* swearing that p fits, of course */
+	return (uintptr)p;
 }
 
-Node *itonp(int i)	/* and vice versa */
+Node *itonp(uintptr i)	/* and vice versa */
 {
-	return (Node *) (long) i;
+	return (Node *)i;
 }

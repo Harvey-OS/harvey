@@ -1,0 +1,93 @@
+Starting kernel ...
+
+h3m1 h4m3 h2m2 h1m0 W3W2W1main cpu0
+IC:0123
+F
+
+Plan 9 (risc-v RV64G)
+39-bit virtual addresses in use
+cpu0: risc-v RV64G at 600 MHz
+8 of 16 l2 cache ways enabled at entry; setting to 15
+10,000 clint ticks is 6,000,102 rdtsc cycs, or 600 cycs/clint
+sbi extensions present: 0x0 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x10 0x735049 0x52464e43
+clock...
+
+#l0: gem: 1Gbps regs 0x20112000 irq 70: 56341200fc00
+
+#l1: gem: 1Gbps regs 0x20110000 irq 64: 56341200fc01
+
+6&|2|1*2*1|3O1O2*3O34 early pages allocated (probably by vmap)
+scancpus: 1 running, 4 hartsR1main cpu1
+QAM0125678NHR2main cpu2
+QAM0125678NHR3main cpu3
+QAM0125678NH1 on w mach 0xffffffc08217a000...1 Hello Squidboy 1
+mach 1 waiting for epoch
+mach 1 is go 0xffffffc08217a000 0xffffffc0820f9000
+mach1: waiting for online flag
+mach1: online color 0
+2 on w mach 0xffffffc082203000...2 Hello Squidboy 2
+mach 2 waiting for epoch
+mach 2 is go 0xffffffc082203000 0xffffffc082182000
+mach2: waiting for online flag
+mach2: online color 0
+3 on w mach 0xffffffc08228c000...3 Hello Squidboy 3
+mach 3 waiting for epoch
+mach 3 is go 0xffffffc08228c000 0xffffffc08220b000
+mach3: waiting for online flag
+mach3: online color 0
+; started 3 harts
+schedcpus: cpucnt 4 hartcnt 4
+4 cpus running, 3 started
+1022M memory: 992K+279M kernel, 742M user
+boot...dhcp...factotum...tcp...version...ns...time...
+init...cpurc starting Mon Feb 1 17:44:25 PST 2021
+dns...loopbacks...listen...kernel built: Feb  1 17:43
+riscv64 /sys/src/9k/pf64/pf64cpu --rwxrwxr-x M 9 geoff sys 1126885 Feb 1 17:43 /riscv64/9pf64cpu
+Mon Feb 1 17:44:31 PST 2021  pf up 0 days, 00:00:09
+collect kmesg...
+
+init: starting /bin/rc
+pf# cat /dev/sysstat
+          0        6968        7173        3119        2888           0           0        1000          99           0 
+          1        8870        1391        1449        2088           0           0           0           1           0 
+          2       21168        1411        1042        1524           0           0           0          99           0 
+          3       12891        1399        1388        1885           0           0           0          98           0 
+
+pf# fshalt -r
+using kernel /n/boot/riscv64/9pf64cpu...syncing...
+halting...
+done halting fs
+cpu0: exiting...kernel is exiting
+cpu3: exit...cpu3: idling...kernel is exiting
+cpu1: exit...cpu1: idling...kernel is exiting
+cpu2: exit...cpu2: idling...OOOSJJJTTT!!!=>
+starting new kernel via tramp @ 0xbff88000 (0x80000000 <- 0x82d208e0 size 857,384)
+TCP
+h1m0 main cpu0
+IC:0123
+F
+
+Plan 9 (risc-v RV64G)
+39-bit virtual addresses in use
+cpu0: risc-v RV64G at 600 MHz
+10,000 clint ticks is 6,000,073 rdtsc cycs, or 600 cycs/clint
+sbi extensions present: 0x0 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x10 0x735049 0x52464e43
+clock...
+#l0: gem: 1Gbps regs 0x20112000 irq 70: 56341200fc00
+
+#l1: gem: 1Gbps regs 0x20110000 irq 64: 56341200fc01
+
+6&4 early pages allocated (probably by vmap)
+scancpus: 1 running, 18 harts; started 0 harts
+schedcpus: cpucnt 1 hartcnt 18
+1 cpus running, 0 started
+1022M memory: 992K+279M kernel, 742M user
+boot...dhcp...factotum...tcp...version...ns...time...
+init...cpurc starting Mon Feb 1 17:44:55 PST 2021
+dns...loopbacks...listen...kernel built: Feb  1 17:43
+riscv64 /sys/src/9k/pf64/pf64cpu --rwxrwxr-x M 9 geoff sys 1126885 Feb 1 17:43 /riscv64/9pf64cpu
+Mon Feb 1 17:45:01 PST 2021  pf up 0 days, 00:00:12
+collect kmesg...
+
+init: starting /bin/rc
+pf# 

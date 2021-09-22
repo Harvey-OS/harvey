@@ -1,41 +1,56 @@
 /*
- * arm arch v7 mmu
+ * arm arch v7-a mpcore mmu, specifically for cortex-a9
  *
- * we initially thought that we needn't flush the l2 cache since external
- * devices needn't see page tables.  sadly, reality does not agree with
- * the manuals.
+ * We set ttbr0 such that page tables can be looked-up in l1 cache by the mmu,
+ * thus we don't need to flush them to memory (but we do have to be careful
+ * when updating the live page tables).  Beware that when an MMU is enabled,
+ * at least on the cortex-a9, the MMU will prefetch ravenously from its page
+ * tables, even if all other prefetching has been disabled, so it's vital to
+ * invalidate TLB entries corresponding to a modified PTE before the MMU tries
+ * to use it.  See setpte().
  *
- * we use l1 and l2 cache ops here because they are empirically needed.
+ * erratum 782773: updating a pte might cause an erroneous translation fault.
+ * workaround: writeback and invalidate the pte's cache line before overwriting
+ * a pte, with interrupts disabled.  arm think that this is only a concern
+ * during start-up and shut-down, when we use double-mapping, but the pages
+ * of a running process are doubled-mapped, accessible through the zero and
+ * KZERO segments.
  */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-
 #include "arm.h"
 
 #define L1X(va)		FEXT((va), 20, 12)
 #define L2X(va)		FEXT((va), 12, 8)
 
+/*
+ * on the trimslice, the top of 1GB ram can't be addressible, as high
+ * virtual memory (0xffff0000) contains high vectors.  We moved USTKTOP
+ * down another MB to utterly avoid KADDR(USTKTOP) mapping to high
+ * exception vectors, particularly before mmuinit sets up L2 page tables
+ * for the high vectors.  USTKTOP is thus (0x40000000 - HIVECTGAP), which
+ * in kernel virtual space is (0x100000000ull - HIVECTGAP), but we need
+ * the whole user virtual address space (1GB) to be unmapped initially
+ * in a new process, thus the choice of L1hi.
+ */
 enum {
-	Debug		= 0,
+	Sectionsz	= MB,
+	L1lo		= UZERO/Sectionsz,	/* L1X(UZERO) */
+	/* one Section pte past user space */
+//	L1hi = (USTKTOP+Sectionsz-1)/Sectionsz, /* L1X(USTKTOP+Sectionsz-1) */
+	L1hi		= DRAMSIZE/Sectionsz,
+	/* part of an L2 page actually used by us */
+	L2used		= (Sectionsz / BY2PG) * sizeof(PTE),
 
-	L1lo		= UZERO/MiB,		/* L1X(UZERO)? */
-#ifdef SMALL_ARM				/* well under 1GB of RAM? */
-	L1hi		= (USTKTOP+MiB-1)/MiB,	/* L1X(USTKTOP+MiB-1)? */
-#else
+	Debug		= 0,
 	/*
-	 * on trimslice, top of 1GB ram can't be addressible, as high
-	 * virtual memory (0xfff.....) contains high vectors.  We
-	 * moved USTKTOP down another MB to utterly avoid KADDR(stack_base)
-	 * mapping to high exception vectors.  USTKTOP is thus
-	 * (0x40000000 - 64*KiB - MiB), which in kernel virtual space is
-	 * (0x100000000ull - 64*KiB - MiB), but we need the whole user
-	 * virtual address space to be unmapped in a new process.
+	 * Erratum782773 costs about 4% of cpu time.
+	 * So far we're okay without it.
 	 */
-	L1hi		= DRAMSIZE/MiB,
-#endif
+	Erratum782773	= 1,
 };
 
 #define ISHOLE(type)	((type) == 0)
@@ -49,6 +64,8 @@ struct Range {
 	ulong	attrs;
 	int	type;			/* L1 Section or Coarse? */
 };
+
+static uchar *l2pages = KADDR(L2POOLBASE);
 
 static void mmul1empty(void);
 
@@ -73,25 +90,25 @@ prl1range(Range *rp)
 {
 	int attrs;
 
-	iprint("l1 maps va (%#8.8lux-%#llux) -> ", rp->startva, rp->endva-1);
+	print("l1 maps va (%#8.8lux-%#llux) -> ", rp->startva, rp->endva-1);
 	if (rp->startva == rp->startpa)
-		iprint("identity-mapped");
+		print("identity-mapped");
 	else
-		iprint("pa %#8.8lux", rp->startpa);
-	iprint(" attrs ");
+		print("pa %#8.8lux", rp->startpa);
+	print(" attrs ");
 	attrs = rp->attrs;
 	if (attrs) {
 		if (attrs & Cached)
-			iprint("C");
+			print("C");
 		if (attrs & Buffered)
-			iprint("B");
+			print("B");
 		if (attrs & L1sharable)
-			iprint("S1");
+			print("S1");
 		if (attrs & L1wralloc)
-			iprint("A1");
+			print("A1");
 	} else
-		iprint("\"\"");
-	iprint(" %s\n", typename(rp->type));
+		print("\"\"");
+	print(" %s\n", typename(rp->type));
 	delay(100);
 	rp->endva = 0;
 }
@@ -113,15 +130,15 @@ mmudump(PTE *l1)
 	Range rng;
 
 	/* dump first level of ptes */
-	iprint("cpu%d l1 pt @ %#p:\n", m->machno, PADDR(l1));
+	print("cpu%d l1 pt @ %#p:\n", m->machno, PADDR(l1));
 	memset(&rng, 0, sizeof rng);
-	for (va = i = 0; i < 4096; i++, va += MB) {
+	for (va = i = 0; i < 4096; i++, va += Sectionsz) {
 		pte = l1[i];
 		type = pte & (Section|Coarse);
 		if (type == Section)
-			pa = pte & ~(MB - 1);
+			pa = pte & ~(Sectionsz - 1);
 		else
-			pa = pte & ~(KiB - 1);
+			pa = pte & ~(KB - 1);
 		attrs = 0;
 		if (!ISHOLE(type) && type == Section)
 			attrs = pte & L1ptedramattrs;
@@ -145,147 +162,202 @@ mmudump(PTE *l1)
 				rng.type = type;
 				rng.attrs = attrs;
 			}
-			rng.endva = va + MB;	/* continue the open range */
-			rng.endpa = pa + MB;
+			rng.endva = va + Sectionsz; /* continue the open range */
+			rng.endpa = pa + Sectionsz;
 		}
 		if (type == Coarse)
 			l2dump(&rng, pte);
 	}
 	if (rng.endva != 0)			/* close any open range */
 		prl1range(&rng);
-	iprint("\n");
+	print("\n");
 }
 
 /*
- * map `mbs' megabytes from virt to phys, uncached.
+ * set ptes with all the errata covered.
+ * va corresponds to pte, val will be stored in it.
+ * n is the number of ptes to fill and incr the increment for va.
+ *
+ * we are likely updating the live L1 page table, so keep the PTE
+ * invalidation close to the PTE update, and don't let interrupts in between.
+ */
+static void
+setptes(PTE *pte, uintptr va, ulong val, int n, int incr)
+{
+	int s;
+
+	s = splhi();
+	va = PPN(va);	/* revisit if we use more than 1K of an l2 page */
+	while (n-- > 0) {
+		if (Erratum782773)
+			cachedwbinvse(pte, sizeof *pte);
+		*pte++ = val;
+		mmuinvalidateaddr(va);	/* clear out the current tlb entry */
+		va += incr;
+	}
+	splx(s);
+}
+
+static void
+setpte(PTE *pte, uintptr va, ulong val)
+{
+	int s;
+
+	s = splhi();
+	if (Erratum782773)
+		cachedwbinvse(pte, sizeof *pte);
+	*pte = val;
+	mmuinvalidateaddr(PPN(va));
+	splx(s);
+}
+
+void
+mmul1copy(void *dest, void *src)
+{
+	int s;
+
+	s = splhi();
+	if (Erratum782773)
+		cachedwbinvse(dest, L1SIZE);
+	memmove(dest, src, L1SIZE);
+	splx(s);
+}
+
+/*
+ * fill contiguous L1 PTEs with MMU off.
+ */
+static void
+fillptes(PTE *start, PTE *end, ulong val, ulong pa)
+{
+	PTE *pte;
+
+	for (pte = start; pte < end; pte++) {
+		*pte = val | pa;
+		pa += Sectionsz;
+	}
+}
+
+/*
+ * map `mbs' megabytes (sections) from virt to phys, uncached & unprefetchable.
  * device registers are sharable, except the private memory region:
  * 2 4K pages, at 0x50040000 on the tegra2.
  */
-void
-mmumap(uintptr virt, uintptr phys, int mbs)
+static void
+mmuiomap(PTE *l1, uintptr virt, uintptr phys, int mbs)
 {
 	uint off;
-	PTE *l1;
 
-	phys &= ~(MB-1);
-	virt &= ~(MB-1);
-	l1 = KADDR(ttbget());
-	for (off = 0; mbs-- > 0; off += MB)
-		l1[L1X(virt + off)] = (phys + off) | Dom0 | L1AP(Krw) |
-			Section | L1sharable;
-	allcache->wbse(l1, L1SIZE);
+	phys &= ~(Sectionsz-1);
+	virt &= ~(Sectionsz-1);
+	for (off = 0; mbs-- > 0; off += Sectionsz)
+		setpte(&l1[L1X(virt + off)], virt + off,
+			(phys + off) | Dom0 | L1AP(Krw) | Section |
+			L1sharable | Noexecsect);
 	mmuinvalidate();
 }
 
 /* identity map `mbs' megabytes from phys */
 void
-mmuidmap(uintptr phys, int mbs)
+mmuidmap(PTE *l1, uintptr phys, int mbs)
 {
-	mmumap(phys, phys, mbs);
+	mmuiomap(l1, phys, phys, mbs);
 }
 
-PTE *
+/* crude allocation of l2 pages.  only used during mmu initialization. */
+static PTE *
 newl2page(void)
 {
 	PTE *p;
 
 	if ((uintptr)l2pages >= HVECTORS - BY2PG)
-		panic("l2pages");
+		panic("newl2page");
 	p = (PTE *)l2pages;
 	l2pages += BY2PG;
 	return p;
 }
 
+/* adjust mmul1lo and mmul1hi to include (new) pte mmul1[x] */
+static void
+mmul1adj(uint x)
+{
+	if(x+1 - m->mmul1lo < m->mmul1hi - x)
+		m->mmul1lo = x+1;	/* add to text+data ptes */
+	else
+		m->mmul1hi = x;		/* add to stack ptes */
+}
+
 /*
  * replace an L1 section pte with an L2 page table and an L1 coarse pte,
  * with the same attributes as the original pte and covering the same
- * region of memory.
+ * region of memory.  beware that we may be changing ptes that cover
+ * the code or data that we are using while executing this.
  */
 static void
 expand(uintptr va)
 {
-	int x;
+	int x, s;
 	uintptr tva, pa;
 	PTE oldpte;
 	PTE *l1, *l2;
 
-	va &= ~(MB-1);
+	va &= ~(Sectionsz-1);
 	x = L1X(va);
-	l1 = &m->mmul1[x];
+	l1 = &m->mmul1[x];		/* l1 pte to replace */
 	oldpte = *l1;
 	if (oldpte == Fault || (oldpte & (Coarse|Section)) != Section)
 		return;			/* make idempotent */
 
 	/* wasteful - l2 pages only have 256 entries - fix */
-	/*
-	 * it may be very early, before any memory allocators are
-	 * configured, so do a crude allocation from the top of memory.
-	 */
-	l2 = newl2page();
-	memset(l2, 0, BY2PG);
 
-	/* write new L1 l2 entry back into L1 descriptors */
-	*l1 = PPN(PADDR(l2))|Dom0|Coarse;
-
-	/* fill l2 page with l2 ptes with equiv attrs; copy AP bits */
+	/* fill new l2 page with l2 ptes with equiv of L1 attrs; copy AP bits */
 	x = Small | oldpte & (Cached|Buffered) | (oldpte & (1<<15 | 3<<10)) >> 6;
 	if (oldpte & L1sharable)
 		x |= L2sharable;
 	if (oldpte & L1wralloc)
 		x |= L2wralloc;
-	pa = oldpte & ~(MiB - 1);
-	for(tva = va; tva < va + MiB; tva += BY2PG, pa += BY2PG)
-		l2[L2X(tva)] = PPN(pa) | x;
+	if (oldpte & Noexecsect)
+		x |= Noexecsmall;
+	pa = oldpte & ~(Sectionsz - 1);
+	/*
+	 * it may be very early, before any memory allocators are
+	 * configured, so do a crude allocation from the top of memory.
+	 */
+	l2 = newl2page();
+	s = splhi();
+	for(tva = va; tva < va + Sectionsz; tva += BY2PG, pa += BY2PG)
+		setpte(&l2[L2X(tva)], tva, PPN(pa) | x);
 
-	/* force l2 page to memory */
-	allcache->wbse(l2, BY2PG);
+	/* write new l1 entry, for l2 page, back into l1 descriptors */
+	setpte(l1, va, PPN(PADDR(l2))|Dom0|Coarse);
+	splx(s);
 
-	/* clear out the current entry */
-	mmuinvalidateaddr(PPN(va));
-
-	allcache->wbinvse(l1, sizeof *l1);
 	if ((*l1 & (Coarse|Section)) != Coarse)
-		panic("explode %#p", va);
+		panic("expand %#p", va);
 }
 
-/*
- * cpu0's l1 page table has likely changed since we copied it in
- * launchinit, notably to allocate uncached sections for ucalloc.
- * so copy it again from cpu0's.
- */
 void
-mmuninit(void)
+mmusetnewl1(Mach *mm, PTE *l1)
 {
 	int s;
-	PTE *l1, *newl1;
 
 	s = splhi();
-	l1 = m->mmul1;
-	newl1 = mallocalign(L1SIZE, L1SIZE, 0, 0);
-	assert(newl1);
-
-	allcache->wbinvse((PTE *)L1, L1SIZE);	/* get cpu0's up-to-date copy */
-	memmove(newl1, (PTE *)L1, L1SIZE);
-	allcache->wbse(newl1, L1SIZE);
-
-	mmuinvalidate();
-	coherence();
-
-	ttbput(PADDR(newl1));		/* switch */
-	coherence();
-	mmuinvalidate();
-	coherence();
-	m->mmul1 = newl1;
-	coherence();
-
-	mmul1empty();
-	coherence();
-	mmuinvalidate();
-	coherence();
-
-//	mmudump(m->mmul1);		/* DEBUG */
+	mm->mmul1 = l1;
+	mm->mmul1lo = L1lo+1;	/* first pte after text+data */
+	mm->mmul1hi = L1hi-1;	/* lowest stack pte */
 	splx(s);
-	free(l1);
+}
+
+/* brute force: zero all the user-space ptes */
+void
+mmuzerouser(void)
+{
+	int s;
+
+	s = splhi();
+	setptes(&m->mmul1[L1lo], L1lo*Sectionsz, Fault, L1hi - L1lo, Sectionsz);
+	m->mmul1lo = L1lo+1;
+	m->mmul1hi = L1hi-1;
+	splx(s);
 }
 
 /* l1 is base of my l1 descriptor table */
@@ -301,83 +373,210 @@ l2pteaddr(PTE *l1, uintptr va)
 	if ((pte & (Coarse|Section)) != Coarse)
 		panic("l2pteaddr l1 pte %#8.8ux @ %#p not Coarse",
 			pte, &l1[L1X(va)]);
-	l2pa = pte & ~(KiB - 1);
+	l2pa = pte & ~(KB - 1);
 	l2 = (PTE *)KADDR(l2pa);
+	if (Erratum782773)
+		cachedwbinvse(&l2[L2X(va)], sizeof(PTE));
 	return &l2[L2X(va)];
 }
 
+/*
+ * set up common L2 mappings, allocate more L2 page tables as needed.
+ */
 void
-mmuinit(void)
+mmuaddl2maps(void)
 {
+	int s;
 	ulong va;
-	uintptr pa;
 	PTE *l1, *l2;
 
-	if (m->machno != 0) {
-		mmuninit();
-		return;
-	}
+	l1 = m->mmul1;
 
-	pa = ttbget();
-	l1 = KADDR(pa);
-
-	/* identity map most of the io space */
-	mmuidmap(PHYSIO, (PHYSIOEND - PHYSIO + MB - 1) / MB);
-	/* move the rest to more convenient addresses */
-	mmumap(VIRTNOR, PHYSNOR, 256);	/* 0x40000000 v -> 0xd0000000 p */
-	mmumap(VIRTAHB, PHYSAHB, 256);	/* 0xb0000000 v -> 0xc0000000 p */
-
-	/* map high vectors to start of dram, but only 4K, not 1MB */
-	pa -= MACHSIZE+BY2PG;		/* page tables must be page aligned */
-	l2 = KADDR(pa);
-	memset(l2, 0, 1024);
-
-	m->mmul1 = l1;		/* used by explode in l2pteaddr */
-
-	/* map private mem region (8K at soc.scu) without sharable bits */
+	s = splhi();
+#ifdef PREFETCH_HW_NOT_BROKEN
+	/*
+	 * make all cpus' l1 page tables no-execute to prevent wild and crazy
+	 * speculative accesses; the page tables are contiguous.
+	 * HOWEVER, the hardware hates this and generates read access faults
+	 * when copying L1 page tables later.
+	 */
+	cachedwbinv();
+	for(va = L1CPU0; va < L1CPU0 + MAXMACH*L1SIZE; va += BY2PG)
+		*l2pteaddr(l1, va) |= Noexecsmall;
+#endif
+	/*
+	 * scu was initially covered by PHYSIO identity map.
+	 * map private mem region (8K at soc.scu) without sharable bits.
+	 * this includes timers and the interrupt controller parts.
+	 */
 	va = soc.scu;
 	*l2pteaddr(l1, va) &= ~L2sharable;
-	va += BY2PG;
-	*l2pteaddr(l1, va) &= ~L2sharable;
+	*l2pteaddr(l1, va + BY2PG) &= ~L2sharable;
 
 	/*
+	 * map high vectors to start of dram, but only 4K at HVECTORS, not 1MB.
+	 *
 	 * below (and above!) the vectors in virtual space may be dram.
 	 * populate the rest of l2 for the last MB.
 	 */
-	for (va = -MiB; va != 0; va += BY2PG)
-		l2[L2X(va)] = PADDR(va) | L2AP(Krw) | Small | L2ptedramattrs;
+	l2 = newl2page();
+	for (va = -Sectionsz; va != 0; va += BY2PG)
+		setpte(&l2[L2X(va)], va, PADDR(va) | L2AP(Krw) | Small |
+			L2ptedramattrs);
 	/* map high vectors page to 0; must match attributes of KZERO->0 map */
-	l2[L2X(HVECTORS)] = PHYSDRAM | L2AP(Krw) | Small | L2ptedramattrs;
-	coherence();
-	l1[L1X(HVECTORS)] = pa | Dom0 | Coarse;	/* l1 -> ttb-machsize-4k */
+	setpte(&l2[L2X(HVECTORS)], HVECTORS, PHYSDRAM | L2AP(Krw) | Small |
+		L2ptedramattrs);
+	setpte(&l1[L1X(HVECTORS)], HVECTORS, PADDR(l2) | Dom0 | Coarse);
 
-	/* make kernel text unwritable */
+	/* make kernel text unwritable; these l2 page tables will be shared */
+	cachedwb();		/* flush any modified kernel text pages */
 	for(va = KTZERO; va < (ulong)etext; va += BY2PG)
 		*l2pteaddr(l1, va) |= L2apro;
+	splx(s);
+}
 
-	allcache->wbinv();
+/*
+ * set up initial page tables for cpu0 before enabling mmu,
+ * this in the zero segment.
+ */
+void
+mmuinit0(void)
+{
+	int s;
+	PTE *l1;
+
+	l1 = (PTE *)DRAMADDR(L1CPU0);
+	s = splhi();
+	/*
+	 * set up double map of PHYSDRAM, KZERO to PHYSDRAM for first few MBs,
+	 * but only if KZERO and PHYSDRAM differ.  map v 0 -> p 0.
+	 */
+	if (PHYSDRAM != KZERO)
+		fillptes(&l1[L1X(PHYSDRAM)],
+			&l1[L1X(PHYSDRAM + DOUBLEMAPMBS*Sectionsz)],
+			PTEDRAM, PHYSDRAM);
+	/*
+	 * fill in PTEs for memory at KZERO (v KZERO -> p 0).
+	 * trimslice has 1 bank of 1GB at PHYSDRAM.
+	 * Map the maximum.
+	 */
+	fillptes(&l1[L1X(KZERO)], &l1[L1X(KZERO + MAXMB*Sectionsz)], PTEDRAM,
+		PHYSDRAM);
+
+	/* identity-mapping PTEs for MMIO */
+	fillptes(&l1[L1X(VIRTIO)], &l1[L1X(PHYSIOEND)], PTEIO, PHYSIO);
+
+	mmuinvalidate();
+	splx(s);
+}
+
+/*
+ * redo double map of PHYSDRAM, KZERO in this cpu's ptes:
+ * map v 0 -> p 0 so we can run after enabling mmu.
+ * thus we are in the zero segment.
+ * mmuinit will undo this double mapping later.
+ */
+void
+mmudoublemap(void)
+{
+	PTE *l1;
+
+	/* launchinit set m->mmul1 to a copy of cpu0's l1 page table */
+	assert(m);
+	assert(m->mmul1);
+	l1 = (PTE *)DRAMADDR(m->mmul1);
+	if (PHYSDRAM != KZERO)
+		fillptes(&l1[L1X(PHYSDRAM)],
+			 &l1[L1X(PHYSDRAM + DOUBLEMAPMBS*Sectionsz)],
+			 PTEDRAM, PHYSDRAM);
+}
+
+void
+mmuon(uintptr ttb)
+{
+	dacput(Client);		/* set the domain access control */
+	pidput(0);
+	ttbput(ttb);		/* set the translation table base */
+	cacheuwbinv();
+	mmuinvalidate();
+	mmuenable();		/* into the virtual map */
+}
+
+/*
+ * upon entry, the mmu is enabled and we have minimal page tables set up,
+ * so we are updating the page tables in place.
+ */
+void
+mmuinit(void)
+{
+	int s;
+	PTE *l1;
+
+	if (m->machno == 0)
+		l1 = (PTE *)L1CPU0;
+	else
+		/* start with our existing minimal l1 table from launchinit */
+		l1 = m->mmul1;
+
+	s = splhi();
+	if (m->machno != 0) {
+		/*
+		 * cpu0's l1 page table has likely changed since we copied it in
+		 * launchinit, notably to allocate uncached sections for ucalloc
+		 * used by ether, for example (ick), so copy it again to share
+		 * its kernel mappings.
+		 *
+		 * NB: copying cpu0's l1 page table means that we share
+		 * its l2 page tables(!).
+		 */
+		mmul1copy(l1, (char *)L1CPU0);
+		mmuinvalidate();
+	}
+	/* m->mmul1 is used by expand in l2pteaddr */
+	mmusetnewl1(m, l1);
+	mmuzerouser();				/* no user proc yet */
+	if (m->machno == 0) {
+		/* identity map most of the io space in L1 table */
+		mmuidmap(l1, PHYSIO, (PHYSIOEND - PHYSIO + Sectionsz - 1) /
+			Sectionsz);
+
+		/* move the rest to more convenient addresses */
+		/* 0x40000000 v -> 0xd0000000 p */
+		mmuiomap(l1, VIRTNOR, PHYSNOR, 256);
+		/* 0xb0000000 v -> 0xc0000000 p */
+		mmuiomap(l1, VIRTAHB, PHYSAHB, 256);
+
+		/* map cpu0 high vec.s to start of dram, but only 4K, not 1MB */
+		l2pages = KADDR(L2POOLBASE);
+		mmuaddl2maps();
+		hivecs();
+	}
+
+	cachedwbinv();
 	mmuinvalidate();
 
-	m->mmul1 = l1;
-	coherence();
-	mmul1empty();
-	coherence();
+	/* now that caches are on, include cacheability and shareability */
+	ttbput(PADDR(l1) | TTBlow);
 //	mmudump(l1);			/* DEBUG */
+	splx(s);
 }
 
 static void
 mmul2empty(Proc* proc, int clear)
 {
+	int s;
 	PTE *l1;
 	Page **l2, *page;
 
 	l1 = m->mmul1;
 	l2 = &proc->mmul2;
 	for(page = *l2; page != nil; page = page->next){
+		s = splhi();
+		setpte(&l1[page->daddr], page->daddr * Sectionsz, Fault);
 		if(clear)
-			memset(UINT2PTR(page->va), 0, BY2PG);
-		l1[page->daddr] = Fault;
-		allcache->wbse(l1, sizeof *l1);
+			setptes(UINT2PTR(page->va), page->daddr * Sectionsz,
+				Fault, L2used / sizeof *l1, BY2PG);
+		splx(s);
 		l2 = &page->next;
 	}
 	*l2 = proc->mmul2cache;
@@ -385,39 +584,35 @@ mmul2empty(Proc* proc, int clear)
 	proc->mmul2 = nil;
 }
 
+/*
+ * clean out any user mappings still in l1 page table.
+ */
 static void
 mmul1empty(void)
 {
-#ifdef notdef
-/* there's a bug in here */
-	PTE *l1;
+	int s;
 
-	/* clean out any user mappings still in l1 */
-	if(m->mmul1lo > L1lo){
-		if(m->mmul1lo == 1)
-			m->mmul1[L1lo] = Fault;
-		else
-			memset(&m->mmul1[L1lo], 0, m->mmul1lo*sizeof(PTE));
+	s = splhi();
+	if(m->mmul1lo > L1lo) {			/* text+data ptes? */
+		setptes(&m->mmul1[L1lo], L1lo * Sectionsz, Fault, m->mmul1lo,
+			Sectionsz);
 		m->mmul1lo = L1lo;
 	}
-	if(m->mmul1hi < L1hi){
-		l1 = &m->mmul1[m->mmul1hi];
-		if((L1hi - m->mmul1hi) == 1)
-			*l1 = Fault;
-		else
-			memset(l1, 0, (L1hi - m->mmul1hi)*sizeof(PTE));
-		m->mmul1hi = L1hi;
+	if(m->mmul1hi < L1hi){			/* stack ptes? */
+		setptes(&m->mmul1[m->mmul1hi], m->mmul1hi * Sectionsz, Fault,
+			L1hi - m->mmul1hi, Sectionsz);
+		m->mmul1hi = L1hi - 1;
 	}
-#else
-	memset(&m->mmul1[L1lo], 0, (L1hi - L1lo)*sizeof(PTE));
-#endif /* notdef */
-	allcache->wbse(&m->mmul1[L1lo], (L1hi - L1lo)*sizeof(PTE));
+	splx(s);
 }
 
+/*
+ * switch page tables and tlbs on this cpu to a new process, `proc'.
+ */
 void
 mmuswitch(Proc* proc)
 {
-	int x;
+	int x, s;
 	PTE *l1;
 	Page *page;
 
@@ -426,8 +621,8 @@ mmuswitch(Proc* proc)
 		return;
 	m->mmupid = proc->pid;
 
-	/* write back dirty and invalidate caches */
-	l1cache->wbinv();
+	/* write back dirty and invalidate caches with old map */
+	cachedwbinv();  /* a big club, but we are changing user mapping */
 
 	if(proc->newtlb){
 		mmul2empty(proc, 1);
@@ -436,21 +631,17 @@ mmuswitch(Proc* proc)
 
 	mmul1empty();
 
-	/* move in new map */
+	/* move in new map, generated from proc->mmul2 */
 	l1 = m->mmul1;
 	for(page = proc->mmul2; page != nil; page = page->next){
 		x = page->daddr;
-		l1[x] = PPN(page->pa)|Dom0|Coarse;
-		/* know here that L1lo < x < L1hi */
-		if(x+1 - m->mmul1lo < m->mmul1hi - x)
-			m->mmul1lo = x+1;
-		else
-			m->mmul1hi = x;
-	}
+		s = splhi();
+		setpte(&l1[x], page->va, PPN(page->pa)|Dom0|Coarse);
 
-	/* make sure map is in memory */
-	/* could be smarter about how much? */
-	allcache->wbse(&l1[L1X(UZERO)], (L1hi - L1lo)*sizeof(PTE));
+		/* know here that L1lo < x < L1hi */
+		mmul1adj(x);
+		splx(s);
+	}
 
 	/* lose any possible stale tlb entries */
 	mmuinvalidate();
@@ -477,8 +668,8 @@ mmurelease(Proc* proc)
 {
 	Page *page, *next;
 
-	/* write back dirty and invalidate caches */
-	l1cache->wbinv();
+	/* write back dirty and invalidate caches with old map */
+	cachedwbinv();  /* a big club, but we are changing user mapping */
 
 	mmul2empty(proc, 0);
 	for(page = proc->mmul2cache; page != nil; page = next){
@@ -493,10 +684,6 @@ mmurelease(Proc* proc)
 
 	mmul1empty();
 
-	/* make sure map is in memory */
-	/* could be smarter about how much? */
-	allcache->wbse(&m->mmul1[L1X(UZERO)], (L1hi - L1lo)*sizeof(PTE));
-
 	/* lose any possible stale tlb entries */
 	mmuinvalidate();
 }
@@ -504,19 +691,20 @@ mmurelease(Proc* proc)
 void
 putmmu(uintptr va, uintptr pa, Page* page)
 {
-	int x;
+	int x, s;
 	Page *pg;
 	PTE *l1, *pte;
 
 	x = L1X(va);
 	l1 = &m->mmul1[x];
 	if (Debug) {
-		iprint("putmmu(%#p, %#p, %#p) ", va, pa, page->pa);
-		iprint("mmul1 %#p l1 %#p *l1 %#ux x %d pid %ld\n",
+		print("putmmu(%#p, %#p, %#p) ", va, pa, page->pa);
+		print("mmul1 %#p l1 %#p *l1 %#ux x %d pid %ld\n",
 			m->mmul1, l1, *l1, x, up->pid);
 		if (*l1)
 			panic("putmmu: old l1 pte non-zero; stuck?");
 	}
+	s = splhi();
 	if(*l1 == Fault){
 		/* wasteful - l2 pages only have 256 entries - fix */
 		if(up->mmul2cache == nil){
@@ -527,31 +715,25 @@ putmmu(uintptr va, uintptr pa, Page* page)
 		else{
 			pg = up->mmul2cache;
 			up->mmul2cache = pg->next;
-			memset(UINT2PTR(pg->va), 0, BY2PG);
 		}
+		setptes(UINT2PTR(pg->va), x * Sectionsz, Fault,
+			L2used/sizeof *l1, BY2PG);
+
 		pg->daddr = x;
 		pg->next = up->mmul2;
 		up->mmul2 = pg;
 
-		/* force l2 page to memory */
-		allcache->wbse((void *)pg->va, BY2PG);
-
-		*l1 = PPN(pg->pa)|Dom0|Coarse;
-		allcache->wbse(l1, sizeof *l1);
-
+		setpte(l1, va, PPN(pg->pa)|Dom0|Coarse);
 		if (Debug)
-			iprint("l1 %#p *l1 %#ux x %d pid %ld\n", l1, *l1, x, up->pid);
+			print("l1 %#p *l1 %#ux x %d pid %ld\n",
+				l1, *l1, x, up->pid);
 
-		if(x >= m->mmul1lo && x < m->mmul1hi){
-			if(x+1 - m->mmul1lo < m->mmul1hi - x)
-				m->mmul1lo = x+1;
-			else
-				m->mmul1hi = x;
-		}
+		if(x >= m->mmul1lo && x < m->mmul1hi)
+			mmul1adj(x);
 	}
 	pte = UINT2PTR(KADDR(PPN(*l1)));
 	if (Debug) {
-		iprint("pte %#p index %ld was %#ux\n", pte, L2X(va), *(pte+L2X(va)));
+		print("pte %#p index %ld was %#ux\n", pte, L2X(va), *(pte+L2X(va)));
 		if (*(pte+L2X(va)))
 			panic("putmmu: old l2 pte non-zero; stuck?");
 	}
@@ -568,11 +750,7 @@ putmmu(uintptr va, uintptr pa, Page* page)
 		x |= L2AP(Urw);
 	else
 		x |= L2AP(Uro);
-	pte[L2X(va)] = PPN(pa)|x;
-	allcache->wbse(&pte[L2X(va)], sizeof pte[0]);
-
-	/* clear out the current entry */
-	mmuinvalidateaddr(PPN(va));
+	setpte(&pte[L2X(va)], va, PPN(pa)|x);
 
 	/*  write back dirty entries - we need this because the pio() in
 	 *  fault.c is writing via a different virt addr and won't clean
@@ -580,86 +758,67 @@ putmmu(uintptr va, uintptr pa, Page* page)
 	 *  on this mmu because the virtual cache is set associative
 	 *  rather than direct mapped.
 	 */
-	l1cache->wb();
+	cachedwbinv();
 
 	if(page->cachectl[0] == PG_TXTFLUSH){
 		/* pio() sets PG_TXTFLUSH whenever a text pg has been written */
 		cacheiinv();
 		page->cachectl[0] = PG_NOFLUSH;
 	}
+	splx(s);
 	if (Debug)
-		iprint("putmmu %#p %#p %#p\n", va, pa, PPN(pa)|x);
+		print("putmmu %#p %#p %#p\n", va, pa, PPN(pa)|x);
+}
+
+static int
+isoksections(char *func, uintptr va, uintptr pa, usize size)
+{
+	if (va & (Sectionsz-1)) {
+		print("%s: va %#p not a multiple of 1MB\n", func, va);
+		return 0;
+	}
+	if (pa & (Sectionsz-1)) {
+		print("%s: pa %#p not a multiple of 1MB\n", func, pa);
+		return 0;
+	}
+	if (size != Sectionsz) {
+		print("%s: size %lud != 1MB\n", func, size);
+		return 0;
+	}
+	return 1;
 }
 
 void*
 mmuuncache(void* v, usize size)
 {
-	int x;
+	int x, s;
 	PTE *pte;
 	uintptr va;
 
 	/*
 	 * Simple helper for ucalloc().
-	 * Uncache a Section, must already be
-	 * valid in the MMU.
+	 * Uncache a Section, must already be valid in the MMU.
 	 */
 	va = PTR2UINT(v);
-	assert(!(va & (1*MiB-1)) && size == 1*MiB);
+	if (!isoksections("mmuuncache", va, 0, size))
+		return nil;
 
 	x = L1X(va);
 	pte = &m->mmul1[x];
-	if((*pte & (Section|Coarse)) != Section)
+	if((*pte & (Section|Coarse)) != Section) {
+		print("mmuuncache: v %#p not a Section\n", va);
 		return nil;
+	}
+
+	s = splhi();
+	if (Erratum782773)
+		cachedwbinvse(pte, sizeof *pte);
 	*pte &= ~L1ptedramattrs;
 	*pte |= L1sharable;
 	mmuinvalidateaddr(va);
-	allcache->wbse(pte, 4);
+	splx(s);
 
 	return v;
-}
-
-uintptr
-mmukmap(uintptr va, uintptr pa, usize size)
-{
-	int x;
-	PTE *pte;
-
-	/*
-	 * Stub.
-	 */
-	assert(!(va & (1*MiB-1)) && !(pa & (1*MiB-1)) && size == 1*MiB);
-
-	x = L1X(va);
-	pte = &m->mmul1[x];
-	if(*pte != Fault)
-		return 0;
-	*pte = pa|Dom0|L1AP(Krw)|Section;
-	mmuinvalidateaddr(va);
-	allcache->wbse(pte, 4);
-
-	return va;
-}
-
-uintptr
-mmukunmap(uintptr va, uintptr pa, usize size)
-{
-	int x;
-	PTE *pte;
-
-	/*
-	 * Stub.
-	 */
-	assert(!(va & (1*MiB-1)) && !(pa & (1*MiB-1)) && size == 1*MiB);
-
-	x = L1X(va);
-	pte = &m->mmul1[x];
-	if(*pte != (pa|Dom0|L1AP(Krw)|Section))
-		return 0;
-	*pte = Fault;
-	mmuinvalidateaddr(va);
-	allcache->wbse(pte, 4);
-
-	return va;
 }
 
 /*
@@ -674,47 +833,20 @@ cankaddr(uintptr pa)
 	return 0;
 }
 
-/* from 386 */
+/*
+ * although needed by the pc port, this mapping can be trivial on our arm
+ * systems, which have less memory.
+ */
 void*
-vmap(uintptr pa, usize size)
+vmap(uintptr pa, usize)
 {
-	uintptr pae, va;
-	usize o, osize;
-
-	/*
-	 * XXX - replace with new vm stuff.
-	 * Crock after crock - the first 4MB is mapped with 2MB pages
-	 * so catch that and return good values because the current mmukmap
-	 * will fail.
-	 */
-	if(pa+size < 4*MiB)
-		return UINT2PTR(kseg0|pa);
-
-	osize = size;
-	o = pa & (BY2PG-1);
-	pa -= o;
-	size += o;
-	size = ROUNDUP(size, BY2PG);
-
-	va = kseg0|pa;
-	pae = mmukmap(va, pa, size);
-	if(pae == 0 || pae-size != pa)
-		panic("vmap(%#p, %ld) called from %#p: mmukmap fails %#p",
-			pa+o, osize, getcallerpc(&pa), pae);
-
-	return UINT2PTR(va+o);
+	return UINT2PTR(KZERO|pa);
 }
 
-/* from 386 */
 void
 vunmap(void* v, usize size)
 {
 	/*
-	 * XXX - replace with new vm stuff.
-	 * Can't do this until do real vmap for all space that
-	 * might be used, e.g. stuff below 1MB which is currently
-	 * mapped automagically at boot but that isn't used (or
-	 * at least shouldn't be used) by the kernel.
 	upafree(PADDR(v), size);
 	 */
 	USED(v, size);
@@ -722,29 +854,23 @@ vunmap(void* v, usize size)
 
 /*
  * Notes.
- * Everything is in domain 0;
- * domain 0 access bits in the DAC register are set
- * to Client, which means access is controlled by the
- * permission values set in the PTE.
+ * Everything is in domain 0; domain 0 access bits in the DAC register
+ * are set to Client, which means access is controlled by the permission
+ * values set in the PTE.
  *
- * L1 access control for the kernel is set to 1 (RW,
- * no user mode access);
- * L2 access control for the kernel is set to 1 (ditto)
- * for all 4 AP sets;
+ * L1 access control for the kernel is set to 1 (RW, no user mode access);
+ * L2 access control for the kernel is set to 1 (ditto) for all 4 AP sets;
  * L1 user mode access is never set;
  * L2 access control for user mode is set to either
- * 2 (RO) or 3 (RW) depending on whether text or data,
- * for all 4 AP sets.
- * (To get kernel RO set AP to 0 and S bit in control
- * register c1).
- * Coarse L1 page-tables are used. They have 256 entries
- * and so consume 1024 bytes per table.
- * Small L2 page-tables are used. They have 1024 entries
- * and so consume 4096 bytes per table.
+ * 2 (RO) or 3 (RW) depending on whether text or data, for all 4 AP sets.
+ * (To get kernel RO set AP to 0 and S bit in control register c1).
+ * Coarse L1 page-tables are used.
+ * They have 256 entries and so consume 1024 bytes per table.
+ * Small L2 page-tables are used.
+ * They have 1024 entries and so consume 4096 bytes per table.
  *
- * 4KiB. That's the size of 1) a page, 2) the
- * size allocated for an L2 page-table page (note only 1KiB
- * is needed per L2 page - to be dealt with later) and
- * 3) the size of the area in L1 needed to hold the PTEs
- * to map 1GiB of user space (0 -> 0x3fffffff, 1024 entries).
+ * 4KB.  That's the size of (1) a page, (2) the size allocated for an L2
+ * page-table page (note only 1KB is needed per L2 page - to be dealt
+ * with later) and (3) the size of the area in L1 needed to hold the PTEs
+ * to map 1GB of user space (0 -> 0x3fffffff, 1024 entries).
  */

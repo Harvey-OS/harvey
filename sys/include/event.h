@@ -14,7 +14,8 @@ enum
 enum
 {
 	MAXSLAVE = 32,
-	EMAXMSG = 128+16*1024,	/* size of 9p header+data */
+	/* TODO: there's an implicit dependency here on MAXRPC in devmnt.c */
+	EMAXMSG = 128+8192,	/* size of 9p header+data */
 };
 
 struct	Mouse

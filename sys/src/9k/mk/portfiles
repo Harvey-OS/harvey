@@ -1,0 +1,53 @@
+port
+	alarm
+	allocb
+	awaitbit
+	byteserial
+	chan
+	ctype
+	dev
+	devtab
+	edf
+	fault
+	image
+	latin1
+	logpow
+	page
+	parse
+	pgrp
+	portclock
+	print
+	proc
+	ps
+	qio
+	qlock
+	qmalloc
+	random
+	rebootcmd
+	segment
+	sysauth
+	syscall
+	syscallfmt
+	sysfile
+	sysproc
+	sysseg
+	systab
+	taslock
+	tod
+	watermarks
+
+#
+# controls which directories to look in for source files; must be relative to ..
+#dir
+# pc		-.I.
+#
+#dir
+#	386
+#	ip
+#	port
+
+#lib
+#	libip
+#	libsec
+#	libmp
+#	libc

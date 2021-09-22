@@ -64,7 +64,7 @@ threadmain(int argc, char *argv[])
 {
 	int i;
 	Index *ix;
-	u32int bcmem;
+	uintptr bcmem;
 
 	bcmem = 0;
 	ARGBEGIN{

@@ -1,0 +1,93 @@
+vm 14
+pI 40.7717,111.9614	# ibnt
+pO 41.224139,112.097472	# ogd vor
+pH d pO,m120,8		# hill afb
+pS 40.786833,111.968000	# slc
+pG 41.196056,112.011306	# ogd
+
+pA d pI, m(165-90),3
+pB d pI, m(165-90),10
+pC d pI, m(165+90),1.5
+pD d pI, m(165+90),8
+
+pa xcln pI,13, pA,m165
+pb xcls pI,11, pA,m165
+pc d pI,m165,11
+pd d pI,m165,7
+pe d pd,m(165+90),4
+pf d pI,m(165+90),8
+pg d pI,m(165+90),13
+
+ph xcls pH,t5, pA,m165
+pj d pB,m(165+180),22
+pi xcle pH,t5, pj,m(165-90)
+pk d pB,m165,15
+pl xll pk,m(165+90), pA,m165
+
+pm d pA,m165,19
+pn d pC,m165,19
+po d pC,m165,11
+pp d pI,m240,11
+pq d pI,m235,13
+
+pr d pD,m165,19
+ps xcls pI,11, pD,m165
+
+pt d pD,m165,23
+pu d pt,m(165-90),14.5
+
+pv xcln pS,t5, pA,m165
+pw xcls pS,t5, pA,m165
+
+p*a d pI,m230,19
+p*b d pI,m245,25
+p*c xccw pG,t5, pI,25
+p*d xcce pH,t5, pI,25
+p*e xccw pH,t5, pG,t5
+
+n slc_gnd\100
+s pa,pv
+ar pS,pv,pw
+s pw,pb
+ar pI, pb,pc
+s pc,pd
+s pd,pe
+s pe,pf
+s pf,pg
+ar pI, pg,pa
+
+n slc_60\100
+s pb,pl
+S pl,pm
+s pm,pn
+s pn,po
+ar pI,po,ps
+Ar pI,ps,pp
+S pp,pq
+ar pI,pq,pg
+
+n slc_70\100
+s pn,pr
+S pr,ps
+
+n slc_76\100
+S pq,p*a
+S p*a,p*b
+Ar pI,p*b,p*c
+al pG,p*c,p*e
+al pH,p*e,ph
+
+n slc_78\100
+Ar pI,p*c,p*d
+Ar pH,p*d,pi
+
+n slc_90\100
+S pr,pt
+S pt,pu
+S pu,pm
+
+s pa,ph
+al pH,ph,pi
+S pi,pj
+S pj,pk
+S pk,pl

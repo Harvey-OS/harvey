@@ -1,0 +1,247 @@
+echo ',s/.*# //
+,s/^[^,]*, //
+w x
+e x
+g/ usa$/s/.* //
+g/ can$/s/.* //
+g/ aus$/s/.* //
+g/ jpn$/s/.* //
+g/ nru$/s/.* //
+g/ png$/s/.* //
+g/ slb$/s/.* //
+g/ mid$/s/.* //
+g/^$/d
+w x
+Q' | ed apr
+
+sort -o x x
+uniq -c x >y
+
+ed y <<'!'
+,s/$/	XXX/
+g/sand i, umi/s//umi/
+g/cambodia, khm/s//khm/
+g/ gaza	XXX$/s/XXX/gaza/
+g/ afg	XXX$/s/XXX/afghanistan/
+g/ ago	XXX$/s/XXX/angola/
+g/ aia	XXX$/s/XXX/anguilla/
+g/ alb	XXX$/s/XXX/albania/
+g/ ant	XXX$/s/XXX/aruba/
+g/ are	XXX$/s/XXX/uae/
+g/ arg	XXX$/s/XXX/argentina/
+g/ arm	XXX$/s/XXX/armenia/
+g/ asm	XXX$/s/XXX/samoa/
+g/ atg	XXX$/s/XXX/antigua/
+g/ aus	XXX$/s/XXX/australia/
+g/ aut	XXX$/s/XXX/austria/
+g/ aze	XXX$/s/XXX/azerbaijan/
+g/ bdi	XXX$/s/XXX/burundi/
+g/ bel	XXX$/s/XXX/belgium/
+g/ ben	XXX$/s/XXX/benin/
+g/ bfa	XXX$/s/XXX/burkina faso/
+g/ bgd	XXX$/s/XXX/bangladesh/
+g/ bgr	XXX$/s/XXX/bulgaria/
+g/ bhr	XXX$/s/XXX/bahrain/
+g/ bhs	XXX$/s/XXX/bahamas/
+g/ bih	XXX$/s/XXX/bosnia-herzegovina/
+g/ blr	XXX$/s/XXX/belarus/
+g/ blz	XXX$/s/XXX/belize/
+g/ bmu	XXX$/s/XXX/bermuda/
+g/ bol	XXX$/s/XXX/bolivia/
+g/ bra	XXX$/s/XXX/brazil/
+g/ brb	XXX$/s/XXX/barbados/
+g/ brn	XXX$/s/XXX/brunei/
+g/ btn	XXX$/s/XXX/bhutan/
+g/ bwa	XXX$/s/XXX/botswana/
+g/ caf	XXX$/s/XXX/central african rep/
+g/ can	XXX$/s/XXX/canada/
+g/ che	XXX$/s/XXX/switzerland/
+g/ chl	XXX$/s/XXX/chile/
+g/ chn	XXX$/s/XXX/pr of china/
+g/ civ	XXX$/s/XXX/ivory coast/
+g/ cmr	XXX$/s/XXX/cameroon/
+g/ cod	XXX$/s/XXX/zaire/
+g/ cog	XXX$/s/XXX/congo/
+g/ cok	XXX$/s/XXX/cook is/
+g/ col	XXX$/s/XXX/colombia/
+g/ com	XXX$/s/XXX/comoros/
+g/ cpv	XXX$/s/XXX/cape verde/
+g/ cri	XXX$/s/XXX/costa rica/
+g/ cub	XXX$/s/XXX/cuba/
+g/ cym	XXX$/s/XXX/cayman is/
+g/ cyp	XXX$/s/XXX/cyprus/
+g/ cze	XXX$/s/XXX/chech*/
+g/ deu	XXX$/s/XXX/germany/
+g/ dji	XXX$/s/XXX/djibouti/
+g/ dnk	XXX$/s/XXX/denmark/
+g/ dom	XXX$/s/XXX/dom rep*/
+g/ dza	XXX$/s/XXX/algeria/
+g/ ecu	XXX$/s/XXX/ecuador/
+g/ egy	XXX$/s/XXX/egypt/
+g/ eri	XXX$/s/XXX/eritrea/
+g/ esp	XXX$/s/XXX/spain/
+g/ est	XXX$/s/XXX/estonia/
+g/ eth	XXX$/s/XXX/ethiopia/
+g/ fin	XXX$/s/XXX/finland/
+g/ fji	XXX$/s/XXX/fiji is/
+g/ fra	XXX$/s/XXX/france/
+g/ fro	XXX$/s/XXX/faroe is/
+g/ fsm	XXX$/s/XXX/palau/
+g/ gab	XXX$/s/XXX/gabon/
+g/ gbr	XXX$/s/XXX/uk*/
+g/ geo	XXX$/s/XXX/georgia/
+g/ gha	XXX$/s/XXX/ghana/
+g/ gib	XXX$/s/XXX/gibraltar/
+g/ gin	XXX$/s/XXX/guinea rep/
+g/ glp	XXX$/s/XXX/guadeloupe/
+g/ gmb	XXX$/s/XXX/gambia/
+g/ gnb	XXX$/s/XXX/guinea-bissau/
+g/ gnq	XXX$/s/XXX/equatorial guinea/
+g/ grc	XXX$/s/XXX/greece/
+g/ grd	XXX$/s/XXX/grenada/
+g/ grl	XXX$/s/XXX/greenland/
+g/ gtm	XXX$/s/XXX/guatemala/
+g/ guf	XXX$/s/XXX/french guiana/
+g/ gum	XXX$/s/XXX/guam/
+g/ guy	XXX$/s/XXX/guyana/
+g/ hkg	XXX$/s/XXX/hong kong*/
+g/ hnd	XXX$/s/XXX/honduras/
+g/ hrv	XXX$/s/XXX/croatia/
+g/ hti	XXX$/s/XXX/haiti/
+g/ hun	XXX$/s/XXX/hungary/
+g/ idn	XXX$/s/XXX/indonesia/
+g/ ind	XXX$/s/XXX/india/
+g/ iot	XXX$/s/XXX/chagos archipelago/
+g/ irl	XXX$/s/XXX/ireland/
+g/ irn	XXX$/s/XXX/iran/
+g/ irq	XXX$/s/XXX/iraq/
+g/ isl	XXX$/s/XXX/iceland/
+g/ isr	XXX$/s/XXX/israel/
+g/ ita	XXX$/s/XXX/italy/
+g/ jam	XXX$/s/XXX/jamaica/
+g/ jor	XXX$/s/XXX/jordan/
+g/ jpn	XXX$/s/XXX/japan/
+g/ kaz	XXX$/s/XXX/kazakhstan/
+g/ ken	XXX$/s/XXX/kenya/
+g/ kgz	XXX$/s/XXX/kyrgyzstan/
+g/ khm	XXX$/s/XXX/cambodia/
+g/ kir	XXX$/s/XXX/kiribati/
+g/ kna	XXX$/s/XXX/st kitts/
+g/ kor	XXX$/s/XXX/korea/
+g/ kwt	XXX$/s/XXX/kuwait/
+g/ lao	XXX$/s/XXX/laos/
+g/ lbn	XXX$/s/XXX/lebanon/
+g/ lbr	XXX$/s/XXX/liberia/
+g/ lby	XXX$/s/XXX/splaj/
+g/ lca	XXX$/s/XXX/st lucia/
+g/ lka	XXX$/s/XXX/sri lanka/
+g/ lso	XXX$/s/XXX/lesotho/
+g/ ltu	XXX$/s/XXX/lithuania/
+g/ lux	XXX$/s/XXX/luxembourg/
+g/ lva	XXX$/s/XXX/latvia/
+g/ mac	XXX$/s/XXX/macau/
+g/ mar	XXX$/s/XXX/morocco/
+g/ mda	XXX$/s/XXX/moldova/
+g/ mdg	XXX$/s/XXX/madagascar/
+g/ mdv	XXX$/s/XXX/maldives/
+g/ mex	XXX$/s/XXX/mexico/
+g/ mhl	XXX$/s/XXX/marshall is/
+g/ mid	XXX$/s/XXX/sandwich is*/
+g/ mkd	XXX$/s/XXX/macedonia*/
+g/ mli	XXX$/s/XXX/mali/
+g/ mlt	XXX$/s/XXX/malta/
+g/ mmr	XXX$/s/XXX/myanmar/
+g/ mng	XXX$/s/XXX/mongolia/
+g/ mnp	XXX$/s/XXX/n mariana is/
+g/ moz	XXX$/s/XXX/mozambique/
+g/ mrt	XXX$/s/XXX/mauritania/
+g/ mtq	XXX$/s/XXX/martinique/
+g/ mus	XXX$/s/XXX/mauritius/
+g/ mwi	XXX$/s/XXX/malawi/
+g/ mys	XXX$/s/XXX/malaysia/
+g/ myt	XXX$/s/XXX/mayotte/
+g/ nam	XXX$/s/XXX/namibia/
+g/ ncl	XXX$/s/XXX/new caledonia/
+g/ ner	XXX$/s/XXX/niger/
+g/ nga	XXX$/s/XXX/nigeria/
+g/ nic	XXX$/s/XXX/nicaragua/
+g/ niu	XXX$/s/XXX/niue is/
+g/ nld	XXX$/s/XXX/netherlands/
+g/ nor	XXX$/s/XXX/norway/
+g/ npl	XXX$/s/XXX/nepal/
+g/ nru	XXX$/s/XXX/nauru/
+g/ nzl	XXX$/s/XXX/new zealand/
+g/ omn	XXX$/s/XXX/oman/
+g/ pak	XXX$/s/XXX/pakistan/
+g/ pan	XXX$/s/XXX/panama/
+g/ per	XXX$/s/XXX/peru/
+g/ phl	XXX$/s/XXX/philippines/
+g/ png	XXX$/s/XXX/papua new guinea/
+g/ pol	XXX$/s/XXX/poland/
+g/ pri	XXX$/s/XXX/puerto rico/
+g/ prk	XXX$/s/XXX/dpr of korea/
+g/ prt	XXX$/s/XXX/portugal/
+g/ pry	XXX$/s/XXX/paraguay/
+g/ pyf	XXX$/s/XXX/tuamotu is/
+g/ qat	XXX$/s/XXX/qatar/
+g/ reu	XXX$/s/XXX/reunion/
+g/ rom	XXX$/s/XXX/romania/
+g/ rus	XXX$/s/XXX/russia/
+g/ rwa	XXX$/s/XXX/rwanda/
+g/ sau	XXX$/s/XXX/saudi arabia/
+g/ sdn	XXX$/s/XXX/sudan/
+g/ sen	XXX$/s/XXX/senegal/
+g/ sgp	XXX$/s/XXX/singapore/
+g/ shn	XXX$/s/XXX/ascension is/
+g/ slb	XXX$/s/XXX/solomon is/
+g/ sle	XXX$/s/XXX/sierra leone/
+g/ slv	XXX$/s/XXX/el salvador/
+g/ som	XXX$/s/XXX/somalia/
+g/ spm	XXX$/s/XXX/miquelon is/
+g/ stp	XXX$/s/XXX/sao tome-principe/
+g/ sur	XXX$/s/XXX/suriname/
+g/ svk	XXX$/s/XXX/slovakia/
+g/ svn	XXX$/s/XXX/slovenia/
+g/ swe	XXX$/s/XXX/sweden/
+g/ swz	XXX$/s/XXX/swaziland/
+g/ syc	XXX$/s/XXX/seychelles/
+g/ syr	XXX$/s/XXX/syria/
+g/ tca	XXX$/s/XXX/turks is/
+g/ tcd	XXX$/s/XXX/chad/
+g/ tgo	XXX$/s/XXX/togo/
+g/ tha	XXX$/s/XXX/thailand/
+g/ tjk	XXX$/s/XXX/tajikistan/
+g/ tkm	XXX$/s/XXX/turkmenistan/
+g/ ton	XXX$/s/XXX/tonga/
+g/ tto	XXX$/s/XXX/trinidad/
+g/ tun	XXX$/s/XXX/tunisia/
+g/ tur	XXX$/s/XXX/turkey/
+g/ tuv	XXX$/s/XXX/tuvalu/
+g/ twn	XXX$/s/XXX/taiwan/
+g/ tza	XXX$/s/XXX/tanzania/
+g/ uga	XXX$/s/XXX/uganda/
+g/ ukr	XXX$/s/XXX/ukraine/
+g/ umi	XXX$/s/XXX/pacific islands/
+g/ ury	XXX$/s/XXX/uruguay/
+g/ usa	XXX$/s/XXX/usa/
+g/ uzb	XXX$/s/XXX/uzbekistan/
+g/ vct	XXX$/s/XXX/st vincent/
+g/ ven	XXX$/s/XXX/venezuela/
+g/ vgb	XXX$/s/XXX/br virgin is/
+g/ vir	XXX$/s/XXX/virgin is/
+g/ vnm	XXX$/s/XXX/vietnam/
+g/ vut	XXX$/s/XXX/vanuatu/
+g/ wlf	XXX$/s/XXX/futuna is/
+g/ wsm	XXX$/s/XXX/w samoa/
+g/ xju	XXX$/s/XXX/dakhla-laayoune/
+g/ xjv	XXX$/s/XXX/antarctica/
+g/ yem	XXX$/s/XXX/yemen/
+g/ yug	XXX$/s/XXX/yugoslavia/
+g/ zaf	XXX$/s/XXX/south african rep/
+g/ zmb	XXX$/s/XXX/zambia/
+g/ zwe	XXX$/s/XXX/zimbabwe/
+w
+q
+!
+echo cp y countries
+echo rm x y

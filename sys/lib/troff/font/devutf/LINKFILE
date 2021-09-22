@@ -1,6 +1,0 @@
-#
-# Creates missing width tables from existing ones.
-#
-
-rm -f HM
-cp H HM

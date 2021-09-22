@@ -12,11 +12,9 @@ SFILES=\
 	memccpy.s\
 	memchr.s\
 	memcmp.s\
-	memcpy.s\
 	memmove.s\
 	memset.s\
 	muldiv.s\
-	rdpmc.s\
 	setjmp.s\
 	sqrt.s\
 	strcat.s\

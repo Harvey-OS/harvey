@@ -99,7 +99,7 @@ void	body(Biobuf*, Biobuf*, int);
 int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
 int	doublequote(Fmt*);
-void*	emalloc(int);
+void*	emalloc(uintptr);
 int	enc64(char*, int, uchar*, int);
 void*	erealloc(void*, int);
 char*	estrdup(char*);
@@ -1793,7 +1793,7 @@ estrdup(char *x)
 }
 
 void*
-emalloc(int n)
+emalloc(uintptr n)
 {
 	void *x;
 

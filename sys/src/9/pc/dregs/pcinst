@@ -1,0 +1,117 @@
+# pcinst - kernel for installing from cd
+dev
+	root
+	cons
+
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	cap
+	kprof
+	fs
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+	kbmap
+	kbin
+
+	sd
+	floppy		dma
+	lpt
+
+#	audio		dma
+	pccard
+	i82365		cis
+	uart
+	usb
+
+link
+	realmode
+	devpccard
+	devi82365
+	apm		apmjump
+
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.
+	ether2000	ether8390
+	ether2114x	pci
+	ether589	etherelnk3
+	ether79c970	pci
+	ether8003	ether8390
+	ether8139	pci
+	ether8169	pci ethermii
+	ether82543gc	pci
+	ether82557	pci
+	ether82563	pci
+	ether83815	pci
+	etherdp83820	pci
+	etherec2t	ether8390
+	etherelnk3	pci
+	etherga620	pci
+	etherigbe	pci ethermii
+	ethervgbe	pci ethermii
+	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
+	ethersink
+	ethersmc	devi82365 cis
+	etherwavelan	wavelan devi82365 cis pci
+#	etherm10g	pci ethermii		# vast firmware
+#	ether82598	pci
+
+	ethermedium
+	pcmciamodem
+	netdevmedium
+
+	usbuhci
+	usbohci
+	usbehci		usbehcipc
+
+misc
+	archmp		mp apic mpacpi
+	mtrr
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+	sdiahci		pci sdscsi
+
+	uarti8250
+	uartpci		pci
+	uartisa
+
+	vgavesa
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+
+port
+	int cpuserver = 0;
+
+boot boot #S/sdD0/data
+	tcp
+	local
+
+# arrange to run the install scripts (from /sys/lib/dist) somehow
+bootdir
+	boot$CONF.out boot
+	/386/bin/ip/ipconfig ipconfig
+	/386/bin/9660srv kfs
+	/386/bin/usb/usbd

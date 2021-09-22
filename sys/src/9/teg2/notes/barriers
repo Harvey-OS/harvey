@@ -1,0 +1,7 @@
+from v7-a arch. manual §A3.8.3
+
+dmb	data memory barrier: accesses before never overlap accesses after
+dsb	data synch. barrier: dmb + applies to cache, tlb & btc ops + no
+	following instr.s execute until dsb finishes.
+isb	instruction synch. barrier: instr.s before complete before isb finishes,
+	and instr.s after are fetched and executed only after isb finishes.

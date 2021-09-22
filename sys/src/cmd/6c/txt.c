@@ -22,7 +22,8 @@ ginit(void)
 	cases = C;
 	firstp = P;
 	lastp = P;
-	tfield = types[TINT];
+	tfield = types[TINT];		/* bitfield base type */
+//	tfield = types[TVLONG];	/* just changing to TVLONG isn't enough */
 
 	typeword = typechlvp;
 	typeswitch = typechlv;
@@ -92,6 +93,9 @@ ginit(void)
 	nodret->class = CPARAM;
 	nodret = new(OIND, nodret, Z);
 	complex(nodret);
+
+	if(0)
+		com64init();
 
 	memset(reg, 0, sizeof(reg));
 	for(i=0; i<nelem(reg); i++) {
@@ -257,7 +261,7 @@ nodgconst(vlong v, Type *t)
 }
 
 Node*
-nodconst(long v)
+nodconst(vlong v)
 {
 	constnode.vconst = v;
 	return &constnode;
@@ -615,17 +619,6 @@ gmove(Node *f, Node *t)
 /*
  * load
  */
-	if(ft == TVLONG || ft == TUVLONG)
-	if(f->op == OCONST)
-	if(f->vconst > 0x7fffffffLL || f->vconst < -0x7fffffffLL)
-	if(t->op != OREGISTER) {
-		regalloc(&nod, f, Z);
-		gmove(f, &nod);
-		gmove(&nod, t);
-		regfree(&nod);
-		return;
-	}
-
 	if(f->op == ONAME || f->op == OINDREG ||
 	   f->op == OIND || f->op == OINDEX)
 	switch(ft) {
@@ -673,7 +666,6 @@ gmove(Node *f, Node *t)
 			a = AMOVLQZX;	/* could probably use plain MOVL */
 		goto ld;
 	case TVLONG:
-	case TUVLONG:
 		if(typefd[tt]) {
 			regalloc(&nod, t, t);
 			if(tt == TDOUBLE)
@@ -685,6 +677,7 @@ gmove(Node *f, Node *t)
 			regfree(&nod);
 			return;
 		}
+	case TUVLONG:
 		a = AMOVQ;
 		goto ld;
 	case TIND:
@@ -775,6 +768,7 @@ gmove(Node *f, Node *t)
 	case CASE(	TUINT,	TCHAR):
 	case CASE(	TLONG,	TCHAR):
 	case CASE(	TULONG,	TCHAR):
+	case CASE(	TIND,	TCHAR):
 
 	case CASE(	TCHAR,	TUCHAR):
 	case CASE(	TUCHAR,	TUCHAR):
@@ -784,6 +778,7 @@ gmove(Node *f, Node *t)
 	case CASE(	TUINT,	TUCHAR):
 	case CASE(	TLONG,	TUCHAR):
 	case CASE(	TULONG,	TUCHAR):
+	case CASE(	TIND,	TUCHAR):
 
 	case CASE(	TSHORT,	TSHORT):
 	case CASE(	TUSHORT,TSHORT):
@@ -791,6 +786,7 @@ gmove(Node *f, Node *t)
 	case CASE(	TUINT,	TSHORT):
 	case CASE(	TLONG,	TSHORT):
 	case CASE(	TULONG,	TSHORT):
+	case CASE(	TIND,	TSHORT):
 
 	case CASE(	TSHORT,	TUSHORT):
 	case CASE(	TUSHORT,TUSHORT):
@@ -798,26 +794,42 @@ gmove(Node *f, Node *t)
 	case CASE(	TUINT,	TUSHORT):
 	case CASE(	TLONG,	TUSHORT):
 	case CASE(	TULONG,	TUSHORT):
+	case CASE(	TIND,	TUSHORT):
 
 	case CASE(	TINT,	TINT):
 	case CASE(	TUINT,	TINT):
 	case CASE(	TLONG,	TINT):
 	case CASE(	TULONG,	TINT):
+	case CASE(	TIND,	TINT):
 
 	case CASE(	TINT,	TUINT):
 	case CASE(	TUINT,	TUINT):
 	case CASE(	TLONG,	TUINT):
 	case CASE(	TULONG,	TUINT):
+	case CASE(	TIND,	TUINT):
+
+	case CASE(	TUINT,	TIND):
+	case CASE(	TVLONG,	TUINT):
+	case CASE(	TVLONG,	TULONG):
+	case CASE(	TUVLONG, TUINT):
+	case CASE(	TUVLONG, TULONG):
  *****/
 		a = AMOVL;
 		break;
 
-	case CASE(	TINT,	TIND):
+	case CASE(	TVLONG,	TCHAR):
+	case	CASE(	TVLONG,	TSHORT):
+	case CASE(	TVLONG,	TINT):
+	case CASE(	TVLONG,	TLONG):
+	case CASE(	TUVLONG, TCHAR):
+	case	CASE(	TUVLONG, TSHORT):
+	case CASE(	TUVLONG, TINT):
+	case CASE(	TUVLONG, TLONG):
 	case CASE(	TINT,	TVLONG):
 	case CASE(	TINT,	TUVLONG):
-	case CASE(	TLONG,	TIND):
 	case CASE(	TLONG,	TVLONG):
-	case CASE(	TLONG,	TUVLONG):
+	case CASE(	TINT,	TIND):
+	case CASE(	TLONG,	TIND):
 		a = AMOVLQSX;
 		if(f->op == OCONST) {
 			f->vconst &= (uvlong)0xffffffffU;
@@ -833,53 +845,22 @@ gmove(Node *f, Node *t)
 	case CASE(	TULONG,	TVLONG):
 	case CASE(	TULONG,	TUVLONG):
 	case CASE(	TULONG,	TIND):
-		a = AMOVLQZX;
+		a = AMOVL;	/* same effect as AMOVLQZX */
 		if(f->op == OCONST) {
 			f->vconst &= (uvlong)0xffffffffU;
 			a = AMOVQ;
 		}
 		break;
-	
-	case CASE(	TIND,	TCHAR):
-	case CASE(	TIND,	TUCHAR):
-	case CASE(	TIND,	TSHORT):
-	case CASE(	TIND,	TUSHORT):
-	case CASE(	TIND,	TINT):
-	case CASE(	TIND,	TUINT):
-	case CASE(	TIND,	TLONG):
-	case CASE(	TIND,	TULONG):
-	case CASE(	TVLONG,	TCHAR):
-	case CASE(	TVLONG,	TUCHAR):
-	case CASE(	TVLONG,	TSHORT):
-	case CASE(	TVLONG,	TUSHORT):
-	case CASE(	TVLONG,	TINT):
-	case CASE(	TVLONG,	TUINT):
-	case CASE(	TVLONG,	TLONG):
-	case CASE(	TVLONG,	TULONG):
-	case CASE(	TUVLONG,	TCHAR):
-	case CASE(	TUVLONG,	TUCHAR):
-	case CASE(	TUVLONG,	TSHORT):
-	case CASE(	TUVLONG,	TUSHORT):
-	case CASE(	TUVLONG,	TINT):
-	case CASE(	TUVLONG,	TUINT):
-	case CASE(	TUVLONG,	TLONG):
-	case CASE(	TUVLONG,	TULONG):
-		a = AMOVQL;
-		if(f->op == OCONST) {
-			f->vconst &= 0xffffffffU;
-			a = AMOVL;
-		}
-		break;	
 
-	case CASE(	TIND,	TIND):
 	case CASE(	TIND,	TVLONG):
+	case CASE(	TVLONG,	TVLONG):
+	case CASE(	TUVLONG,	TVLONG):
+	case CASE(	TVLONG,	TUVLONG):
+	case CASE(	TUVLONG,	TUVLONG):
 	case CASE(	TIND,	TUVLONG):
 	case CASE(	TVLONG,	TIND):
-	case CASE(	TVLONG,	TVLONG):
-	case CASE(	TVLONG,	TUVLONG):
 	case CASE(	TUVLONG,	TIND):
-	case CASE(	TUVLONG,	TVLONG):
-	case CASE(	TUVLONG,	TUVLONG):
+	case CASE(	TIND,	TIND):
 		a = AMOVQ;
 		break;
 
@@ -1027,7 +1008,7 @@ gmove(Node *f, Node *t)
 		return;
 
 /*
- * uvlong to float
+ * ulong to float
  */
 	case CASE(	TUVLONG,	TDOUBLE):
 	case CASE(	TUVLONG,	TFLOAT):
@@ -1334,6 +1315,7 @@ gopcode(int o, Type *ty, Node *f, Node *t)
 	case OMUL:
 		if(f->op == OREGISTER && t != Z && isreg(t, D_AX) && reg[D_DX] == 0)
 			t = Z;
+		/* TODO: AIMULL won't work on XMM registers */
 		a = AIMULL;
 		if(et == TVLONG || et == TUVLONG || et == TIND)
 			a = AIMULQ;

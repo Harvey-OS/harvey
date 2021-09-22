@@ -69,7 +69,7 @@ gvlook(char *name)
 	var *v;
 
 	for (v = gvar[h]; v; v = v->next)
-		if (strcmp(v->name, name) == 0)
+		if (v->name && strcmp(v->name, name) == 0)
 			return v;
 	return gvar[h] = newvar(strdup(name), gvar[h]);
 }

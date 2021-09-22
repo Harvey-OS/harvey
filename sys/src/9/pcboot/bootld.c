@@ -7,11 +7,9 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"io.h"
-#include	"ureg.h"
-#include	"pool.h"
-#include	"../port/netif.h"
+
+#include	"multiboot.h"
 #include	"../ip/ip.h"
-#include	"pxe.h"
 
 #include	<a.out.h>
 #include 	"/sys/src/libmach/elf.h"
@@ -24,12 +22,10 @@
 
 extern int debug;
 
-extern void pagingoff(ulong);
-
 static uchar elfident[] = {
 	'\177', 'E', 'L', 'F',
 };
-static Ehdr ehdr, rehdr;
+static Ehdr ehdr;
 static E64hdr e64hdr;
 static Phdr *phdr;
 static P64hdr *p64hdr;
@@ -161,7 +157,6 @@ readehdr(Boot *b)
 		print("bad ELF encoding - not big or little endian\n");
 		return 0;
 	}
-	memmove(&rehdr, &ehdr, sizeof(Ehdr));	/* copy; never used */
 
 	ehdr.type = swab(ehdr.type);
 	ehdr.machine = swab(ehdr.machine);
@@ -220,7 +215,6 @@ reade64hdr(Boot *b)
 		print("bad ELF encoding - not big or little endian\n");
 		return 0;
 	}
-//	memmove(&rehdr, &ehdr, sizeof(Ehdr));	/* copy; never used */
 
 	e64hdr.type = swab(e64hdr.type);
 	e64hdr.machine = swab(e64hdr.machine);
@@ -494,21 +488,26 @@ addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
 }
 
 void
-impulse(void)
+stopio(void)
 {
-	delay(500);				/* drain uart */
-	splhi();
-
-	/* turn off buffered serial console */
-	serialoq = nil;
+	delay(200);				/* drain uart */
 
 	/* shutdown devices */
 	chandevshutdown();
-	arch->introff();
+
+	pcireset();			/* turn off bus masters & intrs */
 }
 
 void
-prstackuse(int)
+intrsoff(void)
+{
+	splhi();
+	arch->introff();
+	coherence();
+}
+
+void
+prstackuse(void)
 {
 	char *top, *base;
 	ulong *p;
@@ -529,12 +528,73 @@ prstackuse(int)
 void
 warp9(ulong entry)
 {
-//	prstackuse(0);			/* debugging */
+//	prstackuse();		/* we use about 3,900 bytes; debugging */
+
 	mkmultiboot();
-	impulse();
+
+	/* No output after this. */
+	stopio();
+	/* turn off buffered serial console */
+	serialoq = nil;
+	intrsoff();
 
 	/* get out of KZERO space, turn off paging and jump to entry */
 	pagingoff(PADDR(entry));
+}
+
+/*
+ * start a 64-bit kernel in 32-bit protected mode.
+ * set up multboot registers first.
+ * currently assumes kernel is in place and does not use trampoline code to
+ * copy it to its ultimate destination.
+ */
+
+enum {
+	Ax,
+	Bx,
+	Cx,
+	Dx,
+
+	/*
+	 * common to intel & amd
+	 */
+	Extfunc	= 0x80000000,
+	Procsig,
+
+	/* Procsig bits */
+	Dxlongmode	= 1<<29,
+};
+
+static int
+havelongmode(void)
+{
+	ulong regs[4];
+
+	memset(regs, 0, sizeof regs);
+	cpuid(Extfunc, regs);
+	if(regs[Ax] < Extfunc)
+		return 0;
+
+	memset(regs, 0, sizeof regs);
+	cpuid(Procsig, regs);
+	return (regs[Dx] & Dxlongmode) != 0;
+}
+
+void
+warp64(uvlong entry)
+{
+	ulong entry32;
+
+	if(!havelongmode()) {
+		print("warp64: can't run 64-bit kernel on 32-bit-only cpu\n");
+		delay(5000);
+		exit(0);
+	}
+	entry32 = PADDR(entry);
+ 	prflush();
+	iprint("warp64(%#llux) %d mmaps\n", entry, nmmap);
+	delay(100);			/* drain uart */
+	warp9(entry32);
 }
 
 static int
@@ -551,14 +611,27 @@ isgzipped(uchar *p)
 }
 
 static int
+islzipped(uchar *p)
+{
+	return memcmp(p, "LZIP", 4) == 0;
+}
+
+static int
 readexec(Boot *b)
 {
+	int gzipped, copyhdr;
 	Exechdr *hdr;
 	ulong pentry, text, data, magic;
 
+	copyhdr = 1;
 	hdr = &b->hdr;
 	magic = GLLONG(hdr->magic);
 	if(magic == I_MAGIC || magic == S_MAGIC) {
+		/*
+		 * on 386, entry (e.g., 0xe0100020) is at offset 0x20 in file.
+		 * on amd64, entry (e.g., 0xffffffff80110000) is at offset 0x28
+		 * in file.
+		 */
 		pentry = PADDR(GLLONG(hdr->entry));
 		text = GLLONG(hdr->text);
 		data = GLLONG(hdr->data);
@@ -566,81 +639,91 @@ readexec(Boot *b)
 			panic("kernel entry %#p below 1 MB", pentry);
 		if (PGROUND(pentry + text) + data > MB + Kernelmax)
 			panic("kernel larger than %d bytes", Kernelmax);
+		/* lay down text seg from pentry to pentry+text */
 		b->state = READ9TEXT;
-		b->bp = (char*)KADDR(pentry);
-		b->wp = b->bp;
+		b->wp = b->bp = (char*)KADDR(pentry);
 		b->ep = b->wp+text;
 
+		/* why not if((magic & HDR_MAGIC) == 0) ? */
 		if(magic == I_MAGIC){
-			memmove(b->bp, b->hdr.uvl, sizeof(b->hdr.uvl));
-			b->wp += sizeof(b->hdr.uvl);
+			/*
+			 * on 386, copy uvlong start addr (if any) to pentry,
+			 * and skip past the copy.  is a no-op, copying first
+			 * 8 bytes of text to itself?
+			 */
+			memmove(b->wp, hdr->uvl, sizeof hdr->uvl);
+			b->wp += sizeof hdr->uvl;
 		}
-
+		copyhdr = 0;
 		print("%lud", text);
 	} else if(memcmp(b->bp, elfident, 4) == 0 &&
 	    (uchar)b->bp[4] == ELFCLASS32){
 		b->state = READEHDR;
-		b->bp = (char*)&ehdr;
-		b->wp = b->bp;
+		b->wp = b->bp = (char*)&ehdr;
 		b->ep = b->wp + sizeof(Ehdr);
-		memmove(b->bp, &b->hdr, sizeof(Exechdr));
-		b->wp += sizeof(Exechdr);
 		print("elf...");
 	} else if(memcmp(b->bp, elfident, 4) == 0 &&
 	    (uchar)b->bp[4] == ELFCLASS64){
 		b->state = READE64HDR;
-		b->bp = (char*)&e64hdr;
-		b->wp = b->bp;
+		b->wp = b->bp = (char*)&e64hdr;
 		b->ep = b->wp + sizeof(E64hdr);
-		memmove(b->bp, &b->hdr, sizeof(Exechdr));
-		b->wp += sizeof(Exechdr);
 		print("elf64...");
-	} else if(isgzipped((uchar *)b->bp)) {
-		b->state = READGZIP;
+	} else if((gzipped = isgzipped((uchar *)b->bp)) ||
+	    islzipped((uchar *)b->bp)) {
+		b->state = gzipped? READGZIP: READLZIP;
 		/* could use Unzipbuf instead of smalloc() */
-		b->bp = (char*)smalloc(Kernelmax);
-		b->wp = b->bp;
+		b->wp = b->bp = (char*)smalloc(Kernelmax);
 		b->ep = b->wp + Kernelmax;
-		memmove(b->bp, &b->hdr, sizeof(Exechdr));
-		b->wp += sizeof(Exechdr);
-		print("gz...");
+		print("%cz...", gzipped? 'g': 'l');
 	} else {
 		print("bad kernel format (magic %#lux)\n", magic);
 		return bootfail(b);
 	}
+	if (copyhdr) {
+		memmove(b->bp, hdr, sizeof(Exechdr));
+		b->wp += sizeof(Exechdr);
+	}
 	return MORE;
+}
+
+static void
+prentry(ulong entry)
+{
+	uchar *start;
+
+	start = (uchar *)KADDR(entry & MASK(28));
+	print("entry: %#lux", entry);
+	if (start[0] != 0xfa)
+		print("; starts with %ux %ux, not CLI", start[0], start[1]);
+	print("\n");
+	prflush();
 }
 
 static void
 boot9(Boot *b, ulong magic, ulong entry)
 {
 	if(magic == I_MAGIC){
-		print("entry: %#lux\n", entry);
+		prentry(entry);
 		warp9(PADDR(entry));
-	}
-	else if(magic == S_MAGIC)
+	} else if(magic == S_MAGIC) {
+		prentry(entry);
 		warp64(beswav(b->hdr.uvl[0]));
-	else
+	} else
 		print("bad magic %#lux\n", magic);
 }
 
 /* only returns upon failure */
 static void
-readgzip(Boot *b)
+readzip(Boot *b, int (*unzip)(uchar *, int, uchar *, int))
 {
 	ulong entry, text, data, bss, magic, all, pentry;
 	uchar *sdata;
 	Exechdr *hdr;
 
-	/* the whole gzipped kernel is now at b->bp */
-	hdr = &b->hdr;
-	if(!isgzipped((uchar *)b->bp)) {
-		print("lost magic\n");
-		return;
-	}
 	print("%ld => ", b->wp - b->bp);
-	/* just fill hdr from gzipped b->bp, to get various sizes */
-	if(gunzip((uchar*)hdr, sizeof *hdr, (uchar*)b->bp, b->wp - b->bp)
+	hdr = &b->hdr;
+	/* just fill hdr from compressed b->bp, to get various sizes */
+	if(unzip((uchar*)hdr, sizeof *hdr, (uchar*)b->bp, b->wp - b->bp)
 	    < sizeof *hdr) {
 		print("error uncompressing kernel exec header\n");
 		return;
@@ -660,19 +743,39 @@ readgzip(Boot *b)
 	if (PGROUND(pentry + text) + data > MB + Kernelmax)
 		panic("kernel larger than %d bytes", Kernelmax);
 
-	/* fill entry from gzipped b->bp */
+	/* fill entry from compressed b->bp */
 	all = sizeof(Exec) + text + data;
-	if(gunzip((uchar *)KADDR(PADDR(entry)) - sizeof(Exec), all,
-	    (uchar*)b->bp, b->wp - b->bp) < all) {
-		print("error uncompressing kernel\n");
-		return;
-	}
+	if(unzip((uchar *)KADDR(PADDR(entry)) - sizeof(Exec), all,
+	    (uchar*)b->bp, b->wp - b->bp) < all)
+		panic("error uncompressing kernel");
 
 	/* relocate data to start at page boundary */
 	sdata = KADDR(PADDR(entry+text));
 	memmove((void*)PGROUND((uintptr)sdata), sdata, data);
 
 	boot9(b, magic, entry);
+}
+
+/* only returns upon failure */
+static void
+readgzip(Boot *b)
+{
+	/* the whole gzipped kernel is now at b->bp */
+	if(isgzipped((uchar *)b->bp))
+		readzip(b, gunzip);
+	else
+		print("lost magic\n");
+}
+
+/* only returns upon failure */
+static void
+readlzip(Boot *b)
+{
+	/* the whole gzipped kernel is now at b->bp */
+	if(islzipped((uchar *)b->bp))
+		readzip(b, lunzip);
+	else
+		print("lost magic\n");
 }
 
 /*
@@ -705,7 +808,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			b->state = READEXEC;
 			b->bp = (char*)&b->hdr;
 			b->wp = b->bp;
-			b->ep = b->bp+sizeof(Exechdr);
+			b->ep = b->bp+sizeof(Exechdr); /* includes uvl */
 			break;
 		case READEXEC:
 			readexec(b);
@@ -713,6 +816,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 
 		case READ9TEXT:
 			hdr = &b->hdr;
+			/* lay down data seg after text seg */
 			b->state = READ9DATA;
 			b->bp = (char*)PGROUND((uintptr)
 				KADDR(PADDR(GLLONG(hdr->entry))) +
@@ -721,9 +825,10 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			b->ep = b->wp + GLLONG(hdr->data);
 			print("+%ld", GLLONG(hdr->data));
 			break;
-	
+
 		case READ9DATA:
 			hdr = &b->hdr;
+			/* zero bss seg */
 			bss = GLLONG(hdr->bss);
 			memset(b->ep, 0, bss);
 			print("+%ld=%ld\n",
@@ -773,6 +878,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		case TRYEBOOT:
 		case TRYE64BOOT:
 		case READGZIP:
+		case READLZIP:
 			return ENOUGH;
 
 		case READ9LOAD:
@@ -789,6 +895,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 
 Endofinput:
 	/* end of input */
+	prflush();
 	switch(b->state) {
 	case INITKERNEL:
 	case READEXEC:
@@ -813,6 +920,7 @@ Endofinput:
 		entry = b->entry;
 		if(ehdr.machine == I386){
 			print("entry: %#lux\n", entry);
+			prflush();
 			warp9(PADDR(entry));
 		}
 		else if(ehdr.machine == AMD64)
@@ -825,6 +933,7 @@ Endofinput:
 		entry64 = b->entry;
 		if(e64hdr.machine == I386){
 			print("entry: %#llux\n", entry64);
+			prflush();
 			warp9(PADDR(entry64));
 		}
 		else if(e64hdr.machine == AMD64)
@@ -836,6 +945,10 @@ Endofinput:
 
 	case READGZIP:
 		readgzip(b);
+		break;
+
+	case READLZIP:
+		readlzip(b);
 		break;
 
 	case INIT9LOAD:

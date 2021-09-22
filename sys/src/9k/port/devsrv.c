@@ -21,6 +21,8 @@ static QLock	srvlk;
 static Srv	*srv;
 static int	qidpath;
 
+Dev srvdevtab;
+
 static int
 srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 {
@@ -58,7 +60,7 @@ srvinit(void)
 static Chan*
 srvattach(char *spec)
 {
-	return devattach('s', spec);
+	return devattach(srvdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -86,15 +88,15 @@ srvstat(Chan *c, uchar *db, long n)
 char*
 srvname(Chan *c)
 {
-	int size;
+	int pathsz;
 	Srv *sp;
 	char *s;
 
 	for(sp = srv; sp; sp = sp->link)
 		if(sp->chan == c){
-			size = 3+strlen(sp->name)+1;
-			s = smalloc(size);
-			snprint(s, size, "#s/%s", sp->name);
+			pathsz = 3+strlen(sp->name)+1;
+			s = smalloc(pathsz);
+			snprint(s, pathsz, "#s/%s", sp->name);
 			return s;
 		}
 	return nil;
@@ -217,7 +219,7 @@ srvremove(Chan *c)
 	/*
 	 * No removing personal services.
 	 */
-	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) && !iseve())
+	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) != 0 && !iseve())
 		error(Eperm);
 
 	*l = sp->link;

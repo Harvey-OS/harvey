@@ -1021,7 +1021,24 @@ divides(mpint *dividend, ulong divisor)
 	return d[1] == 0;
 }
 
-//  return -1 if p is divisable by one of the small primes, 0 otherwise
+//  return 1 if p is one of the small primes, 0 otherwise.
+int
+issmallprime(mpint *p)
+{
+	int i;
+	ulong pint;
+
+	if (p->top != 1)
+		return 0;
+	pint = p->p[0];
+	for(i = 0; i < nelem(smallprimes) && pint >= smallprimes[i]; i++)
+		if(pint == smallprimes[i])
+			return 1;
+	return 0;			/* not a known prime */
+}
+
+//  return -1 if p is divisable by one of the small primes other than itself,
+//  0 otherwise.
 int
 smallprimetest(mpint *p)
 {
@@ -1033,7 +1050,7 @@ smallprimetest(mpint *p)
 		if(p->top == 1 && p->p[0] <= sp)
 			break;
 		if(divides(p, sp))
-			return -1;
+			return -1;	/* composite */
 	}
-	return 0;
+	return 0;			/* not obviously composite */
 }

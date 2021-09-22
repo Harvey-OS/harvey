@@ -1,9 +1,24 @@
 #!/bin/rc
-9fs nslocum
-9fs alice
+# startnfs - (re)start nfs server
+echo killing old nfs server
 Kill portmapper|rc
 Kill nfsserver|rc
 rm -f /srv/nfsserver.chat /srv/portmapper.chat
-aux/nfsserver -a il!emelie -a il!choline -c /lib/ndb/nfs >>[2] /sys/log/nfsserver
-aux/portmapper >>[2] /sys/log/portmapper
-aux/portmapper -t >>[2] /sys/log/portmapper
+
+echo starting new nfs server
+if(test -e /srv/nfs) {
+	aux/nfsserver -f /srv/nfs -c /sys/lib/nfs/clients
+	aux/nfsserver -t -f /srv/nfstcp -c /sys/lib/nfs/clients
+}
+if not {
+	switch(`{cat /dev/sysname}){
+	case olive anna
+		aux/nfsserver -a tcp!yoshimi -c /sys/lib/nfs/clients
+	case delay			# obsolete
+		rm -f /srv/howard
+		srvfs howard /usr/howard/timesys/rfs
+		chmod 666 /srv/howard
+		aux/nfsserver -d9cc -f /srv/howard -c /sys/lib/nfs/clients
+	}
+}
+{ aux/portmapper; aux/portmapper -t }	>>[2]/sys/log/portmapper

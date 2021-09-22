@@ -1,0 +1,1223 @@
+This is Info file dvips.info, produced by Makeinfo version 1.68 from
+the input file dvips.texi.
+
+INFO-DIR-SECTION TeX
+START-INFO-DIR-ENTRY
+* DVI-to-Postscript: (dvips).        Translating TeX DVI files to PostScript.
+* afm2tfm: (dvips)Invoking afm2tfm.  Making Type 1 fonts available to TeX.
+* dvips: (dvips)Invoking Dvips.      DVI-to-PostScript translator.
+END-INFO-DIR-ENTRY
+
+
+File: dvips.info,  Node: Configuration file commands,  Prev: Configuration file searching,  Up: Config files
+
+Configuration file commands
+---------------------------
+
+  Most of the configuration file commands are similar to corresponding
+command line options, but there are a few exceptions.  When they are the
+same, we omit the description here.
+
+  As with command line options, many may be turned off by suffixing the
+letter with a zero (`0').
+
+  Within a configuration file, empty lines, and lines starting with a
+space, asterisk, equal sign, percent sign, or pound sign are ignored.
+There is no provision for continuation lines.
+
+`@ NAME HSIZE VSIZE'
+     Define paper sizes.  *Note Config file paper sizes::.
+
+`a*'
+     Memory conservation.  Same as `-a', *note Option details::..
+
+`b #COPIES'
+     Multiple copies.  Same as `-b', *note Option details::..
+
+`D DPI'
+     Output resolution.  Same as `-D', *note Option details::..
+
+`e NUM'
+     Max drift.  Same as `-e', *note Option details::..
+
+`E COMMAND'
+     Executes the command listed with `system'(3); can be used to get
+     the current date into a header file for inclusion, for instance.
+     Possibly dangerous; this may be disabled, in which case a warning
+     will be printed if the option is used (and warnings are not
+     suppressed).
+
+`f*'
+`F'
+     Run as a filter.  Same as `-f', *note Option details::..
+
+`h HEADER'
+     Prepend HEADER to output.  Same as `h-', *note Option details::..
+
+`H PATH'
+     Use PATH to search for PostScript header files.  The environment
+     variable `DVIPSHEADERS' overrides this.
+
+`i N'
+     Make multiple output files.  Same as `-i -S N', *note Option
+     details::..
+
+`j*'
+     Partially download Type 1 fonts.  Same as `-j', *note Option
+     details::..
+
+`K*'
+     Remove comments from included PostScript files.  Same as `-K',
+     *note Option details::..
+
+`m NUM'
+     Declare NUM as the memory available for fonts and strings in the
+     printer.  Default is 180000.  This value must be accurate if memory
+     conservation and document splitting is to work correctly.  To
+     determine this value, send the following file to the printer:
+
+          %! Hey, we're PostScript
+          /Times-Roman findfont 30 scalefont setfont 144 432 moveto
+          vmstatus exch sub 40 string cvs show pop showpage
+
+     The number printed by this file is the total memory free; it is
+     usually best to tell Dvips that the printer has slightly less
+     memory, because many programs download permanent macros that can
+     reduce the memory in the printer.  Some systems or printers can
+     dynamically increase the memory available to a PostScript
+     interpreter, in which case this file might return a ridiculously
+     low number; for example, the NeXT computer and Ghostscript.  In
+     these cases, a value of one million works fine.
+
+`M MODE'
+     Metafont mode.  Same as `-mode', *note Option details::..
+
+`N*'
+     Disable structured comments.  Beware: This also turns off
+     displaying page numbers or changing to specific pagenumbers in
+     PostScript viewers.  Same as `-N', *note Option details::..
+
+`o NAME'
+     Send output to NAME.  Same as `-', *note Option details::..  In
+     the file `config.foo', a setting like this is probably appropriate:
+          o |lpr -Pfoo
+     The MS-DOS version will emulate spooling to `lpr' by printing to
+     the local printer device `PRN' if it doesn't find an executable
+     program by that name in the current directory or along the `PATH'.
+
+`O XOFF,YOFF'
+     Origin offset.  Same as `-O', *note Option details::..
+
+`p [+]NAME'
+     Examine NAME for PostScript font aliases.  Default is
+     `psfonts.map'.  This option allows you to specify different
+     resident fonts that different printers may have.  If NAME starts
+     with a `+' character, then the rest of the name (after any leading
+     spaces) is used as an additional map file; thus, it is possible to
+     have local map files pointed to by local configuration files that
+     append to the global map file.  This can be used for font families.
+
+`P PATH'
+     Use PATH to search for bitmap PK font files is PATH.  The
+     `PKFONTS', `TEXPKS', `GLYPHFONTS', and `TEXFONTS' environment
+     variables override this.  *Note Supported file formats:
+     (kpathsea)Supported file formats.
+
+`q*'
+`Q'
+     Run quietly.  Same as `-q', *note Option details::..
+
+`r*'
+     Page reversal.  Same as `-r', *note Option details::..
+
+`R NUM1 NUM2 ...'
+     Define the list of default resolutions for PK fonts.  If a font
+     size actually used in a document is not available and cannot be
+     created, Dvips will scale the font found at the closest of these
+     resolutions to the requested size, using PostScript scaling.  The
+     resulting output may be ugly, and thus a warning is issued.  To
+     turn this last-resort scaling off, use a line with just the `R'
+     and no numbers.
+
+     The given numbers must be sorted in increasing order; any number
+     smaller than the preceding one is ignored.  This is because it is
+     better to scale a font up than down; scaling down can obliterate
+     small features in the character shape.
+
+     The environment and config file values `DVIPSSIZES' or `TEXSIZES'
+     override this configuration file setting.
+
+     If no `R' settings or environment variables are specified, a list
+     compiled in during installation is used. This default list is
+     defined by the Makefile variable `default_texsizes', defined in
+     the file `make/paths.make'.
+
+`s*'
+     Output global save/restore.  Same as `-s', *note Option details::..
+
+`S PATH'
+     Use PATH to search for special illustrations (Encapsulated
+     PostScript files or psfiles).  The `TEXPICTS' and then `TEXINPUTS'
+     environment variables override this.
+
+`T PATH'
+     Use PATH to search for TFM files.  The `TFMFONTS' and then
+     `TEXFONTS' environment variables overrides this.  This path is used
+     for resident fonts and fonts that can't otherwise be found.
+
+`U*'
+     Work around bug in Xerox 4045 printer.  Same as `-U', *note Option
+     details::..
+
+`V PATH'
+     Use PATH to search for virtual font files.  This may be
+     device-dependent if you use virtual fonts to simulate actual fonts
+     on different devices.
+
+`W [STRING]'
+     If STRING is supplied, write it to standard error after reading
+     all the configuration files; with no STRING, cancel any previous
+     `W' message.  This is useful in the default configuration file to
+     remind users to specify a printer, for instance, or to notify users
+     about special characteristics of a particular printer.
+
+`X NUM'
+     Horizontal resolution.  Same as `-X', *note Option details::..
+
+`Y NUM'
+     Vertical resolution.  Same as `-Y', *note Option details::..
+
+`Z*'
+     Compress bitmap fonts.  Same as `-Z', *note Option details::..
+
+
+File: dvips.info,  Node: Paper size and landscape,  Next: Interaction with PostScript,  Prev: Invoking Dvips,  Up: Top
+
+Paper size and landscape orientation
+************************************
+
+  Most TeX documents at a particular site are designed to use the
+standard paper size (letter size in the United States, A4 in Europe).
+The Dvips program can be customized either sitewide or for a particular
+printer.
+
+  But many documents are designed for other paper sizes.  For instance,
+you may want to design a document that has the long edge of the paper
+horizontal.  This can be useful when typesetting booklets, brochures,
+complex tables, or many other documents.  This type of paper orientation
+is called "landscape" orientation (the default orientation is
+"portrait").  Alternatively, a document might be designed for ledger or
+A3 paper.
+
+  Since the intended paper size is a document design decision, not a
+printing decision, such information should be given in the TeX file and
+not on the Dvips command line.  For this reason, Dvips supports a
+`papersize' special.  It is hoped that this special will become
+standard over time for TeX previewers and other printer drivers.
+
+* Menu:
+
+* papersize special::           Specifying the paper size in TeX.
+* Config file paper sizes::     Specifying printer- and site-specific sizes.
+* Paper trays::                 Changing paper trays automatically.
+
+
+File: dvips.info,  Node: papersize special,  Next: Config file paper sizes,  Up: Paper size and landscape
+
+`papersize' special
+===================
+
+  The format of the `papersize' special is
+
+     \special{papersize=WIDTH,HEIGHT}
+
+WIDTH is the horizontal size of the page, and HEIGHT is the vertical
+size.  The dimensions supported are the same as for TeX; namely, in
+(inches), cm (centimeters), mm (millimeters), pt (points), sp (scaled
+points), bp (big points, the same as the default PostScript unit), pc
+(picas), dd (didot points), and cc (ciceros).
+
+  For a US letter size landscape document, the `papersize' would be:
+     \special{papersize=11in,8.5in}
+
+An alternate specification of `landscape':
+     \special{landscape}
+
+This is supported for backward compatibility, but it is hoped that
+reventually the `papersize' comment will dominate.
+
+  Of course, such a `\special' only informs Dvips of the desired paper
+size; you must also adjust `\hsize' and `\vsize' in your TeX document
+typeset to those dimensions.
+
+  The `papersize' special must occur somewhere on the first page of the
+document.
+
+
+File: dvips.info,  Node: Config file paper sizes,  Next: Paper trays,  Prev: papersize special,  Up: Paper size and landscape
+
+Configuration file paper size command
+=====================================
+
+  The `@' command in a configuration file sets the paper size defaults
+and options.  The first `@' command defines the default paper size.  It
+has three possible parameters:
+
+     @ [NAME [HSIZE VSIZE]]
+
+  If `@' is specified on a line by itself, with no parameters, it
+instructs Dvips to discard all previous paper size information (possibly
+from another configuration file).
+
+  If three parameters are given, with the first parameter being a name
+and the second and third being a dimension (as in `8.5in' or `3.2cc',
+just like in the `papersize' special), then the option is interpreted
+as starting a new paper size description, where NAME is the name and
+HSIZE and VSIZE define the horizontal and vertical size of the sheet of
+paper, respectively. For example:
+
+     @ letterSize 8.5in 11in
+
+  If both HSIZE and VSIZE are zero (you must still specify units!) then
+any page size will match.  If the `@' character is immediately followed
+by a `+' sign, then the remainder of the line (after skipping any
+leading blanks) is treated as PostScript code to send to the printer,
+presumably to select that particular paper size:
+
+     @ letter 8.5in 11in
+     @+ %%BeginPaperSize: Letter
+     @+ letter
+     @+ %%EndPaperSize
+
+  After all that, if the first character of the line is an exclamation
+point, then the line is put in the initial comments section of the final
+output file; else, it is put in the setup section of the output file.
+For example:
+
+     @ legal 8.5in 14in
+     @+ ! %%DocumentPaperSizes: Legal
+     @+ %%BeginPaperSize: Legal
+     @+ legal
+     @+ %%EndPaperSize
+
+  When Dvips has a paper format name given on the command line, it looks
+for a match by the NAME; when it has a `papersize' special, it looks
+for a match by dimensions.  The first match found (in the order the
+paper size information is found in the configuration file) is used.  If
+nothing matches, a warning is printed and the first paper size is used.
+The dimensions must match within a quarter of an inch.  Landscape mode
+for all paper sizes is automatically supported.
+
+  If your printer has a command to set a special paper size, then give
+dimensions of `0in 0in'; the PostScript code that sets the paper size
+can refer to the dimensions the user requested as `hsize' and `vsize';
+these will be macros defined in the PostScript that return the
+requested size in default PostScript units.  Virtually all of the
+PostScript commands you use here are device-dependent and degrade the
+portability of the file; that is why the default first paper size entry
+should not send any PostScript commands down (although a structured
+comment or two would be okay).  Also, some printers want
+`BeginPaperSize' comments and paper size setting commands; others (such
+as the NeXT) want `PaperSize' comments and they will handle setting the
+paper size.  There is no solution I could find that works for both
+(except maybe specifying both).
+
+  The Perl 5 script `contrib/mkdvipspapers' in the distribution
+directory may help in determining appropriate paper size definitions.
+
+  If your printers are configured to use A4 paper by default, the
+configuration file (probably the global `config.ps' in this case)
+should include this as the first `@' command:
+
+     @ A4size 210mm 297mm
+     @+ %%PaperSize: A4
+
+so that `A4size' is used as the default, and not `A4' itself; thus, no
+PostScript `a4' command is added to the output file, unless the user
+explicitly says to use paper size `a4'.  That is, by default, no paper
+size PostScript command should be put in the output, but Dvips will
+still know that the paper size is A4 because `A4size' is the first (and
+therefore default) size in the configuration file.
+
+  Executing the `letter' or `a4' or other PostScript operators cause
+the document to be nonconforming and can cause it not to print on
+certain printers, so the default paper size should not execute such an
+operator if at all possible.
+
+
+File: dvips.info,  Node: Paper trays,  Prev: Config file paper sizes,  Up: Paper size and landscape
+
+Paper trays
+===========
+
+  Some printers, such as the Hewlett-Packard HP4si, have multiple paper
+trays.  You can set up Dvips to take advantage of this using the
+`bop-hook' PostScript variable (*note PostScript hooks::.).
+
+  For example, suppose you have an alternate tray stocked with
+letterhead paper; the usual tray has the usual paper.  You have a
+document where you want the first page printed on letterhead, and the
+remaining pages on the usual paper. You can create a header file, say
+`firstletterhead.PS', with the following (PostScript) code (`bop-hook'
+is passed the current physical page number, which starts at zero):
+
+     /bop-hook { dup 0 eq { ALTERNATETRAY } { NORMALTRAY } ifelse } def
+
+where ALTERNATETRAY and NORMALTRAY are the appropriate commands to
+select the paper trays.  On the 4SI, ALTERNATETRAY is `statusdict begin
+1 setpapertray end' and NORMALTRAY is `statusdict begin 0 setpapertray
+end'.
+
+  Then, include the file with either
+   * the `-h' command-line option (*note Option details::.); or
+
+   * the `h' config file option (*note Configuration file commands::.);
+     or
+
+   * `\special{header=FILE}' in your TeX document (*note Including
+     headers from TeX: Including headers from TeX.).
+
+
+File: dvips.info,  Node: Interaction with PostScript,  Next: PostScript fonts,  Prev: Paper size and landscape,  Up: Top
+
+Interaction with PostScript
+***************************
+
+  Dvips supports inclusion of PostScript figure files (e.g.,
+Encapsulated PostScript), downloading other header files (e.g., fonts),
+including literal PostScript code, and hypertext.
+
+* Menu:
+
+* PostScript figures::          Including an Encapsulated PostScript figure.
+* Header files::                Downloading extra definitions.
+* Literal PS::                  Writing literal PostScript code.
+* Hypertext::                   Producing HyperPostScript to make PDF.
+
+
+File: dvips.info,  Node: PostScript figures,  Next: Header files,  Up: Interaction with PostScript
+
+PostScript figures
+==================
+
+  Scaling and including PostScript graphics is a breeze--if the
+PostScript file is correctly formed.  Even if it is not, however, the
+file can usually be accommodated with just a little more work.
+
+* Menu:
+
+* Bounding box::                The %%BoundingBox EPS comment.
+* EPSF macros::                 Including the file in TeX.
+* psfile special::              The basic special.
+* Dynamic creation of graphics:: Handling compressed or generated figures.
+* Fonts in figures::            The %*Font comment.
+
+
+File: dvips.info,  Node: Bounding box,  Next: EPSF macros,  Up: PostScript figures
+
+The bounding box comment
+------------------------
+
+  The most important feature of a good PostScript file from the
+standpoint of including it in another document is an accurate bounding
+box comment.  Every well-formed PostScript file has a comment
+describing where on the page the graphic is located, and how big that
+graphic is.
+
+  This information is given as the lower left and upper right corners of
+the box just enclosing the graphic, and is thus referred to as the
+"bounding box".  These coordinates are given in the default PostScript
+units (there are precisely 72 PostScript units to the inch, like TeX
+big points) with respect to the lower left corner of the sheet of paper.
+
+  To see if a PostScript file has a bounding box comment, just look at
+the first few lines of the file.  PostScript files are standard ASCII,
+so you can use any text editor to do this.  If within the first few
+dozen lines there is a line like
+
+     %%BoundingBox: 25 50 400 300
+
+(with any reasonable numbers), chances are very good that the file is
+Encapsulated PostScript and will work easily with Dvips.  If the file
+contains instead a line like
+
+     %%BoundingBox: (atend)
+
+the file is still probably Encapsulated PostScript, but the bounding box
+is given at the end of the file.  Dvips needs it at the beginning.  You
+can move it with that same text editor, or a simple script.  (The
+bounding box is given in this way when the program that generated the
+PostScript couldn't know the size in advance, or was too lazy to compute
+it.)
+
+  If the document lacks a `%%BoundingBox:' altogether, you can
+determine one in a couple of ways.  One is to use the `bbfig' program
+distributed with Dvips in the `contrib' directory. This can usually
+find the correct bounding box automatically; it works best with
+Ghostscript.
+
+  If the comment looks like this:
+     %%BoundingBox: 0 0 612 792
+
+the graphic claims to take up an entire sheet of paper.  This is
+usually a symptom of a bug in the program that generated it.
+
+  The other is to do it yourself: print the file.  Now, take a ruler,
+and make the following measurements (in PostScript units, so measure in
+inches and multiply by 72): From the left edge of the paper to the
+leftmost mark on the paper is LLX, the first number.  From the bottom
+edge of the paper to the bottommost mark on the paper is LLY, the
+second number.  From the left edge of the paper to the rightmost mark
+on the paper is URX, the third number.  The fourth and final number,
+URY, is the distance from the bottom of the page to the uppermost mark
+on the paper.
+
+  Once you have the numbers, add a comment of the following form as the
+second line of the document.  (The first line should already be a line
+starting with the two characters `%!'; if it is not, the file probably
+isn't PostScript.)
+
+     %%BoundingBox: LLX LLY URX URY
+
+Or, if you don't want to modify the file, you can simply write these
+numbers down in a convenient place and give them in your TeX document
+when you import the graphic, as described in the next section.
+
+  If the document does not have such a bounding box, or if the bounding
+box is given at the end of the document, or the bounding box is wrong,
+please complain to the authors of the software package that generated
+the file.
+
+
+File: dvips.info,  Node: EPSF macros,  Next: psfile special,  Prev: Bounding box,  Up: PostScript figures
+
+Using the EPSF macros
+---------------------
+
+  Once the figure file has a bounding box comment (see the previous
+section,) you are ready it the graphic into a TeX document.  Many
+packages for using EPS files exist.  One distributed with Dvips is the
+files `epsf.tex' (for plain TeX) and `epsf.sty' (for LaTeX).  For plain
+TeX, add a line like this near the top of your input file:
+
+     \input epsf
+
+If you are using LaTeX 2e, use the `graphics' or `graphicx' package.
+If you are using LaTeX 2.09, add the `epsf' style option, as in:
+
+     \documentstyle[12pt,epsf]{article}
+
+In any case, the above only needs to be done once, no matter how many
+figures you plan to include.
+
+  Now, at the point you want to include a file, enter a line such as:
+
+     \epsffile{foo.eps}
+
+  If you are using LaTeX, you may need to add `\leavevmode' immediately
+before the `\epsffile' command to get certain environments to work
+correctly.  If your file does not have a bounding box comment, you can
+supply the numbers as determined in the previous section, in the same
+order they would have been in a normal bounding box comment:
+
+     \epsffile[100 100 500 500]{foo.ps}
+
+Now, save your changes and run TeX and Dvips; the output should have
+your graphic positioned at precisely the point you indicated, occupying
+the proper amount of space.
+
+  The `\epsffile' macro typesets the figure as a TeX `\vbox' at the
+point of the page that the command is executed.  By default, the
+graphic will have its `natural' width (namely, the width of its bounding
+box).  The TeX box will have depth zero and its natural height.  By
+default, the graphic will be scaled by any DVI magnification in effect,
+just as is everything else in your document.  See the next section for
+more information on scaling.
+
+  If you want TeX to report the size of the figure as a message on your
+terminal when it processes each figure, give the command:
+
+     \epsfverbosetrue
+
+* Menu:
+
+* EPSF scaling::
+* EPSF clipping::
+
+
+File: dvips.info,  Node: EPSF scaling,  Next: EPSF clipping,  Up: EPSF macros
+
+EPSF scaling
+............
+
+  Usually, you will want to scale an EPSF figure to some size
+appropriate for your document, since its natural size is determined by
+the creator of the EPS file.
+
+  The best way to do this is to assign the desired size to the TeX
+`\epsfxsize' or `\epsfysize' variables, whichever is more convenient
+for you.  That is, put
+
+     \epsfxsize=DIMEN
+
+right before the call to `\epsffile'.  Then the width of the TeX box
+will be DIMEN and its height will be scaled proportionately.
+Similarly, you can set the vertical size with
+
+     \epsfysize=DIMEN
+
+in which case the height will be set and the width scaled
+proportionally.
+
+  If you set both, both will be honored, but the aspect ratio of the
+included graphic may necessarily be distorted, i.e., its contents
+stretched in one direction or the other.
+
+  You can resize graphics in a more general way by redefining the
+`\epsfsize' macro.  `\epsffile' calls this with two parameters: the
+natural horizontal and vertical sizes of the PostScript graphic.
+`\epsfsize' must expand to the desired horizontal size, that is, the
+width of the `\vbox'.  Schematically:
+
+     \def\epsfsize#1#2{BODY}
+
+  Some useful definitions of BODY:
+
+`\epsfxsize'
+     This definition (the default) enables the default features listed
+     above, by setting `\epsfxsize' to the same value it had before the
+     macro was called.
+
+`#1'
+     Force the natural size by returning the first parameter (the
+     original width).
+
+`0pt'
+     A special case, equivalent to `#1'.
+
+`0.5#1'
+     Scale to half the natural size.
+
+`\hsize'
+     Scale to the current `\hsize'.  (In LaTeX, use `\textwidth'
+     instead of `\hsize'.)
+
+`\ifnum#1>\hsize\hsize\else#1\fi'
+     If the natural width is greater than the current `\hsize', scale to
+     `\hsize', otherwise use the natural width.
+
+  For compatibility with other PostScript drivers, it is possible to
+turn off the default scaling of included figures by the DVI
+magnification with the following TeX command:
+
+     \special{! /magscale false def}
+
+Use of this command is not recommended because it will make the
+`\epsffile' graphics the "wrong" size if global magnification is being
+used, and it will cause any PostScript graphics to appear improperly
+scaled and out of position if a DVI to DVI program is used to scale or
+otherwise modify the document.
+
+  DVI magnification is not applied to any output from code you write in
+`bop-hook' or its ilk (*note PostScript hooks::.),
+
+
+File: dvips.info,  Node: EPSF clipping,  Prev: EPSF scaling,  Up: EPSF macros
+
+EPSF clipping
+.............
+
+  By default, clipping is disabled for included EPSF images.  This is
+because clipping to the bounding box dimensions often cuts off a small
+portion of the figure, due to slightly inaccurate bounding box
+arguments.  The problem might be subtle; lines around the boundary of
+the image might be half their intended width, or the tops or bottoms of
+some text annotations might be sliced off.  If you want to turn
+clipping on, just use the command
+
+     \epsfclipon
+
+and to turn clipping back off, use
+
+     \epsfclipoff
+
+
+File: dvips.info,  Node: psfile special,  Next: Dynamic creation of graphics,  Prev: EPSF macros,  Up: PostScript figures
+
+`psfile' special
+----------------
+
+  The basic special for file inclusion is as follows:
+
+     \special{psfile=FILENAME.ps [KEY=VALUE] ... }
+
+This downloads the PostScript file `FILENAME.ps' such that the current
+point will be the origin of the PostScript coordinate system.  The
+optional KEY=VALUE assignments allow you to specify transformations on
+the PostScript.
+
+  The possible KEYs are:
+
+`hoffset'
+     The horizontal offset (default 0)
+
+`voffset'
+     The vertical offset (default 0)
+
+`hsize'
+     The horizontal clipping size (default 612)
+
+`vsize'
+     The vertical clipping size (default 792)
+
+`hscale'
+     The horizontal scaling factor (default 100)
+
+`vscale'
+     The vertical scaling factor (default 100)
+
+`angle'
+     The rotation (default 0)
+
+`clip'
+     Enable clipping to the bounding box
+
+  The dimension parameters are all given in PostScript units.  The
+`hscale' and `vscale' are given in non-dimensioned percentage units,
+and the rotation value is specified in degrees.  Thus
+
+     \special{psfile=foo.ps hoffset=72 hscale=90 vscale=90}
+
+will shift the graphics produced by file `foo.ps' right by one inch and
+will draw it at 0.9 times normal size.  Offsets are given relative to
+the point of the special command, and are unaffected by scaling or
+rotation.  Rotation is counterclockwise about the origin.  The order of
+operations is to rotate the figure, scale it, then offset it.
+
+  For compatibility with older PostScript drivers, it is possible to
+change the units that `hscale' and `vscale' are given in.  This can be
+done by redefining `@scaleunit' in `SDict' by a TeX command such as
+
+     \special{! /@scaleunit 1 def}
+
+The `@scaleunit' variable, which is by default 100, is what `hscale'
+and `vscale' are divided by to yield an absolute scale factor.
+
+
+File: dvips.info,  Node: Dynamic creation of graphics,  Next: Fonts in figures,  Prev: psfile special,  Up: PostScript figures
+
+Dynamic creation of PostScript graphics files
+---------------------------------------------
+
+  PostScript is an excellent page description language--but it does tend
+to be rather verbose.  Compressing PostScript graphics files can reduce
+them by factor of five or more.  For this reason, if the name of an
+included PostScript file ends with `.Z' or `.gz', Dvips automatically
+runs `gzip -d'.  For example:
+
+     \epsffile[72 72 540 720]{foo.ps.gz}
+
+Since the results of such a command are not accessible to TeX, if you
+use this facility with the `epsf' macros, you need to supply the
+bounding box parameter yourself, as shown.
+
+  More generally, if the filename parameter to one of the graphics
+inclusion techniques starts with a left quote (``'), the parameter is
+instead interpreted as a command to execute that will send the actual
+file to standard output.  For example:
+
+     \special{psfile="`gnuplot foo"}
+
+to include the file `foo'.  Of course, the command to be executed can
+be anything, including using a file conversion utility such as `tek2ps'
+or whatever is appropriate.  This feature can be disabled with the `-R'
+command-line option or `R' configuration option.
+
+
+File: dvips.info,  Node: Fonts in figures,  Prev: Dynamic creation of graphics,  Up: PostScript figures
+
+Fonts in figures
+----------------
+
+  You can use any font available to TeX and Dvips within a graphics
+file by putting a `%*Font:' line in the leading commentary of the file.
+Schematically, this looks like:
+
+     %*Font: TFMNAME SCALEDBP DESIGNBP HEX-START:HEX-BITSTRING
+
+  Here is the meaning of each of these elements:
+
+TFMNAME
+     The TeX TFM filename, e.g., `cmr10'.  You can give the same
+     TFMNAME on more than one `%*Font' line; this is useful when the
+     number of characters from the font used needs a longer
+     HEX-BITSTRING (see item below) than conveniently fits on one line.
+
+SCALEDBP
+     The size at which you are using the font, in PostScript points (TeX
+     big points).  72bp = 72.27pt = 1in.
+
+DESIGNBP
+     The designsize of the font, again in PostScript points.  This
+     should match the value in the TFM file TFMNAME.  Thus, for `cmr10',
+     it should be `9.96265'.
+
+HEX-START
+     The character code of the first character used from the font,
+     specified as two ASCII hexadecimal characters, e.g., `4b' or `4B'
+     for `K'.
+
+HEX-BITSTRING
+     An arbitrary number of ASCII hexadecimal digits specifying which
+     characters following (and including) HEX-START are used.  This is
+     treated as a bitmap.  For example, if your figure used the single
+     letter `K', you would use `4b:8' for HEX-START and HEX-BITSTRING.
+     If it used `KLMNP', you would use `4b:f4'.
+
+  MetaPost's output figures contain lines like this for bitmap fonts
+used in a MetaPost label (*note MetaPost: (web2c)MetaPost.).
+
+
+File: dvips.info,  Node: Header files,  Next: Literal PS,  Prev: PostScript figures,  Up: Interaction with PostScript
+
+PostScript header files
+=======================
+
+  "Header files" are bits of PostScript included in the output file;
+generally they provide support for special features, rather than
+producing any printed output themselves.  You can explicitly request
+downloading header files if necessary for some figure, or to achieve
+some special effect.
+
+  Dvips includes some headers on its own initiative, to implement
+features such as PostScript font reencoding, bitmap font downloading,
+handling of `\special''s, and so on.  These standard headers are the
+`.pro' files (for "prologue") in the installation directory
+`$(psheaderdir)'; they are created from the `.lpro' ("long prologue")
+files in the distribution by stripping comments, squeezing blank lines,
+etc., for maximum efficiency.  If you want to peruse one of the
+standard header files, read the `.lpro' version.
+
+  The PostScript dictionary stack will be at the `userdict' level when
+header files are included.
+
+* Menu:
+
+* Including headers from TeX::
+* Including headers from the command line::
+* Headers and memory usage::
+
+
+File: dvips.info,  Node: Including headers from TeX,  Next: Including headers from the command line,  Up: Header files
+
+Including headers from TeX
+--------------------------
+
+  In order to get a particular graphic file to work, a certain font or
+header file might need to be sent first.  The Dvips program provides
+support for this with the `header' `\special'.  For instance, to ensure
+that `foo.ps' gets downloaded:
+
+     \special{header=foo.ps}
+
+  As another example, if you have some PostScript code that uses a
+PostScript font not built into your printer, you must download it to the
+printer. If the font isn't used elsewhere in the document, Dvips can't
+know you've used it, so you must include it in the same way, as in:
+
+     \special{header=putr.pfa}
+
+to include the font definition file for Adobe Utopia Roman.
+
+
+File: dvips.info,  Node: Including headers from the command line,  Next: Headers and memory usage,  Prev: Including headers from TeX,  Up: Header files
+
+Including headers from the command line
+---------------------------------------
+
+  You can include headers when you run Dvips, as well as from your
+document (see the previous section).  To do this, run Dvips with the
+option `-P HEADER'; this will read the file `config.HEADER', which in
+turn can specify a header file to be downloaded with the `h' option.
+*Note Configuration file commands::.  These files are called
+`HEADER.cfg' on MS-DOS.
+
+  You can arrange for the same file to serve as a `-P' config file and
+the downloadable header file, by starting the lines of PostScript code
+with a space, leaving only the `h' line and any comments starting in
+the first column.  As an example, see `contrib/volker/config.*'
+(`contrib/volker/*.cfg' on MS-DOS).  (These files also perform useful
+functions: controlling duplex/simplex mode on duplex printers, and
+setting various screen frequencies; `contrib/volker/README' explains
+further.)
+
+
+File: dvips.info,  Node: Headers and memory usage,  Prev: Including headers from the command line,  Up: Header files
+
+Headers and memory usage
+------------------------
+
+  Dvips tries to avoid overflowing the printer's memory by splitting the
+output files into "sections" (see the `-i' option in *Note Option
+details::).  Therefore, for all header files, Dvips debits the printer
+VM budget by some value.  If the header file has, in its leading
+commentary a line of the form
+
+     %%VMusage: MIN MAX
+
+then MAX is used.  If there is no `%%VMusage' line, then the size (in
+bytes) of the header file is used as an approximation.
+
+  Illustrations (figure files) are also checked for `%%VMusage' line.
+
+
+File: dvips.info,  Node: Literal PS,  Next: Hypertext,  Prev: Header files,  Up: Interaction with PostScript
+
+Literal PostScript
+==================
+
+  You can include literal PostScript code in your document in several
+ways.
+
+* Menu:
+
+* " special::                   To include inline PostScript code.
+* ps special::                  Inline PostScript without save/restore.
+* PostScript hooks::            Specifying code to run in the PS interpreter.
+* Literal headers::             Literal PostScript for the whole document.
+* Literal examples::            Neat example.
+
+
+File: dvips.info,  Node: " special,  Next: ps special,  Up: Literal PS
+
+`"' special: Literal PostScript
+-------------------------------
+
+  For simple graphics, or just for experimentation, literal PostScript
+code can be included.  Simply use a `\special' beginning with a double
+quote character `"'; there is no matching closing `"'.
+
+  For instance, the following (simple) graphic:
+
+  [ picture of a grey triangle ]
+
+was created by typing:
+
+     \vbox to 100bp{\vss % a bp is the same as a PostScript unit
+       \special{" newpath 0 0 moveto 100 100 lineto 394 0 lineto
+       closepath gsave 0.8 setgray fill grestore stroke}}
+
+  You are responsible for leaving space for such literal graphics, as
+with the `\vbox' above.
+
+
+File: dvips.info,  Node: ps special,  Next: PostScript hooks,  Prev: " special,  Up: Literal PS
+
+`ps' special
+------------
+
+  Generally, Dvips encloses specials in a PostScript save/restore pair,
+guaranteeing that the special will have no effect on the rest of the
+document.  The `ps' special, however, allows you to insert literal
+PostScript instructions without this protective shield; you should
+understand what you're doing (and you shouldn't change the PostScript
+graphics state unless you are willing to take the consequences).  This
+command can take many forms because it has had a torturous history; any
+of the following will work:
+
+     \special{ps:TEXT}
+     \special{ps::TEXT}
+     \special{ps::[begin]TEXT}
+     \special{ps::[end]TEXT}
+
+(with longer forms taking precedence over shorter forms, when they are
+present).  `ps::' and `ps::[end]' do no positioning, so they can be
+used to continue PostScript literals started with `ps:' or
+`ps::[begin]'.
+
+  In addition, the variant
+
+     \special{ps: plotfile FILENAME}
+
+inserts the contents of FILENAME verbatim into the output (except for
+omitting lines that begin with %).  An example of the proper use of
+literal specials can be found in the file `rotate.tex', which makes it
+easy to typeset text turned in multiples of 90 degrees.
+
+
+File: dvips.info,  Node: Literal headers,  Next: Literal examples,  Prev: PostScript hooks,  Up: Literal PS
+
+Literal headers: `!' `\special'
+-------------------------------
+
+  You can download literal PostScript header code in your TeX document,
+for use with (for example) literal graphics code that you include later.
+The text of a `\special' beginning with an `!' is copied into the
+output file.  A dictionary `SDict' will be current when this code is
+executed; Dvips arranges for `SDict' to be first on the dictionary
+stack when any PostScript graphic is included, whether literally (the
+`"' special) or through macros (e.g., `epsf.tex').
+
+  For example:
+
+     \special{! /reset { 0 0 moveto} def}
+
+
+File: dvips.info,  Node: PostScript hooks,  Next: Literal headers,  Prev: ps special,  Up: Literal PS
+
+PostScript hooks
+----------------
+
+  Besides including literal PostScript at a particular place in your
+document (as described in the previous section), you can also arrange to
+execute arbitrary PostScript code at particular times while the
+PostScript is printing.
+
+  If any of the PostScript names `bop-hook', `eop-hook', `start-hook',
+or `end-hook' are defined in `userdict', they will be executed at the
+beginning of a page, end of a page, start of the document, and end of a
+document, respectively.
+
+  When these macros are executed, the default PostScript coordinate
+system and origin is in effect.  Such macros can be defined in headers
+added by the `-h' option or the `header=' special, and might be useful
+for writing, for instance, `DRAFT' across the entire page, or, with the
+aid of a shell script, dating the document.  These macros are executed
+outside of the save/restore context of the individual pages, so it is
+possible for them to accumulate information, but if a document must be
+divided into sections because of memory constraints, such added
+information will be lost across section breaks.
+
+  The single argument to `bop-hook' is the physical page number; the
+first page gets zero, the second one, etc.  `bop-hook' must leave this
+number on the stack.  None of the other hooks are passed arguments.
+
+  As an example of what can be done, the following special will write a
+light grey `DRAFT' across each page in the document:
+
+     \special{!userdict begin /bop-hook{gsave 200 30 translate
+     65 rotate /Times-Roman findfont 216 scalefont setfont
+     0 0 moveto 0.7 setgray (DRAFT) show grestore}def end}
+
+  Using `bop-hook' or `eop-hook' to preserve information across pages
+breaks compliance with the Adobe document structuring conventions, so
+if you use any such tricks, you may also want to use the `-N' option to
+turn off structured comments (such as `%%Page').  Otherwise, programs
+that read your file will assume its pages are independent.
+
+
+File: dvips.info,  Node: Literal examples,  Prev: Literal headers,  Up: Literal PS
+
+Literal examples
+----------------
+
+  To finish off this section, the following examples of literal
+PostScript are presented without explanation:
+
+     \def\rotninety{\special{ps:currentpoint currentpoint translate 90
+     rotate neg exch neg exch translate}}\font\huge=cmbx10 at 14.4truept
+     \setbox0=\hbox to0pt{\huge A\hss}\vskip16truept\centerline{\copy0
+     \special{ps:gsave}\rotninety\copy0\rotninety\copy0\rotninety
+     \box0\special{ps:grestore}}\vskip16truept
+
+  [ There are 4 `A' characters, each rotated 90 degrees about a
+common center point ]
+
+     \vbox to 2truein{\special{ps:gsave 0.3 setgray}\hrule height 2in
+     width\hsize\vskip-2in\special{ps:grestore}\font\big=cminch\big
+     \vss\special{ps:gsave 1 setgray}\vbox to 0pt{\vskip2pt
+     \line{\hss\hskip4pt NEAT\hss}\vss}\special{ps:0 setgray}%
+     \hbox{\raise2pt\line{\hss NEAT\hss}\special{ps:grestore}}\vss}
+
+  [ There is a big gray box with the word `NEAT' inside in big letters ]
+
+  Some caveats are in order, however. Make sure that each `gsave' is
+matched with a `grestore' on the same page.  Do not use `save' and
+`restore'; they can interact with the PostScript generated by Dvips if
+care is not taken.  Try to understand what the above macros are doing
+before writing your own.  The `\rotninety' macro especially has a
+useful trick that appears again and again.
+
+
+File: dvips.info,  Node: Hypertext,  Prev: Literal PS,  Up: Interaction with PostScript
+
+HyperTeXt
+=========
+
+  Dvips has support for producing hypertext PostScript documents.  If
+you specify the `-z' option, the `html:' specials described below will
+be converted into `pdfmark' PostScript operators to specify links.
+Without `-z', `html:' specials are ignored.
+
+  The resulting PostScript can then be processed by a distiller program
+to make a PDF file.  (It can still be handled by ordinary PostScript
+interpreters as well.)  Various versions of both PC and Unix distillers
+are supported; Ghostscript includes limited distiller support (*note
+Ghostscript installation::.).
+
+  Macros you can use in your TeX document to insert the specials in the
+first place are available from `CTAN:/support/hypertex'.  For CTAN
+info, *note unixtex.ftp: (kpathsea)unixtex.ftp..
+
+  This hypertext support (and original form of the documentation) was
+written by Mark Doyle and Tanmoy Bhattacharya as the `dvihps' program.
+You can retrieve their software and additional documentation via the
+CTAN reference above.  You may also be interested in the Java previewer
+IDVI, available at `http://www.win.tue.nl/~dickie/idvi', and/or in
+`http://www.emrg.com/texpdf.html', which describes the process of
+making PDF files from TeX files in more detail.
+
+  Mail archives for the original project are at
+`http://math.albany.edu:8800/hm/ht/'.
+
+* Menu:
+
+* Hypertext caveats::       Bitmaps poorly supported, psi.
+* Hypertext specials::      The details on the specials.
+
+
+File: dvips.info,  Node: Hypertext caveats,  Next: Hypertext specials,  Up: Hypertext
+
+Hypertext caveats
+-----------------
+
+  If you intend to go all the way to PDF, you will probably want to use
+PostScript fonts exclusively, since the Adobe PDF readers are extremely
+slow when dealing with bitmap fonts.  Commercial versions of the
+Computer Modern fonts are available from Blue Sky; public domain
+versions are available from CTAN sites (for CTAN info, *note
+unixtex.ftp: (kpathsea)unixtex.ftp.) in:
+     fonts/postscript/bakoma
+     fonts/postscript/paradissa
+   You may need to modify these fonts; see
+`http://xxx.lanl.gov/faq/bakoma.html'.
+
+Also, the Adobe distillers prior to 2.1 drop trailing space characters
+(character code 32) from strings.  Unfortunately, the PostScript fonts
+use this character code for characters other than space (notably the
+Greek letter psi in the `Symbol' font), and so these characters are
+dropped.  This bug is fixed in version 2.1.
+
+  If you can't upgrade, One workaround is to change all the trailing
+blanks in strings to a character code that isn't in the font. This works
+because the default behavior is to substitute a blank for a missing
+character, i.e., the distiller is fooled into substituting the right
+character. For instance, with the Blue Sky fonts, you can globally
+replace ` )' with `\200)' (with `sed', for example) and get the desired
+result.  With the public domain fonts, you will probably have to use a
+character code in the range 128 to 191 since these fonts duplicate the
+first 32 characters starting at 192 to avoid MS-DOS problems.
+
+
+File: dvips.info,  Node: Hypertext specials,  Prev: Hypertext caveats,  Up: Hypertext
+
+Hypertext specials
+------------------
+
+  Current support for the World Wide Web in the TeX system does not
+involve modifying TeX itself.  We need only define some specials;
+Arthur Smith (<apsmith@aps.org>), Tanmoy Bhattacharya, and Paul
+Ginsparg originally proposed and implemented the following:
+     html:<a href="XURL">
+     html:<a name="NAME">
+     html:</a>
+     html:<img src="XURL">
+     html:<base href="XURL">
+
+  Like all TeX `\special''s, these produce no visible output, and are
+uninterpreted by TeX itself.  They are instructions to DVI processors
+only.
+
+  Here, XURL is a standard WWW uniform resource locator (URL), possibly
+extended with a `#TYPE.STRING' construct, where TYPE is `page',
+`section', `equation', `reference' (for bibliographic references),
+`figure', `table', etc.  For example,
+     \special{html:<a href="http://www.maths.tcd.ie/~tim/ch1.dvi#equation.1.1">}
+   is a link to equation (1.1) in an example document by Tim Murphy.
+
+See `http://www.w3.org/hypertext/WWW/Addressing/Addressing.html' for a
+precise description of base URL's.  (That itself is a URL, in case you
+were wondering.)
+
+  Descriptions of the `\special''s:
+`href'
+     Creates links in your TeX document. For example:
+          \special{html:<a href="http://www.tug.org/">}\TeX\ Users
+          Group\special{html:</a>}
+      The user will be able to click on the text `TeX Users Group'
+     while running Xdvi and get to the TUG home page.  (By the way,
+     this is for illustration. In practice, you most likely want to use
+     macros to insert the `\special' commands; reference above.)
+
+`name'
+     Defines URL targets in your TeX documents, so links can be
+     resolved. For example:
+          \special{html:<a name="#paradise">}Paradise\special{html:</a>}
+          is exactly where you are right now.
+     This will resolve an `href="paradise"'.
+
+`img'
+     Links to an arbitrary external file.  Interactively, a viewer is
+     spawned to read the file according to the file extension and your
+     `mailcap' file (see the Xdvi documentation).
+
+`base'
+     Defines a base URL that is prepended to all the `name' targets.
+     Typically unnecessary, as the name of the DVI file being read is
+     used by default.
+
+  The `img' and `base' tags are not yet implemented in Dvips or the
+NeXTSTEP DVI viewer.
+
+
+File: dvips.info,  Node: PostScript fonts,  Next: Color,  Prev: Interaction with PostScript,  Up: Top
+
+PostScript fonts
+****************
+
+  Dvips supports the use of PostScript fonts in TeX documents.  To use
+a PostScript font conveniently, you need to prepare a corresponding
+virtual font; the program Afm2tfm, supplied with Dvips, helps with that.
+
+  All the necessary support for the standard 35 PostScript fonts
+(`AvantGarde-Book' through `ZapfDingbats'), plus other freely or
+commonly available PostScript fonts is available along with Dvips.  To
+use these fonts, you need do nothing beyond what is mentioned in the
+installation procedure (*note Installation::.).  This chapter is
+therefore relevant only if you are installing new PostScript fonts not
+supplied with Dvips. (Or if you're curious.)
+
+* Menu:
+
+* Font concepts::               Metrics, glyphs, virtual fonts, and encodings.
+* Making a font available::     Installing and using a PostScript font.
+* Invoking afm2tfm::            Creating TFM and AFM files for a virtual font.
+* psfonts.map::                 Defining available PostScript fonts.
+
+
+File: dvips.info,  Node: Font concepts,  Next: Making a font available,  Up: PostScript fonts
+
+Font concepts
+=============
+
+  The information needed to typeset using a particular font is contained
+in two files: a "metric file" that contains shape-independent
+information and a "glyph file" that contains the actual shapes of the
+font's characters.  A "virtual font" is an optional additional file
+that can specify special ways to construct the characters.  TeX itself
+(or LaTeX) look only at the metric file, but DVI drivers such as Dvips
+look at all three of these files.
+
+  An "encoding file" defines the correspondence between the code
+numbers of the characters in a font and their descriptive names.  Two
+encoding files used together can describe a reencoding that rearranges,
+i.e., renumbers, the characters of a font.
+
+* Menu:
+
+* Metric files::                Shape-independent font information.
+* Glyph files::                 Character shapes.
+* Virtual fonts::               Constructing one font from others.
+* Encodings::                   Character codes and character names.
+* PostScript typesetting::      How PostScript typesets a character.
+

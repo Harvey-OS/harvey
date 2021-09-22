@@ -1,0 +1,11 @@
+#!/bin/sh
+# mktexdir.opt to determine various manipulations of the filenames.
+# Sourced from mktexdir.
+# 
+# te@informatik.uni-hannover.de and kb@mail.tug.org. Public domain.
+# $Id: mktexdir.opt,v 1.2 1997/11/30 12:29:46 olaf Exp $
+
+# Set append-only bit on created directories.
+case "$MT_FEATURES" in
+  *appendonlydir*) MT_APPEND_MASK=+t;;
+esac

@@ -1,0 +1,2065 @@
+# Generated automatically from Makefile.in by configure.
+# Makefile for web2c --kb@mail.tug.org. Public domain.
+version = 7.2
+
+# These lines define the memory dumps that fmts/bases/mems will make and
+# install-fmts/install-bases/install-mems will install. plain.* is
+# created automatically (as a link).  See the Formats node in
+# doc/web2c.texi for details on the fmts.
+fmts = latex.fmt # amstex.fmt eplain.fmt texinfo.fmt
+#E#efmts = elatex.efmt
+#C#cfmts = latex.efmt
+#P#pdffmts = pdflatex.fmt
+#O#ofmts = lambda.fmt
+bases = # I do not recommend building cmmf.base.
+mems =  # mfplain.mem is probably not generally useful.
+
+# The name of the file that defines your local devices for Metafont.
+# (Only relevant during `make bases'.)  I recommend `modes.mf', which
+# defines all known modes, plus useful definitions for all fonts.  It's
+# available from ftp://ftp.tug.org/tex/modes.mf, among other places.
+localmodes = modes
+
+# paths.make -- installation directories.
+#
+# The compile-time paths are defined in kpathsea/paths.h, which is built
+# from kpathsea/texmf.in and these definitions.  See kpathsea/INSTALL
+# for how the various path-related files are used and created.
+
+# Do not change prefix and exec_prefix in Makefile.in!
+# configure doesn't propagate the change to the other Makefiles.
+# Instead, give the -prefix/-exec-prefix options to configure.
+# (See kpathsea/INSTALL for more details.) This is arguably
+# a bug, but it's not likely to change soon.
+prefix = /usr/local
+exec_prefix = ${prefix}
+
+# Architecture-dependent executables.
+bindir = ${exec_prefix}/bin
+
+# Architecture-independent executables.
+scriptdir = $(bindir)
+
+# Architecture-dependent files, such as lib*.a files.
+libdir = ${exec_prefix}/lib
+
+# Architecture-independent files.
+datadir = ${prefix}/share
+
+# Header files.
+includedir = ${prefix}/include
+
+# GNU .info* files.
+infodir = ${prefix}/info
+
+# Unix man pages.
+manext = 1
+mandir = ${prefix}/man/man$(manext)
+
+# TeX system-specific directories. Not all of the following are relevant
+# for all programs, but it seems cleaner to collect everything in one place.
+
+# The default paths are now in kpathsea/texmf.in. Passing all the
+# paths to sub-makes can make the arg list too long on system V.
+# Note that if you make changes below, you will have to make the
+# corresponding changes to texmf.in or texmf.cnf yourself.
+
+# The root of the main tree.
+texmf = ${prefix}/share/texmf
+
+# The directory used by varfonts.
+vartexfonts = /var/tmp/texfonts
+
+# Regular input files.
+texinputdir = $(texmf)/tex
+mfinputdir = $(texmf)/metafont
+mpinputdir = $(texmf)/metapost
+mftinputdir = $(texmf)/mft
+
+# dvips's epsf.tex, rotate.tex, etc. get installed here;
+# ditto for dvilj's fonts support.
+dvips_plain_macrodir = $(texinputdir)/plain/dvips
+dvilj_latex2e_macrodir = $(texinputdir)/latex/dvilj
+
+# mktex.cnf, texmf.cnf, etc.
+web2cdir = $(texmf)/web2c
+
+# The top-level font directory.
+fontdir = $(texmf)/fonts
+
+# Memory dumps (.fmt/.base/.mem).
+fmtdir = $(web2cdir)
+basedir = $(fmtdir)
+memdir = $(fmtdir)
+
+# Pool files.
+texpooldir = $(web2cdir)
+mfpooldir = $(texpooldir)
+mppooldir = $(texpooldir)
+
+# Where the .map files from fontname are installed.
+fontnamedir = $(texmf)/fontname
+
+# For dvips configuration files, psfonts.map, etc.
+dvipsdir = $(texmf)/dvips
+
+# For dvips .pro files, gsftopk's render.ps, etc.
+psheaderdir = $(dvipsdir)
+
+# If a font can't be found close enough to its stated size, we look for
+# each of these sizes in the order given.  This colon-separated list is
+# overridden by the envvar TEXSIZES, and by a program-specific variable
+# (e.g., XDVISIZES), and perhaps by a config file (e.g., in dvips).
+# This list must be sorted in ascending order.
+default_texsizes = 300:600
+
+# End of paths.make.
+
+# Used for triptrap.
+DIFF = diff
+DIFFFLAGS =
+
+.SUFFIXES: # get rid of .p.o
+# common.make -- used by all Makefiles.
+SHELL = /bin/sh
+
+top_srcdir = .
+srcdir = .
+
+CC = c89
+CFLAGS = -g $(XCFLAGS)
+CPPFLAGS =  $(XCPPFLAGS)
+DEFS = -DHAVE_CONFIG_H $(XDEFS)
+
+# Kpathsea needs this for compiling, programs need it for linking.
+LIBTOOL = $(kpathsea_srcdir_parent)/klibtool
+
+# You can change [X]CPPFLAGS, [X]CFLAGS, or [X]DEFS, but
+# please don't change ALL_CPPFLAGS or ALL_CFLAGS.
+# prog_cflags is set by subdirectories of web2c.
+ALL_CPPFLAGS = $(DEFS) -I. -I$(srcdir) $(prog_cflags) \
+  -I$(kpathsea_parent) -I$(kpathsea_srcdir_parent) $(CPPFLAGS)
+ALL_CFLAGS = $(ALL_CPPFLAGS) $(CFLAGS) -c
+compile = $(CC) $(ALL_CFLAGS)
+
+.SUFFIXES: .c .o # in case the suffix list has been cleared, e.g., by web2c
+.c.o:
+	$(compile) $<
+
+# Installation.
+INSTALL = /usr/rsc/tex/web2c/web2c/./../install.sh -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_SCRIPT = $(INSTALL_PROGRAM)
+INSTALL_DATA = ${INSTALL} -m 644
+INSTALL_LIBTOOL_LIBS = INSTALL_DATA='$(INSTALL_DATA)' $(LIBTOOL) install-lib
+INSTALL_LIBTOOL_PROG = INSTALL_PROGRAM='$(INSTALL_PROGRAM)' $(LIBTOOL) install-prog
+
+# Creating (symbolic) links.
+LN = ln
+
+# We use these for many things.
+kpathsea_parent = ..
+kpathsea_dir = $(kpathsea_parent)/kpathsea
+kpathsea_srcdir_parent = $(top_srcdir)/..
+kpathsea_srcdir = $(kpathsea_srcdir_parent)/kpathsea
+kpathsea = $(kpathsea_dir)/libkpathsea.a8
+
+#M#ifeq ($(CC), gcc)
+#M#XDEFS = -D__USE_FIXED_PROTOTYPES__ -Wall -Wpointer-arith $(warn_more)
+#M#CFLAGS = -pipe -g $(XCFLAGS)
+#M#endif
+# End of common.make.
+# programs.make -- used by Makefiles for executables only.
+
+# Don't include $(CFLAGS), since ld -g under Linux forces
+# static libraries, e.g., libc.a and libX*.a.
+LDFLAGS =  $(XLDFLAGS)
+
+# proglib is for web2c; 
+# XLOADLIBES is for the installer.
+LIBS =  -ldir
+LOADLIBES = $(proglib) $(LIBS) -lm $(XLOADLIBES)
+
+# May as well separate linking from compiling, just in case.
+CCLD = $(CC)
+link_command = $(CCLD) -o $@ $(LDFLAGS) 
+
+# When we link with Kpathsea, have to take account that it might be a
+# shared library, etc.
+kpathsea_link = $(LIBTOOL) link $(link_command)
+# End of programs.make.
+
+#M#ifeq ($(CC), gcc)
+#M#XDEFS = -Wimplicit -Wreturn-type -Wcomment -Wformat -D__USE_FIXED_PROTOTYPES__
+#M#endif
+
+# Make `#include <X11/...>' and `-lX...' work.
+# This matches xdvik.
+# wlibs is substituted by web2c's configure, LIBS by general configure
+# routines, and the others by AC_PATH_XTRA.
+# All the x_... variables will be empty if we aren't supporting X.
+x_cppflags = 
+x_ldflags = 
+x_pre_libs = 
+x_extra_libs = 
+x_tool_libs = 
+x_ext_lib = 
+wlibs = 
+# Follow the library order used in X11R6 itself:
+#   -lXaw -lXmu -lXt -lSM -lICE -lXext -lX11 (some may not be present).
+windowlink = $(windowlib) $(x_ldflags) $(x_tool_libs) $(x_pre_libs) $(x_ext_lib) $(wlibs) $(x_extra_libs)
+
+# With --enable-ipc, TeX may need to link with -lsocket.
+socketlibs = 
+
+common_makeargs = $(MFLAGS) CC='$(CC)' CFLAGS='$(CFLAGS)' $(XMAKEARGS)
+window_makeargs = x_cppflags='$(x_cppflags)' $(common_makeargs)
+install_makeargs = INSTALL='$(INSTALL)' INSTALL_DATA='$(INSTALL_DATA)' \
+  INSTALL_PROGRAM='$(INSTALL_PROGRAM)' \
+  $(makevars) $(common_makeargs)  
+
+proglib = lib/lib.a
+windowlib = window/window.a
+#P#pdflib = pdftexdir/libpdf.a
+#P#pnglib = 
+#P#zlib = 
+#P#pdftexlibs = $(pdflib) $(pnglib) $(zlib)
+#P#pdftexlibsdep = $(pdflib) 
+
+# The sh script that does the conversion:
+web2c = srcdir=$(srcdir) $(shared_env) $(SHELL) $(srcdir)/web2c/convert
+# Additional dependencies:
+web2c_aux = web2c/convert web2c/common.defines
+web2c_programs = web2c/fixwrites web2c/splitup web2c/web2c
+
+# Unfortunately, suffix rules can't have dependencies, or multiple
+# targets, and we can't assume all makes supports pattern rules.
+.SUFFIXES: .p .c .ch .p
+.p.c: # really depends on $(web2c_programs), and generates .h.
+	$(web2c) $*
+.ch.p: # really depends on ./tangle; for mf/mp/tex, also generates .pool
+	$(shared_env) ./tangle $(srcdir)/$*.web $<
+
+# These definitions have to come before the rules that expand them.
+# The *{ini,[0-2]}.c files are created by splitup, run as part of convert.
+# {mf,mp,tex}extra.c are created from lib/texmfmp.c, below.
+mf_c = mfini.c mf0.c mf1.c mf2.c
+mf_o = mfini.o mf0.o mf1.o mf2.o mfextra.o
+mp_c = mpini.c mp0.c mp1.c mp2.c
+mp_o = mpini.o mp0.o mp1.o mp2.o mpextra.o
+tex_c = texini.c tex0.c tex1.c tex2.c
+tex_o = texini.o tex0.o tex1.o tex2.o texextra.o
+
+other_c = bibtex.c dvicopy.c dvitomp.c dvitype.c gftodvi.c gftopk.c gftype.c \
+  mft.c patgen.c pktogf.c pktype.c pltotf.c pooltype.c tangle.c tftopl.c \
+  vftovp.c vptovf.c weave.c
+all_c = $(other_c) $(mf_c) $(mp_c) $(tex_c) $(etex_c) $(pdftex_c) $(omega_c) \
+  $(omegaware_c)
+
+# Prevent Make from deleting the intermediate forms.
+.PRECIOUS: %.ch %.p %.c
+
+tex = tex
+#E#etex = etex
+#P#pdftex = pdftex
+#O#omega = omega
+#O#odvicopy = odvicopy
+#O#odvitype = odvitype
+#O#ofm2opl = ofm2opl
+#O#opl2ofm = opl2ofm
+#O#ovf2ovp = ovf2ovp
+#O#ovp2ovf = ovp2ovf
+#O#otangle = otangle
+programs = tie bibtex dvicopy dvitomp dvitype $(etex) gftodvi gftopk \
+gftype mf mft mpost $(odvicopy) $(odvitype) $(ofm2opl) $(omega) \
+$(opl2ofm) $(ovf2ovp) $(ovp2ovf) $(otangle) patgen $(pdftex) pktogf pktype \
+pltotf pooltype tangle $(tex) tftopl vftovp vptovf weave
+
+mpware = mpware/dmp mpware/makempx mpware/mpto mpware/newer
+mpware_sources = mpware/dmp.c mpware/makempx.in mpware/mpto.c mpware/newer.c
+
+#O#otps_programs = otps/otp2ocp otps/outocp
+
+#  
+default all: programs formats manpages doc/web2c.info
+programs: $(programs) $(mpware) $(otps_programs)
+
+# Makefile fragments:
+
+# Rules to link each program. I wish we could use a suffix rule for
+# this, since it's so repetitive, but null suffixes don't work. And old
+# makes don't support pattern rules. Doomed to forever cater to obsolesence.
+bibtex: bibtex.o
+	$(kpathsea_link) bibtex.o $(LOADLIBES)
+dvicopy: dvicopy.o
+	$(kpathsea_link) dvicopy.o $(LOADLIBES)
+dvitomp: dvitomp.o
+	$(kpathsea_link) dvitomp.o $(LOADLIBES)
+dvitype: dvitype.o
+	$(kpathsea_link) dvitype.o $(LOADLIBES)
+etex: $(etex_o)
+	$(kpathsea_link) $(etex_o) $(socketlibs) $(LOADLIBES)
+gftodvi: gftodvi.o
+	$(kpathsea_link) gftodvi.o $(LOADLIBES)
+gftopk: gftopk.o
+	$(kpathsea_link) gftopk.o $(LOADLIBES)
+gftype: gftype.o
+	$(kpathsea_link) gftype.o $(LOADLIBES)
+mf: $(mf_o) $(windowlib)
+	$(kpathsea_link) $(mf_o) $(windowlink) $(LOADLIBES)
+mft: mft.o
+	$(kpathsea_link) mft.o $(LOADLIBES)
+mpost: $(mp_o)
+	$(kpathsea_link) $(mp_o) $(LOADLIBES)
+odvicopy: odvicopy.o
+	$(kpathsea_link) odvicopy.o $(LOADLIBES)
+odvitype: odvitype.o
+	$(kpathsea_link) odvitype.o $(LOADLIBES)
+ofm2opl: ofm2opl.o
+	$(kpathsea_link) ofm2opl.o $(LOADLIBES)
+omega: $(omega_o)
+	$(kpathsea_link) $(omega_o) $(socketlibs) $(LOADLIBES)
+opl2ofm: opl2ofm.o
+	$(kpathsea_link) opl2ofm.o $(LOADLIBES)
+ovf2ovp: ovf2ovp.o
+	$(kpathsea_link) ovf2ovp.o $(LOADLIBES)
+ovp2ovf: ovp2ovf.o
+	$(kpathsea_link) ovp2ovf.o $(LOADLIBES)
+patgen: patgen.o
+	$(kpathsea_link) patgen.o $(LOADLIBES)
+pdftex: $(pdftex_o) $(pdftexextra_o) $(pdftexlibsdep)
+	$(kpathsea_link) $(pdftex_o) $(pdftexextra_o) $(pdftexlibs) $(socketlibs) $(LOADLIBES)
+pktogf: pktogf.o
+	$(kpathsea_link) pktogf.o $(LOADLIBES)
+pktype: pktype.o
+	$(kpathsea_link) pktype.o $(LOADLIBES)
+pltotf: pltotf.o
+	$(kpathsea_link) pltotf.o $(LOADLIBES)
+pooltype: pooltype.o
+	$(kpathsea_link) pooltype.o $(LOADLIBES)
+tex: $(tex_o)
+	$(kpathsea_link) $(tex_o) $(socketlibs) $(LOADLIBES)
+tie: tie.o
+	$(kpathsea_link) tie.o
+tftopl: tftopl.o
+	$(kpathsea_link) tftopl.o $(LOADLIBES)
+vftovp: vftovp.o
+	$(kpathsea_link) vftovp.o $(LOADLIBES)
+vptovf: vptovf.o
+	$(kpathsea_link) vptovf.o $(LOADLIBES)
+weave: weave.o
+	$(kpathsea_link) weave.o $(LOADLIBES)
+
+# We put some programs (written directly in C) in a subdirectory.
+$(mpware): $(mpware_sources)
+	cd mpware && $(MAKE) $(common_makeargs)
+
+# Additional dependencies for retangling.
+bibtex.p dvicopy.p dvitomp.p dvitype.p etex.p gftopk.p gftodvi.p gftype.p \
+  mf.p mft.p mp.p odvicopy.p odvitype.p ofm2opl.p omega.p opl2ofm.p \
+  ovf2ovp.p ovp2ovf.p patgen.p pdftex.p pktogf.p pktype.p pltotf.p \
+  pooltype.p tex.p tftopl.p vftovp.p vptovf.p weave.p: tangle
+# We need to be explicit for a number of programs because there is a
+# $(srcdir) in the suffix rule.  This also means we can use a different
+# suffix for the change file than .ch, if we want to.
+bibtex.p: bibtex.web bibtex.ch
+dvicopy.p: dvicopy.web dvicopy.ch
+dvitomp.p: dvitomp.web dvitomp.ch
+dvitype.p: dvitype.web dvitype.ch
+etex.p etex.pool: etex.web etex.ch
+	$(shared_env) ./tangle etex.web etex.ch
+gftodvi.p: gftodvi.web gftodvi.ch
+gftopk.p: gftopk.web gftopk.ch
+gftype.p: gftype.web gftype.ch
+mf.p mf.pool: mf.web mf.ch
+mp.p mp.pool: mp.web mp.ch
+mft.p: mft.web mft.ch
+odvicopy.p: odvicopy.web odvicopy.ch
+	$(shared_env) ./tangle odvicopy.web odvicopy.ch
+odvitype.p: odvitype.web odvitype.ch
+	$(shared_env) ./tangle odvitype.web odvitype.ch
+ofm2opl.p: ofm2opl.web ofm2opl.ch
+	$(shared_env) ./tangle ofm2opl.web ofm2opl.ch
+omega.p omega.pool: otangle omega.web omega.ch
+	$(shared_env) ./otangle omega.web omega.ch
+opl2ofm.p: opl2ofm.web opl2ofm.ch
+	$(shared_env) ./tangle opl2ofm.web opl2ofm.ch
+ovf2ovp.p: ovf2ovp.web ovf2ovp.ch
+	$(shared_env) ./otangle ovf2ovp.web ovf2ovp.ch
+ovp2ovf.p: ovp2ovf.web ovp2ovf.ch
+	$(shared_env) ./otangle ovp2ovf.web ovp2ovf.ch
+patgen.p: patgen.web patgen.ch
+pdftex.p pdftex.pool: pdftex.web pdftex.ch
+	$(shared_env) ./tangle pdftex.web pdftex.ch
+pktogf.p: pktogf.web pktogf.ch
+pktype.p: pktype.web pktype.ch
+pltotf.p: pltotf.web pltotf.ch
+pooltype.p: pooltype.web pooltype.ch
+tex.p tex.pool: tex.web tex.ch
+tftopl.p: tftopl.web tftopl.ch
+vftovp.p: vftovp.web vftovp.ch
+vptovf.p: vptovf.web vptovf.ch
+weave.p: weave.web weave.ch
+
+# Additional dependencies for reconverting to C.
+$(other_c): $(web2c_aux) $(web2c_programs)
+bibtex.c: web2c/cvtbib.sed
+c-sources: $(all_c)
+
+# Metafont and TeX generate more than .c file.
+web2c_texmf = $(web2c_aux) $(web2c_programs) web2c/texmf.defines
+$(etex_c) etexcoerce.h etexd.h: etex.p $(web2c_texmf)
+	$(web2c) etex
+$(mf_c) mfcoerce.h mfd.h: mf.p $(web2c_texmf) web2c/cvtmf1.sed web2c/cvtmf2.sed
+	$(web2c) mf
+$(mp_c) mpcoerce.h mpd.h: mp.p $(web2c_texmf) web2c/cvtmf1.sed web2c/cvtmf2.sed
+	$(web2c) mp
+$(omega_c) omegacoerce.h omegad.h: omega.p $(web2c_texmf)
+	$(web2c) omega
+$(pdftex_c) pdftexcoerce.h pdftexd.h: pdftex.p $(web2c_texmf)
+	$(web2c) pdftex
+$(tex_c) texcoerce.h texd.h: tex.p $(web2c_texmf)
+	$(web2c) tex
+
+# As long as we have to have separate rules to create these, might as well do
+# a little work to avoid separate compilation rules, too.
+etexextra.c: lib/texmfmp.c
+	sed s/TEX-OR-MF-OR-MP/etex/ $(srcdir)/lib/texmfmp.c >$@
+mfextra.c: lib/texmfmp.c
+	sed s/TEX-OR-MF-OR-MP/mf/ $(srcdir)/lib/texmfmp.c >$@
+mpextra.c: lib/texmfmp.c
+	sed s/TEX-OR-MF-OR-MP/mp/ $(srcdir)/lib/texmfmp.c >$@
+omegaextra.c: lib/texmfmp.c
+	sed s/TEX-OR-MF-OR-MP/omega/ $(srcdir)/lib/texmfmp.c >$@
+pdftexextra.c: lib/texmfmp.c
+	sed s/TEX-OR-MF-OR-MP/pdftex/ $(srcdir)/lib/texmfmp.c >$@
+texextra.c: lib/texmfmp.c
+	sed s/TEX-OR-MF-OR-MP/tex/ $(srcdir)/lib/texmfmp.c >$@
+
+# A special rule for tie
+tie.c: tiedir/tie.c
+	-rm -f $@
+	$(LN) $(srcdir)/tiedir/tie.c $@
+
+# Additional dependencies for recompiling the C code are generated
+# automatically, included at the end.
+
+# Additional dependencies for relinking.
+$(web2c_programs) $(programs) otangle otangleboot tangle tangleboot: \
+ $(proglib)
+
+# 
+# Bootstrapping tangle requires making it with itself.  We use the opportunity
+# to create an up-to-date tangleboot as well.
+tangle: tangle.o
+	$(kpathsea_link) tangle.o $(LOADLIBES)
+	$(MAKE) $(common_makeargs) tangleboot.p
+# tangle.p is a special case, since it is needed to compile itself.  We
+# convert and compile the (distributed) tangleboot.p to make a tangle
+# which we use to make the other programs.
+tangle.p: tangleboot tangle.web tangle.ch
+	$(shared_env) ./tangleboot $(srcdir)/tangle.web $(srcdir)/tangle.ch
+tangle.web:
+	@echo "You seem to be missing tangle.web, perhaps because you" >&2
+	@echo "didn't retrieve web.tar.gz, only web2c.tar.gz." >&2
+	@echo "You need both." >&2
+	@echo >&2
+	@echo "web.tar.gz should be available from the" >&2
+	@echo "same place that you got web2c.tar.gz." >&2
+	@echo "In any case, you can get it from" >&2
+	@echo "ftp://ftp.tug.org/tex/web.tar.gz." >&2
+	false
+
+tangleboot: tangleboot.o
+	$(kpathsea_link) tangleboot.o $(LOADLIBES)
+tangleboot.c tangleboot.h: stamp-tangle $(web2c_programs) $(web2c_aux)
+	$(web2c) tangleboot
+# tangleboot.p is in the distribution
+stamp-tangle: tangleboot.p
+	date >stamp-tangle
+# This is not run unless tangle.web or tangle.ch is changed.
+tangleboot.p: tangle.web tangle.ch
+	$(shared_env) ./tangle $(srcdir)/tangle.web $(srcdir)/tangle.ch
+	mv tangle.p tangleboot.p
+	date >stamp-tangle
+	$(MAKE) $(common_makeargs) tangle
+
+# Even web2c itself uses the library.
+# It's annoying to have to give all the filenames here, 
+# but texmfmp.c is an exception.
+lib_sources = lib/alloca.c lib/basechsuffix.c lib/chartostring.c \
+  lib/eofeoln.c lib/fprintreal.c lib/input2int.c lib/inputint.c lib/main.c \
+  lib/openclose.c lib/printversion.c lib/uexit.c lib/usage.c lib/version.c \
+  lib/zround.c 
+$(proglib): $(lib_sources) stamp-auto
+	cd lib && $(MAKE) $(common_makeargs)
+
+# No exceptions in this library.
+
+# The web2c program consists of several executables.
+web2c/fixwrites: web2c/fixwrites.c
+	cd web2c && $(MAKE) $(common_makeargs) fixwrites
+web2c/splitup: web2c/splitup.c
+	cd web2c && $(MAKE) $(common_makeargs) splitup
+web2c/web2c: web2c/main.c web2c/web2c.h web2c/web2c.l web2c/web2c.y
+	cd web2c && $(MAKE) $(common_makeargs) web2c
+
+# tkpathsea.make -- target for remaking kpathsea.
+makeargs = $(MFLAGS) CC='$(CC)' CFLAGS='$(CFLAGS)' $(XMAKEARGS)
+
+# This is wrong: the library doesn't depend on kpsewhich.c or
+# acconfig.h.  But what to do?
+# $(kpathsea): $(kpathsea_srcdir)/*.c $(kpathsea_srcdir)/*.h \
+# 	     $(kpathsea_srcdir)/texmf.in $(top_srcdir)/../make/paths.make
+# 	cd $(kpathsea_dir) && $(MAKE) $(makeargs)
+# End of tkpathsea.make.
+$(kpathsea): 
+
+# 
+# Making formats and bases.
+all_fmts = tex.fmt $(fmts)
+#E#all_efmts = etex.efmt $(efmts)
+#C#all_cfmts = tex.efmt $(cfmts)
+#O#all_ofmts = omega.fmt $(ofmts)
+#P#all_pdffmts = pdftex.fmt $(pdffmts)
+all_bases = mf.base $(bases)
+all_mems = mpost.mem $(mems)
+
+dumpenv = TEXMFCNF=../kpathsea TEXMF=$(texmf)
+
+formats: fmts efmts cfmts ofmts pdffmts bases mems
+fmts: $(all_fmts)
+efmts: $(all_efmts)
+cfmts: $(all_cfmts)
+ofmts: $(all_ofmts)
+pdffmts: $(all_pdffmts)
+bases: $(all_bases)
+mems: $(all_mems)
+
+tex.fmt: tex
+	$(dumpenv) $(MAKE) $(makeargs) files="--progname=tex plain.tex cmr10.tfm" prereq-check
+	$(dumpenv) ./tex --fmt=tex --ini \\input plain \\dump </dev/null
+
+latex.fmt: tex
+	$(dumpenv) $(MAKE) $(makeargs) files="--progname=latex latex.ltx" prereq-check
+	$(dumpenv) ./tex --progname=latex --ini \\input latex.ltx </dev/null
+
+etex.efmt: etex
+	$(dumpenv) $(MAKE) files="--progname=etex etex.src plain.tex cmr10.tfm" prereq-check
+	$(dumpenv) ./etex --efmt=etex --ini \*\\input etex.src \\dump </dev/null
+
+elatex.efmt: etex
+	$(dumpenv) $(MAKE) files="--progname=elatex latex.ltx" prereq-check
+	$(dumpenv) ./etex --efmt=elatex --ini \*\\input latex.ltx </dev/null
+
+tex.efmt: etex
+	$(dumpenv) $(MAKE) files="--progname=tex plain.tex cmr10.tfm" prereq-check
+	$(dumpenv) ./etex --efmt=tex --ini \\input plain \\dump </dev/null
+
+latex.efmt: etex
+	$(dumpenv) $(MAKE) files="--progname=latex latex.ltx" prereq-check
+	$(dumpenv) ./etex --progname=latex --ini \\input latex.ltx </dev/null
+
+omega.fmt: omega
+	$(dumpenv) $(MAKE) files="--progname=omega omega.tex" prereq-check
+	$(dumpenv) ./omega --ini \\input omega.tex \\dump </dev/null
+
+lambda.fmt: omega
+	$(dumpenv) $(MAKE) files="--progname=lambda lambda.tex" prereq-check
+	$(dumpenv) ./omega --ini --progname=lambda \\input lambda.tex </dev/null
+
+pdftex.fmt: pdftex
+	$(dumpenv) $(MAKE) files="--progname=pdftex plain.tex cmr10.tfm" prereq-check
+	$(dumpenv) ./pdftex --fmt=pdftex --ini \\pdfoutput=1 \\input plain \\dump </dev/null
+
+pdflatex.fmt: pdftex
+	$(dumpenv) $(MAKE) files="--progname=pdflatex latex.ltx" prereq-check
+	$(dumpenv) ./pdftex --fmt=pdflatex --ini \\pdfoutput=1 \\input latex.ltx </dev/null
+
+pdftexinfo.fmt: pdftex
+	$(dumpenv) $(MAKE) files="--progname=pdftexinfo pdftexinfo.ini" prereq-check
+	$(dumpenv) ./pdftex --progname=pdftexinfo --ini pdftexinfo.ini </dev/null
+
+mltex.fmt: tex
+	$(dumpenv) $(MAKE) files="--progname=mltex plain.tex cmr10.tfm" prereq-check
+	$(dumpenv) ./tex --mltex --fmt=mltex --ini \\input plain \\dump </dev/null
+
+mllatex.fmt: tex
+	$(dumpenv) $(MAKE) files="--progname=mllatex latex.ltx" prereq-check
+	$(dumpenv) ./tex --mltex --fmt=mllatex --ini \\input latex.ltx </dev/null
+
+mf.base: mf
+	$(dumpenv) $(MAKE) $(makeargs) files="plain.mf cmr10.mf $(localmodes).mf" prereq-check
+	$(dumpenv) ./mf --base=mf --ini \\input plain input $(localmodes) dump </dev/null
+
+mpost.mem: mpost
+	$(dumpenv) $(MAKE) $(makeargs) files=plain.mp prereq-check
+	$(dumpenv) ./mpost --mem=mpost --ini \\input plain dump </dev/null
+
+# This is meant to be called recursively, with $(files) set.
+prereq-check: $(kpathsea_dir)/kpsewhich
+	$(kpathsea_dir)/kpsewhich $(files) >/dev/null || $(MAKE) prereq-lose >/dev/null
+
+prereq-lose:
+	@echo "You seem to be missing input files necessary to make the" >&2
+	@echo "basic formats (some or all of: $(files))." >&2
+	@echo "Perhaps you've defined the default paths incorrectly, or" >&2
+	@echo "perhaps you have environment variables set pointing" >&2
+	@echo "to an incorrect location.  See ../kpathsea/BUGS." >&2
+	@echo >&2
+	@echo "If you simply do not have the files, you can" >&2
+	@echo "retrieve a minimal set of input files from" >&2
+	@echo "ftp://ftp.tug.org/tex/texklib.tar.gz, mirrored on" >&2
+	@echo "CTAN hosts in systems/web2c." >&2
+	false
+
+$(kpathsea_dir)/kpsewhich: $(kpathsea)
+
+amstex.fmt: tex
+	$(dumpenv) ./tex --progname=amstex --ini amstex.ini </dev/null
+
+# Texinfo changes the escape character from `\' to `@'.
+texinfo.fmt: tex.fmt
+	$(dumpenv) ./tex --progname=texinfo --ini texinfo @dump </dev/null
+
+eplain.fmt: tex.fmt
+	touch eplain.aux # Makes cross-reference warnings work right.
+	$(dumpenv) ./tex --progname=eplain --ini \&./tex eplain \\dump </dev/null
+
+# 
+install: install-exec install-data
+install-exec:: install-links
+install-data:: install-formats
+
+# The actual binary executables and pool files.
+install-programs: $(programs)
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(bindir) $(texpooldir) \
+	  $(mfpooldir) $(mppooldir)
+	cd mpware && $(MAKE) $(install_makeargs) install-exec
+	for p in $(programs); do $(INSTALL_LIBTOOL_PROG) $(bindir) $$p; done
+#O#	cd otps && $(MAKE) $(install_makeargs) install-programs
+
+# The links to {mf,mp,tex} for each format and for {ini,vir}{mf,mp,tex},
+# plust the equivalents for e-TeX, Omega, and PDFTeX.
+install-links: install-programs
+	cd $(bindir) && (rm -f initex virtex; \
+	  $(LN) tex initex; $(LN) tex virtex)
+#E#	cd $(bindir) && (rm -f einitex evirtex; \
+#E#	  $(LN) etex einitex; $(LN) etex evirtex)
+#C#	cd $(bindir) && (rm -f tex initex virtex; \
+#C#	  $(LN) etex tex; $(LN) etex initex; $(LN) etex virtex)
+#O#	cd $(bindir) && (rm -f iniomega viromega; \
+#O#	  $(LN) omega iniomega; $(LN) omega viromega)
+#P#	cd $(bindir) && (rm -f pdfinitex pdfvirtex; \
+#P#	  $(LN) pdftex pdfinitex; $(LN) pdftex pdfvirtex)
+	cd $(bindir) && (rm -f inimf virmf; \
+	  $(LN) mf inimf; $(LN) mf virmf)
+	cd $(bindir) && (rm -f inimpost virmpost; \
+	  $(LN) mpost inimpost; $(LN) mpost virmpost)
+# The ugly "" avoids a syntax error in case the lists are empty.
+	test -z "$(fmts)" || \
+	  for f in ""$(fmts); do base=`basename $$f .fmt`; \
+	    (cd $(bindir) && (rm -f $$base; $(LN) tex $$base)); done
+	test -z "$(efmts)" || \
+	  for f in ""$(efmts); do base=`basename $$f .efmt`; \
+	    (cd $(bindir) && (rm -f $$base; $(LN) etex $$base)); done
+	test -z "$(cfmts)" || \
+	  for f in ""$(cfmts); do base=`basename $$f .efmt`; \
+	    (cd $(bindir) && (rm -f $$base; $(LN) etex $$base)); done
+	test -z "$(ofmts)" || \
+	  for f in ""$(ofmts); do base=`basename $$f .fmt`; \
+	    (cd $(bindir) && (rm -f $$base; $(LN) omega $$base)); done
+	test -z "$(pdffmts)" || \
+	  for f in ""$(pdffmts); do base=`basename $$f .fmt`; \
+	    (cd $(bindir) && (rm -f $$base; $(LN) pdftex $$base)); done
+	test -z "$(bases)" || \
+	  for f in ""$(bases); do base=`basename $$f .base`;\
+	    (cd $(bindir) && (rm -f $$base; $(LN) mf $$base)); done
+	test -z "$(mems)" || \
+	  for f in ""$(mems); do base=`basename $$f .mem`; \
+            (cd $(bindir) && (rm -f $$base; $(LN) mpost $$base)); done
+
+# Always do plain.*, so examples from the TeXbook (etc.) will work.
+install-formats: install-fmts install-bases install-mems
+install-fmts: $(all_fmts) $(all_efmts) $(all_cfmts) $(all_ofmts) $(all_pdffmts)
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(fmtdir)
+	for f in $(all_fmts) $(all_efmts) $(all_cfmts) $(all_ofmts) $(all_pdffmts); \
+          do $(INSTALL_DATA) $$f $(fmtdir)/$$f; done
+	cd $(fmtdir) && (rm -f plain.fmt; $(LN) tex.fmt plain.fmt)
+#C#	cd $(fmtdir) && (rm -f plain.efmt; $(LN) tex.efmt plain.efmt)
+
+install-bases: $(all_bases)
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(basedir)
+	for f in $(all_bases); do $(INSTALL_DATA) $$f $(basedir)/$$f; done
+	cd $(basedir) && (rm -f plain.base; $(LN) mf.base plain.base)
+
+install-mems: $(all_mems)
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(memdir)
+	for f in $(all_mems); do $(INSTALL_DATA) $$f $(memdir)/$$f; done
+	cd $(memdir) && (rm -f plain.mem; $(LN) mpost.mem plain.mem)
+
+# Auxiliary files.
+install-data::
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(texpooldir) $(mfpooldir) $(mppooldir) $(web2cdir) $(fontnamedir)
+	$(INSTALL_DATA) tex.pool $(texpooldir)/tex.pool
+#E#	$(INSTALL_DATA) etex.pool $(texpooldir)/etex.pool
+#O#	$(INSTALL_DATA) omega.pool $(texpooldir)/omega.pool
+#P#	$(INSTALL_DATA) pdftex.pool $(texpooldir)/pdftex.pool
+	$(INSTALL_DATA) mf.pool $(mfpooldir)/mf.pool
+	$(INSTALL_DATA) mp.pool $(mppooldir)/mp.pool
+# tcx files are a bad idea
+#	cd $(srcdir)/share && for f in *.tcx; do \
+#	  $(INSTALL_DATA) $$f $(web2cdir)/$$f; done
+	cd $(srcdir)/share && for f in *.map; do \
+	  $(INSTALL_DATA) $$f $(fontnamedir)/$$f; done
+	cd doc && $(MAKE) $(install_makeargs) install-data
+	cd man && $(MAKE) $(install_makeargs) install-data
+	$(INSTALL_DATA) $(srcdir)/tiedir/tie.1 $(mandir)/tie.$(manext)
+
+# The distribution comes with up-to-date .info* files,
+# so this should never be used unless something goes wrong
+# with the unpacking, or you modify the manual.
+doc/web2c.info:
+	cd doc && $(MAKE) info
+info dvi:
+	cd doc && $(MAKE) $@
+
+# Manual pages
+manpages:
+	cd man && $(MAKE) all
+
+# 
+# make dist won't work for anyone but me. Sorry.
+
+#M#all-dist: dist web-dist etex-dist omega-dist pdftex-dist
+#M#
+#M#distname = web2c
+#M#program_files = PROJECTS *.ac *.ch tangleboot.p
+#M## The files that omega places in the main directory.
+#M#omega_files = omegamem.h otangleboot.p \
+#M# {odvicopy,odvitype,ofm2opl,opl2ofm,otangle,ovf2ovp,ovp2ovf}.{web,ch}
+#M#
+#M#triptrapdiffs: triptrap/trip.diffs triptrap/mftrap.diffs triptrap/mptrap.diffs
+#M#triptrap/trip.diffs: tex
+#M#	$(MAKE) trip | tail +1 >triptrap/trip.diffs
+#M#triptrap/mftrap.diffs: mf
+#M#	$(MAKE) trap | tail +1 >triptrap/mftrap.diffs
+#M#triptrap/mptrap.diffs: mpost
+#M#	$(MAKE) mptrap | tail +1 >triptrap/mptrap.diffs
+#M#
+#M#tests/check.log: $(programs)
+#M#	$(MAKE) check | tail +1 >tests/check.log
+#M#
+#M#dist_subdirs = doc lib mpware share tests web2c window
+#M#pre-dist-$(distname): depend triptrapdiffs tests/check.log tangleboot.p
+#M#	cd web2c && $(MAKE) lex.yy.c y_tab.c
+#M#	cd doc && $(MAKE) doc dvi
+#M#
+#M#post-dist-$(distname): 
+#M## Make the subdirectories.
+#M#	for d in $(dist_subdirs); do \
+#M#	  mkdir -p $(top_distdir)/$(distname)/$$d; done
+#M## Link files in subdirectories.
+#M#	for f in `find $(dist_subdirs)		\
+#M#		       \(    -name README	\
+#M#			  -o -name convert	\
+#M#			  -o -name ChangeLog	\
+#M#			  -o -name 'coerce.*'	\
+#M#			  -o -name ref.aux	\
+#M#			  -o -name ref.bbl	\
+#M#			  -o -name ref.tex	\
+#M#			  -o -name ref.txi	\
+#M#			  -o -name texinfo.bst	\
+#M#			  -o -name web2c.cps	\
+#M#			  -o -name web2c.aux	\
+#M#			  -o -name '*.asm'	\
+#M#			  -o -name '*.[chly]'	\
+#M#			  -o -name '*.defines'	\
+#M#			  -o -name '*.in'	\
+#M#			  -o -name '*.info*'	\
+#M#	                  -o -name '*.map'	\
+#M#			  -o -name '*.sed'	\
+#M#			  -o -name '*.tcx'	\
+#M#			  -o -name '*.texi'	\
+#M#		       \) -print`; do		\
+#M#	  ln $$f $(distdir)/`dirname $$f`; done
+#M## Handle the dependeny files in the subdirectories.
+#M#	for d in lib mpware web2c window; do \
+#M#          cp -p $$d/depend.make $(top_distdir)/$(distname)/$$d; done
+#M## Other subdirectories.
+#M#	mkdir $(distdir)/triptrap && cd $(distdir)/triptrap && \
+#M#	  for i in ../../../triptrap/*; do \
+#M#	    if test -f $$i; then ln -s $$i .; fi; done
+#M#	mkdir $(distdir)/tiedir && cd $(distdir)/tiedir && \
+#M#	  for i in ../../../tiedir/*; do \
+#M#	    if test -f $$i; then ln -s $$i .; fi; done
+#M#	mkdir $(distdir)/man && cd $(distdir)/man && \
+#M#	  for i in ../../../man/*; do \
+#M#	    if test -f $$i; then ln -s $$i .; fi; done;
+#M#	cd $(distdir)/man && rm -f *.1 Makefile sedscript
+#M#	rm -f $(distdir)/window/x11.c
+#M#	rm -f $(distdir)/tests/patgen.in
+#M#	cd $(distdir)/tests && (rm just.texi; ln -s ../../../tests/* .; rm -f x* CVS)
+#M#	cd $(distdir)/tests && ln -s $klib/bibtex/bib/xampl.bib
+#M#	cd $(distdir)/tests && rm -f missfont.log ptmr.mpx io.tex exampl.b??
+#M## We supply the flex/bison output in case the user can't generate them.
+#M#	cd $(distdir)/web2c; ../../../../rename 's/$$/-dist/' lex.yy.c y_tab.[ch]
+#M## Remove cruft.
+#M#	cd $(distdir); rm -f $(addsuffix .c, $(programs) tangleboot otangleboot)
+#M#	cd $(distdir); rm -f $(addsuffix .h, $(programs) tangleboot otangleboot)
+#M#	cd $(distdir); rm -f etex.ch pdftex.ch omega.ch
+#M#	cd $(distdir); bash -c "rm -f *{coerce,d,0,1,2,extra,ini}.[ch]"
+#M#	cd $(distdir); bash -c "rm -f tests/x* tests/allbib.{bbl,blg,dvi,log}"
+#M#	cd $(distdir); bash -c "rm -f $(omega_files)"
+#M#	touch $(distdir)/doc/*.info*
+#M#
+#M#web-dist:
+#M#	rm -rf $(top_distdir)
+#M#	mkdir -p $(distdir)
+#M#	for f in *.web; do ln $$f $(distdir); done
+#M#	rm -f $(distdir)/etex.web $(distdir)/omega.web $(distdir)/pdftex.web
+#M#	cd $(distdir); bash -c "rm -f $(omega_files)"
+#M#	chmod -w $(distdir)/*
+#M#	GZIP=-9 tar czf web-$(version).tar.gz $(top_distdir)
+#M#	rm -rf $(top_distdir)
+#M#
+#M#etex-dist:
+#M#	rm -rf $(top_distdir)
+#M#	mkdir -p $(distdir)/etexdir
+#M#	cp -rp etexdir/* $(distdir)/etexdir
+#M#	rm -rf $(distdir)/etexdir/CVS $(distdir)/etexdir/*/CVS
+#M#	GZIP=-9 tar czf web2c-$(version)-etex-`cat etexdir/etex.version`.tar.gz $(top_distdir)
+#M#	rm -rf $(top_distdir)
+#M#
+#M#omega-dist:
+#M#	rm -rf $(top_distdir)
+#M#	mkdir -p $(distdir)/omegadir $(distdir)/omegaware $(distdir)/otps
+#M#	cp -p omegadir/* $(distdir)/omegadir
+#M#	cp -p omegaware/* $(distdir)/omegaware
+#M#	cd otps && $(MAKE) lex.yy.c y_tab.c
+#M#	for f in otps/*.[chly] otps/*.in; do cp -p $$f $(distdir)/otps; done
+#M#	cp -p otps/mkocp otps/mkofm $(distdir)/otps
+#M## We supply the flex/bison output in case the user can't generate them.
+#M#	cd $(distdir)/otps; ../../../../rename 's/$$/-dist/' lex.yy.c y_tab.[ch]
+#M#	GZIP=-9 tar czf web2c-$(version)-omega-`cat omegadir/omega.version`.tar.gz $(top_distdir)
+#M#	rm -rf $(top_distdir)
+#M#
+#M#pdftex-dist:
+#M#	rm -rf $(distdir)
+#M#	mkdir -p $(distdir)/pdftexdir
+#M#	cp -rp pdftexdir/* $(distdir)/pdftexdir
+#M#	rm -rf $(distdir)/pdftexdir/CVS $(distdir)/pdftexdir/*/CVS
+#M#	rm -f $(distdir)/pdftexdir/*.[oa] $(distdir)/pdftexdir/*/*.[oa]
+#M#	rm -f $(distdir)/pdftexdir/Makefile $(distdir)/pdftexdir/*/Makefile
+#M#	GZIP=-9 tar czf web2c-$(version)-pdftex-`cat pdftexdir/pdftex.version`.tar.gz $(top_distdir)
+#M#	rm -rf $(top_distdir)
+
+# dist.make -- making distribution tar files.
+#M#top_distdir = $(distname)-$(version)
+#M#top_files = ChangeLog Makefile.in README configure.in configure \
+#M#  install.sh acklibtool.m4 config.guess config.sub klibtool \
+#M#  mkinstalldirs add-info-toc rename unbackslsh.awk withenable.ac
+#M#distdir = $(top_distdir)/$(distname)
+#M#kpathsea_distdir = ../$(distname)/$(top_distdir)/kpathsea
+#M#ln_files = AUTHORS ChangeLog INSTALL NEWS README *.in *.h *.c \
+#M#  configure *.make
+#M#
+#M#dist_rm_predicate = -name Makefile
+#M#dist: all depend pre-dist-$(distname)
+#M#	rm -rf $(top_distdir)*
+#M#	mkdir -p $(distdir)
+#M#	cd .. && make Makefile ./configure
+#M#	cd .. && ln $(top_files) $(distname)/$(top_distdir)
+#M#	cp -p $(top_srcdir)/../dir $(top_distdir)
+#M#	-ln $(ln_files) $(distdir)
+#M#	ln $(program_files) $(distdir)
+#M#	cd $(kpathsea_dir); $(MAKE) distdir=$(kpathsea_distdir) \
+#M#	  ln_files='$(ln_files)' distdir
+#M#	cp -pr ../make ../etc ../djgpp $(top_distdir)
+#M#	rm -rf $(top_distdir)/make/CVS
+#M#	rm -rf $(top_distdir)/etc/CVS
+#M#	rm -rf $(top_distdir)/etc/autoconf/CVS
+#M#	rm -rf $(top_distdir)/djgpp/CVS
+#M## Remove the extra files our patterns got us.
+#M#	cd $(top_distdir); rm -f */c-auto.h
+#M#	find $(top_distdir) \( $(dist_rm_predicate) \) -exec rm '{}' \;
+#M#	find $(top_distdir) -name \.*texi -exec egrep -ni '	| ::|xx[^}]' \;
+#M## Now handle the contrib dir.
+#M#	mkdir -p $(top_distdir)/contrib && \
+#M#	  cp -p ../contrib/{ChangeLog,INSTALL,Makefile,README,*.c,*.h} \
+#M#	        $(top_distdir)/contrib
+#M#	$(MAKE) post-dist-$(distname)
+#M#	cd $(distdir); test ! -r *.info || touch *.info*
+#M#	chmod -R a+rX,u+w $(top_distdir)
+#M#	GZIP=-9 tar chzf $(top_distdir).tar.gz $(top_distdir)
+#M#	rm -rf $(top_distdir)
+# End of dist.make.
+
+# config.make -- autoconf rules to remake the Makefile, c-auto.h, etc.
+#M#ac_dir = $(top_srcdir)/../etc/autoconf
+#M#autoconf = $(ac_dir)/acspecific.m4 $(ac_dir)/acgeneral.m4 $(ac_dir)/acsite.m4
+#M#autoheader = $(ac_dir)/acconfig.h $(ac_dir)/autoheader.m4
+#M#
+#M## I define $(autoconf) to acgeneral.m4 and the other Autoconf files, so
+#M## configure automatically gets remade in the sources with a new Autoconf
+#M## release.  But it would be bad for installers with Autoconf to remake
+#M## configure (not to mention require Autoconf), so I take out the variable
+#M## $(autoconf) definition before release.
+#M## 
+#M## BTW, xt.ac isn't really required for dvipsk or dviljk, but it doesn't
+#M## seem worth the trouble.
+#M## 
+#M#configure_in = $(srcdir)/configure.in $(kpathsea_srcdir)/common.ac \
+#M#  $(kpathsea_srcdir)/withenable.ac $(kpathsea_srcdir)/xt.ac \
+#M#  $(kpathsea_srcdir_parent)/acklibtool.m4
+#M#$(srcdir)/configure: $(configure_in) $(autoconf)
+#M#	cd $(srcdir) && autoconf -m $(ac_dir)
+#M#
+#M## And make sure that --enable-maintainer-mode is used if configure is
+#M## called from the makefiles.  We do not try to do this through the
+#M## cache, lest the option sneaks into a global cache file.
+#M#enablemaintflag = --enable-maintainer-mode
+
+config.status: $(srcdir)/configure
+	$(SHELL) $(srcdir)/configure --no-create $(enablemaintflag)
+
+Makefile: $(srcdir)/Makefile.in config.status $(top_srcdir)/../make/*.make
+	$(SHELL) config.status
+
+# This rule isn't used for the top-level Makefile, but it doesn't hurt.
+# We don't depend on config.status because configure always rewrites
+# config.status, even when it doesn't change. Thus it might be newer
+# than c-auto.h when we don't need to remake the latter.
+c-auto.h: stamp-auto
+stamp-auto: $(srcdir)/c-auto.in
+	$(SHELL) config.status
+	date >stamp-auto
+
+#M## autoheader reads acconfig.h (and c-auto.h.top) automatically.
+#M#$(srcdir)/c-auto.in: $(srcdir)/stamp-auto.in
+#M#$(srcdir)/stamp-auto.in: $(configure_in) $(autoheader) \
+#M#  $(kpathsea_srcdir)/acconfig.h
+#M#	cd $(srcdir) && autoheader -m $(ac_dir) -l $(kpathsea_srcdir)
+#M#	date >$(srcdir)/stamp-auto.in
+
+# End of config.make.
+
+# 
+# Testing, including triptrap. The `x' filenames are for output.
+tex_check = tex-check
+#E#etex_check = etex-check
+check: bibtex-check dvicopy-check dvitomp-check dvitype-check \
+       $(etex_check) gftodvi-check gftopk-check gftype-check \
+       mf-check mft-check mpost-check patgen-check pktogf-check \
+       pktype-check pltotf-check pooltype-check $(tex_check) tftopl-check \
+       vftovp-check vptovf-check weave-check
+
+trip = trip
+#E#etrip = etrip
+triptrap: $(trip) trap mptrap $(etrip)
+testdir = $(srcdir)/triptrap
+testenv = TEXMFCNF=$(testdir)
+dvitype_args = -output-level=2 -dpi=72.27 -page-start='*.*.*.*.*.*.*.*.*.*'
+trip: pltotf tftopl tex dvitype
+	@echo ">>> See $(testdir)/trip.diffs for example of acceptable diffs." >&2
+	./pltotf $(testdir)/trip.pl trip.tfm
+	./tftopl ./trip.tfm trip.pl
+	-diff $(testdir)/trip.pl trip.pl
+	rm -f trip.tex; $(LN) $(testdir)/trip.tex . # get same filename in log
+	-$(SHELL) -c '$(testenv) ./tex --progname=initex <$(testdir)/trip1.in >tripin.fot'
+	mv trip.log tripin.log
+	-diff $(testdir)/tripin.log tripin.log
+# May as well test non-ini second time through.
+	-$(SHELL) -c '$(testenv) ./tex <$(testdir)/trip2.in >trip.fot'
+	-diff $(testdir)/trip.fot trip.fot
+# We use $(DIFF) instead of `diff' only for those files where there
+# might actually be legitimate numerical differences.
+	-$(DIFF) $(DIFFFLAGS) $(testdir)/trip.log trip.log
+	$(SHELL) -c '$(testenv) ./dvitype $(dvitype_args) trip.dvi >trip.typ'
+	-$(DIFF) $(DIFFFLAGS) $(testdir)/trip.typ trip.typ
+
+# Can't run trap and mptrap in parallel, because both write trap.{log,tfm}.
+trap: mf tftopl gftype
+	@echo ">>> See $(testdir)/mftrap.diffs for example of acceptable diffs." >&2
+	rm -f trap.mf; $(LN) $(testdir)/trap.mf . # get same filename in log
+	-$(SHELL) -c '$(testenv) ./mf --progname=inimf <$(testdir)/mftrap1.in >mftrapin.fot'
+	mv trap.log mftrapin.log
+	-diff $(testdir)/mftrapin.log mftrapin.log
+	-$(SHELL) -c '$(testenv) ./mf <$(testdir)/mftrap2.in >mftrap.fot'
+	mv trap.log mftrap.log
+	mv trap.tfm mftrap.tfm
+	-diff $(testdir)/mftrap.fot mftrap.fot
+	-diff $(testdir)/mftrap.log mftrap.log
+	./tftopl ./mftrap.tfm mftrap.pl
+	-diff $(testdir)/mftrap.pl mftrap.pl
+	$(SHELL) -c '$(testenv) ./gftype -m -i ./trap.72270gf >trap.typ'
+	-diff $(testdir)/trap.typ trap.typ
+
+mptrap: pltotf mpost tftopl
+	@echo ">>> See $(testdir)/mptrap.diffs for example of acceptable diffs." >&2
+	rm -f mtrap.mp; $(LN) $(testdir)/mtrap.mp . # get same filename in log
+	./pltotf $(testdir)/trapf.pl trapf.tfm
+	-$(SHELL) -c '$(testenv) ./mpost --progname=inimpost mtrap'
+	-diff $(testdir)/mtrap.log mtrap.log
+	-diff $(testdir)/mtrap.0 mtrap.0
+	-diff $(testdir)/mtrap.1 mtrap.1
+	-diff $(testdir)/writeo writeo
+	-diff $(testdir)/writeo.2 writeo.2
+	rm -f trap.mp; $(LN) $(testdir)/trap.mp .
+	rm -f trap.mpx; $(LN) $(testdir)/trap.mpx .
+	-$(SHELL) -c '$(testenv) ./mpost --progname=inimpost <$(testdir)/mptrap1.in >mptrapin.fot'
+	mv trap.log mptrapin.log
+	-diff $(testdir)/mptrapin.log mptrapin.log
+# Must run inimp or font_name[null_font] is not initialized, leading to diffs.
+	-$(SHELL) -c '$(testenv) ./mpost --progname=inimpost <$(testdir)/mptrap2.in >mptrap.fot'
+	mv trap.log mptrap.log
+	mv trap.tfm mptrap.tfm
+	diff triptrap/mptrap.fot mptrap.fot
+	diff triptrap/mptrap.log mptrap.log
+	diff triptrap/trap.5 trap.5
+	diff triptrap/trap.6 trap.6
+	diff triptrap/trap.148 trap.148
+	diff triptrap/trap.149 trap.149
+	diff triptrap/trap.150 trap.150
+	diff triptrap/trap.151 trap.151
+	diff triptrap/trap.197 trap.197
+	diff triptrap/trap.200 trap.200
+	./tftopl ./mptrap.tfm mptrap.pl
+	-diff $(testdir)/mptrap.pl mptrap.pl
+
+# Ad hoc tests.
+bibtex-check: bibtex
+	test -f tests/exampl.aux || \
+	  cp $(srcdir)/tests/exampl.aux tests/exampl.aux
+	BSTINPUTS=$(srcdir)/tests ./bibtex tests/exampl
+
+dvicopy-check: dvicopy
+	./dvicopy $(srcdir)/tests/story tests/xstory.dvi
+# Redirect stderr so the terminal output will end up in the log file.
+	(TFMFONTS=$(srcdir)/tests: ./dvicopy <$(srcdir)/tests/pplr.dvi \
+	  >tests/xpplr.dvi) 2>&1
+
+dvitomp-check: dvitomp
+	./dvitomp $(srcdir)/tests/story.dvi tests/xstory.mpx
+	TFMFONTS=$(srcdir)/tests: VFFONTS=$(srcdir)/tests: \
+	  ./dvitomp $(srcdir)/tests/ptmr 
+	mv ptmr.mpx tests/xptmr.mpx
+
+dvitype-check: dvitype
+	./dvitype -show-opcodes $(srcdir)/tests/story >tests/xstory.dvityp
+	./dvitype --p=\*.\*.2 $(srcdir)/tests/pagenum.dvi >tests/xpagenum.typ
+
+gftodvi-check: gftodvi
+	TFMFONTS=$(srcdir)/tests: ./gftodvi -verbose \
+	  $(srcdir)/tests/cmr10.600gf
+	mv cmr10.dvi tests/xcmr10.dvi
+
+gftopk-check: gftopk
+	./gftopk -verbose $(srcdir)/tests/cmr10.600gf tests/xcmr10.pk
+	./gftopk $(srcdir)/tests/cmr10.600gf cmr10.pk && rm cmr10.pk
+
+gftype-check: gftype
+	./gftype $(srcdir)/tests/cmr10.600gf >tests/xcmr10.gft1
+	./gftype -m -i $(srcdir)/tests/cmr10.600gf >tests/xcmr10.gft2
+
+mf-check: trap mf.base
+	./mf '&./mf \tracingstats:=1; end.'
+	./mf $(srcdir)/tests/online
+	./mf $(srcdir)/tests/one.two
+	./mf $(srcdir)/tests/uno.dos
+
+mft-check: mft
+	./mft $(srcdir)/tests/io; mv io.tex tests/io.tex
+
+mpost-check: mptrap mpost.mem
+	./mpost '&./mpost \tracingstats:=1; end.'
+	MAKEMPX_BINDIR=`pwd`:`pwd`/mpware MPXCOMMAND=mpware/makempx \
+	  ./mpost $(srcdir)/tests/mptest
+	./mpost $(srcdir)/tests/one.two
+	./mpost $(srcdir)/tests/uno.dos
+
+patgen-check: patgen
+	./patgen $(srcdir)/tests/dict $(srcdir)/tests/patterns tests/xout \
+	   $(srcdir)/tests/translate <$(srcdir)/tests/patgen.in
+
+pktogf-check: pktogf
+	./pktogf -verbose $(srcdir)/tests/cmr10.pk tests/xcmr10.600gf
+	./pktogf $(srcdir)/tests/cmr10.pk && rm cmr10.gf
+
+pktype-check: pktype
+	./pktype $(srcdir)/tests/cmr10.pk >tests/xcmr10.pktyp
+
+pltotf-check: pltotf
+	./pltotf -verbose $(srcdir)/tests/cmr10 tests/xcmr10
+
+# When tex.pool has not been generated we pooltype etex.pool
+pooltype-check: pooltype
+	./pooltype tex.pool >tests/xtexpool.typ
+#C#	./pooltype etex.pool >tests/xtexpool.typ
+
+# No need for tangle-check, since we run it to make everything else.
+
+tex-check: trip tex.fmt
+# Test truncation (but don't bother showing the warning msg).
+	./tex --output-comment="`cat $(srcdir)/PROJECTS`" \
+	    $(srcdir)/tests/hello 2>/dev/null \
+	  && ./dvitype hello.dvi | grep kb@mail.tug.org >/dev/null
+# \openout should show up in \write's.
+	./tex $(srcdir)/tests/openout && grep xfoo openout.log
+# one.two.tex -> one.two.log
+	./tex $(srcdir)/tests/one.two && ls -l one.two.log
+# uno.dos -> uno.log
+	./tex $(srcdir)/tests/uno.dos && ls -l uno.log
+	./tex $(srcdir)/tests/just.texi && ls -l just.log
+	-./tex $(srcdir)/tests/batch.tex
+	./tex --shell $(srcdir)/tests/write18 | grep echo
+# tcx files are a bad idea.
+#	./tex --translate-file=$(srcdir)/share/isol1-t1.tcx \
+#	  $(srcdir)/tests/eight && ./dvitype eight.dvi >eigh.typ
+	./tex --mltex --progname=initex $(srcdir)/tests/mltextst
+	-./tex </dev/null
+	-PATH=`pwd`:$(kpathsea_dir):$(kpathsea_srcdir):$$PATH \
+	  WEB2C=$(kpathsea_srcdir) TMPDIR=.. \
+	  ./tex '\nonstopmode\font\foo=nonesuch\end'
+
+tftopl-check: tftopl
+	./tftopl -verbose $(srcdir)/tests/cmr10 tests/xcmr10
+
+vftovp-check: vftovp
+	TFMFONTS=$(srcdir)/tests ./vftovp -verbose $(srcdir)/tests/ptmr ptmr tests/xptmr
+
+vptovf-check: vptovf
+	./vptovf $(srcdir)/tests/ptmr tests/xptmr tests/xptmr
+
+weave-check: weave
+	./weave $(srcdir)/pooltype
+
+installcheck:
+	cd $(srcdir)/tests && bibtex allbib
+	mf '\mode:=ljfour; input logo10' && tftopl logo10.tfm >/dev/null
+	tex '\nonstopmode \tracingstats=1 \input story \bye'
+
+# 
+# Cleaning.
+#P#pdftexdir = pdftexdir
+#O#otps = otps
+all_subdirs = doc lib man mpware web2c window $(pdftexdir) $(otps)
+
+# Having a multiple-target rule with the subdir loop fails because of
+# the dependencies introduced by clean.make.  Yet, we want the
+# dependencies here at the top level so that distclean will run the
+# clean rules, etc.  So, sigh, put the subdir loop in each target and
+# only run it if we have a Makefile.  Alternatively, we could do as
+# Automake does.
+
+mostlyclean::
+	test ! -r lib/Makefile \
+	  || for d in $(all_subdirs); do (cd $$d && $(MAKE) $@); done
+	rm -f otangleboot tangleboot
+clean::
+	test ! -r lib/Makefile \
+	  || for d in $(all_subdirs); do (cd $$d && $(MAKE) $@); done
+	rm -f *.aux *.c *.dvi *.fot *.log *.pl *.tfm *.typ 
+	rm -f *.base *.fmt *.efmt *.mem
+# Have to list generated .h's explicitly since our real headers,
+# e.g., help.h, are in this directory too.
+	rm -f *coerce.h *d.h bibtex.h dvicopy.h dvitomp.h dvitype.h gftodvi.h
+	rm -f gftopk.h gftype.h mft.h odvicopy.h odvitype.h ofm2opl.h
+	rm -f opl2ofm.h otangle.h ovf2ovp.h ovp2ovf.h patgen.h pktogf.h
+	rm -f pktype.h pltotf.h pooltype.h tangle.h tftopl.h vftovp.h vptovf.h
+	rm -f weave.h
+# Cleanup from triptrap.
+	rm -f trip.tex trap.mf mtrap.mp trap.mp trap.mpx
+	rm -f trip.* tripin.* tripos.tex 8terminal.tex
+	rm -f trap.* mftrap.* mftrapin.* mptrap.* mptrapin.*
+	rm -f trapf.* mtrap.* writeo* missfont.log
+distclean::
+	test ! -r lib/Makefile \
+	  || for d in $(all_subdirs); do (cd $$d && $(MAKE) $@); done
+	rm -f *.pool *extra.c *.fm
+# Have to list .p's explicitly because we can't remove tangleboot.p.
+	rm -f bibtex.p dvicopy.p dvitomp.p dvitype.p etex.p gftodvi.p gftopk.p
+	rm -f gftype.p mf.p mft.p mp.p odvicopy.p odvitype.p ofm2opl.p omega.p
+	rm -f opl2ofm.p otangle.p ovf2ovp.p ovp2ovf.p patgen.p pdftex.p
+	rm -f pktogf.p pktype.p pltotf.p pooltype.p tangle.p tex.p tftopl.p
+	rm -f vftovp.p vptovf.p weave.p
+	rm -f otangleboot.c otangleboot.h tangleboot.c tangleboot.h
+# And we clean up generated web and change files.
+	rm -f etex.web omega.web pdftex.web
+	rm -f etex.ch  omega.ch  pdftex.ch
+	rm -f odvicopy.web odvitype.web ofm2opl.web opl2ofm.web otangle.web
+	rm -f odvicopy.ch  odvitype.ch  ofm2opl.ch  opl2ofm.ch  otangle.ch 
+	rm -f ovf2ovp.web ovp2ovf.web
+	rm -f ovf2ovp.ch  ovp2ovf.ch
+# And some miscellaneous files
+	rm -f etrip.tex otangleboot.p omega.c omegamem.h
+
+extraclean::
+	test ! -r lib/Makefile \
+	  || for d in $(all_subdirs); do (cd $$d && $(MAKE) $@); done
+# Remove triptrap junk here too.
+	rm -f trip.tex trap.mf mtrap.mp trap.mp trap.mpx
+	rm -f trip.* tripin.* tripos.tex 8terminal.tex
+	rm -f trap.* mftrap.* mftrapin.* mptrap.* mptrapin.*
+	rm -f trapf.* mtrap.* writeo* missfont.log
+	rm -f *.out *.typ *.fot
+# And etrip junk as well.
+	rm -f etrip.tex
+	rm -f etrip.* etripin.*
+maintainer-clean::
+	test ! -r lib/Makefile \
+	  || for d in $(all_subdirs); do (cd $$d && $(MAKE) $@); done
+
+# clean.make -- cleaning.
+mostlyclean::
+	rm -f *.o
+
+clean:: mostlyclean
+	rm -f $(program) $(programs) squeeze lib$(library).* $(library).a *.bad
+	rm -f *.exe *.dvi *.lj
+
+distclean:: extraclean clean
+	rm -f Makefile
+	rm -f config.status config.log config.cache c-auto.h
+	rm -f stamp-auto stamp-tangle stamp-otangle
+
+# Although we can remake configure and c-auto.in, we don't remove
+# them, since many people may lack Autoconf.  Use configclean for that.
+maintainer-clean:: distclean
+	rm -f *.info*
+
+extraclean::
+	rm -f *.aux *.bak *.bbl *.blg *.dvi *.log *.pl *.tfm *.vf *.vpl
+	rm -f *.*pk *.*gf *.mpx *.i *.s *~ *.orig  *.rej *\#*
+	rm -f CONTENTS.tex a.out core mfput.* texput.* mpout.*
+
+configclean:
+	rm -f configure c-auto.in c-auto.h stamp-*
+# End of clean.make.
+
+#M#depend::
+#M#	for d in lib mpware web2c window $(otps); do \
+#M#	  (cd $$d && $(MAKE) depend); done
+
+# rdepend.make -- rules for remaking the dependencies.
+#M## 
+#M## Have to use -M, not -MM, since we use <kpathsea/...> instead of
+#M## "kpathsea/..." in the sources.  But that means we have to remove the
+#M## directory prefixes and all the system include files.
+#M## And <kpathsea/paths.h> is generated, not part of the distribution.
+#M## 
+#M## And, there's no need for any installer/user to ever run this, it can
+#M## only cause trouble. So comment it out in the distribution.
+#M## (It doesn't work when the source and build directories are different.)
+#M#ifndef c_auto_h_dir
+#M#c_auto_h_dir = .
+#M#endif
+#M#
+#M#depend depend.make:: $(c_auto_h_dir)/c-auto.h \
+#M#  $(top_srcdir)/../make/rdepend.make 
+#M#	$(CC) -M $(ALL_CPPFLAGS) -I$(c_auto_h_dir) *.c \
+#M#	  | sed -e 's,\(\.\./\)\+kpathsea/,$$(kpathsea_srcdir)/,g' \
+#M#	        -e 's,$$(kpathsea_srcdir)/c-auto.h,$$(kpathsea_dir)/c-auto.h,g' \
+#M#	        -e 's,$$(kpathsea_srcdir)/paths.h,$$(kpathsea_dir)/paths.h,g' \
+#M#	        -e 's,/usr[^ ]* ,,g' \
+#M#	        -e 's,/usr[^ ]*$$,,g' \
+#M#	        -e 's,dvi2xx.o,dvilj.o dvilj2p.o dvilj4.o dvilj4l.o,' \
+#M#	        -e 's,lex.yy,$$(LEX_OUTPUT_ROOT),g' \
+#M#	  | $(top_srcdir)/../unbackslsh.awk \
+#M#	  >depend.make
+#M## If kpathsea, we're making .lo library objects instead of .o's.
+#M#	pwd | grep -v kpathsea >/dev/null \
+#M#	  || (sed -e 's/\.o:/.lo:/' \
+#M#	          -e 's/kpsewhich.lo:/kpsewhich.o:/' \
+#M#	          -e 's/kpsestat.lo:/kpsestat.o:/' \
+#M#	          -e 's/access.lo:/access.o:/' \
+#M#	          -e 's/readlink.lo:/readlink.o:/' \
+#M#	      <depend.make >depend-tmp.make; mv depend-tmp.make depend.make)
+#M#.PHONY: depend
+
+# Let's stick a rule for TAGS here, just in case someone wants them.
+# (We don't put them in the distributions, to keep them smaller.)
+TAGS: *.c *.h
+	pwd | grep kpathsea >/dev/null && append=../kpathsea/TAGS; \
+	  etags $$append *.[ch]
+
+# Prevent GNU make 3.[59,63) from overflowing arg limit on system V.
+.NOEXPORT:
+
+# End of rdepend.make.
+bibtex.o: bibtex.c \
+ cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h bibtex.h
+dvicopy.o: dvicopy.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h dvicopy.h
+dvitomp.o: dvitomp.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h dvitomp.h
+dvitype.o: dvitype.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h dvitype.h
+etex0.o: etex0.c etexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h etexcoerce.h
+etex1.o: etex1.c etexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h etexcoerce.h
+etex2.o: etex2.c etexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h etexcoerce.h
+etexextra.o: etexextra.c etexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h etexcoerce.h $(kpathsea_srcdir)/line.h $(kpathsea_srcdir)/readable.h \
+ $(kpathsea_srcdir)/variable.h $(kpathsea_srcdir)/absolute.h \
+ etexdir/etexextra.h 
+etexini.o: etexini.c etexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h etexcoerce.h
+gftodvi.o: gftodvi.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h gftodmem.h gftodvi.h
+gftopk.o: gftopk.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h gftopk.h
+gftype.o: gftype.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h gftype.h
+mf0.o: mf0.c mfd.h texmfmp.h cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mfcoerce.h
+mf1.o: mf1.c mfd.h texmfmp.h cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mfcoerce.h
+mf2.o: mf2.c mfd.h texmfmp.h cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mfcoerce.h
+mfextra.o: mfextra.c mfd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mfcoerce.h $(kpathsea_srcdir)/line.h $(kpathsea_srcdir)/readable.h \
+ $(kpathsea_srcdir)/variable.h $(kpathsea_srcdir)/absolute.h \
+ lib/mfmpi386.asm
+mfini.o: mfini.c mfd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mfcoerce.h
+mft.o: mft.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h mft.h
+mp0.o: mp0.c mpd.h texmfmp.h cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mpcoerce.h
+mp1.o: mp1.c mpd.h texmfmp.h cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mpcoerce.h
+mp2.o: mp2.c mpd.h texmfmp.h cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mpcoerce.h
+mpextra.o: mpextra.c mpd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mpcoerce.h $(kpathsea_srcdir)/line.h $(kpathsea_srcdir)/readable.h \
+ $(kpathsea_srcdir)/variable.h $(kpathsea_srcdir)/absolute.h \
+ $(kpathsea_srcdir)/concatn.h $(kpathsea_srcdir)/c-vararg.h lib/mfmpi386.asm
+mpini.o: mpini.c mpd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h mpcoerce.h
+odvicopy.o: odvicopy.c cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h odvicopy.h
+odvitype.o: odvitype.c cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h odvitype.h
+ofm2opl.o: ofm2opl.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h ofm2opl.h
+omega.o: omega.c omegad.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h omegamem.h omegacoerce.h
+omega0.o: omega0.c omegad.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h omegamem.h omegacoerce.h
+omega1.o: omega1.c omegad.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h omegamem.h omegacoerce.h
+omega2.o: omega2.c omegad.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h omegamem.h omegacoerce.h
+omegaextra.o: omegaextra.c omegad.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h omegamem.h omegacoerce.h $(kpathsea_srcdir)/line.h \
+ $(kpathsea_srcdir)/readable.h $(kpathsea_srcdir)/variable.h $(kpathsea_srcdir)/absolute.h \
+ omegadir/omegaextra.h 
+omegaini.o: omegaini.c omegad.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h omegamem.h omegacoerce.h
+opl2ofm.o: opl2ofm.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h opl2ofm.h
+otangle.o: otangle.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h otangle.h
+otangleboot.o: otangleboot.c cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h otangleboot.h
+ovf2ovp.o: ovf2ovp.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h ovf2ovp.h
+ovp2ovf.o: ovp2ovf.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h ovp2ovf.h
+patgen.o: patgen.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h patgen.h
+pdftex0.o: pdftex0.c pdftexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ pdftexdir/pdftex.h texmfmem.h pdftexcoerce.h
+pdftex1.o: pdftex1.c pdftexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ pdftexdir/pdftex.h texmfmem.h pdftexcoerce.h
+pdftex2.o: pdftex2.c pdftexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ pdftexdir/pdftex.h texmfmem.h pdftexcoerce.h
+pdftexextra.o: pdftexextra.c pdftexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ pdftexdir/pdftex.h texmfmem.h pdftexcoerce.h $(kpathsea_srcdir)/line.h \
+ $(kpathsea_srcdir)/readable.h $(kpathsea_srcdir)/variable.h $(kpathsea_srcdir)/absolute.h \
+ pdftexdir/pdftexextra.h 
+pdftexini.o: pdftexini.c pdftexd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ pdftexdir/pdftex.h texmfmem.h pdftexcoerce.h
+pktogf.o: pktogf.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h pktogf.h
+pktype.o: pktype.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h pktype.h
+pltotf.o: pltotf.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h pltotf.h
+pooltype.o: pooltype.c cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h pooltype.h
+tangle.o: tangle.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h tangle.h
+tangleboot.o: tangleboot.c cpascal.h config.h $(kpathsea_srcdir)/config.h \
+ c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h tangleboot.h
+tex0.o: tex0.c texd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h texcoerce.h
+tex1.o: tex1.c texd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h texcoerce.h
+tex2.o: tex2.c texd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h texcoerce.h
+texextra.o: texextra.c texd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h texcoerce.h $(kpathsea_srcdir)/line.h $(kpathsea_srcdir)/readable.h \
+ $(kpathsea_srcdir)/variable.h $(kpathsea_srcdir)/absolute.h 
+texini.o: texini.c texd.h texmfmp.h cpascal.h config.h \
+ $(kpathsea_srcdir)/config.h c-auto.h $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h $(kpathsea_srcdir)/c-pathch.h \
+ $(kpathsea_srcdir)/c-ctype.h $(kpathsea_srcdir)/tex-make.h \
+ texmfmem.h texcoerce.h
+tftopl.o: tftopl.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h tftopl.h
+tie.o: tie.c 
+vftovp.o: vftovp.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h vftovp.h
+vptovf.o: vptovf.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h vptovf.h
+weave.o: weave.c cpascal.h config.h $(kpathsea_srcdir)/config.h c-auto.h \
+ $(kpathsea_srcdir)/c-std.h \
+ $(kpathsea_srcdir)/c-unistd.h \
+ $(kpathsea_srcdir)/systypes.h \
+ $(kpathsea_srcdir)/c-memstr.h $(kpathsea_srcdir)/c-errno.h \
+ $(kpathsea_srcdir)/c-minmax.h \
+ $(kpathsea_srcdir)/c-limits.h \
+ $(kpathsea_srcdir)/c-proto.h \
+ $(kpathsea_srcdir)/debug.h $(kpathsea_srcdir)/types.h $(kpathsea_srcdir)/lib.h \
+ $(kpathsea_srcdir)/progname.h $(kpathsea_srcdir)/c-fopen.h \
+ $(kpathsea_srcdir)/getopt.h $(kpathsea_srcdir)/proginit.h \
+ $(kpathsea_srcdir)/tex-file.h help.h weave.h
+
+# 
+# Local variables:
+# page-delimiter: "^# \f"
+# End:

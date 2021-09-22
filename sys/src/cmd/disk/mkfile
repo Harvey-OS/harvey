@@ -2,7 +2,7 @@
 
 TARG=exsort\
 	format\
-	kfscmd\
+#	kfscmd\
 	mbr\
 	mkext\
 	mkfs\
@@ -10,7 +10,7 @@ TARG=exsort\
 
 DIRS=\
 	9660\
-	kfs\
+#	kfs\
 	prep\
 
 OFILES=

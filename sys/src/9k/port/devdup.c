@@ -7,15 +7,19 @@
 
 /* Qid is (2*fd + (file is ctl))+1 */
 
+Dev dupdevtab;
+
 static int
-dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
+dupgen(Chan *c, char *, Dirtab*, int, int as, Dir *dp)
 {
 	Fgrp *fgrp = up->fgrp;
 	Chan *f;
 	static int perm[] = { 0400, 0200, 0600, 0 };
 	int p;
+	uint s;
 	Qid q;
 
+	s = as;
 	if(s == DEVDOTDOT){
 		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, dp);
 		return 1;
@@ -42,7 +46,7 @@ dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 static Chan*
 dupattach(char *spec)
 {
-	return devattach('d', spec);
+	return devattach(dupdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -61,7 +65,7 @@ static Chan*
 dupopen(Chan *c, int omode)
 {
 	Chan *f;
-	int fd, twicefd;
+	uint fd, twicefd;
 
 	if(c->qid.type & QTDIR){
 		if(omode != 0)
@@ -120,7 +124,7 @@ static long
 dupwrite(Chan*, void*, long, vlong)
 {
 	error(Eperm);
-	return 0;		/* not reached */
+	notreached();
 }
 
 Dev dupdevtab = {

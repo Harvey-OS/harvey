@@ -49,7 +49,6 @@ such as those set in
 All processes see the same
 .BR #ec ;
 its contents are writable only by the host owner.
-[XXX actually everything is world writable; that's a mistake.]
 .SH SEE ALSO
 .IR rc (1),
 .IR fork (2),

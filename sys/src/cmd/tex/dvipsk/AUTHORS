@@ -1,0 +1,7 @@
+This program, dvipsk, was modified by kb@mail.tug.org from Tom Rokicki's
+dvips distribution.  Send bug reports to tex-k@mail.tug.org, not to Tom.
+
+Jim Hafner originally implemented the color support.
+Sergey Lesenko originally implemented the partial Type 1 font downloading.
+Mark Doyle and Tanmoy Bhattacharya implemented the hyperdvi support, and
+Dave Love originally merged it into dvipsk.

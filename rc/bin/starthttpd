@@ -1,0 +1,21 @@
+#!/bin/rc
+# starthttpd - start inside http service
+rfork es		# no n: we want namespace additions to be visible
+
+# world wide weenie
+9fs audio
+9fs cm
+9fs sources
+9fs emelie			# not sure what uses this; chess end-games?
+
+# Kill httpd|rc
+
+@ {
+	cd /sys/log/httpd
+	chmod -a clf
+	>clf
+	chmod +a clf
+}
+
+rfork n
+exec ip/httpd/httpd -dplan9.bell-labs.com -n/lib/namespace.httpd.lucent

@@ -1,0 +1,262 @@
+Contents:
+
+Installation
+  `configure' options
+  Compile-time options
+  Additional targets
+  Trip, trap, and mptrap: Torture tests
+  Runtime options
+
+
+Installation
+************
+
+  Installing Web2c is mostly the same as installing any other
+Kpathsea-using program.  Therefore, for the basic steps involved, *note
+Installation: (kpathsea)Installation..  (A copy is in the file
+`kpathsea/INSTALL'.)
+
+  One peculiarity to Web2c is that the source distribution comes in two
+files: `web.tar.gz' and `web2c.tar.gz'.  You must retrieve and unpack
+them both.  (We have two because the former archive contains the very
+large and seldom-changing original WEB source files.)  *Note
+unixtex.ftp: (kpathsea)unixtex.ftp.
+
+  Another peculiarity is the MetaPost program.  Although it has been
+installed previously as `mp', as of Web2c 7.0 the installed name is now
+`mpost', to avoid conflict with the `mp' program that does
+prettyprinting.  This approach was recommended by the MetaPost author,
+John Hobby.  If you as the TeX administrator wish to make it available
+under its shorter name as well, you will have to set up a link or some
+such yourself.  And of course individual users can do the same.
+
+  For solutions to common installation problems and information on how
+to report a bug, see the file `kpathsea/BUGS' (*note Bugs:
+(kpathsea)Bugs.).  See also the Web2c home page,
+`http://www.tug.org/web2c'.
+
+  Points worth repeating:
+
+   * Before starting the standard compilation and installation you must
+     install the basic fonts, macros, and other library files.  *Note
+     Installation: (kpathsea)Installation.
+
+   * If you do not wish to use the standard file locations, see *Note
+     Changing search paths: (kpathsea)Changing search paths.
+
+   * Some Web2c features are enabled or disabled at `configure' time,
+     as described in the first section below.
+
+`configure' options
+===================
+
+  This section gives pointers to descriptions of the `--with' and
+`--enable' `configure' arguments that Web2c accepts.  Some are specific
+to Web2c, others are generic to all Kpathsea-using programs.
+
+  For a list of all the options `configure' accepts, run `configure
+--help'.  The generic options are listed first, and the
+package-specific options come last.
+
+  For a description of the generic options (which mainly allow you to
+specify installation directories) and basic `configure' usage, *note
+Running `configure' scripts: (autoconf)Invoking configure. (a copy is
+in the file `kpathsea/CONFIGURE').
+
+`--disable-dump-share'
+     Do not make fmt/base/mem files sharable across different endian
+     architectures.  *Note Hardware and memory dumps::.
+
+`--without-maketexmf-default'
+`--without-maketexpk-default'
+`--without-maketextfm-default'
+`--with-maketextex-default'
+     Enable or disable the dynamic generation programs.  *Note MakeTeX
+     configuration: (kpathsea)MakeTeX configuration.  The defaults are
+     the inverse of the options, i.e., everything is enabled except
+     `MakeTeXTeX'.
+
+`--enable-auto-core'
+     Dump `core' if the input file is
+     `HackyInputFileNameForCoreDump.tex'.  *Note Preloaded
+     executables::.
+
+`--enable-shared'
+     Build Kpathsea as a shared library.  *Note Shared library:
+     (kpathsea)Shared library.
+
+`--with-editor=CMD'
+     Change the default editor invoked by the `e' interactive command.
+     *Note Editor invocation::.
+
+`--with-hp2627win'
+`--with-mftalkwin'
+`--with-nextwin'
+`--with-regiswin'
+`--with-suntoolswin'
+`--with-tektronixwin'
+`--with-unitermwin'
+`--with-x'
+`--with-x-toolkit=KIT'
+`--with-x11win'
+`--with-x11'
+     Define Metafont graphics support; by default, no graphics support
+     is enabled.  *Note Online Metafont graphics::.
+
+`--x-includes=DIR'
+`--x-libraries=DIR'
+     Define the locations of the X11 include files and libraries; by
+     default, `configure' does its best to guess).  *Note Optional
+     Features: (autoconf)Optional Features.  A copy is in
+     `kpathsea/CONFIGURE'.
+
+Compile-time options
+====================
+
+  In addition to the `configure' options listed in the previous
+section, there are a few things that can be affected at compile-time
+with C definitions, rather than with `configure'.  Using any of these
+is unusual.
+
+  To specify extra compiler flags (`-DNAME' in this case), the simplest
+thing to do is:
+     make XCFLAGS="CCOPTIONS"
+   You can also set the `CFLAGS' environment variable before running
+`configure'.  *Note configure environment: (kpathsea)configure
+environment.
+
+Anyway, here are the possibilities:
+
+`-DFIXPT'
+`-DNO_MF_ASM'
+     Use the original WEB fixed-point routines for Metafont and MetaPost
+     arithmetic calculations regarding fractions.  By default,
+     assembly-language routines are used on x86 hardware with GNU C
+     (unless `NO_MF_ASM' is defined), and floating-point routines are
+     used otherwise.
+
+`-DIPC_DEBUG'
+     Report on various interprocess communication activities.  *Note
+     IPC and TeX: IPC and TeX.
+
+Additional targets
+==================
+
+  Web2c has several Make targets besides the standard ones.  You can
+invoke these either in the top level directory of the source
+distribution (the one containing `kpathsea/' and `web2c/'), or in the
+`web2c/' directory.
+
+`c-sources'
+     Make only the C files, translated from the Web sources, presumably
+     because you want to take them to a non-Unix machine.
+
+`formats'
+`install-formats'
+     Make or install all the memory dumps (*note Memory dumps::.).  By
+     default, the standard plain formats plus `latex.fmt' are made.  You
+     can add other formats by redefining the `fmts', `bases', and
+     `mems' variables.  See the top of `web2c/Makefile' for the
+     possibilities.
+
+`fmts'
+`install-fmts'
+     Make or install the TeX `.fmt' files. *Note initex invocation::.
+
+`bases'
+`install-bases'
+     Make or install the Metafont `.base' files.  *Note inimf
+     invocation::.
+
+`mems'
+`install-mems'
+     Make or install the MetaPost `.mem' files.  *Note inimpost
+     invocation::.
+
+`triptrap'
+`trip'
+`trap'
+`mptrap'
+     To run the torture tests for TeX, Metafont, and MetaPost
+     (respectively).  See the next section.
+
+Trip, trap, and mptrap: Torture tests
+=====================================
+
+  To validate your TeX, Metafont, and MetaPost executables, run `make
+triptrap'.  This runs the trip, trap, and mptrap "torture tests".  See
+the files `triptrap/tripman.tex', `triptrap/trapman.tex', and
+`triptrap/mptrap.readme' for detailed information and background on the
+tests.
+
+  The differences between your executables' behavior and the standard
+values will show up on your terminal.  The usual differences (these are
+all acceptable) are:
+
+   * string usage and table sizes;
+
+   * glue set ratios;
+
+   * `down4', `right4', and `y4' commands in DVItype output;
+
+   * dates and times.
+
+Any other differences are trouble. The most common culprit in the past
+has been compiler bugs, especially when optimizing.  *Note TeX or
+Metafont failing: (kpathsea)TeX or Metafont failing.
+
+  The files `trip.diffs', `mftrap.diffs', and `mptrap.diffs' in the
+`triptrap' directory show the standard diffs against the original
+output.  If you diff your diffs against these files, you should come up
+clean.  For example
+     make trip >&mytrip.diffs
+     diff triptrap/trip.diffs mytrip.diffs
+
+  To run the tests separately, use the targets `trip', `trap', and
+`mptrap'.
+
+  To run simple tests for all the programs as well as the torture tests,
+run `make check'.  You can compare the output to the distributed file
+`tests/check.log' if you like.
+
+Runtime options
+===============
+
+  Besides the configure- and compile-time options described in the
+previous sections, you can control a number of parameters (in
+particular, array sizes) in the `texmf.cnf' runtime file read by
+Kpathsea (*note Config files: (kpathsea)Config files.).
+
+  Rather than exhaustively listing them here, please see the last
+section of the distributed `kpathsea/texmf.cnf'.  Some of the more
+interesting values:
+
+`main_memory'
+     Total words of memory available, for TeX, Metafont, and MetaPost.
+     Must remake the format file after changing.
+
+`extra_mem_bot'
+     Extra space for "large" TeX data structures: boxes, glue,
+     breakpoints, et al.  If you use PiCTeX, you may well want to set
+     this.
+
+`font_mem_size'
+     Words of font info available for TeX; this is approximately the
+     total size of all TFM files read.
+
+`hash_extra'
+     Additional space for the hash table of control sequence names.
+     Approximately 10,000 control sequences can be stored in the main
+     hash table; if you have a large book with numerous
+     cross-references, this might not be enough, and thus you will want
+     to set `hash_extra'.
+
+  Of course, ideally all arrays would be dynamically expanded as
+necessary, so the only limiting factor would be the amount of swap space
+available.  Unfortunately, implementing this is extremely difficult, as
+the fixed size of arrays is assumed in many places throughout the source
+code.  These runtime limits are a practical compromise between the
+compile-time limits in previous versions, and truly dynamic arrays.  (On
+the other hand, the Web2c BibTeX implementation does do dynamic
+reallocation of some arrays.)
+

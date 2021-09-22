@@ -1,0 +1,14 @@
+TARG=tex
+<../texmfmp.mkfile
+
+tex.$CPUENDIAN.fmt:	$O.out
+	$O.out '--fmt=tex'.$CPUENDIAN '--ini' '\input' plain '\dump' </dev/null
+
+amstex.$CPUENDIAN.fmt:	$O.out
+	$O.out '--fmt=amstex.'$CPUENDIAN '--ini' amstex.ini </dev/null
+
+latex.$CPUENDIAN.fmt:	$O.out
+	$O.out '--fmt=latex.'$CPUENDIAN '--ini' '\input' latex.ltx '\dump' </dev/null
+
+install-fmt:V:	tex.$CPUENDIAN.fmt latex.$CPUENDIAN.fmt tex.pool amstex.$CPUENDIAN.fmt
+	cp $newprereq /sys/lib/texmf/web2c

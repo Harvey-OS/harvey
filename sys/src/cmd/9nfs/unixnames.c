@@ -40,6 +40,8 @@ pair2idmap(char *server, ulong clientip)
 		if(r->u.timestamp != 0 && r->g.timestamp != 0)
 			return r;
 		scmap = m->next;
+		// regfree(m->sexp);	/* good idea? */
+		// regfree(m->cexp);
 		free(m);
 		break;
 	}

@@ -1,0 +1,46 @@
+% Prototype Dvips configuration file.
+
+% How to print, maybe with lp instead lpr, etc.
+o |lpr
+
+% Default resolution of this device, in dots per inch.
+D 600
+
+% Metafont mode.  (This is completely different from the -M command-line
+% option, which controls whether MakeTeXPK is invoked.)  Get
+% @url{ftp://ftp.tug.org/tex/modes.mf} for a list of mode names.  This mode
+% and the D number above must agree, or MakeTeXPK will get confused.
+M ljfour
+
+% Memory available. Download the three-line PostScript file:
+%   %! Hey, we're PostScript
+%   /Times-Roman findfont 30 scalefont setfont 144 432 moveto
+%   vmstatus exch sub 40 string cvs show pop showpage
+% to determine this number. (It will be the only thing printed.)
+m 3500000
+
+% Correct printer offset. You can use testpage.tex from the LaTeX
+% distribution to find these numbers. Print testpage.dvi more than once.
+O 0pt,0pt
+
+% Partially download Type 1 fonts by default.  Only reason not to do
+% this is if you encounter bugs.  (Please report them to
+% @email{tex-k@@mail.tug.org} if you do.)
+j
+
+% Also look for fonts at these resolutions.
+R 300 600
+
+% With a high resolution and a RISC cpu, better to compress the bitmaps.
+Z
+
+% Uncomment these if you have and want to use PostScript versions of the
+% fonts.
+%p +cmfonts.map
+%p +lafonts.map
+%p +cyrfonts.map
+%p +eufonts.map
+
+% You will also want definitions for alternative paper sizes -- A4,
+% legal, and such.  Examples in @file{contrib/papersize.level2} and
+% @file{contrib/papersize.simple}.

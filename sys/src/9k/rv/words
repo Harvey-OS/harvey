@@ -1,0 +1,97 @@
+micro(semi|chip) polarfire icicle in rv64
+
+600 MHz risc-v: 4 × sifive U54-mc RV64GC + E51 RV64IMAC (handles booting).
+• similar to sifive fu540g; memory map differs.
+• U54 are pipelined single-issue cores.
+1GB ecc memory at 0x80000000 (physmem)
+allegedly another 1GB ecc memory at 0x1040000000
+39-bit virtual addresses in rv64 (48-bit in tinyemu)
+proprietary l2 cache controller, 2MB
+all cpus, memory caches and dma are coherent!
+has standard clint & plic interrupt controllers
+serial console (4 uarts) actel 16550-compatible through micro-usb connector
+2 Cadence Gb ether (GEM): microchip vsc8662xic phys
+• only one (2nd) currently works
+has watchdog timers, usb, fpga
+firmware is opensbi 0.6 (sbi 0.2 without HSM), hss 2020.10, and u-boot 2020.01.
+• boots opensbi, then u-boot, pxe boots into supervisor mode
+cpu server only; no video hardware
+
+hart ids vs machnos
+hart 0 is an E51, which can't run user procs (no FD, no super mode).
+machno = hartid - 1
+
+virtual map for sv39
+kseg0	0xffffffc000000000 (-256GB)
+kzero	0xffffffc080000000 (kseg0 + physmem)
+
+virtual map for sv48
+kseg0	0xffff800000000000 (-128TB)
+kzero	0xffff800080000000 (kseg0 + physmem)
+
+virtual map for sv57
+kseg0	0xff00000000000000 (-64PB)
+
+virtual map for sv64
+kseg0	0x8000000000000000 (-8EB)
+
+intrs/irqs (via plic)
+name		global int	irq	phy
+mac0		51		64	8
+mac1		57		70	9
+usb dma		73		86
+usb mc		74		87
+mmc		75?		88?
+mmuart0		77		90
+mmuart1		78		91
+
+polarfire contexts
+hart0 m, hart1 m + s, hart2 m + s, hart3 m + s, hart4 m + s
+
+common uart addresses
+0x20000000	si-five
+0x20100000	polarfire 16550
+0x10010000	tinyemu (htif?)
+0x10000000	?
+
+see the doc directory.
+
+bees in one's head:
+• machine (no paging) vs supervisor modes
+• high (kernel) vs low (user) addresses; devices in both at times
+• data vs bss for zero-default variables used across clrbss
+• ensuring correct sp & sb, esp. when interruptible
+• loads by default sign-extend; add "U" to defeat it
+• early printing before malloc and interrupts enabled
+
+potential improvements
+• implement more uarts
+• retrofit the rv32 kernel to match
+• correct assembler libmp implementations: they break secstore at least
+
+work for others to do (boring, allergic, or too painful)
+• pci-e for nvme or video: tedious: too many registers & axi setup complexity
+• fpga access: miller wants to do this
+
+done
+• miller did sdio/mmc, using for nvram on mmc.  see Post2020hss
+• support multiple memory banks
+• moved unused code into unused dir.
+• with fixed jc, reverted changes for (long)rune==EOF in ed & rc.
+□	reverted changes to Rune in u.h and L" type in cc.
+• document optional malloc & memset uintptr size arg (doc/libc.wide.sizes.ms)
+• don't vmap unused devices
+
+don't bother
+• calibrate timer(s) without needing user to supply frequencies.
+  requires a priori knowledge of clock frequencies; ptui.
+
+workarounds
+jc is rounding struct sizes and alignments up to multiple of 8.
+	can use #pragma pack _2 /* or _1 */ except if assigning structs.
+
+docs
+microsemi has a bunch, Device Register Map is key: it's a pile of HTML.
+Xilinx Zynq 7000 SoC Technical Reference Manual (UG585), esp. for GEM;
+	microsemi's manual is incomplete (e.g., no hash function, no
+	buffer descriptor format).

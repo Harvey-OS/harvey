@@ -9,12 +9,12 @@ host=''
 kb=4096
 flags=()
 sname=$user
-if (! ~ $wide 1) {
+if(! ~ $wide 1){
 	flags=($flags -t)
 	kb=1024
 }
-while(! ~ $#* 0) {
-	switch ($1) {
+while(! ~ $#* 0){
+	switch($1){
 	case -d
 		debug=$2
 		shift
@@ -22,10 +22,13 @@ while(! ~ $#* 0) {
 		tflag='-t'
 	case -h
 		host=$2
+		if(! ~ $snameset yes)
+			sname=$2
 		shift
 	case -w
-		wflags='-w'
+		wflag='-w'
 	case -s
+		snameset=yes
 		sname=$2
 		shift
 	case -*
@@ -34,27 +37,37 @@ while(! ~ $#* 0) {
 	}
 	shift
 }
-if (! test -e /mnt/playlist){
-	if (! ~ $debug '0') echo mounting playlistfs
-	if (! test -e /srv/playlist.$sname && ! ~ $host ''){
-		import -a $host /srv /srv
-	}
-	if (! mount -b /srv/playlist.$sname /mnt >/dev/null >[2]/dev/null){
-		rm -f /srv/playlist.$sname
+if(! test -e /mnt/playlist){
+	if(! ~ $debug 0) echo mounting playlistfs
+	if(~ $sname linux){
+		rm -f /srv/playlist.$sname.$user
 		if (! ~ $debug '0') echo starting playlistfs
-		games/playlistfs -s $sname -d $debug
+		games/playlistfs -s $sname.$user -d $debug
+	}
+	if not {
+		if (! test -e /srv/playlist.$sname && ! ~ $host ''){
+			if (! ~ $debug '0') echo import srv from $host
+			import -a $host /srv /srv
+		}
+		if (! ~ $debug '0') echo mount /srv/playlist.$sname
+		if (! mount -b /srv/playlist.$sname /mnt >/dev/null >[2]/dev/null){
+			rm -f /srv/playlist.$sname
+			if (! ~ $debug '0') echo starting playlistfs
+			games/playlistfs -s $sname -d $debug
+		}
 	}
 }
 if (! test -w /mnt/juke) {
-	if (! test -e /srv/jukefs.$sname && ! ~ $host ''){
+	if (! test -e /srv/jukefs.$host && ! ~ $host ''){
+		if (! ~ $debug '0') echo import srv from $host
 		import -a $host /srv /srv
 	}
-	if (! mount -b /srv/jukefs.$sname /mnt >/dev/null >[2]/dev/null){
+	if (! ~ $debug '0') echo mount /srv/jukefs.$user
+	if (! mount -b /srv/jukefs.$user /mnt >/dev/null >[2]/dev/null){
+	    if (! mount -b /srv/jukefs.$host /mnt >/dev/null >[2]/dev/null){
 		if (! ~ $debug '0') echo games/jukefs
-		games/jukefs -s $sname
+		games/jukefs -s $user
+	    }
 	}
 }
-if (~ $wflags '-w') {
-	exec games/jukebox -w -d $debug $tflag &
-}
-exec games/jukebox -d $debug $tflag
+exec games/jukebox $wflag -d $debug $tflag

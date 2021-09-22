@@ -1,0 +1,15 @@
+beagle v
+discontinued 30 July 2021
+
+starfive jh7100 risc-v rv64gc cpu: dual-core sifive u74 @ 1GHz
+• U74 are dual-issue cores.
+39-bit virtual addresses in rv64
+8GB ram in two banks, with framebuffer memory after 1st 1GB and 6GB after
+opensbi 0.9 (sbi 0.2?)
+proprietary l2 cache controller, 2MB but not DMA coherent
+cpus are cache coherent but dma is not (to be fixed in jh7110)
+has standard clint & plic interrupt controllers
+synopsis "gmac" Gb ether
+hdmi, video accelerators - which one?
+xhci
+microsd card

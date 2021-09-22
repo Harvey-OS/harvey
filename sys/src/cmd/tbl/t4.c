@@ -393,7 +393,7 @@ freearr(void)
 	free(csize);
 	free(vsize);
 	free(cll);
-	free(--sep);	/* netnews says this should be --sep because incremented earlier! */
+	free(--sep);	/* this should be --sep because incremented earlier! */
 	free(used);
 	free(lused);
 	free(rused);
@@ -401,5 +401,3 @@ freearr(void)
 	free(acase);
 	free(topat);
 }
-
-

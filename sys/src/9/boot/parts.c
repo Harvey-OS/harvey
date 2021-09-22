@@ -11,7 +11,7 @@
 #include "../boot/boot.h"
 
 typedef struct Fs Fs;
-#include "/sys/src/boot/pc/dosfs.h"
+#include "dosfs.h"
 
 #define	GSHORT(p)	(((p)[1]<<8)|(p)[0])
 #define	GLONG(p)	((GSHORT((p)+2)<<16)|GSHORT(p))
@@ -361,9 +361,10 @@ mbrpart(SDunit *unit)
 
 			if(dp[i].type == PLAN9) {
 				if(nplan9 == 0)
-					strcpy(name, "plan9");
+					strncpy(name, "plan9", sizeof name);
 				else
-					sprint(name, "plan9.%d", nplan9);
+					snprint(name, sizeof name, "plan9.%d",
+						nplan9);
 				sdaddpart(unit, name, start, end);
 				p9part(unit, name);
 				nplan9++;
@@ -402,6 +403,7 @@ mbrpart(SDunit *unit)
 /*
  * To facilitate booting from CDs, we create a partition for
  * the boot floppy image embedded in a bootable CD.
+ * Has a few magic numbers.
  */
 static int
 part9660(SDunit *unit)
@@ -422,7 +424,6 @@ part9660(SDunit *unit)
 	
 	p = buf+0x47;
 	a = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
-
 	if(sdread(unit, &unit->part[0], buf, Cdsec, a*Cdsec) < 0)
 		return -1;
 
@@ -434,7 +435,7 @@ part9660(SDunit *unit)
 	p = buf+0x28;
 	a = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 
-	switch(buf[0x21]){
+	switch(buf[0x21]){		/* floppy image size */
 	case 0x01:
 		n = 1200*1024;
 		break;

@@ -1,0 +1,56 @@
+	ADD,SLT,SLTU,XOR,OR,AND,ADDW
+		R,[S,]D
+			@	R,S,D
+		Ii,[S,]D
+			@i	I,S,D
+		Iu,[S,]D
+			LUI	I1,T
+			@	T,S,D
+		I,[S,]D
+			LUI	I1,T
+			ADDI	I0,T,T
+			@	T,S,D
+	SLL,SRL,SRA,SLLW,SRLW,SRAW
+		Is,[S,]D
+			@i	I,S,D
+		R,[S,]D
+			@	R,S,D
+	MUL,MULH,MULHSU,AMULHU,DIV,DIVU,REM,REMU,MULW,DIVW,DIVUW,REMW,REMUW
+		R,[S,]D
+			@	R,S,D
+	BEQ,BNE,BLT,BGE,BLTU,BGEU,BGT,BGTU,BLE,BLEU
+		R,S,Ls
+			@	R,S,L-pc
+	JMP
+		L
+			JAL	0,L
+	JAL
+		S,L
+			JAL	S,L
+	MOVB, MOVH, MOVW, MOVL, MOVBU, MOVHU, MOVWU, MOVF, MOVD
+		Ii(S),D
+			@	I(S),D
+	MOVB, MOVH, MOVW, MOVL, MOVF, MOVD
+		R,Ii(S)
+			@	R,I(S)
+	MOVW
+		S,D
+			ADD	0,S,D
+		Ii,D
+			ADD	I,0,D
+		Iu,D
+			LUI	I1,D
+		I,D
+			LUI	I1,D
+			ADDI I0,D,D
+
+AFENCE
+	AFENCE_I, ANOP
+ALUI	$i(SB),rd
+ALUI	$i,rd
+ASWAP_W	rs2,rs1,rd
+	ASWAP_D, ALR_W, ALR_D, ASC_W, ASC_D
+AAMO_W	$i,rs1,rs2,rd
+	AAMO_D
+ASYS	$i
+	ACSRRW, ACSRRS, ACSRRC, ACSRRWI, ACSRRSI, ACSRRCI

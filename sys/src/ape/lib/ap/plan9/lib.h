@@ -2,6 +2,7 @@
 #include <sys/limits.h>
 #include <fcntl.h>
 #include <ureg.h>
+#include "_apetypes.h"
 
 typedef struct Ureg Ureg;
 

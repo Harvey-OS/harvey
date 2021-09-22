@@ -70,7 +70,6 @@ setcor(void)
 		setmap(cormap, fcor, fhdr.dataddr, 0xffffffff, fhdr.dataddr, "data");
 	}
 	kmsys();
-	return;
 }
 
 Map *

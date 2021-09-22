@@ -1,14 +1,19 @@
-#define	INS	32768		/* input buffer */
-#define	OBS	4096		/* outbut buffer */
-#define	NARG	128		/* Max number arguments to a macro */
-#define	NINCLUDE 64		/* Max number of include directories (-I) */
-#define	NIF	32		/* depth of nesting of #if */
+#ifndef EOF			/* ick */
+#include <stdio.h>
+#endif
+
 #ifndef EOF
 #define	EOF	(-1)
 #endif
 #ifndef NULL
 #define NULL	0
 #endif
+
+#define	INS	32768		/* input buffer */
+#define	OBS	8192		/* output buffer */
+#define	NARG	128		/* Max number arguments to a macro */
+#define	NINCLUDE 64		/* Max number of include directories (-I) */
+#define	NIF	32		/* depth of nesting of #if */
 
 enum toktype { END, UNCLASS, NAME, NUMBER, STRING, CCON, NL, WS, DSHARP,
 		EQ, NEQ, LEQ, GEQ, LSH, RSH, LAND, LOR, PPLUS, MMINUS,
@@ -100,6 +105,7 @@ void	process(Tokenrow *);
 void	*dorealloc(void *, int);
 void	*domalloc(int);
 void	dofree(void *);
+void	cpprint(FILE *, char *, ...);
 void	error(enum errtype, char *, ...);
 void	flushout(void);
 int	fillbuf(Source *);
@@ -155,6 +161,7 @@ extern	int nolineinfo;
 extern	int skipping;
 extern	int verbose;
 extern	int Cplusplus;
+extern	int printpplines;
 extern	Nlist *kwdefined;
 extern	Includelist includelist[NINCLUDE];
 extern	char wd[];

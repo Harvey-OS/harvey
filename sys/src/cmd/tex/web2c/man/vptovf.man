@@ -1,0 +1,68 @@
+.TH VPTOVF 1 "16 December 1994" "Web2C @VERSION@"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+vptovf \- convert virtual property lists to virtual font metrics
+.SH SYNOPSIS
+.B vptovf
+[
+.B \-verbose
+]
+.I vpl_name[.vpl]
+.I vfm_name[.vf]
+.I tfm_name[.tfm]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B vptovf
+program translates a (human-oriented) property list file to a pair of
+(program-oriented) files in the VF (virtual font) and TFM (\*(TX font metric)
+formats. Thus, a virtual font
+file can be edited and its exact contents
+can be displayed mnemonically.
+New virtual fonts, which map characters as seen by \*(TX into an arbitrary
+sequence of low-level typesetting operations,
+can also be created in this way.
+.PP
+All three filenames,
+.I vpl_name,
+.I vf_name,
+and
+.I tfm_name,
+are extended with the appropriate suffix, if they lack one.
+.\"=====================================================================
+.SH OPTIONS
+Without the
+.B \-verbose
+option,
+.B vptovf
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR pltotf (1),
+.BR tftopl (1),
+.BR vftovp (1).
+.\"=====================================================================
+.SH AUTHORS
+Donald E. Knuth wrote the program, based in part on an idea of David Fuchs,
+starting with the code for
+.BR pltotf (1).
+Karl Berry adapted it for compilation with
+.BR web2c .

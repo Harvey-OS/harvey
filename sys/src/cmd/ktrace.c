@@ -112,6 +112,7 @@ main(int argc, char *argv[])
 	case Q_MAGIC:	/* powerpc */
 	case N_MAGIC:	/* mips 4000 LE */
 	case L_MAGIC:	/* dec alpha */
+	case Z_MAGIC:	/* riscv */
 		t = rtrace;
 		break;
 	case X_MAGIC:	/* att dsp 3210 */

@@ -7,4 +7,14 @@ OFILES=\
 	dynloadfd.$O\
 	dynld.$O\
 
+HFILES=\
+	/sys/include/a.out.h\
+	/sys/include/dynld.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
 </sys/src/cmd/mksyslib

@@ -5,27 +5,27 @@ LIB=/$objtype/lib/libc.a
 SFILES=\
 	argv0.s\
 	atom.s\
-#	c_fcr0.s\
+	cycles.s\
 	getcallerpc.s\
 	getfcr.s\
 	main9.s\
-#	main9p.s\
-	memccpy.s\
-	memchr.s\
-	memcmp.s\
-	memmove.s\
-	memset.s\
+	main9p.s\
+#	memccpy.s\
+#	memchr.s\
+#	memcmp.s\
+#	memmove.s\
+#	memset.s\
+	setsb.s\
 	setjmp.s\
-	strchr.s\
-	strcmp.s\
-	strcpy.s\
+	sqrt.s\
+#	strchr.s\
+#	strcmp.s\
+#	strcpy.s\
 	tas.s\
 	vlop.s\
 
 CFILES=\
-#	cycles.c\
 	notejmp.c\
-#	sqrt.c\
 	vlrt.c\
 
 HFILES=/sys/include/libc.h

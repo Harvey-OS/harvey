@@ -1,0 +1,38 @@
+</$objtype/mkfile
+
+TARG=fsim
+
+OFILES=\
+	data.$O\
+	datv.$O\
+	dati.$O\
+	gps.$O\
+	datmain.$O\
+	plane.$O\
+	subr.$O\
+	vor.$O\
+	navaid.$O\
+	dgy.$O\
+	junk.$O\
+	main.$O\
+	mgv.$O\
+	adf.$O\
+	att.$O\
+	alt.$O\
+	inp.$O\
+	tab.$O\
+	clk.$O\
+	isin.$O\
+	iatan.$O\
+	aport.$O\
+	pwr.$O\
+	vsi.$O\
+	asi.$O\
+	ihyp.$O\
+	mkb.$O\
+
+HFILES=\
+	type.h\
+
+BIN=/$objtype/bin/games
+</sys/src/cmd/mkone

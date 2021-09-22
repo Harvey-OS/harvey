@@ -1,7 +1,8 @@
+#include <u.h>
+#include <libc.h>
 #include <stdio.h>
-#include <math.h>
-#include <string.h>
 #include "pic.h"
+
 extern int dbg;
 
 #define	abs(n)	(n >= 0 ? n : -(n))
@@ -261,6 +262,7 @@ void fillstart(double v)	/* this works only for postscript, obviously. */
 
 void fillend(int vis, int fill)
 {
+	USED(fill);
 	hvflush();
 	printf("\\X'EndObject gsave eofill grestore %g setgray %s'\n",
 		!vis ? lastgray : 0.0,
@@ -309,6 +311,7 @@ void spline(double x, double y, double n, ofloat *p, int dashed, double ddval)
 	double dx, dy;
 	double xerr, yerr;
 
+	USED(ddval, dashed);
 	move(x, y);
 	hvflush();
 	xerr = yerr = 0.0;

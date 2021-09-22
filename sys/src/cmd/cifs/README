@@ -1,0 +1,313 @@
+Wed Jul 15 15:06:48 BST 2009
+
+learning more than I wanted to about how our windows server
+infrastructure works.
+
+It seems we have blades called se-blade-01 se-blade-02 etc and virtual
+servers called se-01 and se-02 etc., the blades provide a hot spare
+system where the two physical blades can switch places at any time.
+You normally connect to a server, e.g., se-01, this server will then
+contain dfs referals to other machines.  Sadly these referrals are in
+terms of physical blades and not in terms of virtual servers, so you
+cannot strcmp() the connected host name with the referals.
+
+Just to add more confusion, the IP addresses are dynamically mapped
+too so I cannot resolve the IP addresses.  The only way to tell if two
+names map to the same host is to ingest the ARP table and lookup the
+IP addresses in that.  That will show if the two IPS and thus the two
+hosts are the same.
+
+This works only if you are on the same physical network of course.
+
+(sigh)
+
+
+Wed Jul 15 14:38:37 BST 2009
+
+Added case siginificance to cifs for most files this is easy, however
+for share names its hard as T2getallinfo() seems to return with the
+filename in lowercase for no good reason.  There is also a problem
+that the redirected share name may not have the same name as the
+directory it reprisents, so a simple strcmp() is not good enough.
+Instead I assume that if the windows translated path is just "/" then
+its a share and in that case I don't check the filename is what was
+expected, as the share name translation is case significant and will
+have enforced the change.
+
+The DFS stuff is still a mess and needs a rewrite but the lack of
+documentation from MS is a real problem.
+
+I also tried to return an error specifying the remote path to DFS
+links that point to another host (not currently supported), this
+doesn't work and I cannot tell why - there is some odd code in
+/sys/src/lib9p/srv.h:/^cloneandwalk/ which ignores errors if they
+occur on anything after the first walk, however removing this still
+resulted in the debug from -D (9pchatty mode) showing the walk
+succeeding - very odd.
+
+It would be nice one day to rework the DFS code so it tries to use the
+current if it is on the list, however pings are rare and RTT times are
+cached and in some topologies there might be a different host that is
+actually closer, so long term it would be better to be unbiased about
+it.
+
+
+Fri Oct 24 13:37:51 BST 2008
+
+Looked again at DFS, Microsoft have at last published the full
+protocol spec, so we have more of a chance of a proper client.
+
+Looking at my environment I now connect only to the root of the dfs
+tree, i.e.  I no longer do an autoconnect to all the available shares,
+so the connect is faster (good).  then I allow dfs to autoconnect on
+demand.
+
+I added some cacheing of ping RTTs so the autoconnect should be faster
+too.
+
+The cache doesn't fully work as expected as we only create cache
+entries on walk at present and not on any other operations.  This
+means cloning an existing fid and using it will not cause a
+re-evaluation of the cache even if it has expired.
+
+I think I can design dfs under plan9 to run in a single program -
+perhaps cifs becomes cifssrv and I have multiple attaches as required.
+I could also have a ctrl file which gets requests for new instances.
+Of failing that the srv instances themselves could do the mount of new
+sessions.  The only problem with this I see is that different hosts
+might need different command line options.  It could get messy tryiong
+to emulate this with attach specificers.
+
+must look at MAC signing again too, how to do validate my work?
+
+
+Tue Mar 18 14:58:30 GMT 2008
+
+made MID a variable rather than a constant, Windows servers restrict
+sessions to one per MID/user, thus a new session to a given server as
+user fred will kick off previous sessions.  I thought this was useful
+and seemed to be what Microsoft intended.  I have since found that in
+a complex DFS environment two IP addresses can point to the same
+server which supports the shares previously distributed across a pair
+of servers.  When you try to connect to these two servers the seccond
+connection is then hung up by the windows server as it has the same
+MID.  Mids are now made up on the fly.
+
+
+Mon Oct 30 11:03:36 GMT 2006
+
+Tried to extract the password expiry date from cifs - definitely no
+RAP call to do it, MS say its held in LDAP (sigh), it might be
+possible with a RPC call...  we are always one technology behind.
+
+
+Wed Oct 25 13:43:54 BST 2006
+
+CVS is now quite happy - tested for several months
+
+Fixed a bug in the linked list handling of open files (dam) if all the
+attaches of a cifs filesystem where closed and then a new attach was
+made cifs(1) would suicide.
+
+
+Fri Aug 11 11:52:05 BST 2006
+
+Found another silly that caused CVS to get confused (I think this is
+the one, need to do some more testing, but it seems saner now).
+
+fsopen was referencing a perm member of the incomming 9p message which
+does not exist, and getting random numbers for permissions and
+creating readonly files somtimes.
+
+
+Thu Aug 10 10:34:14 BST 2006
+
+Bug in pdatetime() / gdatetime() - logic wrong way up for working
+around a bug in Win95 - obvious as touch(1)ing a file would give silly
+1907 dates.
+
+Not sure if I have broken win95 compatability but I no longer have any
+of them to test with.
+
+
+Tue Nov 8 11:02:48 GMT 2005
+
+Fixed a howler that prevented files in dfs-mounted areas from being
+renamed.
+
+I now attempt to automount shares that are referenced by DFS links but
+which do not exist.  This is a bodge nescessary as RAP ShareEnum drops
+shares with names > 12 chars long.  If I ever implement RCP then this
+problem will go away.
+
+Still have some problem with cvs updates on dfs mounted dirs, CVS
+controlled files (CVS/Template) appears to become unexpectedly
+readonly.
+
+DFS implementation is a mess and should be a seperate program, it
+makes the outrageous assumption that all the DFS links appear on and
+point to a single machine (works for me, sorry).
+
+MAC signing still doesn't work and I still cannot see why.
+
+------------------------------------------------------------
+Tarted up dfsrootinfo - now works properly.
+
+1/ I can find the domain controller (look up the domain name in dns,
+	I.E. _ldap._tcp.pdc._msdcs.snellwilcox.local).
+
+2/ I can find the domain name by doing a referral request for "" to
+the domain controller
+
+3/ I can find the DFS root servers by using these replies in another
+referral request
+
+However I cannot find the name of the share at the root of DFS
+
+I could also find the closest server by doing a DNS lookup for
+_ldap._tcp.SITENAME._sites.dc._msdcs.snellwilcox.local where
+sitenameis the site.  Unfortunately this site name seems to come only
+from LDAP
+
+On the positive side it looks like jsut a dns lookup of
+snellwilcox.local will return entries in increasing "distance from
+you" order - I.E.  pick the first one.
+
+
+Wed Sep 28 14:49:40 BST 2005
+
+Dfs almost works, needs to trim the requested name by the number of
+chars in 'used'.
+
+Still reckon dfs should be a separate program so I can do DFS lookups
+of "" and "domain" and do the binds of namespaces as they appear.
+
+looks like I can find the domain controller through DNS.
+
+Name mapping is starting to work but I have hit a problem.  I am
+keeping the share pointer in the aux structure and this is wrong.  I
+need to search the share table for the correct name when I resolve
+names I may also need to resolve a machine name table!  Not sure if
+this is a good idea or not This would give a directory of machine
+names with shares under it and files under that.  The alternative is
+to bind in seperate file servers on demand.
+
+/* FIXME: path+used - in T2getdfsreferral below is wrong - unicode means you cannot add pointers */
+T2setfilelength(Session *s, Share *sp, int fh, FInfo *fip) 	/* FIXME: maybe broken, needs tested. */
+
+
+Wed Sep 14 11:31:11 BST 2005
+
+Proper support for deleting opened files added.  Added a Filetable
+synthetic file as part of the debug - probably junk this soon but I
+have left it in as it might help with some other debugging.
+
+Still have problems with cvs which I don't understand:
+	
+	cvs [update aborted]: cannot write <CVS/Template file>: Permission denied
+
+Seems to be opening the file with 17 mode (truncate and write) causes
+the problem but its intermitant.
+
+
+Sept 8th
+
+cannot delete (or probably rename) open files.  probably need to keep
+a separate list of open file structures so all fids on a file can be
+closed (and later reopened for rename()) by filename.
+
+July 26
+	MAC signing still broken, only enabled with a compile option,
+	see mkfile
+
+	mschap moved out of factotum temporarly so we can try to get
+	MAC signing to work.
+
+	Openfile synthetic always seems to give permission denied
+
+	DFS only just started, need more info on how it is really
+	implemented.
+
+	share enum disappointing - seems there really is no way to
+	enumerate shares with names that are more than 13 (correct ?)
+	chars long.
+
+
+July 6 2005
+	new auth structure in place
+
+	NTLMv2 works fine.
+
+	MAC signing should work but doesn't.
+	
+	The lm hash I generate for those protocols is rubbish.  This
+	means MAC signing will not work with LM auth.
+
+	Currently cifs uses proto=pass rather than proto=mschap in an
+	attempt to get MAC signing to work.  I need the internal
+	hashes to generate the MAC key used to sign packets and this
+	is not exposed by factotum at present.  I have got to get MAC
+	signing to work first, longer term I will alter the struct
+	comming back from factotum to add a MACkey field.
+
+	need to update code to do multiple trans2 calls so I can get
+	full user and node lists.
+
+	rpc looks like its not too difficult after all - see
+	workbench.c - this would allow more stats gathering and, more
+	importantly SID to name mapping.
+
+	maybe need to modify the rap calls so they malloc the
+	structures required and make sure they are properly freed
+	after use.
+
+	dfs support is not really done yet, initial stab seems to work
+	for /n/???/Dfsroot
+
+	DFS startup attaches to the domain - how to find the very
+	first CIFS server?
+
+	DFS failure on walk(2) should result in a new attach, maybe
+	via plumber or perhaps just forking another instance of cifs.
+
+----------------------------------------------------------------
+
+aquarela fails
+	fixed server timestamp in negioate
+	bodged support of GENERRIC_READ/WRITE/EXECUTE in smb_com_open
+	added find_first+full_directory_info & find_next+full_directory_info 
+	added smb_com_write_andx
+	allow set info to change attributes
+	trans2_set_file_information
+
+Win95 set file length using CIFSwrite won't work as that uses
+writeandx and write and x of zero buyes doesn't truncate the file.
+
+need to test large read and writes (IE > MTU) which are enabled by
+CAP_LARGE_READ and CAP_LARGE_WRITE, unfortunately I don't have a win32
+machine with >= 2GB free space.
+
+We connect with the same multiplex ID and source machine name so a
+given server will drop old connections when new ones are made.
+
+There is a TRANS2 to change the name of an open file but is it worth
+it - I cannot do anything else to an open file.
+
+DEC Pathworks servers may add trailing whitespace to filenames.  We
+don't dare strip this at present as whitespace is a vaid filename
+character these days.  maybe we should have a commandline option for
+this.  Experience will tell.
+
+
+Known CIFS problems
+~~~~~~~~~~~~~~~~~~~
+NT adds a trailing zero as part of the filename in findfirst/findnext,
+This is not a problem for us as we treat filenames as zero terminated
+anyway.
+
+Core Setattr function doesn't appear to work under Windows NT4
+
+It isn't possible to set datestamps on directories under Win95
+
+It is necessary to seek to EOF to get stat() to report the correct
+size for files that are open.

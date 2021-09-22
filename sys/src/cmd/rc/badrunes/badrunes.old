@@ -1,0 +1,6 @@
+#!/bin/rc
+echo helÀ;echo 2nd line
+echo 3 byteàÎ±
+echo 3 byteà;echo y
+echo 4 byteð’€y
+#echo 3 byteà

@@ -5,7 +5,7 @@ memchr(const void *ap, int c, size_t n)
 {
 	unsigned char *sp;
 
-	sp = ap;
+	sp = (unsigned char *)ap;
 	c &= 0xFF;
 	while(n > 0) {
 		if(*sp++ == c)

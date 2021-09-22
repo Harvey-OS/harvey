@@ -213,10 +213,8 @@ hzsched(void)
 int
 preempted(void)
 {
-	if(up && up->state == Running)
-	if(up->preempted == 0)
-	if(anyhigher())
-	if(!active.exiting){
+	if(up && up->state == Running && up->preempted == 0 && anyhigher() &&
+	    !active.exiting){
 		m->readied = nil;	/* avoid cooperative scheduling */
 		up->preempted = 1;
 		sched();
@@ -276,7 +274,7 @@ updatecpu(Proc *p)
 	if(p->edf)
 		return;
 
-	t = MACHP(0)->ticks*Scaling + Scaling/2;
+	t = sys->ticks*Scaling + Scaling/2;
 	n = t - p->lastupdate;
 	p->lastupdate = t;
 
@@ -294,7 +292,8 @@ updatecpu(Proc *p)
 		p->cpu = 1000 - t;
 	}
 
-//iprint("pid %d %s for %d cpu %d -> %d\n", p->pid,p==up?"active":"inactive",n, ocpu,p->cpu);
+//iprint("pid %d %s for %d cpu %d -> %d\n", p->pid, p==up? "active": "inactive",
+//	n, ocpu, p->cpu);
 }
 
 /*
@@ -476,6 +475,8 @@ another:
 		p = rq->head;
 		if(p == nil)
 			continue;
+		if(p->mp != MACHP(m->machno))
+			continue;
 		if(pri == p->basepri)
 			continue;
 		updatecpu(p);
@@ -535,6 +536,8 @@ loop:
 		 *  processor can run given affinity constraints.
 		 *
 		 */
+		if (locknote)
+			locknote();
 		for(rq = &runq[Nrq-1]; rq >= runq; rq--){
 			for(p = rq->head; p; p = p->rnext){
 				if(p->mp == nil || p->mp == MACHP(m->machno)
@@ -596,33 +599,34 @@ canpage(Proc *p)
 void
 cpuactive(uint cpu)
 {
-#ifdef MACHS_BITMAP
-	active.machsmap[cpu / BI2WD] |= 1ULL << (cpu % BI2WD);
-	active.nmachs++;
-#else
-	active.machs |= 1ULL << cpu;
-#endif
+	ulong bit, wd;
+
+	bit = 1ULL << (cpu % BI2WD);
+	wd = cpu / BI2WD;
+	if ((active.machsmap[wd] & bit) == 0) {
+		active.machsmap[wd] |= bit;
+		active.nmachs++;
+	}
 }
 
 void
 cpuinactive(uint cpu)
 {
-#ifdef MACHS_BITMAP
-	active.machsmap[cpu / BI2WD] &= ~(1ULL << (cpu % BI2WD));
-	active.nmachs--;
-#else
-	active.machs &= ~(1ULL << cpu);
-#endif
+	ulong bit, wd;
+
+	bit = 1ULL << (cpu % BI2WD);
+	wd = cpu / BI2WD;
+	if (active.machsmap[wd] & bit) {
+		active.machsmap[wd] &= ~bit;
+		if (active.nmachs > 0)
+			active.nmachs--;
+	}
 }
 
 int
 iscpuactive(uint cpu)
 {
-#ifdef MACHS_BITMAP
 	return (active.machsmap[cpu / BI2WD] & (1ULL << (cpu % BI2WD))) != 0;
-#else
-	return (active.machs & (1ULL << cpu)) != 0;
-#endif
 }
 
 
@@ -634,10 +638,10 @@ noprocpanic(char *msg)
 	 * clearing our bit in machs avoids calling exit(0) from hzclock()
 	 * on this processor.
 	 */
-	lock(&active);
+	ilock(&active);
 	cpuinactive(m->machno);
 	active.exiting = 1;
-	unlock(&active);
+	iunlock(&active);
 
 	procdump();
 	delay(1000);
@@ -720,7 +724,7 @@ newproc(void)
 	p->wired = 0;
 	procpriority(p, PriNormal, 0);
 	p->cpu = 0;
-	p->lastupdate = MACHP(0)->ticks*Scaling;
+	p->lastupdate = sys->ticks*Scaling;
 	p->edf = nil;
 
 	return p;
@@ -767,13 +771,8 @@ procpriority(Proc *p, int pri, int fixed)
 		pri = Npriq - 1;
 	else if(pri < 0)
 		pri = 0;
-	p->basepri = pri;
-	p->priority = pri;
-	if(fixed){
-		p->fixedpri = 1;
-	} else {
-		p->fixedpri = 0;
-	}
+	p->basepri = p->priority = pri;
+	p->fixedpri = (fixed? 1: 0);
 }
 
 void
@@ -785,7 +784,8 @@ procinit0(void)		/* bad planning - clashes with devproc.c */
 	procalloc.free = xalloc(conf.nproc*sizeof(Proc));
 	if(procalloc.free == nil){
 		xsummary();
-		panic("cannot allocate %lud procs (%ludMB)\n", conf.nproc, conf.nproc*sizeof(Proc)/(1024*1024));
+		panic("cannot allocate %lud procs (%lludMB)", conf.nproc,
+			(uvlong)conf.nproc*sizeof(Proc)/(1024*1024));
 	}
 	procalloc.arena = procalloc.free;
 
@@ -812,12 +812,15 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	s = splhi();
 
 	if(up->nlocks.ref)
-		print("process %lud sleeps with %lud locks held, last lock %#p locked at pc %#lux, sleep called from %#p\n",
-			up->pid, up->nlocks.ref, up->lastlock, up->lastlock->pc, getcallerpc(&r));
+		print("process %lud sleeps with %lud locks held, last lock %#p "
+			"locked at pc %#lux, sleep called from %#p\n",
+			up->pid, up->nlocks.ref, up->lastlock, up->lastlock->pc,
+			getcallerpc(&r));
 	lock(r);
 	lock(&up->rlock);
 	if(r->p){
-		print("double sleep called from %#p, %lud %lud\n", getcallerpc(&r), r->p->pid, up->pid);
+		print("double sleep called from %#p, %lud %lud\n",
+			getcallerpc(&r), r->p->pid, up->pid);
 		dumpstack();
 	}
 
@@ -1002,7 +1005,8 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		/* try for the second lock */
 		if(canlock(r)){
 			if(p->state != Wakeme || r->p != p)
-				panic("postnote: state %d %d %d", r->p != p, p->r != r, p->state);
+				panic("postnote: state %d %d %d", r->p != p,
+					p->r != r, p->state);
 			p->r = nil;
 			r->p = nil;
 			ready(p);
@@ -1153,7 +1157,7 @@ pexit(char *exitstr, int freemem)
 	 * if not a kernel process and have a parent,
 	 * do some housekeeping.
 	 */
-	if(up->kp == 0 && up->parentpid != 0) {
+	if(up->kp == 0) {
 		p = up->parent;
 		if(p == 0) {
 			if(exitstr == 0)
@@ -1172,7 +1176,7 @@ pexit(char *exitstr, int freemem)
 		stime = up->time[TSys] + up->time[TCSys];
 		wq->w.time[TUser] = tk2ms(utime);
 		wq->w.time[TSys] = tk2ms(stime);
-		wq->w.time[TReal] = tk2ms(MACHP(0)->ticks - up->time[TReal]);
+		wq->w.time[TReal] = tk2ms(sys->ticks - up->time[TReal]);
 		if(exitstr && exitstr[0])
 			snprint(wq->w.msg, sizeof(wq->w.msg), "%s %lud: %s", up->text, up->pid, exitstr);
 		else
@@ -1187,13 +1191,13 @@ pexit(char *exitstr, int freemem)
 			p->time[TCUser] += utime;
 			p->time[TCSys] += stime;
 			/*
-			 * If there would be more than 2000 wait records
+			 * If there would be more than 128 wait records
 			 * processes for my parent, then don't leave a wait
 			 * record behind.  This helps prevent badly written
 			 * daemon processes from accumulating lots of wait
 			 * records.
 		 	 */
-			if(p->nwait < 2000) {
+			if(p->nwait < 128) {
 				wq->next = p->waitq;
 				p->waitq = wq;
 				p->nwait++;
@@ -1318,9 +1322,11 @@ dumpaproc(Proc *p)
 	s = p->psstate;
 	if(s == 0)
 		s = statename[p->state];
-	print("%3lud:%10s pc %8lux dbgpc %8lux  %8s (%s) ut %ld st %ld bss %lux qpc %lux nl %lud nd %lud lpc %lux pri %lud\n",
+	print("%3lud:%10s pc %8lux dbgpc %8lux  %8s (%s) ut %ld st %ld bss "
+		"%lux qpc %lux nl %lud nd %lud lpc %lux pri %lud\n",
 		p->pid, p->text, p->pc, dbgpc(p),  s, statename[p->state],
-		p->time[0], p->time[1], bss, p->qpc, p->nlocks.ref, p->delaysched, p->lastlock ? p->lastlock->pc : 0, p->priority);
+		p->time[0], p->time[1], bss, p->qpc, p->nlocks.ref,
+		p->delaysched, p->lastlock ? p->lastlock->pc : 0, p->priority);
 }
 
 void
@@ -1335,10 +1341,8 @@ procdump(void)
 		print("no current process\n");
 	for(i=0; i<conf.nproc; i++) {
 		p = &procalloc.arena[i];
-		if(p->state == Dead)
-			continue;
-
-		dumpaproc(p);
+		if(p->state != Dead)
+			dumpaproc(p);
 	}
 }
 
@@ -1354,7 +1358,7 @@ procflushseg(Segment *s)
 
 	/*
 	 *  tell all processes with this
-	 *  segment to flush their mmu's
+	 *  segment to flush their mmus
 	 */
 	nwait = 0;
 	for(i=0; i<conf.nproc; i++) {
@@ -1379,15 +1383,19 @@ procflushseg(Segment *s)
 
 	/*
 	 *  wait for all processors to take a clock interrupt
-	 *  and flush their mmu's
+	 *  and flush their mmus.
+	 *
+	 * since the 386 is short of registers, m always contains the constant
+	 * MACHADDR, not MACHP(m->machno); see ../pc/dat.h.  so we can't just 
+	 * compare addresses with m.
 	 */
 again:
-	for(nm = 0; nm < conf.nmach; nm++){
-		if(nm != m->machno && MACHP(nm)->flushmmu){
+	for(nm = 0; nm < conf.nmach; nm++)
+		if(nm != m->machno && MACHP(nm)->flushmmu) {
 			sched();
+			/* we may be running on a different cpu now */
 			goto again;
 		}
-	}
 }
 
 void
@@ -1438,6 +1446,8 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->dbgreg = 0;
 
 	procpriority(p, PriKproc, 0);
+	if (strncmp(name, "#l", 2) == 0)
+		procpriority(p, 15, 0);	/* give ether kprocs extra zing */
 
 	kprocchild(p, func, arg);
 
@@ -1449,7 +1459,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 	incref(kpgrp);
 
 	memset(p->time, 0, sizeof(p->time));
-	p->time[TReal] = MACHP(0)->ticks;
+	p->time[TReal] = sys->ticks;
 	ready(p);
 }
 

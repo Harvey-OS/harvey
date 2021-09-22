@@ -1,0 +1,7 @@
+#!/bin/rc
+#whoami service net dir
+loc=`{cat $3/local|sed 's/!.*//'}
+rem=`{cat $3/remote}
+port=`{echo $rem|sed 's/^[^!]*!//'}
+rem=`{echo $rem|sed 's/!.*//'}
+echo i am $loc sysname $sysname you are $rem port $port

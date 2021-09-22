@@ -1,2 +1,0 @@
-#!/bin/rc
-generic '/usr/lib/laserwriter/psf -d -P$LPDEST -h$SCHEDLINE(1) -n$SCHEDLINE(2) < $LPDEST/$FILE(1) >[2]$LPSPOOL/log/$LPDEST^.st' '{cat <{echo -d$LPDEST -pnoproc -M$SCHEDLINE(1) -u$SCHEDLINE(2)} $LPDEST/$FILE(1);sleep 5}| lpsend.rc $DEST_HOST' ''

@@ -17,3 +17,85 @@ super sclk divider 0x0:
 	dividend == 0 (thus 1)
 	divisor == 0 (thus 1)
 ---
+
+
+/*
+ * linux goo
+ */
+
+struct clk_pll_freq_table {
+	ulong	input_rate;
+	ulong	output_rate;
+	ushort	n;
+	ushort	m;
+	uchar	p;
+	uchar	cpcon;
+};
+
+struct clk_pll_freq_table tegra_pll_x_freq_table[] = {
+	/* 1 GHz */
+	{ 12000000, 1000000000, 1000, 12, 1, 12},
+	{ 13000000, 1000000000, 1000, 13, 1, 12},
+	{ 19200000, 1000000000, 625,  12, 1, 8},
+	{ 26000000, 1000000000, 1000, 26, 1, 12},
+};
+
+struct clk tegra_pll_x = {
+	.name      = "pll_x",
+	.flags     = PLL_HAS_CPCON | PLL_ALT_MISC_REG,
+	.ops       = &tegra_pll_ops,
+	.reg       = 0xe0,
+	.parent    = &tegra_clk_m,
+	.max_rate  = 1000000000,
+	.u.pll = {
+		.input_min = 2000000,
+		.input_max = 31000000,
+		.cf_min    = 1000000,
+		.cf_max    = 6000000,
+		.vco_min   = 20000000,
+		.vco_max   = 1200000000,
+		.freq_table = tegra_pll_x_freq_table,
+		.lock_delay = 300,
+	},
+};
+
+tegra2_pll_clk_set_rate(struct clk *c, ulong rate)
+{
+	u32 val;
+	ulong input_rate;
+	struct clk_pll_freq_table *sel;
+
+	input_rate = clk_get_rate(c->parent);
+	for (sel = c->u.pll.freq_table; sel->input_rate != 0; sel++)
+		if (sel->input_rate == input_rate && sel->output_rate == rate) {
+			c->mul = sel->n;
+			c->div = sel->m * sel->p;
+
+			val = clk_readl(c->reg + PLL_BASE);
+			if (c->flags & PLL_FIXED)
+				val |= PLL_BASE_OVERRIDE;
+			val &= ~(PLL_BASE_DIVP_MASK | PLL_BASE_DIVN_MASK |
+				 PLL_BASE_DIVM_MASK);
+			val |= (sel->m << PLL_BASE_DIVM_SHIFT) |
+			       (sel->n << PLL_BASE_DIVN_SHIFT);
+			BUG_ON(sel->p < 1 || sel->p > 2);
+			if (c->flags & PLLU) {
+				if (sel->p == 1)
+					val |= PLLU_BASE_POST_DIV;
+			} else
+				if (sel->p == 2)
+					val |= 1 << PLL_BASE_DIVP_SHIFT;
+			clk_writel(val, c->reg + PLL_BASE);
+
+			if (c->flags & PLL_HAS_CPCON) {
+				val = clk_readl(c->reg + PLL_MISC(c));
+				val &= ~PLL_MISC_CPCON_MASK;
+				val |= sel->cpcon << PLL_MISC_CPCON_SHIFT;
+				clk_writel(val, c->reg + PLL_MISC(c));
+			}
+
+			if (c->state == ON)
+				tegra2_pll_clk_enable(c);
+			return 0;
+		}
+}

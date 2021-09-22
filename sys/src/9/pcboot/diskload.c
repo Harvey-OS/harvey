@@ -6,16 +6,13 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
-#include	"ureg.h"
-#include	"pool.h"
+
 #include	"../port/error.h"
-#include	"../port/netif.h"
 #include	"dosfs.h"
 #include	"../port/sd.h"
 
 /* from <libc.h> */
-#define	DIRMAX	(sizeof(Dir)+STATMAX)	/* max length of Dir structure */ 
+#define	DIRMAX	(sizeof(Dir)+STATMAX)	/* max length of Dir structure */
 #define	STATMAX	65535U	/* max length of machine-independent stat structure */
 
 enum {
@@ -143,20 +140,23 @@ addsdev(Dir *dirp)
 		kstrdup(&part, fld[1]);
 		start = strtoull(fld[2], nil, 0);
 		end   = strtoull(fld[3], nil, 0);
-		if (end > (vlong)100*(vlong)MB*MB) {
+		if (end > 128LL*(vlong)MB*(vlong)MB) {
 			print("addsdev: implausible partition #S/%s/%s %lld %lld\n",
 				dirp->name, part, start, end);
 			continue;
 		}
 		/*
 		 * We are likely to only see a "data" partition on each disk.
+		 * Print only the important ones.
 		 *
 		 * Read the on-disk partition tables & set in-core partitions
 		 * (disk, part, start, end).
 		 */
-		print("found partition #S/%s/%s %,lld %,lld\n",
-			dirp->name, part, start, end);
 		snprint(disk, sizeof disk, "#S/%s", dirp->name);
+		if (strcmp(part, "data") == 0 || strcmp(part, "plan9") == 0 ||
+		    strcmp(part, "9fat") == 0)
+			print("found partition %s/%s\t%,lld\t%,lld\n",
+				disk, part, start, end);
 		readparts(disk);
 	}
 	free(buf);
@@ -167,7 +167,7 @@ static File file;
 
 /*
  * look for kernels on a 9fat; if there's just one, return it.
- * could treat x and x.gz as one kernel.
+ * could treat x and x.[gl]z as one kernel.
  */
 static char *
 findonekernel(Bootfs *fs)
@@ -185,7 +185,6 @@ findonekernel(Bootfs *fs)
 	kerns = 0;
 	for (n = 0; (name = array[n]) != nil; n++)
 		if(strncmp(name, "9pc", 3) == 0 ||
-		   strncmp(name, "9k8", 3) == 0 ||
 		   strncmp(name, "9k10", 4) == 0){
 			bootfile = name;
 			kerns++;
@@ -363,7 +362,7 @@ bootloadproc(void *)
 	memset(sdevs, 0, sizeof sdevs);
 	sdch = nil;
 	while(waserror()) {
-		print("error caught at top level in bootload\n");
+		print("bootloadproc: %s\n", up->errstr);
 		if(sdch) {
 			cclose(sdch);
 			sdch = nil;

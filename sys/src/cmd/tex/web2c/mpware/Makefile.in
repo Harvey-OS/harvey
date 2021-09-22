@@ -1,0 +1,61 @@
+# Makefile for the MetaPost support programs.
+
+ac_include ../make/paths.make
+ac_include ../make/common.make
+ac_include ../make/programs.make
+ac_include kpathsea.make
+
+proglib = ../lib/lib.a
+programs = dmp mpto newer makempx
+
+default: all
+all: $(programs) 
+
+dmp: dmp.o $(kpathsea)
+	$(kpathsea_link) dmp.o $(LOADLIBES)
+mpto: mpto.o
+	$(link_command) mpto.o $(proglib) $(LIBS) $(XLOADLIBES)
+newer: newer.o
+	$(link_command) newer.o $(proglib) $(LIBS) $(XLOADLIBES)
+makempx: makempx.in Makefile.in
+	sed -e 's,@BINDIR@,$(bindir),g' -e 's,@web2cver@,@WEB2CVERSION@,g' \
+	    <$(srcdir)/makempx.in >$@
+	-chmod a+x $@
+
+newer.o dmp.o: ../c-auto.h
+
+checkdir = $(srcdir)/../check
+check: mpto makempx newer dmp
+	makempx $(checkdir)/label.mp ../check/xlabel.mpx
+	./mpto -tex $(checkdir)/testex.mp | diff $(checkdir)/testex.tex -
+	sed '16s/^%//' <$(checkdir)/testex.mp >testex1
+	-mpto -tex testex1 >/dev/null 2>testex2
+	sed '17s/^%//' <$(checkdir)/testex.mp >testex1
+	-mpto -tex testex1 >/dev/null 2>>testex2
+	sed '18s/^%//' <$(checkdir)/testex.mp >testex1
+	-mpto -tex testex1 >/dev/null 2>>testex2
+	sed '19s/^%//' <$(checkdir)/testex.mp >testex1
+	-mpto -tex testex1 >/dev/null 2>>testex2
+	sed '20s/^%//' <$(checkdir)/testex.mp >testex1
+	-mpto -tex testex1 >/dev/null 2>>testex2
+	diff $(checkdir)/testex.err testex2
+
+Makefile: Makefile.in ../config.status
+	cd .. && $(SHELL) config.status
+
+install: install-exec install-data
+install-exec: $(programs)
+	$(SHELL) $(top_srcdir)/../mkinstalldirs $(bindir) $(scriptdir)
+	for p in mpto newer; do $(INSTALL_PROGRAM) $$p $(bindir)/$$p; done
+	$(INSTALL_LIBTOOL_PROG) $(bindir) dmp
+	$(INSTALL_SCRIPT) makempx $(scriptdir)/makempx
+install-data:
+
+ac_include ../make/tkpathsea.make
+ac_include ../make/clean.make
+
+mostlyclean::
+	rm -f testex1 testex2
+
+ac_include ../make/rdepend.make
+ac_include mpware/depend.make

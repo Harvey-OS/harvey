@@ -11,6 +11,7 @@ COMMONOFILES=\
 	pcmd.$O\
 	pfnc.$O\
 	simple.$O\
+	spname.$O\
 	subr.$O\
 	trap.$O\
 	tree.$O\

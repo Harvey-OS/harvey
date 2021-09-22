@@ -44,27 +44,10 @@ static void	etherpref2addr(uchar *pref, uchar *ea);
 Medium ethermedium =
 {
 .name=		"ether",
-.hsize=		ETHERHDRSIZE,
-.mintu=		ETHERMINTU,
-.maxtu=		ETHERMAXTU,
-.maclen=	Eaddrlen,
-.bind=		etherbind,
-.unbind=	etherunbind,
-.bwrite=	etherbwrite,
-.addmulti=	etheraddmulti,
-.remmulti=	etherremmulti,
-.ares=		arpenter,
-.areg=		sendgarp,
-.pref2addr=	etherpref2addr,
-};
-
-Medium gbemedium =
-{
-.name=		"gbe",
-.hsize=		ETHERHDRSIZE,
-.mintu=		ETHERMINTU,
-.maxtu=		9014,
-.maclen=	Eaddrlen,
+.hsize=		14,
+.mintu=		60,
+.maxtu=		1514,
+.maclen=	6,
 .bind=		etherbind,
 .unbind=	etherunbind,
 .bwrite=	etherbwrite,
@@ -96,23 +79,28 @@ enum
 {
 	ARPREQUEST	= 1,
 	ARPREPLY	= 2,
+
+	/* ethernet packet types */
+	ETARP		= 0x0806,
+	ETIP4		= 0x0800,
+	ETIP6		= 0x86DD,
 };
 
 typedef struct Etherarp Etherarp;
 struct Etherarp
 {
-	uchar	d[Eaddrlen];
-	uchar	s[Eaddrlen];
+	uchar	d[6];
+	uchar	s[6];
 	uchar	type[2];
 	uchar	hrd[2];
 	uchar	pro[2];
 	uchar	hln;
 	uchar	pln;
 	uchar	op[2];
-	uchar	sha[Eaddrlen];
-	uchar	spa[IPv4addrlen];
-	uchar	tha[Eaddrlen];
-	uchar	tpa[IPv4addrlen];
+	uchar	sha[6];
+	uchar	spa[4];
+	uchar	tha[6];
+	uchar	tpa[4];
 };
 
 static char *nbmsg = "nonblocking";
@@ -273,7 +261,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 {
 	Etherhdr *eh;
 	Arpent *a;
-	uchar mac[Eaddrlen];
+	uchar mac[6];
 	Etherrock *er = ifc->arg;
 
 	/* get mac address of destination */
@@ -310,14 +298,14 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 
 	switch(version){
 	case V4:
+		eh->t[0] = 0x08;
+		eh->t[1] = 0x00;
 		devtab[er->mchan4->type]->bwrite(er->mchan4, bp, 0);
-		eh->t[0] = ETIP4>>8;
-		eh->t[1] = ETIP4;
 		break;
 	case V6:
+		eh->t[0] = 0x86;
+		eh->t[1] = 0xDD;
 		devtab[er->mchan6->type]->bwrite(er->mchan6, bp, 0);
-		eh->t[0] = ETIP6>>8;
-		eh->t[1] = ETIP6;
 		break;
 	default:
 		panic("etherbwrite2: version %d", version);
@@ -406,7 +394,7 @@ etherread6(void *a)
 static void
 etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 {
-	uchar mac[Eaddrlen];
+	uchar mac[6];
 	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
@@ -428,7 +416,7 @@ etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 static void
 etherremmulti(Ipifc *ifc, uchar *a, uchar *)
 {
-	uchar mac[Eaddrlen];
+	uchar mac[6];
 	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
@@ -548,9 +536,10 @@ sendgarp(Ipifc *ifc, uchar *ip)
 	Etherarp *e;
 	Etherrock *er = ifc->arg;
 
-	/* don't arp for our initial non address */
-	if(ipcmp(ip, IPnoaddr) == 0)
-		return;
+	if(ipcmp(ip, IPnoaddr) == 0) {
+		print("sendgarp with broadcast return address\n");
+		ip = IPv4bcast;
+	}
 
 	n = sizeof(Etherarp);
 	if(n < ifc->medium->mintu)
@@ -747,14 +736,13 @@ void
 ethermediumlink(void)
 {
 	addipmedium(&ethermedium);
-	addipmedium(&gbemedium);
 }
 
 
 static void
 etherpref2addr(uchar *pref, uchar *ea)
 {
-	pref[8] = ea[0] | 0x2;
+	pref[8] = ea[0] | 0x2;	/* 0x2 is inverted U/L bit; see rfc4291 */
 	pref[9] = ea[1];
 	pref[10] = ea[2];
 	pref[11] = 0xFF;

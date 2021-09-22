@@ -1,0 +1,9 @@
+This is the root of the Plan9 TeX tree.
+
+The Pascal -> C converter doesn't pay attention to signed-ness
+of char*'s, whereas 8c and friends do, so all the C files have
+been hand edited (casts added) where necessary.
+
+Thus we do not build everything from the web sources,
+but rather from the C files
+

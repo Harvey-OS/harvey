@@ -1,0 +1,146 @@
+.TH BIBTEX 1 "24 November 1994" "Web2C @VERSION@"
+.\"=====================================================================
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\\s-2A\\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+bibtex \- make a bibliography for (La)TeX
+.SH SYNOPSIS
+.B bibtex
+[
+.BI -min-crossrefs =number
+]
+[
+.B -terse
+]
+[
+.I auxname
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+\*(BX reads the top-level auxiliary
+.RI ( .aux )
+file that was output during the running of
+.BR latex (1)
+or
+.BR tex (1)
+and creates a bibliography
+.RI ( .bbl )
+file that will be incorporated into the document on subsequent runs of
+\*(LX or \*(TX.  The
+.I auxname
+on the command line must be given without the
+.I .aux
+extension.  If you don't give the
+.IR auxname ,
+the program prompts you for it.
+.PP
+\*(BX looks up, in bibliographic database
+.RI ( .bib )
+files specified by the \\bibliography command,
+the entries specified by the \\cite and \\nocite commands
+in the \*(LX or \*(TX source file.
+It formats the information from those entries
+according to instructions in a bibliography style
+.RI ( .bst )
+file (specified by the \\bibliographystyle command,
+and it outputs the results to the
+.I .bbl
+file.
+.PP
+The \*(LX manual
+explains what a \*(LX source file must contain to work with \*(BX.
+Appendix B of the manual describes the format of the
+.I .bib
+files. The `\*(BXing' document describes extensions and details of
+this format, and it gives other useful hints for using \*(BX.
+.\"=====================================================================
+.SH OPTIONS
+The
+.B -min-crossrefs
+option defines the minimum number of
+.B crossref
+required for automatic inclusion of the crossref'd entry on the citation
+list; the default is two. 
+With the
+.B -terse
+option, \*(BX operates silently.  Without it, a banner and progress
+reports are printed on
+.IR stdout .
+.PP
+.\"=====================================================================
+.SH ENVIRONMENT
+\*(BX searches the directories in the
+path defined by the BSTINPUTS environment variable for
+.I .bst
+files. If BSTINPUTS is not set, it uses the system default.
+For
+.I .bib
+files, it uses the BIBINPUTS environment variable if that is set,
+otherwise the default.
+See
+.BR tex (1)
+for the details of the searching.
+.PP
+If the environment variable
+TEXMFOUTPUT is set, \*(BX attempts to put its output
+files in it, if they cannot be put in the current directory.  Again, see
+.BR tex (1).
+No special searching is done for the
+.I .aux
+file.
+.\"=====================================================================
+.SH FILES
+.TP
+.I *.bst
+Bibliography style files.
+.TP
+.I btxdoc.tex
+``\*(BXing'' \- \*(LXable documentation for general \*(BX users
+.TP
+.I btxhak.tex
+``Designing \*(BX Styles'' \- \*(LXable documentation for style designers
+.TP
+.I btxdoc.bib
+database file for those two documents
+.TP
+.I xampl.bib
+database file giving examples of all standard entry types
+.TP
+.I btxbst.doc
+template file and documentation for the standard styles
+.PP
+All those files should be available somewhere on your system.
+.PP
+The host math.utah.edu has a vast collection of
+.I .bib
+files available for anonymous ftp, including references for all the
+standard \*(TX books and a complete bibliography for TUGboat.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR latex (1),
+.BR tex (1).
+.br
+Leslie Lamport,
+.IR "\*(LX \- A Document Preparation System" ,
+Addison-Wesley, 1985, ISBN 0-201-15790-X.
+.\"=====================================================================
+.SH AUTHOR
+Oren Patashnik, Stanford University.  This man page describes the web2c
+version of \*(BX.  Other ports of \*(BX, such as Donald Knuth's version
+using the Sun Pascal compiler, do not have the same path searching
+implementation, or the command-line options.

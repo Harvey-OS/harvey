@@ -73,15 +73,17 @@ send_notify(char *slave, RR *soa, Request *req)
 		rrfreelist(rp);		/* was rrfree */
 	}
 
-	fd = udpport(nil);
+	fd = udpport(mntpt);
 	if(fd < 0)
 		return;
 
 	/* send 3 times or until we get anything back */
 	n += Udphdrsize;
 	for(i = 0; i < 3; i++, freeanswers(&repmsg)){
-		dnslog("sending %d byte notify to %s/%I.%d about %s", n, slave,
-			up->raddr, nhgets(up->rport), soa->owner->name);
+		if (0)
+			dnslog("sending %d byte notify to %s/%I.%d about %s",
+				n, slave, up->raddr, nhgets(up->rport),
+				soa->owner->name);
 		memset(&repmsg, 0, sizeof repmsg);
 		if(write(fd, obuf, n) != n)
 			break;
@@ -100,6 +102,9 @@ send_notify(char *slave, RR *soa, Request *req)
 	}
 	if (i < 3)
 		freeanswers(&repmsg);
+	else
+		dnslog("notify to %s/%I.%d about %s not acknowledged",
+			slave, up->raddr, nhgets(up->rport), soa->owner->name);
 	close(fd);
 }
 

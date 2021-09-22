@@ -15,6 +15,7 @@ HFILES=decoder.h \
 	lzip.h \
 
 BIN=/$objtype/bin
+LIB=/$objtype/lib/libnofp.a
 
 </sys/src/cmd/mkone
 

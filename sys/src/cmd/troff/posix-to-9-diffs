@@ -1,0 +1,159 @@
+diff /n/dump/2019/1205/sys/src/cmd/troff/dwbinit.c ./dwbinit.c
+76,80c76
+< #include <stdio.h>
+< #include <ctype.h>
+< #include <string.h>
+< #include <stdlib.h>
+< 
+---
+> #include "tdef.h"
+diff /n/dump/2019/1205/sys/src/cmd/troff/ext.h ./ext.h
+100c100
+< extern	int	print;
+---
+> extern	int	doprint;
+diff /n/dump/2019/1205/sys/src/cmd/troff/fns.h ./fns.h
+229c229
+< int	setfp(int pos, int f, char *truename, int print);
+---
+> int	setfp(int pos, int f, char *truename, int doprint);
+diff /n/dump/2019/1205/sys/src/cmd/troff/mkfile ./mkfile
+20a21,22
+> 	popen.$O\
+> 	system.$O\
+30,31c32
+< CFLAGS=-FTVw -c -DSTRICT -DUNICODE
+< CC=pcc
+---
+> CFLAGS=-FTVw -DSTRICT -DUNICODE
+42c43
+< 	pcc -o $target $prereq
+---
+> 	$LD -o $target $prereq
+diff /n/dump/2019/1205/sys/src/cmd/troff/n1.c ./n1.c
+13,15d12
+< #include <setjmp.h>
+< #include <time.h>
+< 
+278c275
+< 	struct tm *ltime;
+---
+> 	Tm *ltime;
+281,282c278,279
+< 	ltime = localtime(&tt);
+< 	numtabp[YR].val = ltime->tm_year % 100;
+---
+> 	ltime = localtime(tt);
+> 	numtabp[YR].val = ltime->year % 100;
+284,286c281,283
+< 	numtabp[MO].val = ltime->tm_mon + 1;	/* troff uses 1..12 */
+< 	numtabp[DY].val = ltime->tm_mday;
+< 	numtabp[DW].val = ltime->tm_wday + 1;	/* troff uses 1..7 */
+---
+> 	numtabp[MO].val = ltime->mon + 1;	/* troff uses 1..12 */
+> 	numtabp[DY].val = ltime->mday;
+> 	numtabp[DW].val = ltime->wday + 1;	/* troff uses 1..7 */
+1107c1104
+< 	print = 0;
+---
+> 	doprint = 0;
+diff /n/dump/2019/1205/sys/src/cmd/troff/n10.c ./n10.c
+10d9
+< #include <ctype.h>
+diff /n/dump/2019/1205/sys/src/cmd/troff/n2.c ./n2.c
+10d9
+< #include <setjmp.h>
+95c94
+< 	if (!tflg && !print) {
+---
+> 	if (!tflg && !doprint) {
+103c102
+< 		if (print)			/* assumes that it's ok to print */
+---
+> 		if (doprint)		/* assumes that it's ok to print */
+diff /n/dump/2019/1205/sys/src/cmd/troff/n3.c ./n3.c
+829d828
+< #define LNSIZE 4000
+diff /n/dump/2019/1205/sys/src/cmd/troff/n4.c ./n4.c
+11d10
+< 
+120c119
+< 			i = print;
+---
+> 			i = doprint;
+diff /n/dump/2019/1205/sys/src/cmd/troff/n6.c ./n6.c
+4d3
+< #include <ctype.h>
+diff /n/dump/2019/1205/sys/src/cmd/troff/n7.c ./n7.c
+418c418
+< 		print++;
+---
+> 		doprint++;
+421c421
+< 		print = 0;
+---
+> 		doprint = 0;
+426c426
+< 	if (print)
+---
+> 	if (doprint)
+428c428
+< 	if (stop && print) {
+---
+> 	if (stop && doprint) {
+477c477
+< 		print++;
+---
+> 		doprint++;
+diff /n/dump/2019/1205/sys/src/cmd/troff/n8.c ./n8.c
+4d3
+< #include <assert.h>
+diff /n/dump/2019/1205/sys/src/cmd/troff/ni.c ./ni.c
+1d0
+< #include <stdio.h>
+32c31
+< int	print	= 1;
+---
+> int	doprint	= 1;
+Only in .: popen.c
+Only in .: posix-to-native.diff
+Only in .: system.c
+diff /n/dump/2019/1205/sys/src/cmd/troff/t11.c ./t11.c
+15,19d14
+< 
+< #define	skipline(f)	while (getc(f) != '\n')
+< 
+< #define	eq(s1, s2)	(strcmp(s1, s2) == 0)
+< 
+diff /n/dump/2019/1205/sys/src/cmd/troff/t6.c ./t6.c
+708c708
+< setfp(int pos, int f, char *truename, int print)	/* mount font f at position pos[0...nfonts] */
+---
+> setfp(int pos, int f, char *truename, int doprint)	/* mount font f at position pos[0...nfonts] */
+735c735
+< 	if (print && !ascii) {
+---
+> 	if (doprint && !ascii) {
+diff /n/dump/2019/1205/sys/src/cmd/troff/tdef.h ./tdef.h
+3a4,5
+> #include <u.h>
+> #include <libc.h>
+5,7d6
+< #include <stdlib.h>
+< #include <unistd.h>
+< #include <limits.h>
+9d7
+< #include <string.h>
+278a277
+> #define INT_MAX	(~0u >> 1)
+676a676,685
+> 
+> /* import from unix */
+> #define MB_CUR_MAX UTFmax
+> #define wchar_t	Rune
+> 
+> #define mbtowc(rp, s, len) chartorune(rp, s)
+> #define exit(n)		exits((n) == 0? nil: "error")
+> #define wctomb(s, wc)	runetochar(s, &(wc))
+> 
+> int	system(char *);

@@ -1,0 +1,3 @@
+#!/bin/rc
+
+exec /$cputype/bin/upas/pop3 -t /sys/lib/ssl/cert.pem >>[2] /sys/log/pop3

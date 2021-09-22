@@ -2,8 +2,8 @@
 #include	"../ic/i.out.h"
 
 /*
- * zc/riscv
- * RISC-V 32-bit
+ * [ij]c/riscv
+ * RISC-V
  */
 #define	SZ_CHAR		1
 #define	SZ_SHORT	2
@@ -120,7 +120,7 @@ struct	Reg
 };
 #define	R	((Reg*)0)
 
-#define	NRGN	600
+#define	NRGN	1000		/* was 600; raised for paranoia.c */
 struct	Rgn
 {
 	Reg*	enter;
@@ -148,6 +148,7 @@ EXTERN	Node*	nodrat;
 EXTERN	Node*	nodret;
 EXTERN	Node*	nodsafe;
 EXTERN	long	nrathole;
+EXTERN	int	maxregalloc;
 EXTERN	long	nstring;
 EXTERN	Prog*	p;
 EXTERN	long	pc;

@@ -1,0 +1,10 @@
+21.1 yylook
+11.2 yyparse
+9.3 _doprnt
+9.1 write
+5.9 input
+5.9 print
+5.7 sprintf
+4.0 unput
+4.0 yylex
+2.0 nextchar

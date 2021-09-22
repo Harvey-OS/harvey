@@ -1,5 +1,5 @@
-CONF=pi2
-CONFLIST=pi picpu pifat pi2 pi2cpu pi4 pi4cpu piwifi pi2wifi pi4wifi
+CONF=pi4
+CONFLIST=pi picpu pifat pi2 pi2cpu pi4 pi4cpu # piwifi
 EXTRACOPIES=
 
 loadaddr=0x80008000
@@ -15,6 +15,7 @@ PORT=\
 	alloc.$O\
 	allocb.$O\
 	auth.$O\
+	byteserial.$O\
 	cache.$O\
 	chan.$O\
 	dev.$O\

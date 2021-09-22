@@ -1,0 +1,42 @@
+#!/bin/rc
+rfork ne
+9fs fs
+rm /srv/emelie
+9fs emelie
+old=/n/emelie/usr/$user
+new=/n/fs/usr/$user
+
+PROTO=/mail/tmp/proto.$pid.$user
+PROF=/mail/tmp/profile.$pid.$user
+cat > $PROTO <<EOF
+usr
+	$user
+		+
+EOF
+cat > $PROF <<EOF
+unmount $home
+. $home/lib/profile
+EOF
+cat $PROTO
+
+unmount /usr/$user
+
+echo Copying from $old to $new.
+echo This could take a while.
+{
+	disk/mkfs -a -s /n/emelie $PROTO | disk/mkext -T -d /n/fs
+}
+#rm $PROTO
+echo Copying done.
+echo
+echo Creating a new profile on emelie.  The old one will be moved to
+echo $old/lib/_profile.
+
+if(! test -e $old/lib/_profile )
+	mv $old/lib/profile $old/lib/_profile
+mv $PROF $old/lib/profile
+
+echo Done.
+echo
+echo If you''re on a terminal, reboot now.  If you''re cpu''d to
+echo a cpu server, close the window and reconnect.

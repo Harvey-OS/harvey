@@ -1,0 +1,14 @@
+#!/bin/rc
+rfork e
+# this dumps all the vac scores ever stored to the venti server
+# if nothing else, this illustrates that you have to control access
+# to the physical disks storing the archive!
+
+ventihttp=127.0.0.1:81
+hget http://$ventihttp/index | 
+	awk '
+ /^index=/ { blockSize=0+substr($3, 11); }
+ /^arena=/ { arena=substr($1, 7); }
+ /^	arena=/ { start=0+substr($5, 2)-blockSize; printf("venti/printarena -o %d %s\n", start, $3); }' |
+	rc |
+	sed -n 's/^(.*) 1$/vac:\1/p'

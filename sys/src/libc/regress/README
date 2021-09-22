@@ -1,0 +1,53 @@
+This is a public-domain reimplementation of string(3) and friends, notably
+memory(3) and bstring(3) (except ffs).  Not derived from licensed software.
+This code may be used on any computer system for any purpose by anyone.
+
+Relative to my old net.sources posting, this one adds some functions and
+fixes one or two obscure bugs.  There has been another string library
+posted in recent times, with many more functions; I haven't inspected it
+and can't comment on its relationship to mine.  Alas, the manual pages
+for this stuff are copyright by various people other than me, so I can't
+include them.  See your local Unix manuals.
+
+This distribution implements precisely the union of the string functions
+of the SVID, 4BSD, X3J11, and V7.  Included is a large test program that
+exercises everything quite thoroughly.  (Note that some existing libraries,
+including e.g. V7, flunk one or more of these tests.)
+
+In the event of conflict between the definitions from various places, the
+newer or more portable one is chosen.  That is, X3J11 overrules the SVID,
+which in turn overrules older Unixes.
+
+The code is written for maximal portability.  Some efficiency has been
+sacrificed in the cause of meticulously avoiding possible portability
+problems.  For example, this code never assumes that a pointer can be
+moved past the end of an array and then backed up.  Many of these functions
+can be implemented more efficiently if machine-dependent assumptions are
+made; memcpy is a particular glaring case.
+
+Simplistically:  put this stuff into a source directory, inspect Makefile
+for compilation options that need changing to suit your local environment,
+and then do "make r".  This compiles the functions and the test program and
+runs the tests.  If there are no complaints, put string.h in /usr/include
+(you may also want to "make memory.h" and put it in /usr/include) and add
+the functions (*.o except for tester.o) to your C library.  The internal
+interdependencies are:
+
+	index	needs	strchr
+	rindex	needs	strrchr
+	bcopy	needs	memcpy
+	bcmp	needs	memcmp
+	bzero	needs	memset
+
+I haven't included an implementation of Berkeley's ffs function partly
+because it's not trivial to do in a portable way, and partly because I
+don't really see it as a string function.
+
+A weakness in the tester program is that it uses quite short strings for
+everything, and pays no real attention to alignment issues.  Optimized
+implementations of things like memcpy would need a more elaborate set of
+test cases to put them through their full paces.
+
+				Henry Spencer @ U of Toronto Zoology
+				{allegra,ihnp4,decvax,pyramid}!utzoo!henry
+				Wed Jun 25 19:21:34 EDT 1986

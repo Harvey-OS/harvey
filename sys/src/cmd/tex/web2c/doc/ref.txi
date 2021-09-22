@@ -1,0 +1,129 @@
+@c begin{thebibliography}{Knu86d}
+
+@item [Bil87]
+Neenie Billawala.
+Write-white printing engines and tuning fonts with Metafont.
+@cite{TUGboat}, 8(1):29, April 1987.
+
+@item [GMS94]
+Michel Goossens, Frank Mittelbach, and Alexander Samarin.
+@cite{The La@TeX{} Companion}.
+Addison-Wesley, Reading, MA, USA, 1994.
+
+@item [Hob89]
+John D. Hobby.
+A Metafont-like System with PostScript Output.
+@cite{TUGboat}, 10(4):505--512, December 1989.
+
+@item [Hob92]
+John D. Hobby.
+A User's Manual for MetaPost.
+Technical Report CSTR-162, AT&T Bell Laboratories, 1992.
+
+@item [Hob93]
+John D. Hobby.
+Drawing Graphs with MetaPost.
+Technical Report CSTR-164, AT&T Bell Laboratories, 1993.
+
+@item [HS91]
+Samuel P. Harbison and Guy L. Steele Jr.
+@cite{C---A Reference Manual}.
+Prentice-Hall, Englewood Cliffs, NJ 07632, USA, third edition, 1991.
+An authoritative reference to C programming language, and a good companion to
+  Kernighan and Ritchie.
+
+@item [KL93]
+Donald E. Knuth and Silvio Levy.
+@cite{The CWEB System of Structured Documentation, Version 3.0}.
+Addison-Wesley, Reading, MA, USA, 1993.
+
+@item [Knu84]
+Donald E. Knuth.
+A Torture Test for @TeX{}.
+Report No. STAN-CS-84-1027, Stanford University, Department of Computer
+  Science, 1984.
+
+@item [Knu86a]
+Donald E. Knuth.
+A Torture Test for METAFONT.
+Report No. STAN-CS-86-1095, Stanford University, Department of Computer
+  Science, 1986.
+
+@item [Knu86b]
+Donald E. Knuth.
+@cite{The @TeX{}book}, volume A of @cite{Computers and Typesetting}.
+Addison-Wesley, Reading, MA, USA, 1986.
+
+@item [Knu86c]
+Donald E. Knuth.
+@cite{@TeX{}: The Program}, volume B of @cite{Computers and Typesetting}.
+Addison-Wesley, Reading, MA, USA, 1986.
+
+@item [Knu86d]
+Donald E. Knuth.
+@cite{The METAFONTbook}, volume C of @cite{Computers and Typesetting}.
+Addison-Wesley, Reading, MA, USA, 1986.
+
+@item [Knu86e]
+Donald E. Knuth.
+@cite{METAFONT: The Program}, volume D of @cite{Computers and
+  Typesetting}.
+Addison-Wesley, Reading, MA, USA, 1986.
+
+@item [Knu86f]
+Donald E. Knuth.
+@cite{Computer Modern Typefaces}, volume E of @cite{Computers and
+  Typesetting}.
+Addison-Wesley, Reading, MA, USA, 1986.
+
+@item [Knu89]
+Donald E. Knuth.
+The errors of @TeX{}.
+@cite{Software---Practice and Experience}, 19(7):607--681, July
+  1989.
+This is an updated version of iteKnuth:1988:ET.
+
+@item [Knu90]
+Donald Knuth.
+Virtual Fonts: More Fun for Grand Wizards.
+@cite{TUGboat}, 11(1):13--23, April 1990.
+
+@item [Knu92]
+Donald E. Knuth.
+@cite{Literate Programming}.
+CSLI Lecture Notes Number 27. Stanford University Center for the Study of
+  Language and Information, Stanford, CA, USA, 1992.
+
+@item [Lam94]
+Leslie Lamport.
+@cite{La@TeX{}: A Document Preparation System: User's Guide and Reference
+  Manual}.
+Addison-Wesley, Reading, MA, USA, second edition, 1994.
+
+@item [Lia83]
+Franklin Mark Liang.
+Word hy-phen-a-tion by com-pu-ter.
+Technical Report STAN-CS-83-977, Stanford University, August 1983.
+
+@item [Mac91]
+Pierre A. MacKay.
+Looking at the pixels: Quality control for 300 dpi laser printer fonts,
+  especially Metafonts.
+In Robert A. Morris and Jacques Andre, editors, @cite{Raster Imaging and
+  Digital Typography II---Papers from the second RIDT meeting, held in
+  Boston, Oct. 14--16, 1991}, pages 205--215, New York, 1991. Cambridge
+  University Press.
+
+@item [Spi89]
+Michael D. Spivak.
+@cite{LAMS@TeX{}, The Synthesis}.
+The @TeX{}plorators Corporation, 3701 W. Alabama, Suite 450-273, Houston, TX
+  77027, USA, 1989.
+
+@item [Spi90]
+Michael D. Spivak.
+@cite{The Joy of @TeX{}---A Gourmet Guide to Typesetting with the
+  AMS@TeX{} macro package}.
+American Mathematical Society, Providence, RI, USA, 2nd revised edition, 1990.
+
+@c end{thebibliography}

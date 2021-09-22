@@ -62,6 +62,12 @@ tcom(Node *n)
 }
 
 int
+is64bitptr(void)
+{
+	return ewidth[TIND] > ewidth[TLONG];	/* 64-bit pointers on target? */
+}
+
+int
 tcomo(Node *n, int f)
 {
 	Node *l, *r;
@@ -179,12 +185,15 @@ tcomo(Node *n, int f)
 		arith(n, 0);
 		while(n->left->op == OCAST)
 			n->left = n->left->left;
-		if(!sametype(t, n->type) && !mixedasop(t, n->type)) {
-			r = new1(OCAST, n->right, Z);
-			r->type = t;
-			n->right = r;
-			n->type = t;
-		}
+		if(!mixedasop(t, n->type)) {
+			if(!sametype(t, n->type)) {
+				r = new1(OCAST, n->right, Z);
+				r->type = t;
+				n->right = r;
+				n->type = t;
+			}
+		}else
+			if(0)n->type = t;
 		break;
 
 	case OASMUL:
@@ -206,12 +215,15 @@ tcomo(Node *n, int f)
 		arith(n, 0);
 		while(n->left->op == OCAST)
 			n->left = n->left->left;
-		if(!sametype(t, n->type) && !mixedasop(t, n->type)) {
-			r = new1(OCAST, n->right, Z);
-			r->type = t;
-			n->right = r;
-			n->type = t;
-		}
+		if(!mixedasop(t, n->type)) {
+			if(!sametype(t, n->type)) {
+				r = new1(OCAST, n->right, Z);
+				r->type = t;
+				n->right = r;
+				n->type = t;
+			}
+		}else
+			if(0)n->type = t;
 		if(typeu[n->type->etype]) {
 			if(n->op == OASDIV)
 				n->op = OASLDIV;
@@ -488,7 +500,7 @@ tcomo(Node *n, int f)
 		if(isfunct(n))
 			break;
 
-		if(!machcap(n)) {
+		if(!machcap(n)) {	/* can't ~: ^-1 instead */
 			r = l;
 			l = new(OCONST, Z, Z);
 			l->vconst = -1;
@@ -582,8 +594,9 @@ tcomo(Node *n, int f)
 		n->op = OCONST;
 		n->left = Z;
 		n->right = Z;
-		n->vconst = convvtox(n->type->width, TINT);
-		n->type = types[TINT];
+		o = is64bitptr();
+		n->vconst = convvtox(n->type->width, o? TVLONG: TINT);
+		n->type = types[o? TVLONG: TINT];
 		break;
 
 	case OFUNC:

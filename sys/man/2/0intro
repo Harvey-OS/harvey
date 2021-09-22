@@ -95,28 +95,35 @@ The include file
 .BR <u.h> ,
 a prerequisite of several other include files,
 declares the architecture-dependent and -independent types, including:
+.IP \(bu 3
 .IR uchar ,
 .IR ushort ,
 .IR uint ,
 and
 .IR ulong ,
 the unsigned integer types;
+.IP \(bu
 .IR schar ,
 the signed char type;
+.IP \(bu
 .I vlong
 and
 .IR uvlong ,
 the signed and unsigned very long integral types;
+.IP \(bu
 .IR Rune ,
 the Unicode character type;
+.IP \(bu
 .IR u8int ,
 .IR u16int ,
 .IR u32int ,
 and
 .IR u64int ,
-the unsigned integral types with specific widths;
+the unsigned integral types with specific widths (not encouraged);
+.IP \(bu
 .IR uintptr ,
 the unsigned integral type with the same width as a pointer;
+.IP \(bu
 .IR jmp_buf ,
 the type of the argument to
 .I setjmp
@@ -126,10 +133,12 @@ plus macros that define the layout of
 .IR jmp_buf
 (see
 .IR setjmp (2));
+.IP \(bu
 definitions of the bits in the floating-point control register
 as used by
 .IR getfcr (2);
 and
+.IP \(bu
 the macros
 .B va_arg
 and friends for accessing arguments of variadic functions (identical to the

@@ -3,6 +3,24 @@
 BIN=/$objtype/bin/ape
 TARG=sh
 
+HFILES=c_test.h\
+	conf-end.h\
+	config.h\
+	expand.h\
+	ksh_dir.h\
+	ksh_limval.h\
+	ksh_stat.h\
+	ksh_time.h\
+	ksh_times.h\
+	ksh_wait.h\
+	lex.h\
+	proto.h\
+	sh.h\
+	shf.h\
+	table.h\
+	tree.h\
+	tty.h
+
 OFILES=\
 	alloc.$O\
 	c_ksh.$O\
@@ -35,7 +53,11 @@ LIB=/$objtype/lib/ape/libap.a /$objtype/lib/ape/libbsd.a
 </sys/src/cmd/mkone
 
 CC=pcc
-CFLAGS=-I. -DHAVE_CONFIG_H -c
+LD=pcc
+CFLAGS=-I. -DHAVE_CONFIG_H -DHAVE_STDLIB_H -FTV -c
+
+$TARG: $O.out
+	cp $O.out $TARG
 
 $O.out: $OFILES $LIB
 	$LD -o $target $prereq

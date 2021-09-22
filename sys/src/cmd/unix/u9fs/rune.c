@@ -8,6 +8,7 @@ enum
 	Bit2	= 5,
 	Bit3	= 4,
 	Bit4	= 3,
+	Bit5	= 2,
 
 	T1	= ((1<<(Bit1+1))-1) ^ 0xFF,	/* 0000 0000 */
 	Tx	= ((1<<(Bitx+1))-1) ^ 0xFF,	/* 1000 0000 */
@@ -28,6 +29,7 @@ enum
 	SurrogateMin	= 0xD800,
 	SurrogateMax	= 0xDFFF,
 
+	Runemax		= 0x10FFFF,		/* 21-bit rune */
 	Bad	= Runeerror
 };
 

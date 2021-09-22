@@ -1,0 +1,151 @@
+vm 0-13
+pJ 40.632781,73.771811 # jfk vor
+pL 40.783675,73.868972 # lga vor
+pE 40.692889,74.168889 # ewr airport
+
+pa xccw pJ,8, pL,6
+pb xcce pJ,8, pL,6
+
+pc d pL,m0100,1.5
+pd d pL,m090,4
+pe d pL,m055,4
+pf d pL,m048,6
+pg d pL,m350,6
+ph d pL,m270,6
+pi d pL,m247,6
+pj d pL,m265,3
+pk d pj,m150,.5
+pl xccs pi,.5, pL,6
+
+pm d pJ,m238,8
+pn d pJ,m185,2.5
+po d pJ,m138,5
+pp d pJ,m112,5
+pq d pJ,m110,8
+
+pr d pL,m108,6
+ps d pL,m135,2.5
+
+n nyc_gnd\70
+c pE,4
+
+s pc,pd
+s pd,pe
+s pe,pf
+al pL,pf,pg
+s pg,ph
+al pL,ph,pi
+s pi,pj
+s pj,pk
+s pk,pl
+al pL,pl,pa
+al pJ,pa,pm
+s pm,pn
+s pn,po
+s po,pp
+s pp,pq
+al pJ,pq,pb
+al pL,pb,pr
+s pr,ps
+s ps,pc
+
+pt xcle pL,6, pc,apd
+pu d pE,m255,4
+pv d pE,m260,6.5
+pw d pE,m085,6.5
+px d pE,m150,6.5
+py d pE,m190,6.5
+pz d pE,m185,5
+p1 d pE,m215,5
+p2 d pE,m235,4
+p3 d pE,m230,6.5
+
+n nyc_05\70
+s pd,pt
+al pL,pt,pf
+al pJ,pm,pq
+
+s pu,pv
+ar pE,pv,pw
+s pw,px
+ar pE,px,py
+s py,pz
+s pz,p1
+s p1,p2
+
+n nyc_08\70
+ar pE,py,p3
+s p3,p2
+
+n nyc_11\70
+ar pE,pw,px
+al pL,pi,pl
+al pL,pg,ph
+
+p4 xll pe,apd, pr,aps
+n nyc_12\70
+ar pE,p3,pv
+s p4,pd
+
+p*a d pE,m280,6.5
+p*b d pE,m275,10
+va 215
+p5 d pE,m(va),12
+p*d d p5,m(va+090),2
+p*e d p5,m(va-090),2
+p*c xcls pE,10, p*d,m(va+180)
+p*f xcls pE,10, p*e,m(va+180)
+p*g d pE,m180,10
+p*h d pJ,m235,14
+p*i d pJ,m220,20
+p*j d pJ,m102,20
+p*k d pJ,m112,13
+p*l xcce pJ,13, pL,11
+p*m d pL,m005,11
+p*n d pE,m350,10
+p*o xll p*m,ap*n, pL,m350
+p*p d pL,m320,7
+p*q d pL,m300,6
+
+n nyc_15\70
+s p*a,p*b
+al pE,p*b,p*c
+s p*c,p*d
+s p*d,p*e
+s p*e,p*f
+al pE,p*f,p*g
+s p*g,p*h
+s p*h,p*i
+Al pJ,p*i,p*j
+s p*j,p*k
+al pJ,p*k,p*l
+al pL,p*l,p*m
+s p*m,p*o
+s p*o,p*p
+s p*p,p*q
+
+s pw,ph
+
+n nyc_18\70
+s p*o,p*n
+al pE,p*n,p*b
+
+p*r xcce pJ,20, pL,20
+p*s xccn pL,20, pE,20
+p*t xccs pE,20, pJ,20
+p*u d pJ,m064,20
+p*v d pJ,m064,18
+p*w d pJ,m080,14.5
+p*x d pJ,m077,13
+
+n nyc_30\70
+s p*x,p*w
+s p*w,p*v
+s p*v,p*u
+Al pJ,p*u,p*r
+Al pL,p*r,p*s
+Al pE,p*s,p*t
+Al pJ,p*t,p*i
+
+n nyc_30\70
+Al pJ,p*j,p*u

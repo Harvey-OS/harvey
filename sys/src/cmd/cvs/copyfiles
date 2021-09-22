@@ -1,0 +1,13 @@
+README.Plan9
+config.h
+copyfiles
+def
+diff/mkfile
+lib/getline.c
+lib/mkfile
+mkfile
+options.h
+src/mkfile
+src/plan9.c
+undef
+zlib/mkfile

@@ -58,6 +58,9 @@ main(int argc, char *argv[])
 	fmtinstall('V', vtScoreFmt);
 	fmtinstall('R', vtErrFmt);
 
+	if (argc < 1)
+		sysfatal("missing filename argument");
+
 	fs = fsOpen(argv[0], nil, csize, OReadWrite);
 	if(fs == nil)
 		sysfatal("could not open fs: %r");
@@ -127,7 +130,7 @@ new(Source *s, int trace, int depth)
 
 	n = sourceGetDirSize(s);
 	for(i=0; i<n; i++){
-		ss = sourceOpen(s, nrand(n), OReadWrite);
+		ss = sourceOpen(s, nrand(n), OReadWrite, 0);
 		if(ss == nil || !sourceGetEntry(ss, &e))
 			continue;
 		if((e.flags & VtEntryDir) && frand() < 1./bush){
@@ -166,7 +169,7 @@ delete(Source *s)
 	n = sourceGetDirSize(s);
 	/* check if empty */
 	for(i=0; i<n; i++){
-		ss = sourceOpen(s, i, OReadWrite);
+		ss = sourceOpen(s, i, OReadWrite, 0);
 		if(ss != nil){
 			sourceClose(ss);
 			break;
@@ -176,7 +179,7 @@ delete(Source *s)
 		return 0;
 		
 	for(;;){
-		ss = sourceOpen(s, nrand(n), OReadWrite);
+		ss = sourceOpen(s, nrand(n), OReadWrite, 0);
 		if(ss == nil)
 			continue;
 		if(s->dir && delete(ss)){
@@ -217,13 +220,12 @@ dump(Source *s, int ident, ulong entry)
 	n = sourceGetDirSize(s);
 	Bprint(bout, " dir size: %lud\n", n);
 	for(i=0; i<n; i++){
-		ss = sourceOpen(s, i, 1);
+		ss = sourceOpen(s, i, 1, 0);
 		if(ss == nil)
 			continue;
 		dump(ss, ident+1, i);
 		sourceClose(ss);
 	}
-	return;
 }
 
 int
@@ -236,7 +238,7 @@ count(Source *s, int rec)
 	n = sourceGetDirSize(s);
 	c = 0;
 	for(i=0; i<n; i++){
-		ss = sourceOpen(s, i, OReadOnly);
+		ss = sourceOpen(s, i, OReadOnly, 0);
 		if(ss == nil)
 			continue;
 		if(rec)
@@ -257,7 +259,7 @@ stats(Source *s)
 	max = 0;
 	n = sourceGetDirSize(s);
 	for(i=0; i<n; i++){
-		ss = sourceOpen(s, i, 1);
+		ss = sourceOpen(s, i, 1, 0);
 		if(ss == nil)
 			continue;
 		cc++;

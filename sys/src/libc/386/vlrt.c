@@ -93,6 +93,9 @@ _f2v(Vlong *y, float f)
 	_d2v(y, f);
 }
 
+/*
+ * this ends up in the kernel but is never called.
+ */
 double
 _v2d(Vlong x)
 {
@@ -442,34 +445,6 @@ _mmv(Vlong *l, Vlong *r)
 	r->lo--;
 	l->hi = r->hi;
 	l->lo = r->lo;
-}
-
-void
-_vasaddd(Vlong *ret, Vlong *lv, double rv)
-{
-	_d2v(lv, _v2d(*lv)+rv);
-	*ret = *lv;
-}
-
-void
-_vassubd(Vlong *ret, Vlong *lv, double rv)
-{
-	_d2v(lv, _v2d(*lv)-rv);
-	*ret = *lv;
-}
-
-void
-_vasmuld(Vlong *ret, Vlong *lv, double rv)
-{
-	_d2v(lv, _v2d(*lv)*rv);
-	*ret = *lv;
-}
-
-void
-_vasdivd(Vlong *ret, Vlong *lv, double rv)
-{
-	_d2v(lv, _v2d(*lv)/rv);
-	*ret = *lv;
 }
 
 void

@@ -4,18 +4,22 @@
 #include "dat.h"
 #include "fns.h"
 
+int _noprint;
+
 static Lock fmtl;
 
 void
 _fmtlock(void)
 {
-	lock(&fmtl);
+	if (!noprint)
+		ilock(&fmtl);
 }
 
 void
 _fmtunlock(void)
 {
-	unlock(&fmtl);
+	if (!noprint)
+		iunlock(&fmtl);
 }
 
 int

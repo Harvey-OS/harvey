@@ -249,6 +249,7 @@ void casede(void)
 		offset = apptr;
 		wbf((Tchar) IMP);
 		offset = savoff;	/* pointless */
+		USED(offset);
 	}
 	offset = dip->op;
 	if (req != '.')
@@ -825,7 +826,6 @@ void casedt(void)
 	dip->dimac = getrq();
 }
 
-#define LNSIZE 4000
 void casetl(void)
 {
 	int j;

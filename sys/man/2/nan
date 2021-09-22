@@ -1,6 +1,6 @@
 .TH NAN 2
 .SH NAME
-NaN, Inf, isNaN, isInf \- not-a-number and infinity functions
+NaN, qNaN, Inf, isNaN, isInf \- not-a-number and infinity functions
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -9,6 +9,9 @@ NaN, Inf, isNaN, isInf \- not-a-number and infinity functions
 .ta \w'\fLdouble 'u
 .B
 double	NaN(void)
+.PP
+.B
+double	qNaN(void)
 .PP
 .B
 double	Inf(int)
@@ -34,7 +37,9 @@ on some processors but
 can change that behavior.
 .PP
 .I NaN
-returns a double that is not-a-number.
+returns a double that is a `signalling' not-a-number;
+.I qNaN
+returns a `quiet' not-a-number, which will never trigger an exception.
 .I IsNaN
 returns true if its argument is not-a-number.
 .PP
@@ -45,7 +50,9 @@ is greater than or equal to zero,
 else negative infinity.
 .I IsInf
 returns true if its first argument is infinity
-with the same sign as the second argument.
+with the same sign as the second argument,
+or if its first argument is either infinity
+if the second argument is zero.
 .SH SOURCE
 .B /sys/src/libc/port/nan.c
 .SH "SEE ALSO"

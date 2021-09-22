@@ -2,6 +2,8 @@
 #include <mp.h>
 #include <libsec.h>
 
+int	issmallprime(mpint *p);
+
 /*
  * Miller-Rabin probabilistic primality testing
  *	Knuth (1981) Seminumerical Algorithms, p.379
@@ -13,6 +15,7 @@ probably_prime(mpint *n, int nrep)
 {
 	int j, k, rep, nbits, isprime;
 	mpint *nm1, *q, *x, *y, *r;
+	static int loops;
 
 	if(n->sign < 0)
 		sysfatal("negative prime candidate");
@@ -29,8 +32,10 @@ probably_prime(mpint *n, int nrep)
 		return 0;
 
 	/* test against small prime numbers */
+	if(issmallprime(n))	/* should catch 3 */
+		return 1;
 	if(smallprimetest(n) < 0)
-		return 0;
+		return 0;	/* composite */
 
 	/* fermat test, 2^n mod n == 2 if p is prime */
 	x = uitomp(2, nil);
@@ -56,6 +61,7 @@ probably_prime(mpint *n, int nrep)
 		 	r = mprand(nbits, prng, nil);
 		 	mpmod(r, nm1, x);
 		 	mpfree(r);
+			/* bug: if n = 3, n-1 = 2, so x can never be > 1 */
 		 	if(mpcmp(x, mpone) > 0)
 		 		break;
 		}

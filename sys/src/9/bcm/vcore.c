@@ -15,8 +15,8 @@ typedef struct Fbinfo Fbinfo;
 typedef struct Vgpio Vgpio;
 
 enum {
-	Read		= 0x00>>2,
-	Write		= 0x00>>2,
+//	Read		= 0x00>>2,
+	VcWrite		= 0x00>>2,
 	Peek		= 0x10>>2,
 	Sender		= 0x14>>2,
 	Status		= 0x18>>2,
@@ -36,7 +36,6 @@ enum {
 	TagGetfwrev	= 0x00000001,
 	TagGetrev	= 0x00010002,
 	TagGetmac	= 0x00010003,
-	TagGetser	= 0x00010004,
 	TagGetram	= 0x00010005,
 	TagGetpower	= 0x00020001,
 	TagSetpower	= 0x00028001,
@@ -45,7 +44,6 @@ enum {
 	TagGetclkmax= 0x00030004,
 	TagSetclkspd= 0x00038002,
 	TagGettemp	= 0x00030006,
-	TagXhciReset= 0x00030058,
 	TagFballoc	= 0x00040001,
 	TagFbfree	= 0x00048001,
 	TagFbblank	= 0x00040002,
@@ -104,7 +102,7 @@ vcwrite(uint chan, int val)
 	while(r[Status]&Full)
 		;
 	coherence();
-	r[Write] = val | chan;
+	r[VcWrite] = val | chan;
 }
 
 static int
@@ -271,7 +269,7 @@ getethermac(void)
 	vcreq(TagGetmac, ea, 0, sizeof ea);
 	p = buf;
 	for(i = 0; i < 6; i++)
-		p += sprint(p, "%.2x", ea[i]);
+		p = seprint(p, buf + sizeof buf, "%.2x", ea[i]);
 	return buf;
 }
 
@@ -299,19 +297,6 @@ getfirmware(void)
 	if(vcreq(TagGetfwrev, buf, 0, sizeof buf) != sizeof buf)
 		return 0;
 	return buf[0];
-}
-
-/*
- * Get serial number
- */
-uvlong
-getserial(void)
-{
-	uvlong buf;
-
-	if(vcreq(TagGetser, &buf, 0, sizeof buf) != sizeof buf)
-		return 0;
-	return buf;
 }
 
 /*
@@ -370,22 +355,6 @@ getcputemp(void)
 	if(vcreq(TagGettemp, buf, sizeof(buf[0]), sizeof buf) != sizeof buf)
 		return 0;
 	return buf[1];
-}
-
-/*
- * Notify gpu that xhci firmware might need loading. This is for some
- * pi4 board versions which are missing the eeprom chip for the vl805,
- * requiring its firmware to come from the boot eeprom instead.
- */
-int
-xhcireset(int devaddr)
-{
-	u32int buf[1];
-
-	buf[0] = devaddr;
-	if(vcreq(TagXhciReset, buf, sizeof(buf), sizeof(buf[0])) == sizeof(buf[0]))
-		return buf[0];
-	return -1;
 }
 
 /*

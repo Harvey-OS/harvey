@@ -1,0 +1,17 @@
+716044 a9 r1: uncacheable load-multiple could deadlock; round-robin cache replacement fixes
+719332 a9 r1: need to disable l1 & l2 prefetch in aux ctl
+720789 a9 r1: inner-shareable TLB ops can send wrong ASID; ignore ASID
+727915 pl310 r[23]p0: background wbinv by way can corrupt data; change code
+733075 gic 390: spurious interrupt: if ID is 0, 0x3FE or 0x3FF, CPU interface may be locked-up
+742230 a9 r1p0-r2p2: DMB operation may be faulty
+742231 a9 r2: bad hazard handling in the scu leads to corruption
+743622 a9 r2: faulty store buffer leads to corruption
+751472 a9 r1: interrupted ICIALLUIS may not complete; bit set fixes
+751473 a9 r[0-2]: prefetcher can deadlock or corrupt data; leaving defaults fixes
+754327 a9 r[01]: no automatic store buffer drain; added dmb fixes
+761320 a9 r[0-3]: full cache line writes to same mem region from; bit set fixes
+764369 a9 all: cache maint by mva may fail on inner shareable mem; bit set fixes
+769419 pl310 <r3p2: no automatic store buffer drain; cache sync fixes
+782773 a9 r[0-3]: updating a pte might cause an erroneous translation fault; change code
+794072 a9 r[1-4]: DMB in short loop might cause DoS on another cpu executing CP15 broadcast op.
+801120 gic 390? dummy read needed

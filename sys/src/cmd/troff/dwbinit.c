@@ -73,11 +73,7 @@
  *
  */
 
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-
+#include "tdef.h"
 #include "dwbinit.h"
 
 #ifndef DWBCONFIG
@@ -89,7 +85,7 @@
 #endif
 
 #ifndef DWBHOME
-#define DWBHOME		""
+#define DWBHOME		"/"
 #endif
 
 #ifndef DWBDEBUG
@@ -278,8 +274,7 @@ void DWBinit(char *prog, dwbinit *paths)
 
 }   /* End of DWBinit */
 
-/*****************************************************************************/
-
+#ifdef unused
 void DWBprefix( char *prog, char *path, int length)
 {
 
@@ -301,13 +296,11 @@ void DWBprefix( char *prog, char *path, int length)
     if ( strncmp(path, DWBPREFIX, len) == 0 ) {
 	if ( (home = DWBhome()) != NULL ) {
 	    if ( strlen(home) + strlen(path+len) < length ) {
-		sprintf(buf, "%s%s", home, path+len);
+		snprintf(buf, sizeof buf, "%s%s", home, path+len);
 		strcpy(path, buf);		/* assuming there's room in path */
 	    } else fprintf(stderr, "%s: no room to grow path %s", prog, path);
 	}   /* End if */
     }	/* End if */
 
 }   /* End of DWBprefix */
-
-/*****************************************************************************/
-
+#endif

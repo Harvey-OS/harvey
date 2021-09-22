@@ -1,0 +1,11 @@
+watchdogs on secondary cpus all start out like this:
+---
+wdog @ 0x20107000:
+refresh	fffff0
+ctl	2
+sts	0		# not running
+time	fffff0
+msvp	989680
+trigger	3e8
+force	0
+---

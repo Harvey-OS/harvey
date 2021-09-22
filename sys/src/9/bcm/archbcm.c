@@ -138,23 +138,23 @@ l2ap(int ap)
  */
 
 long
-ainc(long *p)
+adec(long *p)
 {
-	int s, v;
+	long s, v;
 
 	s = splhi();
-	v = ++*p;
+	v = --*p;
 	splx(s);
 	return v;
 }
 
 long
-adec(long *p)
+ainc(long *p)
 {
-	int s, v;
+	long s, v;
 
 	s = splhi();
-	v = --*p;
+	v = ++*p;
 	splx(s);
 	return v;
 }

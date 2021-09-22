@@ -313,8 +313,8 @@ out:
 	if(debug['v']) {
 		Bprint(&bso, "%5.2f cpu time\n", cputime());
 		Bprint(&bso, "%ld memory used\n", thunk);
-		Bprint(&bso, "%d sizeof adr\n", sizeof(Adr));
-		Bprint(&bso, "%d sizeof prog\n", sizeof(Prog));
+		Bprint(&bso, "%lld sizeof adr\n", (vlong)sizeof(Adr));
+		Bprint(&bso, "%lld sizeof prog\n", (vlong)sizeof(Prog));
 	}
 	Bflush(&bso);
 	errorexit();

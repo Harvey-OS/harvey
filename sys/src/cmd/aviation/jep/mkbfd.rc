@@ -1,0 +1,68 @@
+fn g1 {
+	>x
+	for(k in 1 2) for(i in $*) 8.out -t $i $k >>x
+}
+fn g1r {
+	>x
+	for(k in 1 2) for(i in $*) 8.out -r -t $i $k >>x
+}
+fn g2 {
+	d=/usr/ken/dist/ ^ $1 ^ dat.c
+	echo '#include <u.h>' >$d
+	echo '#include <libc.h>' >>$d
+	echo '#include "obj.h"' >>$d
+	echo '' >>$d
+	echo 'Ft ft[] =' >>$d
+	echo '{' >>$d
+	sed 's/apt"/0&/' x | sort -u | sed 's/0apt"/apt"/' >>$d
+	echo '};' >>$d
+	echo 'int	nft	= { nelem(ft) };' >>$d
+}
+
+if(! test -d /n/jep1/charts) {
+	9660srv
+	9fs emelieother
+	mount /srv/9660 /n/jep1 /n/emelieother/ken/jep1
+	mount /srv/9660 /n/jep2 /n/emelieother/ken/jep2
+}
+
+8c -wFV bfd.c; 8l bfd.8
+
+for(i in seitic sgarevoc smaton spircsbs strach stropria) {
+	8.out /n/jep1/charts/$i.bfd >a1.$i
+}
+8.out /n/jep1/maps/spam.bfd >a1.spam
+
+for(i in sgarevoc smaton spircsbs strach stropria) {
+	8.out /n/jep2/Charts/$i.bfd >a2.$i
+}
+
+8c -wFV apt.c; 8l apt.8
+
+cp usaair /usr/ken/lib/air
+8.out -b 1 >>/usr/ken/lib/air
+8.out -b 2 >>/usr/ken/lib/air
+sort -u -o /usr/ken/lib/air /usr/ken/lib/air
+
+8.out -a 1 >/usr/ken/dist/air3
+8.out -a 2 >>/usr/ken/dist/air3
+
+8.out -c 1 >/usr/ken/jep/apr
+8.out -c 2 >>/usr/ken/jep/apr
+
+g1 '#1' '#a' '#b' '#c'; g2 ils
+g1 '#3'; g2 vor
+g1 '#6'; g2 ndb
+g1 '#m'; g2 gps
+g1 b; g2 tca
+g1 '#d' '#e' '#f' '#g'; g2 loc
+g1 aa ap; g2 apt
+g1 '#1' '#a' '#b' '#c' '#3' '#6' '#d' '#e' '#g' '#m' aa ap b g j j2; g2 apr
+g1r g j; g2 sid
+
+rm -f x 8.out *.8
+
+cd /usr/ken/dist
+mk install
+mk reload
+mk clean

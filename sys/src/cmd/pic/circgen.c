@@ -1,5 +1,7 @@
-#include	<stdio.h>
-#include	"pic.h"
+#include <u.h>
+#include <libc.h>
+#include <stdio.h>
+#include "pic.h"
 #include	"y.tab.h"
 
 obj *circgen(int type)
@@ -12,6 +14,7 @@ obj *circgen(int type)
 	obj *p, *ppos;
 	Attr *ap;
 
+	r = r2 = 0;
 	battr = at = 0;
 	with = xwith = ywith = fillval = ddval = 0;
 	t = (type == CIRCLE) ? 0 : 1;

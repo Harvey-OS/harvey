@@ -2,12 +2,15 @@
 # local terminal startup
 
 # used only by upas, as default return domain appended to all unqualified
-# return addresses, even local ones
-site=DOM.EXAMPLE.COM
-# replace FILESERVER with the name of your file server
-# here we start with kfs, your local disk file system
-fileserver=kfs
-# replace FACEDOM with the local domain to be used in the faces database
-facedom=FACEDOM
-# replace CPU with the name of your cpu server
-cpu=CPU
+# return addresses, even local ones, and as one of the values of \l in rewrite.
+site=collyer.net
+fileserver=fs
+facedom=astro
+cpu=cpu
+pccpu=fm			# 386 or arm to run gs, aux/pm, etc.
+JREGALLOC=30			# max risc-v register to allocate in [ij]c
+
+ndb/cs
+sysname=`{cat /dev/sysname}
+echo -n ipv6on...
+{ ipv6on; addroutes } &

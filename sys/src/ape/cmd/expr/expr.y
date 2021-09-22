@@ -54,24 +54,46 @@ expr:	'(' expr ')' = { $$ = $2; }
 	;
 %%
 /*	expression command */
+#define _POSIX_SOURCE
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
 /* get rid of yacc debug printf's */
 #define printf
 #define ESIZE	512
 #define error(c)	errxx(c)
 #define EQL(x,y) !strcmp(x,y)
-long atol();
-char *ltoa();
+
+int	advance(char *lp, char *ep);
+char	*arith(int op, char *r1, char *r2);
+char	*compile(char *instring, char *ep, char *endbuf, int seof);
+char	*conj(int op, char *r1, char *r2);
+int	ecmp(char *a, char *b, int count);
+int	ematch(char *s, char *p);
+void	errxx(int c);
+void	getrnge(char *str);
+char	*index(char *s, char *t);
+char	*length(char *s);
+char	*ltoa(long l);
+void	prt(int fd, char *s);
+char	*rel(int op, char *r1, char *r2);
+char	*substr(char *v, char *s, char *w);
+void	yyerror(char *s);
+int	yyparse(void);
+
 char	**Av;
 int	Ac;
 int	Argi;
-
 char Mstring[1][128];
-char *malloc();
-extern int nbra;
-int yyparse(void);
 
-main(argc, argv) char **argv; {
+extern int nbra;
+
+void
+main(int argc, char **argv)
+{
 	Ac = argc;
 	Argi = 1;
 	Av = argv;
@@ -84,7 +106,10 @@ char *operator[] = { "|", "&", "+", "-", "*", "/", "%", ":",
 int op[] = { OR, AND, ADD,  SUBT, MULT, DIV, REM, MCH,
 	EQ, EQ, LT, LEQ, GT, GEQ, NEQ,
 	MATCH, SUBSTR, LENGTH, INDEX };
-yylex() {
+
+int
+yylex(void)
+{
 	register char *p;
 	register i;
 
@@ -102,8 +127,10 @@ yylex() {
 	return A_STRING;
 }
 
-char *rel(op, r1, r2) register char *r1, *r2; {
-	register i;
+char *
+rel(int op, char *r1, char *r2)
+{
+	int i;
 
 	if(ematch(r1, "-\\{0,1\\}[0-9]*$") && ematch(r2, "-\\{0,1\\}[0-9]*$"))
 		i = atol(r1) - atol(r2);
@@ -120,9 +147,11 @@ char *rel(op, r1, r2) register char *r1, *r2; {
 	return i? "1": "0";
 }
 
-char *arith(op, r1, r2) char *r1, *r2; {
+char *
+arith(int op, char *r1, char *r2)
+{
 	long i1, i2;
-	register char *rv;
+	char *rv;
 
 	if(!(ematch(r1, "-\\{0,1\\}[0-9]*$") && ematch(r2, "-\\{0,1\\}[0-9]*$")))
 		yyerror("non-numeric argument");
@@ -140,11 +169,13 @@ char *arith(op, r1, r2) char *r1, *r2; {
 	strcpy(rv, ltoa(i1));
 	return rv;
 }
-char *conj(op, r1, r2) char *r1, *r2; {
-	register char *rv;
+
+char *
+conj(int op, char *r1, char *r2)
+{
+	char *rv = "0";
 
 	switch(op) {
-
 	case OR:
 		if(EQL(r1, "0")
 		|| EQL(r1, ""))
@@ -170,9 +201,11 @@ char *conj(op, r1, r2) char *r1, *r2; {
 	return rv;
 }
 
-char *substr(v, s, w) char *v, *s, *w; {
-register si, wi;
-register char *res;
+char *
+substr(char *v, char *s, char *w)
+{
+	int si, wi;
+	char *res;
 
 	si = atol(s);
 	wi = atol(w);
@@ -186,20 +219,25 @@ register char *res;
 	return res;
 }
 
-char *length(s) register char *s; {
-	register i = 0;
-	register char *rv;
+char *
+length(char *s)
+{
+	int i = 0;
+	char *rv;
 
 	while(*s++) ++i;
 
 	rv = malloc(8);
-	strcpy(rv, ltoa((long)i));
+	if (rv)
+		strcpy(rv, ltoa((long)i));
 	return rv;
 }
 
-char *index(s, t) char *s, *t; {
-	register i, j;
-	register char *rv;
+char *
+index(char *s, char *t)
+{
+	int i, j;
+	char *rv;
 
 	for(i = 0; s[i] ; ++i)
 		for(j = 0; t[j] ; ++j)
@@ -210,32 +248,31 @@ char *index(s, t) char *s, *t; {
 	return "0";
 }
 
-char *match(s, p)
+char *
+match(char *s, char *p)
 {
 	register char *rv;
 
-	strcpy(rv=malloc(8), ltoa((long)ematch(s, p)));
+	strcpy(rv=malloc(8), ltoa(ematch(s, p)));
 	if(nbra) {
 		rv = malloc(strlen(Mstring[0])+1);
-		strcpy(rv, Mstring[0]);
+		if (rv)
+			strcpy(rv, Mstring[0]);
 	}
 	return rv;
 }
 
-#define INIT	register char *sp = instring;
+#define INIT		char *sp = instring;
 #define GETC()		(*sp++)
 #define PEEKC()		(*sp)
-#define UNGETC(c)	(--sp)
-#define RETURN(c)	return
+#define UNGETC(c)	(--sp)		/* c must be char consumed */
+#define RETURN(c)	return(c)
 #define ERROR(c)	errxx(c)
 
-
-ematch(s, p)
-char *s;
-register char *p;
+int
+ematch(char *s, char *p)
 {
 	static char expbuf[ESIZE];
-	char *compile();
 	register num;
 	extern char *braslist[], *braelist[], *loc2;
 
@@ -254,27 +291,31 @@ register char *p;
 	return(0);
 }
 
-errxx(c)
+void
+errxx(int)
 {
 	yyerror("RE error");
 }
 
 #include  "regexp.h"
-yyerror(s)
 
+void
+yyerror(char *s)
 {
 	write(2, "expr: ", 6);
 	prt(2, s);
 	exit(2);
 }
-prt(fd, s)
-char *s;
+
+void
+prt(int fd, char *s)
 {
 	write(fd, s, strlen(s));
 	write(fd, "\n", 1);
 }
-char *ltoa(l)
-long l;
+
+char *
+ltoa(long l)
 {
 	static char str[20];
 	register char *sp = &str[18];

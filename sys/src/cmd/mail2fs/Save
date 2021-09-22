@@ -1,0 +1,54 @@
+#!/bin/rc
+
+rfork e
+
+if(~ $#file 0 && ~ $#winid 0 ){
+	echo must run under o/live or acme >[1=2]
+	exit fail
+}
+
+d=`{pwd}
+if(~ $#file 0){
+	w = /mnt/acme/$winid
+	file = `{cat $w/tag | sed 's/ .*//'}
+}
+if not
+	file=`{echo $file | sed 's/\[(.*) .*/\1/'}
+
+
+switch($file){
+case */text
+	d =`{basename -d $d}
+	d =`{basename -d $d}
+case /mail/box/$user/*
+	;
+case *
+	echo Save in a strange place?
+	exit no
+}
+
+for(m in $*){
+	if (! test -e $d/$m){
+		echo $d/$m does not exist >[1=2]
+		exit fail
+	}
+}
+
+dfile=/tmp/arch.$pid
+
+switch($file){
+case */text
+	Arch
+	echo $file | sed 's,([0-9]+)/text,a.\1/text,' | mlist > $dfile
+case /mail/box/$user/*
+	Arch | mlist > $dfile
+}
+
+for (m in $*) {
+	cat $dfile $d/$m > $d/$m^_ && mv $d/$m^_ $d/$m
+}
+rm -f $dfile
+if(! ~ $#winid 0)
+	echo clean >$w/ctl >[2]/dev/null
+
+

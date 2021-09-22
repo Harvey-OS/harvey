@@ -50,6 +50,7 @@ void trace_copy_rop(const char *cname, gx_device * dev,
 #ifndef gx_device_color_DEFINED
 #  define gx_device_color_DEFINED
 typedef struct gx_device_color_s gx_device_color;
+#pragma incomplete gx_device_color
 #endif
 
 #ifndef gx_device_rop_texture_DEFINED

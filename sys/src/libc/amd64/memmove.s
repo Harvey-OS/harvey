@@ -1,3 +1,4 @@
+TEXT memcpy(SB), $0
 TEXT memmove(SB), $0
 	MOVQ	RARG, DI
 	MOVQ	DI, AX			/* return value */
@@ -29,20 +30,19 @@ _forward:
 	MOVQ	SI, DX
 	ORQ	DI, DX
 	ANDL	$3, DX
-	JNE	c3f
+	JNE	_bytes
 	MOVQ	BX, CX
 	SHRQ	$2, CX
 	ANDL	$3, BX
 	REP;	MOVSL
-
 /*
  * copy the rest, by bytes
  */
 	JEQ	_return			/* flags set by above ANDL */
-c3f:
+_bytes:
 	MOVL	BX, CX
 	REP;	MOVSB
-
+_return:
 	RET
 
 /*
@@ -70,12 +70,7 @@ _back:
  * copy the rest, by bytes
  */
 	JEQ	_return			/* flags set by above ANDL */
-
 c3b:
 	ADDQ	$3, DI
 	ADDQ	$3, SI
-	MOVL	BX, CX
-	REP;	MOVSB
-
-_return:
-	RET
+	JMP	_bytes

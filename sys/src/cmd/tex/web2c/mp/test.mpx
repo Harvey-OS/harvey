@@ -1,0 +1,12 @@
+% Written by DVItoMP, Version 0.64 (Web2C 7.2)
+begingroup save _p,_r,_s,_n; picture _p; _p=nullpicture;
+string _n[];
+vardef _s(expr _t,_f,_m,_x,_y)=
+  addto _p also _t infont _f scaled _m shifted (_x,_y); enddef;
+_n0="cmr10";
+_s("fo",_n0,1.00000,0.0000,0.0000);
+_s("o",_n0,1.00000,8.3022,0.0000);
+setbounds _p to (0,0.0000)--(13.2836,0.0000)--
+ (13.2836,6.9185)--(0,6.9185)--cycle;
+_p endgroup
+mpxbreak

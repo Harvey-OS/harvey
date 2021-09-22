@@ -1,0 +1,26 @@
+#!/bin/rc
+
+rfork ne
+if (! ~ $#winid 0 && test -e /mnt/acme/$winid && test -x /acme/msgs/Send)
+	exec /acme/msgs/Send $*
+
+if (~ $#file 0){
+	echo must run under omero
+	exit omero
+}
+if (! test -r $file ){
+	echo cannot read $file
+	exit file
+}
+
+fname=`{awk '{print $1}' < /dev/time}
+
+if (! test -d /mail/box/$user/out ){
+	echo no /mail/box/$user/out
+	exit out
+}
+
+cd /mail/box/$user/out
+mv $file  $fname && echo $file spooled for delivery
+exit ''
+

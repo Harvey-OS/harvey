@@ -21,7 +21,7 @@
  *	mult = (1000000000<<32)/f
  *
  *  each time f is set.  f is normally set by a user level
- *  program writing to /dev/fastclock.  mul64fract will then
+ *  program writing to /dev/bintime.  mul64fract will then
  *  take that fractional multiplier and a 64 bit integer and
  *  return the resulting integer product.
  *
@@ -58,10 +58,10 @@ todinit(void)
 	if(tod.init)
 		return;
 	ilock(&tod);
-	tod.init = 1;			/* prevent reentry via fastticks */
 	tod.last = fastticks((uvlong *)&tod.hz);
 	iunlock(&tod);
 	todsetfreq(tod.hz);
+	tod.init = 1;
 	addclock0link(todfix, 100);
 }
 
@@ -71,8 +71,6 @@ todinit(void)
 void
 todsetfreq(vlong f)
 {
-	if (f <= 0)
-		panic("todsetfreq: freq %lld <= 0", f);
 	ilock(&tod);
 	tod.hz = f;
 
@@ -108,11 +106,7 @@ todset(vlong t, vlong delta, int n)
 			n = -delta;
 		if(delta > 0 && n > delta)
 			n = delta;
-		if (n == 0) {
-			iprint("todset: n == 0, delta == %lld\n", delta);
-			delta = 0;
-		} else
-			delta /= n;
+		delta /= n;
 		tod.sstart = sys->ticks;
 		tod.send = tod.sstart + n;
 		tod.delta = delta;
@@ -121,7 +115,8 @@ todset(vlong t, vlong delta, int n)
 }
 
 /*
- *  get time of day
+ *  get time of day in nanoseconds
+ *  also return fasthz ticks since boot via ticksp
  */
 vlong
 todget(vlong *ticksp)
@@ -135,8 +130,8 @@ todget(vlong *ticksp)
 
 	/*
 	 * we don't want time to pass twixt the measuring of fastticks
-	 * and grabbing tod.last.  Also none of the vlongs are atomic so
-	 * we have to look at them inside the lock.
+	 * and grabbing tod.last.  Also none of the vlongs are atomic
+	 * on 32-bit systems, so we have to look at them inside the lock.
 	 */
 	ilock(&tod);
 	tod.cnt++;
@@ -197,14 +192,14 @@ todfix(void)
 	uvlong x;
 
 	ticks = fastticks(nil);
-
 	diff = ticks - tod.last;
 	if(diff > tod.hz){
 		ilock(&tod);
 
 		/* convert to epoch */
 		mul64fract(&x, diff, tod.multiplier);
-if(x > 30000000000ULL) iprint("todfix %llud\n", x);
+		if(x > 30000000000ULL)
+			print("todfix %llud\n", x);
 		x += tod.off;
 
 		/* protect against overflows */
@@ -215,10 +210,10 @@ if(x > 30000000000ULL) iprint("todfix %llud\n", x);
 	}
 }
 
-long
+ulong
 seconds(void)
 {
-	return (vlong)todget(nil) / TODFREQ;
+	return todget(nil) / TODFREQ;
 }
 
 uvlong

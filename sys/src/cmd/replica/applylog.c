@@ -1231,5 +1231,4 @@ Error:
 	close(fd);
 	close(wfd);
 	remove(template);
-	return;
 }

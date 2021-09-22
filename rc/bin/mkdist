@@ -1,0 +1,41 @@
+#!/bin/rc
+# mkdist changes - prepare distribution of kernels' sources,
+#	changes to /sys and /rc, plus commentary in .
+rfork e
+dist=/tmp/dist
+target=/tmp/9changed.tlz
+origdir=`{pwd}
+new=$1
+if (! ~ $1 /*)
+	new=$origdir/$1
+if (test ! -f $new) {
+	echo $0: $1 missing >[1=2]
+	exit missing
+}
+
+mkdir $dist
+cd $dist
+cp -x /sys/src/^(NOTICE mkfile mkfile.proto) .
+for (k in 9 9k) {
+	echo -n $k...
+	mkdir $k
+	dircp /sys/src/$k $k
+	@ { cd $k && mk clean >/dev/null }
+	rm -f 9*/boot/libboot.a?
+}
+
+echo -n changes...
+mkdir -p `{sed 's;/[^/]*$;;' $new | sort -u}
+for (f in `{cat $new})
+	cp -x /$f $f
+mkdir changes
+dircp $origdir changes
+
+# don't ship everything
+echo -n exclude...
+rm -rf `{dirs  | grep /_}
+rm -rf `{files | grep /_}
+
+echo -n tar...
+tar czf $target *
+echo

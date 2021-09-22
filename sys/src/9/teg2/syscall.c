@@ -1,5 +1,3 @@
-/* we use l1 and l2 cache ops to help stability. */
-
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -89,7 +87,7 @@ noted(Ureg* cur, uintptr arg0)
 	default:
 		pprint("unknown noted arg %#p\n", arg0);
 		up->lastnote.flag = NDebug;
-		/*FALLTHROUGH*/
+		/* fall through */
 	case NDFLT:
 		if(up->lastnote.flag == NDebug){ 
 			qunlock(&up->debug);
@@ -183,8 +181,6 @@ notify(Ureg* ureg)
 
 	qunlock(&up->debug);
 	splx(s);
-
-	l1cache->wb();				/* is this needed? */
 	return 1;
 }
 
@@ -203,6 +199,7 @@ syscall(Ureg* ureg)
 			ureg->pc, ureg->r14, ureg->psr);
 
 	cycles(&up->kentry);
+	ckstack(&ureg);
 
 	m->syscall++;
 	up->insyscall = 1;
@@ -220,9 +217,7 @@ syscall(Ureg* ureg)
 		/*
 		 * Redundant validaddr.  Do we care?
 		 * Tracing syscalls is not exactly a fast path...
-		 * Beware, validaddr currently does a pexit rather
-		 * than an error if there's a problem; that might
-		 * change in the future.
+		 * Beware, validaddr calls error if there's a problem.
 		 */
 		if(sp < (USTKTOP-BY2PG) || sp > (USTKTOP-sizeof(Sargs)-BY2WD))
 			validaddr(sp, sizeof(Sargs)+BY2WD, 0);
@@ -239,7 +234,6 @@ syscall(Ureg* ureg)
 	ret = -1;
 	startns = todget(nil);
 
-	l1cache->wb();			/* system is more stable with this */
 	if(!waserror()){
 		if(scallnr >= nsyscall){
 			pprint("bad sys call number %d pc %#lux\n",
@@ -302,8 +296,6 @@ syscall(Ureg* ureg)
 	if(scallnr != RFORK && (up->procctl || up->nnote))
 		notify(ureg);
 
-	l1cache->wb();			/* system is more stable with this */
-
 	/* if we delayed sched because we held a lock, sched now */
 	if(up->delaysched){
 		sched();
@@ -312,6 +304,7 @@ syscall(Ureg* ureg)
 	kexit(ureg);
 }
 
+/* set registers at end of exec system call */
 long
 execregs(ulong entry, ulong ssize, ulong nargs)
 {
@@ -325,8 +318,8 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 //	memset(ureg, 0, 15*sizeof(ulong));
 	ureg->r13 = (ulong)sp;
 	ureg->pc = entry;
-//print("%lud: EXECREGS pc %#ux sp %#ux nargs %ld\n", up->pid, ureg->pc, ureg->r13, nargs);
-	allcache->wbse(ureg, sizeof *ureg);		/* is this needed? */
+//	print("%lud: EXECREGS pc %#ux sp %#ux nargs %ld\n",
+//		up->pid, ureg->pc, ureg->r13, nargs);
 
 	/*
 	 * return the address of kernel/user shared data

@@ -54,12 +54,10 @@ smbcomdelete(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	}
 	r = smbmkrep(name);
 	count = 0;
-	for (x = 0; x < dc->n; x++) {
-		if (!smbmatch(dc->buf[x].name, r))
-			continue;
-		if (smbremovefile(t, dir, dc->buf[x].name) == 0)
+	for (x = 0; x < dc->n; x++)
+		if (smbmatch(dc->buf[x].name, r) &&
+		    smbremovefile(t, dir, dc->buf[x].name) == 0)
 			count++;
-	}
 	if (count == 0) {
 		smbseterror(s, ERRDOS, ERRnoaccess);
 		pr = SmbProcessResultError;
@@ -71,6 +69,6 @@ done:
 	free(dir);
 	free(name);
 	smbdircachefree(&dc);
-	free(r);
+	regfree(r);
 	return pr;
 }

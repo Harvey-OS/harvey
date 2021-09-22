@@ -1,0 +1,9 @@
+.nf
+hello \fBworld\fP
+second line
+.fi
+
+.de B
+\&\fB\\$1\fP
+..
+.B /proc/\f2pid\fP/ctl

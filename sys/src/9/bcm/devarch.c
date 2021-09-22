@@ -166,21 +166,9 @@ cputempread(Chan*, void *a, long n, vlong offset)
 	return readstr(offset, a, n, str);
 }
 
-extern uvlong getserial(void);
-
-static long
-cpuserread(Chan*, void *a, long n, vlong offset)
-{
-	char str[16];
-
-	snprint(str, sizeof str, "%16.16llux", getserial());
-	return readstr(offset, a, n, str);
-}
-
 void
 archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("cputemp", 0444, cputempread, nil);
-	addarchfile("serial", 0444, cpuserread, nil)->length = 16;
 }

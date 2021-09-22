@@ -1,1 +1,1 @@
-#include "../omap/init9.s"
+#include "../teg2/init9.s"

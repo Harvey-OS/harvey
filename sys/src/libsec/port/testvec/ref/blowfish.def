@@ -1,0 +1,17 @@
+LIBRARY   BLOWFISH                      
+DESCRIPTION 'SSLeay Blowfish implementation - eay@cryptsoft.com'
+CODE      PRELOAD MOVEABLE
+DATA      PRELOAD MOVEABLE SINGLE
+EXETYPE   WINDOWS
+HEAPSIZE  1024
+STACKSIZE 4096
+
+EXPORTS        
+    _BF_options         @1
+    _BF_cbc_encrypt     @2
+    _BF_cfb64_encrypt   @3
+    _BF_ecb_encrypt     @4
+    _BF_encrypt         @5
+    _BF_ofb64_encrypt   @6
+    _BF_set_key         @7
+	

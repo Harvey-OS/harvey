@@ -1,20 +1,18 @@
 enum
 {
-	MaxEther	= 4,
-	Ntypes		= 8,
+	MaxEther= 4,	/* max. models of ether cards *and* interfaces */
+	Ntypes	= 8,
 };
 
 typedef struct Ether Ether;
 struct Ether {
+	void*	ctlr;
 	RWlock;
 	ISAConf;			/* hardware info */
 
 	int	ctlrno;
-	ulong	tbdf;
-	int	minmtu;
-	int 	maxmtu;
-
-	Netif;
+	int	tbdf;			/* type+busno+devno+funcno */
+	Queue*	oq;
 
 	void	(*attach)(Ether*);	/* filled in by reset routine */
 	void	(*detach)(Ether*);
@@ -25,12 +23,8 @@ struct Ether {
 	void	(*power)(Ether*, int);	/* power on/off */
 	void	(*shutdown)(Ether*);	/* shutdown hardware before reboot */
 
-	void*	ctlr;
+	Netif;
 	uchar	ea[Eaddrlen];
-	void*	address;
-	int	irq;
-
-	Queue*	oq;
 };
 
 extern Block* etheriq(Ether*, Block*, int);

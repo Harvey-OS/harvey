@@ -5,18 +5,26 @@
 #define Extern	extern
 #include "exportfs.h"
 
+enum {
+	/*
+	 * reduce output messages this much to leave room for encapsulations
+	 * (e.g., 9P in TLS in 9P)
+	 */
+	Encaproom = 0,
+};
+
 extern char *netdir, *local, *remote;
 
-char Ebadfid[] = "bad fid";
-char Enotdir[] = "not a directory";
-char Edupfid[] = "fid already in use";
-char Eopen[] = "fid already opened";
-char Emip[] = "mount in progress";
-char Enopsmt[] = "out of pseudo mount points";
-char Enomem[] = "no memory";
-char Eversion[] = "bad 9P2000 version";
-char Ereadonly[] = "file system read only";
-char Enoprocs[] = "out of processes";
+char Ebadfid[] = "Bad fid";
+char Enotdir[] = "Not a directory";
+char Edupfid[] = "Fid already in use";
+char Eopen[] = "Fid already opened";
+char Exmnt[] = "Cannot .. past mount point";
+char Emip[] = "Mount in progress";
+char Enopsmt[] = "Out of pseudo mount points";
+char Enomem[] = "No memory";
+char Eversion[] = "Bad 9P2000 version";
+char Ereadonly[] = "File system read only";
 
 ulong messagesize;
 int readonly;
@@ -26,23 +34,17 @@ Xversion(Fsrpc *t)
 {
 	Fcall rhdr;
 
-	if(t->work.msize < 256){
-		reply(&t->work, &rhdr, "version: message size too small");
-		putsbuf(t);
-		return;
-	}
 	if(t->work.msize > messagesize)
 		t->work.msize = messagesize;
 	messagesize = t->work.msize;
 	if(strncmp(t->work.version, "9P2000", 6) != 0){
 		reply(&t->work, &rhdr, Eversion);
-		putsbuf(t);
 		return;
 	}
 	rhdr.version = "9P2000";
 	rhdr.msize = t->work.msize;
 	reply(&t->work, &rhdr, 0);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 void
@@ -51,37 +53,34 @@ Xauth(Fsrpc *t)
 	Fcall rhdr;
 
 	reply(&t->work, &rhdr, "exportfs: authentication not required");
-	putsbuf(t);
+	t->busy = 0;
 }
 
 void
 Xflush(Fsrpc *t)
 {
+	Fsrpc *w, *e;
 	Fcall rhdr;
-	Fsrpc *w;
-	Proc *m;
 
-	for(m = Proclist; m != nil; m = m->next){
-		w = m->busy;
-		if(w == nil || w->work.tag != t->work.oldtag)
-			continue;
+	e = &Workq[Nr_workbufs];
 
-		lock(m);
-		w = m->busy;
-		if(w != nil && w->work.tag == t->work.oldtag) {
-			w->flushtag = t->work.tag;
-			DEBUG(DFD, "\tset flushtag %d\n", t->work.tag);
-			postnote(PNPROC, m->pid, "flush");
-			unlock(m);
-			putsbuf(t);
-			return;
+	for(w = Workq; w < e; w++) {
+		if(w->work.tag == t->work.oldtag) {
+			DEBUG(DFD, "\tQ busy %d pid %p can %d\n", w->busy, w->pid, w->canint);
+			if(w->busy && w->pid) {
+				w->flushtag = t->work.tag;
+				DEBUG(DFD, "\tset flushtag %d\n", t->work.tag);
+				if(w->canint)
+					postnote(PNPROC, w->pid, "flush");
+				t->busy = 0;
+				return;
+			}
 		}
-		unlock(m);
 	}
 
 	reply(&t->work, &rhdr, 0);
 	DEBUG(DFD, "\tflush reply\n");
-	putsbuf(t);
+	t->busy = 0;
 }
 
 void
@@ -93,31 +92,36 @@ Xattach(Fsrpc *t)
 	char buf[128];
 
 	f = newfid(t->work.fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 
 	if(srvfd >= 0){
-		if(psmpt == nil)
-			goto Nomount;
+		if(psmpt == 0){
+		Nomount:
+			reply(&t->work, &rhdr, Enopsmt);
+			t->busy = 0;
+			freefid(t->work.fid);
+			return;
+		}
 		for(i=0; i<Npsmpt; i++)
 			if(psmap[i] == 0)
 				break;
 		if(i >= Npsmpt)
 			goto Nomount;
-		snprint(buf, sizeof(buf), "%d", i);
+		sprint(buf, "%d", i);
 		f->f = file(psmpt, buf);
 		if(f->f == nil)
 			goto Nomount;
-		snprint(buf, sizeof(buf), "/mnt/exportfs/%d", i);
+		sprint(buf, "/mnt/exportfs/%d", i);
 		nfd = dup(srvfd, -1);
 		if(amount(nfd, buf, MREPL|MCREATE, t->work.aname) < 0){
 			errstr(buf, sizeof buf);
 			reply(&t->work, &rhdr, buf);
+			t->busy = 0;
 			freefid(t->work.fid);
-			putsbuf(t);
 			close(nfd);
 			return;
 		}
@@ -130,13 +134,7 @@ Xattach(Fsrpc *t)
 
 	rhdr.qid = f->f->qid;
 	reply(&t->work, &rhdr, 0);
-	putsbuf(t);
-	return;
-
-Nomount:
-	reply(&t->work, &rhdr, Enopsmt);
-	freefid(t->work.fid);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 Fid*
@@ -145,15 +143,15 @@ clonefid(Fid *f, int new)
 	Fid *n;
 
 	n = newfid(new);
-	if(n == nil) {
+	if(n == 0) {
 		n = getfid(new);
-		if(n == nil)
+		if(n == 0)
 			fatal("inconsistent fids");
 		if(n->fid >= 0)
 			close(n->fid);
 		freefid(new);
 		n = newfid(new);
-		if(n == nil)
+		if(n == 0)
 			fatal("inconsistent fids2");
 	}
 	n->f = f->f;
@@ -171,9 +169,9 @@ Xwalk(Fsrpc *t)
 	int i;
 
 	f = getfid(t->work.fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 
@@ -186,22 +184,28 @@ Xwalk(Fsrpc *t)
 	rhdr.nwqid = 0;
 	e = nil;
 	for(i=0; i<t->work.nwname; i++){
-
-		if(strcmp(t->work.wname[i], "..") == 0) {
-			if(f->f->parent != nil)
-				wf = f->f->parent;
-			else
-				wf = f->f;
-			wf->ref++;
-		}else{
-			wf = file(f->f, t->work.wname[i]);
-			if(wf == nil){
-				errstr(err, sizeof err);
-				e = err;
-				break;
-			}
+		if(i == MAXWELEM){
+			e = "Too many path elements";
+			break;
 		}
 
+		if(strcmp(t->work.wname[i], "..") == 0) {
+			if(f->f->parent == nil) {
+				e = Exmnt;
+				break;
+			}
+			wf = f->f->parent;
+			wf->ref++;
+			goto Accept;
+		}
+	
+		wf = file(f->f, t->work.wname[i]);
+		if(wf == 0){
+			errstr(err, sizeof err);
+			e = err;
+			break;
+		}
+    Accept:
 		freefile(f->f);
 		rhdr.wqid[rhdr.nwqid++] = wf->qid;
 		f->f = wf;
@@ -213,7 +217,7 @@ Xwalk(Fsrpc *t)
 	if(rhdr.nwqid > 0)
 		e = nil;
 	reply(&t->work, &rhdr, e);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 void
@@ -223,9 +227,9 @@ Xclunk(Fsrpc *t)
 	Fid *f;
 
 	f = getfid(t->work.fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 
@@ -234,7 +238,7 @@ Xclunk(Fsrpc *t)
 
 	freefid(t->work.fid);
 	reply(&t->work, &rhdr, 0);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 void
@@ -248,9 +252,9 @@ Xstat(Fsrpc *t)
 	uchar *statbuf;
 
 	f = getfid(t->work.fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 	if(f->fid >= 0)
@@ -264,7 +268,7 @@ Xstat(Fsrpc *t)
 	if(d == nil) {
 		errstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 
@@ -277,7 +281,7 @@ Xstat(Fsrpc *t)
 	rhdr.stat = statbuf;
 	reply(&t->work, &rhdr, 0);
 	free(statbuf);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 static int
@@ -301,13 +305,13 @@ Xcreate(Fsrpc *t)
 
 	if(readonly) {
 		reply(&t->work, &rhdr, Ereadonly);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 	f = getfid(t->work.fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 	
@@ -318,15 +322,15 @@ Xcreate(Fsrpc *t)
 	if(f->fid < 0) {
 		errstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 
 	nf = file(f->f, t->work.name);
-	if(nf == nil) {
+	if(nf == 0) {
 		errstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 
@@ -336,7 +340,7 @@ Xcreate(Fsrpc *t)
 	rhdr.qid = f->f->qid;
 	rhdr.iounit = getiounit(f->fid);
 	reply(&t->work, &rhdr, 0);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 void
@@ -348,13 +352,13 @@ Xremove(Fsrpc *t)
 
 	if(readonly) {
 		reply(&t->work, &rhdr, Ereadonly);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 	f = getfid(t->work.fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 
@@ -364,7 +368,7 @@ Xremove(Fsrpc *t)
 		free(path);
 		errstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 	free(path);
@@ -375,7 +379,7 @@ Xremove(Fsrpc *t)
 	freefid(t->work.fid);
 
 	reply(&t->work, &rhdr, 0);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 void
@@ -390,20 +394,20 @@ Xwstat(Fsrpc *t)
 
 	if(readonly) {
 		reply(&t->work, &rhdr, Ereadonly);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 	f = getfid(t->work.fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(&t->work, &rhdr, Ebadfid);
-		putsbuf(t);
+		t->busy = 0;
 		return;
 	}
 	strings = emallocz(t->work.nstat);	/* ample */
 	if(convM2D(t->work.stat, t->work.nstat, &d, strings) <= BIT16SZ){
 		rerrstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
-		putsbuf(t);
+		t->busy = 0;
 		free(strings);
 		return;
 	}
@@ -421,14 +425,14 @@ Xwstat(Fsrpc *t)
 	}
 	else {
 		/* wstat may really be rename */
-		if(strcmp(d.name, f->f->name)!=0 && d.name[0]!=0){
+		if(strcmp(d.name, f->f->name)!=0 && strcmp(d.name, "")!=0){
 			free(f->f->name);
 			f->f->name = estrdup(d.name);
 		}
 		reply(&t->work, &rhdr, 0);
 	}
 	free(strings);
-	putsbuf(t);
+	t->busy = 0;
 }
 
 /*
@@ -459,99 +463,90 @@ procsetname(char *fmt, ...)
 void
 slave(Fsrpc *f)
 {
-	static int nproc;
-	Proc *m, **l;
+	Proc *p;
+	uintptr pid;
 	Fcall rhdr;
-	int omode;
-	int pid;
+	static int nproc;
 
 	if(readonly){
 		switch(f->work.type){
 		case Twrite:
 			reply(&f->work, &rhdr, Ereadonly);
-			putsbuf(f);
+			f->busy = 0;
 			return;
 		case Topen:
-			omode = f->work.mode & 3;
-			if(omode != OREAD && omode != OEXEC || (f->work.mode&(OTRUNC|ORCLOSE)) != 0){
+		  	if((f->work.mode&3) == OWRITE || (f->work.mode&OTRUNC)){
 				reply(&f->work, &rhdr, Ereadonly);
-				putsbuf(f);
+				f->busy = 0;
 				return;
 			}
 		}
 	}
 	for(;;) {
-		for(l = &Proclist; (m = *l) != nil; l = &m->next) {
-			if(m->busy != nil)
-				continue;
-
-			m->busy = f;
-			while(rendezvous(m, f) == (void*)~0)
-				;
-
-			/* swept a slave proc */
-			if(f == nil){
-				*l = m->next;
-				free(m);
-				nproc--;
-				break;
-			}
-			f = nil;
-
-			/*
-			 * as long as the number of slave procs
-			 * is small, dont bother sweeping.
-			 */
-			if(nproc < 16)
-				break;
+		for(p = Proclist; p; p = p->next) {
+			if(p->busy == 0) {
+				f->pid = p->pid;
+				p->busy = 1;
+				pid = (uintptr)rendezvous((void*)p->pid, f);
+				if(pid != p->pid)
+					fatal("rendezvous sync fail");
+				return;
+			}	
 		}
-		if(f == nil)
-			return;
 
-		m = emallocz(sizeof(Proc));
-		pid = rfork(RFPROC|RFMEM|RFNOWAIT);
+		if(++nproc > MAXPROC)
+			fatal("too many procs");
+
+		pid = rfork(RFPROC|RFMEM);
 		switch(pid) {
 		case -1:
-			reply(&f->work, &rhdr, Enoprocs);
-			putsbuf(f);
-			free(m);
-			return;
+			fatal("rfork");
 
 		case 0:
-			if(local[0] != '\0'){
-				if(netdir[0] != '\0')
-					procsetname("%s: %s -> %s", netdir, local, remote);
+			if (local[0] != '\0')
+				if (netdir[0] != '\0')
+					procsetname("%s: %s -> %s", netdir, 
+						local, remote);
 				else
 					procsetname("%s -> %s", local, remote);
-			}
-			blockingslave(m);
-			_exits(0);
+			blockingslave();
+			fatal("slave");
 
 		default:
-			m->pid = pid;
-			m->next = Proclist;
-			Proclist = m;
-			nproc++;
+			p = malloc(sizeof(Proc));
+			if(p == 0)
+				fatal("out of memory");
+
+			p->busy = 0;
+			p->pid = pid;
+			p->next = Proclist;
+			Proclist = p;
+
+			rendezvous((void*)pid, p);
 		}
 	}
 }
 
 void
-blockingslave(Proc *m)
+blockingslave(void)
 {
 	Fsrpc *p;
 	Fcall rhdr;
+	Proc *m;
+	uintptr pid;
 
 	notify(flushaction);
 
-	for(;;) {
-		p = rendezvous(m, nil);
-		if(p == (void*)~0)	/* Interrupted */
-			continue;
-		if(p == nil)		/* Swept */
-			break;
+	pid = getpid();
 
-		DEBUG(DFD, "\tslave: %d %F\n", m->pid, &p->work);
+	m = rendezvous((void*)pid, 0);
+	
+	for(;;) {
+		p = rendezvous((void*)pid, (void*)pid);
+		if(p == (void*)~0)			/* Interrupted */
+			continue;
+
+		DEBUG(DFD, "\tslave: %p %F b %d p %p\n", pid, &p->work, p->busy, p->pid);
 		if(p->flushtag != NOTAG)
 			goto flushme;
 
@@ -571,35 +566,28 @@ blockingslave(Proc *m)
 		default:
 			reply(&p->work, &rhdr, "exportfs: slave type error");
 		}
-flushme:
-		lock(m);
-		m->busy = nil;
-		unlock(m);
-
-		/* no more flushes can come in now */
 		if(p->flushtag != NOTAG) {
+flushme:
 			p->work.type = Tflush;
 			p->work.tag = p->flushtag;
 			reply(&p->work, &rhdr, 0);
 		}
-		putsbuf(p);
+		p->busy = 0;
+		m->busy = 0;
 	}
 }
 
 int
 openmount(int sfd)
 {
-	int p[2], fd, i, n;
+	int p[2];
 	char *arg[10], fdbuf[20], mbuf[20];
-	Dir *dir;
 
 	if(pipe(p) < 0)
 		return -1;
 
-	switch(rfork(RFPROC|RFMEM|RFNOWAIT|RFNAMEG|RFFDG|RFREND)){
+	switch(rfork(RFPROC|RFMEM|RFNOWAIT|RFNAMEG|RFFDG)){
 	case -1:
-		close(p[0]);
-		close(p[1]);
 		return -1;
 
 	default:
@@ -611,30 +599,20 @@ openmount(int sfd)
 		break;
 	}
 
-	dup(p[0], 0);
-	dup(p[0], 1);
+	close(p[1]);
 
-	/* close all remaining file descriptors except sfd */
-	if((fd = open("/fd", OREAD)) < 0)
-		_exits("open /fd failed");
-	n = dirreadall(fd, &dir);
-	for(i=0; i<n; i++){
-		if(strstr(dir[i].name, "ctl"))
-			continue;
-		fd = atoi(dir[i].name);
-		if(fd > 2 && fd != sfd)
-			close(fd);
-	}
-	free(dir);
-
-	arg[0] = argv0; /* "/bin/exportfs" */
+	arg[0] = "exportfs";
 	snprint(fdbuf, sizeof fdbuf, "-S/fd/%d", sfd);
 	arg[1] = fdbuf;
-	snprint(mbuf, sizeof mbuf, "-m%lud", messagesize-IOHDRSZ);
+	snprint(mbuf, sizeof mbuf, "-m%lud", messagesize-IOHDRSZ-Encaproom);
 	arg[2] = mbuf;
 	arg[3] = nil;
 
-	exec(arg[0], arg);
+	close(0);
+	close(1);
+	dup(p[0], 0);
+	dup(p[0], 1);
+	exec("/bin/exportfs", arg);
 	_exits("whoops: exec failed");	
 	return -1;
 }
@@ -650,7 +628,7 @@ slaveopen(Fsrpc *p)
 	work = &p->work;
 
 	f = getfid(work->fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(work, &rhdr, Ebadfid);
 		return;
 	}
@@ -661,8 +639,16 @@ slaveopen(Fsrpc *p)
 	
 	path = makepath(f->f, "");
 	DEBUG(DFD, "\topen: %s %d\n", path, work->mode);
+
+	p->canint = 1;
+	if(p->flushtag != NOTAG){
+		free(path);
+		return;
+	}
+	/* There is a race here I ignore because there are no locks */
 	f->fid = open(path, work->mode);
 	free(path);
+	p->canint = 0;
 	if(f->fid < 0 || (d = dirfstat(f->fid)) == nil) {
 	Error:
 		errstr(err, sizeof err);
@@ -696,29 +682,32 @@ slaveread(Fsrpc *p)
 	work = &p->work;
 
 	f = getfid(work->fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(work, &rhdr, Ebadfid);
 		return;
 	}
 
 	n = (work->count > messagesize-IOHDRSZ) ? messagesize-IOHDRSZ : work->count;
-	data = malloc(n);
-	if(data == nil) {
-		reply(work, &rhdr, Enomem);
+	p->canint = 1;
+	if(p->flushtag != NOTAG)
 		return;
-	}
+	data = malloc(n);
+	if(data == nil)
+		fatal(Enomem);
 
 	/* can't just call pread, since directories must update the offset */
 	if(patternfile != nil && (f->f->qid.type&QTDIR))
 		r = preaddir(f, (uchar*)data, n, work->offset);
 	else
 		r = pread(f->fid, data, n, work->offset);
+	p->canint = 0;
 	if(r < 0) {
 		free(data);
 		errstr(err, sizeof err);
 		reply(work, &rhdr, err);
 		return;
 	}
+
 	DEBUG(DFD, "\tread: fd=%d %d bytes\n", f->fid, r);
 
 	rhdr.data = data;
@@ -734,17 +723,26 @@ slavewrite(Fsrpc *p)
 	Fcall *work, rhdr;
 	Fid *f;
 	int n;
+	long mszlim;
 
 	work = &p->work;
 
 	f = getfid(work->fid);
-	if(f == nil) {
+	if(f == 0) {
 		reply(work, &rhdr, Ebadfid);
 		return;
 	}
 
-	n = (work->count > messagesize-IOHDRSZ) ? messagesize-IOHDRSZ : work->count;
+	mszlim = messagesize-IOHDRSZ;
+	mszlim -= Encaproom;
+	if (mszlim < 256)
+		mszlim = messagesize-IOHDRSZ;
+	n = (work->count > mszlim)? mszlim: work->count;
+	p->canint = 1;
+	if(p->flushtag != NOTAG)
+		return;
 	n = pwrite(f->fid, work->data, n, work->offset);
+	p->canint = 0;
 	if(n < 0) {
 		errstr(err, sizeof err);
 		reply(work, &rhdr, err);

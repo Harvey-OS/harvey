@@ -5,6 +5,7 @@
 
 /* A stack to hold pcs when signals nest */
 #define MAXSIGSTACK 20
+
 typedef struct Pcstack Pcstack;
 static struct Pcstack {
 	int sig;
@@ -53,16 +54,14 @@ notecont(Ureg *u, char *s)
 extern sigset_t	_psigblocked;
 
 void
-siglongjmp(sigjmp_buf _j, int ret)
+siglongjmp(sigjmp_buf j, int ret)
 {
 	struct Ureg *u;
-	unsigned long long *j;
 
-	j = (uvlong*)_j;
 	if(j[0])
 		_psigblocked = j[1];
 	if(nstack == 0 || pcstack[nstack-1].u->sp > j[2+JMPBUFSP])
-		longjmp((int*)(j+2), ret);
+		longjmp(j+2, ret);
 	u = pcstack[nstack-1].u;
 	nstack--;
 	u->ret = ret;

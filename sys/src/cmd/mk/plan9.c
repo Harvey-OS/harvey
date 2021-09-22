@@ -66,7 +66,7 @@ encodenulls(char *s, int n)
 	head = w = 0;
 	while (n-- > 0) {
 		for (cp = s; *cp && *cp != '\0'; cp++)
-				n--;
+			n--;
 		*cp = 0;
 		if (w) {
 			w->next = newword(s);
@@ -124,7 +124,7 @@ exportenv(Envy *e)
 				if(first)
 					first = 0;
 				else{
-					if (write (f, "\0", 1) != 1)
+					if (write(f, "\0", 1) != 1)
 						perror(nam);
 				}
 				if (write(f, w->s, n) != n)
@@ -204,7 +204,7 @@ execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 		p = cmd+strlen(cmd);
 		while(cmd < p){
 			n = write(in[1], cmd, p-cmd);
-			if(n < 0)
+			if(n != p-cmd)
 				break;
 			cmd += n;
 		}
@@ -295,7 +295,7 @@ notifyf(void *a, char *msg)
 }
 
 void
-catchnotes()
+catchnotes(void)
 {
 	atnotify(notifyf, 1);
 }

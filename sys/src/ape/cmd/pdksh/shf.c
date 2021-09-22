@@ -793,8 +793,8 @@ shf_snprintf(buf, bsize, fmt, va_alist)
 	int n;
 
 	if (!buf || bsize <= 0)
-		internal_errorf(1, "shf_snprintf: buf %lx, bsize %d",
-			(long) buf, bsize);
+		internal_errorf(1, "shf_snprintf: buf %llx, bsize %d",
+			(long long) buf, bsize);
 
 	shf_sopen(buf, bsize, SHF_WR, &shf);
 	SH_VA_START(args, fmt);

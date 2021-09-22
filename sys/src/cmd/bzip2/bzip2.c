@@ -15,7 +15,7 @@ static	int	verbose;
 static void
 usage(void)
 {
-	fprint(2, "usage: bzip2 [-vcD] [-1-9] [file ...]\n");
+	fprint(2, "usage: bzip2 [-vcD] [-[1-9]] [file ...]\n");
 	exits("usage");
 }
 

@@ -1,0 +1,19 @@
+@x
+line 1
+line 2
+line 3
+line 4
+@y
+final line 2
+final line 3
+final line 4
+@z
+
+@x
+line 7
+line 8
+@y
+final line 7
+final line 8
+@z
+

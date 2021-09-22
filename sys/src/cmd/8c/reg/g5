@@ -1,0 +1,28 @@
+$global
+	uvlong ru, a[1] = {0x100000027L}, b[1], u = 0x01234;
+	int i = 0, j;
+	char c;
+$main
+	vlong rv, v = 0x7;
+$lhs
+	c
+	j
+	ru
+	rv
+	b[i]
+$op
+	+=
+	-=
+	&=
+	|=
+	^=
+$op0
+	u
+	v
+	a[i]
+$op1
+	u
+	v
+	a[i]
+	1
+	u + 3

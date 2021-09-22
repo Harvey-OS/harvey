@@ -1,0 +1,167 @@
+.TH GFTODVI 1 "14 December 1993" "Web2C @VERSION@"
+.\"=====================================================================
+.if n .ds MF Metafont
+.if t .ds MF M\s-2ETAFONT\s0
+.if t .ds TX \fRT\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X\fP
+.if n .ds TX TeX
+.ie t .ds OX \fIT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds OX TeX\" for nroff
+.\" the same but obliqued
+.\" BX definition must follow TX so BX can use TX
+.if t .ds BX \fRB\s-2IB\s0\fP\*(TX
+.if n .ds BX BibTeX
+.\" LX definition must follow TX so LX can use TX
+.if t .ds LX \fRL\\h'-0.36m'\\v'-0.15v'\s-2A\s0\\h'-0.15m'\\v'0.15v'\fP\*(TX
+.if n .ds LX LaTeX
+.\"=====================================================================
+.SH NAME
+gftodvi \- make proof sheets from generic font files
+.SH SYNOPSIS
+.B gftodvi
+[
+.BI \-overflow-label-offset =real
+]
+[
+.B \-verbose
+]
+[
+.I gf_file_name
+]
+.\"=====================================================================
+.SH DESCRIPTION
+This manual page is not meant to be exhaustive.  The complete
+documentation for this version of \*(TX can be found in the info file
+or manual
+.IR "Web2C: A TeX implementation" .
+.PP
+The
+.B gftodvi
+program converts a generic font
+.RI ( gf )
+file output by, for example,
+.BR mf (1),
+to a device independent (DVI) file (that can then be typeset using the same
+software that has already been written for \*(TX). The characters in the
+.I gf
+file will appear one per page, with labels, titles, and annotations
+as specified in Appendix H (Hardcopy Proofs) of
+.IR "The \*(MFbook" .
+.PP
+.B gftodvi
+uses other fonts in addition to the main
+.I gf
+file.
+A `gray' font is used to typeset the
+pixels that actually make up the character. (We wouldn't
+want all the pixels to be simply black, since then labels,
+key points, and other information would be lost.)  A `title' font
+is used for the information at the top of the page. A `label' font
+is used for the labels on key points of the figure. A `slant'
+font is used to typeset diagonal lines, which
+otherwise have to be simulated using horizontal and vertical rules.
+The default gray, title, and label fonts are
+.IR gray ,
+.IR cmr8 ,
+and
+.IR cmtt10 ,
+respectively; there is no default slant font.
+.PP
+To change the default fonts, you can give
+.BR special
+commands in your
+\*(MF source file, or you can change the fonts online. An online dialog
+ensues if you end the
+.I gf_file_name
+with a `/'. For example,
+.br
+.ti +2
+gftodvi cmr10.300gf/
+.br
+.ti +2
+Special font substitution: grayfont black
+.br
+.ti +2
+OK; any more? grayfontarea /home/art/don/
+.br
+.ti +2
+OK; any more? slantfont /home/fonts/slantimagen6
+.br
+.ti +2
+OK; any more? <RET>
+.br
+will use
+.I /home/art/don/black
+as the `gray' font and
+.I /home/fonts/slantimagen6
+as the `slant' font (this name indicates
+a font for lines with slope 1/6 at the resolution of an Imagen printer).
+.PP
+The
+.I gf_file_name
+on the command line must be complete. (The program prompts
+you for it if you don't give it.)  Because
+the resolution is part of the extension, it would not make
+sense to append a default extension as is done with \*(TX or
+DVI-reading software. The output file name defaults to the same
+root as the
+.I gf
+file, with the
+.I dvi
+extension added. For example, the input file
+.I cmr10.2602gf
+would become
+.IR cmr10.dvi .
+.\"=====================================================================
+.SH OPTIONS
+The argument to
+.B \-overflow-label-offset
+specifies the distance from the right edge of the character
+bounding box at which the overflow equations (if any) are typeset.
+The value is given in \*(TX points.  The default is a little over two
+inches.
+.PP
+Without the
+.B \-verbose
+option,
+.B gftodvi
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+.\"=====================================================================
+.SH ENVIRONMENT
+.B gftodvi
+looks for
+.I gf_file_name
+using the
+environment variable GFFONTS.  If that is not set, it uses the variable
+TEXFONTS. If that is not set, it uses the system default.
+.PP
+See
+.BR tex (1)
+for the details of the searching.
+.\"=====================================================================
+.SH FILES
+.TP
+.I {gray.tfm,.\|.\|.}
+The default fonts.
+.TP
+.I {gray.mf,.\|.\|.}
+The \*(MF sources.
+.\"=====================================================================
+.SH "SEE ALSO"
+.BR tex (1),
+.BR mf (1).
+.br
+Donald E. Knuth,
+.I "The \*(MFbook"
+(Volume C of
+.IR "Computers and Typesetting" ),
+Addison-Wesley, 1986, ISBN 0-201-13445-4.
+.br
+Donald E. Knuth et al.,
+.IR \*(MFware .
+.\"=====================================================================
+.SH AUTHORS
+Donald E. Knuth wrote the program. It was published as part of the
+.I \*(MFware
+technical report, available from the \*(TX Users Group.
+Paul Richards ported it to Unix.

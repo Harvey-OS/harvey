@@ -171,7 +171,6 @@ out:
 	}
 	if(0) fprint(2, "freed %s\n", sc->dir);
 	scdecref(sc);
-	return;
 }
 
 VtReq*

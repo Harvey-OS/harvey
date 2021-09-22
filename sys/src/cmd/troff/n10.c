@@ -7,7 +7,6 @@ Device interfaces
 #include "tdef.h"
 #include "ext.h"
 #include "fns.h"
-#include <ctype.h>
 
 Term	t;	/* terminal characteristics */
 
@@ -40,6 +39,7 @@ static char *parse(char *s, int typeit)	/* convert \0, etc to nroff driving tabl
 	for (;;) {
 		if (quote && *s == '"') {
 			s++;			/* pointless */
+			USED(s);
 			break;
 		}
 		if (!quote && (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\0'))
@@ -77,31 +77,47 @@ static int getnrfont(FILE *fp)	/* read the nroff description file */
 	Chwid chtemp[NCHARS];
 	static Chwid chinit;
 	int i, nw, n, wid, code, type;
-	char buf[100], ch[100], s1[100], s2[100];
+	char *ch, *s1, *s2;
+	char buf[128], dummy[32];
 	wchar_t wc;
 
-	code = 0;			/* no idea what this should be */
+	code = wid = 0;			/* no idea what this should be */
 	chinit.wid = 1;
 	chinit.str = "";
 	for (i = 0; i < ALPHABET; i++) {
 		chtemp[i] = chinit;	/* zero out to begin with */
-		chtemp[i].num = chtemp[i].code = i;	/* every alphabetic character is itself */
+		/* every alphabetic character is itself */
+		chtemp[i].num = chtemp[i].code = i;
 		chtemp[i].wid = 1;	/* default ascii widths */
 	}
 	skipline(fp);
 	nw = ALPHABET;
 	while (fgets(buf, sizeof buf, fp) != NULL) {
-		sscanf(buf, "%s %s %[^\n]", ch, s1, s2);
-		if (!eq(s1, "\"")) {	/* genuine new character */
-			sscanf(s1, "%d", &wid);
-		} /* else it's a synonym for prev character, */
-			/* so leave previous values intact */
+		int ntok;
+		char *toks[4];		/* last field for trailing junk */
+
+		ch = s1 = s2 = "";
+		memset(toks, 0, sizeof toks);
+		ntok = getfields(buf, toks, nelem(toks), 1, "\r\n\t ");
+		if (ntok == 0)
+			continue;
+		if (ntok >= 2) {
+			ch = toks[0];
+			s1 = toks[1];
+			if (ntok >= 3)
+				s2 = toks[2];
+		}
+
+		if (!eq(s1, "\""))	/* genuine new character */
+			wid = atoi(s1);
+		/* else it's a synonym for prev character, */
+		/* so leave previous values intact */
 
 		/* decide what kind of alphabet it might come from */
 
-		if (strlen(ch) == 1) {	/* it's ascii */
-			n = ch[0];	/* origin includes non-graphics */
-			chtemp[n].num = ch[0];
+		if (ch[0] && ch[1] == '\0') {	/* it's ascii */
+			n = ch[0] & 0xff;  /* origin includes non-graphics */
+			chtemp[n].num = n;
 		} else if (ch[0] == '\\' && ch[1] == '0') {
 			n = strtol(ch+1, 0, 0);	/* \0octal or \0xhex */
 			chtemp[n].num = n;
@@ -114,7 +130,8 @@ static int getnrfont(FILE *fp)	/* read the nroff description file */
 		} else {
 			if (strcmp(ch, "---") == 0) { /* no name */
 				/* code used to be uninitialised here */
-				sprintf(ch, "%d", code);
+				snprintf(dummy, sizeof dummy, "%d", code);
+				ch = dummy;
 				type = Number;
 			} else
 				type = Troffchar;
@@ -139,8 +156,8 @@ static int getnrfont(FILE *fp)	/* read the nroff description file */
 void n_ptinit(void)
 {
 	int i;
-	char *p;
-	char opt[50], cmd[100];
+	char *p, *opt;
+	char cmd[128];
 	FILE *fp;
 
 	hmot = n_hmot;
@@ -163,13 +180,13 @@ void n_ptinit(void)
 	setwd = n_setwd;
 
 	if ((p = getenv("NROFFTERM")) != 0)
-		strcpy(devname, p);
+		strncpy(devname, p, sizeof devname);
 	if (termtab[0] == 0)
-		strcpy(termtab,DWBntermdir);
-	if (fontdir[0] == 0)
-		strcpy(fontdir, "");
+		strcpy(termtab, DWBntermdir);
+//	if (fontdir[0] == 0)
+//		strcpy(fontdir, "");
 	if (devname[0] == 0)
-		strcpy(devname, NDEVNAME);
+		strncpy(devname, NDEVNAME, sizeof devname);
 	pl = 11*INCH;
 	po = PO;
 	hyf = 0;
@@ -196,14 +213,22 @@ void n_ptinit(void)
 /* it assumes  name, name-value pairs..., charset */
 /* god help us if we get out of sync. */
 
-	fscanf(fp, "%s", cmd);	/* should be device name... */
+	cmd[0] = '\0';
+	if (fgets(cmd, sizeof cmd, fp) != NULL)	/* should be device name... */
+		cmd[strlen(cmd) - 1] = '\0';	/* step on newline */
 	if (!is(devname) && trace)
 		ERROR "wrong terminal name: saw %s, wanted %s", cmd, devname WARN;
-	for (;;) {
-		fscanf(fp, "%s", cmd);
+	while (fgets(cmd, sizeof cmd, fp) != NULL) {
+		cmd[strlen(cmd) - 1] = '\0';	/* step on newline */
+		if (*cmd == '\0')
+			continue;
 		if (is("charset"))
 			break;
-		fscanf(fp, " %[^\n]", opt);
+		opt = skipword(cmd);
+		if (*opt != '\0') {
+			*opt++ = '\0';
+			opt = skipspace(opt);
+		}
 		if (is("bset")) t.bset = atoi(opt);
 		else if (is("breset")) t.breset = atoi(opt);
 		else if (is("Hor")) t.Hor = atoi(opt);
@@ -368,7 +393,8 @@ void ptout1(void)
 			for (j = w / t.Char; j > 0; j--)
 				oput('\b');
 		}
-		if (!(*t.bdon & 0377) && ((j = bdtab[xfont]) || xfont == BDFONT || xfont == BIFONT))
+		if (!(*t.bdon & 0377) && ((j = bdtab[xfont]) ||
+		    xfont == BDFONT || xfont == BIFONT))
 			j++;
 		else
 			j = 1;	/* number of overstrikes for bold */
@@ -378,19 +404,19 @@ void ptout1(void)
 				oput('\b');
 				oput(k);
 			}
-		} else if (k >= t.tfont.nchars) {	/* BUG -- not really understood */
+		} else if (k >= t.tfont.nchars) { /* BUG -- not really understood */
 /* fprintf(stderr, "big char %d, name %s\n", k, chname(k)); /* */
-			oputs(chname(k)+1);	/* BUG: should separate Troffchar and MBchar... */
+			oputs(chname(k)+1); /* BUG: should separate Troffchar and MBchar... */
 		} else if (t.tfont.wp[k].str == 0) {
 /* fprintf(stderr, "nostr char %d, name %s\n", k, chname(k)); /* */
-			oputs(chname(k)+1);	/* BUG: should separate Troffchar and MBchar... */
-		} else if (t.tfont.wp[k].str[0] == MBchar) {	/* parse() puts this on */
+			oputs(chname(k)+1); /* BUG: should separate Troffchar and MBchar... */
+		} else if (t.tfont.wp[k].str[0] == MBchar) { /* parse() puts this on */
 /* fprintf(stderr, "MBstr char %d, name %s\n", k, chname(k)); /* */
 			oputs(t.tfont.wp[k].str+1);
 		} else {
 			int oj = j;
 /* fprintf(stderr, "str char %d, name %s\n", k, chname(k)); /* */
-			codep = t.tfont.wp[k].str+1;	/* Troffchar by default */
+			codep = t.tfont.wp[k].str+1; /* Troffchar by default */
 			while (*codep != 0) {
 				if (*codep & 0200) {
 					codep = plot(codep);

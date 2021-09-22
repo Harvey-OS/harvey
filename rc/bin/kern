@@ -1,0 +1,19 @@
+#!/bin/rc
+# kern - print path name of running kernel
+rfork e
+kern=`{sed 's/.*!//' /env/bootfile >[2]/dev/null}
+cpu=`{echo $kern | sed 's;/([^/]+)/.*;\1;'}
+base = `{echo $terminal | sed 's/.* //'}
+if (! ~ $cpu $cputype) {
+	echo $0: implausible bootfile kernel $kern for cputype $cputype >[1=2]
+	kern = $base
+}
+switch ($kern) {
+case /sys/src/9*/* ''
+	kern=/$cputype/9^`{basename $base}
+case /*
+	;
+case *
+	kern=/$cputype/$kern
+}
+echo $kern

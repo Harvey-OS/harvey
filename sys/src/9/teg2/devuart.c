@@ -3,7 +3,6 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
 #include	"../port/error.h"
 
 #include	"../port/netif.h"
@@ -36,16 +35,13 @@ static void	uartflow(void*);
 /*
  *  enable/disable uart and add/remove to list of enabled uarts
  */
-//static
 Uart*
 uartenable(Uart *p)
 {
 	Uart **l;
 
-	if (up == nil)
-		return p;		/* too soon; try again later */
-//		return nil;
-
+	if(p->enabled)
+		return p;
 	if(p->iq == nil){
 		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil)
 			return nil;
@@ -75,17 +71,15 @@ uartenable(Uart *p)
 	p->cts = 1;
 	p->ctsbackoff = 0;
 
-	if (up) {
-		if(p->bits == 0)
-			uartctl(p, "l8");
-		if(p->stop == 0)
-			uartctl(p, "s1");
-		if(p->parity == 0)
-			uartctl(p, "pn");
-		if(p->baud == 0)
-			uartctl(p, "b9600");
-		(*p->phys->enable)(p, 1);
-	}
+	if(p->bits == 0)
+		uartctl(p, "l8");
+	if(p->stop == 0)
+		uartctl(p, "s1");
+	if(p->parity == 0)
+		uartctl(p, "pn");
+	if(p->baud == 0)
+		uartctl(p, "b9600");
+	(*p->phys->enable)(p, 1);
 
 	/*
 	 * use ilock because uartclock can otherwise interrupt here
@@ -111,6 +105,8 @@ uartdisable(Uart *p)
 {
 	Uart **l;
 
+	if(!p->enabled)
+		return;
 	(*p->phys->disable)(p);
 
 	ilock(&uartalloc);
@@ -225,7 +221,7 @@ uartreset(void)
 		p->dev = i;
 		if(p->console || p->special){
 			if(uartenable(p) != nil){
-				if(p->console && up){
+				if(p->console){
 					kbdq = p->iq;
 					serialoq = p->oq;
 					p->putc = kbdcr2nl;
@@ -303,6 +299,7 @@ uartdrained(void* arg)
 static void
 uartdrainoutput(Uart *p)
 {
+	/* can't use waserror nor sleep if up is nil */
 	if(!p->enabled || up == nil)
 		return;
 
@@ -516,6 +513,8 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 		break;
 	case Nctlqid:
 		cmd = malloc(n+1);
+		if(cmd == nil)
+			error(Enomem);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
 		qlock(p);
@@ -617,7 +616,6 @@ uartstageoutput(Uart *p)
 
 	n = qconsume(p->oq, p->ostage, Stagesize);
 	if(n <= 0)
-//		n = 0;			/* experiment */
 		return 0;
 	p->op = p->ostage;
 	p->oe = p->ostage + n;
@@ -745,7 +743,7 @@ uartclock(void)
 			}
 			iunlock(&p->tlock);
 		}
-		uartkick(p);		/* keep it moving */
+		uartkick(p);		/* ts special: work around buggy uart */
 	}
 	iunlock(&uartalloc);
 }
@@ -769,10 +767,13 @@ uartputc(int c)
 {
 	char c2;
 
-	if(consuart == nil || consuart->phys->putc == nil) {
+	if(consuart == nil || consuart->phys == nil ||
+	    consuart->phys->putc == nil) {
 		c2 = c;
 		if (lprint)
 			(*lprint)(&c2, 1);
+		else
+			_uartputs(&c2, 1);
 		return;
 	}
 	consuart->phys->putc(consuart, c);
@@ -783,12 +784,14 @@ uartputs(char *s, int n)
 {
 	char *e;
 
-	if(consuart == nil || consuart->phys->putc == nil) {
+	if(consuart == nil || consuart->phys == nil ||
+	    consuart->phys->putc == nil) {	/* ts special */
 		if (lprint)
 			(*lprint)(s, n);
+		else
+			_uartputs(s, n);
 		return;
 	}
-
 	e = s+n;
 	for(; s<e; s++){
 		if(*s == '\n')

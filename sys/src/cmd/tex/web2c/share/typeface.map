@@ -1,0 +1,432 @@
+@c @mapfile{
+@c   maintainer = "K. Berry",
+@c   version = "2.1",
+@c   date = "5 July 1996",
+@c   filename = "typeface.map",
+@c   email = "kb@mail.tug.org",
+@c   address = "135 Center Hill Rd. // Plymouth, MA 02360",
+@c   codetable = "ISO/ASCII",
+@c   checksum = "432    1444   12885",
+@c   docstring = "Typeface name abbreviations and directories for TeX fonts."
+@c }
+a1 arial        Arial
+a2 amasis       Amasis
+a3 adlib        AdLib
+a4 altgoth2     AlternateGothicNo2
+a5 allegro      Allegro
+a6 amelia       Amelia
+a7 amertext     AmericanText
+a8 aurora       Aurora
+a9 adsans       Adsans b:Humanist970BT
+aa aachen       Aachen
+ab aboeckli     ArnoldBoecklin
+ac acaslon      ACaslon                                 @r{Adobe Caslon}
+ad agaramon     AGaramond                               @r{Adobe Garamond}
+ag avantgar     AvantGarde m:MAvantGardeGothicPS u:URWGothicL
+ah ashleysc     AshleyScript
+ai abadi        Abadi
+al albertus     Albertus b:Flareserif821BT
+am amercana     Americana b:Americana
+an anna         Anna
+ao atqolive     AntiqueOlive b:Incised901BT
+ap apollo       Apollo
+aq antiqua      Antiqua u:URWAntiqua m:BookAntiqua
+ar arcadia      Arcadia
+as aldus        Aldus
+at atypewri     AmericanTypewriter
+au auriol       Auriol b:Freeform721
+av avenir       Avenir
+az azdzgrot     AkzidenzGrotesk b:Gothic725BT
+b0 blackoak     Blackoak
+b1 blado        Blado
+b2 binnyos      BinnyOldStyle
+b3 braggado     Braggadocio
+b4 bison        Bison b:Brush738BT
+b5 binghams     BinghamScript b:Freehand591BT
+b6 block        Block b:Gothic821
+b7 bernhard     Bernhard BernhardModern
+b8 blippo       Blippo
+b9 bremen       Bremen
+bb bembo        Bembo b:Aldine401BT
+bc banco        Banco
+bd bodoni       Bodoni
+be bell         Bell
+bf biffo        Biffo
+bg benguiat     Benguiat
+bh bauhaus      Bauhaus
+bi birch        Birch
+bk bookman      Bookman m:MBookmanPS u:URWBookmanL
+bl belwe        Belwe
+bm bulmer       Bulmer
+bn bernard      Bernard
+bo balloon      Balloon
+bp bodocamp     BodoniCampanile b:Modern735
+br berling      Berling b:Revival565BT
+bs bakersig     BakerSignet
+bt boton        Boton
+bu brush        Brush
+bv baskervi     Baskerville
+bw broadway     Broadway
+by berkeley     Berkeley
+c0 carolina     Carolina
+c1 calisto      Calisto
+c2 casln224     CaslonTwoTwentyFour
+c3 caslon3      CaslonThree
+c4 chicago      Chicago
+c5 casln540     CaslonFiveForty
+c6 clarion      Clarion
+c7 compacta     Compacta
+c8 calvert      Calvert
+c9 codex        Codex b:Calligraphic421BT
+ca caslon       Caslon
+cb cooper       Cooper
+cc cascade      Cascade b:Freehand471BT
+cd clarendo     Clarendon
+ce centenni     Centennial
+cf clearfac     Clearface
+cg charlema     Charlemagne
+ch charter      Charter
+ci candida      Candida
+cl cloister     Cloister
+cm cm           @r{Computer Modern}
+cn century      Century
+co cochin       Cochin
+cp copperpl     Copperplate
+cq cheq         Cheq
+cr courier      Courier m:MCourierPS m:CourierTwelveMT u:NumbusMonL
+cs cntursbk     CenturySchoolbook
+ct cheltenh     Cheltenham
+cu centuros     CenturyOldStyle
+cv clairvx      Clairvaux
+cw cottonwd     Cottonwood
+cx caxton       Caxton
+cy city         City b:SquareSlabserif711BT
+cz choc         Choc b:Staccato555BT
+d0 davida       DavidaBold
+dc domcasl      Dom DomCasual DomDiagonal
+dd ducberry     DucDeBerry
+de dellarob     DellaRobbia
+di diotima      Diotima b:Calligraphic810BT
+dl dolores      Dolores
+dm delima       Delima
+dr doric        Doric
+ds dorchesc     DorchesterScript
+dt dante        Dante
+e0 embassy      Embassy
+e1 empire       Empire
+ea lectra       Electra b:Transitional521BT
+eb baskerbe     BaskervilleBE
+ec applecha     e:AppleChancery
+ee egyptian     Egyptian EgyptianExtended
+ef egyptien     EgyptienneF
+eg stgaramo     StempelGaramond b:OriginalGaramondBT
+eh engsft       Engschrift
+ei esprit       Esprit
+ek eckmann      Eckmann b:Freeform710
+el ellingtn     Ellington
+en engraver     Engravers
+eo amerigo      Amerigo b:AmerigoBT
+er eras         Eras
+es eurostil     Eurostile b:Square721BT k:Minima
+et ehrhardt     Ehrhardt
+eu euler        Euler
+ex exclsior     Excelsior
+f0 flemishs     FlemishScript
+f1 fournier     Fournier
+f2 facade       Facade
+f3 festival     Festival
+f4 footligh     Footlight
+f5 french       French
+fa formata      Formata
+fe forte        Forte
+ff fairfld      Fairfield b:Transitional551BT
+fg frankgth     FranklinGothic
+fi figaro       Figaro
+fl flora        Flora
+fn fenice       Fenice
+fo folio        Folio
+fq frizquad     FrizQuadrata
+fr frutiger     Frutiger b:Humanist777BT
+fs falstaff     Falstaff
+ft fettefrk     FetteFraktur Fraktur
+fu futura       Futura
+fx felixttl     FelixTitling
+fy flyer        Flyer
+g0 gando        Gando
+g1 gothic13     GothicThirteen
+g2 giddyup      Giddyup
+g3 garamon3     GaramondThree b:AmercianGaramondBT      @r{Garamond No.@: 3}
+g4 gymodern     GoudyModern
+g5 gycatalg     GoudyCatalogue
+g6 gorilla      GorillaITC
+g9 ugaramon     GaramondRetrospective
+gb gothicbb     GothicBBB
+ge geneva       e:Geneva
+gg garthgra     GarthGraphic
+gj granjon      Granjon b:ElegantGaramondBT
+gl galliard     Galliard
+gm garamond     Garamond
+go gyoldsty     GoudyOldStyle
+gp glypha       Glypha
+gq grotesq      Grotesque u:URWGrotesk
+gr gloucest     Gloucester
+gs gillsans     GillSans m:GillAltOneMT b:Humanist521BT
+gt goudytxt     GoudyText
+gu guardi       Guardi
+gv giovanni     Giovanni
+gy goudy        Goudy
+h0 handelgo     HandelGothic
+hb hobo         Hobo Tramp
+hc herculnm     Herculanum
+hd headline     Headline
+hg hiroshig     Hiroshige
+hi hvinsera     HelveticaInserat b:Swiss921BT
+hm charme       Charme
+hn hvneue       HelveticaNeue
+ho horleyos     HorleyOldStyle
+hr hvround      HelveticaRounded
+hs hnseati      Hanseatic B:Swiss924BT
+ht hoeflert     e:HoeflerText
+hv helvetic     Helvetica u:NimbusSans u:NumbusSanL b:Swiss721BT b:Monospace821BT b:Swiss911BT d:Sans Newton n:SonoranSansSerif
+hw schadow      Schadow
+hx huxleyvr     HuxleyVertical
+i0 commscr      CommercialScript
+i1 impress      Impress
+i2 impuls       Impuls
+ia insignia     Insignia
+ib ibycus       Ibycus
+ic impact       Impact
+if inflex       Inflex
+ig scgaramo     SimonciniGaramond b:ItalianGaramond
+ii imprint      Imprint
+il caecilia     Caecilia
+im imago        Imago
+in industri     Industria
+io ionic        Ionic b:News701BT
+ip impressm     Impressum
+is italnos      ItalianOldStyle
+it italia       Italia
+iw ironwood     Ironwood
+iy iowanold     IowanOldStyle
+jf jeffersn     Jefferson b:Freehand575BT
+jn janson       Janson
+jo joanna       Joanna
+jp juniper      Juniper
+kb kabel        Kabel
+kg bankgoth     BankGothic
+kl klang        Klang
+kn kino         Kino
+ko bookmano     BookmanOldStyle
+kr korinna      Korinna
+ks kuenstsc     KuenstlerScript
+ku kaufmann     Kaufmann
+l1 liberty      Liberty
+l2 libra        Libra
+l3 lucia        Lucia
+l4 lucian       Lucian
+lb lubaling     LubalinGraph
+lc lucida       Lucida
+lf life         Life
+lg lettrgth     LetterGothic ISILGothic
+lh lubright     LucidaBright
+li latin        Latin
+ln lino         Lino
+lo lithos       Lithos
+ls lucsans      LucidaSans
+lt lutetia      Lutetia
+lw leawood      Leawood
+lx lucidfax     LucidaFax
+ly lydian       Lydian
+m0 monospac     Monospace
+m1 monolisc     MonolineScript
+m2 metro        Metro b:Geometric415BT
+m3 mirarae      Mirareae
+m4 mrearl       MisterEarl
+m5 murrayhl     MurrayHill
+m6 mittlsft     Mittelschrift
+m7 matura       Matura
+m8 monotyos     MonotypeOldStyle
+ma mandate      Mandate b:Freehand521BT
+mc monaco       e:Monaco
+md meridien     Meridien
+me mercursc     MercuriusScript
+mg marigold     Marigold
+mh machine      Machine
+mi medici       Medici
+ml melior       Melior b:ZapfElliptical711BT
+mn minion       Minion
+mo modern       Modern b:Modern20BT
+mp memphis      Memphis b:GeometricSlab703BT
+mq mesquite     Mesquite
+mr madrone      Madrone
+ms mistral      Mistral b:Staccato222BT
+mt minister     Minister
+mv malvern      Malvern
+mx maximus      Maximus
+mz amazone      Amazone
+n0 normande     Normande
+n1 binner       Binner
+na newaster     NewAster
+nb nbaskerv     NewBaskerville
+nc ncntrsbk     NewCenturySchlbk u:CenturySchL
+nd ncaledon     NewCaledonia
+nf nofret       Nofret
+ng newsgth      NewsGothic
+ni nimrod       Nimrod
+nk neograph     Neographik
+nl neuland      Neuland b:Informal011BT
+nm nimbus       Nimbus
+nn nclarend     NewClarendon
+np nsplanti     NewsPlantin
+nr nberolin     NewBerolina
+ns timesnps     TimesNewRomanPS
+nt timesnew     TimesNewRoman m:TimesNR n:SonoranSerif
+nu nuptial      Nuptial
+nv novarese     Novarese
+nz neuzeits     NeuzeitS b:Geometric706BT
+o0 oldreadf     OldDreadfulNo7
+o1 oranda       Oranda
+o2 orbitb       OrbitB
+o3 colonna      Colonna
+o4 oceansan     OceanSans
+o7 oldsty7      OldStyleSeven
+oa ocra         OCR-A
+ob ocrb         OCR-B
+oc concorde     Concorde
+oe oldengli     OldEnglish b:English157
+oi ondine       Ondine Mermaid b:FormalScript421BT
+ol colmcill     Colmcille
+om omnia        Omnia
+on corona       Corona
+op optima       Optima d:Optimum b:ZapfHumanist601BT Omega
+or orator       Orator
+os oldstyle     OldStyle
+ot coronet      Coronet b:Ribbon131BT
+ov octavian     Octavian
+ox onyx         Onyx
+oy olympian     Olympian l:OlympicLH
+oz ozhandcr     OzHandicraft
+p0 poplar       Poplar
+p1 palacesc     PalaceScript
+p2 pepita       Pepita
+p3 palette      Palette b:Brush445BT
+p4 pioneer      PioneerITC
+p5 piranesi     Piranesi
+p6 blueprin     Blueprint
+pa parkave      ParkAvenue
+pb ptbarnum     PtBarnum
+pc poetica      PoeticaChancery s:Scriptoria
+pd placard      Placard
+pe prestige     PrestigeElite
+pf profile      Profile Profil b:Decorated035BT
+pg peignot      Peignot b:Exotic350BT
+ph photina      Photina
+pi pi           @r{pi fonts---see text and @file{*.map} files}
+pl palatino     Palatino d:Palton b:ZapfCalligraphic801BT u:URWPalladioL Palmspring k:Palindrome
+pn plantin      Plantin b:Aldine721BT
+po ponderos     Ponderosa
+pp perpetua     Perpetua b:Lapidary333BT
+pq postatqa     PostAntiqua
+ps parisian     Parisian
+pt present      Present
+pu popplaud     PopplLaudatio
+pw perrywoo     Perrywood
+px popplpfx     PopplPontifex
+py playbill     Playbill
+pz poliphil     Poliphilus
+qr quorum       Quorum
+qt boulevar     Boulevard
+r0 romana       Romana
+r1 rotis        RotisSemi
+r2 cantoria     Cantoria
+ra raleigh      Raleigh
+ro rotis        Rotis
+rm carmina      Carmina
+rp reporter     Reporter
+rq russelsq     RussellSquare
+rs arrus        Arrus
+rt carta        Carta
+ru runic        Runic
+rv revue        Revue
+rw rockwell     Rockwell Slate b:GeometricSlab712BT
+ry ryumin       Ryumin
+s0 sanmarco     SanMarco
+s1 scotchro     ScotchRoman
+s2 script       Script
+s3 seagull      Seagull
+s4 shotgun      Shotgun ShotgunBlanks
+s5 snell        Snell
+s6 stuyvesa     Stuyvesant
+s7 sassoon      Sassoon
+sb sabon        Sabon b:ClassicalGaramondBT
+sc slimbach     Slimbach
+sf serifa       Serifa
+sg serifgth     SerifGothic
+sh shannon      Shannon
+sk skia         e:Skia
+sl stencil      Stencil
+sm spectrum     Spectrum
+sn spartan      Spartan
+so sonata       Sonata
+sp serpenti     Serpentine
+sr snellrnd     SnellRoundhand
+ss stschnei     StempelSchneidler
+st stone        Stone
+sv souvenir     Souvenir
+sw swing        Swing
+sx syntax       Syntax
+sy symbol       Symbol m:MSymbolPS u:StandardSymL
+t0 tango        Tango
+t1 thunderb     Thunderbird
+t2 typo         TypoUpright
+tb bebodoni     BBodoni                                 @r{Berthold Bodoni}
+te timeseur     TimesEuropa
+tf tiffany      Tiffany
+tg tradegth     TradeGothic
+ti techphon     TechPhonetic
+tj trajan       Trajan
+tk tekton       Tekton
+tl castella     Castellar
+tm times        Times u:NimbusRoman u:NimbusRomNo9L b:Dutch801BT
+to torino       Torino b:Industrial736BT
+tp tempo        Tempo
+tv trumpmed     TrumpMediaeval b:Kuenstler480BT
+tw twentyc      TwentiethCentury
+ty typewrit     Typewriter
+u0 columbus     Columbus
+ub babodoni     BauerBodoni
+ug bengugth     BenguiatGothic
+uh cushing      Cushing
+ul universa     Universal
+um umbra        Umbra
+un univers      Univers b:ZurichBT
+ur centaur      Centaur b:Venetian301BT
+ut utopia       Utopia
+uw usherwoo     Usherwood
+uy universi     University
+v0 vineta       Vineta
+va activa       Activa
+vc vectora      Vectora
+vd vandijck     VanDijck
+vi victoria     Victoria
+vj veljovic     Veljovic
+vl versaill     Versailles
+vr vagrnd       VAGRounded
+w0 weddingt     WeddingT
+wb walbaum      Walbaum
+wd weideman     Weidemann
+wg wlklgth      WilhelmKlingsporGotisch
+wi wingding     Wingdings
+wk wilke        Wilke
+wn windsor      Windsor
+wr wittenbe     WitternbergerFrakt
+ws weiss        Weiss
+ww willow       Willow
+yg centuryg     CenturyGothic
+yh strayhor     Strayhorn
+ym stymie       Stymie
+za zantiqua     ZAntiqua
+zc zapfchan     ZapfChancery m:ZapfChanceryPS u:URWChanceryL
+zd zapfding     ZapfDingbats m:ZapfDingbatsPS u:Dingbats
+zg neuzeitg     NeuzeitGrotesk
+zt zeitgeis     Zeitgeist

@@ -1,0 +1,36 @@
+#!/bin/rc
+
+rfork e
+
+switch($#*){
+case 1
+	vac=$1
+case *
+	echo 'usage: vacchain vac:score' >[1=2]
+	exit usage
+}
+
+if(! ~ $vac vac:????????????????????????????????????????){
+	echo bad score >[1=2]
+	exit 'bad score'
+}
+
+score=`{echo $vac | sed 's/vac://'}
+
+tmp=/tmp/vacchain.$pid
+fn die{
+	echo $* >[1=2]
+	rm -f $tmp
+	exit ''
+}
+nl='
+'
+while(){
+	echo vac:$score
+	if(! venti/read $score 1 >$tmp)
+		die could not find $score
+	if(! ~ `{ls -l $tmp | awk '{print $6}'} 300)
+		die block $score too short
+	score=`{dd -bs 1 -iseek 280 -count 20 -if $tmp >[2]/dev/null |
+		xd -b | sed 's/^.......(  )?//' | tr -d $nl^' '}
+}

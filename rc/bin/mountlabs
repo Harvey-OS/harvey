@@ -1,0 +1,52 @@
+#!/bin/rc
+# mount 1127 final plan 9 file server images on /n/labs, etc.
+rfork e
+arch=/lib/vac/arch		# archive mount-point tree
+
+mount -C /srv/labs /n/labs >[2]/dev/null || {
+	unmount /n/labs >[2]/dev/null
+	rm -f /srv/labs
+	if (~ $sysname fs) {
+		vacfs -p -h localhost -S labs /lib/vac/labs.vac
+		chgrp -u geoff /srv/labs
+		chmod 'o=' /srv/labs
+		vacfs    -h localhost -S publabs /lib/vac/labs.vac
+		mount -C /srv/publabs /n/publabs
+	}
+	if not {
+		# devmnt interferes with crypto (by breaking long records?)
+		import -E clear fs / /n/fs && {
+			mount -C /n/fs/srv/labs /n/labs
+			mount -C /n/fs/srv/publabs /n/publabs
+		}
+		srvfs labs /n/labs
+		srvfs publabs /n/publabs
+		chmod +rw /srv/labs /srv/publabs
+	}
+}
+if (! test -d /n/labs/choline) {
+	mount -C /srv/labs /n/labs || exit 'can''t mount /srv/labs'
+	if (! test -d /n/labs/choline) {
+		echo $0: /n/labs/choline missing! >[1=2]
+		exit no-choline
+	}
+}
+bind /n/labs/bootes/1997/1231 /n/bootes
+bind /n/labs/fornax/1997/1231 /n/fornax
+bind /n/labs/emelie/2006/10301 /n/emelie
+bind /n/labs/choline/2006/0814 /n/choline
+bind /n/publabs/choline/2006/0814 /n/cholinepub
+bind /n/labs/pie/archive/2014/0306 /n/pie
+
+for (juke in bootes fornax emelie choline) {
+	bind /n/labs/$juke /n/$juke^dump
+	bind /n/labs/$juke $arch/$juke^dump	# backward compatibility
+	# should this be one of the above binds of a date?
+	bind /n/labs/$juke $arch/$juke
+}
+# drat; pie.vac is a fossil dump score, so we have to fiddle names
+bind /n/labs/pie/archive /n/piedump
+bind /n/labs/pie/archive $arch/piedump
+bind /n/labs/pie/active $arch/pie
+
+bind $arch /n/archive		# backward compatibility

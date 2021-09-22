@@ -62,14 +62,18 @@ $BIN/aux/sshsession: $O.sshsession
 # $BIN/aux/sshswitch: $O.sshswitch
 # 	cp $O.sshswitch $BIN/aux/sshswitch
 
-analysis:V: magic.out long.funcs
+analysis:V: dup magic.out long.funcs
 
-#dup:V: dup.out
-#dup.out dup.sum dup.xpr dup.pro:D: $HFILES $CFILES
-#	dup -t3 -xp *.c >dup.out
+dup:V: dup.out
+dup.out dup.sum dup.xpr dup.pro:D: $HFILES $CFILES
+	dup -t3 -xp *.c >dup.out
 
 magic.out:D: $HFILES $CFILES
 	magic >$target
 
 long.funcs:D: $CFILES
 	funclen *.c | sort -nr | awk '$1 > 24' >$target
+
+push:V: analysis
+	update dup.* magic.out long.funcs
+	rm -f  dup.* magic.out long.funcs

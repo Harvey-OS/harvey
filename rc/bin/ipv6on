@@ -43,12 +43,14 @@ fn nonnil {		# variable
 # configure v6 for link-local addresses (fe80::) & multicast (ff02::).
 # accept router advertisements, which will contain a default route.
 #
-if (! ip/ipconfig -6 $xdir ether $netdir/ether?)
+ether=`{ls -d $netdir/ether? | sed 1q}
+if (! ip/ipconfig -6 $xdir ether $ether)
 	exit 'ipconfig -6 failed'
-ip/ipconfig $xdir ether $netdir/ether? ra6 recvra 1
+ip/ipconfig $xdir ether $ether ra6 recvra 1
 
 # lookup any v6 address for me in ndb, else use slaac
-myeth=`{cat $netdir/ether?/addr}
+addr=`{ls $ether/addr | sed 1q}
+myeth=`{cat $addr}
 mev6=`{ndb/query -f $ndbf ether $myeth ipv6}
 if (~ $#mev6 0 || ~ $mev6 '')
 	mev6=`{ndb/query -f $ndbf sys $sysname ipv6}
@@ -68,5 +70,5 @@ nonnil mev6
 # configure my global v6 addresses
 #
 v6mask=`{ipq ip $mev6 ipmask}
-ip/ipconfig $xdir ether $netdir/ether?	add $mev6 $v6mask
+ip/ipconfig $xdir ether $ether	add $mev6 $v6mask
 ip/ipconfig $xdir loopback /dev/null	add $mev6 /128

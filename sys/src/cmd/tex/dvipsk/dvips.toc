@@ -1,0 +1,75 @@
+\chapentry {Why use Dvips?}{1}{1}
+\chapentry {Installation}{2}{2}
+\secentry {\file {config.ps} installation}{2}{1}{2}
+\secentry {PostScript font installation}{2}{2}{3}
+\secentry {Ghostscript installation}{2}{3}{4}
+\secentry {Diagnosing problems}{2}{4}{5}
+\subsecentry {Debug options}{2}{4}{1}{5}
+\subsecentry {No output at all}{2}{4}{2}{5}
+\subsecentry {Output too small or inverted}{2}{4}{3}{6}
+\subsecentry {Error messages from printer}{2}{4}{4}{6}
+\subsecentry {Long documents fail to print}{2}{4}{5}{6}
+\subsecentry {Including graphics fails}{2}{4}{6}{7}
+\chapentry {Invoking Dvips}{3}{8}
+\secentry {Basic usage of Dvips}{3}{1}{8}
+\secentry {Command-line options}{3}{2}{8}
+\subsecentry {Option summary}{3}{2}{1}{8}
+\subsecentry {Option details}{3}{2}{2}{9}
+\secentry {Environment variables}{3}{3}{14}
+\secentry {Dvips configuration files}{3}{4}{15}
+\subsecentry {Configuration file searching}{3}{4}{1}{15}
+\subsecentry {Configuration file commands}{3}{4}{2}{16}
+\chapentry {Paper size and landscape orientation}{4}{20}
+\secentry {\samp {papersize} special}{4}{1}{20}
+\secentry {Configuration file paper size command}{4}{2}{20}
+\secentry {Paper trays}{4}{3}{22}
+\chapentry {Interaction with PostScript}{5}{23}
+\secentry {PostScript figures}{5}{1}{23}
+\subsecentry {The bounding box comment}{5}{1}{1}{23}
+\subsecentry {Using the EPSF macros}{5}{1}{2}{24}
+\subsubsecentry {EPSF scaling} {5}{1}{2}{1} {25}
+\subsubsecentry {EPSF clipping} {5}{1}{2}{2} {26}
+\subsecentry {\samp {psfile} special}{5}{1}{3}{26}
+\subsecentry {Dynamic creation of PostScript graphics files}{5}{1}{4}{27}
+\subsecentry {Fonts in figures}{5}{1}{5}{27}
+\secentry {PostScript header files}{5}{2}{28}
+\subsecentry {Including headers from \TeX{}}{5}{2}{1}{28}
+\subsecentry {Including headers from the command line}{5}{2}{2}{28}
+\subsecentry {Headers and memory usage}{5}{2}{3}{28}
+\secentry {Literal PostScript}{5}{3}{29}
+\subsecentry {\code {{\tt\char'042}} special: Literal PostScript}{5}{3}{1}{29}
+\subsecentry {\samp {ps} special}{5}{3}{2}{29}
+\subsecentry {Literal headers: \samp {!} \code {{\tt\rawbackslashxx }special}}{5}{3}{3}{30}
+\subsecentry {PostScript hooks}{5}{3}{4}{30}
+\subsecentry {Literal examples}{5}{3}{5}{31}
+\secentry {Hyper\TeX{}t}{5}{4}{31}
+\subsecentry {Hypertext caveats}{5}{4}{1}{32}
+\subsecentry {Hypertext specials}{5}{4}{2}{32}
+\chapentry {PostScript fonts}{6}{34}
+\secentry {Font concepts}{6}{1}{34}
+\subsecentry {Metric files}{6}{1}{1}{34}
+\subsecentry {Glyph files}{6}{1}{2}{35}
+\subsecentry {Virtual fonts}{6}{1}{3}{36}
+\subsecentry {Encodings}{6}{1}{4}{36}
+\subsecentry {How PostScript typesets a character}{6}{1}{5}{37}
+\secentry {Making a PostScript font available}{6}{2}{38}
+\secentry {Invoking Afm2tfm}{6}{3}{39}
+\subsecentry {Changing font encodings}{6}{3}{1}{40}
+\subsubsecentry {\samp {-t}: Changing \TeX{} encodings} {6}{3}{1}{1} {40}
+\subsubsecentry {\samp {-p}: Changing PostScript encodings} {6}{3}{1}{2} {40}
+\subsubsecentry {\samp {-T}: Changing both \TeX{} and PostScript encodings} {6}{3}{1}{3} {41}
+\subsubsecentry {Reencoding with Afm2tfm} {6}{3}{1}{4} {41}
+\subsubsecentry {Encoding file format} {6}{3}{1}{5} {42}
+\subsecentry {Special font effects}{6}{3}{2}{43}
+\subsecentry {Afm2tfm options}{6}{3}{3}{44}
+\secentry {\file {psfonts.map}: PostScript font catalog}{6}{4}{45}
+\chapentry {Color}{7}{48}
+\secentry {Color macro files}{7}{1}{48}
+\secentry {User-definable colors}{7}{2}{49}
+\secentry {Color subtleties}{7}{3}{49}
+\secentry {Printing in black/white after colorizing}{7}{4}{50}
+\secentry {Color device configuration}{7}{5}{50}
+\secentry {Color support details}{7}{6}{51}
+\subsecentry {Color specifications}{7}{6}{1}{51}
+\subsecentry {Color specials}{7}{6}{2}{51}
+\unnumbchapentry {Index}{53}

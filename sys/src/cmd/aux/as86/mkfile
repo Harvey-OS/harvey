@@ -1,0 +1,7 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/aux
+TARG=as86
+OFILES=as86.$O
+
+</sys/src/cmd/mkone

@@ -1,0 +1,4 @@
+void
+addabus(int, int)
+{
+}

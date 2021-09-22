@@ -1,0 +1,16 @@
+This is METAFONT, Version 2.7182 (Web2C 7.2) (INIMF)  1 APR 1999 16:27
+**\input plain input modes dump
+(/sys/lib/texmf/metafont/base/plain.mf
+Preloading the plain base, version 2.71: preliminaries,
+ basic constants and mathematical macros,
+ macros for converting from device-independent units to pixels,
+ macros and tables for various modes of operation,
+ macros for drawing and filling,
+ macros for proof labels and rules,
+ macros for character and font administration,
+and a few last-minute items.) (/sys/lib/texmf/metafont/misc/modes.mf)
+Beginning to dump on file mf.base
+ (base=mf 1999.4.1)
+2099 strings of total length 28322
+11065 memory locations dumped; current usage is 3379&7314
+941 symbolic tokens
