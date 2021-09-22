@@ -221,6 +221,7 @@ trapinit(void)
 	 */
 	trapenable(VectorBPT, debugbpt, 0, "debugpt");
 	trapenable(VectorPF, fault386, 0, "fault386");
+	trapenable(VectorGPF, faultgpf, 0, "faultgpf");
 	trapenable(Vector2F, doublefault, 0, "doublefault");
 	trapenable(Vector15, unexpected, 0, "unexpected");
 	nmienable();
@@ -608,6 +609,21 @@ unexpected(Ureg* ureg, void*)
 
 extern void checkpages(void);
 extern void checkfault(ulong, ulong);
+
+static void
+faultgpf(Ureg* ureg, void*)
+{
+	switch (ureg->pc) {
+		case rdmsr_doit:
+			ureg->pc = rdmsr_bad;
+			break;
+		default:
+			panic("GPF with no handler at addr=0x%.8lux", ureg->pc);
+			break;
+	}
+}
+
+// This is a page fault handler for both kernel and user.
 static void
 fault386(Ureg* ureg, void*)
 {
