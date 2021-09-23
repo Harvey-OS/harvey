@@ -671,21 +671,19 @@ TEXT lcycles(SB),1,$0
 	RDTSC
 	RET
 
-// WIP: if the rdmsr fails, then return all -1
-// TODO: change type signature of rdmsr
 TEXT rdmsr(SB), $0				/* model-specific register */
 	MOVL	index+0(FP), CX
 TEXT mayberdmsr(SB), $0
 	RDMSR
-1:
+_rdmsrret:
 	MOVL	vlong+4(FP), CX			/* &vlong */
 	MOVL	AX, 0(CX)			/* lo */
 	MOVL	DX, 4(CX)			/* hi */
 	RET
 TEXT rdmsrfail(SB), $0
-	MOVL    $0xffffffff, AX
+	MOVL	$0xffffffff, AX
 	MOVL	AX, DX
-	JMP	1b
+	JMP		_rdmsrret
 	
 TEXT wrmsr(SB), $0
 	MOVL	index+0(FP), CX

@@ -158,7 +158,7 @@ void	putcr0(ulong);
 void	putcr3(ulong);
 void	putcr4(ulong);
 void*	rampage(void);
-void	rdmsr(int, vlong*);
+int	rdmsr(int, vlong*);
 void	realmode(Ureg*);
 void	screeninit(void);
 void	(*screenputs)(char*, int);
