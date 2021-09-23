@@ -1,7 +1,10 @@
 #!/bin/bash
 
 set -x
+# in case it is a file.
+rm -f xbin
 set -e
+mkdir -p xbin
 
 PATH=$PATH:$PLAN9/bin
 export NXM=`pwd`
