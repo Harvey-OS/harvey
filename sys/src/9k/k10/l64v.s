@@ -175,11 +175,17 @@ TEXT rdtsc(SB), 1, $-4				/* Time Stamp Counter */
 
 TEXT rdmsr(SB), 1, $-4				/* Model-Specific Register */
 	MOVL	RARG, CX
+TEXT mayberdmsr(SB), 0, $-4
 	RDMSR
+_rdmsrret:
 	XCHGL	DX, AX				/* swap lo/hi, zero-extend */
 	SHLQ	$32, AX				/* hi<<32 */
 	ORQ	DX, AX				/* (hi<<32)|lo */
 	RET
+TEXT rdmsrfail(SB), 0, $-4
+	MOVL	$0xffffffff, AX
+	MOVL	AX, DX
+	JMP		_rdmsrret
 
 TEXT wrmsr(SB), 1, $-4
 	MOVL	RARG, CX
