@@ -14,6 +14,7 @@ static int trapinited;
 void	noted(Ureg*, ulong);
 
 static void debugbpt(Ureg*, void*);
+static void faultgpf(Ureg*, void*);
 static void fault386(Ureg*, void*);
 static void doublefault(Ureg*, void*);
 static void unexpected(Ureg*, void*);
@@ -193,6 +194,7 @@ trapinit0(void)
 	for(v = 0; v < 256; v++){
 		d1 = (vaddr & 0xFFFF0000)|SEGP;
 		switch(v){
+
 		case VectorBPT:
 			d1 |= SEGPL(3)|SEGIG;
 			break;
@@ -614,17 +616,11 @@ extern void rdmsrfail(void);
 static void
 faultgpf(Ureg* ureg, void*)
 {
-	switch(ureg->pc){
-	case mayberdmsr:
-		ureg->pc = rdmsrfail;
-		break;
-	default:
-		panic("GPF with no handler at addr=0x%.8lux", ureg->pc);
-		break;
-	}
+	if(ureg->pc != (ulong)mayberdmsr)
+		panic("unhandled GPF at 0x%.8lux", ureg->pc);
+	ureg->pc = (ulong)rdmsrfail;
 }
 
-// This is a page fault handler for both kernel and user.
 static void
 fault386(Ureg* ureg, void*)
 {
