@@ -10,7 +10,7 @@ enum
 	ETIP4		= 0x0800,
 	ETIP6		= 0x86DD,
 
-	MaxEther	= 48,
+	MaxEther	= 64,
 	Ntypes		= 8,
 };
 
