@@ -1,6 +1,5 @@
 /*
- * To do:
- *	find a purpose for this...
+ * Address Space Maps.  early physical memory allocation & mapping
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -8,19 +7,9 @@
 #include "dat.h"
 #include "fns.h"
 
-enum {
-	AsmNONE		= 0,
-	AsmMEMORY	= 1,
-	AsmRESERVED	= 2,
-	AsmACPIRECLAIM	= 3,
-	AsmACPINVS	= 4,
-
-	AsmDEV		= 5,
-};
-
 static Lock asmlock;
 static Asm asmarray[64] = {
-	{ 0, ~0, AsmNONE, nil, },
+	{ 0, ~0ull, AsmNONE, nil, },
 };
 static int asmindex = 1;
 Asm* asmlist = &asmarray[0];
@@ -58,8 +47,10 @@ asmnew(uintmem addr, uintmem size, int type)
 		asm->next = nil;
 	}
 	else{
-		if(asmindex >= nelem(asmarray))
+		if(asmindex >= nelem(asmarray)){
+			print("asmnew: asmarray full, discarding %#p\n", addr);
 			return nil;
+		}
 		asm = &asmarray[asmindex++];
 	}
 	asm->addr = addr;
@@ -201,7 +192,7 @@ asminsert(uintmem addr, uintmem size, int type)
 		return;
 	if(asmfree(addr, size, type) == 0)
 		return;
-	asmfree(addr, size, 0);
+	asmfree(addr, size, AsmNONE);
 }
 
 void
@@ -221,6 +212,8 @@ asminit(void)
 void
 asmmapinit(uintmem addr, uintmem size, int type)
 {
+	uintptr endaddr;
+
 	DBG("asmmapinit %#P %#P %s\n", addr, size, asmtypes[type]);
 
 	switch(type){
@@ -242,10 +235,12 @@ asmmapinit(uintmem addr, uintmem size, int type)
 			size -= sys->pmstart - addr;
 			addr = sys->pmstart;
 		}
+
 		asminsert(addr, size, type);
 		sys->pmoccupied += size;
-		if(addr+size > sys->pmend)
-			sys->pmend = addr+size;
+		endaddr = addr + size;
+		if(endaddr > sys->pmend)
+			sys->pmend = endaddr;
 		break;
 	}
 }
@@ -266,13 +261,13 @@ asmmodinit(u32int start, u32int end, char* s)
 }
 
 static PTE
-asmwalkalloc(usize size)
+asmwalkalloc(uintptr size)
 {
 	uintmem pa;
 
 	assert(size == PTSZ && sys->vmunused+size <= sys->vmunmapped);
 
-	if((pa = mmuphysaddr(sys->vmunused)) != ~0)
+	if((pa = mmuphysaddr(sys->vmunused)) != ~0ull)
 		sys->vmunused += size;
 
 	return pa;
@@ -280,26 +275,133 @@ asmwalkalloc(usize size)
 
 #include "amd64.h"
 
-static int npg[4];
+static int npg[NPGSZ];
 
+static void
+kseg2map(Asm *asm)
+{
+	PTE *pte;
+	int i, l;
+	uintmem hi, mem, nextmem;
+	uintptr va;
+
+	va = KSEG2 + asm->addr;			/* approx. KADDR(asm->addr) */
+	DBG("kseg2 %#P %#P %s (%P) va %#p\n",
+		asm->addr, asm->addr+asm->size,
+		asmtypes[asm->type], asm->size, va);
+
+	/* Convert a range into pages */
+	hi = asm->addr + asm->size;
+	for(mem = asm->addr; mem < hi; mem = nextmem){
+		nextmem = (mem + PGLSZ(0)) & ~m->pgszmask[0];
+
+		/* Try large pages first */
+		for(i = m->npgsz - 1; i >= 0; i--){
+			if((mem & m->pgszmask[i]) != 0 || mem + PGLSZ(i) > hi)
+				continue;
+			/*
+			 * This page fits entirely within the range,
+			 * mark it as usable.
+			 */
+			if((l = mmuwalk(va, i, &pte, asmwalkalloc)) < 0)
+				panic("meminit 3: kseg2map");
+
+			*pte = mem|PteRW|PteP;
+			if(l > 0)
+				*pte |= PtePS;
+
+			nextmem = mem + PGLSZ(i);
+			va += PGLSZ(i);
+			npg[i]++;
+			break;
+		}
+	}
+
+	asm->base = ROUNDUP(asm->addr, PGSZ);
+	asm->limit = ROUNDDN(hi, PGSZ);
+	asm->kbase = (uintptr)KADDR(asm->base);
+}
+
+/*
+ * return space needed for Page array, plus the number of pages it can
+ * accomodate (via *npp) and kernel allocation space top (via *ksizep).
+ */
+static uintmem
+pagesarraysize(uintmem *npp, uintmem *ksizep)
+{
+	Asm *asm;
+	uintmem np, ksize;
+
+	np = ksize = 0;
+	for(asm = asmlist; asm != nil; asm = asm->next){
+		if(asm->limit == asm->base || asm->type != AsmMEMORY)
+			continue;
+		/*
+		 * kernel memory is contiguous from 1 MiB to the first gap;
+		 * there can be unmapped gaps, derived from the PC's e820
+		 * map, for example, ACPI memory.
+		 */
+		if (ksize == 0 && asm->base >= MiB && asm->base < 4ull*GiB &&
+		    asm->limit <= 4ull*GiB)
+			ksize = asm->limit;
+
+		np += (asm->limit - asm->base)/PGSZ;
+	}
+	*ksizep = ksize;
+	DBG("kernel stops at %#P %,llud\n", ksize, ksize);
+
+	/*
+	 * leave room in kernel for things other than Pages.
+	 * if the machine has > ~8GiB, put Pages above 4GiB, rather than
+	 * reducing np.
+	 */
+	if (ksize && np*sizeof(Page) > ksize*3/4 && sys->pmend < 7ull*GiB) {
+		ksize = (ksize/PGSZ)*3/4;
+		print("reduced np %,llud to %,llud to fit bottom 4GiB\n",
+			np, ksize);
+		np = ksize;
+	}
+	*npp = np;
+	return ROUNDUP(np * sizeof(Page), PGSZ);
+}
+
+static void
+dbgprpalloc(void)
+{
+	Asm* asm;
+	int j;
+	Pallocmem *pm;
+
+	pm = palloc.mem;
+	j = 0;
+	for(asm = asmlist; asm != nil; asm = asm->next){
+		if(asm->limit == asm->base || pm >= palloc.mem+nelem(palloc.mem))
+			continue;
+		DBG("asm pm%d: base %#P limit %#P npage %llud\n",
+			j, pm->base, pm->limit, (pm->limit - pm->base)/PGSZ);
+		pm++;
+		j++;
+	}
+}
+
+/*
+ * create the kernel page tables and populate palloc.mem[].
+ * Called from main(), this code should only be run
+ * by the bootstrap processor.
+ */
 void
-asmmeminit(void)
+meminit(void)
 {
 	Asm* asm;
 	PTE *pte;
-	int i, l;
-	uintptr n, va;
-	uintmem hi, lo, mem, nextmem, pa;
+	int l, first;
+	uintmem mem, pa, pgmem, np, ksize, vmgap;
+	Pallocmem *pm;
 
 	/*
-	 * to do here (done?):
-	 *	map between vmunmapped and vmend to kzero;
-	 *	(should the sys->vm* things be physical after all?)
-	 *	adjust sys->vm things and asmalloc to compensate;
-	 *	run through asmlist and map to kseg2.
 	 * do we need a map, like vmap, for best use of mapping kmem?
 	 * - in fact, a rewritten pdmap could do the job, no?
-	 * have to assume up to vmend is contiguous.
+	 * have to assume up to vmend is contiguous memory.
 	 * can't mmuphysaddr(sys->vmunmapped) because...
 	 *
 	 * Assume already 2MiB aligned; currently this is done in mmuinit.
@@ -307,85 +409,78 @@ asmmeminit(void)
 	assert(m->pgszlg2[1] == 21);
 	assert(!((sys->vmunmapped|sys->vmend) & m->pgszmask[1]));
 
-	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
-		panic("asmmeminit 1");
+	/* adjust sys->vm things and asmalloc to compensate for map to kzero */
+	if((pa = mmuphysaddr(sys->vmunused)) == ~0ull)
+		panic("meminit: mmuphysaddr(%#p)", sys->vmunused);
 	pa += sys->vmunmapped - sys->vmunused;
-	mem = asmalloc(pa, sys->vmend - sys->vmunmapped, AsmMEMORY, 0);
-	if(mem != pa)
-		panic("asmmeminit 2");
-	DBG("asmmeminit: mem %#P\n", mem);
 
-	while(sys->vmunmapped < sys->vmend){
+	first = 1;
+	/* try with existing kernmem */
+	vmgap = sys->vmend - sys->vmunused;	/* kernel's data after end */
+	/*
+	 * if asmalloc fails, it's probably due to reserved memory holes in the
+	 * memory map below 2GiB, which is not playing fair.  reduce kernmem
+	 * and try again.
+	 */
+	while ((mem = asmalloc(pa, vmgap, AsmMEMORY, 0)) != pa &&
+	    kernmem >= 300*MiB) {
+		if (first) {
+			print("meminit: can't allocate address space of %#p "
+				"bytes of memory at %#p\n"
+				"\tfor currently-unmapped vm; reducing kernmem.\n",
+				vmgap, pa);
+			print("\tif your bios has a Max TOLUD setting, set "
+				"it as high as possible.\n");
+			first = 0;
+		}
+		kernmem -= 50*MiB;
+		/* fix up vmend */
+		sys->vmend = ROUNDUP(sys->vmstart + kernmem, PGLSZ(1));
+		vmgap = sys->vmend - sys->vmunused; /* kernel's data after end */
+	}
+	if(mem != pa)
+		panic("meminit: can't allocate address space of %#p bytes "
+			"of memory at %#p for currently-unmapped vm", vmgap, pa);
+	print("kernel alloc space = %,lld\n", kernmem);
+
+	DBG("meminit: mem %#P\n", mem);
+
+	/* map between vmunmapped and vmend to kzero */
+	for(; sys->vmunmapped < sys->vmend; sys->vmunmapped += 2*MiB){
 		l = mmuwalk(sys->vmunmapped, 1, &pte, asmwalkalloc);
-		DBG("asmmeminit: %#p l %d\n", sys->vmunmapped, l); USED(l);
+		DBG("meminit: %#p l %d\n", sys->vmunmapped, l);
+		USED(l);
 		*pte = pa|PtePS|PteRW|PteP;
-		sys->vmunmapped += 2*MiB;
 		pa += 2*MiB;
 	}
 
+	/* run through asmlist and map KSEG2 to ram. */
+	for(asm = asmlist; asm != nil; asm = asm->next)
+		if(asm->type == AsmMEMORY)
+			kseg2map(asm);
+
+	ialloclimit((sys->vmend - sys->vmstart)/2);	/* close enough */
+
+	/* populate palloc.mem array from asmlist */
+	pm = palloc.mem;
 	for(asm = asmlist; asm != nil; asm = asm->next){
-		if(asm->type != AsmMEMORY)
+		if(asm->limit == asm->base)
 			continue;
-		va = KSEG2+asm->addr;
-		DBG(" %#P %#P %s (%P) va %#p\n",
-			asm->addr, asm->addr+asm->size,
-			asmtypes[asm->type], asm->size, va);
-
-		lo = asm->addr;
-		hi = asm->addr+asm->size;
-		/* Convert a range into pages */
-		for(mem = lo; mem < hi; mem = nextmem){
-			nextmem = (mem + PGLSZ(0)) & ~m->pgszmask[0];
-
-			/* Try large pages first */
-			for(i = m->npgsz - 1; i >= 0; i--){
-				if((mem & m->pgszmask[i]) != 0)
-					continue;
-				if(mem + PGLSZ(i) > hi)
-					continue;
-
-				/*
-				 * This page fits entirely within the range,
-				 * mark it as usable.
-				 */
-				if((l = mmuwalk(va, i, &pte, asmwalkalloc)) < 0)
-					panic("asmmeminit 3");
-
-				*pte = mem|PteRW|PteP;
-				if(l > 0)
-					*pte |= PtePS;
-
-				nextmem = mem + PGLSZ(i);
-				va += PGLSZ(i);
-				npg[i]++;
-				break;
-			}
+		if(pm >= palloc.mem+nelem(palloc.mem)){
+			print("meminit: losing %#P pages\n",
+				(asm->limit - asm->base)/PGSZ);
+			continue;
 		}
-
-		lo = ROUNDUP(asm->addr, PGSZ);
-		asm->base = lo;
-		hi = ROUNDDN(hi, PGSZ);
-		asm->limit = hi;
-		asm->kbase = PTR2UINT(KADDR(asm->base));
+		pm->base = asm->base;
+		pm->limit = asm->limit;
+		pm++;
 	}
 
-	n = sys->vmend - sys->vmstart;			/* close enough */
-	if(n > 600ull*MiB)
-		n = 600ull*MiB;
-	ialloclimit(n/3);
-}
+	/* allocate Pages array from palloc.mem directly, if possible */
+	pgmem = pagesarraysize(&np, &ksize);	/* reads asmlist */
+	DBG("alloc(%,llud) for %,llud Pages\n", pgmem, np);
+	mallocinit();
+	allocpages(ksize, pgmem, 0);	/* may alter palloc.mem */
 
-void
-asmumeminit(void)
-{
-	Asm *asm;
-	extern void physallocdump(void);
-
-	for(asm = asmlist; asm != nil; asm = asm->next){
-		if(asm->type != AsmMEMORY)
-			continue;
-		physinit(asm->addr, asm->size);
-		sys->pmpaged += ROUNDDN(asm->limit, 2*MiB) - ROUNDUP(asm->base, 2*MiB);
-	}
-	physallocdump();
+	dbgprpalloc();
 }

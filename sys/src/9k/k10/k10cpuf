@@ -132,7 +132,6 @@ amd64 +dev
 	kbd
 	main
 	map
-	memory
 	mmu
 	multiboot
 	qmalloc
@@ -140,7 +139,6 @@ amd64 +dev
 	syscall
 	trap
 	vsvm
-	physalloc
 
 port
 	alarm
@@ -153,7 +151,6 @@ port
 	image
 	latin1
 	page
-	pager
 	parse
 	pgrp
 	portclock

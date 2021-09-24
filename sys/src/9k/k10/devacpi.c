@@ -67,7 +67,7 @@ static Xsdt*	xsdt;	/* XSDT table */
 static Atable*	tfirst;	/* loaded DSDT/SSDT/... tables */
 static Atable*	tlast;	/* pointer to last table */
 	Madt*	apics;	/* APIC info */
-static Srat*	srat;	/* System resource affinity, used by physalloc */
+static Srat*	srat;	/* System resource affinity */
 static Slit*	slit;	/* System locality information table used by the scheduler */
 static Msct*	msct;	/* Maximum system characteristics table */
 static Hpet*	hpet;

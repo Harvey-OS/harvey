@@ -993,11 +993,17 @@ consread(Chan *c, void *buf, long n, vlong off)
 		return n;
 
 	case Qswap:
-		tmp[0] = 0;
-		s = seprintpagestats(tmp, tmp + sizeof tmp);
-		s = seprintphysstats(s, tmp + sizeof tmp);
-		b = buf;
-		l = s - tmp;
+		l = snprint(tmp, sizeof tmp,
+			"%llud memory\n"
+			"%d pagesize\n"
+			"%llud kernel\n"
+			"%lld/%llud user\n"
+			"0/0 swap\n",           /* keep old 9 scripts happy */
+			sys->pmoccupied,
+			PGSZ,
+			(vlong)ROUNDUP(sys->vmend - KTZERO, PGSZ)/PGSZ,
+			(vlong)(palloc.user-palloc.freecount),
+			(uvlong)palloc.user);
 		i = readstr(offset, b, l, tmp);
 		b += i;
 		n -= i;
