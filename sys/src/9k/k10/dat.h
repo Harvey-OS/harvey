@@ -111,6 +111,16 @@ struct Asm
 };
 extern Asm* asmlist;
 
+/* acpi/multiboot memory types */
+enum {
+	AsmNONE		= 0,
+	AsmMEMORY	= 1,
+	AsmRESERVED	= 2,
+	AsmACPIRECLAIM	= 3,
+	AsmACPINVS	= 4,
+	AsmDEV		= 5,		/* device registers */
+};
+
 #include "../port/portdat.h"
 
 /*
@@ -272,6 +282,7 @@ struct Sys {
 };
 
 extern Sys* sys;
+extern uintptr kernmem;
 
 /*
  * KMap

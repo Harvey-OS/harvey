@@ -26,7 +26,7 @@ typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Path	Path;
 typedef struct Palloc	Palloc;
-typedef struct Pallocpg	Pallocpg;
+typedef struct Pallocmem	Pallocmem;
 typedef struct Perf	Perf;
 typedef struct PhysUart	PhysUart;
 typedef struct Pgrp	Pgrp;
@@ -306,6 +306,9 @@ enum
 
 	PG_MOD		= 0x01,		/* software modified bit */
 	PG_REF		= 0x02,		/* software referenced bit */
+
+	Nozeropage	= 0,		/* "clear" arg. to newpage() */
+	Zeropage	= 1,
 };
 
 struct Page
@@ -483,19 +486,22 @@ enum
 	DELTAFD	= 20		/* incremental increase in Fgrp.fd's */
 };
 
-struct Pallocpg
+struct Pallocmem
 {
-	Page	*head;		/* most recently used */
-	Page	*tail;		/* least recently used */
-	ulong	count;		/* how many pages made */
-	ulong	freecount;	/* how many pages on free list now */
+	uintmem	base;
+	uintmem	limit;
+	int	color;
 };
 
 struct Palloc
 {
 	Lock;
-	Pallocpg	avail[32];	/* indexed by log2 of page size (Page.lgsize) */
-	ulong	user;			/* how many user pages */
+	Pallocmem	mem[32];	/* ranges of memory */
+	Page	*head;
+	Page	*tail;
+	uintptr	freecount;
+	Page	*pages;
+	uintptr	user;			/* how many user pages */
 	Page	*hash[PGHSIZE];
 	Lock	hashlock;
 	Rendez	r;			/* Sleep for free mem */

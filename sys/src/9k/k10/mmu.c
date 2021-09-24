@@ -30,6 +30,8 @@
 static Lock vmaplock;
 static Page mach0pml4;
 
+uintptr kernmem = KSEG0SIZE + VMAP;
+
 void
 mmuflushtlb(u64int)
 {
@@ -91,9 +93,8 @@ mmuptpfree(Proc* proc, int release)
 static Page*
 mmuptpalloc(void)
 {
+	void *va;
 	Page *page;
-	uintmem pa;
-	int color;
 
 	/*
 	 * Do not really need a whole Page structure,
@@ -102,22 +103,17 @@ mmuptpalloc(void)
 	 */
 	if((page = malloc(sizeof(Page))) == nil){
 		print("mmuptpalloc Page\n");
-
 		return nil;
 	}
-	color = NOCOLOR;
-	if((pa = physalloc(PTSZ, &color, page)) == 0){
-		print("mmuptpalloc pa\n");
+	if((va = mallocalign(PTSZ, PTSZ, 0, 0)) == 0){
+		print("mmuptpalloc va\n");
 		free(page);
-
 		return nil;
 	}
 
-	page->va = PTR2UINT(KADDR(pa));
-	page->pa = pa;
+	page->va = PTR2UINT(va);
+	page->pa = PADDR(va);
 	page->ref = 1;
-	page->color = color;
-	memset(UINT2PTR(page->va), 0, PTSZ);
 
 	return page;
 }
@@ -164,7 +160,7 @@ mmurelease(Proc* proc)
 		next = page->next;
 		if(--page->ref)
 			panic("mmurelease: page->ref %d\n", page->ref);
-		physfree(page->pa, PTSZ);
+		free(UINT2PTR(page->va));
 		free(page);
 	}
 	if(proc->mmuptp[0] && palloc.r.p)
@@ -248,8 +244,7 @@ pdmap(uintmem pa, int attr, uintptr va, usize size)
 {
 	uintmem pae;
 	PTE *pd, *pde, *pt, *pte;
-	uintmem pdpa;
-	int pdx, pgsz, color;
+	int pdx, pgsz;
 
 	pd = (PTE*)(PDMAP+PDX(PDMAP)*4096);
 
@@ -270,11 +265,10 @@ pdmap(uintmem pa, int attr, uintptr va, usize size)
 		else{
 			pt = (PTE*)(PDMAP+pdx*PTSZ);
 			if(*pde == 0){
-				color = NOCOLOR;
-				pdpa = physalloc(PTSZ, &color, nil);
-				if(pdpa == 0)
-					panic("pdmap");
-				*pde = pdpa|PteRW|PteP;
+				void *aa = mallocalign(PTSZ, PTSZ, 0, 0);
+				if(aa == nil)
+					panic("pdmap: pa %#p va %#p", pa, va);
+				*pde = PADDR(aa)|PteRW|PteP;
 				memset(pt, 0, PTSZ);
 			}
 
@@ -434,7 +428,7 @@ vunmap(void* v, usize size)
 }
 
 int
-mmuwalk(uintptr va, int level, PTE** ret, u64int (*alloc)(usize))
+mmuwalk(uintptr va, int level, PTE** ret, u64int (*alloc)(uintptr))
 {
 //alloc and pa - uintmem or PTE or what?
 	int l;

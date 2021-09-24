@@ -80,7 +80,7 @@ void	mmucachectl(Page*, uint);
 void	mmuflushtlb(u64int);
 void	mmuinit(void);
 u64int	mmuphysaddr(uintptr);
-int	mmuwalk(uintptr, int, PTE**, u64int (*)(usize));
+int	mmuwalk(uintptr, int, PTE**, u64int (*)(uintptr));
 int	multiboot(u32int, u32int, int);
 void	ndnr(void);
 uchar	nvramread(int);

@@ -60,6 +60,8 @@
 #define USTKSIZE	(16*1024*1024)		/* size of user stack */
 #define TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */
 
+#define	KSEG0SIZE	(256ull*MiB)
+
 #define KSEG0		(0xfffffffff0000000ull)	/* 256MB - this is confused */
 #define KSEG1		(0xffffff0000000000ull)	/* 512GB - embedded PML4 */
 #define KSEG2		(0xfffffe0000000000ull)	/* 1TB - KMAP */
