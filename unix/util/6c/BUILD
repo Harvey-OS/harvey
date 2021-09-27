@@ -1,8 +1,6 @@
-. $NXM/buildconfig
-
 rm -f *.o
 
 (cd ../cc; $PLAN9/bin/yacc -D1 -d cc.y)
 9c -g -I . -I ../cc ../cc/*.c *.c && 9l -o 6c *.o
-cp 6c $NXM/xbin
+cp 6c ../../../linux_amd64/bin
 

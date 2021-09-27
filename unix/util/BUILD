@@ -1,4 +1,4 @@
-. $NXM/buildconfig
+
 9c wrkey.c
 9l -o ../xbin/wrkey wrkey.o
 go build mksys.go

@@ -1,4 +1,4 @@
-. $NXM/buildconfig
+
 
 rm -f *.o
 

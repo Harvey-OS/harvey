@@ -2,18 +2,20 @@
 
 set -x
 # in case it is a file.
-rm -f xbin
+rm -rf ../linux_amd64/bin
 set -e
-mkdir -p xbin
+mkdir -p ../linux_amd64/bin
 
 PATH=$PATH:$PLAN9/bin
-export NXM=`pwd`
-. $NXM/buildconfig
-(cd util/8a && sh BUILD)
-(cd util/8l && sh BUILD)
-(cd util/8c && sh BUILD)
-(cd util/6a && sh BUILD)
+(cd ../sys/src/cmd/6a && sh BUILD)
 (cd util/6l && sh BUILD)
 (cd util/6c && sh BUILD)
 (cd util && sh BUILD)
 (cd inferno-os && sh BUILD)
+
+exit 0
+# who cares
+
+(cd util/8a && sh BUILD)
+(cd util/8l && sh BUILD)
+(cd util/8c && sh BUILD)
