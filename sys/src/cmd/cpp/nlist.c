@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "cpp.h"
 
-extern	int getopt(int, char **, char *);
 extern	char	*optarg;
 extern	int	optind;
 int	verbose;
