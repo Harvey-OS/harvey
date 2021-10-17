@@ -50,5 +50,5 @@ rm -f *.o
 	sgen.c \
 	swt.c \
 	txt.c \
-&& 9l -o 6c -static *.o
+&& 9l -o 6c -static -g *.o
 cp 6c ../../../../linux_amd64/bin

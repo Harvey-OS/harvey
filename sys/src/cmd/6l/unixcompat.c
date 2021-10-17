@@ -112,7 +112,7 @@ mypipe(int *fd)
 int
 systemtype(int sys)
 {
-	return 0; //sys & Plan9;
+	return 1; //sys & Plan9;
 }
 
 int

@@ -1,0 +1,23 @@
+#!/usr/bin/sh
+# when we get here, we are root.
+# arg1 is our user ID, and arg2 is our environment.
+
+mount --bind .. /sys
+
+# ls -l /sys/include
+# ls -l /sys/src
+echo $1
+echo $2
+pwd
+. $2
+export
+echo $PATH
+which mk
+ldd `which mk`
+
+export objtype=amd64
+mkdir -p /$objtype
+mount --bind $HARVEY/$objtype /$objtype
+
+echo su  $1 bash BUILD $2
+su -c ./BUILD $USER
