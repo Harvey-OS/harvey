@@ -1,0 +1,16 @@
+export HARVEY=/path/to/harvey
+cd /somewhere/to/build/9-cc
+git clone -b harvey git@github.com:Harvey-OS/9-cc.git
+cd 9-cc
+mkdir -p Linux/amd64/lib
+# from more INSTALL 
+./configure
+. ./env
+mk
+mk install
+cp ./Linux/amd64/bin/iar $HARVEY/linux_amd64/bin/ar
+cd sys/src
+PATH=$HARVEY/linux_amd64/bin/:$PATH
+sh BUILDTOOLCHAIN
+export objtype=amd64
+bash RUN_BUILD_IN_PRIVATE_NAMESPACE
