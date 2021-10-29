@@ -29,7 +29,7 @@ back:
 }
 
 void*
-memcpy(void *a1, void *a2, ulong n)
+portmemcpy(void *a1, void *a2, ulong n)
 {
 	return memmove(a1, a2, n);
 }
