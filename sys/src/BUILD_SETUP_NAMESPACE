@@ -15,9 +15,40 @@ echo $PATH
 which mk
 ldd `which mk`
 
+# no for loop here -- keep it shell-agnostic
 # export objtype=amd64
-mkdir -p /$objtype
-mount --bind $HARVEY/$objtype /$objtype
+mkdir -p /arm
+mount --bind $HARVEY/arm /arm
+
+mkdir -p /arm64
+mount --bind $HARVEY/arm64 /arm64
+
+mkdir -p /amd64
+mount --bind $HARVEY/amd64 /amd64
+
+mkdir -p /386
+mount --bind $HARVEY/386 /386
+
+mkdir -p /mips
+mount --bind $HARVEY/mips /mips
+
+mkdir -p /mips64
+mount --bind $HARVEY/mips64 /mips64
+
+mkdir -p /power
+mount --bind $HARVEY/power /power
+
+mkdir -p /power64
+mount --bind $HARVEY/power64 /power64
+
+mkdir -p /riscv
+mount --bind $HARVEY/riscv /riscv
+
+mkdir -p /riscv64
+mount --bind $HARVEY/riscv64 /riscv64
+
+mkdir -p /sparc
+mount --bind $HARVEY/sparc /sparc
 
 echo su  $1 bash BUILD $2
 su -c ./BUILD $USER
