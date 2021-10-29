@@ -5,4 +5,5 @@ which mk
 export FORCERCFORMK=1
 mk clean
 mk libs
+mk all
 
