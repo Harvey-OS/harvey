@@ -15,7 +15,7 @@ echo $PATH
 which mk
 ldd `which mk`
 
-export objtype=amd64
+# export objtype=amd64
 mkdir -p /$objtype
 mount --bind $HARVEY/$objtype /$objtype
 
