@@ -12,6 +12,7 @@ mkdir -p Linux/amd64/lib
 mk
 mk install
 cp ./Linux/amd64/bin/iar $HARVEY/linux_amd64/bin/ar
+cp $PLAN/bin/awk $HARVEY/linux_amd64/bin/awk
 cd sys/src
 PATH=$HARVEY/linux_amd64/bin/:$PATH
 sh BUILDTOOLCHAIN
