@@ -1,4 +1,7 @@
+install plan9ports
 export HARVEY=/path/to/harvey
+mkdir -p $HARVEY/linux_amd64/bin
+ln -s ~/plan9port/bin/9c $HARVEY/linux_amd64/bin/pcc
 cd /somewhere/to/build/9-cc
 git clone -b harvey git@github.com:Harvey-OS/9-cc.git
 cd 9-cc
