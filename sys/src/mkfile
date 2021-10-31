@@ -43,7 +43,10 @@ LIBS=\
 CMDS=cmd\
 	games\
 
-SUBSYS=ape\
+NOSUBSYS=\
+	ape\
+
+SUBSYS=\
 	/acme\
 
 none:VQ:
