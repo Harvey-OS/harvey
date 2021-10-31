@@ -50,5 +50,8 @@ mount --bind $HARVEY/riscv64 /riscv64
 mkdir -p /sparc
 mount --bind $HARVEY/sparc /sparc
 
+mkdir -p /acme
+mount --bind $HARVEY/acme /acme
+
 echo su  $1 bash BUILD $2
 su -c ./BUILD $USER
