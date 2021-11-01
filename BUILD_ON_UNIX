@@ -14,7 +14,7 @@ mkdir -p Linux/amd64/lib
 mk
 mk install
 cp ./Linux/amd64/bin/iar $HARVEY/linux_amd64/bin/ar
-cp ~/plan9port/bin/{yacc,lex,awk} harvey/harvey/linux_amd64/bin
+cp ~/plan9port/bin/{sed, yacc,lex,awk} harvey/harvey/linux_amd64/bin
 cp $PLAN/bin/awk $HARVEY/linux_amd64/bin/awk
 cd sys/src
 PATH=$HARVEY/linux_amd64/bin/:$PATH
