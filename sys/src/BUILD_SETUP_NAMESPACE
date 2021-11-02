@@ -53,5 +53,8 @@ mount --bind $HARVEY/sparc /sparc
 mkdir -p /acme
 mount --bind $HARVEY/acme /acme
 
+mkdir -p /unix
+mount --bind $HARVEY/unix /unix
+
 echo su  $1 bash BUILD $2
 su -c ./BUILD $USER
