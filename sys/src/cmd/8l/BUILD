@@ -1,6 +1,6 @@
 #!/bin/sh
 mkdir -p ../../../../linux_amd64/bin
-9c -Wno-char-subscripts -g -I .  asm.c list.c obj.c optab.c pass.c span.c ../6l/unixcompat.c ../8c/enam.c ../ld/elf.c
+9c -O0 -Wno-char-subscripts -g -I .  asm.c list.c obj.c optab.c pass.c span.c ../6l/unixcompat.c ../8c/enam.c ../ld/elf.c
 
 9l -o 8l \
 asm.o \
