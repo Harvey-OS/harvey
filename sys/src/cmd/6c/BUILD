@@ -3,6 +3,7 @@ rm -f *.o
 
 (cd ../cc; $PLAN9/bin/yacc -D1 -d cc.y)
 9c -g -I /../../../../include -I . -I ../cc  \
+		-O0 \
 		-Wno-parentheses \
 		-Wno-missing-braces \
 		-Wno-switch \
