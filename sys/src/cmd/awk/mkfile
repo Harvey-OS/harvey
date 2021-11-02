@@ -6,6 +6,7 @@ OFILES=re.$O\
 	main.$O\
 	parse.$O\
 	proctab.$O\
+	popen.$O\
 	tran.$O\
 	lib.$O\
 	run.$O\
@@ -28,27 +29,22 @@ UPDATE=\
 	${TARG:%=/386/bin/%}\
 
 </sys/src/cmd/mkone
-CFLAGS=-FTV -c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -D_BSD_EXTENSION -DUTF
-YFLAGS=-S -d -v
-CC=pcc
-LD=pcc
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 y.tab.h awkgram.c:	$YFILES
 	$YACC -o awkgram.c $YFLAGS $prereq
 
 clean:V:
-	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug y.output $TARG
+	rm -f *.[$OS] [$OS].out *.maketab y.tab.? y.debug y.output $TARG
 
 nuke:V:
-	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug y.output awkgram.c $TARG
+	rm -f *.[$OS] [$OS].out *.maketab y.tab.? y.debug y.output awkgram.c proctab.c $TARG
 
-proctab.c:	$cpuobjtype.maketab
-	./$cpuobjtype.maketab >proctab.c
+proctab.c:	$cputype.maketab
+	./$cputype.maketab >proctab.c
 
-$cpuobjtype.maketab:	y.tab.h maketab.c
-	objtype=$cputype
-	mk maketab.$cputype
+$cputype.maketab:	y.tab.h maketab.c
+	objtype=$cputype mk maketab.$cputype
 
-maketab.$cputype:V:	y.tab.h maketab.$O
-	$LD -o $O.maketab maketab.$O
+maketab.$objtype:V:
+	$CC $CFLAGS maketab.c
+	$LD $LDFLAGS -o $objtype.maketab maketab.$O
