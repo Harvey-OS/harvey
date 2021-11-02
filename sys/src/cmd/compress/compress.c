@@ -162,9 +162,7 @@ void (*bgnd_flag)(int);
 
 int do_decomp = 0;
 
-main(argc, argv)
-int argc;
-char **argv;
+int main(int argc, char **argv)
 {
 	int overwrite = 0;	/* Do not overwrite unless given -f flag */
 	char tempname[512];
@@ -1031,17 +1029,15 @@ foreground(void)
 }
 
 void
-onintr(int x)
+onintr(int _)
 {
-	USED(x);
 	unlink(ofname);
 	exit(1);
 }
 
 void
-oops(int x)		/* wild pointer -- assume bad input */
+oops(int _)		/* wild pointer -- assume bad input */
 {
-	USED(x);
 	if (do_decomp == 1)
 		fprintf(stderr, "uncompress: corrupt input\n");
 	unlink(ofname);
