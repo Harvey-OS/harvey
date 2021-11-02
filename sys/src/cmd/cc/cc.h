@@ -35,7 +35,7 @@ typedef	Rune	TRune;	/* target system type */
 #define	SIGN(n)		((uvlong)1<<(n-1))
 #define	MASK(n)		(SIGN(n)|(SIGN(n)-1))
 
-#define	BITS	5
+#define	BITS	8
 #define	NVAR	(BITS*sizeof(ulong)*8)
 struct	Bits
 {
