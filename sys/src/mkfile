@@ -1,7 +1,6 @@
 </$objtype/mkfile
 
 BADLIBS=\
-	libhtml\
 
 LIBS=\
 	lib9p\
@@ -21,6 +20,7 @@ LIBS=\
 	libflate\
 	libframe\
 	libgeometry\
+	libhtml\
 	libhttpd\
 	libip\
 	liblex\
