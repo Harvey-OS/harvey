@@ -187,7 +187,7 @@ void
 
 	/* T/F match indication - matched string not exported */
 int
-match(void *p, char *s, char *)
+match(void *p, char *s, char *_)
 {
 	return regexec((Reprog *) p, (char *) s, 0, 0);
 }
