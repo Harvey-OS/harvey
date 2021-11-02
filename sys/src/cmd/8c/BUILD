@@ -2,7 +2,7 @@ mkdir -p ../../../../linux_amd64/bin
 rm -f *.o
 
 (cd ../cc; $PLAN9/bin/yacc -D1 -d cc.y)
-9c -g -I /../../../../include -I . -I ../cc  \
+9c -O0 -g -I /../../../../include -I . -I ../cc  \
 		-Wno-parentheses \
 		-Wno-missing-braces \
 		-Wno-switch \
