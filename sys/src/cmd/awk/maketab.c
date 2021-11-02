@@ -110,7 +110,7 @@ struct xx
 char *table[SIZE];
 char *names[SIZE];
 
-void main(int, char**)
+void main(int _, char**__)
 {
 	struct xx *p;
 	int i, tok;
