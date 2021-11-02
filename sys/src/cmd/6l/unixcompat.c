@@ -109,10 +109,24 @@ mypipe(int *fd)
 	return pipe(fd);
 }
 
+// things are not always included? What? 
 int
 systemtype(int sys)
 {
-	return 1; //sys & Plan9;
+	// Stuff scattered every damn where.
+	enum                            /* also in ../{8a,0a}.h */
+	{
+        Plan9   = 1<<0,
+        Unix    = 1<<1,
+        Windows = 1<<2,
+	};
+	switch (sys) {
+		case Plan9:
+		case Unix:
+			return 1;
+		default: 
+			return 0;
+	}
 }
 
 int
