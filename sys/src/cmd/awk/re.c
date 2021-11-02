@@ -223,6 +223,7 @@ nematch(void *p, char *s, char *start)
 /* in the parsing of regular expressions, metacharacters like . have */
 /* to be seen literally;  \056 is not a metacharacter. */
 
+int
 hexstr(char **pp)	/* find and eval hex string at pp, return new p */
 {
 	char c;
