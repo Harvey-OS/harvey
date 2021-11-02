@@ -22,17 +22,14 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-#define DEBUG
-#include <stdio.h>
-#include <string.h>
+#include <u.h>
+#include <libc.h>
 #include <ctype.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <bio.h>
 #include "awk.h"
 #include "y.tab.h"
 
-FILE	*infile	= NULL;
+Biobuf	*infile;
 char	*file	= "";
 char	*record;
 int	recsize	= RECSIZE;
@@ -42,7 +39,7 @@ int	fieldssize = RECSIZE;
 Cell	**fldtab;	/* pointers to Cells */
 char	inputFS[100] = " ";
 
-#define	MAXFLD	2
+#define	MAXFLD	200
 int	nfields	= MAXFLD;	/* last allocated slot for $i */
 
 int	donefld;	/* 1 = implies rec broken into fields */
@@ -50,18 +47,19 @@ int	donerec;	/* 1 = record is valid (no flds have changed) */
 
 int	lastfld	= 0;	/* last used field */
 int	argno	= 1;	/* current input argument number */
-extern	Awkfloat *ARGC;
+extern	Awkfloat *AARGC;
 
-static Cell dollar0 = { OCELL, CFLD, NULL, "", 0.0, REC|STR|DONTFREE };
-static Cell dollar1 = { OCELL, CFLD, NULL, "", 0.0, FLD|STR|DONTFREE };
+static Cell dollar0 = { OCELL, CFLD, nil, "", 0.0, REC|STR|DONTFREE };
+static Cell dollar1 = { OCELL, CFLD, nil, "", 0.0, FLD|STR|DONTFREE };
 
 void recinit(unsigned int n)
 {
-	if ( (record = (char *) malloc(n)) == NULL
-	  || (fields = (char *) malloc(n+1)) == NULL
-	  || (fldtab = (Cell **) malloc((nfields+1) * sizeof(Cell *))) == NULL
-	  || (fldtab[0] = (Cell *) malloc(sizeof(Cell))) == NULL )
+	record = (char *) malloc(n);
+	fields = (char *) malloc(n);
+	fldtab = (Cell **) malloc((nfields+1) * sizeof(Cell *));
+	if (record == nil || fields == nil || fldtab == nil)
 		FATAL("out of space for $0 and fields");
+	fldtab[0] = (Cell *) malloc(sizeof (Cell));
 	*fldtab[0] = dollar0;
 	fldtab[0]->sval = record;
 	fldtab[0]->nval = tostring("0");
@@ -75,10 +73,10 @@ void makefields(int n1, int n2)		/* create $n1..$n2 inclusive */
 
 	for (i = n1; i <= n2; i++) {
 		fldtab[i] = (Cell *) malloc(sizeof (struct Cell));
-		if (fldtab[i] == NULL)
+		if (fldtab[i] == nil)
 			FATAL("out of space in makefields %d", i);
 		*fldtab[i] = dollar1;
-		sprintf(temp, "%d", i);
+		sprint(temp, "%d", i);
 		fldtab[i]->nval = tostring(temp);
 	}
 }
@@ -88,48 +86,40 @@ void initgetrec(void)
 	int i;
 	char *p;
 
-	for (i = 1; i < *ARGC; i++) {
-		p = getargv(i); /* find 1st real filename */
-		if (p == NULL || *p == '\0') {  /* deleted or zapped */
-			argno++;
-			continue;
-		}
-		if (!isclvar(p)) {
+	for (i = 1; i < *AARGC; i++) {
+		if (!isclvar(p = getargv(i))) {	/* find 1st real filename */
 			setsval(lookup("FILENAME", symtab), p);
 			return;
 		}
 		setclvar(p);	/* a commandline assignment before filename */
 		argno++;
 	}
-	infile = stdin;		/* no filenames, so use stdin */
+	infile = &stdin;		/* no filenames, so use &stdin */
 }
-
-static int firsttime = 1;
 
 int getrec(char **pbuf, int *pbufsize, int isrecord)	/* get next input record */
 {			/* note: cares whether buf == record */
 	int c;
+	static int firsttime = 1;
 	char *buf = *pbuf;
-	uschar saveb0;
-	int bufsize = *pbufsize, savebufsize = bufsize;
+	int bufsize = *pbufsize;
 
 	if (firsttime) {
 		firsttime = 0;
 		initgetrec();
 	}
-	   dprintf( ("RS=<%s>, FS=<%s>, ARGC=%g, FILENAME=%s\n",
-		*RS, *FS, *ARGC, *FILENAME) );
+	   dprint( ("RS=<%s>, FS=<%s>, AARGC=%g, FILENAME=%s\n",
+		*RS, *FS, *AARGC, *FILENAME) );
 	if (isrecord) {
 		donefld = 0;
 		donerec = 1;
 	}
-	saveb0 = buf[0];
 	buf[0] = 0;
-	while (argno < *ARGC || infile == stdin) {
-		   dprintf( ("argno=%d, file=|%s|\n", argno, file) );
-		if (infile == NULL) {	/* have to open a new file */
+	while (argno < *AARGC || infile == &stdin) {
+		   dprint( ("argno=%d, file=|%s|\n", argno, file) );
+		if (infile == nil) {	/* have to open a new file */
 			file = getargv(argno);
-			if (file == NULL || *file == '\0') {	/* deleted or zapped */
+			if (*file == '\0') {	/* it's been zapped */
 				argno++;
 				continue;
 			}
@@ -139,10 +129,10 @@ int getrec(char **pbuf, int *pbufsize, int isrecord)	/* get next input record */
 				continue;
 			}
 			*FILENAME = file;
-			   dprintf( ("opening file %s\n", file) );
+			   dprint( ("opening file %s\n", file) );
 			if (*file == '-' && *(file+1) == '\0')
-				infile = stdin;
-			else if ((infile = fopen(file, "r")) == NULL)
+				infile = &stdin;
+			else if ((infile = Bopen(file, OREAD)) == nil)
 				FATAL("can't open file %s", file);
 			setfval(fnrloc, 0.0);
 		}
@@ -164,27 +154,23 @@ int getrec(char **pbuf, int *pbufsize, int isrecord)	/* get next input record */
 			*pbufsize = bufsize;
 			return 1;
 		}
-		/* EOF arrived on this file; set up next */
-		if (infile != stdin)
-			fclose(infile);
-		infile = NULL;
-		argno++;
+		/* Beof arrived on this file; set up next */
+		nextfile();
 	}
-	buf[0] = saveb0;
 	*pbuf = buf;
-	*pbufsize = savebufsize;
+	*pbufsize = bufsize;
 	return 0;	/* true end of file */
 }
 
 void nextfile(void)
 {
-	if (infile != NULL && infile != stdin)
-		fclose(infile);
-	infile = NULL;
+	if (infile != nil && infile != &stdin)
+		Bterm(infile);
+	infile = nil;
 	argno++;
 }
 
-int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf */
+int readrec(char **pbuf, int *pbufsize, Biobuf *inf)	/* read one record into buf */
 {
 	int sep, c;
 	char *rr, *buf = *pbuf;
@@ -192,25 +178,24 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 
 	if (strlen(*FS) >= sizeof(inputFS))
 		FATAL("field separator %.10s... is too long", *FS);
-	/*fflush(stdout); avoids some buffering problem but makes it 25% slower*/
 	strcpy(inputFS, *FS);	/* for subsequent field splitting */
 	if ((sep = **RS) == 0) {
 		sep = '\n';
-		while ((c=getc(inf)) == '\n' && c != EOF)	/* skip leading \n's */
+		while ((c=Bgetc(inf)) == '\n' && c != Beof)	/* skip leading \n's */
 			;
-		if (c != EOF)
-			ungetc(c, inf);
+		if (c != Beof)
+			Bungetc(inf);
 	}
 	for (rr = buf; ; ) {
-		for (; (c=getc(inf)) != sep && c != EOF; ) {
+		for (; (c=Bgetc(inf)) != sep && c != Beof; ) {
 			if (rr-buf+1 > bufsize)
 				if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readrec 1"))
 					FATAL("input record `%.30s...' too long", buf);
 			*rr++ = c;
 		}
-		if (**RS == sep || c == EOF)
+		if (**RS == sep || c == Beof)
 			break;
-		if ((c = getc(inf)) == '\n' || c == EOF) /* 2 in a row */
+		if ((c = Bgetc(inf)) == '\n' || c == Beof) /* 2 in a row */
 			break;
 		if (!adjbuf(&buf, &bufsize, 2+rr-buf, recsize, &rr, "readrec 2"))
 			FATAL("input record `%.30s...' too long", buf);
@@ -220,10 +205,10 @@ int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf *
 	if (!adjbuf(&buf, &bufsize, 1+rr-buf, recsize, &rr, "readrec 3"))
 		FATAL("input record `%.30s...' too long", buf);
 	*rr = 0;
-	   dprintf( ("readrec saw <%s>, returns %d\n", buf, c == EOF && rr == buf ? 0 : 1) );
+	   dprint( ("readrec saw <%s>, returns %d\n", buf, c == Beof && rr == buf ? 0 : 1) );
 	*pbuf = buf;
 	*pbufsize = bufsize;
-	return c == EOF && rr == buf ? 0 : 1;
+	return c == Beof && rr == buf ? 0 : 1;
 }
 
 char *getargv(int n)	/* get ARGV[n] */
@@ -232,12 +217,10 @@ char *getargv(int n)	/* get ARGV[n] */
 	char *s, temp[50];
 	extern Array *ARGVtab;
 
-	sprintf(temp, "%d", n);
-	if (lookup(temp, ARGVtab) == NULL)
-		return NULL;
+	sprint(temp, "%d", n);
 	x = setsymtab(temp, "", 0.0, STR, ARGVtab);
 	s = getsval(x);
-	   dprintf( ("getargv(%d) returns |%s|\n", n, s) );
+	dprint( ("getargv(%d) returns |%s|\n", n, s) );
 	return s;
 }
 
@@ -256,7 +239,7 @@ void setclvar(char *s)	/* set var=value from s */
 		q->fval = atof(q->sval);
 		q->tval |= NUM;
 	}
-	   dprintf( ("command line set %s to |%s|\n", s, p) );
+	   dprint( ("command line set %s to |%s|\n", s, p) );
 }
 
 
@@ -264,10 +247,9 @@ void fldbld(void)	/* create fields from current record */
 {
 	/* this relies on having fields[] the same length as $0 */
 	/* the fields are all stored in this one array with \0's */
-	/* possibly with a final trailing \0 not associated with any field */
 	char *r, *fr, sep;
 	Cell *p;
-	int i, j, n;
+	int i, j, n, w;
 
 	if (donefld)
 		return;
@@ -277,16 +259,15 @@ void fldbld(void)	/* create fields from current record */
 	n = strlen(r);
 	if (n > fieldssize) {
 		xfree(fields);
-		if ((fields = (char *) malloc(n+2)) == NULL) /* possibly 2 final \0s */
+		if ((fields = (char *) malloc(n+1)) == nil)
 			FATAL("out of space for fields in fldbld %d", n);
 		fieldssize = n;
 	}
 	fr = fields;
 	i = 0;	/* number of fields accumulated here */
-	strcpy(inputFS, *FS);
 	if (strlen(inputFS) > 1) {	/* it's a regular expression */
 		i = refldbld(r, inputFS);
-	} else if ((sep = *inputFS) == ' ') {	/* default whitespace */
+	} else if (*inputFS == ' ') {	/* default whitespace */
 		for (i = 0; ; ) {
 			while (*r == ' ' || *r == '\t' || *r == '\n')
 				r++;
@@ -306,27 +287,23 @@ void fldbld(void)	/* create fields from current record */
 		}
 		*fr = 0;
 	} else if ((sep = *inputFS) == 0) {		/* new: FS="" => 1 char/field */
-		for (i = 0; *r != 0; r++) {
-			char buf[2];
+		for (i = 0; *r != 0; r += w) {
+			char buf[UTFmax + 1];
+			Rune chr;
+
 			i++;
 			if (i > nfields)
 				growfldtab(i);
 			if (freeable(fldtab[i]))
 				xfree(fldtab[i]->sval);
-			buf[0] = *r;
-			buf[1] = 0;
+			w = chartorune(&chr, r);
+			n = runetochar(buf, &chr);
+			buf[n] = 0;
 			fldtab[i]->sval = tostring(buf);
 			fldtab[i]->tval = FLD | STR;
 		}
 		*fr = 0;
 	} else if (*r != 0) {	/* if 0, it's a null field */
-		/* subtlecase : if length(FS) == 1 && length(RS > 0)
-		 * \n is NOT a field separator (cf awk book 61,84).
-		 * this variable is tested in the inner while loop.
-		 */
-		int rtest = '\n';  /* normal case */
-		if (strlen(*RS) > 0)
-			rtest = '\0';
 		for (;;) {
 			i++;
 			if (i > nfields)
@@ -335,7 +312,7 @@ void fldbld(void)	/* create fields from current record */
 				xfree(fldtab[i]->sval);
 			fldtab[i]->sval = fr;
 			fldtab[i]->tval = FLD | STR | DONTFREE;
-			while (*r != sep && *r != rtest && *r != '\0')	/* \n is always a separator */
+			while (*r != sep && *r != '\n' && *r != '\0')	/* \n is always a separator */
 				*fr++ = *r++;
 			*fr++ = 0;
 			if (*r++ == 0)
@@ -359,7 +336,7 @@ void fldbld(void)	/* create fields from current record */
 	if (dbg) {
 		for (j = 0; j <= lastfld; j++) {
 			p = fldtab[j];
-			printf("field %d (%s): |%s|\n", j, p->nval, p->sval);
+			print("field %d (%s): |%s|\n", j, p->nval, p->sval);
 		}
 	}
 }
@@ -390,7 +367,7 @@ void newfld(int n)	/* add field n after end of existing lastfld */
 Cell *fieldadr(int n)	/* get nth field */
 {
 	if (n < 0)
-		FATAL("trying to access out of range field %d", n);
+		FATAL("trying to access field %d", n);
 	if (n > nfields)	/* fields after NF are empty */
 		growfldtab(n);	/* but does not increase NF */
 	return(fldtab[n]);
@@ -399,33 +376,28 @@ Cell *fieldadr(int n)	/* get nth field */
 void growfldtab(int n)	/* make new fields up to at least $n */
 {
 	int nf = 2 * nfields;
-	size_t s;
 
 	if (n > nf)
 		nf = n;
-	s = (nf+1) * (sizeof (struct Cell *));  /* freebsd: how much do we need? */
-	if (s / sizeof(struct Cell *) - 1 == nf) /* didn't overflow */
-		fldtab = (Cell **) realloc(fldtab, s);
-	else					/* overflow sizeof int */
-		xfree(fldtab);	/* make it null */
-	if (fldtab == NULL)
+	fldtab = (Cell **) realloc(fldtab, (nf+1) * (sizeof (struct Cell *)));
+	if (fldtab == nil)
 		FATAL("out of space creating %d fields", nf);
 	makefields(nfields+1, nf);
 	nfields = nf;
 }
 
-int refldbld(const char *rec, const char *fs)	/* build fields from reg expr in FS */
+int refldbld(char *rec, char *fs)	/* build fields from reg expr in FS */
 {
 	/* this relies on having fields[] the same length as $0 */
 	/* the fields are all stored in this one array with \0's */
 	char *fr;
 	void *p;
-	int i, tempstat, n;
+	int i, n;
 
 	n = strlen(rec);
 	if (n > fieldssize) {
 		xfree(fields);
-		if ((fields = (char *) malloc(n+1)) == NULL)
+		if ((fields = (char *) malloc(n+1)) == nil)
 			FATAL("out of space for fields in refldbld %d", n);
 		fieldssize = n;
 	}
@@ -434,7 +406,7 @@ int refldbld(const char *rec, const char *fs)	/* build fields from reg expr in F
 	if (*rec == '\0')
 		return 0;
 	p = compre(fs);
-	   dprintf( ("into refldbld, rec = <%s>, pat = <%s>\n", rec, fs) );
+	   dprint( ("into refldbld, rec = <%s>, pat = <%s>\n", rec, fs) );
 	for (i = 1; ; i++) {
 		if (i > nfields)
 			growfldtab(i);
@@ -442,15 +414,15 @@ int refldbld(const char *rec, const char *fs)	/* build fields from reg expr in F
 			xfree(fldtab[i]->sval);
 		fldtab[i]->tval = FLD | STR | DONTFREE;
 		fldtab[i]->sval = fr;
-		   dprintf( ("refldbld: i=%d\n", i) );
+		   dprint( ("refldbld: i=%d\n", i) );
 		if (nematch(p, rec, rec)) {
-			   dprintf( ("match %s (%d chars)\n", patbeg, patlen) );
+			   dprint( ("match %s (%d chars)\n", patbeg, patlen) );
 			strncpy(fr, rec, patbeg-rec);
 			fr += patbeg - rec + 1;
 			*(fr-1) = '\0';
 			rec = patbeg + patlen;
 		} else {
-			   dprintf( ("no match %s\n", rec) );
+			   dprint( ("no match %s\n", rec) );
 			strcpy(fr, rec);
 			break;
 		}
@@ -482,26 +454,26 @@ void recbld(void)	/* create $0 from $1..$NF if necessary */
 	if (!adjbuf(&record, &recsize, 2+r-record, recsize, &r, "recbld 3"))
 		FATAL("built giant record `%.30s...'", record);
 	*r = '\0';
-	   dprintf( ("in recbld inputFS=%s, fldtab[0]=%p\n", inputFS, (void*)fldtab[0]) );
+	   dprint( ("in recbld inputFS=%s, fldtab[0]=%p\n", inputFS, fldtab[0]) );
 
 	if (freeable(fldtab[0]))
 		xfree(fldtab[0]->sval);
 	fldtab[0]->tval = REC | STR | DONTFREE;
 	fldtab[0]->sval = record;
 
-	   dprintf( ("in recbld inputFS=%s, fldtab[0]=%p\n", inputFS, (void*)fldtab[0]) );
-	   dprintf( ("recbld = |%s|\n", record) );
+	   dprint( ("in recbld inputFS=%s, fldtab[0]=%p\n", inputFS, fldtab[0]) );
+	   dprint( ("recbld = |%s|\n", record) );
 	donerec = 1;
 }
 
-int	errorflag	= 0;
+char	*exitstatus	= nil;
 
-void yyerror(const char *s)
+void yyerror(char *s)
 {
-	SYNTAX("%s", s);
+	SYNTAX(s);
 }
 
-void SYNTAX(const char *fmt, ...)
+void SYNTAX(char *fmt, ...)
 {
 	extern char *cmdname, *curfname;
 	static int been_here = 0;
@@ -509,23 +481,26 @@ void SYNTAX(const char *fmt, ...)
 
 	if (been_here++ > 2)
 		return;
-	fprintf(stderr, "%s: ", cmdname);
+	Bprint(&stderr, "%s: ", cmdname);
 	va_start(varg, fmt);
-	vfprintf(stderr, fmt, varg);
+	Bvprint(&stderr, fmt, varg);
 	va_end(varg);
-	fprintf(stderr, " at source line %d", lineno);
-	if (curfname != NULL)
-		fprintf(stderr, " in function %s", curfname);
-	if (compile_time == 1 && cursource() != NULL)
-		fprintf(stderr, " source file %s", cursource());
-	fprintf(stderr, "\n");
-	errorflag = 2;
+	if(compile_time == 1 && cursource() != nil)
+		Bprint(&stderr, " at %s:%d", cursource(), lineno);
+	else
+		Bprint(&stderr, " at line %d", lineno);
+	if (curfname != nil)
+		Bprint(&stderr, " in function %s", curfname);
+	Bprint(&stderr, "\n");
+	exitstatus = "syntax error";
 	eprint();
 }
 
-void fpecatch(int n)
+int handler(void *, char *err)
 {
-	FATAL("floating point exception %d", n);
+	Bflush(&stdout);
+	fprint(2, "%s\n", err);
+	return 0;
 }
 
 extern int bracecnt, brackcnt, parencnt;
@@ -537,50 +512,50 @@ void bracecheck(void)
 
 	if (beenhere++)
 		return;
-	while ((c = input()) != EOF && c != '\0')
+	while ((c = input()) != Beof && c != '\0')
 		bclass(c);
 	bcheck2(bracecnt, '{', '}');
 	bcheck2(brackcnt, '[', ']');
 	bcheck2(parencnt, '(', ')');
 }
 
-void bcheck2(int n, int c1, int c2)
+void bcheck2(int n, int, int c2)
 {
 	if (n == 1)
-		fprintf(stderr, "\tmissing %c\n", c2);
+		Bprint(&stderr, "\tmissing %c\n", c2);
 	else if (n > 1)
-		fprintf(stderr, "\t%d missing %c's\n", n, c2);
+		Bprint(&stderr, "\t%d missing %c's\n", n, c2);
 	else if (n == -1)
-		fprintf(stderr, "\textra %c\n", c2);
+		Bprint(&stderr, "\textra %c\n", c2);
 	else if (n < -1)
-		fprintf(stderr, "\t%d extra %c's\n", -n, c2);
+		Bprint(&stderr, "\t%d extra %c's\n", -n, c2);
 }
 
-void FATAL(const char *fmt, ...)
+void FATAL(char *fmt, ...)
 {
 	extern char *cmdname;
 	va_list varg;
 
-	fflush(stdout);
-	fprintf(stderr, "%s: ", cmdname);
+	Bflush(&stdout);
+	Bprint(&stderr, "%s: ", cmdname);
 	va_start(varg, fmt);
-	vfprintf(stderr, fmt, varg);
+	Bvprint(&stderr, fmt, varg);
 	va_end(varg);
 	error();
 	if (dbg > 1)		/* core dump if serious debugging on */
 		abort();
-	exit(2);
+	exits("FATAL");
 }
 
-void WARNING(const char *fmt, ...)
+void WARNING(char *fmt, ...)
 {
 	extern char *cmdname;
 	va_list varg;
 
-	fflush(stdout);
-	fprintf(stderr, "%s: ", cmdname);
+	Bflush(&stdout);
+	Bprint(&stderr, "%s: ", cmdname);
 	va_start(varg, fmt);
-	vfprintf(stderr, fmt, varg);
+	Bvprint(&stderr, fmt, varg);
 	va_end(varg);
 	error();
 }
@@ -588,21 +563,30 @@ void WARNING(const char *fmt, ...)
 void error()
 {
 	extern Node *curnode;
+	int line;
 
-	fprintf(stderr, "\n");
+	Bprint(&stderr, "\n");
 	if (compile_time != 2 && NR && *NR > 0) {
-		fprintf(stderr, " input record number %d", (int) (*FNR));
 		if (strcmp(*FILENAME, "-") != 0)
-			fprintf(stderr, ", file %s", *FILENAME);
-		fprintf(stderr, "\n");
+			Bprint(&stderr, " input record %s:%d", *FILENAME, (int) (*FNR));
+		else
+			Bprint(&stderr, " input record number %d", (int) (*FNR));
+		Bprint(&stderr, "\n");
 	}
 	if (compile_time != 2 && curnode)
-		fprintf(stderr, " source line number %d", curnode->lineno);
+		line = curnode->lineno;
 	else if (compile_time != 2 && lineno)
-		fprintf(stderr, " source line number %d", lineno);
-	if (compile_time == 1 && cursource() != NULL)
-		fprintf(stderr, " source file %s", cursource());
-	fprintf(stderr, "\n");
+		line = lineno;
+	else
+		line = -1;
+	if (compile_time == 1 && cursource() != nil){
+		if(line >= 0)
+			Bprint(&stderr, " source %s:%d", cursource(), line);
+		else
+			Bprint(&stderr, " source file %s", cursource());
+	}else if(line >= 0)
+		Bprint(&stderr, " source line %d", line);
+	Bprint(&stderr, "\n");
 	eprint();
 }
 
@@ -622,23 +606,23 @@ void eprint(void)	/* try to print context around error */
 		;
 	while (*p == '\n')
 		p++;
-	fprintf(stderr, " context is\n\t");
+	Bprint(&stderr, " context is\n\t");
 	for (q=ep-1; q>=p && *q!=' ' && *q!='\t' && *q!='\n'; q--)
 		;
 	for ( ; p < q; p++)
 		if (*p)
-			putc(*p, stderr);
-	fprintf(stderr, " >>> ");
+			Bputc(&stderr, *p);
+	Bprint(&stderr, " >>> ");
 	for ( ; p < ep; p++)
 		if (*p)
-			putc(*p, stderr);
-	fprintf(stderr, " <<< ");
+			Bputc(&stderr, *p);
+	Bprint(&stderr, " <<< ");
 	if (*ep)
-		while ((c = input()) != '\n' && c != '\0' && c != EOF) {
-			putc(c, stderr);
+		while ((c = input()) != '\n' && c != '\0' && c != Beof) {
+			Bputc(&stderr, c);
 			bclass(c);
 		}
-	putc('\n', stderr);
+	Bputc(&stderr, '\n');
 	ep = ebuf;
 }
 
@@ -654,39 +638,34 @@ void bclass(int c)
 	}
 }
 
-double errcheck(double x, const char *s)
+double errcheck(double x, char *s)
 {
 
-	if (errno == EDOM) {
-		errno = 0;
+	if (isNaN(x)) {
 		WARNING("%s argument out of domain", s);
 		x = 1;
-	} else if (errno == ERANGE) {
-		errno = 0;
+	} else if (isInf(x, 1) || isInf(x, -1)) {
 		WARNING("%s result out of range", s);
 		x = 1;
 	}
 	return x;
 }
 
-int isclvar(const char *s)	/* is s of form var=something ? */
+int isclvar(char *s)	/* is s of form var=something ? */
 {
-	const char *os = s;
+	char *os = s;
 
-	if (!isalpha((uschar) *s) && *s != '_')
+	if (!isalpha(*s) && *s != '_')
 		return 0;
 	for ( ; *s; s++)
-		if (!(isalnum((uschar) *s) || *s == '_'))
+		if (!(isalnum(*s) || *s == '_'))
 			break;
 	return *s == '=' && s > os && *(s+1) != '=';
 }
 
 /* strtod is supposed to be a proper test of what's a valid number */
-/* appears to be broken in gcc on linux: thinks 0x123 is a valid FP number */
-/* wrong: violates 4.10.1.4 of ansi C standard */
 
-#include <math.h>
-int is_number(const char *s)
+int is_number(char *s)
 {
 	double r;
 	char *ep;
@@ -716,9 +695,8 @@ int is_number(const char *s)
 		return 0;	/* can't be a number */
 	}
 
-	errno = 0;
 	r = strtod(s, &ep);
-	if (ep == s || r == HUGE_VAL || errno == ERANGE)
+	if (ep == s || isInf(r, 1) || isInf(r, -1) || isNaN(r))
 		return 0;
 	while (*ep == ' ' || *ep == '\t' || *ep == '\n')
 		ep++;

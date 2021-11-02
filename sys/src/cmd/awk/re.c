@@ -22,18 +22,13 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-
-#define DEBUG
-#include <stdio.h>
+#include <u.h>
+#include <libc.h>
 #include <ctype.h>
-#include <setjmp.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
+#include <bio.h>
+#include <regexp.h>
 #include "awk.h"
 #include "y.tab.h"
-#include "regexp.h"
 
 	/* This file provides the interface between the main body of
 	 * awk and the pattern matching package.  It preprocesses
@@ -187,7 +182,7 @@ void
 
 	/* T/F match indication - matched string not exported */
 int
-match(void *p, char *s, char *_)
+match(void *p, char *s, char *)
 {
 	return regexec((Reprog *) p, (char *) s, 0, 0);
 }
@@ -198,11 +193,11 @@ pmatch(void *p, char *s, char *start)
 {
 	Resub m;
 
-	m.s.sp = start;
-	m.e.ep = 0;
+	m.sp = start;
+	m.ep = 0;
 	if (regexec((Reprog *) p, (char *) s, &m, 1)) {
-		patbeg = m.s.sp;
-		patlen = m.e.ep-m.s.sp;
+		patbeg = m.sp;
+		patlen = m.ep-m.sp;
 		return 1;
 	}
 	patlen = -1;
@@ -223,7 +218,6 @@ nematch(void *p, char *s, char *start)
 /* in the parsing of regular expressions, metacharacters like . have */
 /* to be seen literally;  \056 is not a metacharacter. */
 
-int
 hexstr(char **pp)	/* find and eval hex string at pp, return new p */
 {
 	char c;
@@ -251,7 +245,7 @@ quoted(char **s, char **to, char *end)	/* handle escaped sequence */
 {
 	char *p = *s;
 	char *t = *to;
-	wchar_t c;
+	Rune c;
 
 	switch(c = *p++) {
 	case 't':
@@ -274,8 +268,8 @@ quoted(char **s, char **to, char *end)	/* handle escaped sequence */
 			*t++ = '\\';
 		if (c == 'x') {		/* hexadecimal goo follows */
 			c = hexstr(&p);
-			if (t < end-MB_CUR_MAX)
-				t += wctomb(t, c);
+			if (t < end-UTFmax)
+				t += runelen(c);
 			else overflow();
 			*to = t;
 			*s = p;
@@ -294,21 +288,6 @@ quoted(char **s, char **to, char *end)	/* handle escaped sequence */
 		*t++ = c;
 	*s = p;
 	*to = t;
-}
-	/* count rune positions */
-int
-countposn(char *s, int n)
-{
-	int i, j;
-	char *end;
-
-	for (i = 0, end = s+n; *s && s < end; i++){
-		j = mblen(s, n);
-		if(j <= 0)
-			j = 1;
-		s += j;
-	}
-	return(i);
 }
 
 	/* pattern package error handler */

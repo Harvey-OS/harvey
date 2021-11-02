@@ -28,18 +28,18 @@ THIS SOFTWARE.
  * it finds the indices in y.tab.h, produced by yacc.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
 #include "awk.h"
 #include "y.tab.h"
 
 struct xx
 {	int token;
-	const char *name;
-	const char *pname;
+	char *name;
+	char *pname;
 } proc[] = {
-	{ PROGRAM, "program", NULL },
+	{ PROGRAM, "program", nil },
 	{ BOR, "boolop", " || " },
 	{ AND, "boolop", " && " },
 	{ NOT, "boolop", " !" },
@@ -49,13 +49,13 @@ struct xx
 	{ LT, "relop", " < " },
 	{ GE, "relop", " >= " },
 	{ GT, "relop", " > " },
-	{ ARRAY, "array", NULL },
+	{ ARRAY, "array", nil },
 	{ INDIRECT, "indirect", "$(" },
 	{ SUBSTR, "substr", "substr" },
 	{ SUB, "sub", "sub" },
 	{ GSUB, "gsub", "gsub" },
 	{ INDEX, "sindex", "sindex" },
-	{ SPRINTF, "awksprintf", "sprintf " },
+	{ SPRINTF, "awksprintf", "sprintf" },
 	{ ADD, "arith", " + " },
 	{ MINUS, "arith", " - " },
 	{ MULT, "arith", " * " },
@@ -68,8 +68,8 @@ struct xx
 	{ PREDECR, "incrdecr", "--" },
 	{ POSTDECR, "incrdecr", "--" },
 	{ CAT, "cat", " " },
-	{ PASTAT, "pastat", NULL },
-	{ PASTAT2, "dopa2", NULL },
+	{ PASTAT, "pastat", nil },
+	{ PASTAT2, "dopa2", nil },
 	{ MATCH, "matchop", " ~ " },
 	{ NOTMATCH, "matchop", " !~ " },
 	{ MATCHFCN, "matchop", "matchop" },
@@ -102,67 +102,70 @@ struct xx
 	{ CALL, "call", "call" },
 	{ ARG, "arg", "arg" },
 	{ VARNF, "getnf", "NF" },
-	{ GETLINE, "awkgetline", "getline" },
+	{ GETLINE, "getline", "getline" },
 	{ 0, "", "" },
 };
 
 #define SIZE	(LASTTOKEN - FIRSTTOKEN + 1)
-const char *table[SIZE];
+char *table[SIZE];
 char *names[SIZE];
 
-int main(int argc, char *argv[])
+void main(int, char**)
 {
-	const struct xx *p;
-	int i, n, tok;
-	char c;
-	FILE *fp;
-	char buf[200], name[200], def[200];
+	struct xx *p;
+	int i, tok;
+	Biobuf *fp;
+	char *buf, *toks[3];
 
-	printf("#include <stdio.h>\n");
-	printf("#include \"awk.h\"\n");
-	printf("#include \"y.tab.h\"\n\n");
+	print("#include <u.h>\n");
+	print("#include <libc.h>\n");
+	print("#include <bio.h>\n");
+	print("#include \"awk.h\"\n");
+	print("#include \"y.tab.h\"\n\n");
 	for (i = SIZE; --i >= 0; )
 		names[i] = "";
 
-	if ((fp = fopen("y.tab.h", "r")) == NULL) {
-		fprintf(stderr, "maketab can't open y.tab.h!\n");
-		exit(1);
+	if ((fp = Bopen("y.tab.h", OREAD)) == nil) {
+		fprint(2, "maketab can't open y.tab.h!\n");
+		exits("can't open y.tab.h");
 	}
-	printf("static char *printname[%d] = {\n", SIZE);
+	print("static char *printname[%d] = {\n", SIZE);
 	i = 0;
-	while (fgets(buf, sizeof buf, fp) != NULL) {
-		n = sscanf(buf, "%1c %s %s %d", &c, def, name, &tok);
-		if (c != '#' || (n != 4 && strcmp(def,"define") != 0))	/* not a valid #define */
+	while ((buf = Brdline(fp, '\n')) != nil) {
+		buf[Blinelen(fp)-1] = '\0';
+		if (tokenize(buf, toks, 3) != 3
+		|| strcmp("#define", toks[0]) != 0)	/* not a valid #define */
 			continue;
+		tok = strtol(toks[2], nil, 10);
 		if (tok < FIRSTTOKEN || tok > LASTTOKEN) {
-			/* fprintf(stderr, "maketab funny token %d %s ignored\n", tok, buf); */
-			continue;
+			fprint(2, "maketab funny token %d %s\n", tok, buf);
+			exits("funny token");
 		}
-		names[tok-FIRSTTOKEN] = (char *) malloc(strlen(name)+1);
-		strcpy(names[tok-FIRSTTOKEN], name);
-		printf("\t(char *) \"%s\",\t/* %d */\n", name, tok);
+		names[tok-FIRSTTOKEN] = (char *) malloc(strlen(toks[1])+1);
+		strcpy(names[tok-FIRSTTOKEN], toks[1]);
+		print("\t(char *) \"%s\",\t/* %d */\n", toks[1], tok);
 		i++;
 	}
-	printf("};\n\n");
+	print("};\n\n");
 
 	for (p=proc; p->token!=0; p++)
 		table[p->token-FIRSTTOKEN] = p->name;
-	printf("\nCell *(*proctab[%d])(Node **, int) = {\n", SIZE);
+	print("\nCell *(*proctab[%d])(Node **, int) = {\n", SIZE);
 	for (i=0; i<SIZE; i++)
 		if (table[i]==0)
-			printf("\tnullproc,\t/* %s */\n", names[i]);
+			print("\tnullproc,\t/* %s */\n", names[i]);
 		else
-			printf("\t%s,\t/* %s */\n", table[i], names[i]);
-	printf("};\n\n");
+			print("\t%s,\t/* %s */\n", table[i], names[i]);
+	print("};\n\n");
 
-	printf("char *tokname(int n)\n");	/* print a tokname() function */
-	printf("{\n");
-	printf("	static char buf[100];\n\n");
-	printf("	if (n < FIRSTTOKEN || n > LASTTOKEN) {\n");
-	printf("		sprintf(buf, \"token %%d\", n);\n");
-	printf("		return buf;\n");
-	printf("	}\n");
-	printf("	return printname[n-FIRSTTOKEN];\n");
-	printf("}\n");
-	return 0;
+	print("char *tokname(int n)\n");	/* print a tokname() function */
+	print("{\n");
+	print("	static char buf[100];\n\n");
+	print("	if (n < FIRSTTOKEN || n > LASTTOKEN) {\n");
+	print("		sprint(buf, \"token %%d\", n);\n");
+	print("		return buf;\n");
+	print("	}\n");
+	print("	return printname[n-FIRSTTOKEN];\n");
+	print("}\n");
+	exits(0);
 }
