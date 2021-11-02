@@ -6,27 +6,29 @@ Copyright (c) Lucent Technologies 1997
 
 typedef double	Awkfloat;
 
-/* unsigned char is more trouble than it's worth */
+#define	xfree(a)	{ if ((a) != nil) { free((a)); (a) = nil; } }
 
-typedef	unsigned char uschar;
-
-#define	xfree(a)	{ if ((a) != NULL) { free((void *) (a)); (a) = NULL; } }
-
-#define	NN(p)	((p) ? (p) : "(null)")	/* guaranteed non-null for dprintf 
-*/
 #define	DEBUG
 #ifdef	DEBUG
 			/* uses have to be doubly parenthesized */
-#	define	dprintf(x)	if (dbg) printf x
+#	define	dprint(x)	if (dbg) print x
 #else
-#	define	dprintf(x)
+#	define	dprint(x)
 #endif
+
+#define	FOPEN_MAX	40	/* max number of open files */
+
+extern	char	errbuf[];
 
 extern int	compile_time;	/* 1 if compiling, 0 if running */
 extern int	safe;		/* 0 => unsafe, 1 => safe */
 
 #define	RECSIZE	(8 * 1024)	/* sets limit on records, fields, etc., etc. */
 extern int	recsize;	/* size of current record, orig RECSIZE */
+
+extern Biobuf stdin;
+extern Biobuf stdout;
+extern Biobuf stderr;
 
 extern char	**FS;
 extern char	**RS;
@@ -43,7 +45,7 @@ extern Awkfloat *RLENGTH;
 
 extern char	*record;	/* points to $0 */
 extern int	lineno;		/* line number in awk program */
-extern int	errorflag;	/* 1 if error has occurred */
+extern char	*exitstatus;	/* exit status string */
 extern int	donefld;	/* 1 if record broken into fields */
 extern int	donerec;	/* 1 if record is valid (no fld has changed */
 extern char	inputFS[];	/* FS at time of input, for field splitting */
@@ -56,8 +58,8 @@ extern	int	patlen;		/* length of pattern matched.  set in b.c */
 /* Cell:  all information about a variable or constant */
 
 typedef struct Cell {
-	uschar	ctype;		/* OCELL, OBOOL, OJUMP, etc. */
-	uschar	csub;		/* CCON, CTEMP, CFLD, etc. */
+	uchar	ctype;		/* OCELL, OBOOL, OJUMP, etc. */
+	uchar	csub;		/* CCON, CTEMP, CFLD, etc. */
 	char	*nval;		/* name, for variables only */
 	char	*sval;		/* string value */
 	Awkfloat fval;		/* value as number */
@@ -66,7 +68,7 @@ typedef struct Cell {
 } Cell;
 
 typedef struct Array {		/* symbol table array */
-	int	nelem;		/* elements in table right now */
+	int	nelemt;		/* elements in table right now */
 	int	size;		/* size of tab */
 	Cell	**tab;		/* hash table pointers */
 } Array;
@@ -166,7 +168,8 @@ extern	int	pairstack[], paircnt;
 #define isexit(n)	((n)->csub == JEXIT)
 #define	isbreak(n)	((n)->csub == JBREAK)
 #define	iscont(n)	((n)->csub == JCONT)
-#define	isnext(n)	((n)->csub == JNEXT || (n)->csub == JNEXTFILE)
+#define	isnext(n)	((n)->csub == JNEXT)
+#define	isnextfile(n)	((n)->csub == JNEXTFILE)
 #define	isret(n)	((n)->csub == JRET)
 #define isrec(n)	((n)->tval & REC)
 #define isfld(n)	((n)->tval & FLD)
