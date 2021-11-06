@@ -15,11 +15,13 @@ HFILES=
 </sys/src/cmd/mkmany
 BIN=/$objtype/bin/games
 
+BUGGERED=\
+	blabs\
+	mp3enc\
+
 DIRS=\
-#	blabs\
 	mahjongg\
 	mp3dec\
-	mp3enc\
 	music\
 	sokoban\
 	sudoku\
