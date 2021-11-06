@@ -37,17 +37,13 @@
  *		Joe Orost		(decvax!vax135!petsd!joe)
  */
 #define _PLAN9_SOURCE
-#define _BSD_EXTENSION
-#define _POSIX_SOURCE
 
 #include <u.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <signal.h>
-#include <utime.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -73,6 +69,9 @@ uchar magic_header[] = { 0x1F, 0x9D };	/* 1F 9D */
 	a fourth header byte (for expansion).
 */
 #define INIT_BITS 9			/* initial number of bits/code */
+
+void onintr(int);
+void oops(int);
 
 #define ARGVAL() (*++(*argv) || (--argc && *++argv))
 
@@ -108,27 +107,14 @@ count_int fsize;
 code_int free_ent = 0;			/* first unused entry */
 int exit_stat = 0;
 
-void	cl_block(void);
-void	cl_hash(count_int);
-void	compress(void);
-void	copystat(char *, char *);
-void	decompress(void);
-int	foreground(void);
-code_int getcode(void);
-void	onintr(int);
-void	oops(int);
-void	output(code_int);
-void	prratio(FILE *, long, long);
-void	version(void);
-void	writeerr(void);
+code_int getcode();
 
-void
-Usage(void)
+Usage()
 {
 #ifdef DEBUG
-	fprintf(stderr,"Usage: compress [-cdfDV] [-b maxbits] [file ...]\n");
+	fprintf(stderr,"usage: compress [-cdfDV] [-b maxbits] [file ...]\n");
 #else
-	fprintf(stderr,"Usage: compress [-cdfvV] [-b maxbits] [file ...]\n");
+	fprintf(stderr,"usage: compress [-cdfvV] [-b maxbits] [file ...]\n");
 #endif /* DEBUG */
 }
 
@@ -162,7 +148,9 @@ void (*bgnd_flag)(int);
 
 int do_decomp = 0;
 
-int main(int argc, char **argv)
+main(argc, argv)
+int argc;
+char **argv;
 {
 	int overwrite = 0;	/* Do not overwrite unless given -f flag */
 	char tempname[512];
@@ -455,7 +443,6 @@ nextarg:
 	}
 	}
 	exit(exit_stat);
-	return 0;
 }
 
 static int offset;
@@ -478,11 +465,10 @@ long out_count = 0;		/* # of codes output (for debugging) */
  * file size for noticeable speed improvement on small files.  Please direct
  * questions about this implementation to ames!jaw.
  */
-void
-compress(void)
+compress()
 {
 	code_int ent, hsize_reg;
-	code_int i;
+	code_int i = 0;
 	int c, disp, hshift;
 	long fcode;
 
@@ -598,7 +584,6 @@ static char buf[BITS];
 uchar lmask[9] = {0xff, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0x00};
 uchar rmask[9] = {0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff};
 
-void
 output( code )
 code_int  code;
 {
@@ -710,8 +695,7 @@ code_int  code;
  * be stored in the compressed file.  The tables used herein are shared
  * with those of the compress() routine.  See the definitions above.
  */
-void
-decompress(void)
+decompress()
 {
 	int finchar;
 	code_int code, oldcode, incode;
@@ -964,20 +948,18 @@ in_stack(int c, int stack_top)
 }
 #endif /* DEBUG */
 
-void
-writeerr(void)
+writeerr()
 {
 	perror(ofname);
 	unlink(ofname);
 	exit(1);
 }
 
-void
 copystat(ifname, ofname)
 char *ifname, *ofname;
 {
 	int mode;
-	time_t timep[2];			/* should be struct utimbuf */
+	time_t timep[2];
 	struct stat statbuf;
 
 	fclose(stdout);
@@ -1004,7 +986,7 @@ char *ifname, *ofname;
 		timep[0] = statbuf.st_atime;
 		timep[1] = statbuf.st_mtime;
 		/* Update last accessed and modified times */
-		utime(ofname, (struct utimbuf *)timep);
+		utime(ofname, timep);
 //		if (unlink(ifname))	/* Remove input file */
 //			perror(ifname);
 		return;			/* success */
@@ -1019,8 +1001,7 @@ char *ifname, *ofname;
  * This routine returns 1 if we are running in the foreground and stderr
  * is a tty.
  */
-int
-foreground(void)
+foreground()
 {
 	if(bgnd_flag)			/* background? */
 		return 0;
@@ -1029,14 +1010,14 @@ foreground(void)
 }
 
 void
-onintr(int _)
+onintr(int x)
 {
 	unlink(ofname);
 	exit(1);
 }
 
 void
-oops(int _)		/* wild pointer -- assume bad input */
+oops(int x)		/* wild pointer -- assume bad input */
 {
 	if (do_decomp == 1)
 		fprintf(stderr, "uncompress: corrupt input\n");
@@ -1044,8 +1025,7 @@ oops(int _)		/* wild pointer -- assume bad input */
 	exit(1);
 }
 
-void
-cl_block(void)		/* table clear for block compress */
+cl_block ()		/* table clear for block compress */
 {
 	long rat;
 
@@ -1085,8 +1065,8 @@ cl_block(void)		/* table clear for block compress */
 	}
 }
 
-void
-cl_hash(count_int hsize)		/* reset code table */
+cl_hash(hsize)		/* reset code table */
+count_int hsize;
 {
 	count_int *htab_p = htab+hsize;
 	long i;
@@ -1116,7 +1096,6 @@ cl_hash(count_int hsize)		/* reset code table */
 		*--htab_p = m1;
 }
 
-void
 prratio(stream, num, den)
 FILE *stream;
 long num, den;
@@ -1134,8 +1113,7 @@ long num, den;
 	fprintf(stream, "%d.%02d%%", q / 100, q % 100);
 }
 
-void
-version(void)
+version()
 {
 	fprintf(stderr, "%s\n", rcs_ident);
 	fprintf(stderr, "Options: ");
