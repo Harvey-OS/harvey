@@ -1,0 +1,112 @@
+diff --git a/configure b/configure
+index 7d0382e..c4682db 100755
+--- a/configure
++++ b/configure
+@@ -38,6 +38,9 @@ then
+   x86_64)
+    HOST_ARCH="amd64"
+    ;;
++  aarch64)
++   HOST_ARCH="arm"
++   ;;
+  esac
+ 
+  #
+diff --git a/src/cmd/mkfile b/src/cmd/mkfile
+index cc18e5c..6a116d9 100644
+--- a/src/cmd/mkfile
++++ b/src/cmd/mkfile
+@@ -6,56 +6,56 @@
+ #	Fairly soon the Plan 9 compilers will be updated to match.
+ #
+ ALWAYS=\
+-	libmach\
+-	libregexp\
++#	libmach\
++#	libregexp\
+ 	iar\
+-	iyacc\
+-	cc\
+-	5a\
+-	5c\
+-	5l\
+-	5coff\
+-	5cv\
+-	sqz\
++#	iyacc\
++#	cc\
++#	5a\
++#	5c\
++#	5l\
++#	5coff\
++#	5cv\
++#	sqz\
+ #	tc\
+-	acid\
+-	srclist\
+-	ms2\
+-	data2c\
+-	data2s\
+-	kprof\
+-	mkppcimage\
+-	nm\
+-	sed\
++#	acid\
++#	srclist\
++#	ms2\
++#	data2c\
++#	data2s\
++#	kprof\
++#	mkppcimage\
++#	nm\
++#	sed\
+ 
+ #
+ #	Utils we build on Posix and Nt, which already exist on Plan 9.
+ #
+ NOTPLAN9=\
+-	6a\
+-	6c\
+-	6l\
++#	6a\
++#	6c\
++#	6l\
+ #	7a\
+ #	7c\
+ #	7l\
+-	8a\
+-	8c\
+-	8l\
++#	8a\
++#	8c\
++#	8l\
+ #	9a\
+ #	9c\
+ #	9l\
+-	qa\
+-	qc\
+-	ql\
+-	va\
+-	vc\
+-	vl\
+-	ka\
+-	kc\
+-	kl\
+-	mk\
+-	ksize\
+-	kstrip\
++#	qa\
++#	qc\
++#	ql\
++#	va\
++#	vc\
++#	vl\
++#	ka\
++#	kc\
++#	kl\
++#	mk\
++#	ksize\
++#	kstrip\
+ 
+ #
+ #	Utils we build on Nt, for build environment compatibility.
