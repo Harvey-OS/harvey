@@ -1,18 +1,21 @@
+# docker build -t harvey:Dockerfile .
+# docker run --rm -it --cap-add SYS_ADMIN --entrypoint bash harvey:Dockerfile
+# bash RUN_BUILD_IN_PRIVATE_NAMESPACE
+
 FROM ubuntu:latest
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
-RUN apt-get install -y build-essential git
+RUN apt-get install -y build-essential git sudo
 
 # Only use layer cache if the git repo hasn't changed.  This ensures we
 # always have the latest code, but make use of the cache where possible.
-ARG USER=9fans
+ARG OWNER=9fans
 ARG REPO=plan9port
 ARG BRANCH=master
-ADD https://api.github.com/repos/$USER/$REPO/git/refs/heads/$BRANCH version.json
-RUN mkdir -p /usr/local/plan9port \
-    && cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$USER/$REPO.git \
+ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+RUN cd /usr/local \
+    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git \
     && cd plan9port \
     && ./INSTALL
 
@@ -21,24 +24,83 @@ ENV PATH="${PATH}:${PLAN9}/bin"
 
 # Fetch latest harvey (using cache if possible)
 # TODO Populate these args from CI
-ARG USER=Harvey-OS
+ARG OWNER=rminnich
 ARG REPO=harvey
-ARG BRANCH=main
-ADD https://api.github.com/repos/$USER/$REPO/git/refs/heads/$BRANCH version.json
-RUN mkdir -p /usr/local/harvey \
-    && cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$USER/$REPO.git
+ARG BRANCH=build_on_unix
+ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+RUN cd /usr/local \
+    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
 
-# Build 6 and 8 toolchains
+# Build toolchains
+WORKDIR /usr/local/harvey/sys/src
+
+RUN if [ `uname -p` = "aarch64" ]; then \
+    sed -i 's/linux_amd64/linux_arm64/' BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/6a/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/6c/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/6l/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/8a/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/8c/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/8l/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/cpp/BUILD; \
+    mkdir -p /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/sed /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/yacc /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/lex /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/awk /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/date /usr/local/harvey/linux_arm64/bin; \
+  else \
+    mkdir -p /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/sed /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/yacc /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/lex /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/awk /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/date /usr/local/harvey/linux_amd64/bin; \
+  fi
+
+RUN bash BUILDTOOLCHAIN
 WORKDIR /usr/local/harvey/sys/src/cmd
-RUN cd 6a && bash BUILD
-RUN cd 6c && bash BUILD
-RUN cd 6l && bash BUILD
-RUN cd 8a && bash BUILD
-RUN cd 8c && bash BUILD
-RUN cd 8l && bash BUILD
+RUN bash BUILD
 
-# TODO Build harvey
-#ENV FORCERCFORMK=1
-#WORKDIR /usr/local/harvey/build/scripts
-#RUN PATH="${PATH}:${PWD}" rc build
+# Build ar from 9-cc
+ARG OWNER=0intro
+ARG REPO=9-cc
+ARG BRANCH=master
+ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+RUN cd /usr/local \
+    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
+WORKDIR /usr/local/9-cc
+
+COPY 9-cc.patch /usr/local/9-cc/9-cc.patch
+RUN git apply /usr/local/9-cc/9-cc.patch
+
+RUN if [ `uname -p` = "aarch64" ]; then \
+    mkdir -p Linux/arm/bin; \
+    mkdir -p Linux/arm/include; \
+    mkdir -p Linux/arm/lib; \
+  else \
+    mkdir -p Linux/amd64/bin; \
+    mkdir -p Linux/amd64/include; \
+    mkdir -p Linux/amd64/lib; \
+  fi
+
+RUN ./configure && . ./env
+RUN cp Linux/amd64/include/lib9.h Linux/arm/include/lib9.h
+RUN cp Linux/amd64/include/fpuctl.h Linux/arm/include/fpuctl.h
+RUN sed -i 's/arm-gcc/gcc/' mkfiles/mkfile-Linux-arm
+RUN mk
+
+RUN if [ `uname -p` = "aarch64" ]; then \
+    cp src/cmd/iar/o.out /usr/local/harvey/linux_arm64/bin/ar; \
+  else \
+    cp src/cmd/iar/o.out /usr/local/harvey/linux_amd64/bin/ar; \
+  fi
+
+RUN mkdir -p /usr/local/harvey/amd64/lib;
+
+WORKDIR /usr/local/harvey/sys/src
+
+# Is this correct?
+ENV USER=root
+ENV HARVEY=/usr/local/harvey
