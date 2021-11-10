@@ -53,6 +53,16 @@ mount --bind $HARVEY/sparc /sparc
 mkdir -p /acme
 mount --bind $HARVEY/acme /acme
 
+mkdir -p /rc
+mount --bind $HARVEY/rc /rc
+
+mkdir -p /mail
+mount --bind $HARVEY/mail /mail
+
+# yuk - remove this
+cp -R /lib/* $HARVEY/lib
+mount --bind $HARVEY/lib /lib
+
 mkdir -p /unix
 mount --bind $HARVEY/unix /unix
 
