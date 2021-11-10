@@ -26,9 +26,9 @@ ENV PATH="${PATH}:${PLAN9}/bin"
 
 # Fetch latest harvey (using cache if possible)
 # TODO Populate these args from CI
-ARG OWNER=rminnich
+ARG OWNER=gmacd
 ARG REPO=harvey
-ARG BRANCH=build_on_unix
+ARG BRANCH=build_on_unix_in_docker
 ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
 RUN cd /usr/local \
     && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
@@ -60,9 +60,6 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     cp ${PLAN9}/bin/awk /usr/local/harvey/linux_amd64/bin; \
     cp ${PLAN9}/bin/date /usr/local/harvey/linux_amd64/bin; \
   fi
-
-# HACK BUILD to mk install and leave bash open after building in container
-RUN sed -i 's/# \/bin\/bash/mk install;\/bin\/bash/' BUILD
 
 RUN bash BUILDTOOLCHAIN
 WORKDIR /usr/local/harvey/sys/src/cmd

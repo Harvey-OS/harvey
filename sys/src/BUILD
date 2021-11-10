@@ -16,8 +16,6 @@ PATH=$PATH:.
 # we clean things out b/c it really is no time penalty
 # and we want to be sure it all gets built.
 mk clean
-time mk all 
-# not working yet. mk install
-# in case of emergency break glass
-# /bin/bash
 
+time mk all
+time mk install
