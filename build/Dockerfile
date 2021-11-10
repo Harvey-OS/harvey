@@ -2,6 +2,8 @@
 # docker run --rm -it --cap-add SYS_ADMIN --entrypoint bash harvey:Dockerfile
 # bash RUN_BUILD_IN_PRIVATE_NAMESPACE
 
+# TODO probably need to pass in aarch64 as an env var
+# TODO mahjonng doesn't build becuase of problems with cpp - fix cpp!
 FROM ubuntu:latest
 
 RUN apt-get -y update
@@ -59,6 +61,9 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     cp ${PLAN9}/bin/date /usr/local/harvey/linux_amd64/bin; \
   fi
 
+# HACK BUILD to mk install and leave bash open after building in container
+RUN sed -i 's/# \/bin\/bash/mk install;\/bin\/bash/' BUILD
+
 RUN bash BUILDTOOLCHAIN
 WORKDIR /usr/local/harvey/sys/src/cmd
 RUN bash BUILD
@@ -85,6 +90,7 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     mkdir -p Linux/amd64/lib; \
   fi
 
+# Hack up 9-cc to build ar for amd64
 RUN ./configure && . ./env
 RUN cp Linux/amd64/include/lib9.h Linux/arm/include/lib9.h
 RUN cp Linux/amd64/include/fpuctl.h Linux/arm/include/fpuctl.h
@@ -97,7 +103,30 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     cp src/cmd/iar/o.out /usr/local/harvey/linux_amd64/bin/ar; \
   fi
 
-RUN mkdir -p /usr/local/harvey/amd64/lib;
+# Last bits of prep for harvey image to allow building inside the container
+WORKDIR /usr/local/harvey
+
+# TODO should really be in the build scripts
+RUN mkdir -p amd64/lib
+RUN mkdir -p acme/bin/amd64
+RUN mkdir -p acme/lib
+RUN mkdir -p amd64/bin/auth
+RUN mkdir -p amd64/bin/aux
+RUN mkdir -p amd64/bin/dial
+RUN mkdir -p amd64/bin/disk
+RUN mkdir -p amd64/bin/fossil
+RUN mkdir -p amd64/bin/fs
+RUN mkdir -p amd64/bin/games
+RUN mkdir -p amd64/bin/ip
+RUN mkdir -p amd64/bin/ip/httpd
+RUN mkdir -p amd64/bin/ndb
+RUN mkdir -p amd64/bin/replica
+RUN mkdir -p amd64/bin/upas/
+RUN mkdir -p amd64/bin/usb
+RUN mkdir -p amd64/bin/venti
+RUN mkdir -p lib/audio
+RUN mkdir -p mail/lib
+RUN mkdir -p rc/bin
 
 WORKDIR /usr/local/harvey/sys/src
 
