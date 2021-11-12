@@ -66,5 +66,8 @@ mount --bind $HARVEY/lib /lib
 mkdir -p /unix
 mount --bind $HARVEY/unix /unix
 
+mkdir -p /usr/glenda
+mount --bind $HARVEY/usr/glenda /usr/glenda
+
 echo su  $1 bash BUILD $2
 su -c ./BUILD $USER

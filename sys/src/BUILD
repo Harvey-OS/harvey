@@ -17,8 +17,10 @@ PATH=$PATH:.
 # and we want to be sure it all gets built.
 mk clean
 
-time mk all
-time mk install
+#time mk all
+#time mk install
+
+rc $HARVEY/build/scripts/linux-build
 
 # in case of emergency break glass
-# /bin/bash
+/bin/bash
