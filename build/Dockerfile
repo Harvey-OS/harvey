@@ -1,5 +1,5 @@
 # docker build -t harvey:Dockerfile .
-# docker run --rm -it --cap-add SYS_ADMIN harvey:Dockerfile
+# docker run --rm -it --cap-add SYS_ADMIN --privileged harvey:Dockerfile
 
 # TODO probably need to pass in aarch64 as an env var
 # TODO mahjonng doesn't build becuase of problems with cpp - fix cpp!
