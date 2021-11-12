@@ -1,0 +1,154 @@
+#!/bin/rc -e
+# Derived from the 9legacy build scripts
+
+rfork en
+
+fn build_386{
+#	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+#	for(i in /sys/src/cmd/8?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=386 {mk nuke && mk install && mk clean}
+	cd /sys/src/9/pc && for(i in pcf pccpu pccpuf) {test -f $i && mk nuke && mk CONF'='$i install && mk clean}
+	if(test -d /sys/src/9/pcboot) {
+		rm -f /386/9load* /386/9pxe* /386/mbr /386/pbs /386/pbslba
+		if (test -f /sys/src/9/pcboot/bootcfg) # Geoff
+			cd /sys/src/9/pcboot && for(i in boot bootpbs load loadusb) {test -f $i && mk clean && mk CONF'='$i install && mk clean}
+		if not
+			cd /sys/src/9/pcboot && mk clean && mk install && mk clean
+		cd /sys/src/boot/pc && mk clean && mk install && mk clean
+	}
+	if not {
+		cd /sys/src/boot/pc && mk clean && mk install && mk clean
+		if(test -d /sys/src/boot/pc-e820)
+			cd /sys/src/boot/pc-e820 && mk clean && mk install && mk clean
+	}
+}
+
+fn build_amd64{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/6?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=amd64 {mk install}
+	if(test -d /sys/src/9k){
+		if(test -f /sys/src/9k/CHANGES || test -f /sys/src/9k/Notes){
+			touch /sys/src/9k/k10/uncached.h
+			touch /sys/src/9k/k10/adr.h
+		}
+		if(! test -f /sys/src/9k/root/nvram)
+			dd -if /dev/zero -of /sys/src/9k/root/nvram -bs 512 -count 1
+		for(i in k10cpu k10cpuf k10f){
+			if(test -f /sys/src/9k/k10/$i)
+				cd /sys/src/9k/k10 && mk nuke && mk CONF'='$i install && mk nuke
+		}
+	}
+}
+
+fn build_arm{
+	# make vfp the default for ARM
+	fn 5l { /$cputype/bin/5l -f $* }
+	fn pcc { /$cputype/bin/pcc -f $* }
+
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/5?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=arm {mk nuke && mk install && mk clean}
+	cd /sys/src/9/omap && mk nuke && mk CONF'='beagle install && mk clean
+	cd /sys/src/9/kw && mk nuke && mk CONF'='plug install && mk clean
+	cd /sys/src/9/teg2 && mk nuke && mk CONF'='ts install && mk clean
+	if (test -f /sys/src/9/bcm/pi)
+		cd /sys/src/9/bcm && mk nuke && mk CONF'='pi install && mk CONF'='picpu install && mk CONF'='piwifi install && mk clean
+	if (test -f /sys/src/9/bcm/pi2)
+		cd /sys/src/9/bcm && mk nuke && mk CONF'='pi2 install && mk CONF'='pi2cpu install && mk CONF'='pi2wifi install && mk clean
+	if (test -f /sys/src/9/bcm/pi4)
+		cd /sys/src/9/bcm && mk nuke && mk CONF'='pi4 install && mk CONF'='pi4cpu install && mk CONF'='pi4wifi install && mk clean
+}
+
+fn build_arm64{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/7?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=arm64 {mk nuke && mk install && mk clean}
+}
+
+fn build_power{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/q?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=power {mk nuke && mk install && mk clean}
+	cd /sys/src/9/mtx && mk nuke && mk CONF'='mtx install && mk CONF'='mtxcpu install && mk clean
+	for(i in /sys/src/9/vt4 /sys/src/boot/vt4) {test -d $i && cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/9/vt5 /sys/src/boot/vt5) {test -d $i && cd $i && mk nuke && mk install && mk clean}
+}
+
+fn build_power64{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/9?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=power64 {mk nuke && mk install && mk clean}
+}
+
+fn build_mips{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/v?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=mips {mk nuke && mk install && mk clean}
+	if(test -d /sys/src/9/rb)
+		cd /sys/src/9/rb && mk nuke && mk install && mk clean
+	if not
+		echo missing /sys/src/9/rb
+	if(test -d /sys/src/9/erl)
+		cd /sys/src/9/erl && mk nuke && mk install && mk clean
+	if not
+		echo missing /sys/src/9/erl
+}
+
+fn build_spim{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/v?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=spim {mk nuke && mk install && mk clean}
+	if(! test -f /sys/src/9/loongson/nvram)
+		dd -if /dev/zero -of /sys/src/9/loongson/nvram -bs 512 -count 1
+	cd /sys/src/9/loongson && mk nuke && mk CONF'='lncpu install && mk clean
+}
+
+fn build_spim64{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/4?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=spim64 {mk nuke && mk install && mk clean}
+#	if(test -d /sys/src/9/loongson64) {
+#		if(! test -f /sys/src/9/loongson64/nvram)
+#			dd -if /dev/zero -of /sys/src/9/loongson64/nvram -bs 512 -count 1
+#		cd /sys/src/9/loongson64 && mk nuke && mk CONF'='ln64cpu install && mk clean
+#	}
+#	if not
+#		echo missing /sys/src/9/loongson64
+}
+
+fn build_mips64{
+	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
+	for(i in /sys/src/cmd/4?) {cd $i && mk nuke && mk install && mk clean}
+	cd /sys/src && objtype=mips64 {mk nuke && mk install && mk clean}
+}
+
+arch=(amd64)
+for(i in $arch){
+	echo build $i
+	build_$i
+	if(! ~ $status '')
+		exit build
+}
+
+# clean
+
+cd /sys/src/cmd && mk nuke
+
+# dist
+
+mkdir -p /sys/lib/dist/bin/386
+mkdir -p /sys/lib/dist/pc/multi
+cd /sys/lib/dist/cmd && mk clean && mk install && mk clean
+cd /sys/lib/dist/cmd/multi && mk clean && mk && mk install && mk scripts && mk clean
+cd /sys/lib/dist/pc && mk clean && mk cddisk
+echo IN /sys/lib/dist/pc
+ls -l
+cd /sys/src/9/pc && mk nuke
+
+cd /sys/src/cmd && mk nuke
+
+# man
+
+cd /sys/lib/man/lookman && mk index
+cd /sys/man && mk

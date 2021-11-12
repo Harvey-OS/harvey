@@ -1,9 +1,9 @@
 # docker build -t harvey:Dockerfile .
-# docker run --rm -it --cap-add SYS_ADMIN --entrypoint bash harvey:Dockerfile
-# bash RUN_BUILD_IN_PRIVATE_NAMESPACE
+# docker run --rm -it --cap-add SYS_ADMIN harvey:Dockerfile
 
 # TODO probably need to pass in aarch64 as an env var
 # TODO mahjonng doesn't build becuase of problems with cpp - fix cpp!
+
 FROM ubuntu:latest
 
 RUN apt-get -y update
@@ -46,12 +46,15 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     sed -i 's/linux_amd64/linux_arm64/' cmd/8c/BUILD; \
     sed -i 's/linux_amd64/linux_arm64/' cmd/8l/BUILD; \
     sed -i 's/linux_amd64/linux_arm64/' cmd/cpp/BUILD; \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/aux/BUILD; \
     mkdir -p /usr/local/harvey/linux_arm64/bin; \
     cp ${PLAN9}/bin/sed /usr/local/harvey/linux_arm64/bin; \
     cp ${PLAN9}/bin/yacc /usr/local/harvey/linux_arm64/bin; \
     cp ${PLAN9}/bin/lex /usr/local/harvey/linux_arm64/bin; \
     cp ${PLAN9}/bin/awk /usr/local/harvey/linux_arm64/bin; \
     cp ${PLAN9}/bin/date /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/dd /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/rm /usr/local/harvey/linux_arm64/bin; \
   else \
     mkdir -p /usr/local/harvey/linux_amd64/bin; \
     cp ${PLAN9}/bin/sed /usr/local/harvey/linux_amd64/bin; \
@@ -59,6 +62,8 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     cp ${PLAN9}/bin/lex /usr/local/harvey/linux_amd64/bin; \
     cp ${PLAN9}/bin/awk /usr/local/harvey/linux_amd64/bin; \
     cp ${PLAN9}/bin/date /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/dd /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/rm /usr/local/harvey/linux_amd64/bin; \
   fi
 
 RUN bash BUILDTOOLCHAIN
@@ -128,6 +133,9 @@ RUN mkdir -p amd64/bin/venti
 RUN mkdir -p lib/audio
 RUN mkdir -p mail/lib
 RUN mkdir -p rc/bin
+
+# Modify some mkfiles to handle binaries in subfolders
+RUN sed -i 's/aux\/mklatinkbd/mklatinkbd/' sys/src/9/port/portmkfile sys/src/9k/mk/portmkfile
 
 WORKDIR /usr/local/harvey/sys/src
 
