@@ -19,3 +19,6 @@ mk clean
 
 time mk all
 time mk install
+
+# in case of emergency break glass
+# /bin/bash
