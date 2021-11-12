@@ -87,11 +87,15 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     mkdir -p Linux/amd64/lib; \
   fi
 
-# Hack up 9-cc to build ar for amd64
+# Hack up 9-cc to build ar for amd64 (or arm)
 RUN ./configure && . ./env
-RUN cp Linux/amd64/include/lib9.h Linux/arm/include/lib9.h
-RUN cp Linux/amd64/include/fpuctl.h Linux/arm/include/fpuctl.h
-RUN sed -i 's/arm-gcc/gcc/' mkfiles/mkfile-Linux-arm
+
+RUN if [ `uname -p` = "aarch64" ]; then \
+    cp Linux/amd64/include/lib9.h Linux/arm/include/lib9.h; \
+    cp Linux/amd64/include/fpuctl.h Linux/arm/include/fpuctl.h; \
+    sed -i 's/arm-gcc/gcc/' mkfiles/mkfile-Linux-arm; \
+  fi
+
 RUN mk
 
 RUN if [ `uname -p` = "aarch64" ]; then \
