@@ -130,3 +130,5 @@ WORKDIR /usr/local/harvey/sys/src
 # Is this correct?
 ENV USER=root
 ENV HARVEY=/usr/local/harvey
+
+ENTRYPOINT ["bash", "RUN_BUILD_IN_PRIVATE_NAMESPACE"]
