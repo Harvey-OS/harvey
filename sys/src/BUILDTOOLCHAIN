@@ -8,3 +8,4 @@ set -e
 (cd ./cmd/6c && sh BUILD)
 (cd ./cmd/8l && sh BUILD)
 (cd ./cmd/cpp && sh BUILD)
+(cd ./cmd/aux && sh BUILD)
