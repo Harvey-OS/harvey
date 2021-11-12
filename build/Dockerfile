@@ -4,7 +4,7 @@
 # TODO probably need to pass in aarch64 as an env var
 # TODO mahjonng doesn't build becuase of problems with cpp - fix cpp!
 
-FROM ubuntu:latest
+FROM ubuntu:21.10
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
