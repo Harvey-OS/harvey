@@ -138,6 +138,9 @@ WORKDIR /usr/local/harvey
 RUN sed -i 's/aux\/mklatinkbd/mklatinkbd/' sys/src/9/port/portmkfile sys/src/9k/mk/portmkfile
 RUN sed -i 's/aux\/data2s/data2s/' sys/src/9/port/mkroot sys/src/9/port/mkrootall sys/src/9k/mk/mkroot sys/src/9k/mk/mkrootall
 
+COPY bind /bin
+RUN chmod +x /bin/bind
+
 WORKDIR /usr/local/harvey/sys/src
 
 # Is this correct?
