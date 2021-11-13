@@ -66,6 +66,9 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     cp ${PLAN9}/bin/rm /usr/local/harvey/linux_amd64/bin; \
   fi
 
+# To make rc scripts run
+RUN cp ${PLAN9}/bin/rc /bin/rc
+
 RUN bash BUILDTOOLCHAIN
 WORKDIR /usr/local/harvey/sys/src/cmd
 RUN bash BUILD
@@ -135,12 +138,16 @@ RUN mkdir -p mail/lib
 RUN mkdir -p rc/bin
 
 # Modify some mkfiles to handle binaries in subfolders
+# TODO not sure if this is great, since it'll alter the mkfiles in the image
 RUN sed -i 's/aux\/mklatinkbd/mklatinkbd/' sys/src/9/port/portmkfile sys/src/9k/mk/portmkfile
+RUN sed -i 's/aux\/data2s/data2s/' sys/src/9/port/mkroot sys/src/9/port/mkrootall sys/src/9k/mk/mkroot sys/src/9k/mk/mkrootall
 
 WORKDIR /usr/local/harvey/sys/src
 
 # Is this correct?
 ENV USER=root
 ENV HARVEY=/usr/local/harvey
+
+ENV PATH="${PATH}:/rc/bin"
 
 ENTRYPOINT ["bash", "RUN_BUILD_IN_PRIVATE_NAMESPACE"]
