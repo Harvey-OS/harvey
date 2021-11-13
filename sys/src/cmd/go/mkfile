@@ -39,8 +39,7 @@ installdirs:V:
 cleandirs:V:
 	for (i in $DIRS) @{
 		echo clean $i
-		cd $i
-		rm -f $i
+		rm -f $i/$i
 	}
 
 update:V:
