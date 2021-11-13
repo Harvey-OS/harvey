@@ -36,9 +36,6 @@ RUN cd /usr/local \
 # Build toolchains
 WORKDIR /usr/local/harvey/sys/src
 
-COPY BUILD /usr/local/harvey/sys/src
-RUN chmod +x /usr/local/harvey/sys/src/BUILD
-
 # true->size is a hack to make size not fail when building - best to remove this sometime
 
 RUN if [ `uname -p` = "aarch64" ]; then \
