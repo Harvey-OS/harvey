@@ -78,6 +78,16 @@ RUN if [ `uname -p` = "aarch64" ]; then \
 RUN cp ${PLAN9}/bin/rc /bin/rc
 
 RUN bash BUILDTOOLCHAIN
+
+# pcc execs /bin/cpp, so copy our cpp there
+# TODO tidy up these conditionals
+RUN if [ `uname -p` = "aarch64" ]; then \
+    cp /usr/local/harvey/linux_arm64/bin/cpp /bin; \
+  else \
+    cp /usr/local/harvey/linux_amd64/bin/cpp /bin; \
+  fi
+
+
 WORKDIR /usr/local/harvey/sys/src/cmd
 RUN bash BUILD
 
