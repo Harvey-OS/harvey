@@ -137,7 +137,9 @@ cd /sys/src/cmd && mk nuke
 
 # dist
 
-mkdir -p /sys/lib/dist/bin/386
+for(i in $arch){
+	mkdir -p /sys/lib/dist/bin/$i
+}
 mkdir -p /sys/lib/dist/pc/multi
 cd /sys/lib/dist/cmd && mk clean && mk install && mk clean
 cd /sys/lib/dist/cmd/multi && mk clean && mk && mk install && mk scripts && mk clean

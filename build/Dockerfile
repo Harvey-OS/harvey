@@ -57,6 +57,7 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     cp ${PLAN9}/bin/date /usr/local/harvey/linux_arm64/bin; \
     cp ${PLAN9}/bin/dd /usr/local/harvey/linux_arm64/bin; \
     cp ${PLAN9}/bin/rm /usr/local/harvey/linux_arm64/bin; \
+    cp ${PLAN9}/bin/basename /usr/local/harvey/linux_arm64/bin; \
     cp /bin/true /usr/local/harvey/linux_arm64/bin/size; \
   else \
     mkdir -p /usr/local/harvey/linux_amd64/bin; \
@@ -67,6 +68,7 @@ RUN if [ `uname -p` = "aarch64" ]; then \
     cp ${PLAN9}/bin/date /usr/local/harvey/linux_amd64/bin; \
     cp ${PLAN9}/bin/dd /usr/local/harvey/linux_amd64/bin; \
     cp ${PLAN9}/bin/rm /usr/local/harvey/linux_amd64/bin; \
+    cp ${PLAN9}/bin/basename /usr/local/harvey/linux_amd64/bin; \
     cp /bin/true /usr/local/harvey/linux_amd64/bin/size; \
   fi
 
