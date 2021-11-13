@@ -7,7 +7,7 @@ set +x
 which mk
 export FORCERCFORMK=1
 export CGO_ENABLED=0
-PATH=`pwd`/../../linux_amd64/bin:$PATH
+PATH=$PLAN9/bin:`pwd`/../../linux_amd64/bin:$PATH
 export objtype=amd64
 export cputype=unix
 HARVEY=`pwd`/../..
