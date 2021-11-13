@@ -105,28 +105,6 @@ RUN if [ `uname -p` = "aarch64" ]; then \
 # Last bits of prep for harvey image to allow building inside the container
 WORKDIR /usr/local/harvey
 
-# TODO should really be in the build scripts
-RUN mkdir -p amd64/lib
-RUN mkdir -p acme/bin/amd64
-RUN mkdir -p acme/lib
-RUN mkdir -p amd64/bin/auth
-RUN mkdir -p amd64/bin/aux
-RUN mkdir -p amd64/bin/dial
-RUN mkdir -p amd64/bin/disk
-RUN mkdir -p amd64/bin/fossil
-RUN mkdir -p amd64/bin/fs
-RUN mkdir -p amd64/bin/games
-RUN mkdir -p amd64/bin/ip
-RUN mkdir -p amd64/bin/ip/httpd
-RUN mkdir -p amd64/bin/ndb
-RUN mkdir -p amd64/bin/replica
-RUN mkdir -p amd64/bin/upas/
-RUN mkdir -p amd64/bin/usb
-RUN mkdir -p amd64/bin/venti
-RUN mkdir -p lib/audio
-RUN mkdir -p mail/lib
-RUN mkdir -p rc/bin
-
 # Modify some mkfiles to handle binaries in subfolders
 # TODO not sure if this is great, since it'll alter the mkfiles in the image
 RUN sed -i 's/aux\/mklatinkbd/mklatinkbd/' sys/src/9/port/portmkfile sys/src/9k/mk/portmkfile

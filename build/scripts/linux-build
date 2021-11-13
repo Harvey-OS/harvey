@@ -123,9 +123,32 @@ fn build_mips64{
 	cd /sys/src && objtype=mips64 {mk nuke && mk install && mk clean}
 }
 
-arch=(amd64)
+mkdir -p /acme/lib
+mkdir -p /lib/audio
+mkdir -p /mail/lib
+mkdir -p /rc/bin
+
+arch=(386 amd64)
 for(i in $arch){
 	echo build $i
+
+	mkdir -p /acme/bin/$i
+	mkdir -p /$i/lib
+	mkdir -p /$i/bin/auth
+	mkdir -p /$i/bin/aux
+	mkdir -p /$i/bin/dial
+	mkdir -p /$i/bin/disk
+	mkdir -p /$i/bin/fossil
+	mkdir -p /$i/bin/fs
+	mkdir -p /$i/bin/games
+	mkdir -p /$i/bin/ip
+	mkdir -p /$i/bin/ip/httpd
+	mkdir -p /$i/bin/ndb
+	mkdir -p /$i/bin/replica
+	mkdir -p /$i/bin/upas
+	mkdir -p /$i/bin/usb
+	mkdir -p /$i/bin/venti
+
 	build_$i
 	if(! ~ $status '')
 		exit build
