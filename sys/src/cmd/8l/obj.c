@@ -1148,7 +1148,7 @@ eof:
 Sym*
 lookup(char *symb, int v)
 {
-	Sym *s;
+	Sym *s, *s2;
 	char *p;
 	long h;
 	int l, c;
@@ -1164,18 +1164,18 @@ lookup(char *symb, int v)
 		if(memcmp(s->name, symb, l) == 0)
 			return s;
 
-	s = malloc(sizeof(Sym));
-	s->name = malloc(l + 1);
-	memmove(s->name, symb, l);
+	s2 = malloc(sizeof(Sym));
+	s2->name = malloc(l + 1);
+	memmove(s2->name, symb, l);
 
-	s->link = hash[h];
-	s->type = 0;
-	s->version = v;
-	s->value = 0;
-	s->sig = 0;
-	hash[h] = s;
+	s2->link = hash[h];
+	s2->type = 0;
+	s2->version = v;
+	s2->value = 0;
+	s2->sig = 0;
+	hash[h] = s2;
 	nsymbol++;
-	return s;
+	return s2;
 }
 
 Prog*
