@@ -606,7 +606,12 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 		}
 	}
 
-	u = malloc(sizeof(Auto));
+	while(nhunk < sizeof(Auto))
+		gethunk();
+	u = (Auto*)hunk;
+	nhunk -= sizeof(Auto);
+	hunk += sizeof(Auto);
+
 	u->link = curauto;
 	curauto = u;
 	u->asym = s;
@@ -907,7 +912,12 @@ loop:
 		goto loop;
 	}
 
-	p = malloc(sizeof(Prog));
+	while(nhunk < sizeof(Prog))
+		gethunk();
+	p = (Prog*)hunk;
+	nhunk -= sizeof(Prog);
+	hunk += sizeof(Prog);
+
 	p->as = o;
 	p->line = bloc[2] | (bloc[3] << 8) | (bloc[4] << 16) | (bloc[5] << 24);
 	p->back = 2;
@@ -1148,7 +1158,7 @@ eof:
 Sym*
 lookup(char *symb, int v)
 {
-	Sym *s, *s2;
+	Sym *s;
 	char *p;
 	long h;
 	int l, c;
@@ -1164,24 +1174,36 @@ lookup(char *symb, int v)
 		if(memcmp(s->name, symb, l) == 0)
 			return s;
 
-	s2 = malloc(sizeof(Sym));
-	s2->name = malloc(l + 1);
-	memmove(s2->name, symb, l);
+	while(nhunk < sizeof(Sym))
+		gethunk();
+	s = (Sym*)hunk;
+	nhunk -= sizeof(Sym);
+	hunk += sizeof(Sym);
 
-	s2->link = hash[h];
-	s2->type = 0;
-	s2->version = v;
-	s2->value = 0;
-	s2->sig = 0;
-	hash[h] = s2;
+	s->name = malloc(l + 1);
+	memmove(s->name, symb, l);
+
+	s->link = hash[h];
+	s->type = 0;
+	s->version = v;
+	s->value = 0;
+	s->sig = 0;
+	hash[h] = s;
 	nsymbol++;
-	return s2;
+	return s;
 }
 
 Prog*
 prg(void)
 {
-	Prog *p = malloc(sizeof(Prog));
+	Prog *p;
+
+	while(nhunk < sizeof(Prog))
+		gethunk();
+	p = (Prog*)hunk;
+	nhunk -= sizeof(Prog);
+	hunk += sizeof(Prog);
+
 	*p = zprg;
 	return p;
 }
