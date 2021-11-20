@@ -236,7 +236,7 @@ EXTERN	char	inuxi4[4];
 EXTERN	char	inuxi8[8];
 EXTERN	Prog*	lastp;
 EXTERN	long	lcsize;
-EXTERN	char	literal[32];
+EXTERN	char	literal[64];
 EXTERN	int	nerrors;
 EXTERN	long	nhunk;
 EXTERN	Prog	nopalign;
