@@ -11,7 +11,8 @@ fn build_386{
 	cd /sys/src && objtype=386 {mk nuke && mk install && mk clean}
 
 	echo build 386 clean /sys/src/9/pc
-	cd /sys/src/9/pc && for(i in pcf pccpu pccpuf) {test -f $i && mk nuke && mk CONF'='$i install && mk clean}
+	cd /sys/src/9/pc && for(i in pcf pccpu pccpuf) {
+		test -f $i && mk nuke && echo "done nuke $i" && mk CONF'='$i install && echo "done install $i" && mk clean}
 
 	if(test -d /sys/src/9/pcboot) {
 		echo build 386 clean pcboot
