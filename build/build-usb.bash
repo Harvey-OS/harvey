@@ -19,8 +19,13 @@ fi
 rm -f harvey.tgz
 (cd ..; tar --format ustar --exclude './build' --exclude harvey.tgz --exclude .git --exclude '9legacy.iso*' -czf harvey.tgz *)
 
+FLAG_KVM=""
+case $(uname -s) in
+    "Linux") FLAG_KVM="-accel kvm" ;;
+esac
+
 expect <<EOF
-spawn qemu-system-i386 -accel kvm -nographic -net user -net nic,model=virtio -m 4096 -vga none -cdrom 9legacy.iso -boot d -hda ../harvey.tgz
+spawn qemu-system-i386 $FLAG_KVM -nographic -net user -net nic,model=virtio -m 4096 -vga none -cdrom 9legacy.iso -boot d -hda ../harvey.tgz
 expect -exact "Selection:"
 send "2\n"
 expect -exact "Plan 9"
