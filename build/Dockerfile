@@ -1,4 +1,7 @@
 # docker build -t harvey:Dockerfile .
+# (or:
+#   docker build --progress=plain -t harvey:Dockerfile .
+#  if you want to see the output from commands (useful for debugging build))
 # docker run --rm -it --cap-add SYS_ADMIN --privileged harvey:Dockerfile
 
 # TODO probably need to pass in aarch64 as an env var
@@ -10,6 +13,8 @@ RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get install -y build-essential git sudo
 
+
+########################################################################
 # Only use layer cache if the git repo hasn't changed.  This ensures we
 # always have the latest code, but make use of the cache where possible.
 ARG OWNER=9fans
@@ -24,84 +29,25 @@ RUN cd /usr/local \
 ENV PLAN9=/usr/local/plan9port
 ENV PATH="${PATH}:${PLAN9}/bin"
 
-# Fetch latest harvey (using cache if possible)
-# TODO Populate these args from CI
-ARG OWNER=Harvey-OS
-ARG REPO=harvey
-ARG BRANCH=main
-ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
-RUN cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
-
-# Build toolchains
-WORKDIR /usr/local/harvey/sys/src
-
-# true->size is a hack to make size not fail when building - best to remove this sometime
-
-RUN if [ `uname -p` = "aarch64" ]; then \
-    sed -i 's/linux_amd64/linux_arm64/' BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/6a/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/6c/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/6l/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/8a/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/8c/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/8l/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/cpp/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/aux/BUILD; \
-    mkdir -p /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/sed /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/yacc /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/lex /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/awk /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/date /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/dd /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/rm /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/basename /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/ls /usr/local/harvey/linux_arm64/bin; \
-    cp /bin/true /usr/local/harvey/linux_arm64/bin/size; \
-  else \
-    mkdir -p /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/sed /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/yacc /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/lex /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/awk /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/date /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/dd /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/rm /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/basename /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/ls /usr/local/harvey/linux_amd64/bin; \
-    cp /bin/true /usr/local/harvey/linux_amd64/bin/size; \
-  fi
-
 # To make rc scripts run
 RUN cp ${PLAN9}/bin/rc /bin/rc
 
-RUN bash BUILDTOOLCHAIN
 
-# pcc execs /bin/cpp, so copy our cpp there
-# TODO tidy up these conditionals
-RUN if [ `uname -p` = "aarch64" ]; then \
-    cp /usr/local/harvey/linux_arm64/bin/cpp /bin; \
-  else \
-    cp /usr/local/harvey/linux_amd64/bin/cpp /bin; \
-  fi
-
-
-WORKDIR /usr/local/harvey/sys/src/cmd
-RUN bash BUILD
-
+########################################################################
 # Build ar from 9-cc
+# Do this early since it's less likely to change than the harvey repo,
+# allowing us to use the cached layers.
 ARG OWNER=0intro
 ARG REPO=9-cc
 ARG BRANCH=master
 ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
 RUN cd /usr/local \
     && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
-WORKDIR /usr/local/9-cc
+ENV NINECC=/usr/local/9-cc
+WORKDIR $NINECC
 
-COPY 9-cc.patch /usr/local/9-cc/9-cc.patch
-RUN git apply /usr/local/9-cc/9-cc.patch
+COPY 9-cc.patch $NINECC/9-cc.patch
+RUN git apply $NINECC/9-cc.patch
 
 RUN if [ `uname -p` = "aarch64" ]; then \
     mkdir -p Linux/arm/bin; \
@@ -123,18 +69,61 @@ RUN if [ `uname -p` = "aarch64" ]; then \
   fi
 
 RUN mk
+# We'll copy the ar binary into the harvey bin folder once it exists
+
+
+########################################################################
+# Fetch latest harvey (using cache if possible)
+# TODO Populate these args from CI
+ARG OWNER=Harvey-OS
+ARG REPO=harvey
+ARG BRANCH=main
+ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+RUN cd /usr/local \
+    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
+
+
+########################################################################
+# Build toolchains for linux host
+# (true->size is a hack to make size not fail when building - best to remove this sometime)
+WORKDIR /usr/local/harvey/sys/src
+
+RUN pwd
+RUN ls /usr/local/harvey
+
 
 RUN if [ `uname -p` = "aarch64" ]; then \
-    cp src/cmd/iar/o.out /usr/local/harvey/linux_arm64/bin/ar; \
+    sed -i 's/linux_amd64/linux_arm64/' BUILD cmd/BUILD cmd/6a/BUILD cmd/6c/BUILD cmd/6l/BUILD && \
+    sed -i 's/linux_amd64/linux_arm64/' cmd/8a/BUILD cmd/8c/BUILD cmd/8l/BUILD cmd/cpp/BUILD cmd/aux/BUILD && \
+    mkdir -p /usr/local/harvey/linux_arm64/bin && \
+    cp /bin/true /usr/local/harvey/linux_arm64/bin/size && \
+    cp ${NINECC}/src/cmd/iar/o.out /usr/local/harvey/linux_arm64/bin/ar && \
+    cd ${PLAN9}/bin && \
+    cp sed yacc lex awk date dd rm basename ls /usr/local/harvey/linux_arm64/bin; \
   else \
-    cp src/cmd/iar/o.out /usr/local/harvey/linux_amd64/bin/ar; \
+    mkdir -p /usr/local/harvey/linux_amd64/bin && \
+    cp ${NINECC}/src/cmd/iar/o.out /usr/local/harvey/linux_amd64/bin/ar && \
+    cp /bin/true /usr/local/harvey/linux_amd64/bin/size && \
+    cd ${PLAN9}/bin && \
+    cp sed yacc lex awk date dd rm basename ls /usr/local/harvey/linux_amd64/bin; \
   fi
 
-# Last bits of prep for harvey image to allow building inside the container
-WORKDIR /usr/local/harvey
+RUN bash BUILDTOOLCHAIN
+
+# cpp was build in the BUILDTOOLCHAIN script.
+# We need to copy cpp to /bin because pcc execs /bin/cpp.
+RUN if [ `uname -p` = "aarch64" ]; then \
+    cp /usr/local/harvey/linux_arm64/bin/cpp /bin; \
+  else \
+    cp /usr/local/harvey/linux_amd64/bin/cpp /bin; \
+  fi
+
+WORKDIR /usr/local/harvey/sys/src/cmd
+RUN bash BUILD
 
 # Modify some mkfiles to handle binaries in subfolders
 # TODO not sure if this is great, since it'll alter the mkfiles in the image
+WORKDIR /usr/local/harvey
 RUN sed -i 's/aux\/mklatinkbd/mklatinkbd/' sys/src/9/port/portmkfile sys/src/9k/mk/portmkfile
 RUN sed -i 's/aux\/data2s/data2s/' sys/src/9/port/mkroot sys/src/9/port/mkrootall sys/src/9k/mk/mkroot sys/src/9k/mk/mkrootall
 
