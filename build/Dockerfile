@@ -14,15 +14,26 @@ RUN apt-get -y upgrade
 RUN apt-get install -y build-essential git sudo
 
 
+# Various github repo args
+ARG NINEFANS_OWNER=9fans
+ARG NINEFANS_REPO=plan9port
+ARG NINEFANS_BRANCH=master
+
+ARG NINECC_OWNER=0intro
+ARG NINECC_REPO=9-cc
+ARG NINECC_BRANCH=master
+
+ARG HARVEY_OWNER=Harvey-OS
+ARG HARVEY_REPO=harvey
+ARG HARVEY_BRANCH=main
+
+
 ########################################################################
 # Only use layer cache if the git repo hasn't changed.  This ensures we
 # always have the latest code, but make use of the cache where possible.
-ARG OWNER=9fans
-ARG REPO=plan9port
-ARG BRANCH=master
-ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+ADD https://api.github.com/repos/$NINEFANS_OWNER/$NINEFANS_REPO/git/refs/heads/$NINEFANS_BRANCH version.json
 RUN cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git \
+    && git clone -b $NINEFANS_BRANCH https://github.com/$NINEFANS_OWNER/$NINEFANS_REPO.git \
     && cd plan9port \
     && ./INSTALL
 
@@ -37,12 +48,9 @@ RUN cp ${PLAN9}/bin/rc /bin/rc
 # Build ar from 9-cc
 # Do this early since it's less likely to change than the harvey repo,
 # allowing us to use the cached layers.
-ARG OWNER=0intro
-ARG REPO=9-cc
-ARG BRANCH=master
-ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+ADD https://api.github.com/repos/$NINECC_OWNER/$NINECC_REPO/git/refs/heads/$NINECC_BRANCH version.json
 RUN cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
+    && git clone -b $NINECC_BRANCH https://github.com/$NINECC_OWNER/$NINECC_REPO.git
 ENV NINECC=/usr/local/9-cc
 WORKDIR $NINECC
 
@@ -75,12 +83,9 @@ RUN mk
 ########################################################################
 # Fetch latest harvey (using cache if possible)
 # TODO Populate these args from CI
-ARG OWNER=Harvey-OS
-ARG REPO=harvey
-ARG BRANCH=main
-ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+ADD https://api.github.com/repos/$HARVEY_OWNER/$HARVEY_REPO/git/refs/heads/$HARVEY_BRANCH version.json
 RUN cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
+    && git clone -b $HARVEY_BRANCH https://github.com/$HARVEY_OWNER/$HARVEY_REPO.git
 
 
 ########################################################################
