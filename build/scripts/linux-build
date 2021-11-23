@@ -6,27 +6,17 @@ rfork en
 fn build_386{
 #	for(i in /sys/src/libc) {cd $i && mk nuke && mk install && mk clean}
 #	for(i in /sys/src/cmd/8?) {cd $i && mk nuke && mk install && mk clean}
-
-	echo build 386 clean /sys/src
 	cd /sys/src && objtype=386 {mk nuke && mk install && mk clean}
-
-	echo build 386 clean /sys/src/9/pc
-	cd /sys/src/9/pc && for(i in pcf pccpu pccpuf) {
-		test -f $i && mk nuke && echo "done nuke $i" && mk CONF'='$i install && echo "done install $i" && mk clean}
-
+	cd /sys/src/9/pc && for(i in pcf pccpu pccpuf) {test -f $i && mk nuke && mk CONF'='$i install && mk clean}
 	if(test -d /sys/src/9/pcboot) {
-		echo build 386 clean pcboot
 		rm -f /386/9load* /386/9pxe* /386/mbr /386/pbs /386/pbslba
 		if (test -f /sys/src/9/pcboot/bootcfg) # Geoff
 			cd /sys/src/9/pcboot && for(i in boot bootpbs load loadusb) {test -f $i && mk clean && mk CONF'='$i install && mk clean}
 		if not
 			cd /sys/src/9/pcboot && mk clean && mk install && mk clean
-
-		echo build 386 clean boot/pc
 		cd /sys/src/boot/pc && mk clean && mk install && mk clean
 	}
 	if not {
-		echo build 386 clean boot/pc (pc-e820)
 		cd /sys/src/boot/pc && mk clean && mk install && mk clean
 		if(test -d /sys/src/boot/pc-e820)
 			cd /sys/src/boot/pc-e820 && mk clean && mk install && mk clean
