@@ -93,8 +93,9 @@ RUN ls /usr/local/harvey
 
 
 RUN if [ `uname -p` = "aarch64" ]; then \
-    sed -i 's/linux_amd64/linux_arm64/' BUILD cmd/BUILD cmd/6a/BUILD cmd/6c/BUILD cmd/6l/BUILD && \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/8a/BUILD cmd/8c/BUILD cmd/8l/BUILD cmd/cpp/BUILD cmd/aux/BUILD && \
+    sed -i 's/linux_amd64/linux_arm64/' \
+        BUILD cmd/BUILD cmd/6a/BUILD cmd/6c/BUILD cmd/6l/BUILD \
+        cmd/8a/BUILD cmd/8c/BUILD cmd/8l/BUILD cmd/cpp/BUILD cmd/aux/BUILD && \
     mkdir -p /usr/local/harvey/linux_arm64/bin && \
     cp /bin/true /usr/local/harvey/linux_arm64/bin/size && \
     cp ${NINECC}/src/cmd/iar/o.out /usr/local/harvey/linux_arm64/bin/ar && \
