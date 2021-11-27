@@ -1,0 +1,31 @@
+#!/bin/bash
+
+export HARVEY=/usr/local/harvey
+export HARVEY_LINUX_BIN=/usr/local/harvey_linux/bin
+
+mkdir -p $HARVEY_LINUX_BIN
+
+# Build toolchain
+# TODO Merge cmd/BUILD and BUILDTOOLCHAIN?
+bash $HARVEY/sys/src/BUILDTOOLCHAIN
+# cpp was build in the BUILDTOOLCHAIN script.
+# We need to copy cpp to /bin because pcc execs /bin/cpp.
+cp $HARVEY_LINUX_BIN/cpp /bin
+# build pcc
+bash $HARVEY/sys/src/cmd/BUILD
+
+# Modify some mkfiles to handle binaries in subfolders
+# TODO not sure if this is great, since it'll alter the mkfiles in the image - maybe undo after?
+sed -i 's/aux\/mklatinkbd/mklatinkbd/' $HARVEY/sys/src/9/port/portmkfile $HARVEY/sys/src/9k/mk/portmkfile
+sed -i 's/aux\/data2s/data2s/' $HARVEY/sys/src/9/port/{mkroot,mkrootall} $HARVEY/sys/src/9k/mk/{mkroot,mkrootall}
+
+# TODO need to make our bind script handle binds of single files
+cp $HARVEY/build/bind /bin
+
+# Is this correct?
+export USER=root
+export PATH="${PATH}:/rc/bin"
+
+cd $HARVEY/sys/src
+#bash RUN_BUILD_IN_PRIVATE_NAMESPACE
+bash
