@@ -1,5 +1,4 @@
 #!/bin/sh
-mkdir -p ../../../../linux_amd64/bin
 9c -Wno-char-subscripts \
    -Wno-format \
    -Wno-unused-variable \
@@ -27,5 +26,4 @@ mkdir -p ../../../../linux_amd64/bin
 	include.o\
 	hideset.o\
 
-cp cpp ../../../../linux_amd64/bin
-
+cp cpp $HARVEY_LINUX_BIN
