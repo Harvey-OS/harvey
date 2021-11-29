@@ -60,12 +60,21 @@ main(int argc, char *argv[])
 		break;
 
 	case 'l':			/* for little-endian mips */
-		if(thechar != 'v'){
-			print("can only use -l with vc");
+		switch(thechar) {
+		default:
+			print("can only use -l with vc or 4c\n");
 			errorexit();
+
+		case 'v':
+			thechar = '0';
+			thestring = "spim";
+			break;
+
+		case '4':
+			thechar = 'x';
+			thestring = "spim64";
+			break;
 		}
-		thechar = '0';
-		thestring = "spim";
 		break;
 
 	case 'o':

@@ -29,9 +29,7 @@ enam.c:	4.out.h
 	rc mkenam
 
 $LIB:
-	rfork
-	bind lex.c ../cc/lex.c	# hack
-	builtin cd ../cc		# for acme
+	cd ../cc
 	mk install
 	mk clean
 
