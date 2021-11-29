@@ -1,10 +1,15 @@
+# First build the container:
 # docker build -t harvey:Dockerfile .
 # (or:
 #   docker build --progress=plain -t harvey:Dockerfile .
 #  if you want to see the output from commands (useful for debugging build))
-# docker run --rm -it --cap-add SYS_ADMIN --privileged harvey:Dockerfile
+#
+# Now run container to build.
+# If you want to build from the repo (i.e. for CI), run:
+#   docker run --rm -it --cap-add SYS_ADMIN --privileged harvey:Dockerfile
+# If you want to build from a local folder (e.g. the current directoy), run:
+#   docker run --rm -it --mount type=bind,source="$(pwd)"/..,target=/usr/local/harvey_local,readonly --cap-add SYS_ADMIN --privileged harvey:Dockerfile
 
-# TODO probably need to pass in aarch64 as an env var
 # TODO mahjonng doesn't build becuase of problems with cpp - fix cpp!
 
 FROM ubuntu:21.10
@@ -12,6 +17,10 @@ FROM ubuntu:21.10
 RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get install -y build-essential git sudo
+
+ENV HARVEY=/usr/local/harvey
+ENV HARVEY_LINUX_BIN=/usr/local/harvey_linux/bin
+RUN mkdir -p $HARVEY_LINUX_BIN
 
 
 ########################################################################
@@ -69,74 +78,9 @@ RUN if [ `uname -p` = "aarch64" ]; then \
   fi
 
 RUN mk
-# We'll copy the ar binary into the harvey bin folder once it exists
+RUN cp ${NINECC}/src/cmd/iar/o.out $HARVEY_LINUX_BIN/ar
 
+#TEMP!
+COPY BUILD_IN_DOCKER /usr/local/
 
-########################################################################
-# Fetch latest harvey (using cache if possible)
-# TODO Populate these args from CI
-ARG HARVEY_OWNER=Harvey-OS
-ARG HARVEY_REPO=harvey
-ARG HARVEY_BRANCH=main
-ADD https://api.github.com/repos/$HARVEY_OWNER/$HARVEY_REPO/git/refs/heads/$HARVEY_BRANCH version.json
-RUN cd /usr/local \
-    && git clone -b $HARVEY_BRANCH https://github.com/$HARVEY_OWNER/$HARVEY_REPO.git
-
-
-########################################################################
-# Build toolchains for linux host
-# (true->size is a hack to make size not fail when building - best to remove this sometime)
-WORKDIR /usr/local/harvey/sys/src
-
-RUN pwd
-RUN ls /usr/local/harvey
-
-
-RUN if [ `uname -p` = "aarch64" ]; then \
-    sed -i 's/linux_amd64/linux_arm64/' \
-        BUILD cmd/BUILD cmd/6a/BUILD cmd/6c/BUILD cmd/6l/BUILD \
-        cmd/8a/BUILD cmd/8c/BUILD cmd/8l/BUILD cmd/cpp/BUILD cmd/aux/BUILD && \
-    mkdir -p /usr/local/harvey/linux_arm64/bin && \
-    cp /bin/true /usr/local/harvey/linux_arm64/bin/size && \
-    cp ${NINECC}/src/cmd/iar/o.out /usr/local/harvey/linux_arm64/bin/ar && \
-    cd ${PLAN9}/bin && \
-    cp sed yacc lex awk date dd rm basename ls /usr/local/harvey/linux_arm64/bin; \
-  else \
-    mkdir -p /usr/local/harvey/linux_amd64/bin && \
-    cp ${NINECC}/src/cmd/iar/o.out /usr/local/harvey/linux_amd64/bin/ar && \
-    cp /bin/true /usr/local/harvey/linux_amd64/bin/size && \
-    cd ${PLAN9}/bin && \
-    cp sed yacc lex awk date dd rm basename ls /usr/local/harvey/linux_amd64/bin; \
-  fi
-
-RUN bash BUILDTOOLCHAIN
-
-# cpp was build in the BUILDTOOLCHAIN script.
-# We need to copy cpp to /bin because pcc execs /bin/cpp.
-RUN if [ `uname -p` = "aarch64" ]; then \
-    cp /usr/local/harvey/linux_arm64/bin/cpp /bin; \
-  else \
-    cp /usr/local/harvey/linux_amd64/bin/cpp /bin; \
-  fi
-
-WORKDIR /usr/local/harvey/sys/src/cmd
-RUN bash BUILD
-
-# Modify some mkfiles to handle binaries in subfolders
-# TODO not sure if this is great, since it'll alter the mkfiles in the image
-WORKDIR /usr/local/harvey
-RUN sed -i 's/aux\/mklatinkbd/mklatinkbd/' sys/src/9/port/portmkfile sys/src/9k/mk/portmkfile
-RUN sed -i 's/aux\/data2s/data2s/' sys/src/9/port/mkroot sys/src/9/port/mkrootall sys/src/9k/mk/mkroot sys/src/9k/mk/mkrootall
-
-COPY bind /bin
-RUN chmod +x /bin/bind
-
-WORKDIR /usr/local/harvey/sys/src
-
-# Is this correct?
-ENV USER=root
-ENV HARVEY=/usr/local/harvey
-
-ENV PATH="${PATH}:/rc/bin"
-
-ENTRYPOINT ["bash", "RUN_BUILD_IN_PRIVATE_NAMESPACE"]
+ENTRYPOINT ["bash", "/usr/local/BUILD_IN_DOCKER"]
