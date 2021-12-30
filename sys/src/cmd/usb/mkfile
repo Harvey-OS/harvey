@@ -1,17 +1,15 @@
 </$objtype/mkfile
 
-BUGGERED=\
-	disk\
-	usbd\
-
 # order matters here.  build lib first and usbd last.
 DIRS=\
 	lib\
 	audio\
+	disk\
 	ether\
 	kb\
 	print\
 	serial\
+	usbd\
 
 UPDATE=\
 	mkfile\
