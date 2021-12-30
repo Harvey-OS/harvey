@@ -1,0 +1,17 @@
+ed - ../ql/l.h <<'!'
+v/^	C_/d
+g/^	C_NCLASS/s//&,/
+g/[ 	]*=.*,/s//,/
+v/,/p
+,s/^	C_/	"/
+,s/,.*$/",/
+1i
+char	*cnames[] =
+{
+.
+,a
+};
+.
+w cnam.c
+Q
+!
