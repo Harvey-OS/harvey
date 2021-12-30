@@ -1,14 +1,13 @@
 #!/bin/bash
 set +x
-# assumptions: 
-# go 1.16 or newer?
-# plan9ports/bin is LAST in your path
 . buildnamespace
 which mk
-
-# we clean things out b/c it really is no time penalty
-# and we want to be sure it all gets built.
+export FORCERCFORMK=1
 mk clean
+mk libs
+# yes, plan 9 really needs this!
+PATH=$PATH:.
+mk all
 
 time rc $HARVEY/build/scripts/linux-build
 
