@@ -41,6 +41,7 @@ LIBS=\
 
 
 CMDS=cmd\
+	nboot\
 	games\
 
 SUBSYS=ape\
