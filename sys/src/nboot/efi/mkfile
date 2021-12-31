@@ -11,6 +11,8 @@ install:V: $TARG
 
 bootia32.efi:	pe32.8 efi.8 fs.8 pxe.8 iso.8 sub.8
 	8l -l -H3 -T$IMAGEBASE -o $target $prereq
+	cp $target /386
+	cp $target /amd64
 
 pe32.8:	pe32.s
 	8a $PEFLAGS pe32.s
@@ -36,6 +38,8 @@ sub.8:	sub.c
 bootx64.efi:	pe64.6 efi.6 fs.6 pxe.6 iso.6 sub.6
 	6l -l -s -R1 -T$IMAGEBASE -o bootx64.out $prereq
 	dd -if bootx64.out -bs 1 -iseek 40 >$target
+	cp $target /386
+	cp $target /amd64
 
 pe64.6:	pe64.s
 	6a $PEFLAGS pe64.s
