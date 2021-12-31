@@ -74,5 +74,8 @@ extern int	connectembed(void);
 
 extern void	configip(int, char**, int);
 
+extern void	configrc(Method*);
+extern int	connectrc(void);
+
 /* hack for passing authentication address */
 extern char	*authaddr;

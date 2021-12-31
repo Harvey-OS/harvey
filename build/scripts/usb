@@ -63,7 +63,7 @@ cp $build/386/9loadusb /tmp/9load
 disk/mbr -m $build/386/mbr $data
 disk/fdisk -baw $data
 disk/prep -bw -a^(9fat nvram fscfg fossil) $plan9
-disk/format -b /386/pbslba -d -r 2 $9fat /tmp/9load $build/386/9pcf $build/386/9pccpuf /tmp/plan9.ini
+disk/format -b $build/386/pbslba -d -r 2 $9fat /tmp/9load $build/386/9pcf $build/386/9pccpuf /tmp/plan9.ini
 
 rm /tmp/9load
 rm /tmp/plan9.ini

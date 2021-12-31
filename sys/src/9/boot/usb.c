@@ -99,6 +99,15 @@ startpartfs(int post)
 }
 
 static int
+usbparts(void)
+{
+	dprint("usbpart... ");
+	run("/boot/rc", "-m", "/boot/rcmain", "-c", "/boot/fdisk -p /dev/sdXX/data > /dev/sdXX/ctl", nil);
+	run("/boot/rc", "-m", "/boot/rcmain", "-c", "/boot/prep -p /dev/sdXX/plan9 > /dev/sdXX/ctl", nil);
+	return 0;
+}
+
+static int
 mountusb(void)
 {
 	int fd;
@@ -119,7 +128,8 @@ int
 mountusbparts(void)
 {
 	mountusb();
-	return startpartfs(Post);
+	startpartfs(Post);
+	return usbparts();
 }
 
 /*

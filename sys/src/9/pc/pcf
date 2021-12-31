@@ -137,6 +137,7 @@ port
 boot boot #S/sdC0/
 	tcp
 	local
+	rc
 
 bootdir
 	boot$CONF.out boot
@@ -147,3 +148,10 @@ bootdir
 	/386/bin/usb/usbd
 # needed to boot from a usb key and use its fossil
 	/386/bin/disk/partfs
+	/386/bin/rc
+	/rc/lib/rcmain
+	/386/bin/disk/prep
+	/386/bin/disk/fdisk
+	/386/bin/ls
+	/386/bin/bind
+	/386/bin/mount
