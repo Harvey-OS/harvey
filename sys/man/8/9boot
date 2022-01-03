@@ -1,6 +1,6 @@
 .TH 9BOOT 8
 .SH NAME
-9boot, 9bootpbs, 9load, 9loadusb, pbs \- PC bootstrap programs
+9bootfat, 9bootiso, 9bootpxe, bootia32.efi, bootx64.efi, efiboot.fat \- PC bootloader for FAT, ISO and PXE network booting
 .SH SYNOPSIS
 .I none
 .SH DESCRIPTION
@@ -499,6 +499,7 @@ files on your TFTP server
 .IB "FAT-filesystem" :\eplan9.ini
 .\" .br
 .\" .IB "FAT-filesystem" :\eplan9\eplan9.ini
+.B /386/efiboot.fat
 .SH SOURCE
 .TF "/sys/src/9/^(pc port ip)"
 .PD 0

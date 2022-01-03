@@ -60,3 +60,52 @@ UPDATE=\
 update:V:
 	update $UPDATEFLAGS $UPDATE
 
+test.iso: 9bootiso 9boothyb 9bootfat mbr pbs
+	rm -fr tmp $target
+	mkdir tmp
+	mkdir tmp/386
+	mkdir tmp/cfg
+	cp 9bootiso tmp/386
+	cp /386/9pc tmp/386
+	cp /sys/lib/dist/cfg/plan9.ini tmp/cfg/plan9.ini
+	echo wait >>tmp/cfg/plan9.ini
+	disk/mk9660 -B 386/9bootiso -p <{echo +} -s tmp $target
+	@{rfork n
+		bind 9boothyb 9bootfat
+		dd -if /dev/zero -bs 512 -count 4096 >> $target
+		disk/partfs -m /n/partfs $target
+		disk=/n/partfs/sdXX
+		disk/mbr -m mbr $disk/data
+		@{echo a p1 '$-1' '$'
+			echo t p1 FAT16
+			echo A p1
+			echo w
+			echo q} | disk/fdisk -b $disk/data
+		disk/format -b pbs -d -r 1 $disk/dos 9bootfat
+	}
+	rm -fr tmp
+
+test.dsk: 9bootfat mbr pbs test.iso
+	rm -fr tmp $target
+	mkdir tmp
+	cp test.iso 9bootfat tmp
+	mkdir tmp/386
+	cp /386/9pc tmp/386
+	echo 'bootfile=/386/9pc' >tmp/plan9.ini
+	dd -if /dev/zero -of $target -bs 512 -count 32768
+	disk/partfs -m /n/$target $target
+	disk=/n/$target/sdXX
+	disk/mbr -m mbr $disk/data
+	disk/fdisk -baw $disk/data
+	disk/prep -bw -a 9fat $disk/plan9
+	disk/format -b pbs -d -r 2 $disk/9fat
+	s=$target.dos
+	m=/n/$target.9fat
+	rm -f /srv/$s
+	dossrv -f $disk/9fat $s
+	mount -c /srv/$s $m
+	@{cd tmp; tar c .} | @{cd $m; tar xv}
+	unmount $m
+	rm -f /srv/$s
+	unmount /n/$target
+	rm -fr tmp
