@@ -536,6 +536,14 @@ extern void rdmsrfail(void);
 static void
 faultgpf(Ureg* ureg, void*)
 {
+	char buf[ERRMAX];
+
+	if (userureg(ureg)) {
+		spllo();
+		snprint(buf, sizeof buf, "sys: trap: %s", excname[VectorGPF]);
+		postnote(up, 1, buf, NDebug);
+		return;
+	}
 	if(ureg->ip != (u64int)mayberdmsr)
 		panic("unhandled GPF at 0x%016llux", ureg->ip);
 	ureg->ip = (u64int)rdmsrfail;

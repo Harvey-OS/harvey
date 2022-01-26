@@ -327,7 +327,7 @@ trap(Ureg* ureg)
 	}
 
 	m->perf.intrts = perfticks();
-	user = (ureg->cs & 0xFFFF) == UESEL;
+	user = userureg(ureg);
 	if(user){
 		up->dbgreg = ureg;
 		cycles(&up->kentry);
@@ -616,6 +616,14 @@ extern void rdmsrfail(void);
 static void
 faultgpf(Ureg* ureg, void*)
 {
+	char buf[ERRMAX];
+
+	if (userureg(ureg)) {
+		spllo();
+		snprint(buf, sizeof buf, "sys: trap: %s", excname[VectorGPF]);
+		postnote(up, 1, buf, NDebug);
+		return;
+	}
 	if(ureg->pc != (ulong)mayberdmsr)
 		panic("unhandled GPF at 0x%.8lux", ureg->pc);
 	ureg->pc = (ulong)rdmsrfail;
@@ -631,7 +639,7 @@ fault386(Ureg* ureg, void*)
 	addr = getcr2();
 	read = !(ureg->ecode & 2);
 
-	user = (ureg->cs & 0xFFFF) == UESEL;
+	user = userureg(ureg);
 	if(!user){
 		if(vmapsync(addr))
 			return;
@@ -678,7 +686,7 @@ syscall(Ureg* ureg)
 	ulong scallnr;
 	vlong startns, stopns;
 
-	if((ureg->cs & 0xFFFF) != UESEL)
+	if(!userureg(ureg))
 		panic("syscall: cs 0x%4.4luX", ureg->cs);
 
 	cycles(&up->kentry);
