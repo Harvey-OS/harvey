@@ -1,7 +1,15 @@
+# First build the container:
 # docker build -t harvey:Dockerfile .
-# docker run --rm -it --cap-add SYS_ADMIN --privileged harvey:Dockerfile
+# (or:
+#   docker build --progress=plain -t harvey:Dockerfile .
+#  if you want to see the output from commands (useful for debugging build))
+#
+# Now run container to build.
+# If you want to build from the repo (i.e. for CI), run:
+#   docker run --rm -it --cap-add SYS_ADMIN --privileged harvey:Dockerfile
+# If you want to build from a local folder (e.g. the current directoy), run:
+#   docker run --rm -it --mount type=bind,source="$(pwd)"/..,target=/usr/local/harvey_local,readonly --cap-add SYS_ADMIN --privileged harvey:Dockerfile
 
-# TODO probably need to pass in aarch64 as an env var
 # TODO mahjonng doesn't build becuase of problems with cpp - fix cpp!
 
 FROM ubuntu:21.10
@@ -10,98 +18,45 @@ RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get install -y build-essential git sudo
 
+ENV HARVEY=/usr/local/harvey
+ENV HARVEY_LINUX_BIN=/usr/local/harvey_linux/bin
+RUN mkdir -p $HARVEY_LINUX_BIN
+
+
+########################################################################
 # Only use layer cache if the git repo hasn't changed.  This ensures we
 # always have the latest code, but make use of the cache where possible.
-ARG OWNER=9fans
-ARG REPO=plan9port
-ARG BRANCH=master
-ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+ARG NINEFANS_OWNER=9fans
+ARG NINEFANS_REPO=plan9port
+ARG NINEFANS_BRANCH=master
+ADD https://api.github.com/repos/$NINEFANS_OWNER/$NINEFANS_REPO/git/refs/heads/$NINEFANS_BRANCH version.json
 RUN cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git \
+    && git clone -b $NINEFANS_BRANCH https://github.com/$NINEFANS_OWNER/$NINEFANS_REPO.git \
     && cd plan9port \
     && ./INSTALL
 
 ENV PLAN9=/usr/local/plan9port
 ENV PATH="${PATH}:${PLAN9}/bin"
 
-# Fetch latest harvey (using cache if possible)
-# TODO Populate these args from CI
-ARG OWNER=Harvey-OS
-ARG REPO=harvey
-ARG BRANCH=main
-ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
-RUN cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
-
-# Build toolchains
-WORKDIR /usr/local/harvey/sys/src
-
-# true->size is a hack to make size not fail when building - best to remove this sometime
-
-RUN if [ `uname -p` = "aarch64" ]; then \
-    sed -i 's/linux_amd64/linux_arm64/' BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/6a/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/6c/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/6l/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/8a/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/8c/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/8l/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/cpp/BUILD; \
-    sed -i 's/linux_amd64/linux_arm64/' cmd/aux/BUILD; \
-    mkdir -p /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/sed /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/yacc /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/lex /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/awk /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/date /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/dd /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/rm /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/basename /usr/local/harvey/linux_arm64/bin; \
-    cp ${PLAN9}/bin/ls /usr/local/harvey/linux_arm64/bin; \
-    cp /bin/true /usr/local/harvey/linux_arm64/bin/size; \
-  else \
-    mkdir -p /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/sed /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/yacc /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/lex /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/awk /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/date /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/dd /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/rm /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/basename /usr/local/harvey/linux_amd64/bin; \
-    cp ${PLAN9}/bin/ls /usr/local/harvey/linux_amd64/bin; \
-    cp /bin/true /usr/local/harvey/linux_amd64/bin/size; \
-  fi
-
 # To make rc scripts run
 RUN cp ${PLAN9}/bin/rc /bin/rc
 
-RUN bash BUILDTOOLCHAIN
 
-# pcc execs /bin/cpp, so copy our cpp there
-# TODO tidy up these conditionals
-RUN if [ `uname -p` = "aarch64" ]; then \
-    cp /usr/local/harvey/linux_arm64/bin/cpp /bin; \
-  else \
-    cp /usr/local/harvey/linux_amd64/bin/cpp /bin; \
-  fi
-
-
-WORKDIR /usr/local/harvey/sys/src/cmd
-RUN bash BUILD
-
+########################################################################
 # Build ar from 9-cc
-ARG OWNER=0intro
-ARG REPO=9-cc
-ARG BRANCH=master
-ADD https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/$BRANCH version.json
+# Do this early since it's less likely to change than the harvey repo,
+# allowing us to use the cached layers.
+ARG NINECC_OWNER=0intro
+ARG NINECC_REPO=9-cc
+ARG NINECC_BRANCH=master
+ADD https://api.github.com/repos/$NINECC_OWNER/$NINECC_REPO/git/refs/heads/$NINECC_BRANCH version.json
 RUN cd /usr/local \
-    && git clone -b $BRANCH https://github.com/$OWNER/$REPO.git
-WORKDIR /usr/local/9-cc
+    && git clone -b $NINECC_BRANCH https://github.com/$NINECC_OWNER/$NINECC_REPO.git
+ENV NINECC=/usr/local/9-cc
+WORKDIR $NINECC
 
-COPY 9-cc.patch /usr/local/9-cc/9-cc.patch
-RUN git apply /usr/local/9-cc/9-cc.patch
+COPY 9-cc.patch $NINECC/9-cc.patch
+RUN git apply $NINECC/9-cc.patch
 
 RUN if [ `uname -p` = "aarch64" ]; then \
     mkdir -p Linux/arm/bin; \
@@ -123,30 +78,9 @@ RUN if [ `uname -p` = "aarch64" ]; then \
   fi
 
 RUN mk
+RUN cp ${NINECC}/src/cmd/iar/o.out $HARVEY_LINUX_BIN/ar
 
-RUN if [ `uname -p` = "aarch64" ]; then \
-    cp src/cmd/iar/o.out /usr/local/harvey/linux_arm64/bin/ar; \
-  else \
-    cp src/cmd/iar/o.out /usr/local/harvey/linux_amd64/bin/ar; \
-  fi
+#TEMP!
+COPY BUILD_IN_DOCKER /usr/local/
 
-# Last bits of prep for harvey image to allow building inside the container
-WORKDIR /usr/local/harvey
-
-# Modify some mkfiles to handle binaries in subfolders
-# TODO not sure if this is great, since it'll alter the mkfiles in the image
-RUN sed -i 's/aux\/mklatinkbd/mklatinkbd/' sys/src/9/port/portmkfile sys/src/9k/mk/portmkfile
-RUN sed -i 's/aux\/data2s/data2s/' sys/src/9/port/mkroot sys/src/9/port/mkrootall sys/src/9k/mk/mkroot sys/src/9k/mk/mkrootall
-
-COPY bind /bin
-RUN chmod +x /bin/bind
-
-WORKDIR /usr/local/harvey/sys/src
-
-# Is this correct?
-ENV USER=root
-ENV HARVEY=/usr/local/harvey
-
-ENV PATH="${PATH}:/rc/bin"
-
-ENTRYPOINT ["bash", "RUN_BUILD_IN_PRIVATE_NAMESPACE"]
+ENTRYPOINT ["bash", "/usr/local/BUILD_IN_DOCKER"]

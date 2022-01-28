@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+TARG=va
+OFILES=\
+	y.tab.$O\
+	lex.$O\
+
+HFILES=\
+	../vc/v.out.h\
+	y.tab.h\
+	a.h\
+
+YFILES=a.y\
+
+BIN=/$objtype/bin
+< /sys/src/cmd/mkone
+YFLAGS=-D1 -d
+
+lex.$O:	../cc/macbody ../cc/lexbody ../cc/compat

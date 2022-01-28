@@ -8,7 +8,7 @@ LDFLAGS=
 YFLAGS=-d
 
 NOTSYS=sml|dup|.+\..+
-BUGGERED=unix|compress|cwfs|eqn|grap|bzip2|gs|lp|pic|postscript|spin|troff|jpg|jtagfs|ql|mp3dec
+BUGGERED=unix
 OUTOFDATE=old
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE

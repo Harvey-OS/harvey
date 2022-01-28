@@ -1,4 +1,4 @@
-.TH 9BOOT 8
+.TH NBOOT 8
 .SH NAME
 9bootfat, 9bootiso, 9bootpxe, bootia32.efi, bootx64.efi, efiboot.fat \- PC bootloader for FAT, ISO and PXE network booting
 .SH SYNOPSIS

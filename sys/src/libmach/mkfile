@@ -69,7 +69,7 @@ CFLAGS=$CFLAGS -I/sys/src/cmd
 alphaobj.$O: alpha/7.out.h
 8obj.$O: /sys/src/cmd/8c/8.out.h
 9obj.$O: 9c/9.out.h
-kobj.$O: /sys/src/cmd/kc/k.out.h
-qobj.$O: /sys/src/cmd/qc/q.out.h
+kobj.$O: kc/k.out.h
+qobj.$O: qc/q.out.h
 sparc64obj.$O: sparc64/u.out.h
-vobj.$O: /sys/src/cmd/vc/v.out.h
+vobj.$O: vc/v.out.h

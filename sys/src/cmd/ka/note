@@ -1,0 +1,274 @@
+/* load instructions */
+
+	LDSB		MOVB	x, R
+	LDSBA		MOVB	x, R, asi
+	LDSH		MOVH	x, R
+	LDSHA		MOVH	x, R, asi
+	LDUB		MOVBU	x, R
+	LDUBA		MOVBU	x, R, asi
+	LDUH		MOVHU	x, R
+	LDUHA		MOVHU	x, R, asi
+	LD		MOVW	x, R
+	LDA		MOVW	x, R, asi
+	LDD		MOVD	x, R
+	LDDA		MOVD	x, R, asi
+
+note: x is (R+R) or offset(R)
+note: MOVD is a bad name, means double word
+
+/* load floating */
+
+	LDF		MOVF	x, FR
+	LDDF		MOVD	x, FR
+	LDFSR		MOVW	x, FPSR
+
+note: MOVF maybe is MOVW
+
+/* load coprocessor */
+
+	LDC		MOVW	x, CR
+	LDDC		MOVD	x, CR
+	LDCSR		MOVW	x, CPSR
+
+/* store */
+
+	STB		MOVB	R, x
+	STBA		MOVB	R, x, asi
+	STH		MOVH	R, x
+	STHA		MOVH	R, x, asi
+	ST		MOVW	R, x
+	STA		MOVW	R, x, asi
+	STD		MOVD	R, x
+	STDA		MOVD	R, x, asi
+
+/* store floating *
+
+	STF		MOVF	FR, x
+	STDF		MOVD	FR, x
+	STFSR		MOVW	FPSR, x
+	STDFQ		MOVD	FPQ, x
+
+note: STDFQ gok
+
+/* store coprocessor */
+
+	STC		MOVW	CR, x
+	STDC		MOVD	CR, x
+	STCSR		MOVW	CPSR, x
+	STDCQ		MOVD	CPQ, x
+
+/* atomic load/store */
+
+	LDSTUB		TAS	x
+	LDSTUBA		TAS	x, asi
+
+/* swap */
+
+	SWAP		SWAP	R, x
+	SWAPA		SWAP	R, x, asi
+
+/* calc */
+
+	ADD		ADDW	y,R, R
+	ADDcc		ADDWT	y,R, R
+	ADDX		ADDC	y,R, R
+	ADDXcc		ADDCT	y,R, R
+	TADDcc
+	TADDccTV
+	SUB
+	SUBcc
+	SUBX
+	SUBXcc
+	TSUBcc
+	TSUBccTV
+	MULScc
+	AND
+	ANDcc
+	ANDN
+	ANDNcc
+	OR
+	ORcc
+	ORN
+	ORNcc
+	XOR
+	XORcc
+	XNOR
+	XNORcc
+	SLL
+	SRL
+	SRA
+
+note: y is R or $simm13
+
+/* sethi */
+
+	SETHI		MOVW	$c, R		/* high 22 bits */
+
+/* save/restore (same as add) */
+
+	SAVE		SAVE	y,R, R
+	RESTORE		RESTORE	y,R, R
+
+/* branch on cc */
+
+	BA
+	BN
+	BNE
+	BE
+	BG
+	BLE
+	BGE
+	BL
+	BGU
+	BLEU
+	BCC
+	BCS
+	BPOS
+	BNEG
+	BVC
+	BVS
+
+note: annul bit?
+
+/* branch on fcc */
+
+	FBA
+	FBN
+	FBU
+	FBG
+	FBUG
+	FBL
+	FBUL
+	FBLG
+	FBNE
+	FBE
+	FBUE
+	FBGE
+	FBUGE
+	FBLE
+	FBULE
+	FBO
+
+note: annul bit?
+
+/* branch on coprocecssor cc */
+
+	CBA
+	CBN
+	CB3
+	CB2
+	CB23
+	CB1
+	CB13
+	CB12
+	CB123
+	CB0
+	CB03
+	CB02
+	CB023
+	CB01
+	CB013
+	CB012
+
+note: annul bit?
+
+/* call */
+
+	CALL
+	JAL	x, R
+
+/* return from trap */
+
+	RETT	x
+
+/* trap on integer cc */
+
+	TA
+	TN
+	TNE
+	TE
+	TG
+	TLE
+	TGE
+	TL
+	TGU
+	TLEU
+	TCC
+	TCS
+	TPOS
+	TNEG
+	TVC
+	TVS
+
+/* read state register */
+
+	RDY		MOVW	Y, R
+	RDPSR		MOVW	PSR, R
+	RDWIM		MOVW	WIM, R
+	RDTBR		MOVW	TBR, R
+
+/* write state register */
+
+	WRY		MOVW	R, Y
+	WRPSR		MOVW	R, PSR
+	WRWIM		MOVW	R, WIM
+	WRTBR		MOVW	R, TBR
+
+/* unimplemented */
+
+	UNIMP	$C22
+
+/* instruction cache flush */
+
+	IFLUSH	x
+
+/* floating op */
+
+	FiTOs
+	FiTOd
+	FiTOx
+
+	FsTOi
+	FdTOi
+	FxTOi
+
+	FsTOd
+	FsTOx
+	FdTOs
+	FdTOx
+	FxTOs
+	FxTOd
+
+	FMOVs
+	FNEGs
+	FABSs
+
+	FSQRTs
+	FSQRTd
+	FSQRTx
+
+	FADDs
+	FADDd
+	FADDx
+	FSUBs
+	FSUBd
+	FSUBx
+
+	FMULs
+	FMULd
+	FMULx
+	FDIVs
+	FDIVd
+	FDIVx
+
+	FCMPs
+	FCMPd
+	FCMPx
+	FCMPEs
+	FCMPEd
+	FCMPEx
+
+/* coprocessor op */
+
+	CPop1
+	CPop2

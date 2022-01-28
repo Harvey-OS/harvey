@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+TARG=kl
+OFILES=\
+	asm.$O\
+	list.$O\
+	noop.$O\
+	sched.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+	compat.$O\
+
+HFILES=\
+	l.h\
+	../kc/k.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+enam.$O:	../kc/enam.c
+	$CC $CFLAGS ../kc/enam.c

@@ -41,12 +41,10 @@ LIBS=\
 
 
 CMDS=cmd\
+	nboot\
 	games\
 
-NOSUBSYS=\
-	ape\
-
-SUBSYS=\
+SUBSYS=ape\
 	/acme\
 
 none:VQ:

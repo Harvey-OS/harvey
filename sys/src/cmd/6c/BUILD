@@ -1,4 +1,3 @@
-mkdir -p ../../../../linux_amd64/bin
 rm -f *.o
 
 (cd ../cc; $PLAN9/bin/yacc -D1 -d cc.y)
@@ -52,4 +51,4 @@ rm -f *.o
 	swt.c \
 	txt.c \
 && 9l -o 6c -static -g *.o
-cp 6c ../../../../linux_amd64/bin
+cp 6c $HARVEY_LINUX_BIN

@@ -63,7 +63,16 @@ cp $build/386/9loadusb /tmp/9load
 disk/mbr -m $build/386/mbr $data
 disk/fdisk -baw $data
 disk/prep -bw -a^(9fat nvram fscfg fossil) $plan9
-disk/format -b /386/pbslba -d -r 2 $9fat /tmp/9load $build/386/9pcf $build/386/9pccpuf /tmp/plan9.ini
+disk/format -b $build/386/pbslba -d -r 2 $9fat /tmp/9load $build/386/9pcf $build/386/9pccpuf /tmp/plan9.ini
+
+# this is the guts of a:, but placed here to insulate us from changes that might be made to it.
+if(! test -f /srv/dos)
+	dossrv >/dev/null </dev/null >[2]/dev/null
+unmount /n/a >[2]/dev/null
+mount -c /srv/dos /n/a $9fat
+mkdir -p /n/a/efi/boot
+cp $build/386/*.efi /n/a/efi/boot
+unmount /n/a
 
 rm /tmp/9load
 rm /tmp/plan9.ini
