@@ -24,21 +24,7 @@ plan9=$dev/plan9
 fossil=$dev/fossil
 
 {
-	echo [menu]
-	echo menuitem'='cpu, Plan 9 CPU Kernel
-	echo menuitem'='terminal, Plan 9 Terminal Kernel
-	echo menuitem'='manual, Manual
-	echo menudefault'='terminal, 10
-	echo
-	echo [cpu]
-	echo bootfile'='sdB0!9fat!9pccpuf
-	echo
-	echo [terminal]
 	echo bootfile'='sdB0!9fat!9pcf
-	echo
-	echo [manual]
-	echo
-	echo [common]
 	echo nobootprompt'='local!$dev/fossil
 	echo
 	echo nvram'='$dev/nvram
@@ -58,12 +44,10 @@ dd -if /dev/zero -of $disk -bs 8192 -count $size
 chmod +t $disk
 disk/partfs $disk
 
-cp $build/386/9loadusb /tmp/9load
-
 disk/mbr -m $build/386/mbr $data
 disk/fdisk -baw $data
-disk/prep -bw -a^(9fat nvram fscfg fossil) $plan9
-disk/format -b $build/386/pbslba -d -r 2 $9fat /tmp/9load $build/386/9pcf $build/386/9pccpuf /tmp/plan9.ini
+disk/prep -bw -a^(9fat nvram fossil) $plan9
+disk/format -b $build/386/pbs -d -r 2 $9fat $build/386/9bootfat $build/386/9pcf $build/386/9pccpuf /tmp/plan9.ini
 
 # this is the guts of a:, but placed here to insulate us from changes that might be made to it.
 if(! test -f /srv/dos)

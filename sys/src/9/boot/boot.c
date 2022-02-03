@@ -76,23 +76,6 @@ debuginit(int argc, char **argv)
 }
 
 /*
- * read disk partition tables here so that readnvram via factotum
- * can see them.  ideally we would have this information in
- * environment variables before attaching #S, which would then
- * parse them and create partitions.
- */
-static void
-partinit(void)
-{
-	char *rdparts;
-
-	rdparts = getenv("readparts");
-	if(rdparts)
-		readparts();
-	free(rdparts);
-}
-
-/*
  *  pick a method and initialize it
  */
 static Method *
@@ -273,7 +256,7 @@ boot(int argc, char *argv[])
 	dprint("bind #S...");
 	bind("#S", "/dev", MAFTER);	/* nvram could be here */
 	dprint("partinit...");
-	partinit();
+	readparts();
 
 	doauth(cpuflag);	/* authentication usually changes hostowner */
 	rfork(RFNAMEG);		/* leave existing subprocs in own namespace */
