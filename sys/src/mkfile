@@ -69,7 +69,7 @@ release:V:
 	mk clean
 
 kernels:V:
-	for (i in 9 boot) @{
+	for (i in 9) @{
 		cd $i
 		mk clean
 		mk install

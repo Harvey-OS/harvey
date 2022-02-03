@@ -15,7 +15,7 @@ all:V:
 	}
 	# build pc boots last
 	@{ cd pc; mk clean }
-	@{ cd pcboot; mk }
+	#@{ cd pcboot; mk }
 pcboot:V:
 	@{ cd pc; mk clean }
 	@{ cd pcboot; mk }
