@@ -162,5 +162,5 @@ cd /sys/src/cmd && mk nuke
 
 # man
 
-cd /sys/lib/man/lookman && mk index
-cd /sys/man && mk
+#cd /sys/lib/man/lookman && mk index
+#cd /sys/man && mk
