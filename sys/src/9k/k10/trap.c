@@ -540,7 +540,7 @@ faultgpf(Ureg* ureg, void*)
 
 	if (userureg(ureg)) {
 		spllo();
-		snprint(buf, sizeof buf, "sys: trap: %s", excname[VectorGPF]);
+		snprint(buf, sizeof buf, "sys: trap: %s", excname[IdtGP]);
 		postnote(up, 1, buf, NDebug);
 		return;
 	}
