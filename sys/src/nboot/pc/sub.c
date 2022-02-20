@@ -424,6 +424,8 @@ uartconf(char *s)
 	if(*s >= '0' && *s <= '3'){
 		uart = *s - '0';
 		uartinit(uart, (7<<5) | 3);	/* b9660 l8 s1 */
+	} else if(*s >= 'A' && *s <= 'D'){
+		uart = *s - 'A';
 	} else
 		uart = -1;
 }
