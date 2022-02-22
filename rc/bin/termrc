@@ -76,10 +76,10 @@ if(~ $mouseport ask){
 		mouseport=ps2
 }
 if(~ $vgasize ask){
-	echo -n 'vgasize [1280x1024x32]: '
+	echo -n 'vgasize [1024x768x32]: '
 	vgasize=`{read}
 	if(~ $#vgasize 0)
-		vgasize=1280x1024x32
+		vgasize=1024x768x32
 }
 if(~ $monitor ask){
 	echo -n 'monitor is [vesa]: '
