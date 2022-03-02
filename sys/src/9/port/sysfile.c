@@ -986,7 +986,7 @@ syschdir(ulong *arg)
 }
 
 long
-bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char* spec)
+bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char* spec, int dc)
 {
 	int ret;
 	Chan *c0, *c1, *ac, *bc;
@@ -1027,7 +1027,10 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		bogus.chan = bc;
 		bogus.authchan = ac;
 		bogus.spec = spec;
-		ret = devno('M', 0);
+		ret = devno(dc, 1);
+		if (ret < 0) {
+			error("bindmount: bad devno");
+		}
 		c0 = devtab[ret]->attach((char*)&bogus);
 		poperror();	/* ac bc */
 		if(ac)
@@ -1068,19 +1071,25 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 long
 sysbind(ulong *arg)
 {
-	return bindmount(0, -1, -1, (char*)arg[0], (char*)arg[1], arg[2], nil);
+	return bindmount(0, -1, -1, (char*)arg[0], (char*)arg[1], arg[2], nil, 'M');
 }
 
 long
 sysmount(ulong *arg)
 {
-	return bindmount(1, arg[0], arg[1], nil, (char*)arg[2], arg[3], (char*)arg[4]);
+	return bindmount(1, arg[0], arg[1], nil, (char*)arg[2], arg[3], (char*)arg[4], 'M');
+}
+
+long
+sysnmount(ulong *arg)
+{
+	return bindmount(1, arg[0], arg[1], nil, (char*)arg[2], arg[3], (char*)arg[4], (int)arg[5]);
 }
 
 long
 sys_mount(ulong *arg)
 {
-	return bindmount(1, arg[0], -1, nil, (char*)arg[1], arg[2], (char*)arg[3]);
+	return bindmount(1, arg[0], -1, nil, (char*)arg[1], arg[2], (char*)arg[3], 'M');
 }
 
 long

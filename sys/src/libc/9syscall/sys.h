@@ -50,3 +50,4 @@
 #define	PWRITE		51
 #define	TSEMACQUIRE	52
 #define NSEC		53
+#define NMOUNT		54

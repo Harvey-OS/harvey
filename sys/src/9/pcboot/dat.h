@@ -24,7 +24,7 @@ typedef struct Vctl	Vctl;
 #pragma incomplete Pcidev
 #pragma incomplete Ureg
 
-#define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
+#define MAXSYSARG	6	/* for nmount(fd, afd, mpt, flag, arg, dc) */
 
 /*
  * Where configuration info is left for the loaded programme.

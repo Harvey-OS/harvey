@@ -27,7 +27,7 @@ typedef struct Vctl	Vctl;
 #pragma incomplete Pcidev
 #pragma incomplete Ureg
 
-#define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
+#define MAXSYSARG	6	/* for nmount(fd, afd, mpt, flag, arg, dc) */
 
 #define KMESGSIZE (256*1024)	/* lots, for acpi debugging */
 #define STAGESIZE 2048
