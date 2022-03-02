@@ -24,7 +24,7 @@ typedef struct Vctl Vctl;
 
 #pragma incomplete Ureg
 
-#define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
+#define MAXSYSARG	6	/* for nmount(fd, afd, mpt, flag, arg, dc) */
 
 /*
  *  parameters for sysproc.c

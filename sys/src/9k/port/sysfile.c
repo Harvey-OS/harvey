@@ -1077,7 +1077,7 @@ syschdir(Ar0* ar0, va_list list)
 }
 
 static int
-bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
+bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, int flag, char* spec, int devno)
 {
 	int i;
 	Dev *dev;
@@ -1124,7 +1124,10 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, int flag, char* 
 			nexterror();
 		}
 
-		dev = devtabget('M', 0);		//XDYNX
+		dev = devtabget(devno, 1);		//XDYNX
+		if (dev == nil) {
+			error("bindmount: bad devno");
+		}
 		if(waserror()){
 			//devtabdecr(dev);
 			nexterror();
@@ -1182,7 +1185,7 @@ sysbind(Ar0* ar0, va_list list)
 	old = va_arg(list, char*);
 	flag = va_arg(list, int);
 
-	ar0->i = bindmount(0, -1, -1, name, old, flag, nil);
+	ar0->i = bindmount(0, -1, -1, name, old, flag, nil, 'M');
 }
 
 void
@@ -1202,7 +1205,29 @@ sysmount(Ar0* ar0, va_list list)
 	flag = va_arg(list, int);
 	aname = va_arg(list, char*);
 
-	ar0->i = bindmount(1, fd, afd, nil, old, flag, aname);
+	ar0->i = bindmount(1, fd, afd, nil, old, flag, aname, 'M');
+}
+
+void
+sysnmount(Ar0* ar0, va_list list)
+{
+	int afd, fd, flag;
+	char *aname, *old;
+	int dev;
+
+	/*
+	 * int nmount(int fd, int afd, char* old, int flag, char* aname, int dev);
+	 * should be
+	 * long nmount(int fd, int afd, char* old, int flag, char* aname, int dev);
+	 */
+	fd = va_arg(list, int);
+	afd = va_arg(list, int);
+	old = va_arg(list, char*);
+	flag = va_arg(list, int);
+	aname = va_arg(list, char*);
+	dev = va_arg(list, int);
+
+	ar0->i = bindmount(1, fd, afd, nil, old, flag, aname, dev);
 }
 
 void
@@ -1223,7 +1248,7 @@ sys_mount(Ar0* ar0, va_list list)
 	flag = va_arg(list, int);
 	aname = va_arg(list, char*);
 
-	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
+	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname, 'M');
 }
 
 void

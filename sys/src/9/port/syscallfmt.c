@@ -274,6 +274,19 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
+	case NMOUNT:
+		i[0] = va_arg(list, int);
+		i[1] = va_arg(list, int);
+		fmtprint(&fmt, "%d %d ", i[0], i[1]);
+		a = va_arg(list, char*);
+		fmtuserstring(&fmt, a, " ");
+		i[0] = va_arg(list, int);
+		fmtprint(&fmt, "%#ux ", i[0]);
+		a = va_arg(list, char*);
+		fmtuserstring(&fmt, a, "");
+		i[0] = va_arg(list, int);
+		fmtprint(&fmt, "%d", i[0]);
+		break;
 	case _READ:					/* deprecated */
 	case PREAD:
 		i[0] = va_arg(list, int);

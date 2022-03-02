@@ -32,6 +32,7 @@ char *sysctab[]={
 	[_FSTAT]		"_fstat",
 	[SEGBRK]		"Segbrk",
 	[MOUNT]		"Mount",
+	[NMOUNT]	"Nmount",
 	[OPEN]		"Open",
 	[_READ]		"_Read",
 	[OSEEK]		"Oseek",

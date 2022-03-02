@@ -17,7 +17,7 @@ typedef long		Tval;
 
 #pragma incomplete Ureg
 
-#define MAXSYSARG	5	/* for mount(fd, mpt, flag, arg, srv) */
+#define MAXSYSARG	6	/* for nmount(fd, mpt, flag, arg, srv, dc) */
 
 /*
  *  parameters for sysproc.c

@@ -159,6 +159,7 @@ char *sysctab[]={
 	[WSTAT]		"Wstat",
 	[FWSTAT]	"Fwstat",
 	[MOUNT]		"Mount",
+	[NMOUNT]	"Nmount",
 	[AWAIT]		"Await",
 	[PREAD]		"Pread",
 	[PWRITE]	"Pwrite",
