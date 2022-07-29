@@ -99,7 +99,7 @@ struct DESstate
 
 void	setupDESstate(DESstate *s, u8 key[8], u8 *ivec);
 void	des_key_setup(u8[8], u32[32]);
-void	block_cipher(u32*, u8*, int);
+void	block_cipher(u32[32], u8[8], int);
 void	desCBCencrypt(u8*, int, DESstate*);
 void	desCBCdecrypt(u8*, int, DESstate*);
 void	desECBencrypt(u8*, int, DESstate*);
@@ -130,7 +130,7 @@ struct DES3state
 };
 
 void	setupDES3state(DES3state *s, u8 key[3][8], u8 *ivec);
-void	triple_block_cipher(u32 keys[3][32], u8*, int);
+void	triple_block_cipher(u32 keys[3][32], u8[8], int);
 void	des3CBCencrypt(u8*, int, DES3state*);
 void	des3CBCdecrypt(u8*, int, DES3state*);
 void	des3ECBencrypt(u8*, int, DES3state*);

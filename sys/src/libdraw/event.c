@@ -455,6 +455,8 @@ esetcursor(Cursor *c)
 {
 	u8 curs[2*4+2*2*16];
 
+	memset(curs, 0, sizeof(curs));
+
 	if(c == 0)
 		write(cursorfd, curs, 0);
 	else{

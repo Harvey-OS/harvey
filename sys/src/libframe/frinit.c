@@ -15,7 +15,7 @@
 #include <frame.h>
 
 void
-frinit(Frame *f, Rectangle r, Font *ft, Image *b, Image *cols[NCOL])
+frinit(Frame *f, Rectangle r, Font *ft, Image *b, Image **cols/*[NCOL]*/)
 {
 	f->font = ft;
 	f->display = b->display;

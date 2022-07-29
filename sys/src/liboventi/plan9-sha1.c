@@ -53,7 +53,7 @@ vtSha1Update(VtSha1 *s, u8 *p, int len)
 }
 
 void
-vtSha1Final(VtSha1 *s, u8 *digest)
+vtSha1Final(VtSha1 *s, u8 digest[VtScoreSize])
 {
 	sha1(nil, 0, digest, s->s);
 	s->s = nil;

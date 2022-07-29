@@ -41,7 +41,7 @@ allprint(int c)
 			fprintf(yyout,"\\%-3o",c);
 		else
 			c = putc(c,yyout);
-			USED(c);
+		USED(c);
 		break;
 	}
 	return;

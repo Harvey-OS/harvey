@@ -380,7 +380,7 @@ keycompperm(u32 left, u32 right, u32 *ek)
 }
 
 void
-des_key_setup(u8 key[8], u32 *ek)
+des_key_setup(u8 key[8], u32 ek[32])
 {
 	u32 left, right, v0, v1;
 
@@ -482,7 +482,7 @@ des64to56(u8 *k64, u8 *k56)
 }
 
 void
-key_setup(u8 key[7], u32 *ek)
+key_setup(u8 key[7], u32 ek[32])
 {
 	u8 k64[8];
 

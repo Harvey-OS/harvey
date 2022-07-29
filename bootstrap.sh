@@ -7,21 +7,20 @@ export GOBIN=$(pwd)/$HOSTBIN
 echo GOBIN is now $GOBIN
 
 echo Building harvey-os.org commands into $HOSTBIN
-GO111MODULE=off go get -d -u harvey-os.org/cmd/...
-GO111MODULE=off go install harvey-os.org/cmd/build
-GO111MODULE=off go install harvey-os.org/cmd/elf2c
-GO111MODULE=off go install harvey-os.org/cmd/mksys
-GO111MODULE=off go install harvey-os.org/cmd/data2c
-GO111MODULE=off go install harvey-os.org/cmd/qtap
+go install harvey-os.org/cmd/build@latest
+go install harvey-os.org/cmd/elf2c@latest
+go install harvey-os.org/cmd/mksys@latest
+go install harvey-os.org/cmd/data2c@latest
+go install harvey-os.org/cmd/qtap@latest
 echo 'Can not build ... until ipfs gets fixed :-('
-echo GO111MODULE=off go install harvey-os.org/cmd/...
+#echo go install harvey-os.org/cmd/...
 
-echo Building u-root into $HOSTBIN
+#echo Building u-root into $HOSTBIN
 # Download u-root sources into $GOPATH because that's what u-root expects.
 # See https://github.com/u-root/u-root/issues/805
 # and https://github.com/u-root/u-root/issues/583
-GO111MODULE=off go get -d -u github.com/u-root/u-root
-GO111MODULE=off go install github.com/u-root/u-root
+#go get -d -u github.com/u-root/u-root
+#go install github.com/u-root/u-root@latest
 
 # this will make booting a VM easier
 mkdir -p tmp
@@ -43,7 +42,4 @@ or to run in terminal mode:
 
 To netboot, follow the instructions here: https://github.com/Harvey-OS/harvey/wiki/Booting-Harvey-on-real-hardware-I-(TFTP)
 
-You may want to run the following to get APEX installed:
-
-	OS=linux ARCH=amd64 CC=gcc sh getapex.sh
 EOF

@@ -143,6 +143,7 @@ setcursor(Mousectl *mc, Cursor *c)
 {
 	char curs[2*4+2*2*16];
 
+	memset(curs, 0, sizeof(curs));
 	if(c == nil)
 		write(mc->cfd, curs, 0);
 	else{

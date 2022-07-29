@@ -412,7 +412,7 @@ SHA256_Last(SHA256Ctx *context)
 }
 
 void
-SHA256_Final(u8 digest[], SHA256Ctx *context)
+SHA256_Final(u8 digest[SHA256DigestLength], SHA256Ctx *context)
 {
 	/* If no digest buffer is passed, we don't bother doing this: */
 	if (digest != nil)
@@ -627,7 +627,7 @@ SHA512_Last(SHA512Ctx *context)
 }
 
 void
-SHA512_Final(u8 digest[], SHA512Ctx *context)
+SHA512_Final(u8 digest[SHA512DigestLength], SHA512Ctx *context)
 {
 	/* If no digest buffer is passed, we don't bother doing this: */
 	if (digest != nil)
@@ -661,7 +661,7 @@ SHA384_Update(SHA384Ctx *context, const u8 *data, usize len)
 }
 
 void
-SHA384_Final(u8 digest[], SHA384Ctx *context)
+SHA384_Final(u8 digest[SHA384DigestLength], SHA384Ctx *context)
 {
 	/* If no digest buffer is passed, we don't bother doing this: */
 	if (digest != nil)
@@ -694,7 +694,7 @@ SHA224_Update(SHA224Ctx *context, const u8 *data, usize len)
 }
 
 void
-SHA224_Final(u8 digest[], SHA224Ctx *context)
+SHA224_Final(u8 digest[SHA224DigestLength], SHA224Ctx *context)
 {
 	/* If no digest buffer is passed, we don't bother doing this: */
 	if (digest != nil)
