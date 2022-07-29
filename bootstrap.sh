@@ -33,6 +33,10 @@ To build for x86_64 (CC=clang is also supported):
   export HARVEY=$(pwd)
   PATH=\$PATH:\$HARVEY/$HOSTBIN CC=gcc ARCH=amd64 build
 
+To build for riscv (does not work at present): 
+  export HARVEY=$(pwd)
+  TOOLPREFIX=riscv64-linux-gnu- CC=gcc ARCH=riscv build
+
 To enable access to files, create a harvey and none user (none is only required for drawterm/cpu access):
   sudo useradd harvey
   sudo useradd none
