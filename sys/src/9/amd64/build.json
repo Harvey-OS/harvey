@@ -102,7 +102,6 @@
 				"ed": "/$ARCH/bin/ed",
 				"factotum": "/$ARCH/bin/auth/factotum",
 				"fdisk": "/$ARCH/bin/disk/fdisk",
-				"fossil": "/$ARCH/bin/fossil/fossil",
 				"grep": "/$ARCH/bin/grep",
 				"ipconfig": "/$ARCH/bin/ip/ipconfig",
 				"irq": "/$ARCH/bin/acpi/irq",
@@ -115,13 +114,11 @@
 				"ratrace": "/$ARCH/bin/ratrace",
 				"rc": "/$ARCH/bin/rc",
 				"rcmain": "/rc/lib/rcmain",
-				"realemu": "/$ARCH/bin/aux/realemu",
 				"sed": "/$ARCH/bin/sed",
 				"srv": "/$ARCH/bin/srv",
 				"startdisk": "startdisk",
 				"urootrc": "/rc/bin/urootrc",
 				"usbd": "/$ARCH/bin/usb/usbd",
-				"venti": "/$ARCH/bin/venti/venti",
 				"vga": "/$ARCH/bin/aux/vga"
 			},
 			"Systab": "/sys/src/libc/9syscall/sys.h"
