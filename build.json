@@ -10,7 +10,6 @@
 
 			"/sys/src/regress",
 
-			"/acme/build.json",
 			"/sys/src/games/games.json"
 		]
 	}
