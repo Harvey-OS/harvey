@@ -7,8 +7,6 @@
 		],
 		"Install": "/$ARCH/bin/aux",
 		"Projects": [
-			"realemu/realemu.json",
-			"realemu/loadcom.json",
 			"vga/vga.json"
 		],
 		"SourceFilesCmd": [

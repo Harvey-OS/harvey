@@ -41,7 +41,6 @@
 			"exportfs/exportfs.json",
 			"ext2srv/build.json",
 			"faces/build.json",
-			"fossil/fossil.json",
 			"gdbserver/build.json",
 			"graph/build.json",
 			"grep/grep.json",
@@ -52,7 +51,6 @@
 			"iozone/fileop.json",
 			"ip/ip.json",
 			"jay/jay.json",
-			"jpg/build.json",
 			"lex/build.json",
 			"map/build.json",
 			"ndb/ndb.json",
@@ -73,11 +71,8 @@
 			"tbl/build.json",
 			"troff2html/build.json",
 			"units/build.json",
-			"usb/build.json",
 			"vac/build.json",
-			"venti/venti.json",
-			"vnc/build.json",
-			"zenith/build.json"
+			"vnc/build.json"
 		]
 	}
 ]
