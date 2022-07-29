@@ -7,11 +7,13 @@ export GOBIN=$(pwd)/$HOSTBIN
 echo GOBIN is now $GOBIN
 
 echo Building harvey-os.org commands into $HOSTBIN
-go install harvey-os.org/cmd/build@latest
-go install harvey-os.org/cmd/elf2c@latest
-go install harvey-os.org/cmd/mksys@latest
-go install harvey-os.org/cmd/data2c@latest
-go install harvey-os.org/cmd/qtap@latest
+echo actually this will not work. You can thank go modules any time.
+echo so get these commands yourself.
+echo go install harvey-os.org/cmd/build@latest
+echo go install harvey-os.org/cmd/elf2c@latest
+echo go install harvey-os.org/cmd/mksys@latest
+echo go install harvey-os.org/cmd/data2c@latest
+echo go install harvey-os.org/cmd/qtap@latest
 echo 'Can not build ... until ipfs gets fixed :-('
 #echo go install harvey-os.org/cmd/...
 
